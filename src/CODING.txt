@@ -80,6 +80,77 @@ This is actually consequential; the current teem/python/ctypes/teem-gen.py
 (automated ctypes wrapper generator) will skip over "#  defines" and only
 reflect the setting of "#defines" in the python interface.
 
+============ Libraries 
+
+* Teem is organized as a set of libraries (current 23 of them), with a
+well-defined dependency order.  New libraries are carefully placed
+within this ordering.
+
+* The "air" library is used by all other libraries, and
+is the source for low-level utility (e.e. airEnum, airArray) and math
+(e.g. airErf, airBesselI0) functions.
+
+* The "meet" library depends on all other libraries, is the place for
+functions that provide a uniform interface for things spread across
+different libraries (e.g meetGageKindParse, which parses strings to a
+gageKind*)
+
+* In any place where you have list all Teem libraries (which might happen
+in make files, documentation, symbol enumeration, etc), then always include
+the word "TEEM_LIB_LIST" nearby (to facilitate consistent maintenance),
+and always list the libraries in this dependency order (or its opposite):
+
+  air hest biff nrrd ell unrrdu alan moss tijk gage dye bane
+  limn echo hoover seek ten elf pull coil push mite meet
+
+* All libraries "lib" contain a const int "libPresent", defined in one
+of the first .c files the header refers to (which .c is not fixed). 
+The presence of this symbol provides a way to test which libraries
+are part of a given Teem shared library.  Tradition dictates that the
+libPresent variable is set to 42, but this is not necessary.
+
+* Every library's .h file has a LIB_EXPORT macro which serves the
+purpose of "extern" in a normal C header, but which also handles the
+Windows __declspec weirdness.  These must be used and used
+consistently.
+
+* air.h supplies TEEM_VERSION #defines that allow other software to
+know what version of Teem a given install is supplying.  These need to
+be updated with each release and patch.  Also, air/miscAir.c supplies
+const strings airTeemVersion (which is just set to
+TEEM_VERSION_STRING), and airTeemReleaseDate; airTeemReleaseDate has
+to be updated upon release or patch.  The "meet" library would be a
+more logical place for all these, but that would complicate their use
+in NrrdIO ("meet" is not part of NrrdIO).
+
+* New libraries should be added only when it is abundantly obvious
+that no existing library can contain the intended functionality.  By
+convention adopted in 2002, all Teem library names must be a WORD, not
+an acronym.  The language of the word need not be English (e.g. tijk,
+Dutch for ticking, the fabric of pillow and mattress covering)
+
+============ NrrdIO
+
+* NrrdIO is a stand-alone library for reading and writing NRRD files,
+for those programs that don't want or need all of Teem, but need NRRD
+IO functionality.
+
+* NrrdIO is a library in Teem; is created from a Teem source tree by
+means of some scripts (which are part of the NrrdIO distribution). To
+facilitate that transformation, there are some special comments that delimit
+code sections and particular lines.  These appear only the air, biff,
+and nrrd libraries; these are the source of all the NrrdIO source.
+Sections of code *not* needed for NrrdIO (in files that do supply other
+things needed for NrrdIO) are delimited by:
+/* ---- BEGIN non-NrrdIO */
+/* ---- END non-NrrdIO */
+Special lines that need different processing are tagged with
+/* NrrdIO-hack-001 */
+/* NrrdIO-hack-002 */
+...
+Respecting the placement and content of these comments is not important
+for Teem itself, but is essential for regenerating NrrdIO.
+
 ============ Identifiers and their suffixes
 
 * All public symbols (functions and globals) must begin with "lib" or
@@ -89,10 +160,6 @@ TEEM_VERSION #defines described below).  The leading underscore should only
 be used in exceptional circumstances, where there is compelling value in
 making accessible in the API some additional functionality or set of
 function arguments that would otherwise be hidden inside an implementation.
-
-* Every library has a LIB_EXPORT macro which serves the purpose of
-"extern" in a normal C header, but which also handles the Windows
-__declspec weirdness.  These must be used and used consistently.
 
 * In most libraries, function names, struct names, enum value names,
 and variables are in camel case, starting with a lower-case letter
@@ -171,13 +238,6 @@ Static functions can use whatever name they want.
 * "parm" means "parameter", "parms" means "parameters"
 
 ============ Practices to keep Teem coherent and effective
-
-* air.h supplies TEEM_VERSION #defines that allow other software to know
-what version of Teem a given install is supplying.  These need to be
-updated with each release and patch.  Also, air/miscAir.c supplies const
-strings airTeemVersion (which is just set to TEEM_VERSION_STRING), and
-airTeemReleaseDate; airTeemReleaseDate has to be updated upon release or
-patch
 
 * Use AIR_CAST to cast things. The only exceptions are casting
 things to airMopper to pass to airMopAdd(), and casting to void** to
@@ -290,51 +350,21 @@ with the main purpose of the function.  Think of these as asserts() but
 more graceful and more informative.  It not a problem for the error
 checking to take up more space than the core functionality.
 
-* In any place where you have list all Teem libraries (which might happen
-in make files, documentation, symbol enumeration, etc), then always include
-the word "TEEM_LIB_LIST" nearby (to facilitate consistent maintenance),
-and always list the libraries in this dependency order (or its opposite):
-
-  air hest biff nrrd ell unrrdu alan moss tijk gage dye bane
-  limn echo hoover seek ten elf pull coil push mite meet
-
-* All libraries "lib" contain a const int "libPresent", defined in one
-of the first .c files the header refers to (which .c is not fixed). 
-The presence of this symbol provides a way to test which libraries
-are part of a given Teem shared library.  Tradition dictates that the
-libPresent variable is set to 42, but this is not necessary.
-
 * Teem uses size_t-type variables quite a bit, and also ptrdiff_t (at
 least in nrrdPad_nva and nrrdPad_va).  Sometimes these values have to
 passed {s,f,}printf, but ANSI C has no "format specifiers" for that
-(as with %d for int, %u for unsigned int).  Teem has used macros
-_AIR_SIZE_T_CNV and _AIR_PTRDIFF_T_CNV for this, but setting these is
-a complicated compile-time task that is completely
-architecture-dependent, and which also relied on TEEM_32BIT, which
-has been removed. Ultimately, the nicest thing to do (but which
-will require significant work) would be to re-implement {s,f,}printf
-(or copy an implementation with suitable licensing).  Until then, we
-use airSprintSize_t and airSprintPtrdiff_t to sprint a single size_t
-or ptrdiff_t variable to a buffer string (typically char
+(as with %d for int, %u for unsigned int).  Teem has previously used
+macros _AIR_SIZE_T_CNV and _AIR_PTRDIFF_T_CNV for this, but setting
+these is a complicated compile-time task that is completely
+architecture-dependent, and which also relied on TEEM_32BIT, which has
+been removed. Ultimately, the nicest thing to do (but which will
+require significant work) would be to re-implement {s,f,}printf (or
+copy an implementation with suitable licensing).  Until then, we use
+airSprintSize_t and airSprintPtrdiff_t to sprint a single size_t or
+ptrdiff_t variable to a buffer string (typically char
 stmp[AIR_STRLEN_SMALL]) which is then handled via %s.  This is
-admittedly clumsy; it will be one of the first things to be fixed in
-Teem 2.0.
-
-* The stand-alone NrrdIO library for reading and writing NRRD files is
-created by automatic means from the Teem source tree.  To facilitate
-that transformation, there are some special comments that delimit
-code sections and particular lines.  These appear only the air, biff,
-and nrrd libraries; these are the source of all the NrrdIO source.
-Sections of code *not* needed for NrrdIO (in files that do supply other
-things needed for NrrdIO) are delimited by:
-/* ---- BEGIN non-NrrdIO */
-/* ---- END non-NrrdIO */
-Special lines that need different processing are tagged with
-/* NrrdIO-hack-001 */
-/* NrrdIO-hack-002 */
-...
-Respecting the placement and content of these comments is not important
-for Teem itself, but is essential for regenerating NrrdIO.
+admittedly clumsy; it will hopefully be one of the first things to fix
+in Teem 2.0.
 
 ============ Other coding practices
 
@@ -369,12 +399,6 @@ can do the right thing.
 
 * If a pointer should be initialized to NULL, then set it to NULL; Don't
 assume that a pointer in a struct will be NULL following a calloc.
-
-* New libraries should be added only when it is abundantly obvious
-that no existing library can contain the intended functionality.  By
-convention adopted in 2002, all Teem library names must be a WORD, not
-an acronym.  The language of the word need not be English (e.g. tijk,
-Dutch for ticking, the fabric of pillow and mattress covering)
 
 * Parts of the GNU style (http://www.gnu.org/prep/standards.html) which 
 have been more or less followed in Teem:
