@@ -121,12 +121,20 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
              me, airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
-  if (rescale && !(range
-                   && AIR_EXISTS(range->min) 
-                   && AIR_EXISTS(range->max))) {
-    biffAddf(NRRD, "%s: want rescaling but didn't get a range, or "
-             "not both range->{min,max} exist", me);
-    return 1;
+  if (rescale) {
+    if (!range) {
+      biffAddf(NRRD, "%s: want rescaling but didn't get a range", me);
+      return 1;
+    } 
+    if (!( AIR_EXISTS(range->min) && AIR_EXISTS(range->max) )) {
+      biffAddf(NRRD, "%s: want rescaling but not both "
+               "range->{min,max} %g %g exist", me, range->min, range->max);
+      return 1;
+    }
+    /* HEY: consider adding an error check for range->min == range->max
+       here; the code below now guards 
+       AIR_AFFINE(range->min, val, range->max, domMin, domMax)
+       against producing NaNs, but maybe that's too clever */
   }
   if (kindLut == kind || kindRmap == kind) {
     if (!multi) {
@@ -325,7 +333,9 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
       fprintf(stderr, "##%s: val = \na% 31.15f --> ", me, val);
       ... */
       if (rescale) {
-        val = AIR_AFFINE(range->min, val, range->max, domMin, domMax);
+        val = (range->min != range->max
+               ? AIR_AFFINE(range->min, val, range->max, domMin, domMax)
+               : domMin);
         /* ...
         fprintf(stderr, "\nb% 31.15f (min,max = %g,%g)--> ", val,
                 range->min, range->max);
@@ -376,7 +386,9 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     for (I=0; I<N; I++) {
       val = inLoad(inData);
       if (rescale) {
-        val = AIR_AFFINE(range->min, val, range->max, domMin, domMax);
+        val = (range->min != range->max
+               ? AIR_AFFINE(range->min, val, range->max, domMin, domMax)
+               : domMin);
       }
       if (AIR_EXISTS(val)) {
         mapIdx = airIndexClamp(domMin, val, domMax, mapLen);
@@ -439,9 +451,9 @@ nrrdApply1DLut(Nrrd *nout, const Nrrd *nin,
   }
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   if (_nrrdApply1DSetUp(nout, nin, range, nlut, kindLut, typeOut,
-                        rescale, AIR_FALSE)
-      || _nrrdApply1DLutOrRegMap(nout, nin, range, nlut, AIR_FALSE,
-                                 rescale, AIR_FALSE)) {
+                        rescale, AIR_FALSE /* multi */)
+      || _nrrdApply1DLutOrRegMap(nout, nin, range, nlut, AIR_FALSE /* ramps */,
+                                 rescale, AIR_FALSE /* multi */)) {
     biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
@@ -470,9 +482,10 @@ nrrdApplyMulti1DLut(Nrrd *nout, const Nrrd *nin,
   }
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   if (_nrrdApply1DSetUp(nout, nin, range, nmlut, kindLut, typeOut,
-                        rescale, AIR_TRUE)
-      || _nrrdApply1DLutOrRegMap(nout, nin, range, nmlut, AIR_FALSE,
-                                 rescale, AIR_TRUE)) {
+                        rescale, AIR_TRUE /* multi */)
+      || _nrrdApply1DLutOrRegMap(nout, nin, range, nmlut,
+                                 AIR_FALSE /* ramps */,
+                                 rescale, AIR_TRUE /* multi */)) {
     biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
@@ -485,22 +498,8 @@ nrrdApplyMulti1DLut(Nrrd *nout, const Nrrd *nin,
 **
 ** A regular map has data points evenly spaced, with node-centering and
 ** and linear interpolation assumed.  As with luts, the axis min and
-** max determine the range of values that are mapped.  Previously, the
-** intent was to allow interpolation with an arbitrary kernel, but
-** that would be complicated to generalize to N-D.  Also, for the 
-** foreseeable future, this function is to be used by nrrdHistoEq() and
-** nothing else in Teem, so the need for higher-order filtering is not
-** accute.  Besides, it probably belongs in another library anyway.
-**
-** On second thought, eliminating arbitrary interpolation makes the
-** existance of this function a little less motivated, given that it
-** is a special case of nrrdApply1DIrregMap().  It should be faster,
-** though, because there is no index search.
-**
-** NOTE: comments in the preceding paragraphs were made in ancient times-
-** this function is the basis of the very popular "unu rmap", and this
-** function's existance is indeed perfectly well motivated, regardless
-** of the lack of arbitrary reconstruction.
+** max determine the range of values that are mapped.  This function
+** is used in nrrdHistoEq() and is the basis of the very popular "unu rmap".
 **
 ** If the lut nrrd is 1-D, then the output is a scalar nrrd with the
 ** same dimension as the input.  If the lut nrrd is 2-D, then each
@@ -533,9 +532,9 @@ nrrdApply1DRegMap(Nrrd *nout, const Nrrd *nin,
   }
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   if (_nrrdApply1DSetUp(nout, nin, range, nmap, kindRmap, typeOut,
-                        rescale, AIR_FALSE)
-      || _nrrdApply1DLutOrRegMap(nout, nin, range, nmap, AIR_TRUE,
-                                 rescale, AIR_FALSE)) {
+                        rescale, AIR_FALSE /* multi */)
+      || _nrrdApply1DLutOrRegMap(nout, nin, range, nmap, AIR_TRUE /* ramps */,
+                                 rescale, AIR_FALSE /* multi */)) {
     biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
@@ -564,9 +563,9 @@ nrrdApplyMulti1DRegMap(Nrrd *nout, const Nrrd *nin,
   }
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   if (_nrrdApply1DSetUp(nout, nin, range, nmmap, kindRmap, typeOut,
-                        rescale, AIR_TRUE)
-      || _nrrdApply1DLutOrRegMap(nout, nin, range, nmmap, AIR_TRUE,
-                                 rescale, AIR_TRUE)) {
+                        rescale, AIR_TRUE /* multi */)
+      || _nrrdApply1DLutOrRegMap(nout, nin, range, nmmap, AIR_TRUE /* ramps */,
+                                 rescale, AIR_TRUE /* multi */)) {
     biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
@@ -905,7 +904,7 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   }
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   if (_nrrdApply1DSetUp(nout, nin, range, nmap,
-                        kindImap, typeOut, rescale, AIR_FALSE)) {
+                        kindImap, typeOut, rescale, AIR_FALSE /* multi */)) {
     biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
@@ -988,7 +987,9 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     } else {
       /* we have an existent value */
       if (rescale) {
-        val = AIR_AFFINE(range->min, val, range->max, domMin, domMax);
+        val = (range->min != range->max
+               ? AIR_AFFINE(range->min, val, range->max, domMin, domMax)
+               : domMin);
       }
       val = AIR_CLAMP(domMin, val, domMax);
       if (acl) {
