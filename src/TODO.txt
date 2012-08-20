@@ -33,6 +33,7 @@ instead of with empty string ""
 * consider having something like a teemContext, which might be:
  - the destination of thread-safe generating of error messages
  - a place for doing progress indication in multi-threaded callers
+ - uniform place for indicating desired verbosity of complex functions
  - storage for other things that are current globals.
 The problem is that such a thing would have to be an argument
 to a great many functions (or else it itself would be a global),
@@ -54,12 +55,10 @@ biff:
 so that it matches biffMovef
 
 nrrd:
-* reconsider "hermite"/"herm" and the nrrdKernelHermiteFlag kernel it 
-  refers to.  Catmull-Rom is commonly thought of as a kind of hermite
-  spline interpolation, but now nrrdKernelHermiteFlag is a rather exotic
-  thing which acts like tent but signals special things for scale-space
-* add to nrrdKernel: fields for "what is my derivative" and
-  "when parsing from string, parm[0] is needed vs parm[0] defaults to 1.0"
+* add to nrrdKernel: 
+ - fields for "what is my derivative"
+ - "when parsing from string, parm[0] is needed" vs "parm[0] defaults to 1.0"
+ - what is my accuracy (in a Taylor series sense)
 * the percentile-based bounds specification now supported in e.g 
   "unu histo" and "unu quantize" should be migrated down to the nrrd library
 * make the verbosity level a field in NrrdIoState, remove nrrdStateVerboseIO
