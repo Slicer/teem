@@ -22,7 +22,5 @@
 #
 
 ADD_EXECUTABLE(biffTest test.c)
-
 TARGET_LINK_LIBRARIES(biffTest teem)
-
 ADD_TEST(biff ${EXECUTABLE_OUTPUT_PATH}/biffTest)
