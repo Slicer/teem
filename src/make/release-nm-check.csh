@@ -27,7 +27,7 @@
 # audience, but its under version control for posterity's sake
 
 # this is where GLK puts his Teem build
-cd ~/teem/arch/darwin.64/lib
+cd ~/teem-install/lib
 
 set D=`pwd`
 
