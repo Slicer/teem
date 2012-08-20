@@ -703,8 +703,8 @@ typedef struct gageContext_t {
 
   /* radius of support of samples needed to satisfy query, given the
      set of kernels.  The "filter diameter" fd == 2*radius.  This is
-     incremented by one if filtering across the stack with
-     nrrdKernelHermiteFlag. */
+     incremented by one when filtering across the stack with
+     nrrdKernelHermiteScaleSpaceFlag */
   unsigned int radius;
 
   /* filter sample locations (all axes): logically a fd x 3 array 

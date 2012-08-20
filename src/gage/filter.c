@@ -388,8 +388,8 @@ _gageLocationSet(gageContext *ctx,
     /* HEY: honestly, the whole idea that it still makes sense to do
        low-level operations in index space, when the world-space locations
        of the samples can be non-uniform, is a little suspect.  This is
-       all legit for nrrdKernelTent and nrrdKernelHermiteFlag, but is 
-       pretty fishy otherwise */
+       all legit for nrrdKernelTent and nrrdKernelHermiteScaleSpaceFlag, 
+       but is pretty fishy otherwise */
     for (ii=0; ii<ctx->pvlNum-1; ii++) {
       ctx->stackFsl[ii] = sif - ii;
       if (ctx->verbose > 2) {

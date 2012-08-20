@@ -1435,7 +1435,11 @@ NRRD_EXPORT NrrdKernel
                                        resampling or gage's probing) that 
                                        depend on kernel support */
   *const nrrdKernelCheap,        /* like box, but every Nth on downsampling */
-  *const nrrdKernelHermiteFlag,  /* NOT a kernel, a flag for gage behavior */
+  *const nrrdKernelHermiteScaleSpaceFlag,  /* a kernel that looks like tent,
+                                              but which exists as a flag for
+                                              particular gage behavior in the
+                                              context of doing interpolation
+                                              along scale in scale-space */
   *const nrrdKernelTent,         /* tent filter (linear interpolation) */
   *const nrrdKernelForwDiff,     /* forward-difference-ish 1st deriv. */
   *const nrrdKernelCentDiff,     /* central-difference-ish 1st deriv. */

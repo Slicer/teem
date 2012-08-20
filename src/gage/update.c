@@ -218,8 +218,8 @@ _gageRadiusUpdate(gageContext *ctx) {
      we in fact don't need any kernels, then we need to do this to 
      ensure that we generate a valid radius */
   radius = AIR_MAX(radius, 1);
-  if (ctx->parm.stackUse
-      && nrrdKernelHermiteFlag == ctx->ksp[gageKernelStack]->kernel) {
+  if (ctx->parm.stackUse && (nrrdKernelHermiteScaleSpaceFlag 
+                             == ctx->ksp[gageKernelStack]->kernel)) {
     if (ctx->verbose) {
       fprintf(stderr, "%s: hermite on stack: bumping radius %d --> %d\n",
               me, radius, radius+1);

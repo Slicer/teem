@@ -313,7 +313,7 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
   if (ctx->verbose > 2) {
     fprintf(stderr, "%s: cacheLen = %u\n", me, cacheLen);
   }
-  if (nrrdKernelHermiteFlag == ctx->ksp[gageKernelStack]->kernel) {
+  if (nrrdKernelHermiteScaleSpaceFlag  == ctx->ksp[gageKernelStack]->kernel) {
     unsigned int xi, yi, zi, blurIdx, valIdx, fdd;
     double xx, *iv30, *iv31, sigma0, sigma1;
     

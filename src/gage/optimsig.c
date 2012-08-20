@@ -499,7 +499,7 @@ _gageSetup(gageOptimSigParm *parm) {
                                nrrdKernelTent, kparm);
   } else {
     if (!E) E |= gageKernelSet(parm->gctx, gageKernelStack,
-                               nrrdKernelHermiteFlag, kparm);
+                               nrrdKernelHermiteScaleSpaceFlag, kparm);
   }
   if (!E) E |= gageQueryItemOn(parm->gctx, parm->pvl, gageSclValue);
   if (!E) E |= gageUpdate(parm->gctx);
