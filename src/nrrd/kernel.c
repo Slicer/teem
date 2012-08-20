@@ -73,14 +73,14 @@ nrrdKernelC4HexicApproxInverse  0
 
 #define _ZERO(x) 0
 
-double
+static double
 _nrrdZeroInt(const double *parm) {
 
   AIR_UNUSED(parm);
   return 0.0;
 }
 
-double
+static double
 _nrrdZeroSup(const double *parm) {
   double S;
   
@@ -88,7 +88,7 @@ _nrrdZeroSup(const double *parm) {
   return S;
 }
 
-double
+static double
 _nrrdZero1_d(double x, const double *parm) {
   double S;
 
@@ -97,7 +97,7 @@ _nrrdZero1_d(double x, const double *parm) {
   return _ZERO(x)/S;
 }
 
-float
+static float
 _nrrdZero1_f(float x, const double *parm) {
   float S;
 
@@ -106,7 +106,7 @@ _nrrdZero1_f(float x, const double *parm) {
   return _ZERO(x)/S;
 }
 
-void
+static void
 _nrrdZeroN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t;
@@ -119,7 +119,7 @@ _nrrdZeroN_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdZeroN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
@@ -131,7 +131,7 @@ _nrrdZeroN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelZero = {
   "zero",
   1, _nrrdZeroSup, _nrrdZeroInt,
@@ -144,13 +144,13 @@ nrrdKernelZero = &_nrrdKernelZero;
 
 #define _BOX(x) (x > 0.5 ? 0 : (x < 0.5 ? 1 : 0.5))
 
-double
+static double
 _nrrdBoxInt(const double *parm) {
   AIR_UNUSED(parm);
   return 1.0;
 }
 
-double
+static double
 _nrrdBoxSup(const double *parm) {
   double S;
   
@@ -160,7 +160,7 @@ _nrrdBoxSup(const double *parm) {
   return S/2 + 0.5;
 }
 
-double
+static double
 _nrrdBox1_d(double x, const double *parm) {
   double S;
 
@@ -169,7 +169,7 @@ _nrrdBox1_d(double x, const double *parm) {
   return _BOX(x)/S;
 }
 
-float
+static float
 _nrrdBox1_f(float x, const double *parm) {
   float S;
 
@@ -178,7 +178,7 @@ _nrrdBox1_f(float x, const double *parm) {
   return AIR_CAST(float, _BOX(x)/S);
 }
 
-void
+static void
 _nrrdBoxN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t;
@@ -191,7 +191,7 @@ _nrrdBoxN_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdBoxN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
@@ -203,7 +203,7 @@ _nrrdBoxN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelBox = {
   "box",
   1, _nrrdBoxSup, _nrrdBoxInt,  
@@ -214,33 +214,33 @@ nrrdKernelBox = &_nrrdKernelBox;
 
 /* ------------------------------------------------------------ */
 
-double
+static double
 _nrrdBoxSDInt(const double *parm) {
   AIR_UNUSED(parm);
   return 1.0;
 }
 
-double
+static double
 _nrrdBoxSDSup(const double *parm) {
   
   return parm[0]/2;
 }
 
-double
+static double
 _nrrdBoxSD1_d(double x, const double *parm) {
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
   return _BOX(x);
 }
 
-float
+static float
 _nrrdBoxSD1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
   return AIR_CAST(float, _BOX(x));
 }
 
-void
+static void
 _nrrdBoxSDN_d(double *f, const double *x, size_t len, const double *parm) {
   size_t i;
   AIR_UNUSED(parm);
@@ -251,7 +251,7 @@ _nrrdBoxSDN_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdBoxSDN_f(float *f, const float *x, size_t len, const double *parm) {
   size_t i;
   AIR_UNUSED(parm);
@@ -262,7 +262,7 @@ _nrrdBoxSDN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelBoxSupportDebug = {
   "box",
   1, _nrrdBoxSDSup, _nrrdBoxSDInt,  
@@ -278,13 +278,13 @@ nrrdKernelBoxSupportDebug = &_nrrdKernelBoxSupportDebug;
    enabling that */
 #define _CHEAP(x) AIR_ABS(x)
 
-double
+static double
 _nrrdCheapInt(const double *parm) {
   AIR_UNUSED(parm);
   return 1.0;
 }
 
-double
+static double
 _nrrdCheapSup(const double *parm) {
   double S;
   
@@ -294,19 +294,19 @@ _nrrdCheapSup(const double *parm) {
   return S/2 + 0.5;
 }
 
-double
+static double
 _nrrdCheap1_d(double x, const double *parm) {
 
   return _CHEAP(x)/parm[0];
 }
 
-float
+static float
 _nrrdCheap1_f(float x, const double *parm) {
 
   return AIR_CAST(float, _CHEAP(x)/parm[0]);
 }
 
-void
+static void
 _nrrdCheapN_d(double *f, const double *x, size_t len, const double *parm) {
   double t;
   size_t i;
@@ -317,7 +317,7 @@ _nrrdCheapN_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdCheapN_f(float *f, const float *x, size_t len, const double *parm) {
   float t;
   size_t i;
@@ -328,7 +328,7 @@ _nrrdCheapN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelCheap = {
   "cheap",
   1, _nrrdCheapSup, _nrrdCheapInt,  
@@ -341,13 +341,13 @@ nrrdKernelCheap = &_nrrdKernelCheap;
 
 #define _TENT(x) (x >= 1 ? 0 : 1 - x)
 
-double
+static double
 _nrrdTentInt(const double *parm) {
   AIR_UNUSED(parm);
   return 1.0;
 }
 
-double
+static double
 _nrrdTentSup(const double *parm) {
   double S;
   
@@ -355,7 +355,7 @@ _nrrdTentSup(const double *parm) {
   return S;
 }
 
-double
+static double
 _nrrdTent1_d(double x, const double *parm) {
   double S;
   
@@ -364,7 +364,7 @@ _nrrdTent1_d(double x, const double *parm) {
   return S ? _TENT(x)/S : x == 0;
 }
 
-float
+static float
 _nrrdTent1_f(float x, const double *parm) {
   float S;
   
@@ -373,7 +373,7 @@ _nrrdTent1_f(float x, const double *parm) {
   return S ? _TENT(x)/S : x == 0;
 }
 
-void
+static void
 _nrrdTentN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t;
@@ -386,7 +386,7 @@ _nrrdTentN_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdTentN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
@@ -398,7 +398,7 @@ _nrrdTentN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelTent = {
   "tent",
   1, _nrrdTentSup,_nrrdTentInt, 
@@ -473,7 +473,7 @@ _nrrdHermiteN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelHermiteFlag = {
   "hermiteFlag",
   0, _nrrdHermiteSup,_nrrdHermiteInt, 
@@ -488,13 +488,13 @@ nrrdKernelHermiteFlag = &_nrrdKernelHermiteFlag;
                    (x <  0 ?  1 :        \
                    (x <  1 ? -1 : 0 )))
 
-double
+static double
 _nrrdFDInt(const double *parm) {
   AIR_UNUSED(parm);
   return 0.0;
 }
 
-double
+static double
 _nrrdFDSup(const double *parm) {
   double S;
   
@@ -502,7 +502,7 @@ _nrrdFDSup(const double *parm) {
   return S+0.0001;  /* sigh */
 }
 
-double
+static double
 _nrrdFD1_d(double x, const double *parm) {
   double S;
   
@@ -511,7 +511,7 @@ _nrrdFD1_d(double x, const double *parm) {
   return _FORDIF(x)/(S*S);
 }
 
-float
+static float
 _nrrdFD1_f(float x, const double *parm) {
   float S;
   
@@ -520,7 +520,7 @@ _nrrdFD1_f(float x, const double *parm) {
   return _FORDIF(x)/(S*S);
 }
 
-void
+static void
 _nrrdFDN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t;
@@ -533,7 +533,7 @@ _nrrdFDN_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdFDN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
@@ -545,7 +545,7 @@ _nrrdFDN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelFD = {
   "fordif",
   1, _nrrdFDSup,  _nrrdFDInt,   
@@ -561,13 +561,13 @@ nrrdKernelForwDiff = &_nrrdKernelFD;
                    (x <=  1 ? -0.5*x     :        \
                    (x <=  2 ?  0.5*x - 1 : 0 ))))
 
-double
+static double
 _nrrdCDInt(const double *parm) {
   AIR_UNUSED(parm);
   return 0.0;
 }
 
-double
+static double
 _nrrdCDSup(const double *parm) {
   double S;
   
@@ -575,7 +575,7 @@ _nrrdCDSup(const double *parm) {
   return 2*S;
 }
 
-double
+static double
 _nrrdCD1_d(double x, const double *parm) {
   double S;
   
@@ -584,7 +584,7 @@ _nrrdCD1_d(double x, const double *parm) {
   return _CENDIF(x)/(S*S);
 }
 
-float
+static float
 _nrrdCD1_f(float x, const double *parm) {
   float S;
   
@@ -593,7 +593,7 @@ _nrrdCD1_f(float x, const double *parm) {
   return AIR_CAST(float, _CENDIF(x)/(S*S));
 }
 
-void
+static void
 _nrrdCDN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t;
@@ -606,7 +606,7 @@ _nrrdCDN_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdCDN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
@@ -618,7 +618,7 @@ _nrrdCDN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelCD = {
   "cendif",
   1, _nrrdCDSup,  _nrrdCDInt,   
@@ -635,13 +635,13 @@ nrrdKernelCentDiff = &_nrrdKernelCD;
    ? (((-B/6 - C)*x + B + 5*C)*x -2*B - 8*C)*x + 4*B/3 + 4*C  \
    : ((2 - 3*B/2 - C)*x - 3 + 2*B + C)*x*x + 1 - B/3))
 
-double
+static double
 _nrrdBCInt(const double *parm) {
   AIR_UNUSED(parm);
   return 1.0;
 }
 
-double
+static double
 _nrrdBCSup(const double *parm) {
   double S;
 
@@ -649,7 +649,7 @@ _nrrdBCSup(const double *parm) {
   return 2*S;
 }
 
-double
+static double
 _nrrdBC1_d(double x, const double *parm) {
   double S;
   double B, C;
@@ -659,7 +659,7 @@ _nrrdBC1_d(double x, const double *parm) {
   return _BCCUBIC(x, B, C)/S;
 }
 
-float
+static float
 _nrrdBC1_f(float x, const double *parm) {
   float B, C, S;
   
@@ -670,7 +670,7 @@ _nrrdBC1_f(float x, const double *parm) {
   return _BCCUBIC(x, B, C)/S;
 }
 
-void
+static void
 _nrrdBCN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t, B, C;
@@ -684,7 +684,7 @@ _nrrdBCN_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdBCN_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, B, C;
   size_t i;
@@ -699,7 +699,7 @@ _nrrdBCN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelBC = {
   "BCcubic",
   3, _nrrdBCSup,  _nrrdBCInt,   
@@ -716,13 +716,13 @@ nrrdKernelBCCubic = &_nrrdKernelBC;
     ? ((-B/2 - 3*C)*x + 2*B + 10*C)*x -2*B - 8*C  \
     : ((6 - 9*B/2 - 3*C)*x - 6 + 4*B + 2*C)*x))
 
-double
+static double
 _nrrdDBCInt(const double *parm) {
   AIR_UNUSED(parm);
   return 0.0;
 }
 
-double
+static double
 _nrrdDBCSup(const double *parm) {
   double S;
 
@@ -730,7 +730,7 @@ _nrrdDBCSup(const double *parm) {
   return 2*S;
 }
 
-double
+static double
 _nrrdDBC1_d(double x, const double *parm) {
   double S;
   double B, C;
@@ -742,7 +742,7 @@ _nrrdDBC1_d(double x, const double *parm) {
   return sgn*_DBCCUBIC(x, B, C)/(S*S);
 }
 
-float
+static float
 _nrrdDBC1_f(float x, const double *parm) {
   float B, C, S;
   int sgn = 1;
@@ -755,7 +755,7 @@ _nrrdDBC1_f(float x, const double *parm) {
   return sgn*_DBCCUBIC(x, B, C)/(S*S);
 }
 
-void
+static void
 _nrrdDBCN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t, B, C;
@@ -770,7 +770,7 @@ _nrrdDBCN_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdDBCN_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, B, C;
   int sgn;
@@ -786,7 +786,7 @@ _nrrdDBCN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelDBC = {
   "BCcubicD",
   3, _nrrdDBCSup, _nrrdDBCInt,  
@@ -803,13 +803,13 @@ nrrdKernelBCCubicD = &_nrrdKernelDBC;
     ? (-B - 6*C)*x + 2*B + 10*C                \
     : (12 - 9*B - 6*C)*x - 6 + 4*B + 2*C  ))
 
-double
+static double
 _nrrdDDBCInt(const double *parm) {
   AIR_UNUSED(parm);
   return 0.0;
 }
 
-double
+static double
 _nrrdDDBCSup(const double *parm) {
   double S;
 
@@ -817,7 +817,7 @@ _nrrdDDBCSup(const double *parm) {
   return 2*S;
 }
 
-double
+static double
 _nrrdDDBC1_d(double x, const double *parm) {
   double S;
   double B, C;
@@ -827,7 +827,7 @@ _nrrdDDBC1_d(double x, const double *parm) {
   return _DDBCCUBIC(x, B, C)/(S*S*S);
 }
 
-float
+static float
 _nrrdDDBC1_f(float x, const double *parm) {
   float B, C, S;
   
@@ -838,7 +838,7 @@ _nrrdDDBC1_f(float x, const double *parm) {
   return _DDBCCUBIC(x, B, C)/(S*S*S);
 }
 
-void
+static void
 _nrrdDDBCN_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t, B, C;
@@ -852,7 +852,7 @@ _nrrdDDBCN_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdDDBCN_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, B, C;
   size_t i;
@@ -867,7 +867,7 @@ _nrrdDDBCN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelDDBC = {
   "BCcubicDD",
   3, _nrrdDDBCSup,_nrrdDDBCInt, 
@@ -881,19 +881,19 @@ nrrdKernelBCCubicDD = &_nrrdKernelDDBC;
 /* if you've got the definition already, why not use it */
 #define _CTMR(x) _BCCUBIC(x, 0.0, 0.5)
 
-double
+static double
 _nrrdCTMRInt(const double *parm) {
   AIR_UNUSED(parm);
   return 1.0;
 }
 
-double
+static double
 _nrrdCTMRSup(const double *parm) {
   AIR_UNUSED(parm);
   return 2.0;
 }
 
-double
+static double
 _nrrdCTMR1_d(double x, const double *parm) {
   
   AIR_UNUSED(parm);
@@ -901,7 +901,7 @@ _nrrdCTMR1_d(double x, const double *parm) {
   return _CTMR(x);
 }
 
-float
+static float
 _nrrdCTMR1_f(float x, const double *parm) {
   
   AIR_UNUSED(parm);
@@ -909,7 +909,7 @@ _nrrdCTMR1_f(float x, const double *parm) {
   return _CTMR(x);
 }
 
-void
+static void
 _nrrdCTMRN_d(double *f, const double *x, size_t len, const double *parm) {
   double t;
   size_t i;
@@ -922,7 +922,7 @@ _nrrdCTMRN_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
   float t;
   size_t i;
@@ -935,7 +935,7 @@ _nrrdCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelCatmullRom = {
   "catmull-rom",
   0, _nrrdCTMRSup,  _nrrdCTMRInt,   
@@ -949,19 +949,19 @@ nrrdKernelCatmullRom = &_nrrdKernelCatmullRom;
 /* if you've got the definition already, why not use it */
 #define _DCTMR(x) _DBCCUBIC(x, 0.0, 0.5)
 
-double
+static double
 _nrrdDCTMRInt(const double *parm) {
   AIR_UNUSED(parm);
   return 0.0;
 }
 
-double
+static double
 _nrrdDCTMRSup(const double *parm) {
   AIR_UNUSED(parm);
   return 2.0;
 }
 
-double
+static double
 _nrrdDCTMR1_d(double x, const double *parm) {
   int sgn;
 
@@ -970,7 +970,7 @@ _nrrdDCTMR1_d(double x, const double *parm) {
   return sgn*_DCTMR(x);
 }
 
-float
+static float
 _nrrdDCTMR1_f(float x, const double *parm) {
   int sgn;
   
@@ -979,7 +979,7 @@ _nrrdDCTMR1_f(float x, const double *parm) {
   return sgn*_DCTMR(x);
 }
 
-void
+static void
 _nrrdDCTMRN_d(double *f, const double *x, size_t len, const double *parm) {
   int sgn;
   double t;
@@ -993,7 +993,7 @@ _nrrdDCTMRN_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdDCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
   int sgn;
   float t;
@@ -1007,7 +1007,7 @@ _nrrdDCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelCatmullRomD = {
   "catmull-romD",
   0, _nrrdDCTMRSup,  _nrrdDCTMRInt,   
@@ -1027,13 +1027,13 @@ nrrdKernelCatmullRomD = &_nrrdKernelCatmullRomD;
                                  + x*(-3.5 + 17*A + x*(0.5 - 3*A))))   \
        : 1 + x*x*(-3 + 6*A + x*((2.5 - 10*A) + x*(-0.5 + 4*A))))))
 
-double
+static double
 _nrrdA4Int(const double *parm) {
   AIR_UNUSED(parm);
   return 1.0;
 }
 
-double
+static double
 _nrrdA4Sup(const double *parm) {
   double S;
 
@@ -1041,7 +1041,7 @@ _nrrdA4Sup(const double *parm) {
   return 3*S;
 }
 
-double
+static double
 _nrrdA41_d(double x, const double *parm) {
   double S;
   double A;
@@ -1051,7 +1051,7 @@ _nrrdA41_d(double x, const double *parm) {
   return _AQUARTIC(x, A)/S;
 }
 
-float
+static float
 _nrrdA41_f(float x, const double *parm) {
   float A, S;
   
@@ -1060,7 +1060,7 @@ _nrrdA41_f(float x, const double *parm) {
   return AIR_CAST(float, _AQUARTIC(x, A)/S);
 }
 
-void
+static void
 _nrrdA4N_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t, A;
@@ -1074,7 +1074,7 @@ _nrrdA4N_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdA4N_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, A;
   size_t i;
@@ -1087,7 +1087,7 @@ _nrrdA4N_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelA4 = {
   "Aquartic",
   2, _nrrdA4Sup,  _nrrdA4Int,   
@@ -1106,13 +1106,13 @@ nrrdKernelAQuartic = &_nrrdKernelA4;
        ? -10 + 25*A + x*(18 - 66*A + x*(-10.5 + 51*A + x*(2 - 12*A))) \
        : x*(-6 + 12*A + x*(7.5 - 30*A + x*(-2 + 16*A))))))
 
-double
+static double
 _nrrdDA4Int(const double *parm) {
   AIR_UNUSED(parm);
   return 0.0;
 }
 
-double
+static double
 _nrrdDA4Sup(const double *parm) {
   double S;
 
@@ -1120,7 +1120,7 @@ _nrrdDA4Sup(const double *parm) {
   return 3*S;
 }
 
-double
+static double
 _nrrdDA41_d(double x, const double *parm) {
   double S;
   double A;
@@ -1132,7 +1132,7 @@ _nrrdDA41_d(double x, const double *parm) {
   return sgn*_DAQUARTIC(x, A)/(S*S);
 }
 
-float
+static float
 _nrrdDA41_f(float x, const double *parm) {
   float A, S;
   int sgn = 1;
@@ -1143,7 +1143,7 @@ _nrrdDA41_f(float x, const double *parm) {
   return AIR_CAST(float, sgn*_DAQUARTIC(x, A)/(S*S));
 }
 
-void
+static void
 _nrrdDA4N_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t, A;
@@ -1158,7 +1158,7 @@ _nrrdDA4N_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdDA4N_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, A;
   size_t i;
@@ -1172,7 +1172,7 @@ _nrrdDA4N_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelDA4 = {
   "AquarticD",
   2, _nrrdDA4Sup, _nrrdDA4Int,  
@@ -1191,13 +1191,13 @@ nrrdKernelAQuarticD = &_nrrdKernelDA4;
        ? 18 - 66*A + x*(-21 + 102*A + x*(6 - 36*A))   \
        : -6 + 12*A + x*(15 - 60*A + x*(-6 + 48*A)))))
 
-double
+static double
 _nrrdDDA4Int(const double *parm) {
   AIR_UNUSED(parm);
   return 0.0;
 }
 
-double
+static double
 _nrrdDDA4Sup(const double *parm) {
   double S;
 
@@ -1205,7 +1205,7 @@ _nrrdDDA4Sup(const double *parm) {
   return 3*S;
 }
 
-double
+static double
 _nrrdDDA41_d(double x, const double *parm) {
   double S;
   double A;
@@ -1215,7 +1215,7 @@ _nrrdDDA41_d(double x, const double *parm) {
   return _DDAQUARTIC(x, A)/(S*S*S);
 }
 
-float
+static float
 _nrrdDDA41_f(float x, const double *parm) {
   float S, A;
   
@@ -1224,7 +1224,7 @@ _nrrdDDA41_f(float x, const double *parm) {
   return _DDAQUARTIC(x, A)/(S*S*S);
 }
 
-void
+static void
 _nrrdDDA4N_d(double *f, const double *x, size_t len, const double *parm) {
   double S;
   double t, A;
@@ -1238,7 +1238,7 @@ _nrrdDDA4N_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdDDA4N_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, A;
   size_t i;
@@ -1251,7 +1251,7 @@ _nrrdDDA4N_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelDDA4 = {
   "AquarticDD",
   2, _nrrdDDA4Sup,_nrrdDDA4Int, 
@@ -1841,7 +1841,7 @@ _c4hex_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelC4HexicApproxInverse = {
   "c4hexai", 0,
   _c4hex_ANI_sup, _c4hex_ANI_int,
@@ -1857,7 +1857,7 @@ nrrdKernelC4HexicApproxInverse = &_nrrdKernelC4HexicApproxInverse;
    x >= sig*cut ? 0           \
    : exp(-x*x/(2.0*sig*sig))/(sig*2.50662827463100050241))
 
-double
+static double
 _nrrdGInt(const double *parm) {
   double cut;
   
@@ -1865,7 +1865,7 @@ _nrrdGInt(const double *parm) {
   return airErf(cut/sqrt(2.0));
 }
 
-double
+static double
 _nrrdGSup(const double *parm) {
   double sig, cut;
 
@@ -1874,7 +1874,7 @@ _nrrdGSup(const double *parm) {
   return sig*cut;
 }
 
-double
+static double
 _nrrdG1_d(double x, const double *parm) {
   double sig, cut;
   
@@ -1884,7 +1884,7 @@ _nrrdG1_d(double x, const double *parm) {
   return _GAUSS(x, sig, cut);
 }
 
-float
+static float
 _nrrdG1_f(float x, const double *parm) {
   float sig, cut;
   
@@ -1894,7 +1894,7 @@ _nrrdG1_f(float x, const double *parm) {
   return AIR_CAST(float, _GAUSS(x, sig, cut));
 }
 
-void
+static void
 _nrrdGN_d(double *f, const double *x, size_t len, const double *parm) {
   double sig, cut, t;
   size_t i;
@@ -1908,7 +1908,7 @@ _nrrdGN_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdGN_f(float *f, const float *x, size_t len, const double *parm) {
   float sig, cut, t;
   size_t i;
@@ -1922,7 +1922,7 @@ _nrrdGN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelG = {
   "gauss",
   2, _nrrdGSup,  _nrrdGInt,   
@@ -1944,7 +1944,7 @@ nrrdKernelGaussian = &_nrrdKernelG;
   (ret) = 0.5 + ceil((sig)*(cut));  \
   (ret) = AIR_MAX(0.5, (ret))
 
-double
+static double
 _nrrdDiscGaussianSup(const double *parm) {
   double ret;
 
@@ -1956,7 +1956,7 @@ _nrrdDiscGaussianSup(const double *parm) {
    use the function evaluation to determine the integral, rather than
    trying to do it analytically */
   
-double
+static double
 _nrrdDiscGaussian1_d(double xx, const double *parm) {
   double sig, cut;
   
@@ -1966,7 +1966,7 @@ _nrrdDiscGaussian1_d(double xx, const double *parm) {
   return _DISCRETEGAUSS(xx, sig, cut);
 }
 
-double
+static double
 _nrrdDiscGaussianInt(const double *parm) {
   double sum, cut;
   int ii, supp;
@@ -1980,7 +1980,7 @@ _nrrdDiscGaussianInt(const double *parm) {
   return sum;
 }
 
-float
+static float
 _nrrdDiscGaussian1_f(float xx, const double *parm) {
   double sig, cut;
   
@@ -1990,7 +1990,7 @@ _nrrdDiscGaussian1_f(float xx, const double *parm) {
   return AIR_CAST(float, _DISCRETEGAUSS(xx, sig, cut));
 }
 
-void
+static void
 _nrrdDiscGaussianN_d(double *f, const double *x,
                   size_t len, const double *parm) {
   double sig, cut, tt;
@@ -2004,7 +2004,7 @@ _nrrdDiscGaussianN_d(double *f, const double *x,
   }
 }
 
-void
+static void
 _nrrdDiscGaussianN_f(float *f, const float *x, size_t len, const double *parm) {
   double sig, cut, tt;
   size_t ii;
@@ -2017,7 +2017,7 @@ _nrrdDiscGaussianN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelDiscreteGaussian = {
   "discretegauss", 2,
   _nrrdDiscGaussianSup,  _nrrdDiscGaussianInt,   
@@ -2033,13 +2033,13 @@ nrrdKernelDiscreteGaussian = &_nrrdKernelDiscreteGaussian;
    x >= sig*cut ? 0                                                          \
    : -exp(-x*x/(2.0*sig*sig))*x/(sig*sig*sig*2.50662827463100050241))
 
-double
+static double
 _nrrdDGInt(const double *parm) {
   AIR_UNUSED(parm);
   return 0;
 }
 
-double
+static double
 _nrrdDGSup(const double *parm) {
   double sig, cut;
 
@@ -2048,7 +2048,7 @@ _nrrdDGSup(const double *parm) {
   return sig*cut;
 }
 
-double
+static double
 _nrrdDG1_d(double x, const double *parm) {
   double sig, cut;
   int sgn = 1;
@@ -2059,7 +2059,7 @@ _nrrdDG1_d(double x, const double *parm) {
   return sgn*_DGAUSS(x, sig, cut);
 }
 
-float
+static float
 _nrrdDG1_f(float x, const double *parm) {
   float sig, cut;
   int sgn = 1;
@@ -2070,7 +2070,7 @@ _nrrdDG1_f(float x, const double *parm) {
   return AIR_CAST(float, sgn*_DGAUSS(x, sig, cut));
 }
 
-void
+static void
 _nrrdDGN_d(double *f, const double *x, size_t len, const double *parm) {
   double sig, cut, t;
   size_t i;
@@ -2085,7 +2085,7 @@ _nrrdDGN_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdDGN_f(float *f, const float *x, size_t len, const double *parm) {
   float sig, cut, t;
   size_t i;
@@ -2100,7 +2100,7 @@ _nrrdDGN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelDG = {
   "gaussD",
   2, _nrrdDGSup,  _nrrdDGInt,   
@@ -2116,7 +2116,7 @@ nrrdKernelGaussianD = &_nrrdKernelDG;
    : exp(-x*x/(2.0*sig*sig))*(x*x-sig*sig) /       \
      (sig*sig*sig*sig*sig*2.50662827463100050241))
 
-double
+static double
 _nrrdDDGInt(const double *parm) {
   double sig, cut;
   
@@ -2125,7 +2125,7 @@ _nrrdDDGInt(const double *parm) {
   return -0.79788456080286535587*cut*exp(-cut*cut/2)/(sig*sig);
 }
 
-double
+static double
 _nrrdDDGSup(const double *parm) {
   double sig, cut;
 
@@ -2134,7 +2134,7 @@ _nrrdDDGSup(const double *parm) {
   return sig*cut;
 }
 
-double
+static double
 _nrrdDDG1_d(double x, const double *parm) {
   double sig, cut;
   
@@ -2144,7 +2144,7 @@ _nrrdDDG1_d(double x, const double *parm) {
   return _DDGAUSS(x, sig, cut);
 }
 
-float
+static float
 _nrrdDDG1_f(float x, const double *parm) {
   float sig, cut;
   
@@ -2154,7 +2154,7 @@ _nrrdDDG1_f(float x, const double *parm) {
   return AIR_CAST(float, _DDGAUSS(x, sig, cut));
 }
 
-void
+static void
 _nrrdDDGN_d(double *f, const double *x, size_t len, const double *parm) {
   double sig, cut, t;
   size_t i;
@@ -2168,7 +2168,7 @@ _nrrdDDGN_d(double *f, const double *x, size_t len, const double *parm) {
   }
 }
 
-void
+static void
 _nrrdDDGN_f(float *f, const float *x, size_t len, const double *parm) {
   float sig, cut, t;
   size_t i;
@@ -2182,7 +2182,7 @@ _nrrdDDGN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-NrrdKernel
+static NrrdKernel
 _nrrdKernelDDG = {
   "gaussDD",
   2, _nrrdDDGSup,  _nrrdDDGInt,   
