@@ -118,6 +118,7 @@ _biffMsgAddVL(biffMsg *msg, const char *errfmt, va_list args) {
   return;
 }
 
+/* ---- BEGIN non-NrrdIO */
 void
 biffMsgAddf(biffMsg *msg, const char *errfmt, ...) {
   va_list args;
@@ -127,6 +128,7 @@ biffMsgAddf(biffMsg *msg, const char *errfmt, ...) {
   va_end(args);
   return;
 }
+/* ---- END non-NrrdIO */
 
 void
 biffMsgClear(biffMsg *msg) {

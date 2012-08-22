@@ -451,6 +451,7 @@ biffGetDone(const char *key) {
   return ret;
 }
 
+/* ---- BEGIN non-NrrdIO */
 void
 biffSetStrDone(char *str, const char *key) {
 
@@ -461,3 +462,4 @@ biffSetStrDone(char *str, const char *key) {
 
   return;
 }
+/* ---- END non-NrrdIO */

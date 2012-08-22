@@ -70,26 +70,30 @@ BIFF_EXPORT const int biffPresent;
 BIFF_EXPORT biffMsg *biffMsgNew(const char *key);
 BIFF_EXPORT biffMsg *biffMsgNix(biffMsg *msg);
 BIFF_EXPORT void biffMsgAdd(biffMsg *msg, const char *err);
+BIFF_EXPORT void biffMsgClear(biffMsg *msg);
+BIFF_EXPORT unsigned int biffMsgLineLenMax(const biffMsg *msg);
+BIFF_EXPORT void biffMsgMove(biffMsg *dest, biffMsg *src,
+                             const char *err);
+/* ---- BEGIN non-NrrdIO */
 BIFF_EXPORT void biffMsgAddf(biffMsg *msg, const char *errfmt, ...)
 #ifdef __GNUC__
 __attribute__ ((format(printf,2,3)))
 #endif
 ;
-BIFF_EXPORT void biffMsgClear(biffMsg *msg);
-BIFF_EXPORT unsigned int biffMsgLineLenMax(const biffMsg *msg);
-BIFF_EXPORT void biffMsgMove(biffMsg *dest, biffMsg *src,
-                             const char *err);
 BIFF_EXPORT void biffMsgMovef(biffMsg *dest, biffMsg *src,
                                 const char *errfmt, ...)
 #ifdef __GNUC__
 __attribute__ ((format(printf,3,4)))
 #endif
 ;
+/* ---- END non-NrrdIO */
 BIFF_EXPORT unsigned int biffMsgErrNum(const biffMsg *msg);
 BIFF_EXPORT unsigned int biffMsgStrlen(const biffMsg *msg);
-BIFF_EXPORT char *biffMsgStrAlloc(const biffMsg *msg);
 BIFF_EXPORT void biffMsgStrSet(char *ret, const biffMsg *msg);
+/* ---- BEGIN non-NrrdIO */
+BIFF_EXPORT char *biffMsgStrAlloc(const biffMsg *msg);
 BIFF_EXPORT char *biffMsgStrGet(const biffMsg *msg);
+/* ---- END non-NrrdIO */
 BIFF_EXPORT biffMsg *biffMsgNoop;
 
 /* biffbiff.c */
@@ -109,8 +113,8 @@ __attribute__ ((format(printf,3,4)))
 BIFF_EXPORT char *biffGet(const char *key);
 BIFF_EXPORT int biffGetStrlen(const char *key);
 BIFF_EXPORT void biffSetStr(char *str, const char *key);
+/* ---- BEGIN non-NrrdIO */
 BIFF_EXPORT unsigned int biffCheck(const char *key);
-BIFF_EXPORT void biffDone(const char *key);
 BIFF_EXPORT void biffMove(const char *destKey, const char *err,
                           const char *srcKey);
 BIFF_EXPORT void biffMovef(const char *destKey, const char *srcKey,
@@ -119,8 +123,10 @@ BIFF_EXPORT void biffMovef(const char *destKey, const char *srcKey,
 __attribute__ ((format(printf,3,4)))
 #endif
 ;
-BIFF_EXPORT char *biffGetDone(const char *key);
 BIFF_EXPORT void biffSetStrDone(char *str, const char *key);
+/* ---- END non-NrrdIO */
+BIFF_EXPORT void biffDone(const char *key);
+BIFF_EXPORT char *biffGetDone(const char *key);
 
 #ifdef __cplusplus
 }
