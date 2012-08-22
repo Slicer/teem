@@ -353,7 +353,7 @@ biffSetStr(char *str, const char *key) {
 ** sees how many messages there are for a given key;
 ** Note that this is just a simple wrapper around biffMsgErrNum
 */
-int
+unsigned int
 biffCheck(const char *key) {
 
   _bmsgStart();
