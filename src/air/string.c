@@ -232,7 +232,7 @@ airEndsWith(const char *s, const char *suff) {
 ******** airUnescape()
 **
 ** unescapes \\ and \n in place in a given string.
-**
+** Always returns the same pointer as given
 */
 char *
 airUnescape(char *s) {
@@ -268,7 +268,9 @@ airUnescape(char *s) {
 ** to "".
 **
 ** Useful for cleaning up lines of text to be saved as strings in
-** fields of other structs
+** fields of other structs.
+**
+** Whatever happens, this returns the pointer passed to it
 */
 char *
 airOneLinify(char *s) {
