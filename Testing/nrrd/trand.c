@@ -52,7 +52,7 @@ main(int argc, const char *argv[]) {
   double aa, bb, *val;
   airArray *mop;
   char *corrname, explain[AIR_STRLEN_LARGE];
-  int ret, cmperr;
+  int differ;
 
   AIR_UNUSED(argc);
   me = argv[0];
@@ -107,15 +107,14 @@ main(int argc, const char *argv[]) {
     airMopError(mop); return 1;
   }
 
-  ret = nrrdCompare(ncorr, nread, AIR_FALSE /* onlyData */,
-                    explain, &cmperr, AIR_TRUE /* useBiff */);
-  if (cmperr) {
+  if (nrrdCompare(ncorr, nread, AIR_FALSE /* onlyData */,
+                  &differ, explain)) {
     char *err;
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble comparing:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  if (ret) {
+  if (differ) {
     fprintf(stderr, "%s: new and correct images differ: %s\n", me, explain);
     airMopError(mop); return 1;
   } else {

@@ -207,8 +207,6 @@ main(int argc, const char **argv) {
   }
 
   {
-    /* TODO: probe at some fixed list of locations,
-       comparing to correct values, gradients, and hessians */
 #define POS_NUM 12
     double xp[POS_NUM], yp[POS_NUM], zp[POS_NUM],
       pos[POS_NUM*POS_NUM*POS_NUM][3], *prbd,
@@ -216,7 +214,7 @@ main(int argc, const char **argv) {
     Nrrd *nprbd, *ncorr;
     unsigned int ii, jj, kk, qlen = 1 + 3 + 9;
     char *corrfn, explain[AIR_STRLEN_LARGE];
-    int cret, pret, cmperr;
+    int pret, differ;
 
     corrfn = testDataPathPrefix("test/probeSclAns.nrrd");
     airMopAdd(mop, corrfn, airFree, airMopAlways);
@@ -270,15 +268,14 @@ main(int argc, const char **argv) {
         ELL_9V_COPY(prbd + 4 + qlen*(ki + BLUR_KERN_NUM*(ii)), bhesAns[ki]);
       }
     }
-    cret = nrrdCompare(ncorr, nprbd, AIR_FALSE /* onlyData */,
-                       explain, &cmperr, AIR_TRUE /* useBiff */);
-    if (cmperr) {
+    if (nrrdCompare(ncorr, nprbd, AIR_FALSE /* onlyData */,
+                    &differ, explain)) {
       char *err;
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble comparing:\n%s", me, err);
       airMopError(mop); return 1;
     }
-    if (cret) {
+    if (differ) {
       fprintf(stderr, "%s: probed values not correct: %s\n", me, explain);
       airMopError(mop); return 1;
     } else {
