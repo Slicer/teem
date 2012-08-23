@@ -1,15 +1,19 @@
 
+Things that would be good for a future airString or airBuffer
+ * string dynamically reallocated on write, with optional cap on
+   allowed size, maybe allowing control of whether reaching that size
+   is an error
+ * unify sprint'ing into string, or fwrite'ing to file
+ * unify reading from string, or from file
+ * when writing to string, should be remembering where last output is,
+   to avoid needless repeated calls to strlen
+ * should this be the thing that can make stdin fseek-able?
+
 fix airSinglePrintf to not put a space before double-type special values
 ("%4s" hack has to go)
 
------ Teem 1.6 cut-off -----
-
 complete fprintf/sprintf/printf stand-in
 complete fscanf/sscanf stand-in
-
-arrays: make the integer function returns be more useful than just
-error indication, as in, when you increment an array, return the index
-of the first of the new elements now valid
 
 Decide if air will have a general-purpose thread-safe progress indication
 scheme, or if this will be each library's responsibility
