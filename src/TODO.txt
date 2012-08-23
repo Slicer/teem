@@ -20,6 +20,8 @@ all:
 * decide if <LIB>_EXPORT should just be TEEM_EXPORT
 
 air:
+* airArray->len should probably be size_t, not unsigned int. Along with
+this is biffMsgErrNum and nrrdKeyValueSize.
 * either change AIR_STRLEN_* to AIR_BUFFSIZE_* (or something similar,
 or take out the +1 from their definition and it into usage: the 
 STRLEN is misleading as is.
@@ -30,6 +32,8 @@ http://en.wikipedia.org/wiki/Dynamic_array
 http://hg.python.org/cpython/file/e3be2941c834/Objects/listobject.c
 * consider terminating airEnum->strEqv with NULL (just like argv)
 instead of with empty string ""
+* reconcile names of "unsigned int airUIrandMT_r()" vs 
+  "unsigned int airRandInt()" and "unsigned int airRandInt_r()"
 * consider having something like a teemContext, which might be:
  - the destination of thread-safe generating of error messages
  - a place for doing progress indication in multi-threaded callers
@@ -53,6 +57,9 @@ airType enum value for hestOptAdd, hestOptAdd can take a string
 biff:
 * biffMove(destKey, err, srcKey) --> biffMove(destKey, srcKey, err)
 so that it matches biffMovef
+* rename biffCheck --> biffErrNum
+* consider biffGetStrlen --> biffStrlenGet, biffSetStr --> biffStrSet
+* a few biff functions are never used in Teem, is that ok?
 
 nrrd:
 * add to nrrdKernel: 
@@ -60,7 +67,8 @@ nrrd:
  - "when parsing from string, parm[0] is needed" vs "parm[0] defaults to 1.0"
  - what is my accuracy (in a Taylor series sense)
 * the percentile-based bounds specification now supported in e.g 
-  "unu histo" and "unu quantize" should be migrated down to the nrrd library
+  "unu histo", "unu quantize", and "unu jhisto" should be migrated down
+   to the nrrd library
 * make the verbosity level a field in NrrdIoState, remove nrrdStateVerboseIO
 * add support for 16-bit floats (start with Milan's patch)
 * rename nrrd<Func>_nva() --> nrrd<Func>()
@@ -74,6 +82,9 @@ nrrd:
 [nrrd] nrrdResampleKernelSet: haven't set input nrrd yet
 * for nrrdCropAuto: consider adding some minimum remaining size requirement,
   in addition to offset
+* fix bug that you can pass a per-axis label or units to nrrdAxisInfoSet
+  which contains characters that can't be losslessly written to file,
+  especially \n.
 
 unu:
 * unu acrop should export crop bounds in a way that unu crop can use them
