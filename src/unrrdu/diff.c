@@ -40,7 +40,7 @@ unrrdu_diffMain(int argc, const char **argv, char *me, hestParm *hparm) {
   int pret;
 
   Nrrd *ninA, *ninB;
-  int onlyData, cmperr, ret;
+  int onlyData, differ;
   char explain[AIR_STRLEN_LARGE];
 
   mop = airMopNew();
@@ -58,14 +58,13 @@ unrrdu_diffMain(int argc, const char **argv, char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  ret = nrrdCompare(ninA, ninB, onlyData, explain, &cmperr, AIR_TRUE);
-  if (cmperr) {
+  if (nrrdCompare(ninA, ninB, onlyData, &differ, explain)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing compare:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
-  if (ret) {
+  if (differ) {
     printf("%s: %s differ: %s\n", me, onlyData ? "data values" : "nrrds",
            explain);
   } else {
