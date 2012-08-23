@@ -37,6 +37,8 @@ extern "C" {
 #define _NRRD_LLONG_MAX_HELP AIR_LLONG(2305843009213693951)
 #define _NRRD_LLONG_MIN_HELP AIR_LLONG(-2305843009213693952)
 
+#define _NRRD_WHITESPACE_NOTAB " \n\r\v\f"       /* K+R pg. 157 */
+
 /* ---- BEGIN non-NrrdIO */
 
 #if NRRD_RESAMPLE_FLOAT
@@ -49,22 +51,6 @@ extern "C" {
 
 /* to access whatever nrrd there may be in in a NrrdIter */
 #define _NRRD_ITER_NRRD(iter) ((iter)->nrrd ? (iter)->nrrd : (iter)->ownNrrd)
-
-/* The "compare" functions (nrrdAxisInfoCompare, nrrdArrayCompare,
-   nrrdCompare), follow the strcmp() convention of returning a value <0, or
-   0, or >0, depending in equality of arguments.  That is incompatible with
-   the usual "return non-zero in case of error" Teem convention.  So, those
-   functions take an "int *err" arg to store the non-zero in case of error
-   value.  But then what should the return be if there is an error?  "0"
-   would mean "args are equal", which is not actually known if there was an
-   error evaluating the args.  So a non-zero value (meaning "args are
-   unequal") seems safer, but what actual value should that be?  That is
-   the sole context in which this value should be used.  To prevent this
-   from accidentally becoming a standard value against which return values
-   can be compared, this is staying in the private header.  The value's use
-   within Teem should be seen merely as a flag for: I want to say "error"
-   but this unusual context doesn't let me do it in the normal way */
-#define _NRRD_ERROR_RETURN 32202
 
 /* ---- END non-NrrdIO */
 
@@ -102,6 +88,8 @@ extern airLLong _nrrdLLongMinHelp(airLLong val);
 extern airULLong _nrrdULLongMaxHelp(airULLong val);
 
 /* keyvalue.c */
+extern void _nrrdWriteEscaped(FILE *file, char *dst, const char *str,
+                              const char *toescape, const char *tospace);
 extern int _nrrdKeyValueWrite(FILE *file, char **stringP, const char *prefix,
                               const char *key, const char *value);
 
@@ -175,8 +163,8 @@ extern int _nrrdReshapeUpGrayscale(Nrrd *nimg);
 extern void _nrrdSplitName(char **dirP, char **baseP, const char *name);
 
 /* write.c */
-extern int _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio,
-                                  int field);
+extern int _nrrdFieldInteresting(const Nrrd *nrrd, NrrdIoState *nio,
+                                 int field);
 extern void _nrrdSprintFieldInfo(char **strP, char *prefix,
                                  const Nrrd *nrrd, NrrdIoState *nio,
                                  int field);

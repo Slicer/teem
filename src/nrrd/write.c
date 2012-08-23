@@ -402,7 +402,8 @@ void
 _nrrdSprintFieldInfo(char **strP, char *prefix,
                      const Nrrd *nrrd, NrrdIoState *nio, int field) {
   static const char me[]="_nrrdSprintFieldInfo";
-  char buff[AIR_STRLEN_MED], *fnb, stmp[AIR_STRLEN_SMALL];
+  char buff[AIR_STRLEN_MED], *fnb, stmp[AIR_STRLEN_SMALL],
+    *strtmp=NULL;
   double colvec[NRRD_SPACE_DIM_MAX];
   const char *fs;
   unsigned int ii, dd,
@@ -432,9 +433,10 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     *strP = airStrdup("");
     break;
   case nrrdField_content:
-    airOneLinify(nrrd->content);
-    *strP = (char *)calloc(fslen + strlen(nrrd->content), sizeof(char));
-    sprintf(*strP, "%s%s: %s", prefix, fs, nrrd->content);
+    strtmp = airOneLinify(airStrdup(nrrd->content));
+    *strP = (char *)calloc(fslen + strlen(strtmp), sizeof(char));
+    sprintf(*strP, "%s%s: %s", prefix, fs, strtmp);
+    strtmp = airFree(strtmp);
     break;
   case nrrdField_number:
     *strP = (char *)calloc(fslen + size_tStrlen, sizeof(char));
@@ -554,34 +556,27 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     }
     break;
   case nrrdField_labels:
+  case nrrdField_units:
+#define LABEL_OR_UNITS (nrrdField_labels == field \
+                        ? nrrd->axis[ii].label \
+                        : nrrd->axis[ii].units)
     fdlen = 0;
     for (ii=0; ii<nrrd->dim; ii++) {
-      fdlen += airStrlen(nrrd->axis[ii].label) + 4;
+      /* The "2*" is because at worst every character needs escaping.
+         The "+ 3" for the |" "| between each part */
+      fdlen += 2*airStrlen(LABEL_OR_UNITS) + 3;
     }
     *strP = (char *)calloc(fslen + fdlen, sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
       strcat(*strP, " \"");
       if (airStrlen(nrrd->axis[ii].label)) {
-        strcat(*strP, nrrd->axis[ii].label);
+        _nrrdWriteEscaped(NULL, *strP, LABEL_OR_UNITS,
+                          "\"", _NRRD_WHITESPACE_NOTAB);
       }
       strcat(*strP, "\"");
     }
-    break;
-  case nrrdField_units:
-    fdlen = 0;
-    for (ii=0; ii<nrrd->dim; ii++) {
-      fdlen += airStrlen(nrrd->axis[ii].units) + 4;
-    }
-    *strP = (char *)calloc(fslen + fdlen, sizeof(char));
-    sprintf(*strP, "%s%s:", prefix, fs);
-    for (ii=0; ii<nrrd->dim; ii++) {
-      strcat(*strP, " \"");
-      if (airStrlen(nrrd->axis[ii].units)) {
-        strcat(*strP, nrrd->axis[ii].units);
-      }
-      strcat(*strP, "\"");
-    }
+#undef LABEL_OR_UNITS
     break;
     /* ---- end per-axis fields ---- */
   case nrrdField_min:
@@ -632,9 +627,10 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     sprintf(*strP, "%s%s: %ld", prefix, fs, nio->byteSkip);
     break;
   case nrrdField_sample_units:
-    airOneLinify(nrrd->sampleUnits);
-    *strP = (char *)calloc(fslen + strlen(nrrd->sampleUnits), sizeof(char));
-    sprintf(*strP, "%s%s: \"%s\"", prefix, fs, nrrd->sampleUnits);
+    strtmp = airOneLinify(airStrdup(nrrd->sampleUnits));
+    *strP = (char *)calloc(fslen + strlen(strtmp), sizeof(char));
+    sprintf(*strP, "%s%s: \"%s\"", prefix, fs, strtmp);
+    strtmp = airFree(strtmp);
     break;
   case nrrdField_space_units:
     fdlen = 0;
@@ -646,7 +642,8 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     for (ii=0; ii<nrrd->spaceDim; ii++) {
       strcat(*strP, " \"");
       if (airStrlen(nrrd->spaceUnits[ii])) {
-        strcat(*strP, nrrd->spaceUnits[ii]);
+        _nrrdWriteEscaped(NULL, *strP, nrrd->spaceUnits[ii],
+                          "\"", _NRRD_WHITESPACE_NOTAB);
       }
       strcat(*strP, "\"");
     }

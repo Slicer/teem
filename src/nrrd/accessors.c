@@ -511,39 +511,36 @@ nrrdValCompareInv[NRRD_TYPE_MAX+1])(const void *, const void *) = {
 ** that the arrays have to be equal length, and it has to do 
 ** error checking.
 **
-** In case of error: returns NRRD_ERROR_RETURN, sets *err = 1, and may
-** also set a biff message (depending on useBiff)
+** See comment about logic of return value above nrrdCompare()
 **
 ** This is a very rare kind of nrrd function that operates on
 ** a bare array and not a Nrrd itself
 */
-int
-nrrdArrayCompare(int type,
-                 const void *_valA, const void *_valB, size_t num, 
-                 char explain[AIR_STRLEN_LARGE], int *err, int useBiff) {
+int nrrdArrayCompare(int type, const void *_valA, const void *_valB,
+                     size_t valNum, int *differ,
+                     char explain[AIR_STRLEN_LARGE]) {
   static const char me[]="nrrdArrayCompare";
   const unsigned char *valA, *valB;
-  int ret, (*compare)(const void *, const void *);
+  int (*compare)(const void *, const void *);
   size_t ii, sze;
   char stmp[AIR_STRLEN_SMALL];
-  
-  if (!err) {
-    /* can't even indicate error status, so can't do much */
-    return _NRRD_ERROR_RETURN;
+
+  if (!(_valA && _valB && differ)) {
+    biffAddf(NRRD, "%s: got NULL pointer (%p, %p, or %p)", me,
+             _valA, _valB, differ);
+    return 1;
+  }
+  if (!valNum) {
+    biffAddf(NRRD, "%s: can't work with 0-length arrays", me);
+    return 1;
   }
   if (airEnumValCheck(nrrdType, type)) {
-    biffMaybeAddf(useBiff, NRRD, "%s: invalid nrrd type %d", me, type);
-    *err = 1; return _NRRD_ERROR_RETURN;
+    biffAddf(NRRD, "%s: invalid nrrd type %d", me, type);
+    return 1;
   }
   if (nrrdTypeBlock == type) {
-    biffMaybeAddf(useBiff, NRRD, "%s: can't use type %s", me, 
-                  airEnumStr(nrrdType, type));
-    *err = 1; return _NRRD_ERROR_RETURN;
-  }
-  if (!( _valA && _valB && num )) {
-    biffMaybeAddf(useBiff, NRRD, "%s: NULL or 0-len arrays (%p %p len=%s)",
-                  me, _valA, _valB, airSprintSize_t(stmp, num));
-    *err = 1; return _NRRD_ERROR_RETURN;
+    biffAddf(NRRD, "%s: can't use type %s", me, airEnumStr(nrrdType, type));
+    return 1;
   }
 
   if (explain) {
@@ -555,28 +552,26 @@ nrrdArrayCompare(int type,
             airEnumStr(nrrdType, type),
             airEnumStr(nrrdType, nrrdTypeDouble));
   }
-  ret = 0;
   sze = nrrdTypeSize[type];
   compare = nrrdValCompare[type];
   valA = _valA;
   valB = _valB;
-  for (ii=0; ii<num; ii++) {
-    ret = compare(valA + ii*sze, valB + ii*sze);
-    if (ret) {
+  for (ii=0; ii<valNum; ii++) {
+    *differ = compare(valA + ii*sze, valB + ii*sze);
+    if (*differ) {
       if (explain) {
         double aa, bb;
         airSprintSize_t(stmp, ii);
         aa = nrrdDLookup[type](valA, ii);
         bb = nrrdDLookup[type](valB, ii);
         sprintf(explain, "valA[%s]=%g %s valB[%s]=%g",
-                stmp, aa, ret < 0 ? "<" : ">", stmp, bb);
+                stmp, aa, *differ < 0 ? "<" : ">", stmp, bb);
       }
       break;
     }
   }
 
-  *err = 0;
-  return ret;
+  return 0;
 }
 
 /* ---- END non-NrrdIO */

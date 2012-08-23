@@ -24,6 +24,117 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
+/***
+**** Info about string handling for fields 
+
+The Nrrd format can include strings in different fields, with different
+rules for each one; see http://teem.sourceforge.net/nrrd/format.html Below
+is some documentation of how the strings are handled, which is mostly a
+documentation of old (long-established) code, the gathering of which
+uncovered some problems and led to some new code (as of Thu Aug 23 09:32:11
+CDT 2012).  Conceptual inconsistencies in the different handlings of strings
+merit further review, including updating the file format spec (e.g. what
+non-ASCII characters can be allowed where?  Unicode?  what encoding? etc).
+This all also highlights the need for having a completely uniform way of
+setting these fields at one-time via the nrrd library (e.g. can use
+nrrdAxisInfoSet for "units" but there is no API for setting "space units").
+Should that API flag as error if you try to include characters that can't
+be losslessly saved, or should it silently transform things?
+
+** Comments: 
+On disk, delimited by the NRRD_COMMENT_CHAR ('#') and the
+end of the line, but the format spec doesn't address any escaping.
+Input comments processed via:
+  nrrd/formatNrrd.c/_nrrdFormatNRRD_read()
+  --> nrrd/parseNrrd.c/_nrrdReadNrrdParse_comment()
+      --> nrrd/comment.c/nrrdCommentAdd()
+           --> air/string.c/airOneLinify()
+On write, output comments processed via:
+  nrrd/formatNrrd.c/_nrrdFormatNRRD_write()
+  --> air/string.c/airOneLinify()
+==> There is no escaping of anything: white-space is compressed into
+a single ' '.  Probably justified justified given format spec.
+
+** Content: On disk, finished with the end of line.  No mention
+of escaping in the format spec. Input content processed via:
+  nrrd/formatNrrd.c/_nrrdFormatNRRD_read()
+  --> nrrd/parseNrrd.c/_nrrdReadNrrdParse_content()
+      which does NO processing, just airStrdup
+On write, output content processed via:
+  nrrd/formatNrrd.c/_nrrdFormatNRRD_write()
+  --> nrrd/write.c/_nrrdSprintFieldInfo()  (maybe via _nrrdFprintFieldInfo())
+      --> air/string.c/airOneLinify()
+==> not only is there no escaping, but there's some assymmetry in the
+use of airOneLinify.  If information is being encoded in the number of
+contiguous spaces in the content, its preserved on input but not on 
+output.  Still, there's no chance of writing a broken file.
+
+** key/value pairs: The keys and values are separated by ":=", and the
+format spec says (string) "\n" means (character) '\n' and "\\" means '\\'.
+On input, both keys and values processed via:
+  nrrd/formatNrrd.c/_nrrdFormatNRRD_read()
+  --> nrrd/parseNrrd.c/_nrrdReadNrrdParse_keyvalue()
+     --> air/string.c/airUnescape(), which deals with "\n" and "\\" ONLY 
+         (not quotes, not other whitespace), and then
+     --> nrrd/keyvalue.c/nrrdKeyValueAdd(), 
+         which only does an airStrdup
+On output, keys and values processed via
+  nrrd/formatNrrd.c/_nrrdFormatNRRD_write()
+  --> nrrd/keyvalue.c/_nrrdKeyValueWrite()
+      --> nrrd/keyvalue.c/_nrrdWriteEscaped()
+        which is invoked to escape \n and \,
+        and (NOTE!) to convert all other whitespace to ' '
+Aside from the file format spec, the nrrd *library* does not really have
+any strictures about the characters that are allowed at run-time in key/values
+(and indeed nrrdKeyValueAdd just does an airStrdup). But without
+converting or escaping, say, '\r', you'll generate a broken NRRD file,
+hence the new handling of converting other whitespace to ' '.  
+
+** labels and units: A "-delimited string per axis. 
+Format spec is very specific for labels, and implies units are the same:
+"Within each label, double quotes may be included by escaping them
+(\"), but no other form of escaping is supported".  On input:
+  nrrd/formatNrrd.c/_nrrdFormatNRRD_read()
+  --> nrrd/parseNrrd.c/_nrrdReadNrrdParse_labels()
+                    or _nrrdReadNrrdParse_units()
+      --> nrrd/parseNrrd.c/_nrrdGetQuotedString()
+          which does the work of unescaping \"
+On output:
+  nrrd/formatNrrd.c/_nrrdFormatNRRD_write()
+  --> nrrd/write.c/_nrrdSprintFieldInfo()  (maybe via _nrrdFprintFieldInfo())
+      --> nrrd/keyvalue.c/_nrrdWriteEscaped()
+        which is invoked to escape ",
+        and (NOTE!) to convert all other whitespace to ' '
+Same concern above about characters that when written would generate a 
+bad NRRD file, but which are not documented as escape-able in label or unit
+
+** space units: A "-delimited string per axis of *world-space* (NOT 
+the same a per-axis field, like units).  Format is sadly silent on issue of
+escaping for these; so we might as well treat them like labels & units
+units. On input:
+  nrrd/formatNrrd.c/_nrrdFormatNRRD_read()
+  --> nrrd/parseNrrd.c/_nrrdReadNrrdParse_space_units
+      --> nrrd/parseNrrd.c/_nrrdGetQuotedString()
+          which does the work of unescaping \"
+On output:
+  nrrd/formatNrrd.c/_nrrdFormatNRRD_write()
+  --> nrrd/write.c/_nrrdSprintFieldInfo()  (maybe via _nrrdFprintFieldInfo())
+      --> nrrd/keyvalue.c/_nrrdWriteEscaped()
+        which is invoked to escape ",
+        and (NOTE!) to convert all other whitespace to ' '
+        
+** sample units: like content and comments, not a quoted string. On input:
+  nrrd/formatNrrd.c/_nrrdFormatNRRD_read()
+  --> nrrd/parseNrrd.c/_nrrdReadNrrdParse_sample_units()
+      which does nothing except a strdup
+On output:
+  nrrd/formatNrrd.c/_nrrdFormatNRRD_write()
+  --> nrrd/write.c/_nrrdSprintFieldInfo()  (maybe via _nrrdFprintFieldInfo())
+      --> air/string.c/airOneLinify()
+
+****
+***/
+
 #define MAGIC "NRRD"
 #define MAGIC0 "NRRD00.01"
 #define MAGIC1 "NRRD0001"
@@ -340,8 +451,8 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       if (llen > 1) {
         ret = _nrrdReadNrrdParseField(nio, AIR_TRUE);
         if (!ret) {
-          biffAddf(NRRD, "%s: trouble parsing field in \"%s\"",
-                   me, nio->line);
+          biffAddf(NRRD, "%s: trouble parsing NRRD field identifier from "
+                   "in \"%s\"", me, nio->line);
           return 1;
         }
         /* comments and key/values are allowed multiple times */
@@ -352,11 +463,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
           return 1;
         }
         if (nrrdFieldInfoParse[ret](file, nrrd, nio, AIR_TRUE)) {
-          /* HEY: this error message should be printing out all the
-             per-axis fields, not just the first
-             HEY: if your stupid parsing functions didn't modify
-             nio->line then you wouldn't have this problem ... */
-          biffAddf(NRRD, "%s: trouble parsing %s info \"%s\"", me,
+          biffAddf(NRRD, "%s: trouble parsing %s info |%s|", me,
                    airEnumStr(nrrdField, ret), nio->line + nio->pos);
           return 1;
         }
@@ -592,21 +699,25 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     }
   }
 
-  /* comments and key/values handled differently */
+  /* comments and key/value pairs handled differently */
   for (jj=0; jj<nrrd->cmtArr->len; jj++) {
+    char *strtmp;
+    strtmp = airOneLinify(airStrdup(nrrd->cmt[jj]));
     if (file) {
-      fprintf(file, "%c %s\n", NRRD_COMMENT_CHAR, nrrd->cmt[jj]);
+      fprintf(file, "%c %s\n", NRRD_COMMENT_CHAR, strtmp);
     } else if (nio->headerStringWrite) {
       strptr = (char*)malloc(1 + strlen(" ") 
-                             + strlen(nrrd->cmt[jj]) + strlen("\n") + 1);
-      sprintf(strptr, "%c %s\n", NRRD_COMMENT_CHAR, nrrd->cmt[jj]);
+                             + strlen(strtmp) + strlen("\n") + 1);
+      sprintf(strptr, "%c %s\n", NRRD_COMMENT_CHAR, strtmp);
       strcat(nio->headerStringWrite, strptr);
       free(strptr);
       strptr = NULL;
     } else {
       nio->headerStrlen += (1 + AIR_CAST(unsigned int, strlen(" ") 
-                            + strlen(nrrd->cmt[jj]) + strlen("\n")) + 1);
+                                         + strlen(strtmp) 
+                                         + strlen("\n")) + 1);
     }
+    airFree(strtmp);
   }
   for (jj=0; jj<nrrd->kvpArr->len; jj++) {
     if (file) {

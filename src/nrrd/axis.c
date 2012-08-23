@@ -935,24 +935,21 @@ _nrrdDblcmp(double aa, double bb) {
 **
 ** compares all fields in the NrrdAxisInfoCompare
 **
+** See comment about logic of return value above nrrdCompare()
+**
 ** NOTE: the structure of this code is very similar to that of 
 ** nrrdCompare, and any improvements here should be reflected there
 */
 int
 nrrdAxisInfoCompare(const NrrdAxisInfo *axisA, const NrrdAxisInfo *axisB,
-                    char explain[AIR_STRLEN_LARGE], int *err, int useBiff) {
+                    int *differ, char explain[AIR_STRLEN_LARGE]) {
   static const char me[]="nrrdAxisInfoCompare";
-  int ret;
   unsigned int saxi;
 
-  if (!err) {
-    /* can't even indicate error status, so can't do much */
-    return _NRRD_ERROR_RETURN;
-  }
-  if (!(axisA && axisB)) {
-    biffMaybeAddf(useBiff, NRRD, "%s: NULL axes (got %p %p)",
-                  me, axisA, axisB);
-    *err = 1; return _NRRD_ERROR_RETURN;
+  if (!(axisA && axisB && differ)) {
+    biffAddf(NRRD, "%s: got NULL pointer (%p, %p, or %p)",
+             me, axisA, axisB, differ);
+    return 1;
   }
 
   if (explain) {
@@ -960,27 +957,25 @@ nrrdAxisInfoCompare(const NrrdAxisInfo *axisA, const NrrdAxisInfo *axisB,
   }
   if (axisA->size != axisB->size) {
     char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
-    ret = axisA->size < axisB->size ? -1 : 1;
+    *differ = axisA->size < axisB->size ? -1 : 1;
     if (explain) {
       sprintf(explain, "axisA->size=%s %s axisB->size=%s",
               airSprintSize_t(stmp1, axisA->size), 
-              ret < 0 ? "<" : ">",
+              *differ < 0 ? "<" : ">",
               airSprintSize_t(stmp2, axisB->size));
     }
-    *err = 0; return ret;
+    return 0;
   }
   
-  /* from here on out no new errors are possible */
-  *err = 0;
-  
-#define DOUBLE_COMPARE(VAL, STR)                                       \
-  ret = _nrrdDblcmp(axisA->VAL, axisB->VAL);                           \
-  if (ret) {                                                           \
-    if (explain) {                                                     \
-      sprintf(explain, "axisA->%s %f %s axisB->%s %f",                 \
-              STR, axisA->VAL, ret < 0 ? "<" : ">", STR, axisB->VAL);  \
-    }                                                                  \
-    return ret;                                                        \
+#define DOUBLE_COMPARE(VAL, STR)                                        \
+  *differ = _nrrdDblcmp(axisA->VAL, axisB->VAL);                        \
+  if (*differ) {                                                        \
+    if (explain) {                                                      \
+      sprintf(explain, "axisA->%s %f %s axisB->%s %f",                  \
+              STR, axisA->VAL, *differ < 0 ? "<" : ">",                 \
+              STR, axisB->VAL);                                         \
+    }                                                                   \
+    return 0;                                                           \
   }
   
   DOUBLE_COMPARE(spacing, "spacing");
@@ -995,43 +990,44 @@ nrrdAxisInfoCompare(const NrrdAxisInfo *axisA, const NrrdAxisInfo *axisB,
 #undef DOUBLE_COMPARE
 
   if (axisA->center != axisB->center) {
-    ret = axisA->center < axisB->center ? -1 : 1;
+    *differ = axisA->center < axisB->center ? -1 : 1;
     if (explain) {
       sprintf(explain, "axisA->center %s %s axisB->center %s",
               airEnumStr(nrrdCenter, axisA->center),
-              ret < 0 ? "<" : ">",
+              *differ < 0 ? "<" : ">",
               airEnumStr(nrrdCenter, axisB->center));
     }
-    return ret;
+    return 0;
   }
   if (axisA->kind != axisB->kind) {
-    ret = axisA->kind < axisB->kind ? -1 : 1;
+    *differ = axisA->kind < axisB->kind ? -1 : 1;
     if (explain) {
       sprintf(explain, "axisA->kind %s %s axisB->kind %s",
               airEnumStr(nrrdKind, axisA->kind),
-              ret < 0 ? "<" : ">",
+              *differ < 0 ? "<" : ">",
               airEnumStr(nrrdKind, axisB->kind));
     }
-    return ret;
+    return 0;
   }
-  ret = airStrcmp(axisA->label, axisB->label);
-  if (ret) {
+  *differ = airStrcmp(axisA->label, axisB->label);
+  if (*differ) {
     if (explain) {
       /* can't print whole string because of fixed-size of explain */
-      sprintf(explain, "axisA->label %s axisB->label", ret < 0 ? "<" : ">");
+      sprintf(explain, "axisA->label %s axisB->label",
+              *differ < 0 ? "<" : ">");
     }
-    return ret;
+    return 0;
   }
-  ret = airStrcmp(axisA->units, axisB->units);
-  if (ret) {
+  *differ = airStrcmp(axisA->units, axisB->units);
+  if (*differ) {
     if (explain) {
       /* can't print whole string because of fixed-size of explain */
-      sprintf(explain, "axisA->units %s axisB->units", ret < 0 ? "<" : ">");
+      sprintf(explain, "axisA->units %s axisB->units",
+              *differ < 0 ? "<" : ">");
     }
-    return ret;
+    return 0;
   }
   
-  /* if we've gotten this far, all fields were equal */
   return 0;
 }
 /* ---- END non-NrrdIO */

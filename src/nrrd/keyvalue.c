@@ -140,6 +140,10 @@ nrrdKeyValueErase(Nrrd *nrrd, const char *key) {
 ** This will COPY the given strings, and so does not depend on
 ** them existing past the return of this function
 **
+** NOTE: Despite what might be most logical, there is no effort made
+** here to cleanup key or value, including any escaping or filtering
+** that might be warranted for white space other than \n
+**
 ** does NOT use BIFF
 */
 int
@@ -155,14 +159,15 @@ nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value) {
     return 1;
   }
   if (-1 != (ki = _nrrdKeyValueIdxFind(nrrd, key))) {
-    nrrd->kvp[1 + 2*ki] = (char *)airFree(nrrd->kvp[1 + 2*ki]);
+    /* over-writing value for an existing key, so have to free old value */
+    airFree(nrrd->kvp[1 + 2*ki]);
     nrrd->kvp[1 + 2*ki] = airStrdup(value);
   } else {
+    /* adding value for a new key */
     ki = airArrayLenIncr(nrrd->kvpArr, 1);
     nrrd->kvp[0 + 2*ki] = airStrdup(key);
     nrrd->kvp[1 + 2*ki] = airStrdup(value);
   }
-
   return 0;
 }
 
@@ -197,35 +202,64 @@ nrrdKeyValueGet(const Nrrd *nrrd, const char *key) {
   return ret;
 }
 
+/*
+** Does the escaping of special characters in a string that
+** is being written either to "FILE *file" or "char *dst"
+** (WHICH IS ASSUMED to be allocated to be big enough!)
+** Which characters to escape should be put in string "toescape"
+** currently supported: \n  \  "
+** Also, converts characters in "tospace" to a space.  Being in
+** toescape trumps being in tospace, so tospace can be harmlessly
+** set to, say, AIR_WHITESPACE.
+**
+** accident of history that this function is in this file
+*/
 void
-_nrrdWriteEscaped(FILE *file, char *dst, const char *str) {
-  size_t ci, sl;
+_nrrdWriteEscaped(FILE *file, char *dst, const char *str,
+                  const char *toescape, const char *tospace) {
+  /* static const char me[]="_nrrdWriteEscaped"; */
+  size_t ci, gslen; /* given strlen */
 
-  for (ci=0; ci<strlen(str); ci++) {
-    switch(str[ci]) {
-    case '\n':
-      if (file) {
-        fprintf(file, "\\n");
-      } else {
-        strcat(dst, "\\n");
+  gslen = strlen(str);
+  for (ci=0; ci<gslen; ci++) {
+    char cc;
+    cc = str[ci];
+    if (strchr(toescape, cc)) {
+      switch(cc) {
+      case '\n':
+        if (file) {
+          fprintf(file, "\\n");
+        } else {
+          strcat(dst, "\\n");
+        }
+        break;
+      case '\\':
+        if (file) {
+          fprintf(file, "\\\\");
+        } else {
+          strcat(dst, "\\\\");
+        }
+        break;
+      case '"':
+        if (file) {
+          fprintf(file, "\\\"");
+        } else {
+          strcat(dst, "\\\"");
+        }
+        break;
       }
-      break;
-    case '\\':
-      if (file) {
-        fprintf(file, "\\\\");
-      } else {
-        strcat(dst, "\\\\");
+    } else {
+      if (strchr(tospace, cc)) {
+        cc = ' ';
       }
-      break;
-    default:
       if (file) {
-        fputc(str[ci], file);
+        fputc(cc, file);
       } else {
-        sl = strlen(dst);
-        dst[sl++] = str[ci];
-        dst[sl] = '\0';
+        size_t dsln;
+        dsln = strlen(dst);
+        dst[dsln++] = cc;
+        dst[dsln] = '\0';
       }
-      break;
     }
   }
   return;
@@ -246,11 +280,10 @@ _nrrdKeyValueWrite(FILE *file, char **stringP, const char *prefix,
   }
   if (stringP) {
     /* 2*strlen() because at worst all characters will be escaped */
-    *stringP = (char *)malloc(airStrlen(prefix) + 2*airStrlen(key)
-                              + strlen(":=") + 2*airStrlen(value)
-                              + strlen("\n") + 1);
-    /* HEY error checking */
-    strcpy(*stringP, "");
+    *stringP = AIR_CALLOC(airStrlen(prefix) + 2*airStrlen(key)
+                          + strlen(":=") + 2*airStrlen(value)
+                          + strlen("\n") + 1, char);
+    /* HEY error checking? */
   }
   if (prefix) {
     if (file) {
@@ -260,14 +293,14 @@ _nrrdKeyValueWrite(FILE *file, char **stringP, const char *prefix,
     }
   }
   if (file) {
-    _nrrdWriteEscaped(file, NULL, key);
+    _nrrdWriteEscaped(file, NULL, key, "\n\\", _NRRD_WHITESPACE_NOTAB);
     fprintf(file, ":=");
-    _nrrdWriteEscaped(file, NULL, value);
+    _nrrdWriteEscaped(file, NULL, value, "\n\\", _NRRD_WHITESPACE_NOTAB);
     fprintf(file, "\n");
   } else {
-    _nrrdWriteEscaped(NULL, *stringP, key);
+    _nrrdWriteEscaped(NULL, *stringP, key, "\n\\", _NRRD_WHITESPACE_NOTAB);
     strcat(*stringP, ":=");
-    _nrrdWriteEscaped(NULL, *stringP, value);
+    _nrrdWriteEscaped(NULL, *stringP, value, "\n\\", _NRRD_WHITESPACE_NOTAB);
     strcat(*stringP, "\n");
   }
   return 0;

@@ -976,137 +976,143 @@ nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
 ** the same information.  So, this doesn't compare any pointer values,
 ** only the contents of things.
 **
+** Unlike strcmp(), the return value from this can't be the indication
+** of the difference, because we'd have to return a value even in the
+** case of an error, which would be be strange.  GLK briefly tried
+** created a new #define _NRRD_ERROR_RETURN for this purpose (with
+** leet-speak value 32202), but its just a bad idea.
+**
 ** NOTE: the structure of this code is very similar to that of
 ** nrrdAxisInfoCompare, and any improvements here should be reflected there
 */
 int
 nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData,
-            char explain[AIR_STRLEN_LARGE], int *err, int ubiff) {
+            int *differ, char explain[AIR_STRLEN_LARGE]) {
   static const char me[]="nrrdCompare";
   size_t numA, numB;
-  int ret;
   unsigned int axi, saxi;
 
-  if (!err) {
-    /* can't even indicate error status, so can't do much */
-    return _NRRD_ERROR_RETURN;
+  if (!(ninA && ninB && differ)) {
+    biffAddf(NRRD, "%s: got NULL pointer (%p, %p, or %p)",
+             me, ninA, ninB, differ);
+    return 1;
   }
-  if (!(ninA && ninB)) {
-    biffMaybeAddf(ubiff, NRRD, "%s: need two non-NULL nrrds (got %p %p)",
-                  me, ninA, ninB);
-    *err = 1; return _NRRD_ERROR_RETURN;
-  }
-
+  
   if (explain) {
     strcpy(explain, "");
   }
   if (!onlyData) {
     if (ninA->dim != ninB->dim) {
-      ret = ninA->dim < ninB->dim ? -1 : 1;
+      *differ = ninA->dim < ninB->dim ? -1 : 1;
       if (explain) {
         sprintf(explain, "nin{A,B}->dim %u %s %u", 
-                ninA->dim, ret < 0 ? "<" : ">", ninB->dim);
+                ninA->dim, *differ < 0 ? "<" : ">", ninB->dim);
       }
-      *err = 0; return ret;
+      return 0;
     }
-    if (ninA->type != ninB->type) {
-      ret = ninA->type < ninB->type ? -1 : 1;
-      if (explain) {
-        sprintf(explain, "nin{A,B}->type %s %s %s",
-                airEnumStr(nrrdType, ninA->type), ret < 0 ? "<" : ">",
-                airEnumStr(nrrdType, ninB->type));
-      }
-      *err = 0; return ret;
+  }
+  if (ninA->type != ninB->type) {
+    *differ = ninA->type < ninB->type ? -1 : 1;
+    if (explain) {
+      sprintf(explain, "nin{A,B}->type %s %s %s",
+              airEnumStr(nrrdType, ninA->type), *differ < 0 ? "<" : ">",
+              airEnumStr(nrrdType, ninB->type));
     }
+    return 0;
   }
   numA = nrrdElementNumber(ninA);
   numB = nrrdElementNumber(ninB);
   if (numA != numB) {
     char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
-    ret = numA < numB ? -1 : 1;
+    *differ = numA < numB ? -1 : 1;
     sprintf(explain, "element # {A,B} %s %s %s",
-            airSprintSize_t(stmp1, numA), ret < 0 ? "<" : ">",
+            airSprintSize_t(stmp1, numA), *differ < 0 ? "<" : ">",
             airSprintSize_t(stmp2, numB));
-    *err = 0; return ret;
+    return 0;
   }
-  ret = nrrdArrayCompare(ninA->type, ninA->data, ninB->data, numA,
-                         explain, err, ubiff);
-  if (*err) {
-    biffMaybeAddf(ubiff, NRRD, "%s: problem comparing values", me);
-    return _NRRD_ERROR_RETURN;
+  /* this will always set *differ */
+  if (nrrdArrayCompare(ninA->type, ninA->data, ninB->data, numA,
+                       differ, explain)) {
+    biffAddf(NRRD, "%s: problem comparing values", me);
+    return 1;
   }
-  if (onlyData || ret) {
-    /* either only data values are to be compared, in case we're done,
-       or, there was a difference in data values, in case we're done.
-       The explanation of any difference in values is already in
-       "explain" (if non-NULL) */
-    return ret;
+  if (onlyData || *differ) {
+    /* If caller only cared about data values, 
+       we're done whether or not they were different.
+       else, if the data values are different, we're done.
+       The explanation of any difference in values is 
+       already in "explain" (if non-NULL) */
+    return 0;
   }
 
   for (axi=0; axi<ninA->dim; axi++) {
-    ret = nrrdAxisInfoCompare(ninA->axis + axi, ninB->axis + axi,
-                              explain, err, ubiff);
-    if (*err) {
-      biffMaybeAddf(ubiff, NRRD, "%s: problem comparing axis %u", me, axi);
-      return _NRRD_ERROR_RETURN;
+    /* this always sets *differ */
+    if (nrrdAxisInfoCompare(ninA->axis + axi, ninB->axis + axi, 
+                            differ, explain)) {
+      biffAddf(NRRD, "%s: problem comparing axis %u", me, axi);
+      return 1;
     }
-    if (ret) {
-      /* the explanation, if wanted, is already in "explain" */
-      return ret;
+    if (*differ) {
+      char tmpexplain[AIR_STRLEN_LARGE];
+      /* the explanation, if wanted, is in "explain", but we add context */
+      sprintf(tmpexplain, "(axis %u) %s", axi, explain);
+      airStrcpy(explain, AIR_STRLEN_LARGE, tmpexplain);
+      return 0;
     }
   }
 
 #define STRING_COMPARE(VAL, STR)                                      \
-  ret = airStrcmp(ninA->VAL, ninB->VAL);                              \
-  if (ret) {                                                          \
+  *differ = airStrcmp(ninA->VAL, ninB->VAL);                          \
+  if (*differ) {                                                      \
     if (explain) {                                                    \
       /* can't print whole string because of fixed-size of explain */ \
       sprintf(explain, "ninA->%s %s ninB->%s",                        \
-              STR, ret < 0 ? "<" : ">", STR);                         \
+              STR, *differ < 0 ? "<" : ">", STR);                     \
     }                                                                 \
-    return ret;                                                       \
+    return 0;                                                         \
   }
 
   STRING_COMPARE(content, "content");
   STRING_COMPARE(sampleUnits, "sampleUnits");
   if (ninA->space != ninB->space) {
-    ret = ninA->space < ninB->space ? -1 : 1;
+    *differ = ninA->space < ninB->space ? -1 : 1;
     if (explain) {
       sprintf(explain, "ninA->space %s %s ninB->space %s", 
               airEnumStr(nrrdSpace, ninA->space), 
-              ret < 0 ? "<" : ">",
+              *differ < 0 ? "<" : ">",
               airEnumStr(nrrdSpace, ninB->space));
     }
-    return ret;
+    return 0;
   }
   if (ninA->spaceDim != ninB->spaceDim) {
-    ret = ninA->spaceDim < ninB->spaceDim ? -1 : 1;
+    *differ = ninA->spaceDim < ninB->spaceDim ? -1 : 1;
     if (explain) {
       sprintf(explain, "ninA->spaceDim %u %s ninB->spaceDim %u", 
-              ninA->spaceDim, ret < 0 ? "<" : ">", ninB->spaceDim);
+              ninA->spaceDim, *differ < 0 ? "<" : ">", ninB->spaceDim);
     }
-    return ret;
+    return 0;
   }
   if (ninA->blockSize != ninB->blockSize) {
-    ret = ninA->blockSize < ninB->blockSize ? -1 : 1;
+    *differ = ninA->blockSize < ninB->blockSize ? -1 : 1;
     if (explain) {
       char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
       sprintf(explain, "ninA->blockSize %s %s ninB->blockSize %s", 
               airSprintSize_t(stmp1, ninA->blockSize), 
-              ret < 0 ? "<" : ">",
+              *differ < 0 ? "<" : ">",
               airSprintSize_t(stmp2, ninB->blockSize));
     }
-    return ret;
+    return 0;
   }
 
 #define DOUBLE_COMPARE(VAL, STR)                                       \
-  ret = _nrrdDblcmp(ninA->VAL, ninB->VAL);                             \
-  if (ret) {                                                           \
+  *differ = _nrrdDblcmp(ninA->VAL, ninB->VAL);                         \
+  if (*differ) {                                                       \
     if (explain) {                                                     \
       sprintf(explain, "ninA->%s %f %s ninB->%s %f",                   \
-              STR, ninA->VAL, ret < 0 ? "<" : ">", STR, ninB->VAL);    \
+              STR, ninA->VAL, *differ < 0 ? "<" : ">",                 \
+              STR, ninB->VAL);                                         \
     }                                                                  \
-    return ret;                                                        \
+    return 0;                                                          \
   }
 
   for (saxi=0; saxi<NRRD_SPACE_DIM_MAX; saxi++) {
@@ -1126,12 +1132,12 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData,
 #undef DOUBLE_COMPARE
 
   if (ninA->cmtArr->len != ninB->cmtArr->len) {
-    ret = ninA->cmtArr->len < ninB->cmtArr->len ? -1 : 1;
+    *differ = ninA->cmtArr->len < ninB->cmtArr->len ? -1 : 1;
     if (explain) {
       sprintf(explain, "ninA # comments %u %s ninB # comments %u", 
-              ninA->cmtArr->len, ret < 0 ? "<" : ">", ninB->cmtArr->len);
+              ninA->cmtArr->len, *differ < 0 ? "<" : ">", ninB->cmtArr->len);
     }
-    return ret;
+    return 0;
   } else {
     unsigned int ii;
     char stmp[AIR_STRLEN_SMALL];
@@ -1141,19 +1147,19 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData,
     }
   }
   if (ninA->kvpArr->len != ninB->kvpArr->len) {
-    ret = ninA->kvpArr->len < ninB->kvpArr->len ? -1 : 1;
+    *differ = ninA->kvpArr->len < ninB->kvpArr->len ? -1 : 1;
     if (explain) {
       sprintf(explain, "ninA # key/values %u %s ninB # key/values %u", 
-              ninA->kvpArr->len, ret < 0 ? "<" : ">", ninB->kvpArr->len);
+              ninA->kvpArr->len, *differ < 0 ? "<" : ">", ninB->kvpArr->len);
     }
-    return ret;
+    return 0;
   } else {
     unsigned int ii;
     char stmp[AIR_STRLEN_SMALL];
     for (ii=0; ii<ninA->kvpArr->len; ii++) {
-      sprintf(stmp, "key[%u]", ii);
+      sprintf(stmp, "key/value key[%u]", ii);
       STRING_COMPARE(kvp[2*ii + 0], stmp);
-      sprintf(stmp, "value[%u]", ii);
+      sprintf(stmp, "key/value value[%u]", ii);
       STRING_COMPARE(kvp[2*ii + 1], stmp);
     }
   }
@@ -1161,7 +1167,7 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData,
   /* ninA->ptr and ninB->ptr are not to be accessed */
 
   /* if we've gotten this far, all fields were equal */
-  *err = 0;
+  *differ = 0;
   return 0;
 }
 
