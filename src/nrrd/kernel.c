@@ -36,7 +36,8 @@ nrrdKernelBSpline3ApproxInverse    0
 nrrdKernelBSpline5ApproxInverse    0
                  nrrdKernelZero    1      scale
                   nrrdKernelBox    1      scale
-      nrrdKernelBoxSupportDebug    1      radius (half-support)
+      nrrdKernelBoxSupportDebug    1      support
+     nrrdKernelCos4SupportDebug    1      support
                 nrrdKernelCheap    1      scale
 nrrdKernelHermiteScaleSpaceFlag    0
                  nrrdKernelTent    1      scale
@@ -223,7 +224,7 @@ _nrrdBoxSDInt(const double *parm) {
 static double
 _nrrdBoxSDSup(const double *parm) {
   
-  return parm[0]/2;
+  return parm[0];
 }
 
 static double
@@ -270,6 +271,202 @@ _nrrdKernelBoxSupportDebug = {
 };
 NrrdKernel *const
 nrrdKernelBoxSupportDebug = &_nrrdKernelBoxSupportDebug;
+
+/* ------------------------------------------------------------ */
+
+#define COS4(x) (x > 0.5 \
+                 ? 0.0 \
+                 : cos(AIR_PI*x)*cos(AIR_PI*x)*cos(AIR_PI*x)*cos(AIR_PI*x))
+
+static double
+_nrrdCos4SDInt(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3.0/8.0;
+}
+
+static double
+_nrrdCos4SDSup(const double *parm) {
+  
+  return parm[0];
+}
+
+static double
+_nrrdCos4SD1_d(double x, const double *parm) {
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return COS4(x);
+}
+
+static float
+_nrrdCos4SD1_f(float x, const double *parm) {
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return AIR_CAST(float, COS4(x));
+}
+
+static void
+_nrrdCos4SDN_d(double *f, const double *x, size_t len, const double *parm) {
+  size_t i;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    double t;
+    t = AIR_ABS(x[i]);
+    f[i] = COS4(t);
+  }
+}
+
+static void
+_nrrdCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
+  size_t i;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    float t;
+    t = AIR_ABS(x[i]);
+    f[i] = AIR_CAST(float, COS4(t));
+  }
+}
+
+static NrrdKernel
+_nrrdKernelCos4SupportDebug = {
+  "cos4sup",
+  1, _nrrdCos4SDSup, _nrrdCos4SDInt,  
+  _nrrdCos4SD1_f,  _nrrdCos4SDN_f,  _nrrdCos4SD1_d,  _nrrdCos4SDN_d
+};
+NrrdKernel *const
+nrrdKernelCos4SupportDebug = &_nrrdKernelCos4SupportDebug;
+
+/* ------------------------------------------------------------ */
+
+#define DCOS4(x) (x > 0.5                                               \
+                  ? 0.0                                                 \
+                  : -4*AIR_PI*(cos(AIR_PI*x)*cos(AIR_PI*x)*cos(AIR_PI*x) \
+                               *sin(AIR_PI*x)))
+
+static double
+_nrrdDCos4SDInt(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
+static double
+_nrrdDCos4SDSup(const double *parm) {
+  return parm[0];
+}
+
+static double
+_nrrdDCos4SD1_d(double x, const double *parm) {
+  int sgn;
+  AIR_UNUSED(parm);
+  if (x < 0) { x = -x; sgn = -1; } else { sgn = 1; }
+  return sgn*DCOS4(x);
+}
+
+static float
+_nrrdDCos4SD1_f(float x, const double *parm) {
+  int sgn;
+  AIR_UNUSED(parm);
+  if (x < 0) { x = -x; sgn = -1; } else { sgn = 1; }
+  return sgn*DCOS4(x);
+}
+
+static void
+_nrrdDCos4SDN_d(double *f, const double *x, size_t len, const double *parm) {
+  int sgn;
+  double t;
+  size_t i;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    f[i] = sgn*DCOS4(t);
+  }
+}
+
+static void
+_nrrdDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
+  int sgn;
+  float t;
+  size_t i;
+  
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    f[i] = sgn*DCOS4(t);
+  }
+}
+
+static NrrdKernel
+_nrrdKernelCos4SupportDebugD = {
+  "cos4supD",
+  1, _nrrdDCos4SDSup,  _nrrdDCos4SDInt,   
+  _nrrdDCos4SD1_f,   _nrrdDCos4SDN_f,   _nrrdDCos4SD1_d,   _nrrdDCos4SDN_d
+};
+NrrdKernel *const
+nrrdKernelCos4SupportDebugD = &_nrrdKernelCos4SupportDebugD;
+
+/* ------------------------------------------------------------ */
+
+#define DDCOS4(x) (x > 0.5                                              \
+                   ? 0.0                                                \
+                   : -2*AIR_PI*AIR_PI*(cos(AIR_PI*2*x) + cos(AIR_PI*4*x)))
+
+static double
+_nrrdDDCos4SDInt(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
+static double
+_nrrdDDCos4SDSup(const double *parm) {
+  
+  return parm[0];
+}
+
+static double
+_nrrdDDCos4SD1_d(double x, const double *parm) {
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return DDCOS4(x);
+}
+
+static float
+_nrrdDDCos4SD1_f(float x, const double *parm) {
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return AIR_CAST(float, DDCOS4(x));
+}
+
+static void
+_nrrdDDCos4SDN_d(double *f, const double *x, size_t len, const double *parm) {
+  size_t i;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    double t;
+    t = AIR_ABS(x[i]);
+    f[i] = DDCOS4(t);
+  }
+}
+
+static void
+_nrrdDDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
+  size_t i;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    float t;
+    t = AIR_ABS(x[i]);
+    f[i] = AIR_CAST(float, DDCOS4(t));
+  }
+}
+
+static NrrdKernel
+_nrrdKernelCos4SupportDebugDD = {
+  "cos4supDD",
+  1, _nrrdDDCos4SDSup, _nrrdDDCos4SDInt,  
+  _nrrdDDCos4SD1_f,  _nrrdDDCos4SDN_f,  _nrrdDDCos4SD1_d,  _nrrdDDCos4SDN_d
+};
+NrrdKernel *const
+nrrdKernelCos4SupportDebugDD = &_nrrdKernelCos4SupportDebugDD;
 
 /* ------------------------------------------------------------ */
 
@@ -2201,7 +2398,10 @@ _nrrdKernelStrToKern(char *str) {
   
   if (!strcmp("zero", str))       return nrrdKernelZero;
   if (!strcmp("box", str))        return nrrdKernelBox;
-  if (!strcmp("boxsd", str))      return nrrdKernelBoxSupportDebug;
+  if (!strcmp("boxsup", str))     return nrrdKernelBoxSupportDebug;
+  if (!strcmp("cos4sup", str))    return nrrdKernelCos4SupportDebug;
+  if (!strcmp("cos4supd", str))   return nrrdKernelCos4SupportDebugD;
+  if (!strcmp("cos4supdd", str))  return nrrdKernelCos4SupportDebugDD;
   if (!strcmp("cheap", str))      return nrrdKernelCheap;
   if (!strcmp("hermiteFlag", str))    return nrrdKernelHermiteScaleSpaceFlag;
   if (!strcmp("hermite", str))    return nrrdKernelHermiteScaleSpaceFlag;
@@ -2397,9 +2597,11 @@ nrrdKernelParse(const NrrdKernel **kernelP,
         *kernelP == nrrdKernelGaussianD ||
         *kernelP == nrrdKernelGaussianDD ||
         *kernelP == nrrdKernelDiscreteGaussian ||
-        *kernelP == nrrdKernelBoxSupportDebug) {
-      /* for Gaussians, DiscreteGaussian, nrrdKernelBoxSupportDebug,
-         we need all the parameters given explicitly */
+        *kernelP == nrrdKernelBoxSupportDebug ||
+        *kernelP == nrrdKernelCos4SupportDebug ||
+        *kernelP == nrrdKernelCos4SupportDebugD ||
+        *kernelP == nrrdKernelCos4SupportDebugDD) {
+      /* for these kernels, we need all the parameters given explicitly */
       needParm = (*kernelP)->numParm;
     } else {
       /*  For everything else (note that TMF kernels are handled

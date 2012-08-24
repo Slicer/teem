@@ -1434,6 +1434,11 @@ NRRD_EXPORT NrrdKernel
                                        for exercising functions (like nrrd's
                                        resampling or gage's probing) that 
                                        depend on kernel support */
+  *const nrrdKernelCos4SupportDebug, /* like BoxSupportDebug but instead of
+                                        box function, using cos(pi*x)^4 
+                                        within [-0.5,0.5] and 0.0 outside */
+  *const nrrdKernelCos4SupportDebugD,
+  *const nrrdKernelCos4SupportDebugDD,
   *const nrrdKernelCheap,        /* like box, but every Nth on downsampling */
   *const nrrdKernelHermiteScaleSpaceFlag,  /* a kernel that looks like tent,
                                               but which exists as a flag for
