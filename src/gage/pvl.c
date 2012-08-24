@@ -64,7 +64,8 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
   airArray *mop;
   
   if (!( nin && kind )) {
-    biffAddf(GAGE, "%s: got NULL pointer", me);
+    biffAddf(GAGE, "%s: got NULL pointer (%p, %p, or %p)", me,
+             ctx, nin, kind);
     return NULL;
   }
   if (gageVolumeCheck(ctx, nin, kind)) {
@@ -203,6 +204,10 @@ gagePerVolumeNix(gagePerVolume *pvl) {
 ******** gageAnswerPointer()
 **
 ** way of getting a pointer to a specific answer in a pervolume's ans array
+**
+** Returns NULL if the item is invalid, but there is no other error checking.
+** In particular, this does not let you know if the item is actually part
+** of the current query.
 **
 */
 const double *
