@@ -62,7 +62,7 @@ main(int argc, const char **argv) {
     airMopAdd(mop, ncopy, (airMopper)nrrdNuke, airMopAlways);
     /* HEY: actually a larger length will cause a segfault, but
        debugging it with valgrind was extremely slow (15 minutes or
-       so for error to occur and thwarted by its endless production
+       so for error to occur) and thwarted by its endless production
        of "Signal 11 being dropped" messages */
     blen = AIR_STRLEN_HUGE*42;
     blah = AIR_CALLOC(blen, char);
@@ -79,7 +79,9 @@ main(int argc, const char **argv) {
     blah[ii] = '\0';
     /* NOTE: this blah1L is to overcome a long-stanging bug that \n's
        were permitted in labels and units, but can't be written.  Same
-       as NOTE above */
+       as NOTE above.  New code now prevents generating broken NRRD files,
+       but it means that the comparison test between in-memory vs the
+       saved-and-read nrrd would fail */
     blah1L = airOneLinify(airStrdup(blah));
     airMopAdd(mop, blah1L, airFree, airMopAlways);
     nrrdAxisInfoSet_va(nin, nrrdAxisInfoLabel, 

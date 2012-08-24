@@ -24,3 +24,7 @@
 ADD_EXECUTABLE(probeSclTest probeScl.c)
 TARGET_LINK_LIBRARIES(probeSclTest teem)
 ADD_TEST(probeScl ${EXECUTABLE_OUTPUT_PATH}/probeSclTest)
+
+ADD_EXECUTABLE(probeMultiTest probeMulti.c)
+TARGET_LINK_LIBRARIES(probeMultiTest teem)
+ADD_TEST(probeMulti ${EXECUTABLE_OUTPUT_PATH}/probeMultiTest)
