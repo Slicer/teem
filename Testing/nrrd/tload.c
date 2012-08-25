@@ -57,7 +57,6 @@ main(int argc, const char **argv) {
     Nrrd *ncopy;
     char *blah, *blah1L, explain[AIR_STRLEN_LARGE];
     size_t ii, blen;
-    int cmperr;
     ncopy = nrrdNew();
     airMopAdd(mop, ncopy, (airMopper)nrrdNuke, airMopAlways);
     /* HEY: actually a larger length will cause a segfault, but
