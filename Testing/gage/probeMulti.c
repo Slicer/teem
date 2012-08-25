@@ -362,8 +362,8 @@ main(int argc, const char **argv) {
     }
   }
   
-#undef NRRD_NEW;
-#undef ERR_PREFIX;
+#undef NRRD_NEW
+#undef ERR_PREFIX
   airMopOkay(mop);
   exit(0);
 }
