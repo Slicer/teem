@@ -40,7 +40,7 @@ gageContextNew() {
   perVolumeUnion pvu;
   int ii;
 
-  ctx = (gageContext*)calloc(1, sizeof(gageContext));
+  ctx = AIR_CALLOC(1, gageContext);
   if (ctx) {
     ctx->verbose = gageDefVerbose;
     gageParmReset(&ctx->parm);
@@ -86,7 +86,7 @@ gageContextNew() {
 ** padding to create a private copy of the volume, the gageContext is
 ** light-weight enough that there is no reason that this function can't
 ** return an independent and fully functioning copy of the context (whereas
-** before you weren't allowed to do anything but gageProbe() on the on
+** before you weren't allowed to do anything but gageProbe() on the
 ** copied context).
 */
 gageContext *
@@ -97,7 +97,7 @@ gageContextCopy(gageContext *ctx) {
   perVolumeUnion pvu;
   int ki;
 
-  ntx = (gageContext*)calloc(1, sizeof(gageContext));
+  ntx = AIR_CALLOC(1, gageContext);
   if (!ntx) {
     biffAddf(GAGE, "%s: couldn't make a gageContext", me);
     return NULL;
@@ -126,9 +126,9 @@ gageContextCopy(gageContext *ctx) {
     }
   }
   if (ctx->stackPos && ctx->stackFsl && ctx->stackFw) {
-    ntx->stackPos = calloc(ctx->pvlNum-1, sizeof(double));
-    ntx->stackFsl = calloc(ctx->pvlNum-1, sizeof(double));
-    ntx->stackFw = calloc(ctx->pvlNum-1, sizeof(double));
+    ntx->stackPos = AIR_CALLOC(ctx->pvlNum-1, double);
+    ntx->stackFsl = AIR_CALLOC(ctx->pvlNum-1, double);
+    ntx->stackFw = AIR_CALLOC(ctx->pvlNum-1, double);
     if (!( ntx->stackPos && ntx->stackFsl && ntx->stackFw )) {
       biffAddf(GAGE, "%s: couldn't allocate stack Pos, Fsl, Fw", me);
       return NULL;
@@ -145,9 +145,9 @@ gageContextCopy(gageContext *ctx) {
   }
   ntx->shape = gageShapeCopy(ctx->shape);
   fd = 2*ntx->radius;
-  ntx->fsl = (double *)calloc(fd*3, sizeof(double));
-  ntx->fw = (double *)calloc(fd*3*(GAGE_KERNEL_MAX+1), sizeof(double));
-  ntx->off = (unsigned int *)calloc(fd*fd*fd, sizeof(unsigned int));
+  ntx->fsl = AIR_CALLOC(fd*3, double);
+  ntx->fw = AIR_CALLOC(fd*3*(GAGE_KERNEL_MAX+1), double);
+  ntx->off = AIR_CALLOC(fd*fd*fd, unsigned int);
   if (!( ntx->fsl && ntx->fw && ntx->off )) {
     biffAddf(GAGE, "%s: couldn't allocate new filter caches for fd=%d",
              me, fd);
