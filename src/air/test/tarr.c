@@ -24,11 +24,6 @@
 
 #include "../air.h"
 
-typedef union {
-  unsigned char **c;
-  void **v;
-} ptrHack;
-
 int
 main(int argc, char *argv[]) {
   char *me, *fname, *incrS;
@@ -37,7 +32,7 @@ main(int argc, char *argv[]) {
   unsigned int incr, numRed;
   unsigned char *data;
   int datum; /* must be int, so it can store EOF */
-  ptrHack hack;
+  airPtrPtrUnion appu;
 
   me = argv[0];
   if (3 != argc) {
@@ -86,11 +81,11 @@ main(int argc, char *argv[]) {
      happens (we want it to happen fairly infrequently) */
   /* dataArr = airArrayNew(&data, NULL, sizeof(unsigned char), incr); */
   /* but wait: to play well with type checking, we have to use a stupid
-     union to pass in the address of the array.  So, hack.v == &data, 
+     union to pass in the address of the array.  So, appu.v == &data, 
      but the types are right.  We don't do a cast because recent versions
      of gcc will complain about breaking "strict-aliasing rules". */
-  hack.c = &data;
-  dataArr = airArrayNew(hack.v, NULL, sizeof(unsigned char), incr);
+  appu.c = &data;
+  dataArr = airArrayNew(appu.v, NULL, sizeof(unsigned char), incr);
   if (!dataArr) {
     fprintf(stderr, "%s: couldn't allocate airArray\n", me);
     airMopError(mop); return 1;

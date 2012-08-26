@@ -270,11 +270,6 @@ limnPolyDataWriteIV(FILE *file, const limnPolyData *pld) {
   return 0;
 }
 
-typedef union {
-  int **i;
-  void **v;
-} _ippu;
-
 int
 limnObjectReadOFF(limnObject *obj, FILE *file) {
   static const char me[]="limnObjectReadOFF";
@@ -289,15 +284,15 @@ limnObjectReadOFF(limnObject *obj, FILE *file) {
   
   int *vertBase;
   airArray *vertBaseArr, *mop;
-  _ippu u;
+  airPtrPtrUnion appu;
 
   if (!( obj && file )) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
   vertBase = NULL;
-  u.i = &vertBase;
-  vertBaseArr = airArrayNew(u.v, NULL, sizeof(int), 128);
+  appu.i = &vertBase;
+  vertBaseArr = airArrayNew(appu.v, NULL, sizeof(int), 128);
   mop = airMopNew();
   airMopAdd(mop, vertBaseArr, (airMopper)airArrayNuke, airMopAlways);
   got = 0;
