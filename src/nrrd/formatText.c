@@ -66,11 +66,6 @@ _nrrdFormatText_contentStartsLike(NrrdIoState *nio) {
           || airParseStrF(&oneFloat, nio->line, _nrrdTextSep, 1));
 }
 
-typedef union {
-  float **f;
-  void **v;
-} _fppu;
-
 int
 _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatText_read";
@@ -82,7 +77,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* fl: first line, al: all lines */
   airArray *flArr, *alArr;
   float *fl, *al, oneFloat;
-  _fppu u;
+  airPtrPtrUnion appu;
   
   if (!_nrrdFormatText_contentStartsLike(nio)) {
     biffAddf(NRRD, "%s: this doesn't look like a %s file", me, 
@@ -186,8 +181,8 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
              airSprintSize_t(stmp, line));
     UNSETTWO; return 1;
   }
-  u.f = &fl;
-  flArr = airArrayNew(u.v, NULL, sizeof(float), _NRRD_TEXT_INCR);
+  appu.f = &fl;
+  flArr = airArrayNew(appu.v, NULL, sizeof(float), _NRRD_TEXT_INCR);
   if (!flArr) {
     biffAddf(NRRD, "%s: couldn't create array for first line values", me);
     UNSETTWO; return 1;
@@ -219,8 +214,8 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* else sx == 1 when nrrd->dim == 1 */
   
   /* now see how many more lines there are */
-  u.f = &al;
-  alArr = airArrayNew(u.v, NULL, sx*sizeof(float), _NRRD_TEXT_INCR);
+  appu.f = &al;
+  alArr = airArrayNew(appu.v, NULL, sx*sizeof(float), _NRRD_TEXT_INCR);
   if (!alArr) {
     biffAddf(NRRD, "%s: couldn't create data buffer", me);
     UNSETTWO; return 1;

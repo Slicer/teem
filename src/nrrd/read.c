@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -35,11 +35,6 @@ char _nrrdFieldSep[] = " \t";
 char _nrrdLineSep[] = "\r\n";
 char _nrrdNoSpaceVector[] = "none";
 char _nrrdTextSep[] = " ,\t";
-
-typedef union {
-  char ***c;
-  void **v;
-} _cppu;
 
 /*
 ** return length of next "line" in nio->headerStringRead
@@ -87,7 +82,7 @@ _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
   char **line;
   airArray *mop, *lineArr;
   int lineIdx;
-  _cppu u;
+  airPtrPtrUnion appu;
   unsigned int len, needLen;
 
   if (!( lenP && nio && (file || nio->headerStringRead))) {
@@ -131,8 +126,8 @@ _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
     /* line didn't fit in buffer, so we have to increase line
        buffer size and put the line together in pieces */
     /* NOTE: this will never happen when reading from nio->headerStringRead */
-    u.c = &line;
-    lineArr = airArrayNew(u.v, NULL, sizeof(char *), 1);
+    appu.cp = &line;
+    lineArr = airArrayNew(appu.v, NULL, sizeof(char *), 1);
     if (!lineArr) {
       biffAddf(NRRD, "%s: couldn't allocate airArray", me);
       *lenP = 0; return 1;

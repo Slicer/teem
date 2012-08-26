@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -23,12 +23,6 @@
 
 #include "nrrd.h"
 #include "privateNrrd.h"
-
-typedef union {
-  char **c;
-  void **v;
-} ptrHack;
-
 
 int
 _nrrdEncodingGzip_available(void) {
@@ -54,7 +48,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
   unsigned int read;
   char *data;
   gzFile gzfin;
-  ptrHack hack;
+  airPtrPtrUnion appu;
 
   sizeData = nrrdElementSize(nrrd)*elNum;
   /* Create the gzFile for reading in the gzipped data. */
@@ -84,8 +78,8 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
        actually has to reallocate.  The unit is 1 because we are managing
        the reading in terms of bytes (sizeof(char)==1 by definition) */
     buff = NULL;
-    hack.c = &buff;
-    buffArr = airArrayNew(hack.v, NULL, 1, 2*sizeChunk);
+    appu.c = &buff;
+    buffArr = airArrayNew(appu.v, NULL, 1, 2*sizeChunk);
     airArrayLenSet(buffArr, sizeChunk);
     if (!( buffArr && buffArr->data )) {
       biffAddf(NRRD, "%s: couldn't initialize airArray\n", me);
