@@ -299,7 +299,23 @@ or the airMopAdds can be interleaved, depending on clarity.
 gageContextNix, ...) should be no-ops on when passed NULL, if for no other
 reason that it facilitates the practice that you airMopAdd things as soon
 as they are created, even in a sequence of allocations, wherein some of
-them fail.
+them might fail (as in the example above).
+
+* The airMop is built on top of Teem's simple dynamic array re-allocation
+helper, the airArray.  Depending on requests for growing or shrinking the
+array, an airArray will change the value of a pointer to the (changing size)
+memory region.  See teem/src/air/air.h for more details.
+
+* Because the first argument to airArrayNew is a void**, helpful compilers
+can generate many warnings about "dereferencing type-punned pointer will
+break strict-aliasing rules" when you cast the pointer (which you want to
+have managed by the airArray) to void**.  Seeking to avoid those warnings,
+there is an airPtrPtrUnion which provides a union for many of the common
+pointer-to-pointer types that come up in Teem code.  Variables of type
+airPtrPtrUnion are typically named "appu", and grepping through the Teem code
+shows examples of their use.  Creating new unions to side-step aliasing
+warnings should be created only when dealing with pointers to objects defined
+by Teem libraries other than air (e.g. gagePerVolumes).
 
 * Teem relies heavily on C enums to give human-readable names to integer
 values (e.g. nrrdTypeChar, nrrdTypeShort, nrrdTypeFloat, ...).  There are
