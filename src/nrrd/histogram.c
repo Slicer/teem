@@ -192,12 +192,13 @@ int
 nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
               size_t sy, int showLog, double max) {
   static const char me[]="nrrdHistoDraw", func[]="dhisto";
-  char cmt[AIR_STRLEN_MED];
-  unsigned int k, sx, x, y, maxhitidx, E,
-    numticks, *Y, *logY, tick, *ticks;
+  char cmt[AIR_STRLEN_MED], stmp[AIR_STRLEN_SMALL];
+  unsigned int ki, numticks, *linY, *logY, tick, *ticks;
   double hits, maxhits, usemaxhits;
   unsigned char *pgmData;
   airArray *mop;
+  int E;
+  size_t sx, xi, yi, maxhitidx;
 
   if (!(nin && nout && sy > 0)) {
     biffAddf(NRRD, "%s: invalid args", me);
@@ -211,9 +212,9 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
     biffAddf(NRRD, "%s: input nrrd not a histogram", me);
     return 1;
   }
-  sx = AIR_CAST(unsigned int, nin->axis[0].size);
+  sx = nin->axis[0].size;
   nrrdBasicInfoInit(nout, NRRD_BASIC_INFO_DATA_BIT);
-  if (nrrdPGM(nout, sx, sy)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeUChar, 2, sx, sy)) {
     biffAddf(NRRD, "%s: failed to allocate histogram image", me);
     return 1;
   }
@@ -226,12 +227,13 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
   nout->axis[0].label = (char *)airStrdup(nin->axis[0].label);
   nout->axis[1].label = (char *)airFree(nout->axis[1].label);
   pgmData = (unsigned char *)nout->data;
-  maxhits = maxhitidx = 0;
-  for (x=0; x<sx; x++) {
-    hits = nrrdDLookup[nin->type](nin->data, x);
+  maxhits = 0.0;
+  maxhitidx = 0;
+  for (xi=0; xi<sx; xi++) {
+    hits = nrrdDLookup[nin->type](nin->data, xi);
     if (maxhits < hits) {
       maxhits = hits;
-      maxhitidx = x;
+      maxhitidx = xi;
     }
   }
   if (AIR_EXISTS(max) && max > 0) {
@@ -241,47 +243,50 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
   }
   nout->axis[1].min = usemaxhits;
   nout->axis[1].max = 0;
-  numticks = (unsigned int)log10(usemaxhits + 1);
+  numticks = AIR_CAST(unsigned int, log10(usemaxhits + 1));
   mop = airMopNew();
-  ticks = (unsigned int*)calloc(numticks, sizeof(unsigned int));
+  ticks = AIR_CALLOC(numticks, unsigned int);
   airMopMem(mop, &ticks, airMopAlways);
-  Y = (unsigned int*)calloc(sx, sizeof(unsigned int));
-  airMopMem(mop, &Y, airMopAlways);
-  logY = (unsigned int*)calloc(sx, sizeof(unsigned int));
+  linY = AIR_CALLOC(sx, unsigned int);
+  airMopMem(mop, &linY, airMopAlways);
+  logY = AIR_CALLOC(sx, unsigned int);
   airMopMem(mop, &logY, airMopAlways);
-  if (!(ticks && Y && logY)) {
+  if (!(ticks && linY && logY)) {
     biffAddf(NRRD, "%s: failed to allocate temp arrays", me);
     airMopError(mop); return 1;
   }
-  for (k=0; k<numticks; k++) {
-    ticks[k] = airIndex(0, log10(pow(10,k+1) + 1), log10(usemaxhits+1), AIR_CAST(unsigned int, sy));
+  for (ki=0; ki<numticks; ki++) {
+    ticks[ki] = airIndex(0, log10(pow(10,ki+1) + 1), log10(usemaxhits+1),
+                         AIR_CAST(unsigned int, sy));
   }
-  for (x=0; x<sx; x++) {
-    hits = nrrdDLookup[nin->type](nin->data, x);
-    Y[x] = airIndex(0, hits, usemaxhits, AIR_CAST(unsigned int, sy));
-    logY[x] = airIndex(0, log10(hits+1), log10(usemaxhits+1), AIR_CAST(unsigned int, sy));
-    /* printf("%d -> %d,%d", x, Y[x], logY[x]); */
+  for (xi=0; xi<sx; xi++) {
+    hits = nrrdDLookup[nin->type](nin->data, xi);
+    linY[xi] = airIndex(0, hits, usemaxhits,
+                        AIR_CAST(unsigned int, sy));
+    logY[xi] = airIndex(0, log10(hits+1), log10(usemaxhits+1),
+                        AIR_CAST(unsigned int, sy));
+    /* printf("%d -> %d,%d", x, linY[x], logY[x]); */
   }
-  for (y=0; y<sy; y++) {
+  for (yi=0; yi<sy; yi++) {
     tick = 0;
-    for (k=0; k<numticks; k++)
-      tick |= ticks[k] == y;
-    for (x=0; x<sx; x++) {
-      pgmData[x + sx*(sy-1-y)] = 
+    for (ki=0; ki<numticks; ki++)
+      tick |= ticks[ki] == yi;
+    for (xi=0; xi<sx; xi++) {
+      pgmData[xi + sx*(sy-1-yi)] = 
         (2 == showLog    /* HACK: draw log curve, but not log tick marks */
-         ? (y >= logY[x]       
+         ? (yi >= logY[xi]
             ? 0                   /* above log curve                     */
-            : (y >= Y[x]       
+            : (yi >= linY[xi]
                ? 128              /* below log curve, above normal curve */
                : 255              /* below log curve, below normal curve */
                )
             )
          : (!showLog
-            ? (y >= Y[x] ? 0 : 255)
-            : (y >= logY[x]       /* above log curve                     */
+            ? (yi >= linY[xi] ? 0 : 255)
+            : (yi >= logY[xi]     /* above log curve                     */
                ? (!tick ? 0       /*                    not on tick mark */
                   : 255)          /*                    on tick mark     */
-               : (y >= Y[x]       /* below log curve, above normal curve */
+               : (yi >= linY[xi]  /* below log curve, above normal curve */
                   ? (!tick ? 128  /*                    not on tick mark */
                      : 0)         /*                    on tick mark     */
                   :255            /* below log curve, below normal curve */
@@ -291,15 +296,17 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
          );
     }
   }
-  E = AIR_FALSE;
+  E = 0;
   sprintf(cmt, "min value: %g\n", nout->axis[0].min);
   if (!E) E |= nrrdCommentAdd(nout, cmt);
   sprintf(cmt, "max value: %g\n", nout->axis[0].max);
   if (!E) E |= nrrdCommentAdd(nout, cmt);
-  sprintf(cmt, "max hits: %g, in bin %d, around value %g\n",
-          maxhits, maxhitidx, nrrdAxisInfoPos(nout, 0, maxhitidx));
+  sprintf(cmt, "max hits: %g, in bin %s, around value %g\n", maxhits,
+          airSprintSize_t(stmp, maxhitidx),
+          nrrdAxisInfoPos(nout, 0, maxhitidx));
   if (!E) E |= nrrdCommentAdd(nout, cmt);
-  if (!E) E |= nrrdContentSet_va(nout, func, nin, "%d", sy);
+  if (!E) E |= nrrdContentSet_va(nout, func, nin, "%s", 
+                                 airSprintSize_t(stmp, sy));
   if (E) {
     biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
@@ -388,9 +395,9 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   nout->axis[hax].max = range->max;
   nout->axis[hax].center = nrrdCenterCell;
   if (nin->axis[hax].label) {
-    nout->axis[hax].label = (char *)calloc(strlen("histax()")
-                                           + strlen(nin->axis[hax].label)
-                                           + 1, sizeof(char));
+    nout->axis[hax].label = AIR_CALLOC(strlen("histax()")
+                                       + strlen(nin->axis[hax].label)
+                                       + 1, char);
     if (nout->axis[hax].label) {
       sprintf(nout->axis[hax].label, "histax(%s)", nin->axis[hax].label);
     } else {
@@ -487,7 +494,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
     return 1;
   }
   mop = airMopNew();
-  range = (NrrdRange**)calloc(numNin, sizeof(NrrdRange*));
+  range = AIR_CALLOC(numNin, NrrdRange*);
   airMopAdd(mop, range, airFree, airMopAlways);
   for (ai=0; ai<numNin; ai++) {
     if (_range && _range[ai]) {
@@ -555,10 +562,10 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
     if (nin[ai]->content) {
       hadContent = 1;
       totalContentStrlen += AIR_CAST(int, strlen(nin[ai]->content));
-      nout->axis[ai].label = (char *)calloc(strlen("histo(,)")
-                                            + strlen(nin[ai]->content)
-                                            + 11
-                                            + 1, sizeof(char));
+      nout->axis[ai].label = AIR_CALLOC(strlen("histo(,)")
+                                        + strlen(nin[ai]->content)
+                                        + 11
+                                        + 1, char);
       if (nout->axis[ai].label) {
         char stmp[AIR_STRLEN_SMALL];
         sprintf(nout->axis[ai].label, "histo(%s,%s)", nin[ai]->content,
@@ -609,10 +616,10 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
 
   /* HEY: switch to nrrdContentSet_va? */
   if (hadContent) {
-    nout->content = (char *)calloc(strlen(func) + strlen("()")
-                                   + numNin*strlen(",")
-                                   + totalContentStrlen
-                                   + 1, sizeof(char));
+    nout->content = AIR_CALLOC(strlen(func) + strlen("()")
+                               + numNin*strlen(",")
+                               + totalContentStrlen
+                               + 1, char);
     if (nout->content) {
       sprintf(nout->content, "%s(", func);
       for (ai=0; ai<numNin; ai++) {
