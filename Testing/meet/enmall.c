@@ -26,6 +26,7 @@
 /*
 ** Tests:
 ** meetAirEnumAllCheck
+** meetAirEnumAllPrint
 */
 
 int
@@ -42,6 +43,8 @@ main(int argc, const char **argv) {
     free(err);
     return 1;
   }
+  /* can call this, but not clear how to TEST it per se */
+  meetAirEnumAllPrint(stdout);
 
   return 0;
 }
