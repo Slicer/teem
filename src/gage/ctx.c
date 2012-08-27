@@ -89,7 +89,7 @@ gageContextNew() {
 ** before you weren't allowed to do anything but gageProbe() on the
 ** copied context).
 */
-gageContext *
+gageContext * /*Teem: biff if (!ret) */
 gageContextCopy(gageContext *ctx) {
   static const char me[]="gageContextCopy";
   gageContext *ntx;
