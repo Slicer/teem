@@ -284,6 +284,82 @@ _nrrdKernelBSpline3DD = {
 NrrdKernel *const
 nrrdKernelBSpline3DD = &_nrrdKernelBSpline3DD;
 
+/* ---------------------- order *3* deriv *3* -------------------------- */
+
+static double
+_bspl3d3_int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
+/* t: tmp; ax: abs(x) */
+#define BSPL3D3(ret, t, x)                     \
+  if (x < 1) {                                 \
+    ret = 3;                                   \
+  } else if (x < 2) {                          \
+    ret = -1;                                  \
+  } else {                                     \
+    ret = 0;                                   \
+  }
+
+static double
+_bspl3d3_1d(double x, const double *parm) {
+  double ax, tmp, r;
+  int sgn;
+  AIR_UNUSED(parm);
+
+  ABS_SGN(ax, sgn, x);
+  BSPL3D3(r, tmp, ax);
+  return sgn*r;
+}
+
+static float
+_bspl3d3_1f(float x, const double *parm) {
+  float ax, tmp, r;
+  int sgn;
+  AIR_UNUSED(parm);
+
+  ABS_SGN(ax, sgn, x);
+  BSPL3D3(r, tmp, ax);
+  return sgn*r;
+}
+
+static void
+_bspl3d3_Nd(double *f, const double *x, size_t len, const double *parm) {
+  double ax, tmp, r;
+  int sgn;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ABS_SGN(ax, sgn, x[i]);
+    BSPL3D3(r, tmp, ax);
+    f[i] = sgn*r;
+  }
+}
+
+static void
+_bspl3d3_Nf(float *f, const float *x, size_t len, const double *parm) {
+  float ax, tmp, r;
+  int sgn;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ABS_SGN(ax, sgn, x[i]);
+    BSPL3D3(r, tmp, ax);
+    f[i] = sgn*r;
+  }
+}
+
+static NrrdKernel
+_nrrdKernelBSpline3DDD = {
+  "bspl3ddd",
+  BSPL_DECL(3, 3)
+};
+NrrdKernel *const
+nrrdKernelBSpline3DDD = &_nrrdKernelBSpline3DDD;
+
 /* ------------- order *3* approximate numerical inverse -------------- */
 /* still need to implement:
 **   Unser et al B-Spline Signal Processing: Part I & II, IEEE
@@ -631,6 +707,84 @@ _nrrdKernelBSpline5DD = {
 };
 NrrdKernel *const
 nrrdKernelBSpline5DD = &_nrrdKernelBSpline5DD;
+
+/* ---------------------- order *5* deriv *3* -------------------------- */
+
+static double
+_bspl5d3_int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
+#define BSPL5D3(ret, t, x)                              \
+  if (x < 1) {                                          \
+    ret = (6 - 5*x)*x;                                  \
+  } else if (x < 2) {                                   \
+    ret = 15.0/2.0 - 9*x + 5*x*x/2;                     \
+  } else if (x < 3) {                                   \
+    t = -3 + x;                                         \
+    ret = -t*t/2;                                        \
+  } else {                                              \
+    ret = 0;                                            \
+  }
+
+static double
+_bspl5d3_1d(double x, const double *parm) {
+  double ax, tmp, r;
+  int sgn;
+  AIR_UNUSED(parm);
+
+  ABS_SGN(ax, sgn, x);
+  BSPL5D3(r, tmp, ax);
+  return sgn*r;
+}
+
+static float
+_bspl5d3_1f(float x, const double *parm) {
+  float ax, tmp, r;
+  int sgn;
+  AIR_UNUSED(parm);
+
+  ABS_SGN(ax, sgn, x);
+  BSPL5D3(r, tmp, ax);
+  return sgn*r;
+}
+
+static void
+_bspl5d3_Nd(double *f, const double *x, size_t len, const double *parm) {
+  double ax, tmp, r;
+  int sgn;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ABS_SGN(ax, sgn, x[i]);
+    BSPL5D3(r, tmp, ax);
+    f[i] = sgn*r;
+  }
+}
+
+static void
+_bspl5d3_Nf(float *f, const float *x, size_t len, const double *parm) {
+  float ax, tmp, r;
+  int sgn;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ABS_SGN(ax, sgn, x[i]);
+    BSPL5D3(r, tmp, ax);
+    f[i] = sgn*r;
+  }
+}
+
+static NrrdKernel
+_nrrdKernelBSpline5DDD = {
+  "bspl5ddd",
+  BSPL_DECL(5, 3)
+};
+NrrdKernel *const
+nrrdKernelBSpline5DDD = &_nrrdKernelBSpline5DDD;
 
 /* ------------- order *5* approximate numerical inverse -------------- */
 
@@ -981,6 +1135,86 @@ _nrrdKernelBSpline7DD = {
 };
 NrrdKernel *const
 nrrdKernelBSpline7DD = &_nrrdKernelBSpline7DD;
+
+/* ---------------------- order *7* deriv *3* -------------------------- */
+
+static double
+_bspl7d3_int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
+#define BSPL7D3(ret, t, x)                                              \
+  if (x < 1) {                                                          \
+    ret = x*(64 + 5*x*x*(-16 + 7*x))/24;                                \
+  } else if (x < 2) {                                                   \
+    ret = -7.0/3.0 + x*(12 + x*(-14 + x*(6 - 7*x/8)));                  \
+  } else if (x < 3) {                                                   \
+    ret = (392 + x*(-608 + x*(336 + x*(-80 + 7*x))))/24;                \
+  } else if (x < 4) {                                                   \
+    t = -4 + x;                                                         \
+    ret = -t*t*t*t/24;                                                  \
+  } else {                                                              \
+    ret = 0.0;                                                          \
+  }
+
+static double
+_bspl7d3_1d(double x, const double *parm) {
+  double ax, tmp, r;
+  int sgn;
+  AIR_UNUSED(parm);
+
+  ABS_SGN(ax, sgn, x);
+  BSPL7D3(r, tmp, ax);
+  return sgn*r;
+}
+
+static float
+_bspl7d3_1f(float x, const double *parm) {
+  float ax, tmp, r;
+  int sgn;
+  AIR_UNUSED(parm);
+
+  ABS_SGN(ax, sgn, x);
+  BSPL7D3(r, tmp, ax);
+  return sgn*r;
+}
+
+static void
+_bspl7d3_Nd(double *f, const double *x, size_t len, const double *parm) {
+  double ax, tmp, r;
+  int sgn;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ABS_SGN(ax, sgn, x[i]);
+    BSPL7D3(r, tmp, ax);
+    f[i] = sgn*r;
+  }
+}
+
+static void
+_bspl7d3_Nf(float *f, const float *x, size_t len, const double *parm) {
+  float ax, tmp, r;
+  int sgn;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ABS_SGN(ax, sgn, x[i]);
+    BSPL7D3(r, tmp, ax);
+    f[i] = sgn*r;
+  }
+}
+
+static NrrdKernel
+_nrrdKernelBSpline7DDD = {
+  "bspl7ddd",
+  BSPL_DECL(7, 3)
+};
+NrrdKernel *const
+nrrdKernelBSpline7DDD = &_nrrdKernelBSpline7DDD;
 
 /* ------------- order *7* approximate numerical inverse -------------- */
 

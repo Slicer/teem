@@ -1957,6 +1957,91 @@ _DDc4hex = {
 NrrdKernel *const
 nrrdKernelC4HexicDD = &_DDc4hex;
 
+/* ------------------------------------------------------------ */
+
+#define _DDDC4HEXIC(x)                                                  \
+  (x >= 3.0                                                             \
+   ? 0                                                                  \
+   : (x >= 2.0                                                          \
+      ? -72.0 + x*(327.0/4.0 + x*(-61.0/2.0 + 15*x/4))                  \
+      : (x >= 1.0                                                       \
+         ? 60 + x*(-441.0/4.0 + x*(125.0/2.0 - 45*x/4))                 \
+         : x*(57.0/2.0  + x*(-35 + 15*x/2))                             \
+         )))
+
+static double
+_DDDc4hexInt(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
+static double
+_DDDc4hexSup(const double *parm) {
+  double S;
+
+  S = parm[0];
+  return 3*S;
+}
+
+static double
+_DDDc4hex1_d(double x, const double *parm) {
+  double S;
+  int sgn = 1;
+  
+  S = parm[0];
+  if (x < 0) { x = -x; sgn = -1; }
+  x /= S;
+  return sgn*_DDDC4HEXIC(x)/(S*S);
+}
+
+static float
+_DDDc4hex1_f(float x, const double *parm) {
+  float S;
+  int sgn = 1;
+  
+  S = AIR_CAST(float, parm[0]);
+  if (x < 0) { x = -x; sgn = -1; }
+  x /= S;
+  return AIR_CAST(float, sgn*_DDDC4HEXIC(x)/(S*S));
+}
+
+static void
+_DDDc4hexN_d(double *f, const double *x, size_t len, const double *parm) {
+  double S, t;
+  size_t i;
+  int sgn;
+  
+  S = parm[0];
+  for (i=0; i<len; i++) {
+    t = x[i]/S;
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    f[i] = sgn*_DDDC4HEXIC(t)/(S*S);
+  }
+}
+
+static void
+_DDDc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
+  float S, t;
+  size_t i;
+  int sgn;
+  
+  S = AIR_CAST(float, parm[0]);
+  for (i=0; i<len; i++) {
+    t = x[i]/S;
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    f[i] = AIR_CAST(float, sgn*_DDDC4HEXIC(t)/(S*S));
+  }
+}
+
+static NrrdKernel
+_nrrdKernelDDDC4hexic = {
+  "C4hexicDDD",
+  1, _DDDc4hexSup, _DDDc4hexInt,  
+  _DDDc4hex1_f,  _DDDc4hexN_f,  _DDDc4hex1_d,  _DDDc4hexN_d
+};
+NrrdKernel *const
+nrrdKernelC4HexicDDD = &_nrrdKernelDDDC4hexic;
+
 
 /* ------------- approximate inverse of c4h ------------------------- */
 /* see comments around "_bspl3_ANI" in bsplKernel.c */
@@ -2444,6 +2529,8 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("c4hd", str))       return nrrdKernelC4HexicD;
   if (!strcmp("c4hexicdd", str))  return nrrdKernelC4HexicDD;
   if (!strcmp("c4hdd", str))      return nrrdKernelC4HexicDD;
+  if (!strcmp("c4hexicddd", str)) return nrrdKernelC4HexicDDD;
+  if (!strcmp("c4hddd", str))     return nrrdKernelC4HexicDDD;
   if (!strcmp("gaussian", str))   return nrrdKernelGaussian;
   if (!strcmp("gauss", str))      return nrrdKernelGaussian;
   if (!strcmp("gaussiand", str))  return nrrdKernelGaussianD;
@@ -2478,6 +2565,8 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("bspln3d", str))    return nrrdKernelBSpline3D;
   if (!strcmp("bspl3dd", str))    return nrrdKernelBSpline3DD;
   if (!strcmp("bspln3dd", str))   return nrrdKernelBSpline3DD;
+  if (!strcmp("bspl3ddd", str))   return nrrdKernelBSpline3DDD;
+  if (!strcmp("bspln3ddd", str))  return nrrdKernelBSpline3DDD;
   if (!strcmp("bspl5", str))      return nrrdKernelBSpline5;
   if (!strcmp("bspln5", str))     return nrrdKernelBSpline5;
   if (!strcmp("bspl5ai", str))    return nrrdKernelBSpline5ApproxInverse;
@@ -2486,6 +2575,8 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("bspln5d", str))    return nrrdKernelBSpline5D;
   if (!strcmp("bspl5dd", str))    return nrrdKernelBSpline5DD;
   if (!strcmp("bspln5dd", str))   return nrrdKernelBSpline5DD;
+  if (!strcmp("bspl5ddd", str))   return nrrdKernelBSpline5DDD;
+  if (!strcmp("bspln5ddd", str))  return nrrdKernelBSpline5DDD;
   if (!strcmp("bspl7", str))      return nrrdKernelBSpline7;
   if (!strcmp("bspln7", str))     return nrrdKernelBSpline7;
   if (!strcmp("bspl7ai", str))    return nrrdKernelBSpline7ApproxInverse;
@@ -2494,6 +2585,8 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("bspln7d", str))    return nrrdKernelBSpline7D;
   if (!strcmp("bspl7dd", str))    return nrrdKernelBSpline7DD;
   if (!strcmp("bspln7dd", str))   return nrrdKernelBSpline7DD;
+  if (!strcmp("bspl7ddd", str))   return nrrdKernelBSpline7DDD;
+  if (!strcmp("bspln7ddd", str))  return nrrdKernelBSpline7DDD;
   return NULL;
 }
 
