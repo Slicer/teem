@@ -1423,7 +1423,11 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelBSpline5,     /* 5th order B-spline */
   *const nrrdKernelBSpline5D,
   *const nrrdKernelBSpline5DD,
-  *const nrrdKernelBSpline5ApproxInverse;
+  *const nrrdKernelBSpline5ApproxInverse,
+  *const nrrdKernelBSpline7,     /* 7th order B-spline */
+  *const nrrdKernelBSpline7D,
+  *const nrrdKernelBSpline7DD,
+  *const nrrdKernelBSpline7ApproxInverse;
 /* kernel.c */
 NRRD_EXPORT NrrdKernel
   *const nrrdKernelZero,         /* zero everywhere */

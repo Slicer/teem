@@ -731,3 +731,360 @@ _nrrdKernelBSpline5ApproxInverse = {
 };
 NrrdKernel *const
 nrrdKernelBSpline5ApproxInverse = &_nrrdKernelBSpline5ApproxInverse;
+
+/* ============================= order *6* ============================= */
+
+/*
+static double
+_bspl6_sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3.5;
+}
+*/
+
+/* ============================= order *7* ============================= */
+
+static double
+_bspl7_sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 4.0;
+}
+
+/* ---------------------- order *7* deriv *0* -------------------------- */
+
+static double
+_bspl7d0_int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
+#define BSPL7D0(ret, t, x)                                              \
+  if (x < 1) {                                                          \
+    ret = 151.0/315.0 + x*x*(-48.0 + x*x*(16.0 + x*x*(-4 + x)))/144.0;  \
+  } else if (x < 2) {                                                   \
+    ret = (2472 - 7*x*(56 + x*(72 + x*(280 + 3*(-6 + x)*x*(20 + (-6 + x)*x)))))/5040.0; \
+  } else if (x < 3) {                                                   \
+    ret = (-1112 + 7*x*(1736 + x*(-2760 + x*(1960 + x*(-760 + x*(168 + (-20 + x)*x))))))/5040.0; \
+  } else if (x < 4) {                                                   \
+    t = x - 4;                                                          \
+    ret = -t*t*t*t*t*t*t/5040;                                          \
+  } else {                                                              \
+    ret = 0;                                                            \
+  }
+
+static double
+_bspl7d0_1d(double x, const double *parm) {
+  double ax, tmp, r;
+  AIR_UNUSED(parm);
+
+  ax = AIR_ABS(x);
+  BSPL7D0(r, tmp, ax);
+  return r;
+}
+
+static float
+_bspl7d0_1f(float x, const double *parm) {
+  float ax, tmp, r;
+  AIR_UNUSED(parm);
+
+  ax = AIR_ABS(x);
+  BSPL7D0(r, tmp, ax);
+  return r;
+}
+
+static void
+_bspl7d0_Nd(double *f, const double *x, size_t len, const double *parm) {
+  double ax, tmp, r;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ax = x[i]; ax = AIR_ABS(ax);
+    BSPL7D0(r, tmp, ax);
+    f[i] = r;
+  }
+}
+
+static void
+_bspl7d0_Nf(float *f, const float *x, size_t len, const double *parm) {
+  float ax, tmp, r;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ax = x[i]; ax = AIR_ABS(ax);
+    BSPL7D0(r, tmp, ax);
+    f[i] = r;
+  }
+}
+
+static NrrdKernel
+_nrrdKernelBSpline7 = {
+  "bspl7",
+  BSPL_DECL(7, 0)
+};
+NrrdKernel *const
+nrrdKernelBSpline7 = &_nrrdKernelBSpline7;
+
+/* ---------------------- order *7* deriv *1* -------------------------- */
+
+static double
+_bspl7d1_int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
+#define BSPL7D1(ret, t, x)                                              \
+  if (x < 1) {                                                          \
+    ret = x*(-96.0 + x*x*(64.0 + x*x*(-24.0 + 7.0*x)))/144.0;           \
+  } else if (x < 2) {                                                   \
+    ret = -7.0/90.0 - (-2 + x)*x*(-24 + (-2 + x)*x*(76 + x*(-44 + 7*x)))/240.0; \
+  } else if (x < 3) {                                                   \
+    ret = (2 + (-4 + x)*x)*(868 + x*(-1024 + x*(458 + x*(-92 + 7*x))))/720.0; \
+  } else if (x < 4) {                                                   \
+    t = -4 + x;                                                         \
+    ret = -t*t*t*t*t*t/720;                                             \
+  } else {                                                              \
+    ret = 0.0;                                                          \
+  }
+
+static double
+_bspl7d1_1d(double x, const double *parm) {
+  double ax, tmp, r;
+  int sgn;
+  AIR_UNUSED(parm);
+
+  ABS_SGN(ax, sgn, x);
+  BSPL7D1(r, tmp, ax);
+  return sgn*r;
+}
+
+static float
+_bspl7d1_1f(float x, const double *parm) {
+  float ax, tmp, r;
+  int sgn;
+  AIR_UNUSED(parm);
+
+  ABS_SGN(ax, sgn, x);
+  BSPL7D1(r, tmp, ax);
+  return sgn*r;
+}
+
+static void
+_bspl7d1_Nd(double *f, const double *x, size_t len, const double *parm) {
+  double ax, tmp, r;
+  int sgn;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ABS_SGN(ax, sgn, x[i]);
+    BSPL7D1(r, tmp, ax);
+    f[i] = sgn*r;
+  }
+}
+
+static void
+_bspl7d1_Nf(float *f, const float *x, size_t len, const double *parm) {
+  float ax, tmp, r;
+  int sgn;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ABS_SGN(ax, sgn, x[i]);
+    BSPL7D1(r, tmp, ax);
+    f[i] = sgn*r;
+  }
+}
+
+static NrrdKernel
+_nrrdKernelBSpline7D = {
+  "bspl7d",
+  BSPL_DECL(7, 1)
+};
+NrrdKernel *const
+nrrdKernelBSpline7D = &_nrrdKernelBSpline7D;
+
+/* ---------------------- order *7* deriv *2* -------------------------- */
+
+static double
+_bspl7d2_int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
+#define BSPL7D2(ret, t, x)                                              \
+  if (x < 1) {                                                          \
+    ret = (-16.0 + x*x*(32 + x*x*(-20 + 7*x)))/24.0;                    \
+  } else if (x < 2) {                                                   \
+    ret = -1.0/5.0 - 7*x/3 + 6*x*x - 14*x*x*x/3 + 3*x*x*x*x/2 - 7*x*x*x*x*x/40; \
+  } else if (x < 3) {                                                   \
+    ret = (-920 + x*(1960 + x*(-1520 + x*(560 + x*(-100 + 7*x)))))/120.0; \
+  } else if (x < 4) {                                                   \
+    t = -4 + x;                                                         \
+    ret = -t*t*t*t*t/120;                                               \
+  } else {                                                              \
+    ret = 0;                                                            \
+  }
+
+static double
+_bspl7d2_1d(double x, const double *parm) {
+  double ax, tmp, r;
+  AIR_UNUSED(parm);
+
+  ax = AIR_ABS(x);
+  BSPL7D2(r, tmp, ax);
+  return r;
+}
+
+static float
+_bspl7d2_1f(float x, const double *parm) {
+  float ax, tmp, r;
+  AIR_UNUSED(parm);
+
+  ax = AIR_ABS(x);
+  BSPL7D2(r, tmp, ax);
+  return r;
+}
+
+static void
+_bspl7d2_Nd(double *f, const double *x, size_t len, const double *parm) {
+  double ax, tmp, r;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ax = AIR_ABS(x[i]);
+    BSPL7D2(r, tmp, ax);
+    f[i] = r;
+  }
+}
+
+static void
+_bspl7d2_Nf(float *f, const float *x, size_t len, const double *parm) {
+  float ax, tmp, r;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ax = AIR_ABS(x[i]);
+    BSPL7D2(r, tmp, ax);
+    f[i] = r;
+  }
+}
+
+static NrrdKernel
+_nrrdKernelBSpline7DD = {
+  "bspl7dd",
+  BSPL_DECL(7, 2)
+};
+NrrdKernel *const
+nrrdKernelBSpline7DD = &_nrrdKernelBSpline7DD;
+
+/* ------------- order *7* approximate numerical inverse -------------- */
+
+static double
+_bspl7_ANI_sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 25.5;
+}
+
+static double
+_bspl7_ANI_int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
+static double
+_bspl7_ANI_kvals[25] = {
+  4.964732886300940576332797,
+  -3.091042499768483088554568,
+  1.707958936668137576045264,
+  -0.9207818274493668669593831,
+  0.4936786139569195511952324,
+  -0.2643548049358189230508863,
+  0.1415160014426128467601689,
+  -0.07575222268292743354782887,
+  0.04054886330261061087869367,
+  -0.02170503511997964540989707,
+  0.01161828313045006776805131,
+  -0.006219039676635664607844941,
+  0.003328929800513973958742653,
+  -0.001781910090552243425761701,
+  0.0009538199348080453421248323,
+  -0.0005105580319565441079789472,
+  0.0002732859063101074379095625,
+  -0.0001462737305256968789039778,
+  0.00007827716412946645731103009,
+  -0.00004186231081972711848107084,
+  0.00002233725489565205736190067,
+  -0.00001182460712557530245242846,
+  6.084493387121599665803188e-6,
+  -2.813726505057212870360605e-6,
+  7.959254511585099326189262e-7};
+
+#define BSPL7_ANI(ret, tmp, x)                  \
+  tmp = AIR_CAST(unsigned int, x+0.5);          \
+  if (tmp < 25) {                               \
+    ret = _bspl7_ANI_kvals[tmp];                \
+  } else {                                      \
+    ret = 0.0;                                  \
+  }
+
+static double
+_bspl7_ANI_1d(double x, const double *parm) {
+  double ax, r; int tmp;
+  AIR_UNUSED(parm);
+
+  ax = AIR_ABS(x);
+  BSPL7_ANI(r, tmp, ax);
+  return r;
+}
+
+static float
+_bspl7_ANI_1f(float x, const double *parm) {
+  double ax, r; int tmp;
+  AIR_UNUSED(parm);
+
+  ax = AIR_ABS(x);
+  BSPL7_ANI(r, tmp, ax);
+  return AIR_CAST(float, r);
+}
+
+static void
+_bspl7_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
+  double ax, r; int tmp;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ax = x[i]; ax = AIR_ABS(ax);
+    BSPL7_ANI(r, tmp, ax);
+    f[i] = r;
+  }
+}
+
+static void
+_bspl7_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
+  double ax, r; int tmp;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ax = x[i]; ax = AIR_ABS(ax);
+    BSPL7_ANI(r, tmp, ax);
+    f[i] = AIR_CAST(float, r);
+  }
+}
+
+static NrrdKernel
+_nrrdKernelBSpline7ApproxInverse = {
+  "bspl7ai", 0,
+  _bspl7_ANI_sup, _bspl7_ANI_int,
+  _bspl7_ANI_1f, _bspl7_ANI_Nf,
+  _bspl7_ANI_1d, _bspl7_ANI_Nd
+};
+NrrdKernel *const
+nrrdKernelBSpline7ApproxInverse = &_nrrdKernelBSpline7ApproxInverse;
+

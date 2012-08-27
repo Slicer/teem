@@ -29,11 +29,13 @@
                                  numParm  parm[0]   parm[1]   parm[2]
                  nrrdKernelHann    2      scale    cut-off
              nrrdKernelBlackman    2      scale    cut-off
-             nrrdKernelBSpline3    0
            nrrdKernelCatmullRom    0
+             nrrdKernelBSpline3    0
 nrrdKernelBSpline3ApproxInverse    0
              nrrdKernelBSpline5    0
 nrrdKernelBSpline5ApproxInverse    0
+             nrrdKernelBSpline7    0
+nrrdKernelBSpline7ApproxInverse    0
                  nrrdKernelZero    1      scale
                   nrrdKernelBox    1      scale
       nrrdKernelBoxSupportDebug    1      support
@@ -2484,6 +2486,14 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("bspln5d", str))    return nrrdKernelBSpline5D;
   if (!strcmp("bspl5dd", str))    return nrrdKernelBSpline5DD;
   if (!strcmp("bspln5dd", str))   return nrrdKernelBSpline5DD;
+  if (!strcmp("bspl7", str))      return nrrdKernelBSpline7;
+  if (!strcmp("bspln7", str))     return nrrdKernelBSpline7;
+  if (!strcmp("bspl7ai", str))    return nrrdKernelBSpline7ApproxInverse;
+  if (!strcmp("bspln7ai", str))   return nrrdKernelBSpline7ApproxInverse;
+  if (!strcmp("bspl7d", str))     return nrrdKernelBSpline7D;
+  if (!strcmp("bspln7d", str))    return nrrdKernelBSpline7D;
+  if (!strcmp("bspl7dd", str))    return nrrdKernelBSpline7DD;
+  if (!strcmp("bspln7dd", str))   return nrrdKernelBSpline7DD;
   return NULL;
 }
 
