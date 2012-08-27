@@ -472,6 +472,75 @@ nrrdKernelCos4SupportDebugDD = &_nrrdKernelCos4SupportDebugDD;
 
 /* ------------------------------------------------------------ */
 
+#define DDDCOS4(x) (x > 0.5                                             \
+                    ? 0.0                                               \
+                    : 4*AIR_PI*AIR_PI*AIR_PI*(sin(2*AIR_PI*x) + 2*sin(4*AIR_PI*x)))
+
+static double
+_nrrdDDDCos4SDInt(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
+static double
+_nrrdDDDCos4SDSup(const double *parm) {
+  return parm[0];
+}
+
+static double
+_nrrdDDDCos4SD1_d(double x, const double *parm) {
+  int sgn;
+  AIR_UNUSED(parm);
+  if (x < 0) { x = -x; sgn = -1; } else { sgn = 1; }
+  return sgn*DDDCOS4(x);
+}
+
+static float
+_nrrdDDDCos4SD1_f(float x, const double *parm) {
+  int sgn;
+  AIR_UNUSED(parm);
+  if (x < 0) { x = -x; sgn = -1; } else { sgn = 1; }
+  return sgn*DDDCOS4(x);
+}
+
+static void
+_nrrdDDDCos4SDN_d(double *f, const double *x, size_t len, const double *parm) {
+  int sgn;
+  double t;
+  size_t i;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    f[i] = sgn*DDDCOS4(t);
+  }
+}
+
+static void
+_nrrdDDDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
+  int sgn;
+  float t;
+  size_t i;
+  
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    f[i] = sgn*DDDCOS4(t);
+  }
+}
+
+static NrrdKernel
+_nrrdKernelCos4SupportDebugDDD = {
+  "cos4supDDD",
+  1, _nrrdDDDCos4SDSup,  _nrrdDDDCos4SDInt,   
+  _nrrdDDDCos4SD1_f, _nrrdDDDCos4SDN_f, _nrrdDDDCos4SD1_d, _nrrdDDDCos4SDN_d
+};
+NrrdKernel *const
+nrrdKernelCos4SupportDebugDDD = &_nrrdKernelCos4SupportDebugDDD;
+
+/* ------------------------------------------------------------ */
+
 /* The point here is that post-kernel-evaluation, we need to see
    which sample is closest to the origin, and this is one way of
    enabling that */
@@ -2489,6 +2558,7 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("cos4sup", str))    return nrrdKernelCos4SupportDebug;
   if (!strcmp("cos4supd", str))   return nrrdKernelCos4SupportDebugD;
   if (!strcmp("cos4supdd", str))  return nrrdKernelCos4SupportDebugDD;
+  if (!strcmp("cos4supddd", str)) return nrrdKernelCos4SupportDebugDDD;
   if (!strcmp("cheap", str))      return nrrdKernelCheap;
   if (!strcmp("hermiteFlag", str))    return nrrdKernelHermiteScaleSpaceFlag;
   if (!strcmp("hermite", str))    return nrrdKernelHermiteScaleSpaceFlag;
@@ -2703,7 +2773,8 @@ nrrdKernelParse(const NrrdKernel **kernelP,
         *kernelP == nrrdKernelBoxSupportDebug ||
         *kernelP == nrrdKernelCos4SupportDebug ||
         *kernelP == nrrdKernelCos4SupportDebugD ||
-        *kernelP == nrrdKernelCos4SupportDebugDD) {
+        *kernelP == nrrdKernelCos4SupportDebugDD ||
+        *kernelP == nrrdKernelCos4SupportDebugDDD) {
       /* for these kernels, we need all the parameters given explicitly */
       needParm = (*kernelP)->numParm;
     } else {
