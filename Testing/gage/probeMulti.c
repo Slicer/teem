@@ -30,13 +30,15 @@
 */
 
 #define KERN_SIZE_MAX 10
+#define PROBE_NUM 300
 
 static void
 errPrefix(char *dst, 
-          const char *me, int typi, unsigned int supi, unsigned int prbi,
+          int typi, unsigned int supi, unsigned int prbi,
           unsigned int probePass, double dxi, double dyi, double dzi,
           unsigned int xi, unsigned int yi, unsigned int zi) {
-  sprintf(dst, "%s[%s][%u] #%u pp %u: (%g,%g,%g)->(%u,%u,%u): ", me,
+  sprintf(dst, "%s[%s][%u] #%u pp %u: (%g,%g,%g)->(%u,%u,%u): ",
+          "probeMulti",
           airEnumStr(nrrdType, typi), supi, prbi, probePass,
           dxi, dyi, dzi, xi, yi, zi);
   return;
@@ -45,42 +47,41 @@ errPrefix(char *dst,
 
 int
 main(int argc, const char **argv) {
-  const char *me;
   airArray *mop, *submop;
   char *err;
 
   int typi;
-  unsigned int supi, probePass;
-  size_t sizes[3] = {42,61,50} /* one of these must be even */, ii, nn;
+  unsigned int supi, probePass, cti /* context copy index */,
+    pvlIdx[NRRD_TYPE_MAX+1], sx, sy, sz, subnum;
+  size_t sizes[3] = {42,61,50} /* one of these must be even */, 
+    ii, nn;
   Nrrd *norigScl, *nucharScl, *nunquant, *nqdiff,
     *nconvScl[NRRD_TYPE_MAX+1];
   unsigned char *ucharScl;
-  gageContext *gctx[KERN_SIZE_MAX+1];
-  gagePerVolume *gpvl[NRRD_TYPE_MAX+1][KERN_SIZE_MAX+1];
-  const double *vansScl[NRRD_TYPE_MAX+1][KERN_SIZE_MAX+1],
-    *gansScl[NRRD_TYPE_MAX+1][KERN_SIZE_MAX+1],
-    *hansScl[NRRD_TYPE_MAX+1][KERN_SIZE_MAX+1];
-  double *origScl, omin, omax,
+  gageContext *gctx[2][KERN_SIZE_MAX+1];
+  gagePerVolume *gpvl[2][NRRD_TYPE_MAX+1][KERN_SIZE_MAX+1];
+  const double *vansScl[2][NRRD_TYPE_MAX+1][KERN_SIZE_MAX+1],
+    *gansScl[2][NRRD_TYPE_MAX+1][KERN_SIZE_MAX+1],
+    *hansScl[2][NRRD_TYPE_MAX+1][KERN_SIZE_MAX+1];
+  double *origScl, omin, omax,  dsx, dsy, dsz,
     spcOrig[NRRD_SPACE_DIM_MAX] = {0.0, 0.0, 0.0},
     spcVec[3][NRRD_SPACE_DIM_MAX] = {
       {1.1, 0.0, 0.0},
       {0.0, 2.2, 0.0},
       {0.0, 0.0, 3.3}};
   
-  
   mop = airMopNew();
-  me = argv[0];
 
 #define NRRD_NEW(name, mop)                                     \
   (name) = nrrdNew();                                           \
   airMopAdd((mop), (name), (airMopper)nrrdNuke, airMopAlways)
 
   /* --------------------------------------------------------------- */
-  fprintf(stderr, "%s: creating initial volume ...\n", me);
+  /* Creating initial volume */
   NRRD_NEW(norigScl, mop);
   if (nrrdMaybeAlloc_nva(norigScl, nrrdTypeDouble, 3, sizes)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble allocating:\n%s", me, err);
+    fprintf(stderr, "trouble allocating:\n%s", err);
     airMopError(mop); return 1;
   }
   origScl = AIR_CAST(double *, norigScl->data);
@@ -99,14 +100,21 @@ main(int argc, const char **argv) {
   if (nrrdSpaceSet(norigScl, nrrdSpaceRightAnteriorSuperior)
       || nrrdSpaceOriginSet(norigScl, spcOrig)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble setting space:\n%s", me, err);
+    fprintf(stderr, "trouble setting space:\n%s", err);
     airMopError(mop); return 1;
   }
   nrrdAxisInfoSet_nva(norigScl, nrrdAxisInfoSpaceDirection, spcVec);
+  dsx = AIR_CAST(double, sizes[0]);
+  dsy = AIR_CAST(double, sizes[1]);
+  dsz = AIR_CAST(double, sizes[2]);
+  sx = AIR_CAST(unsigned int, sizes[0]);
+  sy = AIR_CAST(unsigned int, sizes[1]);
+  sz = AIR_CAST(unsigned int, sizes[2]);
+  subnum = AIR_CAST(unsigned int, PROBE_NUM*0.9);
 
 
   /* --------------------------------------------------------------- */
-  fprintf(stderr, "%s: quantizing to 8-bits and checking ...\n", me);
+  /* Quantizing to 8-bits and checking */
   submop = airMopNew();
   NRRD_NEW(nucharScl, mop);
   NRRD_NEW(nunquant, submop);
@@ -116,13 +124,13 @@ main(int argc, const char **argv) {
       || nrrdArithBinaryOp(nqdiff, nrrdBinaryOpSubtract,
                            norigScl, nunquant)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble quantizing and back:\n%s", me, err);
+    fprintf(stderr, "trouble quantizing and back:\n%s", err);
     airMopError(submop); airMopError(mop); return 1;
   }
   if (!( nucharScl->oldMin == omin 
          && nucharScl->oldMax == omax )) {
-    fprintf(stderr, "%s: quantization range [%g,%g] != real range [%g,%g]\n",
-            me, nucharScl->oldMin, nucharScl->oldMax, omin, omax);
+    fprintf(stderr, "quantization range [%g,%g] != real range [%g,%g]\n",
+            nucharScl->oldMin, nucharScl->oldMax, omin, omax);
     airMopError(submop); airMopError(mop); return 1;
   }
   {
@@ -137,7 +145,7 @@ main(int argc, const char **argv) {
       if (AIR_ABS(dd) > 0.500000000000009) {
         unsigned int ui;
         ui = AIR_CAST(unsigned int, ii);
-        fprintf(stderr, "%s: |orig[%u]=%g - unquant=%g| = %f > 0.5!\n", me,
+        fprintf(stderr, "|orig[%u]=%g - unquant=%g| = %f > 0.5!\n",
                 ui, origScl[ii], unquant[ii], AIR_ABS(dd));
         airMopError(submop); airMopError(mop); return 1;
       }
@@ -147,7 +155,7 @@ main(int argc, const char **argv) {
   ucharScl = AIR_CAST(unsigned char *, nucharScl->data);
 
   /* --------------------------------------------------------------- */
-  fprintf(stderr, "%s: converting to all other types ...\n", me);
+  /* Converting to all other types */
   for (typi=nrrdTypeUnknown+1; typi<nrrdTypeLast; typi++) {
     if (nrrdTypeBlock == typi) {
       nconvScl[typi] = NULL;
@@ -156,120 +164,159 @@ main(int argc, const char **argv) {
     NRRD_NEW(nconvScl[typi], mop);
     if (nrrdConvert(nconvScl[typi], nucharScl, typi)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble converting:\n%s", me, err);
+      fprintf(stderr, "trouble converting:\n%s", err);
       airMopError(mop); return 1;
     }
   }
   for (supi=1; supi<=KERN_SIZE_MAX; supi++) {
+    unsigned int pvii;
     int E;
     double kparm[1];
-    gctx[supi] = gageContextNew();
-    airMopAdd(mop, gctx[supi], (airMopper)gageContextNix, airMopAlways);
-    gageParmSet(gctx[supi], gageParmRenormalize, AIR_FALSE);
-    gageParmSet(gctx[supi], gageParmCheckIntegrals, AIR_TRUE);
+    gctx[0][supi] = gageContextNew();
+    airMopAdd(mop, gctx[0][supi], (airMopper)gageContextNix, airMopAlways);
+    gageParmSet(gctx[0][supi], gageParmRenormalize, AIR_FALSE);
+    gageParmSet(gctx[0][supi], gageParmCheckIntegrals, AIR_TRUE);
     kparm[0] = supi;
     E = 0;
-    if (!E) E |= gageKernelSet(gctx[supi], gageKernel00,
+    if (!E) E |= gageKernelSet(gctx[0][supi], gageKernel00,
                                nrrdKernelBoxSupportDebug, kparm);
+    pvii = 0;
     for (typi=nrrdTypeUnknown+1; typi<nrrdTypeLast; typi++) {
       if (nrrdTypeBlock == typi) {
-        gpvl[typi][supi] = NULL;
+        gpvl[0][typi][supi] = NULL;
         continue;
       }
-      if (!E) E |= !(gpvl[typi][supi] 
-                     = gagePerVolumeNew(gctx[supi], nconvScl[typi],
+      if (!E) E |= !(gpvl[0][typi][supi] 
+                     = gagePerVolumeNew(gctx[0][supi], nconvScl[typi],
                                         gageKindScl));
-      if (!E) E |= gagePerVolumeAttach(gctx[supi], gpvl[typi][supi]);
-      if (!E) E |= gageQueryItemOn(gctx[supi], gpvl[typi][supi],
+      if (!E) E |= gagePerVolumeAttach(gctx[0][supi], gpvl[0][typi][supi]);
+      if (1 == supi) {
+        /* first time through this typi loop; its the occasion to 
+           set the pvlIdx array, which records the index into the 
+           gageContext->pvl[] array for the per-type perVolume. 
+           Having to do this is a symptom of bad API design in gage */
+        pvlIdx[typi] = pvii++;
+      }
+      if (!E) E |= gageQueryItemOn(gctx[0][supi], gpvl[0][typi][supi],
                                    gageSclValue);
       if (E) {
         break;
       }
     }
-    if (!E) E |= gageUpdate(gctx[supi]);
+    if (!E) E |= gageUpdate(gctx[0][supi]);
     if (E) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble (supi=%u, %d/%s) set-up:\n%s\n", me,
+      fprintf(stderr, "trouble (supi=%u, %d/%s) set-up:\n%s\n",
               supi, typi, airEnumStr(nrrdType, typi), err);
       airMopError(mop); return 1;
     }
-    if (gctx[supi]->radius != supi) {
-      fprintf(stderr, "%s: supi %u != gageContext->radius %u\n",
-              me, supi, gctx[supi]->radius);
+    if (gctx[0][supi]->radius != supi) {
+      fprintf(stderr, "supi %u != gageContext->radius %u\n",
+              supi, gctx[0][supi]->radius);
       airMopError(mop); return 1;
     }
     for (typi=nrrdTypeUnknown+1; typi<nrrdTypeLast; typi++) {
       if (nrrdTypeBlock == typi) {
-        vansScl[typi][supi] = NULL;
-        gansScl[typi][supi] = NULL;
-        hansScl[typi][supi] = NULL;
+        vansScl[0][typi][supi] = NULL;
+        gansScl[0][typi][supi] = NULL;
+        hansScl[0][typi][supi] = NULL;
         continue;
       }
-      vansScl[typi][supi] = gageAnswerPointer(gctx[supi], gpvl[typi][supi],
-                                              gageSclValue);
-      gansScl[typi][supi] = gageAnswerPointer(gctx[supi], gpvl[typi][supi],
-                                              gageSclGradVec);
-      hansScl[typi][supi] = gageAnswerPointer(gctx[supi], gpvl[typi][supi],
-                                              gageSclHessian);
+      vansScl[0][typi][supi] = 
+        gageAnswerPointer(gctx[0][supi], gpvl[0][typi][supi], gageSclValue);
+      gansScl[0][typi][supi] =
+        gageAnswerPointer(gctx[0][supi], gpvl[0][typi][supi], gageSclGradVec);
+      hansScl[0][typi][supi] =
+        gageAnswerPointer(gctx[0][supi], gpvl[0][typi][supi], gageSclHessian);
     }
   }
 
   /* --------------------------------------------------------------- */
-#define PROBE_NUM 300
-  for (probePass=0; probePass<=1; probePass++) {
-    unsigned int prbi, subnum, lastjj=0, xi, yi, zi, sx, sy, sz;
-    double thet, xu, yu, zu, dxi, dyi, dzi, dsx, dsy, dsz,
-      elapsed[KERN_SIZE_MAX+1], time0;
-    char errpre[AIR_STRLEN_LARGE];
+  /* Exercising gageContextCopy */
+  for (supi=1; supi<=KERN_SIZE_MAX; supi++) {
+    if (!(gctx[1][supi] = gageContextCopy(gctx[0][supi]))) {
+      airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+      fprintf(stderr, "trouble copying gctx[%u]:\n%s\n",
+              supi, err);
+      airMopError(mop); return 1;
+    }
+    for (typi=nrrdTypeUnknown+1; typi<nrrdTypeLast; typi++) {
+      if (nrrdTypeBlock == typi) {
+        vansScl[1][typi][supi] = NULL;
+        gansScl[1][typi][supi] = NULL;
+        hansScl[1][typi][supi] = NULL;
+        continue;
+      }
+      gpvl[1][typi][supi] = gctx[1][supi]->pvl[pvlIdx[typi]];
+      vansScl[1][typi][supi] = 
+        gageAnswerPointer(gctx[1][supi], gpvl[1][typi][supi], gageSclValue);
+      gansScl[1][typi][supi] =
+        gageAnswerPointer(gctx[1][supi], gpvl[1][typi][supi], gageSclGradVec);
+      hansScl[1][typi][supi] =
+        gageAnswerPointer(gctx[1][supi], gpvl[1][typi][supi], gageSclHessian);
+    }
+  }
 
-    fprintf(stderr, "%s: probing (pass %u) ...\n", me, probePass);
+  /* --------------------------------------------------------------- */
+  /* the two different probing passes are just to use two different
+     sets of kernels (first nrrdKernelBoxSupportDebug on pass 0, then
+     nrrdKernelCos4SupportDebug and its derivatives on pass 1).
+     Because nrrdKernelBoxSupportDebug has already been set prior to
+     the first pass, there is some some second-time only "if (1 ==
+     probePass)" logic that confuses the clarity of this */
+  for (probePass=0; probePass<=1; probePass++) {
+    unsigned int prbi, lastjj=0, xi, yi, zi;
+    double thet, xu, yu, zu, dxi, dyi, dzi,
+      elapsed[2][KERN_SIZE_MAX+1], time0;
+    char errpre[AIR_STRLEN_LARGE];
+    
     if (1 == probePass) {
       /* switch to cos^4 kernel, turn on gradient and hessian */
-      for (supi=1; supi<=KERN_SIZE_MAX; supi++) {
-        int E;
-        double kparm[1];
-        gageParmSet(gctx[supi], gageParmRenormalize, AIR_FALSE);
-        gageParmSet(gctx[supi], gageParmCheckIntegrals, AIR_TRUE);
-        kparm[0] = supi;
-        E = 0;
-        if (!E) E |= gageKernelSet(gctx[supi], gageKernel00,
-                                   nrrdKernelCos4SupportDebug, kparm);
-        if (!E) E |= gageKernelSet(gctx[supi], gageKernel11,
-                                   nrrdKernelCos4SupportDebugD, kparm);
-        if (!E) E |= gageKernelSet(gctx[supi], gageKernel22,
-                                   nrrdKernelCos4SupportDebugDD, kparm);
-        for (typi=nrrdTypeUnknown+1; typi<nrrdTypeLast; typi++) {
-          if (nrrdTypeBlock == typi) {
-            continue;
+      for (cti=0; cti<2; cti++) {
+        for (supi=1; supi<=KERN_SIZE_MAX; supi++) {
+          int E;
+          double kparm[1];
+          gageParmSet(gctx[cti][supi], gageParmRenormalize, AIR_FALSE);
+          gageParmSet(gctx[cti][supi], gageParmCheckIntegrals, AIR_TRUE);
+          kparm[0] = supi;
+          E = 0;
+          if (!E) E |= gageKernelSet(gctx[cti][supi], gageKernel00,
+                                     nrrdKernelCos4SupportDebug, kparm);
+          if (!E) E |= gageKernelSet(gctx[cti][supi], gageKernel11,
+                                     nrrdKernelCos4SupportDebugD, kparm);
+          if (!E) E |= gageKernelSet(gctx[cti][supi], gageKernel22,
+                                     nrrdKernelCos4SupportDebugDD, kparm);
+          for (typi=nrrdTypeUnknown+1; typi<nrrdTypeLast; typi++) {
+            if (nrrdTypeBlock == typi) {
+              continue;
+            }
+            if (!E) E |= gageQueryItemOn(gctx[cti][supi],
+                                         gpvl[cti][typi][supi],
+                                         gageSclGradVec);
+            if (!E) E |= gageQueryItemOn(gctx[cti][supi],
+                                         gpvl[cti][typi][supi],
+                                         gageSclHessian);
+            if (E) {
+              break;
+            }
           }
-          if (!E) E |= gageQueryItemOn(gctx[supi], gpvl[typi][supi],
-                                       gageSclGradVec);
-          if (!E) E |= gageQueryItemOn(gctx[supi], gpvl[typi][supi],
-                                       gageSclHessian);
+          if (!E) E |= gageUpdate(gctx[cti][supi]);
           if (E) {
-            break;
+            airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+            fprintf(stderr, "trouble (cti=%u, supi=%u, %d/%s) "
+                    "set-up:\n%s\n", cti,
+                    supi, typi, airEnumStr(nrrdType, typi), err);
+            airMopError(mop); return 1;
           }
-        }
-        if (!E) E |= gageUpdate(gctx[supi]);
-        if (E) {
-          airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
-          fprintf(stderr, "%s: trouble (supi=%u, %d/%s) set-up:\n%s\n", me,
-                  supi, typi, airEnumStr(nrrdType, typi), err);
-          airMopError(mop); return 1;
         }
       }
     }
-    for (supi=1; supi<=KERN_SIZE_MAX; supi++) {
-      elapsed[supi] = 0.0;
+    for (cti=0; cti<2; cti++) {
+      for (supi=1; supi<=KERN_SIZE_MAX; supi++) {
+        elapsed[cti][supi] = 0.0;
+      }
     }
-    /* these are harmlessly computed twice */
-    dsx = AIR_CAST(double, sizes[0]);
-    dsy = AIR_CAST(double, sizes[1]);
-    dsz = AIR_CAST(double, sizes[2]);
-    sx = AIR_CAST(unsigned int, sizes[0]);
-    sy = AIR_CAST(unsigned int, sizes[1]);
-    sz = AIR_CAST(unsigned int, sizes[2]);
-    subnum = AIR_CAST(unsigned int, PROBE_NUM*0.9);
+    /* do the probes along a curvy path */
     for (prbi=0; prbi<PROBE_NUM; prbi++) {
       unsigned int jj;
       jj = airIndex(0, prbi, PROBE_NUM-1, subnum);
@@ -281,8 +328,8 @@ main(int argc, const char **argv) {
       dyi = AIR_AFFINE(-1.0, yu, 1.0, -0.5, dsy-0.5);
       dzi = AIR_AFFINE(-1.0, zu, 1.0, -0.5, dsz-0.5);
       if (prbi && lastjj == jj) {
-        /* to occasionally test the logic in gage that seeks
-           to re-use convolution weights when possible */
+        /* this occasionally tests the logic in gage that seeks to
+           re-compute convolution weights only when necessary */
         dxi += airSgn(xu);
         dyi += airSgn(yu);
         dzi += airSgn(zu);
@@ -292,78 +339,112 @@ main(int argc, const char **argv) {
       zi = airIndexClamp(-0.5, dzi, dsz-0.5, sz);
       lastjj = jj;
       for (supi=1; supi<=KERN_SIZE_MAX; supi++) {
-        time0 = airTime();
-        if (gageProbeSpace(gctx[supi], dxi, dyi, dzi,
-                           AIR_TRUE /* indexSpace */,
-                           AIR_TRUE /* clamp */)) {
-          fprintf(stderr, "%s: probe (support %u) error (%d): %s\n", 
-                  me, supi, gctx[supi]->errNum, gctx[supi]->errStr);
-          airMopError(mop); return 1;
-        }
-        elapsed[supi] = airTime() - time0;
-        for (typi=nrrdTypeUnknown+1; typi<nrrdTypeLast; typi++) {
-          double convval, trueval, probeval;
-          if (nrrdTypeBlock == typi 
-              || (1 == probePass && nrrdTypeChar == typi)) {
-            /* can't easily correct interpolation on signed char
-               values to make it match interpolation on unsigned char
-               values, prior to wrap-around */
-            continue;
-          }
-          probeval = vansScl[typi][supi][0];
-          if (0 == probePass) {
-            convval = (nrrdDLookup[typi])(nconvScl[typi]->data,
-                                          xi + sx*(yi + sy*zi));
-            if (convval != probeval) {
-#define ERR_PREFIX                                                      \
-              errPrefix(errpre, me, typi, supi, prbi, probePass,        \
-                        dxi, dyi, dzi, xi, yi, zi)
-              ERR_PREFIX;
-              fprintf(stderr, "%s: probed %g != conv %g\n", errpre,
-                      probeval, convval);
-              airMopError(mop); return 1;
-            }
-            trueval = AIR_CAST(double, ucharScl[xi + sx*(yi + sy*zi)]);
-          } else {
-            trueval = vansScl[nrrdTypeUChar][supi][0];
-          }
-          if (nrrdTypeChar == typi && trueval > 127) {
-            /* recreate value wrapping of signed char */
-            trueval -= 256;
-          }
-          if (trueval != probeval) {
-            fprintf(stderr, "%s: probed %g != true %g\n", errpre,
-                    probeval, trueval);
+        double truevalOrig[NRRD_TYPE_MAX+1];
+        for (cti=0; cti<2; cti++) {
+          time0 = airTime();
+          if (gageProbeSpace(gctx[cti][supi], dxi, dyi, dzi,
+                             AIR_TRUE /* indexSpace */,
+                             AIR_TRUE /* clamp */)) {
+            fprintf(stderr, "probe (cti %u support %u) error (%d): %s\n", 
+                    cti, supi,
+                    gctx[cti][supi]->errNum, gctx[cti][supi]->errStr);
             airMopError(mop); return 1;
           }
-          if (1 == probePass) {
-            double diff3[3], diff9[9];
-            ELL_3V_SUB(diff3, gansScl[nrrdTypeUChar][supi], gansScl[typi][supi]);
-            if (ELL_3V_LEN(diff3) > 0.0) {
-              ERR_PREFIX;
-              fprintf(stderr, "%s: probed gradient error len %f\n",
-                      errpre, ELL_3V_LEN(diff3));
+          elapsed[cti][supi] = airTime() - time0;
+          for (typi=nrrdTypeUnknown+1; typi<nrrdTypeLast; typi++) {
+            double arrayval, trueval, probeval;
+            if (nrrdTypeBlock == typi 
+                || (1 == probePass && nrrdTypeChar == typi)) {
+              /* can't easily correct interpolation on signed char
+                 values to make it match interpolation on unsigned char
+                 values, prior to wrap-around */
+              continue;
+            }
+            /* probeval is what we learned by probing with gage */
+            probeval = vansScl[cti][typi][supi][0];
+            if (0 == probePass) {
+              /* arrayval is the value directly from array of same type 
+                 (converted from original uchar) */
+              arrayval = (nrrdDLookup[typi])(nconvScl[typi]->data,
+                                            xi + sx*(yi + sy*zi));
+              /* when using box, gage-reconstructed value should
+                 match value from probing */
+              if (arrayval != probeval) {
+#define SPRINT_ERR_PREFIX                                           \
+                errPrefix(errpre, typi, supi, prbi, probePass,      \
+                          dxi, dyi, dzi, xi, yi, zi)
+                SPRINT_ERR_PREFIX;
+                fprintf(stderr, "%s: (cti %u) probed %g != conv %g\n", errpre,
+                        cti, probeval, arrayval);
+                airMopError(mop); return 1;
+              }
+              /* trueval on pass 0 is the original uchar value */
+              trueval = AIR_CAST(double, ucharScl[xi + sx*(yi + sy*zi)]);
+            } else {
+              /* trueval on pass 1 is the value from probing uchar volume */
+              trueval = vansScl[cti][nrrdTypeUChar][supi][0];
+            }
+            if (nrrdTypeChar == typi && trueval > 127) {
+              /* recreate value wrapping of signed char */
+              trueval -= 256;
+            }
+            if (0 == cti) {
+              truevalOrig[typi] = trueval;
+            } else {
+              /* make sure that result from gageContextCopy'd context
+                 (trueval) is same result as original (truevalOrig[typi]) */
+              if (truevalOrig[typi] != trueval) {
+                SPRINT_ERR_PREFIX;
+                fprintf(stderr, "%s: original->%g, gageContextCopy->%g\n",
+                        errpre, truevalOrig[typi], trueval);
+                airMopError(mop); return 1;
+              }
+            }
+            /* regardless of the volume (excepting where we've continue'd,
+               above) the reconstructed value probeval should match trueval */
+            if (trueval != probeval) {
+              SPRINT_ERR_PREFIX;
+              fprintf(stderr, "%s: (cti %u) probed %g != true %g\n", errpre,
+                      cti, probeval, trueval);
               airMopError(mop); return 1;
             }
-            ELL_9V_SUB(diff9, hansScl[nrrdTypeUChar][supi], hansScl[typi][supi]);
-            if (ELL_9V_LEN(diff9) > 0.0) {
-              ERR_PREFIX;
-              fprintf(stderr, "%s: probed hessian error len %f\n",
-                      errpre, ELL_9V_LEN(diff9));
-              airMopError(mop); return 1;
+            if (1 == probePass) {
+              /* and when we use a differentiable kernel, the gradient
+                 and Hessian had better agree too */
+              double diff3[3], diff9[9];
+              ELL_3V_SUB(diff3,
+                         gansScl[cti][nrrdTypeUChar][supi],
+                         gansScl[cti][typi][supi]);
+              if (ELL_3V_LEN(diff3) > 0.0) {
+                SPRINT_ERR_PREFIX;
+                fprintf(stderr, "%s: (cti %u) probed gradient error len %f\n",
+                        errpre, cti, ELL_3V_LEN(diff3));
+                airMopError(mop); return 1;
+              }
+              ELL_9V_SUB(diff9,
+                         hansScl[cti][nrrdTypeUChar][supi],
+                         hansScl[cti][typi][supi]);
+              if (ELL_9V_LEN(diff9) > 0.0) {
+                SPRINT_ERR_PREFIX;
+                fprintf(stderr, "%s: (cti %u) probed hessian error len %f\n",
+                        errpre, cti, ELL_9V_LEN(diff9));
+                airMopError(mop); return 1;
+              }
             }
           }
         }
       }
     }
-    for (supi=1; supi<=KERN_SIZE_MAX; supi++) {
-      fprintf(stderr, "%s: elapsed[%u] = %g ms\n",
-              me, supi, 1000*elapsed[supi]);
+    for (cti=0; cti<2; cti++) {
+      for (supi=1; supi<=KERN_SIZE_MAX; supi++) {
+        fprintf(stderr, "elapsed[%u][%u] = %g ms\n",
+                cti, supi, 1000*elapsed[cti][supi]);
+      }
     }
   }
   
 #undef NRRD_NEW
-#undef ERR_PREFIX
+#undef SPRINT_ERR_PREFIX
   airMopOkay(mop);
   exit(0);
 }
