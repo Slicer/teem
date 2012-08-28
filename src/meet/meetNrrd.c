@@ -127,6 +127,50 @@ meetNrrdKernelAll(void) {
   return kern;
 }
 
+/* the knowledge here about what is a derivative of what is something
+   that will be built into kernels in a future Teem version */
+static const NrrdKernel *
+kintegral(const NrrdKernel *kd) {
+  const NrrdKernel *ret=NULL;
+
+  /* the statement "INTGL(K)" is saying that kernel K##D exists and is
+     the derivative of kernel K.  This is made more convenient by the
+     consistent use of the "D" suffix for indicating a derivative */
+#define INTGL(K) if (K##D == kd) { ret = K; }
+  INTGL(nrrdKernelHann);
+  INTGL(nrrdKernelHannD);
+  INTGL(nrrdKernelBlackman);
+  INTGL(nrrdKernelBlackmanD);
+
+  INTGL(nrrdKernelBSpline3);
+  INTGL(nrrdKernelBSpline3D);
+  INTGL(nrrdKernelBSpline3DD);
+  INTGL(nrrdKernelBSpline5);
+  INTGL(nrrdKernelBSpline5D);
+  INTGL(nrrdKernelBSpline5DD);
+  INTGL(nrrdKernelBSpline7);
+  INTGL(nrrdKernelBSpline7D);
+  INTGL(nrrdKernelBSpline7DD);
+
+  INTGL(nrrdKernelCos4SupportDebug);
+  INTGL(nrrdKernelCos4SupportDebugD);
+  INTGL(nrrdKernelCos4SupportDebugDD);
+  INTGL(nrrdKernelBCCubic);
+  INTGL(nrrdKernelBCCubicD);
+  INTGL(nrrdKernelCatmullRom);
+  INTGL(nrrdKernelAQuartic);
+  INTGL(nrrdKernelAQuarticD);
+  INTGL(nrrdKernelC3Quintic);
+  INTGL(nrrdKernelC3QuinticD);
+  INTGL(nrrdKernelC4Hexic);
+  INTGL(nrrdKernelC4HexicD);
+  INTGL(nrrdKernelC4HexicDD);
+  INTGL(nrrdKernelGaussian);
+  INTGL(nrrdKernelGaussianD);
+#undef INTGL
+  return ret;
+}
+
 /*
 ** Does more than call nrrdKernelCheck on all kernels:
 ** makes sure that all kernels have unique names
@@ -140,7 +184,7 @@ meetNrrdKernelAllCheck(void) {
   const NrrdKernel **kern, *kk, *ll;
   unsigned int ki, kj, pnum;
   airArray *mop;
-  double step, epsl, XX, YY,
+  double epsl, XX, YY,
     parm0[NRRD_KERNEL_PARMS_NUM], parm1_0[NRRD_KERNEL_PARMS_NUM], 
     parm1_1[NRRD_KERNEL_PARMS_NUM], parm1_X[NRRD_KERNEL_PARMS_NUM],
     parm[NRRD_KERNEL_PARMS_NUM];
@@ -185,7 +229,8 @@ meetNrrdKernelAllCheck(void) {
        The kernels for which this is higher should be targets for
        re-coding with an eye towards numerical accuracy */
 #define CHECK(P, S)                                                     \
-    if (!EE) EE |= nrrdKernelCheck(kk, (P), evalNum, epsl*(S), NULL, NULL);
+    if (!EE) EE |= nrrdKernelCheck(kk, (P), evalNum, epsl*(S),          \
+                                   kintegral(kk), (P));
     if (nrrdKernelBCCubic == kk ||
         nrrdKernelBCCubicD == kk ||
         nrrdKernelBCCubicDD == kk) {
@@ -249,8 +294,7 @@ meetNrrdKernelAllCheck(void) {
         parm[0] = 1.0/3.0; CHECK(parm, 10);
       } else {
         /* zero, box, boxsup, cos4sup{,D,DD,DDD}, cheap,
-           tent, fordif, cendif, 
-           C3Quintic{,D,DD,DD}, C4Hexic{,D,DD,DDD} */
+           tent, fordif, cendif */
         /* takes a single support/scale parm[0], try two different values */
         if (nrrdKernelCos4SupportDebug == kk ||
             nrrdKernelCos4SupportDebugD == kk ||
@@ -258,26 +302,27 @@ meetNrrdKernelAllCheck(void) {
             nrrdKernelCos4SupportDebugDDD == kk) {
           CHECK(parm1_1, 10);
           CHECK(parm1_X, 10);
-        } else if (nrrdKernelC3Quintic == kk ||
-                   nrrdKernelC3QuinticD == kk ||
-                   nrrdKernelC3QuinticDD == kk ||
-                   nrrdKernelC4Hexic == kk ||
-                   nrrdKernelC4HexicD == kk ||
-                   nrrdKernelC4HexicDD == kk ||
-                   nrrdKernelC4HexicDDD == kk
-                   ) {
-          CHECK(parm1_1, 1);
-          CHECK(parm1_X, 1);
         } else {
           CHECK(parm1_1, 1);
           CHECK(parm1_X, 1);
         }
       }
     } else if (0 == pnum) {
-      /* hermiteSS, catmull-rom{,D}, bspl{3,5,7}{,D,DD,DDD} */
-      if (nrrdKernelBSpline5DD == kk ||
-          nrrdKernelBSpline5DDD == kk ||
-          nrrdKernelBSpline7DD == kk ) {
+      /* C3Quintic{,D,DD,DD}, C4Hexic{,D,DD,DDD},
+         hermiteSS, catmull-rom{,D}, bspl{3,5,7}{,D,DD,DDD} */
+      if (nrrdKernelC3Quintic == kk ||
+          nrrdKernelC3QuinticD == kk ||
+          nrrdKernelC3QuinticDD == kk ||
+          nrrdKernelC4Hexic == kk ||
+          nrrdKernelC4HexicD == kk ||
+          nrrdKernelC4HexicDD == kk ||
+          nrrdKernelC4HexicDDD == kk
+          ) {
+        CHECK(parm0, 1);
+        CHECK(parm0, 1);
+      } else if (nrrdKernelBSpline5DD == kk ||
+                 nrrdKernelBSpline5DDD == kk ||
+                 nrrdKernelBSpline7DD == kk ) {
         CHECK(parm0, 100);
       } else {
         CHECK(parm0, 10);
