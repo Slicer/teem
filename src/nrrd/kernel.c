@@ -47,8 +47,8 @@ nrrdKernelHermiteScaleSpaceFlag    0
              nrrdKernelCentDiff    1      scale
               nrrdKernelBCCubic    3      scale       B        C
              nrrdKernelAQuartic    2      scale       A
-            nrrdKernelC3Quintic    1      scale
-              nrrdKernelC4Hexic    1      scale
+            nrrdKernelC3Quintic    0
+              nrrdKernelC4Hexic    0
  nrrdKernelC4HexicApproxInverse    0
              nrrdKernelGaussian    2      sigma    cut-off
      nrrdKernelDiscreteGaussian    2      sigma    cut-off
@@ -390,7 +390,6 @@ _nrrdDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
   int sgn;
   float t;
   size_t i;
-  
   AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
     t = x[i];
@@ -422,7 +421,6 @@ _nrrdDDCos4SDInt(const double *parm) {
 
 static double
 _nrrdDDCos4SDSup(const double *parm) {
-  
   return parm[0];
 }
 
@@ -522,7 +520,6 @@ _nrrdDDDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
   int sgn;
   float t;
   size_t i;
-  
   AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
     t = x[i];
@@ -706,7 +703,6 @@ _nrrdHermiteSup(const double *parm) {
 static double
 _nrrdHermite1_d(double x, const double *parm) {
   AIR_UNUSED(parm);
-  
   x = AIR_ABS(x);
   return _TENT(x);
 }
@@ -714,7 +710,6 @@ _nrrdHermite1_d(double x, const double *parm) {
 static float
 _nrrdHermite1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
-  
   x = AIR_ABS(x);
   return _TENT(x);
 }
@@ -724,7 +719,6 @@ _nrrdHermiteN_d(double *f, const double *x, size_t len, const double *parm) {
   double t;
   size_t i;
   AIR_UNUSED(parm);
-  
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t);
     f[i] = _TENT(t);
@@ -736,7 +730,6 @@ _nrrdHermiteN_f(float *f, const float *x, size_t len, const double *parm) {
   float t;
   size_t i;
   AIR_UNUSED(parm);
-  
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t);
     f[i] = _TENT(t);
@@ -1167,7 +1160,6 @@ _nrrdCTMRSup(const double *parm) {
 
 static double
 _nrrdCTMR1_d(double x, const double *parm) {
-  
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
   return _CTMR(x);
@@ -1175,7 +1167,6 @@ _nrrdCTMR1_d(double x, const double *parm) {
 
 static float
 _nrrdCTMR1_f(float x, const double *parm) {
-  
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
   return _CTMR(x);
@@ -1185,7 +1176,6 @@ static void
 _nrrdCTMRN_d(double *f, const double *x, size_t len, const double *parm) {
   double t;
   size_t i;
-  
   AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
     t = x[i];
@@ -1198,7 +1188,6 @@ static void
 _nrrdCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
   float t;
   size_t i;
-  
   AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
     t = x[i];
@@ -1236,7 +1225,6 @@ _nrrdDCTMRSup(const double *parm) {
 static double
 _nrrdDCTMR1_d(double x, const double *parm) {
   int sgn;
-
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; } else { sgn = 1; }
   return sgn*_DCTMR(x);
@@ -1245,7 +1233,6 @@ _nrrdDCTMR1_d(double x, const double *parm) {
 static float
 _nrrdDCTMR1_f(float x, const double *parm) {
   int sgn;
-  
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; } else { sgn = 1; }
   return sgn*_DCTMR(x);
@@ -1256,7 +1243,6 @@ _nrrdDCTMRN_d(double *f, const double *x, size_t len, const double *parm) {
   int sgn;
   double t;
   size_t i;
-  
   AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
     t = x[i];
@@ -1270,7 +1256,6 @@ _nrrdDCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
   int sgn;
   float t;
   size_t i;
-  
   AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
     t = x[i];
@@ -1562,53 +1547,45 @@ _c3quintInt(const double *parm) {
 
 static double
 _c3quintSup(const double *parm) {
-  double S;
-
-  S = parm[0];
-  return 2*S;
+  AIR_UNUSED(parm);
+  return 2.0;
 }
 
 static double
 _c3quint1_d(double x, const double *parm) {
-  double S;
-  
-  S = parm[0];
-  x = AIR_ABS(x)/S;
-  return _C3QUINTIC(x)/S;
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return _C3QUINTIC(x);
 }
 
 static float
 _c3quint1_f(float x, const double *parm) {
-  float S;
-  
-  S = AIR_CAST(float, parm[0]);
-  x = AIR_ABS(x)/S;
-  return AIR_CAST(float, _C3QUINTIC(x)/S);
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return AIR_CAST(float, _C3QUINTIC(x));
 }
 
 static void
 _c3quintN_d(double *f, const double *x, size_t len, const double *parm) {
-  double S, t;
+  double t;
   size_t i;
-  
-  S = parm[0];
+  AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
     t = x[i];
-    t = AIR_ABS(t)/S;
-    f[i] = _C3QUINTIC(t)/S;
+    t = AIR_ABS(t);
+    f[i] = _C3QUINTIC(t);
   }
 }
 
 static void
 _c3quintN_f(float *f, const float *x, size_t len, const double *parm) {
-  float S, t;
+  float t;
   size_t i;
-  
-  S = AIR_CAST(float, parm[0]);
+  AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
     t = x[i];
-    t = AIR_ABS(t)/S;
-    f[i] = AIR_CAST(float, _C3QUINTIC(t)/S);
+    t = AIR_ABS(t);
+    f[i] = AIR_CAST(float, _C3QUINTIC(t));
   }
 }
 
@@ -1637,59 +1614,49 @@ _Dc3quintInt(const double *parm) {
 
 static double
 _Dc3quintSup(const double *parm) {
-  double S;
-
-  S = parm[0];
-  return 2*S;
+  AIR_UNUSED(parm);
+  return 2.0;
 }
 
 static double
 _Dc3quint1_d(double x, const double *parm) {
-  double S;
   int sgn = 1;
-  
-  S = parm[0];
+  AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; }
-  x /= S;
-  return sgn*_DC3QUINTIC(x)/(S*S);
+  return sgn*_DC3QUINTIC(x);
 }
 
 static float
 _Dc3quint1_f(float x, const double *parm) {
-  float S;
   int sgn = 1;
-  
-  S = AIR_CAST(float, parm[0]);
+  AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; }
-  x /= S;
-  return AIR_CAST(float, sgn*_DC3QUINTIC(x)/(S*S));
+  return AIR_CAST(float, sgn*_DC3QUINTIC(x));
 }
 
 static void
 _Dc3quintN_d(double *f, const double *x, size_t len, const double *parm) {
-  double S, t;
+  double t;
   size_t i;
   int sgn;
-  
-  S = parm[0];
+  AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
-    t = x[i]/S;
+    t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = sgn*_DC3QUINTIC(t)/(S*S);
+    f[i] = sgn*_DC3QUINTIC(t);
   }
 }
 
 static void
 _Dc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
-  float S, t;
+  float t;
   size_t i;
   int sgn;
-  
-  S = AIR_CAST(float, parm[0]);
+  AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
-    t = x[i]/S;
+    t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = AIR_CAST(float, sgn*_DC3QUINTIC(t)/(S*S));
+    f[i] = AIR_CAST(float, sgn*_DC3QUINTIC(t));
   }
 }
 
@@ -1718,53 +1685,45 @@ _DDc3quintInt(const double *parm) {
 
 static double
 _DDc3quintSup(const double *parm) {
-  double S;
-
-  S = parm[0];
-  return 2*S;
+  AIR_UNUSED(parm);
+  return 2.0;
 }
 
 static double
 _DDc3quint1_d(double x, const double *parm) {
-  double S;
-  
-  S = parm[0];
-  x = AIR_ABS(x)/S;
-  return _DDC3QUINTIC(x)/S;
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return _DDC3QUINTIC(x);
 }
 
 static float
 _DDc3quint1_f(float x, const double *parm) {
-  float S;
-  
-  S = AIR_CAST(float, parm[0]);
-  x = AIR_ABS(x)/S;
-  return AIR_CAST(float, _DDC3QUINTIC(x)/S);
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return AIR_CAST(float, _DDC3QUINTIC(x));
 }
 
 static void
 _DDc3quintN_d(double *f, const double *x, size_t len, const double *parm) {
-  double S, t;
+  double t;
   size_t i;
-  
-  S = parm[0];
+  AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
     t = x[i];
-    t = AIR_ABS(t)/S;
-    f[i] = _DDC3QUINTIC(t)/S;
+    t = AIR_ABS(t);
+    f[i] = _DDC3QUINTIC(t);
   }
 }
 
 static void
 _DDc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
-  float S, t;
+  float t;
   size_t i;
-  
-  S = AIR_CAST(float, parm[0]);
+  AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
     t = x[i];
-    t = AIR_ABS(t)/S;
-    f[i] = AIR_CAST(float, _DDC3QUINTIC(t)/S);
+    t = AIR_ABS(t);
+    f[i] = AIR_CAST(float, _DDC3QUINTIC(t));
   }
 }
 
@@ -1807,53 +1766,45 @@ _c4hexInt(const double *parm) {
 
 static double
 _c4hexSup(const double *parm) {
-  double S;
-
-  S = parm[0];
-  return 3*S;
+  AIR_UNUSED(parm);
+  return 3.0;
 }
 
 static double
 _c4hex1_d(double x, const double *parm) {
-  double S;
-  
-  S = parm[0];
-  x = AIR_ABS(x)/S;
-  return _C4HEXIC(x)/S;
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return _C4HEXIC(x);
 }
 
 static float
 _c4hex1_f(float x, const double *parm) {
-  float S;
-  
-  S = AIR_CAST(float, parm[0]);
-  x = AIR_ABS(x)/S;
-  return AIR_CAST(float, _C4HEXIC(x)/S);
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return AIR_CAST(float, _C4HEXIC(x));
 }
 
 static void
 _c4hexN_d(double *f, const double *x, size_t len, const double *parm) {
-  double S, t;
+  double t;
   size_t i;
-  
-  S = parm[0];
+  AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
     t = x[i];
-    t = AIR_ABS(t)/S;
-    f[i] = _C4HEXIC(t)/S;
+    t = AIR_ABS(t);
+    f[i] = _C4HEXIC(t);
   }
 }
 
 static void
 _c4hexN_f(float *f, const float *x, size_t len, const double *parm) {
-  float S, t;
+  float t;
   size_t i;
-  
-  S = AIR_CAST(float, parm[0]);
+  AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
     t = x[i];
-    t = AIR_ABS(t)/S;
-    f[i] = AIR_CAST(float, _C4HEXIC(t)/S);
+    t = AIR_ABS(t);
+    f[i] = AIR_CAST(float, _C4HEXIC(t));
   }
 }
 
@@ -1885,59 +1836,49 @@ _Dc4hexInt(const double *parm) {
 
 static double
 _Dc4hexSup(const double *parm) {
-  double S;
-
-  S = parm[0];
-  return 3*S;
+  AIR_UNUSED(parm);
+  return 3.0;
 }
 
 static double
 _Dc4hex1_d(double x, const double *parm) {
-  double S;
   int sgn = 1;
-  
-  S = parm[0];
+  AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; }
-  x /= S;
-  return sgn*_DC4HEXIC(x)/(S*S);
+  return sgn*_DC4HEXIC(x);
 }
 
 static float
 _Dc4hex1_f(float x, const double *parm) {
-  float S;
   int sgn = 1;
-  
-  S = AIR_CAST(float, parm[0]);
+  AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; }
-  x /= S;
-  return AIR_CAST(float, sgn*_DC4HEXIC(x)/(S*S));
+  return AIR_CAST(float, sgn*_DC4HEXIC(x));
 }
 
 static void
 _Dc4hexN_d(double *f, const double *x, size_t len, const double *parm) {
-  double S, t;
+  double t;
   size_t i;
   int sgn;
-  
-  S = parm[0];
+  AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
-    t = x[i]/S;
+    t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = sgn*_DC4HEXIC(t)/(S*S);
+    f[i] = sgn*_DC4HEXIC(t);
   }
 }
 
 static void
 _Dc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
-  float S, t;
+  float t;
   size_t i;
   int sgn;
-  
-  S = AIR_CAST(float, parm[0]);
+  AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
-    t = x[i]/S;
+    t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = AIR_CAST(float, sgn*_DC4HEXIC(t)/(S*S));
+    f[i] = AIR_CAST(float, sgn*_DC4HEXIC(t));
   }
 }
 
@@ -1969,53 +1910,45 @@ _DDc4hexInt(const double *parm) {
 
 static double
 _DDc4hexSup(const double *parm) {
-  double S;
-
-  S = parm[0];
-  return 3*S;
+  AIR_UNUSED(parm);
+  return 3.0;
 }
 
 static double
 _DDc4hex1_d(double x, const double *parm) {
-  double S;
-  
-  S = parm[0];
-  x = AIR_ABS(x)/S;
-  return _DDC4HEXIC(x)/S;
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return _DDC4HEXIC(x);
 }
 
 static float
 _DDc4hex1_f(float x, const double *parm) {
-  float S;
-  
-  S = AIR_CAST(float, parm[0]);
-  x = AIR_ABS(x)/S;
-  return AIR_CAST(float, _DDC4HEXIC(x)/S);
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return AIR_CAST(float, _DDC4HEXIC(x));
 }
 
 static void
 _DDc4hexN_d(double *f, const double *x, size_t len, const double *parm) {
-  double S, t;
+  double t;
   size_t i;
-  
-  S = parm[0];
+  AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
     t = x[i];
-    t = AIR_ABS(t)/S;
-    f[i] = _DDC4HEXIC(t)/S;
+    t = AIR_ABS(t);
+    f[i] = _DDC4HEXIC(t);
   }
 }
 
 static void
 _DDc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
-  float S, t;
+  float t;
   size_t i;
-  
-  S = AIR_CAST(float, parm[0]);
+  AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
     t = x[i];
-    t = AIR_ABS(t)/S;
-    f[i] = AIR_CAST(float, _DDC4HEXIC(t)/S);
+    t = AIR_ABS(t);
+    f[i] = AIR_CAST(float, _DDC4HEXIC(t));
   }
 }
 
@@ -2048,59 +1981,49 @@ _DDDc4hexInt(const double *parm) {
 
 static double
 _DDDc4hexSup(const double *parm) {
-  double S;
-
-  S = parm[0];
-  return 3*S;
+  AIR_UNUSED(parm);
+  return 3.0;
 }
 
 static double
 _DDDc4hex1_d(double x, const double *parm) {
-  double S;
   int sgn = 1;
-  
-  S = parm[0];
+  AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; }
-  x /= S;
-  return sgn*_DDDC4HEXIC(x)/(S*S);
+  return sgn*_DDDC4HEXIC(x);
 }
 
 static float
 _DDDc4hex1_f(float x, const double *parm) {
-  float S;
   int sgn = 1;
-  
-  S = AIR_CAST(float, parm[0]);
+  AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; }
-  x /= S;
-  return AIR_CAST(float, sgn*_DDDC4HEXIC(x)/(S*S));
+  return AIR_CAST(float, sgn*_DDDC4HEXIC(x));
 }
 
 static void
 _DDDc4hexN_d(double *f, const double *x, size_t len, const double *parm) {
-  double S, t;
+  double t;
   size_t i;
   int sgn;
-  
-  S = parm[0];
+  AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
-    t = x[i]/S;
+    t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = sgn*_DDDC4HEXIC(t)/(S*S);
+    f[i] = sgn*_DDDC4HEXIC(t);
   }
 }
 
 static void
 _DDDc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
-  float S, t;
+  float t;
   size_t i;
   int sgn;
-  
-  S = AIR_CAST(float, parm[0]);
+  AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
-    t = x[i]/S;
+    t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = AIR_CAST(float, sgn*_DDDC4HEXIC(t)/(S*S));
+    f[i] = AIR_CAST(float, sgn*_DDDC4HEXIC(t));
   }
 }
 
@@ -2156,7 +2079,6 @@ static double
 _c4hex_ANI_1d(double x, const double *parm) {
   double ax, r; int tmp;
   AIR_UNUSED(parm);
-
   ax = AIR_ABS(x);
   C4HEX_ANI(r, tmp, ax);
   return r;
@@ -2166,7 +2088,6 @@ static float
 _c4hex_ANI_1f(float x, const double *parm) {
   double ax, r; int tmp;
   AIR_UNUSED(parm);
-
   ax = AIR_ABS(x);
   C4HEX_ANI(r, tmp, ax);
   return AIR_CAST(float, r);
@@ -2177,7 +2098,6 @@ _c4hex_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
   double ax, r; int tmp;
   size_t i;
   AIR_UNUSED(parm);
-  
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     C4HEX_ANI(r, tmp, ax);
@@ -2190,7 +2110,6 @@ _c4hex_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   double ax, r; int tmp;
   size_t i;
   AIR_UNUSED(parm);
-  
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     C4HEX_ANI(r, tmp, ax);
@@ -3018,7 +2937,7 @@ nrrdKernelCheck(const NrrdKernel *kern,
   size_t evalIdx;
   double *dom_d, *ran_d, wee;
   float *dom_f, *ran_f;
-  unsigned int diffOkNum, diffOkMax;
+  unsigned int diffOkEvalNum, diffOkEvalMax, diffOkIntglNum, diffOkIntglMax;
   airArray *mop;
 
   if (!kern) {
@@ -3058,7 +2977,7 @@ nrrdKernelCheck(const NrrdKernel *kern,
   }
 
   supp = kern->support(parm);
-  wee = 2*supp/evalNum;
+  wee = 2*supp/evalNum; /* the step between evaluation points */
   if ( (kern->eval1_d)(supp+wee/1000, parm) ||
        (kern->eval1_d)(supp+wee, parm) ||
        (kern->eval1_d)(supp+10*wee, parm) ||
@@ -3102,9 +3021,12 @@ nrrdKernelCheck(const NrrdKernel *kern,
             dom_d[evalIdx], ran_d[evalIdx]);
   }
   */
-  /* compare evaluations and numerically compute integral */
-  diffOkMax = 2;
-  diffOkNum = 0;
+  /* compare evaluations (and maybe derivatives) and numerically compute
+     integral */
+  diffOkEvalMax = 2;
+  diffOkEvalNum = 0;
+  diffOkIntglMax = 2;
+  diffOkIntglNum = 0;
   integral = 0.0;
   for (evalIdx=0; evalIdx<evalNum; evalIdx++) {
     double single_f, single_d;
@@ -3127,13 +3049,30 @@ nrrdKernelCheck(const NrrdKernel *kern,
     }
     /* single float vs single double */
     if (fabs(single_f - single_d) > epsilon) {
-      diffOkNum++;
-      if (diffOkNum > diffOkMax) {
+      diffOkEvalNum++;
+      if (diffOkEvalNum > diffOkEvalMax) {
         biffAddf(NRRD, "%s: %s |eval1_f(%.17g)=%.17g) - (eval1_d(%.17g)=%.17g)|"
                  " %.17g  >  epsilon %.17g too many times (%u)", me, kstr,
                  dom_f[evalIdx], single_f, dom_d[evalIdx], single_d,
-                 fabs(single_f - single_d), epsilon, diffOkNum);
+                 fabs(single_f - single_d), epsilon, diffOkEvalNum);
         airMopError(mop); return 1;
+      }
+    }
+    /* check whether we're the derivative of ikern */
+    if (ikern) {
+      double forw, back, ndrv;
+      forw = ikern->eval1_d(dom_d[evalIdx] + wee/2, iparm);
+      back = ikern->eval1_d(dom_d[evalIdx] - wee/2, iparm);
+      ndrv = (forw - back)/wee;
+      if (fabs(ndrv - single_d) > epsilon) {
+        diffOkIntglNum++;
+        if (diffOkIntglNum > diffOkIntglMax) {
+          biffAddf(NRRD, "%s: %s(%.17g) |num deriv(%s) %.17g - %.17g| "
+                   "%.17g > %.17g too many times (%u)",
+                   me, kstr, dom_d[evalIdx], ikern->name, ndrv, single_d,
+                   fabs(ndrv - single_d), epsilon, diffOkIntglNum);
+          airMopError(mop); return 1;
+        }
       }
     }
   }
