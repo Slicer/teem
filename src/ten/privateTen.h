@@ -184,7 +184,7 @@ TEN_EXPORT double _tenModelSqeFitSingle(const tenModel *model,
 static double *                                                 \
 parmAlloc(void) {                                               \
                                                                 \
-  return AIR_CAST(double *, calloc(PARM_NUM, sizeof(double)));  \
+  return AIR_CAST(double *, calloc(PARM_NUM ? PARM_NUM : 1, sizeof(double))); \
 }
 
 #define _TEN_PARM_RAND                                                  \
@@ -309,7 +309,7 @@ sqeGrad(double *grad, const double *parm0,                              \
         const tenExperSpec *espec,                                      \
         double *dwiBuff, const double *dwiMeas,                         \
         int knownB0) {                                                  \
-  double parm1[PARM_NUM], sqeForw, sqeBack, dp;                         \
+  double parm1[PARM_NUM ? PARM_NUM : 1], sqeForw, sqeBack, dp;          \
   unsigned int ii, i0;                                                  \
                                                                         \
   i0 = knownB0 ? 1 : 0;                                                 \
@@ -349,7 +349,8 @@ sqeFit(double *parm, double *convFrac, unsigned int *itersTaken,        \
        double *dwiBuff, const double *dwiMeas,                          \
        const double *parmInit, int knownB0,                             \
        unsigned int minIter, unsigned int maxIter, double convEps) {    \
-  double testparm[PARM_NUM], grad[PARM_NUM];                            \
+  double testparm[PARM_NUM ? PARM_NUM : 1],                             \
+    grad[PARM_NUM ? PARM_NUM : 1];                                      \
                                                                         \
   return _tenModelSqeFitSingle((model),                                 \
                                testparm, grad,                          \
