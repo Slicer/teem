@@ -169,7 +169,7 @@ main(int argc, char *argv[]) {
     }
     i++;
   }
-  if (!CLOSE(integral, kern[0]->integral(parm), 0.005)) {
+  if (!CLOSE(integral, kern[0]->integral(parm), 0.0005)) {
     fprintf(stderr, "%s: HEY HEY HEY HEY HEY HEY!\n", me);
     fprintf(stderr, 
             "%s: discrete integral %f != %f\n", me, integral, kern[0]->integral(parm));

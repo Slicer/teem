@@ -258,7 +258,7 @@ WS_N_D(DDBlack, _DDBLACK, POW3)
 
 static NrrdKernel
 _nrrdKernelDDBlack = {
-  "blackDD",
+  "blackmanDD",
   2, _nrrdWindSincSup, _nrrdDWindSincInt,  
   _nrrdDDBlack_1_f, _nrrdDDBlack_N_f, _nrrdDDBlack_1_d, _nrrdDDBlack_N_d
 };

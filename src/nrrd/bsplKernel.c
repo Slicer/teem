@@ -307,6 +307,7 @@ _bspl3d3_1d(double x, const double *parm) {
   double ax, tmp, r;
   int sgn;
   AIR_UNUSED(parm);
+  AIR_UNUSED(tmp);
 
   ABS_SGN(ax, sgn, x);
   BSPL3D3(r, tmp, ax);
@@ -318,6 +319,7 @@ _bspl3d3_1f(float x, const double *parm) {
   float ax, tmp, r;
   int sgn;
   AIR_UNUSED(parm);
+  AIR_UNUSED(tmp);
 
   ABS_SGN(ax, sgn, x);
   BSPL3D3(r, tmp, ax);
@@ -330,6 +332,7 @@ _bspl3d3_Nd(double *f, const double *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
+  AIR_UNUSED(tmp);
   
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
@@ -344,6 +347,7 @@ _bspl3d3_Nf(float *f, const float *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
+  AIR_UNUSED(tmp);
   
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
@@ -368,22 +372,15 @@ nrrdKernelBSpline3DDD = &_nrrdKernelBSpline3DDD;
 ** which is still faster than doing iterative deconvolution.  These
 ** weights were determined by GLK with Mathematica, by inverting the
 ** matrix representing discrete convolution with the spline
+**
+** Note that with all the approx inverse kernels, the support really
+** does end at a half-integer (they are piece-wise constant on unit 
+** intervals centered at integers)
 */
 
+#define BSPL3_AI_LEN 12
 static double
-_bspl3_ANI_sup(const double *parm) {
-  AIR_UNUSED(parm);
-  return 12.5;
-}
-
-static double
-_bspl3_ANI_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
-
-static double
-_bspl3_ANI_kvals[12] = {
+_bspl3_ANI_kvals[BSPL3_AI_LEN] = {
   2672279.0/1542841.0,
   -(716035.0/1542841.0),
   191861.0/1542841.0,
@@ -397,9 +394,21 @@ _bspl3_ANI_kvals[12] = {
   5.0/1542841.0,
   -(1.0/1542841.0)};
 
+static double
+_bspl3_ANI_sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return BSPL3_AI_LEN + 0.5;
+}
+
+static double
+_bspl3_ANI_int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
 #define BSPL3_ANI(ret, tmp, x)                  \
   tmp = AIR_CAST(unsigned int, x+0.5);          \
-  if (tmp < 12) {                               \
+  if (tmp < BSPL3_AI_LEN) {                     \
     ret = _bspl3_ANI_kvals[tmp];                \
   } else {                                      \
     ret = 0.0;                                  \
@@ -788,20 +797,9 @@ nrrdKernelBSpline5DDD = &_nrrdKernelBSpline5DDD;
 
 /* ------------- order *5* approximate numerical inverse -------------- */
 
+#define BSPL5_AI_LEN 19
 static double
-_bspl5_ANI_sup(const double *parm) {
-  AIR_UNUSED(parm);
-  return 19.5;
-}
-
-static double
-_bspl5_ANI_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
-
-static double
-_bspl5_ANI_kvals[19] = {
+_bspl5_ANI_kvals[BSPL5_AI_LEN] = {
   2.842170922021427870236333,
   -1.321729472987239796417307,
   0.5733258709611149890510146,
@@ -822,9 +820,21 @@ _bspl5_ANI_kvals[19] = {
   -1.698979738236873388431330e-6,
   4.475539012615912040164139e-7};
 
+static double
+_bspl5_ANI_sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return BSPL5_AI_LEN + 0.5;
+}
+
+static double
+_bspl5_ANI_int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
 #define BSPL5_ANI(ret, tmp, x)                  \
   tmp = AIR_CAST(unsigned int, x+0.5);          \
-  if (tmp < 19) {                               \
+  if (tmp < BSPL5_AI_LEN) {                     \
     ret = _bspl5_ANI_kvals[tmp];                \
   } else {                                      \
     ret = 0.0;                                  \
@@ -1218,20 +1228,9 @@ nrrdKernelBSpline7DDD = &_nrrdKernelBSpline7DDD;
 
 /* ------------- order *7* approximate numerical inverse -------------- */
 
+#define BSPL7_AI_LEN 26
 static double
-_bspl7_ANI_sup(const double *parm) {
-  AIR_UNUSED(parm);
-  return 25.5;
-}
-
-static double
-_bspl7_ANI_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
-
-static double
-_bspl7_ANI_kvals[26] = {
+_bspl7_ANI_kvals[BSPL7_AI_LEN] = {
   4.964732886301469059137801,
   -3.091042499769118182213297,                             
   1.707958936669135515487259,
@@ -1259,9 +1258,21 @@ _bspl7_ANI_kvals[26] = {
   1.506132735770447868981087e-6,
   -4.260433183779953604188120e-7};
 
+static double
+_bspl7_ANI_sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return BSPL7_AI_LEN + 0.5;
+}
+
+static double
+_bspl7_ANI_int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
 #define BSPL7_ANI(ret, tmp, x)                  \
   tmp = AIR_CAST(unsigned int, x+0.5);          \
-  if (tmp < 26) {                               \
+  if (tmp < BSPL7_AI_LEN) {                     \
     ret = _bspl7_ANI_kvals[tmp];                \
   } else {                                      \
     ret = 0.0;                                  \

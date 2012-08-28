@@ -1414,7 +1414,8 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelBlackman,     /* Blackman windowed sinc */
   *const nrrdKernelBlackmanD,    /* 1st derivative of Blackman windowed sinc */
   *const nrrdKernelBlackmanDD;   /* 2nd derivative */
-/* bsplKernel.c : b-splines of various orders; these do not interpolate */
+/* bsplKernel.c: b-splines of various orders; these do not interpolate,
+   but the ApproxInverse kernels are ok for pre-filtering so that they do */
 NRRD_EXPORT NrrdKernel
   *const nrrdKernelBSpline3,     /* 3rd order (cubic) B-spline */
   *const nrrdKernelBSpline3D,
@@ -1431,7 +1432,7 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelBSpline7DD,
   *const nrrdKernelBSpline7DDD,
   *const nrrdKernelBSpline7ApproxInverse;
-/* kernel.c */
+/* kernel.c: the rest of the kernels and kernel utility functions */
 NRRD_EXPORT NrrdKernel
   *const nrrdKernelZero,         /* zero everywhere */
   *const nrrdKernelBox,          /* box filter (nearest neighbor) */
@@ -1446,6 +1447,7 @@ NRRD_EXPORT NrrdKernel
                                         within [-0.5,0.5] and 0.0 outside */
   *const nrrdKernelCos4SupportDebugD,
   *const nrrdKernelCos4SupportDebugDD,
+  *const nrrdKernelCos4SupportDebugDDD,
   *const nrrdKernelCheap,        /* like box, but every Nth on downsampling */
   *const nrrdKernelHermiteScaleSpaceFlag,  /* a kernel that looks like tent,
                                               but which exists as a flag for
@@ -1485,6 +1487,17 @@ NRRD_EXPORT int nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE],
 NRRD_EXPORT int nrrdKernelSprint(char str[AIR_STRLEN_LARGE],
                                  const NrrdKernel *kernel,
                                  const double *kparm);
+NRRD_EXPORT int nrrdKernelCompare(const NrrdKernel *kernA,
+                                  const double parmA[NRRD_KERNEL_PARMS_NUM],
+                                  const NrrdKernel *kernB,
+                                  const double parmB[NRRD_KERNEL_PARMS_NUM],
+                                  int *differ,
+                                  char explain[AIR_STRLEN_LARGE]);
+NRRD_EXPORT int nrrdKernelCheck(const NrrdKernel *kern,
+                                const double parm[NRRD_KERNEL_PARMS_NUM],
+                                size_t evalNum, double epsilon,
+                                const NrrdKernel *dkern,
+                                const double dparm[NRRD_KERNEL_PARMS_NUM]);
 
 /* ---- END non-NrrdIO */
 
