@@ -84,6 +84,10 @@ MEET_EXPORT const airEnum **meetAirEnumAll(void);
 MEET_EXPORT void meetAirEnumAllPrint(FILE *file);
 MEET_EXPORT int meetAirEnumAllCheck(void);
 
+/* meetNrrd.c */
+MEET_EXPORT const NrrdKernel **meetNrrdKernelAll(void);
+MEET_EXPORT int meetNrrdKernelAllCheck(void);
+
 /* meetGage.c */
 MEET_EXPORT gageKind *meetGageKindParse(const char *str);
 MEET_EXPORT const gageKind *meetConstGageKindParse(const char *str);
