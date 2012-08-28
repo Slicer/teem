@@ -66,6 +66,7 @@ nrrd:
  - fields for "what is my derivative"
  - "when parsing from string, parm[0] is needed" vs "parm[0] defaults to 1.0"
  - what is my accuracy (in a Taylor series sense)
+ - am I an odd or even function
 * the percentile-based bounds specification now supported in e.g 
   "unu histo", "unu quantize", and "unu jhisto" should be migrated down
    to the nrrd library
@@ -74,7 +75,8 @@ nrrd:
 * rename nrrd<Func>_nva() --> nrrd<Func>()
 * rename nrrdResampleNrrdSet --> nrrdResampleInputSet ?
 * permit replacements for malloc/free (e.g. fftw_malloc, fftw_free) of data
-* rename NRRD_KERNEL_PARMS_NUM --> NRRD_KERNEL_PARMS_MAXNUM
+* rename numParm --> parmNum
+* rename NRRD_KERNEL_PARMS_NUM --> NRRD_KERNEL_PARM_MAXNUM
 * remove "minsm" as synonym for nrrdTernaryOpMinSmooth
 * resampler: why can't you set a kernel prior to setting input?
 [nrrd] nrrdDeringExecute: trouble on setup
