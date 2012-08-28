@@ -24,3 +24,11 @@
 ADD_EXECUTABLE(enmallTest enmall.c)
 TARGET_LINK_LIBRARIES(enmallTest teem)
 ADD_TEST(enmall ${EXECUTABLE_OUTPUT_PATH}/enmallTest)
+
+ADD_EXECUTABLE(kernallTest kernall.c)
+TARGET_LINK_LIBRARIES(kernallTest teem)
+ADD_TEST(kernall ${EXECUTABLE_OUTPUT_PATH}/kernallTest)
+
+ADD_EXECUTABLE(probeSSTest probeSS.c)
+TARGET_LINK_LIBRARIES(probeSSTest teem)
+ADD_TEST(probeSS ${EXECUTABLE_OUTPUT_PATH}/probeSSTest)
