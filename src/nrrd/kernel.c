@@ -1746,7 +1746,7 @@ nrrdKernelC3QuinticDD = &_DDc3quint;
 ** It doesn't interpolate, but its close, and it rings once.
 **
 ** this is awfully close to, but not quite the same as, 
-** "tmf:-1,3,4" --> nrrdKernelTMF[0][4][4], which is only c^3 smooth?
+** "tmf:n,3,4" --> nrrdKernelTMF[0][4][4], which is only C^3 smooth
 */
 
 #define _C4HEXIC(x) \
