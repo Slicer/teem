@@ -1520,17 +1520,22 @@ nrrdKernelAQuarticDD = &_nrrdKernelDDA4;
 /* ------------------------------------------------------------ */
 
 /* 
-** This is the unique, four-sample support, quintic, C^3 kernel,
-** with 1st and 3rd derivatives zero at origin, which integrates
-** to unity on [-2,2], with 0th and 1st accuracy.
-** Unlike previously believed, this does NOT have 2nd order accuracy!
-** It doesn't interpolate.
+** This is the unique, four-sample support, quintic, C^3 kernel, with 1st and
+** 3rd derivatives zero at origin, which integrates to unity on [-2,2], which
+** exactly reconstructs 0th and 1st order polynomials.  Unfortunately it does
+** NOT reconstruct 2nd order polynomials, so its not very useful.  It worse
+** than "one step down" from c4hexic (see below), since while its support and
+** polynomial power is one less than c4hexic, it cannot reconstruct
+** parabolas; c4hexic can reconstruct cubics.
 **
-** The same kernel is also available as 
-** nrrdKernelTMF w/ D,C,A = -1,3,2 => nrrdKernelTMF[0][4][2] => "tmf:-1,3,2"
-** the advantage here being that you have access to the first
-** and second derivatives of this quintic kernel as
-** nrrdKernelC3QuinticD and nrrdKernelC3QuinticDD
+** The same kernel is also available as nrrdKernelTMF w/ D,C,A = -1,3,2 ==
+** TMF_dn_c3_2ef == "tmf:n,3,2" == nrrdKernelTMF[0][4][2], the only advantage
+** here being that you have access to the first and second derivatives of
+** this quintic kernel as nrrdKernelC3QuinticD and nrrdKernelC3QuinticDD.
+**
+** By the way, TMF_d0_c3_3ef == TMF_dn_c3_3ef == "tmf:n,3,3", which can (by
+** definition) reconstruct parabolas, has four-sample support, and has
+** piecewise polynomial order *seven*
 */
 
 #define _C3QUINTIC(x) \
@@ -1739,14 +1744,14 @@ nrrdKernelC3QuinticDD = &_DDc3quint;
 /* ------------------------------------------------------------ */
 
 /* 
-** This is the unique, 6-sample support, hexic, C^4 kernel,
-** with 1st and 3rd derivatives zero at origin, which integrates
-** to unity on [-3,3], with 3rd order Taylor accuracy
-** (errors start showing up when reconstructing 4th order polynomials)
-** It doesn't interpolate, but its close, and it rings once.
+** This is the unique, 6-sample support, hexic, C^4 kernel, with 1st and 3rd
+** derivatives zero at origin, which integrates to unity on [-3,3], with 3rd
+** order Taylor accuracy (errors start showing up when reconstructing 4th
+** order polynomials) It doesn't interpolate, but its close, and it rings
+** once.
 **
-** this is awfully close to, but not quite the same as, 
-** "tmf:n,3,4" --> nrrdKernelTMF[0][4][4], which is only C^3 smooth
+** this is awfully close to, but not quite the same as, "tmf:n,3,4" ==
+** TMF_dn_c3_4ef == nrrdKernelTMF[0][4][4], which is only C^3 smooth 
 */
 
 #define _C4HEXIC(x) \
