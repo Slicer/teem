@@ -134,7 +134,8 @@ rare instances when something in one library A is really for library B,
 even though A doesn't depend on B (in fact B depends on A). Examples of
 this include:
  - nrrdKernelHermiteScaleSpaceFlag, a nrrd kernel a flag for a kind of 
-   behavior that is implemented in gage
+   behavior that is implemented in gage (Hermite-spline interpolation
+   between pre-blurred volumes)
  - gage has some specialization for length-7 values in probed volumes,
    this is really for the ten library that uses length-7 tensors
 These kinds of implicit dependency reversals should be avoided if possible.
@@ -343,6 +344,11 @@ which the gageKind is known only at run-time).
 a new airEnum, you need to also register it in the meetAirEnumAll() function
 in teem/src/meet/enumall.c.  Also, all public airEnums should be declared as
   const airEnum *const enumName;
+
+* NrrdKernels are structs that package information about a convolution kernel
+and its properties.  So far all the NrrdKernels are supplied by the Nrrd
+library, but that could change.  All NrrdKernels are registered in the "meet"
+library, in the meetNrrdKernelAll() function in teem/src/meet/meetNrrd.c.
 
 * Whenever there is an lookup-table array (created at compile time) to
 accompany the values in a C enum (e.g. nrrdTypeIsIntegral[] array 
