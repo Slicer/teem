@@ -302,56 +302,54 @@ _bspl3d3_int(const double *parm) {
     ret = 0;                                   \
   }
 
+/* note that the tmp arg is not needed or used in the macro,
+   so we can pass any bogus value, in this case 42.42 */
 static double
 _bspl3d3_1d(double x, const double *parm) {
-  double ax, tmp, r;
+  double ax, r;
   int sgn;
   AIR_UNUSED(parm);
-  AIR_UNUSED(tmp);
 
   ABS_SGN(ax, sgn, x);
-  BSPL3D3(r, tmp, ax);
+  BSPL3D3(r, 42.42, ax);
   return sgn*r;
 }
 
 static float
 _bspl3d3_1f(float x, const double *parm) {
-  float ax, tmp, r;
+  float ax, r;
   int sgn;
   AIR_UNUSED(parm);
-  AIR_UNUSED(tmp);
 
   ABS_SGN(ax, sgn, x);
-  BSPL3D3(r, tmp, ax);
+  BSPL3D3(r, 42.42, ax);
   return sgn*r;
 }
 
 static void
 _bspl3d3_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, tmp, r;
+  double ax, r;
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
-  AIR_UNUSED(tmp);
   
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
-    BSPL3D3(r, tmp, ax);
+    BSPL3D3(r, 42.42, ax);
     f[i] = sgn*r;
   }
 }
 
 static void
 _bspl3d3_Nf(float *f, const float *x, size_t len, const double *parm) {
-  float ax, tmp, r;
+  float ax, r;
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
-  AIR_UNUSED(tmp);
   
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
-    BSPL3D3(r, tmp, ax);
+    BSPL3D3(r, 42.42, ax);
     f[i] = sgn*r;
   }
 }
