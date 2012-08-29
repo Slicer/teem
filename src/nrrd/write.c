@@ -566,6 +566,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
          The "+ 3" for the |" "| between each part */
       fdlen += 2*airStrlen(LABEL_OR_UNITS) + 3;
     }
+    fdlen += 1; /* for '\0' */
     *strP = (char *)calloc(fslen + fdlen, sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
@@ -635,8 +636,14 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
   case nrrdField_space_units:
     fdlen = 0;
     for (ii=0; ii<nrrd->spaceDim; ii++) {
-      fdlen += airStrlen(nrrd->spaceUnits[ii]) + 4;
+      /* The "2*" is because at worst every character needs escaping.
+         See note in formatNRRD.c about how even though its not part
+         of the format, we have worst-case scenario of having to
+         escape a space units which is nothing but ". The "+ 3" for
+         the |" "| between each part */
+      fdlen += 2*airStrlen(nrrd->spaceUnits[ii]) + 3;
     }
+    fdlen += 1; /* for '\0' */
     *strP = (char *)calloc(fslen + fdlen, sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->spaceDim; ii++) {
