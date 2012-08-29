@@ -135,18 +135,25 @@ main(int argc, const char **argv) {
   }
   {
     double avgdiff, *qdiff, *unquant;
+    /* empirically determined tolerance, which had to be increased in
+       order to work under valgrind (!)- perhaps because of a
+       difference in the use of 80-bit registers */
+    double epsilon=0.50000000000004;
     avgdiff = 0.0;
     qdiff = AIR_CAST(double *, nqdiff->data);
     unquant = AIR_CAST(double *, nunquant->data);
     for (ii=0; ii<nn; ii++) {
       double dd;
+      /* with infinite precision, the max difference between original and
+         quantized values should be exactly half the width (in value)
+         of 1/256 of value range  ==> dd = 0.5 */
       dd = qdiff[ii]*256/(omax - omin);
-      /* empirically determined tolerance */
-      if (AIR_ABS(dd) > 0.500000000000009) {
+      if (AIR_ABS(dd) > epsilon) {
         unsigned int ui;
         ui = AIR_CAST(unsigned int, ii);
-        fprintf(stderr, "|orig[%u]=%g - unquant=%g| = %f > 0.5!\n",
-                ui, origScl[ii], unquant[ii], AIR_ABS(dd));
+        fprintf(stderr, "|orig[%u]=%.17g - unquant=%.17g|*256/%.17g "
+                "= %.17g > %.17g!\n", ui, origScl[ii], unquant[ii],
+                omax - omin, AIR_ABS(dd), epsilon);
         airMopError(submop); airMopError(mop); return 1;
       }
     }
