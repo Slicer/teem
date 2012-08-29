@@ -4,12 +4,13 @@ for Teem 2.0:
 
 decide on a uniform way of indicating if a given external is available
 (e.g. airThreadCapable vs nrrdFFTWEnabled)
-hey that's exactly what "meet" is for.  Except that libraries within
-Teem can't use it.
+Libraries within Teem can't use "meet", which is one place that this
+availability could be documented, but should have at least some naming
+conventions
 
 Do away with "experimental" libraries and applications.  Too annoying
 to have two totally different kinds of Teem installs, especially when
-it means that it would mean to different python wrappings.
+it means that it would mean two different python wrappings.
 
 Consider extending const-correctness of function input not just to
 pointers, but to all values as well.
@@ -18,6 +19,7 @@ all:
 * scrutinize use of strncpy, consider using airStrcpy
 * remove '_'s from enum value names in non-elf non-tijk libraries
 * decide if <LIB>_EXPORT should just be TEEM_EXPORT
+* enforce consistent use of AIR_CALLOC/AIR_MALLOC
 
 air:
 * airArray->len should probably be size_t, not unsigned int. Along with
@@ -62,20 +64,24 @@ so that it matches biffMovef
 * a few biff functions are never used in Teem, is that ok?
 
 nrrd:
-* add to nrrdKernel: 
- - fields for "what is my derivative"
+* with nrrdKernel: 
+ - add fields for "what is my derivative" or "what is my integral", but 
+   how to do that at compile time?
  - "when parsing from string, parm[0] is needed" vs "parm[0] defaults to 1.0"
- - what is my accuracy (in a Taylor series sense)
- - am I an odd or even function
+   OR, maybe simplify things by saying that all parameters are always needed
+ - add statement of accuracy (in a Taylor series sense)
+ - add: am I an odd or even function
+ - rename numParm --> parmNum
+ - fix the kernels that meetNrrdKernelAllCheck revealed to be broken
 * the percentile-based bounds specification now supported in e.g 
   "unu histo", "unu quantize", and "unu jhisto" should be migrated down
-   to the nrrd library
+   to the nrrd library.  Consider doing this with a sorting of hi/lo values,
+   rather than a histogram (one less parameter, and often more accurate)
 * make the verbosity level a field in NrrdIoState, remove nrrdStateVerboseIO
 * add support for 16-bit floats (start with Milan's patch)
 * rename nrrd<Func>_nva() --> nrrd<Func>()
 * rename nrrdResampleNrrdSet --> nrrdResampleInputSet ?
 * permit replacements for malloc/free (e.g. fftw_malloc, fftw_free) of data
-* rename numParm --> parmNum
 * rename NRRD_KERNEL_PARMS_NUM --> NRRD_KERNEL_PARM_MAXNUM
 * remove "minsm" as synonym for nrrdTernaryOpMinSmooth
 * resampler: why can't you set a kernel prior to setting input?
@@ -95,6 +101,7 @@ of having to set an environment variable to get it
 * unu dice -ff should change from using %d to %u
 * unu resample should permit saying "resample this axis to N samples,
 and resample these other axes to whatever maintains aspect ratio"
+* consider supporting more sophisticated expressions e.g. "x2" --> "x2+1"
 
 gage:
 * in a gageKinds, the airEnum for the items, and the assocaited table of
