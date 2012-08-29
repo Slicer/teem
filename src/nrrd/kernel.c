@@ -1592,7 +1592,7 @@ _c3quintN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _c3quint = {
   "C3Quintic",
-  1, _c3quintSup,  _c3quintInt,   
+  0, _c3quintSup,  _c3quintInt,   
   _c3quint1_f,   _c3quintN_f,   _c3quint1_d,   _c3quintN_d
 };
 NrrdKernel *const
@@ -1663,7 +1663,7 @@ _Dc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelDC3Quintic = {
   "C3QuinticD",
-  1, _Dc3quintSup, _Dc3quintInt,  
+  0, _Dc3quintSup, _Dc3quintInt,  
   _Dc3quint1_f,  _Dc3quintN_f,  _Dc3quint1_d,  _Dc3quintN_d
 };
 NrrdKernel *const
@@ -1730,7 +1730,7 @@ _DDc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _DDc3quint = {
   "C3QuinticDD",
-  1, _DDc3quintSup,  _DDc3quintInt,   
+  0, _DDc3quintSup,  _DDc3quintInt,   
   _DDc3quint1_f,   _DDc3quintN_f,   _DDc3quint1_d,   _DDc3quintN_d
 };
 NrrdKernel *const
@@ -1811,7 +1811,7 @@ _c4hexN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _c4hex = {
   "C4Hexic",
-  1, _c4hexSup,  _c4hexInt,   
+  0, _c4hexSup,  _c4hexInt,   
   _c4hex1_f,   _c4hexN_f,   _c4hex1_d,   _c4hexN_d
 };
 NrrdKernel *const
@@ -1885,7 +1885,7 @@ _Dc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelDC4hexic = {
   "C4HexicD",
-  1, _Dc4hexSup, _Dc4hexInt,  
+  0, _Dc4hexSup, _Dc4hexInt,  
   _Dc4hex1_f,  _Dc4hexN_f,  _Dc4hex1_d,  _Dc4hexN_d
 };
 NrrdKernel *const
@@ -1955,7 +1955,7 @@ _DDc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _DDc4hex = {
   "C4HexicDD",
-  1, _DDc4hexSup,  _DDc4hexInt,   
+  0, _DDc4hexSup,  _DDc4hexInt,   
   _DDc4hex1_f,   _DDc4hexN_f,   _DDc4hex1_d,   _DDc4hexN_d
 };
 NrrdKernel *const
@@ -2030,7 +2030,7 @@ _DDDc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelDDDC4hexic = {
   "C4HexicDDD",
-  1, _DDDc4hexSup, _DDDc4hexInt,  
+  0, _DDDc4hexSup, _DDDc4hexInt,  
   _DDDc4hex1_f,  _DDDc4hexN_f,  _DDDc4hex1_d,  _DDDc4hexN_d
 };
 NrrdKernel *const
@@ -2605,7 +2605,8 @@ nrrdKernelParse(const NrrdKernel **kernelP,
                 double *parm, const char *_str) {
   static const char me[]="nrrdKernelParse";
   char str[AIR_STRLEN_HUGE],
-    kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr, *tmfStr[4];
+    kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr,
+    *tmfStr[4] = {NULL, NULL, NULL, NULL};
   int j, tmfD, tmfC, tmfA;
   unsigned int haveParm, needParm;
   airArray *mop;
@@ -2624,7 +2625,7 @@ nrrdKernelParse(const NrrdKernel **kernelP,
     parm[j] = 0;
   }
 
-  strcpy(str, _str);
+  airStrcpy(str, AIR_STRLEN_HUGE, _str);
   strcpy(kstr, "");
   pstr = NULL;
   pstr = strchr(str, ':');
@@ -2832,7 +2833,10 @@ nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], const NrrdKernelSpec *ksp) {
           ? -1
           : ksp->kernel->name[8] - '0');
     ee = ksp->kernel->name[10] - '0';
-    sprintf(str, "tmf:%d,%d,%d", dd, cc, ee);
+    sprintf(str, "tmf:%c,%c,%c", 
+            ksp->kernel->name[5],
+            ksp->kernel->name[8],
+            ksp->kernel->name[10]);
     /* see if the single parm should be added on */
     if (0.0 != ksp->parm[0]) {
       sprintf(stmp, ",%.17g", ksp->parm[0]);
