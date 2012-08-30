@@ -25,6 +25,10 @@ ADD_EXECUTABLE(probeSclTest probeScl.c)
 TARGET_LINK_LIBRARIES(probeSclTest teem)
 ADD_TEST(probeScl ${EXECUTABLE_OUTPUT_PATH}/probeSclTest)
 
+ADD_EXECUTABLE(probePolynomialTest probePolynomial.c)
+TARGET_LINK_LIBRARIES(probePolynomialTest teem)
+ADD_TEST(probePolynomial ${EXECUTABLE_OUTPUT_PATH}/probePolynomialTest)
+
 ADD_EXECUTABLE(probeMultiTest probeMulti.c)
 TARGET_LINK_LIBRARIES(probeMultiTest teem)
 ADD_TEST(probeMulti ${EXECUTABLE_OUTPUT_PATH}/probeMultiTest)
