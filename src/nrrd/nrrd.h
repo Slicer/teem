@@ -1448,7 +1448,10 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelCos4SupportDebugD,
   *const nrrdKernelCos4SupportDebugDD,
   *const nrrdKernelCos4SupportDebugDDD,
-  *const nrrdKernelCheap,        /* like box, but every Nth on downsampling */
+  *const nrrdKernelCheap,        /* an unusual and specially-handled kernel
+                                    that evaluates to abs(x), for the
+                                    singular purpose of enabling nearest
+                                    neighbor downsampling */
   *const nrrdKernelHermiteScaleSpaceFlag,  /* a kernel that looks like tent,
                                               but which exists as a flag for
                                               particular gage behavior in the
