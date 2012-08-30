@@ -228,6 +228,7 @@ main(int argc, const char **argv) {
 
   for (runIdx=0; runIdx<runNum; runIdx++) {
     unsigned int sx, sy, sz, probeNum;
+    double avgDiff;
     airArray *submop;
 
     submop = airMopNew();
@@ -261,13 +262,15 @@ main(int argc, const char **argv) {
     gageProbeSpace(gctx, pos[0], pos[1], pos[2],
                    AIR_FALSE /* indexSpace */,
                    AIR_TRUE /* clamp */);
-    probeNum = 1;
+    probeNum = 0;
+    avgDiff = 0.0;
     /* take a random walk starting at (0,0,0), making sure that at the
        visited positions the gage-measured values, gradients, and
        hessians are the same as the analytical ones */
     do {
       double vanal, ganal[3], hanal[9], vdiff, gdiff[3], hdiff[9],
         step[3], stepSize = 0.2;
+      probeNum++;
       vanal = polyeval(coef, 0, 0, 0, pos);
       ganal[0] = polyeval(coef, 1, 0, 0, pos);
       ganal[1] = polyeval(coef, 0, 1, 0, pos);
@@ -293,15 +296,16 @@ main(int argc, const char **argv) {
                 ELL_3V_LEN(gdiff), ELL_3M_FROB(hdiff), epsilon);
         airMopError(submop); airMopError(mop); return 1;
       }
+      avgDiff += vdiff + ELL_3V_LEN(gdiff) + ELL_3M_FROB(hdiff);
       airNormalRand_r(step + 0, step + 1, rng);
       airNormalRand_r(step + 2, NULL, rng);
       ELL_3V_SCALE_INCR(pos, stepSize, step);
       gageProbeSpace(gctx, pos[0], pos[1], pos[2],
                      AIR_FALSE /* indexSpace */,
                      AIR_TRUE /* clamp */);
-      probeNum++;
     } while (!gctx->edgeFrac);
-    fprintf(stderr, "%u\n", probeNum);
+    avgDiff /= probeNum;
+    fprintf(stderr, "%u (%.17g)\n", probeNum, avgDiff);
     airMopOkay(submop);
   }
 
