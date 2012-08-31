@@ -209,7 +209,7 @@ main(int argc, const char **argv) {
 
   airRandMTState *rng;
   Nrrd *nin;
-  unsigned int si, xi, yi, zi, sx, sy, sz, runNum, runIdx;
+  unsigned int xi, yi, zi, runNum, runIdx;
   double coef[POWER_MAX+1][POWER_MAX+1][POWER_MAX+1], pos[3], epsilon;
   const double *vmeas, *gmeas, *hmeas;
   gageContext *gctx;
