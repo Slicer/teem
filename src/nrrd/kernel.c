@@ -50,6 +50,7 @@ nrrdKernelHermiteScaleSpaceFlag    0
             nrrdKernelC3Quintic    0
               nrrdKernelC4Hexic    0
  nrrdKernelC4HexicApproxInverse    0
+             nrrdKernelC5Septic    0
              nrrdKernelGaussian    2      sigma    cut-off
      nrrdKernelDiscreteGaussian    2      sigma    cut-off
             nrrdKernelTMF[][][]    1       a
@@ -60,6 +61,41 @@ nrrdKernelHermiteScaleSpaceFlag    0
 ** but "gauss:4" isn't complete and won't parse; while "gauss:1,4" is good
 */
 
+/* these functions replace what had been a lot of
+   identical functions for similar kernels */
+
+static double
+returnZero(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
+static double
+returnOne(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
+static double
+returnTwo(const double *parm) {
+  AIR_UNUSED(parm);
+  return 2.0;
+}
+
+static double
+returnThree(const double *parm) {
+  AIR_UNUSED(parm);
+  return 3.0;
+}
+
+static double
+returnFour(const double *parm) {
+  AIR_UNUSED(parm);
+  return 4.0;
+}
+
+/* ------------------------------------------------------------ */
+
 /* learned: if you copy/paste the macros for these kernels into 
 ** other code, you *have* to make sure that the arguments for the
 ** kernels that are supposed to be reals, are not passed as an
@@ -68,21 +104,12 @@ nrrdKernelHermiteScaleSpaceFlag    0
 ** why the kernel was give garbage results
 */
 
-/* ------------------------------------------------------------ */
-
 /* the "zero" kernel is here more as a template than for anything else
    (as well as when you need the derivative of nrrdKernelForwDiff or
    any other piece-wise constant kernels) 
    In particular the support method is pretty silly. */
 
 #define _ZERO(x) 0
-
-static double
-_nrrdZeroInt(const double *parm) {
-
-  AIR_UNUSED(parm);
-  return 0.0;
-}
 
 static double
 _nrrdZeroSup(const double *parm) {
@@ -138,7 +165,7 @@ _nrrdZeroN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelZero = {
   "zero",
-  1, _nrrdZeroSup, _nrrdZeroInt,
+  1, _nrrdZeroSup, returnZero,
   _nrrdZero1_f, _nrrdZeroN_f, _nrrdZero1_d, _nrrdZeroN_d
 };
 NrrdKernel *const 
@@ -147,12 +174,6 @@ nrrdKernelZero = &_nrrdKernelZero;
 /* ------------------------------------------------------------ */
 
 #define _BOX(x) (x > 0.5 ? 0 : (x < 0.5 ? 1 : 0.5))
-
-static double
-_nrrdBoxInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
 
 static double
 _nrrdBoxSup(const double *parm) {
@@ -210,19 +231,13 @@ _nrrdBoxN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelBox = {
   "box",
-  1, _nrrdBoxSup, _nrrdBoxInt,  
+  1, _nrrdBoxSup, returnOne,
   _nrrdBox1_f,  _nrrdBoxN_f,  _nrrdBox1_d,  _nrrdBoxN_d
 };
 NrrdKernel *const
 nrrdKernelBox = &_nrrdKernelBox;
 
 /* ------------------------------------------------------------ */
-
-static double
-_nrrdBoxSDInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
 
 static double
 _nrrdBoxSDSup(const double *parm) {
@@ -269,7 +284,7 @@ _nrrdBoxSDN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelBoxSupportDebug = {
   "boxsup",
-  1, _nrrdBoxSDSup, _nrrdBoxSDInt,  
+  1, _nrrdBoxSDSup, returnOne,
   _nrrdBoxSD1_f,  _nrrdBoxSDN_f,  _nrrdBoxSD1_d,  _nrrdBoxSDN_d
 };
 NrrdKernel *const
@@ -346,12 +361,6 @@ nrrdKernelCos4SupportDebug = &_nrrdKernelCos4SupportDebug;
                                *sin(AIR_PI*x)))
 
 static double
-_nrrdDCos4SDInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
-static double
 _nrrdDCos4SDSup(const double *parm) {
   return parm[0];
 }
@@ -401,7 +410,7 @@ _nrrdDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelCos4SupportDebugD = {
   "cos4supD",
-  1, _nrrdDCos4SDSup,  _nrrdDCos4SDInt,   
+  1, _nrrdDCos4SDSup, returnZero,
   _nrrdDCos4SD1_f,   _nrrdDCos4SDN_f,   _nrrdDCos4SD1_d,   _nrrdDCos4SDN_d
 };
 NrrdKernel *const
@@ -412,12 +421,6 @@ nrrdKernelCos4SupportDebugD = &_nrrdKernelCos4SupportDebugD;
 #define DDCOS4(x) (x > 0.5                                              \
                    ? 0.0                                                \
                    : -2*AIR_PI*AIR_PI*(cos(AIR_PI*2*x) + cos(AIR_PI*4*x)))
-
-static double
-_nrrdDDCos4SDInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
 
 static double
 _nrrdDDCos4SDSup(const double *parm) {
@@ -463,7 +466,7 @@ _nrrdDDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelCos4SupportDebugDD = {
   "cos4supDD",
-  1, _nrrdDDCos4SDSup, _nrrdDDCos4SDInt,  
+  1, _nrrdDDCos4SDSup, returnZero,
   _nrrdDDCos4SD1_f,  _nrrdDDCos4SDN_f,  _nrrdDDCos4SD1_d,  _nrrdDDCos4SDN_d
 };
 NrrdKernel *const
@@ -474,12 +477,6 @@ nrrdKernelCos4SupportDebugDD = &_nrrdKernelCos4SupportDebugDD;
 #define DDDCOS4(x) (x > 0.5                                             \
                     ? 0.0                                               \
                     : 4*AIR_PI*AIR_PI*AIR_PI*(sin(2*AIR_PI*x) + 2*sin(4*AIR_PI*x)))
-
-static double
-_nrrdDDDCos4SDInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
 
 static double
 _nrrdDDDCos4SDSup(const double *parm) {
@@ -531,7 +528,7 @@ _nrrdDDDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelCos4SupportDebugDDD = {
   "cos4supDDD",
-  1, _nrrdDDDCos4SDSup,  _nrrdDDDCos4SDInt,   
+  1, _nrrdDDDCos4SDSup, returnZero,
   _nrrdDDDCos4SD1_f, _nrrdDDDCos4SDN_f, _nrrdDDDCos4SD1_d, _nrrdDDDCos4SDN_d
 };
 NrrdKernel *const
@@ -544,12 +541,6 @@ nrrdKernelCos4SupportDebugDDD = &_nrrdKernelCos4SupportDebugDDD;
    enabling that 
    SO: this kernel will not usefully report its integral or support! */
 #define _CHEAP(x) AIR_ABS(x)
-
-static double
-_nrrdCheapInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
 
 static double
 _nrrdCheapSup(const double *parm) {
@@ -598,7 +589,7 @@ _nrrdCheapN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelCheap = {
   "cheap",
-  1, _nrrdCheapSup, _nrrdCheapInt,  
+  1, _nrrdCheapSup, returnOne,
   _nrrdCheap1_f,  _nrrdCheapN_f,  _nrrdCheap1_d,  _nrrdCheapN_d
 };
 NrrdKernel *const
@@ -607,12 +598,6 @@ nrrdKernelCheap = &_nrrdKernelCheap;
 /* ------------------------------------------------------------ */
 
 #define _TENT(x) (x >= 1 ? 0 : 1 - x)
-
-static double
-_nrrdTentInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
 
 static double
 _nrrdTentSup(const double *parm) {
@@ -668,7 +653,7 @@ _nrrdTentN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelTent = {
   "tent",
-  1, _nrrdTentSup,_nrrdTentInt, 
+  1, _nrrdTentSup, returnOne,
   _nrrdTent1_f, _nrrdTentN_f, _nrrdTent1_d, _nrrdTentN_d
 };
 NrrdKernel *const
@@ -687,18 +672,6 @@ nrrdKernelTent = &_nrrdKernelTent;
 ** This hack is in sinister collusion with gage, to enable Hermite
 ** interpolation for its stack reconstruction.
 */
-
-static double
-_nrrdHermiteInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
-
-static double
-_nrrdHermiteSup(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
 
 static double
 _nrrdHermite1_d(double x, const double *parm) {
@@ -741,7 +714,7 @@ _nrrdHermiteN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelHermiteScaleSpaceFlag = {
   "hermiteSS",
-  0, _nrrdHermiteSup,_nrrdHermiteInt, 
+  0, returnOne, returnOne,
   _nrrdHermite1_f, _nrrdHermiteN_f, _nrrdHermite1_d, _nrrdHermiteN_d
 };
 NrrdKernel *const
@@ -752,12 +725,6 @@ nrrdKernelHermiteScaleSpaceFlag = &_nrrdKernelHermiteScaleSpaceFlag;
 #define _FORDIF(x) (x < -1 ?  0 :        \
                    (x <  0 ?  1 :        \
                    (x <  1 ? -1 : 0 )))
-
-static double
-_nrrdFDInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
 
 static double
 _nrrdFDSup(const double *parm) {
@@ -813,7 +780,7 @@ _nrrdFDN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelFD = {
   "fordif",
-  1, _nrrdFDSup,  _nrrdFDInt,   
+  1, _nrrdFDSup, returnZero,
   _nrrdFD1_f,   _nrrdFDN_f,   _nrrdFD1_d,   _nrrdFDN_d
 };
 NrrdKernel *const
@@ -825,12 +792,6 @@ nrrdKernelForwDiff = &_nrrdKernelFD;
                    (x <= -1 ?  0.5*x + 1 :        \
                    (x <=  1 ? -0.5*x     :        \
                    (x <=  2 ?  0.5*x - 1 : 0 ))))
-
-static double
-_nrrdCDInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
 
 static double
 _nrrdCDSup(const double *parm) {
@@ -886,7 +847,7 @@ _nrrdCDN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelCD = {
   "cendif",
-  1, _nrrdCDSup,  _nrrdCDInt,   
+  1, _nrrdCDSup, returnZero,
   _nrrdCD1_f,   _nrrdCDN_f,   _nrrdCD1_d,   _nrrdCDN_d
 };
 NrrdKernel *const
@@ -899,12 +860,6 @@ nrrdKernelCentDiff = &_nrrdKernelCD;
   (x >= 1.0                                                   \
    ? (((-B/6 - C)*x + B + 5*C)*x -2*B - 8*C)*x + 4*B/3 + 4*C  \
    : ((2 - 3*B/2 - C)*x - 3 + 2*B + C)*x*x + 1 - B/3))
-
-static double
-_nrrdBCInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
 
 static double
 _nrrdBCSup(const double *parm) {
@@ -967,7 +922,7 @@ _nrrdBCN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelBC = {
   "BCcubic",
-  3, _nrrdBCSup,  _nrrdBCInt,   
+  3, _nrrdBCSup, returnOne,
   _nrrdBC1_f,   _nrrdBCN_f,   _nrrdBC1_d,   _nrrdBCN_d
 };
 NrrdKernel *const
@@ -980,12 +935,6 @@ nrrdKernelBCCubic = &_nrrdKernelBC;
    (x >= 1.0                                      \
     ? ((-B/2 - 3*C)*x + 2*B + 10*C)*x -2*B - 8*C  \
     : ((6 - 9*B/2 - 3*C)*x - 6 + 4*B + 2*C)*x))
-
-static double
-_nrrdDBCInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
 
 static double
 _nrrdDBCSup(const double *parm) {
@@ -1054,7 +1003,7 @@ _nrrdDBCN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelDBC = {
   "BCcubicD",
-  3, _nrrdDBCSup, _nrrdDBCInt,  
+  3, _nrrdDBCSup, returnZero,
   _nrrdDBC1_f,  _nrrdDBCN_f,  _nrrdDBC1_d,  _nrrdDBCN_d
 };
 NrrdKernel *const
@@ -1067,12 +1016,6 @@ nrrdKernelBCCubicD = &_nrrdKernelDBC;
    (x >= 1.0                                   \
     ? (-B - 6*C)*x + 2*B + 10*C                \
     : (12 - 9*B - 6*C)*x - 6 + 4*B + 2*C  ))
-
-static double
-_nrrdDDBCInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
 
 static double
 _nrrdDDBCSup(const double *parm) {
@@ -1135,7 +1078,7 @@ _nrrdDDBCN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelDDBC = {
   "BCcubicDD",
-  3, _nrrdDDBCSup,_nrrdDDBCInt, 
+  3, _nrrdDDBCSup, returnZero,
   _nrrdDDBC1_f, _nrrdDDBCN_f, _nrrdDDBC1_d, _nrrdDDBCN_d
 };
 NrrdKernel *const
@@ -1145,18 +1088,6 @@ nrrdKernelBCCubicDD = &_nrrdKernelDDBC;
 
 /* if you've got the definition already, why not use it */
 #define _CTMR(x) _BCCUBIC(x, 0.0, 0.5)
-
-static double
-_nrrdCTMRInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
-
-static double
-_nrrdCTMRSup(const double *parm) {
-  AIR_UNUSED(parm);
-  return 2.0;
-}
 
 static double
 _nrrdCTMR1_d(double x, const double *parm) {
@@ -1199,7 +1130,7 @@ _nrrdCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelCatmullRom = {
   "catmull-rom",
-  0, _nrrdCTMRSup,  _nrrdCTMRInt,   
+  0, returnTwo, returnOne,
   _nrrdCTMR1_f,   _nrrdCTMRN_f,   _nrrdCTMR1_d,   _nrrdCTMRN_d
 };
 NrrdKernel *const
@@ -1209,18 +1140,6 @@ nrrdKernelCatmullRom = &_nrrdKernelCatmullRom;
 
 /* if you've got the definition already, why not use it */
 #define _DCTMR(x) _DBCCUBIC(x, 0.0, 0.5)
-
-static double
-_nrrdDCTMRInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
-static double
-_nrrdDCTMRSup(const double *parm) {
-  AIR_UNUSED(parm);
-  return 2.0;
-}
 
 static double
 _nrrdDCTMR1_d(double x, const double *parm) {
@@ -1267,7 +1186,7 @@ _nrrdDCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelCatmullRomD = {
   "catmull-romD",
-  0, _nrrdDCTMRSup,  _nrrdDCTMRInt,   
+  0, returnTwo, returnZero,
   _nrrdDCTMR1_f,   _nrrdDCTMRN_f,   _nrrdDCTMR1_d,   _nrrdDCTMRN_d
 };
 NrrdKernel *const
@@ -1283,12 +1202,6 @@ nrrdKernelCatmullRomD = &_nrrdKernelCatmullRomD;
        ? 4 - 6*A + x*(-10 + 25*A + x*(9 - 33*A                         \
                                  + x*(-3.5 + 17*A + x*(0.5 - 3*A))))   \
        : 1 + x*x*(-3 + 6*A + x*((2.5 - 10*A) + x*(-0.5 + 4*A))))))
-
-static double
-_nrrdA4Int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
 
 static double
 _nrrdA4Sup(const double *parm) {
@@ -1347,7 +1260,7 @@ _nrrdA4N_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelA4 = {
   "Aquartic",
-  2, _nrrdA4Sup,  _nrrdA4Int,   
+  2, _nrrdA4Sup, returnOne,
   _nrrdA41_f,   _nrrdA4N_f,   _nrrdA41_d,   _nrrdA4N_d
 };
 NrrdKernel *const
@@ -1362,12 +1275,6 @@ nrrdKernelAQuartic = &_nrrdKernelA4;
     : (x >= 1.0                       \
        ? -10 + 25*A + x*(18 - 66*A + x*(-10.5 + 51*A + x*(2 - 12*A))) \
        : x*(-6 + 12*A + x*(7.5 - 30*A + x*(-2 + 16*A))))))
-
-static double
-_nrrdDA4Int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
 
 static double
 _nrrdDA4Sup(const double *parm) {
@@ -1432,7 +1339,7 @@ _nrrdDA4N_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelDA4 = {
   "AquarticD",
-  2, _nrrdDA4Sup, _nrrdDA4Int,  
+  2, _nrrdDA4Sup, returnZero,
   _nrrdDA41_f,  _nrrdDA4N_f,  _nrrdDA41_d,  _nrrdDA4N_d
 };
 NrrdKernel *const
@@ -1447,12 +1354,6 @@ nrrdKernelAQuarticD = &_nrrdKernelDA4;
     : (x >= 1.0               \
        ? 18 - 66*A + x*(-21 + 102*A + x*(6 - 36*A))   \
        : -6 + 12*A + x*(15 - 60*A + x*(-6 + 48*A)))))
-
-static double
-_nrrdDDA4Int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
 
 static double
 _nrrdDDA4Sup(const double *parm) {
@@ -1511,7 +1412,7 @@ _nrrdDDA4N_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelDDA4 = {
   "AquarticDD",
-  2, _nrrdDDA4Sup,_nrrdDDA4Int, 
+  2, _nrrdDDA4Sup, returnZero,
   _nrrdDDA41_f, _nrrdDDA4N_f, _nrrdDDA41_d, _nrrdDDA4N_d
 };
 NrrdKernel *const
@@ -1543,18 +1444,6 @@ nrrdKernelAQuarticDD = &_nrrdKernelDDA4;
   (x >= 1.0                                                   \
    ? 0.8 + x*x*(-2 + x*(2 + x*(-0.75 + x*0.1)))               \
    : 0.7 + x*x*(-1 + x*x*(0.75 - x*0.3))))
-
-static double
-_c3quintInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
-
-static double
-_c3quintSup(const double *parm) {
-  AIR_UNUSED(parm);
-  return 2.0;
-}
 
 static double
 _c3quint1_d(double x, const double *parm) {
@@ -1597,7 +1486,7 @@ _c3quintN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _c3quint = {
   "C3Quintic",
-  0, _c3quintSup,  _c3quintInt,   
+  0, returnTwo, returnOne,
   _c3quint1_f,   _c3quintN_f,   _c3quint1_d,   _c3quintN_d
 };
 NrrdKernel *const
@@ -1610,18 +1499,6 @@ nrrdKernelC3Quintic = &_c3quint;
   (x >= 1.0                                                   \
    ? x*(-4 + x*(6 + x*(-3 + x*0.5)))                          \
    : x*(-2 + x*x*(3 - x*1.5))))
-
-static double
-_Dc3quintInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
-static double
-_Dc3quintSup(const double *parm) {
-  AIR_UNUSED(parm);
-  return 2.0;
-}
 
 static double
 _Dc3quint1_d(double x, const double *parm) {
@@ -1668,7 +1545,7 @@ _Dc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelDC3Quintic = {
   "C3QuinticD",
-  0, _Dc3quintSup, _Dc3quintInt,  
+  0, returnTwo, returnZero,
   _Dc3quint1_f,  _Dc3quintN_f,  _Dc3quint1_d,  _Dc3quintN_d
 };
 NrrdKernel *const
@@ -1681,18 +1558,6 @@ nrrdKernelC3QuinticD = &_nrrdKernelDC3Quintic;
   (x >= 1.0                                                   \
    ? -4 + x*(12 + x*(-9 + x*2))                               \
    : -2 + x*x*(9 - x*6)))
-
-static double
-_DDc3quintInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
-static double
-_DDc3quintSup(const double *parm) {
-  AIR_UNUSED(parm);
-  return 2.0;
-}
 
 static double
 _DDc3quint1_d(double x, const double *parm) {
@@ -1735,7 +1600,7 @@ _DDc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _DDc3quint = {
   "C3QuinticDD",
-  0, _DDc3quintSup,  _DDc3quintInt,   
+  0, returnTwo, returnZero,
   _DDc3quint1_f,   _DDc3quintN_f,   _DDc3quint1_d,   _DDc3quintN_d
 };
 NrrdKernel *const
@@ -1762,18 +1627,6 @@ nrrdKernelC3QuinticDD = &_DDc3quint;
       : (x >= 1.0 \
          ? 3.0/160.0 + x*(35.0/8.0 + x*(-341.0/32.0 + x*(10.0 + x*(-147.0/32.0 + x*(25.0/24.0 - x*3.0/32.0))))) \
          : 69.0/80.0 + x*x*(-23.0/16.0 + x*x*(19.0/16.0 + x*(-7.0/12.0 + x/16.0)))  )))
-
-static double
-_c4hexInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
-
-static double
-_c4hexSup(const double *parm) {
-  AIR_UNUSED(parm);
-  return 3.0;
-}
 
 static double
 _c4hex1_d(double x, const double *parm) {
@@ -1816,7 +1669,7 @@ _c4hexN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _c4hex = {
   "C4Hexic",
-  0, _c4hexSup,  _c4hexInt,   
+  0, returnThree, returnOne,
   _c4hex1_f,   _c4hexN_f,   _c4hex1_d,   _c4hexN_d
 };
 NrrdKernel *const
@@ -1832,18 +1685,6 @@ nrrdKernelC4Hexic = &_c4hex;
       : (x >= 1.0 \
          ? 35.0/8.0 + x*(-341.0/16.0 + x*(30 + x*(-147.0/8.0 + x*(125.0/24.0 + x*(-9.0/16.0))))) \
          : x*(-23.0/8.0 + x*x*(19.0/4.0 + x*(-35.0/12.0 + x*(3.0/8.0))))  )))
-
-static double
-_Dc4hexInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
-static double
-_Dc4hexSup(const double *parm) {
-  AIR_UNUSED(parm);
-  return 3.0;
-}
 
 static double
 _Dc4hex1_d(double x, const double *parm) {
@@ -1890,7 +1731,7 @@ _Dc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelDC4hexic = {
   "C4HexicD",
-  0, _Dc4hexSup, _Dc4hexInt,  
+  0, returnThree, returnZero,
   _Dc4hex1_f,  _Dc4hexN_f,  _Dc4hex1_d,  _Dc4hexN_d
 };
 NrrdKernel *const
@@ -1906,18 +1747,6 @@ nrrdKernelC4HexicD = &_nrrdKernelDC4hexic;
       : (x >= 1.0 \
          ? -341.0/16.0 + x*(60 + x*(-441.0/8.0 + x*(125.0/6.0 - x*45.0/16.0))) \
          : -23.0/8.0 + x*x*(57.0/4.0 + x*(-35.0/3.0 + x*(15.0/8.0)))  )))
-
-static double
-_DDc4hexInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
-static double
-_DDc4hexSup(const double *parm) {
-  AIR_UNUSED(parm);
-  return 3.0;
-}
 
 static double
 _DDc4hex1_d(double x, const double *parm) {
@@ -1960,7 +1789,7 @@ _DDc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _DDc4hex = {
   "C4HexicDD",
-  0, _DDc4hexSup,  _DDc4hexInt,   
+  0, returnThree, returnZero,
   _DDc4hex1_f,   _DDc4hexN_f,   _DDc4hex1_d,   _DDc4hexN_d
 };
 NrrdKernel *const
@@ -1977,18 +1806,6 @@ nrrdKernelC4HexicDD = &_DDc4hex;
          ? 60 + x*(-441.0/4.0 + x*(125.0/2.0 - 45*x/4))                 \
          : x*(57.0/2.0  + x*(-35 + 15*x/2))                             \
          )))
-
-static double
-_DDDc4hexInt(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
-static double
-_DDDc4hexSup(const double *parm) {
-  AIR_UNUSED(parm);
-  return 3.0;
-}
 
 static double
 _DDDc4hex1_d(double x, const double *parm) {
@@ -2035,7 +1852,7 @@ _DDDc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelDDDC4hexic = {
   "C4HexicDDD",
-  0, _DDDc4hexSup, _DDDc4hexInt,  
+  0, returnThree, returnZero,
   _DDDc4hex1_f,  _DDDc4hexN_f,  _DDDc4hex1_d,  _DDDc4hexN_d
 };
 NrrdKernel *const
@@ -2064,12 +1881,6 @@ static double
 _c4hex_ANI_sup(const double *parm) {
   AIR_UNUSED(parm);
   return 12.5;
-}
-
-static double
-_c4hex_ANI_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
 }
 
 #define C4HEX_ANI(ret, tmp, x)                  \
@@ -2125,12 +1936,309 @@ _c4hex_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
 static NrrdKernel
 _nrrdKernelC4HexicApproxInverse = {
   "C4HexicAI", 0,
-  _c4hex_ANI_sup, _c4hex_ANI_int,
+  _c4hex_ANI_sup, returnOne,
   _c4hex_ANI_1f, _c4hex_ANI_Nf,
   _c4hex_ANI_1d, _c4hex_ANI_Nd
 };
 NrrdKernel *const
 nrrdKernelC4HexicApproxInverse = &_nrrdKernelC4HexicApproxInverse;
+
+/* ------------------------- c5septic ------------------------------ */
+
+/* 
+** This is the unique, 8-sample support, C^5 kernel, piecewise order-7
+** with 4th order Taylor accuracy (errors start showing up when
+** reconstructing 5th order polynomials).  Coincidentally, it has zero
+** 1st and 3rd deriv at the origin, and it integrates to unity on
+** [-4,4]. It doesn't interpolate, but its close; it rings twice.  */
+
+#define _C5SEPT0(x) (0.9379776601998824 + x*x*(-1.654320987654321 + x*x*(1.073045267489712 + x*x*(-0.44997427983539096 + x*0.13978909465020575))))
+#define _C5SEPT1(x) (0.04651675485008818 + x*(-0.7377829218106996 + x*(0.9699074074074074 + x*(0.18531378600823045 + x*(-0.7839506172839507 + x*(0.2357253086419753 + x*(0.12021604938271604 - x*0.054552469135802466)))))))
+#define _C5SEPT2(x) (-0.01860670194003527 + x*(0.14022633744855967 + x*(-0.16296296296296298 + x*(-0.09825102880658436 + x*(0.28858024691358025 + x*(-0.18858024691358025 + x*(0.04405864197530864 - x*0.0013631687242798354)))))))
+#define _C5SEPT3(x) (0.003101116990005879 + x*(-0.014223251028806585 + x*(0.02021604938271605 + x*(0.003729423868312757 + x*(-0.0411522633744856 + x*(0.04714506172839506 + x*(-0.023199588477366254 + x*0.004383450911228689)))))))
+#define _C5SEPT(i, x)                           \
+  (0 == i ? _C5SEPT0(x)                         \
+   : (1 == i ? _C5SEPT1(x)                      \
+      : (2 == i ? _C5SEPT2(x)                   \
+         : (3 == i ? _C5SEPT3(x)                \
+            : 0.0))))
+
+static double
+_c5sept1_d(double x, const double *parm) {
+  unsigned int xi;
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  xi = AIR_CAST(unsigned int, x);
+  x -= xi;
+  return _C5SEPT(xi, x);
+}
+
+static float
+_c5sept1_f(float x, const double *parm) {
+  unsigned int xi;
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  xi = AIR_CAST(unsigned int, x);
+  x -= xi;
+  return AIR_CAST(float, _C5SEPT(xi, x));
+}
+
+static void
+_c5septN_d(double *f, const double *x, size_t len, const double *parm) {
+  unsigned int ti;
+  double t;
+  size_t i;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t);
+    ti = AIR_CAST(unsigned int, t);
+    t -= ti;
+    f[i] = _C5SEPT(ti, t);
+  }
+}
+
+static void
+_c5septN_f(float *f, const float *x, size_t len, const double *parm) {
+  unsigned int ti;
+  float t;
+  size_t i;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t);
+    ti = AIR_CAST(unsigned int, t);
+    t -= ti;
+    f[i] = _C5SEPT(ti, t);
+  }
+}
+
+static NrrdKernel
+_c5sept = {
+  "C5Septic",
+  0, returnFour, returnOne,
+  _c5sept1_f,   _c5septN_f,   _c5sept1_d,   _c5septN_d
+};
+NrrdKernel *const
+nrrdKernelC5Septic = &_c5sept;
+
+#define _DC5SEPT0(x) (x*(-3.308641975308642 + x*x*(4.292181069958848 + x*x*(-2.6998456790123457 + x*0.9785236625514403))))
+#define _DC5SEPT1(x) (-0.7377829218106996 + x*(1.9398148148148149 + x*(0.5559413580246914 + x*(-3.1358024691358026 + x*(1.1786265432098766 + x*(0.7212962962962963 - x*0.3818672839506173))))))
+#define _DC5SEPT2(x) (0.14022633744855967 + x*(-0.32592592592592595 + x*(-0.29475308641975306 + x*(1.154320987654321 + x*(-0.9429012345679012 + x*(0.26435185185185184 - x*0.009542181069958848))))))
+#define _DC5SEPT3(x) (-0.014223251028806585 + x*(0.0404320987654321 + x*(0.011188271604938271 + x*(-0.1646090534979424 + x*(0.2357253086419753 + x*(-0.13919753086419753 + x*0.03068415637860082))))))
+#define _DC5SEPT(i, x)                           \
+  (0 == i ? _DC5SEPT0(x)                         \
+   : (1 == i ? _DC5SEPT1(x)                      \
+      : (2 == i ? _DC5SEPT2(x)                   \
+         : (3 == i ? _DC5SEPT3(x)                \
+            : 0.0))))
+
+static double
+_dc5sept1_d(double x, const double *parm) {
+  unsigned int xi;
+  int sgn = 1;
+  AIR_UNUSED(parm);
+  if (x < 0) { x = -x; sgn = -1; }
+  xi = AIR_CAST(unsigned int, x);
+  x -= xi;
+  return sgn*_DC5SEPT(xi, x);
+}
+
+static float
+_dc5sept1_f(float x, const double *parm) {
+  unsigned int xi;
+  int sgn = 1;
+  AIR_UNUSED(parm);
+  if (x < 0) { x = -x; sgn = -1; }
+  xi = AIR_CAST(unsigned int, x);
+  x -= xi;
+  return AIR_CAST(float, sgn*_DC5SEPT(xi, x));
+}
+
+static void
+_dc5septN_d(double *f, const double *x, size_t len, const double *parm) {
+  unsigned int ti;
+  double t;
+  size_t i;
+  int sgn;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    ti = AIR_CAST(unsigned int, t);
+    t -= ti;
+    f[i] = sgn*_DC5SEPT(ti, t);
+  }
+}
+
+static void
+_dc5septN_f(float *f, const float *x, size_t len, const double *parm) {
+  unsigned int ti;
+  float t;
+  size_t i;
+  int sgn = 1;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    ti = AIR_CAST(unsigned int, t);
+    t -= ti;
+    f[i] = sgn*_DC5SEPT(ti, t);
+  }
+}
+
+static NrrdKernel
+_dc5sept = {
+  "C5SepticD",
+  0, returnFour, returnZero,
+  _dc5sept1_f,   _dc5septN_f,   _dc5sept1_d,   _dc5septN_d
+};
+NrrdKernel *const
+nrrdKernelC5SepticD = &_dc5sept;
+
+#define _DDC5SEPT0(x) (-3.308641975308642 + x*x*(12.876543209876543 + x*x*(-13.499228395061728 + x*5.871141975308642)))
+#define _DDC5SEPT1(x) (1.9398148148148149 + x*(1.1118827160493827 + x*(-9.407407407407407 + x*(4.714506172839506 + x*(3.6064814814814814 - x*2.2912037037037036)))))
+#define _DDC5SEPT2(x) (-0.32592592592592595 + x*(-0.5895061728395061 + x*(3.462962962962963 + x*(-3.771604938271605 + x*(1.3217592592592593 - x*0.05725308641975309)))))
+#define _DDC5SEPT3(x) (0.0404320987654321 + x*(0.022376543209876542 + x*(-0.49382716049382713 + x*(0.9429012345679012 + x*(-0.6959876543209876 + x*0.18410493827160493)))))
+#define _DDC5SEPT(i, x)                           \
+  (0 == i ? _DDC5SEPT0(x)                         \
+   : (1 == i ? _DDC5SEPT1(x)                      \
+      : (2 == i ? _DDC5SEPT2(x)                   \
+         : (3 == i ? _DDC5SEPT3(x)                \
+            : 0.0))))
+
+static double
+_ddc5sept1_d(double x, const double *parm) {
+  unsigned int xi;
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  xi = AIR_CAST(unsigned int, x);
+  x -= xi;
+  return _DDC5SEPT(xi, x);
+}
+
+static float
+_ddc5sept1_f(float x, const double *parm) {
+  unsigned int xi;
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  xi = AIR_CAST(unsigned int, x);
+  x -= xi;
+  return AIR_CAST(float, _DDC5SEPT(xi, x));
+}
+
+static void
+_ddc5septN_d(double *f, const double *x, size_t len, const double *parm) {
+  unsigned int ti;
+  double t;
+  size_t i;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t);
+    ti = AIR_CAST(unsigned int, t);
+    t -= ti;
+    f[i] = _DDC5SEPT(ti, t);
+  }
+}
+
+static void
+_ddc5septN_f(float *f, const float *x, size_t len, const double *parm) {
+  unsigned int ti;
+  float t;
+  size_t i;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t);
+    ti = AIR_CAST(unsigned int, t);
+    t -= ti;
+    f[i] = _DDC5SEPT(ti, t);
+  }
+}
+
+static NrrdKernel
+_ddc5sept = {
+  "C5SepticDD",
+  0, returnFour, returnZero,
+  _ddc5sept1_f,   _ddc5septN_f,   _ddc5sept1_d,   _ddc5septN_d
+};
+NrrdKernel *const
+nrrdKernelC5SepticDD = &_ddc5sept;
+
+#define _DDDC5SEPT0(x) (x*(25.75308641975309 + x*x*(-53.99691358024691 + x*29.35570987654321)))
+#define _DDDC5SEPT1(x) (1.111882716049383 + x*(-18.81481481481481 + x*(14.14351851851852 + x*(14.42592592592593 - x*11.45601851851852))))
+#define _DDDC5SEPT2(x) (-0.5895061728395062 + x*(6.925925925925926 + x*(-11.31481481481481 + x*(5.287037037037037 - x*0.2862654320987654))))
+#define _DDDC5SEPT3(x) (0.02237654320987654 + x*(-0.9876543209876543 + x*(2.828703703703704 + x*(-2.783950617283951 + x*0.9205246913580247))))
+#define _DDDC5SEPT(i, x)                           \
+  (0 == i ? _DDDC5SEPT0(x)                         \
+   : (1 == i ? _DDDC5SEPT1(x)                      \
+      : (2 == i ? _DDDC5SEPT2(x)                   \
+         : (3 == i ? _DDDC5SEPT3(x)                \
+            : 0.0))))
+
+static double
+_dddc5sept1_d(double x, const double *parm) {
+  unsigned int xi;
+  int sgn = 1;
+  AIR_UNUSED(parm);
+  if (x < 0) { x = -x; sgn = -1; }
+  xi = AIR_CAST(unsigned int, x);
+  x -= xi;
+  return sgn*_DDDC5SEPT(xi, x);
+}
+
+static float
+_dddc5sept1_f(float x, const double *parm) {
+  unsigned int xi;
+  int sgn = 1;
+  AIR_UNUSED(parm);
+  if (x < 0) { x = -x; sgn = -1; }
+  xi = AIR_CAST(unsigned int, x);
+  x -= xi;
+  return AIR_CAST(float, sgn*_DDDC5SEPT(xi, x));
+}
+
+static void
+_dddc5septN_d(double *f, const double *x, size_t len, const double *parm) {
+  unsigned int ti;
+  double t;
+  size_t i;
+  int sgn;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    ti = AIR_CAST(unsigned int, t);
+    t -= ti;
+    f[i] = sgn*_DDDC5SEPT(ti, t);
+  }
+}
+
+static void
+_dddc5septN_f(float *f, const float *x, size_t len, const double *parm) {
+  unsigned int ti;
+  float t;
+  size_t i;
+  int sgn = 1;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
+    ti = AIR_CAST(unsigned int, t);
+    t -= ti;
+    f[i] = sgn*_DDDC5SEPT(ti, t);
+  }
+}
+
+static NrrdKernel
+_dddc5sept = {
+  "C5SepticDDD",
+  0, returnFour, returnZero,
+  _dddc5sept1_f,   _dddc5septN_f,   _dddc5sept1_d,   _dddc5septN_d
+};
+NrrdKernel *const
+nrrdKernelC5SepticDDD = &_dddc5sept;
 
 /* ------------------------------------------------------------ */
 
@@ -2528,6 +2636,10 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("c4hdd", str))      return nrrdKernelC4HexicDD;
   if (!strcmp("c4hexicddd", str)) return nrrdKernelC4HexicDDD;
   if (!strcmp("c4hddd", str))     return nrrdKernelC4HexicDDD;
+  if (!strcmp("c5septic", str))   return nrrdKernelC5Septic;
+  if (!strcmp("c5septicd", str))  return nrrdKernelC5SepticD;
+  if (!strcmp("c5septicdd", str)) return nrrdKernelC5SepticDD;
+  if (!strcmp("c5septicddd", str))return nrrdKernelC5SepticDDD;
   if (!strcmp("gaussian", str))   return nrrdKernelGaussian;
   if (!strcmp("gauss", str))      return nrrdKernelGaussian;
   if (!strcmp("gaussiand", str))  return nrrdKernelGaussianD;

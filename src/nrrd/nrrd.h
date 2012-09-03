@@ -1474,8 +1474,12 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelC4Hexic,      /* 0-parm C4 hex, support [-3,3] */
   *const nrrdKernelC4HexicD,     /* 1st deriv of C4Hexic */
   *const nrrdKernelC4HexicDD,    /* 2nd deriv of C4Hexic */
-  *const nrrdKernelC4HexicDDD,   /* 3nd deriv of C4Hexic */
+  *const nrrdKernelC4HexicDDD,   /* 3rd deriv of C4Hexic */
   *const nrrdKernelC4HexicApproxInverse,
+  *const nrrdKernelC5Septic,     /* 0-parm C5 sept, support [-4,4] */
+  *const nrrdKernelC5SepticD,    /* 1st deriv of C5Septic */
+  *const nrrdKernelC5SepticDD,   /* 2nd deriv of C5Septic */
+  *const nrrdKernelC5SepticDDD,  /* 3rd deriv of C5Septic */
   *const nrrdKernelGaussian,     /* Gaussian */
   *const nrrdKernelGaussianD,    /* 1st derivative of Gaussian */
   *const nrrdKernelGaussianDD,   /* 2nd derivative of Gaussian */
