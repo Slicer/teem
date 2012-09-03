@@ -72,6 +72,10 @@ meetNrrdKernelAll(void) {
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC4HexicDD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC4HexicDDD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC4HexicApproxInverse;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC5Septic;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC5SepticD;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC5SepticDD;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC5SepticDDD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelGaussian;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelGaussianD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelGaussianDD;
@@ -133,8 +137,8 @@ static const NrrdKernel *
 kintegral(const NrrdKernel *kd) {
   const NrrdKernel *ret=NULL;
 
-  /* the statement "INTGL(K)" is saying that kernel K##D exists and is
-     the derivative of kernel K.  This is made more convenient by the
+  /* the statement "INTGL(K)" is saying that K has a derivative with the
+     usual name K##D.  This is made more convenient by the
      consistent use of the "D" suffix for indicating a derivative */
 #define INTGL(K) if (K##D == kd) { ret = K; }
   INTGL(nrrdKernelHann);
@@ -165,6 +169,9 @@ kintegral(const NrrdKernel *kd) {
   INTGL(nrrdKernelC4Hexic);
   INTGL(nrrdKernelC4HexicD);
   INTGL(nrrdKernelC4HexicDD);
+  INTGL(nrrdKernelC5Septic);
+  INTGL(nrrdKernelC5SepticD);
+  INTGL(nrrdKernelC5SepticDD);
   INTGL(nrrdKernelGaussian);
   INTGL(nrrdKernelGaussianD);
 #undef INTGL
@@ -177,6 +184,11 @@ kintegral(const NrrdKernel *kd) {
 ** makes sure that derivative relationships are correct
 ** Also, simply calling nrrdKernelCheck requires some knowledge 
 ** of the kernel's needed parameters
+**
+** HEY: its problematic that because the various kernels have different
+** parameter epsilon requirements, they usually end up having to be
+** enumerated in some of the if/else statements below; it would be much 
+** better if new kernels didn't need to be so explicitly added!
 */
 int
 meetNrrdKernelAllCheck(void) {
@@ -308,7 +320,7 @@ meetNrrdKernelAllCheck(void) {
         }
       }
     } else if (0 == pnum) {
-      /* C3Quintic{,D,DD,DD}, C4Hexic{,D,DD,DDD},
+      /* C3Quintic{,D,DD,DD}, C4Hexic{,D,DD,DDD}, C5Septic{,D},
          hermiteSS, catmull-rom{,D}, bspl{3,5,7}{,D,DD,DDD} */
       if (nrrdKernelC3Quintic == kk ||
           nrrdKernelC3QuinticD == kk ||
@@ -316,7 +328,11 @@ meetNrrdKernelAllCheck(void) {
           nrrdKernelC4Hexic == kk ||
           nrrdKernelC4HexicD == kk ||
           nrrdKernelC4HexicDD == kk ||
-          nrrdKernelC4HexicDDD == kk
+          nrrdKernelC4HexicDDD == kk ||
+          nrrdKernelC5Septic == kk ||
+          nrrdKernelC5SepticD == kk ||
+          nrrdKernelC5SepticDD == kk ||
+          nrrdKernelC5SepticDDD == kk
           ) {
         CHECK(parm0, 1);
         CHECK(parm0, 1);
