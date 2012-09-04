@@ -75,8 +75,8 @@ nrrd:
  - fix the kernels that meetNrrdKernelAllCheck revealed to be broken
 * the percentile-based bounds specification now supported in e.g 
   "unu histo", "unu quantize", and "unu jhisto" should be migrated down
-   to the nrrd library.  Consider doing this with a sorting of hi/lo values,
-   rather than a histogram (one less parameter, and often more accurate)
+  to the nrrd library.  Consider doing this with a sorting of highest/lowest 
+  values rather than a histogram (one less parameter, and often more accurate)
 * make the verbosity level a field in NrrdIoState, remove nrrdStateVerboseIO
 * add support for 16-bit floats (start with Milan's patch)
 * rename nrrd<Func>_nva() --> nrrd<Func>()
@@ -99,9 +99,14 @@ unu:
 * the UNRRDU_QUIET_QUIT functionality should be enabled by default instead
 of having to set an environment variable to get it
 * unu dice -ff should change from using %d to %u
-* unu resample should permit saying "resample this axis to N samples,
-and resample these other axes to whatever maintains aspect ratio"
-* consider supporting more sophisticated expressions e.g. "x2" --> "x2+1"
+* unu resample:
+-- should permit saying "resample this axis to whatever
+best preserves the aspect ratio relative to the one axis which is 
+being resampled via the older "N" or "xF" means"
+-- consider supporting more sophisticated expressions e.g. "x2" --> "x2+1"
+-- reconsider whether normalization should be turned on by default
+(always a surprise when using purposely small kernels like cos4sup or
+small gauss)
 
 gage:
 * in a gageKinds, the airEnum for the items, and the assocaited table of
@@ -155,8 +160,6 @@ air: make airOneLine return number of bytes read; current return
 
 bin/unu: valgrid parsing of encoding stuff
 
-fix "gkms pvg": try to reproduce problem with mouse data
-
 gage changes into bane:
 - try gkms hvol with three explicit ranges
 - remove excess NULL pointer checks between answer and answer wrapper
@@ -167,8 +170,6 @@ ell: debug SVD of things based on negative eigenvalues
  - add flag to say: always positive sv's, or always right-handed rotations
 
 leaf: do it
-
-debug rendering of ML with windowed sinc
 
 hest: add commenting via # or something else
 
