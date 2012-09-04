@@ -76,6 +76,7 @@ meetNrrdKernelAll(void) {
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC5SepticD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC5SepticDD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC5SepticDDD;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC5SepticApproxInverse;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelGaussian;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelGaussianD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelGaussianDD;

@@ -2240,6 +2240,117 @@ _dddc5sept = {
 NrrdKernel *const
 nrrdKernelC5SepticDDD = &_dddc5sept;
 
+/* note that this implies a much more accurate inverse than is given
+   for the splines or other kernels; this is a consequence of GLK
+   re-purposing the Mathematica expressions for the bpsln7 inverse,
+   which is unfortunate: c5septic is nearly interpolating, so far
+   fewer terms would suffice */
+#define C5SEPT_AI_LEN 26
+static double
+_c5sept_ANI_kvals[C5SEPT_AI_LEN] = {
+  1.072662863909143543451743, 
+  -0.05572032001443187610952953,                             
+  0.02453993146603215267432700,
+  -0.005922375635530229254855750,
+  0.0009781882769025851448681918,
+  -0.0002499281491108793120774480,
+  0.00005196973116762945530292666,
+  -0.00001090007030248955413371701,
+  2.425581976693179040189747e-6,
+  -5.143328756144314306529358e-7,
+  1.109572595055083858393193e-7, 
+  -2.400323559797703961855318e-8,
+  5.151959978856239469272136e-9,
+  -1.111431289951609447815300e-9,
+  2.394624249806782312051293e-10,
+  -5.155654818408366273965675e-11,
+  1.111091879440261302739584e-11,
+  -2.393303168472914213194646e-12,
+  5.155527554392687415035171e-13,
+  -1.110707782883835600110634e-13,
+  2.392644268109899456937863e-14,
+  -5.154377464414088544322752e-15,
+  1.110376957658466603291262e-15,
+  -2.391459139266885907929865e-16,
+  5.137528165538909945741180e-17, 
+  -9.024576392408067896802608e-18};
+
+static double
+_c5sept_ANI_sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return C5SEPT_AI_LEN + 0.5;
+}
+
+static double
+_c5sept_ANI_int(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
+#define C5SEPT_ANI(ret, tmp, x)                  \
+  tmp = AIR_CAST(unsigned int, x+0.5);           \
+  if (tmp < C5SEPT_AI_LEN) {                     \
+    ret = _c5sept_ANI_kvals[tmp];                \
+  } else {                                       \
+    ret = 0.0;                                   \
+  }
+
+static double
+_c5sept_ANI_1d(double x, const double *parm) {
+  double ax, r; int tmp;
+  AIR_UNUSED(parm);
+
+  ax = AIR_ABS(x);
+  C5SEPT_ANI(r, tmp, ax);
+  return r;
+}
+
+static float
+_c5sept_ANI_1f(float x, const double *parm) {
+  double ax, r; int tmp;
+  AIR_UNUSED(parm);
+
+  ax = AIR_ABS(x);
+  C5SEPT_ANI(r, tmp, ax);
+  return AIR_CAST(float, r);
+}
+
+static void
+_c5sept_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
+  double ax, r; int tmp;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ax = x[i]; ax = AIR_ABS(ax);
+    C5SEPT_ANI(r, tmp, ax);
+    f[i] = r;
+  }
+}
+
+static void
+_c5sept_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
+  double ax, r; int tmp;
+  size_t i;
+  AIR_UNUSED(parm);
+  
+  for (i=0; i<len; i++) {
+    ax = x[i]; ax = AIR_ABS(ax);
+    C5SEPT_ANI(r, tmp, ax);
+    f[i] = AIR_CAST(float, r);
+  }
+}
+
+static NrrdKernel
+_nrrdKernelC5SepticApproxInverse = {
+  "C5SepticAI", 0,
+  _c5sept_ANI_sup, _c5sept_ANI_int,
+  _c5sept_ANI_1f, _c5sept_ANI_Nf,
+  _c5sept_ANI_1d, _c5sept_ANI_Nd
+};
+NrrdKernel *const
+nrrdKernelC5SepticApproxInverse = &_nrrdKernelC5SepticApproxInverse;
+
 /* ------------------------------------------------------------ */
 
 #define _GAUSS(x, sig, cut) ( \
@@ -2640,6 +2751,7 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("c5septicd", str))  return nrrdKernelC5SepticD;
   if (!strcmp("c5septicdd", str)) return nrrdKernelC5SepticDD;
   if (!strcmp("c5septicddd", str))return nrrdKernelC5SepticDDD;
+  if (!strcmp("c5septicai", str)) return nrrdKernelC5SepticApproxInverse;
   if (!strcmp("gaussian", str))   return nrrdKernelGaussian;
   if (!strcmp("gauss", str))      return nrrdKernelGaussian;
   if (!strcmp("gaussiand", str))  return nrrdKernelGaussianD;

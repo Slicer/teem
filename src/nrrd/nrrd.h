@@ -1398,6 +1398,8 @@ NRRD_EXPORT int nrrdFFT(Nrrd *nout, const Nrrd *nin,
 NRRD_EXPORT int nrrdFFTWWisdomWrite(FILE *file);
   
 /******** kernels (interpolation, 1st and 2nd derivatives) */
+/* new kernels should also be registered with 
+   meet/meetNrrd.c/meetNrrdKernelAll() */
 /* tmfKernel.c
    nrrdKernelTMF[D+1][C+1][A] is d<D>_c<C>_<A>ef:
    Dth-derivative, C-order continuous ("smooth"), A-order accurate
@@ -1480,6 +1482,7 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelC5SepticD,    /* 1st deriv of C5Septic */
   *const nrrdKernelC5SepticDD,   /* 2nd deriv of C5Septic */
   *const nrrdKernelC5SepticDDD,  /* 3rd deriv of C5Septic */
+  *const nrrdKernelC5SepticApproxInverse, 
   *const nrrdKernelGaussian,     /* Gaussian */
   *const nrrdKernelGaussianD,    /* 1st derivative of Gaussian */
   *const nrrdKernelGaussianDD,   /* 2nd derivative of Gaussian */
