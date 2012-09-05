@@ -968,6 +968,11 @@ typedef struct {
                              secondary balancing phase */
   int single,             /* distribute single points, instead of 
                              anti-podal pairs of points */
+    insertZeroVec,        /* when computing output in 
+                             tenGradientDistribute (and only there, though
+                             this is called by tenGradientGenerate), insert
+                             the zero vector at the beginning of the list,
+                             corresponding to a non-DWI B0 image */
     verbose;              /* verbosity level; 0 turns off everything */
   unsigned int snap,      /* interval of interations at which to save
                              snapshats of distribution */
@@ -1160,9 +1165,13 @@ typedef struct {
                                   the index into it, i.e. 0, 1, or 2 */
 } tenModelParmDesc;
 
-#define TEN_MODEL_B0_MAX 10000    /* HEY: completely arbitrary! */
-#define TEN_MODEL_DIFF_MAX 0.004  /* in units of mm^2/sec */
-#define TEN_MODEL_PARM_GRAD_EPS 0.00002 /* for gradient calculations */
+#define TEN_MODEL_B0_MAX 65500    /* HEY: fairly arbitrary, but is set to be
+                                     a little below the max storable value
+                                     of the unsigned short in which DWI
+                                     values might be saved */
+#define TEN_MODEL_DIFF_MAX 0.006  /* in units of mm^2/sec; diffusivity of
+                                     water is about 0.003 mm^2/sec */
+#define TEN_MODEL_PARM_GRAD_EPS 0.000005 /* for gradient calculations */
 
 /*
 ******** struct tenModel

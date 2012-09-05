@@ -106,6 +106,9 @@ tend_gradsMain(int argc, const char **argv, const char *me,
              &(tgparm->minMean), "0.0001",
              "if length of mean gradient falls below this, finish "
              "the balancing phase");
+  hestOptAdd(&hopt, "izv", "insert", airTypeBool, 1, 1, 
+             &(tgparm->insertZeroVec), "false",
+             "adding zero vector at beginning of grads");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
              "file to write output nrrd to");
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

@@ -36,6 +36,7 @@ tenGradientParmNew(void) {
     ret->minMean = 0.0001;
     ret->minMeanImprovement = 0.00005;
     ret->single = AIR_FALSE;
+    ret->insertZeroVec = AIR_FALSE;
     ret->verbose = 1;
     ret->snap = 0;
     ret->report = 400;
@@ -468,7 +469,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
   char filename[AIR_STRLEN_SMALL];
   unsigned int ii, num, iter, oldIdx, newIdx, edgeShrink;
   airArray *mop;
-  Nrrd *npos[2];
+  Nrrd *npos[2], *ntmp;
   double *pos, len, meanVelocity, pot, potNew, potD,
     edge, edgeMin, angle, angleNew;
   int E;
@@ -627,12 +628,19 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
   tgparm->edge = edge;
   tgparm->itersUsed = iter;
 
+  /* transfer info from npos[oldIdx] to nout */
+  if (tgparm->insertZeroVec) {
+    ntmp = nrrdNew();
+    airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
+  } else {
+    ntmp = nout;
+  }
   if ((tgparm->minMeanImprovement || tgparm->minMean)
       && !tgparm->single) {
     if (tgparm->verbose) {
       fprintf(stderr, "%s: optimizing balance:\n", me);
     }
-    if (tenGradientBalance(nout, npos[oldIdx], tgparm)) {
+    if (tenGradientBalance(ntmp, npos[oldIdx], tgparm)) {
       biffAddf(TEN, "%s: failed to minimize vector sum of gradients", me);
       airMopError(mop); return 1;
     }
@@ -643,8 +651,18 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
     if (tgparm->verbose) {
       fprintf(stderr, "%s: .......................... (no balancing)\n", me);
     }
-    if (nrrdConvert(nout, npos[oldIdx], nrrdTypeDouble)) {
+    if (nrrdConvert(ntmp, npos[oldIdx], nrrdTypeDouble)) {
       biffMovef(TEN, NRRD, "%s: couldn't set output", me);
+      airMopError(mop); return 1;
+    }
+  }
+  if (tgparm->insertZeroVec) {
+    ptrdiff_t padMin[2] = {0, -1}, padMax[2] = {0, 0};
+    padMax[0] = AIR_CAST(ptrdiff_t, ntmp->axis[0].size-1);
+    padMax[1] = AIR_CAST(ptrdiff_t, num-1);
+    if (nrrdPad_nva(nout, ntmp, padMin, padMax, 
+                    nrrdBoundaryPad, 0.0)) {
+      biffMovef(TEN, NRRD, "%s: trouble adding zero vector", me);
       airMopError(mop); return 1;
     }
   }

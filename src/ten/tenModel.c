@@ -363,12 +363,15 @@ _tenModelSqeFitSingle(const tenModel *model,
   model->sqeGrad(grad, parm, espec, dwiBuff, dwiMeas, knownB0);
   if (verbose > 1) {
     model->sprint(pstr, parm);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "%s(%s): minIter = %u, maxIter = %u\n", me, model->name,
+            minIter, maxIter);
     fprintf(stderr, "%s(%s): starting at %s -> %g (step %g)\n", me,
             model->name, pstr, val, step);
   }
 
   opp = 1.2;  /* opportunistic step size increase */
-  bak = 0.2;  /* scaling back because of bad step */
+  bak = 0.5;  /* scaling back because of bad step */
   iter = 0;
   dist = convEps*8;
   do {
@@ -385,7 +388,18 @@ _tenModelSqeFitSingle(const tenModel *model,
         step *= bak;
       }
       subIter++;
-    } while (testval > val);
+    } while (testval > val && subIter <= maxIter);
+    if (subIter > maxIter) {
+      /* something went wrong with merely trying to find a downhill step;
+         this has occurred previously when (because of a bug) the
+         per-parameter bounds put the test location inside the bounding
+         box while the initial location was outside => could never converge.
+         Not using biff, so this is one way of trying to signal the problem */
+      model->copy(parm, parmInit);
+      *convFrac = AIR_POS_INF;
+      *itersTaken = maxIter;
+      return AIR_POS_INF;
+    }
     td = model->dist(testParm, parm);
     dist = (td + dist)/2;
     val = testval;
@@ -553,6 +567,7 @@ tenModelSqeFit(Nrrd *nparm,
     }
     sqeBest = DBL_MAX; /* forces at least one improvement */
     for (ss=0; ss<starts; ss++) {
+      /* can add other debugging conditions here */
       fitVerbose = verbose;
       if (knownB0) {
         dparm[0] = tenExperSpecKnownB0Get(espec, ddwi);
