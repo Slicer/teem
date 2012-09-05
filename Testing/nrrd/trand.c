@@ -115,7 +115,8 @@ main(int argc, const char *argv[]) {
     airMopError(mop); return 1;
   }
   if (differ) {
-    fprintf(stderr, "%s: new and correct images differ: %s\n", me, explain);
+    fprintf(stderr, "%s: new and correct (%s) images differ: %s\n",
+            me, corrname, explain);
     airMopError(mop); return 1;
   } else {
     printf("%s: all good\n", me);

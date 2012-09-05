@@ -31,7 +31,7 @@
 */
 
 static int
-genTensorVol(Nrrd *ncten, 
+genTensorVol(Nrrd *ncten, double noiseStdv,
              unsigned int sx, unsigned int sy, unsigned int sz) {
   static const char me[]="genTensorVol";
   hestParm *hparm;
@@ -39,9 +39,12 @@ genTensorVol(Nrrd *ncten,
   char tmpStr[4][AIR_STRLEN_SMALL];
   airRandMTState *rng;
   unsigned int seed;
+  Nrrd *nclean;
+  NrrdIter *narg0, *narg1;
   const char *helixArgv[] = 
   /*   0     1     2    3     4     5     6     7     8     9 */
-    {"-s", NULL, NULL, NULL, "-v", "0", "-r", "55", "-o", NULL, 
+    {"-s", NULL, NULL, NULL, "-v", "0", "-r", "35", "-o", NULL, 
+     "-ev", "0.00086", "0.00043", "0.00021", "-bg", "0.003", "-b", "5",
      NULL};
   int helixArgc;
 
@@ -54,8 +57,14 @@ genTensorVol(Nrrd *ncten,
   rng = airRandMTStateNew(seed);
   airMopAdd(smop, rng, (airMopper)airRandMTStateNix, airMopAlways);
   /* NOTE: this is currently the only place where a unrrduCmd
-     is called from C; learned: hest does NOT tolerate having 
-     empty or NULL elements of argv[]! */
+     is called from within C code; it was educational to get working.
+     Learned: 
+     * hest does NOT tolerate having empty or NULL elements of 
+     its argv[]!  More error checking for this in hest is needed.
+     * the "const char **argv" type is not very convenient to
+     set up in a dynamic way; the per-element setting done below
+     is certainly awkward 
+  */
   hparm = hestParmNew();
   airMopAdd(smop, hparm, (airMopper)hestParmFree, airMopAlways);
   sprintf(tmpStr[0], "%u", sx); helixArgv[1] = tmpStr[0];
@@ -69,27 +78,103 @@ genTensorVol(Nrrd *ncten,
     biffAddf(PROBE, "%s: problem running tend %s", me, tend_helixCmd.name);
     airMopError(smop); return 1;
   }
-  if (nrrdLoad(ncten, tmpStr[3], NULL)) {
+  nclean = nrrdNew();
+  airMopAdd(smop, nclean, (airMopper)nrrdNuke, airMopAlways);
+  if (nrrdLoad(nclean, tmpStr[3], NULL)) {
     biffAddf(PROBE, "%s: trouble loading from new vol %s", me, tmpStr[3]);
+    airMopError(smop); return 1;
+  }
+  narg0 = nrrdIterNew();
+  narg1 = nrrdIterNew();
+  airMopAdd(smop, narg0, (airMopper)nrrdIterNix, airMopAlways);
+  airMopAdd(smop, narg1, (airMopper)nrrdIterNix, airMopAlways);
+  nrrdIterSetNrrd(narg0, nclean);
+  nrrdIterSetValue(narg1, noiseStdv);
+  if (nrrdArithIterBinaryOp(ncten, nrrdBinaryOpNormalRandScaleAdd,
+                            narg0, narg1)) {
+    biffMovef(PROBE, NRRD, "%s: trouble noisying output", me);
     airMopError(smop); return 1;
   }
   airMopOkay(smop);
   return 0;
 }
 
+/* makes a vector volume by measuring the gradient */
 static int
-genDwiVol(Nrrd *ndwi, unsigned int gradNum, const Nrrd *ncten) {
+genVectorVol(Nrrd *nvec, const Nrrd *nscl) {
+  static const char me[]="genVectorVol";
+  ptrdiff_t padMin[4] = {0, 0, 0, 0}, padMax[4];
+  Nrrd *ntmp;
+  airArray *smop;
+  float *vec, *scl;
+  size_t sx, sy, sz, xi, yi, zi, Px, Mx, Py, My, Pz, Mz;
+  double spcX, spcY, spcZ;
+  
+  if (nrrdTypeFloat != nscl->type) {
+    biffAddf(PROBE, "%s: expected %s not %s type", me,
+             airEnumStr(nrrdType, nrrdTypeFloat),
+             airEnumStr(nrrdType, nscl->type));
+    airMopError(smop); return 1;
+  }
+  smop = airMopNew();
+  ntmp = nrrdNew();
+  airMopAdd(smop, ntmp, (airMopper)nrrdNuke, airMopAlways);
+  sx = nscl->axis[0].size;
+  sy = nscl->axis[1].size;
+  sz = nscl->axis[2].size;
+  ELL_4V_SET(padMax, 2,
+             AIR_CAST(ptrdiff_t, sx-1),
+             AIR_CAST(ptrdiff_t, sy-1),
+             AIR_CAST(ptrdiff_t, sz-1));
+  /* we do axinsert and pad in order to keep all the per-axis info */
+  if (nrrdAxesInsert(ntmp, nscl, 0)
+      || nrrdPad_nva(nvec, ntmp, padMin, padMax, 
+                     nrrdBoundaryPad, 0.0)) {
+    biffMovef(PROBE, NRRD, "%s: trouble", me);
+    airMopError(smop); return 1;
+  }
+  spcX = nrrdSpaceVecNorm(nscl->spaceDim, nscl->axis[0].spaceDirection);
+  spcY = nrrdSpaceVecNorm(nscl->spaceDim, nscl->axis[1].spaceDirection);
+  spcZ = nrrdSpaceVecNorm(nscl->spaceDim, nscl->axis[2].spaceDirection);
+  vec = AIR_CAST(float *, nvec->data);
+  scl = AIR_CAST(float *, nscl->data);
+#define INDEX(xj, yj, zj) (xj + sx*(yj + sy*zj))
+  for (zi=0; zi<sz; zi++) {
+    Mz = (zi == 0 ? 0 : zi-1);
+    Pz = AIR_MIN(zi+1, sz-1);
+    for (yi=0; yi<sy; yi++) {
+      My = (yi == 0 ? 0 : yi-1);
+      Py = AIR_MIN(yi+1, sy-1);
+      for (xi=0; xi<sx; xi++) {
+        Mx = (xi == 0 ? 0 : xi-1);
+        Px = AIR_MIN(xi+1, sx-1);
+        vec[0 + 3*INDEX(xi, yi, zi)] = 
+          (scl[INDEX(Px, yi, zi)] - scl[INDEX(Mx, yi, zi)])/(2.0*spcX);
+        vec[1 + 3*INDEX(xi, yi, zi)] = 
+          (scl[INDEX(xi, Py, zi)] - scl[INDEX(xi, My, zi)])/(2.0*spcY);
+        vec[2 + 3*INDEX(xi, yi, zi)] = 
+          (scl[INDEX(xi, yi, Pz)] - scl[INDEX(xi, yi, Mz)])/(2.0*spcZ);
+      }
+    }
+  }
+#undef INDEX
+
+  airMopError(smop);
+  return 0;
+}
+
+static int
+genDwiVol(Nrrd *ndwi, Nrrd *ngrad, 
+          unsigned int gradNum, double bval, const Nrrd *ncten) {
   static const char me[]="genDwiVol";
   tenGradientParm *gparm;
   tenExperSpec *espec;
-  Nrrd *ngrad, *nten, *nb0;
+  Nrrd *nten, *nb0;
   NrrdIter *narg0, *narg1;
   size_t cropMin[4] = {1, 0, 0, 0}, cropMax[4];
   airArray *smop;
 
   smop = airMopNew();
-  ngrad = nrrdNew();
-  airMopAdd(smop, ngrad, (airMopper)nrrdNuke, airMopAlways);
   gparm = tenGradientParmNew();
   airMopAdd(smop, gparm, (airMopper)tenGradientParmNix, airMopAlways);
   espec = tenExperSpecNew();
@@ -97,10 +182,10 @@ genDwiVol(Nrrd *ndwi, unsigned int gradNum, const Nrrd *ncten) {
   gparm->verbose = 0;
   gparm->minMean = 0.002;
   gparm->seed = 4242;
+  gparm->insertZeroVec = AIR_TRUE;
   if (tenGradientGenerate(ngrad, gradNum, gparm)
-      || tenExperSpecGradSingleBValSet(espec, AIR_TRUE /* insertB0 */,
-                                       1000.0 /* bval */,
-                                       AIR_CAST(double *, ngrad->data),
+      || tenExperSpecGradSingleBValSet(espec, AIR_FALSE /* insertB0 */,
+                                       bval, AIR_CAST(double *, ngrad->data),
                                        gradNum)) {
     biffMovef(PROBE, TEN, "%s: trouble generating grads or espec", me);
     airMopError(smop); return 1;
@@ -152,8 +237,11 @@ main(int argc, const char **argv) {
   const gageKind *kind[KIND_NUM] = {
     /*    0            1           2         3          */
     gageKindScl, gageKindVec, tenGageKind, NULL /* dwi */};
-  Nrrd *nin[KIND_NUM];
-  unsigned int kindIdx;
+  gageKind *dwikind = NULL;
+  gageContext *gctx[KIND_NUM] = {NULL, NULL, NULL, NULL};
+  Nrrd *nin[KIND_NUM], *ngrad;
+  unsigned int kindIdx, volSize[3] = {45, 46, 47}, gradNum = 35;
+  double bval = 1000, noiseStdv=0.00007;
 
   AIR_UNUSED(argc);
   me = argv[0];
@@ -172,24 +260,54 @@ main(int argc, const char **argv) {
     nin[kindIdx] = nrrdNew();
     airMopAdd(mop, nin[kindIdx], (airMopper)nrrdNuke, airMopAlways);
   }
+  ngrad = nrrdNew();
+  airMopAdd(mop, ngrad, (airMopper)nrrdNuke, airMopAlways);
   /* start by making tensor volume */
-  if (genTensorVol(nin[2], 45, 46, 47)) {
+  if (genTensorVol(nin[2], noiseStdv, volSize[0], volSize[1], volSize[2])) {
     airMopAdd(mop, err = biffGetDone(PROBE), airFree, airMopAlways);
     fprintf(stderr, "trouble creating tensor volume:\n%s", err);
     airMopError(mop); return 1;
   }
   /* nrrdSave("tmp-cten.nrrd", nin[2], NULL); */
-  if (genDwiVol(nin[3], 35, nin[2])) {
+  /* and from tensor volume, make scalar from trace */
+  if (tenAnisoVolume(nin[0], nin[2], tenAniso_Tr, 0)) {
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
+    fprintf(stderr, "trouble creating scalar volume:\n%s", err);
+    airMopError(mop); return 1;
+  }
+  /* nrrdSave("tmp-scl.nrrd", nin[0], NULL); */
+  /* and measure gradient of scalar volume to get vector volume */
+  if (genVectorVol(nin[1], nin[0])) {
+    airMopAdd(mop, err = biffGetDone(PROBE), airFree, airMopAlways);
+    fprintf(stderr, "trouble creating vector volume:\n%s", err);
+    airMopError(mop); return 1;
+  }
+  /* nrrdSave("tmp-vec.nrrd", nin[1], NULL); */
+  if (genDwiVol(nin[3], ngrad, gradNum, bval, nin[2])) {
     airMopAdd(mop, err = biffGetDone(PROBE), airFree, airMopAlways);
     fprintf(stderr, "trouble creating DWI volume:\n%s", err);
     airMopError(mop); return 1;
   }
   /* nrrdSave("tmp-dwi.nrrd", nin[3], NULL); */
+  dwikind = tenDwiGageKindNew();
+  airMopAdd(mop, dwikind, (airMopper)tenDwiGageKindNix, airMopAlways);
+  if (tenDwiGageKindSet(dwikind, -1 /* thresh */, 0 /* soft */,
+                        bval, 1 /* valueMin */,
+                        ngrad, NULL,
+                        tenEstimate1MethodLLS,
+                        tenEstimate2MethodPeled,
+                        424242)) {
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
+    fprintf(stderr, "trouble creating DWI context:\n%s", err);
+    airMopError(mop); return 1;
+  }
+  /* access through kind[] is const, but not through dwikind */
+  kind[3] = dwikind;
+  
   
   /* this is a work in progress ... */
   
   /* gageContextCopy on stack! */
-  /* create scalar/vector/tensor volume */
   /* create scale-space stacks with tent, ctmr, and hermite */
   /* save them, free, and read them back in */
   /* pick a scale in-between tau samples */
