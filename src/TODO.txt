@@ -46,6 +46,7 @@ to a great many functions (or else it itself would be a global),
 and then how do you know which functions should take it?
 
 hest:
+* consider renaming hestParmFree --> hestParmNix
 * all the hest defaults (hestVerbosity, hestRespFileEnable), etc,
 should start with hestDef, not just hest
 * air/hest: remove the airType* enum. The following sort of code looks
