@@ -495,7 +495,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     *strP = (char *)calloc(fslen + nrrd->dim*(doubleStrlen + 1), sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
-      airSinglePrintf(NULL, buff, " %g", nrrd->axis[ii].min);
+      airSinglePrintf(NULL, buff, " %.17g", nrrd->axis[ii].min);
       strcat(*strP, buff);
     }
     break;
@@ -503,7 +503,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     *strP = (char *)calloc(fslen + nrrd->dim*(doubleStrlen + 1), sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
-      airSinglePrintf(NULL, buff, " %g", nrrd->axis[ii].max);
+      airSinglePrintf(NULL, buff, " %.17g", nrrd->axis[ii].max);
       strcat(*strP, buff);
     }
     break;
@@ -590,13 +590,13 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
   case nrrdField_old_min:
     *strP = (char *)calloc(fslen + doubleStrlen, sizeof(char));
     sprintf(*strP, "%s%s: ", prefix, fs);
-    airSinglePrintf(NULL, buff, "%g", nrrd->oldMin);
+    airSinglePrintf(NULL, buff, "%.17g", nrrd->oldMin);
     strcat(*strP, buff);
     break;
   case nrrdField_old_max:
     *strP = (char *)calloc(fslen + doubleStrlen, sizeof(char));
     sprintf(*strP, "%s%s: ", prefix, fs);
-    airSinglePrintf(NULL, buff, "%g", nrrd->oldMax);
+    airSinglePrintf(NULL, buff, "%.17g", nrrd->oldMax);
     strcat(*strP, buff);
     break;
   case nrrdField_endian:
