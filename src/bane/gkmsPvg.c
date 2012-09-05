@@ -87,7 +87,8 @@ char *_baneGkms_pvgInfoL =
    "would be \"distance map\", as a function of value (v) and gradient "
    "magnitude (g).");
 int
-baneGkms_pvgMain(int argc, const char **argv, char *me, hestParm *hparm) {
+baneGkms_pvgMain(int argc, const char **argv, const char *me,
+                 hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *perr, *mapS;
   Nrrd *ninfo, *nposA, *nposB, *ndon, *npvg;
