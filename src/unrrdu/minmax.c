@@ -31,7 +31,7 @@ char *_unrrdu_minmaxInfoL =
  "* Uses nrrdRangeNewSet");
 
 int
-unrrdu_minmaxDoit(char *me, char *inS, int blind8BitRange, FILE *fout) {
+unrrdu_minmaxDoit(const char *me, char *inS, int blind8BitRange, FILE *fout) {
   Nrrd *nrrd;
   NrrdRange *range;
   airArray *mop;
@@ -45,8 +45,8 @@ unrrdu_minmaxDoit(char *me, char *inS, int blind8BitRange, FILE *fout) {
   
   range = nrrdRangeNewSet(nrrd, blind8BitRange);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  airSinglePrintf(fout, NULL, "min: %g\n", range->min);
-  airSinglePrintf(fout, NULL, "max: %g\n", range->max);
+  airSinglePrintf(fout, NULL, "min: %.17g\n", range->min);
+  airSinglePrintf(fout, NULL, "max: %.17g\n", range->max);
   if (0 == range->min && 0 == range->max) {
     fprintf(fout, "# min == max == 0.0 exactly\n");
   }
@@ -59,7 +59,8 @@ unrrdu_minmaxDoit(char *me, char *inS, int blind8BitRange, FILE *fout) {
 }
 
 int
-unrrdu_minmaxMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_minmaxMain(int argc, const char **argv, const char *me,
+                  hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, **inS;
   airArray *mop;
