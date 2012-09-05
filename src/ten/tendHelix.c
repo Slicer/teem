@@ -47,7 +47,7 @@ void
 tend_helixDoit(Nrrd *nout, double bnd,
                double orig[3], double i2w[9], double mf[9],
                double r, double R, double S, double angle, int incrtwist,
-               double ev[3], double bgEval) {
+               double ev[3], double bgEval, int verbose) {
   int sx, sy, sz, xi, yi, zi;
   double th, t0, t1, t2, t3, v1, v2,
     wpos[3], vpos[3], mfT[9],
@@ -61,7 +61,9 @@ tend_helixDoit(Nrrd *nout, double bnd,
   out = (float*)nout->data;
   ELL_3M_TRANSPOSE(mfT, mf);
   for (zi=0; zi<sz; zi++) {
-    fprintf(stderr, "zi = %d/%d\n", zi, sz);
+    if (verbose) {
+      fprintf(stderr, "zi = %d/%d\n", zi, sz);
+    }
     for (yi=0; yi<sy; yi++) {
       for (xi=0; xi<sx; xi++) {
         ELL_3V_SET(tmp, xi, yi, zi);
@@ -144,13 +146,14 @@ tend_helixDoit(Nrrd *nout, double bnd,
 }
 
 int
-tend_helixMain(int argc, const char **argv, char *me, hestParm *hparm) {
+tend_helixMain(int argc, const char **argv, const char *me,
+               hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
   airArray *mop;
 
-  int size[3], nit;
+  int size[3], nit, verbose;
   Nrrd *nout;
   double R, r, S, bnd, angle, ev[3], ip[3], iq[4], mp[3], mq[4], tmp[9],
     orig[3], i2w[9], rot[9], mf[9], spd[4][3], bge;
@@ -192,6 +195,8 @@ tend_helixMain(int argc, const char **argv, char *me, hestParm *hparm) {
              "circumferential around coil, and radial around coil. ");
   hestOptAdd(&hopt, "bg", "background", airTypeDouble, 1, 1, &bge, "0.5",
              "eigenvalue of isotropic background");
+  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "1", 
+             "verbose output");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output file");
 
@@ -229,7 +234,8 @@ tend_helixMain(int argc, const char **argv, char *me, hestParm *hparm) {
   ell_q_to_3m_d(mf, mq);
   tend_helixDoit(nout, bnd,
                  orig, i2w, mf,
-                 r, R, S, angle*AIR_PI/180, !nit, ev, bge);
+                 r, R, S, angle*AIR_PI/180, !nit, ev, bge, 
+                 verbose);
   nrrdSpaceSet(nout, nrrdSpaceRightAnteriorSuperior);
   nrrdSpaceOriginSet(nout, orig);
   ELL_3V_SET(spd[0], AIR_NAN, AIR_NAN, AIR_NAN);
