@@ -59,10 +59,6 @@ main(int argc, const char **argv) {
     size_t ii, blen;
     ncopy = nrrdNew();
     airMopAdd(mop, ncopy, (airMopper)nrrdNuke, airMopAlways);
-    /* HEY: actually a larger length will cause a segfault, but
-       debugging it with valgrind was extremely slow (15 minutes or
-       so for error to occur) and thwarted by its endless production
-       of "Signal 11 being dropped" messages */
     blen = AIR_STRLEN_HUGE*42;
     blah = AIR_CALLOC(blen, char);
     airMopAdd(mop, blah, airFree, airMopAlways);
