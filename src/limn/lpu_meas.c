@@ -29,7 +29,8 @@ static char *myinfo =
  ". Actually all it can measure is area at this point...");
 
 int
-limnpu_measMain(int argc, const char **argv, char *me, hestParm *hparm) {
+limnpu_measMain(int argc, const char **argv, const char *me,
+                hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;

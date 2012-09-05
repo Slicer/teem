@@ -29,7 +29,8 @@ static char *myinfo =
  ". ");
 
 int
-limnpu_sortMain(int argc, const char **argv, char *me, hestParm *hparm) {
+limnpu_sortMain(int argc, const char **argv, const char *me,
+                hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;
