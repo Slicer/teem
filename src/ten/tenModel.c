@@ -553,7 +553,7 @@ tenModelSqeFit(Nrrd *nparm,
     }
     sqeBest = DBL_MAX; /* forces at least one improvement */
     for (ss=0; ss<starts; ss++) {
-      fitVerbose = (709 == II)*verbose;
+      fitVerbose = verbose;
       if (knownB0) {
         dparm[0] = tenExperSpecKnownB0Get(espec, ddwi);
       }
@@ -561,7 +561,7 @@ tenModelSqeFit(Nrrd *nparm,
       sqe = model->sqeFit(dparm, &cvf, &itak,
                           espec, dwibuff, ddwi, 
                           dparm, knownB0, minIter, maxIter,
-                          convEps, verbose);
+                          convEps, fitVerbose);
       if (sqe <= sqeBest) {
         sqeBest = sqe;
         model->copy(dparmBest, dparm);
