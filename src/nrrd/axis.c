@@ -971,7 +971,7 @@ nrrdAxisInfoCompare(const NrrdAxisInfo *axisA, const NrrdAxisInfo *axisB,
   *differ = _nrrdDblcmp(axisA->VAL, axisB->VAL);                        \
   if (*differ) {                                                        \
     if (explain) {                                                      \
-      sprintf(explain, "axisA->%s %f %s axisB->%s %f",                  \
+      sprintf(explain, "axisA->%s %.17g %s axisB->%s %.17g",            \
               STR, axisA->VAL, *differ < 0 ? "<" : ">",                 \
               STR, axisB->VAL);                                         \
     }                                                                   \

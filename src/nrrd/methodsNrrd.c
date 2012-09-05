@@ -1137,7 +1137,7 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData,
   *differ = _nrrdDblcmp(ninA->VAL, ninB->VAL);                         \
   if (*differ) {                                                       \
     if (explain) {                                                     \
-      sprintf(explain, "ninA->%s %f %s ninB->%s %f",                   \
+      sprintf(explain, "ninA->%s %.17g %s ninB->%s %.17g",             \
               STR, ninA->VAL, *differ < 0 ? "<" : ">",                 \
               STR, ninB->VAL);                                         \
     }                                                                  \

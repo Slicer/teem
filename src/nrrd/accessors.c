@@ -564,7 +564,7 @@ int nrrdArrayCompare(int type, const void *_valA, const void *_valB,
         airSprintSize_t(stmp, ii);
         aa = nrrdDLookup[type](valA, ii);
         bb = nrrdDLookup[type](valB, ii);
-        sprintf(explain, "valA[%s]=%g %s valB[%s]=%g",
+        sprintf(explain, "valA[%s]=%.17g %s valB[%s]=%.17g",
                 stmp, aa, *differ < 0 ? "<" : ">", stmp, bb);
       }
       break;
