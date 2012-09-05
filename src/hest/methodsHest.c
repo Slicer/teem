@@ -438,14 +438,3 @@ _hestNumOpts(hestOpt *opt) {
   return num;
 }
 
-int
-_hestArgc(char **argv) {
-  int num = 0;
-
-  while (argv && argv[num]) {
-    num++;
-  }
-  return num;
-}
-
-
