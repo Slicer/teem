@@ -29,7 +29,8 @@ char *_tend_mconvInfoL =
    ". More docs here.");
 
 int
-tend_mconvMain(int argc, const char **argv, char *me, hestParm *hparm) {
+tend_mconvMain(int argc, const char **argv, const char *me,
+               hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

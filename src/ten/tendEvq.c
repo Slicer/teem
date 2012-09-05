@@ -34,7 +34,8 @@ char *_tend_evqInfoL =
    "by anisotropy, requiring the selection of some anisotropy metric.");
 
 int
-tend_evqMain(int argc, const char **argv, char *me, hestParm *hparm) {
+tend_evqMain(int argc, const char **argv, const char *me,
+             hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

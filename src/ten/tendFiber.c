@@ -29,7 +29,8 @@ char *_tend_fiberInfoL =
    ".  A fairly complete command-line interface to the tenFiber API.");
 
 int
-tend_fiberMain(int argc, const char **argv, char *me, hestParm *hparm) {
+tend_fiberMain(int argc, const char **argv, const char *me,
+               hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

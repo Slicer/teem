@@ -29,7 +29,8 @@ char *_tend_logInfoL =
    ", which is based on finding the log of the eigenvalues.");
 
 int
-tend_logMain(int argc, const char **argv, char *me, hestParm *hparm) {
+tend_logMain(int argc, const char **argv, const char *me,
+             hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

@@ -30,7 +30,8 @@ char *_tend_tripleInfoL =
    "and lots of other things.");
 
 int
-tend_tripleMain(int argc, const char **argv, char *me, hestParm *hparm) {
+tend_tripleMain(int argc, const char **argv, const char *me,
+                hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

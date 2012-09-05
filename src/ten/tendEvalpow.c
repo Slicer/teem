@@ -29,7 +29,8 @@ char *_tend_evalpowInfoL =
    ". The orientation of the tensor is unchanged.");
 
 int
-tend_evalpowMain(int argc, const char **argv, char *me, hestParm *hparm) {
+tend_evalpowMain(int argc, const char **argv, const char *me,
+                 hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

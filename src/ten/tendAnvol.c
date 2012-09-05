@@ -30,7 +30,8 @@ char *_tend_anvolInfoL =
    "don't meet the given confidence threshold.");
 
 int
-tend_anvolMain(int argc, const char **argv, char *me, hestParm *hparm) {
+tend_anvolMain(int argc, const char **argv, const char *me,
+               hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

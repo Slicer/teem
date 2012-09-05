@@ -29,7 +29,8 @@ char *_tend_mfitInfoL =
    ". More docs here.");
 
 int
-tend_mfitMain(int argc, const char **argv, char *me, hestParm *hparm) {
+tend_mfitMain(int argc, const char **argv, const char *me,
+              hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

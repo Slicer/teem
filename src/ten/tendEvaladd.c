@@ -31,7 +31,8 @@ char *_tend_evaladdInfoL =
    "of the tensor.");
 
 int
-tend_evaladdMain(int argc, const char **argv, char *me, hestParm *hparm) {
+tend_evaladdMain(int argc, const char **argv, const char *me,
+                 hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

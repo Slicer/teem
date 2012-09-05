@@ -31,7 +31,8 @@ char *_tend_anhistInfoL =
    "counts in the histogram are weighted by the confidence value.");
 
 int
-tend_anhistMain(int argc, const char **argv, char *me, hestParm *hparm) {
+tend_anhistMain(int argc, const char **argv, const char *me,
+                hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

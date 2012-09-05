@@ -36,7 +36,8 @@ char *_tend_anplotInfoL =
    "triangle.");
 
 int
-tend_anplotMain(int argc, const char **argv, char *me, hestParm *hparm) {
+tend_anplotMain(int argc, const char **argv, const char *me,
+                hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

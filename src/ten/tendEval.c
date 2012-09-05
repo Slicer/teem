@@ -29,7 +29,8 @@ char *_tend_evalInfoL =
    ". ");
 
 int
-tend_evalMain(int argc, const char **argv, char *me, hestParm *hparm) {
+tend_evalMain(int argc, const char **argv, const char *me,
+              hestParm *hparm) {
   int pret, map[4];
   hestOpt *hopt = NULL;
   char *perr, *err;

@@ -33,7 +33,8 @@ char *_tend_anscaleInfoL =
    "tensors.");
 
 int
-tend_anscaleMain(int argc, const char **argv, char *me, hestParm *hparm) {
+tend_anscaleMain(int argc, const char **argv, const char *me,
+                 hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;

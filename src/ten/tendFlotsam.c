@@ -42,7 +42,7 @@ tendCmdList[] = {
 ** with their one-line descriptions
 */
 void
-tendUsage(char *me, hestParm *hparm) {
+tendUsage(const char *me, hestParm *hparm) {
   int i, maxlen, len, c;
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
 

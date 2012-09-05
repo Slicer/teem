@@ -29,7 +29,8 @@ char *_tend_aboutInfoL =
    ". ");
 
 int
-tend_aboutMain(int argc, const char **argv, char *me, hestParm *hparm) {
+tend_aboutMain(int argc, const char **argv, const char *me,
+               hestParm *hparm) {
   char buff[AIR_STRLEN_MED], fmt[AIR_STRLEN_MED];
   char par1[] = "\t\t\t\t"
     "\"tend\" is a command-line interface to much of the functionality "
