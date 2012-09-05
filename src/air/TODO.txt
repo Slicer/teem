@@ -8,6 +8,9 @@ Things that would be good for a future airString or airBuffer
  * when writing to string, should be remembering where last output is,
    to avoid needless repeated calls to strlen
  * should this be the thing that can make stdin fseek-able?
+ * could use one of these as wrapper around stderr for normal output of 
+   unrrduCmds, but allowing it to be saved to string in case the command
+   is being invoked from C
 
 An OS-general means of:
 * generating a unique temp file name

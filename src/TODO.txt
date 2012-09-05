@@ -118,6 +118,10 @@ can be created at run-time, and perhaps there could be per-item function.
 Should investigate if calling per-item functions is faster than the
 bizarrely-long chain of if{}s that currently control item computation.
 
+ten:
+* tend helix and tend satin should not generate physically implausible
+diffusivity values (i.e. not exceeding 0.003 mm^2/sec)
+
 dye:
 * remove it, assuming its smarts have been copied into nrrd
 
