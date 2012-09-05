@@ -173,8 +173,7 @@ makeVolume(Nrrd *nin, unsigned int sx, unsigned int sy, unsigned int sz,
   }
 
   /* create context, using the c4hexic kernel and its derivatives.  c4hexic
-     is at this point the only Teem kernel that can reconstruct cubics (at
-     least without needing any pre-filtering) for which the analytical
+     is can reconstruct cubics without pre-filtering, and its analytical
      derivatives are readily available. tmf:n,3,4 can also reconstruct
      cubics but its not clear which other kernels are its derivatives */
   gctx = gageContextNew();
