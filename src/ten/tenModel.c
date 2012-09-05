@@ -350,28 +350,41 @@ _tenModelSqeFitSingle(const tenModel *model,
                       double *dwiBuff, const double *dwiMeas,
                       const double *parmInit, int knownB0,
                       unsigned int minIter, unsigned int maxIter,
-                      double convEps) {
-  /* static const char me[]="_tenModelSqeFitSingle"; */
-  unsigned int iter;
+                      double convEps, int verbose) {
+  static const char me[]="_tenModelSqeFitSingle";
+  unsigned int iter, subIter;
   double step, bak, opp, val, testval, dist, td;
   int done;
+  char pstr[AIR_STRLEN_MED];
 
   step = 1;
   model->copy(parm, parmInit);
   val = model->sqe(parm, espec, dwiBuff, dwiMeas, knownB0);
   model->sqeGrad(grad, parm, espec, dwiBuff, dwiMeas, knownB0);
+  if (verbose > 1) {
+    model->sprint(pstr, parm);
+    fprintf(stderr, "%s(%s): starting at %s -> %g (step %g)\n", me,
+            model->name, pstr, val, step);
+  }
 
   opp = 1.2;  /* opportunistic step size increase */
   bak = 0.2;  /* scaling back because of bad step */
   iter = 0;
   dist = convEps*8;
   do {
+    subIter = 0;
     do {
       model->step(testParm, -step, grad, parm);
       testval = model->sqe(testParm, espec, dwiBuff, dwiMeas, knownB0);
+      if (verbose > 1) {
+        model->sprint(pstr, testParm);
+        fprintf(stderr, "%s(%s): (iter %u/%u) tried %s -> %g (step %g)\n",
+                me, model->name, iter, subIter, pstr, testval, step);
+      }
       if (testval > val) {
         step *= bak;
       }
+      subIter++;
     } while (testval > val);
     td = model->dist(testParm, parm);
     dist = (td + dist)/2;
@@ -396,8 +409,10 @@ tenModelSqeFit(Nrrd *nparm,
                const tenExperSpec *espec, const Nrrd *ndwi,
                int knownB0, int saveB0, int typeOut,
                unsigned int minIter, unsigned int maxIter, 
-               unsigned int starts, double convEps, airRandMTState *_rng) {
+               unsigned int starts, double convEps,
+               airRandMTState *_rng, int verbose) {
   static const char me[]="tenModelSqeFit";
+  char doneStr[13];
   double *ddwi, *dwibuff, sqe, sqeBest,
     *dparm, *dparmBest,
     (*ins)(void *v, size_t I, double d),
@@ -405,7 +420,7 @@ tenModelSqeFit(Nrrd *nparm,
   airArray *mop;
   unsigned int saveParmNum, dwiNum, ii, lablen, itersTaken;
   size_t szOut[NRRD_DIM_MAX], II, numSamp;
-  int axmap[NRRD_DIM_MAX], erraxmap[NRRD_DIM_MAX];
+  int axmap[NRRD_DIM_MAX], erraxmap[NRRD_DIM_MAX], fitVerbose;
   const char *dwi;
   char *parm;
   airRandMTState *rng;
@@ -522,21 +537,31 @@ tenModelSqeFit(Nrrd *nparm,
   parm = AIR_CAST(char *, nparm->data);
   dwi = AIR_CAST(char *, ndwi->data);
   itersTaken = 0;
+  if (verbose) {
+    fprintf(stderr, "%s: fitting ...       ", me);
+    fflush(stderr);
+  }
   for (II=0; II<numSamp; II++) {
     double cvf, convFrac=0;
     unsigned int ss, itak;
+    if (verbose) {
+      fprintf(stderr, "%s", airDoneStr(0, II, numSamp, doneStr));
+      fflush(stderr);
+    }
     for (ii=0; ii<dwiNum; ii++) {
       ddwi[ii] = lup(dwi, ii);
     }
     sqeBest = DBL_MAX; /* forces at least one improvement */
     for (ss=0; ss<starts; ss++) {
+      fitVerbose = (709 == II)*verbose;
       if (knownB0) {
         dparm[0] = tenExperSpecKnownB0Get(espec, ddwi);
       }
       model->rand(dparm, rng, knownB0);
       sqe = model->sqeFit(dparm, &cvf, &itak,
                           espec, dwibuff, ddwi, 
-                          dparm, knownB0, minIter, maxIter, convEps);
+                          dparm, knownB0, minIter, maxIter,
+                          convEps, verbose);
       if (sqe <= sqeBest) {
         sqeBest = sqe;
         model->copy(dparmBest, dparm);
@@ -559,6 +584,9 @@ tenModelSqeFit(Nrrd *nparm,
     }
     parm += saveParmNum*nrrdTypeSize[typeOut];
     dwi += espec->imgNum*nrrdTypeSize[ndwi->type];
+  }
+  if (verbose) {
+    fprintf(stderr, "%s\n", airDoneStr(0, II, numSamp, doneStr));
   }
 
   if (nrrdAxisInfoCopy(nparm, ndwi, axmap, NRRD_AXIS_INFO_SIZE_BIT)

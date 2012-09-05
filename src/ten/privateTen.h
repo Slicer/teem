@@ -169,7 +169,8 @@ TEN_EXPORT double _tenModelSqeFitSingle(const tenModel *model,
                                         int knownB0,
                                         unsigned int minIter,
                                         unsigned int maxIter,
-                                        double convEps);
+                                        double convEps,
+                                        int verbose);
 
 /* model*.c */
 /*
@@ -348,7 +349,8 @@ sqeFit(double *parm, double *convFrac, unsigned int *itersTaken,        \
        const tenExperSpec *espec,                                       \
        double *dwiBuff, const double *dwiMeas,                          \
        const double *parmInit, int knownB0,                             \
-       unsigned int minIter, unsigned int maxIter, double convEps) {    \
+       unsigned int minIter, unsigned int maxIter,                      \
+       double convEps, int verbose) {                                   \
   double testparm[PARM_NUM ? PARM_NUM : 1],                             \
     grad[PARM_NUM ? PARM_NUM : 1];                                      \
                                                                         \
@@ -357,7 +359,8 @@ sqeFit(double *parm, double *convFrac, unsigned int *itersTaken,        \
                                parm, convFrac, itersTaken,              \
                                espec, dwiBuff, dwiMeas,                 \
                                parmInit, knownB0,                       \
-                               minIter, maxIter, convEps);              \
+                               minIter, maxIter,                        \
+                               convEps, verbose);                       \
 }
 
 #define _TEN_SQE_FIT_STUB                                              \

@@ -966,8 +966,9 @@ typedef struct {
     minMeanImprovement;   /* magnitude of improvement (reduction) of mean
                              gradient length that signifies end of 
                              secondary balancing phase */
-  int single;             /* distribute single points, instead of 
+  int single,             /* distribute single points, instead of 
                              anti-podal pairs of points */
+    verbose;              /* verbosity level; 0 turns off everything */
   unsigned int snap,      /* interval of interations at which to save
                              snapshats of distribution */
     report,               /* interval of interations at which to report
@@ -1218,7 +1219,7 @@ typedef struct tenModel_t {
                    double *dwiBuff, const double *dwiMeas,
                    const double *parmInit, int knownB0,
                    unsigned int minIter, unsigned int maxIter,
-                   double convEps);
+                   double convEps, int verbose);
   /* "nll" == negative log likelihood */
   double (*nll)(const double *parm, const tenExperSpec *espec,
                 double *dwiBuff, const double *dwiMeas,
@@ -1654,8 +1655,9 @@ TEN_EXPORT int tenModelSqeFit(Nrrd *nparm,
                               const tenExperSpec *espec, const Nrrd *ndwi,
                               int knownB0, int saveB0, int typeOut,
                               unsigned int minIter, unsigned int maxIter,
-                              unsigned int starts, double convEps, 
-                              airRandMTState *rng);
+                              unsigned int starts, double convEps,
+                              airRandMTState *rng,
+                              int verbose);
 TEN_EXPORT int tenModelNllFit(Nrrd *nparm, Nrrd **nnllP, 
                               const tenModel *model,
                               const tenExperSpec *espec, const Nrrd *ndwi,
@@ -1806,7 +1808,7 @@ F(bfit) \
 F(satin)
 TEND_MAP(TEND_DECLARE)
 TEN_EXPORT unrrduCmd *tendCmdList[];
-TEN_EXPORT void tendUsage(char *me, hestParm *hparm);
+TEN_EXPORT void tendUsage(const char *me, hestParm *hparm);
 TEN_EXPORT hestCB *tendFiberStopCB;
 
 #ifdef __cplusplus

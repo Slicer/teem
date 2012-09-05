@@ -29,13 +29,14 @@ tenGradientParmNew(void) {
 
   ret = (tenGradientParm *)calloc(1, sizeof(tenGradientParm));
   if (ret) {
-    ret->step = 1;
+    ret->initStep = 1.0;
     ret->jitter = 0.2;
     ret->minVelocity = 0.000000001;
     ret->minPotentialChange = 0.000000001;
     ret->minMean = 0.0001;
-    ret->minMeanImprovement = 0.00001;
+    ret->minMeanImprovement = 0.00005;
     ret->single = AIR_FALSE;
+    ret->verbose = 1;
     ret->snap = 0;
     ret->report = 400;
     ret->expo = 1;
@@ -386,8 +387,9 @@ tenGradientBalance(Nrrd *nout, const Nrrd *nin,
   int done;
   airArray *mop;
 
-  if (!nout || tenGradientCheck(nin, nrrdTypeUnknown, 2)) {
-    biffAddf(TEN, "%s: got NULL pointer or invalid input", me);
+  if (!nout || tenGradientCheck(nin, nrrdTypeUnknown, 2) || !tgparm) {
+    biffAddf(TEN, "%s: got NULL pointer (%p,%p) or invalid nin", me,
+             nout, tgparm);
     return 1;
   }
   if (nrrdConvert(nout, nin, nrrdTypeDouble)) {
@@ -412,7 +414,9 @@ tenGradientBalance(Nrrd *nout, const Nrrd *nin,
       len = party(nout, rstate);
     } while (len > lastLen && iter < maxIter);
     if (iter >= maxIter) {
-      fprintf(stderr, "%s: stopping at max iter %u\n", me, maxIter);
+      if (tgparm->verbose) {
+        fprintf(stderr, "%s: stopping at max iter %u\n", me, maxIter);
+      }
       if (nrrdCopy(nout, ncopy)) {
         biffMovef(TEN, NRRD, "%s: trouble copying", me);
         airMopError(mop); return 1;
@@ -425,10 +429,12 @@ tenGradientBalance(Nrrd *nout, const Nrrd *nin,
       }
       improv = lastLen - len;
       lastLen = len;
-      fprintf(stderr, "%s: (iter %u) improvement: %g  (mean length = %g)\n",
-              me, iter, improv, len);
-      done = !(improv > tgparm->minMeanImprovement
-               && len > tgparm->minMean);
+      if (tgparm->verbose) {
+        fprintf(stderr, "%s: (iter %u) improvement: %g  (mean length = %g)\n",
+                me, iter, improv, len);
+      }
+      done = (improv <= tgparm->minMeanImprovement
+              || len < tgparm->minMean);
     }
   } while (!done);
   
@@ -546,7 +552,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
       /* there was progress of some kind, either through potential
          decrease, or angle increase */
       potD = 2*(potNew - pot)/(potNew + pot);
-      if (!(iter % tgparm->report)) {
+      if (!(iter % tgparm->report) && tgparm->verbose) {
         fprintf(stderr, "%s(%d): . . . . . . step = %g, edgeShrink = %u\n"
                 "   velo = %g<>%g, phi = %g ~ %g<>%g, angle = %g ~ %g\n",
                 me, iter, tgparm->step, edgeShrink,
@@ -556,13 +562,17 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
       }
       if (tgparm->snap && !(iter % tgparm->snap)) {
         sprintf(filename, "%05d.nrrd", iter/tgparm->snap);
-        fprintf(stderr, "%s(%d): . . . . . . saving %s\n",
-                me, iter, filename);
+        if (tgparm->verbose) {
+          fprintf(stderr, "%s(%d): . . . . . . saving %s\n",
+                  me, iter, filename);
+        }
         if (nrrdSave(filename, npos[newIdx], NULL)) {
           char *serr;
           serr = biffGetDone(NRRD);
-          fprintf(stderr, "%s: iter=%d, couldn't save snapshot:\n%s"
-                  "continuing ...\n", me, iter, serr);
+          if (tgparm->verbose) { /* perhaps shouldn't have this check */
+            fprintf(stderr, "%s: iter=%d, couldn't save snapshot:\n%s"
+                    "continuing ...\n", me, iter, serr);
+          }
           free(serr);
         }
       }
@@ -575,10 +585,12 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
       oldIdx = 1 - oldIdx;
     } else {    
       /* oops, did not make progress; back off and try again */
-      fprintf(stderr, "%s(%d): ######## step %g --> %g\n"
-              " phi = %g --> %g ~ %g, angle = %g --> %g\n",
-              me, iter, tgparm->step, tgparm->step/2,
-              pot, potNew, potD, angle, angleNew);
+      if (tgparm->verbose) {
+        fprintf(stderr, "%s(%d): ######## step %g --> %g\n"
+                " phi = %g --> %g ~ %g, angle = %g --> %g\n",
+                me, iter, tgparm->step, tgparm->step/2,
+                pot, potNew, potD, angle, angleNew);
+      }
       tgparm->step /= 2;
       tgparm->nudge /= 2;
     }
@@ -588,22 +600,24 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
      iteration (which starts with copying from npos[oldIdx] to
      npos[newIdx]) ==> the final results are in npos[oldIdx] */
 
-  fprintf(stderr, "%s: .......................... done distribution:\n"
-          "  (%d && %d) || (%d \n"
-          "               && (%d || %d || %d) \n"
-          "               && (%d || %d) \n"
-          "               && %d) is false\n", me,
-          !!tgparm->minIteration, iter < tgparm->minIteration, 
-          iter < tgparm->maxIteration,
-          !tgparm->minPotentialChange,
-          !AIR_EXISTS(potD), AIR_ABS(potD) > tgparm->minPotentialChange,
-          !tgparm->minVelocity, meanVelocity > tgparm->minVelocity,
-          tgparm->step > FLT_MIN);
-  fprintf(stderr, "  iter=%d, velo = %g<>%g, phi = %g ~ %g<>%g;\n",
-          iter, meanVelocity, tgparm->minVelocity, pot,
-          potD, tgparm->minPotentialChange);
-  fprintf(stderr, "  minEdge = %g; idealEdge = %g\n", 
-          2*sin(angle/2), tenGradientIdealEdge(num, tgparm->single));
+  if (tgparm->verbose) {
+    fprintf(stderr, "%s: .......................... done distribution:\n"
+            "  (%d && %d) || (%d \n"
+            "               && (%d || %d || %d) \n"
+            "               && (%d || %d) \n"
+            "               && %d) is false\n", me,
+            !!tgparm->minIteration, iter < tgparm->minIteration, 
+            iter < tgparm->maxIteration,
+            !tgparm->minPotentialChange,
+            !AIR_EXISTS(potD), AIR_ABS(potD) > tgparm->minPotentialChange,
+            !tgparm->minVelocity, meanVelocity > tgparm->minVelocity,
+            tgparm->step > FLT_MIN);
+    fprintf(stderr, "  iter=%d, velo = %g<>%g, phi = %g ~ %g<>%g;\n",
+            iter, meanVelocity, tgparm->minVelocity, pot,
+            potD, tgparm->minPotentialChange);
+    fprintf(stderr, "  minEdge = %g; idealEdge = %g\n", 
+            2*sin(angle/2), tenGradientIdealEdge(num, tgparm->single));
+  }
   
   tenGradientMeasure(&pot, NULL, NULL, npos[oldIdx], tgparm, AIR_FALSE);
   tgparm->potential = pot;
@@ -615,14 +629,20 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
 
   if ((tgparm->minMeanImprovement || tgparm->minMean)
       && !tgparm->single) {
-    fprintf(stderr, "%s: optimizing balance:\n", me);
+    if (tgparm->verbose) {
+      fprintf(stderr, "%s: optimizing balance:\n", me);
+    }
     if (tenGradientBalance(nout, npos[oldIdx], tgparm)) {
       biffAddf(TEN, "%s: failed to minimize vector sum of gradients", me);
       airMopError(mop); return 1;
     }
-    fprintf(stderr, "%s: .......................... done balancing.\n", me);
+    if (tgparm->verbose) {
+      fprintf(stderr, "%s: .......................... done balancing.\n", me);
+    }
   } else {
-    fprintf(stderr, "%s: .......................... (no balancing)\n", me);
+    if (tgparm->verbose) {
+      fprintf(stderr, "%s: .......................... (no balancing)\n", me);
+    }
     if (nrrdConvert(nout, npos[oldIdx], nrrdTypeDouble)) {
       biffMovef(TEN, NRRD, "%s: couldn't set output", me);
       airMopError(mop); return 1;

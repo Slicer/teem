@@ -124,7 +124,8 @@ tend_mfitMain(int argc, const char **argv, const char *me,
                      airStrlen(iterS) ? &niter : NULL, 
                      model, espec, nin,
                      knownB0, saveB0, typeOut, 
-                     minIter, maxIter, starts, eps, NULL)) {
+                     minIter, maxIter, starts, eps,
+                     NULL, verbose)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble fitting:\n%s\n", me, err);
     airMopError(mop); return 1;
