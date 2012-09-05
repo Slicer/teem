@@ -9,6 +9,10 @@ Things that would be good for a future airString or airBuffer
    to avoid needless repeated calls to strlen
  * should this be the thing that can make stdin fseek-able?
 
+An OS-general means of:
+* generating a unique temp file name
+* removing a given file (for cleaning up temp file)
+
 fix airSinglePrintf to not put a space before double-type special values
 ("%4s" hack has to go)
 
