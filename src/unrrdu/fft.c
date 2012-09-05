@@ -100,7 +100,8 @@ static const airEnum *const
 direction_enm = &_direction_enm;
 
 int
-unrrdu_fftMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_fftMain(int argc, const char **argv, const char *me,
+               hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *_nin, *nout;

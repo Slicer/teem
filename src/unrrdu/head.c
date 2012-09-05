@@ -33,7 +33,7 @@ char *_unrrdu_headInfoL =
  "* Uses _nrrdOneLine");
 
 int
-unrrdu_headDoit(char *me, NrrdIoState *nio, char *inS, FILE *fout) {
+unrrdu_headDoit(const char *me, NrrdIoState *nio, char *inS, FILE *fout) {
   airArray *mop;
   unsigned int len;
   FILE *fin;
@@ -79,7 +79,8 @@ unrrdu_headDoit(char *me, NrrdIoState *nio, char *inS, FILE *fout) {
 }
 
 int
-unrrdu_headMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_headMain(int argc, const char **argv, const char *me,
+                hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, **inS;
   NrrdIoState *nio;

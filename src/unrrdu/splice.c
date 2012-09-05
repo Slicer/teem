@@ -29,7 +29,8 @@ char *_unrrdu_spliceInfoL =
    "* Uses nrrdSplice");
 
 int
-unrrdu_spliceMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_spliceMain(int argc, const char **argv, const char *me,
+                  hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nslice;

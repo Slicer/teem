@@ -35,7 +35,8 @@ char *_unrrdu_projectInfoL =
  "* Uses nrrdProject");
 
 int
-unrrdu_projectMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_projectMain(int argc, const char **argv, const char *me,
+                   hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

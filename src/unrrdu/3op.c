@@ -34,7 +34,8 @@ char *_unrrdu_3opInfoL =
  "* Uses nrrdArithIterTernaryOp or (with -w) nrrdArithIterTernaryOpSelect");
 
 int
-unrrdu_3opMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_3opMain(int argc, const char **argv, const char *me,
+               hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   NrrdIter *in1, *in2, *in3;

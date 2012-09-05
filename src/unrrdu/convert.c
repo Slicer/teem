@@ -36,7 +36,8 @@ char *_unrrdu_convertInfoL =
  "* Uses nrrdConvert or nrrdClampConvert");
 
 int
-unrrdu_convertMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_convertMain(int argc, const char **argv, const char *me,
+                   hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

@@ -33,7 +33,8 @@ char *_unrrdu_mrmapInfoL =
  "* Uses nrrdApplyMulti1DRegMap");
 
 int
-unrrdu_mrmapMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_mrmapMain(int argc, const char **argv, const char *me,
+                 hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, **_nmmap, *nmmap, *nout;

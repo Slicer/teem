@@ -35,7 +35,8 @@ char *_unrrdu_lut2InfoL =
  "* Uses nrrdApply2DLut");
 
 int
-unrrdu_lut2Main(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_lut2Main(int argc, const char **argv, const char *me,
+                hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nlut, *nout, *ntmp[2];

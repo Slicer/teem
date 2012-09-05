@@ -37,7 +37,8 @@ char *_unrrdu_untileInfoL =
  "* Uses nrrdUntile2D");
 
 int
-unrrdu_untileMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_untileMain(int argc, const char **argv, const char *me, 
+                  hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

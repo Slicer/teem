@@ -33,7 +33,8 @@ char *_unrrdu_diffInfoL =
  "* Uses nrrdCompare");
 
 int
-unrrdu_diffMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_diffMain(int argc, const char **argv, const char *me,
+                hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err;
   airArray *mop;

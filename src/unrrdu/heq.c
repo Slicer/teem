@@ -35,7 +35,8 @@ char *_unrrdu_heqInfoL =
  "* Uses nrrdHistoEq");
 
 int
-unrrdu_heqMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_heqMain(int argc, const char **argv, const char *me,
+               hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *mapS;
   Nrrd *nin, *nout, *nmap;

@@ -31,7 +31,8 @@ char *_unrrdu_axinfoInfoL =
  "* Uses no particular function; just sets fields in NrrdAxisInfo");
 
 int
-unrrdu_axinfoMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_axinfoMain(int argc, const char **argv, const char *me,
+                  hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *label, *units, *centerStr, *kindStr;
   Nrrd *nin, *nout;

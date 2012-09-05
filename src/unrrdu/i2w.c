@@ -34,7 +34,8 @@ char *_unrrdu_i2wInfoL =
  "* Uses NRRD_POS macro");
 
 int
-unrrdu_i2wMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_i2wMain(int argc, const char **argv, const char *me,
+               hestParm *hparm) {
   hestOpt *opt = NULL;
   airArray *mop;
   int pret;

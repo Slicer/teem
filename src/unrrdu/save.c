@@ -35,7 +35,8 @@ char *_unrrdu_saveInfoL =
  "* Uses various fields in the NrrdIOState passed to nrrdSave");
 
 int
-unrrdu_saveMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_saveMain(int argc, const char **argv, const char *me,
+                hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *outData,
     encInfo[AIR_STRLEN_HUGE], fmtInfo[AIR_STRLEN_HUGE];

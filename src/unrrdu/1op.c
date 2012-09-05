@@ -30,7 +30,8 @@ char *_unrrdu_1opInfoL =
    "* Uses nrrdArithUnaryOp");
 
 int
-unrrdu_1opMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_1opMain(int argc, const char **argv, const char *me,
+               hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *seedS;
   Nrrd *nin, *nout, *ntmp=NULL;

@@ -30,7 +30,8 @@ char *_unrrdu_ccsettleInfoL =
  "* Uses nrrdCCSettle");
 
 int
-unrrdu_ccsettleMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_ccsettleMain(int argc, const char **argv, const char *me,
+                    hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *valS;
   Nrrd *nin, *nout, *nval=NULL;

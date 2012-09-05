@@ -65,7 +65,8 @@ char *_unrrdu_makeInfoL =
  "library function that encapsulates the functionality here.");
 
 int
-unrrdu_makeMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_makeMain(int argc, const char **argv, const char *me,
+                hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *outData, *err, 
     **dataFileNames, **kvp, *content, encInfo[AIR_STRLEN_LARGE];

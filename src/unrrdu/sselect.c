@@ -31,7 +31,8 @@ char *_unrrdu_sselectInfoL =
    "* Uses nrrdSliceSelect");
 
 int
-unrrdu_sselectMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_sselectMain(int argc, const char **argv, const char *me,
+                   hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err;
   Nrrd *nin, *noutAbove, *noutBelow, *nline;

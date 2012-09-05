@@ -30,7 +30,8 @@ char *_unrrdu_flipInfoL =
    "* Uses nrrdFlip");
 
 int
-unrrdu_flipMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_flipMain(int argc, const char **argv, const char *me,
+                hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

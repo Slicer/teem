@@ -35,7 +35,8 @@ char *_unrrdu_substInfoL =
  "* Uses nrrdApply1DSubstitution");
 
 int
-unrrdu_substMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_substMain(int argc, const char **argv, const char *me,
+                 hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   int pret;

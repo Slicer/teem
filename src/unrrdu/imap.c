@@ -37,7 +37,8 @@ char *_unrrdu_imapInfoL =
  "* Uses nrrdApply1DIrregMap");
 
 int
-unrrdu_imapMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_imapMain(int argc, const char **argv, const char *me,
+                hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nmap, *nacl, *nout;

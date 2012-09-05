@@ -55,7 +55,8 @@ extern "C" {
 */
 typedef struct {
   const char *name, *info;
-  int (*main)(int argc, const char **argv, char *me, hestParm *hparm);
+  int (*main)(int argc, const char **argv, const char *me, 
+              hestParm *hparm);
 } unrrduCmd;
 
 /*

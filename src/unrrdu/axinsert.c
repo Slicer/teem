@@ -32,7 +32,8 @@ char *_unrrdu_axinsertInfoL =
  "* Uses nrrdAxesInsert");
 
 int
-unrrdu_axinsertMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_axinsertMain(int argc, const char **argv, const char *me,
+                    hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *label;
   Nrrd *nin, *nout;

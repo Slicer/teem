@@ -34,7 +34,8 @@ char *_unrrdu_2opInfoL =
  "* Uses nrrdArithIterBinaryOp or (with -w) nrrdArithIterBinaryOpSelect");
 
 int
-unrrdu_2opMain(int argc, const char **argv, char *me, hestParm *hparm) {
+unrrdu_2opMain(int argc, const char **argv, const char *me,
+               hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *seedS;
   NrrdIter *in1, *in2;
