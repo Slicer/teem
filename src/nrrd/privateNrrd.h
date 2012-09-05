@@ -184,6 +184,9 @@ extern int nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin);
 extern int _nrrdCopy(Nrrd *nout, const Nrrd *nin, int bitflag);
 extern int _nrrdSizeCheck(const size_t *size, unsigned int dim, int useBiff);
 extern void _nrrdTraverse(Nrrd *nrrd);
+extern int _nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type,
+                                        unsigned int dim, const size_t *size,
+                                        int zeroWhenNoAlloc);
 
 #if TEEM_ZLIB
 #if TEEM_VTK_MANGLE

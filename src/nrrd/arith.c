@@ -381,7 +381,8 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
   
   nrrdAxisInfoGet_nva(ninA, nrrdAxisInfoSize, size);
   if (!( nout == ninA || nout == ninB)) {
-    if (nrrdMaybeAlloc_nva(nout, ninA->type, ninA->dim, size)) {
+    if (_nrrdMaybeAllocMaybeZero_nva(nout, ninA->type, ninA->dim, size,
+                                     AIR_FALSE /* zero when no realloc */)) {
       biffAddf(NRRD, "%s: couldn't allocate output nrrd", me);
       return 1;
     }
@@ -459,7 +460,8 @@ nrrdArithIterBinaryOpSelect(Nrrd *nout, int op,
   type = nin->type;
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   
-  if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
+  if (_nrrdMaybeAllocMaybeZero_nva(nout, type, nin->dim, size,
+                                   AIR_FALSE /* zero when no realloc */)) {
     biffAddf(NRRD, "%s: couldn't allocate output nrrd", me);
     return 1;
   }
@@ -666,7 +668,8 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
   
   nrrdAxisInfoGet_nva(ninA, nrrdAxisInfoSize, size);
   if (!( nout == ninA || nout == ninB || nout == ninC)) {
-    if (nrrdMaybeAlloc_nva(nout, ninA->type, ninA->dim, size)) {
+    if (_nrrdMaybeAllocMaybeZero_nva(nout, ninA->type, ninA->dim, size,
+                                     AIR_FALSE /* zero when no realloc */)) {
       biffAddf(NRRD, "%s: couldn't allocate output nrrd", me);
       return 1;
     }
@@ -750,7 +753,8 @@ nrrdArithIterTernaryOpSelect(Nrrd *nout, int op,
   }
   type = nin->type;
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
-  if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
+  if (_nrrdMaybeAllocMaybeZero_nva(nout, type, nin->dim, size,
+                                   AIR_FALSE /* zero when no realloc */)) {
     biffAddf(NRRD, "%s: couldn't allocate output nrrd", me);
     return 1;
   }
@@ -844,9 +848,11 @@ nrrdArithAffine(Nrrd *nout, double minIn,
     biffAddf(NRRD, "%s: got NULL pointer or invalid input", me);
     return 1;
   }
-  if (nrrdCopy(nout, nin)) {
-    biffAddf(NRRD, "%s: couldn't initialize output", me);
-    return 1;
+  if (nout != nin) {
+    if (nrrdCopy(nout, nin)) {
+      biffAddf(NRRD, "%s: couldn't initialize output", me);
+      return 1;
+    }
   }
   N = nrrdElementNumber(nin);
   ins = nrrdDInsert[nout->type];

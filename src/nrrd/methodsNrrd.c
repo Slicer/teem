@@ -856,17 +856,19 @@ nrrdAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
 
 
 /*
-******** nrrdMaybeAlloc_nva
+** _nrrdMaybeAllocMaybeZero_nva
 **
-** calls nrrdAlloc_nva if the requested space is different than
-** what is currently held
+** New implementation of nrrdMaybeAlloc_nva, but now with ability
+** to control whether or not to zero out when re-allocation wasn't needed
 **
-** also subscribes to the "don't mess with peripheral information" philosophy
+** HEY: should consider making this a public function, but GLK couldn't
+** think of a name that wasn't silly
 */
 int
-nrrdMaybeAlloc_nva(Nrrd *nrrd, int type,
-                   unsigned int dim, const size_t *size) {
-  static const char me[]="nrrdMaybeAlloc_nva";
+_nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type,
+                             unsigned int dim, const size_t *size,
+                             int zeroWhenNoAlloc) {
+  static const char me[]="nrrdMaybeAllocMaybeZero_nva";
   size_t sizeWant, sizeHave, numWant, elementSizeWant;
   int need;
   unsigned int ai;
@@ -927,15 +929,42 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type,
       return 1;
     }
   } else {
+    /* size is already exactly what we want */
     if (nrrdWrap_nva(nrrd, nrrd->data, type, dim, size)) {
       biffAddf(NRRD, "%s:", me);
       return 1;
     }
-    /* but we do have to initialize memory! */
-    memset(nrrd->data, 0, nrrdElementNumber(nrrd)*nrrdElementSize(nrrd));
+    /* but we may have to initialize memory */
+    if (zeroWhenNoAlloc) {
+      memset(nrrd->data, 0, nrrdElementNumber(nrrd)*nrrdElementSize(nrrd));
+    }
   }
 
   return 0;
+}
+
+/*
+******** nrrdMaybeAlloc_nva
+**
+** NOTE: this is now just a wrapper around _nrrdMaybeAllocMaybeZero_nva;
+** below info referred to original implementation.
+**
+** calls nrrdAlloc_nva if the requested space is different than
+** what is currently held
+**
+** also subscribes to the "don't mess with peripheral information" philosophy
+*/
+int
+nrrdMaybeAlloc_nva(Nrrd *nrrd, int type,
+                   unsigned int dim, const size_t *size) {
+  static const char me[]="nrrdMaybeAlloc_nva";
+  int ret;
+  ret = _nrrdMaybeAllocMaybeZero_nva(nrrd, type, dim, size,
+                                     AIR_TRUE);
+  if (ret) {
+    biffAddf(NRRD, "%s: trouble", me);
+  }
+  return ret;
 }
 
 /*
