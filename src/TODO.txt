@@ -110,6 +110,7 @@ being resampled via the older "N" or "xF" means"
 small gauss)
 
 gage:
+* clean up gageVolumeCheck vs gageKindVolumeCheck mess
 * in a gageKinds, the airEnum for the items, and the assocaited table of
 pre-requisites, should really be compiled from some other description
 which is more reliably written and upated (updating a gageKind now is
