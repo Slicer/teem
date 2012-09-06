@@ -23,22 +23,46 @@
 
 #include "teem/meet.h"
 
-#define PROBE "probeSS"
-
 /*
 ** Tests:
 ** ... lots of gage stuff ...
 **
-** The main point of all this is to make sure that values and their
-** their derivatives (where the gageKind supports it) are correctly
-** handled in the multi-value gageKinds (gageKindVec, tenGageKind,
-** tenDwiGageKind), relative to the gageKindScl ground-truth
+** The main point of all this is to make sure of two separate things about
+** gage, the testing of which requires so much in common that one program
+** might as well do both.
+**
+** 1) that values and their their derivatives (where the gageKind supports
+** it) are correctly handled in the multi-value gageKinds (gageKindVec,
+** tenGageKind, tenDwiGageKind), relative to the gageKindScl ground-truth:
+** the per-component values and derivatives have to match those reconstructed
+** from sets of scalar volumes of the components.
+*  Also, that gageContextCopy works even on dynamic kinds (like DWIs)
+**
+** 2) that scale-space reconstruction works: that sets of pre-blurred volumes
+** can be generated and saved via the utilities in meet, that the smart
+** hermite-spline based scale-space interpolation is working (for all kinds),
+** and that gageContextCopy works on scale-space contexts
 */
 
+/* the weird function names of the various local functions here (created in a
+   rather adhoc and organic way) should be read in usual Teem order: from
+   right to left */
+
+#define PROBE "probeSS"
+#define KIND_NUM 4
+#define KI_SCL 0
+#define KI_VEC 1
+#define KI_TEN 2
+#define KI_DWI 3
+
+#define NRRD_NEW(nn, mm)                                        \
+  (nn) = nrrdNew();                                             \
+       airMopAdd((mm), (nn), (airMopper)nrrdNuke, airMopAlways)
+
 static int
-genTensorVol(Nrrd *ncten, double noiseStdv,
-             unsigned int sx, unsigned int sy, unsigned int sz) {
-  static const char me[]="genTensorVol";
+engageGenTensor(gageContext *gctx, Nrrd *ncten, double noiseStdv,
+                unsigned int sx, unsigned int sy, unsigned int sz) {
+  static const char me[]="engageGenTensor";
   hestParm *hparm;
   airArray *smop;
   char tmpStr[4][AIR_STRLEN_SMALL];
@@ -52,6 +76,7 @@ genTensorVol(Nrrd *ncten, double noiseStdv,
      "-ev", "0.00086", "0.00043", "0.00021", "-bg", "0.003", "-b", "5",
      NULL};
   int helixArgc;
+  gagePerVolume *pvl;
 
   smop = airMopNew();
   /* not using random number until sure that CTest stuff 
@@ -83,12 +108,12 @@ genTensorVol(Nrrd *ncten, double noiseStdv,
     biffAddf(PROBE, "%s: problem running tend %s", me, tend_helixCmd.name);
     airMopError(smop); return 1;
   }
-  nclean = nrrdNew();
-  airMopAdd(smop, nclean, (airMopper)nrrdNuke, airMopAlways);
+  NRRD_NEW(nclean, smop);
   if (nrrdLoad(nclean, tmpStr[3], NULL)) {
     biffAddf(PROBE, "%s: trouble loading from new vol %s", me, tmpStr[3]);
     airMopError(smop); return 1;
   }
+
   /* add some noise to tensor value; no, this isn't really physical;
      since we're adding noise to the tensor and then simulating DWIs,
      rather than adding noise to DWIs and then estimating tensor,
@@ -104,18 +129,42 @@ genTensorVol(Nrrd *ncten, double noiseStdv,
     biffMovef(PROBE, NRRD, "%s: trouble noisying output", me);
     airMopError(smop); return 1;
   }
+
+  /* wrap in gage context */
+  if ( !(pvl = gagePerVolumeNew(gctx, ncten, tenGageKind))
+       || gagePerVolumeAttach(gctx, pvl) ) {
+    biffMovef(PROBE, GAGE, "%s: trouble engaging tensor", me);
+    return 1;
+  }
+
   airMopOkay(smop);
   return 0;
 }
 
 static int
-genScalarVol(Nrrd *nscl, const Nrrd *ncten) {
-  static const char me[]="genScalarVol";
+engageGenScalar(gageContext *gctx, Nrrd *nscl, 
+                gageContext *gctxComp, Nrrd *nsclCopy, const Nrrd *ncten) {
+  static const char me[]="engageGenScalar";
+  gagePerVolume *pvl;
 
   if (tenAnisoVolume(nscl, ncten, tenAniso_Tr, 0)) {
     biffMovef(PROBE, TEN, "%s: trouble creating scalar volume", me);
     return 1;
   }
+  if (nrrdCopy(nsclCopy, nscl)) {
+    biffMovef(PROBE, NRRD, "%s: trouble copying scalar volume", me);
+    return 1;
+  }
+
+  /* wrap both in gage context */
+  if ( !(pvl = gagePerVolumeNew(gctx, nscl, gageKindScl))
+       || gagePerVolumeAttach(gctx, pvl)
+       || !(pvl = gagePerVolumeNew(gctxComp, nsclCopy, gageKindScl))
+       || gagePerVolumeAttach(gctxComp, pvl)) {
+    biffMovef(PROBE, GAGE, "%s: trouble engaging scalars", me);
+    return 1;
+  }
+
   return 0;
 }
 
@@ -127,14 +176,15 @@ genScalarVol(Nrrd *nscl, const Nrrd *ncten) {
 ** of the scalars, vectors, etc, and need them to match up
 */
 static int
-genVectorVol(Nrrd *nvec, const Nrrd *nscl) {
-  static const char me[]="genVectorVol";
+engageGenVector(gageContext *gctx, Nrrd *nvec, const Nrrd *nscl) {
+  static const char me[]="engageGenVector";
   ptrdiff_t padMin[4] = {0, 0, 0, 0}, padMax[4];
   Nrrd *ntmp;
   airArray *smop;
   float *vec, *scl;
   size_t sx, sy, sz, xi, yi, zi, Px, Mx, Py, My, Pz, Mz;
   double spcX, spcY, spcZ;
+  gagePerVolume *pvl;
   
   if (nrrdTypeFloat != nscl->type) {
     biffAddf(PROBE, "%s: expected %s not %s type", me,
@@ -143,8 +193,7 @@ genVectorVol(Nrrd *nvec, const Nrrd *nscl) {
     airMopError(smop); return 1;
   }
   smop = airMopNew();
-  ntmp = nrrdNew();
-  airMopAdd(smop, ntmp, (airMopper)nrrdNuke, airMopAlways);
+  NRRD_NEW(ntmp, smop);
   sx = nscl->axis[0].size;
   sy = nscl->axis[1].size;
   sz = nscl->axis[2].size;
@@ -185,6 +234,12 @@ genVectorVol(Nrrd *nvec, const Nrrd *nscl) {
   }
 #undef INDEX
 
+  /* wrap in gage context */
+  if ( !(pvl = gagePerVolumeNew(gctx, nvec, gageKindVec))
+       || gagePerVolumeAttach(gctx, pvl) ) {
+    biffMovef(PROBE, GAGE, "%s: trouble engaging vectors", me);
+    return 1;
+  }
   airMopError(smop);
   return 0;
 }
@@ -194,9 +249,9 @@ genVectorVol(Nrrd *nvec, const Nrrd *nscl) {
 ** this includes generating a new gradient set 
 */
 static int
-genDwiVol(Nrrd *ndwi, Nrrd *ngrad, 
-          unsigned int gradNum, double bval, const Nrrd *ncten) {
-  static const char me[]="genDwiVol";
+genDwi(Nrrd *ndwi, Nrrd *ngrad, 
+       unsigned int gradNum, double bval, const Nrrd *ncten) {
+  static const char me[]="genDwi";
   tenGradientParm *gparm;
   tenExperSpec *espec;
   Nrrd *nten, *nb0;
@@ -214,16 +269,15 @@ genDwiVol(Nrrd *ndwi, Nrrd *ngrad,
   gparm->seed = 4242;
   gparm->insertZeroVec = AIR_TRUE;
   if (tenGradientGenerate(ngrad, gradNum, gparm)
-      || tenExperSpecGradSingleBValSet(espec, AIR_FALSE /* insertB0 */,
-                                       bval, AIR_CAST(double *, ngrad->data),
-                                       gradNum)) {
+      || tenExperSpecGradSingleBValSet(espec, AIR_FALSE /* insertB0 */, bval,
+                                       AIR_CAST(double *, ngrad->data),
+                                       AIR_CAST(unsigned int,
+                                                ngrad->axis[1].size))) {
     biffMovef(PROBE, TEN, "%s: trouble generating grads or espec", me);
     airMopError(smop); return 1;
   }
-  nten = nrrdNew();
-  airMopAdd(smop, nten, (airMopper)nrrdNuke, airMopAlways);
-  nb0 = nrrdNew();
-  airMopAdd(smop, nb0, (airMopper)nrrdNuke, airMopAlways);
+  NRRD_NEW(nten, smop);
+  NRRD_NEW(nb0, smop);
   ELL_4V_SET(cropMax,
              ncten->axis[0].size-1,
              ncten->axis[1].size-1,
@@ -270,8 +324,7 @@ engageMopDiceVector(gageContext *gctx, Nrrd *nvecComp[3],
     return 1;
   }
   for (ci=0; ci<3; ci++) {
-    nvecComp[ci] = nrrdNew();
-    airMopAdd(mop, nvecComp[ci], (airMopper)nrrdNuke, airMopAlways);
+    NRRD_NEW(nvecComp[ci], mop);
     if (nrrdSlice(nvecComp[ci], nvec, 0, ci)) {
       biffMovef(PROBE, NRRD, "%s: trouble getting component %u", me, ci);
       return 1;
@@ -299,8 +352,7 @@ engageMopDiceTensor(gageContext *gctx, Nrrd *nctenComp[7],
     return 1;
   }
   for (ci=0; ci<7; ci++) {
-    nctenComp[ci] = nrrdNew();
-    airMopAdd(mop, nctenComp[ci], (airMopper)nrrdNuke, airMopAlways);
+    NRRD_NEW(nctenComp[ci], mop);
     if (nrrdSlice(nctenComp[ci], ncten, 0, ci)) {
       biffMovef(PROBE, NRRD, "%s: trouble getting component %u", me, ci);
       return 1;
@@ -351,8 +403,7 @@ engageMopDiceDwi(gageContext *gctx, Nrrd ***ndwiCompP,
   airMopAdd(mop, ndwiComp, airFree, airMopAlways);
   *ndwiCompP = ndwiComp;
   for (ci=0; ci<dwiNum; ci++) {
-    ndwiComp[ci] = nrrdNew();
-    airMopAdd(mop, ndwiComp[ci], (airMopper)nrrdNuke, airMopAlways);
+    NRRD_NEW(ndwiComp[ci], mop);
     if (nrrdSlice(ndwiComp[ci], ndwi, 0, ci)) {
       biffMovef(PROBE, NRRD, "%s: trouble getting component %u", me, ci);
       return 1;
@@ -366,11 +417,92 @@ engageMopDiceDwi(gageContext *gctx, Nrrd ***ndwiCompP,
   return 0;
 }
 
-#define KIND_NUM 4
-#define KI_SCL 0
-#define KI_VEC 1
-#define KI_TEN 2
-#define KI_DWI 3
+/*
+** setting up gageContexts for the first of the two tasks listed above:
+** making sure per-component information is handled correctly.  NOTE: The
+** combination of function calls made here is very atypical for a Teem-using
+** program
+*/
+static int
+updateQueryKernelSetTask1(gageContext *gctxComp[KIND_NUM],
+                          gageContext *gctx[KIND_NUM],
+                          double support) {
+  static const char me[]="updateQueryKernelSetTask1";
+  double parm1[NRRD_KERNEL_PARMS_NUM], parmV[NRRD_KERNEL_PARMS_NUM];
+  unsigned int kindIdx;
+
+  if (4 != KIND_NUM) {
+    biffAddf(PROBE, "%s: sorry, confused: KIND_NUM %u != 4", 
+             me, KIND_NUM);
+    return 1;
+  }
+  parm1[0] = 1.0;
+  parmV[0] = support;
+  for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
+    if (0 /* logical no-op just for formatting */
+        || gageKernelSet(gctxComp[kindIdx], gageKernel00, nrrdKernelCos4SupportDebug, parm1)
+        || gageKernelSet(gctxComp[kindIdx], gageKernel11, nrrdKernelCos4SupportDebugD, parm1)
+        || gageKernelSet(gctxComp[kindIdx], gageKernel22, nrrdKernelCos4SupportDebugDD, parm1)
+        || gageKernelSet(gctx[kindIdx], gageKernel00, nrrdKernelCos4SupportDebug, parmV)
+        || gageKernelSet(gctx[kindIdx], gageKernel11, nrrdKernelCos4SupportDebugD, parmV)
+        || gageKernelSet(gctx[kindIdx], gageKernel22, nrrdKernelCos4SupportDebugDD, parmV)) {
+      biffMovef(PROBE, GAGE, "%s: trouble setting kernel (kind %u)",
+                me, kindIdx);
+      return 1;
+    }
+  }
+  /* Note that the contexts for the diced-up volumes of components are always
+     of kind gageKindScl, and all the items are from the gageScl* enum */
+  for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
+    if (0 /* logical no-op just for formatting */
+        || gageQueryItemOn(gctxComp[kindIdx], gctxComp[kindIdx]->pvl[0], gageSclValue)
+        || gageQueryItemOn(gctxComp[kindIdx], gctxComp[kindIdx]->pvl[0], gageSclGradVec)
+        || gageQueryItemOn(gctxComp[kindIdx], gctxComp[kindIdx]->pvl[0], gageSclHessian)) {
+      biffMovef(PROBE, GAGE, "%s: trouble setting query (kind %u)",
+                me, kindIdx);
+      return 1;
+    }
+  }
+  /* For these contexts, we have to use the kind-specific items that
+     correspond to the values and derivatives */
+  if (0 /* logical no-op just for formatting */
+      || gageQueryItemOn(gctx[KI_SCL], gctx[KI_SCL]->pvl[0], gageSclValue)
+      || gageQueryItemOn(gctx[KI_SCL], gctx[KI_SCL]->pvl[0], gageSclGradVec)
+      || gageQueryItemOn(gctx[KI_SCL], gctx[KI_SCL]->pvl[0], gageSclHessian)
+      
+      || gageQueryItemOn(gctx[KI_VEC], gctx[KI_VEC]->pvl[0], gageVecVector)
+      || gageQueryItemOn(gctx[KI_VEC], gctx[KI_VEC]->pvl[0], gageVecJacobian)
+      || gageQueryItemOn(gctx[KI_VEC], gctx[KI_VEC]->pvl[0], gageVecHessian)
+
+      || gageQueryItemOn(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageTensor)
+      || gageQueryItemOn(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageTensorGrad)
+      || gageQueryItemOn(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageHessian)
+
+      || gageQueryItemOn(gctx[KI_DWI], gctx[KI_DWI]->pvl[0], tenDwiGageAll)) {
+    biffMovef(PROBE, GAGE, "%s: trouble setting item", 
+              me, kindIdx);
+    return 1;
+  }
+  for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
+    if (gageUpdate(gctxComp[kindIdx])) {
+      biffMovef(PROBE, GAGE, "%s: trouble updating comp gctx %u", 
+                me, kindIdx);
+      return 1;
+    }
+  }  
+  for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
+    if (gageUpdate(gctx[kindIdx])) {
+      biffMovef(PROBE, GAGE, "%s: trouble updating single gctx %u", 
+                me, kindIdx);
+      return 1;
+    }
+  }  
+
+  /* TODO have to figure out how to get all the answer pointers
+     in some logical way */
+
+  return 0;
+}
 
 int
 main(int argc, const char **argv) {
@@ -383,10 +515,14 @@ main(int argc, const char **argv) {
     gageKindScl, gageKindVec, tenGageKind, NULL /* dwi */};
   gageKind *dwikind = NULL;
   gageContext *gctxComp[KIND_NUM], *gctx[KIND_NUM];
-  Nrrd *nin[KIND_NUM], *nvecComp[3], *nctenComp[7], **ndwiComp,
+  Nrrd *nin[KIND_NUM],
+    /* these are the volumes that are used in gctxComp[] */
+    *nsclCopy, *nvecComp[3], *nctenComp[7], **ndwiComp,
     *ngrad;  /* need access to list of gradients used to make DWIs;
                 (this is not the gradient of a scalar field) */
-  unsigned int kindIdx, volSize[3] = {45, 46, 47}, gradNum = 35;
+  unsigned int kindIdx, volSize[3] = {45, 46, 47},
+    gradNum = 9; /* small number so that missing one will produce
+                    a big reconstruction error */
   double bval = 1000, noiseStdv=0.0001;
 
   AIR_UNUSED(argc);
@@ -401,40 +537,30 @@ main(int argc, const char **argv) {
 
   for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
     GAGE_CTX_NEW(gctx[kindIdx], mop);
-    if (KI_SCL == kindIdx) {
-      /* don't need a per-component context for scalar */
-      gctxComp[kindIdx] = NULL;
-    } else {
-      GAGE_CTX_NEW(gctxComp[kindIdx], mop);
-    }
+    GAGE_CTX_NEW(gctxComp[kindIdx], mop);
   }
 #undef GAGE_CTX_NEW
 
   for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
-    nin[kindIdx] = nrrdNew();
-    airMopAdd(mop, nin[kindIdx], (airMopper)nrrdNuke, airMopAlways);
+    NRRD_NEW(nin[kindIdx], mop);
   }
-  ngrad = nrrdNew();
-  airMopAdd(mop, ngrad, (airMopper)nrrdNuke, airMopAlways);
-
-  if (genTensorVol(nin[KI_TEN], noiseStdv,
-                   volSize[0], volSize[1], volSize[2])
-      || genScalarVol(nin[KI_SCL], nin[KI_TEN])
-      || genVectorVol(nin[KI_VEC], nin[KI_SCL])
-      || genDwiVol(nin[KI_DWI], ngrad, gradNum, bval, nin[KI_TEN])
+  NRRD_NEW(ngrad, mop);
+  NRRD_NEW(nsclCopy, mop);
+  if (engageGenTensor(gctx[KI_TEN], nin[KI_TEN], noiseStdv,
+                      volSize[0], volSize[1], volSize[2])
+      || engageGenScalar(gctx[KI_SCL], nin[KI_SCL],
+                         gctxComp[KI_SCL], nsclCopy, nin[KI_TEN])
+      || engageGenVector(gctx[KI_VEC], nin[KI_VEC], nin[KI_SCL])
+      /* engage'ing of nin[KI_DWI] done below */
+      || genDwi(nin[KI_DWI], ngrad, gradNum /* for B0 */,
+                bval, nin[KI_TEN])
       || engageMopDiceVector(gctxComp[KI_VEC], nvecComp, mop, nin[KI_VEC])
       || engageMopDiceTensor(gctxComp[KI_TEN], nctenComp, mop, nin[KI_TEN])
       || engageMopDiceDwi(gctxComp[KI_DWI], &ndwiComp, mop, nin[KI_DWI])) {
     airMopAdd(mop, err = biffGetDone(PROBE), airFree, airMopAlways);
-    fprintf(stderr, "trouble creating volumes:\n%s", err);
+    fprintf(stderr, "%s: trouble creating volumes:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  /*
-  nrrdSave("tmp-cten.nrrd", nin[KI_TEN], NULL);
-  nrrdSave("tmp-scl.nrrd", nin[KI_SCL], NULL);
-  nrrdSave("tmp-vec.nrrd", nin[KI_VEC], NULL);
-  nrrdSave("tmp-dwi.nrrd", nin[KI_DWI], NULL);
-  */
   dwikind = tenDwiGageKindNew();
   airMopAdd(mop, dwikind, (airMopper)tenDwiGageKindNix, airMopAlways);
   if (tenDwiGageKindSet(dwikind, -1 /* thresh */, 0 /* soft */,
@@ -444,11 +570,21 @@ main(int argc, const char **argv) {
                         tenEstimate2MethodPeled,
                         424242)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
-    fprintf(stderr, "trouble creating DWI context:\n%s", err);
+    fprintf(stderr, "%s: trouble creating DWI kind:\n%s", me, err);
     airMopError(mop); return 1;
   }
   /* access through kind[] is const, but not through dwikind */
-  kind[3] = dwikind;
+  kind[KI_DWI] = dwikind;
+  /* engage dwi vol */
+  {
+    gagePerVolume *pvl;
+    if ( !(pvl = gagePerVolumeNew(gctx[KI_DWI], nin[KI_DWI], kind[KI_DWI]))
+         || gagePerVolumeAttach(gctx[KI_DWI], pvl) ) {
+      airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble creating DWI context:\n%s", me, err);
+      airMopError(mop); return 1;
+    }
+  }
   
   /* make sure kinds can parse back to themselves
      (const vs non-const issues are confusing....)
@@ -461,11 +597,38 @@ main(int argc, const char **argv) {
   }
   */
   
+  if (updateQueryKernelSetTask1(gctxComp, gctx, 1.0 /* support */)) {
+    airMopAdd(mop, err = biffGetDone(PROBE), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble updating contexts:\n%s", me, err);
+    airMopError(mop); return 1;
+  }
+  
+  /*
+  nrrdSave("tmp-cten.nrrd", nin[KI_TEN], NULL);
+  nrrdSave("tmp-scl.nrrd", nin[KI_SCL], NULL);
+  nrrdSave("tmp-vec.nrrd", nin[KI_VEC], NULL);
+  nrrdSave("tmp-dwi.nrrd", nin[KI_DWI], NULL);
+  */
+  /*
+  for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
+    printf("%s: %s (%s) -> (%u) %u\n", me, kind[kindIdx]->name,
+           kind[kindIdx]->dynamicAlloc ? "dynamic" : "static",
+           kind[kindIdx]->baseDim, kind[kindIdx]->valLen);
+  }
+  */
+
+  /* use minimal support for component volumes */
+  /* use varying support for multi-variate volumes */
+  /* make sure per-component reconstruction of values and
+     derivatives (where possible) is working correctly */
+  
   /* this is a work in progress ... */
   
-  /* gageContextCopy on stack! */
+  /* gageContextCopy on multi-variate values */
+
   /* create scale-space stacks with tent, ctmr, and hermite */
   /* save them, free, and read them back in */
+  /* gageContextCopy on stack */
   /* pick a scale in-between tau samples */
   /* for all the tau's half-way between tau samples in scale:
        blur at that tau to get correct values 
@@ -479,3 +642,4 @@ main(int argc, const char **argv) {
   airMopOkay(mop);
   return 0;
 }
+#undef NRRD_NEW
