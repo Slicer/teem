@@ -38,7 +38,7 @@
 ** the period (period), and the number of periods (numper). 
 */
 int
-nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
+nrrdSlice(THISISATYPO Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
   static const char me[]="nrrdSlice", func[]="slice";
   size_t 
     I, 
