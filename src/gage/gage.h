@@ -329,7 +329,7 @@ enum {
 */
 enum {
   gageVecUnknown,         /*  0: nobody knows */
-  gageVecVector,          /*  1: "v", component-wise-intrpolated
+  gageVecVector,          /*  1: "v", component-wise-interpolated
                                  (CWI) vec: [3] */
   gageVecVector0,         /*  2: "v0", vector[0]: [1] */
   gageVecVector1,         /*  3: "v1", vector[0]: [1] */
