@@ -586,17 +586,40 @@ main(int argc, const char **argv) {
     }
   }
   
-  /* make sure kinds can parse back to themselves
-     (const vs non-const issues are confusing....)
+  /* make sure kinds can parse back to themselves */
+  /* the messiness here is in part because of problems with the gage
+     API, and the weirdness of how meetGageKindParse is either allocating
+     something, or not, depending on its input.  There is no way to 
+     refer to the "name" of a dwi kind without having allocated something. */
   for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
-    if (kind[kindIdx] != meetGageKindParse(kind[kindIdx]->name)) {
-      fprintf(stderr, "%s: kind[%u]->name %s wasn't parsed\n", me,
-              kindIdx, kind[kindIdx]->name);
-      airMopError(mop); return 1;
+    if (!(kind[kindIdx]->dynamicAlloc)) {
+      if (kind[kindIdx] != meetGageKindParse(kind[kindIdx]->name)) {
+        fprintf(stderr, "%s: static kind[%u]->name %s wasn't parsed\n", me,
+                kindIdx, kind[kindIdx]->name);
+        airMopError(mop); return 1;
+      }
+    } else {
+      gageKind *ktmp;
+      ktmp = meetGageKindParse(kind[kindIdx]->name);
+      if (!ktmp) {
+        fprintf(stderr, "%s: dynamic kind[%u]->name %s wasn't parsed\n", me,
+                kindIdx, kind[kindIdx]->name);
+        airMopError(mop); return 1;
+      }
+      if (airStrcmp(ktmp->name, kind[kindIdx]->name)) {
+        fprintf(stderr, "%s: parsed dynamic kind[%u]->name %s didn't match %s\n", me,
+                kindIdx, ktmp->name, kind[kindIdx]->name);
+        airMopError(mop); return 1;
+      }
+      if (!airStrcmp(TEN_DWI_GAGE_KIND_NAME, ktmp->name)) {
+        /* HEY: there needs to be a generic way of freeing
+           a dynamic kind, perhaps a new nixer field in gageKind */
+        ktmp = tenDwiGageKindNix(ktmp);
+      }
     }
   }
-  */
   
+  /* ========================== TASK 1 */
   if (updateQueryKernelSetTask1(gctxComp, gctx, 1.0 /* support */)) {
     airMopAdd(mop, err = biffGetDone(PROBE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble updating contexts:\n%s", me, err);
@@ -617,15 +640,12 @@ main(int argc, const char **argv) {
   }
   */
 
-  /* use minimal support for component volumes */
-  /* use varying support for multi-variate volumes */
+  /* varying support for multi-variate volumes */
   /* make sure per-component reconstruction of values and
      derivatives (where possible) is working correctly */
-  
-  /* this is a work in progress ... */
-  
   /* gageContextCopy on multi-variate values */
 
+  /* ========================== TASK 2 */
   /* create scale-space stacks with tent, ctmr, and hermite */
   /* save them, free, and read them back in */
   /* gageContextCopy on stack */
@@ -636,6 +656,7 @@ main(int argc, const char **argv) {
   /* for all tau samples:
        blur at that tau to (re-)get correct values 
        check that everything agrees there */
+
 
   /* single probe with high verbosity */
 
