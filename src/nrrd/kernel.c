@@ -180,7 +180,7 @@ _nrrdBoxSup(const double *parm) {
   double S;
   
   S = parm[0];
-  /* adding the 0.5 is to insure that weights computed within the
+  /* adding the 0.5 is to ensure that weights computed within the
      support really do catch all the non-zero values */
   return S/2 + 0.5;
 }
