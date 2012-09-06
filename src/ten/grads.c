@@ -469,7 +469,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
   char filename[AIR_STRLEN_SMALL];
   unsigned int ii, num, iter, oldIdx, newIdx, edgeShrink;
   airArray *mop;
-  Nrrd *npos[2], *ntmp;
+  Nrrd *npos[2];
   double *pos, len, meanVelocity, pot, potNew, potD,
     edge, edgeMin, angle, angleNew;
   int E;
@@ -628,19 +628,12 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
   tgparm->edge = edge;
   tgparm->itersUsed = iter;
 
-  /* transfer info from npos[oldIdx] to nout */
-  if (tgparm->insertZeroVec) {
-    ntmp = nrrdNew();
-    airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
-  } else {
-    ntmp = nout;
-  }
   if ((tgparm->minMeanImprovement || tgparm->minMean)
       && !tgparm->single) {
     if (tgparm->verbose) {
       fprintf(stderr, "%s: optimizing balance:\n", me);
     }
-    if (tenGradientBalance(ntmp, npos[oldIdx], tgparm)) {
+    if (tenGradientBalance(nout, npos[oldIdx], tgparm)) {
       biffAddf(TEN, "%s: failed to minimize vector sum of gradients", me);
       airMopError(mop); return 1;
     }
@@ -651,18 +644,8 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
     if (tgparm->verbose) {
       fprintf(stderr, "%s: .......................... (no balancing)\n", me);
     }
-    if (nrrdConvert(ntmp, npos[oldIdx], nrrdTypeDouble)) {
+    if (nrrdConvert(nout, npos[oldIdx], nrrdTypeDouble)) {
       biffMovef(TEN, NRRD, "%s: couldn't set output", me);
-      airMopError(mop); return 1;
-    }
-  }
-  if (tgparm->insertZeroVec) {
-    ptrdiff_t padMin[2] = {0, -1}, padMax[2] = {0, 0};
-    padMax[0] = AIR_CAST(ptrdiff_t, ntmp->axis[0].size-1);
-    padMax[1] = AIR_CAST(ptrdiff_t, num-1);
-    if (nrrdPad_nva(nout, ntmp, padMin, padMax, 
-                    nrrdBoundaryPad, 0.0)) {
-      biffMovef(TEN, NRRD, "%s: trouble adding zero vector", me);
       airMopError(mop); return 1;
     }
   }
@@ -671,6 +654,10 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
   return 0;
 }
 
+/*
+** note that if tgparm->insertZeroVec, there will be one sample more
+** along axis 1 of nout than the requested #gradients "num"
+*/
 int
 tenGradientGenerate(Nrrd *nout, unsigned int num, tenGradientParm *tgparm) {
   static const char me[]="tenGradientGenerate";
@@ -694,6 +681,23 @@ tenGradientGenerate(Nrrd *nout, unsigned int num, tenGradientParm *tgparm) {
       || tenGradientDistribute(nout, nin, tgparm)) {
     biffAddf(TEN, "%s: trouble", me);
     airMopError(mop); return 1;
+  }
+  if (tgparm->insertZeroVec) {
+    /* this is potentially confusing: the second axis (axis 1)
+       is going to come back one longer than the requested 
+       number of gradients! */
+    Nrrd *ntmp;
+    ptrdiff_t padMin[2] = {0, -1}, padMax[2];
+    padMax[0] = AIR_CAST(ptrdiff_t, nout->axis[0].size-1);
+    padMax[1] = AIR_CAST(ptrdiff_t, num-1);
+    ntmp = nrrdNew();
+    airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdPad_nva(ntmp, nout, padMin, padMax, 
+                    nrrdBoundaryPad, 0.0)
+        || nrrdCopy(nout, ntmp)) {
+      biffMovef(TEN, NRRD, "%s: trouble adding zero vector", me);
+      airMopError(mop); return 1;
+    }
   }
 
   airMopOkay(mop);
