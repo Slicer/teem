@@ -240,11 +240,31 @@ gageKindVolumeCheck(const gageKind *kind, const Nrrd *nrrd) {
              airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
-  if (1 == kind->baseDim && (kind->valLen != nrrd->axis[0].size)) {
+  if (kind->baseDim) {
     char stmp[AIR_STRLEN_SMALL];
-    biffAddf(GAGE, "%s: kind requires %u axis 0 values, not %s", me,
-             kind->valLen, airSprintSize_t(stmp, nrrd->axis[0].size));
-    return 1;
+    if (1 == kind->baseDim) {
+      if (kind->valLen != nrrd->axis[0].size) {
+        biffAddf(GAGE, "%s: %s kind needs %u axis 0 values, not %s", me,
+                 kind->name, kind->valLen, 
+                 airSprintSize_t(stmp, nrrd->axis[0].size));
+        return 1;
+      }
+    } else {
+      /* actually there is yet to be a kind in Teem for which
+         kind->baseDim > 1, but this code would work in that case */
+      unsigned int axi;
+      size_t numsub; /* number of samples sub base dim */
+      numsub = 1;
+      for (axi=0; axi<kind->baseDim; axi++) {
+        numsub *= nrrd->axis[axi].size;
+      }
+      if (kind->valLen != numsub) {
+        biffAddf(GAGE, "%s: %s kind needs %u values below baseDim axis %u, "
+                 "not %s", me, kind->name,kind->valLen, kind->baseDim,
+                 airSprintSize_t(stmp, numsub));
+        return 1;
+      }
+    }
   }
   /* this eventually calls _gageShapeSet(), which, for purely historical
      reasons, does the brunt of the error checking, some of which is almost
