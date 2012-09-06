@@ -68,8 +68,14 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
              ctx, nin, kind);
     return NULL;
   }
-  if (gageVolumeCheck(ctx, nin, kind)) {
-    biffAddf(GAGE, "%s: problem with given volume", me);
+  /* Craziness: since circa 2003, the test below was to call gageVolumeCheck,
+     which is now just a wrapper around _gageShapeSet(), and which never
+     actually does the important checks of gageKindVolumeCheck (which in turn
+     eventually calls gageVolumeCheck). This means that basic errors were not
+     being caught, like having the wrong number of samples along axis 0 for
+     non-scalar kinds. These various functions need to be simplified soon */
+  if (gageKindVolumeCheck(kind, nin)) {
+    biffAddf(GAGE, "%s: problem with volume as %s kind", me, kind->name);
     return NULL;
   }
   pvl = AIR_CALLOC(1, gagePerVolume);
