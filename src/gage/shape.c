@@ -110,9 +110,9 @@ shapeUnitItoW(const gageShape *shape, double world[3],
 ** ctx is NULL, gageShapeSet was called, in which case we go with lax
 ** behavior (nothing "required")
 **
-** This function has subsumed the old gageVolumeCheck, and hence has 
-** become this weird beast- part error checker and part (gageShape)
-** initializer.  Oh well...
+** This function has subsumed the contents of the old gageVolumeCheck,
+** and hence has become this weird beast- part error checker and part
+** (gageShape) initializer.  Oh well... 
 */
 int
 _gageShapeSet(const gageContext *ctx, gageShape *shape,
