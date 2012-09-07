@@ -75,7 +75,10 @@ nrrd:
  - rename numParm --> parmNum
  - fix the kernels that meetNrrdKernelAllCheck revealed to be broken
  - consider nixing nrrdDefaultKernelParm0, nrrdEnvVarDefaultKernelParm0
-* consider nixing nrrdDefaultSpacing, nrrdEnvVarDefaultSpacing
+* should re-evaluate the need for all the nrrdDefault and nrrdState
+  global variables, especially nrrdStateGrayscaleImage3D, 
+  nrrdEnvVarStateGrayscaleImage3D, 
+  nrrdDefaultSpacing, nrrdEnvVarDefaultSpacing, which seem antiquated
 * the percentile-based bounds specification now supported in e.g 
   "unu histo", "unu quantize", and "unu jhisto" should be migrated down
   to the nrrd library.  Consider doing this with a sorting of highest/lowest 
