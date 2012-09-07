@@ -86,9 +86,9 @@ main(int argc, const char **argv) {
 
   /* if there are no arguments, then we give general usage information */
   if (1 >= argc) {
-    unrrduUsage("unu", hparm);
+    ret = unrrduUsage("unu", hparm);
     airMopError(mop);
-    exit(1);
+    exit(ret);
   }
   /* else, we see if its --version */
   if (!strcmp("--version", argv[1])) {
@@ -110,14 +110,14 @@ main(int argc, const char **argv) {
   if (unrrduCmdList[i]) {
     /* yes, we have that command */
     /* initialize variables used by the various commands */
-    argv0 = (char *)calloc(strlen(UNU) + strlen(argv[1]) + 2, sizeof(char));
+    argv0 = AIR_CALLOC(strlen(UNU) + strlen(argv[1]) + 2, char);
     airMopMem(mop, &argv0, airMopAlways);
     sprintf(argv0, "%s %s", UNU, argv[1]);
 
     /* run the individual unu program, saving its exit status */
     ret = unrrduCmdList[i]->main(argc-2, argv+2, argv0, hparm);
   } else {
-    fprintf(stderr, "%s: unrecognized command: \"%s\"; type \"%s\" for "
+    fprintf(stderr, "%s: unrecognized command \"%s\"; type \"%s\" for "
             "complete list\n", me, argv[1], me);
     ret = 1;
   }

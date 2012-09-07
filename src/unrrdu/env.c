@@ -180,15 +180,17 @@ _unrrdu_envUInt(FILE *file, const char *envKey,
 int
 unrrdu_envMain(int argc, const char **argv, const char *me,
                hestParm *hparm) {
+  FILE *out;
 
   AIR_UNUSED(argc);
   AIR_UNUSED(argv);
   AIR_UNUSED(me);
+  out = stdout;
 
-  hestInfo(stderr, me, _unrrdu_envInfoL, hparm);
-  fprintf(stderr, "\n");
+  hestInfo(out, me, _unrrdu_envInfoL, hparm);
+  fprintf(out, "\n");
 
-  _hestPrintStr(stderr, 0, 0, hparm->columns, 
+  _hestPrintStr(out, 0, 0, hparm->columns, 
                 ("Each variable in the listing below starts with the name of "
                  "the environment variable (\"NRRD_...\"), what type of value "
                  "it represents (e.g. \"int\", \"bool\"), what the "
@@ -196,9 +198,9 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                  "corresponding Nrrd global variable is set to, and a "
                  "description of the variable."),
                 AIR_FALSE);
-  fprintf(stderr, "\n");
+  fprintf(out, "\n");
 
-  _hestPrintStr(stderr, 0, 0, hparm->columns, 
+  _hestPrintStr(out, 0, 0, hparm->columns, 
                 ("Bool variables may be set to true simply by setting the "
                  "environment variable; setting the value to \"true\" or "
                  "\"false\" sets the bool accordingly.  Enum variables may "
@@ -207,10 +209,10 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                  "int variables are set via a string parse-able as a numeric "
                  "value."),
                 AIR_FALSE);
-  fprintf(stderr, "\n");
+  fprintf(out, "\n");
 
   /* UNRRDU_QUIET_QUIT functionality implemented in privateUnrrdu.h */
-  _hestPrintStr(stderr, 0, 0, hparm->columns, 
+  _hestPrintStr(out, 0, 0, hparm->columns, 
                 ("In addition to the the \"NRRD_\" environment variables, "
                  "there is this one, " UNRRDU_QUIET_QUIT_ENV ", which "
                  "determines whether unu exits "
@@ -220,17 +222,17 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                  "This is currently detected by seeing if the error message "
                  "ends with \n \"" UNRRDU_QUIET_QUIT_STR "\"."),
                 AIR_FALSE);
-  fprintf(stderr, "\n");
+  fprintf(out, "\n");
 
-  fprintf(stderr, "%s: ", UNRRDU_QUIET_QUIT_ENV);
+  fprintf(out, "%s: ", UNRRDU_QUIET_QUIT_ENV);
   if (getenv(UNRRDU_QUIET_QUIT_ENV)) {
-    fprintf(stderr, "is set (to what doesn't matter); quiet-quit enabled\n");
+    fprintf(out, "is set (to what doesn't matter); quiet-quit enabled\n");
   } else {
-    fprintf(stderr, "is NOT set; quiet-quit NOT enabled\n");
+    fprintf(out, "is NOT set; quiet-quit NOT enabled\n");
   }
-  fprintf(stderr, "\n");
+  fprintf(out, "\n");
 
-  _unrrdu_envBool(stderr, 
+  _unrrdu_envBool(out, 
                   nrrdEnvVarStateKeyValuePairsPropagate,
                   nrrdStateKeyValuePairsPropagate,
                   "nrrdStateKeyValuePairsPropagate",
@@ -238,7 +240,7 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                   "nrrd to output nrrd just like other basic info that hasn't "
                   "just been modified (e.g. type, dimension, block size).",
                   hparm->columns);
-  _unrrdu_envEnum(stderr,
+  _unrrdu_envEnum(out,
                   nrrdCenter, nrrdEnvVarDefaultCenter,
                   nrrdDefaultCenter,
                   "nrrdDefaultCenter",
@@ -246,14 +248,14 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                   "set but one has to be chosen for some operation "
                   "(e.g. resampling).",
                   hparm->columns);
-  _unrrdu_envEnum(stderr,
+  _unrrdu_envEnum(out,
                   nrrdEncodingType, nrrdEnvVarDefaultWriteEncodingType,
                   nrrdDefaultWriteEncodingType,
                   "nrrdDefaultWriteEncodingType",
                   "When writing nrrds, what encoding to use. Only "
                   "\"unu save\" affords explicit control of output encoding.",
                   hparm->columns);
-  _unrrdu_envBool(stderr,
+  _unrrdu_envBool(out,
                   nrrdEnvVarStateKindNoop,
                   nrrdStateKindNoop,
                   "nrrdStateKindNoop",
@@ -261,13 +263,13 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                   "smart about setting the \"kind\" field of an axis after "
                   "some operation that modified its samples.",
                   hparm->columns);
-  _unrrdu_envInt(stderr,
+  _unrrdu_envInt(out,
                  nrrdEnvVarStateVerboseIO,
                  nrrdStateVerboseIO,
                  "nrrdStateVerboseIO",
                  "The verbosity level of Nrrd input/output operations.",
                   hparm->columns);
-  _unrrdu_envBool(stderr,
+  _unrrdu_envBool(out,
                   nrrdEnvVarStateBlind8BitRange,
                   nrrdStateBlind8BitRange,
                   "nrrdStateBlind8BitRange",
@@ -276,14 +278,14 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                   "instead of actually looking into the data to find its "
                   "range.",
                   hparm->columns);
-  _unrrdu_envBool(stderr,
+  _unrrdu_envBool(out,
                   nrrdEnvVarDefaultWriteBareText,
                   nrrdDefaultWriteBareText,
                   "nrrdDefaultWriteBareText",
                   "When false, text files used for saving nrrds start with "
                   "comment (\"# ...\") lines containing nrrd fields.",
                   hparm->columns);
-  _unrrdu_envEnum(stderr,
+  _unrrdu_envEnum(out,
                   nrrdType, nrrdEnvVarStateMeasureType,
                   nrrdStateMeasureType,
                   "nrrdStateMeasureType",
@@ -291,48 +293,48 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                   "the type of the output result, when one hasn't been "
                   "explicitly requested.",
                   hparm->columns);
-  _unrrdu_envInt(stderr,
+  _unrrdu_envInt(out,
                  nrrdEnvVarStateMeasureModeBins,
                  nrrdStateMeasureModeBins,
                  "nrrdStateMeasureModeBins",
                  "When measuring mode but without a given histogram, how many "
                  "bins to use in the temporary internal histogram.",
                   hparm->columns);
-  _unrrdu_envEnum(stderr,
+  _unrrdu_envEnum(out,
                   nrrdType, nrrdEnvVarStateMeasureHistoType,
                   nrrdStateMeasureHistoType,
                   "nrrdStateMeasureHistoType",
                   "Output type for most measurements of histograms, when one "
                   "hasn't been explicitly requested",
                   hparm->columns);
-  _unrrdu_envBool(stderr,
+  _unrrdu_envBool(out,
                   nrrdEnvVarStateAlwaysSetContent,
                   nrrdStateAlwaysSetContent,
                   "nrrdStateAlwaysSetContent",
                   "If true, the output content string is set even when the "
                   "input content string is not set.",
                   hparm->columns);
-  _unrrdu_envBool(stderr,
+  _unrrdu_envBool(out,
                   nrrdEnvVarStateDisableContent,
                   nrrdStateDisableContent,
                   "nrrdStateDisableContent",
                   "If true, output content is never set.",
                   hparm->columns);
-  _unrrdu_envUInt(stderr,
+  _unrrdu_envUInt(out,
                   nrrdEnvVarDefaultWriteCharsPerLine,
                   nrrdDefaultWriteCharsPerLine,
                   "nrrdDefaultWriteCharsPerLine",
                   "When using text encoding, maximum # characters allowed "
                   "per line.",
                   hparm->columns);
-  _unrrdu_envUInt(stderr,
+  _unrrdu_envUInt(out,
                   nrrdEnvVarDefaultWriteValsPerLine,
                   nrrdDefaultWriteValsPerLine,
                   "nrrdDefaultWriteValsPerLine",
                   "When using text encoding, maximum # values allowed "
                   "per line",
                   hparm->columns);
-  _unrrdu_envBool(stderr,
+  _unrrdu_envBool(out,
                   nrrdEnvVarStateGrayscaleImage3D,
                   nrrdStateGrayscaleImage3D,
                   "nrrdStateGrayscaleImage3D",
@@ -349,6 +351,8 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                    nrrdEnvVarDefaultSpacing);
 #endif  
 
+  /* NOTE: this is an exceptional unu command that doesn't rely on
+     privateUnrrdu.h USAGE() macro; so we determine our own return value */
   return 0;
 }
 

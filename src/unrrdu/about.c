@@ -154,6 +154,8 @@ unrrdu_aboutMain(int argc, const char **argv, const char *me,
   }
 
   printf("\n");
+  /* NOTE: this is an exceptional unu command that doesn't rely on
+     privateUnrrdu.h USAGE() macro; so we determine our own return value */
   return 0;
 }
 

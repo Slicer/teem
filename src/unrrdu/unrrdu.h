@@ -192,7 +192,7 @@ UNRRDU_EXPORT const char *unrrduBiffKey;
 UNRRDU_EXPORT int unrrduDefNumColumns;
 /* addresses of all unrrdu_xxxCmd */
 UNRRDU_EXPORT unrrduCmd *unrrduCmdList[]; 
-UNRRDU_EXPORT void unrrduUsage(const char *me, hestParm *hparm);
+UNRRDU_EXPORT int unrrduUsage(const char *me, hestParm *hparm);
 UNRRDU_EXPORT hestCB unrrduHestPosCB;
 UNRRDU_EXPORT hestCB unrrduHestMaybeTypeCB;
 UNRRDU_EXPORT hestCB unrrduHestScaleCB;

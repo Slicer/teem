@@ -83,12 +83,16 @@ extern "C" {
 /*
 ** USAGE, PARSE, SAVE
 **
-** These are macros at their very worst.  Shudder.  This code is
-** basically the same, verbatim, across all the different unrrdu
-** functions, and having them as macros just shortens (without
-** necessarily clarifying) their code.
+** These are macros at their worst and most fragile, because of how
+** many local variables are assumed.  This code is basically the same,
+** verbatim, across all the different unrrdu functions, and having
+** them as macros just shortens (without necessarily clarifying) their
+** code.
 **
-** They all assume many many variables.
+** The return value for generating usage information was changed from
+** 1 to 0 with the thought that merely asking for usage info shouldn't
+** be treated as an erroneous invocation; unu about and unu env (which
+** don't use this macro) had already been this way.
 */
 #define USAGE(info) \
   if (!argc) { \
@@ -96,7 +100,7 @@ extern "C" {
     hestUsage(stdout, opt, me, hparm); \
     hestGlossary(stdout, opt, hparm); \
     airMopError(mop); \
-    return 1; \
+    return 0; \
   }
 
   /*

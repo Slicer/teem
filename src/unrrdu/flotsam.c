@@ -52,7 +52,7 @@ unrrduCmdList[] = {
 ** prints out a little banner, and a listing of all available commands
 ** with their one-line descriptions
 */
-void
+int
 unrrduUsage(const char *me, hestParm *hparm) {
   int i, maxlen, len, c;
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
@@ -81,6 +81,7 @@ unrrduUsage(const char *me, hestParm *hparm) {
     _hestPrintStr(stdout, len, len, hparm->columns,
                   unrrduCmdList[i]->info, AIR_FALSE);
   }
+  return 0;
 }
 
 /* --------------------------------------------------------- */
