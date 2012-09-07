@@ -44,10 +44,32 @@ configure_file(
   "${CMAKE_BINARY_DIR}/include/testDataPath.h"
   )
 
+# This just runs the usual nrrdSanity executable 
+# as a test called "nrrd.Sanity"
 ADD_TEST(nrrd.Sanity ${EXECUTABLE_OUTPUT_PATH}/nrrdSanity)
 
+# Hope to eventually have tests in all directories; until then
+# many of these are commented out. (TEEM_LIB_LIST)
 ADD_SUBDIRECTORY(air)
+# ADD_SUBDIRECTORY(hest)
 ADD_SUBDIRECTORY(biff)
 ADD_SUBDIRECTORY(nrrd)
+# ADD_SUBDIRECTORY(ell)
+ADD_SUBDIRECTORY(unrrdu)
+# ADD_SUBDIRECTORY(alan)
+# ADD_SUBDIRECTORY(moss)
+# ADD_SUBDIRECTORY(tijk)
 ADD_SUBDIRECTORY(gage)
+# ADD_SUBDIRECTORY(dye)
+# ADD_SUBDIRECTORY(bane)
+# ADD_SUBDIRECTORY(limn)
+# ADD_SUBDIRECTORY(echo)
+# ADD_SUBDIRECTORY(hoover)
+# ADD_SUBDIRECTORY(seek)
+# ADD_SUBDIRECTORY(ten)
+# ADD_SUBDIRECTORY(elf)
+# ADD_SUBDIRECTORY(pull)
+# ADD_SUBDIRECTORY(coil)
+# ADD_SUBDIRECTORY(push)
+# ADD_SUBDIRECTORY(mite)
 ADD_SUBDIRECTORY(meet)

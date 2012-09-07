@@ -21,21 +21,21 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-ADD_EXECUTABLE(miscAirTest miscAir.c)
-TARGET_LINK_LIBRARIES(miscAirTest teem)
-ADD_TEST(misc ${EXECUTABLE_OUTPUT_PATH}/miscAirTest)
+ADD_EXECUTABLE(test_miscAir miscAir.c)
+TARGET_LINK_LIBRARIES(test_miscAir teem)
+ADD_TEST(misc ${EXECUTABLE_OUTPUT_PATH}/test_miscAir)
 
-ADD_EXECUTABLE(mtrandTest mtrand.c)
-TARGET_LINK_LIBRARIES(mtrandTest teem)
-ADD_TEST(mtrand ${EXECUTABLE_OUTPUT_PATH}/mtrandTest)
+ADD_EXECUTABLE(test_mtrand mtrand.c)
+TARGET_LINK_LIBRARIES(test_mtrand teem)
+ADD_TEST(mtrand ${EXECUTABLE_OUTPUT_PATH}/test_mtrand)
 
-ADD_EXECUTABLE(stringTest string.c)
-TARGET_LINK_LIBRARIES(stringTest teem)
-ADD_TEST(string ${EXECUTABLE_OUTPUT_PATH}/stringTest)
+ADD_EXECUTABLE(test_string string.c)
+TARGET_LINK_LIBRARIES(test_string teem)
+ADD_TEST(string ${EXECUTABLE_OUTPUT_PATH}/test_string)
 
-ADD_EXECUTABLE(strtokTest strtok.c)
-TARGET_LINK_LIBRARIES(strtokTest teem)
-ADD_TEST(strtok ${EXECUTABLE_OUTPUT_PATH}/strtokTest)
+ADD_EXECUTABLE(test_strtok strtok.c)
+TARGET_LINK_LIBRARIES(test_strtok teem)
+ADD_TEST(strtok ${EXECUTABLE_OUTPUT_PATH}/test_strtok)
 
 ADD_EXECUTABLE(pptestTest pptest.c)
 TARGET_LINK_LIBRARIES(pptestTest teem)

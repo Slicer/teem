@@ -21,14 +21,14 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-ADD_EXECUTABLE(trandTest trand.c)
-TARGET_LINK_LIBRARIES(trandTest teem)
-ADD_TEST(trand ${EXECUTABLE_OUTPUT_PATH}/trandTest)
+ADD_EXECUTABLE(test_trand trand.c)
+TARGET_LINK_LIBRARIES(test_trand teem)
+ADD_TEST(trand ${EXECUTABLE_OUTPUT_PATH}/test_trand)
 
-ADD_EXECUTABLE(tloadTest tload.c)
-TARGET_LINK_LIBRARIES(tloadTest teem)
-ADD_TEST(tload ${EXECUTABLE_OUTPUT_PATH}/tloadTest)
+ADD_EXECUTABLE(test_tload tload.c)
+TARGET_LINK_LIBRARIES(test_tload teem)
+ADD_TEST(tload ${EXECUTABLE_OUTPUT_PATH}/test_tload)
 
-ADD_EXECUTABLE(sanityTest sanity.c)
-TARGET_LINK_LIBRARIES(sanityTest teem)
-ADD_TEST(sanity ${EXECUTABLE_OUTPUT_PATH}/sanityTest)
+ADD_EXECUTABLE(test_sanity sanity.c)
+TARGET_LINK_LIBRARIES(test_sanity teem)
+ADD_TEST(sanity ${EXECUTABLE_OUTPUT_PATH}/test_sanity)

@@ -21,14 +21,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-ADD_EXECUTABLE(test_enmall enmall.c)
-TARGET_LINK_LIBRARIES(test_enmall teem)
-ADD_TEST(enmall ${EXECUTABLE_OUTPUT_PATH}/test_enmall)
-
-ADD_EXECUTABLE(test_kernall kernall.c)
-TARGET_LINK_LIBRARIES(test_kernall teem)
-ADD_TEST(kernall ${EXECUTABLE_OUTPUT_PATH}/test_kernall)
-
-ADD_EXECUTABLE(test_probeSS probeSS.c)
-TARGET_LINK_LIBRARIES(test_probeSS teem)
-ADD_TEST(probeSS ${EXECUTABLE_OUTPUT_PATH}/test_probeSS)
+ADD_EXECUTABLE(test_unulist unulist.c)
+TARGET_LINK_LIBRARIES(test_unulist teem)
+ADD_TEST(unulist ${EXECUTABLE_OUTPUT_PATH}/test_unulist)

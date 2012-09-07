@@ -21,6 +21,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-ADD_EXECUTABLE(biffTest test.c)
-TARGET_LINK_LIBRARIES(biffTest teem)
-ADD_TEST(biff ${EXECUTABLE_OUTPUT_PATH}/biffTest)
+ADD_EXECUTABLE(test_biff test.c)
+TARGET_LINK_LIBRARIES(test_biff teem)
+ADD_TEST(biff ${EXECUTABLE_OUTPUT_PATH}/test_biff)
