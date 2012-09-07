@@ -41,7 +41,7 @@ tendCmdList[] = {
 ** prints out a little banner, and a listing of all available commands
 ** with their one-line descriptions
 */
-void
+int
 tendUsage(const char *me, hestParm *hparm) {
   int i, maxlen, len, c;
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
@@ -70,6 +70,7 @@ tendUsage(const char *me, hestParm *hparm) {
     _hestPrintStr(stdout, len, len, hparm->columns,
                   tendCmdList[i]->info, AIR_FALSE);
   }
+  return 0;
 }
 
 /*

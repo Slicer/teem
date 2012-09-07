@@ -39,7 +39,7 @@ unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main }
     hestUsage(stdout, hopt, me, hparm); \
     hestGlossary(stdout, hopt, hparm); \
     airMopError(mop); \
-    return 2; \
+    return 0; \
   }
 
 /* JUSTPARSE is called by the tend functions that do *not* take an

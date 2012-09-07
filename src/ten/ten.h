@@ -1817,7 +1817,7 @@ F(bfit) \
 F(satin)
 TEND_MAP(TEND_DECLARE)
 TEN_EXPORT unrrduCmd *tendCmdList[];
-TEN_EXPORT void tendUsage(const char *me, hestParm *hparm);
+TEN_EXPORT int tendUsage(const char *me, hestParm *hparm);
 TEN_EXPORT hestCB *tendFiberStopCB;
 
 #ifdef __cplusplus
