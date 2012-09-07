@@ -74,6 +74,8 @@ nrrd:
  - add: am I an odd or even function
  - rename numParm --> parmNum
  - fix the kernels that meetNrrdKernelAllCheck revealed to be broken
+ - consider nixing nrrdDefaultKernelParm0, nrrdEnvVarDefaultKernelParm0
+* consider nixing nrrdDefaultSpacing, nrrdEnvVarDefaultSpacing
 * the percentile-based bounds specification now supported in e.g 
   "unu histo", "unu quantize", and "unu jhisto" should be migrated down
   to the nrrd library.  Consider doing this with a sorting of highest/lowest 
