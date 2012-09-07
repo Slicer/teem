@@ -67,6 +67,7 @@ tend_evecrgbMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output image (floating point)");
 
+  airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_tend_evecrgbInfoL);
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
