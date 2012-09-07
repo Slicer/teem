@@ -186,13 +186,13 @@ engageGenVector(gageContext *gctx, Nrrd *nvec, const Nrrd *nscl) {
   double spcX, spcY, spcZ;
   gagePerVolume *pvl;
   
+  smop = airMopNew();
   if (nrrdTypeFloat != nscl->type) {
     biffAddf(PROBE, "%s: expected %s not %s type", me,
              airEnumStr(nrrdType, nrrdTypeFloat),
              airEnumStr(nrrdType, nscl->type));
     airMopError(smop); return 1;
   }
-  smop = airMopNew();
   NRRD_NEW(ntmp, smop);
   sx = nscl->axis[0].size;
   sy = nscl->axis[1].size;
@@ -417,6 +417,38 @@ engageMopDiceDwi(gageContext *gctx, Nrrd ***ndwiCompP,
   return 0;
 }
 
+typedef struct {
+  double **aptr;       /* array of answer pointers */
+  unsigned int *alen;  /* array of answer lengths */
+  unsigned int anum;   /* lenth of aptr and alen arrays */
+  double *san;         /* single buffer for copy + concating answers */
+  unsigned int slen;   /* length of single buffer (sum of all alen[i]) */
+} multiAnswer;
+
+static multiAnswer*
+multiAnswerNew(unsigned int num) {
+  multiAnswer *man;
+  unsigned int ii;
+  
+  man = AIR_CALLOC(1, multiAnswer);
+  man->aptr = AIR_CALLOC(num, double *);
+  man->alen = AIR_CALLOC(num, unsigned int);
+  /* don't know answer lengths yet */
+  man->san = NULL;
+  man->slen = 0;
+  return man;
+}
+
+static multiAnswer*
+multiAnswerNix(multiAnswer *man) {
+  
+  airFree(man->aptr);
+  airFree(man->alen);
+  airFree(man->san);
+  airFree(man);
+  return NULL;
+}
+
 /*
 ** setting up gageContexts for the first of the two tasks listed above:
 ** making sure per-component information is handled correctly.  NOTE: The
@@ -479,8 +511,7 @@ updateQueryKernelSetTask1(gageContext *gctxComp[KIND_NUM],
       || gageQueryItemOn(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageHessian)
 
       || gageQueryItemOn(gctx[KI_DWI], gctx[KI_DWI]->pvl[0], tenDwiGageAll)) {
-    biffMovef(PROBE, GAGE, "%s: trouble setting item", 
-              me, kindIdx);
+    biffMovef(PROBE, GAGE, "%s: trouble setting item", me);
     return 1;
   }
   for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
@@ -496,7 +527,7 @@ updateQueryKernelSetTask1(gageContext *gctxComp[KIND_NUM],
                 me, kindIdx);
       return 1;
     }
-  }  
+  }
 
   /* TODO have to figure out how to get all the answer pointers
      in some logical way */
@@ -640,7 +671,7 @@ main(int argc, const char **argv) {
   }
   */
 
-  /* varying support for multi-variate volumes */
+  /* varying kernel support for multi-variate volumes */
   /* make sure per-component reconstruction of values and
      derivatives (where possible) is working correctly */
   /* gageContextCopy on multi-variate values */
