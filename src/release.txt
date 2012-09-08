@@ -3,6 +3,8 @@ GLK's list of things to do for each release.  This started with an
 early version of Teem and has been only partially maintained since
 then; consider it a work-in-progress ...
 
+-5) use names.pl to make sure all sourcefile names are unique
+
 -4.5) fix all 
 "dereferencing type-punned pointer will break strict-aliasing rules"
 warnings on a modern linux system
