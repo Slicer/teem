@@ -939,7 +939,7 @@ _nrrdFieldCheck_kinds(const Nrrd *nrrd, int useBiff) {
     if (wantLen && wantLen != nrrd->axis[ai].size) {
       char stmp[AIR_STRLEN_SMALL];
       biffMaybeAddf(useBiff, NRRD,
-                    "%s: axis %d kind %s requires size %d, but have %s", me,
+                    "%s: axis %d kind %s requires size %u, but have %s", me,
                     ai, airEnumStr(nrrdKind, val[ai]), wantLen,
                     airSprintSize_t(stmp, nrrd->axis[ai].size));
       return 1;
