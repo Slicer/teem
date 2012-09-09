@@ -417,6 +417,7 @@ engageMopDiceDwi(gageContext *gctx, Nrrd ***ndwiCompP,
   return 0;
 }
 
+#if 0
 typedef struct {
   double **aptr;       /* array of answer pointers */
   unsigned int *alen;  /* array of answer lengths */
@@ -428,7 +429,6 @@ typedef struct {
 static multiAnswer*
 multiAnswerNew(unsigned int num) {
   multiAnswer *man;
-  unsigned int ii;
   
   man = AIR_CALLOC(1, multiAnswer);
   man->aptr = AIR_CALLOC(num, double *);
@@ -448,6 +448,7 @@ multiAnswerNix(multiAnswer *man) {
   airFree(man);
   return NULL;
 }
+#endif
 
 /*
 ** setting up gageContexts for the first of the two tasks listed above:
