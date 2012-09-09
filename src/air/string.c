@@ -396,7 +396,7 @@ airOneLine(FILE *file, char *line, int size) {
        (i <= size-2              /* room for line[i] and \0 after that */
         && EOF != (c=getc(file)) /* didn't hit EOF trying to read char */
         && c != '\n'             /* char isn't newline */
-	&& c != '\r');           /* char isn't carriage return */
+        && c != '\r');           /* char isn't carriage return */
        ++i) {
     line[i] = c;
   }
@@ -411,7 +411,7 @@ airOneLine(FILE *file, char *line, int size) {
     if ('\r' == c) {
       c = getc(file);
       if (EOF != c && '\n' != c) {
-	/* oops, we got something, and it was not a '\n'; put it back */
+        /* oops, we got something, and it was not a '\n'; put it back */
         ungetc(c, file);
       }
     }
@@ -425,7 +425,7 @@ airOneLine(FILE *file, char *line, int size) {
       int d;
       d = getc(file);
       if (EOF != d && '\n' != d) {
-	/* oops, put it back */
+        /* oops, put it back */
         ungetc(d, file);
       }
       line[i] = '\0';
@@ -435,7 +435,7 @@ airOneLine(FILE *file, char *line, int size) {
       return i+1;
     } else {
       /* weren't about to get a line termination,
-	 we really did run out of buffer */
+         we really did run out of buffer */
       if (EOF != c) {
         ungetc(c, file);  /* we're allowed one ungetc on ANY stream */
       }
