@@ -327,7 +327,7 @@ airToLower(char *str) {
   if (str) {
     c = str;
     while (*c) {
-      *c = tolower(*c);
+      *c = AIR_CAST(char, tolower(AIR_CAST(int, *c)));
       c++;
     }
   }
@@ -347,7 +347,7 @@ airToUpper(char *str) {
   if (str) {
     c = str;
     while (*c) {
-      *c = toupper(*c);
+      *c = AIR_CAST(char, toupper(AIR_CAST(int, *c)));
       c++;
     }
   }
