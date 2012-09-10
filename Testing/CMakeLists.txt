@@ -44,8 +44,9 @@ configure_file(
   "${CMAKE_BINARY_DIR}/include/testDataPath.h"
   )
 
-# This just runs the usual nrrdSanity executable 
-# as a test called "nrrd.Sanity"
+# These just run the usual "sanity" executables
+# as tests called "air.Sanity" and "nrrd.Sanity"
+ADD_TEST(air.Sanity ${EXECUTABLE_OUTPUT_PATH}/airSanity)
 ADD_TEST(nrrd.Sanity ${EXECUTABLE_OUTPUT_PATH}/nrrdSanity)
 
 # Hope to eventually have tests in all directories; until then
