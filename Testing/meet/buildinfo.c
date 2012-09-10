@@ -49,6 +49,8 @@ main(int argc, const char **argv) {
   AIR_UNUSED(argv);
   char liblist[AIR_STRLEN_LARGE];
 
+  printf("Teem version %s, %s\n", airTeemVersion, airTeemReleaseDate);
+
   strcpy(liblist, "");
   /* TEEM_LIB_LIST */
   strcat(liblist, "air ");
