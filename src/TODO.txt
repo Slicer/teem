@@ -2,11 +2,15 @@
 ========
 for Teem 2.0:
 
+teem/include/teemEndian.h should NOT be setting TEEM_ENDIAN; it should
+be set by the build system.
+
 decide on a uniform way of indicating if a given external is available
-(e.g. airThreadCapable vs nrrdFFTWEnabled: not uniform)
-Libraries within Teem can't use "meet", which is one place that this
-availability could be documented, but should have at least some naming
-conventions
+(e.g. airThreadCapable vs nrrdFFTWEnabled vs #if TEEM_LEVMAR: not uniform).
+"meet" is the logical place for collecting this info, and would be
+useful for Teem-using apps to have an API for this.  Libraries within
+Teem can't use "meet", but there should at least be consistent naming
+conventions.
 
 Do away with "experimental" libraries and applications.  Too annoying
 to have two totally different kinds of Teem installs, especially when
@@ -16,21 +20,12 @@ Consider extending const-correctness of function input not just to
 pointers, but to all values as well.
 
 all:
-* when using sizeof with memcpy or memset, should be using
-the variable name itself instead of type as argument to sizeof()
 * scrutinize use of strncpy, consider using airStrcpy
 * remove '_'s from enum value names in non-elf non-tijk libraries
 * decide if <LIB>_EXPORT should just be TEEM_EXPORT
 * enforce consistent use of AIR_CALLOC/AIR_MALLOC
 
 air:
-* Revisit having to know endianness; 
-teem/include/teemEndian.h should NOT be setting TEEM_ENDIAN; it should
-be set by the build system.  In any case, there is a magic trick that 
-obviates knowing endianness at compile time:
-http://groups.google.com/group/comp.unix.programmer/msg/156bacf6a28b3fef
-http://unix.derkeiler.com/Newsgroups/comp.unix.programmer/2005-12/msg00179.html
-http://compgroups.net/comp.unix.programmer/Big-little-endian-conversion
 * airArray->len should probably be size_t, not unsigned int. Along with
 this is biffMsgErrNum and nrrdKeyValueSize.
 * either change AIR_STRLEN_* to AIR_BUFFSIZE_* (or something similar,
@@ -103,10 +98,6 @@ nrrd:
 [nrrd] nrrdDeringExecute: trouble on setup
 [nrrd] deringPtxfAlloc: couldn't set up resampler
 [nrrd] nrrdResampleKernelSet: haven't set input nrrd yet
-* consider renaming
-  nrrdSpaceVecSetNaN -> nrrdSpaceVecNaNSet
-  nrrdSpaceVecSetZero -> nrrdSpaceVecZeroSet,
-  and updating dnorm as needed
 * for nrrdCropAuto: consider adding some minimum remaining size requirement,
   in addition to offset
 * fix bug that you can pass a per-axis label or units to nrrdAxisInfoSet
@@ -114,6 +105,7 @@ nrrd:
   especially \n.
 
 unu:
+* unu acrop should export crop bounds in a way that unu crop can use them
 * the UNRRDU_QUIET_QUIT functionality should be enabled by default instead
 of having to set an environment variable to get it
 * unu dice -ff should change from using %d to %u
@@ -123,8 +115,8 @@ best preserves the aspect ratio relative to the one axis which is
 being resampled via the older "N" or "xF" means"
 -- consider supporting more sophisticated expressions e.g. "x2" --> "x2+1"
 -- reconsider whether normalization should be turned on by default
-(which always creates a surprise when using purposely small kernels like 
-cos4sup or a small gauss)
+(always a surprise when using purposely small kernels like cos4sup or
+small gauss)
 
 gage:
 * clean up gageVolumeCheck vs gageKindVolumeCheck mess
@@ -150,6 +142,9 @@ push:
 
 ** The items below have accumulated over time, but the importance of them
 ** for Teem 2.0 or any other relase should be re-evaluated.
+
+large-scale fix: when using sizeof with memcpy or memset, should be using
+the variable name itself instead of type as argument to sizeof()
 
 for cmake:
  - build pv on windows
@@ -198,6 +193,9 @@ bane: finish updating tutorial
 dye: see if dyeColorParse should allocate the thing and return it
 
 image registration tool for small translational errors
+
+make: figure out shared libraries on cygwin.
+make: Test that shared libraries work everywhere they should.
 
 limn: make it smarter- so that joining parts together is possible in a
 way that facilitates transformations and correct drawing.  This really
