@@ -29,6 +29,10 @@ ADD_EXECUTABLE(test_kernall kernall.c)
 TARGET_LINK_LIBRARIES(test_kernall teem)
 ADD_TEST(kernall ${EXECUTABLE_OUTPUT_PATH}/test_kernall)
 
+ADD_EXECUTABLE(test_buildinfo buildinfo.c)
+TARGET_LINK_LIBRARIES(test_buildinfo teem)
+ADD_TEST(buildinfo ${EXECUTABLE_OUTPUT_PATH}/test_buildinfo)
+
 ADD_EXECUTABLE(test_probeSS probeSS.c)
 TARGET_LINK_LIBRARIES(test_probeSS teem)
 ADD_TEST(probeSS ${EXECUTABLE_OUTPUT_PATH}/test_probeSS)
