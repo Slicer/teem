@@ -2,11 +2,8 @@
 ========
 for Teem 2.0:
 
-teem/include/teemEndian.h should NOT be setting TEEM_ENDIAN; it should
-be set by the build system.
-
 decide on a uniform way of indicating if a given external is available
-(e.g. airThreadCapable vs nrrdFFTWEnabled)
+(e.g. airThreadCapable vs nrrdFFTWEnabled: not uniform)
 Libraries within Teem can't use "meet", which is one place that this
 availability could be documented, but should have at least some naming
 conventions
@@ -19,12 +16,21 @@ Consider extending const-correctness of function input not just to
 pointers, but to all values as well.
 
 all:
+* scrutinize use of sizeof(), consider using the variable name involved
+  instead of its type (at least one bug was caused by this)
 * scrutinize use of strncpy, consider using airStrcpy
 * remove '_'s from enum value names in non-elf non-tijk libraries
 * decide if <LIB>_EXPORT should just be TEEM_EXPORT
 * enforce consistent use of AIR_CALLOC/AIR_MALLOC
 
 air:
+* Revisit having to know endianness; 
+teem/include/teemEndian.h should NOT be setting TEEM_ENDIAN; it should
+be set by the build system.  In any case, there is a magic trick that 
+obviates knowing endianness at compile time:
+http://groups.google.com/group/comp.unix.programmer/msg/156bacf6a28b3fef
+http://unix.derkeiler.com/Newsgroups/comp.unix.programmer/2005-12/msg00179.html
+http://compgroups.net/comp.unix.programmer/Big-little-endian-conversion
 * airArray->len should probably be size_t, not unsigned int. Along with
 this is biffMsgErrNum and nrrdKeyValueSize.
 * either change AIR_STRLEN_* to AIR_BUFFSIZE_* (or something similar,
@@ -97,6 +103,10 @@ nrrd:
 [nrrd] nrrdDeringExecute: trouble on setup
 [nrrd] deringPtxfAlloc: couldn't set up resampler
 [nrrd] nrrdResampleKernelSet: haven't set input nrrd yet
+* consider renaming
+  nrrdSpaceVecSetNaN -> nrrdSpaceVecNaNSet
+  nrrdSpaceVecSetZero -> nrrdSpaceVecZeroSet,
+  and updating dnorm as needed
 * for nrrdCropAuto: consider adding some minimum remaining size requirement,
   in addition to offset
 * fix bug that you can pass a per-axis label or units to nrrdAxisInfoSet
@@ -104,7 +114,6 @@ nrrd:
   especially \n.
 
 unu:
-* unu acrop should export crop bounds in a way that unu crop can use them
 * the UNRRDU_QUIET_QUIT functionality should be enabled by default instead
 of having to set an environment variable to get it
 * unu dice -ff should change from using %d to %u
