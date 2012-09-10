@@ -42,13 +42,14 @@ unrrdu_padMain(int argc, const char **argv, const char *me,
   double padVal;
   airArray *mop;
 
-  OPT_ADD_BOUND("min,minimum", minOff,
+  OPT_ADD_BOUND("min,minimum", 1, minOff, NULL,
                 "low corner of bounding box.\n "
                 "\b\bo <int> gives 0-based index\n "
                 "\b\bo M, M+<int>, M-<int> give index relative "
                 "to the last sample on the axis (M == #samples-1).",
                 minLen);
-  OPT_ADD_BOUND("max,maximum", maxOff, "high corner of bounding box.  "
+  OPT_ADD_BOUND("max,maximum", 1, maxOff, NULL,
+                "high corner of bounding box.  "
                 "Besides the specification styles described above, "
                 "there's also:\n "
                 "\b\bo m+<int> give index relative to minimum.",

@@ -41,7 +41,7 @@ unrrdu_insetMain(int argc, const char **argv, const char *me,
   size_t min[NRRD_DIM_MAX];
   airArray *mop;
 
-  OPT_ADD_BOUND("min,minimum", minOff,
+  OPT_ADD_BOUND("min,minimum", 1, minOff, NULL,
                 "coordinates of where to locate sub-volume within "
                 "input nrrd.\n "
                 "\b\bo <int> gives 0-based index\n "

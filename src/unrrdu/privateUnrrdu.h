@@ -72,9 +72,9 @@ extern "C" {
   hestOptAdd(&opt, "a,axis", "axis", airTypeUInt, 1, 1, &(var), NULL, desc)
 
 /* int *var; int saw */
-#define OPT_ADD_BOUND(name, var, desc, saw) \
-  hestOptAdd(&opt, name, "pos0", airTypeOther, 1, -1, &(var), NULL, desc, \
-             &(saw), NULL, &unrrduHestPosCB)
+#define OPT_ADD_BOUND(name, needmin, var, deflt, desc, saw)             \
+  hestOptAdd(&opt, name, "pos0", airTypeOther, needmin, -1, &(var),     \
+             deflt, desc, &(saw), NULL, &unrrduHestPosCB)
 
 /* int var */
 #define OPT_ADD_TYPE(var, desc, dflt) \

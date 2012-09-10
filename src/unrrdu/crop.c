@@ -40,17 +40,29 @@ unrrdu_cropMain(int argc, const char **argv, const char *me,
   long int *minOff, *maxOff;
   size_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
   airArray *mop;
+  Nrrd *_nbounds;
 
-  OPT_ADD_BOUND("min,minimum", minOff,
+  OPT_ADD_BOUND("min,minimum", 0, minOff, "0",
                 "low corner of bounding box.\n "
                 "\b\bo <int> gives 0-based index\n "
                 "\b\bo M, M+<int>, M-<int> give index relative "
                 "to the last sample on the axis (M == #samples-1).",
                 minLen);
-  OPT_ADD_BOUND("max,maximum", maxOff, "high corner of bounding box.  Besides "
-                "the specification styles described above, there's also:\n "
+  OPT_ADD_BOUND("max,maximum", 0, maxOff, "0",
+                "high corner of bounding box.  "
+                "Besides the specification styles described above, "
+                "there's also:\n "
                 "\b\bo m+<int> give index relative to minimum.",
                 maxLen);
+  hestOptAdd(&opt, "b,bounds", "filename", airTypeOther, 1, 1, 
+             &_nbounds, "",
+             "a filename given here overrides the -min and -max "
+             "options (they don't need to be used) and provides the "
+             "cropping bounds as a 2-D array; first scanline is for "
+             "-min, second is for -max. Unfortunately the "
+             "\"m\" and \"M\" semantics (above) are currently not "
+             "supported in the bounds file.",
+             NULL, NULL, nrrdHestNrrd);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -61,32 +73,69 @@ unrrdu_cropMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( minLen == (int)nin->dim && maxLen == (int)nin->dim )) {
-    fprintf(stderr,
-            "%s: # min coords (%d) or max coords (%d) != nrrd dim (%d)\n",
-            me, minLen, maxLen, nin->dim);
-    airMopError(mop);
-    return 1;
-  }
-  for (ai=0; ai<nin->dim; ai++) {
-    if (-1 == minOff[0 + 2*ai]) {
-      fprintf(stderr, "%s: can't use m+<int> specification for axis %d min\n",
-              me, ai);
+  if (!_nbounds) {
+    if (!( minLen == (int)nin->dim && maxLen == (int)nin->dim )) {
+      fprintf(stderr,
+              "%s: # min coords (%d) or max coords (%d) != nrrd dim (%d)\n",
+              me, minLen, maxLen, nin->dim);
       airMopError(mop);
       return 1;
     }
-  }
-  for (ai=0; ai<nin->dim; ai++) {
-    min[ai] = minOff[0 + 2*ai]*(nin->axis[ai].size-1) + minOff[1 + 2*ai];
-    if (-1 == maxOff[0 + 2*ai]) {
-      max[ai] = min[ai] + maxOff[1 + 2*ai];
-    } else {
-      max[ai] = maxOff[0 + 2*ai]*(nin->axis[ai].size-1) + maxOff[1 + 2*ai];
+    for (ai=0; ai<nin->dim; ai++) {
+      if (-1 == minOff[0 + 2*ai]) {
+        fprintf(stderr, "%s: can't use m+<int> specification for axis %d min\n",
+                me, ai);
+        airMopError(mop);
+        return 1;
+      }
     }
-    /*
-    fprintf(stderr, "%s: ai %2d: min = %4d, max = %4d\n",
-            me, ai, min[ai], max[ai]);
-    */
+    for (ai=0; ai<nin->dim; ai++) {
+      min[ai] = minOff[0 + 2*ai]*(nin->axis[ai].size-1) + minOff[1 + 2*ai];
+      if (-1 == maxOff[0 + 2*ai]) {
+        max[ai] = min[ai] + maxOff[1 + 2*ai];
+      } else {
+        max[ai] = maxOff[0 + 2*ai]*(nin->axis[ai].size-1) + maxOff[1 + 2*ai];
+      }
+      /*
+        fprintf(stderr, "%s: ai %2d: min = %4d, max = %4d\n",
+        me, ai, min[ai], max[ai]);
+      */
+    }
+  } else {
+    Nrrd *nbounds;
+    airULLong *bounds;
+    unsigned int axi;
+    if (!(2 == _nbounds->dim
+          && nin->dim == AIR_CAST(unsigned int, _nbounds->axis[0].size)
+          && 2 == _nbounds->axis[1].size)) {
+      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+      if (_nbounds->dim >= 2) {
+        airSprintSize_t(stmp1, _nbounds->axis[1].size);
+      } else {
+        strcpy(stmp1, "");
+      }
+      fprintf(stderr, "%s: expected 2-D %u-by-2 array of cropping bounds, "
+              "not %u-D %s%s%s%s\n", me, nin->dim, _nbounds->dim, 
+              airSprintSize_t(stmp2, _nbounds->axis[0].size),
+              _nbounds->dim >= 2 ? "-by-" : "-long",
+              _nbounds->dim >= 2 ? stmp1 : "",
+              _nbounds->dim > 2 ? "-by-X" : "");
+      airMopError(mop);
+      return 1;
+    }
+    nbounds = nrrdNew();
+    airMopAdd(mop, nbounds, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdConvert(nbounds, _nbounds, nrrdTypeULLong)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: error converting bounds array:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    bounds = AIR_CAST(airULLong*, nbounds->data);
+    for (axi=0; axi<nin->dim; axi++) {
+      min[axi] = AIR_CAST(size_t, bounds[axi + 0*(nin->dim)]);
+      max[axi] = AIR_CAST(size_t, bounds[axi + 1*(nin->dim)]);
+    }
   }
 
   nout = nrrdNew();

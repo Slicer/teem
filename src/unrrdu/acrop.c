@@ -29,8 +29,8 @@ char *_unrrdu_acropInfoL =
   (INFO ". For the axes that are to be cropped, the slices perpendicular "
    "to that axis are projected down to a scalar with the specified measure. "
    "The resulting 1D array is analyzed by determining what portions at the "
-   "beginning and end constitute less than some portion of the whole array "
-   "sum; these ends are cropped off.\n "
+   "beginning and end constitute less than some portion of the cumulative "
+   "array sum; these ends are cropped off.\n "
    "* Uses nrrdCropAuto");
 
 int
@@ -46,6 +46,8 @@ unrrdu_acropMain(int argc, const char **argv, const char *me,
   unsigned int *axes, axesLen;
   double frac;
   int measr, offset;
+  Nrrd *nbounds;
+  char *boundsSave;
 
   hestOptAdd(&opt, "a,axes", "ax0", airTypeUInt, 0, -1, &axes, "",
              "the axes (if any) that should NOT be cropped", &axesLen);
@@ -60,6 +62,13 @@ unrrdu_acropMain(int argc, const char **argv, const char *me,
              "how much to offset the numerically determined cropping; "
              "positive offsets means expanding the interval of kept "
              "indices (less cropping)");
+  hestOptAdd(&opt, "b,bounds", "filename", airTypeString, 1, 1, 
+             &boundsSave, "",
+             "if a filename is given here, the automatically determined "
+             "min and max bounds for cropping are saved to this file "
+             "as a 2-D array; first scanline is for -min, second is for -max. "
+             "Unfortunately nothing using the \"m\" and \"M\" semantics "
+             "(above) can currently be saved in the bounds file.");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -80,6 +89,33 @@ unrrdu_acropMain(int argc, const char **argv, const char *me,
     fprintf(stderr, "%s: error cropping nrrd:\n%s", me, err);
     airMopError(mop);
     return 1;
+  }
+  if (airStrlen(boundsSave)) {
+    unsigned int axi;
+    airULLong *bounds;
+    nbounds = nrrdNew();
+    airMopAdd(mop, nbounds, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdMaybeAlloc_va(nbounds, nrrdTypeULLong, 2,
+                          AIR_CAST(airULLong, nin->dim),
+                          AIR_CAST(airULLong, 2))) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: error allocating cropping bounds array:\n%s",
+              me, err);
+      airMopError(mop);
+      return 1;
+    }
+    bounds = AIR_CAST(airULLong*, nbounds->data);
+    for (axi=0; axi<nin->dim; axi++) {
+      bounds[axi + 0*(nin->dim)] = AIR_CAST(airULLong, min[axi]);
+      bounds[axi + 1*(nin->dim)] = AIR_CAST(airULLong, max[axi]);
+    }
+    if (nrrdSave(boundsSave, nbounds, NULL)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: error saving cropping bounds array:\n%s",
+              me, err);
+      airMopError(mop);
+      return 1;
+    }
   }
 
   SAVE(out, nout, NULL);
