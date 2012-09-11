@@ -29,7 +29,6 @@
 
 int
 main(int argc, const char **argv) {
-  char *err = NULL;
 
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   char explibs[] = "*ON!*";
