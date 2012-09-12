@@ -47,8 +47,16 @@ main(int argc, const char **argv) {
   AIR_UNUSED(argc);
   AIR_UNUSED(argv);
   char liblist[AIR_STRLEN_LARGE];
+  char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
 
   printf("Teem version %s, %s\n", airTeemVersion, airTeemReleaseDate);
+
+  /* some of the things from airSanity */
+  printf("airMyEndian() == %d\n", airMyEndian());
+  printf("AIR_QNANHIBIT == %d\n", AIR_QNANHIBIT);
+  printf("sizeof(size_t) = %s; sizeof(void*) = %s\n",
+         airSprintSize_t(stmp1, sizeof(size_t)),
+         airSprintSize_t(stmp2, sizeof(void*)));
 
   strcpy(liblist, "");
   /* TEEM_LIB_LIST */
