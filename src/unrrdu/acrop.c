@@ -30,7 +30,8 @@ char *_unrrdu_acropInfoL =
    "to that axis are projected down to a scalar with the specified measure. "
    "The resulting 1D array is analyzed by determining what portions at the "
    "beginning and end constitute less than some portion of the cumulative "
-   "array sum; these ends are cropped off.\n "
+   "array sum; these ends are cropped off.  The cropping bounds determined "
+   "here can be saved and applied to other arrays via the \"-b\" option.\n "
    "* Uses nrrdCropAuto");
 
 int
