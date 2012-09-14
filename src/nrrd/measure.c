@@ -492,9 +492,9 @@ _nrrdMeasureSD(void *ans, int ansType,
 }
 
 void
-_nrrdMeasureCV(void *ans, int ansType,
-               const void *line, int lineType, size_t len, 
-               double axmin, double axmax) {
+_nrrdMeasureCoV(void *ans, int ansType,
+                const void *line, int lineType, size_t len, 
+                double axmin, double axmax) {
   double val, S, M, (*lup)(const void*, size_t), diff, stdv;
   size_t ii, count;
 
@@ -1008,7 +1008,7 @@ nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *, int,
   _nrrdMeasureLinf,
   _nrrdMeasureVariance,
   _nrrdMeasureSD,
-  _nrrdMeasureCV,
+  _nrrdMeasureCoV,
   _nrrdMeasureSkew,
   _nrrdMeasureLineSlope,
   _nrrdMeasureLineIntercept,
@@ -1054,7 +1054,7 @@ _nrrdMeasureType(const Nrrd *nin, int measr) {
   case nrrdMeasureLinf:
   case nrrdMeasureVariance:
   case nrrdMeasureSD:
-  case nrrdMeasureCV:
+  case nrrdMeasureCoV:
   case nrrdMeasureSkew:
   case nrrdMeasureLineSlope:
   case nrrdMeasureLineIntercept:

@@ -537,7 +537,7 @@ enum {
   nrrdMeasureLinf,           /* 12 */
   nrrdMeasureVariance,       /* 13 */
   nrrdMeasureSD,             /* 14: standard deviation */
-  nrrdMeasureCV,             /* 15: coefficient of variation */
+  nrrdMeasureCoV,            /* 15: coefficient of variation */
   nrrdMeasureSkew,           /* 16: skew */
   nrrdMeasureLineSlope,      /* 17: slope of line of best fit */
   nrrdMeasureLineIntercept,  /* 18: y-intercept of line of best fit */
@@ -562,14 +562,14 @@ enum {
 #define NRRD_MEASURE_DESC \
    "Possibilities include:\n " \
    "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\", " \
-     "\"skew\"\n (self-explanatory)\n " \
+     "\"skew\": (self-explanatory)\n " \
    "\b\bo \"intc\", \"slope\", \"error\": " \
      "intercept, slope, and error from line fitting\n " \
-   "\b\bo \"sd\": standard deviation\n " \
-   "\b\bo \"cv\": coefficient of variation\n " \
+   "\b\bo \"stdv\": standard deviation\n " \
+   "\b\bo \"cov\": coefficient of variation\n " \
    "\b\bo \"product\", \"sum\": product or sum of all values\n " \
    "\b\bo \"L1\", \"L2\", \"NL2\", \"RMS\", \"Linf\": different norms\n " \
-   "\b\bo \"histo-min\",  \"histo-max\", \"histo-mean\", " \
+   "\b\bo \"histo-min\", \"histo-max\", \"histo-mean\"," \
      "\"histo-median\", \"histo-mode\", \"histo-product\", \"histo-l2\", " \
      "\"histo-sum\", \"histo-variance\", \"histo-sd\": same measures, " \
      "but for situations " \
