@@ -54,8 +54,16 @@ unrrdu_acropMain(int argc, const char **argv, const char *me,
              "the axes (if any) that should NOT be cropped", &axesLen);
   hestOptAdd(&opt, "m,measure", "measr", airTypeEnum, 1, 1, &measr, NULL,
              "How to measure slices (along axes to crop) as scalars, "
-             "to form 1-D array analyzed to determine cropping extent\n "
-             NRRD_MEASURE_DESC, NULL, nrrdMeasure);
+             "to form 1-D array analyzed to determine cropping extent. "
+             "All the measures from \"unu project\" can be used, but "
+             "those that make more sense here include:\n "
+             "\b\bo \"max\", \"mean\", \"median\", "
+             "\"variance\": (self-explanatory)\n "
+             "\b\bo \"stdv\": standard deviation\n " 
+             "\b\bo \"cov\": coefficient of variation\n " 
+             "\b\bo \"product\", \"sum\": product or sum of all values\n "
+             "\b\bo \"L1\", \"L2\", \"NL2\", \"RMS\", \"Linf\": "
+             "different norms.", NULL, nrrdMeasure);
   hestOptAdd(&opt, "f,frac", "frac", airTypeDouble, 1, 1, &frac, "0.1",
              "threshold of cumulative sum of 1-D array at which to crop. "
              "Needs to be in interval [0.0,0.5).");
