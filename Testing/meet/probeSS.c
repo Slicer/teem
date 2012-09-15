@@ -224,11 +224,11 @@ engageGenVector(gageContext *gctx, Nrrd *nvec, const Nrrd *nscl) {
         Mx = (xi == 0 ? 0 : xi-1);
         Px = AIR_MIN(xi+1, sx-1);
         vec[0 + 3*INDEX(xi, yi, zi)] = 
-          (scl[INDEX(Px, yi, zi)] - scl[INDEX(Mx, yi, zi)])/(2.0*spcX);
+          AIR_CAST(float, (scl[INDEX(Px, yi, zi)] - scl[INDEX(Mx, yi, zi)])/(2.0*spcX));
         vec[1 + 3*INDEX(xi, yi, zi)] = 
-          (scl[INDEX(xi, Py, zi)] - scl[INDEX(xi, My, zi)])/(2.0*spcY);
+          AIR_CAST(float, (scl[INDEX(xi, Py, zi)] - scl[INDEX(xi, My, zi)])/(2.0*spcY));
         vec[2 + 3*INDEX(xi, yi, zi)] = 
-          (scl[INDEX(xi, yi, Pz)] - scl[INDEX(xi, yi, Mz)])/(2.0*spcZ);
+          AIR_CAST(float, (scl[INDEX(xi, yi, Pz)] - scl[INDEX(xi, yi, Mz)])/(2.0*spcZ));
       }
     }
   }
