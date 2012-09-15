@@ -198,10 +198,21 @@ _airMopWhenStr[4][128] = {
   "always",
 };
 
+/* 
+** This is to overcome the warning about 
+** "ISO C forbids conversion of function pointer to object pointer type";
+** the result here is thus implementation-dependent
+*/
+typedef union {
+  airMopper m;
+  void *v;
+} mvunion;
+
 void
 airMopDebug(airArray *arr) {
   airMop *mops;
   int i;
+  mvunion mvu;
 
   if (!arr)
     return;
@@ -236,7 +247,10 @@ airMopDebug(airArray *arr) {
       continue;
     }
     /* else */
-    printf("0x%p(0x%p)\n", (void*)(mops[i].mop), (void*)(mops[i].ptr));
+    mvu.m = mops[i].mop;
+    printf("0x%p(0x%p)\n",
+           AIR_CAST(void *, mvu.v),
+           AIR_CAST(void*, mops[i].ptr));
   }
   printf("airMopDebug: ^^^^^^^^^^^^^^^^^^^^^^^^^\n");
 }

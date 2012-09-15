@@ -130,7 +130,7 @@ typedef unsigned long long airULLong;
 ** aliasing warnings, especially with the first argument to airArrayNew().
 ** Unfortunately this can't meet the needs of all such cases because some
 ** libraries need to manage addresses of arrays of other kinds of
-** library-specific objects (about which air is ignorant)
+** library-specific objects (about which air is ignorant).
 */
 typedef union {
   unsigned char **uc;

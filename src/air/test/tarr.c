@@ -84,7 +84,7 @@ main(int argc, char *argv[]) {
      union to pass in the address of the array.  So, appu.v == &data, 
      but the types are right.  We don't do a cast because recent versions
      of gcc will complain about breaking "strict-aliasing rules". */
-  appu.c = &data;
+  appu.uc = &data;
   dataArr = airArrayNew(appu.v, NULL, sizeof(unsigned char), incr);
   if (!dataArr) {
     fprintf(stderr, "%s: couldn't allocate airArray\n", me);
