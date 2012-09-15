@@ -247,9 +247,9 @@ which the code diverges from this standard are:
  - various strings created at compile time, often with the benefit of the
    "foo" "bar" --> "foobar" string concatenation, exceed the length 
    509 guaranteed to be supported by the standard
-Automatic conversion from a non-void* to a void*, in the specific case
-of supplying the value for a %p argument to printf, is not actually
-supported: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=26542 
+Note that automatic conversion from a non-void* to a void*, in the specific
+case of supplying the value for a %p argument to a printf-like function, is
+not actually supported: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=26542 
 The AIR_VOIDP(x) macro can be used to cast x to void*.
 
 * Any externally visible changes in Teem must be accompanied by regenerating
