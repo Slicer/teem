@@ -159,15 +159,17 @@ makeVolume(Nrrd *nin, unsigned int sx, unsigned int sy, unsigned int sz,
                      nrrdCenterCell);
   
   /* set data */
-  double *data = AIR_CAST(double *, nin->data);
-  for (zi=0; zi<sz; zi++) {
-    double pos[3];
-    for (yi=0; yi<sy; yi++) {
-      for (xi=0; xi<sx; xi++) {
-        ELL_3V_SCALE_ADD2(pos, 1.0, spcOrig, xi, spcVec[0]);
-        ELL_3V_SCALE_ADD2(pos, 1.0, pos, yi, spcVec[1]);
-        ELL_3V_SCALE_ADD2(pos, 1.0, pos, zi, spcVec[2]);
-        data[xi + sx*(yi + sy*zi)] = polyeval(coef, 0, 0, 0, pos);
+  {
+    double *ddata = AIR_CAST(double *, nin->data);
+    for (zi=0; zi<sz; zi++) {
+      double pos[3];
+      for (yi=0; yi<sy; yi++) {
+        for (xi=0; xi<sx; xi++) {
+          ELL_3V_SCALE_ADD2(pos, 1.0, spcOrig, xi, spcVec[0]);
+          ELL_3V_SCALE_ADD2(pos, 1.0, pos, yi, spcVec[1]);
+          ELL_3V_SCALE_ADD2(pos, 1.0, pos, zi, spcVec[2]);
+          ddata[xi + sx*(yi + sy*zi)] = polyeval(coef, 0, 0, 0, pos);
+        }
       }
     }
   }

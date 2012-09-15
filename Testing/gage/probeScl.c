@@ -50,7 +50,7 @@ main(int argc, const char **argv) {
     {1.0},
     {1.0},
     {1.0, 0.0, 0.5},
-    {},
+    {AIR_NAN},
   };
   const NrrdKernel *bkern[BLUR_KERN_NUM] = {
     nrrdKernelTent,
@@ -75,8 +75,8 @@ main(int argc, const char **argv) {
   };
   double bkparm[BLUR_KERN_NUM][NRRD_KERNEL_PARMS_NUM] = {
     {1.0},
-    {},
-    {},
+    {AIR_NAN},
+    {AIR_NAN},
     {2.0, 1.0, 0.0},
     {1.2, 5.0},
   };

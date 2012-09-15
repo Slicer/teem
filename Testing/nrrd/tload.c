@@ -35,11 +35,11 @@ main(int argc, const char **argv) {
   Nrrd *nin;
   airArray *mop;
   char *fullname;
+  int differ;
 
   AIR_UNUSED(argc);
   me = argv[0];
   mop = airMopNew();
-  int differ;
 
   nin = nrrdNew();
   airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);

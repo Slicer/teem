@@ -88,8 +88,8 @@ main(int argc, const char *argv[]) {
   /* airFree, airTime */
   {
     unsigned int big = 1024, times = 200*1024, ii;
-    big = big*big*big/2; /* half Gig */
     double time0, dtime;
+    big = big*big*big/2; /* half Gig */
     time0 = airTime();
     for (ii=0; ii<times; ii++) {
       ptr = AIR_CALLOC(big, char);
