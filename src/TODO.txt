@@ -12,9 +12,13 @@ useful for Teem-using apps to have an API for this.  Libraries within
 Teem can't use "meet", but there should at least be consistent naming
 conventions.
 
-Do away with "experimental" libraries and applications.  Too annoying
-to have two totally different kinds of Teem installs, especially when
-it means that it would mean two different python wrappings.
+Consider doing away with "experimental" libraries and applications:
+its annoying to have two totally different kinds of Teem installs,
+especially when it means that it would mean two different python
+wrappings.
+
+Consider inserting SVN revision numbers in code itself:
+http://addisu.taddese.com/blog/inserting-svn-revision-number-in-your-cc-code/
 
 Consider extending const-correctness of function input not just to
 pointers, but to all values as well.

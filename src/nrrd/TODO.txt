@@ -17,9 +17,10 @@ of a filename could be in more than one format (for reading), then
 perhaps the ordering of nrrdFormatAll would impose some preferential
 ordering on the formats.
 * generalize I/O so that magic needn't be on line by itself
+* support Analyze/NIFTI format (relies on better buffering, above)
+* support DICOM, using as much of something like DCMTK as needed 
 * clarify and document all IO stuff
 * debug and scrutinize current implementation of all "nhdr" related behavior
-* support Analyze/NIFTI format (relies on better buffering, above)
 * support TIFF format
 * support FITS format
 * support VFF format
