@@ -23,6 +23,11 @@
 
 #include <teem/unrrdu.h>
 
+/* learning columns
+#include <sys/types.h>
+#include <sys/ioctl.h>
+*/
+
 #define UNU "unu"
 
 int
@@ -83,6 +88,13 @@ main(int argc, const char **argv) {
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
   hparm->elideMultipleEmptyStringDefault = AIR_TRUE;
   hparm->columns = unrrduDefNumColumns;
+  /* learning columns
+  if (1) {
+    struct winsize ws;
+    ioctl(1, TIOCGWINSZ, &ws);
+    hparm->columns = ws.ws_col - 1;
+  }
+  */
   hparm->greedySingleString = AIR_TRUE;
 
   /* if there are no arguments, then we give general usage information */
