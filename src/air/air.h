@@ -580,7 +580,7 @@ AIR_EXPORT airULLong airIndexULL(double min, double val, double max,
 AIR_EXPORT airULLong airIndexClampULL(double min, double val, double max,
                                       airULLong N);
 AIR_EXPORT char *airDoneStr(double start, double here, double end, char *str);
-AIR_EXPORT double airTime();
+AIR_EXPORT double airTime(void);
 AIR_EXPORT const char airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL];
 AIR_EXPORT const size_t airTypeSize[AIR_TYPE_MAX+1];
 AIR_EXPORT void airEqvAdd(airArray *eqvArr, unsigned int j, unsigned int k);
