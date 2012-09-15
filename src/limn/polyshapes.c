@@ -593,16 +593,16 @@ limnPolyDataCylinder(limnPolyData *pld,
     if (sharpEdge) {
       for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
         theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 1);
-        ELL_2V_SET(pld->tex2 + 2*(thetaIdx + 0*thetaRes), theta, 0);
-        ELL_2V_SET(pld->tex2 + 2*(thetaIdx + 1*thetaRes), theta, 0);
-        ELL_2V_SET(pld->tex2 + 2*(thetaIdx + 2*thetaRes), theta, 1);
-        ELL_2V_SET(pld->tex2 + 2*(thetaIdx + 3*thetaRes), theta, 1);
+        ELL_2V_SET_TT(pld->tex2 + 2*(thetaIdx + 0*thetaRes), float, theta, 0);
+        ELL_2V_SET_TT(pld->tex2 + 2*(thetaIdx + 1*thetaRes), float, theta, 0);
+        ELL_2V_SET_TT(pld->tex2 + 2*(thetaIdx + 2*thetaRes), float, theta, 1);
+        ELL_2V_SET_TT(pld->tex2 + 2*(thetaIdx + 3*thetaRes), float, theta, 1);
       }
     } else {
       for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
         theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 1);
-        ELL_2V_SET(pld->tex2 + 2*(thetaIdx + 0*thetaRes), theta, 0);
-        ELL_2V_SET(pld->tex2 + 2*(thetaIdx + 1*thetaRes), theta, 1);
+        ELL_2V_SET_TT(pld->tex2 + 2*(thetaIdx + 0*thetaRes), float, theta, 0);
+        ELL_2V_SET_TT(pld->tex2 + 2*(thetaIdx + 1*thetaRes), float, theta, 1);
       }
     }
   }
@@ -964,9 +964,9 @@ limnPolyDataSpiralBetterquadric(limnPolyData *pld,
         }
       }
       if ((1 << limnPolyDataInfoTex2) & infoBitFlag) {
-        ELL_2V_SET(pld->tex2 + 2*vertIdx, 
-                   AIR_AFFINE(0.0, theta, 2*AIR_PI, 0.0, 1.0),
-                   AIR_AFFINE(0.0, phi, AIR_PI, 0.0, 1.0));
+        ELL_2V_SET_TT(pld->tex2 + 2*vertIdx, float,
+                      AIR_AFFINE(0.0, theta, 2*AIR_PI, 0.0, 1.0),
+                      AIR_AFFINE(0.0, phi, AIR_PI, 0.0, 1.0));
       }
       ++vertIdx;
     }
@@ -1373,16 +1373,16 @@ limnPolyDataPlane(limnPolyData *pld,
       uu = AIR_CAST(float, AIR_AFFINE(0, uIdx, uRes-1, -1.0, 1.0));
       ELL_4V_SET(pld->xyzw + 4*vertIdx, uu, vv, 0.0, 1.0);
       if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
-        ELL_3V_SET(pld->norm + 3*vertIdx, 0.0, 0.0, 1.0);
+        ELL_3V_SET_TT(pld->norm + 3*vertIdx, float, 0.0, 0.0, 1.0);
       }
       if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
-        ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
+        ELL_4V_SET_TT(pld->rgba + 4*vertIdx, float, 255, 255, 255, 255);
       }
       if ((1 << limnPolyDataInfoTex2) & infoBitFlag) {
-        ELL_2V_SET(pld->tex2 + 2*vertIdx, (uu+1.0)/2.0, (vv+1.0)/2.0);
+        ELL_2V_SET_TT(pld->tex2 + 2*vertIdx, float, (uu+1.0)/2.0, (vv+1.0)/2.0);
       }
       if ((1 << limnPolyDataInfoTang) & infoBitFlag) {
-        ELL_3V_SET(pld->tang + 3*vertIdx, 1.0, 0.0, 0.0);
+        ELL_3V_SET_TT(pld->tang + 3*vertIdx, float, 1.0, 0.0, 0.0);
       }
       ++vertIdx;
     }
