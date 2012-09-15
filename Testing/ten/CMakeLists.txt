@@ -24,3 +24,7 @@
 ADD_EXECUTABLE(test_tendlist tendlist.c)
 TARGET_LINK_LIBRARIES(test_tendlist teem)
 ADD_TEST(tendlist ${EXECUTABLE_OUTPUT_PATH}/test_tendlist)
+
+ADD_EXECUTABLE(test_glyphBqd glyphBqd.c)
+TARGET_LINK_LIBRARIES(test_glyphBqd teem)
+ADD_TEST(glyphBqd ${EXECUTABLE_OUTPUT_PATH}/test_glyphBqd)
