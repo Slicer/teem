@@ -65,7 +65,7 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
   
   if (!( nin && kind )) {
     biffAddf(GAGE, "%s: got NULL pointer (%p, %p, or %p)", me,
-             ctx, nin, kind);
+             AIR_VOIDP(ctx), AIR_VOIDP(nin), AIR_VOIDP(kind));
     return NULL;
   }
   /* Craziness: since circa 2003, the test below was to call gageVolumeCheck,

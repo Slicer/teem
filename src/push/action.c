@@ -227,7 +227,7 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
           if (!ELL_3V_EXISTS(myPoint->frc)) {
             biffAddf(PUSH, "%s: bad myPoint->frc (%g,%g,%g) @ bin %p end", me,
                      myPoint->frc[0], myPoint->frc[1], myPoint->frc[2],
-                     herBin);
+                     AIR_VOIDP(herBin));
             return 1;
           }
         }

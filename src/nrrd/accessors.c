@@ -527,7 +527,7 @@ int nrrdArrayCompare(int type, const void *_valA, const void *_valB,
 
   if (!(_valA && _valB && differ)) {
     biffAddf(NRRD, "%s: got NULL pointer (%p, %p, or %p)", me,
-             _valA, _valB, differ);
+             _valA, _valB, AIR_VOIDP(differ));
     return 1;
   }
   if (!valNum) {

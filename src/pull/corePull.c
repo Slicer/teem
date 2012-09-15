@@ -121,7 +121,7 @@ pullStart(pullContext *pctx) {
   unsigned int tidx;
 
   if (pctx->verbose) {
-    fprintf(stderr, "%s: hello %p\n", me, pctx);
+    fprintf(stderr, "%s: hello %p\n", me, AIR_VOIDP(pctx));
   }
   pctx->iter = 0; /* have to initialize this here because of seedOnly hack */
 

@@ -233,7 +233,8 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
 
   if (!(ctx && pvlBase && pvlStack && stackPos)) { 
     biffAddf(GAGE, "%s: got NULL pointer %p %p %p %p", me,
-             ctx, pvlBase, pvlStack, stackPos);
+             AIR_VOIDP(ctx), AIR_VOIDP(pvlBase),
+             AIR_VOIDP(pvlStack), AIR_VOIDP(stackPos));
     return 1;
   }
   if (!( blNum >= 2 )) {

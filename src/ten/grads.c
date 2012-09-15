@@ -391,7 +391,7 @@ tenGradientBalance(Nrrd *nout, const Nrrd *nin,
 
   if (!nout || tenGradientCheck(nin, nrrdTypeUnknown, 2) || !tgparm) {
     biffAddf(TEN, "%s: got NULL pointer (%p,%p) or invalid nin", me,
-             nout, tgparm);
+             AIR_VOIDP(nout), AIR_VOIDP(tgparm));
     return 1;
   }
   if (nrrdConvert(nout, nin, nrrdTypeDouble)) {

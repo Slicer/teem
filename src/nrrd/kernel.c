@@ -3113,7 +3113,7 @@ nrrdKernelCompare(const NrrdKernel *kernA,
 
   if (!(kernA && kernB && differ)) {
     biffAddf(NRRD, "%s: got NULL pointer (%p, %p, or %p)", me,
-             kernA, kernB, differ);
+             AIR_VOIDP(kernA), AIR_VOIDP(kernB), AIR_VOIDP(differ));
     return 1;
   }
   if (kernA != kernB) {
@@ -3184,10 +3184,10 @@ nrrdKernelCheck(const NrrdKernel *kern,
   if (!(kern->name && kern->support && kern->integral
         && kern->eval1_f && kern->evalN_f
         && kern->eval1_d && kern->evalN_d)) {
-    biffAddf(NRRD, "%s: kernel has NULL fields (%p,%p,%p,%p,%p,%p,%p)", me,
-             kern->name, kern->support, kern->integral,
-             kern->eval1_f, kern->evalN_f,
-             kern->eval1_d, kern->evalN_d);
+    biffAddf(NRRD, "%s: kernel has NULL fields (%d,%d,%d,%d,%d,%d,%d)", me,
+             !!(kern->name), !!(kern->support), !!(kern->integral),
+             !!(kern->eval1_f), !!(kern->evalN_f),
+             !!(kern->eval1_d), !!(kern->evalN_d));
     return 0;
   }
   if (nrrdKernelSprint(kstr, kern, parm)) {

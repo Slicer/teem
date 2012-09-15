@@ -444,7 +444,8 @@ pullProbe(pullTask *task, pullPoint *point) {
         printf("%s: vol[%u] has scale (%u)-> "
                "gageStackProbeSpace(%p) (v %d)\n",
                me, ii, task->vol[ii]->scaleNum,
-               task->vol[ii]->gctx, task->vol[ii]->gctx->verbose);
+               AIR_VOIDP(task->vol[ii]->gctx), 
+               task->vol[ii]->gctx->verbose);
       }
       /*
         if (81 == point->idtag) {
@@ -1267,7 +1268,7 @@ _pullPointSetup(pullContext *pctx) {
                                 calloc(pn, sizeof(unsigned int)));
   if (!( pctx->tmpPointPtr && pctx->tmpPointPerm )) {
     biffAddf(PULL, "%s: couldn't allocate tmp buffers %p %p", me,
-             pctx->tmpPointPtr, pctx->tmpPointPerm);
+             AIR_VOIDP(pctx->tmpPointPtr), AIR_VOIDP(pctx->tmpPointPerm));
     airMopError(mop); return 1;
   }
   pctx->tmpPointNum = pn;

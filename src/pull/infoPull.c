@@ -159,7 +159,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
   for (ii=0; ii<=PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii] == ispec) {
       biffAddf(PULL, "%s(%s): already got ispec %p as ispec[%u]", me,
-               airEnumStr(pullInfo, ispec->info), ispec, ii);
+               airEnumStr(pullInfo, ispec->info), AIR_VOIDP(ispec), ii);
       return 1;
     }
   }

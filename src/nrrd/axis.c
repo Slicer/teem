@@ -947,8 +947,8 @@ nrrdAxisInfoCompare(const NrrdAxisInfo *axisA, const NrrdAxisInfo *axisB,
   unsigned int saxi;
 
   if (!(axisA && axisB && differ)) {
-    biffAddf(NRRD, "%s: got NULL pointer (%p, %p, or %p)",
-             me, axisA, axisB, differ);
+    biffAddf(NRRD, "%s: got NULL pointer (%p, %p, or %p)", me,
+             AIR_VOIDP(axisA), AIR_VOIDP(axisB), AIR_VOIDP(differ));
     return 1;
   }
 

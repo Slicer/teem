@@ -94,7 +94,8 @@ biffMsgAdd(biffMsg *msg, const char *err) {
     return;
   }
   if (!( msg && err )) {
-    fprintf(stderr, "%s: PANIC got NULL msg (%p) or err (%p)\n", me, msg, err);
+    fprintf(stderr, "%s: PANIC got NULL msg (%p) or err (%p)\n", me,
+            AIR_VOIDP(msg), AIR_VOIDP(err));
     /* exit(1); */
   }
   idx = airArrayLenIncr(msg->errArr, 1);
@@ -174,7 +175,8 @@ biffMsgMove(biffMsg *dest, biffMsg *src, const char *err) {
     return;
   }
   if (!( dest && src )) {
-    fprintf(stderr, "%s: PANIC got NULL msg (%p %p)\n", me, dest, src);
+    fprintf(stderr, "%s: PANIC got NULL msg (%p %p)\n", me, 
+            AIR_VOIDP(dest), AIR_VOIDP(src));
     /* exit(1); */
   }
   /* if src and dest are same, this degenerates to biffMsgAdd */
@@ -252,13 +254,14 @@ biffMsgStrlen(const biffMsg *msg) {
     return 0;
   }
   if (!( msg )) {
-    fprintf(stderr, "%s: PANIC got NULL msg %p\n", me, msg);
+    fprintf(stderr, "%s: PANIC got NULL msg %p\n", me, AIR_VOIDP(msg));
     return 0; /* exit(1); */
   }
 
   len = 0;
   for (ii=0; ii<msg->errNum; ii++) {
-    len += AIR_CAST(unsigned int, strlen(msg->key) + strlen(msg->err[ii]) + strlen("[] \n"));
+    len += AIR_CAST(unsigned int, strlen(msg->key) 
+                    + strlen(msg->err[ii]) + strlen("[] \n"));
   }
   return len+1;
 }

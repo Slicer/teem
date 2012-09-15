@@ -411,7 +411,7 @@ _pullIterFinishDescent(pullContext *pctx) {
                                   calloc(pointNum, sizeof(unsigned int)));
     if (!( pctx->tmpPointPtr && pctx->tmpPointPerm )) {
       biffAddf(PULL, "%s: couldn't allocate tmp buffers %p %p", me, 
-               pctx->tmpPointPtr, pctx->tmpPointPerm);
+               AIR_VOIDP(pctx->tmpPointPtr), AIR_VOIDP(pctx->tmpPointPerm));
       return 1;
     }
     pctx->tmpPointNum = pointNum;

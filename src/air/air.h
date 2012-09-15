@@ -705,6 +705,14 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 #define AIR_CAST(t, v) ((t)(v))
 
 /*
+******** AIR_VOIDP
+**
+** apparent explicit casting to "void *" is needed to use %p in var-args
+** printf, so this is a slightly more convenient form for that
+*/
+#define AIR_VOIDP(x) AIR_CAST(void *, x)
+
+/*
 ******** AIR_MALLOC, AIR_CALLOC
 **
 ** slightly simpler wrapper around cast and malloc/calloc

@@ -386,7 +386,8 @@ pullTraceMultiFilterConcaveDown(Nrrd *nfilt, const pullTraceMulti *mtrc,
   int *filt;
 
   if (!(nfilt && mtrc)) {
-    biffAddf(PULL, "%s: got NULL pointer (%p %p)", me, nfilt, mtrc);
+    biffAddf(PULL, "%s: got NULL pointer (%p %p)", me, 
+             AIR_VOIDP(nfilt), AIR_VOIDP(mtrc));
     return 1;
   }
   if (!(AIR_EXISTS(winLenFrac) && AIR_IN_OP(0.0, winLenFrac, 1.0))) {

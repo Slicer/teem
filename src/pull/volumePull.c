@@ -113,7 +113,8 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
   if (pctx) {
     for (vi=0; vi<pctx->volNum; vi++) {
       if (pctx->vol[vi] == vol) {
-        biffAddf(PULL, "%s: already got vol %p as vol[%u]", me, vol, vi);
+        biffAddf(PULL, "%s: already got vol %p as vol[%u]", me,
+                 AIR_VOIDP(vol), vi);
         return 1;
       }
     }
@@ -190,8 +191,8 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     return 1;
   }
   if (vol->verbose) {
-    printf("%s: ---- vol=%p, name = %p = |%s|\n", me, vol, 
-           vol->name, vol->name);
+    printf("%s: ---- vol=%p, name = %p = |%s|\n", me, AIR_VOIDP(vol), 
+           AIR_VOIDP(vol->name), vol->name);
     if (0 != vol->scaleDerivNormBias) {
       printf("%s: ---- scale deriv norm bias = %g\n", me, 
              vol->scaleDerivNormBias);
@@ -248,7 +249,8 @@ pullVolumeSingleAdd(pullContext *pctx,
 
   /* add this volume to context */
   if (pctx->verbose) {
-    printf("%s: adding pctx->vol[%u] = %p\n", me, pctx->volNum, vol);
+    printf("%s: adding pctx->vol[%u] = %p\n", me, pctx->volNum,
+           AIR_VOIDP(vol));
   }
   pctx->vol[pctx->volNum] = vol;
   pctx->volNum++;
