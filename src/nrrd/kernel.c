@@ -378,7 +378,7 @@ _nrrdDCos4SD1_f(float x, const double *parm) {
   int sgn;
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; } else { sgn = 1; }
-  return sgn*DCOS4(x);
+  return AIR_CAST(float, sgn*DCOS4(x));
 }
 
 static void
@@ -403,7 +403,7 @@ _nrrdDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = sgn*DCOS4(t);
+    f[i] = AIR_CAST(float, sgn*DCOS4(t));
   }
 }
 
@@ -496,7 +496,7 @@ _nrrdDDDCos4SD1_f(float x, const double *parm) {
   int sgn;
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; } else { sgn = 1; }
-  return sgn*DDDCOS4(x);
+  return AIR_CAST(float, sgn*DDDCOS4(x));
 }
 
 static void
@@ -521,7 +521,7 @@ _nrrdDDDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = sgn*DDDCOS4(t);
+    f[i] = AIR_CAST(float, sgn*DDDCOS4(t));
   }
 }
 
@@ -1100,7 +1100,7 @@ static float
 _nrrdCTMR1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
-  return _CTMR(x);
+  return AIR_CAST(float, _CTMR(x));
 }
 
 static void
@@ -1123,7 +1123,7 @@ _nrrdCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t);
-    f[i] = _CTMR(t);
+    f[i] = AIR_CAST(float, _CTMR(t));
   }
 }
 
@@ -1154,7 +1154,7 @@ _nrrdDCTMR1_f(float x, const double *parm) {
   int sgn;
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; } else { sgn = 1; }
-  return sgn*_DCTMR(x);
+  return AIR_CAST(float, sgn*_DCTMR(x));
 }
 
 static void
@@ -1179,7 +1179,7 @@ _nrrdDCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = sgn*_DCTMR(t);
+    f[i] = AIR_CAST(float, sgn*_DCTMR(t));
   }
 }
 
@@ -2009,7 +2009,7 @@ _c5septN_f(float *f, const float *x, size_t len, const double *parm) {
     t = AIR_ABS(t);
     ti = AIR_CAST(unsigned int, t);
     t -= ti;
-    f[i] = _C5SEPT(ti, t);
+    f[i] = AIR_CAST(float, _C5SEPT(ti, t));
   }
 }
 
@@ -2083,7 +2083,7 @@ _dc5septN_f(float *f, const float *x, size_t len, const double *parm) {
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
     ti = AIR_CAST(unsigned int, t);
     t -= ti;
-    f[i] = sgn*_DC5SEPT(ti, t);
+    f[i] = AIR_CAST(float, sgn*_DC5SEPT(ti, t));
   }
 }
 
@@ -2153,7 +2153,7 @@ _ddc5septN_f(float *f, const float *x, size_t len, const double *parm) {
     t = AIR_ABS(t);
     ti = AIR_CAST(unsigned int, t);
     t -= ti;
-    f[i] = _DDC5SEPT(ti, t);
+    f[i] = AIR_CAST(float, _DDC5SEPT(ti, t));
   }
 }
 
@@ -2227,7 +2227,7 @@ _dddc5septN_f(float *f, const float *x, size_t len, const double *parm) {
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
     ti = AIR_CAST(unsigned int, t);
     t -= ti;
-    f[i] = sgn*_DDDC5SEPT(ti, t);
+    f[i] = AIR_CAST(float, sgn*_DDDC5SEPT(ti, t));
   }
 }
 

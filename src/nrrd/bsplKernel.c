@@ -478,6 +478,19 @@ _bspl4_sup(const double *parm) {
 }
 */
 
+/* HEY: there is a possibly interesting question to be answered here
+   about whether, to distinguish the float-specific and
+   double-specific versions of the kernel eval functions, if the
+   float-specific versions should actually only use floats for locals,
+   so that no casting to float is needed at return, or, if its too
+   much of a precision loss to do so, at no real economy of speed, so
+   doubles should be used for all intermediate calculations, prior to
+   the final cast to float.  The .._T macros below do the casting,
+   whether or not is as actually needed, so this can be experimented
+   with by just changing the type of the locals (without changing the
+   macro definitions) */
+   
+
 /* ============================= order *5* ============================= */
 
 static double
@@ -494,15 +507,15 @@ _bspl5d0_int(const double *parm) {
   return 1.0;
 }
 
-#define BSPL5D0(ret, t, x)                                      \
+#define BSPL5D0_T(ret, TT, t, x)                                \
   if (x < 1) {                                                  \
     t = x*x;                                                    \
-    ret = (33 - 5*t*(6 + (x-3)*t))/60;                          \
+    ret = AIR_CAST(TT, (33 - 5*t*(6 + (x-3)*t))/60);            \
   } else if (x < 2) {                                           \
-    ret = (51 + 5*x*(15 + x*(-42 + x*(30 + (-9 + x)*x))))/120;  \
-  } else if (x < 3) {                                           \
+    ret = AIR_CAST(TT, (51 + 5*x*(15 + x*(-42 + x*(30 + (-9 + x)*x))))/120); \
+  } else if (x < 3) {                                                   \
     t = x - 3;                                                  \
-    ret = -t*t*t*t*t/120;                                       \
+    ret = AIR_CAST(TT, -t*t*t*t*t/120);                         \
   } else {                                                      \
     ret = 0;                                                    \
   }
@@ -513,7 +526,7 @@ _bspl5d0_1d(double x, const double *parm) {
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
-  BSPL5D0(r, tmp, ax);
+  BSPL5D0_T(r, double, tmp, ax);
   return r;
 }
 
@@ -523,7 +536,7 @@ _bspl5d0_1f(float x, const double *parm) {
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
-  BSPL5D0(r, tmp, ax);
+  BSPL5D0_T(r, float, tmp, ax);
   return r;
 }
 
@@ -535,7 +548,7 @@ _bspl5d0_Nd(double *f, const double *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
-    BSPL5D0(r, tmp, ax);
+    BSPL5D0_T(r, double, tmp, ax);
     f[i] = r;
   }
 }
@@ -548,7 +561,7 @@ _bspl5d0_Nf(float *f, const float *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
-    BSPL5D0(r, tmp, ax);
+    BSPL5D0_T(r, float, tmp, ax);
     f[i] = r;
   }
 }
@@ -569,15 +582,15 @@ _bspl5d1_int(const double *parm) {
   return 0.0;
 }
 
-#define BSPL5D1(ret, t, x)                              \
+#define BSPL5D1_T(ret, TT, t, x)                         \
   if (x < 1) {                                          \
     t = x*x*x;                                          \
-    ret = -x + t - (5*t*x)/12;                          \
+    ret = AIR_CAST(TT, -x + t - (5*t*x)/12);             \
   } else if (x < 2) {                                   \
-    ret = (15 + x*(-84 + x*(90 + x*(-36 + 5*x))))/24;   \
+    ret = AIR_CAST(TT, (15 + x*(-84 + x*(90 + x*(-36 + 5*x))))/24);     \
   } else if (x < 3) {                                   \
     t = -3 + x;                                         \
-    ret = -t*t*t*t/24;                                  \
+    ret = AIR_CAST(TT, -t*t*t*t/24);                    \
   } else {                                              \
     ret = 0;                                            \
   }
@@ -589,7 +602,7 @@ _bspl5d1_1d(double x, const double *parm) {
   AIR_UNUSED(parm);
 
   ABS_SGN(ax, sgn, x);
-  BSPL5D1(r, tmp, ax);
+  BSPL5D1_T(r, double, tmp, ax);
   return sgn*r;
 }
 
@@ -600,7 +613,7 @@ _bspl5d1_1f(float x, const double *parm) {
   AIR_UNUSED(parm);
 
   ABS_SGN(ax, sgn, x);
-  BSPL5D1(r, tmp, ax);
+  BSPL5D1_T(r, float, tmp, ax);
   return sgn*r;
 }
 
@@ -613,7 +626,7 @@ _bspl5d1_Nd(double *f, const double *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
-    BSPL5D1(r, tmp, ax);
+    BSPL5D1_T(r, double, tmp, ax);
     f[i] = sgn*r;
   }
 }
@@ -627,7 +640,7 @@ _bspl5d1_Nf(float *f, const float *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
-    BSPL5D1(r, tmp, ax);
+    BSPL5D1_T(r, float, tmp, ax);
     f[i] = sgn*r;
   }
 }
@@ -648,15 +661,15 @@ _bspl5d2_int(const double *parm) {
   return 0.0;
 }
 
-#define BSPL5D2(ret, t, x)                      \
+#define BSPL5D2_T(ret, TT, t, x)                \
   if (x < 1) {                                  \
     t = x*x;                                    \
-    ret = -1 + 3*t - (5*t*x)/3;                 \
+    ret = AIR_CAST(TT, -1 + 3*t - (5*t*x)/3);   \
   } else if (x < 2) {                           \
-    ret = (-21 + x*(45 + x*(-27 + 5*x)))/6;     \
-  } else if (x < 3) {                           \
+    ret = AIR_CAST(TT, (-21 + x*(45 + x*(-27 + 5*x)))/6);       \
+  } else if (x < 3) {                                           \
     t = -3 + x;                                 \
-    ret = -t*t*t/6;                             \
+    ret = AIR_CAST(TT, -t*t*t/6);               \
   } else {                                      \
     ret = 0;                                    \
   }
@@ -667,7 +680,7 @@ _bspl5d2_1d(double x, const double *parm) {
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
-  BSPL5D2(r, tmp, ax);
+  BSPL5D2_T(r, double, tmp, ax);
   return r;
 }
 
@@ -677,7 +690,7 @@ _bspl5d2_1f(float x, const double *parm) {
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
-  BSPL5D2(r, tmp, ax);
+  BSPL5D2_T(r, float, tmp, ax);
   return r;
 }
 
@@ -689,7 +702,7 @@ _bspl5d2_Nd(double *f, const double *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ax = AIR_ABS(x[i]);
-    BSPL5D2(r, tmp, ax);
+    BSPL5D2_T(r, double, tmp, ax);
     f[i] = r;
   }
 }
@@ -702,7 +715,7 @@ _bspl5d2_Nf(float *f, const float *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ax = AIR_ABS(x[i]);
-    BSPL5D2(r, tmp, ax);
+    BSPL5D2_T(r, float, tmp, ax);
     f[i] = r;
   }
 }
@@ -723,14 +736,14 @@ _bspl5d3_int(const double *parm) {
   return 0.0;
 }
 
-#define BSPL5D3(ret, t, x)                              \
+#define BSPL5D3_T(ret, TT, t, x)                        \
   if (x < 1) {                                          \
-    ret = (6 - 5*x)*x;                                  \
+    ret = AIR_CAST(TT, (6 - 5*x)*x);                    \
   } else if (x < 2) {                                   \
-    ret = 15.0/2.0 - 9*x + 5*x*x/2;                     \
+    ret = AIR_CAST(TT, 15.0/2.0 - 9*x + 5*x*x/2);       \
   } else if (x < 3) {                                   \
     t = -3 + x;                                         \
-    ret = -t*t/2;                                        \
+    ret = AIR_CAST(TT, -t*t/2);                         \
   } else {                                              \
     ret = 0;                                            \
   }
@@ -742,7 +755,7 @@ _bspl5d3_1d(double x, const double *parm) {
   AIR_UNUSED(parm);
 
   ABS_SGN(ax, sgn, x);
-  BSPL5D3(r, tmp, ax);
+  BSPL5D3_T(r, double, tmp, ax);
   return sgn*r;
 }
 
@@ -753,7 +766,7 @@ _bspl5d3_1f(float x, const double *parm) {
   AIR_UNUSED(parm);
 
   ABS_SGN(ax, sgn, x);
-  BSPL5D3(r, tmp, ax);
+  BSPL5D3_T(r, float, tmp, ax);
   return sgn*r;
 }
 
@@ -766,7 +779,7 @@ _bspl5d3_Nd(double *f, const double *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
-    BSPL5D3(r, tmp, ax);
+    BSPL5D3_T(r, double, tmp, ax);
     f[i] = sgn*r;
   }
 }
@@ -780,7 +793,7 @@ _bspl5d3_Nf(float *f, const float *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
-    BSPL5D3(r, tmp, ax);
+    BSPL5D3_T(r, float, tmp, ax);
     f[i] = sgn*r;
   }
 }
@@ -830,10 +843,10 @@ _bspl5_ANI_int(const double *parm) {
   return 1.0;
 }
 
-#define BSPL5_ANI(ret, tmp, x)                  \
+#define BSPL5_ANI_T(ret, TT, tmp, x)            \
   tmp = AIR_CAST(unsigned int, x+0.5);          \
   if (tmp < BSPL5_AI_LEN) {                     \
-    ret = _bspl5_ANI_kvals[tmp];                \
+    ret = AIR_CAST(TT, _bspl5_ANI_kvals[tmp]);  \
   } else {                                      \
     ret = 0.0;                                  \
   }
@@ -844,7 +857,7 @@ _bspl5_ANI_1d(double x, const double *parm) {
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
-  BSPL5_ANI(r, tmp, ax);
+  BSPL5_ANI_T(r, double, tmp, ax);
   return r;
 }
 
@@ -854,7 +867,7 @@ _bspl5_ANI_1f(float x, const double *parm) {
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
-  BSPL5_ANI(r, tmp, ax);
+  BSPL5_ANI_T(r, float, tmp, ax);
   return AIR_CAST(float, r);
 }
 
@@ -866,7 +879,7 @@ _bspl5_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
-    BSPL5_ANI(r, tmp, ax);
+    BSPL5_ANI_T(r, double, tmp, ax);
     f[i] = r;
   }
 }
@@ -879,7 +892,7 @@ _bspl5_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
-    BSPL5_ANI(r, tmp, ax);
+    BSPL5_ANI_T(r, float, tmp, ax);
     f[i] = AIR_CAST(float, r);
   }
 }
@@ -920,16 +933,16 @@ _bspl7d0_int(const double *parm) {
   return 1.0;
 }
 
-#define BSPL7D0(ret, t, x)                                              \
+#define BSPL7D0_T(ret, TT, t, x)                                         \
   if (x < 1) {                                                          \
-    ret = 151.0/315.0 + x*x*(-48.0 + x*x*(16.0 + x*x*(-4 + x)))/144.0;  \
+    ret = AIR_CAST(TT, 151.0/315.0 + x*x*(-48.0 + x*x*(16.0 + x*x*(-4 + x)))/144.0); \
   } else if (x < 2) {                                                   \
-    ret = (2472 - 7*x*(56 + x*(72 + x*(280 + 3*(-6 + x)*x*(20 + (-6 + x)*x)))))/5040.0; \
+    ret = AIR_CAST(TT, (2472 - 7*x*(56 + x*(72 + x*(280 + 3*(-6 + x)*x*(20 + (-6 + x)*x)))))/5040.0); \
   } else if (x < 3) {                                                   \
-    ret = (-1112 + 7*x*(1736 + x*(-2760 + x*(1960 + x*(-760 + x*(168 + (-20 + x)*x))))))/5040.0; \
+    ret = AIR_CAST(TT, (-1112 + 7*x*(1736 + x*(-2760 + x*(1960 + x*(-760 + x*(168 + (-20 + x)*x))))))/5040.0); \
   } else if (x < 4) {                                                   \
     t = x - 4;                                                          \
-    ret = -t*t*t*t*t*t*t/5040;                                          \
+    ret = AIR_CAST(TT, -t*t*t*t*t*t*t/5040);                            \
   } else {                                                              \
     ret = 0;                                                            \
   }
@@ -940,7 +953,7 @@ _bspl7d0_1d(double x, const double *parm) {
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
-  BSPL7D0(r, tmp, ax);
+  BSPL7D0_T(r, double, tmp, ax);
   return r;
 }
 
@@ -950,7 +963,7 @@ _bspl7d0_1f(float x, const double *parm) {
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
-  BSPL7D0(r, tmp, ax);
+  BSPL7D0_T(r, float, tmp, ax);
   return r;
 }
 
@@ -962,7 +975,7 @@ _bspl7d0_Nd(double *f, const double *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
-    BSPL7D0(r, tmp, ax);
+    BSPL7D0_T(r, double, tmp, ax);
     f[i] = r;
   }
 }
@@ -975,7 +988,7 @@ _bspl7d0_Nf(float *f, const float *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
-    BSPL7D0(r, tmp, ax);
+    BSPL7D0_T(r, float, tmp, ax);
     f[i] = r;
   }
 }
@@ -996,16 +1009,16 @@ _bspl7d1_int(const double *parm) {
   return 0.0;
 }
 
-#define BSPL7D1(ret, t, x)                                              \
+#define BSPL7D1_T(ret, TT, t, x)                                        \
   if (x < 1) {                                                          \
-    ret = x*(-96.0 + x*x*(64.0 + x*x*(-24.0 + 7.0*x)))/144.0;           \
+    ret = AIR_CAST(TT, x*(-96.0 + x*x*(64.0 + x*x*(-24.0 + 7.0*x)))/144.0); \
   } else if (x < 2) {                                                   \
-    ret = -7.0/90.0 - (-2 + x)*x*(-24 + (-2 + x)*x*(76 + x*(-44 + 7*x)))/240.0; \
+    ret = AIR_CAST(TT, -7.0/90.0 - (-2 + x)*x*(-24 + (-2 + x)*x*(76 + x*(-44 + 7*x)))/240.0); \
   } else if (x < 3) {                                                   \
-    ret = (2 + (-4 + x)*x)*(868 + x*(-1024 + x*(458 + x*(-92 + 7*x))))/720.0; \
+    ret = AIR_CAST(TT, (2 + (-4 + x)*x)*(868 + x*(-1024 + x*(458 + x*(-92 + 7*x))))/720.0); \
   } else if (x < 4) {                                                   \
     t = -4 + x;                                                         \
-    ret = -t*t*t*t*t*t/720;                                             \
+    ret = AIR_CAST(TT, -t*t*t*t*t*t/720);                               \
   } else {                                                              \
     ret = 0.0;                                                          \
   }
@@ -1017,7 +1030,7 @@ _bspl7d1_1d(double x, const double *parm) {
   AIR_UNUSED(parm);
 
   ABS_SGN(ax, sgn, x);
-  BSPL7D1(r, tmp, ax);
+  BSPL7D1_T(r, double, tmp, ax);
   return sgn*r;
 }
 
@@ -1028,7 +1041,7 @@ _bspl7d1_1f(float x, const double *parm) {
   AIR_UNUSED(parm);
 
   ABS_SGN(ax, sgn, x);
-  BSPL7D1(r, tmp, ax);
+  BSPL7D1_T(r, float, tmp, ax);
   return sgn*r;
 }
 
@@ -1041,7 +1054,7 @@ _bspl7d1_Nd(double *f, const double *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
-    BSPL7D1(r, tmp, ax);
+    BSPL7D1_T(r, double, tmp, ax);
     f[i] = sgn*r;
   }
 }
@@ -1055,7 +1068,7 @@ _bspl7d1_Nf(float *f, const float *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
-    BSPL7D1(r, tmp, ax);
+    BSPL7D1_T(r, float, tmp, ax);
     f[i] = sgn*r;
   }
 }
@@ -1076,16 +1089,16 @@ _bspl7d2_int(const double *parm) {
   return 0.0;
 }
 
-#define BSPL7D2(ret, t, x)                                              \
+#define BSPL7D2_T(ret, TT, t, x)                                        \
   if (x < 1) {                                                          \
-    ret = (-16.0 + x*x*(32 + x*x*(-20 + 7*x)))/24.0;                    \
+    ret = AIR_CAST(TT, (-16.0 + x*x*(32 + x*x*(-20 + 7*x)))/24.0);      \
   } else if (x < 2) {                                                   \
-    ret = -1.0/5.0 - 7*x/3 + 6*x*x - 14*x*x*x/3 + 3*x*x*x*x/2 - 7*x*x*x*x*x/40; \
+    ret = AIR_CAST(TT, -1.0/5.0 - 7*x/3 + 6*x*x - 14*x*x*x/3 + 3*x*x*x*x/2 - 7*x*x*x*x*x/40); \
   } else if (x < 3) {                                                   \
-    ret = (-920 + x*(1960 + x*(-1520 + x*(560 + x*(-100 + 7*x)))))/120.0; \
+    ret = AIR_CAST(TT, (-920 + x*(1960 + x*(-1520 + x*(560 + x*(-100 + 7*x)))))/120.0); \
   } else if (x < 4) {                                                   \
     t = -4 + x;                                                         \
-    ret = -t*t*t*t*t/120;                                               \
+    ret = AIR_CAST(TT, -t*t*t*t*t/120);                                 \
   } else {                                                              \
     ret = 0;                                                            \
   }
@@ -1096,7 +1109,7 @@ _bspl7d2_1d(double x, const double *parm) {
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
-  BSPL7D2(r, tmp, ax);
+  BSPL7D2_T(r, double, tmp, ax);
   return r;
 }
 
@@ -1106,7 +1119,7 @@ _bspl7d2_1f(float x, const double *parm) {
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
-  BSPL7D2(r, tmp, ax);
+  BSPL7D2_T(r, float, tmp, ax);
   return r;
 }
 
@@ -1118,7 +1131,7 @@ _bspl7d2_Nd(double *f, const double *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ax = AIR_ABS(x[i]);
-    BSPL7D2(r, tmp, ax);
+    BSPL7D2_T(r, double, tmp, ax);
     f[i] = r;
   }
 }
@@ -1131,7 +1144,7 @@ _bspl7d2_Nf(float *f, const float *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ax = AIR_ABS(x[i]);
-    BSPL7D2(r, tmp, ax);
+    BSPL7D2_T(r, float, tmp, ax);
     f[i] = r;
   }
 }
@@ -1152,16 +1165,16 @@ _bspl7d3_int(const double *parm) {
   return 0.0;
 }
 
-#define BSPL7D3(ret, t, x)                                              \
+#define BSPL7D3_T(ret, TT, t, x)                                        \
   if (x < 1) {                                                          \
-    ret = x*(64 + 5*x*x*(-16 + 7*x))/24;                                \
+    ret = AIR_CAST(TT, x*(64 + 5*x*x*(-16 + 7*x))/24);                  \
   } else if (x < 2) {                                                   \
-    ret = -7.0/3.0 + x*(12 + x*(-14 + x*(6 - 7*x/8)));                  \
+    ret = AIR_CAST(TT, -7.0/3.0 + x*(12 + x*(-14 + x*(6 - 7*x/8))));    \
   } else if (x < 3) {                                                   \
-    ret = (392 + x*(-608 + x*(336 + x*(-80 + 7*x))))/24;                \
+    ret = AIR_CAST(TT, (392 + x*(-608 + x*(336 + x*(-80 + 7*x))))/24);  \
   } else if (x < 4) {                                                   \
     t = -4 + x;                                                         \
-    ret = -t*t*t*t/24;                                                  \
+    ret = AIR_CAST(TT, -t*t*t*t/24);                                    \
   } else {                                                              \
     ret = 0.0;                                                          \
   }
@@ -1173,7 +1186,7 @@ _bspl7d3_1d(double x, const double *parm) {
   AIR_UNUSED(parm);
 
   ABS_SGN(ax, sgn, x);
-  BSPL7D3(r, tmp, ax);
+  BSPL7D3_T(r, double, tmp, ax);
   return sgn*r;
 }
 
@@ -1184,7 +1197,7 @@ _bspl7d3_1f(float x, const double *parm) {
   AIR_UNUSED(parm);
 
   ABS_SGN(ax, sgn, x);
-  BSPL7D3(r, tmp, ax);
+  BSPL7D3_T(r, float, tmp, ax);
   return sgn*r;
 }
 
@@ -1197,7 +1210,7 @@ _bspl7d3_Nd(double *f, const double *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
-    BSPL7D3(r, tmp, ax);
+    BSPL7D3_T(r, double, tmp, ax);
     f[i] = sgn*r;
   }
 }
@@ -1211,7 +1224,7 @@ _bspl7d3_Nf(float *f, const float *x, size_t len, const double *parm) {
   
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
-    BSPL7D3(r, tmp, ax);
+    BSPL7D3_T(r, float, tmp, ax);
     f[i] = sgn*r;
   }
 }
