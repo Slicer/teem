@@ -241,6 +241,17 @@ Static functions can use whatever name they want.
 
 ============ Practices to keep Teem coherent and effective
 
+* For the most part, Teem is written in ANSI C89.  The known ways in
+which the code diverges from this standard are:
+ - using the "long long" type qualifier to generate 64-bit ints
+ - various strings created at compile time, often with the benefit of the
+   "foo" "bar" --> "foobar" string concatenation, exceed the length 
+   509 guaranteed to be supported by the standard
+Automatic conversion from a non-void* to a void*, in the specific case
+of supplying the value for a %p argument to printf, is not actually
+supported: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=26542 
+The AIR_VOIDP(x) macro can be used to cast x to void*.
+
 * Any externally visible changes in Teem must be accompanied by regenerating
 its python ctypes wrappers teem/python/ctypes/teem.py.  The current tools for
 doing this are not very slick, including the drawback that the information from
@@ -260,11 +271,9 @@ various paths that are specific to his laptop)
 
 followed by "svn commit" if needed.
 
-
-* Use AIR_CAST to cast things. The only exceptions are casting
-things to airMopper to pass to airMopAdd(), and casting to void** to
-pass to the first argument of airArrayNew(). (why: casts are inherently
-tricky, and sources of bugs, so their use should be easily grep-able)
+* Use AIR_CAST to cast things. The only exception is casting
+things to airMopper to pass to airMopAdd(). (why: casts are inherently
+tricky, and sources of bugs, so their use must be grep-able)
 
 * Use AIR_CALLOC (preferably) or AIR_MALLOC to allocate things (why:
 both explicitly indicate the number of elements, and the size of each,
@@ -428,7 +437,7 @@ checking to take up more space than the core functionality.
 
 * Teem uses size_t-type variables quite a bit, and also ptrdiff_t (at
 least in nrrdPad_nva and nrrdPad_va).  Sometimes these values have to
-passed {s,f,}printf, but ANSI C has no "format specifiers" for that
+passed {s,f,}printf, but ANSI C89 has no "format specifiers" for that
 (as with %d for int, %u for unsigned int).  Teem has previously used
 macros _AIR_SIZE_T_CNV and _AIR_PTRDIFF_T_CNV for this, but setting
 these is a complicated compile-time task that is completely
