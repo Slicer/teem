@@ -886,31 +886,59 @@ tenGlyphBqdAbcUv(double abc[3], const double uv[2], double betaMax) {
                                        {0.00, 0.00}};  /* 10 */
   double abcBall[3], abcCyli[3], abcFunk[3], abcThrn[3],
     abcOcta[3], abcCone[3], abcHalf[3];
+  /* old compile-time setting
   const double *abcAll[10][11] = {
-    /* zone \ vert 0      1        2        3        4        5        6        7        8        9       10    */
-    /*  0 */ {abcBall, abcCyli, abcHalf,  NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL   },
-    /*  1 */ {abcBall,  NULL,   abcHalf, abcCyli,  NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL   },
-    /*  2 */ { NULL,   abcOcta,  NULL,   abcCone, abcThrn,  NULL,    NULL,    NULL,    NULL,    NULL,    NULL   },
-    /*  3 */ { NULL,   abcOcta,  NULL,    NULL,   abcThrn, abcFunk,  NULL,    NULL,    NULL,    NULL,    NULL   },
-    /*  4 */ { NULL,    NULL,    NULL,    NULL,   abcThrn, abcFunk,  NULL,    NULL,    NULL,   abcCone,  NULL   },
-    /*  5 */ { NULL,   abcCone,  NULL,    NULL,    NULL,   abcFunk, abcThrn,  NULL,    NULL,    NULL,    NULL   },
-    /*  6 */ { NULL,    NULL,    NULL,    NULL,    NULL,   abcFunk, abcThrn,  NULL,    NULL,   abcOcta,  NULL   },
-    /*  7 */ { NULL,    NULL,    NULL,    NULL,    NULL,    NULL,   abcThrn, abcCone,  NULL,   abcOcta,  NULL   },
-    /*  8 */ { NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,   abcCyli, abcHalf,  NULL,   abcBall },
-    /*  9 */ { NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,   abcHalf, abcCyli, abcBall }};
-  unsigned int pvi[3], zone;
+     zone \ vert 0      1        2        3        4        5        6        7        8        9       10   
+      0    {abcBall, abcCyli, abcHalf,  NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL   },
+      1    {abcBall,  NULL,   abcHalf, abcCyli,  NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL   },
+      2    { NULL,   abcOcta,  NULL,   abcCone, abcThrn,  NULL,    NULL,    NULL,    NULL,    NULL,    NULL   },
+      3    { NULL,   abcOcta,  NULL,    NULL,   abcThrn, abcFunk,  NULL,    NULL,    NULL,    NULL,    NULL   },
+      4    { NULL,    NULL,    NULL,    NULL,   abcThrn, abcFunk,  NULL,    NULL,    NULL,   abcCone,  NULL   },
+      5    { NULL,   abcCone,  NULL,    NULL,    NULL,   abcFunk, abcThrn,  NULL,    NULL,    NULL,    NULL   },
+      6    { NULL,    NULL,    NULL,    NULL,    NULL,   abcFunk, abcThrn,  NULL,    NULL,   abcOcta,  NULL   },
+      7    { NULL,    NULL,    NULL,    NULL,    NULL,    NULL,   abcThrn, abcCone,  NULL,   abcOcta,  NULL   },
+      8    { NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,   abcCyli, abcHalf,  NULL,   abcBall },
+      9    { NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,   abcHalf, abcCyli, abcBall }};
+  */
+  const double *abcAll[10][11];
+  unsigned int pvi[3], zone, vert;
   double bcoord[3];
 
   ELL_3V_SET(abcBall, 1, 1, 1);
   ELL_3V_SET(abcCyli, 1, 0, 0);
-  ELL_3V_SET(abcFunk, 0, betaMax, 2); /* only one with c != b  */
+  ELL_3V_SET(abcFunk, 0, betaMax, 2);  /* only one with c != b  */
   ELL_3V_SET(abcThrn, 1, betaMax, 3);
   ELL_3V_SET(abcOcta, 0, 2, 2);
   ELL_3V_SET(abcCone, 1, 2, 2);
-  ELL_3V_SET(abcHalf, 0.5, 0.5, 0.5);/* alpha is half-way between alpha of 
-                                        octa and cone and beta has to be 
-                                        the same as alpha at for the
-                                        seam to be shape-continuous */
+  ELL_3V_SET(abcHalf, 0.5, 0.5, 0.5); /* alpha is half-way between alpha of 
+                                         octa and cone and beta has to be 
+                                         the same as alpha at for the
+                                         seam to be shape-continuous */
+  /* run-time setting of abcAll[][]; compile-time setting (comments above)
+     gives "initializer element is not computable at load time" warnings */
+  for (zone=0; zone<10; zone++) {
+    for (vert=0; vert<11; vert++) {
+      abcAll[zone][vert]=NULL;
+    }
+  }
+#define SET(zi, vi0, vi1, vi2, sh0, sh1, sh2) \
+  abcAll[zi][vi0] = abc##sh0; \
+  abcAll[zi][vi1] = abc##sh1; \
+  abcAll[zi][vi2] = abc##sh2
+
+  SET(0, 0, 1, 2, Ball, Cyli, Half);
+  SET(1, 0, 2, 3, Ball, Half, Cyli);
+  SET(2, 1, 3, 4, Octa, Cone, Thrn);
+  SET(3, 1, 4, 5, Octa, Thrn, Funk);
+  SET(4, 4, 5, 9, Thrn, Funk, Cone);
+  SET(5, 1, 5, 6, Cone, Funk, Thrn);
+  SET(6, 5, 6, 9, Funk, Thrn, Octa);
+  SET(7, 6, 7, 9, Thrn, Cone, Octa);
+  SET(8, 7, 8,10, Cyli, Half, Ball);
+  SET(9, 8, 9,10, Half, Cyli, Ball);
+
+#undef SET  
+
   zone = tenGlyphBqdZoneUv(uv);
   ELL_3V_COPY(pvi, vertsZone[zone]);
   baryFind(bcoord, uv, uvVert[pvi[0]], uvVert[pvi[1]], uvVert[pvi[2]]);
