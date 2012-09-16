@@ -517,7 +517,7 @@ nrrdValCompareInv[NRRD_TYPE_MAX+1])(const void *, const void *) = {
 ** a bare array and not a Nrrd itself
 */
 int nrrdArrayCompare(int type, const void *_valA, const void *_valB,
-                     size_t valNum, int *differ,
+                     size_t valNum, double epsilon, int *differ,
                      char explain[AIR_STRLEN_LARGE]) {
   static const char me[]="nrrdArrayCompare";
   const unsigned char *valA, *valB;
@@ -532,6 +532,10 @@ int nrrdArrayCompare(int type, const void *_valA, const void *_valB,
   }
   if (!valNum) {
     biffAddf(NRRD, "%s: can't work with 0-length arrays", me);
+    return 1;
+  }
+  if (!AIR_EXISTS(epsilon)) {
+    biffAddf(NRRD, "%s: non-existent epsilon %g", me, epsilon);
     return 1;
   }
   if (airEnumValCheck(nrrdType, type)) {
@@ -559,15 +563,30 @@ int nrrdArrayCompare(int type, const void *_valA, const void *_valB,
   for (ii=0; ii<valNum; ii++) {
     *differ = compare(valA + ii*sze, valB + ii*sze);
     if (*differ) {
-      if (explain) {
-        double aa, bb;
-        airSprintSize_t(stmp, ii);
-        aa = nrrdDLookup[type](valA, ii);
-        bb = nrrdDLookup[type](valB, ii);
-        sprintf(explain, "valA[%s]=%.17g %s valB[%s]=%.17g",
-                stmp, aa, *differ < 0 ? "<" : ">", stmp, bb);
+      double aa, bb;
+      /* same loss of precision as warned about above */
+      aa = nrrdDLookup[type](valA, ii);
+      bb = nrrdDLookup[type](valB, ii);
+      if (0 == epsilon
+          || fabs(aa - bb) > epsilon) {
+        if (explain) {
+          airSprintSize_t(stmp, ii);
+          if (0 == epsilon) {
+            sprintf(explain, "valA[%s]=%.17g %s valB[%s]=%.17g",
+                    stmp, aa, *differ < 0 ? "<" : ">", stmp, bb);
+          } else {
+            sprintf(explain, "valA[%s]=%.17g %s valB[%s]=%.17g "
+                    "by more than eps %g",
+                    stmp, aa, *differ < 0 ? "<" : ">", stmp, bb,
+                    epsilon);
+          }
+        }
+        break;
+      } else {
+        /* we did detect a difference, but it was not in excess of
+           epsilon, so we reset *differ to 0 */
+        *differ = 0;
       }
-      break;
     }
   }
 

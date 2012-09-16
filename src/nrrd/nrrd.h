@@ -781,7 +781,8 @@ NRRD_EXPORT int nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, unsigned int dim,
 NRRD_EXPORT int nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim,
                                   ... /* size_t sx, sy, .., ax(dim-1) size */);
 /* ---- BEGIN non-NrrdIO */
-NRRD_EXPORT int nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData,
+NRRD_EXPORT int nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
+                            int onlyData, double epsilon,
                             int *differ, char explain[AIR_STRLEN_LARGE]);
 NRRD_EXPORT int nrrdPPM(Nrrd *, size_t sx, size_t sy);
 NRRD_EXPORT int nrrdPGM(Nrrd *, size_t sx, size_t sy);
@@ -1004,7 +1005,7 @@ NRRD_EXPORT int (*nrrdValCompare[NRRD_TYPE_MAX+1])(const void *,
 NRRD_EXPORT int (*nrrdValCompareInv[NRRD_TYPE_MAX+1])(const void *,
                                                       const void *);
 NRRD_EXPORT int nrrdArrayCompare(int type, const void *valA, const void *valB,
-                                 size_t valNum, int *differ,
+                                 size_t valNum, double epsilon, int *differ,
                                  char explain[AIR_STRLEN_LARGE]);
 /* ---- END non-NrrdIO */
 

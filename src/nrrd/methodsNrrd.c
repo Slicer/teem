@@ -1015,7 +1015,8 @@ nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
 ** nrrdAxisInfoCompare, and any improvements here should be reflected there
 */
 int
-nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData,
+nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
+            int onlyData, double epsilon,
             int *differ, char explain[AIR_STRLEN_LARGE]) {
   static const char me[]="nrrdCompare";
   size_t numA, numB;
@@ -1061,7 +1062,7 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData,
   }
   /* this will always set *differ */
   if (nrrdArrayCompare(ninA->type, ninA->data, ninB->data, numA,
-                       differ, explain)) {
+                       epsilon, differ, explain)) {
     biffAddf(NRRD, "%s: problem comparing values", me);
     return 1;
   }
