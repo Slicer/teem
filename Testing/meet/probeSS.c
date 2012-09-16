@@ -573,11 +573,13 @@ main(int argc, const char **argv) {
   }
 #undef GAGE_CTX_NEW
 
+  printf("#  0\n");
   for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
     NRRD_NEW(nin[kindIdx], mop);
   }
   NRRD_NEW(ngrad, mop);
   NRRD_NEW(nsclCopy, mop);
+  printf("#  1\n");
   if (engageGenTensor(gctx[KI_TEN], nin[KI_TEN], noiseStdv,
                       volSize[0], volSize[1], volSize[2])
       || engageGenScalar(gctx[KI_SCL], nin[KI_SCL],
@@ -593,6 +595,7 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: trouble creating volumes:\n%s", me, err);
     airMopError(mop); return 1;
   }
+  printf("#  2\n");
   dwikind = tenDwiGageKindNew();
   airMopAdd(mop, dwikind, (airMopper)tenDwiGageKindNix, airMopAlways);
   if (tenDwiGageKindSet(dwikind, -1 /* thresh */, 0 /* soft */,
@@ -605,6 +608,7 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: trouble creating DWI kind:\n%s", me, err);
     airMopError(mop); return 1;
   }
+  printf("#  3\n");
   /* access through kind[] is const, but not through dwikind */
   kind[KI_DWI] = dwikind;
   /* engage dwi vol */
@@ -618,12 +622,14 @@ main(int argc, const char **argv) {
     }
   }
   
+  printf("#  4\n");
   /* make sure kinds can parse back to themselves */
   /* the messiness here is in part because of problems with the gage
      API, and the weirdness of how meetGageKindParse is either allocating
      something, or not, depending on its input.  There is no way to 
      refer to the "name" of a dwi kind without having allocated something. */
   for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
+    printf("#  5.%u\n", kindIdx);
     if (!(kind[kindIdx]->dynamicAlloc)) {
       if (kind[kindIdx] != meetGageKindParse(kind[kindIdx]->name)) {
         fprintf(stderr, "%s: static kind[%u]->name %s wasn't parsed\n", me,
@@ -652,6 +658,7 @@ main(int argc, const char **argv) {
   }
   
   /* ========================== TASK 1 */
+  printf("#  6\n");
   if (updateQueryKernelSetTask1(gctxComp, gctx, 1.0 /* support */)) {
     airMopAdd(mop, err = biffGetDone(PROBE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble updating contexts:\n%s", me, err);
@@ -692,6 +699,7 @@ main(int argc, const char **argv) {
 
   /* single probe with high verbosity */
 
+  printf("#  7\n");
   airMopOkay(mop);
   return 0;
 }
