@@ -1376,7 +1376,7 @@ limnPolyDataPlane(limnPolyData *pld,
         ELL_3V_SET_TT(pld->norm + 3*vertIdx, float, 0.0, 0.0, 1.0);
       }
       if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
-        ELL_4V_SET_TT(pld->rgba + 4*vertIdx, float, 255, 255, 255, 255);
+        ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
       }
       if ((1 << limnPolyDataInfoTex2) & infoBitFlag) {
         ELL_2V_SET_TT(pld->tex2 + 2*vertIdx, float, (uu+1.0)/2.0, (vv+1.0)/2.0);
