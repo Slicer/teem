@@ -271,9 +271,12 @@ various paths that are specific to his laptop)
 
 followed by "svn commit" if needed.
 
-* Use AIR_CAST to cast things. The only exception is casting
-things to airMopper to pass to airMopAdd(). (why: casts are inherently
-tricky, and sources of bugs, so their use must be grep-able)
+* Use AIR_CAST to cast things. The only exception is casting things to
+airMopper to pass to airMopAdd(). (why: casts are inherently tricky, and
+sources of bugs, so their use must be grep-able) Two other things can be
+grepped for to find casts: the AIR_VOIDP casts pointers to void* for %p in
+printf-like functions, and all the ell macros ending in "_TT" are
+there just to do casting as part of their final assignment.
 
 * Use AIR_CALLOC (preferably) or AIR_MALLOC to allocate things (why:
 both explicitly indicate the number of elements, and the size of each,
