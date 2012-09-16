@@ -99,7 +99,7 @@ main(int argc, const char **argv) {
     }
     if (nrrdCopy(ncopy, nin)
         || nrrdCompare(nin, ncopy, AIR_FALSE /* onlyData */,
-                       &differ, explain)) {
+                       0.0 /* epsilon */, &differ, explain)) {
       char *err;
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble w/ copy or compare:\n%s\n", me, err);
@@ -112,7 +112,7 @@ main(int argc, const char **argv) {
     if (nrrdSave("tloadTest.nrrd", nin, NULL)
         || nrrdLoad(ncopy, "tloadTest.nrrd", NULL)
         || nrrdCompare(nin, ncopy, AIR_FALSE /* onlyData */,
-                       &differ, explain)) {
+                       0.0 /* epsilon */, &differ, explain)) {
       char *err;
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble w/ save, load, compare:\n%s\n", me, err);

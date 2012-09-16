@@ -199,8 +199,7 @@ main(int argc, const char **argv) {
               bkern[ki]->name, err);
       airMopError(mop); return 1;
     }
-    printf("%s: %s radius = %u\n", me, bkern[ki]->name,
-           bgctx[ki]->radius);
+    printf("%s radius = %u\n", bkern[ki]->name, bgctx[ki]->radius);
     bvalAns[ki] = gageAnswerPointer(bgctx[ki], gpvl, gageSclValue);
     bgrdAns[ki] = gageAnswerPointer(bgctx[ki], gpvl, gageSclGradVec);
     bhesAns[ki] = gageAnswerPointer(bgctx[ki], gpvl, gageSclHessian);
@@ -269,7 +268,7 @@ main(int argc, const char **argv) {
       }
     }
     if (nrrdCompare(ncorr, nprbd, AIR_FALSE /* onlyData */,
-                    &differ, explain)) {
+                    0.5e-17 /* epsilon */, &differ, explain)) {
       char *err;
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble comparing:\n%s", me, err);
