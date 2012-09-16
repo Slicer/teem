@@ -416,6 +416,11 @@ _nrrdContentSet_nva(Nrrd *nout, const char *func,
   static const char me[]="_nrrdContentSet_nva";
   char *buff;
 
+  if (nrrdStateDisableContent) {
+    /* we kill content always */
+    nout->content = (char *)airFree(nout->content);
+    return 0;
+  }
   buff = (char *)malloc(128*AIR_STRLEN_HUGE);
   if (!buff) {
     biffAddf(NRRD, "%s: couln't alloc buffer!", me);
