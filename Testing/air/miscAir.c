@@ -87,16 +87,15 @@ main(int argc, const char *argv[]) {
 
   /* airFree, airTime */
   {
-    unsigned int big = 1024, times = 200*1024, ii;
+    unsigned int big = 1024, times = 32, ii;
     double time0, dtime;
-    big = big*big*big/2; /* half Gig */
+    big = big*big*32; /* 32 megs */
     time0 = airTime();
     for (ii=0; ii<times; ii++) {
+      /* will have a 1 gig memory leak if airFree() didn't free() */
       ptr = AIR_CALLOC(big, char);
       ptr = airFree(ptr);
     }
-    /* will run out of memory with less than 100 terabytes of memory,
-       if airFree() didn't free() */
     if (!(NULL == ptr)) {
       fprintf(stderr, "%s: airFree() returned %p not NULL\n", me, ptr);
       exit(1);
