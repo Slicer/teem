@@ -77,7 +77,7 @@ engageGenTensor(gageContext *gctx, Nrrd *ncten, double noiseStdv,
      NULL};
   int helixArgc;
   gagePerVolume *pvl;
-
+  
   smop = airMopNew();
   /* not using random number until sure that CTest stuff 
      contributing to dashboard clears out its build/test directory 
@@ -285,7 +285,7 @@ genDwi(Nrrd *ndwi, Nrrd *ngrad,
              ncten->axis[3].size-1);
   if (nrrdSlice(nb0, ncten, 0, 0)
       || nrrdCrop(nten, ncten, cropMin, cropMax)) {
-    biffMovef(PROBE, NRRD, "%s: trouble slice or cropping ten vol", me);
+    biffMovef(PROBE, NRRD, "%s: trouble slicing or cropping ten vol", me);
     airMopError(smop); return 1;
   }
   narg0 = nrrdIterNew();
@@ -560,7 +560,22 @@ main(int argc, const char **argv) {
   AIR_UNUSED(argc);
   me = argv[0];
   mop = airMopNew();
-  
+
+  /* This was a tricky bug: Adding gageContextNix(gctx) to the mop
+     as soon as a gctx is created makes sense.  But, in the first
+     version of this code, gageContextNix was added to the mop 
+     BEFORE tenDwiGageKindNix was added, which meant that gageContextNix
+     was being called AFTER tenDwiGageKindNix.  However, that meant
+     that existing pvls had their pvl->kind being freed from under them,
+     but gagePerVolumeNix certainly needs to look at and possibly call
+     pvl->kind->pvlDataNix in order clean up pvl->data.  *Therefore*,
+     we have to add tenDwiGageKindNix to the mop prior to gageContextNix,
+     even though nothing about the (dyanamic) kind has been set yet.
+     If we had something like smart pointers, then tenDwiGageKindNix
+     would not have freed something that an extant pvl was using */
+  dwikind = tenDwiGageKindNew();
+  airMopAdd(mop, dwikind, (airMopper)tenDwiGageKindNix, airMopAlways);
+
 #define GAGE_CTX_NEW(gg, mm)                                      \
   (gg) = gageContextNew();                                        \
   airMopAdd((mm), (gg), (airMopper)gageContextNix, airMopAlways); \
@@ -573,37 +588,26 @@ main(int argc, const char **argv) {
   }
 #undef GAGE_CTX_NEW
 
-  printf("#  0\n");
   for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
     NRRD_NEW(nin[kindIdx], mop);
   }
   NRRD_NEW(ngrad, mop);
   NRRD_NEW(nsclCopy, mop);
-  printf("#  1\n");
   if (engageGenTensor(gctx[KI_TEN], nin[KI_TEN], noiseStdv,
                       volSize[0], volSize[1], volSize[2])
-      || (printf("#  1.1\n"), 0)
       || engageGenScalar(gctx[KI_SCL], nin[KI_SCL],
                          gctxComp[KI_SCL], nsclCopy, nin[KI_TEN])
-      || (printf("#  1.2\n"), 0)
       || engageGenVector(gctx[KI_VEC], nin[KI_VEC], nin[KI_SCL])
-      || (printf("#  1.3\n"), 0)
       /* engage'ing of nin[KI_DWI] done below */
       || genDwi(nin[KI_DWI], ngrad, gradNum /* for B0 */,
                 bval, nin[KI_TEN])
-      || (printf("#  1.4\n"), 0)
       || engageMopDiceVector(gctxComp[KI_VEC], nvecComp, mop, nin[KI_VEC])
-      || (printf("#  1.5\n"), 0)
       || engageMopDiceTensor(gctxComp[KI_TEN], nctenComp, mop, nin[KI_TEN])
-      || (printf("#  1.6\n"), 0)
       || engageMopDiceDwi(gctxComp[KI_DWI], &ndwiComp, mop, nin[KI_DWI])) {
     airMopAdd(mop, err = biffGetDone(PROBE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble creating volumes:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  printf("#  2\n");
-  dwikind = tenDwiGageKindNew();
-  airMopAdd(mop, dwikind, (airMopper)tenDwiGageKindNix, airMopAlways);
   if (tenDwiGageKindSet(dwikind, -1 /* thresh */, 0 /* soft */,
                         bval, 1 /* valueMin */,
                         ngrad, NULL,
@@ -614,7 +618,6 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: trouble creating DWI kind:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  printf("#  3\n");
   /* access through kind[] is const, but not through dwikind */
   kind[KI_DWI] = dwikind;
   /* engage dwi vol */
@@ -628,14 +631,12 @@ main(int argc, const char **argv) {
     }
   }
   
-  printf("#  4\n");
   /* make sure kinds can parse back to themselves */
   /* the messiness here is in part because of problems with the gage
      API, and the weirdness of how meetGageKindParse is either allocating
      something, or not, depending on its input.  There is no way to 
      refer to the "name" of a dwi kind without having allocated something. */
   for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
-    printf("#  5.%u\n", kindIdx);
     if (!(kind[kindIdx]->dynamicAlloc)) {
       if (kind[kindIdx] != meetGageKindParse(kind[kindIdx]->name)) {
         fprintf(stderr, "%s: static kind[%u]->name %s wasn't parsed\n", me,
@@ -664,7 +665,6 @@ main(int argc, const char **argv) {
   }
   
   /* ========================== TASK 1 */
-  printf("#  6\n");
   if (updateQueryKernelSetTask1(gctxComp, gctx, 1.0 /* support */)) {
     airMopAdd(mop, err = biffGetDone(PROBE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble updating contexts:\n%s", me, err);
@@ -705,7 +705,6 @@ main(int argc, const char **argv) {
 
   /* single probe with high verbosity */
 
-  printf("#  7\n");
   airMopOkay(mop);
   return 0;
 }
