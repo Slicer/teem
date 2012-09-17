@@ -85,19 +85,29 @@ main(int argc, const char *argv[]) {
     }
   }
 
-  /* airFree, airTime */
+  /* AIR_CALLOC, airFree, airTime */
   {
-    unsigned int big = 1024, times = 32, ii;
+    size_t big = 1024, times = 1, ii, jj;
     double time0, dtime;
-    big = big*big*32; /* 32 megs */
+    unsigned int *data, sum;
+    big = big*big*128; /* 128 megs */
     time0 = airTime();
+    sum = 0;
     for (ii=0; ii<times; ii++) {
-      /* will have a 1 gig memory leak if airFree() didn't free() */
-      ptr = AIR_CALLOC(big, char);
-      ptr = airFree(ptr);
+      /* will have a memory leak if airFree() didn't free() */
+      data = AIR_CALLOC(big, unsigned int);
+      for (jj=0; jj<big; jj++) {
+        sum += data[jj];
+      }
+      data = airFree(data);
     }
-    if (!(NULL == ptr)) {
-      fprintf(stderr, "%s: airFree() returned %p not NULL\n", me, ptr);
+    if (sum) {
+      fprintf(stderr, "%s: AIR_CALLOC produced non-zero values\n", me);
+      exit(1);
+    }
+    if (!(NULL == data)) {
+      fprintf(stderr, "%s: airFree() returned %p not NULL\n",
+              me, AIR_VOIDP(data));
       exit(1);
     }
     dtime = airTime() - time0;
