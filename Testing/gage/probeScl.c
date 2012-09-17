@@ -199,7 +199,7 @@ main(int argc, const char **argv) {
               bkern[ki]->name, err);
       airMopError(mop); return 1;
     }
-    printf("%s radius = %u\n", bkern[ki]->name, bgctx[ki]->radius);
+    fprintf(stderr, "%s radius = %u\n", bkern[ki]->name, bgctx[ki]->radius);
     bvalAns[ki] = gageAnswerPointer(bgctx[ki], gpvl, gageSclValue);
     bgrdAns[ki] = gageAnswerPointer(bgctx[ki], gpvl, gageSclGradVec);
     bhesAns[ki] = gageAnswerPointer(bgctx[ki], gpvl, gageSclHessian);
@@ -278,7 +278,7 @@ main(int argc, const char **argv) {
       fprintf(stderr, "%s: probed values not correct: %s\n", me, explain);
       airMopError(mop); return 1;
     } else {
-      printf("%s: all good\n", me);
+      fprintf(stderr, "all good\n");
     }
   }
 
