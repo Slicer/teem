@@ -208,7 +208,7 @@ _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
   /* kindData = AIR_CAST(tenDwiGageKindData *, pvl->kind->data); */
   dwiNum = pvl->kind->valLen;
   if (!ctx->parm.k3pack) {
-    fprintf(stderr, "!%s: sorry, 6pack filtering not implemented\n", me);
+    fprintf(stderr, "%s: sorry, 6pack filtering not implemented\n", me);
     return;
   }
   fw00 = ctx->fw + fd*3*gageKernel00;
@@ -498,7 +498,10 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     if (!E) E |= tenEstimate1TensorSingle_d(pvlData->tec2,
                                             twoten + 7, dwiAll);
     if (E) {
-      fprintf(stderr, "!%s: (trouble) %s\n", me, biffGetDone(TEN));
+      char *terr;
+      terr = biffGetDone(TEN);
+      fprintf(stderr, "%s: (trouble) %s\n", me, terr);
+      free(terr);
     }
     
     /* hack: confidence for two-tensor fit */
@@ -907,7 +910,7 @@ _tenDwiGagePvlDataUpdate(const gageKind *kind,
     pvlData->tec1->recordLikelihoodDwi = AIR_FALSE;
   }
   /*
-  fprintf(stderr, "!%s: record %d %d %d\n", me,
+  fprintf(stderr, "%s: record %d %d %d\n", me,
           pvlData->tec1->recordErrorDwi,
           pvlData->tec1->recordErrorLogDwi,
           pvlData->tec1->recordLikelihoodDwi);
@@ -972,6 +975,9 @@ tenDwiGageKindDataNix(tenDwiGageKindData *kindData) {
 /*
 ** Because this kind has to be dynamically allocated,
 ** this is not the kind, but just the template for it
+** HEY: having a const public version of this could be a
+** nice way of having a way of referring to the dwiKind
+** without having to allocate it each time
 */
 gageKind
 _tenDwiGageKindTmpl = {
