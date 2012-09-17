@@ -832,16 +832,16 @@ typedef struct gageKind_t {
        --> they must use GAGE key (and not callback's library's key), and
        --> pvlDataNix can not use biff */
     *(*pvlDataNew)(const struct gageKind_t *kind),
-    *(*pvlDataCopy)(const struct gageKind_t *kind, const void *data),
-    *(*pvlDataNix)(const struct gageKind_t *kind, void *data);
+    *(*pvlDataCopy)(const struct gageKind_t *kind, const void *pvlDataOld),
+    *(*pvlDataNix)(const struct gageKind_t *kind, void *pvlData);
   int (*pvlDataUpdate)(const struct gageKind_t *kind,
                        const gageContext *ctx,
                        const gagePerVolume *pvl,
                        const void *data);
   void *data;                       /* extra information about the kind of
-                                       volume that's being probed.  This
-                                       is passed as "data" to pvlDataNew,
-                                       pvlDataCopy, and pvlDataNix */
+                                       volume that's being probed.  Likely
+                                       used by filter, answer, and the
+                                       pvlData functions */
 } gageKind;
 
 /*
