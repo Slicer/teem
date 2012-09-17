@@ -582,14 +582,20 @@ main(int argc, const char **argv) {
   printf("#  1\n");
   if (engageGenTensor(gctx[KI_TEN], nin[KI_TEN], noiseStdv,
                       volSize[0], volSize[1], volSize[2])
+      || (printf("#  1.1\n"), 0)
       || engageGenScalar(gctx[KI_SCL], nin[KI_SCL],
                          gctxComp[KI_SCL], nsclCopy, nin[KI_TEN])
+      || (printf("#  1.2\n"), 0)
       || engageGenVector(gctx[KI_VEC], nin[KI_VEC], nin[KI_SCL])
+      || (printf("#  1.3\n"), 0)
       /* engage'ing of nin[KI_DWI] done below */
       || genDwi(nin[KI_DWI], ngrad, gradNum /* for B0 */,
                 bval, nin[KI_TEN])
+      || (printf("#  1.4\n"), 0)
       || engageMopDiceVector(gctxComp[KI_VEC], nvecComp, mop, nin[KI_VEC])
+      || (printf("#  1.5\n"), 0)
       || engageMopDiceTensor(gctxComp[KI_TEN], nctenComp, mop, nin[KI_TEN])
+      || (printf("#  1.6\n"), 0)
       || engageMopDiceDwi(gctxComp[KI_DWI], &ndwiComp, mop, nin[KI_DWI])) {
     airMopAdd(mop, err = biffGetDone(PROBE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble creating volumes:\n%s", me, err);
