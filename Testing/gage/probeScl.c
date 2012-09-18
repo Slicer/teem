@@ -267,6 +267,8 @@ main(int argc, const char **argv) {
         ELL_9V_COPY(prbd + 4 + qlen*(ki + BLUR_KERN_NUM*(ii)), bhesAns[ki]);
       }
     }
+    /* weirdly, so far its only on Windows that this epsilon needs to
+       be larger than zero, and only for the radius 6 Gaussian? */
     if (nrrdCompare(ncorr, nprbd, AIR_FALSE /* onlyData */,
                     1.0e-16 /* epsilon */, &differ, explain)) {
       char *err;
