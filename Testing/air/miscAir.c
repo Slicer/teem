@@ -53,6 +53,11 @@ AIR_EXPORT unsigned int airEqvSettle(unsigned int *map, unsigned int len);
 
 */
 
+static size_t
+multiply(size_t aa, size_t bb) {
+  return aa*bb;
+}
+
 int
 main(int argc, const char *argv[]) {
   const char *me;
@@ -155,9 +160,9 @@ main(int argc, const char *argv[]) {
                      500*1024*1024, /* 7 */
                      1024*1024*1024ul, /* 8 */
                      1024*1024*(1024ul + 1), /* 9 */
-                     500*1024*1024*1024ul, /* 10 */
-                     1024*1024*1024*1024ul, /* 11 */
-                     1024*1024*1024*(1024ul + 1), /* 12 */
+                     500*1024ul, /* 10 */
+                     1024*1024ul, /* 11 */
+                     1024*(1024ul + 1), /* 12 */
                      0};
     char *string[] = {
       "0 bytes",
@@ -174,6 +179,15 @@ main(int argc, const char *argv[]) {
       "1024 GB",
       "1.00098 TB"};
     unsigned int ii;
+    /* hiding some multiplications in function calls,
+       to quiet compiler warnings.  Its ok if there is
+       wrap-around here because then we'll stop testing. 
+       However, it would be better if we did NOT rely on
+       what is strictly speaking undefined behavior: the
+       overflow of *unsigned* integral quantities. */
+    vals[10] = multiply(multiply(vals[10], 1024), 1024);
+    vals[11] = multiply(multiply(vals[11], 1024), 1024);
+    vals[12] = multiply(multiply(vals[12], 1024), 1024);
     for (ii=0; !ii || vals[ii]; ii++) {
       airPrettySprintSize_t(prstmp, vals[ii]);
       if (strcmp(string[ii], prstmp)) {
@@ -181,6 +195,7 @@ main(int argc, const char *argv[]) {
                 me, prstmp, string[ii]);
         exit(1);
       }
+      fprintf(stderr, "%u: %s\n", ii, prstmp);
     }
   }
 
