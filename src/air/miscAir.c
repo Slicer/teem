@@ -310,7 +310,7 @@ airPresent = 42;
 */
 char *
 airPrettySprintSize_t(char str[AIR_STRLEN_SMALL], size_t val) {
-  static const char suff[][6] = {"bytes", "KB", "MB", "GB", "TB", "PB"};
+  static const char suff[][7] = {"bytes", "KB", "MB", "GB", "TB", "PB", "EB"};
   unsigned int suffIdx, suffNum;
   double dval;
   
@@ -515,13 +515,15 @@ airDoneStr(double start, double here, double end, char *str) {
 /*
 ******** airTime()
 **
-** returns current time in seconds (with millisecond resolution) as a double.
-** From "man gettimeofday": The time is expressed in seconds and microseconds
-** since midnight (0 hour), January 1, 1970.
+** returns current time in seconds (with millisecond resolution only
+** when not on Windows) as a double.  From "man gettimeofday": The
+** time is expressed in seconds and microseconds since midnight (0
+** hour), January 1, 1970.
 */
 double
 airTime() {
 #ifdef _WIN32
+  /* HEY: this has crummy precision */
   return (double)clock()/CLOCKS_PER_SEC;
 #else
   struct timeval tv;

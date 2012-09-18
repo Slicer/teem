@@ -16,10 +16,12 @@ An OS-general means of:
 * generating a unique temp file name
 * removing a given file (for cleaning up temp file)
 
+Fix Windows implementation of airTime()
+
 fix airSinglePrintf to not put a space before double-type special values
 ("%4s" hack has to go)
 
-complete fprintf/sprintf/printf stand-in
+complete fprintf/sprintf/printf stand-in: use trio?
 complete fscanf/sscanf stand-in
 
 Decide if air will have a general-purpose thread-safe progress indication
