@@ -268,7 +268,7 @@ main(int argc, const char **argv) {
       }
     }
     if (nrrdCompare(ncorr, nprbd, AIR_FALSE /* onlyData */,
-                    5.0e-17 /* epsilon */, &differ, explain)) {
+                    1.0e-16 /* epsilon */, &differ, explain)) {
       char *err;
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble comparing:\n%s", me, err);
