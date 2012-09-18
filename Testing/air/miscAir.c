@@ -150,34 +150,53 @@ main(int argc, const char *argv[]) {
   /* airPrettySprintSize_t */
   {
     char prstmp[AIR_STRLEN_SMALL];
-    size_t vals[] = {0,  /* 0 */
-                     800, /* 1 */
-                     1024, /* 2 */
-                     1024 + 1,   /* 3 */
-                     500*1024, /* 4 */ 
-                     1024*1024,  /* 5 */
-                     1024*(1024 + 1), /* 6 */
-                     500*1024*1024, /* 7 */
-                     1024*1024*1024ul, /* 8 */
+    size_t vals[] = {0,                      /* 0 */
+                     800,                    /* 1 */
+                     1024,                   /* 2 = 2^10 */
+                     1024 + 1,               /* 3 */
+                     500*1024,               /* 4 */ 
+                     1024*1024,              /* 5 = 2^20 */
+                     1024*(1024 + 1),        /* 6 */
+                     500*1024*1024,          /* 7 */
+                     1024*1024*1024ul,       /* 8 = 2^30 */
                      1024*1024*(1024ul + 1), /* 9 */
-                     500*1024ul, /* 10 */
-                     1024*1024ul, /* 11 */
-                     1024*(1024ul + 1), /* 12 */
+                     500*1024ul,             /* 10 (will be multiplied below) */
+                     1024*1024ul,            /* 11 = 2^40 */
+                     1024*(1024ul + 1),      /* 12 */
+                     500*1024*1024,          /* 13 */
+                     1024*1024*1024ul,       /* 14 = 2^50 */
+                     1024*1024*(1024ul + 1), /* 15 */
+                     500*1024*1024,          /* 16 */
+                     1024*1024*1024ul,       /* 17 = 2^60 */
+                     1024*1024*(1024ul + 1), /* 18 */
+                     2*1024*1024ul,          /* 19 = 2^61 */
+                     16*1023*1024ul,         /* 20 */
+                     16*1024*1024ul,         /* 21 = 2^64 */
                      0};
     char *string[] = {
-      "0 bytes",
-      "800 bytes",
-      "1024 bytes",
-      "1.00098 KB",
-      "500 KB",
-      "1024 KB",
-      "1.00098 MB",
-      "500 MB",
-      "1024 MB",
-      "1.00098 GB",
-      "500 GB",
-      "1024 GB",
-      "1.00098 TB"};
+      "0 bytes",    /* 0 */
+      "800 bytes",  /* 1 */
+      "1024 bytes", /* 2 */
+      "1.00098 KB", /* 3 */
+      "500 KB",     /* 4 */
+      "1024 KB",    /* 5 */
+      "1.00098 MB", /* 6 */
+      "500 MB",     /* 7 */
+      "1024 MB",    /* 8 */
+      "1.00098 GB", /* 9 */
+      "500 GB",     /* 10 */
+      "1024 GB",    /* 11 */
+      "1.00098 TB", /* 12 */
+      "500 TB",     /* 13 */
+      "1024 TB",    /* 14 */
+      "1.00098 PB", /* 15 */
+      "500 PB",     /* 16 */
+      "1024 PB",    /* 17 */
+      "1.00098 EB", /* 18 */
+      "2 EB",       /* 19 */
+      "15.9844 EB", /* 20 */
+      "blah",       /* 21 */
+    };
     unsigned int ii;
     /* hiding some multiplications in function calls,
        to quiet compiler warnings.  Its ok if there is
@@ -188,7 +207,16 @@ main(int argc, const char *argv[]) {
     vals[10] = multiply(multiply(vals[10], 1024), 1024);
     vals[11] = multiply(multiply(vals[11], 1024), 1024);
     vals[12] = multiply(multiply(vals[12], 1024), 1024);
-    for (ii=0; !ii || vals[ii]; ii++) {
+    vals[13] = multiply(multiply(vals[13], 1024), 1024);
+    vals[14] = multiply(multiply(vals[14], 1024), 1024);
+    vals[15] = multiply(multiply(vals[15], 1024), 1024);
+    vals[16] = multiply(multiply(multiply(vals[16], 1024), 1024), 1024);
+    vals[17] = multiply(multiply(multiply(vals[17], 1024), 1024), 1024);
+    vals[18] = multiply(multiply(multiply(vals[18], 1024), 1024), 1024);
+    vals[19] = multiply(multiply(multiply(multiply(vals[19], 1024), 1024), 1024), 1024);
+    vals[20] = multiply(multiply(multiply(multiply(vals[20], 1024), 1024), 1024), 1024);
+    vals[21] = multiply(multiply(multiply(multiply(vals[21], 1024), 1024), 1024), 1024);
+    for (ii=0; !ii || vals[ii] > vals[ii-1]; ii++) {
       airPrettySprintSize_t(prstmp, vals[ii]);
       if (strcmp(string[ii], prstmp)) {
         fprintf(stderr, "%s: airPrettySprintSize_t made |%s| not |%s|\n",
