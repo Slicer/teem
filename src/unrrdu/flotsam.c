@@ -87,7 +87,7 @@ unrrduUsage(const char *me, hestParm *hparm) {
     if (nofft) {
       char *infop;
       /* luckily, still fits within 80 columns */
-      fprintf(stdout, "Not Enabled: ", buff);
+      fprintf(stdout, "Not Enabled: ");
       infop = AIR_CALLOC(strlen(unrrduCmdList[i]->info) + 2, char);
       sprintf(infop, "%s)", unrrduCmdList[i]->info);
       _hestPrintStr(stdout, len, len, hparm->columns,
