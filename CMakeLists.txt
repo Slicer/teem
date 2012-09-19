@@ -250,7 +250,7 @@ ADD_DEFINITIONS(-DTEEM_DIO=0)
 SET(BUILD_EXPERIMENTAL_LIBS OFF CACHE BOOL "Build Teem's experimental libraries")
 SET(BUILD_EXPERIMENTAL_APPS OFF CACHE BOOL "Build Teem's non-essential command-line tools")
 
-# If its a Dashboard build; turn ON by default both 
+# If its a Dashboard build; turn ON both 
 # BUILD_EXPERIMENTAL_APPS and BUILD_EXPERIMENTAL_LIBS
 # (h/t David Cole)
 IF(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "")
