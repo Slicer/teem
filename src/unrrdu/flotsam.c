@@ -67,20 +67,37 @@ unrrduUsage(const char *me, hestParm *hparm) {
   sprintf(fmt, "%%%ds\n",
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stdout, fmt, buff);
-  
+  fprintf(stdout, "nrrdFFTWEnabled = %d\n", nrrdFFTWEnabled);
   for (i=0; unrrduCmdList[i]; i++) {
+    int nofft;
+    nofft = !strcmp(unrrduCmdList[i]->name, "fft") && !nrrdFFTWEnabled;
     len = strlen(unrrduCmdList[i]->name);
+    len += nofft;
     strcpy(buff, "");
     for (c=len; c<maxlen; c++)
       strcat(buff, " ");
+    if (nofft) {
+      strcat(buff, "(");
+    }
     strcat(buff, me);
     strcat(buff, " ");
     strcat(buff, unrrduCmdList[i]->name);
     strcat(buff, " ... ");
     len = strlen(buff);
     fprintf(stdout, "%s", buff);
-    _hestPrintStr(stdout, len, len, hparm->columns,
-                  unrrduCmdList[i]->info, AIR_FALSE);
+    if (nofft) {
+      char *infop;
+      /* luckily, still fits within 80 columns */
+      fprintf(stdout, "Not Enabled: ", buff);
+      infop = AIR_CALLOC(strlen(unrrduCmdList[i]->info) + 2, char);
+      sprintf(infop, "%s)", unrrduCmdList[i]->info);
+      _hestPrintStr(stdout, len, len, hparm->columns,
+                    infop, AIR_FALSE);
+      free(infop);
+    } else {
+      _hestPrintStr(stdout, len, len, hparm->columns,
+                    unrrduCmdList[i]->info, AIR_FALSE);
+    }
   }
   return 0;
 }

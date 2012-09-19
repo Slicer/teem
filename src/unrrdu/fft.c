@@ -33,10 +33,10 @@ char *_unrrdu_fftInfoL_yes =
 
 char *_unrrdu_fftInfoL_no = 
   (INFO
-   ". *If* this Teem had been compiled with FFTW <http://www.fftw.org/>, "
+   ". This Teem has NOT been compiled with FFTW <http://www.fftw.org/>. "
+   "If it had been, "
    "this would be a command-line interface to that functionality. "
-   "As it is, the FFT capability is either missing or incompletely "
-   "implemented.\n "
+   "There is currently no non-FFTW implementation of the FFT available.\n "
    "* Uses nrrdFFT");
 
 /* We create an airEnum to parse the "forward" and "backwards" values
