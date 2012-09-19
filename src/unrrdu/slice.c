@@ -28,7 +28,8 @@
 char *_unrrdu_sliceInfoL = 
   (INFO
    ". Output nrrd dimension is one less than input nrrd "
-   "dimension.  Per-axis information is preserved.\n "
+   "dimension (except when the input is itself 1-D).  "
+   "Per-axis information is preserved.\n "
    "* Uses nrrdSlice");
 
 int

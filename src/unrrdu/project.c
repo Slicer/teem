@@ -30,7 +30,8 @@ char *_unrrdu_projectInfoL =
  ". The scanline is reduced to a single scalar by "
  "\"measuring\" all the values in the scanline "
  "with some measure.  The output nrrd has dimension "
- "one less than input; the output type depends on "
+ "one less than input (except when the input is itself 1-D); "
+ "the output type depends on "
  "the measure in a non-trivial way, or it can be set explicitly "
  "with the \"-t\" option.\n "
  "* Uses nrrdProject");
