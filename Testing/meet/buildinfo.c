@@ -65,7 +65,7 @@ main(int argc, const char **argv) {
     printf("%s ", meetTeemLibs[ii]);
     ii++;
   } while (meetTeemLibs[ii]);
-  printf("\n");
+  printf("(%u)\n", ii);
 
   printf("airThreadCapable = %d\n", airThreadCapable);
 
