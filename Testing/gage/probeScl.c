@@ -270,7 +270,7 @@ main(int argc, const char **argv) {
     /* weirdly, so far its only on Windows that this epsilon needs to
        be larger than zero, and only for the radius 6 Gaussian? */
     if (nrrdCompare(ncorr, nprbd, AIR_FALSE /* onlyData */,
-                    1.0e-16 /* epsilon */, &differ, explain)) {
+                    5.0e-15 /* epsilon */, &differ, explain)) {
       char *err;
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble comparing:\n%s", me, err);
