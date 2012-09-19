@@ -126,23 +126,23 @@ int tijk_set_axis_efs(Nrrd *nrrd, unsigned int axis, unsigned int order) {
  */
 int tijk_get_axis_type(tijk_axis_info *info,
                        const Nrrd *nrrd, unsigned int axis) {
-  const tijk_type *const
+  const tijk_type *
     tijk_types[] = {
-    tijk_2o2d_unsym,
-    tijk_2o2d_sym,
-    tijk_2o2d_asym,
-    tijk_3o2d_sym,
-    tijk_4o2d_unsym,
-    tijk_4o2d_sym,
-    tijk_1o3d,
-    tijk_2o3d_unsym,
-    tijk_2o3d_sym,
-    tijk_2o3d_asym,
-    tijk_3o3d_unsym,
-    tijk_3o3d_sym,
-    tijk_4o3d_sym,
-    tijk_6o3d_sym,
-    tijk_8o3d_sym,
+    NULL, /*  0: tijk_2o2d_unsym */
+    NULL, /*  1: tijk_2o2d_sym */
+    NULL, /*  2: tijk_2o2d_asym */
+    NULL, /*  3: tijk_3o2d_sym */
+    NULL, /*  4: tijk_4o2d_unsym */
+    NULL, /*  5: tijk_4o2d_sym */
+    NULL, /*  6: tijk_1o3d */
+    NULL, /*  7: tijk_2o3d_unsym */
+    NULL, /*  8: tijk_2o3d_sym */
+    NULL, /*  9: tijk_2o3d_asym */
+    NULL, /* 10: tijk_3o3d_unsym */
+    NULL, /* 11: tijk_3o3d_sym */
+    NULL, /* 12: tijk_4o3d_sym */
+    NULL, /* 13: tijk_6o3d_sym */
+    NULL, /* 14: tijk_8o3d_sym */
     NULL
   };
   const NrrdAxisInfo *axinfo = NULL;
@@ -180,6 +180,21 @@ int tijk_get_axis_type(tijk_axis_info *info,
       return 5;
     return 0;
   }
+  tijk_types[ 0] = tijk_2o2d_unsym;
+  tijk_types[ 1] = tijk_2o2d_sym;
+  tijk_types[ 2] = tijk_2o2d_asym;
+  tijk_types[ 3] = tijk_3o2d_sym;
+  tijk_types[ 4] = tijk_4o2d_unsym;
+  tijk_types[ 5] = tijk_4o2d_sym;
+  tijk_types[ 6] = tijk_1o3d;
+  tijk_types[ 7] = tijk_2o3d_unsym;
+  tijk_types[ 8] = tijk_2o3d_sym;
+  tijk_types[ 9] = tijk_2o3d_asym;
+  tijk_types[10] = tijk_3o3d_unsym;
+  tijk_types[11] = tijk_3o3d_sym;
+  tijk_types[12] = tijk_4o3d_sym;
+  tijk_types[13] = tijk_6o3d_sym;
+  tijk_types[14] = tijk_8o3d_sym;
   while (tijk_types[i]!=NULL) {
     if (!strcmp(labelp, tijk_types[i]->name)) {
       info->tclass = tijk_class_tensor;
