@@ -74,6 +74,7 @@ main(int argc, const char **argv) {
   strcat(liblist, "tijk ");
 #endif
   strcat(liblist, "gage ");
+  strcat(liblist, "dye ");
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   strcat(liblist, "bane ");
 #endif
