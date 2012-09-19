@@ -247,7 +247,7 @@ ENDIF(QNANHIBIT)
 ADD_DEFINITIONS(-DTEEM_DIO=0)
 #ENDIF(USE_DIRECTIO)
 
-SET(BUILD_EXPERIMENTAL_LIBS OFF CACHE BOOL "Build Teem's experimental/unstable libraries")
+SET(BUILD_EXPERIMENTAL_LIBS OFF CACHE BOOL "Build Teem's experimental libraries")
 SET(BUILD_EXPERIMENTAL_APPS OFF CACHE BOOL "Build Teem's non-essential command-line tools")
 
 # (TEEM_LIB_LIST)
@@ -257,9 +257,14 @@ IF(BUILD_EXPERIMENTAL_LIBS)
   # * definition of Teem_HEADER_FILES (below)
   # * teem/src/meet/meet.h
   # * teem/src/meet/enumsall.c 
-  SET(Teem_LIBRARIES ${Teem_LIBRARIES} alan tijk bane elf coil push)
+  # re-setting list so libraries appear in expected order
+  SET(Teem_LIBRARIES air hest biff nrrd ell unrrdu alan moss tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet)
   ADD_DEFINITIONS(-DTEEM_BUILD_EXPERIMENTAL_LIBS)
 ENDIF(BUILD_EXPERIMENTAL_LIBS)
+
+IF(BUILD_EXPERIMENTAL_APPS)
+  ADD_DEFINITIONS(-DTEEM_BUILD_EXPERIMENTAL_APPS)
+ENDIF(BUILD_EXPERIMENTAL_APPS)
 
 SET(Teem_HEADER_FILES
   air/air.h
