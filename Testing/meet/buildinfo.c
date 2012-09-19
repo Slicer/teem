@@ -29,7 +29,7 @@
 
 int
 main(int argc, const char **argv) {
-
+  unsigned int ii;
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   char explibs[] = "*ON!*";
 #else
@@ -58,44 +58,14 @@ main(int argc, const char **argv) {
          airSprintSize_t(stmp1, sizeof(size_t)),
          airSprintSize_t(stmp2, sizeof(void*)));
 
-  strcpy(liblist, "");
-  /* TEEM_LIB_LIST */
-  strcat(liblist, "air ");
-  strcat(liblist, "hest ");
-  strcat(liblist, "biff ");
-  strcat(liblist, "nrrd ");
-  strcat(liblist, "ell ");
-  strcat(liblist, "unrrdu ");
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  strcat(liblist, "alan ");
-#endif
-  strcat(liblist, "moss ");
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  strcat(liblist, "tijk ");
-#endif
-  strcat(liblist, "gage ");
-  strcat(liblist, "dye ");
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  strcat(liblist, "bane ");
-#endif
-  strcat(liblist, "limn ");
-  strcat(liblist, "echo ");
-  strcat(liblist, "hoover ");
-  strcat(liblist, "seek ");
-  strcat(liblist, "ten ");
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  strcat(liblist, "elf ");
-#endif
-  strcat(liblist, "pull ");
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  strcat(liblist, "coil ");
-  strcat(liblist, "push ");
-#endif
-  strcat(liblist, "mite ");
-  strcat(liblist, "meet ");
-
   printf("experimental libs %s; apps %s\n", explibs, expapps);
-  printf("libs = %s\n", liblist);
+  printf("libs = ");
+  ii = 0;
+  do {
+    printf("%s ", meetTeemLibs[ii]);
+    ii++;
+  } while (meetTeemLibs[ii]);
+  printf("\n");
 
   printf("airThreadCapable = %d\n", airThreadCapable);
 
