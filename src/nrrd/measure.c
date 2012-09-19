@@ -1138,9 +1138,9 @@ nrrdProject(Nrrd *nout, const Nrrd *cnin, unsigned int axis,
   if (1 == cnin->dim) {
     /* There are more efficient ways of dealing with this case; this way is
        easy to implement because it leaves most of the established code below
-       only superficially changed; replacing nin with "nin ? nin : cnin", an
-       expression that can't be assigned to a new variable because of the
-       difference in const. */
+       only superficially changed; uniformly replacing nin with (nin ? nin :
+       cnin), even if pointlessly so; this expression that can't be assigned
+       to a new variable because of the difference in const. */
     nin = nrrdNew();
     airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdAxesInsert(nin, cnin, 1)) {
@@ -1154,7 +1154,7 @@ nrrdProject(Nrrd *nout, const Nrrd *cnin, unsigned int axis,
   iType = (nin ? nin : cnin)->type;
   oType = (nrrdTypeDefault != type 
            ? type 
-           : _nrrdMeasureType(cnin, measr));
+           : _nrrdMeasureType((nin ? nin : cnin), measr));
   iElSz = nrrdTypeSize[iType];
   oElSz = nrrdTypeSize[oType];
   nrrdAxisInfoGet_nva((nin ? nin : cnin), nrrdAxisInfoSize, iSize);
@@ -1192,8 +1192,8 @@ nrrdProject(Nrrd *nout, const Nrrd *cnin, unsigned int axis,
   /* the skinny */
   axmin = (nin ? nin : cnin)->axis[axis].min;
   axmax = (nin ? nin : cnin)->axis[axis].max;
-  iData = (char *)(nin ? nin : cnin)->data;
-  oData = (char *)nout->data;
+  iData = AIR_CAST(char *, (nin ? nin : cnin)->data);
+  oData = AIR_CAST(char *, nout->data);
   for (rowIdx=0; rowIdx<rowNum; rowIdx++) {
     for (colIdx=0; colIdx<colNum; colIdx++) {
       ptr = iData + iElSz*(colIdx + rowIdx*colStep);

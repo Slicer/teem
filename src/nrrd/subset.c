@@ -38,7 +38,7 @@
 ** the period (period), and the number of periods (numper). 
 */
 int
-nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
+nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
   static const char me[]="nrrdSlice", func[]="slice";
   size_t 
     I, 
@@ -48,64 +48,88 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
     szOut[NRRD_DIM_MAX];
   unsigned int ai, outdim;
   int map[NRRD_DIM_MAX];
-  char *src, *dest, stmp[2][AIR_STRLEN_SMALL];
+  const char *src;
+  char *dest, stmp[2][AIR_STRLEN_SMALL];
+  airArray *mop;
+  Nrrd *nin;
 
-  if (!(nin && nout)) {
+  if (!(cnin && nout)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  if (nout == nin) {
+  if (nout == cnin) {
     biffAddf(NRRD, "%s: nout==nin disallowed", me);
     return 1;
   }
-  if (1 == nin->dim) {
-    biffAddf(NRRD, "%s: can't slice a 1-D nrrd; use nrrd{I,F,D}Lookup[]",
-             me);
-    return 1;
+  if (1 == cnin->dim) {
+    if (0 != saxi) {
+      biffAddf(NRRD, "%s: slice axis must be 0, not %u, for 1-D array",
+               me, saxi);
+      return 1;
+    }
+  } else {
+    if (!( saxi < cnin->dim )) {
+      biffAddf(NRRD, "%s: slice axis %d out of bounds (0 to %d)", 
+               me, saxi, cnin->dim-1);
+      return 1;
+    }
   }
-  if (!( saxi < nin->dim )) {
-    biffAddf(NRRD, "%s: slice axis %d out of bounds (0 to %d)", 
-             me, saxi, nin->dim-1);
-    return 1;
-  }
-  if (!( pos < nin->axis[saxi].size )) {
+  if (!( pos < cnin->axis[saxi].size )) {
     biffAddf(NRRD, "%s: position %s out of bounds (0 to %s)", me,
              airSprintSize_t(stmp[0], pos),
-             airSprintSize_t(stmp[1], nin->axis[saxi].size-1));
+             airSprintSize_t(stmp[1], cnin->axis[saxi].size-1));
     return 1;
   }
   /* this shouldn't actually be necessary .. */
-  if (!nrrdElementSize(nin)) {
+  if (!nrrdElementSize(cnin)) {
     biffAddf(NRRD, "%s: nrrd reports zero element size!", me);
     return 1;
   }
-  
+
+  /* HEY: copy and paste from measure.c/nrrdProject */
+  mop = airMopNew();
+  if (1 == cnin->dim) {
+    /* There are more efficient ways of dealing with this case; this way is
+       easy to implement because it leaves most of the established code below
+       only superficially changed; uniformly replacing nin with (nin ? nin :
+       cnin), even if pointlessly so; this expression that can't be assigned
+       to a new variable because of the difference in const. */
+    nin = nrrdNew();
+    airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdAxesInsert(nin, cnin, 1)) {
+      biffAddf(NRRD, "%s: trouble inserting axis on 1-D array", me);
+      airMopError(mop); return 1;
+    }
+  } else {
+    nin = NULL;
+  }
+
   /* set up control variables */
   rowLen = colLen = 1;
-  for (ai=0; ai<nin->dim; ai++) {
+  for (ai=0; ai<(nin ? nin : cnin)->dim; ai++) {
     if (ai < saxi) {
-      rowLen *= nin->axis[ai].size;
+      rowLen *= (nin ? nin : cnin)->axis[ai].size;
     } else if (ai > saxi) {
-      colLen *= nin->axis[ai].size;
+      colLen *= (nin ? nin : cnin)->axis[ai].size;
     }
   }
-  rowLen *= nrrdElementSize(nin);
-  colStep = rowLen*nin->axis[saxi].size;
+  rowLen *= nrrdElementSize(nin ? nin : cnin);
+  colStep = rowLen*(nin ? nin : cnin)->axis[saxi].size;
 
-  outdim = nin->dim-1;
+  outdim = (nin ? nin : cnin)->dim-1;
   for (ai=0; ai<outdim; ai++) {
     map[ai] = ai + (ai >= saxi);
-    szOut[ai] = nin->axis[map[ai]].size;
+    szOut[ai] = (nin ? nin : cnin)->axis[map[ai]].size;
   }
-  nout->blockSize = nin->blockSize;
-  if (nrrdMaybeAlloc_nva(nout, nin->type, outdim, szOut)) {
+  nout->blockSize = (nin ? nin : cnin)->blockSize;
+  if (nrrdMaybeAlloc_nva(nout, (nin ? nin : cnin)->type, outdim, szOut)) {
     biffAddf(NRRD, "%s: failed to create slice", me);
-    return 1;
+    airMopError(mop); return 1;
   }
   
   /* the skinny */
-  src = (char *)nin->data;
-  dest = (char *)nout->data;
+  src = AIR_CAST(const char *, (nin ? nin : cnin)->data);
+  dest = AIR_CAST(char *, nout->data);
   src += rowLen*pos;
   for (I=0; I<colLen; I++) {
     /* HEY: replace with AIR_MEMCPY() or similar, when applicable */
@@ -115,15 +139,16 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
   }
 
   /* copy the peripheral information */
-  if (nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_NONE)) {
+  if (nrrdAxisInfoCopy(nout, (nin ? nin : cnin), map, NRRD_AXIS_INFO_NONE)) {
     biffAddf(NRRD, "%s:", me);
-    return 1;
+    airMopError(mop); return 1;
   }
-  if (nrrdContentSet_va(nout, func, nin, "%d,%d", saxi, pos)) {
+  if (nrrdContentSet_va(nout, func, cnin /* hide possible axinsert*/,
+                        "%d,%d", saxi, pos)) {
     biffAddf(NRRD, "%s:", me);
-    return 1;
+    airMopError(mop); return 1;
   }
-  if (nrrdBasicInfoCopy(nout, nin,
+  if (nrrdBasicInfoCopy(nout, (nin ? nin : cnin),
                         NRRD_BASIC_INFO_DATA_BIT
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
@@ -135,18 +160,19 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
                            ? 0
                            : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     biffAddf(NRRD, "%s:", me);
-    return 1;
+    airMopError(mop); return 1;
   }
   /* translate origin if this was a spatial axis, otherwise copy */
   /* note that if there is no spatial info at all, this is all harmless */
-  if (AIR_EXISTS(nin->axis[saxi].spaceDirection[0])) {
+  if (AIR_EXISTS((nin ? nin : cnin)->axis[saxi].spaceDirection[0])) {
     nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
-                          1.0, nin->spaceOrigin,
+                          1.0, (nin ? nin : cnin)->spaceOrigin,
                           AIR_CAST(double, pos),
-                          nin->axis[saxi].spaceDirection);
+                          (nin ? nin : cnin)->axis[saxi].spaceDirection);
   } else {
-    nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
+    nrrdSpaceVecCopy(nout->spaceOrigin, (nin ? nin : cnin)->spaceOrigin);
   }
+  airMopOkay(mop);
   return 0;
 }
 
