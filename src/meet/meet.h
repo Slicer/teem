@@ -78,12 +78,13 @@ extern "C" {
 
 #define MEET meetBiffKey
 
-/* enumall.c */
+/* enumall.c: (not really a descriptive filename) */
 MEET_EXPORT const int meetPresent;
 MEET_EXPORT const char *meetBiffKey;
 MEET_EXPORT const airEnum **meetAirEnumAll(void);
 MEET_EXPORT void meetAirEnumAllPrint(FILE *file);
 MEET_EXPORT int meetAirEnumAllCheck(void);
+MEET_EXPORT const char *const meetTeemLibs[];
 
 /* meetNrrd.c */
 MEET_EXPORT const NrrdKernel **meetNrrdKernelAll(void);

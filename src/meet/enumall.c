@@ -229,3 +229,44 @@ meetAirEnumAllCheck(void) {
   airMopOkay(mop);
   return 0;
 }
+
+const char *const
+meetTeemLibs[] = {
+  /* TEEM_LIB_LIST */
+  "air",
+  "hest",
+  "biff",
+  "nrrd",
+  "ell",
+  "unrrdu",
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+  "alan",
+#endif
+  "moss",
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+  "tijk",
+#endif
+  "gage",
+  "dye",
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+  "bane",
+#endif
+  "limn",
+  "echo",
+  "hoover",
+  "seek",
+  "ten",
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+  "elf",
+#endif
+  "pull",
+#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
+  "coil",
+  "push",
+#endif
+  "mite",
+  "meet",
+  NULL
+};
+
+  
