@@ -1086,7 +1086,7 @@ _nrrdMeasureType(const Nrrd *nin, int measr) {
 }
 
 int
-nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
+nrrdProject(Nrrd *nout, const Nrrd *cnin, unsigned int axis,
             int measr, int type) {
   static const char me[]="nrrdProject", func[]="project";
   int iType, oType, axmap[NRRD_DIM_MAX];
@@ -1096,17 +1096,18 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   const char *ptr, *iData;
   char *oData, *line;
   double axmin, axmax;
+  Nrrd *nin;
   airArray *mop;
   
-  if (!(nin && nout)) {
+  if (!(cnin && nout)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  if (nout == nin) {
+  if (nout == cnin) {
     biffAddf(NRRD, "%s: nout==nin disallowed", me);
     return 1;
   }
-  if (nrrdTypeBlock == nin->type) {
+  if (nrrdTypeBlock == cnin->type) {
     biffAddf(NRRD, "%s: can't project nrrd type %s", me,
              airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
@@ -1115,19 +1116,16 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
     biffAddf(NRRD, "%s: measure %d not recognized", me, measr);
     return 1;
   }
-  /* without this check, the loops below cause segfaults, because
-     nin->dim is now unsigned */
-  if (!( 2 <= nin->dim )) {
-    biffAddf(NRRD, "%s: sorry, currently need at least 2-D "
-             "array to project", me);
-    return 1;
-  }
-  /* HEY: at some point, as a convenience, it would be nice to handle
-     projecting a single 1-D scanline down into a 1-D single-sample,
-     even though this would clearly be a special case */
-  if (!( axis <= nin->dim-1 )) {
-    biffAddf(NRRD, "%s: axis %d not in range [0,%d]", me, axis, nin->dim-1);
-    return 1;
+  if (1 == cnin->dim) {
+    if (0 != axis) {
+      biffAddf(NRRD, "%s: axis must be 0, not %u, for 1-D array", me, axis);
+      return 1;
+    }
+  } else {
+    if (!( axis <= cnin->dim-1 )) {
+      biffAddf(NRRD, "%s: axis %u not in range [0,%d]", me, axis, cnin->dim-1);
+      return 1;
+    }
   }
   if (nrrdTypeDefault != type) {
     if (!( AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeLast) )) {
@@ -1137,15 +1135,31 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   }
   
   mop = airMopNew();
-  iType = nin->type;
+  if (1 == cnin->dim) {
+    /* There are more efficient ways of dealing with this case; this way is
+       easy to implement because it leaves most of the established code below
+       only superficially changed; replacing nin with "nin ? nin : cnin", an
+       expression that can't be assigned to a new variable because of the
+       difference in const. */
+    nin = nrrdNew();
+    airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdAxesInsert(nin, cnin, 1)) {
+      biffAddf(NRRD, "%s: trouble inserting axis on 1-D array", me);
+      airMopError(mop); return 1;
+    }
+  } else {
+    nin = NULL;
+  }
+
+  iType = (nin ? nin : cnin)->type;
   oType = (nrrdTypeDefault != type 
            ? type 
-           : _nrrdMeasureType(nin, measr));
+           : _nrrdMeasureType(cnin, measr));
   iElSz = nrrdTypeSize[iType];
   oElSz = nrrdTypeSize[oType];
-  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, iSize);
+  nrrdAxisInfoGet_nva((nin ? nin : cnin), nrrdAxisInfoSize, iSize);
   colNum = rowNum = 1;
-  for (ai=0; ai<nin->dim; ai++) {
+  for (ai=0; ai<(nin ? nin : cnin)->dim; ai++) {
     if (ai < axis) {
       colNum *= iSize[ai];
     } else if (ai > axis) {
@@ -1154,13 +1168,13 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   }
   linLen = iSize[axis];
   colStep = linLen*colNum;
-  for (ai=0; ai<=nin->dim-2; ai++) {
+  for (ai=0; ai<=(nin ? nin : cnin)->dim-2; ai++) {
     axmap[ai] = ai + (ai >= axis);
   }
-  for (ai=0; ai<=nin->dim-2; ai++) {
+  for (ai=0; ai<=(nin ? nin : cnin)->dim-2; ai++) {
     oSize[ai] = iSize[axmap[ai]];
   }
-  if (nrrdMaybeAlloc_nva(nout, oType, nin->dim-1, oSize)) {
+  if (nrrdMaybeAlloc_nva(nout, oType, (nin ? nin : cnin)->dim-1, oSize)) {
     biffAddf(NRRD, "%s: failed to create output", me);
     airMopError(mop); return 1;
   }
@@ -1176,9 +1190,9 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   airMopAdd(mop, line, airFree, airMopAlways);
 
   /* the skinny */
-  axmin = nin->axis[axis].min;
-  axmax = nin->axis[axis].max;
-  iData = (char *)nin->data;
+  axmin = (nin ? nin : cnin)->axis[axis].min;
+  axmax = (nin ? nin : cnin)->axis[axis].max;
+  iData = (char *)(nin ? nin : cnin)->data;
   oData = (char *)nout->data;
   for (rowIdx=0; rowIdx<rowNum; rowIdx++) {
     for (colIdx=0; colIdx<colNum; colIdx++) {
@@ -1193,17 +1207,17 @@ nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   }
   
   /* copy the peripheral information */
-  if (nrrdAxisInfoCopy(nout, nin, axmap, NRRD_AXIS_INFO_NONE)) {
+  if (nrrdAxisInfoCopy(nout, (nin ? nin : cnin), axmap, NRRD_AXIS_INFO_NONE)) {
     biffAddf(NRRD, "%s:", me); 
     airMopError(mop); return 1;
   }
-  if (nrrdContentSet_va(nout, func, nin,
+  if (nrrdContentSet_va(nout, func, cnin /* hide possible axinsert */,
                         "%d,%s", axis, airEnumStr(nrrdMeasure, measr))) {
     biffAddf(NRRD, "%s:", me); 
     airMopError(mop); return 1;
   }
   /* this will copy the space origin over directly, which is reasonable */
-  if (nrrdBasicInfoCopy(nout, nin,
+  if (nrrdBasicInfoCopy(nout, (nin ? nin : cnin),
                         NRRD_BASIC_INFO_DATA_BIT
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
