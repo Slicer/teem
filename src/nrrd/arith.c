@@ -409,6 +409,7 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
   lupB = nrrdDLookup[ninB->type];
   ins = nrrdDInsert[nout->type];
   for (I=0; I<N; I++) {
+    /* HEY: there is a loss of precision issue here with 64-bit ints */
     valA = lupA(ninA->data, I);
     valB = lupB(ninB->data, I);
     ins(nout->data, I, bop(valA, valB));
@@ -485,6 +486,7 @@ nrrdArithIterBinaryOpSelect(Nrrd *nout, int op,
   N = nrrdElementNumber(nin);
   insert = nrrdDInsert[type];
   for (I=0; I<N; I++) {
+    /* HEY: there is a loss of precision issue here with 64-bit ints */
     valA = nrrdIterValue(inA);
     valB = nrrdIterValue(inB);
     insert(nout->data, I, bop(valA, valB));
@@ -697,6 +699,7 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
   lupC = nrrdDLookup[ninC->type];
   ins = nrrdDInsert[nout->type];
   for (I=0; I<N; I++) {
+    /* HEY: there is a loss of precision issue here with 64-bit ints */
     valA = lupA(ninA->data, I);
     valB = lupB(ninB->data, I);
     valC = lupC(ninC->data, I);
@@ -778,6 +781,7 @@ nrrdArithIterTernaryOpSelect(Nrrd *nout, int op,
   N = nrrdElementNumber(nin);
   insert = nrrdDInsert[type];
   for (I=0; I<N; I++) {
+    /* HEY: there is a loss of precision issue here with 64-bit ints */
     valA = nrrdIterValue(inA);
     valB = nrrdIterValue(inB);
     valC = nrrdIterValue(inC);
