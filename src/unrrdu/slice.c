@@ -29,7 +29,8 @@ char *_unrrdu_sliceInfoL =
   (INFO
    ". Output nrrd dimension is less than input nrrd "
    "dimension by the number of slice axes (except when the "
-   "input is or gets down to 1-D). "
+   "input is or gets down to 1-D). Can slice on all axes "
+   "in order to sample a single value from the array. "
    "Per-axis information is preserved.\n "
    "* Uses nrrdSlice (possibly called multiple times)");
 
