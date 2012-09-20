@@ -27,13 +27,13 @@
 #define INFO "Fast Fourier Transform of selected axes"
 char *_unrrdu_fftInfoL_yes = 
   (INFO
-   ". Initial attempt at wrapping the FFTW library; options are "
+   ". Initial attempt at wrapping the FFTW3 library; options are "
    "likely to change in Teem 2.0.\n "
    "* Uses nrrdFFT");
 
 char *_unrrdu_fftInfoL_no = 
   (INFO
-   ". This Teem has NOT been compiled with FFTW <http://www.fftw.org/>. "
+   ". This Teem has NOT been compiled with FFTW3 <http://www.fftw.org/>. "
    "If it had been, "
    "this would be a command-line interface to that functionality. "
    "There is currently no non-FFTW implementation of the FFT available.\n "

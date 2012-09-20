@@ -3,6 +3,9 @@ Things that would be good for a future airString or airBuffer
  * string dynamically reallocated on write, with optional cap on
    allowed size, maybe allowing control of whether reaching that size
    is an error
+ * when reading from a file, allow the file to be gzip'd, so that 
+   all the subsequent IO can be blind to whether the file was 
+   compressed or not
  * unify sprint'ing into string, or fwrite'ing to file
  * unify reading from string, or from file
  * when writing to string, should be remembering where last output is,

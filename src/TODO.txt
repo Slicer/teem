@@ -91,8 +91,12 @@ nrrd:
   "unu histo", "unu quantize", and "unu jhisto" should be migrated down
   to the nrrd library.  Consider doing this with a sorting of highest/lowest 
   values rather than a histogram (one less parameter, and often more accurate)
+* revisit how FFTW is called and used.  How have others dealt with the 
+  weird global nature of reading/writing wisdom?  Should "rigor" be an 
+  argument to nrrdFFT?  Is there really no error reporting on fftw_execute,
+  fftw_export_wisdom_to_file?
 * make the verbosity level a field in NrrdIoState, remove nrrdStateVerboseIO
-* add support for 16-bit floats (start with Milan's patch)
+* add support for 16-bit float "half" (start with Milan's patch)
 * rename nrrd<Func>_nva() --> nrrd<Func>()
 * rename nrrdResampleNrrdSet --> nrrdResampleInputSet ?
 * permit replacements for malloc/free (e.g. fftw_malloc, fftw_free) of data
@@ -109,7 +113,6 @@ nrrd:
   especially \n.
 
 unu:
-* unu acrop should export crop bounds in a way that unu crop can use them
 * the UNRRDU_QUIET_QUIT functionality should be enabled by default instead
 of having to set an environment variable to get it
 * unu dice -ff should change from using %d to %u
@@ -145,7 +148,7 @@ push:
 ========
 
 ** The items below have accumulated over time, but the importance of them
-** for Teem 2.0 or any other relase should be re-evaluated.
+** for Teem 2.0 or any other release should be re-evaluated.
 
 large-scale fix: when using sizeof with memcpy or memset, should be using
 the variable name itself instead of type as argument to sizeof()
@@ -198,9 +201,6 @@ dye: see if dyeColorParse should allocate the thing and return it
 
 image registration tool for small translational errors
 
-make: figure out shared libraries on cygwin.
-make: Test that shared libraries work everywhere they should.
-
 limn: make it smarter- so that joining parts together is possible in a
 way that facilitates transformations and correct drawing.  This really
 requires general data structures for 2-D graphics primatives...
@@ -232,7 +232,7 @@ development object files of push were not recompiled when they should
 have been- doing a make clobber; make in push solved the problem...
 Examples of this:
 - change limn.h, cd ../ten, make, nothing to be done WRONG
-- ake a change in nrrdEnums.h, which unrrdu/project.c 
+- make a change in nrrdEnums.h, which unrrdu/project.c 
   uses directly. recompile, and nrrd gets compiled, but not unrrdu,
   so unu doesn't get updated correctly!
 - add a macro in ELL, make install in ell,
