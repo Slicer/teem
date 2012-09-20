@@ -86,7 +86,7 @@ _pushTensorFieldSetup(pushContext *pctx) {
       fprintf(stderr, "!%s: tensor %u/%u has determinant %g\n", me, 
               AIR_CAST(unsigned int, ii), AIR_CAST(unsigned int, NN), det);
     }
-    TEN_T_COPY(_inv, inv);
+    TEN_T_COPY_TT(_inv, float, inv);
     _ten += 7;
     _inv += 7;
   }

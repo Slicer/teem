@@ -108,14 +108,14 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
     for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       if (posOut) {
-        ELL_3V_SET(posOut + 3*pointRun,
-                   point->pos[0], point->pos[1], point->pos[2]);
+        ELL_3V_SET_TT(posOut + 3*pointRun, float,
+                      point->pos[0], point->pos[1], point->pos[2]);
       }
       if (tenOut) {
-        TEN_T_COPY(tenOut + 7*pointRun, point->ten);
+        TEN_T_COPY_TT(tenOut + 7*pointRun, float, point->ten);
       }
       if (enrOut) {
-        enrOut[pointRun] = point->enr;
+        enrOut[pointRun] = AIR_CAST(float, point->enr);
       }
       pointRun++;
     }
