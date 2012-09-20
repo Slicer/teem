@@ -48,23 +48,24 @@ int elfKernelStick_f(float *kernel, unsigned int order, float bd,
   double sbd=sqrt(bd);
   double erfsbd=airErf(sbd);
   double spi=sqrt(AIR_PI);
-  kernel[0]=b0*AIR_PI*erfsbd/sbd;
+  kernel[0]=AIR_CAST(float, b0*AIR_PI*erfsbd/sbd);
   if (order>=2) {
-    kernel[1]=-b0/(4.0*bd*sbd)*embd*sqrt(5*AIR_PI)*
-      (6*sbd+(-3+2*bd)*ebd*spi*erfsbd);
+    kernel[1]=AIR_CAST(float, -b0/(4.0*bd*sbd)*embd*sqrt(5*AIR_PI)*
+                       (6*sbd+(-3+2*bd)*ebd*spi*erfsbd));
     if (order>=4) {
-      kernel[2]=b0/(32.0*bd*bd*sbd)*embd*spi*
-        (-30*sbd*(21+2*bd)+9*(35+4*bd*(-5+bd))*ebd*spi*erfsbd);
+      kernel[2]=AIR_CAST(float, b0/(32.0*bd*bd*sbd)*embd*spi*
+                         (-30*sbd*(21+2*bd)+9*(35+4*bd*(-5+bd))*
+                          ebd*spi*erfsbd));
       if (order>=6) { /* At order 6, noise starts to take over! */
-        kernel[3]=b0/(128*bd*bd*bd*sbd)*embd*sqrt(13.0)*
-          (-42*sbd*(165+4*bd*(5+bd))*spi-
-           5*(-693+378*bd-84*bd*bd+8*bd*bd*bd)*
-           ebd*AIR_PI*erfsbd);
+        kernel[3]=AIR_CAST(float, b0/(128*bd*bd*bd*sbd)*embd*sqrt(13.0)*
+                           (-42*sbd*(165+4*bd*(5+bd))*spi-
+                            5*(-693+378*bd-84*bd*bd+8*bd*bd*bd)*
+                            ebd*AIR_PI*erfsbd));
         if (order>=8) {
-          kernel[4]=b0/(2048*bd*bd*bd*bd*sbd)*embd*sqrt(17.0)*
-            (-6*sbd*(225225+2*bd*(15015+2*bd*(1925+62*bd)))*spi+
-             35*(19305+8*bd*(-1287+bd*(297+2*(-18+bd)*bd)))*
-             ebd*AIR_PI*erfsbd);
+          kernel[4]=AIR_CAST(float, b0/(2048*bd*bd*bd*bd*sbd)*embd*sqrt(17.0)*
+                             (-6*sbd*(225225+2*bd*(15015+2*bd*(1925+62*bd)))*spi+
+                              35*(19305+8*bd*(-1287+bd*(297+2*(-18+bd)*bd)))*
+                              ebd*AIR_PI*erfsbd));
           if (order>8)
             return 1;
         }
@@ -101,7 +102,7 @@ int elfBallStickODF_f(float *odf, float *fiso, float *d,
                       const float *T, unsigned int order, int delta)
 {
   unsigned int C = tijk_esh_len[order/2], k, l;
-  float mean=0, _origd=1e-20, _d=_origd;
+  float mean=0, _origd=1e-20f, _d=_origd;
   float *odfp = odf;
   float isovf0, isovf1, _fiso;
   float kernel[10]; /* should be tijk_max_esh_order/2+1,
@@ -120,15 +121,16 @@ int elfBallStickODF_f(float *odf, float *fiso, float *d,
 
   /* guess d and fiso based on the data */
   for (k=0; k<dwi->dwino; k++) {
-    float thisd = -log(dwi->dwis[k]/dwi->b0)/dwi->b;
+    float thisd = AIR_CAST(float, -log(dwi->dwis[k]/dwi->b0)/dwi->b);
     if (dwi->dwis[k]!=0 && thisd>_d) _d=thisd;
     mean += dwi->dwis[k];
   }
   mean /= dwi->dwino;
-  isovf0 = 0.5*sqrt(AIR_PI/(dwi->b*_d))*airErf(sqrt(dwi->b*_d));
-  isovf1 = exp(-dwi->b*_d);
-  _fiso = AIR_AFFINE(isovf0,mean/dwi->b0,isovf1, 0.0, 1.0);
-  _fiso=AIR_CLAMP(0.01,_fiso,0.99);
+  isovf0 = AIR_CAST(float, 0.5*sqrt(AIR_PI/(dwi->b*_d))
+                    *airErf(sqrt(dwi->b*_d)));
+  isovf1 = AIR_CAST(float, exp(-dwi->b*_d));
+  _fiso = AIR_CAST(float, AIR_AFFINE(isovf0,mean/dwi->b0,isovf1, 0.0, 1.0));
+  _fiso=AIR_CLAMP(0.01f,_fiso,0.99f);
   if (fiso!=NULL) *fiso=_fiso;
   if (d!=NULL) *d=_d;
 
@@ -136,7 +138,7 @@ int elfBallStickODF_f(float *odf, float *fiso, float *d,
   elfKernelStick_f(kernel, order, dwi->b*_d, dwi->b0, delta);
   
   /* remove estimated isotropic part from the signal */
-  odf[0] -= dwi->b0 * _fiso * 2*sqrt(AIR_PI)*exp(-dwi->b*_d);
+  odf[0] -= AIR_CAST(float, dwi->b0 * _fiso * 2*sqrt(AIR_PI)*exp(-dwi->b*_d));
 
   /* deconvolve */
   tijk_esh_deconvolve_f(odf, odf, kernel, order);
@@ -177,7 +179,7 @@ int elfBallStickPredict_f(elfBallStickParms *parms, float *odf,
   for (i=1; i<=k; i++)
     totalfs+=parms->fs[i];
   for (i=1; i<=k; i++)
-    parms->fs[i]*=(1.0-parms->fs[0])/totalfs;
+    parms->fs[i]*=(1.0f-parms->fs[0])/totalfs;
 
   return 0;
 }
