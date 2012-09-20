@@ -54,20 +54,20 @@ int elfKernelStick_f(float *kernel, unsigned int order, float bd,
       (6*sbd+(-3+2*bd)*ebd*spi*erfsbd);
     if (order>=4) {
       kernel[2]=b0/(32.0*bd*bd*sbd)*embd*spi*
-	(-30*sbd*(21+2*bd)+9*(35+4*bd*(-5+bd))*ebd*spi*erfsbd);
+        (-30*sbd*(21+2*bd)+9*(35+4*bd*(-5+bd))*ebd*spi*erfsbd);
       if (order>=6) { /* At order 6, noise starts to take over! */
-	kernel[3]=b0/(128*bd*bd*bd*sbd)*embd*sqrt(13.0)*
-	  (-42*sbd*(165+4*bd*(5+bd))*spi-
-	   5*(-693+378*bd-84*bd*bd+8*bd*bd*bd)*
-	   ebd*AIR_PI*erfsbd);
-	if (order>=8) {
-	  kernel[4]=b0/(2048*bd*bd*bd*bd*sbd)*embd*sqrt(17.0)*
-	    (-6*sbd*(225225+2*bd*(15015+2*bd*(1925+62*bd)))*spi+
-	     35*(19305+8*bd*(-1287+bd*(297+2*(-18+bd)*bd)))*
-	     ebd*AIR_PI*erfsbd);
+        kernel[3]=b0/(128*bd*bd*bd*sbd)*embd*sqrt(13.0)*
+          (-42*sbd*(165+4*bd*(5+bd))*spi-
+           5*(-693+378*bd-84*bd*bd+8*bd*bd*bd)*
+           ebd*AIR_PI*erfsbd);
+        if (order>=8) {
+          kernel[4]=b0/(2048*bd*bd*bd*bd*sbd)*embd*sqrt(17.0)*
+            (-6*sbd*(225225+2*bd*(15015+2*bd*(1925+62*bd)))*spi+
+             35*(19305+8*bd*(-1287+bd*(297+2*(-18+bd)*bd)))*
+             ebd*AIR_PI*erfsbd);
           if (order>8)
             return 1;
-	}
+        }
       }
     }
   }
@@ -202,8 +202,8 @@ _levmarBallStickCB(double *pp, double *xx, int mm, int nn, void *_data) {
   for (k=0; k<maxk; k++) {
     double stheta=sin(pp[2+3*k]);
     ELL_3V_SET(dirs[k], cos(pp[3+3*k])*stheta,
-	       sin(pp[3+3*k])*stheta,
-	       cos(pp[2+3*k]));
+               sin(pp[3+3*k])*stheta,
+               cos(pp[2+3*k]));
   }
 
   for (k=0; k<maxk; k++) {
@@ -294,11 +294,11 @@ _levmarBallStickJacCB(double *p, double *jac, int m, int n, void *_data) {
           j[1+3*k]*=_vfs[k+1]/svfssum;
       }
       j[2+3*k]=vfs[k+1]*pred[k+1]*
-	(-2*data->b*adc*dps[k]*(egrad[0]*ctheta[k]*cphi[k]+
+        (-2*data->b*adc*dps[k]*(egrad[0]*ctheta[k]*cphi[k]+
                                 egrad[1]*ctheta[k]*sphi[k]-
                                 egrad[2]*stheta[k]));
       j[3+3*k]=vfs[k+1]*pred[k+1]*
-	(-2*data->b*adc*dps[k]*(-egrad[0]*stheta[k]*sphi[k]+
+        (-2*data->b*adc*dps[k]*(-egrad[0]*stheta[k]*sphi[k]+
                                 egrad[1]*stheta[k]*cphi[k]));
     }
     egrad+=3;
@@ -361,9 +361,9 @@ int elfBallStickOptimize_f(elfBallStickParms *parms,
   }
   
   lmret = dlevmar_der(_levmarBallStickCB,_levmarBallStickJacCB,
-		      lmparms, dwis,
-		      parmct, dwi->dwino, maxitr, opts, info,
-		      NULL, NULL, (void*)dwi);
+                      lmparms, dwis,
+                      parmct, dwi->dwino, maxitr, opts, info,
+                      NULL, NULL, (void*)dwi);
   if (lmret==-1 && (int)info[6]==4) {
     /* try again with larger mu */
     opts[0]*=10;

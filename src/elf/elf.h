@@ -80,22 +80,22 @@ typedef struct {
 
 /* maximaElf.c */
 ELF_EXPORT elfMaximaContext *elfMaximaContextNew(const tijk_type *type,
-						 unsigned int level);
+                                                 unsigned int level);
 ELF_EXPORT elfMaximaContext *elfMaximaContextNix(elfMaximaContext *emc);
 ELF_EXPORT void elfMaximaParmSet(elfMaximaContext *emc,
-				 tijk_refine_rank1_parm *parm);
+                                 tijk_refine_rank1_parm *parm);
 ELF_EXPORT void elfMaximaRefineSet(elfMaximaContext *emc, int refine);
 ELF_EXPORT int elfMaximaFind_d(double **ls, double **vs, const double *ten,
-			       elfMaximaContext *emc);
+                               elfMaximaContext *emc);
 ELF_EXPORT int elfMaximaFind_f(float **ls, float **vs, const float *ten,
-			       elfMaximaContext *emc);
+                               elfMaximaContext *emc);
 
 /* ESHEstimElf.c */
 ELF_EXPORT void elfCart2Thetaphi_f(float *thetaphi, const float *dirs,
-				   unsigned int ct);
+                                   unsigned int ct);
 ELF_EXPORT int elfESHEstimMatrix_f(float *T, float *H, unsigned int order,
-				   const float *thetaphi,
-				   unsigned int ct, float lambda, float *w);
+                                   const float *thetaphi,
+                                   unsigned int ct, float lambda, float *w);
 
 /* ballStickElf.c */
 
@@ -106,7 +106,7 @@ ELF_EXPORT int elfESHEstimMatrix_f(float *T, float *H, unsigned int order,
 typedef struct {
   float b0;           /* unweighted measurement */
   float b;            /* b value */
-  float *dwis; 	      /* diffusion-weighted measurements */
+  float *dwis;        /* diffusion-weighted measurements */
   float *grads;       /* normalized gradient vectors (Cartesian 3D) */
   unsigned int dwino; /* number of dwis */
 } elfSingleShellDWI;
@@ -115,7 +115,7 @@ ELF_EXPORT int elfKernelStick_f(float *kernel, unsigned int order, float bd,
                                 float b0, int delta);
 ELF_EXPORT int elfBallStickODF_f(float *odf, float *fiso, float *d,
                                  const elfSingleShellDWI *dwi,
-				 const float *T, unsigned int order, int delta);
+                                 const float *T, unsigned int order, int delta);
 
 /* elfBallStickParms:
  *

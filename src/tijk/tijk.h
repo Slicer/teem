@@ -399,17 +399,17 @@ TIJK_EXPORT const tijk_type *tijk_esh_to_3d_sym_f(float *res,
                                                   unsigned int order);
 
 TIJK_EXPORT void tijk_esh_convolve_d(double *out, const double *in,
-				     const double *kernel,
+                                     const double *kernel,
                                      unsigned int order);
 TIJK_EXPORT void tijk_esh_convolve_f(float *out, const float *in,
-				     const float *kernel,
+                                     const float *kernel,
                                      unsigned int order);
 
 TIJK_EXPORT void tijk_esh_deconvolve_d(double *out, const double *in,
-				       const double *kernel,
+                                       const double *kernel,
                                        unsigned int order);
 TIJK_EXPORT void tijk_esh_deconvolve_f(float *out, const float *in,
-				       const float *kernel,
+                                       const float *kernel,
                                        unsigned int order);
 
 TIJK_EXPORT int tijk_esh_make_kernel_rank1_f(float *kernel, const float *signal,
@@ -457,9 +457,9 @@ TIJK_EXPORT const tijk_type *tijk_efs_to_2d_sym_f(float *res,
  */
 enum {
   tijk_class_unknown,
-  tijk_class_tensor,	/* 1: a tijk_type */
-  tijk_class_esh,	/* 2: even-order spherical harmonic */
-  tijk_class_efs,	/* 3: even-order fourier series */
+  tijk_class_tensor,    /* 1: a tijk_type */
+  tijk_class_esh,       /* 2: even-order spherical harmonic */
+  tijk_class_efs,       /* 3: even-order fourier series */
   tijk_class_last
 };
 #define TIJK_CLASS_MAX 3
@@ -469,13 +469,13 @@ TIJK_EXPORT const airEnum *const tijk_class;
 /* nrrdTijk.c */
 
 TIJK_EXPORT int tijk_set_axis_tensor(Nrrd *nrrd, unsigned int axis,
-				     const tijk_type *type);
+                                     const tijk_type *type);
 
 TIJK_EXPORT int tijk_set_axis_esh(Nrrd *nrrd, unsigned int axis,
-				  unsigned int order);
+                                  unsigned int order);
 
 TIJK_EXPORT int tijk_set_axis_efs(Nrrd *nrrd, unsigned int axis,
-				  unsigned int order);
+                                  unsigned int order);
 
 typedef struct tijk_axis_info_t {
   int tclass; /* class of Tijk object, from the tijk_class enum */
@@ -485,7 +485,7 @@ typedef struct tijk_axis_info_t {
 } tijk_axis_info;
 
 TIJK_EXPORT int tijk_get_axis_type(tijk_axis_info *info,
-				   const Nrrd *nrrd, unsigned int axis);
+                                   const Nrrd *nrrd, unsigned int axis);
 
 #ifdef __cplusplus
 }

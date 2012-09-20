@@ -105,8 +105,8 @@ int elfESHEstimMatrix_f(float *T, float *H, unsigned int order,
     unsigned int idx=0, o;
     for (o=0; o<=order; o+=2) { /* order */
       while (idx<tijk_esh_len[o/2]) {
-	M[N*idx+idx]+=lambda*o*o*(o+1)*(o+1);
-	idx++;
+        M[N*idx+idx]+=lambda*o*o*(o+1)*(o+1);
+        idx++;
       }
     }
   }
@@ -146,11 +146,11 @@ int elfESHEstimMatrix_f(float *T, float *H, unsigned int order,
   if (H!=NULL) { /* H = BT */
     for (i=0; i<ct; i++) /* row index */
       for (j=0; j<ct; j++) {
-	unsigned int idx=ct*i+j;
-	H[idx]=0.0;
-	for (k=0; k<N; k++) { /* sum over all SH coeffs */
-	  H[idx]+=B[N*i+k]*T[k*ct+j];
-	}
+        unsigned int idx=ct*i+j;
+        H[idx]=0.0;
+        for (k=0; k<N; k++) { /* sum over all SH coeffs */
+          H[idx]+=B[N*i+k]*T[k*ct+j];
+        }
       }
   }
 
