@@ -44,7 +44,6 @@ main(int argc, const char **argv) {
   char expapps[] = "_off_";
 #endif
 
-  char liblist[AIR_STRLEN_LARGE];
   char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
   AIR_UNUSED(argc);
   AIR_UNUSED(argv);
