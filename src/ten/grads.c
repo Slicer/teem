@@ -165,7 +165,7 @@ tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist) {
     return 1;
   }
   grad = AIR_CAST(double*, nout->data);
-  num = nout->axis[1].size;
+  num = AIR_UINT(nout->axis[1].size);
   /* HEY: possible confusion between single and not */
   edge = tenGradientIdealEdge(num, AIR_FALSE);
   for (gi=0; gi<num; gi++) {
@@ -185,18 +185,18 @@ tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist) {
 
 void
 tenGradientMeasure(double *pot, double *minAngle, double *minEdge,
-                    const Nrrd *npos, tenGradientParm *tgparm,
-                    int edgeNormalize) {
+                   const Nrrd *npos, tenGradientParm *tgparm,
+                   int edgeNormalize) {
   /* static const char me[]="tenGradientMeasure"; */
   double diff[3], *pos, atmp=0, ptmp, edge, len;
-  int ii, jj, num;
+  unsigned int ii, jj, num;
 
   /* allow minAngle NULL */
   if (!(pot && npos && tgparm )) {
     return;
   }
 
-  num = npos->axis[1].size;
+  num = AIR_UINT(npos->axis[1].size);
   pos = AIR_CAST(double *, npos->data);
   edge = (edgeNormalize
           ? tenGradientIdealEdge(num, tgparm->single)
@@ -287,7 +287,7 @@ _tenGradientUpdate(double *meanVel, double *edgeMin,
 
   E = 0;
   pos = AIR_CAST(double *, npos->data);
-  num = npos->axis[1].size;
+  num = AIR_UINT(npos->axis[1].size);
   *meanVel = 0;
   *edgeMin = edge;
   expo = tgparm->expo ? tgparm->expo : tgparm->expo_d;
@@ -357,7 +357,7 @@ party(Nrrd *npos, airRandMTState *rstate) {
   unsigned int ii, num, rnd, rndBit;
 
   pos = (double *)(npos->data);
-  num = npos->axis[1].size;
+  num = AIR_UINT(npos->axis[1].size);
   rnd = airUIrandMT_r(rstate);
   rndBit = 0;
   ELL_3V_SET(mean, 0, 0, 0);
@@ -480,7 +480,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
 
-  num = nin->axis[1].size;
+  num = AIR_UINT(nin->axis[1].size);
   mop = airMopNew();
   npos[0] = nrrdNew();
   npos[1] = nrrdNew();

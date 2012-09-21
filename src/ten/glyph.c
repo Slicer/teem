@@ -278,7 +278,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     list = echoObjectNew(glyphsEcho, echoTypeList);
   }
   if (npos) {
-    numGlyphs = nten->axis[1].size;
+    numGlyphs = AIR_UINT(nten->axis[1].size);
   } else {
     numGlyphs = shape->size[0] * shape->size[1] * shape->size[2];
   }
