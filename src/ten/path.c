@@ -425,9 +425,7 @@ _tenInterpGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
   static const char me[]="_tenInterpGeoLoxRelaxOne";
   double *tdata, *odata, *igrtdata, *tt[5], *igrt[5][6], d02[7], d24[7],
     len02, len24, tmp, tng[7], correct, update[7];
-  unsigned int jj, NN;
-
-  NN = (ntdata->axis[1].size-1)/2;
+  unsigned int jj;
 
   if (tip->verbose) {
     fprintf(stderr, "---- %u --> %u %u %u %u %u\n", ii,

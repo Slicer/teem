@@ -36,9 +36,9 @@ parmDesc[] = {
 static void 
 simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {
   unsigned int ii;
-  double b0, th0, frac, th1, vec0[3], vec1[3];
-
-  b0 = parm[0];  /* not used */
+  double th0, frac, th1, vec0[3], vec1[3];
+  
+  /* not used: b0 = parm[0]; */
   th0 = parm[1];
   frac = parm[2];
   th1 = parm[3];

@@ -392,7 +392,7 @@ constraintSatHght(pullTask *task, pullPoint *point,
   static const char me[]="constraintSatHght";
   double val, grad[3], hess[9], posproj[9], negproj[9],
     state[1+3+9+9+9+3], hack, step,
-    d1, d2, pdir[3], plen, pgrad[3], stpmin;
+    d1, d2, pdir[3], plen, pgrad[3];
 #if PRAYING
   double _tmpv[3]={0,0,0};
 #endif
@@ -403,17 +403,21 @@ constraintSatHght(pullTask *task, pullPoint *point,
   havePos = tang1Use || tang2Use;
   haveNeg = negtang1Use || negtang2Use;
   haveNada = !havePos && !haveNeg;
-  stpmin = task->pctx->voxelSizeSpace*task->pctx->sysParm.constraintStepMin;
 #if PRAYING
-  fprintf(stderr, "!%s(%u): starting at %g %g %g %g\n", me, point->idtag,
-          point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
-  fprintf(stderr, "!%s: pt %d %d nt %d %d (nada %d) "
-          "stepMax %g, iterMax %u\n", me,
-          tang1Use, tang2Use, negtang1Use, negtang2Use, haveNada,
-          stepMax, iterMax);
-  fprintf(stderr, "!%s: stpmin = %g = voxsize %g * parm.stepmin %g\n", me,
-          stpmin, task->pctx->voxelSizeSpace,
-          task->pctx->sysParm.constraintStepMin);
+  {
+    double stpmin;
+    /* HEY: shouldn't stpmin also be used later in this function? */
+    stpmin = task->pctx->voxelSizeSpace*task->pctx->sysParm.constraintStepMin;
+    fprintf(stderr, "!%s(%u): starting at %g %g %g %g\n", me, point->idtag,
+            point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+    fprintf(stderr, "!%s: pt %d %d nt %d %d (nada %d) "
+            "stepMax %g, iterMax %u\n", me,
+            tang1Use, tang2Use, negtang1Use, negtang2Use, haveNada,
+            stepMax, iterMax);
+    fprintf(stderr, "!%s: stpmin = %g = voxsize %g * parm.stepmin %g\n", me,
+            stpmin, task->pctx->voxelSizeSpace,
+            task->pctx->sysParm.constraintStepMin);
+  }
 #endif
   _pullPointHistAdd(point, pullCondOld);
   PROBE(val, grad, hess, posproj, negproj);

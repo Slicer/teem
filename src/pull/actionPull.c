@@ -316,7 +316,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
                       /* output */
                       double egradSum[4]) {
   static const char me[]="_pullEnergyFromPoints";
-  double energySum, spaDistSqMax, modeWghtSum;
+  double energySum, spaDistSqMax;  /* modeWghtSum */
   int nlist,    /* we enable the re-use of neighbor lists between inters, or,
                    at system start, creation of neighbor lists */
     ntrue;      /* we search all possible neighbors availble in the bins
@@ -401,7 +401,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   printf("%s: radiusSpace = %g -> spaDistSqMax = %g\n", me,
          task->pctx->sysParm.radiusSpace, spaDistSqMax);
   */
-  modeWghtSum = 0;
+  /* modeWghtSum = 0; */
   energySum = 0;
   point->neighInterNum = 0;
   point->neighDistMean = 0.0;

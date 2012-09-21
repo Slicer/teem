@@ -198,7 +198,7 @@ meetNrrdKernelAllCheck(void) {
   unsigned int ki, kj, pnum;
   airArray *mop;
   double epsl, XX, YY,
-    parm0[NRRD_KERNEL_PARMS_NUM], parm1_0[NRRD_KERNEL_PARMS_NUM], 
+    parm0[NRRD_KERNEL_PARMS_NUM],
     parm1_1[NRRD_KERNEL_PARMS_NUM], parm1_X[NRRD_KERNEL_PARMS_NUM],
     parm[NRRD_KERNEL_PARMS_NUM];
   size_t evalNum;
@@ -215,7 +215,6 @@ meetNrrdKernelAllCheck(void) {
   XX = 7.0/3.0;  /* 2.333.. */
   YY = 43.0/9.0; /* 4.777.. */
   parm0[0] = AIR_NAN; /* shouldn't be read */
-  parm1_0[0] = 0.0;
   parm1_1[0] = 1.0;
   parm1_X[0] = XX;
   ki = 0;

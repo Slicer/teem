@@ -34,9 +34,9 @@ parmDesc[] = {
 static void 
 simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {
   unsigned int ii;
-  double b0, theta, vec[3];
+  double theta, vec[3];
 
-  b0 = parm[0];  /* not used */
+  /* not used: b0 = parm[0]; */
   theta = parm[1];
   ELL_3V_SET(vec, cos(theta), sin(theta), 0.0);
   for (ii=0; ii<espec->imgNum; ii++) {
