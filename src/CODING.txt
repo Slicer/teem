@@ -289,27 +289,25 @@ various paths that are specific to his laptop)
 
 followed by "svn commit" if needed.
 
-* Use AIR_CAST to cast things. The only exception is casting things to
-airMopper to pass to airMopAdd(). (why: casts are inherently tricky, and
-sources of bugs, so their use must be grep-able) Two other things can be
-grepped for to find casts: the AIR_VOIDP casts pointers to void* for %p in
-printf-like functions, and all the ell macros ending in "_TT" are
-there just to do casting as part of their final assignment.
+* Make casts grep-able.  This usually means using AIR_CAST, but can also mean
+using macros AIR_VOIDP and AIR_UINT, and the ell macros ending in "_TT".  The
+only exception is casting things to airMopper to pass to airMopAdd(). (why:
+casts are inherently tricky, and sources of bugs, so their use must be
+grep-able)
 
-* Use AIR_CALLOC (preferably) or AIR_MALLOC to allocate things (why:
-both explicitly indicate the number of elements, and the size of each,
-and both include the cast from void* to the required pointer type)
+* Use AIR_CALLOC (preferably) or AIR_MALLOC to allocate things (why: both
+explicitly indicate the number of elements, and the size of each, and both
+include the cast from void* to the required pointer type)
 
-* Use airMop functions to manage dynamically-allocated resources to 
-avoid memory leaks.  The idea is that as soon as something is allocated,
-the pointer to the something is passed to airMopAdd, along with the 
-callback function that should be called on that pointer to free the thing.
-You also tell airMopAdd the circumstances under which to call the
-callback: airMopOnError, airMopOnOkay (rarely used), airMopAlways.
-Using airMop allows one to centralize and simplify the management of
-a number of things, especially when the set of things being managed
-can vary depending on parameters or execution path. In C++, you'd use
-smart pointers.  An example is:
+* Use airMop functions to manage dynamically-allocated resources to avoid
+memory leaks.  The idea is that as soon as something is allocated, the
+pointer to the something is passed to airMopAdd, along with the callback
+function that should be called on that pointer to free the thing.  You also
+tell airMopAdd the circumstances under which to call the callback:
+airMopOnError, airMopOnOkay (rarely used), airMopAlways.  Using airMop allows
+one to centralize and simplify the management of a number of things,
+especially when the set of things being managed can vary depending on
+parameters or execution path. In C++, you'd use smart pointers.  An example:
    airArray *mop;
    double *tmpbuff, *toreturn;
    ...
@@ -325,10 +323,9 @@ smart pointers.  An example is:
    ...
    airMopOkay(mop);
    return toreturn;
-Note that you can safely pass NULL-pointers (pointers set to NULL 
-because of unsuccessful allocations) to airMopAdd, because airFree()
-can be safely called on NULL.  A sequence of allocations might look
-like this:
+Note that you can safely pass NULL-pointers (pointers set to NULL because of
+unsuccessful allocations) to airMopAdd, because airFree() can be safely
+called on NULL.  A sequence of allocations might look like this:
    buffA = AIR_CALLOC(sizeA, double);
    buffB = AIR_CALLOC(sizeB, double);
    buffC = AIR_CALLOC(sizeC, double);
