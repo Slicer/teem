@@ -3037,7 +3037,6 @@ nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], const NrrdKernelSpec *ksp) {
     return 1;
   }
   if (strstr(ksp->kernel->name, "TMF")) {
-    int dd, cc, ee;
     /* these are handled differently; the identification of the 
        kernel is actually packaged as kernel parameters */
     if (!(ksp->kernel->name == strstr(ksp->kernel->name, "TMF"))) {
@@ -3055,13 +3054,6 @@ nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], const NrrdKernelSpec *ksp) {
                me, ksp->kernel->name);
       return 1;
     }
-    dd = ('n' == ksp->kernel->name[5]
-          ? -1
-          : ksp->kernel->name[5] - '0');
-    cc = ('n' == ksp->kernel->name[8]
-          ? -1
-          : ksp->kernel->name[8] - '0');
-    ee = ksp->kernel->name[10] - '0';
     sprintf(str, "tmf:%c,%c,%c", 
             ksp->kernel->name[5],
             ksp->kernel->name[8],
