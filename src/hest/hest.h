@@ -215,7 +215,8 @@ HEST_EXPORT void hestParseOrDie(hestOpt *opt, int argc, const char **argv,
                                 int doInfo, int doUsage, int doGlossary);
 
 /* usage.c */
-HEST_EXPORT void _hestPrintStr(FILE *f, int indent, int already, int width,
+HEST_EXPORT void _hestPrintStr(FILE *f, unsigned int indent,
+                               unsigned int already, unsigned int width,
                                const char *_str, int bslash);
 HEST_EXPORT int hestMinNumArgs(hestOpt *opt);
 HEST_EXPORT void hestUsage(FILE *file, hestOpt *opt, const char *argv0,

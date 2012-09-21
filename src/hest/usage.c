@@ -92,10 +92,10 @@ _hestSetBuff(char *B, hestOpt *O, hestParm *P, int showshort, int showlong) {
 ** not a useful function.  Do not use.
 */
 void
-_hestPrintStr(FILE *f, int indent, int already, int width, const char *_str,
-              int bslash) {
+_hestPrintStr(FILE *f, unsigned int indent, unsigned int already, 
+              unsigned int width, const char *_str, int bslash) {
   char *str, *ws, *last;
-  int nwrd, wrd, pos, s, newed=AIR_FALSE;
+  int newed=AIR_FALSE; unsigned int wrd, nwrd, ii, pos;
 
   str = airStrdup(_str);
   nwrd = airStrntok(str, " ");
@@ -105,7 +105,7 @@ _hestPrintStr(FILE *f, int indent, int already, int width, const char *_str,
     ws = airStrtok(!wrd ? str : NULL, " ", &last);
     /* ... but then convert tabs to spaces */
     airStrtrans(ws, '\t', ' ');
-    if ((int)(pos + 1 + strlen(ws)) <= width - !!bslash) {
+    if (pos + 1 + AIR_CAST(unsigned int, strlen(ws)) <= width - !!bslash) {
       /* if this word would still fit on the current line */
       if (wrd && !newed) fprintf(f, " ");
       fprintf(f, "%s", ws);
@@ -117,7 +117,7 @@ _hestPrintStr(FILE *f, int indent, int already, int width, const char *_str,
         fprintf(f, " \\");
       }
       fprintf(f, "\n");
-      for (s=0; s<indent; s++) {
+      for (ii=0; ii<indent; ii++) {
         fprintf(f, " ");
       }
       fprintf(f, "%s", ws); 
@@ -125,7 +125,7 @@ _hestPrintStr(FILE *f, int indent, int already, int width, const char *_str,
     }
     /* if the last character of the word was a newline, then indent */
     if ('\n' == ws[strlen(ws)-1]) {
-      for (s=0; s<indent; s++) {
+      for (ii=0; ii<indent; ii++) {
         fprintf(f, " ");
       }
       pos = indent;
@@ -257,7 +257,7 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0, hestParm *_parm) {
 
 void
 hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
-  int i, j, len, maxlen, numOpts;
+  int i, j, maxlen, numOpts; unsigned int len;
   char buff[2*AIR_STRLEN_HUGE], tmpS[AIR_STRLEN_HUGE];
   hestParm *parm;
 
@@ -282,7 +282,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
   }
   if (parm && parm->respFileEnable) {
     sprintf(buff, "%cfile ...", parm->respFileFlag);
-    len = strlen(buff);
+    len = AIR_CAST(unsigned int, strlen(buff));
     for (j=len; j<maxlen; j++) {
       fprintf(f, " ");
     }
@@ -294,7 +294,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     strcpy(buff, "");
     _hestSetBuff(buff, opt + i, parm, AIR_TRUE, AIR_FALSE);
     airOneLinify(buff);
-    len = strlen(buff);
+    len = AIR_CAST(unsigned int, strlen(buff));
     for (j=len; j<maxlen; j++) {
       fprintf(f, " ");
     }
