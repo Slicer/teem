@@ -34,7 +34,8 @@ extern int _hestKind(hestOpt *opt);
 extern void _hestPrintArgv(int argc, char **argv);
 extern int _hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm);
 extern int _hestCase(hestOpt *opt, int *udflt, unsigned int *nprm, int *appr, int op);
-extern char *_hestExtract(int *argcP, char **argv, int a, int np);
+extern char *_hestExtract(int *argcP, char **argv,
+                          unsigned int base, unsigned int pnum);
 extern int _hestNumOpts(hestOpt *opt);
 extern int _hestMax(int max);
 

@@ -379,53 +379,53 @@ _hestCase(hestOpt *opt, int *udflt, unsigned int *nprm, int *appr, int op) {
 /*
 ** _hestExtract()
 **
-** takes "np" parameters, starting at "a", out of the given argv, and puts
-** them into a string WHICH THIS FUNCTION ALLOCATES, and also adjusts
-** the argc value given as "*argcP".
+** takes "pnum" parameters, starting at "base", out of the
+** given argv, and puts them into a string WHICH THIS FUNCTION
+** ALLOCATES, and also adjusts the argc value given as "*argcP".
 */
 char *
-_hestExtract(int *argcP, char **argv, int a, int np) {
-  int len, n;
+_hestExtract(int *argcP, char **argv, unsigned int base, unsigned int pnum) {
+  unsigned int len, pidx;
   char *ret;
 
-  if (!np)
+  if (!pnum)
     return NULL;
 
   len = 0;
-  for (n=0; n<np; n++) {
-    if (a+n==*argcP) {
+  for (pidx=0; pidx<pnum; pidx++) {
+    if (base+pidx==AIR_CAST(unsigned int, *argcP)) {
       return NULL;
     }
-    len += strlen(argv[a+n]);
-    if (strstr(argv[a+n], " ")) {
+    len += AIR_CAST(unsigned int, strlen(argv[base+pidx]));
+    if (strstr(argv[base+pidx], " ")) {
       len += 2;
     }
   }
-  len += np;
+  len += pnum;
   ret = AIR_CALLOC(len, char);
   strcpy(ret, "");
-  for (n=0; n<np; n++) {
+  for (pidx=0; pidx<pnum; pidx++) {
     /* if a single element of argv has spaces in it, someone went
        to the trouble of putting it in quotes, and we perpetuate
        the favor by quoting it when we concatenate all the argv
        elements together, so that airParseStrS will recover it as a 
        single string again */
-    if (strstr(argv[a+n], " ")) {
+    if (strstr(argv[base+pidx], " ")) {
       strcat(ret, "\"");
     }
     /* HEY: if there is a '\"' character in this string, quoted or
        not, its going to totally confuse later parsing */
-    strcat(ret, argv[a+n]);
-    if (strstr(argv[a+n], " ")) {
+    strcat(ret, argv[base+pidx]);
+    if (strstr(argv[base+pidx], " ")) {
       strcat(ret, "\"");
     }
-    if (n < np-1)
+    if (pidx < pnum-1)
       strcat(ret, " ");
   }
-  for (n=a+np; n<=*argcP; n++) {
-    argv[n-np] = argv[n];
+  for (pidx=base+pnum; pidx<=AIR_CAST(unsigned int, *argcP); pidx++) {
+    argv[pidx-pnum] = argv[pidx];
   }
-  *argcP -= np;
+  *argcP -= pnum;
   return ret;
 }
 
