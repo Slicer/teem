@@ -35,10 +35,11 @@ identify which source file contains the function definition, as with
 * opening brace *not* on its own line
 * closing brace gets its own line, except for if/else
 * braces around a branch even if there is only one statement
-(why: there will eventually be more than one statement, even 
+(why: there will likely eventually be more than one statement, even 
 if only for debugging)
 * single blank line between function variable declaration/initialiation 
-and function code
+and function code.  Blank lines between distinct stages of a function
+computation are nice too (like a paragraph break).
 
 Other code formatting points:
 
@@ -74,8 +75,14 @@ current approach is better than having two sets of contradictory assignments).
 ============ Libraries 
 
 * Teem is organized as a set of libraries (current 23 of them), with a
-well-defined dependency order.  New libraries are carefully placed
+well-defined dependency order.  New libraries are thoughtfully placed
 within this ordering.
+
+* New libraries should be added only when it is very clear that no existing
+library can contain the intended functionality.  By convention adopted in
+2002, all Teem library names must be a WORD, not an acronym.  The language of
+the word need not be English (e.g. tijk, Dutch for ticking, the fabric of
+pillow and mattress covering)
 
 * The "air" library is used by all other libraries, and
 is the source for low-level utility (e.e. airEnum, airArray) and math
@@ -95,7 +102,7 @@ and always list the libraries in this dependency order (or its opposite):
   limn echo hoover seek ten elf pull coil push mite meet
 
 * All libraries "lib" contain a const int "libPresent", defined in one
-of the first .c files the header refers to (which .c is not fixed). 
+of the first .c files the header refers to (which .c file is not fixed).
 The presence of this symbol provides a way to test which libraries
 are part of a given Teem shared library.  Tradition dictates that the
 libPresent variable is set to 42, but this is not necessary.
@@ -114,12 +121,6 @@ to be updated upon release or patch.  The "meet" library would be a
 more logical place for all these, but that would complicate their use
 in NrrdIO ("meet" is not part of NrrdIO).
 
-* New libraries should be added only when it is abundantly obvious
-that no existing library can contain the intended functionality.  By
-convention adopted in 2002, all Teem library names must be a WORD, not
-an acronym.  The language of the word need not be English (e.g. tijk,
-Dutch for ticking, the fabric of pillow and mattress covering)
-
 * Despite the established dependency ordering of the libraries, there are
 rare instances when something in one library A is really for library B,
 even though A doesn't depend on B (in fact B depends on A). Examples of
@@ -129,7 +130,7 @@ this include:
    between pre-blurred volumes)
  - gage has some specialization for length-7 values in probed volumes,
    this is really for the ten library that uses length-7 tensors
-These kinds of implicit dependency reversals should be avoided if possible.
+These kinds of implicit dependency reversals should be minimized.
 
 ============ NrrdIO
 
@@ -137,7 +138,7 @@ These kinds of implicit dependency reversals should be avoided if possible.
 for those programs that don't want or need all of Teem, but need NRRD
 IO functionality.
 
-* NrrdIO is a library in Teem; is created from a Teem source tree by
+* NrrdIO is *not* a library in Teem; is created from a Teem source tree by
 means of some scripts (which are part of the NrrdIO distribution). To
 facilitate that transformation, there are some special comments that delimit
 code sections and particular lines.  These appear only the air, biff,
@@ -174,25 +175,27 @@ libraries #defines and macros are all upper case, with _ separations
 
 * All functions that use var-args must have a name that ends with "_va".
 There are currently some functions ending with "_nva" (for "no var-args"),
-but in a future version of Teem the _nva may be removed.
+but in a future version of Teem the "_nva" may be removed.
 
 * Two versions of a function or variable that represent the same thing,
 except on floats vs doubles, should end with "_f" and "_d"
 
 * Much of Teem is effectively object-oriented, even though not in C++, with
-various structs playing the role of objects.  For struct foo, there will be
-a fooNew() which allocates and initializes in, a fooCopy() which allocates
-a foo to be a copy of an existing foo, fooNix() which destroys it For
+various structs playing the role of objects.  For struct foo, there will be a
+fooNew() which allocates and initializes in, a fooCopy() which allocates a
+foo to be a copy of an existing foo, fooNix() which destroys it For
 container-like objects (airArray, Nrrd), there is also a fooNuke() which
-additionally frees the contained data, where fooNix() does not.  All
-foo-related functions should start with "foo", and most likely should
-take a foo pointer as their first argument.
+additionally frees the contained data, where fooNix() does not.  There may
+also be fooInit() and fooDone() which set up and take down state within a
+struct without allocating or freeing the container. All foo-related functions
+should start with "foo", and most likely should take a foo pointer as their
+first argument.
 
-* All identifier names should be set up so that whatever is logically
-common between two functions appears as a common prefix, with only the
-suffix changing (e.g. tenInterpTypeQuatGeoLoxK, tenInterpTypeQuatGeoLoxR).
-One effect of this is that verbs (Set, Get, Slice, etc), end up at the very
-*end* of the function name (e.g. tenFiberMultiNew(), tenFiberMultiTrace(),
+* All identifier names should be set up so that whatever is logically common
+between two functions appears as a common prefix, with only the suffix
+changing (e.g. tenInterpTypeQuatGeoLoxK, tenInterpTypeQuatGeoLoxR).  One
+effect of this is that verbs (Set, Get, Slice, etc), end up at the very *end*
+of the function name (e.g. tenFiberMultiNew(), tenFiberMultiTrace(),
 tenFiberMultiPolyData()). This may seem awkward, but it is a blessing in
 interactive environments (like ipython) where you want to be doing
 tab-completion on identifiers.  The extreme consistency of Teem function
@@ -241,12 +244,26 @@ Static functions can use whatever name they want.
 
 ============ Practices to keep Teem coherent and effective
 
+* Teem has a dashboard at:
+
+http://my.cdash.org/index.php?project=Teem
+
+The dashboard results represent the state of the svn trunk at midnight
+Chicago time (UTC-5).  The dashboard must be monitored during development, in
+order to avoid creating new warnings or new errors.  Adding new machines to
+the dashboard is a priority.
+
+* The tests in teem/Testing are slowly accumulating.  Much of the effort
+in ongoing Teem development will be in creating and strengthening tests.
+
 * For the most part, Teem is written in ANSI C89.  The known ways in
 which the code diverges from this standard are:
  - using the "long long" type qualifier to generate 64-bit ints
  - various strings created at compile time, often with the benefit of the
    "foo" "bar" --> "foobar" string concatenation, exceed the length 
    509 guaranteed to be supported by the standard
+The relevant gcc invocation might include something like:
+"-W -Wall -Wextra -C89 -pedantic -Wno-long-long -Wno-overlength-string"
 Note that automatic conversion from a non-void* to a void*, in the specific
 case of supplying the value for a %p argument to a printf-like function, is
 not actually supported: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=26542 
@@ -266,7 +283,8 @@ various paths that are specific to his laptop)
  && echo ===== make && make \
  && echo ===== make install && make install \
  && echo ===== cd ~/teem/python/ctypes && cd ~/teem/python/ctypes \
- && echo ===== python teem-gen.py ctypeslib-gccxml-0.9 ~/teem-svn-install && python teem-gen.py ctypeslib-gccxml-0.9 ~/teem-svn-install \
+ && echo ===== python teem-gen.py ctypeslib-gccxml-0.9 ~/teem-svn-install \
+            && python teem-gen.py ctypeslib-gccxml-0.9 ~/teem-svn-install \
  && echo ===== svn diff && svn diff 
 
 followed by "svn commit" if needed.
@@ -438,23 +456,29 @@ with the main purpose of the function.  Think of these as asserts() but
 more graceful and more informative.  It not a problem for the error
 checking to take up more space than the core functionality.
 
-* Teem uses size_t-type variables quite a bit, and also ptrdiff_t (at
-least in nrrdPad_nva and nrrdPad_va).  Sometimes these values have to
-passed {s,f,}printf, but ANSI C89 has no "format specifiers" for that
-(as with %d for int, %u for unsigned int).  Teem has previously used
-macros _AIR_SIZE_T_CNV and _AIR_PTRDIFF_T_CNV for this, but setting
-these is a complicated compile-time task that is completely
-architecture-dependent, and which also relied on TEEM_32BIT, which has
-been removed. Ultimately, the nicest thing to do (but which will
-require significant work) would be to re-implement {s,f,}printf (or
-copy an implementation with suitable licensing).  Until then, we use
-airSprintSize_t and airSprintPtrdiff_t to sprint a single size_t or
-ptrdiff_t variable to a buffer string (typically char
-stmp[AIR_STRLEN_SMALL]) which is then handled via %s.  This is
-admittedly clumsy; it will hopefully be one of the first things to fix
-in Teem 2.0.
+* Teem uses size_t-type variables quite a bit, and also ptrdiff_t (at least
+in nrrdPad_nva and nrrdPad_va).  Sometimes these values have to passed
+{s,f,}printf, but ANSI C89 has no "format specifiers" for that (as with %d
+for int, %u for unsigned int).  Teem has previously used macros
+_AIR_SIZE_T_CNV and _AIR_PTRDIFF_T_CNV for this, but setting these is a
+complicated compile-time task that is completely architecture-dependent, and
+which also relied on TEEM_32BIT, which has been removed. Ultimately, the
+nicest thing to do (but which will require significant work) would be to
+re-implement {s,f,}printf (or copy an implementation with suitable
+licensing).  Until then, we use airSprintSize_t and airSprintPtrdiff_t to
+sprint a single size_t or ptrdiff_t variable to a buffer string (typically
+char stmp[AIR_STRLEN_SMALL]) which is then handled via %s.  This is
+admittedly clumsy; it will hopefully be one of the first things to fix in
+Teem 2.0.
 
 ============ Other coding practices
+
+* Avoid single-letter variable names (why: too hard to search for usage)
+"uu" is better than "u".
+
+* In equality tests between a variable and a constant, the constant goes
+first, e.g. use "if (42 == blah) " instead of "if (blah == 42)" (why:
+eliminates chance of assignment (by =) instead of equality test).
 
 * If a pointer argument to a function can be const, make it const.  In
 upcoming versions this may be applied to non-pointer arguments as well.
@@ -467,10 +491,7 @@ equivalent to what sizeof() is describing
 * Avoid magic constants embedded in code, use instead either a #define or
 one of the many enum values
 
-* Try to spell check comments
-
-* Avoid single-letter variable names (why: too hard to search for usage)
-"uu" is better than "u".
+* Spell check comments
 
 * In the common circumstance that there are two variables, a float or 
 double which represents a continuous quantity, and an int or unsigned int
