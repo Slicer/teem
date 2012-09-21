@@ -55,7 +55,7 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
     for (i=0; i<=2; i++) {
       anyneed |= need = sz[i] - nin->axis[i].size;
       fprintf(stderr, "%s: sz[%d] = %u -> need = %d --> ", 
-              me, i, AIR_CAST(unsigned int, nin->axis[i].size), need);
+              me, i, AIR_UINT(nin->axis[i].size), need);
       need = AIR_MAX(0, need);
       fprintf(stderr, "%d --> %s resample\n", need, need ? "WILL" : "won't");
       if (need) {

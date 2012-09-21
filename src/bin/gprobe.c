@@ -81,7 +81,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
              (ctx->stackPos ? "" : "not "),
              (ctx->stackPos ? 4 : 3) + 1,
              (ctx->stackPos ? 4 : 3),
-             AIR_CAST(unsigned int, _ngrid->axis[0].size));
+             AIR_UINT(_ngrid->axis[0].size));
     return 1;
   }
 
@@ -111,7 +111,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
   gridDim = AIR_ROUNDUP_UI(grid[0]);
   if (gridDim + 1 != ngrid->axis[1].size) {
     biffAddf(GAGE, "%s: ngrid->axis[1].size = %u but expected %u = 1 + %u", 
-             me, AIR_CAST(unsigned int, ngrid->axis[1].size),
+             me, AIR_UINT(ngrid->axis[1].size),
              1 + gridDim, gridDim);
     airMopError(mop); return 1;
   }
@@ -159,9 +159,9 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
     }
     /*
     printf("%s: %u -> (%u %u) -> %g %g %g %g (%s)\n", me,
-           AIR_CAST(unsigned int, II),
-           AIR_CAST(unsigned int, coordOut[0+baseDim]),
-           AIR_CAST(unsigned int, coordOut[1+baseDim]),
+           AIR_UINT(II),
+           AIR_UINT(coordOut[0+baseDim]),
+           AIR_UINT(coordOut[1+baseDim]),
            pos[0], pos[1], pos[2], pos[3],
            indexSpace ? "index" : "world");
     */
@@ -560,13 +560,13 @@ main(int argc, const char *argv[]) {
           && (3 == _npos->axis[0].size || 4 == _npos->axis[0].size))) {
       fprintf(stderr, "%s: need npos 2-D 3-by-N or 4-by-N "
               "(not %u-D %u-by-N)\n", me, _npos->dim,
-              AIR_CAST(unsigned int, _npos->axis[0].size));
+              AIR_UINT(_npos->axis[0].size));
       airMopError(mop); return 1;
     }
     if ((numSS && 3 == _npos->axis[0].size) 
         || (!numSS && 4 == _npos->axis[0].size)) {
       fprintf(stderr, "%s: have %u point coords but %s using scale-space\n", 
-              me, AIR_CAST(unsigned int, _npos->axis[0].size),
+              me, AIR_UINT(_npos->axis[0].size),
               numSS ? "are" : "are not");
       airMopError(mop); return 1;
     }

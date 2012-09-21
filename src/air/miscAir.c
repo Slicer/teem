@@ -319,7 +319,7 @@ airPrettySprintSize_t(char str[AIR_STRLEN_SMALL], size_t val) {
   }
   suffIdx = 0;
   dval = AIR_CAST(double, val);
-  suffNum = AIR_CAST(unsigned int, sizeof(suff)/sizeof(suff[0]));
+  suffNum = AIR_UINT(sizeof(suff)/sizeof(suff[0]));
   while (suffIdx < suffNum-1) {  /* while we can go to a bigger suffix */
     if (dval > 1024) {
       dval /= 1024;
@@ -416,7 +416,7 @@ airIndex(double min, double val, double max, unsigned int N) {
   
   mnm = max - min;
   if (mnm) {
-    idx = AIR_CAST(unsigned int, N*(val - min)/mnm);
+    idx = AIR_UINT(N*(val - min)/mnm);
     idx -= (idx == N);
   } else {
     idx = 0;
@@ -435,7 +435,7 @@ airIndexClamp(double min, double val, double max, unsigned int N) {
   mnm = max - min;
   if (mnm) {
     val = AIR_MAX(min, val);
-    idx = AIR_CAST(unsigned int, N*(val - min)/mnm);
+    idx = AIR_UINT(N*(val - min)/mnm);
     idx = AIR_MIN(idx, N-1);
   } else {
     idx = 0;

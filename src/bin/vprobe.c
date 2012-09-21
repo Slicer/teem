@@ -356,13 +356,13 @@ main(int argc, const char *argv[]) {
   soz = AIR_CAST(size_t, scale[2]*siz);
   if (verbose) {
     fprintf(stderr, "%s: six,y,z = %u %u %u\n", me,
-            AIR_CAST(unsigned int, six),
-            AIR_CAST(unsigned int, siy),
-            AIR_CAST(unsigned int, siz));
+            AIR_UINT(six),
+            AIR_UINT(siy),
+            AIR_UINT(siz));
     fprintf(stderr, "%s: sox,y,z = %u %u %u\n", me,
-            AIR_CAST(unsigned int, sox),
-            AIR_CAST(unsigned int, soy),
-            AIR_CAST(unsigned int, soz));
+            AIR_UINT(sox),
+            AIR_UINT(soy),
+            AIR_UINT(soz));
   }
   rscl[0] = AIR_CAST(double, six)/sox;
   rscl[1] = AIR_CAST(double, siy)/soy;
@@ -450,15 +450,15 @@ main(int argc, const char *argv[]) {
     for (yi=0; yi<soy; yi++) {
       y = AIR_AFFINE(min[1], yi, maxOut[1], min[1], maxIn[1]);
       if (2 == verbose) {
-        fprintf(stderr, " %u/%u", AIR_CAST(unsigned int, yi),
-                AIR_CAST(unsigned int, soy));
+        fprintf(stderr, " %u/%u", AIR_UINT(yi),
+                AIR_UINT(soy));
         fflush(stderr);
       }
       for (xi=0; xi<sox; xi++) {
         if (verbose > 2) {
           fprintf(stderr, " (%u,%u)/(%u,%u)", 
-                  AIR_CAST(unsigned int, xi), AIR_CAST(unsigned int, yi),
-                  AIR_CAST(unsigned int, sox), AIR_CAST(unsigned int, soy));
+                  AIR_UINT(xi), AIR_UINT(yi),
+                  AIR_UINT(sox), AIR_UINT(soy));
           fflush(stderr);
         }
         x = AIR_AFFINE(min[0], xi, maxOut[0], min[0], maxIn[0]);

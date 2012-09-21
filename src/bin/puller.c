@@ -264,8 +264,8 @@ outputShow(pullBag *bag) {
   first = bag->nrgb->axis[1].size != bag->nPosOut->axis[1].size;
   /*
   fprintf(stderr, "!%s: %u %u -> %d\n", me, 
-          AIR_CAST(unsigned int, bag->nrgb->axis[1].size),
-          AIR_CAST(unsigned int, bag->nPosOut->axis[1].size), first);
+          AIR_UINT(bag->nrgb->axis[1].size),
+          AIR_UINT(bag->nPosOut->axis[1].size), first);
   */
   if (first) {
     if (nrrdMaybeAlloc_va(bag->nrgb, nrrdTypeFloat, 2, 
@@ -439,7 +439,7 @@ cc_cb(fltk::Widget *, pullBag *bag) {
   printf("%s: found %u CCs\n", me, bag->pctx->CCNum);
   bag->ccSelect->range(0, bag->pctx->CCNum-1);
   if (bag->nccrgb->axis[1].size != bag->pctx->CCNum) {
-    airSrandMT(AIR_CAST(unsigned int, airTime()));
+    airSrandMT(AIR_UINT(airTime()));
     if (nrrdMaybeAlloc_va(bag->nccrgb, nrrdTypeFloat, 2,
                           AIR_CAST(size_t, 3),
                           AIR_CAST(size_t, bag->pctx->CCNum))) {
