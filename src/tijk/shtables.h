@@ -27,7 +27,7 @@
  */
 
 /* when using an MS compiler and setting up the float tables,
- * surpress warnings about "truncation from 'double' to 'const float'"
+ * suppress warnings about "truncation from 'double' to 'const float'"
  */
 #if TIJK_TABLE_TYPE == 1 && defined(_MSC_VER)
 #  pragma warning(push)
