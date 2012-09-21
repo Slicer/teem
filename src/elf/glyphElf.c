@@ -144,7 +144,7 @@ elfGlyphPolar(limnPolyData *glyph, const char antipodal,
     if (val>max) max=val;
     ELL_3V_SCALE(verts,val,verts);
     if (antipodal) {
-      ELL_3V_SCALE(verts+4,-1.0,verts);
+      ELL_3V_SCALE(verts+4,-1.0f,verts);
       verts+=4; i++;
     }
     verts+=4;
@@ -207,14 +207,15 @@ elfGlyphHOME(limnPolyData *glyph, const char antipodal,
     (*type->sym->v_form_f)(HOMEpos,ten,verts);
     if (ELL_3V_DOT(HOMEpos,verts)<0) def=0;
     ELL_3V_COPY(verts,HOMEpos);
-    len=ELL_3V_LEN(HOMEpos);
+    len=AIR_CAST(float, ELL_3V_LEN(HOMEpos));
     if (len>max) max=len;
     
     /* if RGBA is allocated, take care of coloring */
     if (infoBitFlag & (1 << limnPolyDataInfoRGBA)) {
       float c[3];
       if (len>1e-18)
-        ELL_3V_SET(c,fabs(verts[0]/len),fabs(verts[1]/len),fabs(verts[2]/len));
+        ELL_3V_SET_TT(c,float,fabs(verts[0]/len),
+                      fabs(verts[1]/len),fabs(verts[2]/len));
       else
         ELL_3V_SET(c,0,0,0);
       /* RGB encode the vertex coordinates */
@@ -226,7 +227,7 @@ elfGlyphHOME(limnPolyData *glyph, const char antipodal,
     }
     
     if (antipodal) {
-      ELL_3V_SCALE(verts+4,-1.0,verts);
+      ELL_3V_SCALE(verts+4,-1.0f,verts);
       verts+=4; i++;
     }
     verts+=4;
@@ -350,9 +351,9 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
         float norm;
         float modfactor=1.0;
         ELL_3V_COPY(vertdir,glyph->xyzw+4*vert);
-        norm=ELL_3V_LEN(vertdir);
+        norm=AIR_CAST(float, ELL_3V_LEN(vertdir));
         if (norm>1e-18) {
-          ELL_3V_SCALE(vertdir,1.0/norm,vertdir);
+          ELL_3V_SCALE(vertdir,1.0f/norm,vertdir);
           if (modulate) {
             /* modulate by peak strength */
             float hess[7], val, evals[3];
@@ -366,7 +367,7 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
             } else {
               modfactor=-evals[1]/(type->order*val);
               if (modfactor>1.0) modfactor=1.0;
-              else modfactor=pow(modfactor,gamma);
+              else modfactor=AIR_CAST(float, pow(modfactor,gamma));
             }
           }
         } else {
@@ -430,7 +431,7 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
   
   for (i=0; i<glyph->xyzwNum; i++) {
     if (diff_ct[i]>0) {
-      ELL_3V_SCALE_INCR(newcol+3*i,1.0+id_ct[i],glyph->rgba+4*i);
+      ELL_3V_SCALE_INCR_TT(newcol+3*i, float, 1.0+id_ct[i],glyph->rgba+4*i);
       ELL_3V_SCALE_TT(glyph->rgba+4*i, unsigned char,
                       1.0/(1.0+id_ct[i]+diff_ct[i]),
                       newcol+3*i);

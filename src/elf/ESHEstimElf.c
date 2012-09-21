@@ -34,12 +34,12 @@ void elfCart2Thetaphi_f(float *thetaphi, const float *dirs, unsigned int ct)
 {
   unsigned int i;
   for (i=0; i<ct; i++) {
-    float r=ELL_3V_LEN(dirs+3*i);
+    float r=AIR_CAST(float, ELL_3V_LEN(dirs+3*i));
     float z=dirs[3*i+2]/r;
     if (z>1) thetaphi[2*i]=0;
-    else if (z<-1) thetaphi[2*i]=AIR_PI;
-    else thetaphi[2*i]=acos(z);
-    thetaphi[2*i+1]=atan2(dirs[3*i+1],dirs[3*i]);
+    else if (z<-1) thetaphi[2*i]=AIR_CAST(float, AIR_PI);
+    else thetaphi[2*i]=AIR_CAST(float, acos(z));
+    thetaphi[2*i+1]=AIR_CAST(float, atan2(dirs[3*i+1],dirs[3*i]));
   }
 }
 
@@ -127,7 +127,7 @@ int elfESHEstimMatrix_f(float *T, float *H, unsigned int order,
         unsigned int idx=ct*i+j;
         T[idx]=0.0;
         for (k=0; k<N; ++k) {
-          T[idx]+=Minv[N*i+k]*B[N*j+k]*w[j];
+          T[idx]+=AIR_CAST(float, Minv[N*i+k]*B[N*j+k]*w[j]);
         }
       }
   } else { /* unweighted */
@@ -136,7 +136,7 @@ int elfESHEstimMatrix_f(float *T, float *H, unsigned int order,
         unsigned int idx=ct*i+j;
         T[idx]=0.0;
         for (k=0; k<N; ++k) {
-          T[idx]+=Minv[N*i+k]*B[N*j+k];
+          T[idx]+=AIR_CAST(float, Minv[N*i+k]*B[N*j+k]);
         }
       }    
   }
@@ -149,7 +149,7 @@ int elfESHEstimMatrix_f(float *T, float *H, unsigned int order,
         unsigned int idx=ct*i+j;
         H[idx]=0.0;
         for (k=0; k<N; k++) { /* sum over all SH coeffs */
-          H[idx]+=B[N*i+k]*T[k*ct+j];
+          H[idx]+=AIR_CAST(float, B[N*i+k]*T[k*ct+j]);
         }
       }
   }

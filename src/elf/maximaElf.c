@@ -189,7 +189,7 @@ int elfMaximaFind_f(float **ls, float **vs, const float *ten,
     *ls = (float*) malloc(sizeof(float)*retval);
     *vs = (float*) malloc(sizeof(float)*3*retval);
     for (i=0; i<(unsigned int)retval; i++) {
-      (*ls)[i]=-airHeapFrontPop(heap, (*vs)+3*i);
+      (*ls)[i]=AIR_CAST(float,-airHeapFrontPop(heap, (*vs)+3*i));
     }
   }
   heap=airHeapNix(heap);
