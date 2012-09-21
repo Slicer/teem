@@ -30,7 +30,7 @@
 void
 _hestSetBuff(char *B, hestOpt *O, hestParm *P, int showshort, int showlong) {
   char copy[AIR_STRLEN_HUGE], *sep;
-  int max, len;
+  int max; unsigned int len;
 
   max = _hestMax(O->max);
   if (O->flag) {
@@ -43,7 +43,7 @@ _hestSetBuff(char *B, hestOpt *O, hestParm *P, int showshort, int showlong) {
       }
       if (showlong) {
         if (showshort) {
-          len = strlen(B);
+          len = AIR_UINT(strlen(B));
           B[len] = P->multiFlagSep;
           B[len+1] = '\0';
         }
@@ -105,11 +105,11 @@ _hestPrintStr(FILE *f, unsigned int indent, unsigned int already,
     ws = airStrtok(!wrd ? str : NULL, " ", &last);
     /* ... but then convert tabs to spaces */
     airStrtrans(ws, '\t', ' ');
-    if (pos + 1 + AIR_CAST(unsigned int, strlen(ws)) <= width - !!bslash) {
+    if (pos + 1 + AIR_UINT(strlen(ws)) <= width - !!bslash) {
       /* if this word would still fit on the current line */
       if (wrd && !newed) fprintf(f, " ");
       fprintf(f, "%s", ws);
-      pos += 1 + strlen(ws);
+      pos += 1 + AIR_UINT(strlen(ws));
       newed = AIR_FALSE;
     } else {
       /* else we start a new line and print the indent */
@@ -121,7 +121,7 @@ _hestPrintStr(FILE *f, unsigned int indent, unsigned int already,
         fprintf(f, " ");
       }
       fprintf(f, "%s", ws); 
-      pos = indent + strlen(ws);
+      pos = indent + AIR_UINT(strlen(ws));
     }
     /* if the last character of the word was a newline, then indent */
     if ('\n' == ws[strlen(ws)-1]) {
@@ -282,7 +282,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
   }
   if (parm && parm->respFileEnable) {
     sprintf(buff, "%cfile ...", parm->respFileFlag);
-    len = AIR_CAST(unsigned int, strlen(buff));
+    len = AIR_UINT(strlen(buff));
     for (j=len; j<maxlen; j++) {
       fprintf(f, " ");
     }
@@ -294,7 +294,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     strcpy(buff, "");
     _hestSetBuff(buff, opt + i, parm, AIR_TRUE, AIR_FALSE);
     airOneLinify(buff);
-    len = AIR_CAST(unsigned int, strlen(buff));
+    len = AIR_UINT(strlen(buff));
     for (j=len; j<maxlen; j++) {
       fprintf(f, " ");
     }

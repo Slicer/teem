@@ -393,10 +393,10 @@ _hestExtract(int *argcP, char **argv, unsigned int base, unsigned int pnum) {
 
   len = 0;
   for (pidx=0; pidx<pnum; pidx++) {
-    if (base+pidx==AIR_CAST(unsigned int, *argcP)) {
+    if (base+pidx==AIR_UINT(*argcP)) {
       return NULL;
     }
-    len += AIR_CAST(unsigned int, strlen(argv[base+pidx]));
+    len += AIR_UINT(strlen(argv[base+pidx]));
     if (strstr(argv[base+pidx], " ")) {
       len += 2;
     }
@@ -422,7 +422,7 @@ _hestExtract(int *argcP, char **argv, unsigned int base, unsigned int pnum) {
     if (pidx < pnum-1)
       strcat(ret, " ");
   }
-  for (pidx=base+pnum; pidx<=AIR_CAST(unsigned int, *argcP); pidx++) {
+  for (pidx=base+pnum; pidx<=AIR_UINT(*argcP); pidx++) {
     argv[pidx-pnum] = argv[pidx];
   }
   *argcP -= pnum;
