@@ -210,7 +210,8 @@ hestInfo(FILE *file, const char *argv0, const char *info, hestParm *_parm) {
   if (info) {
     if (argv0) {
       fprintf(file, "\n%s: ", argv0);
-      _hestPrintStr(file, 0, strlen(argv0) + 2, parm->columns, info, AIR_FALSE);
+      _hestPrintStr(file, 0, AIR_UINT(strlen(argv0)) + 2,
+                    parm->columns, info, AIR_FALSE);
     } else {
       fprintf(file, "ERROR: hestInfo got NULL argv0\n");
     }
@@ -249,7 +250,8 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0, hestParm *_parm) {
       strcat(buff, "]");
   }
 
-  _hestPrintStr(f, strlen("Usage: "), 0, parm->columns, buff, AIR_TRUE);
+  _hestPrintStr(f, AIR_UINT(strlen("Usage: ")), 0,
+                parm->columns, buff, AIR_TRUE);
 
   parm = !_parm ? hestParmFree(parm) : NULL;
   return;
