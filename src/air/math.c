@@ -298,7 +298,7 @@ airSgn(double v) {
 /*
 ******** airCbrt
 **
-** cbrt() isn't ANSI, so any hacks to create a stand-in for cbrt()
+** cbrt() isn't in C89, so any hacks to create a stand-in for cbrt()
 ** are done here.
 */
 double
