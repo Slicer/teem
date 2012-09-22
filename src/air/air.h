@@ -784,13 +784,18 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 ** first version of AIR_EXISTS.
 **
 ** There is a performance consequence of using airExists(x), in that it 
-** is a function call, although (HEY) we should facilitat inline'ing it
+** is a function call, although (HEY) we should facilitate inline'ing it
 ** for compilers that know how to.
+**
+** gcc 4.5.3 -std=c89, at least on cygwin, has problems with
+** the type of "!((x) - (x))" when used with bit-wise xor ^, saying
+** "invalid operands to binary ^ (have ‘int’ and ‘int’)" but these
+** problems oddly went away with the explicit cast to int.
 */
 #if defined(_WIN32) || defined(__ECC) /* NrrdIO-hack-002 */
 #define AIR_EXISTS(x) (airExists(x))
 #else
-#define AIR_EXISTS(x) (!((x) - (x)))
+#define AIR_EXISTS(x) (AIR_CAST(int, !((x) - (x))))
 #endif
 
 /* ---- BEGIN non-NrrdIO */
