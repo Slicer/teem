@@ -136,6 +136,7 @@ unrrdu_histoMain(int argc, const char **argv, const char *me,
     hist = AIR_CAST(double *, nhist->data);
     total = AIR_CAST(double, nrrdElementNumber(nin));
     if (minPerc) {
+      minval = AIR_NAN;
       sum = 0;
       for (hi=0; hi<hbins; hi++) {
         sum += hist[hi];
@@ -145,7 +146,7 @@ unrrdu_histoMain(int argc, const char **argv, const char *me,
           break;
         }
       }
-      if (hi == hbins) {
+      if (hi == hbins || !AIR_EXISTS(minval)) {
         biffAddf(NRRD, "%s: failed to find lower %g-percentile value",
                  me, min);
         airMopError(mop);
@@ -156,6 +157,7 @@ unrrdu_histoMain(int argc, const char **argv, const char *me,
       minval = min;
     }
     if (maxPerc) {
+      maxval = AIR_NAN;
       sum = 0;
       for (hi=hbins; hi; hi--) {
         sum += hist[hi-1];
@@ -165,7 +167,7 @@ unrrdu_histoMain(int argc, const char **argv, const char *me,
           break;
         }
       }
-      if (!hi) {
+      if (!hi || !AIR_EXISTS(maxval)) {
         biffAddf(NRRD, "%s: failed to find upper %g-percentile value", me,
                  max);
         return 1;
