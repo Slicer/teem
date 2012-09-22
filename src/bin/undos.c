@@ -101,7 +101,7 @@ undosConvert(const char *me, char *name, int reverse, int mac,
       airMopError(mop); return;
     }
     data[ci] = car;
-    numBad += !(isprint(data[ci]) || isspace(data[ci]));
+    numBad += !(isprint(car) || isspace(car));
     car = getc(fin);
   } while (EOF != car && BAD_PERC > 100.0*numBad/dataArr->len);
   if (EOF != car) {

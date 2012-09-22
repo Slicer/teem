@@ -112,7 +112,6 @@ nrrdHestKernelSpec = &_nrrdHestKernelSpec;
 
 int
 _nrrdLooksLikeANumber(char *str) {
-  char c;
   /* 0: -+                (no restriction, but that's a little daft)
      1: 0123456789        n > 0
      2: .                 0 <= n <= 1
@@ -123,8 +122,9 @@ _nrrdLooksLikeANumber(char *str) {
   
   count[0] = count[1] = count[2] = count[3] = count[4] = 0;
   while (*str) {
-    c = tolower(*str);
-    switch (c) {
+    int lwc, cc = *str;
+    lwc = tolower(cc);
+    switch (lwc) {
     case '-': case '+':
       count[0]++;
       break;

@@ -44,15 +44,11 @@ dyeSpaceToStr[][AIR_STRLEN_SMALL] = {
 int
 dyeStrToSpace(char *_str) {
   int spc;
-  char *c, *str;
+  char *str;
 
   spc = dyeSpaceUnknown;
   if ( (str = airStrdup(_str)) ) {
-    c = str;
-    while (*c) {
-      *c = toupper(*c);
-      c++;
-    }
+    airToUpper(str);
     for (spc=0; spc<dyeSpaceLast; spc++) {
       if (!strcmp(str, dyeSpaceToStr[spc])) {
         break;

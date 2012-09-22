@@ -697,13 +697,14 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 #define AIR_UNUSED(x) (void)(x)
 
 /*
-******** AIR_CAST, AIR_UINT
+******** AIR_CAST, AIR_UINT, AIR_INT
 **
 ** just casts, but with the added ability to grep for them more easily,
 ** since casts should probably always be revisited and reconsidered.
 */
 #define AIR_CAST(t, v) ((t)(v))
 #define AIR_UINT(x) AIR_CAST(unsigned int, x)
+#define AIR_INT(x) AIR_CAST(int, x)
 
 /*
 ******** AIR_VOIDP

@@ -429,13 +429,14 @@ unrrduParseEncoding(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
       airMopError(mop); return 1;
     }
     while (*opt) {
-      if (isdigit(*opt)) {
+      int opti = AIR_INT(*opt);
+      if (isdigit(opti)) {
         enc[1] = *opt - '0';
-      } else if ('d' == tolower(*opt)) {
+      } else if ('d' == tolower(opti)) {
         enc[2] = nrrdZlibStrategyDefault;
-      } else if ('h' == tolower(*opt)) {
+      } else if ('h' == tolower(opti)) {
         enc[2] = nrrdZlibStrategyHuffman;
-      } else if ('f' == tolower(*opt)) {
+      } else if ('f' == tolower(opti)) {
         enc[2] = nrrdZlibStrategyFiltered;
       } else {
         sprintf(err, "%s: parameter char \"%c\" not a digit or 'd','h','f'",
