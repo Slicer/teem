@@ -24,7 +24,7 @@
 /* when using an MS compiler, suppress all warnings about
  * truncation (4304) or conversion (4244) from double to float
  */
-#defined(_MSC_VER)
+#ifdef _MSC_VER
 #  pragma warning(push)
 #  pragma warning(disable : 4305)
 #  pragma warning(disable : 4244)
