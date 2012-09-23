@@ -777,32 +777,40 @@ tenGlyphBqdEvalUv(double eval[3], const double uv[2]) {
 */
 unsigned int
 tenGlyphBqdZoneUv(const double uv[2]) {
-  double u, v;
+  /* the use of "volatile" here, as well as additional variables for
+     expressions involving u and v, is based on browsing this summary of the
+     subtleties of IEEE 754: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=323
+     In this function, "if (u + v > 0.5)" returned one thing for cygwin, and
+     something else for other platforms.  Adding volatile and more variables
+     for expressions brings cygwin back into line with the other platforms */
+  volatile double u, v, upv, tupv;
   unsigned int zone;
   
   u = uv[0];
   v = uv[1];
+  upv = u + v;
+  tupv = 2*u + v;
   if (u > 0.5) {       /* 0 1 2 3 4 */
-    if (u + v > 1.5) { /* 0 1 */
+    if (upv > 1.5) { /* 0 1 */
       if (u < v) {
         zone = 0;
       } else {
         zone = 1;
       }
     } else {           /* 2 3 4 */
-      if (2*u + v > 2) {
+      if (tupv > 2) {
         zone = 2;
-      } else if (u + v > 1) {
+      } else if (upv > 1) {
         zone = 3;
       } else {
         zone = 4;
       }
     }
   } else {             /* 5 6 7 8 9 */
-    if (u + v > 0.5) { /* 5 6 7 */
-      if (u + v > 1) {
+    if (upv > 0.5) { /* 5 6 7 */
+      if (upv > 1) {
         zone = 5;
-      } else if (2*u + v > 1) {
+      } else if (tupv > 1) {
         zone = 6;
       } else {
         zone = 7;
