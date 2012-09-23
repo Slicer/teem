@@ -76,26 +76,27 @@ extern air_export const airDouble airDoubleMin;
 #define AIR_DBL_MAX (airDoubleMax.d)
 */
 
-#define FP_SET_F(flt, s, e, m) \
-  flt.c.sign = (s); \
-  flt.c.expo = (e); \
-  flt.c.mant = (m)
+/* the bit-masking done here quiets gcc -Wconversion warnings */
+#define FP_SET_F(flt, s, e, m)                  \
+  flt.c.sign = 1u & (s);                        \
+  flt.c.expo = ((1u<8)-1) & (e);                \
+  flt.c.mant = ((1u<23)-1) & (m)
 
-#define FP_GET_F(s, e, m, flt) \
-  (s) = flt.c.sign; \
-  (e) = flt.c.expo; \
+#define FP_GET_F(s, e, m, flt)                  \
+  (s) = flt.c.sign;                             \
+  (e) = flt.c.expo;                             \
   (m) = flt.c.mant
 
-#define FP_SET_D(dbl, s, e, m0, m1) \
-  dbl.c.sign = (s); \
-  dbl.c.expo = (e); \
-  dbl.c.mant0 = (m0); \
+#define FP_SET_D(dbl, s, e, m0, m1)             \
+  dbl.c.sign = 1u & (s);                        \
+  dbl.c.expo = ((1u<<11)-1) & (e);              \
+  dbl.c.mant0 = ((1u<<20)-1) & (m0);            \
   dbl.c.mant1 = (m1)
 
-#define FP_GET_D(s, e, m0, m1, dbl) \
-  (s) = dbl.c.sign; \
-  (e) = dbl.c.expo; \
-  (m0) = dbl.c.mant0; \
+#define FP_GET_D(s, e, m0, m1, dbl)             \
+  (s) = dbl.c.sign;                             \
+  (e) = dbl.c.expo;                             \
+  (m0) = dbl.c.mant0;                           \
   (m1) = dbl.c.mant1
 
 
@@ -348,7 +349,8 @@ int
 airFPClass_d(double val) {
   _airDouble f;
   unsigned int sign, expo, mant0, mant1;
-  int hibit, indexv, ret=0;
+  int indexv, ret=0;
+  unsigned char hibit;
 
   f.v = val;
   sign = f.c.sign; 
@@ -358,7 +360,7 @@ airFPClass_d(double val) {
                       of airFP_QNAN */
   mant0 = f.c.mant0;
   mant1 = f.c.mant1;
-  hibit = mant0 >> 19;
+  hibit = AIR_CAST(unsigned char, mant0 >> 19); /* mant0 20 bits wide: ok */
 
   indexv = ((!!sign) << 2) | ((!!expo) << 1) | (!!mant0 || !!mant1);
   switch(indexv) {
