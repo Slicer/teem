@@ -601,7 +601,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum,
   }
 
   mop = airMopNew();
-  ninperm = (Nrrd **)calloc(ninNum, sizeof(Nrrd *));
+  ninperm = AIR_CALLOC(ninNum, Nrrd *);
   if (!(ninperm)) {
     biffAddf(NRRD, "%s: couldn't calloc() temp nrrd array", me);
     airMopError(mop); return 1;
