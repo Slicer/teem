@@ -24,13 +24,7 @@
 #include "tijk.h"
 #include "privateTijk.h"
 
-/* when using an MS compiler and setting up the float tables,
- * suppress warnings about "truncation from 'double' to 'const float'"
- */
-#if TIJK_TABLE_TYPE == 1 && defined(_MSC_VER)
-#  pragma warning(push)
-#  pragma warning(disable : 4305)
-#endif
+#include "msvcQuietPush.h"
 
 /* Functions for symmetric tensor approximation */
 
@@ -548,6 +542,4 @@ _TIJK_APPROX_RANKK(double, d, 3)
 _TIJK_APPROX_RANKK(float, f, 3)
 
 
-#if TIJK_TABLE_TYPE == 1 && defined(_MSC_VER)
-#  pragma warning(pop)
-#endif
+#include "msvcQuietPop.h"

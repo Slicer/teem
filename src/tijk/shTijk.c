@@ -24,13 +24,7 @@
 
 #include "tijk.h"
 
-/* when using an MS compiler and setting up the float tables,
- * suppress warnings about "truncation from 'double' to 'const float'"
- */
-#if TIJK_TABLE_TYPE == 1 && defined(_MSC_VER)
-#  pragma warning(push)
-#  pragma warning(disable : 4305)
-#endif
+#include "msvcQuietPush.h"
 
 #define TIJK_TABLE_TYPE 0 /* create double version */
 #include "shtables.h"
@@ -337,6 +331,4 @@ TIJK_ESH_MAKE_KERNEL_DELTA(double, d)
 TIJK_ESH_MAKE_KERNEL_DELTA(float, f)
 
 
-#if TIJK_TABLE_TYPE == 1 && defined(_MSC_VER)
-#  pragma warning(pop)
-#endif
+#include "msvcQuietPop.h"

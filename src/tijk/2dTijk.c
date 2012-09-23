@@ -25,13 +25,7 @@
 #include "tijk.h"
 #include "privateTijk.h"
 
-/* when using an MS compiler and setting up the float tables,
- * suppress warnings about "conversion from 'double' to 'const float'"
- */
-#if TIJK_TABLE_TYPE == 1 && defined(_MSC_VER)
-#  pragma warning(push)
-#  pragma warning(disable : 4305)
-#endif
+#include "msvcQuietPush.h"
 
 /* 2nd order 2D unsymmetric */
 
@@ -904,7 +898,4 @@ _tijk_4o2d_sym_hess_f (float *res, const float *A, const float *v) {
 
 TIJK_TYPE_SYM(4o2d_sym, 4, 2, 5)
 
-
-#if TIJK_TABLE_TYPE == 1 && defined(_MSC_VER)
-#  pragma warning(pop)
-#endif
+#include "msvcQuietPop.h"
