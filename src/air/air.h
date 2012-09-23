@@ -709,8 +709,9 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 /*
 ******** AIR_VOIDP
 **
-** apparent explicit casting to "void *" is needed to use %p in var-args
-** printf, so this is a slightly more convenient form for that
+** explicit casting to "void *" from non-void* pointers is strictly speaking
+** needed for the %p format specifier in printf-like functions; this is a
+** slightly more convenient form
 */
 #define AIR_VOIDP(x) AIR_CAST(void *, x)
 
