@@ -58,7 +58,7 @@ unrrdu_diceMain(int argc, const char **argv, const char *me,
              "with shortest possible filenames.");
   /* the fact that we're using unsigned int instead of size_t is 
      its own kind of sanity check */
-  hestOptAdd(&opt, "l,limit", "max#", airTypeUInt, 1, 1, sanity, "9999",
+  hestOptAdd(&opt, "l,limit", "max#", airTypeUInt, 1, 1, &sanity, "9999",
              "a sanity check on how many slice files should be saved "
              "out, to prevent accidentally dicing the wrong axis "
              "or the wrong array. Can raise this value if needed.");
@@ -77,6 +77,14 @@ unrrdu_diceMain(int argc, const char **argv, const char *me,
   if (!( axis < nin->dim )) {
     fprintf(stderr, "%s: given axis (%u) outside range [0,%u]\n",
             me, axis, nin->dim-1);
+    airMopError(mop);
+    return 1;
+  }
+  if (nin->axis[axis].size > sanity) {
+    char stmp[AIR_STRLEN_SMALL];
+    fprintf(stderr, "%s: axis %u size %s > sanity limit %u; "
+            "increase via \"-l\"\n", me,
+            axis, airSprintSize_t(stmp, nin->axis[axis].size), sanity);
     airMopError(mop);
     return 1;
   }
@@ -100,26 +108,9 @@ unrrdu_diceMain(int argc, const char **argv, const char *me,
       dignum++;
       tmps /= 10;
     } while (tmps);
-    sprintf(fffname, "%%s%%%uu.nrrd", dignum);
-    fprintf(stderr, "!%s: dignum = %u -> %s\n", me, dignum, fffname);
-    if (top > 9999999) {
-      sprintf(fffname, "%%s%%08u.nrrd");
-    } else if (top > 999999) {
-      sprintf(fffname, "%%s%%07u.nrrd");
-    } else if (top > 99999) {
-      sprintf(fffname, "%%s%%06u.nrrd");
-    } else if (top > 9999) {
-      sprintf(fffname, "%%s%%05u.nrrd");
-    } else if (top > 999) {
-      sprintf(fffname, "%%s%%04u.nrrd");
-    } else if (top > 99) {
-      sprintf(fffname, "%%s%%03u.nrrd");
-    } else if (top > 9) {
-      sprintf(fffname, "%%s%%02u.nrrd");
-    } else {
-      sprintf(fffname, "%%s%%01u.nrrd");
-    }
-    fprintf(stderr, "!%s: %s\n", me, fffname);
+    /* sprintf the number of digits into the string that will be used
+       to sprintf the slice number into the filename */
+    sprintf(fffname, "%%s%%0%uu.nrrd", dignum);
   }
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
@@ -134,7 +125,8 @@ unrrdu_diceMain(int argc, const char **argv, const char *me,
     if (0 == pos && !airStrlen(ftmpl)) {
       /* See if these slices would be better saved as PNG or PNM images.
          Altering the file name will tell nrrdSave() to use a different
-         file format. */
+         file format.  We wait till now to check this so that we can
+         work from the actual slice */
       if (nrrdFormatPNG->fitsInto(nout, nrrdEncodingRaw, AIR_FALSE)) {
         strcpy(fffname + strlen(fffname) - 4, "png");
       } else {
