@@ -262,7 +262,7 @@ which the code diverges from this standard are:
  - various strings created at compile time, often with the benefit of the
    "foo" "bar" --> "foobar" string concatenation, exceed the length 
    509 guaranteed to be supported by the standard
- - use of snprintf
+ - using snprintf() and fileno(), which are usually part of stdio.h 
 The relevant gcc invocation might include something like:
 "-W -Wall -Wextra -C89 -pedantic -Wno-long-long -Wno-overlength-string"
 Note that automatic conversion from a non-void* to a void*, in the specific
