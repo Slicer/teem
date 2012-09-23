@@ -262,6 +262,7 @@ which the code diverges from this standard are:
  - various strings created at compile time, often with the benefit of the
    "foo" "bar" --> "foobar" string concatenation, exceed the length 
    509 guaranteed to be supported by the standard
+ - use of snprintf
 The relevant gcc invocation might include something like:
 "-W -Wall -Wextra -C89 -pedantic -Wno-long-long -Wno-overlength-string"
 Note that automatic conversion from a non-void* to a void*, in the specific
@@ -290,10 +291,10 @@ various paths that are specific to his laptop)
 followed by "svn commit" if needed.
 
 * Make casts grep-able.  This usually means using AIR_CAST, but can also mean
-using macros AIR_VOIDP and AIR_UINT, and the ell macros ending in "_TT".  The
-only exception is casting things to airMopper to pass to airMopAdd(). (why:
-casts are inherently tricky, and sources of bugs, so their use must be
-grep-able)
+using macros AIR_VOIDP, AIR_UINT, AIR_INT, and the ell macros ending in "_TT".
+The only exception is casting things to airMopper to pass to airMopAdd().
+(why: casts are inherently tricky, and sources of bugs, so their use should 
+be grep-able)
 
 * Use AIR_CALLOC (preferably) or AIR_MALLOC to allocate things (why: both
 explicitly indicate the number of elements, and the size of each, and both
