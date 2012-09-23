@@ -484,7 +484,7 @@ distanceL2Sqrd1D(double *dd, const double *ff,
       ss = intx(AIR_CAST(double, qq), ff[qq], vv[kk], ff[vv[kk]], spc);
     }
     kk++;
-    vv[kk] = AIR_CAST(double, qq);
+    vv[kk] = AIR_CAST(unsigned int, qq);
     zz[kk] = ss;
     zz[kk+1] = +FLT_MAX;
   }
