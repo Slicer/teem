@@ -70,7 +70,7 @@ main(int argc, const char **argv) {
   airMopAdd(mop, nref, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdLoad(nref, refname, NULL)
       || nrrdCompare(nref, nabc, AIR_FALSE /* onlyData */,
-                     0.0 /* epsilon */, &differ, explain)) {
+                     1e-15 /* epsilon */, &differ, explain)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "trouble loading or comparing with ref:\n%s", err);
     airMopError(mop); return 1;
@@ -78,6 +78,14 @@ main(int argc, const char **argv) {
 
   if (differ) {
     printf("generated and reference arrays differ:\n%s\n", explain);
+    if (2 == argc) {
+      if (nrrdSave(argv[1], nabc, NULL)) {
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+        fprintf(stderr, "oops, can't save generated array:\n%s", err);
+      } else {
+        printf("%s: saved generated (and different) array as %s\n", argv[1]);
+      }
+    }
     ret = 1;
   } else {
     printf("All ok.\n");
