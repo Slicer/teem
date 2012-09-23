@@ -26,14 +26,6 @@
  * out to give a 3-4fold speedup when computing with float.
  */
 
-/* when using an MS compiler and setting up the float tables,
- * suppress warnings about "truncation from 'double' to 'const float'"
- */
-#if TIJK_TABLE_TYPE == 1 && defined(_MSC_VER)
-#  pragma warning(push)
-#  pragma warning(disable : 4305)
-#endif
-
 /* conversion matrices computed in Mathematica, stored in double precision */
 #if TIJK_TABLE_TYPE == 0
 static const double _tijk_sym2esh_o2_d[6*6] ={
@@ -271,7 +263,3 @@ static const float _tijk_esh2sym_o8_f[45*45] ={
 0, 0, 0, 0, -0.1365685538240098695, 0, 0, 0, 0, 0, 0, -0.3345232717786446042, 0, -0.0000000000000000069, 0, 0, 0, 0, 0, 0, 0, 0, -0.5826213625187316447, 0, 0, 0, 0.0000000000000000104, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.8723299671902401409, 0, -0.0000000000000001110, 0, 0.0000000000000001110, 0, -0.0000000000000000208, 0, 
 0.2820947917738780841, 0.0000000000000000746, 0, 0.6307831305050397575, 0, 0, -0.0000000000000000312, 0, 0.0000000000000000555, 0, 0.8462843753216341414, 0, 0, 0, 0, 0.0000000000000000165, 0, 0.0000000000000000555, 0, -0.0000000000000000656, 0, 1.0171072362820543500, 0, 0, 0, 0, 0, 0, -0.0000000000000000985, 0, -0.0000000000000002266, 0, -0.0000000000000000735, 0, 0.0000000000000003443, 0, 1.1631066229203190776, 0, 0, 0, 0, 0, 0, 0, 0
 };
-
-#if TIJK_TABLE_TYPE == 1 && defined(_MSC_VER)
-#  pragma warning(pop)
-#endif
