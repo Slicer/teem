@@ -88,6 +88,7 @@ unrrdu_diceMain(int argc, const char **argv, const char *me,
     airMopError(mop);
     return 1;
   }
+  size = AIR_UINT(nin->axis[axis].size);
   
   /* HEY: this should use nrrdSaveMulti(), and if there's additional
      smarts here, they should be moved into nrrdSaveMulti() */
@@ -103,7 +104,7 @@ unrrdu_diceMain(int argc, const char **argv, const char *me,
     sprintf(fffname, "%%s%s", ftmpl);
   } else {
     unsigned int dignum=0, tmps;
-    tmps = top = start + AIR_UINT(nin->axis[axis].size-1);
+    tmps = top = start + size - 1;
     do {
       dignum++;
       tmps /= 10;
@@ -115,7 +116,7 @@ unrrdu_diceMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   
-  for (pos=0; pos<AIR_UINT(nin->axis[axis].size); pos++) {
+  for (pos=0; pos<size; pos++) {
     if (nrrdSlice(nout, nin, axis, pos)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error slicing nrrd:%s\n", me, err);
