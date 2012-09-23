@@ -26,7 +26,7 @@
 
 int hestVerbosity = 0;
 int hestRespFileEnable = AIR_FALSE;
-int hestColumns = 79;
+unsigned int hestColumns = 79;
 int hestElideSingleEnumType = AIR_FALSE;
 int hestElideSingleOtherType = AIR_FALSE;
 int hestElideSingleOtherDefault = AIR_FALSE;

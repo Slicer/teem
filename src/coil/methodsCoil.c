@@ -133,7 +133,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
     airSprintSize_t(stmp, sz);
     fprintf(stderr, "%s: wanted %d threads but volume only has %s slices, "
             "using %s threads instead\n", me, numThreads, stmp, stmp);
-    numThreads = sz;
+    numThreads = AIR_UINT(sz);
   }
   ELL_3V_SET(cctx->size, sx, sy, sz);
   xsp = nin->axis[0 + baseDim].spacing;

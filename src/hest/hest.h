@@ -155,11 +155,11 @@ typedef struct {
                            "show me usage info"). */
     greedySingleString, /* when parsing a single string, whether or not
                            to be greedy (as per airParseStrS) */
-    cleverPluralizeOtherY, /* when printing the type for airTypeOther, when
+    cleverPluralizeOtherY; /* when printing the type for airTypeOther, when
                               the min number of items is > 1, and the type
                               string ends with "y", then pluralize with 
                               "ies" instead of "ys" */
-    columns;            /* number of printable columns in output */
+  unsigned int columns; /* number of printable columns in output */
   char respFileFlag,    /* the character at the beginning of an argument
                            indicating that this is a response file name */
     respFileComment,    /* comment character for the repose files */
@@ -187,7 +187,7 @@ HEST_EXPORT int hestElideMultipleEmptyStringDefault;
 HEST_EXPORT int hestNoArgsIsNoProblem;
 HEST_EXPORT int hestGreedySingleString;
 HEST_EXPORT int hestCleverPluralizeOtherY;
-HEST_EXPORT int hestColumns;
+HEST_EXPORT unsigned int hestColumns;
 HEST_EXPORT char hestRespFileFlag;
 HEST_EXPORT char hestRespFileComment;
 HEST_EXPORT char hestVarParamStopFlag;

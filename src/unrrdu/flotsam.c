@@ -55,47 +55,49 @@ unrrduCmdList[] = {
 */
 int
 unrrduUsage(const char *me, hestParm *hparm) {
-  int i, maxlen, len, c;
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
+  unsigned int cmdi, chi, len, maxlen;
 
   maxlen = 0;
-  for (i=0; unrrduCmdList[i]; i++) {
-    maxlen = AIR_MAX(maxlen, (int)strlen(unrrduCmdList[i]->name));
+  for (cmdi=0; unrrduCmdList[cmdi]; cmdi++) {
+    maxlen = AIR_MAX(maxlen, AIR_UINT(strlen(unrrduCmdList[cmdi]->name)));
   }
 
   sprintf(buff, "--- unu: Utah Nrrd Utilities command-line interface ---");
-  sprintf(fmt, "%%%ds\n",
-          (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
+  len = AIR_UINT(strlen(buff));
+  sprintf(fmt, "%%%us\n", (hparm->columns > len 
+                           ? hparm->columns-len 
+                           : 0)/2 + len - 1);
   fprintf(stdout, fmt, buff);
-  for (i=0; unrrduCmdList[i]; i++) {
+  for (cmdi=0; unrrduCmdList[cmdi]; cmdi++) {
     int nofft;
-    nofft = !strcmp(unrrduCmdList[i]->name, "fft") && !nrrdFFTWEnabled;
-    len = strlen(unrrduCmdList[i]->name);
+    nofft = !strcmp(unrrduCmdList[cmdi]->name, "fft") && !nrrdFFTWEnabled;
+    len = AIR_UINT(strlen(unrrduCmdList[cmdi]->name));
     len += nofft;
     strcpy(buff, "");
-    for (c=len; c<maxlen; c++)
+    for (chi=len; chi<maxlen; chi++)
       strcat(buff, " ");
     if (nofft) {
       strcat(buff, "(");
     }
     strcat(buff, me);
     strcat(buff, " ");
-    strcat(buff, unrrduCmdList[i]->name);
+    strcat(buff, unrrduCmdList[cmdi]->name);
     strcat(buff, " ... ");
-    len = strlen(buff);
+    len = AIR_UINT(strlen(buff));
     fprintf(stdout, "%s", buff);
     if (nofft) {
       char *infop;
       /* luckily, still fits within 80 columns */
       fprintf(stdout, "Not Enabled: ");
-      infop = AIR_CALLOC(strlen(unrrduCmdList[i]->info) + 2, char);
-      sprintf(infop, "%s)", unrrduCmdList[i]->info);
+      infop = AIR_CALLOC(strlen(unrrduCmdList[cmdi]->info) + 2, char);
+      sprintf(infop, "%s)", unrrduCmdList[cmdi]->info);
       _hestPrintStr(stdout, len, len, hparm->columns,
                     infop, AIR_FALSE);
       free(infop);
     } else {
       _hestPrintStr(stdout, len, len, hparm->columns,
-                    unrrduCmdList[i]->info, AIR_FALSE);
+                    unrrduCmdList[cmdi]->info, AIR_FALSE);
     }
   }
   return 0;
