@@ -40,14 +40,13 @@ unrrdu_diceMain(int argc, const char **argv, const char *me,
     fffname[AIR_STRLEN_MED],  /* format for filename */
     *ftmpl;                   /* format template */
   Nrrd *nin, *nout;
-  int top, pret, start, fit;
-  unsigned int axis;
-  size_t pos;
+  int pret, fit;
+  unsigned int axis, start, pos, top, size, sanity;
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "axis to slice along");
   OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, "s,start", "start", airTypeInt, 1, 1, &start, "0",
+  hestOptAdd(&opt, "s,start", "start", airTypeUInt, 1, 1, &start, "0",
              "integer value to start numbering with");
   hestOptAdd(&opt, "ff,format", "form", airTypeString, 1, 1, &ftmpl, "",
              "a printf-style format to use for generating all "
@@ -57,6 +56,12 @@ unrrdu_diceMain(int argc, const char **argv, const char *me,
              "001.ppm, etc. By default (not using this option), slices "
              "are saved in NRRD format (or PNM or PNG where possible) "
              "with shortest possible filenames.");
+  /* the fact that we're using unsigned int instead of size_t is 
+     its own kind of sanity check */
+  hestOptAdd(&opt, "l,limit", "max#", airTypeUInt, 1, 1, sanity, "9999",
+             "a sanity check on how many slice files should be saved "
+             "out, to prevent accidentally dicing the wrong axis "
+             "or the wrong array. Can raise this value if needed.");
   hestOptAdd(&opt, "o,output", "prefix", airTypeString, 1, 1, &base, NULL,
              "output filename prefix (excluding info set via \"-ff\"), "
              "basically to set path of output files (so be sure to end "
@@ -69,11 +74,6 @@ unrrdu_diceMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  if (start < 0) {
-    fprintf(stderr, "%s: given start index (%d) less than zero\n", me, start);
-    airMopError(mop);
-    return 1;
-  }
   if (!( axis < nin->dim )) {
     fprintf(stderr, "%s: given axis (%u) outside range [0,%u]\n",
             me, axis, nin->dim-1);
@@ -94,29 +94,37 @@ unrrdu_diceMain(int argc, const char **argv, const char *me,
     }
     sprintf(fffname, "%%s%s", ftmpl);
   } else {
-    top = start + nin->axis[axis].size-1;
+    unsigned int dignum=0, tmps;
+    tmps = top = start + AIR_UINT(nin->axis[axis].size-1);
+    do {
+      dignum++;
+      tmps /= 10;
+    } while (tmps);
+    sprintf(fffname, "%%s%%%uu.nrrd", dignum);
+    fprintf(stderr, "!%s: dignum = %u -> %s\n", me, dignum, fffname);
     if (top > 9999999) {
-      sprintf(fffname, "%%s%%08d.nrrd");
+      sprintf(fffname, "%%s%%08u.nrrd");
     } else if (top > 999999) {
-      sprintf(fffname, "%%s%%07d.nrrd");
+      sprintf(fffname, "%%s%%07u.nrrd");
     } else if (top > 99999) {
-      sprintf(fffname, "%%s%%06d.nrrd");
+      sprintf(fffname, "%%s%%06u.nrrd");
     } else if (top > 9999) {
-      sprintf(fffname, "%%s%%05d.nrrd");
+      sprintf(fffname, "%%s%%05u.nrrd");
     } else if (top > 999) {
-      sprintf(fffname, "%%s%%04d.nrrd");
+      sprintf(fffname, "%%s%%04u.nrrd");
     } else if (top > 99) {
-      sprintf(fffname, "%%s%%03d.nrrd");
+      sprintf(fffname, "%%s%%03u.nrrd");
     } else if (top > 9) {
-      sprintf(fffname, "%%s%%02d.nrrd");
+      sprintf(fffname, "%%s%%02u.nrrd");
     } else {
-      sprintf(fffname, "%%s%%01d.nrrd");
+      sprintf(fffname, "%%s%%01u.nrrd");
     }
+    fprintf(stderr, "!%s: %s\n", me, fffname);
   }
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-
-  for (pos=0; pos<nin->axis[axis].size; pos++) {
+  
+  for (pos=0; pos<AIR_UINT(nin->axis[axis].size); pos++) {
     if (nrrdSlice(nout, nin, axis, pos)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error slicing nrrd:%s\n", me, err);
