@@ -70,7 +70,7 @@ main(int argc, const char **argv) {
   airMopAdd(mop, nref, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdLoad(nref, refname, NULL)
       || nrrdCompare(nref, nabc, AIR_FALSE /* onlyData */,
-                     1e-15 /* epsilon */, &differ, explain)) {
+                     5e-15 /* epsilon */, &differ, explain)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "trouble loading or comparing with ref:\n%s", err);
     airMopError(mop); return 1;
