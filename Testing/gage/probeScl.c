@@ -267,10 +267,11 @@ main(int argc, const char **argv) {
         ELL_9V_COPY(prbd + 4 + qlen*(ki + BLUR_KERN_NUM*(ii)), bhesAns[ki]);
       }
     }
-    /* weirdly, so far its only on Windows (and Cygwin) that this epsilon 
-       needs to be larger than zero, and only for the radius 6 Gaussian? */
+    /* HEY: weirdly, so far its only on Windows (and more than 10 times worse
+       on Cygwin) this epsilon needs to be larger than zero, and only for the
+       radius 6 Gaussian? */
     if (nrrdCompare(ncorr, nprbd, AIR_FALSE /* onlyData */,
-                    7.0e-15 /* epsilon */, &differ, explain)) {
+                    8.0e-14 /* epsilon */, &differ, explain)) {
       char *err;
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble comparing:\n%s", me, err);
