@@ -83,7 +83,8 @@ main(int argc, const char **argv) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
         fprintf(stderr, "oops, can't save generated array:\n%s", err);
       } else {
-        printf("%s: saved generated (and different) array as %s\n", argv[1]);
+        printf("%s: saved generated (and different) array as %s\n",
+               argv[0], argv[1]);
       }
     }
     ret = 1;
