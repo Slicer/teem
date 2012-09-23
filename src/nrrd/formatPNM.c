@@ -235,7 +235,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     /* else, we couldn't parse ANY numbers on this line, which is okay
        as long as the line contains nothing but white space */
     for (i=0; (i<=strlen(nio->line)-1 
-	       && isspace(AIR_INT(nio->line[i]))); i++)
+               && isspace(AIR_INT(nio->line[i]))); i++)
       ;
     if (i != strlen(nio->line)) {
       biffAddf(NRRD, "%s: \"%s\" has no integers but isn't just whitespace", 

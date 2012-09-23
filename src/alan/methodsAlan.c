@@ -198,10 +198,10 @@ alanTensorSet(alanContext *actx, Nrrd *nten, int oversample) {
     biffMovef(ALAN, NRRD, "%s: trouble converting tensors to alan_t", me);
     return 1;
   }
-  actx->size[0] = oversample*nten->axis[1].size;
-  actx->size[1] = oversample*nten->axis[2].size;
+  actx->size[0] = AIR_UINT(oversample*nten->axis[1].size);
+  actx->size[1] = AIR_UINT(oversample*nten->axis[2].size);
   if (3 == actx->dim) {
-    actx->size[2] = oversample*nten->axis[3].size;
+    actx->size[2] = AIR_UINT(oversample*nten->axis[3].size);
   } else {
     actx->size[2] = 1;
   }

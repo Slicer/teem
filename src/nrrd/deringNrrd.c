@@ -555,10 +555,10 @@ deringPtxfDo(NrrdDeringContext *drc, deringBag *dbg) {
       if (drc->linearInterp) {
         unsigned int bidx, bidxPlus;
         deringXYtoRT(drc, dbg, xi, yi, &rrIdx, &thIdx, &rrFrc, &thFrc);
-        bidx = rrIdx + dbg->radNum*thIdx;
-        bidxPlus = (thIdx < drc->thetaNum-1
-                    ? bidx + dbg->radNum
-                    : rrIdx);
+        bidx = AIR_UINT(rrIdx + dbg->radNum*thIdx);
+        bidxPlus = AIR_UINT(thIdx < drc->thetaNum-1
+                            ? bidx + dbg->radNum
+                            : rrIdx);
         val = dbg->slice[xi + sx*yi];
         if (drc->clampDo) {
           val = AIR_CLAMP(drc->clamp[0], val, drc->clamp[1]);
@@ -692,10 +692,10 @@ deringSubtract(NrrdDeringContext *drc, deringBag *dbg) {
       if (drc->linearInterp) {
         unsigned int bidx, bidxPlus;
         deringXYtoRT(drc, dbg, xi, yi, &rrIdx, &thIdx, &rrFrc, &thFrc);
-        bidx = rrIdx + dbg->radNum*thIdx;
-        bidxPlus = (thIdx < drc->thetaNum-1
-                    ? bidx + dbg->radNum
-                    : rrIdx);
+        bidx = AIR_UINT(rrIdx + dbg->radNum*thIdx);
+        bidxPlus = AIR_UINT(thIdx < drc->thetaNum-1
+                            ? bidx + dbg->radNum
+                            : rrIdx);
         val = (dbg->ring[bidx        ]*(1-rrFrc)*(1-thFrc) +
                dbg->ring[bidx     + 1]*rrFrc*(1-thFrc) +
                dbg->ring[bidxPlus    ]*(1-rrFrc)*thFrc +

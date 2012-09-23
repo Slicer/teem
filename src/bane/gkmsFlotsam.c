@@ -236,12 +236,12 @@ baneGkmsCmdList[] = {
 */
 void
 baneGkmsUsage(char *me, hestParm *hparm) {
-  int i, maxlen, len, c;
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
+  unsigned int ci, si, len, maxlen;
 
   maxlen = 0;
-  for (i=0; baneGkmsCmdList[i]; i++) {
-    maxlen = AIR_MAX(maxlen, (int)strlen(baneGkmsCmdList[i]->name));
+  for (ci=0; baneGkmsCmdList[ci]; ci++) {
+    maxlen = AIR_MAX(maxlen, AIR_UINT(strlen(baneGkmsCmdList[ci]->name)));
   }
 
   sprintf(buff, "--- Semi-Automatic Generation of Transfer Functions ---");
@@ -249,19 +249,19 @@ baneGkmsUsage(char *me, hestParm *hparm) {
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
   
-  for (i=0; baneGkmsCmdList[i]; i++) {
-    len = strlen(baneGkmsCmdList[i]->name);
+  for (ci=0; baneGkmsCmdList[ci]; ci++) {
+    len = AIR_UINT(strlen(baneGkmsCmdList[ci]->name));
     strcpy(buff, "");
-    for (c=len; c<maxlen; c++)
+    for (si=len; si<maxlen; si++)
       strcat(buff, " ");
     strcat(buff, me);
     strcat(buff, " ");
-    strcat(buff, baneGkmsCmdList[i]->name);
+    strcat(buff, baneGkmsCmdList[ci]->name);
     strcat(buff, " ... ");
-    len = strlen(buff);
+    len = AIR_UINT(strlen(buff));
     fprintf(stderr, "%s", buff);
     _hestPrintStr(stderr, len, len, hparm->columns,
-                  baneGkmsCmdList[i]->info, AIR_FALSE);
+                  baneGkmsCmdList[ci]->info, AIR_FALSE);
   }
 }
 

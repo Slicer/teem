@@ -303,7 +303,7 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
   if (!E) E |= nrrdCommentAdd(nout, cmt);
   sprintf(cmt, "max hits: %g, in bin %s, around value %g\n", maxhits,
           airSprintSize_t(stmp, maxhitidx),
-          nrrdAxisInfoPos(nout, 0, maxhitidx));
+          nrrdAxisInfoPos(nout, 0, AIR_CAST(double, maxhitidx)));
   if (!E) E |= nrrdCommentAdd(nout, cmt);
   if (!E) E |= nrrdContentSet_va(nout, func, nin, "%s", 
                                  airSprintSize_t(stmp, sy));

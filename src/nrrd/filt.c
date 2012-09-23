@@ -475,16 +475,16 @@ distanceL2Sqrd1D(double *dd, const double *ff,
   zz[1] = +FLT_MAX;
   for (qq=1; qq<len; qq++) {
     double ss;
-    ss = intx(qq, ff[qq], vv[kk], ff[vv[kk]], spc);
+    ss = intx(AIR_CAST(double, qq), ff[qq], vv[kk], ff[vv[kk]], spc);
     /* while (ss <= zz[kk]) { 
     ** HEY this can have kk going to -1 and into memory errors!
     */
     while (ss <= zz[kk] && kk) {
       kk--;
-      ss = intx(qq, ff[qq], vv[kk], ff[vv[kk]], spc);
+      ss = intx(AIR_CAST(double, qq), ff[qq], vv[kk], ff[vv[kk]], spc);
     }
     kk++;
-    vv[kk] = qq;
+    vv[kk] = AIR_CAST(double, qq);
     zz[kk] = ss;
     zz[kk+1] = +FLT_MAX;
   }

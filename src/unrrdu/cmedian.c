@@ -89,7 +89,7 @@ unrrdu_cmedianMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (chan) {
-    nsize = nin->axis[0].size;
+    nsize = AIR_UINT(nin->axis[0].size);
     mnout = AIR_CALLOC(nsize, Nrrd*);
     airMopAdd(mop, mnout, airFree, airMopAlways);
     ntmp = nrrdNew();
