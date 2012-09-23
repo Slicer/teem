@@ -572,13 +572,15 @@ int nrrdArrayCompare(int type, const void *_valA, const void *_valB,
         if (explain) {
           airSprintSize_t(stmp, ii);
           if (0 == epsilon) {
-            sprintf(explain, "valA[%s]=%.17g %s valB[%s]=%.17g",
-                    stmp, aa, *differ < 0 ? "<" : ">", stmp, bb);
+            sprintf(explain, "valA[%s]=%.17g %s valB[%s]=%.17g "
+                    "by %g",
+                    stmp, aa, *differ < 0 ? "<" : ">", stmp, bb,
+                    fabs(aa - bb));
           } else {
             sprintf(explain, "valA[%s]=%.17g %s valB[%s]=%.17g "
-                    "by more than eps %g",
+                    "by %g, more than eps %g",
                     stmp, aa, *differ < 0 ? "<" : ">", stmp, bb,
-                    epsilon);
+                    fabs(aa - bb), epsilon);
           }
         }
         break;
