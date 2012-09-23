@@ -25,6 +25,14 @@
 #include "tijk.h"
 #include "privateTijk.h"
 
+/* when using an MS compiler and setting up the float tables,
+ * suppress warnings about "conversion from 'double' to 'const float'"
+ */
+#if TIJK_TABLE_TYPE == 1 && defined(_MSC_VER)
+#  pragma warning(push)
+#  pragma warning(disable : 4305)
+#endif
+
 /* 1st order 3D - a simple vector */
 
 /* (un)symmetric doesn't really mean anything in this case */
@@ -2576,3 +2584,8 @@ _TIJK_8O3D_SYM_HESS(double,d)
 _TIJK_8O3D_SYM_HESS(float,f)
 
 TIJK_TYPE_SYM(8o3d_sym, 8, 3, 45)
+
+
+#if TIJK_TABLE_TYPE == 1 && defined(_MSC_VER)
+#  pragma warning(pop)
+#endif
