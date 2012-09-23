@@ -24,6 +24,9 @@
 # This is the root Teem CMakeLists file
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
 
+# Cmake shouldn't define WIN32 when compiling
+set(CMAKE_LEGACY_CYGWIN_WIN32 0) 
+
 # As of CMake 2.6 Policies were introduced in order to provide a mechanism for
 # adding backwards compatibility one feature at a time.
 
