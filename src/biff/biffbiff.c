@@ -302,7 +302,7 @@ biffGet(const char *key) {
 ** for when you want to allocate the buffer for the biff string, this is
 ** how you learn its length
 */
-int
+unsigned int
 biffGetStrlen(const char *key) {
   static const char me[]="biffGetStrlen";
   biffMsg *msg;

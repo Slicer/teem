@@ -62,7 +62,7 @@ airSanity(void) {
 
   /* checks on sizes of uchar, float, int, double, airLLong */  
   uc0 = 255;
-  uc1 = uc0 + 1;  /* to avoid compiler warnings */
+  uc1 = AIR_CAST(unsigned char, AIR_INT(uc0) + 1); /* want to overflow */
   if (!( 255 == uc0 && 0 == uc1 )) {
     return airInsane_UCSize;
   }

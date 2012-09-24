@@ -166,7 +166,9 @@ airStrtrans(char *s, char from, char to) {
   if (s) {
     l = strlen(s);
     for (i=0; i<l; i++) {
-      s[i] = (s[i] == from ? to : s[i]);
+      if (s[i] == from) {
+        s[i] = to;
+      }
     }
   }
   return s;
@@ -384,60 +386,61 @@ airToUpper(char *str) {
 ** effectively treated the same as a newline.
 */
 unsigned int
-airOneLine(FILE *file, char *line, int size) {
-  int c=0, i;
+airOneLine(FILE *file, char *line, unsigned int size) {
+  int cc=0;
+  unsigned int ii;
   
   if (!(size >= 3  /* need room for a character and a Windows newline */
         && line && file)) {
     return 0;
   }
   /* c is always set at least once, but not so for any char in line[]  */
-  for (i=0;
-       (i <= size-2              /* room for line[i] and \0 after that */
-        && EOF != (c=getc(file)) /* didn't hit EOF trying to read char */
-        && c != '\n'             /* char isn't newline */
-        && c != '\r');           /* char isn't carriage return */
-       ++i) {
-    line[i] = c;
+  for (ii=0;
+       (ii <= size-2              /* room for line[ii] and \0 after that */
+        && EOF != (cc=getc(file)) /* didn't hit EOF trying to read char */
+        && cc != '\n'             /* char isn't newline */
+        && cc != '\r');           /* char isn't carriage return */
+       ++ii) {
+    line[ii] = AIR_CAST(char, cc);
   }
 
-  if (EOF == c) {
+  if (EOF == cc) {
     /* for-loop terminated because we hit EOF */
     line[0] = '\0';
     return 0;
-  } else if ('\r' == c || '\n' == c) {
+  } else if ('\r' == cc || '\n' == cc) {
     /* for-loop terminated because we hit '\n' or '\r' */
     /* if it was '\r', see if next character is '\n' */
-    if ('\r' == c) {
-      c = getc(file);
-      if (EOF != c && '\n' != c) {
+    if ('\r' == cc) {
+      cc = getc(file);
+      if (EOF != cc && '\n' != cc) {
         /* oops, we got something, and it was not a '\n'; put it back */
-        ungetc(c, file);
+        ungetc(cc, file);
       }
     }
-    line[i] = '\0';
-    return i+1;
+    line[ii] = '\0';
+    return ii+1;
   } else {
-    /* for-loop terminated because we got to end of buffer (i == size-1) */
-    c = getc(file);
+    /* for-loop terminated because we got to end of buffer (ii == size-1) */
+    cc = getc(file);
     /* but see if we were about to get '\r', "\r\n", or '\n' */
-    if ('\r' == c) {
-      int d;
-      d = getc(file);
-      if (EOF != d && '\n' != d) {
+    if ('\r' == cc) {
+      int dd;
+      dd = getc(file);
+      if (EOF != dd && '\n' != dd) {
         /* oops, put it back */
-        ungetc(d, file);
+        ungetc(dd, file);
       }
-      line[i] = '\0';
-      return i+1;
-    } else if ('\n' == c) {
-      line[i] = '\0';
-      return i+1;
+      line[ii] = '\0';
+      return ii+1;
+    } else if ('\n' == cc) {
+      line[ii] = '\0';
+      return ii+1;
     } else {
       /* weren't about to get a line termination,
          we really did run out of buffer */
-      if (EOF != c) {
-        ungetc(c, file);  /* we're allowed one ungetc on ANY stream */
+      if (EOF != cc) {
+        ungetc(cc, file);  /* we're allowed one ungetc on ANY stream */
       }
       line[size-1] = '\0';
       return size+1;

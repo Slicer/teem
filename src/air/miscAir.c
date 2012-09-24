@@ -450,10 +450,10 @@ airIndexULL(double min, double val, double max, airULLong N) {
   /* compile error on Win32-vs60: "error C2520: conversion from
      unsigned __int64 to double not implemented, use signed __int64 */
   airLLong sidx;
-  sidx = AIR_CAST(airLLong, N*(val - min)/(max - min));
+  sidx = AIR_CAST(airLLong, AIR_CAST(double, N)*(val - min)/(max - min));
   idx = AIR_CAST(airULLong, sidx);
 #else
-  idx = AIR_CAST(airULLong, N*(val - min)/(max - min));
+  idx = AIR_CAST(airULLong, AIR_CAST(double, N)*(val - min)/(max - min));
 #endif
   idx -= (idx == N);
   return idx;
@@ -465,11 +465,11 @@ airIndexClampULL(double min, double val, double max, airULLong N) {
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
   airLLong sidx;
   val = AIR_MAX(min, val); /* see note in airIndexClamp */
-  sidx = AIR_CAST(airLLong, N*(val - min)/(max - min));
+  sidx = AIR_CAST(airLLong, AIR_CAST(double, N)*(val - min)/(max - min));
   idx = AIR_CAST(airULLong, sidx);
 #else
   val = AIR_MAX(min, val); /* see note in airIndexClamp */
-  idx = AIR_CAST(airULLong, N*(val - min)/(max - min));
+  idx = AIR_CAST(airULLong, AIR_CAST(double, N)*(val - min)/(max - min));
 #endif
   idx = AIR_MIN(idx, N-1);
   return idx;
@@ -509,7 +509,7 @@ airDoneStr(double start, double here, double end, char *str) {
     }
   }
 
-  return(str);
+  return str;
 }
 
 /*
@@ -526,10 +526,13 @@ airTime() {
   /* HEY: this has crummy precision */
   return (double)clock()/CLOCKS_PER_SEC;
 #else
+  double sec, usec;
   struct timeval tv;
 
   gettimeofday(&tv, NULL);
-  return((double)(tv.tv_sec + tv.tv_usec/1000000.0));
+  sec = AIR_CAST(double, tv.tv_sec);
+  usec = AIR_CAST(double, tv.tv_usec);
+  return sec + usec*1.0e-6;
 #endif
 }
 

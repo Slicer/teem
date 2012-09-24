@@ -525,7 +525,7 @@ AIR_EXPORT char *airUnescape(char *s);
 AIR_EXPORT char *airOneLinify(char *s);
 AIR_EXPORT char *airToLower(char *str);
 AIR_EXPORT char *airToUpper(char *str);
-AIR_EXPORT unsigned int airOneLine(FILE *file, char *line, int size);
+AIR_EXPORT unsigned int airOneLine(FILE *file, char *line, unsigned int size);
 
 /* sane.c */
 /*
