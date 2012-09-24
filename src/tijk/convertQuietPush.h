@@ -30,4 +30,5 @@
 #  pragma warning(disable : 4244)
 #endif
 
+/* "-Wconversion" generates analogous warnings in gcc */
 #pragma GCC diagnostic ignored "-Wconversion"

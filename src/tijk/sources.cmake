@@ -10,8 +10,8 @@ SET(TIJK_SOURCES
   nrrdTijk.c
   shTijk.c
   privateTijk.h
-  msvcQuietPush.h
-  msvcQuietPop.h
+  convertQuietPush.h
+  convertQuietPop.h
   shtables.h
   tijk.h
   )

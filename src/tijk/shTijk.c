@@ -24,7 +24,7 @@
 
 #include "tijk.h"
 
-#include "msvcQuietPush.h"
+#include "convertQuietPush.h"
 
 #define TIJK_TABLE_TYPE 0 /* create double version */
 #include "shtables.h"
@@ -331,4 +331,4 @@ TIJK_ESH_MAKE_KERNEL_DELTA(double, d)
 TIJK_ESH_MAKE_KERNEL_DELTA(float, f)
 
 
-#include "msvcQuietPop.h"
+#include "convertQuietPop.h"

@@ -24,7 +24,7 @@
 
 #include "tijk.h"
 
-#include "msvcQuietPush.h"
+#include "convertQuietPush.h"
 
 const unsigned int tijk_max_efs_order=4;
 /* for order 4, the maximum number of coefficients is 5 */
@@ -150,4 +150,4 @@ TIJK_2D_SYM_TO_EFS(float, f)
 TIJK_EFS_TO_2D_SYM(double, d)
 TIJK_EFS_TO_2D_SYM(float, f)
 
-#include "msvcQuietPop.h"
+#include "convertQuietPop.h"
