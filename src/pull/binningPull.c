@@ -62,7 +62,7 @@ _pullBinNeighborSet(pullContext *pctx, pullBin *bin) {
   pullBin *nei[3*3*3*3];
   int xmin, ymin, zmin, smin;
 
-  binIdx = bin - pctx->bin;
+  binIdx = AIR_UINT(bin - pctx->bin);
   /* annoyingly, have to recover the bin coordinates */
   ELL_4V_COPY(be, pctx->binsEdge);
   xi = binIdx % be[0];
