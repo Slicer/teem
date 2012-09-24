@@ -29,3 +29,5 @@
 #  pragma warning(disable : 4305)
 #  pragma warning(disable : 4244)
 #endif
+
+#pragma GCC diagnostic ignored "-Wconversion"
