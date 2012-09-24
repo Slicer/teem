@@ -209,10 +209,10 @@ nrrdIoStateFormatGet(NrrdIoState *nio) {
 }
 
 void
-_nrrdStrcatSpaceVector(char *str, int spaceDim,
+_nrrdStrcatSpaceVector(char *str, unsigned int spaceDim,
                        const double val[NRRD_SPACE_DIM_MAX]) {
   char buff[AIR_STRLEN_MED];  /* bad Gordon */
-  int dd;
+  unsigned int dd;
 
   if (AIR_EXISTS(val[0])) {
     strcat(str, "(");
@@ -220,7 +220,7 @@ _nrrdStrcatSpaceVector(char *str, int spaceDim,
       strcpy(buff, "");
       airSinglePrintf(NULL, buff, "%.17g", val[dd]);
       strcat(str, buff);
-      sprintf(buff, "%s", dd < spaceDim-1 ? "," : ")");
+      sprintf(buff, "%s", dd+1 < spaceDim ? "," : ")");
       strcat(str, buff);
     }
   } else {
