@@ -118,7 +118,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
 
   outdim = (nin ? nin : cnin)->dim-1;
   for (ai=0; ai<outdim; ai++) {
-    map[ai] = ai + (ai >= saxi);
+    map[ai] = AIR_INT(ai) + (ai >= saxi);
     szOut[ai] = (nin ? nin : cnin)->axis[map[ai]].size;
   }
   nout->blockSize = (nin ? nin : cnin)->blockSize;
