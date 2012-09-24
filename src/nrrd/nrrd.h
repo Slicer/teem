@@ -869,9 +869,9 @@ NRRD_EXPORT void nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX],
 NRRD_EXPORT void nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 
                                    double scl, 
                                    const double vec[NRRD_SPACE_DIM_MAX]);
-NRRD_EXPORT double nrrdSpaceVecNorm(int sdim,
+NRRD_EXPORT double nrrdSpaceVecNorm(unsigned int sdim,
                                     const double vec[NRRD_SPACE_DIM_MAX]);
-NRRD_EXPORT int nrrdSpaceVecExists(int sdim,
+NRRD_EXPORT int nrrdSpaceVecExists(unsigned int sdim,
                                    double vec[NRRD_SPACE_DIM_MAX]);
 NRRD_EXPORT void nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]);
 /* ---- BEGIN non-NrrdIO */
