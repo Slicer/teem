@@ -81,9 +81,8 @@ _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
   static const char me[]="_nrrdOneLine";
   char **line;
   airArray *mop, *lineArr;
-  int lineIdx;
   airPtrPtrUnion appu;
-  unsigned int len, needLen;
+  unsigned int lineIdx, len, needLen;
 
   if (!( lenP && nio && (file || nio->headerStringRead))) {
     biffAddf(NRRD, "%s: got NULL pointer (%p, %p, %p/%p)", me,
@@ -137,7 +136,7 @@ _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
     airMopAdd(mop, lineArr, (airMopper)airArrayNuke, airMopAlways);
     while (len == nio->lineLen+1) {
       lineIdx = airArrayLenIncr(lineArr, 1);
-      if (-1 == lineIdx) {
+      if (!lineArr->data) {
         biffAddf(NRRD, "%s: couldn't increment line buffer array", me);
         *lenP = 0; airMopError(mop); return 1;
       }
@@ -166,11 +165,11 @@ _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
     }
     /* now concatenate everything into a new nio->line */
     strcpy(nio->line, "");
-    for (lineIdx=0; lineIdx<(int)lineArr->len; lineIdx++) {
+    for (lineIdx=0; lineIdx<lineArr->len; lineIdx++) {
       strcat(nio->line, line[lineIdx]);
     }
     /* HEY: API is bad: *lenP should be a size_t pointer! */
-    *lenP = AIR_CAST(unsigned int, strlen(nio->line)) + 1;
+    *lenP = AIR_UINT(strlen(nio->line)) + 1;
     airMopError(mop);
   }
   return 0;
