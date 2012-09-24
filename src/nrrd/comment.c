@@ -36,7 +36,7 @@ int
 nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
   /* static const char me[]="nrrdCommentAdd";*/
   char *str;
-  int i;
+  unsigned int ii;
   
   if (!(nrrd && _str)) {
     /*
@@ -65,7 +65,7 @@ nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
   }
   /* clean out carraige returns that would screw up reader */
   airOneLinify(str);
-  i = airArrayLenIncr(nrrd->cmtArr, 1);
+  ii = airArrayLenIncr(nrrd->cmtArr, 1);
   if (!nrrd->cmtArr->data) {
     /*
     sprintf(err, "%s: couldn't lengthen comment array", me);
@@ -73,7 +73,7 @@ nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
     */
     return 1;
   }
-  nrrd->cmt[i] = str;
+  nrrd->cmt[ii] = str;
   return 0;
 }
 
@@ -101,7 +101,8 @@ nrrdCommentClear(Nrrd *nrrd) {
 int
 nrrdCommentCopy(Nrrd *nout, const Nrrd *nin) {
   /* static const char me[]="nrrdCommentCopy"; */
-  int numc, i, E;
+  int E;
+  unsigned int numc, ii;
 
   if (!(nout && nin)) {
     /*
@@ -117,8 +118,8 @@ nrrdCommentCopy(Nrrd *nout, const Nrrd *nin) {
   nrrdCommentClear(nout);
   numc = nin->cmtArr->len;
   E = 0;
-  for (i=0; i<numc; i++) {
-    if (!E) E |= nrrdCommentAdd(nout, nin->cmt[i]);
+  for (ii=0; ii<numc; ii++) {
+    if (!E) E |= nrrdCommentAdd(nout, nin->cmt[ii]);
   }
   if (E) {
     /*
