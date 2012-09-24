@@ -72,13 +72,14 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
   char *out, *outData, *err, 
     **dataFileNames, **kvp, *content, encInfo[AIR_STRLEN_LARGE];
   Nrrd *nrrd;
-  size_t *size;
-  int bufLen, headerOnly, pret, lineSkip, endian, type,
-    encodingType, gotSpacing, gotThickness, space, spaceDim, 
+  size_t *size, bufLen;
+  int headerOnly, pret, lineSkip, endian, type,
+    encodingType, gotSpacing, gotThickness, space,
     spaceSet;
   long int byteSkip;
   unsigned int ii, kindsLen, thicknessLen, spacingLen, sizeLen, nameLen,
-    centeringsLen, unitsLen, labelLen, kvpLen, spunitsLen, dataFileDim;
+    centeringsLen, unitsLen, labelLen, kvpLen, spunitsLen, dataFileDim,
+    spaceDim;
   double *spacing, *thickness;
   airArray *mop;
   NrrdIoState *nio;
@@ -184,8 +185,8 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
   hestOptAdd(&opt, "spc,space", "space", airTypeString, 1, 1, &spcStr, "",
              "identify the space (e.g. \"RAS\", \"LPS\") in which the array "
              "conceptually lives, from the nrrdSpace airEnum, which in turn "
-             "determines the dimension of the space.  Or, use an integer to "
-             "give the dimension of a space that nrrdSpace doesn't know about "
+             "determines the dimension of the space.  Or, use an integer>0 to"
+             "give the dimension of a space that nrrdSpace doesn't know about. "
              "By default (not using this option), the enclosing space is "
              "set as unknown.");
   hestOptAdd(&opt, "orig,origin", "origin", airTypeString, 1, 1, &_origStr, "",
@@ -463,13 +464,13 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
   if (airStrlen(spcStr)) {
     space = airEnumVal(nrrdSpace, spcStr);
     if (!space) {
-      /* couldn't parse it as space, perhaps its an int */
-      if (1 != sscanf(spcStr, "%d", &spaceDim)) {
+      /* couldn't parse it as space, perhaps its a uint */
+      if (1 != sscanf(spcStr, "%u", &spaceDim)) {
         fprintf(stderr, "%s: couldn't parse \"%s\" as a nrrdSpace "
-                "or as an int", me, spcStr);
+                "or as a uint", me, spcStr);
         airMopError(mop); return 1;
       }
-      /* else we did parse it as an int */
+      /* else we did parse it as a uint */
       nrrd->space = nrrdSpaceUnknown;
       nrrd->spaceDim = spaceDim;
     } else {
