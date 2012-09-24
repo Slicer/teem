@@ -31,4 +31,7 @@
 #endif
 
 /* "-Wconversion" generates analogous warnings in gcc */
-#pragma GCC diagnostic ignored "-Wconversion"
+#ifdef __GNUC__
+#  pragma GCC diagnostic ignored "-Wconversion"
+#endif
+
