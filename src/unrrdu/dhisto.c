@@ -36,11 +36,12 @@ unrrdu_dhistoMain(int argc, const char **argv, const char *me,
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int size, pret, nolog, notick;
+  int pret, nolog, notick;
+  unsigned int size;
   airArray *mop;
   double max;
 
-  hestOptAdd(&opt, "h,height", "height", airTypeInt, 1, 1, &size, NULL,
+  hestOptAdd(&opt, "h,height", "height", airTypeUInt, 1, 1, &size, NULL,
              "height of output image (horizontal size is determined by "
              "number of bins in input histogram).");
   hestOptAdd(&opt, "nolog", NULL, airTypeInt, 0, 0, &nolog, NULL,
