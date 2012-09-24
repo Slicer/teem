@@ -78,9 +78,9 @@ nrrdKeyValueIndex(const Nrrd *nrrd, char **keyP, char **valueP,
   return;
 }
 
-int
-_nrrdKeyValueIdxFind(const Nrrd *nrrd, const char *key) {
-  unsigned int nk, ki;
+static unsigned int
+_kvpIdxFind(const Nrrd *nrrd, const char *key, int *found) {
+  unsigned int nk, ki, ret;
 
   nk = nrrd->kvpArr->len;
   for (ki=0; ki<nk; ki++) {
@@ -88,7 +88,14 @@ _nrrdKeyValueIdxFind(const Nrrd *nrrd, const char *key) {
       break;
     }
   }
-  return (ki<nk ? (int)ki : -1);  /* HEY scrutinize cast */
+  if (ki<nk) {
+    ret = ki;
+    *found = AIR_TRUE;
+  } else {
+    ret = UINT_MAX;
+    *found = AIR_FALSE;
+  }
+  return ret;
 }
 
 void
@@ -111,21 +118,21 @@ nrrdKeyValueClear(Nrrd *nrrd) {
 
 int
 nrrdKeyValueErase(Nrrd *nrrd, const char *key) {
-  unsigned int nk;
-  int ki;
+  unsigned int nk, ki;
+  int found;
   
   if (!( nrrd && key )) {
     /* got NULL pointer */
     return 1;
   }
-  ki = _nrrdKeyValueIdxFind(nrrd, key);
-  if (-1 == ki) {
+  ki = _kvpIdxFind(nrrd, key, &found);
+  if (!found) {
     return 0;
   }
   nrrd->kvp[0 + 2*ki] = (char *)airFree(nrrd->kvp[0 + 2*ki]);
   nrrd->kvp[1 + 2*ki] = (char *)airFree(nrrd->kvp[1 + 2*ki]);
   nk = nrrd->kvpArr->len;
-  for (; ki<(int)nk-1; ki++) {  /* HEY scrutize cast */
+  for (; ki<nk-1; ki++) {
     nrrd->kvp[0 + 2*ki] = nrrd->kvp[0 + 2*(ki+1)];
     nrrd->kvp[1 + 2*ki] = nrrd->kvp[1 + 2*(ki+1)];
   }
@@ -148,7 +155,8 @@ nrrdKeyValueErase(Nrrd *nrrd, const char *key) {
 */
 int
 nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value) {
-  int ki;
+  unsigned int ki;
+  int found;
 
   if (!( nrrd && key && value )) {
     /* got NULL pointer */
@@ -158,7 +166,8 @@ nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value) {
     /* reject empty keys */
     return 1;
   }
-  if (-1 != (ki = _nrrdKeyValueIdxFind(nrrd, key))) {
+  ki = _kvpIdxFind(nrrd, key, &found);
+  if (found) {
     /* over-writing value for an existing key, so have to free old value */
     airFree(nrrd->kvp[1 + 2*ki]);
     nrrd->kvp[1 + 2*ki] = airStrdup(value);
@@ -184,13 +193,15 @@ nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value) {
 char *
 nrrdKeyValueGet(const Nrrd *nrrd, const char *key) {
   char *ret;
-  int ki;
+  unsigned int ki;
+  int found;
   
   if (!( nrrd && key )) {
     /* got NULL pointer */
     return NULL;
   }
-  if (-1 != (ki = _nrrdKeyValueIdxFind(nrrd, key))) {
+  ki = _kvpIdxFind(nrrd, key, &found);
+  if (found) {
     if (nrrdStateKeyValueReturnInternalPointers) {
       ret = nrrd->kvp[1 + 2*ki];
     } else {
