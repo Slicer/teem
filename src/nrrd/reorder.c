@@ -213,7 +213,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
        there's nothing to do other than the copy already done.  Otherwise,
        here we are (actually, lowPax < nin->dim-1) */
     for (ai=0; ai<nin->dim; ai++) {
-      axmap[ai] = axes[ai];
+      axmap[ai] = AIR_INT(axes[ai]);
     }
     nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
     if (nrrdAxisInfoCopy(nout, nin, axmap, NRRD_AXIS_INFO_NONE)) {
