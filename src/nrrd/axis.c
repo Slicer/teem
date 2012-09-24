@@ -81,7 +81,7 @@ nrrdKindIsDomain(int kind) {
 unsigned int
 nrrdKindSize(int kind) {
   static const char me[]="nrrdKindSize";
-  int ret;
+  unsigned int ret;
   
   if (!( AIR_IN_OP(nrrdKindUnknown, kind, nrrdKindLast) )) {
     /* they gave us invalid or unknown kind */
@@ -890,10 +890,10 @@ nrrdAxisInfoMinMaxSet(Nrrd *nrrd, unsigned int ax, int defCenter) {
     spacing = nrrdDefaultSpacing;
   if (nrrdCenterCell == center) {
     nrrd->axis[ax].min = 0;
-    nrrd->axis[ax].max = spacing*nrrd->axis[ax].size;
+    nrrd->axis[ax].max = spacing*AIR_CAST(double, nrrd->axis[ax].size);
   } else {
     nrrd->axis[ax].min = 0;
-    nrrd->axis[ax].max = spacing*(nrrd->axis[ax].size - 1);
+    nrrd->axis[ax].max = spacing*AIR_CAST(double, nrrd->axis[ax].size - 1);
   }
   
   return;
