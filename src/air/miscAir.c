@@ -259,7 +259,7 @@ airSprintSize_t(char _str[AIR_STRLEN_SMALL], size_t val) {
   si = AIR_STRLEN_SMALL-1;
   str[si] = '\0';
   do {
-    str[--si] = AIR_CAST(int, val % 10) + '0';
+    str[--si] = AIR_CAST(char, (val % 10) + '0');
     val /= 10;
   } while (val);
   strcpy(_str, str + si);
@@ -285,9 +285,9 @@ airSprintPtrdiff_t(char _str[AIR_STRLEN_SMALL], ptrdiff_t val) {
   str[si] = '\0';
   sign = (val < 0 ? -1 : 1);
   do {
-    int dig;
-    dig = AIR_CAST(int, val % 10);
-    str[--si] = (dig > 0 ? dig + '0' : -dig + '0');
+    ptrdiff_t dig;
+    dig = val % 10;
+    str[--si] = AIR_CAST(char, dig > 0 ? dig + '0' : -dig + '0');
     val /= 10;
   } while (val);
   if (-1 == sign) {

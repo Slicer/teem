@@ -294,18 +294,23 @@ airArrayLenSet(airArray *a, unsigned int newlen) {
 unsigned int
 airArrayLenIncr(airArray *a, int delta) {
   /* char me[]="airArrayLenIncr"; */
-  unsigned int oldlen, ret;
+  unsigned int oldlen, ret, negdel;
 
   if (!a) {
     return 0;
   }
-  if (delta < 0 && (unsigned int)(-delta) > a->len) {
+  negdel = (delta < 0
+            ? AIR_UINT(-delta)
+            : 0);
+  if (delta < 0 && negdel > a->len) {
     /* error: asked for newlength to be negative */
     airArrayLenSet(a, 0);
     return 0;
   }
   oldlen = a->len;
-  airArrayLenSet(a, oldlen + delta);
+  airArrayLenSet(a, (delta >= 0
+                     ? oldlen + AIR_UINT(delta)
+                     : oldlen - negdel));
   if (!a->data) {
     /* allocation error */
     ret = 0;

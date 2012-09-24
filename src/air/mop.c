@@ -211,7 +211,7 @@ typedef union {
 void
 airMopDebug(airArray *arr) {
   airMop *mops;
-  int i;
+  unsigned int ii;
   mvunion mvu;
 
   if (!arr)
@@ -219,38 +219,40 @@ airMopDebug(airArray *arr) {
 
   mops = (airMop *)arr->data;
   printf("airMopDebug: _________________________ mop stack for 0x%p:\n",
-         (void*)arr);
-  for (i=arr->len-1; i>=0; i--) {
-    printf("% 4d: ", i);
-    if (NULL == mops[i].mop && NULL == mops[i].ptr
-        && airMopNever == mops[i].when) {
-      printf("no-op\n");
-      continue;
-    }
-    /* else */
-    printf("%s: ", _airMopWhenStr[mops[i].when]);
-    if (airFree == mops[i].mop) {
-      printf("airFree(0x%p)\n", (void*)(mops[i].ptr));
-      continue;
-    }
-    if ((airMopper)airSetNull == mops[i].mop) {
-      printf("airSetNull(0x%p)\n", (void*)(mops[i].ptr));
-      continue;
-    }
-    if (_airMopPrint == mops[i].mop) {
-      printf("_airMopPrint(\"%s\" == 0x%p)\n",
-             (char*)(mops[i].ptr), (void*)(mops[i].ptr));
-      continue;
-    }
-    if ((airMopper)airFclose == mops[i].mop) {
-      printf("airFclose(0x%p)\n", (void*)(mops[i].ptr));
-      continue;
-    }
-    /* else */
-    mvu.m = mops[i].mop;
-    printf("0x%p(0x%p)\n",
-           AIR_CAST(void *, mvu.v),
-           AIR_CAST(void*, mops[i].ptr));
+         AIR_VOIDP(arr));
+  if (arr->len) {
+    ii = arr->len;
+    do {
+      ii--;
+      printf("%4u: ", ii);
+      if (NULL == mops[ii].mop && NULL == mops[ii].ptr
+          && airMopNever == mops[ii].when) {
+        printf("no-op\n");
+        continue;
+      }
+      /* else */
+      printf("%s: ", _airMopWhenStr[mops[ii].when]);
+      if (airFree == mops[ii].mop) {
+        printf("airFree(0x%p)\n", AIR_VOIDP(mops[ii].ptr));
+        continue;
+      }
+      if ((airMopper)airSetNull == mops[ii].mop) {
+        printf("airSetNull(0x%p)\n", AIR_VOIDP(mops[ii].ptr));
+        continue;
+      }
+      if (_airMopPrint == mops[ii].mop) {
+        printf("_airMopPrint(\"%s\" == 0x%p)\n",
+               AIR_CAST(char*, mops[ii].ptr), AIR_VOIDP(mops[ii].ptr));
+        continue;
+      }
+      if ((airMopper)airFclose == mops[ii].mop) {
+        printf("airFclose(0x%p)\n", AIR_VOIDP(mops[ii].ptr));
+        continue;
+      }
+      /* else */
+      mvu.m = mops[ii].mop;
+      printf("0x%p(0x%p)\n", AIR_VOIDP(mvu.v), AIR_VOIDP(mops[ii].ptr));
+    } while (ii);
   }
   printf("airMopDebug: ^^^^^^^^^^^^^^^^^^^^^^^^^\n");
 }
@@ -258,20 +260,24 @@ airMopDebug(airArray *arr) {
 void
 airMopDone(airArray *arr, int error) {
   airMop *mops;
-  int i;
+  unsigned int ii;
 
   /*
   printf("airMopDone(%p): hello, %s\n", (void*)arr, error ? "error" : "okay");
   */
   if (arr) {
     mops = (airMop *)arr->data;
-    for (i=arr->len-1; i>=0; i--) {
-      if (mops[i].ptr
-          && (airMopAlways == mops[i].when
-              || (airMopOnError == mops[i].when && error)
-              || (airMopOnOkay == mops[i].when && !error))) {
-        mops[i].mop(mops[i].ptr);
-      }
+    if (arr->len) {
+      ii = arr->len;
+      do {
+        ii--;
+        if (mops[ii].ptr
+            && (airMopAlways == mops[ii].when
+                || (airMopOnError == mops[ii].when && error)
+                || (airMopOnOkay == mops[ii].when && !error))) {
+          mops[ii].mop(mops[ii].ptr);
+        }
+      } while (ii);
     }
     airArrayNuke(arr);
     /*
