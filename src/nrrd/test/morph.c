@@ -72,11 +72,13 @@ morph(Nrrd *nout, Nrrd *_nin, Nrrd *_nkern, float scl) {
     fprintf(stderr, "%d/%d\n", zz, sz-kr);
     for (yy=kr; yy<sy-kr; yy++) {
       for (xx=kr; xx<sx-kr; xx++) {
-        int verb;
         float mind, ival, kval;
+        /*
+        int verb;
         
         verb = ((24 == xx && 24 == yy && 9 == zz) ||
                 (24 == xx && 24 == yy && 10 == zz));
+        */
         mind = AIR_POS_INF;
         for (kk=-kr; kk<=kr; kk++) {
           for (jj=-kr; jj<=kr; jj++) {
