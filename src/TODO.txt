@@ -73,6 +73,9 @@ so that it matches biffMovef
 * a few biff functions are never used in Teem, is that ok?
 
 nrrd:
+* nrrdSpaceVecNorm(unsigned int sdim, const double vec[]) should 
+  have its two args switch order in order to conform to Teem convention
+  of "array first, length second"
 * with nrrdKernel: 
  - add fields for "what is my derivative" or "what is my integral", but 
    how to do that at compile time?
