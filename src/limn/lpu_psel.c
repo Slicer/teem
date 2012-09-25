@@ -25,7 +25,7 @@
 #include "privateLimn.h"
 
 #define INFO "Select some subset of primitives"
-static char *myinfo =
+static const char *myinfo =
 (INFO
  ". Can either specify a range, or a list, or not, until implemented.");
 

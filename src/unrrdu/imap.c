@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through *irregular* univariate map (\"colormap\")"
-char *_unrrdu_imapInfoL =
+static const char *_unrrdu_imapInfoL =
 (INFO
  ". A map is irregular if the control points are not evenly "
  "spaced along the domain, and hence their position must be "

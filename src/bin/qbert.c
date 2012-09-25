@@ -498,8 +498,8 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
 }
   
 int
-qbertScat(Nrrd *nvgh, int pos, int size, char *name) {
-  char me[]="qbertScat";
+qbertScat(Nrrd *nvgh, int pos, int size, const char *name) {
+  static const char me[]="qbertScat";
   Nrrd *nin[2], *nv, *nx, *nscA, *nscB;
   airArray *mop;
   size_t bins[2];
@@ -539,7 +539,8 @@ qbertScat(Nrrd *nvgh, int pos, int size, char *name) {
   return 0;
 }
 
-char qbertInfo[]="Generates volume datasets friendly to hardware-based "
+static const char qbertInfo[]=
+"Generates volume datasets friendly to hardware-based "
 "volume renderers. "
 "The main value of this is a means of combining the functions of "
 "resampling a dataset to a particular size, measuring first (and "

@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Average across tensor volumes"
-char *_tend_avgInfoL =
+static const char *_tend_avgInfoL =
   (INFO
    ".  The output is the same size as the any one of the inputs. "
    "The individual tensors may be averaged in various ways.");

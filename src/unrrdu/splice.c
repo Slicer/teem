@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Replace a slice with a different nrrd"
-char *_unrrdu_spliceInfoL = 
+static const char *_unrrdu_spliceInfoL = 
   (INFO ". This is functionally the opposite of \"slice\".\n "
    "* Uses nrrdSplice");
 

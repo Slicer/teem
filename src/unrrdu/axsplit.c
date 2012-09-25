@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Split one axis into two axes"
-char *_unrrdu_axsplitInfoL =
+static const char *_unrrdu_axsplitInfoL =
 (INFO
  ". More general version of \"unu axinsert\", since a given axis can "
  "be split into fast and slow axes of arbitrary size, as long as the "

@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Generate postscript or ray-traced renderings of 3D glyphs"
-char *_tend_glyphInfoL =
+static const char *_tend_glyphInfoL =
   (INFO
    ".  Whether the output is postscript or a ray-traced image is controlled "
    "by the initial \"rt\" flag (by default, the output is postscript). "

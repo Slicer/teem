@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Undo \"unu tile\": merge slow parts of two axis splits"
-char *_unrrdu_untileInfoL =
+static const char *_unrrdu_untileInfoL =
 (INFO
  ". Untiling an array means spliting two axes, permuting the slow parts "
  "of those axes to be adjecent in the axis ordering, and then merging "

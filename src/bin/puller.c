@@ -44,7 +44,7 @@
 #include <teem/pull.h>
 #include <teem/meet.h>
 
-const char *info =
+static const char *info =
   ("Command-line interface to the \"pull\" library. "
    "Published research using this tool or the \"pull\" library "
    "should cite the paper: \n "

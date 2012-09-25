@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Create image of 1-D value histogram"
-char *_unrrdu_dhistoInfoL = 
+static const char *_unrrdu_dhistoInfoL = 
   (INFO
    ". With \"-nolog\", this becomes a quick & dirty way of plotting a function.\n "
    "* Uses nrrdHistoDraw");

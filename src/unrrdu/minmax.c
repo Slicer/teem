@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Print out min and max values in one or more nrrds"
-char *_unrrdu_minmaxInfoL =
+static const char *_unrrdu_minmaxInfoL =
 (INFO ". Unlike other commands, this doesn't produce a nrrd.  It only "
  "prints to standard out the min and max values found in the input nrrd(s), "
  "and it also indicates if there are non-existent values.\n "

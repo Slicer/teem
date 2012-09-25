@@ -25,7 +25,7 @@
 #include "privateBane.h"
 
 #define HVOL_INFO "Make histogram volume"
-char *_baneGkms_hvolInfoL =
+static const char *_baneGkms_hvolInfoL =
   (HVOL_INFO
    ".  The histogram volume is a three-dimensional histogram recording "
    "the relationship between data value, gradient magnitude, and the "

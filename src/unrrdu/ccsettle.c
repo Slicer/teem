@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Remap CC values down to lowest contiguous values"
-char *_unrrdu_ccsettleInfoL =
+static const char *_unrrdu_ccsettleInfoL =
 (INFO
  ".\n "
  "* Uses nrrdCCSettle");

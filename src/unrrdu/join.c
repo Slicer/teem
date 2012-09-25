@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Connect slices and/or slabs into a bigger nrrd"
-char *_unrrdu_joinInfoL =
+static const char *_unrrdu_joinInfoL =
 (INFO
  ". Can stich images into volumes, or tile images side "
  "by side, or attach images onto volumes.  If there are many many "

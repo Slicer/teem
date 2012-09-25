@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Form adjecency matrix of connected components"
-char *_unrrdu_ccadjInfoL =
+static const char *_unrrdu_ccadjInfoL =
 (INFO
  ".  This operates on the output of \"ccfind\".  Output is unsigned char "
  "array containing 1 at locations (I,J) and (J,I) if CCs with ids I and J are "

@@ -279,7 +279,7 @@ distanceProb(Nrrd *npp, Nrrd *nqq) {
   return dist;
 }
 
-const char *info = ("Endless hacking!");
+static const char *info = ("Endless hacking!");
 
 int
 main(int argc, const char **argv) {

@@ -393,7 +393,7 @@ F(txf)
 BANE_GKMS_MAP(BANE_GKMS_DECLARE)
 BANE_EXPORT const airEnum *const baneGkmsMeasr;
 BANE_EXPORT unrrduCmd *baneGkmsCmdList[]; 
-BANE_EXPORT void baneGkmsUsage(char *me, hestParm *hparm);
+BANE_EXPORT void baneGkmsUsage(const char *me, hestParm *hparm);
 BANE_EXPORT hestCB *baneGkmsHestIncStrategy;
 BANE_EXPORT hestCB *baneGkmsHestBEF;
 BANE_EXPORT hestCB *baneGkmsHestGthresh;

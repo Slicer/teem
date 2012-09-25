@@ -29,9 +29,10 @@
 #include <teem/alan.h>
 #include <teem/ten.h>
 
-char *spotsInfo = ("Generate reaction-diffusion textures based on "
-                   "Turing's second example formulation (page 65) of "
-                   "his 1954 paper \"The Chemical Basis of Morphogenesis.\" ");
+static const char *spotsInfo = 
+  ("Generate reaction-diffusion textures based on "
+   "Turing's second example formulation (page 65) of "
+   "his 1954 paper \"The Chemical Basis of Morphogenesis.\" ");
 
 int
 main(int argc, const char *argv[]) {

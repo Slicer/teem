@@ -25,7 +25,7 @@
 #include "privateBane.h"
 
 #define OPAC_INFO "Generate opacity functions"
-char *_baneGkms_opacInfoL =
+static const char *_baneGkms_opacInfoL =
   (OPAC_INFO
    ". Takes information from an \"info\" file and from a \"boundary "
    "emphasis function\" to generate 1D or 2D (depending on info file) "

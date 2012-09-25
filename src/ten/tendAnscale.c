@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Scale the anisotropic component of the tensors"
-char *_tend_anscaleInfoL =
+static const char *_tend_anscaleInfoL =
   (INFO
    ". This maintains the isotropic component of the tensor, and fixes "
    "either the trace or determinant, "

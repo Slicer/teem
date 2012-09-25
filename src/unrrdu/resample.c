@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Filtering and {up,down}sampling with a separable kernel"
-char *_unrrdu_resampleInfoL =
+static const char *_unrrdu_resampleInfoL =
 (INFO
  ". Provides simplified access to nrrdSpatialResample() "
  "by assuming (among other things) that the same kernel "

@@ -25,7 +25,7 @@
 #include "privateLimn.h"
 
 #define INFO "Find connected components (CCs)"
-static char *myinfo =
+static const char *myinfo =
 (INFO
  ", and then sorts primitive according to area.");
 

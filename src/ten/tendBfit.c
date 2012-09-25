@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Non-linear least-squares fitting of b-value curves"
-char *_tend_bfitInfoL =
+static const char *_tend_bfitInfoL =
   (INFO
    ". Axis 0 is replaced by three values: amp, dec, err, based on a "
    "non-linear least-squares fit of amp*exp(-b*dec) to the range of DWI "

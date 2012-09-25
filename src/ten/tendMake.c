@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Create DT volume from confidence and eigensystem"
-char *_tend_makeInfoL =
+static const char *_tend_makeInfoL =
   (INFO
    ".  The input is in the form of three nrrds, one for confidence "
    "values (3D), one for eigenvalues (4D, three evals per voxel), and "

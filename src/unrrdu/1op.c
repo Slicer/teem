@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Unary operation on a nrrd"
-char *_unrrdu_1opInfoL = 
+static const char *_unrrdu_1opInfoL = 
   (INFO
    ".\n "
    "* Uses nrrdArithUnaryOp");

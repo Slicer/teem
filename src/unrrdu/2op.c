@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Binary operation on two nrrds, or on a nrrd and a constant"
-char *_unrrdu_2opInfoL =
+static const char *_unrrdu_2opInfoL =
 (INFO
  ". Either the first or second operand can be a float constant, "
  "but not both.  Use \"-\" for an operand to signify "

@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Calculates exp() of the tensor"
-char *_tend_expInfoL =
+static const char *_tend_expInfoL =
   (INFO
    ", which is based on exp() of the eigenvalues.");
 

@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Modify shape by multiplying eigenvalues by a constant"
-char *_tend_evalmultInfoL =
+static const char *_tend_evalmultInfoL =
   (INFO
    ". The orientation of the tensor is unchanged.");
 

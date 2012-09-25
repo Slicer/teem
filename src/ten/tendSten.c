@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Calculate structure tensors from a scalar field"
-char *_tend_stenInfoL =
+static const char *_tend_stenInfoL =
   (INFO
    ".  Not a diffusion tensor, but it is symmetric and positive-definate.");
 

@@ -26,7 +26,7 @@
 #include <teem/hest.h>
 #include <teem/nrrd.h>
 
-char *overInfo = (
+static const char *overInfo = (
   "Composites an RGBA nrrd over "
   "a background color (or image), after doing gamma correction, "
   "then quantizes to an 8-bit image.  Actually, the "

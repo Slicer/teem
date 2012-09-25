@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Convert between different shape triples"
-char *_tend_tconvInfoL =
+static const char *_tend_tconvInfoL =
   (INFO
    ".  The triples can be eignvalues, invariants (J, K, R), "
    "and lots of other things.");

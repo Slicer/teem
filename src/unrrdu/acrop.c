@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO " Automatically crop axes based on given measure"
-char *_unrrdu_acropInfoL = 
+static const char *_unrrdu_acropInfoL = 
   (INFO ". For the axes that are to be cropped, the slices perpendicular "
    "to that axis are projected down to a scalar with the specified measure. "
    "The resulting 1D array is analyzed by determining what portions at the "

@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Calculates logarithm of the tensor"
-char *_tend_logInfoL =
+static const char *_tend_logInfoL =
   (INFO
    ", which is based on finding the log of the eigenvalues.");
 

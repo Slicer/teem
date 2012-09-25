@@ -43,9 +43,9 @@
 */
 void
 limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam,
-                     char *frDef, char *atDef, char *upDef,
-                     char *dnDef, char *diDef, char *dfDef,
-                     char *urDef, char *vrDef, char *fvDef) {
+                     const char *frDef, const char *atDef, const char *upDef,
+                     const char *dnDef, const char *diDef, const char *dfDef,
+                     const char *urDef, const char *vrDef, const char *fvDef) {
   hestOpt *hopt;
   
   hopt = *hoptP;

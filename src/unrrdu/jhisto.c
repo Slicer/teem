@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Create joint histogram of two or more nrrds"
-char *_unrrdu_jhistoInfoL =
+static const char *_unrrdu_jhistoInfoL =
 (INFO
  ". Each axis of the output corresponds to one of the "
  "input nrrds, and each bin in the output records the "

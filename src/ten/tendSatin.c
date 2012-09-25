@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Generate a pretty synthetic DT volume"
-char *_tend_satinInfoL =
+static const char *_tend_satinInfoL =
   (INFO
    ".  The surface of a sphere or torus is covered with either linear or "
    "planar anisotropic tensors, or somewhere in between.");

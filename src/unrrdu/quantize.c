@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Quantize values to 8, 16, or 32 bits"
-char *_unrrdu_quantizeInfoL = 
+static const char *_unrrdu_quantizeInfoL = 
 (INFO ". Input values can be fixed point (e.g. quantizing ushorts down to "
  "uchars) or floating point.  Values are clamped to the min and max before "
  "they are quantized, so there is no risk of getting 255 where you expect 0 "

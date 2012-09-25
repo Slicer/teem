@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Modify shape by adding a constant to all eigenvalues"
-char *_tend_evaladdInfoL =
+static const char *_tend_evaladdInfoL =
   (INFO
    ". The orientation of the tensor is unchanged.  Note that unlike "
    "\"tend anscale\", this operation can completely change the shape "

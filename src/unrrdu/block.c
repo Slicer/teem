@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Condense axis-0 scanlines into \"blocks\""
-char *_unrrdu_blockInfoL = 
+static const char *_unrrdu_blockInfoL = 
 (INFO
  ". Output nrrd will be of type \"block\": the type "
  "for an opaque chunk of "

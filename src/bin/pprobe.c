@@ -56,8 +56,9 @@ printans(FILE *file, const double *ans, int len) {
   }
 }
 
-char *probeInfo = ("Uses gageProbe() to query scalar or vector volumes "
-                   "at a single probe location.");
+static const char *probeInfo = 
+("Uses gageProbe() to query scalar or vector volumes "
+ "at a single probe location.");
 
 int
 main(int argc, const char *argv[]) {

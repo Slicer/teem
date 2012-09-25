@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Write nrrd with specific format, encoding, or endianness"
-char *_unrrdu_saveInfoL =
+static const char *_unrrdu_saveInfoL =
 (INFO
  ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
  "PGM-compatible nrrds on unix.  EPS output is a EPSF-3.0 file with "

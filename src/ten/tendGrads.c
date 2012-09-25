@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Calculate balanced gradient directions for DWI acquisition"
-char *_tend_gradsInfoL =
+static const char *_tend_gradsInfoL =
   (INFO
    ", based on a simulation of anti-podal point pairs repelling each other "
    "on the unit sphere surface. This can either distribute more uniformly "

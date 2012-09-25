@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Estimate models from a set of DW images"
-char *_tend_mfitInfoL =
+static const char *_tend_mfitInfoL =
   (INFO
    ". More docs here.");
 

@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through a whole nrrd of regular univariate maps"
-char *_unrrdu_mrmapInfoL =
+static const char *_unrrdu_mrmapInfoL =
 (INFO
  ", one map per sample in input. The \"mmap\" nrrd has the same dimensional "
  "constraints as the \"mlut\" nrrd for \"unu mlut\".  This functionality "

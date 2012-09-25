@@ -80,7 +80,7 @@ _baneGkmsDonNew(int invert) {
 }
 
 #define PVG_INFO "Create color-mapped pictures of p(v,g)"
-char *_baneGkms_pvgInfoL =
+static const char *_baneGkms_pvgInfoL =
   (PVG_INFO
    ".  This produces a qualitative visualization of the boundary information "
    "that was captured in the histogram volume.  The quantity shown is called "

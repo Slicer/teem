@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Superficially change dimension and/or axes sizes"
-char *_unrrdu_reshapeInfoL =
+static const char *_unrrdu_reshapeInfoL =
 (INFO
  ". The underlying linear ordering of the samples is "
  "unchanged, but the reported dimension or axes sizes "

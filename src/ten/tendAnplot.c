@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Graph anisotropy metric in barycentric coords"
-char *_tend_anplotInfoL =
+static const char *_tend_anplotInfoL =
   (INFO
    ".  The metrics all vary from 0.0 to 1.0, and will be sampled "
    "in the lower right half of the image.  The plane on which they are "

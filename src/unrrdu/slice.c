@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Slice along one or more axes at given positions"
-char *_unrrdu_sliceInfoL = 
+static const char *_unrrdu_sliceInfoL = 
   (INFO
    ". Output nrrd dimension is less than input nrrd "
    "dimension by the number of slice axes (except when the "

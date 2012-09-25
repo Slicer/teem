@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Applies and removes the measurement frame"
-char *_tend_unmfInfoL =
+static const char *_tend_unmfInfoL =
   (INFO
    ". When the given tensor volume has a measurement frame associated "
    "with it, this will apply the measurement frame transform to all "

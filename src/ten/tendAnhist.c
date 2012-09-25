@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Generate barycentric histograms of anisotropy"
-char *_tend_anhistInfoL =
+static const char *_tend_anhistInfoL =
   (INFO
    ".  The barycentric space used is either one of Westin's "
    "triple of spherical, linear, and planar anisotropy.  The bin "

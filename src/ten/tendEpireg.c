@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Register diffusion-weighted echo-planar images"
-char *_tend_epiregInfoL =
+static const char *_tend_epiregInfoL =
   (INFO
    ". This registration corrects the shear, scale, and translate along "
    "the phase encoding direction (assumed to be the Y (second) axis of "

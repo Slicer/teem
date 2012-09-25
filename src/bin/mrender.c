@@ -33,13 +33,14 @@
 
 #define MREND "mrender"
 
-char *info = ("A demonstration of hoover, gage, and nrrd measures. "
-              "Uses hoover to cast rays through a volume (scalar, vector, or "
-              "tensor), gage to "
-              "measure one of various quantities along the rays, and a "
-              "specified nrrd measure to reduce all the values along a ray "
-              "down to one scalar, which is saved in the output (double) "
-              "image.");
+static const char *info = 
+  ("A demonstration of hoover, gage, and nrrd measures. "
+   "Uses hoover to cast rays through a volume (scalar, vector, or "
+   "tensor), gage to "
+   "measure one of various quantities along the rays, and a "
+   "specified nrrd measure to reduce all the values along a ray "
+   "down to one scalar, which is saved in the output (double) "
+   "image.");
 
 /* -------------------------------------------------------------- */
 

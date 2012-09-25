@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Remove one or more singleton axes from a nrrd"
-char *_unrrdu_axdeleteInfoL =
+static const char *_unrrdu_axdeleteInfoL =
 (INFO
  ". Singleton axes have only a single sample along them. "
  "The underlying linear ordering of the samples is "

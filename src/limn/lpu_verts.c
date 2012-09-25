@@ -25,7 +25,7 @@
 #include "privateLimn.h"
 
 #define INFO "Extract the vertex array"
-static char *myinfo =
+static const char *myinfo =
 (INFO
  ". ");
 

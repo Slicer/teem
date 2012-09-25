@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Modify shape by raising eigenvalues to some power"
-char *_tend_evalpowInfoL =
+static const char *_tend_evalpowInfoL =
   (INFO
    ". The orientation of the tensor is unchanged.");
 

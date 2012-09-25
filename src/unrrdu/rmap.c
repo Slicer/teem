@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through one *regular* univariate map (\"colormap\")"
-char *_unrrdu_rmapInfoL =
+static const char *_unrrdu_rmapInfoL =
 (INFO
  ". A map is regular if the control points are evenly "
  "spaced along the domain, and hence their position isn't "

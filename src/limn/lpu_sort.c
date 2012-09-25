@@ -25,7 +25,7 @@
 #include "privateLimn.h"
 
 #define INFO "Sorts primitives according to given values"
-static char *myinfo =
+static const char *myinfo =
 (INFO
  ". ");
 

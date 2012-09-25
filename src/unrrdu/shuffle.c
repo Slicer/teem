@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Permute slices along one axis"
-char *_unrrdu_shuffleInfoL = 
+static const char *_unrrdu_shuffleInfoL = 
 (INFO
  ". Slices along one axis are re-arranged as units "
  "according to the given permutation (or its inverse). "

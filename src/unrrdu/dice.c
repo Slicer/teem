@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Save all slices along one axis into separate files"
-char *_unrrdu_diceInfoL = 
+static const char *_unrrdu_diceInfoL = 
 (INFO
  ". Calls \"unu slice\" for each position "
  "along the indicated axis, and saves out a different "

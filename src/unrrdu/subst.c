@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through a univariate substitution table"
-char *_unrrdu_substInfoL =
+static const char *_unrrdu_substInfoL =
 (INFO
  " (itself represented as a nrrd). The substitution table "
  "is a 2-by-N table: a list of pairs giving the old value (to replace) "

@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Euclidean distance transform"
-char *_unrrdu_distInfoL = 
+static const char *_unrrdu_distInfoL = 
 (INFO
  ". Based on \"Distance Transforms of Sampled Functions\" by "
  "Pedro F. Felzenszwalb and Daniel P. Huttenlocher, "

@@ -42,7 +42,7 @@
    (l)[5] = (m)[7],          \
    (l)[6] = (m)[8] )
 
-char *deconvInfo = ("Does deconvolution. ");
+static const char *deconvInfo = ("Does deconvolution. ");
 
 int
 main(int argc, const char *argv[]) {

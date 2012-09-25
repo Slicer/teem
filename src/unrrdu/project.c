@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Collapse scanlines to scalars along some axis"
-char *_unrrdu_projectInfoL = 
+static const char *_unrrdu_projectInfoL = 
 (INFO
  ". The scanline is reduced to a single scalar by "
  "\"measuring\" all the values in the scanline "

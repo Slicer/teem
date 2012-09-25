@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Describe everything about one sample in a DT volume"
-char *_tend_pointInfoL =
+static const char *_tend_pointInfoL =
   (INFO
    ". ");
 

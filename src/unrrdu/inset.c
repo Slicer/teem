@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Replace a sub-region with a different nrrd"
-char *_unrrdu_insetInfoL = 
+static const char *_unrrdu_insetInfoL = 
 (INFO ". This is functionally the opposite of \"crop\".\n "
  "* Uses nrrdInset");
 

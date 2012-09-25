@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Convert to another type (as if by cast, w/ optional clamp)"
-char *_unrrdu_convertInfoL = 
+static const char *_unrrdu_convertInfoL = 
 (INFO ". By default this does not transform, scale, or intelligently "
  "quantize values; it just copies them from one type to another, which "
  "replicates exactly what you'd get in C when you assign from a variable "

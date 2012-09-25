@@ -27,15 +27,16 @@
 #include <teem/nrrd.h>
 #include <teem/limn.h>
 
-char *emapInfo = ("Creates environment maps based on limn's \"checker\" "
-                  "normal quantization methods.  By taking into account "
-                  "camera parameters, this allows for both lights in "
-                  "both world and view space.  Solely out of laziness, "
-                  "the nrrd format is used for specifying the lights, but not "
-                  "to worry: you can use a simple un-adorned text file, "
-                  "defining one light per line, with 7 values per light: "
-                  "0/1 (world/view space), R\tG\tB color, and "
-                  "X\tY\tZ position.");
+static const char *emapInfo = 
+  ("Creates environment maps based on limn's \"checker\" "
+   "normal quantization methods.  By taking into account "
+   "camera parameters, this allows for both lights in "
+   "both world and view space.  Solely out of laziness, "
+   "the nrrd format is used for specifying the lights, but not "
+   "to worry: you can use a simple un-adorned text file, "
+   "defining one light per line, with 7 values per light: "
+   "0/1 (world/view space), R\tG\tB color, and "
+   "X\tY\tZ position.");
 
 int
 main(int argc, const char *argv[]) {

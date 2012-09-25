@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Print data segment of a nrrd file"
-char *_unrrdu_dataInfoL = 
+static const char *_unrrdu_dataInfoL = 
 (INFO  ".  The value of this is to pass the data segment in isolation to a "
  "stand-alone decoder, in case this Teem build lacks an optional "
  "data encoding required for a given nrrd file.  Caveats: "

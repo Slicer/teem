@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Modify shape by clamping eigenvalues in some range"
-char *_tend_evalclampInfoL =
+static const char *_tend_evalclampInfoL =
   (INFO
    ". The orientation of the tensor is unchanged.  Note that unlike "
    "\"tend anscale\", this operation can completely change the shape "

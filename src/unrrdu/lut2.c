@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through a bivariate lookup table"
-char *_unrrdu_lut2InfoL =
+static const char *_unrrdu_lut2InfoL =
 (INFO
  " (itself represented as a nrrd). The lookup table "
  "can be 2D, in which case the output "

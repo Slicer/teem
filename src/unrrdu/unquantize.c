@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Recover floating point values from quantized data"
-char *_unrrdu_unquantizeInfoL = 
+static const char *_unrrdu_unquantizeInfoL = 
   (INFO ". Uses the oldMin and oldMax fields in the Nrrd of quantized values "
    "to regenerate approximate versions of the original unquantized values. "
    "Can also override these with \"-min\" and \"-max\".\n "

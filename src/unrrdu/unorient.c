@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Make image orientation be axis-aligned"
-char *_unrrdu_unorientInfoL =
+static const char *_unrrdu_unorientInfoL =
   (INFO
    ". Does various tricks.\n "
    "* Uses nrrdOrientationReduce");

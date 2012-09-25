@@ -25,12 +25,13 @@
 #include "privateUnrrdu.h"
 
 #define INFO "List relevant environment variables and their values"
-char *_unrrdu_envInfoL = (INFO
-                          ". These environment variables provide a way of "
-                          "setting global variables that can affect"
-                          " the way Nrrd (and unu) operates.\n "
-                          "* Uses nrrdGetenvBool, nrrdGetenvEnum, "
-                          "nrrdGetenvInt, and nrrdGetenvUInt");
+static const char *_unrrdu_envInfoL = 
+  (INFO
+   ". These environment variables provide a way of "
+   "setting global variables that can affect"
+   " the way Nrrd (and unu) operates.\n "
+   "* Uses nrrdGetenvBool, nrrdGetenvEnum, "
+   "nrrdGetenvInt, and nrrdGetenvUInt");
 
 void
 _unrrdu_envBool(FILE *file, const char *envKey, int currVal,

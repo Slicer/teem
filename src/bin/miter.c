@@ -29,7 +29,8 @@
 #include <teem/hoover.h>
 #include <teem/mite.h>
 
-char *miteInfo = ("A simple but effective little volume renderer.");
+static const char *miteInfo = 
+  ("A simple but effective little volume renderer.");
 
 int
 main(int argc, const char *argv[]) {

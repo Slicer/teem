@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Merge CCs with their neighbors, under various constraints"
-char *_unrrdu_ccmergeInfoL =
+static const char *_unrrdu_ccmergeInfoL =
 (INFO
  ".  This operates on the output of \"ccfind\". "
  "Merging of a CC is always done into its largest neighbor. "

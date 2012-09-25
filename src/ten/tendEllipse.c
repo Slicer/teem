@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Generate postscript renderings of 2D glyphs"
-char *_tend_ellipseInfoL =
+static const char *_tend_ellipseInfoL =
   (INFO
    ".  Not much to look at here.");
 

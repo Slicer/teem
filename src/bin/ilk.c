@@ -24,10 +24,11 @@
 #include <teem/unrrdu.h>
 #include <teem/moss.h>
 
-char *ilkInfo = ("(I)mage (L)inear Trans(X-->K)forms. "
-                 "Applies linear (homogenous coordinate) transforms "
-                 "to a given image, using the given kernel for "
-                 "resampling. ");
+static const char *ilkInfo = 
+  ("(I)mage (L)inear Trans(X-->K)forms. "
+   "Applies linear (homogenous coordinate) transforms "
+   "to a given image, using the given kernel for "
+   "resampling. ");
 
 int
 main(int argc, const char *argv[]) {

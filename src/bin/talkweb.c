@@ -41,7 +41,7 @@
 
 #define TKWB_TAG_MAX 7
 
-char *tkwbInfo = 
+static const char *tkwbInfo = 
 ("Generates HTML pages from slide images and text. "
  "This program takes multiple inputs: a template for the table of contents "
  "that will become \"index.html\" (\"-i\"), a template for the pages "
@@ -255,7 +255,7 @@ tkwbExpandImageInfo(tkwbSlide **slide) {
 }
 
 int
-tkwbWriteStringToFile(char *filename, char *content) {
+tkwbWriteStringToFile(const char *filename, const char *content) {
   static const char me[]="tkwbWriteStringToFile";
   FILE *file;
 

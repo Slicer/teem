@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Estimate tensors from a set of DW images"
-char *_tend_estimInfoL =
+static const char *_tend_estimInfoL =
   (INFO
    ". The tensor coefficient weightings associated with "
    "each of the DWIs, the B-matrix, is given either as a separate array, "

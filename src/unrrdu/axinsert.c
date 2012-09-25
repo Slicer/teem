@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Add a \"stub\" (length 1) axis to a nrrd"
-char *_unrrdu_axinsertInfoL =
+static const char *_unrrdu_axinsertInfoL =
 (INFO
  ". The underlying linear ordering of the samples is "
  "unchanged, and the information about the other axes is "
@@ -52,7 +52,7 @@ unrrdu_axinsertMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_axinsertInfoL);
-  PARSE();
+  PARSEstatic ();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

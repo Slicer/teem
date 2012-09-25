@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Generate twisting helical tensor field"
-char *_tend_helixInfoL =
+static const char *_tend_helixInfoL =
   (INFO
    ". The main utility of such a field is to debug handling of coordinate "
    "systems in tensor field visualization.  The \"space directions\" and "

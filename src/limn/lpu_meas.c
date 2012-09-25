@@ -25,7 +25,7 @@
 #include "privateLimn.h"
 
 #define INFO "Measures something about each primitive"
-static char *myinfo =
+static const char *myinfo =
 (INFO
  ". Actually all it can measure is area at this point...");
 

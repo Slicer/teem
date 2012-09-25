@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Crop along each axis to make a smaller nrrd"
-char *_unrrdu_cropInfoL = 
+static const char *_unrrdu_cropInfoL = 
   (INFO ".\n "
    "* Uses nrrdCrop");
 

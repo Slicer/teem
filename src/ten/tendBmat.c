@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Calculate B-matrix given gradient directions"
-char *_tend_bmatInfoL =
+static const char *_tend_bmatInfoL =
   (INFO
    ", assuming no diffusion weighting from the other imaging gradients. "
    "The input is a 3-by-N array of floats or doubles, each row being "

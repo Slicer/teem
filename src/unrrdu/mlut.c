@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through whole nrrd of univariate lookup tables"
-char *_unrrdu_mlutInfoL =
+static const char *_unrrdu_mlutInfoL =
 (INFO
  ", with one lookup table per element of input nrrd.  The multiple "
  "tables are stored in a nrrd with a dimension which is either 1 or 2 "

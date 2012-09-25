@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Information about this program and its use"
-char *_tend_aboutInfoL =
+static const char *_tend_aboutInfoL =
   (INFO
    ". ");
 

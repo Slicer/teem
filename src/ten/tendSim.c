@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Simulate DW images from a tensor field"
-char *_tend_simInfoL =
+static const char *_tend_simInfoL =
   (INFO
    ".  The output will be in the same form as the input to \"tend estim\". "
    "The B-matrices (\"-B\") can be the output from \"tend bmat\", or the "

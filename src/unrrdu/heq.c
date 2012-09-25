@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Perform histogram equalization"
-char *_unrrdu_heqInfoL =
+static const char *_unrrdu_heqInfoL =
 (INFO
  ". If this seems to be doing nothing, try increasing the "
  "number of histograms bins by an order of magnitude or "

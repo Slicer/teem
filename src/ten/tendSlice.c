@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Slice 3D tensors to get slab/image of 3D/2D  tensors"
-char *_tend_sliceInfoL =
+static const char *_tend_sliceInfoL =
   (INFO
    ". ");
 

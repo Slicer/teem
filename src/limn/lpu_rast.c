@@ -25,7 +25,7 @@
 #include "privateLimn.h"
 
 #define INFO "Rasterize polydata"
-static char *myinfo =
+static const char *myinfo =
 (INFO
  ". ");
 

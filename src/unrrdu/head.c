@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Print header of one or more nrrd files"
-char *_unrrdu_headInfoL = 
+static const char *_unrrdu_headInfoL = 
 (INFO  ".  The value of this is simply to print the contents of nrrd "
  "headers.  This avoids the use of \"head -N\", where N has to be "
  "determined manually, which always risks printing raw binary data "

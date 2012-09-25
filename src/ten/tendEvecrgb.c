@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Make an RGB volume from an eigenvector and an anisotropy"
-char *_tend_evecrgbInfoL =
+static const char *_tend_evecrgbInfoL =
   (INFO
    ". ");
 

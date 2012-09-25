@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "converts from 1-D index to world position"
-char *_unrrdu_i2wInfoL = 
+static const char *_unrrdu_i2wInfoL = 
 (INFO  ", given the centering of the data (cell vs. node), "
  "the range of positions, and the number of intervals into "
  "which position has been quantized. "

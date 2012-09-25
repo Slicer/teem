@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Interchange ordering of two axes"
-char *_unrrdu_swapInfoL = 
+static const char *_unrrdu_swapInfoL = 
   (INFO
    ". Special case of \"unu\tpermute\".\n "
    "* Uses nrrdAxesSwap");

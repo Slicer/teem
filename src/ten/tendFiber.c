@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Fiber tractography, from one or more seeds"
-char *_tend_fiberInfoL =
+static const char *_tend_fiberInfoL =
   (INFO
    ".  A fairly complete command-line interface to the tenFiber API.");
 

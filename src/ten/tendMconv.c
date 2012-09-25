@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "convert from one model to another"
-char *_tend_mconvInfoL =
+static const char *_tend_mconvInfoL =
   (INFO
    ". More docs here.");
 

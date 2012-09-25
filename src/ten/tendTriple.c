@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Compute volume of shape triples"
-char *_tend_tripleInfoL =
+static const char *_tend_tripleInfoL =
   (INFO
    ".  The triple can be eignvalues, invariants (J, K, R), "
    "and lots of other things.");

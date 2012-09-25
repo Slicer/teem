@@ -194,9 +194,10 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
   return 0;
 }
 
-char *probeInfo = ("Shows off the functionality of the gage library. "
-                   "Uses gageProbe() to query various kinds of volumes "
-                   "to learn various measured or derived quantities.");
+static const char *probeInfo = 
+  ("Shows off the functionality of the gage library. "
+   "Uses gageProbe() to query various kinds of volumes "
+   "to learn various measured or derived quantities.");
 
 int
 main(int argc, const char *argv[]) {

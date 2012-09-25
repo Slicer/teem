@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Cheap histogram-based median/mode filtering"
-char *_unrrdu_cmedianInfoL =
+static const char *_unrrdu_cmedianInfoL =
 (INFO
  ". Only works on 1, 2, or 3 dimensions.  The window "
  "over which filtering is done is always square, and "

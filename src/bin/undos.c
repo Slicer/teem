@@ -27,15 +27,16 @@
 #include <teem/air.h>
 #include <teem/hest.h>
 
-char *info = ("Converts from DOS text files to normal (converting LF-CR pairs "
-              "to just CR), or, with the \"-r\" option, convert back to DOS, "
-              "for whatever sick and twisted reason you'd have to do that. "
-              "Can also handle legacy MAC text files (only LF). "
-              "Unlike the simple sed or perl scripts for this purpose, "
-              "this program is careful to be idempotent.  Also, this makes "
-              "an effort to not meddle with binary files (on which this may "
-              "be mistakenly invoked).  A message is printed "
-              "to stderr for all the files actually modified. ");
+static const char *info = 
+  ("Converts from DOS text files to normal (converting LF-CR pairs "
+   "to just CR), or, with the \"-r\" option, convert back to DOS, "
+   "for whatever sick and twisted reason you'd have to do that. "
+   "Can also handle legacy MAC text files (only LF). "
+   "Unlike the simple sed or perl scripts for this purpose, "
+   "this program is careful to be idempotent.  Also, this makes "
+   "an effort to not meddle with binary files (on which this may "
+   "be mistakenly invoked).  A message is printed "
+   "to stderr for all the files actually modified. ");
 
 #define CR 10
 #define LF 13

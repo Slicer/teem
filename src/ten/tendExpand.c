@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Converts masked non-redundant tensor images to redundant"
-char *_tend_expandInfoL =
+static const char *_tend_expandInfoL =
   (INFO
    ". For images of 3D tensors, this converts from a 7-value tensor "
    "starting with the confidence/mask value "

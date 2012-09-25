@@ -31,7 +31,7 @@
 #define NO_STRING "."
 
 #define INFO "Create a nrrd (or nrrd header) from scratch"
-char *_unrrdu_makeInfoL =
+static const char *_unrrdu_makeInfoL =
 (INFO
  ".  The data can be in one or more files, or coming from stdin. "
  "This provides an easy way of specifying the information about some "

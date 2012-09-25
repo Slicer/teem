@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Ring removal for CT"
-char *_unrrdu_deringInfoL =
+static const char *_unrrdu_deringInfoL =
 (INFO
  ". Should be considered a work-in-progress. ");
 

@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Find connected components (CCs)"
-char *_unrrdu_ccfindInfoL =
+static const char *_unrrdu_ccfindInfoL =
 (INFO
  ". This works on 1-byte and 2-byte integral values, as well as "
  "4-byte ints.\n "

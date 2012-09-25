@@ -25,7 +25,7 @@
 #include "privateBane.h"
 
 #define TXF_INFO "Create Levoy-style triangular 2D opacity functions"
-char *_baneGkms_txfInfoL =
+static const char *_baneGkms_txfInfoL =
   (TXF_INFO
    ". The triangles are in the 2D space of data value and gradient "
    "magnitude.  They can be tilted sideways and clipped at the bottom. "

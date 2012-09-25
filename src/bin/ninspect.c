@@ -268,13 +268,14 @@ ninspect_usage(void) {
   fprintf(stderr, "   extension (if recognized), or else in NRRD format\n");
 }
 
-char *info = ("Quick way of seeing what's inside a 3D volume.  A color image "
-              "of three axis-aligned projections is composed of histogram-"
-              "equalized and quantized images of the summation (red), "
-              "variance (green), and maximum (blue) intensity projections. "
-              "If volume is orientation in RAS space, then a standard "
-              "orientation is used for projections and projections are "
-              "upsampled (with box kernel) to have isotropic pixels.");
+static const char *info = 
+  ("Quick way of seeing what's inside a 3D volume.  A color image "
+   "of three axis-aligned projections is composed of histogram-"
+   "equalized and quantized images of the summation (red), "
+   "variance (green), and maximum (blue) intensity projections. "
+   "If volume is orientation in RAS space, then a standard "
+   "orientation is used for projections and projections are "
+   "upsampled (with box kernel) to have isotropic pixels.");
 
 int
 main(int argc, const char *argv[]) {

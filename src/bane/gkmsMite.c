@@ -25,7 +25,7 @@
 #include "privateBane.h"
 
 #define MITE_INFO "Modify opacity function to work with \"mite\""
-char *_baneGkms_miteInfoL =
+static const char *_baneGkms_miteInfoL =
   (MITE_INFO
    ". Useful when using the \"mite\" Teem library, or the \"miter\" "
    "command-line renderer.  This adds a \"stub\" axis 0, and setting the "

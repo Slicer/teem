@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Sees if two nrrds are different in any way"
-char *_unrrdu_diffInfoL =
+static const char *_unrrdu_diffInfoL =
 (INFO
  ". Looks through all fields to see if two given nrrds contain the "
  "same information. Or, array meta-data can be excluded, and comparison "

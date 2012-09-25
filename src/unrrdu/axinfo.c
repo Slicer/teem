@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Modify attributes of one or more axes"
-char *_unrrdu_axinfoInfoL =
+static const char *_unrrdu_axinfoInfoL =
 (INFO
  ". The only attributes which are set are those for which command-line "
  "options are given.\n "

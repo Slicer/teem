@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Merge two adjacent axes into one"
-char *_unrrdu_axmergeInfoL =
+static const char *_unrrdu_axmergeInfoL =
 (INFO
  ". A more general version of \"unu axdelete\". "
  "The underlying linear ordering of the samples is "

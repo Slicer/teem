@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Brighten or darken values with a gamma"
-char *_unrrdu_gammaInfoL =
+static const char *_unrrdu_gammaInfoL =
 (INFO
  ". Just as in xv, the gamma value here is actually the "
  "reciprocal of the exponent actually used to transform "

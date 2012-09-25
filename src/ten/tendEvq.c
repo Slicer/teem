@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Quantize directions of diffusion"
-char *_tend_evqInfoL =
+static const char *_tend_evqInfoL =
   (INFO
    ". Because VTK doesn't do multi-dimensional colormaps, we have to "
    "quantize directions of diffusion (usually just the principal eigenvector) "

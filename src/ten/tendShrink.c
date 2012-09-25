@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Converts a 9-value DT volume to a 7-value DT volume"
-char *_tend_shrinkInfoL =
+static const char *_tend_shrinkInfoL =
   (INFO
    ". The confidence value is set to 1.0 everwhere.  You can \"unu splice\" "
    "or nrrdSplice() something else in its place later.");

@@ -25,7 +25,7 @@
 #include "privateBane.h"
 
 #define INFO_INFO "Project histogram volume for opacity function generation"
-char *_baneGkms_infoInfoL =
+static const char *_baneGkms_infoInfoL =
   (INFO_INFO
    ". This distills the histogram volume down to the information required "
    "to create either 1-D or 2-D opacity functions.");

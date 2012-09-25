@@ -25,7 +25,7 @@
 #include "privateBane.h"
 
 #define SCAT_INFO "Make V-G and V-H scatterplots"
-char *_baneGkms_scatInfoL =
+static const char *_baneGkms_scatInfoL =
   (SCAT_INFO
    ". These provide a quick way to inspect a histogram volume, in order to "
    "verify that the derivative inclusion ranges were appropriate, and to "

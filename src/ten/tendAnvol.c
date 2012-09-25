@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Apply an anisotropy metric to a DT volume"
-char *_tend_anvolInfoL =
+static const char *_tend_anvolInfoL =
   (INFO
    ".  The anisotropy value will be zero in the locations which "
    "don't meet the given confidence threshold.");

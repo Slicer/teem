@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Permute ordering of axes"
-char *_unrrdu_permuteInfoL =
+static const char *_unrrdu_permuteInfoL =
 (INFO
  ". The permutation gives the new ordering of the old "
  "axes (in 0-based numbering). For example, the "

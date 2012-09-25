@@ -235,7 +235,7 @@ baneGkmsCmdList[] = {
 ** with their one-line descriptions
 */
 void
-baneGkmsUsage(char *me, hestParm *hparm) {
+baneGkmsUsage(const char *me, hestParm *hparm) {
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
   unsigned int ci, si, len, maxlen;
 
@@ -265,7 +265,7 @@ baneGkmsUsage(char *me, hestParm *hparm) {
   }
 }
 
-const char *
+static const char *
 _baneGkmsMeasrStr[] = {
   "(unknown measr)",
   "min",

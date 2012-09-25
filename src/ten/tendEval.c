@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Calculate one or more eigenvalues in a DT volume"
-char *_tend_evalInfoL =
+static const char *_tend_evalInfoL =
   (INFO
    ". ");
 

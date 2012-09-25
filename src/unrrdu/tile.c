@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Tile slices of one axis into two other axes"
-char *_unrrdu_tileInfoL =
+static const char *_unrrdu_tileInfoL =
 (INFO
  ". Tiling an array means splitting one axis into fast and slow parts, "
  "and then interleaving those parts into other (existing) axes by doing "

@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Affine (lerp) mapping on 5 nrrds or constants"
-char *_unrrdu_affineInfoL =
+static const char *_unrrdu_affineInfoL =
 (INFO
  ". All the 5 arguments can be either nrrds or single "
  "floating-point values.  When all args are single values, this "

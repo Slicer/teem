@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Ternary operation on three nrrds or constants"
-char *_unrrdu_3opInfoL =
+static const char *_unrrdu_3opInfoL =
 (INFO
  ". Can have one, two, or three nrrds, but not zero. "
  "Use \"-\" for an operand to signify "

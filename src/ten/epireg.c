@@ -25,8 +25,8 @@
 #include "privateTen.h"
 
 int
-_tenEpiRegSave(char *fname, Nrrd *nsingle, Nrrd **nmulti,
-               int len, char *desc) {
+_tenEpiRegSave(const char *fname, Nrrd *nsingle, Nrrd **nmulti,
+               int len, const char *desc) {
   static const char me[]="_tenEpiRegSave";
   Nrrd *nout;
   airArray *mop;

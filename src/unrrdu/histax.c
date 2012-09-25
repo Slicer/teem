@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Replace each scanline along an axis with its histogram"
-char *_unrrdu_histaxInfoL = 
+static const char *_unrrdu_histaxInfoL = 
   (INFO
    ".\n "
    "* Uses nrrdHistoAxis");

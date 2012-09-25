@@ -25,7 +25,7 @@
 #include "privateTen.h"
 
 #define INFO "Normalize tensor size"
-char *_tend_normInfoL =
+static const char *_tend_normInfoL =
   (INFO
    ". This operates on the eigenvalues of the tensor, and allows "
    "normalizing some user-defined weighting (\"-w\") of the eigenvalues by "
