@@ -538,7 +538,7 @@ nrrdDescribe(FILE *file, const Nrrd *nrrd) {
   char stmp[AIR_STRLEN_SMALL];
 
   if (file && nrrd) {
-    fprintf(file, "Nrrd at 0x%p:\n", (void*)nrrd);
+    fprintf(file, "Nrrd at 0x%p:\n", AIR_CVOIDP(nrrd));
     fprintf(file, "Data at 0x%p is %s elements of type %s.\n", nrrd->data,
             airSprintSize_t(stmp, nrrdElementNumber(nrrd)),
             airEnumStr(nrrdType, nrrd->type));
@@ -1122,7 +1122,7 @@ _nrrdCheck(const Nrrd *nrrd, int checkData, int useBiff) {
   if (checkData) {
     if (!(nrrd->data)) {
       biffMaybeAddf(useBiff, NRRD, "%s: nrrd %p has NULL data pointer", 
-                    me, AIR_VOIDP(nrrd));
+                    me, AIR_CVOIDP(nrrd));
       return 1;
     }
   }
@@ -1412,6 +1412,14 @@ nrrdSanity(void) {
   if (aret != airInsane_not) {
     biffAddf(NRRD, "%s: airSanity() failed: %s", me,
              airInsaneErr(aret));
+    return 0;
+  }
+
+  /* HEY: this is odd; this sanity checker isn't part of airSanity,
+     nor can it be without adding to airInsaneErr's list of what
+     can go wrong, but someone should be calling it .. */
+  if (!airRandMTSanity()) {
+    biffAddf(NRRD, "%s: airRandMTSanity failed", me);
     return 0;
   }
 
