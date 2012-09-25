@@ -750,7 +750,7 @@ NRRD_EXPORT NrrdIoState *nrrdIoStateNix(NrrdIoState *nio);
 /* ---- BEGIN non-NrrdIO */
 NRRD_EXPORT NrrdResampleInfo *nrrdResampleInfoNew(void);
 NRRD_EXPORT NrrdResampleInfo *nrrdResampleInfoNix(NrrdResampleInfo *info);
-NRRD_EXPORT NrrdKernelSpec *nrrdKernelSpecNew();
+NRRD_EXPORT NrrdKernelSpec *nrrdKernelSpecNew(void);
 NRRD_EXPORT NrrdKernelSpec *nrrdKernelSpecCopy(const NrrdKernelSpec *ksp);
 NRRD_EXPORT void nrrdKernelSpecSet(NrrdKernelSpec *ksp, const NrrdKernel *k,
                                    const double kparm[NRRD_KERNEL_PARMS_NUM]);
@@ -1323,7 +1323,7 @@ typedef double nrrdResample_t;
 #endif
 
 /* resampleContext.c */
-NRRD_EXPORT NrrdResampleContext *nrrdResampleContextNew();
+NRRD_EXPORT NrrdResampleContext *nrrdResampleContextNew(void);
 NRRD_EXPORT NrrdResampleContext *nrrdResampleContextNix(NrrdResampleContext *);
 NRRD_EXPORT int nrrdResampleDefaultCenterSet(NrrdResampleContext *rsmc,
                                              int center);
