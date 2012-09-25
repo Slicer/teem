@@ -143,7 +143,7 @@ airSanity(void) {
   return airInsane_not;
 }
 
-const char
+static const char
 _airInsaneErr[AIR_INSANE_MAX+1][AIR_STRLEN_MED] = {
   "sanity checked PASSED!",
   "airMyEndian() is wrong",
