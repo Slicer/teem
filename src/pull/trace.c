@@ -210,22 +210,22 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
       }
       if (trceArr[dirIdx]->len >= 2) {
         /* see if we're moving too fast, by comparing with previous point */
-        double pos0[3], pos1[3], diff[3], velo;
+        double pos0[3], pos1[3], diff[3], vv;
         unsigned int ii;
         
         ii = trceArr[dirIdx]->len-2;
         ELL_3V_COPY(pos0, trce[dirIdx] + 4*(ii+0));
         ELL_3V_COPY(pos1, trce[dirIdx] + 4*(ii+1));
         ELL_3V_SUB(diff, pos1, pos0);
-        velo = ELL_3V_LEN(diff)/scaleDelta;
+        vv = ELL_3V_LEN(diff)/scaleDelta;
         /*
         fprintf(stderr, "%s(%u): velo %g %s velocityMax %g => %s\n", me, 
-                point->idtag, velo, 
-                velo > velocityMax ? ">" : "<=",
+                point->idtag, vv, 
+                vv > velocityMax ? ">" : "<=",
                 velocityMax, 
-                velo > velocityMax ? "FAIL" : "(ok)");
+                vv > velocityMax ? "FAIL" : "(ok)");
         */
-        if (velo > velocityMax) {
+        if (vv > velocityMax) {
           pts->whyStop[dirIdx] = pullTraceStopSpeeding;
           break;
         }

@@ -390,7 +390,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
     *gradCbS=NULL, *gradCbB=NULL, *gradCbQ=NULL, *gradCbR=NULL,
     *hessCbS=NULL, *hessCbB=NULL, *hessCbQ=NULL, *hessCbR=NULL,
     gradDdXYZ[21]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  double tmp0, tmp1, tmp2, magTmp=0,
+  double tmp0, tmp1, tmp3, magTmp=0,
     dtA=0, dtB=0, dtC=0, dtD=0, dtE=0, dtF=0,
     cbQ=0, cbR=0, cbA=0, cbB=0, cbC=0, cbS=0,
     gradCbA[3]={0,0,0}, gradCbC[3]={0,0,0};
@@ -661,9 +661,9 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   /* --- FA --- */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageFAGradVec)) {
     vecTmp = pvl->directAnswer[tenGageFAGradVec];
-    tmp2 = AIR_MAX(0, pvl->directAnswer[tenGageFA][0]);
-    tmp0 = cbQ ? tmp2/(2*cbQ) : 0;
-    tmp1 = cbS ? -tmp2/(2*cbS) : 0;
+    tmp3 = AIR_MAX(0, pvl->directAnswer[tenGageFA][0]);
+    tmp0 = cbQ ? tmp3/(2*cbQ) : 0;
+    tmp1 = cbS ? -tmp3/(2*cbS) : 0;
     ELL_3V_SCALE_ADD2(vecTmp,
                       tmp0, gradCbQ, 
                       tmp1, gradCbS);

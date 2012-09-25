@@ -245,73 +245,73 @@ ell_6m_mul_d(double AB[36], const double A[36], const double B[36]) {
 */
 void
 ell_3m_rotate_between_d(double rot[9], double from[3], double to[3]) {
-  double v[3];
+  double vv[3];
   double e, h, f;
 
   if (!( rot && from && to)) {
     return;
   }
-  ELL_3V_CROSS(v, from, to);
+  ELL_3V_CROSS(vv, from, to);
   e = ELL_3V_DOT(from, to);
   f = AIR_ABS(e);
   if (f > 0.9999999) {   /* "from" and "to"-vector almost parallel */
-    double u[3], v[3];   /* temporary storage vectors */
-    double x[3];         /* vector most nearly orthogonal to "from" */
+    double tu[3], tv[3]; /* temporary storage vectors */
+    double xx[3];        /* vector most nearly orthogonal to "from" */
     double c1, c2, c3;   /* coefficients for later use */
     int i, j;
     
-    x[0] = AIR_ABS(from[0]);
-    x[1] = AIR_ABS(from[1]);
-    x[2] = AIR_ABS(from[2]);
+    xx[0] = AIR_ABS(from[0]);
+    xx[1] = AIR_ABS(from[1]);
+    xx[2] = AIR_ABS(from[2]);
 
-    if (x[0] < x[1]) {
-      if (x[0] < x[2]) {
-        x[0] = 1.0; x[1] = x[2] = 0.0;
+    if (xx[0] < xx[1]) {
+      if (xx[0] < xx[2]) {
+        xx[0] = 1.0; xx[1] = xx[2] = 0.0;
       } else {
-        x[2] = 1.0; x[0] = x[1] = 0.0;
+        xx[2] = 1.0; xx[0] = xx[1] = 0.0;
       }
     } else {
-      if (x[1] < x[2]) {
-        x[1] = 1.0; x[0] = x[2] = 0.0;
+      if (xx[1] < xx[2]) {
+        xx[1] = 1.0; xx[0] = xx[2] = 0.0;
       } else {
-        x[2] = 1.0; x[0] = x[1] = 0.0;
+        xx[2] = 1.0; xx[0] = xx[1] = 0.0;
       }
     }
 
-    u[0] = x[0] - from[0]; u[1] = x[1] - from[1]; u[2] = x[2] - from[2];
-    v[0] = x[0] - to[0];   v[1] = x[1] - to[1];   v[2] = x[2] - to[2];
+    tu[0] = xx[0] - from[0]; tu[1] = xx[1] - from[1]; tu[2] = xx[2] - from[2];
+    tv[0] = xx[0] - to[0];   tv[1] = xx[1] - to[1];   tv[2] = xx[2] - to[2];
 
-    c1 = 2.0 / ELL_3V_DOT(u, u);
-    c2 = 2.0 / ELL_3V_DOT(v, v);
-    c3 = c1 * c2  * ELL_3V_DOT(u, v);
+    c1 = 2.0 / ELL_3V_DOT(tu, tu);
+    c2 = 2.0 / ELL_3V_DOT(tv, tv);
+    c3 = c1 * c2  * ELL_3V_DOT(tu, tv);
 
     for (i = 0; i < 3; i++) {
       for (j = 0; j < 3; j++) {
-        rot[3*i + j] =  - c1 * u[i] * u[j]
-                     - c2 * v[i] * v[j]
-                     + c3 * v[i] * u[j];
+        rot[3*i + j] =  - c1 * tu[i] * tu[j]
+                     - c2 * tv[i] * tv[j]
+                     + c3 * tv[i] * tu[j];
       }
       rot[3*i + i] += 1.0;
     }
   } else { /* the most common case, unless "from"="to", or "from"=-"to" */
     double hvx, hvz, hvxy, hvxz, hvyz;
     h = 1.0/(1.0 + e);      /* optimization by Gottfried Chen */
-    hvx = h * v[0];
-    hvz = h * v[2];
-    hvxy = hvx * v[1];
-    hvxz = hvx * v[2];
-    hvyz = hvz * v[1];
-    rot[3*0 + 0] = e + hvx * v[0];
-    rot[3*0 + 1] = hvxy - v[2];
-    rot[3*0 + 2] = hvxz + v[1];
+    hvx = h * vv[0];
+    hvz = h * vv[2];
+    hvxy = hvx * vv[1];
+    hvxz = hvx * vv[2];
+    hvyz = hvz * vv[1];
+    rot[3*0 + 0] = e + hvx * vv[0];
+    rot[3*0 + 1] = hvxy - vv[2];
+    rot[3*0 + 2] = hvxz + vv[1];
 
-    rot[3*1 + 0] = hvxy + v[2];
-    rot[3*1 + 1] = e + h * v[1] * v[1];
-    rot[3*1 + 2] = hvyz - v[0];
+    rot[3*1 + 0] = hvxy + vv[2];
+    rot[3*1 + 1] = e + h * vv[1] * vv[1];
+    rot[3*1 + 2] = hvyz - vv[0];
 
-    rot[3*2 + 0] = hvxz - v[1];
-    rot[3*2 + 1] = hvyz + v[0];
-    rot[3*2 + 2] = e + hvz * v[2];
+    rot[3*2 + 0] = hvxz - vv[1];
+    rot[3*2 + 1] = hvyz + vv[0];
+    rot[3*2 + 2] = e + hvz * vv[2];
   }
   return;
 }

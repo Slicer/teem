@@ -920,7 +920,7 @@ limnPolyDataSpiralBetterquadric(limnPolyData *pld,
       ELL_4V_SET_TT(pld->xyzw + 4*vertIdx, float, xx, yy, zz, 1.0);
       if (minRad > 0.0) {
         /* add thickness to small radius */
-        double xx, yy, rr;
+        double rr;
         xx = (pld->xyzw + 4*vertIdx)[0];
         yy = (pld->xyzw + 4*vertIdx)[1];
         rr = sqrt(xx*xx + yy*yy);

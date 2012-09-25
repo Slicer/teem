@@ -65,7 +65,6 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
        to AIR_STRLEN_HUGE*100, but the general problem remains.  This
        motivated adding the memory corruption test */
     if (1 != fscanf(file, "%s", numbStr)) {
-      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
       biffAddf(NRRD, "%s: couldn't parse element %s of %s", me,
                airSprintSize_t(stmp1, I+1),
                airSprintSize_t(stmp2, elNum));

@@ -578,7 +578,7 @@ tenInterpPathLength(Nrrd *ntt, int doubleVerts, int fancy, int shape) {
     TEN_T_SUB(diff, tenA, tenB);
     if (fancy) {
       double mean[7], igrt[7*6], dot, incr;
-      unsigned int ii, lo, hi;
+      unsigned int lo, hi;
 
       TEN_T_LERP(mean, 0.5, tenA, tenB);
       _tenInterpGeoLoxIGRT(igrt, mean, AIR_FALSE, AIR_FALSE, 0.0);

@@ -149,7 +149,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
       /*  limnVrt *outVrt; */
       /* -------------------------------------- BEGIN initial endcap */
       if (0 == inVertIdx) {
-        unsigned int startIdx, ei, pi;
+        unsigned int startIdx, ei;
         startIdx = outVertTotalIdx;
         if (endFacet) {
           for (ei=0; ei<endFacet; ei++) {
@@ -259,7 +259,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
       tubeEndIdx = outVertTotalIdx;
       /* -------------------------------------- BEGIN final endcap */
       if (inVertIdx == pldIn->icnt[primIdx]-1) {
-        unsigned int ei, pi;
+        unsigned int ei;
         if (endFacet) {
           for (ei=0; ei<endFacet; ei++) {
             for (pi=0; pi<tubeFacet; pi++) {

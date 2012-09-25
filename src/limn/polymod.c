@@ -351,7 +351,7 @@ vertexWithTriangle(Nrrd *nVertWithTri, limnPolyData *pld) {
   
   baseVertIdx = 0;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
-    unsigned int triNum, triIdx, *indxLine, totTriIdx, ii;
+    unsigned int triIdx, *indxLine, totTriIdx, ii;
     triNum = pld->icnt[primIdx]/3;
     for (triIdx=0; triIdx<triNum; triIdx++) {
       totTriIdx = triIdx + baseVertIdx/3;
@@ -893,7 +893,7 @@ splitVertDup(limnPolyData *pld, airArray *edgeArr,
   /* HEY: this is one place where we really exploit the fact that we only
      have triangles: it makes the indxLine computation much much easier */
   for (trackIdx=0; trackIdx<trackLen; trackIdx++) {
-    unsigned int *indxLine, ii, jj;
+    unsigned int *indxLine, jj;
     indxLine = pld->indx + 3*track[trackIdx];
     for (ii=0; ii<vixLutLen; ii++) {
       for (jj=0; jj<3; jj++) {

@@ -313,7 +313,6 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   numtxt = png_get_text(png, info, &txt, NULL);
   for (i=0; i<numtxt; i++) {
     if (!strcmp(txt[i].key, NRRD_PNG_FIELD_KEY)) {
-      int ret;
       nio->pos = 0;
       /* Reading PNGs teaches Gordon that his scheme for parsing nrrd header
          information is inappropriately specific to reading PNMs and NRRDs,

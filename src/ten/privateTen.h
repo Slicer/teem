@@ -68,25 +68,25 @@ unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main }
   if (4 == nin->dim                                                     \
       && 6 == nin->axis[0].size                                         \
       && nrrdTypeBlock != nin->type) {                                  \
-    ptrdiff_t min[4], max[4];                                           \
-    Nrrd *ntmp;                                                         \
+    ptrdiff_t padmin[4], padmax[4];                                     \
+    Nrrd *npadtmp;                                                      \
     /* create a confidence channel by padding on 1s */                  \
-    min[0] = -1; min[1] = min[2] = min[3] = 0;                          \
-    max[0] = nin->axis[0].size-1;                                       \
-    max[1] = nin->axis[1].size-1;                                       \
-    max[2] = nin->axis[2].size-1;                                       \
-    max[3] = nin->axis[3].size-1;                                       \
-    ntmp = nrrdNew();                                                   \
-    if (nrrdPad_nva(ntmp, nin, min, max, nrrdBoundaryPad, 1.0)          \
-        || nrrdCopy(nin, ntmp)) {                                       \
-      char *err;                                                        \
-      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);   \
-      fprintf(stderr, "%s: can't pad 6-comp tensor:\n%s", me, err);     \
+    padmin[0] = -1; padmin[1] = padmin[2] = padmin[3] = 0;              \
+    padmax[0] = nin->axis[0].size-1;                                    \
+    padmax[1] = nin->axis[1].size-1;                                    \
+    padmax[2] = nin->axis[2].size-1;                                    \
+    padmax[3] = nin->axis[3].size-1;                                    \
+    npadtmp = nrrdNew();                                                \
+    if (nrrdPad_nva(npadtmp, nin, padmin, padmax, nrrdBoundaryPad, 1.0) \
+        || nrrdCopy(nin, npadtmp)) {                                    \
+      char *paderr;                                                     \
+      airMopAdd(mop, paderr = biffGetDone(NRRD), airFree, airMopAlways);\
+      fprintf(stderr, "%s: can't pad 6-comp tensor:\n%s", me, paderr);  \
       airMopError(mop);                                                 \
-      nrrdNuke(ntmp);                                                   \
+      nrrdNuke(npadtmp);                                                \
       return 2;                                                         \
     }                                                                   \
-    nrrdNuke(ntmp);                                                     \
+    nrrdNuke(npadtmp);                                                  \
   }
   
 /* qseg.c: 2-tensor estimation */
