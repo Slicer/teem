@@ -184,7 +184,7 @@ airMopPrint(airArray *arr, const void *_str, int when) {
   if (!(arr && _str))
     return;
 
-  copy = airStrdup((char*)_str);
+  copy = airStrdup(AIR_CAST(const char*, _str));
   airMopAdd(arr, copy, airFree, airMopAlways);
   airMopAdd(arr, copy, _airMopPrint, when);
   return;

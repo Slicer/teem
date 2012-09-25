@@ -394,7 +394,7 @@ tend_estimMain(int argc, const char **argv, const char *me,
                                nin4d, nbmat, knownB0, thresh, soft, bval);
     } else {
       EE = tenEstimateLinear3D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
-                               (const Nrrd**)nin, ninLen, nbmat,
+                               (const Nrrd*const*)nin, ninLen, nbmat,
                                knownB0, thresh, soft, bval);
     }
     if (EE) {

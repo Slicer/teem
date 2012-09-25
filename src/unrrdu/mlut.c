@@ -103,7 +103,8 @@ unrrdu_mlutMain(int argc, const char **argv, const char *me,
     /* assume that mlut component nrrds are all compatible sizes,
        nrrdJoin will fail if they aren't */
     mapAxis = _nmlut[0]->dim - nin->dim;
-    if (nrrdJoin(nmlut, (const Nrrd**)_nmlut, _nmlutLen, mapAxis, AIR_TRUE)) {
+    if (nrrdJoin(nmlut, (const Nrrd*const*)_nmlut, _nmlutLen,
+                 mapAxis, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble joining mlut:\n%s", me, err);
       airMopError(mop);

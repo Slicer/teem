@@ -161,7 +161,7 @@ _nrrdGzOpen(FILE* fd, const char* mode) {
   int error;
   int level = Z_DEFAULT_COMPRESSION; /* compression level */
   int strategy = Z_DEFAULT_STRATEGY; /* compression strategy */
-  char *p = (char*)mode;
+  const char *p = mode;
   _NrrdGzStream *s;
   char fmode[AIR_STRLEN_MED]; /* copy of mode, without the compression level */
   char *m = fmode;
@@ -298,7 +298,7 @@ _nrrdGzClose (gzFile file) {
 ** Returns the number of bytes actually read (0 for end of file).
 */
 int
-_nrrdGzRead(gzFile file, voidp buf, unsigned int len, unsigned int* read) {
+_nrrdGzRead(gzFile file, void* buf, unsigned int len, unsigned int* read) {
   static const char me[]="_nrrdGzRead";
   _NrrdGzStream *s = (_NrrdGzStream*)file;
   Bytef *start = (Bytef*)buf; /* starting point for crc computation */
@@ -405,7 +405,7 @@ _nrrdGzRead(gzFile file, voidp buf, unsigned int len, unsigned int* read) {
 ** Returns the number of bytes actually written (0 in case of error).
 */
 int
-_nrrdGzWrite(gzFile file, const voidp buf, unsigned int len,
+_nrrdGzWrite(gzFile file, const void* buf, unsigned int len,
              unsigned int* written) {
   static const char me[]="_nrrdGzWrite";
   _NrrdGzStream *s = (_NrrdGzStream*)file;
@@ -416,7 +416,7 @@ _nrrdGzWrite(gzFile file, const voidp buf, unsigned int len,
     return 1;
   }
 
-  s->stream.next_in = (Bytef*)buf;
+  s->stream.next_in = (const Bytef*)buf;
   s->stream.avail_in = len;
 
   while (s->stream.avail_in != 0) {

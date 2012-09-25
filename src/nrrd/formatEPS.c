@@ -47,7 +47,7 @@ _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   /* encoding information is ignored- its always going to be hex */
   if (!nrrd) {
     biffMaybeAddf(useBiff, NRRD, "%s: got NULL nrrd (%p)",
-                  me, AIR_CAST(void*, nrrd)); 
+                  me, AIR_CVOIDP(nrrd)); 
     return AIR_FALSE;
   }
   if (nrrdTypeUChar != nrrd->type) {

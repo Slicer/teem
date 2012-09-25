@@ -190,7 +190,8 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
 #if TEEM_ZLIB
   size_t sizeData, sizeWrit, sizeChunk;
   int fmt_i=0, error;
-  char *data, fmt[4];
+  const char *data;
+  char fmt[4];
   gzFile gzfout;
   unsigned int wrote;
   
@@ -227,11 +228,11 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   /* keeps track of what how much has been successfully written */
   sizeWrit = 0;
   /* Pointer to the chunks as we write them. */
-  data = (char *)_data;
+  data = AIR_CAST(const char *, _data);
   
   /* Ok, now we can begin writing. Cast on third arg ok because of
      AIR_MIN use above */
-  while ((error = _nrrdGzWrite(gzfout, data,
+  while ((error = _nrrdGzWrite(gzfout, AIR_CVOIDP(data),
                                AIR_CAST(unsigned int, sizeChunk),
                                &wrote)) == 0 
          && wrote > 0) {

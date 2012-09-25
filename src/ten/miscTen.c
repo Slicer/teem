@@ -38,7 +38,7 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
   
   if (!(nout && nin)) {
     biffAddf(TEN, "%s: got NULL pointer (%p,%p)",
-            me, AIR_CAST(void *, nout), AIR_CAST(void *, nin));
+             me, AIR_CAST(void *, nout), AIR_CVOIDP(nin));
     return 1;
   }
   if (tenEvecRGBParmCheck(rgbp)) {

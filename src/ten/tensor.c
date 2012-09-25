@@ -741,7 +741,7 @@ tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
         || nrrdSlice(ncoeff[1], nslice, 0, ci[1])
         || nrrdSlice(ncoeff[2], nslice, 0, ci[2])
         || nrrdSlice(ncoeff[3], nslice, 0, ci[3])
-        || nrrdJoin(nout, (const Nrrd **)ncoeff, 4, 0, AIR_TRUE)) {
+        || nrrdJoin(nout, (const Nrrd *const*)ncoeff, 4, 0, AIR_TRUE)) {
       biffMovef(TEN, NRRD, "%s: trouble collecting coefficients", me);
       airMopError(mop); return 1;
     }

@@ -518,7 +518,7 @@ qbertScat(Nrrd *nvgh, int pos, int size, char *name) {
   E = 0;
   if (!E) E |= nrrdSlice(nv, nvgh, 0, 0);
   if (!E) E |= nrrdSlice(nx, nvgh, 0, pos);
-  if (!E) E |= nrrdHistoJoint(nscA, (const Nrrd**)nin, NULL, 2,
+  if (!E) E |= nrrdHistoJoint(nscA, (const Nrrd*const*)nin, NULL, 2,
                               NULL, bins, nrrdTypeFloat, clamp);
   if (!E) E |= nrrdArithUnaryOp(nscB, nrrdUnaryOpLog1p, nscA);
   if (!E) E |= nrrdHistoEq(nscA, nscB, NULL, 2048, 2, 0.45f);

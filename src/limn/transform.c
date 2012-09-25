@@ -267,11 +267,11 @@ limnObjectPartTransform(limnObject *obj, unsigned int partIdx,
 
 int
 _limnPartDepthCompare(const void *_a, const void *_b) {
-  limnPart **a;
-  limnPart **b;
-
-  a = (limnPart **)_a;
-  b = (limnPart **)_b;
+  limnPart *const *a;
+  limnPart *const *b;
+  
+  a = (limnPart *const *)_a;
+  b = (limnPart *const *)_b;
   return AIR_COMPARE((*b)->depth, (*a)->depth);
 }
 
@@ -313,11 +313,11 @@ limnObjectDepthSortParts(limnObject *obj) {
 
 int
 _limnFaceDepthCompare(const void *_a, const void *_b) {
-  limnFace **a;
-  limnFace **b;
+  limnFace *const*a;
+  limnFace *const*b;
 
-  a = (limnFace **)_a;
-  b = (limnFace **)_b;
+  a = (limnFace *const*)_a;
+  b = (limnFace *const*)_b;
   return -AIR_COMPARE((*a)->depth, (*b)->depth);
 }
 

@@ -588,7 +588,7 @@ tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
   mop = airMopNew();
   ndwi = nrrdNew();
   airMopAdd(mop, ndwi, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdJoin(ndwi, (const Nrrd**)_ndwi, dwiLen, 0, AIR_TRUE)) {
+  if (nrrdJoin(ndwi, (const Nrrd*const*)_ndwi, dwiLen, 0, AIR_TRUE)) {
     biffMovef(TEN, NRRD, "%s: trouble joining inputs", me);
     airMopError(mop); return 1;
   }

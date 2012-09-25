@@ -560,7 +560,7 @@ gageStackBlurGet(Nrrd *const nblur[], int *recomputedP,
                 "read:\n%s\n", me, suberr);
       }
       recompute = AIR_TRUE;
-    } else if (gageStackBlurCheck(AIR_CAST(const Nrrd**, nblur),
+    } else if (gageStackBlurCheck(AIR_CAST(const Nrrd*const*, nblur),
                                   sbp, nin, kind)) {
       airMopAdd(mop, suberr = biffGetDone(GAGE), airFree, airMopAlways);
       if (sbp->verbose) {

@@ -60,7 +60,7 @@ tend_avgMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (tenInterpMulti3D(nout, AIR_CAST(const Nrrd**, nin), NULL,
+  if (tenInterpMulti3D(nout, AIR_CAST(const Nrrd*const*, nin), NULL,
                        ninLen, itype, NULL)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);

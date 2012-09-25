@@ -488,7 +488,8 @@ _gageSetup(gageOptimSigParm *parm) {
   if (!E) E |= !(parm->pvl = gagePerVolumeNew(parm->gctx, parm->nsampvol[0],
                                               gageKindScl));
   if (!E) E |= gageStackPerVolumeNew(parm->gctx, parm->pvlSS,
-                                     AIR_CAST(const Nrrd**, parm->nsampvol),
+                                     AIR_CAST(const Nrrd*const*, 
+                                              parm->nsampvol),
                                      parm->sampleNum, gageKindScl);
   if (!E) E |= gageStackPerVolumeAttach(parm->gctx, parm->pvl, parm->pvlSS,
                                         parm->scalePos, parm->sampleNum);

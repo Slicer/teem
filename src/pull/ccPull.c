@@ -197,10 +197,10 @@ typedef struct {
 /* we intend to sort in *descending* order */
 static int
 ccpairCompare(const void *_a, const void *_b) {
-  ccpair *a, *b;
+  const ccpair *a, *b;
   
-  a = AIR_CAST(ccpair *, _a);
-  b = AIR_CAST(ccpair *, _b);
+  a = AIR_CAST(const ccpair *, _a);
+  b = AIR_CAST(const ccpair *, _b);
   return (a->d < b->d
           ? +1
           : (a->d > b->d

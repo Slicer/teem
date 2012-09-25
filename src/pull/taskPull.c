@@ -76,7 +76,7 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
                                           pctx->ispec[ii]->item);
         if (pctx->verbose) {
           printf("%s: task->ans[%u] = (%s) %p\n", me, ii,
-                 vol->kind->name, AIR_VOIDP(task->ans[ii]));
+                 vol->kind->name, AIR_CVOIDP(task->ans[ii]));
         }
       } else {
         task->ans[ii] = NULL;

@@ -110,7 +110,7 @@ unrrdu_cmedianMain(int argc, const char **argv, const char *me,
         return 1;
       }
     }
-    if (nrrdJoin(nout, (const Nrrd**)mnout, nsize, 0, AIR_TRUE)) {
+    if (nrrdJoin(nout, (const Nrrd*const*)mnout, nsize, 0, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error doing final join:\n%s", me, err);
       airMopError(mop);

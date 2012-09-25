@@ -95,7 +95,7 @@ biffMsgAdd(biffMsg *msg, const char *err) {
   }
   if (!( msg && err )) {
     fprintf(stderr, "%s: PANIC got NULL msg (%p) or err (%p)\n", me,
-            AIR_VOIDP(msg), AIR_VOIDP(err));
+            AIR_VOIDP(msg), AIR_CVOIDP(err));
     /* exit(1); */
   }
   idx = airArrayLenIncr(msg->errArr, 1);
@@ -254,7 +254,7 @@ biffMsgStrlen(const biffMsg *msg) {
     return 0;
   }
   if (!( msg )) {
-    fprintf(stderr, "%s: PANIC got NULL msg %p\n", me, AIR_VOIDP(msg));
+    fprintf(stderr, "%s: PANIC got NULL msg %p\n", me, AIR_CVOIDP(msg));
     return 0; /* exit(1); */
   }
 

@@ -548,7 +548,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
     if (ctx->verbose > 1) {
       fprintf(stderr, "%s: hello, valLen = %d, pvl->nin = %p, data = %p\n",
               me, pvl->kind->valLen,
-              AIR_CAST(void*, pvl->nin), pvl->nin->data);
+              AIR_CVOIDP(pvl->nin), pvl->nin->data);
     }
     here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
     if (ctx->verbose > 1) {

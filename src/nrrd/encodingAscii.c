@@ -123,7 +123,7 @@ _nrrdEncodingAscii_write(FILE *file, const void *_data, size_t elNum,
              nrrdEncodingAscii->name);
     return 1;
   }
-  data = (char*)_data;
+  data = AIR_CAST(const char*, _data);
   linelen = 0;
   for (I=0; I<elNum; I++) {
     nrrdSprint[nrrd->type](buff, data);

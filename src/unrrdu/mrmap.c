@@ -109,7 +109,7 @@ unrrdu_mrmapMain(int argc, const char **argv, const char *me,
     /* assume that mmap component nrrds are all compatible sizes,
        nrrdJoin will fail if they aren't */
     mapAxis = _nmmap[0]->dim - nin->dim;
-    if (nrrdJoin(nmmap, (const Nrrd**)_nmmap, _nmmapLen, mapAxis, AIR_TRUE)) {
+    if (nrrdJoin(nmmap, (const Nrrd*const*)_nmmap, _nmmapLen, mapAxis, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble joining mmap:\n%s", me, err);
       airMopError(mop);

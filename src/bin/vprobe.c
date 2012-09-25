@@ -248,7 +248,7 @@ main(int argc, const char *argv[]) {
         fprintf(stderr, "%s: trouble loading blurrings:\n%s\n", me, err);
         airMopError(mop); return 1;
       }
-      if (gageStackBlurCheck(AIR_CAST(const Nrrd **, ninSS),
+      if (gageStackBlurCheck(AIR_CAST(const Nrrd *const*, ninSS),
                              sbp, nin, kind)) {
         airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble:\n%s\n", me, err);
@@ -325,7 +325,7 @@ main(int argc, const char *argv[]) {
                                     calloc(numSS, sizeof(gagePerVolume *))));
     if (!E) airMopAdd(mop, pvlSS, (airMopper)airFree, airMopAlways);
     if (!E) E |= gageStackPerVolumeNew(ctx, pvlSS,
-                                       AIR_CAST(const Nrrd**, ninSS),
+                                       AIR_CAST(const Nrrd*const*, ninSS),
                                        numSS, kind);
     if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, sbp->scale, numSS);
     if (!E) E |= gageKernelSet(ctx, gageKernelStack, kSS->kernel, kSS->parm);

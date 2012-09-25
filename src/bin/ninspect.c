@@ -167,7 +167,7 @@ ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
       || nrrdQuantize(nrgb[1], ntmpB, NULL, 8)
       || nrrdProject(ntmpA, nin, axis, nrrdMeasureMax, nrrdTypeDefault)
       || nrrdQuantize(nrgb[2], ntmpA, NULL, 8)
-      || nrrdJoin(nout, (const Nrrd**)nrgb, 3, 0, AIR_TRUE)) {
+      || nrrdJoin(nout, (const Nrrd*const*)nrgb, 3, 0, AIR_TRUE)) {
     biffMovef(NINSPECT, NRRD, "%s: trouble with nrrd operations", me);
     airMopError(mop); return 1;
   }

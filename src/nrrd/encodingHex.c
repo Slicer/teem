@@ -69,7 +69,7 @@ _nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum,
   int car=0, nib;
 
   AIR_UNUSED(nio);
-  data = (unsigned char *)_data;
+  data = AIR_CAST(unsigned char *, _data);
   nibIdx = 0;
   nibNum = 2*elNum*nrrdElementSize(nrrd);
   if (nibNum/elNum != 2*nrrdElementSize(nrrd)) {
@@ -113,12 +113,12 @@ int
 _nrrdEncodingHex_write(FILE *file, const void *_data, size_t elNum,
                        const Nrrd *nrrd, NrrdIoState *nio) {
   /* static const char me[]="_nrrdEncodingHex_write"; */
-  unsigned char *data;
+  const unsigned char *data;
   size_t byteIdx, byteNum;
   unsigned int bytesPerLine;
 
   bytesPerLine = AIR_MAX(1, nio->charsPerLine/2);
-  data = (unsigned char*)_data;
+  data = AIR_CAST(const unsigned char*, _data);
   byteNum = elNum*nrrdElementSize(nrrd);
   for (byteIdx=0; byteIdx<byteNum; byteIdx++) {
     fprintf(file, "%c%c",

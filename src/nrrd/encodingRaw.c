@@ -126,7 +126,7 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
   static const char me[]="_nrrdEncodingRaw_write";
   int fd, dio;
   size_t ret, bsize;
-  char *data_c;
+  const char *data_c;
   size_t elementSize, maxChunkSize, remainderValue, chunkSize;
   size_t retTmp;
   char stmp[3][AIR_STRLEN_SMALL];
@@ -165,7 +165,7 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
             actually read/written the data.  The work-around is to loop
             over the data, reading/writing 1GB (or smaller) chunks.         */
     ret = 0;
-    data_c = (char *)data;
+    data_c = AIR_CAST(const char *, data);
     elementSize = nrrdElementSize(nrrd);
     maxChunkSize = 1024 * 1024 * 1024 / elementSize;
     while(ret < elementNum) {

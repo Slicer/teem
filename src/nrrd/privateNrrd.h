@@ -197,9 +197,9 @@ extern int _nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type,
 /* gzio.c */
 extern gzFile _nrrdGzOpen(FILE* fd, const char *mode);
 extern int _nrrdGzClose(gzFile file);
-extern int _nrrdGzRead(gzFile file, voidp buf, unsigned int len,
+extern int _nrrdGzRead(gzFile file, void* buf, unsigned int len,
                        unsigned int* read);
-extern int _nrrdGzWrite(gzFile file, const voidp buf, unsigned int len,
+extern int _nrrdGzWrite(gzFile file, const void* buf, unsigned int len,
                         unsigned int* written);
 #endif
 

@@ -472,7 +472,9 @@ deringSliceGet(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
 
   /* slice setup */
   if (nrrdWrap_va(dbg->nsliceOrig,
-                  /* HEY: sneaky bypass of const-ness of drc->cdataIn */
+                  /* HEY: bypass of const-ness of drc->cdataIn; should
+                     think about how to do this without breaking
+                     const-correctness... */
                   AIR_CAST(void *, drc->cdataIn + zi*(drc->sliceSize)),
                   drc->nin->type, 2, 
                   drc->nin->axis[0].size,

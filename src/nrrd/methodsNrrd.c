@@ -1024,7 +1024,7 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
 
   if (!(ninA && ninB && differ)) {
     biffAddf(NRRD, "%s: got NULL pointer (%p, %p, or %p)", me,
-             AIR_VOIDP(ninA), AIR_VOIDP(ninB), AIR_VOIDP(differ));
+             AIR_CVOIDP(ninA), AIR_CVOIDP(ninB), AIR_VOIDP(differ));
     return 1;
   }
   

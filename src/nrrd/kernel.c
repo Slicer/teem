@@ -3104,7 +3104,7 @@ nrrdKernelCompare(const NrrdKernel *kernA,
 
   if (!(kernA && kernB && differ)) {
     biffAddf(NRRD, "%s: got NULL pointer (%p, %p, or %p)", me,
-             AIR_VOIDP(kernA), AIR_VOIDP(kernB), AIR_VOIDP(differ));
+             AIR_CVOIDP(kernA), AIR_CVOIDP(kernB), AIR_VOIDP(differ));
     return 1;
   }
   if (kernA != kernB) {

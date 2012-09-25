@@ -550,7 +550,7 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
 int 
 _nrrdHistoEqCompare(const void *a, const void *b) {
 
-  return *((unsigned int*)b) - *((unsigned int*)a);
+  return *((const unsigned int*)b) - *((const unsigned int*)a);
 }
 
 /*
