@@ -5,10 +5,6 @@ then; consider it a work-in-progress ...
 
 -5) use names.pl to make sure all sourcefile names are unique
 
--4.5) fix all 
-"dereferencing type-punned pointer will break strict-aliasing rules"
-warnings on a modern linux system
-
 -4) Make sure the CMake and GNUMake agree on source files per-library
 
 -3.5) make sure that teem/src/meet/enumall.c:meetAirEnumAll()
