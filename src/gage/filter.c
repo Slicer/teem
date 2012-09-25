@@ -143,7 +143,8 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
 void
 _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
   char me[]="_gageFwSet";
-  int kidx, fd;
+  int kidx;
+  unsigned int fd;
   
   fd = 2*ctx->radius;
   for (kidx=gageKernelUnknown+1; kidx<gageKernelLast; kidx++) {
@@ -182,7 +183,7 @@ _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
   }
   
   if (ctx->parm.stackUse && ctx->parm.stackNormalizeDeriv) {
-    unsigned int kidx, fd, j;
+    unsigned int jj;
     double scl, norm, *fwX, *fwY, *fwZ;
     
     scl = AIR_AFFINE(0.0, sfrac, 1.0,
@@ -207,19 +208,19 @@ _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
     fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
     fwY = ctx->fw + 0 + fd*(1 + 3*kidx);
     fwZ = ctx->fw + 0 + fd*(2 + 3*kidx);
-    for (j=0; j<fd; j++) {
-      fwX[j] *= norm;
-      fwY[j] *= norm;
-      fwZ[j] *= norm;
+    for (jj=0; jj<fd; jj++) {
+      fwX[jj] *= norm;
+      fwY[jj] *= norm;
+      fwZ[jj] *= norm;
     }
     kidx = gageKernel22;
     fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
     fwY = ctx->fw + 0 + fd*(1 + 3*kidx);
     fwZ = ctx->fw + 0 + fd*(2 + 3*kidx);
-    for (j=0; j<fd; j++) {
-      fwX[j] *= norm*norm;
-      fwY[j] *= norm*norm;
-      fwZ[j] *= norm*norm;
+    for (jj=0; jj<fd; jj++) {
+      fwX[jj] *= norm*norm;
+      fwY[jj] *= norm*norm;
+      fwZ[jj] *= norm*norm;
     }
   }
   
