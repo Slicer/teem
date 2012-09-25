@@ -96,8 +96,8 @@ gageKindCheck(const gageKind *kind) {
     pitem = item->parentItem;
     pindex = item->parentIndex;
     if (0 != pitem) {
-      if (0 == ii) {
-        biffAddf(GAGE, "%s: first item (index 0) of \"%s\"-kind can't "
+      if (1 == ii) {
+        biffAddf(GAGE, "%s: first item (index 1) of \"%s\"-kind can't "
                  "be a sub-item (wanted parent index %d)", 
                  me, kind->name, pitem);
         return 1;
