@@ -215,7 +215,7 @@ enum {
 };
 /* endianAir.c */
 AIR_EXPORT const airEnum *const airEndian;
-AIR_EXPORT int airMyEndian();
+AIR_EXPORT int airMyEndian(void);
 
 /* array.c: poor-man's dynamically resizable arrays */
 typedef struct {
@@ -338,12 +338,12 @@ AIR_EXPORT int airThreadStart(airThread *thread,
 AIR_EXPORT int airThreadJoin(airThread *thread, void **retP);
 AIR_EXPORT airThread *airThreadNix(airThread *thread);
 
-AIR_EXPORT airThreadMutex *airThreadMutexNew();
+AIR_EXPORT airThreadMutex *airThreadMutexNew(void);
 AIR_EXPORT int airThreadMutexLock(airThreadMutex *mutex);
 AIR_EXPORT int airThreadMutexUnlock(airThreadMutex *mutex);
 AIR_EXPORT airThreadMutex *airThreadMutexNix(airThreadMutex *mutex);
 
-AIR_EXPORT airThreadCond *airThreadCondNew();
+AIR_EXPORT airThreadCond *airThreadCondNew(void);
 AIR_EXPORT int airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex);
 AIR_EXPORT int airThreadCondSignal(airThreadCond *cond);
 AIR_EXPORT int airThreadCondBroadcast(airThreadCond *cond);
@@ -446,7 +446,8 @@ AIR_EXPORT double airDrandMT53_r(airRandMTState *state);     /* [0,1) */
 AIR_EXPORT unsigned int airRandInt(unsigned int N);
 AIR_EXPORT unsigned int airRandInt_r(airRandMTState *state, unsigned int N);
 AIR_EXPORT void airSrandMT(unsigned int seed);
-AIR_EXPORT double airDrandMT();
+AIR_EXPORT double airDrandMT(void);
+AIR_EXPORT int airRandMTSanity(void);
 
 /* ---- END non-NrrdIO */
 
@@ -707,13 +708,14 @@ AIR_EXPORT void airMopDebug(airArray *arr);
 #define AIR_INT(x) AIR_CAST(int, x)
 
 /*
-******** AIR_VOIDP
+******** AIR_VOIDP, AIR_CVOIDP
 **
-** explicit casting to "void *" from non-void* pointers is strictly speaking
-** needed for the %p format specifier in printf-like functions; this is a
-** slightly more convenient form
+** explicit casting to "void *" (and "const void *") from non-void* pointers
+** is strictly speaking needed for the %p format specifier in printf-like
+** functions; this is a slightly more convenient form
 */
 #define AIR_VOIDP(x) AIR_CAST(void *, x)
+#define AIR_CVOIDP(x) AIR_CAST(const void *, x)
 
 /*
 ******** AIR_MALLOC, AIR_CALLOC
