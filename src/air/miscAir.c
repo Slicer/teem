@@ -22,6 +22,7 @@
 */
 
 #include "air.h"
+#include "privateAir.h"
 /* timer functions */
 #ifdef _WIN32
 #include <io.h>
