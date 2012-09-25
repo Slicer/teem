@@ -111,9 +111,9 @@ nrrd:
 [nrrd] nrrdResampleKernelSet: haven't set input nrrd yet
 * for nrrdCropAuto: consider adding some minimum remaining size requirement,
   in addition to offset
-* fix bug that you can pass a per-axis label or units to nrrdAxisInfoSet
-  which contains characters that can't be losslessly written to file,
-  especially \n.
+* ponder utility of having "const void *constdata" field in the Nrrd struct,
+  to allow a nrrd to wrap around data it doesn't own.  Would this supersede
+  the nrrdNuke vs nrrdNix distinction?
 
 unu:
 * the UNRRDU_QUIET_QUIT functionality should be enabled by default instead
