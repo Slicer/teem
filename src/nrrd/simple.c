@@ -1415,13 +1415,17 @@ nrrdSanity(void) {
     return 0;
   }
 
-  /* HEY: this is odd; this sanity checker isn't part of airSanity,
-     nor can it be without adding to airInsaneErr's list of what
-     can go wrong, but someone should be calling it .. */
+  /* ---- BEGIN non-NrrdIO */
+  /* Odd: this sanity checker isn't part of airSanity, nor can it be
+     without adding to airInsaneErr's list of what can go wrong, but
+     someone should be calling it, since we have no other correctness
+     test of the Mersenne-Twister code within Teem (not counting the
+     CTests in teem/Testing) */
   if (!airRandMTSanity()) {
     biffAddf(NRRD, "%s: airRandMTSanity failed", me);
     return 0;
   }
+  /* ---- END non-NrrdIO */
 
   if (airEnumValCheck(nrrdEncodingType, nrrdDefaultWriteEncodingType)) {
     biffAddf(NRRD,
