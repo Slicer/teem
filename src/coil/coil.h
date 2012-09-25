@@ -240,7 +240,7 @@ COIL_EXPORT const coilMethod *coilMethodIsotropic;
 COIL_EXPORT const coilMethod *coilMethodArray[COIL_METHOD_TYPE_MAX+1];
 
 /* methodsCoil.c (sorry, confusing name!) */
-COIL_EXPORT coilContext *coilContextNew();
+COIL_EXPORT coilContext *coilContextNew(void);
 COIL_EXPORT int coilVolumeCheck(const Nrrd *nin, const coilKind *kind);
 COIL_EXPORT int coilContextAllSet(coilContext *cctx, const Nrrd *nin,
                                   const coilKind *kind,

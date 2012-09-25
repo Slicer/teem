@@ -257,7 +257,7 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
 }
 
 void
-ninspect_usage() {
+ninspect_usage(void) {
 
   fprintf(stderr, "\nusage: %s <input volume> <output image>\n\n",
           NINSPECT);

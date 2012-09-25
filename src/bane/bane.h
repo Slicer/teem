@@ -333,7 +333,7 @@ BANE_EXPORT baneMeasr *baneMeasrNix(baneMeasr *measr);
 /* NOTE: this is NOT a complete API, like gage has.  Currently there
    is only API for things that have to be allocated internally */
 BANE_EXPORT const int banePresent;
-BANE_EXPORT baneHVolParm *baneHVolParmNew();
+BANE_EXPORT baneHVolParm *baneHVolParmNew(void);
 BANE_EXPORT void baneHVolParmGKMSInit(baneHVolParm *hvp);
 BANE_EXPORT void baneHVolParmAxisSet(baneHVolParm *hvp, unsigned int axisIdx,
                                      unsigned int res,
@@ -373,7 +373,7 @@ BANE_EXPORT int baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos);
 
 /* trex.c */
 BANE_EXPORT float *_baneTRexRead(char *fname);
-BANE_EXPORT void _baneTRexDone();
+BANE_EXPORT void _baneTRexDone(void);
 
 /* scat.c */
 BANE_EXPORT int baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol,

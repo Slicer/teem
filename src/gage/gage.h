@@ -1084,7 +1084,7 @@ GAGE_EXPORT gageKind *const gageKindVec;
 
 /* shape.c */
 GAGE_EXPORT void gageShapeReset(gageShape *shp);
-GAGE_EXPORT gageShape *gageShapeNew();
+GAGE_EXPORT gageShape *gageShapeNew(void);
 GAGE_EXPORT gageShape *gageShapeCopy(const gageShape *shp);
 GAGE_EXPORT gageShape *gageShapeNix(gageShape *shape);
 GAGE_EXPORT int gageShapeSet(gageShape *shp, const Nrrd *nin, int baseDim);
@@ -1195,7 +1195,7 @@ GAGE_EXPORT int gageStackBlurManage(Nrrd ***nblurP, int *recomputedP,
                                     const Nrrd *nin, const gageKind *kind);
 
 /* ctx.c */
-GAGE_EXPORT gageContext *gageContextNew();
+GAGE_EXPORT gageContext *gageContextNew(void);
 GAGE_EXPORT gageContext *gageContextCopy(gageContext *ctx);
 GAGE_EXPORT gageContext *gageContextNix(gageContext *ctx);
 GAGE_EXPORT void gageParmSet(gageContext *ctx, int which, double val);

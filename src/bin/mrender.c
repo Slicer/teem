@@ -73,7 +73,7 @@ typedef struct {
 } mrendUser;
 
 mrendUser *
-mrendUserNew() {
+mrendUserNew(void) {
   mrendUser *uu;
   int i;
   

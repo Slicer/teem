@@ -1308,7 +1308,7 @@ TEN_EXPORT const airEnum *const tenEstimate2Method;
 TEN_EXPORT const airEnum *const tenTripleType;
 
 /* path.c */
-TEN_EXPORT tenInterpParm *tenInterpParmNew();
+TEN_EXPORT tenInterpParm *tenInterpParmNew(void);
 TEN_EXPORT tenInterpParm *tenInterpParmCopy(tenInterpParm *tip);
 TEN_EXPORT int tenInterpParmBufferAlloc(tenInterpParm *tip,
                                         unsigned int num);
@@ -1338,7 +1338,7 @@ TEN_EXPORT int tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin,
                                 int ptype, tenInterpParm *tip);
 
 /* glyph.c */
-TEN_EXPORT tenGlyphParm *tenGlyphParmNew();
+TEN_EXPORT tenGlyphParm *tenGlyphParmNew(void);
 TEN_EXPORT tenGlyphParm *tenGlyphParmNix(tenGlyphParm *parm);
 TEN_EXPORT int tenGlyphParmCheck(tenGlyphParm *parm,
                                  const Nrrd *nten, const Nrrd *npos,
@@ -1451,7 +1451,7 @@ TEN_EXPORT int tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
                            const Nrrd *nbmat, double b);
 
 /* estimate.c */
-TEN_EXPORT tenEstimateContext *tenEstimateContextNew();
+TEN_EXPORT tenEstimateContext *tenEstimateContextNew(void);
 TEN_EXPORT void tenEstimateVerboseSet(tenEstimateContext *tec,
                                       int verbose);
 TEN_EXPORT void tenEstimateNegEvalShiftSet(tenEstimateContext *tec,
@@ -1544,7 +1544,7 @@ TEN_EXPORT int _tenFindValley(double *valP, const Nrrd *nhist,
 /* fiberMethods.c */
 TEN_EXPORT void tenFiberSingleInit(tenFiberSingle *tfbs);
 TEN_EXPORT void tenFiberSingleDone(tenFiberSingle *tfbs);
-TEN_EXPORT tenFiberSingle *tenFiberSingleNew();
+TEN_EXPORT tenFiberSingle *tenFiberSingleNew(void);
 TEN_EXPORT tenFiberSingle *tenFiberSingleNix(tenFiberSingle *tfbs);
 TEN_EXPORT tenFiberContext *tenFiberContextNew(const Nrrd *dtvol);
 TEN_EXPORT tenFiberContext *tenFiberContextDwiNew(const Nrrd *dwivol,
@@ -1754,7 +1754,7 @@ TEN_EXPORT gageKind *tenGageKind;
 #define TEN_DWI_GAGE_KIND_NAME "dwi"
 TEN_EXPORT const airEnum _tenDwiGage;
 TEN_EXPORT const airEnum *const tenDwiGage;
-TEN_EXPORT gageKind *tenDwiGageKindNew();
+TEN_EXPORT gageKind *tenDwiGageKindNew(void);
 TEN_EXPORT gageKind *tenDwiGageKindNix(gageKind *dwiKind);
 /* warning: this function will likely change its arguments in the future */
 TEN_EXPORT int tenDwiGageKindSet(gageKind *dwiKind,

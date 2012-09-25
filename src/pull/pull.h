@@ -1051,7 +1051,7 @@ PULL_EXPORT const pullEnergy *const pullEnergyHepticWell;
 PULL_EXPORT const pullEnergy *const pullEnergyZero;
 PULL_EXPORT const pullEnergy *const pullEnergyButterworthParabola;
 PULL_EXPORT const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1];
-PULL_EXPORT pullEnergySpec *pullEnergySpecNew();
+PULL_EXPORT pullEnergySpec *pullEnergySpecNew(void);
 PULL_EXPORT void pullEnergySpecSet(pullEnergySpec *ensp,
                                    const pullEnergy *energy,
                                    const double parm[PULL_ENERGY_PARM_NUM]);
@@ -1062,7 +1062,7 @@ PULL_EXPORT int pullEnergySpecParse(pullEnergySpec *ensp, const char *str);
 PULL_EXPORT hestCB *pullHestEnergySpec;
 
 /* volumePull.c */
-PULL_EXPORT pullVolume *pullVolumeNew();
+PULL_EXPORT pullVolume *pullVolumeNew(void);
 PULL_EXPORT pullVolume *pullVolumeNix(pullVolume *vol);
 PULL_EXPORT int pullVolumeSingleAdd(pullContext *pctx, 
                                     const gageKind *kind, 
@@ -1100,7 +1100,7 @@ PULL_EXPORT const airEnum *const pullConstraintFail;
 /* infoPull.c */
 PULL_EXPORT unsigned int pullPropLen(int prop);
 PULL_EXPORT unsigned int pullInfoLen(int info);
-PULL_EXPORT pullInfoSpec *pullInfoSpecNew();
+PULL_EXPORT pullInfoSpec *pullInfoSpecNew(void);
 PULL_EXPORT pullInfoSpec *pullInfoSpecNix(pullInfoSpec *ispec);
 PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec);
 PULL_EXPORT int pullInfoGet(Nrrd *ninfo, int info, pullContext *pctx);
@@ -1167,7 +1167,7 @@ PULL_EXPORT int pullTraceSet(pullContext *pctx, pullTrace *trc,
                              double scaleDelta, double halfScaleWin,
                              double velocityMax, unsigned int arrIncr,
                              const double seedPos[4]);
-PULL_EXPORT pullTraceMulti *pullTraceMultiNew();
+PULL_EXPORT pullTraceMulti *pullTraceMultiNew(void);
 PULL_EXPORT pullTraceMulti *pullTraceMultiNix(pullTraceMulti *mtrc);
 PULL_EXPORT int pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc,
                                   int *addedP);

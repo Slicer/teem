@@ -27,7 +27,7 @@
 char *me;
 
 void
-usage() {
+usage(void) {
   /*                      0   1   2   3   (4) */
   fprintf(stderr, "usage: %s <A> <B> <C>\n", me);
   fprintf(stderr, "for cubic x^3 + Ax^2 + Bx + C == 0\n");

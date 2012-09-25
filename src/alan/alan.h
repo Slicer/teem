@@ -160,7 +160,7 @@ typedef struct alanContext_t {
 /* methodsAlan.c */
 ALAN_EXPORT const int alanPresent;
 ALAN_EXPORT const char *alanBiffKey;
-ALAN_EXPORT alanContext *alanContextNew();
+ALAN_EXPORT alanContext *alanContextNew(void);
 ALAN_EXPORT alanContext *alanContextNix(alanContext *actx);
 ALAN_EXPORT int alanDimensionSet(alanContext *actx, int dim);
 ALAN_EXPORT int alan2DSizeSet(alanContext *actx, int sizeX, int sizeY);

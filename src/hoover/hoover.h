@@ -274,7 +274,7 @@ HOOVER_EXPORT int hooverDefImgCentering;
 HOOVER_EXPORT const airEnum *const hooverErr;
 
 /* methodsHoover.c */
-HOOVER_EXPORT hooverContext *hooverContextNew();
+HOOVER_EXPORT hooverContext *hooverContextNew(void);
 HOOVER_EXPORT int hooverContextCheck(hooverContext *ctx);
 HOOVER_EXPORT void hooverContextNix(hooverContext *ctx);
 

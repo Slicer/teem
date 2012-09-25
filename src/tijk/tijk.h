@@ -227,7 +227,7 @@ typedef struct tijk_refine_rank1_parm_t {
   unsigned int maxtry; /* number of stepsize reductions before giving up */
 } tijk_refine_rank1_parm;
 
-TIJK_EXPORT tijk_refine_rank1_parm *tijk_refine_rank1_parm_new();
+TIJK_EXPORT tijk_refine_rank1_parm *tijk_refine_rank1_parm_new(void);
 TIJK_EXPORT tijk_refine_rank1_parm 
   *tijk_refine_rank1_parm_nix(tijk_refine_rank1_parm *parm);
 
@@ -241,7 +241,7 @@ typedef struct tijk_refine_rankk_parm_t {
   tijk_refine_rank1_parm *rank1_parm; /* used for rank1-optimization */
 } tijk_refine_rankk_parm;
 
-TIJK_EXPORT tijk_refine_rankk_parm *tijk_refine_rankk_parm_new();
+TIJK_EXPORT tijk_refine_rankk_parm *tijk_refine_rankk_parm_new(void);
 TIJK_EXPORT tijk_refine_rankk_parm 
   *tijk_refine_rankk_parm_nix(tijk_refine_rankk_parm *parm);
 
@@ -257,7 +257,7 @@ typedef struct tijk_approx_heur_parm_t {
   tijk_refine_rankk_parm *refine_parm; /* used for rank-k refinement */
 } tijk_approx_heur_parm;
 
-TIJK_EXPORT tijk_approx_heur_parm *tijk_approx_heur_parm_new();
+TIJK_EXPORT tijk_approx_heur_parm *tijk_approx_heur_parm_new(void);
 TIJK_EXPORT tijk_approx_heur_parm 
   *tijk_approx_heur_parm_nix(tijk_approx_heur_parm *parm);
 

@@ -429,13 +429,13 @@ ECHO_EXPORT const airEnum *const echoMatter;
 /* methodsEcho.c --------------------------------------- */
 ECHO_EXPORT const int echoPresent;
 ECHO_EXPORT const char *echoBiffKey;
-ECHO_EXPORT echoRTParm *echoRTParmNew();
+ECHO_EXPORT echoRTParm *echoRTParmNew(void);
 ECHO_EXPORT echoRTParm *echoRTParmNix(echoRTParm *parm);
-ECHO_EXPORT echoGlobalState *echoGlobalStateNew();
+ECHO_EXPORT echoGlobalState *echoGlobalStateNew(void);
 ECHO_EXPORT echoGlobalState *echoGlobalStateNix(echoGlobalState *state);
-ECHO_EXPORT echoThreadState *echoThreadStateNew();
+ECHO_EXPORT echoThreadState *echoThreadStateNew(void);
 ECHO_EXPORT echoThreadState *echoThreadStateNix(echoThreadState *state);
-ECHO_EXPORT echoScene *echoSceneNew();
+ECHO_EXPORT echoScene *echoSceneNew(void);
 ECHO_EXPORT echoScene *echoSceneNix(echoScene *scene);
 
 /* objmethods.c --------------------------------------- */

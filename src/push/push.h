@@ -283,7 +283,7 @@ PUSH_EXPORT const pushEnergy *const pushEnergyCoulomb;
 PUSH_EXPORT const pushEnergy *const pushEnergyCotan;
 PUSH_EXPORT const pushEnergy *const pushEnergyZero;
 PUSH_EXPORT const pushEnergy *const pushEnergyAll[PUSH_ENERGY_TYPE_MAX+1];
-PUSH_EXPORT pushEnergySpec *pushEnergySpecNew();
+PUSH_EXPORT pushEnergySpec *pushEnergySpecNew(void);
 PUSH_EXPORT void pushEnergySpecSet(pushEnergySpec *ensp,
                                    const pushEnergy *energy,
                                    const double parm[PUSH_ENERGY_PARM_NUM]);
