@@ -669,7 +669,7 @@ _nrrdGetQuotedString(char **hP, int useBiff) {
   static const char me[]="_nrrdGetQuotedString";
   char *h, *buff, *ret;
   airArray *buffArr;
-  int pos;
+  unsigned int pos;
   airPtrPtrUnion appu;
   
   h = *hP;
@@ -1177,7 +1177,7 @@ _nrrdContainsPercentThisAndMore(const char *str, char thss) {
 
 unsigned int
 _nrrdDataFNNumber(NrrdIoState *nio) {
-  int ii, ret;
+  unsigned int ii, ret;
 
   if (nio->dataFNFormat) {
     /* datafiles given in iterator form; count number of values */
@@ -1207,6 +1207,7 @@ int
 _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff) {
   static const char me[]="_nrrdDataFNCheck";
   size_t pieceSize, pieceNum;
+  char stmp[AIR_STRLEN_SMALL];
 
   if (!nio->seen[nrrdField_sizes]) {
     biffMaybeAddf(useBiff, NRRD, "%s: sorry, currently can't handle "
@@ -1220,22 +1221,21 @@ _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff) {
     _nrrdSplitSizes(&pieceSize, &pieceNum, nrrd, nio->dataFileDim);
     if (pieceNum != _nrrdDataFNNumber(nio)) {
       biffMaybeAddf(useBiff, NRRD,
-                    "%s: expected %d filenames (of %d-D pieces) "
-                    "but got %d", me,
-                    (int)pieceNum, nio->dataFileDim, /* HEY use AIR_CAST? */
-                    (int)_nrrdDataFNNumber(nio)); /* HEY use AIR_CAST? */
+                    "%s: expected %s filenames (of %u-D pieces) "
+                    "but got %u", me,
+                    airSprintSize_t(stmp, pieceNum), nio->dataFileDim,
+                    _nrrdDataFNNumber(nio));
       return 1;
     }
   } else {
     /* we're getting data in "slabs" with the same dimension as the
        nrrd, so for simplicity we assume that they're all equal size */
-    char stmp[AIR_STRLEN_SMALL];
     if (_nrrdDataFNNumber(nio) > nrrd->axis[nrrd->dim-1].size) {
       biffMaybeAddf(useBiff, NRRD,
-                    "%s: can't have more pieces (%d) than axis %d "
+                    "%s: can't have more pieces (%u) than axis %u "
                     "slices (%s) when nrrd dimension and "
                     "datafile dimension are both %u", me,
-                    (int)_nrrdDataFNNumber(nio), /* HEY use AIR_CAST? */
+                    _nrrdDataFNNumber(nio),
                     nrrd->dim-1,
                     airSprintSize_t(stmp, nrrd->axis[nrrd->dim-1].size),
                     nrrd->dim);
