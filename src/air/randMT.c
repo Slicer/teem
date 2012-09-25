@@ -259,23 +259,24 @@ airRandInt_r(airRandMTState *state, unsigned int N) {
 }
 
 /* This checks to see if the sequence of numbers we get is what we
-   expect.  It should return 0 if all is well, 1 if not.
+   expect.  It should return 1 if all is well, 0 if not.
 
    One thing to check for if it fails is the presence of twos
    complement interger representation.  The code here relies on it.
 */
 int
-airRandMTSanity() {
+airRandMTSanity(void) {
   int result = 0;
   /* Create a new generator with our seed */
   airRandMTState* rng = airRandMTStateNew(AIR_RANDMT_DEFAULT_SEED);
 
   if (!rng) {
     /* Couldn't allocate memory */
-    return 1;
+    return 0;
   }
 
-  /* Now check against a predetermined list of values. */
+  /* Now check against a predetermined list of values; any inequality
+     will set result to be non-zero */
   result |= airUIrandMT_r(rng) != 1608637542U;
   result |= airUIrandMT_r(rng) != 3421126067U;
   result |= airUIrandMT_r(rng) != 4083286876U;
@@ -288,5 +289,5 @@ airRandMTSanity() {
   result |= airUIrandMT_r(rng) != 1914837113U;
 
   airRandMTStateNix(rng);
-  return result;
+  return !result;
 }
