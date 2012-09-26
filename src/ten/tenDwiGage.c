@@ -943,7 +943,7 @@ _tenDwiGagePvlDataNix(const gageKind *kind, void *_pvlData) {
 /* --------------------- kindData */
 
 tenDwiGageKindData*
-tenDwiGageKindDataNew() {
+tenDwiGageKindDataNew(void) {
   tenDwiGageKindData *ret;
   
   ret = AIR_CALLOC(1, tenDwiGageKindData);
