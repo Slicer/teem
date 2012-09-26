@@ -262,23 +262,23 @@ in ongoing Teem development will be in creating and strengthening tests.
  - various strings created at compile time, often via the automatic
    "foo" "bar" --> "foobar" string concatenation, exceed the length 
    509 guaranteed to be supported by the standard
- - using snprintf() and fileno(), which are not necessarily part of stdio.h 
+ - using snprintf() and fileno(), which are POSIX but not ANSI C
 Note that automatic conversion from a non-void* to a void*, in the specific
 case of supplying the value for a %p argument to a printf-like function, is
 not actually in C89: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=26542 
 The AIR_VOIDP(x) and AIR_CVOIDP(x) macros are used to cast x to void* 
 or const void * in this context.
 
-* Compiling with various warnings can help reveal bugs and potential problems.
-The advice here is relevant for Teem:
+* Compiling with various warnings can help reveal bugs and potential
+problems.  The advice here is relevant for Teem:
 
 http://www.gnu.org/software/gsl/manual/html_node/GCC-warning-options-for-numerical-programs.html
 
 However, -Wmissing-prototypes complains about a missing prototype even for
 local (static) functions that aren't used outside a given file, which is very
 common in Teem, and adding their protoypes would be onerous (and for similar
-reasons -Wmissing-declarations is not helpful).  So what has proven useful
-for development is:
+reasons -Wmissing-declarations is not helpful).  So what has proven useful for
+development is:
 
   gcc -O2 -std=c89 -pedantic \
    -W -Wall -Wextra -Wno-long-long -Wno-overlength-strings \
@@ -286,15 +286,21 @@ for development is:
    -ftrapv -fshort-enums -fno-common \
    -Wpointer-arith -Wcast-qual -Wcast-align \
    -Wstrict-prototypes -Wshadow -Wwrite-strings -Wnested-externs \
-   -Wmissing-field-initializers
+   -Wmissing-field-initializers -Wconversion
 
-* gcc -Wshadow shows when a new symbol name clashes with an existing one;
-this is certainly unintentional within a function, but there are various math
-and system calls with names that conflict with their use as variables or
-parameters, whether or not the existing names are true blue ANSI C.
-Here are some that have been removed from Teem, starting with 
-the most suprising:
-index: looks to be same as strchr, but in strings.h instead of string.h
+* The use of -Wconversion *only* makes for gcc version >= 4.3 (before which
+its definition and action were useless).  It reveals lots of places where
+there may be unexpected change of value as part of assignment or function
+arguments.  This includes warnings about conversions from size_t that Visual
+Studio is good at noticing, as well as many other numerous sitautions! It
+will be some time before every last one of these is cleared up.
+
+* gcc -Wshadow shows when a new symbol name clashes with an existing one; this
+is certainly unintentional within a function, but there are various math and
+system calls with names that conflict with their use as variables or
+parameters, whether or not the existing names are true blue ANSI C.  Here are
+some that have been removed from Teem, starting with the most suprising:
+index: looks to be same as strchr, but in strings.h instead of string.h 
 round: round double to integer
 y0, y1: along with j0, j1, jn, yn, these are for Bessel functions
 signal: basic unix process communication
@@ -303,11 +309,11 @@ exp, log2: math functions, oops
 
 * Any externally visible changes in Teem must be accompanied by regenerating
 its python ctypes wrappers teem/python/ctypes/teem.py.  The current tools for
-doing this are not very slick, including the drawback that the information from
-ctypeslib is apparently randomly ordered: without changes in Teem, the generated
-teem.py will differ. Nonetheless, keeping teem.py up-to-date will avoid creating 
-problems for users.  Here is the command that GLK uses to do this (including
-various paths that are specific to his laptop)
+doing this are not very slick, including the drawback that the information
+from ctypeslib is apparently randomly ordered: without changes in Teem, the
+generated teem.py will differ. Nonetheless, keeping teem.py up-to-date will
+avoid creating problems for users.  Here is the command that GLK uses to do
+this (including various paths that are specific to his laptop)
 
     echo ===== cd ~/teem-svn && cd ~/teem-svn \
  && echo ===== svn update && svn update \
