@@ -271,6 +271,7 @@ or const void * in this context.
 
 * Compiling with various warnings can help reveal bugs and potential problems.
 The advice here is relevant for Teem:
+
 http://www.gnu.org/software/gsl/manual/html_node/GCC-warning-options-for-numerical-programs.html
 
 However, -Wmissing-prototypes complains about a missing prototype even for
@@ -296,10 +297,6 @@ y0, y1: along with j0, j1, jn, yn, these are for Bessel functions
 signal: basic unix process communication
 read: read from file descriptors; a system call
 exp, log2: math functions, oops
-
-The relevant gcc invocation might include something like:
-"-W -Wall -Wextra -C89 -pedantic -Wno-long-long -Wno-overlength-string"
-
 
 * Any externally visible changes in Teem must be accompanied by regenerating
 its python ctypes wrappers teem/python/ctypes/teem.py.  The current tools for
