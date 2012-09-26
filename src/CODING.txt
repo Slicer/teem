@@ -276,7 +276,7 @@ http://www.gnu.org/software/gsl/manual/html_node/GCC-warning-options-for-numeric
 
 However, -Wmissing-prototypes complains about a missing prototype even for
 local (static) functions that aren't used outside a given file, which is very
-common in Teem, and adding protoypes would be onerous (and for similar
+common in Teem, and adding their protoypes would be onerous (and for similar
 reasons -Wmissing-declarations is not helpful).  So what has proven useful
 for development is:
 
@@ -286,11 +286,14 @@ for development is:
    -ftrapv -fshort-enums -fno-common \
    -Wpointer-arith -Wcast-qual -Wcast-align \
    -Wstrict-prototypes -Wshadow -Wwrite-strings -Wnested-externs \
-   -Wunreachable-code -Wmissing-field-initializers
+   -Wmissing-field-initializers
 
-* Avoid symbol names that shadow others means there is a set of names that
-should be avoided (as revealed by -Wshadow).  Here are some that have been
-removed from Teem, starting with the most suprising:
+* gcc -Wshadow shows when a new symbol name clashes with an existing one;
+this is certainly unintentional within a function, but there are various math
+and system calls with names that conflict with their use as variables or
+parameters, whether or not the existing names are true blue ANSI C.
+Here are some that have been removed from Teem, starting with 
+the most suprising:
 index: looks to be same as strchr, but in strings.h instead of string.h
 round: round double to integer
 y0, y1: along with j0, j1, jn, yn, these are for Bessel functions
