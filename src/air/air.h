@@ -606,7 +606,7 @@ AIR_EXPORT double airMode3_d(const double v[3]);
 AIR_EXPORT double airSgnPow(double, double);
 AIR_EXPORT double airIntPow(double v, int p);
 AIR_EXPORT int airSgn(double);
-AIR_EXPORT int airLog2(double n);
+AIR_EXPORT int airLog2(size_t n);
 AIR_EXPORT double airErfc(double x);
 AIR_EXPORT double airErf(double x);
 AIR_EXPORT double airGaussian(double x, double mean, double stdv);
@@ -620,8 +620,8 @@ AIR_EXPORT double airRician(double mes, double tru, double sig);
 AIR_EXPORT double airBesselI1By0(double x);
 AIR_EXPORT double airBesselIn(int n, double x);
 AIR_EXPORT double airBesselInExpScaled(int n, double x);
-AIR_EXPORT double airVanDerCorput(unsigned int index, unsigned int base);
-AIR_EXPORT void airHalton(double *out, unsigned int index,
+AIR_EXPORT double airVanDerCorput(unsigned int indx, unsigned int base);
+AIR_EXPORT void airHalton(double *out, unsigned int indx,
                           const unsigned int *base, unsigned int num);
 #define AIR_PRIME_NUM 1000
 AIR_EXPORT const unsigned int airPrimeList[AIR_PRIME_NUM];

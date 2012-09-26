@@ -271,19 +271,32 @@ airIntPow(double v, int p) {
 /*
 ******** airLog2()
 **
-** silly little function which returns log_2(n) if n is a power of 2,
-** or -1 otherwise
+** silly little function which returns log_2(n) if n is exactly a power of 2,
+** and -1 otherwise
 */
 int 
-airLog2(double n) {
+airLog2(size_t _nn) {
+  size_t nn;
+  int ret;
 
-  if (!AIR_EXISTS(n)) {
-    return -1;  }
-  if (n == 1.0) {
-    return 0;  }
-  if (n < 2) {
-    return -1;  }
-  return 1 + airLog2(n/2.0);
+  nn = _nn;
+  if (0 == nn) {
+    /* 0 is not a power of 2 */
+    ret = -1;
+  } else {
+    int alog = 0;
+    /* divide by 2 while its non-zero and the low bit is off */
+    while (!!nn && !(nn & 1)) {
+      alog += 1;
+      nn /= 2;
+    }
+    if (1 == nn) {
+      ret = alog;
+    } else {
+      ret = -1;
+    }
+  }
+  return ret;
 }
 
 int
@@ -719,12 +732,12 @@ airBesselInExpScaled(int nn, double xx) {
 
 /*  http://en.wikipedia.org/wiki/Halton_sequences */
 double
-airVanDerCorput(unsigned int index, unsigned int base) {
+airVanDerCorput(unsigned int indx, unsigned int base) {
   double result=0.0, ff;
   unsigned int ii;
 
   ff = 1.0/base;
-  ii = index;
+  ii = indx;
   while (ii) {
     result += ff*(ii % base);
     ii /= base;
@@ -734,7 +747,7 @@ airVanDerCorput(unsigned int index, unsigned int base) {
 }
 
 void
-airHalton(double *out, unsigned int index,
+airHalton(double *out, unsigned int indx,
           const unsigned int *base, unsigned int num) {
   unsigned int nn, bb;
 
@@ -743,7 +756,7 @@ airHalton(double *out, unsigned int index,
     unsigned int ii;
     bb = base[nn];
     ff = 1.0/bb;
-    ii = index;
+    ii = indx;
     while (ii) {
       result += ff*(ii % bb);
       ii /= bb;
