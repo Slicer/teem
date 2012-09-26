@@ -25,43 +25,19 @@ AR = libtool
 ARFLAGS = -static -o
 RANLIB = ranlib
 
-#LD = clang
-#CC = clang
-#OPT_CFLAG ?= -O2 -fstrict-aliasing -fcatch-undefined-behavior
+LD = gcc
 
-#LD = clang
-#CC = clang
-#LD = gcc
-#CC = gcc
-LD = colorgcc
-CC = colorgcc
-# OPT_CFLAG ?= -O3 -fast
-# see http://www.gnu.org/software/gsl/manual/html_node/GCC-warning-options-for-numerical-programs.html
-#
-# PUT BACK:
-# -Wconversion 
-#
-# Not useful given the structure of Teem: 
-# -Wmissing-prototypes, -Wmissing-declarations wants prototypes even for local static functions
-# -Wbad-function-cast doesn't like cast the result of a function (not the function pointer)
-# -Wmissing-format-attribute could be interesting, but moot once a printf replacement is in place
-OPT_CFLAG ?= -O2 -ansi -pedantic \
-  -W -Wall -Wextra -Wno-long-long -Wno-overlength-strings \
-  -fstrict-aliasing -Wstrict-aliasing=9 -fstrict-overflow -Wstrict-overflow=9 \
-  -Wpointer-arith -Wcast-qual -Wcast-align -ftrapv \
-  -Wstrict-prototypes -Wshadow -Wwrite-strings -fshort-enums -fno-common -Wnested-externs \
-  -Wmissing-field-initializers -Wunreachable-code 
+OPT_CFLAG ?= -O3
 STATIC_CFLAG = -Wl,-prebind
-SHARED_CFLAG = -fPIC
+SHARED_CFLAG =
 SHARED_LDFLAG = -dynamic -dynamiclib -fno-common
 SHARED_INSTALL_NAME = -install_name
 
-ARCH_CFLAG = -W -Wall -Wextra
+ARCH_CFLAG = -W -Wall
 ARCH_LDFLAG =
 
 ifeq ($(SUBARCH),64)
-# -Wconversion 
-  ARCH_CFLAG = -arch x86_64
+  ARCH_CFLAG = -W -Wall -arch x86_64
 else
   ifeq ($(SUBARCH),32)
   ARCH_CFLAG = -W -Wall -arch i386
