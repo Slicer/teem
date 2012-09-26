@@ -252,7 +252,7 @@ TIJK_ESH_DECONVOLVE(float, f)
  *        2 if any of the given signal values is zero
  */
 #define TIJK_ESH_MAKE_KERNEL_RANK1(TYPE, SUF)                           \
-  int tijk_esh_make_kernel_rank1_##SUF(TYPE *kernel, const TYPE *signal, \
+  int tijk_esh_make_kernel_rank1_##SUF(TYPE *kernel, const TYPE *signl, \
                                        unsigned int order) {            \
     unsigned int i;                                                     \
     TYPE rank1[TIJK_TYPE_MAX_NUM], rank1sh[TIJK_TYPE_MAX_NUM];          \
@@ -269,18 +269,18 @@ TIJK_ESH_DECONVOLVE(float, f)
     (*type->sym->make_rank1_##SUF)(rank1, 1.0, v);                      \
     tijk_3d_sym_to_esh_##SUF(rank1sh, rank1, type);                     \
     for (i=0; i<1+order/2; i++)                                         \
-      if (signal[i]==0) {                                               \
+      if (signl[i]==0) {                                                \
         return 2;                                                       \
       }                                                                 \
-    kernel[0]=signal[0]/rank1sh[0];                                     \
+    kernel[0]=signl[0]/rank1sh[0];                                      \
     if (order>=2) {                                                     \
-      kernel[1]=signal[1]/rank1sh[3];                                   \
+      kernel[1]=signl[1]/rank1sh[3];                                    \
       if (order>=4) {                                                   \
-        kernel[2]=signal[2]/rank1sh[10];                                \
+        kernel[2]=signl[2]/rank1sh[10];                                 \
         if (order>=6) {                                                 \
-          kernel[3]=signal[3]/rank1sh[21];                              \
+          kernel[3]=signl[3]/rank1sh[21];                               \
           if (order>=8) {                                               \
-            kernel[4]=signal[4]/rank1sh[36];                            \
+            kernel[4]=signl[4]/rank1sh[36];                             \
           }                                                             \
         }                                                               \
       }                                                                 \
@@ -299,7 +299,7 @@ TIJK_ESH_MAKE_KERNEL_RANK1(float, f)
  *        2 if any of the given signal values is zero
  */
 #define TIJK_ESH_MAKE_KERNEL_DELTA(TYPE, SUF)                           \
-  int tijk_esh_make_kernel_delta_##SUF(TYPE *kernel, const TYPE *signal, \
+  int tijk_esh_make_kernel_delta_##SUF(TYPE *kernel, const TYPE *signl, \
                                        unsigned int order) {            \
     /* we need a truncated delta peak of given order */                 \
     TYPE deltash[TIJK_TYPE_MAX_NUM];                                    \
@@ -307,19 +307,19 @@ TIJK_ESH_MAKE_KERNEL_RANK1(float, f)
     if (order>tijk_max_esh_order || order%2!=0)                         \
       return 1;                                                         \
     for (i=0; i<1+order/2; i++)                                         \
-      if (signal[i]==0) {                                               \
+      if (signl[i]==0) {                                                \
         return 2;                                                       \
       }                                                                 \
     tijk_eval_esh_basis_##SUF(deltash, order, 0, 0);                    \
-    kernel[0]=signal[0]/deltash[0];                                     \
+    kernel[0]=signl[0]/deltash[0];                                      \
     if (order>=2) {                                                     \
-      kernel[1]=signal[1]/deltash[3];                                   \
+      kernel[1]=signl[1]/deltash[3];                                    \
       if (order>=4) {                                                   \
-        kernel[2]=signal[2]/deltash[10];                                \
+        kernel[2]=signl[2]/deltash[10];                                 \
         if (order>=6) {                                                 \
-          kernel[3]=signal[3]/deltash[21];                              \
+          kernel[3]=signl[3]/deltash[21];                               \
           if (order>=8) {                                               \
-            kernel[4]=signal[4]/deltash[36];                            \
+            kernel[4]=signl[4]/deltash[36];                             \
           }                                                             \
         }                                                               \
       }                                                                 \
