@@ -30,10 +30,12 @@
 */
 void
 pushBinInit(pushBin *bin, unsigned int incr) {
+  pushPtrPtrUnion pppu;
 
   bin->pointNum = 0;
   bin->point = NULL;
-  bin->pointArr = airArrayNew((void**)&(bin->point), &(bin->pointNum),
+  bin->pointArr = airArrayNew((pppu.point = &(bin->point), pppu.v),
+                              &(bin->pointNum),
                               sizeof(pushPoint *), incr);
   bin->neighbor = NULL;
   return;

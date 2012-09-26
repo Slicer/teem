@@ -500,7 +500,7 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
 int
 qbertScat(Nrrd *nvgh, int pos, int size, const char *name) {
   static const char me[]="qbertScat";
-  Nrrd *nin[2], *nv, *nx, *nscA, *nscB;
+  Nrrd **nin, *nv, *nx, *nscA, *nscB;
   airArray *mop;
   size_t bins[2];
   int E, clamp[2];
@@ -513,6 +513,11 @@ qbertScat(Nrrd *nvgh, int pos, int size, const char *name) {
   airMopAdd(mop, nx=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nscA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nscB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  /* HEY: this used to be nin[2], but its passing to nrrdJoin caused
+     "dereferencing type-punned pointer might break strict-aliasing rules"
+     warning; GLK not sure how else to fix it */
+  nin = AIR_CALLOC(2, Nrrd*);
+  airMopAdd(mop, nin, airFree, airMopAlways);
   nin[0] = nv;
   nin[1] = nx;
   E = 0;

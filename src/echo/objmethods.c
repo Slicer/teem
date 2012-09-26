@@ -128,8 +128,9 @@ NEW_TMPL(Split,
          )
 
 NEW_TMPL(List,
+         echoPtrPtrUnion eppu;
          obj->obj = NULL;
-         obj->objArr = airArrayNew((void**)&(obj->obj), NULL,
+         obj->objArr = airArrayNew((eppu.obj = &(obj->obj),eppu.v), NULL,
                                    sizeof(echoObject *),
                                    ECHO_LIST_OBJECT_INCR);
          )

@@ -32,6 +32,7 @@
 pushPoint *
 pushPointNew(pushContext *pctx) {
   pushPoint *pnt;
+  pushPtrPtrUnion pppu;
 
   if (pctx) {
     pnt = AIR_CAST(pushPoint *, calloc(1, sizeof(pushPoint)));
@@ -49,7 +50,8 @@ pushPointNew(pushContext *pctx) {
       pnt->seedThresh = AIR_NAN;
       pnt->enr = DBL_MAX;  /* any finite quantity will be less than this */
 
-      pnt->neighArr = airArrayNew((void**)&(pnt->neigh), &(pnt->neighNum),
+      pnt->neighArr = airArrayNew((pppu.point = &(pnt->neigh), pppu.v),
+                                  &(pnt->neighNum),
                                   sizeof(pushPoint *), 10);
     }
   } else {

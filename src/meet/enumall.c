@@ -29,6 +29,11 @@ meetPresent = 42;
 const char *
 meetBiffKey = "meet";
 
+typedef union {
+  const airEnum ***enm;
+  void **v;
+} foobarUnion; 
+
 /*
 ******** meetAirEnumAll
 **
@@ -56,8 +61,10 @@ meetAirEnumAll() {
   airArray *arr;
   const airEnum **enm;
   unsigned int ii;
+  foobarUnion fbu;
 
-  arr = airArrayNew(AIR_CAST(void **, &enm), NULL, sizeof(airEnum *), 2);
+  arr = airArrayNew((fbu.enm = &enm, fbu.v), 
+                    NULL, sizeof(airEnum *), 2);
 
   /* air */
   ii = airArrayLenIncr(arr, 1); enm[ii] = airEndian;

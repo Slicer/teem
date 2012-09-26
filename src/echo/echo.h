@@ -421,6 +421,12 @@ typedef struct {
     boxhits;            /* how many bounding boxes we hit */
 } echoIntx;
 
+typedef union {
+  echoObject ***obj;
+  Nrrd ***nrd;
+  void **v;
+} echoPtrPtrUnion;
+
 /* enumsEcho.c ------------------------------------------ */
 ECHO_EXPORT const airEnum *const echoJitter;
 ECHO_EXPORT const airEnum *const echoType;

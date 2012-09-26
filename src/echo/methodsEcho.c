@@ -34,7 +34,7 @@ echoRTParm *
 echoRTParmNew(void) {
   echoRTParm *parm;
   
-  parm = (echoRTParm *)calloc(1, sizeof(echoRTParm));
+  parm = AIR_CALLOC(1, echoRTParm);
   if (parm) {
     parm->jitterType = echoJitterNone;
     parm->reuseJitter = AIR_FALSE;
@@ -70,7 +70,7 @@ echoGlobalState *
 echoGlobalStateNew(void) {
   echoGlobalState *state;
   
-  state = (echoGlobalState *)calloc(1, sizeof(echoGlobalState));
+  state = AIR_CALLOC(1, echoGlobalState);
   if (state) {
     state->verbose = 0;
     state->time = 0;
@@ -96,7 +96,7 @@ echoThreadState *
 echoThreadStateNew(void) {
   echoThreadState *state;
   
-  state = (echoThreadState *)calloc(1, sizeof(echoThreadState));
+  state = AIR_CALLOC(1, echoThreadState);
   if (state) {
     state->thread = airThreadNew();
     state->verbose = 0;
@@ -130,28 +130,29 @@ echoThreadStateNix(echoThreadState *state) {
 echoScene *
 echoSceneNew(void) {
   echoScene *ret;
+  echoPtrPtrUnion eppu;
   
-  ret = (echoScene *)calloc(1, sizeof(echoScene));
+  ret = AIR_CALLOC(1, echoScene);
   if (ret) {
     ret->cat = NULL;
-    ret->catArr = airArrayNew((void**)&(ret->cat), NULL,
+    ret->catArr = airArrayNew((eppu.obj = &(ret->cat), eppu.v), NULL,
                               sizeof(echoObject *),
                               ECHO_LIST_OBJECT_INCR);
     airArrayPointerCB(ret->catArr,
                       airNull,
                       (void *(*)(void *))echoObjectNix);
     ret->rend = NULL;
-    ret->rendArr = airArrayNew((void**)&(ret->rend), NULL,
+    ret->rendArr = airArrayNew((eppu.obj = &(ret->rend), eppu.v), NULL,
                                sizeof(echoObject *),
                                ECHO_LIST_OBJECT_INCR);
     /* no callbacks set, renderable objecs are nixed from catArr */
     ret->light = NULL;
-    ret->lightArr = airArrayNew((void**)&(ret->light), NULL,
+    ret->lightArr = airArrayNew((eppu.obj = &(ret->light), eppu.v), NULL,
                                 sizeof(echoObject *),
                                 ECHO_LIST_OBJECT_INCR);
     /* no callbacks set; light objects are nixed from catArr */
     ret->nrrd = NULL;
-    ret->nrrdArr = airArrayNew((void**)&(ret->nrrd), NULL,
+    ret->nrrdArr = airArrayNew((eppu.nrd = &(ret->nrrd), eppu.v), NULL,
                                sizeof(Nrrd *),
                                ECHO_LIST_OBJECT_INCR);
     airArrayPointerCB(ret->nrrdArr,

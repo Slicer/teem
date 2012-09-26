@@ -674,7 +674,7 @@ int
 tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
          size_t pos, unsigned int dim) {
   static const char me[]="tenSlice";
-  Nrrd *nslice, *ncoeff[4];
+  Nrrd *nslice, **ncoeff=NULL;
   int ci[4];
   airArray *mop;
   char stmp[2][AIR_STRLEN_SMALL];
@@ -717,6 +717,11 @@ tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
       airMopError(mop); return 1;
     }
   } else {
+    /* HEY: this used to be ncoeff[4], but its passing to nrrdJoin caused
+       "dereferencing type-punned pointer might break strict-aliasing rules"
+       warning; GLK not sure how else to fix it */
+    ncoeff = AIR_CALLOC(4, Nrrd*);
+    airMopAdd(mop, ncoeff, airFree, airMopAlways);
     airMopAdd(mop, ncoeff[0]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
     airMopAdd(mop, ncoeff[1]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
     airMopAdd(mop, ncoeff[2]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);

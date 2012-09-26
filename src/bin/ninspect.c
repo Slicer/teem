@@ -128,7 +128,7 @@ int
 ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
   static const char me[]="ninspect_proj";
   airArray *mop;
-  Nrrd *ntmpA, *ntmpB, *nrgb[3];
+  Nrrd *ntmpA, *ntmpB, **nrgb;
   int bins;
 
   if (!(nout && nin)) {
@@ -145,6 +145,11 @@ ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
   mop = airMopNew();
   airMopAdd(mop, ntmpA = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ntmpB = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  /* HEY: this used to be nrgb[3], but its passing to nrrdJoin caused
+     "dereferencing type-punned pointer might break strict-aliasing rules"
+     warning; GLK not sure how else to fix it */
+  nrgb = AIR_CALLOC(3, Nrrd*);
+  airMopAdd(mop, nrgb, airFree, airMopAlways);
   airMopAdd(mop, nrgb[0] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nrgb[1] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nrgb[2] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);

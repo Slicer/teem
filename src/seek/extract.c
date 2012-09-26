@@ -29,7 +29,7 @@ baggageNew(seekContext *sctx) {
   baggage *bag;
   unsigned int sx;
   
-  bag = (baggage *)calloc(1, sizeof(baggage));
+  bag = AIR_CALLOC(1, baggage);
   
   /* this is basically the mapping from the 12 edges on each voxel to
      the 5 unique edges for each sample on the slab, based on the lay-out
@@ -117,6 +117,7 @@ static int
 outputInit(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
   static const char me[]="outputInit";
   unsigned int estVertNum, estFaceNum, minI, maxI, valI, *spanHist;
+  airPtrPtrUnion appu;
   int E;
   
   if (seekTypeIsocontour == sctx->type
@@ -151,19 +152,22 @@ outputInit(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
     biffAddf(SEEK, "%s: trouble emptying given polydata", me);
     return 1;
   }
-  bag->xyzwArr = airArrayNew((void**)&(lpld->xyzw), &(lpld->xyzwNum),
+  bag->xyzwArr = airArrayNew((appu.f = &(lpld->xyzw), appu.v),
+                             &(lpld->xyzwNum),
                              4*sizeof(float), sctx->pldArrIncr);
   if (sctx->normalsFind) {
-    bag->normArr = airArrayNew((void**)&(lpld->norm), &(lpld->normNum),
+    bag->normArr = airArrayNew((appu.f = &(lpld->norm), appu.v),
+                               &(lpld->normNum),
                                3*sizeof(float), sctx->pldArrIncr);
   } else {
     bag->normArr = NULL;
   }
-  bag->indxArr = airArrayNew((void**)&(lpld->indx), &(lpld->indxNum),
+  bag->indxArr = airArrayNew((appu.ui = &(lpld->indx), appu.v),
+                             &(lpld->indxNum),
                              sizeof(unsigned int), sctx->pldArrIncr);
   lpld->primNum = 1;  /* for now, its just triangle soup */
-  lpld->type = (unsigned char *)calloc(lpld->primNum, sizeof(unsigned char));
-  lpld->icnt = (unsigned int *)calloc(lpld->primNum, sizeof(unsigned int));
+  lpld->type = AIR_CALLOC(lpld->primNum, unsigned char);
+  lpld->icnt = AIR_CALLOC(lpld->primNum, unsigned int);
   lpld->type[0] = limnPrimitiveTriangles;
   lpld->icnt[0] = 0;  /* incremented below */
   

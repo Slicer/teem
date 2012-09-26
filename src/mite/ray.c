@@ -30,7 +30,7 @@ miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
              double rayLen,
              double rayStartWorld[3], double rayStartIndex[3],
              double rayDirWorld[3], double rayDirIndex[3]) {
-
+  airPtrPtrUnion appu;
   AIR_UNUSED(mrr);
   AIR_UNUSED(rayStartWorld);
   AIR_UNUSED(rayStartIndex);
@@ -58,7 +58,7 @@ miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
        the user wants: mite itself doesn't call miteUserNix */
     airMopAdd(muu->umop, muu->ndebug, (airMopper)nrrdNuke, airMopAlways);
     /* but the scope of the debug array allocation is within this ray */
-    muu->debugArr = airArrayNew((void**)(&(muu->debug)),
+    muu->debugArr = airArrayNew((appu.d = &(muu->debug), appu.v),
                                 NULL, sizeof(double), 128);
   }
   mtt->raySample = 0;

@@ -264,6 +264,11 @@ typedef struct pushContext_t {
     *noutTen;                      /* list of 2D or 3D masked tensors */
 } pushContext;
 
+typedef union {
+  pushPoint ***point;
+  void **v;
+} pushPtrPtrUnion;
+
 /* defaultsPush.c */
 PUSH_EXPORT const int pushPresent;
 PUSH_EXPORT const char *pushBiffKey;

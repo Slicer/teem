@@ -24,6 +24,16 @@
 
 #include "limn.h"
 
+/* restricted to this file now since here is the only place its needed */
+typedef union {
+  limnVertex **vert;
+  limnEdge **edge;
+  limnFace **face;
+  limnLook **look;
+  limnPart ***partp;
+  void **v;
+} limnPtrPtrUnion;
+
 int
 limnObjectLookAdd(limnObject *obj) {
   int lookIdx;
@@ -41,8 +51,9 @@ limnObjectLookAdd(limnObject *obj) {
 limnObject *
 limnObjectNew(int incr, int doEdges) {
   limnObject *obj;
+  limnPtrPtrUnion lppu;
 
-  obj = (limnObject *)calloc(1, sizeof(limnObject));
+  obj = AIR_CALLOC(1, limnObject);
   obj->vert = NULL;
   obj->edge = NULL;
   obj->face = NULL;
@@ -52,17 +63,23 @@ limnObjectNew(int incr, int doEdges) {
   obj->look = NULL;
 
   /* create all various airArrays */
-  obj->vertArr = airArrayNew((void**)&(obj->vert), &(obj->vertNum), 
+  obj->vertArr = airArrayNew((lppu.vert = &(obj->vert), lppu.v),
+                             &(obj->vertNum), 
                              sizeof(limnVertex), incr);
-  obj->edgeArr = airArrayNew((void**)&(obj->edge), &(obj->edgeNum),
+  obj->edgeArr = airArrayNew((lppu.edge = &(obj->edge), lppu.v),
+                             &(obj->edgeNum),
                              sizeof(limnEdge), incr);
-  obj->faceArr = airArrayNew((void**)&(obj->face), &(obj->faceNum),
+  obj->faceArr = airArrayNew((lppu.face = &(obj->face), lppu.v),
+                             &(obj->faceNum),
                              sizeof(limnFace), incr);
-  obj->partArr = airArrayNew((void**)&(obj->part), &(obj->partNum),
+  obj->partArr = airArrayNew((lppu.partp = &(obj->part), lppu.v),
+                             &(obj->partNum),
                              sizeof(limnPart*), incr);
-  obj->partPoolArr = airArrayNew((void**)&(obj->partPool), &(obj->partPoolNum),
+  obj->partPoolArr = airArrayNew((lppu.partp = &(obj->partPool), lppu.v),
+                                 &(obj->partPoolNum),
                                  sizeof(limnPart*), incr);
-  obj->lookArr = airArrayNew((void**)&(obj->look), &(obj->lookNum),
+  obj->lookArr = airArrayNew((lppu.look = &(obj->look), lppu.v),
+                             &(obj->lookNum),
                              sizeof(limnLook), incr);
 
   /* create (default) look 0 */
@@ -79,19 +96,20 @@ limnObjectNew(int incr, int doEdges) {
 limnPart *
 _limnObjectPartNew(int incr) {
   limnPart *part;
+  airPtrPtrUnion appu;
 
-  part = (limnPart*)calloc(1, sizeof(limnPart));
+  part = AIR_CALLOC(1, limnPart);
   if (part) {
     part->vertIdx = NULL;
     part->edgeIdx = NULL;
     part->faceIdx = NULL;
-    part->vertIdxArr = airArrayNew((void**)&(part->vertIdx),
+    part->vertIdxArr = airArrayNew((appu.ui = &(part->vertIdx), appu.v),
                                    &(part->vertIdxNum),
                                    sizeof(int), incr);
-    part->edgeIdxArr = airArrayNew((void**)&(part->edgeIdx),
+    part->edgeIdxArr = airArrayNew((appu.ui = &(part->edgeIdx), appu.v),
                                    &(part->edgeIdxNum),
                                    sizeof(int), incr);
-    part->faceIdxArr = airArrayNew((void**)&(part->faceIdx),
+    part->faceIdxArr = airArrayNew((appu.ui = &(part->faceIdx), appu.v),
                                    &(part->faceIdxNum),
                                    sizeof(int), incr);
   }
@@ -336,10 +354,10 @@ limnObjectFaceAdd(limnObject *obj, unsigned int partIdx,
   faceIdxIdx = airArrayLenIncr(part->faceIdxArr, 1);
   part->faceIdx[faceIdxIdx] = faceIdx;
   
-  face->vertIdx = (unsigned int*)calloc(sideNum, sizeof(unsigned int));
+  face->vertIdx = AIR_CALLOC(sideNum, unsigned int);
   face->sideNum = sideNum;
   if (obj->doEdges) {
-    face->edgeIdx = (unsigned int*)calloc(sideNum, sizeof(unsigned int));
+    face->edgeIdx = AIR_CALLOC(sideNum, unsigned int);
   }
   for (sideIdx=0; sideIdx<sideNum; sideIdx++) {
     face->vertIdx[sideIdx] = vertIdx[sideIdx];

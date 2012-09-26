@@ -326,16 +326,22 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   return 0;
 }
 
+typedef union {
+  pullTrace ***trace;
+  void **v;
+} blahblahUnion;
+
 pullTraceMulti *
 pullTraceMultiNew(void) {
   /* static const char me[]="pullTraceMultiNew"; */
   pullTraceMulti *ret;
+  blahblahUnion bbu;
   
   ret = AIR_CALLOC(1, pullTraceMulti);
   if (ret) {
     ret->trace = NULL;
     ret->traceNum = 0;
-    ret->traceArr = airArrayNew(AIR_CAST(void **, &(ret->trace)),
+    ret->traceArr = airArrayNew((bbu.trace = &(ret->trace), bbu.v),
                                 &(ret->traceNum), sizeof(pullTrace*),
                                 _PULL_TRACE_MULTI_INCR);
     airArrayPointerCB(ret->traceArr,
