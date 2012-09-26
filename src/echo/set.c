@@ -73,14 +73,14 @@ echoRectangleSet(echoObject *rect,
                        
 void
 echoTriangleSet(echoObject *tri,
-                echoPos_t x0, echoPos_t y0, echoPos_t z0, 
-                echoPos_t x1, echoPos_t y1, echoPos_t z1, 
-                echoPos_t x2, echoPos_t y2, echoPos_t z2) {
+                echoPos_t xx0, echoPos_t yy0, echoPos_t zz0, 
+                echoPos_t xx1, echoPos_t yy1, echoPos_t zz1, 
+                echoPos_t xx2, echoPos_t yy2, echoPos_t zz2) {
 
   if (tri && echoTypeTriangle == tri->type) {
-    ELL_3V_SET(TRIANGLE(tri)->vert[0], x0, y0, z0);
-    ELL_3V_SET(TRIANGLE(tri)->vert[1], x1, y1, z1);
-    ELL_3V_SET(TRIANGLE(tri)->vert[2], x2, y2, z2);
+    ELL_3V_SET(TRIANGLE(tri)->vert[0], xx0, yy0, zz0);
+    ELL_3V_SET(TRIANGLE(tri)->vert[1], xx1, yy1, zz1);
+    ELL_3V_SET(TRIANGLE(tri)->vert[2], xx2, yy2, zz2);
   }
   return;
 }

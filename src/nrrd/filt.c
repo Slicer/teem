@@ -428,11 +428,11 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
 ** returns intersection of parabolas c(x) = spc^2 (x - xi)^2 + yi
 */
 static double
-intx(double x0, double y0, double x1, double y1, double spc) {
+intx(double xx0, double yy0, double xx1, double yy1, double spc) {
   double ss;
   
   ss = spc*spc;
-  return (y1/ss + x1*x1 - (y0/ss + x0*x0))/(2*(x1 - x0));
+  return (yy1/ss + xx1*xx1 - (yy0/ss + xx0*xx0))/(2*(xx1 - xx0));
 }
 
 /*

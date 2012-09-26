@@ -42,7 +42,7 @@ unrrdu_i2wMain(int argc, const char **argv, const char *me,
   char *err;
 
   int center;
-  double minPos, maxPos, pos, index, size;
+  double minPos, maxPos, pos, indx, size;
 
   mop = airMopNew();
   hestOptAdd(&opt, NULL, "center", airTypeEnum, 1, 1, &center, NULL,
@@ -58,14 +58,14 @@ unrrdu_i2wMain(int argc, const char **argv, const char *me,
              "highest position associated with highest index");
   hestOptAdd(&opt, NULL, "num", airTypeDouble, 1, 1, &size, NULL,
              "number of intervals into which position has been quantized");
-  hestOptAdd(&opt, NULL, "index", airTypeDouble, 1, 1, &index, NULL,
+  hestOptAdd(&opt, NULL, "index", airTypeDouble, 1, 1, &indx, NULL,
              "the input index position, to be converted to world");
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_unrrdu_i2wInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  pos = NRRD_POS(center, minPos, maxPos, size, index);
+  pos = NRRD_POS(center, minPos, maxPos, size, indx);
   printf("%g\n", pos);
   
   airMopOkay(mop);

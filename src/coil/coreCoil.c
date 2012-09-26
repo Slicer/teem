@@ -24,7 +24,7 @@
 #include "coil.h"
 
 #define _COIL_IV3_FILL(radius, diam, valLen) \
-  if (0 && x0) { \
+  if (0 && xx0) { \
     /* cycle through slices */ \
     tmp = iv3[0]; \
     for (xni=0; xni<diam-1; xni++) { \
@@ -33,11 +33,11 @@
     iv3[diam-1] = tmp; \
     /* refill only newest one */ \
     xni = diam-1; \
-    xvi = AIR_CLAMP(0, xni-(int)radius+x0, sizeX-1) - x0; \
+    xvi = AIR_CLAMP(0, xni-(int)radius+xx0, sizeX-1) - xx0; \
     for (zni=0; zni<diam; zni++) { \
-      zvi = AIR_CLAMP(0, zni-(int)radius+z0, sizeZ-1) - z0; \
+      zvi = AIR_CLAMP(0, zni-(int)radius+zz0, sizeZ-1) - zz0; \
       for (yni=0; yni<diam; yni++) { \
-        yvi = AIR_CLAMP(0, yni-(int)radius+y0, sizeY-1) - y0; \
+        yvi = AIR_CLAMP(0, yni-(int)radius+yy0, sizeY-1) - yy0; \
         for (vi=0; vi<valLen; vi++) { \
           iv3[xni][vi + valLen*(yni + diam*zni)] =  \
             here[vi + valLen*(0 + 2*(xvi + sizeX*(yvi + sizeY*zvi)))]; \
@@ -47,11 +47,11 @@
   } else { \
     /* have to re-fill entire thing */ \
     for (zni=0; zni<diam; zni++) { \
-      zvi = AIR_CLAMP(0, zni-(int)radius+z0, sizeZ-1) - z0; \
+      zvi = AIR_CLAMP(0, zni-(int)radius+zz0, sizeZ-1) - zz0; \
       for (yni=0; yni<diam; yni++) { \
-        yvi = AIR_CLAMP(0, yni-(int)radius+y0, sizeY-1) - y0; \
+        yvi = AIR_CLAMP(0, yni-(int)radius+yy0, sizeY-1) - yy0; \
         for (xni=0; xni<diam; xni++) { \
-          xvi = AIR_CLAMP(0, xni-(int)radius+x0, sizeX-1) - x0; \
+          xvi = AIR_CLAMP(0, xni-(int)radius+xx0, sizeX-1) - xx0; \
           for (vi=0; vi<valLen; vi++) { \
             iv3[xni][vi + valLen*(yni + diam*zni)] =  \
               here[vi + valLen*(0 + 2*(xvi + sizeX*(yvi + sizeY*zvi)))]; \
@@ -69,7 +69,7 @@
 */
 void
 _coilIv3Fill_R_L(coil_t **iv3, coil_t *here, unsigned int radius, int valLen,
-                 int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
+                 int xx0, int yy0, int zz0, int sizeX, int sizeY, int sizeZ) {
   int diam, vi,    /* value index */
     xni, yni, zni, /* neighborhood (iv3) indices */
     xvi, yvi, zvi; /* volume indices */
@@ -82,7 +82,7 @@ _coilIv3Fill_R_L(coil_t **iv3, coil_t *here, unsigned int radius, int valLen,
 
 void
 _coilIv3Fill_1_1(coil_t **iv3, coil_t *here, unsigned int radius, int valLen,
-                 int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
+                 int xx0, int yy0, int zz0, int sizeX, int sizeY, int sizeZ) {
   int vi,          /* value index */
     xni, yni, zni, /* neighborhood (iv3) indices */
     xvi, yvi, zvi; /* volume indices */
@@ -97,7 +97,7 @@ _coilIv3Fill_1_1(coil_t **iv3, coil_t *here, unsigned int radius, int valLen,
 
 void
 _coilIv3Fill_1_7(coil_t **iv3, coil_t *here, unsigned int radius, int valLen,
-             int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ) {
+             int xx0, int yy0, int zz0, int sizeX, int sizeY, int sizeZ) {
   int vi,          /* value index */
     xni, yni, zni, /* neighborhood (iv3) indices */
     xvi, yvi, zvi; /* volume indices */

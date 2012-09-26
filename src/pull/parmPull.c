@@ -491,7 +491,7 @@ pullInterEnergySet(pullContext *pctx, int interType,
 ** you can pass in a NULL FILE* if you want
 */
 int
-pullLogAddSet(pullContext *pctx, FILE *log) {
+pullLogAddSet(pullContext *pctx, FILE *flog) {
   static const char me[]="pullLogAddSet";
   
   if (!(pctx)) {
@@ -499,6 +499,6 @@ pullLogAddSet(pullContext *pctx, FILE *log) {
     return 1;
   }
 
-  pctx->logAdd = log;
+  pctx->logAdd = flog;
   return 0;
 }

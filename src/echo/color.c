@@ -258,17 +258,17 @@ _echoIntxColorMetal(INTXCOLOR_ARGS) {
 */
 int
 _echoRefract(echoPos_t T[3], echoPos_t V[3],
-             echoPos_t N[3], echoCol_t index, echoThreadState *tstate) {
+             echoPos_t N[3], echoCol_t indexr, echoThreadState *tstate) {
   echoPos_t cosTh, cosPh, sinPhSq, cosPhSq, tmp1, tmp2;
 
   cosTh = ELL_3V_DOT(V, N);
-  sinPhSq = (1 - cosTh*cosTh)/(index*index);
+  sinPhSq = (1 - cosTh*cosTh)/(indexr*indexr);
   cosPhSq = 1 - sinPhSq;
   if (cosPhSq < 0) {
     if (tstate->verbose) {
       fprintf(stderr, "%s%s: cosTh = %g --%g--> TIR!!\n",
               _echoDot(tstate->depth), "_echoRefract",
-              cosTh, index);
+              cosTh, indexr);
     }
     return AIR_FALSE;
   }
@@ -277,9 +277,9 @@ _echoRefract(echoPos_t T[3], echoPos_t V[3],
   if (tstate->verbose) {
     fprintf(stderr, "%s%s: cosTh = %g --%g--> cosPh = %g\n",
             _echoDot(tstate->depth), "_echoRefract",
-            cosTh, index, cosPh);
+            cosTh, indexr, cosPh);
   }
-  tmp1 = -1.0/index; tmp2 = cosTh/index - cosPh; 
+  tmp1 = -1.0/indexr; tmp2 = cosTh/indexr - cosPh; 
   ELL_3V_SCALE_ADD2(T, tmp1, V, tmp2, N);
   ELL_3V_NORM(T, T, tmp1);
   return AIR_TRUE;
@@ -291,7 +291,7 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
   echoCol_t
     ambi[3], diff[3],
     ka, kd, RP, RS, RT, R0,
-    index,         /* (index of material we're going into) /
+    indexr,        /* (index of material we're going into) /
                       (index of material we're leaving) */
     k[3],          /* attenuation of color due to travel through medium */
     matlCol[4],    /* inherent color */
@@ -312,7 +312,7 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
   tranRay.shadow = reflRay.shadow = AIR_FALSE;
   ELL_3V_COPY(reflRay.dir, intx->refl);
   /* tranRay.dir set below */
-  index = intx->obj->mat[echoMatterGlassIndex];
+  indexr = intx->obj->mat[echoMatterGlassIndex];
 
   RS = 0.0;  /* this is a flag meaning: "AFAIK, there's no total int refl" */
   tmp = ELL_3V_DOT(intx->norm, intx->view);
@@ -320,12 +320,12 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
     /* "d.n < 0": we're coming from outside the glass, and we
        assume this means that we're going into a HIGHER index material,
        which means there is NO total internal reflection */
-    _echoRefract(tranRay.dir, intx->view, intx->norm, index, tstate);
+    _echoRefract(tranRay.dir, intx->view, intx->norm, indexr, tstate);
     if (tstate->verbose) {
       fprintf(stderr, "%s%s: V=(%g,%g,%g),N=(%g,%g,%g),n=%g -> T=(%g,%g,%g)\n",
               _echoDot(tstate->depth), me,
               intx->view[0], intx->view[1], intx->view[2],
-              intx->norm[0], intx->norm[1], intx->norm[2], index,
+              intx->norm[0], intx->norm[1], intx->norm[2], indexr,
               tranRay.dir[0], tranRay.dir[1], tranRay.dir[2]);
     }
     c = tmp;
@@ -344,7 +344,7 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
               _echoDot(tstate->depth), me, intx->t, k[0], k[1], k[2]);
     }
     ELL_3V_SCALE(negnorm, -1, intx->norm);
-    if (_echoRefract(tranRay.dir, intx->view, negnorm, 1/index, tstate)) {
+    if (_echoRefract(tranRay.dir, intx->view, negnorm, 1/indexr, tstate)) {
       c = -ELL_3V_DOT(tranRay.dir, negnorm);
     } else {
       /* its total internal reflection time! */
@@ -357,7 +357,7 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
     /* total internal reflection */
     RT = 0;
   } else {
-    R0 = (index - 1)/(index + 1);
+    R0 = (indexr - 1)/(indexr + 1);
     R0 *= R0;
     c = 1 - c;
     c = c*c*c*c*c;
@@ -435,7 +435,7 @@ _echoIntxColor[ECHO_MATTER_MAX+1] = {
 */
 void
 echoIntxFuzzify(echoIntx *intx, echoCol_t fuzz, echoThreadState *tstate) {
-  echoPos_t tmp, *jitt, oldNorm[3], perp0[3], perp1[3], j0, j1;
+  echoPos_t tmp, *jitt, oldNorm[3], perp0[3], perp1[3], jj0, jj1;
   int side;
 
   /* at some point I thought this was important to avoid bias when
@@ -446,18 +446,18 @@ echoIntxFuzzify(echoIntx *intx, echoCol_t fuzz, echoThreadState *tstate) {
   } else {
     jitt = tstate->jitt + 2*echoJittableNormalB;
   }
-  j0 = fuzz*jitt[0];
-  j1 = fuzz*jitt[1];
+  jj0 = fuzz*jitt[0];
+  jj1 = fuzz*jitt[1];
   ELL_3V_COPY(oldNorm, intx->norm);
   side = ELL_3V_DOT(intx->refl, oldNorm) > 0;
   ell_3v_PERP(perp0, oldNorm);
   ELL_3V_NORM(perp0, perp0, tmp);
   ELL_3V_CROSS(perp1, perp0, oldNorm);
-  ELL_3V_SCALE_ADD3(intx->norm, 1, oldNorm, j0, perp0, j1, perp1);
+  ELL_3V_SCALE_ADD3(intx->norm, 1, oldNorm, jj0, perp0, jj1, perp1);
   ELL_3V_NORM(intx->norm, intx->norm, tmp);
   _ECHO_REFLECT(intx->refl, intx->norm, intx->view, tmp);
   if (side != (ELL_3V_DOT(intx->refl, oldNorm) > 0)) {
-    ELL_3V_SCALE_ADD3(intx->norm, 1, oldNorm, -j0, perp0, -j1, perp1);
+    ELL_3V_SCALE_ADD3(intx->norm, 1, oldNorm, -jj0, perp0, -jj1, perp1);
     ELL_3V_NORM(intx->norm, intx->norm, tmp);
     _ECHO_REFLECT(intx->refl, intx->norm, intx->view, tmp);
   }

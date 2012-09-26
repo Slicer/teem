@@ -226,8 +226,8 @@ miteNtxfCheck(const Nrrd *ntxf) {
   static const char me[]="miteNtxfCheck";
   char *rangeStr, *domStr;
   gageItemSpec isp;
-  int log2;
   unsigned int rii, axi;
+  int ilog2;
 
   if (nrrdCheck(ntxf)) {
     biffMovef(MITE, NRRD, "%s: basic nrrd validity check failed", me);
@@ -294,16 +294,16 @@ miteNtxfCheck(const Nrrd *ntxf) {
     }
     if (3 == isp.kind->table[isp.item].answerLength) {
       /* has to be right length for one of the quantization schemes */
-      log2 = airLog2(ntxf->axis[axi].size);
-      if (-1 == log2) {
+      ilog2 = airLog2(ntxf->axis[axi].size);
+      if (-1 == ilog2) {
         char stmp[AIR_STRLEN_SMALL];
         biffAddf(MITE, "%s: txf axis size for %s must be power of 2 (not %s)",
                  me, domStr, airSprintSize_t(stmp, ntxf->axis[axi].size));
         return 1;
       } else {
-        if (!( AIR_IN_CL(8, log2, 16) )) {
+        if (!( AIR_IN_CL(8, ilog2, 16) )) {
           biffAddf(MITE, "%s: log_2 of txf axis size for %s should be in "
-                   "range [8,16] (not %d)", me, domStr, log2);
+                   "range [8,16] (not %d)", me, domStr, ilog2);
           return 1;
         }
       }
@@ -543,7 +543,7 @@ int
 _miteStageSet(miteThread *mtt, miteRender *mrr) {
   static const char me[]="_miteStageSet";
   char *value;
-  int ni, di, stageIdx, rii, stageNum, log2;
+  int ni, di, stageIdx, rii, stageNum, ilog2;
   Nrrd *ntxf;
   miteStage *stage;
   gageItemSpec isp;
@@ -591,8 +591,8 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
           stage->qn = NULL;
         } else if (3 == isp.kind->table[isp.item].answerLength) {
           char stmp[AIR_STRLEN_SMALL];
-          log2 = airLog2(ntxf->axis[di].size);
-          switch(log2) {
+          ilog2 = airLog2(ntxf->axis[di].size);
+          switch(ilog2) {
           case 8:  stage->qn = limnVtoQN_d[ limnQN8octa]; break;
           case 9:  stage->qn = limnVtoQN_d[ limnQN9octa]; break;
           case 10: stage->qn = limnVtoQN_d[limnQN10octa]; break;

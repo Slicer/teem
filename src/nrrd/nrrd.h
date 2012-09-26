@@ -584,13 +584,14 @@ typedef struct {
                                integral, should we renormalize the weights to
                                match the kernel integral so as to remove
                                annoying ripple */
-    round,                  /* when copying from the last intermediate
+    roundlast,              /* when copying from the last intermediate
                                (floating point) result to the output nrrd,
                                for integer outputs, do we round to the nearest
                                integer first, before clamping and assigning.
                                Enabling this fixed the mystery of downsampling
                                large constant regions of 255 (uchar), and
-                               ending up with 254 */
+                               ending up with 254 
+                               (renamed from "round" to avoid shadowing) */
     clamp,                   /* when copying from the last intermediate
                                 (floating point) result to the output nrrd,
                                should we clamp the values to the range of

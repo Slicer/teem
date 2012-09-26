@@ -41,7 +41,7 @@ unrrdu_w2iMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *err;
 
   int center;
-  double minPos, maxPos, pos, index, size;
+  double minPos, maxPos, pos, indx, size;
 
   mop = airMopNew();
   hestOptAdd(&opt, NULL, "center", airTypeEnum, 1, 1, &center, NULL,
@@ -64,8 +64,8 @@ unrrdu_w2iMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  index = NRRD_IDX(center, minPos, maxPos, size, pos);
-  printf("%g\n", index);
+  indx = NRRD_IDX(center, minPos, maxPos, size, pos);
+  printf("%g\n", indx);
   
   airMopOkay(mop);
   return 0;

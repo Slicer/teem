@@ -304,9 +304,9 @@ tkwbStringSubst(char **sP,  /* string to search in */
 }
 
 int
-tkwbWriteIndex(char *_index, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
+tkwbWriteIndex(char *_indx, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
   static const char me[]="tkwbWriteIndex";
-  char *repl, *index, tmp[AIR_STRLEN_MED];
+  char *repl, *indx, tmp[AIR_STRLEN_MED];
   int replLen, si;
   airArray *mop;
   
@@ -333,10 +333,10 @@ tkwbWriteIndex(char *_index, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
   }
   strcat(repl, "</ol>");
 
-  index = airStrdup(_index);
-  tkwbStringSubst(&index, tag[TKWB_TAG_TOC], repl);
-  airMopAdd(mop, index, airFree, airMopAlways);
-  if (tkwbWriteStringToFile("index.html", index)) {
+  indx = airStrdup(_indx);
+  tkwbStringSubst(&indx, tag[TKWB_TAG_TOC], repl);
+  airMopAdd(mop, indx, airFree, airMopAlways);
+  if (tkwbWriteStringToFile("index.html", indx)) {
     biffAddf(TKWB, "%s: couldn't write \"index.html\"", me);
     airMopError(mop); return 1;
   }
@@ -385,20 +385,20 @@ tkwbWriteSlides(tkwbSlide **slide, int numSlides, char *tmpl,
 }
 
 int
-tkwbDoit(char *indexS, char *tmplS, char *scriptS,
+tkwbDoit(char *indxS, char *tmplS, char *scriptS,
          char *tag[TKWB_TAG_MAX+1], char *link[4]) {
   static const char me[]="tkwbDoit";
-  char *index, *tmpl;
+  char *indx, *tmpl;
   tkwbSlide **slide;
   airArray *mop;
   int numSlides;
   
   mop = airMopNew();
-  if (tkwbReadTemplate(&index, indexS)) {
+  if (tkwbReadTemplate(&indx, indxS)) {
     biffAddf(TKWB, "%s: trouble reading in index template file", me);
     airMopError(mop); return 1;
   }
-  airMopAdd(mop, index, airFree, airMopAlways);
+  airMopAdd(mop, indx, airFree, airMopAlways);
 
   if (tkwbReadTemplate(&tmpl, tmplS)) {
     biffAddf(TKWB, "%s: trouble reading in slide template file", me);
@@ -417,7 +417,7 @@ tkwbDoit(char *indexS, char *tmplS, char *scriptS,
     airMopError(mop); return 1;
   }
 
-  if (tkwbWriteIndex(index, slide, tag)) {
+  if (tkwbWriteIndex(indx, slide, tag)) {
     biffAddf(TKWB, "%s: trouble writing index.html", me);
     airMopError(mop); return 1;
   }
@@ -435,7 +435,7 @@ tkwbDoit(char *indexS, char *tmplS, char *scriptS,
 int
 main(int argc, const char *argv[]) {
   const char *me;
-  char *err, *indexS, *tmplS, *scriptS, *pretag[TKWB_TAG_MAX+1],
+  char *err, *indxS, *tmplS, *scriptS, *pretag[TKWB_TAG_MAX+1],
     *tag[AIR_STRLEN_MED],
     *frstLink, *prevLink, *nextLink, *lastLink, *link[4];
   hestOpt *hopt = NULL;
@@ -443,7 +443,7 @@ main(int argc, const char *argv[]) {
   int ti;
 
   me = argv[0];
-  hestOptAdd(&hopt, "i", "index", airTypeString, 1, 1, &indexS, NULL,
+  hestOptAdd(&hopt, "i", "index", airTypeString, 1, 1, &indxS, NULL,
              "*index* template HTML filename.  This will be turned into "
              "the \"index.html\" index file, after the links to all the "
              "slides have been substituted in.");
@@ -500,7 +500,7 @@ main(int argc, const char *argv[]) {
     airMopAdd(mop, tag[ti], airFree, airMopAlways);
     sprintf(tag[ti], "<!--%s-->", pretag[ti]);
   }
-  if (tkwbDoit(indexS, tmplS, scriptS, tag, link)) {
+  if (tkwbDoit(indxS, tmplS, scriptS, tag, link)) {
     airMopAdd(mop, err = biffGetDone(TKWB), airFree, airMopAlways);
     fprintf(stderr, "%s: error:\n%s", me, err);
     airMopError(mop); return 1;

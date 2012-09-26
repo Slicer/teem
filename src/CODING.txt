@@ -256,19 +256,50 @@ the dashboard is a priority.
 * The tests in teem/Testing are slowly accumulating.  Much of the effort
 in ongoing Teem development will be in creating and strengthening tests.
 
-* For the most part, Teem is written in ANSI C89.  The known ways in
-which the code diverges from this standard are:
- - using the "long long" type qualifier to generate 64-bit ints
- - various strings created at compile time, often with the benefit of the
+* Teem is 99.9% ANSI C89.  The known ways in which it isn't conformant are:
+ - using the "long long" type qualifier to generate 64-bit ints (on *nix,
+   and __int64 on Windows).
+ - various strings created at compile time, often via the automatic
    "foo" "bar" --> "foobar" string concatenation, exceed the length 
    509 guaranteed to be supported by the standard
- - using snprintf() and fileno(), which are usually part of stdio.h 
-The relevant gcc invocation might include something like:
-"-W -Wall -Wextra -C89 -pedantic -Wno-long-long -Wno-overlength-string"
+ - using snprintf() and fileno(), which are not necessarily part of stdio.h 
 Note that automatic conversion from a non-void* to a void*, in the specific
 case of supplying the value for a %p argument to a printf-like function, is
-not actually supported: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=26542 
-The AIR_VOIDP(x) macro can be used to cast x to void*.
+not actually in C89: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=26542 
+The AIR_VOIDP(x) and AIR_CVOIDP(x) macros are used to cast x to void* 
+or const void * in this context.
+
+* Compiling with various warnings can help reveal bugs and potential problems.
+The advice here is relevant for Teem:
+http://www.gnu.org/software/gsl/manual/html_node/GCC-warning-options-for-numerical-programs.html
+
+However, -Wmissing-prototypes complains about a missing prototype even for
+local (static) functions that aren't used outside a given file, which is very
+common in Teem, and adding protoypes would be onerous (and for similar
+reasons -Wmissing-declarations is not helpful).  So what has proven useful
+for development is:
+
+  gcc -O2 -std=c89 -pedantic \
+   -W -Wall -Wextra -Wno-long-long -Wno-overlength-strings \
+   -fstrict-aliasing -Wstrict-aliasing=2 -fstrict-overflow -Wstrict-overflow=5 \
+   -ftrapv -fshort-enums -fno-common \
+   -Wpointer-arith -Wcast-qual -Wcast-align \
+   -Wstrict-prototypes -Wshadow -Wwrite-strings -Wnested-externs \
+   -Wunreachable-code -Wmissing-field-initializers
+
+* Avoid symbol names that shadow others means there is a set of names that
+should be avoided (as revealed by -Wshadow).  Here are some that have been
+removed from Teem, starting with the most suprising:
+index: looks to be same as strchr, but in strings.h instead of string.h
+round: round double to integer
+y0, y1: along with j0, j1, jn, yn, these are for Bessel functions
+signal: basic unix process communication
+read: read from file descriptors; a system call
+exp, log2: math functions, oops
+
+The relevant gcc invocation might include something like:
+"-W -Wall -Wextra -C89 -pedantic -Wno-long-long -Wno-overlength-string"
+
 
 * Any externally visible changes in Teem must be accompanied by regenerating
 its python ctypes wrappers teem/python/ctypes/teem.py.  The current tools for
@@ -291,10 +322,10 @@ various paths that are specific to his laptop)
 followed by "svn commit" if needed.
 
 * Make casts grep-able.  This usually means using AIR_CAST, but can also mean
-using macros AIR_VOIDP, AIR_UINT, AIR_INT, and the ell macros ending in "_TT".
-The only exception is casting things to airMopper to pass to airMopAdd().
-(why: casts are inherently tricky, and sources of bugs, so their use should 
-be grep-able)
+using macros AIR_VOIDP, AIR_CVOIDP, AIR_UINT, AIR_INT, and the ell macros
+ending in "_TT".  The only exception is casting things to airMopper to pass
+to airMopAdd().  (why: casts are inherently tricky, and sources of bugs, so
+their use should be grep-able)
 
 * Use AIR_CALLOC (preferably) or AIR_MALLOC to allocate things (why: both
 explicitly indicate the number of elements, and the size of each, and both

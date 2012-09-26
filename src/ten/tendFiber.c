@@ -282,11 +282,11 @@ tend_fiberMain(int argc, const char **argv, const char *me,
     if (worldSpaceOut && !worldSpace) {
       /* have to convert output to worldspace */
       unsigned int ii;
-      double index[4], world[3];
+      double indx[4], world[3];
       for (ii=0; ii<fiberPld->xyzwNum; ii++) {
-        ELL_4V_COPY(index, fiberPld->xyzw + 4*ii);
-        ELL_4V_HOMOG(index, index);
-        gageShapeItoW(tfx->gtx->shape, world, index);
+        ELL_4V_COPY(indx, fiberPld->xyzw + 4*ii);
+        ELL_4V_HOMOG(indx, indx);
+        gageShapeItoW(tfx->gtx->shape, world, indx);
         ELL_3V_COPY_TT(fiberPld->xyzw + 4*ii, float, world);
         (fiberPld->xyzw + 4*ii)[3] = 1.0;
       }

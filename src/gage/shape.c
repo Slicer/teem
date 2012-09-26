@@ -86,18 +86,18 @@ gageShapeNix(gageShape *shape) {
 
 static void
 shapeUnitItoW(const gageShape *shape, double world[3],
-              const double index[3], const double volHalfLen[3]) {
+              const double indx[3], const double volHalfLen[3]) {
   unsigned int i;
   
   if (nrrdCenterNode == shape->center) {
     for (i=0; i<=2; i++) {
       world[i] = NRRD_NODE_POS(-volHalfLen[i], volHalfLen[i],
-                               shape->size[i], index[i]);
+                               shape->size[i], indx[i]);
     }
   } else {
     for (i=0; i<=2; i++) {
       world[i] = NRRD_CELL_POS(-volHalfLen[i], volHalfLen[i],
-                               shape->size[i], index[i]);
+                               shape->size[i], indx[i]);
     }
   }
 }
@@ -413,17 +413,17 @@ gageShapeSet(gageShape *shape, const Nrrd *nin, int baseDim) {
 /*
 ** this wasn't being used at all
 void
-gageShapeUnitWtoI(gageShape *shape, double index[3], double world[3]) {
+gageShapeUnitWtoI(gageShape *shape, double indx[3], double world[3]) {
   int i;
   
   if (nrrdCenterNode == shape->center) {
     for (i=0; i<=2; i++) {
-      index[i] = NRRD_NODE_IDX(-shape->volHalfLen[i], shape->volHalfLen[i],
+      indx[i] = NRRD_NODE_IDX(-shape->volHalfLen[i], shape->volHalfLen[i],
                                shape->size[i], world[i]);
     }
   } else {
     for (i=0; i<=2; i++) {
-      index[i] = NRRD_CELL_IDX(-shape->volHalfLen[i], shape->volHalfLen[i],
+      indx[i] = NRRD_CELL_IDX(-shape->volHalfLen[i], shape->volHalfLen[i],
                                shape->size[i], world[i]);
     }
   }
@@ -432,28 +432,28 @@ gageShapeUnitWtoI(gageShape *shape, double index[3], double world[3]) {
 
 void
 gageShapeWtoI(const gageShape *shape,
-              double _index[3], const double _world[3]) {
+              double _indx[3], const double _world[3]) {
   /* static const char me[]="gageShapeWtoI"; */
-  double index[4], world[4];
+  double indx[4], world[4];
 
   /*
   fprintf(stderr, "!%s: hello %p %p %p; %p\n", me, 
-          shape, _index, _world, shape->WtoI);
+          shape, _indx, _world, shape->WtoI);
   */
   ELL_3V_COPY(world, _world);
   world[3] = 1.0;
-  ELL_4MV_MUL(index, shape->WtoI, world);
-  ELL_3V_SCALE(_index, 1.0/index[3], index);
+  ELL_4MV_MUL(indx, shape->WtoI, world);
+  ELL_3V_SCALE(_indx, 1.0/indx[3], indx);
 }
 
 void
 gageShapeItoW(const gageShape *shape,
-              double _world[3], const double _index[3]) {
-  double world[4], index[4];
+              double _world[3], const double _indx[3]) {
+  double world[4], indx[4];
 
-  ELL_3V_COPY(index, _index);
-  index[3] = 1.0;
-  ELL_4MV_MUL(world, shape->ItoW, index);
+  ELL_3V_COPY(indx, _indx);
+  indx[3] = 1.0;
+  ELL_4MV_MUL(world, shape->ItoW, indx);
   ELL_3V_SCALE(_world, 1.0/world[3], world);
 }
 

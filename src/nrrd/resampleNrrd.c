@@ -298,7 +298,7 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
                              const Nrrd *nin, const NrrdResampleInfo *info,
                              unsigned int ai) {
   static const char me[]="_nrrdResampleMakeWeightIndex";
-  int sizeIn, sizeOut, center, dotLen, halfLen, *index, base, idx;
+  int sizeIn, sizeOut, center, dotLen, halfLen, *indx, base, idx;
   nrrdResample_t minIn, maxIn, minOut, maxOut, spcIn, spcOut,
     ratio, support, integral, pos, idxD, wght;
   nrrdResample_t *weight;
@@ -352,8 +352,8 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
     biffAddf(NRRD, "%s: can't allocate weight array", me);
     *weightP = NULL; *indexP = NULL; return 0;
   }
-  index = AIR_CALLOC(sizeOut*dotLen, int);
-  if (!index) {
+  indx = AIR_CALLOC(sizeOut*dotLen, int);
+  if (!indx) {
     biffAddf(NRRD, "%s: can't allocate index arrays", me);
     *weightP = NULL; *indexP = NULL; return 0;
   }
@@ -367,8 +367,8 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
                     NRRD_IDX(center, minIn, maxIn, sizeIn, pos));
     base = (int)floor(idxD) - halfLen + 1;
     for (e=0; e<dotLen; e++) {
-      index[e + dotLen*i] = base + e;
-      weight[e + dotLen*i] = idxD - index[e + dotLen*i];
+      indx[e + dotLen*i] = base + e;
+      weight[e + dotLen*i] = idxD - indx[e + dotLen*i];
     }
     /* ********
     if (!i) {
@@ -376,7 +376,7 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
     }
     fprintf(stderr, "%s: %d (sample locations)\n        ", me, i);
     for (e=0; e<dotLen; e++) {
-      fprintf(stderr, "%d/%g ", index[e + dotLen*i], weight[e + dotLen*i]);
+      fprintf(stderr, "%d/%g ", indx[e + dotLen*i], weight[e + dotLen*i]);
     }
     fprintf(stderr, "\n");
     ******** */
@@ -384,7 +384,7 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
 
   /* figure out what to do with the out-of-range indices */
   for (i=0; i<dotLen*sizeOut; i++) {
-    idx = index[i];
+    idx = indx[i];
     if (!AIR_IN_CL(0, idx, sizeIn-1)) {
       switch(info->boundary) {
       case nrrdBoundaryPad:
@@ -405,7 +405,7 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
                  me, info->boundary);
         *weightP = NULL; *indexP = NULL; return 0;
       }
-      index[i] = idx;
+      indx[i] = idx;
     }
   }
 
@@ -422,7 +422,7 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
   for (i=0; i<sizeOut; i++) {
     fprintf(stderr, "%s: %d (sample weights)\n        ", me, i);
     for (e=0; e<dotLen; e++) {
-      fprintf(stderr, "%d/%g ", index[e + dotLen*i], weight[e + dotLen*i]);
+      fprintf(stderr, "%d/%g ", indx[e + dotLen*i], weight[e + dotLen*i]);
     }
     fprintf(stderr, "\n");
   }
@@ -436,12 +436,12 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
       for (i=0; i<sizeOut; i++) {
         wght = 0;
         for (e=0; e<dotLen; e++) {
-          if (sizeIn != index[e + dotLen*i]) {
+          if (sizeIn != indx[e + dotLen*i]) {
             wght += weight[e + dotLen*i];
           }
         }
         for (e=0; e<dotLen; e++) {
-          idx = index[e + dotLen*i];
+          idx = indx[e + dotLen*i];
           if (sizeIn != idx) {
             weight[e + dotLen*i] *= integral/wght;
           } else {
@@ -478,7 +478,7 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
     fprintf(stderr, "%s: %d\n        ", me, i);
     wght = 0;
     for (e=0; e<dotLen; e++) {
-      fprintf(stderr, "%d/%g ", index[e + dotLen*i], weight[e + dotLen*i]);
+      fprintf(stderr, "%d/%g ", indx[e + dotLen*i], weight[e + dotLen*i]);
       wght += weight[e + dotLen*i];
     }
     fprintf(stderr, " (sum = %g)\n", wght);
@@ -486,7 +486,7 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP,
   ******** */
 
   *weightP = weight;
-  *indexP = index;
+  *indexP = indx;
   /*
   fprintf(stderr, "!%s: dotLen = %d\n", me, dotLen);
   */
@@ -576,7 +576,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
     doRound,                  /* actually do rounding on output: we DO NOT
                                  round when info->round but the output 
                                  type is not integral */
-    *index;                   /* dotLen*sizeOut 2D array of input indices */
+    *indx;                    /* dotLen*sizeOut 2D array of input indices */
   size_t 
     I,                        /* swiss-army int */
     strideIn,                 /* the stride between samples in the input
@@ -750,7 +750,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
     airMopAdd(mop, inVec, airFree, airMopAlways);
     inVec[sizeIn] = AIR_CAST(nrrdResample_t, info->padValue);
 
-    dotLen = _nrrdResampleMakeWeightIndex(&weight, &index, &ratio,
+    dotLen = _nrrdResampleMakeWeightIndex(&weight, &indx, &ratio,
                                           nin, info, ai);
     if (!dotLen) {
       biffAddf(NRRD, "%s: trouble creating weight and index vector arrays",
@@ -759,7 +759,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
     }
     ratios[ai] = ratio;
     airMopAdd(mop, weight, airFree, airMopAlways);
-    airMopAdd(mop, index, airFree, airMopAlways);
+    airMopAdd(mop, indx, airFree, airMopAlways);
 
     /* the skinny: resample all the scanlines */
     _inVec = array[pi];
@@ -786,10 +786,10 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
         fprintf(stderr, "%s: i = %d (tmpF=0)\n", me, (int)i);
         */
         for (s=0; s<dotLen; s++) {
-          tmpF += inVec[index[s + dotLen*i]]*weight[s + dotLen*i];
+          tmpF += inVec[indx[s + dotLen*i]]*weight[s + dotLen*i];
           /*
           fprintf(stderr, "  tmpF += %g*%g == %g\n",
-                  inVec[index[s + dotLen*i]], weight[s + dotLen*i], tmpF);
+                  inVec[indx[s + dotLen*i]], weight[s + dotLen*i], tmpF);
           */
         }
         _outVec[i*strideOut] = tmpF;
@@ -817,10 +817,10 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin,
 
     /* pass-specific clean up */
     airMopSub(mop, weight, airFree);
-    airMopSub(mop, index, airFree);
+    airMopSub(mop, indx, airFree);
     airMopSub(mop, inVec, airFree);
     weight = (nrrdResample_t*)airFree(weight);
-    index = (int*)airFree(index);
+    indx = (int*)airFree(indx);
     inVec = (nrrdResample_t*)airFree(inVec);
   }
 

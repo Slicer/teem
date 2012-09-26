@@ -64,12 +64,12 @@ echoMatterPhongSet(echoScene *scene, echoObject *obj,
                    
 void
 echoMatterGlassSet(echoScene *scene, echoObject *obj,
-                   echoCol_t index, echoCol_t ka,
+                   echoCol_t indexr, echoCol_t ka,
                    echoCol_t kd, echoCol_t fuzzy) {
 
   if (scene && obj && echoObjectHasMatter[obj->type]) {
     obj->matter = echoMatterGlass;
-    obj->mat[echoMatterGlassIndex] = index;
+    obj->mat[echoMatterGlassIndex] = indexr;
     obj->mat[echoMatterGlassKa] = ka;
     obj->mat[echoMatterGlassKd] = kd;
     obj->mat[echoMatterGlassFuzzy] = fuzzy;

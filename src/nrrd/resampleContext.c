@@ -93,7 +93,7 @@ nrrdResampleContextInit(NrrdResampleContext *rsmc) {
     rsmc->boundary = nrrdDefaultResampleBoundary;
     rsmc->typeOut = nrrdDefaultResampleType;
     rsmc->renormalize = nrrdDefaultResampleRenormalize;
-    rsmc->round = nrrdDefaultResampleRound;
+    rsmc->roundlast = nrrdDefaultResampleRound;
     rsmc->clamp = nrrdDefaultResampleClamp;
     rsmc->defaultCenter = nrrdDefaultCenter;
     rsmc->nonExistent = nrrdDefaultResampleNonExistent;
@@ -502,7 +502,7 @@ nrrdResampleTypeOutSet(NrrdResampleContext *rsmc,
 
 int
 nrrdResampleRoundSet(NrrdResampleContext *rsmc,
-                     int round) {
+                     int roundlast) {
   static const char me[]="nrrdResampleRoundSet";
 
   if (!rsmc) {
@@ -510,8 +510,8 @@ nrrdResampleRoundSet(NrrdResampleContext *rsmc,
     return 1;
   }
   
-  if (rsmc->round != round) {
-    rsmc->round = round;
+  if (rsmc->roundlast != roundlast) {
+    rsmc->roundlast = roundlast;
     rsmc->flag[flagRound] = AIR_TRUE;
   }
 
@@ -1110,7 +1110,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
   size_t strideIn, strideOut, lineNum, lineIdx,
     coordIn[NRRD_DIM_MAX], coordOut[NRRD_DIM_MAX];
   nrrdResample_t *line, *weight, *rsmpIn, *rsmpOut;
-  int *index;
+  int *indx;
   const void *dataIn;
   void *dataOut;
   NrrdResampleAxis *axisIn, *axisOut;
@@ -1207,7 +1207,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
     }
 
     line = (nrrdResample_t *)(axisIn->nline->data);
-    index = (int *)(axisIn->nindex->data);
+    indx = (int *)(axisIn->nindex->data);
     weight = (nrrdResample_t *)(axisIn->nweight->data);
 
     /* the skinny */
@@ -1244,7 +1244,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
           wsum = 0.0;
           for (dotIdx=0; dotIdx<dotLen; dotIdx++) {
             double tmpV, tmpW; 
-            tmpV = line[index[dotIdx + dotLen*smpIdx]];
+            tmpV = line[indx[dotIdx + dotLen*smpIdx]];
             if (AIR_EXISTS(tmpV)) {
               tmpW = weight[dotIdx + dotLen*smpIdx];
               val += tmpV*tmpW;
@@ -1263,7 +1263,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
           /* nrrdResampleNonExistentNoop: do convolution sum
              w/out worries about value existance */
           for (dotIdx=0; dotIdx<dotLen; dotIdx++) {
-            val += (line[index[dotIdx + dotLen*smpIdx]]
+            val += (line[indx[dotIdx + dotLen*smpIdx]]
                     * weight[dotIdx + dotLen*smpIdx]);
           }
         }
@@ -1340,7 +1340,7 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout,
     typeOut = (nrrdTypeDefault == rsmc->typeOut
                ? rsmc->nin->type
                : rsmc->typeOut);
-    doRound = rsmc->round && nrrdTypeIsIntegral[typeOut];
+    doRound = rsmc->roundlast && nrrdTypeIsIntegral[typeOut];
     if (doRound && (nrrdTypeInt == typeOut
                     || nrrdTypeUInt == typeOut
                     || nrrdTypeLLong == typeOut
