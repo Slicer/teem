@@ -734,8 +734,10 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
         /* lort and hirt will bracket the index of the bad control point
            with points corresponding either to respected bins or the
            endpoints of the histogram */
-        for (lort=bii; lort>=1 && !respect[lort-1]; lort--);
-        for (hirt=bii; hirt<bins && !respect[hirt-1]; hirt++);
+        for (lort=bii; lort>=1 && !respect[lort-1]; lort--)
+          ;
+        for (hirt=bii; hirt<bins && !respect[hirt-1]; hirt++)
+          ;
         ycoord[bii] = AIR_AFFINE(lort, bii, hirt,
                                  ycoord[lort], ycoord[hirt]);
       }

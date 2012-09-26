@@ -131,7 +131,7 @@ _pullTaskNix(pullTask *task) {
     }
     task->rng = airRandMTStateNix(task->rng);
     task->pointBuffer = pullPointNix(task->pointBuffer);
-    task->neighPoint = airFree(task->neighPoint);
+    airFree(task->neighPoint);
     task->addPointArr = airArrayNuke(task->addPointArr);
     task->nixPointArr = airArrayNuke(task->nixPointArr);
     airFree(task);
@@ -174,6 +174,7 @@ _pullTaskFinish(pullContext *pctx) {
   for (tidx=0; tidx<pctx->threadNum; tidx++) {
     pctx->task[tidx] = _pullTaskNix(pctx->task[tidx]);
   }
-  pctx->task = airFree(pctx->task);
+  airFree(pctx->task);
+  pctx->task = NULL;
   return;
 }

@@ -2093,8 +2093,10 @@ _tenGagePvlDataUpdate(const struct gageKind_t *kind,
   num = fd*fd*fd;
   if (num != pvlData->tip->allocLen) {
     /* HEY: no error checking */
-    pvlData->buffTen = airFree(pvlData->buffTen);
-    pvlData->buffWght = airFree(pvlData->buffWght);
+    airFree(pvlData->buffTen);
+    pvlData->buffTen = NULL;
+    airFree(pvlData->buffWght);
+    pvlData->buffWght = NULL;
     pvlData->buffTen = AIR_CALLOC(7*num, double);
     pvlData->buffWght = AIR_CALLOC(num, double);
     tenInterpParmBufferAlloc(pvlData->tip, num);  

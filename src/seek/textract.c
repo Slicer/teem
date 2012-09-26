@@ -1551,20 +1551,20 @@ _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
           /* extract polygon from connections array */
           signed char polygon[42];
           unsigned char polyct=0;
-          char this=i;
+          char thiz=i;
           char next=connections[2*i];
           polygon[polyct++]=i;
           connections[2*i]=-1;
           while (next!=-1) {
             char helpnext;
             polygon[polyct++]=next;
-            if (connections[2*next]==this) {
+            if (connections[2*next]==thiz) {
               helpnext=connections[2*next+1];
             } else {
               helpnext=connections[2*next];
             }
             connections[2*next]=connections[2*next+1]=-1;
-            this = next; next = helpnext;
+            thiz = next; next = helpnext;
             if (next==polygon[0])
               break; /* polygon is closed */
           }

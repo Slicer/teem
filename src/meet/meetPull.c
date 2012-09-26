@@ -492,8 +492,8 @@ meetPullInfo *
 meetPullInfoNix(meetPullInfo *minf) {
   
   if (minf) {
-    minf->volName = airFree(minf->volName);
-    minf->itemStr = airFree(minf->itemStr);
+    airFree(minf->volName);
+    airFree(minf->itemStr);
     free(minf);
   }
   return NULL;

@@ -67,7 +67,8 @@ gageStackBlurParmScaleSet(gageStackBlurParm *sbp, unsigned int num,
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
-  sbp->scale = airFree(sbp->scale);
+  airFree(sbp->scale);
+  sbp->scale = NULL;
   if (!( scaleMin < scaleMax )) {
     biffAddf(GAGE, "%s: scaleMin %g not < scaleMax %g", me,
              scaleMin, scaleMax);

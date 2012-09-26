@@ -71,40 +71,40 @@ tenInterpParmBufferAlloc(tenInterpParm *tip, unsigned int num) {
 
   if (0 == num) {
     /* user wants to free buffers for some reason */
-    tip->eval = airFree(tip->eval);
-    tip->evec = airFree(tip->evec);
-    tip->rtIn = airFree(tip->rtIn);
-    tip->rtLog = airFree(tip->rtLog);
-    tip->qIn = airFree(tip->qIn);
-    tip->qBuff = airFree(tip->qBuff);
-    tip->qInter = airFree(tip->qInter);
+    airFree(tip->eval); tip->eval = NULL;
+    airFree(tip->evec); tip->evec = NULL;
+    airFree(tip->rtIn); tip->rtIn = NULL;
+    airFree(tip->rtLog); tip->rtLog = NULL;
+    airFree(tip->qIn); tip->qIn = NULL;
+    airFree(tip->qBuff); tip->qBuff = NULL;
+    airFree(tip->qInter); tip->qInter = NULL;
     tip->allocLen = 0;
   } else if (1 == num) {
     biffAddf(TEN, "%s: need num >= 2 (not %u)", me, num);
     return 1;
   } else if (num != tip->allocLen) {
-    tip->eval = airFree(tip->eval);
-    tip->evec = airFree(tip->evec);
-    tip->rtIn = airFree(tip->rtIn);
-    tip->rtLog = airFree(tip->rtLog);
-    tip->qIn = airFree(tip->qIn);
-    tip->qBuff = airFree(tip->qBuff);
-    tip->qInter = airFree(tip->qInter);
-    tip->eval = AIR_CAST(double *, calloc(3*num, sizeof(double)));
-    tip->evec = AIR_CAST(double *, calloc(9*num, sizeof(double)));
-    tip->rtIn = AIR_CAST(double *, calloc(3*num, sizeof(double)));
-    tip->rtLog = AIR_CAST(double *, calloc(3*num, sizeof(double)));
-    tip->qIn = AIR_CAST(double *, calloc(4*num, sizeof(double)));
-    tip->qBuff = AIR_CAST(double *, calloc(4*num, sizeof(double)));
-    tip->qInter = AIR_CAST(double *, calloc(num*num, sizeof(double)));
+    airFree(tip->eval); tip->eval = NULL;
+    airFree(tip->evec); tip->evec = NULL;
+    airFree(tip->rtIn); tip->rtIn = NULL;
+    airFree(tip->rtLog); tip->rtLog = NULL;
+    airFree(tip->qIn); tip->qIn = NULL;
+    airFree(tip->qBuff); tip->qBuff = NULL;
+    airFree(tip->qInter); tip->qInter = NULL;
+    tip->eval = AIR_CALLOC(3*num, double);
+    tip->evec = AIR_CALLOC(9*num, double);
+    tip->rtIn = AIR_CALLOC(3*num, double);
+    tip->rtLog = AIR_CALLOC(3*num, double);
+    tip->qIn = AIR_CALLOC(4*num, double);
+    tip->qBuff = AIR_CALLOC(4*num, double);
+    tip->qInter = AIR_CALLOC(num*num, double);
     if (!(tip->eval && tip->evec && 
           tip->rtIn && tip->rtLog &&
           tip->qIn && tip->qBuff && tip->qInter)) {
       biffAddf(TEN, "%s: didn't alloc buffers (%p,%p,%p %p %p %p %p)", me,
-              AIR_CAST(void *, tip->eval), AIR_CAST(void *, tip->evec),
-              AIR_CAST(void *, tip->rtIn), AIR_CAST(void *, tip->rtLog),
-              AIR_CAST(void *, tip->qIn), AIR_CAST(void *, tip->qBuff),
-              AIR_CAST(void *, tip->qInter));
+               AIR_VOIDP(tip->eval), AIR_VOIDP(tip->evec),
+               AIR_VOIDP(tip->rtIn), AIR_VOIDP(tip->rtLog),
+               AIR_VOIDP(tip->qIn), AIR_VOIDP(tip->qBuff),
+               AIR_VOIDP(tip->qInter));
       return 1;
     }
     tip->allocLen = num;

@@ -139,8 +139,9 @@ tend_msimMain(int argc, const char **argv, const char *me,
      context of simulated DWIs */
   E = 0;
   if (!E) E |= tenGradientCheck(ngrad, nrrdTypeDouble, 1);
-  if (!E) E |= tenExperSpecGradSingleBValSet(espec, insertB0,
-                                             bval, ngrad->data,
+  if (!E) E |= tenExperSpecGradSingleBValSet(espec, insertB0, bval, 
+                                             AIR_CAST(const double *,
+                                                      ngrad->data),
                                              ngrad->axis[1].size);
   if (!E) E |= tenModelSimulate(nout, outType, espec,
                                 model, nT2, nin, keyValueSet);

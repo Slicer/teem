@@ -558,8 +558,8 @@ int nrrdArrayCompare(int type, const void *_valA, const void *_valB,
   }
   sze = nrrdTypeSize[type];
   compare = nrrdValCompare[type];
-  valA = _valA;
-  valB = _valB;
+  valA = AIR_CAST(const unsigned char *, _valA);
+  valB = AIR_CAST(const unsigned char *, _valB);
   for (ii=0; ii<valNum; ii++) {
     *differ = compare(valA + ii*sze, valB + ii*sze);
     if (*differ) {

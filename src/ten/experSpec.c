@@ -28,8 +28,8 @@ static int
 _experAlloc(tenExperSpec* espec, unsigned int num) {
   static char me[]="_experAlloc";
   
-  espec->bval = airFree(espec->bval);
-  espec->grad = airFree(espec->grad);
+  airFree(espec->bval); espec->bval = NULL;
+  airFree(espec->grad); espec->grad = NULL;
   /* espec->wght = airFree(espec->wght); */
   if (!num) {
     biffAddf(TEN, "%s: need a non-zero number of images", me);
@@ -255,8 +255,8 @@ tenExperSpec*
 tenExperSpecNix(tenExperSpec *espec) {
 
   if (espec) {
-    espec->bval = airFree(espec->bval);
-    espec->grad = airFree(espec->grad);
+    airFree(espec->bval);
+    airFree(espec->grad);
     /* espec->wght = airFree(espec->wght); */
     airFree(espec);
   }

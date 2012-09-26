@@ -125,7 +125,7 @@ pullInfoSpec *
 pullInfoSpecNix(pullInfoSpec *ispec) {
 
   if (ispec) {
-    ispec->volName = airFree(ispec->volName);
+    airFree(ispec->volName);
     airFree(ispec);
   }
   return NULL;

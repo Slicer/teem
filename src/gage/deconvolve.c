@@ -37,7 +37,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
   const double *ans[2];
   Nrrd *nout[2];
   airArray *mop;
-  unsigned int sx, sy, sz, xi, yi, zi, anslen, this=0, last, inIdx, iter;
+  unsigned int sx, sy, sz, xi, yi, zi, anslen, thiz=0, last, inIdx, iter;
   int E, valItem;
 
   if (!(_nout && lastDiffP && nin && kind && ksp)) {
@@ -96,9 +96,9 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
   sz = ctx[0]->shape->size[2];
   
   for (iter=0; iter<maxIter; iter++) {
-    this = (iter+1) % 2;
+    thiz = (iter+1) % 2;
     last = (iter+0) % 2;
-    val[this] = out[this];
+    val[thiz] = out[thiz];
     val[last] = out[last];
     inIdx = 0;
     meandiff = 0;
@@ -111,10 +111,10 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
           for (ai=0; ai<anslen; ai++) {
             in = lup(nin->data, ai + anslen*inIdx);
             aa = ans[last][ai];
-            val[this][ai] = val[last][ai] + step*(in - aa)/alpha;
+            val[thiz][ai] = val[last][ai] + step*(in - aa)/alpha;
             meandiff += 2*(in - aa)*(in - aa)/(DBL_EPSILON + in*in + aa*aa);
           }
-          val[this] += anslen;
+          val[thiz] += anslen;
           val[last] += anslen;
           ++inIdx;
         }
@@ -142,7 +142,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
     }
   }
 
-  if (nrrdClampConvert(_nout, nout[this], (nrrdTypeDefault == typeOut
+  if (nrrdClampConvert(_nout, nout[thiz], (nrrdTypeDefault == typeOut
                                            ? nin->type
                                            : typeOut))) {
     biffAddf(GAGE, "%s: couldn't create output", me);

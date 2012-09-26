@@ -1219,7 +1219,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv,
   if ( parm->greedySingleString ) {
     for (i=0; i<numOpts; i++) {
       param = prms[i];
-      param_copy = 0;
+      param_copy = NULL;
       if (param && strstr(param, " ")) {
         start_index = 0;
         end_index = strlen(param)-1;
@@ -1227,7 +1227,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv,
           start_index++;
         if (param[end_index] == '\"')
            end_index--;
-        param_copy = malloc(end_index-start_index+2);
+        param_copy = AIR_CALLOC(end_index-start_index+2, char);
         strncpy(param_copy,&param[start_index],end_index-start_index+1);
         param_copy[end_index-start_index+1] = '\0';
         strcpy(param,param_copy);

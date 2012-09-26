@@ -436,7 +436,7 @@ _nrrdSprintFieldInfo(char **strP, const char *prefix,
     strtmp = airOneLinify(airStrdup(nrrd->content));
     *strP = AIR_CALLOC(fslen + strlen(strtmp), char);
     sprintf(*strP, "%s%s: %s", prefix, fs, strtmp);
-    strtmp = airFree(strtmp);
+    airFree(strtmp); strtmp = NULL;
     break;
   case nrrdField_number:
     *strP = AIR_CALLOC(fslen + size_tStrlen, char);
@@ -627,7 +627,7 @@ _nrrdSprintFieldInfo(char **strP, const char *prefix,
     strtmp = airOneLinify(airStrdup(nrrd->sampleUnits));
     *strP = AIR_CALLOC(fslen + strlen(strtmp), char);
     sprintf(*strP, "%s%s: \"%s\"", prefix, fs, strtmp);
-    strtmp = airFree(strtmp);
+    airFree(strtmp); strtmp = NULL;
     break;
   case nrrdField_space_units:
     fdlen = 0;

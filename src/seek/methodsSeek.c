@@ -128,7 +128,8 @@ seekContext *
 seekContextNix(seekContext *sctx) {
 
   if (sctx) {
-    sctx->flag = airFree(sctx->flag);
+    airFree(sctx->flag);
+    sctx->flag = NULL;
     sctx->_shape = gageShapeNix(sctx->_shape);
     sctx->nsclDerived = nrrdNuke(sctx->nsclDerived);
     sctx->nspanHist = nrrdNuke(sctx->nspanHist);

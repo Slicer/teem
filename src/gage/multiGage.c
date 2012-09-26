@@ -72,7 +72,7 @@ gageMultiItemSet(gageMultiItem *gmi, const int *item, unsigned int itemNum) {
     biffAddf(GAGE, "%s: can't set zero items", me);
     return 1;
   }
-  gmi->item = airFree(gmi->item);
+  gmi->item = AIR_CAST(int *, airFree(gmi->item));
   if (!( gmi->item = AIR_CALLOC(itemNum, int) )) {
     biffAddf(GAGE, "%s: couldn't allocate %u ints for items", me, itemNum);
     return 1;
@@ -156,7 +156,7 @@ gageMultiQueryNew(const gageContext *gctx) {
       airFree(gmq->mitmNum);
       airFree(gmq->mitm);
       nrrdNuke(gmq->nidx);
-      gmq = airFree(gmq);
+      airFree(gmq); gmq=NULL;
     } else {
       /* allocated everything ok */
       unsigned int qi;

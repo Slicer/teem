@@ -422,7 +422,8 @@ tkwbDoit(char *indxS, char *tmplS, char *scriptS,
     airMopError(mop); return 1;
   }
   
-  for (numSlides=0; slide[numSlides]; numSlides++);
+  for (numSlides=0; slide[numSlides]; numSlides++)
+    ;
   if (tkwbWriteSlides(slide, numSlides, tmpl, tag, link)) {
     biffAddf(TKWB, "%s: trouble writing slide pages", me);
     airMopError(mop); return 1;

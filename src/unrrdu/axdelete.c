@@ -70,7 +70,8 @@ unrrdu_axdeleteMain(int argc, const char **argv, const char *me,
     }
     for (axis=0;
          axis<nout->dim && nout->axis[axis].size > 1;
-         axis++);
+         axis++)
+      ;
     while (axis<nout->dim) {
       if (nrrdAxesDelete(ntmp, nout, axis)
           || nrrdCopy(nout, ntmp)) {
@@ -80,7 +81,8 @@ unrrdu_axdeleteMain(int argc, const char **argv, const char *me,
       }
       for (axis=0;
            axis<nout->dim && nout->axis[axis].size > 1;
-           axis++);
+           axis++)
+        ;
     }
   } else {
     if (nrrdAxesDelete(nout, nin, _axis)) {
