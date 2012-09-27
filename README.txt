@@ -88,9 +88,6 @@ http://teem.sourceforge.net/build.html
   * python/ctypes
     Bindings for python via ctypes
 
-* doc/
-  Experiment in Sphinx-based documentation. A work in progress.
-
 * Examples/
   Place for examples of Teem-using programs, but unfortunately 
   not populated by much right now.  A work in progress.
