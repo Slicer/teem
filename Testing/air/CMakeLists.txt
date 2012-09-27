@@ -29,6 +29,10 @@ ADD_EXECUTABLE(test_mtrand mtrand.c)
 TARGET_LINK_LIBRARIES(test_mtrand teem)
 ADD_TEST(mtrand ${EXECUTABLE_OUTPUT_PATH}/test_mtrand)
 
+ADD_EXECUTABLE(test_amath amath.c)
+TARGET_LINK_LIBRARIES(test_amath teem)
+ADD_TEST(amath ${EXECUTABLE_OUTPUT_PATH}/test_amath)
+
 ADD_EXECUTABLE(test_string string.c)
 TARGET_LINK_LIBRARIES(test_string teem)
 ADD_TEST(string ${EXECUTABLE_OUTPUT_PATH}/test_string)
