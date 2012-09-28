@@ -65,21 +65,24 @@ main(int argc, const char *argv[]) {
     double aa[2], uu, eps = 8e-27, error;
     rng = airRandMTStateNew(4242);
     airMopAdd(mop, rng, (airMopper)airRandMTStateNix, airMopAlways);
+    error = 0;
     for (ti=0; ti<testnum; ti++) {
+      double dif;
       airNormalRand_r(aa+0, aa+1, rng);
       for (pi=0; pi<2; pi++) {
         aa[pi] *= 10000;
         uu = airCbrt(aa[pi]);
-        error = fabs(aa[pi] - uu*uu*uu);
-        error = (error/aa[pi])*error;
-        if (error > eps) {
-          fprintf(stderr, "airCbrt(%.17g)^3 = %.17g^3 = %.17g != %.17g by "
-                  "(relatively) %g > eps %g \n",
-                  aa[pi], uu, uu*uu*uu, aa[pi],
-                  error, eps);
-          airMopError(mop); return 1;
-        }      
+        dif = fabs(aa[pi] - uu*uu*uu);
+        error += (dif/aa[pi])*dif;
       }
+    }
+    error /= testnum;
+    if (error > eps) {
+      fprintf(stderr, "average cbrt error was %.17g > eps %0.17g\n",
+              error, eps);
+      airMopError(mop); return 1;
+    } else {
+      fprintf(stderr, "average cbrt error = %.17g\n", error);
     }
   }
 
