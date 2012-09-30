@@ -32,3 +32,7 @@ ADD_TEST(tload ${EXECUTABLE_OUTPUT_PATH}/test_tload)
 ADD_EXECUTABLE(test_sanity sanity.c)
 TARGET_LINK_LIBRARIES(test_sanity teem)
 ADD_TEST(sanity ${EXECUTABLE_OUTPUT_PATH}/test_sanity)
+
+ADD_EXECUTABLE(test_macros macros.c)
+TARGET_LINK_LIBRARIES(test_macros teem)
+ADD_TEST(macros ${EXECUTABLE_OUTPUT_PATH}/test_macros)
