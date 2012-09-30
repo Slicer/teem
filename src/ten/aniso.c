@@ -1074,8 +1074,7 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
     /* no longer used 
     tenEigensolve_f(eval, NULL, tensor);
     if (!(AIR_EXISTS(eval[0]) && AIR_EXISTS(eval[1]) && AIR_EXISTS(eval[2]))) {
-      copyI = I;
-      NRRD_COORD_GEN(coord, size, 3, copyI);
+      NRRD_COORD_GEN(coord, size, 3, I);
       biffAddf(TEN, "%s: not all eigenvalues exist (%g,%g,%g) at sample "
                "%d = (%d,%d,%d)",
                me, eval[0], eval[1], eval[2], (int)I,
@@ -1085,9 +1084,8 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
     */
     out[I] = tenAnisoTen_f(tensor, aniso);
     if (!AIR_EXISTS(out[I])) {
-      size_t copyI, coord[3];
-      copyI = I;
-      NRRD_COORD_GEN(coord, size, 3, copyI);
+      size_t coord[3];
+      NRRD_COORD_GEN(coord, size, 3, I);
       biffAddf(TEN, "%s: generated non-existent aniso %g from tensor "
                "(%g) %g %g %g   %g %g   %g at sample %u = (%u,%u,%u)", me,
                out[I],

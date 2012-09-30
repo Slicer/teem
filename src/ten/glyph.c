@@ -192,7 +192,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   double pI[3], pW[3], cl, cp, sRot[16], mA[16], mB[16], msFr[9], tmpvec[3],
     R, G, B, qA, qB, qC, glyphAniso, sliceGray;
   unsigned int duh;
-  int slcCoord[3], idx, _idx=0, glyphIdx, axis, numGlyphs,
+  int slcCoord[3], idx, glyphIdx, axis, numGlyphs,
     svRGBAfl=AIR_FALSE;
   limnLook *look; int lookIdx;
   echoObject *eglyph, *inst, *list=NULL, *split, *esquare;
@@ -302,7 +302,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   } else {
     ELL_3M_IDENTITY_SET(msFr);
   }
-  for (idx=0; idx<numGlyphs; idx++, _idx = idx) {
+  for (idx=0; idx<numGlyphs; idx++) {
     tdata = (float*)(nten->data) + 7*idx;
     if (parm->verbose >= 2) {
       fprintf(stderr, "%s: glyph %d/%d: hello %g    %g %g %g %g %g %g\n",
@@ -326,7 +326,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
         continue;
       }
     } else {
-      NRRD_COORD_GEN(pI, shape->size, 3, _idx);
+      NRRD_COORD_GEN(pI, shape->size, 3, idx);
       /* this does take into account full orientation */
       gageShapeItoW(shape, pW, pI);
       if (parm->nmask) {

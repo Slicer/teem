@@ -84,85 +84,85 @@ extern "C" {
 /*
 ******** NRRD_COORD_UPDATE
 **
-** This is for doing the "carrying" associated with gradually
-** incrementing an array of coordinates.  Assuming that the given
-** coordinate array "coord" has been incrementing by adding 1 to THE
-** FIRST, THE ZERO-ETH, ELEMENT (this is a strong assumption), then,
-** this macro is good for propagating the change up to higher axes
-** (which really only happens when the position has stepped over the
-** limit on a lower axis.)  Relies on the array of axes sizes "size",
-** as as the length "dim" of "coord" and "size".
+** This is for doing the "carrying" associated with gradually incrementing an
+** array of coordinates.  Assuming that the given coordinate array "coord" has
+** been incremented by adding 1 to coord[0], this macro will propagating the
+** change up to higher axes (when the coordinate has reached the size on a
+** lower axis.)  In addition, the final statement of the macro prevents the
+** last index from going past a valid value.
 **
-** This may be turned into something more general purpose soon. 
+** Assumptions: 
+** -- coord[] and size[] should both be arrays of unsigned integral values,
+**    presumably size_t
+** -- size[i] is >= 1 for all i<dim (size 0 is invalid)
+** -- dim is an unsigned int (0 is ok; result is a no-op)
+** Violating these will create invalid coordinate arrays or generate
+** compiler warnings about comparisons between signed and unsigned.
+**
+** The "ddd" variable name in this and subsequent macros is an effort to 
+** avoid shadowing.
 */
-#define NRRD_COORD_UPDATE(coord, size, dim)    \
-do {                                           \
-  unsigned int d;                              \
-  for (d=0;                                    \
-       d < (dim)-1 && (coord)[d] == (size)[d]; \
-       d++) {                                  \
-    (coord)[d] = 0;                            \
-    (coord)[d+1]++;                            \
-  }                                            \
-} while (0)
-
+#define NRRD_COORD_UPDATE(coord, size, dim)                             \
+  {                                                                     \
+    unsigned int ddd;                                                   \
+    for (ddd=0;                                                         \
+         ddd+1 < (dim) && (coord)[ddd] >= (size)[ddd];                  \
+         ddd++) {                                                       \
+      (coord)[ddd] = 0;                                                 \
+      (coord)[ddd+1]++;                                                 \
+    }                                                                   \
+    if (dim) {                                                          \
+      (coord)[(dim)-1] = AIR_MIN((coord)[(dim)-1], (size)[(dim)-1]-1);  \
+    }                                                                   \
+  }
+  
 /*
 ******** NRRD_COORD_INCR
 **
-** same as NRRD_COORD_UPDATE, but starts by incrementing coord[idx]
+** increments coord[idx] (by one) and then calls NRRD_COORD_UPDATE to
+** propagate this change as necessary to higher numbered axes.  Does 
+** nothing if idx>=dim, since that would be an invalid index into 
+** coord[] and size[]
 */
-#define NRRD_COORD_INCR(coord, size, dim, idx) \
-do {                                           \
-  unsigned int d;                              \
-  for (d=idx, (coord)[d]++;                    \
-       d < (dim)-1 && (coord)[d] == (size)[d]; \
-       d++) {                                  \
-    (coord)[d] = 0;                            \
-    (coord)[d+1]++;                            \
-  }                                            \
-} while (0)
-
+#define NRRD_COORD_INCR(coord, size, dim, idx)                          \
+  if ((idx) < (dim)) {                                                  \
+    (coord)[(idx)]++;                                                   \
+    NRRD_COORD_UPDATE((coord)+(idx), (size)+(idx), (dim)-(idx));        \
+  }
+  
 /*
 ******** NRRD_INDEX_GEN
 **
-** Given a coordinate array "coord", as well as the array sizes "size"
-** and dimension "dim", calculates the linear index, and stores it in
-** "I".
+** Given array coordinates "coord" and sizes "size", both of length "dim",
+** this calculates the linear index represented by coord (assuming lower
+** coordinates are for *faster* axes), and stores it in "I".  Has the same
+** assumptions as NRRD_COORD_UPDATE.
 */
-#define NRRD_INDEX_GEN(I, coord, size, dim)     \
-{                                               \
-  int d;                                        \
-  d = (dim) - 1;                                \
-  if ((d) >= 0) {                               \
-    (I) = (coord)[d];                           \
-    d--;                                        \
-    while (d >= 0) {                            \
-      (I) = (coord)[d] + (size)[d] * (I);       \
-      d--;                                      \
-    }                                           \
-  } else {                                      \
-    (I) = 0;                                    \
-  }                                             \
-}
+#define NRRD_INDEX_GEN(I, coord, size, dim)             \
+  {                                                     \
+    unsigned int ddd = (dim);                           \
+    (I) = 0;                                            \
+    while (ddd) {                                       \
+      ddd--;                                            \
+      (I) = (coord)[ddd] + (size)[ddd]*(I);             \
+    }                                                   \
+  }
 
 /*
 ******** NRRD_COORD_GEN
 **
 ** opposite of NRRD_INDEX_GEN: going from linear index "I" to
 ** coordinate array "coord".
-**
-** HUGE NOTE: the I argument will end up as ZERO when this is done!
-** If passing a loop control variable, pass a copy instead!
-** Hello, side-effects!  This is awful!
 */
 #define NRRD_COORD_GEN(coord, size, dim, I)   \
-do {                                          \
-  unsigned int d;                             \
-  for (d=0; d<=(dim)-1; d++) {                \
-    (coord)[d] = I % (size)[d];               \
-    I /= (size)[d];                           \
-  }                                           \
-} while (0)
+  {                                           \
+    unsigned int ddd;                         \
+    size_t myI = (I);                         \
+    for (ddd=0; ddd<(dim); ddd++) {           \
+      (coord)[ddd] = myI % (size)[ddd];       \
+      myI /= (size)[ddd];                     \
+    }                                         \
+  }
 
 #ifdef __cplusplus
 }
