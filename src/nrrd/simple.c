@@ -379,16 +379,6 @@ nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]) {
 }
 
 /* ---- BEGIN non-NrrdIO */
-/*
-** 
-void
-nrrdCoordSprint(char *str, size_t coord[NRRD_DIM_MAX], 
-                unsigned int dim) {
-
-  if (!(str && coord
-  HEY unfinished
-}
-*/
 
 void
 nrrdSpaceVecSetZero(double vec[NRRD_SPACE_DIM_MAX]) {
