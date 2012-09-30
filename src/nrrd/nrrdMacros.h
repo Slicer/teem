@@ -76,10 +76,10 @@ extern "C" {
 ** Unlike nrrdAxisSpacing, this assumes that center is either
 ** nrrdCenterCell or nrrdCenterNode, but not nrrdCenterUnknown.
 */
-#define NRRD_SPACING(center, min, max, size)  \
-  (nrrdCenterCell == center                        \
-   ? ((max) - (min))/(size)                        \
-   : ((max) - (min))/((size) - 1))                 \
+#define NRRD_SPACING(center, min, max, size)        \
+  (nrrdCenterCell == center                         \
+   ? ((max) - (min))/AIR_CAST(double, size)         \
+   : ((max) - (min))/(AIR_CAST(double, (size)- 1))) \
 
 /*
 ******** NRRD_COORD_UPDATE
