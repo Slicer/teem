@@ -208,46 +208,11 @@ gageMultiQueryAdd_va(gageContext *gctx,
 
 int /*Teem: biff if (ret) */
 gageMultiProbe(gageContext *gctx, gageMultiQuery *gmq,
-               const Nrrd *npos) {
+               const gageMultiInput *minput) {
 
   AIR_UNUSED(gmq);
   AIR_UNUSED(gctx);
-  AIR_UNUSED(npos);
-  return 0;
-}
-
-int /*Teem: biff if (ret) */
-gageMultiProbeSpace(gageContext *gctx, gageMultiQuery *gmq,
-                    const Nrrd *npos, int indexSpace, int clamp) {
-
-  AIR_UNUSED(gmq);
-  AIR_UNUSED(gctx);
-  AIR_UNUSED(npos);
-  AIR_UNUSED(indexSpace);
-  AIR_UNUSED(clamp);
-  return 0;
-}
-
-int /*Teem: biff if (ret) */
-gageMultiStackProbe(gageContext *gctx, gageMultiQuery *gmq,
-                    const Nrrd *npos) {
-
-  AIR_UNUSED(gmq);
-  AIR_UNUSED(gctx);
-  AIR_UNUSED(npos);
-  return 0;
-}
-
-int /*Teem: biff if (ret) */
-gageMultiStackProbeSpace(gageContext *gctx, gageMultiQuery *gmq,
-                         const Nrrd *npos,
-                         int indexSpace, int clamp) {
-
-  AIR_UNUSED(gmq);
-  AIR_UNUSED(gctx);
-  AIR_UNUSED(npos);
-  AIR_UNUSED(indexSpace);
-  AIR_UNUSED(clamp);
+  AIR_UNUSED(minput);
   return 0;
 }
 
