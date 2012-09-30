@@ -304,6 +304,32 @@ const int
 airPresent = 42;
 
 /*
+** sprints a length-"len" vector "vec" of size_t values into "dst", which is
+** simply assumed to be big enough to hold this.  Vector enclosed in "[]" and
+** values separated by ","
+*/
+char *
+airSprintVecSize_t(char *dst, const size_t *vec, unsigned int len) {
+  char stmp[AIR_STRLEN_SMALL];
+  unsigned int axi;
+
+  /* if we got NULL to sprint into, there's nothing to do but return it */
+  if (!dst) {
+    return dst;
+  }
+  strcpy(dst, "[");
+  for (axi=0; axi<len; axi++) {
+    if (axi) {
+      strcat(dst, ",");
+    }
+    airSprintSize_t(stmp, vec[axi]);
+    strcat(dst, stmp);
+  }
+  strcat(dst, "]");
+  return dst;
+}
+
+/*
 ******** airPrettySprintSize_t
 **
 ** sprints a single size_t in a way that is human readable as
