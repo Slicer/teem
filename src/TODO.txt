@@ -86,6 +86,8 @@ nrrd:
    how to do that at compile time?
  - "when parsing from string, parm[0] is needed" vs "parm[0] defaults to 1.0"
    OR, maybe simplify things by saying that all parameters are always needed
+ - add method for answering "do I interpolate?"
+ - add fields for "if I don't interpolate, what's my approximate inverse?"
  - add statement of accuracy (in a Taylor series sense)
  - add: am I an odd or even function
  - rename numParm --> parmNum
