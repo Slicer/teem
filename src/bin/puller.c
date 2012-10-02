@@ -714,8 +714,9 @@ main(int argc, const char **argv) {
     useBetaForGammaLearn, restrictiveAddToBins, noAdd, unequalShapesAllow,
     popCntlEnoughTest;
   int verbose;
-  int interType, allowCodimension3Constraints, scaleIsTau, useHalton;
-  unsigned int samplesAlongScaleNum, pointNumInitial, pointPerVoxel,
+  int interType, allowCodimension3Constraints, scaleIsTau, useHalton,
+    pointPerVoxel;
+  unsigned int samplesAlongScaleNum, pointNumInitial, 
     ppvZRange[2], snap, iterMax, stuckIterMax, constraintIterMax,
     popCntlPeriod, addDescent, iterCallback, rngSeed, progressBinMod,
     threadNum, eipHalfLife;
@@ -914,7 +915,7 @@ main(int argc, const char **argv) {
              &useHalton, NULL,
              "use Halton sequence initialization instead of "
              "uniform random");
-  hestOptAdd(&hopt, "ppv", "# pnts/vox", airTypeUInt, 1, 1,
+  hestOptAdd(&hopt, "ppv", "# pnts/vox", airTypeInt, 1, 1,
              &pointPerVoxel, "0",
              "number of points per voxel to start in simulation "
              "(need to have a seed thresh vol, overrides \"-np\")");
