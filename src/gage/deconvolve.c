@@ -161,7 +161,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
 */
 
 static void
-deconvLine(double *line, unsigned int len, const NrrdKernelSpec *ksp) {
+deconvLine(double *line, size_t llen, const NrrdKernelSpec *ksp) {
 
   /* Add as many other parameters to this as you want,
      like number and location of poles, or whatever other
@@ -170,7 +170,7 @@ deconvLine(double *line, unsigned int len, const NrrdKernelSpec *ksp) {
 
   /* comment these out when there is a real function body */
   AIR_UNUSED(line);
-  AIR_UNUSED(len);
+  AIR_UNUSED(llen);
   AIR_UNUSED(ksp);
 
   return;
@@ -180,6 +180,8 @@ static int
 deconvTrivial(const NrrdKernelSpec *ksp) {
   int ret;
 
+  /* HEY this will be much easier once kernels have a way of
+     advertising whether or not they interpolate */
   if (1 == ksp->parm[0] &&
       (ksp->kernel == nrrdKernelHann ||
        ksp->kernel == nrrdKernelBlackman ||
