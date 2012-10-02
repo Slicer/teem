@@ -44,7 +44,7 @@ nrrdInvertPerm(unsigned int *invp, const unsigned int *pp, unsigned int nn) {
   }
   
   /* use the given array "invp" as a temp buffer for validity checking */
-  memset(invp, 0, nn*sizeof(int));
+  memset(invp, 0, nn*sizeof(unsigned int));
   for (ii=0; ii<nn; ii++) {
     if (!( pp[ii] <= nn-1)) {
       biffAddf(NRRD,
@@ -54,6 +54,11 @@ nrrdInvertPerm(unsigned int *invp, const unsigned int *pp, unsigned int nn) {
     }
     invp[pp[ii]]++;
   }
+  /* for some reason when this code was written (revision 2700 Sun Jul
+     3 04:18:33 2005 UTC) it was decided that all problems with the
+     permutation would be reported with a pile of error messages in
+     biff; rather than bailing at the first problem.  Not clear if
+     this is a good idea. */
   problem = AIR_FALSE;
   for (ii=0; ii<nn; ii++) {
     if (1 != invp[ii]) {
@@ -231,13 +236,13 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
     lszIn = szIn + lowPax;
     lszOut = szOut + lowPax;
     ldim = nin->dim - lowPax;
-    memset(laxes, 0, NRRD_DIM_MAX*sizeof(unsigned int));
+    memset(laxes, 0, sizeof(laxes));
     for (ai=0; ai<ldim; ai++) {
       laxes[ai] = axes[ai+lowPax]-lowPax;
     }
-    dataOut = (char *)nout->data;
-    memset(cIn, 0, NRRD_DIM_MAX*sizeof(size_t));
-    memset(cOut, 0, NRRD_DIM_MAX*sizeof(size_t));
+    dataOut = AIR_CAST(char *, nout->data);
+    memset(cIn, 0, sizeof(cIn));
+    memset(cOut, 0, sizeof(cOut));
     for (idxOut=0; idxOut<numLines; idxOut++) {
       /* in our representation of the coordinates of the start of the
          scanlines that we're copying, we are not even storing all the
@@ -318,11 +323,9 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
      documented for long axes */
 #define LONGEST_INTERESTING_AXIS 42
   char buff1[LONGEST_INTERESTING_AXIS*30];
-  unsigned int 
-    ai, ldim, len,
-    cIn[NRRD_DIM_MAX+1],
-    cOut[NRRD_DIM_MAX+1];
-  size_t idxIn, idxOut, lineSize, numLines, size[NRRD_DIM_MAX], *lsize;
+  unsigned int ai, ldim, len;
+  size_t idxIn, idxOut, lineSize, numLines, size[NRRD_DIM_MAX], *lsize,
+    cIn[NRRD_DIM_MAX+1], cOut[NRRD_DIM_MAX+1];
   char *dataIn, *dataOut;
 
   if (!(nin && nout && perm)) {
@@ -392,13 +395,13 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   lineSize *= nrrdElementSize(nin);
   lsize = size + axis;
   ldim = nin->dim - axis;
-  dataIn = (char *)nin->data;
-  dataOut = (char *)nout->data;
-  memset(cIn, 0, (NRRD_DIM_MAX+1)*sizeof(int));
-  memset(cOut, 0, (NRRD_DIM_MAX+1)*sizeof(int));
+  dataIn = AIR_CAST(char *, nin->data);
+  dataOut = AIR_CAST(char *, nout->data);
+  memset(cIn, 0, sizeof(cIn));
+  memset(cOut, 0, sizeof(cOut));
   for (idxOut=0; idxOut<numLines; idxOut++) {
-    memcpy(cIn, cOut, ldim*sizeof(int));
-    cIn[0] = AIR_CAST(unsigned int, perm[cOut[0]]);
+    memcpy(cIn, cOut, sizeof(cIn));
+    cIn[0] = perm[cOut[0]];
     NRRD_INDEX_GEN(idxIn, cIn, lsize, ldim);
     NRRD_INDEX_GEN(idxOut, cOut, lsize, ldim);
     memcpy(dataOut + idxOut*lineSize, dataIn + idxIn*lineSize, lineSize);
