@@ -74,9 +74,12 @@ main(int argc, const char **argv) {
     blah[ii] = '\0';
     /* NOTE: this blah1L is to overcome a long-stanging bug that \n's
        were permitted in labels and units, but can't be written.  Same
-       as NOTE above.  New code now prevents generating broken NRRD files,
-       but it means that the comparison test between in-memory vs the
-       saved-and-read nrrd would fail */
+       as NOTE above.  New code in Teem
+       (nrrd/keyvalue.c/_nrrdWriteEscaped()) now prevents generating
+       broken NRRD files, but it means that the comparison test
+       between in-memory vs the saved-and-read nrrd would fail, so we
+       do the same transformation here to allow the comparison to
+       work */
     blah1L = airOneLinify(airStrdup(blah));
     airMopAdd(mop, blah1L, airFree, airMopAlways);
     nrrdAxisInfoSet_va(nin, nrrdAxisInfoLabel, 
