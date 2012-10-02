@@ -88,7 +88,8 @@ _nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum,
       /* its white space */
       continue;
     }
-    *data += AIR_CAST(unsigned int, nib << (4*(1-(nibIdx & 1))));
+    /* else it is a valid character, representing a value from 0 to 15 */
+    *data += AIR_CAST(unsigned char, nib << (4*(1-(nibIdx & 1))));
     data += nibIdx & 1;
     nibIdx++;
   }
