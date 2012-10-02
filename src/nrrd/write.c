@@ -54,14 +54,16 @@ nrrdIoStateSet(NrrdIoState *nio, int parm, int value) {
       biffAddf(NRRD, "%s: %d charsPerLine is awfully small", me, value);
       return 1;
     }
-    nio->charsPerLine = value;
+    /* cast won't lose info because "value" must be positive */
+    nio->charsPerLine = AIR_CAST(unsigned int, value);
     break;
   case nrrdIoStateValsPerLine:
     if (value < 4) {
       biffAddf(NRRD, "%s: %d valsPerLine is awfully small", me, value);
       return 1;
     }
-    nio->valsPerLine = value;
+    /* cast won't lose info because "value" must be positive */
+    nio->valsPerLine = AIR_CAST(unsigned int, value);
     break;
   case nrrdIoStateSkipData:
     nio->skipData = !!value;
@@ -163,10 +165,12 @@ nrrdIoStateGet(NrrdIoState *nio, int parm) {
     value = !!nio->bareText;
     break;
   case nrrdIoStateCharsPerLine:
-    value = nio->charsPerLine;
+    /* HEY: this cast is a bad because nio->charsPerLine is unsigned */
+    value = AIR_CAST(int, nio->charsPerLine);
     break;
   case nrrdIoStateValsPerLine:
-    value = nio->valsPerLine;
+    /* HEY: this cast is a bad because nio->valsPerLine is unsigned */
+    value = AIR_CAST(int, nio->valsPerLine);
     break;
   case nrrdIoStateSkipData:
     value = !!nio->skipData;

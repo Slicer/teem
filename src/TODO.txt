@@ -73,6 +73,11 @@ so that it matches biffMovef
 * a few biff functions are never used in Teem, is that ok?
 
 nrrd:
+* resolve basic confusion between unsigned and signed int with
+  return of nrrdIoStateGet (now int, including for learning
+  nio->charsPerLine and nio->valsPerLine, which are unsigned int,
+  just like nrrdDefaultWriteCharsPerLine and nrrdDefaultWriteValsPerLine)
+  and argument to nrrdIoStateSet.
 * nrrdSpaceVecNorm(unsigned int sdim, const double vec[]) should 
   have its two args switch order in order to conform to Teem convention
   of "array first, length second"

@@ -200,7 +200,7 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   /* Set format string based on the NrrdIoState parameters. */
   fmt[fmt_i++] = 'w';
   if (0 <= nio->zlibLevel && nio->zlibLevel <= 9)
-    fmt[fmt_i++] = '0' + nio->zlibLevel;
+    fmt[fmt_i++] = AIR_CAST(char, '0' + nio->zlibLevel);
   switch (nio->zlibStrategy) {
   case nrrdZlibStrategyHuffman:
     fmt[fmt_i++] = 'h';
