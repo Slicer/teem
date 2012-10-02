@@ -31,19 +31,6 @@
 #include <teem/ten.h>
 #include <teem/meet.h>
 
-void
-printans(FILE *file, const double *ans, int len) {
-  int a;
-
-  AIR_UNUSED(file);
-  for (a=0; a<=len-1; a++) {
-    if (a) {
-      printf(", ");
-    }
-    printf("%g", ans[a]);
-  }
-}
-
 static const char *probeInfo = 
   ("Shows off the functionality of the gage library. "
    "Uses gageProbe() to query various kinds of volumes "
@@ -66,7 +53,8 @@ main(int argc, const char *argv[]) {
   Nrrd *nin, *nout, **ninSS=NULL;
   Nrrd *ngrad=NULL, *nbmat=NULL;
   size_t ai, ansLen, idx, xi, yi, zi, six, siy, siz, sox, soy, soz;
-  double bval=0, gmc, rangeSS[2], wrlSS, idxSS=AIR_NAN;
+  double bval=0, gmc, rangeSS[2], wrlSS, idxSS=AIR_NAN,
+    dsix, dsiy, dsiz, dsox, dsoy, dsoz;
   gageContext *ctx;
   gagePerVolume *pvl=NULL;
   double t0, t1, x, y, z, scale[3], rscl[3], min[3], maxOut[3], maxIn[3];
@@ -352,9 +340,15 @@ main(int argc, const char *argv[]) {
   six = nin->axis[0+iBaseDim].size;
   siy = nin->axis[1+iBaseDim].size;
   siz = nin->axis[2+iBaseDim].size;
-  sox = AIR_CAST(size_t, scale[0]*six);
-  soy = AIR_CAST(size_t, scale[1]*siy);
-  soz = AIR_CAST(size_t, scale[2]*siz);
+  dsix = AIR_CAST(double, six);
+  dsiy = AIR_CAST(double, siy);
+  dsiz = AIR_CAST(double, siz);
+  sox = AIR_CAST(size_t, scale[0]*dsix);
+  soy = AIR_CAST(size_t, scale[1]*dsiy);
+  soz = AIR_CAST(size_t, scale[2]*dsiz);
+  dsox = AIR_CAST(double, sox);
+  dsoy = AIR_CAST(double, soy);
+  dsoz = AIR_CAST(double, soz);
   if (verbose) {
     fprintf(stderr, "%s: six,y,z = %u %u %u\n", me,
             AIR_UINT(six),
@@ -365,9 +359,9 @@ main(int argc, const char *argv[]) {
             AIR_UINT(soy),
             AIR_UINT(soz));
   }
-  rscl[0] = AIR_CAST(double, six)/sox;
-  rscl[1] = AIR_CAST(double, siy)/soy;
-  rscl[2] = AIR_CAST(double, siz)/soz;
+  rscl[0] = dsix/dsox;
+  rscl[1] = dsiy/dsoy;
+  rscl[2] = dsiz/dsoz;
 
   if (verbose) {
     fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
@@ -418,12 +412,12 @@ main(int argc, const char *argv[]) {
 
   if (nrrdCenterCell == ctx->shape->center) {
     ELL_3V_SET(min, -0.5, -0.5, -0.5);
-    ELL_3V_SET(maxOut, sox-0.5, soy-0.5, soz-0.5);
-    ELL_3V_SET(maxIn,  six-0.5, siy-0.5, siz-0.5);
+    ELL_3V_SET(maxOut, dsox-0.5, dsoy-0.5, dsoz-0.5);
+    ELL_3V_SET(maxIn,  dsix-0.5, dsiy-0.5, dsiz-0.5);
   } else {
     ELL_3V_SET(min, 0, 0, 0);
-    ELL_3V_SET(maxOut, sox-1, soy-1, soz-1);
-    ELL_3V_SET(maxIn,  six-1, siy-1, siz-1);
+    ELL_3V_SET(maxOut, dsox-1, dsoy-1, dsoz-1);
+    ELL_3V_SET(maxIn, dsix-1, dsiy-1, dsiz-1);
   }
   t0 = airTime();
   ins = nrrdDInsert[nout->type];
@@ -534,7 +528,7 @@ main(int argc, const char *argv[]) {
 
   fprintf(stderr, "\n");
   t1 = airTime();
-  fprintf(stderr, "probe rate = %g KHz\n", sox*soy*soz/(1000.0*(t1-t0)));
+  fprintf(stderr, "probe rate = %g KHz\n", dsox*dsoy*dsoz/(1000.0*(t1-t0)));
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);

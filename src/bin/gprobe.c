@@ -31,20 +31,20 @@
 #include <teem/ten.h>
 #include <teem/meet.h>
 
-void
-printans(FILE *file, const double *ans, int len) {
-  int a;
+static void
+printans(FILE *file, const double *ans, unsigned int len) {
+  unsigned int ai;
 
   AIR_UNUSED(file);
-  for (a=0; a<=len-1; a++) {
-    if (a) {
+  for (ai=0; ai<len; ai++) {
+    if (ai) {
       printf(", ");
     }
-    printf("%g", ans[a]);
+    printf("%g", ans[ai]);
   }
 }
 
-int
+static int
 gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
           Nrrd *nout, int typeOut, Nrrd *_ngrid,
           int indexSpace, int verbose, int clamp) {
@@ -98,7 +98,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
     ptrdiff_t minIdx[2], maxIdx[2];
     minIdx[0] = minIdx[1] = 0;
     maxIdx[0] = 4;                      /* pad by one sample */
-    maxIdx[1] = _ngrid->axis[1].size-1; /* a no-op */
+    maxIdx[1] = AIR_CAST(ptrdiff_t, _ngrid->axis[1].size-1); /* no padding */
     ntmp = nrrdNew();
     airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(ntmp, _ngrid, nrrdTypeDouble)
@@ -155,7 +155,8 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
     ELL_4V_COPY(pos, grid + 1 + 5*0);
     for (aidx=0; aidx<gridDim; aidx++) {
       ELL_4V_SCALE_ADD2(pos, 1, pos,
-                        coordOut[aidx + baseDim], grid + 1 + 5*(1+aidx));
+                        AIR_CAST(double, coordOut[aidx + baseDim]),
+                        grid + 1 + 5*(1+aidx));
     }
     /*
     printf("%s: %u -> (%u %u) -> %g %g %g %g (%s)\n", me,
@@ -213,13 +214,14 @@ main(int argc, const char *argv[]) {
   const double *answer;
   Nrrd *nin, *_npos, *npos, *_ngrid, *ngrid, *nout, **ninSS=NULL;
   Nrrd *ngrad=NULL, *nbmat=NULL;
-  size_t ansLen, six, siy, siz, sox, soy, soz;
-  double bval=0, eps, gmc, rangeSS[2], *pntPos, scale[3], posSS, biasSS;
+  size_t six, siy, siz, sox, soy, soz;
+  double bval=0, eps, gmc, rangeSS[2], *pntPos, scale[3], posSS, biasSS,
+    dsix, dsiy, dsiz, dsox, dsoy, dsoz;
   gageContext *ctx;
   gagePerVolume *pvl=NULL;
   double t0, t1, rscl[3], min[3], maxOut[3], maxIn[3];
   airArray *mop;
-  unsigned int *skip, skipNum, pntPosNum;
+  unsigned int ansLen, *skip, skipNum, pntPosNum;
   gageStackBlurParm *sbp;
   int otype, clamp;
   char stmp[4][AIR_STRLEN_SMALL];
@@ -641,15 +643,21 @@ main(int argc, const char *argv[]) {
     six = nin->axis[0+iBaseDim].size;
     siy = nin->axis[1+iBaseDim].size;
     siz = nin->axis[2+iBaseDim].size;
-    sox = AIR_CAST(size_t, scale[0]*six);
-    soy = AIR_CAST(size_t, scale[1]*siy);
-    soz = AIR_CAST(size_t, scale[2]*siz);
-    rscl[0] = AIR_CAST(double, six)/sox;
-    rscl[1] = AIR_CAST(double, siy)/soy;
-    rscl[2] = AIR_CAST(double, siz)/soz;
+    dsix = AIR_CAST(double, six);
+    dsiy = AIR_CAST(double, siy);
+    dsiz = AIR_CAST(double, siz);
+    sox = AIR_CAST(size_t, scale[0]*dsix);
+    soy = AIR_CAST(size_t, scale[1]*dsiy);
+    soz = AIR_CAST(size_t, scale[2]*dsiz);
+    dsox = AIR_CAST(double, sox);
+    dsoy = AIR_CAST(double, soy);
+    dsoz = AIR_CAST(double, soz);
+    rscl[0] = dsix/dsox;
+    rscl[1] = dsiy/dsoy;
+    rscl[2] = dsiz/dsoz;
     if (verbose) {
-      fprintf(stderr, "%s: creating %s x %s x %s x %s output\n", me,
-              airSprintSize_t(stmp[0], ansLen),
+      fprintf(stderr, "%s: creating %u x %s x %s x %s output\n", me,
+              ansLen,
               airSprintSize_t(stmp[1], sox),
               airSprintSize_t(stmp[2], soy),
               airSprintSize_t(stmp[3], soz));
@@ -666,26 +674,26 @@ main(int argc, const char *argv[]) {
     grid = AIR_CAST(double *, ngrid->data);
     if (nrrdCenterCell == ctx->shape->center) {
       ELL_3V_SET(min, -0.5, -0.5, -0.5);
-      ELL_3V_SET(maxOut, sox-0.5, soy-0.5, soz-0.5);
-      ELL_3V_SET(maxIn,  six-0.5, siy-0.5, siz-0.5);
+      ELL_3V_SET(maxOut, dsox-0.5, dsoy-0.5, dsoz-0.5);
+      ELL_3V_SET(maxIn,  dsix-0.5, dsiy-0.5, dsiz-0.5);
     } else {
       ELL_3V_SET(min, 0, 0, 0);
-      ELL_3V_SET(maxOut, sox-1, soy-1, soz-1);
-      ELL_3V_SET(maxIn,  six-1, siy-1, siz-1);
+      ELL_3V_SET(maxOut, dsox-1, dsoy-1, dsoz-1);
+      ELL_3V_SET(maxIn,  dsix-1, dsiy-1, dsiz-1);
     }
     ELL_4V_SET(grid + gridSize[0]*0, 3,
                NRRD_POS(ctx->shape->center, min[0], maxIn[0], sox, 0),
                NRRD_POS(ctx->shape->center, min[1], maxIn[1], soy, 0),
                NRRD_POS(ctx->shape->center, min[2], maxIn[2], soz, 0));
-    ELL_4V_SET(grid + gridSize[0]*1, sox,
+    ELL_4V_SET(grid + gridSize[0]*1, dsox,
                AIR_DELTA(min[0], 1, maxOut[0], min[0], maxIn[0]),
                0,
                0);
-    ELL_4V_SET(grid + gridSize[0]*2, soy,
+    ELL_4V_SET(grid + gridSize[0]*2, dsoy,
                0,
                AIR_DELTA(min[1], 1, maxOut[1], min[1], maxIn[1]),
                0);
-    ELL_4V_SET(grid + gridSize[0]*3, soz,
+    ELL_4V_SET(grid + gridSize[0]*3, dsoz,
                0,
                0,
                AIR_DELTA(min[2], 1, maxOut[2], min[2], maxIn[2]));
@@ -758,7 +766,8 @@ main(int argc, const char *argv[]) {
   t1 = airTime();
   if (verbose) {
     fprintf(stderr, "probe rate = %g KHz\n",
-            (nrrdElementNumber(nout)/ansLen)/(1000.0*(t1-t0)));
+            AIR_CAST(double, nrrdElementNumber(nout)/ansLen)
+            / (1000.0*(t1-t0)));
   }
   
   /* massage output some */
