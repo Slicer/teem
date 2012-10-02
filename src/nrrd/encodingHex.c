@@ -77,6 +77,7 @@ _nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum,
     return 1;
   }
   while (nibIdx < nibNum) {
+    unsigned char nibshift;
     car = fgetc(file);
     if (EOF == car) break;
     nib = _nrrdReadHexTable[car & 127];
@@ -89,7 +90,9 @@ _nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum,
       continue;
     }
     /* else it is a valid character, representing a value from 0 to 15 */
-    *data += AIR_CAST(unsigned char, nib << (4*(1-(nibIdx & 1))));
+    nibshift = AIR_CAST(unsigned char, nib << (4*(1-(nibIdx & 1))));
+    /* HEY not sure why the cast is needed with gcc v4.8 -Wconversion */
+    *data = AIR_CAST(unsigned char, *data + nibshift);
     data += nibIdx & 1;
     nibIdx++;
   }
