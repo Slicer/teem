@@ -190,7 +190,7 @@ UNRRDU_MAP(UNRRDU_DECLARE)
 /* flotsam.c */
 UNRRDU_EXPORT const int unrrduPresent;
 UNRRDU_EXPORT const char *unrrduBiffKey;
-UNRRDU_EXPORT int unrrduDefNumColumns;
+UNRRDU_EXPORT unsigned int unrrduDefNumColumns;
 /* addresses of all unrrdu_xxxCmd */
 UNRRDU_EXPORT unrrduCmd *unrrduCmdList[]; 
 UNRRDU_EXPORT int unrrduUsage(const char *me, hestParm *hparm);

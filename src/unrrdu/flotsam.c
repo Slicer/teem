@@ -33,7 +33,7 @@ const char *
 unrrduBiffKey = "unrrdu";
 
 /* number of columns that hest will used */
-int
+unsigned int
 unrrduDefNumColumns = 78;
 
 /*
@@ -73,7 +73,7 @@ unrrduUsage(const char *me, hestParm *hparm) {
     int nofft;
     nofft = !strcmp(unrrduCmdList[cmdi]->name, "fft") && !nrrdFFTWEnabled;
     len = AIR_UINT(strlen(unrrduCmdList[cmdi]->name));
-    len += nofft;
+    len += !!nofft;
     strcpy(buff, "");
     for (chi=len; chi<maxlen; chi++)
       strcat(buff, " ");
