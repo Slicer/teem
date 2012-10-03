@@ -689,7 +689,7 @@ _nrrdSprintFieldInfo(char **strP, const char *prefix,
         sprintf(*strP, "%s%s: %s %d %d %d", prefix, fs, nio->dataFNFormat, 
                 nio->dataFNMin, nio->dataFNMax, nio->dataFNStep);
       } else {
-        sprintf(*strP, "%s%s: %s %d %d %d %d", prefix, fs, nio->dataFNFormat, 
+        sprintf(*strP, "%s%s: %s %d %d %d %u", prefix, fs, nio->dataFNFormat, 
                 nio->dataFNMin, nio->dataFNMax, nio->dataFNStep,
                 nio->dataFileDim);
       }
@@ -706,7 +706,7 @@ _nrrdSprintFieldInfo(char **strP, const char *prefix,
       if (nio->dataFileDim == nrrd->dim-1) {
         sprintf(*strP, "%s%s: LIST\n", prefix, fs);
       } else {
-        sprintf(*strP, "%s%s: LIST %d\n", prefix, fs, nio->dataFileDim);
+        sprintf(*strP, "%s%s: LIST %u\n", prefix, fs, nio->dataFileDim);
       }
       for (ii=0; ii<nio->dataFNArr->len; ii++) {
         sprintf(fnb, "%s%s", nio->dataFN[ii], 

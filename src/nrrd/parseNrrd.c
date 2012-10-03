@@ -1270,8 +1270,7 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd,
                              NrrdIoState *nio, int useBiff) {
   static const char me[]="_nrrdReadNrrdParse_data_file";
   char *info, *nums;
-  unsigned int linelen;
-  int tmp;
+  unsigned int linelen, tmp;
   airArray *mop;
 
   mop = airMopNew();
@@ -1305,9 +1304,9 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd,
     if ( 4 == sscanf(nums, "%d %d %d %u", &(nio->dataFNMin), 
                      &(nio->dataFNMax), &(nio->dataFNStep), 
                      &(nio->dataFileDim)) ) {
-      if (!( nio->dataFileDim >= 1 && nio->dataFileDim <= nrrd->dim )) {
+      if (!AIR_IN_CL(1, nio->dataFileDim, nrrd->dim)) {
         biffMaybeAddf(useBiff, NRRD,
-                      "%s: datafile dimension %d outside valid range [1,%d]", 
+                      "%s: datafile dimension %u outside valid range [1,%u]", 
                       me, nio->dataFileDim, nrrd->dim);
         airMopError(mop); return 1;
       }
@@ -1350,9 +1349,9 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd,
     info += strlen(NRRD_LIST_FLAG);
     if (info[0]) {
       if (1 == sscanf(info, "%u", &(nio->dataFileDim))) {
-        if (!( nio->dataFileDim >= 1 && nio->dataFileDim <= nrrd->dim )) {
-          biffMaybeAddf(useBiff, NRRD, "%s: datafile dimension %d outside "
-                        "valid range [1,%d]",
+        if (!AIR_IN_CL(1, nio->dataFileDim, nrrd->dim)) {
+          biffMaybeAddf(useBiff, NRRD, "%s: datafile dimension %u outside "
+                        "valid range [1,%u]",
                         me, nio->dataFileDim, nrrd->dim);
           airMopError(mop); return 1;
         }
