@@ -819,7 +819,7 @@ _nrrd_TMF_dn_cn_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_cn_1ef */
   x += 1;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_cn_1ef(parm[0], i, x));
 }
 
@@ -848,7 +848,7 @@ _nrrd_TMF_dn_cn_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 1;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_cn_1ef(parm[0], i, t));
   }
 }
@@ -892,7 +892,7 @@ _nrrd_TMF_dn_cn_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_cn_2ef */
   x += 1;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_cn_2ef(parm[0], i, x));
 }
 
@@ -921,7 +921,7 @@ _nrrd_TMF_dn_cn_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 1;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_cn_2ef(parm[0], i, t));
   }
 }
@@ -965,7 +965,7 @@ _nrrd_TMF_dn_cn_3ef_1_f(float x, const double *parm) {
   
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_cn_3ef(parm[0], i, x));
 }
 
@@ -994,7 +994,7 @@ _nrrd_TMF_dn_cn_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_cn_3ef(parm[0], i, t));
   }
 }
@@ -1038,7 +1038,7 @@ _nrrd_TMF_dn_cn_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_cn_4ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_cn_4ef(parm[0], i, x));
 }
 
@@ -1067,7 +1067,7 @@ _nrrd_TMF_dn_cn_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_cn_4ef(parm[0], i, t));
   }
 }
@@ -1111,7 +1111,7 @@ _nrrd_TMF_dn_c0_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_c0_1ef */
   x += 1;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c0_1ef(parm[0], i, x));
 }
 
@@ -1140,7 +1140,7 @@ _nrrd_TMF_dn_c0_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 1;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c0_1ef(parm[0], i, t));
   }
 }
@@ -1184,7 +1184,7 @@ _nrrd_TMF_dn_c0_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_c0_2ef */
   x += 1;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c0_2ef(parm[0], i, x));
 }
 
@@ -1213,7 +1213,7 @@ _nrrd_TMF_dn_c0_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 1;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c0_2ef(parm[0], i, t));
   }
 }
@@ -1257,7 +1257,7 @@ _nrrd_TMF_dn_c0_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_c0_3ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c0_3ef(parm[0], i, x));
 }
 
@@ -1286,7 +1286,7 @@ _nrrd_TMF_dn_c0_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c0_3ef(parm[0], i, t));
   }
 }
@@ -1330,7 +1330,7 @@ _nrrd_TMF_dn_c0_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_c0_4ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c0_4ef(parm[0], i, x));
 }
 
@@ -1359,7 +1359,7 @@ _nrrd_TMF_dn_c0_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c0_4ef(parm[0], i, t));
   }
 }
@@ -1403,7 +1403,7 @@ _nrrd_TMF_dn_c1_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_c1_1ef */
   x += 1;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c1_1ef(parm[0], i, x));
 }
 
@@ -1432,7 +1432,7 @@ _nrrd_TMF_dn_c1_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 1;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c1_1ef(parm[0], i, t));
   }
 }
@@ -1476,7 +1476,7 @@ _nrrd_TMF_dn_c1_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_c1_2ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c1_2ef(parm[0], i, x));
 }
 
@@ -1505,7 +1505,7 @@ _nrrd_TMF_dn_c1_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c1_2ef(parm[0], i, t));
   }
 }
@@ -1549,7 +1549,7 @@ _nrrd_TMF_dn_c1_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_c1_3ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c1_3ef(parm[0], i, x));
 }
 
@@ -1578,7 +1578,7 @@ _nrrd_TMF_dn_c1_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c1_3ef(parm[0], i, t));
   }
 }
@@ -1622,7 +1622,7 @@ _nrrd_TMF_dn_c1_4ef_1_f(float x, const double *parm) {
   
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c1_4ef(parm[0], i, x));
 }
 
@@ -1651,7 +1651,7 @@ _nrrd_TMF_dn_c1_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c1_4ef(parm[0], i, t));
   }
 }
@@ -1695,7 +1695,7 @@ _nrrd_TMF_dn_c2_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_c2_1ef */
   x += 1;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c2_1ef(parm[0], i, x));
 }
 
@@ -1724,7 +1724,7 @@ _nrrd_TMF_dn_c2_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 1;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c2_1ef(parm[0], i, t));
   }
 }
@@ -1768,7 +1768,7 @@ _nrrd_TMF_dn_c2_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_c2_2ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c2_2ef(parm[0], i, x));
 }
 
@@ -1797,7 +1797,7 @@ _nrrd_TMF_dn_c2_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c2_2ef(parm[0], i, t));
   }
 }
@@ -1841,7 +1841,7 @@ _nrrd_TMF_dn_c2_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_c2_3ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c2_3ef(parm[0], i, x));
 }
 
@@ -1870,7 +1870,7 @@ _nrrd_TMF_dn_c2_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c2_3ef(parm[0], i, t));
   }
 }
@@ -1914,7 +1914,7 @@ _nrrd_TMF_dn_c2_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_c2_4ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c2_4ef(parm[0], i, x));
 }
 
@@ -1943,7 +1943,7 @@ _nrrd_TMF_dn_c2_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c2_4ef(parm[0], i, t));
   }
 }
@@ -1987,7 +1987,7 @@ _nrrd_TMF_dn_c3_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_c3_1ef */
   x += 1;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c3_1ef(parm[0], i, x));
 }
 
@@ -2016,7 +2016,7 @@ _nrrd_TMF_dn_c3_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 1;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c3_1ef(parm[0], i, t));
   }
 }
@@ -2060,7 +2060,7 @@ _nrrd_TMF_dn_c3_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_c3_2ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c3_2ef(parm[0], i, x));
 }
 
@@ -2089,7 +2089,7 @@ _nrrd_TMF_dn_c3_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c3_2ef(parm[0], i, t));
   }
 }
@@ -2133,7 +2133,7 @@ _nrrd_TMF_dn_c3_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_c3_3ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c3_3ef(parm[0], i, x));
 }
 
@@ -2162,7 +2162,7 @@ _nrrd_TMF_dn_c3_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c3_3ef(parm[0], i, t));
   }
 }
@@ -2206,7 +2206,7 @@ _nrrd_TMF_dn_c3_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_dn_c3_4ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_dn_c3_4ef(parm[0], i, x));
 }
 
@@ -2235,7 +2235,7 @@ _nrrd_TMF_dn_c3_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_dn_c3_4ef(parm[0], i, t));
   }
 }
@@ -2279,7 +2279,7 @@ _nrrd_TMF_d0_cn_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_cn_1ef */
   x += 1;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_cn_1ef(parm[0], i, x));
 }
 
@@ -2308,7 +2308,7 @@ _nrrd_TMF_d0_cn_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 1;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_cn_1ef(parm[0], i, t));
   }
 }
@@ -2352,7 +2352,7 @@ _nrrd_TMF_d0_cn_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_cn_2ef */
   x += 1;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_cn_2ef(parm[0], i, x));
 }
 
@@ -2381,7 +2381,7 @@ _nrrd_TMF_d0_cn_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 1;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_cn_2ef(parm[0], i, t));
   }
 }
@@ -2425,7 +2425,7 @@ _nrrd_TMF_d0_cn_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_cn_3ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_cn_3ef(parm[0], i, x));
 }
 
@@ -2454,7 +2454,7 @@ _nrrd_TMF_d0_cn_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_cn_3ef(parm[0], i, t));
   }
 }
@@ -2498,7 +2498,7 @@ _nrrd_TMF_d0_cn_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_cn_4ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_cn_4ef(parm[0], i, x));
 }
 
@@ -2527,7 +2527,7 @@ _nrrd_TMF_d0_cn_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_cn_4ef(parm[0], i, t));
   }
 }
@@ -2571,7 +2571,7 @@ _nrrd_TMF_d0_c0_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c0_1ef */
   x += 1;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c0_1ef(parm[0], i, x));
 }
 
@@ -2600,7 +2600,7 @@ _nrrd_TMF_d0_c0_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 1;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c0_1ef(parm[0], i, t));
   }
 }
@@ -2644,7 +2644,7 @@ _nrrd_TMF_d0_c0_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c0_2ef */
   x += 1;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c0_2ef(parm[0], i, x));
 }
 
@@ -2673,7 +2673,7 @@ _nrrd_TMF_d0_c0_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 1;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c0_2ef(parm[0], i, t));
   }
 }
@@ -2717,7 +2717,7 @@ _nrrd_TMF_d0_c0_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c0_3ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c0_3ef(parm[0], i, x));
 }
 
@@ -2746,7 +2746,7 @@ _nrrd_TMF_d0_c0_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c0_3ef(parm[0], i, t));
   }
 }
@@ -2790,7 +2790,7 @@ _nrrd_TMF_d0_c0_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c0_4ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c0_4ef(parm[0], i, x));
 }
 
@@ -2819,7 +2819,7 @@ _nrrd_TMF_d0_c0_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c0_4ef(parm[0], i, t));
   }
 }
@@ -2863,7 +2863,7 @@ _nrrd_TMF_d0_c1_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c1_1ef */
   x += 1;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c1_1ef(parm[0], i, x));
 }
 
@@ -2892,7 +2892,7 @@ _nrrd_TMF_d0_c1_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 1;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c1_1ef(parm[0], i, t));
   }
 }
@@ -2936,7 +2936,7 @@ _nrrd_TMF_d0_c1_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c1_2ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c1_2ef(parm[0], i, x));
 }
 
@@ -2965,7 +2965,7 @@ _nrrd_TMF_d0_c1_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c1_2ef(parm[0], i, t));
   }
 }
@@ -3009,7 +3009,7 @@ _nrrd_TMF_d0_c1_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c1_3ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c1_3ef(parm[0], i, x));
 }
 
@@ -3038,7 +3038,7 @@ _nrrd_TMF_d0_c1_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c1_3ef(parm[0], i, t));
   }
 }
@@ -3082,7 +3082,7 @@ _nrrd_TMF_d0_c1_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c1_4ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c1_4ef(parm[0], i, x));
 }
 
@@ -3111,7 +3111,7 @@ _nrrd_TMF_d0_c1_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c1_4ef(parm[0], i, t));
   }
 }
@@ -3155,7 +3155,7 @@ _nrrd_TMF_d0_c2_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c2_1ef */
   x += 1;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c2_1ef(parm[0], i, x));
 }
 
@@ -3184,7 +3184,7 @@ _nrrd_TMF_d0_c2_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 1;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c2_1ef(parm[0], i, t));
   }
 }
@@ -3228,7 +3228,7 @@ _nrrd_TMF_d0_c2_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c2_2ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c2_2ef(parm[0], i, x));
 }
 
@@ -3257,7 +3257,7 @@ _nrrd_TMF_d0_c2_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c2_2ef(parm[0], i, t));
   }
 }
@@ -3301,7 +3301,7 @@ _nrrd_TMF_d0_c2_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c2_3ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c2_3ef(parm[0], i, x));
 }
 
@@ -3330,7 +3330,7 @@ _nrrd_TMF_d0_c2_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c2_3ef(parm[0], i, t));
   }
 }
@@ -3374,7 +3374,7 @@ _nrrd_TMF_d0_c2_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c2_4ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c2_4ef(parm[0], i, x));
 }
 
@@ -3403,7 +3403,7 @@ _nrrd_TMF_d0_c2_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c2_4ef(parm[0], i, t));
   }
 }
@@ -3447,7 +3447,7 @@ _nrrd_TMF_d0_c3_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c3_1ef */
   x += 1;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c3_1ef(parm[0], i, x));
 }
 
@@ -3476,7 +3476,7 @@ _nrrd_TMF_d0_c3_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 1;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c3_1ef(parm[0], i, t));
   }
 }
@@ -3520,7 +3520,7 @@ _nrrd_TMF_d0_c3_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c3_2ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c3_2ef(parm[0], i, x));
 }
 
@@ -3549,7 +3549,7 @@ _nrrd_TMF_d0_c3_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c3_2ef(parm[0], i, t));
   }
 }
@@ -3593,7 +3593,7 @@ _nrrd_TMF_d0_c3_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c3_3ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c3_3ef(parm[0], i, x));
 }
 
@@ -3622,7 +3622,7 @@ _nrrd_TMF_d0_c3_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c3_3ef(parm[0], i, t));
   }
 }
@@ -3666,7 +3666,7 @@ _nrrd_TMF_d0_c3_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d0_c3_4ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d0_c3_4ef(parm[0], i, x));
 }
 
@@ -3695,7 +3695,7 @@ _nrrd_TMF_d0_c3_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d0_c3_4ef(parm[0], i, t));
   }
 }
@@ -3739,7 +3739,7 @@ _nrrd_TMF_d1_cn_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_cn_1ef */
   x += 1;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_cn_1ef(parm[0], i, x));
 }
 
@@ -3768,7 +3768,7 @@ _nrrd_TMF_d1_cn_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 1;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_cn_1ef(parm[0], i, t));
   }
 }
@@ -3812,7 +3812,7 @@ _nrrd_TMF_d1_cn_2ef_1_f(float x, const double *parm) {
   
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_cn_2ef(parm[0], i, x));
 }
 
@@ -3841,7 +3841,7 @@ _nrrd_TMF_d1_cn_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_cn_2ef(parm[0], i, t));
   }
 }
@@ -3885,7 +3885,7 @@ _nrrd_TMF_d1_cn_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_cn_3ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_cn_3ef(parm[0], i, x));
 }
 
@@ -3914,7 +3914,7 @@ _nrrd_TMF_d1_cn_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_cn_3ef(parm[0], i, t));
   }
 }
@@ -3958,7 +3958,7 @@ _nrrd_TMF_d1_cn_4ef_1_f(float x, const double *parm) {
   
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_cn_4ef(parm[0], i, x));
 }
 
@@ -3987,7 +3987,7 @@ _nrrd_TMF_d1_cn_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_cn_4ef(parm[0], i, t));
   }
 }
@@ -4031,7 +4031,7 @@ _nrrd_TMF_d1_c0_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_c0_1ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c0_1ef(parm[0], i, x));
 }
 
@@ -4060,7 +4060,7 @@ _nrrd_TMF_d1_c0_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c0_1ef(parm[0], i, t));
   }
 }
@@ -4104,7 +4104,7 @@ _nrrd_TMF_d1_c0_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_c0_2ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c0_2ef(parm[0], i, x));
 }
 
@@ -4133,7 +4133,7 @@ _nrrd_TMF_d1_c0_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c0_2ef(parm[0], i, t));
   }
 }
@@ -4177,7 +4177,7 @@ _nrrd_TMF_d1_c0_3ef_1_f(float x, const double *parm) {
   
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c0_3ef(parm[0], i, x));
 }
 
@@ -4206,7 +4206,7 @@ _nrrd_TMF_d1_c0_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c0_3ef(parm[0], i, t));
   }
 }
@@ -4250,7 +4250,7 @@ _nrrd_TMF_d1_c0_4ef_1_f(float x, const double *parm) {
   
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c0_4ef(parm[0], i, x));
 }
 
@@ -4279,7 +4279,7 @@ _nrrd_TMF_d1_c0_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c0_4ef(parm[0], i, t));
   }
 }
@@ -4323,7 +4323,7 @@ _nrrd_TMF_d1_c1_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_c1_1ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c1_1ef(parm[0], i, x));
 }
 
@@ -4352,7 +4352,7 @@ _nrrd_TMF_d1_c1_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c1_1ef(parm[0], i, t));
   }
 }
@@ -4396,7 +4396,7 @@ _nrrd_TMF_d1_c1_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_c1_2ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c1_2ef(parm[0], i, x));
 }
 
@@ -4425,7 +4425,7 @@ _nrrd_TMF_d1_c1_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c1_2ef(parm[0], i, t));
   }
 }
@@ -4469,7 +4469,7 @@ _nrrd_TMF_d1_c1_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_c1_3ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c1_3ef(parm[0], i, x));
 }
 
@@ -4498,7 +4498,7 @@ _nrrd_TMF_d1_c1_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c1_3ef(parm[0], i, t));
   }
 }
@@ -4542,7 +4542,7 @@ _nrrd_TMF_d1_c1_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_c1_4ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c1_4ef(parm[0], i, x));
 }
 
@@ -4571,7 +4571,7 @@ _nrrd_TMF_d1_c1_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c1_4ef(parm[0], i, t));
   }
 }
@@ -4615,7 +4615,7 @@ _nrrd_TMF_d1_c2_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_c2_1ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c2_1ef(parm[0], i, x));
 }
 
@@ -4644,7 +4644,7 @@ _nrrd_TMF_d1_c2_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c2_1ef(parm[0], i, t));
   }
 }
@@ -4688,7 +4688,7 @@ _nrrd_TMF_d1_c2_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_c2_2ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c2_2ef(parm[0], i, x));
 }
 
@@ -4717,7 +4717,7 @@ _nrrd_TMF_d1_c2_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c2_2ef(parm[0], i, t));
   }
 }
@@ -4761,7 +4761,7 @@ _nrrd_TMF_d1_c2_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_c2_3ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c2_3ef(parm[0], i, x));
 }
 
@@ -4790,7 +4790,7 @@ _nrrd_TMF_d1_c2_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c2_3ef(parm[0], i, t));
   }
 }
@@ -4834,7 +4834,7 @@ _nrrd_TMF_d1_c2_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_c2_4ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c2_4ef(parm[0], i, x));
 }
 
@@ -4863,7 +4863,7 @@ _nrrd_TMF_d1_c2_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c2_4ef(parm[0], i, t));
   }
 }
@@ -4907,7 +4907,7 @@ _nrrd_TMF_d1_c3_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_c3_1ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c3_1ef(parm[0], i, x));
 }
 
@@ -4936,7 +4936,7 @@ _nrrd_TMF_d1_c3_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c3_1ef(parm[0], i, t));
   }
 }
@@ -4980,7 +4980,7 @@ _nrrd_TMF_d1_c3_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_c3_2ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c3_2ef(parm[0], i, x));
 }
 
@@ -5009,7 +5009,7 @@ _nrrd_TMF_d1_c3_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c3_2ef(parm[0], i, t));
   }
 }
@@ -5053,7 +5053,7 @@ _nrrd_TMF_d1_c3_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_c3_3ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c3_3ef(parm[0], i, x));
 }
 
@@ -5082,7 +5082,7 @@ _nrrd_TMF_d1_c3_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c3_3ef(parm[0], i, t));
   }
 }
@@ -5126,7 +5126,7 @@ _nrrd_TMF_d1_c3_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d1_c3_4ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d1_c3_4ef(parm[0], i, x));
 }
 
@@ -5155,7 +5155,7 @@ _nrrd_TMF_d1_c3_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d1_c3_4ef(parm[0], i, t));
   }
 }
@@ -5199,7 +5199,7 @@ _nrrd_TMF_d2_cn_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_cn_1ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_cn_1ef(parm[0], i, x));
 }
 
@@ -5228,7 +5228,7 @@ _nrrd_TMF_d2_cn_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_cn_1ef(parm[0], i, t));
   }
 }
@@ -5272,7 +5272,7 @@ _nrrd_TMF_d2_cn_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_cn_2ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_cn_2ef(parm[0], i, x));
 }
 
@@ -5301,7 +5301,7 @@ _nrrd_TMF_d2_cn_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_cn_2ef(parm[0], i, t));
   }
 }
@@ -5345,7 +5345,7 @@ _nrrd_TMF_d2_cn_3ef_1_f(float x, const double *parm) {
   
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_cn_3ef(parm[0], i, x));
 }
 
@@ -5374,7 +5374,7 @@ _nrrd_TMF_d2_cn_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_cn_3ef(parm[0], i, t));
   }
 }
@@ -5418,7 +5418,7 @@ _nrrd_TMF_d2_cn_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_cn_4ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_cn_4ef(parm[0], i, x));
 }
 
@@ -5447,7 +5447,7 @@ _nrrd_TMF_d2_cn_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_cn_4ef(parm[0], i, t));
   }
 }
@@ -5491,7 +5491,7 @@ _nrrd_TMF_d2_c0_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_c0_1ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c0_1ef(parm[0], i, x));
 }
 
@@ -5520,7 +5520,7 @@ _nrrd_TMF_d2_c0_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c0_1ef(parm[0], i, t));
   }
 }
@@ -5564,7 +5564,7 @@ _nrrd_TMF_d2_c0_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_c0_2ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c0_2ef(parm[0], i, x));
 }
 
@@ -5593,7 +5593,7 @@ _nrrd_TMF_d2_c0_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c0_2ef(parm[0], i, t));
   }
 }
@@ -5637,7 +5637,7 @@ _nrrd_TMF_d2_c0_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_c0_3ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c0_3ef(parm[0], i, x));
 }
 
@@ -5666,7 +5666,7 @@ _nrrd_TMF_d2_c0_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c0_3ef(parm[0], i, t));
   }
 }
@@ -5710,7 +5710,7 @@ _nrrd_TMF_d2_c0_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_c0_4ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c0_4ef(parm[0], i, x));
 }
 
@@ -5739,7 +5739,7 @@ _nrrd_TMF_d2_c0_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c0_4ef(parm[0], i, t));
   }
 }
@@ -5783,7 +5783,7 @@ _nrrd_TMF_d2_c1_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_c1_1ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c1_1ef(parm[0], i, x));
 }
 
@@ -5812,7 +5812,7 @@ _nrrd_TMF_d2_c1_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c1_1ef(parm[0], i, t));
   }
 }
@@ -5856,7 +5856,7 @@ _nrrd_TMF_d2_c1_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_c1_2ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c1_2ef(parm[0], i, x));
 }
 
@@ -5885,7 +5885,7 @@ _nrrd_TMF_d2_c1_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c1_2ef(parm[0], i, t));
   }
 }
@@ -5929,7 +5929,7 @@ _nrrd_TMF_d2_c1_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_c1_3ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c1_3ef(parm[0], i, x));
 }
 
@@ -5958,7 +5958,7 @@ _nrrd_TMF_d2_c1_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c1_3ef(parm[0], i, t));
   }
 }
@@ -6002,7 +6002,7 @@ _nrrd_TMF_d2_c1_4ef_1_f(float x, const double *parm) {
   
   x += 4;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c1_4ef(parm[0], i, x));
 }
 
@@ -6031,7 +6031,7 @@ _nrrd_TMF_d2_c1_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 4;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c1_4ef(parm[0], i, t));
   }
 }
@@ -6075,7 +6075,7 @@ _nrrd_TMF_d2_c2_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_c2_1ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c2_1ef(parm[0], i, x));
 }
 
@@ -6104,7 +6104,7 @@ _nrrd_TMF_d2_c2_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c2_1ef(parm[0], i, t));
   }
 }
@@ -6148,7 +6148,7 @@ _nrrd_TMF_d2_c2_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_c2_2ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c2_2ef(parm[0], i, x));
 }
 
@@ -6177,7 +6177,7 @@ _nrrd_TMF_d2_c2_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c2_2ef(parm[0], i, t));
   }
 }
@@ -6221,7 +6221,7 @@ _nrrd_TMF_d2_c2_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_c2_3ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c2_3ef(parm[0], i, x));
 }
 
@@ -6250,7 +6250,7 @@ _nrrd_TMF_d2_c2_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c2_3ef(parm[0], i, t));
   }
 }
@@ -6294,7 +6294,7 @@ _nrrd_TMF_d2_c2_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_c2_4ef */
   x += 4;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c2_4ef(parm[0], i, x));
 }
 
@@ -6323,7 +6323,7 @@ _nrrd_TMF_d2_c2_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 4;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c2_4ef(parm[0], i, t));
   }
 }
@@ -6367,7 +6367,7 @@ _nrrd_TMF_d2_c3_1ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_c3_1ef */
   x += 2;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c3_1ef(parm[0], i, x));
 }
 
@@ -6396,7 +6396,7 @@ _nrrd_TMF_d2_c3_1ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 2;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c3_1ef(parm[0], i, t));
   }
 }
@@ -6440,7 +6440,7 @@ _nrrd_TMF_d2_c3_2ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_c3_2ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c3_2ef(parm[0], i, x));
 }
 
@@ -6469,7 +6469,7 @@ _nrrd_TMF_d2_c3_2ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c3_2ef(parm[0], i, t));
   }
 }
@@ -6513,7 +6513,7 @@ _nrrd_TMF_d2_c3_3ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_c3_3ef */
   x += 3;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c3_3ef(parm[0], i, x));
 }
 
@@ -6542,7 +6542,7 @@ _nrrd_TMF_d2_c3_3ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 3;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c3_3ef(parm[0], i, t));
   }
 }
@@ -6586,7 +6586,7 @@ _nrrd_TMF_d2_c3_4ef_1_f(float x, const double *parm) {
   AIR_UNUSED(parm); /* TMF_d2_c3_4ef */
   x += 4;
   i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */
-  x -= i;
+  x -= AIR_CAST(float, i);
   return AIR_CAST(float, TMF_d2_c3_4ef(parm[0], i, x));
 }
 
@@ -6615,7 +6615,7 @@ _nrrd_TMF_d2_c3_4ef_N_f(float *f, const float *x, size_t len, const double *parm
   for (I=0; I<len; I++) {
     t = x[I] + 4;
     i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */
-    t -= i;
+    t -= AIR_CAST(float, i);
     f[I] = AIR_CAST(float, TMF_d2_c3_4ef(parm[0], i, t));
   }
 }

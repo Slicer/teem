@@ -240,7 +240,7 @@ sub blah {
              . "  AIR_UNUSED(parm); /* ${kern} */\n"
 	     . "  x += $sup;\n"
 	     . "  i = (int)((x<0) ? x-1 : x); /* HEY scrutinize cast */\n"
-	     . "  x -= i;\n"
+	     . "  x -= AIR_CAST(float, i);\n"
 	     . "  return AIR_CAST(float, ${kern}\(parm[0], i, x\));\n"
 	     . "}\n\n");
     $_N_d = ("static void\n"
@@ -265,7 +265,7 @@ sub blah {
 	     . "  for \(I=0; I<len; I++\) {\n"
 	     . "    t = x[I] + $sup;\n"
 	     . "    i = (int)((t<0) ? t-1 : t); /* HEY scrutinize cast */\n"
-	     . "    t -= i;\n"
+	     . "    t -= AIR_CAST(float, i);\n"
 	     . "    f[I] = AIR_CAST(float, ${kern}\(parm[0], i, t\));\n"
 	     . "  }\n"
 	     . "}\n\n");
