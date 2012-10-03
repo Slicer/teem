@@ -81,7 +81,7 @@ nrrdIoStateInit(NrrdIoState *nio) {
     nio->dataFNMin = 0;
     nio->dataFNMax = 0;
     nio->dataFNStep = 0;
-    nio->dataFNIndex = -1;
+    nio->dataFNIndex = 0;
     nio->lineLen = 0;
     nio->pos = 0;
     nio->endian = airEndianUnknown;

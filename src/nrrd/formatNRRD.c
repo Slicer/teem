@@ -151,7 +151,7 @@ _nrrdFormatURLLine1 = "http://teem.sourceforge.net/nrrd/format.html";
 void
 nrrdIoStateDataFileIterBegin(NrrdIoState *nio) {
 
-  nio->dataFNIndex = -1;
+  nio->dataFNIndex = 0;
   return;
 }
 
@@ -195,9 +195,10 @@ nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
     airMopError(mop); return 1;
   }
   
-  nio->dataFNIndex++;
-  if (nio->dataFNIndex >= (int)_nrrdDataFNNumber(nio)) {
-    /* there is no next data file, but we don't make that an error */
+  if (nio->dataFNIndex >= _nrrdDataFNNumber(nio)) {
+    /* there is no next data file, but we don't make that an error
+       (though as of Tue Oct  2 22:53:14 CDT 2012, GLK can't remember
+       why this condition would ever occur) */
     nio->dataFNIndex = _nrrdDataFNNumber(nio);
     airMopOkay(mop);
     *fileP = NULL;
@@ -239,7 +240,7 @@ nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
          ((nio->dataFNStep > 0 && ii <= nio->dataFNMax)
           || (nio->dataFNStep < 0 && ii >= nio->dataFNMax));
          ii += nio->dataFNStep) {
-      if ((int)num == nio->dataFNIndex) {  /* HEY scrutinize cast */
+      if (num == nio->dataFNIndex) {
         break;
       }
       num += 1;
@@ -266,8 +267,8 @@ nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
   if (nio->dataFNFormat || nio->dataFNArr->len) {
     *fileP = airFopen(fname, reading ? stdin : stdout, reading ? "rb" : "wb");
     if (!(*fileP)) {
-      biffAddf(NRRD, "%s: couldn't open \"%s\" (data file %d of %d) for %s",
-               me, fname, nio->dataFNIndex+1, (int)_nrrdDataFNNumber(nio),
+      biffAddf(NRRD, "%s: couldn't open \"%s\" (data file %u of %u) for %s",
+               me, fname, nio->dataFNIndex+1, _nrrdDataFNNumber(nio),
                reading ? "reading" : "writing");
       airMopError(mop); return 1;
     }
@@ -282,6 +283,7 @@ nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
     }
   }
   
+  nio->dataFNIndex++;
   airMopOkay(mop);
   return 0;
 }
@@ -432,7 +434,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
      nrrdIoStateDataFileIterNext() */
   nio->headerFile = file;
 
-  /* HEY: GLK forgets the context in which file might be reasonably NULL
+  /* GLK forgets the context in which file might be reasonably NULL
      but on Fri Sep 23 09:48:41 EDT 2005 this was "if (file) { ..." */
   /* nio->headerStringRead is NULL whenever IO from string is not being done */
   if (file || nio->headerStringRead) {
@@ -644,7 +646,11 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     }
     airMopAdd(mop, tmp, airFree, airMopOnError);
     sprintf(tmp, "%s.%s", nio->base, nio->encoding->suffix);
-    jj = airArrayLenIncr(nio->dataFNArr, 1); /* HEY error checking */
+    jj = airArrayLenIncr(nio->dataFNArr, 1);
+    if (!nio->dataFNArr->data) {
+      biffAddf(NRRD, "%s: can't increase dataFNArr storage", me);
+      airMopError(mop); return 1;
+    }
     nio->dataFN[jj] = tmp;
   }
 

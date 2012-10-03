@@ -1177,7 +1177,8 @@ _nrrdContainsPercentThisAndMore(const char *str, char thss) {
 
 unsigned int
 _nrrdDataFNNumber(NrrdIoState *nio) {
-  unsigned int ii, ret;
+  unsigned int ret;
+  int ii;
 
   if (nio->dataFNFormat) {
     /* datafiles given in iterator form; count number of values */
