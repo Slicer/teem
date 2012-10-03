@@ -75,7 +75,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
        of memory from "buff" into the given "_data" pointer */
     char *buff;
     airArray *buffArr;
-    unsigned long backwards;
+    long backwards;
       
     /* setting the airArray increment to twice the chunk size means that for
        headers that are small compared to the data, the airArray never
@@ -119,16 +119,16 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
       return 1;
     }
     /* backwards is (positive) number of bytes AFTER data that we ignore */
-    backwards = AIR_CAST(unsigned long, -nio->byteSkip - 1);
-    if (sizeRed < sizeData + backwards) {
+    backwards = -nio->byteSkip - 1;
+    if (sizeRed < sizeData + AIR_CAST(size_t, backwards)) {
       char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
       biffAddf(NRRD, "%s: expected %s bytes but received only %s", me,
-               airSprintSize_t(stmp1, sizeData + backwards),
+               airSprintSize_t(stmp1, sizeData + AIR_CAST(size_t, backwards)),
                airSprintSize_t(stmp2, sizeRed));
       return 1;
     }
     /* also handles nio->byteSkip == -N-1 signifying extra N bytes at end */
-    memcpy(_data, buff + sizeRed - sizeData - (-nio->byteSkip - 1), sizeData);
+    memcpy(_data, buff + sizeRed - sizeData - backwards, sizeData);
     airArrayNuke(buffArr);
   } else {
     /* no negative byteskip: after byteskipping, we can read directly

@@ -281,7 +281,7 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
     return 1;
   }
   if (nio->byteSkip < 0) {
-    unsigned long backwards;
+    long backwards;
     if (nrrdEncodingRaw != nio->encoding) {
       biffAddf(NRRD, "%s: can do backwards byte skip only in %s "
                "encoding, not %s", me,
@@ -295,8 +295,9 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
     bsize = nrrdElementNumber(nrrd)/_nrrdDataFNNumber(nio);
     bsize *= nrrdElementSize(nrrd);
     /* backwards is (positive) number of bytes AFTER data that we ignore */
-    backwards = AIR_CAST(unsigned long, -nio->byteSkip - 1);
-    if (fseek(dataFile, -AIR_CAST(long, bsize + backwards), SEEK_END)) {
+    backwards = -nio->byteSkip - 1;
+    /* HEY what if bsize fits in size_t but not in (signed) long? */
+    if (fseek(dataFile, -AIR_CAST(long, bsize) - backwards, SEEK_END)) {
       char stmp[AIR_STRLEN_SMALL];
       biffAddf(NRRD, "%s: failed to fseek(dataFile, %s, SEEK_END)", me,
                airSprintSize_t(stmp, bsize));
