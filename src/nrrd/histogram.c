@@ -452,9 +452,9 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
                const Nrrd *nwght, const size_t *bins,
                int type, const int *clamp) {
   static const char me[]="nrrdHistoJoint", func[]="jhisto";
-  int coord[NRRD_DIM_MAX], skip, hadContent, totalContentStrlen, len=0;
+  int skip, hadContent;
   double val, count, incr, (*lup)(const void *v, size_t I);
-  size_t Iin, Iout, numEl;
+  size_t Iin, Iout, numEl, coord[NRRD_DIM_MAX], totalContentStrlen;
   airArray *mop;
   NrrdRange **range;
   unsigned int nii, ai;
@@ -561,7 +561,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
     }
     if (nin[ai]->content) {
       hadContent = 1;
-      totalContentStrlen += AIR_CAST(int, strlen(nin[ai]->content));
+      totalContentStrlen += strlen(nin[ai]->content);
       nout->axis[ai].label = AIR_CALLOC(strlen("histo(,)")
                                         + strlen(nin[ai]->content)
                                         + 11
@@ -600,8 +600,8 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
           break;
         }
       }
-      coord[ai] = airIndexClamp(range[ai]->min, val, range[ai]->max, 
-                                AIR_CAST(unsigned int, bins[ai]));
+      coord[ai] = airIndexClampULL(range[ai]->min, val, range[ai]->max, 
+                                   bins[ai]);
       /* printf(" -> coord = %d; ", coord[d]); fflush(stdout); */
     }
     if (skip) {
@@ -621,12 +621,13 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
                                + totalContentStrlen
                                + 1, char);
     if (nout->content) {
+      size_t len;
       sprintf(nout->content, "%s(", func);
       for (ai=0; ai<numNin; ai++) {
-        len = AIR_CAST(int, strlen(nout->content));
+        len = strlen(nout->content);
         strcpy(nout->content + len,
                nin[ai]->content ? nin[ai]->content : "?");
-        len = AIR_CAST(int, strlen(nout->content));
+        len = strlen(nout->content);
         nout->content[len] = ai < numNin-1 ? ',' : ')';
       }
       nout->content[len+1] = '\0';
