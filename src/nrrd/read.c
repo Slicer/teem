@@ -295,7 +295,7 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
     bsize = nrrdElementNumber(nrrd)/_nrrdDataFNNumber(nio);
     bsize *= nrrdElementSize(nrrd);
     backHack = -nio->byteSkip - 1;
-    if (fseek(dataFile, -((long)(bsize + backHack)), SEEK_END)) {
+    if (fseek(dataFile, -(AIR_CAST(long, bsize) + backHack), SEEK_END)) {
       char stmp[AIR_STRLEN_SMALL];
       biffAddf(NRRD, "%s: failed to fseek(dataFile, %s, SEEK_END)", me,
                airSprintSize_t(stmp, bsize));
