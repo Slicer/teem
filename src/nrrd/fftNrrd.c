@@ -88,10 +88,9 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
   airArray *mop;
   Nrrd *nin;
   unsigned int axi, axisDo[NRRD_DIM_MAX];
-  int flags;
   fftw_plan plan;
   void *dataBef;
-  unsigned int txfRank, howRank;
+  unsigned int txfRank, howRank, flags;
   size_t stride;
   fftw_iodim txfDims[NRRD_DIM_MAX], howDims[NRRD_DIM_MAX];
 
@@ -217,7 +216,10 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
     biffAddf(NRRD, "%s: unsupported rigor %d", me, rigor);
     airMopError(mop); return 1;
   }
-  plan = fftw_plan_guru_dft(txfRank, txfDims, howRank, howDims,
+  /* HEY: figure out why fftw expects txfRank and howRank to be
+     signed and not unsigned */
+  plan = fftw_plan_guru_dft(AIR_CAST(int, txfRank), txfDims,
+                            AIR_CAST(int, howRank), howDims,
                             AIR_CAST(fftw_complex *, inData),
                             AIR_CAST(fftw_complex *, outData),
                             sign, flags);
@@ -225,7 +227,7 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
     biffAddf(NRRD, "%s: unable to create plan", me);
     airMopError(mop); return 1;
   }
-
+  
   /* only after planning is done (which can over-write contents of inData)
      do we copy the real input values over */
   dataBef = nin->data;
@@ -246,7 +248,7 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
   /* if wanted, remove the sqrt(nprod) scaling that fftw adds at each pass */
   if (rescale) {
     double scale;
-    scale = sqrt(1.0/nprod);
+    scale = sqrt(1.0/AIR_CAST(double, nprod));
     for (II=0; II<NN; II++) {
       outData[II] *= scale;
     }
