@@ -75,6 +75,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
        of memory from "buff" into the given "_data" pointer */
     char *buff;
     airArray *buffArr;
+    unsigned long backwards;
       
     /* setting the airArray increment to twice the chunk size means that for
        headers that are small compared to the data, the airArray never
@@ -117,10 +118,12 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
       biffAddf(NRRD, "%s: error reading from gzFile", me);
       return 1;
     }
-    if (sizeRed < sizeData + (-nio->byteSkip - 1)) {
+    /* backwards is (positive) number of bytes AFTER data that we ignore */
+    backwards = AIR_CAST(unsigned long, -nio->byteSkip - 1);
+    if (sizeRed < sizeData + backwards) {
       char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
       biffAddf(NRRD, "%s: expected %s bytes but received only %s", me,
-               airSprintSize_t(stmp1, sizeData + (-nio->byteSkip - 1)),
+               airSprintSize_t(stmp1, sizeData + backwards),
                airSprintSize_t(stmp2, sizeRed));
       return 1;
     }

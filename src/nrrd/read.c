@@ -268,20 +268,20 @@ nrrdLineSkip(FILE *dataFile, NrrdIoState *nio) {
 **
 ** public for the sake of things like "unu make"
 ** uses nio for information about how much data should actually be skipped
-** with -1 == byteSkip
+** with negative byteSkip
 */
 int
 nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="nrrdByteSkip";
   int skipRet;
-  long bi, backHack;
   size_t bsize;
 
   if (!( dataFile && nrrd && nio )) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  if (-1 >= nio->byteSkip) {
+  if (nio->byteSkip < 0) {
+    unsigned long backwards;
     if (nrrdEncodingRaw != nio->encoding) {
       biffAddf(NRRD, "%s: can do backwards byte skip only in %s "
                "encoding, not %s", me,
@@ -294,8 +294,9 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
     }
     bsize = nrrdElementNumber(nrrd)/_nrrdDataFNNumber(nio);
     bsize *= nrrdElementSize(nrrd);
-    backHack = -nio->byteSkip - 1;
-    if (fseek(dataFile, -(AIR_CAST(long, bsize) + backHack), SEEK_END)) {
+    /* backwards is (positive) number of bytes AFTER data that we ignore */
+    backwards = AIR_CAST(unsigned long, -nio->byteSkip - 1);
+    if (fseek(dataFile, -AIR_CAST(long, bsize + backwards), SEEK_END)) {
       char stmp[AIR_STRLEN_SMALL];
       biffAddf(NRRD, "%s: failed to fseek(dataFile, %s, SEEK_END)", me,
                airSprintSize_t(stmp, bsize));
@@ -307,13 +308,14 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
     }
   } else {
     if (-1==fseek(dataFile, nio->byteSkip, SEEK_CUR)) {
+      long skipi;
       /* fseek failed, perhaps because we're reading stdin, so
          we revert to consuming the input one byte at a time */
-      for (bi=1; bi<=nio->byteSkip; bi++) {
+      for (skipi=0; skipi<nio->byteSkip; skipi++) {
         skipRet = fgetc(dataFile);
         if (EOF == skipRet) {
           biffAddf(NRRD, "%s: hit EOF skipping byte %ld of %ld",
-                   me, bi, nio->byteSkip);
+                   me, skipi, nio->byteSkip);
           return 1;
         }
       }
