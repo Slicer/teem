@@ -42,10 +42,10 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
                        Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingGzip_read";
 #if TEEM_ZLIB
-  size_t sizeData, sizeRed, sizeChunk;
+  size_t sizeData, sizeRed;
   int error;
   long int bi;
-  unsigned int didread;
+  unsigned int didread, sizeChunk, maxChunk;
   char *data;
   gzFile gzfin;
   airPtrPtrUnion appu;
@@ -61,9 +61,12 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
   /* keeps track of how many bytes have been successfully read in */
   sizeRed = 0;
   
-  /* zlib can only handle data sizes up to UINT_MAX ==> if there's more
-     than UINT_MAX bytes to read in, we read in in chunks */
-  sizeChunk = AIR_MIN(sizeData, UINT_MAX);
+  /* zlib can only handle data sizes up to UINT_MAX ==> if there's
+     more than UINT_MAX bytes to read in, we read in in chunks.  Given
+     how sizeChunk is used below, we also cap chunk size at UINT_MAX/2
+     to prevent overflow. */
+  maxChunk = UINT_MAX/2;
+  sizeChunk = AIR_CAST(unsigned int, AIR_MIN(sizeData, maxChunk));
   
   if (nio->byteSkip < 0) { 
     /* We don't know the size of the size to skip before the data, so
@@ -90,16 +93,20 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
        and we haven't hit EOF (EOF signified by read == 0).  Unlike the
        code below (for positive byteskip), we are obligated to read until
        the bitter end, and can't update sizeChunk to encompass only the 
-       required data.  Cast on third arg ok because of AIR_MIN use above */
+       required data. */
     while (!(error = _nrrdGzRead(gzfin, buff + sizeRed,
-                                 AIR_CAST(unsigned int, sizeChunk),
-                                 &didread))
+                                 sizeChunk, &didread))
            && didread > 0) {
       sizeRed += didread;
       if (didread >= sizeChunk) {
         /* we were able to read as much data as we requested, maybe there is
            more, so we need to make our temp buffer bigger */
-        airArrayLenIncr(buffArr, sizeChunk);
+        unsigned int newlen = buffArr->len + sizeChunk;
+        if (newlen < buffArr->len) {
+          biffAddf(NRRD, "%s: array size will exceed uint capacity", me);
+          return 1;
+        }
+        airArrayLenSet(buffArr, newlen);
         if (!buffArr->data) {
           biffAddf(NRRD, "%s: couldn't re-allocate data buffer", me);
           return 1;
@@ -144,10 +151,10 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
       /* We only want to read as much data as we need, so we need to check
          to make sure that we don't request data that might be there but that
          we don't want.  This will reduce sizeChunk when we get to the last
-         block (which may be smaller than sizeChunk). */
+         block (which may be smaller than the original sizeChunk). */
       if (sizeData >= sizeRed 
           && sizeData - sizeRed < sizeChunk) {
-        sizeChunk = sizeData - sizeRed;
+        sizeChunk = AIR_CAST(unsigned int, sizeData - sizeRed);
       }
     }
     if (error) {
@@ -188,12 +195,12 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
                         const Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingGzip_write";
 #if TEEM_ZLIB
-  size_t sizeData, sizeWrit, sizeChunk;
+  size_t sizeData, sizeWrit;
   int fmt_i=0, error;
   const char *data;
   char fmt[4];
   gzFile gzfout;
-  unsigned int wrote;
+  unsigned int wrote, sizeChunk;
   
   sizeData = nrrdElementSize(nrrd)*elNum;
 
@@ -223,18 +230,16 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   
   /* zlib can only handle data sizes up to UINT_MAX ==> if there's more
      than UINT_MAX bytes to write out, we write out in chunks */
-  sizeChunk = AIR_MIN(sizeData, UINT_MAX);
+  sizeChunk = AIR_CAST(unsigned int, AIR_MIN(sizeData, UINT_MAX));
 
   /* keeps track of what how much has been successfully written */
   sizeWrit = 0;
   /* Pointer to the chunks as we write them. */
   data = AIR_CAST(const char *, _data);
   
-  /* Ok, now we can begin writing. Cast on third arg ok because of
-     AIR_MIN use above */
+  /* Ok, now we can begin writing. */
   while ((error = _nrrdGzWrite(gzfout, AIR_CVOIDP(data),
-                               AIR_CAST(unsigned int, sizeChunk),
-                               &wrote)) == 0 
+                               sizeChunk, &wrote)) == 0 
          && wrote > 0) {
     /* Increment the data pointer to the next available spot. */
     data += wrote;
@@ -242,11 +247,11 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
     /* We only want to write as much data as we need, so we need to check
        to make sure that we don't write more data than is there.  This
        will reduce sizeChunk when we get to the last block (which may
-       be smaller than sizeChunk).
+       be smaller than the original sizeChunk).
     */
     if (sizeData >= sizeWrit
-        && (unsigned int)(sizeData - sizeWrit) < sizeChunk)
-      sizeChunk = sizeData - sizeWrit;
+        && sizeData - sizeWrit < sizeChunk)
+      sizeChunk = AIR_CAST(unsigned int, sizeData - sizeWrit);
   }
   
   if (error) {
