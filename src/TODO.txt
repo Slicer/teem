@@ -32,6 +32,9 @@ all:
 air:
 * airArray->len should probably be size_t, not unsigned int. Along with
 this is biffMsgErrNum and nrrdKeyValueSize.
+* consider changing airIndexULL and airIndexClampULL to work with
+size_t instead of unsigned long long, or at least adding versions that
+work with size_t
 * either change AIR_STRLEN_* to AIR_BUFFSIZE_* (or something similar,
 or take out the +1 from their definition and it into usage: the 
 STRLEN is misleading as is.
