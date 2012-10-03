@@ -361,7 +361,7 @@ typedef struct NrrdIoState_t {
   /* Note that the NRRD0004 and NRRD0005 file formats indicate that a numbered
      sequence of data filenames should be indexed via a "%d" format
      specification, and that the format doc says nothing about the "min" and
-     "max" fields of "data file" being only positive.  So the following
+     "max" fields of "data file" being only positive.  So the following three
      dataFN* fields are appropriately (signed) ints, even if all normal usage
      could also be represented with unsigned ints.  Nonetheless, the return
      from _nrrdDataFNNumber(), which gives the total number of file names, is
