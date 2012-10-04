@@ -262,7 +262,7 @@ echoRayColor(echoCol_t *chan, echoRay *ray,
                   scene->bkgr[0], scene->bkgr[1], scene->bkgr[2],
                   (parm->renderBoxes
                    ? 1.0 - pow(1.0 - parm->boxOpac, intx.boxhits)
-                   : 1.0));
+                   : 0.0));
     goto done;
   }
 
