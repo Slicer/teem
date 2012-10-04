@@ -600,8 +600,10 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
           break;
         }
       }
-      coord[ai] = airIndexClampULL(range[ai]->min, val, range[ai]->max, 
-                                   bins[ai]);
+      coord[ai] = AIR_CAST(size_t, airIndexClampULL(range[ai]->min,
+                                                    val,
+                                                    range[ai]->max, 
+                                                    bins[ai]));
       /* printf(" -> coord = %d; ", coord[d]); fflush(stdout); */
     }
     if (skip) {
