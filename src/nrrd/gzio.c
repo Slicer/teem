@@ -409,14 +409,21 @@ _nrrdGzWrite(gzFile file, const void* buf, unsigned int len,
              unsigned int* written) {
   static const char me[]="_nrrdGzWrite";
   _NrrdGzStream *s = (_NrrdGzStream*)file;
+  void *nonconstbuf;
 
   if (s == NULL || s->mode != 'w') {
     biffAddf(NRRD, "%s: invalid stream or file mode", me);
     *written = 0;
     return 1;
   }
-
-  s->stream.next_in = (const Bytef*)buf;
+  
+  /* If you google for "const correct zlib" or "zlib.h is not
+     const-correct" you'll find zlib mailing list discussions of how
+     zlib doesn't have all the consts that it should, and various code
+     examples of using multiple casts to hide the problem. Here's a
+     slow way that doesn't use mere casting to make the const go away */
+  memcpy(AIR_VOIDP(&nonconstbuf), AIR_CVOIDP(&buf), sizeof(void*));
+  s->stream.next_in = (Bytef*)nonconstbuf;
   s->stream.avail_in = len;
 
   while (s->stream.avail_in != 0) {
