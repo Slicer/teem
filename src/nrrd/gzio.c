@@ -422,7 +422,7 @@ _nrrdGzWrite(gzFile file, const void* buf, unsigned int len,
      zlib doesn't have all the consts that it should, and various code
      examples of using multiple casts to hide the problem. Here's a
      slow way that doesn't use mere casting to make the const go away */
-  memcpy(AIR_VOIDP(&nonconstbuf), AIR_CVOIDP(&buf), sizeof(void*));
+  memcpy(&nonconstbuf, &buf, sizeof(void*));
   s->stream.next_in = (Bytef*)nonconstbuf;
   s->stream.avail_in = len;
 
