@@ -328,6 +328,10 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
 
     ELL_3V_SCALE(delta, task->pctx->step, myPoint->frc);
     ELL_3V_NORM(deltaNorm, delta, deltaLen);
+    if (0 == deltaLen) {
+      /* an unforced point, but this isn't an error */
+      return 0;
+    }
     if (!(AIR_EXISTS(deltaLen) && ELL_3V_EXISTS(deltaNorm))) {
       biffAddf(PUSH, "%s: deltaLen %g or deltaNorm (%g,%g,%g) doesn't exist",
                me, deltaLen, deltaNorm[0], deltaNorm[1], deltaNorm[2]);
