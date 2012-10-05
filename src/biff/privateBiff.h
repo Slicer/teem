@@ -42,11 +42,6 @@ extern void _biffMsgAddVL(biffMsg *msg, const char *errfmt, va_list args);
 extern void _biffMsgMoveVL(biffMsg *dest, biffMsg *src,
                            const char *errfmt, va_list args);
 
-/* biffbiff.c */
-extern void _biffAddVL(const char *key, const char *errfmt, va_list args);
-extern void _biffMoveVL(const char *destKey, const char *srcKey,
-                        const char *errfmt, va_list args);
-
 #ifdef __cplusplus
 }
 #endif

@@ -181,7 +181,7 @@ biffAdd(const char *key, const char *err) {
   return;
 }
 
-void
+static void
 _biffAddVL(const char *key, const char *errfmt, va_list args) {
   biffMsg *msg;
 
@@ -411,7 +411,7 @@ biffMove(const char *destKey, const char *err, const char *srcKey) {
   return;
 }
 
-void
+static void
 _biffMoveVL(const char *destKey, const char *srcKey,
             const char *errfmt, va_list args) {
   static const char me[]="biffMovev";
