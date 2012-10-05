@@ -76,14 +76,19 @@ so that it matches biffMovef
 * a few biff functions are never used in Teem, is that ok?
 
 nrrd:
+* ponder utility of having "const void *constdata" field in the Nrrd struct,
+  to allow a nrrd to wrap around data it doesn't own.  Would this supersede
+  the nrrdNuke vs nrrdNix distinction?
+* int nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin,
+                       const int *axmap, int excludeBitflag)
+  presents a problem for the principle that axis indices should be 
+  unsigned, because axmap[i]==-1 means something special.  Should
+  this be changed to axmap[i]==UINT_MAX?
 * resolve basic confusion between unsigned and signed int with
   return of nrrdIoStateGet (now int, including for learning
   nio->charsPerLine and nio->valsPerLine, which are unsigned int,
   just like nrrdDefaultWriteCharsPerLine and nrrdDefaultWriteValsPerLine)
   and argument to nrrdIoStateSet.
-* nrrdSpaceVecNorm(unsigned int sdim, const double vec[]) should 
-  have its two args switch order in order to conform to Teem convention
-  of "array first, length second"
 * with nrrdKernel: 
  - add fields for "what is my derivative" or "what is my integral", but 
    how to do that at compile time?
@@ -104,6 +109,9 @@ nrrd:
   "unu histo", "unu quantize", and "unu jhisto" should be migrated down
   to the nrrd library.  Consider doing this with a sorting of highest/lowest 
   values rather than a histogram (one less parameter, and often more accurate)
+* nrrdSpaceVecNorm(unsigned int sdim, const double vec[]) should 
+  have its two args switch order in order to conform to Teem convention
+  of "array first, length second"
 * revisit how FFTW is called and used.  How have others dealt with the 
   weird global nature of reading/writing wisdom?  Should "rigor" be an 
   argument to nrrdFFT?  Is there really no error reporting on fftw_execute,
@@ -121,9 +129,9 @@ nrrd:
 [nrrd] nrrdResampleKernelSet: haven't set input nrrd yet
 * for nrrdCropAuto: consider adding some minimum remaining size requirement,
   in addition to offset
-* ponder utility of having "const void *constdata" field in the Nrrd struct,
-  to allow a nrrd to wrap around data it doesn't own.  Would this supersede
-  the nrrdNuke vs nrrdNix distinction?
+* all of the code in apply1D.c is ancient, and has not been brought into
+  the world of using unsigned int and size_t.  Also very confusing. Needs
+  to be walked through and tested thoroughly.
 
 unu:
 * the UNRRDU_QUIET_QUIT functionality should be enabled by default instead
