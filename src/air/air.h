@@ -263,7 +263,9 @@ AIR_EXPORT void airArrayStructCB(airArray *a, void (*initCB)(void *),
 AIR_EXPORT void airArrayPointerCB(airArray *a, void *(*allocCB)(void),
                                   void *(*freeCB)(void *));
 AIR_EXPORT void airArrayLenSet(airArray *a, unsigned int newlen);
+/* ---- BEGIN non-NrrdIO */
 AIR_EXPORT void airArrayLenPreSet(airArray *a, unsigned int newlen);
+/* ---- END non-NrrdIO */
 AIR_EXPORT unsigned int airArrayLenIncr(airArray *a, int delta);
 AIR_EXPORT airArray *airArrayNix(airArray *a);
 AIR_EXPORT airArray *airArrayNuke(airArray *a);

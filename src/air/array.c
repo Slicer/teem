@@ -125,6 +125,7 @@ airArrayPointerCB(airArray *a,
   }
 }
 
+/* ---- BEGIN non-NrrdIO */
 /*
 ******** airArrayLenPreSet()
 **
@@ -183,6 +184,7 @@ airArrayLenPreSet(airArray *a, unsigned int newlen) {
   /* fprintf(stderr, "!%s: returning data %p\n", me, a->data); */
   return;
 }
+/* ---- END non-NrrdIO */
 
 /*
 ******** airArrayLenSet()
