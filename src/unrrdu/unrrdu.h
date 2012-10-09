@@ -119,6 +119,7 @@ F(cmedian) \
 F(dering) \
 F(dist) \
 F(minmax) \
+F(cksum) \
 F(diff) \
 F(quantize) \
 F(unquantize) \

@@ -44,6 +44,7 @@ SET(UNRRDU_SOURCES
   lut2.c
   make.c
   minmax.c
+  cksum.c
   diff.c
   mlut.c
   mrmap.c
