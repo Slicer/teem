@@ -29,6 +29,17 @@ ADD_EXECUTABLE(test_tload tload.c)
 TARGET_LINK_LIBRARIES(test_tload teem)
 ADD_TEST(tload ${EXECUTABLE_OUTPUT_PATH}/test_tload)
 
+ADD_EXECUTABLE(test_tskip tskip.c)
+TARGET_LINK_LIBRARIES(test_tskip teem)
+ADD_TEST(tskip11p ${EXECUTABLE_OUTPUT_PATH}/test_tskip -s 101 102 103 -p 66 81 -o ts.raw ts.nhdr)
+ADD_TEST(tskip11n ${EXECUTABLE_OUTPUT_PATH}/test_tskip -s 101 102 103 -p 66 81 -ns -o ts.raw ts.nhdr)
+ADD_TEST(tskip01p ${EXECUTABLE_OUTPUT_PATH}/test_tskip -s 101 102 103 -p 0 99 -o ts.raw ts.nhdr)
+ADD_TEST(tskip01n ${EXECUTABLE_OUTPUT_PATH}/test_tskip -s 101 102 103 -p 0 99 -ns -o ts.raw ts.nhdr)
+ADD_TEST(tskip10p ${EXECUTABLE_OUTPUT_PATH}/test_tskip -s 101 102 103 -p 77 0 -o ts.raw ts.nhdr)
+ADD_TEST(tskip10n ${EXECUTABLE_OUTPUT_PATH}/test_tskip -s 101 102 103 -p 77 0 -ns -o ts.raw ts.nhdr)
+# ending with tiny files since GLK doesn't know how to clean these up
+ADD_TEST(tskip00p ${EXECUTABLE_OUTPUT_PATH}/test_tskip -s 1 2 3 -p 0 0 -o ts.raw ts.nhdr)
+
 ADD_EXECUTABLE(test_sanity sanity.c)
 TARGET_LINK_LIBRARIES(test_sanity teem)
 ADD_TEST(sanity ${EXECUTABLE_OUTPUT_PATH}/test_sanity)
