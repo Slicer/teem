@@ -42,13 +42,14 @@ main(int argc, const char **argv) {
   hestParm *hparm;
   airArray *mop;
   /* variables specific to this program */
-  int negskip;
+  int negskip, progress;
   Nrrd *nref, *nin;
-  size_t *size, ii, nn, pad[2];
+  size_t *size, ii, nn, tick, pad[2];
   unsigned int axi, refCRC, gotCRC, sizeNum;
-  char *berr, *outS[2], stmp[AIR_STRLEN_SMALL];
+  char *berr, *outS[2], stmp[AIR_STRLEN_SMALL], doneStr[AIR_STRLEN_SMALL];
   airRandMTState *rng;
   unsigned int seed, *rdata;
+  double time0, time1;
   FILE *fout;
 
   /* start-up */
@@ -86,12 +87,34 @@ main(int argc, const char **argv) {
   airMopAdd(mop, rng, (airMopper)airRandMTStateNix, airMopAlways);
   nn = nrrdElementNumber(nref);
   rdata = AIR_CAST(unsigned int *, nref->data);
+  printf("generating data: . . .       "); fflush(stdout);
+  time0 = airTime();
+  progress = AIR_FALSE;
+  tick = nn/100;
   for (ii=0; ii<nn; ii++) {
     rdata[ii] = airUIrandMT_r(rng);
+    if (ii && !(ii % tick)) {
+      time1 = airTime();
+      if (time1 - time0 > 1.0) {
+        /* if it took more than a second to do 1% of the thing,
+           would be good to generate some progress indication */
+        progress = AIR_TRUE;
+      }
+      if (progress) {
+        printf("%s", airDoneStr(0, ii, nn, doneStr)); fflush(stdout);
+      }
+    }
   }
+  if (progress) {
+    printf("%s\n", airDoneStr(0, ii, nn, doneStr)); fflush(stdout);
+  } else {
+    printf("\n");
+  }
+  printf("finding reference (big-endian) CRC: "); fflush(stdout);
   refCRC = nrrdCRC32(nref, airEndianBig);
-  printf("big-endian crc = %u\n", refCRC);
+  printf("%u\n", refCRC);
 
+  printf("saving data . . . "); fflush(stdout);
   /* write padded data */
   if (!(fout = fopen(outS[0], "wb"))) {
     fprintf(stderr, "%s: couldn't open %s for writing: %s\n", me,
@@ -117,6 +140,7 @@ main(int argc, const char **argv) {
   }
   airMopSingleOkay(mop, fout);
   airMopSingleOkay(mop, nref); nref = NULL;
+  printf("\n");
 
   /* write header; for now just writing the header directly */
   if (!(fout = fopen(outS[1], "w"))) {
@@ -147,6 +171,7 @@ main(int argc, const char **argv) {
   airMopSingleOkay(mop, fout);
   
   /* read it in, make sure it checks out */
+  printf("reading data . . . \n");
   nin = nrrdNew();
   airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdLoad(nin, outS[1], NULL)) {
@@ -154,6 +179,7 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: error reading back in: %s\n", me, berr);
     airMopError(mop); return 1;
   }
+  printf("finding new CRC . . . \n");
   gotCRC = nrrdCRC32(nin, airEndianBig);
   if (refCRC != gotCRC) {
     fprintf(stderr, "%s: got CRC %u but wanted %u\n", me, gotCRC, refCRC);
