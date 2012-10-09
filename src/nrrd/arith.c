@@ -942,3 +942,18 @@ nrrdArithIterAffine(Nrrd *nout, NrrdIter *minIn,
 
   return 0;
 }
+
+unsigned int
+nrrdCRC32(const Nrrd *nin) {
+  size_t nn;
+
+  /* NULL nrrd or data */
+  if (!nin
+      || !(nin->data)
+      || !(nn = nrrdElementSize(nin)*nrrdElementNumber(nin))) {
+    return 0;
+  }
+  
+  return airCrc32(nin->data, nn);
+}
+
