@@ -90,7 +90,7 @@ main(int argc, const char **argv) {
     rdata[ii] = airUIrandMT_r(rng);
   }
   refCRC = nrrdCRC32(nref, airEndianBig);
-  printf("crc = %u\n", refCRC);
+  printf("big-endian crc = %u\n", refCRC);
 
   /* write padded data */
   if (!(fout = fopen(outS[0], "wb"))) {
