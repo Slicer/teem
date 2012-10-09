@@ -927,11 +927,15 @@ _nrrdReadNrrdParse_byte_skip(FILE *file, Nrrd *nrrd,
   AIR_UNUSED(nrrd);
   info = nio->line + nio->pos;
   _PARSE_ONE_VAL(nio->byteSkip, "%ld", "long int");
-  if (!(-1 <= nio->byteSkip)) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: byteSkip value %ld invalid", me, nio->byteSkip);
-    return 1;
-  }
+  /* this check is being removed to enable the undocumented 
+     (in the file format spec) ability to say "byte skip: -N-1" 
+     in order to skip backwards from EOF by N bytes 
+  ** if (!(-1 <= nio->byteSkip)) {
+  **   biffMaybeAddf(useBiff, NRRD,
+  **                 "%s: byteSkip value %ld invalid", me, nio->byteSkip);
+  **   return 1;
+  ** }
+  */
   return 0;
 }
 

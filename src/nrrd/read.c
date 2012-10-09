@@ -280,11 +280,16 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
+  if (nio->encoding->isCompression) {
+    biffAddf(NRRD, "%s: this function can't work with compressed "
+             "encoding %s", me, nio->encoding->name);
+    return 1;
+  }
   if (nio->byteSkip < 0) {
     long backwards;
     if (nrrdEncodingRaw != nio->encoding) {
-      biffAddf(NRRD, "%s: can do backwards byte skip only in %s "
-               "encoding, not %s", me,
+      biffAddf(NRRD, "%s: this function can do backwards byte skip only "
+               "in %s encoding, not %s", me,
                nrrdEncodingRaw->name, nio->encoding->name);
       return 1;
     }
