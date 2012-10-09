@@ -80,9 +80,6 @@ unrrdu_cksumMain(int argc, const char **argv, const char *me,
               me, inS[ni], err);
       /* continue working on the remaining files */
     }
-    if (ninLen > 1 && ni < ninLen-1) {
-      fprintf(stdout, "\n");
-    }
   }
 
   airMopOkay(mop);
