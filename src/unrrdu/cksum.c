@@ -24,7 +24,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Compute 32-bit CRC of nrrd data (same as via cksum)"
+#define INFO "Compute 32-bit CRC of nrrd data (same as via \"cksum\")"
 static const char *_unrrdu_cksumInfoL =
 (INFO ". Unlike other commands, this doesn't produce a nrrd.  It only "
  "prints to standard out the CRC and byte counts for the input nrrd(s), "
@@ -32,11 +32,12 @@ static const char *_unrrdu_cksumInfoL =
  "* Uses nrrdCRC32");
 
 int
-unrrdu_cksumDoit(const char *me, char *inS, FILE *fout) {
+unrrdu_cksumDoit(const char *me, char *inS, int endian, 
+                 int printendian, FILE *fout) {
   Nrrd *nrrd;
   airArray *mop;
   unsigned int crc;
-  char stmp[AIR_STRLEN_SMALL];
+  char stmp[AIR_STRLEN_SMALL], ends[AIR_STRLEN_SMALL];
   size_t nn;
 
   mop = airMopNew();
@@ -45,9 +46,12 @@ unrrdu_cksumDoit(const char *me, char *inS, FILE *fout) {
     biffMovef(me, NRRD, "%s: trouble loading \"%s\"", me, inS);
     airMopError(mop); return 1;
   }
-  crc = nrrdCRC32(nrrd);
+  crc = nrrdCRC32(nrrd, endian);
   nn = nrrdElementNumber(nrrd)*nrrdElementSize(nrrd);
-  fprintf(fout, "%u %s%s%s\n", crc, airSprintSize_t(stmp, nn),
+  sprintf(ends, "(%s)", airEnumStr(airEndian, endian));
+  fprintf(fout, "%u%s %s%s%s\n", crc,
+          printendian ? ends : "",
+          airSprintSize_t(stmp, nn),
           strcmp("-", inS) ? " " : "",
           strcmp("-", inS) ? inS : "");
 
@@ -61,10 +65,23 @@ unrrdu_cksumMain(int argc, const char **argv, const char *me,
   hestOpt *opt = NULL;
   char *err, **inS;
   airArray *mop;
-  int pret;
+  int pret, endian, printend;
   unsigned int ni, ninLen;
 
   mop = airMopNew();
+  hestOptAdd(&opt, "en,endian", "end", airTypeEnum, 1, 1, &endian,
+             airEnumStr(airEndian, airMyEndian()),
+             "Endianness in which to compute CRC; \"little\" for Intel and "
+             "friends; \"big\" for everyone else. "
+             "Defaults to endianness of this machine",
+             NULL, airEndian);
+  hestOptAdd(&opt, "pen,printendian", "bool", airTypeBool, 1, 1, &printend,
+             "false",
+             "whether or not to indicate after the CRC value the endianness "
+             "with which the CRC was computed; doing so clarifies "
+             "that the CRC result depends on endianness and may remove "
+             "confusion in comparing results on platforms of different "
+             "endianness");
   hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL,
              "input nrrd(s)", &ninLen);
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
@@ -74,7 +91,7 @@ unrrdu_cksumMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   for (ni=0; ni<ninLen; ni++) {
-    if (unrrdu_cksumDoit(me, inS[ni], stdout)) {
+    if (unrrdu_cksumDoit(me, inS[ni], endian, printend, stdout)) {
       airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble with \"%s\":\n%s",
               me, inS[ni], err);

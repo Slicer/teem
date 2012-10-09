@@ -924,15 +924,38 @@ crcTable[] = {
 #define	CRC32(crc, c) (crc) = (((crc) << 8) ^ crcTable[((crc) >> 24) ^ (c)])
 
 unsigned int
-airCRC32(const unsigned char *cdata, size_t len) {
+airCRC32(const unsigned char *cdata, size_t len, size_t unit, int swap) {
   unsigned int crc=0;
-  size_t ii, nn;
+  size_t ii, jj, nn, mm;
+  const unsigned char *crev;
 
+  if (!(cdata && len)) {
+    return 0;
+  }
+  if (swap) {
+    /* if doing swapping, we need make sure we have a unit size, 
+       and that it divides into len */
+    if (!(unit && !(len % unit))) {
+      return 0;
+    }
+  }
   nn = len;
 
-  /* feed "len" bytes from "cdata" into CRC32 */
-  for (ii=0; ii<nn; ii++) {
-    CRC32(crc, *(cdata++));
+  if (!swap) {
+    /* simple case: feed "len" bytes from "cdata" into CRC32 */
+    for (ii=0; ii<nn; ii++) {
+      CRC32(crc, *(cdata++));
+    }
+  } else {
+    /* have to swap, work "unit" bytes at a time, working down
+       the bytes within each unit */
+    mm = len / unit;
+    for (jj=0; jj<mm; jj++) {
+      crev = cdata + jj*unit + unit-1;
+      for (ii=0; ii<unit; ii++) {
+        CRC32(crc, *(crev--));
+      }
+    }
   }
 
   /* include length of data in result */

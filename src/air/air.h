@@ -629,7 +629,8 @@ AIR_EXPORT void airHalton(double *out, unsigned int indx,
                           const unsigned int *base, unsigned int num);
 #define AIR_PRIME_NUM 1000
 AIR_EXPORT const unsigned int airPrimeList[AIR_PRIME_NUM];
-AIR_EXPORT unsigned int airCRC32(const unsigned char *data, size_t len);
+AIR_EXPORT unsigned int airCRC32(const unsigned char *data, size_t len,
+                                 size_t unit, int swap);
 /* ---- END non-NrrdIO */
 
 /* dio.c */

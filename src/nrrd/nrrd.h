@@ -1235,7 +1235,7 @@ NRRD_EXPORT int nrrdArithIterAffine(Nrrd *nout, NrrdIter *minIn,
                                     NrrdIter *in, NrrdIter *maxIn,
                                     NrrdIter *minOut, NrrdIter *maxOut,
                                     int clamp);
-NRRD_EXPORT unsigned int nrrdCRC32(const Nrrd *nin);
+NRRD_EXPORT unsigned int nrrdCRC32(const Nrrd *nin, int endian);
 
 /******** filtering and re-sampling */
 /* filt.c */

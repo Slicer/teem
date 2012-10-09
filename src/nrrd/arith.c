@@ -944,16 +944,18 @@ nrrdArithIterAffine(Nrrd *nout, NrrdIter *minIn,
 }
 
 unsigned int
-nrrdCRC32(const Nrrd *nin) {
+nrrdCRC32(const Nrrd *nin, int endian) {
   size_t nn;
 
   /* NULL nrrd or data */
   if (!nin
       || !(nin->data)
-      || !(nn = nrrdElementSize(nin)*nrrdElementNumber(nin))) {
+      || !(nn = nrrdElementSize(nin)*nrrdElementNumber(nin))
+      || airEnumValCheck(airEndian, endian)) {
     return 0;
   }
   
-  return airCRC32(nin->data, nn);
+  return airCRC32(nin->data, nn, nrrdElementSize(nin),
+                  endian == airMyEndian() ? AIR_FALSE : AIR_TRUE);
 }
 
