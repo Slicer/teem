@@ -924,7 +924,7 @@ crcTable[] = {
 #define	CRC32(crc, c) (crc) = (((crc) << 8) ^ crcTable[((crc) >> 24) ^ (c)])
 
 unsigned int
-airCrc32(const unsigned char *cdata, size_t len) {
+airCRC32(const unsigned char *cdata, size_t len) {
   unsigned int crc=0;
   size_t ii, nn;
 
