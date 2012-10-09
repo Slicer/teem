@@ -89,7 +89,7 @@ main(int argc, const char **argv) {
   for (ii=0; ii<nn; ii++) {
     rdata[ii] = airUIrandMT_r(rng);
   }
-  refCRC = nrrdCRC32(nref);
+  refCRC = nrrdCRC32(nref, airEndianBig);
   printf("crc = %u\n", refCRC);
 
   /* write padded data */
@@ -154,7 +154,7 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: error reading back in: %s\n", me, berr);
     airMopError(mop); return 1;
   }
-  gotCRC = nrrdCRC32(nin);
+  gotCRC = nrrdCRC32(nin, airEndianBig);
   if (refCRC != gotCRC) {
     fprintf(stderr, "%s: got CRC %u but wanted %u\n", me, gotCRC, refCRC);
     airMopError(mop); return 1;
