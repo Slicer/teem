@@ -40,7 +40,7 @@ _nrrdEncodingGzip_available(void) {
 ** exercising the multi-chunk capability of the code below.
 */
 static unsigned int
-_nrrdGzipMaxChunk = UINT_MAX;
+_nrrdZlibMaxChunk = UINT_MAX;
 
 /*
 ** nio->byteSkip < 0 functionality contributed by Katharina Quintus
@@ -71,10 +71,10 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
   
   /* zlib can only handle data sizes up to UINT_MAX ==> if there's more than
      UINT_MAX bytes to read in, we read in in chunks. However, we wrap a value
-     _nrrdGzipMaxChunk around UINT_MAX for testing purposes.  Given how
-     sizeChunk is used below, we also cap chunk size at _nrrdGzipMaxChunk/2 to
+     _nrrdZlibMaxChunk around UINT_MAX for testing purposes.  Given how
+     sizeChunk is used below, we also cap chunk size at _nrrdZlibMaxChunk/2 to
      prevent overflow. */
-  maxChunk = _nrrdGzipMaxChunk/2;
+  maxChunk = _nrrdZlibMaxChunk/2;
   sizeChunk = AIR_CAST(unsigned int, AIR_MIN(sizeData, maxChunk));
   
   if (nio->byteSkip < 0) { 
@@ -242,8 +242,8 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   
   /* zlib can only handle data sizes up to UINT_MAX ==> if there's more than
      UINT_MAX bytes to write out, we write out in chunks.  As above, we wrap
-     _nrrdGzipMaxChunk around UINT_MAX for testing purposes. */
-  sizeChunk = AIR_CAST(unsigned int, AIR_MIN(sizeData, _nrrdGzipMaxChunk));
+     _nrrdZlibMaxChunk around UINT_MAX for testing purposes. */
+  sizeChunk = AIR_CAST(unsigned int, AIR_MIN(sizeData, _nrrdZlibMaxChunk));
 
   /* keeps track of what how much has been successfully written */
   sizeWrit = 0;
