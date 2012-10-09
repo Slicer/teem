@@ -954,6 +954,6 @@ nrrdCRC32(const Nrrd *nin) {
     return 0;
   }
   
-  return airCrc32(nin->data, nn);
+  return airCRC32(nin->data, nn);
 }
 
