@@ -470,10 +470,12 @@ static int
 deringSliceGet(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
   static const char me[]="deringSliceGet";
   void *nonconstdata;
+  const char *cdata;
 
   /* HEY: bypass of const-ness of drc->cdataIn; should think about how
      to do this without breaking const-correctness... */
-  memcpy(&nonconstdata, drc->cdataIn + zi*(drc->sliceSize), sizeof(void*));
+  cdata = drc->cdataIn + zi*(drc->sliceSize);
+  memcpy(&nonconstdata, &cdata, sizeof(void*));
   /* slice setup */
   if (nrrdWrap_va(dbg->nsliceOrig,
                   nonconstdata,
