@@ -629,6 +629,7 @@ AIR_EXPORT void airHalton(double *out, unsigned int indx,
                           const unsigned int *base, unsigned int num);
 #define AIR_PRIME_NUM 1000
 AIR_EXPORT const unsigned int airPrimeList[AIR_PRIME_NUM];
+AIR_EXPORT unsigned int airCrc32(const unsigned char *data, size_t len);
 /* ---- END non-NrrdIO */
 
 /* dio.c */
@@ -686,6 +687,12 @@ AIR_EXPORT void airMopDone(airArray *arr, int error);
 AIR_EXPORT void airMopError(airArray *arr);
 AIR_EXPORT void airMopOkay(airArray *arr);
 AIR_EXPORT void airMopDebug(airArray *arr);
+/* ---- BEGIN non-NrrdIO */
+AIR_EXPORT void airMopSingleDone(airArray *arr, void *ptr, int error);
+AIR_EXPORT void airMopSingleError(airArray *arr, void *ptr);
+AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
+/* ---- END non-NrrdIO */
+
 
 /*******     the interminable sea of defines and macros     *******/
 

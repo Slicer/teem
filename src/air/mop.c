@@ -299,3 +299,46 @@ airMopOkay(airArray *arr) {
   airMopDone(arr, AIR_FALSE);
 }
 
+/* ---- BEGIN non-NrrdIO */
+
+/*
+** like airMopSub but calls the mopper first 
+*/
+void
+airMopSingleDone(airArray *arr, void *ptr, int error) {
+  airMop *mops;
+  unsigned int ii;
+  
+  if (!arr || !(arr->len)) {
+    return;
+  }
+  mops = (airMop *)arr->data;
+  ii = arr->len;
+  do {
+      ii--;
+      if (ptr == mops[ii].ptr
+          && (airMopAlways == mops[ii].when
+              || (airMopOnError == mops[ii].when && error)
+              || (airMopOnOkay == mops[ii].when && !error))) {
+        mops[ii].mop(mops[ii].ptr);
+        mops[ii].ptr = NULL;
+        mops[ii].mop = NULL;
+        mops[ii].when = airMopNever;
+      }
+  } while (ii);
+  return;
+}
+
+void
+airMopSingleError(airArray *arr, void *ptr) {
+  
+  airMopSingleDone(arr, ptr, AIR_TRUE);
+}
+
+void
+airMopSingleOkay(airArray *arr, void *ptr) {
+  
+  airMopSingleDone(arr, ptr, AIR_FALSE);
+}
+
+/* ---- END non-NrrdIO */
