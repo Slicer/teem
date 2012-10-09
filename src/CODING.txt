@@ -150,7 +150,7 @@ things needed for NrrdIO) are delimited by:
 Special lines that need different processing are tagged with
 /* NrrdIO-hack-001 */
 /* NrrdIO-hack-002 */
-...
+. . .
 Respecting the placement and content of these comments is not important
 for Teem itself, but is essential for regenerating NrrdIO.
 
@@ -357,7 +357,7 @@ especially when the set of things being managed can vary depending on
 parameters or execution path. In C++, you'd use smart pointers.  An example:
    airArray *mop;
    double *tmpbuff, *toreturn;
-   ...
+   . . .
    mop = airMopNew();
    tmpbuff = AIR_CALLOC(100, double);
    airMopAdd(mop, tmpbuff, airFree, airMopAlways);
@@ -367,7 +367,7 @@ parameters or execution path. In C++, you'd use smart pointers.  An example:
      biffAddf(KEY, "%s: couldn't allocate things", me);
      airMopError(mop); return NULL;
    }
-   ...
+   . . .
    airMopOkay(mop);
    return toreturn;
 Note that you can safely pass NULL-pointers (pointers set to NULL because of
@@ -382,7 +382,7 @@ called on NULL.  A sequence of allocations might look like this:
 or the airMopAdds can be interleaved, depending on clarity.
 
 * All Teem destructor-like functions (nrrdNuke, nrrdNix, limnPolyDataNix,
-gageContextNix, ...) should be no-ops on when passed NULL, if for no other
+gageContextNix, . . .) should be no-ops on when passed NULL, if for no other
 reason that it facilitates the practice that you airMopAdd things as soon
 as they are created, even in a sequence of allocations, wherein some of
 them might fail (as in the example above).
@@ -404,7 +404,7 @@ warnings should be created only when dealing with pointers to objects defined
 by Teem libraries other than air (e.g. gagePerVolumes).
 
 * Teem relies heavily on C enums to give human-readable names to integer
-values (e.g. nrrdTypeChar, nrrdTypeShort, nrrdTypeFloat, ...).  There are
+values (e.g. nrrdTypeChar, nrrdTypeShort, nrrdTypeFloat, . . .).  There are
 strict conventions for setting these up:
 ** All enums start with an "unknown" value, with a name ending in "Unknown"
 or "_unknown", the numeric value of which is 0
@@ -416,7 +416,7 @@ for debugging purposes), rather than explicitly set by hand in the code
 "_last"; (why: simple way to test bounds on valid values)
 ** None of the Teem enums are typecast to something distinct- the values
 are still just of type "int".  Thus, to collectively refer to the
-{fooBarUnknown, fooBarA, fooBarB, fooBarC ...} enum values, we use
+{fooBarUnknown, fooBarA, fooBarB, fooBarC . . .} enum values, we use
 "fooBar*".  Not using a typecast is a loss of opportunity for some kinds of
 type checking, but is otherwise a big win for simplicity- airEnums (also
 widely used in Teem) map between strings and ints, and can do so generally
@@ -462,7 +462,7 @@ to stop execution as soon as there is an error, e.g.:
   if (!E) E |= nrrdResampleTypeOutSet(rsmc, nrrdTypeDefault);
   if (!E) E |= nrrdResampleRenormalizeSet(rsmc, sbp->renormalize);
   if (E) {
-     ... biff handling;
+     . . . biff handling;
   }
 Another idiom to accomplish the same thing in this case is:
   if (nrrdResampleDefaultCenterSet(rsmc, nrrdDefaultCenter)
@@ -470,7 +470,7 @@ Another idiom to accomplish the same thing in this case is:
       || nrrdResampleBoundarySet(rsmc, sbp->boundary)
       || nrrdResampleTypeOutSet(rsmc, nrrdTypeDefault)
       || nrrdResampleRenormalizeSet(rsmc, sbp->renormalize)) {
-     ... biff handling;
+     . . . biff handling;
   }
 The first idiom is more useful in situations where there are other statements
 (which may not have a return value, or have a different way of indicating
