@@ -469,13 +469,14 @@ deringPtxfAlloc(NrrdDeringContext *drc, deringBag *dbg) {
 static int
 deringSliceGet(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
   static const char me[]="deringSliceGet";
+  void *nonconstdata;
 
+  /* HEY: bypass of const-ness of drc->cdataIn; should think about how
+     to do this without breaking const-correctness... */
+  memcpy(&nonconstdata, drc->cdataIn + zi*(drc->sliceSize), sizeof(void*));
   /* slice setup */
   if (nrrdWrap_va(dbg->nsliceOrig,
-                  /* HEY: bypass of const-ness of drc->cdataIn; should
-                     think about how to do this without breaking
-                     const-correctness... */
-                  AIR_CAST(void *, drc->cdataIn + zi*(drc->sliceSize)),
+                  nonconstdata,
                   drc->nin->type, 2, 
                   drc->nin->axis[0].size,
                   drc->nin->axis[1].size)
