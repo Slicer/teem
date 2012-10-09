@@ -409,7 +409,6 @@ computeEdgeGradient(seekContext *sctx, baggage *bag, double *res,
       ELL_3V_SCALE(gzm, 0.5, gzm); ELL_3V_SCALE(gzp, 0.5, gzp);
     }
     if (xi>0 && xi<sx-2) {
-      unsigned int siX = xi - 1 + sx*yi;
       unsigned int sixx = xi + 2 + sx*yi;
       ELL_3M_LERP(Txm, alpha, sctx->t + 9*(1+2*siX), sctx->t + 9*(1+2*si));
       ELL_3V_LERP(gxm, alpha, sctx->grad + 3*(1+2*siX),
@@ -482,7 +481,6 @@ computeEdgeGradient(seekContext *sctx, baggage *bag, double *res,
       ELL_3V_SCALE(gxm, 0.5, gxm); ELL_3V_SCALE(gxp, 0.5, gxp);
     }
     if (yi>0 && yi<sy-2) {
-      unsigned int siY = xi + sx*(yi-1);
       unsigned int siyy = xi + sx*(yi+2);
       ELL_3M_LERP(Tym, alpha, sctx->t + 9*(1+2*siY), sctx->t + 9*(1+2*si));
       ELL_3V_LERP(gym, alpha, sctx->grad + 3*(1+2*siY),
@@ -1033,7 +1031,6 @@ connectFace(seekContext *sctx, baggage *bag,
     int j;
     for (j=0; j<4; j++) {
       double interpos[8];
-      int interct;
       if (!treat[j]) continue;
       interct=findFeatureIntersection(interpos,
                                       sctx->t + 9*verts[faceid][j],
@@ -1362,7 +1359,6 @@ _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
       /* collect all intersection + connectivity info for this voxel */
       memset(connections,-1,sizeof(connections));
       for (face=0; face<6; face++) {
-        int i;
         for (i=0; i<6; i++) {
           int idx1, offset1, idx2, offset2, idxmap1, idxmap2;
           if (sctx->pairs[12*fvti[face]+2*i]==-1) break;

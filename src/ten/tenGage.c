@@ -1667,7 +1667,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
       }
       if (rdiff2<1.0) {
         double mean, submatrix[3], isoPhi, gamma, beta, A, C, R[9],RT[9];
-        int axis, midaxis, smallest, sign;
+        int axis, midaxis, smallest;
         
         mean=(tmp[0]+tmp[4]+tmp[8])/3.0;
         /* what's the median? */

@@ -297,7 +297,7 @@ int seekDescendToDeg(double *coord, double *botleft, double *botright,
         if (type!='l' && type!='p') return 0;
         else {
           /* check if type is correct */
-          double dev[9], det;
+          double dev[9];
           double mean = (ten[0]+ten[3]+ten[5])/3;
           dev[0] = ten[0]-mean; dev[1] = ten[1]; dev[2] = ten[2];
           dev[3] = ten[1]; dev[4]=ten[3]-mean; dev[5] = ten[4];
