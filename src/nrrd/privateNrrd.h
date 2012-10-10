@@ -130,7 +130,6 @@ extern int _nrrdContentSet_nva(Nrrd *nout, const char *func,
                                va_list arg);
 extern int _nrrdContentSet_va(Nrrd *nout, const char *func,
                               char *content, const char *format, ...);
-extern int _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int useBiff);
 extern int (*_nrrdFieldCheck[NRRD_FIELD_MAX+1])(const Nrrd *nrrd, int useBiff);
 extern void _nrrdSplitSizes(size_t *pieceSize, size_t *pieceNum, 
                             Nrrd *nrrd, unsigned int listDim);
