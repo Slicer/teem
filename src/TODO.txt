@@ -132,6 +132,7 @@ nrrd:
 * all of the code in apply1D.c is ancient, and has not been brought into
   the world of using unsigned int and size_t.  Also very confusing. Needs
   to be walked through and tested thoroughly.
+* why is _nrrdCheck (different than nrrdCheck) public?  Should be renamed?
 
 unu:
 * the UNRRDU_QUIET_QUIT functionality should be enabled by default instead
