@@ -93,7 +93,7 @@ main(int argc, const char **argv) {
   tick = nn/100;
   for (ii=0; ii<nn; ii++) {
     rdata[ii] = airUIrandMT_r(rng);
-    if (ii && !(ii % tick)) {
+    if (ii && tick && !(ii % tick)) {
       time1 = airTime();
       if (time1 - time0 > 1.0) {
         /* if it took more than a second to do 1% of the thing,
