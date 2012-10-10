@@ -114,8 +114,8 @@ main(int argc, const char **argv) {
   refCRC = nrrdCRC32(nref, airEndianBig);
   printf("%u\n", refCRC);
 
+  /* write data, with padding */
   printf("saving data . . . "); fflush(stdout);
-  /* write padded data */
   if (!(fout = fopen(outS[0], "wb"))) {
     fprintf(stderr, "%s: couldn't open %s for writing: %s\n", me,
             outS[0], strerror(errno));
@@ -143,6 +143,7 @@ main(int argc, const char **argv) {
   printf("\n");
 
   /* write header; for now just writing the header directly */
+  printf("writing header . . . \n");
   if (!(fout = fopen(outS[1], "w"))) {
     fprintf(stderr, "%s: couldn't open %s for writing: %s\n", me,
             outS[1], strerror(errno));
