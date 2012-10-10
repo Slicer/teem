@@ -166,7 +166,7 @@ airMopUnMem(airArray *arr, void *_ptrP) {
   return;
 }
 
-void *
+static void *
 _airMopPrint(void *_str) {
   char *str;
 
@@ -190,7 +190,7 @@ airMopPrint(airArray *arr, const void *_str, int when) {
   return;
 }
 
-char
+static const char
 _airMopWhenStr[4][128] = {
   " never",
   " error",

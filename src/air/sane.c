@@ -159,7 +159,7 @@ _airInsaneErr[AIR_INSANE_MAX+1][AIR_STRLEN_MED] = {
   "sizeof(double), sizeof(airLLong) not both == 8",
 };
 
-char _airBadInsane[] = "(invalid insane value)";
+static const char _airBadInsane[] = "(invalid insane value)";
 
 const char *
 airInsaneErr(int insane) {

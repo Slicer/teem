@@ -40,7 +40,7 @@ const int airMyDio = 1;
 
 int airDisableDio = AIR_FALSE;
 
-const char
+static const char
 _airNoDioErr[AIR_NODIO_MAX+2][AIR_STRLEN_SMALL] = {
   "(invalid noDio value)",
   "CAN TOO do direct I/O!",

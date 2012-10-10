@@ -53,7 +53,7 @@ airEnumUnknown(const airEnum *enm) {
 ** and enm->desc[] which correspond to that value.  To be safe, when
 ** given an invalid enum value, we return zero.
 */
-unsigned int
+static unsigned int
 _airEnumIndex(const airEnum *enm, int val) {
   unsigned int ii, ret;
 

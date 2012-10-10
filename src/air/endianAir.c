@@ -45,21 +45,21 @@ airMyEndian(void) {
   return ret;
 }
 
-const char *
+static const char *
 _airEndianStr[] = {
   "(unknown endian)",
   "little",
   "big"
 };
 
-const char *
+static const char *
 _airEndianDesc[] = {
   "unknown endianness",
   "Intel and compatible",
   "Everyone besides Intel and compatible"
 };
 
-const int
+static const int
 _airEndianVal[] = {
   airEndianUnknown,
   airEndianLittle,
