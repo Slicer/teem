@@ -23,7 +23,7 @@
 
 #include "air.h"
 
-void
+static void
 _airLenSet(airArray *a, unsigned int len) {
   
   a->len = len;
@@ -35,7 +35,7 @@ _airLenSet(airArray *a, unsigned int len) {
   }
 }
 
-void
+static void
 _airSetData(airArray *a, void *data) {
   
   a->data = data;
