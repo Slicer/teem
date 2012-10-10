@@ -47,7 +47,7 @@
 
 /* ------------------------ nrrdFormat ------------------------- */
 
-const char *
+static const char *
 _nrrdFormatTypeStr[NRRD_FORMAT_TYPE_MAX+1] = {
   "(unknown_format)",
   "nrrd",
@@ -58,7 +58,7 @@ _nrrdFormatTypeStr[NRRD_FORMAT_TYPE_MAX+1] = {
   "eps",
 };
 
-const char *
+static const char *
 _nrrdFormatTypeDesc[NRRD_FORMAT_TYPE_MAX+1] = {
   "unknown_format",
   "native format for nearly raw raster data",
@@ -69,7 +69,7 @@ _nrrdFormatTypeDesc[NRRD_FORMAT_TYPE_MAX+1] = {
   "Encapsulated PostScript images",
 };
 
-const char *
+static const char *
 _nrrdFormatTypeStrEqv[] = {
   "nrrd",
   "pnm",
@@ -80,7 +80,7 @@ _nrrdFormatTypeStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _nrrdFormatTypeValEqv[] = {
   nrrdFormatTypeNRRD,
   nrrdFormatTypePNM,
@@ -104,7 +104,7 @@ nrrdFormatType = &_nrrdFormatType;
 
 /* ------------------------ nrrdType ------------------------- */
 
-const char *
+static const char *
 _nrrdTypeStr[NRRD_TYPE_MAX+1] = {
   "(unknown_type)",
   "signed char",
@@ -120,7 +120,7 @@ _nrrdTypeStr[NRRD_TYPE_MAX+1] = {
   "block",
 };
 
-const char *
+static const char *
 _nrrdTypeDesc[NRRD_TYPE_MAX+1] = {
   "unknown type",
   "signed 1-byte integer",
@@ -148,7 +148,7 @@ _nrrdTypeDesc[NRRD_TYPE_MAX+1] = {
 #define ntDB nrrdTypeDouble
 #define ntBL nrrdTypeBlock
 
-const char *
+static const char *
 _nrrdTypeStrEqv[] = {
   "signed char", /* but NOT just "char" */ "int8", "int8_t",
   "uchar", "unsigned char", "uint8", "uint8_t", 
@@ -166,7 +166,7 @@ _nrrdTypeStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _nrrdTypeValEqv[] = {
   ntCH, ntCH, ntCH,
   ntUC, ntUC, ntUC, ntUC,
@@ -195,7 +195,7 @@ nrrdType = &_nrrdType;
 
 /* ------------------------ nrrdEncodingType ------------------------- */
 
-const char *
+static const char *
 _nrrdEncodingTypeStr[NRRD_ENCODING_TYPE_MAX+1] = {
   "(unknown_encoding)",
   "raw",
@@ -205,7 +205,7 @@ _nrrdEncodingTypeStr[NRRD_ENCODING_TYPE_MAX+1] = {
   "bz2",
 };
 
-const char *
+static const char *
 _nrrdEncodingTypeDesc[NRRD_ENCODING_TYPE_MAX+1] = {
   "unknown encoding",
   "file is byte-for-byte same as memory representation",
@@ -215,7 +215,7 @@ _nrrdEncodingTypeDesc[NRRD_ENCODING_TYPE_MAX+1] = {
   "bzip2 compression of binary encoding",
 };
 
-const char *
+static const char *
 _nrrdEncodingTypeStrEqv[] = {
   "raw",
   "txt", "text", "ascii",
@@ -225,7 +225,7 @@ _nrrdEncodingTypeStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _nrrdEncodingTypeValEqv[] = {
   nrrdEncodingTypeRaw,
   nrrdEncodingTypeAscii, nrrdEncodingTypeAscii, nrrdEncodingTypeAscii,
@@ -248,14 +248,14 @@ nrrdEncodingType = &_nrrdEncodingType;
 
 /* ------------------------ nrrdCenter ------------------------- */
 
-const char *
+static const char *
 _nrrdCenterStr[NRRD_CENTER_MAX+1] = {
   "(unknown_center)",
   "node",
   "cell",
 };
 
-const char *
+static const char *
 _nrrdCenterDesc[NRRD_CENTER_MAX+1] = {
   "unknown centering",
   "samples are at boundaries between elements along axis",
@@ -315,7 +315,7 @@ nrrdCenter = &_nrrdCenter_enum;
   nrrdKind3DMaskedMatrix,    * 31: mask Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz *
 */
 
-const char *
+static const char *
 _nrrdKindStr[NRRD_KIND_MAX+1] = {
   "(unknown_kind)",
   "domain",
@@ -351,7 +351,7 @@ _nrrdKindStr[NRRD_KIND_MAX+1] = {
   "3D-masked-matrix",
 };
 
-const char *
+static const char *
 _nrrdKindDesc[NRRD_KIND_MAX+1] = {
   "unknown kind",
   "a domain variable of the function which the nrrd samples",
@@ -387,7 +387,7 @@ _nrrdKindDesc[NRRD_KIND_MAX+1] = {
   "mask plus 9 elements of general 3D matrix: mask Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz",
 };
 
-const char *
+static const char *
 _nrrdKindStr_Eqv[] = {
   "domain",
   "space",
@@ -431,7 +431,7 @@ _nrrdKindStr_Eqv[] = {
   ""
 };
 
-int
+static int
 _nrrdKindVal_Eqv[] = {
   nrrdKindDomain,
   nrrdKindSpace,
@@ -488,7 +488,7 @@ nrrdKind = &_nrrdKind_enum;
 
 /* ------------------------ nrrdField ------------------------- */
 
-const char *
+static const char *
 _nrrdFieldStr[NRRD_FIELD_MAX+1] = {
   "Ernesto \"Che\" Guevara",
   "#",
@@ -529,7 +529,7 @@ _nrrdFieldStr[NRRD_FIELD_MAX+1] = {
   "data file",
 };
 
-const char *
+static const char *
 _nrrdFieldDesc[NRRD_FIELD_MAX+1] = {
   "unknown field identifier",
   "comment",
@@ -566,7 +566,7 @@ _nrrdFieldDesc[NRRD_FIELD_MAX+1] = {
   "with detached headers, where is data to be found",
 };
 
-const char *
+static const char *
 _nrrdFieldStrEqv[] = {
   "#",
   "content",
@@ -603,7 +603,7 @@ _nrrdFieldStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _nrrdFieldValEqv[] = {
   nrrdField_comment,
   nrrdField_content,
@@ -670,7 +670,7 @@ nrrdField = &_nrrdField;
   nrrdSpaceLast
 */
 
-const char *
+static const char *
 _nrrdSpaceStr[NRRD_SPACE_MAX+1] = {
   "(unknown_space)",
   "right-anterior-superior",
@@ -687,7 +687,7 @@ _nrrdSpaceStr[NRRD_SPACE_MAX+1] = {
   "3D-left-handed-time",
 };
 
-const char *
+static const char *
 _nrrdSpaceDesc[NRRD_SPACE_MAX+1] = {
   "unknown space",
   "right-anterior-superior (used in NIFTI-1 and SPL's 3D Slicer)",
@@ -704,7 +704,7 @@ _nrrdSpaceDesc[NRRD_SPACE_MAX+1] = {
   "3D-left-handed-time",
 };
 
-const char *
+static const char *
 _nrrdSpaceStrEqv[] = {
   "right-anterior-superior", "right anterior superior",
       "rightanteriorsuperior", "RAS",
@@ -729,7 +729,7 @@ _nrrdSpaceStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _nrrdSpaceValEqv[] = {
   nrrdSpaceRightAnteriorSuperior, nrrdSpaceRightAnteriorSuperior,
      nrrdSpaceRightAnteriorSuperior, nrrdSpaceRightAnteriorSuperior,
@@ -767,7 +767,7 @@ nrrdSpace = &_nrrdSpace;
 
 /* ------------------------ nrrdSpacingStatus ------------------------- */
 
-const char *
+static const char *
 _nrrdSpacingStatusStr[NRRD_SPACING_STATUS_MAX+1] = {
   "(unknown_status)",
   "none",
@@ -776,7 +776,7 @@ _nrrdSpacingStatusStr[NRRD_SPACING_STATUS_MAX+1] = {
   "direction",
 };
 
-const char *
+static const char *
 _nrrdSpacingStatusDesc[NRRD_BOUNDARY_MAX+1] = {
   "unknown spacing status behavior",
   "neither axis->spacing nor axis->spaceDirection set",
@@ -801,7 +801,7 @@ nrrdSpacingStatus = &_nrrdSpacingStatus;
 
 /* ------------------------ nrrdBoundary ------------------------- */
 
-const char *
+static const char *
 _nrrdBoundaryStr[NRRD_BOUNDARY_MAX+1] = {
   "(unknown_boundary)",
   "pad",
@@ -811,7 +811,7 @@ _nrrdBoundaryStr[NRRD_BOUNDARY_MAX+1] = {
   "mirror"
 };
 
-const char *
+static const char *
 _nrrdBoundaryDesc[NRRD_BOUNDARY_MAX+1] = {
   "unknown boundary behavior",
   "pad with some specified value",
@@ -835,7 +835,7 @@ nrrdBoundary = &_nrrdBoundary;
 
 /* ------------------------ nrrdMeasure ------------------------- */
 
-const char *
+static const char *
 _nrrdMeasureStr[NRRD_MEASURE_MAX+1] = {
   "(unknown_measure)",
   "min",
@@ -869,7 +869,7 @@ _nrrdMeasureStr[NRRD_MEASURE_MAX+1] = {
   "histo-SD",
 };
 
-const char *
+static const char *
 _nrrdMeasureDesc[NRRD_MEASURE_MAX+1] = {
   "unknown measure",
   "minimum of values",
@@ -903,7 +903,7 @@ _nrrdMeasureDesc[NRRD_MEASURE_MAX+1] = {
   "standard deviation of histogrammed values",
 };
 
-const char *
+static const char *
 _nrrdMeasureStrEqv[] = {
   "min",
   "max",
@@ -937,7 +937,7 @@ _nrrdMeasureStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _nrrdMeasureValEqv[] = {
   nrrdMeasureMin,
   nrrdMeasureMax,
@@ -1016,7 +1016,7 @@ nrrdMeasure = &_nrrdMeasure;
 #define nuZer nrrdUnaryOpZero
 #define nuOne nrrdUnaryOpOne
 
-const char *
+static const char *
 _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1] = {
   "(unknown_unary_op)",
   "-",
@@ -1051,7 +1051,7 @@ _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1] = {
   "one"
 };
 
-const char *
+static const char *
 _nrrdUnaryOpDesc[NRRD_UNARY_OP_MAX+1] = {
   "unknown unary op",
   "negative; additive inverse",
@@ -1086,7 +1086,7 @@ _nrrdUnaryOpDesc[NRRD_UNARY_OP_MAX+1] = {
   "always one"
 };
 
-const char *
+static const char *
 _nrrdUnaryOpStrEqv[] = {
   "-", "neg", "negative", "minus",
   "r", "recip",
@@ -1121,7 +1121,7 @@ _nrrdUnaryOpStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _nrrdUnaryOpValEqv[] = {
   nuNeg, nuNeg, nuNeg, nuNeg,
   nuRcp, nuRcp,
@@ -1169,7 +1169,7 @@ nrrdUnaryOp = &_nrrdUnaryOp_enum;
 
 /* ------------------------ nrrdBinaryOp ---------------------- */
 
-const char *
+static const char *
 _nrrdBinaryOpStr[NRRD_BINARY_OP_MAX+1] = {
   "(unknown_binary_op)",
   "+",
@@ -1196,7 +1196,7 @@ _nrrdBinaryOpStr[NRRD_BINARY_OP_MAX+1] = {
   "rrand",
 };
 
-const char *
+static const char *
 _nrrdBinaryOpDesc[NRRD_BINARY_OP_MAX+1] = {
   "unknown binary op",
   "add",
@@ -1244,7 +1244,7 @@ _nrrdBinaryOpDesc[NRRD_BINARY_OP_MAX+1] = {
 #define nbExt nrrdBinaryOpExists
 #define nbIf  nrrdBinaryOpIf
 
-const char *
+static const char *
 _nrrdBinaryOpStrEqv[] = {
   "+", "plus", "add",
   "-", "minus", "subtract", "sub", 
@@ -1271,7 +1271,7 @@ _nrrdBinaryOpStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _nrrdBinaryOpValEqv[] = {
   nbAdd, nbAdd, nbAdd,
   nbSub, nbSub, nbSub, nbSub, 
@@ -1311,7 +1311,7 @@ nrrdBinaryOp = &_nrrdBinaryOp_enum;
 
 /* ------------------------ nrrdTernaryOp ---------------------- */
 
-const char *
+static const char *
 _nrrdTernaryOpStr[NRRD_TERNARY_OP_MAX+1] = {
   "(unknown_ternary_op)",
   "add",
@@ -1332,7 +1332,7 @@ _nrrdTernaryOpStr[NRRD_TERNARY_OP_MAX+1] = {
   "rician"
 };
 
-const char *
+static const char *
 _nrrdTernaryOpDesc[NRRD_TERNARY_OP_MAX+1] = {
   "unknown ternary op",
   "add three values",
@@ -1356,7 +1356,7 @@ _nrrdTernaryOpDesc[NRRD_TERNARY_OP_MAX+1] = {
 #define ntAdd nrrdTernaryOpAdd
 #define ntMul nrrdTernaryOpMultiply
 
-const char *
+static const char *
 _nrrdTernaryOpStrEqv[] = {
   "+", "plus", "add",
   "x", "*", "times", "multiply", "product",
@@ -1377,7 +1377,7 @@ _nrrdTernaryOpStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _nrrdTernaryOpValEqv[] = {
   ntAdd, ntAdd, ntAdd,
   ntMul, ntMul, ntMul, ntMul, ntMul, 
@@ -1411,7 +1411,7 @@ nrrdTernaryOp = &_nrrdTernaryOp_enum;
 
 /* ------------------------ nrrdFFTWPlanRigor ---------------------- */
 
-const char *
+static const char *
 _nrrdFFTWPlanRigorStr[NRRD_FFTW_PLAN_RIGOR_MAX+1] = {
   "(unknown_rigor)",
   "estimate",
@@ -1420,7 +1420,7 @@ _nrrdFFTWPlanRigorStr[NRRD_FFTW_PLAN_RIGOR_MAX+1] = {
   "exhaustive"
 };
 
-const char *
+static const char *
 _nrrdFFTWPlanRigorDesc[NRRD_FFTW_PLAN_RIGOR_MAX+1] = {
   "unknown rigor",
   "no machine-specific measurements, just estimate a plan",
@@ -1429,7 +1429,7 @@ _nrrdFFTWPlanRigorDesc[NRRD_FFTW_PLAN_RIGOR_MAX+1] = {
   "considers even wider range of algorithms to find most optimal plan"
 };
 
-const char *
+static const char *
 _nrrdFFTWPlanRigorStrEqv[] = {
   "e", "est", "estimate",
   "m", "meas", "measure",
@@ -1438,7 +1438,7 @@ _nrrdFFTWPlanRigorStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _nrrdFFTWPlanRigorValEqv[] = {
   nrrdFFTWPlanRigorEstimate, nrrdFFTWPlanRigorEstimate, nrrdFFTWPlanRigorEstimate,
   nrrdFFTWPlanRigorMeasure, nrrdFFTWPlanRigorMeasure, nrrdFFTWPlanRigorMeasure,
@@ -1460,7 +1460,7 @@ nrrdFFTWPlanRigor = &_nrrdFFTWPlanRigor_enum;
 
 /* ---------------------- nrrdResampleNonExistent -------------------- */
 
-const char *
+static const char *
 _nrrdResampleNonExistentStr[NRRD_RESAMPLE_NON_EXISTENT_MAX+1] = {
   "(unknown_resample_non_existent)",
   "noop",
@@ -1468,7 +1468,7 @@ _nrrdResampleNonExistentStr[NRRD_RESAMPLE_NON_EXISTENT_MAX+1] = {
   "weight"
 };
 
-const char *
+static const char *
 _nrrdResampleNonExistentDesc[NRRD_RESAMPLE_NON_EXISTENT_MAX+1] = {
   "unknown resample non-existent",
   "no-op; include non-existent values in convolution sum",
@@ -1476,7 +1476,7 @@ _nrrdResampleNonExistentDesc[NRRD_RESAMPLE_NON_EXISTENT_MAX+1] = {
   "use only existent values in kernel support and use weights as is"
 };
 
-const char *
+static const char *
 _nrrdResampleNonExistentStrEqv[] = {
   "noop",
   "renorm", "renormalize",
@@ -1484,7 +1484,7 @@ _nrrdResampleNonExistentStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _nrrdResampleNonExistentValEqv[] = {
   nrrdResampleNonExistentNoop,
   nrrdResampleNonExistentRenormalize, nrrdResampleNonExistentRenormalize,
