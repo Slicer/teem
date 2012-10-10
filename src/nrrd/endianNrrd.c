@@ -23,7 +23,7 @@
 
 #include "nrrd.h"
 
-void
+static void
 _nrrdSwap16Endian(void *_data, size_t N) {
   unsigned short *data, dd, fix, mask;
   size_t I;
@@ -41,7 +41,7 @@ _nrrdSwap16Endian(void *_data, size_t N) {
   }
 }
 
-void
+static void
 _nrrdSwap32Endian(void *_data, size_t N) {
   unsigned int *data, dd, fix, mask;
   size_t I;
@@ -61,7 +61,7 @@ _nrrdSwap32Endian(void *_data, size_t N) {
   }
 }
 
-void
+static void
 _nrrdSwap64Endian(void *_data, size_t N) {
   airULLong *data, dd, fix, mask;
   size_t I;
@@ -85,14 +85,14 @@ _nrrdSwap64Endian(void *_data, size_t N) {
   }
 }
 
-void
+static void
 _nrrdNoopEndian(void *data, size_t N) {
   AIR_UNUSED(data);
   AIR_UNUSED(N);
   return;
 }
 
-void
+static void
 _nrrdBlockEndian(void *data, size_t N) {
   char me[]="_nrrdBlockEndian";
   
@@ -102,7 +102,7 @@ _nrrdBlockEndian(void *data, size_t N) {
           airEnumStr(nrrdType, nrrdTypeBlock));
 }
 
-void
+static void
 (*_nrrdSwapEndian[])(void *, size_t) = {
   _nrrdNoopEndian,         /*  0: nobody knows! */
   _nrrdNoopEndian,         /*  1:   signed 1-byte integer */
