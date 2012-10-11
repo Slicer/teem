@@ -45,5 +45,4 @@ extern void _biffMsgMoveVL(biffMsg *dest, biffMsg *src,
 #ifdef __cplusplus
 }
 #endif
-
 #endif /* BIFF_PRIVATE_HAS_BEEN_INCLUDED */
