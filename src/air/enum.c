@@ -469,3 +469,4 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
   return 0;
 }
 /* ---- END non-NrrdIO */
+/* this is the end */

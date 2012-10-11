@@ -463,3 +463,4 @@ biffSetStrDone(char *str, const char *key) {
   return;
 }
 /* ---- END non-NrrdIO */
+/* this is the end */
