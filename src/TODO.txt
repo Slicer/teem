@@ -90,7 +90,7 @@ nrrd:
   nio->charsPerLine and nio->valsPerLine, which are unsigned int,
   just like nrrdDefaultWriteCharsPerLine and nrrdDefaultWriteValsPerLine)
   and argument to nrrdIoStateSet.
-* with nrrdKernel: 
+* with NrrdKernel: 
  - add fields for "what is my derivative" or "what is my integral", but 
    how to do that at compile time?
  - "when parsing from string, parm[0] is needed" vs "parm[0] defaults to 1.0"
@@ -102,6 +102,13 @@ nrrd:
  - rename numParm --> parmNum
  - fix the kernels that meetNrrdKernelAllCheck revealed to be broken
  - consider nixing nrrdDefaultKernelParm0, nrrdEnvVarDefaultKernelParm0
+* with NrrdFormat:
+ - There is now an available() method, but this is incomplete - EPS is
+   something that can be written for images, but not read in general.
+   Should there be more ways of describing its support?
+ - supposing a general airBuffer utility is not implemented, there may be
+   formats that can be read from disk (fseek-able) but not from stdin.
+   Is this something else that NrrdFormat should represent?
 * should re-evaluate the need for all the nrrdDefault and nrrdState
   global variables, especially nrrdStateGrayscaleImage3D, 
   nrrdEnvVarStateGrayscaleImage3D, 
