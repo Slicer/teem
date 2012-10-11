@@ -91,7 +91,7 @@ extern "C" {
 ** lower axis.)  In addition, the final statement of the macro prevents the
 ** last index from going past a valid value.
 **
-** Assumptions: 
+** Assumptions:
 ** -- coord[] and size[] should both be arrays of unsigned integral values,
 **    presumably size_t
 ** -- size[i] is >= 1 for all i<dim (size 0 is invalid)
@@ -99,8 +99,8 @@ extern "C" {
 ** Violating these will create invalid coordinate arrays or generate
 ** compiler warnings about comparisons between signed and unsigned.
 **
-** The "ddd" variable name in this and subsequent macros is an effort to 
-** avoid shadowing.
+** The "ddd" variable name in this and subsequent macros is an effort to
+** avoid possible symbol name shadowing.
 */
 #define NRRD_COORD_UPDATE(coord, size, dim)                             \
   {                                                                     \
@@ -115,13 +115,13 @@ extern "C" {
       (coord)[(dim)-1] = AIR_MIN((coord)[(dim)-1], (size)[(dim)-1]-1);  \
     }                                                                   \
   }
-  
+
 /*
 ******** NRRD_COORD_INCR
 **
 ** increments coord[idx] (by one) and then calls NRRD_COORD_UPDATE to
-** propagate this change as necessary to higher numbered axes.  Does 
-** nothing if idx>=dim, since that would be an invalid index into 
+** propagate this change as necessary to higher numbered axes.  Does
+** nothing if idx>=dim, since that would be an invalid index into
 ** coord[] and size[]
 */
 #define NRRD_COORD_INCR(coord, size, dim, idx)                          \
@@ -129,7 +129,7 @@ extern "C" {
     (coord)[(idx)]++;                                                   \
     NRRD_COORD_UPDATE((coord)+(idx), (size)+(idx), (dim)-(idx));        \
   }
-  
+
 /*
 ******** NRRD_INDEX_GEN
 **

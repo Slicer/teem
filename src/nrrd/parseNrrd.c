@@ -102,7 +102,7 @@ _nrrdReadNrrdParseField(NrrdIoState *nio, int useBiff) {
 ** _nrrdFieldCheck[] array of checkers
 */
 
-static int 
+static int
 _nrrdReadNrrdParse_nonfield(FILE *file, Nrrd *nrrd,
                             NrrdIoState *nio, int useBiff) { 
   AIR_UNUSED(file);
@@ -121,7 +121,7 @@ _nrrdReadNrrdParse_nonfield(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int 
+static int
 _nrrdReadNrrdParse_comment(FILE *file, Nrrd *nrrd,
                            NrrdIoState *nio, int useBiff) { 
   static const char me[]="_nrrdReadNrrdParse_comment";
@@ -184,7 +184,7 @@ _nrrdReadNrrdParse_number(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int 
+static int
 _nrrdReadNrrdParse_type(FILE *file, Nrrd *nrrd, 
                         NrrdIoState *nio, int useBiff) {
   static const char me[]="_nrrdReadNrrdParse_type";
@@ -925,9 +925,9 @@ _nrrdReadNrrdParse_byte_skip(FILE *file, Nrrd *nrrd,
   AIR_UNUSED(nrrd);
   info = nio->line + nio->pos;
   _PARSE_ONE_VAL(nio->byteSkip, "%ld", "long int");
-  /* this check is being removed to enable the undocumented 
-     (in the file format spec) ability to say "byte skip: -N-1" 
-     in order to skip backwards from EOF by N bytes 
+  /* this check is being removed to enable the undocumented
+     (in the file format spec) ability to say "byte skip: -N-1"
+     in order to skip backwards from EOF by N bytes
   ** if (!(-1 <= nio->byteSkip)) {
   **   biffMaybeAddf(useBiff, NRRD,
   **                 "%s: byteSkip value %ld invalid", me, nio->byteSkip);
@@ -1248,7 +1248,7 @@ _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff) {
         != nrrd->axis[nrrd->dim-1].size/_nrrdDataFNNumber(nio)) {
       biffMaybeAddf(useBiff, NRRD,
                     "%s: number of datafiles (%d) doesn't divide into "
-                    "number of axis %u slices (%s)", me, 
+                    "number of axis %u slices (%s)", me,
                     (int)_nrrdDataFNNumber(nio), nrrd->dim-1,
                     airSprintSize_t(stmp, nrrd->axis[nrrd->dim-1].size));
       return 1;
@@ -1309,7 +1309,7 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd,
                      &(nio->dataFileDim)) ) {
       if (!AIR_IN_CL(1, nio->dataFileDim, nrrd->dim)) {
         biffMaybeAddf(useBiff, NRRD,
-                      "%s: datafile dimension %u outside valid range [1,%u]", 
+                      "%s: datafile dimension %u outside valid range [1,%u]",
                       me, nio->dataFileDim, nrrd->dim);
         airMopError(mop); return 1;
       }

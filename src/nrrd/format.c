@@ -67,7 +67,7 @@ _nrrdFormatUnknown_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   
   if (!(nrrd && encoding)) {
     biffMaybeAddf(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)",
-                  me, AIR_CVOIDP(nrrd), AIR_CVOIDP(encoding)); 
+                  me, AIR_CVOIDP(nrrd), AIR_CVOIDP(encoding));
     return AIR_FALSE;
   }
 

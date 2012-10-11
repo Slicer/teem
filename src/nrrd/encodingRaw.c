@@ -58,7 +58,7 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
     if (ret != bsize) {
       biffAddf(NRRD, "%s: airDioRead got read only %s of %sbytes "
                "(%g%% of expected)", me,
-               airSprintSize_t(stmp[0], ret), 
+               airSprintSize_t(stmp[0], ret),
                airSprintSize_t(stmp[1], bsize),
                100.0*AIR_CAST(double, ret)/AIR_CAST(double, bsize));
       return 1;

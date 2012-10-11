@@ -34,7 +34,7 @@
 
 static biffMsg **
 _bmsg=NULL;            /* master array of biffMsg pointers */
-static unsigned int 
+static unsigned int
 _bmsgNum=0;            /* length of _biffErr == # keys maintained */
 static airArray *
 _bmsgArr=NULL;         /* air array of _biffErr and _biffNum */
@@ -49,7 +49,7 @@ typedef union {
 /*
 ** _bmsgStart()
 **
-** allocates data structers needed by biff.  Panics if 
+** allocates data structers needed by biff.  Panics if
 ** anything goes wrong.
 **
 ** NOTE: Can be harmlessly called multiple times.

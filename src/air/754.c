@@ -32,7 +32,7 @@
 **
 ** and some assorted web pages, such as:
 ** http://en.wikipedia.org/wiki/NaN#Encoding
-** which explains what Teem calls qnanhibit, and 
+** which explains what Teem calls qnanhibit, and
 ** http://grouper.ieee.org/groups/754/email/msg04192.html
 ** which includes some discussion on signal-vs-quiet nan
 */
@@ -267,19 +267,19 @@ airFPGen_f(int cls) {
     break;
   case airFP_POS_NORM:
     /* exp: anything non-zero but < 0xff, mant: anything */
-    FP_SET_F(flit, fbig, 0, 0x80, 0x7ff000);     
+    FP_SET_F(flit, fbig, 0, 0x80, 0x7ff000);
     break;
   case airFP_NEG_NORM:
     /* exp: anything non-zero but < 0xff, mant: anything */
-    FP_SET_F(flit, fbig, 1, 0x80, 0x7ff000);     
+    FP_SET_F(flit, fbig, 1, 0x80, 0x7ff000);
     break;
   case airFP_POS_DENORM:
     /* mant: anything non-zero */
-    FP_SET_F(flit, fbig, 0, 0, 0xff);        
+    FP_SET_F(flit, fbig, 0, 0, 0xff);
     break;
   case airFP_NEG_DENORM:
     /* mant: anything non-zero */
-    FP_SET_F(flit, fbig, 1, 0, 0xff);        
+    FP_SET_F(flit, fbig, 1, 0, 0xff);
     break;
   case airFP_NEG_ZERO:
     FP_SET_F(flit, fbig, 1, 0, 0);
@@ -325,15 +325,15 @@ airFPGen_d(int cls) {
     break;
   case airFP_NEG_NORM:
     /* exp: anything non-zero but < 0xff, mant: anything */
-    FP_SET_D(dlit, dbig,  1, 0x400, 0x0ff00, 0);     
+    FP_SET_D(dlit, dbig,  1, 0x400, 0x0ff00, 0);
     break;
   case airFP_POS_DENORM:
     /* mant: anything non-zero */
-    FP_SET_D(dlit, dbig,  0, 0, 0xff, 0);        
+    FP_SET_D(dlit, dbig,  0, 0, 0xff, 0);
     break;
   case airFP_NEG_DENORM:
     /* mant: anything non-zero */
-    FP_SET_D(dlit, dbig,  1, 0, 0xff, 0);        
+    FP_SET_D(dlit, dbig,  1, 0, 0xff, 0);
     break;
   case airFP_NEG_ZERO:
     FP_SET_D(dlit, dbig,  1, 0, 0, 0);
@@ -670,7 +670,7 @@ airFPFprintf_d(FILE *file, double val) {
       fprintf(file, "%d", (mant0 >> i) & 1);
     }
     for (i=31; i>=0; i--) {
-      fprintf(file, "%d", (mant1 >> i) & 1); 
+      fprintf(file, "%d", (mant1 >> i) & 1);
     }
     fprintf(file, "\n");
   }

@@ -32,14 +32,14 @@ int
 airMyEndian(void) {
   int tmpI, ret;
   char leastbyte;
-  
+
   /* set int to 1:
-     least signficant byte will be 1, 
+     least signficant byte will be 1,
      most signficant byte will be 0 */
   tmpI = 1;
-  /* cast address of (4-byte) int to char*, and dereference, 
+  /* cast address of (4-byte) int to char*, and dereference,
      which retrieves the byte at the low-address-end of int
-     (the "first" byte in memory ordering).  
+     (the "first" byte in memory ordering).
      On big endian, we're getting the most significant byte (0);
      on little endian, we're getting least significant byte (1) */
   leastbyte = *(AIR_CAST(char*, &tmpI));
@@ -47,7 +47,7 @@ airMyEndian(void) {
     ret = airEndianLittle;
   } else {
     ret = airEndianBig;
-  }    
+  }
   return ret;
 }
 

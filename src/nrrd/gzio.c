@@ -416,7 +416,7 @@ _nrrdGzWrite(gzFile file, const void* buf, unsigned int len,
     *written = 0;
     return 1;
   }
-  
+
   /* If you google for "const correct zlib" or "zlib.h is not
      const-correct" you'll find zlib mailing list discussions of how
      zlib doesn't have all the consts that it should, and various code

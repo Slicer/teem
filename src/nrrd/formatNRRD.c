@@ -25,7 +25,7 @@
 #include "privateNrrd.h"
 
 /***
-**** Info about string handling for fields 
+**** Info about string handling for fields
 
 The Nrrd format can include strings in different fields, with different
 rules for each one; see http://teem.sourceforge.net/nrrd/format.html Below
@@ -41,7 +41,7 @@ nrrdAxisInfoSet for "units" but there is no API for setting "space units").
 Should that API flag as error if you try to include characters that can't
 be losslessly saved, or should it silently transform things?
 
-** Comments: 
+** Comments:
 On disk, delimited by the NRRD_COMMENT_CHAR ('#') and the
 end of the line, but the format spec doesn't address any escaping.
 Input comments processed via:
@@ -66,7 +66,7 @@ On write, output content processed via:
       --> air/string.c/airOneLinify()
 ==> not only is there no escaping, but there's some assymmetry in the
 use of airOneLinify.  If information is being encoded in the number of
-contiguous spaces in the content, its preserved on input but not on 
+contiguous spaces in the content, its preserved on input but not on
 output.  Still, there's no chance of writing a broken file.
 
 ** key/value pairs: The keys and values are separated by ":=", and the
@@ -74,9 +74,9 @@ format spec says (string) "\n" means (character) '\n' and "\\" means '\\'.
 On input, both keys and values processed via:
   nrrd/formatNrrd.c/_nrrdFormatNRRD_read()
   --> nrrd/parseNrrd.c/_nrrdReadNrrdParse_keyvalue()
-     --> air/string.c/airUnescape(), which deals with "\n" and "\\" ONLY 
+     --> air/string.c/airUnescape(), which deals with "\n" and "\\" ONLY
          (not quotes, not other whitespace), and then
-     --> nrrd/keyvalue.c/nrrdKeyValueAdd(), 
+     --> nrrd/keyvalue.c/nrrdKeyValueAdd(),
          which only does an airStrdup
 On output, keys and values processed via
   nrrd/formatNrrd.c/_nrrdFormatNRRD_write()
@@ -88,9 +88,9 @@ Aside from the file format spec, the nrrd *library* does not really have
 any strictures about the characters that are allowed at run-time in key/values
 (and indeed nrrdKeyValueAdd just does an airStrdup). But without
 converting or escaping, say, '\r', you'll generate a broken NRRD file,
-hence the new handling of converting other whitespace to ' '.  
+hence the new handling of converting other whitespace to ' '.
 
-** labels and units: A "-delimited string per axis. 
+** labels and units: A "-delimited string per axis.
 Format spec is very specific for labels, and implies units are the same:
 "Within each label, double quotes may be included by escaping them
 (\"), but no other form of escaping is supported".  On input:
@@ -105,10 +105,10 @@ On output:
       --> nrrd/keyvalue.c/_nrrdWriteEscaped()
         which is invoked to escape ",
         and (NOTE!) to convert all other whitespace to ' '
-Same concern above about characters that when written would generate a 
+Same concern above about characters that when written would generate a
 bad NRRD file, but which are not documented as escape-able in label or unit
 
-** space units: A "-delimited string per axis of *world-space* (NOT 
+** space units: A "-delimited string per axis of *world-space* (NOT
 the same a per-axis field, like units).  Format is sadly silent on issue of
 escaping for these; so we might as well treat them like labels & units
 units. On input:
@@ -122,7 +122,7 @@ On output:
       --> nrrd/keyvalue.c/_nrrdWriteEscaped()
         which is invoked to escape ",
         and (NOTE!) to convert all other whitespace to ' '
-        
+
 ** sample units: like content and comments, not a quoted string. On input:
   nrrd/formatNrrd.c/_nrrdFormatNRRD_read()
   --> nrrd/parseNrrd.c/_nrrdReadNrrdParse_sample_units()
@@ -720,7 +720,7 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       strptr = NULL;
     } else {
       nio->headerStrlen += (1 + AIR_CAST(unsigned int, strlen(" ") 
-                                         + strlen(strtmp) 
+                                         + strlen(strtmp)
                                          + strlen("\n")) + 1);
     }
     airFree(strtmp);

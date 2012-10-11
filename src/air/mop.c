@@ -198,8 +198,8 @@ _airMopWhenStr[4][128] = {
   "always",
 };
 
-/* 
-** This is to overcome the warning about 
+/*
+** This is to overcome the warning about
 ** "ISO C forbids conversion of function pointer to object pointer type";
 ** the result here is thus implementation-dependent
 */

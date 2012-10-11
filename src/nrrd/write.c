@@ -444,7 +444,7 @@ _nrrdSprintFieldInfo(char **strP, const char *prefix,
     break;
   case nrrdField_number:
     *strP = AIR_CALLOC(fslen + size_tStrlen, char);
-    sprintf(*strP, "%s%s: %s", prefix, fs, 
+    sprintf(*strP, "%s%s: %s", prefix, fs,
             airSprintSize_t(stmp, nrrdElementNumber(nrrd)));
     break;
   case nrrdField_type:
@@ -461,7 +461,7 @@ _nrrdSprintFieldInfo(char **strP, const char *prefix,
     sprintf(*strP, "%s%s: %d", prefix, fs, nrrd->dim);
     break;
   case nrrdField_space:
-    *strP = AIR_CALLOC(fslen 
+    *strP = AIR_CALLOC(fslen
                        + strlen(airEnumStr(nrrdSpace, nrrd->space)), char);
     sprintf(*strP, "%s%s: %s", prefix, fs, airEnumStr(nrrdSpace, nrrd->space));
     break;
@@ -511,9 +511,9 @@ _nrrdSprintFieldInfo(char **strP, const char *prefix,
     }
     break;
   case nrrdField_space_directions:
-    *strP = AIR_CALLOC(fslen + 
-                       nrrd->dim*nrrd->spaceDim*(doubleStrlen 
-                                                 + strlen("(,) ")), char);
+    *strP = AIR_CALLOC(fslen
+                       + nrrd->dim*nrrd->spaceDim*(doubleStrlen
+                                                   + strlen("(,) ")), char);
     sprintf(*strP, "%s%s: ", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
       _nrrdStrcatSpaceVector(*strP, nrrd->spaceDim,
@@ -656,14 +656,14 @@ _nrrdSprintFieldInfo(char **strP, const char *prefix,
     }
     break;
   case nrrdField_space_origin:
-    *strP = AIR_CALLOC(fslen + nrrd->spaceDim*(doubleStrlen 
+    *strP = AIR_CALLOC(fslen + nrrd->spaceDim*(doubleStrlen
                                                + strlen("(,) ")), char);
     sprintf(*strP, "%s%s: ", prefix, fs);
     _nrrdStrcatSpaceVector(*strP, nrrd->spaceDim, nrrd->spaceOrigin);
     break;
   case nrrdField_measurement_frame:
     *strP = AIR_CALLOC(fslen + (nrrd->spaceDim*
-                                nrrd->spaceDim*(doubleStrlen 
+                                nrrd->spaceDim*(doubleStrlen
                                                 + strlen("(,) "))), char);
     sprintf(*strP, "%s%s: ", prefix, fs);
     for (dd=0; dd<nrrd->spaceDim; dd++) {
@@ -686,10 +686,10 @@ _nrrdSprintFieldInfo(char **strP, const char *prefix,
       *strP = AIR_CALLOC(fslen + strlen(nio->dataFNFormat) + 4*uintStrlen,
                          char);
       if (nio->dataFileDim == nrrd->dim-1) {
-        sprintf(*strP, "%s%s: %s %d %d %d", prefix, fs, nio->dataFNFormat, 
+        sprintf(*strP, "%s%s: %s %d %d %d", prefix, fs, nio->dataFNFormat,
                 nio->dataFNMin, nio->dataFNMax, nio->dataFNStep);
       } else {
-        sprintf(*strP, "%s%s: %s %d %d %d %u", prefix, fs, nio->dataFNFormat, 
+        sprintf(*strP, "%s%s: %s %d %d %d %u", prefix, fs, nio->dataFNFormat,
                 nio->dataFNMin, nio->dataFNMax, nio->dataFNStep,
                 nio->dataFileDim);
       }
@@ -698,10 +698,10 @@ _nrrdSprintFieldInfo(char **strP, const char *prefix,
       for (ii=0; ii<nio->dataFNArr->len; ii++) {
         maxl = AIR_MAX(maxl, strlen(nio->dataFN[ii]));
       }
-      *strP = AIR_CALLOC(fslen + strlen(NRRD_LIST_FLAG) 
+      *strP = AIR_CALLOC(fslen + strlen(NRRD_LIST_FLAG)
                          + uintStrlen + nio->dataFNArr->len * (maxl + 1),
                          char);
-      fnb = AIR_CALLOC(fslen + strlen(NRRD_LIST_FLAG) 
+      fnb = AIR_CALLOC(fslen + strlen(NRRD_LIST_FLAG)
                        + uintStrlen + maxl + 1, char);
       if (nio->dataFileDim == nrrd->dim-1) {
         sprintf(*strP, "%s%s: LIST\n", prefix, fs);
@@ -717,7 +717,7 @@ _nrrdSprintFieldInfo(char **strP, const char *prefix,
     } else {
       /* there is some ambiguity between a "LIST" of length one,
          and a single explicit data filename, but that's harmless */
-      *strP = AIR_CALLOC(fslen + strlen("./") 
+      *strP = AIR_CALLOC(fslen + strlen("./")
                          + strlen(nio->dataFN[0]) + 1, char);
       sprintf(*strP, "%s%s: %s%s", prefix, fs, 
               /* this is a favor to older readers that can deal with

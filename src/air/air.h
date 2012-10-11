@@ -102,7 +102,7 @@ typedef unsigned long long airULLong;
 ** might end up being.  It would be theoretically better to completely
 ** avoid the use of fixed-size buffers, but in many contexts the
 ** implementation complexity of handling them reliably is distracts
-** from more urgent implementation goals.  In the mean time, these can 
+** from more urgent implementation goals.  In the mean time, these can
 ** be used safely as long as the lengths are used consistently.
 **
 ** The possibly unfortunate convention that has become established in
@@ -115,7 +115,7 @@ typedef unsigned long long airULLong;
 #define AIR_STRLEN_SMALL (128+1) /* has to be big enough to hold:
                                   - printed value of size_t and ptrdiff_t,
                                   - line of text that should contain file
-                                    format "magic" 
+                                    format "magic"
                                   */
 #define AIR_STRLEN_MED   (256+1)
 #define AIR_STRLEN_LARGE (512+1)
@@ -147,8 +147,8 @@ typedef union {
 
 /*
 ******** airEnum struct
-** 
-** The airEnum provides the basic mechanism of mapping from a 
+**
+** The airEnum provides the basic mechanism of mapping from a
 ** string to an int enum value, and back.
 */
 typedef struct {
@@ -157,9 +157,9 @@ typedef struct {
   unsigned int M;
                /* str[0]: string for the unknown/invalid value;
                 * str[1] .. str[M]: canonical strings for the enum values;
-                * "val" NULL: unknown/invalid = 0; 
+                * "val" NULL: unknown/invalid = 0;
                 *             valid values are 1 .. M
-                * "val" non-NULL: unknown/invalid = val[0]; 
+                * "val" non-NULL: unknown/invalid = val[0];
                 *                 valid are val[1].. val[M]
                 */
   const char **str; 
@@ -545,7 +545,7 @@ enum {
   airInsane_FltDblFPClass, /*  5: double -> float assignment messed up the
                                airFPClass_f() of the value */
   airInsane_QNaNHiBit,     /*  6: airMyQNaNHiBit is wrong */
-  airInsane_AIR_NAN,       /*  7: airFPClass_f(AIR_QNAN) wrong 
+  airInsane_AIR_NAN,       /*  7: airFPClass_f(AIR_QNAN) wrong
                                   (no longer checking on problematic SNAN) */
   airInsane_dio,           /*  8: airMyDio set to something invalid */
   airInsane_UCSize,        /*  9: unsigned char isn't 8 bits */
@@ -796,7 +796,7 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 ** airSanity fails because a special value "exists", then use the
 ** first version of AIR_EXISTS.
 **
-** There is a performance consequence of using airExists(x), in that it 
+** There is a performance consequence of using airExists(x), in that it
 ** is a function call, although (HEY) we should facilitate inline'ing it
 ** for compilers that know how to.
 **

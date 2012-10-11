@@ -34,8 +34,8 @@ _nrrdEncodingGzip_available(void) {
 #endif
 }
 
-/* 
-** Maximum size that allow zlib to try to read or write at once. 
+/*
+** Maximum size that allow zlib to try to read or write at once.
 ** The real limit is UINT_MAX, but a smaller value here permits
 ** exercising the multi-chunk capability of the code below.
 */
@@ -158,7 +158,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
     while (!(error = _nrrdGzRead(gzfin, data, sizeChunk, &didread))
            && didread > 0) {
       /* Increment the data pointer to the next available chunk. */
-      data += didread; 
+      data += didread;
       sizeRed += didread;
       /* We only want to read as much data as we need, so we need to check
          to make sure that we don't request data that might be there but that
@@ -252,7 +252,7 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   
   /* Ok, now we can begin writing. */
   while ((error = _nrrdGzWrite(gzfout, AIR_CVOIDP(data),
-                               sizeChunk, &wrote)) == 0 
+                               sizeChunk, &wrote)) == 0
          && wrote > 0) {
     /* Increment the data pointer to the next available spot. */
     data += wrote;

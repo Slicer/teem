@@ -69,7 +69,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
     }
   } else {
     if (!( saxi < cnin->dim )) {
-      biffAddf(NRRD, "%s: slice axis %d out of bounds (0 to %d)", 
+      biffAddf(NRRD, "%s: slice axis %d out of bounds (0 to %d)",
                me, saxi, cnin->dim-1);
       return 1;
     }
@@ -198,7 +198,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
     idxIn, idxOut,           /* linear indices for input and output */
     numLines;                /* number of scanlines in output nrrd */
   char *dataIn, *dataOut, stmp[3][AIR_STRLEN_SMALL];
-  
+
   /* errors */
   if (!(nout && nin && min && max)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);

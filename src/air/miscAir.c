@@ -151,7 +151,7 @@ airFclose(FILE *file) {
 ** To get fprintf behavior, pass "str" as NULL
 ** to get sprintf bahavior, pass "file" as NULL
 **
-** Someday I'll find/write a complete {f|s|}printf replacement 
+** Finding a complete {f|s|}printf replacement is a priority for Teem 2.0
 */
 int
 airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {

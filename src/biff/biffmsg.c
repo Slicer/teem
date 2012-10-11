@@ -175,7 +175,7 @@ biffMsgMove(biffMsg *dest, biffMsg *src, const char *err) {
     return;
   }
   if (!( dest && src )) {
-    fprintf(stderr, "%s: PANIC got NULL msg (%p %p)\n", me, 
+    fprintf(stderr, "%s: PANIC got NULL msg (%p %p)\n", me,
             AIR_VOIDP(dest), AIR_VOIDP(src));
     /* exit(1); */
   }
@@ -260,7 +260,7 @@ biffMsgStrlen(const biffMsg *msg) {
 
   len = 0;
   for (ii=0; ii<msg->errNum; ii++) {
-    len += AIR_UINT(strlen(msg->key) 
+    len += AIR_UINT(strlen(msg->key)
                     + strlen(msg->err[ii]) + strlen("[] \n"));
   }
   return len+1;

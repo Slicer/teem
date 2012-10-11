@@ -370,7 +370,7 @@ typedef struct NrrdIoState_t {
   int dataFNMin,            /* used with dataFNFormat to identify .. */
     dataFNMax,              /* .. all the multiple detached datafiles */
     dataFNStep;             /* how to step from max to min */
-  /* On the other hand, dataFNIndex ranges from 0 to (#datafiles-1), 
+  /* On the other hand, dataFNIndex ranges from 0 to (#datafiles-1),
      and not dataFNMin to dataFNMax, so it really should be unsigned */
   unsigned int dataFNIndex; /* which of the data files are being read */
   int pos,                  /* line[pos] is beginning of stuff which

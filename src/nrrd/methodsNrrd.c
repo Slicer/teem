@@ -125,7 +125,7 @@ nrrdIoStateNew(void) {
     nio->headerStringRead = NULL;
     nio->headerStringWrite = NULL;
     appu.cp = &(nio->dataFN);
-    nio->dataFNArr = airArrayNew(appu.v, NULL, 
+    nio->dataFNArr = airArrayNew(appu.v, NULL,
                                  sizeof(char *), NRRD_FILENAME_INCR);
     airArrayPointerCB(nio->dataFNArr, airNull, airFree);
     nio->format = nrrdFormatUnknown;

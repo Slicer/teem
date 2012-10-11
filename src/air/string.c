@@ -178,9 +178,9 @@ airStrtrans(char *s, char from, char to) {
 ******** airStrcpy
 **
 ** Like strncpy but logic is different (and perhaps more useful), being:
-** "dst is allocated for dstSize chars. Copy as much of src as can 
-** "fit in dst, and always 0-terminate the resulting dst.", 
-** instead of strncpy's "Copy at most n characters, blah blah blah, 
+** "dst is allocated for dstSize chars. Copy as much of src as can
+** "fit in dst, and always 0-terminate the resulting dst.",
+** instead of strncpy's "Copy at most n characters, blah blah blah,
 ** and you still have to 0-terminate the rest yourself".
 **
 ** E.g. with declaration buff[AIR_STRLEN_SMALL], you call
@@ -194,7 +194,7 @@ airStrtrans(char *s, char from, char to) {
 char *
 airStrcpy(char *dst, size_t dstSize, const char *src) {
   size_t ii, copyLen, srcLen;
-  
+
   if (!(dst && dstSize > 0)) {
     return NULL;
   }
