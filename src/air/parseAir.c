@@ -124,9 +124,24 @@ airSingleSscanf(const char *str, const char *fmt, void *ptr) {
     }
     free(tmp);
     return 1;
-  }
-  else {
-    /* this is neither a float nor double */
+  } else if (!strcmp(fmt, "%z")) {
+    /* its a size_t */
+    size_t tsz = 0;  /* tmp size_t */
+    const char *chh = str; /* char here */
+    while (chh) {
+      int dig;
+      dig = AIR_CAST(int, *chh - '0');
+      if (AIR_IN_CL(0, dig, 9)) {
+        tsz = 10*tsz + AIR_CAST(size_t, dig);
+      } else {
+        break;
+      }
+      chh++;
+    }
+    *((size_t *)(ptr)) = tsz;
+    return 1;
+  } else {
+    /* not a float, double, or size_t, let sscanf handle it */
     return sscanf(str, fmt, ptr);
   }
 }
@@ -188,49 +203,8 @@ airParseStrLI(_PARSE_STR_ARGS(long int)) { _PARSE_STR_BODY("%ld") }
 unsigned int
 airParseStrULI(_PARSE_STR_ARGS(unsigned long int)) { _PARSE_STR_BODY("%lu") }
 
-/*
-** This is implemented in terms of unsigned long int rather than a
-** true sscanf of size_t because of the combined portability of
-** challenges of (1) the format specifier (or conversion specifier)
-** for size_t not being standard in sscanf, and (2) the desire to
-** avoid requiring knowledge of whether the architecture is 32-vs-64
-** bit.  This arises with the removal (for Teem 1.11) of TEEM_32BIT and
-** _AIR_SIZE_T_CNV
-** 
-** The only consequence is for 64-bit windows, for which unsigned long
-** in is only 32 bits, not the 64 bits of size_t, as it is on other
-** platforms.  On 64-bit windows, then, values that can fit in a
-** size_t but cannot fit in a unsigned long int will not be parsed
-** correctly.  Given the contexts in which this is used, however
-** (basically, parsing nrrd->axis[i].size in NRRD files), that should
-** not be a problem.  BTW, for printing, the (clumsy) use of
-** airSprintSize_t sidesteps the same portability confusion of the
-** specifier for size_t in printf, and does so correctly on all
-** platforms.
-**
-** In any case, this is a short-term fix, prior to including a more
-** complete stand-alone implementation sprintf/sscanf in Teem 2.0.
-** Previous code:
-** airParseStrZ(_PARSE_STR_ARGS(size_t)) { _PARSE_STR_BODY(_AIR_SIZE_T_CNV) }
-*/
 unsigned int
-airParseStrZ(size_t *_out, const char *_s, const char *ct,
-             unsigned int n, ...)  { 
-  unsigned long int *out;
-  unsigned int ret, ii;
-
-  /* HEY: should this check be in the other parse functions here? */
-  if (!n) {
-    return 0;
-  }
-  out = AIR_CALLOC(n, unsigned long int);
-  ret = airParseStrULI(out, _s, ct, n);
-  for (ii=0; ii<ret; ii++) {
-    _out[ii] = AIR_CAST(size_t, out[ii]);
-  }
-  free(out);
-  return ret;
-}
+airParseStrZ(_PARSE_STR_ARGS(size_t)) { _PARSE_STR_BODY("%z") }
 
 unsigned int
 airParseStrF(_PARSE_STR_ARGS(float))         { _PARSE_STR_BODY("%f") }
