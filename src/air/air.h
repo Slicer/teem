@@ -25,7 +25,6 @@
 #ifndef AIR_HAS_BEEN_INCLUDED
 #define AIR_HAS_BEEN_INCLUDED
 
-/* NrrdIO-hack-005 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
