@@ -45,7 +45,10 @@ airSanity(void) {
     return airInsane_not;
   }
 
-  /* run-time endian check */
+  /* now that there is no more compile-time endian info, this is
+     merely double checking that airMyEndian() works, and returns
+     the constants (either 1234, pronounced "little endian", or
+     4321, "big endian") that are defined in air.h */
   tmpI = 1;
   endian = !(*((char*)(&tmpI)));
   if (endian) {
@@ -53,8 +56,7 @@ airSanity(void) {
     if (4321 != airMyEndian()) {
       return airInsane_endian;
     }
-  }
-  else {
+  } else {
     if (1234 != airMyEndian()) {
       return airInsane_endian;
     }

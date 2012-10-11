@@ -22,7 +22,6 @@
 */
 
 #include "air.h"
-#include <teemEndian.h>
 
 /*
 ******** airMyEndian()
@@ -32,15 +31,22 @@
 int
 airMyEndian(void) {
   int tmpI, ret;
-  char endian;
+  char leastbyte;
   
+  /* set int to 1:
+     least signficant byte will be 1, 
+     most signficant byte will be 0 */
   tmpI = 1;
-  endian = !(*((char*)(&tmpI)));
-  if (endian) {
-    ret = airEndianBig;
-  }
-  else {
+  /* cast address of (4-byte) int to char*, and dereference, 
+     which retrieves the byte at the low-address-end of int
+     (the "first" byte in memory ordering).  
+     On big endian, we're getting the most significant byte (0);
+     on little endian, we're getting least significant byte (1) */
+  leastbyte = *(AIR_CAST(char*, &tmpI));
+  if (leastbyte) {
     ret = airEndianLittle;
+  } else {
+    ret = airEndianBig;
   }    
   return ret;
 }

@@ -43,7 +43,6 @@ else
   endif
 endif
 
-TEEM_ENDIAN = 4321
 TEEM_QNANHIBIT = 0
 TEEM_DIO = 1
 

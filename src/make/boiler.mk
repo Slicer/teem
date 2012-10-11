@@ -57,7 +57,6 @@ $(L).PRIVATE_HEADERS =
 $(L).OBJS =
 $(L).TESTS =
 
-$(L).NEED_ENDIAN =
 $(L).NEED_QNANHIBIT =
 $(L).NEED_DIO =
 ####

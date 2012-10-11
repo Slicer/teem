@@ -55,7 +55,6 @@ $(L).TESTS = test/floatprint test/doubleprint test/tok \
 	test/tmop test/tline test/fp test/trand test/tdio \
         test/bessy test/tarr test/texp test/logrice test/tprint
 
-$(L).NEED_ENDIAN = true
 $(L).NEED_QNANHIBIT = true
 $(L).NEED_DIO = true
 ####

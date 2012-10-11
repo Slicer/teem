@@ -743,13 +743,11 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 /*
 ******** AIR_ENDIAN, AIR_QNANHIBIT, AIR_DIO
 **
-** These reflect particulars of hardware which we're running on, as do
-** TEEM_ENDIAN, TEEM_DIO, etc.  The difference is that TEEM_ENDIAN etc
-** are set (by teem/src/GNUmakefile) to pass architecture-specific
-** information into compilation of source files (this is triggered by
-** setting $(L).NEED_ENDIAN in the per-library GNUmakefile). The point
-** of AIR_ENDIAN etc is to make this information externally available,
-** to anyone linking against libair (or libteem) and including air.h.
+** These reflect particulars of hardware which we're running on. The
+** difference from the things starting with TEEM_ is that the TEEM_
+** values are for passing architecture-specific to compilation of source
+** files, and thes AIR_ variables are for advertising that information
+** to anyone linking against air (or Teem) and including air.h.
 */
 #define AIR_ENDIAN (airMyEndian())
 #define AIR_QNANHIBIT (airMyQNaNHiBit)

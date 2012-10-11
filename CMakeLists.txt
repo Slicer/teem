@@ -221,18 +221,7 @@ IF(${CMAKE_GENERATOR} MATCHES "Visual Studio")
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
 ENDIF(${CMAKE_GENERATOR} MATCHES "Visual Studio")
 
-#Include Teem Defines
-# Set compiler flags for endian-ness.
-# On Apple this should be done at compile time since it is 
-# possible to compile several architectures simultaneously
-if( NOT APPLE )
-  IF(CMAKE_WORDS_BIGENDIAN)
-    ADD_DEFINITIONS(-DTEEM_ENDIAN=4321)
-  ELSE(CMAKE_WORDS_BIGENDIAN)
-    ADD_DEFINITIONS(-DTEEM_ENDIAN=1234)
-  ENDIF(CMAKE_WORDS_BIGENDIAN)
-endif( NOT APPLE )
-
+#Teem Defines
 #The QNANHIBIT variable is configured by the root level CMakeLists.txt
 IF(QNANHIBIT)
   ADD_DEFINITIONS(-DTEEM_QNANHIBIT=1)

@@ -270,8 +270,7 @@ link = $(foreach LIB,$(call linkorder,$(1)),-l$(LIB))
 ## reasonable. more.cflags(L) is the list of -D flags for all required
 ## XXX.
 ##
-more.cflags = $(if $($(1).NEED_ENDIAN),-DTEEM_ENDIAN=$(TEEM_ENDIAN))\
- $(if $($(1).NEED_DIO),-DTEEM_DIO=$(TEEM_DIO))\
+more.cflags = $(if $($(1).NEED_DIO),-DTEEM_DIO=$(TEEM_DIO))\
  $(if $($(1).NEED_QNANHIBIT),-DTEEM_QNANHIBIT=$(TEEM_QNANHIBIT)) \
 
 ## banner(L) is progress indication for compiling library L; see

@@ -53,7 +53,7 @@ http://teem.sourceforge.net/build.html
 
 * include/
   Some short header files that are used to check the setting of compiler
-  variables, such as TEEM_ENDIAN.
+  variables
   * include/teem/
     When using the old GNU make system, the include (.h) files for all the
     libraries (such as nrrd.h) get put here (but don't originate here).

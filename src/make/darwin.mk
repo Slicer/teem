@@ -46,7 +46,6 @@ else
   endif
 endif
 
-TEEM_ENDIAN = 1234
 TEEM_QNANHIBIT = 1
 TEEM_DIO = 0
 

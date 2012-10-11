@@ -23,7 +23,6 @@
 
 
 #include "air.h"
-#include <teemEndian.h>
 
 /*
 ** by the way, the organization of functions into files is a little
@@ -49,16 +48,15 @@ typedef union {
 
 #define EXPA (1048576/0.69314718055994530942)
 #define EXPC 60801
-#if TEEM_ENDIAN == 1234
-#  define EXPI 1
-#else
-#  define EXPI 0
-#endif
 double
 airFastExp(double val) {
   eco_t eco;
   double ret;
+  int tmpI, EXPI;
 
+  /* HEY: COPY AND PASTE from airMyEndian */
+  tmpI = 1;
+  EXPI = *(AIR_CAST(char*, &tmpI));
   eco.nn[EXPI] = AIR_CAST(int, (EXPA*(val)) + (1072693248 - EXPC));
   eco.nn[1-EXPI] = 0;
   ret = (eco.dd > 0.0
@@ -70,7 +68,6 @@ airFastExp(double val) {
 }
 #undef EXPA
 #undef EXPC
-#undef EXPI
 
 /* 
 ** based on MiniMaxApproximation, but this has failed in its goal

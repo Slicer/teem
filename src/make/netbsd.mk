@@ -27,7 +27,6 @@ SHARED_CFLAG = -Wl,-Bdynamic
 SHARED_LDFLAG = -shared
 SHARED_RPATH = -Wl,-rpath -Wl,
 
-TEEM_ENDIAN = 1234
 TEEM_QNANHIBIT = 1
 TEEM_DIO = 0
 ifeq ($(SUBARCH),ia64)
