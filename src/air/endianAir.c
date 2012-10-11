@@ -72,7 +72,7 @@ _airEndianVal[] = {
   airEndianBig,
 };
 
-const airEnum
+static const airEnum
 _airEndian = {
   "endian",
   2,

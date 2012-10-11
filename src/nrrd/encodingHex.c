@@ -24,7 +24,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-const int
+static const int
 _nrrdWriteHexTable[16] = {
   '0', '1', '2', '3', '4', '5', '6', '7',
   '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
@@ -35,7 +35,7 @@ _nrrdWriteHexTable[16] = {
 ** -1: whitespace
 ** [0,15]: values
 */
-const int
+static const int
 _nrrdReadHexTable[128] = {
 /* 0   1   2   3   4   5   6   7   8   9 */
   -2, -2, -2, -2, -2, -2, -2, -2, -2, -1,  /*   0 */
@@ -54,13 +54,13 @@ _nrrdReadHexTable[128] = {
 };
 
 
-int
+static int
 _nrrdEncodingHex_available(void) {
 
   return AIR_TRUE;
 }
 
-int
+static int
 _nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum,
                       Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingHex_read";
@@ -113,7 +113,7 @@ _nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum,
   return 0;
 }
 
-int
+static int
 _nrrdEncodingHex_write(FILE *file, const void *_data, size_t elNum,
                        const Nrrd *nrrd, NrrdIoState *nio) {
   /* static const char me[]="_nrrdEncodingHex_write"; */

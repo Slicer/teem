@@ -262,7 +262,7 @@ _nrrdCenterDesc[NRRD_CENTER_MAX+1] = {
   "samples are at centers of elements along axis",
 };
 
-airEnum
+static const airEnum
 _nrrdCenter_enum = {
   "centering",
   NRRD_CENTER_MAX,
@@ -474,7 +474,7 @@ _nrrdKindVal_Eqv[] = {
         nrrdKind3DMaskedMatrix,
 };
 
-airEnum
+static const airEnum
 _nrrdKind_enum = {
   "kind",
   NRRD_KIND_MAX,
@@ -639,7 +639,7 @@ _nrrdFieldValEqv[] = {
   nrrdField_data_file, nrrdField_data_file,
 };
 
-airEnum
+static const airEnum
 _nrrdField = {
   "nrrd_field",
   NRRD_FIELD_MAX,
@@ -753,7 +753,7 @@ _nrrdSpaceValEqv[] = {
      nrrdSpace3DLeftHandedTime
 };
 
-airEnum
+static const airEnum
 _nrrdSpace = {
   "space",
   NRRD_SPACE_MAX,
@@ -785,7 +785,7 @@ _nrrdSpacingStatusDesc[NRRD_BOUNDARY_MAX+1] = {
   "axis->spaceDirection set normally",
 };
 
-airEnum
+static const airEnum
 _nrrdSpacingStatus = {
   "spacing status",
   NRRD_SPACING_STATUS_MAX,
@@ -821,7 +821,7 @@ _nrrdBoundaryDesc[NRRD_BOUNDARY_MAX+1] = {
   "mirror folding"
 };
 
-airEnum
+static const airEnum
 _nrrdBoundary = {
   "boundary behavior",
   NRRD_BOUNDARY_MAX,
@@ -971,7 +971,7 @@ _nrrdMeasureValEqv[] = {
   nrrdMeasureHistoSD,
 };
 
-airEnum
+static const airEnum
 _nrrdMeasure = {
   "measure",
   NRRD_MEASURE_MAX,
@@ -1155,7 +1155,7 @@ _nrrdUnaryOpValEqv[] = {
   nuOne, nuOne
 };
 
-airEnum
+static const airEnum
 _nrrdUnaryOp_enum = {
   "unary op",
   NRRD_UNARY_OP_MAX,
@@ -1297,7 +1297,7 @@ _nrrdBinaryOpValEqv[] = {
   nrrdBinaryOpRicianRand,
 };
 
-airEnum
+static const airEnum
 _nrrdBinaryOp_enum = {
   "binary op",
   NRRD_BINARY_OP_MAX,
@@ -1397,7 +1397,7 @@ _nrrdTernaryOpValEqv[] = {
   nrrdTernaryOpRician,
 };
 
-airEnum
+static const airEnum
 _nrrdTernaryOp_enum = {
   "ternary op",
   NRRD_TERNARY_OP_MAX,
@@ -1446,7 +1446,7 @@ _nrrdFFTWPlanRigorValEqv[] = {
   nrrdFFTWPlanRigorExhaustive, nrrdFFTWPlanRigorExhaustive, nrrdFFTWPlanRigorExhaustive
 };
 
-airEnum
+static const airEnum
 _nrrdFFTWPlanRigor_enum = {
   "fftw plan rigor",
   NRRD_FFTW_PLAN_RIGOR_MAX,
@@ -1491,7 +1491,7 @@ _nrrdResampleNonExistentValEqv[] = {
   nrrdResampleNonExistentWeight, nrrdResampleNonExistentWeight
 };
 
-airEnum
+static const airEnum
 _nrrdResampleNonExistent_enum = {
   "resample non-existent",
   NRRD_RESAMPLE_NON_EXISTENT_MAX,

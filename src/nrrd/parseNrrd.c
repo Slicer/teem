@@ -662,7 +662,7 @@ _nrrdReadNrrdParse_kinds(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-char *
+static char *
 _nrrdGetQuotedString(char **hP, int useBiff) {
   static const char me[]="_nrrdGetQuotedString";
   char *h, *buff, *ret;

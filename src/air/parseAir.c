@@ -57,7 +57,7 @@ _airBoolValEqv[] = {
   AIR_TRUE, AIR_TRUE, AIR_TRUE, AIR_TRUE, AIR_TRUE, AIR_TRUE, AIR_TRUE
 };
 
-const airEnum
+static const airEnum
 _airBool = {
   "boolean",
   2,

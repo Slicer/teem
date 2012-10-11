@@ -29,20 +29,20 @@
 #define MAGIC_P3 "P3"
 #define MAGIC_P2 "P2"
 
-int
+static int
 _nrrdFormatPNM_available(void) {
   
   return AIR_TRUE;
 }
 
-int
+static int
 _nrrdFormatPNM_nameLooksLike(const char *filename) {
   
   return (airEndsWith(filename, NRRD_EXT_PGM)
           || airEndsWith(filename, NRRD_EXT_PPM));
 }
 
-int
+static int
 _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
   static const char me[]="_nrrdFormatPNM_fitsInto";
@@ -99,7 +99,7 @@ _nrrdFormatPNM_contentStartsLike(NrrdIoState *nio) {
           || !strcmp(MAGIC_P2, nio->line));
 }
 
-int
+static int
 _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatPNM_read";
   const char *fs;
@@ -285,7 +285,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   return 0;
 }
 
-int
+static int
 _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatPNM_write";
   int color, sx, sy, magic, fi;

@@ -24,13 +24,13 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-int
+static int
 _nrrdFormatText_available(void) {
   
   return AIR_TRUE;
 }
 
-int
+static int
 _nrrdFormatText_nameLooksLike(const char *fname) {
   
   return (airEndsWith(fname, NRRD_EXT_TEXT)
@@ -38,7 +38,7 @@ _nrrdFormatText_nameLooksLike(const char *fname) {
           || airEndsWith(fname, ".ascii"));
 }
 
-int
+static int
 _nrrdFormatText_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                          int useBiff) {
   static const char me[]="_nrrdFormatText_fitsInto";
@@ -58,7 +58,7 @@ _nrrdFormatText_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   return AIR_TRUE;
 }
 
-int
+static int
 _nrrdFormatText_contentStartsLike(NrrdIoState *nio) {
   float oneFloat;
 
@@ -66,7 +66,7 @@ _nrrdFormatText_contentStartsLike(NrrdIoState *nio) {
           || airParseStrF(&oneFloat, nio->line, _nrrdTextSep, 1));
 }
 
-int
+static int
 _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatText_read";
   const char *fs;
@@ -276,7 +276,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   return 0;
 }
 
-int
+static int
 _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   char cmt[AIR_STRLEN_SMALL], buff[AIR_STRLEN_SMALL];
   size_t I;

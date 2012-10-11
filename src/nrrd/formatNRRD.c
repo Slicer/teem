@@ -313,20 +313,20 @@ _nrrdFormatNRRD_whichVersion(const Nrrd *nrrd, NrrdIoState *nio) {
   return ret;
 }
 
-int
+static int
 _nrrdFormatNRRD_available(void) {
   
   return AIR_TRUE;
 }
 
-int
+static int
 _nrrdFormatNRRD_nameLooksLike(const char *filename) {
   
   return (airEndsWith(filename, NRRD_EXT_NRRD)
           || airEndsWith(filename, NRRD_EXT_NHDR));
 }
 
-int
+static int
 _nrrdFormatNRRD_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                          int useBiff) {
   static const char me[]="_nrrdFormatNRRD_fitsInto";
@@ -341,7 +341,7 @@ _nrrdFormatNRRD_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   return AIR_TRUE;
 }
 
-int
+static int
 _nrrdFormatNRRD_contentStartsLike(NrrdIoState *nio) {
   
   return (!strcmp(MAGIC0, nio->line)
@@ -419,7 +419,7 @@ _nrrdHeaderCheck(Nrrd *nrrd, NrrdIoState *nio, int checkSeen) {
 ** NOTE: by giving a NULL "file", you can make this function basically
 ** do the work of reading in datafiles, without any header parsing 
 */
-int
+static int
 _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatNRRD_read";
   /* Dynamically allocated for space reasons. */
@@ -584,7 +584,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   return 0;
 }
 
-int
+static int
 _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatNRRD_write"; 
   char strbuf[AIR_STRLEN_MED], *strptr, *tmp;

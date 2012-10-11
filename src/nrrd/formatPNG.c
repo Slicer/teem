@@ -31,7 +31,7 @@
 
 #define MAGIC "\211PNG"
 
-int
+static int
 _nrrdFormatPNG_available(void) {
   
 #if TEEM_PNG
@@ -41,13 +41,13 @@ _nrrdFormatPNG_available(void) {
 #endif
 }
 
-int
+static int
 _nrrdFormatPNG_nameLooksLike(const char *filename) {
   
   return airEndsWith(filename, NRRD_EXT_PNG);
 }
 
-int
+static int
 _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
   static const char me[]="_nrrdFormatPNG_fitsInto";
@@ -106,14 +106,14 @@ _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 #endif   /* ------------------------------------------- */
 }
 
-int
+static int
 _nrrdFormatPNG_contentStartsLike(NrrdIoState *nio) {
 
   return !strcmp(MAGIC, nio->line);
 }
 
 #if TEEM_PNG
-void
+static void
 _nrrdErrorHandlerPNG (png_structp png, png_const_charp message)
 {
   static const char me[]="_nrrdErrorHandlerPNG";
@@ -123,7 +123,7 @@ _nrrdErrorHandlerPNG (png_structp png, png_const_charp message)
   longjmp(png_jmpbuf(png), 1);
 }
 
-void
+static void
 _nrrdWarningHandlerPNG (png_structp png, png_const_charp message)
 {
   static const char me[]="_nrrdWarningHandlerPNG";
@@ -160,7 +160,7 @@ _nrrdFlushDataPNG (png_structp png)
 #endif /* _WIN32 */
 #endif /* TEEM_PNG */
 
-int
+static int
 _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatPNG_read";
 #if TEEM_PNG
@@ -387,7 +387,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 #endif
 }
 
-int
+static int
 _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatPNG_write";
 #if TEEM_PNG

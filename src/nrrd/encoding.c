@@ -42,7 +42,7 @@
 ** any new encodings being developed.
 */
 
-int
+static int
 _nrrdEncodingUnknown_available(void) {
 
   /* insert code here */
@@ -50,7 +50,7 @@ _nrrdEncodingUnknown_available(void) {
   return AIR_FALSE;
 }
 
-int
+static int
 _nrrdEncodingUnknown_read(FILE *file, void *data,
                           size_t elementNum, Nrrd *nrrd,
                           struct NrrdIoState_t *nio) {
@@ -67,7 +67,7 @@ _nrrdEncodingUnknown_read(FILE *file, void *data,
   return 1;
 }
 
-int
+static int
 _nrrdEncodingUnknown_write(FILE *file, const void *data,
                            size_t elementNum, const Nrrd *nrrd,
                            struct NrrdIoState_t *nio) {

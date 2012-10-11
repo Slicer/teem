@@ -26,13 +26,13 @@
 
 static FILE *_fileSave = NULL;
 
-int
+static int
 _nrrdEncodingAscii_available(void) {
 
   return AIR_TRUE;
 }
 
-int
+static int
 _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
                         Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingAscii_read";
@@ -108,7 +108,7 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
   return 0;
 }
 
-int
+static int
 _nrrdEncodingAscii_write(FILE *file, const void *_data, size_t elNum,
                          const Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingAscii_write";

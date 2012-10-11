@@ -24,20 +24,20 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-int
+static int
 _nrrdFormatEPS_available(void) {
 
   /* but only for writing ... */
   return AIR_TRUE;
 }
 
-int
+static int
 _nrrdFormatEPS_nameLooksLike(const char *filename) {
   
   return airEndsWith(filename, NRRD_EXT_EPS);
 }
 
-int
+static int
 _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
   static const char me[]="_nrrdFormatEPS_fitsInto";
@@ -85,7 +85,7 @@ _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   return ret;
 }
 
-int
+static int
 _nrrdFormatEPS_contentStartsLike(NrrdIoState *nio) {
 
   AIR_UNUSED(nio);
@@ -93,7 +93,7 @@ _nrrdFormatEPS_contentStartsLike(NrrdIoState *nio) {
   return AIR_FALSE;
 }
 
-int
+static int
 _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatEPS_read";
 
@@ -104,7 +104,7 @@ _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   return 1;
 }
 
-int
+static int
 _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatEPS_write";
   int color, cmyk, sx, sy;

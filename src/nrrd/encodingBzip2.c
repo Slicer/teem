@@ -28,7 +28,7 @@
 #include <bzlib.h>
 #endif
 
-int
+static int
 _nrrdEncodingBzip2_available(void) {
 
 #if TEEM_BZIP2
@@ -38,7 +38,7 @@ _nrrdEncodingBzip2_available(void) {
 #endif
 }
 
-int
+static int
 _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
                         Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingBzip2_read";
@@ -141,7 +141,7 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
 #endif
 }
 
-int
+static int
 _nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum,
                          const Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingBzip2_write";
