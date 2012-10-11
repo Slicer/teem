@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-/* 
+/*
 ** This private header exists because these functions are used in
 ** the biff sources, but no where else.  Also, they take a va_list,
 ** which is unusual, and (currently) used for no other public functions
