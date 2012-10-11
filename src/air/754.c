@@ -440,7 +440,7 @@ airFPClass_f(float val) {
 int
 airFPClass_d(double val) {
   _airDoubleEndianLittle dlit;
-  _airDoubleEndianLittle dbig;
+  _airDoubleEndianBig dbig;
   unsigned int sign, expo, mant0, mant1;
   int indexv, ret=0;
   unsigned char hibit;
