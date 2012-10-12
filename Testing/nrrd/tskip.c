@@ -25,6 +25,11 @@
 
 #define BKEY "tskip"
 
+#if defined(WIN32) || defined(_WIN32)
+#  define COMMIT "c"
+#else
+#  define COMMIT ""
+#endif
 
 /* 
 ** Tests: 
@@ -32,12 +37,12 @@
 ** with nrrdEncodingRaw
 */
 
-static const char *tskipInfo = "for skipping in nrrd data";
+static const char *tskipInfo = "for testing byte skipping in nrrd files";
 
 int
 main(int argc, const char **argv) {
   /* stock variables */
-  const char *me;
+  char me[] = BKEY;
   hestOpt *hopt=NULL;
   hestParm *hparm;
   airArray *mop;
@@ -57,7 +62,6 @@ main(int argc, const char **argv) {
   mop = airMopNew();
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
-  me = argv[0];
   /* learn things from hest */
   hestOptAdd(&hopt, "seed", "N", airTypeUInt, 1, 1, &seed, "42",
              "seed for RNG");
@@ -87,7 +91,7 @@ main(int argc, const char **argv) {
   airMopAdd(mop, rng, (airMopper)airRandMTStateNix, airMopAlways);
   nn = nrrdElementNumber(nref);
   rdata = AIR_CAST(unsigned int *, nref->data);
-  printf("generating data: . . .       "); fflush(stdout);
+  fprintf(stderr, "generating data: . . .       "); fflush(stderr);
   time0 = airTime();
   progress = AIR_FALSE;
   tick = nn/100;
@@ -101,49 +105,53 @@ main(int argc, const char **argv) {
         progress = AIR_TRUE;
       }
       if (progress) {
-        printf("%s", airDoneStr(0, ii, nn, doneStr)); fflush(stdout);
+        fprintf(stderr, "%s", airDoneStr(0, ii, nn, doneStr)); fflush(stderr);
       }
     }
   }
   if (progress) {
-    printf("%s\n", airDoneStr(0, ii, nn, doneStr)); fflush(stdout);
+    fprintf(stderr, "%s\n", airDoneStr(0, ii, nn, doneStr)); fflush(stderr);
   } else {
-    printf("\n");
+    fprintf(stderr, "\n");
   }
-  printf("finding reference (big-endian) CRC: "); fflush(stdout);
+  fprintf(stderr, "finding reference (big-endian) CRC: "); fflush(stderr);
   refCRC = nrrdCRC32(nref, airEndianBig);
-  printf("%u\n", refCRC);
+  fprintf(stderr, "%u\n", refCRC);
 
   /* write data, with padding */
-  printf("saving data . . . "); fflush(stdout);
-  if (!(fout = fopen(outS[0], "wb"))) {
-    fprintf(stderr, "%s: couldn't open %s for writing: %s\n", me,
+  fprintf(stderr, "saving data . . . "); fflush(stderr);
+  if (!(fout = fopen(outS[0], "wb" COMMIT))) {
+    fprintf(stderr, "\n%s: couldn't open %s for writing: %s\n", me,
             outS[0], strerror(errno));
     airMopError(mop); return 1;
   }
   airMopAdd(mop, fout, (airMopper)airFclose, airMopAlways);
   for (ii=0; ii<pad[0]; ii++) {
     if (EOF == fputc(1, fout)) {
-      fprintf(stderr, "%s: error doing pre-padding\n", me);
+      fprintf(stderr, "\n%s: error doing pre-padding\n", me);
       airMopError(mop); return 1;
     }
   }
   if (nn != fwrite(nref->data, nrrdElementSize(nref), nn, fout)) {
-    fprintf(stderr, "%s: error writing data\n", me);
+    fprintf(stderr, "\n%s: error writing data\n", me);
     airMopError(mop); return 1;
   }
   for (ii=0; ii<pad[1]; ii++) {
     if (EOF == fputc(2, fout)) {
-      fprintf(stderr, "%s: error doing post-padding\n", me);
+      fprintf(stderr, "\n%s: error doing post-padding\n", me);
       airMopError(mop); return 1;
     }
   }
+  if (EOF == fflush(fout)) {
+    fprintf(stderr, "\n%s: error fflushing data: %s\n", me,
+            strerror(errno));
+  }
   airMopSingleOkay(mop, fout);
   airMopSingleOkay(mop, nref); nref = NULL;
-  printf("\n");
+  fprintf(stderr, "\n");
 
   /* write header; for now just writing the header directly */
-  printf("writing header . . . \n");
+  fprintf(stderr, "writing header . . . \n");
   if (!(fout = fopen(outS[1], "w"))) {
     fprintf(stderr, "%s: couldn't open %s for writing: %s\n", me,
             outS[1], strerror(errno));
@@ -172,7 +180,7 @@ main(int argc, const char **argv) {
   airMopSingleOkay(mop, fout);
   
   /* read it in, make sure it checks out */
-  printf("reading data . . . \n");
+  fprintf(stderr, "reading data . . . \n");
   nin = nrrdNew();
   airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdLoad(nin, outS[1], NULL)) {
@@ -180,13 +188,13 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: error reading back in: %s\n", me, berr);
     airMopError(mop); return 1;
   }
-  printf("finding new CRC . . . \n");
+  fprintf(stderr, "finding new CRC . . . \n");
   gotCRC = nrrdCRC32(nin, airEndianBig);
   if (refCRC != gotCRC) {
     fprintf(stderr, "%s: got CRC %u but wanted %u\n", me, gotCRC, refCRC);
     airMopError(mop); return 1;
   }
-  printf("(all ok)\n");
+  fprintf(stderr, "(all ok)\n");
 
   /* HEY: to test gzip reading, we really want to do a system call to
      gzip compress the data, and write a new header to point to the
