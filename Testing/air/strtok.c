@@ -41,7 +41,7 @@ main(int argc, const char *argv[]) {
   const char *me;
   const char *word[] = {
     "There's", "a", "certain", "slant", "of", "light",
-    "On", "winter", "afternoons",	
+    "On", "winter", "afternoons",
     "That", "oppresses,", "like", "the", "weight",
     "Of", "cathedral", "tunes.",
     "Heavenly", "hurt", "it", "gives", "us;",

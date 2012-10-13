@@ -918,7 +918,7 @@ crcTable[] = {
 };
 
 /* note "c" is used once */
-#define	CRC32(crc, c) (crc) = (((crc) << 8) ^ crcTable[((crc) >> 24) ^ (c)])
+#define CRC32(crc, c) (crc) = (((crc) << 8) ^ crcTable[((crc) >> 24) ^ (c)])
 
 unsigned int
 airCRC32(const unsigned char *cdata, size_t len, size_t unit, int swap) {
