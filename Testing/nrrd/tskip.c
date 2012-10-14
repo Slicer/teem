@@ -58,7 +58,6 @@ main(int argc, const char **argv) {
   FILE *fout;
 
   /* start-up */
-  AIR_UNUSED(argc);
   mop = airMopNew();
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
