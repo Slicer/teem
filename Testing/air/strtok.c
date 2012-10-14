@@ -63,7 +63,7 @@ main(int argc, const char *argv[]) {
 
   AIR_UNUSED(argc);
   me = argv[0];
-  sepLen = airStrlen(sep);
+  sepLen = AIR_CAST(unsigned int, airStrlen(sep));
 
   mop = airMopNew();
   lineArr = airArrayNew((void**)(&line), &lineLen, sizeof(char), INCR);
@@ -76,7 +76,7 @@ main(int argc, const char *argv[]) {
   /* add words and separators onto line */
   for (wi=0; airStrlen(word[wi]); wi++) {
     sprintf(wordsp, "%s%c", word[wi], sep[AIR_MOD(wi, sepLen)]);
-    airArrayLenIncr(lineArr, airStrlen(wordsp));
+    airArrayLenIncr(lineArr, AIR_CAST(int, airStrlen(wordsp)));
     strcat(line, wordsp);
   }
 
