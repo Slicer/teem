@@ -433,6 +433,7 @@ engageMopDiceDwi(gageContext *gctx, Nrrd ***ndwiCompP,
 }
 
 typedef struct {
+  char name[AIR_STRLEN_SMALL];
   const double **aptr; /* array of pointers to (const) answers */
   gageItemSpec *ispec; /* array of gageItemSpecs (not pointers to them) */
   unsigned int *alen;  /* array of answer lengths */
@@ -443,10 +444,11 @@ typedef struct {
 } multiAnswer;
 
 static multiAnswer*
-multiAnswerNew(void) {
+multiAnswerNew(char *name) {
   multiAnswer *man;
   
   man = AIR_CALLOC(1, multiAnswer);
+  airStrcpy(man->name, AIR_STRLEN_SMALL, name);
   man->aptr = NULL;
   man->ispec = NULL;
   man->alen = NULL;
@@ -459,7 +461,12 @@ multiAnswerNew(void) {
 
 void
 multiAnswerLenSet(multiAnswer *man, unsigned int anum) {
+  /*
+  static const char me[]="multiAnswerLenSet";
   
+  fprintf(stderr, "!%s: %s hello -> answer number = %u\n", me,
+          man->name, anum);
+  */
   man->aptr = AIR_CALLOC(anum, const double *);
   man->ispec = AIR_CALLOC(anum, gageItemSpec);
   man->alen = AIR_CALLOC(anum, unsigned int);
@@ -474,7 +481,7 @@ multiAnswerLenSet(multiAnswer *man, unsigned int anum) {
 static multiAnswer*
 multiAnswerNix(multiAnswer *man) {
   
-  airFree(man->aptr);
+  airFree(AIR_VOIDP(man->aptr));
   airFree(man->ispec);
   airFree(man->alen);
   airFree(man->sidx);
@@ -487,7 +494,11 @@ static void
 multiAnswerAdd(multiAnswer *man, unsigned int ansIdx, 
                const gageContext *gctx, const gagePerVolume *pvl,
                unsigned int item) {
+  /*
+  static const char me[]="multiAnswerAdd";
 
+  fprintf(stderr, "!%s: %s hello (aidx = %u)\n", me, man->name, ansIdx);
+  */
   man->aptr[ansIdx] = gageAnswerPointer(gctx, pvl, item);
   man->ispec[ansIdx].kind = pvl->kind;
   man->ispec[ansIdx].item = item;
@@ -497,6 +508,7 @@ multiAnswerAdd(multiAnswer *man, unsigned int ansIdx,
   man->slen = 0;
   if (ansIdx == man->anum-1) {
     unsigned int ai;
+    /* fprintf(stderr, "!%s: %s hello aidx reached anum-1 = %u\n", me, man->name, man->anum-1); */
     for (ai=0; ai<man->anum; ai++) {
       man->sidx[ai] = man->slen;
       man->slen += man->alen[ai];
@@ -513,8 +525,19 @@ multiAnswerAdd(multiAnswer *man, unsigned int ansIdx,
 static void
 multiAnswerCollect(multiAnswer *man) {
   unsigned int ai;
+  /*
+  static const char me[]="multiAnswerCollect";
 
+  fprintf(stderr, "%s: %s hi\n", me, man->name);
+  */
   for (ai=0; ai<man->anum; ai++) {
+    /*
+    fprintf(stderr, "!%s: (%s/%s) ai=%u/%u  to %p+%u=%p for %u doubles\n", "multiAnswerCollect",
+            man->ispec[ai].kind->name, 
+            airEnumStr(man->ispec[ai].kind->enm, man->ispec[ai].item),
+            ai, man->anum, man->san, man->sidx[ai], man->san + man->sidx[ai],
+            man->alen[ai]);
+    */
     memcpy(man->san + man->sidx[ai],
            man->aptr[ai],
            man->alen[ai]*sizeof(double));
@@ -525,14 +548,20 @@ multiAnswerCollect(multiAnswer *man) {
 static int 
 multiAnswerCompare(multiAnswer *man1, multiAnswer *man2) {
   static const char me[]="multiAnswerCompare";
-  unsigned int si;
+  unsigned int si, slen;
 
+
+#if 1
   if (man1->slen != man2->slen) {
-    biffAddf("%s: man1->slen %u != man2->slen %u", me, 
+    biffAddf(BKEY, "%s: man1->slen %u != man2->slen %u\n", me, 
              man1->slen, man2->slen);
     return 1;
   }
-  for (si=0; si<man1->slen; si++) {
+  slen = man1->slen;
+#else
+  slen = AIR_MIN(man1->slen, man2->slen);
+#endif
+  for (si=0; si<slen; si++) {
     if (man1->san[si] != man2->san[si]) {
       /* HEY should track down which part of which answer,
          in man1 and man2, is different, which was the 
@@ -640,23 +669,40 @@ updateQueryKernelSetTask1(gageContext *gctxComp[KIND_NUM],
   }
   for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
     unsigned int pvi;
-    /* to get started, just comparing (scalar) components */
-    multiAnswerLenSet(manComp[kindIdx], gctxComp[kindIdx]->pvlNum);
+    multiAnswerLenSet(manComp[kindIdx], (KI_DWI != kindIdx ? 3 : 1)*gctxComp[kindIdx]->pvlNum);
     for (pvi=0; pvi<gctxComp[kindIdx]->pvlNum; pvi++) {
       multiAnswerAdd(manComp[kindIdx], pvi, 
                      gctxComp[kindIdx], gctxComp[kindIdx]->pvl[pvi],
                      gageSclValue);
     }
-    multiAnswerLenSet(man[kindIdx], 1);
+    if (KI_DWI != kindIdx) {
+      for (pvi=0; pvi<gctxComp[kindIdx]->pvlNum; pvi++) {
+        multiAnswerAdd(manComp[kindIdx], pvi + gctxComp[kindIdx]->pvlNum, 
+                       gctxComp[kindIdx], gctxComp[kindIdx]->pvl[pvi],
+                       gageSclGradVec);
+      }
+      for (pvi=0; pvi<gctxComp[kindIdx]->pvlNum; pvi++) {
+        multiAnswerAdd(manComp[kindIdx], pvi + 2*gctxComp[kindIdx]->pvlNum, 
+                       gctxComp[kindIdx], gctxComp[kindIdx]->pvl[pvi],
+                       gageSclHessian);
+      }
+    }
+    multiAnswerLenSet(man[kindIdx], KI_DWI != kindIdx ? 3 : 1);
     switch(kindIdx) {
     case KI_SCL:
       multiAnswerAdd(man[kindIdx], 0, gctx[kindIdx], gctx[kindIdx]->pvl[0], gageSclValue);
+      multiAnswerAdd(man[kindIdx], 1, gctx[kindIdx], gctx[kindIdx]->pvl[0], gageSclGradVec);
+      multiAnswerAdd(man[kindIdx], 2, gctx[kindIdx], gctx[kindIdx]->pvl[0], gageSclHessian);
       break;
     case KI_VEC:
       multiAnswerAdd(man[kindIdx], 0, gctx[kindIdx], gctx[kindIdx]->pvl[0], gageVecVector);
+      multiAnswerAdd(man[kindIdx], 1, gctx[kindIdx], gctx[kindIdx]->pvl[0], gageVecJacobian);
+      multiAnswerAdd(man[kindIdx], 2, gctx[kindIdx], gctx[kindIdx]->pvl[0], gageVecHessian);
       break;
     case KI_TEN:
       multiAnswerAdd(man[kindIdx], 0, gctx[kindIdx], gctx[kindIdx]->pvl[0], tenGageTensor);
+      multiAnswerAdd(man[kindIdx], 1, gctx[kindIdx], gctx[kindIdx]->pvl[0], tenGageTensorGrad);
+      multiAnswerAdd(man[kindIdx], 2, gctx[kindIdx], gctx[kindIdx]->pvl[0], tenGageHessian);
       break;
     case KI_DWI:
       multiAnswerAdd(man[kindIdx], 0, gctx[kindIdx], gctx[kindIdx]->pvl[0], tenDwiGageAll);
@@ -726,6 +772,8 @@ main(int argc, const char **argv) {
   const gageKind *kind[KIND_NUM] = {
     /*    0            1           2         3          */
     gageKindScl, gageKindVec, tenGageKind, NULL /* dwi */};
+  char name[KIND_NUM][AIR_STRLEN_SMALL] = { "scl", "vec", "ten", "dwi" };
+  char nameComp[KIND_NUM][AIR_STRLEN_SMALL] = { "sclComp", "vecComp", "tenComp", "dwiComp" };
   gageKind *dwikind = NULL;
   gageContext *gctxComp[KIND_NUM], *gctx[KIND_NUM];
   multiAnswer *manComp[KIND_NUM], *man[KIND_NUM];
@@ -777,8 +825,8 @@ main(int argc, const char **argv) {
   for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
     GAGE_CTX_NEW(gctx[kindIdx], mop);
     GAGE_CTX_NEW(gctxComp[kindIdx], mop);
-    man[kindIdx] = multiAnswerNew();
-    manComp[kindIdx] = multiAnswerNew();
+    man[kindIdx] = multiAnswerNew(name[kindIdx]);
+    manComp[kindIdx] = multiAnswerNew(nameComp[kindIdx]);
     airMopAdd(mop, man[kindIdx], (airMopper)multiAnswerNix, airMopAlways);
     airMopAdd(mop, manComp[kindIdx], (airMopper)multiAnswerNix, airMopAlways);
   }
