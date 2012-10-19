@@ -140,22 +140,22 @@ static void
 _nrrdReadDataPNG (png_structp png, png_bytep data, png_size_t len)
 {
   png_size_t read;
-  read = (png_size_t)fread(data, (png_size_t)1, len, (FILE*)png->io_ptr);
+  read = (png_size_t)fread(data, (png_size_t)1, len, (FILE*)png_get_io_ptr(png));
   if (read != len) png_error(png, "file read error");
 }
 static void
 _nrrdWriteDataPNG (png_structp png, png_bytep data, png_size_t len)
 {
   png_size_t written;
-  written = fwrite(data, 1, len, (FILE*)(png->io_ptr));
+  written = fwrite(data, 1, len, (FILE*)png_get_io_ptr(png));
   if (written != len) png_error(png, "file write error");
 }
 
 static void
 _nrrdFlushDataPNG (png_structp png)
 {
-   FILE *io_ptr = (FILE*)(png->io_ptr);
-   if (io_ptr != NULL) fflush(io_ptr);
+  FILE *io_ptr = png_get_io_ptr(png);
+  if (io_ptr != NULL) fflush(io_ptr);
 }
 #endif /* _WIN32 */
 #endif /* TEEM_PNG */
