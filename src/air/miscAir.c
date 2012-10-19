@@ -105,7 +105,7 @@ airFopen(const char *name, FILE *std, const char *mode) {
 
   if (!strcmp(name, "-")) {
     ret = std;
-#ifdef _MSC_VER
+#ifdef _WIN32
     if (strchr(mode, 'b')) {
       _setmode(_fileno(ret), _O_BINARY);
     }
