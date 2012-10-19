@@ -32,6 +32,11 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#ifdef _WIN32
+#include <io.h>
+#include <fcntl.h>
+#endif
+
 
 int
 enhexColumns = 70;  /* number of characters per line */
