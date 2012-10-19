@@ -313,7 +313,7 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
               me, (int)ftell(dataFile));
     }
   } else {
-    if (-1==fseek(dataFile, nio->byteSkip, SEEK_CUR)) {
+    if ((stdin == dataFile) || (-1==fseek(dataFile, nio->byteSkip, SEEK_CUR))) {
       long skipi;
       /* fseek failed, perhaps because we're reading stdin, so
          we revert to consuming the input one byte at a time */
