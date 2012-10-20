@@ -37,7 +37,7 @@
 /* ---- END non-NrrdIO */
 
 /*
-******** TEEM_VERSION 
+******** TEEM_VERSION
 **
 ** TEEM_VERSION is a single (decimal) number that will always increase
 ** monotically, and the _MAJOR, _MINOR, _PATCH are also numbers that
@@ -163,7 +163,7 @@ typedef struct {
                 * "val" non-NULL: unknown/invalid = val[0];
                 *                 valid are val[1].. val[M]
                 */
-  const char **str; 
+  const char **str;
                /* see above */
   const int *val;
                /* see above */
@@ -171,7 +171,7 @@ typedef struct {
                /* desc[i] is a short description of the enum values represented
                   by str[i] (thereby starting with the unknown value), to be
                   used to by things like hest */
-  const char **strEqv;  
+  const char **strEqv;
                /* If non-NULL, all the variations in strings recognized in
                   mapping from string to value (the values in valEqv).
                   This **MUST** be terminated by a zero-length string ("") so
@@ -232,7 +232,7 @@ typedef struct {
                          allocated: when the length reaches a multiple of
                          "incr", then the array is resized */
     size;             /* array is allocated to have "size" increments, or,
-                         size*incr elements, or, 
+                         size*incr elements, or,
                          size*incr*unit bytes */
   size_t unit;        /* the size in bytes of one element in the array */
   int noReallocWhenSmaller;  /* as it says */
@@ -322,7 +322,7 @@ AIR_EXPORT const int airThreadCapable;
 ** no-ops. When this variable is non-zero, we fprintf(stderr) a
 ** warning to this effect when those constructs are used
 */
-AIR_EXPORT int airThreadNoopWarning; 
+AIR_EXPORT int airThreadNoopWarning;
 
 /* opaque typedefs for OS-specific stuff */
 typedef struct _airThread airThread;
@@ -335,7 +335,7 @@ typedef struct {
 } airThreadBarrier;
 
 AIR_EXPORT airThread *airThreadNew(void);
-AIR_EXPORT int airThreadStart(airThread *thread, 
+AIR_EXPORT int airThreadStart(airThread *thread,
                               void *(*threadBody)(void *), void *arg);
 AIR_EXPORT int airThreadJoin(airThread *thread, void **retP);
 AIR_EXPORT airThread *airThreadNix(airThread *thread);
@@ -366,7 +366,7 @@ AIR_EXPORT airThreadBarrier *airThreadBarrierNix(airThreadBarrier *barrier);
 ** The values probably won't agree with those in #include's like
 ** ieee.h, ieeefp.h, fp_class.h.  This is because IEEE 754 hasn't
 ** defined standard values for these, so everyone does it differently.
-** 
+**
 ** This enum uses underscores (against Teem convention) to help
 ** legibility while also conforming to the spirit of the somewhat
 ** standard naming conventions
@@ -395,17 +395,17 @@ typedef union {
   double d;
 } airDouble;
 AIR_EXPORT const int airMyQNaNHiBit;
-AIR_EXPORT float airFPPartsToVal_f(unsigned int sign, 
-                                   unsigned int expo, 
+AIR_EXPORT float airFPPartsToVal_f(unsigned int sign,
+                                   unsigned int expo,
                                    unsigned int mant);
-AIR_EXPORT void airFPValToParts_f(unsigned int *signP, 
-                                  unsigned int *expoP, 
+AIR_EXPORT void airFPValToParts_f(unsigned int *signP,
+                                  unsigned int *expoP,
                                   unsigned int *mantP, float v);
-AIR_EXPORT double airFPPartsToVal_d(unsigned int sign, 
+AIR_EXPORT double airFPPartsToVal_d(unsigned int sign,
                                     unsigned int expo,
                                     unsigned int mant0,
                                     unsigned int mant1);
-AIR_EXPORT void airFPValToParts_d(unsigned int *signP, 
+AIR_EXPORT void airFPValToParts_d(unsigned int *signP,
                                   unsigned int *expoP,
                                   unsigned int *mant0P,
                                   unsigned int *mant1P,
@@ -482,7 +482,7 @@ AIR_EXPORT double airAtod(const char *str);
 AIR_EXPORT int airSingleSscanf(const char *str, const char *fmt, void *ptr);
 AIR_EXPORT const airEnum *const airBool;
 AIR_EXPORT unsigned int airParseStrB(int *out, const char *s,
-                                     const char *ct, unsigned int n, 
+                                     const char *ct, unsigned int n,
                                      ... /* (nothing used) */);
 AIR_EXPORT unsigned int airParseStrI(int *out, const char *s,
                                      const char *ct, unsigned int n,
@@ -506,7 +506,7 @@ AIR_EXPORT unsigned int airParseStrS(char **out, const char *s,
                                      const char *ct, unsigned int n,
                                      ... /* REQ'D even if n>1: int greedy */);
 AIR_EXPORT unsigned int airParseStrE(int *out, const char *s,
-                                     const char *ct, unsigned int n, 
+                                     const char *ct, unsigned int n,
                                      ... /* REQUIRED: airEnum *e */);
 AIR_EXPORT unsigned int (*airParseStr[AIR_TYPE_MAX+1])(void *, const char *,
                                                        const char *,
@@ -533,7 +533,7 @@ AIR_EXPORT unsigned int airOneLine(FILE *file, char *line, unsigned int size);
 /* sane.c */
 /*
 ******** airInsane enum
-** 
+**
 ** reasons for why airSanity() failed (specifically, the possible
 ** return values for airSanity()
 */
@@ -637,7 +637,7 @@ AIR_EXPORT unsigned int airCRC32(const unsigned char *data, size_t len,
 /*
 ******** airNoDio enum
 **
-** reasons for why direct I/O won't be used with a particular 
+** reasons for why direct I/O won't be used with a particular
 ** file/pointer combination
 */
 enum {
@@ -756,7 +756,7 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 /*
 ******** AIR_NAN, AIR_QNAN, AIR_SNAN, AIR_POS_INF, AIR_NEG_INF
 **
-** its nice to have these values available without the cost of a 
+** its nice to have these values available without the cost of a
 ** function call.
 **
 ** NOTE: AIR_POS_INF and AIR_NEG_INF correspond to the _unique_
@@ -770,11 +770,11 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 #define AIR_POS_INF (airFloatPosInf.f)
 #define AIR_NEG_INF (airFloatNegInf.f)
 
-/* 
+/*
 ******** AIR_EXISTS
 **
 ** is non-zero (true) only for values which are not NaN or +/-infinity
-** 
+**
 ** You'd think that (x == x) might work, but no no no, some optimizing
 ** compilers (e.g. SGI's cc) say "well of course they're equal, for all
 ** possible values".  Bastards!
@@ -831,7 +831,7 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 **
 ** No cross-platform comparative timings have been done to compare the
 ** speed of !((x) - (x)) versus airExists() versus AIR_EXISTS_F()
-** 
+**
 ** This macro is endian-safe.
 */
 #define AIR_EXISTS_F(x) ((*(unsigned int*)&(x) & 0x7f800000) != 0x7f800000)
@@ -882,7 +882,7 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 **
 ** is true if the middle argument is in the open/closed interval
 ** defined by the first and third arguments
-** 
+**
 ** AIR_IN_OP is new name for old AIR_BETWEEN
 ** AIR_IN_CL is new name for old AIR_INSIDE
 */
@@ -928,11 +928,11 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 ** inside [i,I], return the value y such that y stands in the same
 ** relationship to [o,O] that x does with [i,I].  Or:
 **
-**    y - o         x - i     
+**    y - o         x - i
 **   -------   =   -------
 **    O - o         I - i
 **
-** It is the callers responsibility to make sure I-i and O-o are 
+** It is the callers responsibility to make sure I-i and O-o are
 ** both non-zero.  Strictly speaking, real problems arise only when
 ** when I-i is zero: division by zero generates either NaN or infinity
 **
@@ -950,11 +950,11 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 ** a change of x within [i,I] is proportional to a change of y within
 ** [o,O].  Or:
 **
-**      y             x     
+**      y             x
 **   -------   =   -------
 **    O - o         I - i
 **
-** It is the callers responsibility to make sure I-i and O-o are 
+** It is the callers responsibility to make sure I-i and O-o are
 ** both non-zero
 **
 ** NOTE that all arguments are evaluated only once
