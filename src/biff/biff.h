@@ -55,7 +55,7 @@ extern "C" {
 */
 typedef struct {
   char *key;                   /* string for identifying the general source
-                                  of the error message; set once, at time 
+                                  of the error message; set once, at time
                                   of biffMsg creation */
   char **err;                  /* array of error strings; the err array itself
                                   is NOT null-terminated */

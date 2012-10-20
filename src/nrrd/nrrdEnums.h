@@ -32,13 +32,13 @@ extern "C" {
 ******** NONE of these enums should have values set explicitly in their
 ******** definition.  The values should simply start at 0 (for Unknown)
 ******** and increase one integer per value.  The _nrrdCheckEnums()
-******** sanity check assumes this, and there is no reason to use 
+******** sanity check assumes this, and there is no reason to use
 ******** explicit values for any of the enums.
 *******/
 
 /*
 ******** nrrdIoState* enum
-** 
+**
 ** the various things it makes sense to get and set in nrrdIoState struct
 ** via nrrdIoStateGet and nrrdIoStateSet
 */
@@ -193,7 +193,7 @@ enum {
 ** supports bricking.  Since nrrd is never going to be in the business
 ** of manipulating the kind information or supporting kind-specific
 ** semantics, there can be proliferation of nrrdKinds, provided
-** pointless redundancy is avoided.  
+** pointless redundancy is avoided.
 **
 **  There is a relationship between some of these (nrrdKindSpace is a
 ** specific nrrdKindDomain), but currently there is no effort to
@@ -205,7 +205,7 @@ enum {
 **        axis.c: _nrrdKindAltered()
 **
 ** NOTE: The nrrdKindSize() function returns the valid size for these.
-** 
+**
 */
 enum {
   nrrdKindUnknown,
@@ -262,7 +262,7 @@ enum {
   nrrdAxisInfoThickness,              /*  3: thickness of sample region */
 #define NRRD_AXIS_INFO_THICKNESS_BIT (1<< 3)
   nrrdAxisInfoMin,                    /*  4: min pos. assoc. w/ 1st sample */
-#define NRRD_AXIS_INFO_MIN_BIT       (1<< 4) 
+#define NRRD_AXIS_INFO_MIN_BIT       (1<< 4)
   nrrdAxisInfoMax,                    /*  5: max pos. assoc. w/ last sample */
 #define NRRD_AXIS_INFO_MAX_BIT       (1<< 5)
   nrrdAxisInfoSpaceDirection,         /*  6: inter-sample vector in "space" */
@@ -318,7 +318,7 @@ enum {
 #define NRRD_BASIC_INFO_MEASUREMENTFRAME_BIT (1<<11)
   nrrdBasicInfoOldMin,                        /* 12 */
 #define NRRD_BASIC_INFO_OLDMIN_BIT           (1<<12)
-  nrrdBasicInfoOldMax,                        /* 13 */ 
+  nrrdBasicInfoOldMax,                        /* 13 */
 #define NRRD_BASIC_INFO_OLDMAX_BIT           (1<<13)
   nrrdBasicInfoComments,                      /* 14 */
 #define NRRD_BASIC_INFO_COMMENTS_BIT         (1<<14)
@@ -343,7 +343,7 @@ enum {
 ** the various fields we can parse in a NRRD header
 **
 ** other things which must be kept in sync:
-** arraysNrrd.c: 
+** arraysNrrd.c:
 **    _nrrdFieldValidInImage[]
 **    _nrrdFieldOnePerAxis[]
 **    _nrrdFieldValidInText[]
@@ -402,13 +402,13 @@ enum {
 };
 #define NRRD_FIELD_MAX            32
 
-/* 
+/*
 ******** nrrdHasNonExist* enum
 **
 ** oh look, I'm violating my rules outline above for how the enum values
 ** should be ordered.  The reason for this is that its just too bizarro to
 ** have the logical value of both nrrdHasNonExistFalse and nrrdHasNonExistTrue
-** to be (in C) true.  For instance, nrrdHasNonExist() should be able to 
+** to be (in C) true.  For instance, nrrdHasNonExist() should be able to
 ** return a value from this enum which also functions in a C expressions as
 ** the expected boolean value.  If for some reason (outide the action of
 ** nrrdHasNonExist(), nrrdHasNonExistUnknown is interpreted as true, that's
@@ -476,7 +476,7 @@ enum {
 /*
 ******** nrrdSpacingStatus* enum
 **
-** a way of describing how spacing information is known or not known for a 
+** a way of describing how spacing information is known or not known for a
 ** given axis, as determined by nrrdSpacingCalculate
 */
 enum {
@@ -490,7 +490,7 @@ enum {
                                          space info, which means the spacing
                                          does *not* live in the surrounding
                                          space */
-  nrrdSpacingStatusDirection,         /* 4: axis->spaceDirection set, and 
+  nrrdSpacingStatusDirection,         /* 4: axis->spaceDirection set, and
                                          measured according to surrounding
                                          space */
   nrrdSpacingStatusLast
@@ -542,7 +542,7 @@ enum {
   nrrdMeasureLineSlope,      /* 17: slope of line of best fit */
   nrrdMeasureLineIntercept,  /* 18: y-intercept of line of best fit */
   nrrdMeasureLineError,      /* 19: error of line fitting */
-  /* 
+  /*
   ** the nrrduMeasureHisto* measures interpret the array as a
   ** histogram of some implied value distribution
   */
@@ -574,7 +574,7 @@ enum {
      "\"histo-sum\", \"histo-variance\", \"histo-sd\": same measures, " \
      "but for situations " \
      "where we're given not the original values, but a histogram of them."
-  
+
 
 /*
 ******** nrrdBlind8BitRange
@@ -592,7 +592,7 @@ enum {
   nrrdBlind8BitRangeLast
 };
 #define NRRD_BLIND_8BIT_RANGE_MAX 3
-  
+
 /*
 ******** nrrdUnaryOp enum
 **

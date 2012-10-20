@@ -32,7 +32,7 @@ extern "C" {
 
 /* feel free to set these to higher values and recompile */
 #define NRRD_DIM_MAX 16            /* Max array dimension (nrrd->dim) */
-#define NRRD_SPACE_DIM_MAX 8       /* Max dimension of "space" around array 
+#define NRRD_SPACE_DIM_MAX 8       /* Max dimension of "space" around array
                                       (nrrd->spaceDim) */
 
 #define NRRD_EXT_NRRD   ".nrrd"
@@ -57,7 +57,7 @@ extern "C" {
                                       Enforcing one global max
                                       simplifies implementation. */
 
-/* 
+/*
 ** For the 64-bit integer types (not standard except in C99), we used
 ** to try to use the names for the _MIN and _MAX values which are used
 ** in C99 (as well as gcc) such as LLONG_MAX, or those used on SGI
