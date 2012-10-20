@@ -325,8 +325,8 @@ typedef struct NrrdIoState_t {
 
   FILE *headerFile,         /* if non-NULL, the file from which the NRRD
                                header is being read */
-    *dataFile;              /* this used to be a central part of how the 
-                               I/O code worked, but now it is simply the 
+    *dataFile;              /* this used to be a central part of how the
+                               I/O code worked, but now it is simply the
                                place to store the dataFile in the case of
                                keepNrrdDataFileOpen */
   unsigned int dataFileDim, /* The dimension of the data in each data file.
