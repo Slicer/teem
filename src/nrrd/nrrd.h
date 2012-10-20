@@ -1528,5 +1528,4 @@ NRRD_EXPORT int nrrdKernelCheck(const NrrdKernel *kern,
 #ifdef __cplusplus
 }
 #endif
-
 #endif /* NRRD_HAS_BEEN_INCLUDED */
