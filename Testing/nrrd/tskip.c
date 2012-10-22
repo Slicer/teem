@@ -31,8 +31,8 @@
 #  define COMMIT ""
 #endif
 
-/* 
-** Tests: 
+/*
+** Tests:
 ** nrrdLoad with positive and negative byte skipping on data read,
 ** with nrrdEncodingRaw
 */
@@ -53,7 +53,8 @@ main(int argc, const char **argv) {
   unsigned int axi, refCRC, gotCRC, sizeNum;
   char *berr, *outS[2], stmp[AIR_STRLEN_SMALL], doneStr[AIR_STRLEN_SMALL];
   airRandMTState *rng;
-  unsigned int seed, *rdata;
+  unsigned int seed, *rdata, printbytes;
+  unsigned char *dataUC;
   double time0, time1;
   FILE *fout;
 
@@ -71,13 +72,16 @@ main(int argc, const char **argv) {
              "in the written data");
   hestOptAdd(&hopt, "ns", "bool", airTypeInt, 0, 0, &negskip, NULL,
              "skipping should be relative to end of file");
+  hestOptAdd(&hopt, "pb", "print", airTypeUInt, 1, 1, &printbytes, "0",
+             "bytes to print at beginning and end of data, to help "
+             "debug problems");
   hestOptAdd(&hopt, "o", "out.data out.nhdr", airTypeString, 2, 2,
              outS, NULL, "output filenames of data and header");
   hestParseOrDie(hopt, argc-1, argv+1, hparm, me, tskipInfo,
                  AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-  
+
   /* generate reference nrrd data */
   nref = nrrdNew();
   airMopAdd(mop, nref, (airMopper)nrrdNuke, airMopAlways);
@@ -145,9 +149,29 @@ main(int argc, const char **argv) {
     fprintf(stderr, "\n%s: error fflushing data: %s\n", me,
             strerror(errno));
   }
+  fprintf(stderr, "\n");
+  if (printbytes) {
+    size_t bi, rpb, nn;
+    char stmp[AIR_STRLEN_SMALL];
+    nn = nrrdElementSize(nref)*nrrdElementNumber(nref);
+    rpb = AIR_MIN(printbytes, nn);
+    dataUC = AIR_CAST(unsigned char *, nref->data);
+    fprintf(stderr, "CORRECT %s bytes at beginning:\n",
+            airSprintSize_t(stmp, rpb));
+    for (bi=0; bi<rpb; bi++) {
+      fprintf(stderr, "%x ", dataUC[bi]);
+    }
+    fprintf(stderr, "...\n");
+    fprintf(stderr, "CORRECT %s bytes at end:\n",
+            airSprintSize_t(stmp, rpb));
+    fprintf(stderr, "...");
+    for (bi=nn - rpb; bi<nn; bi++) {
+      fprintf(stderr, " %x", dataUC[bi]);
+    }
+    fprintf(stderr, "\n");
+  }
   airMopSingleOkay(mop, fout);
   airMopSingleOkay(mop, nref); nref = NULL;
-  fprintf(stderr, "\n");
 
   /* write header; for now just writing the header directly */
   fprintf(stderr, "writing header . . . \n");
@@ -177,7 +201,7 @@ main(int argc, const char **argv) {
   }
   fprintf(fout, "data file: %s\n", outS[0]);
   airMopSingleOkay(mop, fout);
-  
+
   /* read it in, make sure it checks out */
   fprintf(stderr, "reading data . . . \n");
   nin = nrrdNew();
@@ -186,6 +210,26 @@ main(int argc, const char **argv) {
     airMopAdd(mop, berr=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error reading back in: %s\n", me, berr);
     airMopError(mop); return 1;
+  }
+  if (printbytes) {
+    size_t bi, rpb, nn;
+    char stmp[AIR_STRLEN_SMALL];
+    nn = nrrdElementSize(nin)*nrrdElementNumber(nin);
+    rpb = AIR_MIN(printbytes, nn);
+    dataUC = AIR_CAST(unsigned char *, nin->data);
+    fprintf(stderr, "FOUND %s bytes at beginning:\n",
+            airSprintSize_t(stmp, rpb));
+    for (bi=0; bi<rpb; bi++) {
+      fprintf(stderr, "%x ", dataUC[bi]);
+    }
+    fprintf(stderr, "...\n");
+    fprintf(stderr, "FOUND %s bytes at end:\n",
+            airSprintSize_t(stmp, rpb));
+    fprintf(stderr, "...");
+    for (bi=nn - rpb; bi<nn; bi++) {
+      fprintf(stderr, " %x", dataUC[bi]);
+    }
+    fprintf(stderr, "\n");
   }
   fprintf(stderr, "finding new CRC . . . \n");
   gotCRC = nrrdCRC32(nin, airEndianBig);
