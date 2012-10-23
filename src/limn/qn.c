@@ -25,7 +25,7 @@
 #include "limn.h"
 
 /*
-** "16simple": 16 bit representation based on 
+** "16simple": 16 bit representation based on
 ** <http://www.gamedev.net/reference/articles/article1252.asp>
 **
 ** info: [z sign] [y sign] [x sign] [y component] [x component]
@@ -38,7 +38,7 @@ void
 _limnQN16simple_QNtoV_f(float *vec, int qn) {
   int xi, yi;
   float x, y, z, n;
-  
+
   xi = qn & 0x3F;
   yi = (qn >> 6) & 0x7F;
   if (xi + yi >= 127) {
@@ -98,7 +98,7 @@ void
 _limnQN16border1_QNtoV_f(float *vec, int qn) {
   int ui, vi;
   float u, v, x, y, z, n;
-  
+
   ui = qn & 0xFF;
   vi = qn >> 8;
   u = AIR_CAST(float, AIR_AFFINE(0.5, ui, 254.5, -0.5, 0.5));
@@ -108,8 +108,8 @@ _limnQN16border1_QNtoV_f(float *vec, int qn) {
   z = 1 - AIR_ABS(x) - AIR_ABS(y);
   z *= (((ui ^ vi) & 0x01) << 1) - 1;
   n = AIR_CAST(float, 1.0/sqrt(x*x + y*y + z*z));
-  vec[0] = x*n; 
-  vec[1] = y*n; 
+  vec[0] = x*n;
+  vec[1] = y*n;
   vec[2] = z*n;
 }
 
@@ -118,7 +118,7 @@ _limnQN16border1_VtoQN_f(float *vec) {
   float L, u, v, x, y, z;
   int ui, vi, zi;
   char me[]="limnQNVto16PB1";
-  
+
   x = vec[0];
   y = vec[1];
   z = vec[2];
@@ -135,14 +135,14 @@ _limnQN16border1_VtoQN_f(float *vec) {
   zi = (ui ^ vi) & 0x01;
   if (!zi && z > 1.0/128.0) {
     ui -= (((ui >> 7) & 0x01) << 1) - 1;
-  } 
+  }
   else if (zi && z < -1.0/128.0) {
     vi -= (((vi >> 7) & 0x01) << 1) - 1;
   }
   zi = (ui ^ vi) & 0x01;
   if (!zi && z > 1.0/127.0) {
     printf("%s: panic01\n", me);
-  } 
+  }
   else if (zi && z < -1.0/127.0) {
     printf("%s: panic02\n", me);
   }
@@ -316,7 +316,7 @@ int
 _limnQN16checker_VtoQN_f(float *vec) {
   double L, x, y, z;
   int xi, yi, ui, vi;
-  
+
   _EVEN_CHECK_VtoQ(8, vec);
 }
 
@@ -350,7 +350,7 @@ int
 _limnQN16octa_VtoQN_f(float *vec) {
   double L, x, y, z;
   int xi, yi;
-  
+
   _EVEN_OCTA_VtoQ(8, vec);
 }
 
@@ -403,7 +403,7 @@ void
 _limnQN15octa_QNtoV_f(float *vec, int qn) {
   int ui, vi, zi;
   float u, v, x, y, z, n;
-  
+
   _ODD_OCTA_QtoV(7, float, vec, qn);
 }
 
@@ -411,7 +411,7 @@ void
 _limnQN15octa_QNtoV_d(double *vec, int qn) {
   int ui, vi, zi;
   double u, v, x, y, z, n;
-  
+
   _ODD_OCTA_QtoV(7, double, vec, qn);
 }
 
@@ -419,7 +419,7 @@ int
 _limnQN15octa_VtoQN_f(float *vec) {
   float L, u, v, x, y, z;
   int ui, vi, zi;
-  
+
   _ODD_OCTA_VtoQ(7, vec);
 }
 
@@ -427,7 +427,7 @@ int
 _limnQN15octa_VtoQN_d(double *vec) {
   double L, u, v, x, y, z;
   int ui, vi, zi;
-  
+
   _ODD_OCTA_VtoQ(7, vec);
 }
 
@@ -461,7 +461,7 @@ int
 _limnQN14checker_VtoQN_d(double *vec) {
   double L, x, y, z;
   int xi, yi, ui, vi;
-  
+
   _EVEN_CHECK_VtoQ(7, vec);
 }
 
@@ -487,7 +487,7 @@ int
 _limnQN14octa_VtoQN_f(float *vec) {
   double L, x, y, z;
   int xi, yi;
-  
+
   _EVEN_OCTA_VtoQ(7, vec);
 }
 
@@ -513,7 +513,7 @@ void
 _limnQN13octa_QNtoV_d(double *vec, int qn) {
   int ui, vi, zi;
   double u, v, x, y, z, n;
-  
+
   _ODD_OCTA_QtoV(6, double, vec, qn);
 }
 
@@ -521,7 +521,7 @@ int
 _limnQN13octa_VtoQN_f(float *vec) {
   float L, u, v, x, y, z;
   int ui, vi, zi;
-  
+
   _ODD_OCTA_VtoQ(6, vec);
 }
 
@@ -529,7 +529,7 @@ int
 _limnQN13octa_VtoQN_d(double *vec) {
   double L, u, v, x, y, z;
   int ui, vi, zi;
-  
+
   _ODD_OCTA_VtoQ(6, vec);
 }
 
@@ -555,7 +555,7 @@ int
 _limnQN12checker_VtoQN_f(float *vec) {
   double L, x, y, z;
   int xi, yi, ui, vi;
-  
+
   _EVEN_CHECK_VtoQ(6, vec);
 }
 
@@ -563,7 +563,7 @@ int
 _limnQN12checker_VtoQN_d(double *vec) {
   double L, x, y, z;
   int xi, yi, ui, vi;
-  
+
   _EVEN_CHECK_VtoQ(6, vec);
 }
 
@@ -589,7 +589,7 @@ int
 _limnQN12octa_VtoQN_f(float *vec) {
   double L, x, y, z;
   int xi, yi;
-  
+
   _EVEN_OCTA_VtoQ(6, vec);
 }
 
@@ -607,7 +607,7 @@ void
 _limnQN11octa_QNtoV_f(float *vec, int qn) {
   int ui, vi, zi;
   float u, v, x, y, z, n;
-  
+
   _ODD_OCTA_QtoV(5, float, vec, qn);
 }
 
@@ -615,7 +615,7 @@ void
 _limnQN11octa_QNtoV_d(double *vec, int qn) {
   int ui, vi, zi;
   double u, v, x, y, z, n;
-  
+
   _ODD_OCTA_QtoV(5, double, vec, qn);
 }
 
@@ -623,7 +623,7 @@ int
 _limnQN11octa_VtoQN_f(float *vec) {
   float L, u, v, x, y, z;
   int ui, vi, zi;
-  
+
   _ODD_OCTA_VtoQ(5, vec);
 }
 
@@ -631,7 +631,7 @@ int
 _limnQN11octa_VtoQN_d(double *vec) {
   double L, u, v, x, y, z;
   int ui, vi, zi;
-  
+
   _ODD_OCTA_VtoQ(5, vec);
 }
 
@@ -657,7 +657,7 @@ int
 _limnQN10checker_VtoQN_f(float *vec) {
   double L, x, y, z;
   int xi, yi, ui, vi;
-  
+
   _EVEN_CHECK_VtoQ(5, vec);
 }
 
@@ -665,7 +665,7 @@ int
 _limnQN10checker_VtoQN_d(double *vec) {
   double L, x, y, z;
   int xi, yi, ui, vi;
-  
+
   _EVEN_CHECK_VtoQ(5, vec);
 }
 
@@ -691,7 +691,7 @@ int
 _limnQN10octa_VtoQN_f(float *vec) {
   double L, x, y, z;
   int xi, yi;
-  
+
   _EVEN_OCTA_VtoQ(5, vec);
 }
 
@@ -708,7 +708,7 @@ void
 _limnQN9octa_QNtoV_f(float *vec, int qn) {
   int ui, vi, zi;
   float u, v, x, y, z, n;
-  
+
   _ODD_OCTA_QtoV(4, float, vec, qn);
 }
 
@@ -716,7 +716,7 @@ void
 _limnQN9octa_QNtoV_d(double *vec, int qn) {
   int ui, vi, zi;
   double u, v, x, y, z, n;
-  
+
   _ODD_OCTA_QtoV(4, double, vec, qn);
 }
 
@@ -724,7 +724,7 @@ int
 _limnQN9octa_VtoQN_f(float *vec) {
   float L, u, v, x, y, z;
   int ui, vi, zi;
-  
+
   _ODD_OCTA_VtoQ(4, vec);
 }
 
@@ -732,7 +732,7 @@ int
 _limnQN9octa_VtoQN_d(double *vec) {
   double L, u, v, x, y, z;
   int ui, vi, zi;
-  
+
   _ODD_OCTA_VtoQ(4, vec);
 }
 
@@ -758,7 +758,7 @@ int
 _limnQN8checker_VtoQN_f(float *vec) {
   double L, x, y, z;
   int xi, yi, ui, vi;
-  
+
   _EVEN_CHECK_VtoQ(4, vec);
 }
 
@@ -766,7 +766,7 @@ int
 _limnQN8checker_VtoQN_d(double *vec) {
   double L, x, y, z;
   int xi, yi, ui, vi;
-  
+
   _EVEN_CHECK_VtoQ(4, vec);
 }
 
@@ -792,7 +792,7 @@ int
 _limnQN8octa_VtoQN_f(float *vec) {
   double L, x, y, z;
   int xi, yi;
-  
+
   _EVEN_OCTA_VtoQ(4, vec);
 }
 
@@ -826,7 +826,7 @@ limnQNtoV_f[LIMN_QN_MAX+1])(float *, int) = {
   _limnQN8checker_QNtoV_f,
   _limnQN8octa_QNtoV_f
 };
-  
+
 void (*
 limnQNtoV_d[LIMN_QN_MAX+1])(double *, int) = {
   NULL,
@@ -847,7 +847,7 @@ limnQNtoV_d[LIMN_QN_MAX+1])(double *, int) = {
   _limnQN8checker_QNtoV_d,
   _limnQN8octa_QNtoV_d
 };
-  
+
 int (*
 limnVtoQN_f[LIMN_QN_MAX+1])(float *vec) = {
   NULL,
