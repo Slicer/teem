@@ -83,7 +83,7 @@ typedef struct limnCamera_t {
                          will be set accordingly by limnCameraUpdate().
                          "fov" is the angle, in degrees, vertically subtended
                          by the view window */
-    aspect,           /* the ratio of horizontal to vertical size of the 
+    aspect,           /* the ratio of horizontal to vertical size of the
                          view window */
     neer, faar,       /* near and far clipping plane distances
                          (misspelled for the sake of a McRosopht compiler) */
@@ -123,7 +123,7 @@ typedef struct limnCamera_t {
 ** the vectors are length 4 (instead of 3) for the sake of passing them
 ** directly to OpenGL. For colors, the last coefficient (alpha) is
 ** always 1.0, and for directions it is 0.0 (w, homog coord).
-** 
+**
 **
 ** Has no dynamically allocated information or pointers
 */
@@ -131,7 +131,7 @@ typedef struct {
   float amb[4],              /* RGBA ambient light color */
     _dir[LIMN_LIGHT_NUM][4], /* direction of light[i] (view or world space).
                                 This is what the user sets via limnLightSet */
-    dir[LIMN_LIGHT_NUM][4],  /* direction of light[i] (ONLY world space) 
+    dir[LIMN_LIGHT_NUM][4],  /* direction of light[i] (ONLY world space)
                                 Not user-set: calculated/copied from _dir[] */
     col[LIMN_LIGHT_NUM][4];  /* RGBA color of light[i] */
   int on[LIMN_LIGHT_NUM],    /* light[i] is on */
@@ -171,14 +171,14 @@ typedef struct {
 typedef struct {
   limnOptsPS ps;
   int device;
-  float scale, 
+  float scale,
     bbox[4];          /* minX minY maxX maxY */
   int yFlip;
   FILE *file;
 } limnWindow;
 
 enum {
-  limnSpaceUnknown,  /* 0 */ 
+  limnSpaceUnknown,  /* 0 */
   limnSpaceWorld,    /* 1 */
   limnSpaceView,     /* 2 */
   limnSpaceScreen,   /* 3 */
@@ -190,11 +190,11 @@ enum {
 /*
 ******** limnPrimitive* enum
 **
-** primitive types in the limnPolyData (should probably called 
+** primitive types in the limnPolyData (should probably called
 ** limnPolyDataPrimitiveType).
 **
 ** keep in sync: Deft/src/PolyData.cxx/PolyData::drawImmediate()
-*/ 
+*/
 enum {
   limnPrimitiveUnknown,       /* 0 */
   limnPrimitiveNoop,          /* 1: no-op primitive, nothing drawn */
@@ -211,7 +211,7 @@ enum {
 /*
 ******** struct limnLook
 **
-** surface properties: pretty much anything having to do with 
+** surface properties: pretty much anything having to do with
 ** appearance, for points, edges, faces, etc.
 */
 typedef struct {
@@ -225,7 +225,7 @@ typedef struct {
 **
 ** all the information you might want for a point.
 **
-** This used to have separate coordinate arrays for view, screen, and 
+** This used to have separate coordinate arrays for view, screen, and
 ** device space, but these have been collapsed (in the interest of space)
 ** into coord, with obj->vertSpace indicating which space these are in.
 ** This also used to have a lookIdx (now just rgba[4]), and a partIdx
@@ -282,7 +282,7 @@ typedef struct limnFace_t {
 */
 typedef struct limnPart_t {
   /* (air)arrays of indices in object's vert array */
-  unsigned int *vertIdx, vertIdxNum; 
+  unsigned int *vertIdx, vertIdxNum;
   airArray *vertIdxArr;
 
   /* (air)arrays of indices in object's edge array */
@@ -325,13 +325,13 @@ typedef struct {
   limnFace *face; unsigned int faceNum;
   airArray *faceArr;
   limnFace **faceSort;    /* pointers into "face", sorted by depth */
-  
+
   limnPart **part; unsigned int partNum;  /* double indirection, see above */
   airArray *partArr;
 
   limnPart **partPool; unsigned int partPoolNum;
   airArray *partPoolArr;
-  
+
   limnLook *look; unsigned int lookNum;
   airArray *lookArr;
 
@@ -361,7 +361,7 @@ typedef struct {
 ******** limnPolyDataInfo* enum
 **
 ** information that may be known per-vertex in limnPolyData
-** 
+**
 ** NOTE: The xyzw position data is always required, and that is always
 ** allocated and present.  This is the optional extra per-vertex information.
 */
@@ -394,7 +394,7 @@ enum {
 ** of vertices, and changes in the set of attributes required.
 **
 ** The idea is that at some point general gage info could be stored
-** per-vertex here, until that happens there is probably not going 
+** per-vertex here, until that happens there is probably not going
 ** to be explicit dependence of limn on gage (now that limnFeature
 ** stuff moved to the "seek" library)
 */
@@ -409,7 +409,7 @@ typedef struct {
   unsigned int tex2Num;  /* logical size of tex2 */
   float *tang;           /* if non-NULL, tangNum unit surface tangents */
   unsigned int tangNum;  /* logical size of tang */
-  
+
   unsigned int indxNum;  /* there are indxNum vertex indices in indx[] */
   unsigned int *indx;    /* all indices (into above arrays) for all primitives,
                             concatenated together into one array */
@@ -473,7 +473,7 @@ enum {
   limnCameraPathTrackUnknown, /* 0 */
   limnCameraPathTrackFrom,    /* 1: 3-D spline for *from* points, quaternion
                                  spline for camera directions towards at */
-  limnCameraPathTrackAt,      /* 2: 3-D spline for *at* points, quaternion 
+  limnCameraPathTrackAt,      /* 2: 3-D spline for *at* points, quaternion
                                  spline for directions back to camera */
   limnCameraPathTrackBoth,    /* 3: three 3-D splines: for from point, at
                                  point, and the up vector */
@@ -485,14 +485,14 @@ enum {
 ******** limnSpline
 **
 ** the ncpt nrrd stores control point information in a 3-D nrrd, with
-** sizes C by 3 by N, where C is the number of values needed for each 
+** sizes C by 3 by N, where C is the number of values needed for each
 ** point (3 for 3Vecs, 1 for scalars), and N is the number of control
-** points.  The 3 things per control point are 0) the pre-point info 
+** points.  The 3 things per control point are 0) the pre-point info
 ** (either inward tangent or an internal control point), 1) the control
 ** point itself, 2) the post-point info (e.g., outward tangent).
 **
 ** NOTE: for the sake of simplicity, the ncpt nrrd is always "owned"
-** by the limnSpline, that is, it is COPIED from the one given in 
+** by the limnSpline, that is, it is COPIED from the one given in
 ** limnSplineNew() (and is converted to type double along the way),
 ** and it will is deleted with limnSplineNix.
 */
@@ -543,7 +543,7 @@ LIMN_EXPORT int limnLightUpdate(limnLight *lit, limnCamera *cam);
 
 /* envmap.c */
 typedef void (*limnEnvMapCB)(float rgb[3], float vec[3], void *data);
-LIMN_EXPORT int limnEnvMapFill(Nrrd *envMap, limnEnvMapCB cb, 
+LIMN_EXPORT int limnEnvMapFill(Nrrd *envMap, limnEnvMapCB cb,
                                int qnMethod, void *data);
 LIMN_EXPORT void limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit);
 LIMN_EXPORT int limnEnvMapCheck(Nrrd *envMap);
@@ -567,11 +567,12 @@ LIMN_EXPORT void limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam,
 
 /* cam.c */
 LIMN_EXPORT int limnCameraAspectSet(limnCamera *cam,
-                                    int horz, int vert, int centering);
+                                    unsigned int horz, unsigned int vert,
+                                    int centering);
 LIMN_EXPORT int limnCameraUpdate(limnCamera *cam);
 LIMN_EXPORT int limnCameraPathMake(limnCamera *cam, int numFrames,
                                    limnCamera *keycam, double *time,
-                                   int numKeys, int trackFrom, 
+                                   int numKeys, int trackFrom,
                                    limnSplineTypeSpec *quatType,
                                    limnSplineTypeSpec *posType,
                                    limnSplineTypeSpec *distType,
@@ -590,7 +591,7 @@ LIMN_EXPORT int limnObjectPreSet(limnObject *obj,
                                  unsigned int facePerPart);
 LIMN_EXPORT int limnObjectPartAdd(limnObject *obj);
 LIMN_EXPORT int limnObjectVertexNumPreSet(limnObject *obj,
-                                          unsigned int partIdx, 
+                                          unsigned int partIdx,
                                           unsigned int vertNum);
 LIMN_EXPORT int limnObjectVertexAdd(limnObject *obj,
                                     unsigned int partIdx,
