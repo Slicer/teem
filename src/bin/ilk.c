@@ -24,7 +24,7 @@
 #include <teem/unrrdu.h>
 #include <teem/moss.h>
 
-static const char *ilkInfo = 
+static const char *ilkInfo =
   ("(I)mage (L)inear Trans(X-->K)forms. "
    "Applies linear (homogenous coordinate) transforms "
    "to a given image, using the given kernel for "
@@ -42,10 +42,10 @@ main(int argc, const char *argv[]) {
   mossSampler *msp;
   double mat[6], **matList, *origInfo, origMat[6], origInvMat[6], ox, oy,
     min[2], max[2];
-  int d, bound, ax0, size[2];
+  int d, bound, ax0, size[2]; /* HEY size[] should be size_t */
   unsigned int matListLen, _bkgLen, i, avgNum;
   float *bkg, *_bkg, scale[4];
-  
+
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();
@@ -55,7 +55,7 @@ main(int argc, const char *argv[]) {
   hparm->elideSingleOtherDefault = AIR_FALSE;
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hparm->respFileEnable = AIR_TRUE;
-  
+
   hestOptAdd(&hopt, "i", "image", airTypeOther, 1, 1, &nin, "-",
              "input image", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "0", "origin", airTypeOther, 1, 1, &origInfo, "p:0,0",
@@ -128,7 +128,7 @@ main(int argc, const char *argv[]) {
   if (nrrdBoundaryPad == bound) {
     if (_bkgLen != MOSS_NCOL(nin)) {
       char stmp[AIR_STRLEN_SMALL];
-      fprintf(stderr, "%s: got %d background colors, image has %s colors\n", 
+      fprintf(stderr, "%s: got %d background colors, image has %s colors\n",
               me, _bkgLen, airSprintSize_t(stmp, MOSS_NCOL(nin)));
       airMopError(mop); return 1;
     } else {
@@ -155,23 +155,23 @@ main(int argc, const char *argv[]) {
   min[1] = AIR_EXISTS(min[1]) ? min[1] : nin->axis[ax0+1].min;
   max[1] = AIR_EXISTS(max[1]) ? max[1] : nin->axis[ax0+1].max;
   for (d=0; d<2; d++) {
-    switch((int)scale[0 + 2*d]) {
+    switch(AIR_CAST(int, scale[0 + 2*d])) {
     case 0:
       /* same number of samples as input */
-      size[d] = nin->axis[ax0+d].size;
+      size[d] = AIR_CAST(int, nin->axis[ax0+d].size);
       break;
     case 1:
       /* scaling of input # samples */
-      size[d] = (int)(scale[1 + 2*d]*nin->axis[ax0+d].size);
+      size[d] = AIR_CAST(int, scale[1 + 2*d]*nin->axis[ax0+d].size);
       break;
     case 2:
       /* explicit # of samples */
-      size[d] = (int)(scale[1 + 2*d]);
+      size[d] = AIR_CAST(int, scale[1 + 2*d]);
       break;
     default:
       /* error */
       fprintf(stderr, "%s: scale[0 + 2*%d] == %d unexpected\n",
-              me, (int)scale[0 + 2*d], d);
+              me, AIR_CAST(int, scale[0 + 2*d]), d);
       airMopError(mop); return 1;
     }
   }
@@ -184,7 +184,7 @@ main(int argc, const char *argv[]) {
     /* in unit box [0,1]x[0,1] */
     ox = AIR_AFFINE(0.0, origInfo[1], 1.0,
                     nin->axis[ax0+0].min, nin->axis[ax0+0].max);
-    oy = AIR_AFFINE(0.0, origInfo[2], 1.0, 
+    oy = AIR_AFFINE(0.0, origInfo[2], 1.0,
                     nin->axis[ax0+1].min, nin->axis[ax0+1].max);
     mossMatTranslateSet(origMat, -ox, -oy);
   }
