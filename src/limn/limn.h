@@ -528,8 +528,9 @@ LIMN_EXPORT const airEnum *const limnPrimitive;
 LIMN_EXPORT int limnQNBins[LIMN_QN_MAX+1];
 LIMN_EXPORT void (*limnQNtoV_f[LIMN_QN_MAX+1])(float *vec, int qn);
 LIMN_EXPORT void (*limnQNtoV_d[LIMN_QN_MAX+1])(double *vec, int qn);
-LIMN_EXPORT int (*limnVtoQN_f[LIMN_QN_MAX+1])(float *vec);
-LIMN_EXPORT int (*limnVtoQN_d[LIMN_QN_MAX+1])(double *vec);
+LIMN_EXPORT int (*limnVtoQN_f[LIMN_QN_MAX+1])(const float *vec);
+LIMN_EXPORT int (*limnVtoQN_d[LIMN_QN_MAX+1])(const double *vec);
+LIMN_EXPORT int limnQNDemo(Nrrd *nqn, unsigned int reso, int qni);
 
 /* light.c */
 LIMN_EXPORT void limnLightSet(limnLight *lit, int which, int vsp,

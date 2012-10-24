@@ -57,7 +57,7 @@ $(L).OBJS = defaultsLimn.o qn.o light.o envmap.o cam.o methodsLimn.o \
 	lpu_verts.o lpu_meas.o lpu_sort.o
 $(L).TESTS = test/map test/light test/tcam test/tps test/tspline test/tbc \
 	test/tcamanim test/soid test/off2eps test/triimg test/plot test/intx \
-	test/tio test/clip test/lpu
+	test/tio test/clip test/lpu test/tqn
 ####
 ####
 ####
