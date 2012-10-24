@@ -235,6 +235,8 @@ limn: make it smarter- so that joining parts together is possible in a
 way that facilitates transformations and correct drawing.  This really
 requires general data structures for 2-D graphics primatives...
 
+limn: either debug or remove limnQN16border1
+
 dye: colormaps
 
 dye: hest callbacks
