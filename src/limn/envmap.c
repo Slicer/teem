@@ -26,8 +26,7 @@
 int
 limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, int qnMethod, void *data) {
   static const char me[]="limnEnvMapFill";
-  int sx, sy;
-  int qn;
+  unsigned int sx, sy, qn;
   float vec[3], *mapData;
 
   if (!(map && cb)) {

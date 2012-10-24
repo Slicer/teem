@@ -23,9 +23,9 @@
 
 #include "../limn.h"
 
-char *info = ("dumb little demonstration of calculating the "
-              "world-to-view and view-to-world transforms given "
-              "from, at, and up locations.");
+const char *info = ("dumb little demonstration of calculating the "
+                    "world-to-view and view-to-world transforms given "
+                    "from, at, and up locations.");
 
 int
 main(int argc, const char *argv[]) {
@@ -39,7 +39,7 @@ main(int argc, const char *argv[]) {
   mop = airMopNew();
   cam = limnCameraNew();
   airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
-  
+
   me = argv[0];
   hestOptAdd(&hopt, "fr", "eye pos", airTypeDouble, 3, 3, cam->from,
              NULL, "camera eye point");
@@ -53,7 +53,7 @@ main(int argc, const char *argv[]) {
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-  
+
   cam->neer = -1;
   cam->dist = 0;
   cam->faar = 1;
@@ -64,7 +64,7 @@ main(int argc, const char *argv[]) {
     free(err);
     return 1;
   }
-  
+
   printf("%s: W2V:\n", me);
   ELL_4M_COPY(mat, cam->W2V);
   ell_4m_print_f(stdout, mat);
