@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,16 +25,16 @@
 
 #define PROBE "probePolynomial"
 
-/* 
-** Tests: 
-** 
+/*
+** Tests:
+**
 */
 
 /* the hope is that without too much work it would be possible to
    increase this to 4th-order polynomials and 4th-order derivatives */
 #define POWER_MAX 3
 
-/* 
+/*
 ** polyeval takes a polynomial defined by coef --
 ** coef[i][j][k] is the coefficient for (x^i)*(y^j)*(z^k) --
 ** and evaluates at position pos[] the dx-th derivative along X,
@@ -69,7 +69,7 @@ polyeval(double coef[POWER_MAX+1][POWER_MAX+1][POWER_MAX+1],
     zp[zi] = tmp;
     tmp *= pos[2];
   }
-  
+
   ret = 0.0;
   for (xi=dx; xi<=POWER_MAX; xi++) {
     for (yi=dy; yi<=POWER_MAX; yi++) {
@@ -149,15 +149,15 @@ makeVolume(Nrrd *nin, unsigned int sx, unsigned int sy, unsigned int sz,
     biffMovef(PROBE, NRRD, "%s: trouble setting volume", me);
     airMopError(submop); return NULL;
   }
-  nrrdAxisInfoSet_va(nin, nrrdAxisInfoSpaceDirection, 
-                     spcVec[0], 
-                     spcVec[1], 
+  nrrdAxisInfoSet_va(nin, nrrdAxisInfoSpaceDirection,
+                     spcVec[0],
+                     spcVec[1],
                      spcVec[2]);
-  nrrdAxisInfoSet_va(nin, nrrdAxisInfoCenter, 
+  nrrdAxisInfoSet_va(nin, nrrdAxisInfoCenter,
                      nrrdCenterCell,
                      nrrdCenterCell,
                      nrrdCenterCell);
-  
+
   /* set data */
   {
     double *ddata = AIR_CAST(double *, nin->data);
@@ -201,10 +201,8 @@ makeVolume(Nrrd *nin, unsigned int sx, unsigned int sy, unsigned int sz,
   return gctx;
 }
 
-
 int
 main(int argc, const char **argv) {
-  const char *me;
   airArray *mop;
   char *err;
 
@@ -216,7 +214,6 @@ main(int argc, const char **argv) {
   gageContext *gctx;
 
   AIR_UNUSED(argc);
-  me = argv[0];
   mop = airMopNew();
 
   rng = airRandMTStateNew(429);
@@ -245,7 +242,7 @@ main(int argc, const char **argv) {
         }
       }
     }
-    
+
     sx = 20 + airRandInt_r(rng, 120);
     sy = 20 + airRandInt_r(rng, 120);
     sz = 20 + airRandInt_r(rng, 120);

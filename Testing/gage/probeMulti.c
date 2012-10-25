@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -23,8 +23,8 @@
 
 #include "teem/gage.h"
 
-/* 
-** Tests: 
+/*
+** Tests:
 ** nrrdQuantize (to 8-bits), nrrdUnquantize
 ** nrrdArithBinaryOp (with nrrdBinaryOpSubtract)
 */
@@ -33,7 +33,7 @@
 #define PROBE_NUM 300
 
 static void
-errPrefix(char *dst, 
+errPrefix(char *dst,
           int typi, unsigned int supi, unsigned int prbi,
           unsigned int probePass, double dxi, double dyi, double dzi,
           unsigned int xi, unsigned int yi, unsigned int zi) {
@@ -53,7 +53,7 @@ main(int argc, const char **argv) {
   int typi;
   unsigned int supi, probePass, cti /* context copy index */,
     pvlIdx[NRRD_TYPE_MAX+1], sx, sy, sz, subnum;
-  size_t sizes[3] = {42,61,50} /* one of these must be even */, 
+  size_t sizes[3] = {42,61,50} /* one of these must be even */,
     ii, nn;
   Nrrd *norigScl, *nucharScl, *nunquant, *nqdiff,
     *nconvScl[NRRD_TYPE_MAX+1];
@@ -69,7 +69,7 @@ main(int argc, const char **argv) {
       {1.1, 0.0, 0.0},
       {0.0, 2.2, 0.0},
       {0.0, 0.0, 3.3}};
-  
+
   mop = airMopNew();
 
 #define NRRD_NEW(name, mop)                                     \
@@ -127,19 +127,18 @@ main(int argc, const char **argv) {
     fprintf(stderr, "trouble quantizing and back:\n%s", err);
     airMopError(submop); airMopError(mop); return 1;
   }
-  if (!( nucharScl->oldMin == omin 
+  if (!( nucharScl->oldMin == omin
          && nucharScl->oldMax == omax )) {
     fprintf(stderr, "quantization range [%g,%g] != real range [%g,%g]\n",
             nucharScl->oldMin, nucharScl->oldMax, omin, omax);
     airMopError(submop); airMopError(mop); return 1;
   }
   {
-    double avgdiff, *qdiff, *unquant;
+    double *qdiff, *unquant;
     /* empirically determined tolerance, which had to be increased in
        order to work under valgrind (!)- perhaps because of a
        difference in the use of 80-bit registers */
     double epsilon=0.50000000000004;
-    avgdiff = 0.0;
     qdiff = AIR_CAST(double *, nqdiff->data);
     unquant = AIR_CAST(double *, nunquant->data);
     for (ii=0; ii<nn; ii++) {
@@ -193,14 +192,14 @@ main(int argc, const char **argv) {
         gpvl[0][typi][supi] = NULL;
         continue;
       }
-      if (!E) E |= !(gpvl[0][typi][supi] 
+      if (!E) E |= !(gpvl[0][typi][supi]
                      = gagePerVolumeNew(gctx[0][supi], nconvScl[typi],
                                         gageKindScl));
       if (!E) E |= gagePerVolumeAttach(gctx[0][supi], gpvl[0][typi][supi]);
       if (1 == supi) {
-        /* first time through this typi loop; its the occasion to 
-           set the pvlIdx array, which records the index into the 
-           gageContext->pvl[] array for the per-type perVolume. 
+        /* first time through this typi loop; its the occasion to
+           set the pvlIdx array, which records the index into the
+           gageContext->pvl[] array for the per-type perVolume.
            Having to do this is a symptom of bad API design in gage */
         pvlIdx[typi] = pvii++;
       }
@@ -229,7 +228,7 @@ main(int argc, const char **argv) {
         hansScl[0][typi][supi] = NULL;
         continue;
       }
-      vansScl[0][typi][supi] = 
+      vansScl[0][typi][supi] =
         gageAnswerPointer(gctx[0][supi], gpvl[0][typi][supi], gageSclValue);
       gansScl[0][typi][supi] =
         gageAnswerPointer(gctx[0][supi], gpvl[0][typi][supi], gageSclGradVec);
@@ -255,7 +254,7 @@ main(int argc, const char **argv) {
         continue;
       }
       gpvl[1][typi][supi] = gctx[1][supi]->pvl[pvlIdx[typi]];
-      vansScl[1][typi][supi] = 
+      vansScl[1][typi][supi] =
         gageAnswerPointer(gctx[1][supi], gpvl[1][typi][supi], gageSclValue);
       gansScl[1][typi][supi] =
         gageAnswerPointer(gctx[1][supi], gpvl[1][typi][supi], gageSclGradVec);
@@ -276,7 +275,7 @@ main(int argc, const char **argv) {
     double thet, xu, yu, zu, dxi, dyi, dzi,
       elapsed[2][KERN_SIZE_MAX+1], time0;
     char errpre[AIR_STRLEN_LARGE];
-    
+
     if (1 == probePass) {
       /* switch to cos^4 kernel, turn on gradient and hessian */
       for (cti=0; cti<2; cti++) {
@@ -352,7 +351,7 @@ main(int argc, const char **argv) {
           if (gageProbeSpace(gctx[cti][supi], dxi, dyi, dzi,
                              AIR_TRUE /* indexSpace */,
                              AIR_TRUE /* clamp */)) {
-            fprintf(stderr, "probe (cti %u support %u) error (%d): %s\n", 
+            fprintf(stderr, "probe (cti %u support %u) error (%d): %s\n",
                     cti, supi,
                     gctx[cti][supi]->errNum, gctx[cti][supi]->errStr);
             airMopError(mop); return 1;
@@ -360,7 +359,7 @@ main(int argc, const char **argv) {
           elapsed[cti][supi] = airTime() - time0;
           for (typi=nrrdTypeUnknown+1; typi<nrrdTypeLast; typi++) {
             double arrayval, trueval, probeval;
-            if (nrrdTypeBlock == typi 
+            if (nrrdTypeBlock == typi
                 || (1 == probePass && nrrdTypeChar == typi)) {
               /* can't easily correct interpolation on signed char
                  values to make it match interpolation on unsigned char
@@ -370,7 +369,7 @@ main(int argc, const char **argv) {
             /* probeval is what we learned by probing with gage */
             probeval = vansScl[cti][typi][supi][0];
             if (0 == probePass) {
-              /* arrayval is the value directly from array of same type 
+              /* arrayval is the value directly from array of same type
                  (converted from original uchar) */
               arrayval = (nrrdDLookup[typi])(nconvScl[typi]->data,
                                             xi + sx*(yi + sy*zi));
@@ -449,7 +448,7 @@ main(int argc, const char **argv) {
       }
     }
   }
-  
+
 #undef NRRD_NEW
 #undef SPRINT_ERR_PREFIX
   airMopOkay(mop);

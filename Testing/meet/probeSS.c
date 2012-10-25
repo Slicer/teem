@@ -35,7 +35,7 @@
 ** it) are correctly handled in the multi-value gageKinds (gageKindVec,
 ** tenGageKind, tenDwiGageKind), relative to the gageKindScl ground-truth: the
 ** per-component values and derivatives have to match those reconstructed from
-** sets of scalar volumes of the components.  
+** sets of scalar volumes of the components.
 ** ==> Also, that gageContextCopy works even on dynamic kinds (like DWIs)
 **
 ** 1b) that there is expected consistency between the scalar, vector, tensor,
@@ -79,23 +79,23 @@ engageGenTensor(gageContext *gctx, Nrrd *ncten,
   char tmpStr[4][AIR_STRLEN_SMALL];
   Nrrd *nclean;
   NrrdIter *narg0, *narg1;
-  const char *helixArgv[] = 
+  const char *helixArgv[] =
   /*   0     1     2    3     4     5     6     7     8     9 */
-    {"-s", NULL, NULL, NULL, "-v", "0", "-r", "45", "-o", NULL, 
+    {"-s", NULL, NULL, NULL, "-v", "0", "-r", "45", "-o", NULL,
      "-ev", "0.00086", "0.00043", "0.00021", "-bg", "0.003", "-b", "5",
      NULL};
   int helixArgc;
   gagePerVolume *pvl;
-  
+
   smop = airMopNew();
   /* NOTE: this is currently the only place where a unrrduCmd
      is called from within C code; it was educational to get working.
-     Learned: 
-     * hest does NOT tolerate having empty or NULL elements of 
+     Learned:
+     * hest does NOT tolerate having empty or NULL elements of
      its argv[]!  More error checking for this in hest is needed.
      * the "const char **argv" type is not very convenient to
      set up in a dynamic way; the per-element setting done below
-     is certainly awkward 
+     is certainly awkward
   */
   hparm = hestParmNew();
   airMopAdd(smop, hparm, (airMopper)hestParmFree, airMopAlways);
@@ -144,12 +144,12 @@ engageGenTensor(gageContext *gctx, Nrrd *ncten,
   return 0;
 }
 
-/* 
+/*
 ** takes in ncten, measures "S" to nscl, copies that to nsclCopy,
 ** wraps those in gctx and gctxComp
 */
 static int
-engageGenScalar(gageContext *gctx, Nrrd *nscl, 
+engageGenScalar(gageContext *gctx, Nrrd *nscl,
                 gageContext *gctxComp, Nrrd *nsclCopy,
                 /* out/in */
                 const Nrrd *ncten) {
@@ -177,7 +177,7 @@ engageGenScalar(gageContext *gctx, Nrrd *nscl,
   return 0;
 }
 
-/* 
+/*
 ** Makes a vector volume by measuring the gradient
 ** Being the gradient of the given scalar volume is just to make
 ** something vaguely interesting, and to test consistency with
@@ -195,7 +195,7 @@ engageGenVector(gageContext *gctx, Nrrd *nvec,
   size_t sx, sy, sz, xi, yi, zi, Px, Mx, Py, My, Pz, Mz;
   double dnmX, dnmY, dnmZ;
   gagePerVolume *pvl;
-  
+
   smop = airMopNew();
   if (nrrdTypeFloat != nscl->type) {
     biffAddf(BKEY, "%s: expected %s not %s type", me,
@@ -213,7 +213,7 @@ engageGenVector(gageContext *gctx, Nrrd *nvec,
              AIR_CAST(ptrdiff_t, sz-1));
   /* we do axinsert and pad in order to keep all the per-axis info */
   if (nrrdAxesInsert(ntmp, nscl, 0)
-      || nrrdPad_nva(nvec, ntmp, padMin, padMax, 
+      || nrrdPad_nva(nvec, ntmp, padMin, padMax,
                      nrrdBoundaryPad, 0.0)) {
     biffMovef(BKEY, NRRD, "%s: trouble", me);
     airMopError(smop); return 1;
@@ -233,11 +233,11 @@ engageGenVector(gageContext *gctx, Nrrd *nvec,
       for (xi=0; xi<sx; xi++) {
         Mx = (xi == 0 ? 0 : xi-1);
         Px = AIR_MIN(xi+1, sx-1);
-        vec[0 + 3*INDEX(xi, yi, zi)] = 
+        vec[0 + 3*INDEX(xi, yi, zi)] =
           AIR_CAST(float, (scl[INDEX(Px, yi, zi)] - scl[INDEX(Mx, yi, zi)])*dnmX);
-        vec[1 + 3*INDEX(xi, yi, zi)] = 
+        vec[1 + 3*INDEX(xi, yi, zi)] =
           AIR_CAST(float, (scl[INDEX(xi, Py, zi)] - scl[INDEX(xi, My, zi)])*dnmY);
-        vec[2 + 3*INDEX(xi, yi, zi)] = 
+        vec[2 + 3*INDEX(xi, yi, zi)] =
           AIR_CAST(float, (scl[INDEX(xi, yi, Pz)] - scl[INDEX(xi, yi, Mz)])*dnmZ);
       }
     }
@@ -256,7 +256,7 @@ engageGenVector(gageContext *gctx, Nrrd *nvec,
 
 /*
 ** make a DWI volume by simulating DWIs from given tensor
-** this includes generating a new gradient set 
+** this includes generating a new gradient set
 */
 static int
 genDwi(Nrrd *ndwi, Nrrd *ngrad,
@@ -312,7 +312,7 @@ genDwi(Nrrd *ndwi, Nrrd *ngrad,
     airMopError(smop); return 1;
   }
   if (tenModelSimulate(ndwi, nrrdTypeUShort, espec,
-                       tenModel1Tensor2, 
+                       tenModel1Tensor2,
                        nb0, nten, AIR_TRUE /* keyValueSet */)) {
     biffMovef(BKEY, TEN, "%s: trouble simulating DWI vol", me);
     airMopError(smop); return 1;
@@ -348,7 +348,7 @@ engageMopDiceVector(gageContext *gctx, Nrrd *nvecComp[3],
       return 1;
     }
   }
-  
+
   return 0;
 }
 
@@ -377,7 +377,7 @@ engageMopDiceTensor(gageContext *gctx, Nrrd *nctenComp[7],
       return 1;
     }
   }
-  
+
   return 0;
 }
 
@@ -411,7 +411,7 @@ engageMopDiceDwi(gageContext *gctx, Nrrd ***ndwiCompP,
   }
   dwiNum = ndwi->axis[0].size;
   if (!(ndwiComp = AIR_CALLOC(dwiNum, Nrrd *))) {
-    biffAddf(BKEY, "%s: couldn't alloc %s Nrrd*", me, 
+    biffAddf(BKEY, "%s: couldn't alloc %s Nrrd*", me,
              airSprintSize_t(stmp, dwiNum));
     return 1;
   }
@@ -446,7 +446,7 @@ typedef struct {
 static multiAnswer*
 multiAnswerNew(char *name) {
   multiAnswer *man;
-  
+
   man = AIR_CALLOC(1, multiAnswer);
   airStrcpy(man->name, AIR_STRLEN_SMALL, name);
   man->aptr = NULL;
@@ -463,7 +463,7 @@ void
 multiAnswerLenSet(multiAnswer *man, unsigned int anum) {
   /*
   static const char me[]="multiAnswerLenSet";
-  
+
   fprintf(stderr, "!%s: %s hello -> answer number = %u\n", me,
           man->name, anum);
   */
@@ -480,7 +480,7 @@ multiAnswerLenSet(multiAnswer *man, unsigned int anum) {
 
 static multiAnswer*
 multiAnswerNix(multiAnswer *man) {
-  
+
   airFree(AIR_VOIDP(man->aptr));
   airFree(man->ispec);
   airFree(man->alen);
@@ -491,7 +491,7 @@ multiAnswerNix(multiAnswer *man) {
 }
 
 static void
-multiAnswerAdd(multiAnswer *man, unsigned int ansIdx, 
+multiAnswerAdd(multiAnswer *man, unsigned int ansIdx,
                const gageContext *gctx, const gagePerVolume *pvl,
                unsigned int item) {
   /*
@@ -533,7 +533,7 @@ multiAnswerCollect(multiAnswer *man) {
   for (ai=0; ai<man->anum; ai++) {
     /*
     fprintf(stderr, "!%s: (%s/%s) ai=%u/%u  to %p+%u=%p for %u doubles\n", "multiAnswerCollect",
-            man->ispec[ai].kind->name, 
+            man->ispec[ai].kind->name,
             airEnumStr(man->ispec[ai].kind->enm, man->ispec[ai].item),
             ai, man->anum, man->san, man->sidx[ai], man->san + man->sidx[ai],
             man->alen[ai]);
@@ -545,7 +545,7 @@ multiAnswerCollect(multiAnswer *man) {
   return;
 }
 
-static int 
+static int
 multiAnswerCompare(multiAnswer *man1, multiAnswer *man2) {
   static const char me[]="multiAnswerCompare";
   unsigned int si, slen;
@@ -553,7 +553,7 @@ multiAnswerCompare(multiAnswer *man1, multiAnswer *man2) {
 
 #if 1
   if (man1->slen != man2->slen) {
-    biffAddf(BKEY, "%s: man1->slen %u != man2->slen %u\n", me, 
+    biffAddf(BKEY, "%s: man1->slen %u != man2->slen %u\n", me,
              man1->slen, man2->slen);
     return 1;
   }
@@ -564,7 +564,7 @@ multiAnswerCompare(multiAnswer *man1, multiAnswer *man2) {
   for (si=0; si<slen; si++) {
     if (man1->san[si] != man2->san[si]) {
       /* HEY should track down which part of which answer,
-         in man1 and man2, is different, which was the 
+         in man1 and man2, is different, which was the
          purpose of recording ispec and sidx */
       biffAddf(BKEY, "%s: man1->san[si] %.17g != man2->san[si] %.17g", me,
                man1->san[si], man2->san[si]);
@@ -594,7 +594,7 @@ updateQueryKernelSetTask1(gageContext *gctxComp[KIND_NUM],
   unsigned int kindIdx;
 
   if (4 != KIND_NUM) {
-    biffAddf(BKEY, "%s: sorry, confused: KIND_NUM %u != 4", 
+    biffAddf(BKEY, "%s: sorry, confused: KIND_NUM %u != 4",
              me, KIND_NUM);
     return 1;
   }
@@ -638,7 +638,7 @@ updateQueryKernelSetTask1(gageContext *gctxComp[KIND_NUM],
       || gageQueryItemOn(gctx[KI_SCL], gctx[KI_SCL]->pvl[0], gageSclValue)
       || gageQueryItemOn(gctx[KI_SCL], gctx[KI_SCL]->pvl[0], gageSclGradVec)
       || gageQueryItemOn(gctx[KI_SCL], gctx[KI_SCL]->pvl[0], gageSclHessian)
-      
+
       || gageQueryItemOn(gctx[KI_VEC], gctx[KI_VEC]->pvl[0], gageVecVector)
       || gageQueryItemOn(gctx[KI_VEC], gctx[KI_VEC]->pvl[0], gageVecJacobian)
       || gageQueryItemOn(gctx[KI_VEC], gctx[KI_VEC]->pvl[0], gageVecHessian)
@@ -655,14 +655,14 @@ updateQueryKernelSetTask1(gageContext *gctxComp[KIND_NUM],
   }
   for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
     if (gageUpdate(gctxComp[kindIdx])) {
-      biffMovef(BKEY, GAGE, "%s: trouble updating comp gctx %u", 
+      biffMovef(BKEY, GAGE, "%s: trouble updating comp gctx %u",
                 me, kindIdx);
       return 1;
     }
-  }  
+  }
   for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
     if (gageUpdate(gctx[kindIdx])) {
-      biffMovef(BKEY, GAGE, "%s: trouble updating single gctx %u", 
+      biffMovef(BKEY, GAGE, "%s: trouble updating single gctx %u",
                 me, kindIdx);
       return 1;
     }
@@ -671,18 +671,18 @@ updateQueryKernelSetTask1(gageContext *gctxComp[KIND_NUM],
     unsigned int pvi;
     multiAnswerLenSet(manComp[kindIdx], (KI_DWI != kindIdx ? 3 : 1)*gctxComp[kindIdx]->pvlNum);
     for (pvi=0; pvi<gctxComp[kindIdx]->pvlNum; pvi++) {
-      multiAnswerAdd(manComp[kindIdx], pvi, 
+      multiAnswerAdd(manComp[kindIdx], pvi,
                      gctxComp[kindIdx], gctxComp[kindIdx]->pvl[pvi],
                      gageSclValue);
     }
     if (KI_DWI != kindIdx) {
       for (pvi=0; pvi<gctxComp[kindIdx]->pvlNum; pvi++) {
-        multiAnswerAdd(manComp[kindIdx], pvi + gctxComp[kindIdx]->pvlNum, 
+        multiAnswerAdd(manComp[kindIdx], pvi + gctxComp[kindIdx]->pvlNum,
                        gctxComp[kindIdx], gctxComp[kindIdx]->pvl[pvi],
                        gageSclGradVec);
       }
       for (pvi=0; pvi<gctxComp[kindIdx]->pvlNum; pvi++) {
-        multiAnswerAdd(manComp[kindIdx], pvi + 2*gctxComp[kindIdx]->pvlNum, 
+        multiAnswerAdd(manComp[kindIdx], pvi + 2*gctxComp[kindIdx]->pvlNum,
                        gctxComp[kindIdx], gctxComp[kindIdx]->pvl[pvi],
                        gageSclHessian);
       }
@@ -783,7 +783,7 @@ main(int argc, const char **argv) {
     *ngrad;  /* need access to list of gradients used to make DWIs;
                 (this is not the gradient of a scalar field) */
   double bval = 1000, noiseStdv=0.0001, ksupport;
-  unsigned int kindIdx, probeNum, 
+  unsigned int kindIdx, probeNum,
     gradNum = 10; /* small number so that missing one will produce
                      a big reconstruction error */
 
@@ -803,7 +803,7 @@ main(int argc, const char **argv) {
 
   /* This was a tricky bug: Adding gageContextNix(gctx) to the mop
      as soon as a gctx is created makes sense.  But, in the first
-     version of this code, gageContextNix was added to the mop 
+     version of this code, gageContextNix was added to the mop
      BEFORE tenDwiGageKindNix was added, which meant that gageContextNix
      was being called AFTER tenDwiGageKindNix.  However, that meant
      that existing pvls had their pvl->kind being freed from under them,
@@ -845,20 +845,20 @@ main(int argc, const char **argv) {
                          gctxComp[KI_SCL], nsclCopy,
                          /* out/in */
                          nin[KI_TEN])
-      || engageGenVector(gctx[KI_VEC], nin[KI_VEC], 
+      || engageGenVector(gctx[KI_VEC], nin[KI_VEC],
                          /* out/in */
                          nin[KI_SCL])
       /* engage'ing of nin[KI_DWI] done below */
-      || genDwi(nin[KI_DWI], ngrad, 
+      || genDwi(nin[KI_DWI], ngrad,
                 /* out/in */
                 gradNum /* for B0 */, bval, nin[KI_TEN])
-      || engageMopDiceVector(gctxComp[KI_VEC], nvecComp, 
+      || engageMopDiceVector(gctxComp[KI_VEC], nvecComp,
                              /* out/in */
                              mop, nin[KI_VEC])
-      || engageMopDiceTensor(gctxComp[KI_TEN], nctenComp, 
+      || engageMopDiceTensor(gctxComp[KI_TEN], nctenComp,
                              /* out/in */
                              mop, nin[KI_TEN])
-      || engageMopDiceDwi(gctxComp[KI_DWI], &ndwiComp, 
+      || engageMopDiceDwi(gctxComp[KI_DWI], &ndwiComp,
                           /* out/in */
                           mop, nin[KI_DWI])) {
     airMopAdd(mop, err = biffGetDone(BKEY), airFree, airMopAlways);
@@ -887,11 +887,11 @@ main(int argc, const char **argv) {
       airMopError(mop); return 1;
     }
   }
-  
+
   /* make sure kinds can parse back to themselves */
   /* the messiness here is in part because of problems with the gage
      API, and the weirdness of how meetGageKindParse is either allocating
-     something, or not, depending on its input.  There is no way to 
+     something, or not, depending on its input.  There is no way to
      refer to the "name" of a dwi kind without having allocated something. */
   for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
     if (!(kind[kindIdx]->dynamicAlloc)) {
@@ -927,7 +927,7 @@ main(int argc, const char **argv) {
            kind[kindIdx]->baseDim, kind[kindIdx]->valLen);
   }
   */
-  
+
   /*
   nrrdSave("tmp-cten.nrrd", nin[KI_TEN], NULL);
   nrrdSave("tmp-scl.nrrd", nin[KI_SCL], NULL);
@@ -946,7 +946,7 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: trouble with probing:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  
+
   /* gageContextCopy on multi-variate values */
 
   /* ========================== TASK 2 */
@@ -955,10 +955,10 @@ main(int argc, const char **argv) {
   /* gageContextCopy on stack */
   /* pick a scale in-between tau samples */
   /* for all the tau's half-way between tau samples in scale:
-       blur at that tau to get correct values 
+       blur at that tau to get correct values
        check that error with hermite is lower than ctmr is lower than tent */
   /* for all tau samples:
-       blur at that tau to (re-)get correct values 
+       blur at that tau to (re-)get correct values
        check that everything agrees there */
 
 
