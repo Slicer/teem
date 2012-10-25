@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2010 Thomas Schultz
 
   This library is free software; you can redistribute it and/or
@@ -125,7 +125,7 @@ airHeap *airHeapNew(size_t dataUnit, unsigned int incr) {
   h->idx_a = airArrayNew(appu.v, NULL, sizeof(unsigned int), incr);
   appu.ui = &h->invidx;
   h->invidx_a = airArrayNew(appu.v, NULL, sizeof(unsigned int), incr);
-  
+
   if (h->key_a==NULL || (dataUnit>0 && h->data_a==NULL) || h->idx_a==NULL ||
       h->invidx_a==NULL) { /* allocation failed (partly) */
     airHeapNix(h);
@@ -283,7 +283,7 @@ int airHeapFind(const airHeap *h, unsigned int *ai, const void *data) {
                 h->data_a->unit)) {
       *ai = i;
       return 0;
-    }      
+    }
   }
   return 1;
 }

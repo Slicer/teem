@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 
 /*
 learned: using these functions correctly to manage even simple
-memory usage can be very tricky.  
+memory usage can be very tricky.
 
 problem 0: even trying to write airMopPrint, I foolishly thought:
 "print the string, then free it".  But the print callback clobbered
@@ -36,7 +36,7 @@ problem 1: debugging hest with purify, on case of hitting error after
 parsing multiple variable parameter option of strings: so, I allocated
 an array of strings (arrays), and registered all the strings with
 airMopMem(), and registered the array itself also with airMopMem().
-Again, got clobbered.  airSetNull(&((*vP)[0])) clobbered 
+Again, got clobbered.  airSetNull(&((*vP)[0])) clobbered
 airFree(*vP).  So, I gave up on using airMopMem() for the individual
 elements, and am using simply airMopAdd(airFree).  The alternative
 was to change the airMopAdd()s in airMopMem() to _airMopAdd()s, but
@@ -60,7 +60,7 @@ airMopSub() and airMopUnMem were created
 
 airArray *
 airMopNew() {
-  
+
   return airArrayNew(NULL, NULL, sizeof(airMop), AIR_MOP_INCR);
 }
 
@@ -82,7 +82,7 @@ airMopAdd(airArray *arr, void *ptr, airMopper mop, int when) {
   static const char me[]="airMopAdd";
   airMop *mops;
   unsigned int ii;
-  
+
   if (!arr) {
     return 0;
   }
@@ -113,7 +113,7 @@ void
 airMopSub(airArray *arr, void *ptr, airMopper mop) {
   airMop *mops;
   unsigned int ii;
-  
+
   if (!arr) {
     return;
   }
@@ -144,9 +144,9 @@ airMopMem(airArray *arr, void *_ptrP, int when) {
   airMopAdd(arr, ptrP, (airMopper)airSetNull, when);
   airMopAdd(arr, *ptrP, airFree, when);
   /*
-  printf("airMopMem(0x%p): will free() 0x%p\n", 
+  printf("airMopMem(0x%p): will free() 0x%p\n",
          (void*)arr, (void*)(*ptrP));
-  printf("airMopMem(0x%p): will set 0x%p to NULL\n", 
+  printf("airMopMem(0x%p): will set 0x%p to NULL\n",
          (void*)arr, (void*)ptrP);
   */
   return;
@@ -289,26 +289,26 @@ airMopDone(airArray *arr, int error) {
 
 void
 airMopError(airArray *arr) {
-  
+
   airMopDone(arr, AIR_TRUE);
 }
 
 void
 airMopOkay(airArray *arr) {
-  
+
   airMopDone(arr, AIR_FALSE);
 }
 
 /* ---- BEGIN non-NrrdIO */
 
 /*
-** like airMopSub but calls the mopper first 
+** like airMopSub but calls the mopper first
 */
 void
 airMopSingleDone(airArray *arr, void *ptr, int error) {
   airMop *mops;
   unsigned int ii;
-  
+
   if (!arr || !(arr->len)) {
     return;
   }
@@ -331,13 +331,13 @@ airMopSingleDone(airArray *arr, void *ptr, int error) {
 
 void
 airMopSingleError(airArray *arr, void *ptr) {
-  
+
   airMopSingleDone(arr, ptr, AIR_TRUE);
 }
 
 void
 airMopSingleOkay(airArray *arr, void *ptr) {
-  
+
   airMopSingleDone(arr, ptr, AIR_FALSE);
 }
 

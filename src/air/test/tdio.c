@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images             .
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -39,7 +39,7 @@ main(int argc, char *argv[]) {
   AIR_UNUSED(argc);
   fprintf(stderr, "%s: no direct-io testing for you\n", argv[0]);
   return 1;
-#else 
+#else
   char *me, *fname, *multS, *data;
   FILE *file;
   double time0, time1, time2;
@@ -91,7 +91,7 @@ main(int argc, char *argv[]) {
   }
   airMopAdd(mop, data, airFree, airMopAlways);
   fprintf(stderr, "\ndata size = %g MB\n", (double)size/(1024*1024));
-  
+
   /* -------------------------------------------------------------- */
   fprintf(stderr, "(1) non-aligned memory, regular write:\n");
   time0 = airTime();
@@ -173,7 +173,7 @@ main(int argc, char *argv[]) {
       fprintf(stderr, "%s: couldn't learn direct IO specifics", me);
       airMopError(mop); return 1;
     }
-    
+
     remain = size;
     totalrit = 0;
     ptr = data;
@@ -200,7 +200,7 @@ main(int argc, char *argv[]) {
   }
   /* -------------------------------------------------------------- */
 
-  airMopError(mop); 
+  airMopError(mop);
   exit(0);
 #endif
 }

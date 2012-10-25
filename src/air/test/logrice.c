@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images             .
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -34,7 +34,7 @@ main(int argc, char *argv[]) {
   double tru, mes, sig;
 
   me = argv[0];
-  if (4 != argc 
+  if (4 != argc
       || 1 != sscanf(argv[1], "%lg", &tru)
       || 1 != sscanf(argv[2], "%lg", &mes)
       || 1 != sscanf(argv[3], "%lg", &sig)) {
@@ -42,7 +42,7 @@ main(int argc, char *argv[]) {
     exit(1);
   }
 
-  printf("log(Rician(%g,%g,%g)) = %g\n", 
+  printf("log(Rician(%g,%g,%g)) = %g\n",
          tru, mes, sig, airLogRician(tru, mes, sig));
 
   exit(0);

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -75,7 +75,7 @@ airThreadJoin(airThread *thread, void **retP) {
 
 airThread *
 airThreadNix(airThread *thread) {
-  
+
   airFree(thread);
   return NULL;
 }
@@ -83,7 +83,7 @@ airThreadNix(airThread *thread) {
 airThreadMutex *
 airThreadMutexNew(void) {
   airThreadMutex *mutex;
-  
+
   mutex = AIR_CALLOC(1, airThreadMutex);
   if (mutex) {
     if (pthread_mutex_init(&(mutex->id), NULL)) {
@@ -120,7 +120,7 @@ airThreadMutexNix(airThreadMutex *mutex) {
 airThreadCond *
 airThreadCondNew(void) {
   airThreadCond *cond;
-  
+
   cond = AIR_CALLOC(1, airThreadCond);
   if (cond) {
     if (pthread_cond_init(&(cond->id), NULL)) {
@@ -151,7 +151,7 @@ airThreadCondBroadcast(airThreadCond *cond) {
 
 airThreadCond *
 airThreadCondNix(airThreadCond *cond) {
-  
+
   if (cond) {
     if (!pthread_cond_destroy(&(cond->id))) {
       /* there was no error */
@@ -222,7 +222,7 @@ airThreadStart(airThread *thread, void *(*threadBody)(void *), void *arg) {
 
   thread->body = threadBody;
   thread->arg = arg;
-  thread->handle = CreateThread(0, 0, _airThreadWin32Body, 
+  thread->handle = CreateThread(0, 0, _airThreadWin32Body,
                                 (void *)thread, 0, 0);
   return NULL == thread->handle;
 }
@@ -252,7 +252,7 @@ airThreadMutexNew() {
 
   mutex = AIR_CALLOC(1, airThreadMutex);
   if (mutex) {
-    if (!(mutex->handle = CreateMutex(NULL, FALSE, NULL))) { 
+    if (!(mutex->handle = CreateMutex(NULL, FALSE, NULL))) {
       return airFree(mutex);
     }
   }
@@ -344,7 +344,7 @@ airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex) {
 int
 airThreadCondSignal(airThreadCond *cond) {
   int waiters;
-  
+
   EnterCriticalSection(&(cond->lock));
   waiters = cond->count > 0;
   LeaveCriticalSection(&(cond->lock));
@@ -377,11 +377,11 @@ airThreadCondBroadcast(airThreadCond *cond) {
       return 1;
     }
     LeaveCriticalSection(&(cond->lock));
-    /* wait for all the awakened threads to acquire the counting semaphore */ 
+    /* wait for all the awakened threads to acquire the counting semaphore */
     if (WAIT_FAILED == WaitForSingleObject(cond->done, INFINITE)) {
       return 1;
     }
-    /* this assignment is okay, even without the lock held 
+    /* this assignment is okay, even without the lock held
        because no other waiter threads can wake up to access it */
     cond->broadcast = 0;
   } else {
@@ -499,7 +499,7 @@ airThreadMutexNix(airThreadMutex *mutex) {
 airThreadCond *
 airThreadCondNew(void) {
   airThreadCond *cond;
-  
+
   cond = AIR_CALLOC(1, airThreadCond);
   return cond;
 }
@@ -552,7 +552,7 @@ airThreadCondNix(airThreadCond *cond) {
 airThreadBarrier *
 airThreadBarrierNew(unsigned int numUsers) {
   airThreadBarrier *barrier;
-  
+
   barrier = AIR_CALLOC(1, airThreadBarrier);
   if (barrier) {
     barrier->numUsers = numUsers;
@@ -587,7 +587,7 @@ airThreadBarrierWait(airThreadBarrier *barrier) {
 
 airThreadBarrier *
 airThreadBarrierNix(airThreadBarrier *barrier) {
-  
+
   barrier->doneMutex = airThreadMutexNix(barrier->doneMutex);
   barrier->doneCond = airThreadCondNix(barrier->doneCond);
   airFree(barrier);

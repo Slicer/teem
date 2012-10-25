@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images             .
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -73,15 +73,15 @@ main(int argc, char *argv[]) {
      allocated length of the array, and this might be useful, but isn't
      necessary
      3) sizeof(unsigned char): this is the size of the individual elements
-     that we are saving in the array.  Because memory is allocated and 
-     addressed at the level of individual bytes (and files can be read 
+     that we are saving in the array.  Because memory is allocated and
+     addressed at the level of individual bytes (and files can be read
      one byte at-a-time), we manage the buffer as an array of unsigned chars.
      4) incr: when the array length is a multiple of incr, the memory
      segment is re-allocated, so this determines how often the re-allocation
      happens (we want it to happen fairly infrequently) */
   /* dataArr = airArrayNew(&data, NULL, sizeof(unsigned char), incr); */
   /* but wait: to play well with type checking, we have to use a stupid
-     union to pass in the address of the array.  So, appu.v == &data, 
+     union to pass in the address of the array.  So, appu.v == &data,
      but the types are right.  We don't do a cast because recent versions
      of gcc will complain about breaking "strict-aliasing rules". */
   appu.uc = &data;
@@ -122,6 +122,6 @@ main(int argc, char *argv[]) {
   /* free up the data array itself */
   free(data);
 
-  airMopOkay(mop); 
+  airMopOkay(mop);
   return 0;
 }

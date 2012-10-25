@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images             .
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -50,7 +50,7 @@ main(int argc, char *argv[]) {
     printf("%s: !!!! PROBLEM: nan's hi bit is NOT airMyQNaNHiBit (%d)\n",
            me, airMyQNaNHiBit);
     printf("%s: !!!!\n", me);
-  }    
+  }
 
   printf(" - - - - - - - - - - - - - - - -\n");
   printf(" - - - - -  FLOATS - - - - - - -\n");
@@ -60,7 +60,7 @@ main(int argc, char *argv[]) {
     f = airFPGen_f(c);
     sprintf(str, "%f", f);
     ret = airSingleSscanf(str, "%d", &parsed_f);
-    printf("********** airFPGen_f(%d) = %f (-> %f(%d)) (AIR_EXISTS = %d)\n", 
+    printf("********** airFPGen_f(%d) = %f (-> %f(%d)) (AIR_EXISTS = %d)\n",
            c, f, parsed_f, ret, AIR_EXISTS(f));
     airSinglePrintf(stdout, NULL, "--<%f>--\n", f);
     if (c != airFPClass_f(f)) {
@@ -84,7 +84,7 @@ main(int argc, char *argv[]) {
     d = airFPGen_d(c);
     sprintf(str, "%f", d);
     ret = airSingleSscanf(str, "%lf", &parsed_d);
-    printf("********** airFPGen_d(%d) = %f (-> %f(%d)) (AIR_EXISTS = %d)\n", 
+    printf("********** airFPGen_d(%d) = %f (-> %f(%d)) (AIR_EXISTS = %d)\n",
            c, d, parsed_d, ret, AIR_EXISTS(d));
     airSinglePrintf(stdout, NULL, "--<%f>--\n", d);
     if (c != airFPClass_d(d)) {
@@ -99,7 +99,7 @@ main(int argc, char *argv[]) {
   printf(" - - - - - - - - - - - - - - - -\n");
 
   f = AIR_SNAN;
-  printf("SNaN test: f = SNaN = float(0x%x) = %f; (QNaNHiBit = %d)\n", 
+  printf("SNaN test: f = SNaN = float(0x%x) = %f; (QNaNHiBit = %d)\n",
          airFloatSNaN.i, f, airMyQNaNHiBit);
   airFPFprintf_f(stdout, f);
   g = f*f;
@@ -116,11 +116,11 @@ main(int argc, char *argv[]) {
   printf("DBL_MAX:\n"); airFPFprintf_d(stdout, DBL_MAX); printf("\n");
   printf("DBL_MIN:\n"); airFPFprintf_d(stdout, DBL_MIN); printf("\n");
 
-  printf("AIR_NAN = %f; AIR_EXISTS(AIR_NAN) = %d\n", 
+  printf("AIR_NAN = %f; AIR_EXISTS(AIR_NAN) = %d\n",
          AIR_NAN, AIR_EXISTS(AIR_NAN));
-  printf("AIR_POS_INF = %f; AIR_EXISTS(AIR_POS_INF) = %d\n", 
+  printf("AIR_POS_INF = %f; AIR_EXISTS(AIR_POS_INF) = %d\n",
          AIR_POS_INF, AIR_EXISTS(AIR_POS_INF));
-  printf("AIR_NEG_INF = %f; AIR_EXISTS(AIR_NEG_INF) = %d\n", 
+  printf("AIR_NEG_INF = %f; AIR_EXISTS(AIR_NEG_INF) = %d\n",
          AIR_NEG_INF, AIR_EXISTS(AIR_NEG_INF));
   exit(0);
 }

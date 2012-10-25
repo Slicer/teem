@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -38,7 +38,7 @@
 */
 int
 airEnumUnknown(const airEnum *enm) {
-  
+
   if (enm && enm->val) {
     return enm->val[0];
   } else {
@@ -49,7 +49,7 @@ airEnumUnknown(const airEnum *enm) {
 /*
 ** _airEnumIndex()
 **
-** given an enum "enm" and value "val", return the index into enm->str[] 
+** given an enum "enm" and value "val", return the index into enm->str[]
 ** and enm->desc[] which correspond to that value.  To be safe, when
 ** given an invalid enum value, we return zero.
 */
@@ -74,7 +74,7 @@ _airEnumIndex(const airEnum *enm, int val) {
 }
 
 /*
-** returns non-zero if there is an error: given "val" is *not* 
+** returns non-zero if there is an error: given "val" is *not*
 ** a valid value of the airEnum "enm"
 */
 int
@@ -99,7 +99,7 @@ airEnumDesc(const airEnum *enm, int val) {
   return enm->desc[idx];
 }
 
-int 
+int
 airEnumVal(const airEnum *enm, const char *str) {
   char *strCpy, test[AIR_STRLEN_SMALL];
   unsigned int ii;
@@ -107,7 +107,7 @@ airEnumVal(const airEnum *enm, const char *str) {
   if (!str) {
     return airEnumUnknown(enm);
   }
-  
+
   strCpy = airStrdup(str);
   if (!enm->sense) {
     airToLower(strCpy);
@@ -136,7 +136,7 @@ airEnumVal(const airEnum *enm, const char *str) {
       if (!strcmp(test, strCpy)) {
         free(strCpy);
         return enm->val ? enm->val[ii] : (int)ii; /* HEY scrutinize cast */
-      }      
+      }
     }
   }
 
@@ -224,7 +224,7 @@ _enumPrintVal(FILE *file, const airEnum *enm, int ii) {
 
 void
 airEnumPrint(FILE *file, const airEnum *enm) {
-  int ii; /* this should arguable be unsigned int, but 
+  int ii; /* this should arguable be unsigned int, but
              airEnum values were kept as "int", even after
              the great unsigned conversion */
 
@@ -270,8 +270,8 @@ airEnumPrint(FILE *file, const airEnum *enm) {
 ** description of the error into "err", if given
 **
 ** The requirement that the strings have strlen <= AIR_STRLEN_SMALL-1
-** is a reflection of the cheap implementation of the airEnum 
-** functions in this file, rather than an actual restriction on what an 
+** is a reflection of the cheap implementation of the airEnum
+** functions in this file, rather than an actual restriction on what an
 ** airEnum could be.
 */
 int
@@ -313,7 +313,7 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
         char stmp[AIR_STRLEN_SMALL];
         snprintf(err, ASL, "%s(%s): strlen(enm->str[%u] \"%s\") "
                  "%s not in range [1,%u]", me,
-                 enm->name, ii, enm->str[ii], 
+                 enm->name, ii, enm->str[ii],
                  airSprintSize_t(stmp, slen), AIR_STRLEN_SMALL-1);
       }
       return 1;
@@ -322,7 +322,7 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
        including remapping the case in case of case insensitivity */
     for (jj=ii+1; jj<=enm->M; jj++) {
       if (!strcmp(enm->str[ii], enm->str[jj])) {
-        if (err) { 
+        if (err) {
           snprintf(err, ASL, "%s(%s): str[%d] and [%u] both \"%s\"",
                    me, enm->name, ii, jj, enm->str[jj]);
         }
@@ -358,7 +358,7 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
       for (jj=ii+1; jj<=enm->M; jj++) {
         if (enm->val[jj] == enm->val[ii]) {
           if (err) {
-            snprintf(err, ASL, "%s(%s): val[%u] %u same as val[%u] %u", me, 
+            snprintf(err, ASL, "%s(%s): val[%u] %u same as val[%u] %u", me,
                      enm->name, ii, enm->val[ii], jj, enm->val[jj]);
           }
           return 1;
@@ -442,7 +442,7 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
     for (ii=0; strlen(enm->strEqv[ii]); ii++) {
       for (jj=ii+1; strlen(enm->strEqv[jj]); jj++) {
         if (!strcmp(enm->strEqv[ii], enm->strEqv[jj])) {
-          if (err) { 
+          if (err) {
             snprintf(err, ASL, "%s(%s): strEqv[%d] and [%u] both \"%s\"",
                      me, enm->name, ii, jj, enm->strEqv[jj]);
           }

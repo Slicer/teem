@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -36,7 +36,7 @@
 ******** airTeemVersion
 ******** airTeemReleaseDate
 **
-** updated with each release to contain a string representation of 
+** updated with each release to contain a string representation of
 ** the Teem version number and release date.  Originated in version 1.5;
 ** use of TEEM_VERSION #defines started in 1.9
 */
@@ -68,7 +68,7 @@ airNull(void) {
 */
 void *
 airSetNull(void **ptrP) {
-  
+
   if (ptrP) {
     *ptrP = NULL;
   }
@@ -94,7 +94,7 @@ airFree(void *ptr) {
 ******** airFopen()
 **
 ** encapsulates that idea that "-" is either standard in or stardard
-** out, and does McRosopht stuff required to make piping work 
+** out, and does McRosopht stuff required to make piping work
 **
 ** Does not error checking.  If fopen fails, then C' errno and strerror are
 ** left untouched for the caller to access.
@@ -160,7 +160,7 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
   int ret, isF, isD, cls;
   char *conv=NULL, *p0, *p1, *p2, *p3, *p4, *p5;
   va_list ap;
-  
+
   va_start(ap, _fmt);
   fmt = airStrdup(_fmt);
 
@@ -173,8 +173,8 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
   p5 = strstr(fmt, "%lg");
   isF = p0 || p1 || p2;
   isD = p3 || p4 || p5;
-  /* the code here says "isF" and "isD" as if it means "is float" or 
-     "is double".  It really should be "is2" or "is3", as in, 
+  /* the code here says "isF" and "isD" as if it means "is float" or
+     "is double".  It really should be "is2" or "is3", as in,
      "is 2-character conv. seq., or "is 3-character conv. seq." */
   if (isF) {
     conv = p0 ? p0 : (p1 ? p1 : p2);
@@ -237,7 +237,7 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
     /* conversion sequence is neither for float nor double */
     ret = file ? vfprintf(file, fmt, ap) : vsprintf(str, fmt, ap);
   }
-  
+
   va_end(ap);
   free(fmt);
   return ret;
@@ -340,7 +340,7 @@ airPrettySprintSize_t(char str[AIR_STRLEN_SMALL], size_t val) {
   static const char suff[][7] = {"bytes", "KB", "MB", "GB", "TB", "PB", "EB"};
   unsigned int suffIdx, suffNum;
   double dval;
-  
+
   if (!str) {
     return NULL;
   }
@@ -440,7 +440,7 @@ unsigned int
 airIndex(double min, double val, double max, unsigned int N) {
   unsigned int idx;
   double mnm;
-  
+
   mnm = max - min;
   if (mnm) {
     idx = AIR_UINT(N*(val - min)/mnm);
@@ -614,7 +614,7 @@ airTypeSize[AIR_TYPE_MAX+1] = {
 unsigned int
 airEqvSettle(unsigned int *map, unsigned int len) {
   unsigned int i, j, count, max, *hit;
-  
+
   max = 0;
   for (i=0; i<len; i++) {
     max = AIR_MAX(max, map[i]);
@@ -640,14 +640,14 @@ airEqvSettle(unsigned int *map, unsigned int len) {
 /*
 ******** airEqvMap
 **
-** takes the equivalence pairs in eqvArr, and an array of uints map of 
+** takes the equivalence pairs in eqvArr, and an array of uints map of
 ** length len, and puts in map[i] the uint that class i's value should
-** be changed to.  
-** 
+** be changed to.
+**
 ** based on numerical recipes, C edition, pg. 346
-** modifications: 
+** modifications:
 **  - when resolving ancestors, map to the one with the lower index.
-**  - applies settling to resulting map 
+**  - applies settling to resulting map
 **
 ** returns the number of different class IDs
 */

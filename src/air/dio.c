@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -128,9 +128,9 @@ airDioTest(int fd, const void *ptr, size_t size) {
     /* couldn't learn direct I/O specifics */
     return airNoDio_dioinfo;
   }
-  
+
   if (size) {
-    /* 
+    /*
     ** direct I/O requirements:
     ** 1) xfer size between d_miniosz and d_maxiosz
     ** 2) xfer size a multiple of d_miniosz
@@ -220,9 +220,9 @@ airDioInfo(int *align, int *min, int *max, int fd) {
 /*
 ******** airDioMalloc
 **
-** does direct IO compatible memory allocation.  
-** 
-** NOTE: like airDioInfo, this assumes that you've called airDioTest 
+** does direct IO compatible memory allocation.
+**
+** NOTE: like airDioInfo, this assumes that you've called airDioTest
 ** without incident
 */
 #if TEEM_DIO == 0
@@ -237,7 +237,7 @@ airDioMalloc(size_t size, int fd) {
 void *
 airDioMalloc(size_t size, int fd) {
   int align, min, max;
-  
+
   airDioInfo(&align, &min, &max, fd);
   return memalign(align, size);
 }
@@ -247,9 +247,9 @@ airDioMalloc(size_t size, int fd) {
 ******** airDioRead
 **
 ** like read(), but for direct IO.  The idea is that you call this on as
-** big a chunk of memory as possible.  
-** 
-** NOTE: like airDioInfo, this assumes that you've called airDioTest 
+** big a chunk of memory as possible.
+**
+** NOTE: like airDioInfo, this assumes that you've called airDioTest
 ** without incident
 */
 #if TEEM_DIO == 0
@@ -268,7 +268,7 @@ airDioRead(int fd, void *_ptr, size_t size) {
   int align, min, max, flags;
   size_t remain, part;
   char *ptr;
-  
+
   if (!( _ptr && airNoDio_okay == airDioTest(fd, _ptr, size) )) {
     return 0;
   }
@@ -290,7 +290,7 @@ airDioRead(int fd, void *_ptr, size_t size) {
     remain -= red;
   } while (remain);
   fcntl(fd, F_SETFL, flags);
-  
+
   return totalred;
 }
 #endif
@@ -299,9 +299,9 @@ airDioRead(int fd, void *_ptr, size_t size) {
 ******** airDioWrite
 **
 ** like write(), but for direct IO.  The idea is that you call this on as
-** big a chunk of memory as possible.  
-** 
-** NOTE: like airDioInfo, this assumes that you've called airDioTest 
+** big a chunk of memory as possible.
+**
+** NOTE: like airDioInfo, this assumes that you've called airDioTest
 ** without incident
 */
 #if TEEM_DIO == 0
@@ -320,7 +320,7 @@ airDioWrite(int fd, const void *_ptr, size_t size) {
   int align, min, max, flags;
   size_t remain, part;
   char *ptr;
-  
+
   if (!( _ptr && (airNoDio_okay == airDioTest(fd, _ptr, size)) )) {
     return 0;
   }
@@ -342,7 +342,7 @@ airDioWrite(int fd, const void *_ptr, size_t size) {
     remain -= rit;
   } while (remain);
   fcntl(fd, F_SETFL, flags);
-  
+
   return totalrit;
 }
 #endif
