@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -50,7 +50,7 @@ main() {
   printf("%s\n", (tmp = biffGet("axis")));
   free(tmp);
   biffDone("axis");
-  
+
   biffAdd("harold", "the first error harold");
   biffAdd("harold", "the second error harold");
   biffAdd("harold", "the third error harold");
@@ -78,7 +78,7 @@ main() {
   printf("=================================\n");
   msg1 = biffMsgNew("roberts");
   biffMsgAdd(msg1, "biffMsgAdd hello, said roberts");
-  biffMsgAddf(msg1, "biffMsgAddf: there's an int %d and a float %g", 
+  biffMsgAddf(msg1, "biffMsgAddf: there's an int %d and a float %g",
               42, AIR_PI);
   s1 = biffMsgStrGet(msg1);
   printf("from msg1:\n%s", s1);
@@ -96,7 +96,7 @@ main() {
   printf("=================================\n");
   msg1 = biffMsgNix(msg1);
   msg2 = biffMsgNix(msg2);
-  
+
   /*
   biffAddf("test", "%s: this is a test %d %f", "me", 1, 2.0);
   printf("%s\n", (tmp = biffGet("test")));

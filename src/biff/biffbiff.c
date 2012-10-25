@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -118,7 +118,7 @@ _bmsgFind(const char *key) {
 static unsigned int
 _bmsgFindIdx(biffMsg *msg) {
   unsigned int ii;
-  
+
   for (ii=0; ii<_bmsgNum; ii++) {
     if (msg == _bmsg[ii]) {
       break;
@@ -166,8 +166,8 @@ _bmsgAdd(const char *key) {
 /*
 ******** biffAdd()
 **
-** Adds string "err" at key "key", whether or not there are any 
-** existing messages there.  Since biffSet() was killed 
+** Adds string "err" at key "key", whether or not there are any
+** existing messages there.  Since biffSet() was killed
 ** Wed Apr 20 11:11:51 EDT 2005, this has become the main biff
 ** function.
 */
@@ -373,7 +373,7 @@ biffDone(const char *key) {
   biffMsg *msg;
 
   _bmsgStart();
-  
+
   msg = _bmsgFind(key);
   if (!msg) {
     fprintf(stderr, "%s: WARNING: no information for key \"%s\"\n", me, key);
