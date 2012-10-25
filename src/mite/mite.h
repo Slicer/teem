@@ -305,11 +305,12 @@ typedef struct {
                                    miteThread.  It can be either a scalar
                                    or a vector */
   int size,                     /* number of entries along this txf axis */
-    op,                         /* from miteStageOp* enum.  Note that this
+    op;                         /* from miteStageOp* enum.  Note that this
                                    operation applies to ALL the range variables
                                    adjusted by this txf (can't add color while
                                    multiplying opacity) */
-    (*qn)(double *);            /* if non-NULL: callback for doing vector
+  unsigned int 
+  (*qn)(const double *);        /* if non-NULL: callback for doing vector
                                    quantization of vector-valued txf domain
                                    variables */
   double min, max;              /* quantization range of values which is 

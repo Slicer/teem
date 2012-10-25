@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -23,7 +23,7 @@
 
 /* learned: don't confuse allocate an array of structs with an array
    of pointers to structs.  Don't be surprised when you bus error
-   because of the difference 
+   because of the difference
 */
 
 #include "mite.h"
@@ -94,8 +94,8 @@ miteStageOp = &_miteStageOp;
 **   gage(vector:<item>) : gageKindVec
 **   gage(tensor:<item>) : tenGageKind
 **
-** Notice that "scalar", "vector", and "tensor" do NOT refer to the type 
-** of the quantity being measured, but rather to the type of volume in 
+** Notice that "scalar", "vector", and "tensor" do NOT refer to the type
+** of the quantity being measured, but rather to the type of volume in
 ** which quantity is measured (i.e., the gageKind used)
 */
 int
@@ -104,13 +104,13 @@ miteVariableParse(gageItemSpec *isp, const char *label) {
 
   char *buff, *endparen, *kqstr, *col, *kstr, *qstr;
   airArray *mop;
-  
+
   if (!( isp && label )) {
     biffAddf(MITE, "%s: got NULL pointer", me);
     return 1;
   }
   if (0 == strlen(label)) {
-    /* nothing was specified; we try to indicate that by mimicking 
+    /* nothing was specified; we try to indicate that by mimicking
        the return of gageItemSpecNew() */
     isp->item = 0;
     isp->kind = NULL;
@@ -210,10 +210,10 @@ miteVariablePrint(char *buff, const gageItemSpec *isp) {
   } else if (gageKindScl == isp->kind
              || gageKindVec == isp->kind
              || tenGageKind == isp->kind) {
-    sprintf(buff, "gage(%s:%s)", isp->kind->name, 
+    sprintf(buff, "gage(%s:%s)", isp->kind->name,
             airEnumStr(isp->kind->enm, isp->item));
   } else if (miteValGageKind == isp->kind) {
-    sprintf(buff, "%s(%s)", isp->kind->name, 
+    sprintf(buff, "%s(%s)", isp->kind->name,
             airEnumStr(isp->kind->enm, isp->item));
   } else {
     sprintf(buff, "(%s: unknown gageKind!)", me);
@@ -233,8 +233,8 @@ miteNtxfCheck(const Nrrd *ntxf) {
     biffMovef(MITE, NRRD, "%s: basic nrrd validity check failed", me);
     return 1;
   }
-  if (!( nrrdTypeFloat == ntxf->type || 
-         nrrdTypeDouble == ntxf->type || 
+  if (!( nrrdTypeFloat == ntxf->type ||
+         nrrdTypeDouble == ntxf->type ||
          nrrdTypeUChar == ntxf->type )) {
     biffAddf(MITE, "%s: need a type %s, %s or %s nrrd (not %s)", me,
              airEnumStr(nrrdType, nrrdTypeFloat),
@@ -280,7 +280,7 @@ miteNtxfCheck(const Nrrd *ntxf) {
       return 1;
     }
     if (miteVariableParse(&isp, domStr)) {
-      biffAddf(MITE, "%s: couldn't parse txf domain \"%s\" for axis %d\n", 
+      biffAddf(MITE, "%s: couldn't parse txf domain \"%s\" for axis %d\n",
                me, domStr, axi);
       return 1;
     }
@@ -308,19 +308,19 @@ miteNtxfCheck(const Nrrd *ntxf) {
         }
       }
     } else {
-      if (!( AIR_EXISTS(ntxf->axis[axi].min) && 
+      if (!( AIR_EXISTS(ntxf->axis[axi].min) &&
              AIR_EXISTS(ntxf->axis[axi].max) )) {
         biffAddf(MITE, "%s: min and max of axis %d aren't both set", me, axi);
         return 1;
       }
       if (!( ntxf->axis[axi].min < ntxf->axis[axi].max )) {
-        biffAddf(MITE, "%s: min (%g) not less than max (%g) on axis %d", 
+        biffAddf(MITE, "%s: min (%g) not less than max (%g) on axis %d",
                  me, ntxf->axis[axi].min, ntxf->axis[axi].max, axi);
         return 1;
       }
     }
   }
-  
+
   return 0;
 }
 
@@ -345,11 +345,11 @@ miteNtxfCheck(const Nrrd *ntxf) {
 ** the time to compute in miteSample().
 */
 void
-miteQueryAdd(gageQuery queryScl, gageQuery queryVec, 
+miteQueryAdd(gageQuery queryScl, gageQuery queryVec,
              gageQuery queryTen, gageQuery queryMite,
              gageItemSpec *isp) {
   static const char me[]="miteQueryAdd";
-  
+
   if (NULL == isp->kind) {
     /* nothing to add */
   } else if (gageKindScl == isp->kind) {
@@ -370,7 +370,7 @@ miteQueryAdd(gageQuery queryScl, gageQuery queryVec,
        (for instance, using the gradient of fractional anisotropy) */
     switch(isp->item) {
     case miteValVrefN:
-    case miteValNdotV: 
+    case miteValNdotV:
     case miteValNdotL:
       /* the "N" can be a normalized vector from any of the
          available kinds (except miteValGageKind!), and its
@@ -397,7 +397,7 @@ int
 _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
   static const char me[]="_miteNtxfCopy";
   int ni, E;
-  
+
   mrr->ntxf = AIR_CALLOC(muu->ntxfNum, Nrrd *);
   if (!mrr->ntxf) {
     biffAddf(MITE, "%s: couldn't calloc %d ntxf pointers", me, muu->ntxfNum);
@@ -410,8 +410,8 @@ _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
     mrr->ntxf[ni] = nrrdNew();
     if (!E) airMopAdd(mrr->rmop, mrr->ntxf[ni],
                       (airMopper)nrrdNuke, airMopAlways);
-    if (!( nrrdTypeUChar == muu->ntxf[ni]->type 
-           || nrrdTypeFloat == muu->ntxf[ni]->type 
+    if (!( nrrdTypeUChar == muu->ntxf[ni]->type
+           || nrrdTypeFloat == muu->ntxf[ni]->type
            || nrrdTypeDouble == muu->ntxf[ni]->type )) {
       biffAddf(MITE,
                "%s: sorry, can't handle txf of type %s (only %s, %s, %s)",
@@ -450,7 +450,7 @@ _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
   int ni, ei, ri, nnum, rnum;
   Nrrd *ntxf;
   mite_t *data, alpha, frac;
-  
+
   if (_miteNtxfCopy(mrr, muu)) {
     biffAddf(MITE, "%s: trouble copying/converting transfer functions", me);
     return 1;
@@ -548,7 +548,7 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
   miteStage *stage;
   gageItemSpec isp;
   char rc;
-  
+
   stageNum = _miteStageNum(mrr);
   /* fprintf(stderr, "!%s: stageNum = %d\n", me, stageNum); */
   mtt->stage = AIR_CALLOC(stageNum, miteStage);
@@ -636,7 +636,8 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
 void
 _miteStageRun(miteThread *mtt, miteUser *muu) {
   static const char me[]="_miteStageRun";
-  int stageIdx, ri, rii, txfIdx, finalIdx;
+  int stageIdx, ri, rii;
+  unsigned int txfIdx, finalIdx;
   miteStage *stage;
   mite_t *rangeData;
   double *dbg=NULL;

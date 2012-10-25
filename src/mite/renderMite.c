@@ -67,10 +67,10 @@ int
 miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   static const char me[]="miteRenderBegin";
   gagePerVolume *pvl;
-  int E, T, thr, pvlIdx;
+  int E, T, pvlIdx;
   gageQuery queryScl, queryVec, queryTen;
   gageItemSpec isp;
-  unsigned int axi;
+  unsigned int axi, thr;
  
   if (!(mrrP && muu)) {
     biffAddf(MITE, "%s: got NULL pointer", me);
@@ -174,7 +174,7 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
 
 int
 miteRenderEnd(miteRender *mrr, miteUser *muu) {
-  int thr;
+  unsigned int thr;
   double samples;
 
   muu->rendTime = airTime() - mrr->time0;
