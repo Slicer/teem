@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -101,11 +101,11 @@ alanUpdate(alanContext *actx) {
     biffMovef(ALAN, NRRD, "%s: trouble allocating buffers", me);
     return 1;
   }
-  
+
   return 0;
 }
 
-int 
+int
 alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
   static const char me[]="alanInit";
   alan_t *levInit=NULL, *lev0, *parmInit=NULL, *parm;
@@ -119,17 +119,17 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
     biffAddf(ALAN, "%s: _nlev[0,1] not allocated: call alanUpdate", me);
     return 1;
   }
-  
+
   if (nlevInit) {
     if (nrrdCheck(nlevInit)) {
       biffMovef(ALAN, NRRD, "%s: given nlevInit has problems", me);
       return 1;
     }
-    if (!( alan_nt == nlevInit->type 
+    if (!( alan_nt == nlevInit->type
            && nlevInit->dim == 1 + actx->dim
            && actx->_nlev[0]->axis[0].size == nlevInit->axis[0].size
            && actx->size[0] == nlevInit->axis[1].size
-           && actx->size[1] == nlevInit->axis[2].size 
+           && actx->size[1] == nlevInit->axis[2].size
            && (2 == actx->dim || actx->size[2] == nlevInit->axis[3].size) )) {
       biffAddf(ALAN, "%s: type/size mismatch with given nlevInit", me);
       return 1;
@@ -141,11 +141,11 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
       biffMovef(ALAN, NRRD, "%s: given nparmInit has problems", me);
       return 1;
     }
-    if (!( alan_nt == nparmInit->type 
+    if (!( alan_nt == nparmInit->type
            && nparmInit->dim == 1 + actx->dim
            && 3 == nparmInit->axis[0].size
            && actx->size[0] == nparmInit->axis[1].size
-           && actx->size[1] == nparmInit->axis[2].size 
+           && actx->size[1] == nparmInit->axis[2].size
            && (2 == actx->dim || actx->size[2] == nparmInit->axis[3].size) )) {
       biffAddf(ALAN, "%s: type/size mismatch with given nparmInit", me);
       return 1;
@@ -186,7 +186,7 @@ _alanPerIteration(alanContext *actx, int iter) {
   static const char me[]="_alanPerIteration";
   char fname[AIR_STRLEN_MED];
   Nrrd *nslc, *nimg;
-  
+
   if (!(actx->saveInterval || actx->frameInterval)) {
     if (actx->verbose && !(iter % 100)) {
       fprintf(stderr, "%s: iter = %d, averageChange = %g\n",
@@ -216,7 +216,7 @@ _alanPerIteration(alanContext *actx, int iter) {
 
 typedef struct {
   /* these two are genuine input to each worker thread */
-  alanContext *actx;  
+  alanContext *actx;
   int idx;
   /* this is just a convenient place to put airThread (so that alanRun()
      doesn't have to make multiple arrays of per-thread items) */
@@ -233,7 +233,7 @@ _alanTuringWorker(void *_task) {
     conf, Dxx, Dxy, Dyy, /* Dxz, Dyz, */
     *tpx, *tmx, *tpy, *tmy, /* *tpz, *tmz, */
     *lev0, *lev1, *parm, deltaT, alpha, beta, A, B,
-    *v[27], lapA, lapB, corrA, corrB, 
+    *v[27], lapA, lapB, corrA, corrB,
     deltaA, deltaB, diffA, diffB, change;
   int dim, iter, stop, startW, endW, idx,
     px, mx, py, my, pz, mz,
@@ -265,10 +265,10 @@ _alanTuringWorker(void *_task) {
     endY = sy;
   }
 
-  for (iter = 0; 
-       (alanStopNot == task->actx->stop 
+  for (iter = 0;
+       (alanStopNot == task->actx->stop
         && (0 == task->actx->maxIteration
-            || iter < task->actx->maxIteration)); 
+            || iter < task->actx->maxIteration));
        iter++) {
 
     if (0 == task->idx) {
@@ -396,7 +396,7 @@ _alanTuringWorker(void *_task) {
             if (tendata) {
 
               if (!(task->actx->homogAniso)) {
-                
+
               }
             } else {
               lapA = (v[ 4][0] + v[10][0] + v[12][0]
@@ -405,8 +405,8 @@ _alanTuringWorker(void *_task) {
                       + v[14][1] + v[16][1] + v[22][1] - 6*B);
             }
           }
-          
-          deltaA = deltaT*(react*conf*task->actx->K*(alpha - A*B) 
+
+          deltaA = deltaT*(react*conf*task->actx->K*(alpha - A*B)
                            + diffA*(lapA + corrA));
           if (AIR_ABS(deltaA) > task->actx->maxPixelChange) {
             stop = alanStopDiverged;
@@ -417,21 +417,21 @@ _alanTuringWorker(void *_task) {
           if (!( AIR_EXISTS(deltaA) && AIR_EXISTS(deltaB) )) {
             stop = alanStopNonExist;
           }
-          
+
           A += deltaA;
           B = AIR_MAX(0, B + deltaB);
           lev1[0 + 2*idx] = A;
-          lev1[1 + 2*idx] = B; 
+          lev1[1 + 2*idx] = B;
         }
       }
     }
-    
+
     /* add change to global sum in a threadsafe way */
     airThreadMutexLock(task->actx->changeMutex);
     task->actx->averageChange += change/(sx*sy*sz);
     task->actx->changeCount += 1;
     if (task->actx->changeCount == task->actx->numThreads) {
-      /* I must be the last thread to reach this point; all 
+      /* I must be the last thread to reach this point; all
          others must have passed the mutex unlock, and are
          sitting at the barrier */
       if (alanStopNot != stop) {
@@ -456,7 +456,7 @@ _alanTuringWorker(void *_task) {
     /* force all threads to line up here, once per iteration */
     airThreadBarrierWait(task->actx->iterBarrier);
   }
-  
+
   if (iter == task->actx->maxIteration) {
     /* HEY: all threads will agree on this, right? */
     task->actx->stop = alanStopMaxIteration;

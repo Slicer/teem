@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -69,14 +69,14 @@ main(int argc, char *argv[]) {
       || alanParmSet(actx, alanParmNumThreads, 10)
       ) {
     err = biffGetDone(ALAN);
-    fprintf(stderr, "%s: trouble: %s\n", me, err); 
+    fprintf(stderr, "%s: trouble: %s\n", me, err);
     free(err); return 1;
   }
 
-  if (alanUpdate(actx) 
+  if (alanUpdate(actx)
       || alanInit(actx, ninit, nparm)) {
     err = biffGetDone(ALAN);
-    fprintf(stderr, "%s: trouble: %s\n", me, err); 
+    fprintf(stderr, "%s: trouble: %s\n", me, err);
     free(err); return 1;
   }
   fprintf(stderr, "%s: going to run (%d threads) . . .\n",
@@ -88,7 +88,7 @@ main(int argc, char *argv[]) {
   nrrdSave("lev0.nrrd", actx->nlev[0], NULL);
   nrrdSave("lev1.nrrd", actx->nlev[1], NULL);
   */
-  
+
   actx = alanContextNix(actx);
   return 0;
 }

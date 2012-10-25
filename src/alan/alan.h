@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -101,7 +101,7 @@ enum {
 typedef float alan_t;
 #  define alan_nt nrrdTypeFloat
 #  define ALAN_FLOAT 1
-#else 
+#else
 typedef double alan_t;
 #  define alan_nt nrrdTypeDouble
 #  define ALAN_FLOAT 0
@@ -127,7 +127,7 @@ typedef struct alanContext_t {
     minAverageChange, /* min worthwhile "avergageChange" value (see below),
                          assume convergence if it falls below this */
     maxPixelChange,   /* maximum allowed change in the first morphogen (on
-                         any single pixels), assume unstable divergence if 
+                         any single pixels), assume unstable divergence if
                          this is exceeded */
     alpha, beta,      /* variables for turing */
     react,            /* additional scaling of reaction term */
@@ -145,11 +145,11 @@ typedef struct alanContext_t {
   Nrrd *_nlev[2],     /* levels of morphogens, alternating buffers */
     *nlev;            /* pointer to last iterations output */
   Nrrd *nparm;        /* alpha, beta values for all texels */
-  alan_t 
+  alan_t
     averageChange;    /* average amount of "change" in last iteration */
   int changeCount;    /* # of contributions to averageChange */
                       /* to control update of averageChange and changeCount */
-  airThreadMutex *changeMutex;  
+  airThreadMutex *changeMutex;
                       /* to synchronize separate iterations of simulation */
   airThreadBarrier *iterBarrier;
 
