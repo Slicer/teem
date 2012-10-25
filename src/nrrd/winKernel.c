@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -120,7 +120,7 @@ WS_N_D(Hann, _HANN, POW1)
 static NrrdKernel
 _nrrdKernelHann = {
   "hann",
-  2, _nrrdWindSincSup,  _nrrdWindSincInt,   
+  2, _nrrdWindSincSup,  _nrrdWindSincInt,
   _nrrdHann_1_f, _nrrdHann_N_f, _nrrdHann_1_d, _nrrdHann_N_d
 };
 NrrdKernel *const
@@ -144,7 +144,7 @@ WS_N_D(DHann, _DHANN, POW2)
 static NrrdKernel
 _nrrdKernelDHann = {
   "hannD",
-  2, _nrrdWindSincSup, _nrrdDWindSincInt,  
+  2, _nrrdWindSincSup, _nrrdDWindSincInt,
   _nrrdDHann_1_f,  _nrrdDHann_N_f,  _nrrdDHann_1_d,  _nrrdDHann_N_d
 };
 NrrdKernel *const
@@ -173,7 +173,7 @@ WS_N_D(DDHann, _DDHANN, POW3)
 static NrrdKernel
 _nrrdKernelDDHann = {
   "hannDD",
-  2, _nrrdWindSincSup, _nrrdDWindSincInt,  
+  2, _nrrdWindSincSup, _nrrdDWindSincInt,
   _nrrdDDHann_1_f, _nrrdDDHann_N_f, _nrrdDDHann_1_d, _nrrdDDHann_N_d
 };
 NrrdKernel *const
@@ -196,7 +196,7 @@ WS_N_D(Black, _BLACK, POW1)
 static NrrdKernel
 _nrrdKernelBlackman = {
   "blackman",
-  2, _nrrdWindSincSup,  _nrrdWindSincInt,   
+  2, _nrrdWindSincSup,  _nrrdWindSincInt,
   _nrrdBlack_1_f, _nrrdBlack_N_f, _nrrdBlack_1_d, _nrrdBlack_N_d
 };
 NrrdKernel *const
@@ -225,7 +225,7 @@ WS_N_D(DBlack, _DBLACK, POW2)
 static NrrdKernel
 _nrrdKernelDBlack = {
   "blackmanD",
-  2, _nrrdWindSincSup, _nrrdDWindSincInt,  
+  2, _nrrdWindSincSup, _nrrdDWindSincInt,
   _nrrdDBlack_1_f,  _nrrdDBlack_N_f,  _nrrdDBlack_1_d,  _nrrdDBlack_N_d
 };
 NrrdKernel *const
@@ -259,7 +259,7 @@ WS_N_D(DDBlack, _DDBLACK, POW3)
 static NrrdKernel
 _nrrdKernelDDBlack = {
   "blackmanDD",
-  2, _nrrdWindSincSup, _nrrdDWindSincInt,  
+  2, _nrrdWindSincSup, _nrrdDWindSincInt,
   _nrrdDDBlack_1_f, _nrrdDDBlack_N_f, _nrrdDDBlack_1_d, _nrrdDDBlack_N_d
 };
 NrrdKernel *const

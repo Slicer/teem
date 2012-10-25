@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -27,7 +27,7 @@
 int
 nrrdCCValid(const Nrrd *nin) {
   static const char me[]="nrrdCCValid";
-  
+
   if (nrrdCheck(nin)) {
     biffAddf(NRRD, "%s: basic validity check failed", me);
     return 0;
@@ -50,7 +50,7 @@ nrrdCCValid(const Nrrd *nin) {
 }
 
 /*
-** things we could sensibly measure on CCs: 
+** things we could sensibly measure on CCs:
 ** - size
 ** - # neighbors (needs conny argument)
 ** - what else?
@@ -82,7 +82,7 @@ nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
     biffAddf(NRRD, "%s:", me);
     return 1;
   }
-  
+
   return 0;
 }
 
@@ -122,7 +122,7 @@ nrrdCCNum(const Nrrd *nin) {
   unsigned int (*lup)(const void *, size_t), num;
   size_t I, max, NN;
   unsigned char *hist;
-  
+
   if (!nrrdCCValid(nin)) {
     return 0;
   }

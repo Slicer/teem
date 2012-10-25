@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images             .
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -55,7 +55,7 @@ main(int argc, char **argv) {
 
   nio->path = airStrdup(".");
   if (nrrdStringRead(nrrd, hstr, nio)) {
-    fprintf(stderr, "%s: trouble reading string:\n%s", 
+    fprintf(stderr, "%s: trouble reading string:\n%s",
             me, err = biffGet(NRRD));
     free(err);
     exit(1);
@@ -64,7 +64,7 @@ main(int argc, char **argv) {
 
   nrrdSave("out.nrrd", nrrd, NULL);
   if (nrrdStringWrite(&wstr, nrrd, NULL)) {
-    fprintf(stderr, "%s: trouble writing string:\n%s", 
+    fprintf(stderr, "%s: trouble writing string:\n%s",
             me, err = biffGet(NRRD));
     free(err);
     exit(1);

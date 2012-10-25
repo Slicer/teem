@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images             .
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -54,15 +54,15 @@ genvolFunc(double x, double y, double z) {
   /*
     ret = airGaussian(a, 0, sig0)*airGaussian(b, 0, sig1);
   */
-  a = (a > sig0 
-       ? a - sig0 
+  a = (a > sig0
+       ? a - sig0
        : (a < -sig0
           ? a + sig0
           : 0));
   ret = airGaussian(a, 0, sig1)*airGaussian(b, 0, sig1);
   return ret;
 #endif
-  
+
   /*
   double A, B;
 
@@ -77,7 +77,7 @@ genvolFunc(double x, double y, double z) {
   return (1 - (AIR_PI*z + 3)/5
           + 0.25*(1 + rho(sqrt(x*x + y*y)))/(2*(1 + 0.25)));
   */
-  /* cone 
+  /* cone
   return z - 2*sqrt(x*x + y*y) + 0.5;
   */
   /* pin-cushion
@@ -104,7 +104,7 @@ main(int argc, const char *argv[]) {
   airArray *mop;
   double min[3], max[3], x, y, z, *data;
   Nrrd *nout;
-  
+
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();
@@ -147,7 +147,7 @@ main(int argc, const char *argv[]) {
     }
   }
 
-  nrrdAxisInfoSet_va(nout, nrrdAxisInfoCenter, 
+  nrrdAxisInfoSet_va(nout, nrrdAxisInfoCenter,
                      nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
 #if 0
   nrrdAxisInfoSet_va(nout, nrrdAxisInfoMin, min[0], min[1], min[2]);

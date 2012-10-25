@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images             .
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -89,7 +89,7 @@ convoFunc(Nrrd *nout, Nrrd *_nimg, Nrrd *_nmask, int renorm, int crop) {
   for (i=0; i<nrrdElementNumber(npad); i++) {
     odata[i] = 0.0;
   }
-  
+
   if (renorm) {
     sum = 0;
     for (i=0; i<nrrdElementNumber(nmask); i++) {
@@ -112,7 +112,7 @@ convoFunc(Nrrd *nout, Nrrd *_nimg, Nrrd *_nmask, int renorm, int crop) {
           ohere[mx+osx*my] += mdata[mx+lox + msx*(my+loy)]*ihere[mx+isx*my];
           if (10 == iy && 10 == ix) {
             fprintf(stderr, "mdata[%d,%d] = mdata[%d] = %g\n",
-                    mx, my, mx+lox + msx*(my+loy), 
+                    mx, my, mx+lox + msx*(my+loy),
                     mdata[mx+lox + msx*(my+loy)]);
           }
         }
@@ -133,7 +133,7 @@ convoFunc(Nrrd *nout, Nrrd *_nimg, Nrrd *_nmask, int renorm, int crop) {
             continue;
           *ohere += mdata[mx+lox + msx*(my+loy)]*idata[x + isx*y];
         }
-      }      
+      }
     }
   }
 
@@ -165,7 +165,7 @@ main(int argc, const char *argv[]) {
   airArray *mop;
   Nrrd *nimg, *nmask, *nout;
   int uncrop, renorm;
-  
+
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();

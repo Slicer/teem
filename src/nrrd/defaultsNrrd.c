@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -51,7 +51,7 @@ int nrrdDefaultResampleClamp = AIR_TRUE;
 int nrrdDefaultResampleCheap = AIR_FALSE;
 double nrrdDefaultResamplePadValue = 0.0;
 int nrrdDefaultResampleNonExistent = nrrdResampleNonExistentNoop;
-double nrrdDefaultKernelParm0 = 1.0; 
+double nrrdDefaultKernelParm0 = 1.0;
 /* ---- END non-NrrdIO */
 int nrrdDefaultCenter = nrrdCenterCell;
 double nrrdDefaultSpacing = 1.0;
@@ -95,7 +95,7 @@ _nrrdULLongMaxHelp(airULLong val) {
   return val + 1;
 }
 
-/* should the acceptance (or not) of malformed NRRD header fields 
+/* should the acceptance (or not) of malformed NRRD header fields
    embedded in PNM or text comments be controlled here? */
 
 /* Are there other assumptions currently built into nrrd which could
@@ -107,7 +107,7 @@ const char *const nrrdEnvVarDefaultWriteEncodingType
   = "NRRD_DEFAULT_WRITE_ENCODING_TYPE";
 const char *const nrrdEnvVarDefaultWriteBareText
   = "NRRD_DEFAULT_WRITE_BARE_TEXT";
-const char *const nrrdEnvVarDefaultWriteBareTextOld 
+const char *const nrrdEnvVarDefaultWriteBareTextOld
   = "NRRD_DEF_WRITE_BARE_TEXT";
 const char *const nrrdEnvVarDefaultCenter
   = "NRRD_DEFAULT_CENTER";
@@ -126,7 +126,7 @@ const char *const nrrdEnvVarStateKindNoop
   = "NRRD_STATE_KIND_NOOP";
 const char *const nrrdEnvVarStateVerboseIO
   = "NRRD_STATE_VERBOSE_IO";
-const char *const nrrdEnvVarStateKeyValuePairsPropagate 
+const char *const nrrdEnvVarStateKeyValuePairsPropagate
   = "NRRD_STATE_KEYVALUEPAIRS_PROPAGATE";
 const char *const nrrdEnvVarStateBlind8BitRange
   = "NRRD_STATE_BLIND_8_BIT_RANGE";
@@ -274,7 +274,7 @@ nrrdGetenvDouble(double *val, char **envStr, const char *envVar) {
 
 void
 nrrdDefaultGetenv(void) {
-  
+
   /* these two pre-date Def --> Default rename */
   if (-1 == nrrdGetenvBool(/**/ &nrrdDefaultWriteBareText, NULL,
                            nrrdEnvVarDefaultWriteBareTextOld)) {

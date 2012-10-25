@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -24,7 +24,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-/* learned: /usr/bin/c++ on mac (at least) won't actually put a 
+/* learned: /usr/bin/c++ on mac (at least) won't actually put a
 const int blah[] array in an object file if it hasn't been declared
 as "extern" */
 
@@ -64,7 +64,7 @@ nrrdTypeSize[NRRD_TYPE_MAX+1] = {
   0   /* nrrdTypeBlock: effectively unknown; user has to set explicitly */
 };
 
-const int 
+const int
 nrrdTypeIsIntegral[NRRD_TYPE_MAX+1] = {
   0,  /* nrrdTypeUnknown: unknown */
   1,  /* nrrdTypeChar: char */
@@ -80,7 +80,7 @@ nrrdTypeIsIntegral[NRRD_TYPE_MAX+1] = {
   1   /* nrrdTypeBlock: for some reason we pretend that blocks are integers */
 };
 
-const int 
+const int
 nrrdTypeIsUnsigned[NRRD_TYPE_MAX+1] = {
   0,  /* nrrdTypeUnknown: unknown */
   0,  /* nrrdTypeChar: char */
@@ -182,7 +182,7 @@ _nrrdFieldValidInImage[NRRD_FIELD_MAX+1] = {
 
 /*
 ** _nrrdFieldOnePerAxis
-** 
+**
 ** whether or not you need one value per axis, like labels and spacings
 */
 const int
@@ -224,7 +224,7 @@ _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1] = {
 
 /*
 ** _nrrdFieldValidInText[]
-** 
+**
 ** these fields are valid embedded in plain text comments
 ** This does NOT include the fields who's values are constrained
 ** the plain text format itself.
@@ -235,7 +235,7 @@ _nrrdFieldValidInText[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_comment */
   1, /* nrrdField_content */
   0, /* nrrdField_number */
-  0, /* nrrdField_type: decided AGAINST plain text holding general type 
+  0, /* nrrdField_type: decided AGAINST plain text holding general type
         (but I forget why ...) */
   0, /* nrrdField_block_size */
   1, /* nrrdField_dimension: but can only be 1 or 2 */

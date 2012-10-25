@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images             .
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -46,7 +46,7 @@ main(int argc, const char **argv) {
   NrrdIoState *nio;
   int kindIn, kindOut, headerOnly;
   unsigned int kindAxis, axi, si, sj;
-  
+
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();
@@ -82,7 +82,7 @@ main(int argc, const char **argv) {
     }
     if (nrrdKindUnknown != kindIn) {
       fprintf(stderr, "%s: got non-domain kind %s on axis %u, but already "
-              "have %s from axis %u\n", me, 
+              "have %s from axis %u\n", me,
               airEnumStr(nrrdKind, nin->axis[axi].kind), axi,
               airEnumStr(nrrdKind, kindIn), kindAxis);
       airMopError(mop); exit(1);
@@ -146,7 +146,7 @@ main(int argc, const char **argv) {
       nout->measurementFrame[si][sj] = AIR_NAN;
     }
   }
-  
+
   /* no key/value pairs */
   nrrdKeyValueClear(nout);
 
@@ -174,7 +174,7 @@ main(int argc, const char **argv) {
     nout->axis[axi].spacing = AIR_NAN;
   }
 
-  /* logic of orientation definition: 
+  /* logic of orientation definition:
      if space dimension is known:
         set origin to zero if not already set
         set space direction to unit vector if not already set
@@ -209,7 +209,7 @@ main(int argc, const char **argv) {
     for (axi=0; axi<nout->dim; axi++) {
       if (nrrdKindUnknown == kindOut || kindAxis != axi) {
         nrrdSpaceVecSetZero(nout->axis[axi].spaceDirection);
-        nout->axis[axi].spaceDirection[saxi] 
+        nout->axis[axi].spaceDirection[saxi]
           = (AIR_EXISTS(nin->axis[axi].spacing)
              ? nin->axis[axi].spacing
              : 1.0);
@@ -232,11 +232,11 @@ main(int argc, const char **argv) {
 
   if (nrrdSave(outS, nout, nio)) {
     airMopAdd(mop, err = biffGet(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
+    fprintf(stderr, "%s: trouble saving \"%s\":\n%s",
             me, outS, err);
     airMopError(mop); exit(1);
   }
-  
+
   airMopOkay(mop);
   exit(0);
 }

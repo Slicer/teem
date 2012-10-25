@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images             .
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +25,7 @@
 
 /*
 ** this program demonstrates parsing a string into a kernel with parms,
-** verifies that all the kernel methods are consistent and/or equal, 
+** verifies that all the kernel methods are consistent and/or equal,
 ** and produces a text file of the kernel evaluated many times.
 ** The output can be "plotted" with unu jhisto, as with:
 ** tkernel ctmr -2 0.0001 2 - | unu jhisto -b 800 300 | unu flip -a 1 | unu quantize -b 8 -o tmp.png
@@ -76,7 +76,7 @@ main(int argc, char *argv[]) {
             me, minS, stepS, maxS);
     exit(1);
   }
-  
+
   mop = airMopNew();
   for (kii=0; kii<=(kernS[1] ? 1 : 0); kii++) {
     if (nrrdKernelParse(&(kern[kii]), parm, kernS[kii])) {
@@ -95,7 +95,7 @@ main(int argc, char *argv[]) {
       exit(1);
     }
     fprintf(stderr, "%s: printed kernel as \"%s\"\n", me, kstr);
-    if (!( min <= -kern[kii]->support(parm) 
+    if (!( min <= -kern[kii]->support(parm)
            && max >= kern[kii]->support(parm) )) {
       fprintf(stderr, "%s: WARNING: support=%g => lower min (%g) or raise max (%g)\n",
               me, kern[kii]->support(parm), min, max);
@@ -123,7 +123,7 @@ main(int argc, char *argv[]) {
   /* set values in both domains */
   i=0;
   for (val=min; val<=max; val+=step) {
-    /* note that the value stored in dom_d[i] is only a 
+    /* note that the value stored in dom_d[i] is only a
        single-precision float, so that it is really equal to dom_f[i] */
     dom_d[i] = val;
     dom_f[i] = val;
@@ -171,11 +171,11 @@ main(int argc, char *argv[]) {
   }
   if (!CLOSE(integral, kern[0]->integral(parm), 0.0005)) {
     fprintf(stderr, "%s: HEY HEY HEY HEY HEY HEY!\n", me);
-    fprintf(stderr, 
+    fprintf(stderr,
             "%s: discrete integral %f != %f\n", me, integral, kern[0]->integral(parm));
     /* exit(1); */
   }
-  
+
   /* it all checks out; write the file */
   if (!(fout = airFopen(outS, stdout, "w"))) {
     fprintf(stderr, "%s: couldn't open \"%s\" for writing\n", me, outS);

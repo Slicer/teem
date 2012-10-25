@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images             .
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +25,7 @@
 #include "../nrrd.h"
 
 void
-usage(char *me) { 
+usage(char *me) {
   /*                       0     1     2   (3) */
   fprintf(stderr, "usage: %s <nin> <nout>\n", me);
   exit(1);
@@ -46,9 +46,9 @@ main(int argc, char **argv) {
 
   io = nrrdIoStateNew();
   nrrdStateVerboseIO = 10;
-  
+
   if (nrrdLoad(nrrd=nrrdNew(), argv[1], NULL)) {
-    fprintf(stderr, "%s: trouble loading \"%s\":\n%s", 
+    fprintf(stderr, "%s: trouble loading \"%s\":\n%s",
             me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
@@ -108,34 +108,34 @@ main(int argc, char **argv) {
   fprintf(stderr, "5 --------------------------------------\n");
 
   if (nrrdSave("out.nrrd", nrrd, io)) {
-    fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
+    fprintf(stderr, "%s: trouble saving \"%s\":\n%s",
             me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
   nrrdIoStateInit(io);
   if (nrrdSave(argv[2], nrrd, io)) {
-    fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
+    fprintf(stderr, "%s: trouble saving \"%s\":\n%s",
             me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
   nrrdIoStateInit(io);
   if (nrrdSave(argv[2], nrrd, io)) {
-    fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
+    fprintf(stderr, "%s: trouble saving \"%s\":\n%s",
             me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
   nrrdIoStateInit(io);
   if (nrrdSave(argv[2], nrrd, io)) {
-    fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
+    fprintf(stderr, "%s: trouble saving \"%s\":\n%s",
             me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
 
-  
+
   nrrdIoStateNix(io);
   nrrdNuke(nrrd);
 

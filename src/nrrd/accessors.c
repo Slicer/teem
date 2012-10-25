@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 #include "privateNrrd.h"
 #include "float.h"
 
-/* 
+/*
 ** making these typedefs here allows us to used one token for both
 ** constructing function names, and for specifying argument types
 */
@@ -58,7 +58,7 @@ F(A, UL) \
 F(A, FL) \
 F(A, DB)
 
-/* 
+/*
 ** _nrrdLoad<TA><TB>(<TB> *v)
 **
 ** Dereferences v as TB*, casts it to TA, returns it.
@@ -220,14 +220,14 @@ static int _nrrdSprintSH(char *s, const SH *v) { return sprintf(s, "%d", *v); }
 static int _nrrdSprintUS(char *s, const US *v) { return sprintf(s, "%u", *v); }
 static int _nrrdSprintIN(char *s, const JN *v) { return sprintf(s, "%d", *v); }
 static int _nrrdSprintUI(char *s, const UI *v) { return sprintf(s, "%u", *v); }
-static int _nrrdSprintLL(char *s, const LL *v) { 
-  return sprintf(s, AIR_LLONG_FMT, *v); 
+static int _nrrdSprintLL(char *s, const LL *v) {
+  return sprintf(s, AIR_LLONG_FMT, *v);
 }
-static int _nrrdSprintUL(char *s, const UL *v) { 
-  return sprintf(s, AIR_ULLONG_FMT, *v); 
+static int _nrrdSprintUL(char *s, const UL *v) {
+  return sprintf(s, AIR_ULLONG_FMT, *v);
 }
-/* HEY: sizeof(float) and sizeof(double) assumed here, since we're 
-   basing "8" and "17" on 6 == FLT_DIG and 15 == DBL_DIG, which are 
+/* HEY: sizeof(float) and sizeof(double) assumed here, since we're
+   basing "8" and "17" on 6 == FLT_DIG and 15 == DBL_DIG, which are
    digits of precision for floats and doubles, respectively */
 static int _nrrdSprintFL(char *s, const FL *v) {
   return airSinglePrintf(NULL, s, "%.8g", (double)(*v)); }
@@ -262,11 +262,11 @@ static int _nrrdFprintSH(FILE *f, const SH *v) { return fprintf(f, "%d", *v); }
 static int _nrrdFprintUS(FILE *f, const US *v) { return fprintf(f, "%u", *v); }
 static int _nrrdFprintIN(FILE *f, const JN *v) { return fprintf(f, "%d", *v); }
 static int _nrrdFprintUI(FILE *f, const UI *v) { return fprintf(f, "%u", *v); }
-static int _nrrdFprintLL(FILE *f, const LL *v) { 
-  return fprintf(f, AIR_LLONG_FMT, *v); 
+static int _nrrdFprintLL(FILE *f, const LL *v) {
+  return fprintf(f, AIR_LLONG_FMT, *v);
 }
-static int _nrrdFprintUL(FILE *f, const UL *v) { 
-  return fprintf(f, AIR_ULLONG_FMT, *v); 
+static int _nrrdFprintUL(FILE *f, const UL *v) {
+  return fprintf(f, AIR_ULLONG_FMT, *v);
 }
 static int _nrrdFprintFL(FILE *f, const FL *v) {
   return airSinglePrintf(f, NULL, "%.8g", (double)(*v)); }
@@ -508,7 +508,7 @@ nrrdValCompareInv[NRRD_TYPE_MAX+1])(const void *, const void *) = {
 ** nrrdArrayCompare
 **
 ** something like strcmp() for arrays of numeric values, except
-** that the arrays have to be equal length, and it has to do 
+** that the arrays have to be equal length, and it has to do
 ** error checking.
 **
 ** See comment about logic of return value above nrrdCompare()
@@ -552,7 +552,7 @@ int nrrdArrayCompare(int type, const void *_valA, const void *_valB,
   }
   if (type == nrrdTypeLLong || type == nrrdTypeULLong) {
     fprintf(stderr, "%s: WARNING: possible erroneous comparison of "
-            "%s values with %s-based comparison\n", me, 
+            "%s values with %s-based comparison\n", me,
             airEnumStr(nrrdType, type),
             airEnumStr(nrrdType, nrrdTypeDouble));
   }

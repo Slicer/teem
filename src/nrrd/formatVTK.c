@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -30,13 +30,13 @@
 
 int
 _nrrdFormatVTK_available(void) {
-  
+
   return AIR_TRUE;
 }
 
 int
 _nrrdFormatVTK_nameLooksLike(const char *fname) {
-  
+
   return airEndsWith(fname, NRRD_EXT_VTK);
 }
 
@@ -44,7 +44,7 @@ int
 _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                         int useBiff) {
   static const char me[]="_nrrdFormatVTK_fitsInto";
-  
+
   if (!( nrrd && encoding )) {
     biffMaybeAddf(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)",
                   me, AIR_CVOIDP(nrrd), AIR_CVOIDP(encoding));
@@ -52,7 +52,7 @@ _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   }
   if (!( nrrdEncodingRaw == encoding || nrrdEncodingAscii == encoding)) {
     biffMaybeAddf(useBiff, NRRD, "%s: encoding can only be %s or %s", me,
-                  nrrdEncodingRaw->name, nrrdEncodingAscii->name); 
+                  nrrdEncodingRaw->name, nrrdEncodingAscii->name);
     return AIR_FALSE;
   }
   if (!( nrrdTypeUChar == nrrd->type
@@ -72,7 +72,7 @@ _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
          || (4 == nrrd->dim && 3 == nrrd->axis[0].size)
          || (4 == nrrd->dim && 9 == nrrd->axis[0].size) )) {
     biffMaybeAddf(useBiff, NRRD, "%s: nrrd didn't look like a volume of "
-                  "scalars, vectors, or matrices", me); 
+                  "scalars, vectors, or matrices", me);
     return AIR_FALSE;
   }
   return AIR_TRUE;
@@ -80,7 +80,7 @@ _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
 
 int
 _nrrdFormatVTK_contentStartsLike(NrrdIoState *nio) {
-  
+
   return (!strcmp(MAGIC1, nio->line)
           || !strcmp(MAGIC2, nio->line)
           || !strcmp(MAGIC3, nio->line));
@@ -96,7 +96,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   unsigned int llen;
 
   if (!_nrrdFormatVTK_contentStartsLike(nio)) {
-    biffAddf(NRRD, "%s: this doesn't look like a %s file", me, 
+    biffAddf(NRRD, "%s: this doesn't look like a %s file", me,
              nrrdFormatVTK->name);
     return 1;
   }
@@ -109,7 +109,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     biffAddf(NRRD, "%s: couldn't get " #what " line", me);   \
     return 1;                                                \
   }
-  
+
   /* read in content */
   GETLINE(content);
   if (strcmp(NRRD_UNKNOWN, nio->line)) {
@@ -155,14 +155,14 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
         biffAddf(NRRD, "%s: couldn't parse SPACING line (\"%s\")",
                  me, nio->line);
         return 1;
-      }      
+      }
     } else if (strstr(nio->line, "ASPECT_RATIO")) {
       if (3 != sscanf(nio->line, "ASPECT_RATIO %lf %lf %lf",
                       &xs, &ys, &zs)) {
         biffAddf(NRRD, "%s: couldn't parse ASPECT_RATIO line (\"%s\")",
                  me, nio->line);
         return 1;
-      }      
+      }
     }
     GETLINE(next); airToUpper(nio->line);
   }
@@ -173,7 +173,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   if (N != sx*sy*sz) {
     biffAddf(NRRD,
-             "%s: product of sizes (%d*%d*%d == %d) != # elements (%d)", 
+             "%s: product of sizes (%d*%d*%d == %d) != # elements (%d)",
              me, sx, sy, sz, sx*sy*sz, N);
     return 1;
   }
@@ -282,7 +282,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   } else {
     nrrd->data = NULL;
   }
-    
+
   airMopOkay(mop);
   return 0;
 }
@@ -304,7 +304,7 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
     biffAddf(NRRD, "%s: couldn't make private copy", me);
     airMopError(mop); return 1;
   }
-  if (!( 3 == nrrd->dim || 
+  if (!( 3 == nrrd->dim ||
          (4 == nrrd->dim && (3 == nrrd->axis[0].size ||
                              9 == nrrd->axis[0].size)) )) {
     biffAddf(NRRD, "%s: doesn't seem to be scalar, vector, or matrix", me);
@@ -353,7 +353,7 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
     strcpy(type, "double");
     break;
   default:
-    biffAddf(NRRD, "%s: can't put %s-type nrrd into VTK", me, 
+    biffAddf(NRRD, "%s: can't put %s-type nrrd into VTK", me,
              airEnumStr(nrrdType, nrrd->type));
     airMopError(mop); return 1;
   }
@@ -402,8 +402,8 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
     biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
-  
-  airMopOkay(mop); 
+
+  airMopOkay(mop);
   return 0;
 }
 

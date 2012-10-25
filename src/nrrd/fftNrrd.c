@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -116,7 +116,7 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
       return 1;
     }
     if (!( axes[axi] < _nin->dim )) {
-      biffAddf(NRRD, "%s: axis %u (axes[%u]) out of range [1,%u]", me, 
+      biffAddf(NRRD, "%s: axis %u (axes[%u]) out of range [1,%u]", me,
                axes[axi], axi, _nin->dim-1);
       return 1;
     }
@@ -127,7 +127,7 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
       return 1;
     }
   }
-  
+
   NN = nrrdElementNumber(_nin);
   /* We always make a new buffer to hold the double-type copy of input for two
      reasons: if input is not double we have to convert it, and we want input
@@ -162,7 +162,7 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
     return 1;
   }
   outData = AIR_CAST(double *, nout->data);
-  
+
   /* As far as GLK can tell, the guru interface is needed, and the "advanced"
      fftw_plan_many_dft won't work, because its simplistic accounting of stride
      can't handle having non-contiguous non-transformed axes (e.g. transforming
@@ -227,7 +227,7 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
     biffAddf(NRRD, "%s: unable to create plan", me);
     airMopError(mop); return 1;
   }
-  
+
   /* only after planning is done (which can over-write contents of inData)
      do we copy the real input values over */
   dataBef = nin->data;

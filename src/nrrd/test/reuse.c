@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images             .
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,7 +25,7 @@
 #include "../nrrd.h"
 
 void
-usage(char *me) { 
+usage(char *me) {
   /*                       0     1     2   (3) */
   fprintf(stderr, "usage: %s <nin1> <nin2>\n", me);
   exit(1);
@@ -43,9 +43,9 @@ main(int argc, char **argv) {
   }
 
   nrrdStateVerboseIO = 10;
-  
+
   if (nrrdLoad(nrrd=nrrdNew(), argv[1], NULL)) {
-    fprintf(stderr, "%s: trouble loading \"%s\":\n%s", 
+    fprintf(stderr, "%s: trouble loading \"%s\":\n%s",
             me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
@@ -53,7 +53,7 @@ main(int argc, char **argv) {
   fprintf(stderr, "%s: data for \"%s\" at %p\n", me, argv[1], nrrd->data);
 
   if (nrrdLoad(nrrd, argv[2], NULL)) {
-    fprintf(stderr, "%s: trouble loading \"%s\":\n%s", 
+    fprintf(stderr, "%s: trouble loading \"%s\":\n%s",
             me, argv[2], err = biffGet(NRRD));
     free(err);
     exit(1);
@@ -64,14 +64,14 @@ main(int argc, char **argv) {
   nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
   if (nrrdWrap_nva(n2, nrrd->data, nrrd->type, nrrd->dim, size)
       || nrrdAxesMerge(n2, nrrd, 0)) {
-    fprintf(stderr, "%s: trouble wrapping or merging \"%s\":\n%s", 
+    fprintf(stderr, "%s: trouble wrapping or merging \"%s\":\n%s",
             me, argv[2], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
-  fprintf(stderr, "%s: data for axmerge(\"%s\",0) at %p\n", 
+  fprintf(stderr, "%s: data for axmerge(\"%s\",0) at %p\n",
           me, argv[2], n2->data);
-  
+
   nrrdNuke(nrrd);
   nrrdNix(n2);
 

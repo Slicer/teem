@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -82,14 +82,14 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (rescale0 && !(range0
-                    && AIR_EXISTS(range0->min) 
+                    && AIR_EXISTS(range0->min)
                     && AIR_EXISTS(range0->max))) {
     biffAddf(NRRD, "%s: want axis 0 rescaling but didn't get range, or "
              "not both range->{min,max} exist", me);
     return 1;
   }
   if (rescale1 && !(range1
-                    && AIR_EXISTS(range1->min) 
+                    && AIR_EXISTS(range1->min)
                     && AIR_EXISTS(range1->max))) {
     biffAddf(NRRD, "%s: want axis 1 rescaling but didn't get range, or "
              "not both range->{min,max} exist", me);
@@ -97,7 +97,7 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
   }
   mapAxis = nmap->dim - 2;
   if (!(0 == mapAxis || 1 == mapAxis)) {
-    biffAddf(NRRD, "%s: dimension of %s should be 2 or 3, not %d", 
+    biffAddf(NRRD, "%s: dimension of %s should be 2 or 3, not %d",
              me, nounStr[kind], nmap->dim);
     return 1;
   }
@@ -141,7 +141,7 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
   for (dim=0; dim<mapAxis + nin->dim - 1; dim++) {
     fprintf(stderr, "    size[%d] = %d\n", dim, (int)size[dim]);
   }
-  fprintf(stderr, "   nout->dim = %u; nout->type = %d = %s; sizes = %u,%u\n", 
+  fprintf(stderr, "   nout->dim = %u; nout->type = %d = %s; sizes = %u,%u\n",
           nout->dim, nout->type,
           airEnumStr(nrrdType, nout->type),
           AIR_CAST(unsigned int, nout->axis[0].size),
@@ -176,7 +176,7 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
     biffAddf(NRRD, "%s:", me);
     free(mapcnt); return 1;
   }
-  free(mapcnt); 
+  free(mapcnt);
   nrrdBasicInfoInit(nout, (NRRD_BASIC_INFO_DATA_BIT
                            | NRRD_BASIC_INFO_TYPE_BIT
                            | NRRD_BASIC_INFO_BLOCKSIZE_BIT
@@ -191,7 +191,7 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
 ** the guts of nrrdApply2DLut and nrrdApply2DRegMap
 **
 ** yikes, does NOT use biff, since we're only supposed to be called
-** after copious error checking.  
+** after copious error checking.
 **
 ** FOR INSTANCE, this allows nout == nin, which could be a big
 ** problem if mapAxis == 1.
@@ -296,7 +296,7 @@ _nrrdApply2DLutOrRegMap(Nrrd *nout, const Nrrd *nin,
 ** If the lut nrrd is 1-D, then the output is a scalar nrrd with the
 ** same dimension as the input.  If the lut nrrd is 2-D, then each
 ** value in the input is mapped to a vector of values from the lut,
-** which is always a scanline along axis 0.  
+** which is always a scanline along axis 0.
 **
 ** This allows lut length to be simply 1.
 */
@@ -309,7 +309,7 @@ nrrdApply2DLut(Nrrd *nout, const Nrrd *nin, unsigned int domainAxis,
   NrrdRange *range0, *range1;
   airArray *mop;
   Nrrd *nin0, *nin1;
-  
+
   if (!(nout && nlut && nin)) {
     biffAddf(NRRD, "%s: got NULL pointer (%p,%p,%p)", me,
              AIR_CAST(void*,nout), AIR_CVOIDP(nlut), AIR_CVOIDP(nin));

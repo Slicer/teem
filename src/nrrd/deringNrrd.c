@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -29,13 +29,13 @@
 
 #define DEBUG 0
 
-/* TODO: 
+/* TODO:
  *
  * make sure all outout values exist (test with d/xiao/todering/xing)
  *
- * permit controlling the extent of correction (don't subtract out 
+ * permit controlling the extent of correction (don't subtract out
  * all the estimated ring signal)
- * 
+ *
  * valgrind
  *
  * make it multi-threaded
@@ -50,7 +50,7 @@
  - where the gradients are high on the most-blurring, and had similar
    grad mag at smaller scales, that's a real edge: make a mask for this
  - blur this along theta just like the ring map, then multiply w/ ring map
- * 
+ *
  * try fix for low-theta-frequency rings
  * with high thetaNum, find mode along theta
 */
@@ -107,7 +107,7 @@ nrrdDeringVerboseSet(NrrdDeringContext *drc, int verbose) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  
+
   drc->verbose = verbose;
   return 0;
 }
@@ -120,7 +120,7 @@ nrrdDeringLinearInterpSet(NrrdDeringContext *drc, int linterp) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  
+
   drc->linearInterp = linterp;
   return 0;
 }
@@ -133,7 +133,7 @@ nrrdDeringVerticalSeamSet(NrrdDeringContext *drc, int vertSeam) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  
+
   drc->verticalSeam = vertSeam;
   return 0;
 }
@@ -141,7 +141,7 @@ nrrdDeringVerticalSeamSet(NrrdDeringContext *drc, int vertSeam) {
 int
 nrrdDeringInputSet(NrrdDeringContext *drc, const Nrrd *nin) {
   static const char me[]="nrrdDeringInputSet";
-  
+
   if (!( drc && nin )) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -188,7 +188,7 @@ nrrdDeringCenterSet(NrrdDeringContext *drc, double cx, double cy) {
     biffAddf(NRRD, "%s: center (%g,%g) doesn't exist", me, cx, cy);
     return 1;
   }
-  
+
   drc->center[0] = cx;
   drc->center[1] = cy;
 
@@ -199,22 +199,22 @@ int
 nrrdDeringClampPercSet(NrrdDeringContext *drc,
                        double lo, double hi) {
   static const char me[]="nrrdDeringClampPercSet";
-  
+
   if (!drc) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!( AIR_EXISTS(lo) && AIR_EXISTS(hi) 
+  if (!( AIR_EXISTS(lo) && AIR_EXISTS(hi)
          && lo >= 0 && lo < CLAMP_PERC_MAX
          && hi >= 0 && hi < CLAMP_PERC_MAX)) {
     biffAddf(NRRD, "%s: need finite lo and hi both in [0.0, %g), not %g, %g",
              me, CLAMP_PERC_MAX, lo, hi);
     return 1;
   }
-  
+
   drc->clampPerc[0] = lo;
   drc->clampPerc[1] = hi;
-  
+
   return 0;
 }
 
@@ -228,7 +228,7 @@ nrrdDeringClampHistoBinsSet(NrrdDeringContext *drc,
     return 1;
   }
   if (!( bins >= CLAMP_HIST_BINS_MIN )) {
-    biffAddf(NRRD, "%s: given bins %u not >= reasonable min %u", 
+    biffAddf(NRRD, "%s: given bins %u not >= reasonable min %u",
              me, bins, CLAMP_HIST_BINS_MIN);
     return 1;
   }
@@ -252,7 +252,7 @@ nrrdDeringRadiusScaleSet(NrrdDeringContext *drc, double rsc) {
   }
 
   drc->radiusScale = rsc;
-  
+
   return 0;
 }
 
@@ -268,7 +268,7 @@ nrrdDeringThetaNumSet(NrrdDeringContext *drc, unsigned int thetaNum) {
     biffAddf(NRRD, "%s: need non-zero thetaNum", me);
     return 1;
   }
-  
+
   drc->thetaNum = thetaNum;
 
   return 0;
@@ -461,7 +461,7 @@ deringPtxfAlloc(NrrdDeringContext *drc, deringBag *dbg) {
     biffAddf(NRRD, "%s: couldn't set up resampler", me);
     return 1;
   }
-  
+
 
   return 0;
 }
@@ -479,7 +479,7 @@ deringSliceGet(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
   /* slice setup */
   if (nrrdWrap_va(dbg->nsliceOrig,
                   nonconstdata,
-                  drc->nin->type, 2, 
+                  drc->nin->type, 2,
                   drc->nin->axis[0].size,
                   drc->nin->axis[1].size)
       || (nrrdTypeDouble == drc->nin->type
@@ -490,7 +490,7 @@ deringSliceGet(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
   }
   dbg->slice = AIR_CAST(double *, dbg->nslice->data);
   dbg->zi = zi;
-  
+
   return 0;
 }
 
@@ -501,7 +501,7 @@ deringSliceSet(NrrdDeringContext *drc, deringBag *dbg,
 
   if (nrrdWrap_va(dbg->nsliceOut,
                   AIR_CAST(void *, drc->cdataOut + zi*(drc->sliceSize)),
-                  nout->type, 2, 
+                  nout->type, 2,
                   nout->axis[0].size,
                   nout->axis[1].size)
       || (nrrdTypeDouble == nout->type
@@ -671,7 +671,7 @@ deringRingMagMeasure(NrrdDeringContext *drc, deringBag *dbg) {
   ntmp[1] = nrrdNew();
   airMopAdd(mop, ntmp[1], (airMopper)nrrdNuke, airMopAlways);
   if (nrrdReshape_va(ntmp[0], dbg->nptxf[RING], 2,
-                     (dbg->nptxf[RING]->axis[0].size 
+                     (dbg->nptxf[RING]->axis[0].size
                       * dbg->nptxf[RING]->axis[1].size),
                      AIR_CAST(size_t, 1))
       || nrrdProject(ntmp[1], ntmp[0], 0, nrrdMeasureL2, nrrdTypeDouble)) {
@@ -760,7 +760,7 @@ deringCheck(NrrdDeringContext *drc) {
     return 1;
   }
   if (drc->verticalSeam && !(0 == (drc->thetaNum % 2))) {
-    biffAddf(NRRD, "%s: need even thetaNum (not %u) if wanting verticalSeam", 
+    biffAddf(NRRD, "%s: need even thetaNum (not %u) if wanting verticalSeam",
              me, drc->thetaNum);
     return 1;
   }
@@ -774,7 +774,7 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
   double dx, dy, radLen, len;
   deringBag *dbg;
   airArray *mop;
-  
+
   if (!( drc && nout )) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -824,7 +824,7 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
     unsigned int hi;
     nhist = nrrdNew();
     airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
-    if (nrrdHisto(nhist, drc->nin, NULL, NULL, drc->clampHistoBins, 
+    if (nrrdHisto(nhist, drc->nin, NULL, NULL, drc->clampHistoBins,
                   nrrdTypeDouble)) {
       biffAddf(NRRD, "%s: trouble making histogram", me);
       return 1;

@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images             .
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -75,7 +75,7 @@ morph(Nrrd *nout, Nrrd *_nin, Nrrd *_nkern, float scl) {
         float mind, ival, kval;
         /*
         int verb;
-        
+
         verb = ((24 == xx && 24 == yy && 9 == zz) ||
                 (24 == xx && 24 == yy && 10 == zz));
         */
@@ -93,7 +93,7 @@ morph(Nrrd *nout, Nrrd *_nin, Nrrd *_nkern, float scl) {
       }
     }
   }
-  
+
   airMopOkay(mop);
   return 0;
 }
@@ -109,7 +109,7 @@ main(int argc, const char **argv) {
   char *err;
   Nrrd *nin, *nkern, *nout;
   float scl;
-  
+
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();
@@ -140,7 +140,7 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: need 3D input", me);
     airMopError(mop); exit(1);
   }
-  
+
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (morph(nout, nin, nkern, scl)) {
@@ -150,11 +150,11 @@ main(int argc, const char **argv) {
   }
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err = biffGet(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble saving \"%s\":\n%s", 
+    fprintf(stderr, "%s: trouble saving \"%s\":\n%s",
             me, outS, err);
     airMopError(mop); exit(1);
   }
-  
+
   airMopOkay(mop);
   exit(0);
 }

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -57,7 +57,7 @@ nrrdRangeNix(NrrdRange *range) {
 
 void
 nrrdRangeReset(NrrdRange *range) {
-  
+
   if (range) {
     range->min = AIR_NAN;
     range->max = AIR_NAN;
@@ -72,11 +72,11 @@ void
 nrrdRangeSet(NrrdRange *range, const Nrrd *nrrd, int blind8BitRange) {
   NRRD_TYPE_BIGGEST _min, _max;
   int blind;
-  
+
   if (!range) {
     return;
   }
-  if (nrrd 
+  if (nrrd
       && !airEnumValCheck(nrrdType, nrrd->type)
       && nrrdTypeBlock != nrrd->type) {
     blind = (nrrdBlind8BitRangeTrue == blind8BitRange
@@ -144,7 +144,7 @@ nrrdRangeNewSet(const Nrrd *nrrd, int blind8BitRange) {
 **
 ** returns the nrrdHasNonExist* enum value appropriate for a given nrrd.
 ** By cleverness, this value can be used as a regular C boolean, so that
-** the function will act as you expect.  
+** the function will act as you expect.
 **
 ** (the existence of this function implies that I'll never have an airEnum
 ** of the same name, which would be the usual thing to do with a C enum,
@@ -154,7 +154,7 @@ int
 nrrdHasNonExist(const Nrrd *nrrd) {
   NRRD_TYPE_BIGGEST _min, _max;
   int ret;
-  
+
   if (nrrd
       && !airEnumValCheck(nrrdType, nrrd->type)
       && nrrdTypeBlock != nrrd->type) {

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -33,7 +33,7 @@
 ** calling this function will result in nrrd->hasNonExist being set
 ** (because of the nrrdFindMinMax[] functions)
 **
-** decided NOT to use biff, so that this is a more distinct alternative to 
+** decided NOT to use biff, so that this is a more distinct alternative to
 ** nrrdMinMaxCleverSet().
 
 void
@@ -62,7 +62,7 @@ nrrdMinMaxSet(Nrrd *nrrd) {
 **    are non-existent, with the end result that only the non-existent
 **    values are over-written
 ** 2) obeys the nrrdStateClever8BitMinMax global state to short-cut
-**    finding min and max for 8-bit data.  Values for nrrd->min or 
+**    finding min and max for 8-bit data.  Values for nrrd->min or
 **    nrrd->max which were existent to start with are untouched.
 ** 3) reports error if there are no existent values in nrrd (AIR_EXISTS()
 **    fails on every value)
@@ -139,7 +139,7 @@ clampConvert(Nrrd *nout, const Nrrd *nin, int type, int doClamp) {
   char typeS[AIR_STRLEN_SMALL];
   size_t num, size[NRRD_DIM_MAX];
 
-  if (!( nin && nout 
+  if (!( nin && nout
          && !nrrdCheck(nin)
          && !airEnumValCheck(nrrdType, type) )) {
     biffAddf(NRRD, "%s: invalid args", me);
@@ -154,7 +154,7 @@ clampConvert(Nrrd *nout, const Nrrd *nin, int type, int doClamp) {
     biffAddf(NRRD, "%s: nout==nin but input,output type sizes unequal", me);
     return 1;
   }
-  if (nrrdStateDisallowIntegerNonExist 
+  if (nrrdStateDisallowIntegerNonExist
       && !nrrdTypeIsIntegral[nin->type] && nrrdTypeIsIntegral[type]) {
     /* there's a risk of non-existent values getting converted to
        non-sensical integral values */
@@ -188,7 +188,7 @@ clampConvert(Nrrd *nout, const Nrrd *nin, int type, int doClamp) {
       biffAddf(NRRD, "%s: failed to allocate output", me);
       return 1;
     }
-    
+
     /* call the appropriate converter */
     num = nrrdElementNumber(nin);
     if (doClamp) {
@@ -197,7 +197,7 @@ clampConvert(Nrrd *nout, const Nrrd *nin, int type, int doClamp) {
       _nrrdConv[nout->type][nin->type](nout->data, nin->data, num);
     }
     nout->blockSize = 0;
-    
+
     /* copy peripheral information */
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
     sprintf(typeS, "(%s)", airEnumStr(nrrdType, nout->type));
@@ -268,7 +268,7 @@ nrrdClampConvert(Nrrd *nout, const Nrrd *nin, int type) {
 **
 ** convert values to 8, 16, or 32 bit unsigned quantities
 ** by mapping the value range delimited by the nrrd's min
-** and max to the representable range 
+** and max to the representable range
 **
 ** NOTE: for the time being, this uses a "double" as the intermediate
 ** value holder, which may mean needless loss of precision
@@ -322,7 +322,7 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
              "(NaN, +/-inf)", me);
     airMopError(mop); return 1;
   }
-  
+
   /* allocate space if necessary */
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   /* MUST be nrrdMaybeAlloc_nva (not nrrd Alloc_nva) because we allow
@@ -331,10 +331,10 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     biffAddf(NRRD, "%s: failed to create output", me);
     airMopError(mop); return 1;
   }
-  
+
   /* the skinny */
   num = nrrdElementNumber(nin);
-  minIn = range->min; 
+  minIn = range->min;
   maxIn = range->max;
   eps = (minIn == maxIn ? 1.0 : 0.0);
   outUC = (unsigned char*)nout->data;
@@ -365,7 +365,7 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     }
     break;
   }
-  
+
   /* set information in new volume */
   if (nout != nin) {
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
@@ -393,7 +393,7 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   nout->oldMax = maxIn;
   nout->blockSize = 0;
 
-  airMopOkay(mop); 
+  airMopOkay(mop);
   return 0;
 }
 
@@ -478,7 +478,7 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
     biffAddf(NRRD, "%s: nout==nin but input,output type sizes unequal", me);
     return 1;
   }
-  
+
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     biffAddf(NRRD, "%s: failed to create output", me);
@@ -547,7 +547,7 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
 ** used by nrrdHistoEq in smart mode to sort the "steady" array
 ** in _descending_ order
 */
-int 
+int
 _nrrdHistoEqCompare(const void *a, const void *b) {
 
   return *((const unsigned int*)b) - *((const unsigned int*)a);
@@ -557,13 +557,13 @@ _nrrdHistoEqCompare(const void *a, const void *b) {
 ******** nrrdHistoEq()
 **
 ** performs histogram equalization on given nrrd, treating it as a
-** big one-dimensional array.  The procedure is as follows: 
+** big one-dimensional array.  The procedure is as follows:
 ** - create a histogram of nrrd (using "bins" bins)
-** - integrate the histogram, and normalize and shift this so it is 
+** - integrate the histogram, and normalize and shift this so it is
 **   a monotonically increasing function from min to max, where
 **   (min,max) is the range of values in the nrrd
 ** - map the values in the nrrd through the adjusted histogram integral
-** 
+**
 ** If the histogram of the given nrrd is already as flat as can be,
 ** the histogram integral will increase linearly, and the adjusted
 ** histogram integral should be close to the identity function, so
@@ -583,7 +583,7 @@ _nrrdHistoEqCompare(const void *a, const void *b) {
 ** re-mapped.  The value of "smart" is the number of bins that will be
 ** ignored.  For instance, use the value 1 if the problem with naive
 ** histogram equalization is a large amount of background (which is
-** exactly one fixed value).  
+** exactly one fixed value).
 */
 int
 nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
@@ -611,12 +611,12 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
     biffAddf(NRRD, "%s: need # bins > 4 (not %d)", me, bins);
     return 1;
   }
-  /* we start by simply copying, because the only thing we're 
+  /* we start by simply copying, because the only thing we're
      changing is the values themselves, and all peripheral
      information is unchanged by this value remapping */
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
-      biffAddf(NRRD, "%s:", me); 
+      biffAddf(NRRD, "%s:", me);
       return 1;
     }
   }
@@ -713,8 +713,8 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
     if (bii == 0) {
       ycoord[bii] = 0;
     } else {
-      ycoord[bii] = ycoord[bii-1] + hist[bii-1]*(smart 
-                                                 ? respect[bii-1] 
+      ycoord[bii] = ycoord[bii-1] + hist[bii-1]*(smart
+                                                 ? respect[bii-1]
                                                  : 1);
     }
   }
@@ -766,7 +766,7 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
     val = nrrdDLookup[nin->type](nin->data, I);
     if (AIR_EXISTS(val)) {
       AIR_INDEX(min, val, max, bins, idx);
-      val = AIR_AFFINE(xcoord[idx], val, xcoord[idx+1], 
+      val = AIR_AFFINE(xcoord[idx], val, xcoord[idx+1],
                        ycoord[idx], ycoord[idx+1]);
     }
     nrrdDInsert[nout->type](nout->data, I, val);
@@ -797,7 +797,7 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
     biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
-  
+
   airMopOkay(mop);
   return 0;
 }

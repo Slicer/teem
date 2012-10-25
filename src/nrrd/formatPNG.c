@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -33,7 +33,7 @@
 
 static int
 _nrrdFormatPNG_available(void) {
-  
+
 #if TEEM_PNG
   return AIR_TRUE;
 #else
@@ -43,7 +43,7 @@ _nrrdFormatPNG_available(void) {
 
 static int
 _nrrdFormatPNG_nameLooksLike(const char *filename) {
-  
+
   return airEndsWith(filename, NRRD_EXT_PNG);
 }
 
@@ -58,7 +58,7 @@ _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   AIR_UNUSED(encoding);
   biffMaybeAddf(useBiff, NRRD,
                 "%s: %s format not available in this Teem build",
-                me, nrrdFormatPNG->name); 
+                me, nrrdFormatPNG->name);
   return AIR_FALSE;
 
 #else  /* ------------------------------------------- */
@@ -98,7 +98,7 @@ _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
     ret = AIR_TRUE;
   } else {
     biffMaybeAddf(useBiff, NRRD,
-                  "%s: dimension is %d, not 2 or 3", me, nrrd->dim); 
+                  "%s: dimension is %d, not 2 or 3", me, nrrd->dim);
     return AIR_FALSE;
   }
   return ret;
@@ -177,7 +177,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
   if (!_nrrdFormatPNG_contentStartsLike(nio)) {
-    biffAddf(NRRD, "%s: this doesn't look like a %s file", me, 
+    biffAddf(NRRD, "%s: this doesn't look like a %s file", me,
              nrrdFormatPNG->name);
     return 1;
   }
@@ -200,7 +200,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   /* set up png style error handling */
   if (setjmp(png_jmpbuf(png))) {
-    /* the error is reported inside the handler, 
+    /* the error is reported inside the handler,
        but we still need to clean up and return */
     png_destroy_read_struct(&png, &info, NULL);
     return 1;
@@ -213,10 +213,10 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 #endif
   /* if we are here, we have already read 6 bytes from the file */
   png_set_sig_bytes(png, 6);
-  /* png_read_info() returns all information from the file 
+  /* png_read_info() returns all information from the file
      before the first data chunk */
   png_read_info(png, info);
-  png_get_IHDR(png, info, &width, &height, &depth, &type, 
+  png_get_IHDR(png, info, &width, &height, &depth, &type,
                NULL, NULL, NULL);
   /* expand paletted colors into rgb triplets */
   if (type == PNG_COLOR_TYPE_PALETTE)
@@ -237,7 +237,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* NOTE: screen_gamma is platform dependent,
      it can hardwired or set from a parameter/environment variable */
   if (png_get_sRGB(png_ptr, info_ptr, &intent)) {
-    /* if the image has sRGB info, 
+    /* if the image has sRGB info,
        pass in standard nrrd file gamma 1.0 */
     png_set_gamma(png_ptr, screen_gamma, 1.0);
   } else {
@@ -250,7 +250,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
 #endif
   /* update reader */
-  png_read_update_info(png, info);  
+  png_read_update_info(png, info);
   /* allocate memory for the image data */
   ntype = depth > 8 ? nrrdTypeUShort : nrrdTypeUChar;
   switch (type) {
@@ -336,7 +336,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
           ret = 0;
           goto plain;
         }
-        if (!nio->seen[ret] 
+        if (!nio->seen[ret]
             && nrrdFieldInfoParse[ret](file, nrrd, nio, AIR_FALSE)) {
           if (1 <= nrrdStateVerboseIO) {
             fprintf(stderr, "(%s: unparsable info for field \"%s\" "
@@ -345,7 +345,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
           ret = 0;
           goto plain;
         }
-        nio->seen[ret] = AIR_TRUE;      
+        nio->seen[ret] = AIR_TRUE;
       plain:
         if (!ret) {
           if (nrrdCommentAdd(nrrd, nio->line)) {
@@ -419,7 +419,7 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   /* set up error png style error handling */
   if (setjmp(png_jmpbuf(png)))
   {
-    /* the error is reported inside the error handler, 
+    /* the error is reported inside the error handler,
        but we still need to clean up an return with an error */
     png_destroy_write_struct(&png, &info);
     return 1;
@@ -428,7 +428,7 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
 #ifdef _WIN32
   png_set_write_fn(png, file, _nrrdWriteDataPNG, _nrrdFlushDataPNG);
 #else
-  png_init_io(png, file);        
+  png_init_io(png, file);
 #endif
   /* calculate depth, width, height, and row size */
   depth = nrrd->type == nrrdTypeUChar ? 8 : 16;

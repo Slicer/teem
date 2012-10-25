@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -131,7 +131,7 @@ extern int _nrrdContentSet_nva(Nrrd *nout, const char *func,
 extern int _nrrdContentSet_va(Nrrd *nout, const char *func,
                               char *content, const char *format, ...);
 extern int (*_nrrdFieldCheck[NRRD_FIELD_MAX+1])(const Nrrd *nrrd, int useBiff);
-extern void _nrrdSplitSizes(size_t *pieceSize, size_t *pieceNum, 
+extern void _nrrdSplitSizes(size_t *pieceSize, size_t *pieceNum,
                             Nrrd *nrrd, unsigned int listDim);
 
 /* axis.c */

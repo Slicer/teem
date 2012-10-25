@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -28,7 +28,7 @@ int
 main(int argc, char *argv[]) {
   int tt;
   /*
-  char str1[AIR_STRLEN_MED], str2[AIR_STRLEN_MED], 
+  char str1[AIR_STRLEN_MED], str2[AIR_STRLEN_MED],
     str3[AIR_STRLEN_MED];
   */
 

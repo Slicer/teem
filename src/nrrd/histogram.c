@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -98,7 +98,7 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   if (nout && AIR_EXISTS(nout->axis[0].min) && AIR_EXISTS(nout->axis[0].max)) {
     /* HEY: total hack to externally nail down min and max of histogram:
        use the min and max already set on axis[0] */
-    /* HEY: shouldn't this blatent hack be further restricted by also 
+    /* HEY: shouldn't this blatent hack be further restricted by also
        checking the existence of range->min and range->max ? */
     min = nout->axis[0].min;
     max = nout->axis[0].max;
@@ -118,7 +118,7 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   eps = (min == max ? 1.0 : 0.0);
   nout->axis[0].center = nrrdCenterCell;
   /* nout->axis[0].label set below */
-  
+
   /* make histogram */
   num = nrrdElementNumber(nin);
   for (I=0; I<num; I++) {
@@ -131,7 +131,7 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
       if (AIR_IN_CL(min, val, max)) {
         idx = airIndex(min, val, max+eps, AIR_CAST(unsigned int, bins));
         /*
-        printf("!%s: %d: index(%g, %g, %g, %d) = %d\n", 
+        printf("!%s: %d: index(%g, %g, %g, %d) = %d\n",
                me, (int)I, min, val, max, bins, idx);
         */
         /* count is a double in order to simplify clamping the
@@ -176,7 +176,7 @@ nrrdHistoCheck(const Nrrd *nhist) {
     return 1;
   }
   if (1 != nhist->dim) {
-    biffAddf(NRRD, "%s: dim == %u != 1", 
+    biffAddf(NRRD, "%s: dim == %u != 1",
              me, nhist->dim);
     return 1;
   }
@@ -184,7 +184,7 @@ nrrdHistoCheck(const Nrrd *nhist) {
     biffAddf(NRRD, "%s: has single sample along sole axis", me);
     return 1;
   }
-  
+
   return 0;
 }
 
@@ -272,7 +272,7 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
     for (ki=0; ki<numticks; ki++)
       tick |= ticks[ki] == yi;
     for (xi=0; xi<sx; xi++) {
-      pgmData[xi + sx*(sy-1-yi)] = 
+      pgmData[xi + sx*(sy-1-yi)] =
         (2 == showLog    /* HACK: draw log curve, but not log tick marks */
          ? (yi >= logY[xi]
             ? 0                   /* above log curve                     */
@@ -305,13 +305,13 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
           airSprintSize_t(stmp, maxhitidx),
           nrrdAxisInfoPos(nout, 0, AIR_CAST(double, maxhitidx)));
   if (!E) E |= nrrdCommentAdd(nout, cmt);
-  if (!E) E |= nrrdContentSet_va(nout, func, nin, "%s", 
+  if (!E) E |= nrrdContentSet_va(nout, func, nin, "%s",
                                  airSprintSize_t(stmp, sy));
   if (E) {
     biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
-  
+
   /* bye */
   airMopOkay(mop);
   return 0;
@@ -329,10 +329,10 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
 ** By its very nature, and by the simplicity of this implemention,
 ** this can be a slow process due to terrible memory locality.  User
 ** may want to permute axes before and after this, but that can be
-** slow too...  
+** slow too...
 */
 int
-nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, 
+nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
               unsigned int hax, size_t bins, int type) {
   static const char me[]="nrrdHistoAxis", func[]="histax";
   int map[NRRD_DIM_MAX];
@@ -381,7 +381,7 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     biffAddf(NRRD, "%s: failed to alloc output nrrd", me);
     airMopError(mop); return 1;
   }
-  
+
   /* copy axis information */
   for (ai=0; ai<nin->dim; ai++) {
     map[ai] = ai != hax ? (int)ai : -1;
@@ -442,11 +442,11 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
                            | NRRD_BASIC_INFO_TYPE_BIT
                            | NRRD_BASIC_INFO_DIMENSION_BIT
                            | 0 /* what? */ ));
-  airMopOkay(mop); 
+  airMopOkay(mop);
   return 0;
 }
 
-int 
+int
 nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
                const NrrdRange *const *_range, unsigned int numNin,
                const Nrrd *nwght, const size_t *bins,
@@ -521,7 +521,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
       return 1;
     }
   }
-  
+
   /* check nwght */
   if (nwght) {
     if (nout==nwght) {
@@ -602,7 +602,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
       }
       coord[ai] = AIR_CAST(size_t, airIndexClampULL(range[ai]->min,
                                                     val,
-                                                    range[ai]->max, 
+                                                    range[ai]->max,
                                                     bins[ai]));
       /* printf(" -> coord = %d; ", coord[d]); fflush(stdout); */
     }
@@ -667,7 +667,7 @@ nrrdHistoThresholdOtsu(double *threshP, const Nrrd *_nhist, double expo) {
     biffAddf(NRRD, "%s: input nrrd not a histogram", me);
     return 1;
   }
-  
+
   mop = airMopNew();
   airMopAdd(mop, nhist = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nbvar = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -714,7 +714,7 @@ nrrdHistoThresholdOtsu(double *threshP, const Nrrd *_nhist, double expo) {
   } else {
     thresh = histLen/2;
   }
-  
+
   if (AIR_EXISTS(nhist->axis[0].min) && AIR_EXISTS(nhist->axis[0].max)) {
     thresh = NRRD_CELL_POS(nhist->axis[0].min, nhist->axis[0].max,
                            histLen, thresh);

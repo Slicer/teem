@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -84,7 +84,7 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
     nstr = numbStr + strspn(numbStr, ",");
     if (nrrd->type >= nrrdTypeInt) {
       /* sscanf supports putting value directly into this type */
-      if (1 != airSingleSscanf(nstr, nrrdTypePrintfStr[nrrd->type], 
+      if (1 != airSingleSscanf(nstr, nrrdTypePrintfStr[nrrd->type],
                                (void*)(data + I*nrrdElementSize(nrrd)))) {
         biffAddf(NRRD, "%s: couldn't parse %s %s of %s (\"%s\")", me,
                  airEnumStr(nrrdType, nrrd->type),
@@ -104,7 +104,7 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
     }
     I++;
   }
-  
+
   return 0;
 }
 
@@ -116,7 +116,7 @@ _nrrdEncodingAscii_write(FILE *file, const void *_data, size_t elNum,
   size_t bufflen, linelen;
   const char *data;
   size_t I;
-  
+
   if (nrrdTypeBlock == nrrd->type) {
     biffAddf(NRRD, "%s: can't write nrrd type %s to %s", me,
              airEnumStr(nrrdType, nrrdTypeBlock),
@@ -129,7 +129,7 @@ _nrrdEncodingAscii_write(FILE *file, const void *_data, size_t elNum,
     nrrdSprint[nrrd->type](buff, data);
     if (1 == nrrd->dim) {
       fprintf(file, "%s\n", buff);
-    } else if (nrrd->dim == 2 
+    } else if (nrrd->dim == 2
                && nrrd->axis[0].size <= nio->valsPerLine) {
       fprintf(file, "%s%c", buff,
               (I+1)%(nrrd->axis[0].size) ? ' ' : '\n');
@@ -147,7 +147,7 @@ _nrrdEncodingAscii_write(FILE *file, const void *_data, size_t elNum,
   }
   /* just to be sure, we always end with a carraige return */
   fprintf(file, "\n");
-  
+
   return 0;
 }
 

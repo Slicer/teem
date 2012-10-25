@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images             .
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -185,7 +185,7 @@ main(int argc, char *argv[]) {
   printf("pos3, pos4 = %g, %g\n", pos3, pos4);
   exit(1);
 
-  
+
   /* and now for random-ness */
   airSrandMT((int)airTime());
   nrrd->axis[0].center = nrrdCenterNode;
@@ -201,7 +201,7 @@ main(int argc, char *argv[]) {
     idx = nrrdAxisInfoIdx(nrrd, 0, pos);
     diff = pos - nrrdAxisInfoPos(nrrd, 0, idx);
     if (AIR_ABS(diff) > 0.00000001) { printf("PANIC 1\n"); exit(2); }
-    
+
     nrrd->axis[0].min = (int)frand(-3.0, 3.0);
     nrrd->axis[0].max = (int)frand(-3.0, 3.0);
     idx = (int)frand(-10.0, 10.0);
@@ -215,12 +215,12 @@ main(int argc, char *argv[]) {
     nrrdAxisInfoIdxRange(&idx, &idx2, nrrd, 0, pos, pos2);
     nrrdAxisInfoPosRange(&pos3, &pos4, nrrd, 0, idx, idx2);
     diff = AIR_ABS(pos - pos3) + AIR_ABS(pos2 - pos4);
-    if (AIR_ABS(diff) > 0.00000001) { 
+    if (AIR_ABS(diff) > 0.00000001) {
       printf("min, max = %g, %g\n", nrrd->axis[0].min, nrrd->axis[0].max);
       printf("pos, pos2 = %g, %g\n", pos, pos2);
       printf("idx, idx2 = %g, %g\n", idx, idx2);
       printf("pos3, pos4 = %g, %g\n", pos3, pos4);
-      printf("PANIC (%d) 3 %g\n", (int)nrrd->axis[0].size, diff); exit(2); 
+      printf("PANIC (%d) 3 %g\n", (int)nrrd->axis[0].size, diff); exit(2);
     }
   }
 

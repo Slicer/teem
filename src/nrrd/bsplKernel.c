@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -101,7 +101,7 @@ _bspl3d0_Nd(double *f, const double *x, size_t len, const double *parm) {
   double ax, tmp, r;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL3D0(r, tmp, ax);
@@ -114,7 +114,7 @@ _bspl3d0_Nf(float *f, const float *x, size_t len, const double *parm) {
   float ax, tmp, r;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL3D0(r, tmp, ax);
@@ -177,7 +177,7 @@ _bspl3d1_Nd(double *f, const double *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
     BSPL3D1(r, tmp, ax);
@@ -191,7 +191,7 @@ _bspl3d1_Nf(float *f, const float *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
     BSPL3D1(r, tmp, ax);
@@ -255,7 +255,7 @@ _bspl3d2_Nd(double *f, const double *x, size_t len, const double *parm) {
   double ax, tmp, r;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = AIR_ABS(x[i]);
     BSPL3D2(r, tmp, ax);
@@ -268,7 +268,7 @@ _bspl3d2_Nf(float *f, const float *x, size_t len, const double *parm) {
   float ax, tmp, r;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = AIR_ABS(x[i]);
     BSPL3D2(r, tmp, ax);
@@ -332,7 +332,7 @@ _bspl3d3_Nd(double *f, const double *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
     BSPL3D3(r, 42.42, ax);
@@ -346,7 +346,7 @@ _bspl3d3_Nf(float *f, const float *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
     BSPL3D3(r, 42.42, ax);
@@ -372,7 +372,7 @@ nrrdKernelBSpline3DDD = &_nrrdKernelBSpline3DDD;
 ** matrix representing discrete convolution with the spline
 **
 ** Note that with all the approx inverse kernels, the support really
-** does end at a half-integer (they are piece-wise constant on unit 
+** does end at a half-integer (they are piece-wise constant on unit
 ** intervals centered at integers)
 */
 
@@ -437,7 +437,7 @@ _bspl3_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
   double ax, r; int tmp;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL3_ANI(r, tmp, ax);
@@ -450,7 +450,7 @@ _bspl3_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   double ax, r; int tmp;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL3_ANI(r, tmp, ax);
@@ -489,7 +489,7 @@ _bspl4_sup(const double *parm) {
    whether or not is as actually needed, so this can be experimented
    with by just changing the type of the locals (without changing the
    macro definitions) */
-   
+
 
 /* ============================= order *5* ============================= */
 
@@ -545,7 +545,7 @@ _bspl5d0_Nd(double *f, const double *x, size_t len, const double *parm) {
   double ax, tmp, r;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL5D0_T(r, double, tmp, ax);
@@ -558,7 +558,7 @@ _bspl5d0_Nf(float *f, const float *x, size_t len, const double *parm) {
   float ax, tmp, r;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL5D0_T(r, float, tmp, ax);
@@ -623,7 +623,7 @@ _bspl5d1_Nd(double *f, const double *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
     BSPL5D1_T(r, double, tmp, ax);
@@ -637,7 +637,7 @@ _bspl5d1_Nf(float *f, const float *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
     BSPL5D1_T(r, float, tmp, ax);
@@ -699,7 +699,7 @@ _bspl5d2_Nd(double *f, const double *x, size_t len, const double *parm) {
   double ax, tmp, r;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = AIR_ABS(x[i]);
     BSPL5D2_T(r, double, tmp, ax);
@@ -712,7 +712,7 @@ _bspl5d2_Nf(float *f, const float *x, size_t len, const double *parm) {
   float ax, tmp, r;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = AIR_ABS(x[i]);
     BSPL5D2_T(r, float, tmp, ax);
@@ -776,7 +776,7 @@ _bspl5d3_Nd(double *f, const double *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
     BSPL5D3_T(r, double, tmp, ax);
@@ -790,7 +790,7 @@ _bspl5d3_Nf(float *f, const float *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
     BSPL5D3_T(r, float, tmp, ax);
@@ -876,7 +876,7 @@ _bspl5_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
   double ax, r; int tmp;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL5_ANI_T(r, double, tmp, ax);
@@ -889,7 +889,7 @@ _bspl5_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   double ax, r; int tmp;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL5_ANI_T(r, float, tmp, ax);
@@ -972,7 +972,7 @@ _bspl7d0_Nd(double *f, const double *x, size_t len, const double *parm) {
   double ax, tmp, r;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL7D0_T(r, double, tmp, ax);
@@ -985,7 +985,7 @@ _bspl7d0_Nf(float *f, const float *x, size_t len, const double *parm) {
   float ax, tmp, r;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL7D0_T(r, float, tmp, ax);
@@ -1051,7 +1051,7 @@ _bspl7d1_Nd(double *f, const double *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
     BSPL7D1_T(r, double, tmp, ax);
@@ -1065,7 +1065,7 @@ _bspl7d1_Nf(float *f, const float *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
     BSPL7D1_T(r, float, tmp, ax);
@@ -1128,7 +1128,7 @@ _bspl7d2_Nd(double *f, const double *x, size_t len, const double *parm) {
   double ax, tmp, r;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = AIR_ABS(x[i]);
     BSPL7D2_T(r, double, tmp, ax);
@@ -1141,7 +1141,7 @@ _bspl7d2_Nf(float *f, const float *x, size_t len, const double *parm) {
   float ax, tmp, r;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = AIR_ABS(x[i]);
     BSPL7D2_T(r, float, tmp, ax);
@@ -1207,7 +1207,7 @@ _bspl7d3_Nd(double *f, const double *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
     BSPL7D3_T(r, double, tmp, ax);
@@ -1221,7 +1221,7 @@ _bspl7d3_Nf(float *f, const float *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ABS_SGN(ax, sgn, x[i]);
     BSPL7D3_T(r, float, tmp, ax);
@@ -1243,14 +1243,14 @@ nrrdKernelBSpline7DDD = &_nrrdKernelBSpline7DDD;
 static double
 _bspl7_ANI_kvals[BSPL7_AI_LEN] = {
   4.964732886301469059137801,
-  -3.091042499769118182213297,                             
+  -3.091042499769118182213297,
   1.707958936669135515487259,
   -0.9207818274511302808978934,
-  0.4936786139601599067344824, 
+  0.4936786139601599067344824,
   -0.2643548049418435742509870,
-  0.1415160014538524997926456, 
+  0.1415160014538524997926456,
   -0.07575222270391683956827192,
-  0.04054886334181815702759984, 
+  0.04054886334181815702759984,
   -0.02170503519322401084648773,
   0.01161828326728242899507066,
   -0.006219039932262414977444894,
@@ -1314,7 +1314,7 @@ _bspl7_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
   double ax, r; int tmp;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL7_ANI(r, tmp, ax);
@@ -1327,7 +1327,7 @@ _bspl7_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   double ax, r; int tmp;
   size_t i;
   AIR_UNUSED(parm);
-  
+
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL7_ANI(r, tmp, ax);

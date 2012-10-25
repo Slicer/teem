@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -35,13 +35,13 @@
 ** in the original data (viewed as a one- dimensional array).  The
 ** characteristics of that periodic pattern are how far from the
 ** beginning it starts (offset), the length of the "on" part (length),
-** the period (period), and the number of periods (numper). 
+** the period (period), and the number of periods (numper).
 */
 int
 nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
   static const char me[]="nrrdSlice", func[]="slice";
-  size_t 
-    I, 
+  size_t
+    I,
     rowLen,                  /* length of segment */
     colStep,                 /* distance between start of each segment */
     colLen,                  /* number of periods */
@@ -126,7 +126,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
     biffAddf(NRRD, "%s: failed to create slice", me);
     airMopError(mop); return 1;
   }
-  
+
   /* the skinny */
   src = AIR_CAST(const char *, (nin ? nin : cnin)->data);
   dest = AIR_CAST(char *, nout->data);
@@ -228,7 +228,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
     biffAddf(NRRD, "%s: nrrd reports zero element size!", me);
     return 1;
   }
-  
+
   /* allocate */
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
   numLines = 1;
@@ -244,7 +244,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
     return 1;
   }
   lineSize = szOut[0]*nrrdElementSize(nin);
-  
+
   /* the skinny */
   typeSize = nrrdElementSize(nin);
   dataIn = (char *)nin->data;
@@ -272,7 +272,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
            me, (int)I, cIn[0], cIn[1], cIn[2], (int)idxIn);
     */
     memcpy(dataOut + idxOut*typeSize, dataIn + idxIn*typeSize, lineSize);
-    /* the lowest coordinate in cOut[] will stay zero, since we are 
+    /* the lowest coordinate in cOut[] will stay zero, since we are
        copying one (1-D) scanline at a time */
     NRRD_COORD_INCR(cOut, szOut, nin->dim, 1);
   }
@@ -284,7 +284,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   }
   for (ai=0; ai<nin->dim; ai++) {
     nrrdAxisInfoPosRange(&(nout->axis[ai].min), &(nout->axis[ai].max),
-                         nin, ai, AIR_CAST(double, min[ai]), 
+                         nin, ai, AIR_CAST(double, min[ai]),
                          AIR_CAST(double, max[ai]));
     /* do the safe thing first */
     nout->axis[ai].kind = _nrrdKindAltered(nin->axis[ai].kind, AIR_FALSE);
@@ -357,11 +357,11 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
     if (AIR_EXISTS(nin->axis[ai].spaceDirection[0])) {
       nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
                             1.0, nout->spaceOrigin,
-                            AIR_CAST(double, min[ai]), 
+                            AIR_CAST(double, min[ai]),
                             nin->axis[ai].spaceDirection);
     }
   }
-                         
+
 
   return 0;
 }
@@ -396,7 +396,7 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
   unsigned int aa, bb;
   int axmap[NRRD_DIM_MAX];
   char *above, *below, stmp[2][AIR_STRLEN_SMALL];
-  
+
   if (!( (noutAbove || noutBelow) && nin && _nline )) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -438,7 +438,7 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
              "dimension > 1", me);
     return 1;
   }
-  
+
   mop = airMopNew();
   rng = nrrdRangeNewSet(_nline, AIR_FALSE);
   airMopAdd(mop, rng, (airMopper)nrrdRangeNix, airMopAlways);
@@ -498,7 +498,7 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
   }
   sizeAbove[saxi] = numAbove;
   sizeBelow[saxi] = numBelow;
-  if ((noutAbove 
+  if ((noutAbove
        && nrrdMaybeAlloc_nva(noutAbove, nin->type, nin->dim, sizeAbove))
       ||
       (noutBelow
@@ -541,7 +541,7 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
       }
     }
   }
-  
+
   if (noutAbove) {
     nrrdAxisInfoCopy(noutAbove, nin, axmap, NRRD_AXIS_INFO_NONE);
     if (nrrdBasicInfoCopy(noutAbove, nin,
@@ -580,7 +580,7 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
 /*
 ******** nrrdSample_nva()
 **
-** given coordinates within a nrrd, copies the 
+** given coordinates within a nrrd, copies the
 ** single element into given *val
 */
 int
@@ -589,7 +589,7 @@ nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
   size_t I, size[NRRD_DIM_MAX], typeSize;
   unsigned int ai;
   char stmp[2][AIR_STRLEN_SMALL];
-  
+
   if (!(nrrd && coord && val)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -599,12 +599,12 @@ nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
     biffAddf(NRRD, "%s: nrrd reports zero element size!", me);
     return 1;
   }
-  
+
   typeSize = nrrdElementSize(nrrd);
   nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
   for (ai=0; ai<nrrd->dim; ai++) {
     if (!( coord[ai] < size[ai] )) {
-      biffAddf(NRRD, "%s: coordinate %s on axis %d out of bounds (0 to %s)", 
+      biffAddf(NRRD, "%s: coordinate %s on axis %d out of bounds (0 to %s)",
                me, airSprintSize_t(stmp[0], coord[ai]),
                ai, airSprintSize_t(stmp[1], size[ai]-1));
       return 1;
@@ -628,18 +628,18 @@ nrrdSample_va(void *val, const Nrrd *nrrd, ...) {
   unsigned int ai;
   size_t coord[NRRD_DIM_MAX];
   va_list ap;
-  
+
   if (!(nrrd && val)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  
+
   va_start(ap, nrrd);
   for (ai=0; ai<nrrd->dim; ai++) {
     coord[ai] = va_arg(ap, size_t);
   }
   va_end(ap);
-  
+
   if (nrrdSample_nva(val, nrrd, coord)) {
     biffAddf(NRRD, "%s:", me);
     return 1;
@@ -673,7 +673,7 @@ nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop) {
 }
 
 int
-nrrdCropAuto(Nrrd *nout, const Nrrd *nin, 
+nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
              size_t _min[NRRD_DIM_MAX], size_t _max[NRRD_DIM_MAX],
              const unsigned int *keep, unsigned int keepNum,
              int measr, double frac, int offset) {
@@ -780,7 +780,7 @@ nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
       airMopError(mop); return 1;
     }
     /*
-    fprintf(stderr, "!%s: axis %u [%u,%u] --> ", me, axi, 
+    fprintf(stderr, "!%s: axis %u [%u,%u] --> ", me, axi,
             AIR_CAST(unsigned int, min[axi]),
             AIR_CAST(unsigned int, max[axi]));
     */
@@ -796,7 +796,7 @@ nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
       max[axi] = AIR_MIN(max[axi], nin->axis[axi].size-1);
     }
     /*
-    fprintf(stderr, "[%u,%u]\n", 
+    fprintf(stderr, "[%u,%u]\n",
             AIR_CAST(unsigned int, min[axi]),
             AIR_CAST(unsigned int, max[axi]));
     */

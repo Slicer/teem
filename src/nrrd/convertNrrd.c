@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -24,7 +24,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-/* 
+/*
 ** making these typedefs here allows us to use one token for both
 ** constructing function names, and for specifying argument types
 */
@@ -82,9 +82,9 @@ F(A, FL) \
 F(A, DB)
 /* F(A, LD) */
 
-/* 
+/*
 ** _nrrdConv<Ta><Tb>()
-** 
+**
 ** given two arrays, a and b, of different types (Ta and Tb) but equal
 ** size N, _nrrdConvTaTb(a, b, N) will copy all the values from b into
 ** a, thereby effecting the same type-conversion as one gets with a
@@ -125,14 +125,14 @@ _nrrdClCv##TA##TB(TA *a, const TB *b, IT N) { \
 */
 typedef void (*CF)(void *, const void *, IT);
 
-/* 
+/*
 ** the individual converter's appearance in the array initialization,
 ** using the cast to the "CF" typedef
 */
 #define CONV_LIST(TA, TB) (CF)_nrrdConv##TA##TB,
 #define CLCV_LIST(TA, TB) (CF)_nrrdClCv##TA##TB,
 
-/* 
+/*
 ** the brace-delimited list of all converters _to_ type TA
 */
 #define CONVTO_LIST(_dummy_, TA) {NULL, MAP2(CONV_LIST, TA) NULL},
@@ -163,7 +163,7 @@ static float _nrrdFClampSH(FL v) { return AIR_CLAMP(SHRT_MIN, v, SHRT_MAX);}
 static float _nrrdFClampUS(FL v) { return AIR_CLAMP(0, v, USHRT_MAX);}
 static float _nrrdFClampJN(FL v) { return AIR_CLAMP(INT_MIN, v, INT_MAX);}
 static float _nrrdFClampUI(FL v) { return AIR_CLAMP(0, v, UINT_MAX);}
-static float _nrrdFClampLL(FL v) { return AIR_CLAMP(NRRD_LLONG_MIN, v, 
+static float _nrrdFClampLL(FL v) { return AIR_CLAMP(NRRD_LLONG_MIN, v,
                                                     NRRD_LLONG_MAX);}
 static float _nrrdFClampUL(FL v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
 static float _nrrdFClampFL(FL v) { return v; }
@@ -195,7 +195,7 @@ static double _nrrdDClampSH(DB v) { return AIR_CLAMP(SHRT_MIN, v, SHRT_MAX);}
 static double _nrrdDClampUS(DB v) { return AIR_CLAMP(0, v, USHRT_MAX);}
 static double _nrrdDClampJN(DB v) { return AIR_CLAMP(INT_MIN, v, INT_MAX);}
 static double _nrrdDClampUI(DB v) { return AIR_CLAMP(0, v, UINT_MAX);}
-static double _nrrdDClampLL(DB v) { return AIR_CLAMP(NRRD_LLONG_MIN, v, 
+static double _nrrdDClampLL(DB v) { return AIR_CLAMP(NRRD_LLONG_MIN, v,
                                                      NRRD_LLONG_MAX);}
 static double _nrrdDClampUL(DB v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
 static double _nrrdDClampFL(DB v) { return AIR_CLAMP(-FLT_MAX, v, FLT_MAX); }
@@ -216,29 +216,29 @@ nrrdDClamp[NRRD_TYPE_MAX+1])(DB) = {
   NULL};
 
 
-/* 
+/*
 ** Define all 100 of both converters.
 */
 MAP1(MAP2, CONV_DEF)
 MAP1(MAP2, CLCV_DEF)
 
 
-/* 
+/*
 ** Initialize the whole converter array.
-** 
+**
 ** This generates one incredibly long line of text, which hopefully will not
 ** break a poor compiler with limitations on line-length...
 */
 CF
 _nrrdConv[NRRD_TYPE_MAX+1][NRRD_TYPE_MAX+1] = {
-{NULL}, 
+{NULL},
 MAP1(CONVTO_LIST, _dummy_)
 {NULL}
 };
 
 CF
 _nrrdClampConv[NRRD_TYPE_MAX+1][NRRD_TYPE_MAX+1] = {
-{NULL}, 
+{NULL},
 MAP1(CLCVTO_LIST, _dummy_)
 {NULL}
 };

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -39,7 +39,7 @@ _nrrdHestNrrdParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "_nrrdHestNrrdParse", *nerr;
   Nrrd **nrrdP;
   airArray *mop;
-  
+
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -70,7 +70,7 @@ _nrrdHestNrrd = {
   "nrrd",
   _nrrdHestNrrdParse,
   (airMopper)nrrdNuke
-}; 
+};
 
 hestCB *
 nrrdHestNrrd = &_nrrdHestNrrd;
@@ -119,7 +119,7 @@ _nrrdLooksLikeANumber(char *str) {
      4: everything else   0 == n
   */
   int count[5];
-  
+
   count[0] = count[1] = count[2] = count[3] = count[4] = 0;
   while (*str) {
     int lwc, cc = *str;
@@ -162,7 +162,7 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   airArray *mop;
   double val;
   int ret;
-  
+
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -185,7 +185,7 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
      not that test.  In any case, if there are to be improved smarts
      about this matter, they need to be implemented below and nowhere
      else. */
-  
+
   nrrd = nrrdNew();
   ret = nrrdLoad(nrrd, str, NULL);
   if (!ret) {
@@ -206,7 +206,7 @@ _nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
       free(biffGetDone(NRRD));
       ret = airSingleSscanf(str, "%lf", &val);
       if (_nrrdLooksLikeANumber(str)
-          || (1 == ret && (!AIR_EXISTS(val) 
+          || (1 == ret && (!AIR_EXISTS(val)
                            || AIR_ABS(AIR_PI - val) < 0.0001))) {
         /* either it patently looks like a number, or,
            it already parsed as a number and it is a special value */
@@ -243,7 +243,7 @@ _nrrdHestIter = {
   "nrrd/value",
   _nrrdHestIterParse,
   (airMopper)nrrdIterNix
-}; 
+};
 
 hestCB *
 nrrdHestIter = &_nrrdHestIter;

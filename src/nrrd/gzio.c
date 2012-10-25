@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -20,7 +20,7 @@
   along with this library; if not, write to Free Software Foundation, Inc.,
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
-/* 
+/*
   This file is a modified version of the 'gzio.c' and 'zutil.h' source
   files from the zlib 1.1.4 distribution.
 
@@ -149,7 +149,7 @@ static uLong _nrrdGzGetLong(_NrrdGzStream *s);
 ** if it is not set appropriately.
 **
 ** The complete syntax for the mode parameter is: "(r|w[a])[0-9][f|h]".
-** 
+**
 ** Returns Z_NULL if the file could not be opened or if there was
 ** insufficient memory to allocate the (de)compression state; errno
 ** can be checked to distinguish the two cases (if errno is zero, the
@@ -165,7 +165,7 @@ _nrrdGzOpen(FILE* fd, const char* mode) {
   _NrrdGzStream *s;
   char fmode[AIR_STRLEN_MED]; /* copy of mode, without the compression level */
   char *m = fmode;
-    
+
   if (!mode) {
     biffAddf(NRRD, "%s: no file mode specified", me);
     return Z_NULL;
@@ -208,10 +208,10 @@ _nrrdGzOpen(FILE* fd, const char* mode) {
     biffAddf(NRRD, "%s: invalid file mode", me);
     return _nrrdGzDestroy(s), (gzFile)Z_NULL;
   }
-  
+
   if (s->mode == 'w') {
     error = deflateInit2(&(s->stream), level,
-                         Z_DEFLATED, -MAX_WBITS, _NRRD_DEF_MEM_LEVEL, 
+                         Z_DEFLATED, -MAX_WBITS, _NRRD_DEF_MEM_LEVEL,
                          strategy);
     /* windowBits is passed < 0 to suppress zlib header */
 
@@ -245,10 +245,10 @@ _nrrdGzOpen(FILE* fd, const char* mode) {
   if (s->mode == 'w') {
     /* Write a very simple .gz header: */
     fprintf(s->file, "%c%c%c%c%c%c%c%c%c%c", _nrrdGzMagic[0], _nrrdGzMagic[1],
-            Z_DEFLATED, 
-            0 /*flags*/, 
-            0,0,0,0 /*time*/, 
-            0 /*xflags*/, 
+            Z_DEFLATED,
+            0 /*flags*/,
+            0,0,0,0 /*time*/,
+            0 /*xflags*/,
             _NRRD_OS_CODE);
     s->startpos = 10L;
     /* We use 10L instead of ftell(s->file) to because ftell causes an
@@ -589,7 +589,7 @@ _nrrdGzDoFlush(gzFile file, int flush) {
     biffAddf(NRRD, "%s: invalid stream or file mode", me);
     return Z_STREAM_ERROR;
   }
-  
+
   s->stream.avail_in = 0; /* should be zero already anyway */
 
   for (;;) {
@@ -610,10 +610,10 @@ _nrrdGzDoFlush(gzFile file, int flush) {
     if (len == 0 && s->z_err == Z_BUF_ERROR) s->z_err = Z_OK;
 
     /* deflate has finished flushing only when it hasn't used up
-     * all the available space in the output buffer: 
+     * all the available space in the output buffer:
      */
     done = (s->stream.avail_out != 0 || s->z_err == Z_STREAM_END);
- 
+
     if (s->z_err != Z_OK && s->z_err != Z_STREAM_END) break;
   }
   return  s->z_err == Z_STREAM_END ? Z_OK : s->z_err;
@@ -655,7 +655,7 @@ _nrrdGzGetLong(_NrrdGzStream *s) {
 #endif /* TEEM_ZLIB */
 
 /*
-** random symbol to have in object file, even when Zlib not enabled 
+** random symbol to have in object file, even when Zlib not enabled
 */
 int
 _nrrdGzDummySymbol(void) {

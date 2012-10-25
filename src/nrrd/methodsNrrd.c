@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -112,7 +112,7 @@ nrrdIoStateInit(NrrdIoState *nio) {
 NrrdIoState *
 nrrdIoStateNew(void) {
   NrrdIoState *nio;
-  
+
   nio = (NrrdIoState *)calloc(1, sizeof(NrrdIoState));
   if (nio) {
     airPtrPtrUnion appu;
@@ -137,7 +137,7 @@ nrrdIoStateNew(void) {
 
 NrrdIoState *
 nrrdIoStateNix(NrrdIoState *nio) {
-  
+
   nio->path = (char *)airFree(nio->path);
   nio->base = (char *)airFree(nio->base);
   nio->line = (char *)airFree(nio->line);
@@ -187,7 +187,7 @@ nrrdResampleInfoNew(void) {
 
 NrrdResampleInfo *
 nrrdResampleInfoNix(NrrdResampleInfo *info) {
-  
+
   info = (NrrdResampleInfo *)airFree(info);
   return NULL;
 }
@@ -292,10 +292,10 @@ nrrdBasicInfoInit(Nrrd *nrrd, int bitflag) {
     nrrd->dim = 0;
   }
   if (!(NRRD_BASIC_INFO_CONTENT_BIT & bitflag)) {
-    nrrd->content = (char *)airFree(nrrd->content); 
+    nrrd->content = (char *)airFree(nrrd->content);
   }
   if (!(NRRD_BASIC_INFO_SAMPLEUNITS_BIT & bitflag)) {
-    nrrd->sampleUnits = (char *)airFree(nrrd->sampleUnits); 
+    nrrd->sampleUnits = (char *)airFree(nrrd->sampleUnits);
   }
   if (!(NRRD_BASIC_INFO_SPACE_BIT & bitflag)) {
     nrrd->space = nrrdSpaceUnknown;
@@ -480,7 +480,7 @@ nrrdNew(void) {
   int ii;
   Nrrd *nrrd;
   airPtrPtrUnion appu;
-  
+
   nrrd = (Nrrd*)(calloc(1, sizeof(Nrrd)));
   if (!nrrd) {
     return NULL;
@@ -516,7 +516,7 @@ nrrdNew(void) {
     return NULL;
   }
   /* key/value airArray uses no callbacks for now */
-  
+
   /* finish initializations */
   nrrdInit(nrrd);
 
@@ -536,7 +536,7 @@ nrrdNew(void) {
 Nrrd *
 nrrdNix(Nrrd *nrrd) {
   int ii;
-  
+
   if (nrrd) {
     for (ii=0; ii<NRRD_DIM_MAX; ii++) {
       _nrrdAxisInfoInit(&(nrrd->axis[ii]));
@@ -564,7 +564,7 @@ nrrdNix(Nrrd *nrrd) {
 */
 Nrrd *
 nrrdEmpty(Nrrd *nrrd) {
-  
+
   if (nrrd) {
     nrrd->data = airFree(nrrd->data);
     nrrdInit(nrrd);
@@ -581,7 +581,7 @@ nrrdEmpty(Nrrd *nrrd) {
 */
 Nrrd *
 nrrdNuke(Nrrd *nrrd) {
-  
+
   if (nrrd) {
     nrrdEmpty(nrrd);
     nrrdNix(nrrd);
@@ -596,7 +596,7 @@ _nrrdSizeCheck(const size_t *size, unsigned int dim, int useBiff) {
   static const char me[]="_nrrdSizeCheck";
   size_t num, pre;
   unsigned int ai;
-  
+
   pre = num = 1;
   for (ai=0; ai<dim; ai++) {
     if (!size[ai]) {
@@ -622,7 +622,7 @@ _nrrdSizeCheck(const size_t *size, unsigned int dim, int useBiff) {
 **
 ** we don't touch any of the peripheral information (content, comments,
 ** blocksize, min/max) because it is entirely reasonable to be setting
-** this before or after this call.  "type" could be passed as 
+** this before or after this call.  "type" could be passed as
 ** nrrdTypeBlock, in which case it is the user's responsibility to
 ** set nrrd->blockSize at some other time.
 */
@@ -630,7 +630,7 @@ int
 nrrdWrap_nva(Nrrd *nrrd, void *data, int type,
              unsigned int dim, const size_t *size) {
   static const char me[]="nrrdWrap_nva";
-  
+
   if (!(nrrd && size)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -649,7 +649,7 @@ nrrdWrap_nva(Nrrd *nrrd, void *data, int type,
 /*
 ******** nrrdWrap_va()
 **
-** Minimal var args wrapper around nrrdWrap_nva, with the advantage of 
+** Minimal var args wrapper around nrrdWrap_nva, with the advantage of
 ** taking all the axes sizes as the var args.
 **
 ** This is THE BEST WAY to wrap a nrrd around existing raster data,
@@ -664,7 +664,7 @@ nrrdWrap_va(Nrrd *nrrd, void *data, int type, unsigned int dim, ...) {
   va_list ap;
   size_t size[NRRD_DIM_MAX];
   unsigned int ai;
-  
+
   if (!(nrrd && data)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -674,7 +674,7 @@ nrrdWrap_va(Nrrd *nrrd, void *data, int type, unsigned int dim, ...) {
     size[ai] = va_arg(ap, size_t);
   }
   va_end(ap);
-  
+
   return nrrdWrap_nva(nrrd, data, type, dim, size);
 }
 
@@ -684,7 +684,7 @@ _nrrdTraverse(Nrrd *nrrd) {
   char *test, tval;
   size_t I, N;
   int S;
-  
+
   N = nrrdElementNumber(nrrd);
   S = nrrdElementSize(nrrd);
   tval = 0;
@@ -731,14 +731,14 @@ _nrrdCopy(Nrrd *nout, const Nrrd *nin, int bitflag) {
     }
   }
   nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_SIZE_BIT);
-  /* if nin->data non-NULL (second branch above), this will 
+  /* if nin->data non-NULL (second branch above), this will
      harmlessly unset and set type and dim */
   nrrdBasicInfoInit(nout, NRRD_BASIC_INFO_DATA_BIT | bitflag);
   if (nrrdBasicInfoCopy(nout, nin, NRRD_BASIC_INFO_DATA_BIT | bitflag)) {
     biffAddf(NRRD, "%s: trouble copying basic info", me);
     return 1;
   }
-  
+
   return 0;
 }
 
@@ -780,7 +780,7 @@ nrrdCopy(Nrrd *nout, const Nrrd *nin) {
 **
 ** Note: This function DOES use biff
 */
-int 
+int
 nrrdAlloc_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
   static const char me[]="nrrdAlloc_nva";
   size_t num, esize;
@@ -831,13 +831,13 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
 ** Handy wrapper around nrrdAlloc_nva, which takes, as its vararg list,
 ** all the axes sizes.
 */
-int 
+int
 nrrdAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
   static const char me[]="nrrdAlloc_va";
   size_t size[NRRD_DIM_MAX];
   unsigned int ai;
   va_list ap;
-  
+
   if (!nrrd) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -900,7 +900,7 @@ _nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type,
     biffAddf(NRRD, "%s:", me);
     return 1;
   }
-  
+
   if (!(nrrd->data)) {
     need = 1;
   } else {
@@ -973,13 +973,13 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type,
 ** Handy wrapper around nrrdAlloc, which takes, as its vararg list
 ** all the axes sizes, thereby calculating the total number.
 */
-int 
+int
 nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
   static const char me[]="nrrdMaybeAlloc_va";
   size_t size[NRRD_DIM_MAX];
   unsigned int ai;
   va_list ap;
-  
+
   if (!nrrd) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -1027,7 +1027,7 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
              AIR_CVOIDP(ninA), AIR_CVOIDP(ninB), AIR_VOIDP(differ));
     return 1;
   }
-  
+
   if (explain) {
     strcpy(explain, "");
   }
@@ -1035,7 +1035,7 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
     if (ninA->dim != ninB->dim) {
       *differ = ninA->dim < ninB->dim ? -1 : 1;
       if (explain) {
-        sprintf(explain, "nin{A,B}->dim %u %s %u", 
+        sprintf(explain, "nin{A,B}->dim %u %s %u",
                 ninA->dim, *differ < 0 ? "<" : ">", ninB->dim);
       }
       return 0;
@@ -1067,17 +1067,17 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
     return 1;
   }
   if (onlyData || *differ) {
-    /* If caller only cared about data values, 
+    /* If caller only cared about data values,
        we're done whether or not they were different.
        else, if the data values are different, we're done.
-       The explanation of any difference in values is 
+       The explanation of any difference in values is
        already in "explain" (if non-NULL) */
     return 0;
   }
 
   for (axi=0; axi<ninA->dim; axi++) {
     /* this always sets *differ */
-    if (nrrdAxisInfoCompare(ninA->axis + axi, ninB->axis + axi, 
+    if (nrrdAxisInfoCompare(ninA->axis + axi, ninB->axis + axi,
                             differ, explain)) {
       biffAddf(NRRD, "%s: problem comparing axis %u", me, axi);
       return 1;
@@ -1107,8 +1107,8 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
   if (ninA->space != ninB->space) {
     *differ = ninA->space < ninB->space ? -1 : 1;
     if (explain) {
-      sprintf(explain, "ninA->space %s %s ninB->space %s", 
-              airEnumStr(nrrdSpace, ninA->space), 
+      sprintf(explain, "ninA->space %s %s ninB->space %s",
+              airEnumStr(nrrdSpace, ninA->space),
               *differ < 0 ? "<" : ">",
               airEnumStr(nrrdSpace, ninB->space));
     }
@@ -1117,7 +1117,7 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
   if (ninA->spaceDim != ninB->spaceDim) {
     *differ = ninA->spaceDim < ninB->spaceDim ? -1 : 1;
     if (explain) {
-      sprintf(explain, "ninA->spaceDim %u %s ninB->spaceDim %u", 
+      sprintf(explain, "ninA->spaceDim %u %s ninB->spaceDim %u",
               ninA->spaceDim, *differ < 0 ? "<" : ">", ninB->spaceDim);
     }
     return 0;
@@ -1126,8 +1126,8 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
     *differ = ninA->blockSize < ninB->blockSize ? -1 : 1;
     if (explain) {
       char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
-      sprintf(explain, "ninA->blockSize %s %s ninB->blockSize %s", 
-              airSprintSize_t(stmp1, ninA->blockSize), 
+      sprintf(explain, "ninA->blockSize %s %s ninB->blockSize %s",
+              airSprintSize_t(stmp1, ninA->blockSize),
               *differ < 0 ? "<" : ">",
               airSprintSize_t(stmp2, ninB->blockSize));
     }
@@ -1164,7 +1164,7 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
   if (ninA->cmtArr->len != ninB->cmtArr->len) {
     *differ = ninA->cmtArr->len < ninB->cmtArr->len ? -1 : 1;
     if (explain) {
-      sprintf(explain, "ninA # comments %u %s ninB # comments %u", 
+      sprintf(explain, "ninA # comments %u %s ninB # comments %u",
               ninA->cmtArr->len, *differ < 0 ? "<" : ">", ninB->cmtArr->len);
     }
     return 0;
@@ -1179,7 +1179,7 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
   if (ninA->kvpArr->len != ninB->kvpArr->len) {
     *differ = ninA->kvpArr->len < ninB->kvpArr->len ? -1 : 1;
     if (explain) {
-      sprintf(explain, "ninA # key/values %u %s ninB # key/values %u", 
+      sprintf(explain, "ninA # key/values %u %s ninB # key/values %u",
               ninA->kvpArr->len, *differ < 0 ? "<" : ">", ninB->kvpArr->len);
     }
     return 0;

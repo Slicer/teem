@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -34,8 +34,8 @@ int
 nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
            unsigned int axis, size_t pos) {
   static const char me[]="nrrdSplice", func[]="splice";
-  size_t 
-    I, 
+  size_t
+    I,
     rowLen,                  /* length of segment */
     colStep,                 /* distance between start of each segment */
     colLen;                  /* number of periods */
@@ -51,10 +51,10 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
     biffAddf(NRRD, "%s: nout==nslice disallowed", me);
     return 1;
   }
-  
+
   /* check that desired slice location is legit */
   if (!( axis < nin->dim )) {
-    biffAddf(NRRD, "%s: slice axis %d out of bounds (0 to %d)", 
+    biffAddf(NRRD, "%s: slice axis %d out of bounds (0 to %d)",
              me, axis, nin->dim-1);
     return 1;
   }
@@ -93,7 +93,7 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
     if (!( nin->axis[ai + (ai >= axis)].size == nslice->axis[ai].size )) {
       biffAddf(NRRD, "%s: input ax %d size (%s) != slices ax %d size (%s)",
                me, ai + (ai >= axis),
-               airSprintSize_t(stmp[0], nin->axis[ai + (ai >= axis)].size), ai, 
+               airSprintSize_t(stmp[0], nin->axis[ai + (ai >= axis)].size), ai,
                airSprintSize_t(stmp[1], nslice->axis[ai].size));
       return 1;
     }
@@ -104,7 +104,7 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
       biffAddf(NRRD, "%s:", me);
       return 1;
     }
-  } 
+  }
   /* else we're going to splice in place */
 
   /* the following was copied from nrrdSlice() */
@@ -130,7 +130,7 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
     src += colStep;
     dest += rowLen;
   }
-  
+
   sliceCont = _nrrdContentGet(nslice);
   if (nrrdContentSet_va(nout, func, nin, "%s,%d,%s", sliceCont, axis,
                         airSprintSize_t(stmp[0], pos))) {
@@ -212,13 +212,13 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
       return 1;
     }
   }
-  
+
   if (nout != nin) {
     if (nrrdCopy(nout, nin)) {
       biffAddf(NRRD, "%s:", me);
       return 1;
     }
-  } 
+  }
   /* else we're going to inset in place */
 
   /* WARNING: following code copied/modified from nrrdCrop(),
@@ -231,7 +231,7 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
     numLines *= szOut[ai];
   }
   lineSize = szOut[0]*nrrdElementSize(nin);
-  
+
   /* the skinny */
   typeSize = nrrdElementSize(nin);
   dataIn = (char *)nout->data;
@@ -246,16 +246,16 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
     NRRD_INDEX_GEN(idxOut, cOut, szOut, nin->dim);
     NRRD_INDEX_GEN(idxIn, cIn, szIn, nin->dim);
     memcpy(dataIn + idxIn*typeSize, dataOut + idxOut*typeSize, lineSize);
-    /* the lowest coordinate in cOut[] will stay zero, since we are 
+    /* the lowest coordinate in cOut[] will stay zero, since we are
        copying one (1-D) scanline at a time */
     NRRD_COORD_INCR(cOut, szOut, nin->dim, 1);
   }
 
   /* HEY: before Teem version 2.0 figure out nrrdKind stuff here */
-  
+
   strcpy(buff1, "[");
   for (ai=0; ai<nin->dim; ai++) {
-    sprintf(buff2, "%s%s", (ai ? "," : ""), 
+    sprintf(buff2, "%s%s", (ai ? "," : ""),
             airSprintSize_t(stmp[0], min[ai]));
     strcat(buff1, buff2);
   }
@@ -265,7 +265,7 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
     biffAddf(NRRD, "%s:", me);
     free(subCont); return 1;
   }
-  free(subCont); 
+  free(subCont);
   /* basic info copied by nrrdCopy above */
 
   return 0;
@@ -329,7 +329,7 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
   va_list ap;
   char *dataIn, *dataOut;
   char stmp[2][AIR_STRLEN_SMALL];
-  
+
   if (!(nout && nin && min && max)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
@@ -366,7 +366,7 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
     break;
   default:
     biffAddf(NRRD, "%s: sorry boundary %s (%d) unimplemented\n",
-             me, airEnumStr(nrrdBoundary, boundary), boundary); 
+             me, airEnumStr(nrrdBoundary, boundary), boundary);
     return 1;
   }
   /*
@@ -392,7 +392,7 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
     biffAddf(NRRD, "%s: nrrd reports zero element size!", me);
     return 1;
   }
-  
+
   /* allocate */
   numOut = 1;
   for (ai=0; ai<nin->dim; ai++) {
@@ -403,7 +403,7 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
     biffAddf(NRRD, "%s:", me);
     return 1;
   }
-  
+
   /* the skinny */
   typeSize = nrrdElementSize(nin);
   dataIn = (char *)nin->data;
@@ -466,7 +466,7 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
   }
   for (ai=0; ai<nin->dim; ai++) {
     nrrdAxisInfoPosRange(&(nout->axis[ai].min), &(nout->axis[ai].max),
-                         nin, ai, AIR_CAST(double, min[ai]), 
+                         nin, ai, AIR_CAST(double, min[ai]),
                          AIR_CAST(double, max[ai]));
     if (!nrrdStateKindNoop && nout->axis[ai].size == nin->axis[ai].size) {
       /* nothing changed along this axis; the kind should be preserved */
@@ -483,7 +483,7 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
     strcat(buff1, buff2);
   }
   if (nrrdBoundaryPad == boundary) {
-    sprintf(buff2, "%s(%g)", airEnumStr(nrrdBoundary, nrrdBoundaryPad), 
+    sprintf(buff2, "%s(%g)", airEnumStr(nrrdBoundary, nrrdBoundaryPad),
             padValue);
   } else {
     strcpy(buff2, airEnumStr(nrrdBoundary, boundary));
@@ -511,7 +511,7 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
     if (AIR_EXISTS(nin->axis[ai].spaceDirection[0])) {
       nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
                             1.0, nout->spaceOrigin,
-                            AIR_CAST(double, min[ai]), 
+                            AIR_CAST(double, min[ai]),
                             nin->axis[ai].spaceDirection);
     }
   }
@@ -545,7 +545,7 @@ nrrdPad_nva(Nrrd *nout, const Nrrd *nin,
     biffAddf(NRRD, "%s:", me);
     return 1;
   }
-  
+
   return 0;
 }
 
@@ -612,6 +612,6 @@ nrrdSimplePad_nva(Nrrd *nout, const Nrrd *nin, unsigned int pad,
     biffAddf(NRRD, "%s:", me);
     return 1;
   }
-  
+
   return 0;
 }

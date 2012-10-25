@@ -1,6 +1,6 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images             .
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -39,7 +39,7 @@ main(int argc, const char *argv[]) {
   int bins[2], sx, sy, xi, yi, ridx, hidx, rbins, hbins;
   NrrdRange *range;
   double (*lup)(const void *v, size_t I), *hist;
-  
+
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();
@@ -101,7 +101,7 @@ main(int argc, const char *argv[]) {
     rmax = AIR_MAX(rmax, DIST(cent[0], cent[1], 0, sy-1));
     rmax = AIR_MAX(rmax, DIST(cent[0], cent[1], sx-1, sy-1));
   }
-  
+
   lup = nrrdDLookup[nin->type];
   hist = (double*)(nhist->data);
   for (xi=0; xi<sx; xi++) {
@@ -119,7 +119,7 @@ main(int argc, const char *argv[]) {
       hist[ridx + rbins*hidx] += 1;
     }
   }
-  
+
   nhist->axis[0].min = 0;
   nhist->axis[0].max = rmax;
   nhist->axis[1].min = vmin;

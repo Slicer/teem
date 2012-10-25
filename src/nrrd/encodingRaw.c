@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -86,7 +86,7 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
       } else {
         chunkSize = maxChunkSize;
       }
-      retTmp = 
+      retTmp =
         fread(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
       ret += retTmp;
       if (retTmp != chunkSize) {
@@ -133,7 +133,7 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
   size_t elementSize, maxChunkSize, remainderValue, chunkSize;
   size_t retTmp;
   char stmp[3][AIR_STRLEN_SMALL];
-  
+
   bsize = nrrdElementSize(nrrd)*elementNum;
   if (nio->format->usesDIO) {
     fd = fileno(file);
@@ -178,7 +178,7 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
       } else {
         chunkSize = maxChunkSize;
       }
-      retTmp = 
+      retTmp =
         fwrite(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
       ret += retTmp;
       if (retTmp != chunkSize) {

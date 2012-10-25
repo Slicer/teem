@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 #include "privateNrrd.h"
 
 /*
-** learned: if you have globals, such as _nrrdCC_verb, which are 
+** learned: if you have globals, such as _nrrdCC_verb, which are
 ** defined and declared here, but which are NOT initialized, then
 ** C++ apps which are linking against Teem will have problems!!!
 ** This was first seen on the mac.
@@ -46,7 +46,7 @@ _nrrdCCFind_1(Nrrd *nout, unsigned int *numid, const Nrrd *nin) {
   out = AIR_CAST(unsigned int*, nout->data);
   out[0] = id = 0;
   *numid = 1;
-  
+
   sx = AIR_CAST(unsigned int, nin->axis[0].size);
   lval = lup(nin->data, 0);
   for (I=1; I<sx; I++) {
@@ -64,7 +64,7 @@ _nrrdCCFind_1(Nrrd *nout, unsigned int *numid, const Nrrd *nin) {
 
 /*
 ** layout of value (pvl) and index (pid) cache:
-** 
+**
 **  2  3  4 --> X
 **  1  .  .     oddly, index 0 is never used
 **  .  .  .
@@ -74,7 +74,7 @@ _nrrdCCFind_1(Nrrd *nout, unsigned int *numid, const Nrrd *nin) {
 int
 _nrrdCCFind_2(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
               const Nrrd *nin, unsigned int conny) {
-  static const char me[]="_nrrdCCFind_2"; 
+  static const char me[]="_nrrdCCFind_2";
   double vl=0, pvl[5]={0,0,0,0,0};
   unsigned int id, pid[5]={0,0,0,0,0}, (*lup)(const void *, size_t), *out;
   unsigned int p, x, y, sx, sy;
@@ -104,7 +104,7 @@ _nrrdCCFind_2(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
         pvl[1] = GETV_2(-1, y);   pid[1] = GETI_2(-1, y);
         pvl[2] = GETV_2(-1, y-1); pid[2] = GETI_2(-1, y-1);
         pvl[3] = GETV_2(0, y-1);  pid[3] = GETI_2(0, y-1);
-        
+
       } else {
         pvl[1] = vl;              pid[1] = id;
         pvl[2] = pvl[3];          pid[2] = pid[3];
@@ -169,7 +169,7 @@ _nrrdCCFind_3(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
   double pvl[14]={0,0,0,0,0,0,0,0,0,0,0,0,0,0}, vl=0;
   unsigned int id, *out, (*lup)(const void *, size_t),
     pid[14]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  unsigned int p, x, y, z, sx, sy, sz;  
+  unsigned int p, x, y, z, sx, sy, sz;
 
   id = 0; /* sssh! compiler warnings */
   lup = nrrdUILookup[nin->type];
@@ -187,7 +187,7 @@ _nrrdCCFind_3(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
                        && AIR_IN_CL(0, AIR_CAST(int, z), AIR_CAST(int, sz-1)))\
                        ? out[(x) + sx*((y) + sy*(z))]                         \
                        : AIR_CAST(unsigned int, -1))
-  
+
   *numid = 0;
   for (z=0; z<sz; z++) {
     for (y=0; y<sy; y++) {
@@ -248,7 +248,7 @@ int
 _nrrdCCFind_N(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
               const Nrrd *nin, unsigned int conny) {
   static const char me[]="_nrrdCCFind_N";
-  
+
   AIR_UNUSED(nout);
   AIR_UNUSED(numid);
   AIR_UNUSED(eqvArr);
@@ -264,16 +264,16 @@ _nrrdCCFind_N(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
 ** finds connected components (CCs) in given integral type nrrd "nin",
 ** according to connectivity "conny", putting the results in "nout".
 ** The "type" argument controls what type the output will be.  If
-** type == nrrdTypeDefault, the type used will be the smallest that 
+** type == nrrdTypeDefault, the type used will be the smallest that
 ** can contain the CC id values.  Otherwise, the specified type "type"
 ** will be used, assuming that it is large enough to hold the CC ids.
 **
 ** "conny": the number of coordinates that need to varied together in
 ** order to reach all the samples that are to consitute the neighborhood
 ** around a sample.  For 2-D, conny==1 specifies the 4 edge-connected
-** pixels, and 2 specifies the 8 edge- and corner-connected.  
+** pixels, and 2 specifies the 8 edge- and corner-connected.
 **
-** The caller can get a record of the values in each CC by passing a 
+** The caller can get a record of the values in each CC by passing a
 ** non-NULL nval, which will be allocated to an array of the same type
 ** as nin, so that nval->data[I] is the value in nin inside CC #I.
 */
@@ -288,7 +288,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
   int ret;
   size_t I, NN;
   void *val;
-  
+
   if (!(nout && nin)) {
     /* NULL nvalP okay */
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -298,8 +298,8 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
     biffAddf(NRRD, "%s: nout == nin disallowed", me);
     return 1;
   }
-  if (!( nrrdTypeIsIntegral[nin->type] 
-         && nrrdTypeIsUnsigned[nin->type] 
+  if (!( nrrdTypeIsIntegral[nin->type]
+         && nrrdTypeIsUnsigned[nin->type]
          && nrrdTypeSize[nin->type] <= 4 )) {
     biffAddf(NRRD, "%s: can only find connected components in "
              "1, 2, or 4 byte unsigned integral values (not %s)",
@@ -312,7 +312,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
       return 1;
     }
     if (!( nrrdTypeIsIntegral[type]
-           && nrrdTypeIsUnsigned[nin->type] 
+           && nrrdTypeIsUnsigned[nin->type]
            && nrrdTypeSize[type] <= 4 )) {
       biffAddf(NRRD,
                "%s: can only save connected components to 1, 2, or 4 byte "
@@ -355,7 +355,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
     biffAddf(NRRD, "%s: initial pass failed", me);
     airMopError(mop); return 1;
   }
-  
+
   map = AIR_MALLOC(numid, unsigned int);
   airMopAdd(mop, map, airFree, airMopAlways);
   numsettleid = airEqvMap(eqvArr, map, numid);
@@ -413,7 +413,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type,
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
   }
   /* basic info handled by nrrdConvert */
-  
+
   airMopOkay(mop);
   return 0;
 }
@@ -432,7 +432,7 @@ _nrrdCCAdj_2(unsigned char *out, unsigned int numid, const Nrrd *nin,
              unsigned int conny) {
   unsigned int (*lup)(const void *, size_t), x, y, sx, sy, id=0;
   double pid[5]={0,0,0,0,0};
-  
+
   lup = nrrdUILookup[nin->type];
   sx = AIR_CAST(unsigned int, nin->axis[0].size);
   sy = AIR_CAST(unsigned int, nin->axis[1].size);
@@ -471,7 +471,7 @@ _nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin,
              unsigned int conny) {
   unsigned int (*lup)(const void *, size_t), x, y, z, sx, sy, sz, id=0;
   double pid[14]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-  
+
   lup = nrrdUILookup[nin->type];
   sx = AIR_CAST(unsigned int, nin->axis[0].size);
   sy = AIR_CAST(unsigned int, nin->axis[1].size);
@@ -563,7 +563,7 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
     return 1;
   }
   out = (unsigned char *)(nout->data);
-  
+
   switch(nin->dim) {
   case 1:
     ret = _nrrdCCAdj_1(out, maxid+1, nin);
@@ -591,7 +591,7 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
     biffAddf(NRRD, "%s:", me);
     return 1;
   }
-  
+
   return 0;
 }
 
@@ -615,8 +615,8 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
 ** maxSize: a cap on how large "small" is- CCs any larger than maxSize are
 ** not merged, as they are deemed too significant.  Or, a maxSize of 0 says
 ** size is no object for merging CCs.
-** 
-** maxNeighbor: a maximum number of neighbors that a CC can have (either 
+**
+** maxNeighbor: a maximum number of neighbors that a CC can have (either
 ** bigger than the CC or not) if it is to be merged.  Use 1 to merge
 ** isolated islands into their surrounds, 2 to merge CC with the larger
 ** of their two neighbors, etc., or 0 to allow any number of neighbors.
@@ -626,7 +626,7 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
 ** In order to prevent weirdness, the merging done in one call to this
 ** function is not transitive: if A is merged to B, then B will not be
 ** merged to anything else, even if meets all the requirements defined
-** by the given parameters.  This is accomplished by working from the 
+** by the given parameters.  This is accomplished by working from the
 ** smallest CCs to the largest. Iterated calls may be needed to acheive
 ** the desired effect.
 **
@@ -649,7 +649,7 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
   unsigned int *map, *id;
   airArray *mop;
   size_t I, NN;
-  
+
   mop = airMopNew();
   if (!( nout && nrrdCCValid(nin) )) {
     /* _nval can be NULL */
@@ -673,7 +673,7 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
   airMopAdd(mop, nadj = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nsize = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nnn = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  
+
   if (nrrdCCSize(nsize, nin)
       || nrrdCopy(nnn, nsize)  /* just to allocate to right size and type */
       || nrrdCCAdjacency(nadj, nin, conny)) {
@@ -704,7 +704,7 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
     biffAddf(NRRD, "%s: couldn't allocate buffers", me);
     airMopError(mop); return 1;
   }
-  
+
   /* store and sort size/id pairs */
   for (i=0; i<numid; i++) {
     sizeId[0 + 2*i] = size[i];
@@ -714,13 +714,13 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
   for (i=0; i<numid; i++) {
     id[i] = sizeId[1 + 2*i];
   }
-  
+
   /* initialize arrays */
   for (i=0; i<numid; i++) {
     map[i] = i;
     hit[i] = AIR_FALSE;
   }
-  /* _i goes through 0 to numid-1, 
+  /* _i goes through 0 to numid-1,
      i goes through the CC ids in ascending order of size */
   for (_i=0; _i<numid; _i++) {
     i = id[_i];
@@ -738,13 +738,13 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
        bigi goes through CC ids which are larger than CC i */
     for (j=numid-1; j>_i; j--) {
       bigi = id[j];
-      if (adj[bigi + numid*i]) 
+      if (adj[bigi + numid*i])
         break;
     }
     if (j == _i) {
       continue;   /* we had no neighbors ?!?! */
     }
-    if (valDir && (AIR_CAST(int, val[bigi]) 
+    if (valDir && (AIR_CAST(int, val[bigi])
                    - AIR_CAST(int, val[i]))*valDir < 0 ) {
       continue;
     }
@@ -759,8 +759,8 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
     ins(nout->data, I, map[lup(nin->data, I)]);
   }
 
-  valcnt = ((_nval && _nval->content) 
-            ? _nval->content 
+  valcnt = ((_nval && _nval->content)
+            ? _nval->content
             : nrrdStateUnknownContent);
   if ( (valDir && nrrdContentSet_va(nout, func, nin, "%c(%s),%d,%d,%d",
                                     (valDir > 0 ? '+' : '-'), valcnt,
@@ -789,7 +789,7 @@ nrrdCCRevalue (Nrrd *nout, const Nrrd *nin, const Nrrd *nval) {
   size_t I, NN;
   unsigned int (*vlup)(const void *, size_t), (*ilup)(const void *, size_t),
     (*ins)(void *, size_t, unsigned int);
-  
+
   if (!( nout && nrrdCCValid(nin) && nval )) {
     biffAddf(NRRD, "%s: invalid args", me);
     return 1;
@@ -878,6 +878,6 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
     airMopError(mop); return 1;
   }
   /* basic info handled by nrrdCopy */
-  airMopOkay(mop); 
+  airMopOkay(mop);
   return 0;
 }

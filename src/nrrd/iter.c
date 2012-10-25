@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -121,7 +121,7 @@ nrrdIterValue(NrrdIter *iter) {
 /*
 ******** nrrdIterContent()
 **
-** ALLOCATES a string that is either the nrrd's content (or 
+** ALLOCATES a string that is either the nrrd's content (or
 ** nrrdStateUnknownContent) or a string version of the value; useful
 ** for when you's use the "content" of a nrrd
 */
@@ -137,7 +137,7 @@ nrrdIterContent(NrrdIter *iter) {
       airSinglePrintf(NULL, buff, "%g", iter->val);
       ret = airStrdup(buff);
     }
-  }  
+  }
   return ret;
 }
 

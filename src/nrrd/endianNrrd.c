@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -27,7 +27,7 @@ static void
 _nrrdSwap16Endian(void *_data, size_t N) {
   unsigned short *data, dd, fix, mask;
   size_t I;
-  
+
   if (!_data) {
     return;
   }
@@ -95,7 +95,7 @@ _nrrdNoopEndian(void *data, size_t N) {
 static void
 _nrrdBlockEndian(void *data, size_t N) {
   char me[]="_nrrdBlockEndian";
-  
+
   AIR_UNUSED(data);
   AIR_UNUSED(N);
   fprintf(stderr, "%s: WARNING: can't fix endiannes of nrrd type %s\n", me,
@@ -120,9 +120,9 @@ static void
 
 void
 nrrdSwapEndian(Nrrd *nrrd) {
-  
-  if (nrrd 
-      && nrrd->data 
+
+  if (nrrd
+      && nrrd->data
       && !airEnumValCheck(nrrdType, nrrd->type)) {
     _nrrdSwapEndian[nrrd->type](nrrd->data, nrrdElementNumber(nrrd));
   }

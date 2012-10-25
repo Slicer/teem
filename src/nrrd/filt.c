@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -28,12 +28,12 @@ int
 _nrrdCM_median(const float *hist, float half) {
   float sum = 0;
   const float *hpt;
-  
+
   hpt = hist;
-  
+
   while(sum < half)
     sum += *hpt++;
-  
+
   return AIR_CAST(int, hpt - 1 - hist);
 }
 
@@ -41,7 +41,7 @@ int
 _nrrdCM_mode(const float *hist, int bins) {
   float max;
   int i, mi;
-  
+
   mi = -1;
   max = 0;
   for (i=0; i<bins; i++) {
@@ -75,7 +75,7 @@ float *
 _nrrdCM_wtAlloc(int radius, float wght) {
   float *wt, sum;
   int diam, r;
-  
+
   diam = 2*radius + 1;
   wt = (float *)calloc(diam, sizeof(float));
   wt[radius] = 1.0;
@@ -235,7 +235,7 @@ _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     half = AIR_CAST(float, diam*diam*diam/2 + 1);
     fflush(stderr);
     for (Z=radius; Z<sz-radius; Z++) {
-      fprintf(stderr, "%s", airDoneStr(radius, Z, sz-radius-1, done)); 
+      fprintf(stderr, "%s", airDoneStr(radius, Z, sz-radius-1, done));
       fflush(stderr);
       for (Y=radius; Y<sy-radius; Y++) {
         /* initialize histogram */
@@ -273,7 +273,7 @@ _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     wt = _nrrdCM_wtAlloc(radius, wght);
     half = 0.5;
     for (Z=radius; Z<sz-radius; Z++) {
-      fprintf(stderr, "%s", airDoneStr(radius, Z, sz-radius-1, done)); 
+      fprintf(stderr, "%s", airDoneStr(radius, Z, sz-radius-1, done));
       fflush(stderr);
       for (Y=radius; Y<sy-radius; Y++) {
         for (X=radius; X<sx-radius; X++) {
@@ -329,9 +329,9 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
     return 1;
   }
   if (!(AIR_IN_CL(1, _nin->dim, 3))) {
-    biffAddf(NRRD, "%s: sorry, can only handle dim 1, 2, 3 (not %d)", 
+    biffAddf(NRRD, "%s: sorry, can only handle dim 1, 2, 3 (not %d)",
              me, _nin->dim);
-    return 1;    
+    return 1;
   }
   minsize = AIR_CAST(unsigned int, _nin->axis[0].size);
   if (_nin->dim > 1) {
@@ -344,7 +344,7 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
     biffAddf(NRRD, "%s: minimum nrrd size (%d) smaller than filtering "
              "window size (%d) with radius %d; must enable padding", me,
              minsize, 2*radius+1, radius);
-    return 1;    
+    return 1;
   }
   if (_nout == _nin) {
     biffAddf(NRRD, "%s: nout==nin disallowed", me);
@@ -420,7 +420,7 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
     /* we've already set output in _nout == nout */
   }
 
-  airMopOkay(mop); 
+  airMopOkay(mop);
   return 0;
 }
 
@@ -430,7 +430,7 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
 static double
 intx(double xx0, double yy0, double xx1, double yy1, double spc) {
   double ss;
-  
+
   ss = spc*spc;
   return (yy1/ss + xx1*xx1 - (yy0/ss + xx0*xx0))/(2*(xx1 - xx0));
 }
@@ -441,13 +441,13 @@ intx(double xx0, double yy0, double xx1, double yy1, double spc) {
 ** based on code published with:
 ** Distance Transforms of Sampled Functions
 ** Pedro F. Felzenszwalb and Daniel P. Huttenlocher
-** Cornell Computing and Information Science TR2004-1963 
+** Cornell Computing and Information Science TR2004-1963
 **
 ** dd: output (pre-allocated for "len")
 ** ff: input function (pre-allocated for "len")
-** zz: buffer (pre-allocated for "len"+1) for locations of 
+** zz: buffer (pre-allocated for "len"+1) for locations of
 **     boundaries between parabolas
-** vv: buffer (pre-allocated for "len") for locations of 
+** vv: buffer (pre-allocated for "len") for locations of
 **     parabolas in lower envelope
 **
 ** The major modification from the published method is the inclusion
@@ -459,7 +459,7 @@ intx(double xx0, double yy0, double xx1, double yy1, double spc) {
 ** to be compatible with the case of using floats
 */
 static void
-distanceL2Sqrd1D(double *dd, const double *ff, 
+distanceL2Sqrd1D(double *dd, const double *ff,
                  double *zz, unsigned int *vv,
                  size_t len, double spc) {
   size_t kk, qq;
@@ -476,7 +476,7 @@ distanceL2Sqrd1D(double *dd, const double *ff,
   for (qq=1; qq<len; qq++) {
     double ss;
     ss = intx(AIR_CAST(double, qq), ff[qq], vv[kk], ff[vv[kk]], spc);
-    /* while (ss <= zz[kk]) { 
+    /* while (ss <= zz[kk]) {
     ** HEY this can have kk going to -1 and into memory errors!
     */
     while (ss <= zz[kk] && kk) {
@@ -499,7 +499,7 @@ distanceL2Sqrd1D(double *dd, const double *ff,
     dx = AIR_CAST(double, qq) - vv[kk];
     dd[qq] = spc*spc*dx*dx + ff[vv[kk]];
   }
-  
+
   return;
 }
 
@@ -578,7 +578,7 @@ distanceL2Sqrd(Nrrd *ndist, double *spcMean) {
     /* MWC: This error condition was/is being ignored. */
     /* biffAddf(NRRD, "%s: couldn't allocate scanline buffers", me); */
   }
-  
+
   /* set up array of buffers */
   npass[0] = ndist;
   for (di=1; di<ndist->dim; di++) {
@@ -631,7 +631,7 @@ _distanceBase(Nrrd *nout, const Nrrd *nin,
               int typeOut, const int *axisDo,
               double thresh, double bias, int insideHigher) {
   static const char me[]="_distanceBase";
-  size_t ii, nn; 
+  size_t ii, nn;
   double (*lup)(const void *, size_t), (*ins)(void *, size_t, double);
   double spcMean;
 
@@ -640,7 +640,7 @@ _distanceBase(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (nrrdTypeBlock == nin->type) {
-    biffAddf(NRRD, "%s: need scalar type for distance transform (not %s)", 
+    biffAddf(NRRD, "%s: need scalar type for distance transform (not %s)",
              me, airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
@@ -661,7 +661,7 @@ _distanceBase(Nrrd *nout, const Nrrd *nin,
     biffAddf(NRRD, "%s: threshold (%g) doesn't exist", me, thresh);
     return 1;
   }
-  
+
   if (nrrdConvert(nout, nin, typeOut)) {
     biffAddf(NRRD, "%s: couldn't allocate output", me);
     return 1;
@@ -686,7 +686,7 @@ _distanceBase(Nrrd *nout, const Nrrd *nin,
     biffAddf(NRRD, "%s: trouble doing transform", me);
     return 1;
   }
-  
+
   for (ii=0; ii<nn; ii++) {
     double val;
     val = sqrt(lup(nout->data, ii));
@@ -701,14 +701,14 @@ _distanceBase(Nrrd *nout, const Nrrd *nin,
 ******** nrrdDistanceL2
 **
 ** computes euclidean (L2) distance transform of input image, after
-** thresholding at "thresh". 
+** thresholding at "thresh".
 **
 ** NOTE: the output of this is slightly offset from what one might
 ** expect; decreased by half of the average (over all axes) sample
 ** spacing.  The reason for this is so that when the transform is
-** applied to the inverted image and negated, to create a full 
+** applied to the inverted image and negated, to create a full
 ** signed distance map, the transition from interior to exterior
-** distance values is smooth.  Without this trick, there is a 
+** distance values is smooth.  Without this trick, there is a
 ** small little plateau at the transition.
 */
 int
@@ -749,7 +749,7 @@ nrrdDistanceL2Signed(Nrrd *nout, const Nrrd *nin,
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  
+
   mop = airMopNew();
   ninv = nrrdNew();
   airMopAdd(mop, ninv, (airMopper)nrrdNuke, airMopAlways);
@@ -761,7 +761,7 @@ nrrdDistanceL2Signed(Nrrd *nout, const Nrrd *nin,
     biffAddf(NRRD, "%s: trouble doing or combining transforms", me);
     airMopError(mop); return 1;
   }
-  
+
   airMopOkay(mop);
   return 0;
 }
