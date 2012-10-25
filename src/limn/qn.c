@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -961,17 +961,17 @@ limnQNDemo(Nrrd *nqn, unsigned int reso, int qni) {
         case 0:
         case 1:
           ELL_3V_SET(vecd, uu, vv, ww);
-          ELL_3V_SET(vecf, uu, vv, ww);
+          ELL_3V_SET_TT(vecf, float, uu, vv, ww);
           break;
         case 2:
         case 3:
           ELL_3V_SET(vecd, uu, ww, vv);
-          ELL_3V_SET(vecf, uu, ww, vv);
+          ELL_3V_SET_TT(vecf, float, uu, ww, vv);
           break;
         case 4:
         case 5:
           ELL_3V_SET(vecd, ww, uu, vv);
-          ELL_3V_SET(vecf, ww, uu, vv);
+          ELL_3V_SET_TT(vecf, float, ww, uu, vv);
           break;
         }
         if (limnVtoQN_d[qni] && limnQNtoV_d[qni]) {
