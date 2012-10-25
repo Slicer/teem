@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -43,7 +43,7 @@ _mossHestTransformParse (void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
 
   if (!strcmp("identity", str)) {
     mossMatIdentitySet(*matP);
-    
+
   } else if (1 == sscanf(str, "flip:%lf", &angle)) {
     mossMatFlipSet(*matP, angle);
 
@@ -73,7 +73,7 @@ _mossHestTransformParse (void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: couldn't parse \"%s\" as a transform", me, _str);
     airMopError(mop); return 1;
   }
-  
+
   airMopOkay(mop);
   return 0;
 }
@@ -116,7 +116,7 @@ _mossHestOriginParse (void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: couldn't parse \"%s\" as origin", me, str);
     airMopError(mop); return 1;
   }
-  
+
   airMopOkay(mop);
   return 0;
 }

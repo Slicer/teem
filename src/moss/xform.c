@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -42,16 +42,16 @@
 void
 mossMatPrint (FILE *f, double *mat) {
 
-  fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
+  fprintf(f, "% 15.7f % 15.7f % 15.7f\n",
           (float)mat[0], (float)mat[1], (float)mat[2]);
-  fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
+  fprintf(f, "% 15.7f % 15.7f % 15.7f\n",
           (float)mat[3], (float)mat[4], (float)mat[5]);
 }
 
 double *
 mossMatRightMultiply (double *_mat, double *_x) {
   double mat[9], x[9];
-  
+
   MOSS_MAT_6TO9(x, _x);
   MOSS_MAT_6TO9(mat, _mat);
   ell_3m_pre_mul_d(mat, x);
@@ -62,7 +62,7 @@ mossMatRightMultiply (double *_mat, double *_x) {
 double *
 mossMatLeftMultiply (double *_mat, double *_x) {
   double mat[9], x[9];
-  
+
   MOSS_MAT_6TO9(x, _x);
   MOSS_MAT_6TO9(mat, _mat);
   ell_3m_post_mul_d(mat, x);
@@ -135,7 +135,7 @@ mossMatScaleSet (double *mat, double sx, double sy) {
 
 void
 mossMatApply (double *ox, double *oy, double *mat, double ix, double iy) {
-  
+
   *ox = mat[0]*ix + mat[1]*iy + mat[2];
   *oy = mat[3]*ix + mat[4]*iy + mat[5];
 }
@@ -190,7 +190,7 @@ mossLinearTransform (Nrrd *nout, Nrrd *nin, float *bg,
   nout->axis[ax0+1].max = yMax;
   ins = nrrdFInsert[nin->type];
   clamp = nrrdFClamp[nin->type];
-  
+
   if (mossSamplerSample(val, msp, 0, 0)) {
     biffAddf(MOSS, "%s: trouble in sampler", me);
     free(val); return 1;

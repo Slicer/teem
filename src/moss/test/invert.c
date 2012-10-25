@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -27,7 +27,7 @@ main(int argc, const char *argv[]) {
   const char *me, *info="inverts a moss transform";
   hestOpt *hopt=NULL;
   double *mat, inv[6];
-  
+
   me = argv[0];
   hestOptAdd(&hopt, "t", "transform", airTypeOther, 1, 1, &mat, "identity",
              "transform(s) to apply to image",
@@ -40,7 +40,7 @@ main(int argc, const char *argv[]) {
   mossMatInvert(inv, mat);
   fprintf(stderr, "\n%s: inverse:\n", me);
   mossMatPrint(stderr, inv);
-  
+
   exit(0);
 }
 

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -24,11 +24,11 @@
 #include "moss.h"
 #include "privateMoss.h"
 
-int 
+int
 mossSamplerImageSet (mossSampler *smplr, Nrrd *image, float *bg) {
   static const char me[]="mossSamplerImageSet";
   int ci, ncol;
-  
+
   if (!(smplr && image)) {
     biffAddf(MOSS, "%s: got NULL pointer", me);
     return 1;
@@ -51,7 +51,7 @@ mossSamplerImageSet (mossSampler *smplr, Nrrd *image, float *bg) {
 }
 
 int
-mossSamplerKernelSet (mossSampler *smplr, 
+mossSamplerKernelSet (mossSampler *smplr,
                       const NrrdKernel *kernel, double *kparm) {
   static const char me[]="mossSamplerKernelSet";
   unsigned int ki;
@@ -77,7 +77,7 @@ mossSamplerUpdate (mossSampler *smplr) {
     biffAddf(MOSS, "%s: got NULL pointer", me);
     return 1;
   }
-  
+
   if (smplr->flag[mossFlagImage]) {
     ncol = MOSS_NCOL(smplr->image);
     if (ncol != smplr->ncol) {
@@ -113,7 +113,7 @@ mossSamplerSample (float *val, mossSampler *smplr, double xPos, double yPos) {
   int i, xi, yi, ci, sx, sy, fdiam, frad, ncol;
   double xf, yf, tmp;
   float (*lup)(const void *v, size_t I);
-  
+
   if (!(val && smplr)) {
     biffAddf(MOSS, "%s: got NULL pointer", me);
     return 1;
@@ -218,7 +218,7 @@ mossSamplerSample (float *val, mossSampler *smplr, double xPos, double yPos) {
       }
       val[ci] += AIR_CAST(float, smplr->yFslw[yi]*tmp);
     }
-  }  
-  
+  }
+
   return 0;
 }
