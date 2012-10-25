@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -57,7 +57,7 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, ninB, (airMopper)nrrdNuke, airMopAlways);
   nmul = nrrdNew();
   airMopAdd(mop, nmul, (airMopper)nrrdNuke, airMopAlways);
-  
+
   nrrdConvert(ninA, _ninA, nrrdTypeDouble);
   nrrdConvert(ninB, _ninB, nrrdTypeDouble);
   if (ell_Nm_mul(nmul, ninA, ninB)) {

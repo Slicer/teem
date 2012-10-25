@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -259,7 +259,7 @@ ell_3m_rotate_between_d(double rot[9], double from[3], double to[3]) {
     double xx[3];        /* vector most nearly orthogonal to "from" */
     double c1, c2, c3;   /* coefficients for later use */
     int i, j;
-    
+
     xx[0] = AIR_ABS(from[0]);
     xx[1] = AIR_ABS(from[1]);
     xx[2] = AIR_ABS(from[2]);

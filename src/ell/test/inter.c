@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -28,7 +28,7 @@ typedef struct {
   FILE *file;
   double psc;
   double bbox[4];
-  
+
   double maxX, maxY, yscale;
 } wheelPS;
 
@@ -45,7 +45,7 @@ wheelPreamble(wheelPS *wps) {
   fprintf(wps->file, "%%!PS-Adobe-2.0 EPSF-2.0\n");
   fprintf(wps->file, "%%%%Creator: limn\n");
   fprintf(wps->file, "%%%%Pages: 1\n");
-  fprintf(wps->file, "%%%%BoundingBox: 0 0 %d %d\n", 
+  fprintf(wps->file, "%%%%BoundingBox: 0 0 %d %d\n",
           (int)(wps->maxX),
           (int)(wps->maxY));
   fprintf(wps->file, "%%%%EndComments\n");
@@ -91,26 +91,26 @@ void
 wheelArrow(wheelPS *wps, double x0, double y0, double x1, double y1,
            double alen, double awidth) {
   double len, dir[2], perp[2];
-  
+
   dir[0] = x0 - x1;
   dir[1] = y0 - y1;
   ELL_2V_NORM(dir, dir, len);
   ELL_2V_SET(perp, -dir[1], dir[0]);
   fprintf(wps->file, "%g %g M\n", WPS_X(x0), WPS_Y(y0));
   fprintf(wps->file, "%g %g L S\n",
-          WPS_X(x1 + alen*dir[0]/2), 
+          WPS_X(x1 + alen*dir[0]/2),
           WPS_Y(y1 + alen*dir[1]/2));
   if (alen && awidth) {
     if (len < alen) {
       awidth *= len/alen;
       alen = len;
     }
-    fprintf(wps->file, "%g %g M\n", 
-            WPS_X(x1 + alen*dir[0] + awidth*perp[0]), 
+    fprintf(wps->file, "%g %g M\n",
+            WPS_X(x1 + alen*dir[0] + awidth*perp[0]),
             WPS_Y(y1 + alen*dir[1] + awidth*perp[1]));
     fprintf(wps->file, "%g %g L\n", WPS_X(x1), WPS_Y(y1));
-    fprintf(wps->file, "%g %g L CP F\n", 
-            WPS_X(x1 + alen*dir[0] - awidth*perp[0]), 
+    fprintf(wps->file, "%g %g L CP F\n",
+            WPS_X(x1 + alen*dir[0] - awidth*perp[0]),
             WPS_Y(y1 + alen*dir[1] - awidth*perp[1]));
   }
   return;
@@ -132,7 +132,7 @@ main(int argc, const char *argv[]) {
   hestOpt *hopt;
   hestParm *hparm;
   airArray *mop;
-  
+
   int fidx, aidx, num, frames;
   double psc, width[2], arrowWidth, lineWidth, angle, seglen,
     x0, y0, x1, y1, cc, ss;
@@ -145,7 +145,7 @@ main(int argc, const char *argv[]) {
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
-  hestOptAdd(&hopt, "w", "arrowWidth lineWidth", airTypeDouble, 2, 2, width, 
+  hestOptAdd(&hopt, "w", "arrowWidth lineWidth", airTypeDouble, 2, 2, width,
              "1.0 0.2", "widths");
   hestOptAdd(&hopt, "n", "number", airTypeInt, 1, 1, &num, "10",
              "number of arrows");
@@ -166,7 +166,7 @@ main(int argc, const char *argv[]) {
       fprintf(stderr, "%s: couldn't open output file\n", me);
       airMopError(mop); return 1;
     }
-    
+
     lineWidth = width[0];
     arrowWidth = width[1];
     wps.psc = psc;
@@ -174,10 +174,10 @@ main(int argc, const char *argv[]) {
     wheelPreamble(&wps);
 
     fprintf(wps.file, "0 setlinecap\n");
-    
+
     wheelGray(&wps, 0.4);
     wheelWidth(&wps, lineWidth);
-    
+
     x0 = 0;
     y0 = 0;
     seglen = 1.0/num;
@@ -194,7 +194,7 @@ main(int argc, const char *argv[]) {
 
     wheelGray(&wps, 0.0);
     wheelArrow(&wps, 0, 0, x0, y0, arrowWidth, arrowWidth*0.4);
-    
+
     wheelEpilog(&wps);
     airFclose(wps.file);
   }

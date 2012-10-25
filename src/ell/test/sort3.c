@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -53,7 +53,7 @@ main(int argc, char *argv[]) {
             me, aS, bS, cS);
     usage();
   }
-  
+
   printf("%g %g %g (max idx %d; min idx %d) --> ", a, b, c,
          ELL_MAX3_IDX(a, b, c), ELL_MIN3_IDX(a, b, c));
   ELL_SORT3(a, b, c, t);

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -87,20 +87,20 @@ ell_3m_to_q_f(float q[4], const float m[9]) {
   ELL_4V_SCALE(q, 1.0f/len, q);
 }
 
-void 
+void
 ell_3m_to_q_d(double q[4], const double m[9]) {
   _ELL_M_TO_Q(double, 0, 1, 2,    3, 4, 5,    6, 7, 8);
   ELL_4V_NORM(q, q, len);
 }
 
-void 
+void
 ell_4m_to_q_f(float q[4], const float m[16]) {
   _ELL_M_TO_Q( float, 0, 1, 2,    4, 5, 6,    8, 9, 10);
   len = AIR_CAST(float, ELL_4V_LEN(q));
   ELL_4V_SCALE(q, 1.0f/len, q);
 }
 
-void 
+void
 ell_4m_to_q_d(double q[4], const double m[16]) {
   _ELL_M_TO_Q(double, 0, 1, 2,    4, 5, 6,    8, 9, 10);
   ELL_4V_NORM(q, q, len);
@@ -109,7 +109,7 @@ ell_4m_to_q_d(double q[4], const double m[16]) {
 /*
 ** note: normalizes the quaternion on the way in, to insure
 ** creation of a proper rotation matrix.  Without the normalization
-** the coefficients in the matrix would be off by a factor of 
+** the coefficients in the matrix would be off by a factor of
 ** w*w + x*x + y*y + z*z
 **
 ** See NOTE below about the non-use of ELL_4V_NORM(u, q, w)
@@ -129,7 +129,7 @@ ell_4m_to_q_d(double q[4], const double m[16]) {
              2*(y*z + w*x),          \
              w*w - x*x - y*y + z*z)
 
-void 
+void
 ell_q_to_3m_f(float m[9], const float q[4]) {
   float u[4], w=0.0, x=0.0, y=0.0, z=0.0;
   w = AIR_CAST(float, ELL_4V_LEN(q));
@@ -137,14 +137,14 @@ ell_q_to_3m_f(float m[9], const float q[4]) {
   _ELL_Q_TO_3M(float);
 }
 
-void 
+void
 ell_q_to_3m_d(double m[9], const double q[4]) {
   double u[4], w=0.0, x=0.0, y=0.0, z=0.0;
   ELL_4V_NORM(u, q, w);
   _ELL_Q_TO_3M(double);
 }
 
-/* 
+/*
 ** HEY: the first two lines of this replace ELL_4V_NORM(u, q, w).  The
 ** replacement was needed to avoid warnings about precision loss with
 ** double->float converstion.  Macros are indeed problematic . . .
@@ -168,7 +168,7 @@ ell_q_to_3m_d(double m[9], const double q[4]) {
              0);                     \
   ELL_4V_SET(m+12, 0, 0, 0, 1)
 
-void 
+void
 ell_q_to_4m_f(float m[16], const float q[4]) {
   float u[4], w=0.0, x=0.0, y=0.0, z=0.0;
   w = AIR_CAST(float, ELL_3V_LEN(q));
@@ -176,7 +176,7 @@ ell_q_to_4m_f(float m[16], const float q[4]) {
   _ELL_Q_TO_4M(float);
 }
 
-void 
+void
 ell_q_to_4m_d(double m[16], const double q[4]) {
   double u[4], w=0.0, x=0.0, y=0.0, z=0.0;
   ELL_4V_NORM(u, q, w);
@@ -184,7 +184,7 @@ ell_q_to_4m_d(double m[16], const double q[4]) {
 }
 
 /*
-** note: by the use of atan2, this does NOT assume a 
+** note: by the use of atan2, this does NOT assume a
 ** a unit-length quaternion.  The axis output, however,
 ** will always be unit length, even if the quaternion was
 ** purely real (rotation angle is zero)
@@ -217,7 +217,7 @@ ell_q_to_aa_d(double axis[3], const double q[4]) {
 }
 
 /*
-** note: assuming that axis is unit length, this produces a 
+** note: assuming that axis is unit length, this produces a
 ** a unit length quaternion
 */
 #define _ELL_AA_TO_Q(type)                                             \
@@ -228,12 +228,12 @@ ell_q_to_aa_d(double axis[3], const double q[4]) {
              AIR_CAST(type, cos(angle/2)), AIR_CAST(type, sa*axis[0]), \
              AIR_CAST(type, sa*axis[1]), AIR_CAST(type, sa*axis[2]))
 
-void 
+void
 ell_aa_to_q_f(float q[4], const float angle, const float axis[3]) {
   _ELL_AA_TO_Q(float);
 }
 
-void 
+void
 ell_aa_to_q_d(double q[4], const double angle, const double axis[3]) {
   _ELL_AA_TO_Q(double);
 }
@@ -302,23 +302,23 @@ ell_aa_to_4m_d(double m[16], const double angle, const double axis[3]) {
   ell_q_to_4m_d(m, q);
 }
 
-void 
+void
 ell_q_mul_f(float q3[4], const float q1[4], const float q2[4]) {
   ELL_Q_MUL(q3, q1, q2);
 }
 
-void 
+void
 ell_q_mul_d(double q3[4], const double q1[4], const double q2[4]) {
   ELL_Q_MUL(q3, q1, q2);
 }
 
-void 
+void
 ell_q_inv_f(float qi[4], const float q[4]) {
   float N;
   ELL_Q_INV(qi, q, N);
 }
 
-void 
+void
 ell_q_inv_d(double qi[4], const double q[4]) {
   double N;
   ELL_Q_INV(qi, q, N);
@@ -353,7 +353,7 @@ ell_q_div_d(double q3[4], const double q1[4], const double q2[4]) {
 ** and that doing a logarithm, are all basically the same thing
 */
 
-void 
+void
 ell_q_log_f(float q2[4], const float q1[4]) {
   float a, b, axis[3];
 
@@ -362,7 +362,7 @@ ell_q_log_f(float q2[4], const float q1[4]) {
   ELL_4V_SET(q2, a, b*axis[0], b*axis[1], b*axis[2]);
 }
 
-void 
+void
 ell_q_log_d(double q2[4], const double q1[4]) {
   double a, b, axis[3];
 
@@ -392,17 +392,17 @@ ell_q_log_d(double q2[4], const double q1[4]) {
   ELL_4V_SET(q2, AIR_CAST(type, ea*cos(b)), ea*sb*axis[0],   \
              ea*sb*axis[1], ea*sb*axis[2])
 
-void 
+void
 ell_q_exp_f(float q2[4], const float q1[4]) {
   _ELL_Q_EXP(float);
 }
 
-void 
+void
 ell_q_exp_d(double q2[4], const double q1[4]) {
   _ELL_Q_EXP(double);
 }
 
-void 
+void
 ell_q_pow_f(float q2[4], const float q1[4], const float p) {
   float len, angle, axis[3];
 
@@ -412,7 +412,7 @@ ell_q_pow_f(float q2[4], const float q1[4], const float p) {
   ELL_4V_SCALE(q2, len, q2);
 }
 
-void 
+void
 ell_q_pow_d(double q2[4], const double q1[4], const double p) {
   double len, angle, axis[3];
 
@@ -423,7 +423,7 @@ ell_q_pow_d(double q2[4], const double q1[4], const double p) {
 }
 
 /*
-** by the wonders of quaternions, this rotation will be the 
+** by the wonders of quaternions, this rotation will be the
 ** same regardless of the quaternion length.  This is in
 ** contrast to doing rotation by first converting to matrix,
 ** in which an explicit normalization is required.  There is
@@ -438,12 +438,12 @@ ell_q_pow_d(double q2[4], const double q1[4], const double p) {
   ELL_Q_MUL(a, q, c);                    \
   ELL_3V_COPY(v2, a+1)
 
-void 
+void
 ell_q_3v_rotate_f( float v2[3], const  float q[4], const  float v1[3]) {
   _ELL_Q3V_ROT(float);
 }
 
-void 
+void
 ell_q_3v_rotate_d(double v2[3], const double q[4], const double v1[3]) {
   _ELL_Q3V_ROT(double);
 }
@@ -452,13 +452,13 @@ ell_q_3v_rotate_d(double v2[3], const double q[4], const double v1[3]) {
 ** we start by ignoring the last (homogenous) coordinate of
 ** the vector, but then we copy it to the output
 */
-void 
+void
 ell_q_4v_rotate_f( float v2[4], const  float q[4], const  float v1[4]) {
   _ELL_Q3V_ROT(float);
   v2[3] = v1[3];
 }
 
-void 
+void
 ell_q_4v_rotate_d(double v2[4], const double q[4], const double v1[4]) {
   _ELL_Q3V_ROT(double);
   v2[3] = v1[3];
@@ -470,13 +470,13 @@ int
 ell_q_avg4_d(double m[4], unsigned int *iterP,
              const double _q1[4], const double _q2[4],
              const double _q3[4], const double _q4[4],
-             const double _wght[4], 
+             const double _wght[4],
              const double eps, const unsigned int maxIter) {
   static const char me[]="ell_q_avg4_d";
-  double N, elen, a[4], b[4], c[4], d[4], 
+  double N, elen, a[4], b[4], c[4], d[4],
     tmp[4], la[4], lb[4], lc[4], ld[4], u[4], wght[4];
   unsigned int iter;
-  
+
   /* *iterP optional */
   if (!( m && _q1 && _q2 && _q3 && _q4 && _wght )) {
     biffAddf(ELL, "%s: got NULL pointer", me);
@@ -521,7 +521,7 @@ ell_q_avg4_d(double m[4], unsigned int *iterP,
              elen, maxIter);
     return 1;
   }
-  
+
   if (iterP) {
     *iterP = iter;
   }
@@ -530,7 +530,7 @@ ell_q_avg4_d(double m[4], unsigned int *iterP,
 
 /*
 ** unlike the thing above, this one assumes that the quaternions in qq
-** have already been normalized, and, that the sum of wght[] is 1.0 
+** have already been normalized, and, that the sum of wght[] is 1.0
 */
 int
 ell_q_avgN_d(double mm[4], unsigned int *iterP,
@@ -587,7 +587,7 @@ ell_q_avgN_d(double mm[4], unsigned int *iterP,
              elen, eps, maxIter);
     return 1;
   }
-  
+
   if (iterP) {
     *iterP = iter;
   }

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -106,7 +106,7 @@ main(int argc, char *argv[]) {
 
     /* make a point that we'll rotate */
     ELL_3V_SET(pntA_f, 2*airDrandMT()-1, 2*airDrandMT()-1, 2*airDrandMT()-1);
-    
+
     /* effect rotation in two different ways, and compare results */
     ELL_3MV_MUL(pntB_f, mat3A_f, pntA_f);
     ell_q_3v_rotate_f(pntC_f, qA_f, pntA_f);
@@ -120,11 +120,11 @@ main(int argc, char *argv[]) {
     if (ELL_4V_DOT(qA_f, qC_f) < 0) {
       ELL_4V_SCALE(qC_f, -1, qC_f);
     }
-    printf("    inv mul = %g %g %g %g\n", qC_f[0], 
+    printf("    inv mul = %g %g %g %g\n", qC_f[0],
            CA + qC_f[1], CA + qC_f[2], CA + qC_f[3]);
     ell_q_inv_f(qC_f, qB_f);
     ELL_4V_SUB(qC_f, qB_f, qB_f);
-    printf("    inv diff = %g %g %g %g\n", CA + qC_f[0], 
+    printf("    inv diff = %g %g %g %g\n", CA + qC_f[0],
            CA + qC_f[1], CA + qC_f[2], CA + qC_f[3]);
 
     /* exp and log */
@@ -133,7 +133,7 @@ main(int argc, char *argv[]) {
     ell_q_exp_f(qC_f, qB_f);
     ell_q_exp_f(qB_f, qC_f);
     ELL_4V_SUB(qC_f, qB_f, qA_f);
-    printf("    exp/log diff = %g %g %g %g\n", CA + qC_f[0], 
+    printf("    exp/log diff = %g %g %g %g\n", CA + qC_f[0],
            CA + qC_f[1], CA + qC_f[2], CA + qC_f[3]);
 
     /* pow, not very exhaustive */
@@ -147,11 +147,11 @@ main(int argc, char *argv[]) {
     if (ELL_3M_FROB(mat3B_f) > 2) {
       printf("  start q = %g %g %g %g\n", qA_f[0], qA_f[1], qA_f[2], qA_f[3]);
       angleA_f = ell_q_to_aa_f(axisA_f, qA_f);
-      printf("  --> aa = %g  (%g %g %g)\n", angleA_f, 
+      printf("  --> aa = %g  (%g %g %g)\n", angleA_f,
              axisA_f[0], axisA_f[1], axisA_f[2]);
       printf("   q^3 = %g %g %g %g\n", qB_f[0], qB_f[1], qB_f[2], qB_f[3]);
       angleA_f = ell_q_to_aa_f(axisA_f, qB_f);
-      printf("  --> aa = %g  (%g %g %g)\n", angleA_f, 
+      printf("  --> aa = %g  (%g %g %g)\n", angleA_f,
              axisA_f[0], axisA_f[1], axisA_f[2]);
       exit(1);
     }
@@ -165,7 +165,7 @@ main(int argc, char *argv[]) {
     ELL_3M_SUB(mat3C_f, mat3B_f, mat3C_f);
     printf("      det = %g; size = %g; err = %g\n", det, frob*frob/3,
            CA + ELL_3M_FROB(mat3C_f));
-    
+
   }
 
   exit(0);

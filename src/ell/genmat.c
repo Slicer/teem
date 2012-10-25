@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -111,8 +111,8 @@ ell_Nm_mul(Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
   double *A, *B, *AB, tmp;
   size_t LL, MM, NN, ll, mm, nn;
   char stmp[4][AIR_STRLEN_SMALL];
-  
-  if (!( nAB && !ell_Nm_check(nA, AIR_FALSE) 
+
+  if (!( nAB && !ell_Nm_check(nA, AIR_FALSE)
          && !ell_Nm_check(nB, AIR_FALSE) )) {
     biffAddf(ELL, "%s: NULL or invalid args", me);
     return 1;
@@ -165,12 +165,12 @@ _ell_LU_decomp(double *aa, size_t *indx, size_t NN)  {
   size_t ii, imax=0, jj, kk;
   double big, sum, tmp;
   double *vv;
-  
+
   if (!( vv = (double*)calloc(NN, sizeof(double)) )) {
     biffAddf(ELL, "%s: couldn't allocate vv[]!", me);
     ret = 1; goto seeya;
   }
-  
+
   /* find vv[i]: max of abs of everything in column i */
   for (ii=0; ii<NN; ii++) {
     big = 0.0;
@@ -189,8 +189,8 @@ _ell_LU_decomp(double *aa, size_t *indx, size_t NN)  {
   }
 
   for (jj=0; jj<NN; jj++) {
-    /* for aa[ii][jj] in lower triangle (below diagonal), subtract from 
-       aa[ii][jj] the dot product of all elements to its left with elements 
+    /* for aa[ii][jj] in lower triangle (below diagonal), subtract from
+       aa[ii][jj] the dot product of all elements to its left with elements
        above it (starting at the top) */
     for (ii=0; ii<jj; ii++) {
       sum = aa[ii*NN + jj];
@@ -199,8 +199,8 @@ _ell_LU_decomp(double *aa, size_t *indx, size_t NN)  {
       }
       aa[ii*NN + jj] = sum;
     }
-    
-    /* for aa[ii][jj] in upper triangle (including diagonal), subtract from 
+
+    /* for aa[ii][jj] in upper triangle (including diagonal), subtract from
        aa[ii][jj] the dot product of all elements above it with elements to
        its left (starting from the left) */
     big = 0.0;
@@ -216,7 +216,7 @@ _ell_LU_decomp(double *aa, size_t *indx, size_t NN)  {
         imax = ii;
       }
     }
-    
+
     /* unless we're on the imax column, swap this column the with imax column,
        and permute vv[] accordingly */
     if (jj != imax) {
@@ -230,13 +230,13 @@ _ell_LU_decomp(double *aa, size_t *indx, size_t NN)  {
       vv[imax] = vv[jj];
       vv[jj] = tmp;
     }
-     
+
     indx[jj] = imax;
 
     if (aa[jj*NN + jj] == 0.0) {
       aa[jj*NN + jj] = ELL_EPS;
     }
-     
+
     /* divide everything right of a[jj][jj] by a[jj][jj] */
     if (jj != NN) {
       tmp = 1.0/aa[jj*NN + jj];
@@ -254,7 +254,7 @@ _ell_LU_decomp(double *aa, size_t *indx, size_t NN)  {
 ** _ell_LU_back_sub
 **
 ** given the matrix and index array from _ellLUDecomp generated from
-** some matrix M, solves for x in the linear equation Mx = b, and 
+** some matrix M, solves for x in the linear equation Mx = b, and
 ** puts the result back into b
 */
 void
@@ -271,7 +271,7 @@ _ell_LU_back_sub(double *aa, size_t *indx, double *bb, size_t NN) {
     }
     bb[ii] = sum;
   }
- 
+
   /* Backward substitution, with upper triangular matrix */
   for (ii=NN; ii>0; ii--) {
     sum = bb[ii-1];
@@ -305,14 +305,14 @@ _ell_inv(double *inv, double *_mat, size_t NN) {
     biffAddf(ELL, "%s: couldn't allocate all buffers", me);
     ret = 1; goto seeya;
   }
-  
+
   memcpy(mat, _mat, NN*NN*sizeof(double));
 
   if (_ell_LU_decomp(mat, indx, NN)) {
     biffAddf(ELL, "%s: trouble", me);
     ret = 1; goto seeya;
   }
-  
+
   for (jj=0; jj<NN; jj++) {
     memset(col, 0, NN*sizeof(double));
     col[jj] = 1.0;
@@ -330,7 +330,7 @@ _ell_inv(double *inv, double *_mat, size_t NN) {
 /*
 ******** ell_Nm_inv
 **
-** computes the inverse of given matrix in nmat, and puts the 
+** computes the inverse of given matrix in nmat, and puts the
 ** inverse in the (maybe allocated) ninv.  Does not touch the
 ** values in nmat.
 */
@@ -344,7 +344,7 @@ ell_Nm_inv(Nrrd *ninv, Nrrd *nmat) {
     biffAddf(ELL, "%s: NULL or invalid args", me);
     return 1;
   }
-  
+
   NN = nmat->axis[0].size;
   if (!( NN == nmat->axis[1].size )) {
     char stmp[2][AIR_STRLEN_SMALL];
@@ -364,7 +364,7 @@ ell_Nm_inv(Nrrd *ninv, Nrrd *nmat) {
     biffAddf(ELL, "%s: trouble", me);
     return 1;
   }
-  
+
   return 0;
 }
 
@@ -382,7 +382,7 @@ ell_Nm_pseudo_inv(Nrrd *ninv, Nrrd *nA) {
   static const char me[]="ell_Nm_pseudo_inv";
   Nrrd *nAt, *nAtA, *nAtAi;
   int ret=0;
-  
+
   if (!( ninv && !ell_Nm_check(nA, AIR_FALSE) )) {
     biffAddf(ELL, "%s: NULL or invalid args", me);
     return 1;
@@ -397,7 +397,7 @@ ell_Nm_pseudo_inv(Nrrd *ninv, Nrrd *nA) {
     biffAddf(ELL, "%s: trouble", me);
     ret = 1; goto seeya;
   }
-  
+
  seeya:
   nrrdNuke(nAt); nrrdNuke(nAtA); nrrdNuke(nAtAi);
   return ret;
@@ -414,8 +414,8 @@ ell_Nm_wght_pseudo_inv(Nrrd *ninv, Nrrd *nA, Nrrd *nW) {
   static const char me[]="ell_Nm_wght_pseudo_inv";
   Nrrd *nAt, *nAtW, *nAtWA, *nAtWAi;
   int ret=0;
-  
-  if (!( ninv && !ell_Nm_check(nA, AIR_FALSE) 
+
+  if (!( ninv && !ell_Nm_check(nA, AIR_FALSE)
          && !ell_Nm_check(nW, AIR_FALSE) )) {
     biffAddf(ELL, "%s: NULL or invalid args", me);
     return 1;
@@ -432,7 +432,7 @@ ell_Nm_wght_pseudo_inv(Nrrd *ninv, Nrrd *nA, Nrrd *nW) {
     biffAddf(ELL, "%s: trouble", me);
     ret = 1; goto seeya;
   }
-  
+
  seeya:
   nrrdNuke(nAt); nrrdNuke(nAtW); nrrdNuke(nAtWA); nrrdNuke(nAtWAi);
   return ret;

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -144,7 +144,7 @@ ell_3v_angle_d(const double _uu[3], const double _vv[3]) {
   return ret;
 }
 
-/* 
+/*
 ** input vectors have to be normalized!
 */
 double
@@ -175,7 +175,7 @@ ell_3v_barycentric_spherical_d(double bary[3],
                                const double cv[3],
                                const double vv[3]) {
   double sum;
-  
+
   bary[0] = ell_3v_area_spherical_d(vv, bv, cv);
   bary[1] = ell_3v_area_spherical_d(vv, cv, av);
   bary[2] = ell_3v_area_spherical_d(vv, av, bv);

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -78,29 +78,29 @@ ell_cubic_root = &_ell_cubic_root;
 void
 ell_3m_print_f(FILE *f, const float s[9]) {
 
-  fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
+  fprintf(f, "% 15.7f % 15.7f % 15.7f\n",
           s[0], s[1], s[2]);
-  fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
+  fprintf(f, "% 15.7f % 15.7f % 15.7f\n",
           s[3], s[4], s[5]);
-  fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
+  fprintf(f, "% 15.7f % 15.7f % 15.7f\n",
           s[6], s[7], s[8]);
 }
 
 void
 ell_3v_print_f(FILE *f, const float s[3]) {
 
-  fprintf(f, "% 15.7f % 15.7f % 15.7f\n", 
+  fprintf(f, "% 15.7f % 15.7f % 15.7f\n",
           s[0], s[1], s[2]);
 }
 
 void
 ell_3m_print_d(FILE *f, const double s[9]) {
 
-  fprintf(f, "% 31.15f % 31.15f % 31.15f\n", 
+  fprintf(f, "% 31.15f % 31.15f % 31.15f\n",
           s[0], s[1], s[2]);
-  fprintf(f, "% 31.15f % 31.15f % 31.15f\n", 
+  fprintf(f, "% 31.15f % 31.15f % 31.15f\n",
           s[3], s[4], s[5]);
-  fprintf(f, "% 31.15f % 31.15f % 31.15f\n", 
+  fprintf(f, "% 31.15f % 31.15f % 31.15f\n",
           s[6], s[7], s[8]);
 }
 
@@ -114,39 +114,39 @@ ell_3v_print_d(FILE *f, const double s[3]) {
 void
 ell_4m_print_f(FILE *f, const float s[16]) {
 
-  fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
+  fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n",
           s[ 0], s[ 1], s[ 2], s[ 3]);
-  fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
+  fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n",
           s[ 4], s[ 5], s[ 6], s[ 7]);
-  fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
+  fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n",
           s[ 8], s[ 9], s[10], s[11]);
-  fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
+  fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n",
           s[12], s[13], s[14], s[15]);
 }
 
 void
 ell_4v_print_f(FILE *f, const float s[4]) {
 
-  fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n", 
+  fprintf(f, "% 15.7f % 15.7f % 15.7f % 15.7f\n",
           s[0], s[1], s[2], s[3]);
 }
 
 void
 ell_4m_print_d(FILE *f, const double s[16]) {
 
-  fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n", 
+  fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n",
           s[ 0], s[ 1], s[ 2], s[ 3]);
-  fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n", 
+  fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n",
           s[ 4], s[ 5], s[ 6], s[ 7]);
-  fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n", 
+  fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n",
           s[ 8], s[ 9], s[10], s[11]);
-  fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n", 
+  fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n",
           s[12], s[13], s[14], s[15]);
 }
 
 void
 ell_4v_print_d(FILE *f, const double s[4]) {
 
-  fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n", 
+  fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n",
           s[0], s[1], s[2], s[3]);
 }

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -98,7 +98,7 @@ typedef struct {
   FILE *file;
   double psc;
   double bbox[4];
-  
+
   double maxX, maxY, yscale;
 } wheelPS;
 
@@ -115,7 +115,7 @@ wheelPreamble(wheelPS *wps) {
   fprintf(wps->file, "%%!PS-Adobe-2.0 EPSF-2.0\n");
   fprintf(wps->file, "%%%%Creator: limn\n");
   fprintf(wps->file, "%%%%Pages: 1\n");
-  fprintf(wps->file, "%%%%BoundingBox: 0 0 %d %d\n", 
+  fprintf(wps->file, "%%%%BoundingBox: 0 0 %d %d\n",
           (int)(wps->maxX),
           (int)(wps->maxY));
   fprintf(wps->file, "%%%%EndComments\n");
@@ -159,7 +159,7 @@ wheelGray(wheelPS *wps, double gray) {
 
 void
 wheelLabel(wheelPS *wps, double x, double y, char *str) {
-  
+
   fprintf(wps->file, "%g %g M (%s) show\n", WPS_X(x), WPS_Y(y), str);
   return;
 }
@@ -169,7 +169,7 @@ wheelGraph(wheelPS *wps, double a, double d, double f) {
   double A, B, C;
   int xi;
   double x, y;
-  
+
   A = -a - d - f;
   B = a*d + a*f + d*f;
   C = -a*d*f;
@@ -185,7 +185,7 @@ wheelGraph(wheelPS *wps, double a, double d, double f) {
 
 void
 wheelLine(wheelPS *wps, double x0, double y0, double x1, double y1) {
-  
+
   fprintf(wps->file, "%g %g M\n", WPS_X(x0), WPS_Y(y0));
   fprintf(wps->file, "%g %g L S\n", WPS_X(x1), WPS_Y(y1));
   return;
@@ -194,7 +194,7 @@ wheelLine(wheelPS *wps, double x0, double y0, double x1, double y1) {
 void
 wheelCircle(wheelPS *wps, double xc, double yc, double rad) {
 
-  fprintf(wps->file, "%g %g %g 0 360 arc closepath S\n", 
+  fprintf(wps->file, "%g %g %g 0 360 arc closepath S\n",
           WPS_X(xc), WPS_Y(yc), WPS_S(rad));
   return;
 }
@@ -202,15 +202,15 @@ wheelCircle(wheelPS *wps, double xc, double yc, double rad) {
 void
 wheelArc(wheelPS *wps, double xc, double yc, double rad,
          double angle1, double angle2) {
-  
-  fprintf(wps->file, "newpath %g %g %g %g %g arc S\n", 
+
+  fprintf(wps->file, "newpath %g %g %g %g %g arc S\n",
           WPS_X(xc), WPS_Y(yc), WPS_S(rad), angle1, angle2);
 }
 
 void
 wheelDot(wheelPS *wps, double x, double y, double rad) {
 
-  fprintf(wps->file, "%g %g %g 0 360 arc closepath F S\n", 
+  fprintf(wps->file, "%g %g %g 0 360 arc closepath F S\n",
           WPS_X(x), WPS_Y(y), WPS_S(rad));
   return;
 }
@@ -231,7 +231,7 @@ main(int argc, const char *argv[]) {
   hestOpt *hopt;
   hestParm *hparm;
   airArray *mop;
-  
+
   double tval[6], ABC[3], geom[3], rnth[3], RA, norm, mu2, tmpr=0, tmpa=0,
     xroot[3], yroot[3], bbox[4], htick, htth, psc;
   wheelPS wps;
@@ -252,7 +252,7 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "g", "c rad th", airTypeDouble, 3, 3, geom, "nan nan nan",
              "directly give center, radius, and angle (in degrees) of wheel "
              "(and override info from \"-t\" and \"-ABC\"");
-  hestOptAdd(&hopt, "p", "RA norm th", airTypeDouble, 3, 3, rnth, 
+  hestOptAdd(&hopt, "p", "RA norm th", airTypeDouble, 3, 3, rnth,
              "nan nan nan",
              "directly give RA, norm, and angle (in degrees) of tensor "
              "(and override info from \"-t\", \"-ABC\", and \"-geom\"");
@@ -267,7 +267,7 @@ main(int argc, const char *argv[]) {
              "location of single tick mark on horizontal axis");
   hestOptAdd(&hopt, "htth", "thick", airTypeDouble, 1, 1, &htth, "3",
              "thickness of horizontal tick");
-  hestOptAdd(&hopt, "bb", "bbox", airTypeDouble, 4, 4, bbox, 
+  hestOptAdd(&hopt, "bb", "bbox", airTypeDouble, 4, 4, bbox,
              "nan nan nan nan", "bounding box, in world space around the "
              "region of the graph that should be drawn to EPS");
   hestOptAdd(&hopt, "ysc", "scale", airTypeDouble, 1, 1, &(wps.yscale), "0.5",
@@ -360,7 +360,7 @@ main(int argc, const char *argv[]) {
   wheelLine(&wps, geom[0], 0, xroot[0], yroot[0]);
   wheelLine(&wps, geom[0], 0, xroot[1], yroot[1]);
   wheelLine(&wps, geom[0], 0, xroot[2], yroot[2]);
-  
+
   /* dots at spoke ends */
   wheelDot(&wps, xroot[0], yroot[0], 0.025*geom[1]);
   wheelDot(&wps, xroot[1], yroot[1], 0.025*geom[1]);
@@ -404,7 +404,7 @@ main(int argc, const char *argv[]) {
     wheelLabel(&wps, (geom[0] + xroot[0])/1.8, yroot[0]/1.8, "radius");
     wheelWidth(&wps, 2);
     wheelArc(&wps, geom[0], 0, geom[1]/2, 0, geom[2]);
-    wheelLabel(&wps, geom[0] + geom[1]*cos(AIR_PI*geom[2]/180/2)/2.5, 
+    wheelLabel(&wps, geom[0] + geom[1]*cos(AIR_PI*geom[2]/180/2)/2.5,
                geom[1]*sin(AIR_PI*geom[2]/180/2)/2.5, "theta");
     if (drawRA) {
       tmpr = sqrt(geom[0]*geom[0] + geom[1]*geom[1]);

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -178,7 +178,7 @@ extern "C" {
 #define ELL_2M_ROTATE_SET(m, th)                \
   (ELL_2V_SET((m)+ 0,  cos(th) , -sin(th)),     \
    ELL_2V_SET((m)+ 2, +sin(th) ,  cos(th)))
-  
+
 #define ELL_2MV_MUL(v2, m, v1)                  \
   ((v2)[0] = (m)[0]*(v1)[0] + (m)[1]*(v1)[1],   \
    (v2)[1] = (m)[2]*(v1)[0] + (m)[3]*(v1)[1])
@@ -701,13 +701,13 @@ extern "C" {
 #define ELL_4V_SCALE(v2, a, v1) \
   ((v2)[0] = (v1)[0]*a, (v2)[1] = (v1)[1]*a, \
    (v2)[2] = (v1)[2]*a, (v2)[3] = (v1)[3]*a)
-  
+
 #define ELL_4V_SCALE_TT(v2, TT, a, v1)   \
   ((v2)[0] = AIR_CAST(TT, (v1)[0]*(a)),  \
    (v2)[1] = AIR_CAST(TT, (v1)[1]*(a)),  \
    (v2)[2] = AIR_CAST(TT, (v1)[2]*(a)),  \
    (v2)[3] = AIR_CAST(TT, (v1)[3]*(a)))
-  
+
 #define ELL_4V_SCALE_ADD2(v2, s0, v0, s1, v1) \
   ((v2)[0] = (s0)*(v0)[0] + (s1)*(v1)[0],    \
    (v2)[1] = (s0)*(v0)[1] + (s1)*(v1)[1],    \
@@ -908,7 +908,7 @@ extern "C" {
                         +(m)[10]*(v1)[2]+(m)[11]*(v1)[3])), \
    (v2)[3]=AIR_CAST(TT, ((m)[12]*(v1)[0]+(m)[13]*(v1)[1]    \
                         +(m)[14]*(v1)[2]+(m)[15]*(v1)[3])))
-   
+
 #define ELL_4MV_TMUL(v2, m, v1)                                             \
   ((v2)[0]=(m)[ 0]*(v1)[0]+(m)[ 4]*(v1)[1]+(m)[ 8]*(v1)[2]+(m)[12]*(v1)[3], \
    (v2)[1]=(m)[ 1]*(v1)[0]+(m)[ 5]*(v1)[1]+(m)[ 9]*(v1)[2]+(m)[13]*(v1)[3], \
@@ -958,7 +958,7 @@ extern "C" {
    && ELL_4V_EXISTS((m) + 4) \
    && ELL_4V_EXISTS((m) + 8) \
    && ELL_4V_EXISTS((m) + 12))
-  
+
 #define ELL_4M_ZERO_SET(m) \
   (ELL_4V_SET((m)+ 0,  0 ,  0 ,  0 , 0), \
    ELL_4V_SET((m)+ 4,  0 ,  0 ,  0 , 0), \
@@ -1000,7 +1000,7 @@ extern "C" {
    ELL_4V_NAN_SET((m)+ 4),  \
    ELL_4V_NAN_SET((m)+ 8),  \
    ELL_4V_NAN_SET((m)+ 12))
-  
+
 #define ELL_4M_MUL(n, l, m)                                                 \
   ((n)[ 0]=(l)[ 0]*(m)[ 0]+(l)[ 1]*(m)[ 4]+(l)[ 2]*(m)[ 8]+(l)[ 3]*(m)[12], \
    (n)[ 1]=(l)[ 0]*(m)[ 1]+(l)[ 1]*(m)[ 5]+(l)[ 2]*(m)[ 9]+(l)[ 3]*(m)[13], \

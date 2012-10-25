@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -49,13 +49,13 @@ main(int argc, const char *argv[]) {
 
   nin = nrrdNew();
   airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
-  
-  if (!(2 == _nin->dim 
-        && 6 == _nin->axis[0].size 
+
+  if (!(2 == _nin->dim
+        && 6 == _nin->axis[0].size
         && 6 == _nin->axis[1].size)) {
     fprintf(stderr, "%s: didn't get 2-D 6x6 matrix (got %u-D %ux%u)\n", me,
             _nin->dim,
-            AIR_CAST(unsigned int, _nin->axis[0].size), 
+            AIR_CAST(unsigned int, _nin->axis[0].size),
             AIR_CAST(unsigned int, _nin->axis[1].size));
     airMopError(mop); return 1;
   }
@@ -93,7 +93,7 @@ main(int argc, const char *argv[]) {
   fprintf(stderr, "m = [");
   for (rr=0; rr<6; rr++) {
     for (cc=0; cc<6; cc++) {
-      fprintf(stderr, "%g%s", in[cc + 6*rr], 
+      fprintf(stderr, "%g%s", in[cc + 6*rr],
               cc<5 ? "," : (rr<5 ? ";" : "]"));
     }
     fprintf(stderr, "\n");
