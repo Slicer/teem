@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -38,7 +38,7 @@ _gageHash(int x, int y, int z) {
   s[3] = (y >> 8) & 0xff;
   s[4] = z & 0xff;
   s[5] = (z >> 8) & 0xff;
-  
+
   h = 0;
   for (i=0; i<=5; i++) {
     h = (h << 4) + s[i];
@@ -47,12 +47,12 @@ _gageHash(int x, int y, int z) {
       h = h ^ g;
     }
   }
-  return h % GAGE_CACHE_LEN; 
+  return h % GAGE_CACHE_LEN;
 }
 
 void
 _gageCacheProbe(gageContext *ctx, double *grad,
-                int *cc, double *gc, 
+                int *cc, double *gc,
                 int x, int y, int z) {
   int hi;
 
@@ -79,7 +79,7 @@ _gageCacheProbe(gageContext *ctx, double *grad,
 ** Computes volume of structure tensors.  Currently, only works on a scalar
 ** fields (for multi-scalar fields, just add structure tensors from each
 ** component scalar), and only uses the B-spline kernel for differentiation
-** and derivative blurring.  
+** and derivative blurring.
 **
 ** Note, if you want to use dsmp > 1, its your responsibility to give
 ** an appropriate iScale > 1, so that you don't undersample.
@@ -107,15 +107,15 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   /*
-  if (!( AIR_EXISTS(nin->axis[0].spacing) 
-         && AIR_EXISTS(nin->axis[1].spacing) 
+  if (!( AIR_EXISTS(nin->axis[0].spacing)
+         && AIR_EXISTS(nin->axis[1].spacing)
          && AIR_EXISTS(nin->axis[2].spacing) )) {
     biffAddf(GAGE, "%s: nin's axis 0,1,2 spacings don't all exist", me);
     return 1;
   }
   */
   if (!( dScale >= 1 && iScale >= 1 && dsmp >= 1 )) {
-    biffAddf(GAGE, "%s: dScale (%d), iScale (%d), dsmp (%d) not all >= 1", 
+    biffAddf(GAGE, "%s: dScale (%d), iScale (%d), dsmp (%d) not all >= 1",
              me, dScale, iScale, dsmp);
     return 1;
   }
@@ -154,7 +154,7 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
     airMopError(mop); return 1;
   }
   grad = _gageAnswerPointer(ctx, pvl, gageSclGradVec);
-  
+
   xs = nin->axis[0].spacing;
   ys = nin->axis[1].spacing;
   zs = nin->axis[2].spacing;
@@ -168,7 +168,7 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   zs /= ms;
   fprintf(stderr, "iScale = %d, xs, ys, zs = %g, %g, %g\n",
           iScale, xs, ys, xs);
-  
+
   rad = 0;
   ik0->parm[0] = iScale/xs;
   rad = AIR_MAX(rad, AIR_ROUNDUP(ik0->kernel->support(ik0->parm)));
@@ -266,9 +266,9 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
         out[3] = sten[2];
         out[4] = sten[3];
         out[5] = sten[4];
-        out[6] = sten[5]; 
+        out[6] = sten[5];
         out += 7;
-        
+
       }
     }
   }

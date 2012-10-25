@@ -1,21 +1,21 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
-  
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
   (LGPL) as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
   The terms of redistributing and/or modifying this software also
   include exceptions to the LGPL that facilitate static linking.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public License
   along with this library; if not, write to Free Software Foundation, Inc.,
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -39,7 +39,7 @@ gageVolumeCheck(const gageContext *ctx, const Nrrd *nin,
                 const gageKind *kind) {
   static const char me[]="gageVolumeCheck";
   gageShape shape;
-  
+
   gageShapeReset(&shape);
   if (_gageShapeSet(ctx, &shape, nin, kind->baseDim)) {
     biffAddf(GAGE, "%s: trouble setting volume as %s kind", me, kind->name);
@@ -62,7 +62,7 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
   gagePerVolume *pvl;
   int ii;
   airArray *mop;
-  
+
   if (!( nin && kind )) {
     biffAddf(GAGE, "%s: got NULL pointer (%p, %p, or %p)", me,
              AIR_VOIDP(ctx), AIR_CVOIDP(nin), AIR_CVOIDP(kind));
@@ -117,7 +117,7 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
   } else {
     pvl->data = NULL;
   }
-  
+
   airMopOkay(mop);
   return pvl;
 }
@@ -134,7 +134,7 @@ _gagePerVolumeCopy(gagePerVolume *pvl, unsigned int fd) {
   gagePerVolume *nvl;
   int ii;
   airArray *mop;
-  
+
   nvl = AIR_CALLOC(1, gagePerVolume);
   if (!nvl) {
     biffAddf(GAGE, "%s: couldn't create new pervolume", me);
@@ -177,7 +177,7 @@ _gagePerVolumeCopy(gagePerVolume *pvl, unsigned int fd) {
   } else {
     nvl->data = NULL;
   }
-  
+
   airMopOkay(mop);
   return nvl;
 }
@@ -191,7 +191,7 @@ _gagePerVolumeCopy(gagePerVolume *pvl, unsigned int fd) {
 */
 gagePerVolume *
 gagePerVolumeNix(gagePerVolume *pvl) {
-  
+
   if (pvl) {
     if (pvl->kind->pvlDataNix) {
       pvl->data = pvl->kind->pvlDataNix(pvl->kind, pvl->data);
@@ -219,7 +219,7 @@ gagePerVolumeNix(gagePerVolume *pvl) {
 const double *
 gageAnswerPointer(const gageContext *ctx, const gagePerVolume *pvl, int item) {
   const double *ret;
-  
+
   AIR_UNUSED(ctx);
   if (pvl && !airEnumValCheck(pvl->kind->enm, item)) {
     ret = pvl->answer + gageKindAnswerOffset(pvl->kind, item);
@@ -233,7 +233,7 @@ gageAnswerPointer(const gageContext *ctx, const gagePerVolume *pvl, int item) {
 double *
 _gageAnswerPointer(const gageContext *ctx, gagePerVolume *pvl, int item) {
   double *ret;
-  
+
   AIR_UNUSED(ctx);
   if (pvl && !airEnumValCheck(pvl->kind->enm, item)) {
     ret = pvl->answer + gageKindAnswerOffset(pvl->kind, item);
@@ -246,7 +246,7 @@ _gageAnswerPointer(const gageContext *ctx, gagePerVolume *pvl, int item) {
 unsigned int
 gageAnswerLength(const gageContext *ctx, const gagePerVolume *pvl, int item) {
   unsigned int ret;
-  
+
   AIR_UNUSED(ctx);
   if (pvl && !airEnumValCheck(pvl->kind->enm, item)) {
     ret = gageKindAnswerLength(pvl->kind, item);
@@ -259,15 +259,15 @@ gageAnswerLength(const gageContext *ctx, const gagePerVolume *pvl, int item) {
 int
 gageQueryReset(gageContext *ctx, gagePerVolume *pvl) {
   static const char me[]="gageQueryReset";
-  
+
   AIR_UNUSED(ctx);
   if (!( pvl )) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
-  
+
   GAGE_QUERY_RESET(pvl->query);
-  
+
   return 0;
 }
 
@@ -276,7 +276,7 @@ gageQueryReset(gageContext *ctx, gagePerVolume *pvl) {
 ******** gageQuerySet()
 **
 ** sets a query in a pervolume.  Does recursive expansion of query
-** to cover all prerequisite measures.  
+** to cover all prerequisite measures.
 **
 ** Sets: pvl->query
 **
@@ -288,7 +288,7 @@ gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
   static const char me[]="gageQuerySet";
   gageQuery lastQuery;
   int pi, ii;
-  
+
   AIR_UNUSED(ctx);
   if (!( pvl )) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
@@ -318,9 +318,9 @@ gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
     fprintf(stderr, "%s: expanded ", me);
     gageQueryPrint(stderr, pvl->kind, pvl->query);
   }
-  
+
   /* doing this kind of error checking here is not really
-     the way gage should work-- it should be done at the 
+     the way gage should work-- it should be done at the
      time of gageUpdate()-- but the novelty of pvl->data
      encourages putting new smarts at superficial levels
      instead of deeper levels */
@@ -328,45 +328,45 @@ gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
     for (ii=1; ii<=pvl->kind->itemMax; ii++) {
       if (GAGE_QUERY_ITEM_TEST(pvl->query, ii)
           && pvl->kind->table[ii].needData) {
-        biffAddf(GAGE, "%s: item %d (%s) needs data, but pvl->data is NULL", 
+        biffAddf(GAGE, "%s: item %d (%s) needs data, but pvl->data is NULL",
                  me, ii, airEnumStr(pvl->kind->enm, ii));
         return 1;
       }
     }
   }
-  
+
   pvl->flag[gagePvlFlagQuery] = AIR_TRUE;
-  
+
   return 0;
 }
 
 int
 gageQueryAdd(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
   static const char me[]="gageQueryAdd";
-  
+
   if (!( pvl )) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
-  
+
   GAGE_QUERY_ADD(pvl->query, query);
   if (gageQuerySet(ctx, pvl, pvl->query)) {
     biffAddf(GAGE, "%s: trouble", me);
     return 1;
   }
-  
+
   return 0;
 }
 
 int
 gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl, int item) {
   static const char me[]="gageQueryItemOn";
-  
+
   if (!( pvl )) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
-  
+
   if (airEnumValCheck(pvl->kind->enm, item)) {
     biffAddf(GAGE, "%s: %d not a valid %s value", me,
              item, pvl->kind->enm->name);
@@ -377,7 +377,7 @@ gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl, int item) {
     biffAddf(GAGE, "%s: trouble", me);
     return 1;
   }
-  
+
   return 0;
 }
 

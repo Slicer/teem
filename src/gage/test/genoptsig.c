@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -83,7 +83,7 @@ main(int argc, const char *argv[]) {
             airMopAlways);
   scalePos = AIR_CAST(double *, calloc(sampleNumMax, sizeof(double)));
   airMopAdd(mop, scalePos, airFree, airMopAlways);
-  
+
   osparm->plotting = (AIR_EXISTS(plotPos[0]) && AIR_EXISTS(plotPos[1]));
   if (gageOptimSigTruthSet(osparm, dim, sigmaMax, cutoff, measrSampleNum)) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
@@ -100,7 +100,7 @@ main(int argc, const char *argv[]) {
     }
   } else {
     /* do sample position optimization */
-    if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2, 
+    if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2,
                           AIR_CAST(size_t, sampleNumMax+1),
                           AIR_CAST(size_t, sampleNumMax+1))) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
@@ -122,7 +122,7 @@ main(int argc, const char *argv[]) {
       printf("\n%s: ======= optimizing %u/%u samples (sigmaMax %g) \n\n",
              me, num, sampleNumMax, sigmaMax);
       if (gageOptimSigCalculate(osparm, scalePos, num,
-                                measr[0], measr[1], 
+                                measr[0], measr[1],
                                 convEps, maxIter)) {
         airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble:\n%s", me, err);
@@ -132,7 +132,7 @@ main(int argc, const char *argv[]) {
       for (ii=0; ii<num; ii++) {
         out[ii + (sampleNumMax+1)*num] = scalePos[ii];
       }
-    }    
+    }
   }
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

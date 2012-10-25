@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -28,7 +28,7 @@ int
 _gagePvlFlagCheck(gageContext *ctx, int pvlFlag) {
   int ret;
   unsigned int pvlIdx;
-  
+
   ret = AIR_FALSE;
   for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
     ret |= ctx->pvl[pvlIdx]->flag[pvlFlag];
@@ -39,16 +39,16 @@ _gagePvlFlagCheck(gageContext *ctx, int pvlFlag) {
 void
 _gagePvlFlagDown(gageContext *ctx, int pvlFlag) {
   unsigned int pvlIdx;
-  
+
   for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
     ctx->pvl[pvlIdx]->flag[pvlFlag] = AIR_FALSE;
   }
 }
 
-/* 
+/*
 ** One could go from all the pvls' queries to the context's needD in
 ** one shot, but doing it in two steps (as below) seems a little clearer,
-** and it means that pvl->needD isn't needlessly re-computed for 
+** and it means that pvl->needD isn't needlessly re-computed for
 ** pvl's whose query hasn't changed.
 */
 
@@ -133,7 +133,7 @@ _gageNeedKUpdate(gageContext *ctx) {
   static const char me[]="_gageNeedKUpdate";
   int kernIdx, needK[GAGE_KERNEL_MAX+1], change;
   unsigned int di;
-  
+
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
     needK[kernIdx] = AIR_FALSE;
@@ -156,7 +156,7 @@ _gageNeedKUpdate(gageContext *ctx) {
       needK[gageKernel22] = AIR_TRUE;
   }
   if (GAGE_DERIV_MAX != di) {
-    biffAddf(GAGE, "%s: sorry, code needs updating for GAGE_DERIV_MAX %u", 
+    biffAddf(GAGE, "%s: sorry, code needs updating for GAGE_DERIV_MAX %u",
              me, GAGE_DERIV_MAX);
     return 1;
   }
@@ -200,7 +200,7 @@ _gageRadiusUpdate(gageContext *ctx) {
     if (ctx->needK[kernIdx]) {
       ksp = ctx->ksp[kernIdx];
       if (!ksp) {
-        biffAddf(GAGE, "%s: need kernel %s but it hasn't been set", 
+        biffAddf(GAGE, "%s: need kernel %s but it hasn't been set",
                  me, airEnumStr(gageKernel, kernIdx));
         return 1;
       }
@@ -215,10 +215,10 @@ _gageRadiusUpdate(gageContext *ctx) {
   }
   radius = AIR_ROUNDUP(maxRad);
   /* In case either kernels have tiny supports (less than 0.5), or if
-     we in fact don't need any kernels, then we need to do this to 
+     we in fact don't need any kernels, then we need to do this to
      ensure that we generate a valid radius */
   radius = AIR_MAX(radius, 1);
-  if (ctx->parm.stackUse && (nrrdKernelHermiteScaleSpaceFlag 
+  if (ctx->parm.stackUse && (nrrdKernelHermiteScaleSpaceFlag
                              == ctx->ksp[gageKernelStack]->kernel)) {
     if (ctx->verbose) {
       fprintf(stderr, "%s: hermite on stack: bumping radius %d --> %d\n",
@@ -235,7 +235,7 @@ _gageRadiusUpdate(gageContext *ctx) {
     ctx->flag[gageCtxFlagRadius] = AIR_TRUE;
   }
   if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
-  
+
   return 0;
 }
 
@@ -281,7 +281,7 @@ _gageCacheSizeUpdate(gageContext *ctx) {
     }
   }
   if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
-  
+
   return 0;
 }
 
@@ -292,7 +292,7 @@ _gageOffValueUpdate(gageContext *ctx) {
   unsigned int sx, sy;
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
-  
+
   sx = ctx->shape->size[0];
   sy = ctx->shape->size[1];
   fd = 2*ctx->radius;
@@ -306,7 +306,7 @@ _gageOffValueUpdate(gageContext *ctx) {
   }
   /* no flags to set for further action */
   if (ctx->verbose) fprintf(stderr, "%s: bye\n", me);
-  
+
   return;
 }
 
@@ -335,8 +335,8 @@ gageUpdate(gageContext *ctx) {
   }
   if (!haveQuery) {
     biffAddf(GAGE, "%s: no query item set in %s", me,
-             (ctx->pvlNum == 1 
-              ? "the pervolume" 
+             (ctx->pvlNum == 1
+              ? "the pervolume"
               : "any of the pervolumes"));
     return 1;
   }
@@ -398,7 +398,7 @@ gageUpdate(gageContext *ctx) {
     ctx->flag[gageCtxFlagNeedK] = AIR_FALSE;
   }
   if (ctx->flag[gageCtxFlagRadius]
-      /* HEY HEY HEY: this is a total hack: right now its possible for a 
+      /* HEY HEY HEY: this is a total hack: right now its possible for a
          new pvl to have unallocated iv3,iv2,iv1, if it was attached to a
          context which had already been probing, as was the case with
          _tenRegisterDoit.  So, with this hack we reallocate ALL caches
@@ -416,7 +416,7 @@ gageUpdate(gageContext *ctx) {
     ctx->flag[gageCtxFlagShape] = AIR_FALSE;
   }
   ctx->flag[gageCtxFlagRadius] = AIR_FALSE;
-    
+
   /* chances are, something above has invalidated the state maintained
      during successive calls to gageProbe() */
   gagePointReset(&ctx->point);
@@ -434,13 +434,13 @@ gageUpdate(gageContext *ctx) {
   }
 
   if (ctx->verbose > 3 && ctx->stackPos) {
-    fprintf(stderr, "%s: pvlNum = %u -> stack of %u [0,%u]\n", me, 
+    fprintf(stderr, "%s: pvlNum = %u -> stack of %u [0,%u]\n", me,
             ctx->pvlNum, ctx->pvlNum-1, ctx->pvlNum-2);
     for (pi=0; pi<ctx->pvlNum-1; pi++) {
       fprintf(stderr, "%s: stackPos[%u] = %g\n", me, pi, ctx->stackPos[pi]);
-    }    
+    }
   }
   if (ctx->verbose) fprintf(stderr, "%s: bye ^^^^^^^^^^^^^^^^^^^ \n", me);
-  
+
   return 0;
 }

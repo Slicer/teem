@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -57,7 +57,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
     biffAddf(GAGE, "%s: need epsilon >= 0.0 (not %g)", me, epsilon);
     return 1;
   }
-  
+
   /* this once changed from 0 to 1, but is unlikely to change again */
   valItem = 1;
 
@@ -86,7 +86,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
     out[iter] = AIR_CAST(double*, nout[iter]->data);
     ans[iter] = gageAnswerPointer(ctx[iter], pvl[iter], valItem);
   }
-  
+
   anslen = kind->table[valItem].answerLength;
   lup = nrrdDLookup[nin->type];
 
@@ -94,7 +94,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
   sx = ctx[0]->shape->size[0];
   sy = ctx[0]->shape->size[1];
   sz = ctx[0]->shape->size[2];
-  
+
   for (iter=0; iter<maxIter; iter++) {
     thiz = (iter+1) % 2;
     last = (iter+0) % 2;
@@ -238,7 +238,7 @@ gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (gageKindVolumeCheck(kind, nin)) {
-    biffAddf(GAGE, "%s: given volume doesn't fit %s kind", 
+    biffAddf(GAGE, "%s: given volume doesn't fit %s kind",
              me, kind->name);
     return 1;
   }
@@ -253,7 +253,7 @@ gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
        copying the values we're already done; bye */
     return 0;
   }
-  
+
   valLen = kind->valLen;
   sx = nin->axis[kind->baseDim + 0].size;
   sy = nin->axis[kind->baseDim + 1].size;
@@ -263,7 +263,7 @@ gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
   lineLen = AIR_MAX(lineLen, sz);
   lup = nrrdDLookup[nin->type];
   ins = nrrdDInsert[nout->type];
-  
+
   mop = airMopNew();
   line = AIR_CALLOC(lineLen*valLen, double);
   airMopAdd(mop, line, airFree, airMopAlways);

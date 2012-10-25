@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -41,18 +41,18 @@ _gagePrint_off(FILE *file, gageContext *ctx) {
     break;
   case 4:
     for (i=3; i>=0; i--) {
-      fprintf(file, "% 6d   % 6d   % 6d   % 6d\n", 
-              off[12+16*i], off[13+16*i], 
+      fprintf(file, "% 6d   % 6d   % 6d   % 6d\n",
+              off[12+16*i], off[13+16*i],
               off[14+16*i], off[15+16*i]);
-      fprintf(file, "   % 6d  %c% 6d   % 6d%c   % 6d\n", 
+      fprintf(file, "   % 6d  %c% 6d   % 6d%c   % 6d\n",
               off[ 8+16*i], (i==1||i==2)?'\\':' ',
               off[ 9+16*i], off[10+16*i], (i==1||i==2)?'\\':' ',
               off[11+16*i]);
-      fprintf(file, "      % 6d  %c% 6d   % 6d%c   % 6d\n", 
+      fprintf(file, "      % 6d  %c% 6d   % 6d%c   % 6d\n",
               off[ 4+16*i], (i==1||i==2)?'\\':' ',
               off[ 5+16*i], off[ 6+16*i], (i==1||i==2)?'\\':' ',
               off[ 7+16*i]);
-      fprintf(file, "         % 6d   % 6d   % 6d   % 6d\n", 
+      fprintf(file, "         % 6d   % 6d   % 6d   % 6d\n",
               off[ 0+16*i], off[ 1+16*i],
               off[ 2+16*i], off[ 3+16*i]);
       if (i) fprintf(file, "\n");
@@ -93,11 +93,11 @@ void
 _gagePrint_fslw(FILE *file, gageContext *ctx) {
   int i, fd;
   double *fslx, *fsly, *fslz, *fw,
-    *fw000, *fw001, *fw002, 
-    *fw100, *fw101, *fw102, 
-    *fw110, *fw111, *fw112, 
-    *fw200, *fw201, *fw202, 
-    *fw210, *fw211, *fw212, 
+    *fw000, *fw001, *fw002,
+    *fw100, *fw101, *fw102,
+    *fw110, *fw111, *fw112,
+    *fw200, *fw201, *fw202,
+    *fw210, *fw211, *fw212,
     *fw220, *fw221, *fw222;
 
   /* float *p; */
@@ -139,13 +139,13 @@ _gagePrint_fslw(FILE *file, gageContext *ctx) {
     PRINTALL(PRINT_2, 2);
     break;
   case 4:
-    fprintf(file, "x[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
+    fprintf(file, "x[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n",
             (float)fslx[0], (float)fslx[1], (float)fslx[2], (float)fslx[3]);
     PRINTALL(PRINT_4, 0);
-    fprintf(file, "y[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
+    fprintf(file, "y[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n",
             (float)fsly[0], (float)fsly[1], (float)fsly[2], (float)fsly[3]);
     PRINTALL(PRINT_4, 1);
-    fprintf(file, "z[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", 
+    fprintf(file, "z[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n",
             (float)fslz[0], (float)fslz[1], (float)fslz[2], (float)fslz[3]);
     PRINTALL(PRINT_4, 2);
     break;

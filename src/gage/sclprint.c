@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -41,18 +41,18 @@ _gageSclIv3Print (FILE *file, gageContext *ctx, gagePerVolume *pvl) {
     break;
   case 4:
     for (i=3; i>=0; i--) {
-      fprintf(file, "% 10.4f   % 10.4f   % 10.4f   % 10.4f\n", 
-              (float)iv3[12+16*i], (float)iv3[13+16*i], 
+      fprintf(file, "% 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
+              (float)iv3[12+16*i], (float)iv3[13+16*i],
               (float)iv3[14+16*i], (float)iv3[15+16*i]);
-      fprintf(file, "   % 10.4f  %c% 10.4f   % 10.4f%c   % 10.4f\n", 
+      fprintf(file, "   % 10.4f  %c% 10.4f   % 10.4f%c   % 10.4f\n",
               (float)iv3[ 8+16*i], (i==1||i==2)?'\\':' ',
               (float)iv3[ 9+16*i], (float)iv3[10+16*i], (i==1||i==2)?'\\':' ',
               (float)iv3[11+16*i]);
-      fprintf(file, "      % 10.4f  %c% 10.4f   % 10.4f%c   % 10.4f\n", 
+      fprintf(file, "      % 10.4f  %c% 10.4f   % 10.4f%c   % 10.4f\n",
               (float)iv3[ 4+16*i], (i==1||i==2)?'\\':' ',
               (float)iv3[ 5+16*i], (float)iv3[ 6+16*i], (i==1||i==2)?'\\':' ',
               (float)iv3[ 7+16*i]);
-      fprintf(file, "         % 10.4f   % 10.4f   % 10.4f   % 10.4f\n", 
+      fprintf(file, "         % 10.4f   % 10.4f   % 10.4f   % 10.4f\n",
               (float)iv3[ 0+16*i], (float)iv3[ 1+16*i],
               (float)iv3[ 2+16*i], (float)iv3[ 3+16*i]);
       if (i) fprintf(file, "\n");

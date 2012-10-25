@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -59,7 +59,7 @@ gageScl3PFilter2(gageShape *shape,
   doD2 = needD[2];
 
   /* fw? + 2*?
-       |     |  
+       |     |
        |     +- along which axis (0:x, 1:y, 2:z)
        |
        + what information (0:value, 1:1st deriv, 2:2nd deriv)
@@ -178,7 +178,7 @@ gageScl3PFilter4(gageShape *shape,
   doD2 = needD[2];
 
   /* fw? + 4*?
-       |     |  
+       |     |
        |     +- along which axis (0:x, 1:y, 2:z)
        |
        + what information (0:value, 1:1st deriv, 2:2nd deriv)
@@ -332,7 +332,7 @@ gageScl3PFilter4(gageShape *shape,
 }
 
 void
-gageScl3PFilter6(gageShape *shape, 
+gageScl3PFilter6(gageShape *shape,
                  double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
                  double *val, double *gvec, double *hess,
@@ -352,7 +352,7 @@ gageScl3PFilter6(gageShape *shape,
 }
 
 void
-gageScl3PFilter8(gageShape *shape, 
+gageScl3PFilter8(gageShape *shape,
                  double *ivX, double *ivY, double *ivZ,
                  double *fw0, double *fw1, double *fw2,
                  double *val, double *gvec, double *hess,
@@ -407,7 +407,7 @@ _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
   fw22 = ctx->fw + fd*3*gageKernel22;
   /* perform the filtering */
   if (fd <= 8) {
-    filter[ctx->radius](ctx->shape, pvl->iv3, pvl->iv2, pvl->iv1, 
+    filter[ctx->radius](ctx->shape, pvl->iv3, pvl->iv2, pvl->iv1,
                         fw00, fw11, fw22,
                         pvl->directAnswer[gageSclValue],
                         pvl->directAnswer[gageSclGradVec],
@@ -415,7 +415,7 @@ _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
                         pvl->needD);
   } else {
     gageScl3PFilterN(ctx->shape, fd,
-                     pvl->iv3, pvl->iv2, pvl->iv1, 
+                     pvl->iv3, pvl->iv2, pvl->iv1,
                      fw00, fw11, fw22,
                      pvl->directAnswer[gageSclValue],
                      pvl->directAnswer[gageSclGradVec],

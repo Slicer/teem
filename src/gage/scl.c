@@ -1,21 +1,21 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
-  
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
   (LGPL) as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
   The terms of redistributing and/or modifying this software also
   include exceptions to the LGPL that facilitate static linking.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public License
   along with this library; if not, write to Free Software Foundation, Inc.,
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -27,7 +27,7 @@
 /*
 ** _gageSclTable
 **
-** the static array of item information for the scalar kind. 
+** the static array of item information for the scalar kind.
 */
 gageItemEntry
 _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
@@ -228,7 +228,7 @@ _gageSclVal[] = {
 
 const char *
 _gageSclStrEqv[] = {
-  "v", "val", "value", 
+  "v", "val", "value",
   "gv", "gvec", "gradvec", "grad vec", "gradient vector",
   "gm", "gmag", "gradmag", "grad mag", "gradient magnitude",
   "gn", "n", "normal", "gnorm", "normg", "norm", "normgrad",
@@ -270,20 +270,20 @@ _gageSclStrEqv[] = {
 const int
 _gageSclValEqv[] = {
   GS_V, GS_V, GS_V,
-  GS_GV, GS_GV, GS_GV, GS_GV, GS_GV, 
+  GS_GV, GS_GV, GS_GV, GS_GV, GS_GV,
   GS_GM, GS_GM, GS_GM, GS_GM, GS_GM,
   GS_N,  GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N, GS_N,
   GS_NProj, GS_NProj,
   GS_NP, GS_NP, GS_NP,
-  GS_H, GS_H, GS_H, 
+  GS_H, GS_H, GS_H,
   GS_HT, GS_HT, GS_HT,
-  GS_L, GS_L, GS_L, 
+  GS_L, GS_L, GS_L,
   GS_HF, GS_HF,
-  GS_HA, GS_HA, GS_HA, GS_HA, 
+  GS_HA, GS_HA, GS_HA, GS_HA,
   GS_HA0, GS_HA0, GS_HA0,
   GS_HA1, GS_HA1, GS_HA1,
   GS_HA2, GS_HA2, GS_HA2,
-  GS_HE, GS_HE, GS_HE, GS_HE, 
+  GS_HE, GS_HE, GS_HE, GS_HE,
   GS_HE0, GS_HE0, GS_HE0,
   GS_HE1, GS_HE1, GS_HE1,
   GS_HE2, GS_HE2, GS_HE2,
@@ -336,7 +336,7 @@ _gageKindScl = {
 gageKind *const
 gageKindScl = &_gageKindScl;
 
-const gageItemPack 
+const gageItemPack
 _gageItemPackSclValue = {
   &_gageKindScl,
   {gageSclUnknown,

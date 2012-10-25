@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -28,7 +28,7 @@
 
 /*
 ** NOTE: The idea for this table originated with Raul San Jose Estepar;
-** GLK recomputed it optimizing for 3D recon, but 
+** GLK recomputed it optimizing for 3D recon, but
 ** NOTE: there are probably still be bugs in this; look at the
 ** "HEY: bug?" notes below, the same problem occurs elsewhere
 **
@@ -36,7 +36,7 @@
 **
 ** "sigma max" can't be 0; smallest value is 1
 ** ==> index with (sigma max)-1
-** biggest value is GAGE_OPTIMSIG_SIGMA_MAX, 
+** biggest value is GAGE_OPTIMSIG_SIGMA_MAX,
 ** ==> biggest index is GAGE_OPTIMSIG_SIGMA_MAX-1
 ** ==> allocate for GAGE_OPTIMSIG_SIGMA_MAX
 **
@@ -179,7 +179,7 @@ int
 gageOptimSigSet(double *scale, unsigned int num, unsigned int sigmaMax) {
   static const char me[]="gageOptimSigSet";
   unsigned int si;
-  
+
   if (!scale) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
@@ -205,7 +205,7 @@ gageOptimSigSet(double *scale, unsigned int num, unsigned int sigmaMax) {
 gageOptimSigParm *
 gageOptimSigParmNew(unsigned int sampleNumMax) {
   gageOptimSigParm *parm;
-  
+
   parm = AIR_CAST(gageOptimSigParm *, calloc(1, sizeof(gageOptimSigParm)));
   if (parm) {
     unsigned int si;
@@ -264,7 +264,7 @@ _volTrueBlur(Nrrd *nvol, double sigma, gageOptimSigParm *parm) {
   unsigned int xi, yi, zi;
   NrrdKernel *dg;
   double kparm[NRRD_KERNEL_PARMS_NUM], xrad, yrad, zrad;
-  
+
   vol = AIR_CAST(double *, nvol->data);
   xrad = (nvol->axis[0].size + 1)/2 - 1;
   yrad = (nvol->axis[1].size + 1)/2 - 1;
@@ -308,7 +308,7 @@ gageOptimSigTruthSet(gageOptimSigParm *parm,
     return 1;
   }
   if (!(sigmaMax > 0 && cutoff > 0)) {
-    biffAddf(GAGE, "%s: sigmaMax %g, cutoff %g not both > 0", me, 
+    biffAddf(GAGE, "%s: sigmaMax %g, cutoff %g not both > 0", me,
              sigmaMax, cutoff);
     return 1;
   }
@@ -316,7 +316,7 @@ gageOptimSigTruthSet(gageOptimSigParm *parm,
     biffAddf(GAGE, "%s: measrSampleNum %u not >= 3", me, measrSampleNum);
     return 1;
   }
-  
+
   parm->dim = dim;
   kparm[0] = parm->sigmaMax = sigmaMax;
   kparm[1] = parm->cutoff = cutoff;
@@ -340,7 +340,7 @@ gageOptimSigTruthSet(gageOptimSigParm *parm,
                            AIR_CAST(size_t, measrSampleNum))
       /* ntruline->data will be re-set willy-nilly */
       || nrrdWrap_va(parm->ntruline, parm->ntruth->data,
-                     parm->ntruth->type, 3, 
+                     parm->ntruth->type, 3,
                      AIR_CAST(size_t, parm->sx),
                      AIR_CAST(size_t, parm->sy),
                      AIR_CAST(size_t, parm->sz))
@@ -488,7 +488,7 @@ _gageSetup(gageOptimSigParm *parm) {
   if (!E) E |= !(parm->pvl = gagePerVolumeNew(parm->gctx, parm->nsampvol[0],
                                               gageKindScl));
   if (!E) E |= gageStackPerVolumeNew(parm->gctx, parm->pvlSS,
-                                     AIR_CAST(const Nrrd*const*, 
+                                     AIR_CAST(const Nrrd*const*,
                                               parm->nsampvol),
                                      parm->sampleNum, gageKindScl);
   if (!E) E |= gageStackPerVolumeAttach(parm->gctx, parm->pvl, parm->pvlSS,
@@ -522,7 +522,7 @@ _scalePosSet(gageOptimSigParm *parm, unsigned int ii, double sigma) {
 
 static char *
 _timefmt(char tstr[AIR_STRLEN_MED], double deltim) {
-  
+
   if (deltim < 60) {
     sprintf(tstr, "%g secs", deltim);
     return tstr;
@@ -576,13 +576,13 @@ _optsigrun(gageOptimSigParm *parm) {
     esgn = 2*AIR_CAST(int, airRandInt(2)) - 1;
     pnt = 1 + (iter % (parm->sampleNum-2));
     lastPos = parm->scalePos[pnt];
-    fprintf(stderr, "%s: ***** iter %u; [[ err %g ]] %s\n", 
+    fprintf(stderr, "%s: ***** iter %u; [[ err %g ]] %s\n",
             me, iter, lastErr, _timefmt(tstr, airTime() - time0));
     limit = AIR_MIN((parm->scalePos[pnt] - parm->scalePos[pnt-1])/3,
                     (parm->scalePos[pnt+1] - parm->scalePos[pnt])/3);
     fprintf(stderr, ". pnt %u: pos %g, step %g\n",
             pnt, lastPos, parm->step[pnt]);
-    fprintf(stderr, ". limit = min((%g-%g)/3,(%g-%g)/3) = %g\n", 
+    fprintf(stderr, ". limit = min((%g-%g)/3,(%g-%g)/3) = %g\n",
             parm->scalePos[pnt], parm->scalePos[pnt-1],
             parm->scalePos[pnt+1], parm->scalePos[pnt], limit);
     _scalePosSet(parm, pnt, lastPos + esgn*sigeps);
@@ -686,7 +686,7 @@ gageOptimSigCalculate(gageOptimSigParm *parm,
     return 1;
   }
   if (num > parm->sampleNumMax) {
-    biffAddf(GAGE, "%s: parm setup for max %u samples, not %u", me, 
+    biffAddf(GAGE, "%s: parm setup for max %u samples, not %u", me,
              parm->sampleNumMax, num);
     return 1;
   }
@@ -706,7 +706,7 @@ gageOptimSigCalculate(gageOptimSigParm *parm,
     _scalePosSet(parm, ii, gageSigOfTau(tau));
   }
   fprintf(stderr, "done.\n");
-  
+
   /* set up gage */
   fprintf(stderr, "%s: setting up gage ... \n", me);
   if (_gageSetup(parm)) {
@@ -714,7 +714,7 @@ gageOptimSigCalculate(gageOptimSigParm *parm,
     return 1;
   }
   fprintf(stderr, "%s: gage setup done.\n", me);
-  
+
   /* run the optimization */
   if (num > 2) {
     if (_optsigrun(parm)) {
@@ -727,7 +727,7 @@ gageOptimSigCalculate(gageOptimSigParm *parm,
     parm->finalErr = _errTotal(parm);
     fprintf(stderr, "done.\n");
   }
-  
+
   /* save output */
   for (ii=0; ii<num; ii++) {
     scalePos[ii] = parm->scalePos[ii];
@@ -759,7 +759,7 @@ gageOptimSigPlot(gageOptimSigParm *parm, Nrrd *nout,
     return 1;
   }
   if (plotPosNum > parm->sampleNumMax) {
-    biffAddf(GAGE, "%s: parm setup for max %u samples, not %u", me, 
+    biffAddf(GAGE, "%s: parm setup for max %u samples, not %u", me,
              parm->sampleNumMax, plotPosNum);
     return 1;
   }
@@ -767,7 +767,7 @@ gageOptimSigPlot(gageOptimSigParm *parm, Nrrd *nout,
   parm->sampleNum = plotPosNum;
   parm->volMeasr = volMeasr;
   parm->tentRecon = tentRecon;
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 1, 
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 1,
                         AIR_CAST(size_t, parm->measrSampleNum))) {
     biffMovef(GAGE, NRRD, "%s: trouble allocating output", me);
     return 1;
@@ -789,6 +789,6 @@ gageOptimSigPlot(gageOptimSigParm *parm, Nrrd *nout,
     out[ii] = _errSingle(parm, ii);
   }
   fprintf(stderr, "%s\n", airDoneStr(0, ii, parm->measrSampleNum, doneStr));
-  
+
   return 0;
 }

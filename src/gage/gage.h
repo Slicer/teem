@@ -1,21 +1,21 @@
 /*
-  Teem: Tools to process and visualize scientific data and images
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
-  
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public License
   (LGPL) as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
   The terms of redistributing and/or modifying this software also
   include exceptions to the LGPL that facilitate static linking.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public License
   along with this library; if not, write to Free Software Foundation, Inc.,
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -71,7 +71,7 @@ extern "C" {
   ((v)[0] = (d0),                  \
    (v)[1] = (d1),                  \
    (v)[2] = (d2))
-  
+
 #define GAGE_DV_EQUAL(a, b)        \
   ((a)[0] == (b)[0] &&             \
    (a)[1] == (b)[1] &&             \
@@ -514,7 +514,7 @@ typedef struct gageParm_t {
                                  the non-zero values determined by the given
                                  per-axis spacing. */
     generateErrStr;           /* when errors happen, biff is never used, but
-                                 a descriptive error is sprintf into 
+                                 a descriptive error is sprintf into
                                  gctx->errStr as long as this is non-zero. */
 } gageParm;
 
@@ -707,7 +707,7 @@ typedef struct gageContext_t {
      nrrdKernelHermiteScaleSpaceFlag */
   unsigned int radius;
 
-  /* filter sample locations (all axes): logically a fd x 3 array 
+  /* filter sample locations (all axes): logically a fd x 3 array
      (and its 3 because gage works on 3D fields, not because of
      the number of derivatives supported) */
   double *fsl;
@@ -729,8 +729,8 @@ typedef struct gageContext_t {
 
   /* errStr and errNum are for describing errors that happen in gageProbe():
      using biff is too heavy-weight for this, and the idea is that no ill
-     should occur if the error is repeatedly ignored. Whether or not 
-     something is actually sprintf'ed into errStr is controlled by 
+     should occur if the error is repeatedly ignored. Whether or not
+     something is actually sprintf'ed into errStr is controlled by
      parm.generateErrStr.
      NOTE: these variables used to be globals "gageErrStr" and "gageErrNum" */
   char errStr[AIR_STRLEN_LARGE];
@@ -962,7 +962,7 @@ typedef struct {
 ** non-Multi gageProbe* functions.
 */
 typedef struct {
-  char name[AIR_STRLEN_SMALL]; /* what kind of thing is supplying 
+  char name[AIR_STRLEN_SMALL]; /* what kind of thing is supplying
                                   location info */
   int indexSpace,
     clamp,

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -30,12 +30,12 @@
 **
 ** which includes tau(tee) as equation (29),
 ** here taking A'' == 0 and B'' == 1, with
-** a0 and a1 as defined by eqs (22) and (23) 
+** a0 and a1 as defined by eqs (22) and (23)
 **
 ** Used MiniMaxApproximation[] from Mathematica to get functions, but
 ** the specific functions and their domains could certainly be
 ** improved upon.  Also, the absence of conversions directly between
-** tau and sigma is quite unfortunate: going through tee loses 
+** tau and sigma is quite unfortunate: going through tee loses
 ** precision and takes more time.
 */
 double
@@ -50,12 +50,12 @@ gageTauOfTee(double tee) {
       (1.0 + tee*(-0.08684532328108877 + tee*(0.1792830876099199 + tee*(0.07468999631784223 + (0.012123550696192354 + 0.0021535864222409365*tee)*tee))));
   } else if (tee < 4.96757) {
     /* mmtau1 */
-    tau = (0.0076145275813930356 + tee*(0.24811886965997867 + tee*(0.048329025380584194 + 
+    tau = (0.0076145275813930356 + tee*(0.24811886965997867 + tee*(0.048329025380584194 +
                                                                    tee*(0.04227260554167517 + (0.0084221516844712 + 0.0092075782656669*tee)*tee))))/
       (1.0 + tee*(-0.43596678272093764 + tee*(0.38077975530585234 + tee*(-0.049133766853683175 + (0.030319379462443567 + 0.0034126333151669654*tee)*tee))));
   } else if (tee < 15.4583) {
     /* mmtau2 */
-    tau = (-0.2897145176074084 + tee*(1.3527948686285203 + tee*(-0.47099157589904095 + 
+    tau = (-0.2897145176074084 + tee*(1.3527948686285203 + tee*(-0.47099157589904095 +
            tee*(-0.16031981786376195 + (-0.004820970155881798 - 4.149777202275125e-6*tee)*tee))))/
       (1.0 + tee*(0.3662508612514773 + tee*(-0.5357849572367938 + (-0.0805122462310566 - 0.0015558889784971902*tee)*tee)));
   } else if (tee < 420.787) {
@@ -111,7 +111,7 @@ gageTeeOfTau(double tau) {
 
 double
 gageSigOfTau(double tau) {
-  
+
   return sqrt(gageTeeOfTau(tau));
 }
 
@@ -179,7 +179,7 @@ gageStackItoW(gageContext *ctx, double si, int *outside) {
     swrl = AIR_AFFINE(0, sfrac, 1, ctx->stackPos[sidx], ctx->stackPos[sidx+1]);
     /*
     fprintf(stderr, "!%s: si %g (%u) --> %u + %g --> [%g,%g] -> %g\n", me,
-            si, ctx->pvlNum, sidx, sfrac, 
+            si, ctx->pvlNum, sidx, sfrac,
             ctx->stackPos[sidx], ctx->stackPos[sidx+1], swrl);
     */
   } else {
@@ -231,7 +231,7 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
   static const char me[]="gageStackPerVolumeAttach";
   unsigned int blIdx;
 
-  if (!(ctx && pvlBase && pvlStack && stackPos)) { 
+  if (!(ctx && pvlBase && pvlStack && stackPos)) {
     biffAddf(GAGE, "%s: got NULL pointer %p %p %p %p", me,
              AIR_VOIDP(ctx), AIR_VOIDP(pvlBase),
              AIR_VOIDP(pvlStack), AIR_CVOIDP(stackPos));
@@ -251,7 +251,7 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
   }
   for (blIdx=0; blIdx<blNum; blIdx++) {
     if (!AIR_EXISTS(stackPos[blIdx])) {
-      biffAddf(GAGE, "%s: stackPos[%u] = %g doesn't exist", me, blIdx, 
+      biffAddf(GAGE, "%s: stackPos[%u] = %g doesn't exist", me, blIdx,
                stackPos[blIdx]);
       return 1;
     }
@@ -275,7 +275,7 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
     biffAddf(GAGE, "%s: on base pvl", me);
     return 1;
   }
-  
+
   airFree(ctx->stackPos);
   airFree(ctx->stackFsl);
   airFree(ctx->stackFw);
@@ -301,7 +301,7 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
 **
 ** after the individual iv3's in the stack have been filled, this does
 ** the across-stack filtering to fill the iv3 of pvl[pvlNum-1] (the
-** "base" pvl) 
+** "base" pvl)
 */
 int
 _gageStackBaseIv3Fill(gageContext *ctx) {
@@ -310,7 +310,7 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
 
   fd = 2*ctx->radius;
   /* the "base" pvl is the LAST pvl */
-  baseIdx = ctx->pvlNum - 1; 
+  baseIdx = ctx->pvlNum - 1;
   cacheLen = fd*fd*fd*ctx->pvl[0]->kind->valLen;
   if (ctx->verbose > 2) {
     fprintf(stderr, "%s: cacheLen = %u\n", me, cacheLen);
@@ -318,7 +318,7 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
   if (nrrdKernelHermiteScaleSpaceFlag  == ctx->ksp[gageKernelStack]->kernel) {
     unsigned int xi, yi, zi, blurIdx, valIdx, fdd;
     double xx, *iv30, *iv31, sigma0, sigma1;
-    
+
     fdd = fd*fd;
     /* initialize the output iv3 to all zeros, since we won't be
        usefully setting the values on the boundary (the boundary which
@@ -343,7 +343,7 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
     /* so no way that pvlIdx == pvlNum-1 */
     if (pvlIdx == ctx->pvlNum-2) {
       /* pvlNum-2 is pvl index of last pre-blurred volume */
-      /* gageStackPerVolumeAttach() enforces getting at least two 
+      /* gageStackPerVolumeAttach() enforces getting at least two
          pre-blurred volumes --> pvlNum >= 3 --> blurIdx >= 0 */
       blurIdx = pvlIdx-1;
       xx = 1;

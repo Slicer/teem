@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,9 +25,9 @@
 #include "privateGage.h"
 
 /*
- * highly inefficient computation of the imaginary part of complex 
+ * highly inefficient computation of the imaginary part of complex
  * conjugate eigenvalues of a 3x3 non-symmetric matrix
- */ 
+ */
 double
 gage_imaginary_part_eigenvalues(double *M ) {
     double A, B, C, scale, frob, m[9], _eval[3];
@@ -37,14 +37,14 @@ gage_imaginary_part_eigenvalues(double *M ) {
     frob = ELL_3M_FROB(M);
     scale = frob > 10 ? 10.0/frob : 1.0;
     ELL_3M_SCALE(m, scale, M);
-    /* 
+    /*
     ** from gordon with mathematica; these are the coefficients of the
     ** cubic polynomial in x: det(x*I - M).  The full cubic is
     ** x^3 + A*x^2 + B*x + C.
     */
     A = -m[0] - m[4] - m[8];
-    B = m[0]*m[4] - m[3]*m[1] 
-        + m[0]*m[8] - m[6]*m[2] 
+    B = m[0]*m[4] - m[3]*m[1]
+        + m[0]*m[8] - m[6]*m[2]
         + m[4]*m[8] - m[7]*m[5];
     C = (m[6]*m[4] - m[3]*m[7])*m[2]
         + (m[0]*m[7] - m[6]*m[1])*m[5]
@@ -79,7 +79,7 @@ _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
   {gageVecNormHelicity,    1,  1,   {gageVecNormalized, gageVecCurl},                                   0,      0,       AIR_FALSE},
   {gageVecSOmega,          9,  1,   {gageVecJacobian,gageVecStrain},                                    0,      0,       AIR_FALSE},
   {gageVecLambda2,         1,  1,   {gageVecSOmega},                                                    0,      0,       AIR_FALSE},
-  {gageVecImaginaryPart,   1,  1,   {gageVecJacobian},                                                  0,      0,       AIR_FALSE}, 
+  {gageVecImaginaryPart,   1,  1,   {gageVecJacobian},                                                  0,      0,       AIR_FALSE},
   {gageVecHessian,        27,  2,   {0},                                                                0,      0,       AIR_FALSE},
   {gageVecDivGradient,     3,  1,   {gageVecHessian},                                                   0,      0,       AIR_FALSE},
   {gageVecCurlGradient,    9,  2,   {gageVecHessian},                                                   0,      0,       AIR_FALSE},
@@ -150,7 +150,7 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   double cmag, tmpMat[9], mgevec[9], mgeval[3];
   double asym[9], tran[9], eval[3], tmpVec[3], norm;
   double *vecAns, *normAns, *jacAns, *strainAns, *somegaAns,
-    *curlAns, *hesAns, *curlGradAns, 
+    *curlAns, *hesAns, *curlGradAns,
     *helGradAns, *dirHelDirAns, *curlnormgradAns;
   /* int asw; */
 
@@ -173,7 +173,7 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
       ell_3v_print_d(stderr, vecAns);
     }
   }
-  /* done if doV 
+  /* done if doV
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecVector{0,1,2})) {
   }
   */
@@ -217,7 +217,7 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
     pvl->directAnswer[gageVecCurlNorm][0] = ELL_3V_LEN(curlAns);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecHelicity)) {
-    pvl->directAnswer[gageVecHelicity][0] = 
+    pvl->directAnswer[gageVecHelicity][0] =
       ELL_3V_DOT(vecAns, curlAns);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecNormHelicity)) {
@@ -239,7 +239,7 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
       /* square antisymmetric part */
       ELL_3M_MUL(tmpMat, asym, asym);
       /* sum of both */
-      ELL_3M_ADD2(somegaAns, somegaAns, tmpMat);    
+      ELL_3M_ADD2(somegaAns, somegaAns, tmpMat);
       if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecLambda2)) {
         /* get eigenvalues in sorted order */
         /* asw = */ ell_3m_eigenvalues_d(eval, somegaAns, AIR_TRUE);
@@ -251,7 +251,7 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
     pvl->directAnswer[gageVecImaginaryPart][0] =
       gage_imaginary_part_eigenvalues(jacAns);
   }
-  /* 2nd order vector derivative continued */ 
+  /* 2nd order vector derivative continued */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecHessian)) {
     /* done if doD2 */
     /* the ordering is induced by the scalar hessian computation :
@@ -288,19 +288,19 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
 
       tmpVec[0] = hesAns[21] - hesAns[15];
       tmpVec[1] = hesAns[ 6] - hesAns[18];
-      tmpVec[2] = hesAns[ 9] - hesAns[ 3];      
-      pvl->directAnswer[gageVecCurlNormGrad][0] = 
+      tmpVec[2] = hesAns[ 9] - hesAns[ 3];
+      pvl->directAnswer[gageVecCurlNormGrad][0] =
         norm*ELL_3V_DOT(tmpVec, curlAns);
 
       tmpVec[0] = hesAns[22] - hesAns[16];
       tmpVec[1] = hesAns[ 7] - hesAns[19];
-      tmpVec[2] = hesAns[10] - hesAns[ 4];      
+      tmpVec[2] = hesAns[10] - hesAns[ 4];
       pvl->directAnswer[gageVecCurlNormGrad][1]=
         norm*ELL_3V_DOT(tmpVec, curlAns);
 
       tmpVec[0] = hesAns[23] - hesAns[17];
       tmpVec[1] = hesAns[ 8] - hesAns[20];
-      tmpVec[2] = hesAns[11] - hesAns[ 5];      
+      tmpVec[2] = hesAns[11] - hesAns[ 5];
       pvl->directAnswer[gageVecCurlNormGrad][2]=
         norm*ELL_3V_DOT(tmpVec, curlAns);
   }
@@ -310,21 +310,21 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
                    norm, pvl->directAnswer[gageVecCurlNormGrad]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecHelGradient)) {
-      pvl->directAnswer[gageVecHelGradient][0] = 
+      pvl->directAnswer[gageVecHelGradient][0] =
           jacAns[0]*curlAns[0]+
           jacAns[3]*curlAns[1]+
           jacAns[6]*curlAns[2]+
           curlGradAns[0]*vecAns[0]+
           curlGradAns[3]*vecAns[1]+
           curlGradAns[6]*vecAns[2];
-      pvl->directAnswer[gageVecHelGradient][1] = 
+      pvl->directAnswer[gageVecHelGradient][1] =
           jacAns[1]*curlAns[0]+
           jacAns[4]*curlAns[1]+
           jacAns[7]*curlAns[2]+
           curlGradAns[1]*vecAns[0]+
           curlGradAns[4]*vecAns[1]+
           curlGradAns[7]*vecAns[2];
-      pvl->directAnswer[gageVecHelGradient][0] = 
+      pvl->directAnswer[gageVecHelGradient][0] =
           jacAns[2]*curlAns[0]+
           jacAns[5]*curlAns[1]+
           jacAns[8]*curlAns[2]+
@@ -333,15 +333,15 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
           curlGradAns[8]*vecAns[2];
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecDirHelDeriv)) {
-      pvl->directAnswer[gageVecDirHelDeriv][0] = 
-        ELL_3V_DOT(normAns, helGradAns);          
+      pvl->directAnswer[gageVecDirHelDeriv][0] =
+        ELL_3V_DOT(normAns, helGradAns);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecProjHelGradient)) {
-      pvl->directAnswer[gageVecDirHelDeriv][0] = 
+      pvl->directAnswer[gageVecDirHelDeriv][0] =
           helGradAns[0]-dirHelDirAns[0]*normAns[0];
-      pvl->directAnswer[gageVecDirHelDeriv][1] = 
+      pvl->directAnswer[gageVecDirHelDeriv][1] =
           helGradAns[1]-dirHelDirAns[0]*normAns[1];
-      pvl->directAnswer[gageVecDirHelDeriv][2] = 
+      pvl->directAnswer[gageVecDirHelDeriv][2] =
           helGradAns[2]-dirHelDirAns[0]*normAns[2];
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecGradient0)) {
@@ -375,7 +375,7 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
                        pvl->directAnswer[gageVecGradient2]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecMGFrob)) {
-    pvl->directAnswer[gageVecMGFrob][0] 
+    pvl->directAnswer[gageVecMGFrob][0]
       = ELL_3M_FROB(pvl->directAnswer[gageVecMultiGrad]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageVecMGEval)) {
@@ -591,8 +591,8 @@ _gageVecValEqv[] = {
   GV_CNG, GV_CNG,
   GV_NCG, GV_NCG, GV_NCG,
   GV_HG, GV_HG, GV_HG, GV_HG,
-  GV_DH, GV_DH, GV_DH, GV_DH, 
-  GV_PH, GV_PH, GV_PH, GV_PH, 
+  GV_DH, GV_DH, GV_DH, GV_DH,
+  GV_PH, GV_PH, GV_PH, GV_PH,
   GV_G0, GV_G0, GV_G0,
   GV_G1, GV_G1, GV_G1,
   GV_G2, GV_G2, GV_G2,

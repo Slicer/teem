@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -88,7 +88,7 @@ gageMultiItemSet(gageMultiItem *gmi, const int *item, unsigned int itemNum) {
     fprintf(stderr, "!%s: item[%u] = %d %s\n", me, ii, item[ii],
             airEnumStr(gmi->kind->enm, item[ii]));
   }
-  
+
   return 0;
 }
 
@@ -122,7 +122,7 @@ gageMultiItemSet_va(gageMultiItem *gmi, unsigned int itemNum,
   }
   mop = airMopNew();
   airMopAdd(mop, item, airFree, airMopAlways);
-  
+
   /* consume items from var args */
   va_start(ap, itemNum);
   for (ii=0; ii<itemNum; ii++) {
@@ -135,7 +135,7 @@ gageMultiItemSet_va(gageMultiItem *gmi, unsigned int itemNum,
     airMopError(mop);
     return 1;
   }
-  
+
   airMopOkay(mop);
   return 0;
 }
@@ -174,7 +174,7 @@ gageMultiQueryNew(const gageContext *gctx) {
 ** add multi-items for one particular pvl (pvlIdx)
 */
 int /*Teem: biff if (ret) */
-gageMultiQueryAdd_va(gageContext *gctx, 
+gageMultiQueryAdd_va(gageContext *gctx,
                      gageMultiQuery *gmq, unsigned int pvlIdx,
                      unsigned int mitmNum,
                      ... /* mitmNum gageMultiItem* */) {
@@ -191,7 +191,7 @@ gageMultiQueryAdd_va(gageContext *gctx,
              pvlIdx, gmq->pvlNum-1);
     return 1;
   }
-  
+
   gmq->mitmNum[pvlIdx] = mitmNum;
   gmq->mitm[pvlIdx] = AIR_CALLOC(mitmNum, gageMultiItem*);
   /* consume and add items to context */
@@ -202,7 +202,7 @@ gageMultiQueryAdd_va(gageContext *gctx,
   va_end(ap);
 
   AIR_UNUSED(gctx);
-  
+
   return 0;
 }
 

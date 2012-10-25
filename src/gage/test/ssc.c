@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2011, 2010, 2009, 2008  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -50,7 +50,7 @@ main(int argc, const char *argv[]) {
          gageSigOfTau(gageTauOfTee(val)),
          gageTauOfTee(val));
   printf("%s: tau % 10.7g -> sig % 10.7g    tee % 10.7g\n", me, val,
-         gageSigOfTau(val), 
+         gageSigOfTau(val),
          gageTeeOfTau(val));
   printf("%s: sig % 10.7g -> tee % 10.7g    tau % 10.7g\n", me, val,
          gageTeeOfTau(gageTauOfSig(val)),
