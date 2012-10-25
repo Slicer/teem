@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2011, 2010, 2009, 2008 Thomas Schultz
   Copyright (C) 2010, 2009, 2008 Gordon Kindlmann
 
@@ -76,7 +76,7 @@ typedef struct tijk_sym_fun_t {
   void (*make_iso_d) (double *res, const double s);
   void (*make_iso_f) (float *res, const float s);
 } tijk_sym_fun;
-  
+
 typedef struct tijk_type_t {
   /* Holds information about (and functions needed for processing) a
    * specific type of tensor */
@@ -87,7 +87,7 @@ typedef struct tijk_type_t {
 #define TIJK_TYPE_MAX_NUM 45
   const unsigned int *mult; /* multiplicity of each unique component;
                              * NULL indicates that tensor is unsymmetric */
-  
+
   /* The following fields are used to map the elements of an
    * unsymmetric tensor to the unique elements of the symmetric one.
    * A value i in these arrays means:
@@ -100,7 +100,7 @@ typedef struct tijk_type_t {
   const int *uniq2unsym; /* unique to unsymmetric; length: sum(mult) */
   const unsigned int *uniq_idx; /* index into uniq2unsym for each
                                  * unique component */
-  
+
   /* tensor scalar product */
   double (*tsp_d) (const double *A, const double *B);
   float  (*tsp_f) (const float  *A, const float  *B);
@@ -137,7 +137,7 @@ typedef struct tijk_type_t {
                    const double *A);
   int (*approx_f) (float *res, const struct tijk_type_t *res_type,
                    const float *A);
-  
+
   /* convert/approximate from a different tensor type.
    * This should not be called in user code (instead, use convert/approx).
    * Needed if libraries other than tijk want to define new tensor types.
@@ -228,7 +228,7 @@ typedef struct tijk_refine_rank1_parm_t {
 } tijk_refine_rank1_parm;
 
 TIJK_EXPORT tijk_refine_rank1_parm *tijk_refine_rank1_parm_new(void);
-TIJK_EXPORT tijk_refine_rank1_parm 
+TIJK_EXPORT tijk_refine_rank1_parm
   *tijk_refine_rank1_parm_nix(tijk_refine_rank1_parm *parm);
 
 /* These parameters control optimization of rank-k approximations */
@@ -242,7 +242,7 @@ typedef struct tijk_refine_rankk_parm_t {
 } tijk_refine_rankk_parm;
 
 TIJK_EXPORT tijk_refine_rankk_parm *tijk_refine_rankk_parm_new(void);
-TIJK_EXPORT tijk_refine_rankk_parm 
+TIJK_EXPORT tijk_refine_rankk_parm
   *tijk_refine_rankk_parm_nix(tijk_refine_rankk_parm *parm);
 
 typedef struct tijk_approx_heur_parm_t {
@@ -258,7 +258,7 @@ typedef struct tijk_approx_heur_parm_t {
 } tijk_approx_heur_parm;
 
 TIJK_EXPORT tijk_approx_heur_parm *tijk_approx_heur_parm_new(void);
-TIJK_EXPORT tijk_approx_heur_parm 
+TIJK_EXPORT tijk_approx_heur_parm
   *tijk_approx_heur_parm_nix(tijk_approx_heur_parm *parm);
 
 TIJK_EXPORT int tijk_init_rank1_2d_d(double *s, double *v, const double *ten,

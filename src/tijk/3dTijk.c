@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2011, 2010, 2009, 2008 Thomas Schultz
   Copyright (C) 2010, 2009, 2008 Gordon Kindlmann
 
@@ -1327,7 +1327,7 @@ unsigned int _tijk_6o3d_sym_mult[28]={1,6,6,15,30,15,20,60,60,20,15,60,90,
    60*((A)[7]*(B)[7]+(A)[8]*(B)[8]+(A)[11]*(B)[11]+                 \
        (A)[13]*(B)[13]+(A)[17]*(B)[17]+(A)[18]*(B)[18])+            \
    90*(A)[12]*(B)[12])                                              \
-  
+
 double
 _tijk_6o3d_sym_tsp_d (const double *A, const double *B) {
   return _TIJK_6O3D_SYM_TSP(A,B);

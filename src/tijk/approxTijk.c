@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2011, 2010, 2009, 2008 Thomas Schultz
   Copyright (C) 2010, 2009, 2008 Gordon Kindlmann
 
@@ -164,7 +164,7 @@ tijk_refine_rank1_parm *tijk_refine_rank1_parm_new() {
   return parm;
 }
 
-tijk_refine_rank1_parm 
+tijk_refine_rank1_parm
 *tijk_refine_rank1_parm_nix(tijk_refine_rank1_parm *parm) {
   airFree(parm);
   return NULL;
@@ -288,7 +288,7 @@ tijk_refine_rankk_parm *tijk_refine_rankk_parm_new() {
   return parm;
 }
 
-tijk_refine_rankk_parm 
+tijk_refine_rankk_parm
 *tijk_refine_rankk_parm_nix(tijk_refine_rankk_parm *parm) {
   if (parm!=NULL) {
     parm->rank1_parm=tijk_refine_rank1_parm_nix(parm->rank1_parm);
@@ -378,7 +378,7 @@ tijk_approx_heur_parm *tijk_approx_heur_parm_new() {
   return parm;
 }
 
-tijk_approx_heur_parm 
+tijk_approx_heur_parm
 *tijk_approx_heur_parm_nix(tijk_approx_heur_parm *parm) {
   if (parm!=NULL) {
     parm->refine_parm=tijk_refine_rankk_parm_nix(parm->refine_parm);

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2010, 2009, 2008 Thomas Schultz
   Copyright (C) 2010, 2009, 2008 Gordon Kindlmann
 
@@ -224,7 +224,7 @@ _tijk_2o2d_sym_v_form_d (double *res, const double *A, const double *v) {
 void
 _tijk_2o2d_sym_v_form_f (float *res, const float *A, const float *v) {
   res[0]=A[0]*v[0]+A[1]*v[1];
-  res[1]=A[1]*v[0]+A[2]*v[1];  
+  res[1]=A[1]*v[0]+A[2]*v[1];
 }
 
 void
