@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "converts from 1-D world to index position"
-static const char *_unrrdu_w2iInfoL = 
+static const char *_unrrdu_w2iInfoL =
 (INFO  ", given the centering of the data (cell vs. node), "
  "the range of positions, and the number of intervals into "
  "which position has been quantized. "
@@ -66,7 +66,7 @@ unrrdu_w2iMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   indx = NRRD_IDX(center, minPos, maxPos, size, pos);
   printf("%g\n", indx);
-  
+
   airMopOkay(mop);
   return 0;
 }

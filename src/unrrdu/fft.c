@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,13 +25,13 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Fast Fourier Transform of selected axes"
-static const char *_unrrdu_fftInfoL_yes = 
+static const char *_unrrdu_fftInfoL_yes =
   (INFO
    ". Initial attempt at wrapping the FFTW3 library; options are "
    "likely to change in Teem 2.0.\n "
    "* Uses nrrdFFT");
 
-static const char *_unrrdu_fftInfoL_no = 
+static const char *_unrrdu_fftInfoL_no =
   (INFO
    ". This Teem has NOT been compiled with FFTW3 <http://www.fftw.org/>. "
    "If it had been, "
@@ -186,7 +186,7 @@ unrrdu_fftMain(int argc, const char **argv, const char *me,
     for (axi=0; axi<axesLen; axi++) {
       axes[axi]++;
     }
-    /* ntmp is really done with, we can free up the space now; this 
+    /* ntmp is really done with, we can free up the space now; this
        is one of the rare times we want airMopSub */
     airMopSub(mop, ntmp, (airMopper)nrrdNuke);
     nrrdNuke(ntmp);

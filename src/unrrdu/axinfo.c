@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -61,7 +61,7 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
      to "" and floats/doubles to NaN are ways of compensating for
      this.  However, there is no analogous trick for airEnums.
   hestOptAdd(&opt, "c,center", "center", airTypeEnum, 1, 1, &cent, "unknown",
-             "centering of axis: \"cell\" or \"node\"", 
+             "centering of axis: \"cell\" or \"node\"",
              NULL, nrrdCenter);
   */
   /* but this hack will do for now */
@@ -84,7 +84,7 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
 
   for (axi=0; axi<axesLen; axi++) {
     if (!( axes[axi] < nin->dim )) {
-      fprintf(stderr, "%s: axis %u not in valid range [0,%u]\n", 
+      fprintf(stderr, "%s: axis %u not in valid range [0,%u]\n",
               me, axes[axi], nin->dim-1);
       airMopError(mop);
       return 1;
@@ -98,7 +98,7 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
     airMopError(mop);
     return 1;
   }
-  
+
   for (axi=0; axi<axesLen; axi++) {
     unsigned int axis;
     axis = axes[axi];

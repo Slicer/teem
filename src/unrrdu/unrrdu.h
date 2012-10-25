@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -56,18 +56,18 @@ extern "C" {
 */
 typedef struct {
   const char *name, *info;
-  int (*main)(int argc, const char **argv, const char *me, 
+  int (*main)(int argc, const char **argv, const char *me,
               hestParm *hparm);
 } unrrduCmd;
 
 /*
 ** UNRRDU_DECLARE, UNRRDU_LIST, UNRRDU_MAP
-** 
+**
 ** Twisted C-preprocessor tricks.  The idea is to make it as simple
 ** as possible to add new commands to unu, so that the new commands
 ** have to be added to only one thing in this source file, and
 ** the Makefile.
-** 
+**
 ** Associated with each unu command are some pieces of information:
 ** the single word command (e.g. "slice") that is used by invoke it,
 ** the short (approx. one-line) description of its function, and the
@@ -89,7 +89,7 @@ typedef struct {
 ** UNRRDU_DECLARE: declares unrrdu_xxxCmd as an extern unrrduCmd
 **                 (defined in xxx.c), used later in this header file.
 ** UNRRDU_LIST:    the address of unrrdu_xxxCmd, for listing in the array of
-**                 unrrduCmd structs in the (compile-time) definition of 
+**                 unrrduCmd structs in the (compile-time) definition of
 **                 unrrduCmdList[].  This is used in flotsam.c.
 **
 ** Then, to facilitate running these macros on each of the different
@@ -193,7 +193,7 @@ UNRRDU_EXPORT const int unrrduPresent;
 UNRRDU_EXPORT const char *unrrduBiffKey;
 UNRRDU_EXPORT unsigned int unrrduDefNumColumns;
 /* addresses of all unrrdu_xxxCmd */
-UNRRDU_EXPORT unrrduCmd *unrrduCmdList[]; 
+UNRRDU_EXPORT unrrduCmd *unrrduCmdList[];
 UNRRDU_EXPORT int unrrduUsage(const char *me, hestParm *hparm);
 UNRRDU_EXPORT hestCB unrrduHestPosCB;
 UNRRDU_EXPORT hestCB unrrduHestMaybeTypeCB;

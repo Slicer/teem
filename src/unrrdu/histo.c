@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Create 1-D histogram of values in a nrrd"
-static const char *_unrrdu_histoInfoL = 
+static const char *_unrrdu_histoInfoL =
   (INFO
    ". Can explicitly set bounds of histogram domain or can learn these "
    "from the data.\n "
@@ -57,7 +57,7 @@ unrrdu_histoMain(int argc, const char **argv, const char *me,
              &_minStr, "nan",
              "Value at low end of histogram, given explicitly as a "
              "regular number, "
-             "*or*, if the number is given with a \"" MINMAX_PERC_SUFF 
+             "*or*, if the number is given with a \"" MINMAX_PERC_SUFF
              "\" suffix, this "
              "minimum is specified in terms of the percentage of samples in "
              "input that are lower. "
@@ -110,7 +110,7 @@ unrrdu_histoMain(int argc, const char **argv, const char *me,
       mmStr[strlen(mmStr)-strlen(MINMAX_PERC_SUFF)] = '\0';
     }
     if (1 != airSingleSscanf(mmStr, "%lf", mm)) {
-      fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me, 
+      fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me,
               !mmIdx ? _minStr : _maxStr,
               !mmIdx ? "minimum" : "maximum");
       airMopError(mop);

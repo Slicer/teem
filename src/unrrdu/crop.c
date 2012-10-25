@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Crop along each axis to make a smaller nrrd"
-static const char *_unrrdu_cropInfoL = 
+static const char *_unrrdu_cropInfoL =
   (INFO ".\n "
    "* Uses nrrdCrop");
 
@@ -54,7 +54,7 @@ unrrdu_cropMain(int argc, const char **argv, const char *me,
                 "there's also:\n "
                 "\b\bo m+<int> give index relative to minimum.",
                 maxLen);
-  hestOptAdd(&opt, "b,bounds", "filename", airTypeOther, 1, 1, 
+  hestOptAdd(&opt, "b,bounds", "filename", airTypeOther, 1, 1,
              &_nbounds, "",
              "a filename given here overrides the -min and -max "
              "options (they don't need to be used) and provides the "
@@ -115,7 +115,7 @@ unrrdu_cropMain(int argc, const char **argv, const char *me,
         strcpy(stmp1, "");
       }
       fprintf(stderr, "%s: expected 2-D %u-by-2 array of cropping bounds, "
-              "not %u-D %s%s%s%s\n", me, nin->dim, _nbounds->dim, 
+              "not %u-D %s%s%s%s\n", me, nin->dim, _nbounds->dim,
               airSprintSize_t(stmp2, _nbounds->axis[0].size),
               _nbounds->dim >= 2 ? "-by-" : "-long",
               _nbounds->dim >= 2 ? stmp1 : "",

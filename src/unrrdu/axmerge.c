@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -61,7 +61,7 @@ unrrdu_axmergeMain(int argc, const char **argv, const char *me,
 
   airMopAdd(mop, nout[0]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nout[1]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  
+
   if (axesLen > 1) {
     /* sort merge axes into ascending order */
     qsort(axes, axesLen, sizeof(*axes), nrrdValCompare[nrrdTypeInt]);
@@ -80,7 +80,7 @@ unrrdu_axmergeMain(int argc, const char **argv, const char *me,
     }
     ni = 1-ni;
   }
-  
+
   SAVE(out, nout[1-ni], NULL);
 
   airMopOkay(mop);

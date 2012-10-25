@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Recover floating point values from quantized data"
-static const char *_unrrdu_unquantizeInfoL = 
+static const char *_unrrdu_unquantizeInfoL =
   (INFO ". Uses the oldMin and oldMax fields in the Nrrd of quantized values "
    "to regenerate approximate versions of the original unquantized values. "
    "Can also override these with \"-min\" and \"-max\".\n "
@@ -58,7 +58,7 @@ unrrdu_unquantizeMain(int argc, const char **argv, const char *me,
   hestOptAdd(&opt, "double", NULL, airTypeBool, 0, 0, &dbl, NULL,
              "Use double for output type, instead of float");
   OPT_ADD_NOUT(out, "output nrrd");
-  
+
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 

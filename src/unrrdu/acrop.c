@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO " Automatically crop axes based on given measure"
-static const char *_unrrdu_acropInfoL = 
+static const char *_unrrdu_acropInfoL =
   (INFO ". For the axes that are to be cropped, the slices perpendicular "
    "to that axis are projected down to a scalar with the specified measure. "
    "The resulting 1D array is analyzed by determining what portions at the "
@@ -59,8 +59,8 @@ unrrdu_acropMain(int argc, const char **argv, const char *me,
              "those that make more sense here include:\n "
              "\b\bo \"max\", \"mean\", \"median\", "
              "\"variance\": (self-explanatory)\n "
-             "\b\bo \"stdv\": standard deviation\n " 
-             "\b\bo \"cov\": coefficient of variation\n " 
+             "\b\bo \"stdv\": standard deviation\n "
+             "\b\bo \"cov\": coefficient of variation\n "
              "\b\bo \"product\", \"sum\": product or sum of all values\n "
              "\b\bo \"L1\", \"L2\", \"NL2\", \"RMS\", \"Linf\": "
              "different norms.", NULL, nrrdMeasure);
@@ -71,7 +71,7 @@ unrrdu_acropMain(int argc, const char **argv, const char *me,
              "how much to offset the numerically determined cropping; "
              "positive offsets means expanding the interval of kept "
              "indices (less cropping)");
-  hestOptAdd(&opt, "b,bounds", "filename", airTypeString, 1, 1, 
+  hestOptAdd(&opt, "b,bounds", "filename", airTypeString, 1, 1,
              &boundsSave, "",
              "if a filename is given here, the automatically determined "
              "min and max bounds for cropping are saved to this file "
@@ -91,8 +91,8 @@ unrrdu_acropMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdCropAuto(nout, nin, min, max, 
-                   axes, axesLen, 
+  if (nrrdCropAuto(nout, nin, min, max,
+                   axes, axesLen,
                    measr, frac, offset)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error cropping nrrd:\n%s", me, err);

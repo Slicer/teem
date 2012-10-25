@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -71,11 +71,11 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
          "\n \b\bo \"ascii\": print data in ascii"
          "\n \b\bo \"hex\": two hex digits per byte");
   if (nrrdEncodingGzip->available()) {
-    strcat(encInfo, 
+    strcat(encInfo,
            "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
   }
   if (nrrdEncodingBzip2->available()) {
-    strcat(encInfo, 
+    strcat(encInfo,
            "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
   }
   if (nrrdEncodingGzip->available() || nrrdEncodingBzip2->available()) {
@@ -114,7 +114,7 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   nrrdCopy(nout, nin);
-  
+
   nio->encoding = nrrdEncodingArray[enc[0]];
   nio->format = nrrdFormatArray[formatType];
   if (nrrdEncodingTypeGzip == enc[0]) {

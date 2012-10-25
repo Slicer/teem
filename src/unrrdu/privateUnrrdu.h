@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -36,7 +36,7 @@ extern "C" {
 /* suffix string that indicates percentile-based min/max */
 #define MINMAX_PERC_SUFF "%"
 
-/* handling of "quiet quit", to avoid having a string of piped unu 
+/* handling of "quiet quit", to avoid having a string of piped unu
    commands generate multiple pages of unwelcome usage info */
 /* the environment variable to look for */
 #define UNRRDU_QUIET_QUIT_ENV "UNRRDU_QUIET_QUIT"
@@ -106,7 +106,7 @@ extern "C" {
 
   /*
 
-I nixed this because it meant unu invocations with only a 
+I nixed this because it meant unu invocations with only a
 few args (less than hestMinNumArgs()), which were botched
 because they were missing options, were not being described
 in the error messages.
@@ -143,7 +143,7 @@ in the error messages.
       exit(1);                                                          \
     }                                                                   \
   }
-  
+
 #define SAVE(outS, nout, io) \
   if (nrrdSave((outS), (nout), (io))) { \
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways); \

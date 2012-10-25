@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Permute slices along one axis"
-static const char *_unrrdu_shuffleInfoL = 
+static const char *_unrrdu_shuffleInfoL =
 (INFO
  ". Slices along one axis are re-arranged as units "
  "according to the given permutation (or its inverse). "
@@ -69,11 +69,11 @@ unrrdu_shuffleMain(int argc, const char **argv, const char *me,
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  
+
   /* we have to do error checking on axis in order to do error
      checking on length of permutation */
   if (!( axis < nin->dim )) {
-    fprintf(stderr, "%s: axis %d not in valid range [0,%d]\n", 
+    fprintf(stderr, "%s: axis %d not in valid range [0,%d]\n",
             me, axis, nin->dim-1);
     airMopError(mop);
     return 1;
@@ -81,7 +81,7 @@ unrrdu_shuffleMain(int argc, const char **argv, const char *me,
   if (!( permLen == nin->axis[axis].size )) {
     char stmp[AIR_STRLEN_SMALL];
     fprintf(stderr, "%s: permutation length (%u) != axis %d's size (%s)\n",
-            me, permLen, axis, 
+            me, permLen, axis,
             airSprintSize_t(stmp, nin->axis[axis].size));
     airMopError(mop);
     return 1;
@@ -99,7 +99,7 @@ unrrdu_shuffleMain(int argc, const char **argv, const char *me,
   } else {
     whichperm = perm;
   }
-  
+
   realperm = AIR_CALLOC(permLen, size_t);
   airMopAdd(mop, realperm, airFree, airMopAlways);
   for (di=0; di<permLen; di++) {

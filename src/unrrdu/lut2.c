@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -94,14 +94,14 @@ unrrdu_lut2Main(int argc, const char **argv, const char *me,
   if (!( nin->dim > 1 && 2 == nin->axis[0].size )) {
     char stmp[AIR_STRLEN_SMALL];
     fprintf(stderr, "%s: input nrrd dim must be > 1, and axis[0].size "
-            "must be 2 (not %s)\n", me, 
+            "must be 2 (not %s)\n", me,
             airSprintSize_t(stmp, nin->axis[0].size));
     airMopError(mop);
     return 1;
   }
   mapAxis = nlut->dim - 2;
   if (!(0 == mapAxis || 1 == mapAxis)) {
-    fprintf(stderr, "%s: dimension of lut should be 2 or 3, not %d", 
+    fprintf(stderr, "%s: dimension of lut should be 2 or 3, not %d",
             me, nlut->dim);
     airMopError(mop);
     return 1;
@@ -109,7 +109,7 @@ unrrdu_lut2Main(int argc, const char **argv, const char *me,
 
   /* see comment in rmap.c */
   for (rai=0; rai<=1; rai++) {
-    if (!( AIR_EXISTS(nlut->axis[mapAxis + rai].min) && 
+    if (!( AIR_EXISTS(nlut->axis[mapAxis + rai].min) &&
            AIR_EXISTS(nlut->axis[mapAxis + rai].max) )) {
       rescale[rai] = AIR_TRUE;
     }

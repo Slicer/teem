@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -43,7 +43,7 @@ unrrdu_minmaxDoit(const char *me, char *inS, int blind8BitRange, FILE *fout) {
     biffMovef(me, NRRD, "%s: trouble loading \"%s\"", me, inS);
     airMopError(mop); return 1;
   }
-  
+
   range = nrrdRangeNewSet(nrrd, blind8BitRange);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   airSinglePrintf(fout, NULL, "min: %.17g\n", range->min);
@@ -65,13 +65,13 @@ unrrdu_minmaxMain(int argc, const char **argv, const char *me,
   hestOpt *opt = NULL;
   char *err, **inS;
   airArray *mop;
-  int pret, blind8BitRange; 
+  int pret, blind8BitRange;
   unsigned int ni, ninLen;
 #define B8DEF "false"
 
   mop = airMopNew();
   hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
-             B8DEF, /* NOTE: not using nrrdStateBlind8BitRange here 
+             B8DEF, /* NOTE: not using nrrdStateBlind8BitRange here
                        for consistency with previous behavior */
              "whether to blindly assert the range of 8-bit data, "
              "without actually going through the data values, i.e. "

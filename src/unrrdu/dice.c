@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Save all slices along one axis into separate files"
-static const char *_unrrdu_diceInfoL = 
+static const char *_unrrdu_diceInfoL =
 (INFO
  ". Calls \"unu slice\" for each position "
  "along the indicated axis, and saves out a different "
@@ -56,7 +56,7 @@ unrrdu_diceMain(int argc, const char **argv, const char *me,
              "001.ppm, etc. By default (not using this option), slices "
              "are saved in NRRD format (or PNM or PNG where possible) "
              "with shortest possible filenames.");
-  /* the fact that we're using unsigned int instead of size_t is 
+  /* the fact that we're using unsigned int instead of size_t is
      its own kind of sanity check */
   hestOptAdd(&opt, "l,limit", "max#", airTypeUInt, 1, 1, &sanity, "9999",
              "a sanity check on how many slice files should be saved "
@@ -89,11 +89,11 @@ unrrdu_diceMain(int argc, const char **argv, const char *me,
     return 1;
   }
   size = AIR_UINT(nin->axis[axis].size);
-  
+
   /* HEY: this should use nrrdSaveMulti(), and if there's additional
      smarts here, they should be moved into nrrdSaveMulti() */
   if (airStrlen(ftmpl)) {
-    if (!( _nrrdContainsPercentThisAndMore(ftmpl, 'd') 
+    if (!( _nrrdContainsPercentThisAndMore(ftmpl, 'd')
            || _nrrdContainsPercentThisAndMore(ftmpl, 'u') )) {
       fprintf(stderr, "%s: given filename format \"%s\" doesn't seem to "
               "have the converstion specification to print an integer\n",
@@ -115,7 +115,7 @@ unrrdu_diceMain(int argc, const char **argv, const char *me,
   }
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  
+
   for (pos=0; pos<size; pos++) {
     if (nrrdSlice(nout, nin, axis, pos)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

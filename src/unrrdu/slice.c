@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Slice along one or more axes at given positions"
-static const char *_unrrdu_sliceInfoL = 
+static const char *_unrrdu_sliceInfoL =
   (INFO
    ". Output nrrd dimension is less than input nrrd "
    "dimension by the number of slice axes (except when the "
@@ -92,11 +92,11 @@ unrrdu_sliceMain(int argc, const char **argv, const char *me,
       airMopError(mop); return 1;
     }
     if (_pos[0 + 2*axi] == -1) {
-      fprintf(stderr, "%s: pos%s m+<int> spec not meaningful here\n", 
+      fprintf(stderr, "%s: pos%s m+<int> spec not meaningful here\n",
               me, stmp);
       airMopError(mop); return 1;
     }
-    pos[axi] = (_pos[0 + 2*axi]*(nin->axis[axis[axi]].size-1) 
+    pos[axi] = (_pos[0 + 2*axi]*(nin->axis[axis[axi]].size-1)
                 + _pos[1 + 2*axi]);
     /*
     printf("%s: [%d] axis = %u, pos = %u\n", me, axi, axis[axi],
@@ -146,20 +146,20 @@ unrrdu_sliceMain(int argc, const char **argv, const char *me,
     ntmp[1] = nrrdNew();
     airMopAdd(mop, ntmp[1], (airMopper)nrrdNuke, airMopAlways);
     for (axi=0; axi<axisNum; axi++) {
-      if (nrrdSlice((axi < axisNum-1 
+      if (nrrdSlice((axi < axisNum-1
                      ? ntmp[1-tidx] /* use an ntmp for all but last output */
                      : nout),       /* and use nout for last output */
-                    (0 == axi 
+                    (0 == axi
                      ? nin          /* use nin for only first input */
                      : ntmp[tidx]), /* use an ntmp for all but first input */
                     axis[axi], pos[axi])) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-        fprintf(stderr, "%s: error with slice %d of %d:\n%s", me, 
+        fprintf(stderr, "%s: error with slice %d of %d:\n%s", me,
                 axi+1, axisNum, err);
         airMopError(mop); return 1;
       }
       tidx = 1 - tidx;
-    }    
+    }
   }
 
   SAVE(out, nout, NULL);

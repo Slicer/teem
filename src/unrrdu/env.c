@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "List relevant environment variables and their values"
-static const char *_unrrdu_envInfoL = 
+static const char *_unrrdu_envInfoL =
   (INFO
    ". These environment variables provide a way of "
    "setting global variables that can affect"
@@ -192,7 +192,7 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
   hestInfo(out, me, _unrrdu_envInfoL, hparm);
   fprintf(out, "\n");
 
-  _hestPrintStr(out, 0, 0, hparm->columns, 
+  _hestPrintStr(out, 0, 0, hparm->columns,
                 ("Each variable in the listing below starts with the name of "
                  "the environment variable (\"NRRD_...\"), what type of value "
                  "it represents (e.g. \"int\", \"bool\"), what the "
@@ -202,7 +202,7 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                 AIR_FALSE);
   fprintf(out, "\n");
 
-  _hestPrintStr(out, 0, 0, hparm->columns, 
+  _hestPrintStr(out, 0, 0, hparm->columns,
                 ("Bool variables may be set to true simply by setting the "
                  "environment variable; setting the value to \"true\" or "
                  "\"false\" sets the bool accordingly.  Enum variables may "
@@ -214,7 +214,7 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
   fprintf(out, "\n");
 
   /* UNRRDU_QUIET_QUIT functionality implemented in privateUnrrdu.h */
-  _hestPrintStr(out, 0, 0, hparm->columns, 
+  _hestPrintStr(out, 0, 0, hparm->columns,
                 ("In addition to the the \"NRRD_\" environment variables, "
                  "there is this one, " UNRRDU_QUIET_QUIT_ENV ", which "
                  "determines whether unu exits "
@@ -234,7 +234,7 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
   }
   fprintf(out, "\n");
 
-  _unrrdu_envBool(out, 
+  _unrrdu_envBool(out,
                   nrrdEnvVarStateKeyValuePairsPropagate,
                   nrrdStateKeyValuePairsPropagate,
                   "nrrdStateKeyValuePairsPropagate",
@@ -351,7 +351,7 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                    nrrdEnvVarDefaultKernelParm0);
   nrrdGetenvDouble(/**/ &nrrdDefaultSpacing,
                    nrrdEnvVarDefaultSpacing);
-#endif  
+#endif
 
   /* NOTE: this is an exceptional unu command that doesn't rely on
      privateUnrrdu.h USAGE() macro; so we determine our own return value */

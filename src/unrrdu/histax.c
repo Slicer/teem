@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Replace each scanline along an axis with its histogram"
-static const char *_unrrdu_histaxInfoL = 
+static const char *_unrrdu_histaxInfoL =
   (INFO
    ".\n "
    "* Uses nrrdHistoAxis");
@@ -52,7 +52,7 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me,
   hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1,
              &_minStr, "nan",
              "The value to map to zero, given explicitly as a regular number, "
-             "*or*, if the number is given with a \"" MINMAX_PERC_SUFF 
+             "*or*, if the number is given with a \"" MINMAX_PERC_SUFF
              "\" suffix, this "
              "minimum is specified in terms of the percentage of samples in "
              "input that are lower. "
@@ -110,7 +110,7 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me,
       mmStr[strlen(mmStr)-strlen(MINMAX_PERC_SUFF)] = '\0';
     }
     if (1 != airSingleSscanf(mmStr, "%lf", mm)) {
-      fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me, 
+      fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me,
               !mmIdx ? _minStr : _maxStr,
               !mmIdx ? "minimum" : "maximum");
       airMopError(mop);
@@ -193,7 +193,7 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me,
     airMopError(mop);
     return 1;
   }
-  
+
 
   SAVE(out, nout, NULL);
 

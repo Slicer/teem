@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -76,7 +76,7 @@ unrrdu_jhistoMain(int argc, const char **argv, const char *me,
              "list of nrrds (one for each axis of joint histogram), "
              "or, single nrrd that will be sliced along specified axis.",
              &ninLen, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "a,axis", "axis", airTypeUInt, 1, 1, &diceax, "0", 
+  hestOptAdd(&opt, "a,axis", "axis", airTypeUInt, 1, 1, &diceax, "0",
              "axis to slice along when working with single nrrd. ");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -91,7 +91,7 @@ unrrdu_jhistoMain(int argc, const char **argv, const char *me,
     /* Slice a nrrd on the fly */
     size_t asize;
     if (!( diceax <= nin[0]->dim-1 )) {
-      fprintf(stderr, "%s: slice axis %u not valid for single %u-D nrrd", 
+      fprintf(stderr, "%s: slice axis %u not valid for single %u-D nrrd",
               me, diceax, nin[0]->dim);
       airMopError(mop);
       return 1;
@@ -100,7 +100,7 @@ unrrdu_jhistoMain(int argc, const char **argv, const char *me,
     if (asize != binLen) {
       fprintf(stderr,
               "%s: size (%u) of slice axis %u != # bins given (%u)\n", me,
-              AIR_CAST(unsigned int, asize), diceax, 
+              AIR_CAST(unsigned int, asize), diceax,
               AIR_CAST(unsigned int, binLen));
       airMopError(mop);
       return 1;

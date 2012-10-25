@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -46,7 +46,7 @@ unrrdu_deringMain(int argc, const char **argv, const char *me,
   NrrdKernelSpec *rkspec, *tkspec;
 
   /* HEY is this needed? (to display -rk and -tk kernels) */
-  hparm->elideSingleOtherDefault = AIR_FALSE; 
+  hparm->elideSingleOtherDefault = AIR_FALSE;
 
   hestOptAdd(&opt, "c,center", "x y", airTypeDouble, 2, 2, center, NULL,
              "center of rings, in index space of fastest two axes");
@@ -61,7 +61,7 @@ unrrdu_deringMain(int argc, const char **argv, const char *me,
              "20", "# of theta samples");
   hestOptAdd(&opt, "rs,radscale", "scale", airTypeDouble, 1, 1, &radScale,
              "1.0", "scaling on radius in polar transform");
-  hestOptAdd(&opt, "rk,radiuskernel", "kern", airTypeOther, 1, 1, &rkspec, 
+  hestOptAdd(&opt, "rk,radiuskernel", "kern", airTypeOther, 1, 1, &rkspec,
              "gauss:3,4",
              "kernel for high-pass filtering along radial direction",
              NULL, NULL, nrrdHestKernelSpec);
@@ -94,7 +94,7 @@ unrrdu_deringMain(int argc, const char **argv, const char *me,
   USAGE(_unrrdu_deringInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
-  
+
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
@@ -140,7 +140,7 @@ unrrdu_deringMain(int argc, const char **argv, const char *me,
     nitback = nrrdIterNew();
     airMopAdd(mop, nitback, (airMopper)nrrdIterNix, airMopAlways);
     nrrdIterSetValue(nitback, backval);
-    
+
     ntmp = nrrdNew();
     airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
 

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -65,8 +65,8 @@ unrrduUsage(const char *me, hestParm *hparm) {
 
   sprintf(buff, "--- unu: Utah Nrrd Utilities command-line interface ---");
   len = AIR_UINT(strlen(buff));
-  sprintf(fmt, "%%%us\n", (hparm->columns > len 
-                           ? hparm->columns-len 
+  sprintf(fmt, "%%%us\n", (hparm->columns > len
+                           ? hparm->columns-len
                            : 0)/2 + len - 1);
   fprintf(stdout, fmt, buff);
   for (cmdi=0; unrrduCmdList[cmdi]; cmdi++) {
@@ -116,7 +116,7 @@ unrrduUsage(const char *me, hestParm *hparm) {
 **
 ** It can also be m+<int> to signify some position relative to some
 ** "minimum", assuming that a minimum position is being specified
-** at the same time as this one.  Obviously, there has to be some 
+** at the same time as this one.  Obviously, there has to be some
 ** error handling to make sure that no one is trying to define a
 ** minimum position with respect to itself.  And, the ability to
 ** specify a position as "m+<int>" shouldn't be advertised in situations
@@ -247,7 +247,7 @@ hestCB unrrduHestMaybeTypeCB = {
 
 /*
 ******** unrrduHestBitsCB
-** 
+**
 ** for parsing an int that can be 8, 16, or 32
 */
 int
@@ -293,7 +293,7 @@ unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unrrduParseScale";
   float *scale;
   int num;
-  
+
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -345,7 +345,7 @@ hestCB unrrduHestScaleCB = {
 void *
 unrrduMaybeFclose(void *_file) {
   FILE *file;
-  
+
   file = (FILE *)_file;
   if (stdin != file) {
     file = airFclose(file);
@@ -384,7 +384,7 @@ hestCB unrrduHestFileCB = {
 
 /*
 ******** unrrduHestEncodingCB
-** 
+**
 ** for parsing output encoding, including compression flags
 ** enc[0]: which encoding, from nrrdEncodingType* enum
 ** enc[1]: for compressions: zlib "level" and bzip2 "blocksize"
