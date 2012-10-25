@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -53,7 +53,7 @@ extern "C" {
 
 #define HOOVER_THREAD_MAX 512
 
-/* 
+/*
 ******** the mess of typedefs for callbacks used below
 */
 typedef int (hooverRenderBegin_t)(void **renderP,
@@ -66,7 +66,7 @@ typedef int (hooverRayBegin_t)(void *thread,
                                void *render,
                                void *user,
                                int uIndex,    /* img coords of current ray */
-                               int vIndex, 
+                               int vIndex,
                                double rayLen, /* length of ray segment between
                                                  near and far planes,  */
                                double rayStartWorld[3],
@@ -114,26 +114,26 @@ typedef struct {
   const gageShape *shape;    /* if non-NULL, use this gageShape (which we do
                                 NOT own), which over-rides
                                 volSize, volSpacing, volCentering */
-  
+
   /******** 3) image information: dimensions + centering */
   int imgSize[2],            /* # samples of image along U and V axes */
     imgCentering;            /* either nrrdCenterNode or nrrdCenterCell */
-  
+
   /******** 4) opaque "user information" pointer */
   void *user;                /* passed to all callbacks */
 
   /******** 5) stuff about multi-threading */
-  int numThreads,            /* number of threads to spawn per rendering */
-    workIdx;                 /* next work assignment (such as a scanline) */
+  unsigned int numThreads;   /* number of threads to spawn per rendering */
+  int workIdx;               /* next work assignment (such as a scanline) */
   airThreadMutex *workMutex; /* mutex around work assignment */
-  
+
   /*
-  ******* 6) the callbacks 
+  ******* 6) the callbacks
   **
   ** The conceptual ordering of these callbacks is as they are listed
   ** below.  For example, rayBegin and rayEnd are called multiple
   ** times between threadBegin and threadEnd, and so on.  All of these
-  ** are initialized to one of the stub functions provided by hoover.  
+  ** are initialized to one of the stub functions provided by hoover.
   **
   ** A non-zero return of any of these indicates error. Which callback
   ** failed is represented by the return value of hooverRender(), the
@@ -142,20 +142,20 @@ typedef struct {
   ** *errThreadP.
   */
 
-  /* 
+  /*
   ** renderBegin()
   **
   ** called once at beginning of whole rendering, and
   ** *renderP is passed to all following calls as "render".
-  ** Any mechanisms for inter-thread communication go nicely in 
+  ** Any mechanisms for inter-thread communication go nicely in
   ** the render.
   **
   ** int (*renderBegin)(void **renderP, void *user);
   */
   hooverRenderBegin_t *renderBegin;
-  
-  /* 
-  ** threadBegin() 
+
+  /*
+  ** threadBegin()
   **
   ** called once per thread, and *threadP is passed to all
   ** following calls as "thread".
@@ -164,7 +164,7 @@ typedef struct {
   **                    int whichThread);
   */
   hooverThreadBegin_t *threadBegin;
-  
+
   /*
   ** rayBegin()
   **
@@ -173,14 +173,14 @@ typedef struct {
   ** volume, but this will change in the future.
   **
   ** int (*rayBegin)(void *thread, void *render, void *user,
-  **                 int uIndex, int vIndex, 
+  **                 int uIndex, int vIndex,
   **                 double rayLen,
   **                 double rayStartWorld[3], double rayStartIndex[3],
   **                 double rayDirWorld[3], double rayDirIndex[3]);
   */
   hooverRayBegin_t *rayBegin;
 
-  /* 
+  /*
   ** sample()
   **
   ** called once per sample along the ray, and the return value is
@@ -213,7 +213,7 @@ typedef struct {
 
   /*
   ** rayEnd()
-  ** 
+  **
   ** called at the end of the ray.  The end of a ray is when:
   ** 1) sample returns 0.0, or,
   ** 2) the sample location goes behind far plane
@@ -222,7 +222,7 @@ typedef struct {
   */
   hooverRayEnd_t *rayEnd;
 
-  /* 
+  /*
   ** threadEnd()
   **
   ** called at end of thread
@@ -230,10 +230,10 @@ typedef struct {
   ** int (*threadEnd)(void *thread, void *render, void *user);
   */
   hooverThreadEnd_t *threadEnd;
-  
-  /* 
+
+  /*
   ** renderEnd()
-  ** 
+  **
   ** called once at end of whole rendering
   **
   ** int (*renderEnd)(void *rend, void *user);
@@ -246,7 +246,7 @@ typedef struct {
 ******** hooverErr* enum
 **
 ** possible returns from hooverRender.
-** hooverErrNone: no error, all is well: 
+** hooverErrNone: no error, all is well:
 ** hooverErrInit: error detected in hoover, call biffGet(HOOVER)
 ** otherwise, return indicates which call-back had trouble
 */

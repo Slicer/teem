@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -91,7 +91,7 @@ typedef struct {
 _hooverExtraContext *
 _hooverExtraContextNew(hooverContext *ctx) {
   _hooverExtraContext *ec;
-  
+
   ec = (_hooverExtraContext *)calloc(1, sizeof(_hooverExtraContext));
   if (ec) {
     if (ctx->shape) {
@@ -109,7 +109,7 @@ _hooverExtraContextNew(hooverContext *ctx) {
 
 _hooverExtraContext *
 _hooverExtraContextNix(_hooverExtraContext *ec) {
-  
+
   if (ec) {
     free(ec);
   }
@@ -151,7 +151,7 @@ _hooverThreadBody(void *_arg) {
     mm,                  /* lowest position in index space, for all axes */
     Mx, My, Mz,          /* highest position in index space on each axis */
     u, v,                /* floating-point coords in image */
-    uvScale,             /* how to scale (u,v) to go from image to 
+    uvScale,             /* how to scale (u,v) to go from image to
                             near plane, according to ortho or perspective */
     lx, ly, lz,          /* half edge-lengths of volume */
     rayLen=0,            /* length of segment formed by ray line intersecting
@@ -171,8 +171,8 @@ _hooverThreadBody(void *_arg) {
                             directions towards start of ray */
 
   arg = (_hooverThreadArg *)_arg;
-  if ( (ret = (arg->ctx->threadBegin)(&thread, 
-                                      arg->render, 
+  if ( (ret = (arg->ctx->threadBegin)(&thread,
+                                      arg->render,
                                       arg->ctx->user,
                                       arg->whichThread)) ) {
     arg->errCode = ret;
@@ -191,7 +191,7 @@ _hooverThreadBody(void *_arg) {
       Mx = arg->ctx->shape->size[0]-0.5;
       My = arg->ctx->shape->size[1]-0.5;
       Mz = arg->ctx->shape->size[2]-0.5;
-    }    
+    }
   } else {
     lx = arg->ec->volHLen[0];
     ly = arg->ec->volHLen[1];
@@ -208,7 +208,7 @@ _hooverThreadBody(void *_arg) {
       Mz = arg->ctx->volSize[2]-0.5;
     }
   }
-  
+
   if (arg->ctx->cam->orthographic) {
     ELL_3V_COPY(rayDirW, arg->ctx->cam->N);
     if (arg->ctx->shape) {
@@ -302,7 +302,7 @@ _hooverThreadBody(void *_arg) {
         arg->whichErr = hooverErrRayBegin;
         return arg;
       }
-      
+
       sampleI = 0;
       rayT = 0;
       while (1) {
@@ -330,7 +330,7 @@ _hooverThreadBody(void *_arg) {
         if (!rayStep) {
           /* ray decided to finish itself */
           break;
-        } 
+        }
         /* else we moved to a new location along the ray */
         rayT += rayStep;
         if (!AIR_IN_CL(0, rayT, rayLen)) {
@@ -339,7 +339,7 @@ _hooverThreadBody(void *_arg) {
         }
         sampleI++;
       }
-      
+
       if ( (ret = (arg->ctx->rayEnd)(thread,
                                      arg->render,
                                      arg->ctx->user)) ) {
@@ -357,7 +357,7 @@ _hooverThreadBody(void *_arg) {
     arg->whichErr = hooverErrThreadEnd;
     return arg;
   }
-  
+
   /* returning NULL actually indicates that there was NOT an error */
   return NULL;
 }
@@ -385,13 +385,13 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   void *render;
   int ret;
   airArray *mop;
-  int threadIdx;
+  unsigned int threadIdx;
 
   if (!( errCodeP && errThreadP )) {
     biffAddf(HOOVER, "%s: got NULL int return pointer", me);
     return hooverErrInit;
   }
-  
+
   /* this calls limnCameraUpdate() */
   if (hooverContextCheck(ctx)) {
     biffAddf(HOOVER, "%s: problem detected in given context", me);
@@ -444,14 +444,14 @@ hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
      is actually just the passed _hooverThreadArg returned to us, and
      from this copy errArg->errCode into *errCodeP, and return
      errArg->whichErr */
-  
+
   if (1 < ctx->numThreads && !airThreadCapable) {
     fprintf(stderr, "%s: WARNING: not multi-threaded; will do %d "
             "\"threads\" serially !!!\n", me, ctx->numThreads);
   }
 
   for (threadIdx=0; threadIdx<ctx->numThreads; threadIdx++) {
-    if ((ret = airThreadStart(thread[threadIdx], _hooverThreadBody, 
+    if ((ret = airThreadStart(thread[threadIdx], _hooverThreadBody,
                               (void *) &args[threadIdx]))) {
       *errCodeP = ret;
       *errThreadP = threadIdx;
