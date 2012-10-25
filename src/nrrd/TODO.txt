@@ -1,10 +1,10 @@
 
 nrrdCheckSum and "unu cksum" to provide equivalent of "unu data | cksum"
 
-all IO-related things: 
+all IO-related things:
 * get back verbose IO messages about fread-vs-directIO
 * enable imagemagick-style format flagging on filenames ("PNM:-"),
-thereby obviating "unu save -f pnm" steps in pipes to standard out 
+thereby obviating "unu save -f pnm" steps in pipes to standard out
 * to expand multiple-format handling: in nrrdRead(), generalize
 _nrrdOneLine to some more generation _nrrdReadStart, which puts some
 portion of the read file into nio.  The various formats' readTest()
@@ -13,12 +13,12 @@ file, in order to see if they will accept the file one of their own.
 The nrrdFormatAll array (or whatever its been renamed to) may need some
 care in how the formats are ordered, so that if a given filename could
 belong to more than one format (for writing) or if the initial content
-of a filename could be in more than one format (for reading), then 
+of a filename could be in more than one format (for reading), then
 perhaps the ordering of nrrdFormatAll would impose some preferential
 ordering on the formats.
 * generalize I/O so that magic needn't be on line by itself
 * support Analyze/NIFTI format (relies on better buffering, above)
-* support DICOM, using as much of something like DCMTK as needed 
+* support DICOM, using as much of something like DCMTK as needed
 * clarify and document all IO stuff
 * debug and scrutinize current implementation of all "nhdr" related behavior
 * support TIFF format
@@ -32,7 +32,7 @@ add more internal types to stuff in arith.c for these:
 new nrrdBinaryOps: bit-wise and (&), or (|), xor (^)
 new nrrdUnaryOps: bit-wise not (^)
 
-call fflush(file) before airDioTest() ? 
+call fflush(file) before airDioTest() ?
 
 sampleUnits map to histogram axis with all things histo
 
