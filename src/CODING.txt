@@ -52,7 +52,7 @@ preserve logical structure in fragile things.  Some code in teem/Testing also
 exceeds this line length to increase the visibility of its structure
 (why: limiting to 80 characters is a line in the sand, but it has more
 historical precedent than larger values. But the 80th character ends up being
-wrapped aroundto the next line in some displays, hence the limit at 79).
+wrapped around to the next line in some displays, hence the limit at 79).
 
 * No trailing white-space. Changes in it are easy to make, and generate only
 noise in diffs (though removing it also generates confusing diffs, but it should
