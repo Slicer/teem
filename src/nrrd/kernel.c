@@ -3242,6 +3242,8 @@ int
 nrrdKernelCheck(const NrrdKernel *kern,
                 const double parm[NRRD_KERNEL_PARMS_NUM],
                 size_t evalNum, double epsilon,
+                unsigned int diffOkEvalMax,
+                unsigned int diffOkIntglMax,
                 const NrrdKernel *ikern,
                 const double iparm[NRRD_KERNEL_PARMS_NUM]) {
   const NrrdKernel *parsedkern;
@@ -3253,7 +3255,7 @@ nrrdKernelCheck(const NrrdKernel *kern,
   size_t evalIdx;
   double *dom_d, *ran_d, wee;
   float *dom_f, *ran_f;
-  unsigned int diffOkEvalNum, diffOkEvalMax, diffOkIntglNum, diffOkIntglMax;
+  unsigned int diffOkEvalNum, diffOkIntglNum;
   airArray *mop;
 
   if (!kern) {
@@ -3339,9 +3341,7 @@ nrrdKernelCheck(const NrrdKernel *kern,
   */
   /* compare evaluations (and maybe derivatives) and numerically compute
      integral */
-  diffOkEvalMax = 2;
   diffOkEvalNum = 0;
-  diffOkIntglMax = 2;
   diffOkIntglNum = 0;
   integral = 0.0;
   for (evalIdx=0; evalIdx<evalNum; evalIdx++) {
@@ -3367,10 +3367,12 @@ nrrdKernelCheck(const NrrdKernel *kern,
     if (fabs(single_f - single_d) > epsilon) {
       diffOkEvalNum++;
       if (diffOkEvalNum > diffOkEvalMax) {
-        biffAddf(NRRD, "%s: %s |eval1_f(%.17g)=%.17g) - (eval1_d(%.17g)=%.17g)|"
-                 " %.17g  >  epsilon %.17g too many times (%u)", me, kstr,
-                 dom_f[evalIdx], single_f, dom_d[evalIdx], single_d,
-                 fabs(single_f - single_d), epsilon, diffOkEvalNum);
+        biffAddf(NRRD,
+                 "%s: %s |eval1_f(%.17g)=%.17g) - (eval1_d(%.17g)=%.17g)|"
+                 " %.17g  >  epsilon %.17g too many times (%u > %u)", me,
+                 kstr, dom_f[evalIdx], single_f, dom_d[evalIdx], single_d,
+                 fabs(single_f - single_d), epsilon,
+                 diffOkEvalNum, diffOkEvalMax);
         airMopError(mop); return 1;
       }
     }
@@ -3384,9 +3386,10 @@ nrrdKernelCheck(const NrrdKernel *kern,
         diffOkIntglNum++;
         if (diffOkIntglNum > diffOkIntglMax) {
           biffAddf(NRRD, "%s: %s(%.17g) |num deriv(%s) %.17g - %.17g| "
-                   "%.17g > %.17g too many times (%u)",
+                   "%.17g > %.17g too many times (%u > %u)",
                    me, kstr, dom_d[evalIdx], ikern->name, ndrv, single_d,
-                   fabs(ndrv - single_d), epsilon, diffOkIntglNum);
+                   fabs(ndrv - single_d), epsilon,
+                   diffOkIntglNum, diffOkIntglMax);
           airMopError(mop); return 1;
         }
       }

@@ -247,83 +247,86 @@ meetNrrdKernelAllCheck(void) {
        permissible error in kernel evaluations (between float and double)
        The kernels for which this is higher should be targets for
        re-coding with an eye towards numerical accuracy */
-#define CHECK(P, S)                                                     \
+#define CHECK(P, S, N)                                                  \
     if (!EE) EE |= nrrdKernelCheck(kk, (P), evalNum, epsl*(S),          \
+                                   N, N,                                \
                                    kintegral(kk), (P));
     if (nrrdKernelBCCubic == kk ||
         nrrdKernelBCCubicD == kk ||
         nrrdKernelBCCubicDD == kk) {
       /* try a few settings of the 3 parms */
-      ELL_3V_SET(parm, 1.0, 0.0, 0.0); CHECK(parm, 1);
-      ELL_3V_SET(parm, XX, 0.0, 0.0); CHECK(parm, 1);
-      ELL_3V_SET(parm, 1.0, 1.0/3.0, 1.0/3.0); CHECK(parm, 1);
-      ELL_3V_SET(parm, XX, 1.0/3.0, 1.0/3.0); CHECK(parm, 1);
-      ELL_3V_SET(parm, 1.0, 0.0, 1.0); CHECK(parm, 1);
-      ELL_3V_SET(parm, XX, 0.0, 1.0); CHECK(parm, 1);
-      ELL_3V_SET(parm, 1.0, 0.5, 0.0); CHECK(parm, 1);
-      ELL_3V_SET(parm, XX, 0.5, 0.0); CHECK(parm, 1);
+      ELL_3V_SET(parm, 1.0, 0.0, 0.0); CHECK(parm, 1, 2);
+      ELL_3V_SET(parm, XX, 0.0, 0.0); CHECK(parm, 1, 2);
+      ELL_3V_SET(parm, 1.0, 1.0/3.0, 1.0/3.0); CHECK(parm, 1, 2);
+      ELL_3V_SET(parm, XX, 1.0/3.0, 1.0/3.0); CHECK(parm, 1, 2);
+      ELL_3V_SET(parm, 1.0, 0.0, 1.0); CHECK(parm, 1, 2);
+      ELL_3V_SET(parm, XX, 0.0, 1.0); CHECK(parm, 1, 2);
+      ELL_3V_SET(parm, 1.0, 0.5, 0.0); CHECK(parm, 1, 2);
+      ELL_3V_SET(parm, XX, 0.5, 0.0); CHECK(parm, 1, 2);
     } else if (2 == pnum) {
       if (nrrdKernelAQuartic == kk ||
           nrrdKernelAQuarticD == kk ||
           nrrdKernelAQuarticDD == kk) {
-        ELL_2V_SET(parm, 1.0, 0.0); CHECK(parm, 10);
-        ELL_2V_SET(parm, 1.0, 0.5); CHECK(parm, 10);
-        ELL_2V_SET(parm, XX, 0.0);  CHECK(parm, 10);
-        ELL_2V_SET(parm, XX, 0.5);  CHECK(parm, 10);
+        ELL_2V_SET(parm, 1.0, 0.0); CHECK(parm, 10, 2);
+        ELL_2V_SET(parm, 1.0, 0.5); CHECK(parm, 10, 2);
+        ELL_2V_SET(parm, XX, 0.0);  CHECK(parm, 10, 2);
+        ELL_2V_SET(parm, XX, 0.5);  CHECK(parm, 10, 2);
       } else if (nrrdKernelGaussian == kk ||
                  nrrdKernelGaussianD == kk ||
                  nrrdKernelGaussianDD == kk) {
-        ELL_2V_SET(parm, 0.1, XX); CHECK(parm, 10);
-        ELL_2V_SET(parm, 0.1, YY); CHECK(parm, 10);
-        ELL_2V_SET(parm, 1.0, XX); CHECK(parm, 10);
-        ELL_2V_SET(parm, 1.0, YY); CHECK(parm, 10);
-        ELL_2V_SET(parm, XX, XX);  CHECK(parm, 10);
-        ELL_2V_SET(parm, XX, YY);  CHECK(parm, 10);
+        ELL_2V_SET(parm, 0.1, XX); CHECK(parm, 10, 2);
+        ELL_2V_SET(parm, 0.1, YY); CHECK(parm, 10, 2);
+        ELL_2V_SET(parm, 1.0, XX); CHECK(parm, 10, 2);
+        ELL_2V_SET(parm, 1.0, YY); CHECK(parm, 10, 2);
+        ELL_2V_SET(parm, XX, XX);  CHECK(parm, 10, 2);
+        ELL_2V_SET(parm, XX, YY);  CHECK(parm, 10, 2);
       } else if (nrrdKernelHann == kk ||
                  nrrdKernelHannD == kk ||
                  nrrdKernelBlackman == kk) {
-        ELL_2V_SET(parm, 0.5, XX); CHECK(parm, 100);
-        ELL_2V_SET(parm, 0.5, YY); CHECK(parm, 100);
-        ELL_2V_SET(parm, 1.0, XX); CHECK(parm, 100);
-        ELL_2V_SET(parm, 1.0, YY); CHECK(parm, 100);
-        ELL_2V_SET(parm, XX, XX);  CHECK(parm, 100);
-        ELL_2V_SET(parm, XX, YY);  CHECK(parm, 100);
+        ELL_2V_SET(parm, 0.5, XX); CHECK(parm, 100, 2);
+        ELL_2V_SET(parm, 0.5, YY); CHECK(parm, 100, 2);
+        ELL_2V_SET(parm, 1.0, XX); CHECK(parm, 100, 2);
+        ELL_2V_SET(parm, 1.0, YY); CHECK(parm, 100, 2);
+        ELL_2V_SET(parm, XX, XX);  CHECK(parm, 100, 2);
+        ELL_2V_SET(parm, XX, YY);  CHECK(parm, 100, 2);
       } else if (nrrdKernelHannDD == kk ||
                  nrrdKernelBlackmanD == kk ||
                  nrrdKernelBlackmanDD == kk) {
         /* there are apparently bugs in these kernels */
-        ELL_2V_SET(parm, 0.5, XX); CHECK(parm, 10000000);
-        ELL_2V_SET(parm, 0.5, YY); CHECK(parm, 10000000);
-        ELL_2V_SET(parm, 1.0, XX); CHECK(parm, 1000000);
-        ELL_2V_SET(parm, 1.0, YY); CHECK(parm, 1000000);
-        ELL_2V_SET(parm, XX, XX);  CHECK(parm, 100000);
-        ELL_2V_SET(parm, XX, YY);  CHECK(parm, 100000);
+        ELL_2V_SET(parm, 0.5, XX); CHECK(parm, 10000000, 2);
+        ELL_2V_SET(parm, 0.5, YY); CHECK(parm, 10000000, 2);
+        ELL_2V_SET(parm, 1.0, XX); CHECK(parm, 1000000, 2);
+        ELL_2V_SET(parm, 1.0, YY); CHECK(parm, 1000000, 2);
+        ELL_2V_SET(parm, XX, XX);  CHECK(parm, 100000, 2);
+        ELL_2V_SET(parm, XX, YY);  CHECK(parm, 100000, 2);
       } else if (nrrdKernelDiscreteGaussian == kk) {
-        ELL_2V_SET(parm, 0.1, XX); CHECK(parm, 1);
-        ELL_2V_SET(parm, 0.1, YY); CHECK(parm, 1);
-        ELL_2V_SET(parm, 1.0, XX); CHECK(parm, 1);
-        ELL_2V_SET(parm, 1.0, YY); CHECK(parm, 1);
-        ELL_2V_SET(parm, XX, XX);  CHECK(parm, 1);
-        ELL_2V_SET(parm, XX, YY);  CHECK(parm, 1);
+        ELL_2V_SET(parm, 0.1, XX); CHECK(parm, 1, 2);
+        ELL_2V_SET(parm, 0.1, YY); CHECK(parm, 1, 2);
+        ELL_2V_SET(parm, 1.0, XX); CHECK(parm, 1, 2);
+        ELL_2V_SET(parm, 1.0, YY); CHECK(parm, 1, 2);
+        ELL_2V_SET(parm, XX, XX);  CHECK(parm, 1, 2);
+        ELL_2V_SET(parm, XX, YY);  CHECK(parm, 1, 2);
       }
     } else if (1 == pnum) {
       if (strstr(kk->name, "TMF")) {
         /* these take a single parm, but its not support */
-        parm[0] = 0.0;     CHECK(parm, 10);
-        parm[0] = 1.0/3.0; CHECK(parm, 10);
+        parm[0] = 0.0;     CHECK(parm, 10, 2);
+        parm[0] = 1.0/3.0; CHECK(parm, 10, 2);
       } else {
         /* zero, box, boxsup, cos4sup{,D,DD,DDD}, cheap,
-           tent, fordif, cendif */
+           ctmrsup{,D,DD}, tent, fordif, cendif */
         /* takes a single support/scale parm[0], try two different values */
         if (nrrdKernelCos4SupportDebug == kk ||
             nrrdKernelCos4SupportDebugD == kk ||
             nrrdKernelCos4SupportDebugDD == kk ||
-            nrrdKernelCos4SupportDebugDDD == kk) {
-          CHECK(parm1_1, 10);
-          CHECK(parm1_X, 10);
+            nrrdKernelCos4SupportDebugDDD == kk ||
+            nrrdKernelCatmullRomSupportDebugD == kk ||
+            nrrdKernelCatmullRomSupportDebugDD == kk) {
+          CHECK(parm1_1, 10, 4);
+          CHECK(parm1_X, 10, 4);
         } else {
-          CHECK(parm1_1, 1);
-          CHECK(parm1_X, 1);
+          CHECK(parm1_1, 1, 2);
+          CHECK(parm1_X, 1, 2);
         }
       }
     } else if (0 == pnum) {
@@ -341,27 +344,27 @@ meetNrrdKernelAllCheck(void) {
           nrrdKernelC5SepticDD == kk ||
           nrrdKernelC5SepticDDD == kk
           ) {
-        CHECK(parm0, 1);
-        CHECK(parm0, 1);
+        CHECK(parm0, 1, 2);
+        CHECK(parm0, 1, 2);
       } else if (nrrdKernelBSpline5DD == kk ||
                  nrrdKernelBSpline5DDD == kk ||
                  nrrdKernelBSpline7DD == kk ) {
-        CHECK(parm0, 100);
+        CHECK(parm0, 100, 2);
       } else {
-        CHECK(parm0, 10);
+        CHECK(parm0, 10, 2);
       }
     } else {
       biffAddf(MEET, "%s: sorry, didn't expect %u parms for %s",
                me, pnum, kk->name);
       airMopError(mop); return 1;
     }
+#undef CHECK
     if (EE) {
       biffMovef(MEET, NRRD, "%s: problem with kern[%u] \"%s\"", me, ki,
                 kk->name ? kk->name : "(NULL name)");
       airMopError(mop); return 1;
     }
     ki++;
-#undef CHECK
   }
 
   airMopOkay(mop);

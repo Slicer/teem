@@ -1525,6 +1525,8 @@ NRRD_EXPORT int nrrdKernelCompare(const NrrdKernel *kernA,
 NRRD_EXPORT int nrrdKernelCheck(const NrrdKernel *kern,
                                 const double parm[NRRD_KERNEL_PARMS_NUM],
                                 size_t evalNum, double epsilon,
+                                unsigned int diffOkEvalMax,
+                                unsigned int diffOkIntglMax,
                                 const NrrdKernel *dkern,
                                 const double dparm[NRRD_KERNEL_PARMS_NUM]);
 
