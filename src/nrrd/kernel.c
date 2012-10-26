@@ -2812,8 +2812,11 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("catmull-rom", str)) return nrrdKernelCatmullRom;
   if (!strcmp("ctmrd", str))       return nrrdKernelCatmullRomD;
   if (!strcmp("catmull-romd", str)) return nrrdKernelCatmullRomD;
+  if (!strcmp("ctmrdd", str))     return nrrdKernelCatmullRomDD;
+  if (!strcmp("catmull-romdd", str)) return nrrdKernelCatmullRomDD;
   if (!strcmp("ctmrsup", str))    return nrrdKernelCatmullRomSupportDebug;
   if (!strcmp("ctmrsupd", str))   return nrrdKernelCatmullRomSupportDebugD;
+  if (!strcmp("ctmrsupdd", str))   return nrrdKernelCatmullRomSupportDebugDD;
   if (!strcmp("aquartic", str))   return nrrdKernelAQuartic;
   if (!strcmp("quartic", str))    return nrrdKernelAQuartic;
   if (!strcmp("aquarticd", str))  return nrrdKernelAQuarticD;
