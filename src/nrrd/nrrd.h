@@ -1450,7 +1450,8 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelBSpline7ApproxInverse;
 /* kernel.c: the rest of the kernels and kernel utility functions */
 NRRD_EXPORT NrrdKernel
-  *const nrrdKernelZero,         /* zero everywhere */
+  *const nrrdKernelZero,         /* zero everywhere (though still takes
+                                    a single "support" parm[0]) */
   *const nrrdKernelBox,          /* box filter (nearest neighbor) */
   *const nrrdKernelBoxSupportDebug, /* box kernel but with an adjustable
                                        support, not for changing the shape of
