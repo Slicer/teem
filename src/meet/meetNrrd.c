@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -29,7 +29,7 @@ typedef union {
 } _kernu;
 
 /*
-** ALLOCATES and returns a NULL-terminated array of all the 
+** ALLOCATES and returns a NULL-terminated array of all the
 ** NrrdKernels in Teem
 */
 const NrrdKernel **
@@ -39,7 +39,7 @@ meetNrrdKernelAll(void) {
   unsigned int ii;
   int di, ci, ai, dmax, cmax, amax;
   _kernu ku;
-  
+
   ku.k = &kern;
   arr = airArrayNew(ku.v, NULL, sizeof(NrrdKernel *), 2);
 
@@ -110,7 +110,7 @@ meetNrrdKernelAll(void) {
   /* tmfKernel.c
    nrrdKernelTMF[D+1][C+1][A] is d<D>_c<C>_<A>ef:
    Dth-derivative, C-order continuous ("smooth"), A-order accurate
-   (for D and C, index 0 accesses the function for -1) 
+   (for D and C, index 0 accesses the function for -1)
     NRRD_EXPORT NrrdKernel *const nrrdKernelTMF[4][5][5];
   */
   dmax = AIR_CAST(int, nrrdKernelTMF_maxD);
@@ -183,12 +183,12 @@ kintegral(const NrrdKernel *kd) {
 ** Does more than call nrrdKernelCheck on all kernels:
 ** makes sure that all kernels have unique names
 ** makes sure that derivative relationships are correct
-** Also, simply calling nrrdKernelCheck requires some knowledge 
+** Also, simply calling nrrdKernelCheck requires some knowledge
 ** of the kernel's needed parameters
 **
 ** HEY: its problematic that because the various kernels have different
 ** parameter epsilon requirements, they usually end up having to be
-** enumerated in some of the if/else statements below; it would be much 
+** enumerated in some of the if/else statements below; it would be much
 ** better if new kernels didn't need to be so explicitly added!
 */
 int
@@ -223,12 +223,12 @@ meetNrrdKernelAllCheck(void) {
     while (kj < ki) {
       ll = kern[kj];
       if (kk == ll) {
-        biffAddf(MEET, "%s: kern[%u] and [%u] were identical (%s)", 
+        biffAddf(MEET, "%s: kern[%u] and [%u] were identical (%s)",
                  me, kj, ki, kk->name);
         airMopError(mop); return 1;
       }
       if (!airStrcmp(kk->name, ll->name)) {
-        biffAddf(MEET, "%s: kern[%u] and [%u] have same name (%s)", 
+        biffAddf(MEET, "%s: kern[%u] and [%u] have same name (%s)",
                  me, kj, ki, kk->name);
         airMopError(mop); return 1;
       }

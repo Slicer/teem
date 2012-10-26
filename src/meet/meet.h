@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -163,7 +163,7 @@ MEET_EXPORT int meetPullVolLeechable(const meetPullVol *orig,
                                      const meetPullVol *lchr);
 MEET_EXPORT meetPullVol *meetPullVolNix(meetPullVol *pvol);
 MEET_EXPORT hestCB *meetHestPullVol;
-MEET_EXPORT int meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum, 
+MEET_EXPORT int meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
                                      char *cachePath, NrrdKernelSpec *kSSblur,
                                      int boundary, double padValue,
                                      int verbose);

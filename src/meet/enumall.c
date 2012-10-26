@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -32,13 +32,13 @@ meetBiffKey = "meet";
 typedef union {
   const airEnum ***enm;
   void **v;
-} foobarUnion; 
+} foobarUnion;
 
 /*
 ******** meetAirEnumAll
 **
-** ALLOCATES and returns a NULL-terminated array of 
-** pointers to all the airEnums in Teem 
+** ALLOCATES and returns a NULL-terminated array of
+** pointers to all the airEnums in Teem
 **
 ** It would be better if this array could be created at compile-time,
 ** but efforts at doing this resulted in lots of "initializer is not const"
@@ -53,7 +53,7 @@ grep "airEnum *" {air,hest,biff,nrrd,ell,unrrdu,alan,moss,tijk,gage,dye,bane,lim
 
 ** (with the ? in "}/?*.h" to stop warnings about / * inside comment)
 ** We could grep specifically for "const airEnum *const", but its good to
-** use this occasion to also make sure that all public airEnums are 
+** use this occasion to also make sure that all public airEnums are
 ** indeed const airEnum *const
 */
 const airEnum **
@@ -63,7 +63,7 @@ meetAirEnumAll() {
   unsigned int ii;
   foobarUnion fbu;
 
-  arr = airArrayNew((fbu.enm = &enm, fbu.v), 
+  arr = airArrayNew((fbu.enm = &enm, fbu.v),
                     NULL, sizeof(airEnum *), 2);
 
   /* air */
@@ -276,4 +276,4 @@ meetTeemLibs[] = {
   NULL
 };
 
-  
+

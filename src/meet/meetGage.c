@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -28,7 +28,7 @@ gageKind * /*Teem: error if (!ret) */
 _meetGageKindParse(const char *_str, int constOnly) {
   char *str;
   gageKind *ret;
-  
+
   if (!_str) {
     return NULL;
   }
@@ -71,7 +71,7 @@ int
 _meetHestConstGageKindParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "_meetHestGageConstKindParse";
   const gageKind **kindP;
-  
+
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -94,7 +94,7 @@ int
 _meetHestGageKindParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "_meetHestGageKindParse";
   gageKind **kindP;
-  
+
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -114,7 +114,7 @@ _meetHestGageKindParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
 void *
 _meetHestGageKindDestroy(void *ptr) {
   gageKind *kind;
-  
+
   if (ptr) {
     kind = AIR_CAST(gageKind *, ptr);
     if (!strcmp(TEN_DWI_GAGE_KIND_NAME, kind->name)) {
@@ -130,7 +130,7 @@ _meetHestGageKind = {
   "gageKind",
   _meetHestGageKindParse,
   _meetHestGageKindDestroy
-}; 
+};
 
 static hestCB
 _meetHestConstGageKind = {
@@ -138,7 +138,7 @@ _meetHestConstGageKind = {
   "gageKind",
   _meetHestConstGageKindParse,
   NULL
-}; 
+};
 
 /*
 ******** meetHestGageKind
