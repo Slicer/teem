@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -38,7 +38,7 @@
 ** sets of scalar volumes of the components.
 ** ==> Also, that gageContextCopy works even on dynamic kinds (like DWIs)
 **
-** 1b) that there is expected consistency between the scalar, vector, tensor,
+** 1.5) that there is expected consistency between the scalar, vector, tensor,
 ** and DWI properties of a related set of volumes.  So the test starts with a
 ** diffusion tensor field and generates DWIs, scalars (norm squared of the
 ** tensor), and vectors (gradient of norm squared) from this.
@@ -81,8 +81,8 @@ engageGenTensor(gageContext *gctx, Nrrd *ncten,
   NrrdIter *narg0, *narg1;
   const char *helixArgv[] =
   /*   0     1     2    3     4     5     6     7     8     9 */
-    {"-s", NULL, NULL, NULL, "-v", "0", "-r", "45", "-o", NULL,
-     "-ev", "0.00086", "0.00043", "0.00021", "-bg", "0.003", "-b", "5",
+    {"-s", NULL, NULL, NULL, "-v", "0", "-r", "40", "-o", NULL,
+     "-ev", "0.00086", "0.00043", "0.00021", "-bg", "0.003", "-b", "3",
      NULL};
   int helixArgc;
   gagePerVolume *pvl;
@@ -443,19 +443,26 @@ typedef struct {
   unsigned int slen;   /* length of single buffer (sum of all alen[i]) */
 } multiAnswer;
 
+static void
+multiAnswerInit(multiAnswer *man) {
+
+  /* HEY sloppy: not resetting name */
+  man->aptr = airFree(AIR_VOIDP(man->aptr));
+  man->ispec = airFree(man->ispec);
+  man->alen = airFree(man->alen);
+  man->sidx = airFree(man->sidx);
+  man->anum = 0;
+  man->san = airFree(man->san);
+  man->slen = 0;
+}
+
 static multiAnswer*
 multiAnswerNew(char *name) {
   multiAnswer *man;
 
   man = AIR_CALLOC(1, multiAnswer);
   airStrcpy(man->name, AIR_STRLEN_SMALL, name);
-  man->aptr = NULL;
-  man->ispec = NULL;
-  man->alen = NULL;
-  man->sidx = NULL;
-  man->anum = 0;
-  man->san = NULL;
-  man->slen = 0;
+  multiAnswerInit(man);
   return man;
 }
 
@@ -578,16 +585,13 @@ multiAnswerCompare(multiAnswer *man1, multiAnswer *man2) {
 ** setting up gageContexts for the first of the two tasks listed above: making
 ** sure per-component information is handled correctly.  NOTE: The combination
 ** of function calls made here is very atypical for a Teem-using program
-**
-** The component "Comp" (scalar volume) contexts are the ground truth, so we
-** probe them with radius=1 cos4 kernel, and probe the non-scalar volumes with
-** the variable radius cos4 kernel
 */
 static int
 updateQueryKernelSetTask1(gageContext *gctxComp[KIND_NUM],
-                          gageContext *gctx[KIND_NUM],
+                          gageContext *gctx[KIND_NUM], int gSetup,
                           multiAnswer *manComp[KIND_NUM],
                           multiAnswer *man[KIND_NUM],
+                          NrrdKernel *kpack[3],
                           double support) {
   static const char me[]="updateQueryKernelSetTask1";
   double parm1[NRRD_KERNEL_PARMS_NUM], parmV[NRRD_KERNEL_PARMS_NUM];
@@ -600,72 +604,79 @@ updateQueryKernelSetTask1(gageContext *gctxComp[KIND_NUM],
   }
   parm1[0] = 1.0;
   parmV[0] = support;
-  for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
-    if (0 /* (no-op for formatting) */
-        || gageKernelSet(gctxComp[kindIdx], gageKernel00, nrrdKernelCos4SupportDebug, parm1)
-        || gageKernelSet(gctxComp[kindIdx], gageKernel11, nrrdKernelCos4SupportDebugD, parm1)
-        || gageKernelSet(gctxComp[kindIdx], gageKernel22, nrrdKernelCos4SupportDebugDD, parm1)
-        || gageKernelSet(gctx[kindIdx], gageKernel00, nrrdKernelCos4SupportDebug, parmV)
-        || gageKernelSet(gctx[kindIdx], gageKernel11, nrrdKernelCos4SupportDebugD, parmV)
-        || gageKernelSet(gctx[kindIdx], gageKernel22, nrrdKernelCos4SupportDebugDD, parmV)) {
-      biffMovef(BKEY, GAGE, "%s: trouble setting kernel (kind %u)",
-                me, kindIdx);
-      return 1;
-    }
-  }
-  /* Note that the contexts for the diced-up volumes of components are always
-     of kind gageKindScl, and all the items are from the gageScl* enum */
-  for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
-    unsigned int pvi;
-    /*
-    fprintf(stderr, "!%s: gctx[%u] has %u pvls\n", me, kindIdx, gctx[kindIdx]->pvlNum);
-    fprintf(stderr, "!%s: gctxComp[%u] has %u pvls\n", me, kindIdx, gctxComp[kindIdx]->pvlNum);
-    */
-    for (pvi=0; pvi<gctxComp[kindIdx]->pvlNum; pvi++) {
+  if (gSetup) {
+    for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
       if (0 /* (no-op for formatting) */
-          || gageQueryItemOn(gctxComp[kindIdx], gctxComp[kindIdx]->pvl[pvi], gageSclValue)
-          || gageQueryItemOn(gctxComp[kindIdx], gctxComp[kindIdx]->pvl[pvi], gageSclGradVec)
-          || gageQueryItemOn(gctxComp[kindIdx], gctxComp[kindIdx]->pvl[pvi], gageSclHessian)) {
-        biffMovef(BKEY, GAGE, "%s: trouble setting query (kind %u) on pvi %u",
-                  me, kindIdx, pvi);
+          || gageKernelSet(gctxComp[kindIdx], gageKernel00, kpack[0], parm1)
+          || gageKernelSet(gctxComp[kindIdx], gageKernel11, kpack[1], parm1)
+          || gageKernelSet(gctxComp[kindIdx], gageKernel22, kpack[2], parm1)
+          || gageKernelSet(gctx[kindIdx], gageKernel00, kpack[0], parmV)
+          || gageKernelSet(gctx[kindIdx], gageKernel11, kpack[1], parmV)
+          || gageKernelSet(gctx[kindIdx], gageKernel22, kpack[2], parmV)) {
+        biffMovef(BKEY, GAGE, "%s: trouble setting kernel (kind %u)",
+                  me, kindIdx);
         return 1;
       }
     }
-  }
-  /* For the original contexts, we have to use the kind-specific items that
-     correspond to the values and derivatives */
-  if (0 /* (no-op for formatting) */
-      || gageQueryItemOn(gctx[KI_SCL], gctx[KI_SCL]->pvl[0], gageSclValue)
-      || gageQueryItemOn(gctx[KI_SCL], gctx[KI_SCL]->pvl[0], gageSclGradVec)
-      || gageQueryItemOn(gctx[KI_SCL], gctx[KI_SCL]->pvl[0], gageSclHessian)
+    /* Note that the contexts for the diced-up volumes of components are always
+       of kind gageKindScl, and all the items are from the gageScl* enum */
+    for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
+      unsigned int pvi;
+      /*
+        fprintf(stderr, "!%s: gctx[%u] has %u pvls\n", me, kindIdx, gctx[kindIdx]->pvlNum);
+        fprintf(stderr, "!%s: gctxComp[%u] has %u pvls\n", me, kindIdx, gctxComp[kindIdx]->pvlNum);
+      */
+      for (pvi=0; pvi<gctxComp[kindIdx]->pvlNum; pvi++) {
+        if (0 /* (no-op for formatting) */
+            || gageQueryItemOn(gctxComp[kindIdx], gctxComp[kindIdx]->pvl[pvi], gageSclValue)
+            || gageQueryItemOn(gctxComp[kindIdx], gctxComp[kindIdx]->pvl[pvi], gageSclGradVec)
+            || gageQueryItemOn(gctxComp[kindIdx], gctxComp[kindIdx]->pvl[pvi], gageSclHessian)) {
+          biffMovef(BKEY, GAGE, "%s: trouble setting query (kind %u) on pvi %u",
+                    me, kindIdx, pvi);
+          return 1;
+        }
+      }
+      if (gageUpdate(gctxComp[kindIdx])) {
+        biffMovef(BKEY, GAGE, "%s: trouble updating comp gctx %u",
+                  me, kindIdx);
+        return 1;
+      }
+    }
+    /* For the original contexts, we have to use the kind-specific items that
+       correspond to the values and derivatives */
+    if (0 /* (no-op for formatting) */
+        || gageQueryItemOn(gctx[KI_SCL], gctx[KI_SCL]->pvl[0], gageSclValue)
+        || gageQueryItemOn(gctx[KI_SCL], gctx[KI_SCL]->pvl[0], gageSclGradVec)
+        || gageQueryItemOn(gctx[KI_SCL], gctx[KI_SCL]->pvl[0], gageSclHessian)
 
-      || gageQueryItemOn(gctx[KI_VEC], gctx[KI_VEC]->pvl[0], gageVecVector)
-      || gageQueryItemOn(gctx[KI_VEC], gctx[KI_VEC]->pvl[0], gageVecJacobian)
-      || gageQueryItemOn(gctx[KI_VEC], gctx[KI_VEC]->pvl[0], gageVecHessian)
+        || gageQueryItemOn(gctx[KI_VEC], gctx[KI_VEC]->pvl[0], gageVecVector)
+        || gageQueryItemOn(gctx[KI_VEC], gctx[KI_VEC]->pvl[0], gageVecJacobian)
+        || gageQueryItemOn(gctx[KI_VEC], gctx[KI_VEC]->pvl[0], gageVecHessian)
 
-      || gageQueryItemOn(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageTensor)
-      || gageQueryItemOn(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageTensorGrad)
-      || gageQueryItemOn(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageSGradVec)
-      || gageQueryItemOn(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageHessian)
-      || gageQueryItemOn(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageSHessian)
+        || gageQueryItemOn(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageTensor)
+        || gageQueryItemOn(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageTensorGrad)
+        || gageQueryItemOn(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageS)
+        || gageQueryItemOn(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageSGradVec)
+        || gageQueryItemOn(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageHessian)
+        || gageQueryItemOn(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageSHessian)
 
-      || gageQueryItemOn(gctx[KI_DWI], gctx[KI_DWI]->pvl[0], tenDwiGageAll)) {
-    biffMovef(BKEY, GAGE, "%s: trouble setting item", me);
-    return 1;
-  }
-  for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
-    if (gageUpdate(gctxComp[kindIdx])) {
-      biffMovef(BKEY, GAGE, "%s: trouble updating comp gctx %u",
-                me, kindIdx);
+        || gageQueryItemOn(gctx[KI_DWI], gctx[KI_DWI]->pvl[0], tenDwiGageAll)
+        || gageQueryItemOn(gctx[KI_DWI], gctx[KI_DWI]->pvl[0], tenDwiGageTensorLLS)) {
+      biffMovef(BKEY, GAGE, "%s: trouble setting item", me);
       return 1;
     }
-  }
-  for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
-    if (gageUpdate(gctx[kindIdx])) {
-      biffMovef(BKEY, GAGE, "%s: trouble updating single gctx %u",
-                me, kindIdx);
-      return 1;
+    for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
+      if (gageUpdate(gctx[kindIdx])) {
+        biffMovef(BKEY, GAGE, "%s: trouble updating single gctx %u",
+                  me, kindIdx);
+        return 1;
+      }
     }
+  } /* if (gSetup) */
+
+  for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
+    multiAnswerInit(man[kindIdx]);
+    multiAnswerInit(manComp[kindIdx]);
   }
   for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
     unsigned int pvi;
@@ -718,14 +729,52 @@ probeTask1(gageContext *gctxComp[KIND_NUM],
            gageContext *gctx[KIND_NUM],
            multiAnswer *manComp[KIND_NUM],
            multiAnswer *man[KIND_NUM],
-           unsigned int probeNum, double ksupport) {
+           unsigned int probeNum, NrrdKernel *kpack[3],
+           double ksupport) {
   static const char me[]="probeTask1";
-  unsigned int kindIdx, probeIdx;
-  double pos[3], upos[3], minp[3], maxp[3];
+  unsigned int kindIdx, probeIdx, errNumMax, tenErrNum, sclErrNum;
+  double pos[3], upos[3], minp[3], maxp[3],
+    tenDiff[7], tenAvg[7], tenErr, tenErrMax,
+    vecDiff[3], vecAvg[3], vecErr, vecErrMax, vecErrNum,
+    sclDiff, sclAvg, sclErr, sclErrMax, errNumFrac;
+  const double *dwiTenEstP, dwiTenEstNorm,
+    *tenTenP, *tenTenNormP, *tenTenNormGradP,
+    *sclSclP, *sclGradP, *vecVecP;
 
   ELL_3V_SET(minp, ksupport, ksupport, ksupport);
   ELL_3V_SET(maxp, volSize[0]-1-ksupport, volSize[1]-1-ksupport, volSize[2]-1-ksupport);
 
+  /* this is all for task 1.5 */
+  sclSclP         = gageAnswerPointer(gctx[KI_SCL], gctx[KI_SCL]->pvl[0], gageSclValue);
+  sclGradP        = gageAnswerPointer(gctx[KI_SCL], gctx[KI_SCL]->pvl[0], gageSclGradVec);
+  vecVecP         = gageAnswerPointer(gctx[KI_VEC], gctx[KI_VEC]->pvl[0], gageVecVector);
+  tenTenP         = gageAnswerPointer(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageTensor);
+  tenTenNormP     = gageAnswerPointer(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageS);
+  tenTenNormGradP = gageAnswerPointer(gctx[KI_TEN], gctx[KI_TEN]->pvl[0], tenGageSGradVec);
+  dwiTenEstP      = gageAnswerPointer(gctx[KI_DWI], gctx[KI_DWI]->pvl[0], tenDwiGageTensorLLS);
+  tenErrNum = sclErrNum = 0;
+  vecErrNum = 0.0;
+  errNumFrac = 0.02;
+  if (nrrdKernelBoxSupportDebug == kpack[0]) {
+    /* not actually here for any derivatives, mainly to check on
+       tensor esimation (in addition to usual check of multivariate as
+       set of scalars) */
+    tenErrMax = 0.0002;
+    vecErrMax = AIR_NAN;
+    sclErrMax = AIR_NAN;
+  } else if (nrrdKernelCos4SupportDebug == kpack[0]) {
+    tenErrMax = AIR_NAN;
+    vecErrMax = AIR_NAN;
+    sclErrMax = AIR_NAN;
+  } else if (nrrdKernelCatmullRomSupportDebug == kpack[0]) {
+    tenErrMax = 0.12;
+    vecErrMax = 0.0016;
+    sclErrMax = 0.0008;
+  } else {
+    biffAddf(BKEY, "%s: unexpected kpack[0] %s\n", me, kpack[0]->name);
+    return 1;
+  }
+  errNumMax = AIR_CAST(unsigned int, errNumFrac*probeNum);
   for (probeIdx=0; probeIdx<probeNum; probeIdx++) {
     airHalton(upos, probeIdx+HALTON_BASE, airPrimeList + 0, 3);
     pos[0] = AIR_AFFINE(0.0, upos[0], 1.0, minp[0], maxp[0]);
@@ -754,6 +803,66 @@ probeTask1(gageContext *gctxComp[KIND_NUM],
         return 1;
       }
     }
+
+    /* see if probed tensors mostly agree with
+       tensors estimated from probed DWIs */
+    if (AIR_EXISTS(tenErrMax)) {
+      TEN_T_SUB(tenDiff, dwiTenEstP, tenTenP);
+      TEN_T_LERP(tenAvg, 0.5, dwiTenEstP, tenTenP);
+      tenErr = TEN_T_NORM(tenDiff)/TEN_T_NORM(tenAvg);
+      if (tenErr > tenErrMax) {
+        tenErrNum++;
+        if (tenErrNum > errNumMax) {
+          biffAddf(BKEY, "%s: (probe %u) tenErr %g > %g too many times %u > %u",
+                   me, probeIdx, tenErr, tenErrMax, tenErrNum, errNumMax);
+          return 1;
+        }
+      }
+    }
+
+    /* see if invariant gradient learned from tensor volume agrees with
+       volume of pre-computed invariant gradients, and with
+       gradient of pre-computed invariants */
+    if (AIR_EXISTS(vecErrMax)) {
+      ELL_3V_SUB(vecDiff, sclGradP, vecVecP);
+      ELL_3V_LERP(vecAvg, 0.5, sclGradP, vecVecP);
+      vecErr = ELL_3V_LEN(vecDiff)/sqrt(ELL_3V_LEN(vecAvg));
+      if (vecErr > vecErrMax) {
+        vecErrNum += 0.5;
+        if (vecErrNum > errNumMax) {
+          biffAddf(BKEY, "%s: (probe %u) (A) vecErr %g > %g too many times %g > %u",
+                   me, probeIdx, vecErr, vecErrMax, vecErrNum, errNumMax);
+          return 1;
+        }
+      }
+      ELL_3V_SUB(vecDiff, tenTenNormGradP, vecVecP);
+      ELL_3V_LERP(vecAvg, 0.5, tenTenNormGradP, vecVecP);
+      vecErr = ELL_3V_LEN(vecDiff)/sqrt(ELL_3V_LEN(vecAvg));
+      if (vecErr > vecErrMax) {
+        vecErrNum += 0.5;
+        if (vecErrNum > errNumMax) {
+          biffAddf(BKEY, "%s: (probe %u) (B) vecErr %g > %g too many times %g > %u",
+                   me, probeIdx, vecErr, vecErrMax, vecErrNum, errNumMax);
+          return 1;
+        }
+      }
+    }
+
+    /* see if invariant learned from tensor volume agrees with
+       volume of precomputed invariants */
+    if (AIR_EXISTS(sclErrMax)) {
+      sclDiff = sclSclP[0] - tenTenNormP[0];
+      sclAvg = (sclSclP[0] + tenTenNormP[0])/2;
+      sclErr = AIR_ABS(sclDiff)/sqrt(AIR_ABS(sclAvg));
+      if (sclErr > sclErrMax) {
+        sclErrNum++;
+        if (sclErrNum > errNumMax) {
+          biffAddf(BKEY, "%s: (probe %u) (B) sclErr %g > %g too many times %u > %u",
+                   me, probeIdx, sclErr, sclErrMax, sclErrNum, errNumMax);
+          return 1;
+        }
+      }
+    }
   }
 
   return 0;
@@ -774,8 +883,10 @@ main(int argc, const char **argv) {
     gageKindScl, gageKindVec, tenGageKind, NULL /* dwi */};
   char name[KIND_NUM][AIR_STRLEN_SMALL] = { "scl", "vec", "ten", "dwi" };
   char nameComp[KIND_NUM][AIR_STRLEN_SMALL] = { "sclComp", "vecComp", "tenComp", "dwiComp" };
+  char *kernS;
   gageKind *dwikind = NULL;
-  gageContext *gctxComp[KIND_NUM], *gctx[KIND_NUM];
+  gageContext *gctxComp[KIND_NUM], *gctxCompCopy[KIND_NUM],
+    *gctx[KIND_NUM], *gctxCopy[KIND_NUM];
   multiAnswer *manComp[KIND_NUM], *man[KIND_NUM];
   Nrrd *nin[KIND_NUM],
     /* these are the volumes that are used in gctxComp[] */
@@ -786,6 +897,7 @@ main(int argc, const char **argv) {
   unsigned int kindIdx, probeNum,
     gradNum = 10; /* small number so that missing one will produce
                      a big reconstruction error */
+  NrrdKernel *kpack[3];
 
   me = argv[0];
   mop = airMopNew();
@@ -796,10 +908,33 @@ main(int argc, const char **argv) {
              "kernel support");
   hestOptAdd(&hopt, "pnum", "N", airTypeUInt, 1, 1, &probeNum, "100",
              "# of probes");
+  hestOptAdd(&hopt, "k", "kern", airTypeString, 1, 1, &kernS, NULL,
+             "kernel to use; can be: box, cos, or ctmr");
   hestParseOrDie(hopt, argc-1, argv+1, hparm, me, testInfo,
                  AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
+
+  if (!strcmp(kernS, "box")) {
+    ELL_3V_SET(kpack,
+               nrrdKernelBoxSupportDebug,
+               nrrdKernelZero,
+               nrrdKernelZero);
+  } else if (!strcmp(kernS, "cos")) {
+    ELL_3V_SET(kpack,
+               nrrdKernelCos4SupportDebug,
+               nrrdKernelCos4SupportDebugD,
+               nrrdKernelCos4SupportDebugDD);
+  } else if (!strcmp(kernS, "ctmr")) {
+    ELL_3V_SET(kpack,
+               nrrdKernelCatmullRomSupportDebug,
+               nrrdKernelCatmullRomSupportDebugD,
+               nrrdKernelCatmullRomSupportDebugDD);
+  } else {
+    fprintf(stderr, "%s: kernel \"%s\" not recognized", me, kernS);
+    airMopError(mop); return 1;
+  }
+  fprintf(stderr, "kpack = %s, %s, %s\n", kpack[0]->name, kpack[1]->name, kpack[2]->name);
 
   /* This was a tricky bug: Adding gageContextNix(gctx) to the mop
      as soon as a gctx is created makes sense.  But, in the first
@@ -936,18 +1071,41 @@ main(int argc, const char **argv) {
   */
 
   /* ========================== TASK 1 */
-  if (updateQueryKernelSetTask1(gctxComp, gctx, manComp, man, ksupport)) {
+  if (updateQueryKernelSetTask1(gctxComp, gctx, AIR_TRUE, manComp, man, kpack, ksupport)
+      || probeTask1(gctxComp, gctx, manComp, man, probeNum, kpack, ksupport)) {
     airMopAdd(mop, err = biffGetDone(BKEY), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble updating contexts:\n%s", me, err);
+    fprintf(stderr, "%s: trouble (orig, orig):\n%s", me, err);
     airMopError(mop); return 1;
   }
-  if (probeTask1(gctxComp, gctx, manComp, man, probeNum, ksupport)) {
+  /* testing gageContextCopy on multi-variate volumes */
+  for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
+    if (!( gctxCopy[kindIdx] = gageContextCopy(gctx[kindIdx]) )) {
+      airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble w/ multi-variate contexts:\n%s", me, err);
+      airMopError(mop); return 1;
+    }
+    airMopAdd(mop, gctxCopy[kindIdx], (airMopper)gageContextNix, airMopAlways);
+  }
+  if (updateQueryKernelSetTask1(gctxComp, gctxCopy, AIR_FALSE, manComp, man, kpack, ksupport)
+      || probeTask1(gctxComp, gctxCopy, manComp, man, probeNum, kpack, ksupport)) {
     airMopAdd(mop, err = biffGetDone(BKEY), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble with probing:\n%s", me, err);
+    fprintf(stderr, "%s: trouble (orig, copy):\n%s", me, err);
     airMopError(mop); return 1;
   }
-
-  /* gageContextCopy on multi-variate values */
+  for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
+    if (!( gctxCompCopy[kindIdx] = gageContextCopy(gctxComp[kindIdx]) )) {
+      airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble w/ component contexts:\n%s", me, err);
+      airMopError(mop); return 1;
+    }
+    airMopAdd(mop, gctxCompCopy[kindIdx], (airMopper)gageContextNix, airMopAlways);
+  }
+  if (updateQueryKernelSetTask1(gctxCompCopy, gctxCopy, AIR_FALSE, manComp, man, kpack, ksupport)
+      || probeTask1(gctxCompCopy, gctxCopy, manComp, man, probeNum, kpack, ksupport)) {
+    airMopAdd(mop, err = biffGetDone(BKEY), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble (copy, copy):\n%s", me, err);
+    airMopError(mop); return 1;
+  }
 
   /* ========================== TASK 2 */
   /* create scale-space stacks with tent, ctmr, and hermite */
