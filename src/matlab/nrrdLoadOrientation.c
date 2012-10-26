@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -68,10 +68,10 @@ void mexFunction(int nlhs, mxArray *plhs[],
   }
 
   domainAxisNum = nrrdDomainAxesGet(nrrd, domainAxisIdx);
-  plhs[0] = mxCreateDoubleMatrix(domainAxisNum /* # rows */, 
+  plhs[0] = mxCreateDoubleMatrix(domainAxisNum /* # rows */,
                                  nrrd->dim /* # cols */, mxREAL);
   for (colIdx=0; colIdx<nrrd->dim; colIdx++) {
-    spacingStatus = nrrdSpacingCalculate(nrrd, domainAxisIdx[colIdx], 
+    spacingStatus = nrrdSpacingCalculate(nrrd, domainAxisIdx[colIdx],
                                          &spacing, spaceDir);
     switch(spacingStatus) {
     case nrrdSpacingStatusNone:
@@ -89,7 +89,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
       break;
     case nrrdSpacingStatusDirection:
       for (rowIdx=0; rowIdx<domainAxisNum; rowIdx++) {
-        mxGetPr(plhs[0])[rowIdx + domainAxisNum*colIdx] = 
+        mxGetPr(plhs[0])[rowIdx + domainAxisNum*colIdx] =
           nrrd->axis[colIdx].spaceDirection[rowIdx];
       }
       break;

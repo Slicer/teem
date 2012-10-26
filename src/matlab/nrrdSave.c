@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -77,7 +77,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   Nrrd *nrrd;
   airArray *mop;
   const mxArray *filenameMx, *arrayMx;
-  
+
   if (!(2 == nrhs && mxIsChar(prhs[0]) )) {
     sprintf(errBuff, "%s: requires two args: one string, one array", me);
     mexErrMsgTxt(errBuff);
@@ -101,11 +101,11 @@ void mexFunction(int nlhs, mxArray *plhs[],
             me, dim, NRRD_DIM_MAX);
     mexErrMsgTxt(errBuff);
   }
-  
+
   filenameLen = mxGetM(filenameMx)*mxGetN(filenameMx)+1;
   filename = mxCalloc(filenameLen, sizeof(mxChar));    /* managed by Matlab */
   mxGetString(filenameMx, filename, filenameLen);
-  
+
   for (axIdx=0; axIdx<dim; axIdx++) {
     sizeZ[axIdx] = mxGetDimensions(arrayMx)[axIdx];
   }
