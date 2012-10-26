@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -106,7 +106,7 @@ typedef struct {
                               multiple fixed parameters
                            4: min == 0; max == 1;
                               single variable parameter
-                           5: max - min >= 1; max >= 2 
+                           5: max - min >= 1; max >= 2
                               multiple variable parameters */
     alloc;              /* information about whether flag is non-NULL, and what
                            parameters were used, that determines whether or
@@ -125,7 +125,7 @@ typedef struct {
 /*
 ******** hestParm struct
 **
-** parameters to control behavior of hest functions. 
+** parameters to control behavior of hest functions.
 **
 ** GK: Don't even think about storing per-parse state in here.
 */
@@ -157,7 +157,7 @@ typedef struct {
                            to be greedy (as per airParseStrS) */
     cleverPluralizeOtherY; /* when printing the type for airTypeOther, when
                               the min number of items is > 1, and the type
-                              string ends with "y", then pluralize with 
+                              string ends with "y", then pluralize with
                               "ies" instead of "ys" */
   unsigned int columns; /* number of printable columns in output */
   char respFileFlag,    /* the character at the beginning of an argument
@@ -173,7 +173,7 @@ typedef struct {
 } hestParm;
 
 /* defaultsHest.c */
-/* HEY: recent Teem conventions say these should all start with 
+/* HEY: recent Teem conventions say these should all start with
    "hestDef" not just "hest" */
 HEST_EXPORT int hestVerbosity;
 HEST_EXPORT int hestRespFileEnable;
@@ -197,7 +197,7 @@ HEST_EXPORT char hestMultiFlagSep;
 HEST_EXPORT const int hestPresent;
 HEST_EXPORT hestParm *hestParmNew(void);
 HEST_EXPORT hestParm *hestParmFree(hestParm *parm);
-HEST_EXPORT void hestOptAdd(hestOpt **optP, 
+HEST_EXPORT void hestOptAdd(hestOpt **optP,
                             const char *flag, const char *name,
                             int type, int min, int max,
                             void *valueP, const char *dflt, const char *info,

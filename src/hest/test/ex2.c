@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -30,7 +30,7 @@ main(int argc, const char **argv) {
   int n;
   hestOpt *opt = NULL;
   hestParm *parm;
-  char *err = NULL, info[] = 
+  char *err = NULL, info[] =
     "This program does nothing in particular, though it does attempt "
     "to pose as some sort of command-line image processing program. "
     "As usual, any implied functionality is purely coincidental, "
@@ -48,7 +48,7 @@ main(int argc, const char **argv) {
              "PPM image output");
   hestOptAdd(&opt, NULL,    "input", airTypeString, 1, -1,  &in,  NULL,
              "input image file(s)", &numIn);
-  
+
   if (1 == argc) {
     /* didn't get anything at all on command line */
     /* print program information ... */
@@ -73,7 +73,7 @@ main(int argc, const char **argv) {
     parm = hestParmFree(parm);
     exit(1);
   }
-  
+
   printf("(err = %s)\n", err);
   printf("res = %d %d\n", res[0], res[1]);
   printf("  v = %d\n", v);

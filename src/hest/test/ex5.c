@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -51,7 +51,7 @@ main(int argc, const char **argv) {
   hestOpt *opt = NULL;
   char *err = NULL;
 
-  hestOptAdd(&opt, "A",      "token",           airTypeOther, 1,  1, &single, 
+  hestOptAdd(&opt, "A",      "token",           airTypeOther, 1,  1, &single,
              "alpha",        "testing A",       NULL,  NULL,  &cbinfo);
   hestOptAdd(&opt, "B",      "tok1 tok2 tok3",  airTypeOther, 3,  3, triple,
              "beta psi rho", "testing B",       NULL,  NULL,  &cbinfo);
@@ -61,7 +61,7 @@ main(int argc, const char **argv) {
              "kappa omega",  "testing D",       &howMany, NULL, &cbinfo);
   hestOptAdd(&opt, "int",    "N",               airTypeInt,   1,  1, &N,
              NULL,           "an integer");
-  
+
   if (hestParse(opt, argc-1, argv+1, &err, NULL)) {
     fprintf(stderr, "ERROR: %s\n", err); free(err);
     hestUsage(stderr, opt, argv[0], NULL);

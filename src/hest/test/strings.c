@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -31,11 +31,11 @@ _airCloPrintStr(FILE *f, int indent, int already, int width, char *_str);
 int
 main() {
   char line[1025];
-  
+
   strcpy(line, "bingo  \t\t   bob    \t   boasts   \n   bumperstickers  \n  ");
   airOneLinify(line);
   printf("|%s|\n", line);
-  
+
   strcpy(line, " \t  \n  ");
   airOneLinify(line);
   printf("|%s|\n", line);
@@ -73,7 +73,7 @@ main() {
   fprintf(stdout, "This was found on my desk: ");
   _hestPrintStr(stdout, 10, strlen("This was found on my desk: "),
                 76, line, AIR_FALSE);
-  
+
   exit(0);
 }
 

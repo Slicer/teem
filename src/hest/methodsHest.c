@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -31,7 +31,7 @@ hestPresent = 42;
 hestParm *
 hestParmNew() {
   hestParm *parm;
-  
+
   parm = AIR_CALLOC(1, hestParm);
   if (parm) {
     parm->verbosity = hestVerbosity;
@@ -83,7 +83,7 @@ _hestOptInit(hestOpt *opt) {
 hestOpt *
 hestOptNew(void) {
   hestOpt *opt;
-  
+
   opt = AIR_CALLOC(1, hestOpt);
   if (opt) {
     _hestOptInit(opt);
@@ -94,7 +94,7 @@ hestOptNew(void) {
 */
 
 void
-hestOptAdd(hestOpt **optP, 
+hestOptAdd(hestOpt **optP,
            const char *flag, const char *name,
            int type, int min, int max,
            void *valueP, const char *dflt, const char *info, ...) {
@@ -154,7 +154,7 @@ hestOptAdd(hestOpt **optP,
 
 void
 _hestOptFree(hestOpt *opt) {
-  
+
   opt->flag = (char *)airFree(opt->flag);
   opt->name = (char *)airFree(opt->name);
   opt->dflt = (char *)airFree(opt->dflt);
@@ -230,13 +230,13 @@ _hestIdent(char *ident, hestOpt *opt, hestParm *parm, int brief) {
     strcpy(copy, opt->flag);
     sep = strchr(copy, parm->multiFlagSep);
     *sep = '\0';
-    if (brief) 
+    if (brief)
       sprintf(ident, "-%s%c--%s option", copy, parm->multiFlagSep, sep+1);
-    else 
+    else
       sprintf(ident, "-%s option", copy);
   }
   else {
-    sprintf(ident, "%s%s%s option", 
+    sprintf(ident, "%s%s%s option",
             opt->flag ? "\"-"      : "<",
             opt->flag ? opt->flag : opt->name,
             opt->flag ? "\""       : ">");
@@ -246,7 +246,7 @@ _hestIdent(char *ident, hestOpt *opt, hestParm *parm, int brief) {
 
 int
 _hestMax(int max) {
-  
+
   if (-1 == max) {
     max = INT_MAX;
   }
@@ -256,7 +256,7 @@ _hestMax(int max) {
 int
 _hestKind(hestOpt *opt) {
   int max;
-  
+
   max = _hestMax(opt->max);
   if (!( (int)opt->min <= max )) {    /* HEY scrutinize casts */
     /* invalid */
@@ -277,7 +277,7 @@ _hestKind(hestOpt *opt) {
     /* multiple fixed parameters */
     return 3;
   }
-  
+
   if (0 == opt->min && 1 == max) {
     /* single optional parameter */
     return 4;
@@ -311,7 +311,7 @@ int
 _hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm) {
   char buff[AIR_STRLEN_HUGE], copy[AIR_STRLEN_HUGE], *sep;
   int op, numOpts;
-  
+
   numOpts = _hestNumOpts(opt);
   if (parm->verbosity)
     printf("_hestWhichFlag: flag = %s, numOpts = %d\n", flag, numOpts);
@@ -363,7 +363,7 @@ _hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm) {
 */
 int
 _hestCase(hestOpt *opt, int *udflt, unsigned int *nprm, int *appr, int op) {
-  
+
   if (opt[op].flag && !appr[op]) {
     return 0;
   }
@@ -408,7 +408,7 @@ _hestExtract(int *argcP, char **argv, unsigned int base, unsigned int pnum) {
     /* if a single element of argv has spaces in it, someone went
        to the trouble of putting it in quotes, and we perpetuate
        the favor by quoting it when we concatenate all the argv
-       elements together, so that airParseStrS will recover it as a 
+       elements together, so that airParseStrS will recover it as a
        single string again */
     if (strstr(argv[base+pidx], " ")) {
       strcat(ret, "\"");

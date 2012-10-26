@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,7 +24,7 @@
 #include "../hest.h"
 
 /*
-** this example has been taken out of the build because GLK was sure 
+** this example has been taken out of the build because GLK was sure
 ** Fri May 13 00:51:11 CDT 2011 how to handle these annoying warnings:
 
 ../hest/test/ex1.c: In function 'main':
@@ -42,7 +42,7 @@ main(int argc, char **argv) {
   static int *mm, mmm;
   int n;
   hestOpt opt[] = {
-    {"res",   "sx sy", airTypeInt,    2,  2,   res,  NULL, 
+    {"res",   "sx sy", airTypeInt,    2,  2,   res,  NULL,
      "image resolution"},
     {"v",     "level", airTypeInt,    0,  1,   &v,   NULL /* "0" */,
      "verbosity level"},
@@ -55,7 +55,7 @@ main(int argc, char **argv) {
     {NULL, NULL, 0}
   };
   hestParm *parm;
-  char *err = NULL, info[] = 
+  char *err = NULL, info[] =
     "This program does nothing in particular, though it does attempt "
     "to pose as some sort of command-line image processing program. "
     "Any implied functionality is purely coincidental, especially since "
@@ -81,7 +81,7 @@ main(int argc, char **argv) {
     parm = hestParmFree(parm);
     exit(1);
   }
-  
+
   printf("(err = %s)\n", err);
   printf("res = %d %d\n", res[0], res[1]);
   printf("  v = %d\n", v);
