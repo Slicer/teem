@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -27,7 +27,7 @@
 #include <teem/air.h>
 #include <teem/hest.h>
 
-static const char *info = 
+static const char *info =
   ("Converts from DOS text files to normal (converting LF-CR pairs "
    "to just CR), or, with the \"-r\" option, convert back to DOS, "
    "for whatever sick and twisted reason you'd have to do that. "
@@ -64,7 +64,7 @@ undosConvert(const char *me, char *name, int reverse, int mac,
   fin = airFopen(name, stdin, "rb");
   if (!fin) {
     if (!quiet) {
-      fprintf(stderr, "%s: couldn't open \"%s\" for reading: \"%s\"\n", 
+      fprintf(stderr, "%s: couldn't open \"%s\" for reading: \"%s\"\n",
               me, name, strerror(errno));
     }
     airMopError(mop); return;
@@ -110,7 +110,7 @@ undosConvert(const char *me, char *name, int reverse, int mac,
       fprintf(stderr, "%s: more than %g%% of \"%s\" is non-printing, "
               "skipping ...\n", me, BAD_PERC, name);
     }
-    airMopError(mop); return;    
+    airMopError(mop); return;
   }
   fin = airFclose(fin);
 
@@ -154,7 +154,7 @@ undosConvert(const char *me, char *name, int reverse, int mac,
     return;
   } else {
     if (!quiet) {
-      fprintf(stderr, "%s: %s \"%s\" %s %s ... \n", me, 
+      fprintf(stderr, "%s: %s \"%s\" %s %s ... \n", me,
               noAction ? "would convert" : "converting",
               name,
               reverse ? "to" : "from",
@@ -173,7 +173,7 @@ undosConvert(const char *me, char *name, int reverse, int mac,
   fout = airFopen(name, stdout, "wb");
   if (!fout) {
     if (!quiet) {
-      fprintf(stderr, "%s: couldn't open \"%s\" for writing: \"%s\"\n", 
+      fprintf(stderr, "%s: couldn't open \"%s\" for writing: \"%s\"\n",
               me, name, strerror(errno));
     }
     airMopError(mop); return;
@@ -249,7 +249,7 @@ main(int argc, const char *argv[]) {
   for (ni=0; ni<lenName; ni++) {
     undosConvert(me, name[ni], reverse, mac, quiet, noAction);
   }
-  
+
   airMopOkay(mop);
   return 0;
 }

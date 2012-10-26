@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -110,7 +110,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
   grid = AIR_CAST(double *, ngrid->data);
   gridDim = AIR_ROUNDUP_UI(grid[0]);
   if (gridDim + 1 != ngrid->axis[1].size) {
-    biffAddf(GAGE, "%s: ngrid->axis[1].size = %u but expected %u = 1 + %u", 
+    biffAddf(GAGE, "%s: ngrid->axis[1].size = %u but expected %u = 1 + %u",
              me, AIR_UINT(ngrid->axis[1].size),
              1 + gridDim, gridDim);
     airMopError(mop); return 1;
@@ -145,7 +145,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
         fprintf(stderr, "z = ");
       }
       fprintf(stderr, " %s/%s",
-              airSprintSize_t(stmp[0], coordOut[2]), 
+              airSprintSize_t(stmp[0], coordOut[2]),
               airSprintSize_t(stmp[1], sizeOut[2]));
       fflush(stderr);
       if (verbose > 1) {
@@ -173,7 +173,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
                           indexSpace, clamp));
     if (E) {
       biffAddf(GAGE, "%s: trouble at II=%s =(%g,%g,%g,%g):\n%s\n(%d)\n", me,
-               airSprintSize_t(stmp[0], II), 
+               airSprintSize_t(stmp[0], II),
                pos[0], pos[1], pos[2], pos[3],
                ctx->errStr, ctx->errNum);
       airMopError(mop); return 1;
@@ -190,12 +190,12 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
   if (verbose && verbose <= 1) {
     fprintf(stderr, "\n");
   }
-  
+
   airMopOkay(mop);
   return 0;
 }
 
-static const char *probeInfo = 
+static const char *probeInfo =
   ("Shows off the functionality of the gage library. "
    "Uses gageProbe() to query various kinds of volumes "
    "to learn various measured or derived quantities.");
@@ -225,7 +225,7 @@ main(int argc, const char *argv[]) {
   gageStackBlurParm *sbp;
   int otype, clamp;
   char stmp[4][AIR_STRLEN_SMALL];
-  
+
   me = argv[0];
   /* parse environment variables first, in case they break nrrdDefault*
      or nrrdState* variables in a way that nrrdSanity() should see */
@@ -262,7 +262,7 @@ main(int argc, const char *argv[]) {
              "\"kind\" of volume (\"scalar\", \"vector\", "
              "\"tensor\", or \"dwi\")",
              NULL, NULL, meetHestGageKind);
-  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1", 
+  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1",
              "verbosity level");
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
              "the quantity (scalar, vector, or matrix) to learn by probing");
@@ -395,7 +395,7 @@ main(int argc, const char *argv[]) {
 
     sbp = gageStackBlurParmNew();
     airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
-    if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1], 
+    if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1],
                                   uniformSS, optimSS)
         || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE)
         || gageStackBlurParmBoundarySet(sbp, nrrdBoundaryBleed, AIR_NAN)
@@ -435,7 +435,7 @@ main(int argc, const char *argv[]) {
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
-  if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm); 
+  if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel22, k22->kernel, k22->parm);
   if (numSS) {
     gagePerVolume **pvlSS;
@@ -468,7 +468,7 @@ main(int argc, const char *argv[]) {
   if (verbose) {
     fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
             2*ctx->radius);
-  } 
+  }
 
   if (ELL_3V_EXISTS(pntPos)) {
     /* only interested in a single point, make sure we have the right
@@ -566,9 +566,9 @@ main(int argc, const char *argv[]) {
               AIR_UINT(_npos->axis[0].size));
       airMopError(mop); return 1;
     }
-    if ((numSS && 3 == _npos->axis[0].size) 
+    if ((numSS && 3 == _npos->axis[0].size)
         || (!numSS && 4 == _npos->axis[0].size)) {
-      fprintf(stderr, "%s: have %u point coords but %s using scale-space\n", 
+      fprintf(stderr, "%s: have %u point coords but %s using scale-space\n",
               me, AIR_UINT(_npos->axis[0].size),
               numSS ? "are" : "are not");
       airMopError(mop); return 1;
@@ -579,7 +579,7 @@ main(int argc, const char *argv[]) {
     nout = nrrdNew();
     airMopAdd(mop, nout, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
     if (nrrdConvert(npos, _npos, nrrdTypeDouble)
-        || nrrdMaybeAlloc_va(nout, otype, 2, 
+        || nrrdMaybeAlloc_va(nout, otype, 2,
                              AIR_CAST(size_t, ansLen),
                              AIR_CAST(size_t, NN))) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
@@ -715,7 +715,7 @@ main(int argc, const char *argv[]) {
                                     0, 1);
             if (verbose > 1) {
               fprintf(stderr, "%s: scale pos %g -> idx %g = %u + %g\n", me,
-                      posSS, idxSS, vi, 
+                      posSS, idxSS, vi,
                       AIR_AFFINE(sbp->scale[vi], posSS, sbp->scale[vi+1],
                                  0, 1));
             }
@@ -769,7 +769,7 @@ main(int argc, const char *argv[]) {
             AIR_CAST(double, nrrdElementNumber(nout)/ansLen)
             / (1000.0*(t1-t0)));
   }
-  
+
   /* massage output some */
   nrrdContentSet_va(nout, "gprobe", nin, "%s", airEnumStr(kind->enm, what));
   if (!_ngrid) {
@@ -808,12 +808,12 @@ main(int argc, const char *argv[]) {
       }
     } else {
       for (axi=0; axi<3; axi++) {
-        nout->axis[axi+oBaseDim].spacing = 
+        nout->axis[axi+oBaseDim].spacing =
           rscl[axi]*nin->axis[axi+iBaseDim].spacing;
       }
     }
   }
-  
+
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);

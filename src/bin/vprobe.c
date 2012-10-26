@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -31,7 +31,7 @@
 #include <teem/ten.h>
 #include <teem/meet.h>
 
-static const char *probeInfo = 
+static const char *probeInfo =
   ("Shows off the functionality of the gage library. "
    "Uses gageProbe() to query various kinds of volumes "
    "to learn various measured or derived quantities. "
@@ -103,7 +103,7 @@ main(int argc, const char *argv[]) {
              "\"kind\" of volume (\"scalar\", \"vector\", "
              "\"tensor\", or \"dwi\")",
              NULL, NULL, meetHestGageKind);
-  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1", 
+  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1",
              "verbosity level");
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
              "the quantity (scalar, vector, or matrix) to learn by probing");
@@ -221,7 +221,7 @@ main(int argc, const char *argv[]) {
       ninSS[ninSSIdx] = nrrdNew();
       airMopAdd(mop, ninSS[ninSSIdx], (airMopper)nrrdNuke, airMopAlways);
     }
-    if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1], 
+    if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1],
                                   SSuniform, SSoptim)
         || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE)
         || gageStackBlurParmBoundarySet(sbp, nrrdBoundaryBleed, AIR_NAN)
@@ -272,7 +272,7 @@ main(int argc, const char *argv[]) {
         idxSS = vi + AIR_AFFINE(sbp->scale[vi], wrlSS, sbp->scale[vi+1], 0, 1);
         if (verbose > 1) {
           fprintf(stderr, "%s: scale pos %g -> idx %g = %u + %g\n", me,
-                  wrlSS, idxSS, vi, 
+                  wrlSS, idxSS, vi,
                   AIR_AFFINE(sbp->scale[vi], wrlSS, sbp->scale[vi+1], 0, 1));
         }
         break;
@@ -304,7 +304,7 @@ main(int argc, const char *argv[]) {
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
-  if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm); 
+  if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel22, k22->kernel, k22->parm);
   if (numSS) {
     gagePerVolume **pvlSS;
@@ -382,7 +382,7 @@ main(int argc, const char *argv[]) {
                                    ansLen, sox, soy, soz);
   } else {
     if (verbose) {
-      fprintf(stderr, "%s: creating %s x %s x %s output\n", me, 
+      fprintf(stderr, "%s: creating %s x %s x %s output\n", me,
               airSprintSize_t(stmp[0], sox),
               airSprintSize_t(stmp[1], soy),
               airSprintSize_t(stmp[2], soz));
@@ -406,7 +406,7 @@ main(int argc, const char *argv[]) {
     return 1;
   }
   if (AIR_TRUE == hackSet) {
-    fprintf(stderr, "%s: %s hack on: will only measure Zi=%u\n", 
+    fprintf(stderr, "%s: %s hack on: will only measure Zi=%u\n",
             me, hackKeyStr, hackZi);
   }
 
@@ -451,7 +451,7 @@ main(int argc, const char *argv[]) {
       }
       for (xi=0; xi<sox; xi++) {
         if (verbose > 2) {
-          fprintf(stderr, " (%u,%u)/(%u,%u)", 
+          fprintf(stderr, " (%u,%u)/(%u,%u)",
                   AIR_UINT(xi), AIR_UINT(yi),
                   AIR_UINT(sox), AIR_UINT(soy));
           fflush(stderr);
@@ -462,7 +462,7 @@ main(int argc, const char *argv[]) {
              ? gageStackProbe(ctx, x, y, z, idxSS)
              : gageProbe(ctx, x, y, z));
         if (E) {
-          fprintf(stderr, 
+          fprintf(stderr,
                   "%s: trouble at i=(%s,%s,%s) -> f=(%g,%g,%g):\n%s\n(%d)\n",
                   me, airSprintSize_t(stmp[0], xi),
                   airSprintSize_t(stmp[1], yi),
@@ -521,7 +521,7 @@ main(int argc, const char *argv[]) {
     }
   } else {
     for (axi=0; axi<3; axi++) {
-      nout->axis[axi+oBaseDim].spacing = 
+      nout->axis[axi+oBaseDim].spacing =
         rscl[axi]*nin->axis[axi+iBaseDim].spacing;
     }
   }

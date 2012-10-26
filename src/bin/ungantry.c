@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -48,7 +48,7 @@ main(int argc, const char *argv[]) {
   NrrdKernelSpec *gantric;
   void *out;
   double (*insert)(void *v, size_t I, double d);
-  
+
   me = argv[0];
   hparm = hestParmNew();
   hparm->elideSingleOtherType = AIR_TRUE;
@@ -98,7 +98,7 @@ main(int argc, const char *argv[]) {
   }
   fprintf(stderr, "%s: input and output have dimensions %d %d %d\n",
           me, sx, sy, sz);
-  
+
   /* start by just copying the nrrd; then we'll meddle with the values */
   if (nrrdCopy(nout = nrrdNew(), nin)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(NRRD));
@@ -123,15 +123,15 @@ main(int argc, const char *argv[]) {
   }
   gageParmSet(ctx, gageParmVerbose, 0);
   val = gageAnswerPointer(ctx, pvl, gageSclValue);
-  
+
   for (zi=0; zi<sz; zi++) {
     for (yi=0; yi<sy; yi++) {
       for (xi=0; xi<sx; xi++) {
-        
+
         /* convert to world space, use angle to determine new
            world space position, convert back to index space,
            clamp z to find inside old volume */
-        
+
         y = (yi - sy/2.0)*ys;
         z = (zi*zs + y*sin(-angle*3.141592653/180.0))/zs;
         if (clamp || AIR_IN_OP(0, z, sz-1)) {
@@ -154,6 +154,6 @@ main(int argc, const char *argv[]) {
   hopt = hestOptFree(hopt);
   nrrdNuke(nout);
   nrrdNuke(nin);
-  
+
   exit(0);
 }

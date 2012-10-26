@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -27,7 +27,7 @@
 #include <teem/nrrd.h>
 #include <teem/limn.h>
 
-static const char *emapInfo = 
+static const char *emapInfo =
   ("Creates environment maps based on limn's \"checker\" "
    "normal quantization methods.  By taking into account "
    "camera parameters, this allows for both lights in "
@@ -52,7 +52,7 @@ main(int argc, const char *argv[]) {
   limnLight *light;
   limnCamera *cam;
   double u, v, r, w, V2W[9], diff, WW[3], VV[3];
-  
+
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();
@@ -109,7 +109,7 @@ main(int argc, const char *argv[]) {
   }
 
   if (!(nrrdTypeFloat == nlight->type &&
-        2 == nlight->dim && 
+        2 == nlight->dim &&
         7 == nlight->axis[0].size &&
         LIMN_LIGHT_NUM >= nlight->axis[1].size)) {
     fprintf(stderr, "%s: nlight isn't valid format for light specification, "
@@ -123,11 +123,11 @@ main(int argc, const char *argv[]) {
   limnLightAmbientSet(light, amb[0], amb[1], amb[2]);
   for (li=0; li<nlight->axis[1].size; li++) {
     linfo = (float *)(nlight->data) + 7*li;
-    limnLightSet(light, li, !!linfo[0], 
-                 linfo[1], linfo[2], linfo[3], 
+    limnLightSet(light, li, !!linfo[0],
+                 linfo[1], linfo[2], linfo[3],
                  linfo[4], linfo[5], linfo[6]);
   }
-  
+
   cam->neer = -0.000000001;
   cam->dist = 0;
   cam->faar = 0.0000000001;
@@ -169,7 +169,7 @@ main(int argc, const char *argv[]) {
           continue;
         }
         w = sqrt(1 - r*r);
-        
+
         /* first, the near side of the sphere */
         ELL_3V_SET(VV, u, v, -w);
         ELL_3MV_MUL(WW, V2W, VV);
@@ -178,7 +178,7 @@ main(int argc, const char *argv[]) {
           limnQNtoV_d[method](VV, qn);
           ELL_3V_SUB(WW, WW, VV);
           diff = ELL_3V_LEN(WW);
-          ELL_3V_SET_TT(debug + 3*(ui + 1024*vi), float, 
+          ELL_3V_SET_TT(debug + 3*(ui + 1024*vi), float,
                         diff, diff, diff);
         } else {
           ELL_3V_COPY(debug + 3*(ui + 1024*vi), map + 3*qn);
@@ -192,7 +192,7 @@ main(int argc, const char *argv[]) {
           limnQNtoV_d[method](VV, qn);
           ELL_3V_SUB(WW, WW, VV);
           diff = ELL_3V_LEN(WW);
-          ELL_3V_SET_TT(debug + 3*(ui + 512 + 1024*vi), float, 
+          ELL_3V_SET_TT(debug + 3*(ui + 512 + 1024*vi), float,
                         diff, diff, diff);
         } else {
           ELL_3V_COPY(debug + 3*(ui + 512 + 1024*vi), map + 3*qn);
@@ -201,7 +201,7 @@ main(int argc, const char *argv[]) {
     }
     nrrdSave(debugS, ndebug, NULL);
   }
-  
+
   airMopOkay(mop);
   return 0;
 }

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -75,7 +75,7 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "mi", "max # iters", airTypeUInt, 1, 1, &maxIter, "100",
              "maximum number of iterations with which to compute the "
              "deconvolution");
-  hestOptAdd(&hopt, "e", "epsilon", airTypeDouble, 1, 1, &epsilon, 
+  hestOptAdd(&hopt, "e", "epsilon", airTypeDouble, 1, 1, &epsilon,
              "0.00000001", "convergence threshold");
   hestOptAdd(&hopt, "s", "step", airTypeDouble, 1, 1, &step, "1.0",
              "scaling of value update");

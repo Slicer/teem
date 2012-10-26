@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -88,7 +88,7 @@ typedef struct {
 void
 verbose_cb(fltk::Widget *widget, pullBag *bag) {
   fltk::ValueInput *val;
-  
+
   val = (fltk::ValueInput *)widget;
   pullVerboseSet(bag->pctx, (int)val->value());
 }
@@ -96,7 +96,7 @@ verbose_cb(fltk::Widget *widget, pullBag *bag) {
 void
 isovalue_cb(fltk::Widget *widget, pullBag *bag) {
   Deft::Slider *slider;
-  
+
   slider = (Deft::Slider *)widget;
   if (bag->contour) {
     bag->contour->extract(slider->value());
@@ -145,7 +145,7 @@ outputGet(pullBag *bag) {
        : (nrrdCopy(bag->nfrcOld, bag->nfrcNew)
           || nrrdCopy(bag->nposOld, bag->nposNew)))
       || nrrdConvert(bag->nten, bag->nTenOut, nrrdTypeFloat)
-      /* hacks to visualize the (tan) covariance tensors 
+      /* hacks to visualize the (tan) covariance tensors
       || nrrdCopy(bag->nten, bag->ncovar)
       || nrrdCopy(bag->nten, bag->ntcovar)
       */
@@ -175,7 +175,7 @@ outputShow(pullBag *bag) {
 
   /*
   if (limnPolyDataSpiralTubeWrap(bag->phistTube, bag->phistLine,
-                                 (1 << limnPolyDataInfoRGBA) 
+                                 (1 << limnPolyDataInfoRGBA)
                                  | (1 << limnPolyDataInfoNorm),
                                  NULL,
                                  8, 8, bag->glyph->glyphScale()/5)) {
@@ -233,7 +233,7 @@ outputShow(pullBag *bag) {
       && AIR_EXISTS(bag->cvalRange->min)
       && AIR_EXISTS(bag->cvalRange->max)) {
     /* double mmin, mmax; */
-    fprintf(stderr, "!%s: cval cmap range %g %g ----------- \n", me, 
+    fprintf(stderr, "!%s: cval cmap range %g %g ----------- \n", me,
             bag->cvalRange->min, bag->cvalRange->max);
     /*
     mmin = -0.0342937;
@@ -263,12 +263,12 @@ outputShow(pullBag *bag) {
 
   first = bag->nrgb->axis[1].size != bag->nPosOut->axis[1].size;
   /*
-  fprintf(stderr, "!%s: %u %u -> %d\n", me, 
+  fprintf(stderr, "!%s: %u %u -> %d\n", me,
           AIR_UINT(bag->nrgb->axis[1].size),
           AIR_UINT(bag->nPosOut->axis[1].size), first);
   */
   if (first) {
-    if (nrrdMaybeAlloc_va(bag->nrgb, nrrdTypeFloat, 2, 
+    if (nrrdMaybeAlloc_va(bag->nrgb, nrrdTypeFloat, 2,
                           AIR_CAST(size_t, 3),
                           bag->nPosOut->axis[1].size)) {
       err = biffGetDone(NRRD);
@@ -281,7 +281,7 @@ outputShow(pullBag *bag) {
   bag->icvalr[1] = bag->cvalRange->max;
 
   double *strnOut;
-  strnOut = (bag->nstrn 
+  strnOut = (bag->nstrn
              ? AIR_CAST(double *, bag->nstrn->data)
              : NULL);
   double *qualOut;
@@ -329,7 +329,7 @@ outputShow(pullBag *bag) {
         ten[0] = 0;
       } else if (qualOut && qualOut[ii] < bag->qualMin-0.000001) {
         ten[0] = 0;
-      } else if (bag->pctx->CCNum 
+      } else if (bag->pctx->CCNum
                  && (bag->ccSingle->value()
                      ? idcc[ii] != bag->ccSelect->value()
                      : idcc[ii] > bag->ccSelect->value())) {
@@ -340,9 +340,9 @@ outputShow(pullBag *bag) {
       /*
       if (4589 == ii) {
         fprintf(stderr, "!%s: point %u/%u at (%g,%g,%g)=(%g,%g,%g,%g) got ten[0] %g\n",
-                me, ii, nn, 
+                me, ii, nn,
                 pos[0], pos[1], pos[1],
-                posOut[0], posOut[1], posOut[2], posOut[3], 
+                posOut[0], posOut[1], posOut[2], posOut[3],
                 ten[0]);
       }
       */
@@ -552,7 +552,7 @@ cwell_cb(fltk::Widget *, pullBag *bag) {
     unsigned int ii, nn;
     double xx, yy, de;
     FILE *file;
-    
+
     if ((file = fopen("eplot.txt", "w"))) {
       nn = 800;
       for (ii=0; ii<nn; ii++) {
@@ -573,14 +573,14 @@ gamma_cb(fltk::Widget *, pullBag *bag) {
 
 void
 strength_cb(fltk::Widget *, pullBag *bag) {
-  
+
   bag->strnMin = bag->strength->value();
   outputShow(bag);
 }
 
 void
 quality_cb(fltk::Widget *, pullBag *bag) {
-  
+
   bag->qualMin = bag->quality->value();
   outputShow(bag);
 }
@@ -649,7 +649,7 @@ save_cb(fltk::Widget *, pullBag *bag) {
     char fname[512];
     FILE *ff;
     unsigned int ii=0;
-    
+
     for (ii=0, ff=NULL; AIR_TRUE; ii++) {
       ff = airFclose(ff);
       sprintf(fname, "pos-sel-%03u.nrrd", ii);
@@ -716,7 +716,7 @@ main(int argc, const char **argv) {
   int verbose;
   int interType, allowCodimension3Constraints, scaleIsTau, useHalton,
     pointPerVoxel;
-  unsigned int samplesAlongScaleNum, pointNumInitial, 
+  unsigned int samplesAlongScaleNum, pointNumInitial,
     ppvZRange[2], snap, iterMax, stuckIterMax, constraintIterMax,
     popCntlPeriod, addDescent, iterCallback, rngSeed, progressBinMod,
     threadNum, eipHalfLife;
@@ -739,8 +739,8 @@ main(int argc, const char **argv) {
   unsigned int baryRes;
   int saveAndQuit, fog;
 
-  hestOptAdd(&hopt, "csqvmm", "min max", airTypeDouble, 2, 2, 
-             Deft::colorSclQuantityValueMinMax, "nan nan", 
+  hestOptAdd(&hopt, "csqvmm", "min max", airTypeDouble, 2, 2,
+             Deft::colorSclQuantityValueMinMax, "nan nan",
              "min/max values for cutting planes of scalar values");
   hestOptAdd(&hopt, "saq", "save & quit", airTypeInt, 0, 0, &saveAndQuit,
              NULL, "save image and quit, for batch processing");
@@ -826,7 +826,7 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "ens", "spec", airTypeOther, 1, 1, &enspS, "zero",
              "inter-particle energy, scale component",
              NULL, NULL, pullHestEnergySpec);
-  hestOptAdd(&hopt, "enw", "spec", airTypeOther, 1, 1, &enspWin, 
+  hestOptAdd(&hopt, "enw", "spec", airTypeOther, 1, 1, &enspWin,
              "butter:16,0.8", "windowing to create locality with additive "
              "scale-space interaction (\"-int add\")",
              NULL, NULL, pullHestEnergySpec);
@@ -854,19 +854,19 @@ main(int argc, const char **argv) {
              &binSingle, NULL,
              "turn off spatial binning (which prevents multi-threading "
              "from being useful), for debugging or speed-up measurement");
-  hestOptAdd(&hopt, "lti", "bool", airTypeBool, 1, 1, 
+  hestOptAdd(&hopt, "lti", "bool", airTypeBool, 1, 1,
              &liveThresholdOnInit, "true",
              "impose liveThresh on initialization");
-  hestOptAdd(&hopt, "por", "bool", airTypeBool, 1, 1, 
+  hestOptAdd(&hopt, "por", "bool", airTypeBool, 1, 1,
              &permuteOnRebin, "true",
              "permute points during rebinning");
-  hestOptAdd(&hopt, "npcwza", "bool", airTypeBool, 1, 1, 
+  hestOptAdd(&hopt, "npcwza", "bool", airTypeBool, 1, 1,
              &noPopCntlWithZeroAlpha, "false",
              "no pop cntl with zero alpha");
-  hestOptAdd(&hopt, "ubfgl", "bool", airTypeBool, 1, 1, 
+  hestOptAdd(&hopt, "ubfgl", "bool", airTypeBool, 1, 1,
              &useBetaForGammaLearn, "false",
              "use beta for gamma learning");
-  hestOptAdd(&hopt, "ratb", "bool", airTypeBool, 1, 1, 
+  hestOptAdd(&hopt, "ratb", "bool", airTypeBool, 1, 1,
              &restrictiveAddToBins, "true",
              "be choosy when adding points to bins to avoid overlap");
   hestOptAdd(&hopt, "svec", "vec", airTypeDouble, 3, 3, scaleVec, "0 0 0",
@@ -874,7 +874,7 @@ main(int argc, const char **argv) {
              "in 3-space");
   hestOptAdd(&hopt, "gssr", "rad", airTypeDouble, 1, 1, &glyphScaleRad, "0.0",
              "if non-zero (length), scaling of scale to cylindrical tensors");
-  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1", 
+  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1",
              "verbosity level");
   hestOptAdd(&hopt, "vol", "vol0 vol1", airTypeOther, 1, -1, &vspec, NULL,
              "input volumes, in format <filename>:<kind>:<volname>",
@@ -911,7 +911,7 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "np", "# points", airTypeUInt, 1, 1,
              &pointNumInitial, "1000",
              "number of points to start in system");
-  hestOptAdd(&hopt, "halton", NULL, airTypeInt, 0, 0, 
+  hestOptAdd(&hopt, "halton", NULL, airTypeInt, 0, 0,
              &useHalton, NULL,
              "use Halton sequence initialization instead of "
              "uniform random");
@@ -979,42 +979,42 @@ main(int argc, const char **argv) {
              &energyIncreasePermit, "0.0",
              "amount by which its okay for *per-particle* energy to increase "
              "during gradient descent process");
-  hestOptAdd(&hopt, "ess", "scl", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "ess", "scl", airTypeDouble, 1, 1,
              &backStepScale, "0.5",
              "when energy goes up instead of down, scale step "
              "size by this");
-  hestOptAdd(&hopt, "oss", "scl", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "oss", "scl", airTypeDouble, 1, 1,
              &opporStepScale, "1.0",
              "opportunistic scaling (hopefully up, >1) of step size "
              "on every iteration");
-  hestOptAdd(&hopt, "edmin", "frac", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "edmin", "frac", airTypeDouble, 1, 1,
              &energyDecreaseMin, "0.0001",
              "convergence threshold: stop when fractional improvement "
              "(decrease) in energy dips below this");
-  hestOptAdd(&hopt, "edpcmin", "frac", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "edpcmin", "frac", airTypeDouble, 1, 1,
              &energyDecreasePopCntlMin, "0.01",
              "population control is triggered when energy improvement "
              "goes below this threshold");
-  hestOptAdd(&hopt, "fnnm", "frac", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "fnnm", "frac", airTypeDouble, 1, 1,
              &fracNeighNixedMax, "0.25",
              "don't nix if this fraction (or more) of neighbors "
              "have been nixed");
-  hestOptAdd(&hopt, "pcp", "period", airTypeUInt, 1, 1, 
+  hestOptAdd(&hopt, "pcp", "period", airTypeUInt, 1, 1,
              &popCntlPeriod, "20",
              "# iters to wait between attempts at population control");
-  hestOptAdd(&hopt, "iad", "# iters", airTypeUInt, 1, 1, 
+  hestOptAdd(&hopt, "iad", "# iters", airTypeUInt, 1, 1,
              &addDescent, "10",
              "# iters to run descent on tentative new points during PC");
-  hestOptAdd(&hopt, "icb", "# iters", airTypeUInt, 1, 1, 
+  hestOptAdd(&hopt, "icb", "# iters", airTypeUInt, 1, 1,
              &iterCallback, "1",
              "periodicity of calling rendering callback");
 
-  hestOptAdd(&hopt, "ac3c", "ac3c", airTypeBool, 1, 1, 
+  hestOptAdd(&hopt, "ac3c", "ac3c", airTypeBool, 1, 1,
              &allowCodimension3Constraints, "false",
              "allow codimensions 3 constraints");
   hestOptAdd(&hopt, "sit", "sit", airTypeBool, 1, 1, &scaleIsTau, "false",
              "scale is tau");
-  hestOptAdd(&hopt, "rng", "seed", airTypeUInt, 1, 1, 
+  hestOptAdd(&hopt, "rng", "seed", airTypeUInt, 1, 1,
              &rngSeed, "42",
              "base seed value for RNGs");
   hestOptAdd(&hopt, "pbm", "mod", airTypeUInt, 1, 1,
@@ -1023,7 +1023,7 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "eiphl", "hl", airTypeUInt, 1, 1, &eipHalfLife, "0",
              "half-life of energyIncreasePermute (\"-eip\")");
   hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
-             &threadNum, "1", 
+             &threadNum, "1",
              (airThreadCapable
               ? "number of threads hoover should use"
               : "if threads where enabled in this Teem build, this is how "
@@ -1123,11 +1123,11 @@ main(int argc, const char **argv) {
                         energyDecreasePopCntlMin)
       || pullSysParmSet(pctx, pullSysParmBackStepScale, backStepScale)
       || pullSysParmSet(pctx, pullSysParmOpporStepScale, opporStepScale)
-      || pullSysParmSet(pctx, pullSysParmNeighborTrueProb, 
+      || pullSysParmSet(pctx, pullSysParmNeighborTrueProb,
                         neighborTrueProb)
       || pullSysParmSet(pctx, pullSysParmProbeProb, probeProb)
       || pullRngSeedSet(pctx, rngSeed)
-      || pullProgressBinModSet(pctx, progressBinMod) 
+      || pullProgressBinModSet(pctx, progressBinMod)
       || pullThreadNumSet(pctx, threadNum)
       || pullInterEnergySet(pctx, interType, enspR, enspS, enspWin)
       || pullInitLiveThreshUseSet(pctx, liveThresholdOnInit)
@@ -1141,19 +1141,19 @@ main(int argc, const char **argv) {
     E = pullInitGivenPosSet(pctx, nPosIn);
   } else if (pointPerVoxel) {
     E = pullInitPointPerVoxelSet(pctx, pointPerVoxel,
-                                 ppvZRange[0], ppvZRange[1], 
+                                 ppvZRange[0], ppvZRange[1],
                                  samplesAlongScaleNum, jitter);
   } else if (useHalton) {
     E = pullInitHaltonSet(pctx, pointNumInitial, 0);
   } else {
-    E = pullInitRandomSet(pctx, pointNumInitial); 
+    E = pullInitRandomSet(pctx, pointNumInitial);
   }
   if (E) {
     airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble with flags:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  if (meetPullVolLoadMulti(vspec, vspecNum, cachePathSS, 
+  if (meetPullVolLoadMulti(vspec, vspecNum, cachePathSS,
                            kSSblur, nrrdBoundaryBleed, AIR_NAN,
                            verbose)
       || meetPullVolAddMulti(pctx, vspec, vspecNum,
@@ -1197,7 +1197,7 @@ main(int argc, const char **argv) {
     ssrange[0] = gageTauOfSig(ssrange[0]);
     ssrange[1] = gageTauOfSig(ssrange[1]);
   }
-  
+
 #ifdef DEFT
   /* -------------------------------------------------- */
   /* initialize bag and its UI */
@@ -1238,7 +1238,7 @@ main(int argc, const char **argv) {
   bag.ncmapOut = nrrdNew();
   bag.nblur = nrrdNew();
   bag.norig = vspec[0]->nin;
-  nrrdCopy(bag.nblur, bag.norig);  
+  nrrdCopy(bag.nblur, bag.norig);
   bag.rsmc = nrrdResampleContextNew();
   E = 0;
   if (!E) E |= nrrdResampleDefaultCenterSet(bag.rsmc, nrrdDefaultCenter);
@@ -1260,7 +1260,7 @@ main(int argc, const char **argv) {
   bag.cvalRange = nrrdRangeNew(AIR_NAN, AIR_NAN);
   ELL_3V_COPY(bag.scaleVec, scaleVec);
   bag.glyphScaleRad = glyphScaleRad;
-  
+
   bag.scene = new Deft::Scene();
   bag.scene->bgColor(bg[0], bg[1], bg[2]);
 
@@ -1336,7 +1336,7 @@ main(int argc, const char **argv) {
     bag.cwell->fastUpdate(1);
     bag.cwell->callback((fltk::Callback*)cwell_cb, &bag);
     /* remember eip as fraction of well depth */
-    bag.energyIncreasePermitFrac = 
+    bag.energyIncreasePermitFrac =
       energyIncreasePermit/bag.pctx->energySpecR->parm[1];
   } else {
     bag.energyIncreasePermitFrac = AIR_NAN;
@@ -1382,7 +1382,7 @@ main(int argc, const char **argv) {
 
     fltk::Button *reblurButton = new fltk::Button(130, winy+4, 50, 20, "reblur");
     reblurButton->callback((fltk::Callback*)reblur_cb, &bag);
-    
+
     winy += incy;
     bag.sclWind = new Deft::Slider(0, winy, win->w(), incy=55, "scale window");
     bag.sclWind->align(fltk::ALIGN_LEFT);
@@ -1516,7 +1516,7 @@ main(int argc, const char **argv) {
   bag.scene->objectAdd(hedge);
   Deft::TensorGlyphUI *hedgeUI = new Deft::TensorGlyphUI(bag.hedge,
                                                          bag.viewer);
-  hedgeUI->show(); 
+  hedgeUI->show();
   */
 
   /* -------------------------------------------------- */
@@ -1536,7 +1536,7 @@ main(int argc, const char **argv) {
     triplane->alphaMaskThreshold(0);
     triplane->colorQuantity(Deft::colorTenQuantityRgbLinear);
   }
-  
+
   NrrdKernelSpec *ksp = nrrdKernelSpecNew();
   double kparm[10];
 
@@ -1561,7 +1561,7 @@ main(int argc, const char **argv) {
     fltk::Window *window = new fltk::Window(400, 80, "isovalue");
     window->begin();
     window->resizable(window);
-    
+
     winy = 0;
     bag.isoval = new Deft::Slider(0, winy, window->w(), incy=55, "isovalue");
     winy += incy;
@@ -1587,7 +1587,7 @@ main(int argc, const char **argv) {
     bag.phistSurf->changed();
     bag.scene->objectAdd(bag.phistSurf);
   }
-  
+
   fltk::flush();
   fltk::redraw();
 
@@ -1595,7 +1595,7 @@ main(int argc, const char **argv) {
      but after seeding and initialization */
   outputGet(&bag);
   outputShow(&bag);
-  
+
   if (!camkeep) {
     bag.viewer->cameraReset();
   }
@@ -1631,7 +1631,7 @@ main(int argc, const char **argv) {
     /* this returns when the user quits */
     ret = fltk::run();
   }
-  
+
 #else
   /* else not running as Deft, but as command-line */
   if (!E) E |= pullRun(pctx);

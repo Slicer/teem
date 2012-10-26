@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -29,7 +29,7 @@
 #include <teem/alan.h>
 #include <teem/ten.h>
 
-static const char *spotsInfo = 
+static const char *spotsInfo =
   ("Generate reaction-diffusion textures based on "
    "Turing's second example formulation (page 65) of "
    "his 1954 paper \"The Chemical Basis of Morphogenesis.\" ");
@@ -50,7 +50,7 @@ main(int argc, const char *argv[]) {
 
   me = argv[0];
   hestOptAdd(&hopt, "s", "sx sy", airTypeInt, 2, 3, &size, "128 128",
-             "size of texture, and also determines its dimension", 
+             "size of texture, and also determines its dimension",
              &sizeLen);
   hestOptAdd(&hopt, "srand", "N", airTypeUInt, 1, 1, &srnd, "42",
              "number to seed random number generator with.  This uses "
@@ -68,7 +68,7 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "wrap", NULL, airTypeInt, 0, 0, &wrap, NULL,
              "wrap edges of texture around a topological torus (which "
              "makes a texture suitable for tiling)");
-  hestOptAdd(&hopt, "ab", "alpha beta", airTypeDouble, 2, 2, alphabeta, 
+  hestOptAdd(&hopt, "ab", "alpha beta", airTypeDouble, 2, 2, alphabeta,
              "16.0 12.0",
              "the growth and decay parameters appearing in the reaction "
              "terms of the reaction-diffusion equations.  The default "
@@ -158,10 +158,10 @@ main(int argc, const char *argv[]) {
     airMopError(mop);
     return 1;
   }
-      
+
   if (alanUpdate(actx) || alanInit(actx, ninit, nparm)) {
     airMopAdd(mop, err = biffGetDone(ALAN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble initializing texture: %s\n", me, err); 
+    fprintf(stderr, "%s: trouble initializing texture: %s\n", me, err);
     airMopError(mop);
     return 1;
   }
@@ -169,7 +169,7 @@ main(int argc, const char *argv[]) {
   time0 = airTime();
   if (alanRun(actx)) {
     airMopAdd(mop, err = biffGetDone(ALAN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble generating texture: %s\n", me, err); 
+    fprintf(stderr, "%s: trouble generating texture: %s\n", me, err);
     airMopError(mop);
     return 1;
   }

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -56,7 +56,7 @@ printans(FILE *file, const double *ans, int len) {
   }
 }
 
-static const char *probeInfo = 
+static const char *probeInfo =
 ("Uses gageProbe() to query scalar or vector volumes "
  "at a single probe location.");
 
@@ -112,7 +112,7 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "pln", "num", airTypeUInt, 1, 1, &lineStepNum, "0",
              "if non-zero, number of steps of probing to do along line, "
              "which overrides \"-p\" and \"-pi\"");
-  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1", 
+  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1",
              "verbosity level");
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
              "the quantity (scalar, vector, or matrix) to learn by probing");
@@ -180,7 +180,7 @@ main(int argc, const char *argv[]) {
     airMopError(mop);
     return 1;
   }
-  
+
   if (ELL_4V_LEN(lineInfo) && !lineStepNum) {
     fprintf(stderr, "%s: gave line info (\"-pl\") but not "
             "# samples (\"-pln\")", me);
@@ -252,7 +252,7 @@ main(int argc, const char *argv[]) {
     sbp = NULL;
     ninSS = NULL;
   }
-  
+
   ctx = gageContextNew();
   airMopAdd(mop, ctx, AIR_CAST(airMopper, gageContextNix), airMopAlways);
   gageParmSet(ctx, gageParmGradMagCurvMin, gmc);
@@ -263,7 +263,7 @@ main(int argc, const char *argv[]) {
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, kind));
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
-  if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm); 
+  if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel22, k22->kernel, k22->parm);
   if (numSS) {
     gagePerVolume **pvlSS;
@@ -299,10 +299,10 @@ main(int argc, const char *argv[]) {
     nout = nrrdNew();
     airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
     if (1 == ansLen) {
-      E = nrrdAlloc_va(nout, nrrdTypeDouble, 1, 
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 1,
                        AIR_CAST(size_t, lpld->xyzwNum));
     } else {
-      E = nrrdAlloc_va(nout, nrrdTypeDouble, 2, 
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 2,
                        AIR_CAST(size_t, ansLen),
                        AIR_CAST(size_t, lpld->xyzwNum));
     }
@@ -341,10 +341,10 @@ main(int argc, const char *argv[]) {
     nout = nrrdNew();
     airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
     if (1 == ansLen) {
-      E = nrrdAlloc_va(nout, nrrdTypeDouble, 1, 
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 1,
                        AIR_CAST(size_t, lineStepNum));
     } else {
-      E = nrrdAlloc_va(nout, nrrdTypeDouble, 2, 
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 2,
                        AIR_CAST(size_t, ansLen),
                        AIR_CAST(size_t, lineStepNum));
     }

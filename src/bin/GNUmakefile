@@ -22,8 +22,8 @@
 #
 
 #### Name of the library goes here.
-#### 
-#### 
+####
+####
 L := bin
 ####
 #### We're not a library at all actually ...
@@ -43,12 +43,12 @@ endif
 ifeq (,$($(L).SEEN))
 $(L).SEEN := true
 
-#### By the ordering and guarding of includes, this will ALWAYS be the 
+#### By the ordering and guarding of includes, this will ALWAYS be the
 #### last "library" makefile to be parsed, regardless of the directory
 #### in which make started.
 
 ## BINS: all the command-line executables associated with teem
-## 
+##
 BINS = airSanity cubic nrrdSanity overrgb emap undos talkweb \
   unu pprobe vprobe gprobe qbert mrender miter gkms ungantry ilk \
   tend spots ninspect deconv puller
@@ -62,7 +62,7 @@ _binI = $(foreach bin,$(1),$(BDEST)/$(bin))
 _binDI = $(foreach bin,$(1),$(TEEM_SRC)/bin/$(bin) $(BDEST)/$(bin))
 
 ## BINS.{DEV,INST}: full paths to development and install versions
-## 
+##
 BINS.DEV := $(call _binD,$(BINS))
 BINS.INST := $(call _binI,$(BINS))
 
@@ -72,7 +72,7 @@ BINS.INST := $(call _binI,$(BINS))
 ##
 bin/dev: $(BINS.DEV)
 bin/install: $(BINS.INST)
-bin/clean: 
+bin/clean:
 	$(RM) $(addsuffix $(DOTEXE),$(BINS.DEV))
 bin/clobber: bin/clean
 	$(RM) $(addsuffix $(DOTEXE),$(BINS.INST))
@@ -84,7 +84,7 @@ bin/clobber: bin/clean
 ## the other library makesfiles.  The arguments to need() are
 ## libraries for which we need a header and/or libraries we need to
 ## link against.
-##	
+##
 airSanity.need  = $(call meneed,air)
 cubic.need      = $(call meneed,ell)
 nrrdSanity.need = $(call meneed,nrrd biff)
@@ -141,7 +141,7 @@ $(call _binDI,puller)     : $(call used,$(puller.need))
 ## How to make bins.dev and bins.inst: both kinds link against the
 ## same (installed) libraries and include the same (installed)
 ## headers, so the commands aren't actually any different ...
-## 
+##
 $(TEEM_SRC)/bin/% $(BDEST)/% : $(TEEM_SRC)/bin/%.c
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< \
 	$(LPATH) $(call link,$($(notdir $@).need)) \
