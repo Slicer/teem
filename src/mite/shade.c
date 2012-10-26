@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -35,7 +35,7 @@ miteShadeSpecNew(void) {
     shpec->vec1 = gageItemSpecNew();
     shpec->scl0 = gageItemSpecNew();
     shpec->scl1 = gageItemSpecNew();
-    if (!( shpec->vec0 && shpec->vec1 && 
+    if (!( shpec->vec0 && shpec->vec1 &&
            shpec->scl0 && shpec->scl1 )) {
       return NULL;
     }
@@ -197,7 +197,7 @@ miteShadeSpecPrint(char *buff, const miteShadeSpec *shpec) {
 }
 
 void
-miteShadeSpecQueryAdd(gageQuery queryScl, gageQuery queryVec, 
+miteShadeSpecQueryAdd(gageQuery queryScl, gageQuery queryVec,
                       gageQuery queryTen, gageQuery queryMite,
                       miteShadeSpec *shpec) {
   if (shpec) {

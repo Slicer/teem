@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -26,7 +26,7 @@
 
 int
 miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
-             int uIndex, int vIndex, 
+             int uIndex, int vIndex,
              double rayLen,
              double rayStartWorld[3], double rayStartIndex[3],
              double rayDirWorld[3], double rayDirIndex[3]) {
@@ -128,7 +128,7 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
     fprintf(stderr, "!%s: lit-tensor not yet implemented\n", me);
     break;
   default:
-    fprintf(stderr, "!%s: PANIC, shadeMethod %d unimplemented\n", 
+    fprintf(stderr, "!%s: PANIC, shadeMethod %d unimplemented\n",
             me, mrr->shadeSpec->method);
     exit(1);
     break;
@@ -193,7 +193,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
              mtt->gctx->errStr, mtt->gctx->errNum);
     return AIR_NAN;
   }
-  
+
   if (mrr->queryMiteNonzero) {
     /* There is some optimal trade-off between slowing things down
        with too many branches on all possible checks of queryMite,
@@ -228,7 +228,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
       if (!muu->normalSide) {
         mtt->directAnsMiteVal[miteValNdotV][0] =
           AIR_ABS(mtt->directAnsMiteVal[miteValNdotV][0]);
-        mtt->directAnsMiteVal[miteValNdotL][0] = 
+        mtt->directAnsMiteVal[miteValNdotL][0] =
           AIR_ABS(mtt->directAnsMiteVal[miteValNdotL][0]);
       }
       NdotV = mtt->directAnsMiteVal[miteValNdotV][0];
@@ -243,7 +243,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
       mtt->directAnsMiteVal[miteValGTdotV][0] = ELL_3V_DOT(knd, kn);
     }
   }
-  
+
 
   /* initialize txf range quantities, and apply all txfs */
   if (mtt->verbose) {
@@ -297,12 +297,12 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   return mtt->rayStep;
 }
 
-int 
+int
 miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
   int idx, slen, stageIdx;
   mite_t *imgData;
   double A;
-  
+
   AIR_UNUSED(mrr);
   mtt->samples += mtt->raySample;
   idx = mtt->ui + (muu->nout->axis[1].size)*mtt->vi;
@@ -330,7 +330,7 @@ miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
     for (stageIdx=0; stageIdx<mtt->stageNum; stageIdx++) {
       strcat(muu->ndebug->axis[0].label, mtt->stage[stageIdx].label);
       strcat(muu->ndebug->axis[0].label, ",,");
-    }      
+    }
     strcat(muu->ndebug->axis[0].label, "R,G,B,A,Z");
   }
   return 0;

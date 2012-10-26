@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -29,7 +29,7 @@ miteThreadNew() {
   static const char me[]="miteThreadNew";
   miteThread *mtt;
   int ii;
-  
+
   mtt = (miteThread *)calloc(1, sizeof(miteThread));
   if (!mtt) {
     biffAddf(MITE, "%s: couldn't calloc miteThread", me);
@@ -59,7 +59,7 @@ miteThreadNew() {
     return NULL;
   }
   for (ii=0; ii<=miteValGageKind->itemMax; ii++) {
-    mtt->directAnsMiteVal[ii] = mtt->ansMiteVal 
+    mtt->directAnsMiteVal[ii] = mtt->ansMiteVal
       + gageKindAnswerOffset(miteValGageKind, ii);
   }
   mtt->verbose = 0;
@@ -69,9 +69,9 @@ miteThreadNew() {
   mtt->raySample = 0;
   mtt->samples = 0;
   mtt->stage = NULL;
-  /* mtt->range[], rayStep, V, RR, GG, BB, TT  initialized in 
+  /* mtt->range[], rayStep, V, RR, GG, BB, TT  initialized in
      miteRayBegin or in miteSample */
-  
+
   return mtt;
 }
 
@@ -91,7 +91,7 @@ miteThreadNix(miteThread *mtt) {
 **
 ** this has some of the body of what would be miteThreadInit
 */
-int 
+int
 miteThreadBegin(miteThread **mttP, miteRender *mrr,
                 miteUser *muu, int whichThread) {
   static const char me[]="miteThreadBegin";
@@ -114,7 +114,7 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
 
   if (-1 != mrr->sclPvlIdx) {
     (*mttP)->ansScl = (*mttP)->gctx->pvl[mrr->sclPvlIdx]->answer;
-    (*mttP)->nPerp = ((*mttP)->ansScl 
+    (*mttP)->nPerp = ((*mttP)->ansScl
                       + gageKindAnswerOffset(gageKindScl, gageSclNPerp));
     (*mttP)->geomTens = ((*mttP)->ansScl
                          + gageKindAnswerOffset(gageKindScl, gageSclGeomTens));
@@ -135,7 +135,7 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
   (*mttP)->verbose = 0;
   (*mttP)->skip = 0;
   (*mttP)->_normal = _miteAnswerPointer(*mttP, mrr->normalSpec);
-  
+
   /* set up shading answers */
   switch(mrr->shadeSpec->method) {
   case miteShadeMethodNone:
@@ -164,10 +164,10 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
   return 0;
 }
 
-int 
+int
 miteThreadEnd(miteThread *mtt, miteRender *mrr,
               miteUser *muu) {
-  
+
   AIR_UNUSED(mtt);
   AIR_UNUSED(mrr);
   AIR_UNUSED(muu);

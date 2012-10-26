@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -94,7 +94,7 @@ _miteUserCheck(miteUser *muu) {
   miteShadeSpec *shpec;
   airArray *mop;
   unsigned int axi;
-  
+
   if (!muu) {
     biffAddf(MITE, "%s: got NULL pointer", me);
     return 1;
@@ -153,7 +153,7 @@ _miteUserCheck(miteUser *muu) {
   shpec = miteShadeSpecNew();
   airMopAdd(mop, shpec, (airMopper)miteShadeSpecNix, airMopAlways);
   if (miteShadeSpecParse(shpec, muu->shadeStr)) {
-    biffAddf(MITE, "%s: couldn't parse shading spec \"%s\"", 
+    biffAddf(MITE, "%s: couldn't parse shading spec \"%s\"",
              me, muu->shadeStr);
     airMopError(mop); return 1;
   }
@@ -197,14 +197,14 @@ _miteUserCheck(miteUser *muu) {
   }
   if (muu->nvin) {
     if (gageVolumeCheck(muu->gctx0, muu->nvin, gageKindVec)) {
-      biffMovef(MITE, GAGE, "%s: trouble with input %s volume", 
+      biffMovef(MITE, GAGE, "%s: trouble with input %s volume",
                 me, gageKindVec->name);
       airMopError(mop); return 1;
     }
   }
   if (muu->ntin) {
     if (gageVolumeCheck(muu->gctx0, muu->ntin, tenGageKind)) {
-      biffMovef(MITE, GAGE, "%s: trouble with input %s volume", 
+      biffMovef(MITE, GAGE, "%s: trouble with input %s volume",
                 me, tenGageKind->name);
       airMopError(mop); return 1;
     }
@@ -214,6 +214,6 @@ _miteUserCheck(miteUser *muu) {
     biffAddf(MITE, "%s: rendered image nrrd is NULL", me);
     airMopError(mop); return 1;
   }
-  airMopOkay(mop); 
+  airMopOkay(mop);
   return 0;
 }

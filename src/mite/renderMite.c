@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -55,7 +55,7 @@ _miteRenderNew(void) {
 
 miteRender *
 _miteRenderNix(miteRender *mrr) {
-  
+
   if (mrr) {
     airMopOkay(mrr->rmop);
     airFree(mrr);
@@ -63,7 +63,7 @@ _miteRenderNix(miteRender *mrr) {
   return NULL;
 }
 
-int 
+int
 miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   static const char me[]="miteRenderBegin";
   gagePerVolume *pvl;
@@ -71,7 +71,7 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   gageQuery queryScl, queryVec, queryTen;
   gageItemSpec isp;
   unsigned int axi, thr;
- 
+
   if (!(mrrP && muu)) {
     biffAddf(MITE, "%s: got NULL pointer", me);
     return 1;
@@ -143,7 +143,7 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   }
   fprintf(stderr, "!%s: kernel support = %d^3 samples\n",
           me, 2*muu->gctx0->radius);
-  
+
   if (nrrdMaybeAlloc_va(muu->nout, mite_nt, 3,
                         AIR_CAST(size_t, 5) /* RGBAZ */ ,
                         AIR_CAST(size_t, muu->hctx->imgSize[0]),
