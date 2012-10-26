@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -84,7 +84,7 @@ hooverContextCheck(hooverContext *ctx) {
   } else {
     minSize = (nrrdCenterCell == centr ? 1 : 2);
     if (!(ctx->volSize[0] >= minSize
-          && ctx->volSize[1] >= minSize 
+          && ctx->volSize[1] >= minSize
           && ctx->volSize[2] >= minSize)) {
       biffAddf(HOOVER, "%s: volume dimensions (%dx%dx%d) too small", me,
                ctx->volSize[0], ctx->volSize[1], ctx->volSize[2]);
@@ -100,7 +100,7 @@ hooverContextCheck(hooverContext *ctx) {
       ctx->volSpacing[1] = ctx->volSpacing[2] = ctx->volSpacing[0];
       fprintf(stderr, "%s: WARNING: assuming spacing %g for all axes\n",
               me, ctx->volSpacing[0]);
-      /* HEY : nrrdDefaultSpacing need not be the same as gageParm's 
+      /* HEY : nrrdDefaultSpacing need not be the same as gageParm's
          defaultSpacing, but we don't know anything about gage here,
          so what else can we do? */
     } else if (sxe && sye && sze) {
@@ -129,7 +129,7 @@ hooverContextCheck(hooverContext *ctx) {
     return 1;
   }
   if (!(ctx->numThreads <= HOOVER_THREAD_MAX)) {
-    biffAddf(HOOVER, "%s: sorry, number threads (%d) > max (%d)", me, 
+    biffAddf(HOOVER, "%s: sorry, number threads (%d) > max (%d)", me,
              ctx->numThreads, HOOVER_THREAD_MAX);
     return 1;
   }

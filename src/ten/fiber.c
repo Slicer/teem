@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -60,7 +60,7 @@ _tenFiberProbe(tenFiberContext *tfx, int *gageRet,
 
   gageShapeWtoI(tfx->gtx->shape, iPos, wPos);
   *gageRet = gageProbe(tfx->gtx, iPos[0], iPos[1], iPos[2]);
-  
+
   if (tfx->verbose > 2) {
     fprintf(stderr, "%s(%g,%g,%g, %s): hi ----- %s\n", me,
             iPos[0], iPos[1], iPos[2], seedProbe ? "***TRUE***" : "false",
@@ -130,17 +130,17 @@ _tenFiberProbe(tenFiberContext *tfx, int *gageRet,
       }
 
       /* set ten2Use */
-      if (seedProbe) {  /* we're on the *very* 1st probe per tract, 
+      if (seedProbe) {  /* we're on the *very* 1st probe per tract,
                            at the seed pt */
         ELL_3V_COPY(tfx->seedEvec, evec[tfx->ten2Which]);
         tfx->ten2Use = tfx->ten2Which;
         if (tfx->verbose > 2) {
-          fprintf(stderr, "%s: ** ten2Use == ten2Which == %d\n", me, 
+          fprintf(stderr, "%s: ** ten2Use == ten2Which == %d\n", me,
                   tfx->ten2Use);
         }
       } else {
         double *lastVec, dot[2];
-        
+
         if (!tfx->lastDirSet) {
           /* we're on some probe of the first step */
           lastVec = tfx->seedEvec;
@@ -190,14 +190,14 @@ _tenFiberProbe(tenFiberContext *tfx, int *gageRet,
       }
       break;
     default:
-      biffAddf(TEN, "%s: %s %s (%d) unimplemented!", me, 
+      biffAddf(TEN, "%s: %s %s (%d) unimplemented!", me,
               tenDwiFiberType->name,
               airEnumStr(tenDwiFiberType, tfx->fiberType), tfx->fiberType);
       ret = 1;
     } /* switch (tfx->fiberType) */
   }
   if (tfx->verbose > 2) {
-    fprintf(stderr, "%s: fiberEvec = %g %g %g\n", me, 
+    fprintf(stderr, "%s: fiberEvec = %g %g %g\n", me,
             tfx->fiberEvec[0], tfx->fiberEvec[1], tfx->fiberEvec[2]);
   }
 
@@ -207,7 +207,7 @@ _tenFiberProbe(tenFiberContext *tfx, int *gageRet,
 int
 _tenFiberStopCheck(tenFiberContext *tfx) {
   static const char me[]="_tenFiberStopCheck";
-  
+
   if (tfx->numSteps[tfx->halfIdx] >= TEN_FIBER_NUM_STEPS_MAX) {
     fprintf(stderr, "%s: numSteps[%d] exceeded sanity check value of %d!!\n",
             me, tfx->halfIdx, TEN_FIBER_NUM_STEPS_MAX);
@@ -258,7 +258,7 @@ void
 _tenFiberAlign(tenFiberContext *tfx, double vec[3]) {
   static const char me[]="_tenFiberAlign";
   double scale, dot;
-  
+
   if (tfx->verbose > 2) {
     fprintf(stderr, "%s: hi %s (lds %d):\t%g %g %g\n", me,
             !tfx->lastDirSet ? "**" : "  ",
@@ -458,8 +458,8 @@ _tenFiberIntegrate[TEN_FIBER_INTG_MAX+1])(tenFiberContext *tfx, double *) = {
 };
 
 /*
-** modified body of previous tenFiberTraceSet, in order to 
-** permit passing the nval for storing desired probed values 
+** modified body of previous tenFiberTraceSet, in order to
+** permit passing the nval for storing desired probed values
 */
 static int
 _fiberTraceSet(tenFiberContext *tfx, Nrrd *nval, Nrrd *nfiber,
@@ -488,7 +488,7 @@ _fiberTraceSet(tenFiberContext *tfx, Nrrd *nval, Nrrd *nfiber,
   unsigned int i, pansLen;
   airArray *mop;
   airPtrPtrUnion appu;
-  
+
   if (!(tfx)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
@@ -876,7 +876,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber,
 int
 tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber, double seed[3]) {
   static const char me[]="tenFiberTrace";
-  
+
   if (_fiberTraceSet(tfx, NULL, nfiber, NULL, 0, NULL, NULL, seed)) {
     biffAddf(TEN, "%s: problem computing tract", me);
     return 1;
@@ -889,7 +889,7 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber, double seed[3]) {
 ******** tenFiberDirectionNumber
 **
 ** NOTE: for the time being, a return of zero indicates an error, not
-** that we're being clever and detect that the seedpoint is in such 
+** that we're being clever and detect that the seedpoint is in such
 ** isotropy that no directions are possible (though such cleverness
 ** will hopefully be implemented soon)
 */
@@ -918,7 +918,7 @@ tenFiberDirectionNumber(tenFiberContext *tfx, double seed[3]) {
               airEnumStr(tenDwiFiberType, tenDwiFiberType12BlendEvec0));
       ret = 0;
       break;
-    default: 
+    default:
       biffAddf(TEN, "%s: type %d unknown!", me, tfx->fiberType);
       ret = 0;
       break;
@@ -934,7 +934,7 @@ tenFiberDirectionNumber(tenFiberContext *tfx, double seed[3]) {
 /*
 ******** tenFiberSingleTrace
 **
-** fiber tracing API that uses new tenFiberSingle, as well as being 
+** fiber tracing API that uses new tenFiberSingle, as well as being
 ** aware of multi-direction tractography
 **
 ** NOTE: this will not try any cleverness in setting "num"
@@ -1044,7 +1044,7 @@ tenFiberMultiNix(tenFiberMulti *tfm) {
 /*
 ******** tenFiberMultiTrace
 **
-** does tractography for a list of seedpoints 
+** does tractography for a list of seedpoints
 **
 ** tfml has been returned from tenFiberMultiNew()
 */
@@ -1112,7 +1112,7 @@ tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
       tfml->fiber[fibrNum].dirNum = dirNum;
       ELL_3V_COPY(seed, seedData + 3*seedIdx);
       if (tenFiberSingleTrace(tfx, &(tfml->fiber[fibrNum]), seed, dirIdx)) {
-        biffAddf(TEN, "%s: trouble on seed (%g,%g,%g) %u/%u, dir %u/%u", me, 
+        biffAddf(TEN, "%s: trouble on seed (%g,%g,%g) %u/%u, dir %u/%u", me,
                 seed[0], seed[1], seed[2], seedIdx, seedNum, dirIdx, dirNum);
         return 1;
       }
@@ -1208,7 +1208,7 @@ _fiberMultiExtract(tenFiberContext *tfx, Nrrd *nval,
     biffAddf(TEN, "%s: pvNum %u != fiberNum %u", me, pvNum, fiberNum);
     return 1;
   }
-  
+
   if (nval) {
     if (nrrdMaybeAlloc_va(nval, nrrdTypeDouble, 2,
                           AIR_CAST(size_t, pansLen),
@@ -1227,7 +1227,7 @@ _fiberMultiExtract(tenFiberContext *tfx, Nrrd *nval,
       return 1;
     }
   }
-    
+
   fiberIdx = 0;
   vertTotalIdx = 0;
   for (seedIdx=0; seedIdx<tfml->fiberArr->len; seedIdx++) {
@@ -1279,7 +1279,7 @@ _fiberMultiExtract(tenFiberContext *tfx, Nrrd *nval,
 ** polydata creation process are passed.
 */
 int
-tenFiberMultiPolyData(tenFiberContext *tfx, 
+tenFiberMultiPolyData(tenFiberContext *tfx,
                       limnPolyData *lpld, tenFiberMulti *tfml) {
   static const char me[]="tenFiberMultiPolyData";
 
@@ -1292,10 +1292,10 @@ tenFiberMultiPolyData(tenFiberContext *tfx,
 
 
 int
-tenFiberMultiProbeVals(tenFiberContext *tfx, 
+tenFiberMultiProbeVals(tenFiberContext *tfx,
                        Nrrd *nval, tenFiberMulti *tfml) {
   static const char me[]="tenFiberMultiProbeVals";
-  
+
   if (_fiberMultiExtract(tfx, nval, NULL, tfml)) {
     biffAddf(TEN, "%s: problem", me);
     return 1;

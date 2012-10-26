@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -51,14 +51,14 @@ limnpu_rastMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "s", "size", airTypeSize_t, 3, 3, size, NULL,
              "number of samples along each axis");
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &type, "uchar",
-             "type of output nrrd", 
+             "type of output nrrd",
              NULL, nrrdType);
   hestOptAdd(&hopt, NULL, "input", airTypeOther, 1, 1, &pld, NULL,
              "input polydata filename",
              NULL, NULL, limnHestPolyDataLMPD);
   hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
              "output nrrd filename");
-  
+
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
 
@@ -81,7 +81,7 @@ limnpu_rastMain(int argc, const char **argv, const char *me,
     airMopError(mop);
     return 1;
   }
-  
+
   airMopOkay(mop);
   return 0;
 }

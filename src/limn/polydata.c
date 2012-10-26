@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -28,7 +28,7 @@
 limnPolyData *
 limnPolyDataNew(void) {
   limnPolyData *pld;
-  
+
   pld = AIR_CALLOC(1, limnPolyData);
   if (pld) {
     pld->xyzw = NULL;
@@ -52,7 +52,7 @@ limnPolyDataNew(void) {
 
 limnPolyData *
 limnPolyDataNix(limnPolyData *pld) {
-  
+
   if (pld) {
     airFree(pld->xyzw);
     airFree(pld->rgba);
@@ -74,7 +74,7 @@ int
 _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
                        unsigned int vertNum) {
   static const char me[]="_limnPolyDataInfoAlloc";
-  
+
   if (vertNum != pld->rgbaNum
       && ((1 << limnPolyDataInfoRGBA) & infoBitFlag)) {
     pld->rgba = (unsigned char *)airFree(pld->rgba);
@@ -87,7 +87,7 @@ _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
     }
     pld->rgbaNum = vertNum;
   }
-  
+
   if (vertNum != pld->normNum
       && ((1 << limnPolyDataInfoNorm) & infoBitFlag)) {
     pld->norm = (float *)airFree(pld->norm);
@@ -100,7 +100,7 @@ _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
     }
     pld->normNum = vertNum;
   }
-  
+
   if (vertNum != pld->tex2Num
       && ((1 << limnPolyDataInfoTex2) & infoBitFlag)) {
     pld->tex2 = (float *)airFree(pld->tex2);
@@ -113,7 +113,7 @@ _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
     }
     pld->tex2Num = vertNum;
   }
-  
+
   if (vertNum != pld->tangNum
       && ((1 << limnPolyDataInfoTang) & infoBitFlag)) {
     pld->tang = (float *)airFree(pld->tang);
@@ -126,14 +126,14 @@ _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
     }
     pld->tangNum = vertNum;
   }
-  
+
   return 0;
 }
 
 unsigned int
 limnPolyDataInfoBitFlag(const limnPolyData *pld) {
   unsigned int ret;
-  
+
   ret = 0;
   if (pld) {
     if (pld->rgba && pld->rgbaNum == pld->xyzwNum) {
@@ -159,7 +159,7 @@ limnPolyDataAlloc(limnPolyData *pld,
                   unsigned int indxNum,
                   unsigned int primNum) {
   static const char me[]="limnPolyDataAlloc";
-  
+
   if (!pld) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
@@ -209,7 +209,7 @@ limnPolyDataAlloc(limnPolyData *pld,
 size_t
 limnPolyDataSize(const limnPolyData *pld) {
   size_t ret = 0;
-  
+
   if (pld) {
     ret += pld->xyzwNum*sizeof(float)*4;
     if (pld->rgba) {
@@ -234,7 +234,7 @@ limnPolyDataSize(const limnPolyData *pld) {
 int
 limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA) {
   static const char me[]="limnPolyDataCopy";
-  
+
   if (!( pldB && pldA )) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
@@ -268,7 +268,7 @@ limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
                   unsigned int num) {
   static const char me[]="limnPolyDataCopyN";
   unsigned int ii, jj, size;
-  
+
   if (!( pldB && pldA )) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
@@ -288,7 +288,7 @@ limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
     char *_end = _beg + size - 1;
     fprintf(stderr, "!%s: memcpy(%p+%u=%p,%u) --> [%p,%p] inside: %d %d\n", me,
             pldB->xyzw, ii*size, pldB->xyzw + ii*size, size,
-            _beg, _end, AIR_IN_CL(_xyzwBeg, _beg, _xyzwEnd), 
+            _beg, _end, AIR_IN_CL(_xyzwBeg, _beg, _xyzwEnd),
             AIR_IN_CL(_xyzwBeg, _end, _xyzwEnd));
     */
     memcpy(pldB->xyzw + ii*size, pldA->xyzw, size*sizeof(float));
@@ -329,7 +329,7 @@ limnPolyDataTransform_f(limnPolyData *pld,
                         const float homat[16]) {
   double hovec[4], mat[9], inv[9], norm[3], tang[3], nmat[9], tlen;
   unsigned int vertIdx;
-  
+
   if (pld && homat) {
     ELL_34M_EXTRACT(mat, homat);
     if (pld->norm) {
@@ -361,7 +361,7 @@ void
 limnPolyDataTransform_d(limnPolyData *pld, const double homat[16]) {
   double hovec[4], mat[9], inv[9], norm[3], nmat[9];
   unsigned int vertIdx;
-  
+
   if (pld && homat) {
     if (pld->norm) {
       ELL_34M_EXTRACT(mat, homat);
@@ -385,7 +385,7 @@ limnPolyDataTransform_d(limnPolyData *pld, const double homat[16]) {
 unsigned int
 limnPolyDataPolygonNumber(const limnPolyData *pld) {
   unsigned int ret, primIdx;
-  
+
   ret = 0;
   if (pld) {
     for (primIdx=0; primIdx<pld->primNum; primIdx++) {
@@ -410,14 +410,14 @@ limnPolyDataPolygonNumber(const limnPolyData *pld) {
 }
 
 static int
-limnPolyDataVertexNormals_(limnPolyData *pld, int nonorient) { 
+limnPolyDataVertexNormals_(limnPolyData *pld, int nonorient) {
   static const char me[]="limnPolyDataVertexNormals_";
   unsigned int infoBitFlag, primIdx, triIdx, normIdx, baseVertIdx;
   double len, *matrix=NULL;
   airArray *mop;
-  
+
   infoBitFlag = limnPolyDataInfoBitFlag(pld);
-  if (limnPolyDataAlloc(pld, 
+  if (limnPolyDataAlloc(pld,
                         infoBitFlag | (1 << limnPolyDataInfoNorm),
                         pld->xyzwNum,
                         pld->indxNum,
@@ -425,7 +425,7 @@ limnPolyDataVertexNormals_(limnPolyData *pld, int nonorient) {
     biffAddf(LIMN, "%s: couldn't alloc polydata normals", me);
     return 1;
   }
-  
+
   mop = airMopNew();
   if (nonorient) { /* we will accumulate outer products */
     matrix = (double *) malloc(sizeof(double)*9*pld->xyzwNum);
@@ -442,12 +442,12 @@ limnPolyDataVertexNormals_(limnPolyData *pld, int nonorient) {
       ELL_3V_SET(pld->norm + 3*normIdx, 0, 0, 0);
     }
   }
-  
+
   baseVertIdx = 0;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
     unsigned int triNum, indxLine[3]={0,0,0}, ii;
     float pos[3][3], edgeA[3], edgeB[3], norm[3];
-    
+
     switch (pld->type[primIdx]) {
     case limnPrimitiveTriangles:
       triNum = pld->icnt[primIdx]/3;
@@ -463,9 +463,9 @@ limnPolyDataVertexNormals_(limnPolyData *pld, int nonorient) {
       biffAddf(LIMN, "%s: came across unsupported limnPrimitive \"%s\"", me,
                airEnumStr(limnPrimitive, pld->type[primIdx]));
       airMopError(mop);
-      return 1;      
+      return 1;
     }
-    
+
     if (limnPrimitiveNoop != pld->type[primIdx]) {
       for (triIdx=0; triIdx<triNum; triIdx++) {
         switch (pld->type[primIdx]) {
@@ -517,7 +517,7 @@ limnPolyDataVertexNormals_(limnPolyData *pld, int nonorient) {
     }
     baseVertIdx += pld->icnt[primIdx];
   }
-  
+
   if (nonorient) {
     double eval[3], evec[9];
     for (normIdx=0; normIdx<pld->normNum; normIdx++) {
@@ -529,7 +529,7 @@ limnPolyDataVertexNormals_(limnPolyData *pld, int nonorient) {
       ELL_3V_NORM_TT(pld->norm + 3*normIdx, float, pld->norm + 3*normIdx, len);
     }
   }
-  
+
   airMopOkay(mop);
   return 0;
 }
@@ -548,7 +548,7 @@ limnPolyDataVertexNormalsNO(limnPolyData *pld) {
 unsigned int
 limnPolyDataPrimitiveTypes(const limnPolyData *pld) {
   unsigned int ret, primIdx;
-  
+
   ret = 0;
   if (pld) {
     for (primIdx=0; primIdx<pld->primNum; primIdx++) {
@@ -559,10 +559,10 @@ limnPolyDataPrimitiveTypes(const limnPolyData *pld) {
 }
 
 int
-limnPolyDataPrimitiveVertexNumber(Nrrd *nout, limnPolyData *pld) { 
+limnPolyDataPrimitiveVertexNumber(Nrrd *nout, limnPolyData *pld) {
   static const char me[]="limnPolyDataPrimitiveVertexNumber";
   unsigned int *vnum, pidx;
-  
+
   if (!(nout && pld)) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
@@ -572,23 +572,23 @@ limnPolyDataPrimitiveVertexNumber(Nrrd *nout, limnPolyData *pld) {
     biffMovef(LIMN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
-  
+
   vnum = AIR_CAST(unsigned int *, nout->data);
   for (pidx=0; pidx<pld->primNum; pidx++) {
     vnum[pidx] = pld->icnt[pidx];
   }
-  
+
   return 0;
 }
 
 int
-limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld) { 
+limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld) {
   static const char me[]="limnPolyDataPrimitiveArea";
   unsigned int primIdx, baseVertIdx;
   unsigned int triNum, triIdx, *indx, ii;
   float vert[3][3], edgeA[3], edgeB[3], cross[3];
   double *area;
-  
+
   if (!(nout && pld)) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
@@ -598,7 +598,7 @@ limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld) {
     biffMovef(LIMN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
-  
+
   area = AIR_CAST(double *, nout->data);
   baseVertIdx = 0;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
@@ -634,7 +634,7 @@ limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld) {
     }
     baseVertIdx += pld->icnt[primIdx];
   }
-  
+
   return 0;
 }
 
@@ -649,7 +649,7 @@ limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld,
   size_t xi, yi, zi;
   unsigned int vertIdx;
   double (*ins)(void *, size_t, double);
-  
+
   if (!(nout && pld && min && max && size)) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
@@ -663,23 +663,23 @@ limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld,
              airEnumStr(nrrdType, type));
     return 1;
   }
-  if (!( min[0] < max[0] && 
-         min[1] < max[1] && 
+  if (!( min[0] < max[0] &&
+         min[1] < max[1] &&
          min[2] < max[2] )) {
     biffAddf(LIMN, "%s min (%g,%g,%g) not < max (%g,%g,%g)", me,
              min[0], min[1], min[2], max[0], max[1], max[2]);
     return 1;
   }
-  
+
   if (nrrdMaybeAlloc_nva(nout, type, 3, size)) {
     biffMovef(LIMN, NRRD, "%s: trouble allocating output", me);
     return 1;
   }
   ins = nrrdDInsert[type];
-  
+
   for (vertIdx=0; vertIdx<pld->xyzwNum; vertIdx++) {
     double xyz[3];
-    
+
     ELL_34V_HOMOG(xyz, pld->xyzw + 4*vertIdx);
     if (!( AIR_IN_OP(min[0], xyz[0], max[0]) &&
            AIR_IN_OP(min[1], xyz[1], max[1]) &&
@@ -691,10 +691,10 @@ limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld,
     zi = airIndex(min[2], xyz[2], max[2], size[2]);
     ins(nout->data, xi + size[0]*(yi + size[1]*zi), 1.0);
   }
-  
+
   nrrdAxisInfoSet_nva(nout, nrrdAxisInfoMin, min);
   nrrdAxisInfoSet_nva(nout, nrrdAxisInfoMax, max);
-  
+
   return 0;
 }
 
@@ -703,7 +703,7 @@ limnPolyDataColorSet(limnPolyData *pld,
                      unsigned char RR, unsigned char GG,
                      unsigned char BB, unsigned char AA) {
   unsigned int vertIdx;
-  
+
   if (pld && ((1 << limnPolyDataInfoRGBA) & limnPolyDataInfoBitFlag(pld))) {
     for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
       ELL_4V_SET(pld->rgba + 4*vertIdx, RR, GG, BB, AA);

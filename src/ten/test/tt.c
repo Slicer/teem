@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -26,7 +26,7 @@
 char *info = ("Sample space of tensor shape.");
 
 void
-_ra2t(Nrrd *nten, double rad, double angle, 
+_ra2t(Nrrd *nten, double rad, double angle,
       double mRI[9], double mRF[9], double hack) {
   double x, y, xyz[3], XX[3], YY[3], CC[3], EE[3], VV[3], tmp, mD[9], mT[9];
   float *tdata;
@@ -46,7 +46,7 @@ _ra2t(Nrrd *nten, double rad, double angle,
   ELL_3V_NORM(XX, XX, tmp);
   ELL_3V_NORM(YY, YY, tmp);
   ELL_3V_SCALE_ADD3(xyz, 1.0, CC, hack*x, XX, hack*y, YY);
-  
+
   ELL_3M_IDENTITY_SET(mD);
   ELL_3M_DIAG_SET(mD, xyz[0], xyz[1], xyz[2]);
   ELL_3M_IDENTITY_SET(mT);
@@ -102,9 +102,9 @@ washQtoM3(double m[9], double q[4]) {
   x = p[1];
   y = p[2];
   z = p[3];
-  /* mathematica work implies that we should be 
+  /* mathematica work implies that we should be
      setting ROW vectors here */
-  ELL_3V_SET(m+0, 
+  ELL_3V_SET(m+0,
              1 - 2*(y*y + z*z),
              2*(x*y - w*z),
              2*(x*z + w*y));
@@ -124,14 +124,14 @@ main(int argc, const char *argv[]) {
   char *err, *outS;
   hestOpt *hopt=NULL;
   airArray *mop;
-  
+
   int sx, sy, xi, yi, samp, version, whole, right;
   float *tdata;
   double p[3], xyz[3], q[4], len, hackcp=0, maxca;
   double ca, cp, mD[9], mRF[9], mRI[9], mT[9], hack;
   Nrrd *nten;
   mop = airMopNew();
-  
+
   me = argv[0];
   hestOptAdd(&hopt, "n", "# samples", airTypeInt, 1, 1, &samp, "4",
              "number of glyphs along each edge of triangle");
@@ -158,13 +158,13 @@ main(int argc, const char *argv[]) {
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-  
+
   nten = nrrdNew();
   airMopAdd(mop, nten, (airMopper)nrrdNuke, airMopAlways);
 
   if (!( 1 == version || 2 == version )) {
     fprintf(stderr, "%s: version must be 1 or 2 (not %d)\n", me, version);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
   if (right) {
@@ -181,7 +181,7 @@ main(int argc, const char *argv[]) {
                         AIR_CAST(size_t, 3))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't allocate output:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
   q[0] = 1.0;
@@ -297,8 +297,8 @@ main(int argc, const char *argv[]) {
         ell_3m_post_mul_d(mT, mRI);
         ell_3m_post_mul_d(mT, mD);
         ell_3m_post_mul_d(mT, mRF);
-        
-        tdata = (float*)nten->data + 
+
+        tdata = (float*)nten->data +
           7*(2*(samp-1-xi) - (samp-1-yi) + (2*samp-1)*((samp-1-yi) + samp));
         tdata[0] = 1.0;
         TEN_M2T(tdata, mT);
@@ -308,11 +308,11 @@ main(int argc, const char *argv[]) {
     nten->axis[2].spacing = 1.5;
     nten->axis[3].spacing = 1;
   }
-  
+
   if (nrrdSave(outS, nten, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't save output:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
   airMopOkay(mop);

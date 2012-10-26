@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -74,35 +74,35 @@ main(int argc, char **argv) {
                    4, 0, 0);
   echoColorSet(rect, 1, 1, 1, 1);
   echoMatterLightSet(scene, rect, 1, 2);
-  
+
   rect = echoObjectNew(scene, echoTypeRectangle);
   echoRectangleSet(rect, -2, -2, -2,
                    4, 0, 0,
                    0, 4, 0);
   echoColorSet(rect, 1, 1, 1, 1);
   echoMatterLightSet(scene, rect, 1, 2);
-  
+
   rect = echoObjectNew(scene, echoTypeRectangle);
   echoRectangleSet(rect, -2, 2, -2,
                    4, 0, 0,
                    0, 0, 4);
   echoColorSet(rect, 1, 1, 1, 1);
   echoMatterLightSet(scene, rect, 1, 2);
-  
+
   rect = echoObjectNew(scene, echoTypeRectangle);
   echoRectangleSet(rect, -2, -2, -2,
                    0, 0, 4,
                    4, 0, 0);
   echoColorSet(rect, 1, 1, 1, 1);
   echoMatterLightSet(scene, rect, 1, 2);
-  
+
   rect = echoObjectNew(scene, echoTypeRectangle);
   echoRectangleSet(rect, -2, -2, -2,
                    0, 4, 0,
                    0, 0, 4);
   echoColorSet(rect, 1, 1, 1, 1);
   echoMatterLightSet(scene, rect, 1, 2);
-  
+
   rect = echoObjectNew(scene, echoTypeRectangle);
   echoRectangleSet(rect, 2, -2, -2,
                    0, 0, 4,
@@ -143,7 +143,7 @@ main(int argc, char **argv) {
   }
 
   nrrdSave("nraw.nrrd", nraw, NULL);
-  
+
   airMopOkay(mop);
 
   return 0;

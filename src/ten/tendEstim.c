@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -111,7 +111,7 @@ tend_estimThresholdFind(double *threshP, Nrrd *nbmat, Nrrd *nin4d) {
     biffAddf(TEN, "%s: trouble finding thresh", me);
     airMopError(mop); return 1;
   }
-  
+
   airMopOkay(mop);
   return 0;
 }
@@ -376,9 +376,9 @@ tend_estimMain(int argc, const char **argv, const char *me,
       airMopError(mop); return 1;
     }
     if (tenEstimate1TensorVolume4D(tec, nout, &nB0,
-                                   airStrlen(terrS) 
-                                   ? &nterr 
-                                   : NULL, 
+                                   airStrlen(terrS)
+                                   ? &nterr
+                                   : NULL,
                                    nin4d, nrrdTypeFloat)) {
       airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble doing estimation:\n%s\n", me, err);

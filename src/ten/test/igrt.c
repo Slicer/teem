@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -35,7 +35,7 @@ main(int argc, const char *argv[]) {
     pp[3], qq[4], rot[9], matA[9], matB[9], tmp;
   int doK, ret, ii, jj;
   mop = airMopNew();
-  
+
   me = argv[0];
   hestOptAdd(&hopt, NULL, "tensor", airTypeDouble, 6, 6, _ten, NULL,
              "tensor value");
@@ -54,7 +54,7 @@ main(int argc, const char *argv[]) {
   ELL_6V_COPY(ten+1, _ten);
   ten[0] = 1.0;
 
-  fprintf(stderr, "input tensor = %f %f %f    %f %f     %f\n", 
+  fprintf(stderr, "input tensor = %f %f %f    %f %f     %f\n",
           ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
 
   ELL_4V_SET(qq, 1, pp[0], pp[1], pp[2]);
@@ -66,11 +66,11 @@ main(int argc, const char *argv[]) {
   ELL_3M_MUL(matA, matB, rot);
   TEN_M2T(ten, matA);
 
-  fprintf(stderr, "rotated tensor = %f %f %f    %f %f     %f\n", 
+  fprintf(stderr, "rotated tensor = %f %f %f    %f %f     %f\n",
           ten[1], ten[2], ten[3], ten[4], ten[5], ten[6]);
 
   ret = tenEigensolve_d(eval, evec, ten);
-  fprintf(stderr, "eigensystem: %s: %g %g %g\n", 
+  fprintf(stderr, "eigensystem: %s: %g %g %g\n",
           airEnumDesc(ell_cubic_root, ret),
           eval[0], eval[1], eval[2]);
 
@@ -83,7 +83,7 @@ main(int argc, const char *argv[]) {
 
   fprintf(stderr, "invariant gradients and rotation tangents:\n");
   for (ii=0; ii<=2; ii++) {
-    fprintf(stderr, "  %s_%d: (norm=%g) %f %f %f     %f %f     %f\n", 
+    fprintf(stderr, "  %s_%d: (norm=%g) %f %f %f     %f %f     %f\n",
             doK ? "K" : "R", ii+1,
             TEN_T_NORM(igrt[ii]),
             igrt[ii][1], igrt[ii][2], igrt[ii][3],
@@ -91,7 +91,7 @@ main(int argc, const char *argv[]) {
             igrt[ii][6]);
   }
   for (ii=3; ii<=5; ii++) {
-    fprintf(stderr, "phi_%d: (norm=%g) %f %f %f     %f %f     %f\n", 
+    fprintf(stderr, "phi_%d: (norm=%g) %f %f %f     %f %f     %f\n",
             ii-2,
             TEN_T_NORM(igrt[ii]),
             igrt[ii][1], igrt[ii][2], igrt[ii][3],
@@ -107,7 +107,7 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "\n");
   }
 
-  
+
   airMopOkay(mop);
   return 0;
 }

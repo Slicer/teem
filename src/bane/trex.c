@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -26,7 +26,7 @@
 
 /* learned:
 ** NEVER EVER EVER bypass your own damn pseudo-constructors!
-** "npos" used to be a Nrrd (not a pointer), and Joe's 
+** "npos" used to be a Nrrd (not a pointer), and Joe's
 ** trex stuff was crashing because the if data free(data) in nrrd Alloc
 ** was freeing random stuff, but (and this is the weird part)
 ** only on some 1-D nrrds of 256 floats (pos1D info), and not others.
@@ -42,12 +42,12 @@ _baneTRexRead(char *fname) {
   char me[]="_baneTRexRead";
 
   if (nrrdLoad(baneNpos=nrrdNew(), fname, NULL)) {
-    fprintf(stderr, "%s: !!! trouble reading \"%s\":\n%s\n", me, 
+    fprintf(stderr, "%s: !!! trouble reading \"%s\":\n%s\n", me,
             fname, biffGet(NRRD));
     return NULL;
   }
   if (banePosCheck(baneNpos, 1)) {
-    fprintf(stderr, "%s: !!! didn't get a valid p(x) file:\n%s\n", me, 
+    fprintf(stderr, "%s: !!! didn't get a valid p(x) file:\n%s\n", me,
             biffGet(BANE));
     return NULL;
   }
@@ -64,5 +64,5 @@ _baneTRexRead(char *fname) {
 void
 _baneTRexDone() {
 
-  nrrdNuke(baneNpos); 
+  nrrdNuke(baneNpos);
 }

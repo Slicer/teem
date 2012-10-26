@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -33,7 +33,7 @@ echoBiffKey = "echo";
 echoRTParm *
 echoRTParmNew(void) {
   echoRTParm *parm;
-  
+
   parm = AIR_CALLOC(1, echoRTParm);
   if (parm) {
     parm->jitterType = echoJitterNone;
@@ -69,7 +69,7 @@ echoRTParmNix(echoRTParm *parm) {
 echoGlobalState *
 echoGlobalStateNew(void) {
   echoGlobalState *state;
-  
+
   state = AIR_CALLOC(1, echoGlobalState);
   if (state) {
     state->verbose = 0;
@@ -95,7 +95,7 @@ echoGlobalStateNix(echoGlobalState *state) {
 echoThreadState *
 echoThreadStateNew(void) {
   echoThreadState *state;
-  
+
   state = AIR_CALLOC(1, echoThreadState);
   if (state) {
     state->thread = airThreadNew();
@@ -131,7 +131,7 @@ echoScene *
 echoSceneNew(void) {
   echoScene *ret;
   echoPtrPtrUnion eppu;
-  
+
   ret = AIR_CALLOC(1, echoScene);
   if (ret) {
     ret->cat = NULL;
@@ -168,7 +168,7 @@ echoSceneNew(void) {
 void
 _echoSceneLightAdd(echoScene *scene, echoObject *obj) {
   unsigned int idx;
-  
+
   for (idx=0; idx<scene->lightArr->len; idx++) {
     if (obj == scene->light[idx]) {
       break;
@@ -183,7 +183,7 @@ _echoSceneLightAdd(echoScene *scene, echoObject *obj) {
 void
 _echoSceneNrrdAdd(echoScene *scene, Nrrd *nrrd) {
   unsigned int idx;
-  
+
   for (idx=0; idx<scene->nrrdArr->len; idx++) {
     if (nrrd == scene->nrrd[idx]) {
       break;
@@ -197,7 +197,7 @@ _echoSceneNrrdAdd(echoScene *scene, Nrrd *nrrd) {
 
 echoScene *
 echoSceneNix(echoScene *scene) {
-  
+
   if (scene) {
     airArrayNuke(scene->catArr);
     airArrayNuke(scene->rendArr);

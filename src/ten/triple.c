@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -47,17 +47,17 @@ typedef void (*tenTripleConverter)(double dst[3], const double src[3]);
 #define MU2 (mu[1])
 #define MU3 (mu[2])
 
-static void 
+static void
 _iden(double dst[3], const double src[3]) {
   ELL_3V_COPY(dst, src);
   return;
 }
 
 /* in the function names below, the format is _<dst>_<src>() */
-static void 
+static void
 _mu_ev(double mu[3], const double ev[3]) {
   double mm;
-  
+
   mm = mu[0] = (ev[0] + ev[1] + ev[2])/3;
   mu[1] = ((ev[0] - mm)*(ev[0] - mm) +
            (ev[1] - mm)*(ev[1] - mm) +
@@ -67,7 +67,7 @@ _mu_ev(double mu[3], const double ev[3]) {
            (ev[2] - mm)*(ev[2] - mm)*(ev[2] - mm))/3;
 }
 
-static double 
+static double
 _xyzmat[] = {2/SQRT6, -1/SQRT6, -1/SQRT6,
              0,        1/SQRT2, -1/SQRT2,
              1/SQRT3,  1/SQRT3,  1/SQRT3};
@@ -75,7 +75,7 @@ _xyzmat[] = {2/SQRT6, -1/SQRT6, -1/SQRT6,
 static void
 _xyz_ev(double xyz[3], const double _ev[3]) {
   double ev[3], tmp;
-  
+
   ELL_3V_COPY(ev, _ev);
   ELL_SORT3(ev[0], ev[1], ev[2], tmp);
   ELL_3MV_MUL(xyz, _xyzmat, ev);
@@ -83,7 +83,7 @@ _xyz_ev(double xyz[3], const double _ev[3]) {
 
 static void
 _ev_xyz(double ev[3], const double xyz[3]) {
-  
+
   ELL_3MV_TMUL(ev, _xyzmat, xyz);
 }
 
@@ -137,7 +137,7 @@ _ev_wp(double ev[3], const double wp[3]) {
 static void
 _wp_mu(double wp[3], const double mu[3]) {
   double stdv, mode;
-  
+
   wp[0] = MU1;
   stdv = sqrt(MU2);
   wp[1] = SQRT2*stdv;
@@ -167,7 +167,7 @@ _r_j(double r[3], const double j[3]) {
 
 static void
 _k_r(double k[3], const double r[3]) {
-  
+
   K1 = R1*sqrt(3 - 2*R2*R2);
   K2 = (SQRT2/SQRT3)*R1*R2;
   K3 = R3;
@@ -176,12 +176,12 @@ _k_r(double k[3], const double r[3]) {
 /*
 _j_r(double j[3], const double r[3]) {
   double ss, nmu3;
-  
+
   J1 = R1*sqrt(3 - 2*R2*R2);
   J2 = R1*R1*(1 - R2*R2);
   ss = R1*R2;
   nmu3 = 2*R3*ss*ss*ss;
-  J3 = 
+  J3 =
 }
 */
 
@@ -219,7 +219,7 @@ _rtp_xyz(double RThPh[3], const double XYZ[3]) {
 
 static void
 _xyz_rtz(double XYZ[3], const double rThZ[3]) {
-  
+
   XYZ[0] = rThZ[0]*cos(rThZ[1]);
   XYZ[1] = rThZ[0]*sin(rThZ[1]);
   XYZ[2] = rThZ[2];
@@ -267,7 +267,7 @@ _r_rtp(double r[3], const double RThPh[3]) {
 
 static void
 _wp_rtz(double wp[3], const double rThZ[3]) {
-  
+
   wp[0] = rThZ[2]/SQRT3;
   wp[1] = (SQRT2/SQRT3)*rThZ[0];
   wp[2] = rThZ[1];
@@ -275,7 +275,7 @@ _wp_rtz(double wp[3], const double rThZ[3]) {
 
 static void
 _rtz_wp(double rThZ[3], const double wp[3]) {
-  
+
   rThZ[0] = (SQRT3/SQRT2)*wp[1];
   rThZ[1] = wp[2];
   rThZ[2] = SQRT3*wp[0];
@@ -357,12 +357,12 @@ tenTripleConvertSingle_d(double dst[3], int dstType,
   if (ELL_3V_EXISTS(src) && !ELL_3V_EXISTS(dst)) {
     fprintf(stderr, "%s: problem? (%s) %g %g %g <-%s- (%s) %g %g %g\n", me,
             airEnumStr(tenTripleType, dstType),
-            dst[0], dst[1], dst[2], 
+            dst[0], dst[1], dst[2],
             direct ? "-" : "...",
             airEnumStr(tenTripleType, srcType),
             src[0], src[1], src[2]);
   }
-  
+
   return;
 }
 
@@ -438,19 +438,19 @@ tenTripleCalc(Nrrd *nout, int ttype, const Nrrd *nten) {
   }
   if (!( nrrdTypeFloat == nten->type ||
          nrrdTypeDouble == nten->type )) {
-    biffAddf(TEN, "%s: need input type %s or %s, not %s\n", me, 
+    biffAddf(TEN, "%s: need input type %s or %s, not %s\n", me,
              airEnumStr(nrrdType, nrrdTypeFloat),
              airEnumStr(nrrdType, nrrdTypeFloat),
              airEnumStr(nrrdType, nten->type));
   }
-  
+
   nrrdAxisInfoGet_nva(nten, nrrdAxisInfoSize, size);
   size[0] = 3;
   if (nrrdMaybeAlloc_nva(nout, nten->type, nten->dim, size)) {
     biffMovef(TEN, NRRD, "%s: couldn't alloc output", me);
     return 1;
   }
-  
+
   NN = nrrdElementNumber(nten)/7;
   lup = nrrdDLookup[nten->type];
   ins = nrrdDInsert[nten->type];
@@ -492,7 +492,7 @@ tenTripleConvert(Nrrd *nout, int dstType,
   }
   if ( airEnumValCheck(tenTripleType, dstType) ||
        airEnumValCheck(tenTripleType, srcType) ) {
-    biffAddf(TEN, "%s: got invalid %s dst (%d) or src (%d)", me, 
+    biffAddf(TEN, "%s: got invalid %s dst (%d) or src (%d)", me,
              tenTripleType->name, dstType, srcType);
     return 1;
   }

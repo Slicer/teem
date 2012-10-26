@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -38,7 +38,7 @@ _pullInterTypeStrEqv[] = {
   "r", "justr",
   "univariate", "univar", "uni",
   "separable", "separ", "sep",
-  "additive", "add", 
+  "additive", "add",
   ""
 };
 
@@ -161,7 +161,7 @@ pullEnergyUnknown = &_pullEnergyUnknown;
 ** ------------------------------ SPRING --------------------------
 ** ----------------------------------------------------------------
 ** 1 parms:
-** parm[0]: width of pull region.  Used to be width beyond 1.0, but 
+** parm[0]: width of pull region.  Used to be width beyond 1.0, but
 ** now things are scrunched to fit both repelling and attractive
 ** region inside [0,1]
 **
@@ -466,7 +466,7 @@ double
 _pullEnergyBetterCubicWellEval(double *denr, double x, const double *parm) {
   double a, b, c, d, e, f, g, wx, wy, xmo, xmoo, xmooo, enr;
 
-  /* HEY: it would be good if there was a place to store these 
+  /* HEY: it would be good if there was a place to store these
      intermediate values, so that they don't need to be computed
      for *every*single* inter-particle interaction */
   wx = parm[0];
@@ -617,7 +617,7 @@ pullEnergyZero = &_pullEnergyZero;
 /* ----------------------------------------------------------------
 ** ------------------------------- BPARAB -------------------------
 ** ----------------------------------------------------------------
-** 3 parms, the first two are for butterworth, 
+** 3 parms, the first two are for butterworth,
 ** parm[2] is a shift (probably negative) on the parabola
 */
 double
@@ -727,8 +727,8 @@ pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
     ensp->energy = pullEnergyAll[etype];
     if (0 != ensp->energy->parmNum) {
       biffAddf(PULL, "%s: need %u parm%s for %s energy, but got none", me,
-               ensp->energy->parmNum, 
-               (1 == ensp->energy->parmNum ? "" : "s"), 
+               ensp->energy->parmNum,
+               (1 == ensp->energy->parmNum ? "" : "s"),
                ensp->energy->name);
       return 1;
     }
@@ -800,7 +800,7 @@ pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
       airMopError(mop); return 1;
     }
   }
-  
+
   airMopOkay(mop);
   return 0;
 }

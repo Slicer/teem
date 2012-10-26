@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -57,8 +57,8 @@ pushBinDone(pushBin *bin) {
 }
 
 
-/* 
-** bins on boundary now extend to infinity; so the only time this 
+/*
+** bins on boundary now extend to infinity; so the only time this
 ** returns NULL (indicating error) is for non-existent positions
 */
 pushBin *
@@ -76,7 +76,7 @@ _pushBinLocate(pushContext *pctx, double *_posWorld) {
   if (pctx->binSingle) {
     binIdx = 0;
   } else {
-    ELL_3V_COPY(posWorld, _posWorld); 
+    ELL_3V_COPY(posWorld, _posWorld);
     posWorld[3] = 1.0;
     ELL_4MV_MUL(posIdx, pctx->gctx->shape->WtoI, posWorld);
     ELL_34V_HOMOG(posIdx, posIdx);
@@ -87,11 +87,11 @@ _pushBinLocate(pushContext *pctx, double *_posWorld) {
                                 pctx->binsEdge[axi]);
     }
     binIdx = (eidx[0]
-              + pctx->binsEdge[0]*(eidx[1] 
+              + pctx->binsEdge[0]*(eidx[1]
                                    + pctx->binsEdge[1]*eidx[2]));
   }
   /*
-  fprintf(stderr, "!%s: bin(%g,%g,%g) = %u\n", me, 
+  fprintf(stderr, "!%s: bin(%g,%g,%g) = %u\n", me,
           _posWorld[0], _posWorld[1], _posWorld[2], binIdx);
   */
 
@@ -121,7 +121,7 @@ _pushBinPointRemove(pushContext *pctx, pushBin *bin, int loseIdx) {
   AIR_UNUSED(pctx);
   bin->point[loseIdx] = bin->point[bin->pointNum-1];
   airArrayLenIncr(bin->pointArr, -1);
-  
+
   return;
 }
 
@@ -165,7 +165,7 @@ pushBinAllNeighborSet(pushContext *pctx) {
               for (xx=xmin; xx<=xmax; xx++) {
                 binIdx = xx + pctx->binsEdge[0]*(yy + pctx->binsEdge[1]*zz);
                 /*
-                fprintf(stderr, "!%s: nei[%u](%u,%u,%u) = %u\n", me, 
+                fprintf(stderr, "!%s: nei[%u](%u,%u,%u) = %u\n", me,
                         neiNum, xi, yi, zi, binIdx);
                 */
                 nei[neiNum++] = pctx->bin + binIdx;
@@ -185,7 +185,7 @@ int
 pushBinPointAdd(pushContext *pctx, pushPoint *point) {
   static const char me[]="pushBinPointAdd";
   pushBin *bin;
-  
+
   if (!( bin = _pushBinLocate(pctx, point->pos) )) {
     biffAddf(PUSH, "%s: can't locate point %p %u",
              me, AIR_CAST(void*, point), point->ttaagg);
@@ -196,7 +196,7 @@ pushBinPointAdd(pushContext *pctx, pushPoint *point) {
 }
 
 /*
-** This function is only called by the master thread, this 
+** This function is only called by the master thread, this
 ** does *not* have to be thread-safe in any way
 */
 int
@@ -209,7 +209,7 @@ pushRebin(pushContext *pctx) {
   if (!pctx->binSingle) {
     for (oldBinIdx=0; oldBinIdx<pctx->binNum; oldBinIdx++) {
       oldBin = pctx->bin + oldBinIdx;
-      
+
       for (pointIdx=0; pointIdx<oldBin->pointNum; /* nope! */) {
         point = oldBin->point[pointIdx];
         newBin = _pushBinLocate(pctx, point->pos);
@@ -226,7 +226,7 @@ pushRebin(pushContext *pctx) {
           pointIdx++;
         }
       } /* for pointIdx */
-      
+
     } /* for oldBinIdx */
   }
 

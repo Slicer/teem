@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -31,7 +31,7 @@ main(int argc, const char *argv[]) {
   char *err;
   hestOpt *hopt=NULL;
   airArray *mop;
-  
+
   unsigned int sx, sy, sz, ss, ii, anisoTypeNum, anisoTypeIdx,
     roiVoxNum, roiVoxIdx, statNum, statIdx;
   float *ten, *roi, *aniso, eval[3], *stat;
@@ -39,7 +39,7 @@ main(int argc, const char *argv[]) {
   int *anisoType, *measr;
   size_t anisoSize[2];
   mop = airMopNew();
-  
+
   me = argv[0];
   hestOptAdd(&hopt, "r,roi", "roi", airTypeOther, 1, 1, &_nroi, NULL,
              "ROI volume", NULL, NULL, nrrdHestNrrd);
@@ -59,7 +59,7 @@ main(int argc, const char *argv[]) {
   if (tenTensorCheck(nten, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: didn't get tensor input:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
 
@@ -68,26 +68,26 @@ main(int argc, const char *argv[]) {
   if (nrrdConvert(nroi, _nroi, nrrdTypeFloat)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't convert ROI to float:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
 
   sx = nten->axis[1].size;
   sy = nten->axis[2].size;
   sz = nten->axis[3].size;
-  if (!(3 == nroi->dim 
+  if (!(3 == nroi->dim
         && sx == nroi->axis[0].size
         && sy == nroi->axis[1].size
         && sz == nroi->axis[2].size)) {
     fprintf(stderr, "%s: ROI dimension or axis sizes don't match volume", me);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
   ss = sx*sy*sz;
 
   ten = AIR_CAST(float*, nten->data);
   roi = AIR_CAST(float*, nroi->data);
-  
+
   /* NOTE: for time being the statistics are not weighted, because
      nrrdMeasureLine[]() can't take a weight vector... */
 
@@ -106,7 +106,7 @@ main(int argc, const char *argv[]) {
   if (nrrdMaybeAlloc_nva(naniso, nrrdTypeFloat, 2, anisoSize)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't allocate aniso:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
   aniso = AIR_CAST(float *, naniso->data);
@@ -117,7 +117,7 @@ main(int argc, const char *argv[]) {
     if (roi[ii] > 0) {
       tenEigensolve_f(eval, NULL, ten + 7*ii);
       for (anisoTypeIdx=0; anisoTypeIdx<anisoTypeNum; anisoTypeIdx++) {
-        aniso[roiVoxIdx + roiVoxNum*anisoTypeIdx] 
+        aniso[roiVoxIdx + roiVoxNum*anisoTypeIdx]
           = tenAnisoEval_f(eval, anisoType[anisoTypeIdx]);
       }
       roiVoxIdx++;
@@ -139,7 +139,7 @@ main(int argc, const char *argv[]) {
     if (nrrdProject(nstat, naniso, 0, measr[statIdx], nrrdTypeFloat)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: couldn't measure:\n%s\n", me, err);
-      airMopError(mop); 
+      airMopError(mop);
       return 1;
     }
     stat = AIR_CAST(float *, nstat->data);
@@ -149,7 +149,7 @@ main(int argc, const char *argv[]) {
 
     printf("\n");
   }
-  
+
   airMopOkay(mop);
   return 0;
 }

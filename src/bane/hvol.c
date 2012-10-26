@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -40,7 +40,7 @@
 int
 _baneAxisCheck (baneAxis *ax) {
   static const char me[]="_baneAxisCheck";
-  
+
   if (!(ax->res >= 2)) {
     biffAddf(BANE, "%s: need resolution at least 2 (not %d)", me, ax->res);
     return 1;
@@ -65,7 +65,7 @@ baneProbe(double val[3],
   float *data=NULL;
 
   if (hvp->makeMeasrVol) {
-    data = ( (float*)(hvp->measrVol->data) 
+    data = ( (float*)(hvp->measrVol->data)
              + 3*(x + nin->axis[0].size*(y + nin->axis[1].size*z)) );
   }
   if (!hvp->makeMeasrVol || !hvp->measrVolDone) {
@@ -87,7 +87,7 @@ baneProbe(double val[3],
 }
 
 int
-baneFindInclusion(double min[3], double max[3], 
+baneFindInclusion(double min[3], double max[3],
                   Nrrd *nin, baneHVolParm *hvp, gageContext *ctx) {
   static const char me[]="baneFindInclusion";
   char prog[13],
@@ -98,7 +98,7 @@ baneFindInclusion(double min[3], double max[3],
   Nrrd *hist[3];
   */
   double val[3];
-  
+
   /* conveniance copies */
   sx = nin->axis[0].size;
   sy = nin->axis[1].size;
@@ -131,11 +131,11 @@ baneFindInclusion(double min[3], double max[3],
     fprintf(stderr, "%s: pass A of inclusion initialization ...       ", me);
     fflush(stderr);
   }
-  if (inc[0]->process[0] 
-      || inc[1]->process[0] 
+  if (inc[0]->process[0]
+      || inc[1]->process[0]
       || inc[2]->process[0]) {
     /*
-    fprintf(stderr, "%s: inclusion pass CBs = %p %p %p \n", me, 
+    fprintf(stderr, "%s: inclusion pass CBs = %p %p %p \n", me,
             incPass[0], incPass[1], incPass[2]);
     */
     if (hvp->makeMeasrVol && !hvp->measrVol) {
@@ -173,8 +173,8 @@ baneFindInclusion(double min[3], double max[3],
   /* HEY HEY HEY:  The variable "hist" is used before its value is set.
   if (hvp->verbose > 1) {
     fprintf(stderr, "%s: after pass A; ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
-            hist[0]->axis[0].min, hist[0]->axis[0].max, 
-            hist[1]->axis[0].min, hist[1]->axis[0].max, 
+            hist[0]->axis[0].min, hist[0]->axis[0].max,
+            hist[1]->axis[0].min, hist[1]->axis[0].max,
             hist[2]->axis[0].min, hist[2]->axis[0].max);
   }
   */
@@ -184,7 +184,7 @@ baneFindInclusion(double min[3], double max[3],
     fprintf(stderr, "%s: pass B of inclusion initialization ...       ", me);
     fflush(stderr);
   }
-  if (inc[0]->process[1] 
+  if (inc[0]->process[1]
       || inc[1]->process[1]
       || inc[2]->process[1]) {
     if (hvp->makeMeasrVol && !hvp->measrVol) {
@@ -221,8 +221,8 @@ baneFindInclusion(double min[3], double max[3],
   /* HEY HEY HEY:  The variable "hist" is used before its value is set.
   if (hvp->verbose > 1) {
     fprintf(stderr, "%s: after pass B; ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
-            hist[0]->axis[0].min, hist[0]->axis[0].max, 
-            hist[1]->axis[0].min, hist[1]->axis[0].max, 
+            hist[0]->axis[0].min, hist[0]->axis[0].max,
+            hist[1]->axis[0].min, hist[1]->axis[0].max,
             hist[2]->axis[0].min, hist[2]->axis[0].max);
   }
   */
@@ -322,7 +322,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
     airMopError(mop); return 1;
   }
   pad = ctx->radius;
-  
+
   if (baneFindInclusion(min, max, nin, hvp, ctx)) {
     biffAddf(BANE, "%s: trouble finding inclusion ranges", me);
     airMopError(mop); return 1;
@@ -348,7 +348,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   if (hvp->verbose)
     fprintf(stderr, "%s: inclusion: 0:[%g,%g], 1:[%g,%g], 2:[%g,%g]\n", me,
             min[0], max[0], min[1], max[1], min[2], max[2]);
-  
+
   /* construct the "raw" (un-clipped) histogram volume */
   if (hvp->verbose) {
     fprintf(stderr, "%s: creating raw histogram volume ...       ", me);
@@ -362,14 +362,14 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
                         AIR_CAST(size_t, shy),
                         AIR_CAST(size_t, shz))) {
     biffMovef(BANE, NRRD,
-              "%s: couldn't allocate raw histovol (%dx%dx%d)", 
+              "%s: couldn't allocate raw histovol (%dx%dx%d)",
               me, shx, shy, shz);
     airMopError(mop); return 1;
   }
   airMopAdd(mop, rawhvol, (airMopper)nrrdNuke, airMopAlways);
   rhvdata = (int *)rawhvol->data;
   included = 0;
-  
+
   for (z=pad; z<sz-pad; z++) {
     for (y=pad; y<sy-pad; y++) {
       if (hvp->verbose && !((y-pad+(sy-2*pad)*(z-pad))%200)) {
@@ -404,10 +404,10 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   }
   if (hvp->verbose) {
     fprintf(stderr, "\b\b\b\b\b\b  done\n");
-    fprintf(stderr, "%s: included %g%% of original voxels\n", me, 
+    fprintf(stderr, "%s: included %g%% of original voxels\n", me,
             fracIncluded*100);
   }
-  
+
   /* determine the clipping value and produce the final histogram volume */
   if (baneClipAnswer(&clipVal, hvp->clip, rawhvol)) {
     biffAddf(BANE, "%s: trouble determining clip value", me);
@@ -456,7 +456,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   if (hvp->verbose)
     fprintf(stderr, "\b\b\b\b\b\b  done\n");
 
-  airMopOkay(mop); 
+  airMopOkay(mop);
   return 0;
 }
 
@@ -465,7 +465,7 @@ baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc) {
   static const char me[]="baneGKMSHVol";
   baneHVolParm *hvp;
   Nrrd *hvol;
-  
+
   if (!(hvp = baneHVolParmNew())) {
     biffAddf(BANE, "%s: couldn't get hvol parm struct", me);
     return NULL;
@@ -490,7 +490,7 @@ baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
   baneMeasrType msr;
   nrrdBigInt idx;
   float (*insert)(void *, nrrdBigInt, float);
-  
+
   if (3 != nin->dim) {
     biffAddf(BANE, "%s: need a 3-dimensional nrrd (not %d)", me, nin->dim);
     return 1;

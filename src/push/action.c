@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -54,7 +54,7 @@ _pushProbe(pushTask *task, pushPoint *point) {
              task->gctx->errNum, task->gctx->errStr);
     return 1;
   }
-    
+
   TEN_T_COPY(point->ten, task->tenAns);
   TEN_T_COPY(point->inv, task->invAns);
   ELL_3V_COPY(point->cnt, task->cntAns);
@@ -86,12 +86,12 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
                            AIR_CAST(size_t, pointNum));
   }
   if (nTenOut) {
-    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeFloat, 2, 
+    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeFloat, 2,
                            AIR_CAST(size_t, 7),
                            AIR_CAST(size_t, pointNum));
   }
   if (nEnrOut) {
-    E |= nrrdMaybeAlloc_va(nEnrOut, nrrdTypeFloat, 1, 
+    E |= nrrdMaybeAlloc_va(nEnrOut, nrrdTypeFloat, 1,
                            AIR_CAST(size_t, pointNum));
   }
   if (E) {
@@ -153,7 +153,7 @@ _pushPairwiseEnergy(pushTask *task,
   }
   TEN_TV_MUL(XX, inv, YY);
   ELL_3V_NORM(nXX, XX, rr);
-  
+
   ensp->energy->eval(enrP, &mag, rr*iscl, ensp->parm);
   if (mag) {
     mag *= iscl;
@@ -261,14 +261,14 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
     ELL_3V_SCALE(frc, task->pctx->cntScl, myPoint->cnt);
     ELL_3V_INCR(myPoint->frc, frc);
     myPoint->enr += task->pctx->cntScl*(1 - myPoint->ten[0]);
-    
+
     /* each point also maybe experiences gravity */
     if (tenGageUnknown != task->pctx->gravItem) {
       ELL_3V_SCALE(frc, -task->pctx->gravScl, myPoint->gravGrad);
-      myPoint->enr += 
+      myPoint->enr +=
         task->pctx->gravScl*(myPoint->grav - task->pctx->gravZero);
       ELL_3V_INCR(myPoint->frc, frc);
-    }      
+    }
     if (!ELL_3V_EXISTS(myPoint->frc)) {
       biffAddf(PUSH, "%s: post-grav myPoint->frc (%g,%g,%g) doesn't exist", me,
                myPoint->frc[0], myPoint->frc[1], myPoint->frc[2]);
@@ -288,7 +288,7 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       ELL_4V_HOMOG(posIdx, posIdx);
       for (ci=0; ci<3; ci++) {
         if (1 == task->pctx->gctx->shape->size[ci]) {
-          frcIdx[ci] = 0;          
+          frcIdx[ci] = 0;
         } else {
           len = posIdx[ci] - -0.5;
           if (len < 0) {
@@ -366,7 +366,7 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       if (!ELL_3V_EXISTS(myPoint->pos)) {
         biffAddf(PUSH, "%s: myPoint->pos (%g,%g,%g) -> (%g,%g,%g) "
                  "doesn't exist", me,
-                 posOrig[0], posOrig[1], posOrig[2], 
+                 posOrig[0], posOrig[1], posOrig[2],
                  myPoint->pos[0], myPoint->pos[1], myPoint->pos[2]);
         return 1;
       }
@@ -378,10 +378,10 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
         return 1;
       }
     }
-    
+
     /* the point lived, count it */
     task->pointNum += 1;
   } /* for myPointIdx */
-  
+
   return 0;
 }

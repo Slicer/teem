@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -28,13 +28,13 @@
 extern double _tenQGL_Kdist(const double RThZA[3], const double RThZB[3]);
 extern void _tenQGL_Klog(double klog[3],
                          const double RThZA[3], const double RThZB[3]);
-extern void _tenQGL_Kexp(double RThZB[3], 
+extern void _tenQGL_Kexp(double RThZB[3],
                          const double RThZA[3], const double klog[3]);
 
 extern double _tenQGL_Rdist(const double RThPhA[3], const double RThPhB[3]);
 extern void _tenQGL_Rlog(double rlog[3],
                          const double RThPhA[3], const double RThPhB[3]);
-extern void _tenQGL_Rexp(double RThPhB[3], 
+extern void _tenQGL_Rexp(double RThPhB[3],
                          const double RThPhA[3], const double rlog[3]);
 
 /* normalized gradients of k or r invariants, in XYZ space,
@@ -91,7 +91,7 @@ main(int argc, const char *argv[]) {
   double (*qdist)(const double RTh_A[3], const double RTh_B[3]);
   void (*qlog)(double klog[3],
                const double RThZA[3], const double RThZB[3]);
-  void (*qexp)(double RThZB[3], 
+  void (*qexp)(double RThZB[3],
                const double RThZA[3], const double klog[3]);
   void (*grads)(double grad[3][3], const double eval[3]);
 
@@ -141,7 +141,7 @@ main(int argc, const char *argv[]) {
             airEnumStr(tenInterpType, tenInterpTypeQuatGeoLoxK),
             airEnumStr(tenInterpType, tenInterpTypeQuatGeoLoxR),
             airEnumStr(tenInterpType, ptype));
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
 
@@ -176,7 +176,7 @@ main(int argc, const char *argv[]) {
   ELL_3V_SET(lasteval, AIR_NAN, AIR_NAN, AIR_NAN);
   ELL_3V_SET(lastxyz, AIR_NAN, AIR_NAN, AIR_NAN);
   qlog(logAB, rt_A, rt_B);
-  fprintf(stderr, "%s: log = %g %g %g (%g)\n", me, 
+  fprintf(stderr, "%s: log = %g %g %g (%g)\n", me,
           logAB[0], logAB[1], logAB[2], ELL_3V_LEN(logAB));
   for (ii=0; ii<NN; ii++) {
     double tt, xyz[3], dot[3], ll[3], prayRT[3], prayO[3];
@@ -202,8 +202,8 @@ main(int argc, const char *argv[]) {
       ELL_3V_SET(dot, 0, 0, 0);
     }
     printf("%03u %g %g   %g %g    %g %g   00   %g %g %g\n", ii,
-           trip[0], prayO[0], 
-           trip[1], prayO[1], 
+           trip[0], prayO[0],
+           trip[1], prayO[1],
            trip[2], prayO[2],
            dot[0], dot[1], dot[2]);
     ELL_3V_COPY(lasteval, eval);

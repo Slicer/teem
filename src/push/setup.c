@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -24,7 +24,7 @@
 #include "push.h"
 #include "privatePush.h"
 
-/* 
+/*
 ** _pushTensorFieldSetup sets:
 **** pctx->dimIn
 **** pctx->nten
@@ -83,7 +83,7 @@ _pushTensorFieldSetup(pushContext *pctx) {
     TEN_T_COPY(ten, _ten);
     TEN_T_INV(inv, ten, det);
     if (!det || !AIR_EXISTS(det)) {
-      fprintf(stderr, "!%s: tensor %u/%u has determinant %g\n", me, 
+      fprintf(stderr, "!%s: tensor %u/%u has determinant %g\n", me,
               AIR_CAST(unsigned int, ii), AIR_CAST(unsigned int, NN), det);
     }
     TEN_T_COPY_TT(_inv, float, inv);
@@ -113,7 +113,7 @@ _pushTensorFieldSetup(pushContext *pctx) {
   pctx->nmask->axis[1].center = nrrdCenterCell;
   pctx->nmask->axis[2].center = nrrdCenterCell;
 
-  airMopOkay(mop); 
+  airMopOkay(mop);
   return 0;
 }
 
@@ -164,7 +164,7 @@ _pushGageSetup(pushContext *pctx) {
     biffMovef(PUSH, GAGE, "%s: trouble setting up gage", me);
     return 1;
   }
-  
+
   return 0;
 }
 
@@ -180,7 +180,7 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
       biffMovef(PUSH, GAGE, "%s: trouble copying main gageContext", me);
       return NULL;
     }
-    /* 
+    /*
     ** HEY: its a limitation in gage that we have to know a priori
     ** the ordering of per-volumes in the context ...
     */
@@ -305,7 +305,7 @@ _pushBinSetup(pushContext *pctx) {
     }
     tdata += 7;
   }
-  fprintf(stderr, "!%s: dimIn = %u(%u) --> maxDet = %g\n", me, 
+  fprintf(stderr, "!%s: dimIn = %u(%u) --> maxDet = %g\n", me,
           pctx->dimIn, pctx->sliceAxis, pctx->maxDet);
   pctx->meanEval /= count;
   pctx->maxDist = (2*pctx->scale*pctx->maxEval
@@ -360,7 +360,7 @@ _pushBinSetup(pushContext *pctx) {
 **** pctx->pointNum (in case pctx->npos)
 **
 ** This is only called by the master thread
-** 
+**
 ** this should set stuff to be like after an update stage and
 ** just before the rebinning
 */
@@ -370,7 +370,7 @@ _pushPointSetup(pushContext *pctx) {
   double (*lup)(const void *v, size_t I), maxDet;
   unsigned int pointIdx;
   pushPoint *point;
-  /*  
+  /*
   double posIdxHack[2][4] = {
     {49.99999, 50, 0, 1},
     {50, 50, 0, 1}};
@@ -461,7 +461,7 @@ _pushPointSetup(pushContext *pctx) {
                    && ((pctx->seedThresh - point->seedThresh)
                        *pctx->seedThreshSign > 0)
                    )
-               || (pctx->detReject 
+               || (pctx->detReject
                    && (airDrandMT() < detProbe/maxDet))
                );
     }

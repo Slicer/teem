@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -182,7 +182,7 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
   case funcEigenvalueAdd:
     for (II=0; II<=NN-1; II++) {
       /* HEY: this doesn't require eigensolve */
-      tenEigensolve_f(eval, evec, tin); 
+      tenEigensolve_f(eval, evec, tin);
       ELL_3V_SET_TT(eval, float,
                     eval[0] + parm->val,
                     eval[1] + parm->val,
@@ -195,7 +195,7 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
   case funcEigenvalueMultiply:
     for (II=0; II<=NN-1; II++) {
       /* HEY: this doesn't require eigensolve */
-      tenEigensolve_f(eval, evec, tin); 
+      tenEigensolve_f(eval, evec, tin);
       ELL_3V_SET_TT(eval, float,
                     eval[0]*parm->val,
                     eval[1]*parm->val,
@@ -230,7 +230,7 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
     }
     break;
   }
-  
+
   /* basic and per-axis info handled by nrrdCopy above */
   return 0;
 }
@@ -332,7 +332,7 @@ int
 tenEigenvalueAdd(Nrrd *nout, const Nrrd *nin, double val) {
   static const char me[]="tenEigenvalueAdd";
   funcParm parm;
-  
+
   parm.val = val;
   if (theFunc(nout, nin, funcEigenvalueAdd, &parm)) {
     biffAddf(TEN, "%s: trouble", me);
@@ -350,7 +350,7 @@ int
 tenEigenvalueMultiply(Nrrd *nout, const Nrrd *nin, double val) {
   static const char me[]="tenEigenvalueMultiply";
   funcParm parm;
-  
+
   parm.val = val;
   if (theFunc(nout, nin, funcEigenvalueMultiply, &parm)) {
     biffAddf(TEN, "%s: trouble", me);

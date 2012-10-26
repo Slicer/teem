@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -43,7 +43,7 @@ main(int argc, const char *argv[]) {
   mop = airMopNew();
   cam = limnCameraNew();
   airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
-  
+
   me = argv[0];
   hestOptAdd(&hopt, "i", "input OFF", airTypeString, 1, 1, &inS, NULL,
              "input OFF file");
@@ -93,7 +93,7 @@ main(int argc, const char *argv[]) {
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-  
+
   cam->neer = -0.000000001;
   cam->dist = 0;
   cam->faar = 0.0000000001;
@@ -166,7 +166,7 @@ main(int argc, const char *argv[]) {
     airMopError(mop); return 1;
   }
   fclose(win->file);
-  
+
   if (describe) {
     fprintf(stdout, "----------------- POST-RENDER -----------------\n");
     limnObjectDescribe(stdout, obj);

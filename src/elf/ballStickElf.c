@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2011, 2010, 2009, 2008 Thomas Schultz
 
   This library is free software; you can redistribute it and/or
@@ -136,7 +136,7 @@ int elfBallStickODF_f(float *odf, float *fiso, float *d,
 
   /* create deconvolution kernel */
   elfKernelStick_f(kernel, order, dwi->b*_d, dwi->b0, delta);
-  
+
   /* remove estimated isotropic part from the signal */
   odf[0] -= AIR_CAST(float, dwi->b0 * _fiso * 2*sqrt(AIR_PI)*exp(-dwi->b*_d));
 
@@ -171,7 +171,7 @@ int elfBallStickPredict_f(elfBallStickParms *parms, float *odf,
     return 1;
   }
   rparm=tijk_refine_rankk_parm_nix(rparm);
-  
+
   parms->d = d;
   parms->fiberct = k;
   parms->fs[0]=fiso;
@@ -361,7 +361,7 @@ int elfBallStickOptimize_f(elfBallStickParms *parms,
       lmparms[9]=atan2(parms->vs[7],parms->vs[6]);
     }
   }
-  
+
   lmret = dlevmar_der(_levmarBallStickCB,_levmarBallStickJacCB,
                       lmparms, dwis,
                       parmct, dwi->dwino, maxitr, opts, info,
@@ -376,7 +376,7 @@ int elfBallStickOptimize_f(elfBallStickParms *parms,
   }
 
   free(dwis); /* no longer needed */
-  
+
   /* output the results (whether or not levmar signalled an error) */
   parms->d = exp(lmparms[0]);
   parms->fs[0] = 0.0;

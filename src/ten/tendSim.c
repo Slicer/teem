@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -61,11 +61,11 @@ tend_simMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "seed", "seed", airTypeInt, 1, 1, &seed, "42",
              "seed value for RNG which creates noise");
   hestOptAdd(&hopt, "g", "grad list", airTypeOther, 1, 1, &ngrad, "",
-             "gradient list, one row per diffusion-weighted image", 
+             "gradient list, one row per diffusion-weighted image",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "B", "B matrix", airTypeOther, 1, 1, &nbmat, "",
              "B matrix, one row per diffusion-weighted image.  Using this "
-             "overrides the gradient list input via \"-g\"", 
+             "overrides the gradient list input via \"-g\"",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "r", "reference field", airTypeOther, 1, 1, &nT2, NULL,
              "reference anatomical scan, with no diffusion weighting",
@@ -114,8 +114,8 @@ tend_simMain(int argc, const char **argv, const char *me,
     }
     if (!E) E |= tenEstimateThresholdSet(tec, 0, 0);
     if (!E) E |= tenEstimateUpdate(tec);
-    if (!E) E |= tenEstimate1TensorSimulateVolume(tec, 
-                                                  nout, sigma, b, 
+    if (!E) E |= tenEstimate1TensorSimulateVolume(tec,
+                                                  nout, sigma, b,
                                                   nT2, nin,
                                                   preOutType,
                                                   keyValueSet);

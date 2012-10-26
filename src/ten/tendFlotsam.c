@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -56,7 +56,7 @@ tendUsage(const char *me, hestParm *hparm) {
   sprintf(fmt, "%%%ds\n",
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stdout, fmt, buff);
-  
+
   for (i=0; tendCmdList[i]; i++) {
     len = strlen(tendCmdList[i]->name);
     strcpy(buff, "");
@@ -76,9 +76,9 @@ tendUsage(const char *me, hestParm *hparm) {
 
 /*
 ******** tendFiberStopParse
-** 
+**
 ** for parsing the different ways in which a fiber should be stopped
-** For the sake of laziness and uniformity, the stop information is 
+** For the sake of laziness and uniformity, the stop information is
 ** stored in an array of 3 (three) doubles:
 ** info[0]: int value from tenFiberStop* enum
 ** info[1]: 1st parameter associated with stop method (always used)
@@ -105,7 +105,7 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
     /* couldn't parse string as nrrdEncoding, but there wasn't a colon */
     sprintf(err, "%s: didn't see a colon in \"%s\"", me, str);
     airMopError(mop); return 1;
-  } 
+  }
   *opt = '\0';
   opt++;
   info[0] = AIR_CAST(int, airEnumVal(tenFiberStop, str));
@@ -153,7 +153,7 @@ tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
       airMopError(mop); return 1;
     }
     /*
-    fprintf(stderr, "!%s: parse %s:%g\n", me, 
+    fprintf(stderr, "!%s: parse %s:%g\n", me,
             airEnumStr(tenFiberStop, AIR_CAST(int, info[0])),
             info[1]);
     */

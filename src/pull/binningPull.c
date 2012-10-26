@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -102,8 +102,8 @@ _pullBinNeighborSet(pullContext *pctx, pullBin *bin) {
   return 0;
 }
 
-/* 
-** bins on boundary now extend to infinity; so the only time this 
+/*
+** bins on boundary now extend to infinity; so the only time this
 ** returns NULL (indicating error) is for non-existent positions
 */
 pullBin *
@@ -186,7 +186,7 @@ int
 pullBinsPointAdd(pullContext *pctx, pullPoint *point, pullBin **binP) {
   static const char me[]="pullBinsPointAdd";
   pullBin *bin;
-  
+
   if (binP) {
     *binP = NULL;
   }
@@ -214,7 +214,7 @@ pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
   pullBin *bin;
   unsigned int idx;
   int okay;
-  
+
   if (binP) {
     *binP = NULL;
   }
@@ -281,10 +281,10 @@ _pullBinSetup(pullContext *pctx) {
   pctx->maxDistScale = 1*width;
 
   if (pctx->verbose) {
-    printf("%s: radiusSpace = %g -(%g)-> maxDistSpace = %g\n", me, 
+    printf("%s: radiusSpace = %g -(%g)-> maxDistSpace = %g\n", me,
            pctx->sysParm.radiusSpace, pctx->sysParm.binWidthSpace,
            pctx->maxDistSpace);
-    printf("%s: radiusScale = %g ----> maxDistScale = %g\n", me, 
+    printf("%s: radiusScale = %g ----> maxDistScale = %g\n", me,
            pctx->sysParm.radiusScale, pctx->maxDistScale);
   }
 
@@ -378,7 +378,7 @@ _pullBinFinish(pullContext *pctx) {
 ** reallocates pctx->tmpPointPerm and pctx->tmpPointPtr
 ** the point of this is to do rebinning
 **
-** This function is only called by the master thread, this 
+** This function is only called by the master thread, this
 ** does *not* have to be thread-safe in any way
 */
 int
@@ -410,7 +410,7 @@ _pullIterFinishDescent(pullContext *pctx) {
     pctx->tmpPointPerm = AIR_CAST(unsigned int *,
                                   calloc(pointNum, sizeof(unsigned int)));
     if (!( pctx->tmpPointPtr && pctx->tmpPointPerm )) {
-      biffAddf(PULL, "%s: couldn't allocate tmp buffers %p %p", me, 
+      biffAddf(PULL, "%s: couldn't allocate tmp buffers %p %p", me,
                AIR_VOIDP(pctx->tmpPointPtr), AIR_VOIDP(pctx->tmpPointPerm));
       return 1;
     }
@@ -422,7 +422,7 @@ _pullIterFinishDescent(pullContext *pctx) {
     while (oldBin->pointNum) {
       /* tricky: we can't traverse bin->point[], because of how it is
          re-ordered on point removal, so we always grab point[0] */
-      pctx->tmpPointPtr[runIdx++] = oldBin->point[0];  
+      pctx->tmpPointPtr[runIdx++] = oldBin->point[0];
       _pullBinPointRemove(pctx, oldBin, 0);
     }
   }

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -27,7 +27,7 @@
 
 /*
 ******** limnLightSet()
-** 
+**
 ** turns on a light
 **
 */
@@ -35,7 +35,7 @@ void
 limnLightSet(limnLight *lit, int which, int vsp,
              float r, float g, float b,
              float x, float y, float z) {
-  
+
   if (lit && AIR_IN_CL(0, which, LIMN_LIGHT_NUM-1)) {
     lit->on[which] = 1;
     lit->vsp[which] = vsp;
@@ -51,7 +51,7 @@ limnLightSet(limnLight *lit, int which, int vsp,
 */
 void
 limnLightAmbientSet(limnLight *lit, float r, float g, float b) {
-  
+
   if (lit) {
     ELL_4V_SET(lit->amb, r, g, b, 1.0);
   }
@@ -65,7 +65,7 @@ limnLightAmbientSet(limnLight *lit, float r, float g, float b) {
 ** the dir vectors are set and normalized.  If there are no viewspace
 ** lights, "cam" can actually be passed as NULL, but don't get carried
 ** away...
-** 
+**
 ** returns 1 if there was a problem in the camera, otherwise 0.
 */
 int
@@ -73,7 +73,7 @@ limnLightUpdate(limnLight *lit, limnCamera *cam) {
   static const char me[]="limnLightUpdate";
   double dir[3], _dir[3], uvn[9]={0,0,0,0,0,0,0,0,0}, norm;
   int i;
-  
+
   if (cam) {
     if (limnCameraUpdate(cam)) {
       biffAddf(LIMN, "%s: trouble in camera", me);

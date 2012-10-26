@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -41,9 +41,9 @@ _baneIncProcess_LearnMinMax(baneInc *inc, double val) {
   return;
 }
 
-void 
+void
 _baneIncProcess_Stdv(baneInc *inc, double val) {
-  
+
   inc->S += val;
   inc->SS += val*val;
   inc->num += 1;
@@ -93,17 +93,17 @@ _baneIncAnswer_Absolute(double *minP, double *maxP,
 ** sent through the associated range function.
 */
 int
-_baneIncAnswer_RangeRatio(double *minP, double *maxP, 
+_baneIncAnswer_RangeRatio(double *minP, double *maxP,
                           Nrrd *hist, double *incParm,
                           baneRange *range) {
   static const char me[]="_baneIncAnwer_RangeRatio";
   double mid;
-  
+
   if (range->answer(minP, maxP, hist->axis[0].min, hist->axis[0].max)) {
     biffAddf(BANE, "%s: trouble", me);
     return 1;
   }
-  
+
   if (baneRangeAnywhere == range->type) {
     mid = AIR_EXISTS(range->center) ? range->center : (*minP + *maxP)/2;
     *minP = AIR_AFFINE(-1, -incParm[0], 0, *minP, mid);
@@ -120,7 +120,7 @@ _baneIncAnswer_RangeRatio(double *minP, double *maxP,
 **
 ** incParm[0]: resolution of histogram generated
 ** incParm[1]: PERCENT of hits to throw away, by nibbling away at
-** lower and upper ends of range, in a manner dependant on the 
+** lower and upper ends of range, in a manner dependant on the
 ** range type
 */
 int
@@ -157,8 +157,8 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
           me, nhist->axis[0].min, nhist->axis[0].max,
           range->name, min, max);
   if (baneRangeAnywhere == range->type) {
-    mid = AIR_CAST(float, (AIR_EXISTS(range->center) 
-                           ? range->center 
+    mid = AIR_CAST(float, (AIR_EXISTS(range->center)
+                           ? range->center
                            : (min + max)/2));
   } else {
     mid = 0;
@@ -354,7 +354,7 @@ baneIncNew(int type, baneRange *range, double *parm) {
 
 void
 baneIncProcess(baneInc *inc, int passIdx, double val) {
-  
+
   if (inc && (0 == passIdx || 1 == passIdx) && inc->process[passIdx]) {
     inc->process[passIdx](inc, val);
   }
@@ -380,7 +380,7 @@ baneInc *
 baneIncCopy(baneInc *inc) {
   static const char me[]="baneIncCopy";
   baneInc *ret = NULL;
-  
+
   ret = baneIncNew(inc->type, inc->range, inc->parm);
   if (!ret) {
     biffAddf(BANE, "%s: couldn't make new inc", me);
@@ -391,7 +391,7 @@ baneIncCopy(baneInc *inc) {
 
 baneInc *
 baneIncNix(baneInc *inc) {
- 
+
   if (inc) {
     baneRangeNix(inc->range);
     nrrdNuke(inc->nhist);

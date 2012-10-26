@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -36,7 +36,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
   unsigned int inVertTotalIdx = 0, outVertTotalIdx = 0, outIndxIdx = 0;
   int color;
   airArray *mop;
-  
+
   if (!( pldOut && pldIn )) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
@@ -79,7 +79,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
   }
   color = ((infoBitFlag & (1 << limnPolyDataInfoRGBA))
            && (limnPolyDataInfoBitFlag(pldIn) & (1 << limnPolyDataInfoRGBA)));
-  
+
   mop = airMopNew();
   cost = AIR_CAST(double *, calloc(tubeFacet, sizeof(double)));
   sint = AIR_CAST(double *, calloc(tubeFacet, sizeof(double)));
@@ -105,7 +105,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
       pldOut->icnt[primIdx] =
         2*tubeFacet*(1 + pldIn->icnt[primIdx]);
     }
-    
+
     for (inVertIdx=0;
          inVertIdx<pldIn->icnt[primIdx];
          inVertIdx++) {
@@ -156,7 +156,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
             for (pi=0; pi<tubeFacet; pi++) {
               double costh, sinth, cosph, sinph, phi, theta;
               phi = (AIR_AFFINE(0, ei, endFacet, 0, AIR_PI/2)
-                     + AIR_AFFINE(0, pi, tubeFacet, 
+                     + AIR_AFFINE(0, pi, tubeFacet,
                                   0, AIR_PI/2)/endFacet);
               theta = AIR_AFFINE(0, pi, tubeFacet, 0.0, 2*AIR_PI);
               cosph = cos(phi);
@@ -179,7 +179,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
               if (color) {
                 ELL_4V_COPY(pldOut->rgba + 4*outVertTotalIdx,
                             pldIn->rgba + 4*inVertTotalIdx);
-                
+
               }
               outVertTotalIdx++;
             }
@@ -189,7 +189,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
             pldOut->indx[outIndxIdx++] = startIdx + pi;
           }
           for (ei=0; ei<endFacet; ei++) {
-            /* at the highest ei we're actually linking with the first 
+            /* at the highest ei we're actually linking with the first
                row of vertices at the start of the tube */
             for (pi=0; pi<tubeFacet; pi++) {
               pldOut->indx[outIndxIdx++] = (startIdx + pi
@@ -219,7 +219,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
             if (color) {
               ELL_4V_COPY(pldOut->rgba + 4*outVertTotalIdx,
                           pldIn->rgba + 4*inVertTotalIdx);
-              
+
             }
             outVertTotalIdx++;
           }
@@ -252,7 +252,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
         if (color) {
           ELL_4V_COPY(pldOut->rgba + 4*outVertTotalIdx,
                       pldIn->rgba + 4*inVertTotalIdx);
-          
+
         }
         outVertTotalIdx++;
       }
@@ -265,7 +265,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
             for (pi=0; pi<tubeFacet; pi++) {
               double costh, sinth, cosph, sinph, phi, theta;
               phi = (AIR_AFFINE(0, ei, endFacet, AIR_PI/2, AIR_PI)
-                     + AIR_AFFINE(0, pi, tubeFacet, 
+                     + AIR_AFFINE(0, pi, tubeFacet,
                                   0, AIR_PI/2)/endFacet);
               theta = AIR_AFFINE(0, pi, tubeFacet, 0.0, 2*AIR_PI);
               cosph = cos(phi);
@@ -289,7 +289,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
               if (color) {
                 ELL_4V_COPY(pldOut->rgba + 4*outVertTotalIdx,
                             pldIn->rgba + 4*inVertTotalIdx);
-                
+
               }
               outVertTotalIdx++;
             }
@@ -341,7 +341,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
             if (color) {
               ELL_4V_COPY(pldOut->rgba + 4*outVertTotalIdx,
                           pldIn->rgba + 4*inVertTotalIdx);
-              
+
             }
             outVertTotalIdx++;
           }
@@ -351,7 +351,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
       inVertTotalIdx++;
     }
   }
-  
+
   airMopOkay(mop);
   return 0;
 }
@@ -397,7 +397,7 @@ limnPolyDataSmoothHC(limnPolyData *pld, int *neighbors, int *idx,
     airMopError(mop); return -1;
   }
   airMopAdd(mop, b, airFree, airMopAlways);
-  
+
   for (i=0; i<iter; i++) {
     /* Laplacian smoothing / compute bs */
     for (v=0; v<pld->xyzwNum; v++) {
@@ -436,7 +436,7 @@ limnPolyDataSmoothHC(limnPolyData *pld, int *neighbors, int *idx,
       float *tmp = in; in = out; out = tmp;
     }
   }
-  
+
   if (iter>1)
     airFree(out);
   airFree(pld->xyzw);

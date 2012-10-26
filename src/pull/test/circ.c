@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -71,7 +71,7 @@ tpimod(double phi) {
   return phi;
 }
 
-static double 
+static double
 enrPairwise(double *grad, double me, double she,
             pullEnergySpec *ensp, double radius) {
   double ad, td, rr, *parm, enr, denr,
@@ -113,7 +113,7 @@ enrPairwise(double *grad, double me, double she,
 
 static double
 enrSingle(double *gradP, double me, unsigned int meIdx,
-          double *pos, unsigned int posNum, 
+          double *pos, unsigned int posNum,
           pullEnergySpec *ensp, double radius) {
   unsigned int ii;
   double enr, gg, grad;
@@ -135,7 +135,7 @@ enrSingle(double *gradP, double me, unsigned int meIdx,
 }
 
 static double
-enrStdv(double *pos, unsigned int posNum, 
+enrStdv(double *pos, unsigned int posNum,
         pullEnergySpec *ensp, double radius) {
   unsigned int ii;
   double SS, S, enr;
@@ -234,7 +234,7 @@ main(int argc, const char *argv[]) {
              "specification of force function to use",
              NULL, NULL, pullHestEnergySpec);
   hestOptAdd(&hopt, "ss", "step style", airTypeEnum, 1, 1, &sstyle, NULL,
-             "minimization step style", NULL, stepStyle); 
+             "minimization step style", NULL, stepStyle);
   hestOptAdd(&hopt, "rad", "radius", airTypeDouble, 1, 1, &radius, NULL,
              "radius of particle");
   hestOptAdd(&hopt, "esm", "eng stdv min", airTypeDouble, 1, 1, &stdvMin,
@@ -300,7 +300,7 @@ main(int argc, const char *argv[]) {
       fprintf(stderr, "%s: iter %u stdv %g cool %g\n", me, iter, stdv, cool);
     }
     if (stdv < stdvMin) {
-      fprintf(stderr, "%s: converged in %u iters (stdv %g < %g)\n", me, 
+      fprintf(stderr, "%s: converged in %u iters (stdv %g < %g)\n", me,
               iter, stdv, stdvMin);
       break;
     }
@@ -317,8 +317,8 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "%s: problem saving output:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  
-  
+
+
   airMopOkay(mop);
   return 0;
 }

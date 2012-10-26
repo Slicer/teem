@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -37,7 +37,7 @@ main(int argc, char *argv[]) {
   Nrrd *b, *p, *o;
 
   me = argv[0];
-  if (argc != 4) 
+  if (argc != 4)
     usage();
   bStr = argv[1];
   pStr = argv[2];
@@ -51,7 +51,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble reading %s:\n%s\n", me, pStr, biffGet(NRRD));
     usage();
   }
-  
+
   if (baneOpacCalc(o = nrrdNew(), b, p)) {
     fprintf(stderr, "%s: trouble calculating opac:\n%s", me, biffGet(BANE));
     exit(1);

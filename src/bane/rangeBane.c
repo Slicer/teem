@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -42,7 +42,7 @@ int
 _baneRangeNegative_Answer(double *ominP, double *omaxP,
                           double imin, double imax) {
   static const char me[]="_baneRangeNegative_Answer";
-  
+
   if (!( AIR_EXISTS(imin) && AIR_EXISTS(imax) )) {
     biffAddf(BANE, "%s: imin and imax don't both exist", me);
     return 1;
@@ -95,7 +95,7 @@ baneRange *
 baneRangeNew(int type) {
   static const char me[]="baneRangeNew";
   baneRange *range = NULL;
-  
+
   if (!AIR_IN_OP(baneRangeUnknown, type, baneRangeLast)) {
     biffAddf(BANE, "%s: baneRange %d not valid", me, type);
     return NULL;
@@ -135,7 +135,7 @@ baneRange *
 baneRangeCopy(baneRange *range) {
   static const char me[]="baneRangeCopy";
   baneRange *ret = NULL;
-  
+
   ret = baneRangeNew(range->type);
   if (!ret) {
     biffAddf(BANE, "%s: couldn't make new range", me);
@@ -150,7 +150,7 @@ baneRangeAnswer(baneRange *range,
                 double *ominP, double *omaxP,
                 double imin, double imax) {
   static const char me[]="baneRangeAnswer";
-  
+
   if (!(range && ominP && omaxP)) {
     biffAddf(BANE, "%s: got NULL pointer", me);
     return 1;

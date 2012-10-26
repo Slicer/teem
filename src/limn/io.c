@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -31,15 +31,15 @@ limnObjectDescribe(FILE *file, const limnObject *obj) {
   limnVertex *vert; unsigned int vii;
   limnPart *part; unsigned int partIdx;
   limnLook *look;
-  
+
   fprintf(file, "parts: %d\n", obj->partNum);
   for (partIdx=0; partIdx<obj->partNum; partIdx++) {
     part = obj->part[partIdx];
     fprintf(file, "part %d | verts: %d ========\n", partIdx, part->vertIdxNum);
     for (vii=0; vii<part->vertIdxNum; vii++) {
       vert = obj->vert + part->vertIdx[vii];
-      fprintf(file, "part %d | %d(%d): w=(%g,%g,%g)\n", 
-              partIdx, vii, part->vertIdx[vii], 
+      fprintf(file, "part %d | %d(%d): w=(%g,%g,%g)\n",
+              partIdx, vii, part->vertIdx[vii],
               vert->world[0], vert->world[1], vert->world[2]);
       /* vert->view[0], vert->view[1], vert->view[2]); */
       /* vert->screen[0], vert->screen[1], vert->screen[2]); */
@@ -48,7 +48,7 @@ limnObjectDescribe(FILE *file, const limnObject *obj) {
     for (eii=0; eii<part->edgeIdxNum; eii++) {
       edge = obj->edge + part->edgeIdx[eii];
       fprintf(file, "part %d==%d | %d(%d): "
-              "vert(%d,%d), face(%d,%d)\n", 
+              "vert(%d,%d), face(%d,%d)\n",
               partIdx, edge->partIdx, eii, part->edgeIdx[eii],
               edge->vertIdx[0], edge->vertIdx[1],
               edge->faceIdx[0], edge->faceIdx[1]);
@@ -56,7 +56,7 @@ limnObjectDescribe(FILE *file, const limnObject *obj) {
     fprintf(file, "part %d | faces: %d ========\n", partIdx, part->faceIdxNum);
     for (fii=0; fii<part->faceIdxNum; fii++) {
       face = obj->face + part->faceIdx[fii];
-      fprintf(file, "part %d==%d | %d(%d): [", 
+      fprintf(file, "part %d==%d | %d(%d): [",
               partIdx, face->partIdx, fii, part->faceIdx[fii]);
       for (si=0; si<face->sideNum; si++) {
         fprintf(file, "%d", face->vertIdx[si]);
@@ -67,7 +67,7 @@ limnObjectDescribe(FILE *file, const limnObject *obj) {
       fprintf(file, "]; wn = (%g,%g,%g)", face->worldNormal[0],
               face->worldNormal[1], face->worldNormal[2]);
       look = obj->look + face->lookIdx;
-      fprintf(file, "; RGB=(%g,%g,%g)", 
+      fprintf(file, "; RGB=(%g,%g,%g)",
               look->rgba[0], look->rgba[1], look->rgba[2]);
       fprintf(file, "\n");
     }
@@ -83,7 +83,7 @@ limnObjectWriteOFF(FILE *file, const limnObject *obj) {
   limnVertex *vert; unsigned int vii;
   limnFace *face; unsigned int fii;
   limnPart *part; unsigned int partIdx;
-  
+
   if (!( obj && file )) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
@@ -205,7 +205,7 @@ limnPolyDataWriteIV(FILE *file, const limnPolyData *pld) {
       unsigned int vii;
       for (vii=0; vii<pld->icnt[0]; vii++) {
         normIdx = (pld->indx)[vii];
-        ELL_3V_SET(norm, 
+        ELL_3V_SET(norm,
                    pld->norm[0 + 3*normIdx],
                    pld->norm[1 + 3*normIdx],
                    pld->norm[2 + 3*normIdx]);
@@ -249,7 +249,7 @@ limnPolyDataWriteIV(FILE *file, const limnPolyData *pld) {
   } else {
     fprintf(file, "  IndexedFaceSet {\n");
     fprintf(file, "    coordIndex [\n");
-    
+
     baseVertIdx = 0;
     for (primIdx=0; primIdx<pld->primNum; primIdx++) {
       unsigned int triIdx, triNum, *indx3;
@@ -282,7 +282,7 @@ limnObjectReadOFF(limnObject *obj, FILE *file) {
   float fbuff[1024];  /* HEY: bad bad Gordon */
   float lastRGB[3]={-1,-1,-1}; int lastLook;
   unsigned int lret;
-  
+
   int *vertBase;
   airArray *vertBaseArr, *mop;
   airPtrPtrUnion appu;
@@ -308,7 +308,7 @@ limnObjectReadOFF(limnObject *obj, FILE *file) {
   } while (3 != got);
   vertNum = ibuff[0];
   faceNum = ibuff[1];
-  
+
   /* read all vertex information */
   lastLook = -1;
   partIdx = limnObjectPartAdd(obj);
@@ -330,7 +330,7 @@ limnObjectReadOFF(limnObject *obj, FILE *file) {
       if (idxTmp != 0) {
         partIdx = limnObjectPartAdd(obj);
         if (idxTmp != partIdx) {
-          biffAddf(LIMN, "%s: got signal to start part %d, not %d", 
+          biffAddf(LIMN, "%s: got signal to start part %d, not %d",
                    me, idxTmp, partIdx);
           airMopError(mop); return 1;
         }
@@ -391,7 +391,7 @@ limnObjectReadOFF(limnObject *obj, FILE *file) {
         partIdx += 1;
         if (idxTmp != partIdx) {
           biffAddf(LIMN, "%s: (near line %d) got signal to start "
-                   "part %d, not %d", 
+                   "part %d, not %d",
                    me, lineCount, idxTmp, partIdx);
           airMopError(mop); return 1;
         }
@@ -437,7 +437,7 @@ limnObjectReadOFF(limnObject *obj, FILE *file) {
     faceGot++;
   }
 
-  airMopOkay(mop); 
+  airMopOkay(mop);
   return 0;
 }
 
@@ -462,7 +462,7 @@ limnPolyDataWriteLMPD(FILE *file, const limnPolyData *pld) {
   unsigned int primIdx, infoNum, flag, bit;
   Nrrd *nrrd;
   airArray *mop;
-  
+
   if (!(file && pld)) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
@@ -477,7 +477,7 @@ limnPolyDataWriteLMPD(FILE *file, const limnPolyData *pld) {
   }
 
   mop = airMopNew();
-  
+
   fprintf(file, "%s\n", LMPD_MAGIC);
   fprintf(file, "%s%s %u %u %u\n", DEMARK_STR, NUM_STR,
           pld->xyzwNum, pld->indxNum, pld->primNum);
@@ -575,7 +575,7 @@ limnPolyDataWriteLMPD(FILE *file, const limnPolyData *pld) {
 **
 ** reads a limnPolyData from an LMPD file
 **
-** HEY: this was written in a hurry, is pretty hacky, and so it 
+** HEY: this was written in a hurry, is pretty hacky, and so it
 ** needs some serious clean-up
 */
 int
@@ -592,7 +592,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
-  
+
   sprintf(name, "magic");
   lineLen = airOneLine(file, line, AIR_STRLEN_MED);
   if (!lineLen) {
@@ -600,7 +600,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
     return 1;
   }
   if (strcmp(line, LMPD_MAGIC)) {
-    biffAddf(LIMN, "%s: %s line \"%s\" not expected \"%s\"", 
+    biffAddf(LIMN, "%s: %s line \"%s\" not expected \"%s\"",
              me, name, line, LMPD_MAGIC);
     return 1;
   }
@@ -612,7 +612,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
     return 1;
   }
   if (strncmp(line, DEMARK_STR NUM_STR, strlen(DEMARK_STR NUM_STR))) {
-    biffAddf(LIMN, "%s: %s line \"%s\" didn't start w/ expected \"%s\"", 
+    biffAddf(LIMN, "%s: %s line \"%s\" didn't start w/ expected \"%s\"",
              me, name, line, NUM_STR);
     return 1;
   }
@@ -630,7 +630,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
     return 1;
   }
   if (strncmp(line, DEMARK_STR INFO_STR, strlen(DEMARK_STR INFO_STR))) {
-    biffAddf(LIMN, "%s: %s line \"%s\" didn't start w/ expected \"%s\"", 
+    biffAddf(LIMN, "%s: %s line \"%s\" didn't start w/ expected \"%s\"",
              me, name, line, DEMARK_STR INFO_STR);
     return 1;
   }
@@ -650,7 +650,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
     }
     info = airEnumVal(limnPolyDataInfo, line);
     if (!info) {
-      biffAddf(LIMN, "%s: couldn't parse \"%s\" %s line %u/%u", 
+      biffAddf(LIMN, "%s: couldn't parse \"%s\" %s line %u/%u",
                me, line, name, infoIdx, infoNum);
       return 1;
     }
@@ -671,7 +671,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
     return 1;
   }
   if (strcmp(line, DEMARK_STR TYPE_STR)) {
-    biffAddf(LIMN, "%s: %s line \"%s\" not expected \"%s\"", 
+    biffAddf(LIMN, "%s: %s line \"%s\" not expected \"%s\"",
              me, name, line, DEMARK_STR TYPE_STR);
     return 1;
   }
@@ -684,7 +684,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
     }
     pld->type[primIdx] = airEnumVal(limnPrimitive, line);
     if (!(pld->type[primIdx])) {
-      biffAddf(LIMN, "%s: couldn't parse \"%s\" %s line %u/%u", 
+      biffAddf(LIMN, "%s: couldn't parse \"%s\" %s line %u/%u",
                me, line, name, primIdx, primNum);
       return 1;
     }
@@ -697,7 +697,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
     return 1;
   }
   if (strcmp(line, DEMARK_STR ICNT_STR)) {
-    biffAddf(LIMN, "%s: %s line \"%s\" not expected \"%s\"", 
+    biffAddf(LIMN, "%s: %s line \"%s\" not expected \"%s\"",
              me, name, line, DEMARK_STR ICNT_STR);
     return 1;
   }
@@ -709,7 +709,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
       return 1;
     }
     if (1 != sscanf(line, "%u", &(pld->icnt[primIdx]))) {
-      biffAddf(LIMN, "%s: couldn't parse \"%s\" %s line %u/%u", 
+      biffAddf(LIMN, "%s: couldn't parse \"%s\" %s line %u/%u",
                me, line, name, primIdx, primNum);
       return 1;
     }
@@ -722,7 +722,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
     return 1;
   }
   if (strcmp(line, DEMARK_STR INDX_STR)) {
-    biffAddf(LIMN, "%s: %s line \"%s\" not expected \"%s\"", 
+    biffAddf(LIMN, "%s: %s line \"%s\" not expected \"%s\"",
              me, name, line, DEMARK_STR ICNT_STR);
     return 1;
   }
@@ -745,7 +745,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
         && 1 == nrrd->dim
         && indxNum == nrrd->axis[0].size)) {
     biffAddf(LIMN, "%s: didn't get 1-D %s-type %u-sample array "
-             "(got %u-D %s-type %u-by-? array)", me, 
+             "(got %u-D %s-type %u-by-? array)", me,
              airEnumStr(nrrdType, nrrdTypeUInt),
              AIR_CAST(unsigned int, indxNum),
              nrrd->dim,
@@ -771,7 +771,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
     return 1;
   }
   if (strcmp(line, DEMARK_STR XYZW_STR)) {
-    biffAddf(LIMN, "%s: %s line \"%s\" not expected \"%s\"", 
+    biffAddf(LIMN, "%s: %s line \"%s\" not expected \"%s\"",
              me, name, line, DEMARK_STR XYZW_STR);
     return 1;
   }
@@ -784,7 +784,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
         && 4  == nrrd->axis[0].size
         && vertNum  == nrrd->axis[1].size)) {
     biffAddf(LIMN, "%s: didn't get 2-D %s-type 4-by-%u array "
-             "(got %u-D %s-type %u-by-%u array)", me, 
+             "(got %u-D %s-type %u-by-%u array)", me,
              airEnumStr(nrrdType, nrrdTypeFloat),
              AIR_CAST(unsigned int, vertNum),
              nrrd->dim,
@@ -816,7 +816,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
         return 1;
       }
       if (strncmp(line, DEMARK_STR INFO_STR, strlen(DEMARK_STR INFO_STR))) {
-        biffAddf(LIMN, "%s: %s line \"%s\" not expected \"%s\"", 
+        biffAddf(LIMN, "%s: %s line \"%s\" not expected \"%s\"",
                  me, INFO_STR, line, DEMARK_STR INFO_STR);
         return 1;
       }
@@ -864,7 +864,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
             && wantSize  == nrrd->axis[0].size
             && vertNum  == nrrd->axis[1].size)) {
         biffAddf(LIMN, "%s: didn't get 2-D %s-type %u-by-%u array "
-                 "(got %u-D %s-type %u-by-%u-by-? array)", me, 
+                 "(got %u-D %s-type %u-by-%u-by-? array)", me,
                  airEnumStr(nrrdType, wantType),
                  wantSize, AIR_CAST(unsigned int, vertNum),
                  nrrd->dim,
@@ -890,7 +890,7 @@ _limnHestPolyDataLMPDParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   limnPolyData **lpldP;
   airArray *mop;
   FILE *file;
-  
+
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -905,7 +905,7 @@ _limnHestPolyDataLMPDParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
 
   mop = airMopNew();
   if (!( file = airFopen(str, stdin, "rb") )) {
-    sprintf(err, "%s: couldn't fopen(\"%s\",\"rb\"): %s", 
+    sprintf(err, "%s: couldn't fopen(\"%s\",\"rb\"): %s",
             me, str, strerror(errno));
     biffAdd(LIMN, err); airMopError(mop); return 1;
   }
@@ -928,7 +928,7 @@ _limnHestPolyDataLMPD = {
   "polydata",
   _limnHestPolyDataLMPDParse,
   (airMopper)limnPolyDataNix
-}; 
+};
 
 hestCB *
 limnHestPolyDataLMPD = &_limnHestPolyDataLMPD;
@@ -940,7 +940,7 @@ _limnHestPolyDataOFFParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   limnPolyData **lpldP;
   airArray *mop;
   FILE *file;
-  
+
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -955,7 +955,7 @@ _limnHestPolyDataOFFParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
 
   mop = airMopNew();
   if (!( file = airFopen(str, stdin, "rb") )) {
-    sprintf(err, "%s: couldn't fopen(\"%s\",\"rb\"): %s", 
+    sprintf(err, "%s: couldn't fopen(\"%s\",\"rb\"): %s",
             me, str, strerror(errno));
     airMopError(mop); return 1;
   }
@@ -978,7 +978,7 @@ _limnHestPolyDataOFF = {
   "polydata",
   _limnHestPolyDataOFFParse,
   (airMopper)limnPolyDataNix
-}; 
+};
 
 hestCB *
 limnHestPolyDataOFF = &_limnHestPolyDataOFF;
@@ -1031,13 +1031,13 @@ limnPolyDataWriteVTK(FILE *file, const limnPolyData *pld) {
       idxNum = pld->icnt[prmIdx];
       switch (pld->type[prmIdx]) {
       case limnPrimitiveTriangleFan:
-        biffAddf(LIMN, "%s: %s prims (prim[%u]) not supported in VTK?", 
+        biffAddf(LIMN, "%s: %s prims (prim[%u]) not supported in VTK?",
                 me, airEnumStr(limnPrimitive, pld->type[prmIdx]), prmIdx);
         return 1;
         break;
       case limnPrimitiveQuads:
       case limnPrimitiveTriangleStrip:
-        biffAddf(LIMN, "%s: sorry, saving %s prims (prim[%u]) not implemented", 
+        biffAddf(LIMN, "%s: sorry, saving %s prims (prim[%u]) not implemented",
                 me, airEnumStr(limnPrimitive, pld->type[prmIdx]), prmIdx);
         return 1;
         break;
@@ -1054,7 +1054,7 @@ limnPolyDataWriteVTK(FILE *file, const limnPolyData *pld) {
         }
         break;
       default:
-        biffAddf(LIMN, "%s: sorry, type %s (prim %u) not handled here", me, 
+        biffAddf(LIMN, "%s: sorry, type %s (prim %u) not handled here", me,
                  airEnumStr(limnPrimitive, pld->type[prmIdx]), prmIdx);
         return 1;
         break;
@@ -1079,13 +1079,13 @@ limnPolyDataReadOFF(limnPolyData *pld, FILE *file) {
   char line[AIR_STRLEN_LARGE];  /* HEY: bad Gordon */
   unsigned int num[3], xyzwNum, xyzwGot,
     faceNum, faceGot, lineCount, got, lret;
-  
+
   if (!( pld && file )) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
 
-  /* HEY: this just snarfs lines until it parses 3 uints, 
+  /* HEY: this just snarfs lines until it parses 3 uints,
      disregarding whether the "OFF" magic was actually there! */
   got = 0;
   lineCount = 0;
@@ -1106,7 +1106,7 @@ limnPolyDataReadOFF(limnPolyData *pld, FILE *file) {
     biffAddf(LIMN, "%s: couldn't allocate", me);
     return 1;
   }
-  
+
   /* read all vertex information */
   xyzwGot = 0;
   while (xyzwGot < xyzwNum) {
@@ -1157,7 +1157,7 @@ limnPolyDataReadOFF(limnPolyData *pld, FILE *file) {
       return 1;
     }
     if (3 != indxNum) {
-      biffAddf(LIMN, "%s: sorry, can only handle triangles (not %u verts)", 
+      biffAddf(LIMN, "%s: sorry, can only handle triangles (not %u verts)",
                me, indxNum);
       return 1;
     }
@@ -1196,7 +1196,7 @@ limnPolyDataSave(const char *_fname, const limnPolyData *lpld) {
   mop = airMopNew();
 
   if (!( file = airFopen(_fname, stdout, "wb") )) {
-    biffAddf(LIMN, "%s: couldn't fopen(\"%s\",\"wb\"): %s", 
+    biffAddf(LIMN, "%s: couldn't fopen(\"%s\",\"wb\"): %s",
              me, _fname, strerror(errno));
     airMopError(mop); return 1;
   }

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2011, 2010, 2009, 2008  Thomas Schultz
 
   This library is free software; you can redistribute it and/or

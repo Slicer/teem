@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -83,7 +83,7 @@ typedef int (*_echoRayIntx_t)(RAYINTX_ARGS(Object));
 extern _echoRayIntx_t _echoRayIntx[/* object type idx */];
 typedef void (*_echoRayIntxUV_t)(echoIntx *intx);
 extern _echoRayIntxUV_t _echoRayIntxUV[/* object type idx */];
-extern int _echoRayIntx_CubeSolid(echoPos_t *tminP, echoPos_t *tmaxP, 
+extern int _echoRayIntx_CubeSolid(echoPos_t *tminP, echoPos_t *tmaxP,
                                   echoPos_t xmin, echoPos_t xmax,
                                   echoPos_t ymin, echoPos_t ymax,
                                   echoPos_t zmin, echoPos_t zmax,

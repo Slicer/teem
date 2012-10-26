@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -34,7 +34,7 @@ main(int argc, const char *argv[]) {
   Nrrd *nhisto;
   tenEMBimodalParm *biparm;
   double minprob[2];
-  
+
   mop = airMopNew();
   me = argv[0];
 
@@ -55,7 +55,7 @@ main(int argc, const char *argv[]) {
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-  
+
   biparm->minProb = minprob[0];
   biparm->minProb2 = minprob[1];
 

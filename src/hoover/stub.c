@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -42,10 +42,10 @@ hooverStubThreadBegin(void **threadInfoP, void *rendInfo, void *userInfo,
   return 0;
 }
 
-int 
+int
 hooverStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo,
                    int uIndex,
-                   int vIndex, 
+                   int vIndex,
                    double rayLen,
                    double rayStartWorld[3],
                    double rayStartIndex[3],
@@ -98,7 +98,7 @@ hooverStubSample(void *threadInfo, void *renderInfo, void *userInfo,
   */
 
   /* we want the stub renderer to actually finish */
-  return 1.0;  
+  return 1.0;
 }
 
 int

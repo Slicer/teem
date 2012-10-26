@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -99,7 +99,7 @@ _limnSplineTimeWarpSet(limnSpline *spline) {
                         * (time[N-1] - time[N-2]));
   }
   /*
-  fprintf(stderr, "s[0]=%g, post = %g; s[1]=%g pre = %g\n", 
+  fprintf(stderr, "s[0]=%g, post = %g; s[1]=%g pre = %g\n",
           cpt[1 + 3*0], cpt[2 + 3*0], cpt[1 + 3*1], cpt[0 + 3*1]);
   */
   return 0;
@@ -109,7 +109,7 @@ _limnSplineTimeWarpSet(limnSpline *spline) {
 ******** limnSplineNew
 **
 ** constructor for limnSplines.  We take all the control point information
-** here, and copy it internally, in an effort to simplify the management of 
+** here, and copy it internally, in an effort to simplify the management of
 ** state.  The control point nrrd is 3-D, as explained in limn.h
 **
 ** To confuse matters, the Time type of spline doesn't need the control
@@ -120,7 +120,7 @@ _limnSplineTimeWarpSet(limnSpline *spline) {
 **
 ** The benefit of this approach is that if this constructor returns
 ** successfully, then there is no more information or state that needs to
-** be set-- the returned spline can be passed to evaluate or sample.  
+** be set-- the returned spline can be passed to evaluate or sample.
 ** LIES LIES LIES: For BC-splines, you still have to call limnSplineBCSet,
 ** but that's the only exception...
 */
@@ -133,7 +133,7 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
   airArray *mop;
   Nrrd *nin;
   char stmp[2][AIR_STRLEN_SMALL];
-  
+
   if (airEnumValCheck(limnSplineInfo, info)) {
     biffAddf(LIMN, "%s: info %d not a valid limnSplineInfo", me, info);
     return NULL;
@@ -170,13 +170,13 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
     biffAddf(LIMN, "%s: need at least two control points", me);
     return NULL;
   }
-  
+
   mop = airMopNew();
   if (!( spline = AIR_CALLOC(1, limnSpline) )) {
     biffAddf(LIMN, "%s: couldn't allocate new spline", me);
     airMopError(mop); return NULL;
   }
-  
+
   airMopAdd(mop, spline, (airMopper)limnSplineNix, airMopOnError);
   spline->time = NULL;
   spline->ncpt = NULL;
@@ -236,7 +236,7 @@ limnSplineNix(limnSpline *spline) {
 **
 ** given that the ncpt nrrd for limnSplineNew() has to be a particular
 ** dimension and shape, and given that convenient ways of creating nrrds
-** don't always lead to such configurations, we supply some minimal 
+** don't always lead to such configurations, we supply some minimal
 ** cleverness to bridge the gap.  As the name implies, you should be
 ** wary of this function.
 **
@@ -259,7 +259,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
   char stmp[AIR_STRLEN_SMALL];
 
   if (!(nout && nin)) {
-    biffAddf(LIMN, "%s: got NULL pointer", me); 
+    biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
   if (airEnumValCheck(limnSplineInfo, info)
@@ -272,7 +272,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
     biffMovef(LIMN, NRRD, "%s: nrrd has problems", me);
     return 1;
   }
-  
+
   mop = airMopNew();
   airMopAdd(mop, ntmpA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ntmpB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -302,14 +302,14 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
     } else {
       if (limnSplineTypeHasImplicitTangents[type]) {
         ELL_3V_SET(min, 0, -1, 0);
-        ELL_3V_SET(max, wantSize-1, 1, N-1); 
+        ELL_3V_SET(max, wantSize-1, 1, N-1);
         if (nrrdAxesInsert(ntmpA, nin, 1)
             || nrrdPad_va(nout, ntmpA, min, max, nrrdBoundaryPad, 0.0)) {
           biffMovef(LIMN, NRRD, "%s: trouble with axinsert/pad", me);
           airMopError(mop); return 1;
         }
       } else {
-        /* the post- and pre- point information may be interlaced with the 
+        /* the post- and pre- point information may be interlaced with the
            main control point values */
         if (1 != AIR_MOD((int)N, 3)) {
           biffAddf(LIMN,
@@ -344,7 +344,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
     } else {
       if (limnSplineTypeHasImplicitTangents[type]) {
         ELL_3V_SET(min, 0, -1, 0);
-        ELL_3V_SET(max, 0, 1, N-1); 
+        ELL_3V_SET(max, 0, 1, N-1);
         if (nrrdAxesInsert(ntmpA, nin, 0)
             || nrrdAxesInsert(ntmpB, ntmpA, 0)
             || nrrdPad_va(nout, ntmpB, min, max, nrrdBoundaryPad, 0.0)) {
@@ -352,7 +352,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
           airMopError(mop); return 1;
         }
       } else {
-        /* the post- and pre- point information may be interlaced with the 
+        /* the post- and pre- point information may be interlaced with the
            main control point values */
         if (1 != AIR_MOD((int)N, 3)) {
           biffAddf(LIMN,
@@ -454,13 +454,13 @@ limnSplineUpdate(limnSpline *spline, Nrrd *_ncpt) {
       biffAddf(LIMN, "%s: trouble setting time warp", me);
       nrrdNix(ntmp); return 1;
     }
-    nrrdNix(ntmp); 
+    nrrdNix(ntmp);
   } else {
     if (nrrdConvert(spline->ncpt, _ncpt, nrrdTypeDouble)) {
       biffMovef(LIMN, NRRD, "%s: trouble converting to internal nrrd", me);
       return 1;
     }
-  }  
+  }
 
   return 0;
 }

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -24,9 +24,9 @@
 
 #include "dye.h"
 
-/* 
-** from http://www.cs.rit.edu/~ncs/color/t_convert.html 
-** each row below is really one column of the matrix 
+/*
+** from http://www.cs.rit.edu/~ncs/color/t_convert.html
+** each row below is really one column of the matrix
 */
 float dyeRGBtoXYZMatx[9] = {
   0.412453f, 0.212671f, 0.019334f,
@@ -43,14 +43,14 @@ float dyeWhiteXYZ_n[3] = {0.950456f, 1.0f, 1.088754f};
 /* the u'_n and v'_n which appear in the XYZ -> LUV conversion;
    u'_n = 4X_n / (X_n + 15Y_n + 3Z_n)
    v'_n = 9Y_n / (X_n + 15Y_n + 3Z_n)
-*/ 
+*/
 float dyeWhiteuvp_n[2] = {0.197839f, 0.468342f};
 
 void
 dyeRGBtoHSV(float *H, float *S, float *V,
             float  R, float  G, float  B) {
   float max, min, delta;
-  
+
   max = AIR_MAX(R,G);
   max = AIR_MAX(B,max);
   min = AIR_MIN(R,G);
@@ -94,7 +94,7 @@ dyeHSVtoRGB(float *R, float *G, float *B,
             float  H, float  S, float  V) {
   float min, fract, vsf, mid1, mid2;
   int sextant;
-  
+
   if (0 == S) {
     *R = *G = *B = V;
     return;
@@ -141,7 +141,7 @@ dyeRGBtoHSL(float *H, float *S, float *L,
   max = AIR_MAX(max,B);
   min = AIR_MIN(R,G);
   min = AIR_MIN(min,B);
-  
+
   *L = lev = (max + min)/2.0f;
   if (max == min) {
     *S = 0;
@@ -181,7 +181,7 @@ dyeHSLtoRGB(float *R, float *G, float *B,
             float  H, float  S, float  L) {
   float m1, m2, fract, mid1, mid2;
   int sextant;
-  
+
   if (S == 0) {
     *R = *G = *B = L;
     return;
@@ -214,7 +214,7 @@ void
 dyeRGBtoXYZ(float *X, float *Y, float *Z,
             float  R, float  G, float  B) {
   float in[3], out[3];
-  
+
   ELL_3V_SET(in, R, G, B);
   ELL_3MV_MUL(out, dyeRGBtoXYZMatx, in);
   ELL_3V_GET(*X, *Y, *Z, out);
@@ -225,7 +225,7 @@ void
 dyeXYZtoRGB(float *R, float *G, float *B,
             float  X, float  Y, float  Z) {
   float in[3], out[3];
-  
+
   ELL_3V_SET(in, X, Y, Z);
   ELL_3MV_MUL(out, dyeXYZtoRGBMatx, in);
   ELL_3V_GET(*R, *G, *B, out);
@@ -234,7 +234,7 @@ dyeXYZtoRGB(float *R, float *G, float *B,
 
 float
 dyeLcbrt(float t) {
-  return AIR_CAST(float, (t > 0.008856 
+  return AIR_CAST(float, (t > 0.008856
                           ? airCbrt(t)
                           : 7.787*t + 16.0/116.0));
 }
@@ -248,7 +248,7 @@ void
 dyeXYZtoLAB(float *L, float *A, float *B,
             float  X, float  Y, float  Z) {
   float Xnorm, Ynorm, Znorm;
-  
+
   Xnorm = X/dyeWhiteXYZ_n[0];
   Ynorm = Y/dyeWhiteXYZ_n[1];
   Znorm = Z/dyeWhiteXYZ_n[2];
@@ -257,7 +257,7 @@ dyeXYZtoLAB(float *L, float *A, float *B,
   *B = 200.0f*(dyeLcbrt(Ynorm) - dyeLcbrt(Znorm));
 }
 
-void 
+void
 dyeXYZtoLUV(float *L, float *U, float *V,
             float  X, float  Y, float  Z) {
   float Ynorm, up, vp;
@@ -270,7 +270,7 @@ dyeXYZtoLUV(float *L, float *U, float *V,
   *V = 13.0f*(*L)*(vp - dyeWhiteuvp_n[1]);
 }
 
-void 
+void
 dyeLABtoXYZ(float *X, float *Y, float *Z,
             float  L, float  A, float  B) {
   float YnormCbrt;
@@ -282,7 +282,7 @@ dyeLABtoXYZ(float *X, float *Y, float *Z,
   return;
 }
 
-void 
+void
 dyeLUVtoXYZ(float *X, float *Y, float *Z,
             float  L, float  U, float  V) {
   float up, vp, YnormCbrt;
@@ -296,7 +296,7 @@ dyeLUVtoXYZ(float *X, float *Y, float *Z,
   return;
 }
 
-void 
+void
 dyeIdentity(float *A, float *B, float *C,
             float  a, float  b, float  c) {
   *A = a;
@@ -305,13 +305,13 @@ dyeIdentity(float *A, float *B, float *C,
   return;
 }
 
-dyeConverter dyeSimpleConvert[DYE_MAX_SPACE+1][DYE_MAX_SPACE+1] = 
+dyeConverter dyeSimpleConvert[DYE_MAX_SPACE+1][DYE_MAX_SPACE+1] =
 {
   {NULL,          NULL,          NULL,          NULL,          NULL,          NULL,          NULL},
   {NULL,          dyeIdentity,   NULL,          dyeHSVtoRGB,   NULL,          NULL,          NULL},
   {NULL,          NULL,          dyeIdentity,   dyeHSLtoRGB,   NULL,          NULL,          NULL},
   {NULL,          dyeRGBtoHSV,   dyeRGBtoHSL,   dyeIdentity,   dyeRGBtoXYZ,   NULL,          NULL},
-  {NULL,          NULL,          NULL,          dyeXYZtoRGB,   dyeIdentity,   dyeXYZtoLAB,   dyeXYZtoLUV},  
+  {NULL,          NULL,          NULL,          dyeXYZtoRGB,   dyeIdentity,   dyeXYZtoLAB,   dyeXYZtoLUV},
   {NULL,          NULL,          NULL,          NULL,          dyeLABtoXYZ,   dyeIdentity,   NULL},
   {NULL,          NULL,          NULL,          NULL,          dyeLUVtoXYZ,   NULL,          dyeIdentity}
   };
@@ -396,6 +396,6 @@ dyeConvert(dyeColor *col, int outSpace) {
       }
     }
   }
-  
+
   return E;
 }

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -33,11 +33,11 @@ parmDesc[] = {
   /* 3 */ {"th1",  0, 2*AIR_PI, AIR_TRUE, AIR_FALSE, 0}
 };
 
-static void 
+static void
 simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {
   unsigned int ii;
   double th0, frac, th1, vec0[3], vec1[3];
-  
+
   /* not used: b0 = parm[0]; */
   th0 = parm[1];
   frac = parm[2];

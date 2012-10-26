@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -85,18 +85,18 @@ tend_gradsMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "maxiter", "# iters", airTypeInt, 1, 1,
              &(tgparm->maxIteration), "1000000",
              "max number of iterations for which to run the simulation");
-  hestOptAdd(&hopt, "minvelo", "vel", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "minvelo", "vel", airTypeDouble, 1, 1,
              &(tgparm->minVelocity), "0.00001",
              "low threshold on mean velocity of repelling points, "
              "at which point repulsion phase of algorithm terminates.");
   hestOptAdd(&hopt, "exp", "exponent", airTypeDouble, 1, 1,
              &(tgparm->expo_d), "1",
              "the exponent n that determines the potential energy 1/r^n.");
-  hestOptAdd(&hopt, "dp", "potential change", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "dp", "potential change", airTypeDouble, 1, 1,
              &(tgparm->minPotentialChange), "0.000000001",
              "low threshold on fractional change of potential at "
              "which point repulsion phase of algorithm terminates.");
-  hestOptAdd(&hopt, "minimprov", "delta", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "minimprov", "delta", airTypeDouble, 1, 1,
              &(tgparm->minMeanImprovement), "0.00005",
              "in the second phase of the algorithm, "
              "when stochastically balancing the sign of the gradients, "
@@ -107,7 +107,7 @@ tend_gradsMain(int argc, const char **argv, const char *me,
              &(tgparm->minMean), "0.0001",
              "if length of mean gradient falls below this, finish "
              "the balancing phase");
-  hestOptAdd(&hopt, "izv", "insert", airTypeBool, 1, 1, 
+  hestOptAdd(&hopt, "izv", "insert", airTypeBool, 1, 1,
              &(tgparm->insertZeroVec), "false",
              "adding zero vector at beginning of grads");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
@@ -140,7 +140,7 @@ tend_gradsMain(int argc, const char **argv, const char *me,
     fprintf(stderr, "%s: trouble making distribution:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-  
+
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);

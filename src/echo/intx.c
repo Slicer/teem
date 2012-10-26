@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,14 +25,14 @@
 #include "privateEcho.h"
 
 /*
-** TODO: do whatever possible to minimize the amount of work 
-** needed for shadow rays 
+** TODO: do whatever possible to minimize the amount of work
+** needed for shadow rays
 */
 
 int _echoVerbose = 0;
 
 /*
-** ALL of the intersection functions are responsible for setting 
+** ALL of the intersection functions are responsible for setting
 ** 1) intx->norm to a NORMALIZED direction
 ** 2) intx->t
 ** 3) intx->obj
@@ -95,7 +95,7 @@ _echoRayIntx_CubeSurf(echoPos_t *tP, int *axP, int *dirP,
 }
 
 int
-_echoRayIntx_CubeSolid(echoPos_t *tminP, echoPos_t *tmaxP, 
+_echoRayIntx_CubeSolid(echoPos_t *tminP, echoPos_t *tmaxP,
                        echoPos_t xmin, echoPos_t xmax,
                        echoPos_t ymin, echoPos_t ymax,
                        echoPos_t zmin, echoPos_t zmax,
@@ -317,7 +317,7 @@ _echoRayIntx_Cube(RAYINTX_ARGS(Cube)) {
   if (!_echoRayIntx_CubeSurf(&t, &ax, &dir,
                              -1, 1,
                              -1, 1,
-                             -1, 1, ray)) 
+                             -1, 1, ray))
     return AIR_FALSE;
   intx->obj = (echoObject *)obj;
   intx->t = t;
@@ -406,7 +406,7 @@ _echoRayIntxUV_Cube(echoIntx *intx) {
 int
 _echoRayIntx_Rectangle(RAYINTX_ARGS(Rectangle)) {
   echoPos_t pvec[3], qvec[3], tvec[3], det, t, u, v, *edge0, *edge1, tmp;
-  
+
   AIR_UNUSED(tstate);
   if (echoMatterLight == obj->matter
       && (ray->shadow || !parm->renderLights)) {
@@ -430,7 +430,7 @@ _echoRayIntx_Rectangle(RAYINTX_ARGS(Rectangle)) {
 int
 _echoRayIntx_Triangle(RAYINTX_ARGS(Triangle)) {
   echoPos_t pvec[3], qvec[3], tvec[3], det, t, u, v, edge0[3], edge1[3], tmp;
-  
+
   AIR_UNUSED(parm);
   AIR_UNUSED(tstate);
   ELL_3V_SUB(edge0, obj->vert[1], obj->vert[0]);
@@ -557,11 +557,11 @@ _echoRayIntx_Split(RAYINTX_ARGS(Split)) {
     minb = obj->min0;
     maxb = obj->max0;
   }
-  
+
   if (tstate->verbose) {
     fprintf(stderr, "%s%s: (shadow = %d):\n",
             _echoDot(tstate->depth), me, ray->shadow);
-    fprintf(stderr, "%s%s: 1st: (%g,%g,%g) -- (%g,%g,%g) (obj %d)\n", 
+    fprintf(stderr, "%s%s: 1st: (%g,%g,%g) -- (%g,%g,%g) (obj %d)\n",
             _echoDot(tstate->depth), me,
             mina[0], mina[1], mina[2],
             maxa[0], maxa[1], maxa[2], a->type);
@@ -616,7 +616,7 @@ _echoRayIntx_List(RAYINTX_ARGS(List)) {
       }
     }
   }
-  
+
   return ret;
 }
 
@@ -633,17 +633,17 @@ _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
   ELL_4MV_MUL(b, obj->Mi, a);
   ELL_34V_HOMOG(iray.from, b);
   ELL_4V_SET(a, ray->dir[0], ray->dir[1], ray->dir[2], 0);
-  ELL_4MV_MUL(b, obj->Mi, a); 
+  ELL_4MV_MUL(b, obj->Mi, a);
   ELL_3V_COPY(iray.dir, b);
   if (tstate->verbose) {
     fprintf(stderr, "%s%s: dir (%g,%g,%g)\n%s   -- Mi --> "
             "(%g,%g,%g,%g)\n%s   --> (%g,%g,%g)\n",
             _echoDot(tstate->depth), "_echoRayIntx_Instance",
             a[0], a[1], a[2], _echoDot(tstate->depth),
-            b[0], b[1], b[2], b[3], _echoDot(tstate->depth), 
+            b[0], b[1], b[2], b[3], _echoDot(tstate->depth),
             iray.dir[0], iray.dir[1], iray.dir[2]);
   }
-  
+
   iray.neer = ray->neer;
   iray.faar = ray->faar;
   iray.shadow = ray->shadow;
@@ -654,7 +654,7 @@ _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
     ELL_3V_COPY(intx->norm, b);
     ELL_3V_NORM(intx->norm, intx->norm, tmp);
     if (tstate->verbose) {
-      fprintf(stderr, "%s%s: hit a %d (at t=%g) with M == \n", 
+      fprintf(stderr, "%s%s: hit a %d (at t=%g) with M == \n",
               _echoDot(tstate->depth), "_echoRayIntx_Instance",
               obj->obj->type, intx->t);
       ell_4m_PRINT(stderr, obj->M);
@@ -677,7 +677,7 @@ _echoRayIntxUV_Noop(echoIntx *intx) {
 /*
 ** NB: the intersections with real objects need to normalize
 ** intx->norm
-*/      
+*/
 _echoRayIntx_t
 _echoRayIntx[ECHO_TYPE_NUM] = {
   (_echoRayIntx_t)_echoRayIntx_Sphere,
@@ -698,7 +698,7 @@ _echoRayIntxUV_t
 _echoRayIntxUV[ECHO_TYPE_NUM] = {
   _echoRayIntxUV_Sphere,  /* echoTypeSphere */
   _echoRayIntxUV_Noop,    /* echoTypeCylinder */
-  _echoRayIntxUV_Noop,    /* sqd.c: echoTypeSuperquad */  
+  _echoRayIntxUV_Noop,    /* sqd.c: echoTypeSuperquad */
   _echoRayIntxUV_Cube,    /* echoTypeCube */
   _echoRayIntxUV_Noop,    /* echoTypeTriangle */
   _echoRayIntxUV_Noop,    /* echoTypeRectangle */

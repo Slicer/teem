@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -40,7 +40,7 @@ main(int argc, const char *argv[]) {
   tenGradientParm *tgparm;
   Nrrd *nlog, *ngrad;
   size_t size[2];
-  
+
   mop = airMopNew();
   tgparm = tenGradientParmNew();
   airMopAdd(mop, tgparm, (airMopper)tenGradientParmNix, airMopAlways);
@@ -52,7 +52,7 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, nlog, (airMopper)nrrdNuke, airMopAlways);
   ngrad = nrrdNew();
   airMopAdd(mop, ngrad, (airMopper)nrrdNuke, airMopAlways);
-  
+
   me = argv[0];
   hestOptAdd(&hopt, "num", "min max", airTypeUInt, 2, 2, numRange, "6 129",
              "range of number of gradients to be computed");
@@ -71,15 +71,15 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "maxiter", "# iters", airTypeInt, 1, 1,
              &(tgparm->maxIteration), "1000000",
              "max number of simulations iterations");
-  hestOptAdd(&hopt, "minvelo", "vel", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "minvelo", "vel", airTypeDouble, 1, 1,
              &(tgparm->minVelocity), "0.00000000001",
              "low threshold on mean velocity of repelling points, "
              "at which point repulsion phase of algorithm terminates.");
-  hestOptAdd(&hopt, "dp", "potential change", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "dp", "potential change", airTypeDouble, 1, 1,
              &(tgparm->minPotentialChange), "0.00000000001",
              "low threshold on fractional change of potential at "
              "which point repulsion phase of algorithm terminates.");
-  hestOptAdd(&hopt, "minimprov", "delta", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "minimprov", "delta", airTypeDouble, 1, 1,
              &(tgparm->minMeanImprovement), "0.00005",
              "in the second phase of the algorithm, "
              "when stochastically balancing the sign of the gradients, "
@@ -100,7 +100,7 @@ main(int argc, const char *argv[]) {
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-  
+
   if (0 == seedRange[0]) {
     fprintf(stderr, "%s: sorry, initial seed must be non-zero\n", me);
     airMopError(mop); return 1;
@@ -146,7 +146,7 @@ main(int argc, const char *argv[]) {
       fprintf(stderr, "%s: given log (%s %u-D %ux%ux?) doesn't match "
               "desired (%s 2-D 9x%u)\n", me,
               airEnumStr(nrrdType, nlog->type),
-              nlog->dim, 
+              nlog->dim,
               AIR_CAST(unsigned int, nlog->axis[0].size),
               AIR_CAST(unsigned int, nlog->axis[1].size),
               airEnumStr(nrrdType, nrrdTypeDouble),

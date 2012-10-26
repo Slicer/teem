@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -97,7 +97,7 @@ tenInterpParmBufferAlloc(tenInterpParm *tip, unsigned int num) {
     tip->qIn = AIR_CALLOC(4*num, double);
     tip->qBuff = AIR_CALLOC(4*num, double);
     tip->qInter = AIR_CALLOC(num*num, double);
-    if (!(tip->eval && tip->evec && 
+    if (!(tip->eval && tip->evec &&
           tip->rtIn && tip->rtLog &&
           tip->qIn && tip->qBuff && tip->qInter)) {
       biffAddf(TEN, "%s: didn't alloc buffers (%p,%p,%p %p %p %p %p)", me,
@@ -108,7 +108,7 @@ tenInterpParmBufferAlloc(tenInterpParm *tip, unsigned int num) {
       return 1;
     }
     tip->allocLen = num;
-  } 
+  }
   return 0;
 }
 
@@ -173,10 +173,10 @@ tenInterpParmNix(tenInterpParm *tip) {
 ** eigensystems at the endpoints for every call, even though they are
 ** apt to be the same between calls.
 **
-** this 
+** this
 */
 void
-tenInterpTwo_d(double oten[7], 
+tenInterpTwo_d(double oten[7],
                const double tenA[7], const double tenB[7],
                int ptype, double aa,
                tenInterpParm *tip) {
@@ -308,7 +308,7 @@ tenInterpN_d(double tenOut[7],
   unsigned int ii;
   double ww, cc, tenErr[7], tmpTen[7], wghtSum, eval[3], evec[9], rtp[3];
 
-  TEN_T_SET(tenErr, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN, 
+  TEN_T_SET(tenErr, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN,
             AIR_NAN, AIR_NAN, AIR_NAN);
   /* wght can be NULL ==> equal 1/num weight for all */
   if (!(tenOut && tenIn && tip)) {
@@ -367,7 +367,7 @@ tenInterpN_d(double tenOut[7],
   case tenInterpTypeGeoLoxR:
   case tenInterpTypeLoxK:
   case tenInterpTypeLoxR:
-    biffAddf(TEN, "%s: %s doesn't support averaging multiple tensors", me, 
+    biffAddf(TEN, "%s: %s doesn't support averaging multiple tensors", me,
              airEnumStr(tenInterpType, ptype));
     TEN_T_COPY(tenOut, tenErr); return 1;
     break;
@@ -414,7 +414,7 @@ tenInterpN_d(double tenOut[7],
     TEN_T_COPY(tenOut, tenErr);
     return 1;
   }
-  
+
   return 0;
 }
 
@@ -457,7 +457,7 @@ _tenInterpGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata,
     if (TEN_T_DOT(igrt[3][jj], igrt[2][jj]) < 0) {
       TEN_T_SCALE(igrt[3][jj], -1, igrt[1][jj]);
     }
-  }  
+  }
 
   TEN_T_SUB(tng, tt[4], tt[0]);
   tmp = 1.0/TEN_T_NORM(tng);
@@ -633,7 +633,7 @@ _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
     lenHere = TEN_T_NORM(diff);
     /*
     fprintf(stderr, "!%s(%u): %g + %g >(%s)= %g\n", me, idxIn,
-            lenRmn, lenHere, 
+            lenRmn, lenHere,
             (lenRmn + lenHere >= lenStep ? "yes" : "no"),
             lenStep);
     */
@@ -669,7 +669,7 @@ _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
 
   /* fill in vertex mid-points */
   for (idxOut=0; idxOut<NN; idxOut++) {
-    TEN_T_LERP(out + 7*(2*idxOut + 1), 
+    TEN_T_LERP(out + 7*(2*idxOut + 1),
                0.5, out + 7*(2*idxOut + 0), out + 7*(2*idxOut + 2));
   }
   return lenTotal;
@@ -763,7 +763,7 @@ _tenInterpGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
                          tip->minNorm);
   }
   nrrdCopy(nss, ntt);
-  
+
   newlen = tenInterpPathLength(ntt, AIR_TRUE, AIR_FALSE, AIR_FALSE);
   do {
     unsigned int lo, hi;
@@ -813,7 +813,7 @@ _tenInterpGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter,
 }
 
 int
-tenInterpTwoDiscrete_d(Nrrd *nout, 
+tenInterpTwoDiscrete_d(Nrrd *nout,
                        const double tenA[7], const double tenB[7],
                        int ptype, unsigned int num,
                        tenInterpParm *_tip) {
@@ -828,7 +828,7 @@ tenInterpTwoDiscrete_d(Nrrd *nout,
     return 1;
   }
   if (airEnumValCheck(tenInterpType, ptype)) {
-    biffAddf(TEN, "%s: path type %d not a valid %s", me, ptype, 
+    biffAddf(TEN, "%s: path type %d not a valid %s", me, ptype,
             tenInterpType->name);
     return 1;
   }
@@ -844,7 +844,7 @@ tenInterpTwoDiscrete_d(Nrrd *nout,
     biffAddf(TEN, "%s: need num >= 2 (not %u)", me, num);
     airMopError(mop); return 1;
   }
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2, 
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2,
                         AIR_CAST(size_t, 7),
                         AIR_CAST(size_t, num))) {
     biffMovef(TEN, NRRD, "%s: trouble allocating output", me);
@@ -863,7 +863,7 @@ tenInterpTwoDiscrete_d(Nrrd *nout,
        between two tensors for these path types */
     for (ii=0; ii<num; ii++) {
       /* yes, this is often doing a lot of needless recomputations. */
-      tenInterpTwo_d(out + 7*ii, tenA, tenB, 
+      tenInterpTwo_d(out + 7*ii, tenA, tenB,
                      ptype, (double)ii/(num-1), tip);
     }
   } else if (ptype == tenInterpTypeGeoLoxK
@@ -873,7 +873,7 @@ tenInterpTwoDiscrete_d(Nrrd *nout,
     /* we have slow iterative code for these */
     unsigned int numIter;
     int useK, rotnoop;
-    
+
     useK = (tenInterpTypeGeoLoxK == ptype
             || tenInterpTypeLoxK == ptype);
     rotnoop = (tenInterpTypeGeoLoxK == ptype
@@ -891,7 +891,7 @@ tenInterpTwoDiscrete_d(Nrrd *nout,
     airMopError(mop); return 1;
   }
 
-  airMopOkay(mop); 
+  airMopOkay(mop);
   return 0;
 }
 
@@ -905,7 +905,7 @@ tenInterpDistanceTwo_d(const double tenA[7], const double tenB[7],
   double ret, diff[7], logA[7], logB[7], invA[7], det, siA[7],
     mat1[9], mat2[9], mat3[9], logDiff[7];
   Nrrd *npath;
-  
+
   if (!( tenA && tenB && !airEnumValCheck(tenInterpType, ptype) )) {
     return AIR_NAN;
   }
@@ -997,7 +997,7 @@ tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin, const double *wght,
     return 1;
   }
   if (airEnumValCheck(tenInterpType, ptype)) {
-    biffAddf(TEN, "%s: invalid %s %d", me, 
+    biffAddf(TEN, "%s: invalid %s %d", me,
              tenInterpType->name, ptype);
     return 1;
   }
@@ -1024,7 +1024,7 @@ tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin, const double *wght,
       return 1;
     }
     if (nin[0]->type != nin[ninIdx]->type) {
-      biffAddf(TEN, "%s: nin[0] type (%s) != nin[%u] type (%s)", me, 
+      biffAddf(TEN, "%s: nin[0] type (%s) != nin[%u] type (%s)", me,
                airEnumStr(nrrdType, nin[0]->type),
                ninIdx, airEnumStr(nrrdType, nin[ninIdx]->type));
       return 1;
@@ -1068,7 +1068,7 @@ tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin, const double *wght,
       ins(nout->data, tt + 7*II, tenOut[tt]);
     }
   }
-  
-  airMopOkay(mop); 
+
+  airMopOkay(mop);
   return 0;
 }

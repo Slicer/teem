@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -36,7 +36,7 @@ main(int argc, const char *argv[]) {
   int bins;
   size_t size[NRRD_DIM_MAX];
   float min;
-  
+
   mop = airMopNew();
   me = argv[0];
 
@@ -59,7 +59,7 @@ main(int argc, const char *argv[]) {
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-  
+
   if (!( nrrdTypeFloat == nvec->type )) {
     fprintf(stderr, "%s vector type (%s) not %s\n", me,
             airEnumStr(nrrdType, nvec->type),
@@ -72,7 +72,7 @@ main(int argc, const char *argv[]) {
   }
   if (!( _nodf->axis[0].size == nvec->axis[1].size )) {
     fprintf(stderr, "%s mismatch of _nodf->axis[0].size (%d) vs. "
-            "nvec->axis[1].size (%d)\n", me, 
+            "nvec->axis[1].size (%d)\n", me,
             (int)_nodf->axis[0].size, (int)nvec->axis[1].size);
     airMopError(mop); return 1;
   }
@@ -124,15 +124,15 @@ main(int argc, const char *argv[]) {
         fprintf(stderr, "%s: trouble converting input:\n%s", me, errS);
         airMopError(mop); return 1;
       }
-    }      
-    
+    }
+
     /* normalize lengths (MODIFIES INPUT) */
     vec = (float*)nvec->data;
     for (ii=0; ii<=jj; ii++) {
       vi = vec + 3*ii;
       ELL_3V_NORM(vi, vi, tmp);
     }
-    
+
     /* pre-compute pair-wise angles */
     anglut = (int*)nanglut->data;
     for (jj=0; jj<VV; jj++) {

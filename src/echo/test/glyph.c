@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -32,7 +32,7 @@ typedef struct {
 
 void
 rgbGen(echoCol_t rgb[3], float evec[3], float an) {
-  
+
   ELL_3V_ABS(rgb, evec);
   rgb[0] = AIR_AFFINE(0.0, an, 1.0, 0.5, rgb[0]);
   rgb[1] = AIR_AFFINE(0.0, an, 1.0, 0.5, rgb[1]);
@@ -58,7 +58,7 @@ makeGlyphScene(limnCam *cam, EchoParm *eparm,
     imin[3], imax[3], omin[3], omax[3];
   EchoObject *scene, *rect;
   EchoLight *light;
-  
+
   scene = echoObjectNew(echoObjectList);
   *lightArrP = echoLightArrayNew();
 
@@ -136,7 +136,7 @@ makeGlyphScene(limnCam *cam, EchoParm *eparm,
     }
   }
 
-  /* something to cast a shadow on 
+  /* something to cast a shadow on
   glf = echoObjectNew(echoObjectSphere);
   echoObjectSphereSet(glf, 35+1000, 40, 35, 1000);
   echoMatterPhongSet(glf, 1, 1, 1, 1.0,
@@ -145,7 +145,7 @@ makeGlyphScene(limnCam *cam, EchoParm *eparm,
   echoObjectInstanceSet(inst, MC, glf, AIR_TRUE);
   echoObjectListAdd(scene, inst);
   */
-  
+
   printf("%s: generated %d glyphs\n", me, ng);
 
   if (gparm->lrad) {
@@ -168,7 +168,7 @@ makeGlyphScene(limnCam *cam, EchoParm *eparm,
   }
   else {
     light = echoLightNew(echoLightDirectional);
-    echoLightDirectionalSet(light, 1, 1, 1, 
+    echoLightDirectionalSet(light, 1, 1, 1,
                             AIR_AFFINE(0, gparm->lpos[0], 1, -sx*xs, sx*xs),
                             AIR_AFFINE(0, gparm->lpos[1], 1, -sy*ys, sy*ys),
                             AIR_AFFINE(0, 0, 1, -sz*zs, sz*zs));
@@ -183,7 +183,7 @@ makeGlyphScene(limnCam *cam, EchoParm *eparm,
   else {
     *sceneP = scene;
   }
-  
+
   return;
 }
 
@@ -193,7 +193,7 @@ echoParseTenNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "echoParseTenNrrd", *nerr;
   Nrrd **nrrdP;
   airArray *mop;
-  
+
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -349,7 +349,7 @@ main(int argc, char *argv[]) {
   /* do the glyph thing */
   makeGlyphScene(cam, eparm, nten, &gparm,
                  &scene, &lightArr);
-  
+
   /* render */
   nraw = nrrdNew();
   nimg = nrrdNew();
@@ -362,7 +362,7 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, npgm, (airMopper)nrrdNuke, airMopAlways);
   E = 0;
-  printf("%s: rendering (%d samples)... ", me, eparm->samples); 
+  printf("%s: rendering (%d samples)... ", me, eparm->samples);
   fflush(stdout);
   if (!E) E |= echoRender(nraw, cam, eparm, state, scene, lightArr);
   printf("done.\n");

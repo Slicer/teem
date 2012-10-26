@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -129,7 +129,7 @@ main(int argc, const char *argv[]) {
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-  
+
   obj = limnObjectNew(1000, AIR_TRUE);
   airMopAdd(mop, obj, (airMopper)limnObjectNix, airMopAlways);
 
@@ -191,11 +191,11 @@ main(int argc, const char *argv[]) {
   ell_3m_print_d(stderr, matA);
   fprintf(stderr, "%s: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n", me);
   */
-  
+
   ELL_3M_IDENTITY_SET(matA);
-  ell_3m_pre_mul_d(matA, uu);  
+  ell_3m_pre_mul_d(matA, uu);
   ELL_3M_SCALE_SET(matB, sval[0], sval[1], sval[2]);
-  ell_3m_pre_mul_d(matA, matB);  
+  ell_3m_pre_mul_d(matA, matB);
   ELL_3M_TRANSPOSE(matB, uu);
   ell_3m_pre_mul_d(matA, matB);
   TEN_M2T(ten, matA);
@@ -216,47 +216,47 @@ main(int argc, const char *argv[]) {
     ELL_4M_IDENTITY_SET(matAf);
     ELL_4M_SCALE_SET(matBf, (1-scale[0])/2, rad, rad);
     ell_4m_post_mul_f(matAf, matBf);
-    ELL_4M_TRANSLATE_SET(matBf, (1+scale[0])/2, 0.0, 0.0); 
+    ELL_4M_TRANSLATE_SET(matBf, (1+scale[0])/2, 0.0, 0.0);
     ell_4m_post_mul_f(matAf, matBf);
     limnObjectPartTransform(obj, partIdx, matAf);
-    
+
     partIdx = limnObjectCylinderAdd(obj, lookRod, 0, res);
     ELL_4M_IDENTITY_SET(matAf);
     ELL_4M_SCALE_SET(matBf, (1-scale[0])/2, rad, rad);
     ell_4m_post_mul_f(matAf, matBf);
-    ELL_4M_TRANSLATE_SET(matBf, -(1+scale[0])/2, 0.0, 0.0); 
+    ELL_4M_TRANSLATE_SET(matBf, -(1+scale[0])/2, 0.0, 0.0);
     ell_4m_post_mul_f(matAf, matBf);
     limnObjectPartTransform(obj, partIdx, matAf);
-    
+
     partIdx = limnObjectCylinderAdd(obj, lookRod, 1, res);
     ELL_4M_IDENTITY_SET(matAf);
     ELL_4M_SCALE_SET(matBf, rad, (1-scale[1])/2, rad);
     ell_4m_post_mul_f(matAf, matBf);
-    ELL_4M_TRANSLATE_SET(matBf, 0.0, (1+scale[1])/2, 0.0); 
+    ELL_4M_TRANSLATE_SET(matBf, 0.0, (1+scale[1])/2, 0.0);
     ell_4m_post_mul_f(matAf, matBf);
     limnObjectPartTransform(obj, partIdx, matAf);
-    
+
     partIdx = limnObjectCylinderAdd(obj, lookRod, 1, res);
     ELL_4M_IDENTITY_SET(matAf);
     ELL_4M_SCALE_SET(matBf, rad, (1-scale[1])/2, rad);
     ell_4m_post_mul_f(matAf, matBf);
-    ELL_4M_TRANSLATE_SET(matBf, 0.0, -(1+scale[1])/2, 0.0); 
+    ELL_4M_TRANSLATE_SET(matBf, 0.0, -(1+scale[1])/2, 0.0);
     ell_4m_post_mul_f(matAf, matBf);
     limnObjectPartTransform(obj, partIdx, matAf);
-    
+
     partIdx = limnObjectCylinderAdd(obj, lookRod, 2, res);
     ELL_4M_IDENTITY_SET(matAf);
     ELL_4M_SCALE_SET(matBf, rad, rad, (1-scale[2])/2);
     ell_4m_post_mul_f(matAf, matBf);
-    ELL_4M_TRANSLATE_SET(matBf, 0.0, 0.0, (1+scale[2])/2); 
+    ELL_4M_TRANSLATE_SET(matBf, 0.0, 0.0, (1+scale[2])/2);
     ell_4m_post_mul_f(matAf, matBf);
     limnObjectPartTransform(obj, partIdx, matAf);
-    
+
     partIdx = limnObjectCylinderAdd(obj, lookRod, 2, res);
     ELL_4M_IDENTITY_SET(matAf);
     ELL_4M_SCALE_SET(matBf, rad, rad, (1-scale[2])/2);
     ell_4m_post_mul_f(matAf, matBf);
-    ELL_4M_TRANSLATE_SET(matBf, 0.0, 0.0, -(1+scale[2])/2); 
+    ELL_4M_TRANSLATE_SET(matBf, 0.0, 0.0, -(1+scale[2])/2);
     ell_4m_post_mul_f(matAf, matBf);
     limnObjectPartTransform(obj, partIdx, matAf);
   }
@@ -269,7 +269,7 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-  
+
   airMopOkay(mop);
   return 0;
 }

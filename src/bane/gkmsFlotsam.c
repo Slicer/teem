@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -32,14 +32,14 @@
 ** baneGkmsParseIncStrategy
 **
 ** inc[0]: member of baneInc* enum
-** inc[1], inc[2] ... : incParm[0], incParm[1] ... 
+** inc[1], inc[2] ... : incParm[0], incParm[1] ...
 */
 int
 baneGkmsParseIncStrategy(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="baneGkmsParseIncStrategy";
   double *inc, *incParm;
   int i, bins;
-  
+
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -49,7 +49,7 @@ baneGkmsParseIncStrategy(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   for (i=0; i<BANE_PARM_NUM; i++) {
     incParm[i] = AIR_NAN;
   }
-  if (1 == sscanf(str, "f:%lg", incParm+0) 
+  if (1 == sscanf(str, "f:%lg", incParm+0)
       || 2 == sscanf(str, "f:%lg,%lg", incParm+0, incParm+1)) {
     inc[0] = baneIncRangeRatio;
     return 0;
@@ -101,7 +101,7 @@ baneGkmsParseBEF(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   float cent, width, shape, alpha, off, *bef;
   Nrrd **nrrdP;
   airArray *mop;
-  
+
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -179,7 +179,7 @@ int
 baneGkmsParseGthresh(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="baneGkmsParseGthresh";
   float *gthr;
-  
+
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -248,7 +248,7 @@ baneGkmsUsage(const char *me, hestParm *hparm) {
   sprintf(fmt, "%%%ds\n",
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
-  
+
   for (ci=0; baneGkmsCmdList[ci]; ci++) {
     len = AIR_UINT(strlen(baneGkmsCmdList[ci]->name));
     strcpy(buff, "");

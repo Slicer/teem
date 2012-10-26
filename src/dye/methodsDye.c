@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -78,7 +78,7 @@ dyeColorInit(dyeColor *col) {
 
 dyeColor *
 dyeColorSet(dyeColor *col, int space, float v0, float v1, float v2) {
-  
+
   if (col && DYE_VALID_SPACE(space)) {
     col->ii = AIR_CLAMP(0, col->ii, 1);
 
@@ -100,7 +100,7 @@ dyeColorSet(dyeColor *col, int space, float v0, float v1, float v2) {
 int
 dyeColorGet(float *v0P, float *v1P, float *v2P, dyeColor *col) {
   int spc;
-  
+
   spc = dyeSpaceUnknown;
   if (v0P && v1P && v2P && col) {
     col->ii = AIR_CLAMP(0, col->ii, 1);
@@ -111,10 +111,10 @@ dyeColorGet(float *v0P, float *v1P, float *v2P, dyeColor *col) {
 }
 
 int
-dyeColorGetAs(float *v0P, float *v1P, float *v2P, 
+dyeColorGetAs(float *v0P, float *v1P, float *v2P,
               dyeColor *colIn, int space) {
   dyeColor _col, *col;
-  
+
   col = &_col;
   dyeColorCopy(col, colIn);
   /* hope for no error */
@@ -133,7 +133,7 @@ dyeColorNew() {
 
 dyeColor *
 dyeColorCopy(dyeColor *c1, dyeColor *c0) {
-  
+
   if (c1 && c0) {
     memcpy(c1, c0, sizeof(dyeColor));
   }
@@ -156,7 +156,7 @@ dyeColorParse(dyeColor *col, char *_str) {
   char *colon, *valS;
   float v0, v1, v2;
   int spc;
-  
+
   if (!(col && _str)) {
     biffAddf(DYE, "%s: got NULL pointer", me);
     return 1;
@@ -188,12 +188,12 @@ dyeColorParse(dyeColor *col, char *_str) {
 
 char *
 dyeColorSprintf(char *str, dyeColor *col) {
-  
+
   if (str && col) {
     col->ii = AIR_CLAMP(0, col->ii, 1);
     sprintf(str, "%s:%g,%g,%g", dyeSpaceToStr[col->spc[col->ii]],
-            col->val[col->ii][0], 
-            col->val[col->ii][1], 
+            col->val[col->ii][0],
+            col->val[col->ii][1],
             col->val[col->ii][2]);
   }
   return str;

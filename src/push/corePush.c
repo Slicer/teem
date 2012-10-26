@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -32,7 +32,7 @@ int
 _pushProcess(pushTask *task) {
   static const char me[]="_pushProcess";
   unsigned int binIdx;
-  
+
   while (task->pctx->binIdx < task->pctx->binNum) {
     /* get the index of the next bin to process */
     if (task->pctx->threadNum > 1) {
@@ -52,7 +52,7 @@ _pushProcess(pushTask *task) {
       /* no more bins to process! */
       break;
     }
-    
+
     if (pushBinProcess(task, binIdx)) {
       biffAddf(PUSH, "%s(%u): had trouble on bin %u", me,
                task->threadIdx, binIdx);
@@ -68,7 +68,7 @@ void *
 _pushWorker(void *_task) {
   static const char me[]="_pushWorker";
   pushTask *task;
-  
+
   task = (pushTask *)_task;
 
   while (1) {
@@ -84,7 +84,7 @@ _pushWorker(void *_task) {
       }
       break;
     }
-    /* else there's work to do ... */    
+    /* else there's work to do ... */
     if (task->pctx->verbose > 1) {
       fprintf(stderr, "%s(%u): starting to process\n", me, task->threadIdx);
     }
@@ -107,7 +107,7 @@ int
 _pushContextCheck(pushContext *pctx) {
   static const char me[]="_pushContextCheck";
   unsigned int numSingle;
-  
+
   if (!pctx) {
     biffAddf(PUSH, "%s: got NULL pointer", me);
     return 1;
@@ -144,7 +144,7 @@ _pushContextCheck(pushContext *pctx) {
       biffMovef(PUSH, NRRD, "%s: got a broken position nrrd", me);
       return 1;
     }
-    if (!( 2 == pctx->npos->dim 
+    if (!( 2 == pctx->npos->dim
            && 3 == pctx->npos->axis[0].size )) {
       biffAddf(PUSH, "%s: position nrrd not 2-D 3-by-N", me);
       return 1;
@@ -195,12 +195,12 @@ pushStart(pushContext *pctx) {
   }
 
   airSrandMT(pctx->seedRNG);
-  
+
   /* the ordering of steps below is important: gage context
      has to be set up before its copied by task setup */
   pctx->step = pctx->stepInitial;
   if (_pushTensorFieldSetup(pctx)
-      || _pushGageSetup(pctx) 
+      || _pushGageSetup(pctx)
       || _pushTaskSetup(pctx)
       || _pushBinSetup(pctx)
       || _pushPointSetup(pctx)) {
@@ -249,7 +249,7 @@ pushIterate(pushContext *pctx) {
     biffAddf(PUSH, "%s: got NULL pointer", me);
     return 1;
   }
-  
+
   if (pctx->verbose) {
     fprintf(stderr, "%s: starting iterations\n", me);
   }
@@ -318,7 +318,7 @@ pushRun(pushContext *pctx) {
   Nrrd *npos, *nten;
   double time0, time1, enrLast,
     enrNew=AIR_NAN, enrImprov=AIR_NAN, enrImprovAvg=AIR_NAN;
-  
+
   if (pushIterate(pctx)) {
     biffAddf(PUSH, "%s: trouble on starting iteration", me);
     return 1;
@@ -371,7 +371,7 @@ pushRun(pushContext *pctx) {
                 me, pctx->iter, pctx->deltaFrac, tmp, pctx->step);
       }
       /* this forces another iteration */
-      enrImprovAvg = AIR_NAN; 
+      enrImprovAvg = AIR_NAN;
     } else {
       /* there was some improvement; energy went down */
       if (!AIR_EXISTS(enrImprovAvg)) {
@@ -388,11 +388,11 @@ pushRun(pushContext *pctx) {
         enrImprovAvg = (enrImprovAvg + enrImprov)/2;
       }
     }
-  } while ( ((!AIR_EXISTS(enrImprovAvg) 
+  } while ( ((!AIR_EXISTS(enrImprovAvg)
               || enrImprovAvg > pctx->energyImprovMin)
              && (0 == pctx->maxIter
                  || pctx->iter < pctx->maxIter)) );
-  fprintf(stderr, "%s: done after %u iters; enr = %g, enrImprov = %g,%g\n", 
+  fprintf(stderr, "%s: done after %u iters; enr = %g, enrImprov = %g,%g\n",
           me, pctx->iter, enrNew, enrImprov, enrImprovAvg);
   time1 = airTime();
 

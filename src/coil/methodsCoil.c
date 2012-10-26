@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -27,7 +27,7 @@ int
 coilVolumeCheck(const Nrrd *nin, const coilKind *kind) {
   static const char me[]="coilVolumeCheck";
   unsigned int baseDim;
-  
+
   if (!(nin && kind)) {
     biffAddf(COIL, "%s: got NULL pointer", me);
     return 1;
@@ -39,7 +39,7 @@ coilVolumeCheck(const Nrrd *nin, const coilKind *kind) {
   }
   baseDim = (1 == kind->valLen ? 0 : 1);
   if (3 + baseDim != nin->dim) {
-    biffAddf(COIL, "%s: dim of input must be 3+%d (3 + baseDim), not %d", 
+    biffAddf(COIL, "%s: dim of input must be 3+%d (3 + baseDim), not %d",
              me, baseDim, nin->dim);
     return 1;
   }
@@ -50,7 +50,7 @@ coilVolumeCheck(const Nrrd *nin, const coilKind *kind) {
 coilContext *
 coilContextNew() {
   coilContext *cctx;
-  
+
   cctx = (coilContext *)calloc(1, sizeof(coilContext));
   if (cctx) {
     cctx->nin = NULL;
@@ -77,7 +77,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   size_t size[NRRD_DIM_MAX], sx, sy, sz;
   double xsp, ysp, zsp;
   airArray *mop;
-  
+
   cctx->verbose = verbose;
   if (!( cctx && nin && kind && method )) {
     biffAddf(COIL, "%s: got NULL pointer", me);
@@ -97,7 +97,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
     biffAddf(COIL, "%s: method->type %d not valid", me, method->type);
     return 1;
   }
-  
+
   if (!kind->filter[method->type]) {
     biffAddf(COIL, "%s: sorry, %s filtering not available on %s kind",
              me, method->name, kind->name);
@@ -110,7 +110,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
             "thread, not %d\n", me, numThreads);
     numThreads = 1;
   }
-  
+
   mop = airMopNew();
 
   /* set parms */
@@ -148,17 +148,17 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
     zsp = 1;
   } else {
     if ( !allExist ) {
-      biffAddf(COIL, "%s: spacings (%g,%g,%g) not uniformly existent", 
+      biffAddf(COIL, "%s: spacings (%g,%g,%g) not uniformly existent",
                me, xsp, ysp, zsp);
       airMopError(mop); return 1;
     }
   }
   ELL_3V_SET(cctx->spacing, xsp, ysp, zsp);
   if (cctx->verbose) {
-    fprintf(stderr, "%s: spacings: %g %g %g\n", me, 
+    fprintf(stderr, "%s: spacings: %g %g %g\n", me,
             cctx->spacing[0], cctx->spacing[1], cctx->spacing[2]);
   }
-  
+
   /* allocate nvol */
   if (0 == baseDim) {
     ELL_4V_SET(size, 2, sx, sy, sz);
@@ -172,7 +172,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
     airMopError(mop); return 1;
   }
   airMopAdd(mop, cctx->nvol, (airMopper)nrrdNuke, airMopOnError);
-  
+
   cctx->nin = nin;
   cctx->kind = kind;
   cctx->method = method;
@@ -186,9 +186,9 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
 /*
 ******** coilOutputGet
 **
-** slice the present intermediate volume to get an output.  
+** slice the present intermediate volume to get an output.
 **
-** No, this does not do quantization or rounding to match the input 
+** No, this does not do quantization or rounding to match the input
 ** type (of cctx->nin).  The reason is that after filtering, it is often
 ** the case that subtle differences in values emerge, and it may be
 ** reckless to dump them back into the limited type or value range

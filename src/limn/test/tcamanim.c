@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -35,7 +35,7 @@ _limnReadCamanim(int imgSize[2], limnCamera **keycamP, double **timeP,
   unsigned int ki;
   double *tmp, *dwell, di, dn, df, fr[3], at[3], up[3], va;
   airArray *mop, *camA, *dwellA;
-  
+
   if (!( 0 < airOneLine(fin, line, AIR_STRLEN_HUGE)
          && !strcmp(_LIMNMAGIC, line) )) {
     sprintf(err, "%s: couldn't read first line or it wasn't \"%s\"",
@@ -49,7 +49,7 @@ _limnReadCamanim(int imgSize[2], limnCamera **keycamP, double **timeP,
             "\"imgSize <sizeX> <sizeY>\"", me);
     biffAdd(LIMN, err); return 1;
   }
-  
+
   mop = airMopNew();
   camA = airArrayNew((void **)keycamP, numKeysP, sizeof(limnCamera), 1);
   dwellA = airArrayNew((void **)&dwell, NULL, sizeof(double), 1);
@@ -92,7 +92,7 @@ _limnReadCamanim(int imgSize[2], limnCamera **keycamP, double **timeP,
   (*timeP)[0] = 0;
   for (ki=1; ki<*numKeysP; ki++) {
     (*timeP)[ki] = (*timeP)[ki-1] + (tmp[ki-1] + tmp[ki])/2;
-  } 
+  }
   for (ki=0; ki<*numKeysP; ki++) {
     (*timeP)[ki] /= (*timeP)[*numKeysP-1];
   }
@@ -106,7 +106,7 @@ _limnWriteCamanim(FILE *fout, int imgSize[2],
                   limnCamera *cam, int numFrames) {
   /* char me[]="_limnWriteCamanim", err[AIR_STRLEN_MED]; */
   int fi;
-  
+
   fprintf(fout, "%s\n", _LIMNMAGIC);
   fprintf(fout, "imgSize {%d %d}\n", imgSize[0], imgSize[1]);
   for (fi=0; fi<numFrames; fi++) {
@@ -137,7 +137,7 @@ main(int argc, const char *argv[]) {
   unsigned int numKeys;
 
   mop = airMopNew();
-  
+
   me = argv[0];
   hestOptAdd(&hopt, "i", "input", airTypeString, 1, 1, &inS, NULL,
              "keyframe output from camanim.tcl");
@@ -145,16 +145,16 @@ main(int argc, const char *argv[]) {
              "number of frames in output");
   hestOptAdd(&hopt, "t", "track what", airTypeEnum, 1, 1, &trackWhat, "both",
              "what to track", NULL, limnCameraPathTrack);
-  hestOptAdd(&hopt, "q", "spline", airTypeOther, 1, 1, 
+  hestOptAdd(&hopt, "q", "spline", airTypeOther, 1, 1,
              &quatType, "tent", "spline type for quaternions",
              NULL, NULL, limnHestSplineTypeSpec);
-  hestOptAdd(&hopt, "p", "spline", airTypeOther, 1, 1, 
+  hestOptAdd(&hopt, "p", "spline", airTypeOther, 1, 1,
              &posType, "tent", "spline type for from/at/up",
              NULL, NULL, limnHestSplineTypeSpec);
-  hestOptAdd(&hopt, "d", "spline", airTypeOther, 1, 1, 
+  hestOptAdd(&hopt, "d", "spline", airTypeOther, 1, 1,
              &distType, "tent", "spline type for image plane distances",
              NULL, NULL, limnHestSplineTypeSpec);
-  hestOptAdd(&hopt, "v", "spline", airTypeOther, 1, 1, 
+  hestOptAdd(&hopt, "v", "spline", airTypeOther, 1, 1,
              &viewType, "tent", "spline type for image fov and aspect",
              NULL, NULL, limnHestSplineTypeSpec);
   hestOptAdd(&hopt, "o", "output", airTypeString, 1, 1, &outS, NULL,
@@ -195,7 +195,7 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "%s: trouble writing frame file:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-  
+
   airMopOkay(mop);
   return 0;
 }

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -118,19 +118,19 @@ tend_mfitMain(int argc, const char **argv, const char *me,
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble getting exper from kvp:\n%s\n", me, err);
     airMopError(mop); return 1;
-  }  
-  if (tenModelSqeFit(nout, 
-                     airStrlen(terrS) ? &nterr : NULL, 
-                     airStrlen(convS) ? &nconv : NULL, 
-                     airStrlen(iterS) ? &niter : NULL, 
+  }
+  if (tenModelSqeFit(nout,
+                     airStrlen(terrS) ? &nterr : NULL,
+                     airStrlen(convS) ? &nconv : NULL,
+                     airStrlen(iterS) ? &niter : NULL,
                      model, espec, nin,
-                     knownB0, saveB0, typeOut, 
+                     knownB0, saveB0, typeOut,
                      minIter, maxIter, starts, eps,
                      NULL, verbose)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble fitting:\n%s\n", me, err);
     airMopError(mop); return 1;
-  }  
+  }
 
   if (nrrdSave(outS, nout, NULL)
       || (airStrlen(terrS) && nrrdSave(terrS, nterr, NULL))

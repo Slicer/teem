@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -37,13 +37,13 @@ main(int argc, char *argv[]) {
   char *inS, *spcS, buff[512];
   dyeColor *col;
   int spc;
-  
+
   me = argv[0];
   if (3 != argc)
     usage();
   inS = argv[1];
   spcS = argv[2];
-  
+
   if (dyeColorParse(col = dyeColorNew(), inS)) {
     fprintf(stderr, "%s: trouble parsing \"%s\":\n%s", me, inS, biffGet(DYE));
     exit(1);
@@ -54,7 +54,7 @@ main(int argc, char *argv[]) {
     exit(1);
   }
   if (dyeConvert(col, spc)) {
-    fprintf(stderr, "%s: trouble converting to %s:\n%s", 
+    fprintf(stderr, "%s: trouble converting to %s:\n%s",
             me, spcS, biffGet(DYE));
     exit(1);
   }

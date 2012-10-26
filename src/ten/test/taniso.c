@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -99,7 +99,7 @@ main(int argc, char *argv[]) {
       }
       if (!AIR_EXISTS(tmp) || tmp > 0.0000003) {
         fprintf(stderr, "\n%s: %u %d (%s) (isot %s, equi %s) tmp=%g\n",
-                me, ii, aa, 
+                me, ii, aa,
                 airEnumStr(tenAniso, aa),
                 isot ? "true" : "false",
                 equi ? "true" : "false", tmp);
@@ -108,7 +108,7 @@ main(int argc, char *argv[]) {
         fprintf(stderr, "  %f %f %f (%f %f %f)f --->\n",
                 evalD[0], evalD[1], evalD[2],
                 evalF[0], evalF[1], evalF[2]);
-        fprintf(stderr, "  %f %f %f %f\n", 
+        fprintf(stderr, "  %f %f %f %f\n",
                 aniso[0], aniso[1], aniso[2], aniso[3]);
         exit(1);
       }

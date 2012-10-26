@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -24,10 +24,10 @@
 #include "ten.h"
 #include "privateTen.h"
 
-tenEMBimodalParm* 
+tenEMBimodalParm*
 tenEMBimodalParmNew() {
   tenEMBimodalParm *biparm;
-  
+
   biparm = (tenEMBimodalParm*)calloc(1, sizeof(tenEMBimodalParm));
   if (biparm) {
     biparm->minProb = 0.0001;
@@ -46,7 +46,7 @@ tenEMBimodalParmNew() {
   return biparm;
 }
 
-tenEMBimodalParm* 
+tenEMBimodalParm*
 tenEMBimodalParmNix(tenEMBimodalParm *biparm) {
 
   if (biparm) {
@@ -67,11 +67,11 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
   airArray *mop;
 
   if (!( biparm->maxIteration > 5 )) {
-    biffAddf(TEN, "%s: biparm->maxIteration = %d too small", me, 
+    biffAddf(TEN, "%s: biparm->maxIteration = %d too small", me,
              biparm->maxIteration);
     return 1;
   }
-  
+
   mop = airMopNew();
   nhisto = nrrdNew();
   airMopAdd(mop, nhisto, (airMopper)nrrdNuke, airMopOnError);
@@ -116,21 +116,21 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
 
   /* get mean and stdv of bins below median */
   (nrrdMeasureLine[nrrdMeasureHistoMean])
-    (&(biparm->mean1), nrrdTypeDouble, 
+    (&(biparm->mean1), nrrdTypeDouble,
      biparm->histo, nrrdTypeDouble, median,
      AIR_NAN, AIR_NAN);
   (nrrdMeasureLine[nrrdMeasureHistoSD])
-    (&(biparm->stdv1), nrrdTypeDouble, 
+    (&(biparm->stdv1), nrrdTypeDouble,
      biparm->histo, nrrdTypeDouble, median,
      AIR_NAN, AIR_NAN);
 
   /* get mean (shift upwards by median) and stdv of bins above median */
   (nrrdMeasureLine[nrrdMeasureHistoMean])
-    (&(biparm->mean2), nrrdTypeDouble, 
+    (&(biparm->mean2), nrrdTypeDouble,
      biparm->histo + median, nrrdTypeDouble, biparm->N - median,
      AIR_NAN, AIR_NAN);
   (nrrdMeasureLine[nrrdMeasureHistoSD])
-    (&(biparm->stdv2), nrrdTypeDouble, 
+    (&(biparm->stdv2), nrrdTypeDouble,
      biparm->histo + median, nrrdTypeDouble, biparm->N - median,
      AIR_NAN, AIR_NAN);
 
@@ -143,7 +143,7 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
             biparm->mean1, biparm->stdv1,
             biparm->mean2, biparm->stdv2);
   }
-  
+
   airMopOkay(mop);
   return 0;
 }
@@ -176,9 +176,9 @@ void
 _tenEMBimodalPP(tenEMBimodalParm *biparm) {
   int i;
   double g1, g2, pp1, pp2, f1, min;
-  
-  min = (1 == biparm->stage 
-         ? biparm->minProb 
+
+  min = (1 == biparm->stage
+         ? biparm->minProb
          : biparm->minProb2);
   f1 = biparm->fraction1;
   for (i=0; i<biparm->N; i++) {
@@ -229,7 +229,7 @@ _tenEMBimodalNewMean(double *m1P, double *m2P,
                      tenEMBimodalParm *biparm) {
   int i;
   double pp1, pp2, h, sum1, isum1, sum2, isum2;
-  
+
   sum1 = isum1 = sum2 = isum2 = 0.0;
   for (i=0; i<biparm->N; i++) {
     pp1 = biparm->pp1[i];
@@ -246,11 +246,11 @@ _tenEMBimodalNewMean(double *m1P, double *m2P,
 
 void
 _tenEMBimodalNewSigma(double *s1P, double *s2P,
-                      double m1, double m2, 
+                      double m1, double m2,
                       tenEMBimodalParm *biparm) {
   int i;
   double pp1, pp2, h, sum1, isum1, sum2, isum2;
-  
+
   sum1 = isum1 = sum2 = isum2 = 0.0;
   for (i=0; i<biparm->N; i++) {
     pp1 = biparm->pp1[i];
@@ -273,7 +273,7 @@ _tenEMBimodalSaveImage(tenEMBimodalParm *biparm) {
   const Nrrd *nhmhi[3];
   double *m, max;
   int i;
-  
+
   nh = nrrdNew();
   nm = nrrdNew();
   nhi = nrrdNew();
@@ -328,7 +328,7 @@ _tenEMBimodalIterate(tenEMBimodalParm *biparm) {
   biparm->delta = ((fabs(m1 - om1) + fabs(m2 - om2)
                     + fabs(s1 - os1) + fabs(s2 - os2))/biparm->N
                    + fabs(f1 - of1));
-  
+
   /* set new values */
   biparm->mean1 = m1;
   biparm->stdv1 = s1;
@@ -385,7 +385,7 @@ _tenEMBimodalConfThresh(tenEMBimodalParm *biparm) {
   }
 
   if (biparm->verbose) {
-    fprintf(stderr, "%s: conf = %g, thresh = %g\n", me, 
+    fprintf(stderr, "%s: conf = %g, thresh = %g\n", me,
             biparm->confidence, biparm->threshold);
   }
   return 0;
@@ -429,7 +429,7 @@ int
 tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
   static const char me[]="tenEMBimodal";
   int done, _iter;
-  
+
   if (!(biparm && _nhisto)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
@@ -446,11 +446,11 @@ tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
 
   done = AIR_FALSE;
   biparm->iteration = 0;
-  for (biparm->stage = 1; 
+  for (biparm->stage = 1;
        biparm->stage <= (biparm->twoStage ? 2 : 1);
        biparm->stage++) {
-    for (_iter=0; 
-         biparm->iteration <= biparm->maxIteration; 
+    for (_iter=0;
+         biparm->iteration <= biparm->maxIteration;
          biparm->iteration++, _iter++) {
       if (_tenEMBimodalIterate(biparm)    /* sets delta */
           || _tenEMBimodalConfThresh(biparm)
@@ -467,10 +467,10 @@ tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
     }
   }
   if (!done) {
-    biffAddf(TEN, "%s: didn't converge after %d iterations", me, 
+    biffAddf(TEN, "%s: didn't converge after %d iterations", me,
              biparm->maxIteration);
     return 1;
   }
-  
+
   return 0;
 }

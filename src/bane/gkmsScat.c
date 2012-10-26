@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -85,14 +85,14 @@ baneGkms_scatMain(int argc, const char **argv, const char *me,
     biffMovef(BANE, NRRD, "%s: trouble doing gamma or quantization", me);
     airMopError(mop); return 1;
   }
-  
+
   if (!E) E |= nrrdSave(out[0], nvgQuant, NULL);
   if (!E) E |= nrrdSave(out[1], nvhQuant, NULL);
   if (E) {
     biffMovef(BANE, NRRD, "%s: trouble saving scatterplot images", me);
     airMopError(mop); return 1;
   }
-  
+
   airMopOkay(mop);
   return 0;
 }

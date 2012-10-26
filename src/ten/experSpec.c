@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -27,7 +27,7 @@
 static int
 _experAlloc(tenExperSpec* espec, unsigned int num) {
   static char me[]="_experAlloc";
-  
+
   airFree(espec->bval); espec->bval = NULL;
   airFree(espec->grad); espec->grad = NULL;
   /* espec->wght = airFree(espec->wght); */
@@ -94,7 +94,7 @@ tenExperSpecGradSingleBValSet(tenExperSpec *espec,
     ELL_3V_COPY(espec->grad + 3*ei, grad + 3*ii);
     /* espec->wght[ii] = 1.0; */
   }
-  
+
   return 0;
 }
 
@@ -146,7 +146,7 @@ tenExperSpecGradBValWghtSet(tenExperSpec *espec,
                             const double *wght) {
   static const char me[]="tenExperSpecGradBValWghtSet";
   unsigned int ii;
-  
+
   if (!espec) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
@@ -325,7 +325,7 @@ _tenExperSpec_nll(const double *dwiMeas, const double *dwiSim,
 
 int
 tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi, const tenExperSpec *espec) {
-  static char me[]="tenDWMRIKeyValueFromExperSpecSet"; 
+  static char me[]="tenDWMRIKeyValueFromExperSpecSet";
   char keystr[AIR_STRLEN_MED], valstr[AIR_STRLEN_MED];
   double maxb, bb;
   unsigned int ii;
@@ -360,8 +360,8 @@ tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi, const tenExperSpec *espec) {
 double
 tenExperSpecKnownB0Get(const tenExperSpec *espec, const double *dwi) {
   unsigned int ii, nb;
-  double ret, b0; 
-  
+  double ret, b0;
+
   if (!( dwi && espec )) {
     return AIR_NAN;
   }
@@ -386,7 +386,7 @@ double
 tenExperSpecMaxBGet(const tenExperSpec *espec) {
   unsigned int ii;
   double bval;
-  
+
   if (!( espec )) {
     return AIR_NAN;
   }

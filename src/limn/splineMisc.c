@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -61,7 +61,7 @@ _limnSplineTypeValEqv[] = {
       limnSplineTypeLinear,
   limnSplineTypeTimeWarp, limnSplineTypeTimeWarp, limnSplineTypeTimeWarp,
   limnSplineTypeHermite,
-  limnSplineTypeCubicBezier, limnSplineTypeCubicBezier, 
+  limnSplineTypeCubicBezier, limnSplineTypeCubicBezier,
       limnSplineTypeCubicBezier, limnSplineTypeCubicBezier,
   limnSplineTypeBC, limnSplineTypeBC
 };
@@ -123,7 +123,7 @@ _limnSplineInfoValEqv[] = {
   SISS, SISS, SISS, SISS,
   SI2V, SI2V, SI2V, SI2V, SI2V, SI2V, SI2V, SI2V,
   SI3V, SI3V, SI3V, SI3V, SI3V, SI3V, SI3V, SI3V,
-  SINN, SINN, SINN, 
+  SINN, SINN, SINN,
   SI4V, SI4V, SI4V, SI4V, SI4V, SI4V, SI4V, SI4V,
   SIQQ, SIQQ, SIQQ
 };
@@ -143,7 +143,7 @@ limnSplineInfo = &_limnSplineInfo;
 /*
 ******** limnSplineInfoSize[]
 **
-** gives the number of scalars per "value" for each splineInfo 
+** gives the number of scalars per "value" for each splineInfo
 */
 unsigned int
 limnSplineInfoSize[LIMN_SPLINE_INFO_MAX+1] = {
@@ -160,7 +160,7 @@ limnSplineInfoSize[LIMN_SPLINE_INFO_MAX+1] = {
 ******** limnSplineTypeHasImplicitTangents[]
 **
 ** this is non-zero when the spline path is determined solely the
-** main control point values, without needing additional control 
+** main control point values, without needing additional control
 ** points (as in cubic Bezier) or tangent information (as in Hermite)
 */
 int
@@ -184,7 +184,7 @@ limnSplineNumPoints(limnSpline *spline) {
   return ret;
 }
 
-double 
+double
 limnSplineMinT(limnSpline *spline) {
   double ret;
 
@@ -195,7 +195,7 @@ limnSplineMinT(limnSpline *spline) {
   return ret;
 }
 
-double 
+double
 limnSplineMaxT(limnSpline *spline) {
   double ret;
   int N;
@@ -214,7 +214,7 @@ limnSplineMaxT(limnSpline *spline) {
 
 void
 limnSplineBCSet(limnSpline *spline, double B, double C) {
-  
+
   if (spline) {
     spline->B = B;
     spline->C = C;
@@ -247,7 +247,7 @@ limnSplineTypeSpecParse(char *_str) {
     biffAddf(LIMN, "%s: couldn't parse \"%s\" as spline type", me, str);
     airMopError(mop); return NULL;
   }
-  
+
   if (!( (limnSplineTypeBC == type) == !!bcS )) {
     biffAddf(LIMN, "%s: spline type %s %s, but %s a parameter string %s%s%s",
              me,
@@ -273,7 +273,7 @@ limnSplineTypeSpecParse(char *_str) {
     biffAddf(LIMN, "%s: limnSplineTypeSpec allocation failed", me);
     airMopError(mop); return NULL;
   }
-  
+
   airMopOkay(mop);
   return spec;
 }
@@ -310,7 +310,7 @@ limnSplineParse(char *_str) {
     biffMovef(LIMN, NRRD, "%s: couldn't read control point nrrd:\n", me);
     airMopError(mop); return NULL;
   }
-  
+
   /* find separation between splineInfo and "<splineType>[:B,C]" */
   col = strchr(tmpS, ':');
   if (!col) {
@@ -325,13 +325,13 @@ limnSplineParse(char *_str) {
     biffAddf(LIMN, "%s: couldn't parse \"%s\" as spline info", me, infoS);
     airMopError(mop); return NULL;
   }
-  
+
   /* now parse <splineType>[:B,C] */
   if (!( spec = limnSplineTypeSpecParse(typeS) )) {
     biffAddf(LIMN, "%s: couldn't parse spline type in \"%s\":\n", me, typeS);
     airMopError(mop); return NULL;
   }
-  if (limnSplineTypeTimeWarp == spec->type 
+  if (limnSplineTypeTimeWarp == spec->type
       && limnSplineInfoScalar != info) {
     biffAddf(LIMN, "%s: can only time-warp %s info, not %s", me,
              airEnumStr(limnSplineInfo, limnSplineInfoScalar),
@@ -362,7 +362,7 @@ _limnHestSplineTypeSpecParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   static const char me[] = "_limnHestSplineTypeSpecParse";
   char *err2;
   limnSplineTypeSpec **specP;
-  
+
   if (!(ptr && str && airStrlen(str))) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -386,7 +386,7 @@ _limnHestSplineTypeSpec = {
   "spline type specification",
   _limnHestSplineTypeSpecParse,
   (airMopper)limnSplineTypeSpecNix
-}; 
+};
 
 hestCB *
 limnHestSplineTypeSpec = &_limnHestSplineTypeSpec;
@@ -400,7 +400,7 @@ _limnHestSplineParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   static const char me[] = "_limnHestSplineParse";
   char *err2;
   limnSpline **splineP;
-  
+
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -430,7 +430,7 @@ _limnHestSpline = {
   "spline specification",
   _limnHestSplineParse,
   (airMopper)limnSplineNix
-}; 
+};
 
 hestCB *
 limnHestSpline = &_limnHestSpline;

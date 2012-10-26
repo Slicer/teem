@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -37,7 +37,7 @@ main(int argc, char *argv[]) {
   int measr;
   char *iStr, *mStr, *oStr;
   Nrrd *nin, *nout;
-  
+
   me = argv[0];
   if (4 != argc)
     usage();
@@ -45,9 +45,9 @@ main(int argc, char *argv[]) {
   iStr = argv[1];
   mStr = argv[2];
   oStr = argv[3];
-  
+
   if (nrrdLoad(nin=nrrdNew(), iStr)) {
-    fprintf(stderr, "%s: trouble reading input nrrd:\n%s\n", me, 
+    fprintf(stderr, "%s: trouble reading input nrrd:\n%s\n", me,
             biffGet(NRRD));
     usage();
   }
@@ -56,7 +56,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: couldn't parse %s as int\n", me, mStr);
     usage();
   }
-  
+
   if (baneApplyMeasr(nout = nrrdNew(), nin, measr)) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, biffGet(BANE));
     exit(1);

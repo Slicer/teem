@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -73,7 +73,7 @@ extern "C" {
 ** The job of the answer() function in the range is not to exclude
 ** any data.  Indeed, if the range is set correctly for the type
 ** of data used, then range->ans() should always return a range
-** that is as large or larger than the one which was passed.  
+** that is as large or larger than the one which was passed.
 ** Doing otherwise would make ranges too complicated (such as
 ** requiring a parm array), and besides, its the job of the
 ** inclusion methods to be smart about things like this.
@@ -125,7 +125,7 @@ typedef struct {
 */
 enum {
   baneIncUnknown,     /* 0: nobody knows */
-  baneIncAbsolute,    /* 1: within explicitly specified bounds 
+  baneIncAbsolute,    /* 1: within explicitly specified bounds
                          -- incParm[0]: new min
                          -- incParm[1]: new max */
   baneIncRangeRatio,  /* 2: some fraction of the total range
@@ -138,7 +138,7 @@ enum {
                             by nibbling away at lower and upper ends of
                             range, in a manner dependant on the range type */
   baneIncStdv,        /* 4: some multiple of the standard deviation
-                         -- incParm[0]: range is standard deviation 
+                         -- incParm[0]: range is standard deviation
                             times this */
   baneIncLast
 };
@@ -255,7 +255,7 @@ typedef struct baneMeasr_t {
 
 /*
 ******** baneAxis struct
-** 
+**
 ** Information for how to do measurement and inclusion along each axis
 ** of the histogram volume.
 */
@@ -267,7 +267,7 @@ typedef struct {
 
 /*
 ******** baneHVolParm struct
-** 
+**
 ** Information for how to create a histogram volume.
 **
 */
@@ -278,7 +278,7 @@ typedef struct {
                                           measurements, so that they aren't
                                           measured (as many as) three times */
     renormalize,                       /* use gage's mask renormalization */
-    k3pack;        
+    k3pack;
   const NrrdKernel *k[GAGE_KERNEL_MAX+1];
   double kparm[GAGE_KERNEL_MAX+1][NRRD_KERNEL_PARMS_NUM];
   baneClip *clip;
@@ -352,7 +352,7 @@ BANE_EXPORT int baneBcptsCheck(Nrrd *Bcpts);
 BANE_EXPORT void baneProbe(double val[3],
                            Nrrd *nin, baneHVolParm *hvp, gageContext *ctx,
                            unsigned int x, unsigned int y, unsigned int z);
-BANE_EXPORT int baneFindInclusion(double min[3], double max[3], 
+BANE_EXPORT int baneFindInclusion(double min[3], double max[3],
                                   Nrrd *nin, baneHVolParm *hvp,
                                   gageContext *ctx);
 BANE_EXPORT int baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp);
@@ -363,10 +363,10 @@ BANE_EXPORT int baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr);
 BANE_EXPORT int bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D);
 BANE_EXPORT int baneSigmaCalc(float *sP, Nrrd *info);
 BANE_EXPORT int banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info);
-BANE_EXPORT void _baneOpacCalcA(unsigned int lutLen, float *opacLut, 
+BANE_EXPORT void _baneOpacCalcA(unsigned int lutLen, float *opacLut,
                                 unsigned int numCpts, float *xo,
                                 float *pos);
-BANE_EXPORT void _baneOpacCalcB(unsigned int lutLen, float *opacLut, 
+BANE_EXPORT void _baneOpacCalcB(unsigned int lutLen, float *opacLut,
                                 unsigned int numCpts, float *x, float *o,
                                 float *pos);
 BANE_EXPORT int baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos);
@@ -392,7 +392,7 @@ F(mite) \
 F(txf)
 BANE_GKMS_MAP(BANE_GKMS_DECLARE)
 BANE_EXPORT const airEnum *const baneGkmsMeasr;
-BANE_EXPORT unrrduCmd *baneGkmsCmdList[]; 
+BANE_EXPORT unrrduCmd *baneGkmsCmdList[];
 BANE_EXPORT void baneGkmsUsage(const char *me, hestParm *hparm);
 BANE_EXPORT hestCB *baneGkmsHestIncStrategy;
 BANE_EXPORT hestCB *baneGkmsHestBEF;

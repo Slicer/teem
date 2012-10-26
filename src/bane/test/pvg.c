@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -64,7 +64,7 @@ main(int argc, char *argv[]) {
                          216, 126, 49,
                          /* 22 */ 220, 133, 0};  /* end: orange */
 
-  
+
   me = argv[0];
   if (3 != argc)
     usage();
@@ -113,7 +113,7 @@ main(int argc, char *argv[]) {
   printf("%s: pos range: [%g,%g,%g]\n", me, min, sml, max);
   posData[smlIdx] = 0;
   if (nrrdHistoEq(pos, NULL, 2048, 3)) {
-    fprintf(stderr, "%s: trouble doing histeq on p(v,g):\n%s\n", me, 
+    fprintf(stderr, "%s: trouble doing histeq on p(v,g):\n%s\n", me,
             biffGet(NRRD));
     exit(1);
   }

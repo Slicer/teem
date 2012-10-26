@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -27,7 +27,7 @@
 void
 _echoPosSet(echoPos_t *p3, echoPos_t *matx, echoPos_t *p4) {
   echoPos_t a[4], b[4];
-  
+
   if (matx) {
     ELL_4V_SET(a, p4[0], p4[1], p4[2], 1);
     ELL_4MV_MUL(b, matx, a);
@@ -72,14 +72,14 @@ echoRoughSphereNew(echoScene *scene, int theRes, int phiRes, echoPos_t *matx) {
       n = AIR_MOD(thidx+1, theRes);
       ELL_3V_SET(vert, 1+phidx*theRes+thidx, 1+(1+phidx)*theRes+thidx,
                  1+phidx*theRes+n); vert += 3;
-      ELL_3V_SET(vert, 1+(1+phidx)*theRes+thidx, 1+(1+phidx)*theRes+n, 
+      ELL_3V_SET(vert, 1+(1+phidx)*theRes+thidx, 1+(1+phidx)*theRes+n,
                  1+phidx*theRes+n); vert += 3;
     }
   }
   for (thidx=0; thidx<theRes; thidx++) {
     n = AIR_MOD(thidx+1, theRes);
     ELL_3V_SET(vert, 1+(phiRes-2)*theRes+thidx, TRIMESH(trim)->numV-1,
-               1+(phiRes-2)*theRes+n); 
+               1+(phiRes-2)*theRes+n);
     vert += 3;
   }
 

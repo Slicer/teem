@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -53,7 +53,7 @@ main(int argc, const char *argv[]) {
   airArray *mop;
 
   unsigned int *srcA, *srcB, *dstC, *_srcA, *_srcB, numA, numB, numC, idx;
-  
+
   me = argv[0];
   hestOptAdd(&hopt, "a", "vals", airTypeUInt, 1, -1, &srcA, NULL,
              "list of values", &numA);
@@ -99,7 +99,7 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, " %u", dstC[idx]);
   }
   fprintf(stderr, "\n");
-  
+
   airMopOkay(mop);
   return 0;
 }

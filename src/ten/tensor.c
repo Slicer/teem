@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -52,13 +52,13 @@ tenRotateSingle_f(float tenOut[7], const float rot[9], const float tenIn[7]) {
 ** in addition to the 6 matrix components, we keep a "threshold" value
 ** which is based on the sum of all the DWIs, which describes if the
 ** calculated tensor means anything or not.
-** 
+**
 ** useBiff controls if biff is used to describe the problem
 */
 int
 tenTensorCheck(const Nrrd *nin, int wantType, int want4D, int useBiff) {
   static const char me[]="tenTensorCheck";
-  
+
   if (!nin) {
     if (useBiff) biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
@@ -100,7 +100,7 @@ tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin) {
   float *tdata;
   size_t ii, nn;
   unsigned int si, sj;
-  
+
   if (!(nout && nin)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
@@ -207,7 +207,7 @@ tenExpand2D(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   sx = nin->axis[1].size;
   sy = nin->axis[2].size;
   N = sx*sy;
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3, 
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3,
                         AIR_CAST(size_t, 4), sx, sy)) {
     biffMovef(TEN, NRRD, "%s: trouble", me);
     return 1;
@@ -264,7 +264,7 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   sy = nin->axis[2].size;
   sz = nin->axis[3].size;
   N = sx*sy*sz;
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, 
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4,
                         AIR_CAST(size_t, 9), sx, sy, sz)) {
     biffMovef(TEN, NRRD, "%s: trouble", me);
     return 1;
@@ -305,7 +305,7 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
   static const char me[]="tenShrink";
   size_t I, N, sx, sy, sz;
   float *seven, *conf, *nine;
-  
+
   if (!(tseven && tnine)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
@@ -383,10 +383,10 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
 **
 ** return is same as ell_3m_eigensolve_d, which is same as ell_cubic
 **
-** NOTE: Even in the post-Teem-1.7 switch from column-major to 
+** NOTE: Even in the post-Teem-1.7 switch from column-major to
 ** row-major- its still the case that the eigenvectors are at
 ** evec+0, evec+3, evec+6: this means that they USED to be the
-** "columns" of the matrix, and NOW they're the rows.  
+** "columns" of the matrix, and NOW they're the rows.
 **
 ** This does NOT use biff
 */
@@ -394,7 +394,7 @@ int
 tenEigensolve_f(float _eval[3], float _evec[9], const float t[7]) {
   double m[9], eval[3], evec[9], trc, iso[9];
   int ret;
-  
+
   TEN_T2M(m, t);
   trc = ELL_3M_TRACE(m)/3.0;
   ELL_3M_IDENTITY_SET(iso);
@@ -429,11 +429,11 @@ tenEigensolve_f(float _eval[3], float _evec[9], const float t[7]) {
     }
     if ((tenVerbose > 1) && _eval[2] < 0) {
       fprintf(stderr, "tenEigensolve_f -------------\n");
-      fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
+      fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n",
               t[1], t[2], t[3]);
-      fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
+      fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n",
               t[2], t[4], t[5]);
-      fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", 
+      fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n",
               t[3], t[5], t[6]);
       fprintf(stderr, " --> % 15.7f % 15.7f % 15.7f\n",
               _eval[0], _eval[1], _eval[2]);
@@ -442,7 +442,7 @@ tenEigensolve_f(float _eval[3], float _evec[9], const float t[7]) {
     /* caller only wants eigenvalues */
     ret = ell_3m_eigenvalues_d(eval, m, AIR_TRUE);
     ELL_3V_SET_TT(_eval, float, eval[0] + trc, eval[1] + trc, eval[2] + trc);
-  }    
+  }
   return ret;
 }
 
@@ -451,15 +451,15 @@ int
 tenEigensolve_d(double _eval[3], double evec[9], const double t[7]) {
   double m[9], eval[3], trc, iso[9];
   int ret;
-  
+
   TEN_T2M(m, t);
   trc = ELL_3M_TRACE(m)/3.0;
   ELL_3M_SCALE_SET(iso, -trc, -trc, -trc);
   ELL_3M_ADD2(m, m, iso);
   /*
-  printf("!%s: t = %g %g %g; %g %g; %g\n", "tenEigensolve_f", 
+  printf("!%s: t = %g %g %g; %g %g; %g\n", "tenEigensolve_f",
          t[1], t[2], t[3], t[4], t[5], t[6]);
-  printf("!%s: m = %g %g %g; %g %g %g; %g %g %g\n", "tenEigensolve_f", 
+  printf("!%s: m = %g %g %g; %g %g %g; %g %g %g\n", "tenEigensolve_f",
          m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8]);
   */
   if (evec) {
@@ -478,7 +478,7 @@ tenEigensolve_d(double _eval[3], double evec[9], const double t[7]) {
     /* caller only wants eigenvalues */
     ret = ell_3m_eigenvalues_d(eval, m, AIR_TRUE);
     ELL_3V_SET(_eval, eval[0] + trc, eval[1] + trc, eval[2] + trc);
-  }    
+  }
   return ret;
 }
 
@@ -487,18 +487,18 @@ tenEigensolve_d(double _eval[3], double evec[9], const double t[7]) {
 /*  lop A
     fprintf(stderr, "###################################  I = %d\n", (int)I);
     tenEigensolve(teval, tevec, out);
-    fprintf(stderr, "evals: (%g %g %g) %g %g %g --> %g %g %g\n", 
+    fprintf(stderr, "evals: (%g %g %g) %g %g %g --> %g %g %g\n",
             AIR_ABS(eval[0] - teval[0]) + 1,
             AIR_ABS(eval[1] - teval[1]) + 1,
             AIR_ABS(eval[2] - teval[2]) + 1,
-            eval[0], eval[1], eval[2], 
+            eval[0], eval[1], eval[2],
             teval[0], teval[1], teval[2]);
     fprintf(stderr, "   tevec lens: %g %g %g\n", ELL_3V_LEN(tevec+3*0),
             ELL_3V_LEN(tevec+3*1), ELL_3V_LEN(tevec+3*2));
     ELL_3V_CROSS(tmp1, evec+3*0, evec+3*1); tmp2[0] = ELL_3V_LEN(tmp1);
     ELL_3V_CROSS(tmp1, evec+3*0, evec+3*2); tmp2[1] = ELL_3V_LEN(tmp1);
     ELL_3V_CROSS(tmp1, evec+3*1, evec+3*2); tmp2[2] = ELL_3V_LEN(tmp1);
-    fprintf(stderr, "   evec[0] = %g %g %g\n", 
+    fprintf(stderr, "   evec[0] = %g %g %g\n",
             (evec+3*0)[0], (evec+3*0)[1], (evec+3*0)[2]);
     fprintf(stderr, "   evec[1] = %g %g %g\n",
             (evec+3*1)[0], (evec+3*1)[1], (evec+3*1)[2]);
@@ -509,7 +509,7 @@ tenEigensolve_d(double _eval[3], double evec[9], const double t[7]) {
     ELL_3V_CROSS(tmp1, tevec+3*0, tevec+3*1); tmp2[0] = ELL_3V_LEN(tmp1);
     ELL_3V_CROSS(tmp1, tevec+3*0, tevec+3*2); tmp2[1] = ELL_3V_LEN(tmp1);
     ELL_3V_CROSS(tmp1, tevec+3*1, tevec+3*2); tmp2[2] = ELL_3V_LEN(tmp1);
-    fprintf(stderr, "   tevec[0] = %g %g %g\n", 
+    fprintf(stderr, "   tevec[0] = %g %g %g\n",
             (tevec+3*0)[0], (tevec+3*0)[1], (tevec+3*0)[2]);
     fprintf(stderr, "   tevec[1] = %g %g %g\n",
             (tevec+3*1)[0], (tevec+3*1)[1], (tevec+3*1)[2]);
@@ -666,7 +666,7 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
     biffMovef(TEN, NRRD, "%s:", me);
     return 1;
   }
-  
+
   return 0;
 }
 
@@ -706,7 +706,7 @@ tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
   ** threshold        0
   ** Dxx Dxy Dxz      1   2   3
   ** Dxy Dyy Dyz  =  (2)  4   5
-  ** Dxz Dyz Dzz     (3) (5)  6 
+  ** Dxz Dyz Dzz     (3) (5)  6
   */
   mop = airMopNew();
   airMopAdd(mop, nslice=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -783,7 +783,7 @@ _tenEvalSkewnessGradient_d(double skw[7],
                            const double minnorm) {
   /* static const char me[]="_tenEvalSkewnessGradient_d"; */
   double dot, scl, norm;
-  
+
   /* start with gradient of determinant */
   TEN_T_SET(skw, ten[0],
             Tyy*Tzz - Tyz*Tyz, Txz*Tyz - Txy*Tzz, Txy*Tyz - Txz*Tyy,
@@ -906,7 +906,7 @@ tenInvariantGradientsR_d(double R1[7], double R2[7], double R3[7],
     TEN_T_SET(R2, ten[0],
               SQRT_2_OVER_3, 0, 0,
               -SQRT_1_OVER_6, 0,
-              -SQRT_1_OVER_6);    
+              -SQRT_1_OVER_6);
   } else {
     TEN_T_SCALE(R2, 1.0/norm, R2);
   }
@@ -948,7 +948,7 @@ tenRotationTangents_d(double phi1[7],
     ELL_3M_SCALE_ADD2(mat, SQRT_1_OVER_2, outA, SQRT_1_OVER_2, outB);
     TEN_M2T(phi3, mat);
   }
-  
+
   return;
 }
 
@@ -970,7 +970,7 @@ void
 tenLogSingle_d(double logten[7], const double ten[7]) {
   double eval[3], evec[9];
   unsigned int ii;
-  
+
   tenEigensolve_d(eval, evec, ten);
   for (ii=0; ii<3; ii++) {
     eval[ii] = log(eval[ii]);
@@ -985,7 +985,7 @@ void
 tenLogSingle_f(float logten[7], const float ten[7]) {
   float eval[3], evec[9];
   unsigned int ii;
-  
+
   tenEigensolve_f(eval, evec, ten);
   for (ii=0; ii<3; ii++) {
     eval[ii] = AIR_CAST(float, log(eval[ii]));
@@ -1000,7 +1000,7 @@ void
 tenExpSingle_d(double expten[7], const double ten[7]) {
   double eval[3], evec[9];
   unsigned int ii;
-  
+
   tenEigensolve_d(eval, evec, ten);
   for (ii=0; ii<3; ii++) {
     eval[ii] = exp(eval[ii]);
@@ -1012,7 +1012,7 @@ void
 tenExpSingle_f(float expten[7], const float ten[7]) {
   float eval[3], evec[9];
   unsigned int ii;
-  
+
   tenEigensolve_f(eval, evec, ten);
   for (ii=0; ii<3; ii++) {
     eval[ii] = AIR_CAST(float, exp(eval[ii]));
@@ -1024,7 +1024,7 @@ void
 tenSqrtSingle_d(double sqrtten[7], const double ten[7]) {
   double eval[3], evec[9];
   unsigned int ii;
-  
+
   tenEigensolve_d(eval, evec, ten);
   for (ii=0; ii<3; ii++) {
     eval[ii] = eval[ii] > 0 ? sqrt(eval[ii]) : 0;
@@ -1036,7 +1036,7 @@ void
 tenSqrtSingle_f(float sqrtten[7], const float ten[7]) {
   float eval[3], evec[9];
   unsigned int ii;
-  
+
   tenEigensolve_f(eval, evec, ten);
   for (ii=0; ii<3; ii++) {
     eval[ii] = AIR_CAST(float, eval[ii] > 0 ? sqrt(eval[ii]) : 0);
@@ -1048,7 +1048,7 @@ void
 tenPowSingle_d(double powten[7], const double ten[7], double power) {
   double eval[3], _eval[3], evec[9];
   unsigned int ii;
-  
+
   tenEigensolve_d(_eval, evec, ten);
   for (ii=0; ii<3; ii++) {
     eval[ii] = pow(_eval[ii], power);
@@ -1060,7 +1060,7 @@ void
 tenPowSingle_f(float powten[7], const float ten[7], float power) {
   float eval[3], evec[9];
   unsigned int ii;
-  
+
   tenEigensolve_f(eval, evec, ten);
   for (ii=0; ii<3; ii++) {
     eval[ii] = AIR_CAST(float, pow(eval[ii], power));
@@ -1072,11 +1072,11 @@ double
 tenDoubleContract_d(double a[7], double T[21], double b[7]) {
   double ret;
 
-  ret = (+ 1*1*T[ 0]*a[1]*b[1] + 1*2*T[ 1]*a[2]*b[1] + 1*2*T[ 2]*a[3]*b[1] + 1*1*T[ 3]*a[4]*b[1] + 1*2*T[ 4]*a[5]*b[1] + 1*1*T[ 5]*a[6]*b[1] + 
-         + 2*1*T[ 1]*a[1]*b[2] + 2*2*T[ 6]*a[2]*b[2] + 2*2*T[ 7]*a[3]*b[2] + 2*1*T[ 8]*a[4]*b[2] + 2*2*T[ 9]*a[5]*b[2] + 2*1*T[10]*a[6]*b[2] + 
-         + 2*1*T[ 2]*a[1]*b[3] + 2*2*T[ 7]*a[2]*b[3] + 2*2*T[11]*a[3]*b[3] + 2*1*T[12]*a[4]*b[3] + 2*2*T[13]*a[5]*b[3] + 2*1*T[14]*a[6]*b[3] + 
-         + 1*1*T[ 3]*a[1]*b[4] + 1*2*T[ 8]*a[2]*b[4] + 1*2*T[12]*a[3]*b[4] + 1*1*T[15]*a[4]*b[4] + 1*2*T[16]*a[5]*b[4] + 1*1*T[17]*a[6]*b[4] + 
-         + 2*1*T[ 4]*a[1]*b[5] + 2*2*T[ 9]*a[2]*b[5] + 2*2*T[13]*a[3]*b[5] + 2*1*T[16]*a[4]*b[5] + 2*2*T[18]*a[5]*b[5] + 2*1*T[19]*a[6]*b[5] + 
+  ret = (+ 1*1*T[ 0]*a[1]*b[1] + 1*2*T[ 1]*a[2]*b[1] + 1*2*T[ 2]*a[3]*b[1] + 1*1*T[ 3]*a[4]*b[1] + 1*2*T[ 4]*a[5]*b[1] + 1*1*T[ 5]*a[6]*b[1] +
+         + 2*1*T[ 1]*a[1]*b[2] + 2*2*T[ 6]*a[2]*b[2] + 2*2*T[ 7]*a[3]*b[2] + 2*1*T[ 8]*a[4]*b[2] + 2*2*T[ 9]*a[5]*b[2] + 2*1*T[10]*a[6]*b[2] +
+         + 2*1*T[ 2]*a[1]*b[3] + 2*2*T[ 7]*a[2]*b[3] + 2*2*T[11]*a[3]*b[3] + 2*1*T[12]*a[4]*b[3] + 2*2*T[13]*a[5]*b[3] + 2*1*T[14]*a[6]*b[3] +
+         + 1*1*T[ 3]*a[1]*b[4] + 1*2*T[ 8]*a[2]*b[4] + 1*2*T[12]*a[3]*b[4] + 1*1*T[15]*a[4]*b[4] + 1*2*T[16]*a[5]*b[4] + 1*1*T[17]*a[6]*b[4] +
+         + 2*1*T[ 4]*a[1]*b[5] + 2*2*T[ 9]*a[2]*b[5] + 2*2*T[13]*a[3]*b[5] + 2*1*T[16]*a[4]*b[5] + 2*2*T[18]*a[5]*b[5] + 2*1*T[19]*a[6]*b[5] +
          + 1*1*T[ 5]*a[1]*b[6] + 1*2*T[10]*a[2]*b[6] + 1*2*T[14]*a[3]*b[6] + 1*1*T[17]*a[4]*b[6] + 1*2*T[19]*a[5]*b[6] + 1*1*T[20]*a[6]*b[6]);
 
   return ret;

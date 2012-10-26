@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -28,7 +28,7 @@ int
 limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win) {
   static const char me[]="limnObjectRender";
   int E;
-  
+
   E = 0;
   if (!E) E |= limnCameraUpdate(cam);
   /*
@@ -58,10 +58,10 @@ _limnPSPreamble(limnObject *obj, limnCamera *cam, limnWindow *win) {
   fprintf(win->file, "%%!PS-Adobe-2.0 EPSF-2.0\n");
   fprintf(win->file, "%%%%Creator: limn\n");
   fprintf(win->file, "%%%%Pages: 1\n");
-  fprintf(win->file, "%%%%BoundingBox: %d %d %d %d\n", 
-          (int)(win->bbox[0]), 
-          (int)(win->bbox[1]), 
-          (int)(win->bbox[2]), 
+  fprintf(win->file, "%%%%BoundingBox: %d %d %d %d\n",
+          (int)(win->bbox[0]),
+          (int)(win->bbox[1]),
+          (int)(win->bbox[2]),
           (int)(win->bbox[3]));
   fprintf(win->file, "%%%%EndComments\n");
   fprintf(win->file, "%%%%EndProlog\n");
@@ -117,7 +117,7 @@ _limnPSDrawFace(limnObject *obj, limnFace *face,
   look = obj->look + face->lookIdx;
   for (vii=0; vii<face->sideNum; vii++) {
     vert = obj->vert + face->vertIdx[vii];
-    fprintf(win->file, "%g %g %s\n", 
+    fprintf(win->file, "%g %g %s\n",
             vert->coord[0], vert->coord[1], vii ? "L" : "M");
   }
   R = look->kads[0]*look->rgba[0];
@@ -200,13 +200,13 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
   }
   if (nmap) {
     if (limnEnvMapCheck(nmap)) {
-      biffAddf(LIMN, "%s: trouble", me); 
+      biffAddf(LIMN, "%s: trouble", me);
       return 1;
     }
   }
-  
+
   limnObjectDepthSortParts(obj);
-  
+
   _limnPSPreamble(obj, cam, win);
 
   for (partIdx=0; partIdx<obj->partNum; partIdx++) {
@@ -238,7 +238,7 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
       fprintf(win->file, "%g setgray\n", 1 - win->ps.bg[0]);
       win->ps.edgeWidth[e->type] = 8;
       _limnPSDrawEdge(obj, r, e, cam, win);
-      fprintf(win->file, "%g %g %g RGB\n", 
+      fprintf(win->file, "%g %g %g RGB\n",
               r->rgba[0], r->rgba[1], r->rgba[2]);
       win->ps.edgeWidth[e->visible] = 4;
       _limnPSDrawEdge(obj, r, e, cam, win);
@@ -252,7 +252,7 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
         /* The consequence of having a left-handed frame is that world-space
            CC-wise vertex traversal becomes C-wise screen-space traversal, so
            all the normals are backwards of what we want */
-        face->visible = (cam->rightHanded 
+        face->visible = (cam->rightHanded
                          ? face->screenNormal[2] < 0
                          : face->screenNormal[2] > 0);
         if (face->sideNum == part->vertIdxNum && !face->visible) {
@@ -264,7 +264,7 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
           _limnPSDrawFace(obj, face, cam, nmap, win);
         }
       }
-      
+
       /* draw ALL edges */
       for (eii=0; eii<part->edgeIdxNum; eii++) {
         /* hack to change contour of particular object/glyph
@@ -283,7 +283,7 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
           edge->type = limnEdgeTypeBorder;
         } else {
           angle = AIR_CAST(float,
-                           180/AIR_PI*acos(ELL_3V_DOT(face0->worldNormal, 
+                           180/AIR_PI*acos(ELL_3V_DOT(face0->worldNormal,
                                                       face1->worldNormal)));
           if (face0->visible && face1->visible) {
             edge->type = (angle > win->ps.creaseAngle
@@ -331,11 +331,11 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
   }
   if (nmap) {
     if (limnEnvMapCheck(nmap)) {
-      biffAddf(LIMN, "%s: trouble", me); 
+      biffAddf(LIMN, "%s: trouble", me);
       return 1;
     }
   }
-  
+
   limnObjectDepthSortFaces(obj);
 
   _limnPSPreamble(obj, cam, win);
@@ -344,7 +344,7 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
   for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
     part = obj->part[face->partIdx];
-    face->visible = (cam->rightHanded 
+    face->visible = (cam->rightHanded
                      ? face->screenNormal[2] < 0
                      : face->screenNormal[2] > 0);
     if (face->sideNum == part->vertIdxNum && !face->visible) {
@@ -353,7 +353,7 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
       ELL_3V_SCALE(face->worldNormal, -1, face->worldNormal);
     }
   }
-  
+
   /* categorize all edges by traversing edge array, and looking
      at each of their two faces */
   for (edgeIdx=0; edgeIdx<obj->edgeNum; edgeIdx++) {
@@ -393,13 +393,13 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
     if (!win->ps.wireFrame) {
       _limnPSDrawFace(obj, face, cam, nmap, win);
     }
-    /* draw those edges around the face that won't be seen again by 
+    /* draw those edges around the face that won't be seen again by
        future faces in the depth-first traversal */
     for (eii=0; eii<face->sideNum; eii++) {
       edge = obj->edge + face->edgeIdx[eii];
       if (limnEdgeTypeContour == edge->type) {
         _limnPSDrawEdge(obj, edge, cam, win);
-      } else if (limnEdgeTypeFrontCrease == edge->type 
+      } else if (limnEdgeTypeFrontCrease == edge->type
                  || limnEdgeTypeFrontFacet == edge->type) {
         if (edge->once) {
           /* its been seen once already, okay to draw */

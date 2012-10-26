@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -88,7 +88,7 @@ tenBVecNonLinearFit_GNstep(double *d_amp, double *d_dec,
 /*
 ******** tenBVecNonLinearFit
 **
-** Assuming that axis 0 represents a sequence of DWI measurements at a 
+** Assuming that axis 0 represents a sequence of DWI measurements at a
 ** range of b values (as described by bb[i]), do non-linear least-squares
 ** fitting of those measurements, governed by weights ww[i] (with at
 ** most iterMax interations, or terminated when L2 norm change < eps).
@@ -100,7 +100,7 @@ tenBVecNonLinearFit_GNstep(double *d_amp, double *d_dec,
 ** and all other axes are unchanged from input.  Output type is always double.
 */
 int
-tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin, 
+tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
                     double *bb, double *ww, int iterMax, double eps) {
   static const char me[]="tenBVecNonLinearFit";
   int map[NRRD_DIM_MAX], vecSize, iter;
@@ -113,7 +113,7 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
   }
-  
+
   if (!( nin->dim >= 2 )) {
     biffAddf(TEN, "%s: nin->dim (%d) not >= 2", me, nin->dim);
     return 1;
@@ -140,7 +140,7 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
     biffMovef(TEN, NRRD, "%s: couldn't copy axis info", me);
     return 1;
   }
-  
+
   /* process all b vectors */
   vecSize = nin->axis[0].size*nrrdTypeSize[nin->type];
   vecNum = nrrdElementNumber(nin)/nin->axis[0].size;
@@ -174,7 +174,7 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
     vec += vecSize;
     out += 3;
   }
-  
+
   return 0;
 }
 

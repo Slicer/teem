@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -52,12 +52,12 @@ _pullInfoLen[PULL_INFO_MAX+1] = {
   9, /* pullInfoIsovalueHessian */
   1, /* pullInfoStrength */
   1, /* pullInfoQuality */
-}; 
+};
 
 unsigned int
 pullInfoLen(int info) {
   unsigned int ret;
-  
+
   if (!airEnumValCheck(pullInfo, info)) {
     ret = _pullInfoLen[info];
   } else {
@@ -69,7 +69,7 @@ pullInfoLen(int info) {
 unsigned int
 pullPropLen(int prop) {
   unsigned int ret;
-  
+
   switch (prop) {
   case pullPropIdtag:
   case pullPropIdCC:
@@ -95,7 +95,7 @@ pullPropLen(int prop) {
   case pullPropNeighTanCovar:
     ret = 6;
     break;
-  default: 
+  default:
     ret = 0;
     break;
   }
@@ -136,7 +136,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
   static const char me[]="pullInfoSpecAdd";
   unsigned int ii, vi, haveLen, needLen;
   const gageKind *kind;
-  
+
   if (!( pctx && ispec )) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
@@ -152,7 +152,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
     return 1;
   }
   if (pctx->ispec[ispec->info]) {
-    biffAddf(PULL, "%s: already set info %s (%d)", me, 
+    biffAddf(PULL, "%s: already set info %s (%d)", me,
              airEnumStr(pullInfo, ispec->info), ispec->info);
     return 1;
   }
@@ -164,7 +164,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
     }
   }
   if (pctx->verbose) {
-    printf("%s: ispec %s from vol %s\n", me, 
+    printf("%s: ispec %s from vol %s\n", me,
            airEnumStr(pullInfo, ispec->info), ispec->volName);
   }
   needLen = pullInfoLen(ispec->info);
@@ -177,7 +177,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
     }
     kind = pctx->vol[vi]->kind;
     if (airEnumValCheck(kind->enm, ispec->item)) {
-      biffAddf(PULL, "%s(%s): %d not a valid \"%s\" item", me, 
+      biffAddf(PULL, "%s(%s): %d not a valid \"%s\" item", me,
                airEnumStr(pullInfo, ispec->info), ispec->item, kind->name);
       return 1;
     }
@@ -196,7 +196,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
          *off* seedOnly */
       pctx->vol[vi]->seedOnly = AIR_FALSE;
     }
-    /* less tricky: turn on forSeedPreThresh as needed; 
+    /* less tricky: turn on forSeedPreThresh as needed;
        its initialized to false */
     if (pullInfoSeedPreThresh == ispec->info) {
       pctx->vol[vi]->forSeedPreThresh = AIR_TRUE;
@@ -217,11 +217,11 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
     haveLen = pullPropLen(ispec->prop);
     if (needLen != haveLen) {
       biffAddf(PULL, "%s: need len %u, but \"%s\" \"%s\" has len %u",
-               me, needLen, pullProp->name, 
+               me, needLen, pullProp->name,
                airEnumStr(pullProp, ispec->prop), haveLen);
       return 1;
     }
-    
+
   } else {
     biffAddf(PULL, "%s: sorry, source %s unsupported", me,
              airEnumStr(pullSource, ispec->source));
@@ -234,7 +234,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
   }
 
   pctx->ispec[ispec->info] = ispec;
-  
+
   return 0;
 }
 
@@ -307,7 +307,7 @@ _pullInfoSetup(pullContext *pctx) {
         }
         break;
       default:
-        biffAddf(PULL, "%s: sorry, intertype %s not handled here", me, 
+        biffAddf(PULL, "%s: sorry, intertype %s not handled here", me,
                  airEnumStr(pullInterType, pctx->interType));
         break;
       }
@@ -319,7 +319,7 @@ _pullInfoSetup(pullContext *pctx) {
     pctx->targetDim = 0;
   }
   if (pctx->verbose) {
-    printf("!%s: infoTotalLen=%u, constr=%d, constr,targetDim = %d,%d\n", 
+    printf("!%s: infoTotalLen=%u, constr=%d, constr,targetDim = %d,%d\n",
            me, pctx->infoTotalLen, pctx->constraint,
            pctx->constraintDim, pctx->targetDim);
   }
@@ -328,7 +328,7 @@ _pullInfoSetup(pullContext *pctx) {
 
 static void
 _infoCopy1(double *dst, const double *src) {
-  dst[0] = src[0]; 
+  dst[0] = src[0];
 }
 
 static void
@@ -429,14 +429,14 @@ pullInfoGet(Nrrd *ninfo, int info, pullContext *pctx) {
       outIdx += alen;
     }
   }
-  
+
   return 0;
 }
 
-/* HEY this was written in a hurry; 
+/* HEY this was written in a hurry;
 ** needs to be checked against parsing code */
 int
-pullInfoSpecSprint(char str[AIR_STRLEN_LARGE], 
+pullInfoSpecSprint(char str[AIR_STRLEN_LARGE],
                    const pullContext *pctx, const pullInfoSpec *ispec) {
   static const char me[]="pullInfoSpecSprint";
   const pullVolume *pvol;
@@ -469,10 +469,10 @@ pullInfoSpecSprint(char str[AIR_STRLEN_LARGE],
     biffAddf(PULL, "%s: unexplained source %d", me, ispec->source);
     return 1;
   }
-  if ( (pullSourceGage == ispec->source 
+  if ( (pullSourceGage == ispec->source
         && 1 == pullInfoLen(ispec->info))
        ||
-       (pullSourceProp == ispec->source 
+       (pullSourceProp == ispec->source
         && 1 == pullPropLen(ispec->prop)) ) {
     sprintf(stmp, "%g", ispec->zero);
     strcat(str, stmp);

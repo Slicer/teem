@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -62,7 +62,7 @@ main(int argc, const char *argv[]) {
   limnSplineTypeSpec *spec;
 
   mop = airMopNew();
-  
+
   me = argv[0];
   hestOptAdd(&hopt, "i", "spline data", airTypeOther, 1, 1, &ncptA, NULL,
              "data points for the spline, must be 2-vectors",
@@ -81,7 +81,7 @@ main(int argc, const char *argv[]) {
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-  
+
   if (!( 2 == ncptA->dim && 2 == ncptA->axis[0].size )) {
     fprintf(stderr, "%s: didn't get a 2-D 2xN nrrd)\n", me);
     airMopError(mop);
@@ -102,7 +102,7 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   minT = limnSplineMinT(spline);
   maxT = limnSplineMaxT(spline);
-  
+
   /* try one for error checking */
   if (limnSplineSample(nout, spline, minT, M, maxT)) {
     airMopAdd(mop, err=biffGetDone(LIMN), airFree, airMopAlways);
@@ -119,11 +119,11 @@ main(int argc, const char *argv[]) {
     C = AIR_AFFINE(0, ci, N-1, 0.0, 1.0);
     for (bi=0; bi<N; bi++) {
       B = AIR_AFFINE(0, bi, N-1, 0.0, 1.0);
-      
+
       limnSplineBCSet(spline, B, C);
       limnSplineSample(nout, spline, minT, M, maxT);
       out = (double*)(nout->data);   /* shouldn't actually change */
-      
+
       printf("gsave\n");
       printf("%g %g translate\n", bi*500.0/(N-1), ci*500.0/(N-1));
       printf("%g %g scale\n", scale, scale);
@@ -135,13 +135,13 @@ main(int argc, const char *argv[]) {
         printf("closepath\n");
       }
       printf("stroke\n");
-      
+
       printf("grestore\n");
     }
   }
 
   printf("showpage\n");
-  
+
   airMopOkay(mop);
   return 0;
 }

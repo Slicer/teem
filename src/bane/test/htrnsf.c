@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -41,7 +41,7 @@ main(int argc, char *argv[]) {
   float sigma, gthresh;
 
   me = argv[0];
-  if (argc != 6) 
+  if (argc != 6)
     usage();
   bStr = argv[1];
   sStr = argv[2];
@@ -54,7 +54,7 @@ main(int argc, char *argv[]) {
     usage();
   }
   if (!(info2 = nrrdNewRead(file))) {
-    fprintf(stderr, "%s: trouble reading info 2%s:\n%s\n", me, iStr, 
+    fprintf(stderr, "%s: trouble reading info 2%s:\n%s\n", me, iStr,
             biffGet(NRRD));
     usage();
   }
@@ -65,7 +65,7 @@ main(int argc, char *argv[]) {
     usage();
   }
   if (!(Bcpts = nrrdNewRead(file))) {
-    fprintf(stderr, "%s: trouble reading b(x) %s:\n%s\n", me, 
+    fprintf(stderr, "%s: trouble reading b(x) %s:\n%s\n", me,
             bStr, biffGet(NRRD));
     usage();
   }
@@ -96,7 +96,7 @@ main(int argc, char *argv[]) {
     usage();
   }
   if (dirtTrnsfWrite(file, trnsf)) {
-    fprintf(stderr, "%s: trouble writing trnsf to %s\n:%s\n", me, 
+    fprintf(stderr, "%s: trouble writing trnsf to %s\n:%s\n", me,
             tStr, biffGet(DIRT));
     usage();
   }
@@ -104,6 +104,6 @@ main(int argc, char *argv[]) {
 
   nrrdNuke(info2);
   dirtNixTrnsf(trnsf);
-  
+
   exit(0);
 }

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -51,7 +51,7 @@ main(int argc, char *argv[]) {
   limnLightSet(lit, 1, AIR_TRUE, 0, 1, 0, 0, 1, 0);
   limnLightSet(lit, 2, AIR_TRUE, 0, 0, 1, 0, 0, 1);
   limnLightUpdate(lit, cam);
-  
+
   if (limnEnvMapFill(map=nrrdNew(), limnLightDiffuseCB,
                      limnQN16checker, lit)) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(LIMN));
@@ -66,7 +66,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s", me, biffGet(NRRD));
     exit(1);
   }
-  
+
   nrrdNuke(map);
   nrrdNuke(ppm);
   nrrdRangeNix(range);

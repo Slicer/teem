@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-/* 
+/*
 ******** TEN_T2M, TEN_M2T
 **
 ** for going between 7-element list and 9-element matrix
@@ -39,7 +39,7 @@ extern "C" {
 ** threshold        0
 ** Dxx Dxy Dxz      1   2   3
 ** Dxy Dyy Dyz  =  (2)  4   5
-** Dxz Dyz Dzz     (3) (5)  6 
+** Dxz Dyz Dzz     (3) (5)  6
 **
 ** As in ell, the matrix ordering is given by:
 **

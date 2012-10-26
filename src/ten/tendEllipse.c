@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -38,7 +38,7 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
   int x, y, vi, *sdata;
   double aspect, minX, minY, maxX, maxY, conf, Dxx, Dxy, Dyy, px, py, spx, spy;
   float *tdata, *pdata;
-  
+
   if (npos) {
     nt = npos->axis[1].size;
     aspect = (max[0] - min[0])/(max[1] - min[1]);
@@ -83,7 +83,7 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
   fprintf(file, "%%%%BoundingBox: %d %d %d %d\n",
           AIR_CAST(int, floor(minX)), AIR_CAST(int, floor(minY)),
           AIR_CAST(int, ceil(maxX)), AIR_CAST(int, ceil(maxY)));
-  fprintf(file, "%%%%HiResBoundingBox: %g %g %g %g\n", 
+  fprintf(file, "%%%%HiResBoundingBox: %g %g %g %g\n",
           minX, minY, maxX, maxY);
   fprintf(file, "%%%%EndComments\n");
   fprintf(file, "%%%%BeginProlog\n");
@@ -209,7 +209,7 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
   }
 
   fprintf(file, "grestore\n");
-  
+
   return 0;
 }
 
@@ -288,7 +288,7 @@ tend_ellipseMain(int argc, const char **argv, const char *me,
     airMopError(mop); return 1;
   }
   if (nstn) {
-    if (!( nrrdTypeUInt == nstn->type 
+    if (!( nrrdTypeUInt == nstn->type
            && 2 == nstn->dim
            && 3 == nstn->axis[0].size )) {
       fprintf(stderr, "%s: connectivity isn't 2-D 3-by-N array of %ss\n",
@@ -302,7 +302,7 @@ tend_ellipseMain(int argc, const char **argv, const char *me,
   }
   airMopAdd(mop, fout, (airMopper)airFclose, airMopAlways);
 
-  tend_ellipseDoit(fout, nten, npos, nstn, min, max, 
+  tend_ellipseDoit(fout, nten, npos, nstn, min, max,
                    gscale, dotRad, lineWidth, cthresh, invert);
 
   airMopOkay(mop);

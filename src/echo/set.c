@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -38,7 +38,7 @@ echoSphereSet(echoObject *sphere,
 void
 echoCylinderSet(echoObject *cylind,
                 int axis) {
-  
+
   if (cylind && echoTypeCylinder == cylind->type) {
     CYLINDER(cylind)->axis = axis;
   }
@@ -70,11 +70,11 @@ echoRectangleSet(echoObject *rect,
   }
   return;
 }
-                       
+
 void
 echoTriangleSet(echoObject *tri,
-                echoPos_t xx0, echoPos_t yy0, echoPos_t zz0, 
-                echoPos_t xx1, echoPos_t yy1, echoPos_t zz1, 
+                echoPos_t xx0, echoPos_t yy0, echoPos_t zz0,
+                echoPos_t xx1, echoPos_t yy1, echoPos_t zz1,
                 echoPos_t xx2, echoPos_t yy2, echoPos_t zz2) {
 
   if (tri && echoTypeTriangle == tri->type) {
@@ -122,7 +122,7 @@ echoTriMeshSet(echoObject *trim,
 void
 echoInstanceSet(echoObject *inst,
                 echoPos_t *M, echoObject *obj) {
-  
+
   if (inst && echoTypeInstance == inst->type) {
     ell_4m_INV(INSTANCE(inst)->Mi, M);
     ELL_4M_COPY(INSTANCE(inst)->M, M);

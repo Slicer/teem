@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -35,7 +35,7 @@ echoLightPosition(echoPos_t pos[3], echoObject *light,
   char me[]="echoLightPos";
   echoPos_t x, y;
   echoRectangle *rectLight;
-  
+
   x = tstate->jitt[0 + 2*echoJittableLight] + 0.5;
   y = tstate->jitt[1 + 2*echoJittableLight] + 0.5;
   switch(light->type) {
@@ -56,7 +56,7 @@ echoLightPosition(echoPos_t pos[3], echoObject *light,
 ******* echoLightColor()
 **
 ** sets "col" to RGB color for current sample of given light, which
-** is at distance Ldist.  Knowing distance allows computation of the 
+** is at distance Ldist.  Knowing distance allows computation of the
 ** inverse square fall-off of light intensity
 */
 void
@@ -64,7 +64,7 @@ echoLightColor(echoCol_t rgb[3], echoPos_t Ldist,
                echoObject *light, echoRTParm *parm, echoThreadState *tstate) {
   echoCol_t rgba[4], falloff;
   echoPos_t x, y;
-  
+
   x = tstate->jitt[0 + 2*echoJittableLight] + 0.5;
   y = tstate->jitt[1 + 2*echoJittableLight] + 0.5;
   if (light->ntext) {
@@ -79,7 +79,7 @@ echoLightColor(echoCol_t rgb[3], echoPos_t Ldist,
     falloff *= falloff;
     ELL_3V_SCALE(rgb, falloff, rgb);
   }
-  
+
   return;
 }
 

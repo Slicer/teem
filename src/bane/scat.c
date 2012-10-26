@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -30,7 +30,7 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
   Nrrd *gA, *hA, *gB, *hB;
   static const char me[]="baneRawScatterplots";
   int E;
-  
+
   if (!( nvg && nvh && hvol )) {
     biffAddf(BANE, "%s: got NULL pointer", me);
     return 1;
@@ -50,7 +50,7 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
     biffMovef(BANE, NRRD, "%s: trouble creating raw scatterplots", me);
     return 1;
   }
-  
+
   /* do histogram equalization on them */
   if (histEq) {
     if (!E) E |= nrrdHistoEq(gB, gA, NULL, baneStateHistEqBins,
@@ -65,7 +65,7 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
     biffMovef(BANE, NRRD, "%s: couldn't histogram equalize or copy", me);
     return 1;
   }
-  
+
   /* re-orient them so they look correct on the screen */
   if (!E) E |= nrrdAxesSwap(gA, gB, 0, 1);
   if (!E) E |= nrrdAxesSwap(hA, hB, 0, 1);
@@ -75,14 +75,14 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
     biffMovef(BANE, NRRD, "%s: couldn't re-orient scatterplots", me);
     return 1;
   }
-  
+
   if (!E) E |= nrrdCopy(nvg, gB);
   if (!E) E |= nrrdCopy(nvh, hB);
   if (E) {
     biffMovef(BANE, NRRD, "%s: trouble saving results to given nrrds", me);
     return 1;
   }
-  
+
   nrrdNuke(gA); nrrdNuke(gB);
   nrrdNuke(hA); nrrdNuke(hB);
   return 0;

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2010, 2009 Thomas Schultz
 
   This library is free software; you can redistribute it and/or
@@ -135,7 +135,7 @@ elfGlyphPolar(limnPolyData *glyph, const char antipodal,
         }
       }
     }
-    
+
     if (val<0) {
       def=0;
       if (clamp) val=0;
@@ -209,7 +209,7 @@ elfGlyphHOME(limnPolyData *glyph, const char antipodal,
     ELL_3V_COPY(verts,HOMEpos);
     len=AIR_CAST(float, ELL_3V_LEN(HOMEpos));
     if (len>max) max=len;
-    
+
     /* if RGBA is allocated, take care of coloring */
     if (infoBitFlag & (1 << limnPolyDataInfoRGBA)) {
       float c[3];
@@ -225,7 +225,7 @@ elfGlyphHOME(limnPolyData *glyph, const char antipodal,
         ELL_4V_COPY(glyph->rgba+4*i+4,glyph->rgba+4*i);
       }
     }
-    
+
     if (antipodal) {
       ELL_3V_SCALE(verts+4,-1.0f,verts);
       verts+=4; i++;
@@ -305,7 +305,7 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
     airMopError(mop);
     return 1;
   }
-  
+
   /* initialize sqrdist / processed / path */
   verts=glyph->xyzw;
   if (antipodal) {
@@ -321,7 +321,7 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
   }
   memset(processed,0,sizeof(char)*glyph->xyzwNum);
   memset(path, -1, sizeof(int)*glyph->xyzwNum);
-  
+
   /* go through all vertices; ascend until we get to a maximum or a
    * previously processed vertex */
   for (i=0; i<glyph->xyzwNum; i++) {
@@ -329,9 +329,9 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
     int vert=i;
     char foundmax=0;
     unsigned char color[3];
-    
+
     if (processed[i]) continue;
-    
+
     path[pathno++]=vert;
     while (!foundmax) {
       int bestnb=-1;
@@ -357,7 +357,7 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
           if (modulate) {
             /* modulate by peak strength */
             float hess[7], val, evals[3];
-            
+
             /* compute second derivatives */
             (*type->sym->hess_f)(hess+1,ten,vertdir);
             val=(*type->sym->s_form_f)(ten,vertdir);
@@ -373,7 +373,7 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
         } else {
           ELL_3V_SET(vertdir,0,0,0);
         }
-        
+
         ELL_3V_SET(color,
                    (unsigned char) (AIR_LERP(modfactor, 1.0,
                                              fabs(vertdir[0]))*255),
@@ -392,7 +392,7 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
         }
       }
     } /* end looking for maximum */
-    
+
     /* copy color to all vertices on the path */
     for (j=0; j<pathno; ++j) {
       processed[path[j]]=1;
@@ -406,12 +406,12 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
     }
     if (antipodal) i++; /* we can skip over the next one */
   }
-  
+
   /* make coloring smoother by averaging */
   memset(newcol,0,sizeof(float)*3*glyph->xyzwNum);
   memset(id_ct,0,sizeof(char)*glyph->xyzwNum);
   memset(diff_ct,0,sizeof(char)*glyph->xyzwNum);
-  
+
   for (i=0; i<glyph->xyzwNum; i++) {
     for (j=0; j<nbstride; j++) {
       int nb=neighbors[nbstride*i+j];
@@ -428,7 +428,7 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
       }
     }
   }
-  
+
   for (i=0; i<glyph->xyzwNum; i++) {
     if (diff_ct[i]>0) {
       ELL_3V_SCALE_INCR_TT(newcol+3*i, float, 1.0+id_ct[i],glyph->rgba+4*i);
@@ -441,7 +441,7 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
       }
     }
   }
-  
+
   airMopOkay(mop);
   return 0;
 }

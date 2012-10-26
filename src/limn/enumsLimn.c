@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -44,7 +44,7 @@ _limnSpace = {
 const airEnum *const
 limnSpace = &_limnSpace;
 
-/* ------------------------------------------------------------ */  
+/* ------------------------------------------------------------ */
 
 const char *
 _limnPolyDataInfoStr[LIMN_POLY_DATA_INFO_MAX+1] = {
@@ -67,7 +67,7 @@ _limnPolyDataInfo = {
 const airEnum *const
 limnPolyDataInfo = &_limnPolyDataInfo;
 
-/* ------------------------------------------------------------ */  
+/* ------------------------------------------------------------ */
 
 const char *
 _limnCameraPathTrackStr[] = {
@@ -112,7 +112,7 @@ _limnCameraPathTrack = {
 const airEnum *const
 limnCameraPathTrack = &_limnCameraPathTrack;
 
-/* ------------------------------------------------------------ */  
+/* ------------------------------------------------------------ */
 
 const char *
 _limnPrimitiveStr[] = {

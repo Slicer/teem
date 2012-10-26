@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -45,7 +45,7 @@ baneGkms_hvolMain(int argc, const char **argv, const char *me,
   NrrdIoState *nio;
   NrrdKernelSpec *ksp00, *ksp11, *ksp22;
 
-  hestOptAdd(&opt, "s", "incV incG incH", airTypeOther, 3, 3, inc, 
+  hestOptAdd(&opt, "s", "incV incG incH", airTypeOther, 3, 3, inc,
              "f:1.0 p:0.005 p:0.015",
              "Strategies for determining how much of the range "
              "of a quantity should be included and quantized in its axis "

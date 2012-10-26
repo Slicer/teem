@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -27,12 +27,12 @@
 void
 echoListAdd(echoObject *list, echoObject *child) {
   int idx;
-  
+
   if (!( list && child &&
          (echoTypeList == list->type ||
           echoTypeAABBox == list->type) ))
     return;
-  
+
   idx = airArrayLenIncr(LIST(list)->objArr, 1);
   LIST(list)->obj[idx] = child;
 
@@ -41,7 +41,7 @@ echoListAdd(echoObject *list, echoObject *child) {
 
 int
 _echoPosCompare(double *A, double *B) {
-  
+
   return *A < *B ? -1 : (*A > *B ? 1 : 0);
 }
 
@@ -92,7 +92,7 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
     printf("%d -> %g\n", i, mids[0 + 2*i]);
   }
   */
-  
+
   splitIdx = len/2;
   /* printf("splitIdx = %d\n", splitIdx); */
   ELL_3V_SET(loest0, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
@@ -125,10 +125,10 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
   }
   /*
   printf("0: loest = (%g,%g,%g); hiest = (%g,%g,%g)\n",
-         loest0[0], loest0[1], loest0[2], 
+         loest0[0], loest0[1], loest0[2],
          hiest0[0], hiest0[1], hiest0[2]);
   printf("1: loest = (%g,%g,%g); hiest = (%g,%g,%g)\n",
-         loest1[0], loest1[1], loest1[2], 
+         loest1[0], loest1[1], loest1[2],
          hiest1[0], hiest1[1], hiest1[2]);
   */
   ELL_3V_COPY(SPLIT(split)->min0, loest0);
@@ -136,7 +136,7 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
   ELL_3V_COPY(SPLIT(split)->min1, loest1);
   ELL_3V_COPY(SPLIT(split)->max1, hiest1);
 
-  /* we can't delete the list object here, we just gut it so 
+  /* we can't delete the list object here, we just gut it so
      that there's nothing substantial left of it */
   airArrayLenSet(LIST(list)->objArr, 0);
   mids = (double *)airFree(mids);
@@ -148,7 +148,7 @@ echoListSplit3(echoScene *scene, echoObject *list, int depth) {
   echoObject *ret, *tmp0, *tmp1;
 
   if (!( echoTypeList == list->type ||
-         echoTypeAABBox == list->type )) 
+         echoTypeAABBox == list->type ))
     return NULL;
 
   if (!depth)

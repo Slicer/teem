@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2010, 2009, 2008  Thomas Schultz
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
@@ -31,7 +31,7 @@ limnPolyDataCube(limnPolyData *pld,
                  int sharpEdge) {
   static const char me[]="limnPolyDataCube";
   unsigned int vertNum, vertIdx, primNum, indxNum, cnum, ci;
-  
+
   vertNum = sharpEdge ? 6*4 : 8;
   primNum = 1;
   indxNum = 6*4;
@@ -41,7 +41,7 @@ limnPolyDataCube(limnPolyData *pld,
   }
   pld->type[0] = limnPrimitiveQuads;
   pld->icnt[0] = indxNum;
-  
+
   vertIdx = 0;
   cnum = sharpEdge ? 3 : 1;
   for (ci=0; ci<cnum; ci++) {
@@ -68,7 +68,7 @@ limnPolyDataCube(limnPolyData *pld,
   for (ci=0; ci<cnum; ci++) {
     ELL_4V_SET(pld->xyzw + 4*vertIdx,   1,  -1,   1,  1); vertIdx++;
   }
-  
+
   vertIdx = 0;
   if (sharpEdge) {
     ELL_4V_SET(pld->indx + vertIdx,  0,  3,  6,  9); vertIdx += 4;
@@ -85,7 +85,7 @@ limnPolyDataCube(limnPolyData *pld,
     ELL_4V_SET(pld->indx + vertIdx,  0,  3,  7,  4); vertIdx += 4;
     ELL_4V_SET(pld->indx + vertIdx,  4,  7,  6,  5); vertIdx += 4;
   }
-  
+
   if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
     if (sharpEdge) {
       ELL_3V_SET(pld->norm +  3*0,  0,  0, -1);
@@ -125,13 +125,13 @@ limnPolyDataCube(limnPolyData *pld,
       ELL_3V_SET(pld->norm + 3*7,  cn, -cn,  cn);
     }
   }
-  
+
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
     for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
       ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
     }
   }
-  
+
   return 0;
 }
 
@@ -141,7 +141,7 @@ limnPolyDataCubeTriangles(limnPolyData *pld,
                           int sharpEdge) {
   static const char me[]="limnPolyDataCubeTriangles";
   unsigned int vertNum, vertIdx, primNum, indxNum, cnum, ci;
-  
+
   vertNum = sharpEdge ? 6*4 : 8;
   primNum = 1;
   indxNum = 6*6;
@@ -151,7 +151,7 @@ limnPolyDataCubeTriangles(limnPolyData *pld,
   }
   pld->type[0] = limnPrimitiveTriangles;
   pld->icnt[0] = indxNum;
-  
+
   vertIdx = 0;
   cnum = sharpEdge ? 3 : 1;
   for (ci=0; ci<cnum; ci++) {
@@ -178,7 +178,7 @@ limnPolyDataCubeTriangles(limnPolyData *pld,
   for (ci=0; ci<cnum; ci++) {
     ELL_4V_SET(pld->xyzw + 4*vertIdx,  -1,  -1,  -1,  1); vertIdx++;
   }
-  
+
   vertIdx = 0;
   if (sharpEdge) {
     ELL_3V_SET(pld->indx + vertIdx,  0,  6,  3); vertIdx += 3;
@@ -217,7 +217,7 @@ limnPolyDataCubeTriangles(limnPolyData *pld,
     ELL_3V_SET(pld->indx + vertIdx, 4, 2, 6); vertIdx += 3;
     ELL_3V_SET(pld->indx + vertIdx, 2, 6, 0); vertIdx += 3;
   }
-  
+
   if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
     if (sharpEdge) {
       ELL_3V_SET(pld->norm + 3*14,  0,  0, -1);
@@ -257,7 +257,7 @@ limnPolyDataCubeTriangles(limnPolyData *pld,
       ELL_3V_SET(pld->norm + 3*7, -cn, -cn, -cn);
     }
   }
-  
+
   if ((1 << limnPolyDataInfoTex2) & infoBitFlag) {
     if (sharpEdge) {
       ELL_2V_SET(pld->tex2 + 2*14,  1,  1);
@@ -295,7 +295,7 @@ limnPolyDataCubeTriangles(limnPolyData *pld,
       ELL_2V_SET(pld->tex2 + 2*7, 0, 1);
     }
   }
-  
+
   if ((1 << limnPolyDataInfoTang) & infoBitFlag) {
     if (sharpEdge) {
       ELL_3V_SET(pld->tang + 3*14,  1,  0,  0);
@@ -335,13 +335,13 @@ limnPolyDataCubeTriangles(limnPolyData *pld,
       ELL_3V_SET(pld->tang + 3*7,  sn,  sn,  0);
     }
   }
-  
+
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
     for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
       ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
     }
   }
-  
+
   return 0;
 }
 
@@ -351,7 +351,7 @@ limnPolyDataOctahedron(limnPolyData *pld,
                        int sharpEdge) {
   static const char me[]="limnPolyDataOctahedron";
   unsigned int vertNum, vertIdx, primNum, indxNum, cnum, ci;
-  
+
   vertNum = sharpEdge ? 4*6 : 6;
   primNum = 1;
   indxNum = 8*3;
@@ -361,7 +361,7 @@ limnPolyDataOctahedron(limnPolyData *pld,
   }
   pld->type[0] = limnPrimitiveTriangles;
   pld->icnt[0] = indxNum;
-  
+
   vertIdx = 0;
   cnum = sharpEdge ? 4 : 1;
   for (ci=0; ci<cnum; ci++) {
@@ -382,7 +382,7 @@ limnPolyDataOctahedron(limnPolyData *pld,
   for (ci=0; ci<cnum; ci++) {
     ELL_4V_SET(pld->xyzw + 4*vertIdx,  0,  0, -1,  1); vertIdx++; /* 5 */
   }
-  
+
   vertIdx = 0;
   if (sharpEdge) {
     ELL_3V_SET(pld->indx + vertIdx,  0,  8,  4); vertIdx += 3; /* 0 */
@@ -403,7 +403,7 @@ limnPolyDataOctahedron(limnPolyData *pld,
     ELL_3V_SET(pld->indx + vertIdx,  4,  5,  3); vertIdx += 3; /* 6 */
     ELL_3V_SET(pld->indx + vertIdx,  1,  5,  4); vertIdx += 3; /* 7 */
   }
-  
+
   if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
     if (sharpEdge) {
       float cn;
@@ -449,7 +449,7 @@ limnPolyDataOctahedron(limnPolyData *pld,
       ELL_3V_SET(pld->norm + 3*5,  0,  0, -1); /* 5 */
     }
   }
-  
+
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
     for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
       ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
@@ -465,18 +465,18 @@ limnPolyDataCylinder(limnPolyData *pld,
   static const char me[]="limnPolyDataCylinder";
   unsigned int vertNum, primNum, primIdx, indxNum, thetaIdx, vertIdx, blah;
   double theta, cth, sth, sq2;
-  
+
   /* sanity bounds */
   thetaRes = AIR_MAX(3, thetaRes);
-  
+
   vertNum = sharpEdge ? 4*thetaRes : 2*thetaRes;
   primNum = 3;
   indxNum = 2*thetaRes + 2*(thetaRes+1);  /* 2 fans + 1 strip */
   if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, primNum)) {
-    biffAddf(LIMN, "%s: couldn't allocate output", me); 
+    biffAddf(LIMN, "%s: couldn't allocate output", me);
     return 1;
   }
-  
+
   vertIdx = 0;
   for (blah=0; blah < (sharpEdge ? 2u : 1u); blah++) {
     for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
@@ -506,7 +506,7 @@ limnPolyDataCylinder(limnPolyData *pld,
       ++vertIdx;
     }
   }
-  
+
   primIdx = 0;
   vertIdx = 0;
   /* fan on top */
@@ -518,7 +518,7 @@ limnPolyDataCylinder(limnPolyData *pld,
   pld->type[primIdx] = limnPrimitiveTriangleFan;
   pld->icnt[primIdx] = thetaRes;
   primIdx++;
-  
+
   /* single strip around */
   /* fprintf(stderr, "!%s: strip around:\n", me); */
   for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
@@ -546,7 +546,7 @@ limnPolyDataCylinder(limnPolyData *pld,
   pld->type[primIdx] = limnPrimitiveTriangleStrip;
   pld->icnt[primIdx] = 2*(thetaRes+1);
   primIdx++;
-  
+
   /* fan on bottom */
   /* fprintf(stderr, "!%s: fan on bottom:\n", me); */
   for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
@@ -559,7 +559,7 @@ limnPolyDataCylinder(limnPolyData *pld,
   pld->type[primIdx] = limnPrimitiveTriangleFan;
   pld->icnt[primIdx] = thetaRes;
   primIdx++;
-  
+
   if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
     sq2 = sqrt(2.0);
     if (sharpEdge) {
@@ -588,7 +588,7 @@ limnPolyDataCylinder(limnPolyData *pld,
       }
     }
   }
-  
+
   if ((1 << limnPolyDataInfoTex2) & infoBitFlag) {
     if (sharpEdge) {
       for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
@@ -606,7 +606,7 @@ limnPolyDataCylinder(limnPolyData *pld,
       }
     }
   }
-  
+
   if ((1 << limnPolyDataInfoTang) & infoBitFlag) {
     float xx, yy, tang[3], tlen;
     if (sharpEdge) {
@@ -631,13 +631,13 @@ limnPolyDataCylinder(limnPolyData *pld,
       }
     }
   }
-  
+
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
     for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
       ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
     }
   }
-  
+
   return 0;
 }
 
@@ -648,18 +648,18 @@ limnPolyDataCone(limnPolyData *pld,
   static const char me[]="limnPolyDataCone";
   unsigned int vertNum, primNum, primIdx, indxNum, thetaIdx, vertIdx, blah;
   double theta, cth, sth;
-  
+
   /* sanity bounds */
   thetaRes = AIR_MAX(3, thetaRes);
-  
+
   vertNum = sharpEdge ? 3*thetaRes : 1 + thetaRes;
   primNum = 2;
   indxNum = thetaRes + 2*(thetaRes+1);  /* 1 fans + 1 strip */
   if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, primNum)) {
-    biffAddf(LIMN, "%s: couldn't allocate output", me); 
+    biffAddf(LIMN, "%s: couldn't allocate output", me);
     return 1;
   }
-  
+
   /* top point(s) */
   vertIdx = 0;
   if (sharpEdge) {
@@ -682,7 +682,7 @@ limnPolyDataCone(limnPolyData *pld,
       ++vertIdx;
     }
   }
-  
+
   primIdx = 0;
   vertIdx = 0;
   /* single strip around */
@@ -695,7 +695,7 @@ limnPolyDataCone(limnPolyData *pld,
   pld->type[primIdx] = limnPrimitiveTriangleStrip;
   pld->icnt[primIdx] = 2*(thetaRes+1);
   primIdx++;
-  
+
   /* fan on bottom */
   for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
     pld->indx[vertIdx++] = (sharpEdge ? 2*thetaRes : 1) + thetaIdx;
@@ -703,7 +703,7 @@ limnPolyDataCone(limnPolyData *pld,
   pld->type[primIdx] = limnPrimitiveTriangleFan;
   pld->icnt[primIdx] = thetaRes;
   primIdx++;
-  
+
   if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
     double isq3;
     isq3 = 1/sqrt(3.0);
@@ -726,18 +726,18 @@ limnPolyDataCone(limnPolyData *pld,
         theta = AIR_AFFINE(0, thetaIdx, thetaRes, 0, 2*AIR_PI);
         cth = cos(theta);
         sth = sin(theta);
-        ELL_3V_SET_TT(pld->norm + 3*(thetaIdx + 1), 
+        ELL_3V_SET_TT(pld->norm + 3*(thetaIdx + 1),
                       float, cth*isq3, sth*isq3, -isq3); /* close enough */
       }
     }
   }
-  
+
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
     for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
       ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
     }
   }
-  
+
   return 0;
 }
 
@@ -755,13 +755,13 @@ limnPolyDataSuperquadric(limnPolyData *pld,
   unsigned int vertIdx, vertNum, fanNum, stripNum, primNum, indxNum,
     thetaIdx, phiIdx, primIdx;
   double theta, phi;
-  
+
   /* sanity bounds */
   thetaRes = AIR_MAX(3u, thetaRes);
   phiRes = AIR_MAX(2u, phiRes);
   alpha = AIR_MAX(0.00001f, alpha);
   beta = AIR_MAX(0.00001f, beta);
-  
+
   vertNum = 2 + thetaRes*(phiRes-1);
   fanNum = 2;
   stripNum = phiRes-2;
@@ -771,7 +771,7 @@ limnPolyDataSuperquadric(limnPolyData *pld,
     biffAddf(LIMN, "%s: couldn't allocate output", me);
     return 1;
   }
-  
+
   vertIdx = 0;
   ELL_4V_SET(pld->xyzw + 4*vertIdx, 0, 0, 1, 1);
   if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
@@ -810,7 +810,7 @@ limnPolyDataSuperquadric(limnPolyData *pld,
     ELL_3V_SET(pld->norm + 3*vertIdx, 0, 0, -1);
   }
   ++vertIdx;
-  
+
   /* triangle fan at top */
   vertIdx = 0;
   primIdx = 0;
@@ -829,7 +829,7 @@ limnPolyDataSuperquadric(limnPolyData *pld,
     */
     for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
       /*
-      fprintf(stderr, " [%u %u] %u %u", 
+      fprintf(stderr, " [%u %u] %u %u",
               vertIdx, vertIdx + 1,
               (phiIdx-1)*thetaRes + thetaIdx + 1,
               phiIdx*thetaRes + thetaIdx + 1);
@@ -838,7 +838,7 @@ limnPolyDataSuperquadric(limnPolyData *pld,
       pld->indx[vertIdx++] = phiIdx*thetaRes + thetaIdx + 1;
     }
     /*
-    fprintf(stderr, " [%u %u] %u %u (%u verts)\n", 
+    fprintf(stderr, " [%u %u] %u %u (%u verts)\n",
             vertIdx, vertIdx + 1,
             (phiIdx-1)*thetaRes + 1,
             phiIdx*thetaRes + 1, 2*(thetaRes+1));
@@ -848,7 +848,7 @@ limnPolyDataSuperquadric(limnPolyData *pld,
     pld->type[primIdx] = limnPrimitiveTriangleStrip;
     pld->icnt[primIdx++] = 2*(thetaRes+1);
   }
-  
+
   /* triangle fan at bottom */
   pld->indx[vertIdx++] = vertNum-1;
   for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
@@ -857,13 +857,13 @@ limnPolyDataSuperquadric(limnPolyData *pld,
   pld->indx[vertIdx++] = thetaRes*(phiRes-2) + thetaRes;
   pld->type[primIdx] = limnPrimitiveTriangleFan;
   pld->icnt[primIdx++] = thetaRes + 2;
-  
+
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
     for (vertIdx=0; vertIdx<pld->rgbaNum; vertIdx++) {
       ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
     }
   }
-  
+
   return 0;
 }
 
@@ -880,20 +880,20 @@ limnPolyDataSpiralBetterquadric(limnPolyData *pld,
                                 unsigned int thetaRes, unsigned int phiRes) {
   static const char me[]="limnPolyDataSpiralBetterquadric";
   unsigned int vertIdx, vertNum, indxNum, thetaIdx, phiIdx;
-  
+
   /* sanity bounds */
   thetaRes = AIR_MAX(3u, thetaRes);
   phiRes = AIR_MAX(2u, phiRes);
   alpha = AIR_MAX(0.00001f, alpha);
   beta = AIR_MAX(0.00001f, beta);
-  
+
   vertNum = thetaRes*phiRes + 1;
   indxNum = 2*thetaRes*(phiRes+1) - 2;
   if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, 1)) {
     biffAddf(LIMN, "%s: couldn't allocate output", me);
     return 1;
   }
-  
+
   vertIdx = 0;
   for (phiIdx=0; phiIdx<phiRes; phiIdx++) {
     for (thetaIdx=0; thetaIdx<thetaRes; thetaIdx++) {
@@ -938,7 +938,7 @@ limnPolyDataSpiralBetterquadric(limnPolyData *pld,
           if (!vertIdx) {
             ELL_3V_SET(norm, 0.0, 0.0, 1.0);
           } else {
-            ELL_3V_SET(norm, 
+            ELL_3V_SET(norm,
                        (2*airSgnPow(cost,2-alpha)*airSgnPow(sinp,2-beta)/beta),
                        (2*airSgnPow(sint,2-alpha)*airSgnPow(sinp,2-beta)/beta),
                        2*airSgnPow(cosp,2-beta)/beta);
@@ -982,7 +982,7 @@ limnPolyDataSpiralBetterquadric(limnPolyData *pld,
     ELL_3V_SET(pld->tang + 3*vertIdx, 1.0, 0.0, 0.0);
   }
   ++vertIdx;
-  
+
   /* single triangle strip */
   pld->type[0] = limnPrimitiveTriangleStrip;
   pld->icnt[0] = indxNum;
@@ -1015,7 +1015,7 @@ limnPolyDataSpiralBetterquadric(limnPolyData *pld,
       ELL_4V_SET(pld->rgba + 4*vertIdx, 255, 255, 255, 255);
     }
   }
-  
+
   return 0;
 }
 
@@ -1030,12 +1030,12 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld,
                                float alpha, float beta,
                                unsigned int thetaRes, unsigned int phiRes) {
   static const char me[]="limnPolyDataSpiralSuperquadric";
-  
+
   if (limnPolyDataSpiralBetterquadric(pld, infoBitFlag,
                                       alpha, beta, beta, 0.0,
                                       thetaRes, phiRes)) {
     biffAddf(LIMN, "%s: trouble", me); return 1;
-  }                              
+  }
   return 0;
 }
 
@@ -1049,12 +1049,12 @@ limnPolyDataPolarSphere(limnPolyData *pld,
                         unsigned int infoBitFlag,
                         unsigned int thetaRes, unsigned int phiRes) {
   static const char me[]="limnPolyDataPolarSphere";
-  
+
   if (limnPolyDataSuperquadric(pld, infoBitFlag,
                                1.0, 1.0, thetaRes, phiRes)) {
     biffAddf(LIMN, "%s: trouble", me);
     return 1;
-  }                              
+  }
   return 0;
 }
 
@@ -1064,12 +1064,12 @@ limnPolyDataSpiralSphere(limnPolyData *pld,
                          unsigned int thetaRes,
                          unsigned int phiRes) {
   static const char me[]="limnPolyDataSpiralSphere";
-  
+
   if (limnPolyDataSpiralSuperquadric(pld, infoBitFlag,
                                      1.0, 1.0, thetaRes, phiRes)) {
     biffAddf(LIMN, "%s: trouble", me);
     return 1;
-  }                              
+  }
   return 0;
 }
 
@@ -1125,14 +1125,14 @@ limnPolyDataIcoSphere(limnPolyData *pld,
   unsigned int *edges, *faces;
   unsigned int i,e,f; /* loop counters */
   airArray *mop; /* free memory in case of allocation error */
-  
+
   /* sanity checks */
   if (!pld) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
   mop = airMopNew();
-  
+
   /* x/y/z positions */
   verts = (float *) malloc (sizeof(float)*12*3);
   if (verts==NULL) goto error_and_exit;
@@ -1148,7 +1148,7 @@ limnPolyDataIcoSphere(limnPolyData *pld,
   if (faces==NULL) goto error_and_exit;
   airMopAdd(mop, faces, airFree, airMopAlways);
   memcpy(faces,icofaces,sizeof(unsigned int)*60);
-  
+
   for (i=0; i<level; ++i) {
     /* subdivision step */
     unsigned int nvertNum=vertNum+edgeNum;
@@ -1178,7 +1178,7 @@ limnPolyDataIcoSphere(limnPolyData *pld,
       newedges[4*e+1]=vertNum+e;
       newedges[4*e+2]=edges[2*e+2];
       newedges[4*e+3]=vertNum+e+1;
-      
+
       newedges[4*e+4]=vertNum+e;
       newedges[4*e+5]=edges[2*e+1];
       newedges[4*e+6]=vertNum+e+1;
@@ -1217,28 +1217,28 @@ limnPolyDataIcoSphere(limnPolyData *pld,
       if (edges[2*oldedge23+1]==edges[2*oldedge22+1] ||
           edges[2*oldedge23+1]==edges[2*oldedge22])
         pol23=2;
-      
+
       newfaces[12*f] = 2*oldedge11-(oldedge11%2)+pol11; /* bottom/left */
       newfaces[12*f+1] = eidx+4;
       newfaces[12*f+2] = 2*oldedge13-(oldedge13%2)+2-pol13;
       newfaces[12*f+3] = 2*oldedge21-(oldedge21%2)+pol21; /* anti */
       newfaces[12*f+4] = eidx+5;
       newfaces[12*f+5] = 2*oldedge23-(oldedge23%2)+2-pol23;
-      
+
       newfaces[12*f+6] = 2*oldedge11-(oldedge11%2)+2-pol11; /* bottom/right */
       newfaces[12*f+7] = 2*oldedge12-(oldedge12%2)+pol12;
       newfaces[12*f+8] = eidx;
       newfaces[12*f+9] = 2*oldedge21-(oldedge21%2)+2-pol21; /* anti */
       newfaces[12*f+10]= 2*oldedge22-(oldedge22%2)+pol22;
       newfaces[12*f+11]= eidx+1;
-      
+
       newfaces[12*f+12]= 2*oldedge12-(oldedge12%2)+2-pol12; /* top */
       newfaces[12*f+13]= 2*oldedge13-(oldedge13%2)+pol13;
       newfaces[12*f+14]= eidx+2;
       newfaces[12*f+15]= 2*oldedge22-(oldedge22%2)+2-pol22; /* anti */
       newfaces[12*f+16]= 2*oldedge23-(oldedge23%2)+pol23;
       newfaces[12*f+17]= eidx+3;
-      
+
       newfaces[12*f+18]= eidx; /* center */
       newfaces[12*f+19]= eidx+2;
       newfaces[12*f+20]= eidx+4;
@@ -1282,7 +1282,7 @@ limnPolyDataIcoSphere(limnPolyData *pld,
       rr = sqrt(xyz[0]*xyz[0] + xyz[1]*xyz[1]);
       phi = atan2(rr, xyz[2]);
       theta = atan2(xyz[1], xyz[0]);
-      ELL_2V_SET_TT(pld->tex2 + 2*i, float, 
+      ELL_2V_SET_TT(pld->tex2 + 2*i, float,
                     AIR_AFFINE(-AIR_PI, theta, AIR_PI, 0.0, 1.0),
                     AIR_AFFINE(0.0, phi, AIR_PI, 0.0, 1.0));
     }
@@ -1300,7 +1300,7 @@ limnPolyDataIcoSphere(limnPolyData *pld,
       }
     }
   }
-  
+
   /* We need to replace reference to edges in faces with references to
    * vertices. Make sure that they are ordered CCW */
   pld->type[0] = limnPrimitiveTriangles;
@@ -1353,19 +1353,19 @@ limnPolyDataPlane(limnPolyData *pld,
   static const char me[]="limnPolyDataPlane";
   unsigned int vertNum, indxNum, primNum, uIdx, vIdx, vertIdx, primIdx;
   float uu, vv;
-  
+
   /* sanity */
   uRes = AIR_MAX(2, uRes);
   vRes = AIR_MAX(2, vRes);
-  
+
   vertNum = uRes*vRes;
   primNum = vRes-1;
   indxNum = primNum*2*uRes;
   if (limnPolyDataAlloc(pld, infoBitFlag, vertNum, indxNum, primNum)) {
-    biffAddf(LIMN, "%s: couldn't allocate output", me); 
+    biffAddf(LIMN, "%s: couldn't allocate output", me);
     return 1;
   }
-  
+
   vertIdx = 0;
   for (vIdx=0; vIdx<vRes; vIdx++) {
     vv = AIR_CAST(float, AIR_AFFINE(0, vIdx, vRes-1, -1.0, 1.0));
@@ -1387,17 +1387,17 @@ limnPolyDataPlane(limnPolyData *pld,
       ++vertIdx;
     }
   }
-  
+
   vertIdx = 0;
   for (primIdx=0; primIdx<primNum; primIdx++) {
     for (uIdx=0; uIdx<uRes; uIdx++) {
       pld->indx[vertIdx++] = uIdx + uRes*(primIdx+1);
       pld->indx[vertIdx++] = uIdx + uRes*(primIdx);
-    }    
+    }
     pld->type[primIdx] = limnPrimitiveTriangleStrip;
     pld->icnt[primIdx] = 2*uRes;
   }
-  
+
   return 0;
 }
 
@@ -1406,7 +1406,7 @@ limnPolyDataSquare(limnPolyData *pld, unsigned int infoBitFlag) {
   static const char me[]="limnPolyDataSquare";
 
   if (limnPolyDataAlloc(pld, infoBitFlag, 4, 4, 1)) {
-    biffAddf(LIMN, "%s: couldn't allocate output", me); 
+    biffAddf(LIMN, "%s: couldn't allocate output", me);
     return 1;
   }
   ELL_4V_SET(pld->xyzw + 4*0, -1.0, -1.0, 0.0, 1.0);

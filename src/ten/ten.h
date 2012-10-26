@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -265,9 +265,9 @@ enum {
   tenGageEvec1,            /*  21: "evec1", medium eigenvect of tensor: [3] */
   tenGageEvec2,            /*  22: "evec2", minor eigenvect of tensor: [3] */
 
-  tenGageDelNormK2,        /*  23: "delnk2": normalized gradient tensor of 
+  tenGageDelNormK2,        /*  23: "delnk2": normalized gradient tensor of
                                    K2 = eval variance: [7] */
-  tenGageDelNormK3,        /*  24: "delnk3": normal gradient tensor of 
+  tenGageDelNormK3,        /*  24: "delnk3": normal gradient tensor of
                                    K3 = R3 = eval skewness: [7] */
   tenGageDelNormR1,        /*  25: "delnr1": normalized gradient tensor of
                                    R1 = tensor norm: [7] */
@@ -389,7 +389,7 @@ enum {
   tenGageFARidgeSurfaceAlignment, /* 111: "farsurfaln": [1] */
   tenGageFA2ndDD,          /* 112: "fa2d": [1] */
 
-  tenGageFAGeomTens,       /* 113: "fagten", sym. matx w/ evals {0, K1, K2} 
+  tenGageFAGeomTens,       /* 113: "fagten", sym. matx w/ evals {0, K1, K2}
                                    and evecs {grad, cdir0, cdir1}: [9] */
   tenGageFAKappa1,         /* 114: "fak1", 1st princ curv: [1] */
   tenGageFAKappa2,         /* 115: "fak2", 2nd princ curv (k2 <= k1): [1] */
@@ -694,7 +694,7 @@ enum {
 
 /*
 ******** tenDwiFiberType* enum
-** 
+**
 ** how tractography is done in DWI volumes.  This is orthogonal to
 ** how single- or two-tensor estimation is done; it describes what we
 ** do with the model(s) once estimated
@@ -732,7 +732,7 @@ enum {
 ** tenFiberSingle->whyStop[]), or never got started
 ** (tenFiberSingle->whyNowhere), or never went far enough (also
 ** tenFiberSingle->whyNowhere).
-** 
+**
 ** The addition of tenFiberStopMinLength and tenFiberStopMinNumSteps
 ** really stretch the meaningfulness of "tenFiberStop", but its the
 ** only logical place for such constraints to go.
@@ -809,7 +809,7 @@ typedef struct {
   /* ---- input -------- */
   const Nrrd *nin;      /* the tensor OR DWI volume being analyzed */
   NrrdKernelSpec *ksp;  /* reconstruction kernel for tensors or DWIs */
-  int useDwi,           /* we're working in a DWI, not a tensor, volume */    
+  int useDwi,           /* we're working in a DWI, not a tensor, volume */
     fiberType,          /* from tenFiberType* OR tenDwiFiberType* enum */
     fiberProbeItem,     /* item to probe along fiber and possibly save in
                            tenFiberSingle->nval */
@@ -962,14 +962,14 @@ typedef struct {
                              end of first distribution phase */
     minPotentialChange,   /* minimum change in potential that signifies
                              end of first distribution phase */
-    minMean,              /* mean gradient length that signifies end of 
+    minMean,              /* mean gradient length that signifies end of
                              secondary balancing phase */
     minMeanImprovement;   /* magnitude of improvement (reduction) of mean
-                             gradient length that signifies end of 
+                             gradient length that signifies end of
                              secondary balancing phase */
-  int single,             /* distribute single points, instead of 
+  int single,             /* distribute single points, instead of
                              anti-podal pairs of points */
-    insertZeroVec,        /* when computing output in 
+    insertZeroVec,        /* when computing output in
                              tenGradientDistribute (and only there, though
                              this is called by tenGradientGenerate), insert
                              the zero vector at the beginning of the list,
@@ -982,11 +982,11 @@ typedef struct {
     expo,                 /* the exponent N that defines the potential
                              energy profile 1/r^N (coulomb: N=1) */
     seed,                 /* seed value for random number generator */
-    maxEdgeShrink,        /* max number of times we try to compute 
+    maxEdgeShrink,        /* max number of times we try to compute
                              an update with smaller edge normalization */
-    minIteration,         /* run for at least this many iterations, 
+    minIteration,         /* run for at least this many iterations,
                              which can be useful for high exponents,
-                             for which potential measurements can 
+                             for which potential measurements can
                              easily go to infinity */
     maxIteration;         /* bail if we haven't converged by this number
                              of iterations */
@@ -1098,7 +1098,7 @@ typedef struct {
 ** being part of the pvl, such modifications are thread-safe
 **
 ** the reason for having two tenEstimateContexts is that within
-** one volume you will sometimes want to measure both one and 
+** one volume you will sometimes want to measure both one and
 ** two tensors, and it would be crazy to incur the overhead of
 ** switching between the two *per-query*.
 */
@@ -1139,16 +1139,16 @@ typedef struct {
 } tenInterpParm;
 
 /* the idea is that there should be a uniform way of describing
-   DWI experiments, and as a result of calling one of the Set() 
+   DWI experiments, and as a result of calling one of the Set()
    functions below, the information is set in tenExperSpec so that
    combined with a diffusion model spec, DWIs can be simulated */
 typedef struct {
   int set;               /* has been set */
   unsigned imgNum;       /* total number of images, dwi or not */
-  double *bval,          /* all b values: imgNum doubles.  
+  double *bval,          /* all b values: imgNum doubles.
                             NOTE: if dwi[i] is to be considered a "b0" value
                             (for the various functions that have a knownB0 or
-                            similarly named flag), bval[i] must be 0.0; 
+                            similarly named flag), bval[i] must be 0.0;
                             regardless of the gradient length */
   /* *wght,                 all weights, but not yet used */
     *grad;               /* all gradients: 3 x imgNum doubles */
@@ -1189,9 +1189,9 @@ typedef struct {
 ** a tenModel is used to do describe.  The B0 value will be found either
 ** by trivial means (i.e copied from the image data), or by a different
 ** method than the rest of the model parameters, but it is stored along with
-** the parameters because 
+** the parameters because
 ** (1) its very handy to have in one place all the information that, when
-** combined with the tenExperSpec, gives you a DWI value, and 
+** combined with the tenExperSpec, gives you a DWI value, and
 ** (2) sometimes B0 does have to be estimated at the same time as the rest
 ** of the model, so we thereby avoid doubling the number of models
 ** to be able to support this.
@@ -1209,7 +1209,7 @@ typedef struct tenModel_t {
   /* parameter vector operations */
   char *(*sprint)(char str[AIR_STRLEN_MED], const double *parm);
   double *(*alloc)(void);
-  void (*rand)(double *parm, airRandMTState *rng, int knownB0); 
+  void (*rand)(double *parm, airRandMTState *rng, int knownB0);
   void (*step)(double *parm1, const double scl,
                const double *grad, const double *parm0);
   double (*dist)(const double *parmA, const double *parmB);
@@ -1225,7 +1225,7 @@ typedef struct tenModel_t {
                   double *dwiBuff, const double *dwiMeas,
                   int knownB0);
   double (*sqeFit)(double *parm, double *convFrac, unsigned int *itersTaken,
-                   const tenExperSpec *espec, 
+                   const tenExperSpec *espec,
                    double *dwiBuff, const double *dwiMeas,
                    const double *parmInit, int knownB0,
                    unsigned int minIter, unsigned int maxIter,
@@ -1238,7 +1238,7 @@ typedef struct tenModel_t {
                   const tenExperSpec *espec,
                   double *dwiBuff, const double *dwiMeas,
                   int rician, double sigma);
-  double (*nllFit)(double *parm, const tenExperSpec *espec, 
+  double (*nllFit)(double *parm, const tenExperSpec *espec,
                    const double *dwiMeas, const double *parmInit,
                    int rician, double sigma, int knownB0);
 } tenModel;
@@ -1320,11 +1320,11 @@ TEN_EXPORT void tenInterpTwo_d(double oten[7],
                                tenInterpParm *tip);
 TEN_EXPORT int tenInterpN_d(double tenOut[7],
                             const double *tenIn,
-                            const double *wght, 
+                            const double *wght,
                             unsigned int num, int ptype, tenInterpParm *tip);
 TEN_EXPORT double tenInterpPathLength(Nrrd *npath, int doubleVerts,
                                       int fancy, int shape);
-TEN_EXPORT int tenInterpTwoDiscrete_d(Nrrd *nout, 
+TEN_EXPORT int tenInterpTwoDiscrete_d(Nrrd *nout,
                                       const double tenA[7],
                                       const double tenB[7],
                                       int ptype, unsigned int num,
@@ -1356,7 +1356,7 @@ TEN_EXPORT void tenGlyphBqdAbcUv(double abc[3], const double uv[2],
 
 /* tensor.c */
 TEN_EXPORT int tenVerbose;
-TEN_EXPORT void tenRotateSingle_f(float tenOut[7], 
+TEN_EXPORT void tenRotateSingle_f(float tenOut[7],
                                   const float rot[9], const float tenIn[7]);
 TEN_EXPORT int tenTensorCheck(const Nrrd *nin,
                               int wantType, int want4D, int useBiff);
@@ -1593,9 +1593,9 @@ TEN_EXPORT tenFiberMulti *tenFiberMultiNew(void);
 TEN_EXPORT tenFiberMulti *tenFiberMultiNix(tenFiberMulti *tfm);
 TEN_EXPORT int tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
                                   const Nrrd *nseed);
-TEN_EXPORT int tenFiberMultiPolyData(tenFiberContext *tfx, 
+TEN_EXPORT int tenFiberMultiPolyData(tenFiberContext *tfx,
                                      limnPolyData *lpld, tenFiberMulti *tfml);
-TEN_EXPORT int tenFiberMultiProbeVals(tenFiberContext *tfx, 
+TEN_EXPORT int tenFiberMultiProbeVals(tenFiberContext *tfx,
                                       Nrrd *nval, tenFiberMulti *tfml);
 
 /* epireg.c */
@@ -1622,7 +1622,7 @@ TEN_EXPORT tenExperSpec* tenExperSpecNew(void);
 TEN_EXPORT int tenExperSpecGradSingleBValSet(tenExperSpec *espec,
                                              int insertB0,
                                              double bval,
-                                             const double *grad, 
+                                             const double *grad,
                                              unsigned int gradNum);
 TEN_EXPORT int tenExperSpecGradBValSet(tenExperSpec *espec,
                                        int insertB0,
@@ -1668,16 +1668,16 @@ TEN_EXPORT int tenModelSqeFit(Nrrd *nparm,
                               unsigned int starts, double convEps,
                               airRandMTState *rng,
                               int verbose);
-TEN_EXPORT int tenModelNllFit(Nrrd *nparm, Nrrd **nnllP, 
+TEN_EXPORT int tenModelNllFit(Nrrd *nparm, Nrrd **nnllP,
                               const tenModel *model,
                               const tenExperSpec *espec, const Nrrd *ndwi,
                               int rician, double sigma, int knownB0);
 TEN_EXPORT int tenModelConvert(Nrrd *nparmDst, int *convRet,
                                const tenModel *modelDst,
-                               const Nrrd *nparmSrc, 
+                               const Nrrd *nparmSrc,
                                const tenModel *modelSrc);
 
-/* 
+/*
 ** Have to keep this list of model declarations in sync with:
 ** * tenModel.c/str2model()
 ** * all model*.c/parmConvert()  (fallen behind here)
@@ -1721,7 +1721,7 @@ TEN_EXPORT const tenModel *const tenModelBall1Cylinder;
 #define TEN_MODEL_STR_1CYLINDER "1cylinder"
 TEN_EXPORT const tenModel *const tenModel1Cylinder;
 /* model1Tensor2.c: 2nd-order tensor (one of them), not two-tensor */
-#define TEN_MODEL_STR_1TENSOR2 "1tensor2" 
+#define TEN_MODEL_STR_1TENSOR2 "1tensor2"
 TEN_EXPORT const tenModel *const tenModel1Tensor2;
 
 /* mod.c */
@@ -1747,7 +1747,7 @@ TEN_EXPORT int tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
 TEN_EXPORT gageKind *tenGageKind;
 
 /* tenDwiGage.c */
-/* we can't declare or define a tenDwiGageKind->name (analogous to 
+/* we can't declare or define a tenDwiGageKind->name (analogous to
    tenGageKind->name or gageSclKind->name) because the DWI kind is
    dynamically allocated, but at least we can declare a cannonical
    name (HEY: ugly) */

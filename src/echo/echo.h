@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -60,13 +60,13 @@ extern "C" {
 #if 0
 typedef float echoPos_t;
 #  define ECHO_POS_FLOAT 1
-#else 
+#else
 typedef double echoPos_t;
 #  define ECHO_POS_FLOAT 0
 #endif
 
 
-/* all color information is kept as 
+/* all color information is kept as
 ** 1: float
 ** 0: double
 */
@@ -90,7 +90,7 @@ typedef struct {
   int jitterType,      /* from echoJitter* enum below */
     reuseJitter,       /* don't recompute jitter offsets per pixel */
     permuteJitter,     /* properly permute the various jitter arrays */
-    textureNN,         /* use nearest-neighbor for texture lookups 
+    textureNN,         /* use nearest-neighbor for texture lookups
                           (rather than bilinear interpolation) */
     numSamples,        /* rays per pixel */
     imgResU, imgResV,  /* horz. and vert. image resolution */
@@ -136,7 +136,7 @@ typedef struct {
   int verbose,          /* blah blah blah */
     threadIdx,          /* my thread index */
     depth;              /* how many recursion levels are we at */
-  Nrrd *nperm,          /* ECHO_JITTABLE_NUM x parm->numSamples array 
+  Nrrd *nperm,          /* ECHO_JITTABLE_NUM x parm->numSamples array
                            of ints, each column is a (different) random
                            permutation of [0 .. parm->numSamples-1], each
                            row corresponds to the different jittables for
@@ -155,7 +155,7 @@ typedef struct {
 
 /*
 ******** echoJitter* enum
-** 
+**
 ** the different jitter patterns that are supported.  This setting is
 ** global- you can't have different jitter patterns on the lights versus
 ** the pixels.
@@ -174,7 +174,7 @@ enum {
 ******** echoJittable* enum
 **
 ** the different quantities to which the jitter two-vector may be
-** applied.  
+** applied.
 */
 enum {
   echoJittableUnknown=-1,
@@ -358,7 +358,7 @@ typedef struct {
   ECHO_OBJECT_COMMON;
   echoObject **obj;
   airArray *objArr;
-} echoList;  
+} echoList;
 
 typedef struct {
   ECHO_OBJECT_COMMON;
@@ -370,7 +370,7 @@ typedef struct {
 ******** echoScene
 **
 ** this is the central list of all objects in a scene, and all nrrds
-** used for textures and isosurface volumes.  The scene "owns" all 
+** used for textures and isosurface volumes.  The scene "owns" all
 ** the objects it points to, so that nixing it will cause all objects
 ** and nrrds to be nixed and nuked, respectively.
 */
@@ -406,7 +406,7 @@ typedef struct {
 /*
 ******** echoIntx
 **
-** all info about nature and location of an intersection 
+** all info about nature and location of an intersection
 */
 typedef struct {
   echoObject *obj;      /* computed with every intersection */
@@ -416,7 +416,7 @@ typedef struct {
     view[3],            /* always used with coloring */
     refl[3],            /* reflection of view across line spanned by normal */
     pos[3];             /* always used with coloring (and perhaps texturing) */
-  int face,             /* in intx with cube, which face was hit 
+  int face,             /* in intx with cube, which face was hit
                            (used for textures) */
     boxhits;            /* how many bounding boxes we hit */
 } echoIntx;
@@ -477,8 +477,8 @@ ECHO_EXPORT void echoRectangleSet(echoObject *rect,
                                   echoPos_t x0, echoPos_t y0, echoPos_t z0,
                                   echoPos_t x1, echoPos_t y1, echoPos_t z1);
 ECHO_EXPORT void echoTriangleSet(echoObject *tri,
-                                 echoPos_t x0, echoPos_t y0, echoPos_t z0, 
-                                 echoPos_t x1, echoPos_t y1, echoPos_t z1, 
+                                 echoPos_t x0, echoPos_t y0, echoPos_t z0,
+                                 echoPos_t x1, echoPos_t y1, echoPos_t z1,
                                  echoPos_t x2, echoPos_t y2, echoPos_t z2);
 ECHO_EXPORT void echoTriMeshSet(echoObject *trim,
                                 int numV, echoPos_t *pos,

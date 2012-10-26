@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -57,7 +57,7 @@ main(int argc, char **argv) {
              "power to raise cl_2 to to determine saturation of color");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
              "output image (floating point)");
-  
+
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
                  me, "secret testing area", AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -78,7 +78,7 @@ main(int argc, char **argv) {
     return 1;
   }
   ptsNum = nprobe->axis[1].size;
-  
+
   ctx = gageContextNew();
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
   gageSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
@@ -87,7 +87,7 @@ main(int argc, char **argv) {
   if (!E) E |= !(pvl = gagePerVolumeNew(nin, tenGageKind));
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
   if (!E) E |= gageKernelSet(ctx, gageKernel00, nrrdKernelTent, kparm);
-  if (!E) E |= gageQuerySet(pvl, ((1 << tenGageEvec) | 
+  if (!E) E |= gageQuerySet(pvl, ((1 << tenGageEvec) |
                                   (1 << tenGageAniso) |
                                   (1 << tenGageTensor)) );
   if (!E) E |= gageUpdate(ctx);
@@ -107,7 +107,7 @@ main(int argc, char **argv) {
     airMopError(mop);
     return 1;
   }
-  
+
   idata = nprobe->data;
   odata = nout->data;
   for (ptsIdx=0; ptsIdx<ptsNum; ptsIdx++) {
@@ -125,7 +125,7 @@ main(int argc, char **argv) {
     odata[3*ptsIdx + 1] = AIR_AFFINE(0.0, cl, 1.0, 0.5, g);
     odata[3*ptsIdx + 2] = AIR_AFFINE(0.0, cl, 1.0, 0.5, b);
   }
-  
+
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);

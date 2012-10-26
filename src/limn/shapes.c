@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -29,7 +29,7 @@ limnObjectCubeAdd(limnObject *obj, unsigned int lookIdx) {
   unsigned int vII[4], vII0, partIdx;
 
   partIdx = limnObjectPartAdd(obj);
-  /* HEY: we have to set this first so that 
+  /* HEY: we have to set this first so that
      obj->setVertexRGBAFromLook can do the right thing */
   obj->part[partIdx]->lookIdx = lookIdx;
   /*
@@ -71,14 +71,14 @@ limnObjectSquareAdd(limnObject *obj, unsigned int lookIdx) {
   unsigned int vII0, vII[4], partIdx;
 
   partIdx = limnObjectPartAdd(obj);
-  /* HEY: we have to set this first so that 
+  /* HEY: we have to set this first so that
      obj->setVertexRGBAFromLook can do the right thing */
   obj->part[partIdx]->lookIdx = lookIdx;
   vII0 = limnObjectVertexAdd(obj, partIdx, 0, 0, 0);
   limnObjectVertexAdd(obj, partIdx, 1, 0, 0);
   limnObjectVertexAdd(obj, partIdx, 1, 1, 0);
   limnObjectVertexAdd(obj, partIdx, 0, 1, 0);
-  ELL_4V_SET(vII, vII0+0, vII0+1, vII0+2, vII0+3); 
+  ELL_4V_SET(vII, vII0+0, vII0+1, vII0+2, vII0+3);
   limnObjectFaceAdd(obj, partIdx, lookIdx, 4, vII);
   return partIdx;
 }
@@ -94,9 +94,9 @@ limnObjectCylinderAdd(limnObject *obj, unsigned int lookIdx,
                       unsigned int axis, unsigned int res) {
   unsigned int partIdx, ii, jj, tmp, vII0=0, *vII;
   double theta;
-  
+
   partIdx = limnObjectPartAdd(obj);
-  /* HEY: we have to set this first so that 
+  /* HEY: we have to set this first so that
      obj->setVertexRGBAFromLook can do the right thing */
   obj->part[partIdx]->lookIdx = lookIdx;
   vII = (unsigned int *)calloc(res, sizeof(unsigned int));
@@ -156,7 +156,7 @@ limnObjectCylinderAdd(limnObject *obj, unsigned int lookIdx,
     vII[ii] = vII0 + 2*(res-1-ii) + 1;
   }
   limnObjectFaceAdd(obj, partIdx, lookIdx, res, vII);
-  
+
   free(vII);
   return partIdx;
 }
@@ -170,7 +170,7 @@ limnObjectConeAdd(limnObject *obj, unsigned int lookIdx,
   vII = (unsigned int *)calloc(res, sizeof(unsigned int));
 
   partIdx = limnObjectPartAdd(obj);
-  /* HEY: we have to set this first so that 
+  /* HEY: we have to set this first so that
      obj->setVertexRGBAFromLook can do the right thing */
   obj->part[partIdx]->lookIdx = lookIdx;
   for (ii=0; ii<=res-1; ii++) {
@@ -219,7 +219,7 @@ limnObjectConeAdd(limnObject *obj, unsigned int lookIdx,
     vII[ii] = vII0+res-1-ii;
   }
   limnObjectFaceAdd(obj, partIdx, lookIdx, res, vII);
-  
+
   free(vII);
   return partIdx;
 }
@@ -230,12 +230,12 @@ limnObjectPolarSphereAdd(limnObject *obj, unsigned int lookIdx,
                          unsigned int phiRes) {
   unsigned int partIdx, vII0, nti, ti, pi, vII[4], pl;
   double t, p;
-  
+
   thetaRes = AIR_MAX(thetaRes, 3);
   phiRes = AIR_MAX(phiRes, 2);
-  
+
   partIdx = limnObjectPartAdd(obj);
-  /* HEY: we have to set this first so that 
+  /* HEY: we have to set this first so that
      obj->setVertexRGBAFromLook can do the right thing */
   obj->part[partIdx]->lookIdx = lookIdx;
   switch(axis) {
@@ -297,7 +297,7 @@ limnObjectPolarSphereAdd(limnObject *obj, unsigned int lookIdx,
       ELL_4V_SET(vII, vII0+pi*thetaRes + ti, vII0+(pi+1)*thetaRes + ti,
                  vII0+(pi+1)*thetaRes + nti, vII0+pi*thetaRes + nti);
       limnObjectFaceAdd(obj, partIdx, lookIdx, 4, vII);
-    }  
+    }
   }
   for (ti=1; ti<=thetaRes; ti++) {
     nti = ti < thetaRes ? ti+1 : 1;
@@ -315,13 +315,13 @@ limnObjectPolarSuperquadFancyAdd(limnObject *obj,
                                  unsigned int thetaRes, unsigned int phiRes) {
   unsigned int partIdx, vII0, nti, ti, pi, vII[4], pl;
   double x, y, z, t, p;
-  
+
   AIR_UNUSED(R);
   thetaRes = AIR_MAX(thetaRes, 3);
   phiRes = AIR_MAX(phiRes, 2);
-  
+
   partIdx = limnObjectPartAdd(obj);
-  /* HEY: we have to set this first so that 
+  /* HEY: we have to set this first so that
      obj->setVertexRGBAFromLook can do the right thing */
   obj->part[partIdx]->lookIdx = lookIdx;
   switch(axis) {
@@ -402,7 +402,7 @@ limnObjectPolarSuperquadFancyAdd(limnObject *obj,
       ELL_4V_SET(vII, vII0+pi*thetaRes + ti, vII0+(pi+1)*thetaRes + ti,
                  vII0+(pi+1)*thetaRes + nti, vII0+pi*thetaRes + nti);
       limnObjectFaceAdd(obj, partIdx, lookIdx, 4, vII);
-    }  
+    }
   }
   for (ti=1; ti<=thetaRes; ti++) {
     nti = ti < thetaRes ? ti+1 : 1;

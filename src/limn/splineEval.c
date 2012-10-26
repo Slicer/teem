@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -111,7 +111,7 @@ _limnSplineWeightsFind_Hermite(double *wght, limnSpline *spline, double f) {
 
   AIR_UNUSED(spline);
   f3 = f*(f2 = f*f);
-  ELL_4V_SET(wght, 
+  ELL_4V_SET(wght,
              2*f3 - 3*f2 + 1,
              f3 - 2*f2 + f,
              f3 - f2,
@@ -123,7 +123,7 @@ void
 _limnSplineWeightsFind_CubicBezier(double *wght,
                                    limnSpline *spline, double f) {
   double g;
-  
+
   AIR_UNUSED(spline);
   g = 1 - f;
   ELL_4V_SET(wght,
@@ -144,7 +144,7 @@ _limnSplineWeightsFind_CubicBezier(double *wght,
 void
 _limnSplineWeightsFind_BC(double *wght, limnSpline *spline, double f) {
   double B, C, f0, f1, f2, f3;
-  
+
   B = spline->B;
   C = spline->C;
   f0 = f+1;
@@ -213,7 +213,7 @@ void
 _limnSplineFinish_Unknown(double *out, limnSpline *spline,
                           int ii, double *wght) {
   static const char me[]="_limnSplineFinish_Unknown";
-  
+
   AIR_UNUSED(out);
   AIR_UNUSED(spline);
   AIR_UNUSED(ii);
@@ -221,7 +221,7 @@ _limnSplineFinish_Unknown(double *out, limnSpline *spline,
   fprintf(stderr, "%s: WARNING: spline info unset somewhere\n", me);
   return;
 }
-  
+
 void
 _limnSplineFinish_Scalar(double *out, limnSpline *spline,
                          int ii, double *wght) {
@@ -230,11 +230,11 @@ _limnSplineFinish_Scalar(double *out, limnSpline *spline,
 
   cpt = (double*)(spline->ncpt->data);
   _limnSplineIndexFind(idx, spline, ii);
-  *out = (  wght[0]*cpt[idx[0]] + wght[1]*cpt[idx[1]] 
+  *out = (  wght[0]*cpt[idx[0]] + wght[1]*cpt[idx[1]]
           + wght[2]*cpt[idx[2]] + wght[3]*cpt[idx[3]]);
   return;
 }
-  
+
 void
 _limnSplineFinish_2Vec(double *out, limnSpline *spline,
                        int ii, double *wght) {
@@ -243,13 +243,13 @@ _limnSplineFinish_2Vec(double *out, limnSpline *spline,
 
   cpt = (double*)(spline->ncpt->data);
   _limnSplineIndexFind(idx, spline, ii);
-  out[0] = (  wght[0]*cpt[0 + 2*idx[0]] + wght[1]*cpt[0 + 2*idx[1]] 
+  out[0] = (  wght[0]*cpt[0 + 2*idx[0]] + wght[1]*cpt[0 + 2*idx[1]]
             + wght[2]*cpt[0 + 2*idx[2]] + wght[3]*cpt[0 + 2*idx[3]]);
-  out[1] = (  wght[0]*cpt[1 + 2*idx[0]] + wght[1]*cpt[1 + 2*idx[1]] 
+  out[1] = (  wght[0]*cpt[1 + 2*idx[0]] + wght[1]*cpt[1 + 2*idx[1]]
             + wght[2]*cpt[1 + 2*idx[2]] + wght[3]*cpt[1 + 2*idx[3]]);
   return;
 }
-  
+
 void
 _limnSplineFinish_3Vec(double *out, limnSpline *spline,
                        int ii, double *wght) {
@@ -258,15 +258,15 @@ _limnSplineFinish_3Vec(double *out, limnSpline *spline,
 
   cpt = (double*)(spline->ncpt->data);
   _limnSplineIndexFind(idx, spline, ii);
-  out[0] = (  wght[0]*cpt[0 + 3*idx[0]] + wght[1]*cpt[0 + 3*idx[1]] 
+  out[0] = (  wght[0]*cpt[0 + 3*idx[0]] + wght[1]*cpt[0 + 3*idx[1]]
             + wght[2]*cpt[0 + 3*idx[2]] + wght[3]*cpt[0 + 3*idx[3]]);
-  out[1] = (  wght[0]*cpt[1 + 3*idx[0]] + wght[1]*cpt[1 + 3*idx[1]] 
+  out[1] = (  wght[0]*cpt[1 + 3*idx[0]] + wght[1]*cpt[1 + 3*idx[1]]
             + wght[2]*cpt[1 + 3*idx[2]] + wght[3]*cpt[1 + 3*idx[3]]);
-  out[2] = (  wght[0]*cpt[2 + 3*idx[0]] + wght[1]*cpt[2 + 3*idx[1]] 
+  out[2] = (  wght[0]*cpt[2 + 3*idx[0]] + wght[1]*cpt[2 + 3*idx[1]]
             + wght[2]*cpt[2 + 3*idx[2]] + wght[3]*cpt[2 + 3*idx[3]]);
   return;
 }
-  
+
 void
 _limnSplineFinish_Normal(double *out, limnSpline *spline,
                          int ii, double *wght) {
@@ -278,7 +278,7 @@ _limnSplineFinish_Normal(double *out, limnSpline *spline,
   fprintf(stderr, "%s: NOT IMPLEMENTED\n", "_limnSplineFinish_Normal");
   return;
 }
-  
+
 void
 _limnSplineFinish_4Vec(double *out, limnSpline *spline,
                        int ii, double *wght) {
@@ -287,13 +287,13 @@ _limnSplineFinish_4Vec(double *out, limnSpline *spline,
 
   cpt = (double*)(spline->ncpt->data);
   _limnSplineIndexFind(idx, spline, ii);
-  out[0] = (  wght[0]*cpt[0 + 4*idx[0]] + wght[1]*cpt[0 + 4*idx[1]] 
+  out[0] = (  wght[0]*cpt[0 + 4*idx[0]] + wght[1]*cpt[0 + 4*idx[1]]
             + wght[2]*cpt[0 + 4*idx[2]] + wght[3]*cpt[0 + 4*idx[3]]);
-  out[1] = (  wght[0]*cpt[1 + 4*idx[0]] + wght[1]*cpt[1 + 4*idx[1]] 
+  out[1] = (  wght[0]*cpt[1 + 4*idx[0]] + wght[1]*cpt[1 + 4*idx[1]]
             + wght[2]*cpt[1 + 4*idx[2]] + wght[3]*cpt[1 + 4*idx[3]]);
-  out[2] = (  wght[0]*cpt[2 + 4*idx[0]] + wght[1]*cpt[2 + 4*idx[1]] 
+  out[2] = (  wght[0]*cpt[2 + 4*idx[0]] + wght[1]*cpt[2 + 4*idx[1]]
             + wght[2]*cpt[2 + 4*idx[2]] + wght[3]*cpt[2 + 4*idx[3]]);
-  out[3] = (  wght[0]*cpt[3 + 4*idx[0]] + wght[1]*cpt[3 + 4*idx[1]] 
+  out[3] = (  wght[0]*cpt[3 + 4*idx[0]] + wght[1]*cpt[3 + 4*idx[1]]
             + wght[2]*cpt[3 + 4*idx[2]] + wght[3]*cpt[3 + 4*idx[3]]);
   return;
 }
@@ -309,8 +309,8 @@ _limnSplineFinish_Quaternion(double *out, limnSpline *spline,
 
   cpt = (double*)(spline->ncpt->data);
   _limnSplineIndexFind(idx, spline, ii);
-  ell_q_avg4_d(out, NULL, 
-               cpt + 4*idx[0], cpt + 4*idx[1], 
+  ell_q_avg4_d(out, NULL,
+               cpt + 4*idx[0], cpt + 4*idx[1],
                cpt + 4*idx[2], cpt + 4*idx[3],
                wght, LIMN_SPLINE_Q_AVG_EPS, 30 /* maxIter */);
   return;
@@ -327,12 +327,12 @@ _limnSplineFinish[LIMN_SPLINE_INFO_MAX+1] = {
   _limnSplineFinish_4Vec,
   _limnSplineFinish_Quaternion
 };
-  
+
 void
 limnSplineEvaluate(double *out, limnSpline *spline, double tt) {
   int ii=0;
   double ff, wght[4];
-  
+
   if (out && spline) {
     _limnSplineIntervalFind[spline->type](&ii, &ff, spline, tt);
     _limnSplineWeightsFind[spline->type](wght, spline, ff);

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -60,7 +60,7 @@ tenGradientParmNew(void) {
 
 tenGradientParm *
 tenGradientParmNix(tenGradientParm *tgparm) {
-  
+
   airFree(tgparm);
   return NULL;
 }
@@ -68,7 +68,7 @@ tenGradientParmNix(tenGradientParm *tgparm) {
 int
 tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
   static const char me[]="tenGradientCheck";
-  
+
   if (nrrdCheck(ngrad)) {
     biffMovef(TEN, NRRD, "%s: basic validity check failed", me);
     return 1;
@@ -85,7 +85,7 @@ tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
     return 1;
   }
   if (nrrdTypeBlock == ngrad->type) {
-    biffAddf(TEN, "%s: sorry, can't use %s type", me, 
+    biffAddf(TEN, "%s: sorry, can't use %s type", me,
              airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
@@ -109,7 +109,7 @@ tenGradientRandom(Nrrd *ngrad, unsigned int num, unsigned int seed) {
   static const char me[]="tenGradientRandom";
   double *grad, len;
   unsigned int gi;
-  
+
   if (nrrdMaybeAlloc_va(ngrad, nrrdTypeDouble, 2,
                         AIR_CAST(size_t, 3), AIR_CAST(size_t, num))) {
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
@@ -179,7 +179,7 @@ tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist) {
     ELL_3V_NORM(grad, grad, len);
     grad += 3;
   }
-  
+
   return 0;
 }
 
@@ -273,7 +273,7 @@ tenGradientMeasure(double *pot, double *minAngle, double *minEdge,
 ** Without the step-size-based speed limit, the step size would
 ** sometimes (e.g. num=200, expo=300) have to reduced to a miniscule
 ** value, which slows subsequent convergence terribly.
-** 
+**
 ** this function is not static, though it could be, so that mac's
 ** "Sampler" app can profile this
 */
@@ -406,7 +406,7 @@ tenGradientBalance(Nrrd *nout, const Nrrd *nin,
   airMopAdd(mop, rstate, (airMopper)airRandMTStateNix, airMopAlways);
   /* HEY: factor of 100 is an approximate hack */
   maxIter = 100*tgparm->maxIteration;
-  
+
   lastLen = 1.0;
   done = AIR_FALSE;
   do {
@@ -439,7 +439,7 @@ tenGradientBalance(Nrrd *nout, const Nrrd *nin,
               || len < tgparm->minMean);
     }
   } while (!done);
-  
+
   airMopOkay(mop);
   return 0;
 }
@@ -491,7 +491,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
     biffMovef(TEN, NRRD, "%s: trouble allocating temp buffers", me);
     airMopError(mop); return 1;
   }
-  
+
   pos = (double*)(npos[0]->data);
   for (ii=0; ii<num; ii++) {
     ELL_3V_NORM(pos, pos, len);
@@ -519,7 +519,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
         ||
         (iter < tgparm->maxIteration
          && (!tgparm->minPotentialChange
-             || !AIR_EXISTS(potD) 
+             || !AIR_EXISTS(potD)
              || -potD > tgparm->minPotentialChange)
          && (!tgparm->minVelocity
              || meanVelocity > tgparm->minVelocity)
@@ -585,7 +585,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
       /* swap buffers */
       newIdx = 1 - newIdx;
       oldIdx = 1 - oldIdx;
-    } else {    
+    } else {
       /* oops, did not make progress; back off and try again */
       if (tgparm->verbose) {
         fprintf(stderr, "%s(%d): ######## step %g --> %g\n"
@@ -608,7 +608,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
             "               && (%d || %d || %d) \n"
             "               && (%d || %d) \n"
             "               && %d) is false\n", me,
-            !!tgparm->minIteration, iter < tgparm->minIteration, 
+            !!tgparm->minIteration, iter < tgparm->minIteration,
             iter < tgparm->maxIteration,
             !tgparm->minPotentialChange,
             !AIR_EXISTS(potD), AIR_ABS(potD) > tgparm->minPotentialChange,
@@ -617,10 +617,10 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
     fprintf(stderr, "  iter=%d, velo = %g<>%g, phi = %g ~ %g<>%g;\n",
             iter, meanVelocity, tgparm->minVelocity, pot,
             potD, tgparm->minPotentialChange);
-    fprintf(stderr, "  minEdge = %g; idealEdge = %g\n", 
+    fprintf(stderr, "  minEdge = %g; idealEdge = %g\n",
             2*sin(angle/2), tenGradientIdealEdge(num, tgparm->single));
   }
-  
+
   tenGradientMeasure(&pot, NULL, NULL, npos[oldIdx], tgparm, AIR_FALSE);
   tgparm->potential = pot;
   tenGradientMeasure(&pot, &angle, &edge, npos[oldIdx], tgparm, AIR_TRUE);
@@ -651,7 +651,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin,
     }
   }
 
-  airMopOkay(mop); 
+  airMopOkay(mop);
   return 0;
 }
 
@@ -685,7 +685,7 @@ tenGradientGenerate(Nrrd *nout, unsigned int num, tenGradientParm *tgparm) {
   }
   if (tgparm->insertZeroVec) {
     /* this is potentially confusing: the second axis (axis 1)
-       is going to come back one longer than the requested 
+       is going to come back one longer than the requested
        number of gradients! */
     Nrrd *ntmp;
     ptrdiff_t padMin[2] = {0, -1}, padMax[2];
@@ -693,7 +693,7 @@ tenGradientGenerate(Nrrd *nout, unsigned int num, tenGradientParm *tgparm) {
     padMax[1] = AIR_CAST(ptrdiff_t, num-1);
     ntmp = nrrdNew();
     airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
-    if (nrrdPad_nva(ntmp, nout, padMin, padMax, 
+    if (nrrdPad_nva(ntmp, nout, padMin, padMax,
                     nrrdBoundaryPad, 0.0)
         || nrrdCopy(nout, ntmp)) {
       biffMovef(TEN, NRRD, "%s: trouble adding zero vector", me);

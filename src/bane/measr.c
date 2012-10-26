@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -125,7 +125,7 @@ baneMeasrNew(int type, double *parm) {
     measr->answer = _baneMeasr_StockAnswer;
     break;
     /* --------------------------------------------------------------- */
-  default:    
+  default:
     biffAddf(BANE, "%s: Sorry, baneMeasr %d not implemented", me, type);
     baneMeasrNix(measr); return NULL;
   }
@@ -136,7 +136,7 @@ double
 baneMeasrAnswer(baneMeasr *measr, gageContext *gctx) {
   static const char me[]="baneMeasrAnswer";
   double ret;
-  
+
   if (measr && gctx && 1 == gctx->pvlNum) {
     ret = measr->answer(measr, gctx->pvl[0]->answer, measr->parm);
   } else {
@@ -150,7 +150,7 @@ baneMeasr *
 baneMeasrCopy(baneMeasr *measr) {
   static const char me[]="baneMeasrCopy";
   baneMeasr *ret = NULL;
-  
+
   ret = baneMeasrNew(measr->type, measr->parm);
   if (!ret) {
     biffAddf(BANE, "%s: couldn't make new measr", me);
@@ -161,7 +161,7 @@ baneMeasrCopy(baneMeasr *measr) {
 
 baneMeasr *
 baneMeasrNix(baneMeasr *measr) {
-  
+
   if (measr) {
     baneRangeNix(measr->range);
     airFree(measr);

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -114,7 +114,7 @@ pullContextNew(void) {
 pullContext *
 pullContextNix(pullContext *pctx) {
   unsigned int ii;
-  
+
   if (pctx) {
     for (ii=0; ii<pctx->volNum; ii++) {
       pctx->vol[ii] = pullVolumeNix(pctx->vol[ii]);
@@ -161,7 +161,7 @@ _pullMiscParmCheck(pullContext *pctx) {
       || pullInterTypeUnivariate == pctx->interType) {
     if (pullEnergyZero != pctx->energySpecS->energy) {
       biffAddf(PULL, "%s: can't use scale energy %s with inter type %s", me,
-               pctx->energySpecS->energy->name, 
+               pctx->energySpecS->energy->name,
                airEnumStr(pullInterType, pctx->interType));
       return 1;
     }
@@ -244,7 +244,7 @@ _pullContextCheck(pullContext *pctx) {
       case pullInfoStrength:
         if (!( AIR_EXISTS(pctx->ispec[ii]->scale)
                && AIR_EXISTS(pctx->ispec[ii]->zero) )) {
-          biffAddf(PULL, "%s: %s info needs scale (%g) and zero (%g)", me, 
+          biffAddf(PULL, "%s: %s info needs scale (%g) and zero (%g)", me,
                    airEnumStr(pullInfo, ii),
                    pctx->ispec[ii]->scale, pctx->ispec[ii]->zero);
           return 1;
@@ -270,7 +270,7 @@ _pullContextCheck(pullContext *pctx) {
   }
   if (pctx->ispec[pullInfoInside]) {
     if (!pctx->ispec[pullInfoInsideGradient]) {
-      biffAddf(PULL, "%s: want %s but don't have %s set", me, 
+      biffAddf(PULL, "%s: want %s but don't have %s set", me,
                airEnumStr(pullInfo, pullInfoInside),
                airEnumStr(pullInfo, pullInfoInsideGradient));
       return 1;
@@ -278,7 +278,7 @@ _pullContextCheck(pullContext *pctx) {
   }
   if (pctx->ispec[pullInfoTangent2]) {
     if (!pctx->ispec[pullInfoTangent1]) {
-      biffAddf(PULL, "%s: want %s but don't have %s set", me, 
+      biffAddf(PULL, "%s: want %s but don't have %s set", me,
                airEnumStr(pullInfo, pullInfoTangent2),
                airEnumStr(pullInfo, pullInfoTangent1));
       return 1;
@@ -286,7 +286,7 @@ _pullContextCheck(pullContext *pctx) {
   }
   if (pctx->ispec[pullInfoNegativeTangent2]) {
     if (!pctx->ispec[pullInfoNegativeTangent1]) {
-      biffAddf(PULL, "%s: want %s but don't have %s set", me, 
+      biffAddf(PULL, "%s: want %s but don't have %s set", me,
                airEnumStr(pullInfo, pullInfoNegativeTangent2),
                airEnumStr(pullInfo, pullInfoNegativeTangent1));
       return 1;
@@ -308,7 +308,7 @@ _pullContextCheck(pullContext *pctx) {
   }
   if (pctx->ispec[pullInfoHeight]) {
     if (!( pctx->ispec[pullInfoHeightGradient] )) {
-      biffAddf(PULL, "%s: want %s but don't have %s set", me, 
+      biffAddf(PULL, "%s: want %s but don't have %s set", me,
                airEnumStr(pullInfo, pullInfoHeight),
                airEnumStr(pullInfo, pullInfoHeightGradient));
       return 1;
@@ -337,7 +337,7 @@ _pullContextCheck(pullContext *pctx) {
   }
   if (pctx->ispec[pullInfoHeightLaplacian]) {
     if (!( pctx->ispec[pullInfoHeight] )) {
-      biffAddf(PULL, "%s: want %s but don't have %s set", me, 
+      biffAddf(PULL, "%s: want %s but don't have %s set", me,
                airEnumStr(pullInfo, pullInfoHeightLaplacian),
                airEnumStr(pullInfo, pullInfoHeight));
       return 1;
@@ -346,7 +346,7 @@ _pullContextCheck(pullContext *pctx) {
   if (pctx->ispec[pullInfoIsovalue]) {
     if (!( pctx->ispec[pullInfoIsovalueGradient]
            && pctx->ispec[pullInfoIsovalueHessian] )) {
-      biffAddf(PULL, "%s: want %s but don't have %s and %s set", me, 
+      biffAddf(PULL, "%s: want %s but don't have %s and %s set", me,
                airEnumStr(pullInfo, pullInfoIsovalue),
                airEnumStr(pullInfo, pullInfoIsovalueGradient),
                airEnumStr(pullInfo, pullInfoIsovalueHessian));
@@ -361,7 +361,7 @@ _pullContextCheck(pullContext *pctx) {
     biffAddf(PULL, "%s: %s and %s refer to same item (%s in %s), but have "
              "scaling factors with different signs (%g and %g); really?", me,
              airEnumStr(pullInfo, pullInfoLiveThresh),
-             airEnumStr(pullInfo, pullInfoStrength), 
+             airEnumStr(pullInfo, pullInfoStrength),
              airEnumStr(pctx->vol[lthr->volIdx]->kind->enm, lthr->item),
              lthr->volName, lthr->scale, strn->scale);
     return 1;
@@ -428,12 +428,12 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
                            AIR_CAST(size_t, pointNum));
   }
   if (nTenOut) {
-    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeDouble, 2, 
+    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeDouble, 2,
                            AIR_CAST(size_t, 7),
                            AIR_CAST(size_t, pointNum));
   }
   if (nStrengthOut) {
-    E |= nrrdMaybeAlloc_va(nStrengthOut, nrrdTypeDouble, 1, 
+    E |= nrrdMaybeAlloc_va(nStrengthOut, nrrdTypeDouble, 1,
                            AIR_CAST(size_t, pointNum));
   }
   if (E) {
@@ -461,7 +461,7 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
           AIR_ABS(606.723  - point->pos[ 2 ]) < 0.5) {
         printf("!%s: point %u at (%g,%g,%g,%g) ##############\n",
                me, point->idtag,
-               point->pos[0], point->pos[1], 
+               point->pos[0], point->pos[1],
                point->pos[2], point->pos[3]);
       }
       */
@@ -492,7 +492,7 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
       if (nTenOut) {
         double scl, tout[7];
         scl = 1;
-        if (pctx->ispec[pullInfoTensor]) { 
+        if (pctx->ispec[pullInfoTensor]) {
           TEN_T_COPY(tout, point->info + pctx->infoIdx[pullInfoTensor]);
         } else if (pctx->ispec[pullInfoHeightHessian]) {
           double *hess, eval[3], evec[9], eceil, maxeval, elen;
@@ -608,7 +608,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
   unsigned char *out_uc;
   pullBin *bin;
   pullPoint *point;
-  
+
   pointNum = pullPointNumber(pctx);
   switch(prop) {
   case pullPropEnergy:
@@ -725,7 +725,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
           3    6    8    9:ss
         */
       case pullPropNeighCovar:
-        ELL_10V_COPY(out_f + 10*outIdx, point->neighCovar); 
+        ELL_10V_COPY(out_f + 10*outIdx, point->neighCovar);
         break;
       case pullPropNeighCovar7Ten:
         TEN_T_SET(out_f + 7*outIdx, 1.0f,
@@ -767,7 +767,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
           ELL_3V_SET(covar +  3, pnc[1], pnc[4], pnc[5]);
           ELL_3V_SET(covar +  6, pnc[2], pnc[5], pnc[7]);
           out_d[outIdx] = ELL_3M_DET(covar);
-        }          
+        }
         break;
       case pullPropStability:
         out_d[outIdx] = point->stability;
@@ -780,7 +780,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
       ++outIdx;
     } /* for (pointIdx) */
   }
-  
+
   return 0;
 }
 
@@ -790,7 +790,7 @@ pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx) {
 #if PULL_PHIST
   pullBin *bin;
   pullPoint *point;
-  unsigned int binIdx, pointIdx, pointNum, vertNum, vertIdx, 
+  unsigned int binIdx, pointIdx, pointNum, vertNum, vertIdx,
     primIdx, phistIdx, phistNum;
 
   if (!(pld && pctx)) {
@@ -859,10 +859,10 @@ pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx) {
       primIdx++;
     }
   }
-  
+
 
   return 0;
-#else 
+#else
   AIR_UNUSED(pld);
   AIR_UNUSED(pctx);
   biffAddf(PULL, "%s: sorry, not compiled with PULL_PHIST", me);

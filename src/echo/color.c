@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -99,7 +99,7 @@ echoIntxMaterialColor(echoCol_t rgba[4], echoIntx *intx, echoRTParm *parm) {
 void
 echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
                    echoCol_t sp,
-                   echoIntx *intx, echoScene *scene, echoRTParm *parm, 
+                   echoIntx *intx, echoScene *scene, echoRTParm *parm,
                    echoThreadState *tstate) {
   unsigned int Lidx;
   int blocked;
@@ -118,10 +118,10 @@ echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3],
        has to be adjusted according to the instancing matrix */
     shadRay.neer = 30*ECHO_EPSILON;
   }
-  
+
   /* set ambient (easy) */
   ELL_3V_COPY(ambi, scene->ambi);
-  
+
   /* environment contributes only to diffuse */
   if (scene->envmap) {
     echoEnvmapLookup(diff, intx->norm, scene->envmap);
@@ -279,7 +279,7 @@ _echoRefract(echoPos_t T[3], echoPos_t V[3],
             _echoDot(tstate->depth), "_echoRefract",
             cosTh, indexr, cosPh);
   }
-  tmp1 = -1.0/indexr; tmp2 = cosTh/indexr - cosPh; 
+  tmp1 = -1.0/indexr; tmp2 = cosTh/indexr - cosPh;
   ELL_3V_SCALE_ADD2(T, tmp1, V, tmp2, N);
   ELL_3V_NORM(T, T, tmp1);
   return AIR_TRUE;
@@ -410,7 +410,7 @@ _echoIntxColorLight(INTXCOLOR_ARGS) {
 
 void
 _echoIntxColorUnknown(INTXCOLOR_ARGS) {
-  
+
   AIR_UNUSED(rgba);
   AIR_UNUSED(intx);
   AIR_UNUSED(scene);
@@ -474,7 +474,7 @@ void
 echoIntxColor(echoCol_t rgba[4], echoIntx *intx,
               echoScene *scene, echoRTParm *parm, echoThreadState *tstate) {
   echoCol_t fuzz;
-  
+
   switch(intx->obj->matter) {
   case echoMatterGlass:
     fuzz = intx->obj->mat[echoMatterGlassFuzzy];

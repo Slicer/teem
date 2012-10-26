@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 #include "ten.h"
 #include "privateTen.h"
 
-/* 
+/*
 ** computes (r1 - r0)/(log(r1) - log(r0))
 */
 double
@@ -40,7 +40,7 @@ _tenQGL_blah(double rr0, double rr1) {
     /*   rr1 <= rr0 --> rr1/rr0 <= 1 --> rr1/rr0 - 1 <=  0 --> bb <=  0 */
     /* and rr1 >= 0 --> rr1/rr0 >= 0 --> rr1/rr0 - 1 >= -1 --> bb >= -1 */
     bb = rr0 ? (rr1/rr0 - 1) : 0;
-    if (bb > -0.0001) {      
+    if (bb > -0.0001) {
       ret = rr0*(1 + bb*(0.5001249976477329
                          - bb*(7.0/6 + bb*(1.0/6 - bb/720.0))));
     } else {
@@ -87,7 +87,7 @@ tenQGLInterpTwoEvalK(double oeval[3],
       dth = th1 - th0;
       /* rr0 and rr1 are similar, use stable approximation */
       th = th0 + tt*(dth
-                     + (0.5 - tt/2)*dth*bb 
+                     + (0.5 - tt/2)*dth*bb
                      + (-1.0/12 - tt/4 + tt*tt/3)*dth*bb*bb
                      + (1.0/24 + tt/24 + tt*tt/6 - tt*tt*tt/4)*dth*bb*bb*bb);
     } else {
@@ -132,10 +132,10 @@ _tenQGL_Klog(double klog[3],
 }
 
 void
-_tenQGL_Kexp(double RThZB[3], 
+_tenQGL_Kexp(double RThZB[3],
              const double RThZA[3], const double klog[3]) {
   double bl;
-  
+
   rr1 = rr0 + klog[0];
   bl = _tenQGL_blah(rr0, rr1);
   th1 = th0 + (bl ? klog[1]/bl : 0);
@@ -207,10 +207,10 @@ _tenQGL_Rlog(double rlog[3],
 }
 
 void
-_tenQGL_Rexp(double RThPhB[3], 
+_tenQGL_Rexp(double RThPhB[3],
              const double RThPhA[3], const double rlog[3]) {
   double bl, fo;
-  
+
   rr1 = rr0 + rlog[0];
   bl = _tenQGL_blah(rr0, rr1);
   ph1 = ph0 + (bl ? rlog[2]/bl : 0);
@@ -219,7 +219,7 @@ _tenQGL_Rexp(double RThPhB[3],
   return;
 }
 
-/* unlike with the K stuff, with the R stuff I seemed to have more luck 
+/* unlike with the K stuff, with the R stuff I seemed to have more luck
    implementing pair-wise interpolation in terms of log and exp
 */
 void
@@ -263,7 +263,7 @@ _tenQGL_Rdist(const double RThPhA[3], const double RThPhB[3]) {
 #undef ph
 
 /* returns the index into unitq[] of the quaternion that led to the
-   right alignment.  If it was already aligned, this will be 0, 
+   right alignment.  If it was already aligned, this will be 0,
    because unitq[0] is the identity quaternion */
 int
 _tenQGL_q_align(double qOut[4], const double qRef[4], const double qIn[4]) {
@@ -277,7 +277,7 @@ _tenQGL_q_align(double qOut[4], const double qRef[4], const double qIn[4]) {
                         {0, 0, 0, +1},
                         {0, 0, 0, -1}};
   double dot[8], qInMul[8][4], maxDot;
-  
+
   for (ii=0; ii<8; ii++) {
     ell_q_mul_d(qInMul[ii], qIn, unitq[ii]);
     dot[ii] = ELL_4V_DOT(qRef, qInMul[ii]);
@@ -339,7 +339,7 @@ tenQGLInterpTwo(double oten[7],
 
 /*
 ** This does (non-optionally) use biff, to report convergence failures
-** 
+**
 ** we do in fact require non-NULL tip, because it holds the buffers we need
 */
 int
@@ -451,7 +451,7 @@ _tenQGL_q_interdot(unsigned int *centerIdxP,
 
 /*
 ** This does (non-optionally) use biff, to report convergence failures
-** 
+**
 ** we do in fact require non-NULL tip, because it holds the buffers we need
 */
 int
@@ -465,7 +465,7 @@ _tenQGLInterpNEvec(double evecOut[9],
   unsigned int ii, centerIdx=0, fix, qiter;
 
   if (!( evecOut && evecIn && tip )) {
-    biffAddf(TEN, "%s: got NULL pointer", me); 
+    biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
   }
   /* convert to quaternions */
@@ -513,7 +513,7 @@ _tenQGLInterpNEvec(double evecOut[9],
     dsum = _tenQGL_q_interdot(&centerIdx, tip->qIn, tip->qInter, NN);
     if (tip->maxIter && qiter > tip->maxIter) {
       biffAddf(TEN, "%s: q tightening unconverged after %u iters; "
-               "interdot = %g -> maxfix = %u; center = %u\n", 
+               "interdot = %g -> maxfix = %u; center = %u\n",
                me, tip->maxIter, dsum, fix, centerIdx);
       return 1;
     }
@@ -536,7 +536,7 @@ _tenQGLInterpNEvec(double evecOut[9],
   /*
   fprintf(stderr, "!%s: q avg converged in %u\n", me, qiter);
   */
-  
+
   /* finish, convert back to evec */
   ell_q_to_3m_d(rot, qOut);
   ELL_3M_TRANSPOSE(evecOut, rot);

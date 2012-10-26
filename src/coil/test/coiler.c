@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -31,13 +31,13 @@ main(int argc, const char *argv[]) {
   char *err, *outS;
   hestOpt *hopt=NULL;
   airArray *mop;
-  
+
   int numIters, numThreads, methodType, kindType, _parmLen, pi, radius,
     verbose;
   Nrrd *nin, *nout;
   coilContext *cctx;
   double *_parm, parm[COIL_PARMS_NUM];
-  
+
   mop = airMopNew();
   me = argv[0];
   hestOptAdd(&hopt, "iter", "# iters", airTypeInt, 1, 1, &numIters, "5",
@@ -67,12 +67,12 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, cctx, (airMopper)coilContextNix, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  
+
   if (_parmLen != coilMethodArray[methodType]->numParm) {
-    fprintf(stderr, "%s: %s method wants %d parms, but got %d\n", me, 
+    fprintf(stderr, "%s: %s method wants %d parms, but got %d\n", me,
             coilMethodArray[methodType]->name,
             coilMethodArray[methodType]->numParm, _parmLen);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
   for (pi=0; pi<_parmLen; pi++) {
@@ -88,13 +88,13 @@ main(int argc, const char *argv[]) {
       || coilOutputGet(nout, cctx)) {
     airMopAdd(mop, err = biffGetDone(COIL), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble with coil:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't save output:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
   airMopOkay(mop);

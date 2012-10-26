@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -31,7 +31,7 @@ typedef struct {
   double bbox[4];
   int nobg;
   double bgColor[3];
-  
+
   double maxX, maxY;  /* set by plotPreamble */
 } plotPS;
 
@@ -66,7 +66,7 @@ plotPreamble(plotPS *pps, plotParm *pparm) {
   fprintf(pps->file, "%%!PS-Adobe-2.0 EPSF-2.0\n");
   fprintf(pps->file, "%%%%Creator: plot\n");
   fprintf(pps->file, "%%%%Pages: 1\n");
-  fprintf(pps->file, "%%%%BoundingBox: 0 0 %d %d\n", 
+  fprintf(pps->file, "%%%%BoundingBox: 0 0 %d %d\n",
           (int)(pps->maxX),
           (int)(pps->maxY));
   fprintf(pps->file, "%%%%EndComments\n");
@@ -118,7 +118,7 @@ plotGray(plotPS *pps, plotParm *pparm, double gray) {
 void
 plotLine(plotPS *pps, plotParm *pparm,
          double x0, double y0, double x1, double y1) {
-  
+
   AIR_UNUSED(pparm);
   fprintf(pps->file, "%g %g M\n", PPS_X(x0), PPS_Y(y0));
   fprintf(pps->file, "%g %g L S\n", PPS_X(x1), PPS_Y(y1));
@@ -126,13 +126,13 @@ plotLine(plotPS *pps, plotParm *pparm,
 }
 
 void
-plotLabel(plotPS *pps, plotParm *pparm, int centered, 
+plotLabel(plotPS *pps, plotParm *pparm, int centered,
           double x, double y, char *str) {
-  
+
   fprintf(pps->file, "gsave\n");
   plotWidth(pps, pparm, 0);
   if (centered) {
-    fprintf(pps->file,  
+    fprintf(pps->file,
             "0 0 M (%s) false charpath pathbbox\n"
             "exch 4 1 roll sub 2 div 3 1 roll sub -2 div\n"  /* don't ask */
             "newpath %g add exch %g add M (%s) show\n",
@@ -149,7 +149,7 @@ plotAxes(plotPS *pps, plotParm *pparm, Nrrd *ndata) {
   double axX, axY, xx, yy, toff;
   char buff[AIR_STRLEN_SMALL];
   int ti;
-  
+
   AIR_UNUSED(ndata);
   axX = AIR_AFFINE(pparm->dbox[0], pparm->axisOrig[0], pparm->dbox[2],
                    pps->bbox[0], pps->bbox[2]);
@@ -165,11 +165,11 @@ plotAxes(plotPS *pps, plotParm *pparm, Nrrd *ndata) {
   if (strlen(pparm->axisHorzLabel) || strlen(pparm->axisVertLabel)) {
     fprintf(pps->file, "/Helvetica findfont 20 scalefont setfont\n");
     if (strlen(pparm->axisHorzLabel)) {
-      plotLabel(pps, pparm, AIR_FALSE, 
+      plotLabel(pps, pparm, AIR_FALSE,
                 pps->bbox[2], axY, pparm->axisHorzLabel);
     }
     if (strlen(pparm->axisVertLabel)) {
-      plotLabel(pps, pparm, AIR_FALSE, 
+      plotLabel(pps, pparm, AIR_FALSE,
                 axX, pps->bbox[3], pparm->axisVertLabel);
     }
   }
@@ -274,11 +274,11 @@ plotDots(plotPS *pps, plotParm *pparm, Nrrd **ndata, int nidx) {
     yy = AIR_AFFINE(pparm->dbox[1], val, pparm->dbox[3],
                     pps->bbox[1], pps->bbox[3]);
     plotGray(pps, pparm, pparm->dotGray[nidx]);
-    fprintf(pps->file, "%g %g %g 0 360 arc closepath fill\n", 
+    fprintf(pps->file, "%g %g %g 0 360 arc closepath fill\n",
             PPS_X(xx), PPS_Y(yy), PPS_S(orad));
     if (irad) {
       plotGray(pps, pparm, 1.0);
-      fprintf(pps->file, "%g %g %g 0 360 arc closepath fill\n", 
+      fprintf(pps->file, "%g %g %g 0 360 arc closepath fill\n",
               PPS_X(xx), PPS_Y(yy), PPS_S(irad));
     }
   }
@@ -287,7 +287,7 @@ plotDots(plotPS *pps, plotParm *pparm, Nrrd **ndata, int nidx) {
 
 void
 plotEpilog(plotPS *pps, plotParm *pparm) {
-  
+
   AIR_UNUSED(pparm);
   fprintf(pps->file, "grestore\n");
   fprintf(pps->file, "grestore\n");
@@ -308,7 +308,7 @@ main(int argc, const char *argv[]) {
   Nrrd **_ndata, **ndata;
 
   mop = airMopNew();
-  
+
   me = argv[0];
 
   hestOptAdd(&hopt, "i", "data", airTypeOther, 1, -1, &_ndata, NULL,
@@ -317,7 +317,7 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "dbox", "minX minY maxX maxY", airTypeDouble,
              4, 4, pparm.dbox, NULL,
              "bounding box, in data space");
-  
+
   hestOptAdd(&hopt, "bbox", "minX minY maxX maxY", airTypeDouble,
              4, 4, pps.bbox, NULL,
              "bounding box, in graph space");
@@ -328,10 +328,10 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "bg", "background", airTypeDouble, 3, 3,
              &(pps.bgColor), "1 1 1",
              "background RGB color; each component in range [0.0,1.0]");
-  
+
   hestOptAdd(&hopt, "grth", "graph thickness", airTypeDouble,
              1, -1, &(pparm.graphThick), "0.01",
-             "thickness of line for graph, or \"0\" for no graph line", 
+             "thickness of line for graph, or \"0\" for no graph line",
              &numGrth);
   hestOptAdd(&hopt, "grgr", "graph gray", airTypeDouble,
              1, -1, &(pparm.graphGray), "0",
@@ -392,7 +392,7 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( numGrth == numDtdi 
+  if (!( numGrth == numDtdi
          && numDtdi == numGrgr
          && numGrgr == numDtgr )) {
     fprintf(stderr, "%s: number of arguments given to grth (%d), dtdi (%d), "
@@ -408,7 +408,7 @@ main(int argc, const char *argv[]) {
 
   /* check nrrds */
   for (ni=0; ni<numNrrd; ni++) {
-    if (!( (1 == _ndata[ni]->dim || 2 == _ndata[ni]->dim) 
+    if (!( (1 == _ndata[ni]->dim || 2 == _ndata[ni]->dim)
            && nrrdTypeBlock != _ndata[ni]->type )) {
       fprintf(stderr, "%s: input nrrd must be 1-D or 2-D array of scalars",
               me);
@@ -448,7 +448,7 @@ main(int argc, const char *argv[]) {
     airMopError(mop); return 1;
   }
   airMopAdd(mop, pps.file, (airMopper)airFclose, airMopAlways);
-  
+
   plotPreamble(&pps, &pparm);
   plotAxes(&pps, &pparm, ndata[0]);
   for (ni=0; ni<numNrrd; ni++) {

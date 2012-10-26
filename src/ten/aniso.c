@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -35,7 +35,7 @@
 ******** THIS CODE IS NOT REALLY MEANT TO BE EDITED BY HUMANS
 ******** (only GLK :)
 ********
-******** It is the worst possible example of the dangers of cut-and-paste 
+******** It is the worst possible example of the dangers of cut-and-paste
 ********
 ******** !!!! NOTE NOTE NOTE NOTE NOTE !!!!
 */
@@ -327,7 +327,7 @@ float  _tenAnisoEval_RA_f(const float  eval[3]) {
   mean = (eval[0] + eval[1] + eval[2])/3;
   stdv = AIR_CAST(float,
                   sqrt((mean-eval[0])*(mean-eval[0])   /* not exactly stdv */
-                       + (mean-eval[1])*(mean-eval[1]) 
+                       + (mean-eval[1])*(mean-eval[1])
                        + (mean-eval[2])*(mean-eval[2])));
   return mean ? AIR_CAST(float, stdv/(mean*SQRT6)) : 0.0f;
 }
@@ -335,7 +335,7 @@ double _tenAnisoEval_RA_d(const double eval[3]) {
   double mean, stdv;
   mean = (eval[0] + eval[1] + eval[2])/3;
   stdv = sqrt((mean-eval[0])*(mean-eval[0])   /* not exactly standard dev */
-              + (mean-eval[1])*(mean-eval[1]) 
+              + (mean-eval[1])*(mean-eval[1])
               + (mean-eval[2])*(mean-eval[2]));
   return mean ? stdv/(mean*SQRT6) : 0.0;
 }
@@ -361,7 +361,7 @@ float  _tenAnisoEval_FA_f(const float  eval[3]) {
   mean = (eval[0] + eval[1] + eval[2])/3;
   stdv = AIR_CAST(float,
                   (mean-eval[0])*(mean-eval[0]) /* not exactly stdv */
-                  + (mean-eval[1])*(mean-eval[1]) 
+                  + (mean-eval[1])*(mean-eval[1])
                   + (mean-eval[2])*(mean-eval[2]));
   return denom ? AIR_CAST(float, sqrt(3.0*stdv/denom)) : 0.0f;
 }
@@ -370,7 +370,7 @@ double _tenAnisoEval_FA_d(const double eval[3]) {
   denom = 2.0*(eval[0]*eval[0] + eval[1]*eval[1] + eval[2]*eval[2]);
   mean = (eval[0] + eval[1] + eval[2])/3;
   stdv = ((mean-eval[0])*(mean-eval[0])   /* not exactly standard dev */
-          + (mean-eval[1])*(mean-eval[1]) 
+          + (mean-eval[1])*(mean-eval[1])
           + (mean-eval[2])*(mean-eval[2]));
   return denom ? sqrt(3.0*stdv/denom) : 0.0;
 }
@@ -425,11 +425,11 @@ double _tenAnisoEval_B_d(const double eval[3]) {
   return eval[0]*eval[1] + eval[0]*eval[2] + eval[1]*eval[2];
 }
 float  _tenAnisoTen_B_f(const float  ten[7]) {
-  return (ten[1]*ten[4] + ten[1]*ten[6] + ten[4]*ten[6] 
+  return (ten[1]*ten[4] + ten[1]*ten[6] + ten[4]*ten[6]
           - ten[2]*ten[2] - ten[3]*ten[3] - ten[5]*ten[5]);
 }
 double _tenAnisoTen_B_d(const double ten[7]) {
-  return (ten[1]*ten[4] + ten[1]*ten[6] + ten[4]*ten[6] 
+  return (ten[1]*ten[4] + ten[1]*ten[6] + ten[4]*ten[6]
           - ten[2]*ten[2] - ten[3]*ten[3] - ten[5]*ten[5]);
 }
 
@@ -555,7 +555,7 @@ float  _tenAnisoEval_Mode_f(const float  _eval[3]) {
   mn = (_eval[0] + _eval[1] + _eval[2])/3;
   ELL_3V_SET(e, _eval[0] - mn, _eval[1] - mn, _eval[2] - mn);
   n = (e[0] + e[1] - 2*e[2])*(2*e[0] - e[1] - e[2])*(e[0] - 2*e[1] + e[2]);
-  d = (e[0]*e[0] + e[1]*e[1] + e[2]*e[2] 
+  d = (e[0]*e[0] + e[1]*e[1] + e[2]*e[2]
        - e[0]*e[1] - e[1]*e[2] - e[0]*e[2]);
   d = AIR_CAST(float, sqrt(AIR_MAX(0, d)));
   d = 2*d*d*d;
@@ -567,7 +567,7 @@ double _tenAnisoEval_Mode_d(const double _eval[3]) {
   mn = (_eval[0] + _eval[1] + _eval[2])/3;
   ELL_3V_SET(e, _eval[0] - mn, _eval[1] - mn, _eval[2] - mn);
   n = (e[0] + e[1] - 2*e[2])*(2*e[0] - e[1] - e[2])*(e[0] - 2*e[1] + e[2]);
-  d = (e[0]*e[0] + e[1]*e[1] + e[2]*e[2] 
+  d = (e[0]*e[0] + e[1]*e[1] + e[2]*e[2]
        - e[0]*e[1] - e[1]*e[2] - e[0]*e[2]);
   d = sqrt(AIR_MAX(0, d));
   d = 2*d*d*d;
@@ -596,7 +596,7 @@ double _tenAnisoTen_Mode_d(const double tt[7]) {
 }
 
 /* NOTE: yes, the AIR_CLAMPs here are needed even though
-** the _Skew_ functions clamp their output 
+** the _Skew_ functions clamp their output
 */
 #define SQRT2 1.41421356237309504880
 float  _tenAnisoEval_Th_f(const float  eval[3]) {
@@ -736,7 +736,7 @@ float  (*_tenAnisoEval_f[TEN_ANISO_MAX+1])(const float  eval[3]) = {
   _tenAnisoEval_eval1_f,
   _tenAnisoEval_eval2_f
 };
-   
+
 double (*_tenAnisoEval_d[TEN_ANISO_MAX+1])(const double eval[3]) = {
   NULL,
   _tenAnisoEval_Conf_d,
@@ -769,7 +769,7 @@ double (*_tenAnisoEval_d[TEN_ANISO_MAX+1])(const double eval[3]) = {
   _tenAnisoEval_eval1_d,
   _tenAnisoEval_eval2_d
 };
-   
+
 float  (*_tenAnisoTen_f[TEN_ANISO_MAX+1])(const float  ten[7]) = {
   NULL,
   _tenAnisoTen_Conf_f,
@@ -802,7 +802,7 @@ float  (*_tenAnisoTen_f[TEN_ANISO_MAX+1])(const float  ten[7]) = {
   _tenAnisoTen_eval1_f,
   _tenAnisoTen_eval2_f
 };
-   
+
 double (*_tenAnisoTen_d[TEN_ANISO_MAX+1])(const double ten[7]) = {
   NULL,
   _tenAnisoTen_Conf_d,
@@ -835,7 +835,7 @@ double (*_tenAnisoTen_d[TEN_ANISO_MAX+1])(const double ten[7]) = {
   _tenAnisoTen_eval1_d,
   _tenAnisoTen_eval2_d
 };
-   
+
 float
 tenAnisoEval_f(const float  eval[3], int aniso) {
 
@@ -872,14 +872,14 @@ tenAnisoTen_d(const double ten[7], int aniso) {
 /*
 ******** tenAnisoCalc_f
 **
-** !!! THIS FUNCTION HAS BEEN MADE OBSOLETE BY THE NEW 
+** !!! THIS FUNCTION HAS BEEN MADE OBSOLETE BY THE NEW
 ** !!! tenAnisoEval_{f,d} AND tenAnisoTen_{f,d} FUNCTIONS
 ** !!! THIS WILL LIKELY BE REMOVED FROM FUTURE RELEASES
 **
 ** Because this function does not subtract out the eigenvalue mean
 ** when computing quantities like Skew and Mode, it has really lousy
 ** accuracy on those measures compared to tenAnisoEval_{f,d}.
-** 
+**
 ** given an array of three SORTED (descending) eigenvalues "e",
 ** calculates the anisotropy coefficients of Westin et al.,
 ** as well as various others.
@@ -887,7 +887,7 @@ tenAnisoTen_d(const double ten[7], int aniso) {
 ** NOTE: with time, so many metrics have ended up here that under
 ** no cases should this be used in any kind of time-critical operations
 **
-** This does NOT use biff.  
+** This does NOT use biff.
 */
 void
 tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
@@ -907,7 +907,7 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
   e1 = AIR_MAX(e[1], 0);
   e2 = AIR_MAX(e[2], 0);
   sum = e0 + e1 + e2;
-  
+
   /* first version of cl, cp, cs */
   cl = sum ? (e0 - e1)/sum : 0.0f;
   c[tenAniso_Cl1] = cl;
@@ -917,7 +917,7 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
   c[tenAniso_Ca1] = ca;
   c[tenAniso_Clpmin1] = AIR_MIN(cl, cp);
   /* extra logic here for equality with expressions above */
-  c[tenAniso_Cs1] = sum ? 1 - ca : 0.0f; 
+  c[tenAniso_Cs1] = sum ? 1 - ca : 0.0f;
   c[tenAniso_Ct1] = ca ? cp/ca : 0;
   /* second version of cl, cp, cs */
   cl = e0 ? (e0 - e1)/e0 : 0.0f;
@@ -934,7 +934,7 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
   mean = sum/3.0f;
   stdv = AIR_CAST(float,
                   sqrt((mean-e0)*(mean-e0) /* okay, not exactly standard dev */
-                       + (mean-e1)*(mean-e1) 
+                       + (mean-e1)*(mean-e1)
                        + (mean-e2)*(mean-e2)));
   ra = mean ? AIR_CAST(float, stdv/(mean*SQRT6)) : 0.0f;
   ra = AIR_CLAMP(0.0f, ra, 1.0f);
@@ -983,7 +983,7 @@ tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res,
   unsigned int x, y;
   float m0[3], m1[3], m2[3], c0, c1, c2, e[3];
   float S = 1/3.0f, L = 1.0f, P = 1/2.0f;  /* these make Westin's original
-                                              (cl,cp,cs) align with the 
+                                              (cl,cp,cs) align with the
                                               barycentric coordinates */
 
   if (airEnumValCheck(tenAniso, aniso)) {
@@ -1071,7 +1071,7 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
       out[I] = 0.0;
       continue;
     }
-    /* no longer used 
+    /* no longer used
     tenEigensolve_f(eval, NULL, tensor);
     if (!(AIR_EXISTS(eval[0]) && AIR_EXISTS(eval[1]) && AIR_EXISTS(eval[2]))) {
       NRRD_COORD_GEN(coord, size, 3, I);
@@ -1195,14 +1195,14 @@ tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, const Nrrd *nwght,
     }
     tdata += nrrdKindSize(nrrdKind3DMaskedSymMatrix);
   }
-  
+
   return 0;
 }
 
 tenEvecRGBParm *
 tenEvecRGBParmNew() {
   tenEvecRGBParm *rgbp;
-  
+
   rgbp = AIR_CAST(tenEvecRGBParm *, calloc(1, sizeof(tenEvecRGBParm)));
   if (rgbp) {
     rgbp->which = 0;
@@ -1221,7 +1221,7 @@ tenEvecRGBParmNew() {
 
 tenEvecRGBParm *
 tenEvecRGBParmNix(tenEvecRGBParm *rgbp) {
-  
+
   if (rgbp) {
     airFree(rgbp);
   }
@@ -1275,7 +1275,7 @@ _tenEvecRGBComp_d(double conf, double aniso, double comp,
 }
 
 void
-tenEvecRGBSingle_f(float RGB[3], float conf, const float eval[3], 
+tenEvecRGBSingle_f(float RGB[3], float conf, const float eval[3],
                    const float evec[3], const tenEvecRGBParm *rgbp) {
   float aniso;
 
@@ -1291,7 +1291,7 @@ tenEvecRGBSingle_f(float RGB[3], float conf, const float eval[3],
 }
 
 void
-tenEvecRGBSingle_d(double RGB[3], double conf, const double eval[3], 
+tenEvecRGBSingle_d(double RGB[3], double conf, const double eval[3],
                    const double evec[3], const tenEvecRGBParm *rgbp) {
   double aniso;
 

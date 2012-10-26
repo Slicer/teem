@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2011, 2010, 2009, University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -69,10 +69,10 @@ char *info = ("tests tenEigensolve_d and new stand-alone function.");
 ** products to line up before summing.
 */
 void
-nullspace1(double ret[3], 
+nullspace1(double ret[3],
            const double r0[3], const double r1[3], const double r2[3]) {
   double crs[3];
-  
+
   /* ret = r0 x r1 */
   VEC_CROSS(ret, r0, r1);
   /* crs = r1 x r2 */
@@ -96,7 +96,7 @@ nullspace1(double ret[3],
 }
 
 /*
-** All vectors are in the same 1D space, we have to find two 
+** All vectors are in the same 1D space, we have to find two
 ** mutually vectors perpendicular to that span
 */
 void
@@ -116,7 +116,7 @@ nullspace2(double reta[3], double retb[3],
   } else {
     VEC_SUB(sum, r2);
   }
-  /* find largest component, to get most stable expression for a 
+  /* find largest component, to get most stable expression for a
      perpendicular vector */
   sqr[0] = sum[0]*sum[0];
   sqr[1] = sum[1]*sum[1];
@@ -165,18 +165,18 @@ nullspace2(double reta[3], double retb[3],
   #endif
   }
 
-** 
+**
 ** HEY: the numerical precision issues here are very subtle, and
 ** merit some more scrutiny.  With evals (1.000001, 1, 1), for example,
 ** whether it comes back as a single/double root, vs three distinct roots,
-** is determines by the comparison between "D" and "epsilon", and the 
+** is determines by the comparison between "D" and "epsilon", and the
 ** setting of epsilon seems pretty arbitrary at this point...
-** 
+**
 */
 int
 evals(double eval[3],
-      const double _M00, const double _M01, const double _M02, 
-      const double _M11, const double _M12, 
+      const double _M00, const double _M01, const double _M02,
+      const double _M11, const double _M12,
       const double _M22) {
 
 #include "teigen-evals-A.c"
@@ -188,8 +188,8 @@ evals(double eval[3],
 
 int
 evals_evecs(double eval[3], double evec[9],
-            const double _M00, const double _M01, const double _M02, 
-            const double _M11, const double _M12, 
+            const double _M00, const double _M01, const double _M02,
+            const double _M11, const double _M12,
             const double _M22) {
   double r0[3], r1[3], r2[3], crs[3], len, dot;
 
@@ -214,8 +214,8 @@ evals_evecs(double eval[3], double evec[9],
   M00 -= mean;
   M11 -= mean;
   M22 -= mean;
-  
-  /* 
+
+  /*
   ** divide out L2 norm of eigenvalues (will multiply back later);
   ** this too seems to help with stability
   */
@@ -234,7 +234,7 @@ evals_evecs(double eval[3], double evec[9],
      "Eigensystems for 3 x 3 Symmetric Matrices (Revisited)" */
   Q = (M01*M01 + M02*M02 + M12*M12 - M00*M11 - M00*M22 - M11*M22)/3.0;
   QQQ = Q*Q*Q;
-  R = (M00*M11*M22 + M02*(2*M01*M12 - M02*M11) 
+  R = (M00*M11*M22 + M02*(2*M01*M12 - M02*M11)
        - M00*M12*M12 - M01*M01*M22)/2.0;
   D = QQQ - R*R;
   if (D > epsilon) {
@@ -269,7 +269,7 @@ evals_evecs(double eval[3], double evec[9],
     roots = ROOT_TRIPLE;
   }
 
-  /* r0, r1, r2 are the vectors we manipulate to 
+  /* r0, r1, r2 are the vectors we manipulate to
      find the nullspaces of M - lambda*I */
   VEC_SET(r0, 0.0, M01, M02);
   VEC_SET(r1, M01, 0.0, M12);
@@ -321,7 +321,7 @@ evals_evecs(double eval[3], double evec[9],
     dot = VEC_DOT(evec+6, evec+0); VEC_SCL_SUB(evec+0, dot, evec+6);
     VEC_NORM(evec+0, len);
   }
-    
+
   /* to be nice, make it right-handed */
   VEC_CROSS(crs, evec+0, evec+3);
   if (0 > VEC_DOT(crs, evec+6)) {
@@ -399,7 +399,7 @@ main(int argc, const char *argv[]) {
   ELL_6V_COPY(tt + 1, _tt);
   tt[0] = 1.0;
   TEN_T_SCALE(tt, ss, tt);
-    
+
   ELL_4V_SET(qq, 1, pp[0], pp[1], pp[2]);
   ELL_4V_NORM(qq, qq, tmp);
   ell_q_to_3m_d(rot, qq);
@@ -407,13 +407,13 @@ main(int argc, const char *argv[]) {
   printf("  %g %g %g\n", rot[0], rot[1], rot[2]);
   printf("  %g %g %g\n", rot[3], rot[4], rot[5]);
   printf("  %g %g %g\n", rot[6], rot[7], rot[8]);
-    
+
   TEN_T2M(mat1, tt);
   ell_3m_mul_d(mat2, rot, mat1);
   ELL_3M_TRANSPOSE_IP(rot, tmp);
   ell_3m_mul_d(mat1, mat2, rot);
   TEN_M2T(tt, mat1);
-    
+
   printf("input matrix = \n %g %g %g\n %g %g\n %g\n",
           tt[1], tt[2], tt[3], tt[4], tt[5], tt[6]);
 

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -117,12 +117,12 @@ _echo_SuperquadX_lvg(echoPos_t grad[3],
     fprintf(stderr, "xxb = %g, yya = %g, zza = %g\n",
             xxb, yya, zza);
     fprintf(stderr, "R: pow(%g + %g = %g, 1-(%g/%g = %g) = %g) = %g*%g = %g\n",
-            yya, zza, yya + zza, 
-            A, B, A/B, 1-(A/B), 
+            yya, zza, yya + zza,
+            A, B, A/B, 1-(A/B),
             pow(yya + zza, 1-(A/B)), xxb,
             pow(yya + zza, 1-(A/B))*xxb);
     fprintf(stderr, "grad[0]: 2/(%g * %g * (1 + pow(%g + %g = %g, %g/%g = %g)/%g = %g)) = %g\n",
-            B, x, yya, zza, yya+zza, A, B, A/B, xxb, 
+            B, x, yya, zza, yya+zza, A, B, A/B, xxb,
             pow(yya + zza, A/B)/xxb, grad[0]);
     fprintf(stderr, "grad[1]: 2*%g/(%g*%g*(%g + %g + %g = %g) = %g) = %g\n",
             yya, B, y, yya, zza, R, yya + zza + R,
@@ -176,9 +176,9 @@ _echo_SuperquadZ_lvg(echoPos_t grad[3],
     fprintf(stderr, "_echo_SuperquadZ_lvg: PANIC\n");
     fprintf(stderr, "x = %g, y = %g, z = %g, A = %g, B = %g\n",
             x, y, z, A, B);
-    fprintf(stderr, "pow(%g*%g = %g, %g) = %g\n", 
+    fprintf(stderr, "pow(%g*%g = %g, %g) = %g\n",
             x, x, x*x, 1/A, xxa);
-    fprintf(stderr, "pow(%g*%g = %g, %g) = %g\n", 
+    fprintf(stderr, "pow(%g*%g = %g, %g) = %g\n",
             y, y, y*y, 1/A, yya);
     fprintf(stderr, "log(pow(%g, %g) = %g + %g) = %g\n",
             xxa + yya, A/B, pow(xxa + yya, A/B), zzb, ret);
@@ -205,7 +205,7 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
            echoPos_t, echoPos_t),
     from[3], grad[3], pos[3];  /* these two used only by macros */
   int iter;
-  
+
   if (!_echoRayIntx_CubeSolid(&Tmin, &Tmax,
                               -1-2*ECHO_EPSILON, 1+2*ECHO_EPSILON,
                               -1-2*ECHO_EPSILON, 1+2*ECHO_EPSILON,
@@ -271,7 +271,7 @@ _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
      and if the derivatives also don't change sign, there's no root.
      Also, due to convexity, if values at start and end are negative,
      then there is no root */
-  if ( (Vmin*Vmax >= 0 && dVmin*dVmax >= 0) 
+  if ( (Vmin*Vmax >= 0 && dVmin*dVmax >= 0)
        || (Vmin <= 0 && Vmax <= 0) ) {
     return AIR_FALSE;
   }

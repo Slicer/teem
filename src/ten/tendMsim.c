@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -60,7 +60,7 @@ tend_msimMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "seed", "seed", airTypeInt, 1, 1, &seed, "42",
              "seed value for RNG which creates noise");
   hestOptAdd(&hopt, "g", "grad list", airTypeOther, 1, 1, &_ngrad, NULL,
-             "gradient list, one row per diffusion-weighted image", 
+             "gradient list, one row per diffusion-weighted image",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "b0", "b0 image", airTypeOther, 1, 1, &nT2, "",
              "reference non-diffusion-weighted (\"B0\") image, which "
@@ -130,16 +130,16 @@ tend_msimMain(int argc, const char **argv, const char *me,
             "model image axis 0\n", me);
     airMopError(mop); return 1;
   }
-  /* we have learned plusB0, but we don't actually need it; 
+  /* we have learned plusB0, but we don't actually need it;
      either: it describes the given model param image
      (which is courteous but not necessary since the logic inside
      tenModeSimulate will see this),
      or: it is trying to say something about including B0 amongst
-     model parameters (which isn't actually meaningful in the 
+     model parameters (which isn't actually meaningful in the
      context of simulated DWIs */
   E = 0;
   if (!E) E |= tenGradientCheck(ngrad, nrrdTypeDouble, 1);
-  if (!E) E |= tenExperSpecGradSingleBValSet(espec, insertB0, bval, 
+  if (!E) E |= tenExperSpecGradSingleBValSet(espec, insertB0, bval,
                                              AIR_CAST(const double *,
                                                       ngrad->data),
                                              ngrad->axis[1].size);

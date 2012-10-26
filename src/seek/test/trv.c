@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -28,7 +28,7 @@ int
 probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "probeParseKind";
   gageKind **kindP;
-  
+
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
@@ -51,7 +51,7 @@ probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
 void *
 probeParseKindDestroy(void *ptr) {
   gageKind *kind;
-  
+
   if (ptr) {
     kind = AIR_CAST(gageKind *, ptr);
   }
@@ -63,7 +63,7 @@ hestCB probeKindHestCB = {
   "kind",
   probeParseKind,
   probeParseKindDestroy
-}; 
+};
 
 int
 main(int argc, const char *argv[]) {
@@ -85,7 +85,7 @@ main(int argc, const char *argv[]) {
   char *itemGradS; /* , *itemEvalS[2], *itemEvecS[2]; */
   int itemGrad; /* , itemEval[2], itemEvec[2]; */
   int E;
-  
+
   me = argv[0];
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
              "input volume to analyze",
@@ -110,7 +110,7 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   itemGrad = airEnumVal(kind->enm, itemGradS);
-  
+
   pld = limnPolyDataNew();
   airMopAdd(mop, pld, (airMopper)limnPolyDataNix, airMopAlways);
   pldSub = limnPolyDataNew();
@@ -200,7 +200,7 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-  
+
   airMopOkay(mop);
   return 0;
 }

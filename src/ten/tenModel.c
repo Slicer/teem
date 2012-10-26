@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -63,7 +63,7 @@ str2model(const char *str) {
 }
 
 int
-tenModelParse(const tenModel **model, int *plusB0, 
+tenModelParse(const tenModel **model, int *plusB0,
               int requirePrefix, const char *_str) {
   static const char me[]="tenModelParse";
   char *str, *modstr, *pre;
@@ -109,13 +109,13 @@ tenModelParse(const tenModel **model, int *plusB0,
     biffAddf(TEN, "%s: didn't recognize \"%s\" as model", me, modstr);
     airMopError(mop); return 1;
   }
-  airMopOkay(mop); 
+  airMopOkay(mop);
   return 0;
 }
 
 int
 tenModelFromAxisLearnPossible(const NrrdAxisInfo *axinfo) {
-  
+
   /* HEY keep in synch with nrrdKind* code below */
   return (nrrdKind3DSymMatrix == axinfo->kind
           || nrrdKind3DMaskedSymMatrix == axinfo->kind
@@ -127,7 +127,7 @@ tenModelFromAxisLearn(const tenModel **modelP,
                       int *plusB0,
                       const NrrdAxisInfo *axinfo) {
   static const char me[]="tenModelFromAxisLearn";
-  
+
   if (!(modelP && plusB0 && axinfo)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
@@ -145,7 +145,7 @@ tenModelFromAxisLearn(const tenModel **modelP,
       biffAddf(TEN, "%s: couldn't parse label \"%s\"", me, axinfo->label);
       *modelP = NULL;
       return 1;
-    }    
+    }
   } else {
     biffAddf(TEN, "%s: don't have kind or label info to learn model", me);
     *modelP = NULL;
@@ -156,8 +156,8 @@ tenModelFromAxisLearn(const tenModel **modelP,
 }
 
 /*
-** If nB0 is given, then those B0 image values will be used. 
-** In this case, either the parm vector can be short by one (seems to be 
+** If nB0 is given, then those B0 image values will be used.
+** In this case, either the parm vector can be short by one (seems to be
 ** missing B0), or the parm vector includes B0, but these will be ignored
 ** and over-written with the B0 values from nB0.
 **
@@ -183,7 +183,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
   unsigned int gpsze, /* given parm size */
     ii;
   int useB0Img, needPad, axmap[NRRD_DIM_MAX];
-  
+
   if (!(ndwi && espec && model /* _nB0 can be NULL */ && _nparm)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
@@ -198,7 +198,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
     /* got one less than needed parm #, see if we got B0 */
     if (!_nB0) {
       biffAddf(TEN, "%s: got %u parms, need %u (for %s), "
-               "but didn't get B0 vol", 
+               "but didn't get B0 vol",
                me, gpsze, model->parmNum, model->name);
       return 1;
     }
@@ -223,7 +223,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
     ntmp = nrrdNew();
     airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(ntmp, _nparm, nrrdTypeDouble)) {
-      biffMovef(TEN, NRRD, "%s: couldn't convert parm to %s", me, 
+      biffMovef(TEN, NRRD, "%s: couldn't convert parm to %s", me,
                 airEnumStr(nrrdType, nrrdTypeDouble));
       airMopError(mop); return 1;
     }
@@ -258,7 +258,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
       ntmp = nrrdNew();
       airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
       if (nrrdConvert(ntmp, _nB0, nrrdTypeDouble)) {
-        biffMovef(TEN, NRRD, "%s: couldn't convert B0 to %s", me, 
+        biffMovef(TEN, NRRD, "%s: couldn't convert B0 to %s", me,
                   airEnumStr(nrrdType, nrrdTypeDouble));
         airMopError(mop); return 1;
       }
@@ -274,10 +274,10 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
     }
     nparm = ntmp;
   }
-  
+
   /* allocate output (and set axmap) */
   for (ii=0; ii<nparm->dim; ii++) {
-    szOut[ii] = (!ii 
+    szOut[ii] = (!ii
                  ? espec->imgNum
                  : nparm->axis[ii].size);
     axmap[ii] = (!ii
@@ -316,7 +316,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
   }
 
   if (nrrdAxisInfoCopy(ndwi, _nparm, axmap, NRRD_AXIS_INFO_SIZE_BIT)
-      || nrrdBasicInfoCopy(ndwi, _nparm, 
+      || nrrdBasicInfoCopy(ndwi, _nparm,
                            NRRD_BASIC_INFO_DATA_BIT
                            | NRRD_BASIC_INFO_TYPE_BIT
                            | NRRD_BASIC_INFO_BLOCKSIZE_BIT
@@ -330,7 +330,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
     airMopError(mop); return 1;
   }
   ndwi->axis[0].kind = nrrdKindList;
-  
+
   airMopOkay(mop);
   return 0;
 }
@@ -338,12 +338,12 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
 /*
 ** _tenModelSqeFitSingle
 **
-** callable function (as opposed to tenModel method) for doing 
+** callable function (as opposed to tenModel method) for doing
 ** sqe fitting.  Returns the sqe at the converged fit location
 ** Requires PARM_NUM length buffers testParm and grad
 */
 double
-_tenModelSqeFitSingle(const tenModel *model, 
+_tenModelSqeFitSingle(const tenModel *model,
                       double *testParm, double *grad,
                       double *parm, double *convFrac, unsigned int *itersTaken,
                       const tenExperSpec *espec,
@@ -422,7 +422,7 @@ tenModelSqeFit(Nrrd *nparm,
                const tenModel *model,
                const tenExperSpec *espec, const Nrrd *ndwi,
                int knownB0, int saveB0, int typeOut,
-               unsigned int minIter, unsigned int maxIter, 
+               unsigned int minIter, unsigned int maxIter,
                unsigned int starts, double convEps,
                airRandMTState *_rng, int verbose) {
   static const char me[]="tenModelSqeFit";
@@ -439,7 +439,7 @@ tenModelSqeFit(Nrrd *nparm,
   char *parm;
   airRandMTState *rng;
   Nrrd *nsqe, *nconv, *niter;
-  
+
   /* nsqeP, nconvP, niterP can be NULL */
   if (!( nparm && model && espec && ndwi )) {
     biffAddf(TEN, "%s: got NULL pointer", me);
@@ -458,11 +458,11 @@ tenModelSqeFit(Nrrd *nparm,
   }
   dwiNum = ndwi->axis[0].size;
   if (espec->imgNum != dwiNum) {
-    biffAddf(TEN, "%s: espec expects %u images but dwi has %u on axis 0", 
+    biffAddf(TEN, "%s: espec expects %u images but dwi has %u on axis 0",
              me, espec->imgNum, AIR_CAST(unsigned int, dwiNum));
     return 1;
   }
-  
+
   /* allocate output (and set axmap) */
   dparm = model->alloc();
   dparmBest = model->alloc();
@@ -475,7 +475,7 @@ tenModelSqeFit(Nrrd *nparm,
   airMopAdd(mop, dparmBest, airFree, airMopAlways);
   saveParmNum = saveB0 ? model->parmNum : model->parmNum-1;
   for (ii=0; ii<ndwi->dim; ii++) {
-    szOut[ii] = (!ii 
+    szOut[ii] = (!ii
                  ? saveParmNum
                  : ndwi->axis[ii].size);
     axmap[ii] = (!ii
@@ -574,7 +574,7 @@ tenModelSqeFit(Nrrd *nparm,
       }
       model->rand(dparm, rng, knownB0);
       sqe = model->sqeFit(dparm, &cvf, &itak,
-                          espec, dwibuff, ddwi, 
+                          espec, dwibuff, ddwi,
                           dparm, knownB0, minIter, maxIter,
                           convEps, fitVerbose);
       if (sqe <= sqeBest) {
@@ -684,7 +684,7 @@ tenModelSqeFit(Nrrd *nparm,
 }
 
 int
-tenModelNllFit(Nrrd *nparm, Nrrd **nnllP, 
+tenModelNllFit(Nrrd *nparm, Nrrd **nnllP,
                const tenModel *model,
                const tenExperSpec *espec, const Nrrd *ndwi,
                int rician, double sigma, int knownB0) {
@@ -702,7 +702,7 @@ tenModelNllFit(Nrrd *nparm, Nrrd **nnllP,
 }
 
 /*
-** copy the B0 info if we have it 
+** copy the B0 info if we have it
 ** use the same type on the way out.
 */
 int
@@ -753,7 +753,7 @@ tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
   parmNumDst = withB0 ? modelDst->parmNum : modelDst->parmNum-1;
   parmNumSrc = nparmSrc->axis[0].size;
   for (ii=0; ii<nparmSrc->dim; ii++) {
-    szOut[ii] = (!ii 
+    szOut[ii] = (!ii
                  ? parmNumDst
                  : nparmSrc->axis[ii].size);
     axmap[ii] = (!ii
@@ -764,7 +764,7 @@ tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop); return 1;
   }
-  
+
   NN = nrrdElementNumber(nparmSrc)/nparmSrc->axis[0].size;
   tsize = nrrdTypeSize[nparmSrc->type];
   parmSrc = AIR_CAST(char *, nparmSrc->data);

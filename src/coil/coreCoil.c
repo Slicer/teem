@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -62,7 +62,7 @@
   }
 
 /*
-** 
+**
 ** iv3 is: diam x diam x diam x valLen
 **
 ** this should be parameterized on both radius and valLen
@@ -74,7 +74,7 @@ _coilIv3Fill_R_L(coil_t **iv3, coil_t *here, unsigned int radius, int valLen,
     xni, yni, zni, /* neighborhood (iv3) indices */
     xvi, yvi, zvi; /* volume indices */
   coil_t *tmp;
-  
+
   diam = 1 + 2*radius;
   _COIL_IV3_FILL(radius, diam, valLen);
   return;
@@ -153,7 +153,7 @@ _coilProcess(coilTask *task, int doFilter) {
   void (*filter)(coil_t *delta, int xi, int yi, int zi,
                  coil_t **iv3, double spacing[3],
                  double parm[COIL_PARMS_NUM]);
-  
+
   sizeX = task->cctx->size[0];
   sizeY = task->cctx->size[1];
   sizeZ = task->cctx->size[2];
@@ -175,7 +175,7 @@ _coilProcess(coilTask *task, int doFilter) {
         for (xi=0; xi<sizeX; xi++) {
           task->iv3Fill(task->iv3, here + 0*valLen, radius, valLen,
                         xi, yi, thisZ, sizeX, sizeY, sizeZ);
-          filter(here + 1*valLen, xi, yi, thisZ, task->iv3, 
+          filter(here + 1*valLen, xi, yi, thisZ, task->iv3,
                  task->cctx->spacing, task->cctx->parm);
           here += 2*valLen;
         }
@@ -306,7 +306,7 @@ coilStart(coilContext *cctx) {
     biffAddf(COIL, "%s: couldn't allocate array of tasks", me);
     return 1;
   }
-  
+
   /* we create tasks for ALL threads, including me, thread 0 */
   cctx->task[0] = NULL;
   for (tidx=0; tidx<cctx->numThreads; tidx++) {
@@ -316,7 +316,7 @@ coilStart(coilContext *cctx) {
       return 1;
     }
   }
-  
+
   cctx->finished = AIR_FALSE;
   if (cctx->numThreads > 1) {
     cctx->nextSliceMutex = airThreadMutexNew();
@@ -339,7 +339,7 @@ coilStart(coilContext *cctx) {
     }
     val += 2*valLen;
   }
-  
+
   /* start threads 1 and up running; they'll all hit filterBarrier  */
   if (cctx->numThreads > 1) {
     for (tidx=1; tidx<cctx->numThreads; tidx++) {
@@ -355,7 +355,7 @@ coilStart(coilContext *cctx) {
   cctx->nextSlice = cctx->size[2];
   cctx->todoFilter = AIR_TRUE;
   cctx->todoUpdate = AIR_FALSE;
-  
+
   return 0;
 }
 
@@ -376,19 +376,19 @@ coilIterate(coilContext *cctx, int numIterations) {
     biffAddf(COIL, "%s: got NULL pointer", me);
     return 1;
   }
-  
+
   time0 = airTime();
   for (iter=0; iter<numIterations; iter++) {
     cctx->iter = iter;
     if (cctx->verbose) {
-      fprintf(stderr, "%s: starting iter %d (of %d)\n", me, iter, 
+      fprintf(stderr, "%s: starting iter %d (of %d)\n", me, iter,
               numIterations);
     }
     cctx->finished = AIR_FALSE;
     if (cctx->numThreads > 1) {
       airThreadBarrierWait(cctx->filterBarrier);
     }
-    
+
     /* first: filter */
     if (cctx->verbose > 1) {
       fprintf(stderr, "%s: filtering ... \n", me);

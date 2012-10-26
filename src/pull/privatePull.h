@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -43,7 +43,7 @@ extern "C" {
    distance to an existing point is less than this */
 #define _PULL_BINNING_MAYBE_ADD_THRESH 0.1
 
-/* only try adding a point if the normalized neighbor offset sum is 
+/* only try adding a point if the normalized neighbor offset sum is
    greater than this (making this too small only wastes time, by descending
    and testing a point that can't help reduce energy */
 #define _PULL_NEIGH_OFFSET_SUM_THRESH 0.2
@@ -63,12 +63,12 @@ extern "C" {
    repulsive along scale */
 #define _PULL_TARGET_DIM_S_PROBE 0.05
 
-/* tentative new points aren't allowed to move further than this (in 
+/* tentative new points aren't allowed to move further than this (in
    rs-normalized space) from the original old point */
 #define _PULL_NEWPNT_STRAY_DIST 1.3
 
 /* fraction of bboxMax[3]-bboxMin[3] to use as step along scale
-   for discrete differencing needed to find the gradient (for 
+   for discrete differencing needed to find the gradient (for
    moving along scale) and 2nd derivative (for learning gamma)
    of strength
 */
@@ -131,7 +131,7 @@ extern double _pullPrayCorner[2][2][3];
 extern size_t _pullPrayRes[2];
 extern double _pullDistLimit(pullTask *task, pullPoint *point);
 extern double _pullEnergyFromPoints(pullTask *task, pullBin *bin,
-                                    pullPoint *point, 
+                                    pullPoint *point,
                                     /* output */
                                     double egradSum[4]);
 extern double _pullPointEnergyTotal(pullTask *task, pullBin *bin,
@@ -148,7 +148,7 @@ extern double _pullEnergyInterParticle(pullContext *pctx,
 extern int _pullConstraintSatisfy(pullTask *task, pullPoint *point,
                                   double travelMax,
                                   int *constrFailP);
-extern void _pullConstraintTangent(pullTask *task, pullPoint *point, 
+extern void _pullConstraintTangent(pullTask *task, pullPoint *point,
                                    double proj[9]);
 extern int _pullConstraintDim(const pullContext *pctx);
 

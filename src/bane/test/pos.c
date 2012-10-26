@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -49,13 +49,13 @@ main(int argc, char *argv[]) {
 
   if (1 != sscanf(sigStr, "%g", &sigma) ||
       1 != sscanf(gthStr, "%g", &gthresh)) {
-    fprintf(stderr, "%s: couldn't parse %s and %s as floats\n", me, 
+    fprintf(stderr, "%s: couldn't parse %s and %s as floats\n", me,
             sigStr, gthStr);
     usage();
   }
 
   if (nrrdLoad(info=nrrdNew(), iStr, NULL)) {
-    fprintf(stderr, "%s: trouble reading \"%s\" :\n%s\n", me, 
+    fprintf(stderr, "%s: trouble reading \"%s\" :\n%s\n", me,
             iStr, biffGet(NRRD));
     exit(1);
   }

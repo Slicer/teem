@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -90,10 +90,10 @@ csimDo(double tm[7], double tcov[21], double rm[3], double rv[3],
       TEN_T_SUB(tdiff, _tenOrig, tbuff);
       fprintf(stderr, "!%s: %g\n"
               "         (%g) %g,%g,%g  %g,%g  %g\n"
-              "         (%g) %g,%g,%g  %g,%g  %g\n", 
+              "         (%g) %g,%g,%g  %g,%g  %g\n",
               me, TEN_T_NORM(tdiff),
-              _tenOrig[0], _tenOrig[1], _tenOrig[2], _tenOrig[3], _tenOrig[4], 
-              _tenOrig[5], _tenOrig[6], 
+              _tenOrig[0], _tenOrig[1], _tenOrig[2], _tenOrig[3], _tenOrig[4],
+              _tenOrig[5], _tenOrig[6],
               tbuff[0], tbuff[1], tbuff[2], tbuff[3], tbuff[4],
               tbuff[5], tbuff[6]);
     }
@@ -178,17 +178,17 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "rr", NULL, airTypeOther, 0, 0, &randrot, NULL,
              "randomize gradient set orientation");
   hestOptAdd(&hopt, "g", "grad list", airTypeOther, 1, 1, &ngrad, "",
-             "gradient list, one row per diffusion-weighted image", 
+             "gradient list, one row per diffusion-weighted image",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &bval, "1000",
              "b value for simulated scan");
   hestOptAdd(&hopt, "sigma", "sigma", airTypeFloat, 1, 1, &sigma, "0.0",
              "Rician noise parameter");
-  hestOptAdd(&hopt, "ot", "filename", airTypeString, 1, 1, &outTenS, 
+  hestOptAdd(&hopt, "ot", "filename", airTypeString, 1, 1, &outTenS,
              "tout.nrrd", "file to write output tensor nrrd to");
-  hestOptAdd(&hopt, "oc", "filename", airTypeString, 1, 1, &outCovarS, 
+  hestOptAdd(&hopt, "oc", "filename", airTypeString, 1, 1, &outCovarS,
              "cout.nrrd", "file to write output covariance nrrd to");
-  hestOptAdd(&hopt, "or", "filename", airTypeString, 1, 1, &outRmvS, 
+  hestOptAdd(&hopt, "or", "filename", airTypeString, 1, 1, &outRmvS,
              "rout.nrrd", "file to write output R_i means, variances to");
   hestParseOrDie(hopt, argc-1, argv+1, NULL,
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
@@ -198,13 +198,13 @@ main(int argc, const char *argv[]) {
   if (tenGradientCheck(ngrad, nrrdTypeDefault, 7)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: problem with gradient list:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
   if (tenTensorCheck(_ninTen, nrrdTypeDefault, AIR_TRUE, AIR_TRUE)) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: didn't like input:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
   sizeX = _ninTen->axis[1].size;
@@ -218,7 +218,7 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "%s: given B0 (%u-D) volume not 3-D %sx%sx%s",
             me, _ninB0->dim, airSprintSize_t(stmp[0], sizeX),
             airSprintSize_t(stmp[1], sizeY), airSprintSize_t(stmp[2], sizeZ));
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
 
@@ -240,11 +240,11 @@ main(int argc, const char *argv[]) {
   if (nrrdConvert(ninTen, _ninTen, nrrdTypeDouble)
       || nrrdSlice(nmask, ninTen, 0, 0)
       || nrrdConvert(ninB0, _ninB0, nrrdTypeDouble)
-      || nrrdMaybeAlloc_va(noutTen, nrrdTypeDouble, 4, 
+      || nrrdMaybeAlloc_va(noutTen, nrrdTypeDouble, 4,
                            AIR_CAST(size_t, 7), sizeX, sizeY, sizeZ)
-      || nrrdMaybeAlloc_va(noutCovar, nrrdTypeDouble, 4, 
+      || nrrdMaybeAlloc_va(noutCovar, nrrdTypeDouble, 4,
                            AIR_CAST(size_t, 21), sizeX, sizeY, sizeZ)
-      || nrrdMaybeAlloc_va(noutRmv, nrrdTypeDouble, 4, 
+      || nrrdMaybeAlloc_va(noutRmv, nrrdTypeDouble, 4,
                            AIR_CAST(size_t, 6), sizeX, sizeY, sizeZ)
       || nrrdMaybeAlloc_va(ntbuff, nrrdTypeDouble, 2,
                            AIR_CAST(size_t, 7), NN)) {
@@ -276,7 +276,7 @@ main(int argc, const char *argv[]) {
   if (1) {
     unsigned int II;
     unsigned int nsamp;
-    double *inTen, *outTen, *outCovar, *outRmv, 
+    double *inTen, *outTen, *outCovar, *outRmv,
       *dwibuff, (*lup)(const void *, size_t);
     char doneStr[AIR_STRLEN_SMALL];
 
@@ -330,7 +330,7 @@ main(int argc, const char *argv[]) {
       || nrrdSave(outRmvS, noutRmv, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
 

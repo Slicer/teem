@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -40,7 +40,7 @@ _tenQball(const double b, const int gradcount, const double svals[],
      implemented from recent papers. */
   int i,j;
   double d, dist, weight, min, max;
-  
+
   AIR_UNUSED(b);
   min = max = svals[1] / svals[0];
   for( i = 0; i < gradcount; i++ ) {
@@ -50,7 +50,7 @@ _tenQball(const double b, const int gradcount, const double svals[],
     else if( d < min )
       min = d;
   }
-  
+
   for( i = 0; i < gradcount; i++ ) {
     qvals[i] = 0;
     for( j = 0; j < gradcount; j++ ) {
@@ -75,18 +75,18 @@ _tenSegsamp2(const int gradcount, const double qvals[],
 
   AIR_UNUSED(grads);
   _tenInitcent2(gradcount, qvals, qpoints, centroids);
-  
+
   for( i = 0; i < MAX_KMEANS_ITERATIONS && changed; i++ ) {
     _tenCalcdists(segcount, centroids, gradcount, qpoints, dists);
     changed = _tenCalccent2(gradcount, qpoints, dists, centroids, seg);
-    
+
     /*
       printf( "Seg[%d]\t= { ",i );
       for( j = 0; j < gradcount; j++ )
       printf( "%d ", seg[j] );
       printf( changed ? "}\n" : "} Convergence!\n" );
     */
-    
+
   }
 }
 
@@ -96,19 +96,19 @@ _tenInitcent2(const int gradcount, const double qvals[],
               const double qpoints[], double centroids[6]) {
   int i, maxidx;
   double max, dist;
-  
+
   /* Find largest peak in Q-ball */
   maxidx = 0;
   for( i = 0; i < gradcount; i++ )
     if( qvals[maxidx] < qvals[i] )
       maxidx = i;
-  
+
   ELL_3V_COPY( centroids, qpoints +3*maxidx );
   /*
     printf("init: max=%d cent0=[%f %f %f]\n", maxidx,
     centroids[0], centroids[1], centroids[2]);
   */
-  
+
   /* Find peak/axis from Q-ball furthest away from first peak */
   max = 0;
   for( i = 0; i < gradcount; i++ ) {
@@ -118,10 +118,10 @@ _tenInitcent2(const int gradcount, const double qvals[],
       max = dist;
     }
   }
-  
+
   ELL_3V_COPY( centroids+3, qpoints +3*maxidx );
   /*
-    printf( "\ninit: max=%d cent1=[%f %f %f]\n", maxidx, 
+    printf( "\ninit: max=%d cent1=[%f %f %f]\n", maxidx,
     centroids[3], centroids[4], centroids[5]);
   */
 }
@@ -138,7 +138,7 @@ _tenCalccent2(const int gradcount, const double qpoints[],
      afterwards */
   int i,changed=AIR_FALSE;
   double sum0[9],sum1[9],mat[9], eval[3],evec[9];
-  
+
   ELL_3M_ZERO_SET( sum0 );
   ELL_3M_ZERO_SET( sum1 );
   for( i = 0; i < gradcount; i++ ) {
@@ -154,24 +154,24 @@ _tenCalccent2(const int gradcount, const double qpoints[],
       seg[i] = 1;
     }
   }
-  
+
   ell_3m_eigensolve_d( eval, evec, sum0, 0 );
   ELL_3V_COPY( centroid, evec + 3*ELL_MAX3_IDX( eval[0], eval[1], eval[2] ) );
   /* ELL_3V_SCALE( centroid, ELL_3V_LEN( centroid ), centroid ); */
-  
-  
+
+
   ell_3m_eigensolve_d( eval, evec, sum1, 0 );
   ELL_3V_COPY( centroid +3, evec + 3*ELL_MAX3_IDX( eval[0], eval[1], eval[2] ) );
   /* ELL_3V_SCALE( centroid +3, ELL_3V_LEN( centroid ), centroid +3); Normalize */
-  
+
   return changed;
 #endif
-  
+
   int i, sign, seg0count=0, seg1count=0, changed=AIR_FALSE;
   double oldcentroid[6], diff[3], sum[3];
-  
+
   memcpy( oldcentroid, centroid, 6 * sizeof( double ));
-  
+
   for( i = 0; i < gradcount; i++ ) {
     if( dists[ 0*gradcount +i] < dists[1*gradcount +i] ) {
       /* Try to resolve sign so that centroid do not end up as all 0 */
@@ -185,9 +185,9 @@ _tenCalccent2(const int gradcount, const double qpoints[],
       sum[2] = oldcentroid[2] + qpoints[3*i +2];
       sign = (diff[0]*diff[0] + diff[1]*diff[1] + diff[2]*diff[2]) <
         (sum[0]*sum[0] + sum[1]*sum[1] + sum[2]*sum[2]) ? -1 : +1;
-      
+
       changed = changed || (seg[i] != 0);
-      
+
       seg[i] = 0;
       centroid[0] += sign * qpoints[3*i +0];
       centroid[1] += sign * qpoints[3*i +1];
@@ -202,9 +202,9 @@ _tenCalccent2(const int gradcount, const double qpoints[],
       sum[2] = oldcentroid[3+2] + qpoints[3*i +2];
       sign = (diff[0]*diff[0] + diff[1]*diff[1] + diff[2]*diff[2]) <
         (sum[0]*sum[0] + sum[1]*sum[1] + sum[2]*sum[2]) ? -1 : +1;
-      
+
       changed = changed || (seg[i] != 1);
-      
+
       seg[i] = 1;
       centroid[3+0] += sign * qpoints[3*i +0];
       centroid[3+1] += sign * qpoints[3*i +1];
@@ -218,15 +218,15 @@ _tenCalccent2(const int gradcount, const double qpoints[],
   centroid[3+0] /= seg1count;
   centroid[3+1] /= seg1count;
   centroid[3+2] /= seg1count;
-  
+
   /* printf("cent = %f %f %f %f %f %f\n", centroid[0],centroid[1],centroid[2],centroid[3],centroid[4],centroid[5] ); */
-  
+
   /*
     Should give error if any segment contains less than 6 elements,
     i.e. if( seg0count < 6 || seg1count < 6 ), since that would
     imply that a tensor cannot be computed for that segment.
   */
-  
+
   return changed;
 }
 
@@ -252,7 +252,7 @@ _tenCalcdists(const int centcount, const double centroid[],
   for( j = 0; j < centcount; j++ )
     for( i = 0; i < gradcount; i++ )
       dists[j*gradcount +i] = _tenPldist(&qpoints[3*i], &centroid[3*j]);
-  
+
   /*
     printf("dists = ");
     for( i = 0; i < 2*gradcount; i++ )
@@ -265,16 +265,16 @@ _tenCalcdists(const int centcount, const double centroid[],
    through the origin */
 double
 _tenPldist( const double point[], const double line[] ) {
-  
+
   double cross[3];
   double negpoint[3];
-  
+
   negpoint[0] = -point[0];
   negpoint[1] = -point[1];
   negpoint[2] = -point[2];
-  
+
   ELL_3V_CROSS( cross, line, negpoint );
-  
+
   return ELL_3V_LEN( cross ) / ELL_3V_LEN( line );
 }
 

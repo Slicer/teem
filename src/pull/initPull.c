@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -65,9 +65,9 @@ _pullInitParmCheck(pullInitParm *iparm) {
       biffMovef(PULL, NRRD, "%s: got a broken npos", me);
       return 1;
     }
-    if (!( 2 == iparm->npos->dim 
+    if (!( 2 == iparm->npos->dim
            && 4 == iparm->npos->axis[0].size
-           && (nrrdTypeDouble == iparm->npos->type 
+           && (nrrdTypeDouble == iparm->npos->type
                || nrrdTypeFloat == iparm->npos->type) )) {
       biffAddf(PULL, "%s: npos not a 2-D 4-by-N array of %s or %s"
                "(got %u-D %u-by-X of %s)", me,
@@ -109,7 +109,7 @@ _pullInitParmCheck(pullInitParm *iparm) {
              iparm->method);
     return 1;
   }
-  
+
   return 0;
 }
 
@@ -157,7 +157,7 @@ pullInitPointPerVoxelSet(pullContext *pctx, int pointPerVoxel,
                          unsigned int alongScaleNum,
                          double jitter) {
   static const char me[]="pullInitPointPerVoxelSet";
-  
+
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
@@ -170,7 +170,7 @@ pullInitPointPerVoxelSet(pullContext *pctx, int pointPerVoxel,
     biffAddf(PULL, "%s: got non-existent jitter %g", me, jitter);
     return 1;
   }
-  
+
   pctx->initParm.method = pullInitMethodPointPerVoxel;
   pctx->initParm.pointPerVoxel = pointPerVoxel;
   pctx->initParm.samplesAlongScaleNum = alongScaleNum;
@@ -188,7 +188,7 @@ pullInitGivenPosSet(pullContext *pctx, const Nrrd *npos) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
   }
-  
+
   pctx->initParm.method = pullInitMethodGivenPos;
   pctx->initParm.npos = npos;
   return 0;
@@ -215,7 +215,7 @@ pullInitUnequalShapesAllowSet(pullContext *pctx, int allow) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
   }
-  
+
   pctx->initParm.unequalShapesAllow = allow;
   return 0;
 }

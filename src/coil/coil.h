@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 #define COIL_HAS_BEEN_INCLUDED
 
 /* NOTE: there are various types that should be unsigned instead of
-** signed; it may be a priority to fix this at a later date 
+** signed; it may be a priority to fix this at a later date
 */
 
 #include <teem/air.h>
@@ -52,7 +52,7 @@ extern "C" {
 
 /*
 ******** coil_t
-** 
+**
 ** this is the very crude means by which you can control the type
 ** of values that coil works with: "float" or "double".  It is an
 ** unfortunate but greatly simplifying restriction that this type
@@ -143,7 +143,7 @@ typedef struct {
                                        1 for plain scalars (baseDim=0),
                                        or something else (baseDim=1) */
                                     /* all the available methods */
-  void (*filter[COIL_METHOD_TYPE_MAX+1])(coil_t *delta, 
+  void (*filter[COIL_METHOD_TYPE_MAX+1])(coil_t *delta,
                                          int xi, int yi, int zi,
                                          coil_t **iv3, double spacing[3],
                                          double parm[COIL_PARMS_NUM]);
@@ -187,7 +187,7 @@ typedef struct coilContext_t {
                                       doing filtering (use 1 for 3x3x3 size) */
     numThreads;                    /* number of threads to enlist */
   int verbose;                     /* blah blah blah */
-  double parm[COIL_PARMS_NUM];     /* all the parameters used to control the 
+  double parm[COIL_PARMS_NUM];     /* all the parameters used to control the
                                       action of the filtering.  The timestep is
                                       probably the first value. */
   /* ---------- internal */
@@ -197,7 +197,7 @@ typedef struct coilContext_t {
                                       to be processed, either in filter or
                                       in update stage.  Stage is done when
                                       nextSlice == size[2] */
-  double spacing[3];               /* sample spacings we'll use- we perhaps 
+  double spacing[3];               /* sample spacings we'll use- we perhaps
                                       should be using a gageShape, but this is
                                       actually all we really need . . . */
   Nrrd *nvol;                      /* an interleaved volume of (1st) the last

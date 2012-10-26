@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -46,7 +46,7 @@ _tenEpiRegSave(const char *fname, Nrrd *nsingle, Nrrd **nmulti,
     airMopError(mop); return 1;
   }
   fprintf(stderr, "%s: saved %s to \"%s\"\n", me, desc, fname);
-  airMopOkay(mop); 
+  airMopOkay(mop);
   return 0;
 }
 
@@ -95,7 +95,7 @@ _tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, unsigned int dwiLen, Nrrd *ngrad,
     return 1;
   }
   if (!( AIR_IN_CL(-1, reference, (int)dwiLen-1) )) {
-    biffAddf(TEN, "%s: reference index %d not in valid range [-1,%d]", 
+    biffAddf(TEN, "%s: reference index %d not in valid range [-1,%d]",
              me, reference, dwiLen-1);
     return 1;
   }
@@ -179,7 +179,7 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, unsigned int dwiLen,
     if (verb) {
       fprintf(stderr, "%2u ", (unsigned int)ni); fflush(stderr);
     }
-    savemin[0] = ndwi[ni]->axis[0].min; savemax[0] = ndwi[ni]->axis[0].max; 
+    savemin[0] = ndwi[ni]->axis[0].min; savemax[0] = ndwi[ni]->axis[0].max;
     savemin[1] = ndwi[ni]->axis[1].min; savemax[1] = ndwi[ni]->axis[1].max;
     ndwi[ni]->axis[0].min = 0; ndwi[ni]->axis[0].max = sx-1;
     ndwi[ni]->axis[1].min = 0; ndwi[ni]->axis[1].max = sy-1;
@@ -188,7 +188,7 @@ _tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, unsigned int dwiLen,
                 me, (unsigned int)ni);
       airMopError(mop); return 1;
     }
-    ndwi[ni]->axis[0].min = savemin[0]; ndwi[ni]->axis[0].max = savemax[0]; 
+    ndwi[ni]->axis[0].min = savemin[0]; ndwi[ni]->axis[0].max = savemax[0];
     ndwi[ni]->axis[1].min = savemin[1]; ndwi[ni]->axis[1].max = savemax[1];
   }
   if (verb) {
@@ -257,7 +257,7 @@ _tenEpiRegThresholdFind(double *DWthrP, Nrrd **nin, int ninLen,
     biffMovef(TEN, NRRD, "%s: problem finding DWI threshold", me);
     airMopError(mop); return 1;
   }
-  
+
   airMopOkay(mop);
   return 0;
 }
@@ -278,7 +278,7 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen,
     }
     fprintf(stderr, "%s: using %g for DWI threshold\n", me, DWthr);
   }
-  
+
   mop = airMopNew();
   if (verb) {
     fprintf(stderr, "%s:\n            ", me); fflush(stderr);
@@ -306,8 +306,8 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen,
   if (verb) {
     fprintf(stderr, "done\n");
   }
-  
-  airMopOkay(mop); 
+
+  airMopOkay(mop);
   return 0;
 }
 
@@ -357,7 +357,7 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
     big = -1;
     if (nrrdCCFind(ncc, &nval, nthr[ni], nrrdTypeDefault, conny)
         || nrrdCCSize(nsize, ncc)
-        || !(big = _tenEpiRegBB(nval, nsize)) 
+        || !(big = _tenEpiRegBB(nval, nsize))
         || nrrdCCMerge(ncc, ncc, nval, -1, big-1, 0, conny)
         || nrrdCCRevalue(nthr[ni], ncc, nval)) {
       if (big) {
@@ -398,7 +398,7 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
   return 0;
 }
 
-#define MEAN_X 0 
+#define MEAN_X 0
 #define MEAN_Y 1
 #define M_02   2
 #define M_11   3
@@ -510,7 +510,7 @@ _tenEpiRegMoments(Nrrd **nmom, Nrrd **nthresh, unsigned int ninLen,
 ** uses moment information to compute all pair-wise transforms, which are
 ** stored in the 3 x ninLen x ninLen x sizeZ output.  If xfr = npxfr->data,
 ** xfr[0 + 3*(zi + sz*(A + ninLen*B))] is shear,
-** xfr[1 +              "            ] is scale, and 
+** xfr[1 +              "            ] is scale, and
 ** xfr[2 +              "            ] is translate in the transform
 ** that maps slice zi from volume A to volume B.
 */
@@ -519,7 +519,7 @@ _tenEpiRegPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
   static const char me[]="_tenEpiRegPairXforms";
   double *xfr, *A, *B, hh, ss, tt;
   int ai, bi, zi, sz;
-  
+
   sz = nmom[0]->axis[1].size;
   if (nrrdMaybeAlloc_va(npxfr, nrrdTypeDouble, 4,
                         AIR_CAST(size_t, 5),
@@ -594,7 +594,7 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
     airMopError(mop); return 1;
   }
   nrrdAxisInfoSet_va(nhst, nrrdAxisInfoLabel,
-                     (1 == order 
+                     (1 == order
                       ? "Hx,Hy,Hz,Sx,Sy,Sz,Tx,Ty,Tz"
                       : "HST parms"), "z");
 
@@ -815,7 +815,7 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
     tmp = two[1 + 2*zi];
     two[1 + 2*zi] = AIR_AFFINE(0, zi, sz-1, 0, 1) <= goodFrac ? 1.0f : 0.0f;
     two[0 + 2*zi] = tmp;
-  }  
+  }
   /* sort again, now into ascending slice order */
   qsort(two, zi, 2*sizeof(float), nrrdValCompare[nrrdTypeFloat]);
   if (verb) {
@@ -828,7 +828,7 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
     fprintf(stderr, " for fitting\n");
   }
 
-  /* perform fitting for each column in hst (regardless of 
+  /* perform fitting for each column in hst (regardless of
      whether we're using a 1st or 2nd order model */
   hst = (double*)(nhst->data);
   sh = nhst->axis[0].size;
@@ -864,7 +864,7 @@ _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP,
   int sz, ninLen;
 
   int order;
-  
+
   order = 1;
 
   /* these could also have been passed to us, but we can also discover them */
@@ -916,7 +916,7 @@ _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP,
 **   but nout output will not be transposed
 */
 int
-_tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx, 
+_tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
                     const NrrdKernel *kern, double *kparm,
                     double hh, double ss, double tt, double cx, double cy) {
   float *wght, *in, pp, pf, tmp;
@@ -924,7 +924,7 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
   unsigned int supp;
   size_t sx, sy, xi, yi, pb, pi;
   double (*ins)(void *, size_t, double), (*clamp)(double);
-  
+
   sy = nin->axis[0].size;
   sx = nin->axis[1].size;
   supp = AIR_CAST(unsigned int, kern->support(kparm));
@@ -1041,7 +1041,7 @@ int
 tenEpiRegister3D(Nrrd **nout, Nrrd **nin, unsigned int ninLen, Nrrd *_ngrad,
                  int reference,
                  double bwX, double bwY, double fitFrac,
-                 double DWthr, int doCC, 
+                 double DWthr, int doCC,
                  const NrrdKernel *kern, double *kparm,
                  int progress, int verbose) {
   static const char me[]="tenEpiRegister3D";
@@ -1083,7 +1083,7 @@ tenEpiRegister3D(Nrrd **nout, Nrrd **nin, unsigned int ninLen, Nrrd *_ngrad,
     biffMovef(TEN, NRRD, "%s: trouble converting gradients to doubles", me);
     airMopError(mop); return 1;
   }
-  
+
   /* ------ blur */
   if (_tenEpiRegBlur(nbuffA, nin, ninLen, bwX, bwY, verbose)) {
     biffAddf(TEN, "%s: trouble %s", me, (bwX || bwY) ? "blurring" : "copying");
@@ -1095,7 +1095,7 @@ tenEpiRegister3D(Nrrd **nout, Nrrd **nin, unsigned int ninLen, Nrrd *_ngrad,
   }
 
   /* ------ threshold */
-  if (_tenEpiRegThreshold(nbuffB, nbuffA, ninLen, 
+  if (_tenEpiRegThreshold(nbuffB, nbuffA, ninLen,
                           DWthr, verbose, progress, 1.5)) {
     biffAddf(TEN, "%s: trouble thresholding", me);
     airMopError(mop); return 1;
@@ -1167,7 +1167,7 @@ tenEpiRegister3D(Nrrd **nout, Nrrd **nin, unsigned int ninLen, Nrrd *_ngrad,
     biffAddf(TEN, "%s: trouble performing final registration", me);
     airMopError(mop); return 1;
   }
-  
+
   airMopOkay(mop);
   nrrdStateAlwaysSetContent = hack1;
   nrrdStateDisableContent = hack2;
@@ -1178,7 +1178,7 @@ int
 tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
                  int reference,
                  double bwX, double bwY, double fitFrac,
-                 double DWthr, int doCC, 
+                 double DWthr, int doCC,
                  const NrrdKernel *kern, double *kparm,
                  int progress, int verbose) {
   static const char me[]="tenEpiRegister4D";
@@ -1216,9 +1216,9 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
   }
 
   ninLen = _nin->axis[dwiAx].size;
-  /* outdated 
+  /* outdated
   if (!( AIR_IN_CL(6, ninLen, 120) )) {
-    biffAddf(TEN, "%s: %u (size of axis %u, and # DWIs) is unreasonable", 
+    biffAddf(TEN, "%s: %u (size of axis %u, and # DWIs) is unreasonable",
             me, ninLen, dwiAx);
     return 1;
   }
@@ -1240,7 +1240,7 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
     biffMovef(TEN, NRRD, "%s: trouble converting gradients to doubles", me);
     airMopError(mop); return 1;
   }
-  
+
   nin = (Nrrd **)calloc(ninLen, sizeof(Nrrd*));
   ndwi = (Nrrd **)calloc(ninLen, sizeof(Nrrd*));
   nout = (Nrrd **)calloc(ninLen, sizeof(Nrrd*));
@@ -1339,7 +1339,7 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
     biffMovef(TEN, NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
-  
+
   airMopOkay(mop);
   return 0;
 }

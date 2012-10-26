@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -29,7 +29,7 @@ _dyeHSVtoRGB(float *R, float *G, float *B,
             float  H, float  S, float  V) {
   float min, fract, vsf, mid1, mid2;
   int sextant;
-  
+
   if (0 == S) {
     *R = *G = *B = V;
     return;
@@ -54,7 +54,7 @@ _dyeHSVtoRGB(float *R, float *G, float *B,
   }
 }
 
-#if 0  
+#if 0
 
 void
 makeSceneAntialias(limnCamera *cam, echoRTParm *parm,
@@ -105,7 +105,7 @@ makeSceneBVH(limnCamera *cam, echoRTParm *parm, echoObject **sceneP) {
   float r, g, b;
   echoObject *scene;
   double time0, time1;
-  
+
   *sceneP = scene = echoObjectNew(echoList);
 
   ELL_3V_SET(cam->from, 9, 6, 0);
@@ -150,7 +150,7 @@ makeSceneGlass(limnCamera *cam, echoRTParm *parm, echoObject **sceneP) {
   echoObject *cube, *rect;
   echoObject *scene;
   Nrrd *ntext;
-  
+
   *sceneP = scene = echoObjectNew(echoList);
 
   ELL_3V_SET(cam->from, 2, -3, 8);
@@ -182,7 +182,7 @@ makeSceneGlass(limnCamera *cam, echoRTParm *parm, echoObject **sceneP) {
   echoObjectAdd(scene, cube);
 
   nrrdLoad(ntext=nrrdNew(), "psq.nrrd", NULL);
-  
+
   rect = echoObjectNew(echoRectangle);
   printf("rect = %p\n", rect);
   echoRectangleSet(rect,
@@ -207,7 +207,7 @@ makeSceneGlass2(limnCamera *cam, echoRTParm *parm, echoObject **sceneP) {
   echoObject *scene;
   Nrrd *ntext;
   echoPos_t matx[16];
-  
+
   *sceneP = scene = echoObjectNew(echoList);
 
   ELL_3V_SET(cam->from, 0, 0, 100);
@@ -243,7 +243,7 @@ makeSceneGlass2(limnCamera *cam, echoRTParm *parm, echoObject **sceneP) {
   echoObjectAdd(scene, cube);
 
   nrrdLoad(ntext=nrrdNew(), "check.nrrd", NULL);
-  
+
   rect = echoObjectNew(echoRectangle);
   printf("rect = %p\n", rect);
   echoRectangleSet(rect,
@@ -254,7 +254,7 @@ makeSceneGlass2(limnCamera *cam, echoRTParm *parm, echoObject **sceneP) {
                      0.0, 1.0, 0.0, 40);
   echoMatterTextureSet(rect, ntext);
   echoObjectAdd(scene, rect);
-  
+
   /*
   light = echoLightNew(echoLightDirectional);
   echoLightDirectionalSet(light, 1, 1, 1, 0, 0, 1);
@@ -268,7 +268,7 @@ void
 makeSceneInstance(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   echoObject *trim, *rect, *inst;
   echoPos_t matx[16], A[16], B[16];
-  
+
   ELL_3V_SET(cam->from, 9*1.3, 9*1.3, 11*1.3);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 0, 1);
@@ -287,7 +287,7 @@ makeSceneInstance(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   parm->seedRand = AIR_FALSE;
   parm->maxRecDepth = 10;
   parm->shadow = 1.0;
-  
+
   ELL_4M_IDENTITY_SET(matx);
   ELL_4M_SCALE_SET(B, 2.5, 1.5, 0.8);
   ELL_4M_MUL(A, B, matx); ELL_4M_COPY(matx, A);
@@ -353,7 +353,7 @@ makeSceneInstance(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   ELL_4M_MUL(matx, B, A);
   echoInstanceSet(inst, matx, rect);
   echoObjectAdd(scene, inst);
-  
+
 
   /*
   light = echoLightNew(echoLightDirectional);
@@ -440,7 +440,7 @@ makeSceneGlassTest(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
 void
 makeSceneGlassMetal(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   echoObject *sphere, *rect;
-  
+
   ELL_3V_SET(cam->from, 4, 0, 5);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   -1, 0, 0);
@@ -511,7 +511,7 @@ void
 makeSceneTexture(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   echoObject /* *trim, */ *rect, /* *inst, */ *sphere;
   Nrrd *ntext;
-  
+
   ELL_3V_SET(cam->from, 9, 9, 11);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 0, 1);
@@ -574,7 +574,7 @@ void
 makeSceneDOF(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   echoObject *rect;
   Nrrd *ntext;
-  
+
   ELL_3V_SET(cam->from, 6, 6, 20);
   ELL_3V_SET(cam->at,   0, 0, 0);
   ELL_3V_SET(cam->up,   0, 1, 0);
@@ -676,7 +676,7 @@ makeSceneShadow(limnCamera *cam, echoRTParm *parm, echoScene *scene) {
   echoColorSet(tri, 1, 1, 0, 1.0);
   echoMatterPhongSet(scene, tri, 0.1, 0.6, 0.3, 40);
   echoObjectAdd(scene, tri);
-  
+
   rect = echoObjectNew(scene, echoTypeRectangle);
   echoRectangleSet(rect,
                    1.7, 1.7, -2,
@@ -882,7 +882,7 @@ main(int argc, char **argv) {
   /* makeSceneSimple(cam, parm, scene);  */
   /* makeSceneRainLights(cam, parm, scene); */
   /* makeSceneAntialias(cam, parm, scene); */
-  makeSceneShadow(cam, parm, scene); 
+  makeSceneShadow(cam, parm, scene);
   /* makeSceneDOF(cam, parm, scene); */
 
   if ((env = getenv("NT"))) {

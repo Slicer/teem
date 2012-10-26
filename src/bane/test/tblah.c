@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -64,7 +64,7 @@ incTest(char *me, int num, baneRange *range) {
     rmax = AIR_MAX(rmax, val[j]);
   }
   fprintf(stderr, "incTest: real min,max = %g,%g\n", rmin, rmax);
-  
+
   for (i=1; i<baneIncLast; i++) {
     /* NOTE: THIS IS BROKEN !!! */
     inc = baneIncNew(i, NULL, incParm);

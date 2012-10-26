@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -80,7 +80,7 @@ void *
 _pullWorker(void *_task) {
   static const char me[]="_pushWorker";
   pullTask *task;
-  
+
   task = (pullTask *)_task;
 
   while (1) {
@@ -96,7 +96,7 @@ _pullWorker(void *_task) {
       }
       break;
     }
-    /* else there's work to do . . . */    
+    /* else there's work to do . . . */
     if (task->pctx->verbose > 1) {
       fprintf(stderr, "%s(%u): starting to process\n", me, task->threadIdx);
     }
@@ -129,7 +129,7 @@ pullStart(pullContext *pctx) {
      to be set up (_pullVolumeSetup) by before its copied (_pullTaskSetup) */
   if (_pullContextCheck(pctx)
       || _pullVolumeSetup(pctx)
-      || _pullInfoSetup(pctx) 
+      || _pullInfoSetup(pctx)
       || _pullTaskSetup(pctx)
       || _pullBinSetup(pctx)) {
     biffAddf(PULL, "%s: trouble starting to set up context", me);
@@ -141,7 +141,7 @@ pullStart(pullContext *pctx) {
       return 1;
     }
   }
-  
+
   if (pctx->threadNum > 1) {
     pctx->binMutex = airThreadMutexNew();
     pctx->iterBarrierA = airThreadBarrierNew(pctx->threadNum);
@@ -353,7 +353,7 @@ pullRun(pullContext *pctx) {
     enrNew=AIR_NAN, enrDecrease=AIR_NAN, enrDecreaseAvg=AIR_NAN;
   int converged;
   unsigned firstIter;
-  
+
   if (pctx->verbose) {
     fprintf(stderr, "%s: hello\n", me);
   }
@@ -374,7 +374,7 @@ pullRun(pullContext *pctx) {
   }
   enrDecrease = enrDecreaseAvg = 0;
   converged = AIR_FALSE;
-  while ((pctx->iterParm.min && pctx->iter <= pctx->iterParm.min) 
+  while ((pctx->iterParm.min && pctx->iter <= pctx->iterParm.min)
          ||
          ((!pctx->iterParm.max || pctx->iter < pctx->iterParm.max)
           && !converged)) {
@@ -404,7 +404,7 @@ pullRun(pullContext *pctx) {
     if (firstIter + 1 == pctx->iter) {
       /* we need some way of artificially boosting enrDecreaseAvg when
          we're just starting, so that we thwart the convergence test,
-         which we do because we don't have the history of iterations 
+         which we do because we don't have the history of iterations
          that enrDecreaseAvg is supposed to describe.  Using some scaling
          of enrDecrease is one possible hack. */
       enrDecreaseAvg = 3*enrDecrease;
@@ -419,10 +419,10 @@ pullRun(pullContext *pctx) {
               _pullStepInterAverage(pctx), _pullStepConstrAverage(pctx));
     }
     if (pctx->iterParm.popCntlPeriod) {
-      if ((pctx->iterParm.popCntlPeriod - 1) 
+      if ((pctx->iterParm.popCntlPeriod - 1)
           == (pctx->iter % pctx->iterParm.popCntlPeriod)
           && enrDecreaseAvg < pctx->sysParm.energyDecreasePopCntlMin
-          && (pctx->sysParm.alpha != 0 
+          && (pctx->sysParm.alpha != 0
               || !pctx->flag.noPopCntlWithZeroAlpha)) {
         if (pctx->verbose) {
           fprintf(stderr, "%s: ***** enr decrease %g < %g: "
@@ -462,12 +462,12 @@ pullRun(pullContext *pctx) {
       fprintf(stderr, "%s: converged %d = (%d || (%d && %d)) "
               "&& (0 < %g < %g)=%d\n",
               me, converged, !pctx->iterParm.popCntlPeriod,
-              !pctx->addNum, !pctx->nixNum, 
+              !pctx->addNum, !pctx->nixNum,
               enrDecreaseAvg, pctx->sysParm.energyDecreaseMin,
               AIR_IN_OP(0, enrDecreaseAvg, pctx->sysParm.energyDecreaseMin));
     }
     if (converged && pctx->verbose) {
-      printf("%s: enrDecreaseAvg %g < %g: converged!!\n", me, 
+      printf("%s: enrDecreaseAvg %g < %g: converged!!\n", me,
              enrDecreaseAvg, pctx->sysParm.energyDecreaseMin);
     }
     _pullPointStepEnergyScale(pctx, pctx->sysParm.opporStepScale);
@@ -498,7 +498,7 @@ pullRun(pullContext *pctx) {
     airRandMTState *rng;
     rng = pctx->task[0]->rng;
     nout = nrrdNew();
-    nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 3, 
+    nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 3,
                       AIR_CAST(size_t, 3),
                       AIR_CAST(size_t, szimg),
                       AIR_CAST(size_t, szimg));
@@ -521,7 +521,7 @@ pullRun(pullContext *pctx) {
         ELL_3V_SCALE_ADD2(pb->pos, 1.0, pa->pos, r, rdir);
         pb->pos[3] = pa->pos[3] + s;
         /* now points are in desired test positions */
-        enr = _pullEnergyInterParticle(pctx, pa, pb, 
+        enr = _pullEnergyInterParticle(pctx, pa, pb,
                                        AIR_ABS(r), AIR_ABS(s), egrad);
         ELL_3V_SET(out + 3*(ri + szimg*si),
                    enr, ELL_3V_DOT(egrad, rdir), egrad[3]);

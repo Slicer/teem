@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -52,7 +52,7 @@ echoColorSet(echoObject *obj,
 void
 echoMatterPhongSet(echoScene *scene, echoObject *obj,
                    echoCol_t ka, echoCol_t kd, echoCol_t ks, echoCol_t sp) {
-  
+
   if (scene && obj && echoObjectHasMatter[obj->type]) {
     obj->matter = echoMatterPhong;
     obj->mat[echoMatterPhongKa] = ka;
@@ -61,7 +61,7 @@ echoMatterPhongSet(echoScene *scene, echoObject *obj,
     obj->mat[echoMatterPhongSp] = sp;
   }
 }
-                   
+
 void
 echoMatterGlassSet(echoScene *scene, echoObject *obj,
                    echoCol_t indexr, echoCol_t ka,
@@ -78,7 +78,7 @@ echoMatterGlassSet(echoScene *scene, echoObject *obj,
 
 void
 echoMatterMetalSet(echoScene *scene, echoObject *obj,
-                   echoCol_t R0, echoCol_t ka, 
+                   echoCol_t R0, echoCol_t ka,
                    echoCol_t kd, echoCol_t fuzzy) {
 
   if (scene && obj && echoObjectHasMatter[obj->type]) {
@@ -93,7 +93,7 @@ echoMatterMetalSet(echoScene *scene, echoObject *obj,
 void
 echoMatterLightSet(echoScene *scene, echoObject *obj,
                    echoCol_t power, echoCol_t unit) {
-  
+
   if (scene && obj && echoObjectHasMatter[obj->type]) {
     obj->matter = echoMatterLight;
     obj->mat[echoMatterLightPower] = power;
@@ -105,9 +105,9 @@ echoMatterLightSet(echoScene *scene, echoObject *obj,
 
 void
 echoMatterTextureSet(echoScene *scene, echoObject *obj, Nrrd *ntext) {
-  
+
   if (scene && obj && ntext && echoObjectHasMatter[obj->type] &&
-      3 == ntext->dim && 
+      3 == ntext->dim &&
       nrrdTypeUChar == ntext->type &&
       4 == ntext->axis[0].size) {
     obj->ntext = ntext;

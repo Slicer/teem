@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -79,8 +79,8 @@ tend_expandMain(int argc, const char **argv, const char *me,
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (mfRed 
-      && 3 == nin->spaceDim 
+  if (mfRed
+      && 3 == nin->spaceDim
       && AIR_EXISTS(nin->measurementFrame[0][0])) {
     if (tenMeasurementFrameReduce(nin, nin)) {
       airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
@@ -96,7 +96,7 @@ tend_expandMain(int argc, const char **argv, const char *me,
     airMopError(mop); return 1;
   }
   if (orientRedWithOrigin || orientRed) {
-    if (nrrdOrientationReduce(nout, nout, 
+    if (nrrdOrientationReduce(nout, nout,
                               orientRedWithOrigin
                               ? AIR_TRUE
                               : AIR_FALSE)) {

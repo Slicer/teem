@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -127,7 +127,7 @@ _tenInterpType = {
   TEN_INTERP_TYPE_MAX,
   _tenInterpTypeStr, NULL,
   NULL,
-  _tenInterpTypeStrEqv, _tenInterpTypeValEqv, 
+  _tenInterpTypeStrEqv, _tenInterpTypeValEqv,
   AIR_FALSE
 };
 const airEnum *const
@@ -141,7 +141,7 @@ _tenGageStr[] = {
 
   "tensor",
   "confidence",
-  
+
   "trace",
   "N",
   "B",
@@ -932,7 +932,7 @@ _tenGageStrEqv[] = {
   "facdir1", "FA curv dir1",
   "facdir2", "FA curv dir2",
   "fafc", "FA flowline curv",
-  "rhess", "R hessian", 
+  "rhess", "R hessian",
   "mhess", "mode hessian",
   "mhesseval", "mode hessian evals",
   "mhesseval0", "mode hessian eval 0",
@@ -1200,7 +1200,7 @@ _tenGageValEqv[] = {
   tenGageTensorQuatGeoLoxK, tenGageTensorQuatGeoLoxK,
   tenGageTensorQuatGeoLoxR, tenGageTensorQuatGeoLoxR,
   tenGageTensorRThetaPhiLinear,
-  
+
   tenGageCl1GradVec,
   tenGageCl1GradMag,
   tenGageCl1Normal,
@@ -1239,7 +1239,7 @@ _tenGageValEqv[] = {
   tenGageCa1HessianEvec0, tenGageCa1HessianEvec0,
   tenGageCa1HessianEvec1, tenGageCa1HessianEvec1,
   tenGageCa1HessianEvec2, tenGageCa1HessianEvec2,
-  
+
   tenGageFiberCurving, tenGageFiberCurving, tenGageFiberCurving, tenGageFiberCurving,
   tenGageFiberDispersion, tenGageFiberDispersion, tenGageFiberDispersion, tenGageFiberDispersion,
 
@@ -1400,7 +1400,7 @@ _tenFiberStopValEqv[] = {
   tenFiberStopConfidence, tenFiberStopConfidence, tenFiberStopConfidence,
   tenFiberStopRadius,
   tenFiberStopBounds,
-  tenFiberStopFraction, tenFiberStopFraction, tenFiberStopFraction, 
+  tenFiberStopFraction, tenFiberStopFraction, tenFiberStopFraction,
   tenFiberStopStub,
   tenFiberStopMinLength, tenFiberStopMinLength,
   tenFiberStopMinNumSteps, tenFiberStopMinNumSteps,
@@ -1427,7 +1427,7 @@ _tenFiberStop = {
   TEN_FIBER_STOP_MAX,
   _tenFiberStopStr, NULL,
   _tenFiberStopDesc,
-  _tenFiberStopStrEqv, _tenFiberStopValEqv, 
+  _tenFiberStopStrEqv, _tenFiberStopValEqv,
   AIR_FALSE
 };
 const airEnum *const
@@ -1472,7 +1472,7 @@ _tenFiberIntg = {
   TEN_FIBER_INTG_MAX,
   _tenFiberIntgStr, NULL,
   _tenFiberIntgDesc,
-  _tenFiberIntgStrEqv, _tenFiberIntgValEqv, 
+  _tenFiberIntgStrEqv, _tenFiberIntgValEqv,
   AIR_FALSE
 };
 const airEnum *const
@@ -1534,7 +1534,7 @@ _tenGlyphType = {
   TEN_GLYPH_TYPE_MAX,
   _tenGlyphTypeStr, NULL,
   _tenGlyphTypeDesc,
-  _tenGlyphTypeStrEqv, _tenGlyphTypeValEqv, 
+  _tenGlyphTypeStrEqv, _tenGlyphTypeValEqv,
   AIR_FALSE
 };
 const airEnum *const

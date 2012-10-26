@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -82,7 +82,7 @@ _coilKind7TensorFilterTesting(coil_t *delta,
 **  |    [0][21]-[27]  [1][21]  [2][21]
 **  Z      [0][28]-[34]  [1][28]  [2][28]
 **           [0][35]-[41]  [1][35]  [2][35]
-**  
+**
 **       [0][42]-[48]  [1][42]  [2][42]
 **         [0][49]-[55]  [1][49]  [2][49]
 **           [0][56]-[62]  [1][56]  [2][56]
@@ -134,7 +134,7 @@ _coilKind7TensorFilterHomogeneous(coil_t *delta,
                                   coil_t **iv3, double spacing[3],
                                   double parm[COIL_PARMS_NUM]) {
   coil_t rspsqX, rspsqY, rspsqZ, parm0;
-  
+
   AIR_UNUSED(xi);
   AIR_UNUSED(yi);
   AIR_UNUSED(zi);
@@ -248,7 +248,7 @@ _coilKind7TensorFilterFinish(coil_t *delta,
              TEN_T_DOT(phi3, tengrad + 2*7));
   LL += ELL_3V_DOT(grad,grad);
   KK = AIR_CAST(coil_t, parm[3]*parm[3]);
-  cnd *= _COIL_CONDUCT(LL, KK); 
+  cnd *= _COIL_CONDUCT(LL, KK);
   delta[0]= 0.0f;
   delta[1]= AIR_CAST(coil_t, parm[0]*cnd*LAPL(iv3, 1, rspsqX, rspsqY, rspsqZ));
   delta[2]= AIR_CAST(coil_t, parm[0]*cnd*LAPL(iv3, 2, rspsqX, rspsqY, rspsqZ));
@@ -260,7 +260,7 @@ _coilKind7TensorFilterFinish(coil_t *delta,
 
 void
 _coilKind7TensorUpdate(coil_t *val, coil_t *delta) {
-  
+
   val[0] += delta[0]; /* WARNING: this could change confidence! */
   val[1] += delta[1];
   val[2] += delta[2];

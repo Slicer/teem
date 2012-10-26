@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -115,7 +115,7 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   }
   /*
   fprintf(stderr, "!%s: seed=(%g,%g,%g,%g) -> %s (%g,%g,%g,%g)\n", me,
-          seedPos[0], seedPos[1], seedPos[2], seedPos[3], 
+          seedPos[0], seedPos[1], seedPos[2], seedPos[3],
           constrFail ? "!NO!" : "(yes)",
           point->pos[0] - seedPos[0], point->pos[1] - seedPos[1],
           point->pos[2] - seedPos[2], point->pos[3] - seedPos[3]);
@@ -212,17 +212,17 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
         /* see if we're moving too fast, by comparing with previous point */
         double pos0[3], pos1[3], diff[3], vv;
         unsigned int ii;
-        
+
         ii = trceArr[dirIdx]->len-2;
         ELL_3V_COPY(pos0, trce[dirIdx] + 4*(ii+0));
         ELL_3V_COPY(pos1, trce[dirIdx] + 4*(ii+1));
         ELL_3V_SUB(diff, pos1, pos0);
         vv = ELL_3V_LEN(diff)/scaleDelta;
         /*
-        fprintf(stderr, "%s(%u): velo %g %s velocityMax %g => %s\n", me, 
-                point->idtag, vv, 
+        fprintf(stderr, "%s(%u): velo %g %s velocityMax %g => %s\n", me,
+                point->idtag, vv,
                 vv > velocityMax ? ">" : "<=",
-                velocityMax, 
+                velocityMax,
                 vv > velocityMax ? "FAIL" : "(ok)");
         */
         if (vv > velocityMax) {
@@ -241,7 +241,7 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
       step++;
     }
   }
-  
+
   /* transfer trace halves to pts->nvert */
   vertNum = trceArr[0]->len + trceArr[1]->len;
   if (0 == vertNum || 1 == vertNum || 2 == vertNum) {
@@ -250,7 +250,7 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
     pctx->idtagNext -= 1; /* HACK */
     return 0;
   }
-  
+
   if (nrrdMaybeAlloc_va(pts->nvert, nrrdTypeDouble, 2,
                         AIR_CAST(size_t, 4),
                         AIR_CAST(size_t, vertNum))
@@ -336,7 +336,7 @@ pullTraceMultiNew(void) {
   /* static const char me[]="pullTraceMultiNew"; */
   pullTraceMulti *ret;
   blahblahUnion bbu;
-  
+
   ret = AIR_CALLOC(1, pullTraceMulti);
   if (ret) {
     ret->trace = NULL;
@@ -392,7 +392,7 @@ pullTraceMultiFilterConcaveDown(Nrrd *nfilt, const pullTraceMulti *mtrc,
   int *filt;
 
   if (!(nfilt && mtrc)) {
-    biffAddf(PULL, "%s: got NULL pointer (%p %p)", me, 
+    biffAddf(PULL, "%s: got NULL pointer (%p %p)", me,
              AIR_VOIDP(nfilt), AIR_CVOIDP(mtrc));
     return 1;
   }
@@ -468,14 +468,14 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
     }
     if (!(1 == nfilt->dim && nrrdTypeInt == nfilt->type)) {
       biffAddf(PULL, "%s: didn't get 1-D array of %s (got %u-D of %s)", me,
-               airEnumStr(nrrdType, nrrdTypeInt), nfilt->dim, 
+               airEnumStr(nrrdType, nrrdTypeInt), nfilt->dim,
                airEnumStr(nrrdType, nfilt->type));
       return 1;
     }
   }
   if (!(2 == nplot->dim && nrrdTypeDouble == nplot->type)) {
     biffAddf(PULL, "%s: didn't get 2-D array of %s (got %u-D of %s)", me,
-             airEnumStr(nrrdType, nrrdTypeDouble), nplot->dim, 
+             airEnumStr(nrrdType, nrrdTypeDouble), nplot->dim,
              airEnumStr(nrrdType, nplot->type));
     return 1;
   }
@@ -498,7 +498,7 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
   ssRange[1] = nplot->axis[0].max;
   vRange[0] = nplot->axis[1].min;
   vRange[1] = nplot->axis[1].max;
-  if (!( AIR_EXISTS(ssRange[0]) && AIR_EXISTS(ssRange[1]) && 
+  if (!( AIR_EXISTS(ssRange[0]) && AIR_EXISTS(ssRange[1]) &&
          AIR_EXISTS(vRange[0]) && AIR_EXISTS(vRange[1]) )) {
     biffAddf(PULL, "%s: need both axis 0 (%g,%g) and 1 (%g,%g) min,max", me,
              ssRange[0], ssRange[1], vRange[0], vRange[1]);
@@ -545,7 +545,7 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
         continue;
       }
       sidx = airIndex(ssRange[0], pp[3], ssRange[1], sizeS);
-      /* HEY weird that Clamp is needed, but it is, as this atan() 
+      /* HEY weird that Clamp is needed, but it is, as this atan()
          does sometime return a negative value (?) */
       vidx = airIndexClamp(0.0, atan(velo[pntIdx]/velHalf), AIR_PI/2, sizeV);
       plot[sidx + sizeS*vidx] += 1;
@@ -610,7 +610,7 @@ tracewrite(FILE *file, const pullTrace *trc, unsigned int ti) {
     fprintf(file, "NULL"); \
   } \
   fprintf(file, "\n")
-  fprintf(file, "nrrds: vert strn velo = %d %d %d\n", 
+  fprintf(file, "nrrds: vert strn velo = %d %d %d\n",
           trc->nvert && trc->nvert->data,
           trc->nstrn && trc->nstrn->data,
           trc->nvelo && trc->nvelo->data);
@@ -647,7 +647,7 @@ pullTraceMultiWrite(FILE *file, const pullTraceMulti *mtrc) {
   return 0;
 }
 
-static int 
+static int
 traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
   static const char me[]="traceread";
   char line[AIR_STRLEN_MED], name[AIR_STRLEN_MED];
@@ -700,14 +700,14 @@ traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
     fgetc(file); \
   } else {                                      \
     airOneLine(file, line, AIR_STRLEN_MED); \
-  } 
+  }
   hackhack = nrrdStateVerboseIO;  /* should be fixed in Teem v2 */
   nrrdStateVerboseIO = 0;
   READ(vert);
   READ(strn);
   READ(velo);
   nrrdStateVerboseIO = hackhack;
-  
+
   sprintf(name, "seed idx");
   lineLen = airOneLine(file, line, AIR_STRLEN_MED);
   if (!lineLen) {
@@ -739,7 +739,7 @@ pullTraceMultiRead(pullTraceMulti *mtrc, FILE *file) {
   char line[AIR_STRLEN_MED], name[AIR_STRLEN_MED];
   unsigned int lineLen, ti, tnum;
   pullTrace *trc;
-  
+
   if (!(mtrc && file)) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
@@ -752,11 +752,11 @@ pullTraceMultiRead(pullTraceMulti *mtrc, FILE *file) {
     return 1;
   }
   if (strcmp(line, PULL_MTRC_MAGIC)) {
-    biffAddf(PULL, "%s: %s line \"%s\" not expected \"%s\"", 
+    biffAddf(PULL, "%s: %s line \"%s\" not expected \"%s\"",
              me, name, line, PULL_MTRC_MAGIC);
     return 1;
   }
-  
+
   sprintf(name, "# of traces");
   lineLen = airOneLine(file, line, AIR_STRLEN_MED);
   if (!lineLen) {
@@ -782,6 +782,6 @@ pullTraceMultiRead(pullTraceMulti *mtrc, FILE *file) {
       trc = pullTraceNix(trc);
     }
   }
-  
+
   return 0;
 }

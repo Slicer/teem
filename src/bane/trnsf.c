@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -167,7 +167,7 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   Nrrd *projH2=NULL, *projH1=NULL, *projN=NULL, *projG1=NULL;
   float *data1D;
   int i, len;
-  
+
   if (!(info1D && info2D)) {
     biffAddf(BANE, BIFF_NULL, me); return 1;
   }
@@ -175,7 +175,7 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
     biffAddf(BANE, "%s: didn't get valid 2D info", me);
     return 1;
   }
-  
+
   len = info2D->axis[1].size;
   if (nrrdProject(projH2=nrrdNew(), info2D, 0,
                   nrrdMeasureProduct, nrrdTypeDefault)
@@ -188,8 +188,8 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
     biffAddf(BANE, "%s: trouble creating needed projections", me);
     return 1;
   }
-  
-  if (nrrdMaybeAlloc_va(info1D, nrrdTypeFloat, 2, 
+
+  if (nrrdMaybeAlloc_va(info1D, nrrdTypeFloat, 2,
                         AIR_CAST(size_t, 2),
                         AIR_CAST(size_t, len))) {
     biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me);
@@ -201,7 +201,7 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
 
   for (i=0; i<len; i++) {
     data1D[0 + 2*i] = nrrdFLookup[projG1->type](projG1->data, 1 + 2*i);
-    data1D[1 + 2*i] = (nrrdFLookup[projH1->type](projH1->data, i) / 
+    data1D[1 + 2*i] = (nrrdFLookup[projH1->type](projH1->data, i) /
                        nrrdFLookup[projN->type](projN->data, 1 + 2*i));
   }
   nrrdNuke(projH2);
@@ -216,7 +216,7 @@ _baneSigmaCalc1D(float *sP, Nrrd *info1D) {
   static const char me[]="_baneSigmaCalc1D";
   int i, len;
   float maxg, maxh, minh, *data;
-  
+
   len = info1D->axis[1].size;
   data = (float *)info1D->data;
   maxg = -1;
@@ -249,7 +249,7 @@ baneSigmaCalc(float *sP, Nrrd *_info) {
   static const char me[]="baneSigmaCalc";
   Nrrd *info;
 
-  if (!(sP && _info)) { 
+  if (!(sP && _info)) {
     biffAddf(BANE, BIFF_NULL, me); return 1;
   }
   if (baneInfoCheck(_info, 0)) {
@@ -293,7 +293,7 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
     len = info->axis[1].size;
     if (nrrdMaybeAlloc_va(pos,  nrrdTypeFloat, 1,
                           AIR_CAST(size_t, len))) {
-      biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me); 
+      biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me);
       return 1;
     }
     pos->axis[0].min = info->axis[1].min;
@@ -327,7 +327,7 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
     pos->axis[1].max = info->axis[2].max;
     posData = (float *)pos->data;
     for (gi=0; gi<sg; gi++) {
-      g = AIR_CAST(float, AIR_AFFINE(0, gi, sg-1, 
+      g = AIR_CAST(float, AIR_AFFINE(0, gi, sg-1,
                                      info->axis[2].min, info->axis[2].max));
       for (vi=0; vi<sv; vi++) {
         h = nrrdFLookup[info->type](info->data, 0 + 2*(vi + sv*gi));
@@ -347,7 +347,7 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
 }
 
 void
-_baneOpacCalcA(unsigned int lutLen, float *opacLut, 
+_baneOpacCalcA(unsigned int lutLen, float *opacLut,
                unsigned int numCpts, float *xo,
                float *pos) {
   unsigned int i, j;
@@ -370,7 +370,7 @@ _baneOpacCalcA(unsigned int lutLen, float *opacLut,
     for (j=1; j<numCpts; j++)
       if (p < xo[0 + 2*j])
         break;
-    opacLut[i] = AIR_CAST(float, AIR_AFFINE(xo[0 + 2*(j-1)], p, xo[0 + 2*j], 
+    opacLut[i] = AIR_CAST(float, AIR_AFFINE(xo[0 + 2*(j-1)], p, xo[0 + 2*j],
                                             xo[1 + 2*(j-1)], xo[1 + 2*j]));
   }
   /*
@@ -382,7 +382,7 @@ _baneOpacCalcA(unsigned int lutLen, float *opacLut,
 }
 
 void
-_baneOpacCalcB(unsigned int lutLen, float *opacLut, 
+_baneOpacCalcB(unsigned int lutLen, float *opacLut,
                unsigned int numCpts, float *x, float *o,
                float *pos) {
   /* static const char me[]="_baneOpacCalcB"; */
@@ -391,8 +391,8 @@ _baneOpacCalcB(unsigned int lutLen, float *opacLut,
 
   /*
   printf("%s(%d, %lu, %d, %lu, %lu, %lu): hello\n", me, lutLen,
-         (unsigned long)opacLut, numCpts, 
-         (unsigned long)x, (unsigned long)o, 
+         (unsigned long)opacLut, numCpts,
+         (unsigned long)x, (unsigned long)o,
          (unsigned long)pos);
   */
   /*
@@ -424,7 +424,7 @@ _baneOpacCalcB(unsigned int lutLen, float *opacLut,
     op = AIR_AFFINE(x[j-1], p, x[j], o[j-1], o[j]);
   endloop:
     opacLut[i] = AIR_CAST(float, op);
-    /* 
+    /*
     printf("opac[%d] = %g\n", i, op);
     */
   }

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -88,7 +88,7 @@ typedef struct {
   int lowerInside,              /* lower values are logically inside
                                    isosurfaces, not outside */
     normalsFind,                /* find normals for isosurface vertices, either
-                                   with forward and central differencing on 
+                                   with forward and central differencing on
                                    values, or via the given normItem. **NOTE**
                                    simplifying assumption: if gctx, and
                                    if normalsFind, then normItem must be set
@@ -100,7 +100,7 @@ typedef struct {
     strengthSign;               /* the sign (either +1 of -1) of the strength
                                    quantity when it is considered to have high
                                    magnitude. E.g. for ridge surfaces,
-                                   hesseval[2] should be very negative so 
+                                   hesseval[2] should be very negative so
                                    strengthSign == -1 */
   double isovalue,              /* for seekTypeIsocontour */
     strength,                   /* if strengthUse, feature needs to satisfy
@@ -124,7 +124,7 @@ typedef struct {
     *evalAns, *evecAns,
     *stngAns, *hessAns;
   int reverse;                  /* for seekTypeIsocontour: need to reverse
-                                   sign of scalar field normal to get the 
+                                   sign of scalar field normal to get the
                                    "right" isocontour normal */
   double txfNormal[9];          /* for seekTypeIsocontour: how to
                                    transform normals */
@@ -134,7 +134,7 @@ typedef struct {
                                    histogram */
   NrrdRange *range;             /* for seekTypeIsocontour: range of scalars */
   size_t sx, sy, sz;            /* actual dimensions of feature grid */
-  double txfIdx[16];            /* transforms from the index space of the 
+  double txfIdx[16];            /* transforms from the index space of the
                                    feature sampling grid to the index space
                                    of the underlying volume */
   int *vidx,                    /* 15 * sx * sy array of vertex index
@@ -244,7 +244,7 @@ SEEK_EXPORT int seekExtract(seekContext *sctx, limnPolyData *lpld);
 /* textract.c */
 SEEK_EXPORT int seekVertexStrength(Nrrd *nval, seekContext *sctx,
                                    limnPolyData *pld);
-  
+
 /* descend.c */
 SEEK_EXPORT int seekDescendToDeg(double *coord,
                                  double *botleft, double *botright,
@@ -267,7 +267,7 @@ SEEK_EXPORT int seekDescendToRidge(double *coord,
                                    double *Htbr, double *gtbr,
                                    int maxiter, double eps,
                                    char ridge, const double evalDiffThresh);
-  
+
 #ifdef __cplusplus
 }
 #endif

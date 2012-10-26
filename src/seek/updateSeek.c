@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2009  Thomas Schultz
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -27,17 +27,17 @@
 static int
 updateNinEtAl(seekContext *sctx) {
   static const char me[]="updateNinEtAl";
-  
+
   if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagData = %d\n", me, sctx->flag[flagData]);
   }
-  
+
   if (!( sctx->ninscl || sctx->pvl )) {
     biffAddf(SEEK, "%s: data never set", me);
     return 1;
   }
-  
+
   if (sctx->flag[flagData]) {
     if (sctx->ninscl) {
       sctx->nin = sctx->ninscl;
@@ -61,7 +61,7 @@ updateNinEtAl(seekContext *sctx) {
 static int
 updateAnswerPointers(seekContext *sctx) {
   static const char me[]="updateAnswerPointers";
-  
+
   if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagItemValue = %d\n", me,
@@ -87,12 +87,12 @@ updateAnswerPointers(seekContext *sctx) {
     fprintf(stderr, "%s: flagData = %d\n", me,
             sctx->flag[flagData]);
   }
-  
+
   if (seekTypeUnknown == sctx->type) {
     biffAddf(SEEK, "%s: feature type never set", me);
     return 1;
   }
-  
+
   if (sctx->flag[flagItemValue]
       || sctx->flag[flagItemStrength]
       || sctx->flag[flagItemNormal]
@@ -103,7 +103,7 @@ updateAnswerPointers(seekContext *sctx) {
       || sctx->flag[flagNormalsFind]
       || sctx->flag[flagStrengthUse]
       || sctx->flag[flagType]) {
-    
+
     /* this is apt regardless of feature type */
     if (sctx->strengthUse) {
       if (-1 == sctx->stngItem) {
@@ -115,7 +115,7 @@ updateAnswerPointers(seekContext *sctx) {
     } else {
       sctx->stngAns = NULL;
     }
-    
+
     switch (sctx->type) {
     case seekTypeIsocontour:
       if (!( sctx->ninscl || -1 != sctx->sclvItem )) {
@@ -210,7 +210,7 @@ updateAnswerPointers(seekContext *sctx) {
                airEnumStr(seekType, sctx->type));
       return 1;
     }
-    
+
     sctx->flag[flagItemValue] = AIR_FALSE;
     sctx->flag[flagItemStrength] = AIR_FALSE;
     sctx->flag[flagItemNormal] = AIR_FALSE;
@@ -220,7 +220,7 @@ updateAnswerPointers(seekContext *sctx) {
     sctx->flag[flagNormalsFind] = AIR_FALSE;
     sctx->flag[flagAnswerPointers] = AIR_TRUE;
   }
-  
+
   return 0;
 }
 
@@ -230,17 +230,17 @@ updateSxSySz(seekContext *sctx) {
   size_t sizeIn[3], sizeOut[3];
   double min, max, scl[3], off[3];
   unsigned int axi;
-  
+
   if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagSamples = %d\n", me, sctx->flag[flagSamples]);
     fprintf(stderr, "%s: flagNinEtAl = %d\n", me, sctx->flag[flagNinEtAl]);
   }
-  
+
   sizeIn[0] = sctx->nin->axis[sctx->baseDim+0].size;
   sizeIn[1] = sctx->nin->axis[sctx->baseDim+1].size;
   sizeIn[2] = sctx->nin->axis[sctx->baseDim+2].size;
-  
+
   if (sctx->flag[flagSamples]
       || sctx->flag[flagNinEtAl]) {
     if (0 == sctx->samples[0]
@@ -262,7 +262,7 @@ updateSxSySz(seekContext *sctx) {
       }
       ELL_3V_COPY(sizeOut, sctx->samples);
     }
-    /* want to make absolutely sure txfIdx was being set ... 
+    /* want to make absolutely sure txfIdx was being set ...
        if (sctx->sx != sizeOut[0]
        || sctx->sy != sizeOut[1]
        || sctx->sz != sizeOut[2]) { */
@@ -295,7 +295,7 @@ updateSxSySz(seekContext *sctx) {
 static int
 updateReverse(seekContext *sctx) {
   static const char me[]="updateReverse";
-  
+
   if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagNinEtAl = %d\n", me,
@@ -303,12 +303,12 @@ updateReverse(seekContext *sctx) {
     fprintf(stderr, "%s: flagLowerInside = %d\n", me,
             sctx->flag[flagLowerInside]);
   }
-  
+
   if (sctx->flag[flagNinEtAl]
       || sctx->flag[flagLowerInside]) {
     double mat[9];
     int reverse;
-    
+
     ELL_34M_EXTRACT(mat, sctx->shape->ItoW);
     reverse = (!!sctx->lowerInside) ^ (ELL_3M_DET(mat) < 0);
     if (sctx->reverse != reverse) {
@@ -322,7 +322,7 @@ updateReverse(seekContext *sctx) {
 static int
 updateTxfNormal(seekContext *sctx) {
   static const char me[]="updateTxfNormal";
-  
+
   if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagNinEtAl = %d\n", me,
@@ -330,11 +330,11 @@ updateTxfNormal(seekContext *sctx) {
     fprintf(stderr, "%s: flagLowerInside = %d\n", me,
             sctx->flag[flagLowerInside]);
   }
-  
+
   if (sctx->flag[flagNinEtAl]
       || sctx->flag[flagLowerInside]) {
     double matA[9], matB[9];
-    
+
     ELL_34M_EXTRACT(matA, sctx->shape->ItoW);
     ell_3m_inv_d(matB, matA);
     ELL_3M_TRANSPOSE(sctx->txfNormal, matB);
@@ -351,7 +351,7 @@ static int
 updateSlabCacheAlloc(seekContext *sctx) {
   static const char me[]="updateSlabCacheAlloc";
   int E;
-  
+
   if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagType = %d (type = %s)\n", me,
@@ -361,7 +361,7 @@ updateSlabCacheAlloc(seekContext *sctx) {
     fprintf(stderr, "%s: flagSxSySz = %d\n", me,
             sctx->flag[flagSxSySz]);
   }
-  
+
   E = 0;
   if (sctx->flag[flagType]
       || sctx->flag[flagStrengthUse]  /* kind of sloppy/overkill */
@@ -397,7 +397,7 @@ updateSlabCacheAlloc(seekContext *sctx) {
         || seekTypeRidgeSurfaceT == sctx->type
         || seekTypeValleySurfaceOP == sctx->type
         || seekTypeValleySurfaceT == sctx->type) {
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->ngrad, nrrdTypeDouble, 4, 
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->ngrad, nrrdTypeDouble, 4,
                                      AIR_CAST(size_t, 3),
                                      AIR_CAST(size_t, 2),
                                      sctx->sx,
@@ -406,26 +406,26 @@ updateSlabCacheAlloc(seekContext *sctx) {
     } else {
       sctx->grad = NULL;
     }
-    
+
     if (seekTypeRidgeSurface == sctx->type
         || seekTypeValleySurface == sctx->type
         || seekTypeMaximalSurface == sctx->type
         || seekTypeMinimalSurface == sctx->type
         || seekTypeRidgeSurfaceOP == sctx->type
         || seekTypeValleySurfaceOP == sctx->type) {
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->neval, nrrdTypeDouble, 4, 
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->neval, nrrdTypeDouble, 4,
                                      AIR_CAST(size_t, 3),
                                      AIR_CAST(size_t, 2),
                                      sctx->sx,
                                      sctx->sy);
       if (!E) sctx->eval = AIR_CAST(double*, sctx->neval->data);
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->nevec, nrrdTypeDouble, 4, 
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->nevec, nrrdTypeDouble, 4,
                                      AIR_CAST(size_t, 9),
                                      AIR_CAST(size_t, 2),
                                      sctx->sx,
                                      sctx->sy);
       if (!E) sctx->evec = AIR_CAST(double*, sctx->nevec->data);
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->nflip, nrrdTypeChar, 3, 
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->nflip, nrrdTypeChar, 3,
                                      AIR_CAST(size_t, 5),
                                      sctx->sx,
                                      sctx->sy);
@@ -435,7 +435,7 @@ updateSlabCacheAlloc(seekContext *sctx) {
       sctx->evec = NULL;
       sctx->flip = NULL;
     }
-    
+
     if (seekTypeRidgeSurfaceT == sctx->type ||
         seekTypeValleySurfaceT == sctx->type) {
       if (!E) E |= nrrdMaybeAlloc_va(sctx->nfacevidx, nrrdTypeInt, 3,
@@ -497,25 +497,25 @@ updateSlabCacheAlloc(seekContext *sctx) {
                                      sctx->sx,
                                      sctx->sy);
       if (!E) sctx->pairs = AIR_CAST(signed char*, sctx->npairs->data);
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->ngradcontext, nrrdTypeDouble, 4, 
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->ngradcontext, nrrdTypeDouble, 4,
                                      AIR_CAST(size_t, 3),
                                      AIR_CAST(size_t, 2),
                                      sctx->sx,
                                      sctx->sy);
       if (!E) sctx->gradcontext = AIR_CAST(double*, sctx->ngradcontext->data);
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->nhesscontext, nrrdTypeDouble, 4, 
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->nhesscontext, nrrdTypeDouble, 4,
                                      AIR_CAST(size_t, 9),
                                      AIR_CAST(size_t, 2),
                                      sctx->sx,
                                      sctx->sy);
       if (!E) sctx->hesscontext = AIR_CAST(double*, sctx->nhesscontext->data);
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->ntcontext, nrrdTypeDouble, 4, 
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->ntcontext, nrrdTypeDouble, 4,
                                      AIR_CAST(size_t, 9),
                                      AIR_CAST(size_t, 2),
                                      sctx->sx,
                                      sctx->sy);
       if (!E) sctx->tcontext = AIR_CAST(double*, sctx->ntcontext->data);
-      if (!E) E |= nrrdMaybeAlloc_va(sctx->nstngcontext, nrrdTypeDouble, 2, 
+      if (!E) E |= nrrdMaybeAlloc_va(sctx->nstngcontext, nrrdTypeDouble, 2,
                                      sctx->sx,
                                      sctx->sy);
       if (!E) sctx->stngcontext = AIR_CAST(double*, sctx->nstngcontext->data);
@@ -550,7 +550,7 @@ updateSclDerived(seekContext *sctx) {
   char doneStr[AIR_STRLEN_SMALL];
   double *scl, idxIn[4], idxOut[4], val;
   unsigned int xi, yi, zi;
-  
+
   if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagType = %d\n", me,
@@ -558,7 +558,7 @@ updateSclDerived(seekContext *sctx) {
     fprintf(stderr, "%s: flagNinEtAl = %d\n", me,
             sctx->flag[flagNinEtAl]);
   }
-  
+
   if (sctx->flag[flagType]
       || sctx->flag[flagNinEtAl]) {
     if (!( seekTypeIsocontour == sctx->type
@@ -602,7 +602,7 @@ updateSclDerived(seekContext *sctx) {
     }
     sctx->flag[flagSclDerived] = AIR_TRUE;
   }
-  
+
   return 0;
 }
 
@@ -613,7 +613,7 @@ updateSpanSpaceHist(seekContext *sctx) {
   double min, max, val;
   const void *data;
   double (*lup)(const void *, size_t);
-  
+
   if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagType = %d\n", me,
@@ -623,7 +623,7 @@ updateSpanSpaceHist(seekContext *sctx) {
     fprintf(stderr, "%s: flagNinEtAl = %d\n", me,
             sctx->flag[flagNinEtAl]);
   }
-  
+
   if (sctx->flag[flagType]
       || sctx->flag[flagSclDerived]
       || sctx->flag[flagNinEtAl]) {
@@ -643,7 +643,7 @@ updateSpanSpaceHist(seekContext *sctx) {
       sctx->nspanHist->axis[1].min = sctx->range->min;
       sctx->nspanHist->axis[0].max = sctx->range->max;
       sctx->nspanHist->axis[1].max = sctx->range->max;
-      
+
       if (sctx->ninscl) {
         lup = nrrdDLookup[sctx->ninscl->type];
         data = sctx->ninscl->data;
@@ -651,10 +651,10 @@ updateSpanSpaceHist(seekContext *sctx) {
         lup = nrrdDLookup[sctx->nsclDerived->type];
         data = sctx->nsclDerived->data;
       }
-      
+
       /* calculate the span space histogram */
-      if (nrrdMaybeAlloc_va(sctx->nspanHist, nrrdTypeUInt, 2, 
-                            AIR_CAST(size_t, sctx->spanSize), 
+      if (nrrdMaybeAlloc_va(sctx->nspanHist, nrrdTypeUInt, 2,
+                            AIR_CAST(size_t, sctx->spanSize),
                             AIR_CAST(size_t, sctx->spanSize))) {
         biffMovef(SEEK, NRRD,
                   "%s: couldn't allocate space space histogram", me);
@@ -711,7 +711,7 @@ updateSpanSpaceHist(seekContext *sctx) {
 static int
 updateResult(seekContext *sctx) {
   static const char me[]="updateResult";
-  
+
   if (sctx->verbose > 5) {
     fprintf(stderr, "%s: --------------------\n", me);
     fprintf(stderr, "%s: flagIsovalue = %d\n", me,
@@ -731,7 +731,7 @@ updateResult(seekContext *sctx) {
     fprintf(stderr, "%s: flagTxfNormal = %d\n", me,
             sctx->flag[flagTxfNormal]);
   }
-  
+
   if (seekTypeIsocontour != sctx->type
       && sctx->flag[flagIsovalue]) {
     biffAddf(SEEK, "%s: can't set isovalue for %s (only %s)", me,
@@ -739,13 +739,13 @@ updateResult(seekContext *sctx) {
              airEnumStr(seekType, seekTypeIsocontour));
     return 1;
   }
-  
+
   if (sctx->strengthUse && !sctx->stngAns) {
     biffAddf(SEEK, "%s: can't use feature strength without a strength item",
              me);
     return 1;
   }
-  
+
   /* this seems to be a very pointless exercise */
   if (sctx->flag[flagIsovalue]
       || sctx->flag[flagEvalDiffThresh]
@@ -758,9 +758,9 @@ updateResult(seekContext *sctx) {
       || sctx->flag[flagNinEtAl]
       || sctx->flag[flagReverse]
       || sctx->flag[flagTxfNormal]) {
-    
+
     sctx->flag[flagResult] = AIR_TRUE;
-    
+
     sctx->flag[flagIsovalue] = AIR_FALSE;
     sctx->flag[flagEvalDiffThresh] = AIR_FALSE;
     sctx->flag[flagAnswerPointers] = AIR_FALSE;
@@ -773,7 +773,7 @@ updateResult(seekContext *sctx) {
     sctx->flag[flagReverse] = AIR_FALSE;
     sctx->flag[flagTxfNormal] = AIR_FALSE;
   }
-  
+
   return 0;
 }
 
@@ -783,14 +783,14 @@ updateResult(seekContext *sctx) {
 ** traverses dependency graph for all of seek stuff, which necessarily
 ** includes nodes specific to, say, isosurfacing, even when isosurfacing
 ** is not being done.  The idea is to use the same graph for all feature
-** types, for error checking if nothing else, leavings steps as no-ops 
+** types, for error checking if nothing else, leavings steps as no-ops
 ** as needed.
 */
 int
 seekUpdate(seekContext *sctx) {
   static const char me[]="seekUpdate";
   int E;
-  
+
   if (!sctx) {
     biffAddf(SEEK, "%s: got NULL pointer", me);
     return 1;
@@ -809,6 +809,6 @@ seekUpdate(seekContext *sctx) {
     biffAddf(SEEK, "%s: trouble updating", me);
     return 1;
   }
-  
+
   return 0;
 }

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -54,7 +54,7 @@ baneGkms_infoMain(int argc, const char **argv, const char *me,
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "o", "infoOut", airTypeString, 1, 1, &outS, NULL,
              "output info file, used by \"gkms pvg\" and \"gkms opac\"");
-  
+
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_baneGkms_infoInfoL);
@@ -72,7 +72,7 @@ baneGkms_infoMain(int argc, const char **argv, const char *me,
     biffMovef(BANE, NRRD, "%s: trouble saving info file", me);
     airMopError(mop); return 1;
   }
-  
+
   airMopOkay(mop);
   return 0;
 }

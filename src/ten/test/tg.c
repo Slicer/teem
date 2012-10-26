@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -28,7 +28,7 @@ char *info = ("Sample space of tensor shape.");
 void
 _clp2xyz(double xyz[3], double clp[2]) {
   double cl, cp, cs;
-  
+
   cl = clp[0];
   cp = clp[1];
   cs = 1 - cl - cp;
@@ -48,9 +48,9 @@ washQtoM3(double m[9], double q[4]) {
   x = p[1];
   y = p[2];
   z = p[3];
-  /* mathematica work implies that we should be 
+  /* mathematica work implies that we should be
      setting ROW vectors here */
-  ELL_3V_SET(m+0, 
+  ELL_3V_SET(m+0,
              1 - 2*(y*y + z*z),
              2*(x*y - w*z),
              2*(x*z + w*y));
@@ -70,14 +70,14 @@ main(int argc, const char *argv[]) {
   char *err, *outS;
   hestOpt *hopt=NULL;
   airArray *mop;
-  
+
   int xi, yi, zi, samp;
   float *tdata;
   double clp[2], xyz[3], q[4], len;
   double mD[9], mRF[9], mRI[9], mT[9];
   Nrrd *nten;
   mop = airMopNew();
-  
+
   me = argv[0];
   hestOptAdd(&hopt, "n", "# samples", airTypeInt, 1, 1, &samp, "4",
              "number of samples along each edge of cube");
@@ -90,7 +90,7 @@ main(int argc, const char *argv[]) {
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-  
+
   nten = nrrdNew();
   airMopAdd(mop, nten, (airMopper)nrrdNuke, airMopAlways);
 
@@ -104,7 +104,7 @@ main(int argc, const char *argv[]) {
                         AIR_CAST(size_t, samp))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't allocate output:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
   ELL_3M_IDENTITY_SET(mD);
@@ -121,7 +121,7 @@ main(int argc, const char *argv[]) {
         ELL_4V_SCALE(q, 1.0/len, q);
         washQtoM3(mRF, q);
         ELL_3M_TRANSPOSE(mRI, mRF);
-        
+
         ELL_3M_IDENTITY_SET(mT);
         ell_3m_post_mul_d(mT, mRI);
         ell_3m_post_mul_d(mT, mD);
@@ -133,11 +133,11 @@ main(int argc, const char *argv[]) {
       }
     }
   }
-  
+
   if (nrrdSave(outS, nten, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't save output:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
   airMopOkay(mop);

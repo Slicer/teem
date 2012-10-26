@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -49,7 +49,7 @@ tend_satinSphereEigen(float *eval, float *evec, float x, float y, float z,
                 AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 0.0, 1.0)),
                 AIR_LERP(aniso, 1.0/3.0, 0));
   ELL_3V_SCALE(eval, evsc, eval);
-             
+
   /* v0: looking down positive Z, points counter clockwise */
   if (x || y) {
     ELL_3V_SET(evec + 3*0, y, -x, 0);
@@ -101,7 +101,7 @@ tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
     ELL_3V_NORM_TT(out, float, out, norm);
     ELL_3V_SCALE_ADD2(evec + 3*2, -z, up, (1-R), out);
     ELL_3V_NORM_TT(evec + 3*2, float, evec + 3*2, norm);
-    
+
     /* v1: looking at right half of cross-section, points counter clockwise */
     ELL_3V_CROSS(evec + 3*1, evec + 3*0, evec + 3*2);
   } else {
@@ -139,7 +139,7 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
     biffMovef(TEN, NRRD, "%s: trouble allocating temp nrrds", me);
     return 1;
   }
-  
+
   conf = (float *)nconf->data;
   eval = (float *)neval->data;
   evec = (float *)nevec->data;
@@ -156,7 +156,7 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
           tend_satinTorusEigen(eval, evec, x, y, z, parm,
                                mina, maxa, thick, bnd + bndRm*aff, evsc);
         } else {
-          float aff; 
+          float aff;
           aff = AIR_CAST(float, AIR_AFFINE(0,yi, size[1]-1, 0, 1));
           tend_satinSphereEigen(eval, evec, x, y, z, parm,
                                 mina, maxa, thick, bnd + bndRm*aff, evsc);
@@ -196,7 +196,7 @@ tend_satinMain(int argc, const char **argv, const char *me,
   char *outS;
   gageShape *shape;
   double spd[4][4], orig[4];
-  
+
   hestOptAdd(&hopt, "t", "do torus", airTypeInt, 0, 0, &torus, NULL,
              "generate a torus dataset, instead of the default spherical");
   hestOptAdd(&hopt, "p", "aniso parm", airTypeFloat, 1, 1, &parm, NULL,
@@ -265,7 +265,7 @@ tend_satinMain(int argc, const char **argv, const char *me,
     fprintf(stderr, "%s: trouble doing shape:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-  /* the ItoW is a 4x4 matrix, but 
+  /* the ItoW is a 4x4 matrix, but
      we really only care about the first three rows */
   ELL_4V_SET(spd[0], AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
   ELL_4MV_COL0_GET(spd[1], shape->ItoW); ELL_4V_SCALE(spd[1], 32, spd[1]);
@@ -291,7 +291,7 @@ tend_satinMain(int argc, const char **argv, const char *me,
   nout->measurementFrame[0][2] = 0;
   nout->measurementFrame[1][2] = 0;
   nout->measurementFrame[2][2] = 1;
-  
+
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);

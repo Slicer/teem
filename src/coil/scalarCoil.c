@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -32,7 +32,7 @@
 **  |    [0][3]  [1][3]  [2][3]
 **  Z      [0][4]  [1][4]  [2][4]
 **           [0][5]  [1][5]  [2][5]
-**  
+**
 **       [0][6]  [1][6]  [2][6]
 **         [0][7]  [1][7]  [2][7]
 **           [0][8]  [1][8]  [2][8]
@@ -41,7 +41,7 @@
 coil_t
 _coilLaplacian3(coil_t **iv3, double spacing[3]) {
   double ret;
-  
+
   ret = (  (iv3[0][4] - 2*iv3[1][4] + iv3[2][4])/(spacing[0]*spacing[0])
          + (iv3[1][3] - 2*iv3[1][4] + iv3[1][5])/(spacing[1]*spacing[1])
          + (iv3[1][1] - 2*iv3[1][4] + iv3[1][7])/(spacing[2]*spacing[2]));
@@ -63,7 +63,7 @@ _coilKindScalarFilterTesting(coil_t *delta,
 }
 
 void
-_coilKindScalarFilterHomogeneous(coil_t *delta, 
+_coilKindScalarFilterHomogeneous(coil_t *delta,
                                  int xi, int yi, int zi,
                                  coil_t **iv3, double spacing[3],
                                  double parm[COIL_PARMS_NUM]) {
@@ -121,7 +121,7 @@ _coilKindScalarFilterPeronaMalik(coil_t *delta,
                                  int xi, int yi, int zi,
                                  coil_t **iv3, double spacing[3],
                                  double parm[COIL_PARMS_NUM]) {
-  coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3], 
+  coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3],
     KK, rspX, rspY, rspZ;
 
   AIR_UNUSED(xi);
@@ -138,7 +138,7 @@ _coilKindScalarFilterPeronaMalik(coil_t *delta,
                                 forwZ, backZ,
                                 iv3,
                                 rspX, rspY, rspZ);
-  
+
   /* compute fluxes */
   KK = AIR_CAST(coil_t, parm[1]*parm[1]);
   forwX[0] *= _COIL_CONDUCT(ELL_3V_DOT(forwX, forwX), KK);
@@ -193,16 +193,16 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta,
   gm = AIR_CAST(coil_t, ELL_3V_LEN(grad));
   /*
   if (coilVerbose) {
-    fprintf(stderr, "forwX = %g %g %g    backX = %g %g %g\n", 
+    fprintf(stderr, "forwX = %g %g %g    backX = %g %g %g\n",
             forwX[0], forwX[1], forwX[2],
             backX[0], backX[1], backX[2]);
-    fprintf(stderr, "forwY = %g %g %g    backY = %g %g %g\n", 
+    fprintf(stderr, "forwY = %g %g %g    backY = %g %g %g\n",
             forwY[0], forwY[1], forwY[2],
             backY[0], backY[1], backY[2]);
-    fprintf(stderr, "forwZ = %g %g %g    backZ = %g %g %g\n", 
+    fprintf(stderr, "forwZ = %g %g %g    backZ = %g %g %g\n",
             forwZ[0], forwZ[1], forwZ[2],
             backZ[0], backZ[1], backZ[2]);
-    fprintf(stderr, "grad = %g %g %g --> gm = %g\n", 
+    fprintf(stderr, "grad = %g %g %g --> gm = %g\n",
             grad[0], grad[1], grad[2], gm);
   }
   */
@@ -275,7 +275,7 @@ _coilKindScalarFilterModifiedCurvatureRings(coil_t *delta,
   grad[1] = rspY*(iv3[1][5] - iv3[1][3]);
   grad[2] = rspZ*(iv3[1][7] - iv3[1][1]);
   gm = AIR_CAST(coil_t, ELL_3V_LEN(grad));
-  
+
   if (gm) {
     double tc, rcsq;
     ELL_3V_SCALE(norm, 1.0/gm, grad);
@@ -318,7 +318,7 @@ _coilKindScalarFilterModifiedCurvatureRings(coil_t *delta,
 
 void
 _coilKindScalarUpdate(coil_t *val, coil_t *delta) {
-  
+
   val[0] += delta[0];
 }
 

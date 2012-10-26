@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -81,7 +81,7 @@ main(int argc, const char **argv) {
     airMopError(mop);
     exit(1);
   }
-  /* else, we should see if they're asking for a command we know about */  
+  /* else, we should see if they're asking for a command we know about */
   for (i=0; limnpuCmdList[i]; i++) {
     if (!strcmp(argv[1], limnpuCmdList[i]->name)) {
       break;

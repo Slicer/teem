@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -106,13 +106,13 @@ main(int argc, const char *argv[]) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: input volume not valid:\n%s\n",
               me, err);
-      airMopError(mop); 
+      airMopError(mop);
       return 1;
     }
     sx = AIR_CAST(unsigned int, _nin->axis[1].size);
     sy = AIR_CAST(unsigned int, _nin->axis[2].size);
     sz = AIR_CAST(unsigned int, _nin->axis[3].size);
-    if (!( refIdx[0] < sx 
+    if (!( refIdx[0] < sx
            && refIdx[1] < sy
            && refIdx[2] < sz )) {
       fprintf(stderr, "%s: index (%u,%u,%u) out of bounds (%u,%u,%u)\n", me,
@@ -147,12 +147,12 @@ main(int argc, const char *argv[]) {
       axmap[0] = 1;
       axmap[1] = 2;
       axmap[2] = 3;
-    }      
+    }
     if (nrrdConvert(nin, _nin, nrrdTypeDouble)
         || nrrdMaybeAlloc_nva(nout, nrrdTypeDouble, dimOut, size)
-        || nrrdAxisInfoCopy(nout, nin, axmap, 
+        || nrrdAxisInfoCopy(nout, nin, axmap,
                             NRRD_AXIS_INFO_SIZE_BIT)
-        || nrrdBasicInfoCopy(nout, nin, 
+        || nrrdBasicInfoCopy(nout, nin,
                              (NRRD_BASIC_INFO_DATA_BIT
                               | NRRD_BASIC_INFO_TYPE_BIT
                               | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -160,7 +160,7 @@ main(int argc, const char *argv[]) {
                               | NRRD_BASIC_INFO_SAMPLEUNITS_BIT))) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-      airMopError(mop); 
+      airMopError(mop);
       return 1;
     }
     in = AIR_CAST(double *, nin->data);
@@ -201,7 +201,7 @@ main(int argc, const char *argv[]) {
           if (nrrdSave(outS, nout, NULL)) {
             airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
             fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);
-            airMopError(mop); 
+            airMopError(mop);
             return 1;
           }
         }
@@ -215,20 +215,20 @@ main(int argc, const char *argv[]) {
     ELL_6V_COPY(tB + 1, _tB);
     tB[0] = 1.0;
     TEN_T_SCALE(tB, sclB, tB);
-    
+
     ELL_4V_SET(qA, 1, pA[0], pA[1], pA[2]);
     ELL_4V_NORM(qA, qA, tmp);
     ELL_4V_SET(qB, 1, pB[0], pB[1], pB[2]);
     ELL_4V_NORM(qB, qB, tmp);
     ell_q_to_3m_d(rA, qA);
     ell_q_to_3m_d(rB, qB);
-    
+
     TEN_T2M(mat1, tA);
     ell_3m_mul_d(mat2, rA, mat1);
     ELL_3M_TRANSPOSE_IP(rA, tmp);
     ell_3m_mul_d(mat1, mat2, rA);
     TEN_M2T(tA, mat1);
-    
+
     TEN_T2M(mat1, tB);
     ell_3m_mul_d(mat2, rB, mat1);
     ELL_3M_TRANSPOSE_IP(rB, tmp);
@@ -240,13 +240,13 @@ main(int argc, const char *argv[]) {
       fprintf(stderr, "!%s: tB = (%g) %g %g %g\n    %g %g\n    %g\n", me,
       tB[0], tB[1], tB[2], tB[3], tB[4], tB[5], tB[6]);
     */
-    
+
     time0 = airTime();
     if (tenInterpTwoDiscrete_d(nout, tA, tB, ptype, NN, tip)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble computing path:\n%s\n",
               me, err);
-      airMopError(mop); 
+      airMopError(mop);
       return 1;
     }
     fprintf(stderr, "!%s: ------- # iter = %u, conv = %g\n", me,
@@ -255,18 +255,18 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "%s: path length = %g; time = %g\n",
             me, tenInterpPathLength(nout, AIR_FALSE, AIR_FALSE, AIR_FALSE),
             time1 - time0);
-    
+
     if (1) {
       double *geod, eval0[3], eval[3], evec0[9], evec[9], rot[9], diff[7],
         nrm, tmp, axis[3], angle;
       unsigned int ii, NN;
-      
+
       NN = AIR_CAST(unsigned int, nout->axis[1].size);
       geod = AIR_CAST(double *, nout->data);
       geod += 7;
       for (ii=1; ii<NN; ii++) {
         double igrad[3][7];
-        
+
         tenEigensolve_d(eval0, evec0, geod-7);
         ELL_3M_TRANSPOSE_IP(evec0, tmp);
         tenEigensolve_d(eval, evec, geod);
@@ -321,7 +321,7 @@ main(int argc, const char *argv[]) {
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
 

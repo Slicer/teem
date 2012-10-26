@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -73,19 +73,19 @@ baneHVolCheck (Nrrd *hvol) {
     return 1;
   }
   if (nrrdTypeUChar != hvol->type) {
-    biffAddf(BANE, "%s: need type to be %s (not %s)", 
+    biffAddf(BANE, "%s: need type to be %s (not %s)",
              me, airEnumStr(nrrdType, nrrdTypeUChar),
              airEnumStr(nrrdType, hvol->type));
     return 1;
   }
-  if (!( AIR_EXISTS(hvol->axis[0].min) && AIR_EXISTS(hvol->axis[0].max) && 
-         AIR_EXISTS(hvol->axis[1].min) && AIR_EXISTS(hvol->axis[1].max) && 
+  if (!( AIR_EXISTS(hvol->axis[0].min) && AIR_EXISTS(hvol->axis[0].max) &&
+         AIR_EXISTS(hvol->axis[1].min) && AIR_EXISTS(hvol->axis[1].max) &&
          AIR_EXISTS(hvol->axis[2].min) && AIR_EXISTS(hvol->axis[2].max) )) {
     biffAddf(BANE, "%s: axisMin and axisMax must be set for all axes", me);
     return 1;
   }
-  /* 
-  ** NOTE: For the time being, I'm giving up on enforcing a 
+  /*
+  ** NOTE: For the time being, I'm giving up on enforcing a
   ** particular kind of histogram volume
   if (strcmp(hvol->axis[0].label, baneMeasrGradMag->name)) {
     biffAddf(BANE, "%s: expected \"%s\" on axis 0 label",
@@ -96,7 +96,7 @@ baneHVolCheck (Nrrd *hvol) {
       strcmp(hvol->axis[1].label, baneMeasrHess->name)) {
     biffAddf(BANE, "%s: expected a 2nd deriv. measr on axis 1 (%s or %s)",
              me, baneMeasrHess->name, baneMeasrLapl->name);
-    return 1;    
+    return 1;
   }
   if (strcmp(hvol->axis[2].label, baneMeasrVal->name)) {
     biffAddf(BANE, "%s: expected \"%s\" on axis 2",

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -23,7 +23,7 @@
 
 #include "../ten.h"
 
-char *info = 
+char *info =
 ("Oh, just fricken super! "
  "Another stupid one-off program to make a thesis-related figure. "
  "Reproducibility in visualization, yea, yea fricken great. ");
@@ -34,7 +34,7 @@ main(int argc, const char *argv[]) {
   char *err, *outS;
   hestOpt *hopt=NULL;
   airArray *mop;
-  
+
   int xi, yi, samp[2], fsd;
   float *tdata, mrg, slp;
   double x, xx, y,
@@ -43,7 +43,7 @@ main(int argc, const char *argv[]) {
     rot1, rot2, rot3, theta, mean, var, varscl, radius;
   Nrrd *nten;
   mop = airMopNew();
-  
+
   me = argv[0];
   hestOptAdd(&hopt, "nx ny", "# samples", airTypeInt, 2, 2, samp, "90 90",
              "number of samples along each edge of cube");
@@ -60,7 +60,7 @@ main(int argc, const char *argv[]) {
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
-  
+
   nten = nrrdNew();
   airMopAdd(mop, nten, (airMopper)nrrdNuke, airMopAlways);
 
@@ -71,10 +71,10 @@ main(int argc, const char *argv[]) {
                         AIR_CAST(size_t, 1))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't allocate output:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
-  
+
   mean = 0.333333333;
   varscl = 0.045;
 
@@ -86,7 +86,7 @@ main(int argc, const char *argv[]) {
     radius = sqrt(2*var);
     for (xi=0; xi<samp[0]; xi++) {
       x = AIR_AFFINE(0, xi, samp[0]-1, 0, 3);
-      
+
       ELL_3M_IDENTITY_SET(mD);
       ELL_3M_DIAG_SET(mD,
                       mean + radius*cos(theta),
@@ -108,7 +108,7 @@ main(int argc, const char *argv[]) {
       ELL_3M_ROTATE_X_SET(mRot1, rot1);
       ELL_3M_ROTATE_Y_SET(mRot2, rot2);
       ELL_3M_ROTATE_Z_SET(mRot3, rot3);
-      
+
       ELL_3M_IDENTITY_SET(mR);
       ell_3m_post_mul_d(mR, mRot1);
       ell_3m_post_mul_d(mR, mRot2);
@@ -119,7 +119,7 @@ main(int argc, const char *argv[]) {
       ell_3m_post_mul_d(mT, mRT);
       ell_3m_post_mul_d(mT, mD);
       ell_3m_post_mul_d(mT, mR);
-      
+
       tdata[0] = 1.0;
       TEN_M2T(tdata, mT);
       tdata += 7;
@@ -128,7 +128,7 @@ main(int argc, const char *argv[]) {
 
   if (fsd) {
     double orig[NRRD_SPACE_DIM_MAX], spcdir[NRRD_SPACE_DIM_MAX][4];
-    
+
     ELL_3V_SET(orig, 0, 0, 0);
     ELL_3V_SET(spcdir[0], AIR_NAN, AIR_NAN, AIR_NAN); /* axis 0 is tensor */
     ELL_3V_SET(spcdir[1], 1, 0, 0);
@@ -139,7 +139,7 @@ main(int argc, const char *argv[]) {
                        spcdir[0], spcdir[1], spcdir[2], spcdir[3]);
     /* this should probably be set in any case, oh well */
     nrrdAxisInfoSet_va(nten, nrrdAxisInfoCenter,
-                       nrrdCenterUnknown, 
+                       nrrdCenterUnknown,
                        nrrdCenterCell, nrrdCenterCell, nrrdCenterCell);
     nrrdSpaceOriginSet(nten, orig);
   } else {
@@ -150,7 +150,7 @@ main(int argc, const char *argv[]) {
   if (nrrdSave(outS, nten, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't save output:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
   airMopOkay(mop);

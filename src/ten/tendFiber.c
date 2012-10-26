@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -64,7 +64,7 @@ tend_fiberMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "wsp", NULL, airTypeInt, 0, 0, &worldSpace, NULL,
              "define seedpoint and output path in worldspace.  Otherwise, "
              "(without using this option) everything is in index space");
-  hestOptAdd(&hopt, "t", "type", airTypeString, 1, 1, &ftypeS, "", 
+  hestOptAdd(&hopt, "t", "type", airTypeString, 1, 1, &ftypeS, "",
              "fiber type; defaults to something");
   hestOptAdd(&hopt, "n", "intg", airTypeEnum, 1, 1, &intg, "rk4",
              "integration method for fiber tracking",

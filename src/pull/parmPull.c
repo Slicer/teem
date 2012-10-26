@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -176,7 +176,7 @@ _pullSysParmCheck(pullSysParm *sysParm) {
   CHECK(probeProb, 0.02, 1.0);
   if (!( AIR_EXISTS(sysParm->stepInitial)
          && sysParm->stepInitial > 0 )) {
-    biffAddf(PULL, "%s: sysParm->stepInitial %g not > 0", me, 
+    biffAddf(PULL, "%s: sysParm->stepInitial %g not > 0", me,
              sysParm->stepInitial);
     return 1;
   }
@@ -400,7 +400,7 @@ pullProgressBinModSet(pullContext *pctx, unsigned int bmod) {
   return 0;
 }
 
-int 
+int
 pullCallbackSet(pullContext *pctx,
                 void (*iter_cb)(void *data_cb),
                 void *data_cb) {
@@ -422,7 +422,7 @@ pullCallbackSet(pullContext *pctx,
 ** which is clumsy because which pullEnergySpecs are necessary is
 ** different depending on interType.  Pass NULL for those not needed.
 **
-** Note that all the pullEnergySpecs inside the pctx are created 
+** Note that all the pullEnergySpecs inside the pctx are created
 ** by pullContextNew, so they should never be NULL.  When a pullEnergySpec
 ** is not needed for a given interType, we set it to pullEnergyZero
 ** and a vector of NaNs.
@@ -458,7 +458,7 @@ pullInterEnergySet(pullContext *pctx, int interType,
 
   switch (interType) {
   case pullInterTypeJustR:
-    /* 1: phi(r,s) = phi_r(r) */    
+    /* 1: phi(r,s) = phi_r(r) */
   case pullInterTypeUnivariate:
     /* 2: phi(r,s) = phi_r(u); u = sqrt(r*r+s*s) */
     CHECK_N_COPY(R);
@@ -493,7 +493,7 @@ pullInterEnergySet(pullContext *pctx, int interType,
 int
 pullLogAddSet(pullContext *pctx, FILE *flog) {
   static const char me[]="pullLogAddSet";
-  
+
   if (!(pctx)) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;

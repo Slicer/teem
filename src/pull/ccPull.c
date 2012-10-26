@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,8 +25,8 @@
 #include "privatePull.h"
 
 /*
-** HEY: this messes with the points' idtag, and pctx->idtagNext, 
-** even though it really shouldn't have to 
+** HEY: this messes with the points' idtag, and pctx->idtagNext,
+** even though it really shouldn't have to
 */
 int
 pullCCFind(pullContext *pctx) {
@@ -36,7 +36,7 @@ pullCCFind(pullContext *pctx) {
     pointNum, *idmap;
   pullBin *bin;
   pullPoint *point, *her;
-  
+
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
@@ -56,7 +56,7 @@ pullCCFind(pullContext *pctx) {
 
   /* to be safe, renumber all points, so that we know that the
      idtags are contiguous, starting at 0. HEY: this should handled
-     by having a map from real point->idtag to a point number assigned 
+     by having a map from real point->idtag to a point number assigned
      just for the sake of doing CCs */
   pctx->idtagNext = 0;
   for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
@@ -66,7 +66,7 @@ pullCCFind(pullContext *pctx) {
       point->idtag = pctx->idtagNext++;
     }
   }
-  
+
   /* same stupidity copied from limn/polymod.c:limnPolyDataCCFind */
   eqvNum = 0;
   for (passIdx=0; passIdx<2; passIdx++) {
@@ -100,13 +100,13 @@ pullCCFind(pullContext *pctx) {
       point->idCC = idmap[point->idtag];
     }
   }
-  
+
   airMopOkay(mop);
   return 0;
 }
 
 /*
-** measure something about connected componts already found 
+** measure something about connected componts already found
 **
 ** measrInfo can be 0 to say "measure # particles in CC", or
 ** it can be a scalar pullInfo
@@ -121,7 +121,7 @@ pullCCMeasure(pullContext *pctx, Nrrd *nmeasr, int measrInfo, double rho) {
   double *meas, *size;
   pullBin *bin;
   pullPoint *point;
-  
+
   if (!( pctx && nmeasr )) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
@@ -149,7 +149,7 @@ pullCCMeasure(pullContext *pctx, Nrrd *nmeasr, int measrInfo, double rho) {
     }
   } /* else measrInfo is zero, they want to know # points */
   /* in any case nmeasr is allocated for doubles */
-  if (nrrdMaybeAlloc_va(nmeasr, nrrdTypeDouble, 1, 
+  if (nrrdMaybeAlloc_va(nmeasr, nrrdTypeDouble, 1,
                         AIR_CAST(size_t, pctx->CCNum))) {
     biffMovef(PULL, NRRD, "%s: couldn't alloc nmeasr", me);
     return 1;
@@ -198,7 +198,7 @@ typedef struct {
 static int
 ccpairCompare(const void *_a, const void *_b) {
   const ccpair *a, *b;
-  
+
   a = AIR_CAST(const ccpair *, _a);
   b = AIR_CAST(const ccpair *, _b);
   return (a->d < b->d
@@ -228,7 +228,7 @@ pullCCSort(pullContext *pctx, int measrInfo, double rho) {
   pullBin *bin;
   pullPoint *point;
   int E;
-  
+
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
@@ -237,7 +237,7 @@ pullCCSort(pullContext *pctx, int measrInfo, double rho) {
     biffAddf(PULL, "%s: haven't yet learned CCs?", me);
     return 1;
   }
-  
+
 #define CALLOC(T) (AIR_CAST(T *, calloc(pctx->CCNum, sizeof(T))))
   mop = airMopNew();
   if (!(nmeasr = nrrdNew())
@@ -279,7 +279,7 @@ pullCCSort(pullContext *pctx, int measrInfo, double rho) {
       point->idCC = revm[point->idCC];
     }
   }
-  
+
   airMopOkay(mop);
   return 0;
 }

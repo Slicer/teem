@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -57,9 +57,9 @@ unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main }
       exit(1);                                                  \
     }                                                           \
   }
-  
-/* 
-** PARSE is called by tend functions that do take a 7-component tensor 
+
+/*
+** PARSE is called by tend functions that do take a 7-component tensor
 ** volume, so that as a hack, we can process 6-component volumes as well,
 ** by padding on the confidence channel (fixed at 1.0)
 */
@@ -88,7 +88,7 @@ unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main }
     }                                                                   \
     nrrdNuke(npadtmp);                                                  \
   }
-  
+
 /* qseg.c: 2-tensor estimation */
 extern void _tenQball(const double b, const int gradcount,
                       const double svals[], const double grads[],
@@ -109,7 +109,7 @@ extern void _tenSeg2weights(const int gradcount, const int seg[],
 extern void _tenQvals2points(const int gradcount, const double qvals[],
                              const double grads[], double qpoints[] );
 extern double _tenPldist(const double point[], const double line[] );
-  
+
 /* arishFuncs.c: Arish's implementation of Peled's 2-tensor fit */
 #define VEC_SIZE 3
 
@@ -144,7 +144,7 @@ extern int _tenQGLInterpNEvec(double evecOut[9],
                               tenInterpParm *tip);
 extern int tenQGLInterpN(double tenOut[7],
                          const double *tenIn,
-                         const double *wght, 
+                         const double *wght,
                          unsigned int NN, int ptype, tenInterpParm *tip);
 
 /* experSpec.c */
@@ -159,7 +159,7 @@ TEN_EXPORT double _tenExperSpec_nll(const double *dwiMeas,
                                     int knownB0);
 
 /* tenModel.c */
-TEN_EXPORT double _tenModelSqeFitSingle(const tenModel *model, 
+TEN_EXPORT double _tenModelSqeFitSingle(const tenModel *model,
                                         double *testParm, double *grad,
                                         double *parm, double *convFrac,
                                         unsigned int *itersTaken,

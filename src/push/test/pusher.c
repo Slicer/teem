@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -31,7 +31,7 @@ main(int argc, const char *argv[]) {
   char *err;
   hestOpt *hopt=NULL;
   airArray *mop;
-  
+
   char *outS[3];
   char *gravStr, *gravGradStr, *seedStr;
   pushContext *pctx;
@@ -39,7 +39,7 @@ main(int argc, const char *argv[]) {
   NrrdKernelSpec *ksp00, *ksp11, *ksp22;
   pushEnergySpec *ensp;
   int E;
-  
+
   me = argv[0];
 
   mop = airMopNew();
@@ -63,33 +63,33 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "wall", "wall", airTypeDouble, 1, 1,
              &(pctx->wall), "0.0",
              "spring constant of containing walls");
-  hestOptAdd(&hopt, "cnts", "scale", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "cnts", "scale", airTypeDouble, 1, 1,
              &(pctx->cntScl), "0.0",
              "scaling of containment force");
-  hestOptAdd(&hopt, "limit", "frac", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "limit", "frac", airTypeDouble, 1, 1,
              &(pctx->deltaLimit), "0.3",
              "speed limit on particles' motion");
-  hestOptAdd(&hopt, "dfmin", "frac", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "dfmin", "frac", airTypeDouble, 1, 1,
              &(pctx->deltaFracMin), "0.2",
              "decrease step size if deltaFrac goes below this");
 
-  hestOptAdd(&hopt, "esf", "frac", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "esf", "frac", airTypeDouble, 1, 1,
              &(pctx->energyStepFrac), "0.9",
              "when energy goes up instead of down, fraction by "
              "which to scale step size");
-  hestOptAdd(&hopt, "dfsf", "frac", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "dfsf", "frac", airTypeDouble, 1, 1,
              &(pctx->deltaFracStepFrac), "0.5",
              "when deltaFrac goes below deltaFracMin, fraction by "
              "which to scale step size");
-  hestOptAdd(&hopt, "eimin", "frac", airTypeDouble, 1, 1, 
+  hestOptAdd(&hopt, "eimin", "frac", airTypeDouble, 1, 1,
              &(pctx->energyImprovMin), "0.01",
              "convergence threshold: stop when fracional improvement "
              "(decrease) in energy dips below this");
 
-  hestOptAdd(&hopt, "detr", NULL, airTypeBool, 0, 0, 
+  hestOptAdd(&hopt, "detr", NULL, airTypeBool, 0, 0,
              &(pctx->detReject), NULL,
              "do determinant-based rejection of initial sample locations");
-  hestOptAdd(&hopt, "rng", "seed", airTypeUInt, 1, 1, 
+  hestOptAdd(&hopt, "rng", "seed", airTypeUInt, 1, 1,
              &(pctx->seedRNG), "42",
              "seed value for RNG which determines initial point locations");
   hestOptAdd(&hopt, "nt", "# threads", airTypeUInt, 1, 1,
@@ -157,7 +157,7 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, nTenOut, (airMopper)nrrdNuke, airMopAlways);
   nEnrOut = nrrdNew();
   airMopAdd(mop, nEnrOut, (airMopper)nrrdNuke, airMopAlways);
-  
+
   if (3 == _nin->spaceDim && AIR_EXISTS(_nin->measurementFrame[0][0])) {
     nin = nrrdNew();
     airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
@@ -223,7 +223,7 @@ main(int argc, const char *argv[]) {
   if (E) {
     airMopAdd(mop, err = biffGetDone(PUSH), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
   fprintf(stderr, "%s: time for %d iterations= %g secs\n",
@@ -233,7 +233,7 @@ main(int argc, const char *argv[]) {
       || nrrdSave(outS[2], nEnrOut, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't save output:\n%s\n", me, err);
-    airMopError(mop); 
+    airMopError(mop);
     return 1;
   }
   airMopOkay(mop);
