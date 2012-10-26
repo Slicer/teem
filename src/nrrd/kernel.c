@@ -1141,7 +1141,7 @@ nrrdKernelCatmullRom = &_nrrdKernelCatmullRom;
 static double
 _nrrdCtmrSDSup(const double *parm) {
 
-  return AIR_MIN(2.0, parm[0]);
+  return AIR_MAX(2.0, parm[0]);
 }
 
 static NrrdKernel
@@ -1217,6 +1217,67 @@ _nrrdKernelCatmullRomSupportDebugD = {
 };
 NrrdKernel *const
 nrrdKernelCatmullRomSupportDebugD = &_nrrdKernelCatmullRomSupportDebugD;
+
+/* ------------------------------------------------------------ */
+
+/* if you've got the definition already, why not use it */
+#define _DDCTMR(x) _DDBCCUBIC(x, 0.0, 0.5)
+
+static double
+_nrrdDDCTMR1_d(double x, const double *parm) {
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return _DDCTMR(x);
+}
+
+static float
+_nrrdDDCTMR1_f(float x, const double *parm) {
+  AIR_UNUSED(parm);
+  x = AIR_ABS(x);
+  return AIR_CAST(float, _DDCTMR(x));
+}
+
+static void
+_nrrdDDCTMRN_d(double *f, const double *x, size_t len, const double *parm) {
+  double t;
+  size_t i;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t);
+    f[i] = _DDCTMR(t);
+  }
+}
+
+static void
+_nrrdDDCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
+  float t;
+  size_t i;
+  AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    t = x[i];
+    t = AIR_ABS(t);
+    f[i] = AIR_CAST(float, _DDCTMR(t));
+  }
+}
+
+static NrrdKernel
+_nrrdKernelCatmullRomDD = {
+  "catmull-romDD",
+  0, returnTwo, returnZero,
+  _nrrdDDCTMR1_f,   _nrrdDDCTMRN_f,   _nrrdDDCTMR1_d,   _nrrdDDCTMRN_d
+};
+NrrdKernel *const
+nrrdKernelCatmullRomDD = &_nrrdKernelCatmullRomDD;
+
+static NrrdKernel
+_nrrdKernelCatmullRomSupportDebugDD = {
+  "ctmrsupDD",
+  1, _nrrdCtmrSDSup, returnZero,
+  _nrrdDDCTMR1_f,   _nrrdDDCTMRN_f,   _nrrdDDCTMR1_d,   _nrrdDDCTMRN_d
+};
+NrrdKernel *const
+nrrdKernelCatmullRomSupportDebugDD = &_nrrdKernelCatmullRomSupportDebugDD;
 
 /* ------------------------------------------------------------ */
 

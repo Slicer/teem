@@ -1467,6 +1467,7 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelCos4SupportDebugDDD,
   *const nrrdKernelCatmullRomSupportDebug,
   *const nrrdKernelCatmullRomSupportDebugD,
+  *const nrrdKernelCatmullRomSupportDebugDD,
   *const nrrdKernelCheap,        /* an unusual and specially-handled kernel
                                     that evaluates to abs(x), for the
                                     singular purpose of enabling nearest
@@ -1484,6 +1485,7 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelBCCubicDD,    /* 2nd deriv. of BC cubic family */
   *const nrrdKernelCatmullRom,   /* aka cubic:0,0.5 */
   *const nrrdKernelCatmullRomD,  /* aka cubicd:0,0.5 */
+  *const nrrdKernelCatmullRomDD, /* aka cubicdd:0,0.5 */
   *const nrrdKernelAQuartic,     /* A family of quartic C2 interp. splines */
   *const nrrdKernelAQuarticD,    /* 1st deriv. of A quartic family */
   *const nrrdKernelAQuarticDD,   /* 2nd deriv. of A quartic family */

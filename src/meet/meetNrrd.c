@@ -49,6 +49,7 @@ meetNrrdKernelAll(void) {
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBoxSupportDebug;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCatmullRomSupportDebug;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCatmullRomSupportDebugD;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCatmullRomSupportDebugDD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCos4SupportDebug;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCos4SupportDebugD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCos4SupportDebugDD;
@@ -63,6 +64,7 @@ meetNrrdKernelAll(void) {
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBCCubicDD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCatmullRom;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCatmullRomD;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCatmullRomDD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelAQuartic;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelAQuarticD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelAQuarticDD;
@@ -163,9 +165,11 @@ kintegral(const NrrdKernel *kd) {
   INTGL(nrrdKernelCos4SupportDebugD);
   INTGL(nrrdKernelCos4SupportDebugDD);
   INTGL(nrrdKernelCatmullRomSupportDebug);
+  INTGL(nrrdKernelCatmullRomSupportDebugD);
   INTGL(nrrdKernelBCCubic);
   INTGL(nrrdKernelBCCubicD);
   INTGL(nrrdKernelCatmullRom);
+  INTGL(nrrdKernelCatmullRomD);
   INTGL(nrrdKernelAQuartic);
   INTGL(nrrdKernelAQuarticD);
   INTGL(nrrdKernelC3Quintic);
