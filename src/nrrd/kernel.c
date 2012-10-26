@@ -38,6 +38,7 @@ nrrdKernelBSpline5ApproxInverse    0
 nrrdKernelBSpline7ApproxInverse    0
                  nrrdKernelZero    1      scale
                   nrrdKernelBox    1      scale
+nrrdKernelCatmullRomSupportDebug   1      support
       nrrdKernelBoxSupportDebug    1      support
      nrrdKernelCos4SupportDebug    1      support
                 nrrdKernelCheap    1      scale
@@ -1136,6 +1137,22 @@ _nrrdKernelCatmullRom = {
 NrrdKernel *const
 nrrdKernelCatmullRom = &_nrrdKernelCatmullRom;
 
+
+static double
+_nrrdCtmrSDSup(const double *parm) {
+
+  return AIR_MIN(2.0, parm[0]);
+}
+
+static NrrdKernel
+_nrrdKernelCatmullRomSupportDebug = {
+  "ctmrsup",
+  1, _nrrdCtmrSDSup, returnOne,
+  _nrrdCTMR1_f,   _nrrdCTMRN_f,   _nrrdCTMR1_d,   _nrrdCTMRN_d
+};
+NrrdKernel *const
+nrrdKernelCatmullRomSupportDebug = &_nrrdKernelCatmullRomSupportDebug;
+
 /* ------------------------------------------------------------ */
 
 /* if you've got the definition already, why not use it */
@@ -1191,6 +1208,15 @@ _nrrdKernelCatmullRomD = {
 };
 NrrdKernel *const
 nrrdKernelCatmullRomD = &_nrrdKernelCatmullRomD;
+
+static NrrdKernel
+_nrrdKernelCatmullRomSupportDebugD = {
+  "ctmrsupD",
+  1, _nrrdCtmrSDSup, returnZero,
+  _nrrdDCTMR1_f,   _nrrdDCTMRN_f,   _nrrdDCTMR1_d,   _nrrdDCTMRN_d
+};
+NrrdKernel *const
+nrrdKernelCatmullRomSupportDebugD = &_nrrdKernelCatmullRomSupportDebugD;
 
 /* ------------------------------------------------------------ */
 
@@ -2725,6 +2751,8 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("catmull-rom", str)) return nrrdKernelCatmullRom;
   if (!strcmp("ctmrd", str))       return nrrdKernelCatmullRomD;
   if (!strcmp("catmull-romd", str)) return nrrdKernelCatmullRomD;
+  if (!strcmp("ctmrsup", str))    return nrrdKernelCatmullRomSupportDebug;
+  if (!strcmp("ctmrsupd", str))   return nrrdKernelCatmullRomSupportDebugD;
   if (!strcmp("aquartic", str))   return nrrdKernelAQuartic;
   if (!strcmp("quartic", str))    return nrrdKernelAQuartic;
   if (!strcmp("aquarticd", str))  return nrrdKernelAQuarticD;

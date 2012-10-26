@@ -1465,6 +1465,8 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelCos4SupportDebugD,
   *const nrrdKernelCos4SupportDebugDD,
   *const nrrdKernelCos4SupportDebugDDD,
+  *const nrrdKernelCatmullRomSupportDebug,
+  *const nrrdKernelCatmullRomSupportDebugD,
   *const nrrdKernelCheap,        /* an unusual and specially-handled kernel
                                     that evaluates to abs(x), for the
                                     singular purpose of enabling nearest
