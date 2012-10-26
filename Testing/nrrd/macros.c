@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -34,7 +34,7 @@
 int
 main(int argc, char *argv[]) {
   size_t II, *coord0, *ctmp0, *size0,
-    coord1[1], ctmp1[1], size1[1], 
+    coord1[1], ctmp1[1], size1[1],
     coord2[2], ctmp2[2], size2[2],
     coord3[3], ctmp3[3], size3[3],
     coord4[4], ctmp4[4], size4[4];
@@ -45,9 +45,9 @@ main(int argc, char *argv[]) {
   unsigned int ii, jj, kk, ll;
 
   /* This macro makes sure the given length-N coord##N vector is what it
-     should be ("want"), via string comparison after the output of 
+     should be ("want"), via string comparison after the output of
      airSprintVecSize_t.  Also uses NRRD_INDEX_GEN and NRRD_COORD_GEN
-     to go from coord##N to a linear index II and back to ctmp##N, 
+     to go from coord##N to a linear index II and back to ctmp##N,
      and makes sure that that too matches "want" */
 #define CHECK(N, want)                                                  \
   airSprintVecSize_t(swhat, size##N, N);                                \
@@ -79,7 +79,7 @@ main(int argc, char *argv[]) {
     size0 = size1;
   }
 
-  /* http://teem.svn.sourceforge.net/viewvc/teem/teem/trunk/src/nrrd/nrrdMacros.h?r1=3931&r2=4587 
+  /* http://teem.svn.sourceforge.net/viewvc/teem/teem/trunk/src/nrrd/nrrdMacros.h?r1=3931&r2=4587
      BUG: previous version causes array subscript is below array bounds.  */
 
   /* 00000000000000000000000000000000000000000000000 */
@@ -87,7 +87,7 @@ main(int argc, char *argv[]) {
      accessed */
   NRRD_COORD_UPDATE(coord0, size0, 0);
   CHECK(0, "[]");
-  
+
   /* 11111111111111111111111111111111111111111111111 */
 
 #define RUN1                                                         \
@@ -101,7 +101,7 @@ main(int argc, char *argv[]) {
     sprintf(scomp, "[%u]", ii);                                      \
     CHECK(1, scomp);                                                 \
   }                                                                  \
-  
+
   size1[0] = 1;
   RUN1;
 
@@ -109,7 +109,7 @@ main(int argc, char *argv[]) {
   RUN1;
 
   /* 22222222222222222222222222222222222222222222222 */
-  
+
 #define RUN2                                                         \
   coord2[0] = coord2[1] = 0;                                         \
   for (jj=0; jj<size2[1]; jj++) {                                    \
@@ -168,9 +168,9 @@ main(int argc, char *argv[]) {
 
   ELL_3V_SET(size3, 20, 20, 20);
   RUN3;
-  
+
   /* 44444444444444444444444444444444444444444444444 */
-  
+
 #define RUN4                                                            \
   coord4[0] = coord4[1] = coord4[2] = coord4[3] = 0;                    \
   for (ll=0; ll<size4[3]; ll++) {                                       \

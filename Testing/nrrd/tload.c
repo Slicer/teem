@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -24,8 +24,8 @@
 #include "teem/nrrd.h"
 #include <testDataPath.h>
 
-/* 
-** Tests: 
+/*
+** Tests:
 ** nrrdLoad
 */
 
@@ -82,7 +82,7 @@ main(int argc, const char **argv) {
        work */
     blah1L = airOneLinify(airStrdup(blah));
     airMopAdd(mop, blah1L, airFree, airMopAlways);
-    nrrdAxisInfoSet_va(nin, nrrdAxisInfoLabel, 
+    nrrdAxisInfoSet_va(nin, nrrdAxisInfoLabel,
                        "first axis label", "2nd axis label",
                        blah1L);
     nin->spaceUnits[0] = airOneLinify(airStrdup("\nsp\"\nu0\n"));

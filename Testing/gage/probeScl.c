@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -24,9 +24,9 @@
 #include "teem/gage.h"
 #include <testDataPath.h>
 
-/* 
-** Tests: 
-** 
+/*
+** Tests:
+**
 */
 
 #define INTERP_KERN_NUM 4
@@ -84,7 +84,7 @@ main(int argc, const char **argv) {
     *bgrdAns[BLUR_KERN_NUM], *bhesAns[BLUR_KERN_NUM];
   int E;
   unsigned int sx, sy, sz, ki;
-  
+
   AIR_UNUSED(argc);
   me = argv[0];
   mop = airMopNew();
@@ -129,7 +129,7 @@ main(int argc, const char **argv) {
     if (E) {
       char *err;
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble %s set-up:\n%s\n", me, 
+      fprintf(stderr, "%s: trouble %s set-up:\n%s\n", me,
               ikern[ki]->name, err);
       airMopError(mop); return 1;
     }
@@ -153,14 +153,14 @@ main(int argc, const char **argv) {
             if (pret) {
               fprintf(stderr, "%s: %s probe error(%d): %s\n", me,
                       ikern[ki]->name, igctx[ki]->errNum, igctx[ki]->errStr);
-              
+
               airMopError(mop); return 1;
             }
             pval[ki] = *ivalAns[ki];
             err = AIR_ABS(rval - pval[ki]);
             if (err) {
               fprintf(stderr, "%s: interp's [%u,%u,%u] %s probe %f "
-                      "!= true %f (err %f)\n", me, xi, yi, zi, 
+                      "!= true %f (err %f)\n", me, xi, yi, zi,
                       ikern[ki]->name, pval[ki], rval, err);
               airMopError(mop); return 1;
             }
@@ -195,7 +195,7 @@ main(int argc, const char **argv) {
     if (E) {
       char *err;
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble %s set-up:\n%s\n", me, 
+      fprintf(stderr, "%s: trouble %s set-up:\n%s\n", me,
               bkern[ki]->name, err);
       airMopError(mop); return 1;
     }

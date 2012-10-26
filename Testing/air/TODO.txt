@@ -1,10 +1,10 @@
 
 Testing airEnums:
-construct different kinds of enums, okay and broken, and use functions 
+construct different kinds of enums, okay and broken, and use functions
 on them, including airEnumUnknown
 
 mop.c: airMopSub, airMopMem, airMopUnMem (though never used?)
- ?? airMopPrint, airMopDebug, 
+ ?? airMopPrint, airMopDebug,
 
 finish miscAir.c tests
 
@@ -12,7 +12,7 @@ array.c: airArrays (though used in biff, which is tested)
 
 ? threadAir.c: airThreads
 
-754.c: airFPPartsToVal_f, airFPPartsToVal_d, airFPValToParts_d, 
+754.c: airFPPartsToVal_f, airFPPartsToVal_d, airFPValToParts_d,
        airFPGen_f, airFPGen_d, airFPClass_f, airFPClass_d, airIsInf_f,
        airExists, airFPFprintf_f, airFPFprintf_d
 

@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -146,7 +146,7 @@ main(int argc, const char *argv[]) {
   }
 
   /* airSprintSize_t, airSprintPtrdiff_t in pptest.c */
-  
+
   /* airPrettySprintSize_t */
   {
     char prstmp[AIR_STRLEN_SMALL];
@@ -154,7 +154,7 @@ main(int argc, const char *argv[]) {
                      800,                    /* 1 */
                      1024,                   /* 2 = 2^10 */
                      1024 + 1,               /* 3 */
-                     500*1024,               /* 4 */ 
+                     500*1024,               /* 4 */
                      1024*1024,              /* 5 = 2^20 */
                      1024*(1024 + 1),        /* 6 */
                      500*1024*1024,          /* 7 */
@@ -200,7 +200,7 @@ main(int argc, const char *argv[]) {
     unsigned int ii;
     /* hiding some multiplications in function calls,
        to quiet compiler warnings.  Its ok if there is
-       wrap-around here because then we'll stop testing. 
+       wrap-around here because then we'll stop testing.
        However, it would be better if we did NOT rely on
        what is strictly speaking undefined behavior: the
        overflow of *unsigned* integral quantities. */

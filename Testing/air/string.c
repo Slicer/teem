@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -24,11 +24,11 @@
 
 #include "teem/air.h"
 
-/* 
-** Tests: 
+/*
+** Tests:
 ** airStrlen
 ** airStrdup
-** airStrcpy 
+** airStrcpy
 **
 ** Also uses:
 ** airMopNew, airMopAdd, airMopError, airMopDone
@@ -101,7 +101,7 @@ main(int argc, const char *argv[]) {
   ab = AIR_CALLOC(abSize, char);
   airMopAdd(mop, ab, airFree, airMopAlways);
   sprintf(ab, "%s %s", STR_A, STR_B);
-  
+
 #define TEST(COPY, COMP)                                     \
   airStrcpy(aaCopy, aaSize, COPY);                           \
   if (strcmp(aaCopy, COMP)) {                                \
@@ -122,7 +122,7 @@ main(int argc, const char *argv[]) {
   TEST(aa, aa);
   /* arg to copy is bigger than dest */
   TEST(ab, aa);
-  
+
   airMopOkay(mop);
   exit(0);
 }

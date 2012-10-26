@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images              
+  Teem: Tools to process and visualize scientific data and images             .
   Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -112,13 +112,13 @@ main(int argc, const char *argv[]) {
   biffDone("bingo");
   biffDone("axis");
   biffDone("chard");
-  
+
   biffAdd("axis", "the first error axis");
   biffAdd("axis", "the second error axis");
   biffAdd("axis", "the third error axis");
   biffAdd("axis", "the fourth error axis");
   biffAdd("axis", "the fifth error axis");
-  { 
+  {
     char good[] = ("[axis] the fifth error axis\n"
                    "[axis] the fourth error axis\n"
                    "[axis] the third error axis\n"
@@ -127,7 +127,7 @@ main(int argc, const char *argv[]) {
     tmp = biffGetDone("axis");
     COMPARE(5);
   }
-  
+
   biffAddf("test", "%s: this is a test of biffAddf %d %g", "me", 1, 4.2);
   {
     char good[] = "[test] me: this is a test of biffAddf 1 4.2\n";
