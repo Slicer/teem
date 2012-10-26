@@ -49,7 +49,7 @@ A reference for this is the following line appearing in the source headers:
 with a period at the end to fill out to 79 characters. The exceptions to this
 are things like setting up a gageKind, or an airEnum, where long lines help
 preserve logical structure in fragile things.  Some code in teem/Testing also
-exceeds this line length to increase the visibility of its structure
+exceeds this line length to increase the clarity of its repetitive structure.
 (why: limiting to 80 characters is a line in the sand, but it has more
 historical precedent than larger values. But the 80th character ends up being
 wrapped around to the next line in some displays, hence the limit at 79).
