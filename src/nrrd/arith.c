@@ -955,7 +955,8 @@ nrrdCRC32(const Nrrd *nin, int endian) {
     return 0;
   }
 
-  return airCRC32(nin->data, nn, nrrdElementSize(nin),
+  return airCRC32(AIR_CAST(const unsigned char *, nin->data),
+                  nn, nrrdElementSize(nin),
                   endian == airMyEndian() ? AIR_FALSE : AIR_TRUE);
 }
 
