@@ -55,8 +55,8 @@ historical precedent than larger values. But the 80th character ends up being
 wrapped around to the next line in some displays, hence the limit at 79).
 
 * No trailing white-space. Changes in it are easy to make, and generate only
-noise in diffs (though removing it also generates confusing diffs, but it should
-be the last time). Google for "trailing white space" for further info and tips.
+noise in diffs (though removing it also generates confusing diffs, but that's
+already been done). Google "trailing white space" for further info and tips.
 
 * In header files, when using conditionals in the C pre-processor, put
 spaces between the "#" (in the first column) and (for example) the
