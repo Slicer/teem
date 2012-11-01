@@ -95,16 +95,27 @@ meetNrrdKernelAll(void) {
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBlackmanDD;
 
   /* bsplKernel.c */
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline2;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline2D;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline2DD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline3;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline3D;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline3DD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline3DDD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline3ApproxInverse;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline4;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline4D;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline4DD;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline4DDD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline5;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline5D;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline5DD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline5DDD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline5ApproxInverse;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline6;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline6D;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline6DD;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline6DDD;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline7;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline7D;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline7DD;
@@ -151,12 +162,20 @@ kintegral(const NrrdKernel *kd) {
   INTGL(nrrdKernelBlackman);
   INTGL(nrrdKernelBlackmanD);
 
+  INTGL(nrrdKernelBSpline2);
+  INTGL(nrrdKernelBSpline2D);
   INTGL(nrrdKernelBSpline3);
   INTGL(nrrdKernelBSpline3D);
   INTGL(nrrdKernelBSpline3DD);
+  INTGL(nrrdKernelBSpline4);
+  INTGL(nrrdKernelBSpline4D);
+  INTGL(nrrdKernelBSpline4DD);
   INTGL(nrrdKernelBSpline5);
   INTGL(nrrdKernelBSpline5D);
   INTGL(nrrdKernelBSpline5DD);
+  INTGL(nrrdKernelBSpline6);
+  INTGL(nrrdKernelBSpline6D);
+  INTGL(nrrdKernelBSpline6DD);
   INTGL(nrrdKernelBSpline7);
   INTGL(nrrdKernelBSpline7D);
   INTGL(nrrdKernelBSpline7DD);
@@ -306,6 +325,10 @@ meetNrrdKernelAllCheck(void) {
         ELL_2V_SET(parm, 1.0, YY); CHECK(parm, 1, 2);
         ELL_2V_SET(parm, XX, XX);  CHECK(parm, 1, 2);
         ELL_2V_SET(parm, XX, YY);  CHECK(parm, 1, 2);
+      } else {
+        biffAddf(MEET, "%s: sorry, got unexpected 2-parm kernel %s",
+                 me, kk->name);
+        airMopError(mop); return 1;
       }
     } else if (1 == pnum) {
       if (strstr(kk->name, "TMF")) {

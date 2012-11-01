@@ -23,6 +23,18 @@
 
 #include "nrrd.h"
 
+static double
+returnZero(const double *parm) {
+  AIR_UNUSED(parm);
+  return 0.0;
+}
+
+static double
+returnOne(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
 /*
 ** These kernels are the cardinal B-splines of different orders
 ** Using them with convolution assumes that the data has been pre-filtered
@@ -43,11 +55,199 @@
 #define BSPL_DECL(ord, deriv)                   \
   0,                                            \
     _bspl##ord##_sup,                           \
-    _bspl##ord##d##deriv##_int,                 \
+    (0 == deriv ? returnOne : returnZero),      \
     _bspl##ord##d##deriv##_1f,                  \
     _bspl##ord##d##deriv##_Nf,                  \
     _bspl##ord##d##deriv##_1d,                  \
     _bspl##ord##d##deriv##_Nd
+
+/* (the following preceded some of the function definitions before they
+   were all packed up in the _METHODS macros; but the question about the
+   type of the locals is still relevant)
+   HEY: there is a possibly interesting question to be answered here
+   about whether, to distinguish the float-specific and
+   double-specific versions of the kernel eval functions, if the
+   float-specific versions should actually only use floats for locals,
+   so that no casting to float is needed at return, or, if its too
+   much of a precision loss to do so, at no real economy of speed, so
+   doubles should be used for all intermediate calculations, prior to
+   the final cast to float.  The macros below do the casting,
+   whether or not is as actually needed, so this can be experimented
+   with by just changing the type of the locals (without changing the
+   macro definitions) */
+
+#define BSPL_EVEN_METHODS(basename, macro)               \
+  static double                                          \
+  basename##_1d(double x, const double *parm) {          \
+    double ax, tmp, r;                                   \
+    AIR_UNUSED(parm);                                    \
+                                                         \
+    ax = AIR_ABS(x);                                     \
+    macro(r, double, tmp, ax);                           \
+    return r;                                            \
+  }                                                      \
+                                                         \
+  static float                                           \
+  basename##_1f(float x, const double *parm) {           \
+    float ax, tmp, r;                                    \
+    AIR_UNUSED(parm);                                    \
+                                                         \
+    ax = AIR_ABS(x);                                     \
+    macro(r, float, tmp, ax);                            \
+    return r;                                            \
+  }                                                      \
+                                                         \
+  static void                                            \
+  basename##_Nd(double *f, const double *x, size_t len,  \
+                const double *parm) {                    \
+    double ax, tmp, r;                                   \
+    size_t i;                                            \
+    AIR_UNUSED(parm);                                    \
+                                                         \
+    for (i=0; i<len; i++) {                              \
+      ax = x[i]; ax = AIR_ABS(ax);                       \
+      macro(r, double, tmp, ax);                         \
+      f[i] = r;                                          \
+    }                                                    \
+  }                                                      \
+                                                         \
+  static void                                            \
+  basename##_Nf(float *f, const float *x, size_t len,    \
+                const double *parm) {                    \
+    float ax, tmp, r;                                    \
+    size_t i;                                            \
+    AIR_UNUSED(parm);                                    \
+                                                         \
+    for (i=0; i<len; i++) {                              \
+      ax = x[i]; ax = AIR_ABS(ax);                       \
+      macro(r, float, tmp, ax);                          \
+      f[i] = r;                                          \
+    }                                                    \
+  }
+
+#define BSPL_ODD_METHODS(basename, macro)                \
+  static double                                          \
+  basename##_1d(double x, const double *parm) {          \
+    double ax, tmp, r;                                   \
+    int sgn;                                             \
+    AIR_UNUSED(parm);                                    \
+                                                         \
+    ABS_SGN(ax, sgn, x);                                 \
+    macro(r, double, tmp, ax);                           \
+    return sgn*r;                                        \
+  }                                                      \
+                                                         \
+  static float                                           \
+  basename##_1f(float x, const double *parm) {           \
+    float sgn, ax, tmp, r;                               \
+    AIR_UNUSED(parm);                                    \
+                                                         \
+    ABS_SGN(ax, sgn, x);                                 \
+    macro(r, float, tmp, ax);                            \
+    return sgn*r;                                        \
+  }                                                      \
+                                                         \
+  static void                                            \
+  basename##_Nd(double *f, const double *x, size_t len,  \
+                const double *parm) {                    \
+    double sgn, ax, tmp, r;                              \
+    size_t i;                                            \
+    AIR_UNUSED(parm);                                    \
+                                                         \
+    for (i=0; i<len; i++) {                              \
+      ABS_SGN(ax, sgn, x[i]);                            \
+      macro(r, double, tmp, ax);                         \
+      f[i] = sgn*r;                                      \
+    }                                                    \
+  }                                                      \
+                                                         \
+  static void                                            \
+  basename##_Nf(float *f, const float *x, size_t len,    \
+                const double *parm) {                    \
+    float sgn, ax, tmp, r;                               \
+    size_t i;                                            \
+    AIR_UNUSED(parm);                                    \
+                                                         \
+    for (i=0; i<len; i++) {                              \
+      ABS_SGN(ax, sgn, x[i]);                            \
+      macro(r, float, tmp, ax);                          \
+      f[i] = sgn*r;                                      \
+    }                                                    \
+  }
+
+/* ============================= order *2* ============================= */
+
+static double
+_bspl2_sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.5;
+}
+
+/* ---------------------- order *2* deriv *0* -------------------------- */
+
+#define BSPL2D0(ret, TT, t, x)                 \
+  if (x < 0.5) {                               \
+    ret = AIR_CAST(TT, 3.0/4.0 - x*x);         \
+  } else if (x < 1.5) {                        \
+    t = (3 - 2*x);                             \
+    ret = AIR_CAST(TT, t*t/8);                 \
+  } else {                                     \
+    ret = 0;                                   \
+  }
+
+BSPL_EVEN_METHODS(_bspl2d0, BSPL2D0)
+
+static NrrdKernel
+_nrrdKernelBSpline2 = {
+  "bspl2",
+  BSPL_DECL(2, 0)
+};
+NrrdKernel *const
+nrrdKernelBSpline2 = &_nrrdKernelBSpline2;
+
+/* ---------------------- order *2* deriv *1* -------------------------- */
+
+#define BSPL2D1(ret, TT, t, x)                 \
+  AIR_UNUSED(t);                               \
+  if (x < 0.5) {                               \
+    ret = AIR_CAST(TT, -2*x);                  \
+  } else if (x < 1.5) {                        \
+    ret = AIR_CAST(TT, -3.0/2.0 + x);          \
+  } else {                                     \
+    ret = 0;                                   \
+  }
+
+BSPL_ODD_METHODS(_bspl2d1, BSPL2D1)
+
+static NrrdKernel
+_nrrdKernelBSpline2D = {
+  "bspl2d",
+  BSPL_DECL(2, 1)
+};
+NrrdKernel *const
+nrrdKernelBSpline2D = &_nrrdKernelBSpline2D;
+
+/* ---------------------- order *2* deriv *2* -------------------------- */
+
+#define BSPL2D2(ret, TT, t, x)                 \
+  AIR_UNUSED(t);                               \
+  if (x < 0.5) {                               \
+    ret = AIR_CAST(TT, -2.0);                  \
+  } else if (x < 1.5) {                        \
+    ret = AIR_CAST(TT, 1.0);                   \
+  } else {                                     \
+    ret = 0;                                   \
+  }
+
+BSPL_EVEN_METHODS(_bspl2d2, BSPL2D2)
+
+static NrrdKernel
+_nrrdKernelBSpline2DD = {
+  "bspl2dd",
+  BSPL_DECL(2, 2)
+};
+NrrdKernel *const
+nrrdKernelBSpline2DD = &_nrrdKernelBSpline2DD;
 
 /* ============================= order *3* ============================= */
 
@@ -59,68 +259,17 @@ _bspl3_sup(const double *parm) {
 
 /* ---------------------- order *3* deriv *0* -------------------------- */
 
-static double
-_bspl3d0_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
-
-/* t: tmp; ax: abs(x) */
-#define BSPL3D0(ret, t, x)                     \
-  if (x < 1) {                                 \
-    ret = (4 + 3*(-2 + x)*x*x)/6;              \
-  } else if (x < 2) {                          \
-    t = (-2 + x);                              \
-    ret = -t*t*t/6;                            \
-  } else {                                     \
-    ret = 0;                                   \
+#define BSPL3D0(ret, TT, t, x)                  \
+  if (x < 1) {                                  \
+    ret = AIR_CAST(TT, (4 + 3*(-2 + x)*x*x)/6); \
+  } else if (x < 2) {                           \
+    t = (-2 + x);                               \
+    ret = AIR_CAST(TT, -t*t*t/6);               \
+  } else {                                      \
+    ret = 0;                                    \
   }
 
-static double
-_bspl3d0_1d(double x, const double *parm) {
-  double ax, tmp, r;
-  AIR_UNUSED(parm);
-
-  ax = AIR_ABS(x);
-  BSPL3D0(r, tmp, ax);
-  return r;
-}
-
-static float
-_bspl3d0_1f(float x, const double *parm) {
-  float ax, tmp, r;
-  AIR_UNUSED(parm);
-
-  ax = AIR_ABS(x);
-  BSPL3D0(r, tmp, ax);
-  return r;
-}
-
-static void
-_bspl3d0_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, tmp, r;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ax = x[i]; ax = AIR_ABS(ax);
-    BSPL3D0(r, tmp, ax);
-    f[i] = r;
-  }
-}
-
-static void
-_bspl3d0_Nf(float *f, const float *x, size_t len, const double *parm) {
-  float ax, tmp, r;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ax = x[i]; ax = AIR_ABS(ax);
-    BSPL3D0(r, tmp, ax);
-    f[i] = r;
-  }
-}
+BSPL_EVEN_METHODS(_bspl3d0, BSPL3D0)
 
 static NrrdKernel
 _nrrdKernelBSpline3 = {
@@ -132,72 +281,17 @@ nrrdKernelBSpline3 = &_nrrdKernelBSpline3;
 
 /* ---------------------- order *3* deriv *1* -------------------------- */
 
-static double
-_bspl3d1_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
-/* t: tmp; ax: abs(x) */
-#define BSPL3D1(ret, t, x)                     \
+#define BSPL3D1(ret, TT, t, x)                 \
   if (x < 1) {                                 \
-    ret = (-4 + 3*x)*x/2;                      \
+    ret = AIR_CAST(TT, (-4 + 3*x)*x/2);        \
   } else if (x < 2) {                          \
     t = (-2 + x);                              \
-    ret = -t*t/2;                              \
+    ret = AIR_CAST(TT, -t*t/2);                \
   } else {                                     \
     ret = 0;                                   \
   }
 
-static double
-_bspl3d1_1d(double x, const double *parm) {
-  double ax, tmp, r;
-  int sgn;
-  AIR_UNUSED(parm);
-
-  ABS_SGN(ax, sgn, x);
-  BSPL3D1(r, tmp, ax);
-  return sgn*r;
-}
-
-static float
-_bspl3d1_1f(float x, const double *parm) {
-  float ax, tmp, r;
-  int sgn;
-  AIR_UNUSED(parm);
-
-  ABS_SGN(ax, sgn, x);
-  BSPL3D1(r, tmp, ax);
-  return sgn*r;
-}
-
-static void
-_bspl3d1_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, tmp, r;
-  int sgn;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ABS_SGN(ax, sgn, x[i]);
-    BSPL3D1(r, tmp, ax);
-    f[i] = sgn*r;
-  }
-}
-
-static void
-_bspl3d1_Nf(float *f, const float *x, size_t len, const double *parm) {
-  float ax, tmp, r;
-  int sgn;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ABS_SGN(ax, sgn, x[i]);
-    BSPL3D1(r, tmp, ax);
-    f[i] = sgn*r;
-  }
-}
+BSPL_ODD_METHODS(_bspl3d1, BSPL3D1)
 
 static NrrdKernel
 _nrrdKernelBSpline3D = {
@@ -209,72 +303,22 @@ nrrdKernelBSpline3D = &_nrrdKernelBSpline3D;
 
 /* ---------------------- order *3* deriv *2* -------------------------- */
 
-static double
-_bspl3d2_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
 /* NOTE: the tmp variable wasn't actually needed here, and this will
 ** likely be optimized out.  But the tmp argument to the macro is kept
 ** here (and the macro uses it to avoid a unused variable warning) to
 ** facilitate copy-and-paste for higher-order splines
 */
-#define BSPL3D2(ret, tmp, x)                   \
+#define BSPL3D2(ret, TT, t, x)                 \
+  AIR_UNUSED(t);                               \
   if (x < 1) {                                 \
-    ret = -2 + 3*x;                            \
+    ret = AIR_CAST(TT, -2 + 3*x);              \
   } else if (x < 2) {                          \
-    tmp = 2 - x;                               \
-    ret = tmp;                                 \
+    ret = AIR_CAST(TT, 2 - x);                 \
   } else {                                     \
     ret = 0;                                   \
   }
 
-static double
-_bspl3d2_1d(double x, const double *parm) {
-  double ax, tmp, r;
-  AIR_UNUSED(parm);
-
-  ax = AIR_ABS(x);
-  BSPL3D2(r, tmp, ax);
-  return r;
-}
-
-static float
-_bspl3d2_1f(float x, const double *parm) {
-  float ax, tmp, r;
-  AIR_UNUSED(parm);
-
-  ax = AIR_ABS(x);
-  BSPL3D2(r, tmp, ax);
-  return r;
-}
-
-static void
-_bspl3d2_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, tmp, r;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ax = AIR_ABS(x[i]);
-    BSPL3D2(r, tmp, ax);
-    f[i] = r;
-  }
-}
-
-static void
-_bspl3d2_Nf(float *f, const float *x, size_t len, const double *parm) {
-  float ax, tmp, r;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ax = AIR_ABS(x[i]);
-    BSPL3D2(r, tmp, ax);
-    f[i] = r;
-  }
-}
+BSPL_EVEN_METHODS(_bspl3d2, BSPL3D2)
 
 static NrrdKernel
 _nrrdKernelBSpline3DD = {
@@ -286,14 +330,8 @@ nrrdKernelBSpline3DD = &_nrrdKernelBSpline3DD;
 
 /* ---------------------- order *3* deriv *3* -------------------------- */
 
-static double
-_bspl3d3_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
-/* t: tmp; ax: abs(x) */
-#define BSPL3D3(ret, t, x)                     \
+#define BSPL3D3(ret, TT, t, x)                  \
+  AIR_UNUSED(t);                               \
   if (x < 1) {                                 \
     ret = 3;                                   \
   } else if (x < 2) {                          \
@@ -302,57 +340,7 @@ _bspl3d3_int(const double *parm) {
     ret = 0;                                   \
   }
 
-/* note that the tmp arg is not needed or used in the macro,
-   so we can pass any bogus value, in this case 42.42 */
-static double
-_bspl3d3_1d(double x, const double *parm) {
-  double ax, r;
-  int sgn;
-  AIR_UNUSED(parm);
-
-  ABS_SGN(ax, sgn, x);
-  BSPL3D3(r, 42.42, ax);
-  return sgn*r;
-}
-
-static float
-_bspl3d3_1f(float x, const double *parm) {
-  float ax, r;
-  int sgn;
-  AIR_UNUSED(parm);
-
-  ABS_SGN(ax, sgn, x);
-  BSPL3D3(r, 42.42, ax);
-  return sgn*r;
-}
-
-static void
-_bspl3d3_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, r;
-  int sgn;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ABS_SGN(ax, sgn, x[i]);
-    BSPL3D3(r, 42.42, ax);
-    f[i] = sgn*r;
-  }
-}
-
-static void
-_bspl3d3_Nf(float *f, const float *x, size_t len, const double *parm) {
-  float ax, r;
-  int sgn;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ABS_SGN(ax, sgn, x[i]);
-    BSPL3D3(r, 42.42, ax);
-    f[i] = sgn*r;
-  }
-}
+BSPL_ODD_METHODS(_bspl3d3, BSPL3D3)
 
 static NrrdKernel
 _nrrdKernelBSpline3DDD = {
@@ -414,7 +402,7 @@ _bspl3_ANI_int(const double *parm) {
 
 static double
 _bspl3_ANI_1d(double x, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
@@ -424,7 +412,7 @@ _bspl3_ANI_1d(double x, const double *parm) {
 
 static float
 _bspl3_ANI_1f(float x, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
@@ -434,7 +422,7 @@ _bspl3_ANI_1f(float x, const double *parm) {
 
 static void
 _bspl3_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   size_t i;
   AIR_UNUSED(parm);
 
@@ -447,7 +435,7 @@ _bspl3_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
 
 static void
 _bspl3_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   size_t i;
   AIR_UNUSED(parm);
 
@@ -470,26 +458,108 @@ nrrdKernelBSpline3ApproxInverse = &_nrrdKernelBSpline3ApproxInverse;
 
 /* ============================= order *4* ============================= */
 
-/*
 static double
 _bspl4_sup(const double *parm) {
   AIR_UNUSED(parm);
   return 2.5;
 }
-*/
 
-/* HEY: there is a possibly interesting question to be answered here
-   about whether, to distinguish the float-specific and
-   double-specific versions of the kernel eval functions, if the
-   float-specific versions should actually only use floats for locals,
-   so that no casting to float is needed at return, or, if its too
-   much of a precision loss to do so, at no real economy of speed, so
-   doubles should be used for all intermediate calculations, prior to
-   the final cast to float.  The .._T macros below do the casting,
-   whether or not is as actually needed, so this can be experimented
-   with by just changing the type of the locals (without changing the
-   macro definitions) */
+/* ---------------------- order *4* deriv *0* -------------------------- */
 
+#define BSPL4D0(ret, TT, t, x)                                          \
+  if (x < 0.5) {                                                        \
+    t = x*x;                                                            \
+    ret = AIR_CAST(TT, 115.0/192.0 - 5*t/8 + t*t/4);                    \
+  } else if (x < 1.5) {                                                 \
+    ret = AIR_CAST(TT, (55.0 + 4*x*(5.0 - 2*x*(15.0 + 2*(-5 + x)*x)))/96); \
+  } else if (x < 2.5) {                                                 \
+    t = 5 - 2*x;                                                        \
+    ret = AIR_CAST(TT, t*t*t*t/384.0);                                  \
+  } else {                                                              \
+    ret = 0;                                                            \
+  }
+
+BSPL_EVEN_METHODS(_bspl4d0, BSPL4D0)
+
+static NrrdKernel
+_nrrdKernelBSpline4 = {
+  "bspl4",
+  BSPL_DECL(4, 0)
+};
+NrrdKernel *const
+nrrdKernelBSpline4 = &_nrrdKernelBSpline4;
+
+/* ---------------------- order *4* deriv *1* -------------------------- */
+
+#define BSPL4D1(ret, TT, t, x)                                          \
+  if (x < 0.5) {                                                        \
+    ret = AIR_CAST(TT, x*(-5.0/4.0 + x*x));                             \
+  } else if (x < 1.5) {                                                 \
+    ret = AIR_CAST(TT, (5.0 - 4*x*(15.0 + x*(-15.0 + 4*x)))/24.0);      \
+  } else if (x < 2.5) {                                                 \
+    t = -5 + 2*x;                                                        \
+    ret = AIR_CAST(TT, t*t*t/48.0);                                     \
+  } else {                                                              \
+    ret = 0;                                                            \
+  }
+
+BSPL_ODD_METHODS(_bspl4d1, BSPL4D1)
+
+static NrrdKernel
+_nrrdKernelBSpline4D = {
+  "bspl4d",
+  BSPL_DECL(4, 1)
+};
+NrrdKernel *const
+nrrdKernelBSpline4D = &_nrrdKernelBSpline4D;
+
+/* ---------------------- order *4* deriv *2* -------------------------- */
+
+#define BSPL4D2(ret, TT, t, x)                                          \
+  if (x < 0.5) {                                                        \
+    ret = AIR_CAST(TT, -5.0/4.0 + 3*x*x);                               \
+  } else if (x < 1.5) {                                                 \
+    ret = AIR_CAST(TT, -5.0/2.0 + (5.0 - 2*x)*x);                       \
+  } else if (x < 2.5) {                                                 \
+    t = 5 - 2*x;                                                        \
+    ret = AIR_CAST(TT, t*t/8.0);                                        \
+  } else {                                                              \
+    ret = 0;                                                            \
+  }
+
+BSPL_EVEN_METHODS(_bspl4d2, BSPL4D2)
+
+static NrrdKernel
+_nrrdKernelBSpline4DD = {
+  "bspl4dd",
+  BSPL_DECL(4, 2)
+};
+NrrdKernel *const
+nrrdKernelBSpline4DD = &_nrrdKernelBSpline4DD;
+
+/* ---------------------- order *4* deriv *3* -------------------------- */
+
+#define BSPL4D3(ret, TT, t, x)                                          \
+  AIR_UNUSED(t);                                                        \
+  if (x < 0.5) {                                                        \
+    ret = AIR_CAST(TT, 6*x);                                            \
+  } else if (x < 1.5) {                                                 \
+    ret = AIR_CAST(TT, 5 - 4*x);                                        \
+  } else if (x < 2.5) {                                                 \
+    ret = AIR_CAST(TT, -5.0/2.0 + x);                                   \
+  } else {                                                              \
+    ret = 0;                                                            \
+  }
+
+BSPL_ODD_METHODS(_bspl4d3, BSPL4D3)
+
+static NrrdKernel
+_nrrdKernelBSpline4DDD = {
+  "bspl4ddd",
+  BSPL_DECL(4, 3)
+};
+NrrdKernel *const
+nrrdKernelBSpline4DDD = &_nrrdKernelBSpline4DDD;
 
 /* ============================= order *5* ============================= */
 
@@ -501,13 +571,7 @@ _bspl5_sup(const double *parm) {
 
 /* ---------------------- order *5* deriv *0* -------------------------- */
 
-static double
-_bspl5d0_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
-
-#define BSPL5D0_T(ret, TT, t, x)                                \
+#define BSPL5D0(ret, TT, t, x)                                  \
   if (x < 1) {                                                  \
     t = x*x;                                                    \
     ret = AIR_CAST(TT, (33 - 5*t*(6 + (x-3)*t))/60);            \
@@ -520,51 +584,7 @@ _bspl5d0_int(const double *parm) {
     ret = 0;                                                    \
   }
 
-static double
-_bspl5d0_1d(double x, const double *parm) {
-  double ax, tmp, r;
-  AIR_UNUSED(parm);
-
-  ax = AIR_ABS(x);
-  BSPL5D0_T(r, double, tmp, ax);
-  return r;
-}
-
-static float
-_bspl5d0_1f(float x, const double *parm) {
-  float ax, tmp, r;
-  AIR_UNUSED(parm);
-
-  ax = AIR_ABS(x);
-  BSPL5D0_T(r, float, tmp, ax);
-  return r;
-}
-
-static void
-_bspl5d0_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, tmp, r;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ax = x[i]; ax = AIR_ABS(ax);
-    BSPL5D0_T(r, double, tmp, ax);
-    f[i] = r;
-  }
-}
-
-static void
-_bspl5d0_Nf(float *f, const float *x, size_t len, const double *parm) {
-  float ax, tmp, r;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ax = x[i]; ax = AIR_ABS(ax);
-    BSPL5D0_T(r, float, tmp, ax);
-    f[i] = r;
-  }
-}
+BSPL_EVEN_METHODS(_bspl5d0, BSPL5D0)
 
 static NrrdKernel
 _nrrdKernelBSpline5 = {
@@ -576,13 +596,7 @@ nrrdKernelBSpline5 = &_nrrdKernelBSpline5;
 
 /* ---------------------- order *5* deriv *1* -------------------------- */
 
-static double
-_bspl5d1_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
-#define BSPL5D1_T(ret, TT, t, x)                         \
+#define BSPL5D1(ret, TT, t, x)                          \
   if (x < 1) {                                          \
     t = x*x*x;                                          \
     ret = AIR_CAST(TT, -x + t - (5*t*x)/12);             \
@@ -595,55 +609,7 @@ _bspl5d1_int(const double *parm) {
     ret = 0;                                            \
   }
 
-static double
-_bspl5d1_1d(double x, const double *parm) {
-  double ax, tmp, r;
-  int sgn;
-  AIR_UNUSED(parm);
-
-  ABS_SGN(ax, sgn, x);
-  BSPL5D1_T(r, double, tmp, ax);
-  return sgn*r;
-}
-
-static float
-_bspl5d1_1f(float x, const double *parm) {
-  float ax, tmp, r;
-  int sgn;
-  AIR_UNUSED(parm);
-
-  ABS_SGN(ax, sgn, x);
-  BSPL5D1_T(r, float, tmp, ax);
-  return sgn*r;
-}
-
-static void
-_bspl5d1_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, tmp, r;
-  int sgn;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ABS_SGN(ax, sgn, x[i]);
-    BSPL5D1_T(r, double, tmp, ax);
-    f[i] = sgn*r;
-  }
-}
-
-static void
-_bspl5d1_Nf(float *f, const float *x, size_t len, const double *parm) {
-  float ax, tmp, r;
-  int sgn;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ABS_SGN(ax, sgn, x[i]);
-    BSPL5D1_T(r, float, tmp, ax);
-    f[i] = sgn*r;
-  }
-}
+BSPL_ODD_METHODS(_bspl5d1, BSPL5D1)
 
 static NrrdKernel
 _nrrdKernelBSpline5D = {
@@ -655,13 +621,7 @@ nrrdKernelBSpline5D = &_nrrdKernelBSpline5D;
 
 /* ---------------------- order *5* deriv *2* -------------------------- */
 
-static double
-_bspl5d2_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
-#define BSPL5D2_T(ret, TT, t, x)                \
+#define BSPL5D2(ret, TT, t, x)                  \
   if (x < 1) {                                  \
     t = x*x;                                    \
     ret = AIR_CAST(TT, -1 + 3*t - (5*t*x)/3);   \
@@ -674,51 +634,7 @@ _bspl5d2_int(const double *parm) {
     ret = 0;                                    \
   }
 
-static double
-_bspl5d2_1d(double x, const double *parm) {
-  double ax, tmp, r;
-  AIR_UNUSED(parm);
-
-  ax = AIR_ABS(x);
-  BSPL5D2_T(r, double, tmp, ax);
-  return r;
-}
-
-static float
-_bspl5d2_1f(float x, const double *parm) {
-  float ax, tmp, r;
-  AIR_UNUSED(parm);
-
-  ax = AIR_ABS(x);
-  BSPL5D2_T(r, float, tmp, ax);
-  return r;
-}
-
-static void
-_bspl5d2_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, tmp, r;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ax = AIR_ABS(x[i]);
-    BSPL5D2_T(r, double, tmp, ax);
-    f[i] = r;
-  }
-}
-
-static void
-_bspl5d2_Nf(float *f, const float *x, size_t len, const double *parm) {
-  float ax, tmp, r;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ax = AIR_ABS(x[i]);
-    BSPL5D2_T(r, float, tmp, ax);
-    f[i] = r;
-  }
-}
+BSPL_EVEN_METHODS(_bspl5d2, BSPL5D2)
 
 static NrrdKernel
 _nrrdKernelBSpline5DD = {
@@ -730,13 +646,7 @@ nrrdKernelBSpline5DD = &_nrrdKernelBSpline5DD;
 
 /* ---------------------- order *5* deriv *3* -------------------------- */
 
-static double
-_bspl5d3_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
-#define BSPL5D3_T(ret, TT, t, x)                        \
+#define BSPL5D3(ret, TT, t, x)                          \
   if (x < 1) {                                          \
     ret = AIR_CAST(TT, (6 - 5*x)*x);                    \
   } else if (x < 2) {                                   \
@@ -748,55 +658,7 @@ _bspl5d3_int(const double *parm) {
     ret = 0;                                            \
   }
 
-static double
-_bspl5d3_1d(double x, const double *parm) {
-  double ax, tmp, r;
-  int sgn;
-  AIR_UNUSED(parm);
-
-  ABS_SGN(ax, sgn, x);
-  BSPL5D3_T(r, double, tmp, ax);
-  return sgn*r;
-}
-
-static float
-_bspl5d3_1f(float x, const double *parm) {
-  float ax, tmp, r;
-  int sgn;
-  AIR_UNUSED(parm);
-
-  ABS_SGN(ax, sgn, x);
-  BSPL5D3_T(r, float, tmp, ax);
-  return sgn*r;
-}
-
-static void
-_bspl5d3_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, tmp, r;
-  int sgn;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ABS_SGN(ax, sgn, x[i]);
-    BSPL5D3_T(r, double, tmp, ax);
-    f[i] = sgn*r;
-  }
-}
-
-static void
-_bspl5d3_Nf(float *f, const float *x, size_t len, const double *parm) {
-  float ax, tmp, r;
-  int sgn;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ABS_SGN(ax, sgn, x[i]);
-    BSPL5D3_T(r, float, tmp, ax);
-    f[i] = sgn*r;
-  }
-}
+BSPL_ODD_METHODS(_bspl5d3, BSPL5D3)
 
 static NrrdKernel
 _nrrdKernelBSpline5DDD = {
@@ -853,7 +715,7 @@ _bspl5_ANI_int(const double *parm) {
 
 static double
 _bspl5_ANI_1d(double x, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
@@ -863,7 +725,7 @@ _bspl5_ANI_1d(double x, const double *parm) {
 
 static float
 _bspl5_ANI_1f(float x, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
@@ -873,7 +735,7 @@ _bspl5_ANI_1f(float x, const double *parm) {
 
 static void
 _bspl5_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   size_t i;
   AIR_UNUSED(parm);
 
@@ -886,7 +748,7 @@ _bspl5_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
 
 static void
 _bspl5_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   size_t i;
   AIR_UNUSED(parm);
 
@@ -909,13 +771,124 @@ nrrdKernelBSpline5ApproxInverse = &_nrrdKernelBSpline5ApproxInverse;
 
 /* ============================= order *6* ============================= */
 
-/*
 static double
 _bspl6_sup(const double *parm) {
   AIR_UNUSED(parm);
   return 3.5;
 }
-*/
+
+/* ---------------------- order *6* deriv *0* -------------------------- */
+
+#define BSPL6D0_SEG0(x) 0.5110243055555555556 + x*x*(-0.40104166666666666667 + x*x*(0.14583333333333333333 - 0.027777777777777777778*x*x))
+#define BSPL6D0_SEG1(x) 0.02083333333333333*(5.05890179802561 + (-4.47046426301056 + x)*x)*(5.07700929828288 + (-4.13708416717549 + x)*x)*(0.956452947962608 + x*(1.607548430186042 + x))
+#define BSPL6D0_SEG2(x) -0.008333333333333*(-2.919623692889 + x)*(0.11036932382080 + x)*(8.451507829592 + (-5.787493668289 + x)*x)*(7.911791484411 + (-5.403251962643 + x)*x)
+#define BSPL6D0(ret, TT, t, x)                                          \
+  if (x < 0.5) {                                                        \
+    ret = AIR_CAST(TT, BSPL6D0_SEG0(x));                                \
+  } else if (x < 1.5) {                                                 \
+    ret = AIR_CAST(TT, BSPL6D0_SEG1(x));                                \
+  } else if (x < 2.5) {                                                 \
+    ret = AIR_CAST(TT, BSPL6D0_SEG2(x));                                \
+  } else if (x < 3.5) {                                                 \
+    t = AIR_CAST(TT, x - 3.5);                                          \
+    ret = AIR_CAST(TT, 0.00139*t*t*t*t*t*t );                           \
+  } else {                                                              \
+    ret = 0;                                                            \
+  }
+
+BSPL_EVEN_METHODS(_bspl6d0, BSPL6D0)
+
+static NrrdKernel
+_nrrdKernelBSpline6 = {
+  "bspl6",
+  BSPL_DECL(6, 0)
+};
+NrrdKernel *const
+nrrdKernelBSpline6 = &_nrrdKernelBSpline6;
+
+/* ---------------------- order *6* deriv *1* -------------------------- */
+
+#define BSPL6D1_SEG0(x) x*(-0.8020833333333333333 + x*x*(0.5833333333333333333 - x*x*0.16666666666666666667))
+#define BSPL6D1_SEG1(x) 0.1250000000000000*(-2.204221529535419 + x)*(0.01290998431413690 + x)*(0.5355244627388528 + x)*(4.784830284687429 + (-4.177546250850904 + x)*x)
+#define BSPL6D1_SEG2(x) -0.050000000000000*(-0.39815802840054 + x)*(8.4005837632394 + (-5.7883654809137 + x)*x)*(7.8916975718499 + (-5.4801431573524 + x)*x)
+#define BSPL6D1(ret, TT, t, x)                                          \
+  if (x < 0.5) {                                                        \
+    ret = AIR_CAST(TT, BSPL6D1_SEG0(x));                                \
+  } else if (x < 1.5) {                                                 \
+    ret = AIR_CAST(TT, BSPL6D1_SEG1(x));                                \
+  } else if (x < 2.5) {                                                 \
+    ret = AIR_CAST(TT, BSPL6D1_SEG2(x));                                \
+  } else if (x < 3.5) {                                                 \
+    t = AIR_CAST(TT, -3.5 + x);                                         \
+    ret = AIR_CAST(TT, 0.00833*t*t*t*t*t);                              \
+  } else {                                                              \
+    ret = 0.0;                                                          \
+  }
+
+BSPL_ODD_METHODS(_bspl6d1, BSPL6D1)
+
+static NrrdKernel
+_nrrdKernelBSpline6D = {
+  "bspl6d",
+  BSPL_DECL(6, 1)
+};
+NrrdKernel *const
+nrrdKernelBSpline6D = &_nrrdKernelBSpline6D;
+
+/* ---------------------- order *6* deriv *2* -------------------------- */
+
+#define BSPL6D2_SEG0(x) -0.80208333333333333333 + x*x*(1.75 - x*x*0.833333333333333333)
+#define BSPL6D2_SEG1(x) 0.625*(-0.8093237825464294 + x)*(0.3133677888004832 + x)*(4.485127047744998 + (-4.170710672920720 + x)*x)
+#define BSPL6D2_SEG2(x) -0.25*(-2.88072372021534 + x)*(-0.904025842763129 + x)*(7.89575131106459 + (-5.54858377035486 + x)*x)
+#define BSPL6D2(ret, TT, t, x)                                          \
+  if (x < 0.5) {                                                        \
+    ret = AIR_CAST(TT, BSPL6D2_SEG0(x));                                \
+  } else if (x < 1.5) {                                                 \
+    ret = AIR_CAST(TT, BSPL6D2_SEG1(x));                                \
+  } else if (x < 2.5) {                                                 \
+    ret = AIR_CAST(TT, BSPL6D2_SEG2(x));                                \
+  } else if (x < 3.5) {                                                 \
+    t = AIR_CAST(TT, 7.0 - 2.0*x);                                      \
+    ret = AIR_CAST(TT, 0.0026041666666666666667*t*t*t*t);               \
+  } else {                                                              \
+    ret = 0;                                                            \
+  }
+
+BSPL_EVEN_METHODS(_bspl6d2, BSPL6D2)
+
+static NrrdKernel
+_nrrdKernelBSpline6DD = {
+  "bspl6dd",
+  BSPL_DECL(6, 2)
+};
+NrrdKernel *const
+nrrdKernelBSpline6DD = &_nrrdKernelBSpline6DD;
+
+/* ---------------------- order *6* deriv *3* -------------------------- */
+
+#define BSPL6D3(ret, TT, t, x)                                          \
+  if (x < 0.5) {                                                        \
+    ret = AIR_CAST(TT, x*(3.5 - 3.3333333333333333333*x*x));            \
+  } else if (x < 1.5) {                                                 \
+    ret = AIR_CAST(TT, 2.5*(-1.99263608511781188 + x)*(-1.40303873392913616 + x)*(-0.104325180953051958 + x)); \
+  } else if (x < 2.5) {                                                 \
+    ret = AIR_CAST(TT, -1*(-1.404627184534107 + x)*(7.890587235793465 + (-5.595372815465893 + x)*x)); \
+  } else if (x < 3.5) {                                                 \
+    t = AIR_CAST(TT, -7 + 2*x);                                         \
+    ret = AIR_CAST(TT, 0.020833333333333333333*t*t*t);                  \
+  } else {                                                              \
+    ret = 0.0;                                                          \
+  }
+
+BSPL_ODD_METHODS(_bspl6d3, BSPL6D3)
+
+static NrrdKernel
+_nrrdKernelBSpline6DDD = {
+  "bspl6ddd",
+  BSPL_DECL(6, 3)
+};
+NrrdKernel *const
+nrrdKernelBSpline6DDD = &_nrrdKernelBSpline6DDD;
 
 /* ============================= order *7* ============================= */
 
@@ -927,13 +900,7 @@ _bspl7_sup(const double *parm) {
 
 /* ---------------------- order *7* deriv *0* -------------------------- */
 
-static double
-_bspl7d0_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 1.0;
-}
-
-#define BSPL7D0_T(ret, TT, t, x)                                         \
+#define BSPL7D0(ret, TT, t, x)                                          \
   if (x < 1) {                                                          \
     ret = AIR_CAST(TT, 151.0/315.0 + x*x*(-48.0 + x*x*(16.0 + x*x*(-4 + x)))/144.0); \
   } else if (x < 2) {                                                   \
@@ -947,51 +914,7 @@ _bspl7d0_int(const double *parm) {
     ret = 0;                                                            \
   }
 
-static double
-_bspl7d0_1d(double x, const double *parm) {
-  double ax, tmp, r;
-  AIR_UNUSED(parm);
-
-  ax = AIR_ABS(x);
-  BSPL7D0_T(r, double, tmp, ax);
-  return r;
-}
-
-static float
-_bspl7d0_1f(float x, const double *parm) {
-  float ax, tmp, r;
-  AIR_UNUSED(parm);
-
-  ax = AIR_ABS(x);
-  BSPL7D0_T(r, float, tmp, ax);
-  return r;
-}
-
-static void
-_bspl7d0_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, tmp, r;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ax = x[i]; ax = AIR_ABS(ax);
-    BSPL7D0_T(r, double, tmp, ax);
-    f[i] = r;
-  }
-}
-
-static void
-_bspl7d0_Nf(float *f, const float *x, size_t len, const double *parm) {
-  float ax, tmp, r;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ax = x[i]; ax = AIR_ABS(ax);
-    BSPL7D0_T(r, float, tmp, ax);
-    f[i] = r;
-  }
-}
+BSPL_EVEN_METHODS(_bspl7d0, BSPL7D0)
 
 static NrrdKernel
 _nrrdKernelBSpline7 = {
@@ -1003,13 +926,7 @@ nrrdKernelBSpline7 = &_nrrdKernelBSpline7;
 
 /* ---------------------- order *7* deriv *1* -------------------------- */
 
-static double
-_bspl7d1_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
-#define BSPL7D1_T(ret, TT, t, x)                                        \
+#define BSPL7D1(ret, TT, t, x)                                          \
   if (x < 1) {                                                          \
     ret = AIR_CAST(TT, x*(-96.0 + x*x*(64.0 + x*x*(-24.0 + 7.0*x)))/144.0); \
   } else if (x < 2) {                                                   \
@@ -1023,55 +940,7 @@ _bspl7d1_int(const double *parm) {
     ret = 0.0;                                                          \
   }
 
-static double
-_bspl7d1_1d(double x, const double *parm) {
-  double ax, tmp, r;
-  int sgn;
-  AIR_UNUSED(parm);
-
-  ABS_SGN(ax, sgn, x);
-  BSPL7D1_T(r, double, tmp, ax);
-  return sgn*r;
-}
-
-static float
-_bspl7d1_1f(float x, const double *parm) {
-  float ax, tmp, r;
-  int sgn;
-  AIR_UNUSED(parm);
-
-  ABS_SGN(ax, sgn, x);
-  BSPL7D1_T(r, float, tmp, ax);
-  return sgn*r;
-}
-
-static void
-_bspl7d1_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, tmp, r;
-  int sgn;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ABS_SGN(ax, sgn, x[i]);
-    BSPL7D1_T(r, double, tmp, ax);
-    f[i] = sgn*r;
-  }
-}
-
-static void
-_bspl7d1_Nf(float *f, const float *x, size_t len, const double *parm) {
-  float ax, tmp, r;
-  int sgn;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ABS_SGN(ax, sgn, x[i]);
-    BSPL7D1_T(r, float, tmp, ax);
-    f[i] = sgn*r;
-  }
-}
+BSPL_ODD_METHODS(_bspl7d1, BSPL7D1)
 
 static NrrdKernel
 _nrrdKernelBSpline7D = {
@@ -1083,13 +952,7 @@ nrrdKernelBSpline7D = &_nrrdKernelBSpline7D;
 
 /* ---------------------- order *7* deriv *2* -------------------------- */
 
-static double
-_bspl7d2_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
-#define BSPL7D2_T(ret, TT, t, x)                                        \
+#define BSPL7D2(ret, TT, t, x)                                          \
   if (x < 1) {                                                          \
     ret = AIR_CAST(TT, (-16.0 + x*x*(32 + x*x*(-20 + 7*x)))/24.0);      \
   } else if (x < 2) {                                                   \
@@ -1103,51 +966,7 @@ _bspl7d2_int(const double *parm) {
     ret = 0;                                                            \
   }
 
-static double
-_bspl7d2_1d(double x, const double *parm) {
-  double ax, tmp, r;
-  AIR_UNUSED(parm);
-
-  ax = AIR_ABS(x);
-  BSPL7D2_T(r, double, tmp, ax);
-  return r;
-}
-
-static float
-_bspl7d2_1f(float x, const double *parm) {
-  float ax, tmp, r;
-  AIR_UNUSED(parm);
-
-  ax = AIR_ABS(x);
-  BSPL7D2_T(r, float, tmp, ax);
-  return r;
-}
-
-static void
-_bspl7d2_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, tmp, r;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ax = AIR_ABS(x[i]);
-    BSPL7D2_T(r, double, tmp, ax);
-    f[i] = r;
-  }
-}
-
-static void
-_bspl7d2_Nf(float *f, const float *x, size_t len, const double *parm) {
-  float ax, tmp, r;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ax = AIR_ABS(x[i]);
-    BSPL7D2_T(r, float, tmp, ax);
-    f[i] = r;
-  }
-}
+BSPL_EVEN_METHODS(_bspl7d2, BSPL7D2)
 
 static NrrdKernel
 _nrrdKernelBSpline7DD = {
@@ -1159,13 +978,7 @@ nrrdKernelBSpline7DD = &_nrrdKernelBSpline7DD;
 
 /* ---------------------- order *7* deriv *3* -------------------------- */
 
-static double
-_bspl7d3_int(const double *parm) {
-  AIR_UNUSED(parm);
-  return 0.0;
-}
-
-#define BSPL7D3_T(ret, TT, t, x)                                        \
+#define BSPL7D3(ret, TT, t, x)                                          \
   if (x < 1) {                                                          \
     ret = AIR_CAST(TT, x*(64 + 5*x*x*(-16 + 7*x))/24);                  \
   } else if (x < 2) {                                                   \
@@ -1179,55 +992,7 @@ _bspl7d3_int(const double *parm) {
     ret = 0.0;                                                          \
   }
 
-static double
-_bspl7d3_1d(double x, const double *parm) {
-  double ax, tmp, r;
-  int sgn;
-  AIR_UNUSED(parm);
-
-  ABS_SGN(ax, sgn, x);
-  BSPL7D3_T(r, double, tmp, ax);
-  return sgn*r;
-}
-
-static float
-_bspl7d3_1f(float x, const double *parm) {
-  float ax, tmp, r;
-  int sgn;
-  AIR_UNUSED(parm);
-
-  ABS_SGN(ax, sgn, x);
-  BSPL7D3_T(r, float, tmp, ax);
-  return sgn*r;
-}
-
-static void
-_bspl7d3_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, tmp, r;
-  int sgn;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ABS_SGN(ax, sgn, x[i]);
-    BSPL7D3_T(r, double, tmp, ax);
-    f[i] = sgn*r;
-  }
-}
-
-static void
-_bspl7d3_Nf(float *f, const float *x, size_t len, const double *parm) {
-  float ax, tmp, r;
-  int sgn;
-  size_t i;
-  AIR_UNUSED(parm);
-
-  for (i=0; i<len; i++) {
-    ABS_SGN(ax, sgn, x[i]);
-    BSPL7D3_T(r, float, tmp, ax);
-    f[i] = sgn*r;
-  }
-}
+BSPL_ODD_METHODS(_bspl7d3, BSPL7D3)
 
 static NrrdKernel
 _nrrdKernelBSpline7DDD = {
@@ -1291,7 +1056,7 @@ _bspl7_ANI_int(const double *parm) {
 
 static double
 _bspl7_ANI_1d(double x, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
@@ -1301,7 +1066,7 @@ _bspl7_ANI_1d(double x, const double *parm) {
 
 static float
 _bspl7_ANI_1f(float x, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
@@ -1311,7 +1076,7 @@ _bspl7_ANI_1f(float x, const double *parm) {
 
 static void
 _bspl7_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   size_t i;
   AIR_UNUSED(parm);
 
@@ -1324,7 +1089,7 @@ _bspl7_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
 
 static void
 _bspl7_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   size_t i;
   AIR_UNUSED(parm);
 

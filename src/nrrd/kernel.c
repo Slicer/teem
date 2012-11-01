@@ -932,7 +932,7 @@ nrrdKernelBCCubic = &_nrrdKernelBC;
 /* ------------------------------------------------------------ */
 
 #define _DBCCUBIC(x, B, C)                        \
-   (x >= 2.0 ? 0 :                                \
+   (x >= 2.0 ? 0.0 :                              \
    (x >= 1.0                                      \
     ? ((-B/2 - 3*C)*x + 2*B + 10*C)*x -2*B - 8*C  \
     : ((6 - 9*B/2 - 3*C)*x - 6 + 4*B + 2*C)*x))
@@ -967,7 +967,7 @@ _nrrdDBC1_f(float x, const double *parm) {
   C = AIR_CAST(float, parm[2]);
   if (x < 0) { x = -x; sgn = -1; }
   x /= S;
-  return sgn*_DBCCUBIC(x, B, C)/(S*S);
+  return AIR_CAST(float, sgn*_DBCCUBIC(x, B, C)/(S*S));
 }
 
 static void
@@ -997,7 +997,7 @@ _nrrdDBCN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i]/S;
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = sgn*_DBCCUBIC(t, B, C)/(S*S);
+    f[i] = AIR_CAST(float, sgn*_DBCCUBIC(t, B, C)/(S*S));
   }
 }
 
@@ -1980,7 +1980,7 @@ _c4hex_ANI_sup(const double *parm) {
 
 static double
 _c4hex_ANI_1d(double x, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   AIR_UNUSED(parm);
   ax = AIR_ABS(x);
   C4HEX_ANI(r, tmp, ax);
@@ -1989,7 +1989,7 @@ _c4hex_ANI_1d(double x, const double *parm) {
 
 static float
 _c4hex_ANI_1f(float x, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   AIR_UNUSED(parm);
   ax = AIR_ABS(x);
   C4HEX_ANI(r, tmp, ax);
@@ -1998,7 +1998,7 @@ _c4hex_ANI_1f(float x, const double *parm) {
 
 static void
 _c4hex_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   size_t i;
   AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
@@ -2010,7 +2010,7 @@ _c4hex_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
 
 static void
 _c4hex_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   size_t i;
   AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
@@ -2066,7 +2066,7 @@ _c5sept1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
   xi = AIR_CAST(unsigned int, x);
-  x -= xi;
+  x -= AIR_CAST(float, xi);
   return AIR_CAST(float, _C5SEPT(xi, x));
 }
 
@@ -2095,7 +2095,7 @@ _c5septN_f(float *f, const float *x, size_t len, const double *parm) {
     t = x[i];
     t = AIR_ABS(t);
     ti = AIR_CAST(unsigned int, t);
-    t -= ti;
+    t -= AIR_CAST(float, ti);
     f[i] = AIR_CAST(float, _C5SEPT(ti, t));
   }
 }
@@ -2138,7 +2138,7 @@ _dc5sept1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; }
   xi = AIR_CAST(unsigned int, x);
-  x -= xi;
+  x -= AIR_CAST(float, xi);
   return AIR_CAST(float, sgn*_DC5SEPT(xi, x));
 }
 
@@ -2169,7 +2169,7 @@ _dc5septN_f(float *f, const float *x, size_t len, const double *parm) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
     ti = AIR_CAST(unsigned int, t);
-    t -= ti;
+    t -= AIR_CAST(float, ti);
     f[i] = AIR_CAST(float, sgn*_DC5SEPT(ti, t));
   }
 }
@@ -2210,7 +2210,7 @@ _ddc5sept1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
   xi = AIR_CAST(unsigned int, x);
-  x -= xi;
+  x -= AIR_CAST(float, xi);
   return AIR_CAST(float, _DDC5SEPT(xi, x));
 }
 
@@ -2239,7 +2239,7 @@ _ddc5septN_f(float *f, const float *x, size_t len, const double *parm) {
     t = x[i];
     t = AIR_ABS(t);
     ti = AIR_CAST(unsigned int, t);
-    t -= ti;
+    t -= AIR_CAST(float, ti);
     f[i] = AIR_CAST(float, _DDC5SEPT(ti, t));
   }
 }
@@ -2282,7 +2282,7 @@ _dddc5sept1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; }
   xi = AIR_CAST(unsigned int, x);
-  x -= xi;
+  x -= AIR_CAST(float, xi);
   return AIR_CAST(float, sgn*_DDDC5SEPT(xi, x));
 }
 
@@ -2313,7 +2313,7 @@ _dddc5septN_f(float *f, const float *x, size_t len, const double *parm) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
     ti = AIR_CAST(unsigned int, t);
-    t -= ti;
+    t -= AIR_CAST(float, ti);
     f[i] = AIR_CAST(float, sgn*_DDDC5SEPT(ti, t));
   }
 }
@@ -2384,7 +2384,7 @@ _c5sept_ANI_int(const double *parm) {
 
 static double
 _c5sept_ANI_1d(double x, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
@@ -2394,7 +2394,7 @@ _c5sept_ANI_1d(double x, const double *parm) {
 
 static float
 _c5sept_ANI_1f(float x, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   AIR_UNUSED(parm);
 
   ax = AIR_ABS(x);
@@ -2404,7 +2404,7 @@ _c5sept_ANI_1f(float x, const double *parm) {
 
 static void
 _c5sept_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   size_t i;
   AIR_UNUSED(parm);
 
@@ -2417,7 +2417,7 @@ _c5sept_ANI_Nd(double *f, const double *x, size_t len, const double *parm) {
 
 static void
 _c5sept_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
-  double ax, r; int tmp;
+  double ax, r; unsigned int tmp;
   size_t i;
   AIR_UNUSED(parm);
 
@@ -2870,6 +2870,12 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("bkmndd", str))     return nrrdKernelBlackmanDD;
   if (!strcmp("blackdd", str))    return nrrdKernelBlackmanDD;
   if (!strcmp("blackmandd", str)) return nrrdKernelBlackmanDD;
+  if (!strcmp("bspl2", str))      return nrrdKernelBSpline2;
+  if (!strcmp("bspln2", str))     return nrrdKernelBSpline2;
+  if (!strcmp("bspl2d", str))     return nrrdKernelBSpline2D;
+  if (!strcmp("bspln2d", str))    return nrrdKernelBSpline2D;
+  if (!strcmp("bspl2dd", str))    return nrrdKernelBSpline2DD;
+  if (!strcmp("bspln2dd", str))   return nrrdKernelBSpline2DD;
   if (!strcmp("bspl3", str))      return nrrdKernelBSpline3;
   if (!strcmp("bspln3", str))     return nrrdKernelBSpline3;
   if (!strcmp("bspl3ai", str))    return nrrdKernelBSpline3ApproxInverse;
@@ -2880,6 +2886,14 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("bspln3dd", str))   return nrrdKernelBSpline3DD;
   if (!strcmp("bspl3ddd", str))   return nrrdKernelBSpline3DDD;
   if (!strcmp("bspln3ddd", str))  return nrrdKernelBSpline3DDD;
+  if (!strcmp("bspl4", str))      return nrrdKernelBSpline4;
+  if (!strcmp("bspln4", str))     return nrrdKernelBSpline4;
+  if (!strcmp("bspl4d", str))     return nrrdKernelBSpline4D;
+  if (!strcmp("bspln4d", str))    return nrrdKernelBSpline4D;
+  if (!strcmp("bspl4dd", str))    return nrrdKernelBSpline4DD;
+  if (!strcmp("bspln4dd", str))   return nrrdKernelBSpline4DD;
+  if (!strcmp("bspl4ddd", str))   return nrrdKernelBSpline4DDD;
+  if (!strcmp("bspln4ddd", str))  return nrrdKernelBSpline4DDD;
   if (!strcmp("bspl5", str))      return nrrdKernelBSpline5;
   if (!strcmp("bspln5", str))     return nrrdKernelBSpline5;
   if (!strcmp("bspl5ai", str))    return nrrdKernelBSpline5ApproxInverse;
@@ -2890,6 +2904,14 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("bspln5dd", str))   return nrrdKernelBSpline5DD;
   if (!strcmp("bspl5ddd", str))   return nrrdKernelBSpline5DDD;
   if (!strcmp("bspln5ddd", str))  return nrrdKernelBSpline5DDD;
+  if (!strcmp("bspl6", str))      return nrrdKernelBSpline6;
+  if (!strcmp("bspln6", str))     return nrrdKernelBSpline6;
+  if (!strcmp("bspl6d", str))     return nrrdKernelBSpline6D;
+  if (!strcmp("bspln6d", str))    return nrrdKernelBSpline6D;
+  if (!strcmp("bspl6dd", str))    return nrrdKernelBSpline6DD;
+  if (!strcmp("bspln6dd", str))   return nrrdKernelBSpline6DD;
+  if (!strcmp("bspl6ddd", str))   return nrrdKernelBSpline6DDD;
+  if (!strcmp("bspln6ddd", str))  return nrrdKernelBSpline6DDD;
   if (!strcmp("bspl7", str))      return nrrdKernelBSpline7;
   if (!strcmp("bspln7", str))     return nrrdKernelBSpline7;
   if (!strcmp("bspl7ai", str))    return nrrdKernelBSpline7ApproxInverse;
@@ -2928,8 +2950,8 @@ nrrdKernelParse(const NrrdKernel **kernelP,
   char str[AIR_STRLEN_HUGE],
     kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr,
     *tmfStr[4] = {NULL, NULL, NULL, NULL};
-  int j, tmfD, tmfC, tmfA;
-  unsigned int haveParm, needParm;
+  int tmfD, tmfC, tmfA;
+  unsigned int jj, haveParm, needParm;
   airArray *mop;
 
   if (!(kernelP && parm && _str)) {
@@ -2942,8 +2964,8 @@ nrrdKernelParse(const NrrdKernel **kernelP,
   ** nrrdKernelSet copies all arguments into its own array later, and
   ** copying uninitialised memory is bad (it traps my memory debugger).
   */
-  for (j=0; j<NRRD_KERNEL_PARMS_NUM; j++) {
-    parm[j] = 0;
+  for (jj=0; jj<NRRD_KERNEL_PARMS_NUM; jj++) {
+    parm[jj] = 0;
   }
 
   airStrcpy(str, AIR_STRLEN_HUGE, _str);
@@ -3070,8 +3092,8 @@ nrrdKernelParse(const NrrdKernel **kernelP,
     } else if (haveParm == needParm &&
                needParm == (*kernelP)->numParm-1) {
       /* shift up parsed values, and set parm[0] to default */
-      for (j=haveParm; j>=1; j--) {
-        parm[j] = parm[j-1];
+      for (jj=haveParm; jj>=1; jj--) {
+        parm[jj] = parm[jj-1];
       }
       parm[0] = nrrdDefaultKernelParm0;
     } else {
@@ -3295,7 +3317,8 @@ nrrdKernelCheck(const NrrdKernel *kern,
   }
 
   supp = kern->support(parm);
-  wee = 2*supp/evalNum; /* the step between evaluation points */
+  /* wee is the step between evaluation points */
+  wee = 2*supp/AIR_CAST(double, evalNum);
   if ( (kern->eval1_d)(supp+wee/1000, parm) ||
        (kern->eval1_d)(supp+wee, parm) ||
        (kern->eval1_d)(supp+10*wee, parm) ||
