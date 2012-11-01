@@ -175,6 +175,54 @@ returnOne(const double *parm) {
     }                                                    \
   }
 
+/* ============================= order *1* ============================= */
+
+static double
+_bspl1_sup(const double *parm) {
+  AIR_UNUSED(parm);
+  return 1.0;
+}
+
+/* ---------------------- order *1* deriv *0* -------------------------- */
+
+#define BSPL1D0(ret, TT, t, x)                 \
+  AIR_UNUSED(t);                               \
+  if (x < 1) {                                 \
+    ret = AIR_CAST(TT, 1.0 - x);               \
+  } else {                                     \
+    ret = 0;                                   \
+  }
+
+BSPL_EVEN_METHODS(_bspl1d0, BSPL1D0)
+
+static NrrdKernel
+_nrrdKernelBSpline1 = {
+  "bspl1",
+  BSPL_DECL(1, 0)
+};
+NrrdKernel *const
+nrrdKernelBSpline1 = &_nrrdKernelBSpline1;
+
+/* ---------------------- order *1* deriv *1* -------------------------- */
+
+#define BSPL1D1(ret, TT, t, x)                 \
+  AIR_UNUSED(t);                               \
+  if (x < 1) {                                 \
+    ret = AIR_CAST(TT, -1.0);                  \
+  } else {                                     \
+    ret = 0;                                   \
+  }
+
+BSPL_ODD_METHODS(_bspl1d1, BSPL1D1)
+
+static NrrdKernel
+_nrrdKernelBSpline1D = {
+  "bspl1d",
+  BSPL_DECL(1, 1)
+};
+NrrdKernel *const
+nrrdKernelBSpline1D = &_nrrdKernelBSpline1D;
+
 /* ============================= order *2* ============================= */
 
 static double

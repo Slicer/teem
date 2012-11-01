@@ -2870,6 +2870,10 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("bkmndd", str))     return nrrdKernelBlackmanDD;
   if (!strcmp("blackdd", str))    return nrrdKernelBlackmanDD;
   if (!strcmp("blackmandd", str)) return nrrdKernelBlackmanDD;
+  if (!strcmp("bspl1", str))      return nrrdKernelBSpline1;
+  if (!strcmp("bspln1", str))     return nrrdKernelBSpline1;
+  if (!strcmp("bspl1d", str))     return nrrdKernelBSpline1D;
+  if (!strcmp("bspln1d", str))    return nrrdKernelBSpline1D;
   if (!strcmp("bspl2", str))      return nrrdKernelBSpline2;
   if (!strcmp("bspln2", str))     return nrrdKernelBSpline2;
   if (!strcmp("bspl2d", str))     return nrrdKernelBSpline2D;

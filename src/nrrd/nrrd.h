@@ -1433,6 +1433,8 @@ NRRD_EXPORT NrrdKernel
 /* bsplKernel.c: b-splines of various orders; these do not interpolate,
    but the ApproxInverse kernels are ok for pre-filtering so that they do */
 NRRD_EXPORT NrrdKernel
+  *const nrrdKernelBSpline1,     /* 1st order B-spline */
+  *const nrrdKernelBSpline1D,
   *const nrrdKernelBSpline2,     /* 2nd order (quadratic) B-spline */
   *const nrrdKernelBSpline2D,
   *const nrrdKernelBSpline2DD,

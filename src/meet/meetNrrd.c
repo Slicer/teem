@@ -95,6 +95,8 @@ meetNrrdKernelAll(void) {
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBlackmanDD;
 
   /* bsplKernel.c */
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline1;
+  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline1D;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline2;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline2D;
   ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline2DD;
@@ -162,6 +164,7 @@ kintegral(const NrrdKernel *kd) {
   INTGL(nrrdKernelBlackman);
   INTGL(nrrdKernelBlackmanD);
 
+  INTGL(nrrdKernelBSpline1);
   INTGL(nrrdKernelBSpline2);
   INTGL(nrrdKernelBSpline2D);
   INTGL(nrrdKernelBSpline3);
