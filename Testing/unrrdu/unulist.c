@@ -51,8 +51,8 @@ main(int argc, const char **argv) {
      stdout, and return values, is consistent across all commands */
 
   fprintf(out, "%s: ################### BEGIN unu\n", me);
-  ret = unrrduUsage("unu", hparm);
-  fprintf(out, "%s: ################### END unu (ret=%d)\n", me, ret);
+  unrrduUsageUnu("unu", hparm);
+  fprintf(out, "%s: ################### END unu\n", me);
 
   uci = 0;
   do {

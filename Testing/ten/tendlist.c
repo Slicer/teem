@@ -47,7 +47,7 @@ main(int argc, const char **argv) {
   /* (same purpose as Testing/unrrdu/unulist.c) */
 
   fprintf(out, "%s: ################### BEGIN tend\n", me);
-  ret = tendUsage("tend", hparm);
+  ret = unrrduUsage("tend", hparm, tendTitle, tendCmdList);
   fprintf(out, "%s: ################### END tend (ret=%d)\n", me, ret);
 
   tci = 0;
