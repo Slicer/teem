@@ -99,9 +99,9 @@ main(int argc, const char **argv) {
 
   /* if there are no arguments, then we give general usage information */
   if (1 >= argc) {
-    ret = unrrduUsage("unu", hparm);
+    unrrduUsageUnu("unu", hparm);
     airMopError(mop);
-    exit(ret);
+    exit(1);
   }
   /* else, we see if its --version */
   if (!strcmp("--version", argv[1])) {

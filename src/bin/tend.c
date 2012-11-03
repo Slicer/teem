@@ -76,7 +76,7 @@ main(int argc, const char **argv) {
 
   /* if there are no arguments, then we give general usage information */
   if (1 >= argc) {
-    tendUsage(TEND, hparm);
+    unrrduUsage(TEND, hparm, tendTitle, tendCmdList);
     airMopError(mop);
     exit(1);
   }

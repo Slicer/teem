@@ -48,13 +48,13 @@ unrrduCmdList[] = {
 };
 
 /*
-******** unrrduUsage
+******** unrrduUsageSpecial
 **
 ** prints out a little banner, and a listing of all available commands
 ** with their one-line descriptions
 */
-int
-unrrduUsage(const char *me, hestParm *hparm) {
+void
+unrrduUsageUnu(const char *me, hestParm *hparm) {
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
   unsigned int cmdi, chi, len, maxlen;
 
@@ -99,6 +99,52 @@ unrrduUsage(const char *me, hestParm *hparm) {
       _hestPrintStr(stdout, len, len, hparm->columns,
                     unrrduCmdList[cmdi]->info, AIR_FALSE);
     }
+  }
+  return;
+}
+
+/*
+******** unrrduUsage
+**
+** A generic version of the usage command, which can be used by other
+** programs that are leveraging the unrrduCmd infrastructure.
+**
+** does not use biff
+*/
+int
+unrrduUsage(const char *me, hestParm *hparm,
+            const char *title, unrrduCmd **cmdList) {
+  char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
+  unsigned int cmdi, chi, len, maxlen;
+
+  if (!(title && cmdList)) {
+    /* got NULL pointer */
+    return 1;
+  }
+  maxlen = 0;
+  for (cmdi=0; cmdList[cmdi]; cmdi++) {
+    maxlen = AIR_MAX(maxlen, AIR_UINT(strlen(cmdList[cmdi]->name)));
+  }
+
+  sprintf(buff, "--- %s ---", title);
+  len = AIR_UINT(strlen(buff));
+  sprintf(fmt, "%%%us\n", (hparm->columns > len
+                           ? hparm->columns-len
+                           : 0)/2 + len - 1);
+  fprintf(stdout, fmt, buff);
+  for (cmdi=0; cmdList[cmdi]; cmdi++) {
+    len = AIR_UINT(strlen(cmdList[cmdi]->name));
+    strcpy(buff, "");
+    for (chi=len; chi<maxlen; chi++)
+      strcat(buff, " ");
+    strcat(buff, me);
+    strcat(buff, " ");
+    strcat(buff, cmdList[cmdi]->name);
+    strcat(buff, " ... ");
+    len = AIR_UINT(strlen(buff));
+    fprintf(stdout, "%s", buff);
+    _hestPrintStr(stdout, len, len, hparm->columns,
+                  cmdList[cmdi]->info, AIR_FALSE);
   }
   return 0;
 }

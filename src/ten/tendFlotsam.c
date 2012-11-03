@@ -36,43 +36,7 @@ tendCmdList[] = {
   NULL
 };
 
-/*
-******** tendUsage
-**
-** prints out a little banner, and a listing of all available commands
-** with their one-line descriptions
-*/
-int
-tendUsage(const char *me, hestParm *hparm) {
-  int i, maxlen, len, c;
-  char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
-
-  maxlen = 0;
-  for (i=0; tendCmdList[i]; i++) {
-    maxlen = AIR_MAX(maxlen, (int)strlen(tendCmdList[i]->name));
-  }
-
-  sprintf(buff, "--- Diffusion Image Processing and Analysis ---");
-  sprintf(fmt, "%%%ds\n",
-          (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
-  fprintf(stdout, fmt, buff);
-
-  for (i=0; tendCmdList[i]; i++) {
-    len = strlen(tendCmdList[i]->name);
-    strcpy(buff, "");
-    for (c=len; c<maxlen; c++)
-      strcat(buff, " ");
-    strcat(buff, me);
-    strcat(buff, " ");
-    strcat(buff, tendCmdList[i]->name);
-    strcat(buff, " ... ");
-    len = strlen(buff);
-    fprintf(stdout, "%s", buff);
-    _hestPrintStr(stdout, len, len, hparm->columns,
-                  tendCmdList[i]->info, AIR_FALSE);
-  }
-  return 0;
-}
+const char *tendTitle = "tend: Diffusion Image Processing and Analysis";
 
 /*
 ******** tendFiberStopParse

@@ -69,7 +69,7 @@ tend_aboutMain(int argc, const char **argv, const char *me,
   AIR_UNUSED(me);
 
   fprintf(stdout, "\n");
-  sprintf(buff, "--- tend: Diffusion Image Processing and Analysis ---");
+  sprintf(buff, "--- %s ---", tendTitle);
   sprintf(fmt, "%%%ds\n",
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stdout, fmt, buff);
