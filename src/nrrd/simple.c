@@ -1575,6 +1575,30 @@ nrrdSanity(void) {
 }
 
 /* ---- BEGIN non-NrrdIO */
+
+void
+nrrdSanityOrDie(const char *me) {
+  char *err;
+
+  if (!nrrdSanity()) {
+    fprintf(stderr, "******************************************\n");
+    fprintf(stderr, "******************************************\n");
+    fprintf(stderr, "\n");
+    fprintf(stderr, "  %s: Nrrd sanity check failed.\n", me);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "  This probably means that there was an error\n");
+    fprintf(stderr, "  in the configuration, compilation, or basic\n");
+    fprintf(stderr, "  variable definitions used for building Teem.\n");
+    fprintf(stderr, "  Error message:\n");
+    fprintf(stderr, "%s\n", err = biffGetDone(NRRD));
+    fprintf(stderr, "\n");
+    fprintf(stderr, "******************************************\n");
+    fprintf(stderr, "******************************************\n");
+    free(err);
+    exit(1);
+  }
+}
+
 void
 nrrdZeroSet(Nrrd *nout) {
 

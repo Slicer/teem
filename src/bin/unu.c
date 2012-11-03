@@ -34,7 +34,7 @@ int
 main(int argc, const char **argv) {
   int i, ret;
   const char *me;
-  char *argv0 = NULL, *err;
+  char *argv0 = NULL;
   hestParm *hparm;
   airArray *mop;
 
@@ -58,24 +58,7 @@ main(int argc, const char **argv) {
   }
 
   /* no harm done in making sure we're sane */
-  if (!nrrdSanity()) {
-    fprintf(stderr, "******************************************\n");
-    fprintf(stderr, "******************************************\n");
-    fprintf(stderr, "\n");
-    fprintf(stderr, "  %s: nrrd sanity check failed.\n", me);
-    fprintf(stderr, "\n");
-    fprintf(stderr, "  This means that either nrrd can't work on this "
-            "platform, or (more likely)\n");
-    fprintf(stderr, "  there was an error in the compilation options "
-            "and variable definitions\n");
-    fprintf(stderr, "  for how Teem was built here. Error message:\n");
-    fprintf(stderr, "%s\n", err = biffGetDone(NRRD));
-    fprintf(stderr, "\n");
-    fprintf(stderr, "******************************************\n");
-    fprintf(stderr, "******************************************\n");
-    free(err);
-    return 1;
-  }
+  nrrdSanityOrDie(me);
 
   mop = airMopNew();
   hparm = hestParmNew();
