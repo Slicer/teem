@@ -920,6 +920,15 @@ extern "C" {
    (v2)[1] = (v1)[1]/(v1)[3], \
    (v2)[2] = (v1)[2]/(v1)[3])
 
+/* 3-vector v2 = 4x4 homog coord matrix m times 3-vector v1,
+   using 4-vector tv as tmp */
+#define ELL_4M3V_HOMOG_MUL(v2, m, v1, tv)                               \
+  ((tv)[0]=(m)[ 0]*(v1)[0]+(m)[ 1]*(v1)[1]+(m)[ 2]*(v1)[2]+(m)[ 3],     \
+   (tv)[1]=(m)[ 4]*(v1)[0]+(m)[ 5]*(v1)[1]+(m)[ 6]*(v1)[2]+(m)[ 7],     \
+   (tv)[2]=(m)[ 8]*(v1)[0]+(m)[ 9]*(v1)[1]+(m)[10]*(v1)[2]+(m)[11],     \
+   (tv)[3]=(m)[12]*(v1)[0]+(m)[13]*(v1)[1]+(m)[14]*(v1)[2]+(m)[15]);    \
+  ELL_34V_HOMOG(v2, tv)
+
 #define ELL_34V_HOMOG_TT(v2, TT, v1) \
   ((v2)[0] = AIR_CAST(TT, (v1)[0]/(v1)[3]), \
    (v2)[1] = AIR_CAST(TT, (v1)[1]/(v1)[3]), \
