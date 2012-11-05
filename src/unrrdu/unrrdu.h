@@ -167,6 +167,7 @@ F(ccfind) \
 F(ccadj) \
 F(ccmerge) \
 F(ccsettle) \
+F(dnorm) \
 F(save)
 /* these two have been removed since no one uses them
 F(block) \

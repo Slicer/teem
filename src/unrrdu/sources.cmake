@@ -46,6 +46,7 @@ SET(UNRRDU_SOURCES
   minmax.c
   cksum.c
   diff.c
+  dnorm.c
   mlut.c
   mrmap.c
   pad.c
