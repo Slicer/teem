@@ -41,7 +41,7 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
 
   Nrrd *nin, *nout;
   NrrdIoState *nio;
-  int kindIn, kindOut, headerOnly, haveMM, trivialOrient, recenter;
+  int kindIn, kindOut, headerOnly, haveMM, trivialOrient, recenter, gotmf;
   unsigned int kindAxis, axi, si, sj;
   double sscl;
 
@@ -117,6 +117,7 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
       /* =============================================================== */
       kindOut = kindIn;
       break;
+      /* Some other kinds are mapped to those above */
     case nrrdKind3Color:
     case nrrdKindRGBColor:
       kindOut = nrrdKind3Vector;
@@ -154,7 +155,17 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
   nrrdCommentClear(nout);
 
   /* no measurement frame */
-  /* HEY: should warn if something interesting here is being nixed */
+  gotmf = AIR_FALSE;
+  for (si=0; si<NRRD_SPACE_DIM_MAX; si++) {
+    for (sj=0; sj<NRRD_SPACE_DIM_MAX; sj++) {
+      gotmf |= AIR_EXISTS(nout->measurementFrame[si][sj]);
+    }
+  }
+  if (gotmf) {
+    fprintf(stderr, "%s: WARNING: incoming array measurement frame; "
+            "it will be erased on output.\n", me);
+    airMopError(mop); exit(1);
+  }
   for (si=0; si<NRRD_SPACE_DIM_MAX; si++) {
     for (sj=0; sj<NRRD_SPACE_DIM_MAX; sj++) {
       nout->measurementFrame[si][sj] = AIR_NAN;
