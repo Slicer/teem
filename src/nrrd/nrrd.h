@@ -855,8 +855,7 @@ NRRD_EXPORT int nrrdSpaceSet(Nrrd *nrrd, int space);
 NRRD_EXPORT int nrrdSpaceDimensionSet(Nrrd *nrrd, unsigned int spaceDim);
 NRRD_EXPORT unsigned int nrrdSpaceOriginGet(const Nrrd *nrrd,
                                             double vector[NRRD_SPACE_DIM_MAX]);
-NRRD_EXPORT int nrrdSpaceOriginSet(Nrrd *nrrd,
-                                   double vector[NRRD_SPACE_DIM_MAX]);
+NRRD_EXPORT int nrrdSpaceOriginSet(Nrrd *nrrd, const double *vector);
 NRRD_EXPORT int nrrdOriginCalculate(const Nrrd *nrrd,
                                     unsigned int *axisIdx,
                                     unsigned int axisIdxNum,
