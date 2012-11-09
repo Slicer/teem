@@ -37,7 +37,7 @@ this is biffMsgErrNum and nrrdKeyValueSize.
 size_t instead of unsigned long long, or at least adding versions that
 work with size_t
 * either change AIR_STRLEN_* to AIR_BUFFSIZE_* (or something similar,
-or take out the +1 from their definition and it into usage: the 
+or take out the +1 from their definition and it into usage: the
 STRLEN is misleading as is.
 * important: change airArray implementation to re-allocate the array size
 multiplicatively (by some adjustable factor, default around 1.5 or 2.0),
@@ -46,7 +46,7 @@ http://en.wikipedia.org/wiki/Dynamic_array
 http://hg.python.org/cpython/file/e3be2941c834/Objects/listobject.c
 * consider terminating airEnum->strEqv with NULL (just like argv)
 instead of with empty string ""
-* reconcile names of "unsigned int airUIrandMT_r()" vs 
+* reconcile names of "unsigned int airUIrandMT_r()" vs
   "unsigned int airRandInt()" and "unsigned int airRandInt_r()"
 * consider having something like a teemContext, which might be:
  - the destination of thread-safe generating of error messages
@@ -67,7 +67,7 @@ correct but is completely wrong
 because "airTypeFloat" is there instead of "nrrdTypeFloat".  All
 things airType were created for the sake of hest. Instead of taking an
 airType enum value for hestOptAdd, hestOptAdd can take a string
-(e.g. "uchar", "float", "enum", "callback" for airTypeOther). 
+(e.g. "uchar", "float", "enum", "callback" for airTypeOther).
 
 biff:
 * biffMove(destKey, err, srcKey) --> biffMove(destKey, srcKey, err)
@@ -80,9 +80,15 @@ nrrd:
 * ponder utility of having "const void *constdata" field in the Nrrd struct,
   to allow a nrrd to wrap around data it doesn't own.  Would this supersede
   the nrrdNuke vs nrrdNix distinction?
+* nrrdKeyValueGet() is problematic: it either returns a pointer internal
+  to nrrd, which the user had better not free, or something newly allocated.
+  This completely goes against (at least the spirit of) const-correctness,
+  even though nrrdKeyValueGet() takes a const Nrrd *nrrd.  Consider breaking
+  this into const-returning nrrdKeyValuePointer() and allocate-on-return
+  nrrdKeyValueDup(), or some other way of making that distinction
 * int nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin,
                        const int *axmap, int excludeBitflag)
-  presents a problem for the principle that axis indices should be 
+  presents a problem for the principle that axis indices should be
   unsigned, because axmap[i]==-1 means something special.  Should
   this be changed to axmap[i]==UINT_MAX?
 * resolve basic confusion between unsigned and signed int with
@@ -90,8 +96,8 @@ nrrd:
   nio->charsPerLine and nio->valsPerLine, which are unsigned int,
   just like nrrdDefaultWriteCharsPerLine and nrrdDefaultWriteValsPerLine)
   and argument to nrrdIoStateSet.
-* with NrrdKernel: 
- - add fields for "what is my derivative" or "what is my integral", but 
+* with NrrdKernel:
+ - add fields for "what is my derivative" or "what is my integral", but
    how to do that at compile time?
  - "when parsing from string, parm[0] is needed" vs "parm[0] defaults to 1.0"
    OR, maybe simplify things by saying that all parameters are always needed
@@ -110,18 +116,18 @@ nrrd:
    formats that can be read from disk (fseek-able) but not from stdin.
    Is this something else that NrrdFormat should represent?
 * should re-evaluate the need for all the nrrdDefault and nrrdState
-  global variables, especially nrrdStateGrayscaleImage3D, 
-  nrrdEnvVarStateGrayscaleImage3D, 
+  global variables, especially nrrdStateGrayscaleImage3D,
+  nrrdEnvVarStateGrayscaleImage3D,
   nrrdDefaultSpacing, nrrdEnvVarDefaultSpacing, which seem antiquated
-* the percentile-based bounds specification now supported in e.g 
+* the percentile-based bounds specification now supported in e.g
   "unu histo", "unu quantize", and "unu jhisto" should be migrated down
-  to the nrrd library.  Consider doing this with a sorting of highest/lowest 
+  to the nrrd library.  Consider doing this with a sorting of highest/lowest
   values rather than a histogram (one less parameter, and often more accurate)
-* nrrdSpaceVecNorm(unsigned int sdim, const double vec[]) should 
+* nrrdSpaceVecNorm(unsigned int sdim, const double vec[]) should
   have its two args switch order in order to conform to Teem convention
   of "array first, length second"
-* revisit how FFTW is called and used.  How have others dealt with the 
-  weird global nature of reading/writing wisdom?  Should "rigor" be an 
+* revisit how FFTW is called and used.  How have others dealt with the
+  weird global nature of reading/writing wisdom?  Should "rigor" be an
   argument to nrrdFFT?  Is there really no error reporting on fftw_execute,
   fftw_export_wisdom_to_file?
 * make the verbosity level a field in NrrdIoState, remove nrrdStateVerboseIO
@@ -148,7 +154,7 @@ of having to set an environment variable to get it
 * unu dice -ff should change from using %d to %u
 * unu resample:
 -- should permit saying "resample this axis to whatever
-best preserves the aspect ratio relative to the one axis which is 
+best preserves the aspect ratio relative to the one axis which is
 being resampled via the older "N" or "xF" means"
 -- consider supporting more sophisticated expressions e.g. "x2" --> "x2+1"
 -- reconsider whether normalization should be turned on by default
@@ -203,7 +209,7 @@ tend estim -new -sigma 0.01 -est wls -i 6crop-dwi.nrrd \
 gage: re-modularize to facilitate probing bricked data
 
 make system really botched: change the size of the tenFiberContext
-(added a field or two), do a make ten/install, 
+(added a field or two), do a make ten/install,
 then cd ../push; rm -f test/pusher
 
 air: make airOneLine return number of bytes read; current return
@@ -264,7 +270,7 @@ development object files of push were not recompiled when they should
 have been- doing a make clobber; make in push solved the problem...
 Examples of this:
 - change limn.h, cd ../ten, make, nothing to be done WRONG
-- make a change in nrrdEnums.h, which unrrdu/project.c 
+- make a change in nrrdEnums.h, which unrrdu/project.c
   uses directly. recompile, and nrrd gets compiled, but not unrrdu,
   so unu doesn't get updated correctly!
 - add a macro in ELL, make install in ell,
