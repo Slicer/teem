@@ -287,13 +287,21 @@ _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   sprintf(cmt, "%c ", NRRD_COMMENT_CHAR);
   if (!nio->bareText) {
     if (1 == nrrd->dim) {
-      _nrrdFprintFieldInfo (file, cmt, nrrd, nio, nrrdField_dimension);
+      _nrrdFprintFieldInfo(file, cmt, nrrd, nio, nrrdField_dimension);
     }
     for (i=1; i<=NRRD_FIELD_MAX; i++) {
       if (_nrrdFieldValidInText[i]
           && nrrdField_dimension != i  /* dimension is handled above */
           && _nrrdFieldInteresting(nrrd, nio, i)) {
-        _nrrdFprintFieldInfo (file, cmt, nrrd, nio, i);
+        _nrrdFprintFieldInfo(file, cmt, nrrd, nio, i);
+      }
+    }
+    if (nrrdKeyValueSize(nrrd)) {
+      unsigned int kvi;
+      for (kvi=0; kvi<nrrd->kvpArr->len; kvi++) {
+        _nrrdKeyValueWrite(file, NULL, NULL,
+                           nrrd->kvp[0 + 2*kvi],
+                           nrrd->kvp[1 + 2*kvi]);
       }
     }
   }
