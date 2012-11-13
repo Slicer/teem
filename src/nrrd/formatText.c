@@ -122,7 +122,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       goto plain;
     }
     /* when reading plain text, we simply ignore repetitions of a field */
-    if (!nio->seen[fidx]
+    if ((nrrdField_keyvalue == fidx || !nio->seen[fidx])
         && nrrdFieldInfoParse[fidx](file, nrrd, nio, AIR_TRUE)) {
       errS = biffGetDone(NRRD);
       if (1 <= nrrdStateVerboseIO) {
