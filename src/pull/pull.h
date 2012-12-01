@@ -69,7 +69,7 @@ extern "C" {
 #define PULL_THREAD_MAXNUM 512
 #define PULL_VOLUME_MAXNUM 4
 #define PULL_POINT_NEIGH_INCR 16
-#define PULL_BIN_MAXNUM 20000000 /* sanity check on max number bins */
+#define PULL_BIN_MAXNUM 40000000 /* sanity check on max number bins */
 #define PULL_PHIST 0
 #define PULL_HINTER 0
 #define PULL_TANCOVAR 1
