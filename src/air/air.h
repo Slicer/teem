@@ -608,6 +608,7 @@ AIR_EXPORT double airCbrt(double);
 AIR_EXPORT double airMode3(double a, double b, double c);
 AIR_EXPORT double airMode3_d(const double v[3]);
 AIR_EXPORT double airSgnPow(double, double);
+AIR_EXPORT double airFlippedSgnPow(double, double);
 AIR_EXPORT double airIntPow(double v, int p);
 AIR_EXPORT int airSgn(double);
 AIR_EXPORT int airLog2(size_t n);

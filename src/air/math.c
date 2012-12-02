@@ -236,6 +236,20 @@ airSgnPow(double v, double p) {
 }
 
 double
+airFlippedSgnPow(double vv, double pp) {
+  double sn=1.0;
+
+  if (1.0 == pp) {
+    return vv;
+  }
+  if (vv < 0) {
+    sn = -1.0;
+    vv = -vv;
+  }
+  return sn*(1.0 - pow(1.0 - AIR_MIN(1.0, vv), pp));
+}
+
+double
 airIntPow(double v, int p) {
   double sq, ret;
 
