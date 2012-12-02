@@ -50,6 +50,7 @@ unrrdu_2opMain(int argc, const char **argv, const char *me,
              "add, subtract, multiply, divide\n "
              "\b\bo \"^\": exponentiation (pow)\n "
              "\b\bo \"spow\": signed exponentiation: sgn(x)pow(abs(x),p)\n "
+             "\b\bo \"fpow\": like spow but with curves flipped\n "
              "\b\bo \"%\": integer modulo\n "
              "\b\bo \"fmod\": same as fmod() in C\n "
              "\b\bo \"atan2\": same as atan2() in C\n "
