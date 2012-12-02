@@ -134,7 +134,7 @@ static double _nrrdUnaryOpLog10(double a)      {return log10(a);}
    http://www.plunk.org/~hatch/rightway.php which in turn references
    http://www.cs.berkeley.edu/~wkahan/Math128/Sumnfp.pdf from the
    great Kahan of IEEE 754 fame, but sadly that URL no longer works
-   (though the Math128 directory is still there, as other documents) */
+   (though the Math128 directory is still there, as are other documents) */
 static double _nrrdUnaryOpLog1p(double a) {
   double b;
 
@@ -288,6 +288,7 @@ static double _nrrdBinaryOpMultiply(double a, double b)  {return a * b;}
 static double _nrrdBinaryOpDivide(double a, double b)    {return a / b;}
 static double _nrrdBinaryOpPow(double a, double b)       {return pow(a,b);}
 static double _nrrdBinaryOpSgnPow(double a, double b)  {return airSgnPow(a,b);}
+static double _nrrdBinaryOpFlippedSgnPow(double a, double b)  {return airFlippedSgnPow(a,b);}
 static double _nrrdBinaryOpMod(double a, double b) {
   return AIR_MOD((int)a,(int)b);}
 static double _nrrdBinaryOpFmod(double a, double b)      {return fmod(a,b);}
@@ -327,6 +328,7 @@ double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   _nrrdBinaryOpDivide,
   _nrrdBinaryOpPow,
   _nrrdBinaryOpSgnPow,
+  _nrrdBinaryOpFlippedSgnPow,
   _nrrdBinaryOpMod,
   _nrrdBinaryOpFmod,
   _nrrdBinaryOpAtan2,

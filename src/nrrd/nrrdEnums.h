@@ -647,25 +647,26 @@ enum {
   nrrdBinaryOpDivide,     /*  4 */
   nrrdBinaryOpPow,        /*  5 */
   nrrdBinaryOpSgnPow,     /*  6 */
-  nrrdBinaryOpMod,        /*  7 */
-  nrrdBinaryOpFmod,       /*  8 */
-  nrrdBinaryOpAtan2,      /*  9 */
-  nrrdBinaryOpMin,        /* 10 */
-  nrrdBinaryOpMax,        /* 11 */
-  nrrdBinaryOpLT,         /* 12 */
-  nrrdBinaryOpLTE,        /* 13 */
-  nrrdBinaryOpGT,         /* 14 */
-  nrrdBinaryOpGTE,        /* 15 */
-  nrrdBinaryOpCompare,    /* 16 */
-  nrrdBinaryOpEqual,      /* 17 */
-  nrrdBinaryOpNotEqual,   /* 18 */
-  nrrdBinaryOpExists,     /* 19 */
-  nrrdBinaryOpIf,         /* 20 */
-  nrrdBinaryOpNormalRandScaleAdd, /* 21 */
-  nrrdBinaryOpRicianRand, /* 22 */
+  nrrdBinaryOpFlippedSgnPow, /*  7 */
+  nrrdBinaryOpMod,        /*  8 */
+  nrrdBinaryOpFmod,       /*  9 */
+  nrrdBinaryOpAtan2,      /* 10 */
+  nrrdBinaryOpMin,        /* 11 */
+  nrrdBinaryOpMax,        /* 12 */
+  nrrdBinaryOpLT,         /* 13 */
+  nrrdBinaryOpLTE,        /* 14 */
+  nrrdBinaryOpGT,         /* 15 */
+  nrrdBinaryOpGTE,        /* 16 */
+  nrrdBinaryOpCompare,    /* 17 */
+  nrrdBinaryOpEqual,      /* 18 */
+  nrrdBinaryOpNotEqual,   /* 19 */
+  nrrdBinaryOpExists,     /* 20 */
+  nrrdBinaryOpIf,         /* 21 */
+  nrrdBinaryOpNormalRandScaleAdd, /* 22 */
+  nrrdBinaryOpRicianRand, /* 23 */
   nrrdBinaryOpLast
 };
-#define NRRD_BINARY_OP_MAX   22
+#define NRRD_BINARY_OP_MAX   23
 
 /*
 ******** nrrdTernaryOp
