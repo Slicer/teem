@@ -74,7 +74,10 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
              "<float>, and round to the nearest integer, to get the number "
              "of output samples.  Use \"x1\" to resample the axis but leave "
              "the number of samples unchanged\n "
-             "\b\bo \"<int>\": exact number of output samples",
+             "\b\bo \"/<float>\": divide number of samples by <float>\n "
+             "\b\bo \"+=<uint>\", \"-=<uint>\": add <uint> to or subtract "
+             "<uint> from number input samples to get number output samples\n "
+             "\b\bo \"<uint>\": exact number of output samples",
              &scaleLen, NULL, &unrrduHestScaleCB);
   hestOptAdd(&opt, "off,offset", "off0", airTypeDouble, 0, -1, &off, "",
              "For each axis, an offset or shift to the position (in index "
