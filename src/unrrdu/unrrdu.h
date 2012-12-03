@@ -189,6 +189,22 @@ unrrduCmd unrrdu_##name##Cmd = { #name, info, unrrdu_##name##Main }
    defined in as many different source files as there are commands. */
 UNRRDU_MAP(UNRRDU_DECLARE)
 
+/*
+** used with unrrduHestScaleCB to identify for "unu resample -s"
+** whether to resample along an axis, and if so, how the number of
+** samples on an axis should be scaled (though now its more general
+** than just scaling) */
+enum {
+  unrrduScaleUnknown,
+  unrrduScaleNothing,      /* "=" */
+  unrrduScaleMultiply,     /* e.g. "x2" */
+  unrrduScaleDivide,       /* e.g. "/2" */
+  unrrduScaleAdd,          /* e.g. "+2" */
+  unrrduScaleSubtract,     /* e.g. "-2" */
+  unrrduScaleExact,        /* e.g. "128" */
+  unrrduScaleLast
+};
+
 /* flotsam.c */
 UNRRDU_EXPORT const int unrrduPresent;
 UNRRDU_EXPORT const char *unrrduBiffKey;

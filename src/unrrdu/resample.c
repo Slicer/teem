@@ -53,7 +53,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
     offSet=AIR_FALSE;
   unsigned int scaleLen, ai, samplesOut, minLen, maxLen, offLen;
   airArray *mop;
-  float *scale;
+  double *scale;
   double padVal, *min, *max, *off;
   NrrdResampleInfo *info;
   NrrdResampleContext *rsmc;
@@ -203,7 +203,8 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
         return 1;
       }
       for (ai=0; ai<offLen; ai++) {
-        if (0 != (int)(scale[0 + 2*ai]) && !AIR_EXISTS(off[ai])) {
+        if (unrrduScaleNothing != (int)(scale[0 + 2*ai])
+            && !AIR_EXISTS(off[ai])) {
           fprintf(stderr, "%s: off[%u] %g doesn't exist\n", me,
                   ai, off[ai]);
           airMopError(mop);
@@ -223,7 +224,8 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
         return 1;
       }
       for (ai=0; ai<minLen; ai++) {
-        if (0 != (int)(scale[0 + 2*ai]) && !AIR_EXISTS(min[ai])) {
+        if (unrrduScaleNothing != (int)(scale[0 + 2*ai])
+            && !AIR_EXISTS(min[ai])) {
           fprintf(stderr, "%s: min[%u] %g doesn't exist\n", me,
                   ai, min[ai]);
           airMopError(mop);
@@ -243,7 +245,8 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
         return 1;
       }
       for (ai=0; ai<maxLen; ai++) {
-        if (0 != (int)(scale[0 + 2*ai]) && !AIR_EXISTS(max[ai])) {
+        if (unrrduScaleNothing != (int)(scale[0 + 2*ai])
+            && !AIR_EXISTS(max[ai])) {
           fprintf(stderr, "%s: max[%u] %g doesn't exist\n", me,
                   ai, max[ai]);
           airMopError(mop);
@@ -271,21 +274,47 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
     if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, defaultCenter);
     if (!E) E |= nrrdResampleInputSet(rsmc, nin);
     for (ai=0; ai<nin->dim; ai++) {
-      switch((int)scale[0 + 2*ai]) {
-      case 0:
+      int dowhat = AIR_CAST(int, scale[0 + 2*ai]);
+      switch(dowhat) {
+      case unrrduScaleNothing:
         /* no resampling */
         if (!E) E |= nrrdResampleKernelSet(rsmc, ai, NULL, NULL);
         break;
-      case 1:
+      case unrrduScaleMultiply:
+      case unrrduScaleDivide:
+      case unrrduScaleAdd:
+      case unrrduScaleSubtract:
         /* scaling of input # samples */
         if (defaultCenter && overrideCenter) {
           if (!E) E |= nrrdResampleOverrideCenterSet(rsmc, ai, defaultCenter);
         }
         if (!E) E |= nrrdResampleKernelSet(rsmc, ai, unuk->kernel, unuk->parm);
-        samplesOut = AIR_ROUNDUP(scale[1 + 2*ai]*nin->axis[ai].size);
+        switch(dowhat) {
+          unsigned int incr;
+          char stmp[AIR_STRLEN_SMALL];
+        case unrrduScaleMultiply:
+          samplesOut = AIR_ROUNDUP(nin->axis[ai].size*scale[1 + 2*ai]);
+          break;
+        case unrrduScaleDivide:
+          samplesOut = AIR_ROUNDUP(nin->axis[ai].size/scale[1 + 2*ai]);
+          break;
+        case unrrduScaleAdd:
+          samplesOut = nin->axis[ai].size + AIR_CAST(unsigned int, scale[1 + 2*ai]);
+          break;
+        case unrrduScaleSubtract:
+          incr = AIR_CAST(unsigned int, scale[1 + 2*ai]);
+          if (nin->axis[ai].size - 1 < incr) {
+            fprintf(stderr, "%s: can't subtract %u from axis size %s\n",
+                    me, incr, airSprintSize_t(stmp, nin->axis[ai].size));
+            airMopError(mop);
+            return 1;
+          }
+          samplesOut = nin->axis[ai].size - incr;
+          break;
+        }
         if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
         break;
-      case 2:
+      case unrrduScaleExact:
         /* explicit # of samples */
         if (defaultCenter && overrideCenter) {
           if (!E) E |= nrrdResampleOverrideCenterSet(rsmc, ai, defaultCenter);
@@ -294,6 +323,11 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
         samplesOut = (size_t)scale[1 + 2*ai];
         if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
         break;
+      default:
+        fprintf(stderr, "%s: sorry, unrecognized unrrduScale value %d\n",
+                me, dowhat);
+        airMopError(mop);
+        return 1;
       }
       if (minSet && maxSet) {
         if (!E) E |= nrrdResampleRangeSet(rsmc, ai, min[ai], max[ai]);
@@ -323,21 +357,27 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
     }
   } else {
     for (ai=0; ai<nin->dim; ai++) {
+      int dowhat = AIR_CAST(int, scale[0 + 2*ai]);
       /* this may be over-written below */
       info->kernel[ai] = unuk->kernel;
-      switch((int)scale[0 + 2*ai]) {
-      case 0:
+      switch(dowhat) {
+      case unrrduScaleNothing:
         /* no resampling */
         info->kernel[ai] = NULL;
         break;
-      case 1:
+      case unrrduScaleMultiply:
         /* scaling of input # samples */
         info->samples[ai] = AIR_ROUNDUP(scale[1 + 2*ai]*nin->axis[ai].size);
         break;
-      case 2:
+      case unrrduScaleExact:
         /* explicit # of samples */
         info->samples[ai] = (size_t)scale[1 + 2*ai];
         break;
+      default:
+        fprintf(stderr, "%s: sorry, unrecognized unrrduScale value %d\n",
+                me, dowhat);
+        airMopError(mop);
+        return 1;
       }
       memcpy(info->parm[ai], unuk->parm,
              NRRD_KERNEL_PARMS_NUM*sizeof(*unuk->parm));

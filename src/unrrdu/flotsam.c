@@ -337,41 +337,51 @@ hestCB unrrduHestBitsCB = {
 int
 unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unrrduParseScale";
-  float *scale;
-  int num;
+  double *scale;
+  unsigned int num;
 
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  scale = (float *)ptr;
+  scale = AIR_CAST(double *, ptr);
   if (!strcmp("=", str)) {
-    scale[0] = 0.0f;
-    scale[1] = 0.0f;
+    scale[0] = AIR_CAST(double, unrrduScaleNothing);
+    scale[1] = 0.0;
     return 0;
   }
 
   /* else */
-  if ('x' == str[0]) {
-    if (1 != sscanf(str+1, "%f", scale+1)) {
+  if ('x' == str[0] || '/' == str[0]) {
+    if (1 != sscanf(str+1, "%lf", scale+1)) {
       sprintf(err, "%s: can't parse \"%s\" as x<float>", me, str);
       return 1;
     }
-    scale[0] = 1.0f;
-  }
-  else {
-    if (1 != sscanf(str, "%d", &num)) {
-      sprintf(err, "%s: can't parse \"%s\" as int", me, str);
+    scale[0] = AIR_CAST(double, ('x' == str[0]
+                                 ? unrrduScaleMultiply
+                                 : unrrduScaleDivide));
+  } else if ('+' == str[0] || '-' == str[0]) {
+    if (1 != sscanf(str+1, "%u", &num)) {
+      sprintf(err, "%s: can't parse \"%s\" as uint", me, str);
       return 1;
     }
-    scale[0] = 2.0f;
-    scale[1] = AIR_CAST(float, num);
+    scale[0] = AIR_CAST(double, ('+' == str[0]
+                                 ? unrrduScaleAdd
+                                 : unrrduScaleSubtract));
+    scale[1] = AIR_CAST(double, num);
+  } else {
+    if (1 != sscanf(str, "%u", &num)) {
+      sprintf(err, "%s: can't parse \"%s\" as uint", me, str);
+      return 1;
+    }
+    scale[0] = AIR_CAST(double, unrrduScaleExact);
+    scale[1] = AIR_CAST(double, num);
   }
   return 0;
 }
 
 hestCB unrrduHestScaleCB = {
-  2*sizeof(float),
+  2*sizeof(double),
   "sampling specification",
   unrrduParseScale,
   NULL
