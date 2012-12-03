@@ -331,8 +331,16 @@ hestCB unrrduHestBitsCB = {
 /*
 ******** unrrduParseScale
 **
-** parse "=", "x<float>", and "<int>".  These possibilities are represented
-** for axis i by setting scale[0 + 2*i] to 0, 1, or 2, respectively.
+** parse the strings used with "unu resample -s" to indicate
+** the new number of samples.
+** =         : unrrduScaleNothing
+** x<float>  : unrrduScaleMultiply
+** x=<float> : unrrduScaleMultiply
+** /<float>  : unrrduScaleDivide
+** /=<float> : unrrduScaleDivide
+** +=<uint>  : unrrduScaleAdd
+** -=<uint>  : unrrduScaleSubstract
+** <uint>    : unrrduScaleExact
 */
 int
 unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
@@ -352,17 +360,33 @@ unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   }
 
   /* else */
-  if ('x' == str[0] || '/' == str[0]) {
-    if (1 != sscanf(str+1, "%lf", scale+1)) {
-      sprintf(err, "%s: can't parse \"%s\" as x<float>", me, str);
+  if (strlen(str) > 2
+      && ('x' == str[0] || '/' == str[0])
+      && '=' == str[1]) {
+    if (1 != sscanf(str+2, "%lf", scale+1)) {
+      sprintf(err, "%s: can't parse \"%s\" as x=<float> or /=<float>",
+              me, str);
       return 1;
     }
     scale[0] = AIR_CAST(double, ('x' == str[0]
                                  ? unrrduScaleMultiply
                                  : unrrduScaleDivide));
-  } else if ('+' == str[0] || '-' == str[0]) {
-    if (1 != sscanf(str+1, "%u", &num)) {
-      sprintf(err, "%s: can't parse \"%s\" as uint", me, str);
+  } else if (strlen(str) > 1
+             && ('x' == str[0] || '/' == str[0])) {
+    if (1 != sscanf(str+1, "%lf", scale+1)) {
+      sprintf(err, "%s: can't parse \"%s\" as x<float> or /<float>",
+              me, str);
+      return 1;
+    }
+    scale[0] = AIR_CAST(double, ('x' == str[0]
+                                 ? unrrduScaleMultiply
+                                 : unrrduScaleDivide));
+  } else if (strlen(str) > 2
+             && ('+' == str[0] || '-' == str[0])
+             && '=' == str[1]) {
+    if (1 != sscanf(str+2, "%u", &num)) {
+      sprintf(err, "%s: can't parse \"%s\" as +=<uint> or -=<uint>",
+              me, str);
       return 1;
     }
     scale[0] = AIR_CAST(double, ('+' == str[0]
