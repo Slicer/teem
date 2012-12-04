@@ -71,6 +71,10 @@ unrrduUsageUnu(const char *me, hestParm *hparm) {
   fprintf(stdout, fmt, buff);
   for (cmdi=0; unrrduCmdList[cmdi]; cmdi++) {
     int nofft;
+    if (unrrduCmdList[cmdi]->hidden) {
+      /* nothing to see here! */
+      continue;
+    }
     nofft = !strcmp(unrrduCmdList[cmdi]->name, "fft") && !nrrdFFTWEnabled;
     len = AIR_UINT(strlen(unrrduCmdList[cmdi]->name));
     len += !!nofft;

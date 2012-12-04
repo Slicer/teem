@@ -58,6 +58,7 @@ typedef struct {
   const char *name, *info;
   int (*main)(int argc, const char **argv, const char *me,
               hestParm *hparm);
+  int hidden;
 } unrrduCmd;
 
 /*
@@ -168,6 +169,7 @@ F(ccadj) \
 F(ccmerge) \
 F(ccsettle) \
 F(dnorm) \
+F(vidicon) \
 F(save)
 /* these two have been removed since no one uses them
 F(block) \
@@ -181,8 +183,14 @@ F(unblock) \
 ** ("xxx.c") to simplify defining a unrrduCmd.  "name" should just be
 ** the command, UNQUOTED, such as flip or slice.
 */
-#define UNRRDU_CMD(name, info) \
-unrrduCmd unrrdu_##name##Cmd = { #name, info, unrrdu_##name##Main }
+#define UNRRDU_CMD(name, info)                  \
+  unrrduCmd unrrdu_##name##Cmd = {              \
+    #name, info, unrrdu_##name##Main, AIR_FALSE \
+  }
+#define UNRRDU_CMD_HIDE(name, info)             \
+  unrrduCmd unrrdu_##name##Cmd = {              \
+    #name, info, unrrdu_##name##Main, AIR_TRUE  \
+  }
 
 /* xxx.c */
 /* Declare the extern unrrduCmds unrrdu_xxxCmd, for all xxx.  These are

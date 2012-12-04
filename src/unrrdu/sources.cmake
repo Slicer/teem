@@ -47,6 +47,7 @@ SET(UNRRDU_SOURCES
   cksum.c
   diff.c
   dnorm.c
+  vidicon.c
   mlut.c
   mrmap.c
   pad.c

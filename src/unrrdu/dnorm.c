@@ -305,4 +305,4 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-UNRRDU_CMD(dnorm, INFO);
+UNRRDU_CMD_HIDE(dnorm, INFO);
