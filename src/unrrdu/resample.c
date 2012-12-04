@@ -51,10 +51,11 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
   int type, bb, pret, norenorm, neb, older, E, defaultCenter,
     verbose, overrideCenter, minSet=AIR_FALSE, maxSet=AIR_FALSE,
     offSet=AIR_FALSE;
-  unsigned int scaleLen, ai, samplesOut, minLen, maxLen, offLen;
+  unsigned int scaleLen, ai, samplesOut, minLen, maxLen, offLen,
+    aspRatNum, nonAspRatNum, nonAspRatIdx;
   airArray *mop;
   double *scale;
-  double padVal, *min, *max, *off;
+  double padVal, *min, *max, *off, aspRatScl=AIR_NAN;
   NrrdResampleInfo *info;
   NrrdResampleContext *rsmc;
   NrrdKernelSpec *unuk;
@@ -77,7 +78,11 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
              "\b\bo \"/<float>\": divide number of samples by <float>\n "
              "\b\bo \"+=<uint>\", \"-=<uint>\": add <uint> to or subtract "
              "<uint> from number input samples to get number output samples\n "
-             "\b\bo \"<uint>\": exact number of output samples",
+             "\b\bo \"<uint>\": exact number of output samples\n "
+             "\b\bo \"a\": resample this axis to whatever number of samples "
+             "preserves the aspect ratio of other resampled axes. Currently "
+             "needs to be used on all but one of the resampled axes, "
+             "if at all. ",
              &scaleLen, NULL, &unrrduHestScaleCB);
   hestOptAdd(&opt, "off,offset", "off0", airTypeDouble, 0, -1, &off, "",
              "For each axis, an offset or shift to the position (in index "
@@ -270,6 +275,29 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
       airMopError(mop);
       return 1;
     }
+    aspRatNum = nonAspRatNum = 0;
+    for (ai=0; ai<nin->dim; ai++) {
+      int dowhat = AIR_CAST(int, scale[0 + 2*ai]);
+      if (!(unrrduScaleNothing == dowhat)) {
+        if (unrrduScaleAspectRatio == dowhat) {
+          aspRatNum++;
+        } else {
+          nonAspRatNum++;
+          nonAspRatIdx = ai;
+        }
+      }
+    }
+    if (aspRatNum) {
+      if (1 != nonAspRatNum) {
+        fprintf(stderr, "%s: sorry, aspect-ratio-preserving "
+                "resampling must currently be used on all but one "
+                "(not %u) resampled axis, if any\n", me,
+                nonAspRatNum);
+        airMopError(mop);
+        return 1;
+      }
+    }
+
     rsmc = nrrdResampleContextNew();
     rsmc->verbose = verbose;
     airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
@@ -315,6 +343,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
           samplesOut = nin->axis[ai].size - incr;
           break;
         }
+        aspRatScl = AIR_CAST(double, samplesOut)/nin->axis[ai].size;
         if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
         break;
       case unrrduScaleExact:
@@ -324,7 +353,16 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
         }
         if (!E) E |= nrrdResampleKernelSet(rsmc, ai, unuk->kernel, unuk->parm);
         samplesOut = (size_t)scale[1 + 2*ai];
+        aspRatScl = AIR_CAST(double, samplesOut)/nin->axis[ai].size;
         if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
+        break;
+      case unrrduScaleAspectRatio:
+        /* wants aspect-ratio preserving, but may not know # samples yet */
+        if (defaultCenter && overrideCenter) {
+          if (!E) E |= nrrdResampleOverrideCenterSet(rsmc, ai, defaultCenter);
+        }
+        if (!E) E |= nrrdResampleKernelSet(rsmc, ai, unuk->kernel, unuk->parm);
+        /* will set samples later, after aspRatScl has been set */
         break;
       default:
         fprintf(stderr, "%s: sorry, unrecognized unrrduScale value %d\n",
@@ -343,6 +381,21 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
              nrrdResampleExecute() */
           rsmc->axis[ai].min += off[ai];
           rsmc->axis[ai].max += off[ai];
+        }
+      }
+    }
+    if (!E && aspRatNum) {
+      if (!AIR_EXISTS(aspRatScl)) {
+        fprintf(stderr, "%s: confusion, should have learned scaling "
+                "of aspect-ratio-preserving resampling by now", me);
+        airMopError(mop);
+        return 1;
+      }
+      for (ai=0; ai<nin->dim; ai++) {
+        int dowhat = AIR_CAST(int, scale[0 + 2*ai]);
+        if (unrrduScaleAspectRatio == dowhat) {
+          samplesOut = AIR_ROUNDUP(nin->axis[ai].size*aspRatScl);
+          if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
         }
       }
     }

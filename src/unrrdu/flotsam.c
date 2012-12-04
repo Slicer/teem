@@ -334,6 +334,7 @@ hestCB unrrduHestBitsCB = {
 ** parse the strings used with "unu resample -s" to indicate
 ** the new number of samples.
 ** =         : unrrduScaleNothing
+** a         : unrrduScaleAspectRatio
 ** x<float>  : unrrduScaleMultiply
 ** x=<float> : unrrduScaleMultiply
 ** /<float>  : unrrduScaleDivide
@@ -356,11 +357,10 @@ unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   if (!strcmp("=", str)) {
     scale[0] = AIR_CAST(double, unrrduScaleNothing);
     scale[1] = 0.0;
-    return 0;
-  }
-
-  /* else */
-  if (strlen(str) > 2
+  } else if (!strcmp("a", str)) {
+    scale[0] = AIR_CAST(double, unrrduScaleAspectRatio);
+    scale[1] = 0.0;
+  } else if (strlen(str) > 2
       && ('x' == str[0] || '/' == str[0])
       && '=' == str[1]) {
     if (1 != sscanf(str+2, "%lf", scale+1)) {

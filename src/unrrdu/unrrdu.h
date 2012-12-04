@@ -201,6 +201,7 @@ enum {
   unrrduScaleDivide,       /* e.g. "/2" */
   unrrduScaleAdd,          /* e.g. "+2" */
   unrrduScaleSubtract,     /* e.g. "-2" */
+  unrrduScaleAspectRatio,  /* "a" */
   unrrduScaleExact,        /* e.g. "128" */
   unrrduScaleLast
 };
