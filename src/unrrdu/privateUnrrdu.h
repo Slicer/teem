@@ -33,9 +33,6 @@
 extern "C" {
 #endif
 
-/* suffix string that indicates percentile-based min/max */
-#define MINMAX_PERC_SUFF "%"
-
 /* handling of "quiet quit", to avoid having a string of piped unu
    commands generate multiple pages of unwelcome usage info */
 /* the environment variable to look for */
