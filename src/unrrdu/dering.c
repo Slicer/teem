@@ -162,4 +162,4 @@ unrrdu_deringMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-UNRRDU_CMD(dering, INFO);
+UNRRDU_CMD_HIDE(dering, INFO);
