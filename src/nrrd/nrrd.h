@@ -1081,6 +1081,16 @@ NRRD_EXPORT NrrdRange *nrrdRangeNix(NrrdRange *range);
 NRRD_EXPORT void nrrdRangeReset(NrrdRange *range);
 NRRD_EXPORT void nrrdRangeSet(NrrdRange *range,
                               const Nrrd *nrrd, int blind8BitRange);
+NRRD_EXPORT int nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd,
+                                       double minPerc, double maxPerc,
+                                       unsigned int hbins,
+                                       int blind8BitRange);
+NRRD_EXPORT int nrrdRangePercentileFromStringSet(NrrdRange *range,
+                                                 const Nrrd *nrrd,
+                                                 const char *minStr,
+                                                 const char *maxStr,
+                                                 unsigned int hbins,
+                                                 int blind8BitRange);
 NRRD_EXPORT void nrrdRangeSafeSet(NrrdRange *range,
                                   const Nrrd *nrrd, int blind8BitRange);
 NRRD_EXPORT NrrdRange *nrrdRangeNewSet(const Nrrd *nrrd, int blind8BitRange);

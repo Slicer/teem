@@ -105,6 +105,210 @@ nrrdRangeSet(NrrdRange *range, const Nrrd *nrrd, int blind8BitRange) {
 }
 
 /*
+******** nrrdRangePercentileSet
+**
+** this is called when information about the range of values in the
+** nrrd is requested; and the learned information is put into "range"
+** (overwriting whatever is there!)
+**
+** uses biff
+*/
+int
+nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd,
+                       double minPerc, double maxPerc,
+                       unsigned int hbins, int blind8BitRange) {
+  static const char me[]="nrrdRangePercentileSet";
+  airArray *mop;
+  Nrrd *nhist;
+  double allmin, allmax, minval, maxval, *hist, sum, total, sumPerc;
+  unsigned int hi;
+
+  if (!(range && nrrd)) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 0;
+  }
+  nrrdRangeSet(range, nrrd, blind8BitRange);
+  /* range->min and range->max
+     are the full range of nrrd (except maybe for blind8) */
+  if (!minPerc && !maxPerc) {
+    /* wanted full range; there is nothing more to do */
+    return 0;
+  }
+  if (!hbins) {
+    biffAddf(NRRD, "%s: sorry, non-histogram-based percentiles not "
+             "currently implemented (need hbins > 0)", me);
+    return 1;
+  }
+  if (range->hasNonExist) {
+    biffAddf(NRRD, "%s: sorry, can currently do histogram-based percentiles "
+             "only in arrays with no non-existent values", me);
+    return 1;
+  }
+
+  mop = airMopNew();
+  allmin = range->min;
+  allmax = range->max;
+
+  nhist = nrrdNew();
+  airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
+  /* the histogram is over the entire range of values */
+  if (nrrdHisto(nhist, nrrd, range, NULL, hbins, nrrdTypeDouble)) {
+    biffAddf(NRRD, "%s: trouble making histogram", me);
+    airMopError(mop);
+    return 1;
+  }
+  hist = AIR_CAST(double *, nhist->data);
+  total = AIR_CAST(double, nrrdElementNumber(nrrd));
+  if (minPerc) {
+    minval = AIR_NAN;
+    sumPerc = AIR_ABS(minPerc)*total/100.0;
+    sum = 0;
+    for (hi=0; hi<hbins; hi++) {
+      sum += hist[hi];
+      if (sum >= sumPerc) {
+        minval = AIR_AFFINE(0, hi, hbins-1,
+                            nhist->axis[0].min, nhist->axis[0].max);
+        break;
+      }
+    }
+    if (hi == hbins || !AIR_EXISTS(minval)) {
+      biffAddf(NRRD, "%s: failed to find lower %g-percentile value",
+               me, minPerc);
+      airMopError(mop);
+      return 1;
+    }
+    range->min = (minPerc > 0
+                  ? minval
+                  : 2*allmin - minval);
+    /* fprintf(stderr, "!%s: %g-%% min = %g\n", me, min, minval); */
+  }
+  if (maxPerc) {
+    maxval = AIR_NAN;
+    sumPerc = AIR_ABS(maxPerc)*total/100.0;
+    sum = 0;
+    for (hi=hbins; hi; hi--) {
+      sum += hist[hi-1];
+      if (sum >= sumPerc) {
+        maxval = AIR_AFFINE(0, hi-1, hbins-1,
+                            nhist->axis[0].min, nhist->axis[0].max);
+        break;
+      }
+    }
+    if (!hi || !AIR_EXISTS(maxval)) {
+      biffAddf(NRRD, "%s: failed to find upper %g-percentile value", me,
+               maxPerc);
+      airMopError(mop);
+      return 1;
+    }
+    range->max = (maxPerc > 0
+                  ? maxval
+                  : 2*allmax - maxval);
+    /* fprintf(stderr, "!%s: %g-%% max = %g\n", me, max, maxval); */
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
+
+/*
+******** nrrdRangePercentileFromStringSet
+**
+** Implements smarts of figuring out a range from no info ("nan"),
+** a known percentile (e.g. "3%") or a known explicit value (e.g. "3"),
+** for both min and max.  Used by "unu quantize" and others.
+*/
+int
+nrrdRangePercentileFromStringSet(NrrdRange *range, const Nrrd *nrrd,
+                                 const char *_minStr, const char *_maxStr,
+                                 unsigned int hbins, int blind8BitRange) {
+  static const char me[]="nrrdRangePercentileFromStringSet";
+  double minVal, maxVal, minPerc, maxPerc;
+  char *minStr, *maxStr;
+  unsigned int mmIdx;
+  airArray *mop;
+
+  if (!(range && nrrd && _minStr && _maxStr)) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  mop = airMopNew();
+  minStr = airStrdup(_minStr);
+  airMopAdd(mop, minStr, airFree, airMopAlways);
+  maxStr = airStrdup(_maxStr);
+  airMopAdd(mop, maxStr, airFree, airMopAlways);
+
+  /* parse min and max */
+  minVal = maxVal = minPerc = maxPerc = AIR_NAN;
+  for (mmIdx=0; mmIdx<=1; mmIdx++) {
+    int percwant;
+    double val, *mmv, *mmp;
+    char *mmStr;
+    if (0 == mmIdx) {
+      mmv = &minVal;
+      mmp = &minPerc;
+      mmStr = minStr;
+    } else {
+      mmv = &maxVal;
+      mmp = &maxPerc;
+      mmStr = maxStr;
+    }
+    if (airEndsWith(mmStr, NRRD_MINMAX_PERC_SUFF)) {
+      percwant = AIR_TRUE;
+      mmStr[strlen(mmStr)-strlen(NRRD_MINMAX_PERC_SUFF)] = '\0';
+    } else {
+      percwant = AIR_FALSE;
+    }
+    if (1 != airSingleSscanf(mmStr, "%lf", &val)) {
+      biffAddf(NRRD, "%s: couldn't parse \"%s\" for %s", me,
+               !mmIdx ? _minStr : _maxStr,
+               !mmIdx ? "minimum" : "maximum");
+      airMopError(mop);
+      return 1;
+    }
+    if (percwant) {
+      if (!AIR_EXISTS(val)) {
+        biffAddf(NRRD, "%s: %s percentile must exist", me,
+                 !mmIdx ? "minimum" : "maximum");
+        airMopError(mop);
+        return 1;
+      }
+      /* setting a finite percentile */
+      *mmp = val;
+    } else if (!AIR_EXISTS(val)) {
+      /* don't want a percentile, and given value is nan
+         => same as full range == zero percentile */
+      *mmp = 0.0;
+    } else {
+      /* value exists: given explicitly */
+      *mmv = val;
+    }
+  }
+  /* so whenever one end of the range is not given explicitly,
+     it has been mapped to a statement about the percentile,
+     which does require learning about the nrrd's values */
+  if (AIR_EXISTS(minPerc) || AIR_EXISTS(maxPerc)) {
+    if (nrrdRangePercentileSet(range, nrrd,
+                               AIR_EXISTS(minPerc) ? minPerc : 0.0,
+                               AIR_EXISTS(maxPerc) ? maxPerc : 0.0,
+                               hbins, blind8BitRange)) {
+      biffAddf(NRRD, "%s: trouble finding percentile range", me);
+      airMopError(mop);
+      return 1;
+    }
+  }
+  /* whatever explicit values were given are now stored */
+  if (AIR_EXISTS(minVal)) {
+    range->min = minVal;
+  }
+  if (AIR_EXISTS(maxVal)) {
+    range->max = maxVal;
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
+
+/*
 ** wrapper around nrrdRangeSet that (effectively) sets range->min
 ** and range->min only if they didn't already exist
 */
