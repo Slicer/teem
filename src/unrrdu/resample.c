@@ -27,14 +27,14 @@
 #define INFO "Filtering and {up,down}sampling with a separable kernel"
 static const char *_unrrdu_resampleInfoL =
 (INFO
- ". Provides simplified access to nrrdSpatialResample() "
+ ". Simplifies access to the NrrdResampleContext functions "
  "by assuming (among other things) that the same kernel "
  "is used for resampling "
  "every axis that is being resampled.  Only required option is "
  "\"-s\" to specify which axes to resample and how many "
  "output samples to generate.  Resampling kernel \"-k\" defaults "
  "to an interpolating cubic, but many other choices are available. "
- "Be default, resampling an axis resamples the full extent of its "
+ "By default, resampling an axis resamples the full extent of its "
  "samples, but it is possible to offset this range via \"-off\", "
  "or to crop and/or pad via \"-min\" and \"-max\". "
  "The resampling respects the difference between cell- and "
