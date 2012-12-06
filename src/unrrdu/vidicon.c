@@ -38,12 +38,18 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me,
 
   unsigned int vsize[2], vpadding[2], rpadding[2];
   double rescale, rperc;
-  Nrrd *nin, *nrescale, *npad, *nvbase, *nout;
-  char *out, *err;
+  Nrrd *nin, *nrescale, *npad, *nvbase, *ntmp, *nout;
+  char *out, *err, *stpfx, stname[AIR_STRLEN_SMALL];
   int pret;
   NrrdResampleContext *rsmc;
   NrrdKernelSpec *rescaleKsp, *vdsmp[2];
+  NrrdRange *b8range;
 
+  hparm->elideSingleOtherDefault = AIR_FALSE;
+
+  hestOptAdd(&opt, "i", "input", airTypeOther, 1, 1, &nin, NULL,
+             "input image. Should be grayscale PNG.",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "rs", "rescale", airTypeDouble, 1, 1, &rescale, "0.75",
              "how to rescale (downsample) the image prior to processing, "
              "just to get a better representation of the floating-point "
@@ -69,9 +75,9 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me,
              "kernels for downsampling to video resolution; the horizontal "
              "and vertical kernels are different",
              NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&opt, "i", "input", airTypeOther, 1, 1, &nin, NULL,
-             "input image. Should be grayscale PNG.",
-             NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&opt, "stp", "prefix", airTypeString, 1, 1, &stpfx, "",
+             "if a string is given here, a series of images are saved, "
+             "representing the various stages of processing");
   hestOptAdd(&opt, "o", "output", airTypeString, 1, 1, &out, NULL,
              "output nrrd");
 
@@ -80,8 +86,12 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me,
   USAGE(_unrrdu_vidiconInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
+  ntmp = nrrdNew();
+  airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+  b8range = nrrdRangeNew(0.0, 255.0);
+  airMopAdd(mop, b8range, (airMopper)nrrdRangeNix, airMopAlways);
 
   if (!( 2 == nin->dim && nrrdTypeBlock != nin->type )) {
     fprintf(stderr, "%s: need input as 2D grayscale image (not %u-d %s)\n",
@@ -110,12 +120,24 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me,
     airMopError(mop); return 1;
   }
 
+#define SAVE_TMP(name, nrrd)                                            \
+  if (airStrlen(stpfx)) {                                               \
+    sprintf(stname, "%s-" #name ".png", stpfx);                         \
+    if (nrrdQuantize(ntmp, nrrd, b8range, 8)                            \
+        || nrrdSave(stname, ntmp, 0)) {                                 \
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);   \
+      fprintf(stderr, "%s: problem saving %s:\n%s", me, stname, err);   \
+      airMopError(mop); return 1;                                       \
+    }                                                                   \
+  }
+  SAVE_TMP(rescale, nrescale);
+
   /* rescaling values to 0.0 -- 255.0 based on percentile rperc */
   {
     Nrrd *nhist;
     double *hist, sum, total, minval, maxval;
     unsigned int hi, hbins;
-    float *rescale;
+    float *rescaled;
     size_t ii, nn;
 
     submop = airMopNew();
@@ -161,9 +183,9 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me,
     }
     fprintf(stderr, "%s: min %g --> 0, max %g --> 255\n", me, minval, maxval);
     nn = nrrdElementNumber(nrescale);
-    rescale = AIR_CAST(float *, nrescale->data);
+    rescaled = AIR_CAST(float *, nrescale->data);
     for (ii=0; ii<nn; ii++) {
-      rescale[ii] = AIR_AFFINE(minval, rescale[ii], maxval, 0.0, 255.0);
+      rescaled[ii] = AIR_AFFINE(minval, rescaled[ii], maxval, 0.0, 255.0);
     }
     airMopOkay(submop);
     submop = NULL;
