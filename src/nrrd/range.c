@@ -139,6 +139,10 @@ nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd,
              "currently implemented (need hbins > 0)", me);
     return 1;
   }
+  if (!(hbins >= 5)) {
+    biffAddf(NRRD, "%s: # histogram bins %u unreasonably small", me, hbins);
+    return 1;
+  }
   if (range->hasNonExist) {
     biffAddf(NRRD, "%s: sorry, can currently do histogram-based percentiles "
              "only in arrays with no non-existent values", me);
@@ -162,11 +166,11 @@ nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd,
   if (minPerc) {
     minval = AIR_NAN;
     sumPerc = AIR_ABS(minPerc)*total/100.0;
-    sum = 0;
-    for (hi=0; hi<hbins; hi++) {
+    sum = hist[0];
+    for (hi=1; hi<hbins; hi++) {
       sum += hist[hi];
       if (sum >= sumPerc) {
-        minval = AIR_AFFINE(0, hi, hbins-1,
+        minval = AIR_AFFINE(0, hi-1, hbins-1,
                             nhist->axis[0].min, nhist->axis[0].max);
         break;
       }
@@ -185,11 +189,11 @@ nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd,
   if (maxPerc) {
     maxval = AIR_NAN;
     sumPerc = AIR_ABS(maxPerc)*total/100.0;
-    sum = 0;
-    for (hi=hbins; hi; hi--) {
+    sum = hist[hbins-1];
+    for (hi=hbins-1; hi; hi--) {
       sum += hist[hi-1];
       if (sum >= sumPerc) {
-        maxval = AIR_AFFINE(0, hi-1, hbins-1,
+        maxval = AIR_AFFINE(0, hi, hbins-1,
                             nhist->axis[0].min, nhist->axis[0].max);
         break;
       }
