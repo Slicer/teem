@@ -75,8 +75,10 @@ extern "C" {
 ** Chances are, you shouldn't mess with these
 */
 
+/* ---- BEGIN non-NrrdIO */
 /* suffix string that indicates percentile-based min/max */
 #define NRRD_MINMAX_PERC_SUFF "%"
+/* ---- END non-NrrdIO */
 #define NRRD_COMMENT_CHAR '#'
 #define NRRD_FILENAME_INCR 32
 #define NRRD_COMMENT_INCR 16
