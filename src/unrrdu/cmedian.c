@@ -66,6 +66,11 @@ unrrdu_cmedianMain(int argc, const char **argv, const char *me,
              "closer to the center of the window.  \"1.0\" weight means that "
              "all samples are uniformly weighted over the window, which "
              "facilitates a simple speed-up. ");
+  /* FYI: these are weights which are just high enough to preserve
+     an island of N contiguous high pixels in a row:
+     1: 7.695
+     2: 6.160
+     3: 4.829 (actually only the middle pixel remains */
   hestOptAdd(&opt, "p,pad", NULL, airTypeInt, 0, 0, &pad, NULL,
              "Pad the input (with boundary method \"bleed\"), "
              "and crop the output, so as to "
