@@ -8,7 +8,6 @@ SET(GAGE_SOURCES
   gage.h
   kind.c
   miscGage.c
-  multiGage.c
   print.c
   privateGage.h
   pvl.c
