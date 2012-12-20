@@ -531,11 +531,11 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
   hz = lz + 2*fr - 1;
   fddd = 2*fr*2*fr*2*fr;
   if (ctx->verbose > 1) {
-    fprintf(stderr, "%s: hello; s %u %u %u; fr %u\n", me,
+    fprintf(stderr, "%s: ___ hello; s %u %u %u; fr %u\n", me,
             sx, sy, sz, fr);
-    fprintf(stderr, "%s: point.idx %u %u %u\n", me,
+    fprintf(stderr, "%s:     point.idx %u %u %u\n", me,
             ctx->point.idx[0], ctx->point.idx[1], ctx->point.idx[2]);
-    fprintf(stderr, "%s: l %d %d %d; h %d %d %d; fddd %u\n", me,
+    fprintf(stderr, "%s:     l %d %d %d; h %d %d %d; fddd %u\n", me,
             lx, ly, lz, hx, hy, hz, fddd);
   }
   data = (char*)pvl->nin->data;
@@ -546,18 +546,18 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
     /* all the samples we need are inside the existing volume */
     dataIdx = lx + sx*(ly + sy*(lz));
     if (ctx->verbose > 1) {
-      fprintf(stderr, "%s: hello, valLen = %d, pvl->nin = %p, data = %p\n",
+      fprintf(stderr, "%s:     hello, valLen = %d, pvl->nin = %p, data = %p\n",
               me, pvl->kind->valLen,
               AIR_CVOIDP(pvl->nin), pvl->nin->data);
     }
     here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
     if (ctx->verbose > 1) {
-      fprintf(stderr, "%s: size = (%u,%u,%u);\n"
-              "  fd = %d; coord = (%u,%u,%u) --> dataIdx = %d\n",
-              me, sx, sy, sz, 2*fr,
+      fprintf(stderr, "%s:     size = (%u,%u,%u);\n"
+              "%s:     fd = %d; coord = (%u,%u,%u) --> dataIdx = %d\n",
+              me, sx, sy, sz, me, 2*fr,
               ctx->point.idx[0], ctx->point.idx[1], ctx->point.idx[2],
               dataIdx);
-      fprintf(stderr, "%s: here = %p; iv3 = %p; off[0,1,2,3,4,5,6,7] = "
+      fprintf(stderr, "%s:     here = %p; iv3 = %p; off[0,1,2,3,4,5,6,7] = "
               "%d,%d,%d,%d,%d,%d,%d,%d\n",
               me, here, AIR_CAST(void*, pvl->iv3),
               ctx->off[0], ctx->off[1], ctx->off[2], ctx->off[3],
@@ -619,15 +619,15 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
           dataIdx = xx + sx*(yy + sy*zz);
           here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
           if (ctx->verbose > 2) {
-            fprintf(stderr, "%s: (%d,%d,%d) --clamp--> (%u,%u,%u)\n", me,
+            fprintf(stderr, "%s:    (%d,%d,%d) --clamp--> (%u,%u,%u)\n", me,
                     _xx, _yy, _zz, xx, yy, zz);
-            fprintf(stderr, "    --> dataIdx = %d; data = %p -> here = %p\n",
+            fprintf(stderr, "       --> dataIdx = %d; data = %p -> here = %p\n",
                     dataIdx, data, here);
           }
           for (tup=0; tup<pvl->kind->valLen; tup++) {
             pvl->iv3[cacheIdx + fddd*tup] = pvl->lup(here, tup);
             if (ctx->verbose > 3) {
-              fprintf(stderr, "%s: iv3[%u + %u*%u=%u] = %g\n", me,
+              fprintf(stderr, "%s:    iv3[%u + %u*%u=%u] = %g\n", me,
                       cacheIdx, fddd, tup, cacheIdx + fddd*tup,
                       pvl->iv3[cacheIdx + fddd*tup]);
             }
@@ -639,7 +639,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
     ctx->edgeFrac = AIR_CAST(double, edgeNum)/fddd;
   }
   if (ctx->verbose > 1) {
-    fprintf(stderr, "%s: bye\n", me);
+    fprintf(stderr, "%s: ^^^ bye\n", me);
   }
   return;
 }
@@ -666,6 +666,10 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
   if (!ctx) {
     return 1;
   }
+  if (ctx->verbose > 3) {
+    fprintf(stderr, "%s: hello(%g,%g,%g,%g) _____________ \n", me,
+            _xi, _yi, _zi, _si);
+  }
   ELL_4V_COPY(oldIdx, ctx->point.idx);
   oldNnz = ctx->point.stackFwNonZeroNum;
   if (_gageLocationSet(ctx, _xi, _yi, _zi, _si)) {
@@ -691,7 +695,7 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
        point.idx[3] AND changes in stackFwNonZeroNum */
     idxChanged |= oldNnz != ctx->point.stackFwNonZeroNum;
   }
-  if (ctx->verbose > 2) {
+  if (ctx->verbose > 3) {
     fprintf(stderr, "%s: oldIdx %u %u %u %u, point.idx %u %u %u %u --> %d\n",
             me, oldIdx[0], oldIdx[1], oldIdx[2], oldIdx[3],
             ctx->point.idx[0], ctx->point.idx[1],
@@ -700,6 +704,10 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
   if (idxChanged) {
     if (!ctx->parm.stackUse) {
       for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
+        if (ctx->verbose > 3) {
+          fprintf(stderr, "%s: gageIv3Fill(pvl[%u/%u] %s): .......\n", me,
+                  pvlIdx, ctx->pvlNum, ctx->pvl[pvlIdx]->kind->name);
+        }
         gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
       }
     } else {
@@ -710,13 +718,13 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
            scale, instead of refilling all of them in the support of
            the stack recon */
         if (ctx->stackFw[pvlIdx]) {
-          if (ctx->verbose > 2) {
+          if (ctx->verbose > 3) {
             fprintf(stderr, "%s: stackFw[%u] == %g -> iv3fill needed\n", me,
                     pvlIdx, ctx->stackFw[pvlIdx]);
           }
           gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
         } else {
-          if (ctx->verbose > 2) {
+          if (ctx->verbose > 3) {
             fprintf(stderr, "%s: stackFw[%u] == %g -> NO iv3fill\n", me,
                     pvlIdx, ctx->stackFw[pvlIdx]);
           }
@@ -727,7 +735,7 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
   if (ctx->parm.stackUse) {
     unsigned int baseIdx, vi;
     baseIdx = ctx->pvlNum - 1;
-    if (ctx->verbose > 2) {
+    if (ctx->verbose > 3) {
       for (vi=0; vi<baseIdx; vi++) {
         fprintf(stderr, "%s: (stack) pvl[%u]'s value cache at "
                 "coords = %u,%u,%u:\n", me, vi,
@@ -736,7 +744,7 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
       }
     }
     _gageStackBaseIv3Fill(ctx);
-    if (ctx->verbose > 1) {
+    if (ctx->verbose > 3) {
       fprintf(stderr, "%s: (stack) base pvl's value cache at "
               "coords = %u,%u,%u:\n", me,
               ctx->point.idx[0], ctx->point.idx[1], ctx->point.idx[2]);
@@ -746,9 +754,10 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
     ctx->pvl[baseIdx]->kind->answer(ctx, ctx->pvl[baseIdx]);
   } else {
     for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
-      if (ctx->verbose > 1) {
-        fprintf(stderr, "%s: pvl[%u]'s value cache at "
-                "coords = %u,%u,%u:\n", me, pvlIdx,
+      if (ctx->verbose > 3) {
+        fprintf(stderr, "%s: pvl[%u/%u %s]'s value cache at "
+                "coords = %u,%u,%u:\n", me, pvlIdx, ctx->pvlNum,
+                ctx->pvl[pvlIdx]->kind->name,
                 ctx->point.idx[0], ctx->point.idx[1], ctx->point.idx[2]);
         ctx->pvl[pvlIdx]->kind->iv3Print(stderr, ctx, ctx->pvl[pvlIdx]);
       }
@@ -757,6 +766,9 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
     }
   }
 
+  if (ctx->verbose > 3) {
+    fprintf(stderr, "%s: bye ^^^^^^^^^^^^^ \n\n", me);
+  }
   return 0;
 }
 
@@ -793,6 +805,10 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
       si = ss;
     } else {
       si = 0;
+    }
+    if (ctx->verbose > 3) {
+      fprintf(stderr, "%s: staying at ipos (%g,%g,%g)\n", me,
+              xi, yi, zi);
     }
   } else {
     /* have to convert from world to index.  NOTE: the [4]s here are
@@ -844,10 +860,10 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
     } else {
       si = 0;
     }
-    /*
-    fprintf(stderr, "%s: wpos (%g,%g,%g) --> ipos (%g,%g,%g)\n", me,
-    xx, yy, zz, xi, yi, zi);
-    */
+    if (ctx->verbose > 3) {
+      fprintf(stderr, "%s: wpos (%g,%g,%g) --> ipos (%g,%g,%g)\n", me,
+              xx, yy, zz, xi, yi, zi);
+    }
   }
   if (clamp) {
     if (nrrdCenterNode == ctx->shape->center) {
@@ -861,6 +877,10 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
     }
     if (ctx->parm.stackUse) {
       si = AIR_CLAMP(0, si, ctx->pvlNum-2);
+    }
+    if (ctx->verbose > 3) {
+      fprintf(stderr, "%s: with clamping --> ipos (%g,%g,%g)\n", me,
+              xi, yi, zi);
     }
   }
   return _gageProbe(ctx, xi, yi, zi, si);
