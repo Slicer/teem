@@ -24,6 +24,12 @@
 #include "gage.h"
 #include "privateGage.h"
 
+/*
+** in the 1.11 release this file was not actually linked in;
+** but it remains in the repo as notes on the first pass
+** at implementing this functionality.  More thinking needed!
+*/
+
 /* The "/ *Teem:" (without space) comments in here are an experiment */
 
 gageMultiItem * /*Teem: error if (!ret) */
