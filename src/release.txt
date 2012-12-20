@@ -68,10 +68,9 @@ cd ..; mv teem teem-${VERSION}-src
 tar czvf teem-${VERSION}-src.tar.gz teem-${VERSION}-src
 mv teem-${VERSION}-src.tar.gz ~/rel
 
-(HEY update this to use svn, not cvs!)
-cvs -d:ext:kindlmann@teem.cvs.sf.net:/cvsroot/teem co NrrdIO
+svn co http://teem.svn.sf.net:/svnroot/teem/NrrdIO/trunk NrrdIO
 cd NrrdIO
-find . -name CVS  -exec rm -rf {} \;
+find . -name .svn  -exec rm -rf {} \;
 cd ..; mv NrrdIO NrrdIO-${VERSION}-src
 tar czvf NrrdIO-${VERSION}-src.tar.gz NrrdIO-${VERSION}-src
 mv NrrdIO-${VERSION}-src.tar.gz ~/rel
