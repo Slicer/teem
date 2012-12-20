@@ -290,6 +290,16 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP, double *bP,
   }
 
   /* normalize so that maximal norm is 1.0 */
+  /* Thu Dec 20 03:25:20 CST 2012 this rescaling IS in fact what is
+     causing the small discrepency between ngrad before and after
+     saving to KVPs. The problem is not related to how the gradient
+     vector coefficients are recovered from the string-based
+     representation; that is likely bit-for-bit correct.  The problem
+     is when everything is rescaled by 1.0/normMax: a "normalized"
+     vector will not have *exactly* length 1.0. So what can be done
+     to prevent pointlessly altering the lengths of vectors that were
+     close enough to unit-length?  Is there some more 754-savvy
+     way of doing this normalization? */
   normMax = 0;
   info = (double *)(ninfo->data);
   for (dwiIdx=0; dwiIdx<dwiNum; dwiIdx++) {
