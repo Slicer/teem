@@ -771,7 +771,7 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
     tec = (1 == num ? pvlData->tec1 : pvlData->tec2);
     E = 0;
     if (!E) tenEstimateVerboseSet(tec, 0);
-    if (!E) tenEstimateNegEvalShiftSet(tec, AIR_TRUE);
+    if (!E) tenEstimateNegEvalShiftSet(tec, AIR_FALSE);
     if (!E) E |= tenEstimateMethodSet(tec, 1 == num
                                       ? kindData->est1Method
                                       : kindData->est2Method);
@@ -1055,6 +1055,16 @@ tenDwiGageKindSet(gageKind *dwiKind,
     biffAddf(TEN, "%s: sorry, B-matrices temporarily disabled", me);
     return 1;
   }
+  /* (used for detecting errors in losslessly writing/reading
+      a gradient set)
+  {
+    fprintf(stderr, "!%s: saving ngrad.nrrd\n", me);
+    if (ngrad) {
+      nrrdSave("ngrad.nrrd", ngrad, NULL);
+    }
+  }
+  */
+
   if (tenGradientCheck(ngrad, nrrdTypeDefault, 7)) {
     biffAddf(TEN, "%s: problem with given gradients", me);
     return 1;
