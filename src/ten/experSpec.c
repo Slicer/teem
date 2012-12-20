@@ -337,17 +337,21 @@ tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi, const tenExperSpec *espec) {
 
   nrrdKeyValueAdd(ndwi, tenDWMRIModalityKey, tenDWMRIModalityVal);
   maxb = tenExperSpecMaxBGet(espec);
-  sprintf(valstr, "%g", maxb);
+  sprintf(valstr, "%.17g", maxb);
   nrrdKeyValueAdd(ndwi, tenDWMRIBValueKey, valstr);
   for (ii=0; ii<espec->imgNum; ii++) {
     double vec[3];
     sprintf(keystr, tenDWMRIGradKeyFmt, ii);
     ELL_3V_COPY(vec, espec->grad + 3*ii);
     bb = espec->bval[ii];
+    /* Thu Dec 20 03:25:20 CST 2012 this rescaling is not, btw,
+       what is causing the small discrepency between ngrad before
+       and after saving to KVPs */
     ELL_3V_SCALE(vec, sqrt(bb/maxb), vec);
-    sprintf(valstr, "%g %g %g", vec[0], vec[1], vec[2]);
+    sprintf(valstr, "%.17g %.17g %.17g", vec[0], vec[1], vec[2]);
     nrrdKeyValueAdd(ndwi, keystr, valstr);
   }
+  /* HEY what if its a full B-matrix? */
 
   return 0;
 }
