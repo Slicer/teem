@@ -748,10 +748,7 @@ _tenEstimateEmatUpdate(tenEstimateContext *tec) {
         return 1;
       }
     }
-    /*
-    nrrdSave("nbmat.txt", tec->nbmat, NULL);
-    nrrdSave("nemat.txt", tec->nemat, NULL);
-    */
+
     tec->flag[flagDwiSet] = AIR_FALSE;
     tec->flag[flagWght] = AIR_FALSE;
   }
@@ -761,15 +758,18 @@ _tenEstimateEmatUpdate(tenEstimateContext *tec) {
 int
 tenEstimateUpdate(tenEstimateContext *tec) {
   static const char me[]="tenEstimateUpdate";
+  int EE;
 
-  if (_tenEstimateCheck(tec)
-      || _tenEstimateNumUpdate(tec)
-      || _tenEstimateAllAllocUpdate(tec)
-      || _tenEstimateDwiAllocUpdate(tec)
-      || _tenEstimateAllSetUpdate(tec)
-      || _tenEstimateDwiSetUpdate(tec)
-      || _tenEstimateWghtUpdate(tec)
-      || _tenEstimateEmatUpdate(tec)) {
+  EE = 0;
+  if (!EE) EE |= _tenEstimateCheck(tec);
+  if (!EE) EE |= _tenEstimateNumUpdate(tec);
+  if (!EE) EE |= _tenEstimateAllAllocUpdate(tec);
+  if (!EE) EE |= _tenEstimateDwiAllocUpdate(tec);
+  if (!EE) EE |= _tenEstimateAllSetUpdate(tec);
+  if (!EE) EE |= _tenEstimateDwiSetUpdate(tec);
+  if (!EE) EE |= _tenEstimateWghtUpdate(tec);
+  if (!EE) EE |= _tenEstimateEmatUpdate(tec);
+  if (EE) {
     biffAddf(TEN, "%s: problem updating", me);
     return 1;
   }
@@ -1269,10 +1269,6 @@ _tenEstimate1Tensor_WLS(tenEstimateContext *tec) {
       wght[dwiIdx + tec->dwiNum*dwiIdx] = AIR_MAX(FLT_MIN, dwi*dwi);
     }
     if (ell_Nm_wght_pseudo_inv(tec->nemat, tec->nbmat, tec->nwght)) {
-      /*
-      nrrdSave("nbmat.txt", tec->nbmat, NULL);
-      nrrdSave("nwght.txt", tec->nwght, NULL);
-      */
       biffMovef(TEN, ELL, "%s(2): trouble w/ %ux%u B-matrix (iter %u)", me,
                 AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
                 AIR_CAST(unsigned int, tec->nbmat->axis[0].size), iter);
@@ -1810,6 +1806,11 @@ tenEstimate1TensorSingle_d(tenEstimateContext *tec,
       fprintf(stderr, "%s: dwi[%u] = %g\n", me, ii,
               tec->all_d ? tec->all_d[ii] : tec->all_f[ii]);
     }
+    fprintf(stderr, "%s: will estimate by %d (%s) \n"
+            "  estimateB0 %d; valueMin %g\n", me,
+            tec->estimate1Method,
+            airEnumStr(tenEstimate1Method, tec->estimate1Method),
+            tec->estimateB0, tec->valueMin);
   }
   if (_tenEstimate1TensorSingle(tec)) {
     biffAddf(TEN, "%s: ", me);
@@ -1817,10 +1818,10 @@ tenEstimate1TensorSingle_d(tenEstimateContext *tec,
   }
   if (tec->verbose) {
     fprintf(stderr, "%s: ten = %g   %g %g %g   %g %g   %g\n", me,
-            ten[0],
-            ten[1], ten[2], ten[3],
-            ten[4], ten[5],
-            ten[6]);
+            tec->ten[0],
+            tec->ten[1], tec->ten[2], tec->ten[3],
+            tec->ten[4], tec->ten[5],
+            tec->ten[6]);
   }
   TEN_T_COPY(ten, tec->ten);
   return 0;
