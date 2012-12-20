@@ -762,6 +762,7 @@ probeTask1(gageContext *gctxComp[KIND_NUM],
   tenErrNum = sclErrNum = 0;
   vecErrNum = 0.0;
   errNumFrac = 0.02;
+
   if (nrrdKernelBoxSupportDebug == kpack[0]) {
     /* not actually here for any derivatives, mainly to check on
        tensor esimation (in addition to usual check of multivariate as
@@ -774,7 +775,12 @@ probeTask1(gageContext *gctxComp[KIND_NUM],
     vecErrMax = AIR_NAN;
     sclErrMax = AIR_NAN;
   } else if (nrrdKernelCatmullRomSupportDebug == kpack[0]) {
-    tenErrMax = 0.12;
+    tenErrMax = 0.14;  /* honestly, not sure how meaningful this test
+                          is, given how significant we're allowing the
+                          error to be. might be more meaningful if
+                          this was with comparison to a pre-computed
+                          non-linear least-squares fit, instead of the
+                          (log-based) linear least-squares.  */
     vecErrMax = 0.0016;
     sclErrMax = 0.0008;
   } else {
