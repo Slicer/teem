@@ -56,6 +56,13 @@
 #define KI_TEN 2
 #define KI_DWI 3
 
+static const char *kindStr[KIND_NUM] = {
+  "scalar",
+  "vector",
+  "tensor",
+  "  DWI "
+};
+
 #define HALTON_BASE 100
 
 static unsigned int volSize[3] = {45, 46, 47};
@@ -960,6 +967,12 @@ main(int argc, const char **argv) {
   for (kindIdx=0; kindIdx<KIND_NUM; kindIdx++) {
     GAGE_CTX_NEW(gctx[kindIdx], mop);
     GAGE_CTX_NEW(gctxComp[kindIdx], mop);
+    /*
+    fprintf(stderr, "%s: kind %s (%u): gctx=%p, gctxComp=%p\n", me,
+            kindStr[kindIdx], kindIdx,
+            AIR_VOIDP(gctx[kindIdx]),
+            AIR_VOIDP(gctxComp[kindIdx]));
+    */
     man[kindIdx] = multiAnswerNew(name[kindIdx]);
     manComp[kindIdx] = multiAnswerNew(nameComp[kindIdx]);
     airMopAdd(mop, man[kindIdx], (airMopper)multiAnswerNix, airMopAlways);
@@ -1021,6 +1034,10 @@ main(int argc, const char **argv) {
       fprintf(stderr, "%s: trouble creating DWI context:\n%s", me, err);
       airMopError(mop); return 1;
     }
+    /*
+    fprintf(stderr, "%s: %s gctx=%p gets pvl %p\n", me,
+            kindStr[KI_DWI], AIR_VOIDP(gctx[KI_DWI]), AIR_VOIDP(pvl));
+    */
   }
 
   /* make sure kinds can parse back to themselves */
