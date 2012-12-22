@@ -744,7 +744,7 @@ probeTask1(gageContext *gctxComp[KIND_NUM],
     tenDiff[7], tenAvg[7], tenErr, tenErrMax,
     vecDiff[3], vecAvg[3], vecErr, vecErrMax, vecErrNum,
     sclDiff, sclAvg, sclErr, sclErrMax, errNumFrac;
-  const double *dwiTenEstP, dwiTenEstNorm,
+  const double *dwiTenEstP,
     *tenTenP, *tenTenNormP, *tenTenNormGradP,
     *sclSclP, *sclGradP, *vecVecP;
 
