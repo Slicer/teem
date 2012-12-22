@@ -108,8 +108,10 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me,
       || nrrdResampleInputSet(rsmc, nin)
       || nrrdResampleKernelSet(rsmc, 0, rescaleKsp->kernel, rescaleKsp->parm)
       || nrrdResampleKernelSet(rsmc, 1, rescaleKsp->kernel, rescaleKsp->parm)
-      || nrrdResampleSamplesSet(rsmc, 0, rescale*nin->axis[0].size)
-      || nrrdResampleSamplesSet(rsmc, 1, rescale*nin->axis[1].size)
+      || nrrdResampleSamplesSet(rsmc, 0, AIR_CAST(size_t,
+                                                  rescale*nin->axis[0].size))
+      || nrrdResampleSamplesSet(rsmc, 1, AIR_CAST(size_t,
+                                                  rescale*nin->axis[1].size))
       || nrrdResampleRangeFullSet(rsmc, 0)
       || nrrdResampleRangeFullSet(rsmc, 1)
       || nrrdResampleTypeOutSet(rsmc, nrrdTypeFloat)
@@ -185,7 +187,8 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me,
     nn = nrrdElementNumber(nrescale);
     rescaled = AIR_CAST(float *, nrescale->data);
     for (ii=0; ii<nn; ii++) {
-      rescaled[ii] = AIR_AFFINE(minval, rescaled[ii], maxval, 0.0, 255.0);
+      rescaled[ii] = AIR_CAST(float, AIR_AFFINE(minval, rescaled[ii],
+                                                maxval, 0.0, 255.0));
     }
     airMopOkay(submop);
     submop = NULL;
