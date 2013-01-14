@@ -30,18 +30,22 @@
  * Input vectors should be non-zero, but do not need to be normalized
  * thetaphi needs to be pre-allocated to length 2*ct
  */
-void elfCart2Thetaphi_f(float *thetaphi, const float *dirs, unsigned int ct)
-{
-  unsigned int i;
-  for (i=0; i<ct; i++) {
-    float r=AIR_CAST(float, ELL_3V_LEN(dirs+3*i));
-    float z=dirs[3*i+2]/r;
-    if (z>1) thetaphi[2*i]=0;
-    else if (z<-1) thetaphi[2*i]=AIR_CAST(float, AIR_PI);
-    else thetaphi[2*i]=AIR_CAST(float, acos(z));
-    thetaphi[2*i+1]=AIR_CAST(float, atan2(dirs[3*i+1],dirs[3*i]));
-  }
-}
+#define ELFCART2THETAPHI(TYPE, SUF)                                     \
+  void elfCart2Thetaphi_##SUF(TYPE *thetaphi, const TYPE *dirs,         \
+                              unsigned int ct) {                        \
+    unsigned int i;                                                     \
+    for (i=0; i<ct; i++) {                                              \
+      TYPE r=AIR_CAST(TYPE, ELL_3V_LEN(dirs+3*i));                      \
+      TYPE z=dirs[3*i+2]/r;                                             \
+      if (z>1) thetaphi[2*i]=0;                                         \
+      else if (z<-1) thetaphi[2*i]=AIR_CAST(TYPE, AIR_PI);              \
+      else thetaphi[2*i]=AIR_CAST(TYPE, acos(z));                       \
+      thetaphi[2*i+1]=AIR_CAST(TYPE, atan2(dirs[3*i+1],dirs[3*i]));     \
+    }                                                                   \
+  }                                                                     \
+
+ELFCART2THETAPHI(double, d)
+ELFCART2THETAPHI(float, f)
 
 /* elfESHEstimMatrix:
  *
@@ -61,100 +65,103 @@ void elfCart2Thetaphi_f(float *thetaphi, const float *dirs, unsigned int ct)
  *         1 if order is unsupported
  *         2 if len(v)<len(c) (i.e., system is underdetermined)
  */
-int elfESHEstimMatrix_f(float *T, float *H, unsigned int order,
-                        const float *thetaphi,
-                        unsigned int ct, float lambda, float *w)
-{
-  double *B, *M, *Minv;
-  unsigned int N, i, j, k;
-  Nrrd *nmat, *ninv;
-  if (order>tijk_max_esh_order || order%2!=0)
-    return 1;
-  N=tijk_esh_len[order/2];
-  if (ct<N) return 2;
-
-  /* intermediate computations are done in double precision */
-  B = (double*) malloc(sizeof(double)*N*ct);
-  M = (double*) malloc(sizeof(double)*N*N);
-
-  /* build the transformation matrix */
-  /* B has row major format -> all SHs that belong to the same
-   *                           thetaphi are stored sequentially */
-  for (i=0; i<ct; i++) {
-    tijk_eval_esh_basis_d(B+N*i, order, thetaphi[2*i], thetaphi[2*i+1]);
-  }
-  if (w!=NULL) { /* weighted fit */
-    for (i=0; i<N; ++i) /* row index */
-      for (j=0; j<N; ++j) { /* column index */
-        M[N*i+j]=0.0;
-        for (k=0; k<ct; ++k) {
-          M[N*i+j]+=B[N*k+i]*B[N*k+j]*w[k];
-        }
-      }
-  } else { /* unweighted fit */
-    for (i=0; i<N; ++i) /* row index */
-      for (j=0; j<N; ++j) { /* column index */
-        M[N*i+j]=0.0;
-        for (k=0; k<ct; ++k) {
-          M[N*i+j]+=B[N*k+i]*B[N*k+j];
-        }
-      }
-  }
-  /* if desired, perform Laplace-Beltrami regularization */
-  if (lambda>0) {
-    unsigned int idx=0, o;
-    for (o=0; o<=order; o+=2) { /* order */
-      while (idx<tijk_esh_len[o/2]) {
-        M[N*idx+idx]+=lambda*o*o*(o+1)*(o+1);
-        idx++;
-      }
-    }
-  }
-  /* invert what we have up to now */
-  nmat = nrrdNew();
-  ninv = nrrdNew();
-  nmat->dim=2;
-  nmat->type=nrrdTypeDouble;
-  nmat->axis[0].size=nmat->axis[1].size=N;
-  nmat->data=M;
-  ell_Nm_inv(ninv, nmat);
-  Minv = (double*) ninv->data;
-
-  /* create final transformation matrix */
-  if (w!=NULL) { /* weighted */
-    for (i=0; i<N; ++i) /* row index */
-      for (j=0; j<ct; ++j) {
-        unsigned int idx=ct*i+j;
-        T[idx]=0.0;
-        for (k=0; k<N; ++k) {
-          T[idx]+=AIR_CAST(float, Minv[N*i+k]*B[N*j+k]*w[j]);
-        }
-      }
-  } else { /* unweighted */
-    for (i=0; i<N; ++i) /* row index */
-      for (j=0; j<ct; ++j) {
-        unsigned int idx=ct*i+j;
-        T[idx]=0.0;
-        for (k=0; k<N; ++k) {
-          T[idx]+=AIR_CAST(float, Minv[N*i+k]*B[N*j+k]);
-        }
-      }
-  }
-  nmat = nrrdNix(nmat);
-  ninv = nrrdNuke(ninv);
-
-  if (H!=NULL) { /* H = BT */
-    for (i=0; i<ct; i++) /* row index */
-      for (j=0; j<ct; j++) {
-        unsigned int idx=ct*i+j;
-        H[idx]=0.0;
-        for (k=0; k<N; k++) { /* sum over all SH coeffs */
-          H[idx]+=AIR_CAST(float, B[N*i+k]*T[k*ct+j]);
-        }
-      }
-  }
-
-  free(M);
-  free(B);
-  return 0;
+#define ELFESHESTIMMATRIX(TYPE, SUF)                                    \
+  int elfESHEstimMatrix_##SUF(TYPE *T, TYPE *H, unsigned int order,     \
+                              const TYPE *thetaphi,                     \
+                              unsigned int ct, TYPE lambda, TYPE *w) {  \
+  double *B, *M, *Minv;                                                 \
+  unsigned int N, i, j, k;                                              \
+  Nrrd *nmat, *ninv;                                                    \
+  if (order>tijk_max_esh_order || order%2!=0)                           \
+    return 1;                                                           \
+  N=tijk_esh_len[order/2];                                              \
+  if (ct<N) return 2;                                                   \
+                                                                        \
+  /* intermediate computations are always done in double precision */   \
+  B = (double*) malloc(sizeof(double)*N*ct);                            \
+  M = (double*) malloc(sizeof(double)*N*N);                             \
+                                                                        \
+  /* build the transformation matrix */                                 \
+  /* B has row major format -> all SHs that belong to the same          \
+   *                           thetaphi are stored sequentially */      \
+  for (i=0; i<ct; i++) {                                                \
+    tijk_eval_esh_basis_d(B+N*i, order, thetaphi[2*i], thetaphi[2*i+1]); \
+  }                                                                     \
+  if (w!=NULL) { /* weighted fit */                                     \
+    for (i=0; i<N; ++i) /* row index */                                 \
+      for (j=0; j<N; ++j) { /* column index */                          \
+        M[N*i+j]=0.0;                                                   \
+        for (k=0; k<ct; ++k) {                                          \
+          M[N*i+j]+=B[N*k+i]*B[N*k+j]*w[k];                             \
+        }                                                               \
+      }                                                                 \
+  } else { /* unweighted fit */                                         \
+    for (i=0; i<N; ++i) /* row index */                                 \
+      for (j=0; j<N; ++j) { /* column index */                          \
+        M[N*i+j]=0.0;                                                   \
+        for (k=0; k<ct; ++k) {                                          \
+          M[N*i+j]+=B[N*k+i]*B[N*k+j];                                  \
+        }                                                               \
+      }                                                                 \
+  }                                                                     \
+  /* if desired, perform Laplace-Beltrami regularization */             \
+  if (lambda>0) {                                                       \
+    unsigned int idx=0, o;                                              \
+    for (o=0; o<=order; o+=2) { /* order */                             \
+      while (idx<tijk_esh_len[o/2]) {                                   \
+        M[N*idx+idx]+=lambda*o*o*(o+1)*(o+1);                           \
+        idx++;                                                          \
+      }                                                                 \
+    }                                                                   \
+  }                                                                     \
+  /* invert what we have up to now */                                   \
+  nmat = nrrdNew();                                                     \
+  ninv = nrrdNew();                                                     \
+  nmat->dim=2;                                                          \
+  nmat->type=nrrdTypeDouble;                                            \
+  nmat->axis[0].size=nmat->axis[1].size=N;                              \
+  nmat->data=M;                                                         \
+  ell_Nm_inv(ninv, nmat);                                               \
+  Minv = (double*) ninv->data;                                          \
+                                                                        \
+  /* create final transformation matrix */                              \
+  if (w!=NULL) { /* weighted */                                         \
+    for (i=0; i<N; ++i) /* row index */                                 \
+      for (j=0; j<ct; ++j) {                                            \
+        unsigned int idx=ct*i+j;                                        \
+        T[idx]=0.0;                                                     \
+        for (k=0; k<N; ++k) {                                           \
+          T[idx]+=AIR_CAST(TYPE, Minv[N*i+k]*B[N*j+k]*w[j]);            \
+        }                                                               \
+      }                                                                 \
+  } else { /* unweighted */                                             \
+    for (i=0; i<N; ++i) /* row index */                                 \
+      for (j=0; j<ct; ++j) {                                            \
+        unsigned int idx=ct*i+j;                                        \
+        T[idx]=0.0;                                                     \
+        for (k=0; k<N; ++k) {                                           \
+          T[idx]+=AIR_CAST(TYPE, Minv[N*i+k]*B[N*j+k]);                 \
+        }                                                               \
+      }                                                                 \
+  }                                                                     \
+  nmat = nrrdNix(nmat);                                                 \
+  ninv = nrrdNuke(ninv);                                                \
+                                                                        \
+  if (H!=NULL) { /* H = BT */                                           \
+    for (i=0; i<ct; i++) /* row index */                                \
+      for (j=0; j<ct; j++) {                                            \
+        unsigned int idx=ct*i+j;                                        \
+        H[idx]=0.0;                                                     \
+        for (k=0; k<N; k++) { /* sum over all SH coeffs */              \
+          H[idx]+=AIR_CAST(TYPE, B[N*i+k]*T[k*ct+j]);                   \
+        }                                                               \
+      }                                                                 \
+  }                                                                     \
+                                                                        \
+  free(M);                                                              \
+  free(B);                                                              \
+  return 0;                                                             \
 }
+
+ELFESHESTIMMATRIX(double, d)
+ELFESHESTIMMATRIX(float, f)

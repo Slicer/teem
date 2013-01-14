@@ -91,8 +91,14 @@ ELF_EXPORT int elfMaximaFind_f(float **ls, float **vs, const float *ten,
                                elfMaximaContext *emc);
 
 /* ESHEstimElf.c */
+ELF_EXPORT void elfCart2Thetaphi_d(double *thetaphi, const double *dirs,
+                                   unsigned int ct);
 ELF_EXPORT void elfCart2Thetaphi_f(float *thetaphi, const float *dirs,
                                    unsigned int ct);
+
+ELF_EXPORT int elfESHEstimMatrix_d(double *T, double *H, unsigned int order,
+                                   const double *thetaphi,
+                                   unsigned int ct, double lambda, double *w);
 ELF_EXPORT int elfESHEstimMatrix_f(float *T, float *H, unsigned int order,
                                    const float *thetaphi,
                                    unsigned int ct, float lambda, float *w);
