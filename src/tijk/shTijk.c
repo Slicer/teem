@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2011, 2010, 2009, 2008 Thomas Schultz
+  Copyright (C) 2013, 2012, 2011, 2010, 2009, 2008 Thomas Schultz
   Copyright (C) 2010, 2009, 2008 Gordon Kindlmann
 
   This library is free software; you can redistribute it and/or
@@ -38,6 +38,11 @@ const unsigned int tijk_max_esh_order=8;
 #define _TIJK_MAX_ESH_LEN 45
 /* number of coefficients for order i/2 */
 const unsigned int tijk_esh_len[5]={1,6,15,28,45};
+
+/* We use the following convention:
+ * theta = polar angle from positive z
+ * phi   = azimuth from positive x
+ */
 
 #define TIJK_EVAL_ESH_BASIS(TYPE, SUF)                                  \
   unsigned int                                                          \
@@ -212,6 +217,49 @@ TIJK_3D_SYM_TO_ESH(float, f)
 TIJK_ESH_TO_3D_SYM(double, d)
 TIJK_ESH_TO_3D_SYM(float, f)
 
+/* Routines that return a pointer to the internal matrices used to map
+ * between Spherical Harmonics and Symmetric Tensors; useful if you
+ * want to concatenate (i.e. matrix multiply) this conversion with
+ * other linear operations; if you just want the conversion, simply use
+ *    tijk_esh_to_3d_sym_*   and   tijk_3d_sym_to_esh_*
+ */
+#define TIJK_3D_SYM_TO_ESH_MATRIX(TYPE, SUF)                    \
+  const TYPE*                                                   \
+  tijk_3d_sym_to_esh_matrix_##SUF(const tijk_type *type) {      \
+    if (type==tijk_2o3d_sym)                                    \
+      return _tijk_sym2esh_o2_##SUF;                            \
+    if (type==tijk_4o3d_sym)                                    \
+      return _tijk_sym2esh_o4_##SUF;                            \
+    if (type==tijk_6o3d_sym)                                    \
+      return _tijk_sym2esh_o6_##SUF;                            \
+    if (type==tijk_8o3d_sym)                                    \
+      return _tijk_sym2esh_o8_##SUF;                            \
+    return NULL;                                                \
+  }
+
+TIJK_3D_SYM_TO_ESH_MATRIX(double, d)
+TIJK_3D_SYM_TO_ESH_MATRIX(float, f)
+
+#define TIJK_ESH_TO_3D_SYM_MATRIX(TYPE, SUF)            \
+  const TYPE*                                           \
+  tijk_esh_to_3d_sym_matrix_##SUF(unsigned int order) { \
+    switch (order) {                                    \
+    case 2:                                             \
+      return _tijk_esh2sym_o2_##SUF;                    \
+    case 4:                                             \
+      return _tijk_esh2sym_o4_##SUF;                    \
+    case 6:                                             \
+      return _tijk_esh2sym_o6_##SUF;                    \
+    case 8:                                             \
+      return _tijk_esh2sym_o8_##SUF;                    \
+    default:                                            \
+      return NULL;                                      \
+    }                                                   \
+  }
+
+TIJK_ESH_TO_3D_SYM_MATRIX(double,d)
+TIJK_ESH_TO_3D_SYM_MATRIX(float,f)
+
 /* Convolve in with kernel and write to out (in==out is permitted) */
 #define TIJK_ESH_CONVOLVE(TYPE, SUF)                              \
   void tijk_esh_convolve_##SUF(TYPE *out, const TYPE *in,         \
@@ -329,6 +377,5 @@ TIJK_ESH_MAKE_KERNEL_RANK1(float, f)
 
 TIJK_ESH_MAKE_KERNEL_DELTA(double, d)
 TIJK_ESH_MAKE_KERNEL_DELTA(float, f)
-
 
 #include "convertQuietPop.h"

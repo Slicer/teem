@@ -398,6 +398,12 @@ TIJK_EXPORT const tijk_type *tijk_esh_to_3d_sym_f(float *res,
                                                   const float *sh,
                                                   unsigned int order);
 
+TIJK_EXPORT const double *tijk_3d_sym_to_esh_matrix_d(const tijk_type *type);
+TIJK_EXPORT const float *tijk_3d_sym_to_esh_matrix_f(const tijk_type *type);
+
+TIJK_EXPORT const double *tijk_esh_to_3d_sym_matrix_d(unsigned int order);
+TIJK_EXPORT const float *tijk_esh_to_3d_sym_matrix_f(unsigned int order);
+
 TIJK_EXPORT void tijk_esh_convolve_d(double *out, const double *in,
                                      const double *kernel,
                                      unsigned int order);

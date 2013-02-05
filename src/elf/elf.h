@@ -103,6 +103,13 @@ ELF_EXPORT int elfESHEstimMatrix_f(float *T, float *H, unsigned int order,
                                    const float *thetaphi,
                                    unsigned int ct, float lambda, float *w);
 
+ELF_EXPORT int elfTenEstimMatrix_d(double *T, double *H, const tijk_type *type,
+                                   const double *vecs, unsigned int ct,
+                                   double *w);
+ELF_EXPORT int elfTenEstimMatrix_f(float *T, float *H, const tijk_type *type,
+                                   const float *vecs, unsigned int ct,
+                                   float *w);
+
 /* ballStickElf.c */
 
 /* elfSingleShellDWI:
