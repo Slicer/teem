@@ -56,6 +56,10 @@ ELF_EXPORT float elfGlyphPolar(limnPolyData *glyph, const char antipodal,
                                const unsigned char *posColor,
                                const unsigned char *negColor);
 
+ELF_EXPORT float elfGlyphKDE(limnPolyData *glyph, const char antipodal,
+                             const float *vecs, const size_t n_vecs,
+                             const float gamma, const char normalize);
+
 ELF_EXPORT int elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
                                    const int *neighbors, unsigned int nbstride,
                                    const float *ten, const tijk_type *type,

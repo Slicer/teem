@@ -248,6 +248,87 @@ elfGlyphHOME(limnPolyData *glyph, const char antipodal,
 }
 
 /*
+******** elfGlyphKDE
+**
+** Turns a unit sphere into a polar plot that depicts Kernel Density
+** Estimate (KDE) of input vectors
+**
+** Input:
+** glyph is expected to represent the unit sphere
+** antipodal can be set to a non-zero value if antipodal points on the sphere
+**           are subsequent in the input, and gamma is even. It will lead to
+**           faster processing.
+**           (this can be used together with limnPolyDataIcoSphere)
+** vecs is a set of n_vecs 3D input vectors (PDF samples)
+** KDE uses dp kernel with exponent gamma
+** normalize - if nonzero, surface normals will be rescaled to unit length
+**
+** Output:
+** glyph is the polar plot that corresponds to KDE of vecs.
+** If the input shape was anything other than a unit sphere, the output
+** shape is undefined
+**
+**  NOTE ON NORMALIZATION:
+**  Normalization is such that the maximum radius of the glyph (when all
+**  samples agree) is one. To instead normalize the KDE such that it
+**  integrates to unity, multiply by (2*gamma+1)/(4*pi)
+**
+** Normals are only updated when they were allocated in the input
+** When colors were present in the input, they are replaced by a pointwise
+** XYZ-RGB map
+** The return value is the radius of the glyph's bounding sphere
+*/
+float
+elfGlyphKDE(limnPolyData *glyph, const char antipodal,
+            const float *vecs, const size_t n_vecs,
+            const float gamma, const char normalize) {
+  float *verts=glyph->xyzw;
+  float max=0;
+  unsigned int i, j, infoBitFlag;
+  infoBitFlag = limnPolyDataInfoBitFlag(glyph);
+  for (i=0; i<glyph->xyzwNum; i++) {
+    /* compute value by looping over all vecs */
+    double val=0;
+    for (j=0; j<n_vecs; j++) {
+      double dp = ELL_3V_DOT(verts, vecs+3*j);
+      val+=pow(dp, gamma);
+    }
+    val/=n_vecs;
+
+    /* if RGBA is allocated, take care of coloring */
+    if (infoBitFlag & (1 << limnPolyDataInfoRGBA)) {
+      /* RGB encode the vertex coordinates */
+      ELL_4V_SET_TT(glyph->rgba+4*i, unsigned char,
+                    255*fabs(verts[0]), 255*fabs(verts[1]),
+                    255*fabs(verts[2]), 255);
+      if (antipodal) {
+        ELL_4V_COPY(glyph->rgba+4*i+4,glyph->rgba+4*i);
+      }
+    }
+
+    if (val>max) max=val;
+    ELL_3V_SCALE(verts,val,verts);
+    if (antipodal) {
+      ELL_3V_SCALE(verts+4,-1.0f,verts);
+      verts+=4; i++;
+    }
+    verts+=4;
+  }
+  if (infoBitFlag & (1 << limnPolyDataInfoNorm)) {
+    /* take care of normals */
+    if (antipodal &&
+        glyph->primNum==1 &&
+        glyph->type[0]==limnPrimitiveTriangles) {
+      /* we can use our specialized, more efficient code */
+      estimateNormalsAntipodal(glyph, normalize);
+    } else { /* use standard limn routine */
+      limnPolyDataVertexNormals(glyph);
+    }
+  }
+  return max;
+}
+
+/*
 ******** elfColorGlyphMaxima
 **
 ** Maximum-based coloring of tensor glyphs, as described in Section 4 of
