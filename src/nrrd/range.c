@@ -184,7 +184,6 @@ nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd,
     range->min = (minPerc > 0
                   ? minval
                   : 2*allmin - minval);
-    /* fprintf(stderr, "!%s: %g-%% min = %g\n", me, min, minval); */
   }
   if (maxPerc) {
     maxval = AIR_NAN;
@@ -207,7 +206,6 @@ nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd,
     range->max = (maxPerc > 0
                   ? maxval
                   : 2*allmax - maxval);
-    /* fprintf(stderr, "!%s: %g-%% max = %g\n", me, max, maxval); */
   }
 
   airMopOkay(mop);
