@@ -675,6 +675,9 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
   if (_gageLocationSet(ctx, _xi, _yi, _zi, _si)) {
     /* we're outside the volume; leave ctx->errNum and ctx->errStr set;
        as they have just been set by _gageLocationSet() */
+    /* GLK had added but not checked in the following line;
+       the logic of this has to be studied further */
+    /* ctx->edgeFrac = 0.666; */
     return 1;
   }
 

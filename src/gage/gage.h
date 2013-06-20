@@ -738,7 +738,9 @@ typedef struct gageContext_t {
 
   /* what fraction of the values in the kernel support had to be invented
      (by bleeding out the margin) in order to satisfy a probe that was near
-     the edge (any axis, either high or low) of the volume */
+     the edge (any axis, either high or low) of the volume. However, this
+     value is NOT meaningfully set if there is no clamping, and the probe
+     location as fallen outside the volume */
   double edgeFrac;
 } gageContext;
 
