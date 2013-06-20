@@ -462,7 +462,9 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
   /* error checking */
   /* nwght can be NULL -> weighting is constant 1.0 */
   if (!(nout && nin && bins && clamp)) {
-    biffAddf(NRRD, "%s: got NULL pointer", me);
+    biffAddf(NRRD, "%s: got NULL pointer (%p, %p, %p, %p)", me,
+             AIR_VOIDP(nout), AIR_CVOIDP(nin),
+             AIR_CVOIDP(bins), AIR_CVOIDP(clamp));
     return 1;
   }
   if (!(numNin >= 1)) {
@@ -524,6 +526,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
 
   /* check nwght */
   if (nwght) {
+    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
     if (nout==nwght) {
       biffAddf(NRRD, "%s: nout==nwght disallowed", me);
       return 1;
@@ -533,8 +536,10 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
                airEnumStr(nrrdType, nrrdTypeBlock));
       return 1;
     }
-    if (!nrrdSameSize(nin[0], nwght, AIR_TRUE)) {
-      biffAddf(NRRD, "%s: nwght size mismatch with nin[0]", me);
+    if (nrrdElementNumber(nin[0]) != nrrdElementNumber(nwght)) {
+      biffAddf(NRRD, "%s: element # in nwght %s != nin[0] %s", me,
+               airSprintSize_t(stmp2, nrrdElementNumber(nin[0])),
+               airSprintSize_t(stmp1, nrrdElementNumber(nwght)));
       return 1;
     }
     lup = nrrdDLookup[nwght->type];
