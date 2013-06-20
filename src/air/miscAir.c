@@ -116,7 +116,6 @@ airFopen(const char *name, FILE *std, const char *mode) {
   return ret;
 }
 
-
 /*
 ******** airFclose()
 **
