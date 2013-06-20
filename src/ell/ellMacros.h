@@ -149,6 +149,10 @@ extern "C" {
   ((v2)[0] = (s0)*(v0)[0] + (s1)*(v1)[0],     \
    (v2)[1] = (s0)*(v0)[1] + (s1)*(v1)[1])
 
+#define ELL_2V_SCALE_ADD3(vd, s0, v0, s1, v1, s2, v2)    \
+  ((vd)[0] = (s0)*(v0)[0] + (s1)*(v1)[0] + (s2)*(v2)[0], \
+   (vd)[1] = (s0)*(v0)[1] + (s1)*(v1)[1] + (s2)*(v2)[1])
+
 #define ELL_2V_NORM(v2, v1, length) \
   (length = ELL_2V_LEN(v1), ELL_2V_SCALE(v2, 1.0/length, v1))
 
