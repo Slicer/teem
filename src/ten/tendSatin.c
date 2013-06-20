@@ -113,7 +113,8 @@ tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
 
 int
 tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
-              float thick, float bnd, float bndRm, float evsc, int torus) {
+              float thick, float scaling,
+              float bnd, float bndRm, float evsc, int torus) {
   static const char me[]="tend_satinGen";
   char buff[AIR_STRLEN_SMALL];
   Nrrd *nconf, *neval, *nevec;
@@ -145,10 +146,13 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
   evec = (float *)nevec->data;
   for (zi=0; zi<size[2]; zi++) {
     z = AIR_CAST(float, AIR_AFFINE(0, zi, size[2]-1, min[2], max[2]));
+    z /= scaling;
     for (yi=0; yi<size[1]; yi++) {
       y = AIR_CAST(float, AIR_AFFINE(0, yi, size[1]-1, min[1], max[1]));
+      y /= scaling;
       for (xi=0; xi<size[0]; xi++) {
         x = AIR_CAST(float, AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]));
+        x /= scaling;
         *conf = 1.0;
         if (torus) {
           float aff;
@@ -191,7 +195,7 @@ tend_satinMain(int argc, const char **argv, const char *me,
   airArray *mop;
 
   int wsize, torus;
-  float parm, maxa, mina, thick, bnd, bndRm, evsc;
+  float parm, maxa, mina, thick, scaling, bnd, bndRm, evsc;
   Nrrd *nout;
   char *outS;
   gageShape *shape;
@@ -219,6 +223,9 @@ tend_satinMain(int argc, const char **argv, const char *me,
              "Use \"-b 0\" for no such ramping.");
   hestOptAdd(&hopt, "th", "thickness", airTypeFloat, 1, 1, &thick, "0.3",
              "parameter governing how thick region of high anisotropy is");
+  hestOptAdd(&hopt, "scl", "scaling", airTypeFloat, 1, 1, &scaling, "1.0",
+             "scaling on size of sphere or torus within volume; lowering "
+             "this below default 1.0 produces more background margin");
   hestOptAdd(&hopt, "evsc", "eval scale", airTypeFloat, 1, 1, &evsc, "1.0",
              "scaling of eigenvalues");
   hestOptAdd(&hopt, "s", "size", airTypeInt, 1, 1, &wsize, "32",
@@ -236,7 +243,7 @@ tend_satinMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (tend_satinGen(nout, parm, mina, maxa, wsize, thick,
+  if (tend_satinGen(nout, parm, mina, maxa, wsize, thick, scaling,
                     bnd, bndRm, evsc, torus)) {
     airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making volume:\n%s\n", me, err);
@@ -302,4 +309,4 @@ tend_satinMain(int argc, const char **argv, const char *me,
   return 0;
 }
 /* TEND_CMD(satin, INFO); */
-unrrduCmd tend_satinCmd = { "satin", INFO, tend_satinMain };
+unrrduCmd tend_satinCmd = { "satin", INFO, tend_satinMain, AIR_FALSE };
