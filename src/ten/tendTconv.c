@@ -72,5 +72,4 @@ tend_tconvMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-/* TEND_CMD(anvol, INFO); */
-unrrduCmd tend_tconvCmd = { "tconv", INFO, tend_tconvMain };
+TEND_CMD(tconv, INFO);

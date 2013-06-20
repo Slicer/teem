@@ -85,5 +85,4 @@ tend_anhistMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-/* TEND_CMD(anhist, INFO); */
-unrrduCmd tend_anhistCmd = { "anhist", INFO, tend_anhistMain };
+TEND_CMD(anhist, INFO);

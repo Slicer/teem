@@ -90,6 +90,5 @@ tend_anplotMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-/* TEND_CMD(anplot, INFO); */
-unrrduCmd tend_anplotCmd = { "anplot", INFO, tend_anplotMain };
+TEND_CMD(anplot, INFO);
 

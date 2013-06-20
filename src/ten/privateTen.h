@@ -29,7 +29,7 @@ extern "C" {
 #endif
 
 #define TEND_CMD(name, info) \
-unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main }
+  unrrduCmd tend_##name##Cmd = { #name, info, tend_##name##Main, AIR_FALSE }
 
 /* USAGE, PARSE: both copied verbatim from unrrdu/privateUnrrdu.h, but
 ** then some hacking was added . . .

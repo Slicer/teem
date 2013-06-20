@@ -95,5 +95,4 @@ tend_mconvMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-/* TEND_CMD(mconv, INFO); */
-unrrduCmd tend_mconvCmd = { "mconv", INFO, tend_mconvMain };
+TEND_CMD(mconv, INFO);

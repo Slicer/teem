@@ -312,5 +312,4 @@ tend_fiberMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-/* TEND_CMD(fiber, INFO); */
-unrrduCmd tend_fiberCmd = { "fiber", INFO, tend_fiberMain };
+TEND_CMD(fiber, INFO);

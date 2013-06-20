@@ -207,5 +207,4 @@ tend_epiregMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-/* TEND_CMD(epireg, INFO); */
-unrrduCmd tend_epiregCmd = { "epireg", INFO, tend_epiregMain };
+TEND_CMD(epireg, INFO);

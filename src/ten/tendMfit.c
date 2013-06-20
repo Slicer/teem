@@ -144,5 +144,4 @@ tend_mfitMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-/* TEND_CMD(mfit, INFO); */
-unrrduCmd tend_mfitCmd = { "mfit", INFO, tend_mfitMain };
+TEND_CMD(mfit, INFO);

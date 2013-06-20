@@ -82,7 +82,6 @@ tend_stenMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-/* TEND_CMD(sten, INFO); */
-unrrduCmd tend_stenCmd = { "sten", INFO, tend_stenMain };
+TEND_CMD(sten, INFO);
 
 

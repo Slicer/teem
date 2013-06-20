@@ -571,5 +571,4 @@ tend_glyphMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-/* TEND_CMD(glyph, INFO); */
-unrrduCmd tend_glyphCmd = { "glyph", INFO, tend_glyphMain };
+TEND_CMD(glyph, INFO);

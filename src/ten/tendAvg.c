@@ -76,5 +76,4 @@ tend_avgMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-
-unrrduCmd tend_avgCmd = { "avg", INFO, tend_avgMain };
+TEND_CMD(avg, INFO);

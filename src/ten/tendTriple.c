@@ -71,5 +71,4 @@ tend_tripleMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-/* TEND_CMD(anvol, INFO); */
-unrrduCmd tend_tripleCmd = { "triple", INFO, tend_tripleMain };
+TEND_CMD(triple, INFO);

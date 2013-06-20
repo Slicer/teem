@@ -308,5 +308,4 @@ tend_ellipseMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-/* TEND_CMD(glyph, INFO); */
-unrrduCmd tend_ellipseCmd = { "ellipse", INFO, tend_ellipseMain };
+TEND_CMD(ellipse, INFO);

@@ -159,5 +159,4 @@ tend_msimMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-/* TEND_CMD(msim, INFO); */
-unrrduCmd tend_msimCmd = { "msim", INFO, tend_msimMain };
+TEND_CMD(msim, INFO);

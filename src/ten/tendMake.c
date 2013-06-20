@@ -70,4 +70,4 @@ tend_makeMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-unrrduCmd tend_makeCmd = { "make", INFO, tend_makeMain };
+TEND_CMD(make, INFO);

@@ -76,4 +76,4 @@ tend_bmatMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-unrrduCmd tend_bmatCmd = { "bmat", INFO, tend_bmatMain };
+TEND_CMD(bmat, INFO);

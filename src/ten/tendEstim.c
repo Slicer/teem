@@ -443,5 +443,4 @@ tend_estimMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-/* TEND_CMD(estim, INFO); */
-unrrduCmd tend_estimCmd = { "estim", INFO, tend_estimMain };
+TEND_CMD(estim, INFO);

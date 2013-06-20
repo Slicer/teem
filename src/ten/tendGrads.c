@@ -150,4 +150,4 @@ tend_gradsMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-unrrduCmd tend_gradsCmd = { "grads", INFO, tend_gradsMain };
+TEND_CMD(grads, INFO);

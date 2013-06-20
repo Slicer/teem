@@ -156,5 +156,4 @@ tend_simMain(int argc, const char **argv, const char *me,
   airMopOkay(mop);
   return 0;
 }
-/* TEND_CMD(sim, INFO); */
-unrrduCmd tend_simCmd = { "sim", INFO, tend_simMain };
+TEND_CMD(sim, INFO);
