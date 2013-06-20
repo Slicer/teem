@@ -1102,6 +1102,9 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
     biffAddf(PULL, "%s: trouble", me);
     return 1;
   }
+  if (task->pctx->flag.zeroZ) {
+    point->pos[2] = 0;
+  }
   return 0;
 }
 
@@ -1121,7 +1124,8 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
     if (task->pctx->pointNum > _PULL_PROGRESS_POINT_NUM_MIN
         && !task->pctx->flag.binSingle
         && task->pctx->progressBinMod
-        && 0 == myBinIdx % task->pctx->progressBinMod) {
+        && 0 == myBinIdx % task->pctx->progressBinMod
+        && task->pctx->verbose) {
       printf("."); fflush(stdout);
     }
     point = myBin->point[myPointIdx];

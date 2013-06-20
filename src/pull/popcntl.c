@@ -70,12 +70,17 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
 
   if (point->neighPointNum && task->pctx->targetDim
       && task->pctx->flag.popCntlEnoughTest) {
-    unsigned int plenty;
-    plenty = (1 == task->pctx->targetDim
+    unsigned int plenty, tardim;
+    tardim = task->pctx->targetDim;
+    if (task->pctx->flag.zeroZ && tardim > 1) {
+      /* GLK unsure of tardim == 1 logic here */
+      tardim -= 1;
+    }
+    plenty = (1 == tardim
               ? 3
-              : (2 == task->pctx->targetDim
+              : (2 == tardim
                  ? 7
-                 : (3 == task->pctx->targetDim
+                 : (3 == tardim
                     ? 13 /* = 1 + 12
                             = 1 + coordination number of 3D sphere packing */
                     : 0 /* shouldn't get here */)));
@@ -126,6 +131,9 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     /* we had no neighbors, have to pretend like we did */
     airNormalRand_r(noffavg + 0, noffavg + 1, task->rng);
     airNormalRand_r(noffavg + 2, noffavg + 3, task->rng);
+    if (!task->pctx->flag.zeroZ) {
+      noffavg[2] = 0;
+    }
     if (!task->pctx->haveScale) {
       noffavg[3] = 0;
     }

@@ -690,6 +690,9 @@ pullPointInitializePerVoxel(const pullContext *pctx,
     iPos[k] = vidx[k] + pctx->initParm.jitter*(airDrandMT_r(rng)-0.5);
   }
   gageShapeItoW(seedShape, point->pos, iPos);
+  if (pctx->flag.zeroZ) {
+    point->pos[2] = 0.0;
+  }
 
   if (0 && _pullVerbose) {
     printf("!%s: pointIdx %u -> vidx %u %u %u (%u)\n"
@@ -873,6 +876,9 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
       }
     }
     _pullUnitToWorld(pctx, scaleVol, point->pos, rpos);
+    if (pctx->flag.zeroZ) {
+      point->pos[2] = 0.0;
+    }
     /*
     verbo = (AIR_ABS(-0.246015 - point->pos[0]) < 0.1 &&
              AIR_ABS(-144.78 - point->pos[0]) < 0.1 &&
@@ -976,6 +982,9 @@ pullPointInitializeGivenPos(pullContext *pctx,
 
   /* Copy nrrd point into pullPoint */
   ELL_4V_COPY(point->pos, posData + 4*pointIdx);
+  if (pctx->flag.zeroZ) {
+    point->pos[2] = 0.0;
+  }
 
   /*
   if (AIR_ABS(247.828 - point->pos[0]) < 0.1 &&

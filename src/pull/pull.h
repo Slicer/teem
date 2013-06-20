@@ -802,6 +802,10 @@ enum {
   /* pullStart should skip initializing the points */
   pullFlagStartSkipsPoints,
 
+  /* constrain the third world-space coordinate ("z") to be zero, at all
+     times, so that pull can be used to process 2D images */
+  pullFlagZeroZ,
+
   pullFlagLast
 };
 
@@ -818,7 +822,8 @@ typedef struct {
     binSingle,
     allowCodimension3Constraints,
     scaleIsTau,
-    startSkipsPoints;
+    startSkipsPoints,
+    zeroZ;
 } pullFlag;
 
 /*

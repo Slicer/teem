@@ -712,7 +712,7 @@ main(int argc, const char **argv) {
   int energyFromStrength, nixAtVolumeEdgeSpace, constraintBeforeSeedThresh,
     binSingle, liveThresholdOnInit, permuteOnRebin, noPopCntlWithZeroAlpha,
     useBetaForGammaLearn, restrictiveAddToBins, noAdd, unequalShapesAllow,
-    popCntlEnoughTest;
+    popCntlEnoughTest, zeroZ;
   int verbose;
   int interType, allowCodimension3Constraints, scaleIsTau, useHalton,
     pointPerVoxel;
@@ -830,6 +830,8 @@ main(int argc, const char **argv) {
              "butter:16,0.8", "windowing to create locality with additive "
              "scale-space interaction (\"-int add\")",
              NULL, NULL, pullHestEnergySpec);
+  hestOptAdd(&hopt, "zz", "bool", airTypeBool, 1, 1, &zeroZ, "false",
+             "always constrain Z=0, to process 2D images");
   hestOptAdd(&hopt, "efs", "bool", airTypeBool, 1, 1,
              &energyFromStrength, "false",
              "whether or not strength contributes to particle-image energy");
@@ -1076,6 +1078,7 @@ main(int argc, const char **argv) {
   pctx = pullContextNew();
   airMopAdd(mop, pctx, (airMopper)pullContextNix, airMopAlways);
   if (pullVerboseSet(pctx, verbose)
+      || pullFlagSet(pctx, pullFlagZeroZ, zeroZ)
       || pullFlagSet(pctx, pullFlagEnergyFromStrength, energyFromStrength)
       || pullFlagSet(pctx, pullFlagNixAtVolumeEdgeSpace, nixAtVolumeEdgeSpace)
       || pullFlagSet(pctx, pullFlagConstraintBeforeSeedThresh,
