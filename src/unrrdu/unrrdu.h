@@ -170,6 +170,7 @@ F(ccmerge) \
 F(ccsettle) \
 F(dnorm) \
 F(vidicon) \
+F(undos) \
 F(save)
 /* these two have been removed since no one uses them
 F(block) \

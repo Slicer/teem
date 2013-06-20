@@ -48,6 +48,7 @@ SET(UNRRDU_SOURCES
   diff.c
   dnorm.c
   vidicon.c
+  undos.c
   mlut.c
   mrmap.c
   pad.c
