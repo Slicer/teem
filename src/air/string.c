@@ -359,7 +359,7 @@ airToUpper(char *str) {
 /*
 ******** airOneLine()
 **
-** gets one line from "file", putting it into an array if given size.
+** gets one line from "file", putting it into an array of given size.
 ** "size" must be the size of line buffer "line": the size which
 ** "line" was allocated for, not the number of non-null characters it
 ** was meant to hold.  "size" must be at least 3.  Always
