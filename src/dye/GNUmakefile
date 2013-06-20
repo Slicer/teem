@@ -50,7 +50,7 @@ $(L).NEED = ell biff air
 $(L).PUBLIC_HEADERS = dye.h
 $(L).PRIVATE_HEADERS =
 $(L).OBJS = methodsDye.o convertDye.o
-$(L).TESTS = test/conv test/bow
+$(L).TESTS = test/conv test/bow test/mchist
 
 ####
 ####
