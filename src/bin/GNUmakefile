@@ -49,7 +49,7 @@ $(L).SEEN := true
 
 ## BINS: all the command-line executables associated with teem
 ##
-BINS = airSanity cubic nrrdSanity overrgb emap undos talkweb \
+BINS = airSanity cubic nrrdSanity overrgb emap talkweb \
   unu pprobe vprobe gprobe qbert mrender miter gkms ungantry ilk \
   tend spots ninspect deconv puller
 
