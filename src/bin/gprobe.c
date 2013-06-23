@@ -191,6 +191,20 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
     fprintf(stderr, "\n");
   }
 
+  if (!indexSpace) {
+    /* set the output space directions, but (being conservative/cautious)
+       only do so when grid had specified world-space positions */
+    /* HEY: untested! whipped up out of frustration for GLK Bonn talk */
+    nout->spaceDim = 3;
+    if (baseDim) {
+      nrrdSpaceVecSetNaN(nout->axis[0].spaceDirection);
+    }
+    nrrdSpaceVecCopy(nout->spaceOrigin, grid + 1 + 5*0);
+    for (aidx=0; aidx<gridDim; aidx++) {
+      nrrdSpaceVecCopy(nout->axis[baseDim+aidx].spaceDirection,
+                       grid + 1 + 5*(1+aidx));
+    }
+  }
   airMopOkay(mop);
   return 0;
 }
