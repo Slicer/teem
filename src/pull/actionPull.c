@@ -833,7 +833,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   if (!ELL_4V_DOT(force, force)) {
     /* this particle has no reason to go anywhere; BUT we still have to
        enforce constraint if we have one */
-    int constrFail;
+    int constrFail = 0;
     if (task->pctx->constraint) {
       if (_pullConstraintSatisfy(task, point,
                                  100.0*_PULL_CONSTRAINT_TRAVEL_MAX,
@@ -1121,11 +1121,11 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   myBin = task->pctx->bin + myBinIdx;
   for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
     pullPoint *point;
-    if (task->pctx->pointNum > _PULL_PROGRESS_POINT_NUM_MIN
+    if (task->pctx->verbose > 1
+        && task->pctx->pointNum > _PULL_PROGRESS_POINT_NUM_MIN
         && !task->pctx->flag.binSingle
         && task->pctx->progressBinMod
-        && 0 == myBinIdx % task->pctx->progressBinMod
-        && task->pctx->verbose) {
+        && 0 == myBinIdx % task->pctx->progressBinMod) {
       printf("."); fflush(stdout);
     }
     point = myBin->point[myPointIdx];
