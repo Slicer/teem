@@ -11,6 +11,7 @@ SET(UNRRDU_SOURCES
   about.c
   axdelete.c
   axinfo.c
+  basinfo.c
   axinsert.c
   axmerge.c
   axsplit.c

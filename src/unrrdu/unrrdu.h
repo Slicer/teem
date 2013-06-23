@@ -140,6 +140,7 @@ F(swap) \
 F(shuffle) \
 F(flip) \
 F(unorient) \
+F(basinfo) \
 F(axinfo) \
 F(axinsert) \
 F(axsplit) \
