@@ -85,7 +85,7 @@ unrrdu_sselectMain(int argc, const char **argv, const char *me,
   if (nrrdSliceSelect(noutAbove, noutBelow, nin, axis,
                       nline, thresh)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error selecting slices nrrd:\n%s", me, err);
+    fprintf(stderr, "%s: error selecting slices:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
