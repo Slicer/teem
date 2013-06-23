@@ -67,7 +67,6 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   int E;
 
   task->pctx->count[pullCountAdding] += 1;
-
   if (point->neighPointNum && task->pctx->targetDim
       && task->pctx->flag.popCntlEnoughTest) {
     unsigned int plenty, tardim;
@@ -86,7 +85,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
                     : 0 /* shouldn't get here */)));
     /*
     if (0 == (point->idtag % 100)) {
-      printf("%s: #num %d >?= plenty %d\n", me, point->neighPointNum, plenty);
+      printf("!%s: #num %d >?= plenty %d\n", me, point->neighPointNum, plenty);
     }
     */
     if (point->neighPointNum >= plenty) {
@@ -94,6 +93,16 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
       return 0;
     }
   }
+  /*
+  printf("!%s: point->pos = (%g,%g,%g,%g)\n", me,
+         point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
+  printf("!%s: point->neighPointNum = %u\n", me,
+         point->neighPointNum);
+  printf("!%s: task->pctx->targetDim = %u\n", me,
+         task->pctx->targetDim);
+  printf("!%s: task->pctx->flag.popCntlEnoughTest = %d\n", me,
+         task->pctx->flag.popCntlEnoughTest);
+  */
   ELL_4V_SET(noffavg, 0, 0, 0, 0);
   for (npi=0; npi<point->neighPointNum; npi++) {
     double off[4];
@@ -150,6 +159,10 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   ELL_4V_SCALE(noffavg, newSpcDist, noffavg);
   /* set new point location */
   ELL_4V_ADD2(npos, noffavg, point->pos);
+  /*
+  printf("!%s: new test pos @ (%g,%g,%g,%g)\n", me,
+         npos[0], npos[1], npos[2], npos[3]);
+  */
   if (!_pullInsideBBox(task->pctx, npos)) {
     if (task->pctx->verbose > 2) {
       printf("%s: new pnt would start (%g,%g,%g,%g) outside bbox, nope\n",
@@ -194,6 +207,10 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
       return 0;
     }
   }
+  /*
+  printf("!%s: new test pos @ (%g,%g,%g,%g)\n", me,
+         newpnt->pos[0], newpnt->pos[1], newpnt->pos[2], newpnt->pos[3]);
+  */
   /* do some descent, on this point only, which (HACK!) we do by
      changing the per-task process mode . . . */
   task->processMode = pullProcessModeDescent;
@@ -241,6 +258,15 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     /* still okay to continue descending */
     newpnt->stepEnergy *= task->pctx->sysParm.opporStepScale;
   }
+  /*
+  printf("!%s: new test pos @ (%g,%g,%g,%g)\n", me,
+         newpnt->pos[0], newpnt->pos[1], newpnt->pos[2], newpnt->pos[3]);
+  {
+    double posdiff[4];
+    ELL_4V_SUB(posdiff, newpnt->pos, point->pos);
+    printf("!%s:      at dist %g\n", me, ELL_4V_LEN(posdiff));
+  }
+  */
   /* now that newbie point is final test location, see if it meets
      the live thresh, if there is one */
   if (task->pctx->ispec[pullInfoLiveThresh]
