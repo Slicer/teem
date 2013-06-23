@@ -712,7 +712,7 @@ main(int argc, const char **argv) {
   int energyFromStrength, nixAtVolumeEdgeSpace, constraintBeforeSeedThresh,
     binSingle, liveThresholdOnInit, permuteOnRebin, noPopCntlWithZeroAlpha,
     useBetaForGammaLearn, restrictiveAddToBins, noAdd, unequalShapesAllow,
-    popCntlEnoughTest, zeroZ;
+    popCntlEnoughTest, convergenceIgnoresPopCntl, zeroZ;
   int verbose;
   int interType, allowCodimension3Constraints, scaleIsTau, useHalton,
     pointPerVoxel;
@@ -852,6 +852,9 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "pcet", "bool", airTypeBool, 1, 1, &popCntlEnoughTest,
              "true", "use neighbor-counting \"enough\" heuristic to "
              "bail out of pop cntl");
+  hestOptAdd(&hopt, "cipc", "bool", airTypeBool, 1, 1, &convergenceIgnoresPopCntl,
+             "false", "convergence test doesn't care if there has been "
+             "recent changes due to population control");
   hestOptAdd(&hopt, "nobin", NULL, airTypeBool, 0, 0,
              &binSingle, NULL,
              "turn off spatial binning (which prevents multi-threading "
@@ -1084,6 +1087,8 @@ main(int argc, const char **argv) {
       || pullFlagSet(pctx, pullFlagConstraintBeforeSeedThresh,
                      constraintBeforeSeedThresh)
       || pullFlagSet(pctx, pullFlagPopCntlEnoughTest, popCntlEnoughTest)
+      || pullFlagSet(pctx, pullFlagConvergenceIgnoresPopCntl,
+                     convergenceIgnoresPopCntl)
       || pullFlagSet(pctx, pullFlagBinSingle, binSingle)
       || pullFlagSet(pctx, pullFlagNoAdd, noAdd)
       || pullFlagSet(pctx, pullFlagPermuteOnRebin, permuteOnRebin)
