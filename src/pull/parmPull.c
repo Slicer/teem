@@ -79,6 +79,10 @@ _pullFlagInit(pullFlag *flag) {
   flag->constraintBeforeSeedThresh = AIR_FALSE;
   flag->noAdd = AIR_FALSE;
   flag->popCntlEnoughTest = AIR_TRUE; /* really needs to be true by default */
+  flag->convergenceIgnoresPopCntl = AIR_FALSE; /* false by default for
+                                                  backwards compatibility,
+                                                  even thought this was
+                                                  probably a mistake */
   flag->binSingle = AIR_FALSE;
   flag->allowCodimension3Constraints = AIR_FALSE;
   flag->scaleIsTau = AIR_FALSE;
@@ -313,6 +317,9 @@ pullFlagSet(pullContext *pctx, int which, int flag) {
     break;
   case pullFlagPopCntlEnoughTest:
     pctx->flag.popCntlEnoughTest = flag;
+    break;
+  case pullFlagConvergenceIgnoresPopCntl:
+    pctx->flag.convergenceIgnoresPopCntl = flag;
     break;
   case pullFlagBinSingle:
     pctx->flag.binSingle = flag;

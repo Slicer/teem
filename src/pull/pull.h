@@ -789,6 +789,12 @@ enum {
      that are normally used (like cwell:0.66,x or qwell:0.64) */
   pullFlagPopCntlEnoughTest,
 
+  /* if this is true, then the convergence test ignores whether or
+     not there have been adds or nixes with the last round of pop cntl;
+     otherwise (the default, for backwards compatibility), any adds or
+     nixes would prevent convergence */
+  pullFlagConvergenceIgnoresPopCntl,
+
   /* no binning: all particles can potentially interact (for debugging) */
   pullFlagBinSingle,
 
@@ -818,6 +824,7 @@ typedef struct {
     nixAtVolumeEdgeSpace,
     constraintBeforeSeedThresh,
     popCntlEnoughTest,
+    convergenceIgnoresPopCntl,
     noAdd,
     binSingle,
     allowCodimension3Constraints,

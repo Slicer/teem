@@ -378,6 +378,8 @@ pullRun(pullContext *pctx) {
          ||
          ((!pctx->iterParm.max || pctx->iter < pctx->iterParm.max)
           && !converged)) {
+    /* this per iteration init had been missing for a very long time */
+    pctx->addNum = pctx->nixNum = 0;
     if (pctx->iterParm.snap && !(pctx->iter % pctx->iterParm.snap)) {
       npos = nrrdNew();
       sprintf(poutS, "snap.%06d.pos.nrrd", pctx->iter);
@@ -454,14 +456,17 @@ pullRun(pullContext *pctx) {
     }
     pctx->iter += 1;
     enrLast = enrNew;
-    converged = ((!pctx->iterParm.popCntlPeriod
-                  || (!pctx->addNum && !pctx->nixNum))
+    converged = ((pctx->flag.convergenceIgnoresPopCntl
+                  || (!pctx->iterParm.popCntlPeriod
+                      || (!pctx->addNum && !pctx->nixNum)))
                  && AIR_IN_OP(0, enrDecreaseAvg,
                               pctx->sysParm.energyDecreaseMin));
     if (pctx->verbose) {
-      fprintf(stderr, "%s: converged %d = (%d || (%d && %d)) "
+      fprintf(stderr, "%s: converged %d = (%d || (%d || (%d && %d))) "
               "&& (0 < %g < %g)=%d\n",
-              me, converged, !pctx->iterParm.popCntlPeriod,
+              me, converged,
+              pctx->flag.convergenceIgnoresPopCntl,
+              !pctx->iterParm.popCntlPeriod,
               !pctx->addNum, !pctx->nixNum,
               enrDecreaseAvg, pctx->sysParm.energyDecreaseMin,
               AIR_IN_OP(0, enrDecreaseAvg, pctx->sysParm.energyDecreaseMin));
