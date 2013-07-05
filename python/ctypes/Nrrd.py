@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ##
 ##  Nrrd.py: bridge between Nrrd and Numpy arrays
-##  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+##  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
 ##  created by Sam Quinan - samquinan@cs.uchicago.edu
 ##
 ##  Permission is hereby granted, free of charge, to any person obtaining
@@ -41,7 +41,7 @@ def ndarrayGetTypes( array ):
         numpy.uint64    :   (ctypes.c_uint64, teem.nrrdTypeULLong),
         numpy.float     :   (ctypes.c_float, teem.nrrdTypeFloat),
         numpy.double    :   (ctypes.c_double, teem.nrrdTypeDouble)     }
-    
+
     dt = array.dtype.type
 
     if dt not in typeTable:
@@ -71,19 +71,19 @@ def teemTypeToNumpyType(teem_type):
     }
     return numpy_type_map[teem_type]
 
-                        
-# design based on a combination of work done by Carlos Scheidegger 
+
+# design based on a combination of work done by Carlos Scheidegger
 #   [ http://code.google.com/p/python-teem/source/browse/trunk/teem/capi/numpy/__init__.py ,
 #     http://code.google.com/p/python-teem/source/browse/trunk/teem/nrrd.py ]
 #   and ideas presented by Travis Oliphant [ http://blog.enthought.com/?p=62 ]
-                    
+
 class Nrrd:
     def __init__(self):
         self._ctypesobj = teem.nrrdNew()
         # self._init = False
         self.base_ref = None
         self.teem = teem # world's ugliest hack -- but it appears to work
-    
+
     def __del__(self):
         if self.base_ref == None:
             self.teem.nrrdNuke(self._ctypesobj)
@@ -91,7 +91,7 @@ class Nrrd:
             self.teem.nrrdNix(self._ctypesobj)
         self.base_ref = None
         self.teem = None
-                        
+
     def __get_array_interface(self):
         nrrd = self._ctypesobj.contents
         s = []
@@ -102,22 +102,22 @@ class Nrrd:
             'data': (nrrd.data, False),
             'version': 3}
         return r
-    
+
     __array_interface__ = property(__get_array_interface)
-                        
+
     def fromNDArray(self, array):
-        
+
         if self.base_ref != None:
             self.base_ref = None
             teem.nrrdNix(self._ctypesobj)
             self._ctypesobj = teem.nrrdNew()
-        
+
         try:
             cTy, teemTy = ndarrayGetTypes(array)
         except Exception as err:
             print err
             return
-        
+
         c_type_p = ctypes.POINTER( cTy )
         if (array.flags.f_contiguous): # memory shared with array
             array_p = array.ctypes.data_as(c_type_p)
@@ -148,12 +148,12 @@ class Nrrd:
                 teem.nrrdAxisInfoCopy(self._ctypesobj, array.base_ref._ctypesobj, None, teem.NRRD_AXIS_INFO_SIZE_BIT)
 
     def load(self, file, args=None):
-        
+
         if self.base_ref != None:
             self.base_ref = None
             teem.nrrdNix(self._ctypesobj)
             self._ctypesobj = teem.nrrdNew()
-        
+
         teem.nrrdLoad(self._ctypesobj, file, args)
         self.base_ref = None
         self._init = True
@@ -177,8 +177,7 @@ class ExtendedArray(numpy.ndarray):
             obj = numpy.asarray(input_array).view(cls)
             obj.base_ref = base_ref
         return obj
-    
+
     def __array_finalize__(self, obj):
         if obj is None: return
         self.base_ref = getattr(obj, 'base_ref', None)
-
