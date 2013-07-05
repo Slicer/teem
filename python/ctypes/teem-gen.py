@@ -2,7 +2,7 @@
 
 ##
 ##  teem-gen.py: automatically-generated ctypes python wrappers for Teem
-##  Copyright (C) 2012, 2011 University of Chicago
+##  Copyright (C) 2013, 2012, 2011 University of Chicago
 ##  created by Sam Quinan - samquinan@cs.uchicago.edu
 ##
 ##  Permission is hereby granted, free of charge, to any person obtaining
@@ -198,7 +198,7 @@ if libs_destuctable: # empty sequence implicity false
 header = [
 "##",
 "##  teem.py: automatically-generated ctypes python wrappers for Teem",
-"##  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago",
+"##  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago",
 "##",
 "##  Permission is hereby granted, free of charge, to any person obtaining",
 "##  a copy of this software and associated documentation files (the",
