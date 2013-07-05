@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -20,6 +20,9 @@
   along with this library; if not, write to Free Software Foundation, Inc.,
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
+/* NOTE: these warning suppressions are hopefully
+   only a short-term fix */
 
 /* when using an MS compiler, suppress all warnings about
  * truncation (4304) or conversion (4244) from double to float
