@@ -562,7 +562,7 @@ enum {
 #define NRRD_MEASURE_DESC \
    "Possibilities include:\n " \
    "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\", " \
-     "\"skew\": (self-explanatory)\n " \
+     "\"skew\", \"sum\", \"product\", : (self-explanatory)\n " \
    "\b\bo \"intc\", \"slope\", \"error\": " \
      "intercept, slope, and error from line fitting\n " \
    "\b\bo \"stdv\": standard deviation\n " \
