@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 #
 # Teem: Tools to process and visualize scientific data and images              
-# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+# Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -129,7 +129,7 @@ while (<>) {
 	    s/case ([0-9]): +result *= *(.+); +break;$/\(i == $1 ? $2 : \\/g;
 	    $n = $1;
 	    $sup = ($n + 1)/2;
-	    
+
 	    # when we've reached the end of the switch cases
 	    if (/default: result = 0;/) {
 		# the default case
@@ -139,10 +139,10 @@ while (<>) {
 		for ($i=0; $i <= $n; $i++) {
 		    print ")";
 		}
-		
+
 		# and one more end paren to finish the #define
 		print ")\n\n";
-		
+
 		# remember what the support is
 		$support{$kern} = $sup;
 		last;
@@ -276,9 +276,9 @@ sub blah {
 	     . "  _nrrd_${kern}_1_f,  _nrrd_${kern}_N_f,\n"
 	     . "  _nrrd_${kern}_1_d,  _nrrd_${kern}_N_d\n"
 	     . "};\n\n");
-    ($integral 
-     . $support 
-     . $_1_d 
+    ($integral
+     . $support
+     . $_1_d
      . $_1_f
      . $_N_d
      . $_N_f

@@ -1,7 +1,7 @@
-#!/usr/bin/perl 
+#!/usr/bin/perl
 #
 # Teem: Tools to process and visualize scientific data and images              
-# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
+# Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -28,13 +28,13 @@ while (<>) {
 
     # nix carraige returns
     s///g;
-    
+
     # nix pragmas
     s/\#pragma warning.+$//g;
 
     if (/w[pm][0-9][a-z] = /) {
 	chomp;         # nix newline
-	s/ //g;        # nix spaces 
+	s/ //g;        # nix spaces
 	s/;$//g;       # nix last semicolon
 	foreach $pair (split /;/) {
 	    ($var, $val) = split /=/, $pair;
