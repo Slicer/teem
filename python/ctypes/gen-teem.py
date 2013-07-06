@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 ##
-##  teem-gen.py: automatically-generated ctypes python wrappers for Teem
+##  gen-teem.py: automatically-generated ctypes python wrappers for Teem
 ##  Copyright (C) 2013, 2012, 2011 University of Chicago
 ##  (originally created by Sam Quinan - samquinan@cs.uchicago.edu)
 ##
@@ -73,7 +73,7 @@ echo === Obviously, this really needs to be automated...
 import os, sys, shutil, platform, re, string
 
 if len(sys.argv) != 3:
-    sys.exit("usage: teem-gen.py <ctypeslib-gccxml source dir> <teem install dir>")
+    sys.exit("usage: gen-teem.py <ctypeslib-gccxml source dir> <teem install dir>")
 
 ## (TEEM_LIB_LIST)
 libs_list = ["air", "hest", "biff", "nrrd", "ell", "unrrdu", "alan", "moss", "tijk", "gage", "dye", "bane", "limn", "echo", "hoover", "seek", "ten", "elf", "pull", "coil", "push", "mite", "meet"]
@@ -128,7 +128,7 @@ TEEM = os.path.abspath(sys.argv[2])
 # copy files from install dir
 #
 
-TMP_DIR = "teem-gen-tmp"
+TMP_DIR = "gen-teem-tmp"
 
 teem_include = os.path.join(TEEM, "include")
 
@@ -243,7 +243,7 @@ if libs_destuctable: # empty sequence implicity false
     shutil.rmtree(TMP_DIR)
     os.remove(teem_xml)
     #os.remove(pre_teem_py)
-    sys.exit("ERROR: experimental libs: %s not turned on - please rebuild teem with BUILD_EXPERIMENTAL_LIBS turned on, then re-run teem-gen.py" % ','.join(libs_destuctable))
+    sys.exit("ERROR: experimental libs: %s not turned on - please rebuild teem with BUILD_EXPERIMENTAL_LIBS turned on, then re-run gen-teem.py" % ','.join(libs_destuctable))
 
 header = [
 "##",
@@ -272,8 +272,8 @@ header = [
 "##############################################################",
 "##############################################################",
 "#### NOTE: This teem.py file is automatically produced by",
-"#### teem/python/ctypes/teem-gen.py.  Necessary changes to ",
-"#### teem.py should be made in teem-gen.py, not here.",
+"#### teem/python/ctypes/gen-teem.py.  Necessary changes to ",
+"#### teem.py should be made in gen-teem.py, not here.",
 "##############################################################",
 "##############################################################",
 "",
