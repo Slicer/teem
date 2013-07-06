@@ -65,7 +65,7 @@ doo "cd $TEEM_SVN_BUILD"
 doo "make"
 doo "make install"
 doo "cd $TEEM_SRC/python/ctypes"
-doo "python teem-gen.py ctypeslib-gccxml-0.9 $TEEM_SVN_INSTALL"
+doo "python gen-teem.py ctypeslib-gccxml-0.9 $TEEM_SVN_INSTALL"
 dfile=$(mktemp /tmp/svndiff.XXXXXXXXX)
 doo "svn diff teem.py | tee $dfile"
 if [[ -s $dfile ]]; then
