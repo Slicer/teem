@@ -66,4 +66,11 @@ doo "make"
 doo "make install"
 doo "cd $TEEM_SRC/python/ctypes"
 doo "python teem-gen.py ctypeslib-gccxml-0.9 $TEEM_SVN_INSTALL"
-doo "svn diff"
+dfile=$(mktemp /tmp/svndiff.XXXXXXXXX)
+doo "svn diff teem.py | tee $dfile"
+if [[ -s $dfile ]]; then
+  echo "===="
+  echo "==== NOTE: There were new differences; consider \"svn commit teem.py\""
+  echo "===="
+fi
+rm -f $dfile
