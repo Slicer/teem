@@ -72,7 +72,7 @@ typedef float coil_t;
 #  define COIL_TYPE_FLOAT 1
 #endif
 
-This is actually consequential; the current teem/python/ctypes/teem-gen.py
+This is actually consequential; the current teem/python/ctypes/gen-teem.py
 (automated ctypes wrapper generator) will skip over "# defines" and only
 reflect the setting of "#defines" in the python interface.  (It would
 obviously be better to generate python wrappings that reflected the correct
@@ -328,20 +328,10 @@ its python ctypes wrappers teem/python/ctypes/teem.py.  The current tools for
 doing this are not very slick, including the drawback that the information
 from ctypeslib is apparently randomly ordered: without changes in Teem, the
 generated teem.py will differ. Nonetheless, keeping teem.py up-to-date will
-avoid creating problems for users.  Here is the command that GLK uses to do
-this (including various paths that are specific to his laptop)
-
-    echo ===== cd ~/teem-svn && cd ~/teem-svn \
- && echo ===== svn update && svn update \
- && echo ===== cd ../teem-svn-build && cd ../teem-svn-build \
- && echo ===== make && make \
- && echo ===== make install && make install \
- && echo ===== cd ~/teem/python/ctypes && cd ~/teem/python/ctypes \
- && echo ===== python teem-gen.py ctypeslib-gccxml-0.9 ~/teem-svn-install \
-            && python teem-gen.py ctypeslib-gccxml-0.9 ~/teem-svn-install \
- && echo ===== svn diff && svn diff
-
-followed by "svn commit" if needed.
+avoid creating problems for users.  There is a new script for this in
+teem/python/ctypes/go-gen-teem.sh, which is pretty hacky right now (since
+it presumes the directory structure on GLK's laptop!); ideas for improvement
+are welcome.
 
 * Make casts grep-able.  This usually means using AIR_CAST, but can also mean
 using macros AIR_VOIDP, AIR_CVOIDP, AIR_UINT, AIR_INT, and the ell macros
