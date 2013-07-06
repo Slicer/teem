@@ -14,9 +14,9 @@ then; consider it a work-in-progress ...
 pre-ambles
 
 -2.5) make sure that there are no DOS files
-find . -name \*.c -exec undos -n {}  \;
-find . -name \*.h -exec undos -n {}  \;
-find . -name \*.txt -exec undos -n {} \;
+find . -name \*.c -exec unu undos -n {}  \;
+find . -name \*.h -exec unu undos -n {}  \;
+find . -name \*.txt -exec unu undos -n {} \;
 
 -2) make sure there are no tabs:
 cat > tab.txt
