@@ -24,8 +24,8 @@
 ##############################################################
 ##############################################################
 #### NOTE: This teem.py file is automatically produced by
-#### teem/python/ctypes/teem-gen.py.  Necessary changes to 
-#### teem.py should be made in teem-gen.py, not here.
+#### teem/python/ctypes/gen-teem.py.  Necessary changes to 
+#### teem.py should be made in gen-teem.py, not here.
 ##############################################################
 ##############################################################
 
@@ -92,7 +92,6 @@ elif sizeof(c_void_p) == 8:
 # See end of this file for definitions of stderr, stdin, stdout
 
 gageVecCurlGradient = 19
-limnEdgeTypeFrontFacet = 5
 tenEstimate2MethodUnknown = 0
 miteValYi = 4
 baneMeasrLaplacian = 5
@@ -102,6 +101,7 @@ baneMeasrValueZeroCentered = 2
 gageSclHessFrob = 10
 baneClipAbsolute = 1
 baneMeasrTotalCurv = 7
+miteRangeKa = 5
 nrrdResampleNonExistentLast = 4
 tenGlyphTypeLast = 7
 limnPolyDataInfoTang = 4
@@ -114,6 +114,8 @@ baneMeasr2ndDD = 6
 limnPolyDataInfoUnknown = 0
 nrrdFFTWPlanRigorExhaustive = 4
 limnSpaceDevice = 4
+limnSpaceScreen = 3
+nrrdKindCovariantVector = 7
 baneRangeLast = 5
 limnSpaceView = 2
 nrrdTernaryOpInOpen = 13
@@ -129,10 +131,8 @@ nrrdTernaryOpLTSmooth = 7
 tenGageModeHessianEvec2 = 132
 nrrdTernaryOpMaxSmooth = 6
 nrrdBinaryOpEqual = 18
-limnEdgeTypeFrontCrease = 4
 nrrdTernaryOpMin = 3
 nrrdBinaryOpGT = 15
-nrrdBinaryOpLTE = 14
 baneMeasrValueAnywhere = 3
 nrrdTernaryOpUnknown = 0
 nrrdBinaryOpMin = 11
@@ -147,7 +147,6 @@ nrrdIoStateDetachedHeader = 1
 alanTextureTypeLast = 3
 echoTypeCylinder = 1
 nrrdBinaryOpAdd = 1
-echoJitterJitter = 2
 tenGageOmega2ndDD = 144
 nrrdTernaryOpInClosed = 14
 tenFiberParmLast = 5
@@ -185,10 +184,8 @@ miteValWdotD = 19
 nrrdOriginStatusUnknown = 0
 gageItemPackPartHessEvec0 = 9
 gageVecVector0 = 2
-limnSpaceScreen = 3
 pullFlagUseBetaForGammaLearn = 3
 tenGageModeHessianEval = 125
-nrrdFFTWPlanRigorEstimate = 1
 nrrdUnaryOpRoundDown = 22
 gageSclNPerp = 6
 gageItemPackPartHessEval1 = 7
@@ -197,6 +194,7 @@ tenFiberTypeEvec0 = 1
 nrrdUnaryOpCeil = 19
 nrrdUnaryOpNerf = 18
 nrrdUnaryOpLog1p = 13
+tenInterpTypeUnknown = 0
 pullConstraintFailProjGradZeroA = 1
 nrrdUnaryOpLog10 = 12
 nrrdUnaryOpLog2 = 11
@@ -225,13 +223,13 @@ nrrdSpace3DLeftHandedTime = 12
 tenGageCp1HessianEvec2 = 195
 tenGageCp1HessianEvec1 = 194
 pullFlagLast = 16
+tenGageCa1HessianEvec1 = 203
 nrrdBinaryOpExists = 20
 tenGageCp1HessianEval2 = 191
 pullCondConstraintFail = 5
 tenGageCp1HessianEval1 = 190
 airFP_POS_NORM = 5
 nrrdUnaryOpIf = 28
-tenGageCp1HessianEval = 188
 tenGageCp1Hessian = 187
 nrrdBinaryOpNotEqual = 19
 tenInterpTypeLast = 12
@@ -265,7 +263,6 @@ tijk_class_unknown = 0
 seekTypeLast = 12
 tenGageModeHessianEval0 = 126
 seekTypeValleySurfaceT = 11
-nrrdUnaryOpUnknown = 0
 tenGageFARidgeLineAlignment = 110
 nrrdBinaryOpMax = 12
 seekTypeValleySurfaceOP = 10
@@ -357,7 +354,6 @@ tenGageFADiffusionFraction = 153
 tenGageFADiffusionAlign = 152
 tenGageFAGradVecDotEvec0 = 151
 tenGageTraceDiffusionAlign = 149
-pullCountConstraintSatisfy = 8
 tenGageTraceGradVecDotEvec0 = 148
 nrrdKindDomain = 1
 tenGageOmegaHessianContrTenEvec2 = 147
@@ -439,6 +435,7 @@ gageSclHessEval = 11
 pullTraceStopConstrFail = 2
 pullTraceStopUnknown = 0
 gageSclHessian = 7
+tenGageCp1HessianEvec0 = 193
 pullSourceLast = 3
 pullSourceProp = 2
 gageSclNormal = 4
@@ -607,7 +604,6 @@ nrrdKind3DMaskedSymMatrix = 29
 nrrdKind3DSymMatrix = 28
 airInsane_endian = 1
 nrrdKind2DSymMatrix = 24
-pullInitMethodHalton = 2
 nrrdKind3Normal = 21
 hooverErrSample = 6
 nrrdKind3Gradient = 20
@@ -626,7 +622,6 @@ nrrdKindScalar = 10
 nrrdKindStub = 9
 tenGageTraceHessianEvec = 87
 echoTypeInstance = 11
-nrrdKindCovariantVector = 7
 tenDwiGageTensorNLS = 14
 nrrdKindVector = 6
 nrrdKindPoint = 5
@@ -640,9 +635,7 @@ tenGageTraceHessianEval1 = 85
 airInsane_not = 0
 tenGageTraceHessianEval0 = 84
 pullSysParmStepInitial = 6
-tenTripleTypeEigenvalue = 1
 tenDwiGageTensorWLS = 10
-nrrdUnaryOpReciprocal = 2
 echoTypeCube = 3
 pullTraceStopLast = 6
 tenGageCl1HessianEvec1 = 185
@@ -677,6 +670,7 @@ gageSclNProj = 5
 nrrdFormatTypeUnknown = 0
 miteShadeMethodPhong = 2
 pullSourceGage = 1
+tenGageCl1HessianEvec = 183
 pullPropIdtag = 1
 tenGageEvalHessian = 177
 mossFlagImage = 0
@@ -765,12 +759,13 @@ nrrdUnaryOpExp = 9
 tenGageNormGradMag = 37
 tenGageNormGradVec = 36
 tenGageTraceNormal = 35
-tenGageTraceGradMag = 34
 tenGageTensorGradMagMag = 32
 limnPolyDataInfoRGBA = 1
 tenGageDelNormK2 = 23
 tenGageDelNormPhi3 = 29
+tenGageEvec2 = 22
 gageKernel00 = 1
+tenGageEvec1 = 21
 tenGageEvec0 = 20
 tenGageEval2 = 18
 tenGageEval1 = 17
@@ -813,7 +808,7 @@ tenGageSGradVec = 45
 nrrdBasicInfoSpaceUnits = 9
 nrrdBasicInfoSpace = 7
 nrrdBasicInfoSampleUnits = 6
-tenGageCa1HessianEvec1 = 203
+alanStopDiverged = 5
 nrrdBasicInfoContent = 5
 nrrdBasicInfoDimension = 4
 nrrdBasicInfoData = 1
@@ -828,11 +823,12 @@ gageErrNone = 1
 nrrdBasicInfoUnknown = 0
 tenGageNormNormal = 38
 tenGageCa1Hessian = 196
-tenGageCp1HessianEvec0 = 193
+nrrdUnaryOpReciprocal = 2
+tenGageTraceGradMag = 34
 pullInterTypeJustR = 1
 tenGageCp1HessianEvec = 192
 tenGageTraceGradVec = 33
-pullFlagZeroZ = 15
+tenAniso_eval0 = 27
 nrrdCenterLast = 3
 nrrdCenterCell = 2
 pullFlagStartSkipsPoints = 14
@@ -848,23 +844,27 @@ tenGageTensorGrad = 30
 limnSplineTypeLinear = 1
 limnSplineTypeUnknown = 0
 gageParmDefaultCenter = 8
-pullFlagBinSingle = 11
+tenGageCp1HessianEval = 188
+tenAniso_Th = 23
 tenGageDelNormPhi2 = 28
+ell_cubic_root_last = 5
+ell_cubic_root_three = 4
+ell_cubic_root_unknown = 0
 tenGageDelNormPhi1 = 27
 limnSpaceWorld = 1
 alanParmBeta = 19
 tenGageDelNormR2 = 26
+nrrdUnaryOpUnknown = 0
 pullFlagNoAdd = 8
+nrrdBinaryOpLTE = 14
 tenGageTraceHessianEval = 83
 tenGageDelNormR1 = 25
 nrrdSpaceScannerXYZTime = 8
-pullFlagNixAtVolumeEdgeSpace = 6
 tenGageTensorRThetaPhiLinear = 166
 pullFlagEnergyFromStrength = 5
-tenGageEvec2 = 22
 pullFlagRestrictiveAddToBins = 4
 tenAniso_Det = 25
-tenGageEvec1 = 21
+nrrdFFTWPlanRigorEstimate = 1
 tenGageTraceHessian = 82
 pullPropStepConstr = 5
 tenInterpTypeGeoLoxR = 6
@@ -876,61 +876,54 @@ pullSysParmRadiusScale = 8
 tenGageCp1Normal = 172
 tenGageEval0 = 16
 gageItemPackPartHessEval0 = 6
-miteRangeKd = 6
-tenAniso_Ca2 = 10
+tenDwiFiberType1Evec0 = 1
 tenGageHessian = 81
 tenGageEval = 15
-miteRangeKa = 5
 tenGageCa1GradVec = 173
 pullInfoIsovalue = 19
 nrrdSpaceLeftPosteriorSuperiorTime = 6
-tenInterpTypeUnknown = 0
+tenAniso_Cl2 = 8
 limnSpaceUnknown = 0
 tenGageCp1GradMag = 171
 tenAniso_Cs1 = 6
 gageItemPackPartHessian = 5
+pullInitMethodLast = 5
 pullInitMethodPointPerVoxel = 3
+pullInitMethodHalton = 2
 tenDwiGageTensorError = 23
 pullInitMethodRandom = 1
 pullInitMethodUnknown = 0
 miteRangeAlpha = 0
+pullInfoNegativeTangent2 = 18
 pullIterParmStuckMax = 3
+limnEdgeTypeFrontCrease = 4
 nrrdBoundaryLast = 6
 tenAniso_Mode = 22
 tenGageB = 5
-nrrdField_space_directions = 14
 miteStageOpLast = 5
 nrrdSpaceRightAnteriorSuperiorTime = 4
-pullInfoNegativeTangent2 = 18
 alanStopLast = 6
 nrrdTypeLast = 12
-alanStopDiverged = 5
 pullInfoNegativeTangent1 = 17
 alanStopNonExist = 3
 alanStopMaxIteration = 2
 pullInfoTangent2 = 16
+tenAniso_Skew = 21
 tenGageCl1Normal = 169
 tenAnisoLast = 30
 tenGageTensor = 1
 tenAniso_eval2 = 29
 tenAniso_eval1 = 28
-tenAniso_eval0 = 27
 tenAniso_Tr = 26
 nrrdBinaryOpLT = 13
-tenAniso_Th = 23
-tenAniso_Skew = 21
-tijk_class_last = 4
 tenAniso_B = 17
-tenAniso_VF = 16
 tenAniso_FA = 15
 limnDeviceUnknown = 0
 tijk_class_efs = 3
 tenAniso_Ct2 = 13
 tenAniso_Cs2 = 12
 tenAniso_Clpmin2 = 11
-tenDwiFiberType1Evec0 = 1
 tenDwiFiberTypeUnknown = 0
-tenAniso_Cl2 = 8
 tenAniso_Ct1 = 7
 tenAniso_Clpmin1 = 5
 tenAniso_Cp1 = 3
@@ -950,7 +943,6 @@ tenAniso_R = 19
 nrrdUnaryOpSin = 3
 tenDwiGageTensorMLE = 18
 tenGageClpmin1 = 76
-airNoDio_test = 11
 nrrdField_unknown = 0
 echoMatterMetal = 3
 tenAniso_Omega = 24
@@ -996,6 +988,7 @@ tenFiberIntgUnknown = 0
 pullSysParmFracNeighNixedMax = 19
 alanParmRandRange = 8
 pushEnergyTypeLast = 6
+tijk_class_last = 4
 limnQN15octa = 5
 limnQN16octa = 4
 limnQN16checker = 3
@@ -1003,10 +996,10 @@ limnQN16border1 = 2
 limnQN16simple = 1
 pullInfoLiveThresh3 = 14
 airTypeUInt = 3
+tenAniso_VF = 16
 tenGageDetHessian = 93
 tenDwiGageTensorNLSError = 15
 miteValLast = 20
-pullInitMethodLast = 5
 miteValVdefTdotV = 18
 miteValVdefT = 17
 miteValGTdotV = 16
@@ -1059,6 +1052,7 @@ pullCountPoints = 12
 pullCountPointsStuck = 11
 pullCountNixing = 10
 pullCountAdding = 9
+pullCountConstraintSatisfy = 8
 pullCountForceFromPoints = 6
 tenDwiFiberType12BlendEvec0 = 3
 pullCountEnergyFromPoints = 5
@@ -1080,7 +1074,6 @@ nrrdMeasureCoV = 15
 coilKindTypeLast = 4
 seekTypeValleyLine = 5
 miteShadeMethodLast = 4
-tenGageCl1HessianEvec = 183
 miteShadeMethodLitTen = 3
 nrrdBasicInfoSpaceDimension = 8
 pullInterTypeAdditive = 4
@@ -1095,9 +1088,11 @@ limnSplineInfo4Vector = 5
 tenFiberStopAniso = 1
 tenGageInvarRGrads = 68
 airInsane_UCSize = 9
+pullFlagZeroZ = 15
 gageSclHessEvec = 15
 limnCameraPathTrackAt = 2
 nrrdSpaceLast = 13
+tenAniso_Ca2 = 10
 gageSclHessEval1 = 13
 limnCameraPathTrackUnknown = 0
 alanParmMinAverageChange = 16
@@ -1114,6 +1109,7 @@ mossFlagUnknown = -1
 nrrdBoundaryWrap = 3
 tenAniso_Cp2 = 9
 miteRangeKs = 7
+miteRangeKd = 6
 tenFiberTypeLast = 7
 nrrdSpaceScannerXYZ = 7
 limnSplineInfo3Vector = 3
@@ -1135,6 +1131,7 @@ nrrdTypeULLong = 8
 nrrdTypeLLong = 7
 nrrdField_measurement_frame = 31
 nrrdTypeInt = 5
+airNoDio_test = 11
 nrrdTypeUShort = 4
 nrrdTypeShort = 3
 limnPrimitiveTriangleFan = 4
@@ -1182,8 +1179,10 @@ nrrdField_old_max = 22
 limnQN9octa = 14
 limnQN10octa = 13
 pullCondConstraintSatA = 2
+pullFlagBinSingle = 11
 tenDwiGageADC = 4
 limnQN10checker = 12
+echoJitterJitter = 2
 gageParmCurvNormalSide = 6
 tenGageThetaNormal = 62
 airEndianBig = 4321
@@ -1221,7 +1220,6 @@ gageVecImaginaryPart = 16
 gageVecLambda2 = 15
 gageScl2ndDD = 19
 gageVecNormHelicity = 13
-ell_cubic_root_last = 5
 gageVecHelicity = 12
 gageVecHessian = 17
 gageVecCurl = 10
@@ -1238,7 +1236,6 @@ miteRangeGreen = 2
 tenGageThetaGradVec = 60
 tenTripleTypeRThetaPhi = 5
 nrrdField_space_dimension = 8
-ell_cubic_root_three = 4
 tenFiberStopUnknown = 0
 tenTripleTypeRThetaZ = 4
 tenGageCl1HessianEval1 = 181
@@ -1248,6 +1245,7 @@ nrrdZlibStrategyFiltered = 3
 nrrdZlibStrategyHuffman = 2
 nrrdBinaryOpDivide = 4
 nrrdZlibStrategyUnknown = 0
+tenTripleTypeEigenvalue = 1
 airFP_NEG_ZERO = 10
 pullTraceStopBounds = 3
 tenTripleTypeUnknown = 0
@@ -1273,6 +1271,7 @@ nrrdMeasureHistoL2 = 27
 pullSysParmConstraintStepMin = 17
 tenEstimate2MethodLast = 3
 pullCondEnergyBad = 6
+nrrdEncodingTypeHex = 3
 echoMatterLightUnit = 1
 pullInterTypeSeparable = 3
 echoMatterLightPower = 0
@@ -1289,6 +1288,7 @@ hooverErrRayBegin = 5
 hooverErrThreadCreate = 3
 hooverErrRenderBegin = 2
 pullSysParmNeighborTrueProb = 10
+pullFlagNixAtVolumeEdgeSpace = 6
 hooverErrNone = 0
 tenGageModeGradVec = 57
 echoMatterGlassFuzzy = 3
@@ -1314,10 +1314,10 @@ nrrdIoStateBzip2BlockSize = 9
 nrrdAxisInfoLast = 11
 tenGageCl1HessianEval0 = 180
 nrrdKindQuaternion = 23
-ell_cubic_root_unknown = 0
 baneIncLast = 5
 nrrdEncodingTypeBzip2 = 5
 nrrdKind4Vector = 22
+nrrdField_space_directions = 14
 tenEstimate1MethodWLS = 2
 nrrdAxisInfoCenter = 7
 nrrdBinaryOpUnknown = 0
@@ -1336,9 +1336,9 @@ pullSysParmRadiusSpace = 7
 nrrdIoStateZlibLevel = 7
 echoTypeIsosurface = 7
 tenInterpTypeQuatGeoLoxK = 9
-nrrdEncodingTypeHex = 3
 tenGageTensorQuatGeoLoxR = 165
 tenInterpTypeWang = 4
+limnEdgeTypeFrontFacet = 5
 gageSclLast = 36
 gageSclHessMode = 35
 gageSclHessRidgeness = 34
@@ -7710,31 +7710,30 @@ tenEMBimodal = libteem.tenEMBimodal
 tenEMBimodal.restype = c_int
 tenEMBimodal.argtypes = [POINTER(tenEMBimodalParm), POINTER(Nrrd)]
 tend_ellipseCmd = (unrrduCmd).in_dll(libteem, 'tend_ellipseCmd')
+tend_tconvCmd = (unrrduCmd).in_dll(libteem, 'tend_tconvCmd')
 tend_bmatCmd = (unrrduCmd).in_dll(libteem, 'tend_bmatCmd')
-tend_evqCmd = (unrrduCmd).in_dll(libteem, 'tend_evqCmd')
 tend_simCmd = (unrrduCmd).in_dll(libteem, 'tend_simCmd')
 tend_evaladdCmd = (unrrduCmd).in_dll(libteem, 'tend_evaladdCmd')
 tend_anscaleCmd = (unrrduCmd).in_dll(libteem, 'tend_anscaleCmd')
 tend_anvolCmd = (unrrduCmd).in_dll(libteem, 'tend_anvolCmd')
-tend_unmfCmd = (unrrduCmd).in_dll(libteem, 'tend_unmfCmd')
 tend_bfitCmd = (unrrduCmd).in_dll(libteem, 'tend_bfitCmd')
 tend_evalCmd = (unrrduCmd).in_dll(libteem, 'tend_evalCmd')
 tend_evalmultCmd = (unrrduCmd).in_dll(libteem, 'tend_evalmultCmd')
 tend_evecCmd = (unrrduCmd).in_dll(libteem, 'tend_evecCmd')
+tend_glyphCmd = (unrrduCmd).in_dll(libteem, 'tend_glyphCmd')
 tend_shrinkCmd = (unrrduCmd).in_dll(libteem, 'tend_shrinkCmd')
-tend_avgCmd = (unrrduCmd).in_dll(libteem, 'tend_avgCmd')
 tend_epiregCmd = (unrrduCmd).in_dll(libteem, 'tend_epiregCmd')
 tend_anplotCmd = (unrrduCmd).in_dll(libteem, 'tend_anplotCmd')
 tend_aboutCmd = (unrrduCmd).in_dll(libteem, 'tend_aboutCmd')
-tend_glyphCmd = (unrrduCmd).in_dll(libteem, 'tend_glyphCmd')
-tend_pointCmd = (unrrduCmd).in_dll(libteem, 'tend_pointCmd')
+tend_gradsCmd = (unrrduCmd).in_dll(libteem, 'tend_gradsCmd')
 tend_helixCmd = (unrrduCmd).in_dll(libteem, 'tend_helixCmd')
-tend_tconvCmd = (unrrduCmd).in_dll(libteem, 'tend_tconvCmd')
 tend_fiberCmd = (unrrduCmd).in_dll(libteem, 'tend_fiberCmd')
+tend_logCmd = (unrrduCmd).in_dll(libteem, 'tend_logCmd')
 tend_mconvCmd = (unrrduCmd).in_dll(libteem, 'tend_mconvCmd')
 tend_evalclampCmd = (unrrduCmd).in_dll(libteem, 'tend_evalclampCmd')
-tend_logCmd = (unrrduCmd).in_dll(libteem, 'tend_logCmd')
-tend_gradsCmd = (unrrduCmd).in_dll(libteem, 'tend_gradsCmd')
+tend_evqCmd = (unrrduCmd).in_dll(libteem, 'tend_evqCmd')
+tend_avgCmd = (unrrduCmd).in_dll(libteem, 'tend_avgCmd')
+tend_unmfCmd = (unrrduCmd).in_dll(libteem, 'tend_unmfCmd')
 tend_expandCmd = (unrrduCmd).in_dll(libteem, 'tend_expandCmd')
 tend_makeCmd = (unrrduCmd).in_dll(libteem, 'tend_makeCmd')
 tend_anhistCmd = (unrrduCmd).in_dll(libteem, 'tend_anhistCmd')
@@ -7747,6 +7746,7 @@ tend_stenCmd = (unrrduCmd).in_dll(libteem, 'tend_stenCmd')
 tend_expCmd = (unrrduCmd).in_dll(libteem, 'tend_expCmd')
 tend_sliceCmd = (unrrduCmd).in_dll(libteem, 'tend_sliceCmd')
 tend_mfitCmd = (unrrduCmd).in_dll(libteem, 'tend_mfitCmd')
+tend_pointCmd = (unrrduCmd).in_dll(libteem, 'tend_pointCmd')
 tend_evecrgbCmd = (unrrduCmd).in_dll(libteem, 'tend_evecrgbCmd')
 tend_msimCmd = (unrrduCmd).in_dll(libteem, 'tend_msimCmd')
 tendCmdList = (POINTER(unrrduCmd) * 0).in_dll(libteem, 'tendCmdList')
@@ -8105,7 +8105,6 @@ tijk_get_axis_type = libteem.tijk_get_axis_type
 tijk_get_axis_type.restype = c_int
 tijk_get_axis_type.argtypes = [POINTER(tijk_axis_info), POINTER(Nrrd), c_uint]
 unrrdu_distCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_distCmd')
-unrrdu_lutCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_lutCmd')
 unrrdu_spliceCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_spliceCmd')
 unrrdu_mlutCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_mlutCmd')
 unrrdu_imapCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_imapCmd')
@@ -8126,10 +8125,11 @@ unrrdu_aboutCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_aboutCmd')
 unrrdu_w2iCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_w2iCmd')
 unrrdu_convertCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_convertCmd')
 unrrdu_gammaCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_gammaCmd')
+unrrdu_ccadjCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_ccadjCmd')
 unrrdu_jhistoCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_jhistoCmd')
 unrrdu_flipCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_flipCmd')
 unrrdu_swapCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_swapCmd')
-unrrdu_histaxCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_histaxCmd')
+unrrdu_lutCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_lutCmd')
 unrrdu_joinCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_joinCmd')
 unrrdu_undosCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_undosCmd')
 unrrdu_sselectCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_sselectCmd')
@@ -8141,7 +8141,6 @@ unrrdu_lut2Cmd = (unrrduCmd).in_dll(libteem, 'unrrdu_lut2Cmd')
 unrrdu_substCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_substCmd')
 unrrdu_axinfoCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_axinfoCmd')
 unrrdu_dataCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_dataCmd')
-unrrdu_ccadjCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_ccadjCmd')
 unrrdu_reshapeCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_reshapeCmd')
 unrrdu_headCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_headCmd')
 unrrdu_ccmergeCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_ccmergeCmd')
@@ -8153,6 +8152,7 @@ unrrdu_heqCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_heqCmd')
 unrrdu_rmapCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_rmapCmd')
 unrrdu_padCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_padCmd')
 unrrdu_fftCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_fftCmd')
+unrrdu_histaxCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_histaxCmd')
 unrrdu_projectCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_projectCmd')
 unrrdu_sliceCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_sliceCmd')
 unrrdu_2opCmd = (unrrduCmd).in_dll(libteem, 'unrrdu_2opCmd')
@@ -8494,7 +8494,8 @@ __all__ = ['tenFiberStopUIntSet', 'biffMsgAddf',
            'tenGradientParm', 'pullSysParmFracNeighNixedMax',
            'hooverContextNew', 'elfGlyphPolar',
            'limnPolyDataVertexWindingFlip', 'nrrdBoundaryBleed',
-           'pullPointNew', 'nrrdArithAffine', 'meetHestPullInfo',
+           'ell_cubic_root_unknown', 'pullPointNew',
+           'nrrdArithAffine', 'meetHestPullInfo',
            'nrrdKernelCos4SupportDebugDDD', 'elfMaximaContext',
            'echoJitterUnknown', 'nrrdResampleRenormalizeSet',
            'ell_aa_to_q_f', 'ell_aa_to_q_d', 'baneRawScatterplots',
@@ -8725,7 +8726,7 @@ __all__ = ['tenFiberStopUIntSet', 'biffMsgAddf',
            'nrrdMeasureHistoMode', 'nrrdBinaryOpNotEqual',
            'pullVolumeSingleAdd', 'nrrdBinaryOpMultiply',
            'gageParmGenerateErrStr', 'pullConstraintFailLast',
-           'pullPropStuck', 'nrrdAxisInfoSpaceDirection',
+           'tenInterpTypeUnknown', 'nrrdAxisInfoSpaceDirection',
            'biffMaybeAdd', 'tijk_esh_len', 'hooverContextNix',
            'nrrdSpatialResample', 'pullPointNix', 'echoSplit',
            'dyeColorGetAs', 'tenDefFiberStepSize', 'echoObjectNix',
@@ -9161,7 +9162,7 @@ __all__ = ['tenFiberStopUIntSet', 'biffMsgAddf',
            'gageItemEntry', 'gageSclNPerp', 'pullSource',
            'echoJitter', 'seekItemStrengthSet', 'nrrdReshape_nva',
            'pullBiffKey', 'tenGlyphTypeUnknown', 'pushEnergyUnknown',
-           'pushEnergyTypeSpring', 'ell_cubic_root_unknown',
+           'pushEnergyTypeSpring', 'nrrdBasicInfoSpace',
            'tenGageModeHessianEvec', 'nrrdMeasureHistoMin',
            'nrrdUnaryOpRoundUp', 'tenFiberTypeLast', 'nrrdILookup',
            'gageParmCheckIntegrals', 'tend_evqCmd',
@@ -9236,7 +9237,7 @@ __all__ = ['tenFiberStopUIntSet', 'biffMsgAddf',
            'echoListSplit3', 'tenDwiGageKindNew', 'gageQueryPrint',
            'tenEstimateVerboseSet', 'airSgn', 'meetAirEnumAllPrint',
            'gageCtxFlagUnknown', 'echoJittableUnknown', 'pullPoint',
-           'tenInterpTypeUnknown', 'nrrdKernelBCCubicD',
+           'pullPropStuck', 'nrrdKernelBCCubicD',
            'tenGageCl1HessianEvec', 'nrrdBasicInfoDimension',
            'nrrdKernelHannD', 'coilKindArray', 'alanParmHomogAniso',
            'limnPolyDataCCFind', 'airTeemReleaseDate',
@@ -9415,8 +9416,7 @@ __all__ = ['tenFiberStopUIntSet', 'biffMsgAddf',
            'pullEnergyButterworthParabola',
            'hestElideSingleEmptyStringDefault', 'tenExperSpec',
            'nrrdDeringVerboseSet', 'tenDwiGage2TensorQSegError',
-           'hestElideMultipleNonExistFloatDefault',
-           'nrrdBasicInfoSpace', 'gageScl2ndDD',
+           'hestElideMultipleNonExistFloatDefault', 'gageScl2ndDD',
            'limnPolyDataTransform_d', 'airTypeDouble',
            'pullEnergyHepticWell', 'tijk_esh_make_kernel_rank1_d',
            'tijk_esh_make_kernel_rank1_f', 'baneIncUnknown',
