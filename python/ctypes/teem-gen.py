@@ -25,10 +25,55 @@
 ##  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ##
 
+##
+## for posterity; this records the contents of the sourceme-ctypeslib.txt
+## file that this script automates ...
+oldtodo="""
+echo === These are commands that GLK used to create teem.py, in tcsh
+echo === Obviously, anyone is welcome to make this into a proper python script
+echo === or otherwise make it more robust and portable, especially the stuff
+echo === that removes the install path specifics from teem.py
+echo ===
+echo === You will need a recent gccxml to make this work.
+
+svn co http://svn.python.org/projects/ctypes/branches/ctypeslib-gccxml-0.9
+setenv CTYPES `pwd`/ctypeslib-gccxml-0.9
+setenv PYTHONPATH ${CTYPES}:`pwd`
+
+echo === A patch is still needed, hopefully this can be fixed
+patch -p0 -i ctypes-codegen.patch
+
+echo === TEEM has to be set to wherever CMake put its make install
+setenv TEEM /Users/gk/teem-install
+
+echo === all.h just includes all the other public top-level .h in Teem
+rm -rf teemincl
+mkdir teemincl
+cp -r ${TEEM}/include/teem teemincl
+cd teemincl
+ls -1 teem/*.h | awk '{print "#include <"$1">"}' > all.h
+cd ..
+
+echo === teem.xml represents the Teem API
+python ${CTYPES}/scripts/h2xml.py `pwd`/teemincl/all.h -I teemincl -o teem.xml
+
+echo === DYLD_LIBRARY_PATH is obviously Mac specific, please fix
+setenv DYLD_LIBRARY_PATH ${TEEM}/lib
+python ${CTYPES}/scripts/xml2py.py teem.xml -llibteem.dylib -o pre-teem.py -m stdio \
+        -r "(air|hest|biff|nrrd|ell|unrrdu|alan|moss|tijk|gage|dye|bane|limn|echo|hoover|seek|ten|elf|pull|coil|push|mite|meet).*"
+rm -rf teemincl
+
+
+echo === At this point GLK does emacs stuff to make pre-teem.py into what is
+echo === the currently svn committed teem.py
+echo === Obviously, this really needs to be automated...
+"""
+# and now it has been automated!
+
 import os, sys, shutil, platform, re, string
 
 if len(sys.argv) != 3:
-    sys.exit("program expexts arguments: 'ctypeslib-gccxml source dir' 'teem install dir' ")
+    sys.exit("usage: teem-gen.py <ctypeslib-gccxml source dir> <teem install dir>")
 
 ## (TEEM_LIB_LIST)
 libs_list = ["air", "hest", "biff", "nrrd", "ell", "unrrdu", "alan", "moss", "tijk", "gage", "dye", "bane", "limn", "echo", "hoover", "seek", "ten", "elf", "pull", "coil", "push", "mite", "meet"]
@@ -64,6 +109,11 @@ if not os.path.isdir(sys.argv[1]):
     sys.exit("%s does not point to a directory" % sys.argv[1])
 
 CTYPES = os.path.abspath(sys.argv[1])
+#
+# NOTE, however, that this really assumes a PATCHED ctypeslib-gccxml,
+# via a procedure like:
+# svn co http://svn.python.org/projects/ctypes/branches/ctypeslib-gccxml-0.9
+# patch -p0 -i ctypes-codegen.patch
 
 #
 # validate teem install dir path
@@ -116,7 +166,7 @@ for file in Files:
         expr6 = re.compile("NRRD_TYPE_BIGGEST")
         # this strips out NRRD_LLONG_MAX, NRRD_LLONG_MIN, and NRRD_ULLONG_MAX,
         # which depend on macros AIR_LLONG and AIR_LLONG.  For some reason
-        # this cause a problem now (Thu Jun 14 11:49:14 CDT 2012) even though
+        # this causes a problem now (Thu Jun 14 11:49:14 CDT 2012) even though
         # they haven't before, though these constants and macros are not new
         expr7 = re.compile("LLONG")
         for line in lines:
