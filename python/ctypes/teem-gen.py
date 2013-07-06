@@ -34,10 +34,10 @@ if len(sys.argv) != 3:
 libs_list = ["air", "hest", "biff", "nrrd", "ell", "unrrdu", "alan", "moss", "tijk", "gage", "dye", "bane", "limn", "echo", "hoover", "seek", "ten", "elf", "pull", "coil", "push", "mite", "meet"]
 
 #
-# validate os 
+# validate os
 #
 if os.name != "posix":
-    sys.exit("program only supports posix compilant systems at this time") 
+    sys.exit("program only supports posix compilant systems at this time")
 
 #
 # validate gccxml install
@@ -58,7 +58,7 @@ if not ((int(first_line[16]) > 0) or ((int(first_line[18]) == 9) and (int(first_
 os.remove(tmp)
 
 #
-# validate ctypeslib-gccxml source dir path 
+# validate ctypeslib-gccxml source dir path
 #
 if not os.path.isdir(sys.argv[1]):
     sys.exit("%s does not point to a directory" % sys.argv[1])
@@ -75,14 +75,14 @@ TEEM = os.path.abspath(sys.argv[2])
 
 
 #
-# copy files from install dir 
+# copy files from install dir
 #
 
 TMP_DIR = "teem-gen-tmp"
 
-teem_include = os.path.join(TEEM, "include") 
+teem_include = os.path.join(TEEM, "include")
 
-if not os.path.isdir(teem_include): 
+if not os.path.isdir(teem_include):
     sys.exit("%s is not the teem install directory; %s is not a valid path" % (teem, teem-install))
 
 if os.path.isdir(TMP_DIR):
@@ -120,7 +120,7 @@ for file in Files:
         # they haven't before, though these constants and macros are not new
         expr7 = re.compile("LLONG")
         for line in lines:
-            if (expr1.search(line) and not expr2.search(line) 
+            if (expr1.search(line) and not expr2.search(line)
                 and not expr3.search(line) and not expr4.search(line)
                 and not expr5.search(line) and not expr6.search(line)
                 and not expr7.search(line)):
@@ -129,9 +129,9 @@ for file in Files:
 f_open.close()
 
 #
-# generate teem.xml 
+# generate teem.xml
 #
-# note: these calls are unix only because windows support for command line 
+# note: these calls are unix only because windows support for command line
 #	append to python path (where the scopeis only that one call) is too
 #	difficult at this time -- better support may be added to later versions
 #	of python, so that something to watch for / modify in the future
@@ -142,7 +142,7 @@ os.system("%s python %s %s -I %s -o %s" % (pypath_append, os.path.join(CTYPES, "
 
 
 #
-# generate pre-teem.py 
+# generate pre-teem.py
 #
 pre_teem_py = os.path.join(os.getcwd(), "pre-teem.py")
 
@@ -164,7 +164,7 @@ else:
 os.system("%s %s python %s %s -l libteem.%s -o %s -m stdio -r \"(%s).*\"" % (dll_path, pypath_append, os.path.join(CTYPES, "scripts", "xml2py.py"), teem_xml, ext,  pre_teem_py, teem_libs))
 
 #
-# generate teem.py 
+# generate teem.py
 #
 
 libs_destuctable = list(libs_list)
@@ -252,13 +252,13 @@ header = [
 "            libdir = loader_path",
 "    else:",
 "        libdir = loader_path",
-"",          
+"",
 "    try:",
 "        libpath = os.path.join(libdir, libname_ext)",
 "        return CDLL(libpath)",
 "    except OSError, e:",
 "        raise e"
-"",          
+"",
 "try:",
 "    libteem = load_library('libteem')",
 "except OSError:",
@@ -268,7 +268,7 @@ header = [
 "    print \"**  try setting optional loader_path argument in the load_library() call above to '<teem-install-dir>/lib/'\"",
 "    print \"**\"",
 "    raise ImportError",
-"",          
+"",
 "# =============================================================",
 "# Utility types and classes to help teem.py be platform-independent.",
 "",
