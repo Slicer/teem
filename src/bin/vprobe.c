@@ -390,13 +390,13 @@ main(int argc, const char *argv[]) {
     if (!E) E |= nrrdMaybeAlloc_va(nout=nrrdNew(), otype, 3,
                                    sox, soy, soz);
   }
-  airMopAdd(mop, nout, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
   if (E) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop);
     return 1;
   }
+  airMopAdd(mop, nout, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
 
   hackSet = nrrdGetenvUInt(&hackZi, &hackValStr, hackKeyStr);
   if (AIR_FALSE == hackSet) {
