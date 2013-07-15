@@ -213,6 +213,20 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
         exp(-2*cc*cc/(AIR_ABS(heval[1])*heval[0]*heval[0]));
     }
   }
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessDotPeakness)) {
+#define OSQT 0.57735026918962576451
+    double neval[3], hlen, pness,
+      peak[3] = {-OSQT, -OSQT, -OSQT};
+    ELL_3V_NORM(neval, heval, hlen);
+    if (!hlen) {
+      pness = 0;
+    } else {
+      pness = ELL_3V_DOT(peak, neval);
+      pness = AIR_AFFINE(-1, pness, 1, 0, 1);
+      pvl->directAnswer[gageSclHessDotPeakness][0] = pness;
+    }
+#undef OSQT
+  }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessMode)) {
     pvl->directAnswer[gageSclHessMode][0] = airMode3_d(heval);
   }

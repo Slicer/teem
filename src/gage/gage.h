@@ -312,12 +312,14 @@ enum {
   gageSclCurvDir2,     /* 30: "cdir2", 2nd principle curv direction: [3] */
   gageSclFlowlineCurv, /* 31: "fc", curvature of normal streamline: [1] */
   gageSclMedian,       /* 32: "med", median filter */
-  gageSclHessValleyness,   /* 33: "hvalley", vallyness measure: [1] */
-  gageSclHessRidgeness,    /* 34: "hridge", ridgeness measure: [1] */
-  gageSclHessMode,     /* 35: "hmode", Hessian's mode: [1] */
+  gageSclHessValleyness,  /* 33: "hvalley", vallyness measure: [1] */
+  gageSclHessRidgeness,   /* 34: "hridge", ridgeness measure: [1] */
+  gageSclHessDotPeakness, /* 35: "hdpeak", positive blobness measure;
+                             based on simple dot-product w/ evals : [1] */
+  gageSclHessMode,     /* 36: "hmode", Hessian's mode: [1] */
   gageSclLast
 };
-#define GAGE_SCL_ITEM_MAX 35
+#define GAGE_SCL_ITEM_MAX 36
 
 /*
 ******** gageVec* enum

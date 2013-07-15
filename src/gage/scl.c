@@ -67,6 +67,7 @@ _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   {gageSclMedian,        1,  0,  {0},                                            0,               0,   AIR_FALSE},
   {gageSclHessValleyness,1,  2,  {gageSclHessEval},                              0,               0,   AIR_FALSE},
   {gageSclHessRidgeness, 1,  2,  {gageSclHessEval},                              0,               0,   AIR_FALSE},
+  {gageSclHessDotPeakness,1,  2,  {gageSclHessEval},                              0,               0,   AIR_FALSE},
   {gageSclHessMode,      1,  2,  {gageSclHessEval},                              0,               0,   AIR_FALSE}
 };
 
@@ -107,6 +108,7 @@ _gageSclStr[] = {
   "median",
   "Hessian valleyness",
   "Hessian ridgeness",
+  "Hessian peakness",
   "Hessian mode"
 };
 
@@ -147,6 +149,7 @@ _gageSclDesc[] = {
   "median of iv3 cache (not weighted by any filter (yet))",
   "measure of valleyness of Hessian",
   "measure of ridgeness of Hessian",
+  "measure of peakness of Hessian",
   "mode of Hessian eigenvalues"
 };
 
@@ -187,6 +190,7 @@ _gageSclVal[] = {
   gageSclMedian,
   gageSclHessValleyness,
   gageSclHessRidgeness,
+  gageSclHessDotPeakness,
   gageSclHessMode
 };
 
@@ -224,6 +228,7 @@ _gageSclVal[] = {
 #define GS_MD  gageSclMedian
 #define GS_HV  gageSclHessValleyness
 #define GS_HR  gageSclHessRidgeness
+#define GS_PK  gageSclHessDotPeakness
 #define GS_HM  gageSclHessMode
 
 const char *
@@ -263,6 +268,7 @@ _gageSclStrEqv[] = {
   "med", "median",
   "hvalley", "hessvalley", "hessian valleyness",
   "hridge", "hessridge", "hessian ridgeness",
+  "hdpeak",
   "hmode", "hessmode", "hessian mode",
   ""
 };
@@ -303,6 +309,7 @@ _gageSclValEqv[] = {
   GS_MD, GS_MD,
   GS_HV, GS_HV, GS_HV,
   GS_HR, GS_HR, GS_HR,
+  GS_PK,
   GS_HM, GS_HM, GS_HM
 };
 
