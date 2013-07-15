@@ -106,6 +106,22 @@ gageStackBlurParmScaleSet(gageStackBlurParm *sbp, unsigned int num,
       return 1;
     }
   }
+  if (sbp->verbose) {
+    printf("%s: [%g,%g] with %u samples (uniform=%d, optim=%d):\n",
+           me, scaleMin, scaleMax, num, !!uniform, !!optim);
+    for (ii=0; ii<num; ii++) {
+      if (ii) {
+        printf("%s:           "
+               "| deltas: %g\t               %g\n", me,
+               sbp->scale[ii] - sbp->scale[ii-1],
+               gageTauOfSig(sbp->scale[ii])
+               - gageTauOfSig(sbp->scale[ii-1]));
+      }
+      printf("%s: scale[%02u]=%g%s\t         tau=%g\n", me, ii,
+             sbp->scale[ii], !sbp->scale[ii] ? "     " : "",
+             gageTauOfSig(sbp->scale[ii]));
+    }
+  }
 
   return 0;
 }
