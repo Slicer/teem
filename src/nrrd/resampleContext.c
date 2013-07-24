@@ -1155,7 +1155,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
       char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
       fprintf(stderr, "%s(%u): lineNum = %s\n", me, passIdx,
               airSprintSize_t(stmp1, lineNum));
-      fprintf(stderr, "%s(%u): strideIn = %s, stridOut = %s\n", me, passIdx,
+      fprintf(stderr, "%s(%u): strideIn = %s, strideOut = %s\n", me, passIdx,
               airSprintSize_t(stmp1, strideIn),
               airSprintSize_t(stmp2, strideOut));
     }
@@ -1209,6 +1209,12 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
     line = (nrrdResample_t *)(axisIn->nline->data);
     indx = (int *)(axisIn->nindex->data);
     weight = (nrrdResample_t *)(axisIn->nweight->data);
+    if (rsmc->verbose) {
+      fprintf(stderr, "%s: {rsmp,data}In = %p/%p; {rsmp,data}Out = %p/%p\n",
+              me, rsmpIn, dataIn, rsmpOut, dataOut);
+      fprintf(stderr, "%s: line = %p; indx = %p; weight = %p\n",
+              me, line, indx, weight);
+    }
 
     /* the skinny */
     for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
@@ -1233,7 +1239,6 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
           line[smpIdx] = rsmpIn[smpIdx*strideIn + indexIn];
         }
       }
-
       /* do the bloody convolution and save the output value */
       dotLen = axisIn->nweight->axis[0].size;
       for (smpIdx=0; smpIdx<axisIn->samples; smpIdx++) {
@@ -1498,7 +1503,7 @@ nrrdResampleExecute(NrrdResampleContext *rsmc, Nrrd *nout) {
       || _nrrdResampleVectorFillUpdate(rsmc)
       || _nrrdResamplePermutationUpdate(rsmc)
       || _nrrdResampleOutputUpdate(rsmc, nout, func)) {
-    biffAddf(NRRD, "%s: trouble", me);
+    biffAddf(NRRD, "%s: trouble resampling", me);
     return 1;
   }
   rsmc->time = airTime() - time0;
