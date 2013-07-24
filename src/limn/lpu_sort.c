@@ -75,5 +75,5 @@ limnpu_sortMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_sortCmd = { "sort", INFO, limnpu_sortMain };
+unrrduCmd limnpu_sortCmd = { "sort", INFO, limnpu_sortMain, AIR_FALSE };
 

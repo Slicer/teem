@@ -69,5 +69,5 @@ limnpu_vertsMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_vertsCmd = { "verts", INFO, limnpu_vertsMain };
+unrrduCmd limnpu_vertsCmd = { "verts", INFO, limnpu_vertsMain, AIR_FALSE };
 

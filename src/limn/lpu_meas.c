@@ -75,5 +75,5 @@ limnpu_measMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_measCmd = { "meas", INFO, limnpu_measMain };
+unrrduCmd limnpu_measCmd = { "meas", INFO, limnpu_measMain, AIR_FALSE };
 

@@ -56,5 +56,5 @@ limnpu_aboutMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_aboutCmd = { "about", INFO, limnpu_aboutMain };
+unrrduCmd limnpu_aboutCmd = { "about", INFO, limnpu_aboutMain, AIR_FALSE };
 

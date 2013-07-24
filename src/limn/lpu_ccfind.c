@@ -71,5 +71,5 @@ limnpu_ccfindMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_ccfindCmd = { "ccfind", INFO, limnpu_ccfindMain };
+unrrduCmd limnpu_ccfindCmd = { "ccfind", INFO, limnpu_ccfindMain, AIR_FALSE };
 

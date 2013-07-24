@@ -102,5 +102,5 @@ limnpu_pselMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_pselCmd = { "psel", INFO, limnpu_pselMain };
+unrrduCmd limnpu_pselCmd = { "psel", INFO, limnpu_pselMain, AIR_FALSE };
 

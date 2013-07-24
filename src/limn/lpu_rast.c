@@ -86,5 +86,5 @@ limnpu_rastMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_rastCmd = { "rast", INFO, limnpu_rastMain };
+unrrduCmd limnpu_rastCmd = { "rast", INFO, limnpu_rastMain, AIR_FALSE };
 
