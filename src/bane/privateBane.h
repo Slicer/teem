@@ -32,7 +32,8 @@ extern "C" {
 extern int _baneAxisCheck(baneAxis *axis);
 
 #define BANE_GKMS_CMD(name, info) \
-unrrduCmd baneGkms_##name##Cmd = { #name, info, baneGkms_##name##Main }
+unrrduCmd baneGkms_##name##Cmd = { #name, info, \
+                                   baneGkms_##name##Main, AIR_FALSE }
 
 /* USAGE, PARSE
    all copied from unrrdu/privateUnrrdu.h */
