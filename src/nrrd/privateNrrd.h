@@ -144,7 +144,6 @@ extern int _nrrdCenter(int center);
 extern int _nrrdCenter2(int center, int def);
 /* ---- BEGIN non-NrrdIO */
 extern int _nrrdDblcmp(double aa, double bb);
-/* ---- END non-NrrdIO */
 
 /* convertNrrd.c */
 extern void (*_nrrdConv[][NRRD_TYPE_MAX+1])(void *, const void *, size_t);
@@ -152,6 +151,7 @@ extern void (*_nrrdClampConv[][NRRD_TYPE_MAX+1])(void *, const void *, size_t);
 extern void (*_nrrdCastClampRound[][NRRD_TYPE_MAX+1])(void *, const void *,
                                                       size_t, int doClamp,
                                                       int roundd);
+/* ---- END non-NrrdIO */
 
 /* read.c */
 extern char _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
