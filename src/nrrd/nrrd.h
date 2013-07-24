@@ -1102,6 +1102,8 @@ NRRD_EXPORT float  (*nrrdFClamp[NRRD_TYPE_MAX+1])(float);
 NRRD_EXPORT double (*nrrdDClamp[NRRD_TYPE_MAX+1])(double);
 NRRD_EXPORT int nrrdConvert(Nrrd *nout, const Nrrd *nin, int type);
 NRRD_EXPORT int nrrdClampConvert(Nrrd *nout, const Nrrd *nin, int type);
+NRRD_EXPORT int nrrdCastClampRound(Nrrd *nout, const Nrrd *nin, int type,
+                                   int doClamp, int roundDir);
 NRRD_EXPORT int nrrdQuantize(Nrrd *nout, const Nrrd *nin,
                              const NrrdRange *range, unsigned int bits);
 NRRD_EXPORT int nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type);
@@ -1331,7 +1333,8 @@ NRRD_EXPORT int nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout);
 ** float versus double.  Actually, the difference between float and
 ** double is not exposed in any functions or objects declared in this
 ** header; it is entirely internal to the operation of
-** nrrdSpatialResample().
+** nrrdSpatialResample() and nrrdResampleExecute() and things
+** based on those.
 **
 ** Choose by setting "#if" arg to 1 (for float) or 0 (for double)
 */

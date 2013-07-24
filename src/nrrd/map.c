@@ -134,8 +134,9 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
 */
 
 static int
-clampConvert(Nrrd *nout, const Nrrd *nin, int type, int doClamp) {
-  static const char me[]="clampConvert";
+clampRoundConvert(Nrrd *nout, const Nrrd *nin, int type,
+                  int doClamp, int roundDir) {
+  static const char me[]="clampRoundConvert";
   char typeS[AIR_STRLEN_SMALL];
   size_t num, size[NRRD_DIM_MAX];
 
@@ -191,7 +192,10 @@ clampConvert(Nrrd *nout, const Nrrd *nin, int type, int doClamp) {
 
     /* call the appropriate converter */
     num = nrrdElementNumber(nin);
-    if (doClamp) {
+    if (roundDir) {
+      _nrrdCastClampRound[nout->type][nin->type](nout->data, nin->data, num,
+                                                 doClamp, roundDir);
+    } else if (doClamp) {
       _nrrdClampConv[nout->type][nin->type](nout->data, nin->data, num);
     } else {
       _nrrdConv[nout->type][nin->type](nout->data, nin->data, num);
@@ -236,7 +240,9 @@ int
 nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
   static const char me[]="nrrdConvert";
 
-  if (clampConvert(nout, nin, type, AIR_FALSE)) {
+  if (clampRoundConvert(nout, nin, type,
+                        AIR_FALSE /* clamp */,
+                        0 /* round */)) {
     biffAddf(NRRD, "%s: trouble", me);
     return 1;
   }
@@ -256,7 +262,30 @@ int
 nrrdClampConvert(Nrrd *nout, const Nrrd *nin, int type) {
   static const char me[]="nrrdClampConvert";
 
-  if (clampConvert(nout, nin, type, AIR_TRUE)) {
+  if (clampRoundConvert(nout, nin, type,
+                        AIR_TRUE  /* clamp */,
+                        0 /* round */)) {
+    biffAddf(NRRD, "%s: trouble", me);
+    return 1;
+  }
+  return 0;
+}
+
+/*
+******** nrrdCastClampRound()
+**
+** Named in a way that will likely be regretted, this is for changing
+** the type, in a controllable way (with doClamp and or doRound).
+** And same as above:
+** HEY: WARNING: may have loss of data when processing long long
+** (either signed or unsigned)
+*/
+int
+nrrdCastClampRound(Nrrd *nout, const Nrrd *nin, int type,
+                   int doClamp, int roundDir) {
+  static const char me[]="nrrdCastClampRound";
+
+  if (clampRoundConvert(nout, nin, type, doClamp, roundDir)) {
     biffAddf(NRRD, "%s: trouble", me);
     return 1;
   }

@@ -121,22 +121,49 @@ _nrrdClCv##TA##TB(TA *a, const TB *b, IT N) { \
 }
 
 /*
-** This typedef makes the definition of _nrrdConv[][] shorter
+** _nrrdCcrd<Ta><Tb>()
+**
+** like _nrrdClCv<Ta><Tb>() and _nrrdConv<Ta><Tb>(), but with the
+** ability to control if there is rounding and/or clamping. As above,
+** there may be loss of precision with long long input.
+*/
+#define CCRD_DEF(TA, TB)                                        \
+static void                                                     \
+ _nrrdCcrd##TA##TB(TA *a, const TB *b, IT N,                    \
+                   int doClamp, int roundd) {                   \
+   size_t ii;                                                   \
+  for (ii=0; ii<N; ii++) {                                      \
+    double ccrdTmp = AIR_CAST(double, b[ii]);                   \
+    ccrdTmp = (roundd > 0                                       \
+               ? floor(ccrdTmp + 0.5)                           \
+               : (roundd < 0                                    \
+                  ? ceil(ccrdTmp - 0.5)                         \
+                  : ccrdTmp));                                  \
+    ccrdTmp = (doClamp ? _nrrdDClamp##TA(ccrdTmp) : ccrdTmp);   \
+    a[ii] = AIR_CAST(TA, ccrdTmp);                              \
+  }                                                             \
+}
+
+/*
+** These makes the definition of later arrays shorter
 */
 typedef void (*CF)(void *, const void *, IT);
+typedef void (*CN)(void *, const void *, IT, int, int);
 
 /*
 ** the individual converter's appearance in the array initialization,
-** using the cast to the "CF" typedef
+** using the cast to the typedefs above
 */
 #define CONV_LIST(TA, TB) (CF)_nrrdConv##TA##TB,
 #define CLCV_LIST(TA, TB) (CF)_nrrdClCv##TA##TB,
+#define CCRD_LIST(TA, TB) (CN)_nrrdCcrd##TA##TB,
 
 /*
 ** the brace-delimited list of all converters _to_ type TA
 */
 #define CONVTO_LIST(_dummy_, TA) {NULL, MAP2(CONV_LIST, TA) NULL},
 #define CLCVTO_LIST(_dummy_, TA) {NULL, MAP2(CLCV_LIST, TA) NULL},
+#define CCRDTO_LIST(_dummy_, TA) {NULL, MAP2(CCRD_LIST, TA) NULL},
 
 
 
@@ -146,7 +173,7 @@ typedef void (*CF)(void *, const void *, IT);
 
 
 /*
-** the clamping functions where moved here from accessors.c in order
+** the clamping functions were moved here from accessors.c in order
 ** to create the combined clamp-and-convert functions
 */
 
@@ -217,17 +244,19 @@ nrrdDClamp[NRRD_TYPE_MAX+1])(DB) = {
 
 
 /*
-** Define all 100 of both converters.
+** Define all the converters.
 */
 MAP1(MAP2, CONV_DEF)
 MAP1(MAP2, CLCV_DEF)
+MAP1(MAP2, CCRD_DEF)
 
 
 /*
-** Initialize the whole converter array.
+** Initialize the converter arrays.
 **
-** This generates one incredibly long line of text, which hopefully will not
-** break a poor compiler with limitations on line-length...
+** Each definition generates one incredibly long line of text, which
+** hopefully will not break a poor compiler with limitations on
+** line-length...
 */
 CF
 _nrrdConv[NRRD_TYPE_MAX+1][NRRD_TYPE_MAX+1] = {
@@ -240,5 +269,12 @@ CF
 _nrrdClampConv[NRRD_TYPE_MAX+1][NRRD_TYPE_MAX+1] = {
 {NULL},
 MAP1(CLCVTO_LIST, _dummy_)
+{NULL}
+};
+
+CN
+_nrrdCastClampRound[NRRD_TYPE_MAX+1][NRRD_TYPE_MAX+1] = {
+{NULL},
+MAP1(CCRDTO_LIST, _dummy_)
 {NULL}
 };
