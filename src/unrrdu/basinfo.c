@@ -44,7 +44,8 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
   char *out;
   Nrrd *nin, *nout;
   /* these are specific to this command */
-  char *spcStr;
+  NrrdIoState *nio;
+  char *spcStr, *_origStr, *origStr;
   int space;
   unsigned int spaceDim;
 
@@ -55,11 +56,19 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
              "give the dimension of a space that nrrdSpace doesn't know about. "
              "By default (not using this option), the enclosing space is "
              "set as unknown.");
+  hestOptAdd(&opt, "orig,origin", "origin", airTypeString, 1, 1, &_origStr, "",
+             "(NOTE: must quote vector) the origin in space of the array: "
+             "the location of the center "
+             "of the first sample, of the form \"(x,y,z)\" (or however "
+             "many coefficients are needed for the chosen space). Quoting the "
+             "vector is needed to stop interpretation from the shell");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  nio = nrrdIoStateNew();
+  airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
 
   USAGE(_unrrdu_basinfoInfoL);
   PARSE();
@@ -91,6 +100,31 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
       /* we did parse a known space */
       nrrdSpaceSet(nout, space);
     }
+  }
+
+  /* HEY: copy and paste from unrrdu/make.c */
+  if (airStrlen(_origStr)) {
+    /* why this is necessary is a bit confusing to me, both the check for
+       enclosing quotes, and the need to use to a separate variable (isn't
+       hest doing memory management of addresses, not variables?) */
+    if ('\"' == _origStr[0] && '\"' == _origStr[strlen(_origStr)-1]) {
+      fprintf(stderr, "%s: bingo\n", me);
+      _origStr[strlen(_origStr)-1] = 0;
+      origStr = _origStr + 1;
+    } else {
+      origStr = _origStr;
+    }
+    /* same hack about using NrrdIoState->line as basis for parsing */
+    nio->line = origStr;
+    nio->pos = 0;
+    if (nrrdFieldInfoParse[nrrdField_space_origin](NULL, nout,
+                                                   nio, AIR_TRUE)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble with origin \"%s\":\n%s",
+              me, origStr, err);
+      nio->line = NULL; airMopError(mop); return 1;
+    }
+    nio->line = NULL;
   }
 
   SAVE(out, nout, NULL);
