@@ -369,6 +369,163 @@ ell_3m_eigensolve_d(double eval[3], double evec[9],
   return roots;
 }
 
+/* ____________________________ 3m2sub ____________________________ */
+/*
+******** ell_3m2sub_eigenvalues_d
+**
+** for doing eigensolve of the upper-left 2x2 matrix sub-matrix of a
+** 3x3 matrix.  The other entries are assumed to be zero.  A 0 root is
+** put last (in eval[2]), possibly in defiance of the usual eigenvalue
+** ordering.
+*/
+int
+ell_3m2sub_eigenvalues_d(double eval[3], const double _m[9]) {
+  double A, B, m[4], D, Dsq, eps=1.0E-11;
+  int roots;
+  /* static const char me[]="ell_3m2sub_eigenvalues_d"; */
+
+  m[0] = _m[0];
+  m[1] = _m[1];
+  m[2] = _m[3];
+  m[3] = _m[4];
+
+  /* cubic characteristic equation is L^3 + A*L^2 + B*L = 0 */
+  A = -m[0] - m[3];
+  B = m[0]*m[3] - m[1]*m[2];
+  Dsq = A*A - 4*B;
+  /*
+  fprintf(stderr, "!%s: m = {{%f,%f},{%f,%f}} -> A=%f B=%f Dsq=%.17f %s 0 (%.17f)\n", me,
+          m[0], m[1], m[2], m[3], A, B, Dsq,
+          (Dsq > 0 ? ">" : (Dsq < 0 ? "<" : "==")), eps);
+  fprintf(stderr, "!%s: Dsq = \n", me);
+  airFPFprintf_d(stderr, Dsq);
+  fprintf(stderr, "!%s: eps = \n", me);
+  airFPFprintf_d(stderr, eps);
+  ell_3m_print_d(stderr, _m);
+  */
+  if (Dsq > eps) {
+    D = sqrt(Dsq);
+    eval[0] = (-A + D)/2;
+    eval[1] = (-A - D)/2;
+    eval[2] = 0;
+    roots = ell_cubic_root_three;
+  } else if (Dsq < -eps) {
+    /* no quadratic roots; only the implied zero */
+    ELL_3V_SET(eval, AIR_NAN, AIR_NAN, 0);
+    roots = ell_cubic_root_single;
+  } else {
+    /* a quadratic double root */
+    ELL_3V_SET(eval, -A/2, -A/2, 0);
+    roots = ell_cubic_root_single_double;
+  }
+  /*
+  fprintf(stderr, "!%s: Dsq=%f, roots=%d (%f %f %f)\n",
+          me, Dsq, roots, eval[0], eval[1], eval[2]);
+  */
+  return roots;
+}
+
+void
+ell_2m_1d_nullspace_d(double ans[2], const double _n[4]) {
+  double n[4], dot, len, span[2];
+  /* static const char me[]="ell_2m_1d_nullspace_d"; */
+
+  ELL_2M_TRANSPOSE(n, _n);
+  dot = ELL_2V_DOT(n + 2*0, n + 2*1);
+  /*
+  fprintf(stderr, "!%s: n = {{%g,%g},{%g,%g}}\n", me,
+          n[0], n[1], n[2], n[3]);
+  fprintf(stderr, "!%s: dot = %g\n", me, dot);
+  */
+  if (dot > 0) {
+    ELL_2V_ADD2(span, n + 2*0, n + 2*1);
+  } else {
+    ELL_2V_SUB(span, n + 2*0, n + 2*1);
+  }
+  /* have found good description of column span;
+     now need the (perpendicular) nullspace */
+  ans[0] = span[1];
+  ans[1] = -span[0];
+  ELL_2V_NORM(ans, ans, len);
+  /*
+  if (!(AIR_EXISTS(ans[0]) && AIR_EXISTS(ans[1]))) {
+    fprintf(stderr, "!%s: bad! %g %g\n", me, ans[0], ans[1]);
+  }
+  */
+  return;
+}
+
+void
+_ell_22v_enforce_orthogonality(double uu[2], double _vv[2]) {
+  double dot, vv[2], len;
+
+  dot = ELL_2V_DOT(uu, _vv);
+  ELL_2V_SCALE_ADD2(vv, 1, _vv, -dot, uu);
+  ELL_2V_NORM(_vv, vv, len);
+  return;
+}
+
+/*
+** NOTE: assumes that eval and roots have come from
+** ell_3m2sub_eigenvalues_d(m)
+*/
+void
+_ell_3m2sub_evecs_d(double evec[9], double eval[3], int roots,
+                    const double m[9]) {
+  double n[4];
+  static const char me[]="_ell_3m2sub_evecs_d";
+
+  if (ell_cubic_root_three == roots) {
+    /* set off-diagonal entries once */
+    n[1] = m[1];
+    n[2] = m[3];
+    /* find first evec */
+    n[0] = m[0] - eval[0];
+    n[3] = m[3] - eval[0];
+    ell_2m_1d_nullspace_d(evec + 3*0, n);
+    (evec + 3*0)[2] = 0;
+    /* find second evec */
+    n[0] = m[0] - eval[1];
+    n[3] = m[3] - eval[1];
+    ell_2m_1d_nullspace_d(evec + 3*1, n);
+    (evec + 3*1)[2] = 0;
+    _ell_22v_enforce_orthogonality(evec + 3*0, evec + 3*1);
+    /* make right-handed */
+    ELL_3V_CROSS(evec + 3*2, evec + 3*0, evec + 3*1);
+  } else if (ell_cubic_root_single_double == roots) {
+    /* can pick any 2D basis */
+    ELL_3V_SET(evec + 3*0, 1, 0, 0);
+    ELL_3V_SET(evec + 3*1, 0, 1, 0);
+    ELL_3V_SET(evec + 3*2, 0, 0, 1);
+  } else {
+    /* ell_cubic_root_single == roots, if assumptions are met */
+    ELL_3V_SET(evec + 3*0, AIR_NAN, AIR_NAN, 0);
+    ELL_3V_SET(evec + 3*1, AIR_NAN, AIR_NAN, 0);
+    ELL_3V_SET(evec + 3*2, 0, 0, 1);
+  }
+  if (!ELL_3M_EXISTS(evec)) {
+    fprintf(stderr, "%s: given m = \n", me);
+    ell_3m_print_d(stderr, m);
+    fprintf(stderr, "%s: got roots = %s (%d) and evecs = \n", me,
+            airEnumStr(ell_cubic_root, roots), roots);
+    ell_3m_print_d(stderr, evec);
+  }
+  return;
+}
+
+int
+ell_3m2sub_eigensolve_d(double eval[3], double evec[9],
+                        const double m[9]) {
+  int roots;
+
+  roots = ell_3m2sub_eigenvalues_d(eval, m);
+  _ell_3m2sub_evecs_d(evec, eval, roots, m);
+
+  return roots;
+}
+
+/* ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 3m2sub ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ */
+
 /*
 ******** ell_3m_svd_d
 **

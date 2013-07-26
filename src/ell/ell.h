@@ -248,6 +248,7 @@ ELL_EXPORT int ell_cubic(double root[3],
                          double A, double B, double C, int newton);
 
 /* eigen.c */
+ELL_EXPORT void ell_2m_1d_nullspace_d(double ans[2], const double n[4]);
 ELL_EXPORT void ell_3m_1d_nullspace_d(double ans[3], const double n[9]);
 ELL_EXPORT void ell_3m_2d_nullspace_d(double ans0[3],
                                       double ans1[3], const double n[9]);
@@ -255,6 +256,9 @@ ELL_EXPORT int ell_3m_eigenvalues_d(double eval[3],
                                     const double m[9], const int newton);
 ELL_EXPORT int ell_3m_eigensolve_d(double eval[3], double evec[9],
                                    const double m[9], const int newton);
+ELL_EXPORT int ell_3m2sub_eigenvalues_d(double eval[3], const double m[9]);
+ELL_EXPORT int ell_3m2sub_eigensolve_d(double eval[3], double evec[9],
+                                       const double m[9]);
 ELL_EXPORT int ell_3m_svd_d(double uu[9], double sval[3], double vv[9],
                             const double mat[9], const int newton);
 ELL_EXPORT int ell_6ms_eigensolve_d(double eval[6], double evec[36],
