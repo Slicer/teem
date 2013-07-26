@@ -805,40 +805,68 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
         }
       }
 
-      /* run the sample locations through the chosen kernel.  We play a
-         sneaky trick on the kernel parameter 0 in case of downsampling
-         to create the blurring of the old index space */
-      kparm[0] = (axis->ratio < 1
-                  ? axis->kparm[0] / axis->ratio
-                  : axis->kparm[0]);
-      for (kpIdx=1; kpIdx<NRRD_KERNEL_PARMS_NUM; kpIdx++) {
-        kparm[kpIdx] = axis->kparm[kpIdx];
-      }
-      axis->kernel->EVALN(weightData, weightData, dotLen*axis->samples, kparm);
-
-      /* special handling of "cheap" kernel */
-      if (nrrdKernelCheap == axis->kernel) {
-        for (smpIdx=0; smpIdx<axis->samples; smpIdx++) {
-          nrrdResample_t dist, minDist;
-          int minIdx, minSet;
-          minIdx = indexData[0 + dotLen*smpIdx];
-          minDist = weightData[0 + dotLen*smpIdx];
-          /* find sample closest to origin */
-          for (dotIdx=1; dotIdx<dotLen; dotIdx++) {
-            dist = weightData[dotIdx + dotLen*smpIdx];
-            if (dist < minDist) {
-              minDist = dist;
-              minIdx = indexData[dotIdx + dotLen*smpIdx];
-            }
+      /* Wow - there is a big rift here between old conventions for how
+         NrrdKernels were defined, versus the newer practice of creating
+         parameter-free kernels. The "sneaky trick" code below for changing
+         parm[0] only works if the kernel actually looks at parm[0]!  So at
+         least for the parameter-free kernels (and maybe other kernels, but
+         there's no principled way of knowing!) we have to do what we
+         probably should have been done all along: simulating the kernel
+         scaling by pre-processing the evaluation locations and
+         post-processing the kernel weights */
+      if (0 == axis->kernel->numParm) {
+        size_t nn, ii;
+        double ratio;
+        nn = dotLen*axis->samples;
+        ratio = axis->ratio;
+        if (ratio < 1) {
+          for (ii=0; ii<nn; ii++) {
+            weightData[ii] *= ratio;
           }
-          /* set kernel weights to select sample closest to origin */
-          minSet = AIR_FALSE;
-          for (dotIdx=0; dotIdx<dotLen; dotIdx++) {
-            if (minIdx == indexData[dotIdx + dotLen*smpIdx] && !minSet) {
-              weightData[dotIdx + dotLen*smpIdx] = 1.0;
-              minSet = AIR_TRUE;
-            } else {
-              weightData[dotIdx + dotLen*smpIdx] = 0.0;
+        }
+        axis->kernel->EVALN(weightData, weightData, nn, axis->kparm);
+        if (ratio < 1) {
+          for (ii=0; ii<nn; ii++) {
+            weightData[ii] *= ratio;
+          }
+        }
+      } else {
+        /* run the sample locations through the chosen kernel.  We play a
+           sneaky trick on the kernel parameter 0 in case of downsampling
+           to create the blurring of the old index space */
+        kparm[0] = (axis->ratio < 1
+                    ? axis->kparm[0] / axis->ratio
+                    : axis->kparm[0]);
+        for (kpIdx=1; kpIdx<NRRD_KERNEL_PARMS_NUM; kpIdx++) {
+          kparm[kpIdx] = axis->kparm[kpIdx];
+        }
+        axis->kernel->EVALN(weightData, weightData,
+                            dotLen*axis->samples, kparm);
+
+        /* special handling of "cheap" kernel */
+        if (nrrdKernelCheap == axis->kernel) {
+          for (smpIdx=0; smpIdx<axis->samples; smpIdx++) {
+            nrrdResample_t dist, minDist;
+            int minIdx, minSet;
+            minIdx = indexData[0 + dotLen*smpIdx];
+            minDist = weightData[0 + dotLen*smpIdx];
+            /* find sample closest to origin */
+            for (dotIdx=1; dotIdx<dotLen; dotIdx++) {
+              dist = weightData[dotIdx + dotLen*smpIdx];
+              if (dist < minDist) {
+                minDist = dist;
+                minIdx = indexData[dotIdx + dotLen*smpIdx];
+              }
+            }
+            /* set kernel weights to select sample closest to origin */
+            minSet = AIR_FALSE;
+            for (dotIdx=0; dotIdx<dotLen; dotIdx++) {
+              if (minIdx == indexData[dotIdx + dotLen*smpIdx] && !minSet) {
+                weightData[dotIdx + dotLen*smpIdx] = 1.0;
+                minSet = AIR_TRUE;
+              } else {
+                weightData[dotIdx + dotLen*smpIdx] = 0.0;
+              }
             }
           }
         }
