@@ -385,8 +385,9 @@ int
 _pullIterFinishDescent(pullContext *pctx) {
   static const char me[]="_pullIterFinishDescent";
   unsigned int oldBinIdx, pointIdx, taskIdx, runIdx, pointNum;
-  pullBin *oldBin, *newBin;
+  pullBin *oldBin;
   pullPoint *point;
+  int added;
 
   _pullNixTheNixed(pctx);
 
@@ -438,16 +439,32 @@ _pullIterFinishDescent(pullContext *pctx) {
       _pullDebugSanity(pctx->task[0], point);
     }
     */
-    newBin = _pullBinLocate(pctx, point->pos);
-    if (!newBin) {
-      biffAddf(PULL, "%s: can't locate point %p %u",
-               me, AIR_CAST(void*, point), point->idtag);
-      return 1;
-    }
-    if (_pullBinPointAdd(pctx, newBin, point)) {
-      biffAddf(PULL, "%s: trouble adding point %p %u",
-               me, AIR_CAST(void*, point), point->idtag);
-      return 1;
+    /* Sun Jul 14 01:30:41 CDT 2013: the previous code was basically
+       just pullBinsPointAdd(). But when working with codim-3
+       constraints (like finding spatial maxima with maximal strength
+       along scale), its easy for many points to start piling on top
+       of each other; that is the problem that
+       pullFlagRestrictiveAddToBins was designed to solve. */
+    if (pctx->constraint && 0 == pctx->constraintDim) {
+      if (pullBinsPointMaybeAdd(pctx, point, NULL, &added)) {
+        biffAddf(PULL, "%s: trouble binning? point %u", me, point->idtag);
+        return 1;
+      }
+      if (!added) {
+        /* the point wasn't owned by any bin, and now it turns out
+           no bin wanted to own it, so we have to remove it */
+        /* in the case of point maxima searching; this mainly happened
+           because two points at the same spatial positition slowly
+           descended along scale towards each other at the scale of
+           maximal strength */
+        point = pullPointNix(point);
+      }
+    } else {
+      if (pullBinsPointAdd(pctx, point, NULL)) {
+        biffAddf(PULL, "%s: trouble binning point %u", me, point->idtag);
+        return 1;
+      }
+      point = NULL;
     }
     pctx->tmpPointPtr[pctx->tmpPointPerm[pointIdx]] = NULL;
   }
