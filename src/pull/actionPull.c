@@ -599,6 +599,8 @@ _energyFromImage(pullTask *task, pullPoint *point,
   */
   probed = AIR_FALSE;
 
+  /* a better name for this would be
+     "probe only if you haven't already probed" */
 #define MAYBEPROBE \
   if (!probed) { \
     if (pullProbe(task, point)) { \
@@ -632,7 +634,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
       deltaScale = task->pctx->bboxMax[3] - task->pctx->bboxMin[3];
       deltaScale *= sign*_PULL_STRENGTH_ENERGY_DELTA_SCALE;
       scl1 = (point->pos[3] += deltaScale);
-      pullProbe(task, point);
+      pullProbe(task, point);  /* *not* MAYBEPROBE */
       str1 = pullPointScalar(task->pctx, point, pullInfoStrength,
                              NULL, NULL);
       scl0 = (point->pos[3] -= deltaScale);
@@ -848,7 +850,8 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
                me, point->idtag, airEnumStr(pullConstraintFail, constrFail));
       return 1;
       */
-      fprintf(stderr, "%s: *** no constr sat on unfrced %u: %s (si# %u;%u)\n",
+      fprintf(stderr, "%s: *** constr sat fail on unfrced %u: "
+              "%s (si# %u;%u)\n",
               me, point->idtag, airEnumStr(pullConstraintFail, constrFail),
               point->stuckIterNum, task->pctx->iterParm.stuckMax);
       point->status |= PULL_STATUS_STUCK_BIT;
