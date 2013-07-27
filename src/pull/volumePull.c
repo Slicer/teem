@@ -79,13 +79,15 @@ pullVolumeNix(pullVolume *vol) {
 ** used to set all the fields of pullVolume at once, including the
 ** gageContext inside the pullVolume
 **
+** OLD description ...
 ** used both for top-level volumes in the pullContext (pctx->vol[i])
 ** in which case pctx is non-NULL,
 ** and for the per-task volumes (task->vol[i]),
 ** in which case pctx is NULL
+** ...................
 */
 int
-_pullVolumeSet(pullContext *pctx, pullVolume *vol,
+_pullVolumeSet(const pullContext *pctx, int taskCopy, pullVolume *vol,
                const gageKind *kind,
                int verbose, const char *name,
                const Nrrd *ninSingle,
@@ -110,7 +112,7 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
     biffAddf(PULL, "%s: needed non-NULL ninSingle", me);
     return 1;
   }
-  if (pctx) {
+  if (!taskCopy) {
     for (vi=0; vi<pctx->volNum; vi++) {
       if (pctx->vol[vi] == vol) {
         biffAddf(PULL, "%s: already got vol %p as vol[%u]", me,
@@ -147,6 +149,7 @@ _pullVolumeSet(pullContext *pctx, pullVolume *vol,
   vol->scaleDerivNormBias = scaleDerivNormBias;
   gageParmSet(vol->gctx, gageParmStackNormalizeDerivBias,
               scaleDerivNormBias);
+  gageParmSet(vol->gctx, gageParmTwoDimZeroZ, pctx->flag.zeroZ);
   gageParmSet(vol->gctx, gageParmCheckIntegrals, AIR_TRUE);
   E = 0;
   if (!E) E |= gageKernelSet(vol->gctx, gageKernel00,
@@ -238,7 +241,7 @@ pullVolumeSingleAdd(pullContext *pctx,
   pullVolume *vol;
 
   vol = pullVolumeNew();
-  if (_pullVolumeSet(pctx, vol, kind,
+  if (_pullVolumeSet(pctx, AIR_FALSE /* taskCopy */, vol, kind,
                      pctx->verbose, name,
                      nin,
                      NULL, NULL, 0, AIR_FALSE, 0.0,
@@ -278,7 +281,8 @@ pullVolumeStackAdd(pullContext *pctx,
   pullVolume *vol;
 
   vol = pullVolumeNew();
-  if (_pullVolumeSet(pctx, vol, kind, pctx->verbose, name,
+  if (_pullVolumeSet(pctx, AIR_FALSE /* taskCopy */, vol, kind,
+                     pctx->verbose, name,
                      nin,
                      ninSS, scalePos, ninNum,
                      scaleDerivNorm, scaleDerivNormBias,
@@ -298,12 +302,12 @@ pullVolumeStackAdd(pullContext *pctx,
 ** DOES use biff
 */
 pullVolume *
-_pullVolumeCopy(const pullVolume *volOrig) {
+_pullVolumeCopy(const pullContext *pctx, const pullVolume *volOrig) {
   static const char me[]="pullVolumeCopy";
   pullVolume *volNew;
 
   volNew = pullVolumeNew();
-  if (_pullVolumeSet(NULL, volNew, volOrig->kind,
+  if (_pullVolumeSet(pctx, AIR_TRUE /* taskCopy */, volNew, volOrig->kind,
                      volOrig->verbose, volOrig->name,
                      volOrig->ninSingle,
                      volOrig->ninScale,

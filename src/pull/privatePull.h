@@ -106,7 +106,8 @@ extern int _pullSysParmCheck(pullSysParm *sysParm);
 extern void _pullFlagInit(pullFlag *flag);
 
 /* volumePull.c */
-extern pullVolume *_pullVolumeCopy(const pullVolume *pvol);
+extern pullVolume *_pullVolumeCopy(const pullContext *pctx,
+                                   const pullVolume *pvol);
 extern int _pullVolumeSetup(pullContext *pctx);
 extern int _pullInsideBBox(pullContext *pctx, double pos[4]);
 extern unsigned int _pullVolumeIndex(const pullContext *pctx,

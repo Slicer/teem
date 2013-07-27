@@ -39,7 +39,7 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
 
   task->pctx = pctx;
   for (ii=0; ii<pctx->volNum; ii++) {
-    if (!(task->vol[ii] = _pullVolumeCopy(pctx->vol[ii]))) {
+    if (!(task->vol[ii] = _pullVolumeCopy(pctx, pctx->vol[ii]))) {
       biffAddf(PULL, "%s: trouble copying vol %u/%u", me, ii, pctx->volNum);
       return NULL;
     }
