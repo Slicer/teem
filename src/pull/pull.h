@@ -968,7 +968,8 @@ typedef struct pullContext_t {
     stuckNum,                      /* # stuck particles in last iter */
     pointNum,                      /* total # particles */
     CCNum,                         /* # connected components */
-    iter,                          /* how many iterations were needed */
+    iter,                          /* how many iterations were needed
+                                      (this is updated per iteration) */
   /* HEY: this should really be per-task, to be thread-safe!! */
     count[PULL_COUNT_MAX+1];       /* all possible kinds of counts */
 } pullContext;
@@ -1188,7 +1189,7 @@ PULL_EXPORT int pullTraceMultiFilterConcaveDown(Nrrd *nfilt,
                                                 double winLenFrac);
 PULL_EXPORT int pullTraceMultiPlotAdd(Nrrd *nplot,
                                       const pullTraceMulti *mtrc,
-                                      const Nrrd *nfilt,
+                                      const Nrrd *nfilt, int strengthUse,
                                       unsigned int trcIdxMin,
                                       unsigned int trcNum);
 PULL_EXPORT int pullTraceMultiWrite(FILE *file, const pullTraceMulti *mtrc);
