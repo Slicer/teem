@@ -45,6 +45,44 @@ meetPullVolNew(void) {
   return ret;
 }
 
+meetPullVol *
+meetPullVolCopy(const meetPullVol *mpv) {
+  meetPullVol *ret;
+  unsigned int si;
+
+  ret = meetPullVolNew();
+  /* HEY: hope this is okay for dynamic kinds */
+  ret->kind = mpv->kind;
+  ret->fileName = airStrdup(mpv->fileName);
+  ret->volName = airStrdup(mpv->volName);
+  ret->derivNormSS = mpv->derivNormSS;
+  ret->uniformSS = mpv->uniformSS;
+  ret->optimSS = mpv->optimSS;
+  ret->leeching = AIR_FALSE;
+  ret->recomputedSS = AIR_FALSE;
+  ret->numSS = mpv->numSS;
+  ret->rangeSS[0] = mpv->rangeSS[0];
+  ret->rangeSS[1] = mpv->rangeSS[1];
+  ret->derivNormBiasSS = mpv->derivNormBiasSS;
+  ret->posSS = AIR_CALLOC(ret->numSS, double); /* HEY: no error checking */
+  for (si=0; si<mpv->numSS; si++) {
+    ret->posSS[si] = mpv->posSS[si];
+  }
+  if (mpv->numSS) {
+    ret->nin = NULL;
+    ret->ninSS = AIR_CALLOC(ret->numSS, Nrrd *);
+    for (si=0; si<mpv->numSS; si++) {
+      ret->ninSS[si] = nrrdNew();
+      nrrdCopy(ret->ninSS[si], mpv->ninSS[si]);
+    }
+  } else {
+    ret->nin = nrrdNew();
+    nrrdCopy(ret->nin, mpv->nin);
+    ret->ninSS = NULL;
+  }
+  return ret;
+}
+
 /*
 ******** meetPullVolParse
 **
@@ -335,13 +373,22 @@ meetPullVolLeech(meetPullVol *vol,
 **
 ** at this point the per-pullVolume information required for
 ** loading/creating the volumes, which is NOT in the meetPullVol, is
-** the cachePath and the info we have to set in the gageStackBlurParm,
-** so these have to be passed explicitly.
+** the cachePath and the fields we have to set in the
+** gageStackBlurParm, so these have to be passed explicitly.
+**
+** The passed sbparm is only for communication boundary, padValue,
+** verbose, etc: the various little parameters for stack blurring,
+** which are themselves changing with experimentation.  This is
+** cleaner than passing them as separate arguments to
+** meetPullVolLoadMulti.  This change was prompted by the addition
+** of sbparm->oneDim.  sbparm is only needed if there are
+** scale-space volumes being loaded.
 */
 int
 meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
                      char *cachePath, NrrdKernelSpec *kSSblur,
-                     int boundary, double padValue, int verbose) {
+                     const gageStackBlurParm *sbparm,
+                     int verbose) {
   static const char me[]="meetPullVolLoadMulti";
   char formatSS[AIR_STRLEN_LARGE];
   unsigned int mpvIdx;
@@ -349,7 +396,7 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
   airArray *mop;
   meetPullVol *vol;
 
-  if (!( mpv && cachePath && kSSblur )) {
+  if (!( mpv && cachePath && kSSblur)) {
     biffAddf(MEET, "%s: got NULL pointer", me);
     return 1;
   }
@@ -358,6 +405,16 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
   /* this can be re-used for different volumes */
   sbp = gageStackBlurParmNew();
   airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
+  if (sbparm) {
+    if (gageStackBlurParmVerboseSet(sbp, sbparm->verbose)
+        || gageStackBlurParmOneDimSet(sbp, sbparm->oneDim)
+        || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE)
+        || gageStackBlurParmBoundarySet(sbp, sbparm->boundary,
+                                        sbparm->padValue)) {
+      biffMovef(MEET, GAGE, "%s: trouble with stack blur parms", me);
+      airMopError(mop); return 1;
+    }
+  }
 
   for (mpvIdx=0; mpvIdx<mpvNum; mpvIdx++) {
     unsigned int pvi, ssi;
@@ -401,9 +458,6 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
       if (gageStackBlurParmScaleSet(sbp, vol->numSS,
                                     vol->rangeSS[0], vol->rangeSS[1],
                                     vol->uniformSS, vol->optimSS)
-          || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE)
-          || gageStackBlurParmBoundarySet(sbp, boundary, padValue)
-          || gageStackBlurParmVerboseSet(sbp, verbose)
           || gageStackBlurManage(&(vol->ninSS), &(vol->recomputedSS), sbp,
                                  formatSS, AIR_TRUE, NULL,
                                  vol->nin, vol->kind)) {

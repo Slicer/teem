@@ -158,6 +158,7 @@ typedef struct {
 
 /* meetPull.c */
 MEET_EXPORT meetPullVol *meetPullVolNew(void);
+MEET_EXPORT meetPullVol *meetPullVolCopy(const meetPullVol *mpv);
 MEET_EXPORT int meetPullVolParse(meetPullVol *mpv, const char *str);
 MEET_EXPORT int meetPullVolLeechable(const meetPullVol *orig,
                                      const meetPullVol *lchr);
@@ -165,7 +166,7 @@ MEET_EXPORT meetPullVol *meetPullVolNix(meetPullVol *pvol);
 MEET_EXPORT hestCB *meetHestPullVol;
 MEET_EXPORT int meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
                                      char *cachePath, NrrdKernelSpec *kSSblur,
-                                     int boundary, double padValue,
+                                     const gageStackBlurParm *sbparm,
                                      int verbose);
 MEET_EXPORT int meetPullVolAddMulti(pullContext *pctx,
                                     meetPullVol **mpv, unsigned int mpvNum,
