@@ -55,6 +55,9 @@ to a great many functions (or else it itself would be a global),
 and then how do you know which functions should take it?
 
 hest:
+* hest NEEDS a way to learn if a given option was learned from the
+command-line, or from the given default string.  Various tricks have
+been used to work around this limitation, but its gotten too annoying.
 * consider renaming hestParmFree --> hestParmNix
 * all the hest defaults (hestVerbosity, hestRespFileEnable), etc,
 should start with hestDef, not just hest
@@ -151,20 +154,19 @@ nrrd:
 
 unu:
 * the UNRRDU_QUIET_QUIT functionality should be enabled by default instead
-of having to set an environment variable to get it
+of having to set an environment variable to get it. Or maybe not: when
+this goes wrong (and unfortunately GLK can't find a good test case now)
+it is REALLY mysterious, and hard to debug.
 * unu dice -ff should change from using %d to %u
 * unu resample:
--- should permit saying "resample this axis to whatever
-best preserves the aspect ratio relative to the one axis which is
-being resampled via the older "N" or "xF" means"
 -- consider supporting more sophisticated expressions e.g. "x2" --> "x2+1"
 -- reconsider whether normalization should be turned on by default
 (always a surprise when using purposely small kernels like cos4sup or
-small gauss)
+a small Gaussian)
 
 gage:
 * clean up gageVolumeCheck vs gageKindVolumeCheck mess
-* in a gageKinds, the airEnum for the items, and the assocaited table of
+* in a gageKinds, the airEnum for the items, and the associated table of
 pre-requisites, should really be compiled from some other description
 which is more reliably written and upated (updating a gageKind now is
 EXTREMELY error-prone).  More radically, perhaps the entire thing
