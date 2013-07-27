@@ -1064,8 +1064,8 @@ _pullPointSetup(pullContext *pctx) {
      tempting to set this value high, to more aggressively limit the
      number of points added, but that's really the job of population
      control, and we can't always guarantee that constraint manifolds
-     will be well-sampled (with respect to pctx->radiusSpace) to start
-     with */
+     will be well-sampled (with respect to pctx->radiusSpace and
+     pctx->radiusScale) to start with */
 
   if (pctx->verbose) {
     printf("%s: beginning . . . ", me);
@@ -1250,12 +1250,25 @@ _pullPointSetup(pullContext *pctx) {
   /* Final check: do we have any points? */
   pn = pullPointNumber(pctx);
   if (!pn) {
+    char stmp1[AIR_STRLEN_MED], stmp2[AIR_STRLEN_MED];
+    int guess=AIR_FALSE;
+    sprintf(stmp1, "%s: seeded 0 points", me);
     if (pctx->ispec[pullInfoSeedThresh]) {
-      biffAddf(PULL, "%s: zero points: seeding failed (bad seedthresh? %g)",
-               me, pctx->ispec[pullInfoSeedThresh]->zero);
-    } else {
-      biffAddf(PULL, "%s: zero points: seeding failed", me);
+      guess=AIR_TRUE;
+      sprintf(stmp2, " (? bad seedthresh %g ?)",
+              pctx->ispec[pullInfoSeedThresh]->zero);
+      strcat(stmp1, stmp2);
     }
+    if (pctx->flag.nixAtVolumeEdgeSpace) {
+      guess=AIR_TRUE;
+      sprintf(stmp2, " (? flag.nixAtVolumeEdgeSpace true ?)");
+      strcat(stmp1, stmp2);
+    }
+    if (!guess) {
+      sprintf(stmp2, " (no guess as to why)");
+      strcat(stmp1, stmp2);
+    }
+    biffAddf(PULL, "%s", stmp1);
     airMopError(mop); return 1;
   }
   if (pctx->verbose) {
