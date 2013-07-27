@@ -40,6 +40,7 @@ gageStackBlurParmNew() {
     parm->dataCheck = AIR_TRUE;
     parm->boundary = nrrdBoundaryUnknown;
     parm->renormalize = AIR_FALSE;
+    parm->oneDim = AIR_FALSE;
     parm->verbose = 0;
   }
   return parm;
@@ -106,20 +107,20 @@ gageStackBlurParmScaleSet(gageStackBlurParm *sbp, unsigned int num,
       return 1;
     }
   }
-  if (sbp->verbose) {
-    printf("%s: [%g,%g] with %u samples (uniform=%d, optim=%d):\n",
-           me, scaleMin, scaleMax, num, !!uniform, !!optim);
+  if (sbp->verbose > 1) {
+    fprintf(stderr, "%s: [%g,%g] with %u samples (uniform=%d, optim=%d):\n",
+            me, scaleMin, scaleMax, num, !!uniform, !!optim);
     for (ii=0; ii<num; ii++) {
       if (ii) {
-        printf("%s:           "
-               "| deltas: %g\t               %g\n", me,
-               sbp->scale[ii] - sbp->scale[ii-1],
-               gageTauOfSig(sbp->scale[ii])
-               - gageTauOfSig(sbp->scale[ii-1]));
+        fprintf(stderr, "%s:           "
+                "| deltas: %g\t               %g\n", me,
+                sbp->scale[ii] - sbp->scale[ii-1],
+                gageTauOfSig(sbp->scale[ii])
+                - gageTauOfSig(sbp->scale[ii-1]));
       }
-      printf("%s: scale[%02u]=%g%s\t         tau=%g\n", me, ii,
-             sbp->scale[ii], !sbp->scale[ii] ? "     " : "",
-             gageTauOfSig(sbp->scale[ii]));
+      fprintf(stderr, "%s: scale[%02u]=%g%s\t         tau=%g\n", me, ii,
+              sbp->scale[ii], !sbp->scale[ii] ? "     " : "",
+              gageTauOfSig(sbp->scale[ii]));
     }
   }
 
@@ -175,6 +176,17 @@ gageStackBlurParmVerboseSet(gageStackBlurParm *sbp, int verbose) {
     return 1;
   }
   sbp->verbose = verbose;
+  return 0;
+}
+
+int gageStackBlurParmOneDimSet(gageStackBlurParm *sbp, int oneDim) {
+  static const char me[]="gageStackBlurParmOneDimSet";
+
+  if (!sbp) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
+  sbp->oneDim = oneDim;
   return 0;
 }
 
@@ -245,10 +257,16 @@ _checkNrrd(Nrrd *const nblur[], const Nrrd *const ncheck[],
   return 0;
 }
 
-#define KVP_NUM 5
+#define KVP_NUM 6
 
-static const char                      /*    0             1         2          3            4     */
-_blurKey[KVP_NUM][AIR_STRLEN_LARGE] = {"gageStackBlur", "scale", "kernel", "boundary", "renormalize"};
+static const char
+_blurKey[KVP_NUM][AIR_STRLEN_LARGE] = {/*  0  */ "gageStackBlur",
+                                       /*  1  */ "scale",
+                                       /*  2  */ "kernel",
+                                       /*  3  */ "boundary",
+                                       /*  4  */ "renormalize",
+                                       /*  5  */ "onedim"
+                                       /* (6 == KVP_NUM) */};
 
 typedef struct {
   char val[KVP_NUM][AIR_STRLEN_LARGE];
@@ -270,9 +288,12 @@ _blurValAlloc(airArray *mop, gageStackBlurParm *sbp) {
     sprintf(blurVal[blIdx].val[0], "true");
     sprintf(blurVal[blIdx].val[1], "%g", sbp->scale[blIdx]);
     nrrdKernelSpecSprint(blurVal[blIdx].val[2], sbp->kspec);
-    sprintf(blurVal[blIdx].val[3], "%s", sbp->renormalize ? "true" : "false");
+    sprintf(blurVal[blIdx].val[3], "%s",
+            sbp->renormalize ? "true" : "false");
     sprintf(blurVal[blIdx].val[4], "%s",
             airEnumStr(nrrdBoundary, sbp->boundary));
+    sprintf(blurVal[blIdx].val[5], "%s",
+            sbp->oneDim ? "true" : "false");
   }
   airMopAdd(mop, blurVal, airFree, airMopAlways);
   return blurVal;
@@ -294,8 +315,12 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
   NrrdResampleContext *rsmc;
   blurVal_t *blurVal;
   airArray *mop;
-  int E;
-  Nrrd *ntmp;
+  int E, iterative, rsmpType;
+  Nrrd *niter;
+  double timeStepMax, /* max length of diffusion time allowed per blur,
+                         as determined by sbp->sigmaMax */
+    timeDone,         /* amount of diffusion time just applied */
+    timeLeft;         /* amount of diffusion time left to do */
 
   if (!(nblur && sbp && nin && kind)) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
@@ -310,12 +335,22 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
   }
   rsmc = nrrdResampleContextNew();
   airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
+  if (nrrdKernelDiscreteGaussian == sbp->kspec->kernel) {
+    iterative = AIR_TRUE;
+    /* we don't want to lose precision when iterating */
+    rsmpType = nrrdResample_nt;
+  } else {
+    iterative = AIR_FALSE;
+    rsmpType = nrrdTypeDefault;
+  }
   /* may or may not be needed for iterative diffusion */
-  ntmp = nrrdNew();
-  airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
+  niter = nrrdNew();
+  airMopAdd(mop, niter, (airMopper)nrrdNuke, airMopAlways);
 
   E = 0;
   if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, nrrdDefaultCenter);
+  /* the input for the first scale is indeed nin, regardless
+     of iterative */
   if (!E) E |= nrrdResampleInputSet(rsmc, nin);
   if (kind->baseDim) {
     unsigned int bai;
@@ -329,64 +364,111 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
     if (!E) E |= nrrdResampleRangeFullSet(rsmc, kind->baseDim + axi);
   }
   if (!E) E |= nrrdResampleBoundarySet(rsmc, sbp->boundary);
-  if (!E) E |= nrrdResampleTypeOutSet(rsmc, nrrdTypeDefault);
+  if (!E) E |= nrrdResampleTypeOutSet(rsmc, rsmpType);
+  if (!E) E |= nrrdResampleClampSet(rsmc, AIR_TRUE); /* probably moot */
   if (!E) E |= nrrdResampleRenormalizeSet(rsmc, sbp->renormalize);
   if (E) {
     biffAddf(GAGE, "%s: trouble setting up resampling", me);
     airMopError(mop); return 1;
   }
 
+  timeDone = 0;
+  timeStepMax = (sbp->sigmaMax)*(sbp->sigmaMax);
   for (blIdx=0; blIdx<sbp->num; blIdx++) {
     unsigned int kvpIdx;
     if (sbp->verbose) {
-      fprintf(stderr, "%s: blurring %u / %u (scale %g) ... ", me, blIdx,
+      fprintf(stderr, "%s: . . . blurring %u / %u (scale %g) . . . ", me, blIdx,
               sbp->num, sbp->scale[blIdx]);
       fflush(stderr);
     }
-    if (nrrdKernelDiscreteGaussian == sbp->kspec->kernel
-        && sbp->scale[blIdx] > sbp->sigmaMax) {
-      double timeLeft, /* amount of diffusion time left to do */
-        timeStep,      /* length of diffusion time per blur */
-        timeDo;        /* amount of diffusion time just applied */
+    if (iterative) {
+      double timeNow = sbp->scale[blIdx]*sbp->scale[blIdx];
       unsigned int passIdx = 0;
-      timeLeft = sbp->scale[blIdx]*sbp->scale[blIdx];
-      timeStep = (sbp->sigmaMax)*(sbp->sigmaMax);
+      timeLeft = timeNow - timeDone;
       if (sbp->verbose) {
         fprintf(stderr, "\n");
-        fprintf(stderr, "%s: scale %g > sigmaMax %g\n", me,
-                sbp->scale[blIdx], sbp->sigmaMax);
-        fprintf(stderr, "%s: diffusing for time %g in steps of %g\n", me,
-                timeLeft, timeStep);
+        fprintf(stderr, "%s: scale %g == time %g;\n"
+                "               timeLeft %g = %g - %g\n",
+                me, sbp->scale[blIdx], timeNow,
+                timeLeft, timeNow, timeDone);
+        if (timeLeft > timeStepMax) {
+          fprintf(stderr, "%s: diffusing for time %g in steps of %g\n", me,
+                  timeLeft, timeStepMax);
+        }
         fflush(stderr);
       }
       do {
-        if (!passIdx) {
-          if (!E) E |= nrrdResampleInputSet(rsmc, nin);
-        } else {
-          if (!E) E |= nrrdResampleInputSet(rsmc, ntmp);
+        double timeDo;
+        if (blIdx || passIdx) {
+          /* either we're past the first scale (blIdx >= 1), or
+             (unlikely) we're on the first scale but after the first
+             pass of a multi-pass blurring, so we have to feed the
+             previous result back in as input.
+             AND: the way that niter is being used is very sneaky,
+             and probably too clever: the resampling happens in
+             multiple passes, among buffers internal to nrrdResample;
+             so its okay have the output and input nrrds be the same:
+             they're never used at the same time. */
+          if (!E) E |= nrrdResampleInputSet(rsmc, niter);
         }
-        timeDo = (timeLeft > timeStep
-                  ? timeStep
+        timeDo = (timeLeft > timeStepMax
+                  ? timeStepMax
                   : timeLeft);
         sbp->kspec->parm[0] = sqrt(timeDo);
         for (axi=0; axi<3; axi++) {
-          if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
-                                             sbp->kspec->kernel,
-                                             sbp->kspec->parm);
+          if (!sbp->oneDim || !axi) {
+            /* we set the blurring kernel on this axis if
+               we are NOT doing oneDim, or, we are,
+               but this is axi == 0 */
+            if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
+                                               sbp->kspec->kernel,
+                                               sbp->kspec->parm);
+          } else {
+            /* what to do with oneDom on axi 1, 2 */
+            /* you might think that we should just do no resampling at all
+               on this axis, but that would undermine the in==out==niter
+               trick described above; and produce the mysterious behavior
+               that the second scale-space volume is all 0.0 */
+            double boxparm[NRRD_KERNEL_PARMS_NUM] = {1.0};
+            if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
+                                               nrrdKernelBox, boxparm);
+          }
         }
         if (sbp->verbose) {
           fprintf(stderr, "  pass %u (timeLeft=%g => time=%g, sigma=%g) ...\n",
                   passIdx, timeLeft, timeDo, sbp->kspec->parm[0]);
         }
-        if (!E) E |= nrrdResampleExecute(rsmc, ntmp);
+        if (!E) E |= nrrdResampleExecute(rsmc, niter);
+        /* for debugging problem with getting zero output
+        if (!E) {
+          NrrdRange *nrange;
+          nrange = nrrdRangeNewSet(niter, AIR_FALSE);
+          fprintf(stderr, "%s: min/max = %g/%g\n", me,
+                  nrange->min, nrange->max);
+          if (!nrange->min || !nrange->max) {
+            fprintf(stderr, "%s: what? zero zero\n", me);
+            biffAddf(GAGE, "%s: no good", me);
+            airMopError(mop); return 1;
+          }
+        }
+        */
         timeLeft -= timeDo;
         passIdx++;
       } while (!E && timeLeft > 0.0);
-      if (!E) E |= nrrdCopy(nblur[blIdx], ntmp);
+      /* at this point we have to replicate the behavior of the
+         last stage of resampling (e.g. _nrrdResampleOutputUpdate
+         in nrrd/resampleContext.c), since we've gently hijacked
+         the resampling to access the nrrdResample_t blurring
+         result (for further blurring) */
+      if (!E) E |= nrrdCastClampRound(nblur[blIdx], niter, nin->type,
+                                      AIR_TRUE,
+                                      nrrdTypeIsIntegral[nin->type]);
+      if (!E) E |= nrrdContentSet_va(nblur[blIdx], "blur", nin, "");
+      timeDone = timeNow;
     } else {
-      /* do blurring in one shot as usual */
+      /* do blurring in one shot */
       sbp->kspec->parm[0] = sbp->scale[blIdx];
-      for (axi=0; axi<3; axi++) {
+      for (axi=0; axi<(sbp->oneDim ? 1 : 3); axi++) {
         if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
                                            sbp->kspec->kernel,
                                            sbp->kspec->parm);
@@ -402,7 +484,7 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
       airMopError(mop); return 1;
     }
     if (sbp->verbose) {
-      fprintf(stderr, "done.\n");
+      fprintf(stderr, "  done.\n");
     }
     /* add the KVPs to document how these were blurred */
     for (kvpIdx=0; kvpIdx<KVP_NUM; kvpIdx++) {
