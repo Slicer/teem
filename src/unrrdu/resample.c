@@ -52,7 +52,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
     verbose, overrideCenter, minSet=AIR_FALSE, maxSet=AIR_FALSE,
     offSet=AIR_FALSE;
   unsigned int scaleLen, ai, samplesOut, minLen, maxLen, offLen,
-    aspRatNum, nonAspRatNum, nonAspRatIdx;
+    aspRatNum, nonAspRatNum;
   airArray *mop;
   double *scale;
   double padVal, *min, *max, *off, aspRatScl=AIR_NAN;
@@ -283,7 +283,6 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
           aspRatNum++;
         } else {
           nonAspRatNum++;
-          nonAspRatIdx = ai;
         }
       }
     }
