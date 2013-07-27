@@ -2,9 +2,6 @@
 ========
 for Teem 2.0:
 
-teem/include/teemEndian.h should NOT be setting TEEM_ENDIAN; it should
-be set by the build system.
-
 decide on a uniform way of indicating if a given external is available
 (e.g. airThreadCapable vs nrrdFFTWEnabled vs #if TEEM_LEVMAR: not uniform).
 "meet" is the logical place for collecting this info, and would be
@@ -99,6 +96,11 @@ nrrd:
 * with NrrdKernel:
  - add fields for "what is my derivative" or "what is my integral", but
    how to do that at compile time?
+ - add field for "parm[0] controls the scaling that the old resampling code
+   (e.g. unu resample) has always assumed" vs "parm[0] isn't used".  The
+   assumption by the resampling code that all kernels use parm[0] was a big
+   longstanding bug; "bspln3" doesn't work that way
+ - consider nixing nrrdDefaultKernelParm0, nrrdEnvVarDefaultKernelParm0
  - "when parsing from string, parm[0] is needed" vs "parm[0] defaults to 1.0"
    OR, maybe simplify things by saying that all parameters are always needed
  - add method for answering "do I interpolate?"
@@ -107,7 +109,6 @@ nrrd:
  - add: am I an odd or even function
  - rename numParm --> parmNum
  - fix the kernels that meetNrrdKernelAllCheck revealed to be broken
- - consider nixing nrrdDefaultKernelParm0, nrrdEnvVarDefaultKernelParm0
 * with NrrdFormat:
  - There is now an available() method, but this is incomplete - EPS is
    something that can be written for images, but not read in general.
