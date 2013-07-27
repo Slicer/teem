@@ -1337,7 +1337,7 @@ _tenEstimate1TensorDescent(tenEstimateContext *tec,
                                             double B0,
                                             double ten[7])) {
   static const char me[]="_tenEstimate1TensorDescent";
-  double currB0, lastB0, currTen[7], lastTen[7], gradB0, gradTen[7],
+  double currB0, lastB0, currTen[7], lastTen[7], gradB0=AIR_NAN, gradTen[7],
     epsilon,
     stepSize, badInit, bad, badDelta, stepSizeMin = 0.00000000001, badLast;
   unsigned int iter, iterMax = 100000;
