@@ -156,14 +156,20 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
       copyMapAxis0 = (1 == mapAxis);
       /* need to make sure the relevant sizes match */
       for (ax=0; ax<nin->dim; ax++) {
-        if (nin->axis[ax].size != nmap->axis[mapAxis + 1 + ax].size) {
+        unsigned int taxi = mapAxis + 1 + ax;
+        if (taxi > NRRD_DIM_MAX-1) {
+          biffAddf(NRRD, "%s: test axis index %u exceeds NRRD_DIM_MAX-1 %u",
+                   me, taxi, NRRD_DIM_MAX-1);
+          return 1;
+        }
+        if (nin->axis[ax].size != nmap->axis[taxi].size) {
           char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
           biffAddf(NRRD, "%s: input and mmap don't have compatible sizes: "
                    "nin->axis[%d].size (%s) "
                    "!= nmap->axis[%d].size (%s): ", me,
                    ax, airSprintSize_t(stmp1, nin->axis[ax].size),
                    mapAxis + 1 + ax,
-                   airSprintSize_t(stmp2, nmap->axis[mapAxis + 1 + ax].size));
+                   airSprintSize_t(stmp2, nmap->axis[taxi].size));
           return 1;
         }
       }
