@@ -36,7 +36,8 @@ unrrdu_aboutMain(int argc, const char **argv, const char *me,
     "library in the \"Teem\" collection of libraries.  More information "
     "about Teem is at <http://teem.sf.net>. A checkout of Teem source "
     "is available via:\n "
-    "svn co http://teem.svn.sf.net/svnroot/teem/teem/trunk teem\n ";
+    "svn co http://svn.code.sf.net/p/teem/code/teem/trunk teem\n ";
+  /* "svn co http://teem.svn.sf.net/svnroot/teem/teem/trunk teem\n "; */
   char par2[] = "\t\t\t\t"
     "Long-term maintenance of this software depends on funding, and "
     "funding depends on being able to document who is using it for what.  "
