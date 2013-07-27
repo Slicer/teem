@@ -61,15 +61,16 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
              int recordStrength,
              double scaleDelta, double halfScaleWin,
              double velocityMax, unsigned int arrIncr,
-             const double seedPos[4]) {
+             const double _seedPos[4]) {
   static const char me[]="pullTraceSet";
   pullPoint *point;
   airArray *mop, *trceArr[2], *hstrnArr[2];
-  double *trce[2], ssrange[2], *vert, *hstrn[2], *strn, *velo, travmax;
+  double *trce[2], ssrange[2], *vert, *hstrn[2], *strn, *velo,
+    seedPos[4], travmax;
   int constrFail;
   unsigned int dirIdx, lentmp, tidx, oidx, vertNum;
 
-  if (!( pctx && pts && seedPos )) {
+  if (!( pctx && pts && _seedPos )) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
   }
@@ -100,6 +101,12 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   pts->whyStop[0] = pts->whyStop[1] = pullTraceStopUnknown;
   pts->whyNowhere = pullTraceStopUnknown;
 
+  /* enforce zeroZ */
+  ELL_4V_COPY(seedPos, _seedPos);
+  if (pctx->flag.zeroZ) {
+    seedPos[2] = 0.0;
+  }
+
   /* save seedPos in any case */
   ELL_4V_COPY(pts->seedPos, seedPos);
 
@@ -107,8 +114,15 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   point = pullPointNew(pctx); /* we'll want to decrement idtagNext later */
   airMopAdd(mop, point, (airMopper)pullPointNix, airMopAlways);
 
+  /* travmax is passed to _pullConstraintSatisfy; the intention is
+     that constraint satisfaction should not fail because the point
+     traveled too far (so make travmax large); the termination of the
+     trace based on velocity is handled here, not by
+     _pullConstraintSatisfy */
+  travmax = 10.0*scaleDelta*velocityMax/pctx->voxelSizeSpace;
+
   ELL_4V_COPY(point->pos, seedPos);
-  if (_pullConstraintSatisfy(pctx->task[0], point, 2, &constrFail)) {
+  if (_pullConstraintSatisfy(pctx->task[0], point, travmax, &constrFail)) {
     biffAddf(PULL, "%s: constraint sat on seed point", me);
     airMopError(mop);
     return 1;
@@ -126,15 +140,13 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
     pctx->idtagNext -= 1; /* HACK */
     return 0;
   }
+  if (pctx->flag.zeroZ && point->pos[2] != 0) {
+    biffAddf(PULL, "%s: zeroZ violated (a)", me);
+    airMopError(mop);
+    return 1;
+  }
 
   /* else constraint sat worked at seed point; we have work to do */
-  /* travmax is passed to _pullConstraintSatisfy; the intention is
-     that constraint satisfaction should not fail because the point
-     traveled too far (so make travmax large); the limiting of the
-     trace based on velocity is handled here, not by
-     _pullConstraintSatisfy */
-  travmax = 10.0*scaleDelta*velocityMax/pctx->voxelSizeSpace;
-
   for (dirIdx=0; dirIdx<2; dirIdx++) {
     trceArr[dirIdx] = airArrayNew((void**)(trce + dirIdx), NULL,
                                   4*sizeof(double), arrIncr);
@@ -207,6 +219,11 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
            with stepping for this direction */
         pts->whyStop[dirIdx] = pullTraceStopConstrFail;
         break;
+      }
+      if (pctx->flag.zeroZ && point->pos[2] != 0) {
+        biffAddf(PULL, "%s: zeroZ violated (b)", me);
+        airMopError(mop);
+        return 1;
       }
       if (trceArr[dirIdx]->len >= 2) {
         /* see if we're moving too fast, by comparing with previous point */
@@ -446,8 +463,8 @@ pullTraceMultiFilterConcaveDown(Nrrd *nfilt, const pullTraceMulti *mtrc,
 
 int
 pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
-                      const Nrrd *nfilt,
-                      unsigned int trcIdxMin,unsigned int trcNum) {
+                      const Nrrd *nfilt, int strengthUse,
+                      unsigned int trcIdxMin, unsigned int trcNum) {
   static const char me[]="pullTraceMultiPlot";
   double ssRange[2], vRange[2], velHalf, *plot;
   unsigned int sizeS, sizeV, trcIdx, trcIdxMax;
@@ -523,7 +540,7 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
   for (trcIdx=trcIdxMin; trcIdx<=trcIdxMax; trcIdx++) {
     unsigned int pntIdx, pntNum;
     const pullTrace *trc;
-    const double *vert, *velo;
+    const double *vert, *velo, *strn;
     if (filt && !filt[trcIdx]) {
       continue;
     }
@@ -533,9 +550,12 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
     }
     vert = AIR_CAST(double *, trc->nvert->data);
     velo = AIR_CAST(double *, trc->nvelo->data);
+    strn = AIR_CAST(double *, (strengthUse && trc->nstrn
+                               ? trc->nstrn->data : NULL));
     pntNum = trc->nvert->axis[1].size;
     for (pntIdx=0; pntIdx<pntNum; pntIdx++) {
       const double *pp;
+      double add;
       unsigned int sidx, vidx;
       pp = vert + 4*pntIdx;
       if (!(AIR_IN_OP(ssRange[0], pp[3], ssRange[1]))) {
@@ -548,7 +568,8 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
       /* HEY weird that Clamp is needed, but it is, as this atan()
          does sometime return a negative value (?) */
       vidx = airIndexClamp(0.0, atan(velo[pntIdx]/velHalf), AIR_PI/2, sizeV);
-      plot[sidx + sizeS*vidx] += 1;
+      add = strn ? strn[pntIdx] : 1;
+      plot[sidx + sizeS*vidx] += AIR_MAX(0, add);
     }
   }
   return 0;
