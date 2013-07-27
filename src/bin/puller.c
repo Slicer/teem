@@ -712,7 +712,7 @@ main(int argc, const char **argv) {
   int energyFromStrength, nixAtVolumeEdgeSpace, constraintBeforeSeedThresh,
     binSingle, liveThresholdOnInit, permuteOnRebin, noPopCntlWithZeroAlpha,
     useBetaForGammaLearn, restrictiveAddToBins, noAdd, unequalShapesAllow,
-    popCntlEnoughTest, convergenceIgnoresPopCntl, zeroZ;
+    popCntlEnoughTest, convergenceIgnoresPopCntl, zeroZ, oneDim;
   int verbose;
   int interType, allowCodimension3Constraints, scaleIsTau, useHalton,
     pointPerVoxel;
@@ -724,6 +724,7 @@ main(int argc, const char **argv) {
     radiusScale, alpha, beta, gamma, theta, wall, energyIncreasePermit,
     backStepScale, opporStepScale, energyDecreaseMin, energyDecreasePopCntlMin,
     neighborTrueProb, probeProb, fracNeighNixedMax;
+  gageStackBlurParm *sbp;
 
   mop = airMopNew();
   hparm = hestParmNew();
@@ -832,6 +833,8 @@ main(int argc, const char **argv) {
              NULL, NULL, pullHestEnergySpec);
   hestOptAdd(&hopt, "zz", "bool", airTypeBool, 1, 1, &zeroZ, "false",
              "always constrain Z=0, to process 2D images");
+  hestOptAdd(&hopt, "1d", "bool", airTypeBool, 1, 1, &oneDim, "false",
+             "for scale-space, only blur along fastest axis");
   hestOptAdd(&hopt, "efs", "bool", airTypeBool, 1, 1,
              &energyFromStrength, "false",
              "whether or not strength contributes to particle-image energy");
@@ -1161,9 +1164,18 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: trouble with flags:\n%s", me, err);
     airMopError(mop); return 1;
   }
+  sbp = gageStackBlurParmNew();
+  airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
+  if (gageStackBlurParmBoundarySet(sbp, nrrdBoundaryBleed, AIR_NAN)
+      /* though this verbosity could in principle be different */
+      || gageStackBlurParmVerboseSet(sbp, verbose)
+      || gageStackBlurParmOneDimSet(sbp, oneDim)) {
+    airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble with stack blur parms:\n%s", me, err);
+    airMopError(mop); return 1;
+  }
   if (meetPullVolLoadMulti(vspec, vspecNum, cachePathSS,
-                           kSSblur, nrrdBoundaryBleed, AIR_NAN,
-                           verbose)
+                           kSSblur, sbp, verbose)
       || meetPullVolAddMulti(pctx, vspec, vspecNum,
                              k00, k11, k22, kSSrecon)
       || meetPullInfoAddMulti(pctx, idef, idefNum)) {
