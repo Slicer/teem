@@ -306,8 +306,8 @@ elfGlyphKDE(limnPolyData *glyph, const char antipodal,
       }
     }
 
-    if (val>max) max=val;
-    ELL_3V_SCALE(verts,val,verts);
+    if (val>max) max=AIR_CAST(float,val);
+    ELL_3V_SCALE_TT(verts,float,val,verts);
     if (antipodal) {
       ELL_3V_SCALE(verts+4,-1.0f,verts);
       verts+=4; i++;
