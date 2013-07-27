@@ -143,11 +143,12 @@ pullScaleTracePlotAdd(pullContext *pctx, Nrrd *nwild, Nrrd *nccd,
 
 int
 findAndTraceMorePoints(Nrrd *nplot,
-                      pullContext *pctx, pullVolume *scaleVol,
-                      double scaleStep, double scaleHalfLen,
-                      double speedLimit, unsigned int traceArrIncr,
-                      pullTraceMulti *mtrc,
-                      unsigned int pointNum) {
+                       pullContext *pctx, pullVolume *scaleVol,
+                       int strengthUse,
+                       double scaleStep, double scaleHalfLen,
+                       double speedLimit, unsigned int traceArrIncr,
+                       pullTraceMulti *mtrc,
+                       unsigned int pointNum) {
   static const char me[]="findAndTraceMorePoints";
   unsigned int pointsSoFar, idtagBase, pidx, addedNum;
   pullTrace *trace;
@@ -165,7 +166,6 @@ findAndTraceMorePoints(Nrrd *nplot,
          me, pointNum, pointsSoFar,
          airPrettySprintSize_t(doneStr, pullTraceMultiSizeof(mtrc)));
   for (pidx=0; pidx<pointNum; pidx++) {
-    int added;
     printf("%s", airDoneStr(0, pidx, pointNum, doneStr)); fflush(stdout);
     if (!point) {
       point = pullPointNew(pctx);
@@ -176,13 +176,11 @@ findAndTraceMorePoints(Nrrd *nplot,
                pidx, point->idtag);
       airMopError(mop); return 1;
     }
-    if (pullBinsPointMaybeAdd(pctx, point, NULL, &added)) {
+    if (pullBinsPointAdd(pctx, point, NULL)) {
       biffAddf(PULL, "%s: trouble binning point %u", me, point->idtag);
       airMopError(mop); return 1;
     }
-    if (added) {
-      point = NULL;
-    }
+    point = NULL;
   }
   printf("%s\n", airDoneStr(0, pidx, pointNum, doneStr));
   if (point) {
@@ -222,7 +220,8 @@ findAndTraceMorePoints(Nrrd *nplot,
   }
   printf("%s\n", airDoneStr(0, pidx, pointNum, doneStr));
 
-  if (pullTraceMultiPlotAdd(nplot, mtrc, NULL, 0, 0)) {
+  if (pullTraceMultiPlotAdd(nplot, mtrc, NULL,
+                            strengthUse, 0, 0)) {
     biffAddf(PULL, "%s: trouble plotting", me);
     airMopError(mop); return 1;
   }
@@ -289,7 +288,7 @@ main(int argc, const char **argv) {
   const char *me;
 
   char *err, *posOutS, *outS, *extraOutBaseS, *addLogS, *cachePathSS,
-    *tracesInS, *tracesOutS;
+    *tracesInS, *tracesOutS, *trcListOutS=NULL, *trcVolOutS=NULL;
   FILE *addLog, *tracesFile;
   meetPullVol **vspec;
   meetPullInfo **idef;
@@ -304,24 +303,22 @@ main(int argc, const char **argv) {
   double scaleVec[3], glyphScaleRad;
   /* things that used to be set directly inside pullContext */
   int energyFromStrength, nixAtVolumeEdgeSpace, constraintBeforeSeedThresh,
-    binSingle, liveThresholdOnInit, permuteOnRebin, noPopCntlWithZeroAlpha,
-    useBetaForGammaLearn, restrictiveAddToBins, noAdd, unequalShapesAllow,
-    popCntlEnoughTest;
+    binSingle, liveThresholdOnInit, permuteOnRebin,
+    noAdd, unequalShapesAllow,
+    zeroZ, strnUse;
   int verbose;
   int interType, allowCodimension3Constraints, scaleIsTau, useHalton;
   unsigned int samplesAlongScaleNum, pointNumInitial, pointPerVoxel,
-    ppvZRange[2], snap, iterMax, stuckIterMax, constraintIterMax,
-    popCntlPeriod, addDescent, iterCallback, rngSeed, progressBinMod,
-    threadNum, eipHalfLife,
-    tracePointNum, passNumMax;
+    ppvZRange[2], snap, stuckIterMax, constraintIterMax,
+    addDescent, iterCallback, rngSeed, progressBinMod,
+    threadNum, tracePointNum, passNumMax;
   double jitter, stepInitial, constraintStepMin, radiusSpace, binWidthSpace,
-    radiusScale, alpha, beta, gamma, theta, wall, energyIncreasePermit,
-    backStepScale, opporStepScale, energyDecreaseMin, energyDecreasePopCntlMin,
-    neighborTrueProb, probeProb, fracNeighNixedMax, tpdThresh;
+    radiusScale, alpha, beta, gamma, theta,
+    backStepScale, opporStepScale, energyDecreaseMin, tpdThresh;
 
   double sstep, sswin, shalf, sslim, ssrange[2];
   unsigned int pres[2];
-  char *trcListOutS=NULL;
+  gageStackBlurParm *sbp;
 
   mop = airMopNew();
   hparm = hestParmNew();
@@ -357,6 +354,10 @@ main(int argc, const char **argv) {
              "butter:16,0.8", "windowing to create locality with additive "
              "scale-space interaction (\"-int add\")",
              NULL, NULL, pullHestEnergySpec);
+  hestOptAdd(&hopt, "zz", "bool", airTypeBool, 1, 1, &zeroZ, "false",
+             "always constrain Z=0, to process 2D images");
+  hestOptAdd(&hopt, "su", "bool", airTypeBool, 1, 1, &strnUse, "false",
+             "weigh contributions to traces with strength");
   hestOptAdd(&hopt, "efs", "bool", airTypeBool, 1, 1,
              &energyFromStrength, "false",
              "whether or not strength contributes to particle-image energy");
@@ -374,9 +375,6 @@ main(int argc, const char **argv) {
              &unequalShapesAllow, "false",
              "allow volumes to have different shapes (false is safe as "
              "different volume sizes are often accidental)");
-  hestOptAdd(&hopt, "pcet", "bool", airTypeBool, 1, 1, &popCntlEnoughTest,
-             "true", "use neighbor-counting \"enough\" heuristic to "
-             "bail out of pop cntl");
   hestOptAdd(&hopt, "nobin", NULL, airTypeBool, 0, 0,
              &binSingle, NULL,
              "turn off spatial binning (which prevents multi-threading "
@@ -387,15 +385,6 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "por", "bool", airTypeBool, 1, 1,
              &permuteOnRebin, "true",
              "permute points during rebinning");
-  hestOptAdd(&hopt, "npcwza", "bool", airTypeBool, 1, 1,
-             &noPopCntlWithZeroAlpha, "false",
-             "no pop cntl with zero alpha");
-  hestOptAdd(&hopt, "ubfgl", "bool", airTypeBool, 1, 1,
-             &useBetaForGammaLearn, "false",
-             "use beta for gamma learning");
-  hestOptAdd(&hopt, "ratb", "bool", airTypeBool, 1, 1,
-             &restrictiveAddToBins, "true",
-             "be choosy when adding points to bins to avoid overlap");
   hestOptAdd(&hopt, "svec", "vec", airTypeDouble, 3, 3, scaleVec, "0 0 0",
              "if non-zero (length), vector to use for displaying scale "
              "in 3-space");
@@ -438,10 +427,13 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "np", "# points", airTypeUInt, 1, 1,
              &pointNumInitial, "1000",
              "number of points to start in simulation");
+  useHalton=AIR_TRUE;
+  /*
   hestOptAdd(&hopt, "halton", NULL, airTypeInt, 0, 0,
              &useHalton, NULL,
              "use Halton sequence initialization instead of "
              "uniform random");
+  */
   hestOptAdd(&hopt, "tnp", "# points", airTypeUInt, 1, 1,
              &tracePointNum, "1000",
              "number of points to add in each iteration of "
@@ -479,9 +471,6 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "snap", "# iters", airTypeUInt, 1, 1,
              &snap, "0",
              "if non-zero, # iters between saved snapshots");
-  hestOptAdd(&hopt, "maxi", "# iters", airTypeUInt, 1, 1,
-             &iterMax, "0",
-             "if non-zero, max # iterations to run whole system");
   hestOptAdd(&hopt, "stim", "# iters", airTypeUInt, 1, 1,
              &stuckIterMax, "5",
              "if non-zero, max # iterations to allow a particle "
@@ -513,13 +502,6 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "theta", "theta", airTypeDouble, 1, 1,
              &theta, "0.0",
              "slope of increasing livethresh wrt scale");
-  hestOptAdd(&hopt, "wall", "k", airTypeDouble, 1, 1,
-             &wall, "0.0",
-             "spring constant on walls");
-  hestOptAdd(&hopt, "eip", "k", airTypeDouble, 1, 1,
-             &energyIncreasePermit, "0.0",
-             "amount by which its okay for *per-particle* energy to increase "
-             "during gradient descent process");
   hestOptAdd(&hopt, "ess", "scl", airTypeDouble, 1, 1,
              &backStepScale, "0.5",
              "when energy goes up instead of down, scale step "
@@ -532,17 +514,6 @@ main(int argc, const char **argv) {
              &energyDecreaseMin, "0.0001",
              "convergence threshold: stop when fractional improvement "
              "(decrease) in energy dips below this");
-  hestOptAdd(&hopt, "edpcmin", "frac", airTypeDouble, 1, 1,
-             &energyDecreasePopCntlMin, "0.01",
-             "population control is triggered when energy improvement "
-             "goes below this threshold");
-  hestOptAdd(&hopt, "fnnm", "frac", airTypeDouble, 1, 1,
-             &fracNeighNixedMax, "0.25",
-             "don't nix if this fraction (or more) of neighbors "
-             "have been nixed");
-  hestOptAdd(&hopt, "pcp", "period", airTypeUInt, 1, 1,
-             &popCntlPeriod, "20",
-             "# iters to wait between attempts at population control");
   hestOptAdd(&hopt, "iad", "# iters", airTypeUInt, 1, 1,
              &addDescent, "10",
              "# iters to run descent on tentative new points during PC");
@@ -561,20 +532,12 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "pbm", "mod", airTypeUInt, 1, 1,
              &progressBinMod, "50",
              "progress bin mod");
-  hestOptAdd(&hopt, "eiphl", "hl", airTypeUInt, 1, 1, &eipHalfLife, "0",
-             "half-life of energyIncreasePermute (\"-eip\")");
   hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
              &threadNum, "1",
              (airThreadCapable
               ? "number of threads hoover should use"
               : "if threads where enabled in this Teem build, this is how "
               "you would control the number of threads to use"));
-  hestOptAdd(&hopt, "nprob", "prob", airTypeDouble, 1, 1,
-             &neighborTrueProb, "1.0",
-             "do full neighbor discovery with this probability");
-  hestOptAdd(&hopt, "pprob", "prob", airTypeDouble, 1, 1,
-             &probeProb, "1.0",
-             "probe local image values with this probability");
 
   hestOptAdd(&hopt, "addlog", "fname", airTypeString, 1, 1, &addLogS, "",
              "name of file in which to log all particle additions");
@@ -599,6 +562,8 @@ main(int argc, const char **argv) {
              "resolution of the 2D plot");
   hestOptAdd(&hopt, "tlo", "fname", airTypeString, 1, 1, &trcListOutS, "",
              "output filename of list of all points in all traces");
+  hestOptAdd(&hopt, "tvo", "fname", airTypeString, 1, 1, &trcVolOutS, "",
+             "output filename for rasterized trace of scale-space volume");
 
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
@@ -622,33 +587,25 @@ main(int argc, const char **argv) {
   pctx = pullContextNew();
   airMopAdd(mop, pctx, (airMopper)pullContextNix, airMopAlways);
   if (pullVerboseSet(pctx, verbose)
+      || pullFlagSet(pctx, pullFlagZeroZ, zeroZ)
       || pullFlagSet(pctx, pullFlagEnergyFromStrength, energyFromStrength)
       || pullFlagSet(pctx, pullFlagNixAtVolumeEdgeSpace, nixAtVolumeEdgeSpace)
       || pullFlagSet(pctx, pullFlagConstraintBeforeSeedThresh,
                      constraintBeforeSeedThresh)
-      || pullFlagSet(pctx, pullFlagPopCntlEnoughTest, popCntlEnoughTest)
       || pullFlagSet(pctx, pullFlagBinSingle, binSingle)
       || pullFlagSet(pctx, pullFlagNoAdd, noAdd)
       || pullFlagSet(pctx, pullFlagPermuteOnRebin, permuteOnRebin)
-      || pullFlagSet(pctx, pullFlagNoPopCntlWithZeroAlpha,
-                     noPopCntlWithZeroAlpha)
-      || pullFlagSet(pctx, pullFlagUseBetaForGammaLearn,
-                     useBetaForGammaLearn)
-      || pullFlagSet(pctx, pullFlagRestrictiveAddToBins,
-                     restrictiveAddToBins)
+      /* want this to be true; tracing is different than regular particles */
+      || pullFlagSet(pctx, pullFlagRestrictiveAddToBins, AIR_TRUE)
       || pullFlagSet(pctx, pullFlagAllowCodimension3Constraints,
                      allowCodimension3Constraints)
       || pullFlagSet(pctx, pullFlagScaleIsTau, scaleIsTau)
       || pullInitUnequalShapesAllowSet(pctx, unequalShapesAllow)
       || pullIterParmSet(pctx, pullIterParmSnap, snap)
-      || pullIterParmSet(pctx, pullIterParmMax, iterMax)
       || pullIterParmSet(pctx, pullIterParmStuckMax, stuckIterMax)
       || pullIterParmSet(pctx, pullIterParmConstraintMax, constraintIterMax)
-      || pullIterParmSet(pctx, pullIterParmPopCntlPeriod, popCntlPeriod)
       || pullIterParmSet(pctx, pullIterParmAddDescent, addDescent)
       || pullIterParmSet(pctx, pullIterParmCallback, iterCallback)
-      || pullIterParmSet(pctx, pullIterParmEnergyIncreasePermitHalfLife,
-                         eipHalfLife)
       || pullSysParmSet(pctx, pullSysParmStepInitial, stepInitial)
       || pullSysParmSet(pctx, pullSysParmConstraintStepMin, constraintStepMin)
       || pullSysParmSet(pctx, pullSysParmRadiusSpace, radiusSpace)
@@ -658,20 +615,10 @@ main(int argc, const char **argv) {
       || pullSysParmSet(pctx, pullSysParmBeta, beta)
       || pullSysParmSet(pctx, pullSysParmGamma, gamma)
       || pullSysParmSet(pctx, pullSysParmTheta, theta)
-      || pullSysParmSet(pctx, pullSysParmWall, wall)
-      || pullSysParmSet(pctx, pullSysParmEnergyIncreasePermit,
-                        energyIncreasePermit)
       || pullSysParmSet(pctx, pullSysParmEnergyDecreaseMin,
                         energyDecreaseMin)
-      || pullSysParmSet(pctx, pullSysParmFracNeighNixedMax,
-                        fracNeighNixedMax)
-      || pullSysParmSet(pctx, pullSysParmEnergyDecreasePopCntlMin,
-                        energyDecreasePopCntlMin)
       || pullSysParmSet(pctx, pullSysParmBackStepScale, backStepScale)
       || pullSysParmSet(pctx, pullSysParmOpporStepScale, opporStepScale)
-      || pullSysParmSet(pctx, pullSysParmNeighborTrueProb,
-                        neighborTrueProb)
-      || pullSysParmSet(pctx, pullSysParmProbeProb, probeProb)
       || pullRngSeedSet(pctx, rngSeed)
       || pullProgressBinModSet(pctx, progressBinMod)
       || pullThreadNumSet(pctx, threadNum)
@@ -683,14 +630,14 @@ main(int argc, const char **argv) {
     airMopError(mop); return 1;
   }
 
-  if (nPosIn) {
+  if (useHalton) {
+    E = pullInitHaltonSet(pctx, pointNumInitial, 0);
+  } else if (nPosIn) {
     E = pullInitGivenPosSet(pctx, nPosIn);
   } else if (pointPerVoxel) {
     E = pullInitPointPerVoxelSet(pctx, pointPerVoxel,
                                  ppvZRange[0], ppvZRange[1],
                                  samplesAlongScaleNum, jitter);
-  } else if (useHalton) {
-    E = pullInitHaltonSet(pctx, pointNumInitial, 0);
   } else {
     E = pullInitRandomSet(pctx, pointNumInitial);
   }
@@ -699,9 +646,17 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: trouble with flags:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  if (meetPullVolLoadMulti(vspec, vspecNum, cachePathSS,
-                           kSSblur, nrrdBoundaryBleed, AIR_NAN,
-                           verbose)
+  sbp = gageStackBlurParmNew();
+  airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
+  if (gageStackBlurParmBoundarySet(sbp, nrrdBoundaryWrap, AIR_NAN)
+      /* though this verbosity could in principle be different */
+      || gageStackBlurParmVerboseSet(sbp, verbose)) {
+    airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble with stack blur parms:\n%s", me, err);
+    airMopError(mop); return 1;
+  }
+  if (meetPullVolLoadMulti(vspec, vspecNum, cachePathSS, kSSblur,
+                           sbp, verbose)
       || meetPullVolAddMulti(pctx, vspec, vspecNum,
                              k00, k11, k22, kSSrecon)
       || meetPullInfoAddMulti(pctx, idef, idefNum)) {
@@ -831,7 +786,8 @@ main(int argc, const char **argv) {
       }
     }
     printf("%s\n", airDoneStr(0, pidx, pnum, doneStr));
-    if (pullTraceMultiPlotAdd(nprogA, mtrc, NULL, 0, 0)) {
+    if (pullTraceMultiPlotAdd(nprogA, mtrc, NULL,
+                              strnUse, 0, 0)) {
       airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble ploting:\n%s", me, err);
       airMopError(mop); return 1;
@@ -844,7 +800,7 @@ main(int argc, const char **argv) {
               me, passIdx, passNumMax);
       nrrdZeroSet(nprogB);
       if (findAndTraceMorePoints(nprogB, pctx, scaleVol,
-                                 scaleStep, scaleWin/2,
+                                 strnUse, scaleStep, scaleWin/2,
                                  sslim, AIR_CAST(unsigned int, sslim/scaleStep),
                                  mtrc, tracePointNum)
           || resamplePlot(nsplot, nprogB)) {
@@ -858,7 +814,8 @@ main(int argc, const char **argv) {
       } else {
         dist = 0.5*(dist + dd);
       }
-      fprintf(stderr, "%s: dd = %g -> dist = %g\n", me, dd, dist);
+      fprintf(stderr, "%s: dd = %g -> dist = %g (%s %g)\n", me, dd, dist,
+              dist < tpdThresh ? "<" : ">=",  tpdThresh);
       nrrdCopy(nlsplot, nsplot);
       if (dist < tpdThresh) {
         fprintf(stderr, "%s: converged: dist %g < thresh %g\n",
@@ -911,7 +868,9 @@ main(int argc, const char **argv) {
         vn = AIR_CAST(unsigned int, trc->nvelo->axis[0].size);
         vert = AIR_CAST(double *, trc->nvert->data);
         velo = AIR_CAST(double *, trc->nvelo->data);
-        strn = AIR_CAST(double *, trc->nstrn ? trc->nstrn->data : NULL);
+        strn = AIR_CAST(double *, (trc->nstrn
+                                   ? trc->nstrn->data
+                                   : NULL));
         for (vi=0; vi<vn; vi++) {
           tlo[sx*toti + 0] = AIR_CAST(double, ti);
           tlo[sx*toti + 1] = (vi == trc->seedIdx);
@@ -935,9 +894,90 @@ main(int argc, const char **argv) {
         airMopError(mop); return 1;
       }
     }
-    if (pullTraceMultiPlotAdd(nplotA, mtrc, NULL, 0, 0)
+    if (airStrlen(trcVolOutS)) {
+      /* HEY: copy and paste from above */
+      Nrrd *nout;
+      const gagePoint *pnt;
+      meetPullVol *mpv;
+      pullTrace *trc;
+      pullPoint *lpnt;
+      unsigned int size[4], idx[4], iii, ti, si;
+      double idxd[4], val, (*lup)(const void *v, size_t I),
+        (*ins)(void *v, size_t I, double d);
+      mpv = meetPullVolCopy(vspec[0]);
+      airMopAdd(mop, mpv, (airMopper)meetPullVolNix, airMopAlways);
+      size[0] = AIR_CAST(unsigned int, mpv->ninSS[0]->axis[0].size);
+      size[1] = AIR_CAST(unsigned int, mpv->ninSS[0]->axis[1].size);
+      size[2] = AIR_CAST(unsigned int, mpv->ninSS[0]->axis[2].size);
+      size[3] = mpv->numSS;
+      printf("!%s: size = (%u,%u,%u,%u)\n", me, size[0], size[1], size[2], size[3]);
+      lpnt = pullPointNew(pctx);
+      airMopAdd(mop, lpnt, (airMopper)pullPointNix, airMopAlways);
+      for (si=0; si<size[3]; si++) {
+        nrrdZeroSet(mpv->ninSS[si]);
+      }
+      lup = nrrdDLookup[mpv->ninSS[0]->type];
+      ins = nrrdDInsert[mpv->ninSS[0]->type];
+      pnt = &(pctx->task[0]->vol[0]->gctx->point);
+      for (ti=0; ti<mtrc->traceNum; ti++) {
+        unsigned int vi, vn;
+        double *vert, *velo, *strn, wght;
+        trc = mtrc->trace[ti];
+        vn = AIR_CAST(unsigned int, trc->nvelo->axis[0].size);
+        vert = AIR_CAST(double *, trc->nvert->data);
+        velo = AIR_CAST(double *, trc->nvelo->data);
+        strn = AIR_CAST(double *, (strnUse && trc->nstrn
+                                   ? trc->nstrn->data
+                                   : NULL));
+        for (vi=0; vi<vn; vi++) {
+          ELL_4V_COPY(lpnt->pos, vert + 4*vi);
+          if (zeroZ && lpnt->pos[2] != 0) {
+            fprintf(stderr, "%s: zeroZ violated\n", me);
+            airMopError(mop); return 1;
+          }
+          wght = 1 - atan(velo[vi]/shalf)/(AIR_PI/2);
+          if (strn) {
+            wght *= strn[vi];
+          }
+          /* probe just to get the transform to idx-space from gage */
+          if (pullProbe(pctx->task[0], lpnt)) {
+            airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
+            fprintf(stderr, "%s: couldn't probe:\n%s", me, err);
+            airMopError(mop); return 1;
+          }
+          ELL_4V_ADD2(idxd, pnt->frac, pnt->idx);
+          /* because of gage subtlety that gagePoint->idx is index
+             of upper, not lower, corner, idxd is too big by 1 */
+          idx[0] = airIndexClamp(-0.5, idxd[0]-1, size[0]-0.5, size[0]);
+          idx[1] = airIndexClamp(-0.5, idxd[1]-1, size[1]-0.5, size[1]);
+          idx[2] = airIndexClamp(-0.5, idxd[2]-1, size[2]-0.5, size[2]);
+          idx[3] = airIndexClamp(0, idxd[3], size[3]-1, size[3]);
+          iii = idx[0] + size[0]*(idx[1] + size[1]*idx[2]);
+          val = lup(mpv->ninSS[idx[3]]->data, iii);
+          ins(mpv->ninSS[idx[3]]->data, iii, wght + val);
+          /*
+          printf("!%s: (%g,%g,%g,%g) -> (%g,%g,%g,%g) -> (%u,%u,%u,%u) -> %u: %g\n", me,
+                 lpnt->pos[0], lpnt->pos[1], lpnt->pos[2], lpnt->pos[3],
+                 idxd[0], idxd[1], idxd[2], idxd[3],
+                 idx[0], idx[1], idx[2], idx[3], iii, val);
+          */
+        }
+      }
+      nout = nrrdNew();
+      airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+      if (nrrdJoin(nout, AIR_CAST(const Nrrd *const *, mpv->ninSS),
+                   size[3], 3, AIR_FALSE)
+          || nrrdSave(trcVolOutS, nout, NULL)) {
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+        fprintf(stderr, "%s: couldn't join or save SS output:\n%s", me, err);
+        airMopError(mop); return 1;
+      }
+    }
+    if (pullTraceMultiPlotAdd(nplotA, mtrc, NULL,
+                              strnUse, 0, 0)
         || pullTraceMultiFilterConcaveDown(nfilt, mtrc, 0.05)
-        || pullTraceMultiPlotAdd(nplotB, mtrc, nfilt, 0, 0)) {
+        || pullTraceMultiPlotAdd(nplotB, mtrc, nfilt,
+                                 strnUse, 0, 0)) {
       airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble plotting:\n%s", me, err);
       airMopError(mop); return 1;
