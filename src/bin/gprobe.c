@@ -222,7 +222,7 @@ main(int argc, const char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
-  int what, E=0, renorm, uniformSS, optimSS, verbose,
+  int what, E=0, renorm, uniformSS, optimSS, verbose, zeroZ,
     orientationFromSpacing, probeSpaceIndex, normdSS;
   unsigned int iBaseDim, oBaseDim, axi, numSS, seed;
   const double *answer;
@@ -290,6 +290,9 @@ main(int argc, const char *argv[]) {
              "RNG seed; mostly for debugging");
   hestOptAdd(&hopt, "c", "bool", airTypeBool, 1, 1, &clamp, "false",
              "clamp positions as part of probing");
+  hestOptAdd(&hopt, "zz", "bool", airTypeBool, 1, 1, &zeroZ, "false",
+             "enable \"zeroZ\" behavior in gage that partially "
+             "implements working with 3D images as if they are 2D");
 
   hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
              "tent", "kernel for gageKernel00",
@@ -409,11 +412,11 @@ main(int argc, const char *argv[]) {
 
     sbp = gageStackBlurParmNew();
     airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
-    if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1],
-                                  uniformSS, optimSS)
+    if (gageStackBlurParmVerboseSet(sbp, verbose)
+        || gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1],
+                                     uniformSS, optimSS)
         || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE)
         || gageStackBlurParmBoundarySet(sbp, nrrdBoundaryBleed, AIR_NAN)
-        || gageStackBlurParmVerboseSet(sbp, verbose)
         || gageStackBlurManage(&ninSS, &recompute, sbp,
                                stackFnameFormat, AIR_TRUE, NULL,
                                nin, kind)) {
@@ -443,6 +446,7 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, ctx, AIR_CAST(airMopper, gageContextNix), airMopAlways);
   gageParmSet(ctx, gageParmGradMagCurvMin, gmc);
   gageParmSet(ctx, gageParmVerbose, verbose);
+  gageParmSet(ctx, gageParmTwoDimZeroZ, zeroZ);
   gageParmSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   gageParmSet(ctx, gageParmOrientationFromSpacing, orientationFromSpacing);

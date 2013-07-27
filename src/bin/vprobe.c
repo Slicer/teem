@@ -46,7 +46,7 @@ main(int argc, const char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
-  int what, E=0, renorm, SSuniform, SSoptim, verbose,
+  int what, E=0, renorm, SSuniform, SSoptim, verbose, zeroZ,
     orientationFromSpacing, SSnormd;
   unsigned int iBaseDim, oBaseDim, axi, numSS, ninSSIdx, seed;
   const double *answer;
@@ -122,6 +122,9 @@ main(int argc, const char *argv[]) {
              NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "seed", "N", airTypeUInt, 1, 1, &seed, "42",
              "RNG seed; mostly for debugging");
+  hestOptAdd(&hopt, "zz", "bool", airTypeBool, 1, 1, &zeroZ, "false",
+             "enable \"zeroZ\" behavior in gage that partially "
+             "implements working with 3D images as if they are 2D");
 
   hestOptAdd(&hopt, "ssn", "SS #", airTypeUInt, 1, 1, &numSS,
              "0", "how many scale-space samples to evaluate, or, "
@@ -298,6 +301,7 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, ctx, AIR_CAST(airMopper, gageContextNix), airMopAlways);
   gageParmSet(ctx, gageParmGradMagCurvMin, gmc);
   gageParmSet(ctx, gageParmVerbose, verbose);
+  gageParmSet(ctx, gageParmTwoDimZeroZ, zeroZ);
   gageParmSet(ctx, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   gageParmSet(ctx, gageParmOrientationFromSpacing, orientationFromSpacing);
