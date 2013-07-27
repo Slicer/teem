@@ -268,7 +268,7 @@ _gageSclStrEqv[] = {
   "med", "median",
   "hvalley", "hessvalley", "hessian valleyness",
   "hridge", "hessridge", "hessian ridgeness",
-  "hdpeak",
+  "hdpeak", "hessian peakness",
   "hmode", "hessmode", "hessian mode",
   ""
 };
@@ -309,7 +309,7 @@ _gageSclValEqv[] = {
   GS_MD, GS_MD,
   GS_HV, GS_HV, GS_HV,
   GS_HR, GS_HR, GS_HR,
-  GS_PK,
+  GS_PK, GS_PK,
   GS_HM, GS_HM, GS_HM
 };
 
