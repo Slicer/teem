@@ -459,11 +459,11 @@ pullRun(pullContext *pctx) {
     converged = ((pctx->flag.convergenceIgnoresPopCntl
                   || (!pctx->iterParm.popCntlPeriod
                       || (!pctx->addNum && !pctx->nixNum)))
-                 && AIR_IN_OP(0, enrDecreaseAvg,
+                 && AIR_IN_CL(0, enrDecreaseAvg,
                               pctx->sysParm.energyDecreaseMin));
     if (pctx->verbose) {
       fprintf(stderr, "%s: converged %d = (%d || (%d || (%d && %d))) "
-              "&& (0 < %g < %g)=%d\n",
+              "&& (0 <= %g <= %g)=%d\n",
               me, converged,
               pctx->flag.convergenceIgnoresPopCntl,
               !pctx->iterParm.popCntlPeriod,
