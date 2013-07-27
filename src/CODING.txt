@@ -314,10 +314,10 @@ signal: basic unix process communication
 read: read from file descriptors; a system call
 exp, log2: math functions, oops
 
-* It would be nice of Teem can compile without warnings as C++ code as well;
+* It would be nice if Teem can compile without warnings as C++ code;
 There are two main issues:
 - void* can't be implicitly cast to some other pointer type as part of
-  an assingment, so an explicit cast (via AIR_CAST or something else) is
+  an assignment, so an explicit cast (via AIR_CAST or something else) is
   needed.  This decreases the utility of airFree returning NULL for the
   "x = airFree(x)" idiom, but its usage was decreased anyway with compiler
   warnings about "x set but not used".
