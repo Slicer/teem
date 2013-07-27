@@ -134,8 +134,12 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
     pvl->directAnswer[gageSclHessFrob][0] = ELL_3M_FROB(hess);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessEval)) {
-    /* HEY: look at the return value for root multiplicity? */
-    ell_3m_eigensolve_d(heval, hevec, hess, AIR_TRUE);
+    if (ctx->parm.twoDimZeroZ) {
+      ell_3m2sub_eigensolve_d(heval, hevec, hess);
+    } else {
+      /* HEY: look at the return value for root multiplicity? */
+      ell_3m_eigensolve_d(heval, hevec, hess, AIR_TRUE);
+    }
     ELL_3V_COPY(pvl->directAnswer[gageSclHessEval], heval);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessEvec)) {

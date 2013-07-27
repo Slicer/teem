@@ -122,6 +122,7 @@ gageParmReset(gageParm *parm) {
     parm->stackNormalizeDerivBias = gageDefStackNormalizeDerivBias;
     parm->orientationFromSpacing = gageDefOrientationFromSpacing;
     parm->generateErrStr = gageDefGenerateErrStr;
+    parm->twoDimZeroZ = gageDefTwoDimZeroZ;
   }
   return;
 }

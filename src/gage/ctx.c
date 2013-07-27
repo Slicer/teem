@@ -375,6 +375,9 @@ gageParmSet(gageContext *ctx, int which, double val) {
   case gageParmGenerateErrStr:
     ctx->parm.generateErrStr = AIR_CAST(int, val);
     break;
+  case gageParmTwoDimZeroZ:
+    ctx->parm.twoDimZeroZ = AIR_CAST(int, val);
+    break;
   default:
     fprintf(stderr, "\n%s: sorry, which = %d not valid\n\n", me, which);
     break;

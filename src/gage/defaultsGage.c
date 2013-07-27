@@ -80,3 +80,6 @@ gageDefGenerateErrStr = AIR_TRUE;
 /* Before Teem 1.11, error strings were always sprintf, which can easily
    become a bottleneck in some situations, but this should still stay
    the default behavior */
+
+int
+gageDefTwoDimZeroZ = AIR_FALSE; /* no way this can default to true */

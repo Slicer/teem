@@ -131,6 +131,7 @@ enum {
   gageParmStackNormalizeRecon,     /* int; does NOT imply         "        */
   gageParmOrientationFromSpacing,  /* int */
   gageParmGenerateErrStr,          /* int */
+  gageParmTwoDimZeroZ,             /* int */
   gageParmLast
 };
 
@@ -515,9 +516,21 @@ typedef struct gageParm_t {
                                  had axis-aligned spaceDirection vectors, with
                                  the non-zero values determined by the given
                                  per-axis spacing. */
-    generateErrStr;           /* when errors happen, biff is never used, but
+    generateErrStr,           /* when errors happen, biff is never used, but
                                  a descriptive error is sprintf into
                                  gctx->errStr as long as this is non-zero. */
+    twoDimZeroZ;              /* a limited way of supporting queries on
+                                 two-dimensional images: if this is non-zero
+                                 then *some* answers will only involve the 1st
+                                 ("X") and 2nd ("Y") coordinates of world
+                                 space.  Eigensystems should have only two
+                                 two elements, with the 3rd being NaN'd out.
+                                 Because gage has always been only about 3D
+                                 images; the implementation of this is likely
+                                 incomplete, since the responsibility for
+                                 correctly handling it ultimately falls to the
+                                 "answer" functions of the various
+                                 gageKinds */
 } gageParm;
 
 /*
@@ -901,6 +914,8 @@ typedef struct {
                             volume */
     boundary,            /* passed to nrrdResampleBoundarySet */
     renormalize,         /* passed to nrrdResampleRenormalizeSet */
+    oneDim,              /* for experimental purposes: blur *only* along
+                            the first (fastest) axis */
     verbose;
 } gageStackBlurParm;
 
@@ -974,6 +989,7 @@ GAGE_EXPORT double gageDefStackNormalizeDerivBias;
 GAGE_EXPORT double gageDefStackBlurSigmaMax;
 GAGE_EXPORT int gageDefOrientationFromSpacing;
 GAGE_EXPORT int gageDefGenerateErrStr;
+GAGE_EXPORT int gageDefTwoDimZeroZ;
 
 /* miscGage.c */
 GAGE_EXPORT const int gagePresent;
@@ -1125,6 +1141,8 @@ GAGE_EXPORT int gageStackBlurParmBoundarySet(gageStackBlurParm *sbp,
                                              int boundary, double padValue);
 GAGE_EXPORT int gageStackBlurParmVerboseSet(gageStackBlurParm *sbp,
                                             int verbose);
+GAGE_EXPORT int gageStackBlurParmOneDimSet(gageStackBlurParm *sbp,
+                                           int oneDim);
 GAGE_EXPORT int gageStackBlurParmCheck(gageStackBlurParm *sbp);
 GAGE_EXPORT int gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
                               const Nrrd *nin, const gageKind *kind);
