@@ -32,8 +32,9 @@
 ** here taking A'' == 0 and B'' == 1, with
 ** a0 and a1 as defined by eqs (22) and (23)
 **
-** Used MiniMaxApproximation[] from Mathematica to get functions, but
-** the specific functions and their domains could certainly be
+** Used MiniMaxApproximation[] from Mathematica (see
+** ~gk/papers/ssp/nb/effective-scale-TauOfTee.nb) to get functions,
+** but the specific functions and their domains could certainly be
 ** improved upon.  Also, the absence of conversions directly between
 ** tau and sigma is quite unfortunate: going through tee loses
 ** precision and takes more time.
