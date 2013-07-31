@@ -37,13 +37,21 @@
 ** improved upon.  Also, the absence of conversions directly between
 ** tau and sigma is quite unfortunate: going through tee loses
 ** precision and takes more time.
+**
+** ACCURATE: can set this to 0 or 1:
+** 0: use a quick-and-dirty approximation to tau(tee), which
+** uses a straight line segment for small scales, and then
+** has a C^1-continuous transition to the large-scale approximation eq (33)
+** 1: careful approximation based on the MiniMaxApproximation[]s
 */
+#define ACCURATE 1
 double
 gageTauOfTee(double tee) {
   double tau;
 
   if (tee < 0) {
     tau = 0;
+#if ACCURATE
   } else if (tee < 1.49807) {
     /* mmtau0tweaked */
     tau = (tee*(0.2756644487429131 + tee*(0.10594329088466668 + tee*(0.05514331911165778 + (0.021449249669475232 + 0.004417835440932558*tee)*tee))))/
@@ -62,6 +70,10 @@ gageTauOfTee(double tee) {
     /* mmtau3 */
     tau = (-4.2037874383990445e9 + tee*(2.838805157541766e9 + tee*(4.032410315406513e8 + tee*(5.392017876788518e6 + tee*(9135.49750298428 + tee)))))/
       (tee*(2.326563899563907e9 + tee*(1.6920560224321905e8 + tee*(1.613645012626063e6 + (2049.748257887103 + 0.1617034516398788*tee)*tee))));
+#else /* quick and dirty approximation */
+  } else if (tee < 1.3741310015234351) {
+    tau = 0.600069568241882*tee/1.3741310015234351;
+#endif
   } else {
     /* lindtau = eq (33) in paper */
     tau = 0.53653222368715360118 + log(tee)/2.0 + log(1.0 - 1.0/(8.0*tee));
@@ -76,7 +88,9 @@ gageTeeOfTau(double tau) {
   /* the number of branches here is not good; needs re-working */
   if (tau < 0) {
     tee = 0;
-  } else if (tau < 0.611262) {
+#if ACCURATE
+  } else
+    if (tau < 0.611262) {
     /* mmtee0tweaked */
     tee = (tau*(3.6275987317285265 + tau*(11.774700160760132 + tau*(4.52406587856803 + tau*(-14.125688866786549 + tau*(-0.725387283317479 + 3.5113122862478865*tau))))))/
       (1.0 + tau*(4.955066250765395 + tau*(4.6850073321973404 + tau*(-6.407987550661679 + tau*(-6.398430668865182 + 5.213709282093169*tau)))));
@@ -100,6 +114,10 @@ gageTeeOfTau(double tau) {
   } else if (tau < 3.14419) {
     /* mmtee6 */
     tee = (tau*(190.2181493338235 + tau*(-120.16652155353106 + 60.*tau)))/(76.13355144582292 + tau*(-42.019121363472614 + (8.023304636521623 - 0.5281725039404653*tau)*tau));
+#else /* quick and dirty approximation */
+  } else if (tau < 0.600069568241882) {
+    tee = 1.3741310015234351*tau/0.600069568241882;
+#endif
   } else {
     /* lindtee = lindtau^{-1} */
     double ee;
