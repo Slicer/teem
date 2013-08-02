@@ -56,12 +56,14 @@
 #define KI_TEN 2
 #define KI_DWI 3
 
+/*
 static const char *kindStr[KIND_NUM] = {
   "scalar",
   "vector",
   "tensor",
   "  DWI "
 };
+*/
 
 #define HALTON_BASE 100
 
