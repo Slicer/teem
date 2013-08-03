@@ -323,7 +323,7 @@ _nrrdMeasureL1(void *ans, int ansType,
   nrrdDStore[ansType](ans, S);
 }
 
-#define L2_BODY                                  \
+#define L2_BODY(FOUR)                            \
   AIR_UNUSED(axmin);                             \
   AIR_UNUSED(axmax);                             \
   lup = nrrdDLookup[lineType];                   \
@@ -332,7 +332,7 @@ _nrrdMeasureL1(void *ans, int ansType,
     count = len;                                 \
     for (ii=0; ii<len; ii++) {                   \
       val = lup(line, ii);                       \
-      S += val*val;                              \
+      S += (FOUR) ? val*val*val*val : val*val;   \
     }                                            \
   } else {                                       \
     S = AIR_NAN;                                 \
@@ -343,12 +343,12 @@ _nrrdMeasureL1(void *ans, int ansType,
     if (AIR_EXISTS(S)) {                         \
       /* there's at least one existing value */  \
       count = 1;                                 \
-      S *= S;                                    \
+      S *= (FOUR) ? S*S*S : S ;                  \
       for (; ii<len; ii++) {                     \
         val = lup(line, ii);                     \
         if (AIR_EXISTS(val)) {                   \
           count++;                               \
-          S += val*val;                          \
+          S += (FOUR) ? val*val*val*val : val*val; \
         }                                        \
       }                                          \
     }                                            \
@@ -361,9 +361,25 @@ _nrrdMeasureL2(void *ans, int ansType,
   double val, S, aa, (*lup)(const void*, size_t);
   size_t ii, count;
 
-  L2_BODY;
+  L2_BODY(AIR_FALSE);
   if (AIR_EXISTS(S)) {
     aa = sqrt(S);
+  } else {
+    aa = AIR_NAN;
+  }
+  nrrdDStore[ansType](ans, aa);
+}
+
+void
+_nrrdMeasureL4(void *ans, int ansType,
+               const void *line, int lineType, size_t len,
+               double axmin, double axmax) {
+  double val, S, aa, (*lup)(const void*, size_t);
+  size_t ii, count;
+
+  L2_BODY(AIR_TRUE);
+  if (AIR_EXISTS(S)) {
+    aa = sqrt(sqrt(S));
   } else {
     aa = AIR_NAN;
   }
@@ -377,7 +393,7 @@ _nrrdMeasureNormalizedL2(void *ans, int ansType,
   double val, S, aa, (*lup)(const void*, size_t);
   size_t ii, count;
 
-  L2_BODY;
+  L2_BODY(AIR_FALSE);
   if (AIR_EXISTS(S)) {
     aa = sqrt(S)/count;
   } else {
@@ -393,7 +409,7 @@ _nrrdMeasureRootMeanSquare(void *ans, int ansType,
   double val, S, aa, (*lup)(const void*, size_t);
   size_t ii, count;
 
-  L2_BODY;
+  L2_BODY(AIR_FALSE);
   if (AIR_EXISTS(S)) {
     aa = sqrt(S/count);
   } else {
@@ -1003,6 +1019,7 @@ nrrdMeasureLine[NRRD_MEASURE_MAX+1])(void *, int,
   _nrrdMeasureSum,
   _nrrdMeasureL1,
   _nrrdMeasureL2,
+  _nrrdMeasureL4,
   _nrrdMeasureNormalizedL2,
   _nrrdMeasureRootMeanSquare,
   _nrrdMeasureLinf,
@@ -1049,6 +1066,7 @@ _nrrdMeasureType(const Nrrd *nin, int measr) {
   case nrrdMeasureSum:
   case nrrdMeasureL1:
   case nrrdMeasureL2:
+  case nrrdMeasureL4:
   case nrrdMeasureNormalizedL2:
   case nrrdMeasureRootMeanSquare:
   case nrrdMeasureLinf:
@@ -1078,7 +1096,7 @@ _nrrdMeasureType(const Nrrd *nin, int measr) {
     type = nrrdStateMeasureHistoType;
     break;
   default:
-    fprintf(stderr, "%s: PANIC: type %d not handled\n", me, type);
+    fprintf(stderr, "%s: PANIC: measr %d not handled\n", me, measr);
     exit(1);
   }
 

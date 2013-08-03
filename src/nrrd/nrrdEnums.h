@@ -532,33 +532,34 @@ enum {
   nrrdMeasureSum,            /* 7: sum of all values */
   nrrdMeasureL1,             /* 8 */
   nrrdMeasureL2,             /* 9 */
-  nrrdMeasureNormalizedL2,   /* 10 */
-  nrrdMeasureRootMeanSquare, /* 11 */
-  nrrdMeasureLinf,           /* 12 */
-  nrrdMeasureVariance,       /* 13 */
-  nrrdMeasureSD,             /* 14: standard deviation */
-  nrrdMeasureCoV,            /* 15: coefficient of variation */
-  nrrdMeasureSkew,           /* 16: skew */
-  nrrdMeasureLineSlope,      /* 17: slope of line of best fit */
-  nrrdMeasureLineIntercept,  /* 18: y-intercept of line of best fit */
-  nrrdMeasureLineError,      /* 19: error of line fitting */
+  nrrdMeasureL4,             /* 10 */
+  nrrdMeasureNormalizedL2,   /* 11 */
+  nrrdMeasureRootMeanSquare, /* 12 */
+  nrrdMeasureLinf,           /* 13 */
+  nrrdMeasureVariance,       /* 14 */
+  nrrdMeasureSD,             /* 15: standard deviation */
+  nrrdMeasureCoV,            /* 16: coefficient of variation */
+  nrrdMeasureSkew,           /* 17: skew */
+  nrrdMeasureLineSlope,      /* 18: slope of line of best fit */
+  nrrdMeasureLineIntercept,  /* 19: y-intercept of line of best fit */
+  nrrdMeasureLineError,      /* 20: error of line fitting */
   /*
   ** the nrrduMeasureHisto* measures interpret the array as a
   ** histogram of some implied value distribution
   */
-  nrrdMeasureHistoMin,       /* 20 */
-  nrrdMeasureHistoMax,       /* 21 */
-  nrrdMeasureHistoMean,      /* 22 */
-  nrrdMeasureHistoMedian,    /* 23 */
-  nrrdMeasureHistoMode,      /* 24 */
-  nrrdMeasureHistoProduct,   /* 25 */
-  nrrdMeasureHistoSum,       /* 26 */
-  nrrdMeasureHistoL2,        /* 27 */
-  nrrdMeasureHistoVariance,  /* 28 */
-  nrrdMeasureHistoSD,        /* 29 */
+  nrrdMeasureHistoMin,       /* 21 */
+  nrrdMeasureHistoMax,       /* 22 */
+  nrrdMeasureHistoMean,      /* 23 */
+  nrrdMeasureHistoMedian,    /* 24 */
+  nrrdMeasureHistoMode,      /* 25 */
+  nrrdMeasureHistoProduct,   /* 26 */
+  nrrdMeasureHistoSum,       /* 27 */
+  nrrdMeasureHistoL2,        /* 28 */
+  nrrdMeasureHistoVariance,  /* 29 */
+  nrrdMeasureHistoSD,        /* 30 */
   nrrdMeasureLast
 };
-#define NRRD_MEASURE_MAX        29
+#define NRRD_MEASURE_MAX        30
 #define NRRD_MEASURE_DESC \
    "Possibilities include:\n " \
    "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\", " \
@@ -568,7 +569,7 @@ enum {
    "\b\bo \"stdv\": standard deviation\n " \
    "\b\bo \"cov\": coefficient of variation\n " \
    "\b\bo \"product\", \"sum\": product or sum of all values\n " \
-   "\b\bo \"L1\", \"L2\", \"NL2\", \"RMS\", \"Linf\": different norms\n " \
+   "\b\bo \"L1\", \"L2\", \"L4\", \"NL2\", \"RMS\", \"Linf\": vector norms\n " \
    "\b\bo \"histo-min\", \"histo-max\", \"histo-mean\"," \
      "\"histo-median\", \"histo-mode\", \"histo-product\", \"histo-l2\", " \
      "\"histo-sum\", \"histo-variance\", \"histo-sd\": same measures, " \
