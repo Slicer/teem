@@ -1499,5 +1499,23 @@ int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
   return 0;
 }
 
+#if 0
+int
+nrrdShift(Nrrd *nout, const Nrrd *nin, const ptrdiff_t *offset,
+          int boundary, double padValue) {
+  static const char me[]="nrrdShift", func[] = "shift";
+
+  if (!(nout && nin && offset)) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (nout == nin) {
+    biffAddf(NRRD, "%s: nout==nin disallowed", me);
+    return 1;
+  }
+
+  return 0;
+}
+#endif
 
 /* ---- END non-NrrdIO */
