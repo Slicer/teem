@@ -966,8 +966,7 @@ typedef struct {
     maxIter;               /* allowed iterations in optimization */
   int imgMeasr,            /* how to measure error at each reconstructed
                               scale (in the scale-interpolated image) */
-    allMeasr,              /* how to summarize errors across all scales */
-    plotting;              /* we're plotting, not optimizing */
+    allMeasr;              /* how to summarize errors across all scales */
   double convEps;          /* convergence threshold */
 
   /* INTERNAL ------------------------- */

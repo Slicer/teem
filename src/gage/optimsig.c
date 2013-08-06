@@ -425,7 +425,6 @@ gageOptimSigContext *gageOptimSigContextNew(unsigned int dim,
   oscx->maxIter = 0;
   oscx->imgMeasr = nrrdMeasureUnknown;
   oscx->allMeasr = nrrdMeasureUnknown;
-  oscx->plotting = AIR_FALSE;
   oscx->convEps = AIR_NAN;
 
   /* allocate internal buffers based on arguments */
@@ -880,7 +879,6 @@ gageOptimSigCalculate(gageOptimSigContext *oscx,
   oscx->kssSpec = nrrdKernelSpecCopy(kssSpec);
   oscx->imgMeasr = imgMeasr;
   oscx->allMeasr = allMeasr;
-  oscx->plotting = AIR_FALSE;
   oscx->convEps = convEps;
   oscx->maxIter = maxIter;
   oscx->convEps = convEps;
@@ -946,7 +944,6 @@ gageOptimSigPlot(gageOptimSigContext *oscx, Nrrd *nout,
   oscx->maxIter = 0;
   oscx->imgMeasr = imgMeasr;
   oscx->allMeasr = nrrdMeasureUnknown;
-  oscx->plotting = AIR_TRUE;
   oscx->convEps = AIR_NAN;
   if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2,
                         AIR_CAST(size_t, 2),
