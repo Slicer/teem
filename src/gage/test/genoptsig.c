@@ -1,5 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
+  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -33,12 +34,14 @@ main(int argc, const char *argv[]) {
   airArray *mop;
 
   char *err, *outS;
-  double sigmaMax, convEps, cutoff;
+  double sigma[2], convEps, cutoff;
   int measr[2], tentRecon;
-  unsigned int sampleNumMax, dim, measrSampleNum, maxIter, num, ii;
-  gageOptimSigParm *osparm;
+  unsigned int sampleNum[2], dim, measrSampleNum, kernelSampleNum,
+    maxIter, num, ii;
+  gageOptimSigContext *osctx;
   double *scalePos, *out, info[512];
   Nrrd *nout;
+  NrrdKernelSpec *kss;
   double *plotPos; unsigned int plotPosNum;
 
   me = argv[0];
@@ -46,18 +49,21 @@ main(int argc, const char *argv[]) {
   hparm = hestParmNew();
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
-  hestOptAdd(&hopt, "num", "# samp", airTypeUInt, 1, 1, &sampleNumMax, NULL,
-             "maximum number of samples to optimize");
+  hestOptAdd(&hopt, "num", "# samp", airTypeUInt, 2, 2, sampleNum, NULL,
+             "min and max number of samples to optimize");
   hestOptAdd(&hopt, "dim", "dimension", airTypeUInt, 1, 1, &dim, "3",
              "dimension of image to work with");
-  hestOptAdd(&hopt, "max", "sigma", airTypeDouble, 1, 1, &sigmaMax, NULL,
-             "sigma to use for top sample (using 0 for bottom sample)");
+  hestOptAdd(&hopt, "sig", "min max", airTypeDouble, 2, 2, sigma, NULL,
+             "sigmas to use for bottom and top sample; normal use "
+             "should have 0 for bottom scale");
   hestOptAdd(&hopt, "cut", "cut", airTypeDouble, 1, 1, &cutoff, "4",
              "at how many sigmas to cut-off discrete gaussian");
-  hestOptAdd(&hopt, "mi", "max", airTypeUInt, 1, 1, &maxIter, "1000",
+  hestOptAdd(&hopt, "maxi", "max", airTypeUInt, 1, 1, &maxIter, "1000",
              "maximum # iterations");
   hestOptAdd(&hopt, "N", "# samp", airTypeUInt, 1, 1, &measrSampleNum, "300",
              "number of samples in the measurement of error across scales");
+  hestOptAdd(&hopt, "K", "# samp", airTypeUInt, 1, 1, &kernelSampleNum, "3000",
+             "number of samples of kernel to use");
   hestOptAdd(&hopt, "eps", "eps", airTypeDouble, 1, 1, &convEps, "0.0001",
              "convergence threshold for optimization");
   hestOptAdd(&hopt, "m", "m1 m2", airTypeEnum, 2, 2, measr, "l2 l2",
@@ -66,6 +72,8 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "p", "s0 s1", airTypeDouble, 2, -1, &plotPos, "nan nan",
              "hack: dont do optimization; just plot the recon error given "
              "these samples along scale", &plotPosNum);
+  hestOptAdd(&hopt, "kss", "kern", airTypeOther, 1, 1, &kss, "hermite",
+             "kernel for gageKernelStack", NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "tent", NULL, airTypeInt, 0, 0, &tentRecon, NULL,
              "same hack: plot error with tent recon, not hermite");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
@@ -78,22 +86,27 @@ main(int argc, const char *argv[]) {
   nout = nrrdNew();
   airMopAdd(mop, nout, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
 
-  osparm = gageOptimSigParmNew(sampleNumMax);
-  airMopAdd(mop, osparm, AIR_CAST(airMopper, gageOptimSigParmNix),
-            airMopAlways);
-  scalePos = AIR_CAST(double *, calloc(sampleNumMax, sizeof(double)));
-  airMopAdd(mop, scalePos, airFree, airMopAlways);
-
-  osparm->plotting = (AIR_EXISTS(plotPos[0]) && AIR_EXISTS(plotPos[1]));
-  if (gageOptimSigTruthSet(osparm, dim, sigmaMax, cutoff, measrSampleNum)) {
+  osctx = gageOptimSigContextNew(dim, sampleNum[1],
+                                 measrSampleNum,
+                                 kernelSampleNum,
+                                 sigma[0], sigma[1],
+                                 cutoff);
+  if (!osctx) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s", me, err);
     airMopError(mop); return 1;
   }
+  airMopAdd(mop, osctx, AIR_CAST(airMopper, gageOptimSigContextNix),
+            airMopAlways);
 
-  if (osparm->plotting) {
-    if (gageOptimSigPlot(osparm, nout, plotPos, plotPosNum,
-                         measr[0], tentRecon)) {
+  scalePos = AIR_CALLOC(sampleNum[1], double);
+  airMopAdd(mop, scalePos, airFree, airMopAlways);
+
+  if (AIR_EXISTS(plotPos[0]) && AIR_EXISTS(plotPos[1])) {
+    if (gageOptimSigPlot(osctx, nout,
+                         plotPos, plotPosNum,
+                         kss,
+                         measr[0])) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s", me, err);
       airMopError(mop); return 1;
@@ -101,37 +114,38 @@ main(int argc, const char *argv[]) {
   } else {
     /* do sample position optimization */
     if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2,
-                          AIR_CAST(size_t, sampleNumMax+1),
-                          AIR_CAST(size_t, sampleNumMax+1))) {
+                          AIR_CAST(size_t, sampleNum[1]+1),
+                          AIR_CAST(size_t, sampleNum[1]+1))) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble allocating output:\n%s", me, err);
       airMopError(mop); return 1;
     }
     out = AIR_CAST(double *, nout->data);
     /* hacky way of saving some of the computation information */
+    /* HEY: this is what KVPs are for */
     info[0] = cutoff;
     info[1] = measrSampleNum;
     info[2] = measr[0];
     info[3] = measr[1];
     info[4] = convEps;
     info[5] = maxIter;
-    for (ii=0; ii<sampleNumMax+1; ii++) {
+    for (ii=0; ii<sampleNum[1]+1; ii++) {
       out[ii] = info[ii];
     }
-    for (num=2; num<=sampleNumMax; num++) {
-      printf("\n%s: ======= optimizing %u/%u samples (sigmaMax %g) \n\n",
-             me, num, sampleNumMax, sigmaMax);
-      if (gageOptimSigCalculate(osparm, scalePos, num,
-                                measr[0], measr[1],
-                                convEps, maxIter)) {
+    for (num=sampleNum[0]; num<=sampleNum[1]; num++) {
+      printf("\n%s: ======= optimizing %u/%u samples (sigma %g--%g) \n\n",
+             me, num, sampleNum[1]+1, sigma[0], sigma[1]);
+      if (gageOptimSigCalculate(osctx, scalePos, num,
+                                kss, measr[0], measr[1],
+                                maxIter, convEps)) {
         airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble:\n%s", me, err);
         airMopError(mop); return 1;
       }
-      out[sampleNumMax + (sampleNumMax+1)*num] = osparm->finalErr;
       for (ii=0; ii<num; ii++) {
-        out[ii + (sampleNumMax+1)*num] = scalePos[ii];
+        out[ii + (sampleNum[1]+1)*num] = scalePos[ii];
       }
+      out[sampleNum[1] + (sampleNum[1]+1)*num] = osctx->finalErr;
     }
   }
   if (nrrdSave(outS, nout, NULL)) {

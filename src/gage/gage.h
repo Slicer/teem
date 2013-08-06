@@ -920,57 +920,87 @@ typedef struct {
 } gageStackBlurParm;
 
 /*
-******** gageOptimSigParm struct
+******** gageOptimSigContext struct
 **
-** a fairly disorganized mess of parameters.  under construction
+** The parameters and state needed to optimize (via gageOptimSigCalculate) the
+** locations for reconstructing scale-space, in the specific case of using
+** nrrdKernelDiscreteGaussian for blurring, and using the
+** nrrdKernelHermiteScaleSpaceFlag for reconstructing along scale.  The
+** "samples" are the pre-blurred correct blurrings along scale, of which there
+** are usually about a dozen or fewer.  The purpose of gageOptimSigCalculate
+** is to find where to put those samples so that the error of reconstructing
+** at any other scale is in some sense minimized.
+**
+** This code was re-written August 2013; one of the big changes is that there
+** is no longer a need for a big 4-D array of pre-computed blurrings.  Since
+** we're using the separable Lindeberg kernel, these image values can be
+** computed as needed from the kernels, which are in fact pre-computed in
+** trueKern, because of the current numerical issues with
+** nrrdKernelDiscreteGaussian.
 */
 typedef struct {
   /* INPUT ------------------------- */
-  /* these determine the allocation and (slow) computation of ntruth */
-  unsigned int dim;            /* either 1, 2, or 3 */
-  double sigmaMax,             /* highest sigma in current computation */
-    cutoff;                    /* parm[1] for discrete gaussian kernel */
-  unsigned int measrSampleNum; /* how many samples along sigma to use
-                                  for measurements of error */
+  /* these are set (once) at context creation time */
+  unsigned int dim,        /* what dimension of point-spread function to
+                              optimize based on; either 1, 2, or 3 */
+    sampleNumMax,          /* max number of samples to optimize */
+    trueImgNum,            /* how many samples along scale to use for the
+                              correct reference blurrings; this discretization
+                              determines the accuracy of the error measurement
+                              integrated across scales. For allMeasr *other*
+                              than nrrdMeasureLinf, this determines the number
+                              of error values summarized with allMeasr */
+    trueKernNum;           /* how many accurate kernels to pre-compute */
+  double sigmaRange[2];    /* range of sigma values that should be studied */
+  double cutoff;           /* second parm to nrrdKernelDiscreteGaussian */
+  /* NOTE: the image blurring to sample a particular scale is always by
+     nrrdKernelDiscreteGaussian; this code is not built for other kinds
+     blurring kernels, even though that would be interesting to pursue */
 
-  /* these can be changed more often */
-  unsigned int sampleNum;      /* how many scale samples to optimize */
-  int volMeasr,                /* how to measure error at each reconstructed
-                                  scale (interpolated volume) */
-    lineMeasr,                 /* how to summarize errors across all scales */
-    plotting,                  /* we're plotting, not optimizing */
-    tentRecon;                 /* for plotting: use tent instead of hermite */
-  unsigned int maxIter;        /* allowed iterations in optimization */
-  double convEps;              /* convergence threshold */
+  /* these are set with calls to gageOptimSigCalculate or gageOptimSigPlot */
+  NrrdKernelSpec *kssSpec; /* how to interpolate across scale; should be
+                              nrrdKernelHermiteScaleSpaceFlag for
+                              kspec->kernel; the main purpose of the sigma
+                              optimization that this code does */
+  unsigned int sampleNum,  /* how many scale samples to optimize */
+    maxIter;               /* allowed iterations in optimization */
+  int imgMeasr,            /* how to measure error at each reconstructed
+                              scale (in the scale-interpolated image) */
+    allMeasr,              /* how to summarize errors across all scales */
+    plotting;              /* we're plotting, not optimizing */
+  double convEps;          /* convergence threshold */
 
   /* INTERNAL ------------------------- */
-  /* these related to the allocation and (slow) computation of ntruth */
-  unsigned int sx, sy, sz;     /* volume size for testing */
-  double *sigmatru,            /* sigmas for all lines of ntruth, allocated
-                                  for measrSampleNum */
-    *truth;                    /* data pointer of ntruth */
-  Nrrd *ntruth,                /* big array of all truth volumes, logically
-                                  a sx x sy x sz x measrSampleNum array */
-    *nerr,                     /* line of all errors, across scale */
-    *ntruline,                 /* *wrapper* around some scanline of ntruth */
-    *ninterp,                  /* last recon result */
-    *ndiff;                    /* diff between recon and truth, single vol */
-  /* most of these allocated according sampleNumMax */
-  unsigned int sampleNumMax;   /* largest number of SS samples to look at;
-                                  this is set at parm creation time and can't
-                                  be changed safely during parm lifetime */
-  double *scalePos,            /* current SS sample locations, allocated
-                                  for sampleNumMax */
-    *step;                     /* per-point stepsize for descent */
-  Nrrd **nsampvol;             /* current set of SS samples, allocated for
-                                  sampleNumMax */
-  gagePerVolume *pvl, **pvlSS; /* for gage; pvlSS allocation different than
-                                  scalePos or nsampvol */
-  gageContext *gctx;           /* context around nsamplevol */
+  /* NOTE: all internal computations are parameterized by a tau-like
+     quantity termed rho, rather than sigma */
+  unsigned int sx, sy, sz; /* image size for testing; determined by
+                              dim, sigmaRange[1], and cutoff */
+  Nrrd *ntrueKern,         /* array of true kernels, logically a
+                              sx x trueKernNum array */
+    *nerr,                 /* 1D array of all errors, across scale, with
+                              length trueImgNum */
+    *ninterp,              /* last scale interpolation result */
+    *ndiff;                /* diff between truth and the single recon last
+                              computed in ninterp */
+  double rhoRange[2],      /* rho(sigmaRange); both ntrueImage and ntrueKern
+                              are node-centered uniform samplings of this,
+                              with trueImageNum and trueKernNum samples,
+                              respectively */
+    *trueKern;             /* (data pointer of ntrueKern) */
+  gageContext *gctx;       /* context around pvlBase, pvlSS, and nsampleImg */
+  /* except for pvlBase, these are allocated for sampleNumMax */
+  gagePerVolume *pvlBase,  /* the base pvl for getting answers */
+    **pvlSS;               /* for gage; pvlSS is the stack pervolume,
+                              for the sampleNum volumes in nsampvol */
+  Nrrd **nsampleImg;       /* current set of scale-interpolated samples */
+  double *sampleSigma,     /* current locations of nsampleImg in sigma
+                              (this array is for the gageStack) */
+    *sampleRho,            /* current locations of nsampleImg in rho */
+    *step;                 /* per-point stepsize for gradient descent */
 
   /* OUTPUT ------------------------- */
-  double finalErr;             /* error of converged points */
-} gageOptimSigParm;
+  double finalErr;         /* error of converged points */
+} gageOptimSigContext;
 
 /* defaultsGage.c */
 GAGE_EXPORT const char *gageBiffKey;
@@ -1087,20 +1117,26 @@ GAGE_EXPORT int gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl,
 /* optimsig.c */
 GAGE_EXPORT int gageOptimSigSet(double *scale, unsigned int num,
                                 unsigned int sigmaMax);
-GAGE_EXPORT gageOptimSigParm *gageOptimSigParmNew(unsigned int sampleMaxNum);
-GAGE_EXPORT gageOptimSigParm *gageOptimSigParmNix(gageOptimSigParm *parm);
-GAGE_EXPORT int gageOptimSigTruthSet(gageOptimSigParm *parm,
-                                     unsigned int dim,
-                                     double sigmaMax, double cutoff,
-                                     unsigned int measrSampleNum);
-GAGE_EXPORT int gageOptimSigCalculate(gageOptimSigParm *parm,
-                                      double *scalePos, unsigned int num,
-                                      int volMeasr, int lineMeasr,
-                                      double convEps, unsigned int maxIter);
-GAGE_EXPORT int gageOptimSigPlot(gageOptimSigParm *parm, Nrrd *nout,
-                                 const double *plotpos,
-                                 unsigned int plotPosNum,
-                                 int volMeasr, int tentRecon);
+GAGE_EXPORT gageOptimSigContext *
+  gageOptimSigContextNew(unsigned int dim,
+                         unsigned int sampleNumMax,
+                         unsigned int trueImgNum,
+                         unsigned int trueKernNum,
+                         double sigmaMin, double sigmaMax,
+                         double cutoff);
+GAGE_EXPORT gageOptimSigContext *gageOptimSigContextNix(gageOptimSigContext
+                                                        *oscx);
+GAGE_EXPORT int gageOptimSigCalculate(gageOptimSigContext *oscx,
+                                      /* output */ double *sigma,
+                                      unsigned int sigmaNum,
+                                      const NrrdKernelSpec *kssSpec,
+                                      int imgMeasr, int allMeasr,
+                                      unsigned int maxIter, double convEps);
+GAGE_EXPORT int gageOptimSigPlot(gageOptimSigContext *oscx, Nrrd *nout,
+                                 const double *sigma,
+                                 unsigned int sigmaNum,
+                                 const NrrdKernelSpec *kssSpec,
+                                 int imgMeasr);
 
 /* stack.c */
 GAGE_EXPORT double gageTauOfTee(double tee);
@@ -1137,6 +1173,8 @@ GAGE_EXPORT int gageStackBlurParmScaleSet(gageStackBlurParm *sbp,
 GAGE_EXPORT int gageStackBlurParmKernelSet(gageStackBlurParm *sbp,
                                            const NrrdKernelSpec *kspec,
                                            int renormalize);
+GAGE_EXPORT int gageStackBlurParmSigmaMaxSet(gageStackBlurParm *sbp,
+                                             double sigmaMax);
 GAGE_EXPORT int gageStackBlurParmBoundarySet(gageStackBlurParm *sbp,
                                              int boundary, double padValue);
 GAGE_EXPORT int gageStackBlurParmVerboseSet(gageStackBlurParm *sbp,

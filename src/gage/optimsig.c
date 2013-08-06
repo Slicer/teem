@@ -175,6 +175,9 @@ _optimSigTable[GAGE_OPTIMSIG_SIGMA_MAX][GAGE_OPTIMSIG_SAMPLES_MAXNUM-1][GAGE_OPT
   }
 };
 
+/*
+** this is only for retreiving part of the table above
+*/
 int
 gageOptimSigSet(double *scale, unsigned int num, unsigned int sigmaMax) {
   static const char me[]="gageOptimSigSet";
@@ -202,322 +205,495 @@ gageOptimSigSet(double *scale, unsigned int num, unsigned int sigmaMax) {
   return 0;
 }
 
-gageOptimSigParm *
-gageOptimSigParmNew(unsigned int sampleNumMax) {
-  gageOptimSigParm *parm;
+/* ------- from here down is the stuff for computing the table ------ */
 
-  parm = AIR_CAST(gageOptimSigParm *, calloc(1, sizeof(gageOptimSigParm)));
-  if (parm) {
-    unsigned int si;
-    parm->dim = 0;
-    parm->sampleNumMax = sampleNumMax;
-    parm->plotting = AIR_FALSE;
-    parm->tentRecon = AIR_FALSE;
-    parm->sigmatru = NULL;
-    parm->truth = NULL;
-    parm->ntruth = nrrdNew();
-    parm->nerr = nrrdNew();
-    parm->ntruline = nrrdNew();
-    parm->ninterp = nrrdNew();
-    parm->ndiff = nrrdNew();
-    parm->scalePos = AIR_CAST(double *, calloc(sampleNumMax, sizeof(double)));
-    parm->step = AIR_CAST(double *, calloc(sampleNumMax, sizeof(double)));
-    parm->nsampvol = AIR_CAST(Nrrd **, calloc(sampleNumMax, sizeof(Nrrd *)));
-    for (si=0; si<sampleNumMax; si++) {
-      parm->nsampvol[si] = nrrdNew();
-    }
-    parm->pvl = NULL;
-    parm->pvlSS = AIR_CAST(gagePerVolume **,
-                           calloc(sampleNumMax, sizeof(gagePerVolume *)));
-    parm->gctx = gageContextNew();
+/* rho is a stand-in for tau - and something that will likely change
+   based on the findings from using this code; the idea is that it
+   reflects the needed density of samples for optimal scale-space
+   reconstruction. In order to be used for the internal workings of
+   the sigma optimization, its important that the conversion between
+   sigma and rho be accurately invertible. */
+static double
+_RhoOfSig(double sig) {
+  double rho;
+
+  if (sig < 1.05189095) {
+    rho = sig*sig*(0.2775733212544225 + 0.13078298856958057*sig*sig);
+  } else {
+    double tee;
+    tee = sig*sig;
+    rho = 0.53653222368715360118 + log(tee)/2.0 + log(1.0 - 1.0/(8.0*tee));
   }
-  return parm;
+  return rho;
 }
 
-gageOptimSigParm *
-gageOptimSigParmNix(gageOptimSigParm *parm) {
+static double
+_SigOfRho(double rho) {
+  double sig;
 
-  if (parm) {
-    unsigned int si;
-    airFree(parm->sigmatru);
-    nrrdNuke(parm->ntruth);
-    nrrdNuke(parm->nerr);
-    nrrdNix(parm->ntruline);
-    nrrdNuke(parm->ninterp);
-    nrrdNuke(parm->ndiff);
-    airFree(parm->scalePos);
-    airFree(parm->step);
-    for (si=0; si<parm->sampleNumMax; si++) {
-      nrrdNuke(parm->nsampvol[si]);
+  if (rho < 0.46724360022171363) {
+    sig = 0.00033978812426865065 *
+      sqrt(-9.191366355042886e6 + 245.3752559286824 *
+           sqrt(1.403132301e9 + 9.526961876920057e9*rho));
+  } else {
+    double ee, tee;
+    ee = exp(2.0*rho);
+    tee = 0.0063325739776461107152*(27.0*ee + 2*AIR_PI*AIR_PI
+                                    + 3.0*sqrt(81.0*ee*ee
+                                               + 12*ee*AIR_PI*AIR_PI));
+    sig = sqrt(tee);
+  }
+  return sig;
+}
+
+static int
+_trueKernGen(gageOptimSigContext *oscx) {
+  static const char me[]="_trueKernGen";
+  char doneStr[AIR_STRLEN_SMALL];
+  double rho, sigma, *timedone, *timeleft, *kcopy, *ksig, *kloc,
+    *tkern, kparm[NRRD_KERNEL_PARMS_NUM], goodSigmaMax;
+  NrrdKernel *dg;
+  int done, ki, kj, sx, rx;
+  unsigned int ii, pi;
+  airArray *mop;
+
+  /* this limits how big the kernel can get with a single evaluation
+     of nrrdKernelDiscreteGaussian; there are some numerical issues
+     with large kernels that need ironing out */
+  goodSigmaMax = 5;
+
+  /* using signed ints to simplfy implementation of bounds checking:
+     don't use or assume wrap-around */
+  sx = AIR_CAST(int, oscx->sx);
+  rx = (sx + 1)/2 - 1;
+  dg = nrrdKernelDiscreteGaussian;
+  kparm[1] = oscx->cutoff;
+  mop = airMopNew();
+  timedone = AIR_CALLOC(oscx->trueKernNum, double);
+  timeleft = AIR_CALLOC(oscx->trueKernNum, double);
+  kcopy = AIR_CALLOC(sx, double);
+  ksig = AIR_CALLOC(sx, double);
+  kloc = AIR_CALLOC(sx, double);
+  airMopAdd(mop, timedone, airFree, airMopAlways);
+  airMopAdd(mop, timeleft, airFree, airMopAlways);
+  airMopAdd(mop, kcopy, airFree, airMopAlways);
+  airMopAdd(mop, ksig, airFree, airMopAlways);
+  airMopAdd(mop, kloc, airFree, airMopAlways);
+  if (!( timedone && timeleft && kcopy && ksig && kloc )) {
+    biffAddf(GAGE, "%s: couldn't alloc time buffer", me);
+    airMopError(mop); return 1;
+  }
+  for (ii=0; ii<oscx->trueKernNum; ii++) {
+    rho = AIR_AFFINE(0, ii, oscx->trueKernNum-1,
+                     oscx->rhoRange[0], oscx->rhoRange[1]);
+    sigma = _SigOfRho(rho);
+    /*
+    fprintf(stderr, "!%s: ii %u -> rho %g -> sig %g -> rho %g (diff %g)\n",
+            me, ii, rho, sigma, _RhoOfSig(sigma), rho - _RhoOfSig(sigma));
+    */
+    timedone[ii] = 0.0;
+    timeleft[ii] = sigma*sigma;
+    tkern = AIR_CAST(double *, oscx->ntrueKern->data) + ii*sx;
+    for (ki=0; ki<sx; ki++) {
+      tkern[ki] = ki == rx;
     }
-    airFree(parm->nsampvol);
-    airFree(parm->pvlSS);
-    gageContextNix(parm->gctx);
-    airFree(parm);
+  }
+
+  done = AIR_FALSE;
+  pi = 0;
+  do {
+    fprintf(stderr, "%s: computing true kernels (pass %u) ...       ",
+            me, pi);
+    done = AIR_TRUE; /* will get smacked down as needed */
+    for (ii=0; ii<oscx->trueKernNum; ii++) {
+      double tlt;
+      if (!(ii % 50)) {
+        fprintf(stderr, "%s", airDoneStr(0, ii, oscx->trueKernNum, doneStr));
+        fflush(stderr);
+      }
+      tkern = AIR_CAST(double *, oscx->ntrueKern->data) + ii*sx;
+      tlt = timeleft[ii];
+      /* fprintf(stderr, "%s: timeleft[%u] = %g\n", me, ii, timeleft[ii]); */
+      if (tlt <= 0.0)
+        continue;
+      sigma = sqrt(tlt);
+      /* fprintf(stderr, "      --> sigma %g\n", sigma); */
+      if (sigma > goodSigmaMax) {
+        sigma = goodSigmaMax;
+        done = AIR_FALSE;
+        /* fprintf(stderr, "      --> chopped down to sigma %g\n", sigma); */
+      }
+      for (ki=0; ki<sx; ki++) {
+        kloc[ki] = AIR_CAST(double, ki) - rx;
+      }
+      kparm[0] = sigma;
+      /* fprintf(stderr, "%s: timedone[%u] = %g\n", me, ii, timedone[ii]); */
+      if (!timedone[ii]) {
+        /* no diffusion has happened yet, write right to tkern */
+        dg->evalN_d(tkern, kloc, sx, kparm);
+      } else {
+        /* some diffusion has already happened, have to convolve */
+        /*
+        fprintf(stderr, "%s: timedone[%u] = %g with sigma %g\n",
+                me, ii, timedone[ii], sigma);
+        */
+        dg->evalN_d(ksig, kloc, sx, kparm);
+        for (ki=0; ki<sx; ki++) {
+          double csum = 0.0;
+          int kk;
+          for (kj=0; kj<sx; kj++) {
+            kk = ki - kj + rx;
+            if (AIR_IN_CL(0, kk, sx-1)) {
+              csum += tkern[kk]*ksig[kj];
+            }
+          }
+          kcopy[ki] = csum;
+        }
+        for (ki=0; ki<sx; ki++) {
+          tkern[ki] = kcopy[ki];
+        }
+      }
+      timeleft[ii] -= sigma*sigma;
+      timedone[ii] += sigma*sigma;
+    }
+    fprintf(stderr, "%s\n", airDoneStr(0, ii, oscx->trueKernNum, doneStr));
+    pi++;
+  } while (!done);
+  if (0) {
+    char fname[]="tkern.nrrd";
+    fprintf(stderr, "!%s: saving %s\n", me, fname);
+    nrrdSave(fname, oscx->ntrueKern, NULL);
+  }
+  airMopOkay(mop);
+  return 0;
+}
+
+/*
+** allocates context, with error checking
+** does use biff
+*/
+gageOptimSigContext *gageOptimSigContextNew(unsigned int dim,
+                                            unsigned int sampleNumMax,
+                                            unsigned int trueImgNum,
+                                            unsigned int trueKernNum,
+                                            double sigmaMin, double sigmaMax,
+                                            double cutoff) {
+  static const char me[]="gageOptimSigContextNew";
+  gageOptimSigContext *oscx;
+  unsigned int support, ii;
+  double kparm[2];
+
+  oscx = AIR_CALLOC(1, gageOptimSigContext);
+  if (!oscx) {
+    biffAddf(GAGE, "%s: couldn't allocate context", me);
+    return NULL;
+  }
+  if (!AIR_IN_CL(1, dim, 3)) {
+    biffAddf(GAGE, "%s: dim %u not 1, 2, or 3", me, dim);
+    return NULL;
+  }
+  if (!(sampleNumMax >= 3)) {
+    biffAddf(GAGE, "%s: sampleNumMax %u not >= 3", me, sampleNumMax);
+    return NULL;
+  }
+  if (!(trueImgNum >= 3)) {
+    biffAddf(GAGE, "%s: trueImgNum %u not >= 3", me, trueImgNum);
+    return NULL;
+  }
+  if (!(trueKernNum >= trueImgNum)) {
+    biffAddf(GAGE, "%s: trueKernNum %u not >= truImgNum %u", me,
+             trueKernNum, trueImgNum);
+    return NULL;
+  }
+  if (!(sigmaMin >= 0 && sigmaMax > sigmaMin && cutoff > 0)) {
+    biffAddf(GAGE, "%s: sigmaMin %g, sigmaMax %g, cutoff %g not valid", me,
+             sigmaMin, sigmaMax, cutoff);
+    return NULL;
+  }
+
+  oscx->dim = dim;
+  oscx->sampleNumMax = sampleNumMax;
+  oscx->trueImgNum = trueImgNum;
+  oscx->trueKernNum = trueKernNum;
+  oscx->sigmaRange[0] = sigmaMin;
+  oscx->sigmaRange[1] = sigmaMax;
+  oscx->cutoff = cutoff;
+
+  /* will be set later */
+  oscx->kssSpec = NULL;
+  oscx->sampleNum = 0;
+  oscx->maxIter = 0;
+  oscx->imgMeasr = nrrdMeasureUnknown;
+  oscx->allMeasr = nrrdMeasureUnknown;
+  oscx->plotting = AIR_FALSE;
+  oscx->convEps = AIR_NAN;
+
+  /* allocate internal buffers based on arguments */
+  kparm[0] = oscx->sigmaRange[1];
+  kparm[1] = oscx->cutoff;
+  support = AIR_ROUNDUP(nrrdKernelDiscreteGaussian->support(kparm));
+  oscx->sx = 2*support - 1;
+  oscx->sy = dim >= 2 ? 2*support - 1 : 1;
+  oscx->sz = dim >= 3 ? 2*support - 1 : 1;
+  /*
+  fprintf(stderr, "%s: max sigma = %g, cutoff %g ==> support=%u, "
+          "3D vol size=%u x %u x %u\n", me,
+          sigmaMax, cutoff, support, oscx->sx, oscx->sy, oscx->sz);
+  */
+  oscx->ntrueKern = nrrdNew();
+  oscx->nerr = nrrdNew();
+  oscx->ninterp = nrrdNew();
+  oscx->ndiff = nrrdNew();
+  if (nrrdMaybeAlloc_va(oscx->ntrueKern, nrrdTypeDouble, 2,
+                        AIR_CAST(size_t, oscx->sx),
+                        AIR_CAST(size_t, oscx->trueKernNum))
+      || nrrdMaybeAlloc_va(oscx->nerr, nrrdTypeDouble, 1,
+                           AIR_CAST(size_t, oscx->trueImgNum))
+      || nrrdMaybeAlloc_va(oscx->ninterp, nrrdTypeDouble, 3,
+                           AIR_CAST(size_t, oscx->sx),
+                           AIR_CAST(size_t, oscx->sy),
+                           AIR_CAST(size_t, oscx->sz))
+      || nrrdMaybeAlloc_va(oscx->ndiff, nrrdTypeDouble, 3,
+                           AIR_CAST(size_t, oscx->sx),
+                           AIR_CAST(size_t, oscx->sy),
+                           AIR_CAST(size_t, oscx->sz))) {
+    biffMovef(GAGE, NRRD, "%s: couldn't allocate buffers", me);
+    return NULL;
+  }
+  nrrdAxisInfoSet_va(oscx->ninterp, nrrdAxisInfoSpacing,
+                     1.0, 1.0, 1.0);
+  nrrdAxisInfoSet_va(oscx->ndiff, nrrdAxisInfoSpacing,
+                     1.0, 1.0, 1.0);
+  oscx->rhoRange[0] = _RhoOfSig(oscx->sigmaRange[0]);
+  oscx->rhoRange[1] = _RhoOfSig(oscx->sigmaRange[1]);
+  /*
+  fprintf(stderr, "!%s: sigma [%g,%g] -> rho [%g,%g]\n", me,
+          oscx->sigmaRange[0], oscx->sigmaRange[1],
+          oscx->rhoRange[0], oscx->rhoRange[1]);
+  */
+  oscx->trueKern = AIR_CAST(double *, oscx->ntrueKern->data);
+
+  oscx->gctx = NULL;
+  oscx->pvlBase = NULL;
+  oscx->pvlSS = AIR_CALLOC(oscx->sampleNumMax, gagePerVolume *);
+  oscx->nsampleImg = AIR_CALLOC(oscx->sampleNumMax, Nrrd *);
+  oscx->sampleSigma = AIR_CALLOC(oscx->sampleNumMax, double);
+  oscx->sampleRho = AIR_CALLOC(oscx->sampleNumMax, double);
+  oscx->step = AIR_CALLOC(oscx->sampleNumMax, double);
+  if (!(oscx->pvlSS && oscx->nsampleImg
+        && oscx->sampleSigma && oscx->sampleRho && oscx->step)) {
+    biffAddf(GAGE, "%s: couldn't allocate per-sample arrays", me);
+    return NULL;
+  }
+  for (ii=0; ii<oscx->sampleNumMax; ii++) {
+    oscx->nsampleImg[ii] = nrrdNew();
+    if (nrrdMaybeAlloc_va(oscx->nsampleImg[ii], nrrdTypeDouble, 3,
+                          AIR_CAST(size_t, oscx->sx),
+                          AIR_CAST(size_t, oscx->sy),
+                          AIR_CAST(size_t, oscx->sz))) {
+      biffMovef(GAGE, NRRD, "%s: couldn't allocate vol[%u]", me, ii);
+      return NULL;
+    }
+    nrrdAxisInfoSet_va(oscx->nsampleImg[ii], nrrdAxisInfoSpacing,
+                       1.0, 1.0, 1.0);
+  }
+  if (_trueKernGen(oscx)) {
+    biffAddf(GAGE, "%s: trouble generating true kernels", me);
+    return NULL;
+  }
+
+  /* implementation not started
+  oscx->nsampleHist = nrrdNew();
+  */
+
+  return oscx;
+}
+
+gageOptimSigContext *
+gageOptimSigContextNix(gageOptimSigContext *oscx) {
+
+  if (oscx) {
+    unsigned int si;
+    nrrdKernelSpecNix(oscx->kssSpec);
+    nrrdNuke(oscx->ntrueKern);
+    nrrdNuke(oscx->nerr);
+    nrrdNuke(oscx->ninterp);
+    nrrdNuke(oscx->ndiff);
+    gageContextNix(oscx->gctx);
+    /* airFree(oscx->pvlSS); needed? */
+    for (si=0; si<oscx->sampleNumMax; si++) {
+      nrrdNuke(oscx->nsampleImg[si]);
+    }
+    airFree(oscx->nsampleImg);
+    airFree(oscx->sampleSigma);
+    airFree(oscx->sampleRho);
+    airFree(oscx->step);
+    /* nrrdNuke(oscx->nsampleHist); */
+    airFree(oscx);
   }
   return NULL;
 }
 
 static void
-_volTrueBlur(Nrrd *nvol, double sigma, gageOptimSigParm *parm) {
-  double *vol, xv, yv, zv;
-  unsigned int xi, yi, zi;
-  NrrdKernel *dg;
-  double kparm[NRRD_KERNEL_PARMS_NUM], xrad, yrad, zrad;
-
-  vol = AIR_CAST(double *, nvol->data);
-  xrad = (nvol->axis[0].size + 1)/2 - 1;
-  yrad = (nvol->axis[1].size + 1)/2 - 1;
-  zrad = (nvol->axis[2].size + 1)/2 - 1;
-  dg = nrrdKernelDiscreteGaussian;
-  kparm[0] = sigma;
-  kparm[1] = parm->cutoff;
-  for (zi=0; zi<parm->sz; zi++) {
-    zv = (parm->dim >= 2
-          ? dg->eval1_d(AIR_CAST(double, zi) - zrad, kparm)
-          : 1);
-    for (yi=0; yi<parm->sy; yi++) {
-      yv = (parm->dim >= 3
-            ? dg->eval1_d(AIR_CAST(double, yi) - yrad, kparm)
-            : 1);
-      for (xi=0; xi<parm->sx; xi++) {
-        xv = dg->eval1_d(AIR_CAST(double, xi) - xrad, kparm);
-        vol[xi + parm->sx*(yi + parm->sy*zi)] = xv*yv*zv;
-      }
-    }
-  }
-  return;
-}
-
-int
-gageOptimSigTruthSet(gageOptimSigParm *parm,
-                     unsigned int dim,
-                     double sigmaMax, double cutoff,
-                     unsigned int measrSampleNum) {
-  static const char me[]="gageOptimSigTruthSet";
-  char doneStr[AIR_STRLEN_SMALL];
-  double kparm[NRRD_KERNEL_PARMS_NUM], tauMax;
-  unsigned int support, ii;
-
-  if (!parm) {
-    biffAddf(GAGE, "%s: got NULL pointer", me);
-    return 1;
-  }
-  if (!AIR_IN_CL(1, dim, 3)) {
-    biffAddf(GAGE, "%s: dim %u not 1, 2, or 3", me, dim);
-    return 1;
-  }
-  if (!(sigmaMax > 0 && cutoff > 0)) {
-    biffAddf(GAGE, "%s: sigmaMax %g, cutoff %g not both > 0", me,
-             sigmaMax, cutoff);
-    return 1;
-  }
-  if (!(measrSampleNum >= 3)) {
-    biffAddf(GAGE, "%s: measrSampleNum %u not >= 3", me, measrSampleNum);
-    return 1;
-  }
-
-  parm->dim = dim;
-  kparm[0] = parm->sigmaMax = sigmaMax;
-  kparm[1] = parm->cutoff = cutoff;
-  parm->measrSampleNum = measrSampleNum;
-  support = AIR_ROUNDUP(nrrdKernelDiscreteGaussian->support(kparm));
-  /* may later allow different shaped volumes */
-  parm->sx = parm->sy = parm->sz = 2*support - 1;
-  fprintf(stderr, "!%s: support = %u, vol size = %u\n", me, support, parm->sx);
-  airFree(parm->sigmatru);
-  parm->sigmatru = AIR_CAST(double *, calloc(measrSampleNum, sizeof(double)));
-  if (!parm->sigmatru) {
-    biffAddf(GAGE, "%s: couldn't alloc sigmatru buffer", me);
-    return 1;
-  }
-  if (nrrdMaybeAlloc_va(parm->ntruth, nrrdTypeDouble, 4,
-                        AIR_CAST(size_t, parm->sx),
-                        AIR_CAST(size_t, parm->sy),
-                        AIR_CAST(size_t, parm->sz),
-                        AIR_CAST(size_t, measrSampleNum))
-      || nrrdMaybeAlloc_va(parm->nerr, nrrdTypeDouble, 1,
-                           AIR_CAST(size_t, measrSampleNum))
-      /* ntruline->data will be re-set willy-nilly */
-      || nrrdWrap_va(parm->ntruline, parm->ntruth->data,
-                     parm->ntruth->type, 3,
-                     AIR_CAST(size_t, parm->sx),
-                     AIR_CAST(size_t, parm->sy),
-                     AIR_CAST(size_t, parm->sz))
-      || nrrdMaybeAlloc_va(parm->ninterp, nrrdTypeDouble, 3,
-                           AIR_CAST(size_t, parm->sx),
-                           AIR_CAST(size_t, parm->sy),
-                           AIR_CAST(size_t, parm->sz))
-      || nrrdMaybeAlloc_va(parm->ndiff, nrrdTypeDouble, 3,
-                           AIR_CAST(size_t, parm->sx),
-                           AIR_CAST(size_t, parm->sy),
-                           AIR_CAST(size_t, parm->sz))) {
-    biffMovef(GAGE, NRRD, "%s: couldn't allocate truth", me);
-    return 1;
-  }
-  parm->truth = AIR_CAST(double *, parm->ntruth->data);
-  nrrdAxisInfoSet_va(parm->ntruth, nrrdAxisInfoSpacing,
-                     1.0, 1.0, 1.0, AIR_NAN);
-  nrrdAxisInfoSet_va(parm->ntruline, nrrdAxisInfoSpacing,
-                     1.0, 1.0, 1.0);
-  nrrdAxisInfoSet_va(parm->ninterp, nrrdAxisInfoSpacing,
-                     1.0, 1.0, 1.0);
-  nrrdAxisInfoSet_va(parm->ndiff, nrrdAxisInfoSpacing,
-                     1.0, 1.0, 1.0);
-  for (ii=0; ii<parm->sampleNumMax; ii++) {
-    if (nrrdMaybeAlloc_va(parm->nsampvol[ii], nrrdTypeDouble, 3,
-                          AIR_CAST(size_t, parm->sx),
-                          AIR_CAST(size_t, parm->sy),
-                          AIR_CAST(size_t, parm->sz))) {
-      biffMovef(GAGE, NRRD, "%s: couldn't allocate vol[%u]", me, ii);
-      return 1;
-    }
-    nrrdAxisInfoSet_va(parm->nsampvol[ii], nrrdAxisInfoSpacing,
-                       1.0, 1.0, 1.0);
-  }
-  fprintf(stderr, "%s: computing reference blurrings ...       ", me);
-  tauMax =  gageTauOfSig(parm->sigmaMax);
-  for (ii=0; ii<parm->measrSampleNum; ii++) {
-    double sigma;
-    if (!(ii % 10)) {
-      fprintf(stderr, "%s", airDoneStr(0, ii, parm->measrSampleNum, doneStr));
-      fflush(stderr);
-    }
-    parm->ntruline->data = parm->truth + ii*parm->sx*parm->sy*parm->sz;
-    if (parm->plotting) {
-      sigma = AIR_AFFINE(0, ii, parm->measrSampleNum-1, 0.0, parm->sigmaMax);
-    } else {
-      double tau;
-      tau = AIR_AFFINE(0, ii, parm->measrSampleNum-1, 0.0, tauMax);
-      sigma = gageSigOfTau(tau);
-    }
-    parm->sigmatru[ii] = sigma;
-    _volTrueBlur(parm->ntruline, sigma, parm);
-  }
-  fprintf(stderr, "%s\n", airDoneStr(0, ii, parm->measrSampleNum, doneStr));
-  return 0;
-}
-
-static void
-_volInterp(Nrrd *ninterp, double scale, gageOptimSigParm *parm) {
+_volInterp(Nrrd *ninterp, double rho, gageOptimSigContext *oscx) {
   double *interp, scaleIdx;
   const double *answer;
   unsigned int xi, yi, zi;
   int outside;
 
-  scaleIdx = gageStackWtoI(parm->gctx, scale, &outside);
-  answer = gageAnswerPointer(parm->gctx, parm->pvl, gageSclValue);
+  scaleIdx = gageStackWtoI(oscx->gctx, _SigOfRho(rho), &outside);
+  answer = gageAnswerPointer(oscx->gctx, oscx->pvlBase, gageSclValue);
   interp = AIR_CAST(double *, ninterp->data);
-  for (zi=0; zi<parm->sz; zi++) {
-    for (yi=0; yi<parm->sy; yi++) {
-      for (xi=0; xi<parm->sx; xi++) {
-        gageStackProbe(parm->gctx, xi, yi, zi, scaleIdx);
-        interp[xi + parm->sx*(yi + parm->sy*zi)] = answer[0];
+  for (zi=0; zi<oscx->sz; zi++) {
+    for (yi=0; yi<oscx->sy; yi++) {
+      for (xi=0; xi<oscx->sx; xi++) {
+        gageStackProbe(oscx->gctx, xi, yi, zi, scaleIdx);
+        interp[xi + oscx->sx*(yi + oscx->sy*zi)] = answer[0];
       }
     }
   }
   return;
 }
 
-static double
-_errSingle(gageOptimSigParm *parm, unsigned int sigmaIdx) {
-  double *interp, *truline, *diff, ret;
-  size_t ii, nn;
+#define KSET(kz, ky, kx, oscx, one, rho) {                         \
+    const double *kern;                                            \
+  double kid;                                                      \
+  unsigned int ki;                                                 \
+  kid = AIR_AFFINE(oscx->rhoRange[0], rho, oscx->rhoRange[1],      \
+                   0, oscx->trueKernNum-1);                        \
+  ki = AIR_ROUNDUP(kid);                                           \
+  kern = AIR_CAST(double *, oscx->ntrueKern->data) + ki*oscx->sx;  \
+  kz = oscx->dim >= 2 ? kern : one;                                \
+  ky = oscx->dim >= 3 ? kern : one;                                \
+  kx = kern;                                                       \
+}
 
-  _volInterp(parm->ninterp, parm->sigmatru[sigmaIdx], parm);
-  interp = AIR_CAST(double *, parm->ninterp->data);
-  nn = parm->sx*parm->sy*parm->sz;
-  truline = parm->truth + sigmaIdx*nn;
-  diff = AIR_CAST(double *, parm->ndiff->data);
-  for (ii=0; ii<nn; ii++) {
-    diff[ii] = truline[ii] - interp[ii];
+/*
+** sets one of the sampleImg, to be used as a sample in scale-space interp
+*/
+static void
+_sampleSet(gageOptimSigContext *oscx, unsigned int si, double rho) {
+  const double one[1]={1.0}, *kz, *ky, *kx;
+  double *vol;
+  unsigned int ii, xi, yi, zi;
+
+  oscx->sampleSigma[si] = _SigOfRho(rho);
+  oscx->sampleRho[si] = rho;
+  vol = AIR_CAST(double *, oscx->nsampleImg[si]->data);
+  KSET(kz, ky, kx, oscx, one, rho);
+  ii = 0;
+  for (zi=0; zi<oscx->sz; zi++) {
+    for (yi=0; yi<oscx->sy; yi++) {
+      for (xi=0; xi<oscx->sx; xi++) {
+        vol[ii] = kz[zi]*ky[yi]*kx[xi];
+        ii++;
+      }
+    }
+  }
+  /* HEY: GLK forgets why this was needed, but knows it was tricky to debug */
+  if (oscx->gctx) {
+    gagePointReset(&(oscx->gctx->point));
+  }
+  return;
+}
+
+static double
+_errSingle(gageOptimSigContext *oscx, double rho) {
+  double *diff, ret;
+  const double *interp, one[1]={1.0}, *kx, *ky, *kz;
+  unsigned int ii, xi, yi, zi;
+
+  _volInterp(oscx->ninterp, rho, oscx);
+  interp = AIR_CAST(const double *, oscx->ninterp->data);
+  diff = AIR_CAST(double *, oscx->ndiff->data);
+  KSET(kz, ky, kx, oscx, one, rho);
+  ii = 0;
+  for (zi=0; zi<oscx->sz; zi++) {
+    for (yi=0; yi<oscx->sy; yi++) {
+      for (xi=0; xi<oscx->sx; xi++) {
+        diff[ii] = interp[ii] - kz[zi]*ky[yi]*kx[xi];
+        ii++;
+      }
+    }
   }
   if (0) {
     char fname[AIR_STRLEN_SMALL];
-    sprintf(fname, "interp-%03u.nrrd", sigmaIdx);
-    nrrdSave(fname, parm->ninterp, NULL);
+    sprintf(fname, "interp-%g.nrrd", rho);
+    nrrdSave(fname, oscx->ninterp, NULL);
   }
-  nrrdMeasureLine[parm->volMeasr](&ret, nrrdTypeDouble,
+  nrrdMeasureLine[oscx->imgMeasr](&ret, nrrdTypeDouble,
                                   diff, nrrdTypeDouble,
-                                  nn, AIR_NAN, AIR_NAN);
+                                  ii /* HEY: cleverness */,
+                                  AIR_NAN, AIR_NAN);
   return ret;
 }
 
 static double
-_errTotal(gageOptimSigParm *parm) {
+_errTotal(gageOptimSigContext *oscx) {
   unsigned int ii;
   double *err, ret;
 
-  for (ii=0; ii<parm->sampleNum; ii++) {
-    parm->gctx->stackPos[ii] = parm->scalePos[ii];
+  err = AIR_CAST(double *, oscx->nerr->data);
+  for (ii=0; ii<oscx->trueImgNum; ii++) {
+    err[ii] = _errSingle(oscx, AIR_AFFINE(0, ii, oscx->trueImgNum-1,
+                                          oscx->rhoRange[0],
+                                          oscx->rhoRange[1]));
   }
-  err = AIR_CAST(double *, parm->nerr->data);
-  for (ii=0; ii<parm->measrSampleNum; ii++) {
-    err[ii] = _errSingle(parm, ii);
-  }
-  nrrdMeasureLine[parm->lineMeasr](&ret, nrrdTypeDouble,
-                                   err, nrrdTypeDouble,
-                                   parm->measrSampleNum,
-                                   AIR_NAN, AIR_NAN);
+  nrrdMeasureLine[oscx->allMeasr](&ret, nrrdTypeDouble,
+                                  err, nrrdTypeDouble,
+                                  oscx->trueImgNum,
+                                  AIR_NAN, AIR_NAN);
   if (0) {
     static unsigned int call;
     char fname[AIR_STRLEN_SMALL];
     sprintf(fname, "err-%04u.nrrd", call);
-    nrrdSave(fname, parm->nerr, NULL);
+    nrrdSave(fname, oscx->nerr, NULL);
     call++;
   }
   return ret;
 }
 
+/*
+** this can be called repeatedly
+*/
 static int
-_gageSetup(gageOptimSigParm *parm) {
+_gageSetup(gageOptimSigContext *oscx) {
   static const char me[]="_gageSetup";
   double kparm[NRRD_KERNEL_PARMS_NUM];
   int E;
 
-  if (parm->gctx) {
-    gageContextNix(parm->gctx);
+  if (oscx->gctx) {
+    gageContextNix(oscx->gctx);
   }
-  parm->gctx = gageContextNew();
-  gageParmSet(parm->gctx, gageParmVerbose, 0);
-  gageParmSet(parm->gctx, gageParmRenormalize, AIR_FALSE);
-  gageParmSet(parm->gctx, gageParmCheckIntegrals, AIR_FALSE);
-  gageParmSet(parm->gctx, gageParmOrientationFromSpacing, AIR_TRUE);
-  gageParmSet(parm->gctx, gageParmStackUse, AIR_TRUE);
+  oscx->gctx = gageContextNew();
+  gageParmSet(oscx->gctx, gageParmVerbose, 0);
+  gageParmSet(oscx->gctx, gageParmRenormalize, AIR_FALSE);
+  gageParmSet(oscx->gctx, gageParmCheckIntegrals, AIR_FALSE);
+  gageParmSet(oscx->gctx, gageParmOrientationFromSpacing, AIR_TRUE);
+  gageParmSet(oscx->gctx, gageParmStackUse, AIR_TRUE);
   E = 0;
-  if (!E) E |= !(parm->pvl = gagePerVolumeNew(parm->gctx, parm->nsampvol[0],
-                                              gageKindScl));
-  if (!E) E |= gageStackPerVolumeNew(parm->gctx, parm->pvlSS,
+  if (!E) E |= !(oscx->pvlBase = gagePerVolumeNew(oscx->gctx,
+                                                  oscx->nsampleImg[0],
+                                                  gageKindScl));
+  if (!E) E |= gageStackPerVolumeNew(oscx->gctx, oscx->pvlSS,
                                      AIR_CAST(const Nrrd*const*,
-                                              parm->nsampvol),
-                                     parm->sampleNum, gageKindScl);
-  if (!E) E |= gageStackPerVolumeAttach(parm->gctx, parm->pvl, parm->pvlSS,
-                                        parm->scalePos, parm->sampleNum);
+                                              oscx->nsampleImg),
+                                     oscx->sampleNum, gageKindScl);
+  if (!E) E |= gageStackPerVolumeAttach(oscx->gctx,
+                                        oscx->pvlBase, oscx->pvlSS,
+                                        oscx->sampleSigma, oscx->sampleNum);
   kparm[0] = 1;
-  if (!E) E |= gageKernelSet(parm->gctx, gageKernel00,
-                             nrrdKernelTent, kparm);
-  if (parm->tentRecon) {
-    if (!E) E |= gageKernelSet(parm->gctx, gageKernelStack,
-                               nrrdKernelTent, kparm);
-  } else {
-    if (!E) E |= gageKernelSet(parm->gctx, gageKernelStack,
-                               nrrdKernelHermiteScaleSpaceFlag, kparm);
-  }
-  if (!E) E |= gageQueryItemOn(parm->gctx, parm->pvl, gageSclValue);
-  if (!E) E |= gageUpdate(parm->gctx);
+  if (!E) E |= gageKernelSet(oscx->gctx, gageKernel00,
+                             nrrdKernelBox, kparm);
+  if (!E) E |= gageKernelSet(oscx->gctx, gageKernelStack,
+                             oscx->kssSpec->kernel, oscx->kssSpec->parm);
+  if (!E) E |= gageQueryItemOn(oscx->gctx, oscx->pvlBase, gageSclValue);
+  if (!E) E |= gageUpdate(oscx->gctx);
   if (E) {
     biffAddf(GAGE, "%s: problem setting up gage", me);
     return 1;
   }
   return 0;
-}
-
-static void
-_scalePosSet(gageOptimSigParm *parm, unsigned int ii, double sigma) {
-
-  parm->scalePos[ii] = sigma;
-  _volTrueBlur(parm->nsampvol[ii], parm->scalePos[ii], parm);
-  gagePointReset(&(parm->gctx->point));
 }
 
 static char *
@@ -548,65 +724,66 @@ _timefmt(char tstr[AIR_STRLEN_MED], double deltim) {
 }
 
 static int
-_optsigrun(gageOptimSigParm *parm) {
+_optsigrun(gageOptimSigContext *oscx) {
   static const char me[]="_optsigrun";
   char tstr[AIR_STRLEN_MED];
   unsigned int iter, pnt;
-  double lastErr, newErr, sigeps, oppor, lastPos, backoff, decavg, time0;
+  double lastErr, newErr, rhoeps, oppor, lastPos, backoff, decavg, time0;
   int badStep;
 
   time0 = airTime();
-  lastErr = _errTotal(parm);
+  lastErr = _errTotal(oscx);
   fprintf(stderr, "%s: (%s for initial error measr)\n", me,
           _timefmt(tstr, airTime() - time0));
   newErr = AIR_NAN;
-  decavg = parm->sampleNum; /* hack */
+  decavg = oscx->sampleNum; /* hack */
   /* meaningful discrete difference for looking at error gradient is
      bounded by the resolution of the sampling we're doing along scale */
-  sigeps = parm->sigmatru[1]/10;
+  rhoeps = 0.1*(oscx->rhoRange[1]-oscx->rhoRange[0])/oscx->trueImgNum;
   oppor = 1.3333;
   backoff = 0.25;
-  for (pnt=1; pnt<parm->sampleNum-1; pnt++) {
-    parm->step[pnt] = 10;
+  /* initialize step for the moving samples 1 through oscx->sampleNum-2 */
+  for (pnt=1; pnt<oscx->sampleNum-1; pnt++) {
+    oscx->step[pnt] = 10;
   }
-  for (iter=0; iter<parm->maxIter; iter++) {
+  for (iter=0; iter<oscx->maxIter; iter++) {
     double limit, err1, grad, delta;
     unsigned int tryi;
     int zerodelta, esgn;
     esgn = 2*AIR_CAST(int, airRandInt(2)) - 1;
-    pnt = 1 + (iter % (parm->sampleNum-2));
-    lastPos = parm->scalePos[pnt];
+    pnt = 1 + (iter % (oscx->sampleNum-2));
+    lastPos = oscx->sampleRho[pnt];
     fprintf(stderr, "%s: ***** iter %u; [[ err %g ]] %s\n",
             me, iter, lastErr, _timefmt(tstr, airTime() - time0));
-    limit = AIR_MIN((parm->scalePos[pnt] - parm->scalePos[pnt-1])/3,
-                    (parm->scalePos[pnt+1] - parm->scalePos[pnt])/3);
+    limit = AIR_MIN((oscx->sampleRho[pnt] - oscx->sampleRho[pnt-1])/3,
+                    (oscx->sampleRho[pnt+1] - oscx->sampleRho[pnt])/3);
     fprintf(stderr, ". pnt %u: pos %g, step %g\n",
-            pnt, lastPos, parm->step[pnt]);
+            pnt, lastPos, oscx->step[pnt]);
     fprintf(stderr, ". limit = min((%g-%g)/3,(%g-%g)/3) = %g\n",
-            parm->scalePos[pnt], parm->scalePos[pnt-1],
-            parm->scalePos[pnt+1], parm->scalePos[pnt], limit);
-    _scalePosSet(parm, pnt, lastPos + esgn*sigeps);
-    err1 = _errTotal(parm);
-    _scalePosSet(parm, pnt, lastPos);
-    grad = (err1 - lastErr)/(esgn*sigeps);
+            oscx->sampleRho[pnt], oscx->sampleRho[pnt-1],
+            oscx->sampleRho[pnt+1], oscx->sampleRho[pnt], limit);
+    _sampleSet(oscx, pnt, lastPos + esgn*rhoeps);
+    err1 = _errTotal(oscx);
+    _sampleSet(oscx, pnt, lastPos);
+    grad = (err1 - lastErr)/(esgn*rhoeps);
     fprintf(stderr, ". grad = %g\n", grad);
-    delta = -grad*parm->step[pnt];
+    delta = -grad*oscx->step[pnt];
     if (!AIR_EXISTS(delta)) {
       biffAddf(GAGE, "%s: got non-exist delta %g on iter %u (pnt %u) err %g",
                me, delta, iter, pnt, lastErr);
       return 1;
     }
     if (AIR_ABS(delta) > limit) {
-      parm->step[pnt] *= limit/AIR_ABS(delta);
+      oscx->step[pnt] *= limit/AIR_ABS(delta);
       fprintf(stderr, ". step *= %g/%g -> %g\n",
-              limit, AIR_ABS(delta), parm->step[pnt]);
-      delta = -grad*parm->step[pnt];
+              limit, AIR_ABS(delta), oscx->step[pnt]);
+      delta = -grad*oscx->step[pnt];
     }
     fprintf(stderr, ". delta = %g\n", delta);
     tryi = 0;
     badStep = AIR_FALSE;
     do {
-      if (tryi == parm->maxIter) {
+      if (tryi == oscx->maxIter) {
         biffAddf(GAGE, "%s: confusion (tryi %u) on iter %u (pnt %u) err %g",
                  me, tryi, iter, pnt, lastErr);
         return 1;
@@ -617,26 +794,26 @@ _optsigrun(gageOptimSigParm *parm) {
         zerodelta = AIR_TRUE;
       } else {
         zerodelta = AIR_FALSE;
-        _scalePosSet(parm, pnt, lastPos + delta);
-        newErr = _errTotal(parm);
+        _sampleSet(oscx, pnt, lastPos + delta);
+        newErr = _errTotal(oscx);
         badStep = newErr > lastErr;
         fprintf(stderr, "... try %u: pos[%u] %g + %g = %g;\n"
                 "%s: err %g %s %g\n",
                 tryi, pnt, lastPos, delta,
-                parm->scalePos[pnt],
+                oscx->sampleRho[pnt],
                badStep ? "*BAD*" : "good",
                newErr, newErr > lastErr ? ">" : "<=", lastErr);
         if (badStep) {
-          parm->step[pnt] *= backoff;
-          if (parm->step[pnt] < sigeps/1000) {
+          oscx->step[pnt] *= backoff;
+          if (oscx->step[pnt] < rhoeps/1000) {
             /* step got so small its stupid to be moving this point */
             fprintf(stderr, "... !! step %g < %g pointlessly small, "
-                    "moving on\n", parm->step[pnt], sigeps/1000);
-            _scalePosSet(parm, pnt, lastPos);
+                    "moving on\n", oscx->step[pnt], rhoeps/1000);
+            _sampleSet(oscx, pnt, lastPos);
             newErr = lastErr;
             badStep = AIR_FALSE;
           } else {
-            delta = -grad*parm->step[pnt];
+            delta = -grad*oscx->step[pnt];
           }
         }
       }
@@ -644,151 +821,162 @@ _optsigrun(gageOptimSigParm *parm) {
     } while (badStep);
     if (!zerodelta) {
       /* don't update decavg if we moved on because slope was EXACTLY zero */
-      decavg = AIR_AFFINE(0, 1, parm->sampleNum,
+      decavg = AIR_AFFINE(0, 1, oscx->sampleNum,
                           decavg, (lastErr - newErr)/lastErr);
-      parm->step[pnt] *= oppor;
+      oscx->step[pnt] *= oppor;
     }
-    if (decavg <= parm->convEps) {
+    if (decavg <= oscx->convEps) {
       fprintf(stderr, "%s: converged (%g <= %g) after %u iters\n", me,
-              decavg, parm->convEps, iter);
+              decavg, oscx->convEps, iter);
       break;
     } else {
-      fprintf(stderr, "%s: _____ iter %u done; decavg = %g > %g\n", me,
-              iter, decavg, parm->convEps);
+      fprintf(stderr, "%s: _____ iter %u done; decavg = %g > eps %g\n", me,
+              iter, decavg, oscx->convEps);
     }
     lastErr = newErr;
   }
-  if (iter == parm->maxIter) {
+  if (iter == oscx->maxIter && decavg > oscx->convEps) {
     biffAddf(GAGE, "%s: failed to converge (%g > %g) after %u iters\n", me,
-             decavg, parm->convEps, iter);
+             decavg, oscx->convEps, iter);
     return 1;
   }
-  parm->finalErr = lastErr;
+  oscx->finalErr = lastErr;
+
   return 0;
 }
 
 int
-gageOptimSigCalculate(gageOptimSigParm *parm,
-                      double *scalePos, unsigned int num,
-                      int volMeasr, int lineMeasr,
-                      double convEps, unsigned int maxIter) {
+gageOptimSigCalculate(gageOptimSigContext *oscx,
+                      /* output */ double *sigma,
+                      unsigned int sigmaNum,
+                      const NrrdKernelSpec *kssSpec,
+                      int imgMeasr, int allMeasr,
+                      unsigned int maxIter, double convEps) {
   static const char me[]="gageOptimSigCalculate";
   unsigned int ii;
-  double tauMax;
 
-  if (!( parm && scalePos && num )) {
+  if (!( oscx && sigma && kssSpec )) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!( AIR_IN_CL(1, parm->dim, 3)
-         && parm->ntruth->data )) {
-    biffAddf(GAGE, "%s: incomplete parm setup?", me);
+  if (sigmaNum > oscx->sampleNumMax) {
+    biffAddf(GAGE, "%s: initialized for max %u samples, not %u", me,
+             oscx->sampleNumMax, sigmaNum);
     return 1;
   }
-  if (num > parm->sampleNumMax) {
-    biffAddf(GAGE, "%s: parm setup for max %u samples, not %u", me,
-             parm->sampleNumMax, num);
-    return 1;
-  }
-  /* copy remaining input parms */
-  parm->sampleNum = num;
-  parm->volMeasr = volMeasr;
-  parm->lineMeasr = lineMeasr;
-  parm->maxIter = maxIter;
-  parm->convEps = convEps;
 
-  /* initialize the scalePos[] array to uniform samples in tau */
-  fprintf(stderr, "%s: initializing samples ... ", me); fflush(stderr);
-  tauMax = gageTauOfSig(parm->sigmaMax);
-  for (ii=0; ii<parm->sampleNum; ii++) {
-    double tau;
-    tau = AIR_AFFINE(0, ii, parm->sampleNum-1, 0, tauMax);
-    _scalePosSet(parm, ii, gageSigOfTau(tau));
+  /* initialize to uniform samples in rho */
+  oscx->sampleNum = sigmaNum;
+  fprintf(stderr, "%s: initializing %u samples ... ", me, oscx->sampleNum);
+  fflush(stderr);
+  for (ii=0; ii<oscx->sampleNum; ii++) {
+    _sampleSet(oscx, ii, AIR_AFFINE(0, ii, oscx->sampleNum-1,
+                                    oscx->rhoRange[0], oscx->rhoRange[1]));
   }
   fprintf(stderr, "done.\n");
 
+  /* copy remaining input parameters */
+  nrrdKernelSpecNix(oscx->kssSpec);
+  oscx->kssSpec = nrrdKernelSpecCopy(kssSpec);
+  oscx->imgMeasr = imgMeasr;
+  oscx->allMeasr = allMeasr;
+  oscx->plotting = AIR_FALSE;
+  oscx->convEps = convEps;
+  oscx->maxIter = maxIter;
+  oscx->convEps = convEps;
+
   /* set up gage */
   fprintf(stderr, "%s: setting up gage ... \n", me);
-  if (_gageSetup(parm)) {
+  if (_gageSetup(oscx)) {
     biffAddf(GAGE, "%s: problem setting up gage", me);
     return 1;
   }
-  fprintf(stderr, "%s: gage setup done.\n", me);
+  fprintf(stderr, "%s: ... gage setup done.\n", me);
 
   /* run the optimization */
-  if (num > 2) {
-    if (_optsigrun(parm)) {
+  if (oscx->sampleNum > 2) {
+    if (_optsigrun(oscx)) {
       biffAddf(GAGE, "%s: trouble", me);
       return 1;
     }
   } else {
     fprintf(stderr, "%s: num == 2, no optimization, finding error ... ", me);
     fflush(stderr);
-    parm->finalErr = _errTotal(parm);
+    oscx->finalErr = _errTotal(oscx);
     fprintf(stderr, "done.\n");
   }
 
   /* save output */
-  for (ii=0; ii<num; ii++) {
-    scalePos[ii] = parm->scalePos[ii];
+  for (ii=0; ii<oscx->sampleNum; ii++) {
+    sigma[ii] = oscx->sampleSigma[ii];
   }
 
   return 0;
 }
 
 int
-gageOptimSigPlot(gageOptimSigParm *parm, Nrrd *nout,
-                 const double *plotPos, unsigned int plotPosNum,
-                 int volMeasr, int tentRecon) {
-  char me[]="gageOptimSigPlot", doneStr[AIR_STRLEN_SMALL];
-  unsigned int ii;
+gageOptimSigPlot(gageOptimSigContext *oscx, Nrrd *nout,
+                 const double *sigma,
+                 unsigned int sigmaNum,
+                 const NrrdKernelSpec *kssSpec,
+                 int imgMeasr) {
+  static const char me[]="gageOptimSigPlot";
+  char doneStr[AIR_STRLEN_SMALL];
   double *out;
+  unsigned int ii;
 
-  if (!(parm && nout && plotPos)) {
+  if (!(oscx && nout && sigma)) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!( plotPosNum >= 2 )) {
-    biffAddf(GAGE, "%s: need plotPosNum >= 2 (not %u)", me, plotPosNum);
+  if (!( sigmaNum >= 2 )) {
+    biffAddf(GAGE, "%s: need sigmaNum >= 2 (not %u)", me, sigmaNum);
     return 1;
   }
-  /* HEY: copy and paste from above */
-  if (!( AIR_IN_CL(1, parm->dim, 3)
-         && parm->ntruth->data )) {
-    biffAddf(GAGE, "%s: incomplete parm setup?", me);
+  if (sigmaNum > oscx->sampleNumMax) {
+    biffAddf(GAGE, "%s: initialized for max %u samples, not %u", me,
+             oscx->sampleNumMax, sigmaNum);
     return 1;
   }
-  if (plotPosNum > parm->sampleNumMax) {
-    biffAddf(GAGE, "%s: parm setup for max %u samples, not %u", me,
-             parm->sampleNumMax, plotPosNum);
-    return 1;
-  }
+
   /* copy remaining input parms */
-  parm->sampleNum = plotPosNum;
-  parm->volMeasr = volMeasr;
-  parm->tentRecon = tentRecon;
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 1,
-                        AIR_CAST(size_t, parm->measrSampleNum))) {
+  nrrdKernelSpecNix(oscx->kssSpec);
+  oscx->kssSpec = nrrdKernelSpecCopy(kssSpec);
+  oscx->sampleNum = sigmaNum;
+  oscx->maxIter = 0;
+  oscx->imgMeasr = imgMeasr;
+  oscx->allMeasr = nrrdMeasureUnknown;
+  oscx->plotting = AIR_TRUE;
+  oscx->convEps = AIR_NAN;
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2,
+                        AIR_CAST(size_t, 2),
+                        AIR_CAST(size_t, oscx->trueImgNum))) {
     biffMovef(GAGE, NRRD, "%s: trouble allocating output", me);
     return 1;
   }
   out = AIR_CAST(double *, nout->data);
 
   /* set up requested samples */
-  for (ii=0; ii<parm->sampleNum; ii++) {
-    _scalePosSet(parm, ii, plotPos[ii]);
+  for (ii=0; ii<oscx->sampleNum; ii++) {
+    _sampleSet(oscx, ii, _RhoOfSig(sigma[ii]));
   }
-  if (_gageSetup(parm)) {
+  if (_gageSetup(oscx)) {
     biffAddf(GAGE, "%s: problem setting up gage", me);
     return 1;
   }
   fprintf(stderr, "%s: working ...       ", me);
-  for (ii=0; ii<parm->measrSampleNum; ii++) {
-    printf("%s", airDoneStr(0, ii, parm->measrSampleNum, doneStr));
+  for (ii=0; ii<oscx->trueImgNum; ii++) {
+    double rho, sig;
+    printf("%s", airDoneStr(0, ii, oscx->trueImgNum, doneStr));
     fflush(stderr);
-    out[ii] = _errSingle(parm, ii);
+    rho = AIR_AFFINE(0, ii, oscx->trueImgNum-1,
+                     oscx->rhoRange[0], oscx->rhoRange[1]);
+    sig = _SigOfRho(rho);
+    out[0 + 2*ii] = rho;
+    out[1 + 2*ii] = _errSingle(oscx, rho);
   }
-  fprintf(stderr, "%s\n", airDoneStr(0, ii, parm->measrSampleNum, doneStr));
+  fprintf(stderr, "%s\n", airDoneStr(0, ii, oscx->trueImgNum, doneStr));
 
   return 0;
 }
+
