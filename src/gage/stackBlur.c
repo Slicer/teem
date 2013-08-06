@@ -144,6 +144,23 @@ gageStackBlurParmKernelSet(gageStackBlurParm *sbp,
 }
 
 int
+gageStackBlurParmSigmaMaxSet(gageStackBlurParm *sbp,
+                             double sigmaMax) {
+  static const char me[]="gageStackBlurParmSigmaMaxSet";
+
+  if (!sbp) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!sigmaMax > 0) {
+    biffAddf(GAGE, "%s: given sigmaMax %g not > 0", me, sigmaMax);
+    return 1;
+  }
+  sbp->sigmaMax = sigmaMax;
+  return 0;
+}
+
+int
 gageStackBlurParmBoundarySet(gageStackBlurParm *sbp,
                              int boundary, double padValue) {
   static const char me[]="gageStackBlurParmBoundarySet";
@@ -289,9 +306,9 @@ _blurValAlloc(airArray *mop, gageStackBlurParm *sbp) {
     sprintf(blurVal[blIdx].val[1], "%g", sbp->scale[blIdx]);
     nrrdKernelSpecSprint(blurVal[blIdx].val[2], sbp->kspec);
     sprintf(blurVal[blIdx].val[3], "%s",
-            sbp->renormalize ? "true" : "false");
-    sprintf(blurVal[blIdx].val[4], "%s",
             airEnumStr(nrrdBoundary, sbp->boundary));
+    sprintf(blurVal[blIdx].val[4], "%s",
+            sbp->renormalize ? "true" : "false");
     sprintf(blurVal[blIdx].val[5], "%s",
             sbp->oneDim ? "true" : "false");
   }
