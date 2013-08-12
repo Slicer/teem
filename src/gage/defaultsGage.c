@@ -66,7 +66,7 @@ double
 gageDefStackNormalizeDerivBias = 0.0;
 
 double
-gageDefStackBlurSigmaMax = 8.0;
+gageDefStackBlurSigmaMax = 5.0;
 
 int
 gageDefOrientationFromSpacing = AIR_FALSE;
