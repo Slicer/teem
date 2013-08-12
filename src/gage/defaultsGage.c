@@ -70,7 +70,7 @@ gageDefStackNormalizeDerivBias = 0.0;
    info is here in gage since it is the context of doing scale-space stacks
    that the info is typically needed and used */
 double
-gageDefStackBlurSigmaMax = 5.0;
+gageDefStackBlurSigmaMax = 6.0;
 
 int
 gageDefOrientationFromSpacing = AIR_FALSE;
