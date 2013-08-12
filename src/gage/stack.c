@@ -396,7 +396,7 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
                      iv31[iii + fdd] + iv31[iii - fdd] - 6*val1);
             /* the (sigma1 - sigma0) factor is needed to convert the
                derivative with respect to sigma (sigma*lapl) into the
-               derivative with respect to xx */
+               derivative with respect to xx (ranges from 0 to 1) */
             drv0 = sigma0*lapl0*(sigma1 - sigma0);
             drv1 = sigma1*lapl1*(sigma1 - sigma0);
             /* Hermite spline coefficients, thanks Mathematica */
