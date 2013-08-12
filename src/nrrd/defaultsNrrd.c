@@ -144,6 +144,8 @@ const char *const nrrdEnvVarStateGrayscaleImage3D
   = "NRRD_STATE_GRAYSCALE_IMAGE_3D";
 
 /*
+**    return
+**     value:
 **        -1: unset, or bad args    ==> *val NOT set
 **  AIR_TRUE: set in a valid way    ==> *val set (to something)
 ** AIR_FALSE: set in an invalid way ==> *val NOT set
@@ -268,6 +270,25 @@ nrrdGetenvDouble(double *val, char **envStr, const char *envVar) {
     return AIR_FALSE;
   } else {
     *val = tmp;
+    return AIR_TRUE;
+  }
+}
+
+/*
+** This function is not used in the same way within nrrd the same way
+** as the other nrrdGetenv functions; it was added just to have a more
+** convenient wrapper around getenv for strings.
+*/
+int
+nrrdGetenvString(char **envStr, const char *envVar) {
+
+  if (!(envStr && envVar)) {
+    return -1;
+  }
+  *envStr = getenv(envVar);
+  if (!(*envStr)) {
+    return AIR_FALSE;
+  } else {
     return AIR_TRUE;
   }
 }

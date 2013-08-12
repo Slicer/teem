@@ -713,6 +713,7 @@ NRRD_EXPORT int nrrdGetenvUInt(unsigned int *val, char **envStr,
                                const char *envVar);
 NRRD_EXPORT int nrrdGetenvDouble(double *val, char **envStr,
                                  const char *envVar);
+NRRD_EXPORT int nrrdGetenvString(char **envStr, const char *envVar);
 NRRD_EXPORT void nrrdDefaultGetenv(void);
 NRRD_EXPORT void nrrdStateGetenv(void);
 /* ---- END non-NrrdIO */
