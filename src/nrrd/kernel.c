@@ -2621,8 +2621,6 @@ _nrrdKernelDiscreteGaussian = {
 NrrdKernel *const
 nrrdKernelDiscreteGaussian = &_nrrdKernelDiscreteGaussian;
 
-const double nrrdKernelDiscreteGaussianGoodSigmaMax = 5.0;
-
 /* ------------------------------------------------------------ */
 
 #define _DGAUSS(x, sig, cut) (                                               \
