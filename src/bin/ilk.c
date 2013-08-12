@@ -113,7 +113,9 @@ main(int argc, const char *argv[]) {
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
                  me, ilkInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
+  /* HEY: this is commented out because there is a memory otherwise;
+     this needs to be debugged */
+  /* airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways); */
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
