@@ -932,11 +932,7 @@ typedef struct {
 ** at any other scale is in some sense minimized.
 **
 ** This code was re-written August 2013; one of the big changes is that there
-** is no longer a need for a big 4-D array of pre-computed blurrings.  Since
-** we're using the separable Lindeberg kernel, these image values can be
-** computed as needed from the kernels, which are in fact pre-computed in
-** trueKern, because of the current numerical issues with
-** nrrdKernelDiscreteGaussian.
+** is no longer a need for a big 4-D array of pre-computed blurrings.
 */
 typedef struct {
   /* INPUT ------------------------- */
@@ -944,13 +940,17 @@ typedef struct {
   unsigned int dim,        /* what dimension of point-spread function to
                               optimize based on; either 1, 2, or 3 */
     sampleNumMax,          /* max number of samples to optimize */
-    trueImgNum,            /* how many samples along scale to use for the
+    trueImgNum;            /* how many samples along scale to use for the
                               correct reference blurrings; this discretization
                               determines the accuracy of the error measurement
                               integrated across scales. For allMeasr *other*
                               than nrrdMeasureLinf, this determines the number
-                              of error values summarized with allMeasr */
-    trueKernNum;           /* how many accurate kernels to pre-compute */
+                              of error values summarized with allMeasr. With
+                              the re-write of this code, setting this is not
+                              as consequential as it used to be; now it only
+                              controls the allocation of nerr.  One could
+                              imagine another tweak that shifted truImgNum
+                              to the gageOptimSigCalculate or similar call */
   double sigmaRange[2];    /* range of sigma values that should be studied */
   double cutoff;           /* second parm to nrrdKernelDiscreteGaussian */
   /* NOTE: the image blurring to sample a particular scale is always by
@@ -974,19 +974,20 @@ typedef struct {
      quantity termed rho, rather than sigma */
   unsigned int sx, sy, sz; /* image size for testing; determined by
                               dim, sigmaRange[1], and cutoff */
-  Nrrd *ntrueKern,         /* array of true kernels, logically a
-                              sx x trueKernNum array */
-    *nerr,                 /* 1D array of all errors, across scale, with
+  Nrrd *nerr,              /* 1D array of all errors, across scale, with
                               length trueImgNum */
     *ninterp,              /* last scale interpolation result */
     *ndiff;                /* diff between truth and the single recon last
                               computed in ninterp */
-  double rhoRange[2],      /* rho(sigmaRange); both ntrueImage and ntrueKern
-                              are node-centered uniform samplings of this,
-                              with trueImageNum and trueKernNum samples,
-                              respectively */
-    *trueKern;             /* (data pointer of ntrueKern) */
+  double rhoRange[2],      /* rho(sigmaRange) */
+    *kloc,                 /* allocated for length sx to evaluation locations
+                              of nrrdKernelDiscreteGaussian */
+    *kern, *ktmp1, *ktmp2, /* allocated for length sx to store a high-quality
+                              nrrdKernelDiscreteGaussian evaluation, or
+                              buffers related to that */
+    kone[1];               /* stores 1.0 */
   gageContext *gctx;       /* context around pvlBase, pvlSS, and nsampleImg */
+  /* buffers for kernel evaluation */
   /* except for pvlBase, these are allocated for sampleNumMax */
   gagePerVolume *pvlBase,  /* the base pvl for getting answers */
     **pvlSS;               /* for gage; pvlSS is the stack pervolume,
@@ -995,6 +996,8 @@ typedef struct {
   double *sampleSigma,     /* current locations of nsampleImg in sigma
                               (this array is for the gageStack) */
     *sampleRho,            /* current locations of nsampleImg in rho */
+    *sampleTmp,            /* buffer for sample location info */
+    *sampleErrMax,         /* for tracking per-sample-pair errors in Linf */
     *step;                 /* per-point stepsize for gradient descent */
 
   /* OUTPUT ------------------------- */
@@ -1120,7 +1123,6 @@ GAGE_EXPORT gageOptimSigContext *
   gageOptimSigContextNew(unsigned int dim,
                          unsigned int sampleNumMax,
                          unsigned int trueImgNum,
-                         unsigned int trueKernNum,
                          double sigmaMin, double sigmaMax,
                          double cutoff);
 GAGE_EXPORT gageOptimSigContext *gageOptimSigContextNix(gageOptimSigContext
@@ -1131,11 +1133,18 @@ GAGE_EXPORT int gageOptimSigCalculate(gageOptimSigContext *oscx,
                                       const NrrdKernelSpec *kssSpec,
                                       int imgMeasr, int allMeasr,
                                       unsigned int maxIter, double convEps);
-GAGE_EXPORT int gageOptimSigPlot(gageOptimSigContext *oscx, Nrrd *nout,
-                                 const double *sigma,
-                                 unsigned int sigmaNum,
-                                 const NrrdKernelSpec *kssSpec,
-                                 int imgMeasr);
+GAGE_EXPORT int gageOptimSigErrorPlot(gageOptimSigContext *oscx,
+                                      Nrrd *nout,
+                                      const double *sigma,
+                                      unsigned int sigmaNum,
+                                      const NrrdKernelSpec *kssSpec,
+                                      int imgMeasr);
+GAGE_EXPORT int gageOptimSigErrorPlotSliding(gageOptimSigContext *oscx,
+                                             Nrrd *nout,
+                                             double windowRho,
+                                             unsigned int sampleNum,
+                                             const NrrdKernelSpec *kssSpec,
+                                             int imgMeasr);
 
 /* stack.c */
 GAGE_EXPORT double gageTauOfTee(double tee);

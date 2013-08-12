@@ -36,8 +36,7 @@ main(int argc, const char *argv[]) {
   char *err, *outS;
   double sigma[2], convEps, cutoff;
   int measr[2], tentRecon;
-  unsigned int sampleNum[2], dim, measrSampleNum, kernelSampleNum,
-    maxIter, num, ii;
+  unsigned int sampleNum[2], dim, measrSampleNum, maxIter, num, ii;
   gageOptimSigContext *osctx;
   double *scalePos, *out, info[512];
   Nrrd *nout;
@@ -62,16 +61,18 @@ main(int argc, const char *argv[]) {
              "maximum # iterations");
   hestOptAdd(&hopt, "N", "# samp", airTypeUInt, 1, 1, &measrSampleNum, "300",
              "number of samples in the measurement of error across scales");
-  hestOptAdd(&hopt, "K", "# samp", airTypeUInt, 1, 1, &kernelSampleNum, "3000",
-             "number of samples of kernel to use");
   hestOptAdd(&hopt, "eps", "eps", airTypeDouble, 1, 1, &convEps, "0.0001",
              "convergence threshold for optimization");
   hestOptAdd(&hopt, "m", "m1 m2", airTypeEnum, 2, 2, measr, "l2 l2",
              "how to measure error across image, and across scales",
              NULL, nrrdMeasure);
-  hestOptAdd(&hopt, "p", "s0 s1", airTypeDouble, 2, -1, &plotPos, "nan nan",
-             "hack: dont do optimization; just plot the recon error given "
-             "these samples along scale", &plotPosNum);
+  hestOptAdd(&hopt, "p", "s0 s1", airTypeDouble, 1, -1, &plotPos, "nan nan",
+             "hack: don't do optimization; just plot the recon error given "
+             "these (two or more) samples along scale.  OR, hackier hack: "
+             "if there is only one value given here, do a different "
+             "plot: of the recon error within a small window (with the width "
+             "given here) in rho, as rho moves through its range",
+             &plotPosNum);
   hestOptAdd(&hopt, "kss", "kern", airTypeOther, 1, 1, &kss, "hermite",
              "kernel for gageKernelStack", NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "tent", NULL, airTypeInt, 0, 0, &tentRecon, NULL,
@@ -88,7 +89,6 @@ main(int argc, const char *argv[]) {
 
   osctx = gageOptimSigContextNew(dim, sampleNum[1],
                                  measrSampleNum,
-                                 kernelSampleNum,
                                  sigma[0], sigma[1],
                                  cutoff);
   if (!osctx) {
@@ -102,11 +102,22 @@ main(int argc, const char *argv[]) {
   scalePos = AIR_CALLOC(sampleNum[1], double);
   airMopAdd(mop, scalePos, airFree, airMopAlways);
 
-  if (AIR_EXISTS(plotPos[0]) && AIR_EXISTS(plotPos[1])) {
-    if (gageOptimSigPlot(osctx, nout,
-                         plotPos, plotPosNum,
-                         kss,
-                         measr[0])) {
+  if (1 == plotPosNum && AIR_EXISTS(plotPos[0])) {
+    /* hackity hack: a different kind of plotting requested */
+    if (gageOptimSigErrorPlotSliding(osctx, nout,
+                                     plotPos[0],
+                                     measrSampleNum,
+                                     kss, measr[0])) {
+      airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s", me, err);
+      airMopError(mop); return 1;
+    }
+  } else if (AIR_EXISTS(plotPos[0]) && AIR_EXISTS(plotPos[1])) {
+    /* hack: plotting requested */
+    if (gageOptimSigErrorPlot(osctx, nout,
+                              plotPos, plotPosNum,
+                              kss,
+                              measr[0])) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s", me, err);
       airMopError(mop); return 1;
