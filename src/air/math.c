@@ -701,7 +701,7 @@ airBesselIn(int nn, double xx) {
 */
 double
 airBesselInExpScaled(int nn, double xx) {
-  double tax, bb, bi, bim, bip;
+  double tax, bb, bi, bim, bip, eps;
   int top, ii, an;
 
   an = AIR_ABS(nn);
@@ -724,14 +724,15 @@ airBesselInExpScaled(int nn, double xx) {
      levels for scale-space feature detection; but that didn't quite
      work either; this will have to be debugged further! */
   top = 2*(an + AIR_CAST(int, sqrt(40.0*an)));
+  eps = 1.0e-10;
   for (ii=top; ii > 0; ii--) {
     bim = bip + ii*tax*bi;
     bip = bi;
     bi = bim;
-    if (AIR_ABS(bi) > 1.0e10) {
-      bb *= 1.0e-10;
-      bi *= 1.0e-10;
-      bip*= 1.0e-10;
+    if (AIR_ABS(bi) > 1.0/eps) {
+      bb *= eps;
+      bi *= eps;
+      bip*= eps;
     }
     if (ii == an) {
       bb = bip;
