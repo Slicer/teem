@@ -2527,9 +2527,16 @@ nrrdKernelGaussian = &_nrrdKernelG;
       : airBesselInExpScaled(AIR_CAST(int, xx + 0.5), sig*sig)) \
    : xx <= 0.5)
 
+/* the last line used to be AIR_MAX(0.5, (ret)), but the problem was
+   that even for reasonable cutoffs, like sigma=6, there would be a
+   sudden change in the non-zero values at the edge of the kernel with
+   slowly increasing sigma. The real solution is to have a smarter way
+   of determining where to cut-off this particular kernel, the
+   discrete gaussian, when the values are at the low level one would
+   expect with "sigma=6" when talking about a continuous Gaussian */
 #define _DGABSCUT(ret, sig, cut) \
   (ret) = 0.5 + ceil((sig)*(cut));  \
-  (ret) = AIR_MAX(0.5, (ret))
+  (ret) = AIR_MAX(2.5, (ret))
 
 static double
 _nrrdDiscGaussianSup(const double *parm) {
