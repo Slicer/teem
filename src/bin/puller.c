@@ -906,7 +906,7 @@ main(int argc, const char **argv) {
              "path (without trailing /) for where to read/write "
              "pre-blurred volumes for scale-space");
   hestOptAdd(&hopt, "kssb", "kernel", airTypeOther, 1, 1, &kSSblur,
-             "ds:1,5", "blurring kernel, to sample scale space",
+             "dgauss:1,5", "blurring kernel, to sample scale space",
              NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "kssr", "kernel", airTypeOther, 1, 1, &kSSrecon,
              "hermite", "kernel for reconstructing from scale space samples",
@@ -1167,6 +1167,9 @@ main(int argc, const char **argv) {
   sbp = gageStackBlurParmNew();
   airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
   if (gageStackBlurParmBoundarySet(sbp, nrrdBoundaryBleed, AIR_NAN)
+      /* gageStackBlurParmBoundarySet(sbp, nrrdBoundaryWrap, AIR_NAN) */
+      || gageStackBlurParmSigmaMaxSet(sbp,
+                                      nrrdKernelDiscreteGaussianGoodSigmaMax)
       /* though this verbosity could in principle be different */
       || gageStackBlurParmVerboseSet(sbp, verbose)
       || gageStackBlurParmOneDimSet(sbp, oneDim)) {
