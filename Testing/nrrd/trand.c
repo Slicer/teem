@@ -41,8 +41,10 @@
 
 /* have to use PGM format for image because Teem might
    not have been built with PNG */
-#define THISNAME "histo.pgm"
-#define CORRNAME "test/trandhisto.pgm"
+#define THISNAMENRRD "histo.nrrd"
+#define CORRNAMENRRD "test/trandhisto.nrrd"
+#define THISNAMEIMG "histo.pgm"
+#define CORRNAMEIMG "test/trandhisto.pgm"
 
 int
 main(int argc, const char *argv[]) {
@@ -84,11 +86,12 @@ main(int argc, const char *argv[]) {
   nimg=nrrdNew();
   airMopAdd(mop, nimg, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdHisto(nhist, nval, NULL, NULL, BINS, nrrdTypeInt)
+      || nrrdSave(THISNAMENRRD, nhist, NULL)
       || nrrdHistoDraw(nimg, nhist, HGHT, AIR_TRUE, 0.0)
-      || nrrdSave(THISNAME, nimg, NULL)) {
+      || nrrdSave(THISNAMEIMG, nimg, NULL)) {
     char *err;
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble producing histo:\n%s", me, err);
+    fprintf(stderr, "%s: trouble making histo or its image:\n%s", me, err);
     airMopError(mop); return 1;
   }
 
@@ -97,36 +100,76 @@ main(int argc, const char *argv[]) {
   ncorr = nrrdNew();
   airMopAdd(mop, ncorr, (airMopper)nrrdNuke, airMopAlways);
 
-  corrname = testDataPathPrefix(CORRNAME);
+  corrname = testDataPathPrefix(CORRNAMENRRD);
   airMopAdd(mop, corrname, airFree, airMopAlways);
   if (nrrdLoad(ncorr, corrname, NULL)
-      || nrrdLoad(nread, THISNAME, NULL)) {
+      || nrrdLoad(nread, THISNAMENRRD, NULL)) {
     char *err;
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble reading:\n%s", me, err);
     airMopError(mop); return 1;
   }
-
-  if (nrrdCompare(nimg, nread, AIR_FALSE /* onlyData */,
+  if (nrrdCompare(nhist, nread, AIR_FALSE /* onlyData */,
                   0.0 /* epsilon */, &differ, explain)) {
     char *err;
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble comparing in-memeory and from-disk:\n%s",
+    fprintf(stderr, "%s: trouble comparing in-mem and from-disk histos:\n%s",
             me, err);
     airMopError(mop); return 1;
   }
   if (differ) {
-    fprintf(stderr, "%s: in-memory and from-disk (%s) images differ: %s\n",
-            me, THISNAME, explain);
+    fprintf(stderr, "%s: in-mem and from-disk (%s) histos differ: %s\n",
+            me, THISNAMENRRD, explain);
     airMopError(mop); return 1;
   } else {
-    printf("%s: good: in-memory and from-disk images same\n", me);
+    printf("%s: good: in-mem and from-disk histos same\n", me);
   }
   if (nrrdCompare(ncorr, nread, AIR_FALSE /* onlyData */,
                   0.0 /* epsilon */, &differ, explain)) {
     char *err;
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble comparing correct and generated:\n%s",
+    fprintf(stderr, "%s: trouble comparing correct and generated histos:\n%s",
+            me, err);
+    airMopError(mop); return 1;
+  }
+  if (differ) {
+    fprintf(stderr, "%s: correct (%s) and generated histos differ: %s\n",
+            me, corrname, explain);
+    airMopError(mop); return 1;
+  } else {
+    printf("%s: good: correct and generated histos same\n", me);
+  }
+
+  /* HEY: copy and paste! */
+  corrname = testDataPathPrefix(CORRNAMEIMG);
+  airMopAdd(mop, corrname, airFree, airMopAlways);
+  if (nrrdLoad(ncorr, corrname, NULL)
+      || nrrdLoad(nread, THISNAMEIMG, NULL)) {
+    char *err;
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble reading:\n%s", me, err);
+    airMopError(mop); return 1;
+  }
+  if (nrrdCompare(nimg, nread, AIR_FALSE /* onlyData */,
+                  0.0 /* epsilon */, &differ, explain)) {
+    char *err;
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble comparing in-mem and from-disk images:\n%s",
+            me, err);
+    airMopError(mop); return 1;
+  }
+  if (differ) {
+    fprintf(stderr, "%s: in-mem and from-disk (%s) images differ: %s\n",
+            me, THISNAMEIMG, explain);
+    airMopError(mop); return 1;
+  } else {
+    printf("%s: good: in-mem and from-disk images same\n", me);
+  }
+  if (nrrdCompare(ncorr, nread, AIR_FALSE /* onlyData */,
+                  0.0 /* epsilon */, &differ, explain)) {
+    char *err;
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble comparing correct and generated images:\n%s",
             me, err);
     airMopError(mop); return 1;
   }
