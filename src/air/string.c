@@ -71,17 +71,24 @@ airStrlen(const char *s) {
 /*
 ******** airStrcmp
 **
-** just like strcmp, but safe to call with NULL strings
+** like strcmp, but:
+** safe to call with NULL strings,
+** and, a NULL string is treated same as an empty string
 */
 int
-airStrcmp(const char *s1, const char *s2) {
+airStrcmp(const char *_s1, const char *_s2) {
+  static const char empty[]="";
+  const char *s1, *s2;
   int ret;
 
-  if (!( s1 && s2 )) {
-    ret = !!s1 - !!s2;
-  } else {
-    ret = strcmp(s1, s2);
-  }
+  s1 = _s1 ? _s1 : empty;
+  s2 = _s2 ? _s2 : empty;
+  /*
+  fprintf(stderr, "airStrcmp: _s1=|%s|->s1=|%s| _s2=|%s|->s2=|%s|\n",
+          _s1 ? _s1 : "(NULL)", s1,
+          _s2 ? _s2 : "(NULL)", s2);
+  */
+  ret = strcmp(s1, s2);
   return ret;
 }
 
