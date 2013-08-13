@@ -1168,8 +1168,6 @@ main(int argc, const char **argv) {
   airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
   if (gageStackBlurParmBoundarySet(sbp, nrrdBoundaryBleed, AIR_NAN)
       /* gageStackBlurParmBoundarySet(sbp, nrrdBoundaryWrap, AIR_NAN) */
-      || gageStackBlurParmSigmaMaxSet(sbp,
-                                      nrrdKernelDiscreteGaussianGoodSigmaMax)
       /* though this verbosity could in principle be different */
       || gageStackBlurParmVerboseSet(sbp, verbose)
       || gageStackBlurParmOneDimSet(sbp, oneDim)) {
