@@ -107,19 +107,35 @@ main(int argc, const char *argv[]) {
     airMopError(mop); return 1;
   }
 
+  if (nrrdCompare(nimg, nread, AIR_FALSE /* onlyData */,
+                  0.0 /* epsilon */, &differ, explain)) {
+    char *err;
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble comparing in-memeory and from-disk:\n%s",
+            me, err);
+    airMopError(mop); return 1;
+  }
+  if (differ) {
+    fprintf(stderr, "%s: in-memory and from-disk (%s) images differ: %s\n",
+            me, THISNAME, explain);
+    airMopError(mop); return 1;
+  } else {
+    printf("%s: good: in-memory and from-disk images same\n", me);
+  }
   if (nrrdCompare(ncorr, nread, AIR_FALSE /* onlyData */,
                   0.0 /* epsilon */, &differ, explain)) {
     char *err;
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble comparing:\n%s", me, err);
+    fprintf(stderr, "%s: trouble comparing correct and generated:\n%s",
+            me, err);
     airMopError(mop); return 1;
   }
   if (differ) {
-    fprintf(stderr, "%s: new and correct (%s) images differ: %s\n",
+    fprintf(stderr, "%s: correct (%s) and generated images differ: %s\n",
             me, corrname, explain);
     airMopError(mop); return 1;
   } else {
-    printf("%s: all good\n", me);
+    printf("%s: good: correct and generated images same\n", me);
   }
 
   airMopOkay(mop);
