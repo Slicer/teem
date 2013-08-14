@@ -3385,17 +3385,20 @@ nrrdKernelCheck(const NrrdKernel *kern,
     /* single float vs vector float */
     if (nrrdKernelForwDiff == kern
         || nrrdKernelBCCubic == kern
-        || nrrdKernelBCCubicDD == kern) {
+        || nrrdKernelBCCubicDD == kern
+        || nrrdKernelAQuarticDD == kern) {
       /* HEY this is crazy: need a special epsilon for these kernels;
          WHY WHY do these kernels evaluate to different things in the
          single versus the vector case? */
       float specEps;
       if (nrrdKernelForwDiff == kern) {
-        specEps = 0.000000005;
+        specEps = 5e-9;
       } else if (nrrdKernelBCCubic == kern) {
         specEps = 5e-8;
       } else if (nrrdKernelBCCubicDD == kern) {
         specEps = 5e-8;
+      } else if (nrrdKernelAQuarticDD == kern) {
+        specEps = 5e-10;
       } else {
         specEps = 0.0;
       }
