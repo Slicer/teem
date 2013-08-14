@@ -3398,9 +3398,10 @@ nrrdKernelCheck(const NrrdKernel *kern,
       }
       if (fabs(single_f - ran_f[evalIdx]) > specEps) {
         biffAddf(NRRD, "%s: %s (eval1_f(%.17g)=%.17g) != "
-                 "(evalN_f(%.17g)=%.17g) by more than %g",
+                 "(evalN_f(%.17g)=%.17g) by %.17g > %.17g",
                  me, kstr, dom_f[evalIdx], single_f,
-                 dom_f[evalIdx], ran_f[evalIdx], specEps);
+                 dom_f[evalIdx], ran_f[evalIdx],
+                 fabs(single_f - ran_f[evalIdx]), specEps);
         airMopError(mop); return 1;
       }
     } else {
