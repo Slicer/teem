@@ -3383,11 +3383,24 @@ nrrdKernelCheck(const NrrdKernel *kern,
     single_d = kern->eval1_d(dom_d[evalIdx], parm);
     integral += single_d;
     /* single float vs vector float */
-    if (single_f != ran_f[evalIdx]) {
-      biffAddf(NRRD, "%s: %s (eval1_f(%.17g)=%.17g) != (evalN_f(%.17g)=%.17g)",
-               me, kstr, dom_f[evalIdx], single_f,
-               dom_f[evalIdx], ran_f[evalIdx]);
-      airMopError(mop); return 1;
+    if (nrrdKernelForwDiff == kern) {
+      /* HEY this is crazy: need a special epsilon for this kernel */
+      float specEps = 0.000000005;
+      if (fabs(single_f - ran_f[evalIdx]) > specEps) {
+        biffAddf(NRRD, "%s: %s (eval1_f(%.17g)=%.17g) != "
+                 "(evalN_f(%.17g)=%.17g) by more than %g",
+                 me, kstr, dom_f[evalIdx], single_f,
+                 dom_f[evalIdx], ran_f[evalIdx], specEps);
+        airMopError(mop); return 1;
+      }
+    } else {
+      if (single_f != ran_f[evalIdx]) {
+        biffAddf(NRRD, "%s: %s (eval1_f(%.17g)=%.17g) != "
+                 "(evalN_f(%.17g)=%.17g)",
+                 me, kstr, dom_f[evalIdx], single_f,
+                 dom_f[evalIdx], ran_f[evalIdx]);
+        airMopError(mop); return 1;
+      }
     }
     /* single double vs vector double */
     if (single_d != ran_d[evalIdx]) {
