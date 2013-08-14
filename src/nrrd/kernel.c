@@ -3384,7 +3384,8 @@ nrrdKernelCheck(const NrrdKernel *kern,
     integral += single_d;
     /* single float vs vector float */
     if (nrrdKernelForwDiff == kern
-        || nrrdKernelBCCubic == kern) {
+        || nrrdKernelBCCubic == kern
+        || nrrdKernelBCCubicDD == kern) {
       /* HEY this is crazy: need a special epsilon for these kernels;
          WHY WHY do these kernels evaluate to different things in the
          single versus the vector case? */
