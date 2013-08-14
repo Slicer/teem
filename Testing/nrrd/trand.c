@@ -82,6 +82,12 @@ main(int argc, const char *argv[]) {
 
   airSrandMT(999);
   vi = 0;
+  /* without first casting to float, the platform-dependent
+     differences in the values from airNormalRand() would
+     lead to testing errors, e.g.:
+     correct (test/trandvals.nrrd) and generated values differ:
+     valA[0]=0.36654774192269141 < valB[0]=0.36654774192269146 by 5.55112e-17
+     Would be nice to figure out exactly what the origin of that is ... */
   for (ii=0; ii<qvalLen; ii++) {
     airNormalRand(&aa, NULL);
     val[vi++] = AIR_CAST(float, aa);
