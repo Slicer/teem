@@ -723,9 +723,9 @@ nrrdKernelHermiteScaleSpaceFlag = &_nrrdKernelHermiteScaleSpaceFlag;
 
 /* ------------------------------------------------------------ */
 
-#define _FORDIF(x) (x < -1 ?  0 :        \
-                   (x <  0 ?  1 :        \
-                   (x <  1 ? -1 : 0 )))
+#define _FORDIF(x) (x < -1 ?  0.0f :        \
+                   (x <  0 ?  1.0f :        \
+                   (x <  1 ? -1.0f : 0.0f )))
 
 static double
 _nrrdFDSup(const double *parm) {
@@ -755,8 +755,7 @@ _nrrdFD1_f(float x, const double *parm) {
 
 static void
 _nrrdFDN_d(double *f, const double *x, size_t len, const double *parm) {
-  double S;
-  double t;
+  double t, S;
   size_t i;
 
   S = parm[0];
