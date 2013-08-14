@@ -84,16 +84,16 @@ main(int argc, const char *argv[]) {
   vi = 0;
   for (ii=0; ii<qvalLen; ii++) {
     airNormalRand(&aa, NULL);
-    val[vi++] = aa;
+    val[vi++] = AIR_CAST(float, aa);
   }
   for (ii=0; ii<qvalLen; ii++) {
     airNormalRand(NULL, &bb);
-    val[vi++] = bb;
+    val[vi++] = AIR_CAST(float, bb);
   }
   for (ii=0; ii<qvalLen; ii++) {
     airNormalRand(&aa, &bb);
-    val[vi++] = aa;
-    val[vi++] = bb;
+    val[vi++] = AIR_CAST(float, aa);
+    val[vi++] = AIR_CAST(float, bb);
   }
 
   if (nrrdSave(mine[VALS], nval, NULL)
