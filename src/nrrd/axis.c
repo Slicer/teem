@@ -1016,9 +1016,18 @@ nrrdAxisInfoCompare(const NrrdAxisInfo *axisA, const NrrdAxisInfo *axisB,
   *differ = airStrcmp(axisA->label, axisB->label);
   if (*differ) {
     if (explain) {
-      /* can't print whole string because of fixed-size of explain */
+      /* can't safely print whole labels because of fixed-size of explain */
       sprintf(explain, "axisA->label %s axisB->label",
               *differ < 0 ? "<" : ">");
+      if (strlen(explain) + airStrlen(axisA->label)
+          + airStrlen(axisB->label)
+          + 2*strlen(" \"\" ") + 1 < AIR_STRLEN_LARGE) {
+        /* ok, we can print them */
+        sprintf(explain, "axisA->label \"%s\" %s axisB->label \"%s\"",
+                axisA->label ? axisA->label : "",
+                *differ < 0 ? "<" : ">",
+                axisB->label ? axisB->label : "");
+      }
     }
     return 0;
   }
