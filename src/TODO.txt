@@ -97,6 +97,7 @@ nrrd:
   just like nrrdDefaultWriteCharsPerLine and nrrdDefaultWriteValsPerLine)
   and argument to nrrdIoStateSet.
 * with NrrdKernel:
+ - debug apparent precision problems worked-around in nrrdKernelCheck
  - add fields for "what is my derivative" or "what is my integral", but
    how to do that at compile time?
  - add field for "parm[0] controls the scaling that the old resampling code
