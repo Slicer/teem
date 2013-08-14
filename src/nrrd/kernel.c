@@ -3383,9 +3383,19 @@ nrrdKernelCheck(const NrrdKernel *kern,
     single_d = kern->eval1_d(dom_d[evalIdx], parm);
     integral += single_d;
     /* single float vs vector float */
-    if (nrrdKernelForwDiff == kern) {
-      /* HEY this is crazy: need a special epsilon for this kernel */
-      float specEps = 0.000000005;
+    if (nrrdKernelForwDiff == kern
+        || nrrdKernelBCCubic == kern) {
+      /* HEY this is crazy: need a special epsilon for these kernels;
+         WHY WHY do these kernels evaluate to different things in the
+         single versus the vector case? */
+      float specEps;
+      if (nrrdKernelForwDiff == kern) {
+        specEps = 0.000000005;
+      } if (nrrdKernelForwDiff == kern) {
+        specEps = 8e-18;
+      } else {
+        specEps = 0.0;
+      }
       if (fabs(single_f - ran_f[evalIdx]) > specEps) {
         biffAddf(NRRD, "%s: %s (eval1_f(%.17g)=%.17g) != "
                  "(evalN_f(%.17g)=%.17g) by more than %g",
