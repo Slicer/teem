@@ -3392,7 +3392,7 @@ nrrdKernelCheck(const NrrdKernel *kern,
       if (nrrdKernelForwDiff == kern) {
         specEps = 0.000000005;
       } else if (nrrdKernelBCCubic == kern) {
-        specEps = 8e-18;
+        specEps = 3e-17;
       } else {
         specEps = 0.0;
       }
