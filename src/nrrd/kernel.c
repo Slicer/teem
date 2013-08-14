@@ -737,20 +737,20 @@ _nrrdFDSup(const double *parm) {
 
 static double
 _nrrdFD1_d(double x, const double *parm) {
-  double S;
+  double t, S;
 
   S = parm[0];
-  x /= S;
-  return _FORDIF(x)/(S*S);
+  t = x/S;
+  return _FORDIF(t)/(S*S);
 }
 
 static float
 _nrrdFD1_f(float x, const double *parm) {
-  float S;
+  float t, S;
 
   S = AIR_CAST(float, parm[0]);
-  x /= S;
-  return _FORDIF(x)/(S*S);
+  t = x/S;
+  return _FORDIF(t)/(S*S);
 }
 
 static void
