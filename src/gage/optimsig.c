@@ -1016,8 +1016,8 @@ _optsigrunLinf(gageOptimSigContext *oscx) {
 
   /* Linf uses a single scalar step istead of oscx->step array */
   step = 0.1;
-  oppor = 1.4;
-  backoff = 0.8;
+  oppor = 1.1;
+  backoff = 0.5;
 
   /* more demanding for more points */
   ceps = oscx->convEps/sn;
@@ -1040,7 +1040,7 @@ _optsigrunLinf(gageOptimSigContext *oscx) {
       shrink = AIR_TRUE;
     }
     midp = (srho[gap] + srho[gap+1])/2;
-    fprintf(stderr, "%s: ---- iter %u (step %g): gap %u/%g (%s)\n",
+    fprintf(stderr, "%s: ---- iter %u (step %g): gap [%u]/%g (%s)\n",
             me, iter, step, gap, gerr,
             shrink ? "shrinking tallest" : "growing lowest");
     /* save last set of positions to restore after bad step */
@@ -1080,10 +1080,11 @@ _optsigrunLinf(gageOptimSigContext *oscx) {
       }
       fprintf(stderr, "%s:        min %u %g          max %u %g\n", me,
               mmIdx[0], mmErr[0], mmIdx[1], mmErr[1]);
-      if (shrink) {
+      if (iter % 3) {
         badStep = newErr > lastErr;
-        fprintf(stderr, "... try %u: step %g -> newErr %g %s lastErr %g %s\n",
-                tryi, step, newErr,
+        fprintf(stderr, "... try %u [%u] step %g -> newErr %g %s "
+                "lastErr %g %s\n",
+                tryi, gap, step, newErr,
                 badStep ? ">" : "<=",
                 lastErr,
                 badStep ? "*BAD*" : "good");
