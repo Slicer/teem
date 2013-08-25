@@ -274,18 +274,25 @@ nrrdClampConvert(Nrrd *nout, const Nrrd *nin, int type) {
 /*
 ******** nrrdCastClampRound()
 **
-** Named in a way that will likely be regretted, this is for changing
-** the type, in a controllable way (with doClamp and or doRound).
-** And same as above:
+** For (maybe) doing rounding to integer, then (maybe) clamping
+** and then casting.  The maybe-ness of rounding and clamping
+** in this function is inconsistent with the certainty of clamping
+** nrrdClampConvert, so this function name may be regretted.
+**
+** NOTE! Rounding is not performed when outType is for float
+** or double!  That logic is implemented here.
+**
+** And warning same as above:
 ** HEY: WARNING: may have loss of data when processing long long
 ** (either signed or unsigned)
 */
 int
-nrrdCastClampRound(Nrrd *nout, const Nrrd *nin, int type,
+nrrdCastClampRound(Nrrd *nout, const Nrrd *nin, int outType,
                    int doClamp, int roundDir) {
   static const char me[]="nrrdCastClampRound";
 
-  if (clampRoundConvert(nout, nin, type, doClamp, roundDir)) {
+  if (clampRoundConvert(nout, nin, outType, doClamp,
+                        nrrdTypeIsIntegral[outType] ? roundDir : 0)) {
     biffAddf(NRRD, "%s: trouble", me);
     return 1;
   }
