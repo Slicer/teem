@@ -4,6 +4,35 @@ gageKindTotalAnswerLength: PANIC:
  [gage] gageKindCheck: kind "tensor" item max 65 > GAGE_ITEM_MAX 63
 
 
+/Users/gk/teem/src/meet/test/strace: trouble with volumes or infos:
+[meet] meetPullVolLoadMulti: trouble getting volume stack ("blur/VS-%03u-199.nrrd")
+[meet] [gage] gageStackBlurManage: trouble saving blurrings
+[meet] [gage] [nrrd] nrrdSaveMulti: trouble saving nin[0] to blur/VS-000-199.nrrd
+[meet] [gage] [nrrd] nrrdSave:
+[meet] [gage] [nrrd] nrrdWrite: trouble
+[meet] [gage] [nrrd] _nrrdWrite:
+[meet] [gage] [nrrd] nrrdCheck: trouble
+[meet] [gage] [nrrd] _nrrdCheck: nrrd 0x1003571d0 has NULL data pointer
+
+
+/Users/gk/teem/src/meet/test/strace: trouble with volumes or infos:
+[meet] meetPullVolLoadMulti: trouble getting volume stack ("blur/VS-%03u-199.nrrd")
+[meet] [gage] gageStackBlurManage: trouble saving blurrings
+[meet] [gage] [nrrd] nrrdSaveMulti: trouble saving nin[0] to blur/VS-000-199.nrrd
+[meet] [gage] [nrrd] nrrdSave:
+[meet] [gage] [nrrd] nrrdWrite: trouble
+[meet] [gage] [nrrd] _nrrdWrite:
+[meet] [gage] [nrrd] nrrdCheck: trouble
+[meet] [gage] [nrrd] _nrrdCheck: nrrd 0x7fcce380be00 has NULL data pointer
+[meet] [gage] [nrrd] nrrdSave:
+[meet] [gage] [nrrd] nrrdWrite: trouble
+[meet] [gage] [nrrd] _nrrdWrite:
+[meet] [gage] [nrrd] nrrdCheck: trouble
+[meet] [gage] [nrrd] _nrrdCheck: trouble with space field
+[meet] [gage] [nrrd] _nrrdFieldCheck_space: trouble
+[meet] [gage] [nrrd] _nrrdFieldCheckSpaceInfo: spaceDim is 0, but space directions are set
+
+
 *** fix memory-in-use problem after a biffGetDone()
 
 biffDisable()
