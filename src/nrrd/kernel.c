@@ -2625,7 +2625,9 @@ nrrdKernelDiscreteGaussian = &_nrrdKernelDiscreteGaussian;
    those are fixed, this is a suggested limit on how big sigma (kparm[0]) can
    be and still have an accurate blurring kernel.  This problem can be avoided
    completely by doing the blurring in frequency space, which is implemented
-   in teem/src/gage/stackBlur.c's _stackBlurDiscreteGaussFFT() */
+   in teem/src/gage/stackBlur.c's _stackBlurDiscreteGaussFFT(), although that
+   has its own problem: in places where a signal really should zero, the FFT
+   can produce some very low-amplitude noise (and hence new extrema) */
 const double nrrdKernelDiscreteGaussianGoodSigmaMax = 6.0;
 
 /* ------------------------------------------------------------ */
