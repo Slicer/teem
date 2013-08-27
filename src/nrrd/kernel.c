@@ -2620,6 +2620,14 @@ _nrrdKernelDiscreteGaussian = {
 NrrdKernel *const
 nrrdKernelDiscreteGaussian = &_nrrdKernelDiscreteGaussian;
 
+/* The current implementation of nrrdKernelDiscreteGaussian, with the current
+   implementation of airBesselInExpScaled, has problems for large sigma. Until
+   those are fixed, this is a suggested limit on how big sigma (kparm[0]) can
+   be and still have an accurate blurring kernel.  This problem can be avoided
+   completely by doing the blurring in frequency space, which is implemented
+   in teem/src/gage/stackBlur.c's _stackBlurDiscreteGaussFFT() */
+const double nrrdKernelDiscreteGaussianGoodSigmaMax = 6.0;
+
 /* ------------------------------------------------------------ */
 
 #define _DGAUSS(x, sig, cut) (                                               \

@@ -1532,8 +1532,9 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelGaussian,     /* Gaussian */
   *const nrrdKernelGaussianD,    /* 1st derivative of Gaussian */
   *const nrrdKernelGaussianDD,   /* 2nd derivative of Gaussian */
-  *const nrrdKernelDiscreteGaussian; /* Discrete Gaussian-like kernel for
-                                        scale-space analysis */
+  *const nrrdKernelDiscreteGaussian; /* Lindeberg's discrete Gaussian-like
+                                        kernel for scale-space analysis */
+NRRD_EXPORT const double nrrdKernelDiscreteGaussianGoodSigmaMax;
 NRRD_EXPORT int nrrdKernelParse(const NrrdKernel **kernelP,
                                 double *parm,
                                 const char *str);
