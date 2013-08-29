@@ -152,6 +152,11 @@ nrrd:
   the world of using unsigned int and size_t.  Also very confusing. Needs
   to be walked through and tested thoroughly.
 * why is _nrrdCheck (different than nrrdCheck) public?  Should be renamed?
+* now that we the new NrrdBoundarySpec, it should be used, and used
+  consistently, throughout Teem; for example remove
+  nrrdResampleBoundarySet and nrrdResamplePadValueSet and instead use new
+  nrrdResampleBoundarySpecSet, and consider using NrrdBoundarySpec
+  inside of NrrdResampleContext
 
 unu:
 * the UNRRDU_QUIET_QUIT functionality should be enabled by default instead
@@ -166,6 +171,8 @@ it is REALLY mysterious, and hard to debug.
 a small Gaussian)
 
 gage:
+* use new NrrdBoundarySpec whenever possible; for example remove
+gageStackBlurParmBoundarySet()
 * clean up gageVolumeCheck vs gageKindVolumeCheck mess
 * in a gageKinds, the airEnum for the items, and the associated table of
 pre-requisites, should really be compiled from some other description
