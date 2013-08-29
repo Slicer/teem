@@ -113,6 +113,7 @@ meetAirEnumAll() {
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageItemPackPart;
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageScl;
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageVec;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = gageSigmaSampling;
 
   /* dye: no airEnums */
 
