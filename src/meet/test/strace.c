@@ -206,7 +206,9 @@ findAndTraceMorePoints(Nrrd *nplot,
     printf("%s", airDoneStr(0, pidx, addedNum, doneStr)); fflush(stdout);
     trace = pullTraceNew();
     ELL_4V_COPY(seedPos, pos + 4*pidx);
-    if (pullTraceSet(pctx, trace, AIR_TRUE,
+    if (pullTraceSet(pctx, trace,
+                     AIR_TRUE /* recordStrength */,
+                     AIR_TRUE /* sigmaNorm */,
                      scaleStep, scaleHalfLen,
                      speedLimit, traceArrIncr,
                      seedPos)
@@ -302,7 +304,7 @@ main(int argc, const char **argv) {
   unsigned int vspecNum, idefNum;
   double scaleVec[3], glyphScaleRad;
   /* things that used to be set directly inside pullContext */
-  int energyFromStrength, nixAtVolumeEdgeSpace, constraintBeforeSeedThresh,
+  int nixAtVolumeEdgeSpace, constraintBeforeSeedThresh,
     binSingle, liveThresholdOnInit, permuteOnRebin,
     noAdd, unequalShapesAllow,
     zeroZ, strnUse;
@@ -313,7 +315,7 @@ main(int argc, const char **argv) {
     addDescent, iterCallback, rngSeed, progressBinMod,
     threadNum, tracePointNum, passNumMax;
   double jitter, stepInitial, constraintStepMin, radiusSpace, binWidthSpace,
-    radiusScale, alpha, beta, gamma, theta,
+    radiusScale, theta,
     backStepScale, opporStepScale, energyDecreaseMin, tpdThresh;
 
   double sstep, sswin, shalf, sslim, ssrange[2];
@@ -358,9 +360,6 @@ main(int argc, const char **argv) {
              "always constrain Z=0, to process 2D images");
   hestOptAdd(&hopt, "su", "bool", airTypeBool, 1, 1, &strnUse, "false",
              "weigh contributions to traces with strength");
-  hestOptAdd(&hopt, "efs", "bool", airTypeBool, 1, 1,
-             &energyFromStrength, "false",
-             "whether or not strength contributes to particle-image energy");
   hestOptAdd(&hopt, "nave", "bool", airTypeBool, 1, 1,
              &nixAtVolumeEdgeSpace, "false",
              "whether or not to nix points at edge of volume, where gage had "
@@ -487,18 +486,6 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "bws", "bin width", airTypeDouble, 1, 1,
              &binWidthSpace, "1.001",
              "spatial bin width as multiple of spatial radius");
-  hestOptAdd(&hopt, "alpha", "alpha", airTypeDouble, 1, 1,
-             &alpha, "0.5",
-             "blend between particle-image (alpha=0) and "
-             "inter-particle (alpha=1) energies");
-  hestOptAdd(&hopt, "beta", "beta", airTypeDouble, 1, 1,
-             &beta, "1.0",
-             "when using Phi2 energy, blend between pure "
-             "space repulsion (beta=0) and "
-             "scale attraction (beta=1)");
-  hestOptAdd(&hopt, "gamma", "gamma", airTypeDouble, 1, 1,
-             &gamma, "1.0",
-             "scaling factor on energy from strength");
   hestOptAdd(&hopt, "theta", "theta", airTypeDouble, 1, 1,
              &theta, "0.0",
              "slope of increasing livethresh wrt scale");
@@ -588,7 +575,6 @@ main(int argc, const char **argv) {
   airMopAdd(mop, pctx, (airMopper)pullContextNix, airMopAlways);
   if (pullVerboseSet(pctx, verbose)
       || pullFlagSet(pctx, pullFlagZeroZ, zeroZ)
-      || pullFlagSet(pctx, pullFlagEnergyFromStrength, energyFromStrength)
       || pullFlagSet(pctx, pullFlagNixAtVolumeEdgeSpace, nixAtVolumeEdgeSpace)
       || pullFlagSet(pctx, pullFlagConstraintBeforeSeedThresh,
                      constraintBeforeSeedThresh)
@@ -611,9 +597,6 @@ main(int argc, const char **argv) {
       || pullSysParmSet(pctx, pullSysParmRadiusSpace, radiusSpace)
       || pullSysParmSet(pctx, pullSysParmRadiusScale, radiusScale)
       || pullSysParmSet(pctx, pullSysParmBinWidthSpace, binWidthSpace)
-      || pullSysParmSet(pctx, pullSysParmAlpha, alpha)
-      || pullSysParmSet(pctx, pullSysParmBeta, beta)
-      || pullSysParmSet(pctx, pullSysParmGamma, gamma)
       || pullSysParmSet(pctx, pullSysParmTheta, theta)
       || pullSysParmSet(pctx, pullSysParmEnergyDecreaseMin,
                         energyDecreaseMin)
@@ -649,14 +632,14 @@ main(int argc, const char **argv) {
   sbp = gageStackBlurParmNew();
   airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
   if (gageStackBlurParmBoundarySet(sbp, nrrdBoundaryWrap, AIR_NAN)
+      || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE /* renorm */)
       /* though this verbosity could in principle be different */
       || gageStackBlurParmVerboseSet(sbp, verbose)) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble with stack blur parms:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  if (meetPullVolLoadMulti(vspec, vspecNum, cachePathSS, kSSblur,
-                           sbp, verbose)
+  if (meetPullVolLoadMulti(vspec, vspecNum, cachePathSS, sbp, verbose)
       || meetPullVolAddMulti(pctx, vspec, vspecNum,
                              k00, k11, k22, kSSrecon)
       || meetPullInfoAddMulti(pctx, idef, idefNum)) {
@@ -733,12 +716,14 @@ main(int argc, const char **argv) {
     airMopError(mop); return 1;
   }
 
-  if (pullOutputGet(nPosOut, NULL, NULL, NULL, 0.0, pctx)) {
-    airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble 3.1:\n%s", me, err);
-    airMopError(mop); return 1;
+  if (airStrlen(posOutS)) {
+    if (pullOutputGet(nPosOut, NULL, NULL, NULL, 0.0, pctx)) {
+      airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble 3.1:\n%s", me, err);
+      airMopError(mop); return 1;
+    }
+    nrrdSave(posOutS, nPosOut, NULL);
   }
-  nrrdSave(posOutS, nPosOut, NULL);
 
   {
     double *pos, seedPos[4], scaleWin, scaleStep, dist=0;
@@ -772,7 +757,9 @@ main(int argc, const char **argv) {
       printf("%s", airDoneStr(0, pidx, pnum, doneStr)); fflush(stdout);
       pts = pullTraceNew();
       ELL_4V_COPY(seedPos, pos + 4*pidx);
-      if (pullTraceSet(pctx, pts, AIR_TRUE,
+      if (pullTraceSet(pctx, pts,
+                       AIR_TRUE /* recordStrength */,
+                       AIR_TRUE /* sigmaNorm */,
                        scaleStep, scaleWin/2,
                        sslim, AIR_CAST(unsigned int, sslim/scaleStep),
                        seedPos)
