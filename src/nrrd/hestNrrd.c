@@ -108,6 +108,40 @@ _nrrdHestKernelSpec = {
 hestCB *
 nrrdHestKernelSpec = &_nrrdHestKernelSpec;
 
+/* ------------------------ NrrdBoundarySpec -------------------------- */
+
+int
+_nrrdHestBoundarySpecParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+  NrrdBoundarySpec **bsp;
+  char me[]="_nrrdHestBoundarySpecParse", *nerr;
+
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  bsp = (NrrdBoundarySpec **)ptr;
+  *bsp = nrrdBoundarySpecNew();
+  if (nrrdBoundarySpecParse(*bsp, str)) {
+    nerr = biffGetDone(NRRD);
+    airStrcpy(err, AIR_STRLEN_HUGE, nerr);
+    /* HEY: why not freeing bsp? */
+    free(nerr);
+    return 1;
+  }
+  return 0;
+}
+
+hestCB
+_nrrdHestBoundarySpec = {
+  sizeof(NrrdBoundarySpec*),
+  "boundary specification",
+  _nrrdHestBoundarySpecParse,
+  (airMopper)nrrdBoundarySpecNix
+};
+
+hestCB *
+nrrdHestBoundarySpec = &_nrrdHestBoundarySpec;
+
 /* --------------------------- NrrdIter ----------------------------- */
 
 int

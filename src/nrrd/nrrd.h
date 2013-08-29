@@ -647,6 +647,20 @@ typedef struct {
   double (*load)(const void*); /* how to get a value out of "data" */
 } NrrdIter;
 
+/*
+******** NrrdBoundarySpec
+**
+** In its present state, this is almost not worth having, but it nicely
+** addresses the repeated annoyance of sometimes needing both a nrrdBoundary
+** enum value and a pad value in a single place.  There may later be need for
+** other kinds of parameterized boundary behaviors (such as padding with
+** vector values, or some kind of parameterized high-order continuation)
+*/
+typedef struct {
+  int boundary;                /* from nrrdBoundary enum */
+  double padValue;             /* padding value, if needed */
+} NrrdBoundarySpec;
+
 /* ---- END non-NrrdIO */
 
 /******** defaults (nrrdDefault..) and state (nrrdState..) */
@@ -756,6 +770,15 @@ NRRD_EXPORT const int nrrdTypeIsUnsigned[NRRD_TYPE_MAX+1];
 /* methodsNrrd.c */
 /* ---- BEGIN non-NrrdIO */
 NRRD_EXPORT const int nrrdPresent;
+NRRD_EXPORT NrrdBoundarySpec *nrrdBoundarySpecNew(void);
+NRRD_EXPORT NrrdBoundarySpec *nrrdBoundarySpecNix(NrrdBoundarySpec *bspec);
+NRRD_EXPORT NrrdBoundarySpec *nrrdBoundarySpecCopy(const
+                                                   NrrdBoundarySpec *bsp);
+NRRD_EXPORT int nrrdBoundarySpecCheck(const NrrdBoundarySpec *bspec);
+NRRD_EXPORT int nrrdBoundarySpecParse(NrrdBoundarySpec *bspec,
+                                      const char *str);
+NRRD_EXPORT int nrrdBoundarySpecSprint(char str[AIR_STRLEN_LARGE],
+                                       const NrrdBoundarySpec *bspec);
 /* ---- END non-NrrdIO */
 NRRD_EXPORT NrrdIoState *nrrdIoStateNew(void);
 NRRD_EXPORT void nrrdIoStateInit(NrrdIoState *nio);
@@ -1062,6 +1085,7 @@ NRRD_EXPORT int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
 /* hestNrrd.c */
 NRRD_EXPORT hestCB *nrrdHestNrrd;
 NRRD_EXPORT hestCB *nrrdHestKernelSpec;
+NRRD_EXPORT hestCB *nrrdHestBoundarySpec;
 NRRD_EXPORT hestCB *nrrdHestIter;
 
 /******** nrrd value iterator gadget */
@@ -1379,6 +1403,8 @@ NRRD_EXPORT int nrrdResampleBoundarySet(NrrdResampleContext *rsmc,
                                         int boundary);
 NRRD_EXPORT int nrrdResamplePadValueSet(NrrdResampleContext *rsmc,
                                         double padValue);
+NRRD_EXPORT int nrrdResampleBoundarySpecSet(NrrdResampleContext *rsmc,
+                                            const NrrdBoundarySpec *bspec);
 NRRD_EXPORT int nrrdResampleTypeOutSet(NrrdResampleContext *rsmc,
                                        int typeOut);
 NRRD_EXPORT int nrrdResampleRenormalizeSet(NrrdResampleContext *rsmc,

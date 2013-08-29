@@ -456,6 +456,28 @@ nrrdResamplePadValueSet(NrrdResampleContext *rsmc,
 }
 
 int
+nrrdResampleBoundarySpecSet(NrrdResampleContext *rsmc,
+                            const NrrdBoundarySpec *bspec) {
+  static const char me[]="nrrdResampleBoundarySpecSet";
+
+  if (!(rsmc && bspec)) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+
+  if (rsmc->boundary != bspec->boundary) {
+    rsmc->boundary = bspec->boundary;
+    rsmc->flag[flagBoundary] = AIR_TRUE;
+  }
+  if (rsmc->padValue != bspec->padValue) {
+    rsmc->padValue = bspec->padValue;
+    rsmc->flag[flagPadValue] = AIR_TRUE;
+  }
+
+  return 0;
+}
+
+int
 nrrdResampleRenormalizeSet(NrrdResampleContext *rsmc,
                            int renormalize) {
   static const char me[]="nrrdResampleRenormalizeSet";

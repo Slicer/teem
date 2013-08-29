@@ -58,8 +58,147 @@ nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin) {
 /* ---- BEGIN non-NrrdIO */
 const int
 nrrdPresent = 42;
-/* ---- END non-NrrdIO */
 
+/* ------------------------------------------------------------ */
+
+NrrdBoundarySpec *
+nrrdBoundarySpecNew(void) {
+  NrrdBoundarySpec *ret;
+
+  ret = AIR_CALLOC(1, NrrdBoundarySpec);
+  if (ret) {
+    ret->boundary = nrrdBoundaryUnknown;
+    ret->padValue = AIR_NAN;
+  }
+  return ret;
+}
+
+NrrdBoundarySpec *
+nrrdBoundarySpecNix(NrrdBoundarySpec *bspec) {
+
+  return airFree(bspec);
+}
+
+/* NOTE: this doesn't do a validity check! */
+NrrdBoundarySpec *
+nrrdBoundarySpecCopy(const NrrdBoundarySpec *bspec) {
+  NrrdBoundarySpec *ret;
+
+  if (bspec) {
+    ret = nrrdBoundarySpecNew();
+    ret->boundary = bspec->boundary;
+    ret->padValue = bspec->padValue;
+  } else {
+    ret = NULL;
+  }
+  return ret;
+}
+
+int
+nrrdBoundarySpecCheck(const NrrdBoundarySpec *bspec) {
+  static const char me[]="nrrdBoundarySpecCheck";
+
+  if (!bspec) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (airEnumValCheck(nrrdBoundary, bspec->boundary)) {
+    biffAddf(NRRD, "%s: %d is not a valid %s value", me,
+             bspec->boundary, nrrdBoundary->name);
+    return 1;
+  }
+  if (nrrdBoundaryPad == bspec->boundary) {
+    if (!AIR_EXISTS(bspec->padValue)) {
+      biffAddf(NRRD, "%s: need existing pad value (not %g) with %s %s",
+               me, bspec->padValue, nrrdBoundary->name,
+               airEnumStr(nrrdBoundary, nrrdBoundaryPad));
+      return 1;
+    }
+  }
+  return 0;
+}
+
+int
+nrrdBoundarySpecParse(NrrdBoundarySpec *bspec, const char *_str) {
+  static const char me[]="nrrdBoundarySpecParse";
+  char *str, *parm;
+  airArray *mop;
+
+  if (!(bspec && _str)) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  str = airStrdup(_str);
+  if (!str) {
+    biffAddf(NRRD, "%s: couldn't copy string", me);
+    return 1;
+  }
+  mop = airMopNew();
+  airMopAdd(mop, str, airFree, airMopAlways);
+  parm = strchr(str, ':');
+  if (parm) {
+    *parm = '\0';
+    parm++;
+  }
+  bspec->boundary = airEnumVal(nrrdBoundary, str);
+  if (nrrdBoundaryUnknown == bspec->boundary) {
+    biffAddf(NRRD, "%s: couldn't parse %s as a %s", me,
+             str, nrrdBoundary->name);
+    airMopError(mop); return 1;
+  }
+  if (parm) {
+    if (nrrdBoundaryPad != bspec->boundary) {
+      biffAddf(NRRD, "%s: can only have parms for %s (not %s)", me,
+               airEnumStr(nrrdBoundary, nrrdBoundaryPad),
+               airEnumStr(nrrdBoundary, bspec->boundary));
+      airMopError(mop); return 1;
+    }
+    if (1 != sscanf(parm, "%lg", &(bspec->padValue))) {
+      biffAddf(NRRD, "%s: couldn't parse \"%s\" as double", me, parm);
+      airMopError(mop); return 1;
+    }
+    if (!AIR_EXISTS(bspec->padValue)) {
+      biffAddf(NRRD, "%s: need existant pad value (not %g)", me,
+               bspec->padValue);
+      airMopError(mop); return 1;
+    }
+  } else {
+    if (nrrdBoundaryPad == bspec->boundary) {
+      biffAddf(NRRD, "%s: need padValue parm for %s", me,
+               airEnumStr(nrrdBoundary, nrrdBoundaryPad));
+      airMopError(mop); return 1;
+    }
+    bspec->padValue = AIR_NAN;
+  }
+  airMopOkay(mop);
+  return 0;
+}
+
+int
+nrrdBoundarySpecSprint(char str[AIR_STRLEN_LARGE],
+                       const NrrdBoundarySpec *bspec) {
+  static const char me[]="nrrdBoundarySpecSprint";
+  char *out;
+
+  if (!( str && bspec )) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (nrrdBoundarySpecCheck(bspec)) {
+    biffAddf(NRRD, "%s: problem", me);
+    return 1;
+  }
+  out = str;
+  sprintf(out, "%s", airEnumStr(nrrdBoundary, bspec->boundary));
+  out += strlen(out);
+  if (nrrdBoundaryPad == bspec->boundary) {
+    sprintf(out, ":%.17g", bspec->padValue);
+  }
+  return 0;
+}
+
+
+/* ---- END non-NrrdIO */
 /* ------------------------------------------------------------ */
 
 void
