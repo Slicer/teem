@@ -271,20 +271,20 @@ main(int argc, const char *argv[]) {
        So here, we have to actually replicate work that is done by
        _gageProbeSpace() in converting from world to index space */
     for (vi=0; vi<numSS-1; vi++) {
-      if (AIR_IN_CL(sbp->scale[vi], wrlSS, sbp->scale[vi+1])) {
-        idxSS = vi + AIR_AFFINE(sbp->scale[vi], wrlSS, sbp->scale[vi+1], 0, 1);
+      if (AIR_IN_CL(sbp->sigma[vi], wrlSS, sbp->sigma[vi+1])) {
+        idxSS = vi + AIR_AFFINE(sbp->sigma[vi], wrlSS, sbp->sigma[vi+1], 0, 1);
         if (verbose > 1) {
           fprintf(stderr, "%s: scale pos %g -> idx %g = %u + %g\n", me,
                   wrlSS, idxSS, vi,
-                  AIR_AFFINE(sbp->scale[vi], wrlSS, sbp->scale[vi+1], 0, 1));
+                  AIR_AFFINE(sbp->sigma[vi], wrlSS, sbp->sigma[vi+1], 0, 1));
         }
         break;
       }
     }
     if (vi == numSS-1) {
       fprintf(stderr, "%s: scale pos %g outside range %g=%g, %g=%g\n", me,
-              wrlSS, rangeSS[0], sbp->scale[0],
-              rangeSS[1], sbp->scale[numSS-1]);
+              wrlSS, rangeSS[0], sbp->sigma[0],
+              rangeSS[1], sbp->sigma[numSS-1]);
       airMopError(mop); return 1;
     }
   } else {
@@ -320,7 +320,7 @@ main(int argc, const char *argv[]) {
     if (!E) E |= gageStackPerVolumeNew(ctx, pvlSS,
                                        AIR_CAST(const Nrrd*const*, ninSS),
                                        numSS, kind);
-    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, sbp->scale, numSS);
+    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, sbp->sigma, numSS);
     if (!E) E |= gageKernelSet(ctx, gageKernelStack, kSS->kernel, kSS->parm);
   } else {
     if (!E) E |= gagePerVolumeAttach(ctx, pvl);

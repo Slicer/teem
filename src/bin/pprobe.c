@@ -276,7 +276,7 @@ main(int argc, const char *argv[]) {
     if (!E) E |= gageStackPerVolumeNew(ctx, pvlSS,
                                        AIR_CAST(const Nrrd*const*, ninSS),
                                        numSS, kind);
-    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, sbp->scale, numSS);
+    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, sbp->sigma, numSS);
     if (!E) E |= gageKernelSet(ctx, gageKernelStack, kSS->kernel, kSS->parm);
   } else {
     if (!E) E |= gagePerVolumeAttach(ctx, pvl);
