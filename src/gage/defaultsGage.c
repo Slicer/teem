@@ -65,13 +65,6 @@ gageDefStackNormalizeDeriv = AIR_FALSE;
 double
 gageDefStackNormalizeDerivBias = 0.0;
 
-/* NOTE: this value is really a property of nrrdKernelDiscreteGaussian and its
-   implementation, so this information strictly speaking belongs there.  The
-   info is here in gage since it is the context of doing scale-space stacks
-   that the info is typically needed and used */
-double
-gageDefStackBlurSigmaMax = 6.0;
-
 int
 gageDefOrientationFromSpacing = AIR_FALSE;
 /* Before teem 1.10.0, gage behaved inconsistently: Derivatives were

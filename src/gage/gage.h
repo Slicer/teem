@@ -406,6 +406,27 @@ enum {
 #define GAGE_ITEM_PACK_PART_MAX   11
 
 /*
+******** gageSigmaSampling* enum
+**
+** The different strategies for locating samples (pre-blurred images) as part
+** of scale-space reconstruction.  It is partly arbitrary, and partly in the
+** interests of tangible familiarity, that of all the possible ways of
+** describing scale, we are using sigma (hence the specificity in the name
+** gageSigmaSampling)
+**
+** Adding this enum was motivated by the eventual plan to add a new sampling
+** density parameter "rho".
+*/
+enum {
+  gageSigmaSamplingUnknown,       /* 0 */
+  gageSigmaSamplingUniformSigma,  /* 1 */
+  gageSigmaSamplingUniformTau,    /* 2 */
+  gageSigmaSamplingOptimal3DL2L2, /* 3 */
+  gageSigmaSamplingLast
+};
+#define GAGE_SIGMA_SAMPLING_MAX      3
+
+/*
 ******** gageShape struct
 **
 ** just a container for all the information related to the "shape"
@@ -894,29 +915,39 @@ typedef struct {
 /*
 ******** gageStackBlurParm struct
 **
-** all parameters associated with blurring one volume to form a "stack"
+** All parameters associated with blurring one volume to form a "stack"
+** for the sake of scale-space analysis.
+**
+** This was reorganized August 2013 with the new attention to how
+** scale-space is handled.
 */
 typedef struct {
-  unsigned int num;      /* # of blurring scales == # volumes */
-  double *scale;         /* scale parameter for each blurred volume */
-  double sigmaMax,       /* nrrdKernelDiscreteGaussian is implemented with
-                            airBesselInExpScaled, which has numerical issues
-                            for very large kernel sizes.  Instead of doing
-                            the blurring in one step, the diffusion is done
-                            iteratively, with steps in diffusion time
-                            of sigmaMax^2 */
-    padValue;            /* padding value for nrrdBoundaryPad */
-  NrrdKernelSpec *kspec; /* NOTE: parm[0] will get over-written as part
-                            of running the resampler at each scale */
-  int dataCheck,         /* when checking given stack to see if its the
-                            blurring of a volume, actually go in and look at
-                            values of first (probably the least blurred)
-                            volume */
-    boundary,            /* passed to nrrdResampleBoundarySet */
-    renormalize,         /* passed to nrrdResampleRenormalizeSet */
-    oneDim,              /* for experimental purposes: blur *only* along
-                            the first (fastest) axis */
-    verbose;
+  unsigned int num;      /* # of pre-computed blurring scales == allocated
+                            length of the "scale" vector below */
+  double sigmaRange[2];  /* sigma range for image blurring */
+  int sigmaSampling;     /* from gageSigmaSampling* enum: how to sample the
+                            range from sigmaRange[0] to sigmaRange[1] */
+  double *sigma;         /* when-non-NULL, the sigma parameter for each
+                            blurring level */
+  NrrdKernelSpec *kspec; /* the kernel with which we do blurring. NOTE:
+                            parm[0] will get over-written as part of running
+                            the resampler at each scale */
+  int renormalize;       /* renormalize kernel weights (associated with the
+                            kernel);  passed to nrrdResampleRenormalizeSet */
+  NrrdBoundarySpec *bspec; /* what do to at image boundaries */
+  int oneDim,            /* for experimental/debugging purposes: blur *only*
+                            along the first (fastest) axis */
+    needSpatialBlur,     /* always do blurring in the spatial domain, even
+                            if frequency space blurring is possible */
+    verbose;             /* verbosity level */
+  double dgGoodSigmaMax; /* The same info as communicated by
+                            nrrdKernelDiscreteGaussianGoodSigmaMax, but
+                            allowing it to be different. With this limit on
+                            the sigma we pass to nrrdKernelDiscreteGaussian,
+                            instead of doing the blurring in one step (when
+                            doing spatial as opposed to frequency-space
+                            blurring), the diffusion is done iteratively, with
+                            steps in diffusion time of goodSigmaMax^2 */
 } gageStackBlurParm;
 
 /*
@@ -1018,7 +1049,6 @@ GAGE_EXPORT int gageDefStackUse;
 GAGE_EXPORT int gageDefStackNormalizeRecon;
 GAGE_EXPORT int gageDefStackNormalizeDeriv;
 GAGE_EXPORT double gageDefStackNormalizeDerivBias;
-GAGE_EXPORT double gageDefStackBlurSigmaMax;
 GAGE_EXPORT int gageDefOrientationFromSpacing;
 GAGE_EXPORT int gageDefGenerateErrStr;
 GAGE_EXPORT int gageDefTwoDimZeroZ;
@@ -1172,24 +1202,45 @@ GAGE_EXPORT int gageStackProbeSpace(gageContext *ctx,
                                     int indexSpace, int clamp);
 
 /* stackBlur.c */
+GAGE_EXPORT const airEnum *const gageSigmaSampling;
 GAGE_EXPORT gageStackBlurParm *gageStackBlurParmNew(void);
+GAGE_EXPORT void gageStackBlurParmInit(gageStackBlurParm *parm);
 GAGE_EXPORT gageStackBlurParm *gageStackBlurParmNix(gageStackBlurParm *sbp);
 GAGE_EXPORT int gageStackBlurParmScaleSet(gageStackBlurParm *sbp,
                                           unsigned int num,
-                                          double scaleMin, double scaleMax,
-                                          int uniform, int optim);
+                                          double sigmaMin,
+                                          double sigmaMax,
+                                          int uniformSigma, int optimalL2L2);
+GAGE_EXPORT int gageStackBlurParmSigmaSet(gageStackBlurParm *sbp,
+                                          unsigned int num,
+                                          double sigmaMin,
+                                          double sigmaMax,
+                                          int sigmaSampling);
 GAGE_EXPORT int gageStackBlurParmKernelSet(gageStackBlurParm *sbp,
                                            const NrrdKernelSpec *kspec,
                                            int renormalize);
-GAGE_EXPORT int gageStackBlurParmSigmaMaxSet(gageStackBlurParm *sbp,
-                                             double sigmaMax);
+GAGE_EXPORT int gageStackBlurParmDgGoodSigmaMaxSet(gageStackBlurParm *sbp,
+                                                   double dgGoodSigmaMax);
 GAGE_EXPORT int gageStackBlurParmBoundarySet(gageStackBlurParm *sbp,
                                              int boundary, double padValue);
+GAGE_EXPORT int gageStackBlurParmBoundarySpecSet(gageStackBlurParm *sbp,
+                                                 const NrrdBoundarySpec *bsp);
+GAGE_EXPORT int gageStackBlurParmNeedSpatialBlurSet(gageStackBlurParm *sbp,
+                                                    int sblur);
 GAGE_EXPORT int gageStackBlurParmVerboseSet(gageStackBlurParm *sbp,
                                             int verbose);
 GAGE_EXPORT int gageStackBlurParmOneDimSet(gageStackBlurParm *sbp,
                                            int oneDim);
 GAGE_EXPORT int gageStackBlurParmCheck(gageStackBlurParm *sbp);
+GAGE_EXPORT int gageStackBlurParmParse(gageStackBlurParm *sbp,
+                                       int extraFlags[256],
+                                       char **extraParmsP,
+                                       const char *str);
+GAGE_EXPORT hestCB *gageHestStackBlurParm;
+GAGE_EXPORT int gageStackBlurParmSprint(char str[AIR_STRLEN_LARGE],
+                                        const gageStackBlurParm *sbp,
+                                        int extraFlag[256],
+                                        char *extraParm);
 GAGE_EXPORT int gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
                               const Nrrd *nin, const gageKind *kind);
 GAGE_EXPORT int gageStackBlurCheck(const Nrrd *const nblur[],
