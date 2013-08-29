@@ -236,7 +236,7 @@ main(int argc, const char *argv[]) {
   double t0, t1, rscl[3], min[3], maxOut[3], maxIn[3];
   airArray *mop;
   unsigned int ansLen, *skip, skipNum, pntPosNum;
-  gageStackBlurParm *sbp;
+  gageStackBlurParm *sbpIN, *sbpCL, *sbp;
   int otype, clamp;
   char stmp[4][AIR_STRLEN_SMALL];
 
@@ -313,22 +313,19 @@ main(int argc, const char *argv[]) {
              "0 to turn-off all scale-space behavior");
   hestOptAdd(&hopt, "ssr", "scale range", airTypeDouble, 2, 2, rangeSS,
              "nan nan", "range of scales in scale-space");
-  hestOptAdd(&hopt, "kssb", "kernel", airTypeOther, 1, 1, &kSSblur,
-             "dgauss:1,5", "blurring kernel, to sample scale space",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "kssr", "kernel", airTypeOther, 1, 1, &kSS,
-             "hermite", "kernel for reconstructing from scale space samples",
-             NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "ssu", NULL, airTypeInt, 0, 0, &uniformSS, NULL,
              "do uniform samples along sigma, and not (by default) "
              "samples according to the effective diffusion scale");
   hestOptAdd(&hopt, "sso", NULL, airTypeInt, 0, 0, &optimSS, NULL,
              "if not using \"-ssu\", use pre-computed optimal "
              "sigmas when possible");
-  hestOptAdd(&hopt, "ssnd", NULL, airTypeInt, 0, 0, &normdSS, NULL,
-             "normalize derivatives by scale");
-  hestOptAdd(&hopt, "ssnb", "bias", airTypeDouble, 1, 1, &biasSS, "0.0",
-             "bias on scale-based derivative normalization");
+  hestOptAdd(&hopt, "kssb", "kernel", airTypeOther, 1, 1, &kSSblur,
+             "dgauss:1,5", "blurring kernel, to sample scale space",
+             NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "sbp", "blur spec", airTypeOther, 1, 1, &sbpCL, "",
+             "complete specification of stack blur parms; "
+             "over-rides all previous \"ss\" options",
+             NULL, NULL, gageHestStackBlurParm);
   hestOptAdd(&hopt, "ssf", "SS read/save format", airTypeString, 1, 1,
              &stackFnameFormat, "",
              "printf-style format (including a \"%u\") for the "
@@ -337,6 +334,14 @@ main(int argc, const char *argv[]) {
              "exist and match the stack parameters, and where to save "
              "them if they had to be re-computed.  Leave this as empty "
              "string to disable this.");
+
+  hestOptAdd(&hopt, "kssr", "kernel", airTypeOther, 1, 1, &kSS,
+             "hermite", "kernel for reconstructing from scale space samples",
+             NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "ssnd", NULL, airTypeInt, 0, 0, &normdSS, NULL,
+             "normalize derivatives by scale");
+  hestOptAdd(&hopt, "ssnb", "bias", airTypeDouble, 1, 1, &biasSS, "0.0",
+             "bias on scale-based derivative normalization");
 
   hestOptAdd(&hopt, "s", "sclX sclY sxlZ", airTypeDouble, 3, 3, scale,
              "1 1 1",
@@ -406,34 +411,61 @@ main(int argc, const char *argv[]) {
   }
 
   /* for setting up pre-blurred scale-space samples */
-  if (numSS) {
+  if (numSS || sbpCL) {
     unsigned int vi;
     int recompute;
 
-    sbp = gageStackBlurParmNew();
-    airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
-    if (gageStackBlurParmVerboseSet(sbp, verbose)
-        || gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1],
-                                     uniformSS, optimSS)
-        || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE)
-        || gageStackBlurParmBoundarySet(sbp, nrrdBoundaryBleed, AIR_NAN)
-        || gageStackBlurManage(&ninSS, &recompute, sbp,
-                               stackFnameFormat, AIR_TRUE, NULL,
-                               nin, kind)) {
-      airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble getting volume stack:\n%s\n", me, err);
-      airMopError(mop); return 1;
+    if (sbpCL) {
+      /* we got the whole stack blar parm here */
+      if (numSS || AIR_EXISTS(rangeSS[0]) || AIR_EXISTS(rangeSS[1])) {
+        fprintf(stderr, "%s: with new -sbp option; can't also use older "
+                " ss options like -ssn and -ssr", me);
+        airMopError(mop); return 1;
+      }
+      if (gageStackBlurManage(&ninSS, &recompute, sbpCL,
+                              stackFnameFormat, AIR_TRUE, NULL,
+                              nin, kind)) {
+        airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble getting volume stack:\n%s\n", me, err);
+        airMopError(mop); return 1;
+      }
+      if (sbpCL->verbose > 2) {
+        fprintf(stderr, "%s: sampling scale range %g--%g via %s:\n", me,
+                sbpCL->sigmaRange[0], sbpCL->sigmaRange[1],
+                airEnumStr(gageSigmaSampling, sbpCL->sigmaSampling));
+        for (vi=0; vi<sbpCL->num; vi++) {
+          fprintf(stderr, "    sigma[%u] = %g\n", vi, sbpCL->sigma[vi]);
+        }
+      }
+      sbp = sbpCL;
+    } else {
+      sbpIN = gageStackBlurParmNew();
+      airMopAdd(mop, sbpIN, (airMopper)gageStackBlurParmNix, airMopAlways);
+      if (gageStackBlurParmVerboseSet(sbpIN, verbose)
+          || gageStackBlurParmScaleSet(sbpIN, numSS, rangeSS[0], rangeSS[1],
+                                       uniformSS, optimSS)
+          || gageStackBlurParmKernelSet(sbpIN, kSSblur, AIR_TRUE)
+          || gageStackBlurParmBoundarySet(sbpIN, nrrdBoundaryBleed, AIR_NAN)
+          || gageStackBlurManage(&ninSS, &recompute, sbpIN,
+                                 stackFnameFormat, AIR_TRUE, NULL,
+                                 nin, kind)) {
+        airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble getting volume stack:\n%s\n", me, err);
+        airMopError(mop); return 1;
+      }
+      if (verbose > 2) {
+        fprintf(stderr, "%s: sampling scale range %g--%g %suniformly:\n", me,
+                rangeSS[0], rangeSS[1], uniformSS ? "" : "non-");
+        for (vi=0; vi<numSS; vi++) {
+          fprintf(stderr, "    scalePos[%u] = %g\n", vi, sbpIN->sigma[vi]);
+        }
+      }
+      sbp = sbpIN;
     }
     airMopAdd(mop, ninSS, airFree, airMopAlways);
-    if (verbose > 2) {
-      fprintf(stderr, "%s: sampling scale range %g--%g %suniformly:\n", me,
-              rangeSS[0], rangeSS[1], uniformSS ? "" : "non-");
-      for (vi=0; vi<numSS; vi++) {
-        fprintf(stderr, "    scalePos[%u] = %g\n", vi, sbp->scale[vi]);
-      }
-    }
   } else {
     ninSS = NULL;
+    sbpIN = NULL;
     sbp = NULL;
   }
 
@@ -455,18 +487,19 @@ main(int argc, const char *argv[]) {
   if (!E) E |= gageKernelSet(ctx, gageKernel00, k00->kernel, k00->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel11, k11->kernel, k11->parm);
   if (!E) E |= gageKernelSet(ctx, gageKernel22, k22->kernel, k22->parm);
-  if (numSS) {
+  if (sbp) {
     gagePerVolume **pvlSS;
     gageParmSet(ctx, gageParmStackUse, AIR_TRUE);
-    gageParmSet(ctx, gageParmStackNormalizeDerivBias, biasSS);
     gageParmSet(ctx, gageParmStackNormalizeDeriv, normdSS);
+    gageParmSet(ctx, gageParmStackNormalizeDerivBias, biasSS);
     if (!E) E |= !(pvlSS = AIR_CAST(gagePerVolume **,
-                                    calloc(numSS, sizeof(gagePerVolume *))));
+                                    calloc(sbp->num, sizeof(gagePerVolume *))));
     if (!E) airMopAdd(mop, pvlSS, (airMopper)airFree, airMopAlways);
     if (!E) E |= gageStackPerVolumeNew(ctx, pvlSS,
                                        AIR_CAST(const Nrrd*const*, ninSS),
-                                       numSS, kind);
-    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, sbp->scale, numSS);
+                                       sbp->num, kind);
+    if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS,
+                                          sbp->sigma, sbp->num);
     if (!E) E |= gageKernelSet(ctx, gageKernelStack, kSS->kernel, kSS->parm);
   } else {
     if (!E) E |= gagePerVolumeAttach(ctx, pvl);
@@ -491,7 +524,7 @@ main(int argc, const char *argv[]) {
   if (ELL_3V_EXISTS(pntPos)) {
     /* only interested in a single point, make sure we have the right
        info about the point WRT scale stuff */
-    if (numSS) {
+    if (sbp) {
       if (!(4 == pntPosNum && ELL_4V_EXISTS(pntPos))) {
         fprintf(stderr, "%s: need a 4-vec position with scale-space", me);
         airMopError(mop); return 1;
@@ -502,7 +535,7 @@ main(int argc, const char *argv[]) {
         airMopError(mop); return 1;
       }
     }
-    if (numSS
+    if (sbp
         ? gageStackProbeSpace(ctx,
                               pntPos[0], pntPos[1], pntPos[2], pntPos[3],
                               probeSpaceIndex, clamp)
@@ -513,7 +546,7 @@ main(int argc, const char *argv[]) {
               ctx->errNum, ctx->errStr);
       airMopError(mop); return 1;
     }
-    if (numSS) {
+    if (sbp) {
       printf("%s: %s(%s:%g,%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
              probeSpaceIndex ? "index" : "world",
              pntPos[0], pntPos[1], pntPos[2], pntPos[3]);
@@ -536,7 +569,7 @@ main(int argc, const char *argv[]) {
       }
       gageParmSet(ctx, gageParmVerbose, 0);
 #define PROBE(x, y, z)                                                  \
-      ((numSS                                                           \
+      ((sbp                                                             \
         ? gageStackProbeSpace(ctx, x, y, z, posSS,                      \
                               probeSpaceIndex, clamp)                   \
         : gageProbeSpace(ctx, x, y, z, probeSpaceIndex,                 \
@@ -584,11 +617,11 @@ main(int argc, const char *argv[]) {
               AIR_UINT(_npos->axis[0].size));
       airMopError(mop); return 1;
     }
-    if ((numSS && 3 == _npos->axis[0].size)
-        || (!numSS && 4 == _npos->axis[0].size)) {
+    if ((sbp && 3 == _npos->axis[0].size)
+        || (!sbp && 4 == _npos->axis[0].size)) {
       fprintf(stderr, "%s: have %u point coords but %s using scale-space\n",
               me, AIR_UINT(_npos->axis[0].size),
-              numSS ? "are" : "are not");
+              sbp ? "are" : "are not");
       airMopError(mop); return 1;
     }
     NN = _npos->axis[1].size;
@@ -608,7 +641,7 @@ main(int argc, const char *argv[]) {
     pos = AIR_CAST(double *, npos->data);
     ins = nrrdDInsert[nout->type];
     for (II=0; II<NN; II++) {
-      if (numSS) {
+      if (sbp) {
         gageStackProbeSpace(ctx, pos[0], pos[1], pos[2], pos[3],
                             probeSpaceIndex, clamp);
       } else {
@@ -623,7 +656,7 @@ main(int argc, const char *argv[]) {
         }
       }
       /*
-      if (numSS) {
+      if (sbp) {
         printf("%s: %s(%s:%g,%g,%g,%g) = ", me, airEnumStr(kind->enm, what),
                probeSpaceIndex ? "index" : "world",
                pos[0], pos[1], pos[2], pos[3]);
@@ -682,7 +715,7 @@ main(int argc, const char *argv[]) {
       fprintf(stderr, "%s: effective scaling is %g %g %g\n", me,
               rscl[0], rscl[1], rscl[2]);
     }
-    gridSize[0] = numSS ? 5 : 4;
+    gridSize[0] = sbp ? 5 : 4;
     gridSize[1] = 4;
     if (nrrdMaybeAlloc_nva(ngrid, nrrdTypeDouble, 2, gridSize)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
@@ -715,7 +748,7 @@ main(int argc, const char *argv[]) {
                0,
                0,
                AIR_DELTA(min[2], 1, maxOut[2], min[2], maxIn[2]));
-    if (numSS) {
+    if (sbp) {
       if (!probeSpaceIndex) {
         double idxSS = AIR_NAN;
         unsigned int vi;
@@ -727,23 +760,23 @@ main(int argc, const char *argv[]) {
            defined. So, we have to actually replicate work that is done
            by _gageProbeSpace() in converting from world to index space */
         /* HEY: the way that idxSS is set is very strange */
-        for (vi=0; vi<numSS-1; vi++) {
-          if (AIR_IN_CL(sbp->scale[vi], posSS, sbp->scale[vi+1])) {
-            idxSS = vi + AIR_AFFINE(sbp->scale[vi], posSS, sbp->scale[vi+1],
+        for (vi=0; vi<sbp->num-1; vi++) {
+          if (AIR_IN_CL(sbp->sigma[vi], posSS, sbp->sigma[vi+1])) {
+            idxSS = vi + AIR_AFFINE(sbp->sigma[vi], posSS, sbp->sigma[vi+1],
                                     0, 1);
             if (verbose > 1) {
               fprintf(stderr, "%s: scale pos %g -> idx %g = %u + %g\n", me,
                       posSS, idxSS, vi,
-                      AIR_AFFINE(sbp->scale[vi], posSS, sbp->scale[vi+1],
+                      AIR_AFFINE(sbp->sigma[vi], posSS, sbp->sigma[vi+1],
                                  0, 1));
             }
             break;
           }
         }
-        if (vi == numSS-1) {
+        if (vi == sbp->num-1) {
           fprintf(stderr, "%s: scale pos %g outside range %g=%g, %g=%g\n", me,
-                  posSS, rangeSS[0], sbp->scale[0],
-                  rangeSS[1], sbp->scale[numSS-1]);
+                  posSS, rangeSS[0], sbp->sigma[0],
+                  rangeSS[1], sbp->sigma[sbp->num-1]);
           airMopError(mop); return 1;
         }
         grid[4 + 5*0] = idxSS;
