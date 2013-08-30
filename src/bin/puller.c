@@ -1176,7 +1176,7 @@ main(int argc, const char **argv) {
     airMopError(mop); return 1;
   }
   if (meetPullVolLoadMulti(vspec, vspecNum, cachePathSS,
-                           kSSblur, sbp, verbose)
+                           /* kSSblur, */ sbp, verbose)
       || meetPullVolAddMulti(pctx, vspec, vspecNum,
                              k00, k11, k22, kSSrecon)
       || meetPullInfoAddMulti(pctx, idef, idefNum)) {
