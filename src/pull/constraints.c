@@ -97,7 +97,8 @@ probeIso(pullTask *task, pullPoint *point, unsigned int iter, int cond,
 
 static int
 constraintSatIso(pullTask *task, pullPoint *point,
-                 double stepMax, unsigned int iterMax,
+                 double stepMax, double constrEps,
+                 unsigned int iterMax,
                  /* output */
                  int *constrFailP) {
   static const char me[]="constraintSatIso";
@@ -127,7 +128,7 @@ constraintSatIso(pullTask *task, pullPoint *point,
     _pullPointHistAdd(point, pullCondConstraintSatA);
     PROBE(val, aval, grad);
     if (aval <= state[0]) {  /* we're no further from the root */
-      if (AIR_ABS(step) < stepMax*task->pctx->sysParm.constraintStepMin) {
+      if (AIR_ABS(step) < stepMax*constrEps) {
         /* we have converged! */
         break;
       }
@@ -168,7 +169,8 @@ constraintSatIso(pullTask *task, pullPoint *point,
 
 static int
 constraintSatLapl(pullTask *task, pullPoint *point,
-                  double stepMax, unsigned int iterMax,
+                  double stepMax, double constrEps,
+                  unsigned int iterMax,
                   /* output */
                   int *constrFailP) {
   static const char me[]="constraintSatLapl";
@@ -246,7 +248,7 @@ constraintSatLapl(pullTask *task, pullPoint *point,
       side = -1;
     }
     diff = (b - a)*len;
-    if (AIR_ABS(diff) < stepMax*task->pctx->sysParm.constraintStepMin) {
+    if (AIR_ABS(diff) < stepMax*constrEps) {
       /* converged! */
       break;
     }
@@ -395,7 +397,7 @@ static int
 constraintSatHght(pullTask *task, pullPoint *point,
                   int tang1Use, int tang2Use,
                   int negtang1Use, int negtang2Use,
-                  double stepMax, unsigned int iterMax,
+                  double stepMax, double constrEps, unsigned int iterMax,
                   int *constrFailP) {
   static const char me[]="constraintSatHght";
   double val, grad[3], hess[9], posproj[9], negproj[9],
@@ -415,7 +417,7 @@ constraintSatHght(pullTask *task, pullPoint *point,
   __IF_DEBUG {
     double stpmin;
     /* HEY: shouldn't stpmin also be used later in this function? */
-    stpmin = task->pctx->voxelSizeSpace*task->pctx->sysParm.constraintStepMin;
+    stpmin = task->pctx->voxelSizeSpace*constrEps;
     fprintf(stderr, "!%s(%u): starting at %g %g %g %g\n", me, point->idtag,
             point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
     fprintf(stderr, "!%s: pt %d %d nt %d %d (nada %d) "
@@ -423,8 +425,7 @@ constraintSatHght(pullTask *task, pullPoint *point,
             tang1Use, tang2Use, negtang1Use, negtang2Use, haveNada,
             stepMax, iterMax);
     fprintf(stderr, "!%s: stpmin = %g = voxsize %g * parm.stepmin %g\n", me,
-            stpmin, task->pctx->voxelSizeSpace,
-            task->pctx->sysParm.constraintStepMin);
+            stpmin, task->pctx->voxelSizeSpace, constrEps);
   }
   _pullPointHistAdd(point, pullCondOld);
   PROBE(val, grad, hess, posproj, negproj);
@@ -459,13 +460,13 @@ constraintSatHght(pullTask *task, pullPoint *point,
       }
       step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
     convtestA:
-      if (AIR_ABS(step) < stepMax*task->pctx->sysParm.constraintStepMin) {
+      if (AIR_ABS(step) < stepMax*constrEps) {
         /* no further iteration needed; we're converged */
         __IF_DEBUG {
           fprintf(stderr, "     |step| %g < %g*%g = %g ==> converged!\n",
                   AIR_ABS(step),
-                  stepMax, task->pctx->sysParm.constraintStepMin,
-                  stepMax*task->pctx->sysParm.constraintStepMin);
+                  stepMax, constrEps,
+                  stepMax*constrEps);
         }
         if (!haveNeg) {
           break;
@@ -541,12 +542,12 @@ constraintSatHght(pullTask *task, pullPoint *point,
       }
       step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
     convtestB:
-      if (AIR_ABS(step) < stepMax*task->pctx->sysParm.constraintStepMin) {
+      if (AIR_ABS(step) < stepMax*constrEps) {
         __IF_DEBUG {
           fprintf(stderr, "     |step| %g < %g*%g = %g ==> converged!\n",
                   AIR_ABS(step),
-                  stepMax, task->pctx->sysParm.constraintStepMin,
-                  stepMax*task->pctx->sysParm.constraintStepMin);
+                  stepMax, constrEps,
+                  stepMax*constrEps);
         }
         /* no further iteration needed; we're converged */
         break;
@@ -630,13 +631,20 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
                        /* output */
                        int *constrFailP) {
   static const char me[]="_pullConstraintSatisfy";
-  double stepMax;
+  double stepMax, constrEps;
   unsigned int iterMax;
   double pos3Orig[3], pos3Diff[3], travel;
 
   ELL_3V_COPY(pos3Orig, point->pos);
   stepMax = task->pctx->voxelSizeSpace;
   iterMax = task->pctx->iterParm.constraintMax;
+  constrEps = task->pctx->sysParm.constraintStepMin;
+  /* HEY this really needs generalizing */
+  if (0 && point->pos[3]) {
+    constrEps *= 1 + (task->pctx->flag.scaleIsTau
+                      ? gageSigOfTau(point->pos[3])
+                      : point->pos[3]);
+  }
   /*
   dlim = _pullDistLimit(task, point);
   if (iterMax*stepMax > dlim) {
@@ -651,13 +659,15 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
   task->pctx->count[pullCountConstraintSatisfy] += 1;
   switch (task->pctx->constraint) {
   case pullInfoHeightLaplacian: /* zero-crossing edges */
-    if (constraintSatLapl(task, point, stepMax/4, 4*iterMax, constrFailP)) {
+    if (constraintSatLapl(task, point, stepMax/4, constrEps,
+                          4*iterMax, constrFailP)) {
       biffAddf(PULL, "%s: trouble", me);
       return 1;
     }
     break;
   case pullInfoIsovalue:
-    if (constraintSatIso(task, point, stepMax, iterMax, constrFailP)) {
+    if (constraintSatIso(task, point, stepMax, constrEps,
+                         iterMax, constrFailP)) {
       biffAddf(PULL, "%s: trouble", me);
       return 1;
     }
@@ -668,7 +678,7 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
                           !!task->pctx->ispec[pullInfoTangent2],
                           !!task->pctx->ispec[pullInfoNegativeTangent1],
                           !!task->pctx->ispec[pullInfoNegativeTangent2],
-                          stepMax, iterMax, constrFailP)) {
+                          stepMax, constrEps, iterMax, constrFailP)) {
       biffAddf(PULL, "%s: trouble", me);
       return 1;
     }

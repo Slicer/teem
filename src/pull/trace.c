@@ -58,7 +58,7 @@ pullTraceNix(pullTrace *pts) {
 
 int
 pullTraceSet(pullContext *pctx, pullTrace *pts,
-             int recordStrength,
+             int recordStrength, int sigmaNorm,
              double scaleDelta, double halfScaleWin,
              double velocityMax, unsigned int arrIncr,
              const double _seedPos[4]) {
@@ -162,7 +162,7 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   }
   for (dirIdx=0; dirIdx<2; dirIdx++) {
     unsigned int step;
-    double dscl;
+    double dscl, sigma=0.0;
     dscl = (!dirIdx ? -1 : +1)*scaleDelta;
     step = 0;
     while (1) {
@@ -225,6 +225,11 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
         airMopError(mop);
         return 1;
       }
+      if (sigmaNorm) {
+        sigma = (pctx->flag.scaleIsTau
+                 ? gageSigOfTau(point->pos[3])
+                 : point->pos[3]);
+      }
       if (trceArr[dirIdx]->len >= 2) {
         /* see if we're moving too fast, by comparing with previous point */
         double pos0[3], pos1[3], diff[3], vv;
@@ -235,6 +240,9 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
         ELL_3V_COPY(pos1, trce[dirIdx] + 4*(ii+1));
         ELL_3V_SUB(diff, pos1, pos0);
         vv = ELL_3V_LEN(diff)/scaleDelta;
+        if (sigmaNorm) {
+          vv = vv/sigma;
+        }
         /*
         fprintf(stderr, "%s(%u): velo %g %s velocityMax %g => %s\n", me,
                 point->idtag, vv,
@@ -315,25 +323,30 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
     velo[0] = 0.0;
   } else {
     for (tidx=0; tidx<lentmp; tidx++) {
-      double *p0, *p1, *p2, diff[3];
+      double *p0, *p1, *p2, diff[3], sigma=0;
+      p0 = vert + 4*(tidx-1);
+      p1 = vert + 4*tidx;
+      p2 = vert + 4*(tidx+1);
+      if (sigmaNorm) {
+        sigma = (pctx->flag.scaleIsTau
+                 ? gageSigOfTau(p1[3])
+                 : p1[3]);
+      }
       if (!tidx) {
         /* first */
-        p1 = vert + 4*tidx;
-        p2 = vert + 4*(tidx+1);
         ELL_3V_SUB(diff, p2, p1);
         velo[tidx] = ELL_3V_LEN(diff)/(p2[3]-p1[3]);
       } else if (tidx < lentmp-1) {
         /* middle */
-        p0 = vert + 4*(tidx-1);
-        p2 = vert + 4*(tidx+1);
         ELL_3V_SUB(diff, p2, p0);
         velo[tidx] = ELL_3V_LEN(diff)/(p2[3]-p0[3]);
       } else {
         /* last */
-        p0 = vert + 4*(tidx-1);
-        p1 = vert + 4*tidx;
         ELL_3V_SUB(diff, p1, p0);
         velo[tidx] = ELL_3V_LEN(diff)/(p1[3]-p0[3]);
+      }
+      if (sigmaNorm) {
+        velo[tidx] /= sigma;
       }
     }
   }

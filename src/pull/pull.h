@@ -1176,7 +1176,7 @@ PULL_EXPORT pullTrace *pullTraceNew(void);
 PULL_EXPORT pullTrace *pullTraceNix(pullTrace *pts);
 PULL_EXPORT size_t pullTraceMultiSizeof(const pullTraceMulti *mtrc);
 PULL_EXPORT int pullTraceSet(pullContext *pctx, pullTrace *trc,
-                             int recordStrength,
+                             int recordStrength, int sigmaNorm,
                              double scaleDelta, double halfScaleWin,
                              double velocityMax, unsigned int arrIncr,
                              const double seedPos[4]);

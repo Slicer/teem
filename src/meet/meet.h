@@ -121,6 +121,9 @@ typedef struct {
   int derivNormSS,             /* normalize derivatives based on scale */
     uniformSS,                 /* uniform sampling along scale */
     optimSS,                   /* optimal (non-uniform) sampling of scale */
+    needSpatialBlurSS,         /* even if fft-based blurring is possible,
+                                  instead use spatial blurring to compute
+                                  the scale-space samples */
     leeching,                  /* non-zero iff using the same nin and ninSS
                                   as another meetPullVol (so as to avoid
                                   redundant copies in memory) */
@@ -165,7 +168,7 @@ MEET_EXPORT int meetPullVolLeechable(const meetPullVol *orig,
 MEET_EXPORT meetPullVol *meetPullVolNix(meetPullVol *pvol);
 MEET_EXPORT hestCB *meetHestPullVol;
 MEET_EXPORT int meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
-                                     char *cachePath, NrrdKernelSpec *kSSblur,
+                                     char *cachePath,
                                      const gageStackBlurParm *sbparm,
                                      int verbose);
 MEET_EXPORT int meetPullVolAddMulti(pullContext *pctx,

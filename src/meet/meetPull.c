@@ -34,6 +34,7 @@ meetPullVolNew(void) {
     ret->derivNormSS = AIR_FALSE;
     ret->uniformSS = AIR_FALSE;
     ret->optimSS = AIR_FALSE;
+    ret->needSpatialBlurSS = AIR_FALSE;
     ret->leeching = AIR_FALSE;
     ret->numSS = 0;
     ret->rangeSS[0] = ret->rangeSS[1] = AIR_NAN;
@@ -58,6 +59,7 @@ meetPullVolCopy(const meetPullVol *mpv) {
   ret->derivNormSS = mpv->derivNormSS;
   ret->uniformSS = mpv->uniformSS;
   ret->optimSS = mpv->optimSS;
+  ret->needSpatialBlurSS = mpv->needSpatialBlurSS;
   ret->leeching = AIR_FALSE;
   ret->recomputedSS = AIR_FALSE;
   ret->numSS = mpv->numSS;
@@ -95,7 +97,7 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
 #define VFMT_SHRT "<fileName>:<kind>:<volName>"
 #define SFMT "<minScl>-<#smp>-<maxScl>[-no|u]"
 #define VFMT_LONG "<fileName>:<kind>:" SFMT ":<volName>"
-  char *str, *ctok, *clast=NULL, *dtok, *dlast=NULL;
+  char *str, *ctok, *clast=NULL;
   airArray *mop;
   int wantSS;
 
@@ -131,74 +133,11 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
     airMopError(mop); return 1;
   }
   if (wantSS) {
-    int haveFlags;
-    ctok = airStrtok(NULL, ":", &clast);
-    if (!( 3 == airStrntok(ctok, "-") || 4 == airStrntok(ctok, "-") )) {
-      biffAddf(MEET, "%s: didn't get 3 or 4 \"-\"-separated tokens in \"%s\"; "
-               "not of form SFMT" , me, ctok);
-      airMopError(mop); return 1;
-    }
-    haveFlags = (4 == airStrntok(ctok, "-"));
-    dtok = airStrtok(ctok, "-", &dlast);
-    if (1 != sscanf(dtok, "%lg", &(mpv->rangeSS[0]))) {
-      biffAddf(MEET, "%s: couldn't parse \"%s\" as min scale", me, dtok);
-      airMopError(mop); return 1;
-    }
-    dtok = airStrtok(NULL, "-", &dlast);
-    if (1 != sscanf(dtok, "%u", &(mpv->numSS))) {
-      biffAddf(MEET, "%s: couldn't parse \"%s\" as # scale samples", me, dtok);
-      airMopError(mop); return 1;
-    }
-    if (!( mpv->numSS >= 2 )) {
-      biffAddf(MEET, "%s: need # scale samples >= 2 (not %u)", me, mpv->numSS);
-      airMopError(mop); return 1;
-    }
-    dtok = airStrtok(NULL, "-", &dlast);
-    if (1 != sscanf(dtok, "%lg", &(mpv->rangeSS[1]))) {
-      biffAddf(MEET, "%s: couldn't parse \"%s\" as max scale", me, dtok);
-      airMopError(mop); return 1;
-    }
-    /* initialize things as if there were no flags */
-    mpv->derivNormSS = AIR_FALSE;
-    mpv->uniformSS = AIR_FALSE;
-    mpv->optimSS = AIR_FALSE;
-    mpv->derivNormBiasSS = 0.0;
-    if (haveFlags) {
-      char *flags, *bias;
-      /* look for various things in flags */
-      flags = airToLower(airStrdup(airStrtok(NULL, "-", &dlast)));
-      airMopAdd(mop, flags, airFree, airMopAlways);
-      if (strchr(flags, 'n')) {
-        mpv->derivNormSS = AIR_TRUE;
-      }
-      if (strchr(flags, 'u')) {
-        mpv->uniformSS = AIR_TRUE;
-      }
-      if (strchr(flags, 'o')) {
-        mpv->optimSS = AIR_TRUE;
-      }
-      if (mpv->optimSS && mpv->uniformSS) {
-        biffAddf(MEET, "%s: can't have both optimal ('o') and uniform ('u') "
-                 "flags set in \"%s\"", me, flags);
-        airMopError(mop); return 1;
-      }
-      if ((bias = strchr(flags, '+'))) {
-        /* indicating a bias, unfortunately only a positive one is
-           possible here, because of the way that other fields are
-           tokenized by '-' */
-        bias++;
-        if (1 != sscanf(bias, "%lf", &(mpv->derivNormBiasSS))) {
-          biffAddf(MEET, "%s: couldn't parse bias \"%s\"", me, bias);
-          airMopError(mop); return 1;
-        }
-      }
-    }
-    /* mpv->ninSS and mpv->posSS are allocated and filled elsewhere */
-    mpv->ninSS = NULL;
-    mpv->posSS = NULL;
-    /* we don't actually create nrrds nor load the volumes here,
-       because we don't know cachePath, and because we might want
-       different pullVolumes to share the same underlying Nrrds */
+                         
+    fprintf(stderr, "%s: WHAT  WHAT  WHAT  WHAT  WHAT \n", me);
+    fprintf(stderr, "%s: WHAT  WHAT  WHAT  WHAT  WHAT \n", me);
+    fprintf(stderr, "%s: WHAT  WHAT  WHAT  WHAT  WHAT \n", me);
+                         
   } else {
     /* no scale-space stuff wanted */
     mpv->numSS = 0;
@@ -386,8 +325,7 @@ meetPullVolLeech(meetPullVol *vol,
 */
 int
 meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
-                     char *cachePath, NrrdKernelSpec *kSSblur,
-                     const gageStackBlurParm *sbparm,
+                     char *cachePath, const gageStackBlurParm *sbparm,
                      int verbose) {
   static const char me[]="meetPullVolLoadMulti";
   char formatSS[AIR_STRLEN_LARGE];
@@ -396,7 +334,7 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
   airArray *mop;
   meetPullVol *vol;
 
-  if (!( mpv && cachePath && kSSblur)) {
+  if (!( mpv && cachePath)) {
     biffAddf(MEET, "%s: got NULL pointer", me);
     return 1;
   }
@@ -408,9 +346,9 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
   if (sbparm) {
     if (gageStackBlurParmVerboseSet(sbp, sbparm->verbose)
         || gageStackBlurParmOneDimSet(sbp, sbparm->oneDim)
-        || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE)
-        || gageStackBlurParmBoundarySet(sbp, sbparm->boundary,
-                                        sbparm->padValue)) {
+        || gageStackBlurParmKernelSet(sbp, sbparm->kspec,
+                                      AIR_TRUE /* renormalize */)
+        || gageStackBlurParmBoundarySpecSet(sbp, sbparm->bspec)) {
       biffMovef(MEET, GAGE, "%s: trouble with stack blur parms", me);
       airMopError(mop); return 1;
     }
@@ -458,6 +396,7 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
       if (gageStackBlurParmScaleSet(sbp, vol->numSS,
                                     vol->rangeSS[0], vol->rangeSS[1],
                                     vol->uniformSS, vol->optimSS)
+          || gageStackBlurParmNeedSpatialBlurSet(sbp, vol->needSpatialBlurSS)
           || gageStackBlurManage(&(vol->ninSS), &(vol->recomputedSS), sbp,
                                  formatSS, AIR_TRUE, NULL,
                                  vol->nin, vol->kind)) {
@@ -473,7 +412,7 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
     if (vol->numSS) {
       vol->posSS = AIR_CALLOC(sbp->num, double);
       for (ssi=0; ssi<sbp->num; ssi++) {
-        vol->posSS[ssi] = sbp->scale[ssi];
+        vol->posSS[ssi] = sbp->sigma[ssi];
       }
     }
   }
