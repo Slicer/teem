@@ -46,3 +46,7 @@ ADD_TEST(sanity ${EXECUTABLE_OUTPUT_PATH}/test_sanity)
 ADD_EXECUTABLE(test_macros macros.c)
 TARGET_LINK_LIBRARIES(test_macros teem)
 ADD_TEST(macros ${EXECUTABLE_OUTPUT_PATH}/test_macros)
+
+ADD_EXECUTABLE(test_bspec tbspec.c)
+TARGET_LINK_LIBRARIES(test_bspec teem)
+ADD_TEST(bspec ${EXECUTABLE_OUTPUT_PATH}/test_bspec -bs bleed wrap pad:42)
