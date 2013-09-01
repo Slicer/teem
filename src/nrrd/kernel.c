@@ -3280,6 +3280,18 @@ nrrdKernelCompare(const NrrdKernel *kernA,
 ******** nrrdKernelCheck
 **
 ** Makes sure a given kernel is behaving as expected
+**
+** Tests:
+** nrrdKernelSprint
+** nrrdKernelParse
+** nrrdKernelCompare
+** nrrdKernelSpecNew
+** nrrdKernelSpecNix
+** nrrdKernelSpecSet
+** nrrdKernelSpecSprint
+** nrrdKernelSpecParse
+** and also exercises all the ways of evaluating the kernel and
+** makes sure they all agree, and agree with the integral kernel, if given
 */
 int
 nrrdKernelCheck(const NrrdKernel *kern,
@@ -3292,22 +3304,24 @@ nrrdKernelCheck(const NrrdKernel *kern,
   const NrrdKernel *parsedkern;
   double parsedparm[NRRD_KERNEL_PARMS_NUM], supp, integral;
   static const char me[]="nrrdKernelCheck";
-  char kstr[AIR_STRLEN_LARGE], explain[AIR_STRLEN_LARGE],
-    stmp[AIR_STRLEN_SMALL];
+  char kstr[AIR_STRLEN_LARGE], kspstr[AIR_STRLEN_LARGE],
+    explain[AIR_STRLEN_LARGE], stmp[AIR_STRLEN_SMALL];
   int differ;
   size_t evalIdx;
   double *dom_d, *ran_d, wee;
   float *dom_f, *ran_f;
   unsigned int diffOkEvalNum, diffOkIntglNum;
+  NrrdKernelSpec *kspA, *kspB;
   airArray *mop;
 
+  mop = airMopNew();
   if (!kern) {
     biffAddf(NRRD, "%s: got NULL kernel", me);
-    return 1;
+    airMopError(mop); return 1;
   }
   if (!(evalNum > 20)) {
     biffAddf(NRRD, "%s: need evalNum > 20", me);
-    return 1;
+    airMopError(mop); return 1;
   }
   if (!(kern->name && kern->support && kern->integral
         && kern->eval1_f && kern->evalN_f
@@ -3316,25 +3330,46 @@ nrrdKernelCheck(const NrrdKernel *kern,
              !!(kern->name), !!(kern->support), !!(kern->integral),
              !!(kern->eval1_f), !!(kern->evalN_f),
              !!(kern->eval1_d), !!(kern->evalN_d));
-    return 0;
+    airMopError(mop); return 1;
   }
-  if (nrrdKernelSprint(kstr, kern, parm)) {
+  kspA = nrrdKernelSpecNew();
+  airMopAdd(mop, kspA, (airMopper)nrrdKernelSpecNix, airMopAlways);
+  kspB = nrrdKernelSpecNew();
+  airMopAdd(mop, kspB, (airMopper)nrrdKernelSpecNix, airMopAlways);
+  nrrdKernelSpecSet(kspA, kern, parm);
+  if (nrrdKernelSprint(kstr, kern, parm)
+      || nrrdKernelSpecSprint(kspstr, kspA)) {
     biffAddf(NRRD, "%s: trouble", me);
-    return 1;
+    airMopError(mop); return 1;
   }
-  if (nrrdKernelParse(&parsedkern, parsedparm, kstr)) {
-    biffAddf(NRRD, "%s: trouble parsing |%s| back to kern/parm pair",
+  if (strcmp(kstr, kspstr)) {
+    biffAddf(NRRD, "%s: sprinted kernel |%s| != kspec |%s|", me, kstr, kspstr);
+    airMopError(mop); return 1;
+  }
+  if (nrrdKernelParse(&parsedkern, parsedparm, kstr)
+      || nrrdKernelSpecParse(kspB, kstr)) {
+    biffAddf(NRRD, "%s: trouble parsing |%s| back to kern/parm pair or kspec",
              me, kstr);
-    return 1;
+    airMopError(mop); return 1;
   }
   if (nrrdKernelCompare(kern, parm, parsedkern, parsedparm,
                         &differ, explain)) {
-    biffAddf(NRRD, "%s: trouble comparing", me);
-    return 1;
+    biffAddf(NRRD, "%s: trouble comparing kern/parm pairs", me);
+    airMopError(mop); return 1;
   }
   if (differ) {
     biffAddf(NRRD, "%s: given and re-parsed kernels differ: %s", me, explain);
-    return 1;
+    airMopError(mop); return 1;
+  }
+  if (nrrdKernelCompare(kspA->kernel, kspA->parm,
+                        kspB->kernel, kspB->parm,
+                        &differ, explain)) {
+    biffAddf(NRRD, "%s: trouble comparing kspecs", me);
+    airMopError(mop); return 1;
+  }
+  if (differ) {
+    biffAddf(NRRD, "%s: given and re-parsed kspecs differ: %s", me, explain);
+    airMopError(mop); return 1;
   }
 
   supp = kern->support(parm);
@@ -3350,10 +3385,9 @@ nrrdKernelCheck(const NrrdKernel *kern,
       /* the "cheap" kernel alone gets a pass on reporting its support */
       biffAddf(NRRD, "%s: kern %s is non-zero outside support %g",
                me, kstr, supp);
-      return 1;
+      airMopError(mop); return 1;
     }
   }
-  mop = airMopNew();
   /* allocate domain and range for both float and double */
   dom_d = AIR_CALLOC(evalNum, double);
   airMopAdd(mop, dom_d, airFree, airMopAlways);

@@ -361,6 +361,46 @@ nrrdKernelSpecCopy(const NrrdKernelSpec *oldKsp) {
   return ksp;
 }
 
+/*
+** HEY: GLK is ambivalent about having this as well as
+** nrrdKernelCompare; this was originally written when GLK had
+** forgotten about nrrdKernelCompare; Confusion about Compare vs Equal
+** functions noted on TODO.txt
+
+int
+nrrdKernelSpecEqual(const NrrdKernelSpec *aa,
+                    const char *_nameA,
+                    const NrrdKernelSpec *bb,
+                    const char *_nameB, int ubf) {
+  static const char me[]="nrrdKernelSpecEqual", baseA[]="A", baseB[]="B";
+  const char *nameA, *nameB;
+  unsigned int ki;
+
+  if (!( aa && bb )) {
+    biffMaybeAddf(ubf, NRRD, "%s: got NULL pointer (%p %p)", me,
+                  AIR_VOIDP(aa), AIR_VOIDP(bb));
+    return 0;
+  }
+  nameA = _nameA ? _nameA : baseA;
+  nameB = _nameB ? _nameB : baseB;
+  if (aa->kernel != bb->kernel) {
+    biffMaybeAddf(ubf, NRRD, "%s: %s->kernel %s != %s->kernel %s", me,
+                  nameA, aa->kernel->name,
+                  nameB, bb->kernel->name);
+    return 0;
+  }
+  for (ki=0; ki<aa->kernel->numParm; ki++) {
+    if (aa->parm[ki] != bb->parm[ki]) {
+      biffMaybeAddf(ubf, NRRD, "%s: %s->parm[%u] %.17g != %s->parm[%u] %.17g",
+                    me, nameA, ki, aa->parm[ki],
+                    nameB, ki, bb->parm[ki]);
+      return 0;
+    }
+  }
+  return 1;
+}
+*/
+
 NrrdKernelSpec *
 nrrdKernelSpecNix(NrrdKernelSpec *ksp) {
 
