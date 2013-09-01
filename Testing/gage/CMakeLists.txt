@@ -21,6 +21,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
+ADD_EXECUTABLE(test_sbp tsbp.c)
+TARGET_LINK_LIBRARIES(test_sbp teem)
+ADD_TEST(stackBlurParm ${EXECUTABLE_OUTPUT_PATH}/test_sbp -sbp 0-5-4.2)
+
 ADD_EXECUTABLE(test_probeScl probeScl.c)
 TARGET_LINK_LIBRARIES(test_probeScl teem)
 ADD_TEST(probeScl ${EXECUTABLE_OUTPUT_PATH}/test_probeScl)
