@@ -779,6 +779,10 @@ NRRD_EXPORT int nrrdBoundarySpecParse(NrrdBoundarySpec *bspec,
                                       const char *str);
 NRRD_EXPORT int nrrdBoundarySpecSprint(char str[AIR_STRLEN_LARGE],
                                        const NrrdBoundarySpec *bspec);
+NRRD_EXPORT int nrrdBoundarySpecCompare(const NrrdBoundarySpec *bspecA,
+                                        const NrrdBoundarySpec *bspecB,
+                                        int *differ,
+                                        char explain[AIR_STRLEN_LARGE]);
 /* ---- END non-NrrdIO */
 NRRD_EXPORT NrrdIoState *nrrdIoStateNew(void);
 NRRD_EXPORT void nrrdIoStateInit(NrrdIoState *nio);
@@ -1576,6 +1580,10 @@ NRRD_EXPORT int nrrdKernelCompare(const NrrdKernel *kernA,
                                   const double parmB[NRRD_KERNEL_PARMS_NUM],
                                   int *differ,
                                   char explain[AIR_STRLEN_LARGE]);
+NRRD_EXPORT int nrrdKernelSpecCompare(const NrrdKernelSpec *aa,
+                                      const NrrdKernelSpec *bb,
+                                      int *differ,
+                                      char explain[AIR_STRLEN_LARGE]);
 NRRD_EXPORT int nrrdKernelCheck(const NrrdKernel *kern,
                                 const double parm[NRRD_KERNEL_PARMS_NUM],
                                 size_t evalNum, double epsilon,

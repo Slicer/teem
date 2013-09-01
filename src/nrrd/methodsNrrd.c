@@ -197,6 +197,48 @@ nrrdBoundarySpecSprint(char str[AIR_STRLEN_LARGE],
   return 0;
 }
 
+int
+nrrdBoundarySpecCompare(const NrrdBoundarySpec *aa,
+                        const NrrdBoundarySpec *bb,
+                        int *differ, char explain[AIR_STRLEN_LARGE]) {
+  static const char me[]="nrrdBoundarySpecEqual";
+
+  if (!differ) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!!aa != !!bb) {
+    if (explain) {
+      sprintf(explain, "NULL-ities differ: %s != %s",
+              aa ? "non-NULL" : "NULL",
+              bb ? "non-NULL" : "NULL");
+    }
+    *differ = 1; return 0;
+  }
+  if (!aa) {
+    /* got two NULL boundary specs ==> equal */
+    *differ = 0; return 0;
+  }
+  if (aa->boundary != bb->boundary) {
+    if (explain) {
+      sprintf(explain, "boundaries differ: %s != %s",
+              airEnumStr(nrrdBoundary, aa->boundary),
+              airEnumStr(nrrdBoundary, bb->boundary));
+    }
+    *differ = 1; return 0;
+  }
+  if (nrrdBoundaryPad == aa->boundary) {
+    if (aa->padValue != bb->padValue) {
+      if (explain) {
+        sprintf(explain, "padValue differ: %.17g != %.17g",
+                aa->padValue, bb->padValue);
+      }
+      *differ = 1; return 0;
+    }
+  }
+  *differ = 0;
+  return 0;
+}
 
 /* ---- END non-NrrdIO */
 /* ------------------------------------------------------------ */
@@ -360,46 +402,6 @@ nrrdKernelSpecCopy(const NrrdKernelSpec *oldKsp) {
   }
   return ksp;
 }
-
-/*
-** HEY: GLK is ambivalent about having this as well as
-** nrrdKernelCompare; this was originally written when GLK had
-** forgotten about nrrdKernelCompare; Confusion about Compare vs Equal
-** functions noted on TODO.txt
-
-int
-nrrdKernelSpecEqual(const NrrdKernelSpec *aa,
-                    const char *_nameA,
-                    const NrrdKernelSpec *bb,
-                    const char *_nameB, int ubf) {
-  static const char me[]="nrrdKernelSpecEqual", baseA[]="A", baseB[]="B";
-  const char *nameA, *nameB;
-  unsigned int ki;
-
-  if (!( aa && bb )) {
-    biffMaybeAddf(ubf, NRRD, "%s: got NULL pointer (%p %p)", me,
-                  AIR_VOIDP(aa), AIR_VOIDP(bb));
-    return 0;
-  }
-  nameA = _nameA ? _nameA : baseA;
-  nameB = _nameB ? _nameB : baseB;
-  if (aa->kernel != bb->kernel) {
-    biffMaybeAddf(ubf, NRRD, "%s: %s->kernel %s != %s->kernel %s", me,
-                  nameA, aa->kernel->name,
-                  nameB, bb->kernel->name);
-    return 0;
-  }
-  for (ki=0; ki<aa->kernel->numParm; ki++) {
-    if (aa->parm[ki] != bb->parm[ki]) {
-      biffMaybeAddf(ubf, NRRD, "%s: %s->parm[%u] %.17g != %s->parm[%u] %.17g",
-                    me, nameA, ki, aa->parm[ki],
-                    nameB, ki, bb->parm[ki]);
-      return 0;
-    }
-  }
-  return 1;
-}
-*/
 
 NrrdKernelSpec *
 nrrdKernelSpecNix(NrrdKernelSpec *ksp) {

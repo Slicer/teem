@@ -3228,6 +3228,10 @@ nrrdKernelSprint(char str[AIR_STRLEN_LARGE], const NrrdKernel *kernel,
   return 0;
 }
 
+/*
+** This DOES make an effort to set *differ based on "ordering" (-1 or +1)
+** but HEY that's very contrived; why bother?
+*/
 int
 nrrdKernelCompare(const NrrdKernel *kernA,
                   const double parmA[NRRD_KERNEL_PARMS_NUM],
@@ -3272,6 +3276,61 @@ nrrdKernelCompare(const NrrdKernel *kernA,
   }
 
   /* so far nothing unequal */
+  *differ = 0;
+  return 0;
+}
+
+/*
+** This DOES NOT make an effort to set *differ based on "ordering";
+*/
+int
+nrrdKernelSpecCompare(const NrrdKernelSpec *aa,
+                      const NrrdKernelSpec *bb,
+                      int *differ, char explain[AIR_STRLEN_LARGE]) {
+  static const char me[]="nrrdKernelSpecEqual";
+  char subexplain[AIR_STRLEN_LARGE];
+
+  if (!( differ )) {
+    biffAddf(NRRD, "%s: got NULL differ", me);
+    return 1;
+  }
+  if (!!aa != !!bb) {
+    if (explain) {
+      sprintf(explain, "different NULL-ities of kspec itself %s != %s",
+              aa ? "non-NULL" : "NULL",
+              bb ? "non-NULL" : "NULL");
+    }
+    *differ = 1; return 0;
+  }
+  if (!aa) {
+    /* got two NULL kernel specs ==> equal */
+    *differ = 0; return 0;
+  }
+  if (!!aa->kernel != !!bb->kernel) {
+    if (explain) {
+      sprintf(explain, "different NULL-ities of kspec->kernel %s != %s",
+              aa->kernel ? "non-NULL" : "NULL",
+              bb->kernel ? "non-NULL" : "NULL");
+    }
+    *differ = 1; return 0;
+  }
+  if (!aa->kernel) {
+    /* both kernels NULL, can't do anything informative with parms */
+    *differ = 0; return 0;
+  }
+  if (nrrdKernelCompare(aa->kernel, aa->parm,
+                        bb->kernel, bb->parm,
+                        differ, subexplain)) {
+    biffAddf(NRRD, "%s: trouble comparing kernels", me);
+    return 1;
+  }
+  if (*differ) {
+    if (explain) {
+      sprintf(explain, "kern/parm pairs differ: %s", subexplain);
+    }
+    *differ = 1; /* losing ordering info (of dubious value) */
+    return 0;
+  }
   *differ = 0;
   return 0;
 }
