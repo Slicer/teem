@@ -1204,8 +1204,16 @@ GAGE_EXPORT int gageStackProbeSpace(gageContext *ctx,
 /* stackBlur.c */
 GAGE_EXPORT const airEnum *const gageSigmaSampling;
 GAGE_EXPORT gageStackBlurParm *gageStackBlurParmNew(void);
+GAGE_EXPORT int gageStackBlurParmCopy(gageStackBlurParm *sbpDst,
+                                      const gageStackBlurParm *sbpSrc);
 GAGE_EXPORT void gageStackBlurParmInit(gageStackBlurParm *parm);
 GAGE_EXPORT gageStackBlurParm *gageStackBlurParmNix(gageStackBlurParm *sbp);
+GAGE_EXPORT int gageStackBlurParmCompare(const gageStackBlurParm *sbpA,
+                                         const char *nameA,
+                                         const gageStackBlurParm *sbpB,
+                                         const char *nameB,
+                                         int *differ,
+                                         char explain[AIR_STRLEN_LARGE]);
 GAGE_EXPORT int gageStackBlurParmScaleSet(gageStackBlurParm *sbp,
                                           unsigned int num,
                                           double sigmaMin,
@@ -1231,7 +1239,7 @@ GAGE_EXPORT int gageStackBlurParmVerboseSet(gageStackBlurParm *sbp,
                                             int verbose);
 GAGE_EXPORT int gageStackBlurParmOneDimSet(gageStackBlurParm *sbp,
                                            int oneDim);
-GAGE_EXPORT int gageStackBlurParmCheck(gageStackBlurParm *sbp);
+GAGE_EXPORT int gageStackBlurParmCheck(const gageStackBlurParm *sbp);
 GAGE_EXPORT int gageStackBlurParmParse(gageStackBlurParm *sbp,
                                        int extraFlags[256],
                                        char **extraParmsP,

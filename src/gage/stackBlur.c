@@ -121,6 +121,139 @@ gageStackBlurParmNix(gageStackBlurParm *sbp) {
   return NULL;
 }
 
+/*
+** *differ is set to 0 or 1; not useful for sorting
+*/
+int
+gageStackBlurParmCompare(const gageStackBlurParm *aa, const char *_nameA,
+                         const gageStackBlurParm *bb, const char *_nameB,
+                         int *differ, char explain[AIR_STRLEN_LARGE]) {
+  static const char me[]="gageStackBlurParmCompare",
+    baseA[]="A", baseB[]="B";
+  const char *nameA, *nameB;
+  unsigned int si, warnLen = AIR_STRLEN_LARGE/4;
+  char stmp[2][AIR_STRLEN_LARGE], subexplain[AIR_STRLEN_LARGE];
+
+  if (!(aa && bb && differ)) {
+    biffAddf(GAGE, "%s: got NULL pointer (%p %p %p)", me,
+             AIR_VOIDP(aa), AIR_VOIDP(bb), AIR_VOIDP(differ));
+    return 1;
+  }
+  nameA = _nameA ? _nameA : baseA;
+  nameB = _nameB ? _nameB : baseB;
+  if (strlen(nameA) + strlen(nameB) > warnLen) {
+    biffAddf(GAGE, "%s: names (len %s, %s) might lead to overflow", me,
+             airSprintSize_t(stmp[0], strlen(nameA)),
+             airSprintSize_t(stmp[1], strlen(nameB)));
+    return 1;
+  }
+  /*
+  ** HEY: really ambivalent about not doing this check:
+  ** its unusual in Teem to not take an opportunity to do this kind
+  ** of sanity check when its available, but we don't really know the
+  ** circumstances of when this will be called, and if that includes
+  ** some interaction with hest, there may not yet have been the chance
+  ** to complete the sbp.
+  if (gageStackBlurParmCheck(aa)) {
+    biffAddf(GAGE, "%s: problem with sbp %s", me, nameA);
+    return 1;
+  }
+  if (gageStackBlurParmCheck(bb)) {
+    biffAddf(GAGE, "%s: problem with sbp %s", me, nameB);
+    return 1;
+  }
+  */
+#define CHECK(VAR, FMT)                                                 \
+  if (aa->VAR != bb->VAR) {                                             \
+    if (explain) {                                                      \
+      sprintf(explain, "%s->" #VAR "=" #FMT " != %s->" #VAR "=" #FMT,   \
+              nameA, aa->VAR, nameB,  bb->VAR);                         \
+    }                                                                   \
+    *differ = 1;                                                        \
+    return 0;                                                           \
+  }
+  CHECK(num, %u);
+  CHECK(sigmaRange[0], %.17g);
+  CHECK(sigmaRange[1], %.17g);
+  CHECK(renormalize, %d);
+  CHECK(oneDim, %d);
+  CHECK(needSpatialBlur, %d);
+  CHECK(verbose, %d);
+  CHECK(dgGoodSigmaMax, %.17g);
+#undef CHECK
+  if (aa->sigmaSampling != bb->sigmaSampling) {
+    if (explain) {
+      sprintf(explain, "%s->sigmaSampling=%s != %s->sigmaSampling=%s",
+              nameA, airEnumStr(gageSigmaSampling, aa->sigmaSampling),
+              nameB, airEnumStr(gageSigmaSampling, bb->sigmaSampling));
+    }
+    *differ = 1; return 0;
+  }
+  for (si=0; si<aa->num; si++) {
+    if (aa->sigma[si] != bb->sigma[si]) {
+      if (explain) {
+        sprintf(explain, "%s->sigma[%u]=%.17g != %s->sigma[%u]=%.17g",
+                nameA, si, aa->sigma[si], nameB, si, bb->sigma[si]);
+      }
+      *differ = 1; return 0;
+    }
+  }
+  if (nrrdKernelSpecCompare(aa->kspec, bb->kspec,
+                            differ, subexplain)) {
+    biffMovef(GAGE, NRRD, "%s: trouble comparing kernel specs", me);
+    return 1;
+  }
+  if (*differ) {
+    if (explain) {
+      sprintf(explain, "kernel specs different: %s", subexplain);
+    }
+    *differ = 1; return 0;
+  }
+  if (nrrdBoundarySpecCompare(aa->bspec, bb->bspec,
+                              differ, subexplain)) {
+    biffMovef(GAGE, NRRD, "%s: trouble comparing boundary specs", me);
+    return 1;
+  }
+  if (*differ) {
+    if (explain) {
+      sprintf(explain, "boundary specs different: %s", subexplain);
+    }
+    *differ = 1; return 0;
+  }
+  /* no differences so far */
+  *differ = 0;
+  return 0;
+}
+
+int
+gageStackBlurParmCopy(gageStackBlurParm *dst,
+                      const gageStackBlurParm *src) {
+  static const char me[]="gageStackBlurParmCopy";
+
+  if (!(dst && src)) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (gageStackBlurParmCheck(src)) {
+    biffAddf(GAGE, "%s: given src parm has problems", me);
+    return 1;
+  }
+  if (gageStackBlurParmSigmaSet(dst, src->num,
+                                src->sigmaRange[0], src->sigmaRange[1],
+                                src->sigmaSampling)
+      || gageStackBlurParmKernelSet(dst, src->kspec, src->renormalize)
+      || gageStackBlurParmDgGoodSigmaMaxSet(dst, src->dgGoodSigmaMax)
+      || gageStackBlurParmBoundarySpecSet(dst, src->bspec)
+      || gageStackBlurParmNeedSpatialBlurSet(dst, src->needSpatialBlur)
+      || gageStackBlurParmVerboseSet(dst, src->verbose)
+      || gageStackBlurParmOneDimSet(dst, src->oneDim)) {
+    biffAddf(GAGE, "%s: problem setting dst parm", me);
+    return 1;
+  }
+  /* HEY consider an equal check here */
+  return 0;
+}
+
 int
 gageStackBlurParmSigmaSet(gageStackBlurParm *sbp, unsigned int num,
                           double sigmaMin, double sigmaMax,
@@ -355,7 +488,7 @@ gageStackBlurParmDgGoodSigmaMaxSet(gageStackBlurParm *sbp,
 }
 
 int
-gageStackBlurParmCheck(gageStackBlurParm *sbp) {
+gageStackBlurParmCheck(const gageStackBlurParm *sbp) {
   static const char me[]="gageStackBlurParmCheck";
   unsigned int ii;
 
