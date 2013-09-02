@@ -439,6 +439,8 @@ main(int argc, const char *argv[]) {
       }
       sbp = sbpCL;
     } else {
+      /* old way of doing things; depending on many separate options
+         to set numSS, rangeSS, uniformSS, optimSS, etc */
       sbpIN = gageStackBlurParmNew();
       airMopAdd(mop, sbpIN, (airMopper)gageStackBlurParmNix, airMopAlways);
       if (gageStackBlurParmVerboseSet(sbpIN, verbose)
