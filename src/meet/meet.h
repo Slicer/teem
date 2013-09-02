@@ -118,22 +118,23 @@ typedef struct {
   const gageKind *kind;
   char *fileName,
     *volName;
-  int derivNormSS,             /* normalize derivatives based on scale */
-    uniformSS,                 /* uniform sampling along scale */
-    optimSS,                   /* optimal (non-uniform) sampling of scale */
-    needSpatialBlurSS,         /* even if fft-based blurring is possible,
-                                  instead use spatial blurring to compute
-                                  the scale-space samples */
-    leeching,                  /* non-zero iff using the same nin and ninSS
-                                  as another meetPullVol (so as to avoid
-                                  redundant copies in memory) */
-    recomputedSS;              /* (OUTPUT) non-zero if meetPullVolLoadMulti
-                                  had to recompute these, versus being read
-                                  from disk */
-  unsigned int numSS;
-  double rangeSS[2], derivNormBiasSS, *posSS;
-  Nrrd *nin;                             /* we DO own */
-  Nrrd **ninSS;                          /* we DO own */
+  gageStackBlurParm *sbp;  /* the right place to store everything about how to
+                              pre-compute a blurring of an image, replacing
+                              uniformSS, optimSS, needSpatialBlurSS,
+                              rangeSS[2], numSS, and posSS.  More sensible to
+                              have this here, now that gage can parse the
+                              terse string-based description of scale-space
+                              sampling that originated in meet (via Deft) */
+  int leeching,            /* non-zero iff using the same nin and ninSS
+                              as another meetPullVol (so as to avoid
+                              redundant copies in memory) */
+    derivNormSS,           /* normalize derivatives based on scale */
+    recomputedSS;          /* (OUTPUT) non-zero if meetPullVolLoadMulti
+                              had to recompute these, versus being read
+                              from disk */
+  double derivNormBiasSS;  /* for gageParmStackNormalizeDerivBias */
+  Nrrd *nin;               /* we DO own */
+  Nrrd **ninSS;            /* we DO own */
 } meetPullVol;
 
 /*
@@ -163,14 +164,18 @@ typedef struct {
 MEET_EXPORT meetPullVol *meetPullVolNew(void);
 MEET_EXPORT meetPullVol *meetPullVolCopy(const meetPullVol *mpv);
 MEET_EXPORT int meetPullVolParse(meetPullVol *mpv, const char *str);
-MEET_EXPORT int meetPullVolLeechable(const meetPullVol *orig,
-                                     const meetPullVol *lchr);
+MEET_EXPORT int meetPullVolLeechable(const meetPullVol *lchr,
+                                     const meetPullVol *orig,
+                                     int *can,
+                                     char explain[AIR_STRLEN_LARGE]);
 MEET_EXPORT meetPullVol *meetPullVolNix(meetPullVol *pvol);
 MEET_EXPORT hestCB *meetHestPullVol;
+MEET_EXPORT int meetPullVolStackBlurParmFinishMulti(meetPullVol **mpv,
+                                                    unsigned int mpvNum,
+                                                    const NrrdKernelSpec *ksp,
+                                                    const NrrdBoundarySpec *bsp);
 MEET_EXPORT int meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
-                                     char *cachePath,
-                                     const gageStackBlurParm *sbparm,
-                                     int verbose);
+                                     char *cachePath, int verbose);
 MEET_EXPORT int meetPullVolAddMulti(pullContext *pctx,
                                     meetPullVol **mpv, unsigned int mpvNum,
                                     const NrrdKernelSpec *k00,

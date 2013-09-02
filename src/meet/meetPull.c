@@ -31,57 +31,64 @@ meetPullVolNew(void) {
   if (ret) {
     ret->kind = NULL;
     ret->fileName = ret->volName = NULL;
-    ret->derivNormSS = AIR_FALSE;
-    ret->uniformSS = AIR_FALSE;
-    ret->optimSS = AIR_FALSE;
-    ret->needSpatialBlurSS = AIR_FALSE;
+    ret->sbp = NULL;
     ret->leeching = AIR_FALSE;
-    ret->numSS = 0;
-    ret->rangeSS[0] = ret->rangeSS[1] = AIR_NAN;
+    ret->derivNormSS = AIR_FALSE;
+    ret->recomputedSS = AIR_FALSE;
     ret->derivNormBiasSS = 0.0;
-    ret->posSS = NULL;
     ret->nin = NULL;
     ret->ninSS = NULL;
   }
   return ret;
 }
 
+/*
+** DOES use biff
+*/
 meetPullVol *
 meetPullVolCopy(const meetPullVol *mpv) {
+  static const char me[]="meetPullVolCopy";
   meetPullVol *ret;
   unsigned int si;
+  airArray *mop;
 
+  mop = airMopNew();
   ret = meetPullVolNew();
+  airMopAdd(mop, ret, (airMopper)meetPullVolNix, airMopOnError);
   /* HEY: hope this is okay for dynamic kinds */
   ret->kind = mpv->kind;
   ret->fileName = airStrdup(mpv->fileName);
   ret->volName = airStrdup(mpv->volName);
-  ret->derivNormSS = mpv->derivNormSS;
-  ret->uniformSS = mpv->uniformSS;
-  ret->optimSS = mpv->optimSS;
-  ret->needSpatialBlurSS = mpv->needSpatialBlurSS;
-  ret->leeching = AIR_FALSE;
-  ret->recomputedSS = AIR_FALSE;
-  ret->numSS = mpv->numSS;
-  ret->rangeSS[0] = mpv->rangeSS[0];
-  ret->rangeSS[1] = mpv->rangeSS[1];
-  ret->derivNormBiasSS = mpv->derivNormBiasSS;
-  ret->posSS = AIR_CALLOC(ret->numSS, double); /* HEY: no error checking */
-  for (si=0; si<mpv->numSS; si++) {
-    ret->posSS[si] = mpv->posSS[si];
+  if (mpv->sbp) {
+    ret->sbp = gageStackBlurParmNew();
+    if (gageStackBlurParmCopy(ret->sbp, mpv->sbp)) {
+      biffMovef(MEET, GAGE, "%s: problem", me);
+      airMopError(mop); return NULL;
+    }
   }
-  if (mpv->numSS) {
+  ret->leeching = AIR_FALSE;
+  ret->derivNormSS = mpv->derivNormSS;
+  ret->recomputedSS = AIR_FALSE;
+  ret->derivNormBiasSS = mpv->derivNormBiasSS;
+  if (mpv->sbp) {
     ret->nin = NULL;
-    ret->ninSS = AIR_CALLOC(ret->numSS, Nrrd *);
-    for (si=0; si<mpv->numSS; si++) {
+    ret->ninSS = AIR_CALLOC(ret->sbp->num, Nrrd *);
+    for (si=0; si<mpv->sbp->num; si++) {
       ret->ninSS[si] = nrrdNew();
-      nrrdCopy(ret->ninSS[si], mpv->ninSS[si]);
+      if (nrrdCopy(ret->ninSS[si], mpv->ninSS[si])) {
+        biffMovef(MEET, NRRD, "%s: problem with ninSS[%u]", me, si);
+        airMopError(mop); return NULL;
+      }
     }
   } else {
     ret->nin = nrrdNew();
-    nrrdCopy(ret->nin, mpv->nin);
+    if (nrrdCopy(ret->nin, mpv->nin)) {
+      biffMovef(MEET, NRRD, "%s: problem with nin", me);
+      airMopError(mop); return NULL;
+    }
     ret->ninSS = NULL;
   }
+  airMopOkay(mop);
   return ret;
 }
 
@@ -95,7 +102,8 @@ int
 meetPullVolParse(meetPullVol *mpv, const char *_str) {
   static const char me[]="meetPullVolParse";
 #define VFMT_SHRT "<fileName>:<kind>:<volName>"
-#define SFMT "<minScl>-<#smp>-<maxScl>[-no|u]"
+  /* there are other flags and parms but these are the main ones */
+#define SFMT "<minScl>-<#smp>-<maxScl>[-no|u][/k=kss[/b=bspec[/s=smpling]]]"
 #define VFMT_LONG "<fileName>:<kind>:" SFMT ":<volName>"
   char *str, *ctok, *clast=NULL;
   airArray *mop;
@@ -133,17 +141,30 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
     airMopError(mop); return 1;
   }
   if (wantSS) {
-                         
-    fprintf(stderr, "%s: WHAT  WHAT  WHAT  WHAT  WHAT \n", me);
-    fprintf(stderr, "%s: WHAT  WHAT  WHAT  WHAT  WHAT \n", me);
-    fprintf(stderr, "%s: WHAT  WHAT  WHAT  WHAT  WHAT \n", me);
-                         
+    ctok = airStrtok(NULL, ":", &clast);
+    mpv->sbp = gageStackBlurParmNix(mpv->sbp);
+    mpv->sbp = gageStackBlurParmNew();
+    int extraFlag[256]; char *extraParm=NULL, *ptok, *plast;
+    if (gageStackBlurParmParse(mpv->sbp, extraFlag, &extraParm, ctok)) {
+      biffMovef(MEET, GAGE, "%s: problem parsing sbp from \"%s\"", me, ctok);
+      airMopError(mop); return 1;
+    }
+    mpv->derivNormSS = !!extraFlag['n'];
+    if (extraParm) {
+      unsigned int pmi, pmn;
+      airMopAdd(mop, extraParm, airFree, airMopAlways);
+      pmn = airStrntok(extraParm, "/");
+      for (pmi=0; pmi<pmn; pmi++) {
+        ptok = airStrtok(!pmi ? extraParm : NULL, "/", &plast);
+                                      
+        fprintf(stderr, "!%s: extra parm[%u] = |%s|\n", me, pmi, ptok);
+                                      
+      }
+    }
   } else {
     /* no scale-space stuff wanted */
-    mpv->numSS = 0;
-    mpv->rangeSS[0] = mpv->rangeSS[1] = AIR_NAN;
+    mpv->sbp = NULL;
     mpv->ninSS = NULL;
-    mpv->posSS = NULL;
   }
   ctok = airStrtok(NULL, ":", &clast);
   if (!(mpv->volName = airStrdup(ctok))) {
@@ -201,19 +222,19 @@ meetPullVolNix(meetPullVol *mpv) {
     if (!mpv->leeching && mpv->nin) {
       nrrdNuke(mpv->nin);
     }
-    if (mpv->numSS) {
+    if (mpv->sbp) {
       unsigned int ssi;
       if (mpv->ninSS) {
         /* need this check because the mpv may not have benefitted
            from meetPullVolLoadMulti, so it might be incomplete */
-        for (ssi=0; ssi<mpv->numSS; ssi++) {
+        for (ssi=0; ssi<mpv->sbp->num; ssi++) {
           if (!mpv->leeching) {
             nrrdNuke(mpv->ninSS[ssi]);
           }
         }
         airFree(mpv->ninSS);
       }
-      airFree(mpv->posSS);
+      gageStackBlurParmNix(mpv->sbp);
     }
     airFree(mpv->fileName);
     airFree(mpv->volName);
@@ -236,51 +257,76 @@ meetHestPullVol = &_meetHestPullVol;
 /*
 ******** meetPullVolLeechable
 **
-** indicates whether lchr can leech from orig
+** indicates whether lchr can leech from orig (saved in *can), and if not,
+** explanation is saved in explain (if non-NULL)
+**
+** always uses biff
 */
 int
 meetPullVolLeechable(const meetPullVol *lchr,
-                     const meetPullVol *orig) {
+                     const meetPullVol *orig,
+                     int *can, char explain[AIR_STRLEN_LARGE]) {
   static const char me[]="meetPullVolLeechable";
-  int can, verbose;
+  char subexplain[AIR_STRLEN_LARGE];
 
-  verbose = 0;
-  can = !!strcmp(orig->fileName, "-");  /* can, if not reading from stdin */
-  if (verbose && !can) {
-    fprintf(stderr, "%s: no: from stdin\n", me);
+  if (!( lchr && orig && can )) {
+    biffAddf(MEET, "%s: got NULL pointer (%p %p %p)", me, lchr, orig, can);
+    return 1;
   }
-  can &= !strcmp(orig->fileName, lchr->fileName);  /* come from same file */
-  if (verbose && !can) {
-    fprintf(stderr, "%s: no: not from same file\n", me);
-  }
-  can &= (orig->kind == lchr->kind);               /* same kind */
-  if (verbose && !can) {
-    fprintf(stderr, "%s: no: not same kind\n", me);
-  }
-  /* need to have different volname */
-  can &= (orig->numSS == lchr->numSS);             /* same scale space */
-  if (verbose && !can) {
-    fprintf(stderr, "%s: no: not same scale space\n", me);
-  }
-  if (lchr->numSS) {
-    /* DO allow difference in derivNormSS (the main reason for leeching) */
-    /* same SS sampling strategy */
-    can &= (orig->uniformSS == lchr->uniformSS);
-    if (verbose && !can) {
-      fprintf(stderr, "%s: no: not same uniformSS\n", me);
+  /* can leech, if not reading from stdin */
+  *can = !!strcmp(orig->fileName, "-");
+  if (!*can) {
+    if (explain) {
+      sprintf(explain, "original loaded from stdin");
     }
-    can &= (orig->optimSS == lchr->optimSS);
-    if (verbose && !can) {
-      fprintf(stderr, "%s: no: not same optimSS\n", me);
+    return 0;
+  }
+  /* can, if coming from same file */
+  *can = !strcmp(orig->fileName, lchr->fileName);
+  if (!*can) {
+    if (explain) {
+      sprintf(explain, "not from same file (|%s| vs |%s|)\n",
+              lchr->fileName, orig->fileName);
     }
-    /* same SS range */
-    can &= (orig->rangeSS[0] == lchr->rangeSS[0]);
-    can &= (orig->rangeSS[1] == lchr->rangeSS[1]);
-    if (verbose && !can) {
-      fprintf(stderr, "%s: no: not same rangeSS\n", me);
+    return 0;
+  }
+  /* can, if same kind */
+  *can = (orig->kind == lchr->kind);
+  if (!*can) {
+    if (explain) {
+      sprintf(explain, "not same kind (%s vs %s)\n",
+              lchr->kind->name, orig->kind->name);
+    }
+    return 0;
+  }
+  /* can, if both using or both not using scale-space */
+  *can = (!!lchr->sbp == !!orig->sbp);
+  if (!*can) {
+    if (explain) {
+      sprintf(explain, "not agreeing on use of scale-space (%s vs %s)\n",
+              lchr->sbp ? "yes" : "no", orig->sbp ? "yes" : "no");
+    }
+    return 0;
+  }
+  if (orig->sbp) {
+    if (gageStackBlurParmCompare(lchr->sbp, "potential leecher",
+                                 orig->sbp, "original",
+                                 can, subexplain)) {
+      biffAddf(MEET, "%s: problem comparing sbps", me);
+      return 1;
+    }
+    if (!*can) {
+      if (explain) {
+        sprintf(explain, "different uses of scale-space: %s", subexplain);
+      }
+      return 0;
     }
   }
-  return can;
+  /* DO allow difference in derivNormSS (the main reason for leeching),
+     as well as derivNormBiasSS */
+  /* no differences so far */
+  *can = AIR_TRUE;
+  return 0;
 }
 
 void
@@ -289,17 +335,13 @@ meetPullVolLeech(meetPullVol *vol,
 
   if (vol && volPrev) {
     vol->nin = volPrev->nin;
-    if (vol->numSS) {
+    if (vol->sbp) {
       unsigned int ni;
       /* have to allocate ninSS here; in volPrev it was probably allocated
          by gageStackBlurManage */
-      vol->ninSS = AIR_CALLOC(vol->numSS, Nrrd *);
-      /* have to allocate posSS here; in volPrev is was probably allocated
-         by meetPullVolLoadMulti */
-      vol->posSS = AIR_CALLOC(vol->numSS, double);
-      for (ni=0; ni<vol->numSS; ni++) {
+      vol->ninSS = AIR_CALLOC(vol->sbp->num, Nrrd *);
+      for (ni=0; ni<vol->sbp->num; ni++) {
         vol->ninSS[ni] = volPrev->ninSS[ni];
-        vol->posSS[ni] = volPrev->posSS[ni];
       }
     }
     vol->leeching = AIR_TRUE;
@@ -308,29 +350,69 @@ meetPullVolLeech(meetPullVol *vol,
 }
 
 /*
+** This is kind of a sad function. The big re-write of gageStackBlurParm in
+** late August 2013 was motivated by the frustration of how there was no
+** centralized and consistent way of representing (by text or by command-line
+** options) all the things that determine scale-space "stack" creation.
+** Having re-organized gageStackBlurParm, the meetPullVol was re-organized to
+** include one inside, which is clearly better than the previous reduplication
+** of the stack blur parms inside the meetPullVol. Parsing the meetPullVol
+** from the command-line (as in done in puller) highlights the annoying fact
+** that hest wants to be the origin of information: you can't have hest
+** supplement existing information with whatever it learns from the
+** command-line, especially when hest is parsing 1 or more of something, and
+** especially when the existing information would be coming from other
+** command-line arguments.
+**
+** So, this sad function says, "ok all you meetPullVol parsed from the
+** command-line: if you don't already have a boundary or a kernel set, here's
+** one to use". What makes it sad is how the whole point of the
+** gageStackBlurParm re-org was that knowledge about the internals of the
+** gageStackBlurParm was now going to be entirely localized in gage. But here
+** we are listing off two of its fields as parameters to this function, which
+** means its API might change the next time the gageStackBlurParm is updated.
+*/
+int
+meetPullVolStackBlurParmFinishMulti(meetPullVol **mpv, unsigned int mpvNum,
+                                    const NrrdKernelSpec *kssblur,
+                                    const NrrdBoundarySpec *bspec) {
+  static const char me[]="meetPullVolStackBlurParmFinishMulti";
+  unsigned int ii;
+
+  if (!mpv || !mpvNum) {
+    biffAddf(MEET, "%s: got NULL mpv (%p) or 0 mpvNum (%u)",
+             me, AIR_VOIDP(mpv), mpvNum);
+    return 1;
+  }
+  for (ii=0; ii<mpvNum; ii++) {
+    if (kssblur && mpv[ii]->sbp && !(mpv[ii]->sbp->kspec)) {
+      if (gageStackBlurParmKernelSet(mpv[ii]->sbp, kssblur)) {
+        biffMovef(MEET, GAGE, "%s: trouble w/ kernel on mpv[%u]", me, ii);
+        return 1;
+      }
+    }
+    if (bspec && mpv[ii]->sbp && !(mpv[ii]->sbp->bspec)) {
+      if (gageStackBlurParmBoundarySpecSet(mpv[ii]->sbp, bspec)) {
+        biffMovef(MEET, GAGE, "%s: trouble w/ boundary on mpv[%u]", me, ii);
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+/*
 ******** meetPullVolLoadMulti
 **
-** at this point the per-pullVolume information required for
-** loading/creating the volumes, which is NOT in the meetPullVol, is
-** the cachePath and the fields we have to set in the
-** gageStackBlurParm, so these have to be passed explicitly.
-**
-** The passed sbparm is only for communication boundary, padValue,
-** verbose, etc: the various little parameters for stack blurring,
-** which are themselves changing with experimentation.  This is
-** cleaner than passing them as separate arguments to
-** meetPullVolLoadMulti.  This change was prompted by the addition
-** of sbparm->oneDim.  sbparm is only needed if there are
-** scale-space volumes being loaded.
+** at this point the only per-pullVolume information required for
+** loading/creating the volumes, which isn't already in the
+** meetPullVol, is the cachePath, so that is passed explicitly.
 */
 int
 meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
-                     char *cachePath, const gageStackBlurParm *sbparm,
-                     int verbose) {
+                     char *cachePath, int verbose) {
   static const char me[]="meetPullVolLoadMulti";
-  char formatSS[AIR_STRLEN_LARGE];
   unsigned int mpvIdx;
-  gageStackBlurParm *sbp;
   airArray *mop;
   meetPullVol *vol;
 
@@ -339,28 +421,28 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
     return 1;
   }
   mop = airMopNew();
-
-  /* this can be re-used for different volumes */
-  sbp = gageStackBlurParmNew();
-  airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
-  if (sbparm) {
-    if (gageStackBlurParmVerboseSet(sbp, sbparm->verbose)
-        || gageStackBlurParmOneDimSet(sbp, sbparm->oneDim)
-        || gageStackBlurParmKernelSet(sbp, sbparm->kspec,
-                                      AIR_TRUE /* renormalize */)
-        || gageStackBlurParmBoundarySpecSet(sbp, sbparm->bspec)) {
-      biffMovef(MEET, GAGE, "%s: trouble with stack blur parms", me);
-      airMopError(mop); return 1;
-    }
-  }
-
   for (mpvIdx=0; mpvIdx<mpvNum; mpvIdx++) {
-    unsigned int pvi, ssi;
+    unsigned int pvi;
+    int leechable;
+    char explain[AIR_STRLEN_LARGE];
     vol = mpv[mpvIdx];
     for (pvi=0; pvi<mpvIdx; pvi++) {
-      if (meetPullVolLeechable(vol, mpv[pvi])) {
+      if (meetPullVolLeechable(vol, mpv[pvi], &leechable, explain)) {
+        biffAddf(MEET, "%s: problem testing leechable(v[%u]->v[%u])",
+                 me, mpvIdx, pvi);
+        return 1;
+      }
+      if (leechable) {
+        fprintf(stderr, "!%s: mpv[%u] will leech from earlier mpv[%u]\n",
+                me, mpvIdx, pvi);                      
         meetPullVolLeech(vol, mpv[pvi]);
         break; /* prevent a chain of leeching */
+      } else {
+        if (verbose
+            || 1) {                               
+          fprintf(stderr, "%s: mpv[%u] cannot leech mpv[%u]: %s\n", me,
+                  mpvIdx, pvi, explain);
+        }
       }
     }
     if (pvi < mpvIdx) {
@@ -373,12 +455,6 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
     }
     /* else we're not leeching */
     vol->leeching = AIR_FALSE;
-    if (verbose) {
-      fprintf(stderr, "%s: vspec[%u] (%s) cannot leech\n",
-              me, mpvIdx, vol->volName);
-    }
-    /* if this is the pull we only have to learn the scale samples,
-       but these might even be used */
     vol->nin = nrrdNew();
     airMopAdd(mop, &(vol->nin), (airMopper)airSetNull, airMopOnError);
     airMopAdd(mop, vol->nin, (airMopper)nrrdNuke, airMopOnError);
@@ -387,32 +463,22 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
                 me, mpvIdx, vol->volName);
       airMopError(mop); return 1;
     }
-    if (vol->numSS) {
+    if (vol->sbp) {
+      char formatSS[AIR_STRLEN_LARGE];
       sprintf(formatSS, "%s/%s-%%03u-%03u.nrrd",
-              cachePath, vol->volName, vol->numSS);
+              cachePath, vol->volName, vol->sbp->num);
       if (verbose) {
         fprintf(stderr, "%s: managing %s ... \n", me, formatSS);
       }
-      if (gageStackBlurParmScaleSet(sbp, vol->numSS,
-                                    vol->rangeSS[0], vol->rangeSS[1],
-                                    vol->uniformSS, vol->optimSS)
-          || gageStackBlurParmNeedSpatialBlurSet(sbp, vol->needSpatialBlurSS)
-          || gageStackBlurManage(&(vol->ninSS), &(vol->recomputedSS), sbp,
-                                 formatSS, AIR_TRUE, NULL,
-                                 vol->nin, vol->kind)) {
+      if (gageStackBlurManage(&(vol->ninSS), &(vol->recomputedSS), vol->sbp,
+                              formatSS, AIR_TRUE, NULL,
+                              vol->nin, vol->kind)) {
         biffMovef(MEET, GAGE, "%s: trouble getting volume stack (\"%s\")",
                   me, formatSS);
         airMopError(mop); return 1;
       }
       if (verbose) {
         fprintf(stderr, "%s: ... done\n", me);
-      }
-    }
-    /* allocate and set vol->posSS from sbp-scale regardless of kind */
-    if (vol->numSS) {
-      vol->posSS = AIR_CALLOC(sbp->num, double);
-      for (ssi=0; ssi<sbp->num; ssi++) {
-        vol->posSS[ssi] = sbp->sigma[ssi];
       }
     }
   }
@@ -424,7 +490,8 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
 ******** meetPullVolAddMulti
 **
 ** the spatial (k00, k11, k22) and scale (kSSrecon) reconstruction
-** kernels are not part of the meetPullVol, so have to be passed in here
+** kernels are not (yet) part of the meetPullVol, so have to be passed
+** in here
 */
 int
 meetPullVolAddMulti(pullContext *pctx,
@@ -444,14 +511,14 @@ meetPullVolAddMulti(pullContext *pctx,
     meetPullVol *vol;
     int E;
     vol = mpv[mpvIdx];
-    if (!vol->numSS) {
+    if (!vol->sbp) {
       E = pullVolumeSingleAdd(pctx, vol->kind, vol->volName,
                               vol->nin, k00, k11, k22);
     } else {
       E = pullVolumeStackAdd(pctx, vol->kind, vol->volName, vol->nin,
                              AIR_CAST(const Nrrd *const *,
                                       vol->ninSS),
-                             vol->posSS, vol->numSS,
+                             vol->sbp->sigma, vol->sbp->num,
                              vol->derivNormSS, vol->derivNormBiasSS,
                              k00, k11, k22, kSSrecon);
     }
