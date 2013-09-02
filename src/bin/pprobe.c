@@ -229,7 +229,8 @@ main(int argc, const char *argv[]) {
     }
     if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1],
                                   SSuniform, AIR_FALSE)
-        || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE)
+        || gageStackBlurParmKernelSet(sbp, kSSblur)
+        || gageStackBlurParmRenormalizeSet(sbp, AIR_TRUE)
         || gageStackBlurParmBoundarySet(sbp, nrrdBoundaryBleed, AIR_NAN)
         || gageStackBlurParmVerboseSet(sbp, verbose)
         || gageStackBlur(ninSS, sbp, nin, kind)) {
