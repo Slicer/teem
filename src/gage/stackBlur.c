@@ -80,19 +80,17 @@ gageStackBlurParmInit(gageStackBlurParm *parm) {
     parm->sigmaSampling = gageSigmaSamplingUnknown;
     parm->sigma = airFree(parm->sigma);
     parm->kspec = nrrdKernelSpecNix(parm->kspec);
-    parm->renormalize = AIR_FALSE;
+    /* this will be effectively moot when nrrdKernelDiscreteGaussian is used
+       with a bit cut-off, and will only help with smaller cut-offs and with
+       any other kernel, and will be moot for FFT-based blurring */
+    parm->renormalize = AIR_TRUE;
     parm->bspec = nrrdBoundarySpecNix(parm->bspec);
     parm->oneDim = AIR_FALSE;
-    parm->needSpatialBlur = AIR_FALSE; /* the cautious application of the
-                                          fourier-transform-based blurring
-                                          justifies enables it by default */
+    /* the cautious application of the FFT--based blurring justifies enables
+       it by default */
+    parm->needSpatialBlur = AIR_FALSE;
     parm->verbose = 1; /* HEY: this may be revisited */
     parm->dgGoodSigmaMax = nrrdKernelDiscreteGaussianGoodSigmaMax;
-    /*
-    parm->dataCheck = AIR_TRUE;   / * would be crazy to have this otherwise,
-                                      and the value of this ability to turn
-                                      off the data check is dubious * /
-    */
   }
   return;
 }
@@ -229,6 +227,8 @@ int
 gageStackBlurParmCopy(gageStackBlurParm *dst,
                       const gageStackBlurParm *src) {
   static const char me[]="gageStackBlurParmCopy";
+  int differ;
+  char explain[AIR_STRLEN_LARGE];
 
   if (!(dst && src)) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
@@ -241,7 +241,8 @@ gageStackBlurParmCopy(gageStackBlurParm *dst,
   if (gageStackBlurParmSigmaSet(dst, src->num,
                                 src->sigmaRange[0], src->sigmaRange[1],
                                 src->sigmaSampling)
-      || gageStackBlurParmKernelSet(dst, src->kspec, src->renormalize)
+      || gageStackBlurParmKernelSet(dst, src->kspec)
+      || gageStackBlurParmRenormalizeSet(dst, src->renormalize)
       || gageStackBlurParmDgGoodSigmaMaxSet(dst, src->dgGoodSigmaMax)
       || gageStackBlurParmBoundarySpecSet(dst, src->bspec)
       || gageStackBlurParmNeedSpatialBlurSet(dst, src->needSpatialBlur)
@@ -250,7 +251,15 @@ gageStackBlurParmCopy(gageStackBlurParm *dst,
     biffAddf(GAGE, "%s: problem setting dst parm", me);
     return 1;
   }
-  /* HEY consider an equal check here */
+  if (gageStackBlurParmCompare(dst, "copy", src, "original",
+                               &differ, explain)) {
+    biffAddf(GAGE, "%s: trouble assessing correctness of copy", me);
+    return 1;
+  }
+  if (differ) {
+    biffAddf(GAGE, "%s: problem: copy not equal: %s", me, explain);
+    return 1;
+  }
   return 0;
 }
 
@@ -381,8 +390,7 @@ gageStackBlurParmScaleSet(gageStackBlurParm *sbp,
 
 int
 gageStackBlurParmKernelSet(gageStackBlurParm *sbp,
-                           const NrrdKernelSpec *kspec,
-                           int renormalize) {
+                           const NrrdKernelSpec *kspec) {
   static const char me[]="gageStackBlurParmKernelSet";
 
   if (!( sbp && kspec )) {
@@ -391,6 +399,18 @@ gageStackBlurParmKernelSet(gageStackBlurParm *sbp,
   }
   nrrdKernelSpecNix(sbp->kspec);
   sbp->kspec = nrrdKernelSpecCopy(kspec);
+  return 0;
+}
+
+int
+gageStackBlurParmRenormalizeSet(gageStackBlurParm *sbp,
+                                int renormalize) {
+  static const char me[]="gageStackBlurParmRenormalizeSet";
+
+  if (!sbp) {
+    biffAddf(GAGE, "%s: got NULL pointer", me);
+    return 1;
+  }
   sbp->renormalize = renormalize;
   return 0;
 }
@@ -738,7 +758,10 @@ gageStackBlurParmParse(gageStackBlurParm *sbp,
   if (!E) E |= gageStackBlurParmSigmaSet(sbp, sigmaNum,
                                          sigmaMin, sigmaMax, sampling);
   if (kspec) {
-    if (!E) E |= gageStackBlurParmKernelSet(sbp, kspec, !flagSeen['r']);
+    if (!E) E |= gageStackBlurParmKernelSet(sbp, kspec);
+  }
+  if (flagSeen['r']) {
+    if (!E) E |= gageStackBlurParmRenormalizeSet(sbp, AIR_FALSE);
   }
   if (dggsmGot) {
     if (!E) E |= gageStackBlurParmDgGoodSigmaMaxSet(sbp, dggsm);

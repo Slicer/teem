@@ -933,7 +933,7 @@ typedef struct {
                             parm[0] will get over-written as part of running
                             the resampler at each scale */
   int renormalize;       /* renormalize kernel weights (associated with the
-                            kernel);  passed to nrrdResampleRenormalizeSet */
+                            kernel); passed to nrrdResampleRenormalizeSet */
   NrrdBoundarySpec *bspec; /* what do to at image boundaries */
   int oneDim,            /* for experimental/debugging purposes: blur *only*
                             along the first (fastest) axis */
@@ -1225,8 +1225,9 @@ GAGE_EXPORT int gageStackBlurParmSigmaSet(gageStackBlurParm *sbp,
                                           double sigmaMax,
                                           int sigmaSampling);
 GAGE_EXPORT int gageStackBlurParmKernelSet(gageStackBlurParm *sbp,
-                                           const NrrdKernelSpec *kspec,
-                                           int renormalize);
+                                           const NrrdKernelSpec *kspec);
+GAGE_EXPORT int gageStackBlurParmRenormalizeSet(gageStackBlurParm *sbp,
+                                                int renormalize);
 GAGE_EXPORT int gageStackBlurParmDgGoodSigmaMaxSet(gageStackBlurParm *sbp,
                                                    double dgGoodSigmaMax);
 GAGE_EXPORT int gageStackBlurParmBoundarySet(gageStackBlurParm *sbp,
