@@ -446,7 +446,8 @@ main(int argc, const char *argv[]) {
       if (gageStackBlurParmVerboseSet(sbpIN, verbose)
           || gageStackBlurParmScaleSet(sbpIN, numSS, rangeSS[0], rangeSS[1],
                                        uniformSS, optimSS)
-          || gageStackBlurParmKernelSet(sbpIN, kSSblur, AIR_TRUE)
+          || gageStackBlurParmKernelSet(sbpIN, kSSblur)
+          || gageStackBlurParmRenormalizeSet(sbpIN, AIR_TRUE)
           || gageStackBlurParmBoundarySet(sbpIN, nrrdBoundaryBleed, AIR_NAN)
           || gageStackBlurManage(&ninSS, &recompute, sbpIN,
                                  stackFnameFormat, AIR_TRUE, NULL,
