@@ -297,6 +297,7 @@ main(int argc, const char **argv) {
   Nrrd *nPosIn=NULL, *nPosOut, *nplot, *nplotA, *nplotB, *nfilt;
   pullEnergySpec *enspR, *enspS, *enspWin;
   NrrdKernelSpec *k00, *k11, *k22, *kSSrecon, *kSSblur;
+  NrrdBoundarySpec *bspec;
   pullContext *pctx=NULL;
   pullVolume *scaleVol=NULL;
   pullTraceMulti *mtrc=NULL;
@@ -320,7 +321,6 @@ main(int argc, const char **argv) {
 
   double sstep, sswin, shalf, sslim, ssrange[2];
   unsigned int pres[2];
-  gageStackBlurParm *sbp;
 
   mop = airMopNew();
   hparm = hestParmNew();
@@ -413,8 +413,11 @@ main(int argc, const char **argv) {
              "path (without trailing /) for where to read/write "
              "pre-blurred volumes for scale-space");
   hestOptAdd(&hopt, "kssb", "kernel", airTypeOther, 1, 1, &kSSblur,
-             "ds:1,5", "blurring kernel, to sample scale space",
+             "ds:1,5", "default blurring kernel, to sample scale space",
              NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "bsp", "boundary", airTypeOther, 1, 1, &bspec,
+             "wrap", "default boundary behavior of scale-space blurring",
+             NULL, NULL, nrrdHestBoundarySpec);
   hestOptAdd(&hopt, "kssr", "kernel", airTypeOther, 1, 1, &kSSrecon,
              "hermite", "kernel for reconstructing from scale space samples",
              NULL, NULL, nrrdHestKernelSpec);
@@ -629,17 +632,8 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: trouble with flags:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  sbp = gageStackBlurParmNew();
-  airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
-  if (gageStackBlurParmBoundarySet(sbp, nrrdBoundaryWrap, AIR_NAN)
-      || gageStackBlurParmKernelSet(sbp, kSSblur, AIR_TRUE /* renorm */)
-      /* though this verbosity could in principle be different */
-      || gageStackBlurParmVerboseSet(sbp, verbose)) {
-    airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble with stack blur parms:\n%s", me, err);
-    airMopError(mop); return 1;
-  }
-  if (meetPullVolLoadMulti(vspec, vspecNum, cachePathSS, sbp, verbose)
+  if (meetPullVolStackBlurParmFinishMulti(vspec, vspecNum, kSSblur, bspec)
+      || meetPullVolLoadMulti(vspec, vspecNum, cachePathSS, verbose)
       || meetPullVolAddMulti(pctx, vspec, vspecNum,
                              k00, k11, k22, kSSrecon)
       || meetPullInfoAddMulti(pctx, idef, idefNum)) {
@@ -675,8 +669,11 @@ main(int argc, const char **argv) {
   }
   fprintf(stderr, "!%s: ================== ssrange %g %g\n", me,
           ssrange[0], ssrange[1]);
-  fprintf(stderr, "!%s: ======== mvol %u %g %g\n", me, vspec[0]->numSS,
-          vspec[0]->rangeSS[0], vspec[0]->rangeSS[1]);
+  if (vspec[0]->sbp) {
+    char stmp[AIR_STRLEN_LARGE];
+    gageStackBlurParmSprint(stmp, vspec[0]->sbp, NULL, NULL);
+    fprintf(stderr, "!%s: ======== %s\n", me, stmp);
+  }
   nplotA->axis[0].min = ssrange[0];
   nplotA->axis[0].max = ssrange[1];
   nplotA->axis[1].min = 0.0;
@@ -891,12 +888,16 @@ main(int argc, const char **argv) {
       unsigned int size[4], idx[4], iii, ti, si;
       double idxd[4], val, (*lup)(const void *v, size_t I),
         (*ins)(void *v, size_t I, double d);
-      mpv = meetPullVolCopy(vspec[0]);
+      if (!( mpv = meetPullVolCopy(vspec[0]) )) {
+        airMopAdd(mop, err = biffGetDone(MEET), airFree, airMopAlways);
+        fprintf(stderr, "%s: couldn't copy volume:\n%s", me, err);
+        airMopError(mop); return 1;
+      }
       airMopAdd(mop, mpv, (airMopper)meetPullVolNix, airMopAlways);
       size[0] = AIR_CAST(unsigned int, mpv->ninSS[0]->axis[0].size);
       size[1] = AIR_CAST(unsigned int, mpv->ninSS[0]->axis[1].size);
       size[2] = AIR_CAST(unsigned int, mpv->ninSS[0]->axis[2].size);
-      size[3] = mpv->numSS;
+      size[3] = mpv->sbp->num;
       printf("!%s: size = (%u,%u,%u,%u)\n", me, size[0], size[1], size[2], size[3]);
       lpnt = pullPointNew(pctx);
       airMopAdd(mop, lpnt, (airMopper)pullPointNix, airMopAlways);

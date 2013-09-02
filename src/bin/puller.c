@@ -92,7 +92,7 @@ verbose_cb(fltk::Widget *widget, pullBag *bag) {
   val = (fltk::ValueInput *)widget;
   pullVerboseSet(bag->pctx, (int)val->value());
 }
-
+/* ... DEFT ... */
 void
 isovalue_cb(fltk::Widget *widget, pullBag *bag) {
   Deft::Slider *slider;
@@ -135,7 +135,7 @@ outputGet(pullBag *bag) {
     free(err);
     exit(1);
   }
-
+  /* ... DEFT ... */
   cropMin[0] = 0;
   cropMin[1] = 0;
   cropMax[0] = 2;
@@ -163,7 +163,7 @@ outputGet(pullBag *bag) {
     exit(1);
   }
 }
-
+/* ... DEFT ... */
 void
 outputShow(pullBag *bag) {
   char me[]="outputShow", *err;
@@ -195,6 +195,7 @@ outputShow(pullBag *bag) {
   /* bag->ncval = bag->nstuck; */
   /* bag->ncval = bag->nscl; */
 
+  /* ... DEFT ... */
   if (bag->ncval) {
     nrrdRangeSet(bag->cvalRange, bag->ncval, AIR_FALSE);
   } else {
@@ -227,6 +228,7 @@ outputShow(pullBag *bag) {
     bag->cvalRange->min = AIR_LERP(0.7, bag->cvalRange->min, emean - 2*estdv);
     bag->cvalRange->max = AIR_LERP(0.7, bag->cvalRange->max, emean + 2*estdv);
   }
+  /* ... DEFT ... */
   float *cmapOut;
   if (bag->ncmap
       && bag->ncval
@@ -256,6 +258,8 @@ outputShow(pullBag *bag) {
     cmapOut = NULL;
   }
 
+  /* ... DEFT ... */
+
   idcc = AIR_CAST(unsigned int *, bag->nidcc->data);
   stuck = AIR_CAST(unsigned char *, bag->nstuck->data);
   nn = bag->nPosOut->axis[1].size;
@@ -279,6 +283,8 @@ outputShow(pullBag *bag) {
   }
   bag->icvalr[0] = bag->cvalRange->min;
   bag->icvalr[1] = bag->cvalRange->max;
+
+  /* ... DEFT ... */
 
   double *strnOut;
   strnOut = (bag->nstrn
@@ -315,6 +321,9 @@ outputShow(pullBag *bag) {
       */
     }
   }
+
+  /* ... DEFT ... */
+
   if (1) {
     float *ten, *pos;
     double *posOut;
@@ -351,6 +360,9 @@ outputShow(pullBag *bag) {
       ten += 7;
     }
   }
+
+  /* ... DEFT ... */
+
   if (bag->nPosOut->axis[1].size) {
     bag->glyph->dataSet(bag->nPosOut->axis[1].size,
                         (float*)bag->nten->data, 7,
@@ -377,6 +389,8 @@ iter_cb(void *_bag) {
   outputGet(bag);
   outputShow(bag);
 }
+
+/* ... DEFT ... */
 
 void
 step_cb(fltk::Widget *, pullBag *bag) {
@@ -406,6 +420,8 @@ step_cb(fltk::Widget *, pullBag *bag) {
   }
 }
 
+/* ... DEFT ... */
+
 void
 gammaSet_cb(fltk::Widget *, pullBag *bag) {
   char me[]="gammaSet_cb";
@@ -420,6 +436,8 @@ gammaSet_cb(fltk::Widget *, pullBag *bag) {
   }
   bag->gamma->value(bag->pctx->sysParm.gamma);
 }
+
+/* ... DEFT ... */
 
 void
 cc_cb(fltk::Widget *, pullBag *bag) {
@@ -459,6 +477,8 @@ cc_cb(fltk::Widget *, pullBag *bag) {
   outputShow(bag);
 }
 
+/* ... DEFT ... */
+
 void
 ccSelect_cb(fltk::Widget *, pullBag *bag) {
 
@@ -475,6 +495,8 @@ scaleGlyph_cb(fltk::Widget *, pullBag *bag) {
   outputGet(bag);
   outputShow(bag);
 }
+
+/* ... DEFT ... */
 
 void
 reblur_cb(fltk::Widget *, pullBag *bag) {
@@ -511,6 +533,8 @@ reblur_cb(fltk::Widget *, pullBag *bag) {
   return;
 }
 
+/* ... DEFT ... */
+
 void
 scale_cb(fltk::Widget *, pullBag *bag) {
   double sclMean, sclWind;
@@ -539,6 +563,8 @@ beta_cb(fltk::Widget *, pullBag *bag) {
 
   pullSysParmSet(bag->pctx, pullSysParmBeta, bag->beta->value());
 }
+
+/* ... DEFT ... */
 
 void
 cwell_cb(fltk::Widget *, pullBag *bag) {
@@ -571,6 +597,8 @@ gamma_cb(fltk::Widget *, pullBag *bag) {
   pullSysParmSet(bag->pctx, pullSysParmGamma, bag->gamma->value());
 }
 
+/* ... DEFT ... */
+
 void
 strength_cb(fltk::Widget *, pullBag *bag) {
 
@@ -598,6 +626,8 @@ save_cb(fltk::Widget *, pullBag *bag) {
             me, bag->scaleVec[0], bag->scaleVec[1], bag->scaleVec[2]);
     return;
   }
+
+  /* ... DEFT ... */
 
   nPosSel = nrrdNew();
   if (bag->nstrn) {
@@ -642,6 +672,9 @@ save_cb(fltk::Widget *, pullBag *bag) {
     posAll += 4;
     ten += 7;
   }
+
+  /* ... DEFT ... */
+
   nrrdSave("pos-all.nrrd", bag->nPosOut, NULL);
   if (0) {
     nrrdSave("pos-sel.nrrd", nPosSel, NULL);
@@ -677,7 +710,7 @@ save_cb(fltk::Widget *, pullBag *bag) {
   return;
 }
 
-#endif
+#endif  /* DEFT */
 
 int
 main(int argc, const char **argv) {
@@ -693,7 +726,7 @@ main(int argc, const char **argv) {
   float anisoThresh, anisoThreshMin, glyphScale, haloTraceBound,
     glyphHaloWidth, glyphNormPow, glyphEvalPow, sqdSharp;
   int glyphType, glyphFacetRes, aniso;
-
+  double ssrange[2];
   pullBag bag;
 #endif
 
@@ -704,15 +737,16 @@ main(int argc, const char **argv) {
   Nrrd *nPosIn=NULL, *nPosOut;
   pullEnergySpec *enspR, *enspS, *enspWin;
   NrrdKernelSpec *k00, *k11, *k22, *kSSrecon, *kSSblur;
+  NrrdBoundarySpec *bspec;
   pullContext *pctx;
   int E=0, ret=0;
-  unsigned int vsi, vspecNum, idefNum;
-  double ssrange[2], scaleVec[3], glyphScaleRad;
+  unsigned int vspecNum, idefNum;
+  double scaleVec[3], glyphScaleRad;
   /* things that used to be set directly inside pullContext */
   int energyFromStrength, nixAtVolumeEdgeSpace, constraintBeforeSeedThresh,
     binSingle, liveThresholdOnInit, permuteOnRebin, noPopCntlWithZeroAlpha,
     useBetaForGammaLearn, restrictiveAddToBins, noAdd, unequalShapesAllow,
-    popCntlEnoughTest, convergenceIgnoresPopCntl, zeroZ, oneDim;
+    popCntlEnoughTest, convergenceIgnoresPopCntl, zeroZ;
   int verbose;
   int interType, allowCodimension3Constraints, scaleIsTau, useHalton,
     pointPerVoxel;
@@ -724,7 +758,6 @@ main(int argc, const char **argv) {
     radiusScale, alpha, beta, gamma, theta, wall, energyIncreasePermit,
     backStepScale, opporStepScale, energyDecreaseMin, energyDecreasePopCntlMin,
     neighborTrueProb, probeProb, fracNeighNixedMax;
-  gageStackBlurParm *sbp;
 
   mop = airMopNew();
   hparm = hestParmNew();
@@ -781,7 +814,7 @@ main(int argc, const char **argv) {
              "hack: turn on fog");
   hestOptAdd(&hopt, "is", "su sv", airTypeInt, 2, 2, imgSize, "640 480",
              "initial window size");
-
+  /* ... DEFT ... */
   /* this tensor stuff is here because we're hijacking the tensor glyph
      object for doing the particle display ... */
   hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, NULL,
@@ -816,8 +849,7 @@ main(int argc, const char **argv) {
              "for superquadric glyphs, how much to sharp edges form as a "
              "function of differences between eigenvalues.  Higher values "
              "mean that edges form more easily");
-
-#endif
+#endif /* DEFT */
 
   hestOptAdd(&hopt, "int", "int", airTypeEnum, 1, 1, &interType,
              "justr", "inter-particle energy type", NULL, pullInterType);
@@ -833,8 +865,6 @@ main(int argc, const char **argv) {
              NULL, NULL, pullHestEnergySpec);
   hestOptAdd(&hopt, "zz", "bool", airTypeBool, 1, 1, &zeroZ, "false",
              "always constrain Z=0, to process 2D images");
-  hestOptAdd(&hopt, "1d", "bool", airTypeBool, 1, 1, &oneDim, "false",
-             "for scale-space, only blur along fastest axis");
   hestOptAdd(&hopt, "efs", "bool", airTypeBool, 1, 1,
              &energyFromStrength, "false",
              "whether or not strength contributes to particle-image energy");
@@ -906,8 +936,11 @@ main(int argc, const char **argv) {
              "path (without trailing /) for where to read/write "
              "pre-blurred volumes for scale-space");
   hestOptAdd(&hopt, "kssb", "kernel", airTypeOther, 1, 1, &kSSblur,
-             "dgauss:1,5", "blurring kernel, to sample scale space",
+             "dgauss:1,5", "default blurring kernel, to sample scale space",
              NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "bsp", "boundary", airTypeOther, 1, 1, &bspec,
+             "wrap", "default boundary behavior of scale-space blurring",
+             NULL, NULL, nrrdHestBoundarySpec);
   hestOptAdd(&hopt, "kssr", "kernel", airTypeOther, 1, 1, &kSSrecon,
              "hermite", "kernel for reconstructing from scale space samples",
              NULL, NULL, nrrdHestKernelSpec);
@@ -1164,19 +1197,8 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: trouble with flags:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  sbp = gageStackBlurParmNew();
-  airMopAdd(mop, sbp, (airMopper)gageStackBlurParmNix, airMopAlways);
-  if (gageStackBlurParmBoundarySet(sbp, nrrdBoundaryBleed, AIR_NAN)
-      /* gageStackBlurParmBoundarySet(sbp, nrrdBoundaryWrap, AIR_NAN) */
-      /* though this verbosity could in principle be different */
-      || gageStackBlurParmVerboseSet(sbp, verbose)
-      || gageStackBlurParmOneDimSet(sbp, oneDim)) {
-    airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble with stack blur parms:\n%s", me, err);
-    airMopError(mop); return 1;
-  }
-  if (meetPullVolLoadMulti(vspec, vspecNum, cachePathSS,
-                           /* kSSblur, */ sbp, verbose)
+  if (meetPullVolStackBlurParmFinishMulti(vspec, vspecNum, kSSblur, bspec)
+      || meetPullVolLoadMulti(vspec, vspecNum, cachePathSS, verbose)
       || meetPullVolAddMulti(pctx, vspec, vspecNum,
                              k00, k11, k22, kSSrecon)
       || meetPullInfoAddMulti(pctx, idef, idefNum)) {
@@ -1204,6 +1226,7 @@ main(int argc, const char **argv) {
    *      all lines:    +1      evec0    evec1     -1
    */
 
+#ifdef DEFT
   ssrange[0] = FLT_MAX;
   ssrange[1] = -FLT_MAX;
   for (vsi=0; vsi<vspecNum; vsi++) {
@@ -1218,8 +1241,6 @@ main(int argc, const char **argv) {
     ssrange[0] = gageTauOfSig(ssrange[0]);
     ssrange[1] = gageTauOfSig(ssrange[1]);
   }
-
-#ifdef DEFT
   /* -------------------------------------------------- */
   /* initialize bag and its UI */
   bag.pctx = pctx;
