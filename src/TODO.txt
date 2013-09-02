@@ -25,6 +25,15 @@ all:
 * remove '_'s from enum value names in non-elf non-tijk libraries
 * decide if <LIB>_EXPORT should just be TEEM_EXPORT
 * enforce consistent use of AIR_CALLOC/AIR_MALLOC
+* decide consistent API of Copy() functions, or if consistency is needed, eg:
+  nrrdCopy() vs gageContextCopy()
+* decide consistent API of Compare vs Equal() functions, or if consistency
+  is needed, eg:
+  nrrdCompare() vs nrrdKernelCompare() vs nrrdKernelSpecCompare()
+    vs gageShapeEqual() vs gageStackBlurParmEqual().
+  Should these all have "name" params, or none, and how should we modify
+  names passed to sub-compare functions?
+  What else would benefit from such a Compare() or Equal() function?
 
 air:
 * consider nixing AIR_ENDIAN, AIR_QNANHIBIT, and AIR_DIO
