@@ -314,7 +314,8 @@ main(int argc, const char **argv) {
   unsigned int samplesAlongScaleNum, pointNumInitial, pointPerVoxel,
     ppvZRange[2], snap, stuckIterMax, constraintIterMax,
     addDescent, iterCallback, rngSeed, progressBinMod,
-    threadNum, tracePointNum, passNumMax;
+    threadNum, tracePointNum, passNumMax,
+    kssOpi, kssFinished, bspOpi, bspFinished;
   double jitter, stepInitial, constraintStepMin, radiusSpace, binWidthSpace,
     radiusScale, theta,
     backStepScale, opporStepScale, energyDecreaseMin, tpdThresh;
@@ -412,9 +413,11 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "sscp", "path", airTypeString, 1, 1, &cachePathSS, "./",
              "path (without trailing /) for where to read/write "
              "pre-blurred volumes for scale-space");
+  kssOpi =
   hestOptAdd(&hopt, "kssb", "kernel", airTypeOther, 1, 1, &kSSblur,
              "ds:1,5", "default blurring kernel, to sample scale space",
              NULL, NULL, nrrdHestKernelSpec);
+  bspOpi =
   hestOptAdd(&hopt, "bsp", "boundary", airTypeOther, 1, 1, &bspec,
              "wrap", "default boundary behavior of scale-space blurring",
              NULL, NULL, nrrdHestBoundarySpec);
@@ -632,7 +635,9 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: trouble with flags:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  if (meetPullVolStackBlurParmFinishMulti(vspec, vspecNum, kSSblur, bspec)
+  if (meetPullVolStackBlurParmFinishMulti(vspec, vspecNum,
+                                          &kssFinished, &bspFinished,
+                                          kSSblur, bspec)
       || meetPullVolLoadMulti(vspec, vspecNum, cachePathSS, verbose)
       || meetPullVolAddMulti(pctx, vspec, vspecNum,
                              k00, k11, k22, kSSrecon)
@@ -640,6 +645,16 @@ main(int argc, const char **argv) {
     airMopAdd(mop, err = biffGetDone(MEET), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble with volumes or infos:\n%s", me, err);
     airMopError(mop); return 1;
+  }
+  if (!kssFinished && hestSourceUser == hopt[kssOpi].source) {
+    fprintf(stderr, "\n\n%s: WARNING! Used the -%s flag, but the "
+            "meetPullVol specified blurring kernels\n\n\n", me,
+            hopt[kssOpi].flag);
+  }
+  if (!bspFinished && hestSourceUser == hopt[bspOpi].source) {
+    fprintf(stderr, "\n\n%s: WARNING! Used the -%s flag, but the "
+            "meetPullVol specified boundary specs\n\n\n", me,
+            hopt[bspOpi].flag);
   }
 
   if (airStrlen(tracesInS)) {

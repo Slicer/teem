@@ -1211,9 +1211,14 @@ main(int argc, const char **argv) {
     airMopError(mop); return 1;
   }
   if (!kssFinished && hestSourceUser == hopt[kssOpi].source) {
-    fprintf(stderr, "\n\n%s: WARNING! Used the -%s flag, but all of the "
-            "meetPullVols specified their own blurring kernels\n\n\n", me,
+    fprintf(stderr, "\n\n%s: WARNING! Used the -%s flag, but the "
+            "meetPullVol specified blurring kernels\n\n\n", me,
             hopt[kssOpi].flag);
+  }
+  if (!bspFinished && hestSourceUser == hopt[bspOpi].source) {
+    fprintf(stderr, "\n\n%s: WARNING! Used the -%s flag, but the "
+            "meetPullVol specified boundary specs\n\n\n", me,
+            hopt[bspOpi].flag);
   }
   if (pullStart(pctx)) {
     airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
