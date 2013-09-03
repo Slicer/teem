@@ -617,8 +617,11 @@ _hestDefaults(char **prms, int *udflt, unsigned int *nprm, int *appr,
     switch(opt[op].kind) {
     case 1:
       /* -------- (no-parameter) boolean flags -------- */
-      /* default is always ignored */
-      udflt[op] = 0;
+      /* default is indeed always ignored for the sake of setting the
+         option's value, but udflt is used downstream to set
+         the option's source. The info came from the user if
+         the flag appears, otherwise it is from the default. */
+      udflt[op] = !appr[op];
       break;
     case 2:
     case 3:
