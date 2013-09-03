@@ -1141,7 +1141,9 @@ _stackBlurDiscreteGaussFFT(Nrrd *const nblur[], gageStackBlurParm *sbp,
     for (zi=0; zi<size[2]; zi++) {
       for (yi=0; yi<size[1]; yi++) {
         for (xi=0; xi<size[0]; xi++) {
-          double wght = ww[0][xi]*ww[1][yi]*ww[2][zi];
+          double wght;
+          wght = sbp->oneDim ? 1.0 : ww[1][yi]*ww[2][zi];
+          wght *= ww[0][xi];
           outFT[0 + 2*ii] = wght*inFT[0 + 2*ii];
           outFT[1 + 2*ii] = wght*inFT[1 + 2*ii];
           /*
