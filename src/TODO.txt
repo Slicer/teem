@@ -64,9 +64,6 @@ to a great many functions (or else it itself would be a global),
 and then how do you know which functions should take it?
 
 hest:
-* hest NEEDS a way to learn if a given option was learned from the
-command-line, or from the given default string.  Various tricks have
-been used to work around this limitation, but its gotten too annoying.
 * consider renaming hestParmFree --> hestParmNix
 * all the hest defaults (hestVerbosity, hestRespFileEnable), etc,
 should start with hestDef, not just hest
