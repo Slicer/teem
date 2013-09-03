@@ -103,7 +103,7 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
   static const char me[]="meetPullVolParse";
 #define VFMT_SHRT "<fileName>:<kind>:<volName>"
   /* there are other flags and parms but these are the main ones */
-#define SFMT "<minScl>-<#smp>-<maxScl>[-no|u][/k=kss[/b=bspec[/s=smpling]]]"
+#define SFMT "<minScl>-<#smp>-<maxScl>[-n][/k=kss][/b=bspec][/s=smpling]"
 #define VFMT_LONG "<fileName>:<kind>:" SFMT ":<volName>"
   char *str, *ctok, *clast=NULL;
   airArray *mop;
@@ -122,18 +122,19 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
   mop = airMopNew();
   airMopAdd(mop, str, airFree, airMopAlways);
   ctokn = airStrntok(str, ":");
-  /* An annoying side-effect of putting the blurring kernel specification
-     inside the string representation of the gageStackBlurParm, is that the
-     colon in (e.g.) "dg:1,6" is now confused as a delimiter in the (e.g.)
-     "vol.nrrd:scalar:0-8-5.5:V" string representation of meetPullVol, as
-     in "vol.nrrd:scalar:0-8-5.5/k=dg:1,6:V". A hacky solution is below */
-  if (!( 3 == ctokn || 4 == ctokn || 5 == ctokn )) {
-    biffAddf(MEET, "%s: didn't get 3, 4, or 5 \":\"-separated tokens in "
+  /* An annoying side-effect of putting the blurring kernel specification and
+     boundary specification inside the string representation of the
+     gageStackBlurParm, is that the colon in dg:1,6" or "pad:10" is now
+     confused as a delimiter in the (e.g.) "vol.nrrd:scalar:0-8-5.5:V" string
+     representation of meetPullVol, as in
+     "vol.nrrd:scalar:0-8-5.5/k=dg:1,6/b=pad:1:V". So we have to be more
+     permissive in the number of tokens (hacky) */
+  if (!( ctokn >= 3 )) {
+    biffAddf(MEET, "%s: didn't get at least 3 \":\"-separated tokens in "
              "\"%s\"; not of form " VFMT_SHRT " or " VFMT_LONG , me, _str);
     airMopError(mop); return 1;
   }
-  /* mpv->nin is set elsewhere */
-  wantSS = (4 == ctokn || 5 == ctokn);
+  wantSS = (ctokn > 3);
 
   ctok = airStrtok(str, ":", &clast);
   if (!(mpv->fileName = airStrdup(ctok))) {
@@ -148,18 +149,20 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
     airMopError(mop); return 1;
   }
   if (wantSS) {
-    unsigned int efi;
-    char *ctol, *sbps;
-    ctok = airStrtok(NULL, ":", &clast);
-    if (4 == ctokn) {
-      sbps = ctok;
-    } else {
-      /* the hack to make the ":" inside a blurring kernel specification
-         be unlike the ":" that delimits the real meetPullVol fields */
-      ctol = airStrtok(NULL, ":", &clast);
-      sbps = AIR_CALLOC(strlen(ctok) + strlen(":") + strlen(ctol) + 1, char);
-      airMopAdd(mop, sbps, airFree, airMopAlways);
-      sprintf(sbps, "%s:%s", ctok, ctol);
+    unsigned int efi, cti;
+    char *sbps;
+    /* the hack to make the ":" inside a blurring kernel specification or
+       boundary specification be unlike the ":" that delimits the real
+       meetPullVol fields */
+    sbps = airStrdup(_str); /* to have a buffer big enough */
+    airMopAdd(mop, sbps, airFree, airMopAlways);
+    strcpy(sbps, "");
+    for (cti=0; cti<ctokn-3; cti++) {
+      if (cti) {
+        strcat(sbps, ":");
+      }
+      ctok = airStrtok(NULL, ":", &clast);
+      strcat(sbps, ctok);
     }
     mpv->sbp = gageStackBlurParmNix(mpv->sbp);
     mpv->sbp = gageStackBlurParmNew();
@@ -184,7 +187,6 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
       pmn = airStrntok(extraParm, "/");
       for (pmi=0; pmi<pmn; pmi++) {
         ptok = airStrtok(!pmi ? extraParm : NULL, "/", &plast);
-        fprintf(stderr, "!%s: extra parm[%u] = |%s|\n", me, pmi, ptok);
         if (strstr(ptok, dnbiase) == ptok) {
           if (1 != sscanf(ptok + strlen(dnbiase), "%lg",
                           &(mpv->derivNormBiasSS))) {
@@ -323,7 +325,7 @@ meetPullVolLeechable(const meetPullVol *lchr,
   *can = !strcmp(orig->fileName, lchr->fileName);
   if (!*can) {
     if (explain) {
-      sprintf(explain, "not from same file (|%s| vs |%s|)\n",
+      sprintf(explain, "not from same file (\"%s\" vs \"%s\")\n",
               lchr->fileName, orig->fileName);
     }
     return 0;
@@ -347,16 +349,18 @@ meetPullVolLeechable(const meetPullVol *lchr,
     return 0;
   }
   if (orig->sbp) {
+    int differ;
     if (gageStackBlurParmCompare(lchr->sbp, "potential leecher",
                                  orig->sbp, "original",
-                                 can, subexplain)) {
+                                 &differ, subexplain)) {
       biffAddf(MEET, "%s: problem comparing sbps", me);
       return 1;
     }
-    if (!*can) {
+    if (differ) {
       if (explain) {
         sprintf(explain, "different uses of scale-space: %s", subexplain);
       }
+      *can = AIR_FALSE;
       return 0;
     }
   }
@@ -486,13 +490,10 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
         return 1;
       }
       if (leechable) {
-        fprintf(stderr, "!%s: mpv[%u] will leech from earlier mpv[%u]\n",
-                me, mpvIdx, pvi);                      
         meetPullVolLeech(vol, mpv[pvi]);
         break; /* prevent a chain of leeching */
       } else {
-        if (verbose
-            || 1) {                               
+        if (verbose) {
           fprintf(stderr, "%s: mpv[%u] cannot leech mpv[%u]: %s\n", me,
                   mpvIdx, pvi, explain);
         }
