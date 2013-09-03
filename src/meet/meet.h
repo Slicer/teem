@@ -172,6 +172,8 @@ MEET_EXPORT meetPullVol *meetPullVolNix(meetPullVol *pvol);
 MEET_EXPORT hestCB *meetHestPullVol;
 MEET_EXPORT int meetPullVolStackBlurParmFinishMulti(meetPullVol **mpv,
                                                     unsigned int mpvNum,
+                                                    unsigned int *kssSetP,
+                                                    unsigned int *bspSetP,
                                                     const NrrdKernelSpec *ksp,
                                                     const NrrdBoundarySpec *bsp);
 MEET_EXPORT int meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,

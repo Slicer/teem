@@ -108,6 +108,7 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
   char *str, *ctok, *clast=NULL;
   airArray *mop;
   int wantSS;
+  unsigned int ctokn;
 
   if (!(mpv && _str)) {
     biffAddf(MEET, "%s: got NULL pointer", me);
@@ -120,13 +121,19 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
 
   mop = airMopNew();
   airMopAdd(mop, str, airFree, airMopAlways);
-  if (!( 3 == airStrntok(str, ":") || 4 == airStrntok(str, ":") )) {
-    biffAddf(MEET, "%s: didn't get 3 or 4 \":\"-separated tokens in \"%s\"; "
-             "not of form " VFMT_SHRT " or " VFMT_LONG , me, _str);
+  ctokn = airStrntok(str, ":");
+  /* An annoying side-effect of putting the blurring kernel specification
+     inside the string representation of the gageStackBlurParm, is that the
+     colon in (e.g.) "dg:1,6" is now confused as a delimiter in the (e.g.)
+     "vol.nrrd:scalar:0-8-5.5:V" string representation of meetPullVol, as
+     in "vol.nrrd:scalar:0-8-5.5/k=dg:1,6:V". A hacky solution is below */
+  if (!( 3 == ctokn || 4 == ctokn || 5 == ctokn )) {
+    biffAddf(MEET, "%s: didn't get 3, 4, or 5 \":\"-separated tokens in "
+             "\"%s\"; not of form " VFMT_SHRT " or " VFMT_LONG , me, _str);
     airMopError(mop); return 1;
   }
   /* mpv->nin is set elsewhere */
-  wantSS = (4 == airStrntok(str, ":"));
+  wantSS = (4 == ctokn || 5 == ctokn);
 
   ctok = airStrtok(str, ":", &clast);
   if (!(mpv->fileName = airStrdup(ctok))) {
@@ -141,24 +148,55 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
     airMopError(mop); return 1;
   }
   if (wantSS) {
+    unsigned int efi;
+    char *ctol, *sbps;
     ctok = airStrtok(NULL, ":", &clast);
+    if (4 == ctokn) {
+      sbps = ctok;
+    } else {
+      /* the hack to make the ":" inside a blurring kernel specification
+         be unlike the ":" that delimits the real meetPullVol fields */
+      ctol = airStrtok(NULL, ":", &clast);
+      sbps = AIR_CALLOC(strlen(ctok) + strlen(":") + strlen(ctol) + 1, char);
+      airMopAdd(mop, sbps, airFree, airMopAlways);
+      sprintf(sbps, "%s:%s", ctok, ctol);
+    }
     mpv->sbp = gageStackBlurParmNix(mpv->sbp);
     mpv->sbp = gageStackBlurParmNew();
     int extraFlag[256]; char *extraParm=NULL, *ptok, *plast;
-    if (gageStackBlurParmParse(mpv->sbp, extraFlag, &extraParm, ctok)) {
-      biffMovef(MEET, GAGE, "%s: problem parsing sbp from \"%s\"", me, ctok);
+    if (gageStackBlurParmParse(mpv->sbp, extraFlag, &extraParm, sbps)) {
+      biffMovef(MEET, GAGE, "%s: problem parsing sbp from \"%s\"", me, sbps);
       airMopError(mop); return 1;
     }
     mpv->derivNormSS = !!extraFlag['n'];
+    extraFlag['n'] = AIR_FALSE;
+    for (efi=0; efi<256; efi++) {
+      if (extraFlag[AIR_CAST(unsigned char, efi)]) {
+        biffAddf(MEET, "%s: got unknown extra flag '%c' in \"%s\"", me,
+                 AIR_CAST(char, efi), sbps);
+        airMopError(mop); return 1;
+      }
+    }
     if (extraParm) {
       unsigned int pmi, pmn;
+      static const char dnbiase[]="dnbias=";
       airMopAdd(mop, extraParm, airFree, airMopAlways);
       pmn = airStrntok(extraParm, "/");
       for (pmi=0; pmi<pmn; pmi++) {
         ptok = airStrtok(!pmi ? extraParm : NULL, "/", &plast);
-                                      
         fprintf(stderr, "!%s: extra parm[%u] = |%s|\n", me, pmi, ptok);
-                                      
+        if (strstr(ptok, dnbiase) == ptok) {
+          if (1 != sscanf(ptok + strlen(dnbiase), "%lg",
+                          &(mpv->derivNormBiasSS))) {
+            biffAddf(MEET, "%s: couldn't parse \"%s\" as double in \"%s\"",
+                     me, ptok + strlen(dnbiase), ptok);
+            airMopError(mop); return 1;
+          }
+        } else {
+          biffAddf(MEET, "%s: got unknown extra parm %s in \"%s\"",
+                   me, ptok, extraParm);
+          airMopError(mop); return 1;
+        }
       }
     }
   } else {
@@ -371,32 +409,47 @@ meetPullVolLeech(meetPullVol *vol,
 ** gageStackBlurParm was now going to be entirely localized in gage. But here
 ** we are listing off two of its fields as parameters to this function, which
 ** means its API might change the next time the gageStackBlurParm is updated.
+**
+** To help keep track of what info was actually used, *kssSetP and *bspSetP
+** (if non-NULL) are set to the number of kernel and boundary specs that are
+** "finished" in this way.
 */
 int
 meetPullVolStackBlurParmFinishMulti(meetPullVol **mpv, unsigned int mpvNum,
+                                    unsigned int *kssSetP,
+                                    unsigned int *bspSetP,
                                     const NrrdKernelSpec *kssblur,
                                     const NrrdBoundarySpec *bspec) {
   static const char me[]="meetPullVolStackBlurParmFinishMulti";
-  unsigned int ii;
+  unsigned int ii, kssSet, bspSet;
 
   if (!mpv || !mpvNum) {
     biffAddf(MEET, "%s: got NULL mpv (%p) or 0 mpvNum (%u)",
              me, AIR_VOIDP(mpv), mpvNum);
     return 1;
   }
+  kssSet = bspSet = 0;
   for (ii=0; ii<mpvNum; ii++) {
     if (kssblur && mpv[ii]->sbp && !(mpv[ii]->sbp->kspec)) {
       if (gageStackBlurParmKernelSet(mpv[ii]->sbp, kssblur)) {
         biffMovef(MEET, GAGE, "%s: trouble w/ kernel on mpv[%u]", me, ii);
         return 1;
       }
+      kssSet++;
     }
     if (bspec && mpv[ii]->sbp && !(mpv[ii]->sbp->bspec)) {
       if (gageStackBlurParmBoundarySpecSet(mpv[ii]->sbp, bspec)) {
         biffMovef(MEET, GAGE, "%s: trouble w/ boundary on mpv[%u]", me, ii);
         return 1;
       }
+      bspSet++;
     }
+  }
+  if (kssSetP) {
+    *kssSetP = kssSet;
+  }
+  if (bspSetP) {
+    *bspSetP = bspSet;
   }
   return 0;
 }
