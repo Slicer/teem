@@ -929,9 +929,7 @@ typedef struct {
                             range from sigmaRange[0] to sigmaRange[1] */
   double *sigma;         /* when-non-NULL, the sigma parameter for each
                             blurring level */
-  NrrdKernelSpec *kspec; /* the kernel with which we do blurring. NOTE:
-                            parm[0] will get over-written as part of running
-                            the resampler at each scale */
+  NrrdKernelSpec *kspec; /* the kernel with which we do blurring */
   int renormalize;       /* renormalize kernel weights (associated with the
                             kernel); passed to nrrdResampleRenormalizeSet */
   NrrdBoundarySpec *bspec; /* what do to at image boundaries */

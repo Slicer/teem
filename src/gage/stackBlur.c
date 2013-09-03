@@ -176,7 +176,10 @@ gageStackBlurParmCompare(const gageStackBlurParm *aa, const char *_nameA,
   CHECK(renormalize, %d);
   CHECK(oneDim, %d);
   CHECK(needSpatialBlur, %d);
-  CHECK(verbose, %d);
+  /* This is sketchy: the apparent point of the function is to see if two
+     sbp's are different.  But a big role of the function is to enable
+     leeching in meet.  And for leeching, a difference in verbose is moot */
+  /* CHECK(verbose, %d); */
   CHECK(dgGoodSigmaMax, %.17g);
 #undef CHECK
   if (aa->sigmaSampling != bb->sigmaSampling) {
@@ -975,7 +978,7 @@ typedef struct {
 } blurVal_t;
 
 static blurVal_t *
-_blurValAlloc(airArray *mop, gageStackBlurParm *sbp,
+_blurValAlloc(airArray *mop, gageStackBlurParm *sbp, NrrdKernelSpec *kssb,
               const Nrrd *nin, int spatialBlurred) {
   static const char me[]="_blurValAlloc";
   blurVal_t *blurVal;
@@ -989,11 +992,11 @@ _blurValAlloc(airArray *mop, gageStackBlurParm *sbp,
   cksum = nrrdCRC32(nin, airEndianLittle);
 
   for (blIdx=0; blIdx<sbp->num; blIdx++) {
-    sbp->kspec->parm[0] = sbp->sigma[blIdx];
+    kssb->parm[0] = sbp->sigma[blIdx];
     sprintf(blurVal[blIdx].val[0], "true");
     sprintf(blurVal[blIdx].val[1], "%u", cksum);
     sprintf(blurVal[blIdx].val[2], "%.17g", sbp->sigma[blIdx]);
-    nrrdKernelSpecSprint(blurVal[blIdx].val[3], sbp->kspec);
+    nrrdKernelSpecSprint(blurVal[blIdx].val[3], kssb);
     sprintf(blurVal[blIdx].val[4], "%s", sbp->renormalize ? "true" : "false");
     nrrdBoundarySpecSprint(blurVal[blIdx].val[5], sbp->bspec);
     sprintf(blurVal[blIdx].val[6], "%s",
@@ -1206,6 +1209,7 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
   static const char me[]="gageStackBlur";
   unsigned int blIdx, kvpIdx, axi;
   NrrdResampleContext *rsmc;
+  NrrdKernelSpec *kssb;
   blurVal_t *blurVal;
   airArray *mop;
   int E, iterative, rsmpType, fftable, spatialBlurred;
@@ -1228,6 +1232,8 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
     return 1;
   }
   mop = airMopNew();
+  kssb = nrrdKernelSpecCopy(sbp->kspec);
+  airMopAdd(mop, kssb, (airMopper)nrrdKernelSpecNix, airMopAlways);
   /* see if we can use FFT-based implementation */
   fftable = (!sbp->needSpatialBlur
              && nrrdBoundaryWrap == sbp->bspec->boundary
@@ -1250,7 +1256,7 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
     } else {
       if (sbp->verbose) {
         char kstr[AIR_STRLEN_LARGE], bstr[AIR_STRLEN_LARGE];
-        nrrdKernelSpecSprint(kstr, sbp->kspec);
+        nrrdKernelSpecSprint(kstr, kssb);
         nrrdBoundarySpecSprint(bstr, sbp->bspec);
         fprintf(stderr, "%s: (FFT-based blurring not applicable: "
                 "need spatial blur=%s, boundary=%s, kernel=%s)\n", me,
@@ -1259,7 +1265,7 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
     }
     rsmc = nrrdResampleContextNew();
     airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
-    if (nrrdKernelDiscreteGaussian == sbp->kspec->kernel) {
+    if (nrrdKernelDiscreteGaussian == kssb->kernel) {
       iterative = AIR_TRUE;
       /* we don't want to lose precision when iterating */
       rsmpType = nrrdResample_nt;
@@ -1338,15 +1344,18 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
           timeDo = (timeLeft > timeStepMax
                     ? timeStepMax
                     : timeLeft);
-          sbp->kspec->parm[0] = sqrt(timeDo);
+          /* it is the repeated re-setting of this parm[0] which motivated
+             copying to our own kernel spec, so that the given one in the
+             gageStackBlurParm can stay untouched */
+          kssb->parm[0] = sqrt(timeDo);
           for (axi=0; axi<3; axi++) {
             if (!sbp->oneDim || !axi) {
               /* we set the blurring kernel on this axis if
                  we are NOT doing oneDim, or, we are,
                  but this is axi == 0 */
               if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
-                                                 sbp->kspec->kernel,
-                                                 sbp->kspec->parm);
+                                                 kssb->kernel,
+                                                 kssb->parm);
             } else {
               /* what to do with oneDom on axi 1, 2 */
               /* you might think that we should just do no resampling at all
@@ -1361,7 +1370,7 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
           if (sbp->verbose) {
             fprintf(stderr, "  pass %u (timeLeft=%g => "
                     "time=%g, sigma=%g) ...\n",
-                    passIdx, timeLeft, timeDo, sbp->kspec->parm[0]);
+                    passIdx, timeLeft, timeDo, kssb->parm[0]);
           }
           if (!E) E |= nrrdResampleExecute(rsmc, niter);
           /* for debugging problem with getting zero output
@@ -1391,11 +1400,11 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
         if (!E) E |= nrrdContentSet_va(nblur[blIdx], "blur", nin, "");
         timeDone = timeNow;
       } else { /* do blurring in one shot */
-        sbp->kspec->parm[0] = sbp->sigma[blIdx];
+        kssb->parm[0] = sbp->sigma[blIdx];
         for (axi=0; axi<(sbp->oneDim ? 1 : 3); axi++) {
           if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
-                                             sbp->kspec->kernel,
-                                             sbp->kspec->parm);
+                                             kssb->kernel,
+                                             kssb->parm);
         }
         if (!E) E |= nrrdResampleExecute(rsmc, nblur[blIdx]);
       }
@@ -1413,7 +1422,7 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
     } /* for blIdx */
   }
   /* add the KVPs to document how these were blurred */
-  if (!( blurVal = _blurValAlloc(mop, sbp, nin, spatialBlurred) )) {
+  if (!( blurVal = _blurValAlloc(mop, sbp, kssb, nin, spatialBlurred) )) {
     biffAddf(GAGE, "%s: problem getting KVP buffer", me);
     airMopError(mop); return 1;
   }
@@ -1427,7 +1436,7 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp,
         /* only need to save dgGoodSigmaMax if it was spatially blurred
            with the discrete gaussian kernel */
         if (spatialBlurred
-            && nrrdKernelDiscreteGaussian == sbp->kspec->kernel) {
+            && nrrdKernelDiscreteGaussian == kssb->kernel) {
           if (!E) E |= nrrdKeyValueAdd(nblur[blIdx], _blurKey[kvpIdx],
                                        blurVal[blIdx].val[kvpIdx]);
         }
@@ -1458,15 +1467,18 @@ gageStackBlurCheck(const Nrrd *const nblur[],
   blurVal_t *blurVal;
   airArray *mop;
   unsigned int blIdx, kvpIdx;
+  NrrdKernelSpec *kssb;
 
   if (!(nblur && sbp && nin && kind)) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
   mop = airMopNew();
+  kssb = nrrdKernelSpecCopy(sbp->kspec);
+  airMopAdd(mop, kssb, (airMopper)nrrdKernelSpecNix, airMopAlways);
   if (gageStackBlurParmCheck(sbp)
       || _checkNrrd(NULL, nblur, sbp->num, AIR_TRUE, nin, kind)
-      || (!( blurVal = _blurValAlloc(mop, sbp, nin,
+      || (!( blurVal = _blurValAlloc(mop, sbp, kssb, nin,
                                      (sbp->needSpatialBlur
                                       ? AIR_TRUE
                                       : AIR_FALSE)) )) ) {
@@ -1560,6 +1572,7 @@ gageStackBlurGet(Nrrd *const nblur[], int *recomputedP,
   airArray *mop;
   int recompute;
   unsigned int ii;
+
 
   if (!( nblur && sbp && nin && kind )) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
