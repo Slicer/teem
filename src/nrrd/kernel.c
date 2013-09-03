@@ -3287,7 +3287,7 @@ int
 nrrdKernelSpecCompare(const NrrdKernelSpec *aa,
                       const NrrdKernelSpec *bb,
                       int *differ, char explain[AIR_STRLEN_LARGE]) {
-  static const char me[]="nrrdKernelSpecEqual";
+  static const char me[]="nrrdKernelSpecCompare";
   char subexplain[AIR_STRLEN_LARGE];
 
   if (!( differ )) {
