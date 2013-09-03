@@ -235,7 +235,9 @@ main(int argc, const char *argv[]) {
   gagePerVolume *pvl=NULL;
   double t0, t1, rscl[3], min[3], maxOut[3], maxIn[3];
   airArray *mop;
-  unsigned int ansLen, *skip, skipNum, pntPosNum;
+#define NON_SBP_OPT_NUM 5
+  unsigned int ansLen, *skip, skipNum, pntPosNum,
+    nonSbpOpi[NON_SBP_OPT_NUM], nsi;
   gageStackBlurParm *sbpIN, *sbpCL, *sbp;
   int otype, clamp;
   char stmp[4][AIR_STRLEN_SMALL];
@@ -308,24 +310,42 @@ main(int argc, const char *argv[]) {
              "\"Accurate\" kernels don't need this; doing it always "
              "makes things go slower");
 
+  nsi = 0;
+  nonSbpOpi[nsi++] =
   hestOptAdd(&hopt, "ssn", "SS #", airTypeUInt, 1, 1, &numSS,
              "0", "how many scale-space samples to evaluate, or, "
              "0 to turn-off all scale-space behavior");
+  nonSbpOpi[nsi++] =
   hestOptAdd(&hopt, "ssr", "scale range", airTypeDouble, 2, 2, rangeSS,
              "nan nan", "range of scales in scale-space");
+  nonSbpOpi[nsi++] =
   hestOptAdd(&hopt, "ssu", NULL, airTypeInt, 0, 0, &uniformSS, NULL,
              "do uniform samples along sigma, and not (by default) "
              "samples according to the effective diffusion scale");
+  nonSbpOpi[nsi++] =
   hestOptAdd(&hopt, "sso", NULL, airTypeInt, 0, 0, &optimSS, NULL,
              "if not using \"-ssu\", use pre-computed optimal "
              "sigmas when possible");
+  nonSbpOpi[nsi++] =
   hestOptAdd(&hopt, "kssb", "kernel", airTypeOther, 1, 1, &kSSblur,
              "dgauss:1,5", "blurring kernel, to sample scale space",
              NULL, NULL, nrrdHestKernelSpec);
+  if (nsi != NON_SBP_OPT_NUM) {
+    fprintf(stderr, "%s: PANIC nsi %u != %u", me, nsi, NON_SBP_OPT_NUM);
+    exit(1);
+  }
   hestOptAdd(&hopt, "sbp", "blur spec", airTypeOther, 1, 1, &sbpCL, "",
              "complete specification of stack blur parms; "
              "over-rides all previous \"ss\" options",
              NULL, NULL, gageHestStackBlurParm);
+  /* These two options are needed even if sbp is used, because they are *not*
+     part of the gageStackBlurParm.  In meet, this info is handled by the
+     extraFlag/extraParm construct, which is not available here */
+  hestOptAdd(&hopt, "ssnd", NULL, airTypeInt, 0, 0, &normdSS, NULL,
+             "normalize derivatives by scale");
+  hestOptAdd(&hopt, "ssnb", "bias", airTypeDouble, 1, 1, &biasSS, "0.0",
+             "bias on scale-based derivative normalization");
+
   hestOptAdd(&hopt, "ssf", "SS read/save format", airTypeString, 1, 1,
              &stackFnameFormat, "",
              "printf-style format (including a \"%u\") for the "
@@ -338,10 +358,6 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "kssr", "kernel", airTypeOther, 1, 1, &kSS,
              "hermite", "kernel for reconstructing from scale space samples",
              NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "ssnd", NULL, airTypeInt, 0, 0, &normdSS, NULL,
-             "normalize derivatives by scale");
-  hestOptAdd(&hopt, "ssnb", "bias", airTypeDouble, 1, 1, &biasSS, "0.0",
-             "bias on scale-based derivative normalization");
 
   hestOptAdd(&hopt, "s", "sclX sclY sxlZ", airTypeDouble, 3, 3, scale,
              "1 1 1",
@@ -413,13 +429,23 @@ main(int argc, const char *argv[]) {
   /* for setting up pre-blurred scale-space samples */
   if (numSS || sbpCL) {
     unsigned int vi;
-    int recompute;
+    int recompute, gotOld;
 
     if (sbpCL) {
       /* we got the whole stack blar parm here */
-      if (numSS || AIR_EXISTS(rangeSS[0]) || AIR_EXISTS(rangeSS[1])) {
+      gotOld = AIR_FALSE;
+      for (nsi=0; nsi<NON_SBP_OPT_NUM; nsi++) {
+        gotOld |= (hestSourceUser == hopt[nonSbpOpi[nsi]].source);
+      }
+      if (gotOld) {
         fprintf(stderr, "%s: with new -sbp option; can't also use older "
-                " ss options like -ssn and -ssr", me);
+                "scale-space options (used", me);
+        for (nsi=0; nsi<NON_SBP_OPT_NUM; nsi++) {
+          if (hestSourceUser == hopt[nonSbpOpi[nsi]].source) {
+            fprintf(stderr, " -%s", hopt[nonSbpOpi[nsi]].flag);
+          }
+        }
+        fprintf(stderr, ")\n");
         airMopError(mop); return 1;
       }
       if (gageStackBlurManage(&ninSS, &recompute, sbpCL,
