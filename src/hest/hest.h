@@ -46,6 +46,21 @@ extern "C" {
 #endif
 
 /*
+******** hestSource* enum
+**
+** records whether the info to satisfy a particular option came
+** from the default or from the user (command-line or response file).
+** Distinguishing command-line from response file would take a
+** much more significant code restructuring
+*/
+enum {
+  hestSourceUnknown,       /* 0 */
+  hestSourceDefault,       /* 1 */
+  hestSourceUser,          /* 2 */
+  hestSourceLast
+};
+
+/*
 ******** hestCB struct
 **
 ** for when the thing you want to parse from the command-line is not a
@@ -120,6 +135,12 @@ typedef struct {
                               of a fixed-length array of strings
                            3: free((*valueP)[i]) and free(*valueP), because
                               it is a dynamically allocated array of strings */
+
+  /* --------------------- Output */
+
+  int source;           /* from the hestSource* enum; from whence was this
+                           information set, else hestSourceUnknown if not */
+
 } hestOpt;
 
 /*
@@ -197,11 +218,14 @@ HEST_EXPORT char hestMultiFlagSep;
 HEST_EXPORT const int hestPresent;
 HEST_EXPORT hestParm *hestParmNew(void);
 HEST_EXPORT hestParm *hestParmFree(hestParm *parm);
-HEST_EXPORT void hestOptAdd(hestOpt **optP,
-                            const char *flag, const char *name,
-                            int type, int min, int max,
-                            void *valueP, const char *dflt, const char *info,
-                            ... /* int *sawP, airEnum *enm , hestCB *CB */);
+HEST_EXPORT unsigned int hestOptAdd(hestOpt **optP,
+                                    const char *flag, const char *name,
+                                    int type, int min, int max,
+                                    void *valueP, const char *dflt,
+                                    const char *info,
+                                    ... /* int *sawP,
+                                           airEnum *enm,
+                                           hestCB *CB */);
 HEST_EXPORT hestOpt *hestOptFree(hestOpt *opt);
 HEST_EXPORT int hestOptCheck(hestOpt *opt, char **errP);
 

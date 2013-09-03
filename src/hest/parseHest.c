@@ -733,6 +733,7 @@ _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr,
   numOpts = _hestNumOpts(opt);
   for (op=0; op<numOpts; op++) {
     _hestIdent(ident, opt+op, parm, AIR_TRUE);
+    opt[op].source = udflt[op] ? hestSourceDefault : hestSourceUser;
     type = opt[op].type;
     size = (airTypeEnum == type
             ? (int)sizeof(int)             /* HEY scrutinize casts */

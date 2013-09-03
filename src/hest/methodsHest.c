@@ -77,6 +77,7 @@ _hestOptInit(hestOpt *opt) {
   opt->CB = NULL;
   opt->sawP = NULL;
   opt->kind = opt->alloc = 0;
+  opt->source = hestSourceUnknown;
 }
 
 /*
@@ -93,7 +94,11 @@ hestOptNew(void) {
 }
 */
 
-void
+/*
+** as of Sept 2013 this returns information: the index of the
+** option just added.  Returns UINT_MAX in case of error.
+*/
+unsigned int
 hestOptAdd(hestOpt **optP,
            const char *flag, const char *name,
            int type, int min, int max,
@@ -102,16 +107,18 @@ hestOptAdd(hestOpt **optP,
   int num;
   va_list ap;
   void *dummy = NULL;
+  unsigned int retIdx;
 
   if (!optP)
-    return;
+    return UINT_MAX;
 
   num = *optP ? _hestNumOpts(*optP) : 0;
   if (!( ret = AIR_CALLOC(num+2, hestOpt) )) {
-    return;
+    return UINT_MAX;
   }
   if (num)
     memcpy(ret, *optP, num*sizeof(hestOpt));
+  retIdx = AIR_UINT(num);
   ret[num].flag = airStrdup(flag);
   ret[num].name = airStrdup(name);
   ret[num].type = type;
@@ -124,6 +131,8 @@ hestOptAdd(hestOpt **optP,
   ret[num].sawP = NULL;
   ret[num].enm = NULL;
   ret[num].CB = NULL;
+  /* seems to be redundant with above _hestOptInit() */
+  ret[num].source = hestSourceUnknown;
   /* deal with var args */
   if (5 == _hestKind(&(ret[num]))) {
     va_start(ap, info);
@@ -149,7 +158,7 @@ hestOptAdd(hestOpt **optP,
     free(*optP);
   *optP = ret;
   AIR_UNUSED(dummy);
-  return;
+  return retIdx;
 }
 
 void
