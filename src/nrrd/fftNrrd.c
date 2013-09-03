@@ -51,6 +51,14 @@ _nrrdFftwFreeWrapper(void *ptr) {
   return NULL;
 }
 
+static void *
+_nrrdFftwDestroyPlanWrapper(void *ptr) {
+  fftw_plan plan;
+  plan = AIR_CAST(fftw_plan, ptr);
+  fftw_destroy_plan(plan);
+  return NULL;
+}
+
 static void
 _nrrdDimsReverse(fftw_iodim *dims, unsigned int len) {
   fftw_iodim buff[NRRD_DIM_MAX];
@@ -227,6 +235,7 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
     biffAddf(NRRD, "%s: unable to create plan", me);
     airMopError(mop); return 1;
   }
+  airMopAdd(mop, plan, _nrrdFftwDestroyPlanWrapper, airMopAlways);
 
   /* only after planning is done (which can over-write contents of inData)
      do we copy the real input values over */
