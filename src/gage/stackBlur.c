@@ -1533,13 +1533,13 @@ gageStackBlurCheck(const Nrrd *const nblur[],
     for (kvpIdx=0; kvpIdx<KVP_NUM; kvpIdx++) {
       char *tmpval;
       tmpval = nrrdKeyValueGet(nblur[blIdx], _blurKey[kvpIdx]);
+      airMopAdd(mop, tmpval, airFree, airMopAlways);
       if (KVP_DGGSM_IDX != kvpIdx) {
         if (!tmpval) {
           biffAddf(GAGE, "%s: didn't see key \"%s\" in nblur[%u]", me,
                    _blurKey[kvpIdx], blIdx);
           airMopError(mop); return 1;
         }
-        airMopAdd(mop, tmpval, airFree, airMopAlways);
         if (KVP_SBLUR_IDX == kvpIdx) {
           /* this KVP is handled differently */
           if (!sbp->needSpatialBlur) {
