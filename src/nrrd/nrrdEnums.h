@@ -631,9 +631,11 @@ enum {
   nrrdUnaryOpIf,         /* 28 */
   nrrdUnaryOpZero,       /* 29 */
   nrrdUnaryOpOne,        /* 30 */
+  nrrdUnaryOpTauOfSigma, /* 31 */
+  nrrdUnaryOpSigmaOfTau, /* 32 */
   nrrdUnaryOpLast
 };
-#define NRRD_UNARY_OP_MAX   30
+#define NRRD_UNARY_OP_MAX   32
 
 /*
 ******** nrrdBinaryOp enum

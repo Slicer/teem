@@ -625,6 +625,10 @@ AIR_EXPORT double airRician(double mes, double tru, double sig);
 AIR_EXPORT double airBesselI1By0(double x);
 AIR_EXPORT double airBesselIn(int n, double x);
 AIR_EXPORT double airBesselInExpScaled(int n, double x);
+AIR_EXPORT double airTauOfTime(double tee);
+AIR_EXPORT double airTimeOfTau(double tau);
+AIR_EXPORT double airSigmaOfTau(double tau);
+AIR_EXPORT double airTauOfSigma(double sig);
 AIR_EXPORT double airVanDerCorput(unsigned int indx, unsigned int base);
 AIR_EXPORT void airHalton(double *out, unsigned int indx,
                           const unsigned int *base, unsigned int num);

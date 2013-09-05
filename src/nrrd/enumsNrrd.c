@@ -1052,7 +1052,9 @@ _nrrdUnaryOpStr[NRRD_UNARY_OP_MAX+1] = {
   "normrand",
   "if",
   "zero",
-  "one"
+  "one",
+  "tauofsig",
+  "sigoftau"
 };
 
 static const char *
@@ -1087,7 +1089,9 @@ _nrrdUnaryOpDesc[NRRD_UNARY_OP_MAX+1] = {
   "normally distributed random value, mean 0, stdv 1",
   "if nonzero, 1, else 0",
   "always zero",
-  "always one"
+  "always one",
+  "Lindeberg effective scale Tau as function of Sigma",
+  "Sigma as function of Lindeberg effective scale Tau"
 };
 
 static const char *
@@ -1122,6 +1126,8 @@ _nrrdUnaryOpStrEqv[] = {
   "if",
   "zero", "0",
   "one", "1",
+  "tauofsig", "tos",
+  "sigoftau", "sot",
   ""
 };
 
@@ -1156,7 +1162,9 @@ _nrrdUnaryOpValEqv[] = {
   nuNrn, nuNrn, nuNrn,
   nuoIf,
   nuZer, nuZer,
-  nuOne, nuOne
+  nuOne, nuOne,
+  nrrdUnaryOpTauOfSigma, nrrdUnaryOpTauOfSigma,
+  nrrdUnaryOpSigmaOfTau, nrrdUnaryOpSigmaOfTau
 };
 
 static const airEnum

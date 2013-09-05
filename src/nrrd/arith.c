@@ -198,6 +198,8 @@ static double _nrrdUnaryOpOne(double a) {
   AIR_UNUSED(a);
   return 1.0;
 }
+static double _nrrdUnaryOpTauOfSigma(double s) { return airTauOfSigma(s); }
+static double _nrrdUnaryOpSigmaOfTau(double t) { return airSigmaOfTau(t); }
 
 double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
   NULL,
@@ -230,7 +232,9 @@ double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
   _nrrdUnaryOpNormalRand,
   _nrrdUnaryOpIf,
   _nrrdUnaryOpZero,
-  _nrrdUnaryOpOne
+  _nrrdUnaryOpOne,
+  _nrrdUnaryOpTauOfSigma,
+  _nrrdUnaryOpSigmaOfTau
 };
 
 int

@@ -1175,10 +1175,12 @@ GAGE_EXPORT int gageOptimSigErrorPlotSliding(gageOptimSigContext *oscx,
                                              int imgMeasr);
 
 /* stack.c */
-GAGE_EXPORT double gageTauOfTee(double tee);
-GAGE_EXPORT double gageTeeOfTau(double tau);
-GAGE_EXPORT double gageSigOfTau(double tau);
-GAGE_EXPORT double gageTauOfSig(double sig);
+/* moved the tau conversion functions to air, so that they can be
+   called from unu */
+#define gageTauOfTee(TEE) airTauOfTime(TEE)
+#define gageTeeOfTau(TAU) airTimeOfTau(TAU)
+#define gageSigOfTau(TAU) airSigmaOfTau(TAU)
+#define gageTauOfSig(SIG) airTauOfSigma(SIG)
 GAGE_EXPORT double gageStackWtoI(gageContext *ctx, double swrl,
                                  int *outside);
 GAGE_EXPORT double gageStackItoW(gageContext *ctx, double si,
