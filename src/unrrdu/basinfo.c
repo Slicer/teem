@@ -108,7 +108,6 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
        enclosing quotes, and the need to use to a separate variable (isn't
        hest doing memory management of addresses, not variables?) */
     if ('\"' == _origStr[0] && '\"' == _origStr[strlen(_origStr)-1]) {
-      fprintf(stderr, "%s: bingo\n", me);
       _origStr[strlen(_origStr)-1] = 0;
       origStr = _origStr + 1;
     } else {
