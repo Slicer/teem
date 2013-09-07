@@ -433,7 +433,23 @@ airStdin(void) {
 /*
 ******* airIndex
 **
-** replaces AIR_INDEX macro; see above
+** Given a value range [min,max], a single input value val inside the range,
+** and a number of intervals N spanning and evenly dividing that range,
+** airIndex returns the index of the interval containing val:
+**
+**  input value range: min                     max
+**   val somewhere in:  |-----|-----|-----|-----|
+**        N intervals:  [    )[    )[    )[     ]  (for N=4)
+**       output index:     0     1     2     3
+**
+** This can be used (as in nrrdHisto and other histogramming functions) to
+** represent the range [min,max] with N samples between 0 and N-1.  Those
+** samples are cell-centered, because "0" is logically located (in the
+** continuous input range) in the *middle* of the first of the N intervals.
+** In contrast, the *endpoints* of the N intervals (the 5 "|" in the picture
+** above) form N+1 *node*-centered samples from min to max.
+**
+** NOTE: This does not do bounds checking; for that use airIndexClamp
 */
 unsigned int
 airIndex(double min, double val, double max, unsigned int N) {
@@ -455,9 +471,6 @@ airIndexClamp(double min, double val, double max, unsigned int N) {
   unsigned int idx;
   double mnm;
 
-  /* NOTE: now that unsigned types are used more widely in Teem, the
-     clamping that used to happen after index generation now must
-     happen prior to index generation */
   mnm = max - min;
   if (mnm) {
     val = AIR_MAX(min, val);
