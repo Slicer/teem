@@ -219,8 +219,9 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
     fprintf(stderr, "%s: cacheLen = %u\n", me, cacheLen);
   }
   if (nrrdKernelHermiteScaleSpaceFlag  == ctx->ksp[gageKernelStack]->kernel) {
-    unsigned int xi, yi, zi, blurIdx, valIdx, fdd;
-    double xx, *iv30, *iv31, sigma0, sigma1;
+    unsigned int iii, xi, yi, zi, blurIdx, valIdx, fdd, sz;
+    double xx, *iv3, *iv30, *iv31, sigma0, sigma1,
+      val0, val1, drv0, drv1, lapl0, lapl1;
 
     fdd = fd*fd;
     /* initialize the output iv3 to all zeros, since we won't be
@@ -230,8 +231,9 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
        non-existent values creeping in.  We shouldn't need to do any
        kind of nrrdBoundaryBleed thing here, because the kernel
        weights really should be zero on the boundary. */
+    iv3 = ctx->pvl[baseIdx]->iv3;
     for (cacheIdx=0; cacheIdx<cacheLen; cacheIdx++) {
-      ctx->pvl[baseIdx]->iv3[cacheIdx] = 0;
+      iv3[cacheIdx] = 0;
     }
 
     /* find the interval in the pre-blurred volumes containing the
@@ -262,33 +264,64 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
     sigma0 = ctx->stackPos[blurIdx];
     sigma1 = ctx->stackPos[blurIdx+1];
     valLen = ctx->pvl[baseIdx]->kind->valLen;
-    for (valIdx=0; valIdx<valLen; valIdx++) {
-      unsigned iii;
-      double val0, val1, drv0, drv1, lapl0, lapl1, aa, bb, cc, dd;
-      for (zi=1; zi<fd-1; zi++) {
+    sz = ctx->shape->size[2];
+    if (1 == sz) {
+      /* as in gageIv3Fill; we do some special-case-ing for 2-D images;
+         (HEY copy and paste; see sz > 1 below for explanatory comments) */
+      for (valIdx=0; valIdx<valLen; valIdx++) {
+        /* nixed "for zi" loop; zi==1 */
         for (yi=1; yi<fd-1; yi++) {
           for (xi=1; xi<fd-1; xi++) {
-            /* note that iv3 axis ordering is x, y, z, tuple */
-            iii = xi + fd*(yi + fd*(zi + fd*valIdx));
+            iii = xi + fd*(yi + fd*(1 /* zi */ + fd*valIdx));
             val0 = iv30[iii];
+            /* can do a 2D instead of 3D discrete laplacian */
+            lapl0 = (iv30[iii+1]   + iv30[iii-1] +
+                     iv30[iii+fd]  + iv30[iii-fd] - 4*val0);
             val1 = iv31[iii];
-            lapl0 = (iv30[iii + 1]   + iv30[iii - 1] +
-                     iv30[iii + fd]  + iv30[iii - fd] +
-                     iv30[iii + fdd] + iv30[iii - fdd] - 6*val0);
-            lapl1 = (iv31[iii + 1]   + iv31[iii - 1] +
-                     iv31[iii + fd]  + iv31[iii - fd] +
-                     iv31[iii + fdd] + iv31[iii - fdd] - 6*val1);
-            /* the (sigma1 - sigma0) factor is needed to convert the
-               derivative with respect to sigma (sigma*lapl) into the
-               derivative with respect to xx (ranges from 0 to 1) */
+            lapl1 = (iv31[iii+1]   + iv31[iii-1] +
+                     iv31[iii+fd]  + iv31[iii-fd] - 4*val1);
             drv0 = sigma0*lapl0*(sigma1 - sigma0);
             drv1 = sigma1*lapl1*(sigma1 - sigma0);
-            /* Hermite spline coefficients, thanks Mathematica */
-            aa = drv0 + drv1 + 2*val0 - 2*val1;
-            bb = -2*drv0 - drv1 - 3*val0 + 3*val1;
-            cc = drv0;
-            dd = val0;
-            ctx->pvl[baseIdx]->iv3[iii] = dd + xx*(cc + xx*(bb + aa*xx));
+            iv3[iii] = val0 + xx*(drv0 + xx*(drv0*(-2 + xx) + drv1*(-1 + xx)
+                                             + (val0 - val1)*(-3 + 2*xx)));
+          }
+        }
+        for (zi=  2  ; zi<fd-1; zi++) {
+          for (yi=1; yi<fd-1; yi++) {
+            for (xi=1; xi<fd-1; xi++) {
+              iii =          xi + fd*(yi + fd*(zi + fd*valIdx));
+              iv3[iii] = iv3[xi + fd*(yi + fd*(1  + fd*valIdx))];
+            }
+          }
+        }
+      }
+    } else {
+      /* sz > 1 */
+      for (valIdx=0; valIdx<valLen; valIdx++) {
+        for (zi=1; zi<fd-1; zi++) {
+          for (yi=1; yi<fd-1; yi++) {
+            for (xi=1; xi<fd-1; xi++) {
+              /* note that iv3 axis ordering is x, y, z, tuple */
+              iii = xi + fd*(yi + fd*(zi + fd*valIdx));
+              val0 = iv30[iii];
+              lapl0 = (iv30[iii+1]   + iv30[iii-1] +
+                       iv30[iii+fd]  + iv30[iii-fd] +
+                       iv30[iii+fdd] + iv30[iii-fdd] - 6*val0);
+              val1 = iv31[iii];
+              lapl1 = (iv31[iii+1]   + iv31[iii-1] +
+                       iv31[iii+fd]  + iv31[iii-fd] +
+                       iv31[iii+fdd] + iv31[iii-fdd] - 6*val1);
+              /* the (sigma1 - sigma0) factor is needed to convert the
+                 derivative with respect to sigma (sigma*lapl) into the
+                 derivative with respect to xx (ranges from 0 to 1) */
+              drv0 = sigma0*lapl0*(sigma1 - sigma0);
+              drv1 = sigma1*lapl1*(sigma1 - sigma0);
+              /* This inner loop is the bottleneck for some uses of
+                 scale-space; a re-arrangement of the Hermite spline
+                 evaluation (thanks Mathematica) does save a little time */
+              iv3[iii] = val0 + xx*(drv0 + xx*(drv0*(-2 + xx) + drv1*(-1 + xx)
+                                               + (val0 - val1)*(-3 + 2*xx)));
+            }
           }
         }
       }

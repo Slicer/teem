@@ -605,37 +605,79 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
     }
     ctx->edgeFrac = 0;
   } else {
-    unsigned int edgeNum;
+    unsigned int edgeNum, dataStride, valLen;
     /* the query requires samples which don't actually lie
        within the volume- more care has to be taken */
+    double *iv3;
     cacheIdx = 0;
     edgeNum = 0;
-    for (_zz=lz; _zz<=hz; _zz++) {
-      zz = AIR_CLAMP(0, _zz, AIR_CAST(int, sz-1));
+    valLen = pvl->kind->valLen;
+    dataStride = AIR_UINT(valLen*nrrdTypeSize[pvl->nin->type]);
+    iv3 = pvl->iv3;
+    if (1 == sz) {
+      /* working with 2D images is now common enough that we try to make
+         simplifications for that (HEY copy and paste). We first do the
+         needed lup()s to fill first slice of iv3 ... */
       for (_yy=ly; _yy<=hy; _yy++) {
         yy = AIR_CLAMP(0, _yy, AIR_CAST(int, sy-1));
         for (_xx=lx; _xx<=hx; _xx++) {
           xx = AIR_CLAMP(0, _xx, AIR_CAST(int, sx-1));
-          edgeNum += ((AIR_CAST(int, zz) != _zz)
-                      || (AIR_CAST(int, yy) != _yy)
+          edgeNum += ((AIR_CAST(int, yy) != _yy)
                       || (AIR_CAST(int, xx) != _xx));
-          dataIdx = xx + sx*(yy + sy*zz);
-          here = data + dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
-          if (ctx->verbose > 2) {
-            fprintf(stderr, "%s:    (%d,%d,%d) --clamp--> (%u,%u,%u)\n", me,
-                    _xx, _yy, _zz, xx, yy, zz);
-            fprintf(stderr, "       --> dataIdx = %d; data = %p -> here = %p\n",
-                    dataIdx, data, here);
-          }
-          for (tup=0; tup<pvl->kind->valLen; tup++) {
-            pvl->iv3[cacheIdx + fddd*tup] = pvl->lup(here, tup);
-            if (ctx->verbose > 3) {
-              fprintf(stderr, "%s:    iv3[%u + %u*%u=%u] = %g\n", me,
-                      cacheIdx, fddd, tup, cacheIdx + fddd*tup,
-                      pvl->iv3[cacheIdx + fddd*tup]);
-            }
+          dataIdx = xx + sx*yy;
+          here = data+dataIdx*dataStride;
+          for (tup=0; tup<valLen; tup++) {
+            iv3[cacheIdx + fddd*tup] = pvl->lup(here, tup);
           }
           cacheIdx++;
+        }
+      }
+      /* ... and then copy from first slice into rest of iv3 */
+      for (_zz=lz+1; _zz<=hz; _zz++) {
+        unsigned int z0ci;
+        z0ci = 0;
+        for (_yy=ly; _yy<=hy; _yy++) {
+          for (_xx=lx; _xx<=hx; _xx++) {
+            for (tup=0; tup<valLen; tup++) {
+              iv3[cacheIdx + fddd*tup] = iv3[z0ci + fddd*tup];
+            }
+            cacheIdx++;
+            z0ci++;
+          }
+        }
+      }
+      /* we would have been outside for all the other
+         z slices besides z=0 */
+      edgeNum += (2*fr - 1)*2*fr*2*fr;
+    } else {
+      /* sz > 1 */
+      for (_zz=lz; _zz<=hz; _zz++) {
+        zz = AIR_CLAMP(0, _zz, AIR_CAST(int, sz-1));
+        for (_yy=ly; _yy<=hy; _yy++) {
+          yy = AIR_CLAMP(0, _yy, AIR_CAST(int, sy-1));
+          for (_xx=lx; _xx<=hx; _xx++) {
+            xx = AIR_CLAMP(0, _xx, AIR_CAST(int, sx-1));
+            edgeNum += ((AIR_CAST(int, zz) != _zz)
+                        || (AIR_CAST(int, yy) != _yy)
+                        || (AIR_CAST(int, xx) != _xx));
+            dataIdx = xx + sx*(yy + sy*zz);
+            here = data+dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
+            if (ctx->verbose > 2) {
+              fprintf(stderr, "%s:    (%d,%d,%d) --clamp--> (%u,%u,%u)\n", me,
+                      _xx, _yy, _zz, xx, yy, zz);
+              fprintf(stderr, "    --> dataIdx = %d; data = %p -> here = %p\n",
+                      dataIdx, data, here);
+            }
+            for (tup=0; tup<pvl->kind->valLen; tup++) {
+              iv3[cacheIdx + fddd*tup] = pvl->lup(here, tup);
+              if (ctx->verbose > 3) {
+                fprintf(stderr, "%s:    iv3[%u + %u*%u=%u] = %g\n", me,
+                        cacheIdx, fddd, tup, cacheIdx + fddd*tup,
+                        iv3[cacheIdx + fddd*tup]);
+              }
+            }
+            cacheIdx++;
+          }
         }
       }
     }
