@@ -541,7 +541,7 @@ typedef struct gageParm_t {
                                  a descriptive error is sprintf into
                                  gctx->errStr as long as this is non-zero. */
     twoDimZeroZ;              /* a limited way of supporting queries on
-                                 two-dimensional images: if this is non-zero
+                                 two-dimensional images. If this is non-zero,
                                  then *some* answers will only involve the 1st
                                  ("X") and 2nd ("Y") coordinates of world
                                  space.  Eigensystems should have only two
