@@ -813,6 +813,13 @@ meetPullInfoAddMulti(pullContext *pctx,
       biffMovef(MEET, PULL, "%s: trouble adding ispec from minf[%u]", me, ii);
       airMopError(mop); return 1;
     }
+    /* else added the ispec okay. If we have an error with a different
+       ispec later in this loop, who's job is it to free up the ispecs
+       that have been added successfully?  In teem/src/bin/puller, that
+       is done by pullContextNix. So we now extricate ourself from the
+       business of freeing this ispec in case of error; one of the few
+       times that airMopSub is really needed */
+    airMopSub(mop, ispec, (airMopper)pullInfoSpecNix);
   }
 
   airMopOkay(mop);
