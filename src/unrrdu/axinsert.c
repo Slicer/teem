@@ -40,6 +40,7 @@ unrrdu_axinsertMain(int argc, const char **argv, const char *me,
   Nrrd *nin, *nout;
   int pret, kind;
   unsigned int axis;
+  double mm[2];
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "dimension (axis index) at which to insert the new axis");
@@ -47,6 +48,8 @@ unrrdu_axinsertMain(int argc, const char **argv, const char *me,
              "label to associate with new axis");
   hestOptAdd(&opt, "k,kind", "kind", airTypeEnum, 1, 1, &kind, "stub",
              "axis kind to associate with new axis", NULL, nrrdKind);
+  hestOptAdd(&opt, "mm,minmax", "min max", airTypeDouble, 2, 2, mm, "nan nan",
+             "min and max values along new axis");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -69,6 +72,12 @@ unrrdu_axinsertMain(int argc, const char **argv, const char *me,
   if (strlen(label)) {
     nout->axis[axis].label = (char *)airFree(nout->axis[axis].label);
     nout->axis[axis].label = airStrdup(label);
+  }
+  if (AIR_EXISTS(mm[0])) {
+    nout->axis[axis].min = mm[0];
+  }
+  if (AIR_EXISTS(mm[1])) {
+    nout->axis[axis].max = mm[1];
   }
   nout->axis[axis].kind = kind;
 
