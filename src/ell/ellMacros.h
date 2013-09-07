@@ -741,6 +741,10 @@ extern "C" {
 #define ELL_4V_NORM(v2, v1, length) \
   (length = ELL_4V_LEN(v1), ELL_4V_SCALE(v2, 1.0/length, v1))
 
+#define ELL_4V_NORM_TT(v2, TT, v1, length) \
+  (length = AIR_CAST(TT, ELL_4V_LEN(v1)), \
+   ELL_4V_SCALE_TT(v2, TT, 1.0/length, v1))
+
 #define ELL_4V_LERP(v3, w, v1, v2)            \
   ((v3)[0] = AIR_LERP((w), (v1)[0], (v2)[0]), \
    (v3)[1] = AIR_LERP((w), (v1)[1], (v2)[1]), \
