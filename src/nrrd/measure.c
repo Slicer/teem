@@ -768,7 +768,9 @@ _nrrdMeasureHistoMode(void *ans, int ansType,
   max = -DBL_MAX;
   for (ii=0; ii<len; ii++) {
     val = lup(line, ii);
-    max = AIR_MAX(max, val);
+    if (AIR_EXISTS(val)) {
+      max = AIR_MAX(max, val);
+    }
   }
   if (-DBL_MAX == max) {
     nrrdDStore[ansType](ans, AIR_NAN);
@@ -789,6 +791,11 @@ _nrrdMeasureHistoMode(void *ans, int ansType,
       idxcount++;
       idxsum += ii;
     }
+  }
+  if (max == 0 && len == idxcount) {
+    /* entire histogram was zeros => empty distribution => no mode */
+    nrrdDStore[ansType](ans, AIR_NAN);
+    return;
   }
   ansD = idxsum/idxcount;
   /*
