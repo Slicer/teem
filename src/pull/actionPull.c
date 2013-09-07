@@ -554,14 +554,37 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   if (point->neighInterNum) {
     point->neighDistMean /= point->neighInterNum;
     if (pullProcessModeNeighLearn == task->processMode) {
-      double Css, trc;
-      ELL_10V_SCALE(point->neighCovar, 1.0f/point->neighInterNum,
-                    point->neighCovar);
-      Css = point->neighCovar[9];
-      trc = CTRACE(point->neighCovar);
-      point->stability = AIR_CAST(float, (trc
-                                          ? (task->pctx->targetDim * Css)/trc
-                                          : 0.0));
+      float ncs[4], ncsLen, *cov, sxx, syy, scl;
+      cov = point->neighCovar;
+      ELL_10V_SCALE(cov, 1.0f/point->neighInterNum, cov);
+      /* Stability is related to the angle between S=(0,0,0,1) and the
+         projection of S onto the tangent surface; we approximate that
+         by finding the product neighCovar*S == last column of neighCovar*/
+      ELL_4V_SET(ncs, cov[3], cov[6], cov[8], cov[9]);
+      ELL_4V_NORM_TT(ncs, float, ncs, ncsLen);
+      if (ncsLen) {
+        syy = ncs[3];
+        scl = (task->pctx->flag.scaleIsTau
+               ? AIR_CAST(float, gageSigOfTau(point->pos[3]))
+               : point->pos[3]);
+        if (scl) {
+          sxx = AIR_CAST(float, ELL_3V_LEN(ncs))/scl;
+          point->stability = atan2(syy, sxx)/(AIR_PI/2);
+        } else {
+          point->stability = 0;
+        }
+      } else {
+        /* HEY: probably bug that we can have *zero* last column in covar,
+           and yet have non-zero point->neighInterNum, right? */
+        point->stability = 0;
+      }
+      if (!AIR_EXISTS(point->stability)) {
+        fprintf(stderr, "!%s(%u): bad stability %g\n", me,
+                point->idtag, point->stability);
+        fprintf(stderr, "%g  %g  %g  %g\n", cov[3], cov[6], cov[8], cov[9]);
+        fprintf(stderr, "%g  %g  %g  %g\n", ncs[0], ncs[1], ncs[2], ncs[3]);
+        fprintf(stderr, "sxx %g syy %g\n", sxx, syy);
+      }
 #if PULL_TANCOVAR
       /* using 1 + # neigh because this includes tan1 of point itself */
       ELL_6V_SCALE(point->neighTanCovar, 1.0f/(1 + point->neighInterNum),

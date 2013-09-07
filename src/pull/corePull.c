@@ -494,6 +494,13 @@ pullRun(pullContext *pctx) {
   pctx->timeRun += time1 - time0;
   pctx->energy = enrNew;
 
+  /* we do one final neighbor-learn iteration, to set the fields
+     (like stability) that are only learned then */
+  if (_pullIterate(pctx, pullProcessModeNeighLearn)) {
+    biffAddf(PULL, "%s: trouble after-final iter", me);
+    return 1;
+  }
+
   if (0) {
     /* probe inter-particle energy function */
     unsigned int szimg=300, ri, si;
