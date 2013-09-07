@@ -55,13 +55,14 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
              "(*t*rivial *o*rientation) "
              "even if the input nrrd comes with full orientation or "
              "per-axis min-max info, ignore it and instead assert the "
-             "most trivial mapping between index and world space");
+             "identity mapping between index and world space");
   hestOptAdd(&opt, "c,center", NULL, airTypeInt, 0, 0, &recenter, NULL,
              "re-locate output spaceOrigin so that field is centered "
              "around origin of space coordinates");
   hestOptAdd(&opt, "s,scaling", "scl", airTypeDouble, 1, 1, &sscl, "1.0",
-             "when contriving orientation information, distance between "
-             "samples to use");
+             "when having to contrive orientation information and there's "
+             "no per-axis min/max to inform what the sample spacing is, "
+             "this is the sample spacing to assert");
   hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
              "input image", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "o", "nout", airTypeString, 1, 1, &outS, "-",
@@ -133,6 +134,8 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
       break;
     }
   } else {
+    /* kindIn is nrrdKindUnknown, so its a simple scalar image,
+       and that's out the output kind will be too */
     kindOut = nrrdKindUnknown;
   }
 
@@ -179,7 +182,8 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
   nout->content = airFree(nout->content);
 
   /* normalize domain kinds to "space" */
-  /* turn off centers (perhaps Diderot should assume cell-centered) */
+  /* turn off centers (Diderot assumes cell-centered, but that could
+     probably stand to be tested and enforced more) */
   /* turn off thickness */
   /* turn off labels and units */
   for (axi=0; axi<nout->dim; axi++) {
@@ -203,7 +207,10 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
      if space dimension is known:
         set origin to zero if not already set
         set space direction to unit vector if not already set
-     else:
+     else if have per-axis min and max:
+        set spae origin and directions to communicate same intent
+        as original per-axis min and max and original centering
+     else
         set origin to zero and all space directions to units
      might be nice to use gage's logic for mapping from world to index,
      but we have to accept a greater variety of kinds and dimensions
@@ -218,37 +225,53 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
     }
     for (axi=0; axi<nout->dim; axi++) {
       if (nrrdKindUnknown == kindOut || kindAxis != axi) {
+        /* its a domain axis of output */
         if (!nrrdSpaceVecExists(nout->spaceDim,
                                 nout->axis[axi].spaceDirection)) {
           nrrdSpaceVecSetZero(nout->axis[axi].spaceDirection);
           nout->axis[axi].spaceDirection[saxi] = sscl;
         }
+        /* else we leave existing space vector as is */
         saxi++;
       } else {
+        /* else its a range axis */
         nrrdSpaceVecSetNaN(nout->axis[axi].spaceDirection);
       }
     }
   } else if (haveMM && !trivialOrient) {
     int saxi = 0;
+    size_t N;
+    double rng;
     for (axi=0; axi<nout->dim; axi++) {
       if (nrrdKindUnknown == kindOut || kindAxis != axi) {
+        /* its a domain axis of output */
         nrrdSpaceVecSetZero(nout->axis[axi].spaceDirection);
-        nout->axis[axi].spaceDirection[saxi]
-          = (nin->axis[axi].max - nin->axis[axi].min)/(nin->axis[axi].size-1);
-        nout->spaceOrigin[saxi] = nin->axis[axi].min;
+        rng = nin->axis[axi].max - nin->axis[axi].min;
+        if (nrrdCenterNode == nin->axis[axi].center) {
+          nout->spaceOrigin[saxi] = nin->axis[axi].min;
+          N = nin->axis[axi].size;
+          nout->axis[axi].spaceDirection[saxi] = rng/(N-1);
+        } else {
+          /* unknown centering treated as cell */
+          N = nin->axis[axi].size;
+          nout->spaceOrigin[saxi] = nin->axis[axi].min + (rng/N)/2;
+          nout->axis[axi].spaceDirection[saxi] = rng/N;
+        }
         saxi++;
       } else {
+        /* else its a range axis */
         nrrdSpaceVecSetNaN(nout->axis[axi].spaceDirection);
       }
     }
     nout->spaceDim = saxi;
   } else {
-    /* either trivialOrient, or not spaceDim, or not not haveMM */
+    /* either trivialOrient, or, not spaceDim and not haveMM */
     int saxi = 0;
     nout->space = nrrdSpaceUnknown;
     nrrdSpaceVecSetZero(nout->spaceOrigin);
     for (axi=0; axi<nout->dim; axi++) {
       if (nrrdKindUnknown == kindOut || kindAxis != axi) {
+        /* its a domain axis of output */
         nrrdSpaceVecSetZero(nout->axis[axi].spaceDirection);
         nout->axis[axi].spaceDirection[saxi]
           = (AIR_EXISTS(nin->axis[axi].spacing)
@@ -256,6 +279,7 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
              : sscl);
         saxi++;
       } else {
+        /* else its a range axis */
         nrrdSpaceVecSetNaN(nout->axis[axi].spaceDirection);
       }
     }
