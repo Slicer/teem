@@ -1,5 +1,6 @@
 
-FIND_PATH(LEVMAR_INCLUDE_DIR lm.h
+FIND_PATH(LEVMAR_INCLUDE_DIR levmar.h
+  /usr/local/include/levmar
   /usr/local/include
   /usr/include
 )
