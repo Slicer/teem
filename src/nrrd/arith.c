@@ -852,7 +852,7 @@ nrrdArithAffine(Nrrd *nout, double minIn,
   static const char me[]="nrrdArithAffine";
   size_t I, N;
   double (*ins)(void *v, size_t I, double d),
-    (*lup)(const void *v, size_t I);
+    (*lup)(const void *v, size_t I), mmin, mmax;
 
   if ( !nout || nrrdCheck(nin) ) {
     biffAddf(NRRD, "%s: got NULL pointer or invalid input", me);
@@ -867,12 +867,14 @@ nrrdArithAffine(Nrrd *nout, double minIn,
   N = nrrdElementNumber(nin);
   ins = nrrdDInsert[nout->type];
   lup = nrrdDLookup[nin->type];
+  mmin = AIR_MIN(minOut, maxOut);
+  mmax = AIR_MAX(minOut, maxOut);
   for (I=0; I<N; I++) {
     double val;
     val = lup(nin->data, I);
     val = AIR_AFFINE(minIn, val, maxIn, minOut, maxOut);
     if (clamp) {
-      val = AIR_CLAMP(minOut, val, maxOut);
+      val = AIR_CLAMP(mmin, val, mmax);
     }
     ins(nout->data, I, val);
   }
@@ -929,7 +931,9 @@ nrrdArithIterAffine(Nrrd *nout, NrrdIter *minIn,
     maxo = nrrdIterValue(maxOut);
     vout = AIR_AFFINE(mini, vin, maxi, mino, maxo);
     if (clamp) {
-      vout = AIR_CLAMP(mino, vout, maxo);
+      double mmin = AIR_MIN(mino, maxo);
+      double mmax = AIR_MAX(mino, maxo);
+      vout = AIR_CLAMP(mmin, vout, mmax);
     }
     ins(nout->data, I, vout);
   }
