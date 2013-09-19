@@ -115,7 +115,9 @@ unrrdu_affineMain(int argc, const char **argv, const char *me,
     valOut = AIR_AFFINE(minIn->val, in->val, maxIn->val,
                         minOut->val, maxOut->val);
     if (clamp) {
-      valOut = AIR_CLAMP(minOut->val, valOut, maxOut->val);
+      double mmin = AIR_MIN(minOut->val, maxOut->val);
+      double mmax = AIR_MAX(minOut->val, maxOut->val);
+      valOut = AIR_CLAMP(mmin, valOut, mmax);
     }
     printf("%g\n", valOut);
   } else {
