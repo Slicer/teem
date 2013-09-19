@@ -170,6 +170,10 @@ of having to set an environment variable to get it. Or maybe not: when
 this goes wrong (and unfortunately GLK can't find a good test case now)
 it is REALLY mysterious, and hard to debug.
 * unu dice -ff should change from using %d to %u
+* in unrrdu/make.c, reconsider the nrrdStateVerboseIO++ before, and the
+nrrdStateVerboseIO-- after, the calls to nrrdFormatNRRD->read.  You can
+set environment variable NRRD_STATE_VERBOSE_IO to 0 thinking this will turn
+things off, and yet its not off
 * unu resample:
 -- consider supporting more sophisticated expressions e.g. "x2" --> "x2+1"
 -- reconsider whether normalization should be turned on by default
