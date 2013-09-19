@@ -29,9 +29,11 @@ static const char *_unrrdu_dnormInfoL =
   (INFO
    ". Forces information about kind and orientation into "
    "a consistent form, and nixes various other fields. This was "
-   "created as a utility for the Diderot project "
-   "(http://diderot-language.cs.uchicago.edu), hence the name.\n "
-   "* (as yet there's no single nrrd function which does all this)");
+   "originally created as a utility for the Diderot project "
+   "(http://diderot-language.cs.uchicago.edu), hence the name, "
+   "but it has proven useful in other contexts (uses of gage) in which "
+   "it is important to have standardized orientation information.\n "
+   "* (there is currently no single nrrd function which does all this)");
 
 int
 unrrdu_dnormMain(int argc, const char **argv, const char *me,
@@ -63,10 +65,8 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
              "when having to contrive orientation information and there's "
              "no per-axis min/max to inform what the sample spacing is, "
              "this is the sample spacing to assert");
-  hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input image", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output filename", NULL);
+  OPT_ADD_NIN(nin, "input image");
+  OPT_ADD_NOUT(outS, "output filename");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
@@ -135,7 +135,8 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
     }
   } else {
     /* kindIn is nrrdKindUnknown, so its a simple scalar image,
-       and that's out the output kind will be too */
+       and that's what the output will be too; kindOut == nrrdKindUnknown
+       is used in the code below to say "its a scalar image" */
     kindOut = nrrdKindUnknown;
   }
 
@@ -167,7 +168,7 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
   if (gotmf) {
     fprintf(stderr, "%s: WARNING: incoming array measurement frame; "
             "it will be erased on output.\n", me);
-    airMopError(mop); exit(1);
+    /* airMopError(mop); exit(1); */
   }
   for (si=0; si<NRRD_SPACE_DIM_MAX; si++) {
     for (sj=0; sj<NRRD_SPACE_DIM_MAX; sj++) {
@@ -204,15 +205,15 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
   }
 
   /* logic of orientation definition:
-     if space dimension is known:
+     If space dimension is known:
         set origin to zero if not already set
         set space direction to unit vector if not already set
-     else if have per-axis min and max:
+     Else if have per-axis min and max:
         set spae origin and directions to communicate same intent
         as original per-axis min and max and original centering
-     else
-        set origin to zero and all space directions to units
-     might be nice to use gage's logic for mapping from world to index,
+     Else
+        set origin to zero and all space directions to units.
+     It might be nice to use gage's logic for mapping from world to index,
      but we have to accept a greater variety of kinds and dimensions
      than gage ever has to process.
   */
