@@ -88,7 +88,7 @@ parseOrDie(const char *str) {
   if (gageStackBlurParmCompare(sbp, "first", sbq, "second",
                                &differ, explain)) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
-    fprintf(stderr, "%s: failed to compare", me, err);
+    fprintf(stderr, "%s: failed to compare: %s", me, err);
     airMopError(mop); exit(1);
   }
   if (differ) {
