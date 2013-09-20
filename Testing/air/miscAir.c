@@ -30,10 +30,6 @@
 AIR_EXPORT FILE *airFopen(const char *name, FILE *std, const char *mode);
 AIR_EXPORT FILE *airFclose(FILE *file);
 AIR_EXPORT int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
-AIR_EXPORT unsigned int airIndex(double min, double val, double max,
-                                 unsigned int N);
-AIR_EXPORT unsigned int airIndexClamp(double min, double val, double max,
-                                      unsigned int N);
 AIR_EXPORT airULLong airIndexULL(double min, double val, double max,
                                  airULLong N);
 AIR_EXPORT airULLong airIndexClampULL(double min, double val, double max,
@@ -142,6 +138,38 @@ main(int argc, const char *argv[]) {
       fprintf(stdin, "%s: airStdin() returned %p not stdin %p\n", me,
               AIR_CAST(void *, fret), AIR_CAST(void *, stdin));
       exit(1);
+    }
+  }
+
+  /* airIndex, airIndexClamp */
+  {
+    /* admittedly this not much of a test; mainly it serves to
+       demonstrate how the intervals are divided for N=4 */
+    unsigned int N=4;
+    double min=0.0, max=1.0;
+    double val[]={0.000, 0.001, 0.249,
+                  0.251, 0.400, 0.499,
+                  0.501, 0.700, 0.749,
+                  0.751, 0.999, 1.000};
+    unsigned int wantIdx[]={0, 0, 0,
+                            1, 1, 1,
+                            2, 2, 2,
+                            3, 3, 3};
+    unsigned int vn, vi, ii, ci;
+    vn = sizeof(wantIdx)/sizeof(unsigned int);
+    for (vi=0; vi<vn; vi++) {
+      ii = airIndex(min, val[vi], max, N);
+      ci = airIndexClamp(min, val[vi], max, N);
+      if (ii != wantIdx[vi]) {
+        fprintf(stderr, "%s: %u = airIndex(%.17g, %.17g, %.17g, %u) "
+                "!= correct %u\n", me, ii, min, val[vi], max, N, wantIdx[vi]);
+        exit(1);
+      }
+      if (ci != wantIdx[vi]) {
+        fprintf(stderr, "%s: %u = airIndexClamp(%.17g, %.17g, %.17g, %u) "
+                "!= correct %u\n", me, ci, min, val[vi], max, N, wantIdx[vi]);
+        exit(1);
+      }
     }
   }
 
