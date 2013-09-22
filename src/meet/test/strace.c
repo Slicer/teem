@@ -224,7 +224,7 @@ findAndTraceMorePoints(Nrrd *nplot,
 
   if (pullTraceMultiPlotAdd(nplot, mtrc, NULL,
                             strengthUse, 0, 0)) {
-    biffAddf(PULL, "%s: trouble plotting", me);
+    biffAddf(PULL, "%s: trouble w/ PlotAdd (A)", me);
     airMopError(mop); return 1;
   }
 
@@ -521,7 +521,8 @@ main(int argc, const char **argv) {
              "scale is tau");
   hestOptAdd(&hopt, "rng", "seed", airTypeUInt, 1, 1,
              &rngSeed, "42",
-             "base seed value for RNGs");
+             "base seed value for RNGs (and as a hack, start index for "
+             "Halton-based sampling)");
   hestOptAdd(&hopt, "pbm", "mod", airTypeUInt, 1, 1,
              &progressBinMod, "50",
              "progress bin mod");
@@ -620,7 +621,7 @@ main(int argc, const char **argv) {
   }
 
   if (useHalton) {
-    E = pullInitHaltonSet(pctx, pointNumInitial, 0);
+    E = pullInitHaltonSet(pctx, pointNumInitial, rngSeed);
   } else if (nPosIn) {
     E = pullInitGivenPosSet(pctx, nPosIn);
   } else if (pointPerVoxel) {
@@ -663,6 +664,9 @@ main(int argc, const char **argv) {
        *JUST* so that we can read off the scale-space range
        associated with the constraint */
     pullFlagSet(pctx, pullFlagStartSkipsPoints, AIR_TRUE);
+  }
+  if (pctx->verbose) {
+    fprintf(stderr, "%s: about to pullStart\n", me);
   }
   if (pullStart(pctx)) {
     airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
@@ -728,12 +732,12 @@ main(int argc, const char **argv) {
     airMopError(mop); return 1;
   }
 
+  if (pullOutputGet(nPosOut, NULL, NULL, NULL, 0.0, pctx)) {
+    airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble 3.1:\n%s", me, err);
+    airMopError(mop); return 1;
+  }
   if (airStrlen(posOutS)) {
-    if (pullOutputGet(nPosOut, NULL, NULL, NULL, 0.0, pctx)) {
-      airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble 3.1:\n%s", me, err);
-      airMopError(mop); return 1;
-    }
     nrrdSave(posOutS, nPosOut, NULL);
   }
 
@@ -785,15 +789,19 @@ main(int argc, const char **argv) {
       }
     }
     printf("%s\n", airDoneStr(0, pidx, pnum, doneStr));
+    if (!mtrc->traceNum) {
+      fprintf(stderr, "%s: %u initial points led to zero traces\n", me, pnum);
+      airMopError(mop); return 1;
+    }
     if (pullTraceMultiPlotAdd(nprogA, mtrc, NULL,
                               strnUse, 0, 0)) {
       airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble ploting:\n%s", me, err);
+      fprintf(stderr, "%s: trouble PlotAdd'ing (B):\n%s", me, err);
       airMopError(mop); return 1;
     }
     resamplePlot(nlsplot, nprogA);
 
-    for (passIdx=0; (passNumMax ? passIdx<passNumMax : 1); passIdx++) {
+    for (passIdx=0; passIdx<passNumMax; passIdx++) {
       double dd;
       fprintf(stderr, "!%s: pass %u/%u ==================\n",
               me, passIdx, passNumMax);
@@ -982,7 +990,7 @@ main(int argc, const char **argv) {
         || pullTraceMultiPlotAdd(nplotB, mtrc, nfilt,
                                  strnUse, 0, 0)) {
       airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble plotting:\n%s", me, err);
+      fprintf(stderr, "%s: trouble PlotAdd'ing (C):\n%s", me, err);
       airMopError(mop); return 1;
     }
     {
