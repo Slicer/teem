@@ -254,6 +254,28 @@ pullTraceStop = &_pullTraceStop;
 /* --------------------------------------------------------- */
 
 const char *
+_pullInitMethodStr[] = {
+  "(unknown_init_method)",
+  "random",
+  "halton",
+  "ppv",
+  "given"
+};
+
+const airEnum
+_pullInitMethod = {
+  "init method",
+  PULL_INIT_METHOD_MAX,
+  _pullInitMethodStr,  NULL,
+  NULL, NULL, NULL,
+  AIR_FALSE
+};
+const airEnum *const
+pullInitMethod = &_pullInitMethod;
+
+/* --------------------------------------------------------- */
+
+const char *
 _pullCountStr[] = {
   "(unknown_countable)",
   "descent",
@@ -288,6 +310,8 @@ pullCount = &_pullCount;
 const char *
 _pullConstraintFailStr[PULL_CONSTRAINT_FAIL_MAX+1] = {
   "(unknown or no contraint fail)",
+  "needed Hessian 0 (A)",
+  "needed Hessian 0 (B)",
   "projected gradient 0 (A)",
   "projected gradient 0 (B)",
   "iter max exceeded",

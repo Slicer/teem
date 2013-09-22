@@ -521,6 +521,7 @@ enum {
   pullInitMethodGivenPos,      /* 4 */
   pullInitMethodLast
 };
+#define PULL_INIT_METHOD_MAX      4
 
 /*
 ******** pullInitParm
@@ -729,13 +730,15 @@ typedef struct {
 */
 enum {
   pullConstraintFailUnknown,        /* 0 */
-  pullConstraintFailProjGradZeroA,  /* 1 */
-  pullConstraintFailProjGradZeroB,  /* 2 */
-  pullConstraintFailIterMaxed,      /* 3 */
-  pullConstraintFailTravel,         /* 4 */
+  pullConstraintFailHessZeroA,      /* 1 */
+  pullConstraintFailHessZeroB,      /* 2 */
+  pullConstraintFailProjGradZeroA,  /* 3 */
+  pullConstraintFailProjGradZeroB,  /* 4 */
+  pullConstraintFailIterMaxed,      /* 5 */
+  pullConstraintFailTravel,         /* 6 */
   pullConstraintFailLast
 };
-#define PULL_CONSTRAINT_FAIL_MAX       4
+#define PULL_CONSTRAINT_FAIL_MAX       6
 
 /*
 ******** pullFlag* enum
@@ -1107,6 +1110,7 @@ PULL_EXPORT const airEnum *const pullSource;
 PULL_EXPORT const airEnum *const pullProp;
 PULL_EXPORT const airEnum *const pullProcessMode;
 PULL_EXPORT const airEnum *const pullTraceStop;
+PULL_EXPORT const airEnum *const pullInitMethod;
 PULL_EXPORT const airEnum *const pullCount;
 PULL_EXPORT const airEnum *const pullConstraintFail;
 

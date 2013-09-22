@@ -441,8 +441,12 @@ constraintSatHght(pullTask *task, pullPoint *point,
     /* HEY: no opportunistic increase of hack? */
     if (havePos || haveNada) {
       POSNORM(d1, d2, pdir, plen, pgrad, grad, hess, posproj);
+      if (!ELL_3M_FROB(hess)) {
+        *constrFailP = pullConstraintFailHessZeroA;
+        return 0;
+      }
       if (!plen) {
-        if (zeroGmagOkay && ELL_3M_FROB(hess)) {
+        if (zeroGmagOkay) {
           /* getting to actual zero gradient is possible when looking for
              point extrema (or saddles), and its not a problem, so as a
              lousy hack we set step=0 and skip to the convergence test */
@@ -485,6 +489,13 @@ constraintSatHght(pullTask *task, pullPoint *point,
                 hack, step, pdir[0], pdir[1], pdir[2]);
       }
       ELL_3V_SCALE_INCR(point->pos, hack*step, pdir);
+      if (!ELL_4V_EXISTS(point->pos)) {
+        biffAddf(PULL, "%s: pos proj iter %u: pnt %u bad pos (%g,%g,%g,%g); "
+                 "hack %g, step %g",
+                 me, iter, point->idtag, point->pos[0], point->pos[1],
+                 point->pos[2], point->pos[3], hack, step);
+        return 1;
+      }
       __IF_DEBUG {
         ELL_3V_SUB(_tmpv, _tmpv, point->pos);
         fprintf(stderr, "       -> moved to %g %g %g %g\n",
@@ -526,8 +537,12 @@ constraintSatHght(pullTask *task, pullPoint *point,
     if (haveNeg) {
       /* HEY: copy and paste from above, minus fluff, and with A->B */
       NEGNORM(d1, d2, pdir, plen, pgrad, grad, hess, negproj);
-      if (!plen && !haveNeg) {
-        if (zeroGmagOkay && ELL_3M_FROB(hess)) {
+      if (!ELL_3M_FROB(hess)) {
+        *constrFailP = pullConstraintFailHessZeroB;
+        return 0;
+      }
+      if (!plen) {
+        if (zeroGmagOkay) {
           step = 0;
           goto convtestB;
         }
@@ -563,6 +578,13 @@ constraintSatHght(pullTask *task, pullPoint *point,
                 hack, step, pdir[0], pdir[1], pdir[2]);
       }
       ELL_3V_SCALE_INCR(point->pos, hack*step, pdir);
+      if (!ELL_4V_EXISTS(point->pos)) {
+        biffAddf(PULL, "%s: neg proj iter %u: pnt %u bad pos (%g,%g,%g,%g); "
+                 "hack %g, step %g",
+                 me, iter, point->idtag, point->pos[0], point->pos[1],
+                 point->pos[2], point->pos[3], hack, step);
+        return 1;
+      }
       __IF_DEBUG {
         ELL_3V_SUB(_tmpv, _tmpv, point->pos);
         fprintf(stderr, "       -> moved to %g %g %g %g\n",

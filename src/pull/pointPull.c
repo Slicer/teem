@@ -398,7 +398,7 @@ pullProbe(pullTask *task, pullPoint *point) {
     fprintf(stderr, "%s: pnt %u non-exist pos (%g,%g,%g,%g)\n\n!!!\n\n\n",
             me, point->idtag, point->pos[0], point->pos[1],
             point->pos[2], point->pos[3]);
-    biffAddf(PULL, "%s: pnt %u non-exist pos (%g,%g,%g,%g)\n\n!!!\n\n\n",
+    biffAddf(PULL, "%s: pnt %u non-exist pos (%g,%g,%g,%g)",
              me, point->idtag, point->pos[0], point->pos[1],
              point->pos[2], point->pos[3]);
     return 1;
@@ -1068,7 +1068,8 @@ _pullPointSetup(pullContext *pctx) {
      pctx->radiusScale) to start with */
 
   if (pctx->verbose) {
-    printf("%s: beginning . . . ", me);
+    printf("%s: beginning (%s). . . ", me,
+           airEnumStr(pullInitMethod, pctx->initParm.method));
     fflush(stdout);
   }
   mop = airMopNew();
@@ -1152,7 +1153,7 @@ _pullPointSetup(pullContext *pctx) {
     break;
   }
   if (pctx->verbose) {
-    printf("%s: initializing/seeding . . .       ", me);
+    printf("%s: initializing/seeding %u pts. . .       ", me, totalNumPoints);
     fflush(stdout);
   }
 
