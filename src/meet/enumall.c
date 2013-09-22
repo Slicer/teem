@@ -167,6 +167,7 @@ meetAirEnumAll() {
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullProp;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullProcessMode;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullTraceStop;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = pullInitMethod;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullCount;
   ii = airArrayLenIncr(arr, 1); enm[ii] = pullConstraintFail;
 
