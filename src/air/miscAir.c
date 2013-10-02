@@ -34,6 +34,7 @@
 
 /*
 ******** airTeemVersion
+******** airTeemReleaseDone
 ******** airTeemReleaseDate
 **
 ** updated with each release to contain a string representation of
@@ -42,8 +43,10 @@
 */
 const char *
 airTeemVersion = TEEM_VERSION_STRING;
+const int
+airTeemReleaseDone = AIR_FALSE;
 const char *
-airTeemReleaseDate = "8 August 2013";
+airTeemReleaseDate = "Late 2013";
 
 double
 _airSanityHelper(double val) {

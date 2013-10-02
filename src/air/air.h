@@ -559,6 +559,7 @@ AIR_EXPORT int airSanity(void);
 
 /* miscAir.c */
 AIR_EXPORT const char *airTeemVersion;
+AIR_EXPORT const int airTeemReleaseDone;
 AIR_EXPORT const char *airTeemReleaseDate;
 AIR_EXPORT void *airNull(void);
 AIR_EXPORT void *airSetNull(void **ptrP);
