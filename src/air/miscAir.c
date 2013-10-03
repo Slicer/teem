@@ -48,6 +48,21 @@ airTeemReleaseDone = AIR_FALSE;
 const char *
 airTeemReleaseDate = "Late 2013";
 
+/*
+******** airTeemVersionSprint
+**
+** uniform way of printing information about the Teem version
+*/
+void
+airTeemVersionSprint(char buff[AIR_STRLEN_LARGE]) {
+  sprintf(buff, "Teem version %s, %s%s%s",
+          airTeemVersion,
+          airTeemReleaseDone ? "released on " : "",
+          airTeemReleaseDate,
+          airTeemReleaseDone ? "" : " (not yet released)");
+  return;
+}
+
 double
 _airSanityHelper(double val) {
   return val*val*val;

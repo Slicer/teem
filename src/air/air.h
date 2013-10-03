@@ -561,6 +561,7 @@ AIR_EXPORT int airSanity(void);
 AIR_EXPORT const char *airTeemVersion;
 AIR_EXPORT const int airTeemReleaseDone;
 AIR_EXPORT const char *airTeemReleaseDate;
+AIR_EXPORT void airTeemVersionSprint(char buff[AIR_STRLEN_LARGE]);
 AIR_EXPORT void *airNull(void);
 AIR_EXPORT void *airSetNull(void **ptrP);
 AIR_EXPORT void *airFree(void *ptr);
