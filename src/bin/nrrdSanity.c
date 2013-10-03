@@ -33,8 +33,9 @@ main(int argc, char *argv[]) {
   me = argv[0];
   if (2 == argc) {
     if (!strcmp(argv[1], "--version")) {
-      printf("Teem version %s (%s)\n",
-             airTeemVersion, airTeemReleaseDate);
+      char vbuff[AIR_STRLEN_LARGE];
+      airTeemVersionSprint(vbuff);
+      printf("%s\n", vbuff);
       exit(0);
     } else if (!strcmp(argv[1], "--help")) {
       char par1[] = "\n Usage: nrrdSanity\n ";

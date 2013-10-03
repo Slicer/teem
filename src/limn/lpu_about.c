@@ -28,7 +28,7 @@
 int
 limnpu_aboutMain(int argc, const char **argv, const char *me,
                  hestParm *hparm) {
-  char buff[AIR_STRLEN_MED], fmt[AIR_STRLEN_MED];
+  char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_MED];
   char par1[] = "\t\t\t\t"
     "\"lpu\" is a complete hack.\n";
   char par2[] = "\t\t\t\t"
@@ -43,8 +43,7 @@ limnpu_aboutMain(int argc, const char **argv, const char *me,
   sprintf(fmt, "%%%ds\n",
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
-  sprintf(buff, "(Teem version %s, %s)",
-          airTeemVersion, airTeemReleaseDate);
+  airTeemVersionSprint(buff);
   sprintf(fmt, "%%%ds\n",
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);

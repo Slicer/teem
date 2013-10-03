@@ -1367,8 +1367,9 @@ hestParseOrDie(hestOpt *opt, int argc, const char **argv,
       if (E) {
         if (argv[0] && !strcmp(argv[0], "--version")) {
           /* print version info and bail */
-          printf("Teem version %s (%s)\n",
-                 airTeemVersion, airTeemReleaseDate);
+          char vbuff[AIR_STRLEN_LARGE];
+          airTeemVersionSprint(vbuff);
+          printf("%s\n", vbuff);
           hestParmFree(parm);
           hestOptFree(opt);
           exit(0);

@@ -64,8 +64,9 @@ main(int argc, const char **argv) {
   }
   /* else, we see if its --version */
   if (!strcmp("--version", argv[1])) {
-    printf("Teem version %s (%s)\n",
-           airTeemVersion, airTeemReleaseDate);
+    char vbuff[AIR_STRLEN_LARGE];
+    airTeemVersionSprint(vbuff);
+    printf("%s\n", vbuff);
     exit(0);
   }
   /* else, we should see if they're asking for a command we know about */

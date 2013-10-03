@@ -101,11 +101,7 @@ unrrdu_aboutMain(int argc, const char **argv, const char *me,
   sprintf(fmt, "%%%ds\n",
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stdout, fmt, buff);
-  sprintf(buff, "(Teem version %s, %s%s%s)",
-          airTeemVersion,
-          airTeemReleaseDone ? "released on " : "",
-          airTeemReleaseDate,
-          airTeemReleaseDone ? "" : " (not yet released)");
+  airTeemVersionSprint(buff);
   sprintf(fmt, "%%%ds\n",
           (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stdout, fmt, buff);
