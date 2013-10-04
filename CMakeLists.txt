@@ -42,7 +42,7 @@ PROJECT(Teem)
 # Teem version number.  Must reflect the values in teem/src/air/air.h
 SET(Teem_VERSION_MAJOR "1")
 SET(Teem_VERSION_MINOR "11")
-SET(Teem_VERSION_PATCH "0")
+SET(Teem_VERSION_PATCH "1")
 
 # Version string should not include patch level.  The major.minor is
 # enough to distinguish available features of the toolkit.
