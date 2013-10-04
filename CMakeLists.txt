@@ -25,7 +25,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
 
 # Cmake shouldn't define WIN32 when compiling
-set(CMAKE_LEGACY_CYGWIN_WIN32 0) 
+set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 # As of CMake 2.6 Policies were introduced in order to provide a mechanism for
 # adding backwards compatibility one feature at a time.
@@ -73,7 +73,7 @@ FILE(MAKE_DIRECTORY ${Teem_BINARY_DIR}/include)
 FILE(MAKE_DIRECTORY ${Teem_BINARY_DIR}/include/teem)
 
 #-----------------------------------------------------------------------------
-# Find platform-specific differences in the handling of IEEE floating point 
+# Find platform-specific differences in the handling of IEEE floating point
 # special values.
 
 INCLUDE(${Teem_SOURCE_DIR}/CMake/TestQnanhibit.cmake)
@@ -242,7 +242,7 @@ ADD_DEFINITIONS(-DTEEM_DIO=0)
 SET(BUILD_EXPERIMENTAL_LIBS OFF CACHE BOOL "Build Teem's experimental libraries")
 SET(BUILD_EXPERIMENTAL_APPS OFF CACHE BOOL "Build Teem's non-essential command-line tools")
 
-# If its a Dashboard build; turn ON both 
+# If its a Dashboard build; turn ON both
 # BUILD_EXPERIMENTAL_APPS and BUILD_EXPERIMENTAL_LIBS
 # (h/t David Cole)
 IF(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "")
@@ -257,7 +257,7 @@ IF(BUILD_EXPERIMENTAL_LIBS)
   # This list of the "experimental" libraries must be kept in sync with:
   # * definition of Teem_HEADER_FILES (below)
   # * teem/src/meet/meet.h
-  # * teem/src/meet/enumsall.c 
+  # * teem/src/meet/enumsall.c
   # re-setting list so libraries appear in expected order
   SET(Teem_LIBRARIES air hest biff nrrd ell unrrdu alan moss tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet)
   ADD_DEFINITIONS(-DTEEM_BUILD_EXPERIMENTAL_LIBS)
@@ -309,7 +309,7 @@ FOREACH(header_file ${Teem_HEADER_FILES})
 ENDFOREACH(header_file)
 
 #---
-# Include directory 
+# Include directory
 INCLUDE_DIRECTORIES(
   "${Teem_BINARY_DIR}/include/"
   "${Teem_SOURCE_DIR}/include/"
@@ -417,7 +417,7 @@ INSTALL(TARGETS teem
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib${EXTRA_INSTALL_PATH}
   ARCHIVE DESTINATION lib${EXTRA_INSTALL_PATH}
-  ) 
+  )
 
 # Stand-alone programs to process hex encoding of data
 OPTION(BUILD_HEX "Build dehex and enhex" OFF)
@@ -466,7 +466,7 @@ SET(Teem_EXECUTABLE_DIRS ${EXECUTABLE_OUTPUT_PATH} CACHE INTERNAL "Single output
 
 # In the build tree, TeemConfig.cmake is in Teem_BINARY_DIR. The root of the
 # tree for finding include files relative to TeemConfig.cmake is "."
-# 
+#
 SET(Teem_CV_CONFIG_TO_ROOT ".")
 SET(Teem_CV_LIBRARY_DEPENDS_FILE ${Teem_BINARY_DIR}/TeemLibraryDepends.cmake)
 SET(Teem_CV_EXECUTABLE_DIRS ${Teem_EXECUTABLE_DIRS})
@@ -485,7 +485,7 @@ CONFIGURE_FILE("${Teem_SOURCE_DIR}/CMake/TeemConfig.cmake.in"
 # In the install tree, TeemConfig.cmake is in lib or lib/Teem-X.Y based on the
 # value of Teem_USE_LIB_INSTALL_SUBDIR. The root of the tree for finding
 # include files relative to TeemConfig.cmake is therefore ".." or "../.."
-# 
+#
 IF(Teem_USE_LIB_INSTALL_SUBDIR)
   SET(Teem_CV_CONFIG_TO_ROOT "../..")
 ELSE(Teem_USE_LIB_INSTALL_SUBDIR)
