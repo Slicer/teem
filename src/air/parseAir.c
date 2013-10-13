@@ -109,7 +109,9 @@ airSingleSscanf(const char *str, const char *fmt, void *ptr) {
     }
     else {
       /* nothing special matched; pass it off to sscanf() */
+      /* (save setlocale here) */
       ret = sscanf(str, fmt, ptr);
+      /* (return setlocale here) */
       free(tmp);
       return ret;
     }
