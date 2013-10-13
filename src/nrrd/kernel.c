@@ -3008,7 +3008,7 @@ nrrdKernelParse(const NrrdKernel **kernelP,
       airMopAdd(mop, tmfStr[2], airFree, airMopAlways);
       airMopAdd(mop, tmfStr[3], airFree, airMopAlways);
       /* a TMF with a parameter: D,C,A,a */
-      if (1 != sscanf(tmfStr[3], "%lg", parm)) {
+      if (1 != airSingleSscanf(tmfStr[3], "%lg", parm)) {
         biffAddf(NRRD, "%s: couldn't parse TMF parameter \"%s\" as double",
                  me, tmfStr[3]);
         airMopError(mop); return 1;
@@ -3090,7 +3090,7 @@ nrrdKernelParse(const NrrdKernel **kernelP,
     for (haveParm=0; haveParm<(*kernelP)->numParm; haveParm++) {
       if (!pstr)
         break;
-      if (1 != sscanf(pstr, "%lg", parm+haveParm)) {
+      if (1 != airSingleSscanf(pstr, "%lg", parm+haveParm)) {
         biffAddf(NRRD, "%s: trouble parsing \"%s\" as double (in \"%s\")",
                  me, _pstr, _str);
         airMopError(mop); return 1;
