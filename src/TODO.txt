@@ -36,7 +36,17 @@ all:
   What else would benefit from such a Compare() or Equal() function?
 
 air:
+* find and use a good sscanf/printf replacement. Current annoyances:
+  - not being able to ask, "will sprintf'ingt this take up more than
+  this pre-allocated buffer", and "allocate this for as big as you need
+  to sprintf this".
+  - using airSingleScanf and airSinglePrintf for correctly handling
+  "inf", "-inf", "nan", and now "pi" on parsing.  And this will be a
+  place to handle setlocale weirness.  However, the "Single"
+  restriction is too cumbersome.
 * consider nixing AIR_ENDIAN, AIR_QNANHIBIT, and AIR_DIO
+* Hey, what does airSinglePrintf do with the common "%.17g" for a double?
+  It seems to not have the smarts to see that it is fact for a double.
 * airArray->len should probably be size_t, not unsigned int. Along with
 this is biffMsgErrNum and nrrdKeyValueSize.
 * consider changing airIndexULL and airIndexClampULL to work with
@@ -111,6 +121,7 @@ nrrd:
    assumption by the resampling code that all kernels use parm[0] was a big
    longstanding bug; "bspln3" doesn't work that way
  - consider nixing nrrdDefaultKernelParm0, nrrdEnvVarDefaultKernelParm0
+ - consider nixing nrrdDefaultSpacing and nrrdEnvVarDefaultSpacing
  - "when parsing from string, parm[0] is needed" vs "parm[0] defaults to 1.0"
    OR, maybe simplify things by saying that all parameters are always needed
  - add method for answering "do I interpolate?"
@@ -128,8 +139,7 @@ nrrd:
    Is this something else that NrrdFormat should represent?
 * should re-evaluate the need for all the nrrdDefault and nrrdState
   global variables, especially nrrdStateGrayscaleImage3D,
-  nrrdEnvVarStateGrayscaleImage3D,
-  nrrdDefaultSpacing, nrrdEnvVarDefaultSpacing, which seem antiquated
+  nrrdEnvVarStateGrayscaleImage3D, which seem antiquated
 * the percentile-based bounds specification now supported in e.g
   "unu histo", "unu quantize", and "unu jhisto" should be migrated down
   to the nrrd library.  Consider doing this with a sorting of highest/lowest
