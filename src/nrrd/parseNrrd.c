@@ -204,7 +204,7 @@ _nrrdReadNrrdParse_type(FILE *file, Nrrd *nrrd,
 }
 
 #define _PARSE_ONE_VAL(FIELD, CONV, TYPE)                         \
-  if (1 != airSingleScanf(info, CONV, &(FIELD))) {                \
+  if (1 != airSingleSscanf(info, CONV, &(FIELD))) {               \
     biffMaybeAddf(useBiff, NRRD, "%s: couldn't parse " TYPE       \
                   " from \"%s\"", me, info);                      \
     return 1;                                                     \
