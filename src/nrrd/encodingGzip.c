@@ -34,6 +34,7 @@ _nrrdEncodingGzip_available(void) {
 #endif
 }
 
+#if TEEM_ZLIB
 /*
 ** Maximum size that allow zlib to try to read or write at once.
 ** The real limit is UINT_MAX, but a smaller value here permits
@@ -41,6 +42,7 @@ _nrrdEncodingGzip_available(void) {
 */
 static unsigned int
 _nrrdZlibMaxChunk = UINT_MAX;
+#endif
 
 /*
 ** nio->byteSkip < 0 functionality contributed by Katharina Quintus
