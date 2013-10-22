@@ -90,7 +90,6 @@ ENDIF(QNANHIBIT_VALUE)
 try_run(AIR_EXISTS_MACRO_FAILS AIR_EXISTS_MACRO_COMPILE
   ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/CMake/testAirExists.cxx
 )
-message("AIR_EXISTS_MACRO_FAILS=${AIR_EXISTS_MACRO_FAILS} AIR_EXISTS_MACRO_COMPILE=${AIR_EXISTS_MACRO_COMPILE}")
 
 #-----------------------------------------------------------------------------
 # Teem build configuration options.
