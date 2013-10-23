@@ -44,7 +44,7 @@ if [[ ! (-d "$TEEM_SRC" &&
   echo "  TEEM_SVN_BUILD=$TEEM_SVN_BUILD"
   echo "  TEEM_SVN_INSTALL=$TEEM_SVN_INSTALL"
   echo "Sorry for the inconvenience.  This script is used mainly by GLK"
-  echo "to periodicaly refresh teem.py, especially prior to releases,"
+  echo "to periodically refresh teem.py, especially prior to releases,"
   echo "and it isn't more generally useful (yet)."
   exit 1
 fi
