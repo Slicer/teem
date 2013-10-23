@@ -73,7 +73,8 @@ main(int argc, const char *argv[]) {
 
   /* airSetNull */
   {
-    ptr = AIR_CAST(void *, airNull);
+    char tmp[10];
+    ptr = AIR_CAST(void *, tmp);
     if (NULL == ptr) {
       fprintf(stderr, "%s: couldn't set a non-NULL pointer", me);
       exit(1);
