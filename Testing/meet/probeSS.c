@@ -893,9 +893,7 @@ main(int argc, const char **argv) {
   hestParm *hparm;
   airArray *mop;
 
-  const gageKind *kind[KIND_NUM] = {
-    /*    0            1           2         3          */
-    gageKindScl, gageKindVec, tenGageKind, NULL /* dwi */};
+  const gageKind *kind[KIND_NUM];
   char name[KIND_NUM][AIR_STRLEN_SMALL] = { "scl", "vec", "ten", "dwi" };
   char nameComp[KIND_NUM][AIR_STRLEN_SMALL] = { "sclComp", "vecComp", "tenComp", "dwiComp" };
   char *kernS;
@@ -913,6 +911,11 @@ main(int argc, const char **argv) {
     gradNum = 10; /* small number so that missing one will produce
                      a big reconstruction error */
   NrrdKernel *kpack[3];
+
+  kind[0] = gageKindScl;
+  kind[1] = gageKindVec;
+  kind[2] = tenGageKind;
+  kind[3] = NULL; /* dwi */
 
   me = argv[0];
   mop = airMopNew();
