@@ -40,39 +40,16 @@ main(int argc, const char **argv) {
   airArray *mop;
   char *fullname;
   gageContext *igctx[INTERP_KERN_NUM], *bgctx[BLUR_KERN_NUM];
-  const NrrdKernel *ikern[INTERP_KERN_NUM] = {
-    nrrdKernelBox,
-    nrrdKernelTent,
-    nrrdKernelBCCubic,
-    nrrdKernelCatmullRom,
-  };
+  const NrrdKernel *ikern[INTERP_KERN_NUM];
   double ikparm[INTERP_KERN_NUM][NRRD_KERNEL_PARMS_NUM] = {
     {1.0},
     {1.0},
     {1.0, 0.0, 0.5},
     {AIR_NAN},
   };
-  const NrrdKernel *bkern[BLUR_KERN_NUM] = {
-    nrrdKernelTent,
-    nrrdKernelBSpline3,
-    nrrdKernelBSpline5,
-    nrrdKernelBCCubic,
-    nrrdKernelGaussian,
-  };
-  const NrrdKernel *bkernD[BLUR_KERN_NUM] = {
-    nrrdKernelForwDiff,
-    nrrdKernelBSpline3D,
-    nrrdKernelBSpline5D,
-    nrrdKernelBCCubicD,
-    nrrdKernelGaussianD,
-  };
-  const NrrdKernel *bkernDD[BLUR_KERN_NUM] = {
-    nrrdKernelZero,
-    nrrdKernelBSpline3DD,
-    nrrdKernelBSpline5DD,
-    nrrdKernelBCCubicDD,
-    nrrdKernelGaussianDD,
-  };
+  const NrrdKernel *bkern[BLUR_KERN_NUM];
+  const NrrdKernel *bkernD[BLUR_KERN_NUM];
+  const NrrdKernel *bkernDD[BLUR_KERN_NUM];
   double bkparm[BLUR_KERN_NUM][NRRD_KERNEL_PARMS_NUM] = {
     {1.0},
     {AIR_NAN},
@@ -84,6 +61,27 @@ main(int argc, const char **argv) {
     *bgrdAns[BLUR_KERN_NUM], *bhesAns[BLUR_KERN_NUM];
   int E;
   unsigned int sx, sy, sz, ki;
+
+  /* C89 doesn't allow setting these in array declaration */
+  ikern[0] = nrrdKernelBox;
+  ikern[1] = nrrdKernelTent;
+  ikern[2] = nrrdKernelBCCubic;
+  ikern[3] = nrrdKernelCatmullRom;
+  bkern[0] = nrrdKernelTent;
+  bkern[1] = nrrdKernelBSpline3;
+  bkern[2] = nrrdKernelBSpline5;
+  bkern[3] = nrrdKernelBCCubic;
+  bkern[4] = nrrdKernelGaussian;
+  bkernD[0] = nrrdKernelForwDiff;
+  bkernD[1] = nrrdKernelBSpline3D;
+  bkernD[2] = nrrdKernelBSpline5D;
+  bkernD[3] = nrrdKernelBCCubicD;
+  bkernD[4] = nrrdKernelGaussianD;
+  bkernDD[0] = nrrdKernelZero;
+  bkernDD[1] = nrrdKernelBSpline3DD;
+  bkernDD[2] = nrrdKernelBSpline5DD;
+  bkernDD[3] = nrrdKernelBCCubicDD;
+  bkernDD[4] = nrrdKernelGaussianDD;
 
   AIR_UNUSED(argc);
   me = argv[0];
