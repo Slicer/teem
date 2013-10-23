@@ -62,13 +62,14 @@ main(int argc, const char *argv[]) {
   biffAdd("bingo", "the third error bingo");
   biffAdd("axis", "the third error axis");
   {
-    char good[] = ("[bingo] the third error bingo\n"
-                   "[bingo] the second bll boo boo boo error bingo\n"
-                   "[bingo] the first error bingo\n"
-                   "[bingo] [chard] the third error chard\n"
-                   "[bingo] [chard] the second error chard\n"
-                   "[bingo] [chard] the first error chard\n"
-                   "[bingo] zero-eth bingo message\n");
+    char good[] =
+      "[bingo] the third error bingo\n"
+      "[bingo] the second bll boo boo boo error bingo\n"
+      "[bingo] the first error bingo\n"
+      "[bingo] [chard] the third error chard\n"
+      "[bingo] [chard] the second error chard\n"
+      "[bingo] [chard] the first error chard\n"
+      "[bingo] zero-eth bingo message\n";
     tmp = biffGet("bingo");
     airMopAdd(mop, tmp, airFree, airMopAlways);
 
@@ -91,9 +92,10 @@ main(int argc, const char *argv[]) {
   }
 
   {
-    char good[] = ("[axis] the third error axis\n"
-                   "[axis] the second error axis\n"
-                   "[axis] the first error axis\n");
+    char good[] =
+      "[axis] the third error axis\n"
+      "[axis] the second error axis\n"
+      "[axis] the first error axis\n";
     tmp = biffGet("axis");
     COMPARE(3);
   }
@@ -102,9 +104,10 @@ main(int argc, const char *argv[]) {
   biffAdd("harold", "the second error harold");
   biffAdd("harold", "the third error harold");
   {
-    char good[] = ("[harold] the third error harold\n"
-                   "[harold] the second error harold\n"
-                   "[harold] the first error harold\n");
+    char good[] =
+      "[harold] the third error harold\n"
+      "[harold] the second error harold\n"
+      "[harold] the first error harold\n";
     tmp = biffGetDone("harold");
     COMPARE(4);
   }
@@ -119,11 +122,12 @@ main(int argc, const char *argv[]) {
   biffAdd("axis", "the fourth error axis");
   biffAdd("axis", "the fifth error axis");
   {
-    char good[] = ("[axis] the fifth error axis\n"
-                   "[axis] the fourth error axis\n"
-                   "[axis] the third error axis\n"
-                   "[axis] the second error axis\n"
-                   "[axis] the first error axis\n");
+    char good[] =
+      "[axis] the fifth error axis\n"
+      "[axis] the fourth error axis\n"
+      "[axis] the third error axis\n"
+      "[axis] the second error axis\n"
+      "[axis] the first error axis\n";
     tmp = biffGetDone("axis");
     COMPARE(5);
   }
@@ -138,8 +142,9 @@ main(int argc, const char *argv[]) {
   biffAddf("test2", "%s: this is a test of biffAddf %d %g", "me", 1, 4.2);
   biffMovef("test3", "test2", "%s: testing biffMove %d.", "me", 1729);
   {
-    char good[] = ("[test3] me: testing biffMove 1729.\n"
-                   "[test3] [test2] me: this is a test of biffAddf 1 4.2\n");
+    char good[] =
+      "[test3] me: testing biffMove 1729.\n"
+      "[test3] [test2] me: this is a test of biffAddf 1 4.2\n";
     tmp = biffGet("test3");
     COMPARE(7);
   }
