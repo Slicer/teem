@@ -1247,12 +1247,11 @@ gageOptimSigErrorPlot(gageOptimSigContext *oscx, Nrrd *nout,
   }
   fprintf(stderr, "%s: plotting ...       ", me); fflush(stderr);
   for (ii=0; ii<oscx->trueImgNum; ii++) {
-    double rho, sig, err;
+    double rho, err;
     fprintf(stderr, "%s", airDoneStr(0, ii, oscx->trueImgNum, doneStr));
     fflush(stderr);
     rho = AIR_AFFINE(0, ii, oscx->trueImgNum-1,
                      oscx->rhoRange[0], oscx->rhoRange[1]);
-    sig = _SigOfRho(rho);
     out[0 + 2*ii] = rho;
     /* debugii = ii; */
     if (_errSingle(&err, oscx, rho)) {
