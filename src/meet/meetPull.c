@@ -149,6 +149,7 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
     airMopError(mop); return 1;
   }
   if (wantSS) {
+    int extraFlag[256]; char *extraParm=NULL, *ptok, *plast;
     unsigned int efi, cti;
     char *sbps;
     /* the hack to make the ":" inside a blurring kernel specification or
@@ -166,7 +167,6 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
     }
     mpv->sbp = gageStackBlurParmNix(mpv->sbp);
     mpv->sbp = gageStackBlurParmNew();
-    int extraFlag[256]; char *extraParm=NULL, *ptok, *plast;
     if (gageStackBlurParmParse(mpv->sbp, extraFlag, &extraParm, sbps)) {
       biffMovef(MEET, GAGE, "%s: problem parsing sbp from \"%s\"", me, sbps);
       airMopError(mop); return 1;
