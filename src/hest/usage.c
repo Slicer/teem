@@ -185,7 +185,7 @@ hestMinNumArgs(hestOpt *opt) {
 
   parm = hestParmNew();
   if (_hestPanic(opt, NULL, parm)) {
-    parm = hestParmFree(parm);
+    hestParmFree(parm);
     return _hestMax(-1);
   }
   count = 0;
@@ -198,7 +198,7 @@ hestMinNumArgs(hestOpt *opt) {
       }
     }
   }
-  parm = hestParmFree(parm);
+  hestParmFree(parm);
   return count;
 }
 
@@ -231,7 +231,9 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0, hestParm *_parm) {
 
   if (_hestPanic(opt, NULL, parm)) {
     /* we can't continue; the opt array is botched */
-    parm = !_parm ? hestParmFree(parm) : NULL;
+    if (!_parm) {
+      hestParmFree(parm);
+    }
     return;
   }
 
@@ -254,8 +256,9 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0, hestParm *_parm) {
 
   _hestPrintStr(f, AIR_UINT(strlen("Usage: ")), 0,
                 parm->columns, buff, AIR_TRUE);
-
-  parm = !_parm ? hestParmFree(parm) : NULL;
+  if (!_parm) {
+    hestParmFree(parm);
+  }
   return;
 }
 
@@ -269,7 +272,9 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
 
   if (_hestPanic(opt, NULL, parm)) {
     /* we can't continue; the opt array is botched */
-    parm = !_parm ? hestParmFree(parm) : NULL;
+    if (!_parm) {
+      hestParmFree(parm);
+    }
     return;
   }
 
@@ -414,7 +419,9 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     }
     _hestPrintStr(f, maxlen + 3, maxlen + 3, parm->columns, buff, AIR_FALSE);
   }
-  parm = !_parm ? hestParmFree(parm) : NULL;
+  if (!_parm) {
+    hestParmFree(parm);
+  }
 
   return;
 }
