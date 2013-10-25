@@ -216,7 +216,9 @@ hestInfo(FILE *file, const char *argv0, const char *info, hestParm *_parm) {
       fprintf(file, "ERROR: hestInfo got NULL argv0\n");
     }
   }
-  parm = !_parm ? hestParmFree(parm) : NULL;
+  if (!_parm) {
+    hestParmFree(parm);
+  }
 }
 
 void

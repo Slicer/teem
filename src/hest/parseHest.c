@@ -660,7 +660,7 @@ _hestDefaults(char **prms, int *udflt, unsigned int *nprm, int *appr,
       airOneLinify(prms[op]);
       tmpS = airStrdup(prms[op]);
       nprm[op] = airStrntok(tmpS, " ");
-      tmpS = (char *)airFree(tmpS);
+      airFree(tmpS);
       /* printf("!%s: nprm[%d] in default = %u\n", me, op, nprm[op]); */
       if ((int)opt[op].min < _hestMax(opt[op].max)) { /* HEY scrutinize casts */
         if (!( AIR_IN_CL((int)opt[op].min, (int)nprm[op], _hestMax(opt[op].max)) /* HEY scrutinize casts */
