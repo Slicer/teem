@@ -763,7 +763,8 @@ nrrdAxisInfoPosRange(double *loP, double *hiP,
   double min, max, tmp;
 
   if (!( loP && hiP && nrrd && ax <= nrrd->dim-1 )) {
-    *loP = *hiP = AIR_NAN;
+    if (loP) *loP = AIR_NAN;
+    if (hiP) *hiP = AIR_NAN;
     return;
   }
   center = _nrrdCenter(nrrd->axis[ax].center);
