@@ -106,7 +106,6 @@ hestOptAdd(hestOpt **optP,
   hestOpt *ret = NULL;
   int num;
   va_list ap;
-  void *dummy = NULL;
   unsigned int retIdx;
 
   if (!optP)
@@ -141,14 +140,14 @@ hestOptAdd(hestOpt **optP,
   }
   if (airTypeEnum == type) {
     va_start(ap, info);
-    dummy = (void *)(va_arg(ap, unsigned int*));  /* skip sawP */
+    va_arg(ap, unsigned int*);  /* skip sawP */
     ret[num].enm = va_arg(ap, airEnum*);
     va_end(ap);
   }
   if (airTypeOther == type) {
     va_start(ap, info);
-    dummy = (void *)(va_arg(ap, unsigned int*));      /* skip sawP */
-    dummy = (void *)(va_arg(ap, airEnum*));  /* skip enm */
+    va_arg(ap, unsigned int*);  /* skip sawP */
+    va_arg(ap, airEnum*);       /* skip enm */
     ret[num].CB = va_arg(ap, hestCB*);
     va_end(ap);
   }
@@ -157,7 +156,6 @@ hestOptAdd(hestOpt **optP,
   if (*optP)
     free(*optP);
   *optP = ret;
-  AIR_UNUSED(dummy);
   return retIdx;
 }
 
