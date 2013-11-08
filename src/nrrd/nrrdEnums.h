@@ -514,6 +514,24 @@ enum {
 /* ---- BEGIN non-NrrdIO */
 
 /*
+******** nrrdOrientationHave* enum
+**
+** ways of describing how much information about the orientation
+** we have
+*/
+enum {
+  nrrdOrientationHaveUnknown,          /* 0 */
+  nrrdOrientationHaveNothing,          /* 1 */
+  nrrdOrientationHaveSpacing,          /* 2 */
+  nrrdOrientationHaveMinSpacing,       /* 3 */
+  nrrdOrientationHaveMinMax,           /* 4 */
+  nrrdOrientationHaveDirections,       /* 5 */
+  nrrdOrientationHaveOriginDirections, /* 6 */
+  nrrdOrientationHaveLast
+};
+#define NRRD_ORIENTATION_HAVE_MAX         6
+
+/*
 ******** nrrdMeasure enum
 **
 ** ways to "measure" some portion of the array

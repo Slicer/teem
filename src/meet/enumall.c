@@ -83,6 +83,7 @@ meetAirEnumAll() {
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdField;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdSpace;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdSpacingStatus;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdOrientationHave;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdBoundary;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdMeasure;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdUnaryOp;

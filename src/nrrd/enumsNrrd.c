@@ -799,6 +799,72 @@ nrrdSpacingStatus = &_nrrdSpacingStatus;
 
 /* ---- BEGIN non-NrrdIO */
 
+/* -------------------- nrrdOrientationHave --------------------- */
+
+static const char *
+_nrrdOrientationHaveStr[NRRD_ORIENTATION_HAVE_MAX+1] = {
+  "(unknown_orientation_have)",
+  "nothing",
+  "spacing",
+  "min+spacing",
+  "min+max",
+  "directions",
+  "origin+directions"
+};
+
+static const char *
+_nrrdOrientationHaveDesc[NRRD_ORIENTATION_HAVE_MAX+1] = {
+  "unknown orientation have",
+  "know nothing",
+  "know per-axis spacing",
+  "know per-axis min and spacing",
+  "know per-axis min and max",
+  "know space directions",
+  "know space origin and directions"
+};
+
+static const char *
+_nrrdOrientationHaveStrEqv[] = {
+  "nothing",
+  "spacing", "spc",
+  "min+spacing", "min+spc", "minspacing", "minspc",
+  "min+max", "minmax",
+  "directions", "dirs",
+  "origin+directions", "origindirections", "oridirs", "full",
+  ""
+};
+
+static const int
+_nrrdOrientationHaveValEqv[] = {
+  nrrdOrientationHaveNothing,
+  nrrdOrientationHaveSpacing,
+  nrrdOrientationHaveSpacing,
+  nrrdOrientationHaveMinSpacing,
+  nrrdOrientationHaveMinSpacing,
+  nrrdOrientationHaveMinSpacing,
+  nrrdOrientationHaveMinSpacing,
+  nrrdOrientationHaveMinMax,
+  nrrdOrientationHaveMinMax,
+  nrrdOrientationHaveDirections,
+  nrrdOrientationHaveDirections,
+  nrrdOrientationHaveOriginDirections,
+  nrrdOrientationHaveOriginDirections,
+  nrrdOrientationHaveOriginDirections,
+  nrrdOrientationHaveOriginDirections
+};
+
+static const airEnum
+_nrrdOrientationHave = {
+  "orientation have",
+  NRRD_ORIENTATION_HAVE_MAX,
+  _nrrdOrientationHaveStr, NULL,
+  _nrrdOrientationHaveDesc,
+  _nrrdOrientationHaveStrEqv, _nrrdOrientationHaveValEqv,
+  AIR_FALSE
+};
+const airEnum *const
+nrrdOrientationHave = &_nrrdOrientationHave;
+
 /* ------------------------ nrrdBoundary ------------------------- */
 
 static const char *

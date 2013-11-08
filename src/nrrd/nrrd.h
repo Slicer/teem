@@ -748,6 +748,7 @@ NRRD_EXPORT const airEnum *const nrrdField;
 NRRD_EXPORT const airEnum *const nrrdSpace;
 NRRD_EXPORT const airEnum *const nrrdSpacingStatus;
 /* ---- BEGIN non-NrrdIO */
+NRRD_EXPORT const airEnum *const nrrdOrientationHave;
 NRRD_EXPORT const airEnum *const nrrdBoundary;
 NRRD_EXPORT const airEnum *const nrrdMeasure;
 NRRD_EXPORT const airEnum *const nrrdUnaryOp;
