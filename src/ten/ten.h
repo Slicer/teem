@@ -1472,6 +1472,8 @@ TEN_EXPORT int tenEstimateSkipSet(tenEstimateContext *tec,
                                   unsigned int valIdx,
                                   int doSkip);
 TEN_EXPORT int tenEstimateSkipReset(tenEstimateContext *tec);
+TEN_EXPORT int tenEstimateThresholdFind(double *threshP, unsigned char *isB0,
+                                        Nrrd *nin4d);
 TEN_EXPORT int tenEstimateThresholdSet(tenEstimateContext *tec,
                                        double thresh, double soft);
 TEN_EXPORT int tenEstimateUpdate(tenEstimateContext *tec);

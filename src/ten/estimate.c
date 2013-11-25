@@ -434,6 +434,69 @@ tenEstimateSkipReset(tenEstimateContext *tec) {
 }
 
 int
+tenEstimateThresholdFind(double *threshP, unsigned char *isB0, Nrrd *nin4d) {
+  static const char me[]="tenEstimateThresholdFind";
+  Nrrd **ndwi;
+  airArray *mop;
+  unsigned int slIdx, slNum, dwiAx, dwiNum,
+    rangeAxisNum, rangeAxisIdx[NRRD_DIM_MAX];
+  int dwiIdx;
+
+  mop = airMopNew();
+
+  if (!(threshP && isB0 && nin4d)) {
+    biffAddf(TEN, "%s: got NULL pointer", me);
+    airMopError(mop); return 1;
+  }
+
+  /* HEY: copied from tenEpiRegister4D() */
+  rangeAxisNum = nrrdRangeAxesGet(nin4d, rangeAxisIdx);
+  if (0 == rangeAxisNum) {
+    /* we fall back on old behavior */
+    dwiAx = 0;
+  } else if (1 == rangeAxisNum) {
+    /* thankfully there's exactly one range axis */
+    dwiAx = rangeAxisIdx[0];
+  } else {
+    biffAddf(TEN, "%s: have %u range axes instead of 1, don't know which "
+             "is DWI axis", me, rangeAxisNum);
+    airMopError(mop); return 1;
+  }
+
+  slNum = nin4d->axis[dwiAx].size;
+  dwiNum = 0;
+  for (slIdx=0; slIdx<slNum; slIdx++) {
+    dwiNum += !isB0[slIdx];
+  }
+  if (0 == dwiNum) {
+    biffAddf(TEN, "%s: somehow got zero DWIs", me);
+    airMopError(mop); return 1;
+  }
+  ndwi = AIR_CALLOC(dwiNum, Nrrd *);
+  airMopAdd(mop, ndwi, (airMopper)airFree, airMopAlways);
+  dwiIdx = -1;
+  for (slIdx=0; slIdx<slNum; slIdx++) {
+    if (!isB0[slIdx]) {
+      dwiIdx++;
+      ndwi[dwiIdx] = nrrdNew();
+      airMopAdd(mop, ndwi[dwiIdx], (airMopper)nrrdNuke, airMopAlways);
+      if (nrrdSlice(ndwi[dwiIdx], nin4d, dwiAx, slIdx)) {
+        biffMovef(TEN, NRRD,
+                  "%s: trouble slicing DWI at index %u", me, slIdx);
+        airMopError(mop); return 1;
+      }
+    }
+  }
+  if (_tenEpiRegThresholdFind(threshP, ndwi, dwiNum, AIR_FALSE, 1.5)) {
+    biffAddf(TEN, "%s: trouble finding thresh", me);
+    airMopError(mop); return 1;
+  }
+
+  airMopOkay(mop);
+  return 0;
+}
+
+int
 tenEstimateThresholdSet(tenEstimateContext *tec,
                         double thresh, double soft) {
   static const char me[]="tenEstimateThresholdSet";

@@ -35,88 +35,6 @@ static const char *_tend_estimInfoL =
    "according to the threshold and softness parameters. ");
 
 int
-tend_estimThresholdFind(double *threshP, Nrrd *nbmat, Nrrd *nin4d) {
-  static const char me[]="tend_estimThresholdFind";
-  Nrrd **ndwi;
-  airArray *mop;
-  unsigned int slIdx, slNum, dwiAx, dwiNum,
-    rangeAxisNum, rangeAxisIdx[NRRD_DIM_MAX];
-  double *bmat, bten[7], bnorm;
-  int dwiIdx;
-
-  mop = airMopNew();
-
-  if (!(threshP && nbmat && nin4d)) {
-    biffAddf(TEN, "%s: got NULL pointer", me);
-    airMopError(mop); return 1;
-  }
-  if (tenBMatrixCheck(nbmat, nrrdTypeDouble, 6)) {
-    biffAddf(TEN, "%s: problem within given b-matrix", me);
-    airMopError(mop); return 1;
-  }
-
-  /* HEY: copied from tenEpiRegister4D() */
-  rangeAxisNum = nrrdRangeAxesGet(nin4d, rangeAxisIdx);
-  if (0 == rangeAxisNum) {
-    /* we fall back on old behavior */
-    dwiAx = 0;
-  } else if (1 == rangeAxisNum) {
-    /* thankfully there's exactly one range axis */
-    dwiAx = rangeAxisIdx[0];
-  } else {
-    biffAddf(TEN, "%s: have %u range axes instead of 1, don't know which "
-             "is DWI axis", me, rangeAxisNum);
-    airMopError(mop); return 1;
-  }
-
-  slNum = nin4d->axis[dwiAx].size;
-  bmat = AIR_CAST(double *, nbmat->data);
-  dwiNum = 0;
-  for (slIdx=0; slIdx<slNum; slIdx++) {
-    TEN_T_SET(bten, 1.0,
-              bmat[0], bmat[1], bmat[2],
-              bmat[3], bmat[4],
-              bmat[5]);
-    bnorm = TEN_T_NORM(bten);
-    dwiNum += bnorm > 0.0;
-    bmat += 6;
-  }
-  if (0 == dwiNum) {
-    biffAddf(TEN, "%s: somehow got zero DWIs", me);
-    airMopError(mop); return 1;
-  }
-  ndwi = AIR_CALLOC(dwiNum, Nrrd *);
-  airMopAdd(mop, ndwi, (airMopper)airFree, airMopAlways);
-  bmat = AIR_CAST(double *, nbmat->data);
-  dwiIdx = -1;
-  for (slIdx=0; slIdx<slNum; slIdx++) {
-    TEN_T_SET(bten, 1.0,
-              bmat[0], bmat[1], bmat[2],
-              bmat[3], bmat[4],
-              bmat[5]);
-    bnorm = TEN_T_NORM(bten);
-    if (bnorm > 0.0) {
-      dwiIdx++;
-      ndwi[dwiIdx] = nrrdNew();
-      airMopAdd(mop, ndwi[dwiIdx], (airMopper)nrrdNuke, airMopAlways);
-      if (nrrdSlice(ndwi[dwiIdx], nin4d, dwiAx, slIdx)) {
-        biffMovef(TEN, NRRD,
-                  "%s: trouble slicing DWI at index %u", me, slIdx);
-        airMopError(mop); return 1;
-      }
-    }
-    bmat += 6;
-  }
-  if (_tenEpiRegThresholdFind(threshP, ndwi, dwiNum, AIR_FALSE, 1.5)) {
-    biffAddf(TEN, "%s: trouble finding thresh", me);
-    airMopError(mop); return 1;
-  }
-
-  airMopOkay(mop);
-  return 0;
-}
-
-int
 tend_estimMain(int argc, const char **argv, const char *me,
                hestParm *hparm) {
   int pret;
@@ -315,7 +233,27 @@ tend_estimMain(int argc, const char **argv, const char *me,
       airMopError(mop); return 1;
     }
     if (!AIR_EXISTS(thresh)) {
-      if (tend_estimThresholdFind(&thresh, nbmat, nin4d)) {
+      unsigned char *isB0 = NULL;
+      double bten[7], bnorm, *bmat;
+      unsigned int sl;
+      /* from nbmat, create an array that indicates B0 images */
+      if (tenBMatrixCheck(nbmat, nrrdTypeDouble, 6)) {
+        biffAddf(TEN, "%s: problem within given b-matrix", me);
+        airMopError(mop); return 1;
+      }
+      isB0 = AIR_CAST(unsigned char *, malloc(nbmat->axis[1].size));
+      airMopAdd(mop, isB0, airFree, airMopAlways);
+      bmat = (double*) nbmat->data;
+      for (sl=0; sl<nbmat->axis[1].size; sl++) {
+        TEN_T_SET(bten, 1.0,
+                  bmat[0], bmat[1], bmat[2],
+                  bmat[3], bmat[4],
+                  bmat[5]);
+        bnorm = TEN_T_NORM(bten);
+        isB0[sl]=(bnorm==0.0);
+        bmat+=6;
+      }
+      if (tenEstimateThresholdFind(&thresh, isB0, nin4d)) {
         airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble finding threshold:\n%s\n", me, err);
         airMopError(mop); return 1;
