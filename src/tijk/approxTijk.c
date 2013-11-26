@@ -153,7 +153,7 @@ _TIJK_INIT_MAX(double, d, 3)
 _TIJK_INIT_MAX(float, f, 3)
 
 static const tijk_refine_rank1_parm refine_rank1_parm_default = {
-  1e-10, 1e-4, 0.3, 0.9, 0.5, 50};
+  1e-10, 1e-6, 0.3, 0.9, 0.5, 50};
 
 tijk_refine_rank1_parm *tijk_refine_rank1_parm_new() {
   tijk_refine_rank1_parm *parm;
