@@ -29,7 +29,7 @@ static const char *_unrrdu_axinfoInfoL =
 (INFO
  ". The only attributes which are set are those for which command-line "
  "options are given.\n "
- "* Uses no particular function; just sets fields in NrrdAxisInfo");
+ "* Uses no particular function; just sets fields in the NrrdAxisInfo");
 
 int
 unrrdu_axinfoMain(int argc, const char **argv, const char *me,
