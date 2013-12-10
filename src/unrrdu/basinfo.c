@@ -30,7 +30,7 @@ static const char *_unrrdu_basinfoInfoL =
  ", which is called \"basic info\" in Nrrd terminology. "
  "The only attributes which are set are those for which command-line "
  "options are given.\n "
- "* Uses no particular function; just sets fields in NrrdAxisInfo");
+ "* Uses no particular function; just sets fields in the Nrrd");
 
 int
 unrrdu_basinfoMain(int argc, const char **argv, const char *me,
