@@ -108,7 +108,9 @@ typedef struct {
   airEnum *enm;         /* used ONLY for airTypeEnum options */
   hestCB *CB;           /* used ONLY for airTypeOther options */
 
-  /* --------------------- end of user-defined fields */
+  /* --------------------- end of user-defined fields; the following fields
+     must be set by hestParse() as part of its operation. This does prevent
+     adding const to much usage of the hestOpt */
 
   int kind,             /* what kind of option is this, based on min and max,
                            set by hestParse() (actually _hestPanic()),
@@ -231,7 +233,7 @@ HEST_EXPORT int hestOptCheck(hestOpt *opt, char **errP);
 
 /* parseHest.c */
 HEST_EXPORT int hestParse(hestOpt *opt, int argc, const char **argv,
-                          char **errP, hestParm *parm);
+                          char **errP, const hestParm *parm);
 HEST_EXPORT void *hestParseFree(hestOpt *opt);
 HEST_EXPORT void hestParseOrDie(hestOpt *opt, int argc, const char **argv,
                                 hestParm *parm,
@@ -244,10 +246,11 @@ HEST_EXPORT void _hestPrintStr(FILE *f, unsigned int indent,
                                const char *_str, int bslash);
 HEST_EXPORT int hestMinNumArgs(hestOpt *opt);
 HEST_EXPORT void hestUsage(FILE *file, hestOpt *opt, const char *argv0,
-                           hestParm *parm);
-HEST_EXPORT void hestGlossary(FILE *file, hestOpt *opt, hestParm *parm);
+                           const hestParm *parm);
+HEST_EXPORT void hestGlossary(FILE *file, hestOpt *opt,
+                              const hestParm *parm);
 HEST_EXPORT void hestInfo(FILE *file, const char *argv0, const char *info,
-                          hestParm *parm);
+                          const hestParm *parm);
 
 #ifdef __cplusplus
 }

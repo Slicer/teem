@@ -29,19 +29,20 @@ extern "C" {
 #endif
 
 /* methodsHest.c */
-extern char *_hestIdent(char *ident, hestOpt *opt, hestParm *parm, int brief);
-extern int _hestKind(hestOpt *opt);
+extern char *_hestIdent(char *ident, hestOpt *opt,
+                        const hestParm *parm, int brief);
+extern int _hestKind(const hestOpt *opt);
 extern void _hestPrintArgv(int argc, char **argv);
-extern int _hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm);
+extern int _hestWhichFlag(hestOpt *opt, char *flag, const hestParm *parm);
 extern int _hestCase(hestOpt *opt, int *udflt, unsigned int *nprm, int *appr, int op);
 extern char *_hestExtract(int *argcP, char **argv,
                           unsigned int base, unsigned int pnum);
-extern int _hestNumOpts(hestOpt *opt);
+extern int _hestNumOpts(const hestOpt *opt);
 extern int _hestMax(int max);
 
 /* parseHest.c */
-extern int _hestPanic(hestOpt *opt, char *err, hestParm *parm);
-extern int _hestErrStrlen(hestOpt *opt, int argc, const char **argv);
+extern int _hestPanic(hestOpt *opt, char *err, const hestParm *parm);
+extern int _hestErrStrlen(const hestOpt *opt, int argc, const char **argv);
 
 #ifdef __cplusplus
 }

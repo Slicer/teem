@@ -46,7 +46,8 @@ twice with differen values
 */
 int
 _hestArgsInResponseFiles(int *argcP, int *nrfP,
-                         const char **argv, char *err, hestParm *parm) {
+                         const char **argv, char *err,
+                         const hestParm *parm) {
   FILE *file;
   char me[]="_hestArgsInResponseFiles: ", line[AIR_STRLEN_HUGE], *pound;
   int ai, len;
@@ -94,7 +95,7 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
 */
 int
 _hestResponseFiles(char **newArgv, const char **oldArgv,
-                   hestParm *parm, airArray *pmop) {
+                   const hestParm *parm, airArray *pmop) {
   char line[AIR_STRLEN_HUGE], *pound;
   int len, newArgc, oldArgc, incr, ai;
   FILE *file;
@@ -161,7 +162,7 @@ _hestResponseFiles(char **newArgv, const char **oldArgv,
 ** the opt struct
 */
 int
-_hestPanic(hestOpt *opt, char *err, hestParm *parm) {
+_hestPanic(hestOpt *opt, char *err, const hestParm *parm) {
   char me[]="_hestPanic: ", tbuff[AIR_STRLEN_HUGE], *sep;
   int numvar, op, numOpts;
 
@@ -348,7 +349,7 @@ _hestPanic(hestOpt *opt, char *err, hestParm *parm) {
 }
 
 int
-_hestErrStrlen(hestOpt *opt, int argc, const char **argv) {
+_hestErrStrlen(const hestOpt *opt, int argc, const char **argv) {
   int a, numOpts, ret, other;
 
   ret = 0;
@@ -393,7 +394,7 @@ int
 _hestExtractFlagged(char **prms, unsigned int *nprm, int *appr,
                      int *argcP, char **argv,
                      hestOpt *opt,
-                     char *err, hestParm *parm, airArray *pmop) {
+                     char *err, const hestParm *parm, airArray *pmop) {
   char me[]="_hestExtractFlagged: ", ident1[AIR_STRLEN_HUGE],
     ident2[AIR_STRLEN_HUGE];
   int a, np, flag, endflag, numOpts, op;
@@ -501,7 +502,7 @@ int
 _hestExtractUnflagged(char **prms, unsigned int *nprm,
                       int *argcP, char **argv,
                       hestOpt *opt,
-                      char *err, hestParm *parm, airArray *pmop) {
+                      char *err, const hestParm *parm, airArray *pmop) {
   char me[]="_hestExtractUnflagged: ", ident[AIR_STRLEN_HUGE];
   int nvp, np, op, unflag1st, unflagVar, numOpts;
 
@@ -604,7 +605,7 @@ _hestExtractUnflagged(char **prms, unsigned int *nprm,
 int
 _hestDefaults(char **prms, int *udflt, unsigned int *nprm, int *appr,
               hestOpt *opt,
-              char *err, hestParm *parm, airArray *mop) {
+              char *err, const hestParm *parm, airArray *mop) {
   char *tmpS, me[]="_hestDefaults: ", ident[AIR_STRLEN_HUGE];
   int op, numOpts;
 
@@ -724,7 +725,7 @@ airDLoad(void *v, int t) {
 int
 _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr,
                hestOpt *opt,
-               char *err, hestParm *parm, airArray *pmop) {
+               char *err, const hestParm *parm, airArray *pmop) {
   char ident[AIR_STRLEN_HUGE], me[]="_hestSetValues: ",
     cberr[AIR_STRLEN_HUGE], *tok, *last, *prmsCopy;
   double tmpD;
@@ -1084,7 +1085,7 @@ _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr,
 */
 int
 hestParse(hestOpt *opt, int _argc, const char **_argv,
-          char **_errP, hestParm *_parm) {
+          char **_errP, const hestParm *_parm) {
   char me[]="hestParse: ";
   char *param, *param_copy;
   char **argv, **prms, *err;
@@ -1101,12 +1102,14 @@ hestParse(hestOpt *opt, int _argc, const char **_argv,
 
   /* -------- either copy given _parm, or allocate one */
   if (_parm) {
-    parm = _parm;
+    parm = NULL;
   }
   else {
     parm = hestParmNew();
     airMopAdd(mop, parm, (airMopper)hestParmFree, airMopAlways);
   }
+  /* how to const-correctly use parm or _parm in an expression */
+#define PARM (_parm ? _parm : parm)
 
   /* -------- allocate the err string.  To determine its size with total
      ridiculous safety we have to find the biggest things which can appear
@@ -1131,7 +1134,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv,
   }
 
   /* -------- check on validity of the hestOpt array */
-  if (_hestPanic(opt, err, parm)) {
+  if (_hestPanic(opt, err, PARM)) {
     airMopError(mop); return 1;
   }
 
@@ -1153,12 +1156,12 @@ hestParse(hestOpt *opt, int _argc, const char **_argv,
      by seeing how many args are in the response files, and then adding
      on the args from the actual argv (getting this right the first time
      greatly simplifies the problem of eliminating memory leaks) */
-  if (_hestArgsInResponseFiles(&argr, &nrf, _argv, err, parm)) {
+  if (_hestArgsInResponseFiles(&argr, &nrf, _argv, err, PARM)) {
     airMopError(mop); return 1;
   }
   argc = argr + _argc - nrf;
 
-  if (parm->verbosity) {
+  if (PARM->verbosity) {
     printf("!%s: nrf = %d; argr = %d; _argc = %d --> argc = %d\n",
            me, nrf, argr, _argc, argc);
   }
@@ -1167,37 +1170,37 @@ hestParse(hestOpt *opt, int _argc, const char **_argv,
 
   /* -------- process response files (if any) and set the remaining
      elements of argv */
-  if (parm->verbosity) printf("%s: #### calling hestResponseFiles\n", me);
-  if (_hestResponseFiles(argv, _argv, parm, mop)) {
+  if (PARM->verbosity) printf("%s: #### calling hestResponseFiles\n", me);
+  if (_hestResponseFiles(argv, _argv, PARM, mop)) {
     airMopError(mop); return 1;
   }
-  if (parm->verbosity) printf("%s: #### hestResponseFiles done!\n", me);
+  if (PARM->verbosity) printf("%s: #### hestResponseFiles done!\n", me);
   /*
   _hestPrintArgv(argc, argv);
   */
 
   /* -------- extract flags and their associated parameters from argv */
-  if (parm->verbosity) printf("%s: #### calling hestExtractFlagged\n", me);
+  if (PARM->verbosity) printf("%s: #### calling hestExtractFlagged\n", me);
   if (_hestExtractFlagged(prms, nprm, appr,
                            &argc, argv,
                            opt,
-                           err, parm, mop)) {
+                           err, PARM, mop)) {
     airMopError(mop); return 1;
   }
-  if (parm->verbosity) printf("%s: #### hestExtractFlagged done!\n", me);
+  if (PARM->verbosity) printf("%s: #### hestExtractFlagged done!\n", me);
   /*
   _hestPrintArgv(argc, argv);
   */
 
   /* -------- extract args for unflagged options */
-  if (parm->verbosity) printf("%s: #### calling hestExtractUnflagged\n", me);
+  if (PARM->verbosity) printf("%s: #### calling hestExtractUnflagged\n", me);
   if (_hestExtractUnflagged(prms, nprm,
                             &argc, argv,
                             opt,
-                            err, parm, mop)) {
+                            err, PARM, mop)) {
     airMopError(mop); return 1;
   }
-  if (parm->verbosity) printf("%s: #### hestExtractUnflagged done!\n", me);
+  if (PARM->verbosity) printf("%s: #### hestExtractUnflagged done!\n", me);
 
   /* currently, any left over arguments indicate error */
   if (argc) {
@@ -1209,18 +1212,18 @@ hestParse(hestOpt *opt, int _argc, const char **_argv,
   }
 
   /* -------- learn defaults */
-  if (parm->verbosity) printf("%s: #### calling hestDefaults\n", me);
+  if (PARM->verbosity) printf("%s: #### calling hestDefaults\n", me);
   if (_hestDefaults(prms, udflt, nprm, appr,
                     opt,
-                    err, parm, mop)) {
+                    err, PARM, mop)) {
     airMopError(mop); return 1;
   }
-  if (parm->verbosity) printf("%s: #### hestDefaults done!\n", me);
+  if (PARM->verbosity) printf("%s: #### hestDefaults done!\n", me);
 
   /* remove quotes from strings
          if greedy wasn't turned on for strings, then we have no hope
          of capturing filenames with spaces. */
-  if ( parm->greedySingleString ) {
+  if ( PARM->greedySingleString ) {
     for (i=0; i<numOpts; i++) {
       param = prms[i];
       param_copy = NULL;
@@ -1242,15 +1245,16 @@ hestParse(hestOpt *opt, int _argc, const char **_argv,
 
   /* -------- now, the actual parsing of values */
   /* hammerhead problems in _hestSetValues */
-  if (parm->verbosity) printf("%s: #### calling hestSetValues\n", me);
+  if (PARM->verbosity) printf("%s: #### calling hestSetValues\n", me);
   ret = _hestSetValues(prms, udflt, nprm, appr,
                        opt,
-                       err, parm, mop);
+                       err, PARM, mop);
   if (ret) {
     airMopError(mop); return ret;
   }
 
-  if (parm->verbosity) printf("%s: #### hestSetValues done!\n", me);
+  if (PARM->verbosity) printf("%s: #### hestSetValues done!\n", me);
+#undef PARM
 
   airMopOkay(mop);
   return 0;

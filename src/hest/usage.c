@@ -28,7 +28,8 @@
 ** don't ask
 */
 void
-_hestSetBuff(char *B, hestOpt *O, hestParm *P, int showshort, int showlong) {
+_hestSetBuff(char *B, const hestOpt *O, const hestParm *P,
+             int showshort, int showlong) {
   char copy[AIR_STRLEN_HUGE], *sep;
   int max; unsigned int len;
 
@@ -203,35 +204,40 @@ hestMinNumArgs(hestOpt *opt) {
 }
 
 void
-hestInfo(FILE *file, const char *argv0, const char *info, hestParm *_parm) {
+hestInfo(FILE *file, const char *argv0, const char *info,
+         const hestParm *_parm) {
   hestParm *parm;
 
-  parm = !_parm ? hestParmNew() : _parm;
+  parm = _parm ? NULL : hestParmNew();
+  /* how to const-correctly use parm or _parm in an expression */
+#define PARM (_parm ? _parm : parm)
+
   if (info) {
     if (argv0) {
       fprintf(file, "\n%s: ", argv0);
       _hestPrintStr(file, 0, AIR_UINT(strlen(argv0)) + 2,
-                    parm->columns, info, AIR_FALSE);
+                    PARM->columns, info, AIR_FALSE);
     } else {
       fprintf(file, "ERROR: hestInfo got NULL argv0\n");
     }
   }
-  if (!_parm) {
+  if (parm) {
     hestParmFree(parm);
   }
 }
 
 void
-hestUsage(FILE *f, hestOpt *opt, const char *argv0, hestParm *_parm) {
+hestUsage(FILE *f, hestOpt *opt, const char *argv0,
+          const hestParm *_parm) {
   int i, numOpts;
   char buff[2*AIR_STRLEN_HUGE], tmpS[AIR_STRLEN_HUGE];
   hestParm *parm;
 
-  parm = !_parm ? hestParmNew() : _parm;
+  parm = _parm ? NULL : hestParmNew();
 
-  if (_hestPanic(opt, NULL, parm)) {
+  if (_hestPanic(opt, NULL, PARM)) {
     /* we can't continue; the opt array is botched */
-    if (!_parm) {
+    if (parm) {
       hestParmFree(parm);
     }
     return;
@@ -241,38 +247,38 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0, hestParm *_parm) {
   fprintf(f, "\n");
   strcpy(buff, "Usage: ");
   strcat(buff, argv0 ? argv0 : "");
-  if (parm && parm->respFileEnable) {
-    sprintf(tmpS, " [%cfile\t...]", parm->respFileFlag);
+  if (PARM->respFileEnable) {
+    sprintf(tmpS, " [%cfile\t...]", PARM->respFileFlag);
     strcat(buff, tmpS);
   }
   for (i=0; i<numOpts; i++) {
     strcat(buff, " ");
     if (1 == opt[i].kind || (opt[i].flag && opt[i].dflt))
       strcat(buff, "[");
-    _hestSetBuff(buff, opt + i, parm, AIR_TRUE, AIR_TRUE);
+    _hestSetBuff(buff, opt + i, PARM, AIR_TRUE, AIR_TRUE);
     if (1 == opt[i].kind || (opt[i].flag && opt[i].dflt))
       strcat(buff, "]");
   }
 
   _hestPrintStr(f, AIR_UINT(strlen("Usage: ")), 0,
-                parm->columns, buff, AIR_TRUE);
-  if (!_parm) {
+                PARM->columns, buff, AIR_TRUE);
+  if (parm) {
     hestParmFree(parm);
   }
   return;
 }
 
 void
-hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
+hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
   int i, j, maxlen, numOpts; unsigned int len;
   char buff[2*AIR_STRLEN_HUGE], tmpS[AIR_STRLEN_HUGE];
   hestParm *parm;
 
-  parm = !_parm ? hestParmNew() : _parm;
+  parm = _parm ? NULL : hestParmNew();
 
-  if (_hestPanic(opt, NULL, parm)) {
+  if (_hestPanic(opt, NULL, PARM)) {
     /* we can't continue; the opt array is botched */
-    if (!_parm) {
+    if (parm) {
       hestParmFree(parm);
     }
     return;
@@ -286,22 +292,22 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
   }
   for (i=0; i<numOpts; i++) {
     strcpy(buff, "");
-    _hestSetBuff(buff, opt + i, parm, AIR_TRUE, AIR_FALSE);
+    _hestSetBuff(buff, opt + i, PARM, AIR_TRUE, AIR_FALSE);
     maxlen = AIR_MAX((int)strlen(buff), maxlen);
   }
-  if (parm && parm->respFileEnable) {
-    sprintf(buff, "%cfile ...", parm->respFileFlag);
+  if (PARM->respFileEnable) {
+    sprintf(buff, "%cfile ...", PARM->respFileFlag);
     len = AIR_UINT(strlen(buff));
     for (j=len; j<maxlen; j++) {
       fprintf(f, " ");
     }
     fprintf(f, "%s = ", buff);
     strcpy(buff, "response file(s) containing command-line arguments");
-    _hestPrintStr(f, maxlen + 3, maxlen + 3, parm->columns, buff, AIR_FALSE);
+    _hestPrintStr(f, maxlen + 3, maxlen + 3, PARM->columns, buff, AIR_FALSE);
   }
   for (i=0; i<numOpts; i++) {
     strcpy(buff, "");
-    _hestSetBuff(buff, opt + i, parm, AIR_TRUE, AIR_FALSE);
+    _hestSetBuff(buff, opt + i, PARM, AIR_TRUE, AIR_FALSE);
     airOneLinify(buff);
     len = AIR_UINT(strlen(buff));
     for (j=len; j<maxlen; j++) {
@@ -310,9 +316,9 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     fprintf(f, "%s", buff);
     strcpy(buff, "");
 #if 1
-    if (opt[i].flag && strchr(opt[i].flag, parm->multiFlagSep)) {
+    if (opt[i].flag && strchr(opt[i].flag, PARM->multiFlagSep)) {
       /* there is a long-form flag as well as short */
-      _hestSetBuff(buff, opt + i, parm, AIR_FALSE, AIR_TRUE);
+      _hestSetBuff(buff, opt + i, PARM, AIR_FALSE, AIR_TRUE);
       strcat(buff, " = ");
       fprintf(f, " , ");
     } else {
@@ -328,10 +334,10 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
     if ((opt[i].min || _hestMax(opt[i].max))
         && (!( 2 == opt[i].kind
                && airTypeEnum == opt[i].type
-               && parm->elideSingleEnumType ))
+               && PARM->elideSingleEnumType ))
         && (!( 2 == opt[i].kind
                && airTypeOther == opt[i].type
-               && parm->elideSingleOtherType ))
+               && PARM->elideSingleOtherType ))
         ) {
       /* if there are newlines in the info, then we want to clarify the
          type by printing it on its own line */
@@ -369,7 +375,7 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
               (_hestMax(opt[i].max) > 1
                ? (airTypeOther == opt[i].type
                   && 'y' == opt[i].CB->type[airStrlen(opt[i].CB->type)-1]
-                  && parm->cleverPluralizeOtherY
+                  && PARM->cleverPluralizeOtherY
                   ? "\bies"
                   : "s")
                : ""));
@@ -377,29 +383,29 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
       strcat(buff, ")");
     }
     /*
-    fprintf(stderr, "!%s: parm->elideSingleOtherDefault = %d\n",
-            "hestGlossary", parm->elideSingleOtherDefault);
+    fprintf(stderr, "!%s: PARM->elideSingleOtherDefault = %d\n",
+            "hestGlossary", PARM->elideSingleOtherDefault);
     */
     if (opt[i].dflt
         && (opt[i].min || _hestMax(opt[i].max))
         && (!( 2 == opt[i].kind
                && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
                && !AIR_EXISTS(airAtod(opt[i].dflt))
-               && parm->elideSingleNonExistFloatDefault ))
+               && PARM->elideSingleNonExistFloatDefault ))
         && (!( (3 == opt[i].kind || 5 == opt[i].kind)
                && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
                && !AIR_EXISTS(airAtod(opt[i].dflt))
-               && parm->elideMultipleNonExistFloatDefault ))
+               && PARM->elideMultipleNonExistFloatDefault ))
         && (!( 2 == opt[i].kind
                && airTypeOther == opt[i].type
-               && parm->elideSingleOtherDefault ))
+               && PARM->elideSingleOtherDefault ))
         && (!( 2 == opt[i].kind
                && airTypeString == opt[i].type
-               && parm->elideSingleEmptyStringDefault
+               && PARM->elideSingleEmptyStringDefault
                && 0 == airStrlen(opt[i].dflt) ))
         && (!( (3 == opt[i].kind || 5 == opt[i].kind)
                && airTypeString == opt[i].type
-               && parm->elideMultipleEmptyStringDefault
+               && PARM->elideMultipleEmptyStringDefault
                && 0 == airStrlen(opt[i].dflt) ))
         ) {
       /* if there are newlines in the info, then we want to clarify the
@@ -417,12 +423,14 @@ hestGlossary(FILE *f, hestOpt *opt, hestParm *_parm) {
       strcat(buff, tmpS);
       strcat(buff, "\"");
     }
-    _hestPrintStr(f, maxlen + 3, maxlen + 3, parm->columns, buff, AIR_FALSE);
+    _hestPrintStr(f, maxlen + 3, maxlen + 3, PARM->columns, buff, AIR_FALSE);
   }
-  if (!_parm) {
+  if (parm) {
     hestParmFree(parm);
   }
 
   return;
 }
+
+#undef PARM
 

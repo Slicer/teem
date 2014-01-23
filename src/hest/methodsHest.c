@@ -230,7 +230,7 @@ hestOptCheck(hestOpt *opt, char **errP) {
 ** how to identify an option in error and usage messages
 */
 char *
-_hestIdent(char *ident, hestOpt *opt, hestParm *parm, int brief) {
+_hestIdent(char *ident, hestOpt *opt, const hestParm *parm, int brief) {
   char copy[AIR_STRLEN_HUGE], *sep;
 
   if (opt->flag && (sep = strchr(opt->flag, parm->multiFlagSep))) {
@@ -261,7 +261,7 @@ _hestMax(int max) {
 }
 
 int
-_hestKind(hestOpt *opt) {
+_hestKind(const hestOpt *opt) {
   int max;
 
   max = _hestMax(opt->max);
@@ -315,7 +315,7 @@ _hestPrintArgv(int argc, char **argv) {
 ** marker (according to parm->varParamStopFlag)
 */
 int
-_hestWhichFlag(hestOpt *opt, char *flag, hestParm *parm) {
+_hestWhichFlag(hestOpt *opt, char *flag, const hestParm *parm) {
   char buff[AIR_STRLEN_HUGE], copy[AIR_STRLEN_HUGE], *sep;
   int op, numOpts;
 
@@ -437,7 +437,7 @@ _hestExtract(int *argcP, char **argv, unsigned int base, unsigned int pnum) {
 }
 
 int
-_hestNumOpts(hestOpt *opt) {
+_hestNumOpts(const hestOpt *opt) {
   int num = 0;
 
   while (opt[num].flag || opt[num].name || opt[num].type) {
