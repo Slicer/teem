@@ -92,6 +92,9 @@ extern "C" {
       ? 2                        \
       : 1))
 
+#define ELL_2V_EXISTS(v) \
+  (AIR_EXISTS((v)[0]) && AIR_EXISTS((v)[1]))
+
 #define ELL_2V_SET(v, a, b) \
   ((v)[0]=(a), (v)[1]=(b))
 
