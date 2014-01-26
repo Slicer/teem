@@ -85,7 +85,7 @@ main(int argc, const char **argv) {
     airMopMem(mop, &argv0, airMopAlways);
     sprintf(argv0, "%s %s", TEND, argv[1]);
 
-    /* run the individual unu program, saving its exit status */
+    /* run the individual tend program, saving its exit status */
     ret = tendCmdList[i]->main(argc-2, argv+2, argv0, hparm);
   } else {
     fprintf(stderr, "%s: unrecognized command: \"%s\"; type \"%s\" for "
