@@ -159,6 +159,9 @@ extern "C" {
 #define ELL_2V_NORM(v2, v1, length) \
   (length = ELL_2V_LEN(v1), ELL_2V_SCALE(v2, 1.0/length, v1))
 
+#define ELL_2V_CROSS(v1, v2) \
+  ((v1)[0]*(v2)[1] - (v1)[1]*(v2)[0])
+
 /*
 ** the 2x2 matrix-related macros assume that the matrix indexing is:
 ** 0  1
