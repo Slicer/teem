@@ -48,7 +48,154 @@ unrrduCmdList[] = {
 };
 
 /*
-******** unrrduUsageSpecial
+******** unrrduCmdMain
+**
+** A "main" function for unu-like programs, which is very similar to
+** teem/src/bin/unu.c:main(), and
+** teem/src/bin/tend.c:main(), and
+** teem/src/limn/test/lpu.c:main().
+** With more time (and a major Teem release), this function may change,
+** and those programs may use this.
+**
+** A sneaky but basic issue is the const-correctness of how the hestParm
+** is used; we'd like to take a const hestParm* to communicate parameters
+** the caller has set, but the show-stopper is that unrrduCmd->main()
+** takes a non-const hestParm, and it has to be that way, because some
+** unu commands alter the given hparm (which probably shouldn't happen).
+** Until that's fixed, we have a non-const hestParm* coming in here.
+*/
+int
+unrrduCmdMain(int argc, const char **argv,
+              const char *cmd, const char *title,
+              const unrrduCmd *const *cmdList,
+              hestParm *_hparm, FILE *fusage) {
+  int i, ret;
+  const char *me;
+  char *argv0 = NULL;
+  hestParm *hparm;
+  airArray *mop;
+
+  me = argv[0];
+
+  /* parse environment variables first, in case they break nrrdDefault*
+     or nrrdState* variables in a way that nrrdSanity() should see */
+  nrrdDefaultGetenv();
+  nrrdStateGetenv();
+
+  /* unu does some unu-specific environment-variable handling here */
+
+  nrrdSanityOrDie(me);
+
+  mop = airMopNew();
+  if (_hparm) {
+    hparm = _hparm;
+  } else {
+    hparm = hestParmNew();
+    airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
+    hparm->elideSingleEnumType = AIR_TRUE;
+    hparm->elideSingleOtherType = AIR_TRUE;
+    hparm->elideSingleOtherDefault = AIR_FALSE;
+    hparm->elideSingleNonExistFloatDefault = AIR_TRUE;
+    hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
+    hparm->elideSingleEmptyStringDefault = AIR_TRUE;
+    hparm->elideMultipleEmptyStringDefault = AIR_TRUE;
+    hparm->cleverPluralizeOtherY = AIR_TRUE;
+    /* learning columns from current window; if ioctl is available
+    if (1) {
+      struct winsize ws;
+      ioctl(1, TIOCGWINSZ, &ws);
+      hparm->columns = ws.ws_col - 1;
+    }
+    */
+    hparm->columns = 78;
+  }
+
+  /* if there are no arguments, then we give general usage information */
+  if (1 >= argc) {
+    /* this is like unrrduUsageUnu() */
+    unsigned int ii, maxlen = 0;
+    char *buff, *fmt, tdash[] = "--- %s ---";
+    for (ii=0; cmdList[ii]; ii++) {
+      if (cmdList[ii]->hidden) {
+        continue;
+      }
+      maxlen = AIR_MAX(maxlen, AIR_UINT(strlen(cmdList[ii]->name)));
+    }
+    if (!maxlen) {
+      fprintf(fusage, "%s: problem: maxlen = %u\n", me, maxlen);
+      airMopError(mop); return 1;
+    }
+    buff = AIR_CALLOC(strlen(tdash) + strlen(title) + 1, char);
+    airMopAdd(mop, buff, airFree, airMopAlways);
+    sprintf(buff, tdash, title);
+    fmt = AIR_CALLOC(hparm->columns + strlen(buff) + 1, char); /* generous */
+    airMopAdd(mop, buff, airFree, airMopAlways);
+    sprintf(fmt, "%%%us\n",
+            AIR_UINT((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
+    fprintf(fusage, fmt, buff);
+
+    for (ii=0; cmdList[ii]; ii++) {
+      unsigned int cc, len;
+      if (cmdList[ii]->hidden) {
+        continue;
+      }
+      len = AIR_UINT(strlen(cmdList[ii]->name));
+      strcpy(buff, "");
+      for (cc=len; cc<maxlen; cc++)
+        strcat(buff, " ");
+      strcat(buff, cmd);
+      strcat(buff, " ");
+      strcat(buff, cmdList[ii]->name);
+      strcat(buff, " ... ");
+      len = strlen(buff);
+      fprintf(fusage, "%s", buff);
+      _hestPrintStr(fusage, len, len, hparm->columns,
+                    cmdList[ii]->info, AIR_FALSE);
+    }
+    airMopError(mop);
+    return 1;
+  }
+  /* else, we see if its --version */
+  if (!strcmp("--version", argv[1])) {
+    char vbuff[AIR_STRLEN_LARGE];
+    airTeemVersionSprint(vbuff);
+    printf("%s\n", vbuff);
+    exit(0);
+  }
+  /* else, we should see if they're asking for a command we know about */
+  for (i=0; cmdList[i]; i++) {
+    if (!strcmp(argv[1], cmdList[i]->name)) {
+      break;
+    }
+    /* if user typed "prog --help" we treat it as "prog about",
+       but only if there is an "about" command */
+    if (!strcmp("--help", argv[1])
+        && !strcmp("about", cmdList[i]->name)) {
+      break;
+    }
+  }
+  if (cmdList[i]) {
+    /* yes, we have that command */
+    /* initialize variables used by the various commands */
+    argv0 = AIR_CALLOC(strlen(cmd) + strlen(argv[1]) + 2, char);
+
+    airMopMem(mop, &argv0, airMopAlways);
+    sprintf(argv0, "%s %s", cmd, argv[1]);
+
+    /* run the individual command, saving its exit status */
+    ret = cmdList[i]->main(argc-2, argv+2, argv0, hparm);
+  } else {
+    fprintf(stderr, "%s: unrecognized command: \"%s\"; type \"%s\" for "
+            "complete list\n", me, argv[1], me);
+    ret = 1;
+  }
+
+  airMopDone(mop, ret);
+  return ret;
+}
+
+/*
+******** unrrduUsageUnu
 **
 ** prints out a little banner, and a listing of all available commands
 ** with their one-line descriptions

@@ -220,6 +220,10 @@ enum {
 UNRRDU_EXPORT const int unrrduPresent;
 UNRRDU_EXPORT const char *unrrduBiffKey;
 UNRRDU_EXPORT unsigned int unrrduDefNumColumns;
+UNRRDU_EXPORT int unrrduCmdMain(int argc, const char **argv,
+                                const char *cmd, const char *title,
+                                const unrrduCmd *const *cmdList,
+                                hestParm *hparm, FILE *fusage);
 /* addresses of all unrrdu_xxxCmd */
 UNRRDU_EXPORT unrrduCmd *unrrduCmdList[];
 UNRRDU_EXPORT void unrrduUsageUnu(const char *me, hestParm *hparm);
