@@ -384,9 +384,12 @@ extern "C" {
    (m1)[7] == (m2)[7] &&     \
    (m1)[8] == (m2)[8])
 
-#define ELL_3M_SET(m, a, b, c, d, e, f, g, h, i) \
-  (ELL_3V_SET(m + 0*3, a, b, c),                 \
-   ELL_3V_SET(m + 1*3, d, e, f),                 \
+#define ELL_3M_SET(m,            \
+                   a, b, c,      \
+                   d, e, f,      \
+                   g, h, i)      \
+  (ELL_3V_SET(m + 0*3, a, b, c), \
+   ELL_3V_SET(m + 1*3, d, e, f), \
    ELL_3V_SET(m + 2*3, g, h, i))
 
 #define ELL_3M_SCALE(m2, s, m1) \
@@ -784,6 +787,16 @@ extern "C" {
    (m1)[13] == (m2)[13] &&   \
    (m1)[14] == (m2)[14] &&   \
    (m1)[15] == (m2)[15])
+
+#define ELL_4M_SET(X,               \
+                   a, b, c, d,      \
+                   e, f, g, h,      \
+                   i, j, k, l,      \
+                   m, n, o, p)      \
+  (ELL_4V_SET(X + 0*4, a, b, c, d), \
+   ELL_4V_SET(X + 1*4, e, f, g, h), \
+   ELL_4V_SET(X + 2*4, i, j, k, l), \
+   ELL_4V_SET(X + 3*4, m, n, o, p))
 
 #define ELL_4M_ADD2(m3, m1, m2)            \
   (ELL_4V_ADD2((m3)+ 0, (m1)+ 0, (m2)+ 0), \
