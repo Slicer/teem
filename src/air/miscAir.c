@@ -467,6 +467,10 @@ airStdin(void) {
 ** In contrast, the *endpoints* of the N intervals (the 5 "|" in the picture
 ** above) form N+1 *node*-centered samples from min to max.
 **
+** If max < min, then "min" and "max" would be swapped in the diagram
+** above and their roles are switched. This overdue fix was only added
+** in version 1.11.
+**
 ** NOTE: This does not do bounds checking; for that use airIndexClamp
 */
 unsigned int
@@ -475,9 +479,13 @@ airIndex(double min, double val, double max, unsigned int N) {
   double mnm;
 
   mnm = max - min;
-  if (mnm) {
+  if (mnm > 0) {
     idx = AIR_UINT(N*(val - min)/mnm);
     idx -= (idx == N);
+  } else if (mnm < 0) {
+    idx = AIR_UINT(N*(val - max)/(-mnm));
+    idx -= (idx == N);
+    idx = N-1-idx;
   } else {
     idx = 0;
   }
@@ -490,10 +498,15 @@ airIndexClamp(double min, double val, double max, unsigned int N) {
   double mnm;
 
   mnm = max - min;
-  if (mnm) {
+  if (mnm > 0) {
     val = AIR_MAX(min, val);
     idx = AIR_UINT(N*(val - min)/mnm);
     idx = AIR_MIN(idx, N-1);
+  } else if (mnm < 0) {
+    val = AIR_MAX(max, val);
+    idx = AIR_UINT(N*(val - max)/(-mnm));
+    idx = AIR_MIN(idx, N-1);
+    idx = N-1-idx;
   } else {
     idx = 0;
   }
