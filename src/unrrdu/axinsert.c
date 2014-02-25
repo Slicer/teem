@@ -38,8 +38,8 @@ unrrdu_axinsertMain(int argc, const char **argv, const char *me,
   hestOpt *opt = NULL;
   char *out, *err, *label;
   Nrrd *nin, *nout;
-  int pret, kind;
-  unsigned int axis, size, opi;
+  int pret, kind, center;
+  unsigned int axis, size, opi, centOptIdx;
   double mm[2];
   airArray *mop;
   NrrdBoundarySpec *bspec;
@@ -52,6 +52,10 @@ unrrdu_axinsertMain(int argc, const char **argv, const char *me,
                    "axis kind to associate with new axis", NULL, nrrdKind);
   hestOptAdd(&opt, "mm,minmax", "min max", airTypeDouble, 2, 2, mm, "nan nan",
              "min and max values along new axis");
+  centOptIdx =
+    hestOptAdd(&opt, "c,center", "center", airTypeEnum, 1, 1, &center, "cell",
+               "centering of inserted axis: \"cell\" or \"node\"",
+               NULL, nrrdCenter);
   hestOptAdd(&opt, "s,size", "size", airTypeUInt, 1, 1, &size, "1",
              "after inserting stub axis, also pad out to some length, "
              "according to the \"-b\" option");
@@ -81,6 +85,9 @@ unrrdu_axinsertMain(int argc, const char **argv, const char *me,
     fprintf(stderr, "%s: error inserting axis:\n%s", me, err);
     airMopError(mop);
     return 1;
+  }
+  if (hestSourceUser == opt[centOptIdx].source) {
+    nout->axis[axis].center = center;
   }
   if (1 < size) {
     /* we also do padding here */

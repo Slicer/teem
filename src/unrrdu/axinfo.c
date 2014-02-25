@@ -52,19 +52,18 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
              "min and max values along axis");
   hestOptAdd(&opt, "sp,spacing", "spacing", airTypeDouble, 1, 1, &spc, "nan",
              "spacing between samples along axis");
-  /* HEY: this is currently a fundamental (but only rarely annoying)
-     problem in hest.  Because there is functionally no difference
-     between whether an option's information comes from the default
-     string or from the command-line, there is no real way to tell
-     hest, "hey, its just fine for this option to not be used, and
-     if its not used, DON'T DO ANYTHING".  The games of setting strings
-     to "" and floats/doubles to NaN are ways of compensating for
-     this.  However, there is no analogous trick for airEnums.
+  /* There used to be a complaint here about how hest doesn't allow
+     you to learn whether the option was parsed from the supplied
+     default versus from the command-line itself.  That issue has been
+     solved: opt[oi].source now takes on values from the hestSource*
+     enum; axinsert.c now provides an example of this. However,
+     parsing from a string here is still needed here, because here we
+     need to allow the string that represents "no centering"; this
+     is a current weakness of airEnumStr.
   hestOptAdd(&opt, "c,center", "center", airTypeEnum, 1, 1, &cent, "unknown",
              "centering of axis: \"cell\" or \"node\"",
              NULL, nrrdCenter);
   */
-  /* but this hack will do for now */
   hestOptAdd(&opt, "c,center", "center", airTypeString, 1, 1, &centerStr, "",
              "axis centering: \"cell\" or \"node\".  Not using this option "
              "leaves the centering as it is on input");
