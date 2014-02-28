@@ -48,8 +48,12 @@ unrrdu_minmaxDoit(const char *me, char *inS, int blind8BitRange, FILE *fout) {
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   airSinglePrintf(fout, NULL, "min: %.17g\n", range->min);
   airSinglePrintf(fout, NULL, "max: %.17g\n", range->max);
-  if (0 == range->min && 0 == range->max) {
-    fprintf(fout, "# min == max == 0.0 exactly\n");
+  if (range->min == range->max) {
+    if (0 == range->min) {
+      fprintf(fout, "# min == max == 0.0 exactly\n");
+    } else {
+      fprintf(fout, "# min == max\n");
+    }
   }
   if (range->hasNonExist) {
     fprintf(fout, "# has non-existent values\n");
