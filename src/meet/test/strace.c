@@ -187,7 +187,7 @@ findAndTraceMorePoints(Nrrd *nplot,
     /* we created a new test point, but it was never placed in the volume */
     /* so, HACK: undo pullPointNew . . . */
     point = pullPointNix(point);
-    pctx->idtagNext -= 1;
+    /* pctx->idtagNext -= 1; */
   }
 
   nPosOut = nrrdNew();
