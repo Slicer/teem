@@ -345,18 +345,18 @@ main(int argc, const char **argv) {
   hparm->respFileEnable = AIR_TRUE;
   me = argv[0];
 
-  hestOptAdd(&hopt, "int", "int", airTypeEnum, 1, 1, &interType,
-             "justr", "inter-particle energy type", NULL, pullInterType);
-  hestOptAdd(&hopt, "enr", "spec", airTypeOther, 1, 1, &enspR, "cotan",
-             "inter-particle energy, radial component",
-             NULL, NULL, pullHestEnergySpec);
-  hestOptAdd(&hopt, "ens", "spec", airTypeOther, 1, 1, &enspS, "zero",
-             "inter-particle energy, scale component",
-             NULL, NULL, pullHestEnergySpec);
-  hestOptAdd(&hopt, "enw", "spec", airTypeOther, 1, 1, &enspWin,
-             "butter:16,0.8", "windowing to create locality with additive "
-             "scale-space interaction (\"-int add\")",
-             NULL, NULL, pullHestEnergySpec);
+  /* these don't need to be visible on the command-line */
+  interType = pullInterTypeUnivariate;
+  enspR = pullEnergySpecNew();
+  airMopAdd(mop, enspR, (airMopper)pullEnergySpecNix, airMopAlways);
+  pullEnergySpecParse(enspR, "cotan");
+  enspS = pullEnergySpecNew();
+  airMopAdd(mop, enspS, (airMopper)pullEnergySpecNix, airMopAlways);
+  pullEnergySpecParse(enspS, "zero");
+  enspWin = pullEnergySpecNew();
+  airMopAdd(mop, enspWin, (airMopper)pullEnergySpecNix, airMopAlways);
+  pullEnergySpecParse(enspWin, "butter:16,0.8");
+
   hestOptAdd(&hopt, "zz", "bool", airTypeBool, 1, 1, &zeroZ, "false",
              "always constrain Z=0, to process 2D images");
   hestOptAdd(&hopt, "su", "bool", airTypeBool, 1, 1, &strnUse, "false",
