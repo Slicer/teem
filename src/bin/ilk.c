@@ -113,7 +113,7 @@ main(int argc, const char *argv[]) {
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
                  me, ilkInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  /* HEY: this is commented out because there is a memory otherwise;
+  /* HEY: this is commented out because there is a memory bug otherwise;
      this needs to be debugged */
   /* airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways); */
 
@@ -156,7 +156,10 @@ main(int argc, const char *argv[]) {
   max[0] = AIR_EXISTS(max[0]) ? max[0] : nin->axis[ax0+0].max;
   min[1] = AIR_EXISTS(min[1]) ? min[1] : nin->axis[ax0+1].min;
   max[1] = AIR_EXISTS(max[1]) ? max[1] : nin->axis[ax0+1].max;
+
   for (d=0; d<2; d++) {
+    fprintf(stderr, "%s: scale[0 + 2*%d] = %d\n", me, d,
+            AIR_CAST(int, scale[0 + 2*d]));
     switch(AIR_CAST(int, scale[0 + 2*d])) {
     case 0:
       /* same number of samples as input */
