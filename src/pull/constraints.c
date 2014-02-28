@@ -25,9 +25,8 @@
 #include "pull.h"
 #include "privatePull.h"
 
-/* #define PRAYING 0 */
-#define __IF_DEBUG if (0)
-/* #define __IF_DEBUG if(9518 == point->idtag) */
+#define DEBUG (1)
+/* #define DEBUG (9518 == point->idtag) */
 
 /*
 typedef struct {
@@ -41,7 +40,7 @@ probeIso(pullTask *task, pullPoint *point, unsigned int iter, int cond,
   static const char me[]="probeIso";
 
   ELL_3V_COPY(point->pos, pos);  / * NB: not touching point->pos[3] * /
-  _pullPointHistAdd(point, cond);
+  _pullPointHistAdd(point, cond, AIR_NAN);
   if (pullProbe(task, point)) {
     biffAddf(PULL, "%s: on iter %u", me, iter);
     return 1;
@@ -125,7 +124,7 @@ constraintSatIso(pullTask *task, pullPoint *point,
     step = -val/len; /* the newton-raphson step */
     step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
     ELL_3V_SCALE_INCR(point->pos, hack*step, dir);
-    _pullPointHistAdd(point, pullCondConstraintSatA);
+    _pullPointHistAdd(point, pullCondConstraintSatA, val + 1.234);
     PROBE(val, aval, grad);
     if (aval <= state[0]) {  /* we're no further from the root */
       if (AIR_ABS(step) < stepMax*constrEps) {
@@ -198,7 +197,7 @@ constraintSatLapl(pullTask *task, pullPoint *point,
     ELL_3V_COPY(posOld, point->pos);
     sgn = airSgn(val); /* lapl < 0 => downhill; lapl > 0 => uphill */
     ELL_3V_SCALE_INCR(point->pos, sgn*step, dir);
-    _pullPointHistAdd(point, pullCondConstraintSatA);
+    _pullPointHistAdd(point, pullCondConstraintSatA, val + 1.234);
     PROBEG(val, grad);
     if (val*valLast < 0) {
       /* laplacian has changed sign; stop looking */
@@ -224,7 +223,7 @@ constraintSatLapl(pullTask *task, pullPoint *point,
   for (iter=1; iter<=iterMax; iter++) {
     s = AIR_AFFINE(fa, 0, fb, a, b);
     ELL_3V_LERP(point->pos, s, posOld, posNew);
-    _pullPointHistAdd(point, pullCondConstraintSatB);
+    _pullPointHistAdd(point, pullCondConstraintSatB, val + 1.234);
     PROBE(fs);
     if (0 == fs) {
       /* exactly nailed the zero, we're done. This actually happens! */
@@ -297,7 +296,6 @@ creaseProj(pullTask *task, pullPoint *point,
            int negtang1Use, int negtang2Use,
            /* output */
            double posproj[9], double negproj[9]) {
-  /* #if PRAYING */
   static const char me[]="creaseProj";
   /* #endif */
   double pp[9];
@@ -306,7 +304,7 @@ creaseProj(pullTask *task, pullPoint *point,
   ELL_3M_ZERO_SET(posproj);
   if (tang1Use) {
     tng = point->info + task->pctx->infoIdx[pullInfoTangent1];
-    __IF_DEBUG {
+    if (DEBUG) {
       fprintf(stderr, "!%s: tng1 = %g %g %g\n", me, tng[0], tng[1], tng[2]);
     }
     ELL_3MV_OUTER(pp, tng, tng);
@@ -403,7 +401,6 @@ constraintSatHght(pullTask *task, pullPoint *point,
   double val, grad[3], hess[9], posproj[9], negproj[9],
     state[1+3+9+9+9+3], hack, step,
     d1, d2, pdir[3], plen, pgrad[3];
-  /* #if PRAYING */
   double _tmpv[3]={0,0,0};
   /* #endif */
   int havePos, haveNeg, haveNada, zeroGmagOkay;
@@ -414,7 +411,7 @@ constraintSatHght(pullTask *task, pullPoint *point,
   havePos = tang1Use || tang2Use;
   haveNeg = negtang1Use || negtang2Use;
   haveNada = !havePos && !haveNeg;
-  __IF_DEBUG {
+  if (DEBUG) {
     double stpmin;
     /* HEY: shouldn't stpmin also be used later in this function? */
     stpmin = task->pctx->voxelSizeSpace*constrEps;
@@ -427,16 +424,16 @@ constraintSatHght(pullTask *task, pullPoint *point,
     fprintf(stderr, "!%s: stpmin = %g = voxsize %g * parm.stepmin %g\n", me,
             stpmin, task->pctx->voxelSizeSpace, constrEps);
   }
-  _pullPointHistAdd(point, pullCondOld);
+  _pullPointHistAdd(point, pullCondOld, AIR_NAN);
   PROBE(val, grad, hess, posproj, negproj);
-  __IF_DEBUG {
+  if (DEBUG) {
     PRINT("initial probe");
   }
   SAVE(state, val, grad, hess, posproj, negproj, point->pos);
   hack = 1;
   for (iter=1; iter<=iterMax; iter++) {
-    __IF_DEBUG {
-      fprintf(stderr, "!%s: =============== begin iter %u\n", me, iter);
+    if (DEBUG) {
+      fprintf(stderr, "!%s: =-============= begin iter %u\n", me, iter);
     }
     /* HEY: no opportunistic increase of hack? */
     if (havePos || haveNada) {
@@ -458,7 +455,7 @@ constraintSatHght(pullTask *task, pullPoint *point,
         return 0;
       }
       step = (d2 <= 0 ? -plen : -d1/d2);
-      __IF_DEBUG {
+      if (DEBUG) {
         fprintf(stderr, "!%s: (+) iter %u step = (%g <= 0 ? %g : %g) --> %g\n",
                 me, iter, d2, -plen, -d1/d2, step);
       }
@@ -466,7 +463,7 @@ constraintSatHght(pullTask *task, pullPoint *point,
     convtestA:
       if (AIR_ABS(step) < stepMax*constrEps) {
         /* no further iteration needed; we're converged */
-        __IF_DEBUG {
+        if (DEBUG) {
           fprintf(stderr, "     |step| %g < %g*%g = %g ==> converged!\n",
                   AIR_ABS(step),
                   stepMax, constrEps,
@@ -479,7 +476,7 @@ constraintSatHght(pullTask *task, pullPoint *point,
         }
       }
       /* else we have to take a significant step */
-      __IF_DEBUG {
+      if (DEBUG) {
         fprintf(stderr, "       -> step %g, |pdir| = %g\n",
                 step, ELL_3V_LEN(pdir));
         ELL_3V_COPY(_tmpv, point->pos);
@@ -496,15 +493,15 @@ constraintSatHght(pullTask *task, pullPoint *point,
                  point->pos[2], point->pos[3], hack, step);
         return 1;
       }
-      __IF_DEBUG {
+      if (DEBUG) {
         ELL_3V_SUB(_tmpv, _tmpv, point->pos);
         fprintf(stderr, "       -> moved to %g %g %g %g\n",
                 point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
         fprintf(stderr, "       (moved %g)\n", ELL_3V_LEN(_tmpv));
       }
-      _pullPointHistAdd(point, pullCondConstraintSatA);
+      _pullPointHistAdd(point, pullCondConstraintSatA, val + 1.234);
       PROBE(val, grad, hess, posproj, negproj);
-      __IF_DEBUG {
+      if (DEBUG) {
         fprintf(stderr, "  (+) probed at (%g,%g,%g,%g)\n",
                 point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
         PRINT("after move");
@@ -514,20 +511,22 @@ constraintSatHght(pullTask *task, pullPoint *point,
       }
       if (val <= state[0]) {
         /* we made progress */
-        __IF_DEBUG {
+        if (DEBUG) {
           fprintf(stderr, "  (+) progress!\n");
         }
         SAVE(state, val, grad, hess, posproj, negproj, point->pos);
         hack = 1;
       } else {
         /* oops, we went uphill instead of down; try again */
-        __IF_DEBUG {
-          fprintf(stderr, "  val *increased*; backing hack from %g to %g\n",
+        if (DEBUG) {
+          fprintf(stderr, "  (+) val *increased* (up from %.17g by %.17g); "
+                  "backing hack from %g to %g\n",
+                  state[0], val - state[0],
                   hack, hack*task->pctx->sysParm.backStepScale);
         }
         hack *= task->pctx->sysParm.backStepScale;
         RESTORE(val, grad, hess, posproj, negproj, point->pos, state);
-        __IF_DEBUG {
+        if (DEBUG) {
           fprintf(stderr, "  restored to pos (%g,%g,%g,%g)\n",
                   point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
         }
@@ -551,14 +550,14 @@ constraintSatHght(pullTask *task, pullPoint *point,
         return 0;
       }
       step = (d2 <= 0 ? -plen : -d1/d2);
-      __IF_DEBUG {
+      if (DEBUG) {
         fprintf(stderr, "!%s: -+) iter %u step = (%g <= 0 ? %g : %g) --> %g\n",
                 me, iter, d2, -plen, -d1/d2, step);
       }
       step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
     convtestB:
       if (AIR_ABS(step) < stepMax*constrEps) {
-        __IF_DEBUG {
+        if (DEBUG) {
           fprintf(stderr, "     |step| %g < %g*%g = %g ==> converged!\n",
                   AIR_ABS(step),
                   stepMax, constrEps,
@@ -568,7 +567,7 @@ constraintSatHght(pullTask *task, pullPoint *point,
         break;
       }
       /* else we have to take a significant step */
-      __IF_DEBUG {
+      if (DEBUG) {
         fprintf(stderr, "       -> step %g, |pdir| = %g\n",
                 step, ELL_3V_LEN(pdir));
         ELL_3V_COPY(_tmpv, point->pos);
@@ -585,15 +584,15 @@ constraintSatHght(pullTask *task, pullPoint *point,
                  point->pos[2], point->pos[3], hack, step);
         return 1;
       }
-      __IF_DEBUG {
+      if (DEBUG) {
         ELL_3V_SUB(_tmpv, _tmpv, point->pos);
         fprintf(stderr, "       -> moved to %g %g %g %g\n",
                 point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
         fprintf(stderr, "       (moved %g)\n", ELL_3V_LEN(_tmpv));
       }
-      _pullPointHistAdd(point, pullCondConstraintSatA);
+      _pullPointHistAdd(point, pullCondConstraintSatB, val + 1.234);
       PROBE(val, grad, hess, posproj, negproj);
-      __IF_DEBUG {
+      if (DEBUG) {
         fprintf(stderr, "  (-) probed at (%g,%g,%g,%g)\n",
                 point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
         PRINT("after move");
@@ -603,20 +602,22 @@ constraintSatHght(pullTask *task, pullPoint *point,
       }
       if (val >= state[0]) {
         /* we made progress */
-        __IF_DEBUG {
+        if (DEBUG) {
           fprintf(stderr, "  (-) progress!\n");
         }
         SAVE(state, val, grad, hess, posproj, negproj, point->pos);
         hack = 1;
       } else {
-        /* oops, we went uphill instead of down; try again */
-        __IF_DEBUG {
-          fprintf(stderr, "  val *increased*; backing hack from %g to %g\n",
+        /* oops, we went downhill instead of up; try again */
+        if (DEBUG) {
+          fprintf(stderr, "  (-) val *decreased* (down from %.17g by %.17g); "
+                  "backing hack from %g to %g\n",
+                  state[0], state[0] - val,
                   hack, hack*task->pctx->sysParm.backStepScale);
         }
         hack *= task->pctx->sysParm.backStepScale;
         RESTORE(val, grad, hess, posproj, negproj, point->pos, state);
-        __IF_DEBUG {
+        if (DEBUG) {
           fprintf(stderr, "  restored to pos (%g,%g,%g,%g)\n",
                   point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
         }
@@ -628,10 +629,15 @@ constraintSatHght(pullTask *task, pullPoint *point,
   } else {
     *constrFailP = AIR_FALSE;
   }
-  /*
-  printf("!%s: %d %s\n", me, *constrFailP,
-         *constrFailP ? "FAILED!" : "ok");
-          */
+  _pullPointHistAdd(point, (*constrFailP
+                            ? pullCondConstraintFail
+                            : pullCondConstraintSuccess), AIR_NAN);
+  if (DEBUG) {
+    printf("!%s: Finished %s: %s (%d)\n", me,
+           *constrFailP ? "with failure" : "OK",
+           *constrFailP ? airEnumStr(pullConstraintFail, *constrFailP) : "",
+           *constrFailP);
+  }
   return 0;
 }
 #undef PROBE
@@ -642,7 +648,7 @@ constraintSatHght(pullTask *task, pullPoint *point,
 
 /* ------------------------------------------- */
 
-/* HEY: have to make sure that scale position point->pos[3]
+/* have to make sure that scale position point->pos[3]
 ** is not modified anywhere in here: constraints are ONLY spatial
 **
 ** This uses biff, but only for showstopper problems
@@ -673,11 +679,11 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
     stepMax = dlim/iterMax;
   }
   */
-  /*
-  fprintf(stderr, "!%s(%d): hi ==== %g %g %g, stepMax = %g, iterMax = %u\n",
-          me, point->idtag, point->pos[0], point->pos[1], point->pos[2],
-          stepMax, iterMax);
-  */
+  if (DEBUG) {
+    fprintf(stderr, "!%s(%d): hi ==== %g %g %g, stepMax = %g, iterMax = %u\n",
+            me, point->idtag, point->pos[0], point->pos[1], point->pos[2],
+            stepMax, iterMax);
+  }
   task->pctx->count[pullCountConstraintSatisfy] += 1;
   switch (task->pctx->constraint) {
   case pullInfoHeightLaplacian: /* zero-crossing edges */
@@ -714,17 +720,44 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
   travel = ELL_3V_LEN(pos3Diff)/task->pctx->voxelSizeSpace;
   if (travel > travelMax) {
     *constrFailP = pullConstraintFailTravel;
+    if (DEBUG) {
+      fprintf(stderr, "!%s: travel %g > travelMax %g\n", me,
+              travel, travelMax);
+    }
   }
-  /*
-  fprintf(stderr, "!%s(%u) %s @ (%g,%g,%g) = (%g,%g,%g) + (%g,%g,%g)\n", me,
-          point->idtag,
-          (*constrFailP
-           ? airEnumStr(pullConstraintFail, *constrFailP)
-           : "#GOOD#"),
-          point->pos[0], point->pos[1], point->pos[2],
-          pos3Diff[0], pos3Diff[1], pos3Diff[2],
-          pos3Orig[0], pos3Orig[1], pos3Orig[2]);
-  */
+  if (DEBUG) {
+    fprintf(stderr, "!%s(%u) %s @ (%g,%g,%g) = (%g,%g,%g) + (%g,%g,%g)\n", me,
+            point->idtag,
+            (*constrFailP
+             ? airEnumStr(pullConstraintFail, *constrFailP)
+             : "#GOOD#"),
+            point->pos[0], point->pos[1], point->pos[2],
+            pos3Diff[0], pos3Diff[1], pos3Diff[2],
+            pos3Orig[0], pos3Orig[1], pos3Orig[2]);
+#if PULL_PHIST
+    if (1) {
+      Nrrd *nhist;
+      FILE *fhist;
+      char fname[AIR_STRLEN_LARGE];
+      nhist = nrrdNew();
+      sprintf(fname, "%04u-%04u-phist.nrrd", task->pctx->iter, point->idtag);
+      fprintf(stderr, "!%s: getting %s\n", me, fname);
+      if (pullPositionHistoryNrrdGet(nhist, task->pctx, point)) {
+        biffAddf(PULL, "%s: trouble", me);
+        return 1;
+      }
+      fprintf(stderr, "!%s: saving %s\n", me, fname);
+      if ((fhist = fopen(fname, "w"))) {
+        if (nrrdSave(fname, nhist, NULL)) {
+          biffMovef(PULL, NRRD, "%s: trouble", me);
+          return 1;
+        }
+        fclose(fhist);
+      }
+      nrrdNuke(nhist);
+    }
+  }
+#endif
   return 0;
 }
 

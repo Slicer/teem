@@ -25,6 +25,8 @@
 extern "C" {
 #endif
 
+#define _PHN PULL_PHIST_NUM    /* short-cut */
+
 /*
 ** These heuristics/parameters have been adjusted, and don't seem to need
 ** any further tweaking in order to work for all the datasets used so far
@@ -156,7 +158,7 @@ extern int _pullConstraintDim(const pullContext *pctx);
 /* pointPull.c */
 #if PULL_PHIST
 extern void _pullPointHistInit(pullPoint *point);
-extern void _pullPointHistAdd(pullPoint *point, int cond);
+extern void _pullPointHistAdd(pullPoint *point, int cond, double val);
 #else
 #define _pullPointHistInit(p)    /* no-op */
 #define _pullPointHistAdd(p, c)  /* no-op */

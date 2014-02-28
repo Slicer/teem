@@ -784,9 +784,89 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
   return 0;
 }
 
+/*
+** extract history as single array, possibly specific to only a single point0
+*/
 int
-pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx) {
-  static const char me[]="pullPositionHistoryGet";
+pullPositionHistoryNrrdGet(Nrrd *nhist, pullContext *pctx, pullPoint *point0) {
+  static const char me[]="pullPositionHistoryNrrdGet";
+#if PULL_PHIST
+  pullBin *bin;
+  pullPoint *point;
+  unsigned int binIdx, pointIdx, valNum, valIdx, phistIdx, phistNum, ii;
+  double *hist;
+
+  if (!(nhist && pctx)) {
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
+  }
+
+  if (!point0) {
+    valNum = 0;
+    for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+      bin = pctx->bin + binIdx;
+      for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+        point = bin->point[pointIdx];
+        valNum += point->phistArr->len;
+      }
+    }
+  } else {
+    valNum = point0->phistArr->len;
+  }
+  if (nrrdMaybeAlloc_va(nhist, nrrdTypeDouble, 2,
+                        AIR_CAST(size_t, 1 + _PHN),
+                        AIR_CAST(size_t, valNum))) {
+    biffMovef(PULL, NRRD, "%s: couldn't allocate output", me);
+    return 1;
+  }
+  hist = AIR_CAST(double *, nhist->data);
+  valIdx = 0;
+  if (!point0) {
+    for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+      bin = pctx->bin + binIdx;
+      for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+        point = bin->point[pointIdx];
+        phistNum = point->phistArr->len;
+        for (phistIdx=0; phistIdx<phistNum; phistIdx++) {
+          double *hh;
+          hh = hist + valIdx*(1 + _PHN);
+          hh[0] = AIR_CAST(double, point->idtag);
+          for (ii=0; ii<_PHN; ii++) {
+            hh[ii+1] = (point->phist + _PHN*phistIdx)[ii];
+          }
+          valIdx++;
+        }
+      }
+    }
+  } else {
+    fprintf(stderr, "!%s: point %p phist %p\n", me, point, point->phist);
+    for (valIdx=0; valIdx<valNum; valIdx++) {
+      double *hh;
+      fprintf(stderr, "!%s: valIdx = %u\n", me, valIdx);
+      hh = hist + valIdx*(1 + _PHN);
+      hh[0] = AIR_CAST(double, point0->idtag);
+      fprintf(stderr, "!%s: hh[0] = %g\n", me, hh[0]);
+      for (ii=0; ii<_PHN; ii++) {
+        fprintf(stderr, "!%s: ii = %u; &(phist + %u)[%u] = %p\n", me, ii,
+                _PHN*valIdx, ii, &((point->phist + _PHN*valIdx)[ii]));
+        hh[ii+1] = (point->phist + _PHN*valIdx)[ii];
+      }
+    }
+  }
+
+  return 0;
+#else
+  AIR_UNUSED(nhist);
+  AIR_UNUSED(pctx);
+  AIR_UNUSED(point0);
+  biffAddf(PULL, "%s: sorry, not compiled with PULL_PHIST", me);
+  return 1;
+#endif
+}
+
+int
+pullPositionHistoryPolydataGet(limnPolyData *pld, pullContext *pctx) {
+  static const char me[]="pullPositionHistoryPolydataGet";
 #if PULL_PHIST
   pullBin *bin;
   pullPoint *point;
@@ -859,7 +939,6 @@ pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx) {
       primIdx++;
     }
   }
-
 
   return 0;
 #else

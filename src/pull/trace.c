@@ -141,7 +141,7 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   if (constrFail) {
     pts->whyNowhere = pullTraceStopConstrFail;
     airMopOkay(mop);
-    pctx->idtagNext -= 1; /* HACK */
+    /* pctx->idtagNext -= 1; / * HACK * / */
     return 0;
   }
   if (pctx->flag.zeroZ && point->pos[2] != 0) {
@@ -276,7 +276,7 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   if (0 == vertNum || 1 == vertNum || 2 == vertNum) {
     pts->whyNowhere = pullTraceStopStub;
     airMopOkay(mop);
-    pctx->idtagNext -= 1; /* HACK */
+    /* pctx->idtagNext -= 1; / * HACK * / */
     return 0;
   }
 
@@ -356,7 +356,7 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   }
 
   airMopOkay(mop);
-  pctx->idtagNext -= 1; /* HACK */
+  /* pctx->idtagNext -= 1; / * HACK * / */
   return 0;
 }
 

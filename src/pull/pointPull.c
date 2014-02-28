@@ -25,6 +25,8 @@
 #include "pull.h"
 #include "privatePull.h"
 
+#define DEBUG 1
+
 /*
 ** HEY: this has to be threadsafe, at least threadsafe when there
 ** are no errors, because this can now be called from multiple
@@ -78,10 +80,12 @@ pullPointNew(pullContext *pctx) {
   pnt->phistNum = 0;
   pnt->phistArr = airArrayNew(AIR_CAST(void**, &(pnt->phist)),
                               &(pnt->phistNum),
-                              5*sizeof(double), 32);
+                              _PHN*sizeof(double), 32);
 #endif
   pnt->status = 0;
   ELL_4V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
+  fprintf(stderr, "!%s: point %p pos = %.17g  %.17g  %.17g  %.17g\n", me,
+          pnt, pnt->pos[0], pnt->pos[1], pnt->pos[2], pnt->pos[3]);
   pnt->energy = AIR_NAN;
   ELL_4V_SET(pnt->force, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
   pnt->stepEnergy = pctx->sysParm.stepInitial;
@@ -112,13 +116,18 @@ _pullPointHistInit(pullPoint *point) {
 }
 
 void
-_pullPointHistAdd(pullPoint *point, int cond) {
+_pullPointHistAdd(pullPoint *point, int cond, double val) {
+  static const char me[]="_pullPointHistAdd";
   unsigned int phistIdx;
 
   phistIdx = airArrayLenIncr(point->phistArr, 1);
-  ELL_4V_COPY(point->phist + 5*phistIdx, point->pos);
-  (point->phist + 5*phistIdx)[3] = 1.0;
-  (point->phist + 5*phistIdx)[4] = cond;
+  ELL_4V_COPY(point->phist + _PHN*phistIdx, point->pos);
+  fprintf(stderr, "!%s: point %p pos = %.17g  %.17g  %.17g  %.17g (%g)\n", me,
+          point, point->pos[0], point->pos[1], point->pos[2], point->pos[3],
+          val);
+  fprintf(stderr, "!%s: point %p phist %p\n", me, point, point->phist);
+  (point->phist + _PHN*phistIdx)[4] = cond;
+  (point->phist + _PHN*phistIdx)[5] = val;
   return;
 }
 #endif
@@ -842,17 +851,19 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
   static const char me[]="pullPointInitializeRandomOrHalton";
   int reject, verbo;
   airRandMTState *rng;
-  unsigned int threshFailCount = 0, spthreshFailCount = 0,
+  unsigned int tryCount = 0, threshFailCount = 0, spthreshFailCount = 0,
     constrFailCount = 0;
   rng = pctx->task[0]->rng;
 
   do {
     double rpos[4];
 
+    tryCount++;
     reject = AIR_FALSE;
     _pullPointHistInit(point);
     /* Populate tentative random point */
     if (pullInitMethodHalton == pctx->initParm.method) {
+      /* we generate all 4 coordinates, even if we don't need them all */
       airHalton(rpos, (pointIdx + threshFailCount + constrFailCount
                        + pctx->haltonOffset + pctx->initParm.haltonStartIndex),
                 airPrimeList, 4);
@@ -869,16 +880,25 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
       fprintf(stderr, "%g %g %g %g ",
               rpos[0], rpos[1], rpos[2], rpos[3]);
               */
+      if (!pctx->haveScale) {
+        rpos[3] = 0;
+      }
     } else {
       ELL_3V_SET(rpos, airDrandMT_r(rng), airDrandMT_r(rng), airDrandMT_r(rng));
       if (pctx->haveScale) {
         rpos[3] = airDrandMT_r(rng);
+      } else {
+        rpos[3] = 0;
       }
     }
     _pullUnitToWorld(pctx, scaleVol, point->pos, rpos);
+    fprintf(stderr, "!%s: point %p pos = %.17g  %.17g  %.17g  %.17g\n", me,
+            point, point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
     if (pctx->flag.zeroZ) {
       point->pos[2] = 0.0;
     }
+    fprintf(stderr, "!%s: point %p pos = %.17g  %.17g  %.17g  %.17g\n", me,
+            point, point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
     /*
     verbo = (AIR_ABS(-0.246015 - point->pos[0]) < 0.1 &&
              AIR_ABS(-144.78 - point->pos[0]) < 0.1 &&
@@ -890,7 +910,7 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
               point->idtag, point->pos[0], point->pos[1],
               point->pos[2], point->pos[3]);
     }
-    _pullPointHistAdd(point, pullCondOld);
+    _pullPointHistAdd(point, pullCondOld, AIR_NAN);
 
     /* HEY copy and paste */
     if (pctx->ispec[pullInfoSeedPreThresh]) {
@@ -927,15 +947,39 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
         THRESH_TEST(pullInfoLiveThresh3);
       }
     }
-
+    
     if (pctx->constraint) {
       int constrFail;
+      fprintf(stderr, "!%s: bingo point %p\n", me, point);
       if (_pullConstraintSatisfy(pctx->task[0], point,
                                  _PULL_CONSTRAINT_TRAVEL_MAX,
                                  &constrFail)) {
         biffAddf(PULL, "%s: trying constraint on point %u", me, pointIdx);
         return 1;
       }
+#if PULL_PHIST
+      if (DEBUG) {
+        Nrrd *nhist;
+        FILE *fhist;
+        char fname[AIR_STRLEN_SMALL];
+        nhist = nrrdNew();
+        if (pullPositionHistoryNrrdGet(nhist, pctx, point)) {
+          biffAddf(PULL, "%s: trouble", me);
+          return 1;
+        }
+        sprintf(fname, "%04u-%04u-%04u-phist.nrrd", pctx->iter,
+                point->idtag, tryCount);
+        fprintf(stderr, "!%s: saving %s\n", me, fname);
+        if ((fhist = fopen(fname, "w"))) {
+          if (nrrdSave(fname, nhist, NULL)) {
+            biffMovef(PULL, NRRD, "%s: trouble", me);
+            return 1;
+          }
+          fclose(fhist);
+        }
+        nrrdNuke(nhist);
+      }
+#endif
       if (constrFail) {
         constrFailCount++;
         reject = AIR_TRUE;
@@ -1186,6 +1230,8 @@ _pullPointSetup(pullContext *pctx) {
     if (!point) {
       point = pullPointNew(pctx);
     }
+    fprintf(stderr, "!%s: point %p pos = %.17g  %.17g  %.17g  %.17g\n", me,
+            point, point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
     /* Filling array according to initialization method */
     E = 0;
     switch(pctx->initParm.method) {
@@ -1245,7 +1291,7 @@ _pullPointSetup(pullContext *pctx) {
     /* we created a new test point, but it was never placed in the volume */
     /* so, HACK: undo pullPointNew . . . */
     point = pullPointNix(point);
-    pctx->idtagNext -= 1;
+    /* pctx->idtagNext -= 1; */
   }
 
   /* Final check: do we have any points? */

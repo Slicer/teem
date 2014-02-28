@@ -32,6 +32,8 @@
 ** how are force/energy along scale handled differently than in space?
 */
 
+#define __IF_DEBUG if (1)
+
 static double
 _pointDistSqrd(pullContext *pctx, pullPoint *AA, pullPoint *BB) {
   double diff[4];
@@ -859,6 +861,9 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     /* this particle has no reason to go anywhere; BUT we still have to
        enforce constraint if we have one */
     int constrFail = 0;
+    __IF_DEBUG {
+      fprintf(stderr, "!%s: point %u unforced ...\n", me, point->idtag);
+    }
     if (task->pctx->constraint) {
       if (_pullConstraintSatisfy(task, point,
                                  100.0*_PULL_CONSTRAINT_TRAVEL_MAX,
@@ -945,7 +950,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   point->status &= ~PULL_STATUS_STUCK_BIT;
   ELL_4V_COPY(posOld, point->pos);
   _pullPointHistInit(point);
-  _pullPointHistAdd(point, pullCondOld);
+  _pullPointHistAdd(point, pullCondOld, AIR_NAN);
   /* try steps along force until we succcessfully lower energy */
   hailMary = AIR_FALSE;
   do {
@@ -968,7 +973,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
                                 task->pctx->bboxMax[3]);
     }
     task->pctx->count[pullCountTestStep] += 1;
-    _pullPointHistAdd(point, pullCondEnergyTry);
+    _pullPointHistAdd(point, pullCondEnergyTry, AIR_NAN);
     if (task->pctx->constraint) {
       if (_pullConstraintSatisfy(task, point,
                                  _PULL_CONSTRAINT_TRAVEL_MAX,
@@ -1004,9 +1009,9 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
     if (stepBad) {
       point->stepEnergy *= task->pctx->sysParm.backStepScale;
       if (constrFail) {
-        _pullPointHistAdd(point, pullCondConstraintFail);
+        _pullPointHistAdd(point, pullCondConstraintFail, AIR_NAN);
       } else {
-        _pullPointHistAdd(point, pullCondEnergyBad);
+        _pullPointHistAdd(point, pullCondEnergyBad, AIR_NAN);
       }
       /* you have a problem if you had a non-trivial force, but you can't
          ever seem to take a small enough step to reduce energy */
@@ -1073,7 +1078,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
            point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
   }
   */
-  _pullPointHistAdd(point, pullCondNew);
+  _pullPointHistAdd(point, pullCondNew, AIR_NAN);
   ELL_4V_COPY(point->force, force);
 
   /* not recorded for the sake of this function, but for system accounting */

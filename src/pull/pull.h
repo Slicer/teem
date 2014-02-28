@@ -70,7 +70,15 @@ extern "C" {
 #define PULL_VOLUME_MAXNUM 4
 #define PULL_POINT_NEIGH_INCR 16
 #define PULL_BIN_MAXNUM 40000000 /* sanity check on max number bins */
-#define PULL_PHIST 0
+#define PULL_PHIST 1             /* can compile history of positions,
+                                    with tuples of length PULL_PHIST_NUM */
+#define PULL_PHIST_NUM 6         /* doubles saved per history point:
+                                    0  1  2  3   4    5
+                                    X  Y  Z Scl cond val
+                                    where Scl is just scale coordinate,
+                                    cond is from pullCond* enum,
+                                    and val is anything the caller wanted to
+                                    remember at that point */
 #define PULL_HINTER 0
 #define PULL_TANCOVAR 1
 
@@ -260,8 +268,9 @@ enum {
   pullCondConstraintSatB,     /* 3 */
   pullCondEnergyTry,          /* 4 */
   pullCondConstraintFail,     /* 5 */
-  pullCondEnergyBad,          /* 6 */
-  pullCondNew,                /* 7 */
+  pullCondConstraintSuccess,  /* 6 */
+  pullCondEnergyBad,          /* 7 */
+  pullCondNew,                /* 8 */
   pullCondLast
 };
 
@@ -1138,7 +1147,10 @@ PULL_EXPORT int pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut,
                                     pullContext *pctx,
                                     unsigned int idtagMin,
                                     unsigned int idtagMax);
-PULL_EXPORT int pullPositionHistoryGet(limnPolyData *pld, pullContext *pctx);
+PULL_EXPORT int pullPositionHistoryPolydataGet(limnPolyData *pld,
+                                               pullContext *pctx);
+PULL_EXPORT int pullPositionHistoryNrrdGet(Nrrd *nhist, pullContext *pctx,
+                                           pullPoint *point);
 PULL_EXPORT int pullPropGet(Nrrd *nprop, int prop, pullContext *pctx);
 
 /* pointPull.c */
