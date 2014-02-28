@@ -70,7 +70,7 @@ extern "C" {
 #define PULL_VOLUME_MAXNUM 4
 #define PULL_POINT_NEIGH_INCR 16
 #define PULL_BIN_MAXNUM 40000000 /* sanity check on max number bins */
-#define PULL_PHIST 1             /* can compile history of positions,
+#define PULL_PHIST 0             /* can compile history of positions,
                                     with tuples of length PULL_PHIST_NUM */
 #define PULL_PHIST_NUM 6         /* doubles saved per history point:
                                     0  1  2  3   4    5

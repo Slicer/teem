@@ -84,8 +84,6 @@ pullPointNew(pullContext *pctx) {
 #endif
   pnt->status = 0;
   ELL_4V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
-  fprintf(stderr, "!%s: point %p pos = %.17g  %.17g  %.17g  %.17g\n", me,
-          pnt, pnt->pos[0], pnt->pos[1], pnt->pos[2], pnt->pos[3]);
   pnt->energy = AIR_NAN;
   ELL_4V_SET(pnt->force, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
   pnt->stepEnergy = pctx->sysParm.stepInitial;
@@ -122,10 +120,11 @@ _pullPointHistAdd(pullPoint *point, int cond, double val) {
 
   phistIdx = airArrayLenIncr(point->phistArr, 1);
   ELL_4V_COPY(point->phist + _PHN*phistIdx, point->pos);
+
   fprintf(stderr, "!%s: point %p pos = %.17g  %.17g  %.17g  %.17g (%g)\n", me,
           point, point->pos[0], point->pos[1], point->pos[2], point->pos[3],
           val);
-  fprintf(stderr, "!%s: point %p phist %p\n", me, point, point->phist);
+
   (point->phist + _PHN*phistIdx)[4] = cond;
   (point->phist + _PHN*phistIdx)[5] = val;
   return;
@@ -892,13 +891,9 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
       }
     }
     _pullUnitToWorld(pctx, scaleVol, point->pos, rpos);
-    fprintf(stderr, "!%s: point %p pos = %.17g  %.17g  %.17g  %.17g\n", me,
-            point, point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
     if (pctx->flag.zeroZ) {
       point->pos[2] = 0.0;
     }
-    fprintf(stderr, "!%s: point %p pos = %.17g  %.17g  %.17g  %.17g\n", me,
-            point, point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
     /*
     verbo = (AIR_ABS(-0.246015 - point->pos[0]) < 0.1 &&
              AIR_ABS(-144.78 - point->pos[0]) < 0.1 &&
@@ -947,10 +942,9 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
         THRESH_TEST(pullInfoLiveThresh3);
       }
     }
-    
+
     if (pctx->constraint) {
       int constrFail;
-      fprintf(stderr, "!%s: bingo point %p\n", me, point);
       if (_pullConstraintSatisfy(pctx->task[0], point,
                                  _PULL_CONSTRAINT_TRAVEL_MAX,
                                  &constrFail)) {
@@ -969,7 +963,6 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
         }
         sprintf(fname, "%04u-%04u-%04u-phist.nrrd", pctx->iter,
                 point->idtag, tryCount);
-        fprintf(stderr, "!%s: saving %s\n", me, fname);
         if ((fhist = fopen(fname, "w"))) {
           if (nrrdSave(fname, nhist, NULL)) {
             biffMovef(PULL, NRRD, "%s: trouble", me);
@@ -1230,8 +1223,6 @@ _pullPointSetup(pullContext *pctx) {
     if (!point) {
       point = pullPointNew(pctx);
     }
-    fprintf(stderr, "!%s: point %p pos = %.17g  %.17g  %.17g  %.17g\n", me,
-            point, point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
     /* Filling array according to initialization method */
     E = 0;
     switch(pctx->initParm.method) {

@@ -25,7 +25,7 @@
 #include "pull.h"
 #include "privatePull.h"
 
-#define DEBUG (1)
+#define DEBUG (0)
 /* #define DEBUG (9518 == point->idtag) */
 
 /*
@@ -124,8 +124,8 @@ constraintSatIso(pullTask *task, pullPoint *point,
     step = -val/len; /* the newton-raphson step */
     step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
     ELL_3V_SCALE_INCR(point->pos, hack*step, dir);
-    _pullPointHistAdd(point, pullCondConstraintSatA, val + 1.234);
     PROBE(val, aval, grad);
+    _pullPointHistAdd(point, pullCondConstraintSatA, val);
     if (aval <= state[0]) {  /* we're no further from the root */
       if (AIR_ABS(step) < stepMax*constrEps) {
         /* we have converged! */
@@ -197,8 +197,8 @@ constraintSatLapl(pullTask *task, pullPoint *point,
     ELL_3V_COPY(posOld, point->pos);
     sgn = airSgn(val); /* lapl < 0 => downhill; lapl > 0 => uphill */
     ELL_3V_SCALE_INCR(point->pos, sgn*step, dir);
-    _pullPointHistAdd(point, pullCondConstraintSatA, val + 1.234);
     PROBEG(val, grad);
+    _pullPointHistAdd(point, pullCondConstraintSatA, val);
     if (val*valLast < 0) {
       /* laplacian has changed sign; stop looking */
       break;
@@ -223,8 +223,8 @@ constraintSatLapl(pullTask *task, pullPoint *point,
   for (iter=1; iter<=iterMax; iter++) {
     s = AIR_AFFINE(fa, 0, fb, a, b);
     ELL_3V_LERP(point->pos, s, posOld, posNew);
-    _pullPointHistAdd(point, pullCondConstraintSatB, val + 1.234);
     PROBE(fs);
+    _pullPointHistAdd(point, pullCondConstraintSatB, 0.0);
     if (0 == fs) {
       /* exactly nailed the zero, we're done. This actually happens! */
       printf("!%s: b lapl == 0!\n", me);
@@ -282,13 +282,14 @@ probeHeight(pullTask *task, pullPoint *point,
 /*
 ** creaseProj
 **
-** eigenvectors (with non-zero eigenvalues) of output posproj are
-** tangents to the directions along which particle is allowed to move
-** *downward* (in height) for constraint satisfaction (according to
-** tangent 1 or tangents 1&2)
+** column-space of output posproj spans the directions along which
+** particle is allowed to move *downward* (in height) for constraint
+** satisfaction (according to tangent 1 or tangents 1&2); for seeking
+** minima where 2nd deriv is positive
 **
 ** negproj is the same, but for points moving upwards (according to
-** negativetangent1 or negativetangent 1&2)
+** negativetangent1 or negativetangent 1&2); for seeking
+** maxima where 2nd deriv is negative
 */
 static void
 creaseProj(pullTask *task, pullPoint *point,
@@ -297,7 +298,6 @@ creaseProj(pullTask *task, pullPoint *point,
            /* output */
            double posproj[9], double negproj[9]) {
   static const char me[]="creaseProj";
-  /* #endif */
   double pp[9];
   double *tng;
 
@@ -360,18 +360,12 @@ creaseProj(pullTask *task, pullPoint *point,
   ELL_3M_COPY(posproj, state + 1 + 3 + 9);                          \
   ELL_3M_COPY(negproj, state + 1 + 3 + 9 + 9);                      \
   ELL_3V_COPY(pos,     state + 1 + 3 + 9 + 9 + 9)
-#define POSNORM(d1, d2, pdir, plen, pgrad, grad, hess, posproj)       \
+#define DNORM(d1, d2, pdir, plen, pgrad, grad, hess, posproj)       \
   ELL_3MV_MUL(pgrad, posproj, grad);                                  \
   if (task->pctx->flag.zeroZ) pgrad[2]=0;                             \
   ELL_3V_NORM(pdir, pgrad, plen);                                     \
   d1 = ELL_3V_DOT(grad, pdir);                                        \
   d2 = ELL_3MV_CONTR(hess, pdir)
-#define NEGNORM(d1, d2, pdir, plen, pgrad, grad, hess, negproj)       \
-  ELL_3MV_MUL(pgrad, negproj, grad);                                  \
-  if (task->pctx->flag.zeroZ) pgrad[2]=0;                             \
-  ELL_3V_NORM(pdir, pgrad, plen);                                     \
-  d1 = -ELL_3V_DOT(grad, pdir);                                       \
-  d2 = -ELL_3MV_CONTR(hess, pdir)
 #define PRINT(prefix)                                                   \
   fprintf(stderr, "-------------- probe results %s (%u @ %g,%g,%g,%g):\n", \
           prefix, point->idtag, point->pos[0], point->pos[1],           \
@@ -424,8 +418,8 @@ constraintSatHght(pullTask *task, pullPoint *point,
     fprintf(stderr, "!%s: stpmin = %g = voxsize %g * parm.stepmin %g\n", me,
             stpmin, task->pctx->voxelSizeSpace, constrEps);
   }
-  _pullPointHistAdd(point, pullCondOld, AIR_NAN);
   PROBE(val, grad, hess, posproj, negproj);
+  _pullPointHistAdd(point, pullCondOld, val);
   if (DEBUG) {
     PRINT("initial probe");
   }
@@ -437,7 +431,7 @@ constraintSatHght(pullTask *task, pullPoint *point,
     }
     /* HEY: no opportunistic increase of hack? */
     if (havePos || haveNada) {
-      POSNORM(d1, d2, pdir, plen, pgrad, grad, hess, posproj);
+      DNORM(d1, d2, pdir, plen, pgrad, grad, hess, posproj);
       if (!ELL_3M_FROB(hess)) {
         *constrFailP = pullConstraintFailHessZeroA;
         return 0;
@@ -454,15 +448,16 @@ constraintSatHght(pullTask *task, pullPoint *point,
         *constrFailP = pullConstraintFailProjGradZeroA;
         return 0;
       }
-      step = (d2 <= 0 ? -plen : -d1/d2);
+      step = (d2 > 0 ? -d1/d2 : -plen);
       if (DEBUG) {
-        fprintf(stderr, "!%s: (+) iter %u step = (%g <= 0 ? %g : %g) --> %g\n",
-                me, iter, d2, -plen, -d1/d2, step);
+        fprintf(stderr, "!%s: (+) iter %u step = (%g > 0 ? %g : %g) --> %g\n",
+                me, iter, d2, -d1/d2, -plen, step);
       }
       step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
     convtestA:
-      if (AIR_ABS(step) < stepMax*constrEps) {
-        /* no further iteration needed; we're converged */
+      if (d2 > 0 && AIR_ABS(step) < stepMax*constrEps) {
+        /* we're converged because its concave up here
+           and we're close enough to the bottom */
         if (DEBUG) {
           fprintf(stderr, "     |step| %g < %g*%g = %g ==> converged!\n",
                   AIR_ABS(step),
@@ -499,8 +494,8 @@ constraintSatHght(pullTask *task, pullPoint *point,
                 point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
         fprintf(stderr, "       (moved %g)\n", ELL_3V_LEN(_tmpv));
       }
-      _pullPointHistAdd(point, pullCondConstraintSatA, val + 1.234);
       PROBE(val, grad, hess, posproj, negproj);
+      _pullPointHistAdd(point, pullCondConstraintSatA, val);
       if (DEBUG) {
         fprintf(stderr, "  (+) probed at (%g,%g,%g,%g)\n",
                 point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
@@ -535,7 +530,7 @@ constraintSatHght(pullTask *task, pullPoint *point,
   nextstep:
     if (haveNeg) {
       /* HEY: copy and paste from above, minus fluff, and with A->B */
-      NEGNORM(d1, d2, pdir, plen, pgrad, grad, hess, negproj);
+      DNORM(d1, d2, pdir, plen, pgrad, grad, hess, negproj);
       if (!ELL_3M_FROB(hess)) {
         *constrFailP = pullConstraintFailHessZeroB;
         return 0;
@@ -545,18 +540,19 @@ constraintSatHght(pullTask *task, pullPoint *point,
           step = 0;
           goto convtestB;
         }
-        /* this use to be a biff error, which got to be annoying */
         *constrFailP = pullConstraintFailProjGradZeroB;
         return 0;
       }
-      step = (d2 <= 0 ? -plen : -d1/d2);
+      step = (d2 < 0 ? -d1/d2 : plen);
       if (DEBUG) {
-        fprintf(stderr, "!%s: -+) iter %u step = (%g <= 0 ? %g : %g) --> %g\n",
-                me, iter, d2, -plen, -d1/d2, step);
+        fprintf(stderr, "!%s: -+) iter %u step = (%g < 0 ? %g : %g) --> %g\n",
+                me, iter, d2, -d1/d2, plen, step);
       }
       step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
     convtestB:
-      if (AIR_ABS(step) < stepMax*constrEps) {
+      if (d2 < 0 && AIR_ABS(step) < stepMax*constrEps) {
+        /* we're converged because its concave down here
+           and we're close enough to the top */
         if (DEBUG) {
           fprintf(stderr, "     |step| %g < %g*%g = %g ==> converged!\n",
                   AIR_ABS(step),
@@ -590,8 +586,8 @@ constraintSatHght(pullTask *task, pullPoint *point,
                 point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
         fprintf(stderr, "       (moved %g)\n", ELL_3V_LEN(_tmpv));
       }
-      _pullPointHistAdd(point, pullCondConstraintSatB, val + 1.234);
       PROBE(val, grad, hess, posproj, negproj);
+      _pullPointHistAdd(point, pullCondConstraintSatB, val);
       if (DEBUG) {
         fprintf(stderr, "  (-) probed at (%g,%g,%g,%g)\n",
                 point->pos[0], point->pos[1], point->pos[2], point->pos[3]);
@@ -641,8 +637,7 @@ constraintSatHght(pullTask *task, pullPoint *point,
   return 0;
 }
 #undef PROBE
-#undef POSNORM
-#undef NEGNORM
+#undef DNORM
 #undef SAVE
 #undef RESTORE
 
@@ -741,12 +736,10 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
       char fname[AIR_STRLEN_LARGE];
       nhist = nrrdNew();
       sprintf(fname, "%04u-%04u-phist.nrrd", task->pctx->iter, point->idtag);
-      fprintf(stderr, "!%s: getting %s\n", me, fname);
       if (pullPositionHistoryNrrdGet(nhist, task->pctx, point)) {
         biffAddf(PULL, "%s: trouble", me);
         return 1;
       }
-      fprintf(stderr, "!%s: saving %s\n", me, fname);
       if ((fhist = fopen(fname, "w"))) {
         if (nrrdSave(fname, nhist, NULL)) {
           biffMovef(PULL, NRRD, "%s: trouble", me);
@@ -756,8 +749,8 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
       }
       nrrdNuke(nhist);
     }
-  }
 #endif
+  }
   return 0;
 }
 

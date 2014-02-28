@@ -122,15 +122,18 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   travmax = 10.0*scaleDelta*velocityMax/pctx->voxelSizeSpace;
 
   ELL_4V_COPY(point->pos, seedPos);
+  /*
   if (pctx->verbose) {
-    fprintf(stderr, "%s: trying at seed=(%g,%g,%g,%g)\n", me, 
+    fprintf(stderr, "%s: trying at seed=(%g,%g,%g,%g)\n", me,
             seedPos[0], seedPos[1], seedPos[2], seedPos[3]);
   }
+  */
   if (_pullConstraintSatisfy(pctx->task[0], point, travmax, &constrFail)) {
     biffAddf(PULL, "%s: constraint sat on seed point", me);
     airMopError(mop);
     return 1;
   }
+  /*
   if (pctx->verbose) {
     fprintf(stderr, "%s: seed=(%g,%g,%g,%g) -> %s (%g,%g,%g,%g)\n", me,
             seedPos[0], seedPos[1], seedPos[2], seedPos[3],
@@ -138,6 +141,7 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
             point->pos[0] - seedPos[0], point->pos[1] - seedPos[1],
             point->pos[2] - seedPos[2], point->pos[3] - seedPos[3]);
   }
+  */
   if (constrFail) {
     pts->whyNowhere = pullTraceStopConstrFail;
     airMopOkay(mop);

@@ -160,8 +160,8 @@ extern int _pullConstraintDim(const pullContext *pctx);
 extern void _pullPointHistInit(pullPoint *point);
 extern void _pullPointHistAdd(pullPoint *point, int cond, double val);
 #else
-#define _pullPointHistInit(p)    /* no-op */
-#define _pullPointHistAdd(p, c)  /* no-op */
+#define _pullPointHistInit(p)       /* no-op */
+#define _pullPointHistAdd(p, c, v)  /* no-op */
 #endif
 extern double _pullStepInterAverage(const pullContext *pctx);
 extern double _pullStepConstrAverage(const pullContext *pctx);
