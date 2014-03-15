@@ -912,7 +912,7 @@ NRRD_EXPORT void nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX],
 NRRD_EXPORT double nrrdSpaceVecNorm(unsigned int sdim,
                                     const double vec[NRRD_SPACE_DIM_MAX]);
 NRRD_EXPORT int nrrdSpaceVecExists(unsigned int sdim,
-                                   double vec[NRRD_SPACE_DIM_MAX]);
+                                   const double vec[NRRD_SPACE_DIM_MAX]);
 NRRD_EXPORT void nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]);
 /* ---- BEGIN non-NrrdIO */
 NRRD_EXPORT void nrrdSanityOrDie(const char *me);

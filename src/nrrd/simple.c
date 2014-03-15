@@ -580,7 +580,7 @@ nrrdDescribe(FILE *file, const Nrrd *nrrd) {
 }
 
 int
-nrrdSpaceVecExists(unsigned int sdim, double vec[NRRD_SPACE_DIM_MAX]) {
+nrrdSpaceVecExists(unsigned int sdim, const double vec[NRRD_SPACE_DIM_MAX]) {
   int exists;
   unsigned int ii;
 
