@@ -133,9 +133,11 @@ ELL_EXPORT void ell_3m_mul_f(float m3[9],
                              const float m1[9], const float m2[9]);
 ELL_EXPORT void ell_3m_mul_d(double m3[9],
                              const double m1[9], const double m2[9]);
-ELL_EXPORT void ell_3m_pre_mul_f(float m[9], const float x[9]);
-ELL_EXPORT void ell_3m_pre_mul_d(double m[9], const double x[9]);
-ELL_EXPORT void ell_3m_post_mul_f(float m[9], const float x[9]);
+/*                                     A = A * B */
+ELL_EXPORT void ell_3m_pre_mul_f(float A[9], const float B[9]);
+ELL_EXPORT void ell_3m_pre_mul_d(double A[9], const double B[9]);
+/*                                      A = B * A */
+ELL_EXPORT void ell_3m_post_mul_f(float A[9], const float B[9]);
 ELL_EXPORT void ell_3m_post_mul_d(double m[9], const double x[9]);
 ELL_EXPORT float ell_3m_det_f(float m[9]);
 ELL_EXPORT double ell_3m_det_d(double m[9]);
