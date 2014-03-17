@@ -1,0 +1,124 @@
+** Below are some non-trivial coding tasks that would help Teem a lot,
+** starting with the most important.  Compared to things in TODO.txt,
+** these are more generally useful, and can be done prior to working
+** on Teem 2.0 because they don't involve API changes.
+
+
+Update NrrdIO's CMakeLists.txt file.  While Teem has a good working
+CMakeLists.txt file:
+<http://sourceforge.net/p/teem/code/HEAD/tree/teem/trunk/CMakeLists.txt#l86>
+NrrdIO has a fairly meagre one:
+<http://sourceforge.net/p/teem/code/HEAD/tree/NrrdIO/trunk/CMakeLists.txt>
+Note how NrrdIO's CMakeLists.txt file doesn't really have proper handling
+of qnanhibit; it says "The QNANHIBIT variable is configured by the root
+level CMakeLists.txt".  But that's bogus- it's a copy-and-paste from the
+CMakeLists.txt from ITK's NrrdIO, whereas this NrrdIO is entirely
+stand-alone. What is required to teach NrrdIO's CMakeLists.txt about how to
+learn qnanhitbit at configure-time?  What other best practices are in
+Teem's CMakeLists.txt that should be copied in NrrdIO's (or introduced
+there if Teem's is out dated)?  You can get a copy of NrrdIO via:
+svn co http://svn.code.sf.net/p/teem/code/NrrdIO/trunk/ NrrdIO
+The source files here are largely extracted automatically by Teem code,
+via running:
+make -f pre-GNUmakefile
+clean make -f pre-GNUmakefile
+But the CMakeLists.txt file there is specific to NrrdIO; it isn't copied
+or updated based on anything in the rest of Teem.
+
+
+Create and host a new Teem CDash dashboard. The old one at
+<http://my.cdash.org/index.php?project=Teem> stopped working when
+Sourceforge changed the URL for code repo, and, whomever at Kitware created
+that dashboard no longer works there, and, they don't want to be bothered
+with fixing something that isn't making them money.  Also, enlist more
+machines for testing.
+
+
+Generate and commit some examples for using Doxygen to document Teem code,
+with "for dummies"-level intructions on how to run doxygen to generate a
+set of documentation web pages. One or two of these have been floated, but
+nothing was committed to the repo so they haven't stuck as examples to
+build upon.  Also, figure out a way to streamline the propogation of
+newly-generated documentation (from doxygen) to sourceforge-hosted web
+pages.  It seems like changes at sourceforge have made it increasingly
+annoying to update those web pages, so something scripted (or at least
+documented in gory detail) will help.
+
+
+Scrutinize all uses of sizeof(), especially with memcpy or memset.  When
+possible, sizeof() should be passed something involving the variable name
+itself, rather than referring to specific type (e.g. "float").  This has
+caused at least one tricky memory bug, when the variable type changed.
+
+
+Scrutinize all use strncpy. Why not use airStrcpy?
+
+
+All of the code in teem/src/nrrd/apply1D.c is ancient, and has not
+been brought into the modern world of using unsigned int and size_t.
+Also its very confusing. Needs to be walked through and tested
+thoroughly (with new tests in teem/Testing/nrrd)
+
+
+airArray's are used through-out Teem whenever a dynamically resized array
+is needed.  The current scheme for reallocation is very dumb: an "incr" is
+set at creation time, and then the array allocates itself for some multiple
+of incr (0, incr, 2*incr, 3*incr, etc).  The scaling should be
+multiplicative, not linear, with some adjustable factor:
+<http://en.wikipedia.org/wiki/Dynamic_array>
+<http://hg.python.org/cpython/file/e3be2941c834/Objects/listobject.c> The
+new thing should be called the "airList", and otherwise have an API closely
+matching that of airArray, including the callback mechanisms. Bit by bit
+things inside Teem can be switched over from using airArray to airList,
+starting with uses that have no public visibility.  Teem 2.0 can start
+changing things that are public, like the implementation of the airMop
+functions with airArrays (airMopNew() would then return an airList).
+
+
+There should be something called airBuff which can be generally used
+for reading and writing data, from/to strings or files, raw or compressed.
+Desirable features:
+* unify sprint'ing into string, or fwrite'ing to file
+* unify reading from string, or from file
+* string dynamically reallocated on write, with optional cap on
+  allowed size, maybe allowing control of whether reaching that size
+  is an error
+* when reading from a file, allow the file to be gzip'd, so that
+  all the subsequent IO can be blind to whether the file was
+  compressed or not
+* when reading from stdin, buffer it as you go to make it effectively
+  fseek-able. This would allow Nrrd IO functions to more experimentally
+  delegate to the different possible format readers. Right now Nrrd IO
+  function presume the file starts with some "magic", but NIFTI thwarts
+  this.
+* when writing to string, should be remembering where last output is,
+  to avoid needless repeated calls to strlen
+* could use one of these as wrapper around stderr for normal output of
+  unrrduCmds, but allowing it to be saved to string in case the command
+  is being invoked from C
+* remember comment from nrrd/formatPNG.c:
+     /* Reading PNGs teaches Gordon that his scheme for parsing nrrd header
+        information is inappropriately specific to reading PNMs and NRRDs,
+        since in this case the text from which we parse a nrrd field
+        descriptor did NOT come from a line of text as read by
+        _nrrdOneLine */
+     nio->line = (char *)airFree(nio->line);
+     nio->line = airStrdup(txt[i].text);
+Once airBuff is stable and working, nrrd IO things can be moved to that.
+
+
+Run Clang's static analyzer:
+<http://clang-analyzer.llvm.org/scan-build.html> Right now this reports
+"217 bugs found".  The "Value ... is never read" bugs seem mostly
+innocuous, all the other ones are actually concerning.  Any questions that
+arise in fixing the bugs should be posted to the teem-users list:
+http://sourceforge.net/p/teem/mailman/teem-users/
+
+
+Hest would benefit from some way of accepting comments (which are removed
+prior to doing the real work of command-line parsing). What should the
+syntax for this be?  Ignoring anything after a "#"?  Is there a way to
+delimit a comment string (as with /* ... */).  Implementing this would
+likely involve revisiting the cryptic innards of hest, which haven't
+changed a lot since they were first written during the 2002 winter
+olympics.  This is all do-able without any API changes.
