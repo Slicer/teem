@@ -46,7 +46,7 @@ main(int argc, const char *argv[]) {
   const char *me;
   char *outS, *errS, *debugS;
   airArray *mop;
-  float amb[3], *linfo, *debug, *map;
+  float amb[3], *linfo, *debug, *map, vscl;
   unsigned li, ui, vi;
   int qn, bits, method, doerr;
   limnLight *light;
@@ -76,6 +76,9 @@ main(int argc, const char *argv[]) {
              "camera pseudo-up vector, used to determine view coordinates");
   hestOptAdd(&hopt, "rh", NULL, airTypeInt, 0, 0, &(cam->rightHanded), NULL,
              "use a right-handed UVN frame (V points down)");
+  hestOptAdd(&hopt, "vs", "view-dir scaling", airTypeFloat, 1, 1, &vscl, "1",
+             "scaling along view-direction of location of "
+             "view-space lights");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, NULL,
              "file to write output envmap to");
   hestOptAdd(&hopt, "d", "filename", airTypeString, 1, 1, &debugS, "",
@@ -117,26 +120,38 @@ main(int argc, const char *argv[]) {
             me, LIMN_LIGHT_NUM);
     airMopError(mop); return 1;
   }
-  light = limnLightNew();
-  airMopAdd(mop, light, (airMopper)limnLightNix, airMopAlways);
-
-  limnLightAmbientSet(light, amb[0], amb[1], amb[2]);
-  for (li=0; li<nlight->axis[1].size; li++) {
-    linfo = (float *)(nlight->data) + 7*li;
-    limnLightSet(light, li, !!linfo[0],
-                 linfo[1], linfo[2], linfo[3],
-                 linfo[4], linfo[5], linfo[6]);
-  }
 
   cam->neer = -0.000000001;
   cam->dist = 0;
   cam->faar = 0.0000000001;
   cam->atRelative = AIR_TRUE;
-  if (limnCameraUpdate(cam) || limnLightUpdate(light, cam)) {
+  if (limnCameraUpdate(cam)) {
     airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);
-    fprintf(stderr, "%s: problem with camera or lights:\n%s\n", me, errS);
+    fprintf(stderr, "%s: problem with camera:\n%s\n", me, errS);
     airMopError(mop); return 1;
   }
+
+  light = limnLightNew();
+  airMopAdd(mop, light, (airMopper)limnLightNix, airMopAlways);
+  limnLightAmbientSet(light, amb[0], amb[1], amb[2]);
+  for (li=0; li<nlight->axis[1].size; li++) {
+    int vsp;
+    float lxyz[3];
+    linfo = (float *)(nlight->data) + 7*li;
+    vsp = !!linfo[0];
+    ELL_3V_COPY(lxyz, linfo + 4);
+    if (vsp) {
+      lxyz[2] *= vscl;
+    }
+    limnLightSet(light, li, vsp,
+                 linfo[1], linfo[2], linfo[3], lxyz[0], lxyz[1], lxyz[2]);
+  }
+  if (limnLightUpdate(light, cam)) {
+    airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);
+    fprintf(stderr, "%s: problem with lights:\n%s\n", me, errS);
+    airMopError(mop); return 1;
+  }
+
   nmap=nrrdNew();
   airMopAdd(mop, nmap, (airMopper)nrrdNuke, airMopAlways);
   if (limnEnvMapFill(nmap, limnLightDiffuseCB, method, light)) {
