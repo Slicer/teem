@@ -107,6 +107,7 @@ _limnPSEpilogue(limnObject *obj, limnCamera *cam, limnWindow *win) {
 void
 _limnPSDrawFace(limnObject *obj, limnFace *face,
                 limnCamera *cam, Nrrd *nmap, limnWindow *win) {
+  /* static const char me[]="_limnPSDrawFace"; */
   unsigned int vii;
   limnVertex *vert;
   limnLook *look;
@@ -138,7 +139,14 @@ _limnPSDrawFace(limnObject *obj, limnFace *face,
   R = AIR_CLAMP(0, R, 1);
   G = AIR_CLAMP(0, G, 1);
   B = AIR_CLAMP(0, B, 1);
-  if (R == G && G == B) {
+  if (0 && R == G && G == B) {
+    /* As of Sat Mar 1 23:06:14 CST 2014 some version of ghostscript
+       and/or imagemagick will assign (when rasterizing) different
+       colors for RGB color (g,g,g) and graylevel g, which caused
+       strange appearance bugs that were hard to track down. Even if
+       there's a way of preventing this from happening with the right
+       incantation in the EPS header, for now it is simpler to forego
+       the small economy implemented here */
     fprintf(win->file, "CP %g Gr F\n", R);
   }
   else {

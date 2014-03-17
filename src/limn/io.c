@@ -64,8 +64,9 @@ limnObjectDescribe(FILE *file, const limnObject *obj) {
           fprintf(file, ",");
         }
       }
-      fprintf(file, "]; wn = (%g,%g,%g)", face->worldNormal[0],
-              face->worldNormal[1], face->worldNormal[2]);
+      fprintf(file, "]; wn = (%g,%g,%g) |%g|", face->worldNormal[0],
+              face->worldNormal[1], face->worldNormal[2],
+              ELL_3V_LEN(face->worldNormal));
       look = obj->look + face->lookIdx;
       fprintf(file, "; RGB=(%g,%g,%g)",
               look->rgba[0], look->rgba[1], look->rgba[2]);

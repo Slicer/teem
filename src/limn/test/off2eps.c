@@ -34,7 +34,6 @@ main(int argc, const char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
   limnObject *obj;
-  limnLook *look; unsigned int lookIdx;
   limnWindow *win;
   Nrrd *nmap;
   FILE *file;
@@ -149,13 +148,6 @@ main(int argc, const char *argv[]) {
   win->file = airFopen(outS, stdout, "w");
   airMopAdd(mop, win, (airMopper)limnWindowNix, airMopAlways);
   win->scale = winscale;
-
-  for (lookIdx=0; lookIdx<obj->lookNum; lookIdx++) {
-    look = obj->look + lookIdx;
-    /* earlier version of limn/test/soid used (0.2,0.8,0.0), I think.
-       Now we assume that any useful shading is happening in the emap */
-    ELL_3V_SET(look->kads, 0.2, 0.8, 0);
-  }
 
   if (limnObjectRender(obj, cam, win)
       || (concave
