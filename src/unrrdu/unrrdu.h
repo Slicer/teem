@@ -171,6 +171,8 @@ F(ccmerge) \
 F(ccsettle) \
 F(dnorm) \
 F(vidicon) \
+F(grid) \
+F(hack) \
 F(undos) \
 F(save)
 /* these two have been removed since no one uses them

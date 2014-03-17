@@ -49,6 +49,8 @@ SET(UNRRDU_SOURCES
   diff.c
   dnorm.c
   vidicon.c
+  grid.c
+  hack.c
   undos.c
   mlut.c
   mrmap.c
