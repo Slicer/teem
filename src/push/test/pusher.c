@@ -89,6 +89,10 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "detr", NULL, airTypeBool, 0, 0,
              &(pctx->detReject), NULL,
              "do determinant-based rejection of initial sample locations");
+  hestOptAdd(&hopt, "mps", NULL, airTypeBool, 0, 0,
+             &(pctx->midPntSmp), NULL,
+             "sampling midpoint in tensor field, and invert it, instead of "
+             "approximating it by averaging the inverses at the endpoints");
   hestOptAdd(&hopt, "rng", "seed", airTypeUInt, 1, 1,
              &(pctx->seedRNG), "42",
              "seed value for RNG which determines initial point locations");
