@@ -173,9 +173,6 @@ extern void _nrrdSprintFieldInfo(char **strP, const char *prefix,
 extern void _nrrdFprintFieldInfo(FILE *file, const char *prefix,
                                  const Nrrd *nrrd, NrrdIoState *nio,
                                  int field);
-/* ---- BEGIN non-NrrdIO */
-extern int _nrrdReshapeDownGrayscale(Nrrd *nimg);
-/* ---- END non-NrrdIO */
 
 /* parseNrrd.c */
 extern int _nrrdReadNrrdParseField(NrrdIoState *nio, int useBiff);
