@@ -35,11 +35,12 @@ int
 unrrdu_axinfoMain(int argc, const char **argv, const char *me,
                   hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, *label, *units, *centerStr, *kindStr;
+  char *out, *err, *label, *units, *centerStr, *kindStr,
+    *_dirStr, *dirStr;
   Nrrd *nin, *nout;
   int pret, center, kind;
   unsigned int *axes, axesLen, axi;
-  double mm[2], spc;
+  double mm[2], spc, sdir[NRRD_SPACE_DIM_MAX];
   airArray *mop;
 
   hestOptAdd(&opt, "a,axes", "ax0", airTypeUInt, 1, -1, &axes, NULL,
@@ -67,6 +68,9 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
   hestOptAdd(&opt, "c,center", "center", airTypeString, 1, 1, &centerStr, "",
              "axis centering: \"cell\" or \"node\".  Not using this option "
              "leaves the centering as it is on input");
+  hestOptAdd(&opt, "dir,direction", "svec", airTypeString, 1, 1, &_dirStr, "",
+             "(NOTE: must quote vector) The \"space direction\": the vector "
+             "in space spanned by incrementing (by one) the axis index.");
   hestOptAdd(&opt, "k,kind", "kind", airTypeString, 1, 1, &kindStr, "",
              "axis kind. Not using this option "
              "leaves the kind as it is on input");
@@ -96,6 +100,29 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
     fprintf(stderr, "%s: error copying input:\n%s", me, err);
     airMopError(mop);
     return 1;
+  }
+  if (airStrlen(_dirStr)) {
+    if (!nin->spaceDim) {
+      fprintf(stderr, "%s: wanted to add space direction, but input "
+              "doesn't have space dimension set", me);
+      airMopError(mop);
+      return 1;
+    }
+    /* mindlessly copying logic from unu make; unsure of the value */
+    if ('\"' == _dirStr[0] && '\"' == _dirStr[strlen(_dirStr)-1]) {
+      _dirStr[strlen(_dirStr)-1] = 0;
+      dirStr = _dirStr + 1;
+    } else {
+      dirStr = _dirStr;
+    }
+    if (nrrdSpaceVectorParse(sdir, dirStr, nin->spaceDim, AIR_TRUE)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: couldn't parse space vector:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+  } else {
+    dirStr = NULL;
   }
 
   for (axi=0; axi<axesLen; axi++) {
@@ -150,6 +177,9 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
         }
       }
       nout->axis[axis].kind = kind;
+    }
+    if (dirStr) {
+      nrrdSpaceVecCopy(nout->axis[axis].spaceDirection, sdir);
     }
   }
 
