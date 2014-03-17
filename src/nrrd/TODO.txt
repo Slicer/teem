@@ -1,6 +1,3 @@
-
-nrrdCheckSum and "unu cksum" to provide equivalent of "unu data | cksum"
-
 all IO-related things:
 * get back verbose IO messages about fread-vs-directIO
 * enable imagemagick-style format flagging on filenames ("PNM:-"),
@@ -64,8 +61,6 @@ write a select() function to replace qsort() in median calculation
 be sure to test all non-boolean state/default variables
 
 add one-line descriptions to function declarations in nrrd.h
-
-2D rmaps
 
 see if the use of airSinglePrintf in accessors.c, with %.8g or whatever,
 is really the right thing to do in the most general case

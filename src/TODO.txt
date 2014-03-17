@@ -1,3 +1,8 @@
+** Compared to what's in HELP.txt, these are more generally more
+** fine-grained and nit-picky; some of them are only sensibly done by
+** GLK.  The things listed for Teem 2.0 involve significant API
+** changes, or significantly thoughtful redesign of how functional
+** components of Teem are implemented.
 
 ========
 for Teem 2.0:
@@ -21,7 +26,6 @@ Consider extending const-correctness of function input not just to
 pointers, but to all values as well.
 
 all:
-* scrutinize use of strncpy, consider using airStrcpy
 * remove '_'s from enum value names in non-elf non-tijk libraries
 * decide if <LIB>_EXPORT should just be TEEM_EXPORT
 * enforce consistent use of AIR_CALLOC/AIR_MALLOC
@@ -55,13 +59,11 @@ work with size_t
 * either change AIR_STRLEN_* to AIR_BUFFSIZE_* (or something similar,
 or take out the +1 from their definition and it into usage: the
 STRLEN is misleading as is.
-* important: change airArray implementation to re-allocate the array size
-multiplicatively (by some adjustable factor, default around 1.5 or 2.0),
-rather than the linear increments used now.  References:
-http://en.wikipedia.org/wiki/Dynamic_array
-http://hg.python.org/cpython/file/e3be2941c834/Objects/listobject.c
 * consider terminating airEnum->strEqv with NULL (just like argv)
 instead of with empty string ""
+* make airOneLine return number of bytes read; current return
+  of string length is entirely redundant with return of strlen()
+  and then enable the ftell() check after PNG magic read
 * reconcile names of "unsigned int airUIrandMT_r()" vs
   "unsigned int airRandInt()" and "unsigned int airRandInt_r()"
 * consider having something like a teemContext, which might be:
@@ -84,6 +86,23 @@ because "airTypeFloat" is there instead of "nrrdTypeFloat".  All
 things airType were created for the sake of hest. Instead of taking an
 airType enum value for hestOptAdd, hestOptAdd can take a string
 (e.g. "uchar", "float", "enum", "callback" for airTypeOther).
+* There's no such thing as a truly optional parameter: data is needed
+for all options, whether it comes from the default string or the
+command line, and its an error if no data is found.  Not having
+optional parameters is why things like "unu make" learn centerings via
+strings: the string can be given or not, and if its given, then the
+information is used.
+* There's no way to access the string that was parsed to get the
+information for an option (could be from default, or command-line,
+or response file)
+* (from tendGlyph.c): there needs to be an alternative API for hest
+that is not var-args based (as is hestOptAdd). You can't tell when
+you've based multiple strings for the detailed usage information by
+accident.  GLK had accidentally inserted a comma into my multi-line
+string for the "info" arg, relying on the automatic string
+concatenation, and ended up passing total garbage to hestOptAdd for
+the airEnum pointer, causing him to think that the tenGlyphType airEnum
+was malformed, when it was in fact fine ...
 
 biff:
 * biffMove(destKey, err, srcKey) --> biffMove(destKey, srcKey, err)
@@ -164,18 +183,17 @@ nrrd:
 [nrrd] nrrdResampleKernelSet: haven't set input nrrd yet
 * for nrrdCropAuto: consider adding some minimum remaining size requirement,
   in addition to offset
-* all of the code in apply1D.c is ancient, and has not been brought into
-  the world of using unsigned int and size_t.  Also very confusing. Needs
-  to be walked through and tested thoroughly.
 * why is _nrrdCheck (different than nrrdCheck) public?  Should be renamed?
 * now that we the new NrrdBoundarySpec, it should be used, and used
   consistently, throughout Teem; for example remove
   nrrdResampleBoundarySet and nrrdResamplePadValueSet and instead use new
   nrrdResampleBoundarySpecSet, and consider using NrrdBoundarySpec
   inside of NrrdResampleContext
+* The guts of "unu make" have to be made into a function call.  Its crazy
+to have all those smarts not more generally available.
+
 
 unu:
-
 * the UNRRDU_QUIET_QUIT functionality should be enabled by default instead
 of having to set an environment variable to get it. Or maybe not: when this
 goes wrong it is REALLY mysterious, and hard to debug.  For example:
@@ -221,9 +239,6 @@ push:
 ** The items below have accumulated over time, but the importance of them
 ** for Teem 2.0 or any other release should be re-evaluated.
 
-large-scale fix: when using sizeof with memcpy or memset, should be using
-the variable name itself instead of type as argument to sizeof()
-
 for cmake:
  - build pv on windows
  - see if wild-card expansion works as expected on windows
@@ -241,15 +256,7 @@ tend estim -new -sigma 0.01 -est wls -i 6crop-dwi.nrrd \
 
 gage: re-modularize to facilitate probing bricked data
 
-make system really botched: change the size of the tenFiberContext
-(added a field or two), do a make ten/install,
-then cd ../push; rm -f test/pusher
-
-air: make airOneLine return number of bytes read; current return
-  of string length is entirely redundant with return of strlen()
-  and then enable the ftell() check after PNG magic read
-
-bin/unu: valgrid parsing of encoding stuff
+bin/unu: valgrind parsing of encoding stuff
 
 gage changes into bane:
 - try gkms hvol with three explicit ranges
@@ -262,11 +269,7 @@ ell: debug SVD of things based on negative eigenvalues
 
 leaf: do it
 
-hest: add commenting via # or something else
-
 bane: finish updating tutorial
-
-dye: see if dyeColorParse should allocate the thing and return it
 
 image registration tool for small translational errors
 
@@ -275,6 +278,8 @@ way that facilitates transformations and correct drawing.  This really
 requires general data structures for 2-D graphics primatives...
 
 limn: either debug or remove limnQN16border1
+
+dye: see if dyeColorParse should allocate the thing and return it
 
 dye: colormaps
 
@@ -295,7 +300,13 @@ fout Eurovis 05: High-Quality Rendering of Compressed Volume Data Formats
 callahan TVCG May/June 05: Hardware-Assisted Visibility Sorting for Unstructured Volume Rendering
 jorik blaas vis05 fiber paper
 
-(less of an issue now that CMake is in use) make install; make; and
+Following are less of an issue now that CMake is in use ...
+
+make system really botched: change the size of the tenFiberContext
+(added a field or two), do a make ten/install,
+then cd ../push; rm -f test/pusher
+
+make install; make; and
 you'll STILL get memory errors due to seeing library/object files
 which use the older context size.  Do a top-level make clobber, and
 then things work.  This is crap.  I think the problem is that
