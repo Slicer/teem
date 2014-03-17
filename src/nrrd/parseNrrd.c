@@ -410,7 +410,7 @@ _nrrdReadNrrdParse_axis_maxs(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-int
+static int
 _nrrdSpaceVectorParse(double val[NRRD_SPACE_DIM_MAX],
                       char **hhP, unsigned int spaceDim, int useBiff) {
   static const char me[]="_nrrdSpaceVectorParse";
@@ -520,6 +520,36 @@ _nrrdSpaceVectorParse(double val[NRRD_SPACE_DIM_MAX],
     }
   }
   *hhP += length;
+  airMopOkay(mop);
+  return 0;
+}
+
+/*
+** public version of _nrrdSpaceVectorParse, which might not really be
+** needed, but given how _nrrdSpaceVectorParse currently wants a
+** char**, so it can move the pointer to point to the next space
+** vector to parse in a non-const string, this seems like a sane and
+** minimal effort option
+*/
+int
+nrrdSpaceVectorParse(double dir[NRRD_SPACE_DIM_MAX],
+                     const char *_str, unsigned int spaceDim, int useBiff) {
+  static const char me[]="nrrdSpaceVectorParse";
+  airArray *mop;
+  char *str;
+
+  mop = airMopNew();
+  str = airStrdup(_str);
+  airMopAdd(mop, str, airFree, airMopAlways);
+  if (!(dir && _str)) {
+    biffMaybeAddf(useBiff, NRRD, "%s: got NULL pointer", me);
+    airMopError(mop); return 1;
+  }
+  if (_nrrdSpaceVectorParse(dir, &str, spaceDim, useBiff)) {
+    biffMaybeAddf(useBiff, NRRD, "%s: trouble parsing", me);
+    airMopError(mop); return 1;
+  }
+
   airMopOkay(mop);
   return 0;
 }

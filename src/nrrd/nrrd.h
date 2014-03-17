@@ -977,6 +977,11 @@ NRRD_EXPORT int (*nrrdFieldInfoParse[NRRD_FIELD_MAX+1])(FILE *file, Nrrd *nrrd,
 NRRD_EXPORT unsigned int _nrrdDataFNNumber(NrrdIoState *nio);
 NRRD_EXPORT int _nrrdContainsPercentThisAndMore(const char *str, char thss);
 NRRD_EXPORT int _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff);
+/* ---- BEGIN non-NrrdIO */
+NRRD_EXPORT int nrrdSpaceVectorParse(double dir[NRRD_SPACE_DIM_MAX],
+                                     const char *str, unsigned int spaceDim,
+                                     int useBiff);
+/* ---- END non-NrrdIO */
 
 /* read.c */
 NRRD_EXPORT int _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file);
