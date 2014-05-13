@@ -51,6 +51,7 @@ SET(UNRRDU_SOURCES
   vidicon.c
   grid.c
   hack.c
+  aabplot.c
   undos.c
   mlut.c
   mrmap.c

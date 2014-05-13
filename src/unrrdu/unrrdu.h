@@ -173,6 +173,7 @@ F(dnorm) \
 F(vidicon) \
 F(grid) \
 F(hack) \
+F(aabplot) \
 F(undos) \
 F(save)
 /* these two have been removed since no one uses them
