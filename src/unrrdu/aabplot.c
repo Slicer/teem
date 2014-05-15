@@ -39,19 +39,26 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
   int pret;
   char *err;
   /* these are specific to this command */
-  int medshow;
-  Nrrd *_nin, *nin;
+  int medshow, rshow;
+  Nrrd *_nin, *nin, *_nsingle, *nsingle;
   unsigned int plen;
-  double vrange[2];
+  double vrange[2], *single;
 
   hestOptAdd(&opt, "l", "len", airTypeUInt, 1, 1, &plen, "78",
              "number of characters in box plot");
   hestOptAdd(&opt, "r", "min max", airTypeDouble, 2, 2, vrange, "0 100",
              "values to use as absolute min and max (unfortunately "
              "has to be same for all scanlines (rows).");
-  hestOptAdd(&opt, "M", "show", airTypeBool, 1, 1, &medshow, "false",
+  hestOptAdd(&opt, "rs", "show", airTypeBool, 1, 1, &rshow, "false",
+             "show range above plots");
+  hestOptAdd(&opt, "ms", "show", airTypeBool, 1, 1, &medshow, "false",
              "print the median value");
   OPT_ADD_NIN(_nin, "input nrrd");
+  hestOptAdd(&opt, "s", "single", airTypeOther, 1, 1, &_nsingle, "",
+             "if given a 1D nrrd here that matches the number of "
+             "rows in the \"-i\" input, interpret it as a list of values "
+             "that should be indicated with \"X\"s in the plots.",
+             NULL, NULL, nrrdHestNrrd);
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
@@ -59,9 +66,8 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( (2 == _nin->dim || 1 == _nin->dim)
-         && nrrdTypeBlock != _nin->type )) {
-    fprintf(stderr, "%s: need 1-D or 2-D array of scalars\n", me);
+  if (!( 2 == _nin->dim || 1 == _nin->dim )) {
+    fprintf(stderr, "%s: need 1-D or 2-D array\n", me);
     airMopError(mop);
     return 1;
   }
@@ -69,7 +75,7 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(nin, _nin, nrrdTypeDouble)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error converting:\n%s", me, err);
+    fprintf(stderr, "%s: error converting \"-s\" input:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
@@ -81,12 +87,31 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
       return 1;
     }
   }
+  if (_nsingle) {
+    if (nrrdElementNumber(_nsingle) != nin->axis[1].size) {
+      fprintf(stderr, "%s: \"-s\" input doesn't match size of \"-i\" input");
+      airMopError(mop);
+      return 1;
+    }
+    nsingle = nrrdNew();
+    airMopAdd(mop, nsingle, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdConvert(nsingle, _nsingle, nrrdTypeDouble)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: error converting \"-s\" input:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    single = (double*)nsingle->data;
+  } else {
+    nsingle = NULL;
+    single = NULL;
+  }
 
   {
 #define PTNUM 5
     double *in, *buff, ptile[PTNUM]={5,25,50,75,95};
     unsigned int xi, yi, pi, ti, ltt, sx, sy, pti[PTNUM];
-    char *line;
+    char *line, rbuff[128];
     Nrrd *nbuff;
 
     sx = AIR_CAST(unsigned int, nin->axis[0].size);
@@ -102,6 +127,21 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
     line = calloc(plen+1, sizeof(char));
     in = (double*)nin->data;
     buff = (double*)nbuff->data;
+
+    if (rshow) {
+      for (pi=0; pi<plen; pi++) {
+        line[pi] = ' ';
+      }
+      sprintf(rbuff, "|<-- %g", vrange[0]);
+      memcpy(line, rbuff, strlen(rbuff));
+      sprintf(rbuff, "%g -->|", vrange[1]);
+      memcpy(line + plen - strlen(rbuff), rbuff, strlen(rbuff));
+      printf("%s", line);
+      if (medshow) {
+        printf(" median");
+      }
+      printf("\n");
+    }
     for (yi=0; yi<sy; yi++) {
       for (xi=0; xi<sx; xi++) {
         buff[xi] = in[xi + sx*yi];
@@ -119,7 +159,7 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
       }
       ltt = (unsigned int)(-1);
       for (pi=0; pi<plen; pi++) {
-        line[pi] = ' ';
+        line[pi] = pi % 2 ? ' ' : '.';
       }
       for (pi=pti[0]; pi<=pti[4]; pi++) {
         line[pi] = '-';
@@ -127,10 +167,19 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
       for (pi=pti[1]; pi<=pti[3]; pi++) {
         line[pi] = '=';
       }
-      line[pti[2]]='M';
+      line[pti[2]]='m';
+      if (pti[2] > 0) {
+        line[pti[2]-1]='<';
+      }
+      if (pti[2] < plen-1) {
+        line[pti[2]+1]='>';
+      }
+      if (single) {
+        line[airIndexClamp(vrange[0], single[yi], vrange[1], plen)]='X';
+      }
       printf("%s", line);
       if (medshow) {
-        printf(" Median=%g", buff[airIndexClamp(0, 50, 100, sx)]);
+        printf(" %g", buff[airIndexClamp(0, 50, 100, sx)]);
       }
       printf("\n");
 #if 0
