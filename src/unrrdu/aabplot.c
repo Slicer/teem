@@ -89,7 +89,8 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
   }
   if (_nsingle) {
     if (nrrdElementNumber(_nsingle) != nin->axis[1].size) {
-      fprintf(stderr, "%s: \"-s\" input doesn't match size of \"-i\" input");
+      fprintf(stderr, "%s: \"-s\" input doesn't match size of \"-i\" input",
+              me);
       airMopError(mop);
       return 1;
     }
@@ -138,7 +139,7 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
       memcpy(line + plen - strlen(rbuff), rbuff, strlen(rbuff));
       printf("%s", line);
       if (medshow) {
-        printf(" median");
+        printf(" median:");
       }
       printf("\n");
     }
