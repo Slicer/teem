@@ -2041,8 +2041,28 @@ _TIJK_8O3D_SYM_TRANS(float, f)
 #define _tijk_8o3d_sym_convert_f NULL
 #define _tijk_8o3d_sym_convert_d NULL
 
-#define _tijk_8o3d_sym_approx_f NULL
-#define _tijk_8o3d_sym_approx_d NULL
+/* For convenience, do this via SH conversion */
+#define _TIJK_8O3D_SYM_APPROX(TYPE, SUF)                             \
+  int                                                                \
+  _tijk_8o3d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
+                               const TYPE *A) {                      \
+    if (res_type==tijk_2o3d_sym ||                                   \
+        res_type==tijk_4o3d_sym ||                                   \
+        res_type==tijk_6o3d_sym ||                                   \
+        res_type==tijk_8o3d_sym) {                                   \
+      TYPE esh[45];                                                  \
+      tijk_3d_sym_to_esh_##SUF (esh, A, tijk_8o3d_sym);              \
+      if (res_type==tijk_esh_to_3d_sym_##SUF (res, esh, res_type->order)) \
+        return 0;                                                       \
+    }                                                                \
+    if (NULL!=res_type->_approx_from_##SUF)                          \
+      return (*res_type->_approx_from_##SUF)(res,A,tijk_8o3d_sym);   \
+    else                                                             \
+      return 1;                                                      \
+  }
+
+_TIJK_8O3D_SYM_APPROX(double, d)
+_TIJK_8O3D_SYM_APPROX(float, f)
 
 double
 _tijk_8o3d_sym_s_form_d (const double *A, const double *v) {
