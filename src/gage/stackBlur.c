@@ -625,10 +625,10 @@ gageStackBlurParmParse(gageStackBlurParm *sbp,
     biffAddf(GAGE, "%s: couldn't parse \"%s\" as max scale", me, stok);
     airMopError(mop); return 1;
   }
-  bzero(flagSeen, sizeof(flagSeen));
+  memset(flagSeen, 0, sizeof(flagSeen));
   if (extraFlags) {
     /* not sizeof(extraFlags) == sizeof(int*) */
-    bzero(extraFlags, sizeof(flagSeen));
+    memset(extraFlags, 0, sizeof(flagSeen));
   }
   if (haveFlags) {
     char *flags, *ff;
