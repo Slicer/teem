@@ -32,7 +32,7 @@
 ** how are force/energy along scale handled differently than in space?
 */
 
-#define __IF_DEBUG if (1)
+#define __IF_DEBUG if (0)
 
 static double
 _pointDistSqrd(pullContext *pctx, pullPoint *AA, pullPoint *BB) {
