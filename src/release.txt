@@ -32,6 +32,7 @@ find . -name \*.txt -exec grep -f tab.txt {} /dev/null \; | more
 rm -f tab.txt
 
 -1) finalize TEEM_VERSION* in air/air.h and airTeemReleaseDate in air/misc.c
+and set airTeemReleaseDone to AIR_TRUE
 
 -0.5) regenerate teem/python/ctypes/teem.py
 
@@ -41,10 +42,7 @@ rm -f tab.txt
 make sure all the unrrdu pages agree with unu usage info
 cd ~/teem
 cp README.txt ~/teemdoc/html/tree/
-cp src/README.txt ~/teemdoc/html/tree/src/
-cp src/CHANGES.txt ~/teemdoc/html/tree/src/
 cp src/TODO.txt ~/teemdoc/html/tree/src/
-cp src/LICENSE.txt ~/teemdoc/html/tree/src/
 (cd ~/teemdoc; cvs commit -m "pre-release text file update")
 
 from: http://sourceforge.net/p/forge/documentation/SFTP/
@@ -52,7 +50,7 @@ from: http://sourceforge.net/p/forge/documentation/SFTP/
   cd htdocs
 also worked (from teemdoc/html)
 scp index.html kindlmann,teem@web.sourceforge.net:/home/project-web/teem/htdocs
-
+(HEY: need to figure out using rsync to move things to sourceforge)
 
 1) Check namespace safety
   a) Make sure all library symbols are properly prefixed:
@@ -65,18 +63,18 @@ scp index.html kindlmann,teem@web.sourceforge.net:/home/project-web/teem/htdocs
 
 2.5) svn "tag":
 setenv VERSION <<version>>
-svn copy https://teem.svn.sourceforge.net/svnroot/teem/teem/trunk \
-         https://teem.svn.sourceforge.net/svnroot/teem/teem/branches/Teem-${VERSION}
+svn copy https://svn.code.sf.net/p/teem/code/teem/trunk \
+         https://svn.code.sf.net/p/teem/code/teem/branches/Teem-${VERSION}
 
 3) Create source-only tgz:
-svn co http://teem.svn.sourceforge.net/svnroot/teem/teem/trunk teem
+svn co http://svn.code.sf.net/p/teem/code/teem/trunk teem
 cd teem
 find . -name .svn  -exec rm -rf {} \;
 cd ..; mv teem teem-${VERSION}-src
 tar czvf teem-${VERSION}-src.tar.gz teem-${VERSION}-src
 mv teem-${VERSION}-src.tar.gz ~/rel
 
-svn co http://teem.svn.sf.net:/svnroot/teem/NrrdIO/trunk NrrdIO
+svn co http://svn.code.sf.net/p/teem/code/NrrdIO/trunk NrrdIO
 cd NrrdIO
 find . -name .svn  -exec rm -rf {} \;
 cd ..; mv NrrdIO NrrdIO-${VERSION}-src
