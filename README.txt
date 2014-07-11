@@ -1,5 +1,5 @@
-=============== 
-  Teem: Tools to process and visualize scientific data and images              
+===============
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -27,7 +27,7 @@ text of the Simple Library Usage License (SLUL) should be in the file
 "LICENSE.txt" in the "src" directory.  The SLUL is the GNU Lesser
 General Public License, plus an exception: statically-linked binaries
 that link with Teem can be destributed under the terms of your choice,
-with very modest provisions.  
+with very modest provisions.
 
 =============== How to compile
 
@@ -42,7 +42,7 @@ http://teem.sourceforge.net/build.html
 =============== Directory Structure
 
 * src/
-  With one subdirectory for each of the teem libraries, all the 
+  With one subdirectory for each of the teem libraries, all the
   source for the libraries is in here.  See library listing below.
   The src/CODING.txt file documents Teem coding conventions.
   * src/make
@@ -73,9 +73,9 @@ http://teem.sourceforge.net/build.html
   subdirectories, with a name which exactly matches valid settings
   for the environment variable TEEM_ARCH. Within these directories are:
   * lib/
-    all libraries put both their static/archive (.a) and 
+    all libraries put both their static/archive (.a) and
     shared/dynamic (.so) library files here (such as libnrrd.a)
-  * bin/ 
+  * bin/
     all libraries put their binaries here, hopefully in a way which
     doesn't cause name clashes
   * obj/
@@ -89,7 +89,7 @@ http://teem.sourceforge.net/build.html
     Bindings for python via ctypes
 
 * Examples/
-  Place for examples of Teem-using programs, but unfortunately 
+  Place for examples of Teem-using programs, but unfortunately
   not populated by much right now.  A work in progress.
 
 =============== Teem libraries
@@ -100,12 +100,12 @@ indication of the libraries upon which it depends).  (TEEM_LIB_LIST)
 
 * air: Basic utility functions, used throughout Teem
 
-* hest: Command-line parsing (air) 
+* hest: Command-line parsing (air)
 
 * biff: Accumulation of error messages (air)
 
 * nrrd: Nearly Raw Raster Data- library for raster data manipulation,
-and support for NRRD file format (biff, hest, air) 
+and support for NRRD file format (biff, hest, air)
 
 * ell: Linear algebra: operations on vectors, matrices and quaternions,
 and solving cubic polynomials. (nrrd, biff, air)
@@ -155,7 +155,7 @@ fields (echo, limn, dye, gage, unrrdu, ell, nrrd, biff, air)
 * mite: Hoover-based volume rendering with gage-based transfer functions
 (ten, hoover, limn, gage, ell, nrrd, biff, air)
 
-* meet: Uniform API to things common to all Teem libraries 
+* meet: Uniform API to things common to all Teem libraries
 (mite, push, coil, pull, elf, ten, seek, hoover, echo, limn, bane, dye,
 gage, tijk, moss, alan, unrrdu, ell, nrrd, biff, hest, air)
 
