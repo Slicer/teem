@@ -42,7 +42,7 @@ static const char *_unrrdu_undosInfoL =
 #define LF 13
 #define BAD_PERC 5.0
 
-void
+static void
 undosConvert(const char *me, char *name, int reverse, int mac,
              int quiet, int noAction) {
   airArray *mop;
