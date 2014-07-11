@@ -34,6 +34,7 @@ set D=`pwd`
 echo "======================"
 echo "looking in $D; assuming its up-to-date"
 echo "Should see only TEEM-related #defines below"
+echo "as well as Tau-related gage/air stuff"
 echo "======================"
 
 cd ~/teem-install/include
