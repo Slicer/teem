@@ -805,7 +805,7 @@ pullPositionHistoryNrrdGet(Nrrd *nhist, pullContext *pctx, pullPoint *point0) {
     for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
       bin = pctx->bin + binIdx;
       for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
-	pullPoint *point;
+        pullPoint *point;
         point = bin->point[pointIdx];
         stepNum += point->phistArr->len;
       }
@@ -825,7 +825,7 @@ pullPositionHistoryNrrdGet(Nrrd *nhist, pullContext *pctx, pullPoint *point0) {
     for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
       bin = pctx->bin + binIdx;
       for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
-	pullPoint *point;
+        pullPoint *point;
         point = bin->point[pointIdx];
         phistNum = point->phistArr->len;
         for (phistIdx=0; phistIdx<phistNum; phistIdx++) {
