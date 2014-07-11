@@ -141,6 +141,7 @@ typedef union {
   short **s;
   unsigned int **ui;
   int **i;
+  long int **li;
   float **f;
   double **d;
   void **v;
