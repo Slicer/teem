@@ -19,7 +19,7 @@ find . -name \*.h -exec unu undos -n {}  \;
 find . -name \*.txt -exec unu undos -n {} \;
 
 -2.25) make sure there's no unwanted trailing whitespace
-grep -E '^.+[ ]+$' *.c
+grep -E '^.+[ ]+$' */*.c
 
 -2) make sure there are no tabs:
 cat > tab.txt
