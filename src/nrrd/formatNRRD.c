@@ -142,6 +142,7 @@ On output:
 #define MAGIC3 "NRRD0003"
 #define MAGIC4 "NRRD0004"
 #define MAGIC5 "NRRD0005"
+#define MAGIC6 "NRRD0006"
 
 const char *
 _nrrdFormatURLLine0 = "Complete NRRD file format specification at:";
@@ -350,6 +351,7 @@ _nrrdFormatNRRD_contentStartsLike(NrrdIoState *nio) {
           || !strcmp(MAGIC3, nio->line)
           || !strcmp(MAGIC4, nio->line)
           || !strcmp(MAGIC5, nio->line)
+          || !strcmp(MAGIC6, nio->line)
           );
 }
 
@@ -526,9 +528,25 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     if (!nio->encoding->isCompression) {
       /* bytes are skipped here for non-compression encodings, but are
          skipped within the decompressed stream for compression encodings */
-      if (nrrdByteSkip(dataFile, nrrd, nio)) {
-        biffAddf(NRRD, "%s: couldn't skip bytes", me);
-        return 1;
+      if (nio->dataFSkip) {
+        /* this error checking is clearly done unnecessarily repeated,
+           but it was logically the simplest place to add it */
+        if (nio->byteSkip) {
+          biffAddf(NRRD, "%s: using per-list-line skip, "
+                   "but also set global byte skip %ld", me, nio->byteSkip);
+          return 1;
+        }
+        /* wow, the meaning of nio->dataFNIndex is a little confusing */
+        if (_nrrdByteSkipSkip(dataFile, nrrd, nio, nio->dataFSkip[nio->dataFNIndex-1])) {
+          biffAddf(NRRD, "%s: couldn't skip %ld bytes on for list line %u",
+                   me, nio->dataFSkip[nio->dataFNIndex-1], nio->dataFNIndex-1);
+          return 1;
+        }
+      } else {
+        if (nrrdByteSkip(dataFile, nrrd, nio)) {
+          biffAddf(NRRD, "%s: couldn't skip bytes", me);
+          return 1;
+        }
       }
     }
     /* ---------------- read the data itself */

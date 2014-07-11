@@ -255,6 +255,7 @@ nrrdIoStateInit(NrrdIoState *nio) {
     nio->headerStringRead = NULL;
     nio->headerStringWrite = NULL;
     airArrayLenSet(nio->dataFNArr, 0);
+    airArrayLenSet(nio->dataFSkipArr, 0);
     /* closing this is always someone else's responsibility */
     nio->headerFile = NULL;
     nio->dataFile = NULL;
@@ -309,6 +310,10 @@ nrrdIoStateNew(void) {
     nio->dataFNArr = airArrayNew(appu.v, NULL,
                                  sizeof(char *), NRRD_FILENAME_INCR);
     airArrayPointerCB(nio->dataFNArr, airNull, airFree);
+    nio->dataFSkip = NULL;
+    appu.li = &(nio->dataFSkip);
+    nio->dataFSkipArr = airArrayNew(appu.v, NULL,
+                                    sizeof(long int), NRRD_FILENAME_INCR);
     nio->format = nrrdFormatUnknown;
     nio->encoding = nrrdEncodingUnknown;
     nrrdIoStateInit(nio);
@@ -324,6 +329,7 @@ nrrdIoStateNix(NrrdIoState *nio) {
   nio->line = (char *)airFree(nio->line);
   nio->dataFNFormat = (char *)airFree(nio->dataFNFormat);
   nio->dataFNArr = airArrayNuke(nio->dataFNArr);
+  nio->dataFSkipArr = airArrayNuke(nio->dataFSkipArr);
   /* the NrrdIoState never owned nio->oldData; we don't free it */
   airFree(nio);  /* no NULL assignment, else compile warnings */
   return NULL;

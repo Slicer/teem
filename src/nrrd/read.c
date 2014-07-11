@@ -263,16 +263,9 @@ nrrdLineSkip(FILE *dataFile, NrrdIoState *nio) {
   return 0;
 }
 
-/*
-******** nrrdByteSkip
-**
-** public for the sake of things like "unu make"
-** uses nio for information about how much data should actually be skipped
-** with negative byteSkip
-*/
 int
-nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
-  static const char me[]="nrrdByteSkip";
+_nrrdByteSkipSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio, long int byteSkip) {
+  static const char me[]="nrrdByteSkipSkip";
   int skipRet;
   size_t bsize;
 
@@ -285,7 +278,7 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
              "encoding %s", me, nio->encoding->name);
     return 1;
   }
-  if (nio->byteSkip < 0) {
+  if (byteSkip < 0) {
     long backwards;
     if (nrrdEncodingRaw != nio->encoding) {
       biffAddf(NRRD, "%s: this function can do backwards byte skip only "
@@ -300,7 +293,7 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
     bsize = nrrdElementNumber(nrrd)/_nrrdDataFNNumber(nio);
     bsize *= nrrdElementSize(nrrd);
     /* backwards is (positive) number of bytes AFTER data that we ignore */
-    backwards = -nio->byteSkip - 1;
+    backwards = -byteSkip - 1;
     /* HEY what if bsize fits in size_t but not in (signed) long? */
     if (fseek(dataFile, -AIR_CAST(long, bsize) - backwards, SEEK_END)) {
       char stmp[AIR_STRLEN_SMALL];
@@ -313,20 +306,45 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
               me, (int)ftell(dataFile));
     }
   } else {
-    if ((stdin == dataFile) || (-1==fseek(dataFile, nio->byteSkip, SEEK_CUR))) {
+    if ((stdin == dataFile) || (-1==fseek(dataFile, byteSkip, SEEK_CUR))) {
       long skipi;
       /* fseek failed, perhaps because we're reading stdin, so
          we revert to consuming the input one byte at a time */
-      for (skipi=0; skipi<nio->byteSkip; skipi++) {
+      for (skipi=0; skipi<byteSkip; skipi++) {
         skipRet = fgetc(dataFile);
         if (EOF == skipRet) {
           biffAddf(NRRD, "%s: hit EOF skipping byte %ld of %ld",
-                   me, skipi, nio->byteSkip);
+                   me, skipi, byteSkip);
           return 1;
         }
       }
     }
   }
+  return 0;
+}
+
+/*
+******** nrrdByteSkip
+**
+** public for the sake of things like "unu make"
+** uses nio for information about how much data should actually be skipped
+** with negative byteSkip
+*/
+int
+nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
+  static const char me[]="nrrdByteSkip";
+
+  if (!( dataFile && nrrd && nio )) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  /* HEY: with the advent of NRRD0006 per-file skips, maybe this is
+     the function that should be public */
+  if (_nrrdByteSkipSkip(dataFile, nrrd, nio, nio->byteSkip)) {
+    biffAddf(NRRD, "%s: trouble", me);
+    return 1;
+  }
+
   return 0;
 }
 

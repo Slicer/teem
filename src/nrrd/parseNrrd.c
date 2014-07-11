@@ -1368,18 +1368,23 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd,
                     "%s: trouble with number of datafiles", me);
       airMopError(mop); return 1;
     }
-  } else if (!strncmp(info, NRRD_LIST_FLAG, strlen(NRRD_LIST_FLAG))) {
+  } else if (!strncmp(info, NRRD_LIST_FLAG, strlen(NRRD_LIST_FLAG)) ||
+             !strncmp(info, NRRD_SKIPLIST_FLAG, strlen(NRRD_SKIPLIST_FLAG))) {
+    int skiplist;
+    unsigned int lineidx;
     /* ---------------------------------------------------------- */
-    /* ------------------------- LIST --------------------------- */
+    /* -------------------- LIST or SKIPLIST -------------------- */
     /* ---------------------------------------------------------- */
     _CHECK_HAVE_DIM;
+    skiplist = !strncmp(info, NRRD_SKIPLIST_FLAG, strlen(NRRD_SKIPLIST_FLAG));
     if (_nrrdHeaderCheck(nrrd, nio, AIR_TRUE)) {
-      biffMaybeAddf(useBiff, NRRD, "%s: NRRD header is incomplete. \""
-                    NRRD_LIST_FLAG "\" data file specification must be "
-                    "contiguous with end of header!", me);
+      biffMaybeAddf(useBiff, NRRD, "%s: NRRD header is incomplete. "
+                    "\"%s\" data file specification must be "
+                    "contiguous with end of header!", me,
+                    skiplist ? NRRD_SKIPLIST_FLAG : NRRD_LIST_FLAG);
       airMopError(mop); return 1;
     }
-    info += strlen(NRRD_LIST_FLAG);
+    info += strlen(skiplist ? NRRD_SKIPLIST_FLAG : NRRD_LIST_FLAG);
     if (info[0]) {
       if (1 == sscanf(info, "%u", &(nio->dataFileDim))) {
         if (!AIR_IN_CL(1, nio->dataFileDim, nrrd->dim)) {
@@ -1389,27 +1394,59 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd,
           airMopError(mop); return 1;
         }
       } else {
-        biffMaybeAddf(useBiff, NRRD, "%s: couldn't parse info after \""
-                      NRRD_LIST_FLAG "\" as an int", me);
+        biffMaybeAddf(useBiff, NRRD, "%s: couldn't parse info after "
+                      "\"%s\" as an int", me,
+                      skiplist ? NRRD_SKIPLIST_FLAG : NRRD_LIST_FLAG);
         airMopError(mop); return 1;
       }
     } else {
-      /* nothing after NRRD_LIST_FLAG, so dataFileDim is implicit */
+      /* nothing after NRRD_LIST_FLAG or NRRD_SKIPLIST_FLAG,
+         so dataFileDim is implicit */
       nio->dataFileDim = nrrd->dim-1;
     }
     /* read in all the datafile names */
+    lineidx = 0;
     do {
       /* yes, nio->line is re-used/over-written here, but I don't
          think that's a problem */
       if (_nrrdOneLine(&linelen, nio, ffile)) {
         biffMaybeAddf(useBiff, NRRD,
-                      "%s: trouble getting file name line", me);
+                      "%s: trouble getting file name line %u", me, lineidx);
         airMopError(mop); return 1;
       }
       if (linelen > 0) {
-        tmp = airArrayLenIncr(nio->dataFNArr, 1);
-        nio->dataFN[tmp] = airStrdup(nio->line);
+        /* we got a non-empty line */
+        if (skiplist) {
+          char *lhere;
+          long int oneskip;
+          if (1 != airSingleSscanf(nio->line, "%ld", &oneskip)) {
+            biffMaybeAddf(useBiff, NRRD,
+                          "%s: couldn't parse skip on list line %u",
+                          me, lineidx);
+            airMopError(mop); return 1;
+          }
+          lhere = strchr(nio->line, ' ');
+          if (!lhere) {
+            biffMaybeAddf(useBiff, NRRD, "%s: didn't see space after "
+                          "skip on list line %u", me, lineidx);
+            airMopError(mop); return 1;
+          }
+          lhere++;
+          if (!(lhere[0])) {
+            biffMaybeAddf(useBiff, NRRD, "%s: didn't see filename after "
+                          "skip and space on list line %u", me, lineidx);
+            airMopError(mop); return 1;
+          }
+          airArrayLenIncr(nio->dataFSkipArr, 1);
+          nio->dataFSkip[lineidx] = oneskip;
+          airArrayLenIncr(nio->dataFNArr, 1);
+          nio->dataFN[lineidx] = airStrdup(lhere);
+        } else {
+          airArrayLenIncr(nio->dataFNArr, 1);
+          nio->dataFN[lineidx] = airStrdup(nio->line);
+        }
       }
+      ++lineidx;
     } while (linelen > 0);
     if (_nrrdDataFNCheck(nio, nrrd, useBiff)) {
       biffMaybeAddf(useBiff, NRRD,

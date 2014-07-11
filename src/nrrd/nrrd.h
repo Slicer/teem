@@ -358,6 +358,13 @@ typedef struct NrrdIoState_t {
   long int byteSkip;        /* exactly like lineSkip, but bytes
                                instead of lines.  First the lines are
                                skipped, then the bytes */
+  long int *dataFSkip;      /* skip per-data-file line from a NRRD0006 "data
+                               file: SKIPLIST" specification; THIS OVERRIDES
+                               the single byteSkip above. The non-NULL-ity of
+                               this indicates there is a per-file byte skip.
+                               Line skip still precedes per-file byte skip. */
+  airArray *dataFSkipArr;   /* for managing the above */
+
   /* Note that the NRRD0004 and NRRD0005 file formats indicate that a numbered
      sequence of data filenames should be indexed via a "%d" format
      specification, and that the format doc says nothing about the "min" and
