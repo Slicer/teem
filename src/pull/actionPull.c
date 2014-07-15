@@ -566,12 +566,12 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
       ELL_4V_NORM_TT(ncs, float, ncs, ncsLen);
       if (ncsLen) {
         syy = ncs[3];
-        scl = (task->pctx->flag.scaleIsTau
-               ? AIR_CAST(float, gageSigOfTau(point->pos[3]))
-               : point->pos[3]);
+        scl = AIR_CAST(float, (task->pctx->flag.scaleIsTau
+                               ? gageSigOfTau(point->pos[3])
+                               : point->pos[3]));
         if (scl) {
           sxx = AIR_CAST(float, ELL_3V_LEN(ncs))/scl;
-          point->stability = atan2(syy, sxx)/(AIR_PI/2);
+          point->stability = AIR_CAST(float, atan2(syy, sxx)/(AIR_PI/2));
         } else {
           point->stability = 0;
         }
