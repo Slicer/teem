@@ -1350,7 +1350,7 @@ _stackBlurSpatial(Nrrd *const nblur[], gageStackBlurParm *sbp,
       timeDone = timeNow;
     } else { /* do blurring in one shot */
       kssb->parm[0] = sbp->sigma[blIdx];
-      for (axi=0; axi<(sbp->oneDim ? 1 : 3); axi++) {
+      for (axi=0; axi<(sbp->oneDim ? 1u : 3u); axi++) {
         if (!E) E |= nrrdResampleKernelSet(rsmc, kind->baseDim + axi,
                                            kssb->kernel,
                                            kssb->parm);
