@@ -3496,13 +3496,13 @@ nrrdKernelCheck(const NrrdKernel *kern,
          single versus the vector case? */
       float specEps;
       if (nrrdKernelForwDiff == kern) {
-        specEps = 5e-9;
+        specEps = 5e-9f;
       } else if (nrrdKernelBCCubic == kern) {
-        specEps = 5e-8;
+        specEps = 5e-8f;
       } else if (nrrdKernelBCCubicDD == kern) {
-        specEps = 5e-8;
+        specEps = 5e-8f;
       } else if (nrrdKernelAQuarticDD == kern) {
-        specEps = 5e-8;
+        specEps = 5e-8f;
       } else {
         specEps = 0.0;
       }
