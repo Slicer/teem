@@ -287,7 +287,7 @@ ELFESHESTIMMATRIX(float, f)
   for (i=0; i<N; i++) {                                                 \
     double factor=1.0/sqrt(type->mult[i]);                              \
     for (j=0; j<ct; j++)                                                \
-      T[ct*i+j]*=factor;                                                \
+      T[ct*i+j]=AIR_CAST(TYPE, factor*T[ct*i+j]);                       \
   }                                                                     \
                                                                         \
   free(M);                                                              \
