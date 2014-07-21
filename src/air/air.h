@@ -53,11 +53,11 @@
 ** NOTE: ../../CMakeLists.txt's Teem_VERSION variables must be in sync
 */
 #define TEEM_VERSION_MAJOR       1   /* must be 1 digit */
-#define TEEM_VERSION_MINOR      11   /* 1 or 2 digits */
-#define TEEM_VERSION_PATCH      01   /* 1 or 2 digits */
-#define TEEM_VERSION         11101   /* must be 5 digits, to facilitate
+#define TEEM_VERSION_MINOR      12   /* 1 or 2 digits */
+#define TEEM_VERSION_PATCH      00   /* 1 or 2 digits */
+#define TEEM_VERSION         11200   /* must be 5 digits, to facilitate
                                         easy numerical comparison */
-#define TEEM_VERSION_STRING "1.11.1" /* cannot be so easily compared */
+#define TEEM_VERSION_STRING "1.12.0" /* cannot be so easily compared */
 
 /* NrrdIO-hack-000 */
 
