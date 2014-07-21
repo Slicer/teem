@@ -46,6 +46,7 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
   char *minStr, *maxStr;
   int pret, blind8BitRange;
   unsigned int bits, hbins;
+  double gamma;
   NrrdRange *range;
   airArray *mop;
 
@@ -80,6 +81,9 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
              "\"0" NRRD_MINMAX_PERC_SUFF "\" means the highest input value is "
              "used, which is also the default "
              "behavior (same as not using this option).");
+  hestOptAdd(&opt, "g,gamma", "gamma", airTypeDouble, 1, 1, &gamma, "1.0",
+             "gamma > 1.0 brightens; gamma < 1.0 darkens. "
+             "Negative gammas invert values. ");
   hestOptAdd(&opt, "hb,bins", "bins", airTypeUInt, 1, 1, &hbins, "5000",
              "number of bins in histogram of values, for determining min "
              "or max by percentiles.  This has to be large enough so that "
@@ -107,9 +111,12 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdRangePercentileFromStringSet(range, nin, minStr, maxStr,
                                        hbins, blind8BitRange)
+      || (1 == gamma ? 0
+          : nrrdArithGamma(nin, nin, range, gamma))
       || nrrdQuantize(nout, nin, range, bits)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error with range or quantizing:\n%s", me, err);
+    fprintf(stderr, "%s: error with range%s quantizing:\n%s", me,
+            (1 == gamma ? " or" : ", gamma, or"), err);
     airMopError(mop);
     return 1;
   }
