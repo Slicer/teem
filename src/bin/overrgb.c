@@ -65,7 +65,7 @@ main(int argc, const char *argv[]) {
     *nrgbaD;           /* rgba input as double */
   const char *me;
   char *outS, *errS;
-  double gamma, contr, cfp, cpow, back[3], *rgbaD, r, g, b, a;
+  double _gamma, contr, cfp, cpow, back[3], *rgbaD, r, g, b, a;
   airArray *mop;
   int E;
   size_t min[3], max[3], sx, sy, pi;
@@ -82,7 +82,7 @@ main(int argc, const char *argv[]) {
              "means a complete washout.");
   hestOptAdd(&hopt, "cfp", "fixed point", airTypeDouble, 1, 1, &cfp, "0.5",
              "component level that doesn't change with contrast");
-  hestOptAdd(&hopt, "g", "gamma", airTypeDouble, 1, 1, &gamma, "1.0",
+  hestOptAdd(&hopt, "g", "gamma", airTypeDouble, 1, 1, &_gamma, "1.0",
              "gamma to apply to image data, after contrast");
   hestOptAdd(&hopt, "b", "background", airTypeDouble, 3, 3, back, "0 0 0",
              "background color to composite against; white is "
@@ -193,9 +193,9 @@ main(int argc, const char *argv[]) {
       g = docontrast(g, cfp, cpow);
       b = docontrast(b, cfp, cpow);
     }
-    r = pow(r, 1.0/gamma);
-    g = pow(g, 1.0/gamma);
-    b = pow(b, 1.0/gamma);
+    r = pow(r, 1.0/_gamma);
+    g = pow(g, 1.0/_gamma);
+    b = pow(b, 1.0/_gamma);
     if (bgUC) {
       r = a*r + (1-a)*bgUC[0 + 3*pi]/255;
       g = a*g + (1-a)*bgUC[1 + 3*pi]/255;

@@ -281,7 +281,7 @@ elfGlyphHOME(limnPolyData *glyph, const char antipodal,
 float
 elfGlyphKDE(limnPolyData *glyph, const char antipodal,
             const float *vecs, const size_t n_vecs,
-            const float gamma, const char normalize) {
+            const float _gamma, const char normalize) {
   float *verts=glyph->xyzw;
   float max=0;
   unsigned int i, j, infoBitFlag;
@@ -291,7 +291,7 @@ elfGlyphKDE(limnPolyData *glyph, const char antipodal,
     double val=0;
     for (j=0; j<n_vecs; j++) {
       double dp = ELL_3V_DOT(verts, vecs+3*j);
-      val+=pow(dp, gamma);
+      val+=pow(dp, _gamma);
     }
     val/=n_vecs;
 
@@ -354,7 +354,7 @@ int
 elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
                     const int *neighbors, unsigned int nbstride,
                     const float *ten, const tijk_type *type,
-                    const char modulate, const float gamma) {
+                    const char modulate, const float _gamma) {
   float *sqrdist, *verts, *newcol;
   char *processed, *id_ct, *diff_ct;
   int *path;
@@ -448,7 +448,7 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
             } else {
               modfactor=-evals[1]/(type->order*val);
               if (modfactor>1.0) modfactor=1.0;
-              else modfactor=AIR_CAST(float, pow(modfactor,gamma));
+              else modfactor=AIR_CAST(float, pow(modfactor,_gamma));
             }
           }
         } else {

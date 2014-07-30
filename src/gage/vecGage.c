@@ -31,7 +31,7 @@
 double
 gage_imaginary_part_eigenvalues(double *M ) {
     double A, B, C, scale, frob, m[9], _eval[3];
-    double beta, gamma;
+    double beta, _gamma;
     int roots;
 
     frob = ELL_3M_FROB(M);
@@ -55,8 +55,8 @@ gage_imaginary_part_eigenvalues(double *M ) {
 
     /* 2 complex conjuguate eigenvalues */
     beta = A + _eval[0];
-    gamma = -C/_eval[0];
-    return sqrt( 4.*gamma - beta*beta );
+    _gamma = -C/_eval[0];
+    return sqrt( 4.*_gamma - beta*beta );
 }
 
 

@@ -1666,7 +1666,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
         ell_3m_mul_d(tmp,R,tmp2);
       }
       if (rdiff2<1.0) {
-        double mean, submatrix[3], isoPhi, gamma, beta, A, C, R[9],RT[9];
+        double mean, submatrix[3], isoPhi, _gamma, beta, A, C, R[9],RT[9];
         int axis, midaxis, smallest;
 
         mean=(tmp[0]+tmp[4]+tmp[8])/3.0;
@@ -1707,10 +1707,10 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
           if (midaxis!=0) sign=-1;
         }
         isoPhi=0.0f;
-        gamma=sign*(submatrix[0]-submatrix[2]);
+        _gamma=sign*(submatrix[0]-submatrix[2]);
         beta=-sign*2*submatrix[1];
-        A=sqrt(gamma*gamma+beta*beta);
-        C=atan2(gamma,beta);
+        A=sqrt(_gamma*_gamma+beta*beta);
+        C=atan2(_gamma,beta);
         isoPhi=0.5*(asin(2.0/A*(mean-0.5*(submatrix[0]+submatrix[2])))-C);
         /* make sure we use the minimal rotation */
         isoPhi=asin(2.0/A*(mean-0.5*(submatrix[0]+submatrix[2])));

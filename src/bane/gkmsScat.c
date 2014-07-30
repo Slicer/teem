@@ -40,9 +40,9 @@ baneGkms_scatMain(int argc, const char **argv, const char *me,
   NrrdRange *vgRange, *vhRange;
   airArray *mop;
   int pret, E;
-  double gamma;
+  double _gamma;
 
-  hestOptAdd(&opt, "g", "gamma", airTypeDouble, 1, 1, &gamma, "1.0",
+  hestOptAdd(&opt, "g", "gamma", airTypeDouble, 1, 1, &_gamma, "1.0",
              "gamma used to brighten/darken scatterplots. "
              "gamma > 1.0 brightens; gamma < 1.0 darkens. "
              "Negative gammas invert values (like in xv). ");
@@ -77,8 +77,8 @@ baneGkms_scatMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, vgRange, (airMopper)nrrdRangeNix, airMopAlways);
   airMopAdd(mop, vhRange, (airMopper)nrrdRangeNix, airMopAlways);
   E = 0;
-  if (!E) E |= nrrdArithGamma(nvgRaw, nvgRaw, vgRange, gamma);
-  if (!E) E |= nrrdArithGamma(nvhRaw, nvhRaw, vhRange, gamma);
+  if (!E) E |= nrrdArithGamma(nvgRaw, nvgRaw, vgRange, _gamma);
+  if (!E) E |= nrrdArithGamma(nvhRaw, nvhRaw, vhRange, _gamma);
   if (!E) E |= nrrdQuantize(nvgQuant, nvgRaw, vgRange, 8);
   if (!E) E |= nrrdQuantize(nvhQuant, nvhRaw, vhRange, 8);
   if (E) {

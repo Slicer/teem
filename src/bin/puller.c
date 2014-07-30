@@ -755,7 +755,7 @@ main(int argc, const char **argv) {
     popCntlPeriod, addDescent, iterCallback, rngSeed, progressBinMod,
     threadNum, eipHalfLife, kssOpi, kssFinished, bspOpi, bspFinished;
   double jitter, stepInitial, constraintStepMin, radiusSpace, binWidthSpace,
-    radiusScale, alpha, beta, gamma, theta, wall, energyIncreasePermit,
+    radiusScale, alpha, beta, _gamma, theta, wall, energyIncreasePermit,
     backStepScale, opporStepScale, energyDecreaseMin, energyDecreasePopCntlMin,
     neighborTrueProb, probeProb, fracNeighNixedMax;
 
@@ -1010,7 +1010,7 @@ main(int argc, const char **argv) {
              "space repulsion (beta=0) and "
              "scale attraction (beta=1)");
   hestOptAdd(&hopt, "gamma", "gamma", airTypeDouble, 1, 1,
-             &gamma, "1.0",
+             &_gamma, "1.0",
              "scaling factor on energy from strength");
   hestOptAdd(&hopt, "theta", "theta", airTypeDouble, 1, 1,
              &theta, "0.0",
@@ -1156,7 +1156,7 @@ main(int argc, const char **argv) {
       || pullSysParmSet(pctx, pullSysParmBinWidthSpace, binWidthSpace)
       || pullSysParmSet(pctx, pullSysParmAlpha, alpha)
       || pullSysParmSet(pctx, pullSysParmBeta, beta)
-      || pullSysParmSet(pctx, pullSysParmGamma, gamma)
+      || pullSysParmSet(pctx, pullSysParmGamma, _gamma)
       || pullSysParmSet(pctx, pullSysParmTheta, theta)
       || pullSysParmSet(pctx, pullSysParmWall, wall)
       || pullSysParmSet(pctx, pullSysParmEnergyIncreasePermit,

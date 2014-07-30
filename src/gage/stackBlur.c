@@ -569,7 +569,7 @@ gageStackBlurParmParse(gageStackBlurParm *sbp,
   double sigmaMin, sigmaMax, dggsm;
   unsigned int sigmaNum, parmNum;
   int haveFlags, verbose, verboseGot=AIR_FALSE, dggsmGot=AIR_FALSE,
-    sampling, samplingGot=AIR_FALSE, E;
+    sampling = AIR_FALSE, samplingGot=AIR_FALSE, E;
   airArray *mop, *epsArr;
   NrrdKernelSpec *kspec=NULL;
   NrrdBoundarySpec *bspec=NULL;
