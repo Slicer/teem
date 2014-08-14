@@ -50,7 +50,7 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
   double len, gp1[3], gp2[3], *nPerp, ncTen[9], nProj[9]={0,0,0,0,0,0,0,0,0};
   double alpha = 0.5;
   double beta = 0.5;
-  double gamma = 5;
+  double _gamma = 5;
   double cc = 1e-6;
 #define FD_MEDIAN_MAX 16
   int fd, nidx, xi, yi, zi;
@@ -162,7 +162,7 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
       ans = pvl->directAnswer[gageSclHessRidgeness];
       ans[0] = (1-exp(-A*A/(2*alpha*alpha))) *
         exp(-B*B/(2*beta*beta)) *
-        (1-exp(-S*S/(2*gamma*gamma))) *
+        (1-exp(-S*S/(2*_gamma*_gamma))) *
         exp(-2*cc*cc/(AIR_ABS(heval[1])*heval[2]*heval[2]));
     }
   }
@@ -213,7 +213,7 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
       ans = pvl->directAnswer[gageSclHessValleyness];
       ans[0] = (1-exp(-A*A/(2*alpha*alpha))) *
         exp(-B*B/(2*beta*beta)) *
-        (1-exp(-S*S/(2*gamma*gamma))) *
+        (1-exp(-S*S/(2*_gamma*_gamma))) *
         exp(-2*cc*cc/(AIR_ABS(heval[1])*heval[0]*heval[0]));
     }
   }
