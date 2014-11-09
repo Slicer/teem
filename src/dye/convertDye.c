@@ -25,20 +25,31 @@
 #include "dye.h"
 
 /*
+** values in these matrices were copied from:
 ** from http://www.cs.rit.edu/~ncs/color/t_convert.html
-** each row below is really one column of the matrix
+**
+** from http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
+** these look to be specific to sRGB with D65 white
+**
+** NB: for a long time this matrices were wrong, because they
+** never got transposed at the same time that matrices in Teem
+** were switched from column-major to row-major ordering
 */
 float dyeRGBtoXYZMatx[9] = {
-  0.412453f, 0.212671f, 0.019334f,
-  0.357580f, 0.715160f, 0.119193f,
-  0.180423f, 0.072169f, 0.950227f};
+  0.412453f, 0.357580f, 0.180423f,
+  0.212671f, 0.715160f, 0.072169f,
+  0.019334f, 0.119193f, 0.950227f};
 float dyeXYZtoRGBMatx[9] = {
-  3.240479f,-0.969256f, 0.055648f,
-  -1.537150f, 1.875992f,-0.204043f,
-  -0.498535f, 0.041556f, 1.057311f};
+  3.240479f, -1.537150f, -0.498535f,
+  -0.969256f, 1.875992f, 0.041556f,
+  0.055648f, -0.204043f, 1.057311f};
 
 /* summing the rows of the RGBtoXYZ matrix to get X_n, Y_n, Z_n */
 float dyeWhiteXYZ_n[3] = {0.950456f, 1.0f, 1.088754f};
+/* so  x = X/(X+Y+Z) = 0.312731268 and
+   and y = Y/(X+Y+Z) = 0..32903287;
+   then http://en.wikipedia.org/wiki/Illuminant_D65
+   confirms that this is D65 white */
 
 /* the u'_n and v'_n which appear in the XYZ -> LUV conversion;
    u'_n = 4X_n / (X_n + 15Y_n + 3Z_n)
