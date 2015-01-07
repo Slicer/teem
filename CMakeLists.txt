@@ -99,15 +99,7 @@ else()
   set(__RUNTIME_OUTPUT_PATH_ "${CMAKE_BINARY_DIR}/bin")
 endif()
 
-set (LIBRARY_OUTPUT_PATH ${__LIBRARY_OUTPUT_PATH__} CACHE INTERNAL "Single output directory for building all libraries.")
-set (EXECUTABLE_OUTPUT_PATH ${__RUNTIME_OUTPUT_PATH__} CACHE INTERNAL "Single output directory for building all executables.")
-
 #output directory for installing all include files.")
-mark_as_advanced(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
-set(Teem_LIBRARY_PATH "${LIBRARY_OUTPUT_PATH}")
-set(Teem_EXECUTABLE_PATH "${EXECUTABLE_OUTPUT_PATH}")
-set(C_TEST_PATH ${EXECUTABLE_OUTPUT_PATH})
-
 
 file(MAKE_DIRECTORY ${Teem_BINARY_DIR}/include)
 file(MAKE_DIRECTORY ${Teem_BINARY_DIR}/include/teem)
@@ -522,7 +514,7 @@ file(WRITE ${Teem_BINARY_DIR}/TeemBuildSettings.cmake "# This file should NOT be
 set(CFLAGS "${CMAKE_C_FLAGS}")
 set(CC "${CMAKE_C_COMPILER}")
 
-set(Teem_EXECUTABLE_DIRS ${EXECUTABLE_OUTPUT_PATH} CACHE INTERNAL "Single output directory for building all executables.")
+set(Teem_EXECUTABLE_DIRS ${__RUNTIME_OUTPUT_PATH_} CACHE INTERNAL "Single output directory for building all executables.")
 
 
 # Teem_CV_ prefixed variables are only used inside TeemConfig.cmake.in for
@@ -538,7 +530,7 @@ set(Teem_EXECUTABLE_DIRS ${EXECUTABLE_OUTPUT_PATH} CACHE INTERNAL "Single output
 set(Teem_CV_CONFIG_TO_ROOT ".")
 set(Teem_CV_LIBRARY_DEPENDS_FILE ${Teem_BINARY_DIR}/TeemLibraryDepends.cmake)
 set(Teem_CV_EXECUTABLE_DIRS ${Teem_EXECUTABLE_DIRS})
-set(Teem_CV_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH})
+set(Teem_CV_LIBRARY_DIRS ${__LIBRARY_OUTPUT_PATH__})
 set(Teem_CV_USE_FILE ${Teem_SOURCE_DIR}/CMake/TeemUse.cmake)
 set(Teem_CV_INCLUDE_DIRS "${Teem_BINARY_DIR}/include")
 set(Teem_CV_BUILT_LIBRARIES teem) # The libraries built by teem.  Currently we only build the mega library.
