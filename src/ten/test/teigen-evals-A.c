@@ -19,8 +19,8 @@
   M00 -= mean;
   M11 -= mean;
   M22 -= mean;
-  
-  /* 
+
+  /*
   ** divide out L2 norm of eigenvalues (will multiply back later);
   ** this too seems to help with stability
   */
@@ -39,7 +39,7 @@
      "Eigensystems for 3 x 3 Symmetric Matrices (Revisited)" */
   Q = (M01*M01 + M02*M02 + M12*M12 - M00*M11 - M00*M22 - M11*M22)/3.0;
   QQQ = Q*Q*Q;
-  R = (M00*M11*M22 + M02*(2*M01*M12 - M02*M11) 
+  R = (M00*M11*M22 + M02*(2*M01*M12 - M02*M11)
        - M00*M12*M12 - M01*M01*M22)/2.0;
   D = QQQ - R*R;
   if (D > epsilon) {

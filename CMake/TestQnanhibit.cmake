@@ -1,5 +1,5 @@
 #
-# Teem: Tools to process and visualize scientific data and images              
+# Teem: Tools to process and visualize scientific data and images
 # Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -22,8 +22,8 @@
 #
 
 #
-# Checks whether the 22nd bit of a 32-bit quiet-NaN is 1 (1) or 0 (0).  This 
-# distinction is needed in handling of IEEE floating point special values.  
+# Checks whether the 22nd bit of a 32-bit quiet-NaN is 1 (1) or 0 (0).  This
+# distinction is needed in handling of IEEE floating point special values.
 # This quantity is independent of endian-ness.
 #
 # VARIABLE - variable to store the result to

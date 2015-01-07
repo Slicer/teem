@@ -22,7 +22,7 @@ pullDemo.run(npos,
              energy={'type':teem.pullInterTypeJustR, 'r':'cwell:0.6,-0.002'},
              iterMax=200,
              radSpace=0.05)
-           
+
 pullDemo.volFree(vol)
 
 if (teem.nrrdSave("npos.nrrd", npos, None)):
