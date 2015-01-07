@@ -30,7 +30,7 @@ macro(CREATE_EXEC name sources)
   set_target_properties(${name} PROPERTIES
     INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
     )
-endmacro(CREATE_EXEC)
+endmacro()
 
 # These binaries should not be depending on BUILD_EXPERIMENTAL_LIBS
 CREATE_EXEC(nrrdSanity nrrdSanity.c)
@@ -60,9 +60,9 @@ if(BUILD_EXPERIMENTAL_APPS)
   if(BUILD_EXPERIMENTAL_LIBS)
     CREATE_EXEC(gkms gkms.c)
     CREATE_EXEC(spots spots.c)
-  endif(BUILD_EXPERIMENTAL_LIBS)
-endif(BUILD_EXPERIMENTAL_APPS)
+  endif()
+endif()
 
 #if(BUILD_TESTING)
 #  add_test(nrrd.Sanity ${EXECUTABLE_OUTPUT_PATH}/nrrdSanity)
-#endif(BUILD_TESTING)
+#endif()
