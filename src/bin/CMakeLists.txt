@@ -62,7 +62,3 @@ if(BUILD_EXPERIMENTAL_APPS)
     CREATE_EXEC(spots spots.c)
   endif()
 endif()
-
-#if(BUILD_TESTING)
-#  add_test(nrrd.Sanity ${EXECUTABLE_OUTPUT_PATH}/nrrdSanity)
-#endif()

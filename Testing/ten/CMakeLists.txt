@@ -23,8 +23,8 @@
 
 add_executable(test_tendlist tendlist.c)
 target_link_libraries(test_tendlist teem)
-add_test(tendlist ${EXECUTABLE_OUTPUT_PATH}/test_tendlist)
+add_test(NAME tendlist COMMAND $<TARGET_FILE:test_tendlist>)
 
 add_executable(test_glyphBqd glyphBqd.c)
 target_link_libraries(test_glyphBqd teem)
-add_test(glyphBqd ${EXECUTABLE_OUTPUT_PATH}/test_glyphBqd)
+add_test(NAME glyphBqd COMMAND $<TARGET_FILE:test_glyphBqd>)

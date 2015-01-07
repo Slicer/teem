@@ -23,4 +23,4 @@
 
 add_executable(test_biff test.c)
 target_link_libraries(test_biff teem)
-add_test(biff ${EXECUTABLE_OUTPUT_PATH}/test_biff)
+add_test(NAME biff COMMAND $<TARGET_FILE:test_biff>)
