@@ -31,36 +31,36 @@
 # The directory of TeemConfig.cmake is, by definition, Teem_DIR.
 # (this_dir == Teem_DIR)
 #
-GET_FILENAME_COMPONENT(this_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
-GET_FILENAME_COMPONENT(Teem_ROOT_DIR "${this_dir}/@Teem_CV_CONFIG_TO_ROOT@" ABSOLUTE)
+get_filename_component(this_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(Teem_ROOT_DIR "${this_dir}/@Teem_CV_CONFIG_TO_ROOT@" ABSOLUTE)
 
 # CMake files required to build client applications that use Teem.
-SET(Teem_BUILD_SETTINGS_FILE "@Teem_CV_BUILD_SETTINGS_FILE@")
-SET(Teem_USE_FILE "@Teem_CV_USE_FILE@")
+set(Teem_BUILD_SETTINGS_FILE "@Teem_CV_BUILD_SETTINGS_FILE@")
+set(Teem_USE_FILE "@Teem_CV_USE_FILE@")
 
 # The Teem directories.
-SET(Teem_EXECUTABLE_DIRS "@Teem_CV_EXECUTABLE_DIRS@")
-SET(Teem_LIBRARY_DIRS "@Teem_CV_LIBRARY_DIRS@")
-SET(Teem_INCLUDE_DIRS "@Teem_CV_INCLUDE_DIRS@")
+set(Teem_EXECUTABLE_DIRS "@Teem_CV_EXECUTABLE_DIRS@")
+set(Teem_LIBRARY_DIRS "@Teem_CV_LIBRARY_DIRS@")
+set(Teem_INCLUDE_DIRS "@Teem_CV_INCLUDE_DIRS@")
 
 # The Teem libraries.
-SET(Teem_LIBRARIES "@Teem_CV_BUILT_LIBRARIES@")
+set(Teem_LIBRARIES "@Teem_CV_BUILT_LIBRARIES@")
 
 # The C flags added by Teem to the cmake-configured flags.
-SET(Teem_REQUIRED_C_FLAGS "@Teem_REQUIRED_C_FLAGS@")
+set(Teem_REQUIRED_C_FLAGS "@Teem_REQUIRED_C_FLAGS@")
 
 # The Teem version number
-SET(Teem_VERSION_MAJOR "@Teem_VERSION_MAJOR@")
-SET(Teem_VERSION_MINOR "@Teem_VERSION_MINOR@")
-SET(Teem_VERSION_PATCH "@Teem_VERSION_PATCH@")
+set(Teem_VERSION_MAJOR "@Teem_VERSION_MAJOR@")
+set(Teem_VERSION_MINOR "@Teem_VERSION_MINOR@")
+set(Teem_VERSION_PATCH "@Teem_VERSION_PATCH@")
 
 # Is Teem using shared libraries?
-SET(Teem_BUILD_SHARED_LIBS "@BUILD_SHARED_LIBS@")
+set(Teem_BUILD_SHARED_LIBS "@BUILD_SHARED_LIBS@")
 
 # The list of tools in teem
-SET(Teem_TOOLS "@Teem_TOOLS@")
+set(Teem_TOOLS "@Teem_TOOLS@")
 
 # The Teem library dependencies.
-IF(NOT Teem_NO_LIBRARY_DEPENDS)
-  INCLUDE("@Teem_CV_LIBRARY_DEPENDS_FILE@")
-ENDIF(NOT Teem_NO_LIBRARY_DEPENDS)
+if(NOT Teem_NO_LIBRARY_DEPENDS)
+  include("@Teem_CV_LIBRARY_DEPENDS_FILE@")
+endif(NOT Teem_NO_LIBRARY_DEPENDS)

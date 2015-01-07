@@ -1,6 +1,6 @@
 # This variable will help provide a master list of all the sources.
 # Add new source files here.
-SET(ELF_SOURCES
+set(ELF_SOURCES
   ballStickElf.c
   ESHEstimElf.c
   glyphElf.c

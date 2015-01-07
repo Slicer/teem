@@ -21,6 +21,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-ADD_EXECUTABLE(test_unulist unulist.c)
-TARGET_LINK_LIBRARIES(test_unulist teem)
-ADD_TEST(unulist ${EXECUTABLE_OUTPUT_PATH}/test_unulist)
+add_executable(test_unulist unulist.c)
+target_link_libraries(test_unulist teem)
+add_test(unulist ${EXECUTABLE_OUTPUT_PATH}/test_unulist)
