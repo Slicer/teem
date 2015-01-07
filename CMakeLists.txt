@@ -30,19 +30,16 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 # As of CMake 2.6 Policies were introduced in order to provide a mechanism for
 # adding backwards compatibility one feature at a time.
 
-# Run cmake --help-policy CMP<num> to see documentation.
-if(COMMAND cmake_policy)
-  # Library paths (/path/to/libmy.so not translated to -L/path/to -lmy)
-  cmake_policy(SET CMP0003 NEW)
-  if(POLICY CMP0033)
-  # The ``export_library_dependencies()`` command should not be called.
-  # The functionality has been superseded by export() and install(EXPORT) commands
-    cmake_policy(SET CMP0033 NEW)
-  endif()
-  if(POLICY CMP0054)
-  #Only interpret ``if()`` arguments as variables or keywords when unquoted.
-    cmake_policy(SET CMP0054 OLD)
-  endif()
+# Library paths (/path/to/libmy.so not translated to -L/path/to -lmy)
+cmake_policy(SET CMP0003 NEW)
+if(POLICY CMP0033)
+# The ``export_library_dependencies()`` command should not be called.
+# The functionality has been superseded by export() and install(EXPORT) commands
+  cmake_policy(SET CMP0033 NEW)
+endif()
+if(POLICY CMP0054)
+#Only interpret ``if()`` arguments as variables or keywords when unquoted.
+  cmake_policy(SET CMP0054 OLD)
 endif()
 
 project(Teem)
@@ -560,7 +557,6 @@ set(Teem_CV_BUILT_LIBRARIES teem) # The libraries built by teem.  Currently we o
 
 configure_file("${Teem_SOURCE_DIR}/CMake/TeemConfig.cmake.in"
   "${Teem_BINARY_DIR}/CMake/TeemConfig.cmake" @ONLY IMMEDIATE)
-
 
 install(FILES ${Teem_INSTALLED_HEADER_FILES}
   DESTINATION include/teem
