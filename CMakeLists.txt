@@ -456,9 +456,9 @@ else()
 endif()
 
 install(TARGETS teem
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib${EXTRA_INSTALL_PATH}
-  ARCHIVE DESTINATION lib${EXTRA_INSTALL_PATH}
+  RUNTIME DESTINATION bin COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION lib${EXTRA_INSTALL_PATH} COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION lib${EXTRA_INSTALL_PATH} COMPONENT Development
   )
 
 export(TARGETS teem FILE ${Teem_BINARY_DIR}/TeemLibraryDepends.cmake)
@@ -560,6 +560,7 @@ configure_file("${Teem_SOURCE_DIR}/CMake/TeemConfig.cmake.in"
 
 install(FILES ${Teem_INSTALLED_HEADER_FILES}
   DESTINATION include/teem
+  COMPONENT Development
   )
 
 install(FILES
@@ -568,4 +569,5 @@ install(FILES
   "${Teem_BINARY_DIR}/TeemBuildSettings.cmake"
   "${Teem_BINARY_DIR}/TeemLibraryDepends.cmake"
   DESTINATION lib${EXTRA_INSTALL_PATH}
+  COMPONENT Development
   )
