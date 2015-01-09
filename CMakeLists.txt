@@ -67,34 +67,23 @@ include (CMakeBackwardCompatibilityC)
 #-----------------------------------------------------------------------------
 # Output directories.
 
-#
-# in some cases, the output paths are specified via
-# CMAKE_*_OUTPUT_DIRECTORY variables when Teem is configured.
-# the logic below makes sure that the local *_OUTPUT_DIRECTORY
-# variables are in sync with those variables; otherwise the generated
-# TeemConfig.cmake file is wrong.
-#
-# First: libraries.
-set(__LIBRARY_OUTPUT_PATH__)
-if(BUILD_SHARED_LIBS)
-  if(CMAKE_LIBRARY_OUTPUT_DIRECTORY)
-    set(__LIBRARY_OUTPUT_PATH__ "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+foreach(type LIBRARY RUNTIME ARCHIVE)
+  # Make sure the directory exists
+  if(DEFINED CMAKE_${type}_OUTPUT_DIRECTORY
+     AND NOT EXISTS ${CMAKE_${type}_OUTPUT_DIRECTORY})
+    message(FATAL_ERROR "CMAKE_${type}_OUTPUT_DIRECTORY is set to a non-existing directory [${CMAKE_${type}_OUTPUT_DIRECTORY}]")
   endif()
-else()
-  if(CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
-    set(__LIBRARY_OUTPUT_PATH__ "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}")
+  if(NOT DEFINED CMAKE_${type}_OUTPUT_DIRECTORY)
+    set(CMAKE_${type}_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
   endif()
-endif()
+endforeach()
 
-if(NOT __LIBRARY_OUTPUT_PATH__)
-  set(__LIBRARY_OUTPUT_PATH__ "${CMAKE_BINARY_DIR}/lib")
-endif()
-# same fore executables.
-if(CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-  set(__RUNTIME_OUTPUT_PATH_ "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+if(BUILD_SHARED_LIBS)
+  set(__LIBRARY_OUTPUT_PATH__ "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 else()
-  set(__RUNTIME_OUTPUT_PATH_ "${CMAKE_BINARY_DIR}/bin")
+  set(__LIBRARY_OUTPUT_PATH__ "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}")
 endif()
+set(__RUNTIME_OUTPUT_PATH_ "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 #output directory for installing all include files.")
 
