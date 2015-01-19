@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2015, 2014, 2013, 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -296,7 +296,11 @@ int
 _nrrdFormatNRRD_whichVersion(const Nrrd *nrrd, NrrdIoState *nio) {
   int ret;
 
-  if (_nrrdFieldInteresting(nrrd, nio, nrrdField_measurement_frame)) {
+  if (nrrdEncodingZRL == nio->encoding
+      || nrrdSpaceRightUp == nrrd->space
+      || nrrdSpaceRightDown == nrrd->space) {
+    ret = 6;
+  } else if (_nrrdFieldInteresting(nrrd, nio, nrrdField_measurement_frame)) {
     ret = 5;
   } else if (_nrrdFieldInteresting(nrrd, nio, nrrdField_thicknesses)
              || _nrrdFieldInteresting(nrrd, nio, nrrdField_space)

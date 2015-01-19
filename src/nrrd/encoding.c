@@ -105,6 +105,7 @@ nrrdEncodingArray[NRRD_ENCODING_TYPE_MAX+1] = {
   &_nrrdEncodingAscii,
   &_nrrdEncodingHex,
   &_nrrdEncodingGzip,
-  &_nrrdEncodingBzip2
+  &_nrrdEncodingBzip2,
+  &_nrrdEncodingZRL,
 };
 

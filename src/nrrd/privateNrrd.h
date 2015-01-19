@@ -111,6 +111,7 @@ extern const NrrdEncoding _nrrdEncodingAscii;
 extern const NrrdEncoding _nrrdEncodingHex;
 extern const NrrdEncoding _nrrdEncodingGzip;
 extern const NrrdEncoding _nrrdEncodingBzip2;
+extern const NrrdEncoding _nrrdEncodingZRL;
 
 /* read.c */
 extern int _nrrdByteSkipSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio,

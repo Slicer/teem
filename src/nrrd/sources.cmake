@@ -19,6 +19,7 @@ SET(NRRD_SOURCES
   encodingGzip.c
   encodingHex.c
   encodingRaw.c
+  encodingZRL.c
   endianNrrd.c
   enumsNrrd.c
   filt.c

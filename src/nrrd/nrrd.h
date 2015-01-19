@@ -969,6 +969,7 @@ NRRD_EXPORT const NrrdEncoding *const nrrdEncodingAscii;
 NRRD_EXPORT const NrrdEncoding *const nrrdEncodingHex;
 NRRD_EXPORT const NrrdEncoding *const nrrdEncodingGzip;
 NRRD_EXPORT const NrrdEncoding *const nrrdEncodingBzip2;
+NRRD_EXPORT const NrrdEncoding *const nrrdEncodingZRL;
 /* encoding.c */
 NRRD_EXPORT const NrrdEncoding *const nrrdEncodingUnknown;
 NRRD_EXPORT const NrrdEncoding *

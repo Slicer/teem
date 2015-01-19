@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2015, 2014, 2013, 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -139,9 +139,10 @@ enum {
   nrrdEncodingTypeHex,      /* 3: hexidecimal (two chars per byte) */
   nrrdEncodingTypeGzip,     /* 4: gzip'ed raw data */
   nrrdEncodingTypeBzip2,    /* 5: bzip2'ed raw data */
+  nrrdEncodingTypeZRL,      /* 6: zero run-length compresion */
   nrrdEncodingTypeLast
 };
-#define NRRD_ENCODING_TYPE_MAX 5
+#define NRRD_ENCODING_TYPE_MAX 6
 
 /*
 ******** nrrdZlibStrategy enum
@@ -457,21 +458,25 @@ enum {
 */
 enum {
   nrrdSpaceUnknown,
-  nrrdSpaceRightAnteriorSuperior,     /*  1: NIFTI-1 (right-handed) */
-  nrrdSpaceLeftAnteriorSuperior,      /*  2: standard Analyze (left-handed) */
-  nrrdSpaceLeftPosteriorSuperior,     /*  3: DICOM 3.0 (right-handed) */
-  nrrdSpaceRightAnteriorSuperiorTime, /*  4: */
-  nrrdSpaceLeftAnteriorSuperiorTime,  /*  5: */
-  nrrdSpaceLeftPosteriorSuperiorTime, /*  6: */
-  nrrdSpaceScannerXYZ,                /*  7: ACR/NEMA 2.0 (pre-DICOM 3.0) */
-  nrrdSpaceScannerXYZTime,            /*  8: */
-  nrrdSpace3DRightHanded,             /*  9: */
-  nrrdSpace3DLeftHanded,              /* 10: */
-  nrrdSpace3DRightHandedTime,         /* 11: */
-  nrrdSpace3DLeftHandedTime,          /* 12: */
+  nrrdSpaceRightUp,                   /*  1: 2-D, oriented like upper right
+                                          Cartesian quadrant, number I */
+  nrrdSpaceRightDown,                 /*  2: 2-D, oriented like raster
+                                          coordinates */
+  nrrdSpaceRightAnteriorSuperior,     /*  3: NIFTI-1 (right-handed) */
+  nrrdSpaceLeftAnteriorSuperior,      /*  4: standard Analyze (left-handed) */
+  nrrdSpaceLeftPosteriorSuperior,     /*  5: DICOM 3.0 (right-handed) */
+  nrrdSpaceRightAnteriorSuperiorTime, /*  6: */
+  nrrdSpaceLeftAnteriorSuperiorTime,  /*  7: */
+  nrrdSpaceLeftPosteriorSuperiorTime, /*  8: */
+  nrrdSpaceScannerXYZ,                /*  9: ACR/NEMA 2.0 (pre-DICOM 3.0) */
+  nrrdSpaceScannerXYZTime,            /* 10: */
+  nrrdSpace3DRightHanded,             /* 11: */
+  nrrdSpace3DLeftHanded,              /* 12: */
+  nrrdSpace3DRightHandedTime,         /* 13: */
+  nrrdSpace3DLeftHandedTime,          /* 14: */
   nrrdSpaceLast
 };
-#define NRRD_SPACE_MAX                   12
+#define NRRD_SPACE_MAX                   14
 
 /*
 ******** nrrdSpacingStatus* enum

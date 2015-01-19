@@ -59,7 +59,7 @@ $(L).OBJS = \
 	simple.o     subset.o     superset.o  tmfKernel.o      \
 	winKernel.o  bsplKernel.o  ccmethods.o  cc.o        range.o  \
         encoding.o   encodingRaw.o  encodingAscii.o  encodingHex.o \
-	encodingGzip.o   encodingBzip2.o  \
+	encodingGzip.o   encodingBzip2.o  encodingZRL.o \
 	format.o     formatNRRD.o     formatPNM.o      formatPNG.o \
 	formatVTK.o      formatText.o     formatEPS.o      \
 	keyvalue.o  resampleContext.o  fftNrrd.o
