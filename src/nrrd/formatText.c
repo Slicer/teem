@@ -299,7 +299,7 @@ _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     if (nrrdKeyValueSize(nrrd)) {
       unsigned int kvi;
       for (kvi=0; kvi<nrrd->kvpArr->len; kvi++) {
-        _nrrdKeyValueWrite(file, NULL, NULL,
+        _nrrdKeyValueWrite(file, NULL, "#",
                            nrrd->kvp[0 + 2*kvi],
                            nrrd->kvp[1 + 2*kvi]);
       }
