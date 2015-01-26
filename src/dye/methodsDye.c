@@ -30,8 +30,8 @@ dyePresent = 42;
 const char *
 dyeBiffKey = "dye";
 
-char
-dyeSpaceToStr[][AIR_STRLEN_SMALL] = {
+const char *
+dyeSpaceToStr[DYE_MAX_SPACE+1] = {
   "(unknown)",
   "HSV",
   "HSL",
@@ -41,6 +41,32 @@ dyeSpaceToStr[][AIR_STRLEN_SMALL] = {
   "LUV"
 };
 
+static const char *
+_dyeSpaceDesc[DYE_MAX_SPACE+1] = {
+  "unknown colorspace",
+  "single hexcone",
+  "double hexcone",
+  "traditional device primaries",
+  "CIE 1931 XYZ space",
+  "CIE L*a*b*",
+  "CIE 1976 L*u*v*"
+};
+
+static const airEnum
+_dyeSpace = {
+  "colorspace",
+  DYE_MAX_SPACE,
+  dyeSpaceToStr, NULL,
+  _dyeSpaceDesc,
+  NULL, NULL,
+  AIR_FALSE
+};
+const airEnum *const
+dyeSpace = &_dyeSpace;
+
+/*
+** this function predates the dyeSpace airEnum, so we'll keep it.
+*/
 int
 dyeStrToSpace(char *_str) {
   int spc;
