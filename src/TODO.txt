@@ -191,7 +191,8 @@ nrrd:
   inside of NrrdResampleContext
 * The guts of "unu make" have to be made into a function call.  Its crazy
 to have all those smarts not more generally available.
-
+* Totally insane that nrrdKeyValueGet can return a char* into the Nrrd*,
+depending on the value of nrrdStateKeyValueReturnInternalPointers. Really?
 
 unu:
 * the UNRRDU_QUIET_QUIT functionality should be enabled by default instead
