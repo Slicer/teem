@@ -116,7 +116,8 @@ meetAirEnumAll() {
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageVec;
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageSigmaSampling;
 
-  /* dye: no airEnums */
+  /* dye */
+  ii = airArrayLenIncr(arr, 1); enm[ii] = dyeSpace;
 
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   /* bane */
