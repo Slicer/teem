@@ -66,7 +66,7 @@ airArray *
 airArrayNew(void **dataP, unsigned int *lenP, size_t unit, unsigned int incr) {
   airArray *a;
 
-  if (unit<=0 || incr<=0) {
+  if (!unit || !incr) {
     return NULL;
   }
 
