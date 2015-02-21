@@ -397,6 +397,18 @@ airStdin(void) {
   return stdin;
 }
 
+unsigned int
+airBitsSet(unsigned int vv) {
+  /* http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetKernighan */
+  unsigned int cc;
+  for (cc=0; vv; cc++) {
+    /* wherever lowest bit is on in vv; vv-1 will have it off, and leave
+       unchanged all the higher bits */
+    vv &= vv - 1;
+  }
+  return cc;
+}
+
 /*
 ******** AIR_INDEX(i,x,I,L,t)
 **

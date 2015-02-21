@@ -579,6 +579,7 @@ AIR_EXPORT const int airPresent;
 AIR_EXPORT FILE *airStderr(void);
 AIR_EXPORT FILE *airStdout(void);
 AIR_EXPORT FILE *airStdin(void);
+AIR_EXPORT unsigned int airBitsSet(unsigned int N);
 AIR_EXPORT unsigned int airIndex(double min, double val, double max,
                                  unsigned int N);
 AIR_EXPORT unsigned int airIndexClamp(double min, double val, double max,
