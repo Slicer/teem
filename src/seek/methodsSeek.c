@@ -59,6 +59,11 @@ seekContextNew(void) {
        which certainly does not apply to all cases */
     sctx->facesPerVoxel = 2.15;
     sctx->vertsPerVoxel = 1.15;
+
+    /* this should be larger so that we don't waste time from airArrayLenIncr
+       constantly re-allocating, when the isosurface is rough; better
+       solution is to use multiplicatively scaled dynamic array. But caller
+       can also change this value on a per-context basis. */
     sctx->pldArrIncr = 2048;
 
     sctx->nin = NULL;
