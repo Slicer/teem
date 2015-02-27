@@ -35,6 +35,26 @@ _nrrdEncodingZRL_read(FILE *file, void *data, size_t elementNum,
                       Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingZRL_read";
 
+  AIR_UNUSED(nio);
+  unsigned char *output_buffer = (unsigned char *) data;
+  size_t toread = elementNum*nrrdElementSize(nrrd);
+  printf("!%s: looking for %u values (%u bytes) of type %s\n", me,
+         (unsigned int)elementNum, (unsigned int)toread, airEnumStr(nrrdType, nrrd->type));
+  int cc, dd;
+  unsigned int j = 0;
+  while (j < toread) {
+    if ((cc = fgetc(file)) == 0) {
+      if ((dd = fgetc(file)) == 0) {
+        j += dd + fgetc(file)*256;
+      } else {
+        j += (unsigned char)dd;
+      }
+    } else {
+      output_buffer[j] = (unsigned char)cc;
+      j++;
+    }
+  }
+
   return 0;
 }
 
