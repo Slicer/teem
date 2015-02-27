@@ -34,49 +34,6 @@ static int
 _nrrdEncodingZRL_read(FILE *file, void *data, size_t elementNum,
                       Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingZRL_read";
-  size_t ret, bsize;
-  int car;
-  char *data_c;
-  size_t elementSize, maxChunkSize, remainderValue, chunkSize;
-  size_t retTmp;
-  char stmp[3][AIR_STRLEN_SMALL];
-
-  AIR_UNUSED(nio);
-  /* HEY: below is copy/paste from encodingGzip */
-  bsize = nrrdElementSize(nrrd)*elementNum;
-  ret = 0;
-  data_c = (char *)data;
-  elementSize = nrrdElementSize(nrrd);
-  maxChunkSize = 1024 * 1024 * 1024 / elementSize;
-  while(ret < elementNum) {
-    remainderValue = elementNum-ret;
-    if (remainderValue < maxChunkSize) {
-      chunkSize = remainderValue;
-    } else {
-      chunkSize = maxChunkSize;
-    }
-    retTmp =
-      fread(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
-    ret += retTmp;
-    if (retTmp != chunkSize) {
-      biffAddf(NRRD, "%s: fread got only %s %s-sized things, not %s "
-               "(%g%% of expected)", me,
-               airSprintSize_t(stmp[0], ret),
-               airSprintSize_t(stmp[1], nrrdElementSize(nrrd)),
-               airSprintSize_t(stmp[2], elementNum),
-               100.0*AIR_CAST(double, ret)/AIR_CAST(double, elementNum));
-      return 1;
-    }
-  }
-
-  car = fgetc(file);
-  if (EOF != car) {
-    if (1 <= nrrdStateVerboseIO) {
-      fprintf(stderr, "%s: WARNING: finished reading raw data, "
-              "but file not at EOF\n", me);
-    }
-    ungetc(car, file);
-  }
 
   return 0;
 }
@@ -85,48 +42,14 @@ static int
 _nrrdEncodingZRL_write(FILE *file, const void *data, size_t elementNum,
                        const Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingZRL_write";
-  size_t ret, bsize;
-  const char *data_c;
-  size_t elementSize, maxChunkSize, remainderValue, chunkSize;
-  size_t retTmp;
-  char stmp[3][AIR_STRLEN_SMALL];
 
+  AIR_UNUSED(file);
+  AIR_UNUSED(data);
+  AIR_UNUSED(elementNum);
+  AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
-  /* HEY: below is copy/paste from encodingGzip */
+  biffAddf(NRRD, "%s: sorry, currently a read-only encoding", me);
 
-  bsize = nrrdElementSize(nrrd)*elementNum;
-
-  /* HEY: There's a bug in fread/fwrite in gcc 4.2.1 (with SnowLeopard).
-     When it reads/writes a >=2GB data array, it pretends to succeed
-     (i.e. the return value is the right number) but it hasn't
-     actually read/written the data.  The work-around is to loop
-     over the data, reading/writing 1GB (or smaller) chunks.         */
-  ret = 0;
-  data_c = AIR_CAST(const char *, data);
-  elementSize = nrrdElementSize(nrrd);
-  maxChunkSize = 1024 * 1024 * 1024 / elementSize;
-  while(ret < elementNum) {
-    remainderValue = elementNum-ret;
-    if (remainderValue < maxChunkSize) {
-      chunkSize = remainderValue;
-    } else {
-      chunkSize = maxChunkSize;
-    }
-    retTmp =
-      fwrite(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
-    ret += retTmp;
-    if (retTmp != chunkSize) {
-      biffAddf(NRRD, "%s: fwrite wrote only %s %s-sized things, not %s "
-               "(%g%% of expected)", me,
-               airSprintSize_t(stmp[0], ret),
-               airSprintSize_t(stmp[1], nrrdElementSize(nrrd)),
-               airSprintSize_t(stmp[2], elementNum),
-               100.0*AIR_CAST(double, ret)/AIR_CAST(double, elementNum));
-      return 1;
-    }
-  }
-
-  fflush(file);
   return 0;
 }
 
