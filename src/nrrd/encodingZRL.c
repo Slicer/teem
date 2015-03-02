@@ -38,13 +38,14 @@ _nrrdEncodingZRL_read(FILE *file, void *data, size_t elementNum,
   AIR_UNUSED(nio);
   unsigned char *output_buffer = (unsigned char *) data;
   size_t toread = elementNum*nrrdElementSize(nrrd);
-  printf("!%s: looking for %u values (%u bytes) of type %s\n", me,
-         (unsigned int)elementNum, (unsigned int)toread, airEnumStr(nrrdType, nrrd->type));
   int cc, dd;
   unsigned int j = 0;
   while (j < toread) {
-    if ((cc = fgetc(file)) == 0) {
-      if ((dd = fgetc(file)) == 0) {
+    cc = fgetc(file);
+    if (cc == 0) {
+      dd = fgetc(file);
+      if (dd == 0) {
+        dd = fgetc(file);
         j += dd + fgetc(file)*256;
       } else {
         j += (unsigned char)dd;
