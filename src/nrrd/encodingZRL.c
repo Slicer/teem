@@ -38,6 +38,9 @@ _nrrdEncodingZRL_read(FILE *file, void *data, size_t elementNum,
   AIR_UNUSED(nio);
   unsigned char *output_buffer = (unsigned char *) data;
   size_t toread = elementNum*nrrdElementSize(nrrd);
+  /* printf("!%s: looking for %u values (%u bytes) of type %s\n", me,
+         (unsigned int)elementNum, (unsigned int)toread,
+         airEnumStr(nrrdType, nrrd->type)); */
   int cc, dd;
   unsigned int j = 0;
   while (j < toread) {
