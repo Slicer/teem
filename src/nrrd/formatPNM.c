@@ -321,7 +321,9 @@ _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   for (fi=nrrdField_unknown+1; fi<nrrdField_last; fi++) {
     if (_nrrdFieldValidInImage[fi]
         && _nrrdFieldInteresting(nrrd, nio, fi)) {
-      _nrrdFprintFieldInfo(file, NRRD_PNM_COMMENT, nrrd, nio, fi);
+      /* dropAxis0 is always AIR_FALSE because of code
+         above to delete a stub axis 0 */
+      _nrrdFprintFieldInfo(file, NRRD_PNM_COMMENT, nrrd, nio, fi, AIR_FALSE);
     }
   }
   for (ci=0; ci<nrrd->cmtArr->len; ci++) {

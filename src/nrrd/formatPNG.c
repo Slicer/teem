@@ -339,8 +339,8 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
         if (!nio->seen[ret]
             && nrrdFieldInfoParse[ret](file, nrrd, nio, AIR_FALSE)) {
           if (1 <= nrrdStateVerboseIO) {
-            fprintf(stderr, "(%s: unparsable info for field \"%s\" "
-                    "--> plain comment)\n", me, fs);
+            fprintf(stderr, "(%s: unparsable info \"%s\" for field \"%s\" "
+                    "--> plain comment)\n", me, nio->line + nio->pos, fs);
           }
           ret = 0;
           goto plain;
@@ -509,7 +509,8 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       if (_nrrdFieldValidInImage[fi] && _nrrdFieldInteresting(nrrd, nio, fi)) {
         txt[txtidx].key = airStrdup(NRRD_PNG_FIELD_KEY);
         txt[txtidx].compression = PNG_TEXT_COMPRESSION_NONE;
-        _nrrdSprintFieldInfo(&(txt[txtidx].text), "", nrrd, nio, fi);
+        _nrrdSprintFieldInfo(&(txt[txtidx].text), "", nrrd, nio, fi,
+                             (3 == nrrd->dim && 1 == nrrd->axis[0].size));
         txtidx++;
       }
     }

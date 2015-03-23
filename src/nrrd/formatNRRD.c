@@ -706,9 +706,9 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   for (ii=1; ii<=NRRD_FIELD_MAX; ii++) {
     if (_nrrdFieldInteresting(nrrd, nio, ii)) {
       if (file) {
-        _nrrdFprintFieldInfo(file, "", nrrd, nio, ii);
+        _nrrdFprintFieldInfo(file, "", nrrd, nio, ii, AIR_FALSE);
       } else if (nio->headerStringWrite) {
-        _nrrdSprintFieldInfo(&strptr, "", nrrd, nio, ii);
+        _nrrdSprintFieldInfo(&strptr, "", nrrd, nio, ii, AIR_FALSE);
         if (strptr) {
           strcat(nio->headerStringWrite, strptr);
           strcat(nio->headerStringWrite, "\n");
@@ -716,7 +716,7 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
           strptr = NULL;
         }
       } else {
-        _nrrdSprintFieldInfo(&strptr, "", nrrd, nio, ii);
+        _nrrdSprintFieldInfo(&strptr, "", nrrd, nio, ii, AIR_FALSE);
         if (strptr) {
           nio->headerStrlen += AIR_CAST(unsigned int, strlen(strptr));
           nio->headerStrlen += AIR_CAST(unsigned int, strlen("\n"));
