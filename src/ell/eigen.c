@@ -686,15 +686,18 @@ ell_6ms_eigensolve_d(double eval[6], double _evec[36],
   iter = 0;
   while (sumoff/sumon > eps) {
     double th, tt, cc, ss;
-    unsigned int P, Q;
+    const unsigned int P = maxI[0];
+    const unsigned int Q = maxI[1];
+    //make sure that P and Q are within the bounds for mat[2][6][6]
+    if(P >=6 || Q >= 6){  
+      break;
+    }
     /*
     fprintf(stderr, "!%s(%u): sumoff/sumon = %g/%g = %g > %g\n", me, iter,
             sumoff, sumon, sumoff/sumon, eps);
     */
     cur = 1 - cur;
 
-    P = maxI[0];
-    Q = maxI[1];
     th = (mat[cur][Q][Q] - mat[cur][P][P])/(2*mat[cur][P][Q]);
     tt = (th > 0 ? +1 : -1)/(AIR_ABS(th) + sqrt(th*th + 1));
     cc = 1/sqrt(tt*tt + 1);
