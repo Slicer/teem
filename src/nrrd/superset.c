@@ -90,10 +90,19 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice,
     }
   }
   for (ai=0; ai<nslice->dim; ai++) {
-    if (!( nin->axis[ai + (ai >= axis)].size == nslice->axis[ai].size )) {
+    if(ai >= axis){
+      if (!( nin->axis[ai + 1].size == nslice->axis[ai].size )) {
+        biffAddf(NRRD, "%s: input ax %d size (%s) != slices ax %d size (%s)",
+                 me, ai + 1,
+                 airSprintSize_t(stmp[0], nin->axis[ai + 1].size), ai,
+                 airSprintSize_t(stmp[1], nslice->axis[ai].size));
+        return 1;
+      }
+    }
+    else if (!( nin->axis[ai].size == nslice->axis[ai].size )) {
       biffAddf(NRRD, "%s: input ax %d size (%s) != slices ax %d size (%s)",
-               me, ai + (ai >= axis),
-               airSprintSize_t(stmp[0], nin->axis[ai + (ai >= axis)].size), ai,
+               me, ai,
+               airSprintSize_t(stmp[0], nin->axis[ai].size), ai,
                airSprintSize_t(stmp[1], nslice->axis[ai].size));
       return 1;
     }
