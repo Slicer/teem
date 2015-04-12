@@ -695,6 +695,9 @@ ell_6ms_eigensolve_d(double eval[6], double _evec[36],
 
     P = maxI[0];
     Q = maxI[1];
+    if(P >=6 || Q >= 6){
+      break;
+    }
     th = (mat[cur][Q][Q] - mat[cur][P][P])/(2*mat[cur][P][Q]);
     tt = (th > 0 ? +1 : -1)/(AIR_ABS(th) + sqrt(th*th + 1));
     cc = 1/sqrt(tt*tt + 1);
