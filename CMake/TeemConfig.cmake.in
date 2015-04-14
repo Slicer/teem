@@ -61,6 +61,6 @@ set(Teem_BUILD_SHARED_LIBS "@BUILD_SHARED_LIBS@")
 set(Teem_TOOLS "@Teem_TOOLS@")
 
 # The Teem library dependencies.
-if(NOT Teem_NO_LIBRARY_DEPENDS)
+if(NOT TARGET teem)
   include("@Teem_CV_LIBRARY_DEPENDS_FILE@")
 endif()
