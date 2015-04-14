@@ -21,10 +21,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-ADD_EXECUTABLE(test_tendlist tendlist.c)
-TARGET_LINK_LIBRARIES(test_tendlist teem)
-ADD_TEST(tendlist ${EXECUTABLE_OUTPUT_PATH}/test_tendlist)
+add_executable(test_tendlist tendlist.c)
+target_link_libraries(test_tendlist teem)
+add_test(tendlist ${EXECUTABLE_OUTPUT_PATH}/test_tendlist)
 
-ADD_EXECUTABLE(test_glyphBqd glyphBqd.c)
-TARGET_LINK_LIBRARIES(test_glyphBqd teem)
-ADD_TEST(glyphBqd ${EXECUTABLE_OUTPUT_PATH}/test_glyphBqd)
+add_executable(test_glyphBqd glyphBqd.c)
+target_link_libraries(test_glyphBqd teem)
+add_test(glyphBqd ${EXECUTABLE_OUTPUT_PATH}/test_glyphBqd)

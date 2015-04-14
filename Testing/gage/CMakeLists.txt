@@ -21,18 +21,18 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-ADD_EXECUTABLE(test_sbp tsbp.c)
-TARGET_LINK_LIBRARIES(test_sbp teem)
-ADD_TEST(stackBlurParm ${EXECUTABLE_OUTPUT_PATH}/test_sbp -sbp 0-5-4.2)
+add_executable(test_sbp tsbp.c)
+target_link_libraries(test_sbp teem)
+add_test(stackBlurParm ${EXECUTABLE_OUTPUT_PATH}/test_sbp -sbp 0-5-4.2)
 
-ADD_EXECUTABLE(test_probeScl probeScl.c)
-TARGET_LINK_LIBRARIES(test_probeScl teem)
-ADD_TEST(probeScl ${EXECUTABLE_OUTPUT_PATH}/test_probeScl)
+add_executable(test_probeScl probeScl.c)
+target_link_libraries(test_probeScl teem)
+add_test(probeScl ${EXECUTABLE_OUTPUT_PATH}/test_probeScl)
 
-ADD_EXECUTABLE(test_probePolynomial probePolynomial.c)
-TARGET_LINK_LIBRARIES(test_probePolynomial teem)
-ADD_TEST(probePolynomial ${EXECUTABLE_OUTPUT_PATH}/test_probePolynomial)
+add_executable(test_probePolynomial probePolynomial.c)
+target_link_libraries(test_probePolynomial teem)
+add_test(probePolynomial ${EXECUTABLE_OUTPUT_PATH}/test_probePolynomial)
 
-ADD_EXECUTABLE(test_probeMulti probeMulti.c)
-TARGET_LINK_LIBRARIES(test_probeMulti teem)
-ADD_TEST(probeMulti ${EXECUTABLE_OUTPUT_PATH}/test_probeMulti)
+add_executable(test_probeMulti probeMulti.c)
+target_link_libraries(test_probeMulti teem)
+add_test(probeMulti ${EXECUTABLE_OUTPUT_PATH}/test_probeMulti)

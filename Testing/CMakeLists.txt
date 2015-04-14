@@ -21,16 +21,16 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-PROJECT(TEEMTesting)
+project(TEEMTesting)
 
-IF(Teem_BINARY_DIR)
+if(Teem_BINARY_DIR)
   # We are building inside the tree
-  IF(NOT EXECUTABLE_OUTPUT_PATH)
-    SET (EXECUTABLE_OUTPUT_PATH ${Teem_BINARY_DIR} CACHE PATH
+  if(NOT EXECUTABLE_OUTPUT_PATH)
+    set (EXECUTABLE_OUTPUT_PATH ${Teem_BINARY_DIR} CACHE PATH
          "Single output directory for building all testing executables.")
-    SET(C_TEST_PATH ${Teem_BINARY_DIR})
-  ENDIF(NOT EXECUTABLE_OUTPUT_PATH)
-ENDIF(Teem_BINARY_DIR)
+    set(C_TEST_PATH ${Teem_BINARY_DIR})
+  endif(NOT EXECUTABLE_OUTPUT_PATH)
+endif(Teem_BINARY_DIR)
 
 # Create a header file with the path to the data in it.  Note that we don't
 # have to make these paths "windows friendly" as it turns out windows can read
@@ -47,30 +47,30 @@ configure_file(
 # This just runs nrrdSanity as test called "nrrd.Sanity"
 # We don't do the same for airSanity because that's an
 # "experimental app" . . .
-ADD_TEST(nrrd.Sanity ${EXECUTABLE_OUTPUT_PATH}/nrrdSanity)
+add_test(nrrd.Sanity ${EXECUTABLE_OUTPUT_PATH}/nrrdSanity)
 
 # Hope to eventually have tests in all directories; until then
 # many of these are commented out. (TEEM_LIB_LIST)
-ADD_SUBDIRECTORY(air)
-# ADD_SUBDIRECTORY(hest)
-ADD_SUBDIRECTORY(biff)
-ADD_SUBDIRECTORY(nrrd)
-# ADD_SUBDIRECTORY(ell)
-ADD_SUBDIRECTORY(unrrdu)
-# ADD_SUBDIRECTORY(alan)
-# ADD_SUBDIRECTORY(moss)
-# ADD_SUBDIRECTORY(tijk)
-ADD_SUBDIRECTORY(gage)
-# ADD_SUBDIRECTORY(dye)
-# ADD_SUBDIRECTORY(bane)
-# ADD_SUBDIRECTORY(limn)
-# ADD_SUBDIRECTORY(echo)
-# ADD_SUBDIRECTORY(hoover)
-# ADD_SUBDIRECTORY(seek)
-ADD_SUBDIRECTORY(ten)
-# ADD_SUBDIRECTORY(elf)
-# ADD_SUBDIRECTORY(pull)
-# ADD_SUBDIRECTORY(coil)
-# ADD_SUBDIRECTORY(push)
-# ADD_SUBDIRECTORY(mite)
-ADD_SUBDIRECTORY(meet)
+add_subdirectory(air)
+# add_subdirectory(hest)
+add_subdirectory(biff)
+add_subdirectory(nrrd)
+# add_subdirectory(ell)
+add_subdirectory(unrrdu)
+# add_subdirectory(alan)
+# add_subdirectory(moss)
+# add_subdirectory(tijk)
+add_subdirectory(gage)
+# add_subdirectory(dye)
+# add_subdirectory(bane)
+# add_subdirectory(limn)
+# add_subdirectory(echo)
+# add_subdirectory(hoover)
+# add_subdirectory(seek)
+add_subdirectory(ten)
+# add_subdirectory(elf)
+# add_subdirectory(pull)
+# add_subdirectory(coil)
+# add_subdirectory(push)
+# add_subdirectory(mite)
+add_subdirectory(meet)

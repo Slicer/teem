@@ -1,6 +1,6 @@
 # This variable will help provide a master list of all the sources.
 # Add new source files here.
-SET(MEET_SOURCES
+set(MEET_SOURCES
   enumall.c
   meetNrrd.c
   meetGage.c

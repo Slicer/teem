@@ -1,6 +1,6 @@
 # This variable will help provide a master list of all the sources.
 # Add new source files here.
-SET(UNRRDU_SOURCES
+set(UNRRDU_SOURCES
   fft.c
   i2w.c
   w2i.c
