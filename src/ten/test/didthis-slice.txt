@@ -13,7 +13,7 @@ setenv FR "4 4 4"
 echo "1   1 1 1   -1 -1 -3" \
  | emap -i - -fr $FR -up 0 0 1 -rh -amb 0 0 0 -o emap.nrrd
 
-alias CROP unu crop -min 0 0 0 -max 2 M M 
+alias CROP unu crop -min 0 0 0 -max 2 M M
 
 valgrind tend glyph -i test.nrrd -a ca1 -atr 0.5 \
    -emap emap.nrrd  -bg 1 1 0 \

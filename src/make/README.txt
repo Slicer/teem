@@ -1,5 +1,5 @@
 #
-# Teem: Tools to process and visualize scientific data and images              
+# Teem: Tools to process and visualize scientific data and images
 # Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -58,7 +58,7 @@ SHARED_CFLAG, STATIC_CFLAG (*): flags which are passed to $(CC) when
   used to create binaries, so as to control whether shared or static
   libraries are linked against.
 
-BIN_CFLAGS: any flags to $(CC) which should be used for compiling 
+BIN_CFLAGS: any flags to $(CC) which should be used for compiling
   binaries (in addition to the SHARED_CFLAG, STATIC_CFLAG flags above)
 
 OPT_CFLAG: how to control optimization (if desired)
@@ -78,7 +78,7 @@ SHARED_LDFLAG: the flag to $(LD) which causes a shared library
 LDFLAGS: any flags to $(LD) for making shared libraries, in addition
   to $(ARCH_LDFLAG) $(SHARED_LDFLAG)
 
-OTHER_CLEAN: other files that might have been created automatically 
+OTHER_CLEAN: other files that might have been created automatically
   as part of compilation, but which should be deleted if "make clean"
   is to be true to its word (e.g. "so_locations" on SGI)
 
@@ -90,14 +90,14 @@ LIB: the name of the library being compiled.  If this isn't set, the
   assumption is that there is no new library to compile, but simply
   a set of binaries which depend on other libraries
 
-LIB_BASENAME: the base name of the archive and shared library files; 
+LIB_BASENAME: the base name of the archive and shared library files;
   by default this is set to "lib$(LIB)", but setting this allows one
   to over-ride that.
 
 HEADERS: the "public" .h files for this library; these will be installed
 
 PRIV_HEADERS: .h files needed for this library, but not installed
-  
+
 LIBOBJS: the .o files (created from .c files) which comprise this library
 
 TEST_BINS: executables which are used to debug a library, but which will

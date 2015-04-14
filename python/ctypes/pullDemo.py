@@ -25,7 +25,7 @@
 '''
 This is really hastily written, and doesn't conform in the least
 to good conventions of Python coding. The worst part is using exit()
-instead of raising exceptions when tings go wrong. 
+instead of raising exceptions when tings go wrong.
 
 The "API" here (this python interface to the pull library) is not well
 thought-out, and won't be helpful for integrating particles in other
@@ -56,7 +56,7 @@ def volLoad(vlist, cachePath, kssBlurStr, verbose):
         vol[i] = teem.meetPullVolNew()
         if (not E):
             E += teem.meetPullVolParse(vol[i], vlist[i])
-    if (not E): 
+    if (not E):
         E += teem.meetPullVolLoadMulti(vol, len(vol),
                                        cachePath, kSSblur,
                                        teem.nrrdBoundaryWrap, 0.0,
@@ -73,7 +73,7 @@ def volFree(vol):
         vol[i] = teem.meetPullVolNix(vol[i])
 
 ##
-## especParse: returns a length-4 list of the arguments to pass 
+## especParse: returns a length-4 list of the arguments to pass
 ## to pullInterEnergySet. Arguments are:
 ## type: from pullIterType* enum
 ## r: string definition for energy function along space (especR)
@@ -111,10 +111,10 @@ def energyFree(espec):
     return
 
 ##
-## initSet: calls (and returns value from) the appropriate 
+## initSet: calls (and returns value from) the appropriate
 ## pullInitMethod* function. Possibilities are:
 ## [teem.pullInitMethodRandom, num]
-## [teem.pullInitMethodPointPerVoxel, 
+## [teem.pullInitMethodPointPerVoxel,
 ##     ppv, zslcmin, zslcmax, alongscalenum, jitter]
 ## [teem.pullInitMethodGivenPos, npos]
 ##
@@ -151,13 +151,13 @@ def run(nposOut, **args):
     if (not ('vol' in args and 'info' in args and 'efs' in args)):
         print "run: didn't get vol, info, and efs args"
         sys.exit(1)
-        
+
     # learn args, with defaults
     vol = a(args, 'vol')
     infoStr = a(args, 'info')
     efs = a(args, 'efs')
     init = a(args, 'init', [teem.pullInitMethodRandom, 100])
-    energyDict = a(args, 'energy', {'type':teem.pullInterTypeJustR, 
+    energyDict = a(args, 'energy', {'type':teem.pullInterTypeJustR,
                                     'r':'qwell:0.68'})
     verbose = a(args, 'verbose', 1)
     rngSeed = a(args, 'rngSeed', 42)
@@ -212,7 +212,7 @@ def run(nposOut, **args):
     if (teem.pullVerboseSet(pctx, verbose) or
         teem.pullRngSeedSet(pctx, rngSeed) or
         teem.pullFlagSet(pctx, teem.pullFlagNixAtVolumeEdgeSpace, nave) or
-        teem.pullFlagSet(pctx, teem.pullFlagConstraintBeforeSeedThresh, 
+        teem.pullFlagSet(pctx, teem.pullFlagConstraintBeforeSeedThresh,
                          cbst) or
         teem.pullFlagSet(pctx, teem.pullFlagEnergyFromStrength, efs) or
         teem.pullFlagSet(pctx, teem.pullFlagRestrictiveAddToBins, ratb) or

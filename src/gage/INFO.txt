@@ -19,13 +19,13 @@ cheat sheet for using gage: --------------------------------------
    set up the context with the answers to get, the kernels to use, and
    any other parameters to set.  There is no need in gage to directly
    set or read the members of a struct except:
-   
+
    and the kernels to use.  Use gageSet() to set other int flags.
    These calls can be made in any order.  Calls with int return should
    be checked for erroneous (non-zero) return, and then biffGetDone(GAGE)
    to see the error messages.
 6) Call gageUpdate() and check the return to make sure everything is okay.
-7) Start probing away with gageProbe().  
+7) Start probing away with gageProbe().
 8) When all done, gageContextNix() will clean up all the attached pervolumes
    and any memory they allocated.
 

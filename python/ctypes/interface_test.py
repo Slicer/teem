@@ -3,7 +3,7 @@
 # test.py: 16-bit grayscale PNG to nrrd file
 # Sam Quinan
 
-import Nrrd as nrd, numpy as np 
+import Nrrd as nrd, numpy as np
 
 # TESTING: fmob-ch4 crop test
 print "TEST: fmob-ch4.nrrd"
@@ -67,7 +67,7 @@ print "done"
 #e = ExtendedArray(d)
 #e2 = e[:,[0,2]]
 #
-#print e 
+#print e
 #print type(e)
 #print e.flags
 #print e.data

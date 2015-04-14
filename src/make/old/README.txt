@@ -29,7 +29,7 @@ SHARED_CFLAG, STATIC_CFLAG (*): flags which are passed to $(CC) when
   used to create binaries, so as to control whether shared or static
   libraries are linked against.
 
-BIN_CFLAGS: any flags to $(CC) which should be used for compiling 
+BIN_CFLAGS: any flags to $(CC) which should be used for compiling
   binaries (in addition to the SHARED_CFLAG, STATIC_CFLAG flags above)
 
 OPT_CFLAG: how to control optimization
@@ -49,7 +49,7 @@ SHARED_LDFLAG: the flag to $(LD) which causes a shared library
 LDFLAGS: any flags to $(LD) for making shared libraries, in addition
   to $(ARCH_LDFLAG) $(SHARED_LDFLAG)
 
-NONPIC_CFLAG, PIC_CFLAG (*): flags to $(CC) to force generation of PIC 
+NONPIC_CFLAG, PIC_CFLAG (*): flags to $(CC) to force generation of PIC
   objects off and on
 
 PIC_MATTERS: if set to "true", then a seperate set of .o files,
