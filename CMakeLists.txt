@@ -22,7 +22,7 @@
 #
 
 # This is the root Teem CMakeLists file
-cmake_minimum_required(VERSION 2.4)
+cmake_minimum_required(VERSION 2.8)
 
 # Cmake shouldn't define WIN32 when compiling
 set(CMAKE_LEGACY_CYGWIN_WIN32 0)
@@ -501,9 +501,23 @@ if(BUILD_TESTING)
 endif()
 
 #-----------------------------------------------------------------------------
-# Help outside projects build Teem projects.
-include(CMakeExportBuildSettings)
-CMAKE_EXPORT_BUILD_SETTINGS(${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
+# OUTDATED Help outside projects build Teem projects.
+set(Teem_CV_BUILD_SETTINGS_FILE ${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
+set(Teem_CV_BUILD_SETTINGS_FILE "\${Teem_ROOT_DIR}/lib${EXTRA_INSTALL_PATH}/TeemBuildSettings.cmake")
+file(WRITE ${Teem_BINARY_DIR}/TeemBuildSettings.cmake "# This file should NOT be used.
+# It is currently provided so that backwards compatibility with external projects
+# can be preserved.  External packages that include TeemBuildSettings.cmake should
+# stop using this feature.
+# 
+# CMake Error at cmake/Modules/CMakeExportBuildSettings.cmake:17 (message):
+# The functionality of the CMakeExportBuildSettings module has been dropped as of CMake 2.8.  It was
+# deemed harmful (confusing users by changing their compiler).  Please remove
+# calls to the CMAKE_EXPORT_BUILD_SETTINGS macro and stop including this
+# module.  If this project generates any files for use by external projects,
+# remove any use of the CMakeImportBuildSettings module from them.
+# include(CMakeExportBuildSettings)
+# CMAKE_EXPORT_BUILD_SETTINGS(${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
+#")
 
 set(CFLAGS "${CMAKE_C_FLAGS}")
 set(CC "${CMAKE_C_COMPILER}")
@@ -527,7 +541,6 @@ set(Teem_CV_EXECUTABLE_DIRS ${Teem_EXECUTABLE_DIRS})
 set(Teem_CV_LIBRARY_DIRS ${LIBRARY_OUTPUT_PATH})
 set(Teem_CV_USE_FILE ${Teem_SOURCE_DIR}/CMake/TeemUse.cmake)
 set(Teem_CV_INCLUDE_DIRS "${Teem_BINARY_DIR}/include")
-set(Teem_CV_BUILD_SETTINGS_FILE ${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
 set(Teem_CV_BUILT_LIBRARIES teem) # The libraries built by teem.  Currently we only build the mega library.
 
 configure_file("${Teem_SOURCE_DIR}/CMake/TeemConfig.cmake.in"
@@ -551,7 +564,6 @@ set(Teem_CV_EXECUTABLE_DIRS "\${Teem_ROOT_DIR}/bin")
 set(Teem_CV_LIBRARY_DIRS "\${Teem_ROOT_DIR}/lib${EXTRA_INSTALL_PATH}")
 set(Teem_CV_USE_FILE "\${Teem_ROOT_DIR}/lib${EXTRA_INSTALL_PATH}/TeemUse.cmake")
 set(Teem_CV_INCLUDE_DIRS "\${Teem_ROOT_DIR}/include")
-set(Teem_CV_BUILD_SETTINGS_FILE "\${Teem_ROOT_DIR}/lib${EXTRA_INSTALL_PATH}/TeemBuildSettings.cmake")
 set(Teem_CV_BUILT_LIBRARIES teem) # The libraries built by teem.  Currently we only build the mega library.
 
 configure_file("${Teem_SOURCE_DIR}/CMake/TeemConfig.cmake.in"
