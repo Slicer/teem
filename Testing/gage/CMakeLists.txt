@@ -23,16 +23,16 @@
 
 add_executable(test_sbp tsbp.c)
 target_link_libraries(test_sbp teem)
-add_test(stackBlurParm ${EXECUTABLE_OUTPUT_PATH}/test_sbp -sbp 0-5-4.2)
+add_test(NAME stackBlurParm COMMAND $<TARGET_FILE:test_sbp> -sbp 0-5-4.2)
 
 add_executable(test_probeScl probeScl.c)
 target_link_libraries(test_probeScl teem)
-add_test(probeScl ${EXECUTABLE_OUTPUT_PATH}/test_probeScl)
+add_test(NAME probeScl COMMAND $<TARGET_FILE:test_probeScl>)
 
 add_executable(test_probePolynomial probePolynomial.c)
 target_link_libraries(test_probePolynomial teem)
-add_test(probePolynomial ${EXECUTABLE_OUTPUT_PATH}/test_probePolynomial)
+add_test(NAME probePolynomial COMMAND $<TARGET_FILE:test_probePolynomial>)
 
 add_executable(test_probeMulti probeMulti.c)
 target_link_libraries(test_probeMulti teem)
-add_test(probeMulti ${EXECUTABLE_OUTPUT_PATH}/test_probeMulti)
+add_test(NAME probeMulti COMMAND $<TARGET_FILE:test_probeMulti>)

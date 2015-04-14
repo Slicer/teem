@@ -23,15 +23,6 @@
 
 project(TEEMTesting)
 
-if(Teem_BINARY_DIR)
-  # We are building inside the tree
-  if(NOT EXECUTABLE_OUTPUT_PATH)
-    set (EXECUTABLE_OUTPUT_PATH ${Teem_BINARY_DIR} CACHE PATH
-         "Single output directory for building all testing executables.")
-    set(C_TEST_PATH ${Teem_BINARY_DIR})
-  endif()
-endif()
-
 # Create a header file with the path to the data in it.  Note that we don't
 # have to make these paths "windows friendly" as it turns out windows can read
 # forward slashed paths.
@@ -47,7 +38,7 @@ configure_file(
 # This just runs nrrdSanity as test called "nrrd.Sanity"
 # We don't do the same for airSanity because that's an
 # "experimental app" . . .
-add_test(nrrd.Sanity ${EXECUTABLE_OUTPUT_PATH}/nrrdSanity)
+add_test(NAME nrrd.Sanity COMMAND $<TARGET_FILE:nrrdSanity>)
 
 # Hope to eventually have tests in all directories; until then
 # many of these are commented out. (TEEM_LIB_LIST)

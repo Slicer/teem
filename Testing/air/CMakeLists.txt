@@ -23,24 +23,24 @@
 
 add_executable(test_miscAir miscAir.c)
 target_link_libraries(test_miscAir teem)
-add_test(misc ${EXECUTABLE_OUTPUT_PATH}/test_miscAir)
+add_test(NAME misc COMMAND $<TARGET_FILE:test_miscAir>)
 
 add_executable(test_mtrand mtrand.c)
 target_link_libraries(test_mtrand teem)
-add_test(mtrand ${EXECUTABLE_OUTPUT_PATH}/test_mtrand)
+add_test(NAME mtrand COMMAND $<TARGET_FILE:test_mtrand>)
 
 add_executable(test_amath amath.c)
 target_link_libraries(test_amath teem)
-add_test(amath ${EXECUTABLE_OUTPUT_PATH}/test_amath)
+add_test(NAME amath COMMAND $<TARGET_FILE:test_amath>)
 
 add_executable(test_string string.c)
 target_link_libraries(test_string teem)
-add_test(string ${EXECUTABLE_OUTPUT_PATH}/test_string)
+add_test(NAME string COMMAND $<TARGET_FILE:test_string>)
 
 add_executable(test_strtok strtok.c)
 target_link_libraries(test_strtok teem)
-add_test(strtok ${EXECUTABLE_OUTPUT_PATH}/test_strtok)
+add_test(NAME strtok COMMAND $<TARGET_FILE:test_strtok>)
 
 add_executable(test_pptest pptest.c)
 target_link_libraries(test_pptest teem)
-add_test(pptest ${EXECUTABLE_OUTPUT_PATH}/test_pptest)
+add_test(NAME pptest COMMAND $<TARGET_FILE:test_pptest>)

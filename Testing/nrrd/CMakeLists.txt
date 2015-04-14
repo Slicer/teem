@@ -23,30 +23,30 @@
 
 add_executable(test_trand trand.c)
 target_link_libraries(test_trand teem)
-add_test(trand ${EXECUTABLE_OUTPUT_PATH}/test_trand)
+add_test(NAME trand COMMAND $<TARGET_FILE:test_trand>)
 
 add_executable(test_tload tload.c)
 target_link_libraries(test_tload teem)
-add_test(tload ${EXECUTABLE_OUTPUT_PATH}/test_tload)
+add_test(NAME tload COMMAND $<TARGET_FILE:test_tload>)
 
 add_executable(test_tskip tskip.c)
 target_link_libraries(test_tskip teem)
 # Note the different file names; tests are run in parallel
-add_test(tskip11p ${EXECUTABLE_OUTPUT_PATH}/test_tskip -s 101 102 103 -p 66 81     -o tsA.raw tsA.nhdr)
-add_test(tskip11n ${EXECUTABLE_OUTPUT_PATH}/test_tskip -s 101 102 103 -p 66 81 -ns -o tsB.raw tsB.nhdr)
-add_test(tskip01p ${EXECUTABLE_OUTPUT_PATH}/test_tskip -s 101 102 103 -p 0 99      -o tsC.raw tsC.nhdr)
-add_test(tskip01n ${EXECUTABLE_OUTPUT_PATH}/test_tskip -s 101 102 103 -p 0 99 -ns  -o tsD.raw tsD.nhdr)
-add_test(tskip10p ${EXECUTABLE_OUTPUT_PATH}/test_tskip -s 101 102 103 -p 77 0      -o tsE.raw tsE.nhdr)
-add_test(tskip10n ${EXECUTABLE_OUTPUT_PATH}/test_tskip -s 101 102 103 -p 77 0 -ns  -o tsF.raw tsF.nhdr)
+add_test(NAME tskip11p COMMAND $<TARGET_FILE:test_tskip> -s 101 102 103 -p 66 81     -o tsA.raw tsA.nhdr)
+add_test(NAME tskip11n COMMAND $<TARGET_FILE:test_tskip> -s 101 102 103 -p 66 81 -ns -o tsB.raw tsB.nhdr)
+add_test(NAME tskip01p COMMAND $<TARGET_FILE:test_tskip> -s 101 102 103 -p 0 99      -o tsC.raw tsC.nhdr)
+add_test(NAME tskip01n COMMAND $<TARGET_FILE:test_tskip> -s 101 102 103 -p 0 99 -ns  -o tsD.raw tsD.nhdr)
+add_test(NAME tskip10p COMMAND $<TARGET_FILE:test_tskip> -s 101 102 103 -p 77 0      -o tsE.raw tsE.nhdr)
+add_test(NAME tskip10n COMMAND $<TARGET_FILE:test_tskip> -s 101 102 103 -p 77 0 -ns  -o tsF.raw tsF.nhdr)
 
 add_executable(test_sanity sanity.c)
 target_link_libraries(test_sanity teem)
-add_test(sanity ${EXECUTABLE_OUTPUT_PATH}/test_sanity)
+add_test(NAME sanity COMMAND $<TARGET_FILE:test_sanity>)
 
 add_executable(test_macros macros.c)
 target_link_libraries(test_macros teem)
-add_test(macros ${EXECUTABLE_OUTPUT_PATH}/test_macros)
+add_test(NAME macros COMMAND $<TARGET_FILE:test_macros>)
 
 add_executable(test_bspec tbspec.c)
 target_link_libraries(test_bspec teem)
-add_test(bspec ${EXECUTABLE_OUTPUT_PATH}/test_bspec -bs bleed wrap pad:42)
+add_test(NAME bspec COMMAND $<TARGET_FILE:test_bspec> -bs bleed wrap pad:42)
