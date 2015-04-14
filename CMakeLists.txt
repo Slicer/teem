@@ -34,6 +34,15 @@ set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 if(COMMAND cmake_policy)
   # Library paths (/path/to/libmy.so not translated to -L/path/to -lmy)
   cmake_policy(SET CMP0003 NEW)
+  if(POLICY CMP0033)
+  # The ``export_library_dependencies()`` command should not be called.
+  # The functionality has been superseded by export() and install(EXPORT) commands
+    cmake_policy(SET CMP0033 NEW)
+  endif()
+  if(POLICY CMP0054)
+  #Only interpret ``if()`` arguments as variables or keywords when unquoted.
+    cmake_policy(SET CMP0054 OLD)
+  endif()
 endif()
 
 project(Teem)
@@ -463,7 +472,6 @@ install(TARGETS teem
   ARCHIVE DESTINATION lib${EXTRA_INSTALL_PATH}
   )
 
-#export_library_dependencies()
 export(TARGETS teem FILE ${Teem_BINARY_DIR}/TeemLibraryDepends.cmake)
 
 # Stand-alone programs to process hex encoding of data
