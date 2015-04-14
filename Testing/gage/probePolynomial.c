@@ -202,7 +202,7 @@ makeVolume(Nrrd *nin, unsigned int sx, unsigned int sy, unsigned int sz,
 }
 
 int
-main(int argc, const char **argv) {
+main() {
   airArray *mop;
   char *err;
 
@@ -213,7 +213,6 @@ main(int argc, const char **argv) {
   const double *vmeas, *gmeas, *hmeas;
   gageContext *gctx;
 
-  AIR_UNUSED(argc);
   mop = airMopNew();
 
   rng = airRandMTStateNew(429);

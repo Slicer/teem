@@ -46,7 +46,7 @@ errPrefix(char *dst,
 
 
 int
-main(int argc, const char **argv) {
+main() {
   airArray *mop, *submop;
   char *err;
 

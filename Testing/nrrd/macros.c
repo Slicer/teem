@@ -32,7 +32,7 @@
 */
 
 int
-main(int argc, char *argv[]) {
+main() {
   size_t II, *coord0, *ctmp0, *size0,
     coord1[1], ctmp1[1], size1[1],
     coord2[2], ctmp2[2], size2[2],

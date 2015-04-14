@@ -151,21 +151,21 @@ main(int argc, const char **argv) {
   }
   fprintf(stderr, "\n");
   if (printbytes) {
-    size_t bi, rpb, nn;
-    char stmp[AIR_STRLEN_SMALL];
-    nn = nrrdElementSize(nref)*nrrdElementNumber(nref);
-    rpb = AIR_MIN(printbytes, nn);
+    size_t bi, rpb, local_nn;
+    char local_stmp[AIR_STRLEN_SMALL];
+    local_nn = nrrdElementSize(nref)*nrrdElementNumber(nref);
+    rpb = AIR_MIN(printbytes, local_nn);
     dataUC = AIR_CAST(unsigned char *, nref->data);
     fprintf(stderr, "CORRECT %s bytes at beginning:\n",
-            airSprintSize_t(stmp, rpb));
+            airSprintSize_t(local_stmp, rpb));
     for (bi=0; bi<rpb; bi++) {
       fprintf(stderr, "%x ", dataUC[bi]);
     }
     fprintf(stderr, "...\n");
     fprintf(stderr, "CORRECT %s bytes at end:\n",
-            airSprintSize_t(stmp, rpb));
+            airSprintSize_t(local_stmp, rpb));
     fprintf(stderr, "...");
-    for (bi=nn - rpb; bi<nn; bi++) {
+    for (bi=local_nn - rpb; bi<local_nn; bi++) {
       fprintf(stderr, " %x", dataUC[bi]);
     }
     fprintf(stderr, "\n");
@@ -212,21 +212,21 @@ main(int argc, const char **argv) {
     airMopError(mop); return 1;
   }
   if (printbytes) {
-    size_t bi, rpb, nn;
-    char stmp[AIR_STRLEN_SMALL];
-    nn = nrrdElementSize(nin)*nrrdElementNumber(nin);
-    rpb = AIR_MIN(printbytes, nn);
+    size_t bi, rpb, local_nn;
+    char local_stmp[AIR_STRLEN_SMALL];
+    local_nn = nrrdElementSize(nin)*nrrdElementNumber(nin);
+    rpb = AIR_MIN(printbytes, local_nn);
     dataUC = AIR_CAST(unsigned char *, nin->data);
     fprintf(stderr, "FOUND %s bytes at beginning:\n",
-            airSprintSize_t(stmp, rpb));
+            airSprintSize_t(local_stmp, rpb));
     for (bi=0; bi<rpb; bi++) {
       fprintf(stderr, "%x ", dataUC[bi]);
     }
     fprintf(stderr, "...\n");
     fprintf(stderr, "FOUND %s bytes at end:\n",
-            airSprintSize_t(stmp, rpb));
+            airSprintSize_t(local_stmp, rpb));
     fprintf(stderr, "...");
-    for (bi=nn - rpb; bi<nn; bi++) {
+    for (bi=local_nn - rpb; bi<local_nn; bi++) {
       fprintf(stderr, " %x", dataUC[bi]);
     }
     fprintf(stderr, "\n");
