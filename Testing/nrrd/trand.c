@@ -51,13 +51,13 @@ main(int argc, const char *argv[]) {
 #define HIST 1
 #define IMAG 2
   /* PGM image since this Teem build might not support PNG */
-  char *mine[3] = { "vals.nrrd",
+  static const char * const mine[3] = { "vals.nrrd",
                     "histo.nrrd",
                     "histo.pgm" };
-  char *corr[3] = { "test/trandvals.nrrd",
+  static const char * const corr[3] = { "test/trandvals.nrrd",
                     "test/trandhisto.nrrd",
                     "test/trandhisto.pgm"};
-  char *what[3] = { "value",
+  static const char * const what[3] = { "value",
                     "histogram",
                     "histogram image" };
   int differ, wi;

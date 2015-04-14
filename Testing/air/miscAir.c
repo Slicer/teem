@@ -202,7 +202,7 @@ main(int argc, const char *argv[]) {
                      16*1023*1024ul,         /* 20 */
                      16*1024*1024ul,         /* 21 = 2^64 */
                      0};
-    char *string[] = {
+    static const char * const string[] = {
       "0 bytes",    /* 0 */
       "800 bytes",  /* 1 */
       "1024 bytes", /* 2 */
