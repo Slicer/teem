@@ -60,8 +60,39 @@ INCLUDE (CMakeBackwardCompatibilityC)
 
 #-----------------------------------------------------------------------------
 # Output directories.
-SET (LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all libraries.")
-SET (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
+
+#
+# in some cases, the output paths are specified via
+# CMAKE_*_OUTPUT_DIRECTORY variables when Teem is configured.
+# the logic below makes sure that the local *_OUTPUT_DIRECTORY
+# variables are in sync with those variables; otherwise the generated
+# TeemConfig.cmake file is wrong.
+#
+# First: libraries.
+set(__LIBRARY_OUTPUT_PATH__)
+if(BUILD_SHARED_LIBS)
+  if(CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+    set(__LIBRARY_OUTPUT_PATH__ "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+  endif()
+else()
+  if(CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
+    set(__LIBRARY_OUTPUT_PATH__ "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}")
+  endif()
+endif()
+
+if(NOT __LIBRARY_OUTPUT_PATH__)
+  set(__LIBRARY_OUTPUT_PATH__ "${CMAKE_BINARY_DIR}/lib")
+endif()
+# same fore executables.
+if(CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+  set(__RUNTIME_OUTPUT_PATH_ "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+else()
+  set(__RUNTIME_OUTPUT_PATH_ "${CMAKE_BINARY_DIR}/bin")
+endif()
+
+SET (LIBRARY_OUTPUT_PATH ${__LIBRARY_OUTPUT_PATH__} CACHE INTERNAL "Single output directory for building all libraries.")
+SET (EXECUTABLE_OUTPUT_PATH ${__RUNTIME_OUTPUT_PATH__} CACHE INTERNAL "Single output directory for building all executables.")
+
 #output directory for installing all include files.")
 MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 SET(Teem_LIBRARY_PATH "${LIBRARY_OUTPUT_PATH}")
@@ -432,6 +463,9 @@ INSTALL(TARGETS teem
   ARCHIVE DESTINATION lib${EXTRA_INSTALL_PATH}
   )
 
+#EXPORT_LIBRARY_DEPENDENCIES()
+export(TARGETS teem FILE ${Teem_BINARY_DIR}/TeemLibraryDepends.cmake)
+
 # Stand-alone programs to process hex encoding of data
 OPTION(BUILD_HEX "Build dehex and enhex" OFF)
 IF(BUILD_HEX)
@@ -461,7 +495,6 @@ ENDIF(BUILD_TESTING)
 #-----------------------------------------------------------------------------
 # Help outside projects build Teem projects.
 INCLUDE(CMakeExportBuildSettings)
-EXPORT_LIBRARY_DEPENDENCIES(${Teem_BINARY_DIR}/TeemLibraryDepends.cmake)
 CMAKE_EXPORT_BUILD_SETTINGS(${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
 
 SET(CFLAGS "${CMAKE_C_FLAGS}")
