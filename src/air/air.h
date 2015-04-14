@@ -815,7 +815,9 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 ** "invalid operands to binary ^ (have ‘int’ and ‘int’)" but these
 ** problems oddly went away with the explicit cast to int.
 */
-#if defined(_WIN32) || defined(__ECC) /* NrrdIO-hack-002 */
+#include "teem/airExistsConf.h"
+
+#if defined(_WIN32) || defined(__ECC) || defined(AIR_EXISTS_MACRO_FAILS) /* NrrdIO-hack-002 */
 #define AIR_EXISTS(x) (airExists(x))
 #else
 #define AIR_EXISTS(x) (AIR_CAST(int, !((x) - (x))))

@@ -86,6 +86,13 @@ ENDIF(QNANHIBIT_VALUE)
 
 
 #-----------------------------------------------------------------------------
+# test if AIR_EXISTS macro fails
+try_run(AIR_EXISTS_MACRO_FAILS AIR_EXISTS_MACRO_COMPILE
+  ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/CMake/testAirExists.cxx
+)
+message("AIR_EXISTS_MACRO_FAILS=${AIR_EXISTS_MACRO_FAILS} AIR_EXISTS_MACRO_COMPILE=${AIR_EXISTS_MACRO_COMPILE}")
+
+#-----------------------------------------------------------------------------
 # Teem build configuration options.
 OPTION(BUILD_SHARED_LIBS "Build Teem with shared libraries." OFF)
 SET(Teem_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
@@ -308,6 +315,13 @@ FOREACH(header_file ${Teem_HEADER_FILES})
     "${CMAKE_CURRENT_BINARY_DIR}/include/teem/${file_no_path}")
 ENDFOREACH(header_file)
 
+#---
+# header that defines AIR_EXISTS_MACRO_FAILS
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CMake/airExistsConf.h
+  ${CMAKE_CURRENT_BINARY_DIR}/include/teem/airExistsConf.h)
+set(Teem_INSTALLED_HEADER_FILES
+  ${Teem_INSTALLED_HEADER_FILES}
+  "${CMAKE_CURRENT_BINARY_DIR}/include/teem/airExistsConf.h")
 #---
 # Include directory
 INCLUDE_DIRECTORIES(
