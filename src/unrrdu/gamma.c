@@ -38,12 +38,12 @@ unrrdu_gammaMain(int argc, const char **argv, const char *me,
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  double min, max, gamma;
+  double min, max, Gamma;
   airArray *mop;
   int pret, blind8BitRange;
   NrrdRange *range;
 
-  hestOptAdd(&opt, "g,gamma", "gamma", airTypeDouble, 1, 1, &gamma, NULL,
+  hestOptAdd(&opt, "g,gamma", "gamma", airTypeDouble, 1, 1, &Gamma, NULL,
              "gamma > 1.0 brightens; gamma < 1.0 darkens. "
              "Negative gammas invert values (like in xv). ");
   hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &min, "nan",
@@ -72,7 +72,7 @@ unrrdu_gammaMain(int argc, const char **argv, const char *me,
   range = nrrdRangeNew(min, max);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   nrrdRangeSafeSet(range, nin, blind8BitRange);
-  if (nrrdArithGamma(nout, nin, range, gamma)) {
+  if (nrrdArithGamma(nout, nin, range, Gamma)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing gamma:\n%s", me, err);
     airMopError(mop);

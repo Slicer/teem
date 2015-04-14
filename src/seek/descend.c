@@ -119,7 +119,7 @@ int seekDescendToDeg(double *coord, double *botleft, double *botright,
     double inv[3]; /* inverse of that matrix */
     double nom[2], dx[2]; /* more helpers to compute next step */
     /* variables needed for Armijo stepsize rule */
-    double beta=1, gamma=0.5, alpha=beta; /* parameters */
+    double beta=1, _gamma=0.5, alpha=beta; /* parameters */
     int accept=0, safetyct=0, maxct=30; /* counters */
     double dxsqr; /* squared length of stepsize */
     double hessleft[9], hessright[9]; /* used to compute Hessian derivative */
@@ -257,7 +257,7 @@ int seekDescendToDeg(double *coord, double *botleft, double *botright,
           newcoord[1]<0 || newcoord[1]>1) {
         if (safetyct==maxct)
           return 1; /* we left the cell */
-        alpha*=gamma;
+        alpha*=_gamma;
       }
 
       ELL_3M_LERP(hessbot,newcoord[0],botleft,botright);
@@ -312,7 +312,7 @@ int seekDescendToDeg(double *coord, double *botleft, double *botright,
         accept=1;
         discr = newdiscr;
       } else {
-        alpha*=gamma;
+        alpha*=_gamma;
       }
     }
 
@@ -367,7 +367,7 @@ int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
     /* on the first run, initialize discr; later, employ the Armijo
      * stepsize rule to guarantee convergence */
     double beta=1.0;
-    double gamma=0.5;
+    double _gamma=0.5;
     double alpha=beta;
     int accept=0;
     double optgradsqr = ELL_3V_DOT(optgrad,optgrad);
@@ -403,7 +403,7 @@ int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
                                           dir was the culprit */
           return 1; /* we left the cell */
         }
-        alpha*=gamma;
+        alpha*=_gamma;
         continue;
       }
 
@@ -466,7 +466,7 @@ int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
         accept=1;
         discr = newdiscr;
       } else {
-        alpha*=gamma;
+        alpha*=_gamma;
       }
     }
 
@@ -660,7 +660,7 @@ int seekDescendToRidge(double *coord,
     /* on the first run, initialize dist; later, employ the Armijo
      * stepsize rule to guarantee convergence */
     double beta=0.1;
-    double gamma=0.5;
+    double _gamma=0.5;
     double alpha=beta;
     int accept=0;
     double optgradsqr = ELL_3V_DOT(optgrad,optgrad);
@@ -685,7 +685,7 @@ int seekDescendToRidge(double *coord,
           newcoord[2]<0 || newcoord[2]>1) {
         if (safetyct==maxct)
           return 1; /* we left the cell */
-        alpha*=gamma;
+        alpha*=_gamma;
       }
 
       ELL_3M_LERP(Hfrontleft, newcoord[2], Hbfl, Htfl);
@@ -724,7 +724,7 @@ int seekDescendToRidge(double *coord,
         accept=1;
         dist = newdist;
       } else {
-        alpha*=gamma;
+        alpha*=_gamma;
       }
     }
 

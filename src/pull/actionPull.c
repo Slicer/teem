@@ -606,7 +606,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
                  /* output */
                  double egradSum[4]) {
   static const char me[]="_energyFromImage";
-  double energy, grad3[3], gamma;
+  double energy, grad3[3], _gamma;
   int probed;
 
   /* not sure I have the logic for this right
@@ -634,7 +634,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
     probed = AIR_TRUE; \
   }
 
-  gamma = task->pctx->sysParm.gamma;
+  _gamma = task->pctx->sysParm.gamma;
   energy = 0;
   if (egradSum) {
     ELL_4V_SET(egradSum, 0, 0, 0, 0);
@@ -648,7 +648,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
       MAYBEPROBE;
       enr = pullPointScalar(task->pctx, point, pullInfoStrength,
                             NULL, NULL);
-      energy += -gamma*enr;
+      energy += -_gamma*enr;
     } else {
       /* need strength and its gradient */
       /* randomize choice between forward and backward difference */
@@ -666,8 +666,8 @@ _energyFromImage(pullTask *task, pullPoint *point,
       MAYBEPROBE;
       str0 = pullPointScalar(task->pctx, point, pullInfoStrength,
                              NULL, NULL);
-      energy += -gamma*str0;
-      egradSum[3] += -gamma*(str1 - str0)/(scl1 - scl0);
+      energy += -_gamma*str0;
+      egradSum[3] += -_gamma*(str1 - str0)/(scl1 - scl0);
       /*
       if (1560 < task->pctx->iter && 2350 == point->idtag) {
         printf("%s(%u): egrad[3] = %g*((%g-%g)/(%g-%g) = %g/%g = %g)"

@@ -38,7 +38,7 @@
 */
 int
 nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
-               const NrrdRange *_range, double gamma) {
+               const NrrdRange *_range, double Gamma) {
   static const char me[]="nrrdArithGamma", func[]="gamma";
   double val, min, max;
   size_t I, num;
@@ -52,7 +52,7 @@ nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!( AIR_EXISTS(gamma) )) {
+  if (!( AIR_EXISTS(Gamma) )) {
     biffAddf(NRRD, "%s: gamma doesn't exist", me);
     return 1;
   }
@@ -83,14 +83,14 @@ nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
   }
   lup = nrrdDLookup[nin->type];
   ins = nrrdDInsert[nout->type];
-  gamma = 1/gamma;
+  Gamma = 1/Gamma;
   num = nrrdElementNumber(nin);
-  if (gamma < 0.0) {
-    gamma = -gamma;
+  if (Gamma < 0.0) {
+    Gamma = -Gamma;
     for (I=0; I<num; I++) {
       val = lup(nin->data, I);
       val = AIR_AFFINE(min, val, max, 0.0, 1.0);
-      val = pow(val, gamma);
+      val = pow(val, Gamma);
       val = AIR_AFFINE(1.0, val, 0.0, min, max);
       ins(nout->data, I, val);
     }
@@ -98,12 +98,12 @@ nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
     for (I=0; I<num; I++) {
       val = lup(nin->data, I);
       val = AIR_AFFINE(min, val, max, 0.0, 1.0);
-      val = pow(val, gamma);
+      val = pow(val, Gamma);
       val = AIR_AFFINE(0.0, val, 1.0, min, max);
       ins(nout->data, I, val);
     }
   }
-  if (nrrdContentSet_va(nout, func, nin, "%g,%g,%g", min, max, gamma)) {
+  if (nrrdContentSet_va(nout, func, nin, "%g,%g,%g", min, max, Gamma)) {
     biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
