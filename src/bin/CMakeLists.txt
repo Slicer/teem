@@ -26,6 +26,7 @@ macro(CREATE_EXEC name sources)
   target_link_libraries(${name} teem)
   install(TARGETS ${name}
     RUNTIME DESTINATION bin
+    COMPONENT Runtime
     )
   set_target_properties(${name} PROPERTIES
     INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
