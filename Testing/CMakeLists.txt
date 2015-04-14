@@ -29,8 +29,8 @@ if(Teem_BINARY_DIR)
     set (EXECUTABLE_OUTPUT_PATH ${Teem_BINARY_DIR} CACHE PATH
          "Single output directory for building all testing executables.")
     set(C_TEST_PATH ${Teem_BINARY_DIR})
-  endif(NOT EXECUTABLE_OUTPUT_PATH)
-endif(Teem_BINARY_DIR)
+  endif()
+endif()
 
 # Create a header file with the path to the data in it.  Note that we don't
 # have to make these paths "windows friendly" as it turns out windows can read

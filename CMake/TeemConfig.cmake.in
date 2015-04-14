@@ -63,4 +63,4 @@ set(Teem_TOOLS "@Teem_TOOLS@")
 # The Teem library dependencies.
 if(NOT Teem_NO_LIBRARY_DEPENDS)
   include("@Teem_CV_LIBRARY_DEPENDS_FILE@")
-endif(NOT Teem_NO_LIBRARY_DEPENDS)
+endif()
