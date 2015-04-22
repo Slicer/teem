@@ -34,7 +34,6 @@ static int
 _nrrdEncodingZRL_read(FILE *file, void *data, size_t elementNum,
                       Nrrd *nrrd, NrrdIoState *nio) {
 
-  AIR_UNUSED(nio);
   unsigned char *output_buffer = (unsigned char *) data;
   size_t toread = elementNum*nrrdElementSize(nrrd);
   /*
@@ -44,6 +43,10 @@ _nrrdEncodingZRL_read(FILE *file, void *data, size_t elementNum,
          airEnumStr(nrrdType, nrrd->type)); */
   int cc, dd;
   unsigned int j = 0;
+
+  AIR_UNUSED(nrrd);
+  AIR_UNUSED(nio);
+
   while (j < toread) {
     cc = fgetc(file);
     if (cc == 0) {
