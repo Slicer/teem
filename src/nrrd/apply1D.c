@@ -1061,8 +1061,8 @@ nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *_nsubst) {
   double (*ins)(void *, size_t, double);
   Nrrd *nsubst;
   double val, *subst;
-  size_t ii, num;
-  int jj, asize0, asize1, changed;
+  size_t ii, jj, num, asize0, asize1;
+  int changed;
   airArray *mop;
 
   if (!(nout && _nsubst && nin)) {
@@ -1081,8 +1081,8 @@ nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *_nsubst) {
   }
   nrrdAxisInfoGet_va(_nsubst, nrrdAxisInfoSize, &asize0, &asize1);
   if (2 != asize0) {
-    biffAddf(NRRD, "%s: substitution table has to be 2xN, not %dxN",
-             me, asize0);
+    biffAddf(NRRD, "%s: substitution table has to be 2xN, not %uxN",
+             me, AIR_CAST(unsigned int, asize0));
     return 1;
   }
   if (nout != nin) {
