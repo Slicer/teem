@@ -154,6 +154,7 @@ _nrrdEncodingAscii_write(FILE *file, const void *_data, size_t elNum,
        conditional so we don't create a final blank line */
     fprintf(file, "\n");
   }
+  fflush(file);
 
   return 0;
 }
