@@ -97,6 +97,9 @@ airSingleSscanf(const char *str, const char *fmt, void *ptr) {
       val = AIR_NAN;
     }
 /* ---- BEGIN non-NrrdIO */
+    else if (strstr(tmp, "-pi")) {
+      val = -AIR_PI;
+    }
     else if (strstr(tmp, "pi")) {
       val = AIR_PI;
     }
