@@ -1079,7 +1079,9 @@ nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *_nsubst) {
              me, _nsubst->dim);
     return 1;
   }
-  nrrdAxisInfoGet_va(_nsubst, nrrdAxisInfoSize, &asize0, &asize1);
+  /* nrrdAxisInfoGet_va(_nsubst, nrrdAxisInfoSize, &asize0, &asize1); */
+  asize0 = _nsubst->axis[0].size;
+  asize1 = _nsubst->axis[1].size;
   if (2 != asize0) {
     biffAddf(NRRD, "%s: substitution table has to be 2xN, not %uxN",
              me, AIR_CAST(unsigned int, asize0));
