@@ -225,7 +225,7 @@ HEST_EXPORT unsigned int hestOptAdd(hestOpt **optP,
                                     int type, int min, int max,
                                     void *valueP, const char *dflt,
                                     const char *info,
-                                    ... /* int *sawP,
+                                    ... /* unsigned int *sawP,
                                            airEnum *enm,
                                            hestCB *CB */);
 HEST_EXPORT hestOpt *hestOptFree(hestOpt *opt);
