@@ -45,7 +45,7 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
   Nrrd *nin, *nout;
   /* these are specific to this command */
   NrrdIoState *nio;
-  char *spcStr, *_origStr, *origStr;
+  char *spcStr, *_origStr, *origStr, *content;
   int space;
   unsigned int spaceDim;
 
@@ -62,6 +62,9 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
              "of the first sample, of the form \"(x,y,z)\" (or however "
              "many coefficients are needed for the chosen space). Quoting the "
              "vector is needed to stop interpretation from the shell");
+  hestOptAdd(&opt, "c,content", "content", airTypeString, 1, 1, &content, "",
+             "Specifies the content string of the nrrd, which is built upon "
+             "by many nrrd function to record a history of operations");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -100,6 +103,14 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
       /* we did parse a known space */
       nrrdSpaceSet(nout, space);
     }
+  }
+
+  /* HEY: copy and paste from unrrdu/make.c */
+  if (airStrlen(content)) {
+    if (nout->content) {
+      free(nout->content);
+    }
+    nout->content = airStrdup(content);
   }
 
   /* HEY: copy and paste from unrrdu/make.c */
