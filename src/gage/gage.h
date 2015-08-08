@@ -380,6 +380,22 @@ enum {
 };
 #define GAGE_VEC_ITEM_MAX     31
 
+/*
+******** gage2Vec* enum
+**
+** "items" that gage knows how to measure in a 2-vector volume
+*/
+enum {
+  gage2VecUnknown,        /*  0: nobody knows */
+  gage2VecVector,         /*  1: "v", component-wise-interpolated
+                                 (CWI) vec: [2] */
+  gage2VecVector0,        /*  2: "v0", vector[0]: [1] */
+  gage2VecVector1,        /*  3: "v1", vector[0]: [1] */
+  gage2VecLength,         /*  4: "l", length of 2-vector: [1] */
+  gage2VecLast
+};
+#define GAGE_2VEC_ITEM_MAX    4
+
 struct gageKind_t;       /* dumb forward declaraction, ignore */
 struct gagePerVolume_t;  /* dumb forward declaraction, ignore */
 
@@ -1104,6 +1120,10 @@ GAGE_EXPORT const gageItemPack *const gageItemPackSclValue;
    takes to create a new gageKind) */
 GAGE_EXPORT const airEnum *const gageVec;
 GAGE_EXPORT gageKind *const gageKindVec;
+
+/* twovecGage.c */
+GAGE_EXPORT const airEnum *const gage2Vec;
+GAGE_EXPORT gageKind *const gageKind2Vec;
 
 /* shape.c */
 GAGE_EXPORT void gageShapeReset(gageShape *shp);

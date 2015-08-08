@@ -21,6 +21,7 @@ set(GAGE_SOURCES
   stackBlur.c
   update.c
   vecGage.c
+  twovecGage.c
   vecprint.c
   optimsig.c
   )
