@@ -38,6 +38,8 @@ _meetGageKindParse(const char *_str, int constOnly) {
   }
   if (!strcmp(gageKindScl->name, str)) {
     ret = gageKindScl;
+  } else if (!strcmp(gageKind2Vec->name, str)) {
+    ret = gageKind2Vec;
   } else if (!strcmp(gageKindVec->name, str)) {
     ret = gageKindVec;
   } else if (!strcmp(tenGageKind->name, str)) {
@@ -81,9 +83,9 @@ _meetHestConstGageKindParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   kindP = (const gageKind **)ptr;
   *kindP = meetConstGageKindParse(str);
   if (!*kindP) {
-    sprintf(err, "%s: \"%s\" not \"%s\", \"%s\", or \"%s\"", me, str,
-            gageKindScl->name, gageKindVec->name,
-            tenGageKind->name);
+    sprintf(err, "%s: \"%s\" not \"%s\", \"%s\", \"%s\", or \"%s\"", me, str,
+            gageKindScl->name, gageKind2Vec->name,
+            gageKindVec->name, tenGageKind->name);
     return 1;
   }
 
@@ -102,8 +104,8 @@ _meetHestGageKindParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   kindP = (gageKind **)ptr;
   *kindP = meetGageKindParse(str);
   if (!*kindP) {
-    sprintf(err, "%s: \"%s\" not \"%s\", \"%s\", \"%s\", or \"%s\"", me,
-            str, gageKindScl->name, gageKindVec->name,
+    sprintf(err, "%s: \"%s\" not \"%s\", \"%s\", \"%s\", \"%s\", or \"%s\"", me,
+            str, gageKindScl->name, gageKind2Vec->name, gageKindVec->name,
             tenGageKind->name, TEN_DWI_GAGE_KIND_NAME);
     return 1;
   }
