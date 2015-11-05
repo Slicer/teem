@@ -453,7 +453,8 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
                int type, const int *clamp) {
   static const char me[]="nrrdHistoJoint", func[]="jhisto";
   int skip, hadContent;
-  double val, count, incr, (*lup)(const void *v, size_t I);
+  double val, count, incr, (*lup)(const void *v, size_t I),
+    rmin[NRRD_DIM_MAX], rmax[NRRD_DIM_MAX];
   size_t Iin, Iout, numEl, coord[NRRD_DIM_MAX], totalContentStrlen;
   airArray *mop;
   NrrdRange **range;
@@ -586,6 +587,15 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
   }
 
   /* the skinny */
+  for (ai=0; ai<numNin; ai++) {
+    if (range[ai]->min <= range[ai]->max) {
+      rmin[ai] = range[ai]->min;
+      rmax[ai] = range[ai]->max;
+    } else {
+      rmin[ai] = range[ai]->max;
+      rmax[ai] = range[ai]->min;
+    }
+  }
   numEl = nrrdElementNumber(nin[0]);
   for (Iin=0; Iin<numEl; Iin++) {
     skip = 0;
@@ -597,9 +607,9 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
         skip = 1;
         break;
       }
-      if (!AIR_IN_CL(range[ai]->min, val, range[ai]->max)) {
+      if (!AIR_IN_CL(rmin[ai], val, rmax[ai])) {
         if (clamp[ai]) {
-          val = AIR_CLAMP(range[ai]->min, val, range[ai]->max);
+          val = AIR_CLAMP(rmin[ai], val, rmax[ai]);
         } else {
           skip = 1;
           break;
@@ -609,7 +619,6 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
                                                     val,
                                                     range[ai]->max,
                                                     bins[ai]));
-      /* printf(" -> coord = %d; ", coord[d]); fflush(stdout); */
     }
     if (skip) {
       continue;
