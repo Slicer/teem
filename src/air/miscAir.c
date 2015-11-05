@@ -528,6 +528,12 @@ airIndexClamp(double min, double val, double max, unsigned int N) {
 airULLong
 airIndexULL(double min, double val, double max, airULLong N) {
   airULLong idx;
+  if (min == max) {
+    return 0;
+  }
+  if (min > max) {
+    return N-1-airIndexULL(max, val, min, N);
+  }
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
   /* compile error on Win32-vs60: "error C2520: conversion from
      unsigned __int64 to double not implemented, use signed __int64 */
@@ -544,6 +550,12 @@ airIndexULL(double min, double val, double max, airULLong N) {
 airULLong
 airIndexClampULL(double min, double val, double max, airULLong N) {
   airULLong idx;
+  if (min == max) {
+    return 0;
+  }
+  if (min > max) {
+    return N-1-airIndexULL(max, val, min, N);
+  }
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
   airLLong sidx;
   val = AIR_MAX(min, val); /* see note in airIndexClamp */
