@@ -691,6 +691,9 @@ LIMN_EXPORT int limnPolyDataPlane(limnPolyData *pld,
                                   unsigned int uRes, unsigned int vRes);
 LIMN_EXPORT int limnPolyDataSquare(limnPolyData *pld,
                                    unsigned int infoBitFlag);
+LIMN_EXPORT int limnPolyDataSuperquadric2D(limnPolyData *pld,
+                                           unsigned int infoBitFlag,
+                                           float alpha, unsigned int res);
 
 /* polymod.c */
 LIMN_EXPORT int limnPolyDataEdgeHalve(limnPolyData *pldOut,

@@ -1444,3 +1444,60 @@ limnPolyDataSquare(limnPolyData *pld, unsigned int infoBitFlag) {
   return 0;
 }
 
+int
+limnPolyDataSuperquadric2D(limnPolyData *pld,
+                           unsigned int infoBitFlag,
+                           float alpha, unsigned int res) {
+  static const char me[]="limnPolyDataSuperquadric2D";
+  unsigned int i, vertNum;
+  float phi;
+
+  vertNum = res+1; /* initial vertex at origin */
+  if (limnPolyDataAlloc(pld, infoBitFlag, vertNum,
+                        vertNum+1, /* last index wraps around */
+                        1)) {
+    biffAddf(LIMN, "%s: couldn't allocate output", me);
+    return 1;
+  }
+  /* initial vertex at origin */
+  ELL_4V_SET(pld->xyzw + 4*0, 0.0, 0.0, 0.0, 1.0);
+  /* printf("!%s: xyzw[0] = %g %g %g %g\n", me, (pld->xyzw + 4*0)[0], (pld->xyzw + 4*0)[1], (pld->xyzw + 4*0)[2], (pld->xyzw + 4*0)[3]); */
+  for (i=1; i<vertNum; i++) {
+    phi = AIR_AFFINE(1, i, vertNum, 0, 2*AIR_PI);
+    ELL_4V_SET(pld->xyzw + 4*i,
+               airSgnPow(cos(phi),alpha),
+               airSgnPow(sin(phi),alpha),
+               0.0, 1.0);
+    /* printf("!%s: xyzw[%u] = %g %g %g %g\n", me, i ,(pld->xyzw + 4*i)[0], (pld->xyzw + 4*i)[1], (pld->xyzw + 4*i)[2], (pld->xyzw + 4*i)[3]); */
+  }
+  if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
+    for (i=0; i<vertNum; i++) {
+      ELL_3V_SET(pld->norm + 3*i, 0.0, 0.0, 1.0);
+    }
+  }
+  if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
+    for (i=0; i<vertNum; i++) {
+      ELL_4V_SET(pld->rgba + 4*i, 255, 255, 255, 255);
+    }
+  }
+  if ((1 << limnPolyDataInfoTex2) & infoBitFlag) {
+    /* punting */
+    ELL_2V_COPY(pld->tex2 + 2*i, pld->xyzw + 4*i);
+  }
+  if ((1 << limnPolyDataInfoTang) & infoBitFlag) {
+    /* punting */
+    ELL_3V_SET(pld->tang + 3*i, 0.0, 0.0, 0.0);
+  }
+  pld->type[0] = limnPrimitiveTriangleFan;
+  for (i=0; i<vertNum; i++) {
+    pld->indx[i] = i;
+    /* printf("!%s: idx[%u] = %u\n", me, i, pld->indx[i]); */
+  }
+  /* very last index loops around to first non-origin point */
+  pld->indx[i] = 1;
+  /* printf("!%s: idx[%u] = %u\n", me, i, pld->indx[i]); */
+  pld->icnt[0] = vertNum+1;
+
+  return 0;
+}
+
