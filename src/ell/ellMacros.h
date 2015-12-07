@@ -148,6 +148,10 @@ extern "C" {
   ((v2)[0] = (a)*(v1)[0],       \
    (v2)[1] = (a)*(v1)[1])
 
+#define ELL_2V_SCALE_TT(v2, TT, a, v1)   \
+  ((v2)[0] = AIR_CAST(TT, (a)*(v1)[0]), \
+   (v2)[1] = AIR_CAST(TT, (a)*(v1)[1]))
+
 #define ELL_2V_SCALE_ADD2(v2, s0, v0, s1, v1) \
   ((v2)[0] = (s0)*(v0)[0] + (s1)*(v1)[0],     \
    (v2)[1] = (s0)*(v0)[1] + (s1)*(v1)[1])
@@ -158,6 +162,10 @@ extern "C" {
 
 #define ELL_2V_NORM(v2, v1, length) \
   (length = ELL_2V_LEN(v1), ELL_2V_SCALE(v2, 1.0/length, v1))
+
+#define ELL_2V_NORM_TT(v2, TT, v1, length) \
+  (length = AIR_CAST(TT, ELL_2V_LEN(v1)), \
+   ELL_2V_SCALE_TT(v2, TT, 1.0/length, v1))
 
 #define ELL_2V_CROSS(v1, v2) \
   ((v1)[0]*(v2)[1] - (v1)[1]*(v2)[0])
