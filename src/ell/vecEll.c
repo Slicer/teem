@@ -144,6 +144,40 @@ ell_3v_angle_d(const double _uu[3], const double _vv[3]) {
   return ret;
 }
 
+/* HEY: copy and paste */
+float
+ell_2v_angle_f(const float _uu[2], const float _vv[2]) {
+  float tmp[2], len, uu[2], vv[2], ret;
+
+  ELL_2V_NORM_TT(uu, float, _uu, len);
+  ELL_2V_NORM_TT(vv, float, _vv, len);
+  if (ELL_2V_DOT(uu, vv) < 0.0) {
+    ELL_2V_ADD2(tmp, uu, vv);
+    ret = AIR_CAST(float, AIR_PI - 2*asin(ELL_2V_LEN(tmp)/2.0));
+  } else {
+    ELL_2V_SUB(tmp, uu, vv);
+    ret = AIR_CAST(float, 2*asin(ELL_2V_LEN(tmp)/2.0));
+  }
+  return ret;
+}
+
+/* HEY: copy and paste */
+double
+ell_2v_angle_d(const double _uu[2], const double _vv[2]) {
+  double tmp[2], len, uu[2], vv[2], ret;
+
+  ELL_2V_NORM(uu, _uu, len);
+  ELL_2V_NORM(vv, _vv, len);
+  if (ELL_2V_DOT(uu, vv) < 0.0) {
+    ELL_2V_ADD2(tmp, uu, vv);
+    ret = AIR_PI - 2*asin(ELL_2V_LEN(tmp)/2.0);
+  } else {
+    ELL_2V_SUB(tmp, uu, vv);
+    ret = 2*asin(ELL_2V_LEN(tmp)/2.0);
+  }
+  return ret;
+}
+
 /*
 ** input vectors have to be normalized!
 */

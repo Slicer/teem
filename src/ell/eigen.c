@@ -52,6 +52,168 @@
   }
   */
 
+/*
+******** ell_quadratic()
+**
+** finds real roots of A*x^2 + B*x + C.
+**
+** records the found roots in the given root array, and returns a
+** value from the ell_quadratic_root* enum:
+**
+**   ell_quadratic_root_two:
+**      two distinct roots root[0] > root[1]
+**   ell_quadratic_root_complex:
+**      two complex conjugate roots at root[0] +/- i*root[1]
+**   ell_quadratic_root_double:
+**      a repeated root root[0] == root[1]
+**
+** HEY simple as this code may seem, it has definitely numerical
+** issues that have not been explored or fixed, such as what if A is
+** near 0.  Also correctly handling the transition from double root to
+** complex roots needs to be re-thought, as well as this issue:
+** http://people.csail.mit.edu/bkph/articles/Quadratics.pdf Should
+** also understand http://www.cs.berkeley.edu/~wkahan/Qdrtcs.pdf
+**
+** This does NOT use biff
+*/
+int
+ell_quadratic(double root[2], double A, double B, double C) {
+  /* static const char me[]="ell_quadratic"; */
+  int ret;
+  double disc, rd, tmp, eps=1.0E-12;
+
+  disc = B*B - 4*A*C;
+  if (disc > 0) {
+    rd = sqrt(disc);
+    root[0] = (-B + rd)/(2*A);
+    root[1] = (-B - rd)/(2*A);
+    if (root[0] < root[1]) {
+      ELL_SWAP2(root[0], root[1], tmp);
+    }
+    ret = ell_quadratic_root_two;
+  } else if (disc < -eps) {
+    root[0] = -B/(2*A);
+    root[1] = sqrt(-disc)/(2*A);
+    ret = ell_quadratic_root_complex;
+  } else {
+    /* 0 == disc or only *very slightly* negative */
+    root[0] = root[1] = -B/(2*A);
+    ret = ell_quadratic_root_double;
+  }
+  return ret;
+}
+
+int
+ell_2m_eigenvalues_d(double eval[2], const double m[4]) {
+  double A, B, C;
+  int ret;
+
+  A = 1;
+  B = -m[0] - m[3];
+  C = m[0]*m[3] - m[1]*m[2];
+  ret = ell_quadratic(eval, A, B, C);
+  return ret;
+}
+
+void
+ell_2m_1d_nullspace_d(double ans[2], const double _n[4]) {
+  /* static const char me[]="ell_2m_1d_nullspace_d"; */
+  double n[4], dot, len, rowv[2];
+
+  ELL_4V_COPY(n, _n);
+  dot = ELL_2V_DOT(n + 2*0, n + 2*1);
+  /*
+  fprintf(stderr, "!%s: n = {{%g,%g},{%g,%g}}\n", me,
+          n[0], n[1], n[2], n[3]);
+  fprintf(stderr, "!%s: dot = %g\n", me, dot);
+  */
+  if (dot > 0) {
+    ELL_2V_ADD2(rowv, n + 2*0, n + 2*1);
+  } else {
+    ELL_2V_SUB(rowv, n + 2*0, n + 2*1);
+  }
+  /* fprintf(stderr, "!%s: rowv = %g %g\n", me, rowv[0], rowv[1]); */
+  /* have found good description of what's perpendicular nullspace,
+     so now perpendicularize it */
+  ans[0] = rowv[1];
+  ans[1] = -rowv[0];
+  ELL_2V_NORM(ans, ans, len);
+  /*
+  if (!(AIR_EXISTS(ans[0]) && AIR_EXISTS(ans[1]))) {
+    fprintf(stderr, "!%s: bad! %g %g\n", me, ans[0], ans[1]);
+  }
+  */
+  return;
+}
+
+/*
+******** ell_2m_eigensolve_d
+**
+** Eigensolve 2x2 matrix, which may be asymmetric
+*/
+int
+ell_2m_eigensolve_d(double eval[2], double evec[4], const double m[4]) {
+  /* static const char me[]="ell_2m_eigensolve_d"; */
+  double nul[4], ident[4] = {1,0,0,1};
+  int ret;
+
+  ret = ell_2m_eigenvalues_d(eval, m);
+  /*
+  fprintf(stderr, "!%s: m = {{%.17g,%.17g},{%.17g,%.17g}} -> "
+          "%s evals (%.17g,%.17g)\n", me, m[0], m[1], m[2], m[3],
+          airEnumStr(ell_quadratic_root, ret), eval[0], eval[1]);
+  */
+  switch (ret) {
+  case ell_quadratic_root_two:
+    ELL_4V_SCALE_ADD2(nul, 1.0, m, -eval[0], ident);
+    ell_2m_1d_nullspace_d(evec + 2*0, nul);
+    /*
+    fprintf(stderr, "!%s: eval=%.17g -> nul {{%.17g,%.17g},{%.17g,%.17g}} "
+            "-> evec %.17g %.17g\n", me, eval[0],
+            nul[0], nul[1], nul[2], nul[3],
+            (evec + 2*0)[0], (evec + 2*0)[1]);
+    */
+    ELL_4V_SCALE_ADD2(nul, 1.0, m, -eval[1], ident);
+    ell_2m_1d_nullspace_d(evec + 2*1, nul);
+    /*
+    fprintf(stderr, "!%s: eval=%.17g -> nul {{%.17g,%.17g},{%.17g,%.17g}} "
+            "-> evec %.17g %.17g\n", me, eval[1],
+            nul[0], nul[1], nul[2], nul[3],
+            (evec + 2*1)[0], (evec + 2*1)[1]);
+    */
+    break;
+  case ell_quadratic_root_double:
+    /* fprintf(stderr, "!%s: double eval=%.17g\n", me, eval[0]); */
+    ELL_4V_SCALE_ADD2(nul, 1.0, m, -eval[0], ident);
+    /*
+    fprintf(stderr, "!%s: nul = {{%.17g,%.17g},{%.17g,%.17g}} (len %.17g)\n",
+            me, nul[0], nul[1], nul[2], nul[3], ELL_4V_LEN(nul));
+    */
+    if (ELL_4V_DOT(nul, nul)) {
+      /* projecting out the nullspace produced non-zero matrix,
+         (possibly from an asymmetric matrix) so there is real
+         orientation to recover */
+      ell_2m_1d_nullspace_d(evec + 2*0, nul);
+      ELL_2V_COPY(evec + 2*1, evec + 2*0);
+    } else {
+      /* so this was isotropic symmetric; invent orientation */
+      ELL_2V_SET(evec + 2*0, 1, 0);
+      ELL_2V_SET(evec + 2*1, 0, 1);
+    }
+    break;
+  case ell_quadratic_root_complex:
+    /* HEY punting for now */
+    ELL_2V_SET(evec + 2*0, 0.5, 0);
+    ELL_2V_SET(evec + 2*1, 0, 0.5);
+    break;
+  default:
+    /* fprintf(stderr, "%s: unexpected solution indicator %d\n", me, ret); */
+    break;
+  }
+  return ret;
+}
+
+
 void
 _ell_align3_d(double v[9]) {
   double d0, d1, d2;
@@ -423,36 +585,6 @@ ell_3m2sub_eigenvalues_d(double eval[3], const double _m[9]) {
           me, Dsq, roots, eval[0], eval[1], eval[2]);
   */
   return roots;
-}
-
-void
-ell_2m_1d_nullspace_d(double ans[2], const double _n[4]) {
-  double n[4], dot, len, span[2];
-  /* static const char me[]="ell_2m_1d_nullspace_d"; */
-
-  ELL_2M_TRANSPOSE(n, _n);
-  dot = ELL_2V_DOT(n + 2*0, n + 2*1);
-  /*
-  fprintf(stderr, "!%s: n = {{%g,%g},{%g,%g}}\n", me,
-          n[0], n[1], n[2], n[3]);
-  fprintf(stderr, "!%s: dot = %g\n", me, dot);
-  */
-  if (dot > 0) {
-    ELL_2V_ADD2(span, n + 2*0, n + 2*1);
-  } else {
-    ELL_2V_SUB(span, n + 2*0, n + 2*1);
-  }
-  /* have found good description of column span;
-     now need the (perpendicular) nullspace */
-  ans[0] = span[1];
-  ans[1] = -span[0];
-  ELL_2V_NORM(ans, ans, len);
-  /*
-  if (!(AIR_EXISTS(ans[0]) && AIR_EXISTS(ans[1]))) {
-    fprintf(stderr, "!%s: bad! %g %g\n", me, ans[0], ans[1]);
-  }
-  */
-  return;
 }
 
 void

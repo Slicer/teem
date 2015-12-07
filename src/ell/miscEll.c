@@ -45,6 +45,35 @@ int ell_debug = 0;
 
 
 const char *
+_ell_quadratic_root_str[] = {
+  "(unknown ell_quadratic_root)",
+  "two",
+  "double",
+  "complex"
+};
+
+const char *
+_ell_quadratic_root_desc[] = {
+  "(unknown ell_quadratic_root)",
+  "two distinct roots",
+  "one double root",
+  "complex conjugate roots",
+};
+
+airEnum
+_ell_quadratic_root = {
+  "quadratic root solutions",
+  ELL_QUADRATIC_ROOT_MAX,
+  _ell_quadratic_root_str, NULL,
+  _ell_quadratic_root_desc,
+  NULL, NULL,
+  AIR_FALSE
+};
+const airEnum *const
+ell_quadratic_root = &_ell_quadratic_root;
+
+
+const char *
 _ell_cubic_root_str[] = {
   "(unknown ell_cubic_root)",
   "single",

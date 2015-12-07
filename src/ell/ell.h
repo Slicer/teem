@@ -50,9 +50,25 @@ extern "C" {
 #define ELL_EPS 1.0e-10
 
 /*
+******** ell_quadratic_root* enum
+**
+** return values for ell_quadratic, ell_2m_eigenvalues,
+** ell_2m_eigensolve, etc
+*/
+enum {
+  ell_quadratic_root_unknown,  /* 0 */
+  ell_quadratic_root_two,      /* 1 */
+  ell_quadratic_root_double,   /* 2 */
+  ell_quadratic_root_complex,  /* 3 */
+  ell_quadratic_root_last
+};
+#define ELL_QUADRATIC_ROOT_MAX    3
+
+/*
 ******** ell_cubic_root* enum
 **
-** return values for ell_cubic
+** return values for ell_cubic, ell_3m_eigenvalues,
+** ell_3m_eigensolve, etc
 */
 enum {
   ell_cubic_root_unknown,         /* 0 */
@@ -62,7 +78,6 @@ enum {
   ell_cubic_root_three,           /* 4 */
   ell_cubic_root_last
 };
-
 #define ELL_CUBIC_ROOT_MAX           4
 
 /*
@@ -94,6 +109,7 @@ enum {
 /* miscEll.c */
 ELL_EXPORT const int ellPresent;
 ELL_EXPORT const char *ell_biff_key;
+ELL_EXPORT const airEnum *const ell_quadratic_root;
 ELL_EXPORT const airEnum *const ell_cubic_root;
 ELL_EXPORT int ell_debug;
 ELL_EXPORT void ell_3m_print_f(FILE *f, const float s[9]);
@@ -117,6 +133,8 @@ ELL_EXPORT void ell_4mv_mul_f(float v2[4],
                               const float m[16], const float v1[4]);
 ELL_EXPORT void ell_4mv_mul_d(double v2[4],
                               const double m[16], const double v1[4]);
+ELL_EXPORT float ell_2v_angle_f(const float u[2], const float v[2]);
+ELL_EXPORT double ell_2v_angle_d(const double u[2], const double v[2]);
 ELL_EXPORT float ell_3v_angle_f(const float u[3], const float v[3]);
 ELL_EXPORT double ell_3v_angle_d(const double u[3], const double v[3]);
 ELL_EXPORT double ell_3v_area_spherical_d(const double avec[3],
@@ -250,7 +268,11 @@ ELL_EXPORT int ell_cubic(double root[3],
                          double A, double B, double C, int newton);
 
 /* eigen.c */
+ELL_EXPORT int ell_quadratic(double root[2], double A, double B, double C);
 ELL_EXPORT void ell_2m_1d_nullspace_d(double ans[2], const double n[4]);
+ELL_EXPORT int ell_2m_eigenvalues_d(double eval[2], const double m[4]);
+ELL_EXPORT int ell_2m_eigensolve_d(double eval[2], double evec[4],
+                                   const double m[4]);
 ELL_EXPORT void ell_3m_1d_nullspace_d(double ans[3], const double n[9]);
 ELL_EXPORT void ell_3m_2d_nullspace_d(double ans0[3],
                                       double ans1[3], const double n[9]);
