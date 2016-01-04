@@ -1605,6 +1605,7 @@ NRRD_EXPORT int nrrdKernelCheck(const NrrdKernel *kern,
                                 unsigned int diffOkIntglMax,
                                 const NrrdKernel *dkern,
                                 const double dparm[NRRD_KERNEL_PARMS_NUM]);
+NRRD_EXPORT int nrrdKernelUsesScale(const NrrdKernel *kern);
 
 /* ---- END non-NrrdIO */
 

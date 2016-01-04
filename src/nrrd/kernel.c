@@ -25,6 +25,9 @@
 
 /*
 ** summary of information about how the kernel parameter vector is set:
+** Note that, annoyingly, nrrdKernelUsesScale (at end of this file)
+** has to be updated to record which kernels (including their derivatives)
+** use parm[0] for scale.
 
                                  numParm  parm[0]   parm[1]   parm[2]
                  nrrdKernelHann    2      scale    cut-off
@@ -60,6 +63,7 @@ nrrdKernelHermiteScaleSpaceFlag    0
 ** and the default is 1.0, when given in string form
 ** E.g. "tent" is understood as "tent:1",
 ** but "gauss:4" isn't complete and won't parse; while "gauss:1,4" is good
+** See note above about nrrdKernelUsesScale (at end of this file)
 */
 
 /* these functions replace what had been a lot of
@@ -3583,4 +3587,37 @@ nrrdKernelCheck(const NrrdKernel *kern,
 
   airMopOkay(mop);
   return 0;
+}
+
+int
+nrrdKernelUsesScale(const NrrdKernel *kern) {
+  int ret;
+
+  if (!kern) {
+    ret = 0;
+  } else if (nrrdKernelHann == kern ||
+             nrrdKernelHannD == kern ||
+             nrrdKernelHannDD == kern ||
+             nrrdKernelBlackman == kern ||
+             nrrdKernelBlackmanD == kern ||
+             nrrdKernelBlackmanDD == kern ||
+             nrrdKernelZero == kern ||
+             nrrdKernelBox == kern ||
+             nrrdKernelCheap == kern ||
+             nrrdKernelTent == kern ||
+             nrrdKernelForwDiff == kern ||
+             nrrdKernelCentDiff == kern ||
+             nrrdKernelBCCubic == kern ||
+             nrrdKernelBCCubicD == kern ||
+             nrrdKernelBCCubicDD == kern ||
+             nrrdKernelAQuartic == kern ||
+             nrrdKernelAQuarticD == kern ||
+             nrrdKernelAQuarticDD == kern ||
+             nrrdKernelGaussian == kern ||
+             nrrdKernelDiscreteGaussian == kern) {
+    ret = 1;
+  } else {
+    ret = 0;
+  }
+  return ret;
 }
