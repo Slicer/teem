@@ -308,6 +308,39 @@ dyeLUVtoXYZ(float *X, float *Y, float *Z,
 }
 
 void
+dyeLABtoLCH(float *Lp, float *C, float *H,
+            float  L, float  A, float  B) {
+
+  *Lp = L;
+  *C = sqrt(A*A + B*B);
+  *H = atan2(B, A)/(2*AIR_PI) + 0.5;
+}
+
+void
+dyeLCHtoLAB(float *Lp, float *A, float *B,
+            float  L, float  C, float  H) {
+  float phi = (H*2 - 1)*AIR_PI;
+  *Lp = L;
+  *A = C*cos(phi);
+  *B = C*sin(phi);
+}
+
+void
+dyeXYZtoLCH(float *_L, float *C, float *H,
+            float  X, float  Y, float  Z) {
+  float L, A, B;
+  dyeXYZtoLAB(&L, &A, &B, X, Y, Z);
+  dyeLABtoLCH(_L, C, H, L, A, B);
+}
+void
+dyeLCHtoXYZ(float *X, float *Y, float *Z,
+            float _L, float  C, float  H) {
+  float L, A, B;
+  dyeLCHtoLAB(&L, &A, &B, _L, C, H);
+  dyeLABtoXYZ(X, Y, Z, L, A, B);
+}
+
+void
 dyeIdentity(float *A, float *B, float *C,
             float  a, float  b, float  c) {
   *A = a;
@@ -318,13 +351,14 @@ dyeIdentity(float *A, float *B, float *C,
 
 dyeConverter dyeSimpleConvert[DYE_MAX_SPACE+1][DYE_MAX_SPACE+1] =
 {
-  {NULL,          NULL,          NULL,          NULL,          NULL,          NULL,          NULL},
-  {NULL,          dyeIdentity,   NULL,          dyeHSVtoRGB,   NULL,          NULL,          NULL},
-  {NULL,          NULL,          dyeIdentity,   dyeHSLtoRGB,   NULL,          NULL,          NULL},
-  {NULL,          dyeRGBtoHSV,   dyeRGBtoHSL,   dyeIdentity,   dyeRGBtoXYZ,   NULL,          NULL},
-  {NULL,          NULL,          NULL,          dyeXYZtoRGB,   dyeIdentity,   dyeXYZtoLAB,   dyeXYZtoLUV},
-  {NULL,          NULL,          NULL,          NULL,          dyeLABtoXYZ,   dyeIdentity,   NULL},
-  {NULL,          NULL,          NULL,          NULL,          dyeLUVtoXYZ,   NULL,          dyeIdentity}
+  {NULL,          NULL,          NULL,          NULL,          NULL,          NULL,          NULL,          NULL},
+  {NULL,          dyeIdentity,   NULL,          dyeHSVtoRGB,   NULL,          NULL,          NULL,          NULL},
+  {NULL,          NULL,          dyeIdentity,   dyeHSLtoRGB,   NULL,          NULL,          NULL,          NULL},
+  {NULL,          dyeRGBtoHSV,   dyeRGBtoHSL,   dyeIdentity,   dyeRGBtoXYZ,   NULL,          NULL,          NULL},
+  {NULL,          NULL,          NULL,          dyeXYZtoRGB,   dyeIdentity,   dyeXYZtoLAB,   dyeXYZtoLUV,   dyeXYZtoLCH},
+  {NULL,          NULL,          NULL,          NULL,          dyeLABtoXYZ,   dyeIdentity,   NULL,          dyeLABtoLCH},
+  {NULL,          NULL,          NULL,          NULL,          dyeLUVtoXYZ,   NULL,          dyeIdentity,   NULL},
+  {NULL,          NULL,          NULL,          NULL,          dyeLCHtoXYZ,   dyeLCHtoLAB,   NULL,          dyeIdentity},
   };
 
 /*
@@ -367,7 +401,7 @@ dyeConvert(dyeColor *col, int outSpace) {
       if (!E) E |= dyeConvert(col, outSpace);
     }
     else if (inSpace > dyeSpaceXYZ && outSpace > dyeSpaceXYZ) {
-      /* its an easy LAB <-- XYZ --> LUV conversion */
+      /* its an easy conversion among XYZ, LAB, LUV, LCH */
       if (!E) E |= dyeConvert(col, dyeSpaceXYZ);
       if (!E) E |= dyeConvert(col, outSpace);
     }

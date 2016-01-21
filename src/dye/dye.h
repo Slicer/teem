@@ -56,9 +56,10 @@ enum {
   dyeSpaceXYZ,            /* 4: perceptual primaries */
   dyeSpaceLAB,            /* 5: 1976 CIE (L*a*b*) (based on Munsell) */
   dyeSpaceLUV,            /* 6: 1976 CIE (L*u*v*) */
+  dyeSpaceLCH,            /* 7: polar coord version of L*a*b* */
   dyeSpaceLast
 };
-#define DYE_MAX_SPACE 6
+#define DYE_MAX_SPACE 7
 
 #define DYE_VALID_SPACE(spc) \
   (AIR_IN_OP(dyeSpaceUnknown, (spc), dyeSpaceLast))
@@ -110,6 +111,14 @@ DYE_EXPORT void dyeLABtoXYZ(float *X, float *Y, float *Z,
                             float  L, float  A, float  B);
 DYE_EXPORT void dyeLUVtoXYZ(float *X, float *Y, float *Z,
                             float  L, float  U, float  V);
+DYE_EXPORT void dyeLABtoLCH(float*Lp, float *C, float *H,
+                            float  L, float  A, float  B);
+DYE_EXPORT void dyeLCHtoLAB(float*Lp, float *A, float *B,
+                            float  L, float  C, float  H);
+DYE_EXPORT void dyeXYZtoLCH(float *L, float *C, float *H,
+                            float  X, float  Y, float  Z);
+DYE_EXPORT void dyeLCHtoXYZ(float *X, float *Y, float *Z,
+                            float  L, float  C, float  H);
 DYE_EXPORT dyeConverter dyeSimpleConvert[DYE_MAX_SPACE+1][DYE_MAX_SPACE+1];
 DYE_EXPORT int dyeConvert(dyeColor *col, int space);
 

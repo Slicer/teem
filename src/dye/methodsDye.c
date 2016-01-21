@@ -38,7 +38,8 @@ dyeSpaceToStr[DYE_MAX_SPACE+1] = {
   "RGB",
   "XYZ",
   "LAB",
-  "LUV"
+  "LUV",
+  "LCH"
 };
 
 static const char *
@@ -49,7 +50,8 @@ _dyeSpaceDesc[DYE_MAX_SPACE+1] = {
   "traditional device primaries",
   "CIE 1931 XYZ space",
   "CIE L*a*b*",
-  "CIE 1976 L*u*v*"
+  "CIE 1976 L*u*v*",
+  "polar coord(L*a*b*)"
 };
 
 static const airEnum
