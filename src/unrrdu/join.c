@@ -43,10 +43,10 @@ int
 unrrdu_joinMain(int argc, const char **argv, const char *me,
                 hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, *label;
+  char *out, *err, *label, *kindStr;
   Nrrd **nin;
   Nrrd *nout;
-  int incrDim, pret;
+  int incrDim, pret, kind;
   unsigned int ninLen, axis;
   double mm[2], spc;
   airArray *mop;
@@ -65,6 +65,9 @@ unrrdu_joinMain(int argc, const char **argv, const char *me,
              "nrrds are joined side-by-side, along an existing axis.");
   hestOptAdd(&opt, "l,label", "label", airTypeString, 1, 1, &label, "",
              "label to associate with join axis");
+  hestOptAdd(&opt, "k,kind", "kind", airTypeString, 1, 1, &kindStr, "",
+             "kind to set on join axis. "
+             "Not using this option leaves the kind as is");
   hestOptAdd(&opt, "mm,minmax", "min max", airTypeDouble, 2, 2, mm, "nan nan",
              "min and max values along join axis");
   hestOptAdd(&opt, "sp,spacing", "spc", airTypeDouble, 1, 1, &spc, "nan",
@@ -91,6 +94,20 @@ unrrdu_joinMain(int argc, const char **argv, const char *me,
   if (strlen(label)) {
     nout->axis[axis].label = (char *)airFree(nout->axis[axis].label);
     nout->axis[axis].label = airStrdup(label);
+  }
+  if (airStrlen(kindStr)) {
+    if (!strcmp("none", kindStr)
+        || !strcmp("???", kindStr)) {
+      kind = nrrdKindUnknown;
+    } else {
+      if (!(kind = airEnumVal(nrrdKind, kindStr))) {
+        fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me,
+                kindStr, nrrdKind->name);
+        airMopError(mop);
+        return 1;
+      }
+    }
+    nout->axis[axis].kind = kind;
   }
   if (AIR_EXISTS(mm[0])) {
     nout->axis[axis].min = mm[0];
