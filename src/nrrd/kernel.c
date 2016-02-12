@@ -3614,6 +3614,8 @@ nrrdKernelUsesScale(const NrrdKernel *kern) {
              nrrdKernelAQuarticD == kern ||
              nrrdKernelAQuarticDD == kern ||
              nrrdKernelGaussian == kern ||
+             nrrdKernelGaussianD == kern ||
+             nrrdKernelGaussianDD == kern ||
              nrrdKernelDiscreteGaussian == kern) {
     ret = 1;
   } else {
