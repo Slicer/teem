@@ -3590,7 +3590,7 @@ nrrdKernelCheck(const NrrdKernel *kern,
 }
 
 int
-nrrdKernelUsesScale(const NrrdKernel *kern) {
+nrrdKernelParm0IsScale(const NrrdKernel *kern) {
   int ret;
 
   if (!kern) {
