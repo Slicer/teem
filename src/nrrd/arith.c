@@ -348,7 +348,11 @@ double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   _nrrdBinaryOpExists,
   _nrrdBinaryOpIf,
   _nrrdBinaryOpNormalRandScaleAdd,
-  _nrrdBinaryOpRicianRand
+  _nrrdBinaryOpRicianRand,
+  /* for these, the clamping is actually done by the caller */
+  _nrrdBinaryOpAdd, /* for nrrdBinaryOpAddClamp */
+  _nrrdBinaryOpSubtract, /* for nrrdBinaryOpSubtractClamp */
+  _nrrdBinaryOpMultiply, /* for nrrdBinaryOpMultiplyClamp */
 };
 
 /*
@@ -363,7 +367,7 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
   static const char me[]="nrrdArithBinaryOp";
   char *contA, *contB;
   size_t N, I, size[NRRD_DIM_MAX];
-  double (*ins)(void *v, size_t I, double d),
+  double (*ins)(void *v, size_t I, double d), (*clmp)(double d),
     (*lupA)(const void *v, size_t I), (*lupB)(const void *v, size_t I),
     (*bop)(double a, double b), valA, valB;
 
@@ -414,11 +418,23 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
   lupA = nrrdDLookup[ninA->type];
   lupB = nrrdDLookup[ninB->type];
   ins = nrrdDInsert[nout->type];
+  if (nrrdBinaryOpAddClamp == op
+      || nrrdBinaryOpSubtractClamp == op
+      || nrrdBinaryOpMultiplyClamp == op) {
+    clmp = nrrdDClamp[nout->type];
+  } else {
+    clmp = NULL;
+  }
   for (I=0; I<N; I++) {
+    double tmp;
     /* HEY: there is a loss of precision issue here with 64-bit ints */
     valA = lupA(ninA->data, I);
     valB = lupB(ninB->data, I);
-    ins(nout->data, I, bop(valA, valB));
+    tmp = bop(valA, valB);
+    if (clmp) {
+      tmp = clmp(tmp);
+    }
+    ins(nout->data, I, tmp);
   }
 
   contA = _nrrdContentGet(ninA);
@@ -441,7 +457,7 @@ nrrdArithIterBinaryOpSelect(Nrrd *nout, int op,
   char *contA, *contB;
   size_t N, I, size[NRRD_DIM_MAX];
   int type;
-  double (*insert)(void *v, size_t I, double d),
+  double (*insert)(void *v, size_t I, double d), (*clmp)(double d),
     (*bop)(double a, double b), valA, valB;
   const Nrrd *nin;
 
@@ -491,11 +507,23 @@ nrrdArithIterBinaryOpSelect(Nrrd *nout, int op,
   */
   N = nrrdElementNumber(nin);
   insert = nrrdDInsert[type];
+  if (nrrdBinaryOpAddClamp == op
+      || nrrdBinaryOpSubtractClamp == op
+      || nrrdBinaryOpMultiplyClamp == op) {
+    clmp = nrrdDClamp[nout->type];
+  } else {
+    clmp = NULL;
+  }
   for (I=0; I<N; I++) {
+    double tmp;
     /* HEY: there is a loss of precision issue here with 64-bit ints */
     valA = nrrdIterValue(inA);
     valB = nrrdIterValue(inB);
-    insert(nout->data, I, bop(valA, valB));
+    tmp = bop(valA, valB);
+    if (clmp) {
+      tmp = clmp(tmp);
+    }
+    insert(nout->data, I, tmp);
   }
   contA = nrrdIterContent(inA);
   contB = nrrdIterContent(inB);

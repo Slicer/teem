@@ -690,9 +690,16 @@ enum {
   nrrdBinaryOpIf,         /* 21 */
   nrrdBinaryOpNormalRandScaleAdd, /* 22 */
   nrrdBinaryOpRicianRand, /* 23 */
+  /* Adding these is a bit of a hack- whether or not to clamp to the
+     representational range of an output integer type should really be an
+     argument to the arithmetic functions, but this allows it be done
+     without any API change */
+  nrrdBinaryOpAddClamp,   /* 24 */
+  nrrdBinaryOpSubtractClamp, /* 25 */
+  nrrdBinaryOpMultiplyClamp, /* 26 */
   nrrdBinaryOpLast
 };
-#define NRRD_BINARY_OP_MAX   23
+#define NRRD_BINARY_OP_MAX   26
 
 /*
 ******** nrrdTernaryOp

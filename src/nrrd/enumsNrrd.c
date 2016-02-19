@@ -1289,6 +1289,9 @@ _nrrdBinaryOpStr[NRRD_BINARY_OP_MAX+1] = {
   "if",
   "nrand",
   "rrand",
+  "+c",
+  "-c",
+  "xc",
 };
 
 static const char *
@@ -1316,7 +1319,10 @@ _nrrdBinaryOpDesc[NRRD_BINARY_OP_MAX+1] = {
   "if exists(a), then a, else b",
   "if a, then a, else b",
   "a + b*gaussianNoise",
-  "sample of Rician with mu a and sigma b"
+  "sample of Rician with mu a and sigma b",
+  "add, but clamp to integer representation range",
+  "subtract, but clamp to integer representation range",
+  "multiply, but clamp to integer representation range",
 };
 
 #define nbAdd nrrdBinaryOpAdd
@@ -1366,6 +1372,9 @@ _nrrdBinaryOpStrEqv[] = {
   "if",
   "nrand",
   "rrand",
+  "+c", "addclamp",
+  "-c", "subtractclamp",
+  "xc", "multiplyclamp",
   ""
 };
 
@@ -1394,6 +1403,9 @@ _nrrdBinaryOpValEqv[] = {
   nbIf,
   nrrdBinaryOpNormalRandScaleAdd,
   nrrdBinaryOpRicianRand,
+  nrrdBinaryOpAddClamp, nrrdBinaryOpAddClamp,
+  nrrdBinaryOpSubtractClamp, nrrdBinaryOpSubtractClamp,
+  nrrdBinaryOpMultiplyClamp, nrrdBinaryOpMultiplyClamp,
 };
 
 static const airEnum
