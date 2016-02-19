@@ -31,7 +31,7 @@
 #define NINSPECT "ninspect"
 
 int
-fixproj(Nrrd *nproj[3], Nrrd *nvol) {
+fixproj(Nrrd *nproj[3], const Nrrd *nvol) {
   static const char me[]="fixproj";
   airArray *mop;
   Nrrd *ntmp[3], *nt;
@@ -125,7 +125,7 @@ fixproj(Nrrd *nproj[3], Nrrd *nvol) {
 }
 
 int
-ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
+ninspect_proj(Nrrd *nout, const Nrrd *nin, int axis, int smart, float amount) {
   static const char me[]="ninspect_proj";
   airArray *mop;
   Nrrd *ntmpA, *ntmpB, **nrgb;
@@ -182,14 +182,16 @@ ninspect_proj(Nrrd *nout, Nrrd *nin, int axis, int smart, float amount) {
 }
 
 int
-doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
+doit(Nrrd *nout, const Nrrd *nin, int smart, float amount, unsigned int margin,
+     const unsigned char *back) {
   static const char me[]="doit";
   Nrrd *nproj[3];
   airArray *mop;
-  int axis, srl, sap, ssi, E, margin, which;
-  size_t min[3];
+  int axis, srl, sap, ssi, E, which;
+  size_t min[3], ii, nn;
+  unsigned char *out;
 
-  if (!(nout && nin)) {
+  if (!(nout && nin && back)) {
     biffAddf(NINSPECT, "%s: got NULL pointer", me);
     return 1;
   }
@@ -203,9 +205,6 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
   airMopAdd(mop, nproj[0]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nproj[1]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nproj[2]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-
-  /* how much space to put between and around the projections */
-  margin = 6;
 
   /* do projections for each axis, with some progress indication to sterr */
   for (axis=0; axis<=2; axis++) {
@@ -242,6 +241,12 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
     airMopError(mop); return 1;
   }
 
+  nn = nout->axis[1].size * nout->axis[2].size;
+  out = AIR_CAST(unsigned char *, nout->data);
+  for (ii=0; ii<nn; ii++) {
+    ELL_3V_COPY(out + 3*ii, back);
+  }
+
   min[0] = 0;
   E = 0;
   which = 0;
@@ -261,18 +266,6 @@ doit(Nrrd *nout, Nrrd *nin, int smart, float amount) {
   return 0;
 }
 
-void
-ninspect_usage(void) {
-
-  fprintf(stderr, "\nusage: %s <input volume> <output image>\n\n",
-          NINSPECT);
-  fprintf(stderr, "<input volume>: must be a 3-D array in NRRD or "
-          "NRRD-compatible format.\n");
-  fprintf(stderr, "<output image>: will be saved out in whatever format "
-          "is implied by the\n");
-  fprintf(stderr, "   extension (if recognized), or else in NRRD format\n");
-}
-
 static const char *info =
   ("Quick way of seeing what's inside a 3D volume.  A color image "
    "of three axis-aligned projections is composed of histogram-"
@@ -290,7 +283,10 @@ main(int argc, const char *argv[]) {
   char *outS, *err;
   Nrrd *nin, *nout;
   NrrdIoState *nio;
+  unsigned int margin;
   float heqamount;
+  unsigned int back[3];
+  unsigned char backUC[3];
 
   me = argv[0];
   mop = airMopNew();
@@ -300,6 +296,10 @@ main(int argc, const char *argv[]) {
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "amt", "heq", airTypeFloat, 1, 1, &heqamount, "0.5",
              "how much to apply histogram equalization to projection images");
+  hestOptAdd(&hopt, "m", "margin", airTypeUInt, 1, 1, &margin, "6",
+             "pixel size of margin on boundary, and space between the projections");
+  hestOptAdd(&hopt, "b", "background", airTypeUInt, 3, 3, back, "0 0 0",
+             "background color (8-bit RGB)");
   hestOptAdd(&hopt, "o", "img out", airTypeString, 1, 1, &outS,
              NULL, "output image to save to.  Will try to use whatever "
              "format is implied by extension, but will fall back to PPM.");
@@ -315,7 +315,8 @@ main(int argc, const char *argv[]) {
 
   nrrdStateDisableContent = AIR_TRUE;
 
-  if (doit(nout, nin, 1, heqamount)) {
+  ELL_3V_COPY_TT(backUC, unsigned char, back);
+  if (doit(nout, nin, 1, heqamount, margin, backUC)) {
     err=biffGetDone(NINSPECT);
     airMopAdd(mop, err, airFree, airMopAlways);
     fprintf(stderr, "%s: trouble creating output:\n%s", me, err);

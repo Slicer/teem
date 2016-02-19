@@ -47,7 +47,8 @@ printans(FILE *file, const double *ans, unsigned int len) {
 static int
 gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
           Nrrd *nout, int typeOut, Nrrd *_ngrid,
-          int indexSpace, int verbose, int clamp) {
+          int indexSpace, int verbose, int clamp,
+          double eft, double eftVal) {
   char me[]="gridProbe";
   Nrrd *ngrid;
   airArray *mop;
@@ -140,13 +141,14 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
   ins = nrrdDInsert[nout->type];
   for (II=0; II<NN; II++) {
     int E;
-    if (verbose && 3 == gridDim && !coordOut[0] && !coordOut[1]) {
+    if (verbose && 3 == gridDim
+        && !coordOut[0+baseDim] && !coordOut[1+baseDim]) {
       if (verbose > 1) {
         fprintf(stderr, "z = ");
       }
       fprintf(stderr, " %s/%s",
-              airSprintSize_t(stmp[0], coordOut[2]),
-              airSprintSize_t(stmp[1], sizeOut[2]));
+              airSprintSize_t(stmp[0], coordOut[2+baseDim]),
+              airSprintSize_t(stmp[1], sizeOut[2+baseDim]));
       fflush(stderr);
       if (verbose > 1) {
         fprintf(stderr, "\n");
@@ -179,10 +181,14 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
       airMopError(mop); return 1;
     }
     if (1 == ansLen) {
-      ins(nout->data, II, *answer);
+      ins(nout->data, II, (ctx->edgeFrac > eft
+                           ? eftVal
+                           : *answer));
     } else {
       for (aidx=0; aidx<ansLen; aidx++) {
-        ins(nout->data, aidx + ansLen*II, answer[aidx]);
+        ins(nout->data, aidx + ansLen*II, (ctx->edgeFrac > eft
+                                           ? eftVal
+                                           : answer[aidx]));
       }
     }
     NRRD_COORD_INCR(coordOut, sizeOut, dim, baseDim);
@@ -230,7 +236,7 @@ main(int argc, const char *argv[]) {
   Nrrd *ngrad=NULL, *nbmat=NULL;
   size_t six, siy, siz, sox, soy, soz;
   double bval=0, eps, gmc, rangeSS[2], *pntPos, scale[3], posSS, biasSS,
-    dsix, dsiy, dsiz, dsox, dsoy, dsoz;
+    dsix, dsiy, dsiz, dsox, dsoy, dsoz, edgeFracInfo[2];
   gageContext *ctx;
   gagePerVolume *pvl=NULL;
   double t0, t1, rscl[3], min[3], maxOut[3], maxIn[3];
@@ -292,6 +298,15 @@ main(int argc, const char *argv[]) {
              "RNG seed; mostly for debugging");
   hestOptAdd(&hopt, "c", "bool", airTypeBool, 1, 1, &clamp, "false",
              "clamp positions as part of probing");
+  hestOptAdd(&hopt, "ev", "thresh val", airTypeDouble, 2, 2,
+             edgeFracInfo, "1 0",
+             "if using position clamping (with \"-c true\"), the fraction "
+             "of values invented for the kernel support, or \"edge frac\" "
+             "is saved per probe (0 means kernel support was entirely within "
+             "data; 1 means everything was invented). "
+             "If this frac exceeds the first \"thresh\" "
+             "value given here, then the saved value for the probe will be "
+             "the second value \"val\" given here");
   hestOptAdd(&hopt, "zz", "bool", airTypeBool, 1, 1, &zeroZ, "false",
              "enable \"zeroZ\" behavior in gage that partially "
              "implements working with 3D images as if they are 2D");
@@ -678,10 +693,14 @@ main(int argc, const char *argv[]) {
                        probeSpaceIndex, clamp);
       }
       if (1 == ansLen) {
-        ins(nout->data, II, *answer);
+        ins(nout->data, II, (ctx->edgeFrac > edgeFracInfo[0]
+                             ? edgeFracInfo[1]
+                             : *answer));
       } else {
         for (aidx=0; aidx<ansLen; aidx++) {
-          ins(nout->data, aidx + ansLen*II, answer[aidx]);
+          ins(nout->data, aidx + ansLen*II, (ctx->edgeFrac > edgeFracInfo[0]
+                                             ? edgeFracInfo[1]
+                                             : answer[aidx]));
         }
       }
       /*
@@ -837,7 +856,7 @@ main(int argc, const char *argv[]) {
                 (_ngrid
                  ? probeSpaceIndex  /* user specifies grid space */
                  : AIR_TRUE),       /* copying vprobe index-space behavior */
-                verbose, clamp)) {
+                verbose, clamp, edgeFracInfo[0], edgeFracInfo[1])) {
     /* note hijacking of GAGE key */
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble probing on grid:\n%s\n", me, err);
