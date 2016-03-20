@@ -39,7 +39,7 @@ main(int argc, const char *argv[]) {
 
   int rigor;
   char *err, *outS, *imagOutS, *wispath, *seedS;
-  Nrrd *ntmp, /* tmp */
+  Nrrd *ntmp, *ntmp2, /* tmp */
     *njarg[2], /* arguments to join */
     *nrin,   /* given real-valued input */
     *nrdin,  /* given real-valued input, as double */
@@ -57,7 +57,7 @@ main(int argc, const char *argv[]) {
     *nrout;  /* real output */
   double howrand, *lut, *P;
   unsigned int len, axi, seed;
-  size_t II, NN;
+  size_t II, NN, minInset[NRRD_DIM_MAX];
   FILE *fwise;
   unsigned int axes[NRRD_DIM_MAX];
   ptrdiff_t minPad[NRRD_DIM_MAX], maxPad[NRRD_DIM_MAX];
@@ -123,6 +123,11 @@ main(int argc, const char *argv[]) {
     /* got no request for specific seed */
     airSrandMT(AIR_CAST(unsigned int, airTime()));
   }
+  for (axi=0; axi<NRRD_DIM_MAX; axi++) {
+    minInset[axi] = 0;
+  }
+  /* pointless to set content */
+  nrrdStateDisableContent = AIR_TRUE;
 
   /* ============== pad real input nrin to complex-valued input ncin */
   minPad[0] = 0;
@@ -217,18 +222,36 @@ main(int argc, const char *argv[]) {
   NRRDNEW(ncfout);
   NRRDNEW(ncdout);
   NRRDNEW(ncout);
+  NRRDNEW(ntmp2);
   if (nrrdArithUnaryOp(nR, nrrdUnaryOpCos, nP)
       || nrrdArithBinaryOp(nR, nrrdBinaryOpMultiply, nR, nM)
       || nrrdArithUnaryOp(nI, nrrdUnaryOpSin, nP)
       || nrrdArithBinaryOp(nI, nrrdBinaryOpMultiply, nI, nM)
       || nrrdJoin(ncfout, AIR_CAST(const Nrrd*const*, njarg), 2, 0, AIR_TRUE)
       || nrrdFFT(ncdout, ncfout, axes, nrin->dim, -1, AIR_TRUE, rigor)
-      || nrrdConvert(ncout, ncdout, nrin->type)) {
+      || nrrdConvert(ntmp, ncdout, nrin->type)
+      || nrrdConvert(ntmp2, ncin, nrin->type)
+      || nrrdInset(ncout, ntmp2, ntmp, minInset)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error creating output\n%s", me, err);
+    //airMopError(mop);
+    //return 1;
+  }
+  /*
+  if (nrrdSave("cfin.nrrd", ncfin, NULL) ||
+      nrrdSave("cout.nrrd", ncout, NULL) ||
+      nrrdSave("cin.nrrd", ncin, NULL) ||
+      nrrdSave("tmp.nrrd", ntmp, NULL) ||
+      nrrdSave("R.nrrd", nR, NULL) ||
+      nrrdSave("I.nrrd", nI, NULL) ||
+      nrrdSave("P.nrrd", nP, NULL) ||
+      nrrdSave("M.nrrd", nM, NULL)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: error saving tmps:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
+  */
 
   /* ============== DONE. saving things to save */
   if (airStrlen(wispath) && nrrdFFTWEnabled) {
