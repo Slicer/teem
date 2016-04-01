@@ -208,14 +208,15 @@ UNRRDU_MAP(UNRRDU_DECLARE)
 ** samples on an axis should be scaled (though now its more general
 ** than just scaling) */
 enum {
-  unrrduScaleUnknown,
-  unrrduScaleNothing,      /* "=" */
-  unrrduScaleMultiply,     /* e.g. "x2" */
-  unrrduScaleDivide,       /* e.g. "/2" */
-  unrrduScaleAdd,          /* e.g. "+2" */
-  unrrduScaleSubtract,     /* e.g. "-2" */
-  unrrduScaleAspectRatio,  /* "a" */
-  unrrduScaleExact,        /* e.g. "128" */
+  unrrduScaleUnknown,       /* 0: */
+  unrrduScaleNothing,       /* 1: "=" */
+  unrrduScaleMultiply,      /* 2: e.g. "x2" */
+  unrrduScaleDivide,        /* 3: e.g. "/2" */
+  unrrduScaleAdd,           /* 4: e.g. "+2" */
+  unrrduScaleSubtract,      /* 5: e.g. "-2" */
+  unrrduScaleAspectRatio,   /* 6: "a" */
+  unrrduScaleExact,         /* 7: e.g. "128" */
+  unrrduScaleSpacingTarget, /* 8: e.g. "s0.89" */
   unrrduScaleLast
 };
 

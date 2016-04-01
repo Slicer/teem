@@ -78,6 +78,9 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
              "\b\bo \"/<float>\": divide number of samples by <float>\n "
              "\b\bo \"+=<uint>\", \"-=<uint>\": add <uint> to or subtract "
              "<uint> from number input samples to get number output samples\n "
+             "\b\bo \"s<float>\": assuming that some spacing information is "
+             "known on this input axis, then set the number of sample so that "
+             "the given float is the output axis spacing\n "
              "\b\bo \"<uint>\": exact number of output samples\n "
              "\b\bo \"a\": resample this axis to whatever number of samples "
              "preserves the aspect ratio of other resampled axes. Currently "
@@ -304,6 +307,8 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
     if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, defaultCenter);
     if (!E) E |= nrrdResampleInputSet(rsmc, nin);
     for (ai=0; ai<nin->dim; ai++) {
+      double spin, spout, svec[NRRD_SPACE_DIM_MAX];
+      int spstat;
       int dowhat = AIR_CAST(int, scale[0 + 2*ai]);
       switch(dowhat) {
       case unrrduScaleNothing:
@@ -343,6 +348,39 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
           break;
         }
         aspRatScl = AIR_CAST(double, samplesOut)/nin->axis[ai].size;
+        if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
+        break;
+      case unrrduScaleSpacingTarget:
+        /* wants the output spacing to be something particular */
+        spstat = nrrdSpacingCalculate(nin, ai, &spin, svec);
+        spout = scale[1 + 2*ai];
+        switch (spstat) {
+        case nrrdSpacingStatusUnknown:
+        case nrrdSpacingStatusNone:
+          fprintf(stderr, "%s: want to set output axis %u spacing (to %g), "
+                  "but can't find input axis spacing\n",
+                  me, ai, spout);
+          airMopError(mop);
+          return 1;
+          break;
+        case nrrdSpacingStatusScalarNoSpace:
+        case nrrdSpacingStatusScalarWithSpace:
+        case nrrdSpacingStatusDirection:
+          if (!AIR_EXISTS(spin)) {
+          fprintf(stderr, "%s: want to set output axis %u spacing (to %g), "
+                  "but can't input axis spacing was %g\n",
+                  me, ai, spout, spin);
+            airMopError(mop);
+            return 1;
+          }
+          samplesOut = AIR_ROUNDUP(nin->axis[ai].size*spin/spout);
+          break;
+        }
+        aspRatScl = AIR_CAST(double, samplesOut)/nin->axis[ai].size;
+        if (defaultCenter && overrideCenter) {
+          if (!E) E |= nrrdResampleOverrideCenterSet(rsmc, ai, defaultCenter);
+        }
+        if (!E) E |= nrrdResampleKernelSet(rsmc, ai, unuk->kernel, unuk->parm);
         if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
         break;
       case unrrduScaleExact:

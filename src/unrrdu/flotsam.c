@@ -493,6 +493,7 @@ hestCB unrrduHestBitsCB = {
 ** +=<uint>  : unrrduScaleAdd
 ** -=<uint>  : unrrduScaleSubstract
 ** <uint>    : unrrduScaleExact
+** s<float>  : unrrduScaleSpacingTarget
 */
 int
 unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
@@ -519,19 +520,31 @@ unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
               me, str);
       return 1;
     }
-    scale[0] = AIR_CAST(double, ('x' == str[0]
-                                 ? unrrduScaleMultiply
-                                 : unrrduScaleDivide));
-  } else if (strlen(str) > 1
-             && ('x' == str[0] || '/' == str[0])) {
-    if (1 != sscanf(str+1, "%lf", scale+1)) {
-      sprintf(err, "%s: can't parse \"%s\" as x<float> or /<float>",
-              me, str);
+    if (!( scale[1] > 0 )) {
+      sprintf(err, "%s: need positive float from \"%s\" (not %g)",
+              me, str, scale[1]);
       return 1;
     }
     scale[0] = AIR_CAST(double, ('x' == str[0]
                                  ? unrrduScaleMultiply
                                  : unrrduScaleDivide));
+  } else if (strlen(str) > 1
+             && ('x' == str[0] || '/' == str[0] || 's' == str[0])) {
+    if (1 != sscanf(str+1, "%lf", scale+1)) {
+      sprintf(err, "%s: can't parse \"%s\" as x<float>, /<float>, "
+              "or s<float>", me, str);
+      return 1;
+    }
+    if (!( scale[1] > 0 )) {
+      sprintf(err, "%s: need positive float from \"%s\" (not %g)",
+              me, str, scale[1]);
+      return 1;
+    }
+    scale[0] = AIR_CAST(double, ('x' == str[0]
+                                 ? unrrduScaleMultiply
+                                 : ('/' == str[0]
+                                    ? unrrduScaleDivide
+                                    : unrrduScaleSpacingTarget)));
   } else if (strlen(str) > 2
              && ('+' == str[0] || '-' == str[0])
              && '=' == str[1]) {
