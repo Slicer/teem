@@ -219,7 +219,7 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
     fprintf(stderr, "%s: cacheLen = %u\n", me, cacheLen);
   }
   if (nrrdKernelHermiteScaleSpaceFlag  == ctx->ksp[gageKernelStack]->kernel) {
-    unsigned int iii, xi, yi, zi, blurIdx, valIdx, fdd, sz;
+    unsigned int iii, xi, yi, zi, blurIdx, valIdx, fdd, sz, sy;
     double xx, *iv3, *iv30, *iv31, sigma0, sigma1,
       val0, val1, drv0, drv1, lapl0, lapl1;
 
@@ -264,33 +264,77 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
     sigma0 = ctx->stackPos[blurIdx];
     sigma1 = ctx->stackPos[blurIdx+1];
     valLen = ctx->pvl[baseIdx]->kind->valLen;
+    sy = ctx->shape->size[1];
     sz = ctx->shape->size[2];
     if (1 == sz) {
-      /* as in gageIv3Fill; we do some special-case-ing for 2-D images;
-         (HEY copy and paste; see sz > 1 below for explanatory comments) */
-      for (valIdx=0; valIdx<valLen; valIdx++) {
-        /* nixed "for zi" loop; zi==1 */
-        for (yi=1; yi<fd-1; yi++) {
+      if (1 == sy) {
+        /* (1-D data: HEY copy and paste; see 2D case below) */
+        for (valIdx=0; valIdx<valLen; valIdx++) {
+          /* nixed "for zi" and "for yi" loop; zi==yi==1 */
           for (xi=1; xi<fd-1; xi++) {
-            iii = xi + fd*(yi + fd*(1 /* zi */ + fd*valIdx));
+            iii = xi + fd*(1 /* yi */ + fd*(1 /* zi */ + fd*valIdx));
             val0 = iv30[iii];
-            /* can do a 2D instead of 3D discrete laplacian */
-            lapl0 = (iv30[iii+1]   + iv30[iii-1] +
-                     iv30[iii+fd]  + iv30[iii-fd] - 4*val0);
+            /* can do a 1D instead of 2D discrete laplacian */
+            lapl0 = (iv30[iii+1] + iv30[iii-1] - 2*val0);
             val1 = iv31[iii];
-            lapl1 = (iv31[iii+1]   + iv31[iii-1] +
-                     iv31[iii+fd]  + iv31[iii-fd] - 4*val1);
+            lapl1 = (iv31[iii+1] + iv31[iii-1] - 2*val1);
             drv0 = sigma0*lapl0*(sigma1 - sigma0);
             drv1 = sigma1*lapl1*(sigma1 - sigma0);
             iv3[iii] = val0 + xx*(drv0 + xx*(drv0*(-2 + xx) + drv1*(-1 + xx)
                                              + (val0 - val1)*(-3 + 2*xx)));
+            /*
+            fprintf(stderr, "!%s: (%u): val %g %g, lapl %g %g, sigma %g %g, drv %g %g --> iv3[%u] = %g\n", me,
+                    xi, val0, val1, lapl0, lapl1, sigma0, sigma1, drv0, drv1, iii, iv3[iii]);
+            fprintf(stderr, "!%s: lapl0 %g = %g + %g + %g + %g - 4*%g\n", me, lapl0,
+                    iv30[iii+1] , iv30[iii-1] , iv30[iii+fd] , iv30[iii-fd] , val0);
+            fprintf(stderr, "!%s: lapl1 %g = %g + %g + %g + %g - 4*%g\n", me, lapl1,
+                    iv31[iii+1] , iv31[iii-1] , iv31[iii+fd] , iv31[iii-fd] , val1);
+            */
+          }
+          for (zi=  2  ; zi<fd-1; zi++) {
+            for (yi=  2  ; yi<fd-1; yi++) {
+              for (xi=1; xi<fd-1; xi++) {
+                iii =          xi + fd*(yi + fd*(zi + fd*valIdx));
+                iv3[iii] = iv3[xi + fd*(1  + fd*(1  + fd*valIdx))];
+              }
+            }
           }
         }
-        for (zi=  2  ; zi<fd-1; zi++) {
+      } else {
+        /* as in gageIv3Fill; we do some special-case-ing for 2-D images;
+           (HEY copy and paste; see sz > 1 below for explanatory comments) */
+        for (valIdx=0; valIdx<valLen; valIdx++) {
+          /* nixed "for zi" loop; zi==1 */
           for (yi=1; yi<fd-1; yi++) {
             for (xi=1; xi<fd-1; xi++) {
-              iii =          xi + fd*(yi + fd*(zi + fd*valIdx));
-              iv3[iii] = iv3[xi + fd*(yi + fd*(1  + fd*valIdx))];
+              iii = xi + fd*(yi + fd*(1 /* zi */ + fd*valIdx));
+              val0 = iv30[iii];
+              /* can do a 2D instead of 3D discrete laplacian */
+              lapl0 = (iv30[iii+1]   + iv30[iii-1] +
+                       iv30[iii+fd]  + iv30[iii-fd] - 4*val0);
+              val1 = iv31[iii];
+              lapl1 = (iv31[iii+1]   + iv31[iii-1] +
+                       iv31[iii+fd]  + iv31[iii-fd] - 4*val1);
+              drv0 = sigma0*lapl0*(sigma1 - sigma0);
+              drv1 = sigma1*lapl1*(sigma1 - sigma0);
+              iv3[iii] = val0 + xx*(drv0 + xx*(drv0*(-2 + xx) + drv1*(-1 + xx)
+                                               + (val0 - val1)*(-3 + 2*xx)));
+              /*
+              fprintf(stderr, "!%s: (%u,%u): val %g %g, lapl %g %g, sigma %g %g, drv %g %g --> iv3[%u] = %g\n", me,
+                      xi, yi, val0, val1, lapl0, lapl1, sigma0, sigma1, drv0, drv1, iii, iv3[iii]);
+              fprintf(stderr, "!%s: lapl0 %g = %g + %g + %g + %g - 4*%g\n", me, lapl0,
+                      iv30[iii+1] , iv30[iii-1] , iv30[iii+fd] , iv30[iii-fd] , val0);
+              fprintf(stderr, "!%s: lapl1 %g = %g + %g + %g + %g - 4*%g\n", me, lapl1,
+                      iv31[iii+1] , iv31[iii-1] , iv31[iii+fd] , iv31[iii-fd] , val1);
+              */
+            }
+          }
+          for (zi=  2  ; zi<fd-1; zi++) {
+            for (yi=1; yi<fd-1; yi++) {
+              for (xi=1; xi<fd-1; xi++) {
+                iii =          xi + fd*(yi + fd*(zi + fd*valIdx));
+                iv3[iii] = iv3[xi + fd*(yi + fd*(1  + fd*valIdx))];
+              }
             }
           }
         }
@@ -372,7 +416,14 @@ gageStackProbeSpace(gageContext *ctx,
                     double xx, double yy, double zz, double ss,
                     int indexSpace, int clamp) {
   static const char me[]="gageStackProbeSpace";
-
+  int ret;
+  /*
+  fprintf(stderr, "!%s(%g,%g,%g,%g, %d,%d): hello\n", me,
+          xx, yy, zz, ss, indexSpace, clamp);
+  if (AIR_ABS(-98.2539 - xx) < 0.1 && AIR_ABS(yy) < 0.1 && AIR_ABS(zz) < 0.1 && AIR_ABS(495.853 - ss)) {
+    ctx->verbose += 10;
+  }
+  */
   if (!ctx) {
     return 1;
   }
@@ -385,6 +436,8 @@ gageStackProbeSpace(gageContext *ctx,
     ctx->errNum = gageErrStackUnused;
     return 1;
   }
-  return _gageProbeSpace(ctx, xx, yy, zz, ss, indexSpace, clamp);
+  ret = _gageProbeSpace(ctx, xx, yy, zz, ss, indexSpace, clamp);
+  /* fprintf(stderr, "!%s: returning %d\n", me, ret); */
+  return ret;
 }
 
