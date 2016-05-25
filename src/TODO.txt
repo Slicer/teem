@@ -112,6 +112,11 @@ so that it matches biffMovef
 * a few biff functions are never used in Teem, is that ok?
 
 nrrd:
+* allow the API for median filtering to be more flexible about boundaries
+  can be handled (right now with "pad", its only nrrdBoundaryBleed)
+* add a clamp flag argument to all the arithmetic stuff (in unu consider
+  making it true by default) that will clamp output values to representation
+  range of input (to work on large 16-bit data without copying to float)
 * ponder utility of having "const void *constdata" field in the Nrrd struct,
   to allow a nrrd to wrap around data it doesn't own.  Would this supersede
   the nrrdNuke vs nrrdNix distinction?
