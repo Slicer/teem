@@ -35,8 +35,8 @@ imageProc(Nrrd *nhproj[3], Nrrd *nhist[2], unsigned int sH,
   float rr, gg, bb, hh, ss, vv, *hist[2];
   double rndA, rndB;
 
-  nrrdZeroSet(nhist[0]);
-  nrrdZeroSet(nhist[1]);
+  nrrdSetZero(nhist[0]);
+  nrrdSetZero(nhist[1]);
   hist[0] = AIR_CAST(float *, nhist[0]->data);
   hist[1] = AIR_CAST(float *, nhist[1]->data);
   for (xyi=0; xyi<sXY; xyi++) {
