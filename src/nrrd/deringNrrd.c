@@ -550,8 +550,8 @@ deringPtxfDo(NrrdDeringContext *drc, deringBag *dbg) {
   /* static const char me[]="deringPtxfDo"; */
   unsigned int sx, sy, xi, yi, rrIdx, thIdx;
 
-  nrrdZeroSet(dbg->nptxf[ORIG]);
-  nrrdZeroSet(dbg->nptxf[WGHT]);
+  nrrdSetZero(dbg->nptxf[ORIG]);
+  nrrdSetZero(dbg->nptxf[WGHT]);
   sx = AIR_CAST(unsigned int, drc->nin->axis[0].size);
   sy = AIR_CAST(unsigned int, drc->nin->axis[1].size);
   for (yi=0; yi<sy; yi++) {
