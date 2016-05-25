@@ -1605,10 +1605,33 @@ nrrdSanityOrDie(const char *me) {
 }
 
 void
-nrrdZeroSet(Nrrd *nout) {
+nrrdSetZero(Nrrd *nout) {
 
   if (!_nrrdCheck(nout, AIR_TRUE, AIR_FALSE)) {
     memset(nout->data, 0, nrrdElementNumber(nout)*nrrdElementSize(nout));
+  }
+  return;
+}
+
+void
+nrrdSetNaN(Nrrd *nout) {
+
+  if (_nrrdCheck(nout, AIR_TRUE, AIR_FALSE)) {
+    /* bad nrrd, oh well */
+    return;
+  }
+  /* HEY if Half is ever added we'll have to check for it here */
+  size_t II, NN = nrrdElementNumber(nout);
+  if (nrrdTypeFloat == nout->type) {
+    float *ff = AIR_CAST(float *, nout->data);
+    for (II=0; II<NN; II++) {
+      ff[II] = AIR_NAN;
+    }
+  } else if (nrrdTypeDouble == nout->type) {
+    double *dd = AIR_CAST(double *, nout->data);
+    for (II=0; II<NN; II++) {
+      dd[II] = AIR_NAN;
+    }
   }
   return;
 }
