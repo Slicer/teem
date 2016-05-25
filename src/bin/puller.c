@@ -755,7 +755,7 @@ main(int argc, const char **argv) {
     popCntlPeriod, addDescent, iterCallback, rngSeed, progressBinMod,
     threadNum, eipHalfLife, kssOpi, kssFinished, bspOpi, bspFinished;
   double jitter, stepInitial, constraintStepMin, radiusSpace, binWidthSpace,
-    radiusScale, alpha, beta, _gamma, theta, wall, energyIncreasePermit,
+    radiusScale, alpha, beta, _gamma, wall, energyIncreasePermit,
     backStepScale, opporStepScale, energyDecreaseMin, energyDecreasePopCntlMin,
     neighborTrueProb, probeProb, fracNeighNixedMax;
 
@@ -1012,9 +1012,6 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "gamma", "gamma", airTypeDouble, 1, 1,
              &_gamma, "1.0",
              "scaling factor on energy from strength");
-  hestOptAdd(&hopt, "theta", "theta", airTypeDouble, 1, 1,
-             &theta, "0.0",
-             "slope of increasing livethresh wrt scale");
   hestOptAdd(&hopt, "wall", "k", airTypeDouble, 1, 1,
              &wall, "0.0",
              "spring constant on walls");
@@ -1157,7 +1154,6 @@ main(int argc, const char **argv) {
       || pullSysParmSet(pctx, pullSysParmAlpha, alpha)
       || pullSysParmSet(pctx, pullSysParmBeta, beta)
       || pullSysParmSet(pctx, pullSysParmGamma, _gamma)
-      || pullSysParmSet(pctx, pullSysParmTheta, theta)
       || pullSysParmSet(pctx, pullSysParmWall, wall)
       || pullSysParmSet(pctx, pullSysParmEnergyIncreasePermit,
                         energyIncreasePermit)
