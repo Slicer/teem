@@ -47,7 +47,7 @@ printans(FILE *file, const double *ans, unsigned int len) {
 static int
 gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
           Nrrd *nout, int typeOut, Nrrd *_ngrid,
-          int indexSpace, int verbose, int clamp,
+          int indexSpace, int verbose, int clamp, int scaleIsTau,
           double eft, double eftVal) {
   char me[]="gridProbe";
   Nrrd *ngrid;
@@ -160,6 +160,10 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what,
                         AIR_CAST(double, coordOut[aidx + baseDim]),
                         grid + 1 + 5*(1+aidx));
     }
+    if (scaleIsTau && ctx->stackPos) {
+      /* have to convert given tau values to sigma */
+      pos[3] = airSigmaOfTau(pos[3]);
+    }
     /*
     printf("%s: %u -> (%u %u) -> %g %g %g %g (%s)\n", me,
            AIR_UINT(II),
@@ -245,7 +249,7 @@ main(int argc, const char *argv[]) {
   unsigned int ansLen, *skip, skipNum, pntPosNum,
     nonSbpOpi[NON_SBP_OPT_NUM], nsi;
   gageStackBlurParm *sbpIN, *sbpCL, *sbp;
-  int otype, clamp;
+  int otype, clamp, scaleIsTau;
   char stmp[4][AIR_STRLEN_SMALL];
 
   me = argv[0];
@@ -373,6 +377,9 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "kssr", "kernel", airTypeOther, 1, 1, &kSS,
              "hermite", "kernel for reconstructing from scale space samples",
              NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "sit", "sit", airTypeBool, 1, 1, &scaleIsTau, "false",
+             "in some places, scale should be interpreted as tau, not "
+             "sigma. Currently limited to grid probing (via \"-pg\")");
 
   hestOptAdd(&hopt, "s", "sclX sclY sxlZ", airTypeDouble, 3, 3, scale,
              "1 1 1",
@@ -856,7 +863,8 @@ main(int argc, const char *argv[]) {
                 (_ngrid
                  ? probeSpaceIndex  /* user specifies grid space */
                  : AIR_TRUE),       /* copying vprobe index-space behavior */
-                verbose, clamp, edgeFracInfo[0], edgeFracInfo[1])) {
+                verbose, clamp, scaleIsTau,
+                edgeFracInfo[0], edgeFracInfo[1])) {
     /* note hijacking of GAGE key */
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble probing on grid:\n%s\n", me, err);
