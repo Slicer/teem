@@ -613,12 +613,12 @@ _ell_3m2sub_evecs_d(double evec[9], double eval[3], int roots,
     n[2] = m[3];
     /* find first evec */
     n[0] = m[0] - eval[0];
-    n[3] = m[3] - eval[0];
+    n[3] = m[4] - eval[0];
     ell_2m_1d_nullspace_d(evec + 3*0, n);
     (evec + 3*0)[2] = 0;
     /* find second evec */
     n[0] = m[0] - eval[1];
-    n[3] = m[3] - eval[1];
+    n[3] = m[4] - eval[1];
     ell_2m_1d_nullspace_d(evec + 3*1, n);
     (evec + 3*1)[2] = 0;
     _ell_22v_enforce_orthogonality(evec + 3*0, evec + 3*1);
