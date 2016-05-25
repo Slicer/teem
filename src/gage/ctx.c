@@ -622,7 +622,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
         yy = AIR_CLAMP(0, _yy, AIR_CAST(int, sy-1));
         for (_xx=lx; _xx<=hx; _xx++) {
           xx = AIR_CLAMP(0, _xx, AIR_CAST(int, sx-1));
-          edgeNum += ((AIR_CAST(int, yy) != _yy)
+          edgeNum += ((1 != sy && (AIR_CAST(int, yy) != _yy))
                       || (AIR_CAST(int, xx) != _xx));
           dataIdx = xx + sx*yy;
           here = data+dataIdx*dataStride;
@@ -646,9 +646,12 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
           }
         }
       }
-      /* we would have been outside for all the other
-         z slices besides z=0 */
-      edgeNum += (2*fr - 1)*2*fr*2*fr;
+      /* we would have been outside for all the other z slices besides
+         z=0, but don't report this if the whole point is to pretend
+         that we're working with 2D data */
+      if (!(ctx->parm.twoDimZeroZ)) {
+        edgeNum += (2*fr - 1)*2*fr*2*fr;
+      }
     } else {
       /* sz > 1 */
       for (_zz=lz; _zz<=hz; _zz++) {
