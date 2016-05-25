@@ -1107,11 +1107,16 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   static const char me[]="_pullPointProcess";
   int E;
 
+  /*
+  fprintf(stderr, "!%s(%u,%u) mode %s\n", me, point->idtag, task->pctx->iter,
+          airEnumStr(pullProcessMode, task->processMode));
+  */
   E = 0;
   switch (task->processMode) {
   case pullProcessModeDescent:
     E = _pullPointProcessDescent(task, bin, point,
-                                 !task->pctx->haveScale /* ignoreImage */);
+                                 AIR_FALSE
+                                 /* !task->pctx->haveScale ignoreImage */);
     break;
   case pullProcessModeNeighLearn:
     E = _pullPointProcessNeighLearn(task, bin, point);

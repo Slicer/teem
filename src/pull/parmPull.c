@@ -49,7 +49,6 @@ _pullSysParmInit(pullSysParm *sysParm) {
   sysParm->beta = 0.5;
   sysParm->gamma = 1;
   sysParm->separableGammaLearnRescale = 8;
-  sysParm->theta = 0.0;
   sysParm->wall = 1;
   sysParm->radiusSpace = 1;
   sysParm->radiusScale = 1;
@@ -172,7 +171,6 @@ _pullSysParmCheck(pullSysParm *sysParm) {
   CHECK(alpha, 0.0, 1.0);
   CHECK(beta, 0.0, 1.0);
   /* HEY: no check on gamma? */
-  /* no check on theta */
   CHECK(wall, 0.0, 100.0);
   CHECK(radiusSpace, 0.000001, 80.0);
   CHECK(radiusScale, 0.000001, 80.0);
@@ -220,9 +218,6 @@ pullSysParmSet(pullContext *pctx, int which, double pval) {
     break;
   case pullSysParmSeparableGammaLearnRescale:
     pctx->sysParm.separableGammaLearnRescale = pval;
-    break;
-  case pullSysParmTheta:
-    pctx->sysParm.theta = pval;
     break;
   case pullSysParmStepInitial:
     pctx->sysParm.stepInitial = pval;

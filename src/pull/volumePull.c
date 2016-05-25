@@ -523,6 +523,12 @@ pullVolumeLookup(const pullContext *pctx,
   return pctx->vol[vi];
 }
 
+/*
+******** pullConstraintScaleRange
+**
+** returns scale range from a scale-space volume,
+** either in terms of sigma, or (if pctx->flag.scaleIsTau), tau
+*/
 int
 pullConstraintScaleRange(pullContext *pctx, double ssrange[2]) {
   static const char me[]="pullConstraintScaleRange";

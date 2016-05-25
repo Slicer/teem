@@ -148,6 +148,7 @@ extern double _pullEnergyInterParticle(pullContext *pctx,
                                        double egrad[4]);
 
 /* constraints.c */
+extern double _pullSigma(const pullContext *pctx, const double pos[4]);
 extern int _pullConstraintSatisfy(pullTask *task, pullPoint *point,
                                   double travelMax,
                                   int *constrFailP);

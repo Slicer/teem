@@ -146,7 +146,7 @@ enum {
 ** descriptions of a particle, its neighborhood of particles in the
 ** system, and the current state of system computation.  As of revision
 ** 5080, these may refer to information *computed* from the per-particle
-** info, but which may not itself be saved as a field in pullPoint.
+** info, but which may not itself be saved as a field of the pullPoint.
 **
 ** consider adding: dot between normalized directions of force and movmt
 */
@@ -316,15 +316,17 @@ enum {
 ** reasons for pullTraceSet to stop (or go nowhere)
 */
 enum {
-  pullTraceStopUnknown,         /* 0 */
-  pullTraceStopSpeeding,        /* 1 */
-  pullTraceStopConstrFail,      /* 2 */
-  pullTraceStopBounds,          /* 3 */
-  pullTraceStopLength,          /* 4 */
-  pullTraceStopStub,            /* 5 */
+  pullTraceStopUnknown,          /* 0 */
+  pullTraceStopSpeeding,         /* 1 */
+  pullTraceStopConstrFail,       /* 2 */
+  pullTraceStopBounds,           /* 3 */
+  pullTraceStopLength,           /* 4 */
+  pullTraceStopStub,             /* 5 */
+  pullTraceStopVolumeEdge,       /* 6 */
+  pullTraceStopOrientConstrFail, /* 7 */
   pullTraceStopLast
 };
-#define PULL_TRACE_STOP_MAX        5
+#define PULL_TRACE_STOP_MAX         7
 
 /*
 ** Defines how par-particle information can be learned.  This is
@@ -656,13 +658,6 @@ enum {
      along scale that might exist by the separable phi construction. */
   pullSysParmSeparableGammaLearnRescale,
 
-  /* to be more selective for pullInfoSeedThresh and
-     pullInfoLiveThresh at higher scales, set theta > 0, and the
-     effective threshold will be base threshold + theta*scale.
-     HOWEVER, the way this is implemented is a hack:
-     the probed strength value is decremented by theta*scale */
-  pullSysParmTheta,
-
   /* initial (time) step for dynamics */
   pullSysParmStepInitial,
 
@@ -722,7 +717,7 @@ enum {
 };
 
 typedef struct {
-  double alpha, beta, gamma, separableGammaLearnRescale, theta, wall,
+  double alpha, beta, gamma, separableGammaLearnRescale, wall,
     radiusSpace, radiusScale, binWidthSpace,
     neighborTrueProb, probeProb,
     stepInitial, opporStepScale, backStepScale, constraintStepMin,
@@ -745,9 +740,10 @@ enum {
   pullConstraintFailProjGradZeroB,  /* 4 */
   pullConstraintFailIterMaxed,      /* 5 */
   pullConstraintFailTravel,         /* 6 */
+  pullConstraintFailProjLenNonExist,/* 7 */
   pullConstraintFailLast
 };
-#define PULL_CONSTRAINT_FAIL_MAX       6
+#define PULL_CONSTRAINT_FAIL_MAX       7
 
 /*
 ******** pullFlag* enum
@@ -992,13 +988,25 @@ typedef struct pullContext_t {
 typedef struct {
   double seedPos[4];    /* where was the seed point */
   /* ------- output ------- */
-  Nrrd *nvert,          /* locations of tract vertices */
-    *nstrn,             /* if non-NULL, 1-D array of strengths */
-    *nvelo;             /* 1-D list of velocities */
+  Nrrd *nvert,          /* (x,y,z,s) locations of tract vertices */
+    *nstrn,             /* if nstrn->data non-NULL:
+                           1-D array of strengths */
+    *nstab,             /* 2-D (2-by-N) array of
+                           (spatial,orientation) stabilities;
+                           allocated as 2-by-N even for point features */
+    *norin;             /* if norin->data non-NULL:
+                           list of (x,y,z) orientation 3-vectors:
+                           tangents of 1-D features (regardless of
+                           flag.zeroZ), or normals of 2-D features */
   unsigned int seedIdx; /* which index in nvert is for seedpoint */
-  int whyStop[2],       /* why backward/forward (0/1) tracing stopped
+  int fdim,             /* dimension of the feature we're tracking:
+                           0 (points), 1 (curves), or 2 (surfaces) */
+    whyStop[2],         /* why backward/forward (0/1) tracing stopped
                            (from pullTraceStop* enum) */
-    whyNowhere;         /* why trace never started (from pullTraceStop*) */
+    whyStopCFail[2],    /* in case tracing stopped by pullTraceStopConstrFail,
+                           why (from pullConstraintFail* enum) */
+    whyNowhere,         /* why trace never started (from pullTraceStop*) */
+    whyNowhereCFail;    /* same */
 } pullTrace;
 
 /*
@@ -1191,10 +1199,19 @@ PULL_EXPORT int pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
 PULL_EXPORT pullTrace *pullTraceNew(void);
 PULL_EXPORT pullTrace *pullTraceNix(pullTrace *pts);
 PULL_EXPORT size_t pullTraceMultiSizeof(const pullTraceMulti *mtrc);
+PULL_EXPORT void pullTraceStability(double *spcStab,
+                                    double *oriStab,
+                                    const double pos0[4],
+                                    const double pos1[4],
+                                    const double ori0[3],
+                                    const double ori1[3],
+                                    double sigma0,
+                                    const pullContext *pctx);
 PULL_EXPORT int pullTraceSet(pullContext *pctx, pullTrace *trc,
-                             int recordStrength, int sigmaNorm,
+                             int recordStrength,
                              double scaleDelta, double halfScaleWin,
-                             double velocityMax, unsigned int arrIncr,
+                             double orientTestLen,
+                             unsigned int arrIncr,
                              const double seedPos[4]);
 PULL_EXPORT pullTraceMulti *pullTraceMultiNew(void);
 PULL_EXPORT pullTraceMulti *pullTraceMultiNix(pullTraceMulti *mtrc);
@@ -1206,8 +1223,11 @@ PULL_EXPORT int pullTraceMultiFilterConcaveDown(Nrrd *nfilt,
 PULL_EXPORT int pullTraceMultiPlotAdd(Nrrd *nplot,
                                       const pullTraceMulti *mtrc,
                                       const Nrrd *nfilt, int strengthUse,
+                                      int smooth, int flatWght,
                                       unsigned int trcIdxMin,
-                                      unsigned int trcNum);
+                                      unsigned int trcNum,
+                                      Nrrd *nmaskedpos,
+                                      const Nrrd *nmask);
 PULL_EXPORT int pullTraceMultiWrite(FILE *file, const pullTraceMulti *mtrc);
 PULL_EXPORT int pullTraceMultiRead(pullTraceMulti *mtrc, FILE *file);
 

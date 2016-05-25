@@ -26,7 +26,7 @@
 #include "privatePull.h"
 
 #define DEBUG (0)
-/* #define DEBUG (9518 == point->idtag) */
+/* #define DEBUG (12 == point->idtag) */
 
 /*
 typedef struct {
@@ -127,7 +127,7 @@ constraintSatIso(pullTask *task, pullPoint *point,
     PROBE(val, aval, grad);
     _pullPointHistAdd(point, pullCondConstraintSatA, val);
     if (aval <= state[0]) {  /* we're no further from the root */
-      if (AIR_ABS(step) < stepMax*constrEps) {
+      if (AIR_ABS(step) < stepMax*constrEps) { /* HEY stepMax*constrEps vs constrEps */
         /* we have converged! */
         break;
       }
@@ -247,7 +247,7 @@ constraintSatLapl(pullTask *task, pullPoint *point,
       side = -1;
     }
     diff = (b - a)*len;
-    if (AIR_ABS(diff) < stepMax*constrEps) {
+    if (AIR_ABS(diff) < stepMax*constrEps) { /* HEY stepMax*constrEps vs constrEps */
       /* converged! */
       break;
     }
@@ -447,15 +447,19 @@ constraintSatHght(pullTask *task, pullPoint *point,
         /* this use to be a biff error, which got to be annoying */
         *constrFailP = pullConstraintFailProjGradZeroA;
         return 0;
+      } else if (!AIR_EXISTS(plen)) {
+        /* this use to be a biff error, which also got to be annoying */
+        *constrFailP = pullConstraintFailProjLenNonExist;
+        return 0;
       }
       step = (d2 > 0 ? -d1/d2 : -plen);
       if (DEBUG) {
-        fprintf(stderr, "!%s: (+) iter %u step = (%g > 0 ? %g : %g) --> %g\n",
-                me, iter, d2, -d1/d2, -plen, step);
+        fprintf(stderr, "!%s: (+) iter %u step = (%g > 0 ? %g=-%g/%g : %g) --> %g\n",
+                me, iter, d2, -d1/d2, d1, d2, -plen, step);
       }
       step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
     convtestA:
-      if (d2 > 0 && AIR_ABS(step) < stepMax*constrEps) {
+      if (d2 > 0 && AIR_ABS(step) < constrEps) { /* HEY stepMax*constrEps vs constrEps */
         /* we're converged because its concave up here
            and we're close enough to the bottom */
         if (DEBUG) {
@@ -550,7 +554,7 @@ constraintSatHght(pullTask *task, pullPoint *point,
       }
       step = step > 0 ? AIR_MIN(stepMax, step) : AIR_MAX(-stepMax, step);
     convtestB:
-      if (d2 < 0 && AIR_ABS(step) < stepMax*constrEps) {
+      if (d2 < 0 && AIR_ABS(step) < constrEps) { /* HEY stepMax*constrEps vs constrEps */
         /* we're converged because its concave down here
            and we're close enough to the top */
         if (DEBUG) {
@@ -641,6 +645,18 @@ constraintSatHght(pullTask *task, pullPoint *point,
 #undef SAVE
 #undef RESTORE
 
+double
+_pullSigma(const pullContext *pctx, const double pos[4]) {
+  double ret=0;
+
+  if (pos && pos[3]) {
+    ret = (pctx->flag.scaleIsTau
+           ? gageSigOfTau(pos[3])
+           : pos[3]);
+  }
+  return ret;
+}
+
 /* ------------------------------------------- */
 
 /* have to make sure that scale position point->pos[3]
@@ -659,21 +675,11 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
   double pos3Orig[3], pos3Diff[3], travel;
 
   ELL_3V_COPY(pos3Orig, point->pos);
-  stepMax = task->pctx->voxelSizeSpace;
+  /* HEY the "10*" is based on isolated experiments; what's the principle? */
+  stepMax = 10*task->pctx->voxelSizeSpace;
   iterMax = task->pctx->iterParm.constraintMax;
-  constrEps = task->pctx->sysParm.constraintStepMin;
-  /* HEY this really needs generalizing */
-  if (0 && point->pos[3]) {
-    constrEps *= 1 + (task->pctx->flag.scaleIsTau
-                      ? gageSigOfTau(point->pos[3])
-                      : point->pos[3]);
-  }
-  /*
-  dlim = _pullDistLimit(task, point);
-  if (iterMax*stepMax > dlim) {
-    stepMax = dlim/iterMax;
-  }
-  */
+  constrEps = task->pctx->voxelSizeSpace*task->pctx->sysParm.constraintStepMin;
+  /*           * (1 + 0.2*_pullSigma(task->pctx, point->pos)); */
   if (DEBUG) {
     fprintf(stderr, "!%s(%d): hi ==== %g %g %g, stepMax = %g, iterMax = %u\n",
             me, point->idtag, point->pos[0], point->pos[1], point->pos[2],
@@ -712,12 +718,14 @@ _pullConstraintSatisfy(pullTask *task, pullPoint *point,
             task->pctx->constraint);
   }
   ELL_3V_SUB(pos3Diff, pos3Orig, point->pos);
-  travel = ELL_3V_LEN(pos3Diff)/task->pctx->voxelSizeSpace;
-  if (travel > travelMax) {
-    *constrFailP = pullConstraintFailTravel;
-    if (DEBUG) {
-      fprintf(stderr, "!%s: travel %g > travelMax %g\n", me,
-              travel, travelMax);
+  if (travelMax) {
+    travel = ELL_3V_LEN(pos3Diff)/task->pctx->voxelSizeSpace;
+    if (travel > travelMax) {
+      *constrFailP = pullConstraintFailTravel;
+      if (DEBUG) {
+        fprintf(stderr, "!%s: travel %g > travelMax %g\n", me,
+                travel, travelMax);
+      }
     }
   }
   if (DEBUG) {
@@ -810,6 +818,8 @@ _pullConstraintTangent(pullTask *task, pullPoint *point,
 ** 0 for points
 ** 1 for lines
 ** 2 for surfaces
+** This is nontrivial because of the different ways that constraints
+** can be expressed, combined with the possibility of pctx->flag.zeroZ
 **
 ** a -1 return value represents a biff-able error
 */
@@ -820,10 +830,10 @@ _pullConstraintDim(const pullContext *pctx) {
 
   switch (pctx->constraint) {
   case pullInfoHeightLaplacian: /* zero-crossing edges */
-    ret = 2;
+    ret = (pctx->flag.zeroZ ? 1 : 2);
     break;
   case pullInfoIsovalue:
-    ret = 2;
+    ret = (pctx->flag.zeroZ ? 1 : 2);
     break;
   case pullInfoHeight:
     t1 = !!pctx->ispec[pullInfoTangent1];
@@ -832,14 +842,25 @@ _pullConstraintDim(const pullContext *pctx) {
     nt2 = !!pctx->ispec[pullInfoNegativeTangent2];
     switch (t1 + t2 + nt1 + nt2) {
     case 0:
+      ret = 0;
+      break;
     case 3:
+      if (pctx->flag.zeroZ) {
+        biffAddf(PULL, "%s: can't have three of (%s,%s,%s,%s) tangents with "
+                 "2-D data (pctx->flag.zeroZ)", me,
+                 airEnumStr(pullInfo, pullInfoTangent1),
+                 airEnumStr(pullInfo, pullInfoTangent2),
+                 airEnumStr(pullInfo, pullInfoNegativeTangent1),
+                 airEnumStr(pullInfo, pullInfoNegativeTangent2));
+        return -1;
+      } /* else we're in 3D; 3 constraints -> point features */
       ret = 0;
       break;
     case 1:
-      ret = 2;
+      ret = (pctx->flag.zeroZ ? 1 : 2);
       break;
     case 2:
-      ret = 1;
+      ret = (pctx->flag.zeroZ ? 0 : 1);
       break;
     default:
       biffAddf(PULL, "%s: can't simultaneously use all tangents "

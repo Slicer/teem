@@ -347,10 +347,18 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
 
 int
 _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
+  static const char me[]="_pullPointProcessNixing";
   double enrWith, enrNeigh, enrWithout, fracNixed;
 
   task->pctx->count[pullCountNixing] += 1;
 
+  if (0 && 289 == task->pctx->iter) {
+    fprintf(stderr, "!%s(%04u): hello lthr %p -> %g %g %g\n", me, point->idtag,
+            task->pctx->ispec[pullInfoLiveThresh],
+            pullPointScalar(task->pctx, point, pullInfoLiveThresh, NULL, NULL),
+            point->pos[0], point->pos[1]
+            );
+  }
   /* if there's a live thresh, do we meet it? */
   if (task->pctx->ispec[pullInfoLiveThresh]
       && 0 > pullPointScalar(task->pctx, point, pullInfoLiveThresh,

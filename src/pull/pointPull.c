@@ -249,8 +249,6 @@ _pullStepConstrAverage(const pullContext *pctx) {
 /*
 ** convenience function for learning a scalar AND its gradient or hessian
 **
-** NOTE: this is where pullInfoSeedThresh and pullInfoLiveThresh are
-** adjusted according to sysParm.theta (kind of a hack)
 */
 double
 pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
@@ -317,22 +315,16 @@ pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
      of the scalar.  this is getting confusing ... */
   scl = point->info[infoIdx[sclInfo]];
   scl = (scl - ispec->zero)*ispec->scale;
+  /* if (289 == pctx->iter) {
+    fprintf(stderr, "!%s(%04u,%s)@(%g,%g): (%g - %g)*%g == %g\n",
+            me, point->idtag, airEnumStr(pullInfo, sclInfo),
+            point->pos[0], point->pos[1],
+            point->info[infoIdx[sclInfo]], ispec->zero, ispec->scale, scl);
+  } */
   if (0 && _pullVerbose) {
     if (pullInfoSeedThresh == sclInfo) {
       printf("!%s: seed thresh (%g - %g)*%g == %g\n", me,
              point->info[infoIdx[sclInfo]], ispec->zero, ispec->scale, scl);
-    }
-  }
-  /* HEY: this logic is confused and the implementation is confused;
-     this should be removed before release */
-  if (pullInfoLiveThresh == sclInfo
-      || pullInfoSeedThresh == sclInfo) {
-    scl -= (pctx->sysParm.theta)*(point->pos[3])*(point->pos[3]);
-  }
-  if (0 && _pullVerbose) {
-    if (pullInfoSeedThresh == sclInfo) {
-      printf("!%s:  ---> w/ theta %g -> %g\n", me,
-             pctx->sysParm.theta, scl);
     }
   }
   /*
@@ -351,13 +343,13 @@ pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
   }
   */
   /*
-  printf("%s = (%g - %g)*%g = %g*%g = %g = %g\n",
-         airEnumStr(pullInfo, sclInfo),
-         point->info[infoIdx[sclInfo]],
-         ispec->zero, ispec->scale,
-         point->info[infoIdx[sclInfo]] - ispec->zero, ispec->scale,
-         (point->info[infoIdx[sclInfo]] - ispec->zero)*ispec->scale,
-         scl);
+  fprintf(stderr, "!%s: %s = (%g - %g)*%g = %g*%g = %g = %g\n", me,
+          airEnumStr(pullInfo, sclInfo),
+          point->info[infoIdx[sclInfo]],
+          ispec->zero, ispec->scale,
+          point->info[infoIdx[sclInfo]] - ispec->zero, ispec->scale,
+          (point->info[infoIdx[sclInfo]] - ispec->zero)*ispec->scale,
+          scl);
   */
   if (grad && gradInfo[sclInfo]) {
     const double *ptr = point->info + infoIdx[gradInfo[sclInfo]];
@@ -384,6 +376,9 @@ pullProbe(pullTask *task, pullPoint *point) {
   static FILE *flog;
 #endif
 
+  /*
+  fprintf(stderr, "%s(%u,%u): A volNum = %u\n", me, task->pctx->iter, point->idtag,task->pctx->volNum);
+  */
 #if 0
   static int logIdx=0, logDone=AIR_FALSE, logStarted=AIR_FALSE;
   static Nrrd *nlog;
@@ -422,6 +417,9 @@ pullProbe(pullTask *task, pullPoint *point) {
   }
   edge = AIR_FALSE;
   task->pctx->count[pullCountProbe] += 1;
+  /*
+  fprintf(stderr, "%s(%u,%u): B volNum = %u\n", me, task->pctx->iter, point->idtag,task->pctx->volNum);
+  */
   for (ii=0; ii<task->pctx->volNum; ii++) {
     pullVolume *vol;
     vol = task->vol[ii];
@@ -437,12 +435,6 @@ pullProbe(pullTask *task, pullPoint *point) {
     }
     /* HEY should task->vol[ii]->scaleNum be the using-scale-space test? */
     if (!task->vol[ii]->ninScale) {
-      /*
-        if (81 == point->idtag) {
-        printf("%s: probing vol[%u] @ %g %g %g\n", me, ii,
-        point->pos[0], point->pos[1], point->pos[2]);
-        }
-      */
       gret = gageProbeSpace(task->vol[ii]->gctx,
                             point->pos[0], point->pos[1], point->pos[2],
                             AIR_FALSE /* index-space */,
@@ -509,6 +501,14 @@ pullProbe(pullTask *task, pullPoint *point) {
       aidx = task->pctx->infoIdx[ii];
       if (pullSourceGage == ispec->source) {
         _pullInfoCopy[alen](point->info + aidx, task->ans[ii]);
+        /* if (289 == task->pctx->iter) {
+          fprintf(stderr, "!%s(%u): copied info %u (%s) len %u\n", me, point->idtag,
+                  ii, airEnumStr(pullInfo, ii), alen);
+          if (1 == alen) {
+            fprintf(stderr, "!%s(%u): (point->info + %u)[0] = %g\n", me, point->idtag,
+                    aidx, (point->info + aidx)[0]);
+          }
+        } */
         /*
         if (81 == point->idtag) {
           pullVolume *vol;
@@ -836,8 +836,10 @@ _pullUnitToWorld(const pullContext *pctx, const pullVolume *scaleVol,
     wrld[3] = 0.0;
   }
   /*
-  fprintf(stderr, "!%s: (%g,%g,%g,%g) --> (%g,%g,%g,%g)\n", me,
+  fprintf(stderr, "!%s: (%g,%g,%g,%g) -- [%g,%g]x[%g,%g]x[%g,%g]--> (%g,%g,%g,%g)\n", me,
           unit[0], unit[1], unit[2], unit[3],
+          pctx->bboxMin[0], pctx->bboxMin[1], pctx->bboxMin[2],
+          pctx->bboxMax[0], pctx->bboxMax[1], pctx->bboxMax[2],
           wrld[0], wrld[1], wrld[2], wrld[3]);
   */
   return;
@@ -856,7 +858,7 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
 
   do {
     double rpos[4];
-
+    /* fprintf(stderr, "!%s: starting doooo (tryCount %u)!\n", me, tryCount); */
     tryCount++;
     reject = AIR_FALSE;
     _pullPointHistInit(point);
@@ -875,10 +877,10 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
               pctx->haltonOffset, pctx->initParm.haltonStartIndex,
               rpos[0], rpos[1], rpos[2], rpos[3]);
       */
-                    /*
+      /*
       fprintf(stderr, "%g %g %g %g ",
               rpos[0], rpos[1], rpos[2], rpos[3]);
-              */
+      */
       if (!pctx->haveScale) {
         rpos[3] = 0;
       }
@@ -934,6 +936,9 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
       reject = AIR_TRUE; \
       goto reckoning; \
     }
+    /* fprintf(stderr, "!%s: bi ngo 0 (%d) %d %p\n", me,
+            !pctx->flag.constraintBeforeSeedThresh,
+            pctx->initParm.liveThreshUse, pctx->ispec[pullInfoLiveThresh]); */
     if (!pctx->flag.constraintBeforeSeedThresh) {
       THRESH_TEST(pullInfoSeedThresh);
       if (pctx->initParm.liveThreshUse) {
@@ -942,9 +947,11 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
         THRESH_TEST(pullInfoLiveThresh3);
       }
     }
+    /* fprintf(stderr, "!%s: bi ngo 1\n", me); */
 
     if (pctx->constraint) {
       int constrFail;
+      /* fprintf(stderr, "!%s: calling _pullConstraintSatisfy(%u)\n", me, pointIdx); */
       if (_pullConstraintSatisfy(pctx->task[0], point,
                                  _PULL_CONSTRAINT_TRAVEL_MAX,
                                  &constrFail)) {
@@ -978,6 +985,7 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
         reject = AIR_TRUE;
         goto reckoning;
       }
+      /* fprintf(stderr, "!%s: bi ngo 2\n", me); */
       /* post constraint-satisfaction, we certainly have to assert thresholds */
       THRESH_TEST(pullInfoSeedThresh);
       if (pctx->initParm.liveThreshUse) {
@@ -985,6 +993,7 @@ pullPointInitializeRandomOrHalton(pullContext *pctx,
         THRESH_TEST(pullInfoLiveThresh2);
         THRESH_TEST(pullInfoLiveThresh3);
       }
+      /* fprintf(stderr, "!%s: bi ngo 3 (reject=%d)\n", me, reject); */
     }
 
   reckoning:
@@ -1313,15 +1322,15 @@ _pullPointSetup(pullContext *pctx) {
     fprintf(stderr, "%s: initialized to %u points (idtagNext = %u)\n",
             me, pn, pctx->idtagNext);
   }
-  /*
+  /* */
   if (1) {
     Nrrd *ntmp;
     ntmp = nrrdNew();
     pullOutputGet(ntmp, NULL, NULL, NULL, 0.0, pctx);
-    nrrdSave("pos-in.nrrd", ntmp, NULL);
+    nrrdSave("pos-init.nrrd", ntmp, NULL);
     nrrdNuke(ntmp);
   }
-  */
+  /* */
   pctx->tmpPointPtr = AIR_CAST(pullPoint **,
                                calloc(pn, sizeof(pullPoint*)));
   pctx->tmpPointPerm = AIR_CAST(unsigned int *,

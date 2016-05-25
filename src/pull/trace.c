@@ -35,10 +35,13 @@ pullTraceNew(void) {
     ret->seedPos[2] = ret->seedPos[3] = AIR_NAN;
     ret->nvert = nrrdNew();
     ret->nstrn = nrrdNew();
-    ret->nvelo = nrrdNew();
+    ret->nstab = nrrdNew();
+    ret->norin = nrrdNew();
     ret->seedIdx = 0;
     ret->whyStop[0] = ret->whyStop[1] = pullTraceStopUnknown;
+    ret->whyStopCFail[0] = ret->whyStopCFail[1] = pullConstraintFailUnknown;
     ret->whyNowhere = pullTraceStopUnknown;
+    ret->whyNowhereCFail = pullConstraintFailUnknown;
   }
   return ret;
 }
@@ -49,24 +52,204 @@ pullTraceNix(pullTrace *pts) {
   if (pts) {
     nrrdNuke(pts->nvert);
     nrrdNuke(pts->nstrn);
-    nrrdNuke(pts->nvelo);
+    nrrdNuke(pts->nstab);
+    nrrdNuke(pts->norin);
     free(pts);
   }
   return NULL;
 }
 
+void
+pullTraceStability(double *spcStab,
+                   double *oriStab,
+                   const double pos0[4],
+                   const double pos1[4],
+                   const double ori0[3],
+                   const double ori1[3],
+                   double sigma0,
+                   const pullContext *pctx) {
+  double sc, stb, dx, ds, diff[4];
+
+  ELL_4V_SUB(diff, pos1, pos0);
+  dx = ELL_3V_LEN(diff)/(pctx->voxelSizeSpace);
+  sc = (pos0[3] + pos1[3])/2;
+  if (pctx->flag.scaleIsTau) {
+    sc = gageSigOfTau(sc);
+  }
+  sc += sigma0;
+  dx /= sc;
+  ds = diff[3];
+  stb = atan2(ds, dx)/(AIR_PI/2); /* [-1,1]: 0 means least stable */
+  stb = AIR_ABS(stb);      /* [0,1]: 0 means least stable */
+  *spcStab = AIR_CLAMP(0, stb, 1);
+  /*
+  static double maxvelo = 0;
+  if (1 && vv > maxvelo) {
+    char me[]="pullTraceStability";
+    printf("\n%s: [%g,%g,%g,%g] - [%g,%g,%g,%g] = [%g,%g,%g,%g]\n", me,
+           pos0[0], pos0[1], pos0[2], pos0[3],
+           pos1[0], pos1[1], pos1[2], pos1[3],
+           diff[0], diff[1], diff[2], diff[3]);
+    printf("%s: dx = %g -> %g; ds = %g\n", me, dx0, dx, ds);
+    printf("%s: vv = atan2(%g,%g)/pi = %g -> %g > %g\n", me, ds, dx, vv0, vv, maxvelo);
+    maxvelo = vv;
+  }
+  */
+  if (ori0 && ori1) {
+    /* dori = delta in orientation */
+    double dori = ell_3v_angle_d(ori0, ori1);
+    /* dori in [0,pi]; 0 and pi mean no change */
+    if (dori > AIR_PI/2) {
+      dori -= AIR_PI;
+    }
+    /* dori in [-pi/2,pi/2]; 0 means no change; +-pi/2 means most change */
+    dori = AIR_ABS(dori);
+    /* dori in [0,pi/2]; 0 means no change; pi/2 means most change */
+    *oriStab = atan2(ds, dori)/(AIR_PI/2);
+    /* *oriStab in [0,1]; 0 means stable, 1 means not stable */
+  } else {
+    *oriStab = 0;
+  }
+  return;
+}
 
 int
+_pullConstrTanSlap(pullContext *pctx, pullPoint *point,
+                   double tlen,
+                   /* input+output */ double toff[3],
+                   /* output */ int *constrFailP) {
+  static const char me[]="_pullConstrTanSlap";
+  double pos0[4], tt;
+
+  if (!(pctx && point && toff && constrFailP)) {
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (pctx->flag.zeroZ) {
+    toff[2] = 0;
+  }
+  ELL_3V_NORM(toff, toff, tt);
+  if (!(tlen > 0 && tt > 0)) {
+    biffAddf(PULL, "%s: tlen %g or |toff| %g not positive", me, tlen, tt);
+    return 1;
+  }
+  ELL_4V_COPY(pos0, point->pos); /* pos0[3] should stay put; will test at end */
+
+  ELL_3V_SCALE_ADD2(point->pos, 1, pos0, tlen, toff);
+  if (_pullConstraintSatisfy(pctx->task[0], point, 0 /* travmax */, constrFailP)) {
+    biffAddf(PULL, "%s: trouble", me);
+    ELL_4V_COPY(point->pos, pos0); return 1;
+  }
+  /* save offset to new position */
+  ELL_3V_SUB(toff, point->pos, pos0);
+
+  if (pos0[3] != point->pos[3]) {
+    biffAddf(PULL, "%s: point->pos[3] %g was changed (from %g)",
+             me, point->pos[3], pos0[3]);
+    ELL_4V_COPY(point->pos, pos0); return 1;
+  }
+  ELL_4V_COPY(point->pos, pos0);
+  return 0;
+}
+
+int
+_pullConstrOrientFind(pullContext *pctx, pullPoint *point,
+                      int normalfind, /* find normal two 2D surface,
+                                         else find tangent to 1D curve */
+                      double tlen,
+                      const double tdir0[3], /* if non-NULL, try using this direction */
+                      /* output */
+                      double dir[3],
+                      int *constrFailP) {
+  static const char me[]="_pullConstrOrientFind";
+  double tt;
+
+#define SLAP(LEN, DIR)                                                  \
+  /* fprintf(stderr, "!%s: SLAP %g %g %g -->", me, (DIR)[0], (DIR)[1], (DIR)[2]); */  \
+  if (_pullConstrTanSlap(pctx, point, (LEN), (DIR), constrFailP)) {     \
+    biffAddf(PULL, "%s: looking for tangent, starting with (%g,%g,%g)", \
+             me, (DIR)[0], (DIR)[1], (DIR)[2]);                         \
+    return 1;                                                           \
+  }                                                                     \
+  if (*constrFailP) {                                                   \
+    /* unsuccessful in finding tangent, but not a biff error */         \
+    return 0;                                                           \
+  }                                                                     \
+  /* fprintf(stderr, " %g %g %g\n", (DIR)[0], (DIR)[1], (DIR)[2]); */
+
+  if (!(pctx && point && constrFailP)) {
+    biffAddf(PULL, "%s: got NULL pointer", me);
+    return 1;
+  }
+  *constrFailP = pullConstraintFailUnknown;
+  if (normalfind) {
+    double tan0[3], tan1[3];
+    /* looking for a surface normal */
+    if (tdir0) { /* have something to start with */
+      ell_3v_perp_d(tan0, tdir0);
+      ELL_3V_CROSS(tan1, tan0, tdir0);
+      SLAP(tlen, tan1);
+      SLAP(tlen, tan0);
+      ELL_3V_CROSS(dir, tan1, tan0);
+    } else { /* have to start from scratch */
+      double tns[9] = {1,0,0,  0,1,0,  0,0,1};
+      SLAP(tlen, tns+0);
+      SLAP(tlen, tns+3);
+      SLAP(tlen, tns+6);
+      ell_3m_1d_nullspace_d(dir, tns);
+    }
+  } else {
+    /* looking for a curve tangent */
+    if (tdir0) { /* have something to start with */
+      ELL_3V_COPY(dir, tdir0);
+      SLAP(tlen, dir);
+      /* SLAP(tlen, dir);   (didn't have much effect, in one test) */
+    } else { /* have to start from scratch */
+      double tX[3] = {1,0,0}, tY[3] = {0,1,0}, tZ[3] = {0,0,1};
+      SLAP(tlen, tX);
+      SLAP(tlen, tY);
+      if (ELL_3V_DOT(tX, tY) < 0) { ELL_3V_SCALE(tY, -1, tY); }
+      if (pctx->flag.zeroZ) {
+        ELL_3V_SET(tZ, 0, 0, 0);
+      } else {
+        SLAP(tlen, tZ);
+        if (ELL_3V_DOT(tX, tZ) < 0) { ELL_3V_SCALE(tZ, -1, tZ); }
+        if (ELL_3V_DOT(tY, tZ) < 0) { ELL_3V_SCALE(tY, -1, tZ); }
+      }
+      ELL_3V_ADD3(dir, tX, tY, tZ);
+    }
+  }
+  ELL_3V_NORM(dir, dir, tt);
+  if (!(tt > 0)) {
+    biffAddf(PULL, "%s: computed direction is zero (%g)?", me, tt);
+    return 1;
+  }
+  return 0;
+}
+
+/*
+******** pullTraceSet
+**
+** computes a single trace, according to the given parameters,
+** and store it in the pullTrace
+int recordStrength: should strength be recorded along trace
+double scaleDelta: discrete step along scale
+double halfScaleWin: how far, along scale, trace should go in each direction
+unsigned int arrIncr: increment for storing position (maybe strength)
+const double _seedPos[4]: starting position
+*/
+int
 pullTraceSet(pullContext *pctx, pullTrace *pts,
-             int recordStrength, int sigmaNorm,
+             int recordStrength,
              double scaleDelta, double halfScaleWin,
-             double velocityMax, unsigned int arrIncr,
+             double orientTestLen,
+             unsigned int arrIncr,
              const double _seedPos[4]) {
   static const char me[]="pullTraceSet";
   pullPoint *point;
-  airArray *mop, *trceArr[2], *hstrnArr[2];
-  double *trce[2], ssrange[2], *vert, *hstrn[2], *strn, *velo,
-    seedPos[4], travmax;
+  airArray *mop, *trceArr[2], *hstrnArr[2], *horinArr[2];
+  double *trce[2], ssrange[2], *vert, *hstrn[2], *horin[2], *strn, *orin, *stab,
+    seedPos[4], polen, porin[3];
   int constrFail;
   unsigned int dirIdx, lentmp, tidx, oidx, vertNum;
 
@@ -87,6 +270,29 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
     biffAddf(PULL, "%s: given context doesn't have constraint set", me);
     return 1;
   }
+  pts->fdim = _pullConstraintDim(pctx);
+  if (0 > pts->fdim) {
+    biffAddf(PULL, "%s: couldn't learn dimension of feature", me);
+    return 1;
+  }
+  if (pts->fdim == 2 && pctx->flag.zeroZ) {
+    biffAddf(PULL, "%s: can't have feature dim 2 with zeroZ", me);
+    return 1;
+  }
+  if (!( AIR_EXISTS(orientTestLen) && orientTestLen >= 0 )) {
+    biffAddf(PULL, "%s: need non-negative orientTestLen (not %g)\n",
+             me, orientTestLen);
+    return 1;
+  }
+  if (pts->fdim && !orientTestLen) {
+    /* not really an error */
+    /*
+    fprintf(stderr, "\n\n%s: WARNING: have a %d-D feature, but not "
+            "measuring its orientation\n\n\n", me, pts->fdim);
+    */
+  }
+  /* The test for "should I measure orientation"
+     is "if (pts->fdim && orientTestLen)" */
   if (recordStrength && !pctx->ispec[pullInfoStrength]) {
     biffAddf(PULL, "%s: want to record strength but %s not set in context",
              me, airEnumStr(pullInfo, pullInfoStrength));
@@ -99,7 +305,9 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
 
   /* re-initialize termination descriptions (in case of trace re-use) */
   pts->whyStop[0] = pts->whyStop[1] = pullTraceStopUnknown;
+  pts->whyStopCFail[0] = pts->whyStopCFail[1] = pullConstraintFailUnknown;
   pts->whyNowhere = pullTraceStopUnknown;
+  pts->whyNowhereCFail = pullConstraintFailUnknown;
 
   /* enforce zeroZ */
   ELL_4V_COPY(seedPos, _seedPos);
@@ -114,13 +322,6 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   point = pullPointNew(pctx); /* we'll want to decrement idtagNext later */
   airMopAdd(mop, point, (airMopper)pullPointNix, airMopAlways);
 
-  /* travmax is passed to _pullConstraintSatisfy; the intention is
-     that constraint satisfaction should not fail because the point
-     traveled too far (so make travmax large); the termination of the
-     trace based on velocity is handled here, not by
-     _pullConstraintSatisfy */
-  travmax = 10.0*scaleDelta*velocityMax/pctx->voxelSizeSpace;
-
   ELL_4V_COPY(point->pos, seedPos);
   /*
   if (pctx->verbose) {
@@ -128,7 +329,11 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
             seedPos[0], seedPos[1], seedPos[2], seedPos[3]);
   }
   */
-  if (_pullConstraintSatisfy(pctx->task[0], point, travmax, &constrFail)) {
+  /* The termination of the trace due to low stablity is handled here
+     (or could be), not by _pullConstraintSatisfy, so we set 0 for the
+     travelMax arg of _pullConstraintSatisfy (no travel limit) */
+  if (_pullConstraintSatisfy(pctx->task[0], point,
+                             0 /* travmax */, &constrFail)) {
     biffAddf(PULL, "%s: constraint sat on seed point", me);
     airMopError(mop);
     return 1;
@@ -148,6 +353,12 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
     /* pctx->idtagNext -= 1; / * HACK * / */
     return 0;
   }
+  if (point->status & PULL_STATUS_EDGE_BIT) {
+    pts->whyNowhere = pullTraceStopVolumeEdge;
+    airMopOkay(mop);
+    /* pctx->idtagNext -= 1; / * HACK * / */
+    return 0;
+  }
   if (pctx->flag.zeroZ && point->pos[2] != 0) {
     biffAddf(PULL, "%s: zeroZ violated (a)", me);
     airMopError(mop);
@@ -155,6 +366,44 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   }
 
   /* else constraint sat worked at seed point; we have work to do */
+  if (pts->fdim && orientTestLen) {
+    /* learn orientation at seed point */
+    polen = (orientTestLen
+             *pctx->voxelSizeSpace
+             /* if used, the effect of this this last (unprincipled) factor
+                is gradually increase the test distance with scale
+                *(1 + gageTauOfSig(_pullSigma(pctx, point->pos))) */ );
+    double pos0[4], dp[4];
+    int cf;
+    ELL_4V_COPY(pos0, point->pos);
+
+    if (_pullConstrOrientFind(pctx, point, pts->fdim == 2,
+                              polen, NULL /* no initial guess */, porin, &cf)) {
+      biffAddf(PULL, "%s: trying to find orientation at seed", me);
+      airMopError(mop);
+      return 1;
+    }
+    ELL_4V_SUB(dp, pos0, point->pos);
+    /*
+    fprintf(stderr, "!%s: cf = %d (%s)\n", me, cf, airEnumStr(pullConstraintFail, cf));
+    fprintf(stderr, "!%s: (fdim=%u) pos=[%g,%g,%g,%g] polen=%g porin=[%g,%g,%g] |%g|\n",
+            me, pts->fdim,
+            point->pos[0], point->pos[1], point->pos[2], point->pos[3],
+            polen, porin[0], porin[1], porin[2], ELL_4V_LEN(dp));
+    */
+    if (cf) {
+      pts->whyNowhere = pullTraceStopConstrFail;
+      pts->whyNowhereCFail = cf;
+      airMopOkay(mop);
+      /* pctx->idtagNext -= 1; / * HACK * / */
+      return 0;
+    }
+  } else {
+    /* either feature is 0D points, or don't care about orientation */
+    polen = AIR_NAN;
+    ELL_3V_SET(porin, AIR_NAN, AIR_NAN, AIR_NAN);
+  }
+
   for (dirIdx=0; dirIdx<2; dirIdx++) {
     trceArr[dirIdx] = airArrayNew((void**)(trce + dirIdx), NULL,
                                   4*sizeof(double), arrIncr);
@@ -167,27 +416,43 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
       hstrnArr[dirIdx] = NULL;
       hstrn[dirIdx] = NULL;
     }
+    if (pts->fdim && orientTestLen) {
+      horinArr[dirIdx] = airArrayNew((void**)(horin + dirIdx), NULL,
+                                     3*sizeof(double), arrIncr);
+      airMopAdd(mop, horinArr[dirIdx], (airMopper)airArrayNuke, airMopAlways);
+    } else {
+      horinArr[dirIdx] = NULL;
+      horin[dirIdx] = NULL;
+    }
   }
   for (dirIdx=0; dirIdx<2; dirIdx++) {
     unsigned int step;
-    double dscl, sigma=0.0;
+    double dscl;
     dscl = (!dirIdx ? -1 : +1)*scaleDelta;
     step = 0;
     while (1) {
       if (!step) {
         /* first step in both directions requires special tricks */
         if (0 == dirIdx) {
+          /* this is done once, at the very start */
           /* save constraint sat of seed point */
           tidx = airArrayLenIncr(trceArr[0], 1);
           ELL_4V_COPY(trce[0] + 4*tidx, point->pos);
           if (recordStrength) {
-            tidx = airArrayLenIncr(hstrnArr[0], 1);
+            airArrayLenIncr(hstrnArr[0], 1);
             hstrn[0][0] = pullPointScalar(pctx, point, pullInfoStrength,
                                           NULL, NULL);
+          }
+          if (pts->fdim && orientTestLen) {
+            airArrayLenIncr(horinArr[0], 1);
+            ELL_3V_COPY(horin[0] + 3*0, porin);
           }
         } else {
           /* re-set position from constraint sat of seed pos */
           ELL_4V_COPY(point->pos, trce[0] + 4*0);
+          if (pts->fdim && orientTestLen) {
+            ELL_3V_COPY(porin, horin[0] + 3*0);
+          }
         }
       }
       /* nudge position along scale */
@@ -210,22 +475,29 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
               point->pos[2], point->pos[3]);
       */
       if (_pullConstraintSatisfy(pctx->task[0], point,
-                                 travmax, &constrFail)) {
+                                 0 /* travmax */, &constrFail)) {
         biffAddf(PULL, "%s: dir %u, step %u", me, dirIdx, step);
         airMopError(mop);
         return 1;
       }
       /*
-      fprintf(stderr, "%s(%u): ... %s(%d); pos = %g %g %g %g\n", me,
-              point->idtag,
-              constrFail ? "FAIL" : "(ok)",
-              constrFail, point->pos[0], point->pos[1],
-              point->pos[2], point->pos[3]);
+      if (pctx->verbose) {
+        fprintf(stderr, "%s(%u): ... %s(%d); pos = %g %g %g %g\n", me,
+                point->idtag,
+                constrFail ? "FAIL" : "(ok)",
+                constrFail, point->pos[0], point->pos[1],
+                point->pos[2], point->pos[3]);
+      }
       */
+      if (point->status & PULL_STATUS_EDGE_BIT) {
+        pts->whyStop[dirIdx] = pullTraceStopVolumeEdge;
+        break;
+      }
       if (constrFail) {
         /* constraint sat failed; no error, we're just done
            with stepping for this direction */
         pts->whyStop[dirIdx] = pullTraceStopConstrFail;
+        pts->whyStopCFail[dirIdx] = constrFail;
         break;
       }
       if (pctx->flag.zeroZ && point->pos[2] != 0) {
@@ -233,35 +505,17 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
         airMopError(mop);
         return 1;
       }
-      if (sigmaNorm) {
-        sigma = (pctx->flag.scaleIsTau
-                 ? gageSigOfTau(point->pos[3])
-                 : point->pos[3]);
+      if (pts->fdim && orientTestLen) {
+        if (_pullConstrOrientFind(pctx, point, pts->fdim == 2,
+                                  polen, porin, porin, &constrFail)) {
+          biffAddf(PULL, "%s: at dir %u, step %u", me, dirIdx, step);
+          airMopError(mop);
+          return 1;
+        }
       }
       if (trceArr[dirIdx]->len >= 2) {
         /* see if we're moving too fast, by comparing with previous point */
-        double pos0[3], pos1[3], diff[3], vv;
-        unsigned int ii;
-
-        ii = trceArr[dirIdx]->len-2;
-        ELL_3V_COPY(pos0, trce[dirIdx] + 4*(ii+0));
-        ELL_3V_COPY(pos1, trce[dirIdx] + 4*(ii+1));
-        ELL_3V_SUB(diff, pos1, pos0);
-        vv = ELL_3V_LEN(diff)/scaleDelta;
-        if (sigmaNorm) {
-          vv = vv/sigma;
-        }
-        /*
-        fprintf(stderr, "%s(%u): velo %g %s velocityMax %g => %s\n", me,
-                point->idtag, vv,
-                vv > velocityMax ? ">" : "<=",
-                velocityMax,
-                vv > velocityMax ? "FAIL" : "(ok)");
-        */
-        if (vv > velocityMax) {
-          pts->whyStop[dirIdx] = pullTraceStopSpeeding;
-          break;
-        }
+        /* actually, screw that */
       }
       /* else save new point on trace */
       tidx = airArrayLenIncr(trceArr[dirIdx], 1);
@@ -270,6 +524,10 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
         tidx = airArrayLenIncr(hstrnArr[dirIdx], 1);
         hstrn[dirIdx][tidx] = pullPointScalar(pctx, point, pullInfoStrength,
                                               NULL, NULL);
+      }
+      if (pts->fdim && orientTestLen) {
+        tidx = airArrayLenIncr(horinArr[dirIdx], 1);
+        ELL_3V_COPY(horin[dirIdx] + 3*tidx, porin);
       }
       step++;
     }
@@ -287,15 +545,26 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   if (nrrdMaybeAlloc_va(pts->nvert, nrrdTypeDouble, 2,
                         AIR_CAST(size_t, 4),
                         AIR_CAST(size_t, vertNum))
-      || nrrdMaybeAlloc_va(pts->nvelo, nrrdTypeDouble, 1,
+      || nrrdMaybeAlloc_va(pts->nstab, nrrdTypeDouble, 2,
+                           AIR_CAST(size_t, 2),
                            AIR_CAST(size_t, vertNum))) {
     biffMovef(PULL, NRRD, "%s: allocating output", me);
     airMopError(mop);
     return 1;
   }
   if (recordStrength) {
+    /* doing slicing is a simple form of allocation */
     if (nrrdSlice(pts->nstrn, pts->nvert, 0 /* axis */, 0 /* pos */)) {
-      biffMovef(PULL, NRRD, "%s: allocating output", me);
+      biffMovef(PULL, NRRD, "%s: allocating strength output", me);
+      airMopError(mop);
+      return 1;
+    }
+  }
+  if (pts->fdim && orientTestLen) {
+    /* cropping just to allocate */
+    size_t cmin[2] = {0, 0}, cmax[2] = {2, pts->nvert->axis[1].size-1};
+    if (nrrdCrop(pts->norin, pts->nvert, cmin, cmax)) {
+      biffMovef(PULL, NRRD, "%s: allocating orientation output", me);
       airMopError(mop);
       return 1;
     }
@@ -306,13 +575,21 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   } else {
     strn = NULL;
   }
-  velo = AIR_CAST(double *, pts->nvelo->data);
+  if (pts->fdim && orientTestLen) {
+    orin = AIR_CAST(double *, pts->norin->data);
+  } else {
+    orin = NULL;
+  }
+  stab = AIR_CAST(double *, pts->nstab->data);
   lentmp = trceArr[0]->len;
   oidx = 0;
   for (tidx=0; tidx<lentmp; tidx++) {
     ELL_4V_COPY(vert + 4*oidx, trce[0] + 4*(lentmp - 1 - tidx));
     if (strn) {
       strn[oidx] = hstrn[0][lentmp - 1 - tidx];
+    }
+    if (orin) {
+      ELL_3V_COPY(orin + 3*oidx, horin[0] + 3*(lentmp - 1 - tidx));
     }
     oidx++;
   }
@@ -324,38 +601,41 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
     if (strn) {
       strn[oidx] = hstrn[1][tidx];
     }
+    if (orin) {
+      ELL_3V_COPY(orin + 3*oidx, horin[1] + 3*tidx);
+    }
     oidx++;
   }
-  lentmp = pts->nvelo->axis[0].size;
+  lentmp = pts->nstab->axis[1].size;
   if (1 == lentmp) {
-    velo[0] = 0.0;
+    stab[0 + 2*0] = 0.0;
+    stab[1 + 2*0] = 0.0;
   } else {
     for (tidx=0; tidx<lentmp; tidx++) {
-      double *p0, *p1, *p2, diff[3], sigma=0;
+      double *pA, *pB, *p0, *p1, *p2, *rA, *rB, *r0=NULL, *r1=NULL, *r2=NULL;
       p0 = vert + 4*(tidx-1);
       p1 = vert + 4*tidx;
       p2 = vert + 4*(tidx+1);
-      if (sigmaNorm) {
-        sigma = (pctx->flag.scaleIsTau
-                 ? gageSigOfTau(p1[3])
-                 : p1[3]);
+      if (orin) {
+        r0 = orin + 3*(tidx-1);
+        r1 = orin + 3*tidx;
+        r2 = orin + 3*(tidx+1);
       }
       if (!tidx) {
         /* first */
-        ELL_3V_SUB(diff, p2, p1);
-        velo[tidx] = ELL_3V_LEN(diff)/(p2[3]-p1[3]);
+        pA = p1; rA = r1;
+        pB = p2; rB = r2;
       } else if (tidx < lentmp-1) {
         /* middle */
-        ELL_3V_SUB(diff, p2, p0);
-        velo[tidx] = ELL_3V_LEN(diff)/(p2[3]-p0[3]);
+        pA = p0; rA = r0;
+        pB = p2; rB = r2;
       } else {
         /* last */
-        ELL_3V_SUB(diff, p1, p0);
-        velo[tidx] = ELL_3V_LEN(diff)/(p1[3]-p0[3]);
+        pA = p0; rA = r0;
+        pB = p1; rB = r1;
       }
-      if (sigmaNorm) {
-        velo[tidx] /= sigma;
-      }
+      pullTraceStability(stab + 0 + 2*tidx, stab + 1 + 2*tidx,
+                         pA, pB, rA, rB, 0.5 /* sigma0 */, pctx);
     }
   }
 
@@ -407,9 +687,9 @@ pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc, int *addedP) {
     *addedP = AIR_FALSE;
     return 0;
   }
-  if (!(trc->nvelo->data
-        && trc->nvelo->axis[0].size == trc->nvert->axis[1].size)) {
-    biffAddf(PULL, "%s: velo data inconsistent", me);
+  if (!(trc->nstab->data
+        && trc->nstab->axis[1].size == trc->nvert->axis[1].size)) {
+    biffAddf(PULL, "%s: stab data inconsistent", me);
     return 1;
   }
   *addedP = AIR_TRUE;
@@ -423,73 +703,21 @@ pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc, int *addedP) {
 }
 
 int
-pullTraceMultiFilterConcaveDown(Nrrd *nfilt, const pullTraceMulti *mtrc,
-                                double winLenFrac) {
-  static const char me[]="pullTraceMultiFilterConcaveDown";
-  unsigned int ti;
-  int *filt;
-
-  if (!(nfilt && mtrc)) {
-    biffAddf(PULL, "%s: got NULL pointer (%p %p)", me,
-             AIR_VOIDP(nfilt), AIR_CVOIDP(mtrc));
-    return 1;
-  }
-  if (!(AIR_EXISTS(winLenFrac) && AIR_IN_OP(0.0, winLenFrac, 1.0))) {
-    biffAddf(PULL, "%s: winLenFrac %g doesn't exist or not in [0,1]",
-             me, winLenFrac);
-    return 1;
-  }
-  if (nrrdMaybeAlloc_va(nfilt, nrrdTypeInt, 1, mtrc->traceNum)) {
-    biffMovef(PULL, NRRD, "%s: trouble creating output", me);
-    return 1;
-  }
-  filt = AIR_CAST(int *, nfilt->data);
-  for (ti=0; ti<mtrc->traceNum; ti++) {
-    unsigned winLen;
-    const pullTrace *trc;
-    const double *velo;
-    unsigned int schange, pidx, lentmp;
-    double dv, dv0=0.0, rdv, dv1;
-
-    trc = mtrc->trace[ti];
-    lentmp = trc->nvert->axis[1].size;
-    velo = AIR_CAST(const double *, trc->nvelo->data);
-    winLen = AIR_CAST(unsigned int, winLenFrac*lentmp);
-    if (winLen < 3) {
-      continue;
-    }
-    schange = 0;
-    rdv = 0.0;
-    for (pidx=0; pidx<lentmp-1; pidx++) {
-      /* normalizing by scaleDelta isn't needed for detecting sign changes */
-      dv = velo[pidx+1] - velo[pidx];
-      if (pidx < winLen) {
-        rdv += dv;
-      } else {
-        double tmp;
-        if (pidx == winLen) {
-          dv0 = rdv;
-        }
-        tmp = rdv;
-        rdv += dv;
-        rdv -= velo[pidx-winLen+1] - velo[pidx-winLen];
-        schange += (rdv*tmp < 0);
-      }
-    }
-    dv1 = rdv;
-    filt[ti] = (1 == schange) && dv0 < 0.0 && dv1 > 0.0;
-  }
-  return 0;
-}
-
-int
 pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
                       const Nrrd *nfilt, int strengthUse,
-                      unsigned int trcIdxMin, unsigned int trcNum) {
+                      int smooth, int flatWght,
+                      unsigned int trcIdxMin, unsigned int trcNum,
+                      Nrrd *nmaskedpos,
+                      const Nrrd *nmask) {
   static const char me[]="pullTraceMultiPlotAdd";
-  double ssRange[2], vRange[2], velHalf, *plot;
-  unsigned int sizeS, sizeV, trcIdx, trcIdxMax;
+  double ssRange[2], vRange[2], *plot;
+  unsigned int sizeS, sizeT, trcIdx, trcIdxMax;
   int *filt;
+  airArray *mop;
+  Nrrd *nsmst; /* smoothed stability */
+  airArray *mposArr;
+  double *mpos;
+  unsigned char *mask;
 
   if (!(nplot && mtrc)) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -532,6 +760,32 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
   } else {
     trcIdxMax = mtrc->traceNum-1;
   }
+  if (nmaskedpos || nmask) {
+    if (!( nmaskedpos && nmask )) {
+      biffAddf(PULL, "%s: need either both or neither of nmaskedpos (%p)"
+               "and nmask (%p)", me, nmaskedpos, nmask);
+      return 1;
+    }
+    if (!( 2 == nmask->dim
+           && nrrdTypeUChar == nmask->type
+           && nplot->axis[0].size == nmask->axis[0].size
+           && nplot->axis[1].size == nmask->axis[1].size )) {
+      biffAddf(PULL, "%s: got trace mask but wanted "
+               "2-D %s %u-by-%u (not %u-D %s %u-by-%u)\n", me,
+               airEnumStr(nrrdType, nrrdTypeUChar),
+               AIR_CAST(unsigned int, nplot->axis[0].size),
+               AIR_CAST(unsigned int, nplot->axis[1].size),
+               nmask->dim,
+               airEnumStr(nrrdType, nmask->type),
+               AIR_CAST(unsigned int, nmask->axis[0].size),
+               AIR_CAST(unsigned int, nmask->axis[1].size));
+      return 1;
+    }
+    mask = AIR_CAST(unsigned char *, nmask->data);
+  } else {
+    mask = NULL;
+  }
+
   ssRange[0] = nplot->axis[0].min;
   ssRange[1] = nplot->axis[0].max;
   vRange[0] = nplot->axis[1].min;
@@ -542,26 +796,36 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
              ssRange[0], ssRange[1], vRange[0], vRange[1]);
     return 1;
   }
-  if (0 != vRange[0]) {
-    biffAddf(PULL, "%s: expected vRange[0] == 0 not %g", me, vRange[0]);
+  if (1 != vRange[0]) {
+    biffAddf(PULL, "%s: expected vRange[0] == 1 not %g", me, vRange[0]);
     return 1;
   }
-  /* HEY: this is a sneaky hack; the non-linear encoding of velocity along
-     this axis means that the max velocity is actually infinite, but this
-     seems like the least wrong way of storing this information in the place
-     where it belongs (in the output plot nrrd) instead of assuming it will
-     always be passed the same in successive calls */
-  velHalf = vRange[1]/2.0;
+  mop = airMopNew();
+
+  mpos = NULL;
+  if (nmaskedpos && nmask) {
+    nrrdEmpty(nmaskedpos);
+    mposArr = airArrayNew((void**)(&mpos), NULL,
+                          4*sizeof(double), 512 /* HEY */);
+  } else {
+    mposArr = NULL;
+  }
+
+  nsmst = nrrdNew();
+  airMopAdd(mop, nsmst, (airMopper)nrrdNuke, airMopAlways);
   plot = AIR_CAST(double *, nplot->data);
   filt = (nfilt
           ? AIR_CAST(int *, nfilt->data)
           : NULL);
   sizeS = AIR_CAST(unsigned int, nplot->axis[0].size);
-  sizeV = AIR_CAST(unsigned int, nplot->axis[1].size);
+  sizeT = AIR_CAST(unsigned int, nplot->axis[1].size);
   for (trcIdx=trcIdxMin; trcIdx<=trcIdxMax; trcIdx++) {
-    unsigned int pntIdx, pntNum;
+    int pntIdx, pntNum;
     const pullTrace *trc;
-    const double *vert, *velo, *strn;
+    const double *vert, *stab, *strn;
+    unsigned int maskInCount;
+    double maskInPos[4];
+
     if (filt && !filt[trcIdx]) {
       continue;
     }
@@ -569,30 +833,113 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
     if (pullTraceStopStub == trc->whyNowhere) {
       continue;
     }
+    if (strengthUse && !(trc->nstrn && trc->nstrn->data)) {
+      biffAddf(PULL, "%s: requesting strength-based weighting, but don't have "
+               "strength info in trace %u", me, trcIdx);
+      airMopError(mop); return 1;
+    }
+    pntNum = AIR_CAST(int, trc->nvert->axis[1].size);
     vert = AIR_CAST(double *, trc->nvert->data);
-    velo = AIR_CAST(double *, trc->nvelo->data);
+    stab = AIR_CAST(double *, trc->nstab->data);
+    if (smooth > 0) {
+      double *smst;
+      if (nrrdCopy(nsmst, trc->nstab)) {
+        biffMovef(PULL, NRRD, "%s: trouble w/ trace %u", me, trcIdx);
+        airMopError(mop); return 1;
+      }
+      smst = AIR_CAST(double *, nsmst->data);
+      for (pntIdx=0; pntIdx<pntNum; pntIdx++) {
+        int ii, jj;
+        double ss, ww, ws;
+        ss = ws = 0;
+        for (jj=-smooth; jj<=smooth; jj++) {
+          ii = pntIdx+jj;
+          ii = AIR_CLAMP(0, ii, pntNum-1);
+          ww = nrrdKernelBSpline3->eval1_d(AIR_AFFINE(-smooth-1, jj,
+                                                      smooth+1,-2,2), NULL);
+          ws += ww;
+          ss += ww*stab[0 + 2*ii]*stab[1 + 2*ii];
+        }
+        smst[pntIdx] = ss/ws;
+      }
+      /* now redirect stab */
+      stab = smst;
+    }
     strn = AIR_CAST(double *, (strengthUse && trc->nstrn
                                ? trc->nstrn->data : NULL));
-    pntNum = trc->nvert->axis[1].size;
+    /* would be nice to get some graphical indication of this */
+    fprintf(stderr, "!%s: trace %u in [%u,%u]: %u points; stops = %s(%s) | %s(%s)\n",
+            me, trcIdx, trcIdxMin, trcIdxMax, pntNum,
+            airEnumStr(pullTraceStop, trc->whyStop[0]),
+            (pullTraceStopConstrFail == trc->whyStop[0]
+             ? airEnumStr(pullConstraintFail, trc->whyStopCFail[0])
+             : ""),
+            airEnumStr(pullTraceStop, trc->whyStop[1]),
+            (pullTraceStopConstrFail == trc->whyStop[1]
+             ? airEnumStr(pullConstraintFail, trc->whyStopCFail[1])
+             : ""));
+    /* */
+
+    if (mask) {
+      maskInCount = 0;
+      ELL_4V_SET(maskInPos, 0, 0, 0, 0);
+    }
     for (pntIdx=0; pntIdx<pntNum; pntIdx++) {
       const double *pp;
-      double add;
+      double add, ww;
       unsigned int sidx, vidx;
       pp = vert + 4*pntIdx;
       if (!(AIR_IN_OP(ssRange[0], pp[3], ssRange[1]))) {
         continue;
       }
-      if (velo[pntIdx] <= 0.0) {
-        continue;
+      if (flatWght > 0) {
+        if (!pntIdx || pntIdx == pntNum-1) {
+          continue;
+        }
+      } else if (flatWght < 0) {
+        /* HACK: only show the seed point */
+        if (AIR_CAST(unsigned int, pntIdx) != trc->seedIdx) {
+          continue;
+        }
       }
       sidx = airIndex(ssRange[0], pp[3], ssRange[1], sizeS);
-      /* HEY weird that Clamp is needed, but it is, as this atan()
-         does sometime return a negative value (?) */
-      vidx = airIndexClamp(0.0, atan(velo[pntIdx]/velHalf), AIR_PI/2, sizeV);
+      vidx = airIndexClamp(1, stab[0 + 2*pntIdx]*stab[1 + 2*pntIdx], 0, sizeT);
       add = strn ? strn[pntIdx] : 1;
-      plot[sidx + sizeS*vidx] += AIR_MAX(0, add);
+      if (flatWght > 0) {
+        double dx = ( ((vert + 4*(pntIdx+1))[3] - (vert + 4*(pntIdx-1))[3])
+                      / (ssRange[1] - ssRange[0]) );
+        /*
+        double dx = ( ((vert + 4*(pntIdx+1))[3] - pp[3])
+                      / (ssRange[1] - ssRange[0]) );
+        */
+        double dy = (stab[0 + 2*(pntIdx+1)]*stab[1 + 2*(pntIdx+1)]
+                     - stab[0 + 2*(pntIdx-1)]*stab[1 + 2*(pntIdx-1)]);
+        ww = dx/sqrt(dx*dx + dy*dy);
+      } else {
+        ww = 1;
+      }
+      plot[sidx + sizeS*vidx] += AIR_MAX(0, ww*add);
+      if (mask && mask[sidx + sizeS*vidx] > 200) {
+        ELL_4V_ADD2(maskInPos, maskInPos, pp);
+        maskInCount ++;
+      }
+    }
+    if (mask && maskInCount) {
+      unsigned int mpi = airArrayLenIncr(mposArr, 1);
+      ELL_4V_SCALE(mpos + 4*mpi, 1.0/maskInCount, maskInPos);
     }
   }
+  if (mask && mposArr->len) {
+    if (nrrdMaybeAlloc_va(nmaskedpos, nrrdTypeDouble, 2,
+                          AIR_CAST(size_t, 4),
+                          AIR_CAST(size_t, mposArr->len))) {
+      biffAddf(PULL, "%s: couldn't allocate masked pos", me);
+      airMopError(mop); return 1;
+    }
+    memcpy(nmaskedpos->data, mposArr->data,
+           4*(mposArr->len)*sizeof(double));
+  }
+  airMopOkay(mop);
   return 0;
 }
 
@@ -616,7 +963,7 @@ pullTraceMultiSizeof(const pullTraceMulti *mtrc) {
     ret += sizeof(pullTrace);
     ret += nsizeof(mtrc->trace[ti]->nvert);
     ret += nsizeof(mtrc->trace[ti]->nstrn);
-    ret += nsizeof(mtrc->trace[ti]->nvelo);
+    ret += nsizeof(mtrc->trace[ti]->nstab);
   }
   ret += sizeof(pullTrace*)*(mtrc->traceArr->size);
   return ret;
@@ -640,11 +987,18 @@ static int
 tracewrite(FILE *file, const pullTrace *trc, unsigned int ti) {
   static const char me[]="tracewrite";
 
+  /*
+  this was used to get ascii coordinates for a trace,
+  to help isolate (via emacs) one trace from a saved multi-trace
+  NrrdIoState *nio = nrrdIoStateNew();
+  nio->encoding = nrrdEncodingAscii;
+  */
+
   fprintf(file, "%s %u\n", DEMARK_STR, ti);
   ell_4v_print_d(file, trc->seedPos);
 #define WRITE(FF) \
   if (trc->FF && trc->FF->data) { \
-    if (nrrdWrite(file, trc->FF, NULL)) { \
+    if (nrrdWrite(file, trc->FF, NULL /* nio */ )) {        \
       biffMovef(PULL, NRRD, "%s: trouble with " #FF , me); \
       return 1; \
     } \
@@ -652,13 +1006,14 @@ tracewrite(FILE *file, const pullTrace *trc, unsigned int ti) {
     fprintf(file, "NULL"); \
   } \
   fprintf(file, "\n")
-  fprintf(file, "nrrds: vert strn velo = %d %d %d\n",
+
+  fprintf(file, "nrrds: vert strn stab = %d %d %d\n",
           trc->nvert && trc->nvert->data,
           trc->nstrn && trc->nstrn->data,
-          trc->nvelo && trc->nvelo->data);
+          trc->nstab && trc->nstab->data);
   WRITE(nvert);
   WRITE(nstrn);
-  WRITE(nvelo);
+  WRITE(nstab);
   fprintf(file, "%u\n", trc->seedIdx);
   fprintf(file, "%s %s %s\n",
           airEnumStr(pullTraceStop, trc->whyStop[0]),
@@ -694,7 +1049,7 @@ traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
   static const char me[]="traceread";
   char line[AIR_STRLEN_MED], name[AIR_STRLEN_MED];
   unsigned int ti, lineLen;
-  int stops[3], hackhack, vertHN, strnHN, veloHN; /* HN == have nrrd */
+  int stops[3], hackhack, vertHN, strnHN, stabHN; /* HN == have nrrd */
 
   sprintf(name, "separator");
   lineLen = airOneLine(file, line, AIR_STRLEN_MED);
@@ -728,8 +1083,8 @@ traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
     biffAddf(PULL, "%s: didn't get %s line", me, name);
     return 1;
   }
-  if (3 != sscanf(line, "nrrds: vert strn velo = %d %d %d",
-                  &vertHN, &strnHN, &veloHN)) {
+  if (3 != sscanf(line, "nrrds: vert strn stab = %d %d %d",
+                  &vertHN, &strnHN, &stabHN)) {
     biffAddf(PULL, "%s: couldn't parse %s line", me, name);
     return 1;
   }
@@ -747,7 +1102,7 @@ traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
   nrrdStateVerboseIO = 0;
   READ(vert);
   READ(strn);
-  READ(velo);
+  READ(stab);
   nrrdStateVerboseIO = hackhack;
 
   sprintf(name, "seed idx");

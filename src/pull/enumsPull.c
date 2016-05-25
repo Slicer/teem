@@ -237,7 +237,9 @@ _pullTraceStopStr[] = {
   "constrfail",
   "bounds",
   "length",
-  "stub"
+  "stub",
+  "voledge",
+  "orientconstrfail"
 };
 
 const airEnum
@@ -315,7 +317,8 @@ _pullConstraintFailStr[PULL_CONSTRAINT_FAIL_MAX+1] = {
   "projected gradient 0 (A)",
   "projected gradient 0 (B)",
   "iter max exceeded",
-  "travel exceeded"
+  "travel exceeded",
+  "plen doesn't exist"
 };
 
 const airEnum
