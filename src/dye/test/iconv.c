@@ -35,7 +35,7 @@ usage() {
 int
 main(int argc, char *argv[]) {
   char *inFN, *outFN, *inSpcS, *otSpcS, *err;
-  int inSpc, otSpc;
+  int inSpc, otSpc, hack3d;
 
   me = argv[0];
   if (5 != argc)
@@ -79,6 +79,14 @@ main(int argc, char *argv[]) {
     airMopError(mop);
     exit(1);
   }
+  if (2 == nin->dim && 3 == nin->axis[0].size) {
+    /* as a big hack, promote to 3D */
+    nin->dim = 3;
+    nin->axis[2].size = 1;
+    hack3d = AIR_TRUE;
+  } else {
+    hack3d = AIR_FALSE;
+  }
   if (!( 3 == nin->dim && 3 == nin->axis[0].size )) {
     fprintf(stderr, "%s: sorry, need 3D 3-by-X-by-Y array (not %u-D %u-by)\n", me,
             nin->dim, AIR_CAST(unsigned int, nin->axis[0].size));
@@ -101,6 +109,9 @@ main(int argc, char *argv[]) {
     dyeColorGet(od + 0 + 3*ii, od + 1 + 3*ii, od + 2 + 3*ii, col);
   }
 
+  if (hack3d) {
+    nout->dim = 2;
+  }
   if (nrrdSave(outFN, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s", me, err);
