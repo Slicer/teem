@@ -380,24 +380,21 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   case 8:
     for (I=0; I<num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
-      valIn = AIR_CLAMP(minIn, valIn, maxIn);
-      outUC[I] = airIndex(minIn, valIn, maxIn+eps, 1 << 8);
+      outUC[I] = airIndexClamp(minIn, valIn, maxIn+eps, 1 << 8);
     }
     break;
   case 16:
     for (I=0; I<num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
-      valIn = AIR_CLAMP(minIn, valIn, maxIn);
-      outUS[I] = airIndex(minIn, valIn, maxIn+eps, 1 << 16);
+      outUS[I] = airIndexClamp(minIn, valIn, maxIn+eps, 1 << 16);
     }
     break;
   case 32:
     for (I=0; I<num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
-      valIn = AIR_CLAMP(minIn, valIn, maxIn);
       outUI[I] = AIR_CAST(unsigned int,
-                          airIndexULL(minIn, valIn, maxIn+eps,
-                                      AIR_ULLONG(1) << 32));
+                          airIndexClampULL(minIn, valIn, maxIn+eps,
+                                           AIR_ULLONG(1) << 32));
     }
     break;
   }
