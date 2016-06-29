@@ -24,13 +24,13 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Print data segment of a nrrd file"
+#define INFO "Write data segment of a nrrd file"
 static const char *_unrrdu_dataInfoL =
 (INFO  ".  The value of this is to pass the data segment in isolation to a "
  "stand-alone decoder, in case this Teem build lacks an optional "
  "data encoding required for a given nrrd file.  Caveats: "
- "Will start copying "
- "characters from the datafile until EOF is hit, so this won't work "
+ "Will start copying characters from the datafile "
+ "to output file until EOF is hit, so this won't work "
  "correctly if the datafile has extraneous content at the end.  Will "
  "skip lines (as per \"line skip:\" header field) if needed, but can only "
  "skip bytes (as per \"byte skip:\") if the encoding is NOT a compression. "
