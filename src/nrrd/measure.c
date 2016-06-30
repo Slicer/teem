@@ -453,6 +453,11 @@ _nrrdMeasureLinf(void *ans, int ansType,
   nrrdDStore[ansType](ans, M);
 }
 
+/* ========================================================== */
+#if 0 /* two variance functions:
+         0 for new two-pass (more accurate)
+         1 for old single-pass */
+
 void
 _nrrdMeasureVariance(void *ans, int ansType,
                      const void *line, int lineType, size_t len,
@@ -495,6 +500,57 @@ _nrrdMeasureVariance(void *ans, int ansType,
      the variance calculation in a single pass */
   nrrdDStore[ansType](ans, AIR_MAX(0.0, SS - S*S));
 }
+
+#else /* ========================================================== */
+
+void
+_nrrdMeasureVariance(void *ans, int ansType,
+                     const void *line, int lineType, size_t len,
+                     double axmin, double axmax) {
+  double vari, mean, val, (*lup)(const void*, size_t);
+  size_t ii, count;
+
+  AIR_UNUSED(axmin);
+  AIR_UNUSED(axmax);
+  mean = vari = 0.0;
+  lup = nrrdDLookup[lineType];
+  if (nrrdTypeIsIntegral[lineType]) {
+    for (ii=0; ii<len; ii++) {
+      mean += lup(line, ii);
+    }
+    mean /= len;
+    for (ii=0; ii<len; ii++) {
+      val = lup(line, ii);
+      vari += (val-mean)*(val-mean);
+    }
+    vari /= len;
+  } else {
+    count = 0;
+    for (ii=0; ii<len; ii++) {
+      val = lup(line, ii);
+      if (AIR_EXISTS(val)) {
+        count++;
+        mean += val;
+      }
+    }
+    if (count) {
+      mean /= count;
+      for (ii=0; ii<len; ii++) {
+        val = lup(line, ii);
+        if (AIR_EXISTS(val)) {
+          vari += (val-mean)*(val-mean);
+        }
+      }
+      vari /= count;
+    } else {
+      vari = AIR_NAN;
+    }
+  }
+  nrrdDStore[ansType](ans, vari);
+}
+
+#endif
+/* ========================================================== */
 
 void
 _nrrdMeasureSD(void *ans, int ansType,
