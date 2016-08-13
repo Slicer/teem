@@ -410,7 +410,8 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
                                 _nrrdErrorHandlerPNG,
                                 _nrrdWarningHandlerPNG);
   if (png == NULL) {
-    biffAddf(NRRD, "%s: failed to create PNG write struct", me);
+    biffAddf(NRRD, "%s: failed to create PNG write struct (compiled with "
+             "PNG_LIBPNG_VER_STRING=" PNG_LIBPNG_VER_STRING ")", me);
     return 1;
   }
   /* create image info struct */
