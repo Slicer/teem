@@ -3386,11 +3386,11 @@ nrrdKernelCheck(const NrrdKernel *kern,
     biffAddf(NRRD, "%s: need evalNum > 20", me);
     airMopError(mop); return 1;
   }
-  if (!(kern->name && kern->support && kern->integral
+  if (!(kern->support && kern->integral
         && kern->eval1_f && kern->evalN_f
         && kern->eval1_d && kern->evalN_d)) {
-    biffAddf(NRRD, "%s: kernel has NULL fields (%d,%d,%d,%d,%d,%d,%d)", me,
-             !!(kern->name), !!(kern->support), !!(kern->integral),
+    biffAddf(NRRD, "%s: kernel has NULL fields (%d,%d,%d,%d,%d,%d)", me,
+             !!(kern->support), !!(kern->integral),
              !!(kern->eval1_f), !!(kern->evalN_f),
              !!(kern->eval1_d), !!(kern->evalN_d));
     airMopError(mop); return 1;
