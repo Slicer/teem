@@ -1614,4 +1614,30 @@ _nrrdResampleNonExistent_enum = {
 const airEnum *const
 nrrdResampleNonExistent = &_nrrdResampleNonExistent_enum;
 
+/* ---------------------- nrrdMetaDataCanonicalVersion -------------------- */
+
+static const char *
+_nrrdMetaDataCanonicalVersionStr[NRRD_META_DATA_CANONICAL_VERSION_MAX+1] = {
+  "(unknown_meta_data_canonical_version)",
+  "alpha",
+};
+
+static const char *
+_nrrdMetaDataCanonicalVersionDesc[NRRD_META_DATA_CANONICAL_VERSION_MAX+1] = {
+  "unknown meta data canonical version",
+  "initial version, used for Diderot until at least 2016",
+};
+
+static const airEnum
+_nrrdMetaDataCanonicalVersion_enum = {
+  "canonical meta-data version",
+  NRRD_META_DATA_CANONICAL_VERSION_MAX,
+  _nrrdMetaDataCanonicalVersionStr, NULL,
+  _nrrdMetaDataCanonicalVersionDesc,
+  NULL, NULL,
+  AIR_FALSE
+};
+const airEnum *const
+nrrdMetaDataCanonicalVersion = &_nrrdMetaDataCanonicalVersion_enum;
+
 /* ---- END non-NrrdIO */

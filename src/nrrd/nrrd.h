@@ -763,6 +763,7 @@ NRRD_EXPORT const airEnum *const nrrdBinaryOp;
 NRRD_EXPORT const airEnum *const nrrdTernaryOp;
 NRRD_EXPORT const airEnum *const nrrdFFTWPlanRigor;
 NRRD_EXPORT const airEnum *const nrrdResampleNonExistent;
+NRRD_EXPORT const airEnum *const nrrdMetaDataCanonicalVersion;
 /* ---- END non-NrrdIO */
 
 /******** arrays of things (poor-man's functions/predicates) */
@@ -882,6 +883,13 @@ NRRD_EXPORT int nrrdSpacingCalculate(const Nrrd *nrrd, unsigned int ax,
                                      double vector[NRRD_SPACE_DIM_MAX]);
 NRRD_EXPORT int nrrdOrientationReduce(Nrrd *nout, const Nrrd *nin,
                                       int setMinsFromOrigin);
+NRRD_EXPORT int nrrdMetaDataNormalize(Nrrd *nout, const Nrrd *nin,
+                                      int version,
+                                      int trivialOrient,
+                                      int permuteComponentAxisFastest,
+                                      int recenterGrid,
+                                      double sampleSpacing,
+                                      int *lostMeasurementFrame);
 
 /******** simple things */
 /* simple.c */

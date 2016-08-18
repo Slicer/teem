@@ -757,6 +757,18 @@ enum {
 };
 #define NRRD_RESAMPLE_NON_EXISTENT_MAX    3
 
+/*
+******** nrrdMetaDataCanonicalVersion
+**
+** different strategies for putting meta-data into a canonical form
+*/
+enum {
+  nrrdMetaDataCanonicalVersionUnknown,
+  nrrdMetaDataCanonicalVersionAlpha,       /* 1 */
+  nrrdMetaDataCanonicalVersionLast
+};
+#define NRRD_META_DATA_CANONICAL_VERSION_MAX  1
+
 /* ---- END non-NrrdIO */
 
 #ifdef __cplusplus

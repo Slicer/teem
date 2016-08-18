@@ -913,7 +913,7 @@ _nrrdCopy(Nrrd *nout, const Nrrd *nin, int bitflag) {
   } else {
     /* someone is trying to copy structs without data, fine fine fine */
     if (nrrdWrap_nva(nout, NULL, nin->type, nin->dim, size)) {
-      biffAddf(NRRD, "%s: couldn't allocate data", me);
+      biffAddf(NRRD, "%s: couldn't wrap NULL data", me);
       return 1;
     }
   }

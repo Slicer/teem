@@ -1256,7 +1256,7 @@ nrrdOrientationReduce(Nrrd *nout, const Nrrd *nin,
   NrrdAxisInfo *axis;
 
   if (!(nout && nin)) {
-    biffAddf(NRRD, "%s: got NULL spacing", me);
+    biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
 
@@ -1283,6 +1283,357 @@ nrrdOrientationReduce(Nrrd *nout, const Nrrd *nin,
   }
   nrrdSpaceSet(nout, nrrdSpaceUnknown);
 
+  return 0;
+}
+
+/*
+******** nrrdMetaData
+**
+** The brains of "unu dnorm" (for Diderot normalization): put all meta-data
+** of a nrrd into some simpler canonical form. 
+**
+** This function probably doesn't belong in this file, but it is kind
+** the opposite of nrrdOrientationReduce (above), so here it is
+*/
+int
+nrrdMetaDataNormalize(Nrrd *nout, const Nrrd *nin,
+                      int version,
+                      int trivialOrient,
+                      int permuteComponentAxisFastest,
+                      int recenterGrid,
+                      double sampleSpacing,
+                      int *lostMeasurementFrame) {
+  static const char me[]="nrrdMetaDataNormalize";
+  size_t size[NRRD_DIM_MAX];
+  int kindIn, kindOut, haveMM, gotmf;
+  unsigned int kindAxis, axi, si, sj;
+  Nrrd *ntmp;
+  airArray *mop;
+
+  if (!(nout && nin)) {
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (airEnumValCheck(nrrdMetaDataCanonicalVersion, version)) {
+    biffAddf(NRRD, "%s: version %d not valid %s", me,
+             version, nrrdMetaDataCanonicalVersion->name);
+    return 1;
+  }
+  if (nrrdMetaDataCanonicalVersionAlpha != version) {
+    biffAddf(NRRD, "%s: sorry, %s %s not implemented (only %s)", me,
+             nrrdMetaDataCanonicalVersion->name,
+             airEnumStr(nrrdMetaDataCanonicalVersion, version),
+             airEnumStr(nrrdMetaDataCanonicalVersion,
+                        nrrdMetaDataCanonicalVersionAlpha));
+    return 1;
+  }
+
+  if (_nrrdCheck(nin, AIR_FALSE /* checkData */, AIR_TRUE /* useBiff */)) {
+    biffAddf(NRRD, "%s: basic check failed", me);
+    return 1;
+  }
+  /* but can't deal with block type */
+  if (nrrdTypeBlock == nin->type) {
+    biffAddf(NRRD, "%s: can only have scalar types (not %s)", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
+    return 1;
+  }
+
+  /* look at all per-axis kinds */
+  /* see if there's a range kind, verify that there's only one */
+  /* set haveMM */
+  haveMM = AIR_TRUE;
+  kindIn = nrrdKindUnknown;
+  kindAxis = 0; /* only means something if kindIn != nrrdKindUnknown */
+  for (axi=0; axi<nin->dim; axi++) {
+    if (nrrdKindUnknown == nin->axis[axi].kind
+        || nrrdKindIsDomain(nin->axis[axi].kind)) {
+      haveMM &= AIR_EXISTS(nin->axis[axi].min);
+      haveMM &= AIR_EXISTS(nin->axis[axi].max);
+    } else {
+      if (nrrdKindUnknown != kindIn) {
+        biffAddf(NRRD, "%s: got non-domain kind %s on axis %u, but already "
+                 "have kind %s on previous axis %u", me,
+                 airEnumStr(nrrdKind, nin->axis[axi].kind), axi,
+                 airEnumStr(nrrdKind, kindIn), kindAxis);
+        return 1;
+      }
+      kindIn = nin->axis[axi].kind;
+      kindAxis = axi;
+    }
+  }
+
+  if (nrrdKindUnknown != kindIn && kindAxis) {
+    /* have a non-domain axis, and it isn't the fastest */
+    if (permuteComponentAxisFastest) {
+      if (nout == nin) {
+        biffAddf(NRRD, "%s: can't permute non-domain axis %u (kind %s) "
+                 "to axis 0 with nout == nin", me,
+                 kindAxis, airEnumStr(nrrdKind, kindIn));
+        return 1;
+      }
+      biffAddf(NRRD, "%s: sorry, permuting non-domain axis %u (kind %s) "
+               "to axis 0 not yet implemented", me,
+               kindAxis, airEnumStr(nrrdKind, kindIn));
+      return 1;
+    } else {
+      /* caller thinks its okay for non-domain axis to be on
+         something other than fastest axis */
+      if (nrrdMetaDataCanonicalVersionAlpha == version) {
+        biffAddf(NRRD, "%s: (%s) non-domain axis %u (kind %s) "
+                 "must be fastest axis", me,
+                 airEnumStr(nrrdMetaDataCanonicalVersion, version),
+                 kindAxis, airEnumStr(nrrdKind, kindIn));
+        return 1;
+      }
+      /* maybe with nrrdMetaDataCanonicalVersionAlpha != version
+         it is okay to have non-domain axis on non-fastest axis? */
+    }
+  }
+
+  /* HEY: would be nice to handle a stub "scalar" axis by deleting it */
+
+  /* see if the non-domain kind is something we can interpret as a tensor */
+  if (nrrdKindUnknown != kindIn) {
+    switch (kindIn) {
+      /* ======= THESE are the kinds that we can possibly output ======= */
+    case nrrdKind2Vector:
+    case nrrdKind3Vector:
+    case nrrdKind4Vector:
+    case nrrdKind2DSymMatrix:
+    case nrrdKind2DMatrix:
+    case nrrdKind3DSymMatrix:
+    case nrrdKind3DMatrix:
+      /* =============================================================== */
+      kindOut = kindIn;
+      break;
+      /* Some other kinds are mapped to those above */
+    case nrrdKind3Color:
+    case nrrdKindRGBColor:
+      kindOut = nrrdKind3Vector;
+      break;
+    case nrrdKind4Color:
+    case nrrdKindRGBAColor:
+      kindOut = nrrdKind4Vector;
+      break;
+    default:
+      biffAddf(NRRD, "%s: got non-conforming kind %s on axis %u", me,
+               airEnumStr(nrrdKind, kindIn), kindAxis);
+      return 1;
+    }
+  } else {
+    /* kindIn is nrrdKindUnknown, so its a simple scalar image,
+       and that's what the output will be too; kindOut == nrrdKindUnknown
+       is used in the code below to say "its a scalar image" */
+    kindOut = nrrdKindUnknown;
+  }
+
+  /* initialize output by copying meta-data from nin to ntmp */
+  mop = airMopNew();
+  ntmp = nrrdNew();
+  airMopAdd(mop, ntmp, (airMopper)nrrdNix, airMopAlways);
+  /* HEY this is doing the work of a shallow copy, which isn't
+     available in the API.  You can pass nrrdCopy() a nin with NULL
+     nin->data, which implements a shallow copy, but we can't set
+     nin->data=NULL here because of const correctness */
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
+  if (nrrdWrap_nva(ntmp, NULL, nin->type, nin->dim, size)) {
+    biffAddf(NRRD, "%s: couldn't wrap buffer nrrd around NULL", me);
+    airMopError(mop); return 1;
+  }
+  /* so ntmp->data == NULL */
+  nrrdAxisInfoCopy(ntmp, nin, NULL, NRRD_AXIS_INFO_SIZE_BIT);
+  if (nrrdBasicInfoCopy(ntmp, nin, NRRD_BASIC_INFO_DATA_BIT)) {
+    biffAddf(NRRD, "%s: trouble copying basic info", me);
+    airMopError(mop); return 1;
+  }
+
+  /* no comments */
+  nrrdCommentClear(ntmp);
+
+  /* no measurement frame */
+  gotmf = AIR_FALSE;
+  for (si=0; si<NRRD_SPACE_DIM_MAX; si++) {
+    for (sj=0; sj<NRRD_SPACE_DIM_MAX; sj++) {
+      gotmf |= AIR_EXISTS(ntmp->measurementFrame[si][sj]);
+    }
+  }
+  if (lostMeasurementFrame) {
+    *lostMeasurementFrame = gotmf;
+  }
+  for (si=0; si<NRRD_SPACE_DIM_MAX; si++) {
+    for (sj=0; sj<NRRD_SPACE_DIM_MAX; sj++) {
+      ntmp->measurementFrame[si][sj] = AIR_NAN;
+    }
+  }
+
+  /* no key/value pairs */
+  nrrdKeyValueClear(ntmp);
+
+  /* no content field */
+  ntmp->content = airFree(ntmp->content);
+
+  /* normalize domain kinds to "space" */
+  /* HEY: if Diderot supports time-varying fields, this will have to change */
+  /* turn off centers (current Diderot semantics don't expose centering) */
+  /* turn off thickness */
+  /* turn off labels and units */
+  for (axi=0; axi<ntmp->dim; axi++) {
+    if (nrrdKindUnknown == kindOut) {
+      ntmp->axis[axi].kind = nrrdKindSpace;
+    } else {
+      ntmp->axis[axi].kind = (kindAxis == axi
+                              ? kindOut
+                              : nrrdKindSpace);
+    }
+    ntmp->axis[axi].center = nrrdCenterUnknown;
+    ntmp->axis[axi].thickness = AIR_NAN;
+    ntmp->axis[axi].label = airFree(ntmp->axis[axi].label);
+    ntmp->axis[axi].units = airFree(ntmp->axis[axi].units);
+    ntmp->axis[axi].min = AIR_NAN;
+    ntmp->axis[axi].max = AIR_NAN;
+    ntmp->axis[axi].spacing = AIR_NAN;
+  }
+
+  /* logic of orientation definition:
+     If space dimension is known:
+        set origin to zero if not already set
+        set space direction to unit vector if not already set
+     Else if have per-axis min and max:
+        set spae origin and directions to communicate same intent
+        as original per-axis min and max and original centering
+     Else
+        set origin to zero and all space directions to units.
+     (It might be nice to use gage's logic for mapping from world to index,
+     but we have to accept a greater variety of kinds and dimensions
+     than gage ever has to process.)
+     The result is that space origin and space directions are set.
+     the "space" field is not used, only "spaceDim"
+  */
+  /* no named space */
+  ntmp->space = nrrdSpaceUnknown;
+  if (ntmp->spaceDim && !trivialOrient) {
+    int saxi = 0;
+    if (!nrrdSpaceVecExists(ntmp->spaceDim, ntmp->spaceOrigin)) {
+      nrrdSpaceVecSetZero(ntmp->spaceOrigin);
+    }
+    for (axi=0; axi<ntmp->dim; axi++) {
+      if (nrrdKindUnknown == kindOut || kindAxis != axi) {
+        /* its a domain axis of output */
+        if (!nrrdSpaceVecExists(ntmp->spaceDim,
+                                ntmp->axis[axi].spaceDirection)) {
+          nrrdSpaceVecSetZero(ntmp->axis[axi].spaceDirection);
+          ntmp->axis[axi].spaceDirection[saxi] = sampleSpacing;
+        }
+        /* else we leave existing space vector as is */
+        saxi++;
+      } else {
+        /* else its a range (non-domain, component) axis */
+        nrrdSpaceVecSetNaN(ntmp->axis[axi].spaceDirection);
+      }
+    }
+  } else if (haveMM && !trivialOrient) {
+    int saxi = 0;
+    size_t N;
+    double rng;
+    for (axi=0; axi<ntmp->dim; axi++) {
+      if (nrrdKindUnknown == kindOut || kindAxis != axi) {
+        /* its a domain axis of output */
+        nrrdSpaceVecSetZero(ntmp->axis[axi].spaceDirection);
+        rng = nin->axis[axi].max - nin->axis[axi].min;
+        if (nrrdCenterNode == nin->axis[axi].center) {
+          ntmp->spaceOrigin[saxi] = nin->axis[axi].min;
+          N = nin->axis[axi].size;
+          ntmp->axis[axi].spaceDirection[saxi] = rng/(N-1);
+        } else {
+          /* unknown centering treated as cell */
+          N = nin->axis[axi].size;
+          ntmp->spaceOrigin[saxi] = nin->axis[axi].min + (rng/N)/2;
+          ntmp->axis[axi].spaceDirection[saxi] = rng/N;
+        }
+        saxi++;
+      } else {
+        /* else its a range axis */
+        nrrdSpaceVecSetNaN(ntmp->axis[axi].spaceDirection);
+      }
+    }
+    ntmp->spaceDim = saxi;
+  } else {
+    /* either trivialOrient, or, not spaceDim and not haveMM */
+    int saxi = 0;
+    nrrdSpaceVecSetZero(ntmp->spaceOrigin);
+    for (axi=0; axi<ntmp->dim; axi++) {
+      if (nrrdKindUnknown == kindOut || kindAxis != axi) {
+        /* its a domain axis of output */
+        nrrdSpaceVecSetZero(ntmp->axis[axi].spaceDirection);
+        ntmp->axis[axi].spaceDirection[saxi]
+          = (AIR_EXISTS(nin->axis[axi].spacing)
+             ? nin->axis[axi].spacing
+             : sampleSpacing);
+        saxi++;
+      } else {
+        /* else its a range axis */
+        nrrdSpaceVecSetNaN(ntmp->axis[axi].spaceDirection);
+      }
+    }
+    ntmp->spaceDim = saxi;
+  }
+
+  /* space dimension has to match the number of domain axes */
+  if (ntmp->dim != ntmp->spaceDim + !!kindOut) {
+    biffAddf(NRRD, "%s: output dim %d != spaceDim %d + %d %s%s%s%s",
+             me, ntmp->dim, ntmp->spaceDim, !!kindOut,
+             kindOut ? "for non-scalar (" : "(scalar data)",
+             kindOut ? airEnumStr(nrrdKind, kindOut) : "",
+             kindOut ? ") data" : "",
+             kindOut ? "" : "; a non-domain axis in the input "
+             "may be missing an informative \"kind\", leading to the "
+             "false assumption of a scalar array");
+    airMopError(mop); return 1;
+  }
+
+  if (recenterGrid) {
+    /* sets field's origin so field is centered on the origin. capiche? */
+    /* this code was tacked on later than the stuff above, so its
+       logic could probably be moved up there, but it seems cleaner to
+       have it as a separate post-process */
+    double mean[NRRD_SPACE_DIM_MAX];
+    nrrdSpaceVecSetZero(mean);
+    for (axi=0; axi<ntmp->dim; axi++) {
+      if (nrrdKindUnknown == kindOut || kindAxis != axi) {
+        nrrdSpaceVecScaleAdd2(mean, 1.0, mean,
+                              0.5*(ntmp->axis[axi].size - 1),
+                              ntmp->axis[axi].spaceDirection);
+      }
+    }
+    nrrdSpaceVecScaleAdd2(mean, 1.0, mean,
+                          1.0, ntmp->spaceOrigin);
+    /* now mean is the center of the field */
+    nrrdSpaceVecScaleAdd2(ntmp->spaceOrigin,
+                          1.0, ntmp->spaceOrigin,
+                          -1.0, mean);
+  }
+
+  /* with that all done, now copy from ntmp to nout */
+  if (nout != nin) {
+    /* have to copy data */
+    ntmp->data = nin->data;
+    if (nrrdCopy(nout, ntmp)) {
+      biffAddf(NRRD, "%s: problem copying (with data) to output", me);
+      airMopError(mop); return 1;
+    }
+  } else {
+    /* nout == nin; have to copy only meta-data, leave data as is */
+    void *data = nin->data;
+    /* ntmp->data == NULL, so this is a shallow copy */
+    if (nrrdCopy(nout, ntmp)) {
+      biffAddf(NRRD, "%s: problem copying meta-data to output", me);
+      airMopError(mop); return 1;
+    }
+    nout->data = data;
+  }
+
+  airMopOkay(mop);
   return 0;
 }
 
