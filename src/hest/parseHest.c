@@ -967,7 +967,8 @@ _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr,
       break;
     case 5:
       /* -------- multiple optional parameters -------- */
-      /* hammerhead problems in this case */
+      /* hammerhead problems in this case;
+         may have been from calloc(0), fixed below */
       if (prms[op] && vP) {
         if (1 == _hestCase(opt, udflt, nprm, appr, op)) {
           *((void**)vP) = NULL;
@@ -978,13 +979,21 @@ _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr,
                the resulting char** is, like argv, NULL-terminated */
             *((void**)vP) = calloc(nprm[op]+1, size);
           } else {
-            *((void**)vP) = calloc(nprm[op], size);
+            if (nprm[op]) {
+              /* only allocate if there's something to allocate */
+              *((void**)vP) = calloc(nprm[op], size);
+            } else {
+              *((void**)vP) = NULL;
+            }
           }
           if (parm->verbosity) {
             printf("!%s: nprm[%d] = %u\n", me, op, nprm[op]);
-            printf("!%s: new array is at 0x%p\n", me, *((void**)vP));
+            printf("!%s: new array (size %u*%u) is at 0x%p\n", me,
+                   nprm[op], (unsigned int)size, *((void**)vP));
           }
-          airMopMem(pmop, vP, airMopOnError);
+          if (*((void**)vP)) {
+            airMopMem(pmop, vP, airMopOnError);
+          }
           *(opt[op].sawP) = nprm[op];
           /* so far everything we've done is regardless of type */
           switch (type) {
