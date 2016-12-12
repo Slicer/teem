@@ -37,7 +37,7 @@ main(int argc, const char **argv) {
   const char *me;
 
   char *err, *outS;
-  Nrrd *nin, *npos;
+  Nrrd *nin, *npos, *nout;
   gageKind *kind;
   pullEnergySpec *enspR;
   meetPullInfo *minf[3];
@@ -64,7 +64,7 @@ main(int argc, const char **argv) {
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
              "input volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
+  hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, "scalar",
              "\"kind\" of volume (\"scalar\", \"vector\", "
              "\"tensor\", or \"dwi\")",
              NULL, NULL, meetHestGageKind);
@@ -157,7 +157,8 @@ main(int argc, const char **argv) {
   /* "<info>[-c]:<volname>:<item>[:<zero>:<scale>]" */
   if (meetPullInfoParse(minf[0], "h:" VNAME ":val:0:1")
       || meetPullInfoParse(minf[1], "hgvec:" VNAME ":gvec")
-      || meetPullInfoParse(minf[2], "sthr:" VNAME ":val:-888888:1")
+      /* can you see the hack on the next line */
+      || meetPullInfoParse(minf[2], "sthr:" VNAME ":val:-88888888:1")
       || meetPullInfoAddMulti(pctx, minf, 3)) {
     airMopAdd(mop, err = biffGetDone(MEET), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble setting up faux info:\n%s", me, err);
@@ -169,7 +170,12 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: trouble starting or getting output:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  if (nrrdSave(outS, npos, NULL)) {
+  nout = nrrdNew();
+  airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
+  size_t cmin[2] = {0,0};
+  size_t cmax[2] = {2,npos->axis[1].size-1};
+  if (nrrdCrop(nout, npos, cmin, cmax)
+      || nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble saving output:\n%s", me, err);
     airMopError(mop); return 1;
