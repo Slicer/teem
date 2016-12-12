@@ -781,6 +781,14 @@ enum {
      that gage had to invent values for the kernel support */
   pullFlagNixAtVolumeEdgeSpace,
 
+  /* The point setup for pullInitMethodRandom and pullInitMethodHalton
+     doesn't actually respect pullFlagNixAtVolumeEdgeSpace, which means
+     that an axis-aligned bounding box is filled with the points, no
+     matter if they are inside any volume.  If this is non-zero, then
+     then _pullPointSetup requires points be inside i.e. (the
+     PULL_STATUS_EDGE_BIT can't be set in point->status) */
+  pullFlagNixAtVolumeEdgeSpaceInitRorH,
+
   /* if non-zero, during initialization, try constraint satisfaction
      (if there is a constraint) before testing whether the seedThresh
      is met.  Doing the constraint will take longer, but a point is
@@ -830,6 +838,7 @@ typedef struct {
     restrictiveAddToBins,
     energyFromStrength,
     nixAtVolumeEdgeSpace,
+    nixAtVolumeEdgeSpaceInitRorH,
     constraintBeforeSeedThresh,
     popCntlEnoughTest,
     convergenceIgnoresPopCntl,

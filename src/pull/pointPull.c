@@ -1216,17 +1216,24 @@ _pullPointSetup(pullContext *pctx) {
   /* Start adding points */
   tick = totalNumPoints/1000;
   point = NULL;
-  for (pointIdx = 0; pointIdx < totalNumPoints; pointIdx++) {
+  unsigned int initRorHack = 0;
+  /* This loop would normally be:
+     for (pointIdx = 0; pointIdx < totalNumPoints; pointIdx++) {
+     but because of pctx->flag.nixAtVolumeEdgeSpaceInitRorH we
+     need to be able to decrement pointIdx to force another redo,
+     even if pointIdx==0. So loop index is actually one greater
+     than the index value actually used */
+  for (pointIdx = 1; pointIdx <= totalNumPoints; pointIdx++) {
     int E;
     if (pctx->verbose) {
-      if (tick < 100 || 0 == pointIdx % tick) {
-        printf("%s", airDoneStr(0, pointIdx, totalNumPoints, doneStr));
+      if (tick < 100 || 0 == (pointIdx-1) % tick) {
+        printf("%s", airDoneStr(0, pointIdx-1, totalNumPoints, doneStr));
         fflush(stdout);
       }
     }
     if (pctx->verbose > 5) {
       printf("\n%s: setting up point = %u/%u\n", me,
-             pointIdx, totalNumPoints);
+             pointIdx-1, totalNumPoints);
     }
     /* Create point */
     if (!point) {
@@ -1237,21 +1244,41 @@ _pullPointSetup(pullContext *pctx) {
     switch(pctx->initParm.method) {
     case pullInitMethodRandom:
     case pullInitMethodHalton:
-      E = pullPointInitializeRandomOrHalton(pctx, pointIdx, point, scaleVol);
-      createFail = AIR_FALSE;
+      /* point index passed here always increments, even if
+         we failed last time because of being at edge */
+      E = pullPointInitializeRandomOrHalton(pctx, pointIdx-1 + initRorHack,
+                                            point, scaleVol);
+      if (pctx->flag.nixAtVolumeEdgeSpaceInitRorH) {
+        createFail = !!(point->status & PULL_STATUS_EDGE_BIT);
+        if (createFail) {
+          initRorHack++;
+          if (initRorHack > 10*totalNumPoints) {
+            biffAddf(PULL, "%s: (point %u) handling nixAtVolumeEdgeSpaceInitRorH, "
+                     "have failed so often (%u > 10*#pnts = %u); something "
+                     "must be wrong", me, point->idtag, initRorHack,
+                     totalNumPoints);
+            airMopError(mop); return 1;
+          }
+          /* this is a for-loop, post-body increment will always happen;
+             we need to subvert it. */
+          pointIdx--;
+        }
+      } else {
+        createFail = AIR_FALSE;
+      }
       break;
     case pullInitMethodPointPerVoxel:
-      E = pullPointInitializePerVoxel(pctx, pointIdx, point, scaleVol,
+      E = pullPointInitializePerVoxel(pctx, pointIdx-1, point, scaleVol,
                                       &createFail);
       break;
     case pullInitMethodGivenPos:
-      E = pullPointInitializeGivenPos(pctx, posData, pointIdx, point,
+      E = pullPointInitializeGivenPos(pctx, posData, pointIdx-1, point,
                                       &createFail);
       break;
     }
     if (E) {
       biffAddf(PULL, "%s: trouble trying point %u (id %u)", me,
-               pointIdx, point->idtag);
+               pointIdx-1, point->idtag);
       airMopError(mop); return 1;
     }
     if (createFail) {
@@ -1284,7 +1311,7 @@ _pullPointSetup(pullContext *pctx) {
     }
   } /* Done looping through total number of points */
   if (pctx->verbose) {
-    printf("%s\n", airDoneStr(0, pointIdx, totalNumPoints,
+    printf("%s\n", airDoneStr(0, pointIdx-1, totalNumPoints,
                               doneStr));
   }
   if (point) {

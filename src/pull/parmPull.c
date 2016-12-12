@@ -75,6 +75,7 @@ _pullFlagInit(pullFlag *flag) {
   flag->restrictiveAddToBins = AIR_TRUE;
   flag->energyFromStrength = AIR_FALSE;
   flag->nixAtVolumeEdgeSpace = AIR_FALSE;
+  flag->nixAtVolumeEdgeSpaceInitRorH = AIR_FALSE;
   flag->constraintBeforeSeedThresh = AIR_FALSE;
   flag->noAdd = AIR_FALSE;
   flag->popCntlEnoughTest = AIR_TRUE; /* really needs to be true by default */
@@ -303,6 +304,9 @@ pullFlagSet(pullContext *pctx, int which, int flag) {
     break;
   case pullFlagNixAtVolumeEdgeSpace:
     pctx->flag.nixAtVolumeEdgeSpace = flag;
+    break;
+  case pullFlagNixAtVolumeEdgeSpaceInitRorH:
+    pctx->flag.nixAtVolumeEdgeSpaceInitRorH = flag;
     break;
   case pullFlagConstraintBeforeSeedThresh:
     pctx->flag.constraintBeforeSeedThresh = flag;
