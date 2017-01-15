@@ -140,7 +140,9 @@ unrrdu_diceMain(int argc, const char **argv, const char *me,
       }
     }
     sprintf(fnout, fffname, base, pos+start);
-    fprintf(stderr, "%s: %s ...\n", me, fnout);
+    if (nrrdStateVerboseIO > 0) {
+      fprintf(stderr, "%s: %s ...\n", me, fnout);
+    }
     if (nrrdSave(fnout, nout, NULL)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error writing nrrd to \"%s\":%s\n",
