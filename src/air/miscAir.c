@@ -753,7 +753,8 @@ airEqvMap(airArray *eqvArr, unsigned int *map, unsigned int len) {
 /*
 ******** airEqvAdd
 **
-** adds another equivalence class
+** adds another equivalence (which may or may not amount to adding
+** a new class; that will be determined later)
 */
 void
 airEqvAdd(airArray *eqvArr, unsigned int j, unsigned int k) {
