@@ -36,10 +36,10 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
                   hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *label, *units, *centerStr, *kindStr,
-    *_dirStr, *dirStr;
+    *_dirStr, *dirStr, *mmStr[2];
   Nrrd *nin, *nout;
   int pret, center, kind;
-  unsigned int *axes, axesLen, axi;
+  unsigned int *axes, axesLen, axi, mmIdx;
   double mm[2], spc, sdir[NRRD_SPACE_DIM_MAX];
   airArray *mop;
 
@@ -49,7 +49,8 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
              "label to associate with axis");
   hestOptAdd(&opt, "u,units", "units", airTypeString, 1, 1, &units, "",
              "units of measurement");
-  hestOptAdd(&opt, "mm,minmax", "min max", airTypeDouble, 2, 2, mm, "nan nan",
+  mmIdx =
+  hestOptAdd(&opt, "mm,minmax", "min max", airTypeString, 2, 2, mmStr, "nan nan",
              "min and max values along axis");
   hestOptAdd(&opt, "sp,spacing", "spacing", airTypeDouble, 1, 1, &spc, "nan",
              "spacing between samples along axis");
@@ -93,6 +94,15 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
       return 1;
     }
   }
+  /* parse the strings given via -mm */
+  if (2 != airSingleSscanf(mmStr[0], "%lf", mm+0)
+      + airSingleSscanf(mmStr[1], "%lf", mm+1)) {
+    fprintf(stderr, "%s: couldn't parse both \"%s\" and \"%s\" "
+            "(from \"-mm\") as doubles\n", me, mmStr[0], mmStr[1]);
+    airMopError(mop);
+    return 1;
+  }
+
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdCopy(nout, nin)) {
@@ -136,11 +146,18 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
       nout->axis[axis].units = (char *)airFree(nout->axis[axis].units);
       nout->axis[axis].units = airStrdup(units);
     }
-    if (AIR_EXISTS(mm[0])) {
+    if (hestSourceUser == opt[mmIdx].source) {
+      /* if it came from user, set the value, even if its nan. Actually,
+         especially if its nan: that is the purpose of this extra logic */
       nout->axis[axis].min = mm[0];
-    }
-    if (AIR_EXISTS(mm[1])) {
       nout->axis[axis].max = mm[1];
+    } else {
+      if (AIR_EXISTS(mm[0])) {
+        nout->axis[axis].min = mm[0];
+      }
+      if (AIR_EXISTS(mm[1])) {
+        nout->axis[axis].max = mm[1];
+      }
     }
     if (AIR_EXISTS(spc)) {
       nout->axis[axis].spacing = spc;
