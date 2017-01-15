@@ -321,6 +321,12 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
     /* make sure there are no duplicates among the strings,
        including remapping the case in case of case insensitivity */
     for (jj=ii+1; jj<=enm->M; jj++) {
+      if (!enm->str[jj]) {
+        if (err) {
+          snprintf(err, ASL, "%s(%s): enm->str[%u] NULL", me, enm->name, jj);
+        }
+        return 1;
+      }
       if (!strcmp(enm->str[ii], enm->str[jj])) {
         if (err) {
           snprintf(err, ASL, "%s(%s): str[%d] and [%u] both \"%s\"",
