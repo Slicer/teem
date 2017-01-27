@@ -87,7 +87,7 @@ estimateNormalsAntipodal (limnPolyData *glyph, const char normalize) {
 ** clamp - if nonzero, negative values will be clamped to zero
 ** normalize - if nonzero, surface normals will be rescaled to unit length
 ** posColor[4] - RGBA color code for positive values (if desired, else NULL)
-** negColor[4] - assumed to be non-NULL if posColor is non-NULL
+** negColor[4] - RGBA color code for negative values (if desired, else NULL)
 **
 ** Output:
 ** glyph is the polar plot that corresponds to ten.
@@ -95,7 +95,7 @@ estimateNormalsAntipodal (limnPolyData *glyph, const char normalize) {
 ** shape is undefined
 ** Normals are only updated when they were allocated in the input
 ** When colors were present in the input, they are replaced by a color
-** coding of sign (if posColor!=NULL) or a pointwise XYZ-RGB map (else)
+** coding of sign (if pos/negColor!=NULL) or a pointwise XYZ-RGB map (else)
 ** When isdef!=NULL, *isdef is set to 0 if we found evidence that the given
 ** input tensor is not positive definite
 ** The return value is the radius of the glyph's bounding sphere
@@ -116,15 +116,13 @@ elfGlyphPolar(limnPolyData *glyph, const char antipodal,
 
     /* if RGBA is allocated, take care of coloring */
     if (infoBitFlag & (1 << limnPolyDataInfoRGBA)) {
-      if (posColor!=NULL) {
-        /* color by sign */
-        if (val<0) {
-          ELL_4V_COPY(glyph->rgba+4*i, negColor);
-          if (antipodal) ELL_4V_COPY(glyph->rgba+4*i+4, negColor);
-        } else {
-          ELL_4V_COPY(glyph->rgba+4*i, posColor);
-          if (antipodal) ELL_4V_COPY(glyph->rgba+4*i+4, posColor);
-        }
+      /* color by sign */
+      if (val<0 && negColor!=NULL) {
+	ELL_4V_COPY(glyph->rgba+4*i, negColor);
+	if (antipodal) ELL_4V_COPY(glyph->rgba+4*i+4, negColor);
+      } else if (val>0 && posColor!=NULL) {
+	ELL_4V_COPY(glyph->rgba+4*i, posColor);
+	if (antipodal) ELL_4V_COPY(glyph->rgba+4*i+4, posColor);
       } else {
         /* RGB encode the vertex coordinates */
         ELL_4V_SET_TT(glyph->rgba+4*i, unsigned char,

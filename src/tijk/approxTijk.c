@@ -441,7 +441,9 @@ tijk_approx_heur_parm
         if (largest/smallest>parm->ratios[currank-2])                   \
           accept=0;                                                     \
       }                                                                 \
-      if (accept && oldnorm-newnorm>parm->eps_impr*orignorm) {          \
+      if (currank>1 && oldnorm-newnorm<parm->eps_impr*orignorm)         \
+        accept=0;                                                       \
+      if (accept) {                                                     \
         /* copy over */                                                 \
         memcpy(vs, vstmp, sizeof(TYPE)*DIM*currank);                    \
         memcpy(ls, lstmp, sizeof(TYPE)*currank);                        \
