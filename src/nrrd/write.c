@@ -585,7 +585,9 @@ _nrrdSprintFieldInfo(char **strP, const char *prefix,
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=!!dropAxis0; ii<nrrd->dim; ii++) {
       strcat(*strP, " \"");
-      if (airStrlen(nrrd->axis[ii].label)) {
+      if (nrrdField_labels == field
+          ? airStrlen(nrrd->axis[ii].label)
+          : airStrlen(nrrd->axis[ii].units)) {
         _nrrdWriteEscaped(NULL, *strP, LABEL_OR_UNITS,
                           "\"", _NRRD_WHITESPACE_NOTAB);
       }
