@@ -47,7 +47,7 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
   NrrdIoState *nio;
   char *spcStr, *_origStr, *origStr, *content;
   int space;
-  unsigned int spaceDim;
+  unsigned int spaceDim, cIdx;
 
   hestOptAdd(&opt, "spc,space", "space", airTypeString, 1, 1, &spcStr, "",
              "identify the space (e.g. \"RAS\", \"LPS\") in which the array "
@@ -62,6 +62,7 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
              "of the first sample, of the form \"(x,y,z)\" (or however "
              "many coefficients are needed for the chosen space). Quoting the "
              "vector is needed to stop interpretation from the shell");
+  cIdx =
   hestOptAdd(&opt, "c,content", "content", airTypeString, 1, 1, &content, "",
              "Specifies the content string of the nrrd, which is built upon "
              "by many nrrd function to record a history of operations");
@@ -106,12 +107,15 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
   }
 
   /* HEY: copy and paste from unrrdu/make.c */
-  if (airStrlen(content)) {
+  if (airStrlen(content)) { /* must have come from user */
     if (nout->content) {
       free(nout->content);
     }
     nout->content = airStrdup(content);
-  }
+  } else if (hestSourceUser == opt[cIdx].source) {
+    /* else user actually said: -c "" */
+    nout->content = (char *)airFree(nout->content);
+  } /* else option not used */
 
   /* HEY: copy and paste from unrrdu/make.c */
   if (airStrlen(_origStr)) {
