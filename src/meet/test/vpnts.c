@@ -68,7 +68,7 @@ main(int argc, const char **argv) {
              "\"kind\" of volume (\"scalar\", \"vector\", "
              "\"tensor\", or \"dwi\")",
              NULL, NULL, meetHestGageKind);
-  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1",
+  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "0",
              "verbosity level");
   hestOptAdd(&hopt, "m", "method", airTypeEnum, 1, 1, &method, "ppv",
              "way of creating point locations. Can be:\n "
@@ -154,6 +154,12 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: trouble starting system:\n%s", me, err);
     airMopError(mop); return 1;
   }
+  /* figure out how big a voxel is, so that the bins set up don't
+     get overflowed.  The fact that there is binning happening
+     at all is a sign that we shouldn't have to rely on so much
+     pull infrastructure just to figure out this sampling ... */
+  const double *spc = pctx->vol[0]->gctx->shape->spacing;
+  double vlen = (spc[0] + spc[1] + spc[2])/3;
   /* "<info>[-c]:<volname>:<item>[:<zero>:<scale>]" */
   if (meetPullInfoParse(minf[0], "h:" VNAME ":val:0:1")
       || meetPullInfoParse(minf[1], "hgvec:" VNAME ":gvec")
@@ -164,7 +170,8 @@ main(int argc, const char **argv) {
     fprintf(stderr, "%s: trouble setting up faux info:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  if (pullStart(pctx)
+  if (pullSysParmSet(pctx, pullSysParmRadiusSpace, vlen)
+      || pullStart(pctx)
       || pullOutputGet(npos, NULL, NULL, NULL, 0.0, pctx)) {
     airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble starting or getting output:\n%s", me, err);
