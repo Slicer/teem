@@ -41,7 +41,7 @@ unrrdu_diffMain(int argc, const char **argv, const char *me,
   int pret;
 
   Nrrd *ninA, *ninB;
-  int onlyData, differ;
+  int quiet, exitstat, onlyData, differ;
   double epsilon;
   char explain[AIR_STRLEN_LARGE];
 
@@ -55,6 +55,12 @@ unrrdu_diffMain(int argc, const char **argv, const char *me,
   hestOptAdd(&opt, "eps,epsilon", "eps", airTypeDouble, 1, 1, &epsilon, "0.0",
              "threshold for allowable difference in values in "
              "data values");
+  hestOptAdd(&opt, "q,quiet", NULL, airTypeInt, 0, 0, &quiet, NULL,
+             "be quiet (like regular diff), so that nothing is printed "
+             "if the nrrds are the same");
+  hestOptAdd(&opt, "x,exit", NULL, airTypeInt, 0, 0, &exitstat, NULL,
+             "use the exit status (like regular diff) to indicate if "
+             "there was a significant difference (as if it's an error)");
   hestOptAdd(&opt, "od,onlydata", NULL, airTypeInt, 0, 0, &onlyData, NULL,
              "Compare data values only, excluding array meta-data");
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
@@ -69,9 +75,11 @@ unrrdu_diffMain(int argc, const char **argv, const char *me,
     airMopError(mop);
     return 1;
   }
+  int ret;
   if (differ) {
     printf("%s: %s differ: %s\n", me, onlyData ? "data values" : "nrrds",
            explain);
+    ret=1;
   } else {
     if (0 == epsilon) {
       printf("%s: %s are the same\n", me, onlyData ? "data values" : "nrrds");
@@ -79,10 +87,11 @@ unrrdu_diffMain(int argc, const char **argv, const char *me,
       printf("%s: %s are same or within %g of each other\n", me,
              onlyData ? "data values" : "nrrds", epsilon);
     }
+    ret=0;
   }
 
   airMopOkay(mop);
-  return 0;
+  return exitstat ? ret : 0;
 }
 
 UNRRDU_CMD(diff, INFO);
