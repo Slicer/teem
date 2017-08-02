@@ -81,11 +81,13 @@ unrrdu_diffMain(int argc, const char **argv, const char *me,
            explain);
     ret=1;
   } else {
-    if (0 == epsilon) {
-      printf("%s: %s are the same\n", me, onlyData ? "data values" : "nrrds");
-    } else {
-      printf("%s: %s are same or within %g of each other\n", me,
-             onlyData ? "data values" : "nrrds", epsilon);
+    if (!quiet) {
+      if (0 == epsilon) {
+        printf("%s: %s are the same\n", me, onlyData ? "data values" : "nrrds");
+      } else {
+        printf("%s: %s are same or within %g of each other\n", me,
+               onlyData ? "data values" : "nrrds", epsilon);
+      }
     }
     ret=0;
   }
