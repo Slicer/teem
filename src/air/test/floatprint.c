@@ -62,5 +62,16 @@ main(int argc, char *argv[]) {
   printf("\n");
   printf("%s: airFPFprintf_f:\n", me);
   airFPFprintf_f(stderr, f);
+
+  {
+    double l2d = log2(AIR_ABS(d));
+    double fl2d = floor(l2d)+1;
+    double ss = l2d - fl2d;
+    double ess = pow(2,ss);
+    int ee;
+    double frx = frexp(d, &ee);
+      printf("d=%.17g -> l2d=%.17g -> fl2d=%.17g\n -> ss=%.17g -> ess=%.17g vs %0.17g|%d\n",
+             d, l2d, fl2d, ss, ess, frx, ee);
+  }
   exit(0);
 }
