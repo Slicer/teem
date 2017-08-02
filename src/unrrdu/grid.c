@@ -26,21 +26,23 @@
 
 #define INFO "generate list of oriented grid locations"
 static const char *_unrrdu_gridInfoL =
-(INFO ". For a N-D grid, the output is a 2-D M-by-S array of grid sample "
+(INFO ". For a N-D grid, the output is (by default) "
+ "a 2-D M-by-S array of grid sample "
  "locations, where M is the space dimension of the oriented grid, and S "
  "is the total number of real samples in the grid. "
+ "With the -ps option, the shape of input axes is better preserved. "
  "Implementation currently incomplete, because of the number of "
  "unresolved design questions.\n "
  "* (not based on any particular nrrd function)");
 
 static int
-gridGen(Nrrd *nout, int typeOut, const Nrrd *nin) {
+gridGen(Nrrd *nout, int typeOut, const Nrrd *nin, int psz) {
   static const char me[]="gridGen";
-  size_t II, NN, size[NRRD_DIM_MAX], coord[NRRD_DIM_MAX];
+  size_t II, NN, size[NRRD_DIM_MAX], osz[NRRD_DIM_MAX], coord[NRRD_DIM_MAX];
   double loc[NRRD_SPACE_DIM_MAX],
     sdir[NRRD_DIM_MAX][NRRD_SPACE_DIM_MAX],
     (*ins)(void *v, size_t I, double d);
-  unsigned int axi, dim, sdim, base;
+  unsigned int axi, dim, sdim, base, oxi=0;
   void *out;
 
   if (nrrdTypeBlock == typeOut) {
@@ -68,18 +70,23 @@ gridGen(Nrrd *nout, int typeOut, const Nrrd *nin) {
   NN = 1;
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSpaceDirection, sdir);
+  osz[oxi++] = sdim;
   for (axi=base; axi<dim; axi++) {
     if (!nrrdSpaceVecExists(sdim, sdir[axi])) {
       biffAddf(UNRRDU, "%s: axis %u space dir didn't exist", me, axi);
       return 1;
     }
     NN *= size[axi];
+    if (psz) {
+      osz[oxi++] = size[axi];
+    }
+  }
+  if (!psz) {
+    osz[1] = NN;
   }
   ins = nrrdDInsert[typeOut];
 
-  if (nrrdMaybeAlloc_va(nout, typeOut, 2,
-                        AIR_CAST(size_t, sdim),
-                        NN)) {
+  if (nrrdMaybeAlloc_nva(nout, typeOut, psz ? oxi : 2, osz)) {
     biffMovef(UNRRDU, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
@@ -118,7 +125,7 @@ unrrdu_gridMain(int argc, const char **argv, const char *me,
   int pret;
   airArray *mop;
 
-  int typeOut;
+  int typeOut, psz;
 
   hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &nin, NULL,
              "input nrrd.  That this argument is required instead of "
@@ -127,6 +134,10 @@ unrrdu_gridMain(int argc, const char **argv, const char *me,
              "with the fact that the other arguments have sensible "
              "defaults",
              NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&opt, "ps", NULL, airTypeInt, 0, 0, &psz, NULL,
+             "instead of the default behavior of flattening all but the "
+             "fastest axis, preserve the sizes of axes, so that the output "
+             "is more like that of the input");
   OPT_ADD_TYPE(typeOut, "type of output", "double");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -140,7 +151,7 @@ unrrdu_gridMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (gridGen(nout, typeOut, nin)) {
+  if (gridGen(nout, typeOut, nin, psz)) {
     airMopAdd(mop, err = biffGetDone(UNRRDU), airFree, airMopAlways);
     fprintf(stderr, "%s: error generating output:\n%s", me, err);
     airMopError(mop);
