@@ -92,6 +92,7 @@ meetAirEnumAll() {
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdFFTWPlanRigor;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdResampleNonExistent;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdMetaDataCanonicalVersion;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdFormatPNGsRGBIntent;
 
   /* ell */
   ii = airArrayLenIncr(arr, 1); enm[ii] = ell_cubic_root;
