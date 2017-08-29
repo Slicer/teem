@@ -237,6 +237,8 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     png_set_swap(png);
 #if 0
   /* HEY GLK asks why is this commented out? */
+  /* GLK later thinks: perhaps because this would confound the NRRD-centric
+     idea of PNG files as being a mere container of bytes */
   /* set up gamma correction */
   /* NOTE: screen_gamma is platform dependent,
      it can hardwired or set from a parameter/environment variable */
@@ -253,6 +255,15 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       png_set_gamma(png, screen_gamma, 1.0);
   }
 #endif
+  {
+    int intent;
+    if (png_get_sRGB(png, info, &intent)) {
+      nio->PNGsRGBIntentKnown = AIR_TRUE;
+      nio->PNGsRGBIntent = intent;
+    } else {
+      nio->PNGsRGBIntentKnown = AIR_FALSE;
+    }
+  }
   /* update reader */
   png_read_update_info(png, info);
   /* allocate memory for the image data */
@@ -481,6 +492,11 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   png_set_IHDR(png, info, width, height, depth, type,
                PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
                PNG_FILTER_TYPE_BASE);
+  /* set sRGB intent, if known */
+  if (nio->PNGsRGBIntentKnown
+      && nrrdFormatPNGsRGBIntentNone != nio->PNGsRGBIntent) {
+    png_set_sRGB_gAMA_and_cHRM(png, info, nio->PNGsRGBIntent);
+  }
   /* calculate numtxt and allocate txt[] array */
   numtxt = 0;
   for (fi=nrrdField_unknown+1; fi<nrrdField_last; fi++) {

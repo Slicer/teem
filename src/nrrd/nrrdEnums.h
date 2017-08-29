@@ -516,6 +516,27 @@ enum {
   nrrdOriginStatusLast
 };
 
+/*
+******** nrrdFormatPNGsRGBIntent* enum
+**
+** indicates values of PNG_sRGB_INTENT_, for the sRGB chunk of PNG,
+** or indicates not knowing it. This is unusual because the unknown
+** value is -1, not 0, and the #define is for NUM, not MAX. The 0,1,2,3
+** values of the intents copy how they're represented in ICC profiles,
+** which apparently png.h copies in turn; see
+** http://www.libpng.org/pub/png/book/chapter10.html
+*/
+enum {
+  nrrdFormatPNGsRGBIntentUnknown=-1, /* -1: nobody knows */
+  nrrdFormatPNGsRGBIntentPerceptual,  /* 0: PNG_sRGB_INTENT_PERCEPTUAL */
+  nrrdFormatPNGsRGBIntentRelative,    /* 1: PNG_sRGB_INTENT_RELATIVE */
+  nrrdFormatPNGsRGBIntentSaturation,  /* 2: PNG_sRGB_INTENT_SATURATION */
+  nrrdFormatPNGsRGBIntentAbsolute,    /* 3: PNG_sRGB_INTENT_ABSOLUTE */
+  nrrdFormatPNGsRGBIntentNone,        /* 4: do not indicate intent */
+  nrrdFormatPNGsRGBIntentLast
+};
+#define NRRD_FORMAT_PNG_SRGB_INTENT_NUM  5
+
 /* ---- BEGIN non-NrrdIO */
 
 /*

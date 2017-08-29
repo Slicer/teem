@@ -283,6 +283,9 @@ nrrdIoStateInit(NrrdIoState *nio) {
     nio->zlibStrategy = nrrdZlibStrategyDefault;
     nio->bzip2BlockSize = -1;
     nio->learningHeaderStrlen = AIR_FALSE;
+    nio->PNGsRGBIntentKnown = AIR_FALSE;
+    /* this is the most backwards-compatible */
+    nio->PNGsRGBIntent = nrrdFormatPNGsRGBIntentNone;
     nio->oldData = NULL;
     nio->oldDataSize = 0;
     nio->format = nrrdFormatUnknown;

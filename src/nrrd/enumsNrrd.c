@@ -813,6 +813,78 @@ _nrrdSpacingStatus = {
 const airEnum *const
 nrrdSpacingStatus = &_nrrdSpacingStatus;
 
+/* ------------------------ nrrdFormatPNGsRGBIntent ------------------------- */
+
+static const char *
+_nrrdFormatPNGsRGBIntentStr[NRRD_FORMAT_PNG_SRGB_INTENT_NUM+1] = {
+  "(unknown_sRGB_intent)",
+  "perceptual",
+  "relative",
+  "saturation",
+  "absolute",
+  "none"
+};
+
+int
+_nrrdFormatPNGsRGBIntentVal[NRRD_FORMAT_PNG_SRGB_INTENT_NUM+1] = {
+  nrrdFormatPNGsRGBIntentUnknown,    /* -1: nobody knows */
+  /* it is true and perhaps odd that we aren't using the values like
+     PNG_sRGB_INTENT_PERCEPTUAL, PNG_sRGB_INTENT_RELATIVE, etc. Why not:
+     1) we need this enum to be valid and consistent regardless of whether
+     this Teem is compiled with PNG support
+     2) The values of those constants are apparently pegged to constants set
+     in ICC profiles, not libpng itself, libpng isn't the authority on them
+     3) The values seem to be set in stone */
+  nrrdFormatPNGsRGBIntentPerceptual, /* 0 */
+  nrrdFormatPNGsRGBIntentRelative,   /* 1 */
+  nrrdFormatPNGsRGBIntentSaturation, /* 2 */
+  nrrdFormatPNGsRGBIntentAbsolute,   /* 3 */
+  nrrdFormatPNGsRGBIntentNone        /* 4 */
+};
+
+static const char *
+_nrrdFormatPNGsRGBIntentStrEqv[] = {
+  "perceptual", "perc", "p",
+  "relative",   "rel",  "r",
+  "saturation", "sat",  "s",
+  "absolute",   "abs",  "a",
+  "none",       "no",   "n",
+  ""
+};
+
+int
+_nrrdFormatPNGsRGBIntentValEqv[] = {
+  nrrdFormatPNGsRGBIntentPerceptual, nrrdFormatPNGsRGBIntentPerceptual, nrrdFormatPNGsRGBIntentPerceptual,
+  nrrdFormatPNGsRGBIntentRelative,   nrrdFormatPNGsRGBIntentRelative,   nrrdFormatPNGsRGBIntentRelative,
+  nrrdFormatPNGsRGBIntentSaturation, nrrdFormatPNGsRGBIntentSaturation, nrrdFormatPNGsRGBIntentSaturation,
+  nrrdFormatPNGsRGBIntentAbsolute,   nrrdFormatPNGsRGBIntentAbsolute,   nrrdFormatPNGsRGBIntentAbsolute,
+  nrrdFormatPNGsRGBIntentNone,       nrrdFormatPNGsRGBIntentNone,       nrrdFormatPNGsRGBIntentNone
+};
+
+static const char *
+_nrrdFormatPNGsRGBIntentDesc[NRRD_FORMAT_PNG_SRGB_INTENT_NUM+1] = {
+  "unknown sRGB rendering intent",
+  /* see http://www.libpng.org/pub/png/book/chapter10.html and
+     https://en.wikipedia.org/wiki/Color_management#Rendering_intent */
+  "perceptual: expand/compress/shift gamut to fit within output",
+  "relative colorimetric: true colors, but shifted by media white point",
+  "saturation: gamut remapping that preserves saturation",
+  "absolute colorimetric: true colors were possible, else clipped",
+  "none: do not store any intent in the sRGB chunk"
+};
+
+static const airEnum
+_nrrdFormatPNGsRGBIntent = {
+  "sRGB intent",
+  NRRD_FORMAT_PNG_SRGB_INTENT_NUM,
+  _nrrdFormatPNGsRGBIntentStr, _nrrdFormatPNGsRGBIntentVal,
+  _nrrdFormatPNGsRGBIntentDesc,
+  _nrrdFormatPNGsRGBIntentStrEqv, _nrrdFormatPNGsRGBIntentValEqv,
+  AIR_FALSE
+};
+const airEnum *const
+nrrdFormatPNGsRGBIntent = &_nrrdFormatPNGsRGBIntent;
+
 /* ---- BEGIN non-NrrdIO */
 
 /* -------------------- nrrdOrientationHave --------------------- */

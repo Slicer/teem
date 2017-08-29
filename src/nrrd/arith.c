@@ -24,6 +24,16 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
+double
+nrrdSRGBGamma(double val) {
+  return val <= 0.0031308 ? 12.92*val : 1.055*pow(val, 1/2.4) - 0.055;
+}
+
+double
+nrrdSRGBGammaInverse(double val) {
+  return val <= 0.04045 ? val/12.92 : pow((val + 0.055)/1.055, 2.4);
+}
+
 /*
 ******** nrrdArithGamma()
 **
@@ -104,6 +114,83 @@ nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
     }
   }
   if (nrrdContentSet_va(nout, func, nin, "%g,%g,%g", min, max, Gamma)) {
+    biffAddf(NRRD, "%s:", me);
+    airMopError(mop); return 1;
+  }
+  if (nout != nin) {
+    nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
+  }
+  /* basic info handled by nrrdCopy above */
+
+  airMopOkay(mop);
+  return 0;
+}
+
+/*
+******** nrrdArithSRGBGamma()
+**
+** (HEY lots of copy-paste from nrrdArithGamma); map the values in a nrrd
+** through either the ~2.2 gamma correction for sRGB (when "forward" is
+** non-zero), or its ~0.455 gamma inverse (when "forward" is zero).  Unlike
+** nrrdArithGamma, this is does not support inverting values.
+*/
+int
+nrrdArithSRGBGamma(Nrrd *nout, const Nrrd *nin,
+                   const NrrdRange *_range, int forward) {
+  static const char me[]="nrrdArithSRGBGamma", func[]="sRGBgamma";
+  double val, min, max;
+  size_t I, num;
+  NrrdRange *range;
+  airArray *mop;
+  double (*lup)(const void *, size_t);
+  double (*ins)(void *, size_t, double);
+
+  if (!(nout && nin)) {
+    /* _range can be NULL */
+    biffAddf(NRRD, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!( nrrdTypeBlock != nin->type && nrrdTypeBlock != nout->type )) {
+    biffAddf(NRRD, "%s: can't deal with %s type", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
+    return 1;
+  }
+  if (nout != nin) {
+    if (nrrdCopy(nout, nin)) {
+      biffAddf(NRRD, "%s: couldn't initialize by copy to output", me);
+      return 1;
+    }
+  }
+  mop = airMopNew();
+  if (_range) {
+    range = nrrdRangeCopy(_range);
+    nrrdRangeSafeSet(range, nin, nrrdBlind8BitRangeState);
+  } else {
+    range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeTrue);
+  }
+  airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
+  min = range->min;
+  max = range->max;
+  if (min == max) {
+    /* this is stupid.  We want min < max to avoid making NaNs */
+    max += 1;
+  }
+  lup = nrrdDLookup[nin->type];
+  ins = nrrdDInsert[nout->type];
+  num = nrrdElementNumber(nin);
+  for (I=0; I<num; I++) {
+    val = lup(nin->data, I);
+    val = AIR_AFFINE(min, val, max, 0.0, 1.0);
+    if (forward) {
+      val = nrrdSRGBGamma(val);
+    } else {
+      val = nrrdSRGBGammaInverse(val);
+    }
+    val = AIR_AFFINE(0.0, val, 1.0, min, max);
+    ins(nout->data, I, val);
+  }
+  if (nrrdContentSet_va(nout, func, nin, "%g,%g,%s", min, max,
+                        forward ? "forw" : "back")) {
     biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }

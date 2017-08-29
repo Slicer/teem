@@ -423,9 +423,13 @@ typedef struct NrrdIoState_t {
     bzip2BlockSize,         /* block size used for compression,
                                roughly equivalent to better but slower
                                (1-9, -1 for default[9]). */
-    learningHeaderStrlen;   /* ON WRITE, for nrrds, learn and save the total
+    learningHeaderStrlen,   /* ON WRITE, for nrrds, learn and save the total
                                length of header into headerStrlen. This is
                                used to allocate a buffer for header */
+    PNGsRGBIntentKnown,     /* ON READ+WRITE: for array being read from or
+                               written to PNG, we know an sRGB intent */
+    PNGsRGBIntent;          /* ON READ+WRITE: iff sRGBIntentKnown, the intent
+                               itself, from nrrdFormatPNGsRGBIntent* enum */
   void *oldData;            /* ON READ: if non-NULL, pointer to space that
                                has already been allocated for oldDataSize */
   size_t oldDataSize;       /* ON READ: size of mem pointed to by oldData */
@@ -754,6 +758,7 @@ NRRD_EXPORT const airEnum *const nrrdKind;
 NRRD_EXPORT const airEnum *const nrrdField;
 NRRD_EXPORT const airEnum *const nrrdSpace;
 NRRD_EXPORT const airEnum *const nrrdSpacingStatus;
+NRRD_EXPORT const airEnum *const nrrdFormatPNGsRGBIntent;
 /* ---- BEGIN non-NrrdIO */
 NRRD_EXPORT const airEnum *const nrrdOrientationHave;
 NRRD_EXPORT const airEnum *const nrrdBoundary;
@@ -1271,8 +1276,12 @@ NRRD_EXPORT int nrrdHistoThresholdOtsu(double *threshP, const Nrrd *nhist,
 
 /******** arithmetic and math on nrrds */
 /* arith.c */
+NRRD_EXPORT double nrrdSRGBGamma(double val);
+NRRD_EXPORT double nrrdSRGBGammaInverse(double val);
 NRRD_EXPORT int nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
                                const NrrdRange *range, double gamma);
+NRRD_EXPORT int nrrdArithSRGBGamma(Nrrd *nout, const Nrrd *nin,
+                                   const NrrdRange *range, int forward);
 NRRD_EXPORT int nrrdArithUnaryOp(Nrrd *nout, int op, const Nrrd *nin);
 NRRD_EXPORT int nrrdArithBinaryOp(Nrrd *nout, int op,
                                   const Nrrd *ninA, const Nrrd *ninB);
