@@ -64,10 +64,11 @@ main(int argc, const char *argv[]) {
     *nbg,              /* resampled background image */
     *nrgbaD;           /* rgba input as double */
   const char *me;
-  char *outS, *errS;
+  char *outS, *errS, *gammaS;
   double _gamma, contr, cfp, cpow, back[3], *rgbaD, r, g, b, a;
   airArray *mop;
-  int E;
+  int E, srgb;
+  unsigned int srgbIdx;
   size_t min[3], max[3], sx, sy, pi;
   unsigned char *outUC, *bgUC;
   NrrdResampleInfo *rinfo;
@@ -82,8 +83,21 @@ main(int argc, const char *argv[]) {
              "means a complete washout.");
   hestOptAdd(&hopt, "cfp", "fixed point", airTypeDouble, 1, 1, &cfp, "0.5",
              "component level that doesn't change with contrast");
-  hestOptAdd(&hopt, "g", "gamma", airTypeDouble, 1, 1, &_gamma, "1.0",
-             "gamma to apply to image data, after contrast");
+  hestOptAdd(&hopt, "g", "gamma", airTypeString, 1, 1, &gammaS, "1.0",
+             "gamma to apply to image data, after contrast. Can be "
+             "a number (<1 to darken >1 to brighten) or the string "
+             "\"srgb\" to apply the roughly 2.2 gamma associated "
+             "with sRGB (see https://en.wikipedia.org/wiki/SRGB). ");
+  srgbIdx = /* HEY copied to unrrdu/quantize.c */
+  hestOptAdd(&hopt, "srgb", "intent", airTypeEnum, 1, 1, &srgb, "none",
+             /* the default is "none" for backwards compatibility: until now
+                Teem's support of PNG hasn't handled the sRGB intent, so
+                we shouldn't start using it without being asked */
+             "If saving to PNG (when supported), how to set the rendering "
+             "intent in the sRGB chunk of the PNG file format. Can be "
+             "absolute, relative, perceptual, saturation, or none. This is "
+             "independent of using \"srgb\" as the -g gamma",
+             NULL, nrrdFormatPNGsRGBIntent);
   hestOptAdd(&hopt, "b", "background", airTypeDouble, 3, 3, back, "0 0 0",
              "background color to composite against; white is "
              "1 1 1, not 255 255 255.");
@@ -104,6 +118,20 @@ main(int argc, const char *argv[]) {
   if (nrrdTypeBlock == nin->type) {
     fprintf(stderr, "%s: can't use a %s nrrd\n", me,
             airEnumStr(nrrdType, nrrdTypeBlock));
+    airMopError(mop); return 1;
+  }
+  /* HEY copied to unrrdu/quantize.c */
+  if (!( !strcmp(gammaS, "srgb") || 1 == sscanf(gammaS, "%lf", &_gamma) )) {
+    fprintf(stderr, "%s: gamma \"%s\" neither \"srgb\" nor "
+            "parseable as double", me, gammaS);
+    airMopError(mop); return 1;
+  }
+
+  if (hestSourceUser == hopt[srgbIdx].source
+      && !nrrdFormatPNG->available()) {
+    fprintf(stderr, "%s: wanted to store sRGB intent \"%s\" in PNG output, but "
+            "this Teem build does not support the PNG file format.", me,
+            airEnumStr(nrrdFormatPNGsRGBIntent, srgb));
     airMopError(mop); return 1;
   }
 
@@ -145,8 +173,9 @@ main(int argc, const char *argv[]) {
       E = nrrdSpatialResample(nbg, _nbg, rinfo);
     }
     if (E) {
-      fprintf(stderr, "%s: trouble:\n%s", me, errS = biffGetDone(NRRD));
-      free(errS); return 1;
+      airMopAdd(mop, errS = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s", me, errS);
+      airMopError(mop); return 1;
     }
   } else {
     nbg = NULL;
@@ -174,8 +203,9 @@ main(int argc, const char *argv[]) {
   if (!E) E |= nrrdCrop(nrgbaD, ninD, min, max);
   if (!E) E |= nrrdPPM(nout, sx, sy);
   if (E) {
-    fprintf(stderr, "%s: trouble:\n%s", me, errS = biffGetDone(NRRD));
-    free(errS); return 1;
+    airMopAdd(mop, errS = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble:\n%s", me, errS);
+    airMopError(mop); return 1;
   }
 
   contr = AIR_CLAMP(-1, contr, 1);
@@ -193,9 +223,15 @@ main(int argc, const char *argv[]) {
       g = docontrast(g, cfp, cpow);
       b = docontrast(b, cfp, cpow);
     }
-    r = pow(r, 1.0/_gamma);
-    g = pow(g, 1.0/_gamma);
-    b = pow(b, 1.0/_gamma);
+    if (!strcmp(gammaS, "srgb")) {
+      r = nrrdSRGBGamma(r);
+      g = nrrdSRGBGamma(g);
+      b = nrrdSRGBGamma(b);
+    } else {
+      r = pow(r, 1.0/_gamma);
+      g = pow(g, 1.0/_gamma);
+      b = pow(b, 1.0/_gamma);
+    }
     if (bgUC) {
       r = a*r + (1-a)*bgUC[0 + 3*pi]/255;
       g = a*g + (1-a)*bgUC[1 + 3*pi]/255;
@@ -212,9 +248,19 @@ main(int argc, const char *argv[]) {
     rgbaD += 4;
   }
 
-  if (nrrdSave(outS, nout, NULL)) {
-    fprintf(stderr, "%s: trouble:\n%s", me, errS = biffGetDone(NRRD));
-    free(errS); return 1;
+  NrrdIoState *nio = NULL;
+  if (hestSourceUser == hopt[srgbIdx].source) {
+    /* HEY copied to unrrdu/quantize.c */
+    nio = nrrdIoStateNew();
+    airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
+    nio->PNGsRGBIntentKnown = AIR_TRUE;
+    nio->PNGsRGBIntent = srgb; /* even if it is nrrdFormatPNGsRGBIntentNone;
+                                  that's handled by the writer */
+  }
+  if (nrrdSave(outS, nout, nio)) {
+    airMopAdd(mop, errS = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble:\n%s", me, errS);
+    airMopError(mop); return 1;
   }
 
   airMopOkay(mop);
