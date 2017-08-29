@@ -52,7 +52,7 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
   hestOptAdd(&opt, "spc,space", "space", airTypeString, 1, 1, &spcStr, "",
              "identify the space (e.g. \"RAS\", \"LPS\") in which the array "
              "conceptually lives, from the nrrdSpace airEnum, which in turn "
-             "determines the dimension of the space.  Or, use an integer>0 to"
+             "determines the dimension of the space.  Or, use an integer>0 to "
              "give the dimension of a space that nrrdSpace doesn't know about. "
              "By default (not using this option), the enclosing space is "
              "set as unknown.");
