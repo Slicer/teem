@@ -29,8 +29,9 @@ static const char *_unrrdu_gammaInfoL =
 (INFO
  ". Just as in xv, the gamma value here is actually the "
  "reciprocal of the exponent actually used to transform "
- "the values.\n "
- "* Uses nrrdArithGamma");
+ "the values. Can also do the non-linear transforms used "
+ "in the sRGB standard (see https://en.wikipedia.org/wiki/SRGB)\n "
+ "* Uses nrrdArithGamma or nrrdArithGammaSRGB");
 
 int
 unrrdu_gammaMain(int argc, const char **argv, const char *me,
@@ -38,14 +39,17 @@ unrrdu_gammaMain(int argc, const char **argv, const char *me,
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
+  char *GammaS;
   double min, max, Gamma;
   airArray *mop;
-  int pret, blind8BitRange;
+  int pret, blind8BitRange, srgb, forward;
   NrrdRange *range;
 
-  hestOptAdd(&opt, "g,gamma", "gamma", airTypeDouble, 1, 1, &Gamma, NULL,
+  hestOptAdd(&opt, "g,gamma", "gamma", airTypeString, 1, 1, &GammaS, NULL,
              "gamma > 1.0 brightens; gamma < 1.0 darkens. "
-             "Negative gammas invert values (like in xv). ");
+             "Negative gammas invert values (like in xv). "
+             "Or, can used \"srgb\" for ~2.2 gamma of sRGB encoding, or "
+             "\"1/srgb\" for ~0.455 gamma of inverse sRGB encoding");
   hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &min, "nan",
              "Value to implicitly map to 0.0 prior to calling pow(). "
              "Defaults to lowest value found in input nrrd.");
@@ -66,19 +70,40 @@ unrrdu_gammaMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
+  if (!strcmp(GammaS, "srgb")) {
+    srgb = AIR_TRUE;
+    forward = AIR_TRUE;
+  } else if (!strcmp(GammaS, "1/srgb")) {
+    srgb = AIR_TRUE;
+    forward = AIR_FALSE;
+  } else {
+    srgb = AIR_FALSE;
+    forward = AIR_FALSE;
+    if (1 != airSingleSscanf(GammaS, "%lf", &Gamma)) {
+      fprintf(stderr, "%s: couldn't parse gamma \"%s\" as double, and wasn't either "
+              "\"srgb\" or \"1/srgb\"\n", me, GammaS);
+      airMopError(mop);
+      return 1;
+    }
+  }
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   range = nrrdRangeNew(min, max);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   nrrdRangeSafeSet(range, nin, blind8BitRange);
-  if (nrrdArithGamma(nout, nin, range, Gamma)) {
+  int E;
+  if (srgb) {
+    E =nrrdArithSRGBGamma(nout, nin, range, forward);
+  } else {
+    E =nrrdArithGamma(nout, nin, range, Gamma);
+  }
+  if (E) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing gamma:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
-
   SAVE(out, nout, NULL);
 
   airMopOkay(mop);
