@@ -287,7 +287,7 @@ dyeLABtoXYZ(float *X, float *Y, float *Z,
   float YnormCbrt;
 
   YnormCbrt = (16 + L)/116;
-  *X = dyeWhiteXYZ_n[0]*dyeLcubed(A/500 + YnormCbrt);
+  *X = dyeWhiteXYZ_n[0]*dyeLcubed(YnormCbrt + A/500);
   *Y = dyeWhiteXYZ_n[1]*dyeLcubed(YnormCbrt);
   *Z = dyeWhiteXYZ_n[2]*dyeLcubed(YnormCbrt - B/200);
   return;
