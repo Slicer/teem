@@ -24,11 +24,13 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
+/* these two functions probably logically belong in dye, not nrrd, oh well.
+   The Teem 2.0 plan is to put all of dye inside nrrd, so that nrrd/unu
+   can do color-space conversions, which will be a big API change */
 double
 nrrdSRGBGamma(double val) {
   return val <= 0.0031308 ? 12.92*val : 1.055*pow(val, 1/2.4) - 0.055;
 }
-
 double
 nrrdSRGBGammaInverse(double val) {
   return val <= 0.04045 ? val/12.92 : pow((val + 0.055)/1.055, 2.4);
