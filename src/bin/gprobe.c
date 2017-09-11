@@ -384,7 +384,7 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "s", "sclX sclY sxlZ", airTypeDouble, 3, 3, scale,
              "1 1 1",
              "scaling factor for resampling on each axis "
-             "(>1.0 : supersampling); use \"-ssp\" (and \"-psi\")"
+             "(>1.0: supersampling); use \"-ssp\" (and \"-psi\") "
              "to specify scale position of sampling");
   hestOptAdd(&hopt, "ssp", "pos", airTypeDouble, 1, 1, &posSS, "0",
              "when using scale-space, scale-position at which to probe");
