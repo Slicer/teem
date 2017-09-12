@@ -39,7 +39,7 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
     *_dirStr, *dirStr, *mmStr[2];
   Nrrd *nin, *nout;
   int pret, center, kind;
-  unsigned int *axes, axesLen, axi, mmIdx;
+  unsigned int *axes, axesLen, axi, mmIdx, spIdx;
   double mm[2], spc, sdir[NRRD_SPACE_DIM_MAX];
   airArray *mop;
 
@@ -52,6 +52,7 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
   mmIdx =
   hestOptAdd(&opt, "mm,minmax", "min max", airTypeString, 2, 2, mmStr, "nan nan",
              "min and max values along axis");
+  spIdx =
   hestOptAdd(&opt, "sp,spacing", "spacing", airTypeDouble, 1, 1, &spc, "nan",
              "spacing between samples along axis");
   /* There used to be a complaint here about how hest doesn't allow
@@ -159,8 +160,13 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
         nout->axis[axis].max = mm[1];
       }
     }
-    if (AIR_EXISTS(spc)) {
+    if (hestSourceUser == opt[spIdx].source) {
+      /* same logic as with min,max above */
       nout->axis[axis].spacing = spc;
+    } else {
+      if (AIR_EXISTS(spc)) {
+        nout->axis[axis].spacing = spc;
+      }
     }
     /* see above
     if (nrrdCenterUnknown != cent) {
