@@ -393,7 +393,7 @@ main(int argc, const char *argv[]) {
              "2-D nrrd which specifies origin and direction vectors "
              "for sampling grid", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "pi", "nrrd", airTypeOther, 1, 1, &_npos, "",
-             "overrides \"-pv\": probes at this list of 3-vec or "
+             "overrides \"-pg\": probes at this list of 3-vec or "
              "4-vec positions", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "pp", "pos", airTypeDouble, 3, 4, &pntPos,
              "nan nan nan",
