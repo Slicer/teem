@@ -32,7 +32,7 @@ static const char *_unrrdu_dnormInfoL =
    "originally created as a utility for the Diderot project "
    "(http://diderot-language.cs.uchicago.edu), hence the name, "
    "but it has proven useful in other contexts (uses of gage) in which "
-   "it is important to have standardized orientation information.\n "
+   "it is nice to have standardized orientation information.\n "
    "* Uses nrrdMetaDataNormalize");
 
 int
@@ -120,4 +120,4 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-UNRRDU_CMD_HIDE(dnorm, INFO);
+UNRRDU_CMD(dnorm, INFO);
