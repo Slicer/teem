@@ -135,7 +135,9 @@ static const char *_unrrdu_gridInfoL =
  "With the -pg option, the output is a 2-D array that specifies the "
  "sampling grid, in the format used by gprobe. Unfortunately the "
  "implementation is currently incomplete, because of a number of "
- "unresolved design questions.\n "
+ "unresolved design questions (one limitation is that this can't "
+ "handle a 2D slice of a vector field: dimension == space dimension "
+ "but axis 0 is not spatial).\n "
  "* (not based on any particular nrrd function)");
 
 int
