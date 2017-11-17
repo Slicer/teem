@@ -139,7 +139,8 @@ undosConvert(const char *me, char *name, int reverse, int mac,
   } else { /* !reverse, normal operation */
     for (ci=0; ci<len; ci++) {
       if (mac) {
-        if (CR == data[ci]) {
+        if (CR == data[ci] && (ci+1<len && LF != data[ci+1])) {
+          /* If converting from MAC, our job is NOT to convert DOS CR-LFs */
           willConvert = AIR_TRUE;
           break;
         }
@@ -205,13 +206,29 @@ undosConvert(const char *me, char *name, int reverse, int mac,
         car = putc(data[ci], fout);
       }
     }
-  } else { /* normal operation: from CR-LF (or mac CR) to LF */
+  } else { /* normal operation: from CR-LF (or mac CR but not CR-LF) to LF */
     for (ci=0; EOF != car && ci<len; ci++) {
-      if ((mac && CR == data[ci]) ||
-          (!mac && CR == data[ci] && (ci+1<len && LF == data[ci+1]))) {
-        car = putc(LF, fout);
-        ci += !mac;
+      if (CR == data[ci]) {
+        if (mac) {
+          if (ci+1<len && LF == data[ci+1]) {
+            /* not our job to convert CR-LF, so this CR passes through */
+            car = putc(CR, fout);
+          } else {
+            /* just CR --> LF */
+            car = putc(LF, fout);
+          }
+        } else {
+          if (ci+1<len && LF == data[ci+1]) {
+            /* converting CR-LF to LF is our job */
+            car = putc(LF, fout);
+            ci++;
+          } else {
+            /* just a CR, not a CR-LF, but !mac, so this CR passes through */
+            car = putc(CR, fout);
+          }
+        }
       } else {
+        /* saw something other than CR */
         car = putc(data[ci], fout);
       }
     }
