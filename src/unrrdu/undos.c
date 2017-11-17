@@ -27,29 +27,34 @@
 #define INFO "Converts DOS text files to normal, and more"
 static const char *_unrrdu_undosInfoL =
   (INFO
-   ".  Normally, it converts LF-CR pairs to just CR, or, with the \"-r\" "
-   "option, convert back to DOS, for whatever sick and "
-   "twisted reason you'd have to do that. Can also handle legacy MAC "
-   "text files (only LF). Unlike the simple sed or perl scripts for "
-   "this purpose, this program is careful to be idempotent. Also, this "
-   "makes an effort to not meddle with binary files (on which this may be "
-   "mistakenly invoked). A message is printed to stderr for all the files "
-   "actually modified. Does various things, some more justified than "
-   "others.\n "
+   ". The characters involved are:\n *\t\t\t\t\t\t\t"
+   "       carraige return = CR = '\\r' = 0x0d = decimal 13 = octal 015\n "
+   "* \"new line\" = line feed = LF = '\\n' = 0x0a = decimal 10 = octal 012\n "
+   "though see https://en.wikipedia.org/wiki/Newline for messy details. "
+   "This program converts CR-LF pairs (DOS/Windows line breaks) "
+   "to just LF (Unix line break). With the \"-r\" option, however, "
+   "this converts the other way, for whatever sick reason you'd want that. "
+   "With the \"-m\" option, this can convert legacy MAC text files "
+   "(which use only CR for line break, which may appear as \"^M\" in text "
+   "displays). Unlike simple sed/perl scripts for this purpose, this program "
+   "is careful to be idempotent in all modes of operation. Also, this makes an "
+   "effort to not meddle with binary files (on which this may be mistakenly "
+   "invoked), by not converting files with a high percentage of non-printing "
+   "characters, as controlled by the \"-pnp\" option. A message "
+   "is printed to stderr for all the files actually modified.\n "
    "* (not actually based on Nrrd)");
 
-#define CR 10
-#define LF 13
-#define BAD_PERC 5.0
+#define CR 0x0d
+#define LF 0x0a
 
 static void
 undosConvert(const char *me, char *name, int reverse, int mac,
-             int quiet, int noAction) {
+             int quiet, int noAction, float badPerc) {
   airArray *mop;
   FILE *fin, *fout;
   char *data=NULL;
   airArray *dataArr;
-  unsigned int ci;
+  unsigned int ci, len;
   int car, numBad, willConvert;
   airPtrPtrUnion appu;
 
@@ -102,46 +107,44 @@ undosConvert(const char *me, char *name, int reverse, int mac,
       airMopError(mop); return;
     }
     data[ci] = car;
-    numBad += !(isprint(car) || isspace(car));
+    numBad += !isprint(car) && !isspace(car);
     car = getc(fin);
-  } while (EOF != car && BAD_PERC > 100.0*numBad/dataArr->len);
+  } while (EOF != car && badPerc > 100.0*numBad/dataArr->len);
   if (EOF != car) {
     if (!quiet) {
       fprintf(stderr, "%s: more than %g%% of \"%s\" is non-printing, "
-              "skipping ...\n", me, BAD_PERC, name);
+              "skipping ...\n", me, badPerc, name);
     }
     airMopError(mop); return;
   }
   fin = airFclose(fin);
+  len = dataArr->len; /* learn array length */
 
   /* -------------------------------------------------------- */
   /* see if we really need to do anything */
   willConvert = AIR_FALSE;
   if (!strcmp("-", name)) {
     willConvert = AIR_TRUE;
-  } else if (reverse) {
-    for (ci=0; ci<dataArr->len; ci++) {
+  } else if (reverse) { /* REVERSE operation, away from unix LF */
+    for (ci=0; ci<len; ci++) {
+      if (LF == data[ci] && (ci && CR != data[ci-1])) {
+        /* If converting to DOS, we're looking for LF not preceded by CR.
+           If converting to MAC, we could just look for LF, but the
+           principle here is that we are only converting from unix,
+           so a DOS CR-LF should also pass through unchanged */
+        willConvert = AIR_TRUE;
+        break;
+      }
+    }
+  } else { /* !reverse, normal operation */
+    for (ci=0; ci<len; ci++) {
       if (mac) {
         if (CR == data[ci]) {
           willConvert = AIR_TRUE;
           break;
         }
       } else {
-        if (CR == data[ci] && (ci && LF != data[ci-1])) {
-          willConvert = AIR_TRUE;
-          break;
-        }
-      }
-    }
-  } else {
-    for (ci=0; ci<dataArr->len; ci++) {
-      if (mac) {
-        if (LF == data[ci]) {
-          willConvert = AIR_TRUE;
-          break;
-        }
-      } else {
-        if (LF == data[ci] && (ci+1<dataArr->len && CR == data[ci+1])) {
+        if (CR == data[ci] && (ci+1<len && LF == data[ci+1])) {
           willConvert = AIR_TRUE;
           break;
         }
@@ -182,24 +185,31 @@ undosConvert(const char *me, char *name, int reverse, int mac,
 
   /* -------------------------------------------------------- */
   /* write output file */
-  car = 'a';
-  if (reverse) {
-    for (ci=0; ci<dataArr->len; ci++) {
-      if ((mac && CR == data[ci])
-          || (CR == data[ci] && (ci && LF != data[ci-1]))) {
-        car = putc(LF, fout);
-        if (!mac && EOF != car) {
+  car = 'a'; // something not EOF
+  if (reverse) { /* away from LF to either CR-LF (or mac CR) */
+    for (ci=0; EOF != car && ci<len; ci++) {
+      if (LF == data[ci]) {
+        if (ci && CR == data[ci-1]) {
+          /* if this LF was preceded by a CR, it is, if !mac, already
+             the intended DOS CR-LF, and we've already putc the CR, so
+             now we putc LF. Or, if mac, we're narrowly focusing on
+             converting only unix line breaks, so same thing: putc LF */
+          car = putc(LF, fout);
+        } else {
+          /* this LF was not preceded by a CR, so do either MAC or DOS
+             line break CR and LF */
           car = putc(CR, fout);
+          if (!mac && EOF != car) car = putc(LF, fout);
         }
       } else {
         car = putc(data[ci], fout);
       }
     }
-  } else {
-    for (ci=0; EOF != car && ci<dataArr->len; ci++) {
-      if ((mac && LF == data[ci])
-          || (LF == data[ci] && (ci+1<dataArr->len && CR == data[ci+1]))) {
-        car = putc(CR, fout);
+  } else { /* normal operation: from CR-LF (or mac CR) to LF */
+    for (ci=0; EOF != car && ci<len; ci++) {
+      if ((mac && CR == data[ci]) ||
+          (!mac && CR == data[ci] && (ci+1<len && LF == data[ci+1]))) {
+        car = putc(LF, fout);
         ci += !mac;
       } else {
         car = putc(data[ci], fout);
@@ -228,6 +238,7 @@ unrrdu_undosMain(int argc, const char **argv, const char *me,
   char *err;
   /* these are specific to this command */
   char **name;
+  float badPerc;
   int lenName, ni, reverse, quiet, noAction, mac;
 
   hestOptAdd(&opt, "r", NULL, airTypeInt, 0, 0, &reverse, NULL,
@@ -235,10 +246,17 @@ unrrdu_undosMain(int argc, const char **argv, const char *me,
   hestOptAdd(&opt, "q", NULL, airTypeInt, 0, 0, &quiet, NULL,
              "never print anything to stderr, even for errors.");
   hestOptAdd(&opt, "m", NULL, airTypeInt, 0, 0, &mac, NULL,
-             "deal with legacy MAC text files.");
+             "deal with legacy MAC text files, and files generated by "
+             "weird software running on OSX that hasn't gotten the memo "
+             "about OSX uses unix-style line breaks.");
   hestOptAdd(&opt, "n", NULL, airTypeInt, 0, 0, &noAction, NULL,
              "don't actually write converted files, just pretend to. "
              "This is useful to see which files WOULD be converted. ");
+  hestOptAdd(&opt, "pnp", "perc", airTypeFloat, 1, 1, &badPerc, "2",
+             "if the percentage of non-printing characters (characters "
+             "c for which isprint(c) and isspace(c) are both false) "
+             "exceeds this threshold, then don't do anything to the file; "
+             "it is probably not a text file at all. ");
   hestOptAdd(&opt, NULL, "file", airTypeString, 1, -1, &name, NULL,
              "all the files to convert.  Each file will be over-written "
              "with its converted contents.  Use \"-\" to read from stdin "
@@ -251,7 +269,7 @@ unrrdu_undosMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   for (ni=0; ni<lenName; ni++) {
-    undosConvert(me, name[ni], reverse, mac, quiet, noAction);
+    undosConvert(me, name[ni], reverse, mac, quiet, noAction, badPerc);
   }
 
   airMopOkay(mop);
