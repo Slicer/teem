@@ -294,3 +294,31 @@ unrrdu_undosMain(int argc, const char **argv, const char *me,
 }
 
 UNRRDU_CMD_HIDE(undos, INFO);
+
+#if 0 /* this is the program used for testing */
+#include <stdio.h>
+#include <math.h>
+
+int
+main(int argc, char **argv) {
+
+#if 0
+#  define MM "M\r"   /* 4d 0d */
+#  define DD "D\r\n" /* 44 0d 0a */
+#  define UU "U\n"   /* 55 0a */
+#else
+#  define MM "M\r\r"
+#  define DD "D\r\n\r\n"
+#  define UU "U\n\n"
+#endif
+
+  if (2 == argc && 'M' == argv[1][0]) {
+    printf(DD UU MM);
+  } else if (2 == argc && 'D' == argv[1][0]) {
+    printf(UU MM DD);
+  } else {
+    printf(MM DD UU);
+  }
+  return 0;
+}
+#endif
