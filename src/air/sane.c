@@ -77,16 +77,34 @@ airSanity(void) {
   }
 
   /* run-time NaN checks */
-  pinf = DBL_MAX;
+  ninf = -DBL_MAX;
+  ninf = _airSanityHelper(ninf);
+  ninf = _airSanityHelper(ninf);
+  ninf = _airSanityHelper(ninf);
+  if (AIR_EXISTS(ninf)) {
+    return airInsane_nInfExists;
+  }
+  pinf = 1e+308; /* almost DBL_MAX */
   pinf = _airSanityHelper(pinf);
   pinf = _airSanityHelper(pinf);
   pinf = _airSanityHelper(pinf);
   if (AIR_EXISTS(pinf)) {
-    return airInsane_pInfExists;
-  }
-  ninf = -pinf;
-  if (AIR_EXISTS(ninf)) {
-    return airInsane_nInfExists;
+    /* on at least one computer GLK used, if fesetround(FE_DOWNWARD) has been
+       called, then the above run-time generation of positive infinity fails;
+       it instead rounds down to DBL_MAX. We err on the side of
+       permissiveness, and opt not to try to detect the current rounding mode
+       (because doing so in a C89-compliant way would be a pain), and thus
+       flag AIR_EXISTS(pinf) as a problem only if pinf != DBL_MAX. On that
+       one computer, fesetround(FE_UPWARD) did not hamper the above run-time
+       negative infinity generation */
+    if (pinf != DBL_MAX) {
+      return airInsane_pInfExists;
+    } else {
+      /* as best we can tell, pinf would have been +inf if it
+         weren't for fesetround(FE_DOWNWARD), so fix pinf so that
+         later tests can use it. */
+      pinf = -ninf;
+    }
   }
   nanValue = pinf / pinf;
   if (AIR_EXISTS(nanValue)) {
