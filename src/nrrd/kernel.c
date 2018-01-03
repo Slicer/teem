@@ -3265,7 +3265,7 @@ nrrdKernelCompare(const NrrdKernel *kernA,
   }
   if (!(parmA && parmB)) {
     biffAddf(NRRD, "%s: kernel %s needs %u parms but got NULL parm vectors",
-             me, kernA->name ? kernA->name : "(unnamed)", pnum);
+             me, kernA->name, pnum);
     return 0;
   }
   for (pidx=0; pidx<pnum; pidx++) {
