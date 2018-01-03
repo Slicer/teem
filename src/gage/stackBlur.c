@@ -502,7 +502,7 @@ gageStackBlurParmDgGoodSigmaMaxSet(gageStackBlurParm *sbp,
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!dgGoodSigmaMax > 0) {
+  if (!(dgGoodSigmaMax > 0)) {
     biffAddf(GAGE, "%s: given dgGoodSigmaMax %g not > 0", me, dgGoodSigmaMax);
     return 1;
   }
