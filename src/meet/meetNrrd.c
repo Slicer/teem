@@ -387,7 +387,7 @@ meetNrrdKernelAllCheck(void) {
 #undef CHECK
     if (EE) {
       biffMovef(MEET, NRRD, "%s: problem with kern[%u] \"%s\"", me, ki,
-                kk->name ? kk->name : "(NULL name)");
+                kk->name);
       airMopError(mop); return 1;
     }
     ki++;
