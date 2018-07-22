@@ -623,7 +623,7 @@ airFPFprintf_f(FILE *file, float val) {
   if (file) {
     flit.v = fbig.v = val;
     FP_GET_F(sign, expo, mant, flit, fbig);
-    fprintf(file, "%f: class %d; 0x%08x = ",val, airFPClass_f(val),
+    fprintf(file, "%.9g: class %d; 0x%08x = ",val, airFPClass_f(val),
             airEndianLittle == airMyEndian() ? flit.i : fbig.i);
     fprintf(file, "sign:0x%x, expo:0x%02x, mant:0x%06x = \n",
             sign, expo, mant);
@@ -654,7 +654,7 @@ airFPFprintf_d(FILE *file, double val) {
 
   if (file) {
     dlit.v = dbig.v = val;
-    fprintf(file, "%f: class %d; 0x%08x %08x = \n",
+    fprintf(file, "%.17g: class %d; 0x%08x %08x = \n",
             val, airFPClass_d(val),
             (airEndianLittle == airMyEndian() ? dlit.h.half1 : dbig.h.half1),
             (airEndianLittle == airMyEndian() ? dlit.h.half0 : dbig.h.half0));
