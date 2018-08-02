@@ -556,7 +556,7 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
   if (point->neighInterNum) {
     point->neighDistMean /= point->neighInterNum;
     if (pullProcessModeNeighLearn == task->processMode) {
-      float ncs[4], ncsLen, *cov, sxx, syy, scl;
+      float ncs[4], ncsLen, *cov, sxx=0, syy=0, scl;
       cov = point->neighCovar;
       ELL_10V_SCALE(cov, 1.0f/point->neighInterNum, cov);
       /* Stability is related to the angle between S=(0,0,0,1) and the
