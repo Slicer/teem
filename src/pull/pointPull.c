@@ -1350,7 +1350,7 @@ _pullPointSetup(pullContext *pctx) {
             me, pn, pctx->idtagNext);
   }
   /* */
-  if (1) {
+  if (0) {
     Nrrd *ntmp;
     ntmp = nrrdNew();
     pullOutputGet(ntmp, NULL, NULL, NULL, 0.0, pctx);
