@@ -88,6 +88,8 @@ unrrdu_projectMain(int argc, const char **argv, const char *me,
       nslice[measrIdx] = nrrdNew();
       airMopAdd(mop, nslice[measrIdx], (airMopper)nrrdNuke, airMopAlways);
     }
+  } else {
+    nslice = NULL;
   }
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
