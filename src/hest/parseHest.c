@@ -62,7 +62,7 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
   ai = 0;
   while (argv[ai]) {
     if (parm->respFileFlag == argv[ai][0]) {
-      if (!(file = airFopen(argv[ai]+1, stdin, "rb"))) {
+      if (!(file = fopen(argv[ai]+1, "rb"))) {
         /* can't open the indicated response file for reading */
         sprintf(err, "%scouldn't open \"%s\" for reading as response file",
                 ME, argv[ai]+1);
@@ -78,9 +78,7 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
         *argcP += airStrntok(line, AIR_WHITESPACE);
         len = airOneLine(file, line, AIR_STRLEN_HUGE);
       }
-      if (stdin != file) {
-        fclose(file);
-      }
+      fclose(file);
       (*nrfP)++;
     }
     ai++;
