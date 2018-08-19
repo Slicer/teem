@@ -78,7 +78,9 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
         *argcP += airStrntok(line, AIR_WHITESPACE);
         len = airOneLine(file, line, AIR_STRLEN_HUGE);
       }
-      fclose(file);
+      if (stdin != file) {
+        fclose(file);
+      }
       (*nrfP)++;
     }
     ai++;
