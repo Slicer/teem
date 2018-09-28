@@ -102,7 +102,7 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
 
     car = fgetc(file);
     if (EOF != car) {
-      if (1 <= nrrdStateVerboseIO) {
+      if (1 <= nrrdStateVerboseIO && nio->chunckElementNumber == 0) {
         fprintf(stderr, "%s: WARNING: finished reading raw data, "
                 "but file not at EOF\n", me);
       }

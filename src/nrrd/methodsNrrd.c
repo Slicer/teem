@@ -285,6 +285,7 @@ nrrdIoStateInit(NrrdIoState *nio) {
     nio->learningHeaderStrlen = AIR_FALSE;
     nio->oldData = NULL;
     nio->oldDataSize = 0;
+    nio->chunckElementNumber = 0;
     nio->format = nrrdFormatUnknown;
     nio->encoding = nrrdEncodingUnknown;
   }

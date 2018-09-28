@@ -522,7 +522,11 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* NOTE: you have to open dataFile even in the case of skipData, because
      caller might have set keepNrrdDataFileOpen, in which case you need to
      do any line or byte skipping if it is specified */
-  valsPerPiece = nrrdElementNumber(nrrd)/_nrrdDataFNNumber(nio);
+  if (nio->chunckElementNumber != 0) {
+    valsPerPiece = nio->chunckElementNumber;
+  } else {
+    valsPerPiece = nrrdElementNumber(nrrd)/_nrrdDataFNNumber(nio);
+  }
   while (dataFile) {
     /* ---------------- skip, if need be */
     if (nrrdLineSkip(dataFile, nio)) {
