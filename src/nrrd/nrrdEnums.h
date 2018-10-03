@@ -53,6 +53,7 @@ enum {
   nrrdIoStateZlibLevel,
   nrrdIoStateZlibStrategy,
   nrrdIoStateBzip2BlockSize,
+  nrrdIoStateChunckElementNumber,
   nrrdIoStateLast
 };
 
