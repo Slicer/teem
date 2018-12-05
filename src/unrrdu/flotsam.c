@@ -186,7 +186,7 @@ unrrduCmdMain(int argc, const char **argv,
     ret = cmdList[i]->main(argc-2, argv+2, argv0, hparm);
   } else {
     fprintf(stderr, "%s: unrecognized command: \"%s\"; type \"%s\" for "
-            "complete list\n", me, argv[1], me);
+            "complete list\n", cmd /* not me==argv[0] */, argv[1], me);
     ret = 1;
   }
 
