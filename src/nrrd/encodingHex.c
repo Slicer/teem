@@ -116,11 +116,16 @@ _nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum,
 static int
 _nrrdEncodingHex_write(FILE *file, const void *_data, size_t elNum,
                        const Nrrd *nrrd, NrrdIoState *nio) {
-  /* static const char me[]="_nrrdEncodingHex_write"; */
+  static const char me[]="_nrrdEncodingHex_write";
   const unsigned char *data;
   size_t byteIdx, byteNum;
   unsigned int bytesPerLine;
 
+  if (!( file && _data && nrrd && nio )) {
+    biffAddf(NRRD, "%s: got NULL pointer (%p,%p,%p,%p)", me,
+             file, _data, nrrd, nio);
+    return 1;
+  }
   bytesPerLine = AIR_MAX(1, nio->charsPerLine/2);
   data = AIR_CAST(const unsigned char*, _data);
   byteNum = elNum*nrrdElementSize(nrrd);
