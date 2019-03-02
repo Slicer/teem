@@ -263,7 +263,7 @@ ELL_EXPORT int ell_Nm_inv(Nrrd *dest, Nrrd *src);
 ELL_EXPORT int ell_Nm_pseudo_inv(Nrrd *dest, Nrrd *src);
 ELL_EXPORT int ell_Nm_wght_pseudo_inv(Nrrd *ninv, Nrrd *nA, Nrrd *nW);
 
-/* cubic.c */
+/* cubicEll.c */
 ELL_EXPORT int ell_cubic(double root[3],
                          double A, double B, double C, int newton);
 
