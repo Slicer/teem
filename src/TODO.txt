@@ -29,7 +29,7 @@ all:
 * for nrrd, ell, gage, and everything assuming some math accuracy,
   investigate application of Herbie http://herbie.uwplse.org
   http://herbie.uwplse.org/pldi15.html
-  (section 3 coveres mundane quadratic formula)
+  (section 3 covers mundane quadratic formula)
 * remove '_'s from enum value names in non-elf non-tijk libraries
 * decide if <LIB>_EXPORT should just be TEEM_EXPORT
 * enforce consistent use of AIR_CALLOC/AIR_MALLOC
