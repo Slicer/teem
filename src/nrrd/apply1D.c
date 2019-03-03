@@ -296,7 +296,7 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
 int
 _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
                         const Nrrd *nmap, int ramps, int rescale, int multi) {
-  /* static const char me[]="_nrrdApply1DLutOrRegMap"; */
+  static const char me[]="_nrrdApply1DLutOrRegMap";
   char *inData, *outData, *mapData, *entData0, *entData1;
   size_t N, I;
   double (*inLoad)(const void *v), (*mapLup)(const void *v, size_t I),
@@ -324,6 +324,11 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
   entLen = (mapAxis                    /* number of elements in one entry */
             ? AIR_CAST(unsigned int, nmap->axis[0].size)
             : 1);
+  if (ramps && !(mapLen >= 2)) {
+     biffAddf(NRRD, "%s: ramps need >= 2 control points (not %u) of %u vals",
+              me, mapLen, entLen);
+     return 1;
+  }
   outSize = entLen*AIR_CAST(unsigned int, nrrdElementSize(nout)); /* size of entry in output */
   entSize = entLen*AIR_CAST(unsigned int, nrrdElementSize(nmap)); /* size of entry in map */
 
@@ -332,7 +337,7 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     /* regular map */
     for (I=0; I<N; I++) {
       /* ...
-      if (!(I % 100)) fprintf(stderr, "I = %d\n", (int)I);
+      fprintf(stderr, "I = %d\n", (int)I);
       ... */
       val = inLoad(inData);
       /* ...
