@@ -35,7 +35,7 @@
 ** that is just fine
 */
 int
-_nrrdHestNrrdParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+_nrrdHestNrrdParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "_nrrdHestNrrdParse", *nerr;
   Nrrd **nrrdP;
   airArray *mop;
@@ -78,7 +78,8 @@ nrrdHestNrrd = &_nrrdHestNrrd;
 /* ------------------------ NrrdKernelSpec -------------------------- */
 
 int
-_nrrdHestKernelSpecParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+_nrrdHestKernelSpecParse(void *ptr, const char *str,
+                         char err[AIR_STRLEN_HUGE]) {
   NrrdKernelSpec **ksP;
   char me[]="_nrrdHestKernelSpecParse", *nerr;
 
@@ -111,7 +112,8 @@ nrrdHestKernelSpec = &_nrrdHestKernelSpec;
 /* ------------------------ NrrdBoundarySpec -------------------------- */
 
 int
-_nrrdHestBoundarySpecParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+_nrrdHestBoundarySpecParse(void *ptr, const char *str,
+                           char err[AIR_STRLEN_HUGE]) {
   NrrdBoundarySpec **bsp;
   char me[]="_nrrdHestBoundarySpecParse", *nerr;
 
@@ -145,7 +147,7 @@ nrrdHestBoundarySpec = &_nrrdHestBoundarySpec;
 /* --------------------------- NrrdIter ----------------------------- */
 
 int
-_nrrdLooksLikeANumber(char *str) {
+_nrrdLooksLikeANumber(const char *str) {
   /* 0: -+                (no restriction, but that's a little daft)
      1: 0123456789        n > 0
      2: .                 0 <= n <= 1
@@ -189,7 +191,7 @@ _nrrdLooksLikeANumber(char *str) {
 }
 
 int
-_nrrdHestIterParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+_nrrdHestIterParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="_nrrdHestIterParse", *nerr;
   Nrrd *nrrd;
   NrrdIter **iterP;

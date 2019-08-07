@@ -889,7 +889,8 @@ gageStackBlurParmSprint(char str[AIR_STRLEN_LARGE],
 }
 
 int
-_gageHestStackBlurParmParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+_gageHestStackBlurParmParse(void *ptr, const char *str,
+                            char err[AIR_STRLEN_HUGE]) {
   gageStackBlurParm **sbp;
   char me[]="_gageHestStackBlurParmParse", *nerr;
 

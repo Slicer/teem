@@ -35,7 +35,8 @@
 ** inc[1], inc[2] ... : incParm[0], incParm[1] ...
 */
 int
-baneGkmsParseIncStrategy(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+baneGkmsParseIncStrategy(void *ptr, const char *str,
+                         char err[AIR_STRLEN_HUGE]) {
   char me[]="baneGkmsParseIncStrategy";
   double *inc, *incParm;
   int i, bins;
@@ -96,7 +97,7 @@ baneGkmsHestIncStrategy = &_baneGkmsHestIncStrategy;
 /* ----------------------------------------------------------- */
 
 int
-baneGkmsParseBEF(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+baneGkmsParseBEF(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="baneGkmsParseBEF", mesg[AIR_STRLEN_MED], *nerr;
   float cent, width, shape, alpha, off, *bef;
   Nrrd **nrrdP;
@@ -176,7 +177,7 @@ baneGkmsHestBEF = &_baneGkmsHestBEF;
 ** gthr[1] = the scaling, or the absolute
 */
 int
-baneGkmsParseGthresh(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+baneGkmsParseGthresh(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="baneGkmsParseGthresh";
   float *gthr;
 

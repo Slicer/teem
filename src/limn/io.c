@@ -885,7 +885,8 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
 }
 
 int
-_limnHestPolyDataLMPDParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+_limnHestPolyDataLMPDParse(void *ptr, const char *str,
+                           char err[AIR_STRLEN_HUGE]) {
   static const char me[] = "_limnHestPolyDataLMPDParse";
   char *nerr;
   limnPolyData **lpldP;
@@ -935,7 +936,8 @@ hestCB *
 limnHestPolyDataLMPD = &_limnHestPolyDataLMPD;
 
 int
-_limnHestPolyDataOFFParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+_limnHestPolyDataOFFParse(void *ptr, const char *str,
+                          char err[AIR_STRLEN_HUGE]) {
   static const char me[] = "_limnHestPolyDataOFFParse";
   char *nerr;
   limnPolyData **lpldP;

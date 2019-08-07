@@ -805,8 +805,8 @@ LIMN_EXPORT int limnSplineUpdate(limnSpline *spline, Nrrd *ncpt);
 /* splineMisc.c */
 LIMN_EXPORT const airEnum *const limnSplineType;
 LIMN_EXPORT const airEnum *const limnSplineInfo;
-LIMN_EXPORT limnSpline *limnSplineParse(char *str);
-LIMN_EXPORT limnSplineTypeSpec *limnSplineTypeSpecParse(char *str);
+LIMN_EXPORT limnSpline *limnSplineParse(const char *str);
+LIMN_EXPORT limnSplineTypeSpec *limnSplineTypeSpecParse(const char *str);
 LIMN_EXPORT hestCB *limnHestSpline;
 LIMN_EXPORT hestCB *limnHestSplineTypeSpec;
 LIMN_EXPORT unsigned int limnSplineInfoSize[LIMN_SPLINE_INFO_MAX+1];

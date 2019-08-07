@@ -326,7 +326,7 @@ unrrduUsage(const char *me, hestParm *hparm,
 ** pos[0] == -1: pos[1] gives the position relative to a "minimum" position
 */
 int
-unrrduParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+unrrduParsePos(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unrrduParsePos";
   long int *pos;
 
@@ -406,7 +406,7 @@ hestCB unrrduHestPosCB = {
 ** value as nrrdTypeDefault.
 */
 int
-unrrduParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+unrrduParseMaybeType(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unrrduParseMaybeType";
   int *typeP;
 
@@ -448,7 +448,7 @@ hestCB unrrduHestMaybeTypeCB = {
 ** for parsing an int that can be 8, 16, or 32
 */
 int
-unrrduParseBits(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+unrrduParseBits(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unrrduParseBits";
   unsigned int *bitsP;
 
@@ -496,7 +496,7 @@ hestCB unrrduHestBitsCB = {
 ** s<float>  : unrrduScaleSpacingTarget
 */
 int
-unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+unrrduParseScale(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unrrduParseScale";
   double *scale;
   unsigned int num;
@@ -598,7 +598,7 @@ unrrduMaybeFclose(void *_file) {
 }
 
 int
-unrrduParseFile(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+unrrduParseFile(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unrrduParseFile";
   FILE **fileP;
 
@@ -635,7 +635,7 @@ hestCB unrrduHestFileCB = {
 ** enc[2]: for zlib: strategy, from nrrdZlibStrategy* enum
 */
 int
-unrrduParseEncoding(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
+unrrduParseEncoding(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
   char me[]="unrrduParseEncoding", *str, *opt;
   int *enc;
   airArray *mop;

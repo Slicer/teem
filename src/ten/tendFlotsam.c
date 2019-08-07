@@ -49,7 +49,7 @@ const char *tendTitle = "tend: Diffusion Image Processing and Analysis";
 ** info[2]: 2nd parameter, used occasionally
 */
 int
-tendFiberStopParse(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
+tendFiberStopParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
   char me[]="tenFiberStopParse", *str, *opt, *opt2;
   double *info;
   airArray *mop;

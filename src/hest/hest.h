@@ -75,7 +75,7 @@ enum {
 typedef struct {
   size_t size;          /* sizeof() one thing */
   const char *type;     /* used by hestGlossary() to describe the type */
-  int (*parse)(void *ptr, char *str, char err[AIR_STRLEN_HUGE]);
+  int (*parse)(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]);
                         /* how to parse one thing from a string.  This will
                            be called multiple times for multiple parameter
                            options.  A non-zero return value is considered

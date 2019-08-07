@@ -225,7 +225,7 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
 }
 
 int
-meetHestPullVolParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+meetHestPullVolParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   static const char me[]="meetHestPullVolParse";
   meetPullVol *mpv, **mpvP;
   airArray *mop;
@@ -735,7 +735,7 @@ meetPullInfoParse(meetPullInfo *minf, const char *_str) {
 }
 
 int
-meetHestPullInfoParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+meetHestPullInfoParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   static const char me[]="meetHestPullInfoParse";
   airArray *mop;
   meetPullInfo **minfP, *minf;

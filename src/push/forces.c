@@ -439,7 +439,7 @@ pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
 }
 
 int
-_pushHestEnergyParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+_pushHestEnergyParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   pushEnergySpec **enspP;
   static const char me[]="_pushHestForceParse";
   char *perr;
