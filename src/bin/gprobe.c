@@ -577,12 +577,12 @@ main(int argc, const char *argv[]) {
        info about the point WRT scale stuff */
     if (sbp) {
       if (!(4 == pntPosNum && ELL_4V_EXISTS(pntPos))) {
-        fprintf(stderr, "%s: need a 4-vec position with scale-space", me);
+        fprintf(stderr, "%s: need a 4-vec position with scale-space\n", me);
         airMopError(mop); return 1;
       }
     } else {
       if (!(3 == pntPosNum)) {
-        fprintf(stderr, "%s: need a 3-vec position (w/out scale-space)", me);
+        fprintf(stderr, "%s: need a 3-vec position (w/out scale-space)\n", me);
         airMopError(mop); return 1;
       }
     }
