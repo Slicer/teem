@@ -16,4 +16,6 @@ set(TIJK_SOURCES
   tijk.h
   )
 
-ADD_TEEM_LIBRARY(tijk ${TIJK_SOURCES})
+target_sources(teem PRIVATE ${TIJK_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( tijk FILES ${TIJK_SOURCES} )

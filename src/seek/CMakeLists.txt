@@ -13,4 +13,6 @@ set(SEEK_SOURCES
   updateSeek.c
   )
 
-ADD_TEEM_LIBRARY(seek ${SEEK_SOURCES})
+target_sources(teem PRIVATE ${SEEK_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( seek FILES ${SEEK_SOURCES} )

@@ -7,4 +7,6 @@ set(BIFF_SOURCES
   biffbiff.c
   )
 
-ADD_TEEM_LIBRARY(biff ${BIFF_SOURCES})
+target_sources(teem PRIVATE ${BIFF_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( BIFF FILES ${BIFF_SOURCES} )

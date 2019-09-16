@@ -78,4 +78,6 @@ set(UNRRDU_SOURCES
   untile.c
   )
 
-ADD_TEEM_LIBRARY(unrrdu ${UNRRDU_SOURCES})
+target_sources(teem PRIVATE ${UNRRDU_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( unrrdu FILES ${UNRRDU_SOURCES} )

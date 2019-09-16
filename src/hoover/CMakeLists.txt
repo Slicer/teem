@@ -8,4 +8,6 @@ set(HOOVER_SOURCES
   stub.c
   )
 
-ADD_TEEM_LIBRARY(hoover ${HOOVER_SOURCES})
+target_sources(teem PRIVATE ${HOOVER_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( hoover FILES ${HOOVER_SOURCES} )

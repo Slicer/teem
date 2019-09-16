@@ -13,4 +13,6 @@ set(MITE_SOURCES
   user.c
   )
 
-ADD_TEEM_LIBRARY(mite ${MITE_SOURCES})
+target_sources(teem PRIVATE ${MITE_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( mite FILES ${MITE_SOURCES} )

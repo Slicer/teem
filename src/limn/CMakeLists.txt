@@ -25,4 +25,6 @@ set(LIMN_SOURCES
   transform.c
   )
 
-ADD_TEEM_LIBRARY(limn ${LIMN_SOURCES})
+target_sources(teem PRIVATE ${LIMN_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( limn FILES ${LIMN_SOURCES} )

@@ -19,4 +19,6 @@ set(AIR_SOURCES
   threadAir.c
   )
 
-ADD_TEEM_LIBRARY(air ${AIR_SOURCES})
+target_sources(teem PRIVATE ${AIR_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( air FILES ${AIR_SOURCES} )

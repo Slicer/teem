@@ -6,4 +6,6 @@ set(DYE_SOURCES
   methodsDye.c
   )
 
-ADD_TEEM_LIBRARY(dye ${DYE_SOURCES})
+target_sources(teem PRIVATE ${DYE_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( dye FILES ${DYE_SOURCES} )

@@ -82,4 +82,6 @@ set(TEN_SOURCES
   model1Tensor2.c
   )
 
-ADD_TEEM_LIBRARY(ten ${TEN_SOURCES})
+target_sources(teem PRIVATE ${TEN_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( ten FILES ${TEN_SOURCES} )

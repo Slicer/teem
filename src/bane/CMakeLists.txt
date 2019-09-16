@@ -24,4 +24,6 @@ set(BANE_SOURCES
   valid.c
   )
 
-ADD_TEEM_LIBRARY(bane ${BANE_SOURCES})
+target_sources(teem PRIVATE ${BANE_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( bane FILES ${BANE_SOURCES} )

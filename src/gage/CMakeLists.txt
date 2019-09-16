@@ -26,4 +26,6 @@ set(GAGE_SOURCES
   optimsig.c
   )
 
-ADD_TEEM_LIBRARY(gage ${GAGE_SOURCES})
+target_sources(teem PRIVATE ${GAGE_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( gage FILES ${GAGE_SOURCES} )

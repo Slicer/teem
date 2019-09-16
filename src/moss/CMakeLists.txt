@@ -10,4 +10,6 @@ set(MOSS_SOURCES
   xform.c
   )
 
-ADD_TEEM_LIBRARY(moss ${MOSS_SOURCES})
+target_sources(teem PRIVATE ${MOSS_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( moss FILES ${MOSS_SOURCES} )

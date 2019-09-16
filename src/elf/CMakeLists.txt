@@ -8,4 +8,6 @@ set(ELF_SOURCES
   elf.h
   )
 
-ADD_TEEM_LIBRARY(elf ${ELF_SOURCES})
+target_sources(teem PRIVATE ${ELF_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( elf FILES ${ELF_SOURCES} )

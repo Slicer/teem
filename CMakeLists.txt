@@ -1,6 +1,6 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
+# Copyright (C) 2019, 2018, 2017, 2016, 2015, 2014, 2013, 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -20,41 +20,38 @@
 # along with this library; if not, write to Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
-
 # This is the root Teem CMakeLists file
-cmake_minimum_required(VERSION 2.8)
 
-# Cmake shouldn't define WIN32 when compiling
-set(CMAKE_LEGACY_CYGWIN_WIN32 0)
+# adapt to the available version of cmake
+cmake_minimum_required(VERSION 3.13...3.15)
 
-# As of CMake 2.6 Policies were introduced in order to provide a mechanism for
-# adding backwards compatibility one feature at a time.
-
-# Library paths (/path/to/libmy.so not translated to -L/path/to -lmy)
-cmake_policy(SET CMP0003 NEW)
-if(POLICY CMP0033)
-# The ``export_library_dependencies()`` command should not be called.
-# The functionality has been superseded by export() and install(EXPORT) commands
-  cmake_policy(SET CMP0033 NEW)
+if(${CMAKE_VERSION} VERSION_LESS 3.15)
+    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
+else()
+    cmake_policy(VERSION 3.15)
 endif()
-if(POLICY CMP0054)
-#Only interpret ``if()`` arguments as variables or keywords when unquoted.
-  cmake_policy(SET CMP0054 OLD)
-endif()
-
-project(Teem)
 
 #-----------------------------------------------------------------------------
 # Teem version number.  Must reflect the values in teem/src/air/air.h
+# means the version number is 1.12.0
 set(Teem_VERSION_MAJOR "1")
 set(Teem_VERSION_MINOR "12")
 set(Teem_VERSION_PATCH "0")
 
-# Version string should not include patch level.  The major.minor is
-# enough to distinguish available features of the toolkit.
-set(Teem_VERSION_STRING "${Teem_VERSION_MAJOR}.${Teem_VERSION_MINOR}.${Teem_VERSION_PATCH}")
+# Version string (no space in version numbers, so doesn't have to be quoted)
+set(Teem_VERSION_STRING ${Teem_VERSION_MAJOR}.${Teem_VERSION_MINOR}.${Teem_VERSION_PATCH})
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+# DESCRIPTION was added to set a project description in CMake 3.9
+project(Teem VERSION ${Teem_VERSION_STRING}
+        DESCRIPTION "Teem libraries developed by Gordon Kindlmann et. al."
+        LANGUAGES C CXX)
+
+# specifying a search path for CMake modules to be loaded by the include() or find_package()
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+
+# Include directory
+# path directory variable should always be quoted since path may contain spaces
+include_directories("${Teem_BINARY_DIR}/include/" "${Teem_SOURCE_DIR}/include/")
 
 # We need ansi c-flags, especially on HP
 set(CMAKE_C_FLAGS "${CMAKE_ANSI_CFLAGS} ${CMAKE_C_FLAGS}")
@@ -65,438 +62,341 @@ set(CMAKE_REQUIRED_FLAGS ${CMAKE_ANSI_CFLAGS})
 include (CMakeBackwardCompatibilityC)
 
 #-----------------------------------------------------------------------------
-# Output directories.
-
+# set all output directories to be teem-build/bin unless defined
 foreach(type LIBRARY RUNTIME ARCHIVE)
-  # Make sure the directory exists
-  if(DEFINED CMAKE_${type}_OUTPUT_DIRECTORY
-     AND NOT EXISTS ${CMAKE_${type}_OUTPUT_DIRECTORY})
-    message(FATAL_ERROR "CMAKE_${type}_OUTPUT_DIRECTORY is set to a non-existing directory [${CMAKE_${type}_OUTPUT_DIRECTORY}]")
-  endif()
-  if(NOT DEFINED CMAKE_${type}_OUTPUT_DIRECTORY)
-    set(CMAKE_${type}_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-  endif()
+    if(DEFINED CMAKE_${type}_OUTPUT_DIRECTORY AND NOT EXISTS ${CMAKE_${type}_OUTPUT_DIRECTORY})
+        # message(FATAL_ERROR "CMAKE_${type}_OUTPUT_DIRECTORY is set to a non-existing directory [${CMAKE_${type}_OUTPUT_DIRECTORY}]")
+        message("CMAKE_${type}_OUTPUT_DIRECTORY is set to a non-existing directory [${CMAKE_${type}_OUTPUT_DIRECTORY}]")
+        file(MAKE_DIRECTORY ${CMAKE_${type}_OUTPUT_DIRECTORY})
+        message("${CMAKE_${type}_OUTPUT_DIRECTORY} has been created")
+    endif()
+
+    if(NOT DEFINED CMAKE_${type}_OUTPUT_DIRECTORY)
+        set(CMAKE_${type}_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+    endif()
 endforeach()
 
+# build shared libraries option
 if(BUILD_SHARED_LIBS)
-  set(__LIBRARY_OUTPUT_PATH__ "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+    set(__LIBRARY_OUTPUT_PATH__ "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 else()
-  set(__LIBRARY_OUTPUT_PATH__ "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}")
+    set(__LIBRARY_OUTPUT_PATH__ "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}")
 endif()
+
 set(__RUNTIME_OUTPUT_PATH_ "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
-#output directory for installing all include files.")
-
+# output directory for installing all include files
 file(MAKE_DIRECTORY ${Teem_BINARY_DIR}/include)
 file(MAKE_DIRECTORY ${Teem_BINARY_DIR}/include/teem)
 
 #-----------------------------------------------------------------------------
-# Find platform-specific differences in the handling of IEEE floating point
-# special values.
-
+# Find platform-specific differences in the handling of IEEE floating point special values.
+# This is needed by Teem
 include(${Teem_SOURCE_DIR}/CMake/TestQnanhibit.cmake)
 TEST_QNANHIBIT(QNANHIBIT_VALUE ${Teem_SOURCE_DIR}/CMake)
 if(QNANHIBIT_VALUE)
-  set(QNANHIBIT 1 CACHE INTERNAL "The 22nd bit of 32-bit floating-point quiet NaN.")
+    set(QNANHIBIT 1 CACHE INTERNAL "The 22nd bit of 32-bit floating-point quiet NaN.")
 else()
-  set(QNANHIBIT 0 CACHE INTERNAL "The 22nd bit of 32-bit floating-point quiet NaN.")
+    set(QNANHIBIT 0 CACHE INTERNAL "The 22nd bit of 32-bit floating-point quiet NaN.")
 endif()
-
+# Teem Defines
+if(QNANHIBIT)
+    add_definitions(-DTEEM_QNANHIBIT=1)
+else()
+    add_definitions(-DTEEM_QNANHIBIT=0)
+endif()
 
 #-----------------------------------------------------------------------------
 # test if AIR_EXISTS macro fails
+# try_run(<runResultVar> <compileResultVar> 
+#         <bindir> <srcfile>)
 try_run(AIR_EXISTS_MACRO_FAILS AIR_EXISTS_MACRO_COMPILE
-  ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/CMake/testAirExists.cxx
-)
+        ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/CMake/testAirExists.cxx)
 
 #-----------------------------------------------------------------------------
-# Teem build configuration options.
+# All the Teem build configuration options.
+# Option 1 - BUILD_SHARED_LIBS is a global flag that causes add_library to create shared libraries if on.
 option(BUILD_SHARED_LIBS "Build Teem with shared libraries." OFF)
+# If present and true, this will cause all libraries to be built shared unless the library was explicitly added as a static library
 set(Teem_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 if(NOT Teem_BUILD_SHARED_LIBS)
-  add_definitions(-DTEEM_STATIC)
+    add_definitions(-DTEEM_STATIC)
 endif()
-
+# Option 2 - if we are using ZLIB library
 option(Teem_ZLIB "Build Teem with support for gzip compression." ON)
+# Option 3 - if we are using PNG library
 option(Teem_PNG "Build Teem with support for PNG images." ON)
-option(Teem_VTK_MANGLE "Build Teem using the mangled libraries from VTK for ZLIB and PNG." OFF)
-set(Teem_VTK_ZLIB_MANGLE_IPATH "" CACHE PATH "Location of vtk_zlib_mangle.h")
-set(Teem_VTK_TOOLKITS_IPATH "" CACHE PATH "Location of VTK Build directory for ZLIB and PNG includes.")
-
 # Can't build PNG without ZLIB, so force it on.
 if(Teem_PNG AND NOT Teem_ZLIB)
-  set(Teem_ZLIB ON)
+    message(WARNING "Can't build PNG without ZLIB, so Teem_ZLIB option has been turned on.")
+    set(Teem_ZLIB ON)
 endif()
+# Option 4 - if we are using bzip library
+option(Teem_BZIP2 "Build Teem with support for bzip compression." OFF)
+# Option 5 - if we are using threading libraries
+option(Teem_PTHREAD "Build Teem with pthread library support." ON)
+# Option 6 - Look for "levmar" library <http://www.ics.forth.gr/~lourakis/levmar/>
+option(Teem_LEVMAR "Build Teem with levmar library support." OFF)
+# Option 7 - Look for fftw <http://www.fftw.org/>
+option(Teem_FFTW3 "Build Teem with fftw library support." OFF)
+# Option 8
+option(USE_DIRECTIO "Use DirectIO for Nrrd file IO.  Only valid on SGI systems." OFF)
+# Option 9
+option(Teem_USE_LIB_INSTALL_SUBDIR "Add a Teem-X.Y.Z directory layer to the installation tree for libraries and archives." OFF)
+# Option 10 - Stand-alone programs to process hex encoding of data
+option(BUILD_HEX "Build dehex and enhex" OFF)
+# Option 11 - For testing
+option(BUILD_TESTING "Enable this to perform testing of Teem" ON)
 
-if(Teem_VTK_MANGLE)
-  add_definitions(-DTEEM_VTK_MANGLE=1)
-  include_directories( ${Teem_VTK_TOOLKITS_IPATH} )
-  include_directories( ${Teem_VTK_ZLIB_MANGLE_IPATH} )
+#-----------------------------------------------------------------------------
+# Obtain these libraries if requested
+# Option 2
+if (Teem_ZLIB)
+    # Find ZLIB
+    find_package(ZLIB)
+    if(ZLIB_FOUND)
+        add_definitions(-DTEEM_ZLIB)
+        set(Teem_ZLIB_LIB ${ZLIB_LIBRARIES})
+        set(Teem_ZLIB_IPATH ${ZLIB_INCLUDE_DIR})
+    else()
+        # We need to set this as a cache variable, so that it will show up as being turned off in the cache.
+        message("warning: Turning off Teem_ZLIB, because it wasn't found.")
+        set(Teem_ZLIB OFF CACHE BOOL "Build Teem with support for gzip compression." FORCE)
+    endif()
 endif()
-
-
-set(Teem_ZLIB_LIB "")
-set(Teem_PNG_LIB "")
-if(Teem_ZLIB)
-  # Find ZLIB
-  find_package(ZLIB)
-  if(ZLIB_FOUND)
-    add_definitions(-DTEEM_ZLIB)
-    set(Teem_ZLIB_LIB ${ZLIB_LIBRARIES})
-    set(Teem_ZLIB_IPATH ${ZLIB_INCLUDE_DIR})
-  else()
-    # We need to set this as a cache variable, so that it will show up as
-    # being turned off in the cache.
-    message("warning: Turning off Teem_ZLIB, because it wasn't found.")
-    set(Teem_ZLIB OFF CACHE BOOL "Build Teem with support for gzip compression." FORCE)
-  endif()
-
-  if(Teem_PNG)
+# Option 3
+if (Teem_PNG)
     find_package(PNG)
     if(PNG_FOUND)
-      add_definitions(-DTEEM_PNG ${PNG_DEFINITIONS})
-      set(Teem_PNG_LIB ${PNG_LIBRARIES})
-      set(Teem_PNG_IPATH ${PNG_INCLUDE_DIR})
+        add_definitions(-DTEEM_PNG ${PNG_DEFINITIONS})
+        set(Teem_PNG_LIB ${PNG_LIBRARIES})
+        set(Teem_PNG_IPATH ${PNG_INCLUDE_DIR})
     else()
-      # We need to set this as a cache variable, so that it will show up as
-      # being turned off in the cache.
-      message("warning: Turning off Teem_PNG, because it wasn't found.")
-      set(Teem_PNG OFF CACHE BOOL "Build Teem with support for PNG images." FORCE)
+        # We need to set this as a cache variable, so that it will show up as being turned off in the cache.
+        message("warning: Turning off Teem_PNG, because it wasn't found.")
+        set(Teem_PNG OFF CACHE BOOL "Build Teem with support for PNG images." FORCE)
     endif()
-  endif()
 endif()
-
-# Try and locate BZIP2 stuff
-option(Teem_BZIP2 "Build Teem with support for bzip compression." ON)
-set(Teem_BZIP2_LIB "")
-
+# Option 4
 if(Teem_BZIP2)
-  find_package(BZ2)
-
-  if(BZ2_FOUND)
-    add_definitions(-DTEEM_BZIP2)
-    set(Teem_BZIP2_LIB ${BZ2_LIBRARIES})
-    set(Teem_BZIP2_IPATH ${BZ2_INCLUDE_DIR})
-  else()
-    # We need to set this as a cache variable, so that it will show up as
-    # being turned off in the cache.
-    message("warning: Turning off Teem_BZIP2, because it wasn't found.")
-    set(Teem_BZIP2 OFF CACHE BOOL "Build Teem with support for bzip compression." FORCE)
-  endif()
+    find_package(BZ2)
+    if(BZ2_FOUND)
+        add_definitions(-DTEEM_BZIP2)
+        set(Teem_BZIP2_LIB ${BZ2_LIBRARIES})
+        set(Teem_BZIP2_IPATH ${BZ2_INCLUDE_DIR})
+    else()
+        # We need to set this as a cache variable, so that it will show up as being turned off in the cache.
+        message("warning: Turning off Teem_BZIP2, because it wasn't found.")
+        set(Teem_BZIP2 OFF CACHE BOOL "Build Teem with support for bzip compression." FORCE)
+    endif()
 endif()
-
-# Look for threading libraries
-option(Teem_PTHREAD "Build Teem with pthread library support." ON)
+# Option 5
 if(Teem_PTHREAD)
-  include(FindThreads)
-  if(CMAKE_USE_PTHREADS_INIT)
-    add_definitions(-DTEEM_PTHREAD)
-  else()
-    # We need to set this as a cache variable, so that it will show up as
-    # being turned off in the cache.
-    message("warning: Turning off Teem_PTHREAD, because it wasn't found.")
-    set(Teem_PTHREAD OFF CACHE BOOL "Build Teem with pthread library support." FORCE)
-    set(Teem_PTHREAD OFF)
-  endif()
+    include(FindThreads)
+    if(CMAKE_USE_PTHREADS_INIT)
+        add_definitions(-DTEEM_PTHREAD)
+    else()
+        # We need to set this as a cache variable, so that it will show up as being turned off in the cache.
+        message("warning: Turning off Teem_PTHREAD, because it wasn't found.")
+        set(Teem_PTHREAD OFF CACHE BOOL "Build Teem with pthread library support." FORCE)
+        set(Teem_PTHREAD OFF)
+    endif()
 endif()
-
-# Look for "levmar" library <http://www.ics.forth.gr/~lourakis/levmar/>
-option(Teem_LEVMAR "Build Teem with levmar library support." OFF)
-set(Teem_LEVMAR_LIB "")
+# Option 6
 if(Teem_LEVMAR)
-  find_package(LEVMAR)
-
-  if(LEVMAR_FOUND)
-    add_definitions(-DTEEM_LEVMAR)
-    set(Teem_LEVMAR_LIB ${LEVMAR_LIBRARIES})
-    set(Teem_LEVMAR_IPATH ${LEVMAR_INCLUDE_DIR})
-  else()
-    # We need to set this as a cache variable, so that it will show up as
-    # being turned off in the cache.
-    message("warning: Turning off Teem_LEVMAR, because it wasn't found.")
-    set(Teem_LEVMAR OFF CACHE BOOL "Build Teem with levmar library support." FORCE)
-  endif()
+    find_package(LEVMAR)
+    if(LEVMAR_FOUND)
+        add_definitions(-DTEEM_LEVMAR)
+        set(Teem_LEVMAR_LIB ${LEVMAR_LIBRARIES})
+        set(Teem_LEVMAR_IPATH ${LEVMAR_INCLUDE_DIR})
+    else()
+        # We need to set this as a cache variable, so that it will show up as being turned off in the cache.
+        message("warning: Turning off Teem_LEVMAR, because it wasn't found.")
+        set(Teem_LEVMAR OFF CACHE BOOL "Build Teem with levmar library support." FORCE)
+    endif()
 endif()
-
-# Look for fftw <http://www.fftw.org/>
-option(Teem_FFTW3 "Build Teem with fftw library support." OFF)
-set(Teem_FFTW3_LIB "")
-
+# Option 7
 if(Teem_FFTW3)
-  find_package(FFTW3)
-
-  if(FFTW3_FOUND)
-    add_definitions(-DTEEM_FFTW3)
-    set(Teem_FFTW3_LIB ${FFTW3_LIBRARIES})
-    set(Teem_FFTW3_IPATH ${FFTW3_INCLUDE_DIR})
-  else()
-    # We need to set this as a cache variable, so that it will show up as
-    # being turned off in the cache.
-    message("warning: Turning off Teem_FFTW3, because it wasn't found.")
-    set(Teem_FFTW3 OFF CACHE BOOL "Build Teem with fftw library support." FORCE)
-  endif()
+    find_package(FFTW3)
+    if(FFTW3_FOUND)
+        add_definitions(-DTEEM_FFTW3)
+        set(Teem_FFTW3_LIB ${FFTW3_LIBRARIES})
+        set(Teem_FFTW3_IPATH ${FFTW3_INCLUDE_DIR})
+    else()
+        # We need to set this as a cache variable, so that it will show up as being turned off in the cache.
+        message("warning: Turning off Teem_FFTW3, because it wasn't found.")
+        set(Teem_FFTW3 OFF CACHE BOOL "Build Teem with fftw library support." FORCE)
+    endif()
+endif()
+# Option 8
+# DirectIO is the fast way to do multi-gigabyte I/O and currently only available for SGI platforms.  
+if(USE_DIRECTIO)
+    add_definitions(-DTEEM_DIO=1)
+else()
+    add_definitions(-DTEEM_DIO=0)
+endif()
+# Option 9
+if(Teem_USE_LIB_INSTALL_SUBDIR)
+    set(EXTRA_INSTALL_PATH /Teem-${Teem_VERSION_STRING})
+else()
+    set(EXTRA_INSTALL_PATH "")
+endif()
+# Option 10 - Stand-alone programs to process hex encoding of data
+if(BUILD_HEX)
+    add_subdirectory(src/hex)
+endif()
+# Option 11 - For testing
+if(BUILD_TESTING)
+    include(CTest)
+    enable_testing()
+    set(BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
+    mark_as_advanced(BUILDNAME)
+    mark_as_advanced(TCL_TCLSH)
+    add_subdirectory(Testing)
 endif()
 
 #-----------------------------------------------------------------------------
-
+# For Visual Studio we don't care about warnings about deprecated sprintf and the like.
 if(${CMAKE_GENERATOR} MATCHES "Visual Studio")
-  # For Visual Studio we don't care about warnings about deprecated sprintf and
-  # the like.
-  add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
+    add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
 endif()
-
-#Teem Defines
-#The QNANHIBIT variable is configured by the root level CMakeLists.txt
-if(QNANHIBIT)
-  add_definitions(-DTEEM_QNANHIBIT=1)
-else()
-  add_definitions(-DTEEM_QNANHIBIT=0)
-endif()
-
-#DirectIO is the fast way to do multi-gigabyte I/O and currently only available
-#for SGI platforms.  Use of DirectIO is enabled manually for now.
-#option(USE_DIRECTIO "Use DirectIO for Nrrd file IO.  Only valid on SGI systems." 0)
-#mark_as_advanced(USE_DIRECTIO)
-#if(USE_DIRECTIO)
-#  add_definitions(-DTEEM_DIO=1)
-#else()
-add_definitions(-DTEEM_DIO=0)
-#endif()
 
 set(BUILD_EXPERIMENTAL_LIBS OFF CACHE BOOL "Build Teem's experimental libraries")
 set(BUILD_EXPERIMENTAL_APPS OFF CACHE BOOL "Build Teem's non-essential command-line tools")
 
-# If its a Dashboard build; turn ON both
-# BUILD_EXPERIMENTAL_APPS and BUILD_EXPERIMENTAL_LIBS
-# (h/t David Cole)
+# If its a Dashboard build; turn ON both BUILD_EXPERIMENTAL_APPS and BUILD_EXPERIMENTAL_LIBS
 if(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "")
-  # it is a dashboard build
-  set(BUILD_EXPERIMENTAL_APPS ON)
-  set(BUILD_EXPERIMENTAL_LIBS ON)
+    # it is a dashboard build
+    set(BUILD_EXPERIMENTAL_APPS ON)
+    set(BUILD_EXPERIMENTAL_LIBS ON)
 endif()
 
-# (TEEM_LIB_LIST)
-set(Teem_LIBRARIES air hest biff nrrd ell unrrdu moss gage dye limn echo hoover seek ten pull mite meet)
+# set the Teem library as a list 
+set(Teem_LIBRARIES "air" "hest" "biff" "nrrd" "ell" "unrrdu" "moss" "gage" "dye" "limn" "echo" "hoover" "seek" "ten" "pull" "mite" "meet")
 if(BUILD_EXPERIMENTAL_LIBS)
-  # This list of the "experimental" libraries must be kept in sync with:
-  # * definition of Teem_HEADER_FILES (below)
-  # * teem/src/meet/meet.h
-  # * teem/src/meet/enumsall.c
-  # re-setting list so libraries appear in expected order
-  set(Teem_LIBRARIES air hest biff nrrd ell unrrdu alan moss tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet)
-  add_definitions(-DTEEM_BUILD_EXPERIMENTAL_LIBS)
+    # This list of the "experimental" libraries must be kept in sync with:
+    # * definition of Teem_HEADER_FILES (below)
+    # * teem/src/meet/meet.h
+    # * teem/src/meet/enumsall.c
+    # re-setting list so libraries appear in expected order
+    list(APPEND Teem_LIBRARIES "alan" "tijk" "bane" "elf" "coil" "push")
+    add_definitions(-DTEEM_BUILD_EXPERIMENTAL_LIBS)
 endif()
 
 if(BUILD_EXPERIMENTAL_APPS)
-  add_definitions(-DTEEM_BUILD_EXPERIMENTAL_APPS)
+    add_definitions(-DTEEM_BUILD_EXPERIMENTAL_APPS)
 endif()
 
+# set the Teem headers as a list 
 set(Teem_HEADER_FILES
-  air/air.h
-  hest/hest.h
-  biff/biff.h
-  nrrd/nrrd.h   nrrd/nrrdDefines.h   nrrd/nrrdMacros.h  nrrd/nrrdEnums.h
-  ell/ell.h     ell/ellMacros.h
-  unrrdu/unrrdu.h
-  moss/moss.h
-  gage/gage.h
-  dye/dye.h
-  limn/limn.h
-  echo/echo.h
-  hoover/hoover.h
-  seek/seek.h
-  ten/ten.h     ten/tenMacros.h
-  pull/pull.h
-  mite/mite.h
-  meet/meet.h
-  )
+    "air/air.h"
+    "hest/hest.h"
+    "biff/biff.h"
+    "nrrd/nrrd.h"   "nrrd/nrrdDefines.h"   "nrrd/nrrdMacros.h"  "nrrd/nrrdEnums.h"
+    "ell/ell.h"     "ell/ellMacros.h"
+    "unrrdu/unrrdu.h"
+    "moss/moss.h"
+    "gage/gage.h"
+    "dye/dye.h"
+    "limn/limn.h"
+    "echo/echo.h"
+    "hoover/hoover.h"
+    "seek/seek.h"
+    "ten/ten.h"     "ten/tenMacros.h"
+    "pull/pull.h"
+    "mite/mite.h"
+    "meet/meet.h")
+
 if(BUILD_EXPERIMENTAL_LIBS)
-  set(Teem_HEADER_FILES ${Teem_HEADER_FILES}
-    alan/alan.h
-    tijk/tijk.h
-    bane/bane.h
-    elf/elf.h
-    coil/coil.h
-    push/push.h
-    )
+    list(APPEND Teem_HEADER_FILES
+        "alan/alan.h"
+        "tijk/tijk.h"
+        "bane/bane.h"
+        "elf/elf.h"
+        "coil/coil.h"
+        "push/push.h")
 endif()
+
 set(Teem_INSTALLED_HEADER_FILES)
-foreach(header_file ${Teem_HEADER_FILES})
-  # When debugging, uncomment this line
-  #message(STATUS "Copy header file: ${header_file}")
-  get_filename_component(file_no_path "${header_file}" NAME)
-  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/${header_file}"
-    "${CMAKE_CURRENT_BINARY_DIR}/include/teem/${file_no_path}" COPYONLY IMMEDIATE)
-  set(Teem_INSTALLED_HEADER_FILES
-    ${Teem_INSTALLED_HEADER_FILES}
-    "${CMAKE_CURRENT_BINARY_DIR}/include/teem/${file_no_path}")
+foreach(header_file IN LISTS Teem_HEADER_FILES)
+    # When debugging, uncomment this line
+    # message(STATUS "Copy header file: ${header_file}")
+    get_filename_component(file_no_path "${header_file}" NAME)
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/${header_file}"
+                    "${CMAKE_CURRENT_BINARY_DIR}/include/teem/${file_no_path}" COPYONLY IMMEDIATE)
+    list(APPEND Teem_INSTALLED_HEADER_FILES "${CMAKE_CURRENT_BINARY_DIR}/include/teem/${file_no_path}")
 endforeach()
 
-#---
+#-----------------------------------------------------------------------------
 # header that defines AIR_EXISTS_MACRO_FAILS
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CMake/airExistsConf.h
-  ${CMAKE_CURRENT_BINARY_DIR}/include/teem/airExistsConf.h)
-set(Teem_INSTALLED_HEADER_FILES
-  ${Teem_INSTALLED_HEADER_FILES}
-  "${CMAKE_CURRENT_BINARY_DIR}/include/teem/airExistsConf.h")
-#---
-# Include directory
-include_directories(
-  "${Teem_BINARY_DIR}/include/"
-  "${Teem_SOURCE_DIR}/include/"
-  )
-
-
-## Add external library path includes
-if(Teem_ZLIB)
-  include_directories(${Teem_ZLIB_IPATH})
-  include_directories(${Teem_ZLIB_DLLCONF_IPATH})
-  if(Teem_PNG)
-    include_directories(${Teem_PNG_IPATH})
-    include_directories(${Teem_PNG_DLLCONF_IPATH})
-  endif()
-endif()
-
-if(Teem_BZIP2)
-  include_directories(${Teem_BZIP2_IPATH})
-endif()
-
-if(Teem_LEVMAR)
-  include_directories(${Teem_LEVMAR_IPATH})
-endif()
-
-if(Teem_FFTW3)
-  include_directories(${Teem_FFTW3_IPATH})
-endif()
-
-# All the source files
-set(Teem_SOURCES)
-
-#-----------------------------------------------------------------------------
-# Macro for adding the current set of source files to the master list
-macro(ADD_Teem_LIBRARY dir)
-  set(srcs)
-  foreach(src ${ARGN})
-    set(srcs ${srcs} "src/${dir}/${src}")
-  endforeach()
-  set(Teem_SOURCES ${Teem_SOURCES} ${srcs})
-  # This will group all the source files in the VS project by directory
-  source_group( ${dir} FILES ${srcs} )
-endmacro()
-
-
-#-----------------------------------------------------------------------------
-# Dispatch the build into the proper subdirectories.
-foreach(dir ${Teem_LIBRARIES})
-  include(src/${dir}/sources.cmake)
-endforeach()
+                ${CMAKE_CURRENT_BINARY_DIR}/include/teem/airExistsConf.h)
+list(APPEND Teem_INSTALLED_HEADER_FILES "${CMAKE_CURRENT_BINARY_DIR}/include/teem/airExistsConf.h")
 
 #-----------------------------------------------------------------------------
 # Build the Mega library
-#
-# This needs to occur after the parsing of the subdirectories.
+add_library(teem "")
+foreach(dir IN LISTS Teem_LIBRARIES)
+    add_subdirectory(src/${dir})
+endforeach()
 
-# Create the library target
-add_library(teem ${Teem_SOURCES})
-
+#-----------------------------------------------------------------------------
 # Set up some library paths for installation.  Windows will ingore the
 # RPATH stuff, and mac will ingore the INSTALL_RPATH.  Make sure for
 # macs to set BUILD_WITH_INSTALL_RPATH OFF and set INSTALL_NAME_DIR.
 # I belive INSTALL_NAME_DIR will be ignored on linux.
 set_target_properties(teem PROPERTIES
-  BUILD_WITH_INSTALL_RPATH OFF
-  INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
-  INSTALL_NAME_DIR ${CMAKE_INSTALL_PREFIX}/lib
-  SOVERSION 1
-  VERSION ${Teem_VERSION_STRING}
-  )
+                      BUILD_WITH_INSTALL_RPATH OFF
+                      INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
+                      INSTALL_NAME_DIR ${CMAKE_INSTALL_PREFIX}/lib
+                      SOVERSION 1
+                      VERSION ${Teem_VERSION_STRING})
 
-if(Teem_BZIP2_LIB)
-  target_link_libraries(teem ${Teem_BZIP2_LIB})
-endif()
 if(Teem_ZLIB_LIB)
-  target_link_libraries(teem ${Teem_ZLIB_LIB})
-  if(Teem_PNG_LIB)
+    target_include_directories(teem PUBLIC ${Teem_ZLIB_IPATH})
+    target_include_directories(teem PUBLIC ${Teem_ZLIB_DLLCONF_IPATH})
+    target_link_libraries(teem ${Teem_ZLIB_LIB})
+endif()
+if(Teem_PNG_LIB)
+    target_include_directories(teem PUBLIC ${Teem_PNG_IPATH})
+    target_include_directories(teem PUBLIC ${Teem_PNG_DLLCONF_IPATH})
     target_link_libraries(teem ${Teem_PNG_LIB})
-  endif()
 endif()
-
+if(Teem_BZIP2_LIB)
+    target_include_directories(teem PUBLIC ${Teem_BZIP2_IPATH})
+    target_include_directories(teem PUBLIC ${Teem_BZIP2_DLLCONF_IPATH})
+    target_link_libraries(teem ${Teem_BZIP2_LIB})
+endif()
 if(Teem_LEVMAR_LIB)
-  target_link_libraries(teem ${Teem_LEVMAR_LIB})
+    target_include_directories(teem PUBLIC ${Teem_LEVMAR_IPATH})
+    target_include_directories(teem PUBLIC ${Teem_LEVMAR_DLLCONF_IPATH})
+    target_link_libraries(teem ${Teem_LEVMAR_LIB})
 endif()
-
 if(Teem_FFTW3_LIB)
-  target_link_libraries(teem ${Teem_FFTW3_LIB})
+    target_include_directories(teem PUBLIC ${Teem_FFTW3_IPATH})
+    target_include_directories(teem PUBLIC ${Teem_FFTW3_DLLCONF_IPATH})
+    target_link_libraries(teem ${Teem_FFTW3_LIB})
 endif()
-
 if(Teem_PTHREAD)
-  target_link_libraries(teem ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(teem ${CMAKE_THREAD_LIBS_INIT})
 endif()
-
 if(UNIX)
-  target_link_libraries(teem -lm)
+    target_link_libraries(teem -lm)
 endif()
 
-option(Teem_USE_LIB_INSTALL_SUBDIR "Add a Teem-X.Y.Z directory layer to the installation tree for libraries and archives." OFF)
-if(Teem_USE_LIB_INSTALL_SUBDIR)
-  set(EXTRA_INSTALL_PATH /Teem-${Teem_VERSION_STRING})
-else()
-  set(EXTRA_INSTALL_PATH "")
-endif()
-
-install(TARGETS teem
-  RUNTIME DESTINATION bin COMPONENT RuntimeLibraries
-  LIBRARY DESTINATION lib${EXTRA_INSTALL_PATH} COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION lib${EXTRA_INSTALL_PATH} COMPONENT Development
-  )
+# install targets
+install(TARGETS teem EXPORT teem
+        RUNTIME DESTINATION bin COMPONENT RuntimeLibraries
+        LIBRARY DESTINATION lib${EXTRA_INSTALL_PATH} COMPONENT RuntimeLibraries
+        ARCHIVE DESTINATION lib${EXTRA_INSTALL_PATH} COMPONENT Development)
 
 export(TARGETS teem FILE ${Teem_BINARY_DIR}/TeemLibraryDepends.cmake)
-
-# Stand-alone programs to process hex encoding of data
-option(BUILD_HEX "Build dehex and enhex" OFF)
-if(BUILD_HEX)
-  add_subdirectory(src/hex)
-endif()
-
-#-----------------------------------------------------------------------------
-# For testing
-option(BUILD_TESTING "Enable this to perform testing of Teem" ON)
-
-if(BUILD_TESTING)
-  include(CTest)
-  enable_testing()
-  set(BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
-  mark_as_advanced(BUILDNAME)
-  mark_as_advanced(TCL_TCLSH)
-endif()
 
 #-----------------------------------------------------------------------------
 # Now compile the binaries
 add_subdirectory(src/bin)
 
-if(BUILD_TESTING)
-  add_subdirectory(Testing)
-endif()
-
 #-----------------------------------------------------------------------------
-# OUTDATED Help outside projects build Teem projects.
-set(Teem_CV_BUILD_SETTINGS_FILE ${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
-set(Teem_CV_BUILD_SETTINGS_FILE "\${Teem_ROOT_DIR}/lib${EXTRA_INSTALL_PATH}/TeemBuildSettings.cmake")
-file(WRITE ${Teem_BINARY_DIR}/TeemBuildSettings.cmake "# This file should NOT be used.
-# It is currently provided so that backwards compatibility with external projects
-# can be preserved.  External packages that include TeemBuildSettings.cmake should
-# stop using this feature.
-# 
-# CMake Error at cmake/Modules/CMakeExportBuildSettings.cmake:17 (message):
-# The functionality of the CMakeExportBuildSettings module has been dropped as of CMake 2.8.  It was
-# deemed harmful (confusing users by changing their compiler).  Please remove
-# calls to the CMAKE_EXPORT_BUILD_SETTINGS macro and stop including this
-# module.  If this project generates any files for use by external projects,
-# remove any use of the CMakeImportBuildSettings module from them.
-# include(CMakeExportBuildSettings)
-# CMAKE_EXPORT_BUILD_SETTINGS(${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
-#")
-
 set(CFLAGS "${CMAKE_C_FLAGS}")
 set(CC "${CMAKE_C_COMPILER}")
 
@@ -512,7 +412,6 @@ set(Teem_EXECUTABLE_DIRS ${__RUNTIME_OUTPUT_PATH_} CACHE INTERNAL "Single output
 
 # In the build tree, TeemConfig.cmake is in Teem_BINARY_DIR. The root of the
 # tree for finding include files relative to TeemConfig.cmake is "."
-#
 set(Teem_CV_CONFIG_TO_ROOT ".")
 set(Teem_CV_LIBRARY_DEPENDS_FILE ${Teem_BINARY_DIR}/TeemLibraryDepends.cmake)
 set(Teem_CV_EXECUTABLE_DIRS ${Teem_EXECUTABLE_DIRS})
@@ -522,7 +421,7 @@ set(Teem_CV_INCLUDE_DIRS "${Teem_BINARY_DIR}/include")
 set(Teem_CV_BUILT_LIBRARIES teem) # The libraries built by teem.  Currently we only build the mega library.
 
 configure_file("${Teem_SOURCE_DIR}/CMake/TeemConfig.cmake.in"
-  "${Teem_BINARY_DIR}/TeemConfig.cmake" @ONLY IMMEDIATE)
+                "${Teem_BINARY_DIR}/TeemConfig.cmake" @ONLY IMMEDIATE)
 
 
 # For install tree usage
@@ -530,11 +429,10 @@ configure_file("${Teem_SOURCE_DIR}/CMake/TeemConfig.cmake.in"
 # In the install tree, TeemConfig.cmake is in lib or lib/Teem-X.Y based on the
 # value of Teem_USE_LIB_INSTALL_SUBDIR. The root of the tree for finding
 # include files relative to TeemConfig.cmake is therefore ".." or "../.."
-#
 if(Teem_USE_LIB_INSTALL_SUBDIR)
-  set(Teem_CV_CONFIG_TO_ROOT "../..")
+    set(Teem_CV_CONFIG_TO_ROOT "../..")
 else()
-  set(Teem_CV_CONFIG_TO_ROOT "..")
+    set(Teem_CV_CONFIG_TO_ROOT "..")
 endif()
 
 set(Teem_CV_LIBRARY_DEPENDS_FILE "\${Teem_ROOT_DIR}/lib${EXTRA_INSTALL_PATH}/TeemLibraryDepends.cmake")
@@ -545,18 +443,21 @@ set(Teem_CV_INCLUDE_DIRS "\${Teem_ROOT_DIR}/include")
 set(Teem_CV_BUILT_LIBRARIES teem) # The libraries built by teem.  Currently we only build the mega library.
 
 configure_file("${Teem_SOURCE_DIR}/CMake/TeemConfig.cmake.in"
-  "${Teem_BINARY_DIR}/CMake/TeemConfig.cmake" @ONLY IMMEDIATE)
+                "${Teem_BINARY_DIR}/CMake/TeemConfig.cmake" @ONLY IMMEDIATE)
 
+# install headers
 install(FILES ${Teem_INSTALLED_HEADER_FILES}
-  DESTINATION include/teem
-  COMPONENT Development
-  )
+        DESTINATION include/teem
+        COMPONENT Development)
 
+# make install and cpack
+set(Teem_CV_BUILD_SETTINGS_FILE ${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
+set(Teem_CV_BUILD_SETTINGS_FILE "\${Teem_ROOT_DIR}/lib${EXTRA_INSTALL_PATH}/TeemBuildSettings.cmake")
+file(WRITE ${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
+install(EXPORT teem DESTINATION lib${EXTRA_INSTALL_PATH}/cmake/teem FILE TeemLibraryDepends.cmake)
 install(FILES
-  "${Teem_BINARY_DIR}/CMake/TeemConfig.cmake"
-  "${Teem_SOURCE_DIR}/CMake/TeemUse.cmake"
-  "${Teem_BINARY_DIR}/TeemBuildSettings.cmake"
-  "${Teem_BINARY_DIR}/TeemLibraryDepends.cmake"
-  DESTINATION lib${EXTRA_INSTALL_PATH}
-  COMPONENT Development
-  )
+        "${Teem_BINARY_DIR}/CMake/TeemConfig.cmake"
+        "${Teem_SOURCE_DIR}/CMake/TeemUse.cmake"
+        "${Teem_BINARY_DIR}/TeemBuildSettings.cmake"
+        DESTINATION lib${EXTRA_INSTALL_PATH}/cmake/teem
+        COMPONENT Development)

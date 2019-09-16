@@ -7,4 +7,6 @@ set(ALAN_SOURCES
   methodsAlan.c
   )
 
-ADD_TEEM_LIBRARY(alan ${ALAN_SOURCES})
+target_sources(teem PRIVATE ${ALAN_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( alan FILES ${ALAN_SOURCES} )

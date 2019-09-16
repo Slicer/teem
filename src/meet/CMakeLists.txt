@@ -8,4 +8,6 @@ set(MEET_SOURCES
   meet.h
   )
 
-ADD_TEEM_LIBRARY(meet ${MEET_SOURCES})
+target_sources(teem PRIVATE ${MEET_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( meet FILES ${MEET_SOURCES} )

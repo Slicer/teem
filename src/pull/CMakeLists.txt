@@ -22,4 +22,6 @@ set(PULL_SOURCES
   trace.c
   )
 
-ADD_TEEM_LIBRARY(pull ${PULL_SOURCES})
+target_sources(teem PRIVATE ${PULL_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( pull FILES ${PULL_SOURCES} )

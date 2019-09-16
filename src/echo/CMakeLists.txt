@@ -18,4 +18,6 @@ set(ECHO_SOURCES
   sqd.c
   )
 
-ADD_TEEM_LIBRARY(echo ${ECHO_SOURCES})
+target_sources(teem PRIVATE ${ECHO_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( echo FILES ${ECHO_SOURCES} )

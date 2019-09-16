@@ -60,4 +60,6 @@ set(NRRD_SOURCES
   write.c
   )
 
-ADD_TEEM_LIBRARY(nrrd ${NRRD_SOURCES})
+target_sources(teem PRIVATE ${NRRD_SOURCES})
+# This will group all the source files in the VS project by directory
+source_group( nrrd FILES ${NRRD_SOURCES} )
