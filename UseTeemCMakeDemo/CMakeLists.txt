@@ -1,4 +1,4 @@
-project (TeemSampleProject)
+project (SampleTeemUsingProject)
 
 cmake_minimum_required(VERSION 3.13...3.15)
 
@@ -9,6 +9,6 @@ else()
 endif()
 
 find_package(Teem REQUIRED)
-add_executable(sample sanity.c)
-target_include_directories(sample PRIVATE ${Teem_INCLUDE_DIRS})
-target_link_libraries(sample teem)
+add_executable(sanity sanity.c)
+target_include_directories(sanity PRIVATE ${Teem_INCLUDE_DIRS})
+target_link_libraries(sanity teem)
