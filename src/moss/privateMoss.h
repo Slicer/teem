@@ -21,6 +21,13 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#define MOSS_SX(img) (3 == (img)->dim \
+                      ? (img)->axis[1].size \
+                      : (img)->axis[0].size )
+#define MOSS_SY(img) (3 == (img)->dim \
+                      ? (img)->axis[2].size \
+                      : (img)->axis[1].size )
+
 #define MOSS_MAT_SET(mat, a, b, x, c, d, y) \
   (mat)[0]=(a); (mat)[1]=(b); (mat)[2]=(x); \
   (mat)[3]=(c); (mat)[4]=(d); (mat)[5]=(y)

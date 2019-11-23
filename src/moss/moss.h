@@ -52,14 +52,9 @@ extern "C" {
 
 #define MOSS mossBiffKey
 
-#define MOSS_NCOL(img) (3 == (img)->dim ? (img)->axis[0].size : 1)
+/* used by ilk, hence not in privateMoss.h */
 #define MOSS_AXIS0(img) (3 == (img)->dim ? 1 : 0)
-#define MOSS_SX(img) (3 == (img)->dim \
-                      ? (img)->axis[1].size \
-                      : (img)->axis[0].size )
-#define MOSS_SY(img) (3 == (img)->dim \
-                      ? (img)->axis[2].size \
-                      : (img)->axis[1].size )
+#define MOSS_NCOL(img) (3 == (img)->dim ? (img)->axis[0].size : 1)
 
 enum {
   mossFlagUnknown=-1,  /* -1: nobody knows */
