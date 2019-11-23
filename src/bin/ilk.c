@@ -43,8 +43,8 @@ main(int argc, const char *argv[]) {
   double mat[6], **matList, *origInfo, origMat[6], origInvMat[6], ox, oy,
     min[2], max[2];
   int d, bound, ax0, size[2]; /* HEY size[] should be size_t */
-  unsigned int matListLen, _bkgLen, i, avgNum;
-  float *bkg, *_bkg, scale[4];
+  unsigned int matListLen, _bkgLen, i, avgNum, bkgIdx;
+  float *_bkg, *bkg, scale[4];
 
   me = argv[0];
   mop = airMopNew();
@@ -95,6 +95,7 @@ main(int argc, const char *argv[]) {
              "\b\bo \"wrap\": do wrap-around on image locations\n "
              "\b\bo \"pad\": use a given background value (via \"-bg\")",
              NULL, nrrdBoundary);
+  bkgIdx =
   hestOptAdd(&hopt, "bg", "bg0 bg1", airTypeFloat, 1, -1, &_bkg, "nan",
              "background color to use with boundary behavior \"pad\". "
              "Defaults to all zeroes.",
@@ -113,9 +114,7 @@ main(int argc, const char *argv[]) {
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
                  me, ilkInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  /* HEY: this is commented out because there is a memory bug otherwise;
-     this needs to be debugged */
-  /* airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways); */
+  airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
@@ -130,16 +129,18 @@ main(int argc, const char *argv[]) {
   if (nrrdBoundaryPad == bound) {
     if (_bkgLen != MOSS_NCOL(nin)) {
       char stmp[AIR_STRLEN_SMALL];
-      fprintf(stderr, "%s: got %d background colors, image has %s colors\n",
+      fprintf(stderr, "%s: got %u background colors, image has %s colors\n",
               me, _bkgLen, airSprintSize_t(stmp, MOSS_NCOL(nin)));
       airMopError(mop); return 1;
     } else {
       bkg = _bkg;
     }
   } else {
-    /* maybe warn user if they gave a background that won't be used? */
-    /* No- because hest is stupid, and right now we always parse the
-       single (default) "nan" for this argument! */
+    if (hestSourceUser == hopt[bkgIdx].source) {
+      fprintf(stderr, "%s: WARNING: got %u background colors, but with %s "
+              "padding, they will not be used\n", me,
+              _bkgLen, airEnumStr(nrrdBoundary, bound));
+    }
     bkg = NULL;
   }
 
