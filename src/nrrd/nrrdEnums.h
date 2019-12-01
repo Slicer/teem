@@ -41,11 +41,15 @@ extern "C" {
 **
 ** the various things it makes sense to get and set in nrrdIoState struct
 ** via nrrdIoStateGet and nrrdIoStateSet
+** BUT HEY are those functions actually used (as opposed to directly reading
+** or setting fields in the nio)?  GLK honestly forgot about those functions
+** until working on adding nio->moreThanFloatInText
 */
 enum {
   nrrdIoStateUnknown,
   nrrdIoStateDetachedHeader,
   nrrdIoStateBareText,
+  nrrdIoStateMoreThanFloatInText,
   nrrdIoStateCharsPerLine,
   nrrdIoStateValsPerLine,
   nrrdIoStateSkipData,

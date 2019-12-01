@@ -235,8 +235,12 @@ _nrrdFieldValidInText[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_comment */
   1, /* nrrdField_content */
   0, /* nrrdField_number */
-  0, /* nrrdField_type: decided AGAINST plain text holding general type
-        (but I forget why ...) */
+  1, /* nrrdField_type: after revision 6359 (2019 T-day @ Hyatt Lost Pines),
+        decided that long-standing but unnecessary restriction of plain text
+        files only holding float (and not, say, double) had to go; hence the
+        new nio->moreThanFloatInText.  With that, this value changed from 0
+        to 1. However, nio->moreThanFloatInText defaults to false (i.e. only
+        float in text), so this should not be disruptive. */
   0, /* nrrdField_block_size */
   1, /* nrrdField_dimension: but can only be 1 or 2 */
   0, /* nrrdField_space */

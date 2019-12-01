@@ -49,6 +49,9 @@ nrrdIoStateSet(NrrdIoState *nio, int parm, int value) {
   case nrrdIoStateBareText:
     nio->bareText = !!value;
     break;
+  case nrrdIoStateMoreThanFloatInText:
+    nio->moreThanFloatInText = !!value;
+    break;
   case nrrdIoStateCharsPerLine:
     if (value < 40) {
       biffAddf(NRRD, "%s: %d charsPerLine is awfully small", me, value);
@@ -163,6 +166,9 @@ nrrdIoStateGet(NrrdIoState *nio, int parm) {
     break;
   case nrrdIoStateBareText:
     value = !!nio->bareText;
+    break;
+  case nrrdIoStateMoreThanFloatInText:
+    value = !!nio->moreThanFloatInText;
     break;
   case nrrdIoStateCharsPerLine:
     /* HEY: this cast is a bad because nio->charsPerLine is unsigned */

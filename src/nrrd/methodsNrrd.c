@@ -274,6 +274,7 @@ nrrdIoStateInit(NrrdIoState *nio) {
     memset(nio->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
     nio->detachedHeader = AIR_FALSE;
     nio->bareText = nrrdDefaultWriteBareText;
+    nio->moreThanFloatInText = nrrdDefaultWriteMoreThanFloatInText;
     nio->charsPerLine = nrrdDefaultWriteCharsPerLine;
     nio->valsPerLine = nrrdDefaultWriteValsPerLine;
     nio->skipData = AIR_FALSE;

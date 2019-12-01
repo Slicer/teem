@@ -524,6 +524,7 @@ _nrrdSpaceVectorParse(double val[NRRD_SPACE_DIM_MAX],
   return 0;
 }
 
+/* ---- BEGIN non-NrrdIO */
 /*
 ** public version of _nrrdSpaceVectorParse, which might not really be
 ** needed, but given how _nrrdSpaceVectorParse currently wants a
@@ -553,6 +554,7 @@ nrrdSpaceVectorParse(double dir[NRRD_SPACE_DIM_MAX],
   airMopOkay(mop);
   return 0;
 }
+/* ---- END non-NrrdIO */
 
 static int
 _nrrdReadNrrdParse_space_directions(FILE *file, Nrrd *nrrd,
@@ -1512,3 +1514,73 @@ int
 
 /* kernel parsing is all in kernel.c */
 
+/* nrrdStringValsParse[]: parse N values of given type from string
+   NB: based on air/parseAir.c
+*/
+#define P_ARGS (void *_out, const char *_s, const char *sep, size_t n)
+#define P_BODY(type, ntype)                               \
+  size_t i;                                               \
+  char *tmp, *s, *last;                                   \
+  const char *format;                                     \
+  type *out;                                              \
+                                                          \
+  /* if we got NULL, there's nothing to do */             \
+  if (!(_out && _s && sep))                               \
+    return 0;                                             \
+  format = nrrdTypePrintfStr[ntype];                      \
+  out = (type*)_out;                                      \
+  /* copy the input so that we don't change it */         \
+  s = airStrdup(_s);                                      \
+                                                          \
+  /* keep calling airStrtok() until we have everything */ \
+  for (i=0; i<n; i++) {                                   \
+    tmp = airStrtok(i ? NULL : s, sep, &last);            \
+    if (!tmp) {                                           \
+      free(s);                                            \
+      return i;                                           \
+    }                                                     \
+    if (1 != airSingleSscanf(tmp, format, out+i)) {       \
+      free(s);                                            \
+      return i;                                           \
+    }                                                     \
+  }                                                       \
+  free(s);                                                \
+  return n
+
+static size_t   _parseChar P_ARGS { P_BODY(          char,   nrrdTypeChar); }
+static size_t  _parseUChar P_ARGS { P_BODY( unsigned char,  nrrdTypeUChar); }
+static size_t  _parseShort P_ARGS { P_BODY(         short,  nrrdTypeShort); }
+static size_t _parseUShort P_ARGS { P_BODY(unsigned short, nrrdTypeUShort); }
+static size_t    _parseInt P_ARGS { P_BODY(           int,    nrrdTypeInt); }
+static size_t   _parseUInt P_ARGS { P_BODY(  unsigned int,   nrrdTypeUInt); }
+static size_t  _parseLLong P_ARGS { P_BODY(      airLLong,  nrrdTypeLLong); }
+static size_t _parseULLong P_ARGS { P_BODY(     airULLong, nrrdTypeULLong); }
+static size_t  _parseFloat P_ARGS { P_BODY(         float,  nrrdTypeFloat); }
+static size_t _parseDouble P_ARGS { P_BODY(        double, nrrdTypeDouble); }
+static size_t _parseNoop(void *out, const char *s, const char *sep, size_t n) {
+  AIR_UNUSED(out);
+  AIR_UNUSED(s);
+  AIR_UNUSED(sep);
+  AIR_UNUSED(n);
+  return 0;
+}
+#undef P_ARGS
+#undef P_BODY
+
+size_t
+(*const nrrdStringValsParse[NRRD_TYPE_MAX+1])(void *out, const char *s,
+                                              const char *sep, size_t n)
+= {
+   _parseNoop, /* 0 = unknown */
+   _parseChar,
+   _parseUChar,
+   _parseShort,
+   _parseUShort,
+   _parseInt,
+   _parseUInt,
+   _parseLLong,
+   _parseULLong,
+   _parseFloat,
+   _parseDouble,
+   _parseNoop /* block */
+};

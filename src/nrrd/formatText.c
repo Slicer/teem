@@ -71,12 +71,14 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatText_read";
   const char *fs;
   char *errS;
-  unsigned int plen, llen;
-  size_t line, sx, sy, size[NRRD_DIM_MAX];
+  unsigned int llen;
+  size_t line, plen, sx, sy, elsz, size[NRRD_DIM_MAX];
   int nret, fidx, settwo = 0, gotOnePerAxis = AIR_FALSE;
-  /* fl: first line, al: all lines */
-  airArray *flArr, *alArr;
-  float *fl, *al, oneFloat;
+  /* fl: first line (of floats) */
+  airArray *flArr, *dataArr;
+  float oneFloat;
+  char *data;
+  size_t (*parser)(void *, const char *, const char *, size_t);
   airPtrPtrUnion appu;
 
   if (!_nrrdFormatText_contentStartsLike(nio)) {
@@ -132,6 +134,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       }
       if (nrrdField_dimension == fidx) {
         /* "# dimension: 0" lead nrrd->dim being set to 0 */
+        /* HEY reconcile this with 7 lines later! */
         nrrd->dim = 2;
       }
       free(errS);
@@ -174,15 +177,16 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     line++;
   }
 
-  /* we supposedly have a line of numbers, see how many there are */
+  /* we supposedly have a line of numbers, now see how many there are.
+     For the specific purpose of counting numbers, we assume float type;
+     but we aren't going to remember these values. */
   if (!airParseStrF(&oneFloat, nio->line, _nrrdTextSep, 1)) {
     char stmp[AIR_STRLEN_SMALL];
     biffAddf(NRRD, "%s: couldn't parse a single number on line %s", me,
              airSprintSize_t(stmp, line));
     UNSETTWO; return 1;
   }
-  appu.f = &fl;
-  flArr = airArrayNew(appu.v, NULL, sizeof(float), _NRRD_TEXT_INCR);
+  flArr = airArrayNew(NULL, NULL, sizeof(float), _NRRD_TEXT_INCR);
   if (!flArr) {
     biffAddf(NRRD, "%s: couldn't create array for first line values", me);
     UNSETTWO; return 1;
@@ -197,14 +201,15 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
                airSprintSize_t(stmp, sx));
       UNSETTWO; return 1;
     }
-    if (sx > airParseStrF(fl, nio->line, _nrrdTextSep, AIR_CAST(unsigned int, sx))) {
+    if (sx > airParseStrF(flArr->data, nio->line,
+                          _nrrdTextSep, AIR_CAST(unsigned int, sx))) {
       /* We asked for sx ints and got less.  We know that we successfully
          got one value, so we did succeed in parsing sx-1 values */
       sx--;
       break;
     }
   }
-  flArr = airArrayNuke(flArr);
+  flArr = airArrayNuke(flArr); /* forget about values parsed on 1st line */
   if (1 == nrrd->dim && 1 != sx) {
     char stmp[AIR_STRLEN_SMALL];
     biffAddf(NRRD, "%s: wanted 1-D nrrd, but got %s values on 1st line", me,
@@ -213,28 +218,51 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   /* else sx == 1 when nrrd->dim == 1 */
 
+  if (nrrdTypeBlock == nrrd->type) {
+    biffAddf(NRRD, "%s: can't read %s type data from text", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
+    UNSETTWO; return 1;
+  }
+  /* If nrrd->type is non-zero (something other than nrrdTypeUnknown), that
+     means the value type in the text file has been explicitly documented via
+     a "type:" field (thanks to nio->moreThanFloatInText). We learned sx
+     above by counting how many *floats* could be parsed, but next we have to
+     actually learn values of type only known at run-time.
+
+     Else (nrrd->type is zero): nio->moreThanFloatInText describes the
+     capability of plain text file on *write*, but there isn't currently a
+     way of saying "when reading plain text that doesn't say otherwise, we
+     should understand it as of type THIS", so we'll stick with the type that
+     this library has long associated with plain text: float */
+  if (!nrrd->type) {
+    nrrd->type = nrrdTypeFloat;
+  }
+  elsz = nrrdTypeSize[nrrd->type];
+  parser = nrrdStringValsParse[nrrd->type];
+
   /* now see how many more lines there are */
-  appu.f = &al;
-  alArr = airArrayNew(appu.v, NULL, sx*sizeof(float), _NRRD_TEXT_INCR);
-  if (!alArr) {
+  appu.c = &data;
+  dataArr = airArrayNew(appu.v, NULL, sx*elsz, _NRRD_TEXT_INCR);
+  if (!dataArr) {
     biffAddf(NRRD, "%s: couldn't create data buffer", me);
     UNSETTWO; return 1;
   }
   sy = 0;
   while (llen) {
-    airArrayLenIncr(alArr, 1);
-    if (!alArr->data) {
+    airArrayLenIncr(dataArr, 1);
+    if (!dataArr->data) {
       char stmp[AIR_STRLEN_SMALL];
       biffAddf(NRRD, "%s: couldn't create scanline of %s values", me,
                airSprintSize_t(stmp, sx));
       UNSETTWO; return 1;
     }
-    plen = airParseStrF(al + sy*sx, nio->line, _nrrdTextSep, AIR_CAST(unsigned int, sx));
+    plen = parser(data + sy*sx*elsz, nio->line, _nrrdTextSep, sx);
     if (sx > plen) {
-      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
-      biffAddf(NRRD, "%s: could only parse %d values (not %s) on line %s",
-               me, plen, airSprintSize_t(stmp1, sx),
-               airSprintSize_t(stmp2, line));
+      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL],
+        stmp3[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: could only parse %s values (not %s) on line %s", me,
+               airSprintSize_t(stmp1, plen), airSprintSize_t(stmp2, sx),
+               airSprintSize_t(stmp3, line));
       UNSETTWO; return 1;
     }
     sy++;
@@ -260,30 +288,36 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     size[1] = sy;
   }
 
-  if (nio->oldData
-      && nio->oldDataSize == (size_t)(nrrdTypeSize[nrrdTypeFloat]*sx*sy)) {
-    nret = nrrdWrap_nva(nrrd, nio->oldData, nrrdTypeFloat, nrrd->dim, size);
+  if (nio->oldData && nio->oldDataSize == sx*sy*elsz) {
+    nret = nrrdWrap_nva(nrrd, nio->oldData, nrrd->type, nrrd->dim, size);
   } else {
-    nret = nrrdMaybeAlloc_nva(nrrd, nrrdTypeFloat, nrrd->dim, size);
+    nret = nrrdMaybeAlloc_nva(nrrd, nrrd->type, nrrd->dim, size);
   }
   if (nret) {
     biffAddf(NRRD, "%s: couldn't create nrrd for plain text data", me);
     UNSETTWO; return 1;
   }
-  memcpy(nrrd->data, al, sx*sy*sizeof(float));
+  memcpy(nrrd->data, data, sx*sy*elsz);
 
-  alArr = airArrayNuke(alArr);
+  dataArr = airArrayNuke(dataArr);
   return 0;
 }
 
 static int
 _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   char cmt[AIR_STRLEN_SMALL], buff[AIR_STRLEN_SMALL];
-  size_t I;
+  size_t I, dsz;
   int i, x, y, sx, sy;
-  void *data;
+  const void *data;
+  const char *cdata;
   float val;
+  int moreThanFloat;
 
+  /* should we exercise new functionality to save more than just
+     float in a text file */
+  moreThanFloat = (nrrdTypeFloat != nrrd->type
+                   && !nio->bareText
+                   && nio->moreThanFloatInText);
   sprintf(cmt, "%c ", NRRD_COMMENT_CHAR);
   if (!nio->bareText) {
     if (1 == nrrd->dim) {
@@ -291,9 +325,12 @@ _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
                            AIR_FALSE);
     }
     for (i=1; i<=NRRD_FIELD_MAX; i++) {
-      if (_nrrdFieldValidInText[i]
+      if (_nrrdFieldValidInText[i] /* (nrrdType is now valid) */
           && nrrdField_dimension != i  /* dimension is handled above */
-          && _nrrdFieldInteresting(nrrd, nio, i)) {
+          && _nrrdFieldInteresting(nrrd, nio, i)
+          && (nrrdField_type != i /* either not type */
+              || moreThanFloat)) { /* or is type, and we should
+                                      record non-float type */
         _nrrdFprintFieldInfo(file, cmt, nrrd, nio, i, AIR_FALSE);
       }
     }
@@ -316,11 +353,17 @@ _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     sy = AIR_CAST(int, nrrd->axis[1].size);
   }
   data = nrrd->data;
+  cdata = (const char*)nrrd->data;
+  dsz = nrrdTypeSize[nrrd->type];
   I = 0;
   for (y=0; y<sy; y++) {
     for (x=0; x<sx; x++) {
-      val = nrrdFLookup[nrrd->type](data, I);
-      nrrdSprint[nrrdTypeFloat](buff, &val);
+      if (moreThanFloat) {
+        nrrdSprint[nrrd->type](buff, cdata + I*dsz);
+      } else {
+        val = nrrdFLookup[nrrd->type](data, I);
+        nrrdSprint[nrrdTypeFloat](buff, &val);
+      }
       if (x) fprintf(file, " ");
       fprintf(file, "%s", buff);
       I++;

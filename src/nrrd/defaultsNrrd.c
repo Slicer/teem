@@ -40,6 +40,7 @@
 
 int nrrdDefaultWriteEncodingType = nrrdEncodingTypeRaw;
 int nrrdDefaultWriteBareText = AIR_TRUE;
+int nrrdDefaultWriteMoreThanFloatInText = AIR_FALSE;
 unsigned int nrrdDefaultWriteCharsPerLine = 75;
 unsigned int nrrdDefaultWriteValsPerLine = 8;
 /* ---- BEGIN non-NrrdIO */
@@ -109,6 +110,8 @@ const char *const nrrdEnvVarDefaultWriteBareText
   = "NRRD_DEFAULT_WRITE_BARE_TEXT";
 const char *const nrrdEnvVarDefaultWriteBareTextOld
   = "NRRD_DEF_WRITE_BARE_TEXT";
+const char *const nrrdEnvVarDefaultWriteMoreThanFloatInText
+  = "NRRD_DEFAULT_WRITE_MORE_THAN_FLOAT_IN_TEXT";
 const char *const nrrdEnvVarDefaultCenter
   = "NRRD_DEFAULT_CENTER";
 const char *const nrrdEnvVarDefaultCenterOld
@@ -309,6 +312,8 @@ nrrdDefaultGetenv(void) {
   }
   /* these post-date the Def --> Default rename */
 
+  nrrdGetenvBool(/**/ &nrrdDefaultWriteMoreThanFloatInText, NULL,
+                 nrrdEnvVarDefaultWriteMoreThanFloatInText);
   nrrdGetenvEnum(/**/ &nrrdDefaultWriteEncodingType, NULL, nrrdEncodingType,
                  nrrdEnvVarDefaultWriteEncodingType);
   nrrdGetenvUInt(/**/ &nrrdDefaultWriteCharsPerLine, NULL,

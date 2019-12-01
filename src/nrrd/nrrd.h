@@ -394,6 +394,10 @@ typedef struct NrrdIoState_t {
     bareText,               /* when writing a plain text file, is there any
                                effort made to record the nrrd struct
                                info in the text file */
+    moreThanFloatInText,    /* when writing a plain text file, instead of the
+                               usual behavior of silently converting to float,
+                               explicitly record the type, and also ensure
+                               that the ascii encoding is lossless */
     skipData,               /* if non-zero (all formats):
                                ON READ: don't allocate memory for, and don't
                                read in, the data portion of the file (but we
@@ -678,6 +682,7 @@ typedef struct {
 /* defaultsNrrd.c */
 NRRD_EXPORT int nrrdDefaultWriteEncodingType;
 NRRD_EXPORT int nrrdDefaultWriteBareText;
+NRRD_EXPORT int nrrdDefaultWriteMoreThanFloatInText;
 NRRD_EXPORT unsigned int nrrdDefaultWriteCharsPerLine;
 NRRD_EXPORT unsigned int nrrdDefaultWriteValsPerLine;
 /* ---- BEGIN non-NrrdIO */
@@ -712,6 +717,7 @@ NRRD_EXPORT int nrrdStateKindNoop;
 NRRD_EXPORT const char *const nrrdEnvVarDefaultWriteEncodingType;
 NRRD_EXPORT const char *const nrrdEnvVarDefaultWriteBareText;
 NRRD_EXPORT const char *const nrrdEnvVarDefaultWriteBareTextOld;
+NRRD_EXPORT const char *const nrrdEnvVarDefaultWriteMoreThanFloatInText;
 NRRD_EXPORT const char *const nrrdEnvVarDefaultCenter;
 NRRD_EXPORT const char *const nrrdEnvVarDefaultCenterOld;
 NRRD_EXPORT const char *const nrrdEnvVarDefaultWriteCharsPerLine;
@@ -1004,6 +1010,8 @@ NRRD_EXPORT int nrrdSpaceVectorParse(double dir[NRRD_SPACE_DIM_MAX],
                                      const char *str, unsigned int spaceDim,
                                      int useBiff);
 /* ---- END non-NrrdIO */
+NRRD_EXPORT size_t (*const nrrdStringValsParse[NRRD_TYPE_MAX+1])
+                    (void *out, const char *s, const char *sep, size_t n);
 
 /* read.c */
 NRRD_EXPORT int _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file);
