@@ -1,4 +1,6 @@
 all IO-related things:
+* why on earth is code in, say, formatText.c looking at nrrdStateVerboseIO,
+  instead of a field for verbosity in the NrrdIoState?
 * get back verbose IO messages about fread-vs-directIO
 * enable imagemagick-style format flagging on filenames ("PNM:-"),
 thereby obviating "unu save -f pnm" steps in pipes to standard out
