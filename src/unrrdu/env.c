@@ -287,6 +287,13 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                   "When false, text files used for saving nrrds start with "
                   "comment (\"# ...\") lines containing nrrd fields.",
                   hparm->columns);
+  _unrrdu_envBool(out,
+                  nrrdEnvVarDefaultWriteMoreThanFloatInText,
+                  nrrdDefaultWriteMoreThanFloatInText,
+                  "nrrdDefaultWriteMoreThanFloatInText",
+                  "When true, text files used for saving nrrds can "
+                  "losslessly store values of more than just float type.",
+                  hparm->columns);
   _unrrdu_envEnum(out,
                   nrrdType, nrrdEnvVarStateMeasureType,
                   nrrdStateMeasureType,
