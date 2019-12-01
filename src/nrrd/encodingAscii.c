@@ -59,7 +59,7 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
          echo "0 0 0 0 1 0 0 0 0" \
           | unu reshape -s 9 1 1 \
           | unu pad -min 0 0 0 -max 8 8 8 \
-          | unu make -s 9 9 9 -t float -e ascii -ls 9 \
+          | unu make -s 9 9 9 -t float -e ascii -ls 10 \
             -spc LPS -orig "(0,0,0)" -dirs "(1,0,0) (0,1,0) (0,0,1)"
        This particular case is resolved by changing AIR_STRLEN_HUGE
        to AIR_STRLEN_HUGE*100, but the general problem remains.  This
