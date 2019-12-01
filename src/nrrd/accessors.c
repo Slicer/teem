@@ -226,11 +226,9 @@ static int _nrrdSprintLL(char *s, const LL *v) {
 static int _nrrdSprintUL(char *s, const UL *v) {
   return sprintf(s, AIR_ULLONG_FMT, *v);
 }
-/* HEY: sizeof(float) and sizeof(double) assumed here, since we're
-   basing "8" and "17" on 6 == FLT_DIG and 15 == DBL_DIG, which are
-   digits of precision for floats and doubles, respectively */
 static int _nrrdSprintFL(char *s, const FL *v) {
-  return airSinglePrintf(NULL, s, "%.8g", (double)(*v)); }
+  /* having %.8g instead of %.9g was a roughly 20-year old bug */
+  return airSinglePrintf(NULL, s, "%.9g", (double)(*v)); }
 static int _nrrdSprintDB(char *s, const DB *v) {
   return airSinglePrintf(NULL, s, "%.17g", *v); }
 int (*
