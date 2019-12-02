@@ -62,7 +62,11 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP,
   ai = 0;
   while (argv[ai]) {
     if (parm->respFileFlag == argv[ai][0]) {
-      if (!(file = airFopen(argv[ai]+1, stdin, "rb"))) {
+      /* NOTE: despite the repeated temptation: "-" aka stdin cannot
+         be a response file, because it is going to be read in twice:
+         once by _hestArgsInResponseFiles, and then again by
+         _hestResponseFiles */
+      if (!(file = fopen(argv[ai]+1, "rb"))) {
         /* can't open the indicated response file for reading */
         sprintf(err, "%scouldn't open \"%s\" for reading as response file",
                 ME, argv[ai]+1);
