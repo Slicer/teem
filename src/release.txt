@@ -8,7 +8,7 @@ then; consider it a work-in-progress ...
 -4) Make sure the CMake and GNUMake agree on source files per-library
 
 -3.5) make sure that teem/src/meet/enumall.c:meetAirEnumAll()
- is up-to-date
+ is up-to-date, and run teem/src/meet/test/tenums
 
 -3) make sure that all the files have the right copyright
 pre-ambles
