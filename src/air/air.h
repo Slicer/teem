@@ -93,7 +93,6 @@ typedef unsigned long long airULLong;
 #endif
 
 /* ---- BEGIN non-NrrdIO */
-/* This is annoying, thanks to windows */
 #define AIR_PI 3.14159265358979323846
 #define AIR_E  2.71828182845904523536
 /* ---- END non-NrrdIO */
