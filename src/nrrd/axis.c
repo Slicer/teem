@@ -1286,11 +1286,13 @@ nrrdOrientationReduce(Nrrd *nout, const Nrrd *nin,
   return 0;
 }
 
+/* ---- BEGIN non-NrrdIO */
+
 /*
 ******** nrrdMetaData
 **
 ** The brains of "unu dnorm" (for Diderot normalization): put all meta-data
-** of a nrrd into some simpler canonical form. 
+** of a nrrd into some simpler canonical form.
 **
 ** This function probably doesn't belong in this file, but it is kind
 ** the opposite of nrrdOrientationReduce (above), so here it is
@@ -1637,3 +1639,4 @@ nrrdMetaDataNormalize(Nrrd *nout, const Nrrd *nin,
   return 0;
 }
 
+/* ---- END non-NrrdIO */
