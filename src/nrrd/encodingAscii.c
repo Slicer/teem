@@ -116,7 +116,7 @@ _nrrdEncodingAscii_write(FILE *file, const void *_data, size_t elNum,
   size_t bufflen, linelen;
   const char *data;
   size_t I;
-  int newlined;
+  int newlined=AIR_FALSE;
 
   if (nrrdTypeBlock == nrrd->type) {
     biffAddf(NRRD, "%s: can't write nrrd type %s to %s", me,
