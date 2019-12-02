@@ -123,7 +123,7 @@ _nrrdEncodingHex_write(FILE *file, const void *_data, size_t elNum,
 
   if (!( file && _data && nrrd && nio )) {
     biffAddf(NRRD, "%s: got NULL pointer (%p,%p,%p,%p)", me,
-             file, _data, nrrd, nio);
+             (void*)file, (const void*)_data, (const void*)nrrd, (void*)nio);
     return 1;
   }
   bytesPerLine = AIR_MAX(1, nio->charsPerLine/2);
