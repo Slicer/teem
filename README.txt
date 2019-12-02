@@ -1,6 +1,6 @@
 ===============
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2009--2019  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -62,10 +62,10 @@ http://teem.sourceforge.net/build.html
   Files related to compiling Teem with CMake
 
 * Testing/
-  Tests run by CTest.  More are being added.
+  Tests run by CTest.  More should be added.
 
 * data/
-  Small reference datasets; more will be added for testing
+  Small reference datasets; more may be added for testing
 
 * arch/
   When using the old GNU make system, objects and binaries are put
@@ -84,7 +84,7 @@ http://teem.sourceforge.net/build.html
     can link against them there
 
 * python/
-  For python wrappings
+  For python wrappings, although these are not maintained.
   * python/ctypes
     Bindings for python via ctypes
 
