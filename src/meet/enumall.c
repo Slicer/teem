@@ -83,6 +83,7 @@ meetAirEnumAll() {
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdField;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdSpace;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdSpacingStatus;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdFormatPNGsRGBIntent;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdOrientationHave;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdBoundary;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdMeasure;
@@ -92,9 +93,9 @@ meetAirEnumAll() {
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdFFTWPlanRigor;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdResampleNonExistent;
   ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdMetaDataCanonicalVersion;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdFormatPNGsRGBIntent;
 
   /* ell */
+  ii = airArrayLenIncr(arr, 1); enm[ii] = ell_quadratic_root;
   ii = airArrayLenIncr(arr, 1); enm[ii] = ell_cubic_root;
 
   /* unrrdu: no airEnums */
@@ -116,6 +117,7 @@ meetAirEnumAll() {
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageItemPackPart;
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageScl;
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageVec;
+  ii = airArrayLenIncr(arr, 1); enm[ii] = gage2Vec;
   ii = airArrayLenIncr(arr, 1); enm[ii] = gageSigmaSampling;
 
   /* dye */
