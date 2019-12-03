@@ -29,6 +29,13 @@ main(int argc, char *argv[]) {
   char *me, *ns;
   unsigned int cc, nn;
 
+  char str[]="this is a line";
+  str[5] = (char)130;
+  char *dup = airStrdup(str);
+  printf("str\n|%s| == |%s|\n", str, dup);
+  airOneLinify(dup);
+  printf("|%s|\n", dup);
+
   me = argv[0];
   if (2 != argc) {
     /*                       0  1   (2) */
