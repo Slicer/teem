@@ -135,7 +135,7 @@ On output:
 ****
 ***/
 
-#define MAGIC "NRRD"
+#define MGIC "NRRD"
 #define MAGIC0 "NRRD00.01"
 #define MAGIC1 "NRRD0001"
 #define MAGIC2 "NRRD0002"
@@ -290,7 +290,9 @@ nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
 }
 
 /*
-** we try to use the oldest format that will hold the nrrd
+** we try to use the oldest format that will hold the nrrd; this
+** function will determine which NRRD00XX magic gets used for the
+** output file
 */
 int
 _nrrdFormatNRRD_whichVersion(const Nrrd *nrrd, NrrdIoState *nio) {
@@ -678,12 +680,13 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
 
   /* the magic is in fact the first thing to be written */
   if (file) {
-    fprintf(file, "%s%04d\n", MAGIC, _nrrdFormatNRRD_whichVersion(nrrd, nio));
+    fprintf(file, "%s%04d\n", MGIC, _nrrdFormatNRRD_whichVersion(nrrd, nio));
   } else if (nio->headerStringWrite) {
     sprintf(nio->headerStringWrite, "%s%04d\n",
-            MAGIC, _nrrdFormatNRRD_whichVersion(nrrd, nio));
+            MGIC, _nrrdFormatNRRD_whichVersion(nrrd, nio));
   } else {
-    nio->headerStrlen = AIR_CAST(unsigned int, strlen(MAGIC) + strlen("0000")) + 1;
+    nio->headerStrlen = AIR_CAST(unsigned int, strlen(MGIC)
+                                 + strlen("0000")) + 1;
   }
 
   /* write the advertisement about where to get the file format */
