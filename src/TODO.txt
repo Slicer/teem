@@ -45,7 +45,7 @@ all:
 
 air:
 * find and use a good sscanf/printf replacement. Current annoyances:
-  - not being able to ask, "will sprintf'ingt this take up more than
+  - not being able to ask, "will sprintf'ing this take up more than
   this pre-allocated buffer", and "allocate this for as big as you need
   to sprintf this".
   - using airSingleScanf and airSinglePrintf for correctly handling
