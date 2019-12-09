@@ -217,6 +217,10 @@ hestInfo(FILE *file, const char *argv0, const char *info,
       fprintf(file, "\n%s: ", argv0);
       _hestPrintStr(file, 0, AIR_UINT(strlen(argv0)) + 2,
                     PARM->columns, info, AIR_FALSE);
+      if (PARM->noBlankLineBeforeUsage) {
+        /* we still want a blank line to separate info and usage */
+        fprintf(file, "\n");
+      }
     } else {
       fprintf(file, "ERROR: hestInfo got NULL argv0\n");
     }
@@ -244,7 +248,9 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0,
   }
 
   numOpts = _hestNumOpts(opt);
-  fprintf(f, "\n");
+  if (!(PARM->noBlankLineBeforeUsage)) {
+    fprintf(f, "\n");
+  }
   strcpy(buff, "Usage: ");
   strcat(buff, argv0 ? argv0 : "");
   if (PARM->respFileEnable) {

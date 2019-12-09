@@ -54,6 +54,10 @@ hestParmNew() {
     parm->respFileComment = hestRespFileComment;
     parm->varParamStopFlag = hestVarParamStopFlag;
     parm->multiFlagSep = hestMultiFlagSep;
+    /* for these most recent addition to the hestParm,
+       abstaining from added yet another default globals */
+    parm->dieLessVerbose = AIR_FALSE;
+    parm->noBlankLineBeforeUsage = AIR_FALSE;
   }
   return parm;
 }

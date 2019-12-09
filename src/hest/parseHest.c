@@ -1369,8 +1369,7 @@ hestParseOrDie(hestOpt *opt, int argc, const char **argv,
                hestParm *parm,
                const char *me, const char *info,
                int doInfo, int doUsage, int doGlossary) {
-  int E;
-  int argcBad;
+  int E, argcBad, wantHelp=AIR_FALSE;
   char *errS;
 
   if (opt) {
@@ -1394,18 +1393,31 @@ hestParseOrDie(hestOpt *opt, int argc, const char **argv,
           exit(0);
         } else if (argv[0] && !strcmp(argv[0], "--help")) {
           /* actually, not an error, they were asking for help */
+          wantHelp=AIR_TRUE;
           E = 0;
         } else {
           fprintf(stderr, "ERROR: %s\n", errS);
         }
         free(errS);
       }
-      if (!E) {
-        /* no error, just !argc */
-        if (doInfo && info) hestInfo(stdout, me?me:"", info, parm);
+      if (parm && parm->dieLessVerbose) {
+        /* newer logic for when to print which things */
+        if (wantHelp && info) hestInfo(stdout, me?me:"", info, parm);
+        if (doUsage) hestUsage(E ? stderr : stdout, opt, me?me:"", parm);
+        if (wantHelp && doGlossary) {
+          hestGlossary(E ? stderr : stdout, opt, parm);
+        } else if ((!argc || E) && me) {
+          printf("\"%s --help\" for more information\n", me);
+        }
+      } else {
+        /* leave older (pre-dieLessVerbose) logic as is */
+        if (!E) {
+          /* no error, just !argc */
+          if (doInfo && info) hestInfo(stdout, me?me:"", info, parm);
+        }
+        if (doUsage) hestUsage(E ? stderr : stdout, opt, me?me:"", parm);
+        if (doGlossary) hestGlossary(E ? stderr : stdout, opt, parm);
       }
-      if (doUsage) hestUsage(E ? stderr : stdout, opt, me?me:"", parm);
-      if (doGlossary) hestGlossary(E ? stderr : stdout, opt, parm);
       hestParmFree(parm);
       hestOptFree(opt);
       exit(1);

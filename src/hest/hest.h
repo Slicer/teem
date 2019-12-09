@@ -178,10 +178,14 @@ typedef struct {
                            "show me usage info"). */
     greedySingleString, /* when parsing a single string, whether or not
                            to be greedy (as per airParseStrS) */
-    cleverPluralizeOtherY; /* when printing the type for airTypeOther, when
+    cleverPluralizeOtherY, /* when printing the type for airTypeOther, when
                               the min number of items is > 1, and the type
                               string ends with "y", then pluralize with
                               "ies" instead of "ys" */
+    dieLessVerbose,     /* on parse failure, hestParseOrDie prints less
+                           than it otherwise might: only print info and
+                           glossary when they "ask for it" */
+    noBlankLineBeforeUsage; /* like it says */
   unsigned int columns; /* number of printable columns in output */
   char respFileFlag,    /* the character at the beginning of an argument
                            indicating that this is a response file name */
