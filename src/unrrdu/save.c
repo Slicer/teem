@@ -54,7 +54,10 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
          "output file format. Possibilities include:\n "
          "\b\bo \"nrrd\": standard nrrd format\n "
          "\b\bo \"pnm\": PNM image; PPM for color, PGM for grayscale\n "
-         "\b\bo \"text\": plain ASCII text for 1-D and 2-D data\n "
+         "\b\bo \"text\": ASCII text for 1-D and 2-D data\n "
+         "\b\bo \"ptext\": like \"text\" but enforcing real plain text,\n "
+         "        i.e., no NRRD header fields on lines (prior to data) \n "
+         "        starting with \"#\"\n "
          "\b\bo \"vtk\": VTK \"STRUCTURED_POINTS\" dataset");
   if (nrrdFormatPNG->available()) {
     strcat(fmtInfo,
