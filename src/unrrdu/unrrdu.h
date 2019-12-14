@@ -239,6 +239,7 @@ UNRRDU_EXPORT hestCB unrrduHestScaleCB;
 UNRRDU_EXPORT hestCB unrrduHestBitsCB;
 UNRRDU_EXPORT hestCB unrrduHestFileCB;
 UNRRDU_EXPORT hestCB unrrduHestEncodingCB;
+UNRRDU_EXPORT hestCB unrrduHestFormatCB;
 
 
 #ifdef __cplusplus

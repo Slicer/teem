@@ -703,3 +703,52 @@ hestCB unrrduHestEncodingCB = {
   NULL
 };
 
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
+
+/*
+******** unrrduHestFormatCB
+**
+** for parsing output format
+** enc[0]: which format, from nrrdFormatType* enum
+** enc[1]: for nrrdFormatText: bool for whether to enforce plain "bare" text
+**         as indicated by one of: btext, ptext, baretext, plaintext
+*/
+int
+unrrduParseFormat(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[]="unrrduParseFormat";
+  int *enc;
+
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  enc = (int *)ptr;
+  /* these are the defaults, they may not get over-written */
+  enc[1] = 0;
+
+  enc[0] = airEnumVal(nrrdFormatType, str);
+  if (nrrdFormatTypeUnknown != enc[0]) {
+    /* we're done; given format was exactly a standard format */
+    return 0;
+  }
+  /* else given format was non-standard */
+  if (!strcmp("ptext", str) || !strcmp("plaintext", str)
+      || !strcmp("btext", str) || !strcmp("baretext", str)) {
+    enc[0] = nrrdFormatTypeText;
+    enc[1] = AIR_TRUE;
+  } else {
+    sprintf(err, "%s: format \"%s\" not a %s or recognized alternate",
+            me, str, nrrdFormatType->name);
+    return 1;
+  }
+  return 0;
+}
+
+hestCB unrrduHestFormatCB = {
+  2*sizeof(int),
+  "format",
+  unrrduParseFormat,
+  NULL
+};

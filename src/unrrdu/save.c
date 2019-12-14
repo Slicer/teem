@@ -44,7 +44,7 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
   Nrrd *nin, *nout;
   airArray *mop;
   NrrdIoState *nio;
-  int pret, enc[3], formatType;
+  int pret, enc[3], frmt[2];
 
   mop = airMopNew();
   nio = nrrdIoStateNew();
@@ -62,8 +62,8 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
   }
   strcat(fmtInfo,
          "\n \b\bo \"eps\": EPS file");
-  hestOptAdd(&opt, "f,format", "form", airTypeEnum, 1, 1, &formatType, NULL,
-             fmtInfo, NULL, nrrdFormatType);
+  hestOptAdd(&opt, "f,format", "form", airTypeOther, 1, 1, frmt, NULL,
+             fmtInfo, NULL, NULL, &unrrduHestFormatCB);
   strcpy(encInfo,
          "encoding of data in file.  Not all encodings are supported in "
          "a given format. Possibilities include:"
@@ -115,8 +115,11 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
 
   nrrdCopy(nout, nin);
 
+  nio->format = nrrdFormatArray[frmt[0]];
+  if (nrrdFormatTypeText == frmt[0] && frmt[1]) {
+    nio->bareText = AIR_TRUE;
+  }
   nio->encoding = nrrdEncodingArray[enc[0]];
-  nio->format = nrrdFormatArray[formatType];
   if (nrrdEncodingTypeGzip == enc[0]) {
     nio->zlibLevel = enc[1];
     nio->zlibStrategy = enc[2];
