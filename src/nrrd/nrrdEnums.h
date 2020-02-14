@@ -72,7 +72,10 @@ enum {
   nrrdFormatTypePNM,    /* 2: PNM image */
   nrrdFormatTypePNG,    /* 3: PNG image */
   nrrdFormatTypeVTK,    /* 4: VTK Structured Points datasets (v1.0 and 2.0) */
-  nrrdFormatTypeText,   /* 5: bare ASCII text for 2D arrays */
+  nrrdFormatTypeText,   /* 5: ASCII text for 2D arrays, which may or may
+                              not be bare (i.e. just numbers, no header
+                              lines that start with "#") according
+                              to NrrdIoState->bareText */
   nrrdFormatTypeEPS,    /* 6: Encapsulated PostScript (write-only) */
   nrrdFormatTypeLast
 };
