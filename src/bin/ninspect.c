@@ -35,12 +35,12 @@ fixproj(Nrrd *nproj[3], const Nrrd *nvol) {
   static const char me[]="fixproj";
   airArray *mop;
   Nrrd *ntmp[3], *nt;
-  int sz[3], ii, map[3], h[3], E, mi;
-  size_t rsz[3];
+  int sz[3], ii, jj, map[3], h[3], E, mi;
+  size_t rsz[3][3];
   double vec[3][3], dot[3], sp[3], parm[NRRD_KERNEL_PARMS_NUM];
 
   mop = airMopNew();
-
+  fprintf(stderr, "%s: fixing projections\n", me);
   if (!( ELL_3V_EXISTS(nvol->axis[0].spaceDirection)
          && ELL_3V_EXISTS(nvol->axis[1].spaceDirection)
          && ELL_3V_EXISTS(nvol->axis[2].spaceDirection) )) {
@@ -69,11 +69,11 @@ fixproj(Nrrd *nproj[3], const Nrrd *nvol) {
   ELL_3V_SET(h, 1, 0, 0);
   E = 0;
   for (ii=0; ii<3; ii++) {
-    if (h[map[ii]] != map[h[ii]]) {
-      if (!E) E |= nrrdAxesSwap(ntmp[ii], nproj[map[ii]], 1, 2);
-    } else {
-      if (!E) E |= nrrdCopy(ntmp[ii], nproj[map[ii]]);
-    }
+      if (h[map[ii]] != map[h[ii]]) {
+          if (!E) E |= nrrdAxesSwap(ntmp[ii], nproj[map[ii]], 1, 2);
+      } else {
+          if (!E) E |= nrrdCopy(ntmp[ii], nproj[map[ii]]);
+      }
   }
   if (E) {
     biffMovef(NINSPECT, NRRD, "%s: trouble with nrrd operations", me);
@@ -113,12 +113,36 @@ fixproj(Nrrd *nproj[3], const Nrrd *nvol) {
   sz[2] = (int)(sz[2]*sp[2]/sp[mi]);
 
   parm[0] = 1;
-  ELL_3V_SET(rsz, 3, sz[1], sz[2]);
-  nrrdSimpleResample(nproj[0], ntmp[0], nrrdKernelBox, parm, rsz, NULL);
-  ELL_3V_SET(rsz, 3, sz[0], sz[2]);
-  nrrdSimpleResample(nproj[1], ntmp[1], nrrdKernelBox, parm, rsz, NULL);
-  ELL_3V_SET(rsz, 3, sz[0], sz[1]);
-  nrrdSimpleResample(nproj[2], ntmp[2], nrrdKernelBox, parm, rsz, NULL);
+  ELL_3V_SET(rsz[0], 3, sz[1], sz[2]);
+  ELL_3V_SET(rsz[1], 3, sz[0], sz[2]);
+  ELL_3V_SET(rsz[2], 3, sz[0], sz[1]);
+  for (ii=0; ii<3; ii++) {
+      for (jj=0; jj<3; jj++) {
+          /* we own these projections, and our use of nrrdSimpleResample is to
+             simplify things (like not resample the color axis) that might be done
+             more carefully in other settings. onward. */
+          ntmp[ii]->axis[jj].center = nrrdCenterCell;
+          ntmp[ii]->axis[jj].min = 0;
+          ntmp[ii]->axis[jj].max = ntmp[ii]->axis[jj].size;
+          /* sanity check: cancel crazy upsampling */
+          if (rsz[ii][jj] > 5*ntmp[ii]->axis[jj].size) {
+              rsz[ii][jj] = ntmp[ii]->axis[jj].size;
+          }
+      }
+      printf("%s: resampling proj %d : (%u,%u,%u) -> (%u,%u,%u)\n", me, ii,
+             (unsigned int)ntmp[ii]->axis[0].size,
+             (unsigned int)ntmp[ii]->axis[1].size,
+             (unsigned int)ntmp[ii]->axis[2].size,
+             (unsigned int)rsz[ii][0],
+             (unsigned int)rsz[ii][1],
+             (unsigned int)rsz[ii][2]);
+      if (nrrdSimpleResample(nproj[ii], ntmp[ii], nrrdKernelBox,
+                             parm, rsz[ii], NULL)) {
+          biffMovef(NINSPECT, NRRD, "%s: trouble resampling projection %d",
+                    me, ii);
+          airMopError(mop); return 1;
+      }
+  }
 
   airMopOkay(mop);
   return 0;
@@ -219,12 +243,23 @@ doit(Nrrd *nout, const Nrrd *nin, int smart, float amount, unsigned int margin,
     fprintf(stderr, "done\n");
   }
 
-  if (nrrdSpaceRightAnteriorSuperior == nin->space) {
-    if (fixproj(nproj, nin)) {
-      fprintf(stderr, "ERROR\n");
-      biffAddf(NINSPECT, "%s: trouble orienting projections", me);
-      airMopError(mop); return 1;
-    }
+  if ((nrrdSpaceRightAnteriorSuperior == nin->space
+       || nrrdSpaceLeftPosteriorSuperior == nin->space)) {
+      double ejl[3], thresh=0.001;
+      for (ii=0; ii<3; ii++) {
+          ejl[ii] = ELL_3V_LEN(nin->axis[ii].spaceDirection);
+      }
+      if (ejl[0] > thresh && ejl[1] > thresh && ejl[2] > thresh) {
+          if (fixproj(nproj, nin)) {
+              fprintf(stderr, "ERROR\n");
+              biffAddf(NINSPECT, "%s: trouble reorienting/resampling "
+                       "projections", me);
+              airMopError(mop); return 1;
+          }
+      } else {
+          printf("%s not reorienting/resampling projections with edge "
+                 "lens %g,%g,%g\n", me, ejl[0], ejl[1], ejl[2]);
+      }
   }
   srl = nproj[1]->axis[0+1].size;
   sap = nproj[0]->axis[0+1].size;
@@ -271,7 +306,7 @@ static const char *info =
    "of three axis-aligned projections is composed of histogram-"
    "equalized and quantized images of the summation (red), "
    "variance (green), and maximum (blue) intensity projections. "
-   "If volume is orientation in RAS space, then a standard "
+   "If volume is orientation in RAS or LPS space, then a standard "
    "orientation is used for projections and projections are "
    "upsampled (with box kernel) to have isotropic pixels.");
 
