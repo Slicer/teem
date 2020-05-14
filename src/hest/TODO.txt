@@ -1,3 +1,11 @@
+How is it that, once the command-line has been parsed, there isn't an
+easy way to see (or print, for an error message) the parameter (or
+concatenation of parameters) that was passed for a given option?
+Want to be able to have error messages like "you passed %s to the -i
+option but that has a problem: ..."
+Should add a new output field in hestOpt, alongside "source",
+to store this new single string.
+
 for super long things like "tend glyph", it would be nice to have
 seperator lines between the long versions of options, to visually
 group them somewhat.
