@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -45,9 +45,9 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
   Nrrd *nin, *nout;
   /* these are specific to this command */
   NrrdIoState *nio;
-  char *spcStr, *_origStr, *origStr, *content;
-  int space;
-  unsigned int spaceDim, cIdx;
+  char *spcStr, *_origStr, *origStr, **kvp, **dkey, *content;
+  int space, nixkvp;
+  unsigned int spaceDim, kvpLen, dkeyLen, cIdx, ii;
 
   hestOptAdd(&opt, "spc,space", "space", airTypeString, 1, 1, &spcStr, "",
              "identify the space (e.g. \"RAS\", \"LPS\") in which the array "
@@ -62,6 +62,18 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
              "of the first sample, of the form \"(x,y,z)\" (or however "
              "many coefficients are needed for the chosen space). Quoting the "
              "vector is needed to stop interpretation from the shell");
+  /* HEY: copy and paste from unrrdu/make.c */
+  hestOptAdd(&opt, "kv,keyvalue", "key/val", airTypeString, 1, -1, &kvp, "",
+             "key/value string pairs to be stored in nrrd.  Each key/value "
+             "pair must be a single string (put it in \"\"s "
+             "if the key or the value contain spaces).  The format of each "
+             "pair is \"<key>:=<value>\", with no spaces before or after "
+             "\":=\".", &kvpLen);
+  hestOptAdd(&opt, "dkv,delkey", "key", airTypeString, 1, -1, &dkey, "",
+             "keys to be deleted (erased) from key/value pairs", &dkeyLen);
+  hestOptAdd(&opt, "xkvp,nixkeyvalue", NULL, airTypeBool, 0, 0,
+             &nixkvp, NULL,
+             "nix (clear) all key/value pairs");
   cIdx =
   hestOptAdd(&opt, "c,content", "content", airTypeString, 1, 1, &content, "",
              "Specifies the content string of the nrrd, which is built upon "
@@ -139,6 +151,44 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
       nio->line = NULL; airMopError(mop); return 1;
     }
     nio->line = NULL;
+  }
+
+  /* HEY: copy and paste from unrrdu/make.c */
+  if (kvpLen) {
+    for (ii=0; ii<kvpLen; ii++) {
+      /* a hack: have to use NrrdIoState->line as the channel to communicate
+         the key/value pair, since we have to emulate it having been
+         read from a NRRD header.  But because nio doesn't own the
+         memory, we must be careful to unset the pointer prior to
+         NrrdIoStateNix being called by the mop. */
+      nio->line = kvp[ii];
+      nio->pos = 0;
+      if (nrrdFieldInfoParse[nrrdField_keyvalue](NULL, nout,
+                                                 nio, AIR_TRUE)) {
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble with key/value %d \"%s\":\n%s",
+                me, ii, kvp[ii], err);
+        nio->line = NULL; airMopError(mop); return 1;
+      }
+      nio->line = NULL;
+    }
+  }
+
+  /* now delete ("erase") the keys that aren't wanted */
+  if (dkeyLen) {
+      for (ii=0; ii<dkeyLen; ii++) {
+          if (nrrdKeyValueErase(nout, dkey[ii])) {
+              airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+              fprintf(stderr, "%s: trouble erasing key/value %d \"%s\":\n%s",
+                      me, ii, dkey[ii], err);
+              airMopError(mop); return 1;
+          }
+      }
+  }
+
+  /* now delete everything if requested */
+  if (nixkvp) {
+      nrrdKeyValueClear(nout);
   }
 
   SAVE(out, nout, NULL);
