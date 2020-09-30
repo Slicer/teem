@@ -69,9 +69,9 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
              "if the key or the value contain spaces).  The format of each "
              "pair is \"<key>:=<value>\", with no spaces before or after "
              "\":=\".", &kvpLen);
-  hestOptAdd(&opt, "dkv,delkey", "key", airTypeString, 1, -1, &dkey, "",
+  hestOptAdd(&opt, "dk,delkey", "key", airTypeString, 1, -1, &dkey, "",
              "keys to be deleted (erased) from key/value pairs", &dkeyLen);
-  hestOptAdd(&opt, "xkvp,nixkeyvalue", NULL, airTypeBool, 0, 0,
+  hestOptAdd(&opt, "xkv,nixkeyvalue", NULL, airTypeBool, 0, 0,
              &nixkvp, NULL,
              "nix (clear) all key/value pairs");
   cIdx =
@@ -176,19 +176,19 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
 
   /* now delete ("erase") the keys that aren't wanted */
   if (dkeyLen) {
-      for (ii=0; ii<dkeyLen; ii++) {
-          if (nrrdKeyValueErase(nout, dkey[ii])) {
-              airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-              fprintf(stderr, "%s: trouble erasing key/value %d \"%s\":\n%s",
-                      me, ii, dkey[ii], err);
-              airMopError(mop); return 1;
-          }
+    for (ii=0; ii<dkeyLen; ii++) {
+      if (nrrdKeyValueErase(nout, dkey[ii])) {
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+        fprintf(stderr, "%s: trouble erasing key/value %d \"%s\":\n%s",
+                me, ii, dkey[ii], err);
+        airMopError(mop); return 1;
       }
+    }
   }
 
   /* now delete everything if requested */
   if (nixkvp) {
-      nrrdKeyValueClear(nout);
+    nrrdKeyValueClear(nout);
   }
 
   SAVE(out, nout, NULL);
