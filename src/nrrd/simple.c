@@ -1605,7 +1605,7 @@ nrrdSanityOrDie(const char *me) {
 }
 
 void
-nrrdSetZero(Nrrd *nout) {
+nrrdZeroSet(Nrrd *nout) {
 
   if (!_nrrdCheck(nout, AIR_TRUE, AIR_FALSE)) {
     memset(nout->data, 0, nrrdElementNumber(nout)*nrrdElementSize(nout));
@@ -1614,7 +1614,7 @@ nrrdSetZero(Nrrd *nout) {
 }
 
 void
-nrrdSetNaN(Nrrd *nout) {
+nrrdNaNSet(Nrrd *nout) {
 
   if (_nrrdCheck(nout, AIR_TRUE, AIR_FALSE)) {
     /* bad nrrd, oh well */
