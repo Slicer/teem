@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -72,7 +72,7 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "n", "len", airTypeUInt, 1, 1, &len, "65536",
              "length (must be EVEN) of phase look-up table, used "
              "enable being dumb (rather than clever) in asserting "
-             "the phase symmetries arisin from real input");
+             "the phase symmetries arising from real input");
   hestOptAdd(&hopt, "r", "howrandom", airTypeDouble, 1, 1, &howrand, "1.0",
              "how much to randomize input phase; 0.0 means "
              "that output should be same as input");
@@ -234,8 +234,8 @@ main(int argc, const char *argv[]) {
       || nrrdInset(ncout, ntmp2, ntmp, minInset)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error creating output\n%s", me, err);
-    //airMopError(mop);
-    //return 1;
+    airMopError(mop);
+    return 1;
   }
   /*
   if (nrrdSave("cfin.nrrd", ncfin, NULL) ||
