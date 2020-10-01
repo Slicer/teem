@@ -734,7 +734,7 @@ main(int argc, const char **argv) {
       double dd;
       fprintf(stderr, "!%s: pass %u/%u ==================\n",
               me, passIdx, passNumMax);
-      nrrdSetZero(nprogB);
+      nrrdZeroSet(nprogB);
       if (findAndTraceMorePoints(nprogB, pctx, scaleVol,
                                  strnUse, smoothPlot, flatWght,
                                  scaleStep, scaleWin/2,
@@ -882,7 +882,7 @@ main(int argc, const char **argv) {
       lpnt = pullPointNew(pctx);
       airMopAdd(mop, lpnt, (airMopper)pullPointNix, airMopAlways);
       for (si=0; si<size[3]; si++) {
-        nrrdSetZero(mpv->ninSS[si]);
+        nrrdZeroSet(mpv->ninSS[si]);
       }
       lup = nrrdDLookup[mpv->ninSS[0]->type];
       ins = nrrdDInsert[mpv->ninSS[0]->type];
