@@ -41,7 +41,7 @@ unrrdu_diffMain(int argc, const char **argv, const char *me,
   int pret;
 
   Nrrd *ninA, *ninB;
-  int quiet, exitstat, onlyData, differ;
+  int quiet, exitstat, onlyData, differ, ret;
   double epsilon;
   char explain[AIR_STRLEN_LARGE];
 
@@ -75,7 +75,6 @@ unrrdu_diffMain(int argc, const char **argv, const char *me,
     airMopError(mop);
     return 1;
   }
-  int ret;
   if (differ) {
     printf("%s: %s differ: %s\n", me, onlyData ? "data values" : "nrrds",
            explain);
