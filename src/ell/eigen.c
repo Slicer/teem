@@ -820,8 +820,8 @@ ell_6ms_eigensolve_d(double eval[6], double _evec[36],
     double th, tt, cc, ss;
     const unsigned int P = maxI[0];
     const unsigned int Q = maxI[1];
-    //make sure that P and Q are within the bounds for mat[2][6][6]
-    if(P >=6 || Q >= 6){  
+    /* make sure that P and Q are within the bounds for mat[2][6][6] */
+    if (P >=6 || Q >= 6){
       break;
     }
     /*
