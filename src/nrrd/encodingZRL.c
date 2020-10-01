@@ -33,13 +33,12 @@ _nrrdEncodingZRL_available(void) {
 static int
 _nrrdEncodingZRL_read(FILE *file, void *data, size_t elementNum,
                       Nrrd *nrrd, NrrdIoState *nio) {
-  unsigned char *output_buffer;
-  size_t toread;
+  unsigned char *output_buffer = (unsigned char *) data;
+  size_t toread = elementNum*nrrdElementSize(nrrd);
   int cc, dd;
   unsigned int j = 0;
   AIR_UNUSED(nio);
-  output_buffer = (unsigned char *) data;
-  toread = elementNum*nrrdElementSize(nrrd);
+
   while (j < toread) {
     cc = fgetc(file);
     if (cc == 0) {
