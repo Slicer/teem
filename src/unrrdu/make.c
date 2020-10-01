@@ -74,13 +74,13 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
   Nrrd *nrrd;
   size_t *size, bufLen;
   int headerOnly, pret, lineSkip, endian, type,
-    encodingType, gotSpacing, gotThickness, space,
+    encodingType, gotSpacing, gotThickness, gotMin, gotMax, space,
     spaceSet;
   long int byteSkip;
   unsigned int ii, kindsLen, thicknessLen, spacingLen, sizeLen, nameLen,
     centeringsLen, unitsLen, labelLen, kvpLen, spunitsLen, dataFileDim,
-    spaceDim;
-  double *spacing, *thickness;
+      spaceDim, minLen, maxLen, thicknessIdx, spacingIdx, minIdx, maxIdx;
+  double *spacing, *axmin, *axmax, *thickness;
   airArray *mop;
   NrrdIoState *nio;
   FILE *fileOut;
@@ -119,15 +119,33 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
              "the dimension of the array data in each individual file. By "
              "default (not using this option), this dimension is assumed "
              "to be one less than the whole data dimension. ");
+  spacingIdx =
   hestOptAdd(&opt, "sp,spacing", "sp0 sp1", airTypeDouble, 1, -1,
              &spacing, "nan",
              "spacing between samples on each axis.  Use \"nan\" for "
              "any non-spatial axes (e.g. spacing between red, green, and blue "
              "along axis 0 of interleaved RGB image data)", &spacingLen);
+  /* NB: these are like unu jhisto's -min -max, not like unu crop's */
+  minIdx =
+  hestOptAdd(&opt, "min,axismin", "min0 min1", airTypeDouble, 1, -1,
+             &axmin, "nan",
+             "When each axis has a distinct meaning (as in a joint "
+             "histogram), the per-axis min is the smallest \"position\" "
+             "associated with the first sample on the axis. Use \"nan\" for "
+             "\"no value to set\" when other axes do have axis min",
+             &minLen);
+  maxIdx =
+  hestOptAdd(&opt, "max,axismax", "max0 max1", airTypeDouble, 1, -1,
+             &axmax, "nan",
+             "Goes with -min: the per-axis maximum \"position\". "
+             "-max and -min should probably be used together, and having "
+             "this information logically supersedes the -sp spacing on those "
+             "axes.", &maxLen);
+  thicknessIdx =
   hestOptAdd(&opt, "th,thickness", "th0 th1", airTypeDouble, 1, -1,
              &thickness, "nan",
              "thickness of region represented by one sample along each axis. "
-             "  As with spacing, use \"nan\" for "
+             "  As with -sp spacing, use \"nan\" for "
              "any non-spatial axes.", &thicknessLen);
   hestOptAdd(&opt, "k,kind", "k0 k1", airTypeString, 1, -1, &kinds, "",
              "what \"kind\" is each axis, from the nrrdKind airEnum "
@@ -186,7 +204,8 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
              "identify the space (e.g. \"RAS\", \"LPS\") in which the array "
              "conceptually lives, from the nrrdSpace airEnum, which in turn "
              "determines the dimension of the space.  Or, use an integer>0 to"
-             "give the dimension of a space that nrrdSpace doesn't know about. "
+             "give the dimension of a space that nrrdSpace doesn't know "
+             "about. "
              "By default (not using this option), the enclosing space is "
              "set as unknown.");
   hestOptAdd(&opt, "orig,origin", "origin", airTypeString, 1, 1, &_origStr, "",
@@ -201,7 +220,9 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
              "the vectors in space spanned by incrementing (by one) each "
              "axis index (the column vectors of the index-to-world "
              "matrix transform), OR, \"none\" for non-spatial axes. Give "
-             "one vector per axis. (Quoting around whole vector list, not "
+             "one vector per axis. Using a space direction logically "
+             "supersedes both per-axis -sp spacing and -min,-max. "
+             "(Quoting around whole vector list, not "
              "individually, is needed because of limitations in the parser)");
   hestOptAdd(&opt, "mf,measurementframe", "v0 v1 ...", airTypeString, 1, 1,
              &_mframeStr, "",
@@ -255,48 +276,62 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
     airMopError(mop);
     return 1;
   }
-  gotSpacing = (spacingLen > 1 ||
-                (sizeLen == 1 && AIR_EXISTS(spacing[0])));
+  gotSpacing = (opt[spacingIdx].source == hestSourceUser);
   if (gotSpacing && spacingLen != sizeLen) {
     fprintf(stderr,
-            "%s: number of spacings (%d) not same as dimension (%d)\n",
+            "%s: number of spacings (%u) not same as dimension (%u)\n",
             me, spacingLen, sizeLen);
     airMopError(mop);
     return 1;
   }
-  gotThickness = (thicknessLen > 1 ||
-                  (sizeLen == 1 && AIR_EXISTS(thickness[0])));
+  gotThickness = (opt[thicknessIdx].source == hestSourceUser);
   if (gotThickness && thicknessLen != sizeLen) {
     fprintf(stderr,
-            "%s: number of thicknesses (%d) not same as dimension (%d)\n",
+            "%s: number of thicknesses (%u) not same as dimension (%u)\n",
             me, thicknessLen, sizeLen);
+    airMopError(mop);
+    return 1;
+  }
+  gotMin = (opt[minIdx].source == hestSourceUser);
+  if (gotMin && minLen != sizeLen) {
+    fprintf(stderr,
+            "%s: number of mins (%u) not same as dimension (%u)\n",
+            me, minLen, sizeLen);
+    airMopError(mop);
+    return 1;
+  }
+  gotMax = (opt[maxIdx].source == hestSourceUser);
+  if (gotMax && maxLen != sizeLen) {
+    fprintf(stderr,
+            "%s: number of maxs (%u) not same as dimension (%u)\n",
+            me, maxLen, sizeLen);
     airMopError(mop);
     return 1;
   }
   if (airStrlen(label[0]) && sizeLen != labelLen) {
     fprintf(stderr,
-            "%s: number of labels (%d) not same as dimension (%d)\n",
+            "%s: number of labels (%u) not same as dimension (%u)\n",
             me, labelLen, sizeLen);
     airMopError(mop);
     return 1;
   }
   if (airStrlen(units[0]) && sizeLen != unitsLen) {
     fprintf(stderr,
-            "%s: number of units (%d) not same as dimension (%d)\n",
+            "%s: number of units (%u) not same as dimension (%u)\n",
             me, unitsLen, sizeLen);
     airMopError(mop);
     return 1;
   }
   if (airStrlen(kinds[0]) && sizeLen != kindsLen) {
     fprintf(stderr,
-            "%s: number of kinds (%d) not same as dimension (%d)\n",
+            "%s: number of kinds (%u) not same as dimension (%u)\n",
             me, kindsLen, sizeLen);
     airMopError(mop);
     return 1;
   }
   if (airStrlen(centerings[0]) && sizeLen != centeringsLen) {
     fprintf(stderr,
-            "%s: number of centerings (%d) not same as dimension (%d)\n",
+            "%s: number of centerings (%u) not same as dimension (%u)\n",
             me, centeringsLen, sizeLen);
     airMopError(mop);
     return 1;
@@ -370,6 +405,12 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
   }
   if (gotThickness) {
     nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoThickness, thickness);
+  }
+  if (gotMin) {
+    nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoMin, axmin);
+  }
+  if (gotMax) {
+    nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoMax, axmax);
   }
   if (airStrlen(label[0])) {
     for (ii=0; ii<nrrd->dim; ii++) {
