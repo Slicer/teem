@@ -523,6 +523,8 @@ enum {
   nrrdOriginStatusLast
 };
 
+/* ---- BEGIN non-NrrdIO */
+
 /*
 ******** nrrdFormatPNGsRGBIntent* enum
 **
@@ -543,8 +545,6 @@ enum {
   nrrdFormatPNGsRGBIntentLast
 };
 #define NRRD_FORMAT_PNG_SRGB_INTENT_NUM  5
-
-/* ---- BEGIN non-NrrdIO */
 
 /*
 ******** nrrdOrientationHave* enum
