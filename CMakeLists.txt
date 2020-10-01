@@ -417,6 +417,7 @@ set(Teem_CV_BUILD_SETTINGS_FILE ${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
 set(Teem_CV_LIBRARY_DEPENDS_FILE ${Teem_BINARY_DIR}/TeemLibraryDepends.cmake)
 set(Teem_CV_EXECUTABLE_DIRS ${Teem_EXECUTABLE_DIRS})
 set(Teem_CV_LIBRARY_DIRS ${__LIBRARY_OUTPUT_PATH__})
+set(Teem_CV_USE_FILE ${Teem_SOURCE_DIR}/CMake/TeemUse.cmake)
 set(Teem_CV_INCLUDE_DIRS "${Teem_BINARY_DIR}/include")
 set(Teem_CV_BUILT_LIBRARIES teem) # The libraries built by teem.  Currently we only build the mega library.
 
@@ -438,8 +439,9 @@ endif()
 set(Teem_CV_LIBRARY_DEPENDS_FILE "\${Teem_ROOT_DIR}/lib${EXTRA_INSTALL_PATH}/cmake/teem/TeemLibraryDepends.cmake")
 set(Teem_CV_EXECUTABLE_DIRS "\${Teem_ROOT_DIR}/bin")
 set(Teem_CV_LIBRARY_DIRS "\${Teem_ROOT_DIR}/lib${EXTRA_INSTALL_PATH}")
+set(Teem_CV_USE_FILE "\${Teem_ROOT_DIR}/lib${EXTRA_INSTALL_PATH}/TeemUse.cmake")
 set(Teem_CV_INCLUDE_DIRS "\${Teem_ROOT_DIR}/include")
-set(Teem_CV_BUILT_LIBRARIES teem) # The libraries built by teem.  Currently we only build the mega library.
+set(Teem_CV_BUILT_LIBRARIES teem) # single library containing all teem "libraries"
 
 configure_file("${Teem_SOURCE_DIR}/CMake/TeemConfig.cmake.in"
                 "${Teem_BINARY_DIR}/CMake/TeemConfig.cmake" @ONLY IMMEDIATE)
@@ -456,6 +458,7 @@ file(WRITE ${Teem_BINARY_DIR}/TeemBuildSettings.cmake)
 install(EXPORT teem DESTINATION lib${EXTRA_INSTALL_PATH}/cmake/teem FILE TeemLibraryDepends.cmake)
 install(FILES
         "${Teem_BINARY_DIR}/CMake/TeemConfig.cmake"
+        "${Teem_SOURCE_DIR}/CMake/TeemUse.cmake"
         "${Teem_BINARY_DIR}/TeemBuildSettings.cmake"
         DESTINATION lib${EXTRA_INSTALL_PATH}/cmake/teem
         COMPONENT Development)
