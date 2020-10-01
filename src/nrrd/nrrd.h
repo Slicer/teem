@@ -894,6 +894,7 @@ NRRD_EXPORT int nrrdSpacingCalculate(const Nrrd *nrrd, unsigned int ax,
                                      double vector[NRRD_SPACE_DIM_MAX]);
 NRRD_EXPORT int nrrdOrientationReduce(Nrrd *nout, const Nrrd *nin,
                                       int setMinsFromOrigin);
+/* ---- BEGIN non-NrrdIO */
 NRRD_EXPORT int nrrdMetaDataNormalize(Nrrd *nout, const Nrrd *nin,
                                       int version,
                                       int trivialOrient,
@@ -901,6 +902,7 @@ NRRD_EXPORT int nrrdMetaDataNormalize(Nrrd *nout, const Nrrd *nin,
                                       int recenterGrid,
                                       double sampleSpacing,
                                       int *lostMeasurementFrame);
+/* ---- END non-NrrdIO */
 
 /******** simple things */
 /* simple.c */
