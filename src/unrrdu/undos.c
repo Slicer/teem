@@ -186,7 +186,7 @@ undosConvert(const char *me, char *name, int reverse, int mac,
 
   /* -------------------------------------------------------- */
   /* write output file */
-  car = 'a'; // something not EOF
+  car = 'a'; /* something not EOF */
   if (reverse) { /* away from LF to either CR-LF (or mac CR) */
     for (ci=0; EOF != car && ci<len; ci++) {
       if (LF == data[ci]) {
