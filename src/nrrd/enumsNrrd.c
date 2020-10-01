@@ -813,7 +813,9 @@ _nrrdSpacingStatus = {
 const airEnum *const
 nrrdSpacingStatus = &_nrrdSpacingStatus;
 
-/* ------------------------ nrrdFormatPNGsRGBIntent ------------------------- */
+/* ---- BEGIN non-NrrdIO */
+
+/* ---------------------- nrrdFormatPNGsRGBIntent ------------------------- */
 
 static const char *
 _nrrdFormatPNGsRGBIntentStr[NRRD_FORMAT_PNG_SRGB_INTENT_NUM+1] = {
@@ -884,8 +886,6 @@ _nrrdFormatPNGsRGBIntent = {
 };
 const airEnum *const
 nrrdFormatPNGsRGBIntent = &_nrrdFormatPNGsRGBIntent;
-
-/* ---- BEGIN non-NrrdIO */
 
 /* -------------------- nrrdOrientationHave --------------------- */
 

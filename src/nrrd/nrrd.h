@@ -430,6 +430,9 @@ typedef struct NrrdIoState_t {
     learningHeaderStrlen,   /* ON WRITE, for nrrds, learn and save the total
                                length of header into headerStrlen. This is
                                used to allocate a buffer for header */
+    /* nothing specific to PNG files really belongs in the derived NrrdIO
+       library, but it seems weird to change the contents of NrrdIoState
+       between full Teem and NrrdIO, so not using begin/end non-NrrdIO here */
     PNGsRGBIntentKnown,     /* ON READ+WRITE: for array being read from or
                                written to PNG, we know an sRGB intent */
     PNGsRGBIntent;          /* ON READ+WRITE: iff sRGBIntentKnown, the intent
@@ -764,8 +767,8 @@ NRRD_EXPORT const airEnum *const nrrdKind;
 NRRD_EXPORT const airEnum *const nrrdField;
 NRRD_EXPORT const airEnum *const nrrdSpace;
 NRRD_EXPORT const airEnum *const nrrdSpacingStatus;
-NRRD_EXPORT const airEnum *const nrrdFormatPNGsRGBIntent;
 /* ---- BEGIN non-NrrdIO */
+NRRD_EXPORT const airEnum *const nrrdFormatPNGsRGBIntent;
 NRRD_EXPORT const airEnum *const nrrdOrientationHave;
 NRRD_EXPORT const airEnum *const nrrdBoundary;
 NRRD_EXPORT const airEnum *const nrrdMeasure;
