@@ -427,16 +427,18 @@ typedef struct NrrdIoState_t {
     bzip2BlockSize,         /* block size used for compression,
                                roughly equivalent to better but slower
                                (1-9, -1 for default[9]). */
-    learningHeaderStrlen,   /* ON WRITE, for nrrds, learn and save the total
-                               length of header into headerStrlen. This is
-                               used to allocate a buffer for header */
-    /* nothing specific to PNG files really belongs in the derived NrrdIO
-       library, but it seems weird to change the contents of NrrdIoState
-       between full Teem and NrrdIO, so not using begin/end non-NrrdIO here */
+    /* ---- BEGIN non-NrrdIO */
+    /* seems odd to have contents of NrrdIoState differ between full Teem
+       and NrrdIO, but these fields can't be meaningfully set or read if
+       the nrrdFormatPNGsRGBIntent is not available */
     PNGsRGBIntentKnown,     /* ON READ+WRITE: for array being read from or
                                written to PNG, we know an sRGB intent */
-    PNGsRGBIntent;          /* ON READ+WRITE: iff sRGBIntentKnown, the intent
+    PNGsRGBIntent,          /* ON READ+WRITE: iff sRGBIntentKnown, the intent
                                itself, from nrrdFormatPNGsRGBIntent* enum */
+    /* ---- END non-NrrdIO */
+    learningHeaderStrlen;   /* ON WRITE, for nrrds, learn and save the total
+                               length of header into headerStrlen. This is
+                               used to allocate a buffer for header */
   void *oldData;            /* ON READ: if non-NULL, pointer to space that
                                has already been allocated for oldDataSize */
   size_t oldDataSize;       /* ON READ: size of mem pointed to by oldData */
