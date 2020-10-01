@@ -44,11 +44,12 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
   char *out, *err;
   Nrrd *nin, *nout;
   char *minStr, *maxStr, *gammaS;
-  int pret, blind8BitRange, srgb;
+  int pret, blind8BitRange, srgb, E=0;
   unsigned int bits, hbins, srgbIdx;
   double gamma;
   NrrdRange *range;
   airArray *mop;
+  NrrdIoState *nio = NULL;
 
   hestOptAdd(&opt, "b,bits", "bits", airTypeOther, 1, 1, &bits, NULL,
              "Number of bits to quantize down to; determines the type "
@@ -134,7 +135,6 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
     fprintf(stderr, "%s: error learning range:\n%s", me, err);
     airMopError(mop); return 1;
   }
-  int E=0;
   if (!strcmp(gammaS, "srgb")) {
     E = nrrdArithSRGBGamma(nin, nin, range, AIR_TRUE);
   } else if (1 != gamma) {
@@ -151,7 +151,6 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
     airMopError(mop); return 1;
   }
 
-  NrrdIoState *nio = NULL;
   if (hestSourceUser == opt[srgbIdx].source) {
     /* HEY copied from overrgb.c */
     nio = nrrdIoStateNew();
