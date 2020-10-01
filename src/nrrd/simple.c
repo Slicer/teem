@@ -1615,13 +1615,14 @@ nrrdZeroSet(Nrrd *nout) {
 
 void
 nrrdNaNSet(Nrrd *nout) {
+  size_t II, NN;
 
   if (_nrrdCheck(nout, AIR_TRUE, AIR_FALSE)) {
     /* bad nrrd, oh well */
     return;
   }
   /* HEY if Half is ever added we'll have to check for it here */
-  size_t II, NN = nrrdElementNumber(nout);
+  NN = nrrdElementNumber(nout);
   if (nrrdTypeFloat == nout->type) {
     float *ff = AIR_CAST(float *, nout->data);
     for (II=0; II<NN; II++) {
