@@ -54,7 +54,8 @@ extern "C" {
 
 /* used by ilk, hence not in privateMoss.h */
 #define MOSS_AXIS0(img) (3 == (img)->dim ? 1 : 0)
-#define MOSS_NCOL(img) (3 == (img)->dim ? (img)->axis[0].size : 1)
+#define MOSS_NCOL(img) \
+  AIR_CAST(unsigned int, (3 == (img)->dim ? (img)->axis[0].size : 1))
 
 enum {
   mossFlagUnknown=-1,  /* -1: nobody knows */
@@ -70,10 +71,10 @@ typedef struct {
   double kparm[NRRD_KERNEL_PARMS_NUM]; /* kernel arguments */
   float *ivc;                          /* intermediate value cache */
   double *xFslw, *yFslw;               /* filter sample locations->weights */
-  int fdiam, ncol;                     /* filter diameter; ivc is allocated
+  unsigned int fdiam, ncol;            /* filter diameter; ivc is allocated
                                           for (fdiam+1) x (fdiam+1) x ncol
                                           doubles, with that axis ordering */
-  int *xIdx, *yIdx;                    /* arrays for x and y coordinates,
+  unsigned int *xIdx, *yIdx;           /* arrays for x and y coordinates,
                                           both allocated for fdiam */
   float *bg;                           /* background color */
   int boundary;                        /* from nrrdBoundary* enum */

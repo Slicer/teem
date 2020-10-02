@@ -65,8 +65,8 @@ mossSamplerFill (mossSampler *smplr, int fdiam, int ncol) {
   smplr->ivc = (float*)calloc(fdiam*fdiam*ncol, sizeof(float));
   smplr->xFslw = (double*)calloc(fdiam, sizeof(double));
   smplr->yFslw = (double*)calloc(fdiam, sizeof(double));
-  smplr->xIdx = (int*)calloc(fdiam, sizeof(int));
-  smplr->yIdx = (int*)calloc(fdiam, sizeof(int));
+  smplr->xIdx = AIR_CALLOC(fdiam, unsigned int);
+  smplr->yIdx = AIR_CALLOC(fdiam, unsigned int);
   if (!( smplr->ivc && smplr->xFslw && smplr->yFslw
          && smplr->xIdx && smplr->yIdx )) {
     biffAddf(MOSS, "%s: couldn't allocate buffers", me);
@@ -84,8 +84,8 @@ mossSamplerEmpty (mossSampler *smplr) {
     smplr->ivc = (float *)airFree(smplr->ivc);
     smplr->xFslw = (double *)airFree(smplr->xFslw);
     smplr->yFslw = (double *)airFree(smplr->yFslw);
-    smplr->xIdx = (int *)airFree(smplr->xIdx);
-    smplr->yIdx = (int *)airFree(smplr->yIdx);
+    smplr->xIdx = (unsigned int *)airFree(smplr->xIdx);
+    smplr->yIdx = (unsigned int *)airFree(smplr->yIdx);
     smplr->fdiam = 0;
     smplr->ncol = 0;
   }

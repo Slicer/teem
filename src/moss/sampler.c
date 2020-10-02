@@ -27,7 +27,7 @@
 int
 mossSamplerImageSet (mossSampler *smplr, Nrrd *image, float *bg) {
   static const char me[]="mossSamplerImageSet";
-  int ci, ncol;
+  unsigned int ci, ncol;
 
   if (!(smplr && image)) {
     biffAddf(MOSS, "%s: got NULL pointer", me);
@@ -71,7 +71,7 @@ mossSamplerKernelSet (mossSampler *smplr,
 int
 mossSamplerUpdate (mossSampler *smplr) {
   static const char me[]="mossSamplerUpdate";
-  int ncol=0, fdiam=0;
+  unsigned int ncol=0, fdiam=0;
 
   if (!(smplr)) {
     biffAddf(MOSS, "%s: got NULL pointer", me);
@@ -86,7 +86,7 @@ mossSamplerUpdate (mossSampler *smplr) {
     }
   }
   if (smplr->flag[mossFlagKernel]) {
-    fdiam = 2*AIR_ROUNDUP(smplr->kernel->support(smplr->kparm));
+    fdiam = 2*AIR_ROUNDUP_UI(smplr->kernel->support(smplr->kparm));
     if (fdiam != smplr->fdiam) {
       mossSamplerEmpty(smplr);
       smplr->fdiam = fdiam;
@@ -110,7 +110,7 @@ mossSamplerUpdate (mossSampler *smplr) {
 int
 mossSamplerSample (float *val, mossSampler *smplr, double xPos, double yPos) {
   static const char me[]="mossSamplerSample";
-  int i, xi, yi, ci, sx, sy, fdiam, frad, ncol;
+  unsigned int i, xi, yi, ci, sx, sy, fdiam, frad, ncol;
   double xf, yf, tmp;
   float (*lup)(const void *v, size_t I);
 
@@ -129,8 +129,8 @@ mossSamplerSample (float *val, mossSampler *smplr, double xPos, double yPos) {
   }
   sx = MOSS_SX(smplr->image);
   sy = MOSS_SY(smplr->image);
-  xi = (int)floor(xPos); xf = xPos - xi;
-  yi = (int)floor(yPos); yf = yPos - yi;
+  xi = AIR_ROUNDDOWN_UI(xPos); xf = xPos - xi;
+  yi = AIR_ROUNDDOWN_UI(yPos); yf = yPos - yi;
   fdiam = smplr->fdiam;
   frad = fdiam/2;
   for (i=0; i<fdiam; i++) {
