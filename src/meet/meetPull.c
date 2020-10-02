@@ -311,7 +311,7 @@ meetPullVolLeechable(const meetPullVol *lchr,
 
   if (!( lchr && orig && can )) {
     biffAddf(MEET, "%s: got NULL pointer (%p %p %p)", me,
-             (void*)lchr, (void*)orig, (void*)can);
+             (const void*)lchr, (const void*)orig, (void*)can);
     return 1;
   }
   /* can leech, if not reading from stdin */
