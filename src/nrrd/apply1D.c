@@ -773,7 +773,7 @@ _nrrd1DIrregMapDomain(int *posLenP, int *baseIP, const Nrrd *nmap) {
 ** pos[i] <= p <= pos[i+1] for the last interval (in which case
 ** i == hiI)
 */
-int
+static int
 _nrrd1DIrregFindInterval(const double *pos, double p, int loI, int hiI) {
   int midI;
 
@@ -853,8 +853,10 @@ nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap, size_t aclLen) {
   for (ii=0; ii<=aclLen-1; ii++) {
     lo = AIR_AFFINE(0, ii, aclLen, min, max);
     hi = AIR_AFFINE(0, ii+1, aclLen, min, max);
-    acl[0 + 2*ii] = _nrrd1DIrregFindInterval(pos, lo, 0, posLen-2);
-    acl[1 + 2*ii] = _nrrd1DIrregFindInterval(pos, hi, 0, posLen-2);
+    acl[0 + 2*ii] = AIR_CAST(unsigned short,
+                             _nrrd1DIrregFindInterval(pos, lo, 0, posLen-2));
+    acl[1 + 2*ii] = AIR_CAST(unsigned short,
+                             _nrrd1DIrregFindInterval(pos, hi, 0, posLen-2));
   }
   free(pos);
 

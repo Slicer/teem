@@ -1262,7 +1262,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
     weight = (nrrdResample_t *)(axisIn->nweight->data);
     if (rsmc->verbose) {
       fprintf(stderr, "%s: {rsmp,data}In = %p/%p; {rsmp,data}Out = %p/%p\n",
-              me, (void*)rsmpIn, (void*)dataIn,
+              me, (void*)rsmpIn, (const void*)dataIn,
               (void*)rsmpOut, (void*)dataOut);
       fprintf(stderr, "%s: line = %p; indx = %p; weight = %p\n",
               me, (void*)line, (void*)indx, (void*)weight);

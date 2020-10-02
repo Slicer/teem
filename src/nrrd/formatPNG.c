@@ -310,7 +310,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     return 1;
   }
   /* query row size */
-  rowsize = png_get_rowbytes(png, info);
+  rowsize = AIR_CAST(png_uint_32, png_get_rowbytes(png, info));
   /* check byte size */
   if (nrrdElementNumber(nrrd)*nrrdElementSize(nrrd) != height*rowsize) {
     png_destroy_read_struct(&png, &info, NULL);
@@ -450,30 +450,31 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   depth = nrrd->type == nrrdTypeUChar ? 8 : 16;
   switch (nrrd->dim) {
     char stmp[AIR_STRLEN_SMALL];
-    case 2: /* g only */
-    width = nrrd->axis[0].size;
-    height = nrrd->axis[1].size;
+  case 2: /* g only */
+    width = AIR_CAST(png_uint_32, nrrd->axis[0].size);
+    height = AIR_CAST(png_uint_32, nrrd->axis[1].size);
     type = PNG_COLOR_TYPE_GRAY;
-    rowsize = width*nrrdElementSize(nrrd);
+    rowsize = AIR_CAST(png_uint_32, width*nrrdElementSize(nrrd));
     break;
-    case 3: /* g, ga, rgb, rgba */
-    width = nrrd->axis[1].size;
-    height = nrrd->axis[2].size;
-    rowsize = width*nrrd->axis[0].size*nrrdElementSize(nrrd);
+  case 3: /* g, ga, rgb, rgba */
+    width = AIR_CAST(png_uint_32, nrrd->axis[1].size);
+    height = AIR_CAST(png_uint_32, nrrd->axis[2].size);
+    rowsize = AIR_CAST(png_uint_32,
+                       width*nrrd->axis[0].size*nrrdElementSize(nrrd));
     switch (nrrd->axis[0].size) {
-      case 1:
+    case 1:
       type = PNG_COLOR_TYPE_GRAY;
       break;
-      case 2:
+    case 2:
       type = PNG_COLOR_TYPE_GRAY_ALPHA;
       break;
-      case 3:
+    case 3:
       type = PNG_COLOR_TYPE_RGB;
       break;
-      case 4:
+    case 4:
       type = PNG_COLOR_TYPE_RGB_ALPHA;
       break;
-      default:
+    default:
       png_destroy_write_struct(&png, &info);
       biffAddf(NRRD, "%s: nrrd->axis[0].size (%s) not compatible with PNG", me,
                airSprintSize_t(stmp, nrrd->axis[0].size));
@@ -481,7 +482,7 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       break;
     }
     break;
-    default:
+  default:
     png_destroy_write_struct(&png, &info);
     biffAddf(NRRD, "%s: dimension (%d) not compatible with PNG",
              me, nrrd->dim);

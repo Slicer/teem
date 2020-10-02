@@ -133,7 +133,7 @@ _nrrdEncodingAscii_write(FILE *file, const void *_data, size_t elNum,
       newlined = AIR_TRUE;
     } else if (nrrd->dim == 2
                && nrrd->axis[0].size <= nio->valsPerLine) {
-      int nonewline = (I+1)%(nrrd->axis[0].size);
+      int nonewline = AIR_CAST(int, (I+1)%(nrrd->axis[0].size));
       fprintf(file, "%s%c", buff, nonewline ? ' ' : '\n');
       newlined = !nonewline;
     } else {
