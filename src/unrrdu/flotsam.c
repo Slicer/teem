@@ -147,7 +147,7 @@ unrrduCmdMain(int argc, const char **argv,
       strcat(buff, " ");
       strcat(buff, cmdList[ii]->name);
       strcat(buff, " ... ");
-      len = strlen(buff);
+      len = AIR_CAST(unsigned int, strlen(buff));
       fprintf(fusage, "%s", buff);
       _hestPrintStr(fusage, len, len, hparm->columns,
                     cmdList[ii]->info, AIR_FALSE);

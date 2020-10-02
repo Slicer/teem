@@ -51,8 +51,9 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
   int type, bb, pret, norenorm, neb, older, E, defaultCenter,
     verbose, overrideCenter, minSet=AIR_FALSE, maxSet=AIR_FALSE,
     offSet=AIR_FALSE;
-  unsigned int scaleLen, ai, samplesOut, minLen, maxLen, offLen,
+  unsigned int scaleLen, ai, minLen, maxLen, offLen,
     aspRatNum, nonAspRatNum;
+  size_t samplesOut;
   airArray *mop;
   double *scale;
   double padVal, *min, *max, *off, aspRatScl=AIR_NAN;
@@ -310,6 +311,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
       double spin, spout, svec[NRRD_SPACE_DIM_MAX];
       int spstat;
       int dowhat = AIR_CAST(int, scale[0 + 2*ai]);
+      size_t incr = AIR_CAST(size_t, scale[1 + 2*ai]);
       switch(dowhat) {
       case unrrduScaleNothing:
         /* no resampling */
@@ -325,22 +327,21 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
         }
         if (!E) E |= nrrdResampleKernelSet(rsmc, ai, unuk->kernel, unuk->parm);
         switch(dowhat) {
-          unsigned int incr;
           char stmp[AIR_STRLEN_SMALL];
         case unrrduScaleMultiply:
-          samplesOut = AIR_ROUNDUP(nin->axis[ai].size*scale[1 + 2*ai]);
+          samplesOut = AIR_ROUNDUP_UI(nin->axis[ai].size*scale[1 + 2*ai]);
           break;
         case unrrduScaleDivide:
-          samplesOut = AIR_ROUNDUP(nin->axis[ai].size/scale[1 + 2*ai]);
+          samplesOut = AIR_ROUNDUP_UI(nin->axis[ai].size/scale[1 + 2*ai]);
           break;
         case unrrduScaleAdd:
-          samplesOut = nin->axis[ai].size + AIR_CAST(unsigned int, scale[1 + 2*ai]);
+          samplesOut = nin->axis[ai].size + incr;
           break;
         case unrrduScaleSubtract:
-          incr = AIR_CAST(unsigned int, scale[1 + 2*ai]);
           if (nin->axis[ai].size - 1 < incr) {
             fprintf(stderr, "%s: can't subtract %u from axis size %s\n",
-                    me, incr, airSprintSize_t(stmp, nin->axis[ai].size));
+                    me, (unsigned int)incr,
+                    airSprintSize_t(stmp, nin->axis[ai].size));
             airMopError(mop);
             return 1;
           }
@@ -373,7 +374,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
             airMopError(mop);
             return 1;
           }
-          samplesOut = AIR_ROUNDUP(nin->axis[ai].size*spin/spout);
+          samplesOut = AIR_ROUNDUP_UI(nin->axis[ai].size*spin/spout);
           break;
         }
         aspRatScl = AIR_CAST(double, samplesOut)/nin->axis[ai].size;
@@ -431,7 +432,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
       for (ai=0; ai<nin->dim; ai++) {
         int dowhat = AIR_CAST(int, scale[0 + 2*ai]);
         if (unrrduScaleAspectRatio == dowhat) {
-          samplesOut = AIR_ROUNDUP(nin->axis[ai].size*aspRatScl);
+          samplesOut = AIR_ROUNDUP_UI(nin->axis[ai].size*aspRatScl);
           if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
         }
       }
@@ -460,7 +461,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
         break;
       case unrrduScaleMultiply:
         /* scaling of input # samples */
-        info->samples[ai] = AIR_ROUNDUP(scale[1 + 2*ai]*nin->axis[ai].size);
+        info->samples[ai] = AIR_ROUNDUP_UI(scale[1 + 2*ai]*nin->axis[ai].size);
         break;
       case unrrduScaleExact:
         /* explicit # of samples */

@@ -42,7 +42,7 @@ unrrdu_gammaMain(int argc, const char **argv, const char *me,
   char *GammaS;
   double min, max, Gamma;
   airArray *mop;
-  int pret, blind8BitRange, srgb, forward;
+  int pret, blind8BitRange, srgb, forward, E;
   NrrdRange *range;
 
   hestOptAdd(&opt, "g,gamma", "gamma", airTypeString, 1, 1, &GammaS, NULL,
@@ -92,7 +92,6 @@ unrrdu_gammaMain(int argc, const char **argv, const char *me,
   range = nrrdRangeNew(min, max);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   nrrdRangeSafeSet(range, nin, blind8BitRange);
-  int E;
   if (srgb) {
     E =nrrdArithSRGBGamma(nout, nin, range, forward);
   } else {
