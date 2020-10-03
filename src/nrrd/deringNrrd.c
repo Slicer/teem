@@ -500,7 +500,7 @@ deringSliceSet(NrrdDeringContext *drc, deringBag *dbg,
   static const char me[]="deringSliceSet";
 
   if (nrrdWrap_va(dbg->nsliceOut,
-                  AIR_CAST(void *, drc->cdataOut + zi*(drc->sliceSize)),
+                  AIR_VOIDP(drc->cdataOut + zi*(drc->sliceSize)),
                   nout->type, 2,
                   nout->axis[0].size,
                   nout->axis[1].size)
