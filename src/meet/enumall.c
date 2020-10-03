@@ -215,7 +215,7 @@ meetAirEnumAllPrint(FILE *file) {
     fprintf(file, "\n");
     ei++;
   }
-  free(AIR_CAST(void *, enm));
+  free(AIR_VOIDP(enm));
   return;
 }
 

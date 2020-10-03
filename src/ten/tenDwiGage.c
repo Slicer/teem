@@ -842,7 +842,7 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
 
   /* pvlData->levmarInfo[] is output; not initialized */
 
-  return AIR_CAST(void *, pvlData);
+  return AIR_VOIDP(pvlData);
 }
 
 void *
@@ -1012,7 +1012,7 @@ tenDwiGageKindNew() {
     kind->table = AIR_CAST(gageItemEntry *,
                            malloc(sizeof(_tenDwiGageTable)));
     memcpy(kind->table, _tenDwiGageTable, sizeof(_tenDwiGageTable));
-    kind->data = AIR_CAST(void *, tenDwiGageKindDataNew());
+    kind->data = AIR_VOIDP(tenDwiGageKindDataNew());
   }
   return kind;
 }
