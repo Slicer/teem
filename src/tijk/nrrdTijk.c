@@ -46,8 +46,8 @@ int tijk_set_axis_tensor(Nrrd *nrrd, unsigned int axis,
   else if (axinfo->size!=type->num)
     return 4;
   axinfo->label = (char*) airFree(axinfo->label);
-  lablen = strlen("tijk__") + strlen(type->name) +
-    (masked?strlen("mask_"):0) + 1;
+  lablen = (unsigned int)(strlen("tijk__") + strlen(type->name) +
+                          (masked?strlen("mask_"):0) + 1);
   axinfo->label = AIR_CALLOC(lablen, char);
   sprintf(axinfo->label, "tijk_%s%s", masked?"mask_":"", type->name);
   return 0;
