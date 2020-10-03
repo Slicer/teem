@@ -187,9 +187,9 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
   ctx->stackFw = AIR_CALLOC(blNum, double);
   if (!( ctx->stackPos && ctx->stackFsl && ctx->stackFw )) {
     biffAddf(GAGE, "%s: couldn't allocate stack buffers (%p %p %p)", me,
-             AIR_CAST(void *, ctx->stackPos),
-             AIR_CAST(void *, ctx->stackFsl),
-             AIR_CAST(void *, ctx->stackFw));
+             AIR_VOIDP(ctx->stackPos),
+             AIR_VOIDP(ctx->stackFsl),
+             AIR_VOIDP(ctx->stackFw));
     return 1;
   }
   for (blIdx=0; blIdx<blNum; blIdx++) {

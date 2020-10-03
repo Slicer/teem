@@ -261,9 +261,9 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape,
                       : shape->defaultCenter));
 
   /* ------ find sizes (set shape->size[0,1,2]) */
-  shape->size[0] = ax[0]->size;
-  shape->size[1] = ax[1]->size;
-  shape->size[2] = ax[2]->size;
+  shape->size[0] = AIR_CAST(unsigned int, ax[0]->size);
+  shape->size[1] = AIR_CAST(unsigned int, ax[1]->size);
+  shape->size[2] = AIR_CAST(unsigned int, ax[2]->size);
   minsize = (nrrdCenterCell == shape->center ? 1 : 2);
   /* this can't be relaxed in the face of having full orientation info,
      because even then, you can't have a non-zero probe-able volume if

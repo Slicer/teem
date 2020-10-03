@@ -134,7 +134,7 @@ gageStackBlurParmCompare(const gageStackBlurParm *aa, const char *_nameA,
 
   if (!(aa && bb && differ)) {
     biffAddf(GAGE, "%s: got NULL pointer (%p %p %p)", me,
-             AIR_VOIDP(aa), AIR_VOIDP(bb), AIR_VOIDP(differ));
+             AIR_CVOIDP(aa), AIR_CVOIDP(bb), AIR_VOIDP(differ));
     return 1;
   }
   nameA = _nameA ? _nameA : baseA;

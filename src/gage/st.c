@@ -217,9 +217,9 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
             wi, wi/xs, wi/ys, wi/zs, ixw[wi+rad], iyw[wi+rad], izw[wi+rad]);
   }
 
-  osx = (nin->axis[0].size)/dsmp;
-  osy = (nin->axis[1].size)/dsmp;
-  osz = (nin->axis[2].size)/dsmp;
+  osx = AIR_CAST(int, (nin->axis[0].size)/dsmp);
+  osy = AIR_CAST(int, (nin->axis[1].size)/dsmp);
+  osz = AIR_CAST(int, (nin->axis[2].size)/dsmp);
   if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 4,
                         AIR_CAST(size_t, 7),
                         AIR_CAST(size_t, osx),
