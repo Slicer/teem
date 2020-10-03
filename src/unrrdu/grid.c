@@ -84,7 +84,7 @@ gridGen(Nrrd *nout, int typeOut, const Nrrd *nin, int psz, int psg) {
     biffMovef(UNRRDU, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
-  out = AIR_CAST(void *, nout->data);
+  out = AIR_VOIDP(nout->data);
   if (psg) {
     unsigned int jj;
     ins(out, 0, sdim);
