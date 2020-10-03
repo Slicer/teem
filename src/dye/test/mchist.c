@@ -36,25 +36,25 @@ imageProc(Nrrd *nhproj[3], Nrrd *nhist[2], unsigned int sH,
   float rr, gg, bb, hh, ss, vv, *hist[2];
   double rndA, rndB;
 
-  nrrdSetZero(nhist[0]);
-  nrrdSetZero(nhist[1]);
+  nrrdZeroSet(nhist[0]);
+  nrrdZeroSet(nhist[1]);
   hist[0] = AIR_CAST(float *, nhist[0]->data);
   hist[1] = AIR_CAST(float *, nhist[1]->data);
   for (xyi=0; xyi<sXY; xyi++) {
     rr = AIR_CLAMP(0, rgb[0], 255);
     gg = AIR_CLAMP(0, rgb[1], 255);
     bb = AIR_CLAMP(0, rgb[2], 255);
-    rr = AIR_AFFINE(-1, rr, 256, 0, 1);
-    gg = AIR_AFFINE(-1, gg, 256, 0, 1);
-    bb = AIR_AFFINE(-1, bb, 256, 0, 1);
+    rr = (float)AIR_AFFINE(-1, rr, 256, 0, 1);
+    gg = (float)AIR_AFFINE(-1, gg, 256, 0, 1);
+    bb = (float)AIR_AFFINE(-1, bb, 256, 0, 1);
     dyeRGBtoHSV(&hh, &ss, &vv, rr, gg, bb);
     si = airIndexClamp(0, ss, 1, sH);
     vi = airIndexClamp(0, vv, 1, sH);
 
 #define UPDATE_HIST(rnd)                                                \
     hi = airIndexClamp(0, hh + overSampleScale*(1-ss)*(rnd), 1, sH);    \
-    hist[0][hi + sH*si] += 1.0/overSampleNum;                           \
-    hist[1][hi + sH*vi] += 1.0/overSampleNum
+    hist[0][hi + sH*si] += 1.0f/overSampleNum;                           \
+    hist[1][hi + sH*vi] += 1.0f/overSampleNum
 
     if (overSampleNum % 2 == 1) {
       airNormalRand(&rndA, NULL);
@@ -266,7 +266,7 @@ main(int argc, const char *argv[]) {
     unsigned int hi;
     float hh, vv, ss, scl;
     for (hi=0; hi<sH; hi++) {
-      hh = AIR_AFFINE(0, hi, sH, 0, 1);
+      hh = (float)AIR_AFFINE(0, hi, sH, 0, 1);
       if (!preout[hi + 2*sH]) {
         ELL_3V_SET(out + 3*hi, 0, 0, 0);
       } else {

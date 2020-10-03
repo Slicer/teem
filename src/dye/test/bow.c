@@ -62,7 +62,7 @@ main(int argc, char *argv[]) {
 
   fprintf(out, "# space: RGB\n");
   for (i=0; i<=res-1; i++) {
-    hue = AIR_AFFINE(0, i, res, 0.0, 1.0);
+    hue = (float)(AIR_AFFINE(0, i, res, 0.0, 1.0));
     dyeHSVtoRGB(&R, &G, &B, hue, 1, 1);
     fprintf(out, "%g %g %g %g\n", hue, sc*R, sc*G, sc*B);
   }

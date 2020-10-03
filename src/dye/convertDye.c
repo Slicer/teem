@@ -312,17 +312,17 @@ dyeLABtoLCH(float *Lp, float *C, float *H,
             float  L, float  A, float  B) {
 
   *Lp = L;
-  *C = sqrt(A*A + B*B);
-  *H = atan2(B, A)/(2*AIR_PI) + 0.5;
+  *C = sqrtf(A*A + B*B);
+  *H = (float)(atan2f(B, A)/(2*AIR_PI) + 0.5);
 }
 
 void
 dyeLCHtoLAB(float *Lp, float *A, float *B,
             float  L, float  C, float  H) {
-  float phi = (H*2 - 1)*AIR_PI;
+  float phi = (float)((H*2 - 1)*AIR_PI);
   *Lp = L;
-  *A = C*cos(phi);
-  *B = C*sin(phi);
+  *A = C*cosf(phi);
+  *B = C*sinf(phi);
 }
 
 void

@@ -37,6 +37,11 @@ int
 main(int argc, char *argv[]) {
   char *inFN, *outFN, *inSpcS, *otSpcS, *err;
   int inSpc, otSpc, hack3d;
+  airArray *mop;
+  Nrrd *nin, *nout;
+  float *id, *od;
+  unsigned int ii, nn;
+  dyeColor *col;
 
   me = argv[0];
   if (5 != argc)
@@ -56,10 +61,6 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: couldn't parse \"%s\" as colorspace\n", me, otSpcS);
     exit(1);
   }
-
-  airArray *mop;
-  Nrrd *nin, *nout;
-  float *id, *od;
 
   mop = airMopNew();
   nin = nrrdNew();
@@ -96,9 +97,6 @@ main(int argc, char *argv[]) {
   }
   id = AIR_CAST(float *, nin->data);
   od = AIR_CAST(float *, nout->data);
-
-  unsigned int ii, nn;
-  dyeColor *col;
 
   col = dyeColorNew();
   airMopAdd(mop, col, (airMopper)dyeColorNix, airMopAlways);
