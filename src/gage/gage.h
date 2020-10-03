@@ -451,7 +451,7 @@ enum {
 ** Note that the utility of gageShape has extended well beyond doing
 ** convolution-based measurements in volumes- it has become the
 ** one-stop place for all of Teem to figure out a reasonable way of
-** locating a logically a volume in 3-D space, including using a
+** logically locating a volume in 3-D space, including using a
 ** nrrd's full orientation information if it is known.
 */
 typedef struct gageShape_t {
