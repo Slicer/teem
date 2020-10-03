@@ -67,7 +67,7 @@ enum {
 typedef struct {
   float val[2][3];        /* room for two colors: two triples of floats */
   float xWhite, yWhite;   /* chromaticity for white point */
-  signed char spc[2],     /* the spaces the two colors belong to */
+  int spc[2],             /* the spaces the two colors belong to */
     ii;                   /* which (0 or 1) of the two values is current */
 } dyeColor;
 
