@@ -40,12 +40,12 @@ _echoDot(int depth) {
 void
 echoTextureLookup(echoCol_t rgba[4], Nrrd *ntext,
                   echoPos_t u, echoPos_t v, echoRTParm *parm) {
-  int su, sv, ui, vi;
+  unsigned int su, sv, ui, vi;
   float uf, vf;
   unsigned char *tdata00, *tdata10, *tdata01, *tdata11;
 
-  su = ntext->axis[1].size;
-  sv = ntext->axis[2].size;
+  su = AIR_UINT(ntext->axis[1].size);
+  sv = AIR_UINT(ntext->axis[2].size);
   if (parm->textureNN) {
     ui = airIndex(0.0, u, 1.0, su);
     vi = airIndex(0.0, v, 1.0, sv);
