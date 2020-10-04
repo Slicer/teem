@@ -1,6 +1,6 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2009--2019  University of Chicago
+# Copyright (C) 2009--2020  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -177,7 +177,7 @@ endif
 ## By giving a list of library extensions we care about, LIBEXTS determines
 ## what kinds of libraries are built (just static, or both static and
 ## shared)
-## 
+##
 ifdef TEEM_SHEXT
   LIBEXTS = $(TEEM_SHEXT)
 endif
@@ -187,14 +187,14 @@ LIBEXTS += a
 ## Flags
 ##
 ifneq (undefined,$(origin TEEM_LINK_SHARED))
-  # If we ever have absolutify-this-path working, then having an 
+  # If we ever have absolutify-this-path working, then having an
   # absolute TEEM_DEST path is no longer a pre-requisite
   BIN_CFLAGS += $(SHARED_CFLAG) $(if $(TEEM_DEST),$(if $(SHARED_RPATH),$(SHARED_RPATH)$(LDEST),),)
 else
   BIN_CFLAGS += $(STATIC_CFLAG)
 endif
 
-## The -DTEEM_BUILD_EXPERIMENTAL_LIBS mimics something that 
+## The -DTEEM_BUILD_EXPERIMENTAL_LIBS mimics something that
 ## would otherwise come from CMake files
 CFLAGS += -DTEEM_BUILD_EXPERIMENTAL_LIBS $(OPT_CFLAG) $(ARCH_CFLAG)
 LDFLAGS += $(ARCH_LDFLAG) $(SHARED_LDFLAG)
@@ -209,7 +209,7 @@ CFLAGS += $(TEEM_CPP_ERROR_DIE)
 
 ## Each of these can be $(call)ed with a library name, as the one
 ## and only argument, in order to get a list of files or flags related to
-## library.  
+## library.
 ##
 ## {libs,hdrs}.inst(L): installed libs and headers for library L
 ## hdrs.dev(L): the local (original) copies of public and private headers
@@ -235,7 +235,7 @@ hdrs.dev = $(addprefix $(TEEM_SRC)/$(1)/,\
 ## (discover more needed libs).  The number of levels is more than
 ## enough for the current teem; and adding more levels later is
 ## trivial.
-## 
+##
 ## Since we rely on $(sort) to remove redundancies, we need a way of
 ## putting the libraries back in dependency order (!= lexical order).
 ## So, we prefix the needed library names with [0..D] (via $(join)) to
@@ -243,7 +243,7 @@ hdrs.dev = $(addprefix $(TEEM_SRC)/$(1)/,\
 ## with $(notdir).  This is done by "deporder". On the link line,
 ## however, the ordering needs to be reversed, this is done by
 ## "linkorder".
-## 
+##
 dmnl = $(sort $(foreach LIB,$(1),$(LIB) $($(LIB).NEED)))
 deporder = $(notdir $(sort $(foreach LIB,$(1),\
   $(filter %/$(LIB),$(NUM/LIBS)))))
@@ -323,7 +323,7 @@ xtern.link  = $(call evallist,$(call for.xtern,$(1),XXX.LINK))
 #######################################
 
 ## Read in the makefiles for all the libraries, and the bins.  Run-away
-## recursive inclusion is prevented by having set DEF_TARGETS. 
+## recursive inclusion is prevented by having set DEF_TARGETS.
 ## Note: "include" is a directive, not a function, which eliminates
 ## the possibility of iterating through the libraries, reading the
 ## make file, and then setting variables based on what was just read.
