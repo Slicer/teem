@@ -724,6 +724,10 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 ** since casts should probably always be revisited and reconsidered.
 */
 #define AIR_CAST(t, v) ((t)(v))
+/* ---- BEGIN non-NrrdIO */
+#define AIR_UCHAR(x) AIR_CAST(unsigned char, x)
+#define AIR_USHORT(x) AIR_CAST(unsigned short, x)
+/* ---- END non-NrrdIO */
 #define AIR_UINT(x) AIR_CAST(unsigned int, x)
 #define AIR_INT(x) AIR_CAST(int, x)
 
