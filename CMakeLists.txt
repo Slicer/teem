@@ -108,7 +108,7 @@ endif()
 
 #-----------------------------------------------------------------------------
 # test if AIR_EXISTS macro fails
-# try_run(<runResultVar> <compileResultVar> 
+# try_run(<runResultVar> <compileResultVar>
 #         <bindir> <srcfile>)
 try_run(AIR_EXISTS_MACRO_FAILS AIR_EXISTS_MACRO_COMPILE
         ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/CMake/testAirExists.cxx)
@@ -229,7 +229,7 @@ if(Teem_FFTW3)
     endif()
 endif()
 # Option 8
-# DirectIO is the fast way to do multi-gigabyte I/O and currently only available for SGI platforms.  
+# DirectIO is the fast way to do multi-gigabyte I/O and currently only available for SGI platforms.
 if(USE_DIRECTIO)
     add_definitions(-DTEEM_DIO=1)
 else()
@@ -271,7 +271,7 @@ if(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "")
     set(BUILD_EXPERIMENTAL_LIBS ON)
 endif()
 
-# set the Teem library as a list 
+# set the Teem library as a list
 set(Teem_LIBRARIES "air" "hest" "biff" "nrrd" "ell" "unrrdu" "moss" "gage" "dye" "limn" "echo" "hoover" "seek" "ten" "pull" "mite" "meet")
 if(BUILD_EXPERIMENTAL_LIBS)
     # This list of the "experimental" libraries must be kept in sync with:
@@ -287,7 +287,7 @@ if(BUILD_EXPERIMENTAL_APPS)
     add_definitions(-DTEEM_BUILD_EXPERIMENTAL_APPS)
 endif()
 
-# set the Teem headers as a list 
+# set the Teem headers as a list
 set(Teem_HEADER_FILES
     "air/air.h"
     "hest/hest.h"
