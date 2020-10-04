@@ -815,7 +815,9 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 ** problems oddly went away with the explicit cast to int.
 */
 /* ---- BEGIN non-NrrdIO */
-#include "teem/airExistsConf.h"
+#if !defined(TEEM_NON_CMAKE)
+#  include "teem/airExistsConf.h"
+#endif
 /* ---- END non-NrrdIO */
 
 #if defined(_WIN32) || defined(__ECC) || defined(AIR_EXISTS_MACRO_FAILS) /* NrrdIO-hack-002 */
