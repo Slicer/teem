@@ -202,7 +202,7 @@ baneBcptsCheck (Nrrd *Bcpts) {
     biffAddf(BANE, "%s: need data of type float", me);
     return 1;
   }
-  len = Bcpts->axis[1].size;
+  len = AIR_INT(Bcpts->axis[1].size); /* HEY should be unsigned */
   data = (float *)Bcpts->data;
   for (i=0; i<=len-2; i++) {
     if (!(data[0 + 2*i] <= data[0 + 2*(i+1)])) {

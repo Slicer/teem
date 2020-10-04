@@ -100,9 +100,9 @@ baneFindInclusion(double min[3], double max[3],
   double val[3];
 
   /* conveniance copies */
-  sx = nin->axis[0].size;
-  sy = nin->axis[1].size;
-  sz = nin->axis[2].size;
+  sx = AIR_CAST(int, nin->axis[0].size); /* HEY should be unsigned */
+  sy = AIR_CAST(int, nin->axis[1].size); /* HEY should be unsigned */
+  sz = AIR_CAST(int, nin->axis[2].size); /* HEY should be unsigned */
   inc[0] = hvp->axis[0].inc;
   inc[1] = hvp->axis[1].inc;
   inc[2] = hvp->axis[2].inc;
@@ -268,7 +268,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   gageContext *ctx;
   gagePerVolume *pvl;
   int E, sx, sy, sz, shx, shy, shz, x, y, z, hx, hy, hz,
-    *rhvdata, clipVal, hval, pad;
+    *rhvdata, clipVal, pad;
   /* these are doubles because ultimately the inclusion functions
      use doubles, because I wanted the most generality */
   double val[3], min[3], max[3];
@@ -288,9 +288,9 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   }
 
   /* set up */
-  sx = nin->axis[0].size;
-  sy = nin->axis[1].size;
-  sz = nin->axis[2].size;
+  sx = AIR_CAST(int, nin->axis[0].size); /* HEY should be unsigned */
+  sy = AIR_CAST(int, nin->axis[1].size); /* HEY should be unsigned */
+  sz = AIR_CAST(int, nin->axis[2].size); /* HEY should be unsigned */
 
   mop = airMopNew();
   ctx = gageContextNew();
@@ -448,8 +448,9 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
       }
       for (hx=0; hx<shx; hx++) {
         hidx = hx + shx*(hy + shy*hz);
-        hval = airIndexClamp(0, rhvdata[hidx], clipVal, 256);
-        nhvdata[hidx] = hval;
+        nhvdata[hidx] = AIR_CAST(unsigned char,
+                                 airIndexClamp(0, rhvdata[hidx],
+                                               clipVal, 256));
       }
     }
   }

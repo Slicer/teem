@@ -56,7 +56,7 @@ _baneIncProcess_HistFill(baneInc *inc, double val) {
   unsigned int idx;
 
   idx = airIndex(inc->nhist->axis[0].min, val, inc->nhist->axis[0].max,
-                 inc->nhist->axis[0].size);
+                 AIR_CAST(unsigned int, inc->nhist->axis[0].size));
   /*
   fprintf(stderr, "## _baneInc_HistFill: (%g,%g,%g) %d ---> %d\n",
           inc->nhist->axis[0].min, val, inc->nhist->axis[0].max,
@@ -135,7 +135,7 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
   /* integrate histogram and determine how many hits to exclude */
   sum = 0;
   hist = (int *)nhist->data;
-  histSize = nhist->axis[0].size;
+  histSize = AIR_INT(nhist->axis[0].size); /* HEY should be unsigned */
   for (i=0; i<histSize; i++) {
     sum += hist[i];
   }
@@ -226,7 +226,7 @@ _baneIncAnswer_Stdv(double *minP, double *maxP,
   float SS, stdv, mid, mean, width;
   int count;
 
-  count = hist->axis[1].size;
+  count = AIR_INT(hist->axis[1].size); /* HEY should be unsigned */
   mean = AIR_CAST(float, hist->axis[1].min/count);
   SS = AIR_CAST(float, hist->axis[1].max/count);
   stdv = AIR_CAST(float, sqrt(SS - mean*mean));

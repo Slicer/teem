@@ -138,8 +138,8 @@ baneGkms_pvgMain(int argc, const char **argv, const char *me,
     biffAddf(BANE, "%s: trouble calculating position", me);
     airMopError(mop); return 1;
   }
-  sv = nposA->axis[0].size;
-  sg = nposA->axis[1].size;
+  sv = AIR_CAST(int, nposA->axis[0].size); /* HEY should be unsigned */
+  sg = AIR_CAST(int, nposA->axis[1].size); /* HEY should be unsigned */
   pos = (float *)nposA->data;
 
   /* find min, max, sml, smlI: histo-eq will warp values around such
