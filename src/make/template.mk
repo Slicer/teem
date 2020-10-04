@@ -1,5 +1,5 @@
 #
-# Teem: Tools to process and visualize scientific data and images              
+# Teem: Tools to process and visualize scientific data and images
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -20,7 +20,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
-#### 
+####
 #### template.mk: Defines rules which have the same structure for each
 #### library, but which refer to the specific constituents and
 #### prerequisites of the library.  The rules defined here are
@@ -129,10 +129,10 @@ endif
 ##   then add SHARED_INSTALL_NAME flag to the link command making the shared lib
 ## - ... $(LDFLAGS) $(LPATH) ...
 ## - all architectures: add "-l<lib>" for all <lib> that this lib relies on
-## - all architectures: add -L<path> and -l<lib> for external libraries that 
+## - all architectures: add -L<path> and -l<lib> for external libraries that
 ##   this library could depend on
 
-## maybebanner.(L)(obj) returns "echo ..." to show a library banner 
+## maybebanner.(L)(obj) returns "echo ..." to show a library banner
 ## progress indicator, but only if obj is the first object in $(L).OBJS.
 ## This mimics the behavior under the old recursive teem makefile.
 ##
