@@ -125,8 +125,8 @@ outputInit(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
     unsigned int estVoxNum=0;
     /* estimate number of voxels, faces, and vertices involved */
     spanHist = AIR_CAST(unsigned int*, sctx->nspanHist->data);
-    valI = airIndex(sctx->range->min, sctx->isovalue, sctx->range->max,
-                    sctx->spanSize);
+    valI = AIR_UINT(airIndex(sctx->range->min, sctx->isovalue,
+                             sctx->range->max, AIR_UINT(sctx->spanSize)));
     for (minI=0; minI<=valI; minI++) {
       for (maxI=valI; maxI<sctx->spanSize; maxI++) {
         estVoxNum += spanHist[minI + sctx->spanSize*maxI];
@@ -200,7 +200,7 @@ static double
 sclGet(seekContext *sctx, baggage *bag,
        unsigned int xi, unsigned int yi, unsigned int zi) {
 
-  zi = AIR_MIN(sctx->sz-1, zi);
+  zi = AIR_UINT(AIR_MIN(sctx->sz-1, zi));
   return bag->scllup(bag->scldata, xi + sctx->sx*(yi + sctx->sy*zi));
 }
 

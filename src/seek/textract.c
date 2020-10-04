@@ -959,6 +959,8 @@ findConnectivity(signed char *pairs, double *bestval, int ct, char *idcs,
 #define _SEEK_TREATED_EDGE4 0x20 /* unique edge 4 has been treated */
 #define _SEEK_TREATED_FACE3 0x40 /* unique face 3 has been treated */
 
+#define CHAR(x) AIR_CAST(char, x)
+
 /* find deg. points, normals, and connectivity on a given (unique) face
  * now refines the search if it couldn't find a degenerate point */
 static void
@@ -1076,20 +1078,20 @@ connectFace(seekContext *sctx, baggage *bag,
                    x, y, z);
         computeEdgeGradient(sctx, bag, sctx->edgenorm+
                             9*(bag->evti[edgeid[faceid][j]]+5*si)+3*i,
-                            xb, yb, idb, interpos[i]);
+                            xb, yb, CHAR(idb), interpos[i]);
       }
     }
 
     interct=0; /* number of feature intersections */
     for (i=0; i<3; i++) {
       if (sctx->edgealpha[3*(bag->evti[edgeid[faceid][0]]+5*si)+i]>=0)
-        inter[interct++]=i; /* numbering is local w.r.t. face */
+        inter[interct++]=CHAR(i); /* numbering is local w.r.t. face */
       if (sctx->edgealpha[3*(bag->evti[edgeid[faceid][1]]+5*si)+i]>=0)
-        inter[interct++]=3+i;
+        inter[interct++]=CHAR(3+i);
       if (sctx->edgealpha[3*(bag->evti[edgeid[faceid][2]]+5*si)+i]>=0)
-        inter[interct++]=6+i;
+        inter[interct++]=CHAR(6+i);
       if (sctx->edgealpha[3*(bag->evti[edgeid[faceid][3]]+5*si)+i]>=0)
-        inter[interct++]=9+i;
+        inter[interct++]=CHAR(9+i);
     }
     if (interct%2==1) { /* we need to look for a degeneracy */
       int k;
@@ -1203,8 +1205,8 @@ connectFace(seekContext *sctx, baggage *bag,
       }
     }
     for (i=0; i<interct; i++) {
-      sctx->pairs[12*(faceid+4*si)+i]=i;
-      idcs[i]=i;
+      sctx->pairs[12*(faceid+4*si)+i]=CHAR(i);
+      idcs[i]=CHAR(i);
     }
     findConnectivity(sctx->pairs+12*(faceid+4*si), &bestscore, interct,
                      idcs, 0, interc, intern);
@@ -1370,21 +1372,21 @@ _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
           idxmap2=3*idx2+offset2;
           if (idx1>11) {
             idxmap1=idx1+24; /* +36-12 */
-            degeneracies[degct++] = idxmap1;
+            degeneracies[degct++] = CHAR(idxmap1);
           }
           if (idx2>11) {
             idxmap2=idx2+24;
-            degeneracies[degct++] = idxmap2;
+            degeneracies[degct++] = CHAR(idxmap2);
           }
 
           if (connections[2*idxmap1]==-1)
-            connections[2*idxmap1]=idxmap2;
+            connections[2*idxmap1]=CHAR(idxmap2);
           else
-            connections[2*idxmap1+1]=idxmap2;
+            connections[2*idxmap1+1]=CHAR(idxmap2);
           if (connections[2*idxmap2]==-1)
-            connections[2*idxmap2]=idxmap1;
+            connections[2*idxmap2]=CHAR(idxmap1);
           else
-            connections[2*idxmap2+1]=idxmap1;
+            connections[2*idxmap2+1]=CHAR(idxmap1);
         }
       }
 
@@ -1547,9 +1549,9 @@ _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
           /* extract polygon from connections array */
           signed char polygon[42];
           unsigned char polyct=0;
-          char thiz=i;
+          char thiz=CHAR(i);
           char next=connections[2*i];
-          polygon[polyct++]=i;
+          polygon[polyct++]=CHAR(i);
           connections[2*i]=-1;
           while (next!=-1) {
             char helpnext;
@@ -1739,6 +1741,8 @@ _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
   }
   return 0;
 }
+
+#undef CHAR
 
 static void
 shuffleT(seekContext *sctx, baggage *bag) {

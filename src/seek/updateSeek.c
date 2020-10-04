@@ -661,10 +661,10 @@ updateSpanSpaceHist(seekContext *sctx) {
         return 1;
       }
       spanHist = AIR_CAST(unsigned int*, sctx->nspanHist->data);
-      sx = sctx->sx;
-      sy = sctx->sy;
-      sz = sctx->sz;
-      ss = sctx->spanSize;
+      sx = AIR_UINT(sctx->sx);
+      sy = AIR_UINT(sctx->sy);
+      sz = AIR_UINT(sctx->sz);
+      ss = AIR_UINT(sctx->spanSize);
       for (si=0; si<ss*ss; si++) {
         spanHist[si] = 0;
       }
