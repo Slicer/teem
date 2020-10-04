@@ -686,9 +686,9 @@ limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld,
            AIR_IN_OP(min[2], xyz[2], max[2]) )) {
       continue;
     }
-    xi = airIndex(min[0], xyz[0], max[0], size[0]);
-    yi = airIndex(min[1], xyz[1], max[1], size[1]);
-    zi = airIndex(min[2], xyz[2], max[2], size[2]);
+    xi = airIndex(min[0], xyz[0], max[0], AIR_UINT(size[0]));
+    yi = airIndex(min[1], xyz[1], max[1], AIR_UINT(size[1]));
+    zi = airIndex(min[2], xyz[2], max[2], AIR_UINT(size[2]));
     ins(nout->data, xi + size[0]*(yi + size[1]*zi), 1.0);
   }
 

@@ -179,7 +179,7 @@ limnSplineNumPoints(limnSpline *spline) {
 
   ret = -1;
   if (spline) {
-    ret = spline->ncpt->axis[2].size;
+    ret = AIR_INT(spline->ncpt->axis[2].size); /* HEY be unsigned */
   }
   return ret;
 }
@@ -202,7 +202,7 @@ limnSplineMaxT(limnSpline *spline) {
 
   ret = AIR_NAN;
   if (spline) {
-    N = spline->ncpt->axis[2].size;
+    N = AIR_INT(spline->ncpt->axis[2].size); /* HEY be unsigned */
     if (spline->time) {
       ret = spline->time[N-1];
     } else {

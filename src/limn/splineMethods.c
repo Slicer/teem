@@ -64,7 +64,7 @@ _limnSplineTimeWarpSet(limnSpline *spline) {
   int ii, N;
 
   cpt = (double*)(spline->ncpt->data);
-  N = spline->ncpt->axis[2].size;
+  N = AIR_INT(spline->ncpt->axis[2].size); /* HEY be unsigned */
   time = spline->time;
 
   for (ii=0; ii<N; ii++) {

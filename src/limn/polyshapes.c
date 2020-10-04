@@ -1450,7 +1450,7 @@ limnPolyDataSuperquadric2D(limnPolyData *pld,
                            float alpha, unsigned int res) {
   static const char me[]="limnPolyDataSuperquadric2D";
   unsigned int i, vertNum;
-  float phi;
+  double phi;
 
   vertNum = res+1; /* initial vertex at origin */
   if (limnPolyDataAlloc(pld, infoBitFlag, vertNum,
@@ -1464,10 +1464,10 @@ limnPolyDataSuperquadric2D(limnPolyData *pld,
   /* printf("!%s: xyzw[0] = %g %g %g %g\n", me, (pld->xyzw + 4*0)[0], (pld->xyzw + 4*0)[1], (pld->xyzw + 4*0)[2], (pld->xyzw + 4*0)[3]); */
   for (i=1; i<vertNum; i++) {
     phi = AIR_AFFINE(1, i, vertNum, 0, 2*AIR_PI);
-    ELL_4V_SET(pld->xyzw + 4*i,
-               airSgnPow(cos(phi),alpha),
-               airSgnPow(sin(phi),alpha),
-               0.0, 1.0);
+    ELL_4V_SET_TT(pld->xyzw + 4*i, float,
+                  airSgnPow(cos(phi),alpha),
+                  airSgnPow(sin(phi),alpha),
+                  0.0, 1.0);
     /* printf("!%s: xyzw[%u] = %g %g %g %g\n", me, i ,(pld->xyzw + 4*i)[0], (pld->xyzw + 4*i)[1], (pld->xyzw + 4*i)[2], (pld->xyzw + 4*i)[3]); */
   }
   if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {

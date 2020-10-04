@@ -105,7 +105,7 @@ _limnQN16border1_QNtoV_f(float *vec, unsigned int qn) {
   x =  u + v;
   y =  u - v;
   z = 1 - AIR_ABS(x) - AIR_ABS(y);
-  z *= AIR_CAST(int, ((ui&1) ^ (vi&1)) << 1) - 1;
+  z *= AIR_INT(((ui&1) ^ (vi&1)) << 1) - 1;
   n = AIR_CAST(float, 1.0/sqrt(x*x + y*y + z*z));
   vec[0] = x*n;
   vec[1] = y*n;
@@ -173,7 +173,7 @@ _limnQN16border1_VtoQN_f(const float *vec) {
   x =  u + v;                                     \
   y =  u - v;                                     \
   z = 1 - AIR_ABS(x) - AIR_ABS(y);                \
-  z *= AIR_CAST(int, ((ui & 1) ^ (vi & 1)) << 1) - 1; \
+  z *= AIR_INT(((ui & 1) ^ (vi & 1)) << 1) - 1;   \
   n = 1.0/sqrt(x*x + y*y + z*z); \
   (vec)[0] = AIR_CAST(TT, x*n); \
   (vec)[1] = AIR_CAST(TT, y*n); \
@@ -373,7 +373,7 @@ _limnQN16octa_VtoQN_d(const double *vec) {
   x =  u + v; \
   y =  u - v; \
   z = 1 - AIR_ABS(x) - AIR_ABS(y); \
-  z *= AIR_CAST(int, zi << 1) - 1;    \
+  z *= AIR_INT(zi << 1) - 1;    \
   n = AIR_CAST(TT, 1.0/sqrt(x*x + y*y + z*z)); \
   vec[0] = AIR_CAST(TT, x*n); \
   vec[1] = AIR_CAST(TT, y*n); \

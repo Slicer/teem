@@ -73,7 +73,7 @@ flipNeighborsGet(Nrrd *nTriWithVert, Nrrd *nVertWithTri,
 
   vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
   triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data);
-  maxTriPerVert = nTriWithVert->axis[0].size - 1;
+  maxTriPerVert = AIR_UINT(nTriWithVert->axis[0].size - 1);
   for (ii=0; ii<3; ii++) {
     vertA = (vertWithTri + 3*triIdx)[ii];
     vertB = (vertWithTri + 3*triIdx)[AIR_MOD(ii+1, 3)];
@@ -1158,7 +1158,7 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) {
   vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
   /* triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data); */
 
-  maxTriPerVert = nTriWithVert->axis[0].size - 1;
+  maxTriPerVert = AIR_UINT(nTriWithVert->axis[0].size - 1);
   intxBuff = AIR_CAST(unsigned int*, calloc(maxTriPerVert,
                                             sizeof(unsigned int)));
   if (!intxBuff) {
@@ -1677,7 +1677,7 @@ clipEdge(int disc, int kept, Nrrd *nval, double *thresh, int *newIdx,
     next=llist[next+2];
   }
   /* we need to interpolate - find the weight */
-  nk=(nval->dim==1)?1:nval->axis[0].size;
+  nk=AIR_UINT((nval->dim==1)?1:nval->axis[0].size);
   for (i=0; i<nk; i++) {
     double discval = lup(nval->data, nk*disc+i);
     double keptval = lup(nval->data, nk*kept+i);
@@ -1766,9 +1766,9 @@ limnPolyDataClipMulti(limnPolyData *pld, Nrrd *nval, double *thresh) {
   }
 
   if (nval->dim==1) {
-    nk=1; nvert=nval->axis[0].size;
+    nk=1; nvert=AIR_UINT(nval->axis[0].size);
   } else if (nval->dim==2) {
-    nk=nval->axis[0].size; nvert=nval->axis[1].size;
+    nk=AIR_UINT(nval->axis[0].size); nvert=AIR_UINT(nval->axis[1].size);
   } else {
     biffAddf(LIMN, "%s: need 1D or 2D input array, got %uD", me, nval->dim);
     return 1;
@@ -2337,7 +2337,7 @@ registerNeighbor(unsigned int *nblist, size_t *len, unsigned int *maxnb,
   if (depth>*maxnb)
     *maxnb=depth;
   /* do the registration */
-  nblist[pointer]=*len;
+  nblist[pointer]=AIR_UINT(*len);
   nblist[*len]=v;
   nblist[*len+1]=0;
   (*len)+=2;
@@ -2348,7 +2348,7 @@ registerNeighbor(unsigned int *nblist, size_t *len, unsigned int *maxnb,
     pointer=idx+1;
     idx=nblist[pointer];
   }
-  nblist[pointer]=*len;
+  nblist[pointer]=AIR_UINT(*len);
   nblist[*len]=u;
   nblist[*len+1]=0;
   (*len)+=2;

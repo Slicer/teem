@@ -40,9 +40,9 @@ _limnSplineIntervalFind_Unknown(int *ii, double *ff,
 void
 _limnSplineIntervalFind_NonWarp(int *ii, double *ff,
                                 limnSpline *spline, double tt) {
-  int N;
+  int N; /* HEY should be unsigned */
 
-  N = spline->ncpt->axis[2].size + (spline->loop ? 1 : 0);
+  N = AIR_INT(spline->ncpt->axis[2].size + (spline->loop ? 1 : 0));
   tt = AIR_CLAMP(0, tt, N-1);
   *ii = (int)tt;
   *ff = tt - *ii;
@@ -54,7 +54,7 @@ _limnSplineIntervalFind_Warp(int *ii, double *ff,
                              limnSpline *spline, double tt) {
   int N;
 
-  N = spline->ncpt->axis[2].size;
+  N = AIR_INT(spline->ncpt->axis[2].size); /* HEY should be unsigned */
   tt = AIR_CLAMP(spline->time[0], tt, spline->time[N-1]);
   *ii = AIR_CLAMP(0, *ii, N-2);
   /* the last value of ii may be the right one */
@@ -175,7 +175,7 @@ void
 _limnSplineIndexFind(int *idx, limnSpline *spline, int ii) {
   int N, ti[4];
 
-  N = spline->ncpt->axis[2].size;
+  N = AIR_INT(spline->ncpt->axis[2].size); /* should be unsigned */
   if (limnSplineTypeHasImplicitTangents[spline->type]) {
     if (spline->loop) {
       ELL_4V_SET(ti,

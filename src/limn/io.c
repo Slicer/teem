@@ -683,7 +683,8 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
                me, name, primIdx, primNum);
       return 1;
     }
-    pld->type[primIdx] = airEnumVal(limnPrimitive, line);
+    pld->type[primIdx] = AIR_CAST(unsigned char,
+                                  airEnumVal(limnPrimitive, line));
     if (!(pld->type[primIdx])) {
       biffAddf(LIMN, "%s: couldn't parse \"%s\" %s line %u/%u",
                me, line, name, primIdx, primNum);

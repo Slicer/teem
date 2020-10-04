@@ -43,21 +43,21 @@ limnpuCmdList[] = {
 */
 void
 limnpuUsage(char *me, hestParm *hparm) {
-  int i, maxlen, len, c;
+  unsigned int i, maxlen, len, c;
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
 
   maxlen = 0;
   for (i=0; limnpuCmdList[i]; i++) {
-    maxlen = AIR_MAX(maxlen, (int)strlen(limnpuCmdList[i]->name));
+    maxlen = AIR_MAX(maxlen, AIR_UINT(strlen(limnpuCmdList[i]->name)));
   }
 
   sprintf(buff, "--- LimnPolyData Hacking ---");
-  sprintf(fmt, "%%%ds\n",
-          (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
+  sprintf(fmt, "%%%us\n",
+          AIR_UINT((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
 
   for (i=0; limnpuCmdList[i]; i++) {
-    len = strlen(limnpuCmdList[i]->name);
+    len = AIR_UINT(strlen(limnpuCmdList[i]->name));
     strcpy(buff, "");
     for (c=len; c<maxlen; c++)
       strcat(buff, " ");
@@ -65,7 +65,7 @@ limnpuUsage(char *me, hestParm *hparm) {
     strcat(buff, " ");
     strcat(buff, limnpuCmdList[i]->name);
     strcat(buff, " ... ");
-    len = strlen(buff);
+    len = AIR_UINT(strlen(buff));
     fprintf(stderr, "%s", buff);
     _hestPrintStr(stderr, len, len, hparm->columns,
                   limnpuCmdList[i]->info, AIR_FALSE);
