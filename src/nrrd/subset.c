@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -388,14 +388,15 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
                 unsigned int saxi, Nrrd *_nline, double thresh) {
   static const char me[]="nrrdSliceSelect";
   airArray *mop;
-  Nrrd *nline, *nslice;
+  Nrrd *nline, *nslice, *noutPrep[2] /* pre-axes-permute */, *nout[2];
   NrrdRange *rng;
   double *line;
   size_t II, LL, numAbove, numBelow, stride,
-    sizeAbove[NRRD_DIM_MAX], sizeBelow[NRRD_DIM_MAX];
-  unsigned int aa, bb;
-  int axmap[NRRD_DIM_MAX];
-  char *above, *below, stmp[2][AIR_STRLEN_SMALL];
+    size[2 /* 0=above 1=below */][NRRD_DIM_MAX];
+  unsigned int aa, bb, oi,
+    axperm[NRRD_DIM_MAX]; /* for doing the axis permute to final out */
+  int axmap[NRRD_DIM_MAX]; /* for copying axis info from nin to outputs */
+  char *ABdata[2], stmp[2][AIR_STRLEN_SMALL];
 
   if (!( (noutAbove || noutBelow) && nin && _nline )) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -415,8 +416,8 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
     return 1;
   }
   if (nrrdTypeBlock == nin->type) {
-    /* no good reason for this except that GLK forgets out to
-       set the blocksize in output */
+    /* no good reason for this except that GLK currently forgets how
+       to set the blocksize in output */
     biffAddf(NRRD, "%s: sorry, can't handle type %s input", me,
              airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
@@ -434,8 +435,8 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
     return 1;
   }
   if (1 == nin->dim) {
-    biffAddf(NRRD, "%s: sorry, slice-based implementation requires input "
-             "dimension > 1", me);
+    biffAddf(NRRD, "%s: sorry, current slice-based implementation "
+             "requires input dimension > 1", me);
     return 1;
   }
 
@@ -448,6 +449,7 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
   }
 
   nslice = nrrdNew();
+  /* NB: nix, not nuke, because of the pointer games involved */
   airMopAdd(mop, nslice, (airMopper)nrrdNix, airMopAlways);
   nline = nrrdNew();
   airMopAdd(mop, nline, (airMopper)nrrdNuke, airMopAlways);
@@ -466,110 +468,114 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
       numBelow++;
     }
   }
-  if (noutAbove && !numAbove) {
-    biffAddf(NRRD, "%s: want slices for val >= thresh %g, "
-             "but highest value is %g < %g\n", me, thresh,
-             rng->max, thresh);
-    airMopError(mop); return 1;
+  if (noutAbove) {
+    if (!numAbove) {
+      biffAddf(NRRD, "%s: want slices for val >= thresh %g, "
+               "but highest value is %g < %g\n", me, thresh,
+               rng->max, thresh);
+      airMopError(mop); return 1;
+    }
+    noutPrep[0] = nrrdNew();
+    airMopAdd(mop, noutPrep[0], (airMopper)nrrdNuke, airMopAlways);
+    nout[0] = noutAbove;
+  } else {
+    noutPrep[0] = nout[0] = NULL;
   }
-  if (noutBelow && !numBelow) {
-    biffAddf(NRRD, "%s: want slices for val < thresh %g, "
-             "but lowest value is %g >= %g\n", me, thresh,
-             rng->min, thresh);
-    airMopError(mop); return 1;
+  if (noutBelow) {
+    if (!numBelow) {
+      biffAddf(NRRD, "%s: want slices for val < thresh %g, "
+               "but lowest value is %g >= %g\n", me, thresh,
+               rng->min, thresh);
+      airMopError(mop); return 1;
+    }
+    noutPrep[1] = nrrdNew();
+    airMopAdd(mop, noutPrep[1], (airMopper)nrrdNuke, airMopAlways);
+    nout[1] = noutBelow;
+  } else {
+    noutPrep[1] = nout[1] = NULL;
   }
 
+  /* the way this works is a little subtle: we can select (and thus slice)
+     along any axis, but the output is created by concatenating the selected
+     slices on only the SLOWEST axis. This is accomplished by slicing into
+     nslice, which is carefully set up here to point to some part of one or
+     other of the outputs.  This also means that we have to permute initial
+     pre-axis-permute ("Prep") output so that the real output axes are ordered
+     the same as in the input.  The initial step here is just to do the
+     arithmetic about axes, sizes, and how input axes are mapped to (final,
+     post-axis-permute) output. "stride" is stride between slices in the
+     initial (Prep) output */
   nslice->dim = nin->dim-1;
   nslice->type = nin->type;
   bb = 0;
   stride = nrrdElementSize(nin);
   for (aa=0; aa<nin->dim; aa++) {
-    sizeAbove[aa] = sizeBelow[aa] = nin->axis[aa].size;
     if (aa != saxi) {
-      axmap[aa] = aa;
-      nslice->axis[bb].size = nin->axis[aa].size;
-      if (aa < saxi) {
-        stride *= nin->axis[aa].size;
-      }
+      size_t ssz = nin->axis[aa].size;
+      stride *= ssz;
+      axmap[aa] = aa; /* for nrrdAxisInfoCopy */
+      axperm[aa] = bb; /* for nrrdAxesPermute */
+      size[0][bb] = size[1][bb] = ssz;
+      nslice->axis[bb].size = ssz;
       bb++;
-    } else {
-      axmap[aa] = -1;
     }
   }
-  sizeAbove[saxi] = numAbove;
-  sizeBelow[saxi] = numBelow;
-  if ((noutAbove
-       && nrrdMaybeAlloc_nva(noutAbove, nin->type, nin->dim, sizeAbove))
-      ||
-      (noutBelow
-       && nrrdMaybeAlloc_nva(noutBelow, nin->type, nin->dim, sizeBelow))) {
-    biffAddf(NRRD, "%s: trouble allocating output", me);
-    airMopError(mop); return 1;
-  }
-  if (noutAbove) {
-    above = AIR_CAST(char *, noutAbove->data);
-  } else {
-    above = NULL;
-  }
-  if (noutBelow) {
-    below = AIR_CAST(char *, noutBelow->data);
-  } else {
-    below = NULL;
+  axmap[saxi] = -1;
+  axperm[saxi] = nin->dim-1;
+  size[0][nin->dim-1] = numAbove;
+  size[1][nin->dim-1] = numBelow;
+
+  /* allocate pre-permutation outputs */
+  for (oi=0; oi<=1; oi++) {
+    if (nout[oi]) /* noutAbove or noutBelow */ {
+      if (nrrdMaybeAlloc_nva(noutPrep[oi], nin->type, nin->dim, size[oi])) {
+        biffAddf(NRRD, "%s: trouble allocating output for slices %s",
+                 me, !oi ? "above" : "below");
+        airMopError(mop); return 1;
+      }
+      ABdata[oi] = AIR_CAST(char *, noutPrep[oi]->data);
+    } else {
+      ABdata[oi] = NULL;
+    }
   }
 
-  /* the skinny */
+  /* slice and concat */
   for (II=0; II<LL; II++) {
-    if (line[II] >= thresh) {
-      if (noutAbove) {
-        nslice->data = above;
+    int test[2];
+    test[0] = (line[II] >= thresh);
+    test[1] = !test[0];
+    for (oi=0; oi<=1; oi++) {
+      if (test[oi] && nout[oi] /* noutAbove or noutBelow */)  {
+        nslice->data = ABdata[oi];
         if (nrrdSlice(nslice, nin, saxi, II)) {
-          biffAddf(NRRD, "%s: trouble slicing (above) at %s", me,
-                   airSprintSize_t(stmp[0], II));
+          biffAddf(NRRD, "%s: trouble slicing (%s) at %s", me,
+                   !oi ? "above" : "below", airSprintSize_t(stmp[0], II));
           airMopError(mop); return 1;
         }
-        above += stride;
-      }
-    } else {
-      if (noutBelow) {
-        nslice->data = below;
-        if (nrrdSlice(nslice, nin, saxi, II)) {
-          biffAddf(NRRD, "%s: trouble slicing (below) at %s", me,
-                   airSprintSize_t(stmp[0], II));
-          airMopError(mop); return 1;
-        }
-        below += stride;
+        ABdata[oi] += stride;
       }
     }
   }
 
-  if (noutAbove) {
-    nrrdAxisInfoCopy(noutAbove, nin, axmap, NRRD_AXIS_INFO_NONE);
-    if (nrrdBasicInfoCopy(noutAbove, nin,
-                          NRRD_BASIC_INFO_DATA_BIT
-                          | NRRD_BASIC_INFO_TYPE_BIT
-                          | NRRD_BASIC_INFO_DIMENSION_BIT
-                          | NRRD_BASIC_INFO_CONTENT_BIT
-                          | NRRD_BASIC_INFO_COMMENTS_BIT
-                          | (nrrdStateKeyValuePairsPropagate
-                             ? 0
-                             : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-      biffAddf(NRRD, "%s:", me);
-      return 1;
-    }
-  }
-  if (noutBelow) {
-    nrrdAxisInfoCopy(noutBelow, nin, axmap, NRRD_AXIS_INFO_NONE);
-    if (nrrdBasicInfoCopy(noutBelow, nin,
-                          NRRD_BASIC_INFO_DATA_BIT
-                          | NRRD_BASIC_INFO_TYPE_BIT
-                          | NRRD_BASIC_INFO_DIMENSION_BIT
-                          | NRRD_BASIC_INFO_CONTENT_BIT
-                          | NRRD_BASIC_INFO_COMMENTS_BIT
-                          | (nrrdStateKeyValuePairsPropagate
-                             ? 0
-                             : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-      biffAddf(NRRD, "%s:", me);
-      return 1;
+  /* now do permute */
+  for (oi=0; oi<=1; oi++) {
+    if (nout[oi]) /* noutAbove or noutBelow */ {
+      if (nrrdAxesPermute(nout[oi], noutPrep[oi], axperm)
+          /* nrrdAxisInfoCopy doesn't use biff but does have error returns */
+          || nrrdAxisInfoCopy(nout[oi], nin, axmap, NRRD_AXIS_INFO_NONE)
+          || nrrdBasicInfoCopy(nout[oi], nin,
+                               NRRD_BASIC_INFO_DATA_BIT
+                               | NRRD_BASIC_INFO_TYPE_BIT
+                               | NRRD_BASIC_INFO_DIMENSION_BIT
+                               | NRRD_BASIC_INFO_CONTENT_BIT
+                               | NRRD_BASIC_INFO_COMMENTS_BIT
+                               | (nrrdStateKeyValuePairsPropagate
+                                  ? 0
+                                  : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+        biffAddf(NRRD, "%s: trouble with %s output", me,
+                 !oi ? "above" : "below");
+        return 1;
+      }
     }
   }
 
