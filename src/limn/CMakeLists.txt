@@ -1,5 +1,6 @@
 # This variable will help provide a master list of all the sources.
 # Add new source files here.
+# NOTE that the lpu_*.c files are not included (no lpu from a CMake build)
 set(LIMN_SOURCES
   cam.c
   defaultsLimn.c
@@ -22,6 +23,7 @@ set(LIMN_SOURCES
   splineEval.c
   splineMethods.c
   splineMisc.c
+  splineFit.c
   transform.c
   )
 

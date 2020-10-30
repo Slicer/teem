@@ -824,6 +824,22 @@ LIMN_EXPORT int limnSplineNrrdEvaluate(Nrrd *nout,
 LIMN_EXPORT int limnSplineSample(Nrrd *nout, limnSpline *spline,
                                  double minT, size_t M, double maxT);
 
+/* splineFit.c */
+LIMN_EXPORT void limnCBWeights(double *ww, double tt,
+                               unsigned int deriv);
+LIMN_EXPORT void limnCBSample(double *xy, unsigned int pNum,
+                              const double vv0[2], const double vv1[2],
+                              const double vv2[2], const double vv3[2]);
+LIMN_EXPORT int limnCBFitSingle(double alpha[2],
+                                unsigned int *iterDone, unsigned iterMax,
+                                double *deltaDone, double deltaMin,
+                                double *distDone, unsigned int *distIdx,
+                                double distMin,
+                                const double vv0[2], const double tt1[2],
+                                const double tt2[2], const double vv3[2],
+                                const double *xy, unsigned int pNum,
+                                int verbose);
+
 /* lpu{Flotsam,. . .}.c */
 #define LIMN_DECLARE(C) LIMN_EXPORT unrrduCmd limnpu_##C##Cmd;
 #define LIMN_LIST(C) &limnpu_##C##Cmd,
@@ -837,10 +853,11 @@ F(psel) \
 F(rast) \
 F(verts) \
 F(meas) \
-F(sort)
+F(sort) \
+F(bcfit)
 LIMN_MAP(LIMN_DECLARE)
 LIMN_EXPORT unrrduCmd *limnpuCmdList[];
-LIMN_EXPORT void limnpuUsage(char *me, hestParm *hparm);
+LIMN_EXPORT void limnpuUsage(const char *me, hestParm *hparm);
 
 #ifdef __cplusplus
 }

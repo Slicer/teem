@@ -1,6 +1,6 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
+# Copyright (C) 2009--2020  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -46,15 +46,15 @@ $(L).SEEN := true
 #### Describe library here
 ####
 ####
-$(L).NEED = gage ell unrrdu nrrd biff hest air 
+$(L).NEED = gage ell unrrdu nrrd biff hest air
 $(L).PUBLIC_HEADERS = limn.h
 $(L).PRIVATE_HEADERS = privateLimn.h
 $(L).OBJS = defaultsLimn.o qn.o light.o envmap.o cam.o methodsLimn.o \
         obj.o transform.o shapes.o renderLimn.o io.o hestLimn.o \
 	splineMisc.o splineMethods.o splineEval.o enumsLimn.o \
-	polydata.o polyshapes.o polymod.o polyfilter.o \
+	splineFit.o polydata.o polyshapes.o polymod.o polyfilter.o \
 	lpuFlotsam.o lpu_about.o lpu_ccfind.o lpu_psel.o lpu_rast.o \
-	lpu_verts.o lpu_meas.o lpu_sort.o
+	lpu_verts.o lpu_meas.o lpu_sort.o lpu_bcfit.o
 $(L).TESTS = test/map test/light test/tcam test/tps test/tspline test/tbc \
 	test/tcamanim test/soid test/off2eps test/triimg test/plot test/intx \
 	test/tio test/clip test/lpu test/tqn
