@@ -76,17 +76,17 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
     tenEvecRGBSingle_f(RGB, ten[0], eval, evec + 3*(rgbp->which), rgbp);
     switch (nout->type) {
     case nrrdTypeUChar:
-      odataUC[0 + size[0]*II] = airIndexClamp(0.0, RGB[0], 1.0, 256);
-      odataUC[1 + size[0]*II] = airIndexClamp(0.0, RGB[1], 1.0, 256);
-      odataUC[2 + size[0]*II] = airIndexClamp(0.0, RGB[2], 1.0, 256);
+      odataUC[0 + size[0]*II] = AIR_UCHAR(airIndexClamp(0, RGB[0], 1, 256));
+      odataUC[1 + size[0]*II] = AIR_UCHAR(airIndexClamp(0, RGB[1], 1, 256));
+      odataUC[2 + size[0]*II] = AIR_UCHAR(airIndexClamp(0, RGB[2], 1, 256));
       if (rgbp->genAlpha) {
         odataUC[3 + size[0]*II] = 255;
       }
       break;
     case nrrdTypeUShort:
-      odataUS[0 + size[0]*II] = airIndexClamp(0.0, RGB[0], 1.0, 65536);
-      odataUS[1 + size[0]*II] = airIndexClamp(0.0, RGB[1], 1.0, 65536);
-      odataUS[2 + size[0]*II] = airIndexClamp(0.0, RGB[2], 1.0, 65536);
+      odataUS[0 + size[0]*II] = AIR_USHORT(airIndexClamp(0,RGB[0],1,65536));
+      odataUS[1 + size[0]*II] = AIR_USHORT(airIndexClamp(0,RGB[1],1,65536));
+      odataUS[2 + size[0]*II] = AIR_USHORT(airIndexClamp(0,RGB[2],1,65536));
       if (rgbp->genAlpha) {
         odataUS[3 + size[0]*II] = 65535;
       }

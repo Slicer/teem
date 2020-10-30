@@ -135,7 +135,7 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP, double *bP,
              airEnumStr(nrrdKind, nrrdKindList));
     return 1;
   }
-  dwiNum = ndwi->axis[dwiAxis].size;
+  dwiNum = AIR_UINT(ndwi->axis[dwiAxis].size);
 
   /* figure out if we're parsing gradients or b-matrices */
   sprintf(tmpKey, tenDWMRIGradKeyFmt, 0);
@@ -351,7 +351,7 @@ tenBMatrixCalc(Nrrd *nbmat, const Nrrd *_ngrad) {
   static const char me[]="tenBMatrixCalc";
   Nrrd *ngrad;
   double *bmat, *G;
-  int DD, dd;
+  unsigned int DD, dd;
   airArray *mop;
 
   if (!(nbmat && _ngrad && !tenGradientCheck(_ngrad, nrrdTypeDefault, 1))) {
@@ -367,7 +367,7 @@ tenBMatrixCalc(Nrrd *nbmat, const Nrrd *_ngrad) {
     airMopError(mop); return 1;
   }
 
-  DD = ngrad->axis[1].size;
+  DD = AIR_UINT(ngrad->axis[1].size);
   G = (double*)(ngrad->data);
   bmat = (double*)(nbmat->data);
   for (dd=0; dd<DD; dd++) {
@@ -771,7 +771,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
       } */
     }
     tenEstimateLinearSingle_f(ten, &_B0, dwi1, emat,
-                              vbuf, DD, knownB0,
+                              vbuf, AIR_UINT(DD), knownB0,
                               AIR_CAST(float, thresh),
                               AIR_CAST(float, soft),
                               AIR_CAST(float, b));
@@ -785,7 +785,8 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     if (nterrP) {
       te = 0;
       if (knownB0) {
-        tenSimulateSingle_f(dwi2, _B0, ten, bmat, DD, AIR_CAST(float, b));
+        tenSimulateSingle_f(dwi2, _B0, ten, bmat,
+                            AIR_UINT(DD), AIR_CAST(float, b));
         for (d=1; d<DD; d++) {
           d1 = AIR_MAX(dwi1[d], 1);
           d2 = AIR_MAX(dwi2[d], 1);
@@ -793,7 +794,8 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
         }
         te /= (DD-1);
       } else {
-        tenSimulateSingle_f(dwi2, _B0, ten, bmat, DD+1, AIR_CAST(float, b));
+        tenSimulateSingle_f(dwi2, _B0, ten, bmat,
+                            AIR_UINT(DD+1), AIR_CAST(float, b));
         for (d=0; d<DD; d++) {
           d1 = AIR_MAX(dwi1[d], 1);
           /* tenSimulateSingle_f always puts the B0 in the beginning of
@@ -923,8 +925,8 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
   lup = nrrdFLookup[nT2->type];
   for (II=0; II<(size_t)(sx*sy*sz); II++) {
     /* tenVerbose = (II == 42 + 190*(96 + 196*0)); */
-    tenSimulateSingle_f(dwi, lup(nT2->data, II), ten, bmat, DD,
-                        AIR_CAST(float, b));
+    tenSimulateSingle_f(dwi, lup(nT2->data, II), ten, bmat,
+                        AIR_UINT(DD), AIR_CAST(float, b));
     dwi += DD;
     ten += 7;
   }
