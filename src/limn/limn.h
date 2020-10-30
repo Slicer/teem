@@ -511,6 +511,34 @@ typedef struct limnSplineTypeSpec_t {
   double B, C;       /* B,C values for BC-splines */
 } limnSplineTypeSpec;
 
+/*
+******** limnCBFitState
+**
+** The bag of inputs/outputs for limnCBFit functions. Intending to
+** have no dynamically allocated things within this, (so no
+** limnCBFitStateNew or limnCBFitStateNix), to simplify recursive
+** calls to fit sub-segments.
+**
+** "nrparm" = Newton-based reparameterization of given points
+*/
+typedef struct {
+  /* ----------- input ---------- */
+  int verbose;              /* verbosity level */
+  unsigned int iterMax;     /* max # iters of nrparm */
+  /* stop nrparm if go below any of these */
+  double deltaMin,          /* min total change by nrparm */
+    distMin,                /* min distance to given points */
+    detMin;                 /* determinant of M matrix to invert */
+  /* ----------- output --------- */
+  /* per-segment alpha[0,1] learned separately */
+  unsigned int iterDone,    /* number of nrparm iters taken */
+    distIdx;                /* which point had distance distDone */
+  double deltaDone,         /* latest total change by nrparm */
+    distDone,               /* max distance to given points */
+    detDone;                /* min M determinant */
+  double timeMs;            /* time to run, in milliseconds */
+} limnCBFitState;
+
 /* defaultsLimn.c */
 LIMN_EXPORT const int limnPresent;
 LIMN_EXPORT const char *limnBiffKey;
@@ -830,15 +858,11 @@ LIMN_EXPORT void limnCBWeights(double *ww, double tt,
 LIMN_EXPORT void limnCBSample(double *xy, unsigned int pNum,
                               const double vv0[2], const double vv1[2],
                               const double vv2[2], const double vv3[2]);
-LIMN_EXPORT int limnCBFitSingle(double alpha[2],
-                                unsigned int *iterDone, unsigned iterMax,
-                                double *deltaDone, double deltaMin,
-                                double *distDone, unsigned int *distIdx,
-                                double distMin,
+LIMN_EXPORT void limnCBFitStateInit(limnCBFitState *cbfs, int outputOnly);
+LIMN_EXPORT int limnCBFitSingle(limnCBFitState *cbfs, double alpha[2],
                                 const double vv0[2], const double tt1[2],
                                 const double tt2[2], const double vv3[2],
-                                const double *xy, unsigned int pNum,
-                                int verbose);
+                                const double *xy, unsigned int pNum);
 
 /* lpu{Flotsam,. . .}.c */
 #define LIMN_DECLARE(C) LIMN_EXPORT unrrduCmd limnpu_##C##Cmd;

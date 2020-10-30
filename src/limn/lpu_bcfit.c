@@ -43,6 +43,7 @@ limnpu_bcfitMain(int argc, const char **argv, const char *me,
   unsigned int pNum, iterMax, iterDone, distIdx;
   int verbose, synth;
   char *synthOut;
+  limnCBFitState cbfs;
 
   hestOptAdd(&hopt, "i", "input", airTypeOther, 1, 1, &_nin, NULL,
              "input xy points",
@@ -55,7 +56,7 @@ limnpu_bcfitMain(int argc, const char **argv, const char *me,
              "if non-empty, filename in which to save synthesized xy pts");
   hestOptAdd(&hopt, "im", "max", airTypeUInt, 1, 1, &iterMax, "1",
              "(if non-zero) max # iterations to run");
-  hestOptAdd(&hopt, "deltam", "delta", airTypeDouble, 1, 1, &deltaMin, "0",
+  hestOptAdd(&hopt, "deltam", "delta", airTypeDouble, 1, 1, &deltaMin, "0.001",
              "(if non-zero) stop refinements when change in spline "
              "domain sampling goes below this");
   hestOptAdd(&hopt, "distm", "dist", airTypeDouble, 1, 1, &distMin, "0",
@@ -139,21 +140,21 @@ limnpu_bcfitMain(int argc, const char **argv, const char *me,
     ELL_2V_SUB(tt1, xy + 2, xy); ELL_2V_NORM(tt1, tt1, len);
     ELL_2V_SUB(tt2, xy + 2*(pNum-2), vv3); ELL_2V_NORM(tt2, tt2, len);
   }
-  time0 = airTime();
-  if (limnCBFitSingle(alpha,
-                      &iterDone, iterMax,
-                      &deltaDone, deltaMin,
-                      &distDone, &distIdx, distMin,
-                      vv0, tt1, tt2, vv3, xy, pNum,
-                      verbose)) {
+  limnCBFitStateInit(&cbfs, AIR_FALSE);
+  cbfs.iterMax = iterMax;
+  cbfs.deltaMin = deltaMin;
+  cbfs.distMin = distMin;
+  cbfs.verbose = verbose;
+  if (limnCBFitSingle(&cbfs, alpha,
+                      vv0, tt1, tt2, vv3, xy, pNum)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
-  time1 = airTime();
   printf("%s: time=%gms, iterDone=%u, deltaDone=%g, distDone=%g (@%u)\n", me,
-         (time1-time0)*1000, iterDone, deltaDone, distDone, distIdx);
+         cbfs.timeMs, cbfs.iterDone, cbfs.deltaDone,
+         cbfs.distDone, cbfs.distIdx);
 
   {
     double tt, pp[2], vv1[2], vv2[2], ww[4];

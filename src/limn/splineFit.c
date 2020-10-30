@@ -27,7 +27,6 @@ typedef unsigned int uint;
 
 /*
   GLK's implementation of the curve fitting described in:
-
   Philip J. Schneider. “An Algorithm for Automatically Fitting Digitized
   Curves”. In Graphics Gems, Academic Press, 1990, pp. 612–626.
   https://dl.acm.org/doi/10.5555/90767.90941
@@ -154,15 +153,17 @@ reparm(double *uuOut,
        int verbose) {
   const char me[]="reparm";
   uint ii;
-  double vv1[2], vv2[2], Q[2], QD[2], QDD[2], delta;
+  double vv1[2], vv2[2], Q[2], QD[2], QDD[2], delta, maxdelu;
 
+  /* max change in parameterization is ~average u[i+1]-u[i] */
+  maxdelu = 1.3/(pNum-1);
   uuOut[0] = uuIn[0];
   uuOut[pNum-1] = uuIn[pNum-1];
   ELL_2V_SCALE_ADD2(vv1, 1, vv0, alpha[0], tt1);
   ELL_2V_SCALE_ADD2(vv2, 1, vv3, alpha[1], tt2);
   delta = 0;
   for (ii=1; ii<pNum-1; ii++) {
-    double numer, denom, df[2], ww[4], tt;
+    double numer, denom, delu, df[2], ww[4], tt;
     tt = uuIn[ii];
     VCB(ww, tt);
     ELL_2V_SCALE_ADD4(Q, ww[0], vv0, ww[1], vv1, ww[2], vv2, ww[3], vv3);
@@ -171,18 +172,21 @@ reparm(double *uuOut,
     VCBDD(ww, tt);
     ELL_2V_SCALE_ADD4(QDD, ww[0], vv0, ww[1], vv1, ww[2], vv2, ww[3], vv3);
     ELL_2V_SUB(df, Q, xy + 2*ii);
-    /* not in paper but helps stabilize things: scaling Newton step.
-       More aggressive downscaling is helps with high pNum, but that
-       cleverness not yet implemented. */
-    numer = 0.25*ELL_2V_DOT(df, QD);
+    numer = ELL_2V_DOT(df, QD);
     denom = ELL_2V_DOT(QD, QD) + ELL_2V_DOT(df, QDD);
-    uuOut[ii] = tt - numer/denom;
-    delta += AIR_ABS(numer/denom);
+    delu = -numer/denom;
+    if (AIR_ABS(delu) > maxdelu) {
+      /* not in paper but helps stabilize things: capping Newton step */
+      delu = maxdelu*airSgn(delu);
+    }
+    uuOut[ii] = tt + delu;
+    delta += AIR_ABS(delu);
     if (verbose > 1) {
       printf("%s[%2u]: tt %g <-- %g - %g\n", me, ii,
-             uuOut[ii], tt, numer/denom);
+             uuOut[ii], tt, delu);
     }
   }
+  delta /= pNum-2;
   return delta;
 }
 
@@ -194,7 +198,7 @@ static double finddist(uint *distIdx,
                        uint pNum) {
   uint ii;
   double len, df[2], ww[4], vv1[2], vv2[2], Q[2], dist;
-  /* yea, some copy-and-paste from above */
+  /* yes, some copy-and-paste from above */
   ELL_2V_SCALE_ADD2(vv1, 1, vv0, alpha[0], tt1);
   ELL_2V_SCALE_ADD2(vv2, 1, vv3, alpha[1], tt2);
   dist = 0;
@@ -211,6 +215,26 @@ static double finddist(uint *distIdx,
   return dist;
 }
 
+void
+limnCBFitStateInit(limnCBFitState *cbfs, int outputOnly) {
+  if (!cbfs) return;
+  if (!outputOnly) {
+    /* inputs */
+    cbfs->verbose = 0;
+    cbfs->iterMax = 10;
+    cbfs->deltaMin = 0.001;
+    cbfs->distMin = 0;
+    cbfs->detMin = 0.001;
+  }
+  /* outputs */
+  cbfs->iterDone = (uint)(-1);
+  cbfs->distIdx = (uint)(-1);
+  cbfs->deltaDone = AIR_POS_INF;
+  cbfs->distDone = AIR_POS_INF;
+  cbfs->detDone = 0;
+  cbfs->timeMs = AIR_POS_INF;
+  return;
+}
 
 /*
 ******** limnCBFitSingle
@@ -220,14 +244,15 @@ static double finddist(uint *distIdx,
 ** tangent tt2 (pointing backwards), find alpha such that the cubic Bezier
 ** spline with control points vv0, vv0 + alpha[0]*tt1, vv3 + alpha[1]*tt2, vv3
 ** approximates all the given points.  This is an iterative process, in which
-** alpha is solved for multiples times, after tweaking the parameterization of
-** the points (in an array that is not passed in but internal to this
-** function), as controlled by iterMax, deltaMin, and distMin (original method
-** did not have these fine-grained controls):
-**  - iteration can stop after iterMax iterations (if iterMax > 1), or after
-**  - total change in spline arguments falls below deltaMin (if deltaMin > 0),
-**  - or after distance between the spline (as evaluated at the current para-
-**    meterization) and the given points falls below distMin (if distMin > 0).
+** alpha is solved for multiples times, after taking Newton steps to try to
+** optimize the parameterization of the points (in an array that is not passed
+** in but internal to this function); limn.h calls this process
+** "nrarm". nrparm iterations are stopped after any one of following is true
+** (the original published method did not have these fine-grained controls):
+**  - if cbfs->iterMax > 0: have done iterMax iterations of nrparm
+**  - if cbfs->deltaMin > 0: change in spline arguments falls below deltaMin
+**  - if cbfs->distMin > 0: distance between the spline (as evaluated at the
+**    current parameterization) and the given points falls below distMin
 ** At least one of these thresholds has to be non-zero and positive.
 ** Information about how things went can be learned via non-NULL pointers:
 **  - iterDone: how many reparameterization iterations taken
@@ -236,22 +261,29 @@ static double finddist(uint *distIdx,
 **  - distIdx: which xy saw that maximal distance
 */
 int
-limnCBFitSingle(double alpha[2],
-                uint *iterDone, uint iterMax,
-                double *deltaDone, double deltaMin,
-                double *distDone, uint *distIdx, double distMin,
+limnCBFitSingle(limnCBFitState *_cbfs, double alpha[2],
                 const double vv0[2], const double tt1[2],
                 const double tt2[2], const double vv3[2],
-                const double *xy, uint pNum,
-                int verbose) {
+                const double *xy, uint pNum) {
   const char me[]="limnCBFitSingle";
   /* the array of spline parameters are bounced between uu[0] and uu[1] */
   double delta, len, *uu[2];
   airArray *mop;
   uint ii, iter, distI,
-    iterLimit = 50; /* sanity check on max number of iterations */
-  double dist;
+    iterLimit = 100; /* sanity check on max number of iterations */
+  double time0, dist, det;
+  limnCBFitState *cbfs, mycbfs;
 
+  time0 = airTime();
+  if (_cbfs) {
+    /* caller has supplied state */
+    cbfs = _cbfs;
+    limnCBFitStateInit(cbfs, AIR_TRUE /* outputOnly */);
+  } else {
+    /* caller wants default parms */
+    cbfs = &mycbfs;
+    limnCBFitStateInit(cbfs, AIR_FALSE /* outputOnly */);
+  }
   if (!(alpha && vv0 && tt1 && tt2 && vv3 && xy)) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
@@ -260,17 +292,17 @@ limnCBFitSingle(double alpha[2],
     biffAddf(LIMN, "%s: need 3 or more points (not %u)", me, pNum);
     return 1;
   }
-  if (!( iterMax > 0 || deltaMin > 0 || distMin > 0 )) {
+  if (!( cbfs->iterMax > 0 || cbfs->deltaMin > 0 || cbfs->distMin > 0 )) {
     biffAddf(LIMN, "%s: need positive iterMax, deltaMin, or distMin",
              me);
     return 1;
   }
-  if (deltaMin < 0 || distMin < 0) {
+  if (cbfs->deltaMin < 0 || cbfs->distMin < 0) {
     biffAddf(LIMN, "%s: cannot have negative deltaMin (%g) or distMin (%g)",
-             me, deltaMin, distMin);
+             me, cbfs->deltaMin, cbfs->distMin);
     return 1;
   }
-  if (verbose) {
+  if (cbfs->verbose) {
     printf("%s: hello, vv0=(%g,%g), tt1=(%g,%g), tt2=(%g,%g), vv3=(%g,%g)\n",
            me, vv0[0], vv0[1], tt1[0], tt1[1], tt2[0], tt2[1], vv3[0], vv3[1]);
   }
@@ -302,54 +334,79 @@ limnCBFitSingle(double alpha[2],
   }
   for (ii=0; ii<pNum; ii++) {
     UU0[ii] /= len;
-    if (verbose > 1) {
+    if (cbfs->verbose > 1) {
       printf("%s: iter %u uu[%u] = %g\n", me, iter, ii, UU0[ii]);
     }
     delta += AIR_ABS(UU0[ii]);
   }
-  if (verbose) {
+  delta /= pNum-2;
+  if (cbfs->verbose) {
     printf("%s: iter %u (chord length) delta = %g\n", me, iter, delta);
   }
 
   /* iterate */
   while (1) {
-    double det;
     det = findalpha(alpha, vv0, tt1, tt2, vv3, xy, UU0, pNum);
-    if (verbose) {
+    if (cbfs->verbose) {
       printf("%s: iter %u found alpha %g %g (det %g)\n", me, iter,
              alpha[0], alpha[1], det);
     }
-    if (!( AIR_ABS(det) > 0.00001 && AIR_EXISTS(det) )) {
+    /* determinant should really be scaled so that this test is
+       invariant w.r.t. rescaling of all points */
+    if (!( AIR_ABS(det) > cbfs->detMin && AIR_EXISTS(det) )) {
       biffAddf(LIMN, "%s: got det %g on iter %u, bailing", me, det, iter);
       airMopError(mop); return 1;
     }
     if (!iter) {
       /* test dist 1st time through; may bail at iter == iterMax == 1 */
       dist = finddist(&distI, alpha, vv0, tt1, tt2, vv3, xy, UU0, pNum);
-      if (distMin && dist <= distMin) break;
+      if (cbfs->distMin && dist <= cbfs->distMin) break;
     }
     iter++; /* NOTE: this swaps UU0 and UU1 */
-    if (iterMax && iter >= iterMax) break;
+    if (cbfs->iterMax && iter >= cbfs->iterMax) break;
     if (iter >= iterLimit) {
       biffAddf(LIMN, "%s: ran for unreasonable # iters (%u); stopping",
                me, iterLimit);
       airMopError(mop); return 1;
     }
-    delta = reparm(UU0, alpha, vv0, tt1, tt2, vv3, xy, UU1, pNum, verbose);
-    if (verbose) {
+    delta = reparm(UU0, alpha, vv0, tt1, tt2, vv3, xy, UU1, pNum,
+                   cbfs->verbose);
+    if (cbfs->verbose) {
       printf("%s: iter %u (reparm) delta = %g\n", me, iter, delta);
     }
-    if (deltaMin && delta <= deltaMin) break;
+    if (cbfs->deltaMin && delta <= cbfs->deltaMin) break;
     dist = finddist(&distI, alpha, vv0, tt1, tt2, vv3, xy, UU0, pNum);
-    if (distMin && dist <= distMin) break;
+    if (cbfs->distMin && dist <= cbfs->distMin) break;
   }
 #undef UU0
 #undef UU1
 
-  if (iterDone) *iterDone = iter;
-  if (deltaDone) *deltaDone = delta;
-  if (distDone) *distDone = dist;
-  if (distIdx) *distIdx = distI;
+  cbfs->iterDone = iter;
+  cbfs->deltaDone = delta;
+  cbfs->distDone = dist;
+  cbfs->distIdx = distI;
+  cbfs->detDone = det;
   airMopOkay(mop);
+  cbfs->timeMs = (airTime() - time0)*1000;
+  return 0;
+}
+
+int
+limnCBFitMulti(limnCBFitState *cbfs,
+               const double *xy, uint pNum) {
+  const char me[]="limnCBFitMulti";
+
+  /* need non-NULL cbfs in order to know cbfs->distMin */
+  if (!(cbfs && xy)) {
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!(pNum >= 3)) {
+    biffAddf(LIMN, "%s: need 3 or more points (not %u)", me, pNum);
+    return 1;
+  }
+
+  /* TODO */
+
   return 0;
 }
