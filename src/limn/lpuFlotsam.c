@@ -42,7 +42,7 @@ limnpuCmdList[] = {
 ** with their one-line descriptions
 */
 void
-limnpuUsage(char *me, hestParm *hparm) {
+limnpuUsage(const char *me, hestParm *hparm) {
   unsigned int i, maxlen, len, c;
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
 
