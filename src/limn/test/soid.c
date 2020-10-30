@@ -24,14 +24,15 @@
 
 #include "../limn.h"
 
-char *info = ("Save a single ellipsoid or superquadric into an OFF file.");
+const char *info = ("Save a single ellipsoid or superquadric into an OFF file.");
 
 int
 main(int argc, const char *argv[]) {
   const char *me;
   char *err, *outS;
-  float p[3], q[4], mR[9], eval[3]={0,0,0}, scale[3], len, sh, cl, cp, qA, qB;
+  float p[3], mR[9], eval[3]={0,0,0}, scale[3], sh, cl, cp, qA, qB;
   float matA[16], matB[16], os, rad, AB[2];
+  double q[4], len, mRd[9];
   hestOpt *hopt=NULL;
   airArray *mop;
   limnObject *obj;
@@ -76,7 +77,7 @@ main(int argc, const char *argv[]) {
   lookSoid = limnObjectLookAdd(obj);
   look = obj->look + lookSoid;
   ELL_4V_SET(look->rgba, 1, 1, 1, 1);
-  ELL_3V_SET(look->kads, 0.2, 0.8, 0);
+  ELL_3V_SET(look->kads, 0.2f, 0.8f, 0);
   look->spow = 0;
   lookRod = limnObjectLookAdd(obj);
   look = obj->look + lookRod;
@@ -86,11 +87,12 @@ main(int argc, const char *argv[]) {
 
   ELL_4V_SET(q, 1, p[0], p[1], p[2]);
   ELL_4V_NORM(q, q, len);
-  ell_q_to_3m_f(mR, q);
+  ell_q_to_3m_d(mRd, q);
+  ELL_3M_COPY_TT(mR, float, mRd); /* just to avoid warnings */
 
   if (AIR_EXISTS(AB[0]) && AIR_EXISTS(AB[1])) {
-    qA = AB[0];
-    qB = AB[1];
+    qA = (float)AB[0];
+    qB = (float)AB[1];
     axis = 2;
   } else {
     ELL_3V_SCALE(scale, os, scale);
@@ -100,12 +102,12 @@ main(int argc, const char *argv[]) {
     cp = 2*(eval[1] - eval[2])/(eval[0] + eval[1] + eval[2]);
     if (cl > cp) {
       axis = ELL_MAX3_IDX(scale[0], scale[1], scale[2]);
-      qA = pow(1-cp, sh);
-      qB = pow(1-cl, sh);
+      qA = (float)pow(1-cp, sh);
+      qB = (float)pow(1-cl, sh);
     } else {
       axis = ELL_MIN3_IDX(scale[0], scale[1], scale[2]);
-      qA = pow(1-cl, sh);
-      qB = pow(1-cp, sh);
+      qA = (float)pow(1-cl, sh);
+      qB = (float)pow(1-cp, sh);
     }
     /*
     fprintf(stderr, "eval = %g %g %g -> cl=%g %s cp=%g -> axis = %d\n",

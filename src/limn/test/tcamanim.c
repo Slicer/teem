@@ -24,7 +24,7 @@
 
 #include "../limn.h"
 
-char *info = ("Works with camanim.tcl to test camera path splines.");
+const char *info = ("Works with camanim.tcl to test camera path splines.");
 
 #define _LIMNMAGIC "LIMN0000"
 

@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,7 +24,7 @@
 
 #include "../limn.h"
 
-char *info = ("Plot!");
+const char *info = ("Plot!");
 
 typedef struct {
   FILE *file;
@@ -225,7 +225,7 @@ plotAxes(plotPS *pps, plotParm *pparm, Nrrd *ndata) {
 
 void
 plotGraph(plotPS *pps, plotParm *pparm, Nrrd **ndata, int nidx) {
-  int ii, npts;
+  unsigned int ii, npts;
   double xx, yy, *data, val;
 
   if (!( pparm->graphThick[nidx] > 0 )) {
@@ -233,7 +233,7 @@ plotGraph(plotPS *pps, plotParm *pparm, Nrrd **ndata, int nidx) {
   }
 
   data = (double *)(ndata[nidx]->data);
-  npts = ndata[nidx]->axis[1].size;
+  npts = AIR_CAST(unsigned int, ndata[nidx]->axis[1].size);
   plotGray(pps, pparm, pparm->graphGray[nidx]);
   fprintf(pps->file, "%g W\n", pps->psc*pparm->graphThick[nidx]);
   for (ii=0; ii<npts; ii++) {
@@ -252,7 +252,7 @@ plotGraph(plotPS *pps, plotParm *pparm, Nrrd **ndata, int nidx) {
 
 void
 plotDots(plotPS *pps, plotParm *pparm, Nrrd **ndata, int nidx) {
-  int ii, npts;
+  unsigned int ii, npts;
   double xx, yy, orad, irad, *data, val;
 
   if (!( pparm->dotDiameter[nidx] > 0 )) {
@@ -263,7 +263,7 @@ plotDots(plotPS *pps, plotParm *pparm, Nrrd **ndata, int nidx) {
   fprintf(pps->file, "newpath\n");
   plotWidth(pps, pparm, 0);
   data = (double *)(ndata[nidx]->data);
-  npts = ndata[nidx]->axis[1].size;
+  npts = AIR_CAST(unsigned int, ndata[nidx]->axis[1].size);
   orad = pparm->dotDiameter[nidx]/2;
   irad = pparm->dotInnerDiameterFraction*orad;
   for (ii=0; ii<npts; ii++) {

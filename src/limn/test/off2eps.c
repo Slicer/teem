@@ -24,7 +24,7 @@
 
 #include "../limn.h"
 
-char *info = ("Renders an OFF file to an EPS file.");
+const char *info = ("Renders an OFF file to an EPS file.");
 
 int
 main(int argc, const char *argv[]) {

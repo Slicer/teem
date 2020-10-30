@@ -48,7 +48,7 @@ test/tbc -s 0.95 -i s.txt -loop -n 13 -m 800 -t 55 170 > ! out.ps
 
 #include "../limn.h"
 
-char *info = ("Visualize the space of BC cubics with a spline.");
+const char *info = ("Visualize the space of BC cubics with a spline.");
 
 int
 main(int argc, const char *argv[]) {

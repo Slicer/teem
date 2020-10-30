@@ -48,9 +48,9 @@ test/tspline -loop -t 300 300 -s 10 -i s.txt:2v:bc:1,0 -m 1000 > ! out.ps
 
 #include "../limn.h"
 
-char *info = ("Test limnSplines by drawing postscript curves. "
-              "As such, the only limnSpline allowed is 2vector. "
-              "The output is written to standard out.");
+const char *info = ("Test limnSplines by drawing postscript curves. "
+                    "As such, the only limnSpline allowed is 2vector. "
+                    "The output is written to standard out.");
 
 int
 main(int argc, const char *argv[]) {
