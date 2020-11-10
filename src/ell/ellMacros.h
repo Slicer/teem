@@ -98,7 +98,11 @@ extern "C" {
 #define ELL_2V_SET(v, a, b) \
   ((v)[0]=(a), (v)[1]=(b))
 
-#define ELL_2V_SET_TT(v, TT, a, b) \
+#define ELL_2V_NAN_SET(v) ( \
+  (v)[0] = AIR_NAN, \
+  (v)[1] = AIR_NAN)
+
+#define ELL_2V_SET_TT(v, TT, a, b)              \
   ((v)[0] = AIR_CAST(TT, (a)), \
    (v)[1] = AIR_CAST(TT, (b)))
 
