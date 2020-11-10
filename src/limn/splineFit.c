@@ -74,10 +74,9 @@ typedef unsigned int uint;
                     (a)[3] = CB3DD(t))
 
 /*
-******** limnCBFPathSample
+******** limnCBFSegEval
 **
-** evaluates limnCBFPath at pNum locations (uniformly distributed among the
-** segments in the path), and saves into (pre-allocated) xy
+** evaluates a single limnCBFSeg at one point tt in [0.0,1.0]
 */
 void
 limnCBFSegEval(double *xy, const limnCBFSeg *seg, double tt) {
@@ -88,6 +87,14 @@ limnCBFSegEval(double *xy, const limnCBFSeg *seg, double tt) {
                     ww[1], seg->xy + 2,
                     ww[2], seg->xy + 4,
                     ww[3], seg->xy + 6);
+  /*
+  fprintf(stderr, "!%s: tt=%g -> ww={%g,%g,%g,%g} * {(%g,%g),(%g,%g),(%g,%g),(%g,%g)} = (%g,%g)\n",
+          "limnCBFSegEval", tt, ww[0], ww[1], ww[2], ww[3],
+          (seg->xy + 0)[0], (seg->xy + 0)[1],
+          (seg->xy + 2)[0], (seg->xy + 2)[1],
+          (seg->xy + 4)[0], (seg->xy + 4)[1],
+          (seg->xy + 6)[0], (seg->xy + 6)[1], xy[0], xy[1]);
+  */
   return;
 }
 
@@ -103,10 +110,13 @@ limnCBFPathSample(double *xy, uint pNum, const limnCBFPath *path) {
   for (ii=0; ii<pNum; ii++) {
     uint segi = airIndex(0, ii, pNum-1, sNum);
     double tmpf = AIR_AFFINE(0, ii, pNum-1, 0, sNum);
-    double tt = segi - tmpf;
+    double tt = tmpf - segi;
     const limnCBFSeg *seg = path->seg + segi;
-    printf("!%s: %u -> %u (%g) %g\n", "limnCBFPathSample", ii, segi, tmpf, tt);
     limnCBFSegEval(xy + 2*ii, seg, tt);
+    /*
+    fprintf(stderr, "!%s: %u -> %u (%g) %g -> (%g,%g)\n",
+            "limnCBFPathSample", ii, segi, tmpf, tt, (xy + 2*ii)[0], (xy + 2*ii)[1]);
+    */
   }
   return;
 }
@@ -523,19 +533,20 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
      points ends up in limnCBFSeg->corner */
 
   /* first try fitting a single spline */
+  fprintf(stderr, "!%s: trying single fit\n", me);
   if (limnCBFSingle(alpha, cbfi, vv0, tt1, tt2, vv3, xy, pNum)) {
     biffAddf(LIMN, "%s: trouble on initial fit", me);
     return 1;
   }
   if (cbfi->distDone < cbfi->distMin) {
     /* single fit was good enough */
-    printf("!%s: done with single fit (%g < %g); alpha = %g,%g\n",
+    fprintf(stderr, "!%s: done with single fit (%g < %g); alpha = %g,%g\n",
            me, cbfi->distDone, cbfi->distMin, alpha[0], alpha[1]);
     airArrayLenSet(path->segArr, 1);
     ELL_2V_COPY(path->seg[0].xy + 0, vv0);
-    ELL_2V_SCALE_ADD2(path->seg[0].xy + 1, 1, vv0, alpha[0], tt1);
-    ELL_2V_SCALE_ADD2(path->seg[0].xy + 2, 1, vv3, alpha[1], tt2);
-    ELL_2V_COPY(path->seg[0].xy + 3, vv3);
+    ELL_2V_SCALE_ADD2(path->seg[0].xy + 2, 1, vv0, alpha[0], tt1);
+    ELL_2V_SCALE_ADD2(path->seg[0].xy + 4, 1, vv3, alpha[1], tt2);
+    ELL_2V_COPY(path->seg[0].xy + 6, vv3);
   } else {
     /* need to subdivide at cbfi->distIdx and recurse */
     uint mi;
@@ -547,7 +558,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     mi = cbfi->distIdx;
     /* TODO: figure out what happens if splitting point is so close to
        segment endpoint that only 1 or 2 points sit on that side */
-    printf("!%s: (%g < %g) --> splitting at %u\n",
+    fprintf(stderr, "!%s: (%g < %g) --> splitting at %u\n",
            me, cbfi->distDone, cbfi->distMin, mi);
     /* TODO: permit some smoothing as part of tangent estimation,
        but make sure to not ask for more points than are really there */

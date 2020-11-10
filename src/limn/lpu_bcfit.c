@@ -62,7 +62,7 @@ limnpu_bcfitMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "deltam", "delta", airTypeDouble, 1, 1, &deltaMin, "0.0005",
              "(if non-zero) stop refinements when change in spline "
              "domain sampling goes below this");
-  hestOptAdd(&hopt, "distm", "dist", airTypeDouble, 1, 1, &distMin, "0.001",
+  hestOptAdd(&hopt, "distm", "dist", airTypeDouble, 1, 1, &distMin, "0.01",
              "(if non-zero) stop refinements when distance between spline "
              "and points goes below this");
   /*
@@ -115,12 +115,15 @@ limnpu_bcfitMain(int argc, const char **argv, const char *me,
       return 1;
     }
     ELL_2V_COPY(alpha, cpt + 2);
-    ELL_2V_COPY(seg.xy + 0, cpt + 4);
+    ELL_2V_COPY(vv0, cpt + 4);  ELL_2V_COPY(seg.xy + 0, vv0);
     ELL_2V_COPY(tt1, cpt + 6);
     ELL_2V_COPY(tt2, cpt + 8);
-    ELL_2V_COPY(seg.xy + 6, cpt + 10);
+    ELL_2V_COPY(vv3, cpt + 10); ELL_2V_COPY(seg.xy + 6, vv3);
     ELL_2V_SCALE_ADD2(seg.xy + 2, 1, vv0, alpha[0], tt1);
     ELL_2V_SCALE_ADD2(seg.xy + 4, 1, vv3, alpha[1], tt2);
+    printf("%s: synth seg: (%g,%g) -- (%g,%g) -- (%g,%g) -- (%g,%g)\n", me,
+           seg.xy[0], seg.xy[1], seg.xy[2], seg.xy[3],
+           seg.xy[4], seg.xy[5], seg.xy[6], seg.xy[7]);
     xy = AIR_MALLOC(2*pNum, double);
     airMopAdd(mop, xy, airFree, airMopAlways);
     for (ii=0; ii<pNum; ii++) {
@@ -174,7 +177,7 @@ limnpu_bcfitMain(int argc, const char **argv, const char *me,
     double *pp = AIR_MALLOC(oNum*2, double);
     limnCBFPathSample(pp, oNum, path);
     for (ii=0; ii<oNum; ii++) {
-      printf("done %u %g %g\n", ii, pp[0], pp[1]);
+      printf("done %u %g %g\n", ii, (pp + 2*ii)[0], (pp + 2*ii)[1]);
     }
   }
 
