@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2012, 2011, 2010  Thomas Schultz
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -512,32 +512,61 @@ typedef struct limnSplineTypeSpec_t {
 } limnSplineTypeSpec;
 
 /*
-******** limnCBFitState
+******** limnCBFSeg
 **
-** The bag of inputs/outputs for limnCBFit functions. Intending to
+** how one cubic Bezier spline segment is represented for limnCBF functions
+*/
+typedef struct {
+  double xy[8];    /* four control points of cubic Bezier:
+                      x0, y0,   x1, y1,   x2, y2,   x3, y3 */
+  int corner[2];   /* corner[0,1] non-zero if xy[0,3] are corner vertices;
+                      segments otherwise assumed geometrically continuous */
+} limnCBFSeg;
+
+/*
+******** limnCBFPath
+**
+** a multi-segment path in the context of cubic Bezier fitting
+*/
+typedef struct {
+  limnCBFSeg *seg;      /* array of limnCBFSeg */
+  unsigned int segNum;  /* length of seg array */
+  airArray *segArr;     /* manages seg and segNum */
+  int closed;           /* path is closed loop */
+} limnCBFPath;
+
+/*
+******** limnCBFInfo
+**
+** The bag of inputs/outputs for limnCBF functions. Intending to
 ** have no dynamically allocated things within this, (so no
-** limnCBFitStateNew or limnCBFitStateNix), to simplify recursive
+** limnCBFInfoNew or limnCBFInfoNix), to simplify recursive
 ** calls to fit sub-segments.
 **
-** "nrparm" = Newton-based reparameterization of given points
+** "nrp" = Newton-based reparameterization of where the given points
+** fall along the spline
 */
 typedef struct {
   /* ----------- input ---------- */
   int verbose;              /* verbosity level */
-  unsigned int iterMax;     /* max # iters of nrparm */
-  /* stop nrparm if go below any of these */
-  double deltaMin,          /* min total change by nrparm */
-    distMin,                /* min distance to given points */
-    detMin;                 /* determinant of M matrix to invert */
+  unsigned int nrpIterMax;  /* max # iters of nrp */
+  /* stop nrp iterations if values go below any of these */
+  double distMin,           /* min distance to given points: this matters for
+                               the splitting done by limnCBFMulti, not just
+                               for nrp within limnCBFSingle */
+    nrpDeltaMin,            /* min total parameterization change by nrp */
+    nrpDetMin;              /* determinant of M matrix to invert (this
+                               threshold arguably matters outside the context
+                               of nrp, but that's where it's tested) */
   /* ----------- output --------- */
   /* per-segment alpha[0,1] learned separately */
-  unsigned int iterDone,    /* number of nrparm iters taken */
+  unsigned int nrpIterDone, /* number of nrp iters taken */
     distIdx;                /* which point had distance distDone */
-  double deltaDone,         /* latest total change by nrparm */
-    distDone,               /* max distance to given points */
-    detDone;                /* min M determinant */
+  double distDone,          /* max distance to given points */
+    nrpDeltaDone,           /* latest total parameterization change by nrp */
+    nrpDetDone;             /* min M determinant */
   double timeMs;            /* time to run, in milliseconds */
-} limnCBFitState;
+} limnCBFInfo;
 
 /* defaultsLimn.c */
 LIMN_EXPORT const int limnPresent;
@@ -853,16 +882,20 @@ LIMN_EXPORT int limnSplineSample(Nrrd *nout, limnSpline *spline,
                                  double minT, size_t M, double maxT);
 
 /* splineFit.c */
-LIMN_EXPORT void limnCBWeights(double *ww, double tt,
-                               unsigned int deriv);
-LIMN_EXPORT void limnCBSample(double *xy, unsigned int pNum,
-                              const double vv0[2], const double vv1[2],
-                              const double vv2[2], const double vv3[2]);
-LIMN_EXPORT void limnCBFitStateInit(limnCBFitState *cbfs, int outputOnly);
-LIMN_EXPORT int limnCBFitSingle(limnCBFitState *cbfs, double alpha[2],
-                                const double vv0[2], const double tt1[2],
-                                const double tt2[2], const double vv3[2],
-                                const double *xy, unsigned int pNum);
+LIMN_EXPORT void limnCBFSegEval(double *xy, const limnCBFSeg *seg, double tt);
+LIMN_EXPORT limnCBFPath *limnCBFPathNew(void);
+LIMN_EXPORT limnCBFPath *limnCBFPathNix(limnCBFPath *path);
+LIMN_EXPORT void limnCBFPathSample(double *xy, unsigned int pNum,
+                                   const limnCBFPath *path);
+LIMN_EXPORT void limnCBFInfoInit(limnCBFInfo *cbfi, int outputOnly);
+LIMN_EXPORT int limnCBFSingle(double alpha[2], limnCBFInfo *cbfi,
+                              const double vv0[2], const double tt1[2],
+                              const double tt2[2], const double vv3[2],
+                              const double *xy, unsigned int pNum);
+LIMN_EXPORT int limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
+                             const double vv0[2], const double tt1[2],
+                             const double tt2[2], const double vv3[2],
+                             const double *xy, unsigned int pNum);
 
 /* lpu{Flotsam,. . .}.c */
 #define LIMN_DECLARE(C) LIMN_EXPORT unrrduCmd limnpu_##C##Cmd;
