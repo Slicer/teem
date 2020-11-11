@@ -913,7 +913,7 @@ F(rast) \
 F(verts) \
 F(meas) \
 F(sort) \
-F(bcfit)
+F(cbfit)
 LIMN_MAP(LIMN_DECLARE)
 LIMN_EXPORT unrrduCmd *limnpuCmdList[];
 LIMN_EXPORT void limnpuUsage(const char *me, hestParm *hparm);

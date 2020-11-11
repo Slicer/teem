@@ -30,7 +30,7 @@ static const char *myinfo =
  ". \"nrp\" == Newton-based ReParameterization of spline domain");
 
 int
-limnpu_bcfitMain(int argc, const char **argv, const char *me,
+limnpu_cbfitMain(int argc, const char **argv, const char *me,
                  hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
@@ -189,4 +189,4 @@ limnpu_bcfitMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_bcfitCmd = { "bcfit", INFO, limnpu_bcfitMain, AIR_FALSE };
+unrrduCmd limnpu_cbfitCmd = { "cbfit", INFO, limnpu_cbfitMain, AIR_FALSE };
