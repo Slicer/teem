@@ -27,7 +27,7 @@
 #define INFO "Fit Bezier cubic spline to points"
 static const char *myinfo =
 (INFO
- ". ");
+ ". \"nrp\" == Newton-based ReParameterization of spline domain");
 
 int
 limnpu_bcfitMain(int argc, const char **argv, const char *me,
@@ -38,7 +38,8 @@ limnpu_bcfitMain(int argc, const char **argv, const char *me,
   int pret;
 
   Nrrd *_nin, *nin;
-  double *xy, alpha[2], vv0[2], tt1[2], tt2[2], vv3[2], deltaMin, distMin;
+  double *xy, alpha[2], vv0[2], tt1[2], tt2[2], vv3[2],
+    deltaMin, distMin, distScl;
   unsigned int ii, pNum, iterMax;
   int verbose, synth, nofit;
   char *synthOut;
@@ -57,14 +58,16 @@ limnpu_bcfitMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "snf", NULL, airTypeInt, 0, 0, &nofit, NULL,
              "actually do not fit, just save -so synthetic "
              "output and quit");
-  hestOptAdd(&hopt, "im", "max", airTypeUInt, 1, 1, &iterMax, "1",
-             "(if non-zero) max # iterations to run");
+  hestOptAdd(&hopt, "im", "max", airTypeUInt, 1, 1, &iterMax, "0",
+             "(if non-zero) max # nrp iterations to run");
   hestOptAdd(&hopt, "deltam", "delta", airTypeDouble, 1, 1, &deltaMin, "0.0005",
-             "(if non-zero) stop refinements when change in spline "
+             "(if non-zero) stop nrp when change in spline "
              "domain sampling goes below this");
   hestOptAdd(&hopt, "distm", "dist", airTypeDouble, 1, 1, &distMin, "0.01",
-             "(if non-zero) stop refinements when distance between spline "
+             "(if non-zero) stop nrp when distance between spline "
              "and points goes below this");
+  hestOptAdd(&hopt, "dists", "scl", airTypeDouble, 1, 1, &distScl, "1",
+             "scaling on nrp distMin check");
   /*
   hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
              "output nrrd filename");
@@ -160,6 +163,7 @@ limnpu_bcfitMain(int argc, const char **argv, const char *me,
   cbfi.nrpIterMax = iterMax;
   cbfi.nrpDeltaMin = deltaMin;
   cbfi.distMin = distMin;
+  cbfi.nrpDistScl = distScl;
   cbfi.verbose = verbose;
   if (limnCBFMulti(path, &cbfi,
                    vv0, tt1, tt2, vv3, xy, pNum)) {

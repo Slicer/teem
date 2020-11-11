@@ -244,6 +244,7 @@ limnCBFInfoInit(limnCBFInfo *cbfi, int outputOnly) {
     cbfi->verbose = 0;
     cbfi->nrpIterMax = 10;
     cbfi->distMin = 0;
+    cbfi->nrpDistScl = 1;
     cbfi->nrpDeltaMin = 0.0002;
     cbfi->nrpDetMin = 0.001;
   }
@@ -272,7 +273,8 @@ limnCBFInfoInit(limnCBFInfo *cbfi, int outputOnly) {
 ** (the original published method did not have these fine-grained controls):
 **  - if cbfi->nrpIterMax > 0: have done nrpIterMax iterations of nrp
 **  - if cbfi->distMin > 0: distance from spline (as evaluated at the
-**    current parameterization) to the given points falls below distMin
+**    current parameterization) to the given points falls below
+**    cbfi->nrpDistScl * cbfi->distMin
 **  - if cbfi->nrpDeltaMin > 0: parameterization change falls below deltaMin
 ** At least one of these thresholds has to be non-zero and positive.
 ** Information about how things went are set in the given (non-NULL)
@@ -319,6 +321,11 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
   if (cbfi->nrpDeltaMin < 0 || cbfi->distMin < 0) {
     biffAddf(LIMN, "%s: cannot have negative nrpDeltaMin (%g) or "
              "distMin (%g)", me, cbfi->nrpDeltaMin, cbfi->distMin);
+    return 1;
+  }
+  if (cbfi->nrpDistScl <= 0) {
+    biffAddf(LIMN, "%s: must have positive nrpDistScl (not %g)",
+             me, cbfi->nrpDistScl);
     return 1;
   }
   if (cbfi->verbose) {
@@ -380,10 +387,10 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
     if (!iter) {
       /* test dist 1st time through; may bail at iter == nrpIterMax == 1 */
       dist = finddist(&distI, alpha, vv0, tt1, tt2, vv3, xy, UU0, pNum);
-      if (cbfi->distMin && dist <= cbfi->distMin) {
+      if (cbfi->distMin && dist <= (cbfi->nrpDistScl)*(cbfi->distMin)) {
         if (cbfi->verbose) {
-          printf("%s: iter 0 dist %g <= min %g --> break\n", me,
-                 dist, cbfi->distMin);
+          printf("%s: iter 0 dist %g <= min %g*%g --> break\n", me,
+                 dist, cbfi->nrpDistScl, cbfi->distMin);
         }
         break;
       }
@@ -414,10 +421,10 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
       break;
     }
     dist = finddist(&distI, alpha, vv0, tt1, tt2, vv3, xy, UU0, pNum);
-    if (cbfi->distMin && dist <= cbfi->distMin) {
+    if (cbfi->distMin && dist <= (cbfi->nrpDistScl)*(cbfi->distMin)) {
       if (cbfi->verbose) {
-        printf("%s: iter %u dist %g <= min %g --> break\n", me, iter,
-               dist, cbfi->distMin);
+        printf("%s: iter %u dist %g <= min %g*%g --> break\n", me, iter,
+               dist, cbfi->nrpDistScl, cbfi->distMin);
       }
       break;
     }
@@ -538,9 +545,9 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     biffAddf(LIMN, "%s: trouble on initial fit", me);
     return 1;
   }
-  if (cbfi->distDone < cbfi->distMin) {
+  if (cbfi->distDone <= cbfi->distMin) {
     /* single fit was good enough */
-    fprintf(stderr, "!%s: done with single fit (%g < %g); alpha = %g,%g\n",
+    fprintf(stderr, "!%s: done with single fit (%g <= %g); alpha = %g,%g\n",
            me, cbfi->distDone, cbfi->distMin, alpha[0], alpha[1]);
     airArrayLenSet(path->segArr, 1);
     ELL_2V_COPY(path->seg[0].xy + 0, vv0);
@@ -558,8 +565,9 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     mi = cbfi->distIdx;
     /* TODO: figure out what happens if splitting point is so close to
        segment endpoint that only 1 or 2 points sit on that side */
-    fprintf(stderr, "!%s: (%g < %g) --> splitting at %u\n",
-           me, cbfi->distDone, cbfi->distMin, mi);
+    fprintf(stderr, "!%s: (%g > %g) --> splitting at %u (%g,%g)\n",
+            me, cbfi->distDone, cbfi->distMin, mi,
+            (xy + 2*mi)[0], (xy + 2*mi)[1]);
     /* TODO: permit some smoothing as part of tangent estimation,
        but make sure to not ask for more points than are really there */
     ELL_2V_COPY(mid, xy + 2*mi);

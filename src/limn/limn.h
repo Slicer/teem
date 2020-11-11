@@ -554,6 +554,8 @@ typedef struct {
   double distMin,           /* min distance to given points: this matters for
                                the splitting done by limnCBFMulti, not just
                                for nrp within limnCBFSingle */
+    nrpDistScl,             /* scaling on distMin to use when testing
+                               distance during nrp */
     nrpDeltaMin,            /* min total parameterization change by nrp */
     nrpDetMin;              /* determinant of M matrix to invert (this
                                threshold arguably matters outside the context
