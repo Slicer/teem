@@ -387,19 +387,27 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
       printf("%s: iter %u (chord length) delta = %g\n", me, iter, delta);
     }
 
-    /* iterate */
-    while (1) {
+    while (1) { /* nrp iterations */
       det = findalpha(alpha, vv0, tt1, tt2, vv3, xy, UU0, pNum);
       if (cbfi->verbose) {
         printf("%s: iter %u found alpha %g %g (det %g)\n", me, iter,
                alpha[0], alpha[1], det);
       }
-      /* determinant should really be scaled so that this test is
+      /* Not part of author's paper or code: make sure determinant (of
+         the 2x2 matrix that had to be inverted to solve for alpha is
+         really non-zero, otherwise solution is meaningless */
+      /* TODO: determinant should really be scaled so that this test is
          invariant w.r.t. rescaling of all points */
-      if (!( AIR_ABS(det) > cbfi->nrpDetMin && AIR_EXISTS(det) )) {
-        biffAddf(LIMN, "%s: got det %g (vs %g) on iter %u, bailing", me,
+      if (!( AIR_EXISTS(det) && AIR_ABS(det) > cbfi->nrpDetMin )) {
+        if (cbfi->verbose) {
+          printf("%s: got det %g (vs %g) on iter %u --> break\n", me,
                  det, cbfi->nrpDetMin, iter);
-        airMopError(mop); return 1;
+        }
+        /* failure to find alpha means that we don't have a spline against
+           which to measure distance, or find the furthest point */
+        dist = AIR_NAN;
+        distI = (uint)(-1);
+        break;
       }
       if (!iter) {
         /* test dist 1st time through; may bail at iter == nrpIterMax == 1 */
@@ -516,10 +524,11 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
              const double _tt2[2], const double _vv3[2],
              const double *xy, uint pNum) {
   const char me[]="limnCBFMulti";
-  double time0, vv0[2], tt1[2], tt2[2], vv3[2], alpha[2], llen;
+  double vv0[2], tt1[2], tt2[2], vv3[2], alpha[2], llen;
   int geomGiven;
+  unsigned int loi, hii;
 
-  time0 = airTime();
+  double time0 = airTime();
   /* need non-NULL cbfi in order to know cbfi->distMin */
   if (!(cbfi && xy)) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
@@ -557,9 +566,11 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     ELL_2V_COPY(tt2, _tt2);
     ELL_2V_COPY(vv3, _vv3);
   }
+  loi = cbfi->baseIdx;
+  hii = cbfi->baseIdx+pNum-1;
   if (cbfi->verbose) {
     printf("%s[%u,%u]: hello; %s v0=(%g,%g), t1=(%g,%g), t2=(%g,%g), "
-           "v3=(%g,%g)\n", me, cbfi->baseIdx, cbfi->baseIdx+pNum-1,
+           "v3=(%g,%g)\n", me, loi, hii,
            geomGiven ? "given" : "found",
            vv0[0], vv0[1], tt1[0], tt1[1], tt2[0], tt2[1], vv3[0], vv3[1]);
   }
@@ -570,7 +581,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
 
   /* first try fitting a single spline */
   if (cbfi->verbose) {
-    printf("%s: trying single fit on all points\n", me);
+    printf("%s[%u,%u]: trying single fit on all points\n", me, loi, hii);
   }
   if (limnCBFSingle(alpha, cbfi, vv0, tt1, tt2, vv3, xy, pNum)) {
     biffAddf(LIMN, "%s: trouble on initial fit", me);
@@ -587,8 +598,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     /* single fit was good enough */
     if (cbfi->verbose) {
       printf("%s[%u,%u]: single fit good: nrpi %u; dist %g@%u <= %g; "
-             "alpha = %g,%g\n", me, cbfi->baseIdx, cbfi->baseIdx+pNum-1,
-             cbfi->nrpIterDone,
+             "alpha = %g,%g\n", me, loi, hii, cbfi->nrpIterDone,
              cbfi->distDone, cbfi->distIdx, cbfi->distMin,
              alpha[0], alpha[1]);
     }
@@ -602,13 +612,22 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     double ttL[2], mid[2], ttR[2], len;
     limnCBFInfo cbfiL, cbfiR;
     limnCBFPath *prth;
-    uint mi = cbfi->distIdx;
+    uint mi;
+    if (!AIR_EXISTS(cbfi->distDone)) {
+      /* neither distDone and distIdx are meaningful, probably because
+         fitting completely failed (e.g. det to small). So, just guess:
+         split at half-way point and try again */
+      mi = pNum/2;
+    } else {
+      /* distDone and distIdx are meaningful */
+      mi = cbfi->distIdx;
+    }
     memcpy(&cbfiL, cbfi, sizeof(limnCBFInfo));
     memcpy(&cbfiR, cbfi, sizeof(limnCBFInfo));
     if (cbfi->verbose) {
-      printf("%s: dist %g vs %g; alpha=(%g,%g) --> "
-             "splitting at %u (%u) xy=(%g,%g)\n",
-             me, cbfi->distDone, cbfi->distMin, alpha[0], alpha[1],
+      printf("%s[%u,%u]: dist %g vs %g; alpha=(%g,%g) --> "
+             "splitting at %u (%u) xy=(%g,%g)\n", me, loi, hii,
+             cbfi->distDone, cbfi->distMin, alpha[0], alpha[1],
              mi, cbfi->baseIdx+mi, (xy + 2*mi)[0], (xy + 2*mi)[1]);
     }
     /* TODO: permit some smoothing as part of tangent estimation,
