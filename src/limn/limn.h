@@ -517,10 +517,12 @@ typedef struct limnSplineTypeSpec_t {
 ** how one cubic Bezier spline segment is represented for limnCBF functions
 */
 typedef struct {
-  double xy[8];    /* four control points of cubic Bezier:
-                      x0, y0,   x1, y1,   x2, y2,   x3, y3 */
-  int corner[2];   /* corner[0,1] non-zero if xy[0,3] are corner vertices;
-                      segments otherwise assumed geometrically continuous */
+  double xy[8];      /* four control points of cubic Bezier:
+                        x0, y0,   x1, y1,   x2, y2,   x3, y3
+                        0   1     2   3     4   5     6  7   */
+  int corner[2];     /* corner[0,1] non-zero if xy[0,3] are corner vertices;
+                        segments otherwise assumed geometrically continuous */
+  unsigned int pNum; /* (if non-zero) this segment approximates pNum points */
 } limnCBFSeg;
 
 /*
@@ -549,13 +551,21 @@ typedef struct {
 typedef struct {
   /* ----------- input ---------- */
   int verbose;              /* verbosity level */
-  unsigned int nrpIterMax;  /* max # iters of nrp */
+  unsigned int nrpIterMax,  /* max # iters of nrp */
+    baseIdx;                /* xy vector is really xy+2*baseIdx of the
+                               xy in the first call to limnCBFMulti */
   /* stop nrp iterations if values go below any of these */
   double distMin,           /* min distance to given points: this matters for
                                the splitting done by limnCBFMulti, not just
                                for nrp within limnCBFSingle */
-    nrpDistScl,             /* scaling on distMin to use when testing
-                               distance during nrp */
+    alphaMin,               /* alpha can't be negative, but maybe we
+                               want to enforce distinct positivity */
+    nrpDistScl,             /* scaling on distMin to use when testing distance
+                               during nrp; setting this < 1 means that nrp
+                               tries to be more stringent that the overall
+                               fitting, but with the benefit of sometimes
+                               being smarter about where to split, when that
+                               is needed */
     nrpDeltaMin,            /* min total parameterization change by nrp */
     nrpDetMin;              /* determinant of M matrix to invert (this
                                threshold arguably matters outside the context

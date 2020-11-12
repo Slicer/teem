@@ -39,7 +39,7 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
 
   Nrrd *_nin, *nin;
   double *xy, alpha[2], vv0[2], tt1[2], tt2[2], vv3[2],
-    deltaMin, distMin, distScl;
+    deltaMin, distMin, distScl, utt1[2], utt2[2];
   unsigned int ii, pNum, iterMax;
   int verbose, synth, nofit;
   char *synthOut;
@@ -58,6 +58,10 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "snf", NULL, airTypeInt, 0, 0, &nofit, NULL,
              "actually do not fit, just save -so synthetic "
              "output and quit");
+  hestOptAdd(&hopt, "t1", "tan", airTypeDouble, 2, 2, utt1, "nan nan",
+             "if non-nan, the outgoing tangent from the first point");
+  hestOptAdd(&hopt, "t2", "tan", airTypeDouble, 2, 2, utt2, "nan nan",
+             "if non-nan, the incoming tangent to the last point");
   hestOptAdd(&hopt, "im", "max", airTypeUInt, 1, 1, &iterMax, "0",
              "(if non-zero) max # nrp iterations to run");
   hestOptAdd(&hopt, "deltam", "delta", airTypeDouble, 1, 1, &deltaMin, "0.0005",
@@ -66,7 +70,7 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "distm", "dist", airTypeDouble, 1, 1, &distMin, "0.01",
              "(if non-zero) stop nrp when distance between spline "
              "and points goes below this");
-  hestOptAdd(&hopt, "dists", "scl", airTypeDouble, 1, 1, &distScl, "1",
+  hestOptAdd(&hopt, "dists", "scl", airTypeDouble, 1, 1, &distScl, "0.25",
              "scaling on nrp distMin check");
   /*
   hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
@@ -154,9 +158,19 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
     double len;
     ELL_2V_COPY(vv0, xy);
     ELL_2V_COPY(vv3, xy + 2*(pNum-1));
-    /* TODO: better tangent estimation */
-    ELL_2V_SUB(tt1, xy + 2, xy); ELL_2V_NORM(tt1, tt1, len);
-    ELL_2V_SUB(tt2, xy + 2*(pNum-2), vv3); ELL_2V_NORM(tt2, tt2, len);
+    if (ELL_2V_EXISTS(utt1)) {
+      ELL_2V_COPY(tt1, utt1);
+    } else {
+      /* TODO: better tangent estimation */
+      ELL_2V_SUB(tt1, xy + 2, xy);
+    }
+    if (ELL_2V_EXISTS(utt2)) {
+      ELL_2V_COPY(tt2, utt2);
+    } else {
+      ELL_2V_SUB(tt2, xy + 2*(pNum-2), vv3);
+    }
+    ELL_2V_NORM(tt1, tt1, len);
+    ELL_2V_NORM(tt2, tt2, len);
   }
   path = limnCBFPathNew();
   limnCBFInfoInit(&cbfi, AIR_FALSE);
@@ -175,10 +189,24 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
   printf("%s: time=%gms, iterDone=%u, deltaDone=%g, distDone=%g (@%u)\n", me,
          cbfi.timeMs, cbfi.nrpIterDone, cbfi.nrpDeltaDone,
          cbfi.distDone, cbfi.distIdx);
+  {
+    unsigned int si;
+    printf("%s: path has %u segments:\n", me, path->segNum);
+    for (si=0; si<path->segNum; si++) {
+      limnCBFSeg *seg = path->seg + si;
+      printf("seg %u (%3u): (%g,%g) -- (%g,%g) -- (%g,%g) -- (%g,%g)\n",
+             si, seg->pNum,
+             seg->xy[0], seg->xy[1],
+             seg->xy[2], seg->xy[3],
+             seg->xy[4], seg->xy[5],
+             seg->xy[6], seg->xy[7]);
+    }
+  }
 
   {
-    unsigned int oNum = pNum*10;
+    unsigned int oNum = pNum*30;
     double *pp = AIR_MALLOC(oNum*2, double);
+    airMopAdd(mop, pp, airFree, airMopAlways);
     limnCBFPathSample(pp, oNum, path);
     for (ii=0; ii<oNum; ii++) {
       printf("done %u %g %g\n", ii, (pp + 2*ii)[0], (pp + 2*ii)[1]);
