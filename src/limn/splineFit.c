@@ -584,7 +584,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     printf("%s[%u,%u]: trying single fit on all points\n", me, loi, hii);
   }
   if (limnCBFSingle(alpha, cbfi, vv0, tt1, tt2, vv3, xy, pNum)) {
-    biffAddf(LIMN, "%s: trouble on initial fit", me);
+    biffAddf(LIMN, "%s[%u,%u]: trouble on initial fit", me, loi, hii);
     return 1;
   }
   { /* find llen linear length from first to last point */
@@ -624,6 +624,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     }
     memcpy(&cbfiL, cbfi, sizeof(limnCBFInfo));
     memcpy(&cbfiR, cbfi, sizeof(limnCBFInfo));
+    /* TODO: debug why split point can be outside owned range! */
     if (cbfi->verbose) {
       printf("%s[%u,%u]: dist %g vs %g; alpha=(%g,%g) --> "
              "splitting at %u (%u) xy=(%g,%g)\n", me, loi, hii,
@@ -644,7 +645,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
                      xy, mi+1) ||
         limnCBFMulti(prth, &cbfiR, mid, ttR, tt2, vv3,
                      xy + 2*mi, pNum - mi)) {
-      biffAddf(LIMN, "%s: trouble on recursive fit", me);
+      biffAddf(LIMN, "%s[%u,%u]: trouble on recursive fit", me, loi, hii);
       limnCBFPathNix(prth); return 1;
     }
     limnCBFPathJoin(path, prth);
