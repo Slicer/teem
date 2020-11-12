@@ -250,14 +250,15 @@ limnCBFInfoInit(limnCBFInfo *cbfi, int outputOnly) {
     cbfi->alphaMin = 0.0001;
     cbfi->nrpDistScl = 0.25;
     cbfi->nrpDeltaMin = 0.0001;
-    cbfi->nrpDetMin = 0.001;
+    cbfi->detMin = 0.001;
   }
   /* outputs */
+  cbfi->lenF2L = AIR_NAN; /* sort of an input? */
   cbfi->nrpIterDone = (uint)(-1);
   cbfi->distIdx = (uint)(-1);
   cbfi->distDone = AIR_POS_INF;
   cbfi->nrpDeltaDone = AIR_POS_INF;
-  cbfi->nrpDetDone = 0;
+  cbfi->detDone = 0;
   cbfi->timeMs = AIR_POS_INF;
   return;
 }
@@ -299,12 +300,10 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
 
   time0 = airTime();
   if (_cbfi) {
-    /* caller has supplied state */
-    cbfi = _cbfi;
+    cbfi = _cbfi;   /* caller has supplied info */
     limnCBFInfoInit(cbfi, AIR_TRUE /* outputOnly */);
   } else {
-    /* caller wants default parms */
-    cbfi = &mycbfi;
+    cbfi = &mycbfi; /* caller wants default parms */
     limnCBFInfoInit(cbfi, AIR_FALSE /* outputOnly */);
   }
   if (!(alpha && vv0 && tt1 && tt2 && vv3 && xy)) {
@@ -312,7 +311,7 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
     return 1;
   }
   if (!(pNum >= 2)) {
-    biffAddf(LIMN, "%s: need 3 or more points (not %u)", me, pNum);
+    biffAddf(LIMN, "%s: need 2 or more points (not %u)", me, pNum);
     return 1;
   }
   if (!( cbfi->nrpIterMax > 0 || cbfi->nrpDeltaMin > 0
@@ -349,7 +348,7 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
     alpha[1] = len/(3*ELL_2V_LEN(tt2));
     cbfi->nrpIterDone = cbfi->distIdx = 0;
     cbfi->distDone = cbfi->nrpDeltaDone = 0;
-    cbfi->nrpDetDone = 1; /* actually bogus */
+    cbfi->detDone = 1; /* actually bogus */
   } else { /* pNum >= 3 */
     airArray *mop = airMopNew();
     uu[0] = AIR_CALLOC(pNum*2, double);
@@ -398,10 +397,10 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
          really non-zero, otherwise solution is meaningless */
       /* TODO: determinant should really be scaled so that this test is
          invariant w.r.t. rescaling of all points */
-      if (!( AIR_EXISTS(det) && AIR_ABS(det) > cbfi->nrpDetMin )) {
+      if (!( AIR_EXISTS(det) && AIR_ABS(det) > cbfi->detMin )) {
         if (cbfi->verbose) {
           printf("%s: got det %g (vs %g) on iter %u --> break\n", me,
-                 det, cbfi->nrpDetMin, iter);
+                 det, cbfi->detMin, iter);
         }
         /* failure to find alpha means that we don't have a spline against
            which to measure distance, or find the furthest point */
@@ -409,6 +408,10 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
         distI = (uint)(-1);
         break;
       }
+      /* TODO: check on alpha! */
+      /* TODO: if either det or alpha are bad, should do dumb simple arc
+         (alphas essentially 1/3), maybe even with some nrp, and then
+         let caller decide if need to split */
       if (!iter) {
         /* test dist 1st time through; may bail at iter == nrpIterMax == 1 */
         dist = finddist(&distI, alpha, vv0, tt1, tt2, vv3, xy, UU0, pNum);
@@ -460,8 +463,9 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
     cbfi->nrpIterDone = iter;
     cbfi->nrpDeltaDone = delta;
     cbfi->distDone = dist;
+    printf("!%s: saving distIdx = %u\n", me, distI);
     cbfi->distIdx = distI;
-    cbfi->nrpDetDone = det;
+    cbfi->detDone = det;
   }
   cbfi->timeMs = (airTime() - time0)*1000;
   return 0;
@@ -524,7 +528,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
              const double _tt2[2], const double _vv3[2],
              const double *xy, uint pNum) {
   const char me[]="limnCBFMulti";
-  double vv0[2], tt1[2], tt2[2], vv3[2], alpha[2], llen;
+  double vv0[2], tt1[2], tt2[2], vv3[2], alpha[2];
   int geomGiven;
   unsigned int loi, hii;
 
@@ -583,24 +587,25 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
   if (cbfi->verbose) {
     printf("%s[%u,%u]: trying single fit on all points\n", me, loi, hii);
   }
+  { /* find linear length from first to last point */
+    double F2L[2];
+    ELL_2V_SUB(F2L, xy + 2*(pNum-1), xy);
+    cbfi->lenF2L = ELL_2V_LEN(F2L);
+  }
   if (limnCBFSingle(alpha, cbfi, vv0, tt1, tt2, vv3, xy, pNum)) {
     biffAddf(LIMN, "%s[%u,%u]: trouble on initial fit", me, loi, hii);
     return 1;
   }
-  { /* find llen linear length from first to last point */
-    double ftol[2];
-    ELL_2V_SUB(ftol, xy + 2*(pNum-1), xy);
-    llen = ELL_2V_LEN(ftol);
-  }
   if (cbfi->distDone <= cbfi->distMin
-      && alpha[0] > llen*cbfi->alphaMin
-      && alpha[1] > llen*cbfi->alphaMin) {
+      && alpha[0] > (cbfi->lenF2L)*(cbfi->alphaMin)
+      && alpha[1] > (cbfi->lenF2L)*(cbfi->alphaMin)) {
+    /* TODO add det check!! */              
     /* single fit was good enough */
     if (cbfi->verbose) {
-      printf("%s[%u,%u]: single fit good: nrpi %u; dist %g@%u <= %g; "
-             "alpha = %g,%g\n", me, loi, hii, cbfi->nrpIterDone,
+      printf("%s[%u,%u]: single fit good: nrpi=%u; dist=%g@%u <= %g; "
+             "det=%g; alpha=%g,%g\n", me, loi, hii, cbfi->nrpIterDone,
              cbfi->distDone, cbfi->distIdx, cbfi->distMin,
-             alpha[0], alpha[1]);
+             cbfi->detDone, alpha[0], alpha[1]);
     }
     airArrayLenSet(path->segArr, 1);
     ELL_2V_COPY(path->seg[0].xy + 0, vv0);
@@ -659,7 +664,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
       cbfi->distIdx = cbfiR.distIdx;
     }
     cbfi->nrpDeltaDone = AIR_MAX(cbfiL.nrpDeltaDone, cbfiR.nrpDeltaDone);
-    cbfi->nrpDetDone = AIR_MIN(cbfiL.nrpDetDone, cbfiR.nrpDetDone);
+    cbfi->detDone = AIR_MIN(cbfiL.detDone, cbfiR.detDone);
     /* actually ignoring cbfiL.timeMS, cbfiR.timeMS for now */
   }
   cbfi->timeMs = (airTime() - time0)*1000;

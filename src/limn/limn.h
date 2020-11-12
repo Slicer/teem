@@ -567,16 +567,15 @@ typedef struct {
                                being smarter about where to split, when that
                                is needed */
     nrpDeltaMin,            /* min total parameterization change by nrp */
-    nrpDetMin;              /* determinant of M matrix to invert (this
-                               threshold arguably matters outside the context
-                               of nrp, but that's where it's tested) */
+    detMin,                 /* determinant of 2x2 matrix to invert */
+    lenF2L;                 /* length of segment from first to last */
   /* ----------- output --------- */
   /* per-segment alpha[0,1] learned separately */
   unsigned int nrpIterDone, /* number of nrp iters taken */
     distIdx;                /* which point had distance distDone */
   double distDone,          /* max distance to given points */
     nrpDeltaDone,           /* latest total parameterization change by nrp */
-    nrpDetDone;             /* min M determinant */
+    detDone;                /* min M determinant */
   double timeMs;            /* time to run, in milliseconds */
 } limnCBFInfo;
 
