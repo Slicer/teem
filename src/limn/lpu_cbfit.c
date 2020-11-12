@@ -173,6 +173,7 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
     ELL_2V_NORM(tt2, tt2, len);
   }
   path = limnCBFPathNew();
+  airMopAdd(mop, path, (airMopper)limnCBFPathNix, airMopAlways);
   limnCBFInfoInit(&cbfi, AIR_FALSE);
   cbfi.nrpIterMax = iterMax;
   cbfi.nrpDeltaMin = deltaMin;
