@@ -690,6 +690,8 @@ limnCBFPrune to remove (in-place) coincident and nearly coincident points in xy
 
 use performance tests to explore optimal settings in cbfi:
   nrpIterMax, nrpDeltaScl, nrpDistScl, nrpPsi, nrpDeltaMin
+evaluated in terms of time and #splines needed for fit
+(may want to pay in time for more economical representation)
 
 valgrind everything
 */
