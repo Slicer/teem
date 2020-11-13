@@ -388,7 +388,9 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
     return 1;
   }
   /* TODO: figure out how to avoid repeating these next tests on cbfi;
-     will be needlessly repeated when called from limnCBFMulti */
+     will be needlessly repeated when called from limnCBFMulti
+     if with a new private non-error-checking single(); then
+     pass it a pre-allocated uu buffer */
   if (!( cbfi->nrpIterMax > 0 )) {
     biffAddf(LIMN, "%s[%d,%d]: need nrpIterMax > 0", me, loi, hii);
     return 1;
@@ -461,6 +463,7 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
     findalpha(alpha, cbfi, vv0, tt1, tt2, vv3, xy, uu, pNum);
     finddist(cbfi, alpha, vv0, tt1, tt2, vv3, xy, uu, pNum);
     if (cbfi->distBig < 3) {
+      /* initial fit isn't awful; try making it better with nrp */
       for (iter=0; cbfi->distBig && iter<cbfi->nrpIterMax; iter++) {
         if (cbfi->verbose) {
           printf("%s[%d,%d]: iter %u starting with alpha %g,%g (det %g)\n",
