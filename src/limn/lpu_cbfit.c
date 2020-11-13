@@ -187,9 +187,9 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
     airMopError(mop);
     return 1;
   }
-  printf("%s: time=%gms, iterDone=%u, deltaDone=%g, distDone=%g (@%u)\n", me,
+  printf("%s: time=%gms, iterDone=%u, deltaDone=%g, dist=%g (@%u)\n", me,
          cbfi.timeMs, cbfi.nrpIterDone, cbfi.nrpDeltaDone,
-         cbfi.distDone, cbfi.distIdx);
+         cbfi.dist, cbfi.distIdx);
   {
     unsigned int si;
     printf("%s: path has %u segments:\n", me, path->segNum);

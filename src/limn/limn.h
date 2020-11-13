@@ -545,7 +545,7 @@ typedef struct {
 ** limnCBFInfoNew or limnCBFInfoNix), to simplify recursive
 ** calls to fit sub-segments.
 **
-** "nrp" = Newton-based reparameterization of where the given points
+** "nrp" = Newton-based ReParameterization of where the given points
 ** fall along the spline
 */
 typedef struct {
@@ -555,11 +555,17 @@ typedef struct {
     baseIdx;                /* xy vector is really xy+2*baseIdx of the
                                xy in the first call to limnCBFMulti */
   /* stop nrp iterations if values go below any of these */
-  double distMin,           /* min distance to given points: this matters for
-                               the splitting done by limnCBFMulti, not just
-                               for nrp within limnCBFSingle */
-    alphaMin,               /* alpha can't be negative, but maybe we
-                               want to enforce distinct positivity */
+  double distMin,           /* min distance to given points: this controls
+                               both splitting done by limnCBFMulti, and nrp
+                               within limnCBFSingle */
+    alphaMin,               /* alpha can't be negative, and we enforce
+                               distinct positivity to ensure that spline
+                               doesn't slow down too much near endpoints */
+    nrpDeltaScl,            /* in nrp, capping parameterization change to this
+                               scaling of average u[i+1]-u[i]. This wasn't in
+                               author's original co`de (so their idea of doing
+                               at most ~5 iters of nrp no longer hold), but it
+                               does help stabilize things */
     nrpDistScl,             /* scaling on distMin to use when testing distance
                                during nrp; setting this < 1 means that nrp
                                tries to be more stringent that the overall
@@ -572,11 +578,15 @@ typedef struct {
   /* per-segment alpha[0,1] learned separately */
   unsigned int nrpIterDone, /* number of nrp iters taken */
     distIdx;                /* which point had distance distDone */
-  double distDone,          /* max distance to given points */
+  double dist,              /* max distance to given points */
     nrpDeltaDone,           /* latest total parameterization change by nrp */
-    detDone,                /* min M determinant */
+    alphaDet,               /* min det of matrix inverted to find alpha */
     lenF2L;                 /* length of segment from first to last */
   double timeMs;            /* time to run, in milliseconds */
+  int distBig;              /* (nD = nrpDistScl*distMin, D = distMin)
+                               0: dist (above) <= nD
+                               1: nD < dist <= D
+                               2: D > dist */
 } limnCBFInfo;
 
 /* defaultsLimn.c */
