@@ -563,15 +563,17 @@ typedef struct {
                                doesn't slow down too much near endpoints */
     nrpDeltaScl,            /* in nrp, capping parameterization change to this
                                scaling of average u[i+1]-u[i]. This wasn't in
-                               author's original co`de (so their idea of doing
-                               at most ~5 iters of nrp no longer hold), but it
-                               does help stabilize things */
+                               author's original code (so their idea of doing
+                               at most ~5 iters of nrp may no longer hold), but
+                               it can help stabilize things */
     nrpDistScl,             /* scaling on distMin to use when testing distance
                                during nrp; setting this < 1 means that nrp
                                tries to be more stringent that the overall
                                fitting, but with the benefit of sometimes
                                being smarter about where to split, when that
                                is needed */
+    nrpPsi,                 /* don't even try nrp if max dist is bigger than
+                               nrpPsi*distMin, instead just subdivide */
     nrpDeltaMin,            /* min total parameterization change by nrp */
     detMin;                 /* determinant of 2x2 matrix to invert */
   /* ----------- output --------- */
@@ -582,11 +584,15 @@ typedef struct {
     nrpDeltaDone,           /* latest total parameterization change by nrp */
     alphaDet,               /* min det of matrix inverted to find alpha */
     lenF2L;                 /* length of segment from first to last */
-  double timeMs;            /* time to run, in milliseconds */
-  int distBig;              /* (nD = nrpDistScl*distMin, D = distMin)
-                               0: dist (above) <= nD
-                               1: nD < dist <= D
-                               2: D > dist */
+  int distBig;              /* how big dist (above) is:
+                               0: dist <= nD
+                               1: nD < dist <= DM
+                               2: DM < dist <= fD
+                               3: fD < dist
+                               where
+                               DM = distMin,
+                               nD = nrpDistScl*distMin,
+                               fD = nrpPsi*distMin: */
 } limnCBFInfo;
 
 /* defaultsLimn.c */

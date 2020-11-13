@@ -39,7 +39,8 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
 
   Nrrd *_nin, *nin;
   double *xy, alpha[2], vv0[2], tt1[2], tt2[2], vv3[2],
-    deltaMin, distMin, distScl, utt1[2], utt2[2];
+    deltaMin, psi, distMin, distScl, utt1[2], utt2[2],
+    time0, dtime;
   unsigned int ii, pNum, iterMax;
   int verbose, synth, nofit;
   char *synthOut;
@@ -72,6 +73,8 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
              "and points goes below this");
   hestOptAdd(&hopt, "dists", "scl", airTypeDouble, 1, 1, &distScl, "0.25",
              "scaling on nrp distMin check");
+  hestOptAdd(&hopt, "psi", "psi", airTypeDouble, 1, 1, &psi, "10",
+             "psi, of course");
   /*
   hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
              "output nrrd filename");
@@ -180,6 +183,8 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
   cbfi.distMin = distMin;
   cbfi.nrpDistScl = distScl;
   cbfi.verbose = verbose;
+  cbfi.nrpPsi = psi;
+  time0 = airTime();
   if (limnCBFMulti(path, &cbfi,
                    vv0, tt1, tt2, vv3, xy, pNum)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
@@ -187,8 +192,9 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
     airMopError(mop);
     return 1;
   }
-  printf("%s: time=%gms, iterDone=%u, deltaDone=%g, dist=%g (@%u)\n", me,
-         cbfi.timeMs, cbfi.nrpIterDone, cbfi.nrpDeltaDone,
+  dtime = (airTime() - time0)*1000;
+  printf("%s: time= %g iterDone= %u deltaDone=%g, dist=%g (@%u)\n", me,
+         dtime, cbfi.nrpIterDone, cbfi.nrpDeltaDone,
          cbfi.dist, cbfi.distIdx);
   {
     unsigned int si;
