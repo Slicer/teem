@@ -38,11 +38,12 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
   int pret;
 
   Nrrd *_nin, *nin;
-  double *xy, alpha[2], vv0[2], tt1[2], tt2[2], vv3[2],
+  double *xy, alpha[2],
+    vv0[2], tt1[2], tt2[2], vv3[2],
     deltaMin, psi, distMin, distScl, utt1[2], utt2[2],
     time0, dtime;
   unsigned int ii, pNum, iterMax;
-  int verbose, synth, nofit;
+  int loop, petc, verbose, synth, nofit;
   char *synthOut;
   limnCBFInfo cbfi;
   limnCBFPath *path;
@@ -75,6 +76,11 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
              "scaling on nrp distMin check");
   hestOptAdd(&hopt, "psi", "psi", airTypeDouble, 1, 1, &psi, "10",
              "psi, of course");
+  hestOptAdd(&hopt, "loop", NULL, airTypeInt, 0, 0, &loop, NULL,
+             "given xy points are actually a loop; BUT NOTE: "
+             "the first and last points need to be the same!");
+  hestOptAdd(&hopt, "petc", NULL, airTypeInt, 0, 0, &petc, NULL,
+             "(Press Enter To Continue) ");
   /*
   hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
              "output nrrd filename");
@@ -185,8 +191,16 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
   cbfi.verbose = verbose;
   cbfi.nrpPsi = psi;
   time0 = airTime();
+  if (petc) {
+    fprintf(stderr, "%s: Press Enter to Continue ... ", me);
+    fflush(stderr);
+    getchar();
+  }
   if (limnCBFMulti(path, &cbfi,
-                   vv0, tt1, tt2, vv3, xy, pNum)) {
+                   /* work in progress ... */
+                   /* vv0, tt1, tt2, vv3,*/
+                   NULL, NULL, NULL, NULL,
+                   xy, pNum, loop)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s", me, err);
     airMopError(mop);
@@ -210,8 +224,8 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
     }
   }
 
-  {
-    unsigned int oNum = pNum*30;
+  if (1) {
+    unsigned int oNum = pNum*80;
     double *pp = AIR_MALLOC(oNum*2, double);
     airMopAdd(mop, pp, airFree, airMopAlways);
     limnCBFPathSample(pp, oNum, path);

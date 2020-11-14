@@ -540,13 +540,18 @@ typedef struct {
 /*
 ******** limnCBFInfo
 **
-** The bag of inputs/outputs for limnCBF functions. Intending to
-** have no dynamically allocated things within this, (so no
-** limnCBFInfoNew or limnCBFInfoNix), to simplify recursive
-** calls to fit sub-segments.
+** The bag of state for limnCBF functions. As far as callers of limnCBFSingle,
+** limnCBFMulti, etc are concerned, there are no dynamically allocated things
+** within this (so no limnCBFInfoNew or limnCBFInfoNix), but a limnCBFInfo
+** variable should be initialized with limnCBFInfoInit() in order to set default
+** parameters.
 **
-** "nrp" = Newton-based ReParameterization of where the given points
+** note: "nrp" = Newton-based ReParameterization of where the given points
 ** fall along the spline
+**
+** There is in limnCBFInfo in fact a pointer to heap-allocated memory, uu, the
+** spline parameterization buffer used for single spline fitting. This is
+** managed by limnCBFMulti.
 */
 typedef struct {
   /* ----------- input ---------- */
@@ -561,7 +566,7 @@ typedef struct {
     alphaMin,               /* alpha can't be negative, and we enforce
                                distinct positivity to ensure that spline
                                doesn't slow down too much near endpoints */
-    nrpDeltaScl,            /* in nrp, capping parameterization change to this
+    nrpDeltaMax,            /* in nrp, capping parameterization change to this
                                scaling of average u[i+1]-u[i]. This wasn't in
                                author's original code (so their idea of doing
                                at most ~5 iters of nrp may no longer hold), but
@@ -576,14 +581,17 @@ typedef struct {
                                nrpPsi*distMin, instead just subdivide */
     nrpDeltaMin,            /* min total parameterization change by nrp */
     detMin;                 /* determinant of 2x2 matrix to invert */
+  /* ----------- internal --------- */
+  double *uu,               /* buffer used for nrp */
+    *uuMine;                /* helps remember who allocated uu */
+  double lenF2L;            /* length of segment from first to last */
   /* ----------- output --------- */
   /* per-segment alpha[0,1] learned separately */
   unsigned int nrpIterDone, /* number of nrp iters taken */
     distIdx;                /* which point had distance distDone */
   double dist,              /* max distance to given points */
     nrpDeltaDone,           /* latest total parameterization change by nrp */
-    alphaDet,               /* min det of matrix inverted to find alpha */
-    lenF2L;                 /* length of segment from first to last */
+    alphaDet;               /* min det of matrix inverted to find alpha */
   int distBig;              /* how big dist (above) is:
                                0: dist <= nD
                                1: nD < dist <= DM
@@ -922,7 +930,7 @@ LIMN_EXPORT int limnCBFSingle(double alpha[2], limnCBFInfo *cbfi,
 LIMN_EXPORT int limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
                              const double vv0[2], const double tt1[2],
                              const double tt2[2], const double vv3[2],
-                             const double *xy, unsigned int pNum);
+                             const double *xy, unsigned int pNum, int isLoop);
 
 /* lpu{Flotsam,. . .}.c */
 #define LIMN_DECLARE(C) LIMN_EXPORT unrrduCmd limnpu_##C##Cmd;

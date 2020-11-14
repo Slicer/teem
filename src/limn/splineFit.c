@@ -236,7 +236,7 @@ reparm(const limnCBFInfo *cbfi, /* must be non-NULL */
 
   assert(pNum >= 3);
   /* average u[i+1]-u[i] is 1/(pNum-1) */
-  maxdelu = cbfi->nrpDeltaScl/(pNum-1);
+  maxdelu = cbfi->nrpDeltaMax/(pNum-1);
   ELL_2V_SCALE_ADD2(vv1, 1, vv0, alpha[0], tt1);
   ELL_2V_SCALE_ADD2(vv2, 1, vv3, alpha[1], tt2);
   delta = 0;
@@ -319,14 +319,17 @@ limnCBFInfoInit(limnCBFInfo *cbfi, int outputOnly) {
     cbfi->baseIdx = 0;
     cbfi->distMin = 0;
     cbfi->alphaMin = 0.001;
-    cbfi->nrpDeltaScl = 3.0;
+    cbfi->nrpDeltaMax = 3.0;
     cbfi->nrpDistScl = 0.8;
     cbfi->nrpPsi = 6;
     cbfi->nrpDeltaMin = 0.001;
     cbfi->detMin = 0.01;
   }
-  /* initialize outputs to bogus valus */
+  /* internal */
+  cbfi->uu = NULL;
+  cbfi->uuMine = NULL;
   cbfi->lenF2L = AIR_NAN;
+  /* initialize outputs to bogus valus */
   cbfi->nrpIterDone = (uint)(-1);
   cbfi->distIdx = (uint)(-1);
   cbfi->dist = AIR_POS_INF;
@@ -336,80 +339,52 @@ limnCBFInfoInit(limnCBFInfo *cbfi, int outputOnly) {
   return;
 }
 
-/*
-******** limnCBFSingle
-**
-** Fits a single cubic Bezier spline: from pNum (x,y) points in xy, and from
-** initial endpoint vv0, initial tangent tt1, final endpoint vv3 and final
-** tangent tt2 (pointing backwards), find alpha such that the cubic Bezier
-** spline with control points vv0, vv0 + alpha[0]*tt1, vv3 + alpha[1]*tt2, vv3
-** approximates all the given points.  This is an iterative process, in which
-** alpha is solved for multiples times, after taking a Newton step to try to
-** optimize the parameterization of the points (in an array that is not passed
-** in but instead internal to this function); limn.h calls this process
-** "nrp". nrp iterations are stopped after any one of following is true
-** (the original published method did not have these fine-grained controls):
-**  - have done nrpIterMax iterations of nrp
-**  - if cbfi->nrpDeltaMin > 0: parameterization change falls below deltaMin
-**  - if cbfi->distMin > 0: distance from spline (as evaluated at the
-**    current parameterization) to the given points falls below
-**    cbfi->nrpDistScl * cbfi->distMin
-** Information about the results of this process are set in the given
-** _cbfi, if non-NULL.
-*/
 int
-limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
-              const double vv0[2], const double tt1[2],
-              const double tt2[2], const double vv3[2],
-              const double *xy, uint pNum) {
-  const char me[]="limnCBFSingle";
-  double *uu;
-  uint iter;
-  int loi, hii;
-  limnCBFInfo *cbfi, mycbfi;
-
-  if (_cbfi) {
-    cbfi = _cbfi;   /* caller has supplied info */
-    limnCBFInfoInit(cbfi, AIR_TRUE /* outputOnly */);
-    loi = (int)cbfi->baseIdx;
-    hii = (int)cbfi->baseIdx+pNum-1;
-  } else {
-    cbfi = &mycbfi; /* caller wants default parms */
-    limnCBFInfoInit(cbfi, AIR_FALSE /* outputOnly */);
-    loi = hii = -1;
-  }
-  if (!(alpha && vv0 && tt1 && tt2 && vv3 && xy)) {
-    biffAddf(LIMN, "%s[%d,%d]: got NULL pointer", me, loi, hii);
+limnCBFInfoCheck(const limnCBFInfo *cbfi) {
+  const char me[]="limnCBFInfoCheck";
+  if (!cbfi) {
+    biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!(pNum >= 2)) {
-    biffAddf(LIMN, "%s[%d,%d]: need 2 or more points (not %u)",
-             me, loi, hii, pNum);
-    return 1;
-  }
-  /* TODO: figure out how to avoid repeating these next tests on cbfi;
-     will be needlessly repeated when called from limnCBFMulti
-     if with a new private non-error-checking single(); then
-     pass it a pre-allocated uu buffer */
+  /* actually not really a requirement
   if (!( cbfi->nrpIterMax > 0 )) {
-    biffAddf(LIMN, "%s[%d,%d]: need nrpIterMax > 0", me, loi, hii);
+    biffAddf(LIMN, "%s: need nrpIterMax > 0", me);
+    return 1;
+    } */
+  if (!(cbfi->distMin > 0)) {
+    biffAddf(LIMN, "%s: need positive distMin (not %g)", me, cbfi->distMin);
     return 1;
   }
   if (cbfi->nrpDeltaMin < 0 || cbfi->distMin < 0) {
-    biffAddf(LIMN, "%s[%d,%d]: cannot have negative nrpDeltaMin (%g) or "
-             "distMin (%g)", me, loi, hii, cbfi->nrpDeltaMin, cbfi->distMin);
+    biffAddf(LIMN, "%s: cannot have negative nrpDeltaMin (%g) or "
+             "distMin (%g)", me, cbfi->nrpDeltaMin, cbfi->distMin);
     return 1;
   }
   if (!( 0 < cbfi->nrpDistScl && cbfi->nrpDistScl <= 1 )) {
-    biffAddf(LIMN, "%s[%d,%d]: nrpDistScl (%g) must be in (0,1]",
-             me, loi, hii, cbfi->nrpDistScl);
+    biffAddf(LIMN, "%s: nrpDistScl (%g) must be in (0,1]",
+             me, cbfi->nrpDistScl);
     return 1;
   }
   if (!( 1 <= cbfi->nrpPsi )) {
-    biffAddf(LIMN, "%s[%d,%d]: nrpPsi (%g) must be >= 1",
-             me, loi, hii, cbfi->nrpPsi);
+    biffAddf(LIMN, "%s: nrpPsi (%g) must be >= 1",
+             me, cbfi->nrpPsi);
     return 1;
   }
+  return 0;
+}
+
+/*
+** the functional core of limnCBFSingle(), with no error checking
+** and assuming a pre-allocated uu buffer
+*/
+static void
+fitSingle(double alpha[2], limnCBFInfo *cbfi,
+          const double vv0[2], const double tt1[2],
+          const double tt2[2], const double vv3[2],
+          const double *xy, uint pNum,
+          int loi, int hii, double *uu) {
+  static const char me[]="fitSingle";
+  uint iter;
 
   if (cbfi->verbose) {
     printf("%s[%d,%d]: hello, vv0=(%g,%g), tt1=(%g,%g), tt2=(%g,%g), vv3=(%g,%g)\n",
@@ -431,12 +406,6 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
     cbfi->distBig = 0;
   } else { /* pNum >= 3 */
     double delta; /* avg parameterization change of interior points */
-    uu = AIR_CALLOC(pNum*2, double);
-    if (!uu) {
-      biffAddf(LIMN, "%s[%d,%d]: failed to allocate parameter buffer",
-               me, loi, hii);
-      return 1;
-    }
     /* initialize uu parameterization to chord length */
     { unsigned int ii; double len;
       uu[0] = len = 0;
@@ -498,9 +467,75 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
       /* else dist so big that we don't even try nrp */
       cbfi->nrpIterDone = 0;
     }
-    free(uu);
     cbfi->nrpDeltaDone = delta;
   }
+  return;
+}
+
+/*
+******** limnCBFSingle
+**
+** Fits a single cubic Bezier spline: from pNum (x,y) points in xy, and from
+** initial endpoint vv0, initial tangent tt1, final endpoint vv3 and final
+** tangent tt2 (pointing backwards), find alpha such that the cubic Bezier
+** spline with control points vv0, vv0 + alpha[0]*tt1, vv3 + alpha[1]*tt2, vv3
+** approximates all the given points.  This is an iterative process, in which
+** alpha is solved for multiples times, after taking a Newton step to try to
+** optimize the parameterization of the points (in an array that is not passed
+** in but instead internal to this function); limn.h calls this process
+** "nrp". nrp iterations are stopped after any one of following is true
+** (the original published method did not have these fine-grained controls):
+**  - have done nrpIterMax iterations of nrp
+**  - if cbfi->nrpDeltaMin > 0: parameterization change falls below deltaMin
+**  - if cbfi->distMin > 0: distance from spline (as evaluated at the
+**    current parameterization) to the given points falls below
+**    cbfi->nrpDistScl * cbfi->distMin
+** Information about the results of this process are set in the given
+** _cbfi, if non-NULL.
+*/
+int
+limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
+              const double vv0[2], const double tt1[2],
+              const double tt2[2], const double vv3[2],
+              const double *xy, uint pNum) {
+  const char me[]="limnCBFSingle";
+  double *uu;
+  int loi, hii;
+  limnCBFInfo *cbfi, mycbfi;
+
+  if (_cbfi) {
+    loi = (int)_cbfi->baseIdx;
+    hii = (int)_cbfi->baseIdx+pNum-1;
+    if (limnCBFInfoCheck(_cbfi)) {
+      biffAddf(LIMN, "%s[%d,%d]: problem with cbfi", me, loi, hii);
+      return 1;
+    }
+    cbfi = _cbfi;   /* caller has supplied info */
+    limnCBFInfoInit(cbfi, AIR_TRUE /* outputOnly */);
+  } else {
+    loi = hii = -1;
+    cbfi = &mycbfi; /* caller wants default parms */
+    limnCBFInfoInit(cbfi, AIR_FALSE /* outputOnly */);
+  }
+  if (!(alpha && vv0 && tt1 && tt2 && vv3 && xy)) {
+    biffAddf(LIMN, "%s[%d,%d]: got NULL pointer", me, loi, hii);
+    return 1;
+  }
+  if (!(pNum >= 2)) {
+    biffAddf(LIMN, "%s[%d,%d]: need 2 or more points (not %u)",
+             me, loi, hii, pNum);
+    return 1;
+  }
+  uu = AIR_CALLOC(pNum*2, double);
+  if (!uu) {
+    biffAddf(LIMN, "%s[%d,%d]: failed to allocate parameter buffer",
+             me, loi, hii);
+    return 1;
+  }
+
+  fitSingle(alpha, cbfi, vv0, tt1, tt2, vv3, xy, pNum, loi, hii, uu);
+
+  free(uu);
   return 0;
 }
 
@@ -558,41 +593,65 @@ int
 limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
              const double _vv0[2], const double _tt1[2],
              const double _tt2[2], const double _vv3[2],
-             const double *xy, uint pNum) {
+             const double *xy, uint pNum, int isLoop) {
   const char me[]="limnCBFMulti";
   double vv0[2], tt1[2], tt2[2], vv3[2], alpha[2];
+  /* each call to this function will have a different stack location
+     for uuMine; so &uuMine determines who should free cbfi->uu */
+  double uuMine;
   int geomGiven;
-  uint loi, hii;
+  uint loi, hii, pnmin;
 
   /* need non-NULL cbfi in order to know cbfi->distMin */
-  if (!(cbfi && xy)) {
+  if (limnCBFInfoCheck(cbfi)) {
+    biffAddf(LIMN, "%s: got bad limnCBFInfo", me);
+    return 1;
+  }
+  if (!xy) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!(cbfi->distMin > 0)) {
-    biffAddf(LIMN, "%s: need positive distMin (not %g)", me, cbfi->distMin);
+  pnmin = isLoop ? 3 : 2;
+  if (!(pNum >= pnmin)) {
+    biffAddf(LIMN, "%s: need at least %u or more points (not %u)%s",
+             me, pnmin, pNum, isLoop ? " for loop" : "");
     return 1;
   }
-  if (!(pNum >= 2)) {
-    biffAddf(LIMN, "%s: need 2 or more points (not %u)", me, pNum);
-    return 1;
+  if (isLoop) {
+    const double *last = xy + 2*(pNum-1);
+    if (!ELL_2V_EQUAL(xy, last)) {
+      biffAddf(LIMN, "%s: isLoop but first xy (%g,%g) != last (%g,%g)",
+               me, xy[0], xy[1], last[0], last[1]);
+      return 1;
+    }
   }
   /* either all the _vv0, _tt1, _tt2, _vv3 can be NULL, or none */
   if (!( _vv0 && _tt1 && _tt2 && _vv3 )) {
     double len;
     if ( _vv0 || _tt1 || _tt2 || _vv3 ) {
-      biffAddf(LIMN, "%s: either all or none of vv0, tt1, tt2, vv3 should be "
+      biffAddf(LIMN, "%s: either all or none of vv0,tt1,tt2,vv3 should be "
                "NULL", me);
       return 1;
     }
     geomGiven = 0;
-    ELL_2V_COPY(vv0, xy);
-    /* TODO: permit some smoothing as part of tangent estimation,
+    /* TODO: permit some smoothing as part of constraint estimation,
        but make sure to not ask for more points than are really there
        (could be as few as 2 points) */
-    ELL_2V_SUB(tt1, xy + 2, xy); ELL_2V_NORM(tt1, tt1, len);
-    ELL_2V_SUB(tt2, xy + 2*(pNum-1), xy + 2*(pNum-2)); ELL_2V_NORM(tt2, tt2, len);
+    /* pointers to (x,y) coords are:
+       xy
+       xy + 2
+       ...
+       xy + 2*(pNum-2)
+       xy + 2*(pNum-1) */
+    ELL_2V_COPY(vv0, xy);
     ELL_2V_COPY(vv3, xy + 2*(pNum-1));
+    if (isLoop) {
+      ELL_2V_SUB(tt1, xy + 2, xy + 2*(pNum-2)); ELL_2V_NORM(tt1, tt1, len);
+      ELL_2V_SCALE(tt2, -1, tt1);
+    } else {
+      ELL_2V_SUB(tt1, xy + 2, xy); ELL_2V_NORM(tt1, tt1, len);
+      ELL_2V_SUB(tt2, xy + 2*(pNum-2), xy + 2*(pNum-1)); ELL_2V_NORM(tt2, tt2, len);
+    }
   } else {
     /* copy the given endpoint geometry */
     geomGiven = 1;
@@ -608,18 +667,22 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
            vv0[0], vv0[1], tt1[0], tt1[1], tt2[0], tt2[1], vv3[0], vv3[1]);
   }
 
-  /* TODO: figure out how outer-most decomposition of loop at corner
-     points ends up in limnCBFSeg->corner, or what actually ends up
-     setting limnCBFSeg->corner, ever */
+  /* allocate uu buffer, but only once per call chain */
+  if (!cbfi->uu) {
+    cbfi->uu = AIR_CALLOC(pNum*2, double);
+    if (!cbfi->uu) {
+      biffAddf(LIMN, "%s[%d,%d]: failed to allocate parameter buffer",
+               me, loi, hii);
+      return 1;
+    }
+    cbfi->uuMine = &uuMine;
+  }
 
   /* first try fitting a single spline */
   if (cbfi->verbose) {
     printf("%s[%u,%u]: trying single fit on all points\n", me, loi, hii);
   }
-  if (limnCBFSingle(alpha, cbfi, vv0, tt1, tt2, vv3, xy, pNum)) {
-    biffAddf(LIMN, "%s[%u,%u]: trouble on initial fit", me, loi, hii);
-    return 1;
-  }
+  fitSingle(alpha, cbfi, vv0, tt1, tt2, vv3, xy, pNum, loi, hii, cbfi->uu);
   if (cbfi->distBig <= 1) {
     /* max dist was <= cbfi->distMin: single fit was good enough */
     if (cbfi->verbose) {
@@ -655,11 +718,11 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     ELL_2V_SCALE(ttL, -1, ttR);
     /* cbfiL.baseIdx == cbfi.baseIdx */
     cbfiR.baseIdx = cbfi->baseIdx + mi;
-    /* recurse! */
+    /* recurse! can't be a loop, so isLoop is AIR_FALSE */
     if (limnCBFMulti(path, &cbfiL, vv0, tt1, ttL, mid,
-                     xy, mi+1) ||
+                     xy, mi+1, AIR_FALSE) ||
         limnCBFMulti(prth, &cbfiR, mid, ttR, tt2, vv3,
-                     xy + 2*mi, pNum - mi)) {
+                     xy + 2*mi, pNum - mi, AIR_FALSE)) {
       biffAddf(LIMN, "%s[%u,%u]: trouble on recursive fit", me, loi, hii);
       limnCBFPathNix(prth); return 1;
     }
@@ -678,21 +741,27 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     cbfi->nrpDeltaDone = AIR_MAX(cbfiL.nrpDeltaDone, cbfiR.nrpDeltaDone);
     cbfi->alphaDet = AIR_MIN(cbfiL.alphaDet, cbfiR.alphaDet);
   }
+
+  if (cbfi->uuMine == &uuMine) {
+    /* if I (this function call) allocated uu, then free it, set these
+       pointers back to NULL (the way limnCBFInfoInit sets them) */
+    cbfi->uuMine = cbfi->uu = airFree(cbfi->uu);
+  }
   return 0;
 }
 
 /*
 TODO:
-limnCBFCorners to find corners in data (with flag to indicate that xy is a loop)
 
-tangent estimation at start and end that handles xy being loop
+limnCBFCorners to find corners in data (with isLoop flag), but how
+does this end up setting limnCBFSeg->corner, or what does set that?
 
 limnCBFLoop to handle a whole loop (typical use-case)
 
-limnCBFPrune to remove (in-place) coincident and nearly coincident points in xy
+limnCBFPrune to remove (in-place) coincident and nearly coincident points in xy (with isLoop flag)
 
 use performance tests to explore optimal settings in cbfi:
-  nrpIterMax, nrpDeltaScl, nrpDistScl, nrpPsi, nrpDeltaMin
+  nrpIterMax, nrpDeltaMax, nrpDistScl, nrpPsi, nrpDeltaMin
 evaluated in terms of time and #splines needed for fit
 (may want to pay in time for more economical representation)
 
