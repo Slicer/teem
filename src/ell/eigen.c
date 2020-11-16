@@ -410,6 +410,10 @@ ell_3m_eigenvalues_d(double _eval[3], const double _m[9], const int newton) {
   return roots;
 }
 
+/*
+** not static because it might be useful, but it's a weird function
+** because eval is modified!
+*/
 void
 _ell_3m_evecs_d(double evec[9], double eval[3], int roots,
                 const double m[9]) {
@@ -498,10 +502,9 @@ _ell_3m_evecs_d(double evec[9], double eval[3], int roots,
 **
 ** finds eigenvalues and eigenvectors of given matrix m
 **
-** returns information about the roots according to ellCubeRoot enum,
-** see header for ellCubic for details.  When eval[i] is set, evec+3*i
-** is set to a corresponding eigenvector.  The eigenvectors are
-** (evec+0)[], (evec+3)[], and (evec+6)[]
+** returns information about the roots according to ell_cubic_root enum;
+** When eval[i] is set, evec+3*i is set to a corresponding eigenvector.
+** The eigenvectors are (evec+0)[], (evec+3)[], and (evec+6)[]
 **
 ** NOTE: Even in the post-Teem-1.7 switch from column-major to
 ** row-major- its still the case that the eigenvectors are at
