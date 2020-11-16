@@ -92,6 +92,9 @@ extern "C" {
       ? 2                        \
       : 1))
 
+#define ELL_2V_EQUAL(a, b) \
+  ((a)[0] == (b)[0] && (a)[1] == (b)[1])
+
 #define ELL_2V_EXISTS(v) \
   (AIR_EXISTS((v)[0]) && AIR_EXISTS((v)[1]))
 
@@ -112,6 +115,10 @@ extern "C" {
 #define ELL_2V_INCR(v2, v1) \
   ((v2)[0] += (v1)[0],      \
    (v2)[1] += (v1)[1])
+
+#define ELL_2V_SCALE_INCR(v2, s0, v0) \
+  ((v2)[0] += (s0)*(v0)[0], \
+   (v2)[1] += (s0)*(v0)[1])
 
 #define ELL_2V_LERP(v3, w, v1, v2)            \
   ((v3)[0] = AIR_LERP((w), (v1)[0], (v2)[0]), \
