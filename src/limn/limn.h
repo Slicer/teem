@@ -588,7 +588,10 @@ typedef struct {
                                to invert can't below this */
   /* ----------- internal --------- */
   double *uu,               /* buffer used for nrp */
-    *uuMine;                /* helps remember who allocated uu */
+    *vw,                    /* weights for endpoint vertex calculation */
+    *tw,                    /* weights for endpoint tangent calculation */
+    *mine;                  /* helps remember who allocated the above */
+  unsigned int wLen;        /* how long are vw, tw */
   double lenF2L;            /* length of segment from first to last */
   /* ----------- output --------- */
   /* per-segment alpha[0,1] learned separately */

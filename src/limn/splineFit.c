@@ -327,8 +327,9 @@ limnCBFInfoInit(limnCBFInfo *cbfi, int outputOnly) {
     cbfi->detMin = 0.01;
   }
   /* internal */
-  cbfi->uu = NULL;
-  cbfi->uuMine = NULL;
+  cbfi->uu = cbfi->vw = cbfi->tw = NULL;
+  cbfi->mine = NULL;
+  cbfi->wLen = 0;
   cbfi->lenF2L = AIR_NAN;
   /* initialize outputs to bogus valus */
   cbfi->nrpIterDone = (uint)(-1);
@@ -585,6 +586,76 @@ limnCBFPathJoin(limnCBFPath *dst, const limnCBFPath *src) {
   return;
 }
 
+static int
+buffersNew(limnCBFInfo *cbfi, uint pNum) {
+  const char me[]="buffers";
+  double kw, kparm[2], vsum, tsum, scl = cbfi->scale;
+  /* one: what value in summing kernel weights should count as 1.0. This
+     should probably be a parm in cbfi, but not very interesting to
+     change */
+  double one = 0.999;
+  uint ii, len;
+
+  cbfi->uu = AIR_CALLOC(pNum*2, double);
+  if (!cbfi->uu) {
+    biffAddf(LIMN, "%s: failed to allocate parameter buffer", me);
+    return 1;
+  }
+  if (0 == scl) {
+    /* will do simplest possible finite differences; we're done */
+    cbfi->vw = cbfi->tw = NULL;
+    return 0;
+  }
+  /* else need to allocate and set vw and tw buffers */
+  kparm[0] = scl;
+  kparm[1] = 1000000; /* effectively no cut-off */
+  ii = 0;
+  vsum = 0;
+  do {
+    kw = nrrdKernelDiscreteGaussian->eval1_d(ii, kparm);
+    vsum += (!ii ? 1 : 2)*kw;
+    ii++;
+  } while (vsum < one);
+  /* intended length of vectors */
+  len = ii+1;
+  if (len > 128) {
+    biffAddf(LIMN, "%s: weight buffer length %u (from scale %g) seems "
+             "unreasonable", me, len, scl);
+    return 1;
+  }
+  cbfi->vw = AIR_CALLOC(len, double);
+  cbfi->tw = AIR_CALLOC(len, double);
+  if (!(cbfi->vw && cbfi->tw)) {
+    biffAddf(LIMN, "%s: couldn't allocate weight buffers (len %u)", me, len);
+    return 1;
+  }
+  cbfi->wLen = len;
+  /* normalization intent:
+     1 = sum_i(vw[|i|]) for i=-(len-1)...len-1
+     1 = sum_i(tw[i]) for i=0...len-1
+  */
+  vsum = tsum = 0;
+  for (ii=0; ii<len; ii++) {
+    kw = nrrdKernelDiscreteGaussian->eval1_d(ii, kparm);
+    vsum += (cbfi->vw[ii] = kw);
+    tsum += (cbfi->tw[ii] = ii*kw);
+  }
+  for (ii=0; ii<len; ii++) {
+    cbfi->vw[ii] /= vsum;
+    cbfi->tw[ii] /= tsum;
+    printf("!%s: %u     %g       %g\n", me, ii, cbfi->vw[ii], cbfi->tw[ii]);
+  }
+  return 0;
+}
+
+static void
+buffersNix(limnCBFInfo *cbfi) {
+  cbfi->uu = airFree(cbfi->uu);
+  cbfi->vw = airFree(cbfi->vw);
+  cbfi->tw = airFree(cbfi->tw);
+  return;
+}
+
 /*
 ** Find endpoint vertex vv and tangent tt (constraints for spline fitting)
 ** from the given points xy (pNum of them, in a loop if isLoop).
@@ -605,28 +676,61 @@ findVT(double vv[2], double tt[2],
        const limnCBFInfo *cbfi,
        const double *xy, uint pNum, int isLoop,
        uint ii, int dir) {
-  double diff[2], len;
-  uint mi, pi;
-  AIR_UNUSED(isLoop);
-  AIR_UNUSED(cbfi);
-  ELL_2V_COPY(vv, xy + 2*ii);
-  switch (airSgn(dir)) {
-  case 1:
-    pi = ii+1;
-    mi = ii;
-    break;
-  case 0:
-    pi = ii+1;
-    mi = ii ? ii-1 : pNum-2;
-    break;
-  case -1:
-    /* mi and pi switched to point other way */
-    mi = ii;
-    pi = ii-1;
-    break;
+  double len;
+
+  dir = airSgn(dir);
+  if (0 == cbfi->scale) {
+    uint mi, pi;
+    ELL_2V_COPY(vv, xy + 2*ii);
+    switch (dir) {
+    case 1:
+      pi = ii+1;
+      mi = ii;
+      break;
+    case 0:
+      pi = ii+1;
+      mi = ii ? ii-1 : pNum-2;
+      break;
+    case -1:
+      /* mi and pi switched to point other way */
+      mi = ii;
+      pi = ii-1;
+      break;
+    }
+    ELL_2V_SUB(tt, xy + 2*pi, xy + 2*mi);
+  } else {
+    /* using scale>0 for endpoint and tangent estimation */
+    const double *vw = cbfi->vw;
+    const double *tw = cbfi->tw;
+    /* various signed indices */
+    int sj, sii=(int)ii, smax=(int)cbfi->wLen - 1, spNum=(int)pNum;
+    ELL_2V_SET(vv, 0, 0);
+    ELL_2V_SET(tt, 0, 0);
+    for (sj=-smax; sj<=smax; sj++) {
+      uint xj, asj = (uint)AIR_ABS(sj);
+      int sgn=1, tj = sii + sj; /* temp j index */
+      double ttw;
+      switch (dir) {
+      case 1:
+        tj = AIR_MAX(tj, sii);
+        break;
+      case -1:
+        sgn=-1;
+        tj = AIR_MIN(tj, sii);
+        break;
+      }
+      if (isLoop) {
+        tj = AIR_MOD(tj, spNum);
+      } else {
+        tj = AIR_CLAMP(0, tj, spNum-1);
+      }
+      xj = (uint)tj;
+      ELL_2V_SCALE_INCR(vv, vw[asj], xy + 2*xj);
+      ttw = sgn*airSgn(sj)*tw[asj];
+      ELL_2V_SCALE_INCR(tt, ttw, xy + 2*xj);
+    }
   }
-  ELL_2V_SUB(diff, xy + 2*pi, xy + 2*mi);
-  ELL_2V_NORM(tt, diff, len);
+  ELL_2V_NORM(tt, tt, len);
   return;
 }
 
@@ -646,9 +750,9 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
              const double *xy, uint pNum, int isLoop) {
   const char me[]="limnCBFMulti";
   double vv0[2], tt1[2], tt2[2], vv3[2], alpha[2];
-  /* each call to this function will have a different stack location
-     for uuMine; so &uuMine determines who should free cbfi->uu */
-  double uuMine;
+  /* &minemine determines who frees buffers inside cbfi, since each
+     function call will have distinct stack location for minemine */
+  double minemine;
   int geomGiven;
   uint loi, hii, pnmin;
 
@@ -708,13 +812,12 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
 
   /* allocate uu buffer, but only once per call chain */
   if (!cbfi->uu) {
-    cbfi->uu = AIR_CALLOC(pNum*2, double);
-    if (!cbfi->uu) {
+    if (buffersNew(cbfi, pNum)) {
       biffAddf(LIMN, "%s[%d,%d]: failed to allocate parameter buffer",
                me, loi, hii);
       return 1;
     }
-    cbfi->uuMine = &uuMine;
+    cbfi->mine = &minemine;
   }
 
   /* first try fitting a single spline */
@@ -776,10 +879,9 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     cbfi->alphaDet = AIR_MIN(cbfiL.alphaDet, cbfiR.alphaDet);
   }
 
-  if (cbfi->uuMine == &uuMine) {
-    /* if I (this function call) allocated uu, then free it, set these
-       pointers back to NULL (the way limnCBFInfoInit sets them) */
-    cbfi->uuMine = cbfi->uu = airFree(cbfi->uu);
+  if (cbfi->mine == &minemine) {
+    buffersNix(cbfi);
+    cbfi->mine = NULL;
   }
   return 0;
 }

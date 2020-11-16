@@ -41,7 +41,7 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
   double *xy, alpha[2],
     vv0[2], tt1[2], tt2[2], vv3[2],
     deltaMin, psi, distMin, distScl, utt1[2], utt2[2],
-    time0, dtime;
+    time0, dtime, scale;
   unsigned int ii, pNum, iterMax;
   int loop, petc, verbose, synth, nofit;
   char *synthOut;
@@ -76,8 +76,10 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
              "scaling on nrp distMin check");
   hestOptAdd(&hopt, "psi", "psi", airTypeDouble, 1, 1, &psi, "10",
              "psi, of course");
+  hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1, &scale, "0",
+             "scale for geometry estimation");
   hestOptAdd(&hopt, "loop", NULL, airTypeInt, 0, 0, &loop, NULL,
-             "given xy points are actually a loop; BUT NOTE: "
+             "given xy points are actually a loop; BUT "
              "the first and last points need to be the same!");
   hestOptAdd(&hopt, "petc", NULL, airTypeInt, 0, 0, &petc, NULL,
              "(Press Enter To Continue) ");
@@ -190,6 +192,7 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
   cbfi.nrpDistScl = distScl;
   cbfi.verbose = verbose;
   cbfi.nrpPsi = psi;
+  cbfi.scale = scale;
   time0 = airTime();
   if (petc) {
     fprintf(stderr, "%s: Press Enter to Continue ... ", me);
