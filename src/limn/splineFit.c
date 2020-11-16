@@ -689,7 +689,11 @@ findVT(double vv[2], double tt[2],
       break;
     case 0:
       pi = ii+1;
-      mi = ii ? ii-1 : pNum-2;
+      mi = (ii
+            ? ii-1
+            : (isLoop
+               ? pNum-2
+               : pNum-1));
       break;
     case -1:
       /* mi and pi switched to point other way */
@@ -720,7 +724,8 @@ findVT(double vv[2], double tt[2],
         break;
       }
       if (isLoop) {
-        tj = AIR_MOD(tj, spNum);
+        /* mod(spNum-1) not mod(spNum) because last vertex == 1st */
+        tj = AIR_MOD(tj, spNum-1);
       } else {
         tj = AIR_CLAMP(0, tj, spNum-1);
       }
