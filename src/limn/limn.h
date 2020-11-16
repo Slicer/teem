@@ -559,13 +559,14 @@ typedef struct {
   unsigned int nrpIterMax,  /* max # iters of nrp */
     baseIdx;                /* xy vector is really xy+2*baseIdx of the
                                xy in the first call to limnCBFMulti */
-  /* stop nrp iterations if values go below any of these */
-  double distMin,           /* min distance to given points: this controls
+  double scale,             /* scale (in sense of nrrdKernelDiscreteGaussian)
+                               at which to estimate spline endpoints and
+                               tangents; scale=0 means the endpoints are
+                               exactly on vertices, and tangents are from
+                               the smallest-support finite differences */
+    distMin,                /* min distance to given points: this controls
                                both splitting done by limnCBFMulti, and nrp
                                within limnCBFSingle */
-    alphaMin,               /* alpha can't be negative, and we enforce
-                               distinct positivity to ensure that spline
-                               doesn't slow down too much near endpoints */
     nrpDeltaMax,            /* in nrp, capping parameterization change to this
                                scaling of average u[i+1]-u[i]. This wasn't in
                                author's original code (so their idea of doing
@@ -580,7 +581,11 @@ typedef struct {
     nrpPsi,                 /* don't even try nrp if max dist is bigger than
                                nrpPsi*distMin, instead just subdivide */
     nrpDeltaMin,            /* min total parameterization change by nrp */
-    detMin;                 /* determinant of 2x2 matrix to invert */
+    alphaMin,               /* alpha can't be negative, and we enforce
+                               distinct positivity to ensure that spline
+                               doesn't slow down too much near endpoints */
+    detMin;                 /* absolute value of determinant of 2x2 matrix
+                               to invert can't below this */
   /* ----------- internal --------- */
   double *uu,               /* buffer used for nrp */
     *uuMine;                /* helps remember who allocated uu */

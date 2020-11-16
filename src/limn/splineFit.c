@@ -317,12 +317,13 @@ limnCBFInfoInit(limnCBFInfo *cbfi, int outputOnly) {
     cbfi->verbose = 0;
     cbfi->nrpIterMax = 10;
     cbfi->baseIdx = 0;
+    cbfi->scale = 0;
     cbfi->distMin = 0;
-    cbfi->alphaMin = 0.001;
     cbfi->nrpDeltaMax = 3.0;
     cbfi->nrpDistScl = 0.8;
     cbfi->nrpPsi = 6;
     cbfi->nrpDeltaMin = 0.001;
+    cbfi->alphaMin = 0.001;
     cbfi->detMin = 0.01;
   }
   /* internal */
@@ -351,6 +352,10 @@ limnCBFInfoCheck(const limnCBFInfo *cbfi) {
     biffAddf(LIMN, "%s: need nrpIterMax > 0", me);
     return 1;
     } */
+  if (!(cbfi->scale >= 0)) {
+    biffAddf(LIMN, "%s: need non-negative scale (not %g)", me, cbfi->scale);
+    return 1;
+  }
   if (!(cbfi->distMin > 0)) {
     biffAddf(LIMN, "%s: need positive distMin (not %g)", me, cbfi->distMin);
     return 1;
@@ -581,6 +586,51 @@ limnCBFPathJoin(limnCBFPath *dst, const limnCBFPath *src) {
 }
 
 /*
+** Find endpoint vertex vv and tangent tt (constraints for spline fitting)
+** from the given points xy (pNum of them, in a loop if isLoop).
+** The information is for vertex ii, and the tangent direction dir is:
+** >0: considering only ii and higher-index vertices,
+**  0: for tangent centered at ii, using lower- and higher-index vertices
+** <0: considering only ii and lower-index vertices
+** For >0 and 0: the tangent points towards the positions of higher-
+** index vertices.  For <0, it points the other way.
+** With a non-NULL nt, nt = -tt.
+** TODO use cbfi->scale to do some smoothing but make sure to not ask for
+** more points than are really there (can be as few as 3)
+** TODO: figure out if necessary to limit relevant span of points
+** so that we don't look at vertices around a "corner"
+*/
+static void
+findVT(double vv[2], double tt[2],
+       const limnCBFInfo *cbfi,
+       const double *xy, uint pNum, int isLoop,
+       uint ii, int dir) {
+  double diff[2], len;
+  uint mi, pi;
+  AIR_UNUSED(isLoop);
+  AIR_UNUSED(cbfi);
+  ELL_2V_COPY(vv, xy + 2*ii);
+  switch (airSgn(dir)) {
+  case 1:
+    pi = ii+1;
+    mi = ii;
+    break;
+  case 0:
+    pi = ii+1;
+    mi = ii ? ii-1 : pNum-2;
+    break;
+  case -1:
+    /* mi and pi switched to point other way */
+    mi = ii;
+    pi = ii-1;
+    break;
+  }
+  ELL_2V_SUB(diff, xy + 2*pi, xy + 2*mi);
+  ELL_2V_NORM(tt, diff, len);
+  return;
+}
+
+/*
 ******** limnCBFMulti
 **
 ** Fits one or more geometrically continuous splines to a set of points.  Does
@@ -627,30 +677,19 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
   }
   /* either all the _vv0, _tt1, _tt2, _vv3 can be NULL, or none */
   if (!( _vv0 && _tt1 && _tt2 && _vv3 )) {
-    double len;
     if ( _vv0 || _tt1 || _tt2 || _vv3 ) {
       biffAddf(LIMN, "%s: either all or none of vv0,tt1,tt2,vv3 should be "
                "NULL", me);
       return 1;
     }
     geomGiven = 0;
-    /* TODO: permit some smoothing as part of constraint estimation,
-       but make sure to not ask for more points than are really there
-       (could be as few as 2 points) */
-    /* pointers to (x,y) coords are:
-       xy
-       xy + 2
-       ...
-       xy + 2*(pNum-2)
-       xy + 2*(pNum-1) */
-    ELL_2V_COPY(vv0, xy);
-    ELL_2V_COPY(vv3, xy + 2*(pNum-1));
     if (isLoop) {
-      ELL_2V_SUB(tt1, xy + 2, xy + 2*(pNum-2)); ELL_2V_NORM(tt1, tt1, len);
+      findVT(vv0, tt1,  cbfi, xy, pNum, isLoop, 0, 0);
+      ELL_2V_COPY(vv3, vv0);
       ELL_2V_SCALE(tt2, -1, tt1);
     } else {
-      ELL_2V_SUB(tt1, xy + 2, xy); ELL_2V_NORM(tt1, tt1, len);
-      ELL_2V_SUB(tt2, xy + 2*(pNum-2), xy + 2*(pNum-1)); ELL_2V_NORM(tt2, tt2, len);
+      findVT(vv0, tt1,  cbfi, xy, pNum, isLoop, 0, +1);
+      findVT(vv3, tt2,  cbfi, xy, pNum, isLoop, pNum-1, -1);
     }
   } else {
     /* copy the given endpoint geometry */
@@ -699,7 +738,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     path->seg[0].pNum = pNum;
   } else { /* need to subdivide at cbfi->distIdx and recurse */
     uint mi = cbfi->distIdx;
-    double ttL[2], mid[2], ttR[2], len;
+    double ttL[2], mid[2], ttR[2];
     limnCBFPath *prth = limnCBFPathNew();
     limnCBFInfo cbfiL, cbfiR;
     memcpy(&cbfiL, cbfi, sizeof(limnCBFInfo));
@@ -709,12 +748,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
              me, loi, hii, cbfi->dist, cbfi->distBig,
              mi, cbfi->baseIdx+mi, (xy + 2*mi)[0], (xy + 2*mi)[1]);
     }
-    /* TODO: permit some smoothing as part of tangent estimation,
-       but make sure to not ask for more points than are really
-       there (can be as few as 3) */
-    ELL_2V_COPY(mid, xy + 2*mi);
-    ELL_2V_SUB(ttR, xy + 2*(mi+1), xy + 2*(mi-1));
-    ELL_2V_NORM(ttR, ttR, len);
+    findVT(mid, ttR, cbfi, xy, pNum, isLoop, mi, 0);
     ELL_2V_SCALE(ttL, -1, ttR);
     /* cbfiL.baseIdx == cbfi.baseIdx */
     cbfiR.baseIdx = cbfi->baseIdx + mi;

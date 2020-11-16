@@ -225,7 +225,7 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
   }
 
   if (1) {
-    unsigned int oNum = pNum*80;
+    unsigned int oNum = pNum*100;
     double *pp = AIR_MALLOC(oNum*2, double);
     airMopAdd(mop, pp, airFree, airMopAlways);
     limnCBFPathSample(pp, oNum, path);
