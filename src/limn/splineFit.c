@@ -393,7 +393,8 @@ fitSingle(double alpha[2], limnCBFInfo *cbfi,
   uint iter;
 
   if (cbfi->verbose) {
-    printf("%s[%d,%d]: hello, vv0=(%g,%g), tt1=(%g,%g), tt2=(%g,%g), vv3=(%g,%g)\n",
+    printf("%s[%d,%d]: hello, vv0=(%g,%g), tt1=(%g,%g), "
+           "tt2=(%g,%g), vv3=(%g,%g)\n",
            me, loi, hii, vv0[0], vv0[1], tt1[0], tt1[1],
            tt2[0], tt2[1], vv3[0], vv3[1]);
   }
@@ -637,13 +638,13 @@ buffersNew(limnCBFInfo *cbfi, uint pNum) {
   vsum = tsum = 0;
   for (ii=0; ii<len; ii++) {
     kw = nrrdKernelDiscreteGaussian->eval1_d(ii, kparm);
-    vsum += (cbfi->vw[ii] = kw);
+    vsum += (!ii ? 1 : 2)*(cbfi->vw[ii] = kw);
     tsum += (cbfi->tw[ii] = ii*kw);
   }
   for (ii=0; ii<len; ii++) {
     cbfi->vw[ii] /= vsum;
     cbfi->tw[ii] /= tsum;
-    printf("!%s: %u     %g       %g\n", me, ii, cbfi->vw[ii], cbfi->tw[ii]);
+    /* printf("!%s: %u     %g       %g\n", me, ii, cbfi->vw[ii], cbfi->tw[ii]); */
   }
   return 0;
 }
@@ -666,8 +667,6 @@ buffersNix(limnCBFInfo *cbfi) {
 ** For >0 and 0: the tangent points towards the positions of higher-
 ** index vertices.  For <0, it points the other way.
 ** With a non-NULL nt, nt = -tt.
-** TODO use cbfi->scale to do some smoothing but make sure to not ask for
-** more points than are really there (can be as few as 3)
 ** TODO: figure out if necessary to limit relevant span of points
 ** so that we don't look at vertices around a "corner"
 */
@@ -676,6 +675,7 @@ findVT(double vv[2], double tt[2],
        const limnCBFInfo *cbfi,
        const double *xy, uint pNum, int isLoop,
        uint ii, int dir) {
+  /* const char me[]="findVT"; */
   double len;
 
   dir = airSgn(dir);
@@ -707,13 +707,20 @@ findVT(double vv[2], double tt[2],
     const double *vw = cbfi->vw;
     const double *tw = cbfi->tw;
     /* various signed indices */
-    int sj, sii=(int)ii, smax=(int)cbfi->wLen - 1, spNum=(int)pNum;
+    int sj, sii=(int)ii, /* we compute around vertex ii */
+      smax=(int)cbfi->wLen - 1, /* bound of loop index */
+      spNum=(int)pNum;
     ELL_2V_SET(vv, 0, 0);
     ELL_2V_SET(tt, 0, 0);
+    /* printf("!%s: ii = %u, dir=%d\n", me, ii, dir); */
+    /* j indices are for the local looping */
     for (sj=-smax; sj<=smax; sj++) {
-      uint xj, asj = (uint)AIR_ABS(sj);
-      int sgn=1, tj = sii + sj; /* temp j index */
+      uint xj, /* eventual index into data */
+        asj = (uint)AIR_ABS(sj); /* index into vw, tw */
+      int sgn=1,
+        tj = sii + sj; /* temp j idx into data */
       double ttw;
+      /* printf("!%s[sj=%d,asj=%u]: tj0 = %d\n", me, sj, asj, tj); */
       switch (dir) {
       case 1:
         tj = AIR_MAX(tj, sii);
@@ -723,6 +730,7 @@ findVT(double vv[2], double tt[2],
         tj = AIR_MIN(tj, sii);
         break;
       }
+      /* printf("!%s[sj=%d]: dir=%d -> tj1 = %d\n", me, sj, dir, tj); */
       if (isLoop) {
         /* mod(spNum-1) not mod(spNum) because last vertex == 1st */
         tj = AIR_MOD(tj, spNum-1);
@@ -730,12 +738,19 @@ findVT(double vv[2], double tt[2],
         tj = AIR_CLAMP(0, tj, spNum-1);
       }
       xj = (uint)tj;
+      /* printf("!%s[sj=%d]: isLoop=%d -> tj2 = %d -> xj = %u\n", me, sj, isLoop, tj, xj); */
       ELL_2V_SCALE_INCR(vv, vw[asj], xy + 2*xj);
+      /* printf("!%s[sj=%d]: vv += %g*(%g,%g) -> (%g,%g)\n", me, sj, vw[asj], (xy + 2*xj)[0], (xy + 2*xj)[1], vv[0], vv[1]); */
       ttw = sgn*airSgn(sj)*tw[asj];
+      /* printf("!%s[sj=%d]: %d * %d * %g = %g\n", me, sj, sgn, airSgn(sj), tw[asj], ttw); */
       ELL_2V_SCALE_INCR(tt, ttw, xy + 2*xj);
+      /* printf("!%s[sj=%d]: tt += %g*(%g,%g) -> (%g,%g)\n", me, sj, ttw, (xy + 2*xj)[0], (xy + 2*xj)[1], tt[0], tt[1]); */
     }
   }
   ELL_2V_NORM(tt, tt, len);
+  /* TODO: consider constraining difference between xy[ii] and vv to
+     be <= cbfi->distMin, and/or perpendicular to tt */
+  /* printf("!%s: DONE: vv=(%g,%g)  tt=(%g,%g)\n", me, vv[0], vv[1], tt[0], tt[1]); */
   return;
 }
 
@@ -771,19 +786,31 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     return 1;
   }
   pnmin = isLoop ? 3 : 2;
+  loi = cbfi->baseIdx;
+  hii = cbfi->baseIdx+pNum-1;
   if (!(pNum >= pnmin)) {
-    biffAddf(LIMN, "%s: need at least %u or more points (not %u)%s",
-             me, pnmin, pNum, isLoop ? " for loop" : "");
+    biffAddf(LIMN, "%s[%d,%d]: need at least %u or more points (not %u)%s",
+             me, loi, hii, pnmin, pNum, isLoop ? " for loop" : "");
     return 1;
   }
   if (isLoop) {
     const double *last = xy + 2*(pNum-1);
     if (!ELL_2V_EQUAL(xy, last)) {
-      biffAddf(LIMN, "%s: isLoop but first xy (%g,%g) != last (%g,%g)",
-               me, xy[0], xy[1], last[0], last[1]);
+      biffAddf(LIMN, "%s[%d,%d]: isLoop but first xy (%g,%g) != last (%g,%g)",
+               me, loi, hii, xy[0], xy[1], last[0], last[1]);
       return 1;
     }
   }
+  /* allocate uu buffer, but only once per call chain */
+  if (!cbfi->uu) {
+    if (buffersNew(cbfi, pNum)) {
+      biffAddf(LIMN, "%s[%d,%d]: failed to allocate parameter buffer",
+               me, loi, hii);
+      return 1;
+    }
+    cbfi->mine = &minemine;
+  }
+
   /* either all the _vv0, _tt1, _tt2, _vv3 can be NULL, or none */
   if (!( _vv0 && _tt1 && _tt2 && _vv3 )) {
     if ( _vv0 || _tt1 || _tt2 || _vv3 ) {
@@ -806,23 +833,11 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     ELL_2V_COPY(vv0, _vv0);  ELL_2V_COPY(tt1, _tt1);
     ELL_2V_COPY(tt2, _tt2);  ELL_2V_COPY(vv3, _vv3);
   }
-  loi = cbfi->baseIdx;
-  hii = cbfi->baseIdx+pNum-1;
   if (cbfi->verbose) {
     printf("%s[%u,%u]: hello; %s v0=(%g,%g), t1=(%g,%g), t2=(%g,%g), "
            "v3=(%g,%g)\n", me, loi, hii,
            geomGiven ? "given" : "computed",
            vv0[0], vv0[1], tt1[0], tt1[1], tt2[0], tt2[1], vv3[0], vv3[1]);
-  }
-
-  /* allocate uu buffer, but only once per call chain */
-  if (!cbfi->uu) {
-    if (buffersNew(cbfi, pNum)) {
-      biffAddf(LIMN, "%s[%d,%d]: failed to allocate parameter buffer",
-               me, loi, hii);
-      return 1;
-    }
-    cbfi->mine = &minemine;
   }
 
   /* first try fitting a single spline */
