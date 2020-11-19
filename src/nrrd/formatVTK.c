@@ -90,10 +90,10 @@ int
 _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdReadVTK";
   char *three[3];
-  int sx, sy, sz, ret, N;
+  int ret;
   double xm=0.0, ym=0.0, zm=0.0, xs=1.0, ys=1.0, zs=1.0;
   airArray *mop;
-  unsigned int llen;
+  unsigned int sx, sy, sz, llen, N;
 
   if (!_nrrdFormatVTK_contentStartsLike(nio)) {
     biffAddf(NRRD, "%s: this doesn't look like a %s file", me,
@@ -136,7 +136,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   GETLINE(DIMENSIONS); airToUpper(nio->line);
   if (!strstr(nio->line, "DIMENSIONS")
-      || 3 != sscanf(nio->line, "DIMENSIONS %d %d %d", &sx, &sy, &sz)) {
+      || 3 != sscanf(nio->line, "DIMENSIONS %u %u %u", &sx, &sy, &sz)) {
     biffAddf(NRRD, "%s: couldn't parse DIMENSIONS line (\"%s\")",
              me, nio->line);
     return 1;
@@ -173,7 +173,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   if (N != sx*sy*sz) {
     biffAddf(NRRD,
-             "%s: product of sizes (%d*%d*%d == %d) != # elements (%d)",
+             "%s: product of sizes (%u*%u*%u == %u) != # elements (%d)",
              me, sx, sy, sz, sx*sy*sz, N);
     return 1;
   }
@@ -291,7 +291,8 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 int
 _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatVTK_write";
-  int i, sx, sy, sz, sax;
+  int i, sax;
+  unsigned int sx, sy, sz;
   double xs, ys, zs, xm, ym, zm;
   char type[AIR_STRLEN_MED], name[AIR_STRLEN_SMALL];
   Nrrd *nrrd;
@@ -323,9 +324,9 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   if (!( AIR_EXISTS(xm) && AIR_EXISTS(ym) && AIR_EXISTS(zm) )) {
     xm = ym = zm = 0.0;
   }
-  sx = AIR_CAST(int, nrrd->axis[sax+0].size);
-  sy = AIR_CAST(int, nrrd->axis[sax+1].size);
-  sz = AIR_CAST(int, nrrd->axis[sax+2].size);
+  sx = AIR_UINT(nrrd->axis[sax+0].size);
+  sy = AIR_UINT(nrrd->axis[sax+1].size);
+  sz = AIR_UINT(nrrd->axis[sax+2].size);
 
   switch(nrrd->type) {
   case nrrdTypeUChar:
@@ -374,11 +375,11 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
     fprintf(file, "ASCII\n");
   }
   fprintf(file, "DATASET STRUCTURED_POINTS\n");
-  fprintf(file, "DIMENSIONS %d %d %d\n", sx, sy, sz);
+  fprintf(file, "DIMENSIONS %u %u %u\n", sx, sy, sz);
   fprintf(file, "ORIGIN %g %g %g\n", xm, ym, zm);
   fprintf(file, "SPACING %g %g %g\n", xs, ys, zs);
-  fprintf(file, "POINT_DATA %d\n", sx*sy*sz);
-  airSrandMT(AIR_CAST(unsigned int, airTime()));
+  fprintf(file, "POINT_DATA %u\n", sx*sy*sz);
+  airSrandMT(AIR_UINT(airTime()));
   sprintf(name, "nrrd%05d", airRandInt(100000));
   if (3 == nrrd->dim) {
     fprintf(file, "SCALARS %s %s\n", name, type);

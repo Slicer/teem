@@ -623,9 +623,9 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       default:
         glyphIdx =
           limnObjectPolarSuperquadFancyAdd(glyphsLimn, lookIdx, axis,
-                                           AIR_CAST(float, qA),
-                                           AIR_CAST(float, qB),
-                                           AIR_CAST(float, qC), 0,
+                                           AIR_FLOAT(qA),
+                                           AIR_FLOAT(qB),
+                                           AIR_FLOAT(qC), 0,
                                            2*parm->facetRes,
                                            parm->facetRes);
         break;

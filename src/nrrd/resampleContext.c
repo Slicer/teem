@@ -99,12 +99,12 @@ nrrdResampleContextInit(NrrdResampleContext *rsmc) {
     rsmc->nonExistent = nrrdDefaultResampleNonExistent;
     rsmc->padValue = nrrdDefaultResamplePadValue;
     rsmc->dim = 0;
-    rsmc->passNum = AIR_CAST(unsigned int, -1); /* 4294967295 */
-    rsmc->topRax = AIR_CAST(unsigned int, -1);
-    rsmc->botRax = AIR_CAST(unsigned int, -1);
+    rsmc->passNum = AIR_UINT(-1); /* 4294967295 */
+    rsmc->topRax = AIR_UINT(-1);
+    rsmc->botRax = AIR_UINT(-1);
     for (axIdx=0; axIdx<NRRD_DIM_MAX; axIdx++) {
-      rsmc->permute[axIdx] = AIR_CAST(unsigned int, -1);
-      rsmc->passAxis[axIdx] = AIR_CAST(unsigned int, -1);
+      rsmc->permute[axIdx] = AIR_UINT(-1);
+      rsmc->passAxis[axIdx] = AIR_UINT(-1);
     }
     for (axIdx=0; axIdx<NRRD_DIM_MAX+1; axIdx++) {
       axis = rsmc->axis + axIdx;
@@ -114,15 +114,15 @@ nrrdResampleContextInit(NrrdResampleContext *rsmc) {
         axis->kparm[kpIdx] = AIR_NAN;
       }
       axis->min = axis->max = AIR_NAN;
-      axis->samples = AIR_CAST(unsigned int, -1);
+      axis->samples = AIR_UINT(-1);
       axis->overrideCenter = nrrdCenterUnknown;
       axis->center = nrrdCenterUnknown;
-      axis->sizeIn = AIR_CAST(unsigned int, -1);
+      axis->sizeIn = AIR_UINT(-1);
       axis->axIdx = axIdx;                         /* never changes */
-      axis->passIdx = AIR_CAST(unsigned int, -1);
+      axis->passIdx = AIR_UINT(-1);
       for (axJdx=0; axJdx<NRRD_DIM_MAX; axJdx++) {
         axis->sizePerm[axJdx] = AIR_CAST(size_t, -1);
-        axis->axisPerm[axJdx] = AIR_CAST(unsigned int, -1);
+        axis->axisPerm[axJdx] = AIR_UINT(-1);
       }
       axis->ratio = AIR_NAN;
       axis->nrsmp = NULL;    /* these are nrrdNew()'d as needed */
@@ -323,8 +323,8 @@ nrrdResampleSamplesSet(NrrdResampleContext *rsmc,
   if (rsmc->axis[axIdx].samples != samples) {
     if (rsmc->verbose) {
       fprintf(stderr, "%s: axis %u samples %u --> %u\n", me, axIdx,
-              AIR_CAST(unsigned int, rsmc->axis[axIdx].samples),
-              AIR_CAST(unsigned int, samples));
+              AIR_UINT(rsmc->axis[axIdx].samples),
+              AIR_UINT(samples));
     }
     rsmc->axis[axIdx].samples = samples;
     rsmc->flag[flagSamples] = AIR_TRUE;
@@ -672,7 +672,7 @@ _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
       if (!( axis->samples >= minSamples )) {
         biffAddf(NRRD, "%s: need at least %u output samples (not %u) for "
                  "%s-centered sampling along axis %u", me, minSamples,
-                 AIR_CAST(unsigned int, axis->samples),
+                 AIR_UINT(axis->samples),
                  airEnumStr(nrrdCenter, axis->center), axIdx);
         return 1;
       }
@@ -770,7 +770,7 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
       /* calculate sample locations and do first pass on indices */
       indexData = (int *)axis->nindex->data;
       weightData = (nrrdResample_t *)axis->nweight->data;
-      dotLen = AIR_CAST(unsigned int, axis->nweight->axis[0].size);
+      dotLen = AIR_UINT(axis->nweight->axis[0].size);
       halfLen = dotLen/2;
       for (smpIdx=0; smpIdx<axis->samples; smpIdx++) {
         idx = AIR_CAST(nrrdResample_t,
@@ -816,7 +816,7 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
             rawIdx = AIR_MOD(rawIdx, AIR_CAST(int, axis->sizeIn));
             break;
           case nrrdBoundaryMirror:
-            rawIdx = _nrrdMirror_32(AIR_CAST(unsigned int, axis->sizeIn), rawIdx);
+            rawIdx = _nrrdMirror_32(AIR_UINT(axis->sizeIn), rawIdx);
             break;
           default:
             biffAddf(NRRD, "%s: boundary behavior %d unknown/unimplemented",
@@ -990,10 +990,10 @@ _nrrdResamplePermutationUpdate(NrrdResampleContext *rsmc) {
       || rsmc->flag[flagKernels]
       || rsmc->flag[flagSamples]) {
 
-    rsmc->topRax = rsmc->botRax = AIR_CAST(unsigned int, -1);
+    rsmc->topRax = rsmc->botRax = AIR_UINT(-1);
     for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
       if (rsmc->axis[axIdx].kernel) {
-        if (AIR_CAST(unsigned int, -1) == rsmc->topRax) {
+        if (AIR_UINT(-1) == rsmc->topRax) {
           rsmc->topRax = axIdx;
         }
         rsmc->botRax = axIdx;
@@ -1027,7 +1027,7 @@ _nrrdResamplePermutationUpdate(NrrdResampleContext *rsmc) {
     rsmc->permute[rsmc->dim] = rsmc->dim;  /* HEY: what is this for? */
 
     if (rsmc->passNum) {
-      toTop = AIR_CAST(unsigned int, -1);
+      toTop = AIR_UINT(-1);
       for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
         /* this will always "break" somewhere */
         if (rsmc->topRax == rsmc->permute[axIdx]) {
@@ -1098,7 +1098,7 @@ _nrrdResamplePermutationUpdate(NrrdResampleContext *rsmc) {
           fprintf(stderr, "     sizes: ");
           for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
             fprintf(stderr, "%3u ",
-                    AIR_CAST(unsigned int, axis->sizePerm[axIdx]));
+                    AIR_UINT(axis->sizePerm[axIdx]));
           }
           fprintf(stderr, "\n");
         }

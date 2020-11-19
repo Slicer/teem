@@ -80,7 +80,7 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
     biffMovef(TEN, NRRD, "%s: trouble converting histogram to double", me);
     airMopError(mop); return 1;
   }
-  biparm->N = AIR_CAST(unsigned int, nhisto->axis[0].size);
+  biparm->N = AIR_UINT(nhisto->axis[0].size);
   biparm->histo = (double*)(nhisto->data);
   biparm->vmin = (AIR_EXISTS(nhisto->axis[0].min)
                   ? nhisto->axis[0].min
@@ -105,7 +105,7 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
               "%s: got empty histogram? (median calculation failed)", me);
     airMopError(mop); return 1;
   }
-  median = AIR_CAST(unsigned int, medianD);
+  median = AIR_UINT(medianD);
 
   biparm->pp1 = (double*)calloc(biparm->N, sizeof(double));
   biparm->pp2 = (double*)calloc(biparm->N, sizeof(double));

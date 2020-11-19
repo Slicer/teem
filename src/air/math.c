@@ -57,7 +57,7 @@ airFastExp(double val) {
   /* HEY: COPY AND PASTE from airMyEndian */
   tmpI = 1;
   EXPI = *(AIR_CAST(char*, &tmpI));
-  eco.nn[EXPI] = AIR_CAST(int, (EXPA*(val)) + (1072693248 - EXPC));
+  eco.nn[EXPI] = AIR_INT((EXPA*(val)) + (1072693248 - EXPC));
   eco.nn[1-EXPI] = 0;
   ret = (eco.dd > 0.0
          ? eco.dd
@@ -674,7 +674,7 @@ airBesselIn(int nn, double xx) {
   tax = 2.0/AIR_ABS(xx);
   bip = bb = 0.0;
   bi = 1.0;
-  top = 2*(an + AIR_CAST(int, sqrt(40.0*an)));
+  top = 2*(an + AIR_INT(sqrt(40.0*an)));
   for (ii=top; ii > 0; ii--) {
     bim = bip + ii*tax*bi;
     bip = bi;
@@ -723,7 +723,7 @@ airBesselInExpScaled(int nn, double xx) {
      problem was detected because of glitches in the highest blurring
      levels for scale-space feature detection; but that didn't quite
      work either; this will have to be debugged further! */
-  top = 2*(an + AIR_CAST(int, sqrt(40.0*an)));
+  top = 2*(an + AIR_INT(sqrt(40.0*an)));
   eps = 1.0e-10;
   for (ii=top; ii > 0; ii--) {
     bim = bip + ii*tax*bi;

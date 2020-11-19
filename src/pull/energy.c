@@ -304,7 +304,7 @@ _pullEnergyButterworthEval(double *denr, double x, const double *parm) {
   int n;
   double cut, denom, enr;
 
-  n = AIR_CAST(int, parm[0]);
+  n = AIR_INT(parm[0]);
   cut = parm[1];
   denom = 1 + airIntPow(x/cut, 2*n);
   enr = 1/denom;

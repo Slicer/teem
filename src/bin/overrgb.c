@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -72,6 +72,7 @@ main(int argc, const char *argv[]) {
   size_t min[3], max[3], sx, sy, pi;
   unsigned char *outUC, *bgUC;
   NrrdResampleInfo *rinfo;
+  NrrdIoState *nio = NULL;
 
   me = argv[0];
   mop = airMopNew();
@@ -241,14 +242,13 @@ main(int argc, const char *argv[]) {
       g = a*g + (1-a)*back[1];
       b = a*b + (1-a)*back[2];
     }
-    outUC[0] = airIndex(0.0, r, 1.0, 256);
-    outUC[1] = airIndex(0.0, g, 1.0, 256);
-    outUC[2] = airIndex(0.0, b, 1.0, 256);
+    outUC[0] = AIR_UCHAR(airIndex(0.0, r, 1.0, 256));
+    outUC[1] = AIR_UCHAR(airIndex(0.0, g, 1.0, 256));
+    outUC[2] = AIR_UCHAR(airIndex(0.0, b, 1.0, 256));
     outUC += 3;
     rgbaD += 4;
   }
 
-  NrrdIoState *nio = NULL;
   if (hestSourceUser == hopt[srgbIdx].source) {
     /* HEY copied to unrrdu/quantize.c */
     nio = nrrdIoStateNew();

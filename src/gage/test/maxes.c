@@ -32,7 +32,7 @@ maxes1(Nrrd *nout, const Nrrd *nin) {
 
   lup = nrrdDLookup[nin->type];
   ins = nrrdDInsert[nin->type];
-  sx = AIR_CAST(unsigned int, nin->axis[0].size);
+  sx = AIR_UINT(nin->axis[0].size);
   for (xi=0; xi<sx; xi++) {
     ismax = AIR_TRUE;
     val = lup(nin->data, xi);
@@ -55,8 +55,8 @@ maxes2(Nrrd *nout, const Nrrd *nin) {
 
   lup = nrrdDLookup[nin->type];
   ins = nrrdDInsert[nin->type];
-  sx = AIR_CAST(unsigned int, nin->axis[0].size);
-  sy = AIR_CAST(unsigned int, nin->axis[1].size);
+  sx = AIR_UINT(nin->axis[0].size);
+  sy = AIR_UINT(nin->axis[1].size);
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {
       ismax = AIR_TRUE;
@@ -84,9 +84,9 @@ maxes3(Nrrd *nout, const Nrrd *nin) {
 
   lup = nrrdDLookup[nin->type];
   ins = nrrdDInsert[nin->type];
-  sx = AIR_CAST(unsigned int, nin->axis[0].size);
-  sy = AIR_CAST(unsigned int, nin->axis[1].size);
-  sz = AIR_CAST(unsigned int, nin->axis[2].size);
+  sx = AIR_UINT(nin->axis[0].size);
+  sy = AIR_UINT(nin->axis[1].size);
+  sz = AIR_UINT(nin->axis[2].size);
   for (zi=0; zi<sz; zi++) {
     for (yi=0; yi<sy; yi++) {
       for (xi=0; xi<sx; xi++) {

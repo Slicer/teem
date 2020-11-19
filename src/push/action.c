@@ -115,7 +115,7 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
         TEN_T_COPY_TT(tenOut + 7*pointRun, float, point->ten);
       }
       if (enrOut) {
-        enrOut[pointRun] = AIR_CAST(float, point->enr);
+        enrOut[pointRun] = AIR_FLOAT(point->enr);
       }
       pointRun++;
     }

@@ -27,8 +27,8 @@
   (X) = nrrdNew();                                              \
   airMopAdd(mop, (X), (airMopper)nrrdNuke, airMopAlways)
 
-char *phrndInfo = ("randomizes phase of a real-valued array "
-                   "while preserving the spectrum");
+const char *phrndInfo = ("randomizes phase of a real-valued array "
+                         "while preserving the spectrum");
 
 int
 main(int argc, const char *argv[]) {
@@ -121,7 +121,7 @@ main(int argc, const char *argv[]) {
     }
   } else {
     /* got no request for specific seed */
-    airSrandMT(AIR_CAST(unsigned int, airTime()));
+    airSrandMT(AIR_UINT(airTime()));
   }
   for (axi=0; axi<NRRD_DIM_MAX; axi++) {
     minInset[axi] = 0;

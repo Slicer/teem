@@ -130,9 +130,9 @@ seekSamplesSet(seekContext *sctx, size_t samples[3]) {
   numZero += 0 == samples[2];
   if (!( 0 == numZero || 3 == numZero )) {
     biffAddf(SEEK, "%s: samples (%u,%u,%u) must all be 0 or !=0 together", me,
-             AIR_CAST(unsigned int, samples[0]),
-             AIR_CAST(unsigned int, samples[1]),
-             AIR_CAST(unsigned int, samples[2]));
+             AIR_UINT(samples[0]),
+             AIR_UINT(samples[1]),
+             AIR_UINT(samples[2]));
     return 1;
   }
   if (sctx->samples[0] != samples[0]

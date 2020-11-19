@@ -562,9 +562,9 @@ tenInterpPathLength(Nrrd *ntt, int doubleVerts, int fancy, int shape) {
 
   tt = AIR_CAST(double *, ntt->data);
   if (doubleVerts) {
-    NN = AIR_CAST(unsigned int, (ntt->axis[1].size-1)/2);
+    NN = AIR_UINT((ntt->axis[1].size-1)/2);
   } else {
-    NN = AIR_CAST(unsigned int, ntt->axis[1].size-1);
+    NN = AIR_UINT(ntt->axis[1].size-1);
   }
   len = 0;
   for (ii=0; ii<NN; ii++) {
@@ -616,7 +616,7 @@ _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
 
   in = AIR_CAST(double *, nin->data);
   out = AIR_CAST(double *, nout->data);
-  NN = AIR_CAST(unsigned int, (nin->axis[1].size-1)/2);
+  NN = AIR_UINT((nin->axis[1].size-1)/2);
   lenTotal = tenInterpPathLength(nin, AIR_TRUE, AIR_FALSE, AIR_FALSE);
   lenStep = lenTotal/NN;
   /*

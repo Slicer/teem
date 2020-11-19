@@ -132,8 +132,8 @@ tend_fiberMain(int argc, const char **argv, const char *me,
           && 4 == _nmat->axis[1].size)) {
       fprintf(stderr, "%s: transform matrix must be 2-D 4-by-4 array "
               "not %u-D %u-by-?\n", me,
-              AIR_CAST(unsigned int, _nmat->dim),
-              AIR_CAST(unsigned int, _nmat->axis[0].size));
+              AIR_UINT(_nmat->dim),
+              AIR_UINT(_nmat->axis[0].size));
       airMopError(mop); return 1;
     }
     nmat = nrrdNew();
@@ -172,7 +172,7 @@ tend_fiberMain(int argc, const char **argv, const char *me,
     case tenFiberStopNumSteps:
     case tenFiberStopMinNumSteps:
       if (!E) E |= tenFiberStopSet(tfx, istop,
-                                   AIR_CAST(unsigned int, stop[1]));
+                                   AIR_UINT(stop[1]));
       break;
     case tenFiberStopLength:
     case tenFiberStopConfidence:

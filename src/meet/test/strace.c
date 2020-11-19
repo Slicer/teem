@@ -149,14 +149,14 @@ resamplePlot(Nrrd *nprob, const Nrrd *nplot) {
     return 1;
   }
   prob = AIR_CAST(double *, nprob->data);
-  sx = AIR_CAST(unsigned int, nprob->axis[0].size);
-  sy = AIR_CAST(unsigned int, nprob->axis[1].size);
+  sx = AIR_UINT(nprob->axis[0].size);
+  sy = AIR_UINT(nprob->axis[1].size);
   for (ii=0; ii<sx; ii++) {
     /* zero out bottom line, useless crap piles up there */
     prob[ii + sx*(sy-1)] = 0;
   }
   sum = 0;
-  nn = AIR_CAST(unsigned int, nrrdElementNumber(nprob));
+  nn = AIR_UINT(nrrdElementNumber(nprob));
   for (ii=0; ii<nn; ii++) {
     /* sum += log(LOFF+prob[ii]); why? */
     sum += prob[ii];
@@ -175,7 +175,7 @@ distanceProb(Nrrd *npp, Nrrd *nqq) {
   double *pp, *qq, dist=0.0;
   unsigned int ii, nn;
 
-  nn = AIR_CAST(unsigned int, nrrdElementNumber(npp));
+  nn = AIR_UINT(nrrdElementNumber(npp));
   pp = AIR_CAST(double *, npp->data);
   qq = AIR_CAST(double *, nqq->data);
   for (ii=0; ii<nn; ii++) {
@@ -692,7 +692,7 @@ main(int argc, const char **argv) {
                        AIR_TRUE /* recordStrength */,
                        scaleStep, scaleWin/2,
                        orientTestLen,
-                       AIR_CAST(unsigned int, (scaleWin/2)/scaleStep),
+                       AIR_UINT((scaleWin/2)/scaleStep),
                        seedPos)
           || pullTraceMultiAdd(mtrc, pts, &added)) {
         airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
@@ -739,7 +739,7 @@ main(int argc, const char **argv) {
                                  strnUse, smoothPlot, flatWght,
                                  scaleStep, scaleWin/2,
                                  orientTestLen,
-                                 AIR_CAST(unsigned int, (scaleWin/2)/scaleStep),
+                                 AIR_UINT((scaleWin/2)/scaleStep),
                                  mtrc, tracePointNum)
           || resamplePlot(nsplot, nprogB)) {
         airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
@@ -790,8 +790,8 @@ main(int argc, const char **argv) {
       for (ti=0; ti<mtrc->traceNum; ti++) {
         trc = mtrc->trace[ti];
         fprintf(stderr, "!%s: ti %u/%u : stab (%d-D) %u %u\n", me, ti, mtrc->traceNum,
-                trc->nstab->dim, AIR_CAST(unsigned int, trc->nstab->axis[0].size),
-                AIR_CAST(unsigned int, trc->nstab->axis[1].size));
+                trc->nstab->dim, AIR_UINT(trc->nstab->axis[0].size),
+                AIR_UINT(trc->nstab->axis[1].size));
         totn += trc->nstab->axis[0].size;
       }
       ntlo = nrrdNew();
@@ -807,7 +807,7 @@ main(int argc, const char **argv) {
         unsigned int vi, vn;
         double *vert, *stab, *strn, qual;
         trc = mtrc->trace[ti];
-        vn = AIR_CAST(unsigned int, trc->nstab->axis[0].size);
+        vn = AIR_UINT(trc->nstab->axis[0].size);
         vert = AIR_CAST(double *, trc->nvert->data);
         stab = AIR_CAST(double *, trc->nstab->data);
         strn = AIR_CAST(double *, (trc->nstrn
@@ -874,9 +874,9 @@ main(int argc, const char **argv) {
         /* can we just do this? */
         mpv->kind = gageKindScl;
       }
-      size[0] = AIR_CAST(unsigned int, mpv->ninSS[0]->axis[0].size);
-      size[1] = AIR_CAST(unsigned int, mpv->ninSS[0]->axis[1].size);
-      size[2] = AIR_CAST(unsigned int, mpv->ninSS[0]->axis[2].size);
+      size[0] = AIR_UINT(mpv->ninSS[0]->axis[0].size);
+      size[1] = AIR_UINT(mpv->ninSS[0]->axis[1].size);
+      size[2] = AIR_UINT(mpv->ninSS[0]->axis[2].size);
       size[3] = mpv->sbp->num;
       printf("!%s: size = (%u,%u,%u,%u)\n", me, size[0], size[1], size[2], size[3]);
       lpnt = pullPointNew(pctx);
@@ -892,7 +892,7 @@ main(int argc, const char **argv) {
         unsigned int vi, vn, orn, ori;
         double *vert, *stab, *strn, *orin, wght;
         trc = mtrc->trace[ti];
-        vn = AIR_CAST(unsigned int, trc->nstab->axis[0].size);
+        vn = AIR_UINT(trc->nstab->axis[0].size);
         vert = AIR_CAST(double *, trc->nvert->data);
         stab = AIR_CAST(double *, trc->nstab->data);
         orin = AIR_CAST(double *, trc->norin->data);

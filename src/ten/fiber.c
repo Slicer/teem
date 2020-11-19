@@ -1069,13 +1069,13 @@ tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
   if (!(2 == _nseed->dim && 3 == _nseed->axis[0].size)) {
     biffAddf(TEN, "%s: seed list should be a 2-D (not %u-D) "
             "3-by-X (not %u-by-X) array", me, _nseed->dim,
-            AIR_CAST(unsigned int, _nseed->axis[0].size));
+            AIR_UINT(_nseed->axis[0].size));
     return 1;
   }
 
   mop = airMopNew();
 
-  seedNum = AIR_CAST(unsigned int, _nseed->axis[1].size);
+  seedNum = AIR_UINT(_nseed->axis[1].size);
   if (nrrdTypeDouble == _nseed->type) {
     seedData = AIR_CAST(const double *, _nseed->data);
   } else {
@@ -1238,7 +1238,7 @@ _fiberMultiExtract(tenFiberContext *tfx, Nrrd *nval,
     if (!(tenFiberStopUnknown == tfs->whyNowhere)) {
       continue;
     }
-    vertNum = AIR_CAST(unsigned int, tfs->nvert->axis[1].size);
+    vertNum = AIR_UINT(tfs->nvert->axis[1].size);
     pans = (nval
             ? AIR_CAST(double*, tfs->nval->data)
             : NULL);

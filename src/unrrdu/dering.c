@@ -104,8 +104,8 @@ unrrdu_deringMain(int argc, const char **argv, const char *me,
           && nmask->axis[0].size == nin->axis[0].size
           && nmask->axis[1].size == nin->axis[1].size)) {
       fprintf(stderr, "%s: given mask not 2-D %u-by-%u array of scalar type",
-              me, AIR_CAST(unsigned int, nin->axis[0].size),
-              AIR_CAST(unsigned int, nin->axis[1].size));
+              me, AIR_UINT(nin->axis[0].size),
+              AIR_UINT(nin->axis[1].size));
       airMopError(mop);
       return 1;
     }

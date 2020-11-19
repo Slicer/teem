@@ -602,7 +602,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDetGradMag)) {
     magTmp = pvl->directAnswer[tenGageDetGradMag][0] =
-      AIR_CAST(float, ELL_3V_LEN(vecTmp));
+      AIR_FLOAT(ELL_3V_LEN(vecTmp));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDetNormal)) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageDetNormal],
@@ -1386,7 +1386,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 
     cov = pvl->directAnswer[tenGageCovariance];
     /* HEY: casting because radius signed (shouldn't be) */
-    fd = AIR_CAST(unsigned int, 2*ctx->radius);
+    fd = AIR_UINT(2*ctx->radius);
     fddd = fd*fd*fd;
 
     /* reset answer */
@@ -1479,7 +1479,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 
     pvlData = AIR_CAST(_tenGagePvlData *, pvl->data);
     /* HEY: casting because radius is signed (shouldn't be) */
-    fd = AIR_CAST(unsigned int, 2*ctx->radius);
+    fd = AIR_UINT(2*ctx->radius);
     fddd = fd*fd*fd;
     for (vijk=0; vijk<fddd; vijk++) {
       double wxx, wyy, wzz;
@@ -2090,7 +2090,7 @@ _tenGagePvlDataUpdate(const struct gageKind_t *kind,
   AIR_UNUSED(kind);
   AIR_UNUSED(pvl);
   pvlData = AIR_CAST(_tenGagePvlData *, _pvlData);
-  fd = AIR_CAST(unsigned int, 2*ctx->radius);
+  fd = AIR_UINT(2*ctx->radius);
   num = fd*fd*fd;
   if (num != pvlData->tip->allocLen) {
     /* HEY: no error checking */

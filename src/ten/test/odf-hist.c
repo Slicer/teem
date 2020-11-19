@@ -104,8 +104,8 @@ main(int argc, const char *argv[]) {
     double *mean;
     Nrrd *nodf, *nanglut;
 
-    VV = AIR_CAST(unsigned int, nvec->axis[1].size);
-    NN = AIR_CAST(unsigned int, nrrdElementNumber(_nodf)/VV);
+    VV = AIR_UINT(nvec->axis[1].size);
+    NN = AIR_UINT(nrrdElementNumber(_nodf)/VV);
 
     nanglut = nrrdNew();
     airMopAdd(mop, nanglut, (airMopper)nrrdNuke, airMopAlways);
@@ -143,7 +143,7 @@ main(int argc, const char *argv[]) {
         vi = vec + 3*ii;
         tmp = ELL_3V_DOT(vi, vj);
         tmp = AIR_ABS(tmp);
-        tmp = AIR_CAST(float, acos(tmp)/(AIR_PI/2.0));
+        tmp = AIR_FLOAT(acos(tmp)/(AIR_PI/2.0));
         anglut[ii + VV*jj] = airIndex(0.0, tmp, 1.0, bins);
       }
     }
@@ -215,12 +215,12 @@ main(int argc, const char *argv[]) {
     for (kk=0; kk<NN; kk++) {
       for (jj=0; jj<bins; jj++) {
         for (ii=0; ii<jj; ii++) {
-          tmp = AIR_CAST(float, (hist[ii] - mean[ii])*(hist[jj] - mean[jj]));
+          tmp = AIR_FLOAT((hist[ii] - mean[ii])*(hist[jj] - mean[jj]));
           covar[ii + bins*jj] += tmp;
           covar[jj + bins*ii] += tmp;
         }
         covar[jj + bins*jj] +=
-          AIR_CAST(float, (hist[jj] - mean[jj])*(hist[jj] - mean[jj]));
+          AIR_FLOAT((hist[jj] - mean[jj])*(hist[jj] - mean[jj]));
       }
       hist += bins;
     }

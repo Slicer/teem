@@ -100,7 +100,7 @@ unrrdu_sliceMain(int argc, const char **argv, const char *me,
                 + _pos[1 + 2*axi]);
     /*
     printf("%s: [%d] axis = %u, pos = %u\n", me, axi, axis[axi],
-           AIR_CAST(unsigned int, pos[axi]));
+           AIR_UINT(pos[axi]));
     */
   }
   /* check on possibly adjust slice axes downward */

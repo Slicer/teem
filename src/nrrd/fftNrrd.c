@@ -180,13 +180,13 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
   nprod = 1;
   for (axi=1; axi<nin->dim; axi++) {
     if (axisDo[axi]) {
-      txfDims[txfRank].n = AIR_CAST(int, inSize[axi]);
-      txfDims[txfRank].is = txfDims[txfRank].os = AIR_CAST(int, stride);
+      txfDims[txfRank].n = AIR_INT(inSize[axi]);
+      txfDims[txfRank].is = txfDims[txfRank].os = AIR_INT(stride);
       nprod *= inSize[axi];
       txfRank++;
     } else {
-      howDims[howRank].n = AIR_CAST(int, inSize[axi]);
-      howDims[howRank].is = howDims[howRank].os = AIR_CAST(int, stride);
+      howDims[howRank].n = AIR_INT(inSize[axi]);
+      howDims[howRank].is = howDims[howRank].os = AIR_INT(stride);
       howRank++;
     }
     stride *= inSize[axi];
@@ -226,8 +226,8 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
   }
   /* HEY: figure out why fftw expects txfRank and howRank to be
      signed and not unsigned */
-  plan = fftw_plan_guru_dft(AIR_CAST(int, txfRank), txfDims,
-                            AIR_CAST(int, howRank), howDims,
+  plan = fftw_plan_guru_dft(AIR_INT(txfRank), txfDims,
+                            AIR_INT(howRank), howDims,
                             AIR_CAST(fftw_complex *, inData),
                             AIR_CAST(fftw_complex *, outData),
                             sign, flags);

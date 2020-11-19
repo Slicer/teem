@@ -607,7 +607,7 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
     }
     oidx++;
   }
-  lentmp = AIR_CAST(unsigned int, pts->nstab->axis[1].size);
+  lentmp = AIR_UINT(pts->nstab->axis[1].size);
   if (1 == lentmp) {
     stab[0 + 2*0] = 0.0;
     stab[1 + 2*0] = 0.0;
@@ -774,12 +774,12 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
       biffAddf(PULL, "%s: got trace mask but wanted "
                "2-D %s %u-by-%u (not %u-D %s %u-by-%u)\n", me,
                airEnumStr(nrrdType, nrrdTypeUChar),
-               AIR_CAST(unsigned int, nplot->axis[0].size),
-               AIR_CAST(unsigned int, nplot->axis[1].size),
+               AIR_UINT(nplot->axis[0].size),
+               AIR_UINT(nplot->axis[1].size),
                nmask->dim,
                airEnumStr(nrrdType, nmask->type),
-               AIR_CAST(unsigned int, nmask->axis[0].size),
-               AIR_CAST(unsigned int, nmask->axis[1].size));
+               AIR_UINT(nmask->axis[0].size),
+               AIR_UINT(nmask->axis[1].size));
       return 1;
     }
     mask = AIR_CAST(unsigned char *, nmask->data);
@@ -818,8 +818,8 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
   filt = (nfilt
           ? AIR_CAST(int *, nfilt->data)
           : NULL);
-  sizeS = AIR_CAST(unsigned int, nplot->axis[0].size);
-  sizeT = AIR_CAST(unsigned int, nplot->axis[1].size);
+  sizeS = AIR_UINT(nplot->axis[0].size);
+  sizeT = AIR_UINT(nplot->axis[1].size);
   for (trcIdx=trcIdxMin; trcIdx<=trcIdxMax; trcIdx++) {
     int pntIdx, pntNum;
     const pullTrace *trc;
@@ -839,7 +839,7 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
                "strength info in trace %u", me, trcIdx);
       airMopError(mop); return 1;
     }
-    pntNum = AIR_CAST(int, trc->nvert->axis[1].size);
+    pntNum = AIR_INT(trc->nvert->axis[1].size);
     vert = AIR_CAST(double *, trc->nvert->data);
     stab = AIR_CAST(double *, trc->nstab->data);
     if (smooth > 0) {
@@ -899,7 +899,7 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
         }
       } else if (flatWght < 0) {
         /* HACK: only show the seed point */
-        if (AIR_CAST(unsigned int, pntIdx) != trc->seedIdx) {
+        if (AIR_UINT(pntIdx) != trc->seedIdx) {
           continue;
         }
       }

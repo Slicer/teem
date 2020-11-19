@@ -56,8 +56,8 @@ echoTextureLookup(echoCol_t rgba[4], Nrrd *ntext,
   } else {
     u = AIR_AFFINE(0.0, u, 1.0, 0.0, su-1);  u = AIR_CLAMP(0, u, su-1);
     v = AIR_AFFINE(0.0, v, 1.0, 0.0, sv-1);  v = AIR_CLAMP(0, v, sv-1);
-    u -= (u == su-1);  ui = (int)u;  uf = AIR_CAST(float, u - ui);
-    v -= (v == sv-1);  vi = (int)v;  vf = AIR_CAST(float, v - vi);
+    u -= (u == su-1);  ui = (int)u;  uf = AIR_FLOAT(u - ui);
+    v -= (v == sv-1);  vi = (int)v;  vf = AIR_FLOAT(v - vi);
     tdata00 = (unsigned char*)(ntext->data) + 4*(ui + su*vi);
     tdata01 = tdata00 + 4;
     tdata10 = tdata00 + 4*su;

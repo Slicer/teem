@@ -129,7 +129,7 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
         continue;
       }
       if (AIR_IN_CL(min, val, max)) {
-        idx = airIndex(min, val, max+eps, AIR_CAST(unsigned int, bins));
+        idx = airIndex(min, val, max+eps, AIR_UINT(bins));
         /*
         printf("!%s: %d: index(%g, %g, %g, %d) = %d\n",
                me, (int)I, min, val, max, bins, idx);
@@ -243,7 +243,7 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
   }
   nout->axis[1].min = usemaxhits;
   nout->axis[1].max = 0;
-  numticks = AIR_CAST(unsigned int, log10(usemaxhits + 1));
+  numticks = AIR_UINT(log10(usemaxhits + 1));
   mop = airMopNew();
   ticks = AIR_CALLOC(numticks, unsigned int);
   airMopMem(mop, &ticks, airMopAlways);
@@ -257,14 +257,14 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
   }
   for (ki=0; ki<numticks; ki++) {
     ticks[ki] = airIndex(0, log10(pow(10,ki+1) + 1), log10(usemaxhits+1),
-                         AIR_CAST(unsigned int, sy));
+                         AIR_UINT(sy));
   }
   for (xi=0; xi<sx; xi++) {
     hits = nrrdDLookup[nin->type](nin->data, xi);
     linY[xi] = airIndex(0, hits, usemaxhits,
-                        AIR_CAST(unsigned int, sy));
+                        AIR_UINT(sy));
     logY[xi] = airIndex(0, log10(hits+1), log10(usemaxhits+1),
-                        AIR_CAST(unsigned int, sy));
+                        AIR_UINT(sy));
     /* printf("%d -> %d,%d", x, linY[x], logY[x]); */
   }
   for (yi=0; yi<sy; yi++) {
@@ -423,7 +423,7 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     /* get input nrrd value and compute its histogram index */
     val = nrrdDLookup[nin->type](nin->data, I);
     if (AIR_EXISTS(val) && AIR_IN_CL(range->min, val, range->max)) {
-      hidx = airIndex(range->min, val, range->max, AIR_CAST(unsigned int, bins));
+      hidx = airIndex(range->min, val, range->max, AIR_UINT(bins));
       memcpy(coordOut, coordIn, nin->dim*sizeof(size_t));
       coordOut[hax] = (unsigned int)hidx;
       NRRD_INDEX_GEN(hI, coordOut, szOut, nout->dim);
@@ -693,7 +693,7 @@ nrrdHistoThresholdOtsu(double *threshP, const Nrrd *_nhist, double expo) {
   hist = AIR_CAST(double*, nhist->data);
   bvar = AIR_CAST(double*, nbvar->data);
 
-  histLen = AIR_CAST(unsigned int, nhist->axis[0].size);
+  histLen = AIR_UINT(nhist->axis[0].size);
   num1 = mean1 = 0;
   for (histIdx=0; histIdx<histLen; histIdx++) {
     num1 += hist[histIdx];

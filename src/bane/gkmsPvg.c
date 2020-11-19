@@ -138,8 +138,8 @@ baneGkms_pvgMain(int argc, const char **argv, const char *me,
     biffAddf(BANE, "%s: trouble calculating position", me);
     airMopError(mop); return 1;
   }
-  sv = AIR_CAST(int, nposA->axis[0].size); /* HEY should be unsigned */
-  sg = AIR_CAST(int, nposA->axis[1].size); /* HEY should be unsigned */
+  sv = AIR_INT(nposA->axis[0].size); /* HEY should be unsigned */
+  sg = AIR_INT(nposA->axis[1].size); /* HEY should be unsigned */
   pos = (float *)nposA->data;
 
   /* find min, max, sml, smlI: histo-eq will warp values around such
@@ -191,9 +191,9 @@ baneGkms_pvgMain(int argc, const char **argv, const char *me,
       continue;
     }
     if (pos[i] < newsml) {
-      pos[i] = AIR_CAST(float, AIR_AFFINE(min, pos[i], newsml, newmin, 0.0));
+      pos[i] = AIR_FLOAT(AIR_AFFINE(min, pos[i], newsml, newmin, 0.0));
     } else {
-      pos[i] = AIR_CAST(float, AIR_AFFINE(newsml, pos[i], max, 0.0, newmax));
+      pos[i] = AIR_FLOAT(AIR_AFFINE(newsml, pos[i], max, 0.0, newmax));
     }
   }
   range = nrrdRangeNew(newmin, newmax);

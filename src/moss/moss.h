@@ -54,8 +54,7 @@ extern "C" {
 
 /* used by ilk, hence not in privateMoss.h */
 #define MOSS_AXIS0(img) (3 == (img)->dim ? 1 : 0)
-#define MOSS_NCOL(img) \
-  AIR_CAST(unsigned int, (3 == (img)->dim ? (img)->axis[0].size : 1))
+#define MOSS_NCOL(img) AIR_UINT(3 == (img)->dim ? (img)->axis[0].size : 1)
 
 enum {
   mossFlagUnknown=-1,  /* -1: nobody knows */

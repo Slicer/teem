@@ -273,49 +273,49 @@ main(int argc, const char *argv[]) {
   if (rad) {
     partIdx = limnObjectCylinderAdd(obj, lookRod, 0, res);
     ELL_4M_IDENTITY_SET(matAf);
-    ELL_4M_SCALE_SET(matBf, AIR_CAST(float, (1-eval[0])/2), rad, rad);
+    ELL_4M_SCALE_SET(matBf, AIR_FLOAT((1-eval[0])/2), rad, rad);
     ell_4m_post_mul_f(matAf, matBf);
-    ELL_4M_TRANSLATE_SET(matBf, AIR_CAST(float, (1+eval[0])/2), 0.0, 0.0);
+    ELL_4M_TRANSLATE_SET(matBf, AIR_FLOAT((1+eval[0])/2), 0.0, 0.0);
     ell_4m_post_mul_f(matAf, matBf);
     limnObjectPartTransform(obj, partIdx, matAf);
 
     partIdx = limnObjectCylinderAdd(obj, lookRod, 0, res);
     ELL_4M_IDENTITY_SET(matAf);
-    ELL_4M_SCALE_SET(matBf, AIR_CAST(float, (1-eval[0])/2), rad, rad);
+    ELL_4M_SCALE_SET(matBf, AIR_FLOAT((1-eval[0])/2), rad, rad);
     ell_4m_post_mul_f(matAf, matBf);
-    ELL_4M_TRANSLATE_SET(matBf, AIR_CAST(float, -(1+eval[0])/2), 0.0, 0.0);
-    ell_4m_post_mul_f(matAf, matBf);
-    limnObjectPartTransform(obj, partIdx, matAf);
-
-    partIdx = limnObjectCylinderAdd(obj, lookRod, 1, res);
-    ELL_4M_IDENTITY_SET(matAf);
-    ELL_4M_SCALE_SET(matBf, rad, AIR_CAST(float, (1-eval[1])/2), rad);
-    ell_4m_post_mul_f(matAf, matBf);
-    ELL_4M_TRANSLATE_SET(matBf, 0.0, AIR_CAST(float, (1+eval[1])/2), 0.0);
+    ELL_4M_TRANSLATE_SET(matBf, AIR_FLOAT(-(1+eval[0])/2), 0.0, 0.0);
     ell_4m_post_mul_f(matAf, matBf);
     limnObjectPartTransform(obj, partIdx, matAf);
 
     partIdx = limnObjectCylinderAdd(obj, lookRod, 1, res);
     ELL_4M_IDENTITY_SET(matAf);
-    ELL_4M_SCALE_SET(matBf, rad, AIR_CAST(float, (1-eval[1])/2), rad);
+    ELL_4M_SCALE_SET(matBf, rad, AIR_FLOAT((1-eval[1])/2), rad);
     ell_4m_post_mul_f(matAf, matBf);
-    ELL_4M_TRANSLATE_SET(matBf, 0.0, AIR_CAST(float, -(1+eval[1])/2), 0.0);
+    ELL_4M_TRANSLATE_SET(matBf, 0.0, AIR_FLOAT((1+eval[1])/2), 0.0);
+    ell_4m_post_mul_f(matAf, matBf);
+    limnObjectPartTransform(obj, partIdx, matAf);
+
+    partIdx = limnObjectCylinderAdd(obj, lookRod, 1, res);
+    ELL_4M_IDENTITY_SET(matAf);
+    ELL_4M_SCALE_SET(matBf, rad, AIR_FLOAT((1-eval[1])/2), rad);
+    ell_4m_post_mul_f(matAf, matBf);
+    ELL_4M_TRANSLATE_SET(matBf, 0.0, AIR_FLOAT(-(1+eval[1])/2), 0.0);
     ell_4m_post_mul_f(matAf, matBf);
     limnObjectPartTransform(obj, partIdx, matAf);
 
     partIdx = limnObjectCylinderAdd(obj, lookRod, 2, res);
     ELL_4M_IDENTITY_SET(matAf);
-    ELL_4M_SCALE_SET(matBf, rad, rad, AIR_CAST(float, (1-eval[2])/2));
+    ELL_4M_SCALE_SET(matBf, rad, rad, AIR_FLOAT((1-eval[2])/2));
     ell_4m_post_mul_f(matAf, matBf);
-    ELL_4M_TRANSLATE_SET(matBf, 0.0, 0.0, AIR_CAST(float, (1+eval[2])/2));
+    ELL_4M_TRANSLATE_SET(matBf, 0.0, 0.0, AIR_FLOAT((1+eval[2])/2));
     ell_4m_post_mul_f(matAf, matBf);
     limnObjectPartTransform(obj, partIdx, matAf);
 
     partIdx = limnObjectCylinderAdd(obj, lookRod, 2, res);
     ELL_4M_IDENTITY_SET(matAf);
-    ELL_4M_SCALE_SET(matBf, rad, rad, AIR_CAST(float, (1-eval[2])/2));
+    ELL_4M_SCALE_SET(matBf, rad, rad, AIR_FLOAT((1-eval[2])/2));
     ell_4m_post_mul_f(matAf, matBf);
-    ELL_4M_TRANSLATE_SET(matBf, 0.0, 0.0, AIR_CAST(float, -(1+eval[2])/2));
+    ELL_4M_TRANSLATE_SET(matBf, 0.0, 0.0, AIR_FLOAT(-(1+eval[2])/2));
     ell_4m_post_mul_f(matAf, matBf);
     limnObjectPartTransform(obj, partIdx, matAf);
   }

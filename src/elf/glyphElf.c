@@ -205,7 +205,7 @@ elfGlyphHOME(limnPolyData *glyph, const char antipodal,
     (*type->sym->v_form_f)(HOMEpos,ten,verts);
     if (ELL_3V_DOT(HOMEpos,verts)<0) def=0;
     ELL_3V_COPY(verts,HOMEpos);
-    len=AIR_CAST(float, ELL_3V_LEN(HOMEpos));
+    len=AIR_FLOAT(ELL_3V_LEN(HOMEpos));
     if (len>max) max=len;
 
     /* if RGBA is allocated, take care of coloring */
@@ -304,7 +304,7 @@ elfGlyphKDE(limnPolyData *glyph, const char antipodal,
       }
     }
 
-    if (val>max) max=AIR_CAST(float,val);
+    if (val>max) max=AIR_FLOAT(val);
     ELL_3V_SCALE_TT(verts,float,val,verts);
     if (antipodal) {
       ELL_3V_SCALE(verts+4,-1.0f,verts);
@@ -430,7 +430,7 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
         float norm;
         float modfactor=1.0;
         ELL_3V_COPY(vertdir,glyph->xyzw+4*vert);
-        norm=AIR_CAST(float, ELL_3V_LEN(vertdir));
+        norm=AIR_FLOAT(ELL_3V_LEN(vertdir));
         if (norm>1e-18) {
           ELL_3V_SCALE(vertdir,1.0f/norm,vertdir);
           if (modulate) {
@@ -446,7 +446,7 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
             } else {
               modfactor=-evals[1]/(type->order*val);
               if (modfactor>1.0) modfactor=1.0;
-              else modfactor=AIR_CAST(float, pow(modfactor,_gamma));
+              else modfactor=AIR_FLOAT(pow(modfactor,_gamma));
             }
           }
         } else {

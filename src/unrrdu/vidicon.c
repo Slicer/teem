@@ -187,8 +187,8 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me,
     nn = nrrdElementNumber(nrescale);
     rescaled = AIR_CAST(float *, nrescale->data);
     for (ii=0; ii<nn; ii++) {
-      rescaled[ii] = AIR_CAST(float, AIR_AFFINE(minval, rescaled[ii],
-                                                maxval, 0.0, 255.0));
+      rescaled[ii] = AIR_FLOAT(AIR_AFFINE(minval, rescaled[ii],
+                                          maxval, 0.0, 255.0));
     }
     airMopOkay(submop);
     submop = NULL;
@@ -218,8 +218,8 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me,
 
   /* rescaling down to "video" resolution */
   fprintf(stderr, "%s: downsampling to %u x %u\n", me,
-          AIR_CAST(unsigned int, vsize[0] + 2*vpadding[0]),
-          AIR_CAST(unsigned int, vsize[1] + 2*vpadding[1]));
+          AIR_UINT(vsize[0] + 2*vpadding[0]),
+          AIR_UINT(vsize[1] + 2*vpadding[1]));
   nvbase = nrrdNew();
   airMopAdd(mop, nvbase, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdResampleDefaultCenterSet(rsmc, nrrdCenterCell)

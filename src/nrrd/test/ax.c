@@ -26,7 +26,7 @@
 #include "../nrrd.h"
 
 float frand(float min, float max) {
-  return (min + airDrandMT() * (max - min));
+  return AIR_FLOAT(min + airDrandMT() * (max - min));
 }
 
 int

@@ -241,7 +241,7 @@ airEnumPrint(FILE *file, const airEnum *enm) {
   if (enm->val) {
     fprintf(file, "Values (%u valid) given explicitly\n", enm->M);
     fprintf(file, "--- (0) %d: \"%s\"\n", enm->val[0], enm->str[0]);
-    for (ii=1; ii<=AIR_CAST(int, enm->M); ii++) {
+    for (ii=1; ii<=AIR_INT(enm->M); ii++) {
       fprintf(file, "--- (%d) %d: \"%s\" == \"%s\"\n", ii,
               enm->val[ii], enm->str[ii],
               airEnumStr(enm, enm->val[ii]));
@@ -251,7 +251,7 @@ airEnumPrint(FILE *file, const airEnum *enm) {
     /* enm->val NULL */
     fprintf(file, "Values implicit; [1,%u] valid\n", enm->M);
     fprintf(file, "--- 0: \"%s\"\n", enm->str[0]);
-    for (ii=1; ii<=AIR_CAST(int, enm->M); ii++) {
+    for (ii=1; ii<=AIR_INT(enm->M); ii++) {
       fprintf(file, "--- %d: %s == %s\n", ii, enm->str[ii],
               airEnumStr(enm, ii));
       _enumPrintVal(file, enm, ii);
@@ -432,7 +432,7 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
     /* make sure eqv strings contain the canonical string */
     for (ii=1; ii<=enm->M; ii++) {
       int eval, rval;
-      eval = (enm->val ? enm->val[ii] : AIR_CAST(int, ii));
+      eval = (enm->val ? enm->val[ii] : AIR_INT(ii));
       rval = airEnumVal(enm, enm->str[ii]);
       if (eval != rval) {
         if (err) {

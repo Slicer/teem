@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -33,7 +33,8 @@ usage(char *me) {
 
 int
 main(int argc, char **argv) {
-  char *me, *err, *key="strong bad", *value;
+  char *me, *err, *value;
+  const char *key="strong bad";
   Nrrd *nrrd;
   NrrdIoState *io;
 

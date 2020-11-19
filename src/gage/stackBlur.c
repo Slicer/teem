@@ -324,7 +324,7 @@ gageStackBlurParmSigmaSet(gageStackBlurParm *sbp, unsigned int num,
     }
     break;
   case gageSigmaSamplingOptimal3DL2L2:
-    sigmax = AIR_CAST(unsigned int, sigmaMax);
+    sigmax = AIR_UINT(sigmaMax);
     if (0 != sigmaMin) {
       biffAddf(GAGE, "%s: sigmaMin %g != 0", me, sigmaMin);
       return 1;
@@ -644,10 +644,10 @@ gageStackBlurParmParse(gageStackBlurParm *sbp,
          'p': need spatial blur
       */
       if (strchr("1ruop", *ff)) {
-        flagSeen[AIR_CAST(unsigned char, *ff)] = AIR_TRUE;
+        flagSeen[AIR_UCHAR(*ff)] = AIR_TRUE;
       } else {
         if (extraFlags) {
-          extraFlags[AIR_CAST(unsigned char, *ff)] = AIR_TRUE;
+          extraFlags[AIR_UCHAR(*ff)] = AIR_TRUE;
         } else {
           biffAddf(GAGE, "%s: got extra flag '%c' but NULL extraFlag",
                    me, *ff);
@@ -723,7 +723,7 @@ gageStackBlurParmParse(gageStackBlurParm *sbp,
       } else {
         /* doesn't match any of the parms we know how to parse */
         if (extraParmsP) {
-          airArrayLenIncr(epsArr, AIR_CAST(int, 2 + strlen(stok)));
+          airArrayLenIncr(epsArr, AIR_INT(2 + strlen(stok)));
           if (strlen(eps)) {
             strcat(eps, "/");
           }
@@ -1131,7 +1131,7 @@ _stackBlurDiscreteGaussFFT(Nrrd *const nblur[], gageStackBlurParm *sbp,
         ww[axi][ii] = exp(tblur*(cos(theta)-1.0));
         /*
         fprintf(stderr, "!%s: ww[%u][%u] = %g\n", me, axi,
-                AIR_CAST(unsigned int, ii), ww[axi][ii]);
+                AIR_UINT(ii), ww[axi][ii]);
         */
       }
     }
@@ -1139,7 +1139,7 @@ _stackBlurDiscreteGaussFFT(Nrrd *const nblur[], gageStackBlurParm *sbp,
     /*
     for (axi=0; axi<3; axi++) {
       fprintf(stderr, "!%s: size[%u] = %u\n", me, axi,
-              AIR_CAST(unsigned int, size[axi]));
+              AIR_UINT(size[axi]));
     }
     */
     for (zi=0; zi<size[2]; zi++) {
@@ -1152,7 +1152,7 @@ _stackBlurDiscreteGaussFFT(Nrrd *const nblur[], gageStackBlurParm *sbp,
           outFT[1 + 2*ii] = wght*inFT[1 + 2*ii];
           /*
           fprintf(stderr, "!%s: out[%u] = (%g,%g) = %g * (%g,%g)\n", me,
-                  AIR_CAST(unsigned int, ii),
+                  AIR_UINT(ii),
                   outFT[0 + 2*ii], outFT[1 + 2*ii],
                   wght,
                   inFT[0 + 2*ii], inFT[1 + 2*ii]);

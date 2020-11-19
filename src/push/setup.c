@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -84,7 +84,7 @@ _pushTensorFieldSetup(pushContext *pctx) {
     TEN_T_INV(inv, ten, det);
     if (!det || !AIR_EXISTS(det)) {
       fprintf(stderr, "!%s: tensor %u/%u has determinant %g\n", me,
-              AIR_CAST(unsigned int, ii), AIR_CAST(unsigned int, NN), det);
+              AIR_UINT(ii), AIR_UINT(NN), det);
     }
     TEN_T_COPY_TT(_inv, float, inv);
     _ten += 7;
@@ -276,7 +276,7 @@ _pushBinSetup(pushContext *pctx) {
   double col[3][4], volEdge[3];
 
   /* ------------------------ find maxEval, maxDet, and set up binning */
-  nn = nrrdElementNumber(pctx->nten)/7;
+  nn = AIR_UINT(nrrdElementNumber(pctx->nten)/7);
   pctx->maxEval = 0;
   pctx->maxDet = 0;
   pctx->meanEval = 0;
@@ -325,14 +325,11 @@ _pushBinSetup(pushContext *pctx) {
     volEdge[2] = ELL_3V_LEN(col[2])*pctx->gctx->shape->size[2];
     fprintf(stderr, "!%s: volEdge = %g %g %g\n", me,
             volEdge[0], volEdge[1], volEdge[2]);
-    pctx->binsEdge[0] = AIR_CAST(unsigned int,
-                                 floor(volEdge[0]/pctx->maxDist));
+    pctx->binsEdge[0] = AIR_UINT(floor(volEdge[0]/pctx->maxDist));
     pctx->binsEdge[0] = pctx->binsEdge[0] ? pctx->binsEdge[0] : 1;
-    pctx->binsEdge[1] = AIR_CAST(unsigned int,
-                                 floor(volEdge[1]/pctx->maxDist));
+    pctx->binsEdge[1] = AIR_UINT(floor(volEdge[1]/pctx->maxDist));
     pctx->binsEdge[1] = pctx->binsEdge[1] ? pctx->binsEdge[1] : 1;
-    pctx->binsEdge[2] = AIR_CAST(unsigned int,
-                                 floor(volEdge[2]/pctx->maxDist));
+    pctx->binsEdge[2] = AIR_UINT(floor(volEdge[2]/pctx->maxDist));
     pctx->binsEdge[2] = pctx->binsEdge[2] ? pctx->binsEdge[2] : 1;
     if (2 == pctx->dimIn) {
       pctx->binsEdge[pctx->sliceAxis] = 1;
@@ -377,7 +374,7 @@ _pushPointSetup(pushContext *pctx) {
   */
 
   pctx->pointNum = (pctx->npos
-                    ? pctx->npos->axis[1].size
+                    ? AIR_UINT(pctx->npos->axis[1].size)
                     : pctx->pointNum);
   lup = pctx->npos ? nrrdDLookup[pctx->npos->type] : NULL;
   fprintf(stderr, "!%s: initilizing/seeding ... \n", me);

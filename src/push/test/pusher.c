@@ -24,7 +24,7 @@
 
 #include "../push.h"
 
-char *info = ("Test program for push library.");
+const char *info = ("Test program for push library.");
 
 int
 main(int argc, const char *argv[]) {

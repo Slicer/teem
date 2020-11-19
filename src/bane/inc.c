@@ -56,7 +56,7 @@ _baneIncProcess_HistFill(baneInc *inc, double val) {
   unsigned int idx;
 
   idx = airIndex(inc->nhist->axis[0].min, val, inc->nhist->axis[0].max,
-                 AIR_CAST(unsigned int, inc->nhist->axis[0].size));
+                 AIR_UINT(inc->nhist->axis[0].size));
   /*
   fprintf(stderr, "## _baneInc_HistFill: (%g,%g,%g) %d ---> %d\n",
           inc->nhist->axis[0].min, val, inc->nhist->axis[0].max,
@@ -147,7 +147,7 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
   sprintf(err, "%03d-histo.nrrd", baneHack); nrrdSave(err, nhist, NULL);
   baneHack++;
   */
-  out = AIR_CAST(float, sum*incParm[1]/100.0);
+  out = AIR_FLOAT(sum*incParm[1]/100.0);
   fprintf(stderr, "##%s: hist's size=%d, sum=%d --> out = %g\n", me,
           histSize, sum, out);
   if (range->answer(&min, &max, nhist->axis[0].min, nhist->axis[0].max)) {
@@ -157,9 +157,9 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
           me, nhist->axis[0].min, nhist->axis[0].max,
           range->name, min, max);
   if (baneRangeAnywhere == range->type) {
-    mid = AIR_CAST(float, (AIR_EXISTS(range->center)
-                           ? range->center
-                           : (min + max)/2));
+    mid = AIR_FLOAT((AIR_EXISTS(range->center)
+                     ? range->center
+                     : (min + max)/2));
   } else {
     mid = 0;
     /* yes, this is okay.  The "mid" is the value we march towards
@@ -173,23 +173,21 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
   if (max-mid > mid-min) {
     /* the max is further from the mid than the min */
     maxIncr = 1;
-    minIncr = AIR_CAST(float, (mid-min)/(max-mid));
+    minIncr = AIR_FLOAT((mid-min)/(max-mid));
   } else {
     /* the min is further */
     minIncr = 1;
-    maxIncr = AIR_CAST(float, (max-mid)/(mid-min));
+    maxIncr = AIR_FLOAT((max-mid)/(mid-min));
   }
   if (!( AIR_EXISTS(minIncr) && AIR_EXISTS(maxIncr) )) {
     biffAddf(BANE, "%s: minIncr, maxIncr don't both exist", me);
     return 1;
   }
   fprintf(stderr, "##%s: --> {min,max}Incr = %g,%g\n", me, minIncr, maxIncr);
-  minIdx = AIR_CAST(float,
-                    AIR_AFFINE(nhist->axis[0].min, min, nhist->axis[0].max,
-                               0, histSize-1));
-  maxIdx = AIR_CAST(float,
-                    AIR_AFFINE(nhist->axis[0].min, max, nhist->axis[0].max,
-                               0, histSize-1));
+  minIdx = AIR_FLOAT(AIR_AFFINE(nhist->axis[0].min, min, nhist->axis[0].max,
+                                0, histSize-1));
+  maxIdx = AIR_FLOAT(AIR_AFFINE(nhist->axis[0].min, max, nhist->axis[0].max,
+                                0, histSize-1));
   outsofar = 0;
   while (outsofar < out) {
     if (AIR_IN_CL(0, minIdx, histSize-1)) {
@@ -227,10 +225,10 @@ _baneIncAnswer_Stdv(double *minP, double *maxP,
   int count;
 
   count = AIR_INT(hist->axis[1].size); /* HEY should be unsigned */
-  mean = AIR_CAST(float, hist->axis[1].min/count);
-  SS = AIR_CAST(float, hist->axis[1].max/count);
-  stdv = AIR_CAST(float, sqrt(SS - mean*mean));
-  width = AIR_CAST(float, incParm[0]*stdv);
+  mean = AIR_FLOAT(hist->axis[1].min/count);
+  SS = AIR_FLOAT(hist->axis[1].max/count);
+  stdv = AIR_FLOAT(sqrt(SS - mean*mean));
+  width = AIR_FLOAT(incParm[0]*stdv);
   fprintf(stderr, "##%s: mean=%g, stdv=%g --> width=%g\n",
           "_baneIncAnswer_Stdv", mean, stdv, width);
   switch (range->type) {
@@ -247,7 +245,7 @@ _baneIncAnswer_Stdv(double *minP, double *maxP,
     *maxP = width/2;
     break;
   case baneRangeAnywhere:
-    mid = AIR_CAST(float, AIR_EXISTS(range->center) ? range->center : mean);
+    mid = AIR_FLOAT(AIR_EXISTS(range->center) ? range->center : mean);
     *minP = mid - width/2;
     *maxP = mid + width/2;
     break;

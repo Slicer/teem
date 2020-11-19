@@ -787,8 +787,8 @@ nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
     }
     /*
     fprintf(stderr, "!%s: axis %u [%u,%u] --> ", me, axi,
-            AIR_CAST(unsigned int, min[axi]),
-            AIR_CAST(unsigned int, max[axi]));
+            AIR_UINT(min[axi]),
+            AIR_UINT(max[axi]));
     */
     /* adjust based on offset */
     if (offset > 0) {
@@ -803,8 +803,8 @@ nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
     }
     /*
     fprintf(stderr, "[%u,%u]\n",
-            AIR_CAST(unsigned int, min[axi]),
-            AIR_CAST(unsigned int, max[axi]));
+            AIR_UINT(min[axi]),
+            AIR_UINT(max[axi]));
     */
   }
 

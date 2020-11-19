@@ -252,12 +252,12 @@ updateSxSySz(seekContext *sctx) {
         biffAddf(SEEK,
                  "%s: can't specify # samples (%u,%u,%u) independent of "
                  "volume dimensions (%u,%u,%u) without a gage context", me,
-                 AIR_CAST(unsigned int, sctx->samples[0]),
-                 AIR_CAST(unsigned int, sctx->samples[1]),
-                 AIR_CAST(unsigned int, sctx->samples[2]),
-                 AIR_CAST(unsigned int, sizeIn[0]),
-                 AIR_CAST(unsigned int, sizeIn[1]),
-                 AIR_CAST(unsigned int, sizeIn[2]));
+                 AIR_UINT(sctx->samples[0]),
+                 AIR_UINT(sctx->samples[1]),
+                 AIR_UINT(sctx->samples[2]),
+                 AIR_UINT(sizeIn[0]),
+                 AIR_UINT(sizeIn[1]),
+                 AIR_UINT(sizeIn[2]));
         return 1;
       }
       ELL_3V_COPY(sizeOut, sctx->samples);

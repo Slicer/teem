@@ -91,7 +91,7 @@ main(int argc, char *argv[]) {
   }
   if (!( 3 == nin->dim && 3 == nin->axis[0].size )) {
     fprintf(stderr, "%s: sorry, need 3D 3-by-X-by-Y array (not %u-D %u-by)\n", me,
-            nin->dim, AIR_CAST(unsigned int, nin->axis[0].size));
+            nin->dim, AIR_UINT(nin->axis[0].size));
     airMopError(mop);
     exit(1);
   }
@@ -101,7 +101,7 @@ main(int argc, char *argv[]) {
   col = dyeColorNew();
   airMopAdd(mop, col, (airMopper)dyeColorNix, airMopAlways);
 
-  nn = AIR_CAST(unsigned int, nin->axis[1].size * nin->axis[2].size);
+  nn = AIR_UINT(nin->axis[1].size * nin->axis[2].size);
   for (ii=0; ii<nn; ii++) {
     dyeColorSet(col, inSpc, id[0 + 3*ii], id[1 + 3*ii], id[2 + 3*ii]);
     dyeConvert(col, otSpc);

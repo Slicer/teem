@@ -71,9 +71,9 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
   minX *= 72; minY *= 72;
   maxX *= 72; maxY *= 72;
   if (npos) {
-    gscale *= AIR_CAST(float, (maxX - minX)/(max[0] - min[0]));
-    dotRad *= AIR_CAST(float, (maxX - minX)/(max[0] - min[0]));
-    lineWidth *= AIR_CAST(float, (maxX - minX)/(max[0] - min[0]));
+    gscale *= AIR_FLOAT((maxX - minX)/(max[0] - min[0]));
+    dotRad *= AIR_FLOAT((maxX - minX)/(max[0] - min[0]));
+    lineWidth *= AIR_FLOAT((maxX - minX)/(max[0] - min[0]));
   }
 
   fprintf(file, "%%!PS-Adobe-3.0 EPSF-3.0\n");

@@ -24,8 +24,8 @@
 #include <math.h>
 #include "../nrrd.h"
 
-char *quadInfo = ("generates quadratic test volumes, with isosurfaces "
-                    "which should resemble z = A*x^2 + B*y^2");
+const char *quadInfo = ("generates quadratic test volumes, with isosurfaces "
+                        "which should resemble z = A*x^2 + B*y^2");
 
 float
 quadFunc(float x, float y, float z, float A, float B, float off) {
@@ -79,11 +79,11 @@ main(int argc, const char *argv[]) {
 
   data = (float *)nout->data;
   for (zi=0; zi<size[2]; zi++) {
-    z = AIR_AFFINE(0, zi, size[2]-1, min[2], max[2]);
+    z = AIR_FLOAT(AIR_AFFINE(0, zi, size[2]-1, min[2], max[2]));
     for (yi=0; yi<size[1]; yi++) {
-      y = AIR_AFFINE(0, yi, size[1]-1, min[1], max[1]);
+      y = AIR_FLOAT(AIR_AFFINE(0, yi, size[1]-1, min[1], max[1]));
       for (xi=0; xi<size[0]; xi++) {
-        x = AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]);
+        x = AIR_FLOAT(AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]));
         *data = quadFunc(x,y,z, AB[0], AB[1], off);
         data += 1;
       }

@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -281,7 +281,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
     }
     aspRatNum = nonAspRatNum = 0;
     for (ai=0; ai<nin->dim; ai++) {
-      int dowhat = AIR_CAST(int, scale[0 + 2*ai]);
+      int dowhat = AIR_INT(scale[0 + 2*ai]);
       if (!(unrrduScaleNothing == dowhat)) {
         if (unrrduScaleAspectRatio == dowhat) {
           aspRatNum++;
@@ -310,7 +310,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
     for (ai=0; ai<nin->dim; ai++) {
       double spin, spout, svec[NRRD_SPACE_DIM_MAX];
       int spstat;
-      int dowhat = AIR_CAST(int, scale[0 + 2*ai]);
+      int dowhat = AIR_INT(scale[0 + 2*ai]);
       size_t incr = AIR_CAST(size_t, scale[1 + 2*ai]);
       switch(dowhat) {
       case unrrduScaleNothing:
@@ -430,7 +430,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
         return 1;
       }
       for (ai=0; ai<nin->dim; ai++) {
-        int dowhat = AIR_CAST(int, scale[0 + 2*ai]);
+        int dowhat = AIR_INT(scale[0 + 2*ai]);
         if (unrrduScaleAspectRatio == dowhat) {
           samplesOut = AIR_ROUNDUP_UI(nin->axis[ai].size*aspRatScl);
           if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
@@ -451,7 +451,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
     }
   } else {
     for (ai=0; ai<nin->dim; ai++) {
-      int dowhat = AIR_CAST(int, scale[0 + 2*ai]);
+      int dowhat = AIR_INT(scale[0 + 2*ai]);
       /* this may be over-written below */
       info->kernel[ai] = unuk->kernel;
       switch(dowhat) {

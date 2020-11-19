@@ -75,7 +75,7 @@ gageStackItoW(gageContext *ctx, double si, int *outside) {
       sidx = ctx->pvlNum-3;
       *outside = AIR_TRUE;
     } else {
-      sidx = AIR_CAST(unsigned int, si);
+      sidx = AIR_UINT(si);
       *outside = AIR_FALSE;
     }
     sfrac = si - sidx;

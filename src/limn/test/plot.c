@@ -233,7 +233,7 @@ plotGraph(plotPS *pps, plotParm *pparm, Nrrd **ndata, int nidx) {
   }
 
   data = (double *)(ndata[nidx]->data);
-  npts = AIR_CAST(unsigned int, ndata[nidx]->axis[1].size);
+  npts = AIR_UINT(ndata[nidx]->axis[1].size);
   plotGray(pps, pparm, pparm->graphGray[nidx]);
   fprintf(pps->file, "%g W\n", pps->psc*pparm->graphThick[nidx]);
   for (ii=0; ii<npts; ii++) {
@@ -263,7 +263,7 @@ plotDots(plotPS *pps, plotParm *pparm, Nrrd **ndata, int nidx) {
   fprintf(pps->file, "newpath\n");
   plotWidth(pps, pparm, 0);
   data = (double *)(ndata[nidx]->data);
-  npts = AIR_CAST(unsigned int, ndata[nidx]->axis[1].size);
+  npts = AIR_UINT(ndata[nidx]->axis[1].size);
   orad = pparm->dotDiameter[nidx]/2;
   irad = pparm->dotInnerDiameterFraction*orad;
   for (ii=0; ii<npts; ii++) {

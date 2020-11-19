@@ -1,4 +1,3 @@
-
 GLK's list of things to do for each release.  This started with an
 early version of Teem and has been only partially maintained since
 then; consider it a work-in-progress ...
@@ -19,6 +18,7 @@ find . -name \*.h -exec unu undos -n {}  \;
 find . -name \*.txt -exec unu undos -n {} \;
 
 -2.25) make sure there's no unwanted trailing whitespace
+grep -E '^.+[ ]+$' */*.h
 grep -E '^.+[ ]+$' */*.c
 
 -2) make sure there are no tabs:
@@ -26,7 +26,7 @@ cat > tab.txt
 (tab) (return)
 ^D
 
-find . -name \*.c -exec grep -f tab.txt {} /dev/null \; | more
+find . -name \*.c -exec grep -f tab.txt {} /dev/null \; | more       for 1.13.0 PICK UP HERE                               
 find . -name \*.h -exec grep -f tab.txt {} /dev/null \; | more
 find . -name \*.txt -exec grep -f tab.txt {} /dev/null \; | more
 rm -f tab.txt

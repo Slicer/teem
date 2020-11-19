@@ -23,7 +23,7 @@
 
 #include "../nrrd.h"
 
-char *histradInfo = ("like unu histax, but for circles");
+const char *histradInfo = ("like unu histax, but for circles");
 
 int
 main(int argc, const char *argv[]) {
@@ -92,8 +92,8 @@ main(int argc, const char *argv[]) {
 
 #define DIST(x0, y0, x1, y1) (sqrt((x0-x1)*(x0-x1) + (y0-y1)*(y0-y1)))
 
-  sx = nin->axis[0].size;
-  sy = nin->axis[1].size;
+  sx = AIR_INT(nin->axis[0].size); /* HEY unsigned? */
+  sy = AIR_INT(nin->axis[1].size);
   if (!AIR_EXISTS(rmax)) {
     rmax = 0;
     rmax = AIR_MAX(rmax, DIST(cent[0], cent[1], 0, 0));

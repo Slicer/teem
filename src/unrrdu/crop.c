@@ -106,7 +106,7 @@ unrrdu_cropMain(int argc, const char **argv, const char *me,
     airULLong *bounds;
     unsigned int axi;
     if (!(2 == _nbounds->dim
-          && nin->dim == AIR_CAST(unsigned int, _nbounds->axis[0].size)
+          && nin->dim == AIR_UINT(_nbounds->axis[0].size)
           && 2 == _nbounds->axis[1].size)) {
       char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
       if (_nbounds->dim >= 2) {

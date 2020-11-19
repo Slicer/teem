@@ -34,7 +34,7 @@ baggageNew(seekContext *sctx) {
   /* this is basically the mapping from the 12 edges on each voxel to
      the 5 unique edges for each sample on the slab, based on the lay-out
      defined in the beginning of tables.c */
-  sx = AIR_CAST(unsigned int, sctx->sx);
+  sx = AIR_UINT(sctx->sx);
   /*                     X      Y */
   bag->evti[ 0] = 0 + 5*(0 + sx*0);
   bag->evti[ 1] = 1 + 5*(0 + sx*0);
@@ -132,8 +132,8 @@ outputInit(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
         estVoxNum += spanHist[minI + sctx->spanSize*maxI];
       }
     }
-    estVertNum = AIR_CAST(unsigned int, estVoxNum*(sctx->vertsPerVoxel));
-    estFaceNum = AIR_CAST(unsigned int, estVoxNum*(sctx->facesPerVoxel));
+    estVertNum = AIR_UINT(estVoxNum*(sctx->vertsPerVoxel));
+    estFaceNum = AIR_UINT(estVoxNum*(sctx->facesPerVoxel));
     if (sctx->verbose) {
       fprintf(stderr, "%s: estimated vox --> vert, face: %u --> %u, %u\n", me,
               estVoxNum, estVertNum, estFaceNum);
@@ -235,9 +235,9 @@ evecFlipProbe(seekContext *sctx, baggage *bag,
   double u, du, dot, wantDot, minDu, mode;
   double current[3], next[3], posNext[3], posA[3], posB[3], evecA[3], evecB[3];
 
-  sx = AIR_CAST(unsigned int, sctx->sx);
-  sy = AIR_CAST(unsigned int, sctx->sy);
-  sz = AIR_CAST(unsigned int, sctx->sz);
+  sx = AIR_UINT(sctx->sx);
+  sy = AIR_UINT(sctx->sy);
+  sz = AIR_UINT(sctx->sz);
 
   if (!(xi + dx < sx
         && yi + dy < sy
@@ -341,8 +341,8 @@ evecFlipShuffleProbe(seekContext *sctx, baggage *bag) {
   unsigned int xi, yi, sx, sy, si;
   signed char flipA, flipB, flipC;
 
-  sx = AIR_CAST(unsigned int, sctx->sx);
-  sy = AIR_CAST(unsigned int, sctx->sy);
+  sx = AIR_UINT(sctx->sx);
+  sy = AIR_UINT(sctx->sy);
 
   /* NOTE: these have to go all the way to sy-1 and sx-1, instead of
      sy-2 and sx-2 (like shuffleProbe() below) because of the need to
@@ -418,8 +418,8 @@ shuffleProbe(seekContext *sctx, baggage *bag) {
   static const char me[]="shuffleProbe";
   unsigned int xi, yi, sx, sy, si, spi;
 
-  sx = AIR_CAST(unsigned int, sctx->sx);
-  sy = AIR_CAST(unsigned int, sctx->sy);
+  sx = AIR_UINT(sctx->sx);
+  sy = AIR_UINT(sctx->sy);
 
   if (!sctx->strengthUse) { /* just request all edges */
     memset(sctx->treated, 0x01, sizeof(char)*sctx->sx*sctx->sy);
@@ -617,7 +617,7 @@ vvalIsoSet(seekContext *sctx, baggage *bag, double vval[8],
   unsigned int sx, si, spi, vi;
 
   AIR_UNUSED(bag);
-  sx = AIR_CAST(unsigned int, sctx->sx);
+  sx = AIR_UINT(sctx->sx);
   si = xi + sx*yi;
   spi = (xi+1) + (sx+2)*(yi+1);
 
@@ -663,7 +663,7 @@ vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8],
   signed char flip[12]={0,0,0,0,0,0,0,0,0,0,0,0}, flipProd;
   unsigned int sx, si, vi, ei, vrti[8];
 
-  sx = AIR_CAST(unsigned int, sctx->sx);
+  sx = AIR_UINT(sctx->sx);
   si = xi + sx*yi;
   vrti[0] = 0 + 2*(xi + 0 + sx*(yi + 0));
   vrti[1] = 0 + 2*(xi + 1 + sx*(yi + 0));
@@ -768,8 +768,8 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
   };
   /* ========================================================== */
 
-  sx = AIR_CAST(unsigned int, sctx->sx);
-  sy = AIR_CAST(unsigned int, sctx->sy);
+  sx = AIR_UINT(sctx->sx);
+  sy = AIR_UINT(sctx->sy);
 
   for (yi=0; yi<sy-1; yi++) {
     double vval[8], vgrad[8][3], vert[3], tvertA[4], tvertB[4], ww;
@@ -896,7 +896,7 @@ surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
   baggage *bag;
 
   bag = baggageNew(sctx);
-  sz = AIR_CAST(unsigned int, sctx->sz);
+  sz = AIR_UINT(sctx->sz);
 
   /* this creates the airArrays in bag */
   if (outputInit(sctx, bag, lpld)) {

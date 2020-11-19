@@ -72,9 +72,9 @@ main(int argc, const char *argv[]) {
       fprintf(stderr, "OUTSIDE\n");
     } else {
       if (0 && nrrdCenterCell == center) {
-        xi = AIR_CAST(unsigned int, _xi+1) - 1;
+        xi = AIR_UINT(_xi+1) - 1;
       } else {
-        xi = AIR_CAST(unsigned int, _xi);
+        xi = AIR_UINT(_xi);
       }
       xi -= (xi == max);
       xf = _xi - xi;

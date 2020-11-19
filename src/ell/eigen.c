@@ -927,7 +927,7 @@ ell_6ms_eigensolve_d(double eval[6], double _evec[36],
     if (_evec) {
       unsigned eeI;
       for (rrI=0; rrI<6; rrI++) {
-        eeI = AIR_CAST(unsigned int, evtmp[1 + 2*ccI]);
+        eeI = AIR_UINT(evtmp[1 + 2*ccI]);
         _evec[rrI + 6*ccI] = evec[1-cur][eeI][rrI];
       }
     }

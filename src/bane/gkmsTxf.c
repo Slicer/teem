@@ -101,24 +101,24 @@ baneGkms_txfMain(int argc, const char **argv, const char *me,
   tvr = top[0] + width/2;
   mwidth /= 2;
   for (gi=0; gi<res[1]; gi++) {
-    g = AIR_CAST(float, NRRD_CELL_POS(min[1], max[1], res[1], gi));
+    g = AIR_FLOAT(NRRD_CELL_POS(min[1], max[1], res[1], gi));
     for (vi=0; vi<res[0]; vi++) {
-      v = AIR_CAST(float, NRRD_CELL_POS(min[0], max[0], res[0], vi));
-      vl = AIR_CAST(float, AIR_AFFINE(0, g, top[1], v0-mwidth, tvl));
-      vr = AIR_CAST(float, AIR_AFFINE(0, g, top[1], v0+mwidth, tvr));
+      v = AIR_FLOAT(NRRD_CELL_POS(min[0], max[0], res[0], vi));
+      vl = AIR_FLOAT(AIR_AFFINE(0, g, top[1], v0-mwidth, tvl));
+      vr = AIR_FLOAT(AIR_AFFINE(0, g, top[1], v0+mwidth, tvr));
       if (g > top[1]) {
         data[vi + res[0]*gi] = 0;
         continue;
       }
-      tmp = AIR_CAST(float, (v - vl)/(0.00001 + vr - vl));
+      tmp = AIR_FLOAT((v - vl)/(0.00001 + vr - vl));
       tmp = 1 - AIR_ABS(2*tmp - 1);
       if (step && v > (vr + vl)/2) {
         tmp = 1;
       }
       tmp = AIR_MAX(0, tmp);
       data[vi + res[0]*gi] = tmp*maxa;
-      tmp = AIR_CAST(float, AIR_AFFINE(g0 - gwidth/2, g, g0 + gwidth/2,
-                                       0.0, 1.0));
+      tmp = AIR_FLOAT(AIR_AFFINE(g0 - gwidth/2, g, g0 + gwidth/2,
+                                 0.0, 1.0));
       tmp = AIR_CLAMP(0, tmp, 1);
       data[vi + res[0]*gi] *= tmp;
     }

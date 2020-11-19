@@ -37,7 +37,7 @@ limnObjectWorldHomog(limnObject *obj) {
   }
   for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
-    h = AIR_CAST(float, 1.0/vert->world[3]);
+    h = AIR_FLOAT(1.0/vert->world[3]);
     ELL_3V_SCALE(vert->world, h, vert->world);
     vert->world[3] = 1.0;
     ELL_3V_NORM_TT(vert->worldNormal, float, vert->worldNormal, h);
@@ -137,7 +137,7 @@ _limnObjectViewTransform(limnObject *obj, limnCamera *cam) {
   for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
     ELL_4MV_MUL_TT(vert->coord, float, cam->W2V, vert->world);
-    d = AIR_CAST(float, 1.0/vert->world[3]);
+    d = AIR_FLOAT(1.0/vert->world[3]);
     ELL_4V_SCALE(vert->coord, d, vert->coord);
     /*
     printf("%s: w[%d] = %g %g %g %g --> v = %g %g %g\n",
@@ -166,7 +166,7 @@ _limnObjectScreenTransform(limnObject *obj, limnCamera *cam) {
     vert = obj->vert + vertIdx;
     d = (cam->orthographic
          ? 1.0f
-         : AIR_CAST(float, cam->vspDist/vert->coord[2]));
+         : AIR_FLOAT(cam->vspDist/vert->coord[2]));
     vert->coord[0] *= d;
     vert->coord[1] *= d;
     /* coord[2] unchanged */
@@ -194,19 +194,19 @@ _limnObjectDeviceTransform(limnObject *obj, limnCamera *cam,
     return 1;
   }
   wx0 = 0;
-  wx1 = AIR_CAST(float, (cam->uRange[1] - cam->uRange[0])*win->scale);
+  wx1 = AIR_FLOAT((cam->uRange[1] - cam->uRange[0])*win->scale);
   wy0 = 0;
-  wy1 = AIR_CAST(float, (cam->vRange[1] - cam->vRange[0])*win->scale);
+  wy1 = AIR_FLOAT((cam->vRange[1] - cam->vRange[0])*win->scale);
   ELL_4V_SET(win->bbox, wx0, wy0, wx1, wy1);
   if (win->yFlip) {
     ELL_SWAP2(wy0, wy1, t);
   }
   for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
-    vert->coord[0] = AIR_CAST(float, AIR_AFFINE(cam->uRange[0], vert->coord[0],
-                                                cam->uRange[1], wx0, wx1));
-    vert->coord[1] = AIR_CAST(float, AIR_AFFINE(cam->vRange[0], vert->coord[1],
-                                                cam->vRange[1], wy0, wy1));
+    vert->coord[0] = AIR_FLOAT(AIR_AFFINE(cam->uRange[0], vert->coord[0],
+                                          cam->uRange[1], wx0, wx1));
+    vert->coord[1] = AIR_FLOAT(AIR_AFFINE(cam->vRange[0], vert->coord[1],
+                                          cam->vRange[1], wy0, wy1));
     /* coord[2] unchanged */
     /*
     printf("%s: s[%d] = %g %g --> s = %g %g\n", "_limnObjectDTransform",

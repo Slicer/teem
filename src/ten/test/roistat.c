@@ -73,9 +73,9 @@ main(int argc, const char *argv[]) {
     return 1;
   }
 
-  sx = AIR_CAST(unsigned int, nten->axis[1].size);
-  sy = AIR_CAST(unsigned int, nten->axis[2].size);
-  sz = AIR_CAST(unsigned int, nten->axis[3].size);
+  sx = AIR_UINT(nten->axis[1].size);
+  sy = AIR_UINT(nten->axis[2].size);
+  sz = AIR_UINT(nten->axis[3].size);
   if (!(3 == nroi->dim
         && sx == nroi->axis[0].size
         && sy == nroi->axis[1].size

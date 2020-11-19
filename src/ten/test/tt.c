@@ -33,8 +33,8 @@ _ra2t(Nrrd *nten, double rad, double angle,
   float *tdata;
   unsigned int xi, yi, sx, sy;
 
-  sx = AIR_CAST(unsigned int, nten->axis[1].size);
-  sy = AIR_CAST(unsigned int, nten->axis[2].size);
+  sx = AIR_UINT(nten->axis[1].size);
+  sy = AIR_UINT(nten->axis[2].size);
   x = rad*sin(AIR_PI*angle/180);
   y = rad*cos(AIR_PI*angle/180);
   xi = airIndexClamp(0.0, x, sqrt(3.0)/2.0, sx);

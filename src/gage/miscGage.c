@@ -138,7 +138,7 @@ gagePointReset(gagePoint *point) {
        is handled correctly */
     ELL_4V_SET(point->frac,
                AIR_POS_INF, AIR_POS_INF, AIR_POS_INF, AIR_POS_INF);
-    big = AIR_CAST(unsigned int, -1);
+    big = AIR_UINT(-1);
     ELL_4V_SET(point->idx, big, big, big, big);
     point->stackFwNonZeroNum = 0;
   }

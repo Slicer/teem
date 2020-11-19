@@ -111,7 +111,7 @@ baneGkms_opacMain(int argc, const char **argv, const char *me,
     gthresh = gthrInfo[1];
   } else {
     if (2 == idim) {
-      gthresh = AIR_CAST(float, gthrInfo[1]*ninfo->axis[2].max);
+      gthresh = AIR_FLOAT(gthrInfo[1]*ninfo->axis[2].max);
     }
     else {
       if (nrrdProject(nmax, ninfo, 1, nrrdMeasureMax, nrrdTypeDefault)) {

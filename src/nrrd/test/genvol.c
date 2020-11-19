@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,8 +24,8 @@
 #include <math.h>
 #include "../nrrd.h"
 
-char *genvolInfo = ("generates test volumes.  Not very flexible as long as "
-                    "the \"funk\" library doesn't exist");
+const char *genvolInfo = ("generates test volumes.  Not very flexible as long as "
+                          "the \"funk\" library doesn't exist");
 
 double
 rho(double r) {
@@ -42,26 +42,26 @@ genvolFunc(double x, double y, double z) {
   R2 = sqrt(x*x + y*y);
   phi = atan2(y+0.001,x+0.001) + z*1.2;
   w = pow((1+cos(3*phi))/2, R2*R2*90);
-  return w*mask;
+  ret = w*mask;
 
-#if 0
-  /* ridge surface is a Mobius aka Moebius strip */
-  Rbig = sqrt(x*x + y*y);
-  Rlit = sqrt(z*z + (Rbig-0.5)*(Rbig-0.5));
-  phi = atan2(Rbig-0.5, z) - atan2(x, y)/2;
-  a = Rlit*cos(phi);
-  b = Rlit*sin(phi);
-  /*
-    ret = airGaussian(a, 0, sig0)*airGaussian(b, 0, sig1);
-  */
-  a = (a > sig0
-       ? a - sig0
-       : (a < -sig0
-          ? a + sig0
-          : 0));
-  ret = airGaussian(a, 0, sig1)*airGaussian(b, 0, sig1);
+  if (0) {
+    /* ridge surface is a Mobius aka Moebius strip */
+    Rbig = sqrt(x*x + y*y);
+    Rlit = sqrt(z*z + (Rbig-0.5)*(Rbig-0.5));
+    phi = atan2(Rbig-0.5, z) - atan2(x, y)/2;
+    a = Rlit*cos(phi);
+    b = Rlit*sin(phi);
+    /*
+      ret = airGaussian(a, 0, sig0)*airGaussian(b, 0, sig1);
+    */
+    a = (a > sig0
+         ? a - sig0
+         : (a < -sig0
+            ? a + sig0
+            : 0));
+    ret = airGaussian(a, 0, sig1)*airGaussian(b, 0, sig1);
+  }
   return ret;
-#endif
 
   /*
   double A, B;

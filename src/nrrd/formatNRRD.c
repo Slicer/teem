@@ -685,7 +685,7 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     sprintf(nio->headerStringWrite, "%s%04d\n",
             MGIC, _nrrdFormatNRRD_whichVersion(nrrd, nio));
   } else {
-    nio->headerStrlen = AIR_CAST(unsigned int, strlen(MGIC)
+    nio->headerStrlen = AIR_UINT(strlen(MGIC)
                                  + strlen("0000")) + 1;
   }
 
@@ -721,8 +721,8 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       } else {
         _nrrdSprintFieldInfo(&strptr, "", nrrd, nio, ii, AIR_FALSE);
         if (strptr) {
-          nio->headerStrlen += AIR_CAST(unsigned int, strlen(strptr));
-          nio->headerStrlen += AIR_CAST(unsigned int, strlen("\n"));
+          nio->headerStrlen += AIR_UINT(strlen(strptr));
+          nio->headerStrlen += AIR_UINT(strlen("\n"));
           free(strptr);
           strptr = NULL;
         }
@@ -744,7 +744,7 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       free(strptr);
       strptr = NULL;
     } else {
-      nio->headerStrlen += (1 + AIR_CAST(unsigned int, strlen(" ")
+      nio->headerStrlen += (1 + AIR_UINT(strlen(" ")
                                          + strlen(strtmp)
                                          + strlen("\n")) + 1);
     }
@@ -766,7 +766,7 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       _nrrdKeyValueWrite(NULL, &strptr,
                          NULL, nrrd->kvp[0 + 2*jj], nrrd->kvp[1 + 2*jj]);
       if (strptr) {
-        nio->headerStrlen += AIR_CAST(unsigned int, strlen(strptr));
+        nio->headerStrlen += AIR_UINT(strlen(strptr));
         free(strptr);
         strptr = NULL;
       }

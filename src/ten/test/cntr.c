@@ -61,16 +61,16 @@ main(int argc, const char *argv[]) {
   }
   if (!(4 == _ncov->dim && 21 == _ncov->axis[0].size)) {
     fprintf(stderr, "%s: didn't get a 4-D 21-by-X volume (got %u-D %u-by-X)\n",
-            me, _ncov->dim, AIR_CAST(unsigned int, _ncov->axis[0].size));
+            me, _ncov->dim, AIR_UINT(_ncov->axis[0].size));
     airMopError(mop);
     return 1;
   }
   if (!(nrrdElementNumber(_ncov)/21 == nrrdElementNumber(_nten[0])/7
         && nrrdElementNumber(_nten[0])/7 == nrrdElementNumber(_nten[1])/7)) {
     fprintf(stderr, "%s: number voxels %u %u %u don't all match\n", me,
-            AIR_CAST(unsigned int, nrrdElementNumber(_ncov)/21),
-            AIR_CAST(unsigned int, nrrdElementNumber(_nten[0])/7),
-            AIR_CAST(unsigned int, nrrdElementNumber(_nten[1])/7));
+            AIR_UINT(nrrdElementNumber(_ncov)/21),
+            AIR_UINT(nrrdElementNumber(_nten[0])/7),
+            AIR_UINT(nrrdElementNumber(_nten[1])/7));
     airMopError(mop);
     return 1;
   }

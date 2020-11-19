@@ -100,8 +100,8 @@ unrrdu_jhistoMain(int argc, const char **argv, const char *me,
     if (asize != binLen) {
       fprintf(stderr,
               "%s: size (%u) of slice axis %u != # bins given (%u)\n", me,
-              AIR_CAST(unsigned int, asize), diceax,
-              AIR_CAST(unsigned int, binLen));
+              AIR_UINT(asize), diceax,
+              AIR_UINT(binLen));
       airMopError(mop);
       return 1;
     }
@@ -131,7 +131,7 @@ unrrdu_jhistoMain(int argc, const char **argv, const char *me,
     if (ninLen != binLen) {
       fprintf(stderr,
               "%s: # input nrrds (%u) != # bin specifications (%u)\n", me,
-              AIR_CAST(unsigned int, ninLen), AIR_CAST(unsigned int, binLen));
+              AIR_UINT(ninLen), AIR_UINT(binLen));
       airMopError(mop);
       return 1;
     }

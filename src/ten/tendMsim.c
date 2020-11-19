@@ -142,8 +142,7 @@ tend_msimMain(int argc, const char **argv, const char *me,
   if (!E) E |= tenExperSpecGradSingleBValSet(espec, insertB0, bval,
                                              AIR_CAST(const double *,
                                                       ngrad->data),
-                                             AIR_CAST(unsigned int,
-                                                      ngrad->axis[1].size));
+                                             AIR_UINT(ngrad->axis[1].size));
   if (!E) E |= tenModelSimulate(nout, outType, espec,
                                 model, nT2, nin, keyValueSet);
   if (E) {

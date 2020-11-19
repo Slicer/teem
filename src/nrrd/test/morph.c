@@ -23,7 +23,7 @@
 
 #include "../nrrd.h"
 
-char *morphInfo = ("testing. ");
+const char *morphInfo = ("testing. ");
 
 int
 morph(Nrrd *nout, Nrrd *_nin, Nrrd *_nkern, float scl) {
@@ -61,10 +61,10 @@ morph(Nrrd *nout, Nrrd *_nin, Nrrd *_nkern, float scl) {
   in = AIR_CAST(float *, nin->data);
   out = AIR_CAST(float *, nout->data);
   kern = AIR_CAST(float *, nkern->data);
-  sx = AIR_CAST(int, nin->axis[0].size);
-  sy = AIR_CAST(int, nin->axis[1].size);
-  sz = AIR_CAST(int, nin->axis[2].size);
-  kd = AIR_CAST(int, nkern->axis[0].size);
+  sx = AIR_INT(nin->axis[0].size); /* HEY unsigned */
+  sy = AIR_INT(nin->axis[1].size);
+  sz = AIR_INT(nin->axis[2].size);
+  kd = AIR_INT(nkern->axis[0].size);
   kr = kd/2; /* 5 -> 2 */
 
   /* min_i (f(x+i)- k(i)) */

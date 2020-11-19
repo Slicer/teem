@@ -47,7 +47,7 @@ _nrrdCCFind_1(Nrrd *nout, unsigned int *numid, const Nrrd *nin) {
   out[0] = id = 0;
   *numid = 1;
 
-  sx = AIR_CAST(unsigned int, nin->axis[0].size);
+  sx = AIR_UINT(nin->axis[0].size);
   lval = lup(nin->data, 0);
   for (I=1; I<sx; I++) {
     val = lup(nin->data, I);
@@ -82,8 +82,8 @@ _nrrdCCFind_2(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
   id = 0; /* sssh! compiler warnings */
   lup = nrrdUILookup[nin->type];
   out = AIR_CAST(unsigned int*, nout->data);
-  sx = AIR_CAST(unsigned int, nin->axis[0].size);
-  sy = AIR_CAST(unsigned int, nin->axis[1].size);
+  sx = AIR_UINT(nin->axis[0].size);
+  sy = AIR_UINT(nin->axis[1].size);
 #define GETV_2(x,y) ((AIR_IN_CL(0, AIR_CAST(int, x), AIR_CAST(int, sx-1))     \
                       && AIR_IN_CL(0, AIR_CAST(int, y), AIR_CAST(int, sy-1))) \
                      ? lup(nin->data, (x) + sx*(y)) \
@@ -91,7 +91,7 @@ _nrrdCCFind_2(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
 #define GETI_2(x,y) ((AIR_IN_CL(0, AIR_CAST(int, x), AIR_CAST(int, sx-1))     \
                       && AIR_IN_CL(0, AIR_CAST(int, y), AIR_CAST(int, sy-1))) \
                      ? out[(x) + sx*(y)] \
-                     : AIR_CAST(unsigned int, -1))  /* CC index (probably!)
+                     : AIR_UINT(-1))  /* CC index (probably!)
                                                        never assigned */
 
   *numid = 0;
@@ -174,9 +174,9 @@ _nrrdCCFind_3(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
   id = 0; /* sssh! compiler warnings */
   lup = nrrdUILookup[nin->type];
   out = AIR_CAST(unsigned int*, nout->data);
-  sx = AIR_CAST(unsigned int, nin->axis[0].size);
-  sy = AIR_CAST(unsigned int, nin->axis[1].size);
-  sz = AIR_CAST(unsigned int, nin->axis[2].size);
+  sx = AIR_UINT(nin->axis[0].size);
+  sy = AIR_UINT(nin->axis[1].size);
+  sz = AIR_UINT(nin->axis[2].size);
 #define GETV_3(x,y,z) ((AIR_IN_CL(0, AIR_CAST(int, x), AIR_CAST(int, sx-1))   \
                        && AIR_IN_CL(0, AIR_CAST(int, y), AIR_CAST(int, sy-1)) \
                        && AIR_IN_CL(0, AIR_CAST(int, z), AIR_CAST(int, sz-1)))\
@@ -186,7 +186,7 @@ _nrrdCCFind_3(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
                        && AIR_IN_CL(0, AIR_CAST(int, y), AIR_CAST(int, sy-1)) \
                        && AIR_IN_CL(0, AIR_CAST(int, z), AIR_CAST(int, sz-1)))\
                        ? out[(x) + sx*((y) + sy*(z))]                         \
-                       : AIR_CAST(unsigned int, -1))
+                       : AIR_UINT(-1))
 
   *numid = 0;
   for (z=0; z<sz; z++) {
@@ -434,8 +434,8 @@ _nrrdCCAdj_2(unsigned char *out, unsigned int numid, const Nrrd *nin,
   double pid[5]={0,0,0,0,0};
 
   lup = nrrdUILookup[nin->type];
-  sx = AIR_CAST(unsigned int, nin->axis[0].size);
-  sy = AIR_CAST(unsigned int, nin->axis[1].size);
+  sx = AIR_UINT(nin->axis[0].size);
+  sy = AIR_UINT(nin->axis[1].size);
   for (y=0; y<sy; y++) {
     for (x=0; x<sx; x++) {
       if (!x) {
@@ -448,11 +448,11 @@ _nrrdCCAdj_2(unsigned char *out, unsigned int numid, const Nrrd *nin,
         pid[3] = pid[4];
       }
       pid[4] = GETV_2(x+1, y-1);
-      id = AIR_CAST(unsigned int, GETV_2(x, y));
+      id = AIR_UINT(GETV_2(x, y));
 #define TADJ(P) \
       if (pid[(P)] != 0.5 && id != pid[(P)]) { \
-        out[id + numid*AIR_CAST(unsigned int, pid[(P)])] = \
-          out[AIR_CAST(unsigned int, pid[(P)]) + numid*id] = 1; \
+        out[id + numid*AIR_UINT(pid[(P)])] = \
+          out[AIR_UINT(pid[(P)]) + numid*id] = 1; \
       }
       TADJ(1);
       TADJ(3);
@@ -473,9 +473,9 @@ _nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin,
   double pid[14]={0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
   lup = nrrdUILookup[nin->type];
-  sx = AIR_CAST(unsigned int, nin->axis[0].size);
-  sy = AIR_CAST(unsigned int, nin->axis[1].size);
-  sz = AIR_CAST(unsigned int, nin->axis[2].size);
+  sx = AIR_UINT(nin->axis[0].size);
+  sy = AIR_UINT(nin->axis[1].size);
+  sz = AIR_UINT(nin->axis[2].size);
   for (z=0; z<sz; z++) {
     for (y=0; y<sy; y++) {
       for (x=0; x<sx; x++) {
@@ -504,7 +504,7 @@ _nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin,
         pid[ 7] = GETV_3(x+1, y-1, z-1);
         pid[10] = GETV_3(x+1,   y, z-1);
         pid[13] = GETV_3(x+1, y+1, z-1);
-        id = AIR_CAST(unsigned int, GETV_3(x, y, z));
+        id = AIR_UINT(GETV_3(x, y, z));
         TADJ(1);
         TADJ(3);
         TADJ(9);
@@ -683,7 +683,7 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval,
   size = (unsigned int*)(nsize->data);
   adj = (unsigned char*)(nadj->data);
   nn = (unsigned int*)(nnn->data);
-  numid = AIR_CAST(unsigned int, nsize->axis[0].size);
+  numid = AIR_UINT(nsize->axis[0].size);
   for (i=0; i<numid; i++) {
     nn[i] = 0;
     for (j=0; j<numid; j++) {

@@ -32,11 +32,11 @@ _nrrdSwap16Endian(void *_data, size_t N) {
     return;
   }
   data = AIR_CAST(unsigned short *, _data);
-  mask = AIR_CAST(unsigned short, 0x00FFu);
+  mask = AIR_USHORT(0x00FFu);
   for (I=0; I<N; I++) {
     dd = data[I];
     fix = (dd & mask); dd >>= 0x08;
-    fix = (dd & mask) | AIR_CAST(unsigned short, fix << 0x08);
+    fix = (dd & mask) | AIR_USHORT(fix << 0x08);
     data[I] = fix;
   }
 }

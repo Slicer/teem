@@ -523,7 +523,7 @@ splitTriSweep(unsigned int *sweep,
   unsigned int maxTriPerVert, *triWithVert,
     *vertWithTri, *triLine, *vertLine, triCurr, vertLast, vertNext;
 
-  maxTriPerVert = AIR_CAST(unsigned int, nTriWithVert->axis[0].size-1);
+  maxTriPerVert = AIR_UINT(nTriWithVert->axis[0].size-1);
   triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data);
   vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data);
 
@@ -604,7 +604,7 @@ splitTriTrack(unsigned int *track0, unsigned int *track0LenP,
   len0 = len1 = 0;
   edgeData = AIR_CAST(unsigned int*, edgeArr->data);
   edgeData += 5*startIdx;
-  /* maxTriPerVert = AIR_CAST(unsigned int, nTriWithVert->axis[0].size-1); */
+  /* maxTriPerVert = AIR_UINT(nTriWithVert->axis[0].size-1); */
   /* triWithVert = AIR_CAST(unsigned int*, nTriWithVert->data); */
   /* vertWithTri = AIR_CAST(unsigned int*, nVertWithTri->data); */
 
@@ -943,7 +943,7 @@ doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
   vertNum = pld->xyzwNum;
   hitCount = AIR_CAST(unsigned char *, calloc(vertNum,
                                               sizeof(unsigned char)));
-  maxTriPerVert = AIR_CAST(unsigned int, nTriWithVert->axis[0].size - 1);
+  maxTriPerVert = AIR_UINT(nTriWithVert->axis[0].size - 1);
   track0 = AIR_CAST(unsigned int *, calloc(maxTriPerVert*edgeArr->len,
                                            sizeof(unsigned int)));
   track1 = AIR_CAST(unsigned int *, calloc(maxTriPerVert*edgeArr->len,
@@ -1059,13 +1059,13 @@ doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
                                 track0, track0Len, passIdx);
       if (E) {
         biffAddf(LIMN, "%s: trouble on split %u (done %u/%u)", me,
-                 splitNum, edgeDoneNum, AIR_CAST(unsigned int, edgeArr->len));
+                 splitNum, edgeDoneNum, AIR_UINT(edgeArr->len));
         return 1;
       }
       edgeDoneNum += listLen;
       /*
         fprintf(stderr, "!%s: edgeDoneNum now %u (%u)\n", me,
-        edgeDoneNum, AIR_CAST(unsigned int, edgeArr->len));
+        edgeDoneNum, AIR_UINT(edgeArr->len));
       */
       if (0 == passIdx) {
         SEARCH(1);
@@ -1431,7 +1431,7 @@ limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *_nval) {
              "(not %u-D type %s, axis[0].size %u)", me,
              pld->primNum,
              _nval->dim, airEnumStr(nrrdType, _nval->type),
-             AIR_CAST(unsigned int, _nval->axis[0].size));
+             AIR_UINT(_nval->axis[0].size));
     return 1;
   }
 
@@ -1478,7 +1478,7 @@ limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *_nval) {
   baseIndx = indxNew;
   for (primIdx=0; primIdx<pld->primNum; primIdx++) {
     unsigned int sortIdx;
-    sortIdx = AIR_CAST(unsigned int, rec[1 + 2*primIdx]);
+    sortIdx = AIR_UINT(rec[1 + 2*primIdx]);
     memcpy(baseIndx, startIndx[sortIdx],
            pld->icnt[sortIdx]*sizeof(unsigned int));
     icntNew[primIdx] = pld->icnt[sortIdx];
@@ -1549,7 +1549,7 @@ limnPolyDataPrimitiveSelect(limnPolyData *pldOut,
     biffAddf(LIMN, "%s: need 1-D %u-len scalar nrrd "
              "(not %u-D type %s, axis[0].size %u)", me,
              pldIn->primNum, _nmask->dim, airEnumStr(nrrdType, _nmask->type),
-             AIR_CAST(unsigned int, _nmask->axis[0].size));
+             AIR_UINT(_nmask->axis[0].size));
     return 1;
   }
 

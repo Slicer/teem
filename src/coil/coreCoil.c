@@ -132,7 +132,7 @@ _coilThisZGet(coilTask *task, int doFilter) {
     task->cctx->nextSlice = 0;
     *thisFlag = AIR_FALSE;
   }
-  thisZ = AIR_CAST(unsigned int, task->cctx->nextSlice);
+  thisZ = AIR_UINT(task->cctx->nextSlice);
   if (task->cctx->nextSlice < task->cctx->size[2]) {
     task->cctx->nextSlice++;
     if (task->cctx->nextSlice == task->cctx->size[2]) {
@@ -155,10 +155,10 @@ _coilProcess(coilTask *task, int doFilter) {
                  coil_t **iv3, double spacing[3],
                  double parm[COIL_PARMS_NUM]);
 
-  sizeX = AIR_CAST(unsigned int, task->cctx->size[0]);
-  sizeY = AIR_CAST(unsigned int, task->cctx->size[1]);
-  sizeZ = AIR_CAST(unsigned int, task->cctx->size[2]);
-  valLen = AIR_CAST(unsigned int, task->cctx->kind->valLen);
+  sizeX = AIR_UINT(task->cctx->size[0]);
+  sizeY = AIR_UINT(task->cctx->size[1]);
+  sizeZ = AIR_UINT(task->cctx->size[2]);
+  valLen = AIR_UINT(task->cctx->kind->valLen);
   radius = task->cctx->radius;
   filter = task->cctx->kind->filter[task->cctx->method->type];
   if (doFilter) {

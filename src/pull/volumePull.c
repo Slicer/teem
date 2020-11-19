@@ -190,7 +190,7 @@ _pullVolumeSet(const pullContext *pctx, int taskCopy, pullVolume *vol,
   vol->name = airStrdup(name);
   if (!vol->name) {
     biffAddf(PULL, "%s: couldn't strdup name (len %u)", me,
-             AIR_CAST(unsigned int, airStrlen(name)));
+             AIR_UINT(airStrlen(name)));
     return 1;
   }
   if (vol->verbose) {

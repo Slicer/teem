@@ -115,7 +115,7 @@ unrrdu_1opMain(int argc, const char **argv, const char *me,
     }
   } else {
     /* got no request for specific seed */
-    airSrandMT(AIR_CAST(unsigned int, airTime()));
+    airSrandMT(AIR_UINT(airTime()));
   }
   if (nrrdArithUnaryOp(nout, op, ntmp)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

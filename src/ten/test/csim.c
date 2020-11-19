@@ -283,7 +283,7 @@ main(int argc, const char *argv[]) {
 
     dwibuff = AIR_CAST(double *, calloc(ngrad->axis[1].size, sizeof(double)));
     airMopAdd(mop, dwibuff, airFree, airMopAlways);
-    nsamp = AIR_CAST(unsigned int, sizeX*sizeY*sizeZ);
+    nsamp = AIR_UINT(sizeX*sizeY*sizeZ);
     inTen = AIR_CAST(double *, ninTen->data);
     lup  = nrrdDLookup[nrrdTypeDouble];
     outTen = AIR_CAST(double *, noutTen->data);

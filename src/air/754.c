@@ -451,7 +451,7 @@ airFPClass_d(double val) {
      completely zero, so that this function returned airFP_NEG_DENORM
      instead of airFP_QNAN" */
   FP_GET_D(sign, expo, mant0, mant1, dlit, dbig);
-  hibit = AIR_CAST(unsigned char, mant0 >> 19); /* mant0 20 bits wide: ok */
+  hibit = AIR_UCHAR(mant0 >> 19); /* mant0 20 bits wide: ok */
 
   indexv = ((!!sign) << 2) | ((!!expo) << 1) | (!!mant0 || !!mant1);
   switch(indexv) {
@@ -533,7 +533,7 @@ airIsNaN(double g) {
   _airFloatEndianBig fbig;
   unsigned int sign, expo, mant;
 
-  flit.v = fbig.v = AIR_CAST(float, g);
+  flit.v = fbig.v = AIR_FLOAT(g);
   FP_GET_F(sign, expo, mant, flit, fbig);
   AIR_UNUSED(sign);
   return (0xff == expo && mant);

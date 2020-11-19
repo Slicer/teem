@@ -69,10 +69,8 @@ main(int argc, const char *argv[]) {
             airEnumStr(nrrdType, nin->type));
     airMopError(mop); return 1;
   }
-  sx = AIR_CAST(unsigned int,
-                2 == nin->dim ? nin->axis[0].size : nin->axis[1].size);
-  sy = AIR_CAST(unsigned int,
-                2 == nin->dim ? nin->axis[1].size : nin->axis[2].size);
+  sx = AIR_UINT(2 == nin->dim ? nin->axis[0].size : nin->axis[1].size);
+  sy = AIR_UINT(2 == nin->dim ? nin->axis[1].size : nin->axis[2].size);
   gray = 2 == nin->dim || 1 == nin->axis[0].size;
   if (!( sx == sy )) {
     fprintf(stderr, "%s: image must be square (not %d x %d)\n", me, sx, sy);

@@ -305,13 +305,13 @@ gageParmSet(gageContext *ctx, int which, double val) {
 
   switch (which) {
   case gageParmVerbose:
-    ctx->verbose = AIR_CAST(int, val);
+    ctx->verbose = AIR_INT(val);
     if (ctx->verbose > 3) {
       fprintf(stderr, "%s(%p): ctx->verbose now %d\n", me,
               AIR_VOIDP(ctx), ctx->verbose);
     }
     for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
-      ctx->pvl[pvlIdx]->verbose = AIR_CAST(int, val);
+      ctx->pvl[pvlIdx]->verbose = AIR_INT(val);
       if (ctx->pvl[pvlIdx]->verbose > 3) {
         fprintf(stderr, "%s: ctx->pvl[%u]->verbose now %d\n", me, pvlIdx,
                 ctx->pvl[pvlIdx]->verbose);
@@ -339,7 +339,7 @@ gageParmSet(gageContext *ctx, int which, double val) {
     /* no flag to set, simply affects future calls to gageProbe() */
     break;
   case gageParmCurvNormalSide:
-    ctx->parm.curvNormalSide = AIR_CAST(int, val);
+    ctx->parm.curvNormalSide = AIR_INT(val);
     /* no flag to set, simply affects future calls to gageProbe() */
     break;
   case gageParmKernelIntegralNearZero:
@@ -347,12 +347,12 @@ gageParmSet(gageContext *ctx, int which, double val) {
     /* no flag to set, simply affects future calls to gageKernelSet() */
     break;
   case gageParmDefaultCenter:
-    ctx->parm.defaultCenter = AIR_CAST(int, val);
+    ctx->parm.defaultCenter = AIR_INT(val);
     /* no flag to set, I guess, although the value here effects the
        action of _gageShapeSet when called by gagePerVolumeAttach . . . */
     break;
   case gageParmStackUse:
-    ctx->parm.stackUse = AIR_CAST(int, val);
+    ctx->parm.stackUse = AIR_INT(val);
     /* no flag to set, right? simply affects future calls to gageProbe()? */
     /* HEY: no? because if you're turning on the stack behavior, you now
        should be doing the error checking to make sure that all the pvls
@@ -360,23 +360,23 @@ gageParmSet(gageContext *ctx, int which, double val) {
        supposed to be called after changing anything, prior to gageProbe() */
     break;
   case gageParmStackNormalizeRecon:
-    ctx->parm.stackNormalizeRecon = AIR_CAST(int, val);
+    ctx->parm.stackNormalizeRecon = AIR_INT(val);
     break;
   case gageParmStackNormalizeDeriv:
-    ctx->parm.stackNormalizeDeriv = AIR_CAST(int, val);
+    ctx->parm.stackNormalizeDeriv = AIR_INT(val);
     break;
   case gageParmStackNormalizeDerivBias:
     ctx->parm.stackNormalizeDerivBias = val;
     break;
   case gageParmOrientationFromSpacing:
-    ctx->parm.orientationFromSpacing = AIR_CAST(int, val);
+    ctx->parm.orientationFromSpacing = AIR_INT(val);
     /* affects future calls to _gageShapeSet */
     break;
   case gageParmGenerateErrStr:
-    ctx->parm.generateErrStr = AIR_CAST(int, val);
+    ctx->parm.generateErrStr = AIR_INT(val);
     break;
   case gageParmTwoDimZeroZ:
-    ctx->parm.twoDimZeroZ = AIR_CAST(int, val);
+    ctx->parm.twoDimZeroZ = AIR_INT(val);
     break;
   default:
     fprintf(stderr, "\n%s: sorry, which = %d not valid\n\n", me, which);
@@ -543,9 +543,9 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
   }
   data = (char*)pvl->nin->data;
   if (lx >= 0 && ly >= 0 && lz >= 0
-      && hx < AIR_CAST(int, sx)
-      && hy < AIR_CAST(int, sy)
-      && hz < AIR_CAST(int, sz)) {
+      && hx < AIR_INT(sx)
+      && hy < AIR_INT(sy)
+      && hz < AIR_INT(sz)) {
     /* all the samples we need are inside the existing volume */
     dataIdx = lx + sx*(ly + sy*(lz));
     if (ctx->verbose > 1) {
@@ -619,11 +619,11 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
          simplifications for that (HEY copy and paste). We first do the
          needed lup()s to fill first slice of iv3 ... */
       for (_yy=ly; _yy<=hy; _yy++) {
-        yy = AIR_CLAMP(0, _yy, AIR_CAST(int, sy-1));
+        yy = AIR_CLAMP(0, _yy, AIR_INT(sy-1));
         for (_xx=lx; _xx<=hx; _xx++) {
-          xx = AIR_CLAMP(0, _xx, AIR_CAST(int, sx-1));
-          edgeNum += ((1 != sy && (AIR_CAST(int, yy) != _yy))
-                      || (AIR_CAST(int, xx) != _xx));
+          xx = AIR_CLAMP(0, _xx, AIR_INT(sx-1));
+          edgeNum += ((1 != sy && (AIR_INT(yy) != _yy))
+                      || (AIR_INT(xx) != _xx));
           dataIdx = xx + sx*yy;
           here = data+dataIdx*dataStride;
           for (tup=0; tup<valLen; tup++) {
@@ -655,14 +655,14 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
     } else {
       /* sz > 1 */
       for (_zz=lz; _zz<=hz; _zz++) {
-        zz = AIR_CLAMP(0, _zz, AIR_CAST(int, sz-1));
+        zz = AIR_CLAMP(0, _zz, AIR_INT(sz-1));
         for (_yy=ly; _yy<=hy; _yy++) {
-          yy = AIR_CLAMP(0, _yy, AIR_CAST(int, sy-1));
+          yy = AIR_CLAMP(0, _yy, AIR_INT(sy-1));
           for (_xx=lx; _xx<=hx; _xx++) {
-            xx = AIR_CLAMP(0, _xx, AIR_CAST(int, sx-1));
-            edgeNum += ((AIR_CAST(int, zz) != _zz)
-                        || (AIR_CAST(int, yy) != _yy)
-                        || (AIR_CAST(int, xx) != _xx));
+            xx = AIR_CLAMP(0, _xx, AIR_INT(sx-1));
+            edgeNum += ((AIR_INT(zz) != _zz)
+                        || (AIR_INT(yy) != _yy)
+                        || (AIR_INT(xx) != _xx));
             dataIdx = xx + sx*(yy + sy*zz);
             here = data+dataIdx*pvl->kind->valLen*nrrdTypeSize[pvl->nin->type];
             if (ctx->verbose > 2) {

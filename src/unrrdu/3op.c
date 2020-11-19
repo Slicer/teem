@@ -140,7 +140,7 @@ unrrdu_3opMain(int argc, const char **argv, const char *me,
   if (-1 == which
       ? nrrdArithIterTernaryOp(nout, op, in1, in2, in3)
       : nrrdArithIterTernaryOpSelect(nout, op, in1, in2, in3,
-                                     AIR_CAST(unsigned int, which))) {
+                                     AIR_UINT(which))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing ternary operation:\n%s", me, err);
     airMopError(mop);

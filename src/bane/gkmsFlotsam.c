@@ -120,7 +120,7 @@ baneGkmsParseBEF(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
       return 1;
     }
     bef = (float *)((*nrrdP)->data);
-    off = AIR_CAST(float, AIR_AFFINE(0.0, shape, 1.0, 0.0, width/2));
+    off = AIR_FLOAT(AIR_AFFINE(0.0, shape, 1.0, 0.0, width/2));
     /* positions */
     bef[0 + 2*0] = cent - 2*width;
     bef[0 + 2*1] = cent - width/2 - off;

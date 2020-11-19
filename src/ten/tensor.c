@@ -223,7 +223,7 @@ tenExpand2D(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
     redund[1] = masked[2];
     redund[2] = masked[2];
     redund[3] = masked[3];
-    ELL_4V_SCALE(redund, AIR_CAST(float, scale), redund);
+    ELL_4V_SCALE(redund, AIR_FLOAT(scale), redund);
   }
   if (nrrdAxisInfoCopy(nout, nin, NULL,
                        NRRD_AXIS_INFO_SIZE_BIT)) {
@@ -277,7 +277,7 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
       continue;
     }
     TEN_T2M(nine, seven);
-    ELL_3M_SCALE(nine, AIR_CAST(float, scale), nine);
+    ELL_3M_SCALE(nine, AIR_FLOAT(scale), nine);
   }
   if (nrrdAxisInfoCopy(nout, nin, NULL,
                        NRRD_AXIS_INFO_SIZE_BIT)) {
@@ -988,7 +988,7 @@ tenLogSingle_f(float logten[7], const float ten[7]) {
 
   tenEigensolve_f(eval, evec, ten);
   for (ii=0; ii<3; ii++) {
-    eval[ii] = AIR_CAST(float, log(eval[ii]));
+    eval[ii] = AIR_FLOAT(log(eval[ii]));
     if (!AIR_EXISTS(eval[ii])) {
       eval[ii] = -FLT_MAX/10; /* still making stuff up */
     }
@@ -1015,7 +1015,7 @@ tenExpSingle_f(float expten[7], const float ten[7]) {
 
   tenEigensolve_f(eval, evec, ten);
   for (ii=0; ii<3; ii++) {
-    eval[ii] = AIR_CAST(float, exp(eval[ii]));
+    eval[ii] = AIR_FLOAT(exp(eval[ii]));
   }
   tenMakeSingle_f(expten, ten[0], eval, evec);
 }
@@ -1039,7 +1039,7 @@ tenSqrtSingle_f(float sqrtten[7], const float ten[7]) {
 
   tenEigensolve_f(eval, evec, ten);
   for (ii=0; ii<3; ii++) {
-    eval[ii] = AIR_CAST(float, eval[ii] > 0 ? sqrt(eval[ii]) : 0);
+    eval[ii] = AIR_FLOAT(eval[ii] > 0 ? sqrt(eval[ii]) : 0);
   }
   tenMakeSingle_f(sqrtten, ten[0], eval, evec);
 }
@@ -1063,7 +1063,7 @@ tenPowSingle_f(float powten[7], const float ten[7], float power) {
 
   tenEigensolve_f(eval, evec, ten);
   for (ii=0; ii<3; ii++) {
-    eval[ii] = AIR_CAST(float, pow(eval[ii], power));
+    eval[ii] = AIR_FLOAT(pow(eval[ii], power));
   }
   tenMakeSingle_f(powten, ten[0], eval, evec);
 }

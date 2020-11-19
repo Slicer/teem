@@ -115,8 +115,8 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
     char *line, rbuff[128];
     Nrrd *nbuff;
 
-    sx = AIR_CAST(unsigned int, nin->axis[0].size);
-    sy = AIR_CAST(unsigned int, nin->axis[1].size);
+    sx = AIR_UINT(nin->axis[0].size);
+    sy = AIR_UINT(nin->axis[1].size);
     nbuff = nrrdNew();
     airMopAdd(mop, nbuff, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdSlice(nbuff, nin, 1, 0)) {

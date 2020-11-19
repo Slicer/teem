@@ -463,7 +463,7 @@ tenEstimateThresholdFind(double *threshP, unsigned char *isB0, Nrrd *nin4d) {
     airMopError(mop); return 1;
   }
 
-  slNum = AIR_CAST(unsigned int, nin4d->axis[dwiAx].size);
+  slNum = AIR_UINT(nin4d->axis[dwiAx].size);
   dwiNum = 0;
   for (slIdx=0; slIdx<slNum; slIdx++) {
     dwiNum += !isB0[slIdx];
@@ -574,10 +574,10 @@ _tenEstimateNumUpdate(tenEstimateContext *tec) {
   if (tec->flag[flagBInfo]
       || tec->flag[flagSkipSet]) {
     if (tec->_ngrad) {
-      newAllNum = AIR_CAST(unsigned int, tec->_ngrad->axis[1].size);
+      newAllNum = AIR_UINT(tec->_ngrad->axis[1].size);
       lup = nrrdDLookup[tec->_ngrad->type];
     } else {
-      newAllNum = AIR_CAST(unsigned int, tec->_nbmat->axis[1].size);
+      newAllNum = AIR_UINT(tec->_nbmat->axis[1].size);
       lup = nrrdDLookup[tec->_nbmat->type];
     }
     if (tec->allNum != newAllNum) {
@@ -607,7 +607,7 @@ _tenEstimateNumUpdate(tenEstimateContext *tec) {
         return 1;
       }
       /* HEY Wed Nov 18 17:20:27 CST 2020 GLK is skeptical about this */
-      tec->skipLut[skipIdx] = AIR_CAST(unsigned char, skipDo);
+      tec->skipLut[skipIdx] = AIR_UCHAR(skipDo);
     }
     skipNotNum = 0;
     for (skipIdx=0; skipIdx<tec->allNum; skipIdx++) {
@@ -807,8 +807,8 @@ _tenEstimateEmatUpdate(tenEstimateContext *tec) {
       /* HEY: ignores weights! */
       if (ell_Nm_pseudo_inv(tec->nemat, tec->nbmat)) {
         biffMovef(TEN, ELL, "%s: trouble pseudo-inverting %ux%u B-matrix", me,
-                  AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
-                  AIR_CAST(unsigned int, tec->nbmat->axis[0].size));
+                  AIR_UINT(tec->nbmat->axis[1].size),
+                  AIR_UINT(tec->nbmat->axis[0].size));
         return 1;
       }
     }
@@ -1020,7 +1020,7 @@ tenEstimate1TensorSimulateSingle_f(tenEstimateContext *tec,
   dwiIdx = 0;
   for (allIdx=0; allIdx<tec->allNum; allIdx++) {
     if (tec->estimateB0 || tec->bnorm[allIdx]) {
-      simval[allIdx] = AIR_CAST(float, tec->dwiTmp[dwiIdx++]);
+      simval[allIdx] = AIR_FLOAT(tec->dwiTmp[dwiIdx++]);
     } else {
       simval[allIdx] = B0;
     }
@@ -1143,12 +1143,12 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec,
       dwi_d += tec->allNum;
     } else {
       for (tt=0; tt<7; tt++) {
-        ten_f[tt] = AIR_CAST(float, tlup(nten->data, tt + sizeTen*II));
+        ten_f[tt] = AIR_FLOAT(tlup(nten->data, tt + sizeTen*II));
       }
       E = tenEstimate1TensorSimulateSingle_f(tec, dwi_f,
-                                             AIR_CAST(float, sigma),
-                                             AIR_CAST(float, bValue),
-                                             AIR_CAST(float, B0),
+                                             AIR_FLOAT(sigma),
+                                             AIR_FLOAT(bValue),
+                                             AIR_FLOAT(B0),
                                              ten_f);
       dwi_f += tec->allNum;
     }
@@ -1294,8 +1294,8 @@ _tenEstimate1Tensor_WLS(tenEstimateContext *tec) {
   if (ell_Nm_wght_pseudo_inv(tec->nemat, tec->nbmat, tec->nwght)) {
     biffMovef(TEN, ELL,
               "%s(1): trouble wght-pseudo-inverting %ux%u B-matrix", me,
-              AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
-              AIR_CAST(unsigned int, tec->nbmat->axis[0].size));
+              AIR_UINT(tec->nbmat->axis[1].size),
+              AIR_UINT(tec->nbmat->axis[0].size));
     return 1;
   }
   /*
@@ -1334,8 +1334,8 @@ _tenEstimate1Tensor_WLS(tenEstimateContext *tec) {
     }
     if (ell_Nm_wght_pseudo_inv(tec->nemat, tec->nbmat, tec->nwght)) {
       biffMovef(TEN, ELL, "%s(2): trouble w/ %ux%u B-matrix (iter %u)", me,
-                AIR_CAST(unsigned int, tec->nbmat->axis[1].size),
-                AIR_CAST(unsigned int, tec->nbmat->axis[0].size), iter);
+                AIR_UINT(tec->nbmat->axis[1].size),
+                AIR_UINT(tec->nbmat->axis[0].size), iter);
       return 1;
     }
     _tenEstimate1Tensor_LLS(tec);
@@ -2043,7 +2043,7 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
     tec->verbose = 10*(II == 42509);
     */
     if (tec->verbose) {
-      fprintf(stderr, "!%s: hello; II=%u\n", me, AIR_CAST(unsigned int, II));
+      fprintf(stderr, "!%s: hello; II=%u\n", me, AIR_UINT(II));
     }
     if (tenEstimate1TensorSingle_d(tec, ten, all)) {
       biffAddf(TEN, "%s: failed at sample %s", me,

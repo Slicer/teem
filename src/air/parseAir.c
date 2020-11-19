@@ -125,7 +125,7 @@ airSingleSscanf(const char *str, const char *fmt, void *ptr) {
     }
     else {
       /* we were given a float pointer */
-      *((float *)(ptr)) = AIR_CAST(float, val);
+      *((float *)(ptr)) = AIR_FLOAT(val);
     }
     free(tmp);
     return 1;
@@ -135,7 +135,7 @@ airSingleSscanf(const char *str, const char *fmt, void *ptr) {
     const char *chh = str; /* char here */
     while (chh) {
       int dig;
-      dig = AIR_CAST(int, *chh - '0');
+      dig = AIR_INT(*chh - '0');
       if (AIR_IN_CL(0, dig, 9)) {
         tsz = 10*tsz + AIR_CAST(size_t, dig);
       } else {

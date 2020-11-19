@@ -107,9 +107,10 @@ _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 static int
 _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdFormatEPS_write";
-  int color, cmyk, sx, sy;
+  int color, cmyk;
   Nrrd *nrrd;
   double aspect, minX, minY, maxX, maxY, scale;
+  unsigned int  sx, sy;
   airArray *mop;
 
   mop = airMopNew();
@@ -128,13 +129,13 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
                                || 4 == nrrd->axis[0].size);
   cmyk = color && 4 == nrrd->axis[0].size;
   if (color) {
-    sx = AIR_CAST(int, nrrd->axis[1].size);
-    sy = AIR_CAST(int, nrrd->axis[2].size);
+    sx = AIR_UINT(nrrd->axis[1].size);
+    sy = AIR_UINT(nrrd->axis[2].size);
   } else {
-    sx = AIR_CAST(int, nrrd->axis[0].size);
-    sy = AIR_CAST(int, nrrd->axis[1].size);
+    sx = AIR_UINT(nrrd->axis[0].size);
+    sy = AIR_UINT(nrrd->axis[1].size);
   }
-  aspect = AIR_CAST(double, sx)/sy;
+  aspect = AIR_DOUBLE(sx)/sy;
   if (aspect > 7.5/10) {
     /* image has a wider aspect ratio than safely printable page area */
     minX = 0.5;
@@ -186,8 +187,8 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   fprintf(file, "gsave newpath\n");
   fprintf(file, "%g %g translate\n", minX, minY);
   fprintf(file, "%g %g scale\n", sx*scale, sy*scale);
-  fprintf(file, "%d %d 8\n", sx, sy);
-  fprintf(file, "[%d 0 0 -%d 0 %d]\n", sx, sy, sy);
+  fprintf(file, "%u %u 8\n", sx, sy);
+  fprintf(file, "[%u 0 0 -%u 0 %u]\n", sx, sy, sy);
   if (color) {
     fprintf(file, "{currentfile linestr readhexstring pop} "
             "false %d colorimage\n", cmyk ? 4 : 3);

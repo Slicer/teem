@@ -56,9 +56,9 @@ tend_helixDoit(Nrrd *nout, double bnd,
     tmp[3], len;
   float *out;
 
-  sx = AIR_CAST(unsigned int, nout->axis[1].size);
-  sy = AIR_CAST(unsigned int, nout->axis[2].size);
-  sz = AIR_CAST(unsigned int, nout->axis[3].size);
+  sx = AIR_UINT(nout->axis[1].size);
+  sy = AIR_UINT(nout->axis[2].size);
+  sz = AIR_UINT(nout->axis[3].size);
   out = (float*)nout->data;
   ELL_3M_TRANSPOSE(mfT, mf);
   for (zi=0; zi<sz; zi++) {

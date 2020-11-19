@@ -351,9 +351,9 @@ limnObjectReadOFF(limnObject *obj, FILE *file) {
       if (-1 == lastLook || !ELL_3V_EQUAL(lastRGB, vert+3)) {
         lookIdx = limnObjectLookAdd(obj);
         ELL_4V_SET(obj->look[lookIdx].rgba,
-                   AIR_CAST(float, vert[3]),
-                   AIR_CAST(float, vert[4]),
-                   AIR_CAST(float, vert[5]),
+                   AIR_FLOAT(vert[3]),
+                   AIR_FLOAT(vert[4]),
+                   AIR_FLOAT(vert[5]),
                    1);
         lastLook = lookIdx;
         ELL_3V_COPY_TT(lastRGB, float, vert+3);
@@ -368,9 +368,9 @@ limnObjectReadOFF(limnObject *obj, FILE *file) {
             lineCount, vertGot, lookIdx, partIdx);
     */
     limnObjectVertexAdd(obj, partIdx,
-                        AIR_CAST(float, vert[0]),
-                        AIR_CAST(float, vert[1]),
-                        AIR_CAST(float, vert[2]));
+                        AIR_FLOAT(vert[0]),
+                        AIR_FLOAT(vert[1]),
+                        AIR_FLOAT(vert[2]));
     vertGot++;
   }
   /* read face information */
@@ -683,8 +683,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
                me, name, primIdx, primNum);
       return 1;
     }
-    pld->type[primIdx] = AIR_CAST(unsigned char,
-                                  airEnumVal(limnPrimitive, line));
+    pld->type[primIdx] = AIR_UCHAR(airEnumVal(limnPrimitive, line));
     if (!(pld->type[primIdx])) {
       biffAddf(LIMN, "%s: couldn't parse \"%s\" %s line %u/%u",
                me, line, name, primIdx, primNum);
@@ -749,10 +748,10 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
     biffAddf(LIMN, "%s: didn't get 1-D %s-type %u-sample array "
              "(got %u-D %s-type %u-by-? array)", me,
              airEnumStr(nrrdType, nrrdTypeUInt),
-             AIR_CAST(unsigned int, indxNum),
+             AIR_UINT(indxNum),
              nrrd->dim,
              airEnumStr(nrrdType, nrrd->type),
-             AIR_CAST(unsigned int, nrrd->axis[0].size));
+             AIR_UINT(nrrd->axis[0].size));
     airMopError(mop); return 1;
   }
   /* now copy the data */
@@ -788,11 +787,11 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
     biffAddf(LIMN, "%s: didn't get 2-D %s-type 4-by-%u array "
              "(got %u-D %s-type %u-by-%u array)", me,
              airEnumStr(nrrdType, nrrdTypeFloat),
-             AIR_CAST(unsigned int, vertNum),
+             AIR_UINT(vertNum),
              nrrd->dim,
              airEnumStr(nrrdType, nrrd->type),
-             AIR_CAST(unsigned int, nrrd->axis[0].size),
-             AIR_CAST(unsigned int, nrrd->axis[1].size));
+             AIR_UINT(nrrd->axis[0].size),
+             AIR_UINT(nrrd->axis[1].size));
     airMopError(mop); return 1;
   }
   /* now copy the data */
@@ -868,11 +867,11 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
         biffAddf(LIMN, "%s: didn't get 2-D %s-type %u-by-%u array "
                  "(got %u-D %s-type %u-by-%u-by-? array)", me,
                  airEnumStr(nrrdType, wantType),
-                 wantSize, AIR_CAST(unsigned int, vertNum),
+                 wantSize, AIR_UINT(vertNum),
                  nrrd->dim,
                  airEnumStr(nrrdType, nrrd->type),
-                 AIR_CAST(unsigned int, nrrd->axis[0].size),
-                 AIR_CAST(unsigned int, nrrd->axis[1].size));
+                 AIR_UINT(nrrd->axis[0].size),
+                 AIR_UINT(nrrd->axis[1].size));
         airMopError(mop); return 1;
       }
       /* now copy the data */

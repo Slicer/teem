@@ -110,9 +110,9 @@ main(int argc, const char *argv[]) {
       airMopError(mop);
       return 1;
     }
-    sx = AIR_CAST(unsigned int, _nin->axis[1].size);
-    sy = AIR_CAST(unsigned int, _nin->axis[2].size);
-    sz = AIR_CAST(unsigned int, _nin->axis[3].size);
+    sx = AIR_UINT(_nin->axis[1].size);
+    sy = AIR_UINT(_nin->axis[2].size);
+    sz = AIR_UINT(_nin->axis[3].size);
     if (!( refIdx[0] < sx
            && refIdx[1] < sy
            && refIdx[2] < sz )) {
@@ -262,7 +262,7 @@ main(int argc, const char *argv[]) {
         nrm, axis[3], angle;
       unsigned int ii;
 
-      NN = AIR_CAST(unsigned int, nout->axis[1].size);
+      NN = AIR_UINT(nout->axis[1].size);
       geod = AIR_CAST(double *, nout->data);
       geod += 7;
       for (ii=1; ii<NN; ii++) {

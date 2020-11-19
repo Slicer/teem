@@ -230,7 +230,7 @@ tenExperSpecFromKeyValueSet(tenExperSpec *espec, const Nrrd *ndwi) {
     airMopError(mop); return 1;
   }
 
-  imgNum = AIR_CAST(unsigned int, ngrad->axis[1].size);
+  imgNum = AIR_UINT(ngrad->axis[1].size);
   bval = AIR_CALLOC(imgNum, double);
   airMopAdd(mop, bval, airFree, airMopAlways);
   grad = AIR_CAST(double *, ngrad->data);

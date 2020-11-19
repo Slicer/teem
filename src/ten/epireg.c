@@ -299,7 +299,7 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen,
     thr = (unsigned char *)(nthresh[ni]->data);
     for (I=0; I<sx*sy*sz; I++) {
       val = nrrdFLookup[nblur[ni]->type](nblur[ni]->data, I);
-      val -= AIR_CAST(float, DWthr);
+      val -= AIR_FLOAT(DWthr);
       thr[I] = (val >= 0 ? 1 : 0);
     }
   }
@@ -342,7 +342,7 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
   airMopAdd(mop, nval=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ncc=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nsize=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  sz = AIR_CAST(unsigned int, nthr[0]->axis[2].size);
+  sz = AIR_UINT(nthr[0]->axis[2].size);
   if (verb) {
     fprintf(stderr, "%s:\n            ", me); fflush(stderr);
   }
@@ -522,7 +522,7 @@ _tenEpiRegPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
   int ai, bi;
   unsigned int zi, sz;
 
-  sz = AIR_CAST(unsigned int, nmom[0]->axis[1].size);
+  sz = AIR_UINT(nmom[0]->axis[1].size);
   if (nrrdMaybeAlloc_va(npxfr, nrrdTypeDouble, 4,
                         AIR_CAST(size_t, 5),
                         AIR_CAST(size_t, sz),
@@ -567,7 +567,7 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
 
   order = 1;
 
-  sz = AIR_CAST(unsigned int, npxfr->axis[1].size);
+  sz = AIR_UINT(npxfr->axis[1].size);
   npairs = ninLen*(ninLen-1);
 
   mop = airMopNew();
@@ -797,7 +797,7 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
   mess = AIR_CAST(float*, ntA->data);
 
   /* allocate an array of 2 floats per slice */
-  sz = AIR_CAST(unsigned int, ntA->axis[0].size);
+  sz = AIR_UINT(ntA->axis[0].size);
   two = AIR_CAST(float*, calloc(2*sz, sizeof(float)));
   if (!two) {
     biffAddf(TEN, "%s: couldn't allocate tmp buffer", me);
@@ -809,7 +809,7 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
     two[0 + 2*zi] = (AIR_EXISTS(mess[zi])
                      ? mess[zi]
                      : 666);  /* don't use empty slices */
-    two[1 + 2*zi] = AIR_CAST(float, zi);
+    two[1 + 2*zi] = AIR_FLOAT(zi);
   }
   /* sort into ascending messiness */
   qsort(two, zi, 2*sizeof(float), nrrdValCompare[nrrdTypeFloat]);
@@ -834,7 +834,7 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
   /* perform fitting for each column in hst (regardless of
      whether we're using a 1st or 2nd order model */
   hst = (double*)(nhst->data);
-  sh = AIR_CAST(unsigned int, nhst->axis[0].size);
+  sh = AIR_UINT(nhst->axis[0].size);
   for (hi=0; hi<sh; hi++) {
     x = y = xy = xx = 0;
     cc = 0;
@@ -871,8 +871,8 @@ _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP,
   order = 1;
 
   /* these could also have been passed to us, but we can also discover them */
-  sz = AIR_CAST(unsigned int, npxfr->axis[1].size);
-  ninLen = AIR_CAST(unsigned int, npxfr->axis[2].size);
+  sz = AIR_UINT(npxfr->axis[1].size);
+  ninLen = AIR_UINT(npxfr->axis[2].size);
 
   if (-1 == reference) {
     /* we use the estimated H,S,T vectors to determine distortion
@@ -930,7 +930,7 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
 
   sy = nin->axis[0].size;
   sx = nin->axis[1].size;
-  supp = AIR_CAST(unsigned int, kern->support(kparm));
+  supp = AIR_UINT(kern->support(kparm));
   ins = nrrdDInsert[nout->type];
   clamp = nrrdDClamp[nout->type];
 
@@ -939,7 +939,7 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
     idx = AIR_CAST(int*, nidx->data);
     wght = AIR_CAST(float*, nwght->data);
     for (yi=0; yi<sy; yi++) {
-      pp = AIR_CAST(float, hh*(xi - cx) + ss*(yi - cy) + tt + cy);
+      pp = AIR_FLOAT(hh*(xi - cx) + ss*(yi - cy) + tt + cy);
       pb = AIR_CAST(size_t, floor(pp));
       pf = pp - pb;
       for (pi=0; pi<2*supp; pi++) {
@@ -994,13 +994,13 @@ _tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
   if (verb) {
     fprintf(stderr, "%s:\n            ", me); fflush(stderr);
   }
-  sx = AIR_CAST(unsigned int, nin[0]->axis[0].size);
-  sy = AIR_CAST(unsigned int, nin[0]->axis[1].size);
-  sz = AIR_CAST(unsigned int, nin[0]->axis[2].size);
+  sx = AIR_UINT(nin[0]->axis[0].size);
+  sy = AIR_UINT(nin[0]->axis[1].size);
+  sz = AIR_UINT(nin[0]->axis[2].size);
   cx = sx/2.0;
   cy = sy/2.0;
   /* HEY this is effectively a floor(); why not say that? */
-  supp = AIR_CAST(unsigned int, kern->support(kparm));
+  supp = AIR_UINT(kern->support(kparm));
   if (nrrdMaybeAlloc_va(nwght, nrrdTypeFloat, 2,
                         AIR_CAST(size_t, 2*supp),
                         AIR_CAST(size_t, sy))
@@ -1220,7 +1220,7 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
     return 1;
   }
 
-  ninLen = AIR_CAST(unsigned int, _nin->axis[dwiAx].size);
+  ninLen = AIR_UINT(_nin->axis[dwiAx].size);
   /* outdated
   if (!( AIR_IN_CL(6, ninLen, 120) )) {
     biffAddf(TEN, "%s: %u (size of axis %u, and # DWIs) is unreasonable",
@@ -1273,7 +1273,7 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
       airMopAdd(mop, ndwi[dwiIdx], (airMopper)nrrdNuke, airMopAlways);
       airMopAdd(mop, ndwiOut[dwiIdx], (airMopper)nrrdNuke, airMopAlways);
       if (nrrdSlice(ndwi[dwiIdx], _nin, dwiAx,
-                    AIR_CAST(unsigned int, ninIdx))) {
+                    AIR_UINT(ninIdx))) {
         biffMovef(TEN, NRRD, "%s: trouble slicing at %d on axis %u",
                   me, ninIdx, dwiAx);
         airMopError(mop); return 1;
@@ -1290,9 +1290,9 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
     airMopError(mop); return 1;
   }
   /* HEY: HACK! */
-  ndwigrad->axis[1].size = 1 + AIR_CAST(unsigned int, dwiIdx);
+  ndwigrad->axis[1].size = 1 + AIR_UINT(dwiIdx);
   if (tenEpiRegister3D(ndwiOut, ndwi,
-                       AIR_CAST(unsigned int, ndwigrad->axis[1].size),
+                       AIR_UINT(ndwigrad->axis[1].size),
                        ndwigrad,
                        reference,
                        bwX, bwY, fitFrac, DWthr,

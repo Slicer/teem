@@ -74,9 +74,9 @@ baneProbe(double val[3],
     val[1] = baneMeasrAnswer(hvp->axis[1].measr, ctx);
     val[2] = baneMeasrAnswer(hvp->axis[2].measr, ctx);
     if (hvp->makeMeasrVol) {
-      data[0] = AIR_CAST(float, val[0]);
-      data[1] = AIR_CAST(float, val[1]);
-      data[2] = AIR_CAST(float, val[2]);
+      data[0] = AIR_FLOAT(val[0]);
+      data[1] = AIR_FLOAT(val[1]);
+      data[2] = AIR_FLOAT(val[2]);
     }
   } else {
     val[0] = data[0];
@@ -100,9 +100,9 @@ baneFindInclusion(double min[3], double max[3],
   double val[3];
 
   /* conveniance copies */
-  sx = AIR_CAST(int, nin->axis[0].size); /* HEY should be unsigned */
-  sy = AIR_CAST(int, nin->axis[1].size); /* HEY should be unsigned */
-  sz = AIR_CAST(int, nin->axis[2].size); /* HEY should be unsigned */
+  sx = AIR_INT(nin->axis[0].size); /* HEY should be unsigned */
+  sy = AIR_INT(nin->axis[1].size); /* HEY should be unsigned */
+  sz = AIR_INT(nin->axis[2].size); /* HEY should be unsigned */
   inc[0] = hvp->axis[0].inc;
   inc[1] = hvp->axis[1].inc;
   inc[2] = hvp->axis[2].inc;
@@ -288,9 +288,9 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   }
 
   /* set up */
-  sx = AIR_CAST(int, nin->axis[0].size); /* HEY should be unsigned */
-  sy = AIR_CAST(int, nin->axis[1].size); /* HEY should be unsigned */
-  sz = AIR_CAST(int, nin->axis[2].size); /* HEY should be unsigned */
+  sx = AIR_INT(nin->axis[0].size); /* HEY should be unsigned */
+  sy = AIR_INT(nin->axis[1].size); /* HEY should be unsigned */
+  sz = AIR_INT(nin->axis[2].size); /* HEY should be unsigned */
 
   mop = airMopNew();
   ctx = gageContextNew();
@@ -448,9 +448,8 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
       }
       for (hx=0; hx<shx; hx++) {
         hidx = hx + shx*(hy + shy*hz);
-        nhvdata[hidx] = AIR_CAST(unsigned char,
-                                 airIndexClamp(0, rhvdata[hidx],
-                                               clipVal, 256));
+        nhvdata[hidx] = AIR_UCHAR(airIndexClamp(0, rhvdata[hidx],
+                                                clipVal, 256));
       }
     }
   }

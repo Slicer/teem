@@ -298,7 +298,7 @@ _gageLocationSet(gageContext *ctx,
   /* **** computing integral and fractional sample locations **** */
   /* Thu Jan 14 19:46:53 CST 2010: detected that along the low edge
      (next to sample 0) in cell centered, the rounding behavior of
-     AIR_CAST(unsigned int, xif), namely [-0.5,0] --> 0, meant that
+     AIR_UINT(xif), namely [-0.5,0] --> 0, meant that
      the low edge was not treated symmetrically with the high edge.
      This motivated the change from using idx to store the lower
      corner of the containing voxel, to the upper corner.  So, the new
@@ -306,9 +306,9 @@ _gageLocationSet(gageContext *ctx,
      ctx.c (since idx is saved into ctx->point.idx) has been changed
      accordingly */
   ELL_3V_SET(idx,
-             AIR_CAST(unsigned int, xif+1), /* +1: see above */
-             AIR_CAST(unsigned int, yif+1),
-             AIR_CAST(unsigned int, zif+1));
+             AIR_UINT(xif+1), /* +1: see above */
+             AIR_UINT(yif+1),
+             AIR_UINT(zif+1));
   if (ctx->verbose > 5) {
     fprintf(stderr, "%s: (%g,%g,%g,%g) -%s-> mm [%g, %g/%g/%g]\n"
             "        --> idx %u %u %u\n",
@@ -326,12 +326,12 @@ _gageLocationSet(gageContext *ctx,
             me, idx[0], idx[1], idx[2]);
   }
   ELL_3V_SET(frac,
-             xif - (AIR_CAST(float, idx[0])-1),
-             yif - (AIR_CAST(float, idx[1])-1),
-             zif - (AIR_CAST(float, idx[2])-1));
+             xif - (AIR_FLOAT(idx[0])-1),
+             yif - (AIR_FLOAT(idx[1])-1),
+             zif - (AIR_FLOAT(idx[2])-1));
   ELL_3V_COPY(ctx->point.idx, idx);  /* not idx[3], yet */
   if (ctx->parm.stackUse) {
-    idx[3] = AIR_CAST(unsigned int, sif);
+    idx[3] = AIR_UINT(sif);
     idx[3] -= (idx[3] == ctx->pvlNum-2);
     frac[3] = sif - idx[3];
     sdiff = (ctx->point.idx[3] + ctx->point.frac[3] != sif);

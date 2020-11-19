@@ -77,7 +77,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
      sizeChunk is used below, we also cap chunk size at _nrrdZlibMaxChunk/2 to
      prevent overflow. */
   maxChunk = _nrrdZlibMaxChunk/2;
-  sizeChunk = AIR_CAST(unsigned int, AIR_MIN(sizeData, maxChunk));
+  sizeChunk = AIR_UINT(AIR_MIN(sizeData, maxChunk));
 
   if (nio->byteSkip < 0) {
     /* We don't know the size of the size to skip before the data, so
@@ -168,7 +168,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
          block (which may be smaller than the original sizeChunk). */
       if (sizeData >= sizeRed
           && sizeData - sizeRed < sizeChunk) {
-        sizeChunk = AIR_CAST(unsigned int, sizeData - sizeRed);
+        sizeChunk = AIR_UINT(sizeData - sizeRed);
       }
     }
     if (error) {
@@ -245,7 +245,7 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   /* zlib can only handle data sizes up to UINT_MAX ==> if there's more than
      UINT_MAX bytes to write out, we write out in chunks.  As above, we wrap
      _nrrdZlibMaxChunk around UINT_MAX for testing purposes. */
-  sizeChunk = AIR_CAST(unsigned int, AIR_MIN(sizeData, _nrrdZlibMaxChunk));
+  sizeChunk = AIR_UINT(AIR_MIN(sizeData, _nrrdZlibMaxChunk));
 
   /* keeps track of what how much has been successfully written */
   sizeWrit = 0;
@@ -266,7 +266,7 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
     */
     if (sizeData >= sizeWrit
         && sizeData - sizeWrit < sizeChunk)
-      sizeChunk = AIR_CAST(unsigned int, sizeData - sizeWrit);
+      sizeChunk = AIR_UINT(sizeData - sizeWrit);
   }
 
   if (error) {

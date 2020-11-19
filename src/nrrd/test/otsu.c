@@ -23,7 +23,7 @@
 
 #include "../nrrd.h"
 
-char *otsuInfo = ("demonstrates nrrd's Otsu thresholding");
+const char *otsuInfo = ("demonstrates nrrd's Otsu thresholding");
 
 int
 main(int argc, const char *argv[]) {

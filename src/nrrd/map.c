@@ -380,22 +380,19 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   case 8:
     for (I=0; I<num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
-      outUC[I] = AIR_CAST(unsigned char,
-                          airIndexClamp(minIn, valIn, maxIn+eps, 1 << 8));
+      outUC[I] = AIR_UCHAR(airIndexClamp(minIn, valIn, maxIn+eps, 1 << 8));
     }
     break;
   case 16:
     for (I=0; I<num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
-      outUS[I] = AIR_CAST(unsigned short,
-                          airIndexClamp(minIn, valIn, maxIn+eps, 1 << 16));
+      outUS[I] = AIR_USHORT(airIndexClamp(minIn, valIn, maxIn+eps, 1 << 16));
     }
     break;
   case 32:
     for (I=0; I<num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
-      outUI[I] = AIR_CAST(unsigned int,
-                          airIndexClampULL(minIn, valIn, maxIn+eps,
+      outUI[I] = AIR_UINT(airIndexClampULL(minIn, valIn, maxIn+eps,
                                            AIR_ULLONG(1) << 32));
     }
     break;
@@ -535,8 +532,7 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
   case nrrdTypeFloat:
     for (II=0; II<NN; II++) {
       valIn = minIn + nrrdDLookup[nin->type](nin->data, II);
-      outF[II] = AIR_CAST(float,
-                          NRRD_CELL_POS(minOut, maxOut, numValIn, valIn));
+      outF[II] = AIR_FLOAT(NRRD_CELL_POS(minOut, maxOut, numValIn, valIn));
     }
     break;
   case nrrdTypeDouble:

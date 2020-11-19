@@ -56,8 +56,8 @@ main(int argc, const char *argv[]) {
         && 6 == _nin->axis[1].size)) {
     fprintf(stderr, "%s: didn't get 2-D 6x6 matrix (got %u-D %ux%u)\n", me,
             _nin->dim,
-            AIR_CAST(unsigned int, _nin->axis[0].size),
-            AIR_CAST(unsigned int, _nin->axis[1].size));
+            AIR_UINT(_nin->axis[0].size),
+            AIR_UINT(_nin->axis[1].size));
     airMopError(mop); return 1;
   }
 

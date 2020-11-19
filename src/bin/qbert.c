@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -53,7 +53,7 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
   anyneed = 0;
   if (uk) {
     for (i=0; i<=2; i++) {
-      anyneed |= need = sz[i] - nin->axis[i].size;
+      anyneed |= !!(need = AIR_INT(sz[i]) - AIR_INT(nin->axis[i].size));
       fprintf(stderr, "%s: sz[%d] = %u -> need = %d --> ",
               me, i, AIR_UINT(nin->axis[i].size), need);
       need = AIR_MAX(0, need);
@@ -90,7 +90,7 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
   } else {
     for (i=0; i<=2; i++) {
       char stmp[AIR_STRLEN_SMALL];
-      anyneed |= need = sz[i] - nin->axis[i].size;
+      anyneed |= !!(need = AIR_INT(sz[i]) - AIR_INT(nin->axis[i].size));
       fprintf(stderr, "%s: sz[%d] = %s -> need = %d --> ", me, i,
               airSprintSize_t(stmp, nin->axis[i].size), need);
       need = AIR_MAX(0, need);
@@ -98,8 +98,8 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz,
       padMin[i] = 0 - (int)floor(need/2.0);
       padMax[i] = nin->axis[i].size - 1 + (int)ceil(need/2.0);
       fprintf(stderr, "pad indices: [%d..%d]\n",
-              AIR_CAST(int, padMin[i]),
-              AIR_CAST(int, padMax[i]));
+              AIR_INT(padMin[i]),
+              AIR_INT(padMax[i]));
     }
     if (anyneed) {
       fprintf(stderr, "%s: padding ... ", me); fflush(stderr);
@@ -264,10 +264,10 @@ qbertProbe(Nrrd *nout, Nrrd *nin,
       }
       for (i=0; i<sz[0]; i++) {
         gageProbe(ctx, i, j, k);
-        vghF[0] = AIR_CAST(float, *val);
-        vghF[1] = AIR_CAST(float, *gmag);
+        vghF[0] = AIR_FLOAT(*val);
+        vghF[1] = AIR_FLOAT(*gmag);
         if (doH) {
-          vghF[2] = AIR_CAST(float, *scnd);
+          vghF[2] = AIR_FLOAT(*scnd);
         }
         vghF += 2+doH;
       }
@@ -294,10 +294,10 @@ qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
   char me[]="qbertMakeVghHists";
   double minv, maxv, ming, maxg, minh=0, maxh=0;
   float *vghF;
-  unsigned int i;
-  int nval, doH, E, *vhist, *ghist, *hhist=NULL, vi, gi, hi;
+  unsigned int i, nval;
+  int doH, E, *vhist, *ghist, *hhist=NULL, vi, gi, hi;
 
-  nval = nvghF->axis[0].size;
+  nval = AIR_UINT(nvghF->axis[0].size);
   doH = !!(nval == 3);
   vghF = (float *)nvghF->data;
   minv = maxv = vghF[0 + nval*0];
@@ -395,12 +395,12 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
              Nrrd *nvghF) {
   char me[]="qbertMakeVgh", cmt[AIR_STRLEN_SMALL];
   double minv, maxv, ming, maxg, minh=0, maxh=0;
-  int lose, *vhist, *ghist, *hhist=NULL, bins, vi, gi, hi, nval, doH;
-  unsigned int i;
+  int lose, *vhist, *ghist, *hhist=NULL, vi, gi, hi, doH;
+  unsigned int i, nval, bins;
   unsigned char *vgh;
   float *vghF;
 
-  nval = nvghF->axis[0].size;
+  nval = AIR_UINT(nvghF->axis[0].size);
   doH = !!(nval == 3);
   minv = nvhist->axis[0].min;   maxv = nvhist->axis[0].max;
   ming = nghist->axis[0].min;   maxg = nghist->axis[0].max;
@@ -412,7 +412,7 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
   }
 
   lose = (int)(perc[0]*sz[0]*sz[1]*sz[2]/100);
-  bins = nvhist->axis[0].size;
+  bins = AIR_UINT(nvhist->axis[0].size);
   i = bins-1;
   while (lose > 0) {
     /* HEY: we're nibbling only from top, even though for signed
@@ -423,7 +423,7 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
   maxv = AIR_AFFINE(0, i, bins-1, minv, maxv);
 
   lose = (int)(perc[1]*sz[0]*sz[1]*sz[2]/100);
-  bins = nghist->axis[0].size;
+  bins = AIR_UINT(nghist->axis[0].size);
   i = bins-1;
   while (lose > 0) {
     /* nibble from top */
@@ -433,7 +433,7 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
 
   if (doH) {
     lose = (int)(perc[2]*sz[0]*sz[1]*sz[2]/100);
-    bins = nhhist->axis[0].size;
+    bins = AIR_UINT(nhhist->axis[0].size);
     i = 0;
     while (lose > 0) {
       /* nibble from top and bottom at equal rates */
@@ -467,12 +467,12 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist,
   vghF = (float*)nvghF->data;
   for (i=0; i<sz[0]*sz[1]*sz[2]; i++) {
     vi = airIndex(minv, vghF[0], maxv, 254);
-    vgh[0] = AIR_CLAMP(1, vi+1, 254);
+    vgh[0] = AIR_UCHAR(AIR_CLAMP(1, vi+1, 254));
     gi = airIndex(ming, vghF[1], maxg, 254);
-    vgh[1] = AIR_CLAMP(1, gi+1, 254);
+    vgh[1] = AIR_UCHAR(AIR_CLAMP(1, gi+1, 254));
     if (doH) {
       hi = airIndex(minh, vghF[2], maxh, 168);
-      vgh[2] = AIR_CLAMP(1, hi+1, 169);
+      vgh[2] = AIR_UCHAR(AIR_CLAMP(1, hi+1, 169));
     }
     vgh += nval;
     vghF += nval;

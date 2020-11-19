@@ -148,8 +148,8 @@ main(int argc, const char *argv[]) {
               "desired (%s 2-D 9x%u)\n", me,
               airEnumStr(nrrdType, nlog->type),
               nlog->dim,
-              AIR_CAST(unsigned int, nlog->axis[0].size),
-              AIR_CAST(unsigned int, nlog->axis[1].size),
+              AIR_UINT(nlog->axis[0].size),
+              AIR_UINT(nlog->axis[1].size),
               airEnumStr(nrrdType, nrrdTypeDouble),
               numRange[1]+1);
       airMopError(mop); return 1;
@@ -201,7 +201,7 @@ main(int argc, const char *argv[]) {
        seedRange[1] < seedRange[0] || seed <= seedRange[1];
        seed++) {
     for (ii=numRange[0]; ii<=numRange[1]; ii++) {
-      seedDone = AIR_CAST(unsigned int, log[1 + 9*ii]);
+      seedDone = AIR_UINT(log[1 + 9*ii]);
       /* if no seeds have been tried, seedDone will be zero */
       if (seedDone >= seed) {
         /* have already tried this seed, move on */

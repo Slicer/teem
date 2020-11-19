@@ -303,17 +303,13 @@ _pullBinSetup(pullContext *pctx) {
       printf("%s: volEdge = %g %g %g %g\n", me,
              volEdge[0], volEdge[1], volEdge[2], volEdge[3]);
     }
-    pctx->binsEdge[0] = AIR_CAST(unsigned int,
-                                 floor(volEdge[0]/pctx->maxDistSpace));
+    pctx->binsEdge[0] = AIR_UINT(floor(volEdge[0]/pctx->maxDistSpace));
     pctx->binsEdge[0] = pctx->binsEdge[0] ? pctx->binsEdge[0] : 1;
-    pctx->binsEdge[1] = AIR_CAST(unsigned int,
-                                 floor(volEdge[1]/pctx->maxDistSpace));
+    pctx->binsEdge[1] = AIR_UINT(floor(volEdge[1]/pctx->maxDistSpace));
     pctx->binsEdge[1] = pctx->binsEdge[1] ? pctx->binsEdge[1] : 1;
-    pctx->binsEdge[2] = AIR_CAST(unsigned int,
-                                 floor(volEdge[2]/pctx->maxDistSpace));
+    pctx->binsEdge[2] = AIR_UINT(floor(volEdge[2]/pctx->maxDistSpace));
     pctx->binsEdge[2] = pctx->binsEdge[2] ? pctx->binsEdge[2] : 1;
-    pctx->binsEdge[3] = AIR_CAST(unsigned int,
-                                 floor(volEdge[3]/pctx->maxDistScale));
+    pctx->binsEdge[3] = AIR_UINT(floor(volEdge[3]/pctx->maxDistScale));
     pctx->binsEdge[3] = pctx->binsEdge[3] ? pctx->binsEdge[3] : 1;
     /* hack to observe things at bin boundaries
     ELL_3V_SET(pctx->binsEdge, 3, 3, 3);

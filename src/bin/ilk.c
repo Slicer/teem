@@ -160,24 +160,24 @@ main(int argc, const char *argv[]) {
 
   for (d=0; d<2; d++) {
     fprintf(stderr, "%s: scale[0 + 2*%d] = %d\n", me, d,
-            AIR_CAST(int, scale[0 + 2*d]));
-    switch(AIR_CAST(int, scale[0 + 2*d])) {
+            AIR_INT(scale[0 + 2*d]));
+    switch(AIR_INT(scale[0 + 2*d])) {
     case 0:
       /* same number of samples as input */
-      size[d] = AIR_CAST(int, nin->axis[ax0+d].size);
+      size[d] = AIR_INT(nin->axis[ax0+d].size);
       break;
     case 1:
       /* scaling of input # samples */
-      size[d] = AIR_CAST(int, scale[1 + 2*d]*nin->axis[ax0+d].size);
+      size[d] = AIR_INT(scale[1 + 2*d]*nin->axis[ax0+d].size);
       break;
     case 2:
       /* explicit # of samples */
-      size[d] = AIR_CAST(int, scale[1 + 2*d]);
+      size[d] = AIR_INT(scale[1 + 2*d]);
       break;
     default:
       /* error */
       fprintf(stderr, "%s: scale[0 + 2*%d] == %d unexpected\n",
-              me, AIR_CAST(int, scale[0 + 2*d]), d);
+              me, AIR_INT(scale[0 + 2*d]), d);
       airMopError(mop); return 1;
     }
   }

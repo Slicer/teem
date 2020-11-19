@@ -1134,7 +1134,7 @@ _pullPointSetup(pullContext *pctx) {
              "and pointPerVoxel (%d)\n", me, pctx->initParm.numInitial,
              pctx->initParm.pointPerVoxel);
     }
-    totalNumPoints = AIR_CAST(unsigned int, npos->axis[1].size);
+    totalNumPoints = AIR_UINT(npos->axis[1].size);
     break;
   case pullInitMethodPointPerVoxel:
     npos = NULL;
@@ -1181,9 +1181,9 @@ _pullPointSetup(pullContext *pctx) {
     if (pctx->haveScale) {
       unsigned int sasn;
       sasn = pctx->initParm.samplesAlongScaleNum;
-      totalNumPoints = AIR_CAST(unsigned int, voxNum * factor * sasn);
+      totalNumPoints = AIR_UINT(voxNum * factor * sasn);
     } else {
-      totalNumPoints = AIR_CAST(unsigned int, voxNum * factor);
+      totalNumPoints = AIR_UINT(voxNum * factor);
     }
     break;
   case pullInitMethodRandom:

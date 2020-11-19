@@ -243,9 +243,9 @@ computeEdgeGradient(seekContext *sctx, baggage *bag, double *res,
   double Txm[9], Txp[9], Tym[9], Typ[9], Tzm[9], Tzp[9], T[9],
     gxm[3], gxp[3], gym[3], gyp[3], gzm[3], gzp[3], g[3];
 
-  unsigned int sx = AIR_CAST(unsigned int, sctx->sx);
-  unsigned int sy = AIR_CAST(unsigned int, sctx->sy);
-  unsigned int sz = AIR_CAST(unsigned int, sctx->sz);
+  unsigned int sx = AIR_UINT(sctx->sx);
+  unsigned int sy = AIR_UINT(sctx->sy);
+  unsigned int sz = AIR_UINT(sctx->sz);
   unsigned int si = xi + sx*yi;
   unsigned int six = xi + 1 + sx*yi, siX = xi - 1 + sx*yi;
   unsigned int siy = xi + sx*(yi+1), siY = xi + sx*(yi-1);
@@ -512,8 +512,8 @@ computeFaceGradient(seekContext *sctx, double *res,
                     char faceid, double *coords) {
   double T[9], Txm[9], Txp[9], Tym[9], Typ[9], Tzm[9], Tzp[9],
     g[3], gxm[3], gxp[3], gym[3], gyp[3], gzm[3], gzp[3];
-  unsigned int sx = AIR_CAST(unsigned int, sctx->sx);
-  unsigned int sy = AIR_CAST(unsigned int, sctx->sy);
+  unsigned int sx = AIR_UINT(sctx->sx);
+  unsigned int sy = AIR_UINT(sctx->sy);
   unsigned int si = xi + sx*yi;
   unsigned int six = xi + 1 + sx*yi, siX = xi - 1 + sx*yi;
   unsigned int siy = xi + sx*(yi+1), siY = xi + sx*(yi-1);
@@ -970,7 +970,7 @@ connectFace(seekContext *sctx, baggage *bag,
                     {0, 5, 8, 4},
                     {1, 6, 9, 4},
                     {8,10,11, 9}};
-  unsigned int sx = AIR_CAST(unsigned int, sctx->sx);
+  unsigned int sx = AIR_UINT(sctx->sx);
   unsigned int si = xi + sx*yi;
   unsigned int six = xi + 1 + sx*yi;
   unsigned int siy = xi + sx*(yi+1);
@@ -1222,8 +1222,8 @@ intersectionShuffleProbe(seekContext *sctx, baggage *bag) {
   unsigned int xi, yi, sx, sy, si;
   int i;
 
-  sx = AIR_CAST(unsigned int, sctx->sx);
-  sy = AIR_CAST(unsigned int, sctx->sy);
+  sx = AIR_UINT(sctx->sx);
+  sy = AIR_UINT(sctx->sy);
 
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {
@@ -1332,8 +1332,8 @@ _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
                     {1, 6, 9, 4,16},
                     {8,10,11, 9,17}};
 
-  sx = AIR_CAST(unsigned int, sctx->sx);
-  sy = AIR_CAST(unsigned int, sctx->sy);
+  sx = AIR_UINT(sctx->sx);
+  sy = AIR_UINT(sctx->sy);
 
   for (yi=0; yi<sy-1; yi++) {
     for (xi=0; xi<sx-1; xi++) {
@@ -1748,8 +1748,8 @@ static void
 shuffleT(seekContext *sctx, baggage *bag) {
   unsigned int xi, yi, sx, sy, si;
 
-  sx = AIR_CAST(unsigned int, sctx->sx);
-  sy = AIR_CAST(unsigned int, sctx->sy);
+  sx = AIR_UINT(sctx->sx);
+  sy = AIR_UINT(sctx->sy);
 
   if (sctx->strengthUse) { /* requests need to be cleared initially */
     for (yi=0; yi<sy; yi++) {
@@ -1812,8 +1812,8 @@ static void
 probeT(seekContext *sctx, baggage *bag, double zi) {
   unsigned int xi, yi, sx, sy, si;
 
-  sx = AIR_CAST(unsigned int, sctx->sx);
-  sy = AIR_CAST(unsigned int, sctx->sy);
+  sx = AIR_UINT(sctx->sx);
+  sy = AIR_UINT(sctx->sy);
 
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {

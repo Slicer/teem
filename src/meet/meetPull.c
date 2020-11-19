@@ -174,7 +174,7 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
     mpv->derivNormSS = !!extraFlag['n'];
     extraFlag['n'] = AIR_FALSE;
     for (efi=0; efi<256; efi++) {
-      if (extraFlag[AIR_CAST(unsigned char, efi)]) {
+      if (extraFlag[AIR_UCHAR(efi)]) {
         biffAddf(MEET, "%s: got unknown extra flag '%c' in \"%s\"", me,
                  AIR_CAST(char, efi), sbps);
         airMopError(mop); return 1;

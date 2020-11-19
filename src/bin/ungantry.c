@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -44,7 +44,8 @@ main(int argc, const char *argv[]) {
   float angle;
   double xs, ys, zs, y, z, padval;
   const double *val;
-  int sx, sy, sz, E, xi, yi, zi, clamp;
+  int E, clamp;
+  unsigned int sx, sy, sz, xi, yi, zi;
   NrrdKernelSpec *gantric;
   void *out;
   double (*insert)(void *v, size_t I, double d);
@@ -86,9 +87,9 @@ main(int argc, const char *argv[]) {
   hestParseOrDie(hopt, argc-1, argv+1, hparm,
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
 
-  sx = nin->axis[0].size;
-  sy = nin->axis[1].size;
-  sz = nin->axis[2].size;
+  sx = AIR_UINT(nin->axis[0].size);
+  sy = AIR_UINT(nin->axis[1].size);
+  sz = AIR_UINT(nin->axis[2].size);
   xs = nin->axis[0].spacing;
   ys = nin->axis[1].spacing;
   zs = nin->axis[2].spacing;

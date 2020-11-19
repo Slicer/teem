@@ -149,12 +149,12 @@ unrrdu_2opMain(int argc, const char **argv, const char *me,
     }
   } else {
     /* got no request for specific seed */
-    airSrandMT(AIR_CAST(unsigned int, airTime()));
+    airSrandMT(AIR_UINT(airTime()));
   }
   if (-1 == which
       ? nrrdArithIterBinaryOp(nout, op, in1, in2)
       : nrrdArithIterBinaryOpSelect(nout, op, in1, in2,
-                                    AIR_CAST(unsigned int, which))) {
+                                    AIR_UINT(which))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing binary operation:\n%s", me, err);
     airMopError(mop);

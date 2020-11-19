@@ -35,9 +35,10 @@ fixproj(Nrrd *nproj[3], const Nrrd *nvol) {
   static const char me[]="fixproj";
   airArray *mop;
   Nrrd *ntmp[3], *nt;
-  int sz[3], ii, jj, map[3], h[3], E, mi;
+  int ii, jj, map[3], h[3], E, mi;
   size_t rsz[3][3];
   double vec[3][3], dot[3], sp[3], parm[NRRD_KERNEL_PARMS_NUM];
+  unsigned int sz[3];
 
   mop = airMopNew();
   fprintf(stderr, "%s: fixing projections\n", me);
@@ -104,13 +105,13 @@ fixproj(Nrrd *nproj[3], const Nrrd *nvol) {
   }
 
   for (ii=0; ii<3; ii++) {
-    sz[ii] = nvol->axis[map[ii]].size;
+    sz[ii] = AIR_UINT(nvol->axis[map[ii]].size);
     sp[ii] = ELL_3V_LEN(nvol->axis[map[ii]].spaceDirection);
   }
   mi = ELL_MIN3_IDX(sp[0], sp[1], sp[2]);
-  sz[0] = (int)(sz[0]*sp[0]/sp[mi]);
-  sz[1] = (int)(sz[1]*sp[1]/sp[mi]);
-  sz[2] = (int)(sz[2]*sp[2]/sp[mi]);
+  sz[0] = AIR_UINT(sz[0]*sp[0]/sp[mi]);
+  sz[1] = AIR_UINT(sz[1]*sp[1]/sp[mi]);
+  sz[2] = AIR_UINT(sz[2]*sp[2]/sp[mi]);
 
   parm[0] = 1;
   ELL_3V_SET(rsz[0], 3, sz[1], sz[2]);
@@ -211,7 +212,8 @@ doit(Nrrd *nout, const Nrrd *nin, int smart, float amount, unsigned int margin,
   static const char me[]="doit";
   Nrrd *nproj[3];
   airArray *mop;
-  int axis, srl, sap, ssi, E, which;
+  int E, which;
+  unsigned int axis, srl, sap, ssi;
   size_t min[3], ii, nn;
   unsigned char *out;
 
@@ -261,9 +263,9 @@ doit(Nrrd *nout, const Nrrd *nin, int smart, float amount, unsigned int margin,
                  "lens %g,%g,%g\n", me, ejl[0], ejl[1], ejl[2]);
       }
   }
-  srl = nproj[1]->axis[0+1].size;
-  sap = nproj[0]->axis[0+1].size;
-  ssi = nproj[1]->axis[1+1].size;
+  srl = AIR_UINT(nproj[1]->axis[0+1].size);
+  sap = AIR_UINT(nproj[0]->axis[0+1].size);
+  ssi = AIR_UINT(nproj[1]->axis[1+1].size);
 
   /* allocate output as 8-bit color image.  We know output type is
      nrrdTypeUChar because ninspect_proj finishes each projection

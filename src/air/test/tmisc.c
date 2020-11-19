@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -30,8 +30,8 @@ main(int argc, char *argv[]) {
   unsigned int cc, nn;
 
   char str[]="this is a line";
-  str[5] = (char)130;
   char *dup = airStrdup(str);
+  str[5] = (char)130;
   printf("str\n|%s| == |%s|\n", str, dup);
   airOneLinify(dup);
   printf("|%s|\n", dup);

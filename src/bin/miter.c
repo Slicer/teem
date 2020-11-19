@@ -173,8 +173,8 @@ main(int argc, const char *argv[]) {
   if (offfr) {
     ELL_3V_INCR(muu->hctx->cam->from, muu->hctx->cam->at);
   }
-  muu->hctx->imgSize[0] = AIR_CAST(int, isScale*muu->hctx->imgSize[0]);
-  muu->hctx->imgSize[1] = AIR_CAST(int, isScale*muu->hctx->imgSize[1]);
+  muu->hctx->imgSize[0] = AIR_INT(isScale*muu->hctx->imgSize[0]);
+  muu->hctx->imgSize[1] = AIR_INT(isScale*muu->hctx->imgSize[1]);
 
   muu->nout = nrrdNew();
   airMopAdd(mop, muu->nout, (airMopper)nrrdNuke, airMopAlways);

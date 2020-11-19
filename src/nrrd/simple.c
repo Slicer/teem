@@ -1481,26 +1481,26 @@ nrrdSanity(void) {
     biffAddf(NRRD, "%s: sizeof() for nrrd types has problem: "
              "expected (%u,%u,%u,%u,%u,%u,%u,%u,%u,%u) "
              "but got (%u,%u,%u,%u,%u,%u,%u,%u,%u,%u)", me,
-             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeChar]),
-             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeUChar]),
-             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeShort]),
-             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeUShort]),
-             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeInt]),
-             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeUInt]),
-             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeLLong]),
-             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeULLong]),
-             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeFloat]),
-             AIR_CAST(unsigned int, nrrdTypeSize[nrrdTypeDouble]),
-             AIR_CAST(unsigned int, sizeof(char)),
-             AIR_CAST(unsigned int, sizeof(unsigned char)),
-             AIR_CAST(unsigned int, sizeof(short)),
-             AIR_CAST(unsigned int, sizeof(unsigned short)),
-             AIR_CAST(unsigned int, sizeof(int)),
-             AIR_CAST(unsigned int, sizeof(unsigned int)),
-             AIR_CAST(unsigned int, sizeof(airLLong)),
-             AIR_CAST(unsigned int, sizeof(airULLong)),
-             AIR_CAST(unsigned int, sizeof(float)),
-             AIR_CAST(unsigned int, sizeof(double)));
+             AIR_UINT(nrrdTypeSize[nrrdTypeChar]),
+             AIR_UINT(nrrdTypeSize[nrrdTypeUChar]),
+             AIR_UINT(nrrdTypeSize[nrrdTypeShort]),
+             AIR_UINT(nrrdTypeSize[nrrdTypeUShort]),
+             AIR_UINT(nrrdTypeSize[nrrdTypeInt]),
+             AIR_UINT(nrrdTypeSize[nrrdTypeUInt]),
+             AIR_UINT(nrrdTypeSize[nrrdTypeLLong]),
+             AIR_UINT(nrrdTypeSize[nrrdTypeULLong]),
+             AIR_UINT(nrrdTypeSize[nrrdTypeFloat]),
+             AIR_UINT(nrrdTypeSize[nrrdTypeDouble]),
+             AIR_UINT(sizeof(char)),
+             AIR_UINT(sizeof(unsigned char)),
+             AIR_UINT(sizeof(short)),
+             AIR_UINT(sizeof(unsigned short)),
+             AIR_UINT(sizeof(int)),
+             AIR_UINT(sizeof(unsigned int)),
+             AIR_UINT(sizeof(airLLong)),
+             AIR_UINT(sizeof(airULLong)),
+             AIR_UINT(sizeof(float)),
+             AIR_UINT(sizeof(double)));
     return 0;
   }
 
@@ -1512,7 +1512,7 @@ nrrdSanity(void) {
   if (maxsize != NRRD_TYPE_SIZE_MAX) {
     biffAddf(NRRD,
              "%s: actual max type size is %u != %u == NRRD_TYPE_SIZE_MAX",
-             me, AIR_CAST(unsigned int, maxsize), NRRD_TYPE_SIZE_MAX);
+             me, AIR_UINT(maxsize), NRRD_TYPE_SIZE_MAX);
     return 0;
   }
 
@@ -1520,8 +1520,8 @@ nrrdSanity(void) {
   if (maxsize != sizeof(NRRD_TYPE_BIGGEST)) {
     biffAddf(NRRD, "%s: actual max type size is %u != "
              "%u == sizeof(NRRD_TYPE_BIGGEST)",
-             me, AIR_CAST(unsigned int, maxsize),
-             AIR_CAST(unsigned int, sizeof(NRRD_TYPE_BIGGEST)));
+             me, AIR_UINT(maxsize),
+             AIR_UINT(sizeof(NRRD_TYPE_BIGGEST)));
     return 0;
   }
 

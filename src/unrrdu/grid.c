@@ -110,10 +110,10 @@ gridGen(Nrrd *nout, int typeOut, const Nrrd *nin, int psz, int psg) {
       }
       /*
       fprintf(stderr, "!%s: (%u) %u %u %u: %g %g\n", me,
-              AIR_CAST(unsigned int, II),
-              AIR_CAST(unsigned int, coord[0]),
-              AIR_CAST(unsigned int, coord[1]),
-              AIR_CAST(unsigned int, coord[2]),
+              AIR_UINT(II),
+              AIR_UINT(coord[0]),
+              AIR_UINT(coord[1]),
+              AIR_UINT(coord[2]),
               loc[0], loc[1]);
       */
       for (axi=0; axi<sdim; axi++) {

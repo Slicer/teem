@@ -130,9 +130,9 @@ meetNrrdKernelAll(void) {
    (for D and C, index 0 accesses the function for -1)
     NRRD_EXPORT NrrdKernel *const nrrdKernelTMF[4][5][5];
   */
-  dmax = AIR_CAST(int, nrrdKernelTMF_maxD);
-  cmax = AIR_CAST(int, nrrdKernelTMF_maxC);
-  amax = AIR_CAST(int, nrrdKernelTMF_maxA);
+  dmax = AIR_INT(nrrdKernelTMF_maxD);
+  cmax = AIR_INT(nrrdKernelTMF_maxC);
+  amax = AIR_INT(nrrdKernelTMF_maxA);
   for (di=-1; di<=dmax; di++) {
     for (ci=-1; ci<=cmax; ci++) {
       for (ai=1; ai<=amax; ai++) {

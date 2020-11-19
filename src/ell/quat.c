@@ -83,7 +83,7 @@
 void
 ell_3m_to_q_f(float q[4], const float m[9]) {
   _ELL_M_TO_Q( float, 0, 1, 2,    3, 4, 5,    6, 7, 8);
-  len = AIR_CAST(float, ELL_4V_LEN(q));
+  len = AIR_FLOAT(ELL_4V_LEN(q));
   ELL_4V_SCALE(q, 1.0f/len, q);
 }
 
@@ -96,7 +96,7 @@ ell_3m_to_q_d(double q[4], const double m[9]) {
 void
 ell_4m_to_q_f(float q[4], const float m[16]) {
   _ELL_M_TO_Q( float, 0, 1, 2,    4, 5, 6,    8, 9, 10);
-  len = AIR_CAST(float, ELL_4V_LEN(q));
+  len = AIR_FLOAT(ELL_4V_LEN(q));
   ELL_4V_SCALE(q, 1.0f/len, q);
 }
 
@@ -132,7 +132,7 @@ ell_4m_to_q_d(double q[4], const double m[16]) {
 void
 ell_q_to_3m_f(float m[9], const float q[4]) {
   float u[4], w=0.0, x=0.0, y=0.0, z=0.0;
-  w = AIR_CAST(float, ELL_4V_LEN(q));
+  w = AIR_FLOAT(ELL_4V_LEN(q));
   ELL_4V_SCALE(u, 1.0f/w, q);
   _ELL_Q_TO_3M(float);
 }
@@ -171,7 +171,7 @@ ell_q_to_3m_d(double m[9], const double q[4]) {
 void
 ell_q_to_4m_f(float m[16], const float q[4]) {
   float u[4], w=0.0, x=0.0, y=0.0, z=0.0;
-  w = AIR_CAST(float, ELL_3V_LEN(q));
+  w = AIR_FLOAT(ELL_3V_LEN(q));
   ELL_4V_SCALE(u, 1.0f/w, q);
   _ELL_Q_TO_4M(float);
 }
@@ -357,7 +357,7 @@ void
 ell_q_log_f(float q2[4], const float q1[4]) {
   float a, b, axis[3];
 
-  a = AIR_CAST(float, log(ELL_4V_LEN(q1)));
+  a = AIR_FLOAT(log(ELL_4V_LEN(q1)));
   b = ell_q_to_aa_f(axis, q1)/2.0f;
   ELL_4V_SET(q2, a, b*axis[0], b*axis[1], b*axis[2]);
 }
@@ -406,7 +406,7 @@ void
 ell_q_pow_f(float q2[4], const float q1[4], const float p) {
   float len, angle, axis[3];
 
-  len = AIR_CAST(float, pow(ELL_4V_LEN(q1), p));
+  len = AIR_FLOAT(pow(ELL_4V_LEN(q1), p));
   angle = ell_q_to_aa_f(axis, q1);
   ell_aa_to_q_f(q2, p*angle, axis);
   ELL_4V_SCALE(q2, len, q2);

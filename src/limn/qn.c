@@ -51,7 +51,7 @@ _limnQN16simple_QNtoV_f(float *vec, unsigned int qn) {
   x = (qn & 0x2000) ? -x : x;
   y = (qn & 0x4000) ? -y : y;
   z = (qn & 0x8000) ? -z : z;
-  n = AIR_CAST(float, 1.0/sqrt(x*x + y*y + z*z));
+  n = AIR_FLOAT(1.0/sqrt(x*x + y*y + z*z));
   vec[0] = x*n;
   vec[1] = y*n;
   vec[2] = z*n;
@@ -82,8 +82,8 @@ _limnQN16simple_VtoQN_f(const float *vec) {
     return 0;
   }
   w = 126.0f/L;
-  xi = AIR_CAST(unsigned int, x*w);
-  yi = AIR_CAST(unsigned int, y*w);
+  xi = AIR_UINT(x*w);
+  yi = AIR_UINT(y*w);
   if (xi >= 64) {
     xi = 127 - xi;
     yi = 127 - yi;
@@ -100,13 +100,13 @@ _limnQN16border1_QNtoV_f(float *vec, unsigned int qn) {
 
   ui = qn & 0xFF;
   vi = qn >> 8;
-  u = AIR_CAST(float, AIR_AFFINE(0.5, ui, 254.5, -0.5, 0.5));
-  v = AIR_CAST(float, AIR_AFFINE(0.5, vi, 254.5, -0.5, 0.5));
+  u = AIR_FLOAT(AIR_AFFINE(0.5, ui, 254.5, -0.5, 0.5));
+  v = AIR_FLOAT(AIR_AFFINE(0.5, vi, 254.5, -0.5, 0.5));
   x =  u + v;
   y =  u - v;
   z = 1 - AIR_ABS(x) - AIR_ABS(y);
   z *= AIR_INT(((ui&1) ^ (vi&1)) << 1) - 1;
-  n = AIR_CAST(float, 1.0/sqrt(x*x + y*y + z*z));
+  n = AIR_FLOAT(1.0/sqrt(x*x + y*y + z*z));
   vec[0] = x*n;
   vec[1] = y*n;
   vec[2] = z*n;

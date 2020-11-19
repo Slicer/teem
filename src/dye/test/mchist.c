@@ -147,9 +147,9 @@ main(int argc, const char *argv[]) {
   }
   rsmc = nrrdResampleContextNew();
   airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
-  size0 = AIR_CAST(unsigned int, nin0->axis[0].size);
-  sX = AIR_CAST(unsigned int, upSample*nin0->axis[1].size);
-  sY = AIR_CAST(unsigned int, upSample*nin0->axis[2].size);
+  size0 = AIR_UINT(nin0->axis[0].size);
+  sX = AIR_UINT(upSample*nin0->axis[1].size);
+  sY = AIR_UINT(upSample*nin0->axis[2].size);
   nrgb = nrrdNew();
   airMopAdd(mop, nrgb, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdResampleDefaultCenterSet(rsmc, nrrdCenterCell)

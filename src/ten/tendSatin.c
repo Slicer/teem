@@ -36,12 +36,12 @@ tend_satinSphereEigen(float *eval, float *evec, float x, float y, float z,
                       float thick, float bnd, float evsc) {
   float aniso, bound1, bound2, r, norm, tmp[3];
 
-  r = AIR_CAST(float, sqrt(x*x + y*y + z*z));
+  r = AIR_FLOAT(sqrt(x*x + y*y + z*z));
   /* 1 on inside, 0 on outside */
-  bound1 = AIR_CAST(float, 0.5 - 0.5*airErf((r-0.9)/(bnd + 0.0001)));
+  bound1 = AIR_FLOAT(0.5 - 0.5*airErf((r-0.9)/(bnd + 0.0001)));
   /* other way around */
-  bound2 = AIR_CAST(float, 0.5 - 0.5*airErf((0.9-thick-r)/(bnd + 0.0001)));
-  aniso = AIR_CAST(float, AIR_AFFINE(0.0, AIR_MIN(bound1, bound2), 1.0,
+  bound2 = AIR_FLOAT(0.5 - 0.5*airErf((0.9-thick-r)/(bnd + 0.0001)));
+  aniso = AIR_FLOAT(AIR_AFFINE(0.0, AIR_MIN(bound1, bound2), 1.0,
                                      mina, maxa));
 
   ELL_3V_SET_TT(eval, float,
@@ -76,11 +76,11 @@ tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z,
   float bound, R, r, norm, out[3], up[3], aniso;
 
   thick *= 2;
-  R = AIR_CAST(float, sqrt(x*x + y*y));
-  r = AIR_CAST(float, sqrt((R-1)*(R-1) + z*z));
+  R = AIR_FLOAT(sqrt(x*x + y*y));
+  r = AIR_FLOAT(sqrt((R-1)*(R-1) + z*z));
   /* 1 on inside, 0 on outside */
-  bound = AIR_CAST(float, 0.5 - 0.5*airErf((r-thick)/(bnd + 0.0001)));
-  aniso = AIR_CAST(float, AIR_AFFINE(0, bound, 1, mina, maxa));
+  bound = AIR_FLOAT(0.5 - 0.5*airErf((r-thick)/(bnd + 0.0001)));
+  aniso = AIR_FLOAT(AIR_AFFINE(0, bound, 1, mina, maxa));
 
   ELL_3V_SET_TT(eval, float,
                 AIR_LERP(aniso, 1.0/3.0, AIR_AFFINE(0.0, parm, 2.0, 1.0, 0.0)),
@@ -145,23 +145,23 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize,
   eval = (float *)neval->data;
   evec = (float *)nevec->data;
   for (zi=0; zi<size[2]; zi++) {
-    z = AIR_CAST(float, AIR_AFFINE(0, zi, size[2]-1, min[2], max[2]));
+    z = AIR_FLOAT(AIR_AFFINE(0, zi, size[2]-1, min[2], max[2]));
     z /= scaling;
     for (yi=0; yi<size[1]; yi++) {
-      y = AIR_CAST(float, AIR_AFFINE(0, yi, size[1]-1, min[1], max[1]));
+      y = AIR_FLOAT(AIR_AFFINE(0, yi, size[1]-1, min[1], max[1]));
       y /= scaling;
       for (xi=0; xi<size[0]; xi++) {
-        x = AIR_CAST(float, AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]));
+        x = AIR_FLOAT(AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]));
         x /= scaling;
         *conf = 1.0;
         if (torus) {
           float aff;
-          aff = AIR_CAST(float, AIR_AFFINE(0, yi, size[1]-1, 0, 1));
+          aff = AIR_FLOAT(AIR_AFFINE(0, yi, size[1]-1, 0, 1));
           tend_satinTorusEigen(eval, evec, x, y, z, parm,
                                mina, maxa, thick, bnd + bndRm*aff, evsc);
         } else {
           float aff;
-          aff = AIR_CAST(float, AIR_AFFINE(0,yi, size[1]-1, 0, 1));
+          aff = AIR_FLOAT(AIR_AFFINE(0,yi, size[1]-1, 0, 1));
           tend_satinSphereEigen(eval, evec, x, y, z, parm,
                                 mina, maxa, thick, bnd + bndRm*aff, evsc);
         }

@@ -193,7 +193,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
     return 1;
   }
 
-  gpsze = AIR_CAST(unsigned int, _nparm->axis[0].size);
+  gpsze = AIR_UINT(_nparm->axis[0].size);
   if (model->parmNum - 1 == gpsze) {
     /* got one less than needed parm #, see if we got B0 */
     if (!_nB0) {
@@ -456,10 +456,10 @@ tenModelSqeFit(Nrrd *nparm,
              airEnumStr(nrrdType, typeOut));
     return 1;
   }
-  dwiNum = AIR_CAST(unsigned int, ndwi->axis[0].size);
+  dwiNum = AIR_UINT(ndwi->axis[0].size);
   if (espec->imgNum != dwiNum) {
     biffAddf(TEN, "%s: espec expects %u images but dwi has %u on axis 0",
-             me, espec->imgNum, AIR_CAST(unsigned int, dwiNum));
+             me, espec->imgNum, AIR_UINT(dwiNum));
     return 1;
   }
 
@@ -669,10 +669,10 @@ tenModelSqeFit(Nrrd *nparm,
       airMopError(mop); return 1;
     }
   }
-  lablen = AIR_CAST(unsigned int, (strlen(tenModelPrefixStr)
-                                   + (saveB0 ? strlen("B0+") : 0)
-                                   + strlen(model->name)
-                                   + 1));
+  lablen = AIR_UINT((strlen(tenModelPrefixStr)
+                     + (saveB0 ? strlen("B0+") : 0)
+                     + strlen(model->name)
+                     + 1));
   nparm->axis[0].label = AIR_CALLOC(lablen, char);
   sprintf(nparm->axis[0].label, "%s%s%s",
           tenModelPrefixStr,
@@ -737,7 +737,7 @@ tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
       withB0 = AIR_FALSE;
     } else {
       biffAddf(TEN, "%s: axis[0].size %u is not \"%s\" parmnum %u or 1 less",
-               me, AIR_CAST(unsigned int, nparmSrc->axis[0].size),
+               me, AIR_UINT(nparmSrc->axis[0].size),
                modelSrc->name, modelSrc->parmNum);
       return 1;
     }
@@ -751,7 +751,7 @@ tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
   lup = nrrdDLookup[nparmSrc->type];
   ins = nrrdDInsert[nparmSrc->type];
   parmNumDst = withB0 ? modelDst->parmNum : modelDst->parmNum-1;
-  parmNumSrc = AIR_CAST(unsigned int, nparmSrc->axis[0].size);
+  parmNumSrc = AIR_UINT(nparmSrc->axis[0].size);
   for (ii=0; ii<nparmSrc->dim; ii++) {
     szOut[ii] = (!ii
                  ? parmNumDst
@@ -807,10 +807,10 @@ tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
     airMopError(mop); return 1;
   }
   /* HEY: COPY AND PASTE! from above. perhaps make helper functions? */
-  lablen = AIR_CAST(unsigned int, (strlen(tenModelPrefixStr)
-                                   + (withB0 ? strlen("B0+") : 0)
-                                   + strlen(modelDst->name)
-                                   + 1));
+  lablen = AIR_UINT((strlen(tenModelPrefixStr)
+                     + (withB0 ? strlen("B0+") : 0)
+                     + strlen(modelDst->name)
+                     + 1));
   nparmDst->axis[0].label = AIR_CALLOC(lablen, char);
   sprintf(nparmDst->axis[0].label, "%s%s%s",
           tenModelPrefixStr,

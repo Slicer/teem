@@ -28,7 +28,7 @@ void
 ell_4v_norm_f(float bv[4], const float av[4]) {
   float len;
 
-  len = AIR_CAST(float, ELL_4V_LEN(av));
+  len = AIR_FLOAT(ELL_4V_LEN(av));
   ELL_4V_SCALE(bv, 1.0f/len, av);
   return;
 }
@@ -119,10 +119,10 @@ ell_3v_angle_f(const float _uu[3], const float _vv[3]) {
   ELL_3V_NORM_TT(vv, float, _vv, len);
   if (ELL_3V_DOT(uu, vv) < 0.0) {
     ELL_3V_ADD2(tmp, uu, vv);
-    ret = AIR_CAST(float, AIR_PI - 2*asin(ELL_3V_LEN(tmp)/2.0));
+    ret = AIR_FLOAT(AIR_PI - 2*asin(ELL_3V_LEN(tmp)/2.0));
   } else {
     ELL_3V_SUB(tmp, uu, vv);
-    ret = AIR_CAST(float, 2*asin(ELL_3V_LEN(tmp)/2.0));
+    ret = AIR_FLOAT(2*asin(ELL_3V_LEN(tmp)/2.0));
   }
   return ret;
 }
@@ -153,10 +153,10 @@ ell_2v_angle_f(const float _uu[2], const float _vv[2]) {
   ELL_2V_NORM_TT(vv, float, _vv, len);
   if (ELL_2V_DOT(uu, vv) < 0.0) {
     ELL_2V_ADD2(tmp, uu, vv);
-    ret = AIR_CAST(float, AIR_PI - 2*asin(ELL_2V_LEN(tmp)/2.0));
+    ret = AIR_FLOAT(AIR_PI - 2*asin(ELL_2V_LEN(tmp)/2.0));
   } else {
     ELL_2V_SUB(tmp, uu, vv);
-    ret = AIR_CAST(float, 2*asin(ELL_2V_LEN(tmp)/2.0));
+    ret = AIR_FLOAT(2*asin(ELL_2V_LEN(tmp)/2.0));
   }
   return ret;
 }

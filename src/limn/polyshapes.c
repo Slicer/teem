@@ -114,7 +114,7 @@ limnPolyDataCube(limnPolyData *pld,
       ELL_3V_SET(pld->norm + 3*22,  0,  0,  1);
     } else {
       float cn;
-      cn = AIR_CAST(float, sqrt(3.0));
+      cn = AIR_FLOAT(sqrt(3.0));
       ELL_3V_SET(pld->norm + 3*0, -cn, -cn, -cn);
       ELL_3V_SET(pld->norm + 3*1, -cn,  cn, -cn);
       ELL_3V_SET(pld->norm + 3*2,  cn,  cn, -cn);
@@ -246,7 +246,7 @@ limnPolyDataCubeTriangles(limnPolyData *pld,
       ELL_3V_SET(pld->norm + 3* 9,  0,  0,  1);
     } else {
       float cn;
-      cn = AIR_CAST(float, 1.0/sqrt(3.0));
+      cn = AIR_FLOAT(1.0/sqrt(3.0));
       ELL_3V_SET(pld->norm + 3*0,  cn, -cn,  cn);
       ELL_3V_SET(pld->norm + 3*1, -cn, -cn,  cn);
       ELL_3V_SET(pld->norm + 3*2,  cn,  cn,  cn);
@@ -324,7 +324,7 @@ limnPolyDataCubeTriangles(limnPolyData *pld,
       ELL_3V_SET(pld->tang + 3* 9,  1,  0,  0);
     } else {
       float sn;
-      sn = AIR_CAST(float, 1.0/sqrt(2.0));
+      sn = AIR_FLOAT(1.0/sqrt(2.0));
       ELL_3V_SET(pld->tang + 3*0, -sn,  sn,  0);
       ELL_3V_SET(pld->tang + 3*1,  sn,  sn,  0);
       ELL_3V_SET(pld->tang + 3*2, -sn, -sn,  0);
@@ -407,7 +407,7 @@ limnPolyDataOctahedron(limnPolyData *pld,
   if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
     if (sharpEdge) {
       float cn;
-      cn = AIR_CAST(float, 1.0/sqrt(3));
+      cn = AIR_FLOAT( 1.0/sqrt(3));
       /* 0 */
       ELL_3V_SET(pld->norm +  3*0,  cn,  cn,  cn);
       ELL_3V_SET(pld->norm +  3*8,  cn,  cn,  cn);
@@ -925,8 +925,8 @@ limnPolyDataSpiralBetterquadric(limnPolyData *pld,
         yy = (pld->xyzw + 4*vertIdx)[1];
         rr = sqrt(xx*xx + yy*yy);
         if (rr) {
-          (pld->xyzw + 4*vertIdx)[0] *= AIR_CAST(float, AIR_AFFINE(0, rr, 1, minRad/rr, 1/rr));
-          (pld->xyzw + 4*vertIdx)[1] *= AIR_CAST(float, AIR_AFFINE(0, rr, 1, minRad/rr, 1/rr));
+          (pld->xyzw + 4*vertIdx)[0] *= AIR_FLOAT(AIR_AFFINE(0, rr, 1, minRad/rr, 1/rr));
+          (pld->xyzw + 4*vertIdx)[1] *= AIR_FLOAT(AIR_AFFINE(0, rr, 1, minRad/rr, 1/rr));
         }
       }
       if (((1 << limnPolyDataInfoNorm) & infoBitFlag)
@@ -1368,9 +1368,9 @@ limnPolyDataPlane(limnPolyData *pld,
 
   vertIdx = 0;
   for (vIdx=0; vIdx<vRes; vIdx++) {
-    vv = AIR_CAST(float, AIR_AFFINE(0, vIdx, vRes-1, -1.0, 1.0));
+    vv = AIR_FLOAT(AIR_AFFINE(0, vIdx, vRes-1, -1.0, 1.0));
     for (uIdx=0; uIdx<uRes; uIdx++) {
-      uu = AIR_CAST(float, AIR_AFFINE(0, uIdx, uRes-1, -1.0, 1.0));
+      uu = AIR_FLOAT(AIR_AFFINE(0, uIdx, uRes-1, -1.0, 1.0));
       ELL_4V_SET(pld->xyzw + 4*vertIdx, uu, vv, 0.0, 1.0);
       if ((1 << limnPolyDataInfoNorm) & infoBitFlag) {
         ELL_3V_SET_TT(pld->norm + 3*vertIdx, float, 0.0, 0.0, 1.0);

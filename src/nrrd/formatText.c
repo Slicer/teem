@@ -93,7 +93,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
   /* we only get here with the first line already in nio->line */
   line = 1;
-  llen = AIR_CAST(unsigned int, strlen(nio->line));
+  llen = AIR_UINT(strlen(nio->line));
 
   if (0 == nrrd->dim) {
     settwo = nrrd->dim;
@@ -194,7 +194,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   for (sx=1; 1; sx++) {
     /* there is obviously a limit to the number of numbers that can
        be parsed from a single finite line of input text */
-    airArrayLenSet(flArr, AIR_CAST(unsigned int, sx));
+    airArrayLenSet(flArr, AIR_UINT(sx));
     if (!flArr->data) {
       char stmp[AIR_STRLEN_SMALL];
       biffAddf(NRRD, "%s: couldn't alloc space for %s values", me,
@@ -202,7 +202,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       UNSETTWO; return 1;
     }
     if (sx > airParseStrF(flArr->data, nio->line,
-                          _nrrdTextSep, AIR_CAST(unsigned int, sx))) {
+                          _nrrdTextSep, AIR_UINT(sx))) {
       /* We asked for sx ints and got less.  We know that we successfully
          got one value, so we did succeed in parsing sx-1 values */
       sx--;

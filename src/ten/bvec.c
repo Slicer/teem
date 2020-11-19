@@ -136,7 +136,7 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   for (ii=1; ii<nin->dim; ii++) {
-    map[ii] = AIR_CAST(int, ii);
+    map[ii] = AIR_INT(ii);
   }
   map[0] = -1;
   if (nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_NONE)) {
@@ -146,7 +146,7 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
 
   /* process all b vectors */
   /* HEY unsigned? */
-  vecSize = AIR_CAST(int, nin->axis[0].size*nrrdTypeSize[nin->type]);
+  vecSize = AIR_INT(nin->axis[0].size*nrrdTypeSize[nin->type]);
   vecNum = nrrdElementNumber(nin)/nin->axis[0].size;
   vecLup = nrrdDLookup[nin->type];
   vec = (char*)nin->data;
@@ -158,10 +158,9 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
     }
     /* start with linear fit */
     tenBVecNonLinearFit_linear(&amp, &dec, bb, ss, ww,
-                               AIR_CAST(unsigned int, nin->axis[0].size));
+                               AIR_UINT(nin->axis[0].size));
     error = tenBVecNonLinearFit_error(bb, ss, ww,
-                                      AIR_CAST(unsigned int,
-                                               nin->axis[0].size),
+                                      AIR_UINT(nin->axis[0].size),
                                       amp, dec);
     /* possibly refine with gauss-newton */
     if (iterMax > 0) {
@@ -169,7 +168,7 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
       do {
         iter++;
         tenBVecNonLinearFit_GNstep(&d_amp, &d_dec, bb, ss, ww,
-                                   AIR_CAST(unsigned int, nin->axis[0].size),
+                                   AIR_UINT(nin->axis[0].size),
                                    amp, dec);
         amp += 0.3*d_amp;
         dec += 0.3*d_dec;
@@ -177,8 +176,7 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
       } while (iter < iterMax && diff > eps);
     }
     error = tenBVecNonLinearFit_error(bb, ss, ww,
-                                      AIR_CAST(unsigned int,
-                                               nin->axis[0].size),
+                                      AIR_UINT(nin->axis[0].size),
                                       amp, dec);
     out[0] = amp;
     out[1] = dec;

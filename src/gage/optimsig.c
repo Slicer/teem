@@ -741,7 +741,7 @@ _errTotalLinf(double *retP, gageOptimSigContext *oscx,
     }
     sig = _SigOfRho(rho);
     pid = gageStackWtoI(oscx->gctx, sig, &outside);
-    pi = AIR_CAST(unsigned int, pid);
+    pi = AIR_UINT(pid);
     if (outside || !(pi <= oscx->sampleNum-2)) {
       biffAddf(GAGE, "%s: ii %u -> rho %g -> sig %g -> pi %u-> OUTSIDE",
                me, ii, rho, sig, pi);
@@ -886,7 +886,7 @@ _optsigrun(gageOptimSigContext *oscx) {
     double limit, err1, grad, delta;
     unsigned int tryi;
     int zerodelta, esgn;
-    esgn = 2*AIR_CAST(int, airRandInt(2)) - 1;
+    esgn = 2*AIR_INT(airRandInt(2)) - 1;
     pnt = 1 + (iter % (oscx->sampleNum-2));
     lastPos = oscx->sampleRho[pnt];
     fprintf(stderr, "%s: ***** iter %u; [[ err %g ]] %s\n",

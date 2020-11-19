@@ -94,7 +94,7 @@ tend_evecMain(int argc, const char **argv, const char *me,
   if (1 == compLen) {
     for (I=0; I<N; I++) {
       tenEigensolve_f(eval, evec, tdata);
-      scl = AIR_CAST(float, tdata[0] >= thresh);
+      scl = AIR_FLOAT(tdata[0] >= thresh);
       ELL_3V_SCALE(edata, scl, evec+3*comp[0]);
       edata += 3;
       tdata += 7;
@@ -102,7 +102,7 @@ tend_evecMain(int argc, const char **argv, const char *me,
   } else {
     for (I=0; I<N; I++) {
       tenEigensolve_f(eval, evec, tdata);
-      scl = AIR_CAST(float, tdata[0] >= thresh);
+      scl = AIR_FLOAT(tdata[0] >= thresh);
       for (cc=0; cc<compLen; cc++) {
         ELL_3V_SCALE(edata+3*cc, scl, evec+3*comp[cc]);
       }

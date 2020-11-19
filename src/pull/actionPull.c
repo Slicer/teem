@@ -566,12 +566,12 @@ _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
       ELL_4V_NORM_TT(ncs, float, ncs, ncsLen);
       if (ncsLen) {
         syy = ncs[3];
-        scl = AIR_CAST(float, (task->pctx->flag.scaleIsTau
-                               ? gageSigOfTau(point->pos[3])
-                               : point->pos[3]));
+        scl = AIR_FLOAT((task->pctx->flag.scaleIsTau
+                         ? gageSigOfTau(point->pos[3])
+                         : point->pos[3]));
         if (scl) {
-          sxx = AIR_CAST(float, ELL_3V_LEN(ncs))/scl;
-          point->stability = AIR_CAST(float, atan2(syy, sxx)/(AIR_PI/2));
+          sxx = AIR_FLOAT(ELL_3V_LEN(ncs))/scl;
+          point->stability = AIR_FLOAT(atan2(syy, sxx)/(AIR_PI/2));
         } else {
           point->stability = 0;
         }
@@ -655,7 +655,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
       /* NOTE: since you only need one bit of random, you could re-used
          a random int and look through its bits to determine forw vs
          back differences, but this is probably not the bottleneck */
-      sign = 2*AIR_CAST(int, airRandInt_r(task->rng, 2)) - 1;
+      sign = 2*AIR_INT(airRandInt_r(task->rng, 2)) - 1;
       deltaScale = task->pctx->bboxMax[3] - task->pctx->bboxMin[3];
       deltaScale *= sign*_PULL_STRENGTH_ENERGY_DELTA_SCALE;
       scl1 = (point->pos[3] += deltaScale);

@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -72,7 +72,7 @@ main(int argc, char *argv[]) {
     d = f;
     /* I think solaris turns the SNAN into a QNAN */
     printf("to double and back:\n");
-    airFPFprintf_f(stdout, d);
+    airFPFprintf_f(stdout, AIR_FLOAT(d));
     printf("AIR_ISNAN_F = %d\n", AIR_ISNAN_F(f));
   }
 
@@ -105,7 +105,7 @@ main(int argc, char *argv[]) {
   g = f*f;
   printf("g = f*f = %f\n", g);
   airFPFprintf_f(stdout, g);
-  g = sin(f);
+  g = sinf(f);
   printf("g = sin(f) = %f\n", g);
   airFPFprintf_f(stdout, g);
 

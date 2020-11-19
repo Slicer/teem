@@ -24,7 +24,7 @@
 
 #include "../push.h"
 
-char *info = ("Tests parsing of energy, and its methods.");
+const char *info = ("Tests parsing of energy, and its methods.");
 
 int
 main(int argc, const char *argv[]) {

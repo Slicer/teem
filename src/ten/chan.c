@@ -568,7 +568,7 @@ tenEstimateLinearSingle_f(float *_ten, float *_B0P,              /* output */
                             thresh, soft, b);
   TEN_T_COPY_TT(_ten, float, ten);
   if (_B0P) {
-    *_B0P = AIR_CAST(float, B0);
+    *_B0P = AIR_FLOAT(B0);
   }
   return;
 }
@@ -772,9 +772,9 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
     }
     tenEstimateLinearSingle_f(ten, &_B0, dwi1, emat,
                               vbuf, AIR_UINT(DD), knownB0,
-                              AIR_CAST(float, thresh),
-                              AIR_CAST(float, soft),
-                              AIR_CAST(float, b));
+                              AIR_FLOAT(thresh),
+                              AIR_FLOAT(soft),
+                              AIR_FLOAT(b));
     if (nB0P) {
       *B0 = _B0;
     }
@@ -786,7 +786,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
       te = 0;
       if (knownB0) {
         tenSimulateSingle_f(dwi2, _B0, ten, bmat,
-                            AIR_UINT(DD), AIR_CAST(float, b));
+                            AIR_UINT(DD), AIR_FLOAT(b));
         for (d=1; d<DD; d++) {
           d1 = AIR_MAX(dwi1[d], 1);
           d2 = AIR_MAX(dwi2[d], 1);
@@ -795,7 +795,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
         te /= (DD-1);
       } else {
         tenSimulateSingle_f(dwi2, _B0, ten, bmat,
-                            AIR_UINT(DD+1), AIR_CAST(float, b));
+                            AIR_UINT(DD+1), AIR_FLOAT(b));
         for (d=0; d<DD; d++) {
           d1 = AIR_MAX(dwi1[d], 1);
           /* tenSimulateSingle_f always puts the B0 in the beginning of
@@ -806,7 +806,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P,
         }
         te /= DD;
       }
-      *terr = AIR_CAST(float, sqrt(te));
+      *terr = AIR_FLOAT(sqrt(te));
       terr += 1;
     }
     ten += 7;
@@ -862,7 +862,7 @@ tenSimulateSingle_f(float *dwi,
     for (jj=0; jj<6; jj++) {
       vv += matwght[jj]*bmat[jj + 6*ii]*ten[jj+1];
     }
-    dwi[ii+1] = AIR_CAST(float, AIR_MAX(B0, 1)*exp(-b*vv));
+    dwi[ii+1] = AIR_FLOAT(AIR_MAX(B0, 1)*exp(-b*vv));
     /* if (tenVerbose) {
       fprintf(stderr, "v[%d] = %g --> dwi = %g\n", ii, vv, dwi[ii+1]);
     } */
@@ -926,7 +926,7 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten,
   for (II=0; II<(size_t)(sx*sy*sz); II++) {
     /* tenVerbose = (II == 42 + 190*(96 + 196*0)); */
     tenSimulateSingle_f(dwi, lup(nT2->data, II), ten, bmat,
-                        AIR_UINT(DD), AIR_CAST(float, b));
+                        AIR_UINT(DD), AIR_FLOAT(b));
     dwi += DD;
     ten += 7;
   }
@@ -974,19 +974,19 @@ tenCalcOneTensor1(float tens[7], float chan[7],
   c[5] = AIR_MAX(chan[5], 1);
   c[6] = AIR_MAX(chan[6], 1);
   sum = c[1] + c[2] + c[3] + c[4] + c[5] + c[6];
-  tens[0] = AIR_CAST(float, (1 + airErf(slope*(sum - thresh)))/2.0);
+  tens[0] = AIR_FLOAT((1 + airErf(slope*(sum - thresh)))/2.0);
   d1 = (log(c[0]) - log(c[1]))/b;
   d2 = (log(c[0]) - log(c[2]))/b;
   d3 = (log(c[0]) - log(c[3]))/b;
   d4 = (log(c[0]) - log(c[4]))/b;
   d5 = (log(c[0]) - log(c[5]))/b;
   d6 = (log(c[0]) - log(c[6]))/b;
-  tens[1] = AIR_CAST(float,  d1 + d2 - d3 - d4 + d5 + d6);    /* Dxx */
-  tens[2] = AIR_CAST(float,  d5 - d6);                        /* Dxy */
-  tens[3] = AIR_CAST(float,  d1 - d2);                        /* Dxz */
-  tens[4] = AIR_CAST(float, -d1 - d2 + d3 + d4 + d5 + d6);    /* Dyy */
-  tens[5] = AIR_CAST(float,  d3 - d4);                        /* Dyz */
-  tens[6] = AIR_CAST(float,  d1 + d2 + d3 + d4 - d5 - d6);    /* Dzz */
+  tens[1] = AIR_FLOAT( d1 + d2 - d3 - d4 + d5 + d6);    /* Dxx */
+  tens[2] = AIR_FLOAT( d5 - d6);                        /* Dxy */
+  tens[3] = AIR_FLOAT( d1 - d2);                        /* Dxz */
+  tens[4] = AIR_FLOAT(-d1 - d2 + d3 + d4 + d5 + d6);    /* Dyy */
+  tens[5] = AIR_FLOAT( d3 - d4);                        /* Dyz */
+  tens[6] = AIR_FLOAT( d1 + d2 + d3 + d4 - d5 - d6);    /* Dzz */
   return;
 }
 
@@ -1008,19 +1008,19 @@ tenCalcOneTensor2(float tens[7], float chan[7],
   c[5] = AIR_MAX(chan[5], 1);
   c[6] = AIR_MAX(chan[6], 1);
   sum = c[1] + c[2] + c[3] + c[4] + c[5] + c[6];
-  tens[0] = AIR_CAST(float, (1 + airErf(slope*(sum - thresh)))/2.0);
+  tens[0] = AIR_FLOAT((1 + airErf(slope*(sum - thresh)))/2.0);
   d1 = (log(c[0]) - log(c[1]))/b;
   d2 = (log(c[0]) - log(c[2]))/b;
   d3 = (log(c[0]) - log(c[3]))/b;
   d4 = (log(c[0]) - log(c[4]))/b;
   d5 = (log(c[0]) - log(c[5]))/b;
   d6 = (log(c[0]) - log(c[6]))/b;
-  tens[1] =  AIR_CAST(float, d1);                 /* Dxx */
-  tens[2] =  AIR_CAST(float, d6 - (d1 + d2)/2);   /* Dxy */
-  tens[3] =  AIR_CAST(float, d5 - (d1 + d3)/2);   /* Dxz */
-  tens[4] =  AIR_CAST(float, d2);                 /* Dyy */
-  tens[5] =  AIR_CAST(float, d4 - (d2 + d3)/2);   /* Dyz */
-  tens[6] =  AIR_CAST(float, d3);                 /* Dzz */
+  tens[1] =  AIR_FLOAT(d1);                 /* Dxx */
+  tens[2] =  AIR_FLOAT(d6 - (d1 + d2)/2);   /* Dxy */
+  tens[3] =  AIR_FLOAT(d5 - (d1 + d3)/2);   /* Dxz */
+  tens[4] =  AIR_FLOAT(d2);                 /* Dyy */
+  tens[5] =  AIR_FLOAT(d4 - (d2 + d3)/2);   /* Dyz */
+  tens[6] =  AIR_FLOAT(d3);                 /* Dzz */
   return;
 }
 

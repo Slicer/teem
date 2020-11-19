@@ -58,7 +58,7 @@ nrrdIoStateSet(NrrdIoState *nio, int parm, int value) {
       return 1;
     }
     /* cast won't lose info because "value" must be positive */
-    nio->charsPerLine = AIR_CAST(unsigned int, value);
+    nio->charsPerLine = AIR_UINT(value);
     break;
   case nrrdIoStateValsPerLine:
     if (value < 4) {
@@ -66,7 +66,7 @@ nrrdIoStateSet(NrrdIoState *nio, int parm, int value) {
       return 1;
     }
     /* cast won't lose info because "value" must be positive */
-    nio->valsPerLine = AIR_CAST(unsigned int, value);
+    nio->valsPerLine = AIR_UINT(value);
     break;
   case nrrdIoStateSkipData:
     nio->skipData = !!value;

@@ -545,8 +545,8 @@ main(int argc, const char *argv[]) {
                  me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  uu->hctx->imgSize[0] = AIR_CAST(int, isScale*uu->hctx->imgSize[0]);
-  uu->hctx->imgSize[1] = AIR_CAST(int, isScale*uu->hctx->imgSize[1]);
+  uu->hctx->imgSize[0] = AIR_INT(isScale*uu->hctx->imgSize[0]);
+  uu->hctx->imgSize[1] = AIR_INT(isScale*uu->hctx->imgSize[1]);
 
   uu->whatq = airEnumVal(uu->kind->enm, whatS);
   if (-1 == uu->whatq) {

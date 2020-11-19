@@ -170,7 +170,7 @@ nrrdDeringInputSet(NrrdDeringContext *drc, const Nrrd *nin) {
                     * nrrdElementSize(nin));
   if (drc->verbose > 2) {
     fprintf(stderr, "%s: sliceSize = %u\n", me,
-            AIR_CAST(unsigned int, drc->sliceSize));
+            AIR_UINT(drc->sliceSize));
   }
 
   return 0;
@@ -527,9 +527,9 @@ deringXYtoRT(NrrdDeringContext *drc, deringBag *dbg,
   rr = sqrt(dx*dx + dy*dy);
   th = atan2(-dx, dy);
   rrScl = AIR_AFFINE(-EPS, rr, dbg->radMax+EPS, 0.0, dbg->radNum-1);
-  *rrIdx = AIR_CAST(unsigned int, 0.5 + rrScl);
+  *rrIdx = AIR_UINT(0.5 + rrScl);
   thScl = AIR_AFFINE(-AIR_PI-EPS, th, AIR_PI+EPS, 0.0, drc->thetaNum);
-  *thIdx = AIR_CAST(unsigned int, 0.5 + thScl);
+  *thIdx = AIR_UINT(0.5 + thScl);
   if (rrFrc && thFrc) {
     *rrFrc = rrScl - *rrIdx;
     *thFrc = thScl - *thIdx;
@@ -552,8 +552,8 @@ deringPtxfDo(NrrdDeringContext *drc, deringBag *dbg) {
 
   nrrdZeroSet(dbg->nptxf[ORIG]);
   nrrdZeroSet(dbg->nptxf[WGHT]);
-  sx = AIR_CAST(unsigned int, drc->nin->axis[0].size);
-  sy = AIR_CAST(unsigned int, drc->nin->axis[1].size);
+  sx = AIR_UINT(drc->nin->axis[0].size);
+  sy = AIR_UINT(drc->nin->axis[1].size);
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {
       double rrFrc, thFrc, val;
@@ -689,8 +689,8 @@ deringSubtract(NrrdDeringContext *drc, deringBag *dbg) {
   /* static const char me[]="deringSubtract"; */
   unsigned int sx, sy, xi, yi, rrIdx, thIdx;
 
-  sx = AIR_CAST(unsigned int, drc->nin->axis[0].size);
-  sy = AIR_CAST(unsigned int, drc->nin->axis[1].size);
+  sx = AIR_UINT(drc->nin->axis[0].size);
+  sy = AIR_UINT(drc->nin->axis[1].size);
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {
       double rrFrc, thFrc, val;
@@ -795,8 +795,8 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
 
   /* set radLen: radial length of polar transform of data */
   radLen = 0;
-  sx = AIR_CAST(unsigned int, drc->nin->axis[0].size);
-  sy = AIR_CAST(unsigned int, drc->nin->axis[1].size);
+  sx = AIR_UINT(drc->nin->axis[0].size);
+  sy = AIR_UINT(drc->nin->axis[1].size);
   dx = 0 - drc->center[0];
   dy = 0 - drc->center[1];
   len = sqrt(dx*dx + dy*dy);
@@ -882,7 +882,7 @@ nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
 
   sz = (2 == drc->nin->dim
         ? 1
-        : AIR_CAST(unsigned int, drc->nin->axis[2].size));
+        : AIR_UINT(drc->nin->axis[2].size));
   drc->ringMagnitude = 0.0;
   for (zi=0; zi<sz; zi++) {
     if (drc->verbose) {

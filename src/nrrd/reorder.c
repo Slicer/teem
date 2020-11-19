@@ -341,7 +341,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
              me, axis, nin->dim-1);
     return 1;
   }
-  len = AIR_CAST(unsigned int, nin->axis[axis].size);
+  len = AIR_UINT(nin->axis[axis].size);
   for (ai=0; ai<len; ai++) {
     if (!( perm[ai] < len )) {
       char stmp[AIR_STRLEN_SMALL];

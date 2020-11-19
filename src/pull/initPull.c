@@ -74,7 +74,7 @@ _pullInitParmCheck(pullInitParm *iparm) {
                airEnumStr(nrrdType, nrrdTypeFloat),
                airEnumStr(nrrdType, nrrdTypeDouble),
                iparm->npos->dim,
-               AIR_CAST(unsigned int, iparm->npos->axis[0].size),
+               AIR_UINT(iparm->npos->axis[0].size),
                airEnumStr(nrrdType, iparm->npos->type));
       return 1;
     }

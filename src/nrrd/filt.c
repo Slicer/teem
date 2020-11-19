@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,7 +24,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-int
+int /* HEY unsigned? */
 _nrrdCM_median(const float *hist, float half) {
   float sum = 0;
   const float *hpt;
@@ -34,7 +34,7 @@ _nrrdCM_median(const float *hist, float half) {
   while(sum < half)
     sum += *hpt++;
 
-  return AIR_CAST(int, hpt - 1 - hist);
+  return AIR_INT(hpt - 1 - hist);
 }
 
 int
@@ -80,8 +80,8 @@ _nrrdCM_wtAlloc(int radius, float wght) {
   wt = (float *)calloc(diam, sizeof(float));
   wt[radius] = 1.0;
   for (r=1; r<=radius; r++) {
-    wt[radius+r] = AIR_CAST(float, pow(1.0/wght, r));
-    wt[radius-r] = AIR_CAST(float, pow(1.0/wght, r));
+    wt[radius+r] = AIR_FLOAT(pow(1.0/wght, r));
+    wt[radius-r] = AIR_FLOAT(pow(1.0/wght, r));
   }
   sum = 0.0;
   for (r=0; r<diam; r++) {
@@ -114,7 +114,7 @@ _nrrdCheapMedian1D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
   if (1 == wght) {
     /* uniform weighting-> can do sliding histogram optimization */
     /* initialize histogram */
-    half = AIR_CAST(float, diam/2 + 1);
+    half = AIR_FLOAT(diam/2 + 1);
     memset(hist, 0, bins*sizeof(float));
     for (X=0; X<diam; X++) {
       hist[INDEX(nin, range, lup, X, bins, val)]++;
@@ -161,12 +161,12 @@ _nrrdCheapMedian2D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
   double val, (*lup)(const void *, size_t);
 
   diam = 2*radius + 1;
-  sx = AIR_CAST(unsigned int, nin->axis[0].size);
-  sy = AIR_CAST(unsigned int, nin->axis[1].size);
+  sx = AIR_UINT(nin->axis[0].size);
+  sy = AIR_UINT(nin->axis[1].size);
   lup = nrrdDLookup[nin->type];
   if (1 == wght) {
     /* uniform weighting-> can do sliding histogram optimization */
-    half = AIR_CAST(float, diam*diam/2 + 1);
+    half = AIR_FLOAT(diam*diam/2 + 1);
     for (Y=radius; Y<sy-radius; Y++) {
       /* initialize histogram */
       memset(hist, 0, bins*sizeof(float));
@@ -219,20 +219,20 @@ _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
                    int bins, int mode, float *hist) {
   static const char me[]="_nrrdCheapMedian3D";
   char done[13];
-  int X, Y, Z, I, J, K;
-  int sx, sy, sz, idx, diam;
+  int X, Y, Z, I, J, K, sx, sy, sz;
+  int idx, diam;
   float half, *wt;
   double val, (*lup)(const void *, size_t);
 
   diam = 2*radius + 1;
-  sx = AIR_CAST(int, nin->axis[0].size);
-  sy = AIR_CAST(int, nin->axis[1].size);
-  sz = AIR_CAST(int, nin->axis[2].size);
+  sx = AIR_INT(nin->axis[0].size);
+  sy = AIR_INT(nin->axis[1].size);
+  sz = AIR_INT(nin->axis[2].size);
   lup = nrrdDLookup[nin->type];
   fprintf(stderr, "%s: ...       ", me);
   if (1 == wght) {
     /* uniform weighting-> can do sliding histogram optimization */
-    half = AIR_CAST(float, diam*diam*diam/2 + 1);
+    half = AIR_FLOAT(diam*diam*diam/2 + 1);
     fflush(stderr);
     for (Z=radius; Z<sz-radius; Z++) {
       fprintf(stderr, "%s", airDoneStr(radius, Z, sz-radius-1, done));
@@ -311,15 +311,15 @@ _nrrdCheapMedian4D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
   double val, (*lup)(const void *, size_t);
 
   diam = 2*radius + 1;
-  sw = AIR_CAST(int, nin->axis[0].size);
-  sx = AIR_CAST(int, nin->axis[1].size);
-  sy = AIR_CAST(int, nin->axis[2].size);
-  sz = AIR_CAST(int, nin->axis[3].size);
+  sw = AIR_INT(nin->axis[0].size);
+  sx = AIR_INT(nin->axis[1].size);
+  sy = AIR_INT(nin->axis[2].size);
+  sz = AIR_INT(nin->axis[3].size);
   lup = nrrdDLookup[nin->type];
   fprintf(stderr, "%s: ...       ", me);
   if (1 == wght) {
     /* uniform weighting-> can do sliding histogram optimization */
-    half = AIR_CAST(float, diam*diam*diam*diam/2 + 1);
+    half = AIR_FLOAT(diam*diam*diam*diam/2 + 1);
     fflush(stderr);
     for (Z=radius; Z<sz-radius; Z++) {
       fprintf(stderr, "%s", airDoneStr(radius, Z, sz-radius-1, done));
@@ -432,12 +432,12 @@ nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin,
              me, _nin->dim);
     return 1;
   }
-  minsize = AIR_CAST(unsigned int, _nin->axis[0].size);
+  minsize = AIR_UINT(_nin->axis[0].size);
   if (_nin->dim > 1) {
-    minsize = AIR_MIN(minsize, AIR_CAST(unsigned int, _nin->axis[1].size));
+    minsize = AIR_MIN(minsize, AIR_UINT(_nin->axis[1].size));
   }
   if (_nin->dim > 2) {
-    minsize = AIR_MIN(minsize, AIR_CAST(unsigned int, _nin->axis[2].size));
+    minsize = AIR_MIN(minsize, AIR_UINT(_nin->axis[2].size));
   }
   if (!pad && minsize < 2*radius+1) {
     biffAddf(NRRD, "%s: minimum nrrd size (%d) smaller than filtering "
@@ -577,16 +577,16 @@ distanceL2Sqrd1D(double *dd, const double *ff,
   zz[1] = +FLT_MAX;
   for (qq=1; qq<len; qq++) {
     double ss;
-    ss = intx(AIR_CAST(double, qq), ff[qq], vv[kk], ff[vv[kk]], spc);
+    ss = intx(AIR_DOUBLE(qq), ff[qq], vv[kk], ff[vv[kk]], spc);
     /* while (ss <= zz[kk]) {
     ** HEY this can have kk going to -1 and into memory errors!
     */
     while (ss <= zz[kk] && kk) {
       kk--;
-      ss = intx(AIR_CAST(double, qq), ff[qq], vv[kk], ff[vv[kk]], spc);
+      ss = intx(AIR_DOUBLE(qq), ff[qq], vv[kk], ff[vv[kk]], spc);
     }
     kk++;
-    vv[kk] = AIR_CAST(unsigned int, qq);
+    vv[kk] = AIR_UINT(qq);
     zz[kk] = ss;
     zz[kk+1] = +FLT_MAX;
   }
@@ -598,7 +598,7 @@ distanceL2Sqrd1D(double *dd, const double *ff,
       kk++;
     }
     /* cast to avoid overflow weirdness on the unsigned ints */
-    dx = AIR_CAST(double, qq) - vv[kk];
+    dx = AIR_DOUBLE(qq) - vv[kk];
     dd[qq] = spc*spc*dx*dx + ff[vv[kk]];
   }
 

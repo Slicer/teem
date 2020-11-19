@@ -72,9 +72,9 @@ echoThreadStateInit(int threadIdx, echoThreadState *tstate,
     return 1;
   }
 
-  airSrandMT_r(tstate->rst, AIR_CAST(unsigned int, (parm->seedRand
-                                                    ? airTime()
-                                                    : threadIdx)));
+  airSrandMT_r(tstate->rst, AIR_UINT((parm->seedRand
+                                      ? airTime()
+                                      : threadIdx)));
   tstate->returnPtr = NULL;
 
   return 0;

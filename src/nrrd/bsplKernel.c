@@ -441,7 +441,7 @@ _bspl3_ANI_int(const double *parm) {
 }
 
 #define BSPL3_ANI(ret, tmp, x)                  \
-  tmp = AIR_CAST(unsigned int, x+0.5);          \
+  tmp = AIR_UINT(x+0.5);                        \
   if (tmp < BSPL3_AI_LEN) {                     \
     ret = _bspl3_ANI_kvals[tmp];                \
   } else {                                      \
@@ -465,7 +465,7 @@ _bspl3_ANI_1f(float x, const double *parm) {
 
   ax = AIR_ABS(x);
   BSPL3_ANI(r, tmp, ax);
-  return AIR_CAST(float, r);
+  return AIR_FLOAT(r);
 }
 
 static void
@@ -490,7 +490,7 @@ _bspl3_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL3_ANI(r, tmp, ax);
-    f[i] = AIR_CAST(float, r);
+    f[i] = AIR_FLOAT(r);
   }
 }
 
@@ -754,7 +754,7 @@ _bspl5_ANI_int(const double *parm) {
 }
 
 #define BSPL5_ANI_T(ret, TT, tmp, x)            \
-  tmp = AIR_CAST(unsigned int, x+0.5);          \
+  tmp = AIR_UINT(x+0.5);                        \
   if (tmp < BSPL5_AI_LEN) {                     \
     ret = AIR_CAST(TT, _bspl5_ANI_kvals[tmp]);  \
   } else {                                      \
@@ -778,7 +778,7 @@ _bspl5_ANI_1f(float x, const double *parm) {
 
   ax = AIR_ABS(x);
   BSPL5_ANI_T(r, float, tmp, ax);
-  return AIR_CAST(float, r);
+  return AIR_FLOAT(r);
 }
 
 static void
@@ -803,7 +803,7 @@ _bspl5_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL5_ANI_T(r, float, tmp, ax);
-    f[i] = AIR_CAST(float, r);
+    f[i] = AIR_FLOAT(r);
   }
 }
 
@@ -1095,7 +1095,7 @@ _bspl7_ANI_int(const double *parm) {
 }
 
 #define BSPL7_ANI(ret, tmp, x)                  \
-  tmp = AIR_CAST(unsigned int, x+0.5);          \
+  tmp = AIR_UINT(x+0.5);                        \
   if (tmp < BSPL7_AI_LEN) {                     \
     ret = _bspl7_ANI_kvals[tmp];                \
   } else {                                      \
@@ -1119,7 +1119,7 @@ _bspl7_ANI_1f(float x, const double *parm) {
 
   ax = AIR_ABS(x);
   BSPL7_ANI(r, tmp, ax);
-  return AIR_CAST(float, r);
+  return AIR_FLOAT(r);
 }
 
 static void
@@ -1144,7 +1144,7 @@ _bspl7_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL7_ANI(r, tmp, ax);
-    f[i] = AIR_CAST(float, r);
+    f[i] = AIR_FLOAT(r);
   }
 }
 

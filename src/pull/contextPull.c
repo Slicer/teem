@@ -701,8 +701,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
         break;
       case pullPropStuck:
         out_uc[outIdx] = ((point->status & PULL_STATUS_STUCK_BIT)
-                          ? AIR_CAST(unsigned char,
-                                     AIR_MIN(255, point->stuckIterNum))
+                          ? AIR_UCHAR(AIR_MIN(255, point->stuckIterNum))
                           : 0);
         break;
       case pullPropPosition:
@@ -903,7 +902,7 @@ pullPositionHistoryPolydataGet(limnPolyData *pld, pullContext *pctx) {
         ELL_3V_SET(rgb, 0, 0, 0);
         ELL_3V_COPY(pld->xyzw + 4*vertIdx, point->phist + 5*phistIdx);
         (pld->xyzw + 4*vertIdx)[3] = 1;
-        cond = AIR_CAST(int, (point->phist + 5*phistIdx)[4]);
+        cond = AIR_INT((point->phist + 5*phistIdx)[4]);
         switch (cond) {
         case pullCondOld:
           ELL_3V_SET(rgb, 128, 128, 128);

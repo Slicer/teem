@@ -120,7 +120,7 @@ tend_gradsMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   /* see if it was an integral exponent */
-  tgparm->expo = AIR_CAST(unsigned int, tgparm->expo_d);
+  tgparm->expo = AIR_UINT(tgparm->expo_d);
   if (tgparm->expo == tgparm->expo_d) {
     /* ooo, it was */
     tgparm->expo_d = 0;

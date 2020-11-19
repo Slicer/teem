@@ -477,7 +477,7 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
                    pvlData->wght + 1, pvlData->dists );
     } else {
       /* stupid; should really return right here since data is garbage */
-      for (valIdx=1; valIdx < AIR_CAST(unsigned int, gradcount+1); valIdx++) {
+      for (valIdx=1; valIdx < AIR_UINT(gradcount+1); valIdx++) {
         pvlData->wght[valIdx] = valIdx % 2;
       }
     }
@@ -1106,7 +1106,7 @@ tenDwiGageKindSet(gageKind *dwiKind,
     biffMovef(TEN, NRRD, "%s: trouble converting", me);
     return 1;
   }
-  dwiKind->valLen = AIR_CAST(unsigned int, kindData->ngrad->axis[1].size);
+  dwiKind->valLen = AIR_UINT(kindData->ngrad->axis[1].size);
 
   /* fixing up the item table ... */
   dwiKind->table[tenDwiGageAll].answerLength = dwiKind->valLen;
