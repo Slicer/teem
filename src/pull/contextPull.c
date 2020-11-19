@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -701,7 +701,8 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
         break;
       case pullPropStuck:
         out_uc[outIdx] = ((point->status & PULL_STATUS_STUCK_BIT)
-                          ? point->stuckIterNum
+                          ? AIR_CAST(unsigned char,
+                                     AIR_MIN(255, point->stuckIterNum))
                           : 0);
         break;
       case pullPropPosition:

@@ -1092,7 +1092,7 @@ int
 _pullPointSetup(pullContext *pctx) {
   static const char me[]="_pullPointSetup";
   char doneStr[AIR_STRLEN_SMALL];
-  unsigned int pointIdx, binIdx, tick, pn;
+  unsigned int pointIdx, binIdx, tick, pn, initRorHack;
   pullPoint *point;
   pullBin *bin;
   int createFail,added;
@@ -1216,7 +1216,7 @@ _pullPointSetup(pullContext *pctx) {
   /* Start adding points */
   tick = totalNumPoints/1000;
   point = NULL;
-  unsigned int initRorHack = 0;
+  initRorHack = 0;
   /* This loop would normally be:
      for (pointIdx = 0; pointIdx < totalNumPoints; pointIdx++) {
      but because of pctx->flag.nixAtVolumeEdgeSpaceInitRorH we

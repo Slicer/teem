@@ -354,7 +354,7 @@ _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
 
   if (0 && 289 == task->pctx->iter) {
     fprintf(stderr, "!%s(%04u): hello lthr %p -> %g %g %g\n", me, point->idtag,
-            task->pctx->ispec[pullInfoLiveThresh],
+            (void*)task->pctx->ispec[pullInfoLiveThresh],
             pullPointScalar(task->pctx, point, pullInfoLiveThresh, NULL, NULL),
             point->pos[0], point->pos[1]
             );

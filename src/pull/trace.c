@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -367,14 +367,14 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
 
   /* else constraint sat worked at seed point; we have work to do */
   if (pts->fdim && orientTestLen) {
+    double pos0[4], dp[4];
+    int cf;
     /* learn orientation at seed point */
     polen = (orientTestLen
              *pctx->voxelSizeSpace
              /* if used, the effect of this this last (unprincipled) factor
                 is gradually increase the test distance with scale
                 *(1 + gageTauOfSig(_pullSigma(pctx, point->pos))) */ );
-    double pos0[4], dp[4];
-    int cf;
     ELL_4V_COPY(pos0, point->pos);
 
     if (_pullConstrOrientFind(pctx, point, pts->fdim == 2,
@@ -562,7 +562,8 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
   }
   if (pts->fdim && orientTestLen) {
     /* cropping just to allocate */
-    size_t cmin[2] = {0, 0}, cmax[2] = {2, pts->nvert->axis[1].size-1};
+    size_t cmin[2] = {0, 0}, cmax[2];
+    ELL_2V_SET(cmax, 2, pts->nvert->axis[1].size-1);
     if (nrrdCrop(pts->norin, pts->nvert, cmin, cmax)) {
       biffMovef(PULL, NRRD, "%s: allocating orientation output", me);
       airMopError(mop);
@@ -606,7 +607,7 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
     }
     oidx++;
   }
-  lentmp = pts->nstab->axis[1].size;
+  lentmp = AIR_CAST(unsigned int, pts->nstab->axis[1].size);
   if (1 == lentmp) {
     stab[0 + 2*0] = 0.0;
     stab[1 + 2*0] = 0.0;
@@ -763,7 +764,7 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
   if (nmaskedpos || nmask) {
     if (!( nmaskedpos && nmask )) {
       biffAddf(PULL, "%s: need either both or neither of nmaskedpos (%p)"
-               "and nmask (%p)", me, nmaskedpos, nmask);
+               "and nmask (%p)", me, (void*)nmaskedpos, (const void*)nmask);
       return 1;
     }
     if (!( 2 == nmask->dim

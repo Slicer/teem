@@ -26,7 +26,7 @@
 
 #define TOP_MARGIN 3
 
-char *info = ("Sees if \"adhoc\" is inefficient.");
+const char *info = ("Sees if \"adhoc\" is inefficient.");
 
 enum {
   stepStyleUnknown,        /* 0 */
