@@ -192,7 +192,7 @@ pullBinsPointAdd(pullContext *pctx, pullPoint *point, pullBin **binP) {
   }
   if (!( bin = _pullBinLocate(pctx, point->pos) )) {
     biffAddf(PULL, "%s: can't locate point %p %u",
-             me, AIR_CAST(void*, point), point->idtag);
+             me, AIR_VOIDP(point), point->idtag);
     return 1;
   }
   if (binP) {
@@ -200,7 +200,7 @@ pullBinsPointAdd(pullContext *pctx, pullPoint *point, pullBin **binP) {
   }
   if (_pullBinPointAdd(pctx, bin, point)) {
     biffAddf(PULL, "%s: trouble adding point %p %u",
-             me, AIR_CAST(void*, point), point->idtag);
+             me, AIR_VOIDP(point), point->idtag);
     return 1;
   }
   return 0;
@@ -224,7 +224,7 @@ pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
   }
   if (!( bin = _pullBinLocate(pctx, point->pos) )) {
     biffAddf(PULL, "%s: can't locate point %p %u",
-             me, AIR_CAST(void*, point), point->idtag);
+             me, AIR_VOIDP(point), point->idtag);
     return 1;
   }
   if (binP) {
@@ -246,7 +246,7 @@ pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
     if (okay) {
       if (_pullBinPointAdd(pctx, bin, point)) {
         biffAddf(PULL, "%s: trouble adding point %p %u",
-                 me, AIR_CAST(void*, point), point->idtag);
+                 me, AIR_VOIDP(point), point->idtag);
         return 1;
       }
       *added = AIR_TRUE;
@@ -256,7 +256,7 @@ pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
   } else {
     if (_pullBinPointAdd(pctx, bin, point)) {
       biffAddf(PULL, "%s: trouble adding point %p %u",
-               me, AIR_CAST(void*, point), point->idtag);
+               me, AIR_VOIDP(point), point->idtag);
       return 1;
     }
     *added = AIR_TRUE;

@@ -84,9 +84,8 @@ _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
 
   if (!( lenP && nio && (file || nio->headerStringRead))) {
     biffAddf(NRRD, "%s: got NULL pointer (%p, %p, %p/%p)", me,
-             AIR_CAST(void*, lenP), AIR_CAST(void*, nio),
-             AIR_CAST(void*, file),
-             AIR_CAST(const void*, nio->headerStringRead));
+             AIR_VOIDP(lenP), AIR_VOIDP(nio), AIR_VOIDP(file),
+             AIR_CVOIDP(nio->headerStringRead));
     return 1;
   }
   if (0 == nio->lineLen) {

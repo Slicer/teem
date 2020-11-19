@@ -807,13 +807,13 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
           switch(rsmc->boundary) {
           case nrrdBoundaryPad:
           case nrrdBoundaryWeight:  /* this will be further handled later */
-            rawIdx = AIR_CAST(int, axis->sizeIn);
+            rawIdx = AIR_INT(axis->sizeIn);
             break;
           case nrrdBoundaryBleed:
-            rawIdx = AIR_CLAMP(0, rawIdx, AIR_CAST(int, axis->sizeIn)-1);
+            rawIdx = AIR_CLAMP(0, rawIdx, AIR_INT(axis->sizeIn)-1);
             break;
           case nrrdBoundaryWrap:
-            rawIdx = AIR_MOD(rawIdx, AIR_CAST(int, axis->sizeIn));
+            rawIdx = AIR_MOD(rawIdx, AIR_INT(axis->sizeIn));
             break;
           case nrrdBoundaryMirror:
             rawIdx = _nrrdMirror_32(AIR_UINT(axis->sizeIn), rawIdx);
@@ -917,13 +917,13 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
           for (smpIdx=0; smpIdx<axis->samples; smpIdx++) {
             nrrdResample_t wght = 0;
             for (dotIdx=0; dotIdx<dotLen; dotIdx++) {
-              if (AIR_CAST(int, axis->sizeIn)
+              if (AIR_INT(axis->sizeIn)
                   != indexData[dotIdx + dotLen*smpIdx]) {
                 wght += weightData[dotIdx + dotLen*smpIdx];
               }
             }
             for (dotIdx=0; dotIdx<dotLen; dotIdx++) {
-              if (AIR_CAST(int, axis->sizeIn)
+              if (AIR_INT(axis->sizeIn)
                   != indexData[dotIdx + dotLen*smpIdx]) {
                 weightData[dotIdx + dotLen*smpIdx] *= integral/wght;
               } else {
@@ -1001,8 +1001,8 @@ _nrrdResamplePermutationUpdate(NrrdResampleContext *rsmc) {
     }
     if (rsmc->verbose) {
       fprintf(stderr, "%s: topRax = %u (%d); botRax = %u (%d)\n", me,
-              rsmc->topRax, AIR_CAST(int, rsmc->topRax),
-              rsmc->botRax, AIR_CAST(int, rsmc->botRax));
+              rsmc->topRax, AIR_INT(rsmc->topRax),
+              rsmc->botRax, AIR_INT(rsmc->botRax));
     }
 
     /* figure out total number of passes needed, and construct the
@@ -1015,13 +1015,13 @@ _nrrdResamplePermutationUpdate(NrrdResampleContext *rsmc) {
     for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
       if (rsmc->axis[axIdx].kernel) {
         do {
-          bi = AIR_MOD(bi+1, AIR_CAST(int, rsmc->dim));
+          bi = AIR_MOD(bi+1, AIR_INT(rsmc->dim));
         } while (!rsmc->axis[bi].kernel);
         rsmc->permute[bi] = axIdx;
         rsmc->passNum += 1;
       } else {
         rsmc->permute[axIdx] = axIdx;
-        bi += bi == AIR_CAST(int, axIdx);
+        bi += bi == AIR_INT(axIdx);
       }
     }
     rsmc->permute[rsmc->dim] = rsmc->dim;  /* HEY: what is this for? */
@@ -1225,8 +1225,8 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
       if (rsmc->verbose) {
         fprintf(stderr, "%s: allocated pass %u/%u output nrrd @ %p/%p "
                 "(on axis %u)\n", me, passIdx, axisIn->passIdx,
-                AIR_CAST(void*, axisOut->nrsmp),
-                AIR_CAST(void*, axisOut->nrsmp->data), axisOut->axIdx);
+                AIR_VOIDP(axisOut->nrsmp),
+                AIR_VOIDP(axisOut->nrsmp->data), axisOut->axIdx);
       }
     } else {
       if (nrrdMaybeAlloc_nva(nout, typeOut, rsmc->dim, axisOut->sizePerm)) {
@@ -1235,9 +1235,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
       }
       if (rsmc->verbose) {
         fprintf(stderr, "%s: allocated final pass %u output nrrd @ %p/%p\n",
-                me, passIdx,
-                AIR_CAST(void*, nout),
-                AIR_CAST(void*, nout->data));
+                me, passIdx, AIR_VOIDP(nout), AIR_VOIDP(nout->data));
       }
     }
 
@@ -1359,7 +1357,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout,
     if (axisIn->nrsmp) {
       if (rsmc->verbose) {
         fprintf(stderr, "%s: nrrdNuke(%p) pass %u input (on axis %u)\n",
-                me, AIR_CAST(void*, axisIn->nrsmp), axisIn->passIdx,
+                me, AIR_VOIDP(axisIn->nrsmp), axisIn->passIdx,
                 axisIn->axIdx);
       }
       axisIn->nrsmp = nrrdNuke(axisIn->nrsmp);

@@ -188,7 +188,7 @@ pushBinPointAdd(pushContext *pctx, pushPoint *point) {
 
   if (!( bin = _pushBinLocate(pctx, point->pos) )) {
     biffAddf(PUSH, "%s: can't locate point %p %u",
-             me, AIR_CAST(void*, point), point->ttaagg);
+             me, AIR_VOIDP(point), point->ttaagg);
     return 1;
   }
   _pushBinPointAdd(pctx, bin, point);
@@ -215,7 +215,7 @@ pushRebin(pushContext *pctx) {
         newBin = _pushBinLocate(pctx, point->pos);
         if (!newBin) {
           biffAddf(PUSH, "%s: can't locate point %p %u",
-                   me, AIR_CAST(void*, point), point->ttaagg);
+                   me, AIR_VOIDP(point), point->ttaagg);
           return 1;
         }
         if (oldBin != newBin) {

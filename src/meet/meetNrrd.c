@@ -235,7 +235,7 @@ meetNrrdKernelAllCheck(void) {
 
   mop = airMopNew();
   kern = meetNrrdKernelAll();
-  airMopAdd(mop, AIR_CAST(void*, kern), airFree, airMopAlways);
+  airMopAdd(mop, AIR_VOIDP(kern), airFree, airMopAlways);
   evalNum = 120000; /* success of kernel integral test is surprisingly
                        dependent on this, likely due to the naive way
                        the integral is numerically computed; the current

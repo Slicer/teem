@@ -562,7 +562,7 @@ gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
               dataIdx);
       fprintf(stderr, "%s:     here = %p; iv3 = %p; off[0,1,2,3,4,5,6,7] = "
               "%d,%d,%d,%d,%d,%d,%d,%d\n",
-              me, AIR_CAST(void*, here), AIR_CAST(void*, pvl->iv3),
+              me, AIR_VOIDP(here), AIR_VOIDP(pvl->iv3),
               ctx->off[0], ctx->off[1], ctx->off[2], ctx->off[3],
               ctx->off[4], ctx->off[5], ctx->off[6], ctx->off[7]);
     }

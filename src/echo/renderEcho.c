@@ -269,7 +269,7 @@ echoRayColor(echoCol_t *chan, echoRay *ray,
   if (tstate->verbose) {
     fprintf(stderr, "%s%s: hit a %d (%p) at (%g,%g,%g)\n"
             "%s    = %g along (%g,%g,%g)\n", _echoDot(tstate->depth), me,
-            intx.obj->type, AIR_CAST(void*, intx.obj),
+            intx.obj->type, AIR_VOIDP(intx.obj),
             intx.pos[0], intx.pos[1], intx.pos[2], _echoDot(tstate->depth),
             intx.t, ray->dir[0], ray->dir[1], ray->dir[2]);
   }

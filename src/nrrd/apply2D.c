@@ -312,7 +312,7 @@ nrrdApply2DLut(Nrrd *nout, const Nrrd *nin, unsigned int domainAxis,
 
   if (!(nout && nlut && nin)) {
     biffAddf(NRRD, "%s: got NULL pointer (%p,%p,%p)", me,
-             AIR_CAST(void*,nout), AIR_CVOIDP(nlut), AIR_CVOIDP(nin));
+             AIR_VOIDP(nout), AIR_CVOIDP(nlut), AIR_CVOIDP(nin));
     return 1;
   }
   if (0 != domainAxis) {

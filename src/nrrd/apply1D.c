@@ -65,7 +65,7 @@ _nrrdApplyDomainMax(const Nrrd *nmap, int ramps, int mapAxis) {
 
   ret = nmap->axis[mapAxis].max;
   if (!AIR_EXISTS(ret)) {
-    ret = AIR_CAST(double, nmap->axis[mapAxis].size);
+    ret = AIR_DOUBLE(nmap->axis[mapAxis].size);
     ret = ramps ? ret-1 : ret;
   }
   return ret;

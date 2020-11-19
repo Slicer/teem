@@ -47,7 +47,7 @@ main(int argc, char *argv[]) {
   mop = airMopNew();
   str = airStrdup("this is just a test");
   printf("%s: str = \"%s\", str = 0x%p, &str = 0x%p\n", me,
-         str, AIR_CAST(void*, str), AIR_CAST(void*, &str));
+         str, AIR_VOIDP(str), AIR_VOIDP(&str));
   airMopMem(mop, &str, airMopAlways);
   airMopDebug(mop);
   airMopOkay(mop);
