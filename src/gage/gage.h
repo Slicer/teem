@@ -891,7 +891,7 @@ typedef struct gageKind_t {
   int (*pvlDataUpdate)(const struct gageKind_t *kind,
                        const gageContext *ctx,
                        const gagePerVolume *pvl,
-                       const void *data);
+                       void *data);
   void *data;                       /* extra information about the kind of
                                        volume that's being probed.  Likely
                                        used by filter, answer, and the
