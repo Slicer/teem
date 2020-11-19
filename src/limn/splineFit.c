@@ -681,7 +681,7 @@ findVT(double vv[2], double tt[2],
   dir = airSgn(dir);
   if (0 == cbfi->scale) {
     uint mi, pi;
-    ELL_2V_COPY(vv, xy + 2*ii);
+    if (vv) ELL_2V_COPY(vv, xy + 2*ii);
     switch (dir) {
     case 1:
       pi = ii+1;
@@ -710,7 +710,7 @@ findVT(double vv[2], double tt[2],
     int sj, sii=(int)ii, /* we compute around vertex ii */
       smax=(int)cbfi->wLen - 1, /* bound of loop index */
       spNum=(int)pNum;
-    ELL_2V_SET(vv, 0, 0);
+    if (vv) ELL_2V_SET(vv, 0, 0);
     ELL_2V_SET(tt, 0, 0);
     /* printf("!%s: ii = %u, dir=%d\n", me, ii, dir); */
     /* j indices are for the local looping */
@@ -739,7 +739,7 @@ findVT(double vv[2], double tt[2],
       }
       xj = (uint)tj;
       /* printf("!%s[sj=%d]: isLoop=%d -> tj2 = %d -> xj = %u\n", me, sj, isLoop, tj, xj); */
-      ELL_2V_SCALE_INCR(vv, vw[asj], xy + 2*xj);
+      if (vv) ELL_2V_SCALE_INCR(vv, vw[asj], xy + 2*xj);
       /* printf("!%s[sj=%d]: vv += %g*(%g,%g) -> (%g,%g)\n", me, sj, vw[asj], (xy + 2*xj)[0], (xy + 2*xj)[1], vv[0], vv[1]); */
       ttw = sgn*airSgn(sj)*tw[asj];
       /* printf("!%s[sj=%d]: %d * %d * %g = %g\n", me, sj, sgn, airSgn(sj), tw[asj], ttw); */
@@ -748,9 +748,10 @@ findVT(double vv[2], double tt[2],
     }
   }
   ELL_2V_NORM(tt, tt, len);
-  /* TODO: consider constraining difference between xy[ii] and vv to
-     be <= cbfi->distMin, and/or perpendicular to tt */
-  /* printf("!%s: DONE: vv=(%g,%g)  tt=(%g,%g)\n", me, vv[0], vv[1], tt[0], tt[1]); */
+  if (vv) {
+    /* TODO: consider constraining difference between xy[ii] and vv to
+       be <= cbfi->distMin, and/or perpendicular to tt */
+  }
   return;
 }
 
@@ -862,7 +863,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
   } else { /* need to subdivide at cbfi->distIdx and recurse */
     uint mi = cbfi->distIdx;
     double ttL[2], mid[2], ttR[2];
-    limnCBFPath *prth = limnCBFPathNew();
+    limnCBFPath *prth = limnCBFPathNew(); /* right path */
     limnCBFInfo cbfiL, cbfiR;
     memcpy(&cbfiL, cbfi, sizeof(limnCBFInfo));
     memcpy(&cbfiR, cbfi, sizeof(limnCBFInfo));
@@ -875,7 +876,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     ELL_2V_SCALE(ttL, -1, ttR);
     /* cbfiL.baseIdx == cbfi.baseIdx */
     cbfiR.baseIdx = cbfi->baseIdx + mi;
-    /* recurse! can't be a loop, so isLoop is AIR_FALSE */
+    /* on recursion, can't be a loop, so isLoop is AIR_FALSE */
     if (limnCBFMulti(path, &cbfiL, vv0, tt1, ttL, mid,
                      xy, mi+1, AIR_FALSE) ||
         limnCBFMulti(prth, &cbfiR, mid, ttR, tt2, vv3,
