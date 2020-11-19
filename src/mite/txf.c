@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -396,7 +396,8 @@ miteQueryAdd(gageQuery queryScl, gageQuery queryVec,
 int
 _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
   static const char me[]="_miteNtxfCopy";
-  int ni, E;
+  unsigned int ni;
+  int E;
 
   mrr->ntxf = AIR_CALLOC(muu->ntxfNum, Nrrd *);
   if (!mrr->ntxf) {
@@ -447,7 +448,7 @@ _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
 int
 _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
   static const char me[]="_miteNtxfAlphaAdjust";
-  int ni, ei, ri, nnum, rnum;
+  unsigned int ni, ei, ri, nnum, rnum;
   Nrrd *ntxf;
   mite_t *data, alpha, frac;
 
@@ -463,8 +464,8 @@ _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
     }
     /* else this txf sets opacity */
     data = (mite_t *)ntxf->data;
-    rnum = ntxf->axis[0].size;
-    nnum = nrrdElementNumber(ntxf)/rnum;
+    rnum = AIR_UINT(ntxf->axis[0].size);
+    nnum = AIR_UINT(nrrdElementNumber(ntxf)/rnum);
     for (ei=0; ei<nnum; ei++) {
       for (ri=0; ri<rnum; ri++) {
         if (ntxf->axis[0].label[ri] == miteRangeChar[miteRangeAlpha]) {
@@ -479,7 +480,7 @@ _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
 
 int
 _miteStageNum(miteRender *mrr) {
-  int num, ni;
+  unsigned int num, ni;
 
   num = 0;
   for (ni=0; ni<mrr->ntxfNum; ni++) {
@@ -543,7 +544,7 @@ int
 _miteStageSet(miteThread *mtt, miteRender *mrr) {
   static const char me[]="_miteStageSet";
   char *value;
-  int ni, di, stageIdx, rii, stageNum, ilog2;
+  unsigned int ni, di, stageIdx, rii, stageNum, ilog2;
   Nrrd *ntxf;
   miteStage *stage;
   gageItemSpec isp;
@@ -571,7 +572,7 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
       fprintf(stderr, "!%s: ans=%p + offset[%d]=%d == %p\n", me,
               mtt->ans, dom, kind->ansOffset[dom], stage->val);
       */
-      stage->size = ntxf->axis[di].size;
+      stage->size = AIR_UINT(ntxf->axis[di].size);
       stage->min =  ntxf->axis[di].min;
       stage->max =  ntxf->axis[di].max;
       if (di > 1) {
@@ -591,7 +592,7 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
           stage->qn = NULL;
         } else if (3 == isp.kind->table[isp.item].answerLength) {
           char stmp[AIR_STRLEN_SMALL];
-          ilog2 = airLog2(ntxf->axis[di].size);
+          ilog2 = AIR_UINT(airLog2(ntxf->axis[di].size));
           switch(ilog2) {
           case 8:  stage->qn = limnVtoQN_d[ limnQN8octa]; break;
           case 9:  stage->qn = limnVtoQN_d[ limnQN9octa]; break;
@@ -617,10 +618,11 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
                    isp.kind->table[isp.item].answerLength);
           return 1;
         }
-        stage->rangeNum = ntxf->axis[0].size;
+        stage->rangeNum = AIR_UINT(ntxf->axis[0].size);
         for (rii=0; rii<stage->rangeNum; rii++) {
           rc = ntxf->axis[0].label[rii];
-          stage->rangeIdx[rii] = strchr(miteRangeChar, rc) - miteRangeChar;
+          stage->rangeIdx[rii] = AIR_INT(strchr(miteRangeChar, rc)
+                                         - miteRangeChar);
           /*
           fprintf(stderr, "!%s: range: %c -> %d\n", "_miteStageSet",
                   ntxf->axis[0].label[rii], stage->rangeIdx[rii]);
@@ -636,8 +638,7 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
 void
 _miteStageRun(miteThread *mtt, miteUser *muu) {
   static const char me[]="_miteStageRun";
-  int stageIdx, ri, rii;
-  unsigned int txfIdx, finalIdx;
+  unsigned int stageIdx, ri, rii, txfIdx, finalIdx;
   miteStage *stage;
   mite_t *rangeData;
   double *dbg=NULL;

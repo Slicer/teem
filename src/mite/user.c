@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -88,12 +88,12 @@ miteUserNix(miteUser *muu) {
 int
 _miteUserCheck(miteUser *muu) {
   static const char me[]="_miteUserCheck";
-  int T, gotOpac;
+  int gotOpac;
   gageItemSpec isp;
   gageQuery queryScl, queryVec, queryTen, queryMite;
   miteShadeSpec *shpec;
   airArray *mop;
-  unsigned int axi;
+  unsigned int axi, T;
 
   if (!muu) {
     biffAddf(MITE, "%s: got NULL pointer", me);

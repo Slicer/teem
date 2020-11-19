@@ -135,8 +135,8 @@ typedef struct {
   double *debug;         /* data for verbose pixel (verbUi, verbVi) debug */
   airArray *debugArr;    /* airArray around debug */
   Nrrd *ndebug;          /* nrrd re-allocation of debug data */
-  int debugIdx;          /* index into debug data */
-  int ntxfNum;           /* allocated and valid length of ntxf[] */
+  unsigned int debugIdx, /* index into debug data */
+    ntxfNum;             /* allocated and valid length of ntxf[] */
   /* the issue of regular shading, txf-based shading, and surface normals:
      phong and lit-tensor shading ("regular shading") methods need to specify
      one or more vectors that are used for shading calculations.  These will
@@ -251,7 +251,7 @@ typedef struct {
                                  refStep) has been applied to these, and
                                  these have been converted/unquantized to
                                  type mite_t */
-  int ntxfNum;                /* allocated and valid length of ntxf[] */
+  unsigned int ntxfNum;       /* allocated and valid length of ntxf[] */
   int sclPvlIdx, vecPvlIdx,
     tenPvlIdx;                /* indices of the different gageKinds of
                                  volumes in the gageContext's array of
@@ -304,8 +304,8 @@ typedef struct {
                                    pervolumes, or into ansMiteVal in the
                                    miteThread.  It can be either a scalar
                                    or a vector */
-  int size,                     /* number of entries along this txf axis */
-    op;                         /* from miteStageOp* enum.  Note that this
+  unsigned int size;            /* number of entries along this txf axis */
+  int op;                       /* from miteStageOp* enum.  Note that this
                                    operation applies to ALL the range variables
                                    adjusted by this txf (can't add color while
                                    multiplying opacity) */
@@ -318,9 +318,9 @@ typedef struct {
                                    from corresponding axis of the nrrd */
   mite_t *data;                 /* pointer to txf data.  If non-NULL, the
                                    following fields are meaningful */
-  int rangeIdx[MITE_RANGE_NUM], /* indices into miteThread's range, so that
+  int rangeIdx[MITE_RANGE_NUM]; /* indices into miteThread's range, so that
                                    we know which quantities to update */
-    rangeNum;                   /* number of range variables set by the txf
+  unsigned int rangeNum;        /* number of range variables set by the txf
                                    == number of pointers in range[] to use */
   char *label;                  /* pointer into axis label identifying txf
                                    domain variable, NOT COPIED */
@@ -412,7 +412,7 @@ typedef struct miteThread_t {
     samples;                    /* number of samples handled so far by
                                    this thread */
   miteStage *stage;             /* array of stages for txf computation */
-  int stageNum;                 /* number of stages == length of stage[] */
+  unsigned int stageNum;        /* number of stages == length of stage[] */
   mite_t range[MITE_RANGE_NUM], /* rendering variables, which are either
                                    copied from miteUser's rangeInit[], or
                                    over-written by txf evaluation */
