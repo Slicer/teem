@@ -1075,7 +1075,7 @@ tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml,
 
   mop = airMopNew();
 
-  seedNum = _nseed->axis[1].size;
+  seedNum = AIR_CAST(unsigned int, _nseed->axis[1].size);
   if (nrrdTypeDouble == _nseed->type) {
     seedData = AIR_CAST(const double *, _nseed->data);
   } else {
@@ -1238,7 +1238,7 @@ _fiberMultiExtract(tenFiberContext *tfx, Nrrd *nval,
     if (!(tenFiberStopUnknown == tfs->whyNowhere)) {
       continue;
     }
-    vertNum = tfs->nvert->axis[1].size;
+    vertNum = AIR_CAST(unsigned int, tfs->nvert->axis[1].size);
     pans = (nval
             ? AIR_CAST(double*, tfs->nval->data)
             : NULL);

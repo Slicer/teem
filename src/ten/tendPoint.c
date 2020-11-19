@@ -57,9 +57,9 @@ tend_pointMain(int argc, const char **argv, const char *me,
     fprintf(stderr, "%s: didn't get a valid DT volume:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-  sx = nin->axis[1].size;
-  sy = nin->axis[2].size;
-  sz = nin->axis[3].size;
+  sx = AIR_CAST(int, nin->axis[1].size); /* HEY: unsigned? */
+  sy = AIR_CAST(int, nin->axis[2].size);
+  sz = AIR_CAST(int, nin->axis[3].size);
   if (!( AIR_IN_CL(0, loc[0], sx-1) &&
          AIR_IN_CL(0, loc[1], sy-1) &&
          AIR_IN_CL(0, loc[2], sz-1) )) {

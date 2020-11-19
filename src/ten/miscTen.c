@@ -143,7 +143,7 @@ tenEvqSingle(float vec[3], float scl) {
     }
     vi = airIndex(-1, vec[0]+vec[1], 1, bins);
     ui = airIndex(-1, vec[0]-vec[1], 1, bins);
-    ret = vi*bins + ui + base;
+    ret = AIR_CAST(short, vi*bins + ui + base);
   }
   else {
     ret = 0;

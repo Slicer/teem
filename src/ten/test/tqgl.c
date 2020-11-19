@@ -70,9 +70,9 @@ rgrads(double grad[3][3], const double eval[3]) {
              -sin(rtp[2]));
 }
 
-char *info = ("quaternion geo-lox hacking.  Actually all this does is "
-              "help debug the analytic loxodrome part, not the quaternion "
-              "geodesic part.");
+const char *info = ("quaternion geo-lox hacking.  Actually all this does is "
+                    "help debug the analytic loxodrome part, not the "
+                    "quaternion geodesic part.");
 
 int
 main(int argc, const char *argv[]) {

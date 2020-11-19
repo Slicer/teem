@@ -24,7 +24,7 @@
 
 #include "../ten.h"
 
-char *info = ("does geodesics");
+const char *info = ("does geodesics");
 
 int
 main(int argc, const char *argv[]) {
@@ -259,8 +259,8 @@ main(int argc, const char *argv[]) {
 
     if (1) {
       double *geod, eval0[3], eval[3], evec0[9], evec[9], rot[9], diff[7],
-        nrm, tmp, axis[3], angle;
-      unsigned int ii, NN;
+        nrm, axis[3], angle;
+      unsigned int ii;
 
       NN = AIR_CAST(unsigned int, nout->axis[1].size);
       geod = AIR_CAST(double *, nout->data);
@@ -290,7 +290,7 @@ main(int argc, const char *argv[]) {
     }
 
     if (0) {
-      double eval[3], evec[9], rot[9], tt[7], qB[4];
+      double eval[3], evec[9], rot[9], tt[7];
       double unitq[8][4] = {{+1, 0, 0, 0},
                             {-1, 0, 0, 0},
                             {0, +1, 0, 0},

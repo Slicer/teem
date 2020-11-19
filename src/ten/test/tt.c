@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,17 +24,17 @@
 
 #include "../ten.h"
 
-char *info = ("Sample space of tensor shape.");
+const char *info = ("Sample space of tensor shape.");
 
 void
 _ra2t(Nrrd *nten, double rad, double angle,
       double mRI[9], double mRF[9], double hack) {
   double x, y, xyz[3], XX[3], YY[3], CC[3], EE[3], VV[3], tmp, mD[9], mT[9];
   float *tdata;
-  int xi, yi, sx, sy;
+  unsigned int xi, yi, sx, sy;
 
-  sx = nten->axis[1].size;
-  sy = nten->axis[2].size;
+  sx = AIR_CAST(unsigned int, nten->axis[1].size);
+  sy = AIR_CAST(unsigned int, nten->axis[2].size);
   x = rad*sin(AIR_PI*angle/180);
   y = rad*cos(AIR_PI*angle/180);
   xi = airIndexClamp(0.0, x, sqrt(3.0)/2.0, sx);
@@ -56,7 +56,7 @@ _ra2t(Nrrd *nten, double rad, double angle,
   ell_3m_post_mul_d(mT, mRF);
   tdata = (float*)(nten->data) + 7*(xi + sx*(yi + 1*sy));
   tdata[0] = 1.0;
-  TEN_M2T(tdata, mT);
+  TEN_M2T_TT(tdata, float, mT);
 }
 
 void
@@ -302,7 +302,7 @@ main(int argc, const char *argv[]) {
         tdata = (float*)nten->data +
           7*(2*(samp-1-xi) - (samp-1-yi) + (2*samp-1)*((samp-1-yi) + samp));
         tdata[0] = 1.0;
-        TEN_M2T(tdata, mT);
+        TEN_M2T_TT(tdata, float, mT);
       }
     }
     nten->axis[1].spacing = 1;

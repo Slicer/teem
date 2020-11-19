@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,7 +24,7 @@
 
 #include "../ten.h"
 
-char *info = ("tensor ROI information.");
+const char *info = ("tensor ROI information.");
 
 int
 main(int argc, const char *argv[]) {
@@ -73,9 +73,9 @@ main(int argc, const char *argv[]) {
     return 1;
   }
 
-  sx = nten->axis[1].size;
-  sy = nten->axis[2].size;
-  sz = nten->axis[3].size;
+  sx = AIR_CAST(unsigned int, nten->axis[1].size);
+  sy = AIR_CAST(unsigned int, nten->axis[2].size);
+  sz = AIR_CAST(unsigned int, nten->axis[3].size);
   if (!(3 == nroi->dim
         && sx == nroi->axis[0].size
         && sy == nroi->axis[1].size

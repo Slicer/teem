@@ -24,7 +24,7 @@
 
 #include "../ten.h"
 
-char *info = ("The histogram craziness continues.");
+const char *info = ("The histogram craziness continues.");
 
 int
 main(int argc, const char *argv[]) {
@@ -34,7 +34,7 @@ main(int argc, const char *argv[]) {
 
   char *errS, *outS, *covarS;
   Nrrd *_nodf, *nvec, *nhist, *ncovar;
-  int bins;
+  unsigned int bins;
   size_t size[NRRD_DIM_MAX];
   float min;
 
@@ -50,7 +50,7 @@ main(int argc, const char *argv[]) {
              "ODF values below this are ignored, and per-voxel ODF is "
              "normalized to have sum 1.0.  Use \"nan\" to subtract out "
              "the per-voxel min.");
-  hestOptAdd(&hopt, "b", "bins", airTypeInt, 1, 1, &bins, "128",
+  hestOptAdd(&hopt, "b", "bins", airTypeUInt, 1, 1, &bins, "128",
              "number of bins in histograms");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output file");
@@ -98,13 +98,14 @@ main(int argc, const char *argv[]) {
 
   {
     /* we modify the lengths of the vectors here */
-    int NN, VV, ii, jj=0, kk, *anglut;
+    int *anglut;
+    unsigned int ii, jj=0, kk, NN, VV;
     float *odf, *hist, *covar, *vec, *vi, *vj, tmp, pvmin;
     double *mean;
     Nrrd *nodf, *nanglut;
 
-    VV = nvec->axis[1].size;
-    NN = nrrdElementNumber(_nodf)/VV;
+    VV = AIR_CAST(unsigned int, nvec->axis[1].size);
+    NN = AIR_CAST(unsigned int, nrrdElementNumber(_nodf)/VV);
 
     nanglut = nrrdNew();
     airMopAdd(mop, nanglut, (airMopper)nrrdNuke, airMopAlways);
@@ -131,7 +132,7 @@ main(int argc, const char *argv[]) {
     vec = (float*)nvec->data;
     for (ii=0; ii<=jj; ii++) {
       vi = vec + 3*ii;
-      ELL_3V_NORM(vi, vi, tmp);
+      ELL_3V_NORM_TT(vi, float, vi, tmp);
     }
 
     /* pre-compute pair-wise angles */
@@ -142,7 +143,7 @@ main(int argc, const char *argv[]) {
         vi = vec + 3*ii;
         tmp = ELL_3V_DOT(vi, vj);
         tmp = AIR_ABS(tmp);
-        tmp = acos(tmp)/(AIR_PI/2.0);
+        tmp = AIR_CAST(float, acos(tmp)/(AIR_PI/2.0));
         anglut[ii + VV*jj] = airIndex(0.0, tmp, 1.0, bins);
       }
     }
@@ -214,11 +215,12 @@ main(int argc, const char *argv[]) {
     for (kk=0; kk<NN; kk++) {
       for (jj=0; jj<bins; jj++) {
         for (ii=0; ii<jj; ii++) {
-          tmp = (hist[ii] - mean[ii])*(hist[jj] - mean[jj]);
+          tmp = AIR_CAST(float, (hist[ii] - mean[ii])*(hist[jj] - mean[jj]));
           covar[ii + bins*jj] += tmp;
           covar[jj + bins*ii] += tmp;
         }
-        covar[jj + bins*jj] += (hist[jj] - mean[jj])*(hist[jj] - mean[jj]);
+        covar[jj + bins*jj] +=
+          AIR_CAST(float, (hist[jj] - mean[jj])*(hist[jj] - mean[jj]));
       }
       hist += bins;
     }

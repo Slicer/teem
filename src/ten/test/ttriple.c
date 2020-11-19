@@ -24,7 +24,7 @@
 
 #include "../ten.h"
 
-char *info = ("tests conversions between info triples");
+const char *info = ("tests conversions between info triples");
 
 int
 main(int argc, const char *argv[]) {

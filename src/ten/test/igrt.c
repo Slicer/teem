@@ -24,7 +24,7 @@
 
 #include "../ten.h"
 
-char *info = ("tests invariant grads and rotation tangents.");
+const char *info = ("tests invariant grads and rotation tangents.");
 
 int
 main(int argc, const char *argv[]) {

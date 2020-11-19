@@ -932,7 +932,7 @@ typedef struct {
                             any intermediate histogram calculations, all of
                             which are done entirely in index space */
     delta;               /* some measure of model change between iters */
-  int N,                 /* number of bins in histogram */
+  unsigned int N,        /* number of bins in histogram */
     stage;               /* current stage (1 or 2) */
   unsigned int iteration;  /* current iteration */
   /* ----- output ------- */

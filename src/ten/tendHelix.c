@@ -49,16 +49,16 @@ tend_helixDoit(Nrrd *nout, double bnd,
                double orig[3], double i2w[9], double mf[9],
                double r, double R, double S, double angle, int incrtwist,
                double ev[3], double bgEval, int verbose) {
-  int sx, sy, sz, xi, yi, zi;
+  unsigned int sx, sy, sz, xi, yi, zi;
   double th, t0, t1, t2, t3, v1, v2,
     wpos[3], vpos[3], mfT[9],
     W2H[9], H2W[9], H2C[9], C2H[9], fv[3], rv[3], uv[3], mA[9], mB[9], inside,
     tmp[3], len;
   float *out;
 
-  sx = nout->axis[1].size;
-  sy = nout->axis[2].size;
-  sz = nout->axis[3].size;
+  sx = AIR_CAST(unsigned int, nout->axis[1].size);
+  sy = AIR_CAST(unsigned int, nout->axis[2].size);
+  sz = AIR_CAST(unsigned int, nout->axis[3].size);
   out = (float*)nout->data;
   ELL_3M_TRANSPOSE(mfT, mf);
   for (zi=0; zi<sz; zi++) {

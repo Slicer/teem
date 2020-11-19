@@ -24,7 +24,7 @@
 
 #include "../ten.h"
 
-char *info = ("tests anisotropy measures");
+const char *info = ("tests anisotropy measures");
 
 int
 main(int argc, char *argv[]) {
@@ -73,7 +73,7 @@ main(int argc, char *argv[]) {
     ELL_3M_TRANSPOSE_IP(rot, tmp);
     ell_3m_mul_d(mat1, mat2, rot);
     TEN_M2T(tenD, mat1);
-    TEN_T_COPY(tenF, tenD);
+    TEN_T_COPY_TT(tenF, float, tenD);
     tenEigensolve_d(evalD, NULL, tenD);
     tenEigensolve_f(evalF, NULL, tenF);
     for (aa=tenAnisoUnknown+1; aa<tenAnisoLast; aa++) {

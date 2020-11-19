@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -2050,11 +2050,12 @@ _tenGagePvlDataNew(const struct gageKind_t *kind) {
 void *
 _tenGagePvlDataCopy(const struct gageKind_t *kind,
                     const void *_pvlDataOld) {
-  _tenGagePvlData *pvlDataNew, *pvlDataOld;
+  _tenGagePvlData *pvlDataNew;
+  const _tenGagePvlData *pvlDataOld;
   unsigned int num;
 
   AIR_UNUSED(kind);
-  pvlDataOld = AIR_CAST(_tenGagePvlData *, _pvlDataOld);
+  pvlDataOld = AIR_CAST(const _tenGagePvlData *, _pvlDataOld);
   num = pvlDataOld->tip->allocLen;
   pvlDataNew = AIR_CALLOC(1, _tenGagePvlData);
   if (pvlDataNew) {
@@ -2082,7 +2083,7 @@ _tenGagePvlDataNix(const struct gageKind_t *kind,
 int
 _tenGagePvlDataUpdate(const struct gageKind_t *kind,
                       const gageContext *ctx, const gagePerVolume *pvl,
-                      const void *_pvlData) {
+                      void *_pvlData) {
   _tenGagePvlData *pvlData;
   unsigned int fd, num;
 

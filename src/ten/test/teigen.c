@@ -24,7 +24,7 @@
 
 #include "../ten.h"
 
-char *info = ("tests tenEigensolve_d and new stand-alone function.");
+const char *info = ("tests tenEigensolve_d and new stand-alone function.");
 
 #define ROOT_TRIPLE 2           /* ell_cubic_root_triple */
 #define ROOT_SINGLE_DOUBLE 3    /* ell_cubic_root_single_double */
@@ -421,6 +421,16 @@ main(int argc, const char *argv[]) {
   roots = tenEigensolve_d(evalA, evecA, tt);
   printf("%s roots\n", airEnumStr(ell_cubic_root, roots));
   testeigen(tt, evalA, evecA);
+  if (1) {
+    double sntt[7], sneval[3], snevec[9];
+    int snroots;
+    printf("========== sneaky hack: 2-step tenEigensolve_d ==========\n");
+    TEN_T_COPY(sntt, tt);
+    snroots = tenEigensolve_d(sneval, NULL, sntt);
+    sntt[0] = (double)((1 << 16) + snroots);
+    tenEigensolve_d(sneval, snevec, sntt);
+    testeigen(tt, sneval, snevec);
+  }
 
   printf("================== new eigensolve ==================\n");
   roots = evals(evalB, tt[1], tt[2], tt[3], tt[4], tt[5], tt[6]);

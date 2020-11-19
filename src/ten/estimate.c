@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -463,7 +463,7 @@ tenEstimateThresholdFind(double *threshP, unsigned char *isB0, Nrrd *nin4d) {
     airMopError(mop); return 1;
   }
 
-  slNum = nin4d->axis[dwiAx].size;
+  slNum = AIR_CAST(unsigned int, nin4d->axis[dwiAx].size);
   dwiNum = 0;
   for (slIdx=0; slIdx<slNum; slIdx++) {
     dwiNum += !isB0[slIdx];
@@ -606,7 +606,8 @@ _tenEstimateNumUpdate(tenEstimateContext *tec) {
                 me, skipListIdx, skipIdx, tec->allNum);
         return 1;
       }
-      tec->skipLut[skipIdx] = skipDo;
+      /* HEY Wed Nov 18 17:20:27 CST 2020 GLK is skeptical about this */
+      tec->skipLut[skipIdx] = AIR_CAST(unsigned char, skipDo);
     }
     skipNotNum = 0;
     for (skipIdx=0; skipIdx<tec->allNum; skipIdx++) {

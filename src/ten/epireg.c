@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -334,14 +334,15 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
   static const char me[]="_tenEpiRegCC";
   Nrrd *nslc, *ncc, *nval, *nsize;
   airArray *mop;
-  int ni, z, sz, big;
+  int ni, big;
+  unsigned int z, sz;
 
   mop = airMopNew();
   airMopAdd(mop, nslc=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nval=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ncc=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nsize=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  sz = nthr[0]->axis[2].size;
+  sz = AIR_CAST(unsigned int, nthr[0]->axis[2].size);
   if (verb) {
     fprintf(stderr, "%s:\n            ", me); fflush(stderr);
   }
@@ -518,9 +519,10 @@ int
 _tenEpiRegPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
   static const char me[]="_tenEpiRegPairXforms";
   double *xfr, *A, *B, hh, ss, tt;
-  int ai, bi, zi, sz;
+  int ai, bi;
+  unsigned int zi, sz;
 
-  sz = nmom[0]->axis[1].size;
+  sz = AIR_CAST(unsigned int, nmom[0]->axis[1].size);
   if (nrrdMaybeAlloc_va(npxfr, nrrdTypeDouble, 4,
                         AIR_CAST(size_t, 5),
                         AIR_CAST(size_t, sz),
@@ -557,14 +559,15 @@ int
 _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
   static const char me[]="_tenEpiRegEstimHST";
   double *hst, *grad, *mat, *vec, *ans, *pxfr, *gA, *gB;
-  int z, sz, A, B, npairs, ri;
+  int A, B, npairs, ri;
   Nrrd **nmat, *nvec, **ninv, *nans;
   airArray *mop;
   int order;
+  unsigned int z, sz;
 
   order = 1;
 
-  sz = npxfr->axis[1].size;
+  sz = AIR_CAST(unsigned int, npxfr->axis[1].size);
   npairs = ninLen*(ninLen-1);
 
   mop = airMopNew();
@@ -794,7 +797,7 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
   mess = AIR_CAST(float*, ntA->data);
 
   /* allocate an array of 2 floats per slice */
-  sz = ntA->axis[0].size;
+  sz = AIR_CAST(unsigned int, ntA->axis[0].size);
   two = AIR_CAST(float*, calloc(2*sz, sizeof(float)));
   if (!two) {
     biffAddf(TEN, "%s: couldn't allocate tmp buffer", me);
@@ -831,7 +834,7 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen,
   /* perform fitting for each column in hst (regardless of
      whether we're using a 1st or 2nd order model */
   hst = (double*)(nhst->data);
-  sh = nhst->axis[0].size;
+  sh = AIR_CAST(unsigned int, nhst->axis[0].size);
   for (hi=0; hi<sh; hi++) {
     x = y = xy = xx = 0;
     cc = 0;
@@ -861,15 +864,15 @@ _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP,
                  int reference, int ni, int zi,
                  Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad) {
   double *xfr, *hst, *_g, grad[9]; /* big enough for 2nd order */
-  int sz, ninLen;
+  unsigned int sz, ninLen;
 
   int order;
 
   order = 1;
 
   /* these could also have been passed to us, but we can also discover them */
-  sz = npxfr->axis[1].size;
-  ninLen = npxfr->axis[2].size;
+  sz = AIR_CAST(unsigned int, npxfr->axis[1].size);
+  ninLen = AIR_CAST(unsigned int, npxfr->axis[2].size);
 
   if (-1 == reference) {
     /* we use the estimated H,S,T vectors to determine distortion
@@ -940,7 +943,8 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
       pb = AIR_CAST(size_t, floor(pp));
       pf = pp - pb;
       for (pi=0; pi<2*supp; pi++) {
-        idx[pi] = AIR_MIN(pb + pi - (supp-1), sy-1);
+        /* HEY GLK confused about signed-ness of this */
+        idx[pi] = AIR_CAST(int, AIR_MIN(pb + pi - (supp-1), sy-1));
         wght[pi] = pi - (supp-1) - pf;
       }
       idx += 2*supp;
@@ -970,13 +974,13 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
 */
 int
 _tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
-               Nrrd **nin, int ninLen,
+               Nrrd **nin, unsigned int ninLen,
                int reference, const NrrdKernel *kern, double *kparm,
                int verb) {
   static const char me[]="_tenEpiRegWarp";
   Nrrd *ntmp, *nfin, *nslcA, *nslcB, *nwght, *nidx;
   airArray *mop;
-  int sx, sy, sz, ni, zi, supp;
+  unsigned int sx, sy, sz, ni, zi, supp;
   double hh, ss, tt, cx, cy;
 
   mop = airMopNew();
@@ -990,12 +994,13 @@ _tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad,
   if (verb) {
     fprintf(stderr, "%s:\n            ", me); fflush(stderr);
   }
-  sx = nin[0]->axis[0].size;
-  sy = nin[0]->axis[1].size;
-  sz = nin[0]->axis[2].size;
+  sx = AIR_CAST(unsigned int, nin[0]->axis[0].size);
+  sy = AIR_CAST(unsigned int, nin[0]->axis[1].size);
+  sz = AIR_CAST(unsigned int, nin[0]->axis[2].size);
   cx = sx/2.0;
   cy = sy/2.0;
-  supp = (int)kern->support(kparm);
+  /* HEY this is effectively a floor(); why not say that? */
+  supp = AIR_CAST(unsigned int, kern->support(kparm));
   if (nrrdMaybeAlloc_va(nwght, nrrdTypeFloat, 2,
                         AIR_CAST(size_t, 2*supp),
                         AIR_CAST(size_t, sy))
@@ -1215,7 +1220,7 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
     return 1;
   }
 
-  ninLen = _nin->axis[dwiAx].size;
+  ninLen = AIR_CAST(unsigned int, _nin->axis[dwiAx].size);
   /* outdated
   if (!( AIR_IN_CL(6, ninLen, 120) )) {
     biffAddf(TEN, "%s: %u (size of axis %u, and # DWIs) is unreasonable",
@@ -1286,7 +1291,9 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
   }
   /* HEY: HACK! */
   ndwigrad->axis[1].size = 1 + AIR_CAST(unsigned int, dwiIdx);
-  if (tenEpiRegister3D(ndwiOut, ndwi, ndwigrad->axis[1].size, ndwigrad,
+  if (tenEpiRegister3D(ndwiOut, ndwi,
+                       AIR_CAST(unsigned int, ndwigrad->axis[1].size),
+                       ndwigrad,
                        reference,
                        bwX, bwY, fitFrac, DWthr,
                        doCC,

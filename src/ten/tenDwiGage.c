@@ -847,9 +847,10 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
 
 void *
 _tenDwiGagePvlDataCopy(const gageKind *kind, const void *_pvlDataOld) {
-  tenDwiGagePvlData *pvlDataOld, *pvlDataNew;
+  const tenDwiGagePvlData *pvlDataOld;
+  tenDwiGagePvlData *pvlDataNew;
 
-  pvlDataOld = AIR_CAST(tenDwiGagePvlData *, _pvlDataOld);
+  pvlDataOld = AIR_CAST(const tenDwiGagePvlData *, _pvlDataOld);
   pvlDataNew = AIR_CAST(tenDwiGagePvlData *, _tenDwiGagePvlDataNew(kind));
 
   /* HEY: no error checking? */
@@ -878,7 +879,7 @@ _tenDwiGagePvlDataCopy(const gageKind *kind, const void *_pvlDataOld) {
 int
 _tenDwiGagePvlDataUpdate(const gageKind *kind,
                          const gageContext *ctx,
-                         const gagePerVolume *pvl, const void *_pvlData) {
+                         const gagePerVolume *pvl, void *_pvlData) {
   /* static const char me[]="_tenDwiGagePvlDataUpdate"; */
   tenDwiGagePvlData *pvlData;
 
@@ -1105,7 +1106,7 @@ tenDwiGageKindSet(gageKind *dwiKind,
     biffMovef(TEN, NRRD, "%s: trouble converting", me);
     return 1;
   }
-  dwiKind->valLen = kindData->ngrad->axis[1].size;
+  dwiKind->valLen = AIR_CAST(unsigned int, kindData->ngrad->axis[1].size);
 
   /* fixing up the item table ... */
   dwiKind->table[tenDwiGageAll].answerLength = dwiKind->valLen;

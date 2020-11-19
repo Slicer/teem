@@ -616,7 +616,7 @@ _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
 
   in = AIR_CAST(double *, nin->data);
   out = AIR_CAST(double *, nout->data);
-  NN = (nin->axis[1].size-1)/2;
+  NN = AIR_CAST(unsigned int, (nin->axis[1].size-1)/2);
   lenTotal = tenInterpPathLength(nin, AIR_TRUE, AIR_FALSE, AIR_FALSE);
   lenStep = lenTotal/NN;
   /*

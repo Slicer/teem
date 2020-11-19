@@ -24,7 +24,7 @@
 
 #include "../ten.h"
 
-char *info =
+const char *info =
 ("Oh, just fricken super! "
  "Another stupid one-off program to make a thesis-related figure. "
  "Reproducibility in visualization, yea, yea fricken great. ");
@@ -36,7 +36,8 @@ main(int argc, const char *argv[]) {
   hestOpt *hopt=NULL;
   airArray *mop;
 
-  int xi, yi, samp[2], fsd;
+  unsigned int xi, yi, samp[2];
+  int fsd;
   float *tdata, mrg, slp;
   double x, xx, y,
     mRot1[9], mRot2[9], mRot3[9],
@@ -122,7 +123,7 @@ main(int argc, const char *argv[]) {
       ell_3m_post_mul_d(mT, mR);
 
       tdata[0] = 1.0;
-      TEN_M2T(tdata, mT);
+      TEN_M2T_TT(tdata, float, mT);
       tdata += 7;
     }
   }

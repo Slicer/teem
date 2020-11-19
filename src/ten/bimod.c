@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -61,7 +61,7 @@ tenEMBimodalParmNix(tenEMBimodalParm *biparm) {
 int
 _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
   static const char me[]="_tenEMBimodalInit";
-  int i, median;
+  unsigned int i, median;
   Nrrd *nhisto;
   double medianD, sum;
   airArray *mop;
@@ -80,7 +80,7 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
     biffMovef(TEN, NRRD, "%s: trouble converting histogram to double", me);
     airMopError(mop); return 1;
   }
-  biparm->N = nhisto->axis[0].size;
+  biparm->N = AIR_CAST(unsigned int, nhisto->axis[0].size);
   biparm->histo = (double*)(nhisto->data);
   biparm->vmin = (AIR_EXISTS(nhisto->axis[0].min)
                   ? nhisto->axis[0].min
@@ -105,7 +105,7 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
               "%s: got empty histogram? (median calculation failed)", me);
     airMopError(mop); return 1;
   }
-  median = (int)medianD;
+  median = AIR_CAST(unsigned int, medianD);
 
   biparm->pp1 = (double*)calloc(biparm->N, sizeof(double));
   biparm->pp2 = (double*)calloc(biparm->N, sizeof(double));
@@ -174,7 +174,7 @@ _tenEMBimodalBoost(double *pp1P, double *pp2P, double b) {
 */
 void
 _tenEMBimodalPP(tenEMBimodalParm *biparm) {
-  int i;
+  unsigned int i;
   double g1, g2, pp1, pp2, f1, min;
 
   min = (1 == biparm->stage
@@ -210,7 +210,7 @@ _tenEMBimodalPP(tenEMBimodalParm *biparm) {
 
 double
 _tenEMBimodalNewFraction1(tenEMBimodalParm *biparm) {
-  int i;
+  unsigned int i;
   double pp1, pp2, h, sum1, sum2;
 
   sum1 = sum2 = 0.0;
@@ -227,7 +227,7 @@ _tenEMBimodalNewFraction1(tenEMBimodalParm *biparm) {
 void
 _tenEMBimodalNewMean(double *m1P, double *m2P,
                      tenEMBimodalParm *biparm) {
-  int i;
+  unsigned int i;
   double pp1, pp2, h, sum1, isum1, sum2, isum2;
 
   sum1 = isum1 = sum2 = isum2 = 0.0;
@@ -248,7 +248,7 @@ void
 _tenEMBimodalNewSigma(double *s1P, double *s2P,
                       double m1, double m2,
                       tenEMBimodalParm *biparm) {
-  int i;
+  unsigned int i;
   double pp1, pp2, h, sum1, isum1, sum2, isum2;
 
   sum1 = isum1 = sum2 = isum2 = 0.0;
@@ -272,7 +272,7 @@ _tenEMBimodalSaveImage(tenEMBimodalParm *biparm) {
   NrrdRange *range;
   const Nrrd *nhmhi[3];
   double *m, max;
-  int i;
+  unsigned int i;
 
   nh = nrrdNew();
   nm = nrrdNew();

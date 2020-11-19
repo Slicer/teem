@@ -24,7 +24,7 @@
 
 #include "../ten.h"
 
-char *info = ("Compute the makings of a new tensor.dat file.");
+const char *info = ("Compute the makings of a new tensor.dat file.");
 
 int
 main(int argc, const char *argv[]) {

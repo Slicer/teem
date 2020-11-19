@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,7 +24,7 @@
 
 #include "../ten.h"
 
-char *info = ("Sample space of tensor shape.");
+const char *info = ("Sample space of tensor shape.");
 
 void
 _clp2xyz(double xyz[3], double clp[2]) {
@@ -129,7 +129,7 @@ main(int argc, const char *argv[]) {
         ell_3m_post_mul_d(mT, mRF);
 
         tdata[0] = 1.0;
-        TEN_M2T(tdata, mT);
+        TEN_M2T_TT(tdata, float, mT);
         tdata += 7;
       }
     }

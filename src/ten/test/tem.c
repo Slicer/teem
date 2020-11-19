@@ -24,7 +24,7 @@
 
 #include "../ten.h"
 
-char *info = ("Test EM bimodal histogram fitting.");
+const char *info = ("Test EM bimodal histogram fitting.");
 
 int
 main(int argc, const char *argv[]) {

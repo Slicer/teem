@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -146,7 +146,7 @@ csimDo(double tm[7], double tcov[21], double rm[3], double rv[3],
   return 0;
 }
 
-char *info = ("does something");
+const char *info = ("does something");
 
 int
 main(int argc, const char *argv[]) {
@@ -283,7 +283,7 @@ main(int argc, const char *argv[]) {
 
     dwibuff = AIR_CAST(double *, calloc(ngrad->axis[1].size, sizeof(double)));
     airMopAdd(mop, dwibuff, airFree, airMopAlways);
-    nsamp = sizeX*sizeY*sizeZ;
+    nsamp = AIR_CAST(unsigned int, sizeX*sizeY*sizeZ);
     inTen = AIR_CAST(double *, ninTen->data);
     lup  = nrrdDLookup[nrrdTypeDouble];
     outTen = AIR_CAST(double *, noutTen->data);

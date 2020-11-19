@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,9 +25,10 @@
 #include "privateTen.h"
 
 double
-tenBVecNonLinearFit_error(double *bb, double *ss, double *ww, int len,
+tenBVecNonLinearFit_error(double *bb, double *ss, double *ww,
+                          unsigned int len,
                           double amp, double dec) {
-  int ii;
+  unsigned int ii;
   double err, tmp;
 
   err = 0;
@@ -40,9 +41,10 @@ tenBVecNonLinearFit_error(double *bb, double *ss, double *ww, int len,
 
 void
 tenBVecNonLinearFit_linear(double *amp, double *dec,
-                           double *bb, double *ss, double *ww, int len) {
+                           double *bb, double *ss, double *ww,
+                           unsigned int len) {
   double x, y, wi=0, xi=0, yi=0, xiyi=0, xisq=0, det;
-  int ii;
+  unsigned int ii;
 
   for (ii=0; ii<len; ii++) {
     x = bb[ii];
@@ -61,10 +63,11 @@ tenBVecNonLinearFit_linear(double *amp, double *dec,
 
 void
 tenBVecNonLinearFit_GNstep(double *d_amp, double *d_dec,
-                           double *bb, double *ss, double *ww, int len,
+                           double *bb, double *ss, double *ww,
+                           unsigned int len,
                            double amp, double dec) {
   double tmp, ff, dfdx1, dfdx2, AA=0, BB=0, CC=0, JTf[2], det;
-  int ii;
+  unsigned int ii;
 
   JTf[0] = JTf[1] = 0;
   for (ii=0; ii<len; ii++) {
@@ -133,7 +136,7 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   for (ii=1; ii<nin->dim; ii++) {
-    map[ii] = ii;
+    map[ii] = AIR_CAST(int, ii);
   }
   map[0] = -1;
   if (nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_NONE)) {
@@ -142,7 +145,8 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
   }
 
   /* process all b vectors */
-  vecSize = nin->axis[0].size*nrrdTypeSize[nin->type];
+  /* HEY unsigned? */
+  vecSize = AIR_CAST(int, nin->axis[0].size*nrrdTypeSize[nin->type]);
   vecNum = nrrdElementNumber(nin)/nin->axis[0].size;
   vecLup = nrrdDLookup[nin->type];
   vec = (char*)nin->data;
@@ -153,21 +157,29 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
       ss[ii] = vecLup(vec, ii);
     }
     /* start with linear fit */
-    tenBVecNonLinearFit_linear(&amp, &dec, bb, ss, ww, nin->axis[0].size);
-    error = tenBVecNonLinearFit_error(bb, ss, ww, nin->axis[0].size, amp, dec);
+    tenBVecNonLinearFit_linear(&amp, &dec, bb, ss, ww,
+                               AIR_CAST(unsigned int, nin->axis[0].size));
+    error = tenBVecNonLinearFit_error(bb, ss, ww,
+                                      AIR_CAST(unsigned int,
+                                               nin->axis[0].size),
+                                      amp, dec);
     /* possibly refine with gauss-newton */
     if (iterMax > 0) {
       iter = 0;
       do {
         iter++;
-        tenBVecNonLinearFit_GNstep(&d_amp, &d_dec,
-                                   bb, ss, ww, nin->axis[0].size, amp, dec);
+        tenBVecNonLinearFit_GNstep(&d_amp, &d_dec, bb, ss, ww,
+                                   AIR_CAST(unsigned int, nin->axis[0].size),
+                                   amp, dec);
         amp += 0.3*d_amp;
         dec += 0.3*d_dec;
         diff = d_amp*d_amp + d_dec*d_dec;
       } while (iter < iterMax && diff > eps);
     }
-    error = tenBVecNonLinearFit_error(bb, ss, ww, nin->axis[0].size, amp, dec);
+    error = tenBVecNonLinearFit_error(bb, ss, ww,
+                                      AIR_CAST(unsigned int,
+                                               nin->axis[0].size),
+                                      amp, dec);
     out[0] = amp;
     out[1] = dec;
     out[2] = error;

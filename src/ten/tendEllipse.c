@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -111,8 +111,8 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
       py = AIR_AFFINE(min[1], pdata[1], max[1], maxY, minY);
       pdata += 2;
     } else {
-      x = ti % sx;
-      y = ti / sx;
+      x = AIR_CAST(int, ti % sx); /* HEY unsigned? */
+      y = AIR_CAST(int, ti / sx);
       px = NRRD_CELL_POS(minX, maxX, sx, x);
       py = NRRD_CELL_POS(minY, maxY, sy, sy-1-y);
     }
@@ -156,8 +156,8 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn,
         py = AIR_AFFINE(min[1], pdata[1], max[1], maxY, minY);
         pdata += 2;
       } else {
-        x = ti % sx;
-        y = ti / sx;
+        x = AIR_CAST(int, ti % sx); /* HEY unsigned? */
+        y = AIR_CAST(int, ti / sx);
         px = NRRD_CELL_POS(minX, maxX, sx, x);
         py = NRRD_CELL_POS(minY, maxY, sy, sy-1-y);
       }
