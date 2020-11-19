@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2020  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -110,9 +110,10 @@ _coilIv3Fill_1_7(coil_t **iv3, coil_t *here, unsigned int radius, int valLen,
   return;
 }
 
-int
+unsigned int
 _coilThisZGet(coilTask *task, int doFilter) {
-  int thisZ, *thisFlag, *thatFlag;
+  int *thisFlag, *thatFlag;
+  unsigned int thisZ;
 
   if (doFilter) {
     thisFlag = &(task->cctx->todoFilter);
@@ -131,7 +132,7 @@ _coilThisZGet(coilTask *task, int doFilter) {
     task->cctx->nextSlice = 0;
     *thisFlag = AIR_FALSE;
   }
-  thisZ = task->cctx->nextSlice;
+  thisZ = AIR_CAST(unsigned int, task->cctx->nextSlice);
   if (task->cctx->nextSlice < task->cctx->size[2]) {
     task->cctx->nextSlice++;
     if (task->cctx->nextSlice == task->cctx->size[2]) {
@@ -148,16 +149,16 @@ _coilThisZGet(coilTask *task, int doFilter) {
 void
 _coilProcess(coilTask *task, int doFilter) {
   static const char me[]="_coilProcess";
-  int xi, yi, sizeX, sizeY, thisZ, sizeZ, valLen, radius;
+  unsigned int xi, yi, sizeX, sizeY, thisZ, sizeZ, valLen, radius;
   coil_t *here;
   void (*filter)(coil_t *delta, int xi, int yi, int zi,
                  coil_t **iv3, double spacing[3],
                  double parm[COIL_PARMS_NUM]);
 
-  sizeX = task->cctx->size[0];
-  sizeY = task->cctx->size[1];
-  sizeZ = task->cctx->size[2];
-  valLen = task->cctx->kind->valLen;
+  sizeX = AIR_CAST(unsigned int, task->cctx->size[0]);
+  sizeY = AIR_CAST(unsigned int, task->cctx->size[1]);
+  sizeZ = AIR_CAST(unsigned int, task->cctx->size[2]);
+  valLen = AIR_CAST(unsigned int, task->cctx->kind->valLen);
   radius = task->cctx->radius;
   filter = task->cctx->kind->filter[task->cctx->method->type];
   if (doFilter) {

@@ -24,7 +24,7 @@
 
 #include "../coil.h"
 
-char *info = ("Test program for coil library.");
+const char *info = ("Test program for coil library.");
 
 int
 main(int argc, const char *argv[]) {
