@@ -40,12 +40,12 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
   Nrrd *_nin, *nin;
   double *xy, alpha[2],
     vv0[2], tt1[2], tt2[2], vv3[2],
-    deltaMin, psi, distMin, distScl, utt1[2], utt2[2],
+    deltaMin, psi, cangle, distMin, distScl, utt1[2], utt2[2],
     time0, dtime, scale;
   unsigned int ii, pNum, iterMax;
   int loop, petc, verbose, synth, nofit;
   char *synthOut;
-  limnCBFInfo cbfi;
+  limnCBFContext fctx;
   limnCBFPath *path;
 
   hestOptAdd(&hopt, "i", "input", airTypeOther, 1, 1, &_nin, NULL,
@@ -76,6 +76,8 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
              "scaling on nrp distMin check");
   hestOptAdd(&hopt, "psi", "psi", airTypeDouble, 1, 1, &psi, "10",
              "psi, of course");
+  hestOptAdd(&hopt, "ca", "angle", airTypeDouble, 1, 1, &cangle, "100",
+             "angle indicating a corner");
   hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1, &scale, "0",
              "scale for geometry estimation");
   hestOptAdd(&hopt, "loop", NULL, airTypeInt, 0, 0, &loop, NULL,
@@ -185,36 +187,31 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
   }
   path = limnCBFPathNew();
   airMopAdd(mop, path, (airMopper)limnCBFPathNix, airMopAlways);
-  limnCBFInfoInit(&cbfi, AIR_FALSE);
-  cbfi.nrpIterMax = iterMax;
-  cbfi.nrpDeltaMin = deltaMin;
-  cbfi.distMin = distMin;
-  cbfi.nrpDistScl = distScl;
-  cbfi.verbose = verbose;
-  cbfi.nrpPsi = psi;
-  cbfi.scale = scale;
+  limnCBFContextInit(&fctx, AIR_FALSE);
+  fctx.nrpIterMax = iterMax;
+  fctx.nrpDeltaMin = deltaMin;
+  fctx.distMin = distMin;
+  fctx.nrpDistScl = distScl;
+  fctx.verbose = verbose;
+  fctx.nrpPsi = psi;
+  fctx.cornAngle = cangle;
+  fctx.scale = scale;
   time0 = airTime();
   if (petc) {
     fprintf(stderr, "%s: Press Enter to Continue ... ", me);
     fflush(stderr);
     getchar();
   }
-  {
-    unsigned int *cornIdx, cornNum;
-    limnCBFCorners(&cornIdx, &cornNum,
-                   &cbfi, xy, pNum, loop);
-  }
-  if (limnCBFit(path, &cbfi,
-                xy, pNum, loop)) {
+  if (limnCBFit(path, &fctx, xy, pNum, loop)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
   dtime = (airTime() - time0)*1000;
-  printf("%s: time= %g iterDone= %u deltaDone=%g, dist=%g (@%u)\n", me,
-         dtime, cbfi.nrpIterDone, cbfi.nrpDeltaDone,
-         cbfi.dist, cbfi.distIdx);
+  printf("%s: time= %g ms;iterDone= %u ;deltaDone=%g, dist=%g (@%u)\n", me,
+         dtime, fctx.nrpIterDone, fctx.nrpDeltaDone,
+         fctx.dist, fctx.distIdx);
   {
     unsigned int si;
     printf("%s: path has %u segments:\n", me, path->segNum);

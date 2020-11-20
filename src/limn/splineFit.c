@@ -158,7 +158,7 @@ limnCBFPathSample(double *xy, uint pNum, const limnCBFPath *path) {
 */
 static void
 findalpha(double alpha[2],
-          limnCBFInfo *cbfi, /* must be non-NULL */
+          limnCBFContext *fctx, /* must be non-NULL */
           const double vv0[2], const double tt1[2],
           const double tt2[2], const double vv3[2],
           const double *xy, const double *uu, uint pNum) {
@@ -196,27 +196,27 @@ findalpha(double alpha[2],
     alpha[0] = alpha[1] = 0; /* trigger simple arc code */
   }
   /* test if we should return simple arc */
-  if (!( AIR_EXISTS(det) && AIR_ABS(det) > cbfi->detMin
-         && alpha[0] > (cbfi->lenF2L)*(cbfi->alphaMin)
-         && alpha[1] > (cbfi->lenF2L)*(cbfi->alphaMin) )) {
-    if (cbfi->verbose) {
+  if (!( AIR_EXISTS(det) && AIR_ABS(det) > fctx->detMin
+         && alpha[0] > (fctx->lenF2L)*(fctx->alphaMin)
+         && alpha[1] > (fctx->lenF2L)*(fctx->alphaMin) )) {
+    if (fctx->verbose) {
       printf("%s: bad |det| %g (vs %g) or alpha %g,%g (vs %g*%g) "
              "--> simple arc\n",
-             me, AIR_ABS(det), cbfi->detMin, alpha[0], alpha[1],
-             cbfi->lenF2L, cbfi->alphaMin);
+             me, AIR_ABS(det), fctx->detMin, alpha[0], alpha[1],
+             fctx->lenF2L, fctx->alphaMin);
     }
     /* generate simple arc: set both alphas to 1/3 of distance from
        first to last point, but also handle non-unit-length tt1 and
        tt2 */
-    alpha[0] = cbfi->lenF2L/(3*ELL_2V_LEN(tt1));
-    alpha[1] = cbfi->lenF2L/(3*ELL_2V_LEN(tt2));
+    alpha[0] = fctx->lenF2L/(3*ELL_2V_LEN(tt1));
+    alpha[1] = fctx->lenF2L/(3*ELL_2V_LEN(tt2));
   } else {
-    if (cbfi->verbose > 1) {
+    if (fctx->verbose > 1) {
       printf("%s: all good: det %g, alpha %g,%g\n",
              me, det, alpha[0], alpha[1]);
     }
   }
-  cbfi->alphaDet = det;
+  fctx->alphaDet = det;
   return;
 }
 
@@ -225,7 +225,7 @@ findalpha(double alpha[2],
 ** to evaluate the spline in order to match the given points xy
 */
 static double
-reparm(const limnCBFInfo *cbfi, /* must be non-NULL */
+reparm(const limnCBFContext *fctx, /* must be non-NULL */
        const double alpha[2],
        const double vv0[2], const double tt1[2],
        const double tt2[2], const double vv3[2],
@@ -236,7 +236,7 @@ reparm(const limnCBFInfo *cbfi, /* must be non-NULL */
 
   assert(pNum >= 3);
   /* average u[i+1]-u[i] is 1/(pNum-1) */
-  maxdelu = cbfi->nrpDeltaMax/(pNum-1);
+  maxdelu = fctx->nrpDeltaMax/(pNum-1);
   ELL_2V_SCALE_ADD2(vv1, 1, vv0, alpha[0], tt1);
   ELL_2V_SCALE_ADD2(vv2, 1, vv3, alpha[1], tt2);
   delta = 0;
@@ -258,7 +258,7 @@ reparm(const limnCBFInfo *cbfi, /* must be non-NULL */
     }
     uu[ii] = tt - delu;
     delta += AIR_ABS(delu);
-    if (cbfi->verbose > 1) {
+    if (fctx->verbose > 1) {
       printf("%s[%2u]: %g <-- %g - %g\n", me, ii,
              uu[ii], tt, delu);
     }
@@ -272,10 +272,10 @@ reparm(const limnCBFInfo *cbfi, /* must be non-NULL */
   return delta;
 }
 
-/* sets cbfi->dist to max distance to spline, at point cbfi->distIdx,
-   and sets cbfi->distBig */
+/* sets fctx->dist to max distance to spline, at point fctx->distIdx,
+   and sets fctx->distBig */
 static void
-finddist(limnCBFInfo *cbfi,
+finddist(limnCBFContext *fctx,
          const double alpha[2],
          const double vv0[2], const double tt1[2],
          const double tt2[2], const double vv3[2],
@@ -297,62 +297,62 @@ finddist(limnCBFInfo *cbfi,
       distI = ii;
     }
   }
-  cbfi->dist = dist;
-  cbfi->distIdx = distI;
-  cbfi->distBig = (dist <= cbfi->nrpDistScl * cbfi->distMin
+  fctx->dist = dist;
+  fctx->distIdx = distI;
+  fctx->distBig = (dist <= fctx->nrpDistScl * fctx->distMin
                    ? 0
-                   : (dist <= cbfi->distMin
+                   : (dist <= fctx->distMin
                       ? 1
-                      : (dist <= cbfi->nrpPsi * cbfi->distMin
+                      : (dist <= fctx->nrpPsi * fctx->distMin
                          ? 2
                          : 3)));
   return;
 }
 
 void
-limnCBFInfoInit(limnCBFInfo *cbfi, int outputOnly) {
-  if (!cbfi) return;
+limnCBFContextInit(limnCBFContext *fctx, int outputOnly) {
+  if (!fctx) return;
   if (!outputOnly) {
     /* defaults for input parameters to various CBF functions */
-    cbfi->verbose = 0;
-    cbfi->cornNMS = AIR_TRUE;
-    cbfi->nrpIterMax = 10;
-    cbfi->baseIdx = 0;
-    cbfi->scale = 0;
-    cbfi->distMin = 0;
-    cbfi->nrpDeltaMax = 3.0;
-    cbfi->nrpDistScl = 0.8;
-    cbfi->nrpPsi = 6;
-    cbfi->nrpDeltaMin = 0.001;
-    cbfi->alphaMin = 0.001;
-    cbfi->detMin = 0.01;
-    cbfi->cornAngle = 100.0; /* degrees */
+    fctx->verbose = 0;
+    fctx->cornNMS = AIR_TRUE;
+    fctx->nrpIterMax = 10;
+    fctx->baseIdx = 0;
+    fctx->scale = 0;
+    fctx->distMin = 0;
+    fctx->nrpDeltaMax = 3.0;
+    fctx->nrpDistScl = 0.8;
+    fctx->nrpPsi = 6;
+    fctx->nrpDeltaMin = 0.001;
+    fctx->alphaMin = 0.001;
+    fctx->detMin = 0.01;
+    fctx->cornAngle = 100.0; /* degrees */
   }
   /* internal */
-  cbfi->uu = cbfi->vw = cbfi->tw = NULL;
-  cbfi->mine = NULL;
-  cbfi->wLen = 0;
-  cbfi->lenF2L = AIR_NAN;
+  fctx->uu = fctx->vw = fctx->tw = NULL;
+  fctx->mine = NULL;
+  fctx->wLen = 0;
+  fctx->lenF2L = AIR_NAN;
   /* initialize outputs to bogus valus */
-  cbfi->nrpIterDone = (uint)(-1);
-  cbfi->distIdx = (uint)(-1);
-  cbfi->dist = AIR_POS_INF;
-  cbfi->nrpDeltaDone = AIR_POS_INF;
-  cbfi->alphaDet = 0;
-  cbfi->distBig = 0;
+  fctx->nrpIterDone = (uint)(-1);
+  fctx->distIdx = (uint)(-1);
+  fctx->dist = AIR_POS_INF;
+  fctx->nrpDeltaDone = AIR_POS_INF;
+  fctx->alphaDet = 0;
+  fctx->distBig = 0;
   return;
 }
 
 /*
 ******** limnCBFCheck
 **
-** checks the given limnCBFInfo, as well as pNum and isLoop
+** checks the given limnCBFContext, as well as pNum and isLoop
 */
 int
-limnCBFCheck(const limnCBFInfo *cbfi, uint pNum, int isLoop) {
+limnCBFCheck(const limnCBFContext *fctx, uint pNum, int isLoop) {
   const char me[]="limnCBFCheck";
   unsigned int pnmin;
-  if (!cbfi) {
+  if (!fctx) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
@@ -363,34 +363,34 @@ limnCBFCheck(const limnCBFInfo *cbfi, uint pNum, int isLoop) {
     return 1;
   }
   /* actually not really a requirement
-  if (!( cbfi->nrpIterMax > 0 )) {
+  if (!( fctx->nrpIterMax > 0 )) {
     biffAddf(LIMN, "%s: need nrpIterMax > 0", me);
     return 1;
     } */
-  if (!(cbfi->scale >= 0)) {
-    biffAddf(LIMN, "%s: need non-negative scale (not %g)", me, cbfi->scale);
+  if (!(fctx->scale >= 0)) {
+    biffAddf(LIMN, "%s: need non-negative scale (not %g)", me, fctx->scale);
     return 1;
   }
-  if (!(cbfi->distMin > 0)) {
-    biffAddf(LIMN, "%s: need positive distMin (not %g)", me, cbfi->distMin);
+  if (!(fctx->distMin > 0)) {
+    biffAddf(LIMN, "%s: need positive distMin (not %g)", me, fctx->distMin);
     return 1;
   }
-  if (cbfi->nrpDeltaMin < 0 || cbfi->distMin < 0) {
+  if (fctx->nrpDeltaMin < 0 || fctx->distMin < 0) {
     biffAddf(LIMN, "%s: cannot have negative nrpDeltaMin (%g) or "
-             "distMin (%g)", me, cbfi->nrpDeltaMin, cbfi->distMin);
+             "distMin (%g)", me, fctx->nrpDeltaMin, fctx->distMin);
     return 1;
   }
-  if (!( 0 < cbfi->nrpDistScl && cbfi->nrpDistScl <= 1 )) {
+  if (!( 0 < fctx->nrpDistScl && fctx->nrpDistScl <= 1 )) {
     biffAddf(LIMN, "%s: nrpDistScl (%g) must be in (0,1]",
-             me, cbfi->nrpDistScl);
+             me, fctx->nrpDistScl);
     return 1;
   }
-  if (!( 1 <= cbfi->nrpPsi )) {
-    biffAddf(LIMN, "%s: nrpPsi (%g) must be >= 1", me, cbfi->nrpPsi);
+  if (!( 1 <= fctx->nrpPsi )) {
+    biffAddf(LIMN, "%s: nrpPsi (%g) must be >= 1", me, fctx->nrpPsi);
     return 1;
   }
-  if (!( cbfi->cornAngle < 179 )) {
-    biffAddf(LIMN, "%s: cornAngle (%g) seems too big", me, cbfi->cornAngle);
+  if (!( fctx->cornAngle < 179 )) {
+    biffAddf(LIMN, "%s: cornAngle (%g) seems too big", me, fctx->cornAngle);
     return 1;
   }
   return 0;
@@ -401,7 +401,7 @@ limnCBFCheck(const limnCBFInfo *cbfi, uint pNum, int isLoop) {
 ** and assuming a pre-allocated uu buffer
 */
 static void
-fitSingle(double alpha[2], limnCBFInfo *cbfi,
+fitSingle(double alpha[2], limnCBFContext *fctx,
           const double vv0[2], const double tt1[2],
           const double tt2[2], const double vv3[2],
           const double *xy, uint pNum,
@@ -409,7 +409,7 @@ fitSingle(double alpha[2], limnCBFInfo *cbfi,
   static const char me[]="fitSingle";
   uint iter;
 
-  if (cbfi->verbose) {
+  if (fctx->verbose) {
     printf("%s[%d,%d]: hello, vv0=(%g,%g), tt1=(%g,%g), "
            "tt2=(%g,%g), vv3=(%g,%g)\n",
            me, loi, hii, vv0[0], vv0[1], tt1[0], tt1[1],
@@ -417,17 +417,17 @@ fitSingle(double alpha[2], limnCBFInfo *cbfi,
   }
   { double F2L[2];
     ELL_2V_SUB(F2L, xy + 2*(pNum-1), xy);
-    cbfi->lenF2L = ELL_2V_LEN(F2L);
+    fctx->lenF2L = ELL_2V_LEN(F2L);
   }
   if (2 == pNum) {
     /* relying on code in findalpha() that handles pNum==2 */
-    findalpha(alpha, cbfi, vv0, tt1, tt2, vv3, NULL, NULL, 2);
+    findalpha(alpha, fctx, vv0, tt1, tt2, vv3, NULL, NULL, 2);
     /* nrp is moot */
-    cbfi->nrpIterDone = 0;
+    fctx->nrpIterDone = 0;
     /* emmulate results of calling finddist() */
-    cbfi->dist = cbfi->nrpDeltaDone = 0;
-    cbfi->distIdx = 0;
-    cbfi->distBig = 0;
+    fctx->dist = fctx->nrpDeltaDone = 0;
+    fctx->distIdx = 0;
+    fctx->distBig = 0;
   } else { /* pNum >= 3 */
     double delta; /* avg parameterization change of interior points */
     /* initialize uu parameterization to chord length */
@@ -442,56 +442,56 @@ fitSingle(double alpha[2], limnCBFInfo *cbfi,
       delta = 0;
       for (ii=0; ii<pNum; ii++) {
         uu[ii] /= len;
-        if (cbfi->verbose > 1) {
+        if (fctx->verbose > 1) {
           printf("%s[%d,%d]: intial uu[%u] = %g\n", me, loi, hii, ii, uu[ii]);
         }
         delta += AIR_ABS(uu[ii]);
       }
       delta /= pNum-2;
-      if (cbfi->verbose) {
+      if (fctx->verbose) {
         printf("%s[%d,%d]: initial (chord length) delta = %g\n",
                me, loi, hii, delta);
       }
     }
-    findalpha(alpha, cbfi, vv0, tt1, tt2, vv3, xy, uu, pNum);
-    finddist(cbfi, alpha, vv0, tt1, tt2, vv3, xy, uu, pNum);
-    if (cbfi->distBig < 3) {
+    findalpha(alpha, fctx, vv0, tt1, tt2, vv3, xy, uu, pNum);
+    finddist(fctx, alpha, vv0, tt1, tt2, vv3, xy, uu, pNum);
+    if (fctx->distBig < 3) {
       /* initial fit isn't awful; try making it better with nrp */
-      for (iter=0; cbfi->distBig && iter<cbfi->nrpIterMax; iter++) {
-        if (cbfi->verbose) {
+      for (iter=0; fctx->distBig && iter<fctx->nrpIterMax; iter++) {
+        if (fctx->verbose) {
           printf("%s[%d,%d]: iter %u starting with alpha %g,%g (det %g)\n",
-                 me, loi, hii, iter, alpha[0], alpha[1], cbfi->alphaDet);
+                 me, loi, hii, iter, alpha[0], alpha[1], fctx->alphaDet);
         }
-        delta = reparm(cbfi, alpha, vv0, tt1, tt2, vv3, xy, uu, pNum);
-        findalpha(alpha, cbfi, vv0, tt1, tt2, vv3, xy, uu, pNum);
-        finddist(cbfi, alpha, vv0, tt1, tt2, vv3, xy, uu, pNum);
-        if (cbfi->verbose) {
+        delta = reparm(fctx, alpha, vv0, tt1, tt2, vv3, xy, uu, pNum);
+        findalpha(alpha, fctx, vv0, tt1, tt2, vv3, xy, uu, pNum);
+        finddist(fctx, alpha, vv0, tt1, tt2, vv3, xy, uu, pNum);
+        if (fctx->verbose) {
           printf("%s[%d,%d]: iter %u (reparm) delta = %g\n", me, loi, hii,
                  iter, delta);
         }
-        if (cbfi->nrpDeltaMin && delta <= cbfi->nrpDeltaMin) {
-          if (cbfi->verbose) {
+        if (fctx->nrpDeltaMin && delta <= fctx->nrpDeltaMin) {
+          if (fctx->verbose) {
             printf("%s[%d,%d]: iter %u delta %g <= min %g --> break\n", me,
-                   loi, hii, iter, delta, cbfi->nrpDeltaMin);
+                   loi, hii, iter, delta, fctx->nrpDeltaMin);
           }
           break;
         }
       }
-      if (cbfi->verbose) {
-        if (!cbfi->distBig) {
+      if (fctx->verbose) {
+        if (!fctx->distBig) {
           printf("%s[%d,%d]: iter %u finished with good small dist %g\n",
-                 me, loi, hii, iter, cbfi->dist);
+                 me, loi, hii, iter, fctx->dist);
         } else {
           printf("%s[%d,%d]: hit max iters %u with bad (%d) dist %g\n",
-                 me, loi, hii, iter, cbfi->distBig, cbfi->dist);
+                 me, loi, hii, iter, fctx->distBig, fctx->dist);
         }
       }
-      cbfi->nrpIterDone = iter;
+      fctx->nrpIterDone = iter;
     } else {
       /* else dist so big that we don't even try nrp */
-      cbfi->nrpIterDone = 0;
+      fctx->nrpIterDone = 0;
     }
-    cbfi->nrpDeltaDone = delta;
+    fctx->nrpDeltaDone = delta;
   }
   return;
 }
@@ -510,36 +510,36 @@ fitSingle(double alpha[2], limnCBFInfo *cbfi,
 ** "nrp". nrp iterations are stopped after any one of following is true
 ** (the original published method did not have these fine-grained controls):
 **  - have done nrpIterMax iterations of nrp
-**  - if cbfi->nrpDeltaMin > 0: parameterization change falls below deltaMin
-**  - if cbfi->distMin > 0: distance from spline (as evaluated at the
+**  - if fctx->nrpDeltaMin > 0: parameterization change falls below deltaMin
+**  - if fctx->distMin > 0: distance from spline (as evaluated at the
 **    current parameterization) to the given points falls below
-**    cbfi->nrpDistScl * cbfi->distMin
+**    fctx->nrpDistScl * fctx->distMin
 ** Information about the results of this process are set in the given
-** _cbfi, if non-NULL.
+** _fctx, if non-NULL.
 */
 int
-limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
+limnCBFSingle(double alpha[2], limnCBFContext *_fctx,
               const double vv0[2], const double tt1[2],
               const double tt2[2], const double vv3[2],
               const double *xy, uint pNum) {
   const char me[]="limnCBFSingle";
   double *uu;
   int loi, hii;
-  limnCBFInfo *cbfi, mycbfi;
+  limnCBFContext *fctx, myfctx;
 
-  if (_cbfi) {
-    loi = (int)_cbfi->baseIdx;
-    hii = (int)_cbfi->baseIdx+pNum-1;
-    if (limnCBFCheck(_cbfi, pNum, AIR_FALSE)) {
-      biffAddf(LIMN, "%s[%d,%d]: problem with cbfi", me, loi, hii);
+  if (_fctx) {
+    loi = (int)_fctx->baseIdx;
+    hii = (int)_fctx->baseIdx+pNum-1;
+    if (limnCBFCheck(_fctx, pNum, AIR_FALSE)) {
+      biffAddf(LIMN, "%s[%d,%d]: problem with fctx", me, loi, hii);
       return 1;
     }
-    cbfi = _cbfi;   /* caller has supplied info */
-    limnCBFInfoInit(cbfi, AIR_TRUE /* outputOnly */);
+    fctx = _fctx;   /* caller has supplied info */
+    limnCBFContextInit(fctx, AIR_TRUE /* outputOnly */);
   } else {
     loi = hii = -1;
-    cbfi = &mycbfi; /* caller wants default parms */
-    limnCBFInfoInit(cbfi, AIR_FALSE /* outputOnly */);
+    fctx = &myfctx; /* caller wants default parms */
+    limnCBFContextInit(fctx, AIR_FALSE /* outputOnly */);
   }
   if (!(alpha && vv0 && tt1 && tt2 && vv3 && xy)) {
     biffAddf(LIMN, "%s[%d,%d]: got NULL pointer", me, loi, hii);
@@ -557,7 +557,7 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
     return 1;
   }
 
-  fitSingle(alpha, cbfi, vv0, tt1, tt2, vv3, xy, pNum, loi, hii, uu);
+  fitSingle(alpha, fctx, vv0, tt1, tt2, vv3, xy, pNum, loi, hii, uu);
 
   free(uu);
   return 0;
@@ -605,23 +605,23 @@ limnCBFPathJoin(limnCBFPath *dst, const limnCBFPath *src) {
 }
 
 static int
-buffersNew(limnCBFInfo *cbfi, uint pNum) {
+buffersNew(limnCBFContext *fctx, uint pNum) {
   const char me[]="buffers";
-  double kw, kparm[2], vsum, tsum, scl = cbfi->scale;
+  double kw, kparm[2], vsum, tsum, scl = fctx->scale;
   /* one: what value in summing kernel weights should count as 1.0. This
-     should probably be a parm in cbfi, but not very interesting to
+     should probably be a parm in fctx, but not very interesting to
      change */
   double one = 0.999;
   uint ii, len;
 
-  cbfi->uu = AIR_CALLOC(pNum*2, double);
-  if (!cbfi->uu) {
+  fctx->uu = AIR_CALLOC(pNum*2, double);
+  if (!fctx->uu) {
     biffAddf(LIMN, "%s: failed to allocate parameter buffer", me);
     return 1;
   }
   if (0 == scl) {
     /* will do simplest possible finite differences; we're done */
-    cbfi->vw = cbfi->tw = NULL;
+    fctx->vw = fctx->tw = NULL;
     return 0;
   }
   /* else need to allocate and set vw and tw buffers */
@@ -641,13 +641,13 @@ buffersNew(limnCBFInfo *cbfi, uint pNum) {
              "unreasonable", me, len, scl);
     return 1;
   }
-  cbfi->vw = AIR_CALLOC(len, double);
-  cbfi->tw = AIR_CALLOC(len, double);
-  if (!(cbfi->vw && cbfi->tw)) {
+  fctx->vw = AIR_CALLOC(len, double);
+  fctx->tw = AIR_CALLOC(len, double);
+  if (!(fctx->vw && fctx->tw)) {
     biffAddf(LIMN, "%s: couldn't allocate weight buffers (len %u)", me, len);
     return 1;
   }
-  cbfi->wLen = len;
+  fctx->wLen = len;
   /* normalization intent:
      1 = sum_i(vw[|i|]) for i=-(len-1)...len-1
      1 = sum_i(tw[i]) for i=0...len-1
@@ -655,39 +655,43 @@ buffersNew(limnCBFInfo *cbfi, uint pNum) {
   vsum = tsum = 0;
   for (ii=0; ii<len; ii++) {
     kw = nrrdKernelDiscreteGaussian->eval1_d(ii, kparm);
-    vsum += (!ii ? 1 : 2)*(cbfi->vw[ii] = kw);
-    tsum += (cbfi->tw[ii] = ii*kw);
+    vsum += (!ii ? 1 : 2)*(fctx->vw[ii] = kw);
+    tsum += (fctx->tw[ii] = ii*kw);
   }
   for (ii=0; ii<len; ii++) {
-    cbfi->vw[ii] /= vsum;
-    cbfi->tw[ii] /= tsum;
-    /* printf("!%s: %u     %g       %g\n", me, ii, cbfi->vw[ii], cbfi->tw[ii]); */
+    fctx->vw[ii] /= vsum;
+    fctx->tw[ii] /= tsum;
+    /* printf("!%s: %u     %g       %g\n", me, ii, fctx->vw[ii], fctx->tw[ii]); */
   }
   return 0;
 }
 
 static void
-buffersNix(limnCBFInfo *cbfi) {
-  cbfi->uu = airFree(cbfi->uu);
-  cbfi->vw = airFree(cbfi->vw);
-  cbfi->tw = airFree(cbfi->tw);
+buffersNix(limnCBFContext *fctx) {
+  fctx->uu = airFree(fctx->uu);
+  fctx->vw = airFree(fctx->vw);
+  fctx->tw = airFree(fctx->tw);
   return;
 }
 
-/* allocate buffers in cbfi, but only once per call chain */
-#define BUFFERS_NEW(CBFI, NN, OWN)                              \
-  if (!(CBFI)->uu) {                                            \
-    if (buffersNew((CBFI), (NN))) {                             \
+/* macros to manage the heap-allocated things inside limnCBFContext; working
+   with the idea that each caller passes an OWN variable on their stack, so
+   the NIX macro only frees thing when the address of OWN matches that passed
+   to the NEW. Nothing else in Teem uses this strategy; it may be exploring
+   the clever/stupid boundary that David and Nigel firts identified. */
+#define BUFFERS_NEW(FCTX, NN, OWN)                              \
+  if (!(FCTX)->uu) {                                            \
+    if (buffersNew((FCTX), (NN))) {                             \
       biffAddf(LIMN, "%s: failed to allocate buffers", me);     \
       return 1;                                                 \
     }                                                           \
-    (CBFI)->mine = &(OWN);                                      \
+    (FCTX)->mine = &(OWN);                                      \
   }
 
-#define BUFFERS_NIX(CBFI, OWN)                  \
-  if ((CBFI)->mine == &(OWN)) {                 \
-    buffersNix(CBFI);                           \
-    (CBFI)->mine = NULL;                        \
+#define BUFFERS_NIX(FCTX, OWN)                  \
+  if ((FCTX)->mine == &(OWN)) {                 \
+    buffersNix(FCTX);                           \
+    (FCTX)->mine = NULL;                        \
   }
 
 /*
@@ -705,14 +709,14 @@ buffersNix(limnCBFInfo *cbfi) {
 */
 static void
 findVT(double vv[2], double tt[2],
-       const limnCBFInfo *cbfi,
+       const limnCBFContext *fctx,
        const double *xy, uint pNum, int isLoop,
        uint ii, int dir) {
   /* const char me[]="findVT"; */
   double len;
 
   dir = airSgn(dir);
-  if (0 == cbfi->scale) {
+  if (0 == fctx->scale) {
     uint mi, pi, iplus, imnus;
     iplus = AIR_MIN(ii+1, pNum-1);
     imnus = AIR_MAX(1, ii) - 1;
@@ -742,11 +746,11 @@ findVT(double vv[2], double tt[2],
     ELL_2V_NORM(tt, tt, len);
   } else {
     /* using scale>0 for endpoint and tangent estimation */
-    const double *vw = cbfi->vw;
-    const double *tw = cbfi->tw;
+    const double *vw = fctx->vw;
+    const double *tw = fctx->tw;
     /* various signed indices */
     int sj, sii=(int)ii, /* we compute around vertex ii */
-      smax=(int)cbfi->wLen - 1, /* bound of loop index */
+      smax=(int)fctx->wLen - 1, /* bound of loop index */
       spNum=(int)pNum;
     if (vv) ELL_2V_SET(vv, 0, 0);
     ELL_2V_SET(tt, 0, 0);
@@ -795,9 +799,9 @@ findVT(double vv[2], double tt[2],
       ELL_2V_SUB(off, vv, xy + 2*ii);
       operp = ELL_2V_DOT(off, pp);
       /* limit distance from chosen (x,y) datapoint to spline endpoint to be
-         (HEY harcoded) 95% of cbfi->distMin. Being allowed to be further away
+         (HEY harcoded) 95% of fctx->distMin. Being allowed to be further away
          can cause annoyances */
-      operp = AIR_MIN(0.95*cbfi->distMin, operp);
+      operp = AIR_MIN(0.95*fctx->distMin, operp);
       /* constrain difference between chosen (x,y) datapoint and spline
          endpoint to be perpendicular to estimated tangent */
       ELL_2V_SCALE_ADD2(vv, 1, xy + 2*ii, operp, pp);
@@ -816,20 +820,20 @@ findVT(double vv[2], double tt[2],
 ** limnCBFSingle.
 */
 int
-limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
+limnCBFMulti(limnCBFPath *path, limnCBFContext *fctx,
              const double _vv0[2], const double _tt1[2],
              const double _tt2[2], const double _vv3[2],
              const double *xy, uint pNum, int isLoop) {
   const char me[]="limnCBFMulti";
   double vv0[2], tt1[2], tt2[2], vv3[2], alpha[2];
-  /* &ownbuff determines who frees buffers inside cbfi, since each
+  /* &ownbuff determines who frees buffers inside fctx, since each
      function call will have distinct stack location for ownbuff */
   double ownbuff;
   int geomGiven;
   uint loi, hii;
 
-  /* need non-NULL cbfi in order to know cbfi->distMin */
-  if (limnCBFCheck(cbfi, pNum, isLoop)) {
+  /* need non-NULL fctx in order to know fctx->distMin */
+  if (limnCBFCheck(fctx, pNum, isLoop)) {
     biffAddf(LIMN, "%s: got bad args", me);
     return 1;
   }
@@ -837,8 +841,8 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
-  loi = cbfi->baseIdx;
-  hii = cbfi->baseIdx+pNum-1;
+  loi = fctx->baseIdx;
+  hii = fctx->baseIdx+pNum-1;
   if (isLoop) {
     const double *last = xy + 2*(pNum-1);
     if (!ELL_2V_EQUAL(xy, last)) {
@@ -847,7 +851,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
       return 1;
     }
   }
-  BUFFERS_NEW(cbfi, pNum, ownbuff);
+  BUFFERS_NEW(fctx, pNum, ownbuff);
 
   /* either all the _vv0, _tt1, _tt2, _vv3 can be NULL, or none */
   if (!( _vv0 && _tt1 && _tt2 && _vv3 )) {
@@ -858,12 +862,12 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     }
     geomGiven = 0;
     if (isLoop) {
-      findVT(vv0, tt1,  cbfi, xy, pNum, isLoop, 0, 0);
+      findVT(vv0, tt1,  fctx, xy, pNum, isLoop, 0, 0);
       ELL_2V_COPY(vv3, vv0);
       ELL_2V_SCALE(tt2, -1, tt1);
     } else {
-      findVT(vv0, tt1,  cbfi, xy, pNum, isLoop, 0, +1);
-      findVT(vv3, tt2,  cbfi, xy, pNum, isLoop, pNum-1, -1);
+      findVT(vv0, tt1,  fctx, xy, pNum, isLoop, 0, +1);
+      findVT(vv3, tt2,  fctx, xy, pNum, isLoop, pNum-1, -1);
     }
   } else {
     /* copy the given endpoint geometry */
@@ -871,7 +875,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     ELL_2V_COPY(vv0, _vv0);  ELL_2V_COPY(tt1, _tt1);
     ELL_2V_COPY(tt2, _tt2);  ELL_2V_COPY(vv3, _vv3);
   }
-  if (cbfi->verbose) {
+  if (fctx->verbose) {
     printf("%s[%u,%u]: hello; %s v0=(%g,%g), t1=(%g,%g), t2=(%g,%g), "
            "v3=(%g,%g)\n", me, loi, hii,
            geomGiven ? "given" : "computed",
@@ -879,17 +883,17 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
   }
 
   /* first try fitting a single spline */
-  if (cbfi->verbose) {
+  if (fctx->verbose) {
     printf("%s[%u,%u]: trying single fit on all points\n", me, loi, hii);
   }
-  fitSingle(alpha, cbfi, vv0, tt1, tt2, vv3, xy, pNum, loi, hii, cbfi->uu);
-  if (cbfi->distBig <= 1) {
-    /* max dist was <= cbfi->distMin: single fit was good enough */
-    if (cbfi->verbose) {
+  fitSingle(alpha, fctx, vv0, tt1, tt2, vv3, xy, pNum, loi, hii, fctx->uu);
+  if (fctx->distBig <= 1) {
+    /* max dist was <= fctx->distMin: single fit was good enough */
+    if (fctx->verbose) {
       printf("%s[%u,%u]: single fit good: nrpi=%u; dist=%g@%u <= %g; "
-             "det=%g; alpha=%g,%g\n", me, loi, hii, cbfi->nrpIterDone,
-             cbfi->dist, cbfi->distIdx, cbfi->distMin,
-             cbfi->alphaDet, alpha[0], alpha[1]);
+             "det=%g; alpha=%g,%g\n", me, loi, hii, fctx->nrpIterDone,
+             fctx->dist, fctx->distIdx, fctx->distMin,
+             fctx->alphaDet, alpha[0], alpha[1]);
     }
     airArrayLenSet(path->segArr, 1);
     ELL_2V_COPY(path->seg[0].xy + 0, vv0);
@@ -897,52 +901,52 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     ELL_2V_SCALE_ADD2(path->seg[0].xy + 4, 1, vv3, alpha[1], tt2);
     ELL_2V_COPY(path->seg[0].xy + 6, vv3);
     path->seg[0].pNum = pNum;
-  } else { /* need to subdivide at cbfi->distIdx and recurse */
-    uint mi = cbfi->distIdx;
+  } else { /* need to subdivide at fctx->distIdx and recurse */
+    uint mi = fctx->distIdx;
     double ttL[2], mid[2], ttR[2];
     limnCBFPath *prth = limnCBFPathNew(); /* right path */
-    limnCBFInfo cbfiL, cbfiR;
-    memcpy(&cbfiL, cbfi, sizeof(limnCBFInfo));
-    memcpy(&cbfiR, cbfi, sizeof(limnCBFInfo));
-    if (cbfi->verbose) {
+    limnCBFContext fctxL, fctxR;
+    memcpy(&fctxL, fctx, sizeof(limnCBFContext));
+    memcpy(&fctxR, fctx, sizeof(limnCBFContext));
+    if (fctx->verbose) {
       printf("%s[%u,%u]: dist %g big (%d) --> split at %u (%u) xy=(%g,%g)\n",
-             me, loi, hii, cbfi->dist, cbfi->distBig,
-             mi, cbfi->baseIdx+mi, (xy + 2*mi)[0], (xy + 2*mi)[1]);
+             me, loi, hii, fctx->dist, fctx->distBig,
+             mi, fctx->baseIdx+mi, (xy + 2*mi)[0], (xy + 2*mi)[1]);
     }
-    findVT(mid, ttR, cbfi, xy, pNum, isLoop, mi, 0);
+    findVT(mid, ttR, fctx, xy, pNum, isLoop, mi, 0);
     ELL_2V_SCALE(ttL, -1, ttR);
-    /* cbfiL.baseIdx == cbfi.baseIdx */
-    cbfiR.baseIdx = cbfi->baseIdx + mi;
+    /* fctxL.baseIdx == fctx.baseIdx */
+    fctxR.baseIdx = fctx->baseIdx + mi;
     /* on recursion, can't be a loop, so isLoop is AIR_FALSE */
-    if (limnCBFMulti(path, &cbfiL, vv0, tt1, ttL, mid,
+    if (limnCBFMulti(path, &fctxL, vv0, tt1, ttL, mid,
                      xy, mi+1, AIR_FALSE) ||
-        limnCBFMulti(prth, &cbfiR, mid, ttR, tt2, vv3,
+        limnCBFMulti(prth, &fctxR, mid, ttR, tt2, vv3,
                      xy + 2*mi, pNum - mi, AIR_FALSE)) {
       biffAddf(LIMN, "%s[%u,%u]: trouble on recursive fit", me, loi, hii);
       limnCBFPathNix(prth); return 1;
     }
     limnCBFPathJoin(path, prth);
     limnCBFPathNix(prth);
-    cbfi->nrpIterDone = cbfiL.nrpIterDone + cbfiR.nrpIterDone;
-    if (cbfiL.dist > cbfiR.dist) {
-      cbfi->dist    = cbfiL.dist;
-      cbfi->distIdx = cbfiL.distIdx;
-      cbfi->distBig = cbfiL.distBig;
+    fctx->nrpIterDone = fctxL.nrpIterDone + fctxR.nrpIterDone;
+    if (fctxL.dist > fctxR.dist) {
+      fctx->dist    = fctxL.dist;
+      fctx->distIdx = fctxL.distIdx;
+      fctx->distBig = fctxL.distBig;
     } else {
-      cbfi->dist    = cbfiR.dist;
-      cbfi->distIdx = cbfiR.distIdx;
-      cbfi->distBig = cbfiR.distBig;
+      fctx->dist    = fctxR.dist;
+      fctx->distIdx = fctxR.distIdx;
+      fctx->distBig = fctxR.distBig;
     }
-    cbfi->nrpDeltaDone = AIR_MAX(cbfiL.nrpDeltaDone, cbfiR.nrpDeltaDone);
-    cbfi->alphaDet = AIR_MIN(cbfiL.alphaDet, cbfiR.alphaDet);
+    fctx->nrpDeltaDone = AIR_MAX(fctxL.nrpDeltaDone, fctxR.nrpDeltaDone);
+    fctx->alphaDet = AIR_MIN(fctxL.alphaDet, fctxR.alphaDet);
   }
 
-  BUFFERS_NIX(cbfi, ownbuff);
+  BUFFERS_NIX(fctx, ownbuff);
   return 0;
 }
 
 int
-limnCBFCorners(uint **cornIdx, uint *cornNum, limnCBFInfo *cbfi,
+limnCBFCorners(uint **cornIdx, uint *cornNum, limnCBFContext *fctx,
                const double *xy, uint pNum, int isLoop) {
   const char me[]="limnCBFCorners";
   airArray *mop, *cornArr;
@@ -950,15 +954,15 @@ limnCBFCorners(uint **cornIdx, uint *cornNum, limnCBFInfo *cbfi,
   uint ii;
   int *corn;
 
-  if (!(cornIdx && cornNum && cbfi && xy)) {
+  if (!(cornIdx && cornNum && fctx && xy)) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
-  if (limnCBFCheck(cbfi, pNum, isLoop)) {
+  if (limnCBFCheck(fctx, pNum, isLoop)) {
     biffAddf(LIMN, "%s: got bad args", me);
     return 1;
   }
-  if (!cbfi->cornAngle) {
+  if (!fctx->cornAngle) {
     /* nothing much to do here, because caller doesn't want corners */
     *cornIdx = NULL;
     *cornNum = 0;
@@ -973,15 +977,15 @@ limnCBFCorners(uint **cornIdx, uint *cornNum, limnCBFInfo *cbfi,
   cornArr = airArrayNew(AIR_CAST(void**, cornIdx), cornNum, sizeof(uint), 32);
   /* free with Nix, not Nuke, because we are managing the given pointers */
   airMopAdd(mop, cornArr, (airMopper)airArrayNix, airMopAlways);
-  BUFFERS_NEW(cbfi, pNum, ownbuff);
+  BUFFERS_NEW(fctx, pNum, ownbuff);
   for (ii=0; ii<pNum; ii++) {
     double LT[2], RT[2];
-    findVT(NULL, LT, cbfi, xy, pNum, isLoop, ii, -1);
-    findVT(NULL, RT, cbfi, xy, pNum, isLoop, ii, +1);
+    findVT(NULL, LT, fctx, xy, pNum, isLoop, ii, -1);
+    findVT(NULL, RT, fctx, xy, pNum, isLoop, ii, +1);
     angle[ii] = 180*ell_2v_angle_d(LT, RT)/AIR_PI;
-    corn[ii] = (angle[ii] < cbfi->cornAngle);
+    corn[ii] = (angle[ii] < fctx->cornAngle);
   }
-  if (cbfi->cornNMS) {
+  if (fctx->cornNMS) {
     for (ii=0; ii<pNum; ii++) {
       uint iplus, imnus;
       iplus = (ii < pNum-1
@@ -1001,45 +1005,45 @@ limnCBFCorners(uint **cornIdx, uint *cornNum, limnCBFInfo *cbfi,
     ci = airArrayLenIncr(cornArr, 1);
     (*cornIdx)[ci] = ii;
   }
-  BUFFERS_NIX(cbfi, ownbuff);
+  BUFFERS_NIX(fctx, ownbuff);
   airMopOkay(mop);
   return 0;
 }
 
 /*
-******** limnCBFit
+******** limnFctxt
 **
 ** top-level function for fitting cubic beziers to given points
 */
 int
-limnCBFit(limnCBFPath *path, limnCBFInfo *cbfi,
+limnCBFit(limnCBFPath *path, limnCBFContext *fctx,
           const double *xy, uint pNum, int isLoop) {
-  const char me[]="limnCBFit";
+  const char me[]="limnFctxt";
   uint *cornIdx=NULL, cornNum=0, cii, loi, hii;
   limnCBFPath *rpth;
   double ownbuff;
   int ret;
 
-  if (!(path && cbfi && xy)) {
+  if (!(path && fctx && xy)) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
-  if (limnCBFCheck(cbfi, pNum, isLoop)) {
+  if (limnCBFCheck(fctx, pNum, isLoop)) {
     biffAddf(LIMN, "%s: got bad args", me);
     return 1;
   }
-  BUFFERS_NEW(cbfi, pNum, ownbuff);
-  if (limnCBFCorners(&cornIdx, &cornNum, cbfi, xy, pNum, isLoop)) {
+  BUFFERS_NEW(fctx, pNum, ownbuff);
+  if (limnCBFCorners(&cornIdx, &cornNum, fctx, xy, pNum, isLoop)) {
     biffAddf(LIMN, "%s: trouble finding corners", me);
-    BUFFERS_NIX(cbfi, ownbuff);
+    BUFFERS_NIX(fctx, ownbuff);
     return 1;
   }
   if (!cornNum) {
     /* no corners; do everything with one multi call */
-    ret = limnCBFMulti(path, cbfi, NULL, NULL, NULL, NULL, xy, pNum, isLoop);
+    ret = limnCBFMulti(path, fctx, NULL, NULL, NULL, NULL, xy, pNum, isLoop);
     path->isLoop = isLoop;
     if (ret) biffAddf(LIMN, "%s: trouble", me);
-    BUFFERS_NIX(cbfi, ownbuff);
+    BUFFERS_NIX(fctx, ownbuff);
     return ret;
   }
   /* else do have corners: split points into segments between corners */
@@ -1048,11 +1052,11 @@ limnCBFit(limnCBFPath *path, limnCBFInfo *cbfi,
   for (cii=0; cii<cornNum; cii++) {
     hii = cornIdx[cii];
     rpth = limnCBFPathNew();
-    ret = limnCBFMulti(rpth, cbfi, NULL, NULL, NULL, NULL,
+    ret = limnCBFMulti(rpth, fctx, NULL, NULL, NULL, NULL,
                        xy + 2*loi, hii - loi + 1, isLoop);
     if (ret) {
       biffAddf(LIMN, "%s: trouble on corner %u", me, cii);
-      BUFFERS_NIX(cbfi, ownbuff);
+      BUFFERS_NIX(fctx, ownbuff);
       return 1;
     }
     rpth->seg[0].corner[0] = 1;
@@ -1062,11 +1066,11 @@ limnCBFit(limnCBFPath *path, limnCBFInfo *cbfi,
     loi = hii;
   }
   rpth = limnCBFPathNew();
-  ret = limnCBFMulti(rpth, cbfi, NULL, NULL, NULL, NULL,
+  ret = limnCBFMulti(rpth, fctx, NULL, NULL, NULL, NULL,
                      xy + 2*loi, pNum - loi, isLoop);
   if (ret) {
     biffAddf(LIMN, "%s: trouble after last corner", me);
-    BUFFERS_NIX(cbfi, ownbuff);
+    BUFFERS_NIX(fctx, ownbuff);
     return 1;
   }
   rpth->seg[0].corner[0] = 1;
@@ -1075,19 +1079,22 @@ limnCBFit(limnCBFPath *path, limnCBFInfo *cbfi,
   limnCBFPathNix(rpth);
 
   path->isLoop = isLoop;
-  BUFFERS_NIX(cbfi, ownbuff);
+  BUFFERS_NIX(fctx, ownbuff);
   return 0;
 }
 
 
 /*
 TODO:
+rewrite things to use limnPointList, with first and last indices,
+naturally handling the case that last < first, with isLoop
+
 testing corners: corners at start==stop of isLoop
 corners not at start or stop of isLoop: do spline wrap around from last to first index?
 
 limnCBFPrune to remove (in-place) coincident and nearly coincident points in xy (with isLoop flag)
 
-use performance tests to explore optimal settings in cbfi:
+use performance tests to explore optimal settings in fctx:
   nrpIterMax, nrpDeltaMax, nrpDistScl, nrpPsi, nrpDeltaMin
 evaluated in terms of time and #splines needed for fit
 (may want to pay in time for more economical representation)
