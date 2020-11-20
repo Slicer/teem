@@ -199,11 +199,13 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
     fflush(stderr);
     getchar();
   }
-  if (limnCBFMulti(path, &cbfi,
-                   /* work in progress ... */
-                   /* vv0, tt1, tt2, vv3,*/
-                   NULL, NULL, NULL, NULL,
-                   xy, pNum, loop)) {
+  {
+    unsigned int *cornIdx, cornNum;
+    limnCBFCorners(&cornIdx, &cornNum,
+                   &cbfi, xy, pNum, loop);
+  }
+  if (limnCBFit(path, &cbfi,
+                xy, pNum, loop)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s", me, err);
     airMopError(mop);

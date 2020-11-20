@@ -315,6 +315,7 @@ limnCBFInfoInit(limnCBFInfo *cbfi, int outputOnly) {
   if (!outputOnly) {
     /* defaults for input parameters to various CBF functions */
     cbfi->verbose = 0;
+    cbfi->cornNMS = AIR_TRUE;
     cbfi->nrpIterMax = 10;
     cbfi->baseIdx = 0;
     cbfi->scale = 0;
@@ -325,6 +326,7 @@ limnCBFInfoInit(limnCBFInfo *cbfi, int outputOnly) {
     cbfi->nrpDeltaMin = 0.001;
     cbfi->alphaMin = 0.001;
     cbfi->detMin = 0.01;
+    cbfi->cornAngle = 100.0; /* degrees */
   }
   /* internal */
   cbfi->uu = cbfi->vw = cbfi->tw = NULL;
@@ -341,11 +343,23 @@ limnCBFInfoInit(limnCBFInfo *cbfi, int outputOnly) {
   return;
 }
 
+/*
+******** limnCBFCheck
+**
+** checks the given limnCBFInfo, as well as pNum and isLoop
+*/
 int
-limnCBFInfoCheck(const limnCBFInfo *cbfi) {
-  const char me[]="limnCBFInfoCheck";
+limnCBFCheck(const limnCBFInfo *cbfi, uint pNum, int isLoop) {
+  const char me[]="limnCBFCheck";
+  unsigned int pnmin;
   if (!cbfi) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
+  }
+  pnmin = isLoop ? 3 : 2;
+  if (!(pNum >= pnmin)) {
+    biffAddf(LIMN, "%s: need at least %u or more points (not %u)%s",
+             me, pnmin, pNum, isLoop ? " for loop" : "");
     return 1;
   }
   /* actually not really a requirement
@@ -372,8 +386,11 @@ limnCBFInfoCheck(const limnCBFInfo *cbfi) {
     return 1;
   }
   if (!( 1 <= cbfi->nrpPsi )) {
-    biffAddf(LIMN, "%s: nrpPsi (%g) must be >= 1",
-             me, cbfi->nrpPsi);
+    biffAddf(LIMN, "%s: nrpPsi (%g) must be >= 1", me, cbfi->nrpPsi);
+    return 1;
+  }
+  if (!( cbfi->cornAngle < 179 )) {
+    biffAddf(LIMN, "%s: cornAngle (%g) seems too big", me, cbfi->cornAngle);
     return 1;
   }
   return 0;
@@ -513,7 +530,7 @@ limnCBFSingle(double alpha[2], limnCBFInfo *_cbfi,
   if (_cbfi) {
     loi = (int)_cbfi->baseIdx;
     hii = (int)_cbfi->baseIdx+pNum-1;
-    if (limnCBFInfoCheck(_cbfi)) {
+    if (limnCBFCheck(_cbfi, pNum, AIR_FALSE)) {
       biffAddf(LIMN, "%s[%d,%d]: problem with cbfi", me, loi, hii);
       return 1;
     }
@@ -566,7 +583,7 @@ limnCBFPathNew() {
     path->segArr = airArrayNew((void**)(&path->seg), &path->segNum,
                                sizeof(limnCBFSeg), 128 /* incr */);
     airArrayStructCB(path->segArr, segInit, NULL);
-    path->closed = AIR_FALSE;
+    path->isLoop = AIR_FALSE;
   }
   return path;
 }
@@ -657,6 +674,22 @@ buffersNix(limnCBFInfo *cbfi) {
   return;
 }
 
+/* allocate buffers in cbfi, but only once per call chain */
+#define BUFFERS_NEW(CBFI, NN, OWN)                              \
+  if (!(CBFI)->uu) {                                            \
+    if (buffersNew((CBFI), (NN))) {                             \
+      biffAddf(LIMN, "%s: failed to allocate buffers", me);     \
+      return 1;                                                 \
+    }                                                           \
+    (CBFI)->mine = &(OWN);                                      \
+  }
+
+#define BUFFERS_NIX(CBFI, OWN)                  \
+  if ((CBFI)->mine == &(OWN)) {                 \
+    buffersNix(CBFI);                           \
+    (CBFI)->mine = NULL;                        \
+  }
+
 /*
 ** Find endpoint vertex vv and tangent tt (constraints for spline fitting)
 ** from the given points xy (pNum of them, in a loop if isLoop).
@@ -680,15 +713,17 @@ findVT(double vv[2], double tt[2],
 
   dir = airSgn(dir);
   if (0 == cbfi->scale) {
-    uint mi, pi;
+    uint mi, pi, iplus, imnus;
+    iplus = AIR_MIN(ii+1, pNum-1);
+    imnus = AIR_MAX(1, ii) - 1;
     if (vv) ELL_2V_COPY(vv, xy + 2*ii);
     switch (dir) {
     case 1:
-      pi = ii+1;
+      pi = iplus;
       mi = ii;
       break;
     case 0:
-      pi = ii+1;
+      pi = iplus;
       mi = (ii
             ? ii-1
             : (isLoop
@@ -698,10 +733,13 @@ findVT(double vv[2], double tt[2],
     case -1:
       /* mi and pi switched to point other way */
       mi = ii;
-      pi = ii-1;
+      pi = imnus;
       break;
     }
+    /* if ii=0 and dir=-1, or ii=pNum-1 and dir=+1, will have mi=pi
+       which means that tt will be (nan,nan), which is appropriate */
     ELL_2V_SUB(tt, xy + 2*pi, xy + 2*mi);
+    ELL_2V_NORM(tt, tt, len);
   } else {
     /* using scale>0 for endpoint and tangent estimation */
     const double *vw = cbfi->vw;
@@ -746,11 +784,24 @@ findVT(double vv[2], double tt[2],
       ELL_2V_SCALE_INCR(tt, ttw, xy + 2*xj);
       /* printf("!%s[sj=%d]: tt += %g*(%g,%g) -> (%g,%g)\n", me, sj, ttw, (xy + 2*xj)[0], (xy + 2*xj)[1], tt[0], tt[1]); */
     }
-  }
-  ELL_2V_NORM(tt, tt, len);
-  if (vv) {
-    /* TODO: consider constraining difference between xy[ii] and vv to
-       be <= cbfi->distMin, and/or perpendicular to tt */
+    ELL_2V_NORM(tt, tt, len);
+    /* fix the boundary conditions as a post-process */
+    if (     0==ii && -1==dir) ELL_2V_SET(tt, AIR_NAN, AIR_NAN);
+    if (pNum-1==ii && +1==dir) ELL_2V_SET(tt, AIR_NAN, AIR_NAN);
+    if (vv) {
+      /* some post-proceessing of computed spline endpoint */
+      double off[2], pp[2], operp;
+      ELL_2V_SET(pp, tt[1], -tt[0]); /* pp is perpendicular to tt */
+      ELL_2V_SUB(off, vv, xy + 2*ii);
+      operp = ELL_2V_DOT(off, pp);
+      /* limit distance from chosen (x,y) datapoint to spline endpoint to be
+         (HEY harcoded) 95% of cbfi->distMin. Being allowed to be further away
+         can cause annoyances */
+      operp = AIR_MIN(0.95*cbfi->distMin, operp);
+      /* constrain difference between chosen (x,y) datapoint and spline
+         endpoint to be perpendicular to estimated tangent */
+      ELL_2V_SCALE_ADD2(vv, 1, xy + 2*ii, operp, pp);
+    }
   }
   return;
 }
@@ -771,29 +822,23 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
              const double *xy, uint pNum, int isLoop) {
   const char me[]="limnCBFMulti";
   double vv0[2], tt1[2], tt2[2], vv3[2], alpha[2];
-  /* &minemine determines who frees buffers inside cbfi, since each
-     function call will have distinct stack location for minemine */
-  double minemine;
+  /* &ownbuff determines who frees buffers inside cbfi, since each
+     function call will have distinct stack location for ownbuff */
+  double ownbuff;
   int geomGiven;
-  uint loi, hii, pnmin;
+  uint loi, hii;
 
   /* need non-NULL cbfi in order to know cbfi->distMin */
-  if (limnCBFInfoCheck(cbfi)) {
-    biffAddf(LIMN, "%s: got bad limnCBFInfo", me);
+  if (limnCBFCheck(cbfi, pNum, isLoop)) {
+    biffAddf(LIMN, "%s: got bad args", me);
     return 1;
   }
   if (!xy) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
-  pnmin = isLoop ? 3 : 2;
   loi = cbfi->baseIdx;
   hii = cbfi->baseIdx+pNum-1;
-  if (!(pNum >= pnmin)) {
-    biffAddf(LIMN, "%s[%d,%d]: need at least %u or more points (not %u)%s",
-             me, loi, hii, pnmin, pNum, isLoop ? " for loop" : "");
-    return 1;
-  }
   if (isLoop) {
     const double *last = xy + 2*(pNum-1);
     if (!ELL_2V_EQUAL(xy, last)) {
@@ -802,15 +847,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
       return 1;
     }
   }
-  /* allocate uu buffer, but only once per call chain */
-  if (!cbfi->uu) {
-    if (buffersNew(cbfi, pNum)) {
-      biffAddf(LIMN, "%s[%d,%d]: failed to allocate parameter buffer",
-               me, loi, hii);
-      return 1;
-    }
-    cbfi->mine = &minemine;
-  }
+  BUFFERS_NEW(cbfi, pNum, ownbuff);
 
   /* either all the _vv0, _tt1, _tt2, _vv3 can be NULL, or none */
   if (!( _vv0 && _tt1 && _tt2 && _vv3 )) {
@@ -900,20 +937,153 @@ limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
     cbfi->alphaDet = AIR_MIN(cbfiL.alphaDet, cbfiR.alphaDet);
   }
 
-  if (cbfi->mine == &minemine) {
-    buffersNix(cbfi);
-    cbfi->mine = NULL;
+  BUFFERS_NIX(cbfi, ownbuff);
+  return 0;
+}
+
+int
+limnCBFCorners(uint **cornIdx, uint *cornNum, limnCBFInfo *cbfi,
+               const double *xy, uint pNum, int isLoop) {
+  const char me[]="limnCBFCorners";
+  airArray *mop, *cornArr;
+  double ownbuff, *angle;
+  uint ii;
+  int *corn;
+
+  if (!(cornIdx && cornNum && cbfi && xy)) {
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
   }
+  if (limnCBFCheck(cbfi, pNum, isLoop)) {
+    biffAddf(LIMN, "%s: got bad args", me);
+    return 1;
+  }
+  if (!cbfi->cornAngle) {
+    /* nothing much to do here, because caller doesn't want corners */
+    *cornIdx = NULL;
+    *cornNum = 0;
+    return 0;
+  }
+  angle = AIR_CALLOC(pNum, double); assert(angle);
+  corn = AIR_CALLOC(pNum, int); assert(corn);
+  /* GLK tiring of using biff to report allocation failures */
+  mop = airMopNew();
+  airMopAdd(mop, angle, airFree, airMopAlways);
+  airMopAdd(mop, corn, airFree, airMopAlways);
+  cornArr = airArrayNew(AIR_CAST(void**, cornIdx), cornNum, sizeof(uint), 32);
+  /* free with Nix, not Nuke, because we are managing the given pointers */
+  airMopAdd(mop, cornArr, (airMopper)airArrayNix, airMopAlways);
+  BUFFERS_NEW(cbfi, pNum, ownbuff);
+  for (ii=0; ii<pNum; ii++) {
+    double LT[2], RT[2];
+    findVT(NULL, LT, cbfi, xy, pNum, isLoop, ii, -1);
+    findVT(NULL, RT, cbfi, xy, pNum, isLoop, ii, +1);
+    angle[ii] = 180*ell_2v_angle_d(LT, RT)/AIR_PI;
+    corn[ii] = (angle[ii] < cbfi->cornAngle);
+  }
+  if (cbfi->cornNMS) {
+    for (ii=0; ii<pNum; ii++) {
+      uint iplus, imnus;
+      iplus = (ii < pNum-1
+               ? ii+1
+               : (isLoop ? 1 : pNum-1));
+      imnus = (ii
+               ? ii-1
+               : (isLoop ? pNum-2 : 0));
+      /* stays a corner only if angle smaller than neighbors */
+      corn[ii] &= (angle[ii] < angle[iplus] &&
+                   angle[ii] < angle[imnus]);
+    }
+  }
+  for (ii=0; ii<pNum; ii++) {
+    uint ci;
+    if (!corn[ii]) continue;
+    ci = airArrayLenIncr(cornArr, 1);
+    (*cornIdx)[ci] = ii;
+  }
+  BUFFERS_NIX(cbfi, ownbuff);
+  airMopOkay(mop);
   return 0;
 }
 
 /*
+******** limnCBFit
+**
+** top-level function for fitting cubic beziers to given points
+*/
+int
+limnCBFit(limnCBFPath *path, limnCBFInfo *cbfi,
+          const double *xy, uint pNum, int isLoop) {
+  const char me[]="limnCBFit";
+  uint *cornIdx=NULL, cornNum=0, cii, loi, hii;
+  limnCBFPath *rpth;
+  double ownbuff;
+  int ret;
+
+  if (!(path && cbfi && xy)) {
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (limnCBFCheck(cbfi, pNum, isLoop)) {
+    biffAddf(LIMN, "%s: got bad args", me);
+    return 1;
+  }
+  BUFFERS_NEW(cbfi, pNum, ownbuff);
+  if (limnCBFCorners(&cornIdx, &cornNum, cbfi, xy, pNum, isLoop)) {
+    biffAddf(LIMN, "%s: trouble finding corners", me);
+    BUFFERS_NIX(cbfi, ownbuff);
+    return 1;
+  }
+  if (!cornNum) {
+    /* no corners; do everything with one multi call */
+    ret = limnCBFMulti(path, cbfi, NULL, NULL, NULL, NULL, xy, pNum, isLoop);
+    path->isLoop = isLoop;
+    if (ret) biffAddf(LIMN, "%s: trouble", me);
+    BUFFERS_NIX(cbfi, ownbuff);
+    return ret;
+  }
+  /* else do have corners: split points into segments between corners */
+  airArrayLenSet(path->segArr, 0);
+  loi = 0;
+  for (cii=0; cii<cornNum; cii++) {
+    hii = cornIdx[cii];
+    rpth = limnCBFPathNew();
+    ret = limnCBFMulti(rpth, cbfi, NULL, NULL, NULL, NULL,
+                       xy + 2*loi, hii - loi + 1, isLoop);
+    if (ret) {
+      biffAddf(LIMN, "%s: trouble on corner %u", me, cii);
+      BUFFERS_NIX(cbfi, ownbuff);
+      return 1;
+    }
+    rpth->seg[0].corner[0] = 1;
+    rpth->seg[rpth->segNum-1].corner[1] = 1;
+    limnCBFPathJoin(path, rpth);
+    limnCBFPathNix(rpth);
+    loi = hii;
+  }
+  rpth = limnCBFPathNew();
+  ret = limnCBFMulti(rpth, cbfi, NULL, NULL, NULL, NULL,
+                     xy + 2*loi, pNum - loi, isLoop);
+  if (ret) {
+    biffAddf(LIMN, "%s: trouble after last corner", me);
+    BUFFERS_NIX(cbfi, ownbuff);
+    return 1;
+  }
+  rpth->seg[0].corner[0] = 1;
+  rpth->seg[rpth->segNum-1].corner[1] = 1;
+  limnCBFPathJoin(path, rpth);
+  limnCBFPathNix(rpth);
+
+  path->isLoop = isLoop;
+  BUFFERS_NIX(cbfi, ownbuff);
+  return 0;
+}
+
+
+/*
 TODO:
-
-limnCBFCorners to find corners in data (with isLoop flag), but how
-does this end up setting limnCBFSeg->corner, or what does set that?
-
-limnCBFLoop to handle a whole loop (typical use-case)
+testing corners: corners at start==stop of isLoop
+corners not at start or stop of isLoop: do spline wrap around from last to first index?
 
 limnCBFPrune to remove (in-place) coincident and nearly coincident points in xy (with isLoop flag)
 

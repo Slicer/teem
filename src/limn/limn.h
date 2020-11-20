@@ -534,7 +534,7 @@ typedef struct {
   limnCBFSeg *seg;      /* array of limnCBFSeg */
   unsigned int segNum;  /* length of seg array */
   airArray *segArr;     /* manages seg and segNum */
-  int closed;           /* path is closed loop */
+  int isLoop;           /* path is closed loop */
 } limnCBFPath;
 
 /*
@@ -555,7 +555,9 @@ typedef struct {
 */
 typedef struct {
   /* ----------- input ---------- */
-  int verbose;              /* verbosity level */
+  int verbose,              /* verbosity level */
+    cornNMS;                /* non-minimal-suppression of corners: accept as
+                               corners only those with locally minimal angle */
   unsigned int nrpIterMax,  /* max # iters of nrp */
     baseIdx;                /* xy vector is really xy+2*baseIdx of the
                                xy in the first call to limnCBFMulti */
@@ -584,8 +586,13 @@ typedef struct {
     alphaMin,               /* alpha can't be negative, and we enforce
                                distinct positivity to ensure that spline
                                doesn't slow down too much near endpoints */
-    detMin;                 /* absolute value of determinant of 2x2 matrix
+    detMin,                 /* absolute value of determinant of 2x2 matrix
                                to invert can't below this */
+    cornAngle;              /* angle, in degrees, between (one-sided) incoming
+                               and outgoing tangents, *below* which a vertex
+                               should be considered a corner. Vertices in a
+                               straight line have an angle of 180 degrees. Or,
+                               if 0, no effort is made to detect corners. */
   /* ----------- internal --------- */
   double *uu,               /* buffer used for nrp */
     *vw,                    /* weights for endpoint vertex calculation */
@@ -931,6 +938,8 @@ LIMN_EXPORT limnCBFPath *limnCBFPathNix(limnCBFPath *path);
 LIMN_EXPORT void limnCBFPathSample(double *xy, unsigned int pNum,
                                    const limnCBFPath *path);
 LIMN_EXPORT void limnCBFInfoInit(limnCBFInfo *cbfi, int outputOnly);
+LIMN_EXPORT int limnCBFCheck(const limnCBFInfo *cbfi,
+                             unsigned int pNum, int isLoop);
 LIMN_EXPORT int limnCBFSingle(double alpha[2], limnCBFInfo *cbfi,
                               const double vv0[2], const double tt1[2],
                               const double tt2[2], const double vv3[2],
@@ -939,6 +948,11 @@ LIMN_EXPORT int limnCBFMulti(limnCBFPath *path, limnCBFInfo *cbfi,
                              const double vv0[2], const double tt1[2],
                              const double tt2[2], const double vv3[2],
                              const double *xy, unsigned int pNum, int isLoop);
+LIMN_EXPORT int limnCBFCorners(unsigned int **cornIdx, unsigned int *cornNum,
+                               limnCBFInfo *cbfi, const double *xy,
+                               unsigned int pNum, int isLoop);
+LIMN_EXPORT int limnCBFit(limnCBFPath *path, limnCBFInfo *cbfi,
+                          const double *xy, unsigned int pNum, int isLoop);
 
 /* lpu{Flotsam,. . .}.c */
 #define LIMN_DECLARE(C) LIMN_EXPORT unrrduCmd limnpu_##C##Cmd;
