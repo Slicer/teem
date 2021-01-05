@@ -554,9 +554,7 @@ typedef struct {
   int verbose,              /* verbosity level */
     cornNMS;                /* non-minimal-suppression of corners: accept as
                                corners only those with locally minimal angle */
-  unsigned int nrpIterMax,  /* max # iters of nrp */
-    baseIdx;                /* xy vector is really xy+2*baseIdx of the
-                               xy in the first call to limnCBFMulti */
+  unsigned int nrpIterMax;  /* max # iters of nrp */
   double scale,             /* scale (in sense of nrrdKernelDiscreteGaussian)
                                at which to estimate spline endpoints and
                                tangents; scale=0 means the endpoints are
@@ -614,19 +612,23 @@ typedef struct {
 } limnCBFContext;
 
 /*
-******** limnPointList
+******** limnPoints
 **
 ** a container for 1D array of points; currently used for limnCBF functions
+** Both pp and ppOwn can point to the array of point locations, but exactly
+** one of pp and ppOwn can be non-NULL.
 **
 ** NOTE: For now, point data is only double (not float), and only in 2D (not
 ** 3D), but if this becomes more general, that generality will be inside here
 */
 typedef struct {
-  double *xy;               /* the coordinates of each point */
+  const double *pp;         /* point coords, we do not own buffer */
+  double *ppOwn;            /* point coords, we DO own buffer */
   unsigned int num;         /* how many points */
   int isLoop;               /* points form a loop: logical indices into coord
-                               array are . . . num-2, num-1, 0, 1, . . . */
-} limnPointList;
+                               array are . . . num-2, num-1, 0, 1, . . .
+                               and index 0 is effectively arbitrary */
+} limnPoints;
 
 /* defaultsLimn.c */
 LIMN_EXPORT const int limnPresent;
@@ -942,6 +944,9 @@ LIMN_EXPORT int limnSplineSample(Nrrd *nout, limnSpline *spline,
                                  double minT, size_t M, double maxT);
 
 /* splineFit.c */
+LIMN_EXPORT limnPoints *limnPointsNew(const double *pp,
+                                      unsigned int nn, int isLoop);
+LIMN_EXPORT limnPoints *limnPointsNix(limnPoints *lpnt);
 LIMN_EXPORT void limnCBFSegEval(double *xy, const limnCBFSeg *seg, double tt);
 LIMN_EXPORT limnCBFPath *limnCBFPathNew(void);
 LIMN_EXPORT limnCBFPath *limnCBFPathNix(limnCBFPath *path);
@@ -949,18 +954,19 @@ LIMN_EXPORT void limnCBFPathSample(double *xy, unsigned int pNum,
                                    const limnCBFPath *path);
 LIMN_EXPORT void limnCBFContextInit(limnCBFContext *fctx, int outputOnly);
 LIMN_EXPORT int limnCBFCheck(const limnCBFContext *fctx,
-                             unsigned int pNum, int isLoop);
-LIMN_EXPORT int limnCBFSingle(double alpha[2], limnCBFContext *fctx,
-                              const double vv0[2], const double tt1[2],
-                              const double tt2[2], const double vv3[2],
-                              const double *xy, unsigned int pNum);
+                             const limnPoints *lpnt);
+LIMN_EXPORT int limnCBFitSingle(double alpha[2], limnCBFContext *fctx,
+                                const double vv0[2], const double tt1[2],
+                                const double tt2[2], const double vv3[2],
+                                const double *xy,
+                                unsigned int pNum, int isLoop);
 LIMN_EXPORT int limnCBFMulti(limnCBFPath *path, limnCBFContext *fctx,
                              const double vv0[2], const double tt1[2],
                              const double tt2[2], const double vv3[2],
-                             const double *xy, unsigned int pNum, int isLoop);
+                             const limnPoints *lpnt,
+                             unsigned int loi, unsigned int hii);
 LIMN_EXPORT int limnCBFCorners(unsigned int **cornIdx, unsigned int *cornNum,
-                               limnCBFContext *fctx, const double *xy,
-                               unsigned int pNum, int isLoop);
+                               limnCBFContext *fctx, const limnPoints *lpnt);
 LIMN_EXPORT int limnCBFit(limnCBFPath *path, limnCBFContext *fctx,
                           const double *xy, unsigned int pNum, int isLoop);
 
