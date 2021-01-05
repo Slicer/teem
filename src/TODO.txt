@@ -4,6 +4,14 @@
 ** changes, or significantly thoughtful redesign of how functional
 ** components of Teem are implemented.
 
+Figure out what is going on with parsing spaces in hest:
+this doesn't work:
+  unu basinfo -i tmp.nrrd -kv space:=RGB "novalue:=0.3 0 0" -o tmp2.nrrd
+and instead it sees:
+  !unu basinfo: kvpstring[0/2] = |space:=RGB|
+  !unu basinfo: kvpstring[1/2] = |"novalue:=0.3|
+where the hell is the " coming from?
+
 ========
 for Teem 2.0:
 
