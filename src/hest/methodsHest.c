@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2021  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -320,7 +320,7 @@ _hestPrintArgv(int argc, char **argv) {
 */
 int
 _hestWhichFlag(hestOpt *opt, char *flag, const hestParm *parm) {
-  char buff[AIR_STRLEN_HUGE], copy[AIR_STRLEN_HUGE], *sep;
+  char buff[2*AIR_STRLEN_HUGE], copy[AIR_STRLEN_HUGE], *sep;
   int op, numOpts;
 
   numOpts = _hestNumOpts(opt);
