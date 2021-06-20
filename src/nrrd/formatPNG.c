@@ -172,6 +172,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   int depth, type, i, channels, numtxt, ret;
   int ntype, ndim;
   size_t nsize[3];
+  char stmp[6][AIR_STRLEN_SMALL];
 #endif /* TEEM_PNG */
 
   AIR_UNUSED(file);
@@ -218,9 +219,15 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   png_read_info(png, info);
   png_get_IHDR(png, info, &width, &height, &depth, &type,
                NULL, NULL, NULL);
+  /* following order in http://www.libpng.org/pub/png/libpng-manual.txt */
   /* expand paletted colors into rgb triplets */
   if (type == PNG_COLOR_TYPE_PALETTE)
     png_set_palette_to_rgb(png);
+  /* expand paletted or rgb images with transparency to full alpha
+     channels so the data will be available as rgba quartets */
+  if (png_get_valid(png, info, PNG_INFO_tRNS)) {
+    png_set_tRNS_to_alpha(png);
+  }
   /* expand grayscale images to 8 bits from 1, 2, or 4 bits */
   if (type == PNG_COLOR_TYPE_GRAY && depth < 8)
 #if PNG_LIBPNG_VER_MINOR > 1
@@ -228,10 +235,6 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 #else
     png_set_expand(png);
 #endif
-  /* expand paletted or rgb images with transparency to full alpha
-     channels so the data will be available as rgba quartets */
-  if (png_get_valid(png, info, PNG_INFO_tRNS))
-    png_set_tRNS_to_alpha(png);
   /* fix endianness for 16 bit formats */
   if (depth > 8 && airMyEndian() == airEndianLittle)
     png_set_swap(png);
@@ -266,24 +269,34 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   /* update reader */
   png_read_update_info(png, info);
+  /* update values for width, height, depth, type; this seems to fix a bug
+     GLK found June 2021 reading some PNGs genereated from imagemagick's
+     convert of an animated gif, which had a tRNS chunk, and depth,type went
+     from 8,0 to 8,4;
+     https://stackoverflow.com/a/28653360 seems to warn of this? */
+  png_get_IHDR(png, info, &width, &height, &depth, &type,
+               NULL, NULL, NULL);
   /* allocate memory for the image data */
   ntype = depth > 8 ? nrrdTypeUShort : nrrdTypeUChar;
   switch (type) {
-  case PNG_COLOR_TYPE_GRAY:
+  case PNG_COLOR_TYPE_GRAY: /* 0 */
     ndim = 2; nsize[0] = width; nsize[1] = height;
     nsize[2] = 1;  /* to simplify code below */
     break;
-  case PNG_COLOR_TYPE_GRAY_ALPHA:
+  case PNG_COLOR_TYPE_GRAY_ALPHA: /* 4 */
     ndim = 3; nsize[0] = 2; nsize[1] = width; nsize[2] = height;
     break;
-  case PNG_COLOR_TYPE_RGB:
+  case PNG_COLOR_TYPE_RGB: /* 2 */
     ndim = 3; nsize[0] = 3; nsize[1] = width; nsize[2] = height;
     break;
-  case PNG_COLOR_TYPE_RGB_ALPHA:
+  case PNG_COLOR_TYPE_RGB_ALPHA: /* 6 */
     ndim = 3; nsize[0] = 4; nsize[1] = width; nsize[2] = height;
     break;
-  case PNG_COLOR_TYPE_PALETTE:
+  case PNG_COLOR_TYPE_PALETTE: /* 3 */
     /* TODO: merge this with the outer switch, needs to be tested */
+    /* the comment above is from 2003; it may be that after doing the
+       various kinds of expandings (above), and re-learning type, the
+       palette type may not be possible (TODO confirm this) */
     channels = png_get_channels(png, info);
     if (channels < 2) {
       ndim = 2; nsize[0] = width; nsize[1] = height;
@@ -314,7 +327,15 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* check byte size */
   if (nrrdElementNumber(nrrd)*nrrdElementSize(nrrd) != height*rowsize) {
     png_destroy_read_struct(&png, &info, NULL);
-    biffAddf(NRRD, "%s: size mismatch", me);
+    biffAddf(NRRD, "%s: size mismatch: el num*size %s*%s = %s != "
+             "%s = %s*%s = height*rowsize", me,
+             airSprintSize_t(stmp[0], nrrdElementNumber(nrrd)),
+             airSprintSize_t(stmp[1], nrrdElementSize(nrrd)),
+             airSprintSize_t(stmp[2],
+                             nrrdElementNumber(nrrd)*nrrdElementSize(nrrd)),
+             airSprintSize_t(stmp[3], height*rowsize),
+             airSprintSize_t(stmp[4], height),
+             airSprintSize_t(stmp[5], rowsize));
     return 1;
   }
   /* set up row pointers */
