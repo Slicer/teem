@@ -189,7 +189,9 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
                                _nrrdErrorHandlerPNG,
                                _nrrdWarningHandlerPNG);
   if (png == NULL) {
-    biffAddf(NRRD, "%s: failed to create PNG read struct", me);
+    biffAddf(NRRD, "%s: failed to create PNG read struct "
+             "(PNG_LIBPNG_VER_STRING=%s at Teem compile time)",
+             me, PNG_LIBPNG_VER_STRING);
     return 1;
   }
   /* create image info struct */
