@@ -73,5 +73,18 @@ main(int argc, char *argv[]) {
       printf("d=%.17g -> l2d=%.17g -> fl2d=%.17g\n -> ss=%.17g -> ess=%.17g vs %0.17g|%d\n",
              d, l2d, fl2d, ss, ess, frx, ee);
   }
+
+  ret = sscanf(fS, "%lf", &d);
+  if (!ret) {
+    printf("%s: sscanf(%s, \"%%lf\") failed\n", me, fS);
+    printf("\n");
+  }
+  airFPFprintf_d(stderr, d);
+
+  d = (double)1/10;
+  d = d+d+d+d+d+d+d+d+d+d;
+  printf("d = %.17g\n", d);
+  airFPFprintf_d(stderr, d);
+
   exit(0);
 }
