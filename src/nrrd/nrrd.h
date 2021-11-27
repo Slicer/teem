@@ -1161,6 +1161,7 @@ NRRD_EXPORT int nrrdRangePercentileFromStringSet(NrrdRange *range,
                                                  const Nrrd *nrrd,
                                                  const char *minStr,
                                                  const char *maxStr,
+                                                 int zeroCenter,
                                                  unsigned int hbins,
                                                  int blind8BitRange);
 NRRD_EXPORT void nrrdRangeSafeSet(NrrdRange *range,

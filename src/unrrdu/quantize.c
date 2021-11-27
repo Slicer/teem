@@ -44,7 +44,7 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
   char *out, *err;
   Nrrd *nin, *nout;
   char *minStr, *maxStr, *gammaS;
-  int pret, blind8BitRange, srgb, E=0;
+  int pret, zeroCenter, blind8BitRange, srgb, E=0;
   unsigned int bits, hbins, srgbIdx;
   double gamma;
   NrrdRange *range;
@@ -82,6 +82,11 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
              "\"0" NRRD_MINMAX_PERC_SUFF "\" means the highest input value is "
              "used, which is also the default "
              "behavior (same as not using this option).");
+  /* NOTE -zc shared with unrrdu histax, histo, quantize */
+  hestOptAdd(&opt, "zc,zero-center", NULL, airTypeInt, 0, 0, &zeroCenter, NULL,
+             "if used, percentile-based min,max determine a zero-centered "
+             "range (rather than treating min and max independently), which "
+             "may help process signed values in an expected way.");
   hestOptAdd(&opt, "g,gamma", "gamma", airTypeString, 1, 1, &gammaS, "1.0",
              "gamma > 1.0 brightens; gamma < 1.0 darkens. "
              "Negative gammas invert values. Or, can be the string "
@@ -129,7 +134,8 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdRangePercentileFromStringSet(range, nin, minStr, maxStr,
+  if (nrrdRangePercentileFromStringSet(range, nin,
+                                       minStr, maxStr, zeroCenter,
                                        hbins, blind8BitRange)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error learning range:\n%s", me, err);

@@ -37,7 +37,7 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me,
   char *out, *err;
   Nrrd *nin, *nout;
   char *minStr, *maxStr;
-  int type, pret, blind8BitRange;
+  int type, pret, zeroCenter, blind8BitRange;
   unsigned int axis, bins;
   airArray *mop;
   NrrdRange *range;
@@ -71,6 +71,11 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me,
              "\"0" NRRD_MINMAX_PERC_SUFF "\" means the highest input value is "
              "used, which is also the default "
              "behavior (same as not using this option).");
+  /* NOTE -zc shared with unrrdu histax, histo, quantize */
+  hestOptAdd(&opt, "zc,zero-center", NULL, airTypeInt, 0, 0, &zeroCenter, NULL,
+             "if used, percentile-based min,max determine a zero-centered "
+             "range (rather than treating min and max independently), which "
+             "may help process signed values in an expected way.");
   hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
              nrrdStateBlind8BitRange ? "true" : "false",
              "Whether to know the range of 8-bit data blindly "
@@ -90,6 +95,7 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdRangePercentileFromStringSet(range, nin, minStr, maxStr,
+                                       zeroCenter,
                                        10*bins /* HEY magic */,
                                        blind8BitRange)
       || nrrdHistoAxis(nout, nin, range, axis, bins, type)) {

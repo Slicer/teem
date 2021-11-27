@@ -220,16 +220,18 @@ nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd,
 ** for both min and max.  Used by "unu quantize" and others.
 */
 int
-nrrdRangePercentileFromStringSet(NrrdRange *range, const Nrrd *nrrd,
+nrrdRangePercentileFromStringSet(NrrdRange *range, const Nrrd *nin,
                                  const char *_minStr, const char *_maxStr,
+                                 int zeroCenter,
                                  unsigned int hbins, int blind8BitRange) {
   static const char me[]="nrrdRangePercentileFromStringSet";
   double minVal, maxVal, minPerc, maxPerc;
   char *minStr, *maxStr;
   unsigned int mmIdx;
   airArray *mop;
+  Nrrd *njoin;
 
-  if (!(range && nrrd && _minStr && _maxStr)) {
+  if (!(range && nin && _minStr && _maxStr)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
@@ -239,8 +241,9 @@ nrrdRangePercentileFromStringSet(NrrdRange *range, const Nrrd *nrrd,
   maxStr = airStrdup(_maxStr);
   airMopAdd(mop, maxStr, airFree, airMopAlways);
 
-  /* parse min and max */
+  /* initialize all kinds of bounds to NaN */
   minVal = maxVal = minPerc = maxPerc = AIR_NAN;
+  /* parse min and max */
   for (mmIdx=0; mmIdx<=1; mmIdx++) {
     int percwant;
     double val, *mmv, *mmp;
@@ -285,11 +288,49 @@ nrrdRangePercentileFromStringSet(NrrdRange *range, const Nrrd *nrrd,
       *mmv = val;
     }
   }
+
+  /* the handling of zeroCenter is a dumb hack (fix me if this becomes
+     a bottleneck): the input nrrd is attached to a negated copy of
+     the input, and that becomes the basis of all subsequent analysis.
+     This is the strategy GLK has long used in unu-based scripts;
+     putting this logic here just lifts it into nrrd itself. A smarter
+     implementation would change the way nrrdRangePercentileSet itself
+     operates, to include the zero-centered logic */
+  if (zeroCenter) {
+      Nrrd *nneg;
+      const Nrrd *nji[2];
+
+      if ( !(AIR_EXISTS(minPerc)) || !(AIR_EXISTS(maxPerc)) ) {
+          biffAddf(NRRD, "%s: gave explicit min (\"%s\") or max (\"%s\") but "
+                   "also want zero-centering, which uses percentile bounds",
+                   me, _minStr, _maxStr);
+          airMopError(mop); return 1;
+      }
+      nneg = nrrdNew();
+      airMopAdd(mop, nneg, (airMopper)nrrdNuke, airMopAlways);
+      if (nrrdArithUnaryOp(nneg, nrrdUnaryOpNegative, nin)) {
+          biffAddf(NRRD, "%s: trouble negating input", me);
+          airMopError(mop); return 1;
+      }
+      nji[0] = nin;
+      nji[1] = nneg;
+      njoin = nrrdNew();
+      airMopAdd(mop, njoin, (airMopper)nrrdNuke, airMopAlways);
+      if (nrrdJoin(njoin, nji, 2, nin->dim, AIR_TRUE)) {
+          biffAddf(NRRD, "%s: trouble joining input with negation", me);
+          airMopError(mop); return 1;
+      }
+  } else {
+      /* else no zeroCenter: normal operation */
+      njoin = NULL;
+  }
+
   /* so whenever one end of the range is not given explicitly,
      it has been mapped to a statement about the percentile,
      which does require learning about the nrrd's values */
   if (AIR_EXISTS(minPerc) || AIR_EXISTS(maxPerc)) {
-    if (nrrdRangePercentileSet(range, nrrd,
+    if (nrrdRangePercentileSet(range,
+                               zeroCenter ? njoin : nin,
                                AIR_EXISTS(minPerc) ? minPerc : 0.0,
                                AIR_EXISTS(maxPerc) ? maxPerc : 0.0,
                                hbins, blind8BitRange)) {
