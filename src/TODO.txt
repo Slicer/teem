@@ -4,6 +4,21 @@
 ** changes, or significantly thoughtful redesign of how functional
 ** components of Teem are implemented.
 
+revisit ctypes with new ctypeslib2:
+  https://github.com/trolldbois/ctypeslib
+  https://pypi.org/project/ctypeslib2/
+to make new python wrappers
+  didthis:
+  sudo -H pip install --upgrade pip
+  sudo -H pip install clang
+  sudo pip install ctypeslib2
+working from https://github.com/kindlmann/Eglib.jl.git
+in /Users/gk/julia/Eglib.jl/eglib
+based on https://github.com/jessevdk/cldoc/issues/87
+did in /usr/local/lib: ln -s /Library/Developer/CommandLineTools/usr/lib/libclang.dylib .
+and that worked!
+
+
 Figure out what is going on with parsing spaces in hest:
 this doesn't work:
   unu basinfo -i tmp.nrrd -kv space:=RGB "novalue:=0.3 0 0" -o tmp2.nrrd
