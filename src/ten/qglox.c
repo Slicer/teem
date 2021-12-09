@@ -215,7 +215,8 @@ _tenQGL_Rexp(double RThPhB[3],
   bl = _tenQGL_blah(rr0, rr1);
   ph1 = ph0 + (bl ? rlog[2]/bl : 0);
   fo = _tenQGL_fooo(ph0, ph1);
-  th1 = th0 + (bl*fo ? rlog[1]/(bl*fo) : 0);
+  fo *= bl; // instead of saying "bl*fo ?" below, which caused warnings
+  th1 = th0 + (fo ? rlog[1]/fo : 0);
   return;
 }
 
