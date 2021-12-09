@@ -165,7 +165,7 @@ hooverContextCheck(hooverContext *ctx) {
   return 0;
 }
 
-void
+void *
 hooverContextNix(hooverContext *ctx) {
 
   if (ctx) {
@@ -173,5 +173,6 @@ hooverContextNix(hooverContext *ctx) {
     /* workMutex is cleaned up at end of render */
     free(ctx);
   }
+  return NULL;
 }
 
