@@ -384,6 +384,7 @@ pullTraceSet(pullContext *pctx, pullTrace *pts,
       return 1;
     }
     ELL_4V_SUB(dp, pos0, point->pos);
+    AIR_UNUSED(dp[0]); // to quiet set-but-not-used warning
     /*
     fprintf(stderr, "!%s: cf = %d (%s)\n", me, cf, airEnumStr(pullConstraintFail, cf));
     fprintf(stderr, "!%s: (fdim=%u) pos=[%g,%g,%g,%g] polen=%g porin=[%g,%g,%g] |%g|\n",
@@ -824,8 +825,8 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
     int pntIdx, pntNum;
     const pullTrace *trc;
     const double *vert, *stab, *strn;
-    unsigned int maskInCount;
-    double maskInPos[4];
+    unsigned int maskInCount=0; // to quiet maybe-used-uninit warning
+    double maskInPos[4]={0,0,0,0}; // to quiet maybe-used-uninit warning
 
     if (filt && !filt[trcIdx]) {
       continue;
