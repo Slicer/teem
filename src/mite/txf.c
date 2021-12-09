@@ -327,7 +327,7 @@ miteNtxfCheck(const Nrrd *ntxf) {
 /*
 ******** miteQueryAdd()
 **
-** This looks a given gageItemSpec and sets the bits in the
+** This looks at a given gageItemSpec and sets the bits in the
 ** gageKindScl and tenGageKind queries that are required to calculate
 ** the quantity
 **
@@ -382,6 +382,7 @@ miteQueryAdd(gageQuery queryScl, gageQuery queryVec,
       break;
     case miteValVdefT:
       GAGE_QUERY_ITEM_ON(queryTen, tenGageTensor);
+      break; // added 09 Dec 2021 because of fall-through warning; good?
     case miteValVdefTdotV:
       GAGE_QUERY_ITEM_ON(queryTen, tenGageTensor);
       break;
