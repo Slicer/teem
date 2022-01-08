@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2021  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -1364,6 +1364,7 @@ _nrrdBinaryOpStr[NRRD_BINARY_OP_MAX+1] = {
   "+c",
   "-c",
   "xc",
+  "dulp",
 };
 
 static const char *
@@ -1395,6 +1396,7 @@ _nrrdBinaryOpDesc[NRRD_BINARY_OP_MAX+1] = {
   "add, but clamp to integer representation range",
   "subtract, but clamp to integer representation range",
   "multiply, but clamp to integer representation range",
+  "32-bit FP distance in ULPs",
 };
 
 #define nbAdd nrrdBinaryOpAdd
@@ -1418,6 +1420,7 @@ _nrrdBinaryOpDesc[NRRD_BINARY_OP_MAX+1] = {
 #define nbNeq nrrdBinaryOpNotEqual
 #define nbExt nrrdBinaryOpExists
 #define nbIf  nrrdBinaryOpIf
+#define nbUlp nrrdBinaryOpULPDistance
 
 static const char *
 _nrrdBinaryOpStrEqv[] = {
@@ -1447,6 +1450,7 @@ _nrrdBinaryOpStrEqv[] = {
   "+c", "addclamp",
   "-c", "subtractclamp",
   "xc", "multiplyclamp",
+  "-f", "-fp", "dulp", "ulpd", "ulpdistance",
   ""
 };
 
@@ -1478,6 +1482,7 @@ _nrrdBinaryOpValEqv[] = {
   nrrdBinaryOpAddClamp, nrrdBinaryOpAddClamp,
   nrrdBinaryOpSubtractClamp, nrrdBinaryOpSubtractClamp,
   nrrdBinaryOpMultiplyClamp, nrrdBinaryOpMultiplyClamp,
+  nbUlp, nbUlp, nbUlp, nbUlp, nbUlp,
 };
 
 static const airEnum

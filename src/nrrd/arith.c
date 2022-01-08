@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2021  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -412,6 +412,88 @@ static double _nrrdBinaryOpRicianRand(double a, double b) {
   return sqrt(vr*vr + vi*vi);
 }
 
+/*
+  The following is lifted from GLK's UChicago CMSC 23710 SciVis class code,
+  and repackaged here as a nrrdBinaryOp so it can be conveniently accessed via
+  unu. In its original context, it is used for grading single-precision
+  floating point ("float") values generatd by student code, by measuring
+  distance to reference code, and in that setting, the type of the output
+  distance value was a 32-bit unsigned int.  The simplistic limitations of
+  nrrdBinaryOp, however, is that they are defined on doubles, and return
+  doubles, and everything else is cast around as needed. This is a bummer, but
+  it is so much more convenient to re-use unu's existing infrastructure for
+  handling nrrds and constants.
+
+  This tries to compute the distance between two floats, in units of ULPs.
+  When the two floats are both finite and have the same sign, this is easy: it
+  really is just the difference beween the values interpreted as ints.  This
+  function also handles the messier cases of having two finite values of
+  opposite sign, or one or two non-finite values.
+*/
+/* clamps vv to mm*7/8 with two linear ramps */
+#define QLAMP(vv, mm) ((vv) < (mm)/2                    \
+                       ? (vv)                           \
+                       : (mm)/2 + 3*((vv) - (mm)/2)/4)
+static double _nrrdBinaryOpULPDistance(double dA, double dB) {
+  float A, B;
+  int Anf, Bnf;
+  airFloat FA, FB;
+  double ret;
+  unsigned int maxd, Ai, Bi;
+  A = AIR_CAST(float, dA);
+  B = AIR_CAST(float, dB);
+  Anf = !AIR_EXISTS(A);
+  Bnf = !AIR_EXISTS(B);
+  /* biggest finite value is with expo just shy of all 1s, and frac field all
+     1s: ((2^8 - 2) << 23) + 2^23 - 1 == 2139095039 > 2000000000. But, if A
+     and B have this big magnitude with opposite signs, so diff can be twice
+     that. Choose a round number for visual recogition. */
+  maxd = 4000000000;
+  switch (Anf + Bnf) {
+  case 0:
+    /* both values finite; computing distance is straightforward */
+    FA.f = fabs(A);
+    FB.f = fabs(B);
+    Ai = FA.i;
+    Bi = FB.i;
+    if ((A >= 0) == (B >= 0)) {
+      // easy case: two finite values of same sign
+      uint diff = Ai > Bi ? Ai - Bi : Bi - Ai;
+      ret = QLAMP(diff, maxd);
+    } else {
+      /* harder: two finite values of different sign. The
+         density of values around zero makes this a little goofy,
+         hence the very adhoc /2 to lessen the difference */
+      ret = QLAMP(Ai/2, maxd/2) + QLAMP(Bi/2, maxd/2);
+    }
+    break;
+  case 1:
+    // only one non-finite value: say simply they're very different
+    ret = maxd;
+    break;
+  case 2:
+    // two non-finite values
+    if (isnan(A) && isnan(B)) {
+      ret = 0; // really, no meaningful difference between 2 NaNs
+    } else if (isnan(A) || isnan(B)) {
+      // one NaN and one inf, which seems like a big difference
+      ret = maxd;
+    } else {
+      // two infs
+      if ((A > 0) == (B > 0)) {
+        // two infs of same sign; call them equal
+        ret = 0;
+      } else {
+        // two infs of different sign: very different
+        ret = maxd;
+      }
+    }
+    break;
+  }
+  return ret;
+}
+#undef QLAMP
+/* end of code lifted from GLK's UChicago CMSC 23710 SciVis class code */
 
 double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   NULL,
@@ -438,10 +520,11 @@ double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   _nrrdBinaryOpIf,
   _nrrdBinaryOpNormalRandScaleAdd,
   _nrrdBinaryOpRicianRand,
-  /* for these, the clamping is actually done by the caller */
+  /* for these 3, the clamping is actually done by the caller */
   _nrrdBinaryOpAdd, /* for nrrdBinaryOpAddClamp */
   _nrrdBinaryOpSubtract, /* for nrrdBinaryOpSubtractClamp */
   _nrrdBinaryOpMultiply, /* for nrrdBinaryOpMultiplyClamp */
+  _nrrdBinaryOpULPDistance,
 };
 
 /*
