@@ -25,8 +25,8 @@
 #include "privateMoss.h"
 
 int
-mossSamplerImageSet (mossSampler *smplr, Nrrd *image, float *bg) {
-  static const char me[]="mossSamplerImageSet";
+mossSamplerImageSet(mossSampler *smplr, Nrrd *image, float *bg) {
+  static const char me[] = "mossSamplerImageSet";
   unsigned int ci, ncol;
 
   if (!(smplr && image)) {
@@ -42,8 +42,8 @@ mossSamplerImageSet (mossSampler *smplr, Nrrd *image, float *bg) {
   ncol = MOSS_NCOL(image);
   smplr->bg = (float *)airFree(smplr->bg);
   if (bg) {
-    smplr->bg = (float*)calloc(ncol, sizeof(float));
-    for (ci=0; ci<ncol; ci++) {
+    smplr->bg = (float *)calloc(ncol, sizeof(float));
+    for (ci = 0; ci < ncol; ci++) {
       smplr->bg[ci] = bg[ci];
     }
   }
