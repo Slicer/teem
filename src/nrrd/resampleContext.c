@@ -81,7 +81,7 @@ enum {
   flagNonExistent,      /* 21 */
   flagLast
 };
-#define FLAG_MAX           21
+#define FLAG_MAX (flagLast - 1)
 
 void
 nrrdResampleContextInit(NrrdResampleContext *rsmc) {
@@ -575,7 +575,7 @@ _nrrdResampleInputCentersUpdate(NrrdResampleContext *rsmc) {
   unsigned int axIdx;
   int center;
 
-  if (rsmc->flag[flagOverrideCenters]
+  if (rsmc->flag[flagOverrideCenters] /* */
       || rsmc->flag[flagDefaultCenter]
       || rsmc->flag[flagInputDimension]
       || rsmc->flag[flagInput]) {
@@ -746,10 +746,10 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
   NrrdResampleAxis *axis;
   double kparm[NRRD_KERNEL_PARMS_NUM];
 
-  if (rsmc->flag[flagRenormalize]
-      || rsmc->flag[flagBoundary]
-      || rsmc->flag[flagInputCenters]
-      || rsmc->flag[flagInputSizes]
+  if (rsmc->flag[flagRenormalize] /* */
+      || rsmc->flag[flagBoundary] /* */
+      || rsmc->flag[flagInputCenters] /* */
+      || rsmc->flag[flagInputSizes] /* */
       || rsmc->flag[flagVectorAllocate]) {
     if (rsmc->verbose) {
       for (axIdx=0; axIdx<rsmc->dim; axIdx++) {
@@ -1443,10 +1443,10 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout,
         double minIdxFull, maxIdxFull,
           zeroPos;  /* actually its in continuous index space ... */
         _nrrdAxisInfoCopy(nout->axis + axIdx, rsmc->nin->axis + axIdx,
-                          (NRRD_AXIS_INFO_SIZE_BIT
+                          (NRRD_AXIS_INFO_SIZE_BIT /* */
                            | NRRD_AXIS_INFO_SPACING_BIT
                            | NRRD_AXIS_INFO_THICKNESS_BIT
-                           | NRRD_AXIS_INFO_MIN_BIT
+                           | NRRD_AXIS_INFO_MIN_BIT  /* */
                            | NRRD_AXIS_INFO_MAX_BIT
                            | NRRD_AXIS_INFO_SPACEDIRECTION_BIT
                            | NRRD_AXIS_INFO_CENTER_BIT
@@ -1498,7 +1498,7 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout,
       }
     }
     if (nrrdBasicInfoCopy(nout, rsmc->nin,
-                          NRRD_BASIC_INFO_DATA_BIT
+                          NRRD_BASIC_INFO_DATA_BIT /* */
                           | NRRD_BASIC_INFO_TYPE_BIT
                           | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                           | NRRD_BASIC_INFO_DIMENSION_BIT
