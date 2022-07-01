@@ -132,11 +132,13 @@ tenEvqSingle(float vec[3], float scl) {
   mi = airIndex(0.0, scl, 1.0, 6);
   if (mi) {
     switch (mi) {
+    /* clang-format off */
     case 1: bins = 16; base = 1;                                 break;
     case 2: bins = 32; base = 1+SQR(16);                         break;
     case 3: bins = 48; base = 1+SQR(16)+SQR(32);                 break;
     case 4: bins = 64; base = 1+SQR(16)+SQR(32)+SQR(48);         break;
     case 5: bins = 80; base = 1+SQR(16)+SQR(32)+SQR(48)+SQR(64); break;
+    /* clang-format on */
     default:
       fprintf(stderr, "%s: PANIC: mi = %d\n", me, mi);
       exit(0);

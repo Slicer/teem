@@ -261,6 +261,7 @@ enum {
 **
 ** the different pieces of per-axis information recorded in a nrrd
 */
+/* clang-format off */
 enum {
   nrrdAxisInfoUnknown,
   nrrdAxisInfoSize,                   /*  1: number of samples along axis */
@@ -344,6 +345,7 @@ enum {
                                | NRRD_BASIC_INFO_SPACEORIGIN_BIT \
                                | NRRD_BASIC_INFO_MEASUREMENTFRAME_BIT)
 #define NRRD_BASIC_INFO_NONE 0
+/* clang-format on */
 
 /*
 ******** nrrdField enum

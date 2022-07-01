@@ -18,7 +18,7 @@
   along with this library; if not, write to Free Software Foundation, Inc.,
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
+/* clang-format off */
 #include "tijk.h"
 
 const char *
@@ -63,3 +63,4 @@ _tijk_class_enum = {
 };
 const airEnum *const
 tijk_class = &_tijk_class_enum;
+/* clang-format on */

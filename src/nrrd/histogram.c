@@ -438,7 +438,7 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     biffAddf(NRRD, "%s:", me);
     airMopError(mop); return 1;
   }
-  nrrdBasicInfoInit(nout, (NRRD_BASIC_INFO_DATA_BIT
+  nrrdBasicInfoInit(nout, (NRRD_BASIC_INFO_DATA_BIT /* */
                            | NRRD_BASIC_INFO_TYPE_BIT
                            | NRRD_BASIC_INFO_DIMENSION_BIT
                            | 0 /* what? */ ));

@@ -33,6 +33,7 @@ hooverDefVolCentering = nrrdCenterNode;
 int
 hooverDefImgCentering = nrrdCenterCell;
 
+/* clang-format off */
 const char *
 _hooverErrStr[HOOVER_ERR_MAX+1] = {
   "(unknown_err)",
@@ -59,7 +60,7 @@ _hooverErr = {
 };
 const airEnum *const
 hooverErr = &_hooverErr;
-
+/* clang-format on */
 
 /*
   hooverErrNone,

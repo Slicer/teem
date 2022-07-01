@@ -21,6 +21,7 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/* clang-format off */
 #include "nrrd.h"
 #include "privateNrrd.h"
 
@@ -1169,4 +1170,4 @@ nrrdCRC32(const Nrrd *nin, int endian) {
                   nn, nrrdElementSize(nin),
                   endian == airMyEndian() ? AIR_FALSE : AIR_TRUE);
 }
-
+/* clang-format on */

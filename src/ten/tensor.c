@@ -654,7 +654,7 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
   nout->axis[0].label = airStrdup("tensor");
   nout->axis[0].kind = nrrdKind3DMaskedSymMatrix;
   if (nrrdBasicInfoCopy(nout, nconf,
-                        NRRD_BASIC_INFO_DATA_BIT
+                        NRRD_BASIC_INFO_DATA_BIT /* */
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                         | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -1068,6 +1068,7 @@ tenPowSingle_f(float powten[7], const float ten[7], float power) {
   tenMakeSingle_f(powten, ten[0], eval, evec);
 }
 
+/* clang-off off */
 double
 tenDoubleContract_d(double a[7], double T[21], double b[7]) {
   double ret;
@@ -1081,3 +1082,4 @@ tenDoubleContract_d(double a[7], double T[21], double b[7]) {
 
   return ret;
 }
+/* clang-off on */

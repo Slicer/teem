@@ -114,6 +114,7 @@ ell_4m_to_q_d(double q[4], const double m[16]) {
 **
 ** See NOTE below about the non-use of ELL_4V_NORM(u, q, w)
 */
+/* clang-format off */
 #define _ELL_Q_TO_3M(type)           \
   ELL_4V_GET(w, x, y, z, u);         \
   ELL_3V_SET(m+0,                    \
@@ -128,6 +129,7 @@ ell_4m_to_q_d(double q[4], const double m[16]) {
              2*(x*z - w*y),          \
              2*(y*z + w*x),          \
              w*w - x*x - y*y + z*z)
+/* clang-format on */
 
 void
 ell_q_to_3m_f(float m[9], const float q[4]) {
@@ -149,6 +151,7 @@ ell_q_to_3m_d(double m[9], const double q[4]) {
 ** replacement was needed to avoid warnings about precision loss with
 ** double->float converstion.  Macros are indeed problematic . . .
 */
+/* clang-format off */
 #define _ELL_Q_TO_4M(type)           \
   ELL_4V_GET(w, x, y, z, u);         \
   ELL_4V_SET(m+0,                    \
@@ -167,6 +170,7 @@ ell_q_to_3m_d(double m[9], const double q[4]) {
              w*w - x*x - y*y + z*z,  \
              0);                     \
   ELL_4V_SET(m+12, 0, 0, 0, 1)
+/* clang-format on */
 
 void
 ell_q_to_4m_f(float m[16], const float q[4]) {

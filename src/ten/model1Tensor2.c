@@ -23,6 +23,7 @@
 
 #include "ten.h"
 #include "privateTen.h"
+/* clang-format off */
 
 /* NOTE: this model is a single 2nd-order tensor, not a two-tensor model */
 
@@ -135,3 +136,4 @@ _tenModel1Tensor2 = {
   _TEN_MODEL_FIELDS
 };
 const tenModel *const tenModel1Tensor2 = &_tenModel1Tensor2;
+/* clang-format on */

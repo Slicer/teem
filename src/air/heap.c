@@ -18,7 +18,7 @@
   along with this library; if not, write to Free Software Foundation, Inc.,
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
+/* clang-format off */
 #include "air.h"
 #include <string.h>
 
@@ -333,3 +333,4 @@ int airHeapUpdate(airHeap *h, unsigned int ai, double newKey,
   else upheap(h, h->invidx[ai]);
   return 0;
 }
+/* clang-format on */

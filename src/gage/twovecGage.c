@@ -24,6 +24,7 @@
 #include "gage.h"
 #include "privateGage.h"
 
+/* clang-format off */
 const char *
 _gage2VecStr[] = {
   "(unknown gage2Vec)",
@@ -84,8 +85,6 @@ _gage2Vec = {
 };
 const airEnum *const
 gage2Vec = &_gage2Vec;
-
-
 
 gageItemEntry
 _gage2VecTable[GAGE_2VEC_ITEM_MAX+1] = {
@@ -193,3 +192,4 @@ _gageKind2Vec = {
 };
 gageKind *const
 gageKind2Vec = &_gageKind2Vec;
+/* clang-format on */

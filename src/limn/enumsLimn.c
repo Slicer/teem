@@ -23,6 +23,7 @@
 
 #include "limn.h"
 
+/* clang-format off */
 const char *
 _limnSpaceStr[LIMN_SPACE_MAX+1] = {
   "(unknown space)",
@@ -172,3 +173,4 @@ _limnPrimitive = {
 };
 const airEnum *const
 limnPrimitive = &_limnPrimitive;
+/* clang-format on */

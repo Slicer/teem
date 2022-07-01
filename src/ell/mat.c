@@ -154,6 +154,7 @@ ell_4m_det_d(double m[16]) {
   return ELL_4M_DET(m);
 }
 
+/* clang-format off */
 #define _4INV \
   det = ELL_4M_DET(m); \
   i[ 0] =  _ELL_3M_DET((m)[ 5],(m)[ 6],(m)[ 7], \
@@ -204,6 +205,7 @@ ell_4m_det_d(double m[16]) {
   i[15] =  _ELL_3M_DET((m)[ 0],(m)[ 1],(m)[ 2], \
                        (m)[ 4],(m)[ 5],(m)[ 6], \
                        (m)[ 8],(m)[ 9],(m)[10])/det
+/* clang-format on */
 
 void
 ell_4m_inv_f(float i[16], const float m[16]) {

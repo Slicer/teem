@@ -23,6 +23,7 @@
 
 #ifndef ELLMACROS_HAS_BEEN_INCLUDED
 #define ELLMACROS_HAS_BEEN_INCLUDED
+/* clang-format off */
 
 #ifdef __cplusplus
 extern "C" {
@@ -1347,5 +1348,5 @@ extern "C" {
 #ifdef __cplusplus
    }
 #endif
-
+/* clang-format on */
 #endif /* ELLMACROS_HAS_BEEN_INCLUDED */

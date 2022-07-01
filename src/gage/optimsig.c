@@ -84,6 +84,7 @@ static char *debugReconErrName = NULL;
 ** "which sample" ranges from 0 to GAGE_OPTIMSIG_SAMPLES_MAXNUM-1
 ** ==> allocate for GAGE_OPTIMSIG_SAMPLES_MAXNUM
 */
+/* clang-format off */
 static double
 _optimSigTable[GAGE_OPTIMSIG_SIGMA_MAX][GAGE_OPTIMSIG_SAMPLES_MAXNUM-1][GAGE_OPTIMSIG_SAMPLES_MAXNUM] = {
   {
@@ -209,6 +210,7 @@ _optimSigTable[GAGE_OPTIMSIG_SIGMA_MAX][GAGE_OPTIMSIG_SAMPLES_MAXNUM-1][GAGE_OPT
     {0,0.50532979,0.79486167,1.1706896,1.6148115,2.2648265,3.3499777,4.5595574,6.116312,8.2049971,11}
   }
 };
+/* clang-format on */
 
 /*
 ** this is only for retreiving part of the table above

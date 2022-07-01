@@ -26,6 +26,7 @@
 
 #include "seek.h"
 #include "privateSeek.h"
+/* clang-format off */
 
 /* private helper routines for the T-based extraction */
 
@@ -1919,3 +1920,4 @@ seekVertexStrength(Nrrd *nval, seekContext *sctx, limnPolyData *pld) {
   }
   return E;
 }
+/* clang-format on */

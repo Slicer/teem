@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2022  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -87,33 +87,38 @@ extern "C" {
 ** (see nrrdField* enum in nrrdEnums.h), and the various methods in axis.c
 */
 typedef struct {
-  size_t size;              /* number of elements along each axis */
-  double spacing;           /* if non-NaN, distance between samples */
-  double thickness;         /* if non-NaN, nominal thickness of region
-                               represented by one sample along the axis. No
-                               semantics relative to spacing are assumed or
-                               imposed, and unlike spacing, there is no
-                               sensible way to alter thickness- it is either
-                               copied (as with cropping and slicing) or set to
-                               NaN (when resampled). */
-  double min, max;          /* if non-NaN, range of positions spanned by the
-                               samples on this axis.  Obviously, one can set
-                               "spacing" to something incompatible with min
-                               and max: the idea is that only one (min and
-                               max, or spacing) should be taken to be
-                               significant at any time. */
+  size_t size;
+  /*                number of elements along each axis */
+  double spacing;
+  /*                if non-NaN, distance between samples */
+  double thickness;
+  /*                if non-NaN, nominal thickness of region represented by one
+                    sample along the axis. No semantics relative to spacing are
+                    assumed or imposed, and unlike spacing, there is no
+                    sensible way to alter thickness- it is either copied (as
+                    with cropping and slicing) or set to NaN (when
+                    resampled). */
+  double min, max;
+  /*                if non-NaN, range of positions spanned by the samples on
+                    this axis.  Obviously, one can set "spacing" to something
+                    incompatible with min and max: the idea is that only one
+                    (min and max, or spacing) should be taken to be significant
+                    at any time. */
   double spaceDirection[NRRD_SPACE_DIM_MAX];
-                            /* the vector, in "space" (as described by
-                               nrrd->space and/or nrrd->spaceDim), from one
-                               sample to the next sample along this axis.  It
-                               is the column vector of the transform from
-                               index space to "space" space */
-  int center;               /* cell vs. node centering (value should be one of
-                               nrrdCenter{Unknown,Node,Cell} */
-  int kind;                 /* what kind of information is along this axis
-                               (from the nrrdKind* enum) */
-  char *label,              /* short info string for each axis */
-    *units;                 /* string identifying the unit */
+  /*                the vector, in "space" (as described by nrrd->space and/or
+                    nrrd->spaceDim), from one sample to the next sample along
+                    this axis.  It is the column vector of the transform from
+                    index space to "space" space */
+  int center;
+  /*                cell vs. node centering (value should be one of
+                    nrrdCenter{Unknown,Node,Cell} */
+  int kind;
+  /*                what kind of information is along this axis (from the
+                    nrrdKind* enum) */
+  char *label;
+  /*                short info string for each axis */
+  char *units;
+  /*                string identifying the unit */
 } NrrdAxisInfo;
 
 /*
@@ -128,69 +133,77 @@ typedef struct {
   ** or at the time that the nrrd is wrapped around an existing array
   */
 
-  void *data;                       /* the data in memory */
-  int type;                         /* a value from the nrrdType enum */
-  unsigned int dim;                 /* the dimension (rank) of the array */
+  void *data;
+  /*                               the data in memory */
+  int type;
+  /*                               a value from the nrrdType enum */
+  unsigned int dim;
+  /*                               the dimension (rank) of the array */
 
   /*
   ** All per-axis specific information
   */
-  NrrdAxisInfo axis[NRRD_DIM_MAX];  /* axis[0] is the fastest axis in the scan-
-                                       line ordering, the one who's coordinates
-                                       change the fastest as the elements are
-                                       accessed in the order in which they
-                                       appear in memory */
+  NrrdAxisInfo axis[NRRD_DIM_MAX];
+  /*                               axis[0] is the fastest axis in the scan-
+                                   line ordering, the one who's coordinates
+                                   change the fastest as the elements are
+                                   accessed in the order in which they appear
+                                   in memory */
 
   /*
   ** Optional information descriptive of whole array, some of which is
   ** meaningfuly for only some uses of a nrrd
   */
-  char *content;                    /* brief account of what this data is */
-  char *sampleUnits;                /* units of measurement of the values
-                                       stored in the array itself (not the
-                                       array axes and not space coordinates).
-                                       The logical name might be "dataUnits",
-                                       but that's perhaps ambiguous.  Note that
-                                       these units may apply to non-scalar
-                                       kinds (e.g. coefficients of a vector
-                                       have the same units) */
-  int space;                        /* from nrrdSpace* enum, and often
-                                       implies the value of spaceDim */
-  unsigned int spaceDim;            /* if non-zero, the dimension of the space
-                                       in which the regular sampling grid
-                                       conceptually lies.  This is a separate
-                                       variable because this dimension can be
-                                       different than the array dimension.
-                                       The non-zero-ness of this value is in
-                                       fact the primary indicator that space
-                                       and orientation information is set.
-                                       This identifies the number of entries in
-                                       "origin" and the per-axis "direction"
-                                       vectors that are taken as meaningful */
+  char *content;
+  /*                               brief account of what this data is */
+  char *sampleUnits;
+  /*                               units of measurement of the values stored in
+                                   the array itself (not the array axes and not
+                                   space coordinates).  The logical name might
+                                   be "dataUnits", but that's perhaps
+                                   ambiguous.  Note that these units may apply
+                                   to non-scalar kinds (e.g. coefficients of a
+                                   vector have the same units) */
+  int space;
+  /*                               from nrrdSpace* enum, and often implies the
+                                   value of spaceDim */
+  unsigned int spaceDim;
+  /*                               if non-zero, the dimension of the space in
+                                   which the regular sampling grid conceptually
+                                   lies.  This is a separate variable because
+                                   this dimension can be different than the
+                                   array dimension.  The non-zero-ness of this
+                                   value is in fact the primary indicator that
+                                   space and orientation information is set.
+                                   This identifies the number of entries in
+                                   "origin" and the per-axis "direction"
+                                   vectors that are taken as meaningful */
   char *spaceUnits[NRRD_SPACE_DIM_MAX];
-                                    /* units for coordinates of space */
+  /*                               units for coordinates of space */
   double spaceOrigin[NRRD_SPACE_DIM_MAX];
-                                    /* the location of the center the first
-                                       (lowest memory address) array sample,
-                                       regardless of node-vs-cell centering */
+  /*                               the location of the center the first (lowest
+                                   memory address) array sample, regardless of
+                                   node-vs-cell centering */
   double measurementFrame[NRRD_SPACE_DIM_MAX][NRRD_SPACE_DIM_MAX];
-                                    /* if spaceDim is non-zero, this may store
-                                       a spaceDim-by-spaceDim matrix which
-                                       transforms vector/matrix coefficients
-                                       in the "measurement frame" to those in
-                                       the world space described by spaceDim
-                                       (and hopefully space).  Coeff [i][j] is
-                                       *column* i & *row* j, which is probably
-                                       the *transpose* of what you expect.
-                                       There are no semantics linking this to
-                                       the "kind" of any axis, for a variety
-                                       of reasons */
-  size_t blockSize;                 /* for nrrdTypeBlock, block byte size */
-  double oldMin, oldMax;            /* if non-NaN, and if nrrd is of integral
-                                       type, extremal values for the array
-                                       BEFORE it was quantized */
-  void *ptr;                        /* never read or set by nrrd; use/abuse
-                                       as you see fit */
+  /*                               if spaceDim is non-zero, this may store a
+                                   spaceDim-by-spaceDim matrix which transforms
+                                   vector/matrix coefficients in the
+                                   "measurement frame" to those in the world
+                                   space described by spaceDim (and hopefully
+                                   space).  Coeff [i][j] is *column* i & *row*
+                                   j, which is probably the *transpose* of what
+                                   you expect.  There are no semantics linking
+                                   this to the "kind" of any axis, for a
+                                   variety of reasons */
+  size_t blockSize;
+  /*                               for nrrdTypeBlock, block byte size */
+  double oldMin, oldMax;
+  /*                               if non-NaN, and if nrrd is of integral type,
+                                   extremal values for the array BEFORE it was
+                                   quantized */
+  void *ptr;
+  /*                               never read or set by nrrd; use/abuse as you
+                                   see fit */
 
   /*
   ** Comments.  Read from, and written to, header.
@@ -1514,6 +1527,7 @@ NRRD_EXPORT NrrdKernel *const nrrdKernelTMF[4][5][5];
 NRRD_EXPORT const unsigned int nrrdKernelTMF_maxD;
 NRRD_EXPORT const unsigned int nrrdKernelTMF_maxC;
 NRRD_EXPORT const unsigned int nrrdKernelTMF_maxA;
+/* clang-format off */
 /* winKernel.c : various kinds of windowed sincs */
 NRRD_EXPORT NrrdKernel
   *const nrrdKernelHann,         /* Hann (cosine-bell) windowed sinc */
@@ -1612,6 +1626,7 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelGaussianDD,   /* 2nd derivative of Gaussian */
   *const nrrdKernelDiscreteGaussian; /* Lindeberg's discrete Gaussian-like
                                         kernel for scale-space analysis */
+/* clang-format on */
 NRRD_EXPORT const double nrrdKernelDiscreteGaussianGoodSigmaMax;
 NRRD_EXPORT int nrrdKernelParse(const NrrdKernel **kernelP,
                                 double *parm,

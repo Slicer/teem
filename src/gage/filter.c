@@ -24,6 +24,7 @@
 #include "gage.h"
 #include "privateGage.h"
 
+/* clang-format off */
 /*
 ** sets the filter sample location (fsl) array based on fractional
 ** probe location ctx->point->frac
@@ -71,35 +72,6 @@ _gageFslSet(gageContext *ctx) {
 }
 
 /*
-** renormalize weights of a reconstruction kernel with
-** constraint: the sum of the weights must equal the continuous
-** integral of the kernel
-*/
-void
-_gageFwValueRenormalize(gageContext *ctx, int wch) {
-  double integral, sumX, sumY, sumZ, *fwX, *fwY, *fwZ;
-  int i, fd;
-
-  fd = 2*ctx->radius;
-  fwX = ctx->fw + 0 + fd*(0 + 3*wch);
-  fwY = ctx->fw + 0 + fd*(1 + 3*wch);
-  fwZ = ctx->fw + 0 + fd*(2 + 3*wch);
-  integral = ctx->ksp[wch]->kernel->integral(ctx->ksp[wch]->parm);
-  sumX = sumY = sumZ = 0;
-  for (i=0; i<fd; i++) {
-    sumX += fwX[i];
-    sumY += fwY[i];
-    sumZ += fwZ[i];
-  }
-  for (i=0; i<fd; i++) {
-    fwX[i] *= integral/sumX;
-    fwY[i] *= integral/sumY;
-    fwZ[i] *= integral/sumZ;
-  }
-  return;
-}
-
-/*
 ** renormalize weights of a derivative kernel with
 ** constraint: the sum of the weights must be zero, but
 ** sign of individual weights must be preserved
@@ -136,6 +108,37 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
     if (fwX[i] <= 0) { fwX[i] *= fixX; } else { fwX[i] /= fixX; }
     if (fwY[i] <= 0) { fwY[i] *= fixY; } else { fwY[i] /= fixY; }
     if (fwZ[i] <= 0) { fwZ[i] *= fixZ; } else { fwZ[i] /= fixZ; }
+  }
+  return;
+}
+
+/* clang-format on */
+
+/*
+** renormalize weights of a reconstruction kernel with
+** constraint: the sum of the weights must equal the continuous
+** integral of the kernel
+*/
+void
+_gageFwValueRenormalize(gageContext *ctx, int wch) {
+  double integral, sumX, sumY, sumZ, *fwX, *fwY, *fwZ;
+  int i, fd;
+
+  fd = 2*ctx->radius;
+  fwX = ctx->fw + 0 + fd*(0 + 3*wch);
+  fwY = ctx->fw + 0 + fd*(1 + 3*wch);
+  fwZ = ctx->fw + 0 + fd*(2 + 3*wch);
+  integral = ctx->ksp[wch]->kernel->integral(ctx->ksp[wch]->parm);
+  sumX = sumY = sumZ = 0;
+  for (i=0; i<fd; i++) {
+    sumX += fwX[i];
+    sumY += fwY[i];
+    sumZ += fwZ[i];
+  }
+  for (i=0; i<fd; i++) {
+    fwX[i] *= integral/sumX;
+    fwY[i] *= integral/sumY;
+    fwZ[i] *= integral/sumZ;
   }
   return;
 }

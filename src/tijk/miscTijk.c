@@ -23,10 +23,10 @@
 
 #include "tijk.h"
 
-const int
-tijkPresent = 42;
+const int tijkPresent = 42;
 
 /* Some basic component-wise operations that don't depend on tensor type */
+/* clang-format off */
 
 void
 tijk_add_d (double *res, const double *A, const double *B,
@@ -131,3 +131,4 @@ tijk_copy_f (float *res, const float *A, const tijk_type *type) {
   for (i=0; i<type->num; i++)
     *(res++)=*(A++);
 }
+/* clang-format on */

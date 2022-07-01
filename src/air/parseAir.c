@@ -23,6 +23,7 @@
 
 #include "air.h"
 
+/* clang-format off */
 static const char *
 _airBoolStr[] = {
   "(unknown bool)",
@@ -71,6 +72,7 @@ _airBool = {
 
 const airEnum *const
 airBool = &_airBool;
+/* clang-format on */
 
 double
 airAtod(const char *str) {

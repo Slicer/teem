@@ -123,7 +123,7 @@ unrrdu_cmedianMain(int argc, const char **argv, const char *me,
     }
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
     if (nrrdBasicInfoCopy(nout, nin,
-                          NRRD_BASIC_INFO_DATA_BIT
+                          NRRD_BASIC_INFO_DATA_BIT /* */
                           | NRRD_BASIC_INFO_TYPE_BIT
                           | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                           | NRRD_BASIC_INFO_DIMENSION_BIT

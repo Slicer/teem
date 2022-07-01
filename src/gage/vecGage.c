@@ -59,7 +59,7 @@ gage_imaginary_part_eigenvalues(double *M ) {
     return sqrt( 4.*_gamma - beta*beta );
 }
 
-
+/* clang-format off */
 gageItemEntry
 _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
   /* enum value         len, deriv, prereqs,                                                  parent item, parent index, needData */
@@ -631,4 +631,4 @@ _gageKindVec = {
 };
 gageKind *const
 gageKindVec = &_gageKindVec;
-
+/* clang-format on */

@@ -70,6 +70,7 @@ tend_pointMain(int argc, const char **argv, const char *me,
     airMopError(mop); return 1;
   }
 
+  /* clang-format off */
   idx = loc[0] + sx*(loc[1] + sy*loc[2]);
   tdata = (float*)(nin->data) + 7*idx;
   fprintf(stderr, "location = (%d,%d,%d) = %d\n", loc[0], loc[1], loc[2], idx);
@@ -103,6 +104,7 @@ tend_pointMain(int argc, const char **argv, const char *me,
     fprintf(stderr, "%s: % 15.7f\n",
             airEnumStr(tenAniso, i), tenAnisoEval_f(eval, i));
   }
+  /* clang-format on */
 
   airMopOkay(mop);
   return 0;

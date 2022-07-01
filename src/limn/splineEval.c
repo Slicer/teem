@@ -222,6 +222,7 @@ _limnSplineFinish_Unknown(double *out, limnSpline *spline,
   return;
 }
 
+/* clang-format off */
 void
 _limnSplineFinish_Scalar(double *out, limnSpline *spline,
                          int ii, double *wght) {
@@ -299,7 +300,7 @@ _limnSplineFinish_4Vec(double *out, limnSpline *spline,
 }
 
 /*
-** HEY: I have no whether Hermite splines work with this
+** HEY: I have no idea whether Hermite splines work with this
 */
 void
 _limnSplineFinish_Quaternion(double *out, limnSpline *spline,
@@ -327,6 +328,7 @@ _limnSplineFinish[LIMN_SPLINE_INFO_MAX+1] = {
   _limnSplineFinish_4Vec,
   _limnSplineFinish_Quaternion
 };
+/* clang-format on */
 
 void
 limnSplineEvaluate(double *out, limnSpline *spline, double tt) {

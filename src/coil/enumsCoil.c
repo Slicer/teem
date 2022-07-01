@@ -23,6 +23,7 @@
 
 #include "coil.h"
 
+/* clang-format off */
 const char *
 _coilMethodTypeStr[COIL_METHOD_TYPE_MAX+1] = {
   "(unknown_method)",
@@ -130,3 +131,4 @@ _coilKindType = {
 };
 const airEnum *const
 coilKindType = &_coilKindType;
+/* clang-format on */

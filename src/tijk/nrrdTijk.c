@@ -23,6 +23,8 @@
 
 #include "tijk.h"
 
+/* clang-format off */
+
 /* tijk_set_axis_tensor
  *
  * Marks a given nrrd axis as containing tensors of a given type
@@ -207,3 +209,4 @@ int tijk_get_axis_type(tijk_axis_info *info,
   }
   return 4;
 }
+/* clang-format on */

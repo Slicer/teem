@@ -53,10 +53,12 @@ _nrrdSwap32Endian(void *_data, size_t N) {
   mask = 0x000000FFu;
   for (I=0; I<N; I++) {
     dd = data[I];
+    /* clang-format off */
     fix = (dd & mask);                 dd >>= 0x08;
     fix = (dd & mask) | (fix << 0x08); dd >>= 0x08;
     fix = (dd & mask) | (fix << 0x08); dd >>= 0x08;
     fix = (dd & mask) | (fix << 0x08);
+    /* clang-format on */
     data[I] = fix;
   }
 }
@@ -73,6 +75,7 @@ _nrrdSwap64Endian(void *_data, size_t N) {
   mask = AIR_ULLONG(0x00000000000000FF);
   for (I=0; I<N; I++) {
     dd = data[I];
+    /* clang-format off */
     fix = (dd & mask);                 dd >>= 0x08;
     fix = (dd & mask) | (fix << 0x08); dd >>= 0x08;
     fix = (dd & mask) | (fix << 0x08); dd >>= 0x08;
@@ -81,6 +84,7 @@ _nrrdSwap64Endian(void *_data, size_t N) {
     fix = (dd & mask) | (fix << 0x08); dd >>= 0x08;
     fix = (dd & mask) | (fix << 0x08); dd >>= 0x08;
     fix = (dd & mask) | (fix << 0x08);
+    /* clang-format on */
     data[I] = fix;
   }
 }

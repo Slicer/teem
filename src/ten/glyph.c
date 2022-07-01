@@ -826,6 +826,7 @@ tenGlyphBqdZoneUv(const double uv[2]) {
   return zone;
 }
 
+/* clang-format off */
 static void
 baryFind(double bcoord[3], const double uvp[2],
          const double uv0[2],
@@ -855,6 +856,7 @@ baryFind(double bcoord[3], const double uvp[2],
   ELL_3V_SET(bcoord, a12/a, a02/a, a01/a);
   return;
 }
+/* clang-format on */
 
 static void
 baryBlend(double abc[3], const double co[3],
@@ -894,6 +896,7 @@ tenGlyphBqdAbcUv(double abc[3], const double uv[2], double betaMax) {
                                        {0.00, 0.00}};  /* 10 */
   double abcBall[3], abcCyli[3], abcFunk[3], abcThrn[3],
     abcOcta[3], abcCone[3], abcHalf[3];
+  /* clang-format off */
   /* old compile-time setting
   const double *abcAll[10][11] = {
      zone \ vert 0      1        2        3        4        5        6        7        8        9       10
@@ -908,6 +911,7 @@ tenGlyphBqdAbcUv(double abc[3], const double uv[2], double betaMax) {
       8    { NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,   abcCyli, abcHalf,  NULL,   abcBall },
       9    { NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,    NULL,   abcHalf, abcCyli, abcBall }};
   */
+  /* clang-format on */
   const double *abcAll[10][11];
   unsigned int pvi[3], zone, vert;
   double bcoord[3];

@@ -499,7 +499,7 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_DATA_BIT
+                        NRRD_BASIC_INFO_DATA_BIT /* */
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                         | NRRD_BASIC_INFO_DIMENSION_BIT

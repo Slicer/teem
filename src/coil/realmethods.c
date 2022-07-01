@@ -22,6 +22,7 @@
 */
 
 #include "coil.h"
+/* clang-format off */
 
 /* ------------------------------------------ */
 const coilMethod
@@ -106,3 +107,4 @@ coilMethodArray[COIL_METHOD_TYPE_MAX+1] = {
   &_coilMethodSelf,
   &_coilMethodFinish
 };
+/* clang-format on */

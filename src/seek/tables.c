@@ -22,6 +22,7 @@
 */
 
 #include "seek.h"
+/* clang-format off */
 
 /*
 ** vertex, edge, and face numbering, and canonical edge arrangement
@@ -388,4 +389,4 @@ seekContour3DTopoHackTriangle[256][16] = {
   { 1, 0, 4,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
   {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}
 };
-
+/* clang-format on */

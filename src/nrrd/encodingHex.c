@@ -35,6 +35,7 @@ _nrrdWriteHexTable[16] = {
 ** -1: whitespace
 ** [0,15]: values
 */
+/* clang-format off */
 static const int
 _nrrdReadHexTable[128] = {
 /* 0   1   2   3   4   5   6   7   8   9 */
@@ -52,7 +53,7 @@ _nrrdReadHexTable[128] = {
   -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,  /* 110 */
   -2, -2, -2, -2, -2, -2, -2, -2           /* 120 */
 };
-
+/* clang-format on */
 
 static int
 _nrrdEncodingHex_available(void) {

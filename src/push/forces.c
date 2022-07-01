@@ -30,6 +30,7 @@
 #define COTAN   "cotan"
 #define ZERO    "zero"
 
+/* clang-format off */
 const char *
 _pushEnergyTypeStr[PUSH_ENERGY_TYPE_MAX+1] = {
   "(unknown_energy)",
@@ -61,6 +62,7 @@ _pushEnergyType = {
 };
 const airEnum *const
 pushEnergyType = &_pushEnergyType;
+/* clang-format on */
 
 /* ----------------------------------------------------------------
 ** ------------------------------ UNKNOWN -------------------------

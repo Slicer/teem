@@ -633,6 +633,7 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
 **
 ** airSanity ensures that an unsigned char is in fact 8 bits
 */
+/* clang-format off */
 #define GAGE_QUERY_RESET(q) \
   q[ 0] = q[ 1] = q[ 2] = q[ 3] = \
   q[ 4] = q[ 5] = q[ 6] = q[ 7] = \
@@ -682,6 +683,7 @@ typedef unsigned char gageQuery[GAGE_QUERY_BYTES_NUM];
   q[20] | q[21] | q[22] | q[23] | \
   q[24] | q[25] | q[26] | q[27] | \
   q[28] | q[29] | q[30] | q[31] )
+/* clang-format on */
 
 #define GAGE_QUERY_ITEM_TEST(q, i) (q[i/8] & (1 << (i % 8)))
 #define GAGE_QUERY_ITEM_ON(q, i) (q[i/8] |= (1 << (i % 8)))

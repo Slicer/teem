@@ -22,7 +22,7 @@
 */
 
 #include "nrrd.h"
-
+/* clang-format off */
 /*
 ** Rules of thumb for editing these things.  The airEnum definitions are
 ** unfortunately EXTREMELY sensitive to small typo errors, and there is
@@ -1716,5 +1716,5 @@ _nrrdMetaDataCanonicalVersion_enum = {
 };
 const airEnum *const
 nrrdMetaDataCanonicalVersion = &_nrrdMetaDataCanonicalVersion_enum;
-
+/* clang-format on */
 /* ---- END non-NrrdIO */

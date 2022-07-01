@@ -43,86 +43,90 @@ meetNrrdKernelAll(void) {
   ku.k = &kern;
   arr = airArrayNew(ku.v, NULL, sizeof(NrrdKernel *), 2);
 
+#define ADD(K) \
+  ii = airArrayLenIncr(arr, 1); \
+  kern[ii] = (K)
+
   /* kernel.c */
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelZero;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBox;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBoxSupportDebug;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCatmullRomSupportDebug;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCatmullRomSupportDebugD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCatmullRomSupportDebugDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCos4SupportDebug;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCos4SupportDebugD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCos4SupportDebugDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCos4SupportDebugDDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCheap;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelHermiteScaleSpaceFlag;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelTent;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelForwDiff;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCentDiff;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBCCubic;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBCCubicD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBCCubicDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCatmullRom;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCatmullRomD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelCatmullRomDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelAQuartic;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelAQuarticD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelAQuarticDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC3Quintic;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC3QuinticD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC3QuinticDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC4Hexic;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC4HexicD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC4HexicDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC4HexicDDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC4HexicApproxInverse;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC5Septic;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC5SepticD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC5SepticDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC5SepticDDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelC5SepticApproxInverse;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelGaussian;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelGaussianD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelGaussianDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelDiscreteGaussian;
+  ADD(nrrdKernelZero);
+  ADD(nrrdKernelBox);
+  ADD(nrrdKernelBoxSupportDebug);
+  ADD(nrrdKernelCatmullRomSupportDebug);
+  ADD(nrrdKernelCatmullRomSupportDebugD);
+  ADD(nrrdKernelCatmullRomSupportDebugDD);
+  ADD(nrrdKernelCos4SupportDebug);
+  ADD(nrrdKernelCos4SupportDebugD);
+  ADD(nrrdKernelCos4SupportDebugDD);
+  ADD(nrrdKernelCos4SupportDebugDDD);
+  ADD(nrrdKernelCheap);
+  ADD(nrrdKernelHermiteScaleSpaceFlag);
+  ADD(nrrdKernelTent);
+  ADD(nrrdKernelForwDiff);
+  ADD(nrrdKernelCentDiff);
+  ADD(nrrdKernelBCCubic);
+  ADD(nrrdKernelBCCubicD);
+  ADD(nrrdKernelBCCubicDD);
+  ADD(nrrdKernelCatmullRom);
+  ADD(nrrdKernelCatmullRomD);
+  ADD(nrrdKernelCatmullRomDD);
+  ADD(nrrdKernelAQuartic);
+  ADD(nrrdKernelAQuarticD);
+  ADD(nrrdKernelAQuarticDD);
+  ADD(nrrdKernelC3Quintic);
+  ADD(nrrdKernelC3QuinticD);
+  ADD(nrrdKernelC3QuinticDD);
+  ADD(nrrdKernelC4Hexic);
+  ADD(nrrdKernelC4HexicD);
+  ADD(nrrdKernelC4HexicDD);
+  ADD(nrrdKernelC4HexicDDD);
+  ADD(nrrdKernelC4HexicApproxInverse);
+  ADD(nrrdKernelC5Septic);
+  ADD(nrrdKernelC5SepticD);
+  ADD(nrrdKernelC5SepticDD);
+  ADD(nrrdKernelC5SepticDDD);
+  ADD(nrrdKernelC5SepticApproxInverse);
+  ADD(nrrdKernelGaussian);
+  ADD(nrrdKernelGaussianD);
+  ADD(nrrdKernelGaussianDD);
+  ADD(nrrdKernelDiscreteGaussian);
 
   /* winKernel.c */
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelHann;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelHannD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelHannDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBlackman;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBlackmanD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBlackmanDD;
+  ADD(nrrdKernelHann);
+  ADD(nrrdKernelHannD);
+  ADD(nrrdKernelHannDD);
+  ADD(nrrdKernelBlackman);
+  ADD(nrrdKernelBlackmanD);
+  ADD(nrrdKernelBlackmanDD);
 
   /* bsplKernel.c */
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline1;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline1D;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline2;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline2D;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline2DD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline3;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline3D;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline3DD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline3DDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline3ApproxInverse;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline4;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline4D;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline4DD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline4DDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline5;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline5D;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline5DD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline5DDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline5ApproxInverse;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline6;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline6D;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline6DD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline6DDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline7;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline7D;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline7DD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline7DDD;
-  ii = airArrayLenIncr(arr, 1); kern[ii] = nrrdKernelBSpline7ApproxInverse;
+  ADD(nrrdKernelBSpline1);
+  ADD(nrrdKernelBSpline1D);
+  ADD(nrrdKernelBSpline2);
+  ADD(nrrdKernelBSpline2D);
+  ADD(nrrdKernelBSpline2DD);
+  ADD(nrrdKernelBSpline3);
+  ADD(nrrdKernelBSpline3D);
+  ADD(nrrdKernelBSpline3DD);
+  ADD(nrrdKernelBSpline3DDD);
+  ADD(nrrdKernelBSpline3ApproxInverse);
+  ADD(nrrdKernelBSpline4);
+  ADD(nrrdKernelBSpline4D);
+  ADD(nrrdKernelBSpline4DD);
+  ADD(nrrdKernelBSpline4DDD);
+  ADD(nrrdKernelBSpline5);
+  ADD(nrrdKernelBSpline5D);
+  ADD(nrrdKernelBSpline5DD);
+  ADD(nrrdKernelBSpline5DDD);
+  ADD(nrrdKernelBSpline5ApproxInverse);
+  ADD(nrrdKernelBSpline6);
+  ADD(nrrdKernelBSpline6D);
+  ADD(nrrdKernelBSpline6DD);
+  ADD(nrrdKernelBSpline6DDD);
+  ADD(nrrdKernelBSpline7);
+  ADD(nrrdKernelBSpline7D);
+  ADD(nrrdKernelBSpline7DD);
+  ADD(nrrdKernelBSpline7DDD);
+  ADD(nrrdKernelBSpline7ApproxInverse);
 
   /* tmfKernel.c
    nrrdKernelTMF[D+1][C+1][A] is d<D>_c<C>_<A>ef:
@@ -136,14 +140,15 @@ meetNrrdKernelAll(void) {
   for (di=-1; di<=dmax; di++) {
     for (ci=-1; ci<=cmax; ci++) {
       for (ai=1; ai<=amax; ai++) {
-        ii = airArrayLenIncr(arr, 1);
-        kern[ii] = nrrdKernelTMF[di+1][ci+1][ai];
+        ADD(nrrdKernelTMF[di+1][ci+1][ai]);
       }
     }
   }
 
   /* NULL-terminate the list */
-  ii = airArrayLenIncr(arr, 1); kern[ii] = NULL;
+  ADD(NULL);
+#undef ADD
+
   /* nix, not nuke the airArray */
   airArrayNix(arr);
   return kern;
@@ -273,6 +278,7 @@ meetNrrdKernelAllCheck(void) {
     if (!EE) EE |= nrrdKernelCheck(kk, (P), evalNum, epsl*(S),          \
                                    N, N,                                \
                                    kintegral(kk), (P));
+    /* clang-format off */
     if (nrrdKernelBCCubic == kk ||
         nrrdKernelBCCubicD == kk ||
         nrrdKernelBCCubicDD == kk) {
@@ -384,6 +390,7 @@ meetNrrdKernelAllCheck(void) {
                me, pnum, kk->name);
       airMopError(mop); return 1;
     }
+    /* clang-format on */
 #undef CHECK
     if (EE) {
       biffMovef(MEET, NRRD, "%s: problem with kern[%u] \"%s\"", me, ki,

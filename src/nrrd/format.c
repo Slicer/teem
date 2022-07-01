@@ -132,11 +132,11 @@ nrrdFormatUnknown = &_nrrdFormatUnknown;
 
 const NrrdFormat *const
 nrrdFormatArray[NRRD_FORMAT_TYPE_MAX+1] = {
-  &_nrrdFormatUnknown,
-  &_nrrdFormatNRRD,
-  &_nrrdFormatPNM,
-  &_nrrdFormatPNG,
-  &_nrrdFormatVTK,
-  &_nrrdFormatText,
-  &_nrrdFormatEPS
+  &_nrrdFormatUnknown, /* */
+  &_nrrdFormatNRRD, /* */
+  &_nrrdFormatPNM, /* */
+  &_nrrdFormatPNG, /* */
+  &_nrrdFormatVTK, /* */
+  &_nrrdFormatText, /* */
+  &_nrrdFormatEPS /* */
 };

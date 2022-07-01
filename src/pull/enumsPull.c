@@ -24,6 +24,7 @@
 #include "pull.h"
 #include "privatePull.h"
 
+/* clang-format off */
 /* --------------------------------------------------------- */
 
 static const char *
@@ -332,4 +333,4 @@ _pullConstraintFail = {
 const airEnum *const
 pullConstraintFail = &_pullConstraintFail;
 
-
+/* clang-format on */

@@ -22,6 +22,7 @@
 */
 
 #include "coil.h"
+/* clang-format off */
 
 void
 _coilKind7TensorTangents(coil_t traceGrad[6],
@@ -288,3 +289,4 @@ _coilKind7Tensor = {
 
 const coilKind *
 coilKind7Tensor = &_coilKind7Tensor;
+/* clang-format on */

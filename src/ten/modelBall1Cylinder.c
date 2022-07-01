@@ -23,6 +23,7 @@
 
 #include "ten.h"
 #include "privateTen.h"
+/* clang-format off */
 
 #define PARM_NUM 8
 static const tenModelParmDesc
@@ -93,3 +94,4 @@ _tenModelBall1Cylinder = {
   _TEN_MODEL_FIELDS
 };
 const tenModel *const tenModelBall1Cylinder = &_tenModelBall1Cylinder;
+/* clang-format on */

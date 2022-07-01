@@ -20,9 +20,9 @@
 */
 
 #include "elf.h"
+/* clang-format off */
 
-const int
-elfPresent = 42;
+const int elfPresent = 42;
 
 /* Glyphs for higher-order tensors */
 
@@ -524,3 +524,4 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
   airMopOkay(mop);
   return 0;
 }
+/* clang-format on */

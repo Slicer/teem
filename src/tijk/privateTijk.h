@@ -22,6 +22,7 @@
 
 #ifndef TIJK_PRIVATE_HAS_BEEN_INCLUDED
 #define TIJK_PRIVATE_HAS_BEEN_INCLUDED
+/* clang-format off */
 
 /* macros to facilitate definition of new tensor types */
 
@@ -87,5 +88,5 @@
   };                                                          \
   const tijk_type *const tijk_##name = &_tijk_##name;
 
-
+/* clang-format on */
 #endif /* TIJK_PRIVATE_HAS_BEEN_INCLUDED */

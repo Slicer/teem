@@ -20,6 +20,7 @@
 */
 
 #include "elf.h"
+/* clang-format off */
 
 /* Routines for estimating even-order spherical harmonics or tensor
  * coefficients.
@@ -297,3 +298,4 @@ ELFESHESTIMMATRIX(float, f)
 
 ELFTENESTIMMATRIX(double, d)
 ELFTENESTIMMATRIX(float, f)
+/* clang-format on */

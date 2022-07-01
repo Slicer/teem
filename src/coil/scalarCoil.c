@@ -22,7 +22,7 @@
 */
 
 #include "coil.h"
-
+/* clang-format off */
 /*
 **  x ----> X
 **   \   [0][0]  [1][0]  [2][0]
@@ -358,3 +358,4 @@ coilKindArray[COIL_KIND_TYPE_MAX+1] = {
   NULL,
   &_coilKind7Tensor
 };
+/* clang-format on */

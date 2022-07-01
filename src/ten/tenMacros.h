@@ -23,6 +23,7 @@
 
 #ifndef TENMACROS_HAS_BEEN_INCLUDED
 #define TENMACROS_HAS_BEEN_INCLUDED
+/* clang-format off */
 
 #ifdef __cplusplus
 extern "C" {
@@ -257,4 +258,5 @@ extern "C" {
 }
 #endif
 
+/* clang-format on */
 #endif /* TENMACROS_HAS_BEEN_INCLUDED */

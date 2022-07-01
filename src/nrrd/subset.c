@@ -149,7 +149,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
     airMopError(mop); return 1;
   }
   if (nrrdBasicInfoCopy(nout, (nin ? nin : cnin),
-                        NRRD_BASIC_INFO_DATA_BIT
+                        NRRD_BASIC_INFO_DATA_BIT /* */
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                         | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -338,7 +338,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
     return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_DATA_BIT
+                        NRRD_BASIC_INFO_DATA_BIT /* */
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                         | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -564,7 +564,7 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
           /* nrrdAxisInfoCopy doesn't use biff but does have error returns */
           || nrrdAxisInfoCopy(nout[oi], nin, axmap, NRRD_AXIS_INFO_NONE)
           || nrrdBasicInfoCopy(nout[oi], nin,
-                               NRRD_BASIC_INFO_DATA_BIT
+                               NRRD_BASIC_INFO_DATA_BIT /* */
                                | NRRD_BASIC_INFO_TYPE_BIT
                                | NRRD_BASIC_INFO_DIMENSION_BIT
                                | NRRD_BASIC_INFO_CONTENT_BIT

@@ -24,6 +24,7 @@
 #include "gage.h"
 #include "privateGage.h"
 
+/* clang-format off */
 const char *
 _gageSigmaSamplingStr[] = {
   "(unknown_sampling)",
@@ -68,7 +69,7 @@ _gageSigmaSampling_enum = {
 };
 const airEnum *const
 gageSigmaSampling = &_gageSigmaSampling_enum;
-
+/* clang-format on */
 
 void
 gageStackBlurParmInit(gageStackBlurParm *parm) {
@@ -960,9 +961,10 @@ _checkNrrd(Nrrd *const nblur[], const Nrrd *const ncheck[],
 
 #define KVP_NUM 9
 
+/* clang-format off */
 static const char
 _blurKey[KVP_NUM][AIR_STRLEN_LARGE] = {/*  0  */ "gageStackBlur",
-                                       /*  1 */  "cksum",
+                                       /*  1  */ "cksum",
                                        /*  2  */ "scale",
                                        /*  3  */ "kernel",
                                        /*  4  */ "renormalize",
@@ -973,6 +975,7 @@ _blurKey[KVP_NUM][AIR_STRLEN_LARGE] = {/*  0  */ "gageStackBlur",
                                        /*  8  */ "dgGoodSigmaMax"
 #define KVP_DGGSM_IDX                      8
                                        /* (9 == KVP_NUM, above) */};
+/* clang-format on */
 
 typedef struct {
   char val[KVP_NUM][AIR_STRLEN_LARGE];

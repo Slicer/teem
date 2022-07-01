@@ -24,7 +24,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-#if TEEM_FFTW3 /* =========================================================== */
+#if TEEM_FFTW3 /* ============================================ */
 
 #include <fftw3.h>
 
@@ -265,7 +265,7 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
 
   if (nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE)
       || nrrdBasicInfoCopy(nout, nin,
-                           NRRD_BASIC_INFO_DATA_BIT
+                           NRRD_BASIC_INFO_DATA_BIT /* */
                            | NRRD_BASIC_INFO_TYPE_BIT
                            | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                            | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -297,7 +297,7 @@ nrrdFFTWWisdomWrite(FILE *file) {
 }
 
 
-#else /* TEEM_FFTW3 ========================================================= */
+#else /* TEEM_FFTW3 ============================================ */
 
 /* we do NOT have the FFTW library to link against; have to
    supply the same symbols anyway */
@@ -333,5 +333,4 @@ nrrdFFTWWisdomWrite(FILE *file) {
   return 0;
 }
 
-#endif /* TEEM_FFTW3 ======================================================== */
-
+#endif /* TEEM_FFTW3 ============================================ */

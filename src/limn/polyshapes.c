@@ -25,6 +25,7 @@
 
 #include "limn.h"
 
+/* clang-format off */
 int
 limnPolyDataCube(limnPolyData *pld,
                  unsigned int infoBitFlag,
@@ -457,6 +458,7 @@ limnPolyDataOctahedron(limnPolyData *pld,
   }
   return 0;
 }
+/* clang-format on */
 
 int
 limnPolyDataCylinder(limnPolyData *pld,

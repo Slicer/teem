@@ -21,7 +21,7 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
+/* clang-format off */
 /*********** THIS IS A HACK !!!
  *********** THIS ISN'T REALLY A SOURCE FILE !!!
  *********** ITS JUST A MACRO (sorry) */
@@ -121,3 +121,4 @@
 #undef VL_N
 #undef D1_N
 #undef D2_N
+/* clang-format on */

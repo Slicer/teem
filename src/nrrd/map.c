@@ -212,7 +212,7 @@ clampRoundConvert(Nrrd *nout, const Nrrd *nin, int type,
     /* the min and max have probably changed if there was a conversion
        to integral values, or to a lower precision representation */
     if (nrrdBasicInfoCopy(nout, nin,
-                          NRRD_BASIC_INFO_DATA_BIT
+                          NRRD_BASIC_INFO_DATA_BIT /* */
                           | NRRD_BASIC_INFO_TYPE_BIT
                           | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                           | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -407,7 +407,7 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     airMopError(mop); return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_DATA_BIT
+                        NRRD_BASIC_INFO_DATA_BIT /* */
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                         | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -552,7 +552,7 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
     return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_DATA_BIT
+                        NRRD_BASIC_INFO_DATA_BIT /* */
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                         | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -816,7 +816,7 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
     airMopError(mop); return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_DATA_BIT
+                        NRRD_BASIC_INFO_DATA_BIT /* */
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                         | NRRD_BASIC_INFO_DIMENSION_BIT

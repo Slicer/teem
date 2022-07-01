@@ -1299,7 +1299,7 @@ nrrdProject(Nrrd *nout, const Nrrd *cnin, unsigned int axis,
   }
   /* this will copy the space origin over directly, which is reasonable */
   if (nrrdBasicInfoCopy(nout, (nin ? nin : cnin),
-                        NRRD_BASIC_INFO_DATA_BIT
+                        NRRD_BASIC_INFO_DATA_BIT /* */
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                         | NRRD_BASIC_INFO_DIMENSION_BIT

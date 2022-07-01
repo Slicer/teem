@@ -24,6 +24,7 @@
 #include "ten.h"
 #include "privateTen.h"
 
+/* clang-format off */
 /* -------------------------------------------------------------- */
 
 const char *
@@ -1668,3 +1669,4 @@ _tenTripleType = {
 };
 const airEnum *const
 tenTripleType = &_tenTripleType;
+/* clang-format on */

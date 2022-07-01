@@ -613,6 +613,7 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
         pxfr = (double *)(npxfr->data) + 0 + 5*(z + sz*(A + ninLen*B));
         gA = grad + 0 + 3*A;
         gB = grad + 0 + 3*B;
+        /* clang-format off */
         if (1 == order) {
           ELL_3V_SET(mat + 3*ri,
                      gB[0] - pxfr[SCALE]*gA[0],
@@ -635,6 +636,7 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
                      */
         }
         ri += 1;
+        /* clang-format on */
       }
     }
     if (nrrdHasNonExist(nmat[z])) {
@@ -885,6 +887,7 @@ _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP,
       *ttP = ELL_3V_DOT(_g, hst + 2*3);
     } else {
       hst = (double*)(nhst->data) + 0 + 27*zi;
+      /* clang-format off */
       ELL_9V_SET(grad, _g[0], _g[1], _g[2],
                  _g[0]*_g[0]*_g[0], _g[1]*_g[1]*_g[1], _g[2]*_g[2]*_g[2],
                  _g[0]*_g[1]*_g[2],
@@ -892,6 +895,7 @@ _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP,
                  /*
                  _g[0]*_g[1], _g[0]*_g[2], _g[1]*_g[2]);
                  */
+      /* clang-format on */
       *hhP = ELL_9V_DOT(grad, hst + 0*9);
       *ssP = 1 + ELL_9V_DOT(grad, hst + 1*9);
       *ttP = ELL_9V_DOT(grad, hst + 2*9);
@@ -1334,7 +1338,7 @@ tenEpiRegister4D(Nrrd *_nout, Nrrd *_nin, Nrrd *_ngrad,
   }
   nrrdAxisInfoCopy(_nout, _nin, NULL, NRRD_AXIS_INFO_NONE);
   if (nrrdBasicInfoCopy(_nout, _nin,
-                        NRRD_BASIC_INFO_DATA_BIT
+                        NRRD_BASIC_INFO_DATA_BIT /* */
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                         | NRRD_BASIC_INFO_DIMENSION_BIT

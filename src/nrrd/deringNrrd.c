@@ -568,6 +568,7 @@ deringPtxfDo(NrrdDeringContext *drc, deringBag *dbg) {
         if (drc->clampDo) {
           val = AIR_CLAMP(drc->clamp[0], val, drc->clamp[1]);
         }
+        /* clang-format off */
         dbg->ptxf[bidx        ] += (1-rrFrc)*(1-thFrc)*val;
         dbg->ptxf[bidx     + 1] +=     rrFrc*(1-thFrc)*val;
         dbg->ptxf[bidxPlus    ] += (1-rrFrc)*thFrc*val;
@@ -576,6 +577,7 @@ deringPtxfDo(NrrdDeringContext *drc, deringBag *dbg) {
         dbg->wght[bidx     + 1] +=     rrFrc*(1-thFrc);
         dbg->wght[bidxPlus    ] += (1-rrFrc)*thFrc;
         dbg->wght[bidxPlus + 1] +=     rrFrc*thFrc;
+        /* clang-format on */
       } else {
         deringXYtoRT(drc, dbg, xi, yi, &rrIdx, &thIdx, NULL, NULL);
         thIdx = thIdx % drc->thetaNum;
@@ -726,7 +728,7 @@ deringDo(NrrdDeringContext *drc, deringBag *dbg,
          Nrrd *nout, unsigned int zi) {
   static const char me[]="deringDo";
 
-  if (deringSliceGet(drc, dbg, zi)
+  if (deringSliceGet(drc, dbg, zi) /* */
       || deringPtxfDo(drc, dbg)
       || deringPtxfFilter(drc, dbg, zi)
       || deringRingMagMeasure(drc, dbg)

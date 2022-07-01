@@ -267,7 +267,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
     }
     if (nout != nin) {
       if (nrrdBasicInfoCopy(nout, nin,
-                            NRRD_BASIC_INFO_DATA_BIT
+                            NRRD_BASIC_INFO_DATA_BIT /* */
                             | NRRD_BASIC_INFO_TYPE_BIT
                             | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                             | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -427,7 +427,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
     }
   }
   if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_DATA_BIT
+                        NRRD_BASIC_INFO_DATA_BIT /* */
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                         | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -1137,7 +1137,7 @@ nrrdBlock(Nrrd *nout, const Nrrd *nin) {
     return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_DATA_BIT
+                        NRRD_BASIC_INFO_DATA_BIT /* */
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                         | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -1227,7 +1227,7 @@ nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
     return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_DATA_BIT
+                        NRRD_BASIC_INFO_DATA_BIT /* */
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                         | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -1350,7 +1350,7 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0, unsigned int ax1,
   }
   /* HEY: set content */
   if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_DATA_BIT
+                        NRRD_BASIC_INFO_DATA_BIT /* */
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                         | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -1484,7 +1484,7 @@ int nrrdUntile2D(Nrrd *nout, const Nrrd *nin,
   }
 
   if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_DATA_BIT
+                        NRRD_BASIC_INFO_DATA_BIT /* */
                         | NRRD_BASIC_INFO_TYPE_BIT
                         | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                         | NRRD_BASIC_INFO_DIMENSION_BIT

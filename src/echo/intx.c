@@ -54,6 +54,7 @@ _echoRayIntx_Noop(RAYINTX_ARGS(Object)) {
   return 0;
 }
 
+/* clang-format off */
 int
 _echoRayIntx_CubeSurf(echoPos_t *tP, int *axP, int *dirP,
                       echoPos_t xmin, echoPos_t xmax,
@@ -127,6 +128,7 @@ _echoRayIntx_CubeSolid(echoPos_t *tminP, echoPos_t *tmaxP,
   *tmaxP = AIR_MIN(tmax, ray->faar);
   return AIR_TRUE;
 }
+/* clang-format on */
 
 int
 _echoRayIntx_Sphere(RAYINTX_ARGS(Sphere)) {

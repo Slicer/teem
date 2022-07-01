@@ -630,6 +630,7 @@ airTime() {
 #endif
 }
 
+/* clang-format off */
 const char
 airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
   "(unknown)",
@@ -663,6 +664,7 @@ airTypeSize[AIR_TYPE_MAX+1] = {
   sizeof(int),
   0   /* we don't know anything about type "other" */
 };
+/* clang-format on */
 
 /*
 ******** airEqvSettle()
@@ -778,5 +780,4 @@ airEqvAdd(airArray *eqvArr, unsigned int j, unsigned int k) {
   eqv[1 + 2*eqi] = k;
   return;
 }
-
 /* ---- END non-NrrdIO */

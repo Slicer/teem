@@ -20,9 +20,10 @@
 */
 
 #include "elf.h"
+/* clang-format off */
 
 #if TEEM_LEVMAR
-#include <levmar.h>
+#  include <levmar.h>
 #endif
 
 /* Routines for estimating the ball-and-multi-stick model from single-shell
@@ -420,3 +421,4 @@ int elfBallStickOptimize_f(elfBallStickParms *parms,
   return 3;
 #endif
 }
+/* clang-format on */

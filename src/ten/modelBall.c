@@ -23,6 +23,7 @@
 
 #include "ten.h"
 #include "privateTen.h"
+/* clang-format off */
 
 #define PARM_NUM 2
 static const tenModelParmDesc
@@ -90,3 +91,4 @@ _tenModelBall = {
   nllFit
 };
 const tenModel *const tenModelBall = &_tenModelBall;
+/* clang-format on */

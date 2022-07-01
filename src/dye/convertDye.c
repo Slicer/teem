@@ -120,6 +120,7 @@ dyeHSVtoRGB(float *R, float *G, float *B,
   min = V*(1 - S);
   mid1 = min + vsf;
   mid2 = V - vsf;
+  /* clang-format off */
   switch (sextant) {
   case 0: { *R = V;    *G = mid1; *B = min;  break; }
   case 1: { *R = mid2; *G = V;    *B = min;  break; }
@@ -128,6 +129,7 @@ dyeHSVtoRGB(float *R, float *G, float *B,
   case 4: { *R = mid1; *G = min;  *B = V;    break; }
   case 5: { *R = V;    *G = min;  *B = mid2; break; }
   }
+  /* clang-format on */
 }
 
 /*
@@ -210,6 +212,7 @@ dyeHSLtoRGB(float *R, float *G, float *B,
   fract = H - sextant;
   mid1 = m1 + fract*(m2 - m1);
   mid2 = m2 + fract*(m1 - m2);
+  /* clang-format off */
   /* compared to HSVtoRGB: V -> m2, min -> m1 */
   switch (sextant) {
   case 0: { *R = m2;   *G = mid1; *B = m1;   break; }
@@ -219,6 +222,7 @@ dyeHSLtoRGB(float *R, float *G, float *B,
   case 4: { *R = mid1; *G = m1;   *B = m2;   break; }
   case 5: { *R = m2;   *G = m1;   *B = mid2; break; }
   }
+  /* clang-format on */
 }
 
 void
@@ -349,6 +353,7 @@ dyeIdentity(float *A, float *B, float *C,
   return;
 }
 
+/* clang-format off */
 dyeConverter dyeSimpleConvert[DYE_MAX_SPACE+1][DYE_MAX_SPACE+1] =
 {
   {NULL,          NULL,          NULL,          NULL,          NULL,          NULL,          NULL,          NULL},
@@ -359,7 +364,8 @@ dyeConverter dyeSimpleConvert[DYE_MAX_SPACE+1][DYE_MAX_SPACE+1] =
   {NULL,          NULL,          NULL,          NULL,          dyeLABtoXYZ,   dyeIdentity,   NULL,          dyeLABtoLCH},
   {NULL,          NULL,          NULL,          NULL,          dyeLUVtoXYZ,   NULL,          dyeIdentity,   NULL},
   {NULL,          NULL,          NULL,          NULL,          dyeLCHtoXYZ,   dyeLCHtoLAB,   NULL,          dyeIdentity},
-  };
+};
+/* clang-format on */
 
 /*
 ******** dyeConvert()

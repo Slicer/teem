@@ -23,6 +23,7 @@
 
 #include "ten.h"
 #include "privateTen.h"
+/* clang-format off */
 
 #define PARM_NUM 7
 static const tenModelParmDesc
@@ -87,3 +88,4 @@ _tenModelBall1Stick = {
   _TEN_MODEL_FIELDS
 };
 const tenModel *const tenModelBall1Stick = &_tenModelBall1Stick;
+/* clang-format on */

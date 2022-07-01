@@ -313,6 +313,7 @@ CONVERT1(ev, wp, k)       /* _ev_k */
 
 CONVERT2(ev, xyz, rtp, r) /* _ev_r */
 
+/* clang-off off */
 static tenTripleConverter
 _convert[TEN_TRIPLE_TYPE_MAX+1][TEN_TRIPLE_TYPE_MAX+1] = {
   {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
@@ -326,6 +327,7 @@ _convert[TEN_TRIPLE_TYPE_MAX+1][TEN_TRIPLE_TYPE_MAX+1] = {
   /* K */   {NULL, _k_ev,   _k_mu,  NULL,     _k_rtz,   NULL,     NULL,  _iden,  _k_r,   _k_wp},
   /* R */   {NULL, _r_ev,   _r_mu,  NULL,     NULL,     _r_rtp,   _r_j,  NULL,   _iden,  NULL},
   /* WP */  {NULL, _wp_ev,  _wp_mu, NULL,     _wp_rtz,  NULL,     NULL,  _wp_k,   NULL,  _iden}};
+/* clang-off on */
 
 void
 tenTripleConvertSingle_d(double dst[3], int dstType,

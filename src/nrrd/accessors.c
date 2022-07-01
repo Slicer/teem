@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2022  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -21,6 +21,7 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/* clang-format off */
 #include "nrrd.h"
 #include "privateNrrd.h"
 #include "float.h"
@@ -592,5 +593,5 @@ int nrrdArrayCompare(int type, const void *_valA, const void *_valB,
 
   return 0;
 }
-
+/* clang-format on */
 /* ---- END non-NrrdIO */

@@ -24,6 +24,7 @@
 #include "gage.h"
 #include "privateGage.h"
 
+/* clang-format off */
 void
 _gagePrint_off(FILE *file, gageContext *ctx) {
   int i, fd;
@@ -88,6 +89,8 @@ _gagePrint_off(FILE *file, gageContext *ctx) {
    if (ctx->needK[gageKernel20]) { HOW(20,C); }         \
    if (ctx->needK[gageKernel21]) { HOW(21,C); }         \
    if (ctx->needK[gageKernel22]) { HOW(22,C); }
+
+/* clang-format on */
 
 void
 _gagePrint_fslw(FILE *file, gageContext *ctx) {

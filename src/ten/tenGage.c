@@ -30,6 +30,7 @@ typedef struct {
                           allocation sizes of buffTen and buffWght, too */
 } _tenGagePvlData;
 
+/* clang-format off */
 gageItemEntry
 _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   /* enum value                  len,deriv, prereqs,                                                   parent item, parent index, needData */
@@ -2126,3 +2127,4 @@ _tenGageKind = {
 };
 gageKind *
 tenGageKind = &_tenGageKind;
+/* clang-format on */

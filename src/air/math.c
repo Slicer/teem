@@ -21,7 +21,9 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
+/* clang-format off */
+/* formatting off because of how the many deeply-nested expressions balloon
+   into way more lines than necessary; result is not more legible */
 #include "air.h"
 
 /*
@@ -1093,3 +1095,4 @@ airCRC32(const unsigned char *cdata, size_t len, size_t unit, int swap) {
 
   return ~crc;
 }
+/* clang-format on */

@@ -317,7 +317,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut,
 
   if (nrrdAxisInfoCopy(ndwi, _nparm, axmap, NRRD_AXIS_INFO_SIZE_BIT)
       || nrrdBasicInfoCopy(ndwi, _nparm,
-                           NRRD_BASIC_INFO_DATA_BIT
+                           NRRD_BASIC_INFO_DATA_BIT /* */
                            | NRRD_BASIC_INFO_TYPE_BIT
                            | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                            | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -606,7 +606,7 @@ tenModelSqeFit(Nrrd *nparm,
 
   if (nrrdAxisInfoCopy(nparm, ndwi, axmap, NRRD_AXIS_INFO_SIZE_BIT)
       || nrrdBasicInfoCopy(nparm, ndwi,
-                           NRRD_BASIC_INFO_DATA_BIT
+                           NRRD_BASIC_INFO_DATA_BIT /* */
                            | NRRD_BASIC_INFO_TYPE_BIT
                            | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                            | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -621,7 +621,7 @@ tenModelSqeFit(Nrrd *nparm,
   if (nsqeP) {
     if (nrrdAxisInfoCopy(nsqe, ndwi, erraxmap, NRRD_AXIS_INFO_SIZE_BIT)
         || nrrdBasicInfoCopy(nsqe, ndwi,
-                             NRRD_BASIC_INFO_DATA_BIT
+                             NRRD_BASIC_INFO_DATA_BIT /* */
                              | NRRD_BASIC_INFO_TYPE_BIT
                              | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                              | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -638,7 +638,7 @@ tenModelSqeFit(Nrrd *nparm,
   if (nconvP) {
     if (nrrdAxisInfoCopy(nconv, ndwi, erraxmap, NRRD_AXIS_INFO_SIZE_BIT)
         || nrrdBasicInfoCopy(nconv, ndwi,
-                             NRRD_BASIC_INFO_DATA_BIT
+                             NRRD_BASIC_INFO_DATA_BIT /* */
                              | NRRD_BASIC_INFO_TYPE_BIT
                              | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                              | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -655,7 +655,7 @@ tenModelSqeFit(Nrrd *nparm,
   if (niterP) {
     if (nrrdAxisInfoCopy(niter, ndwi, erraxmap, NRRD_AXIS_INFO_SIZE_BIT)
         || nrrdBasicInfoCopy(niter, ndwi,
-                             NRRD_BASIC_INFO_DATA_BIT
+                             NRRD_BASIC_INFO_DATA_BIT /* */
                              | NRRD_BASIC_INFO_TYPE_BIT
                              | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                              | NRRD_BASIC_INFO_DIMENSION_BIT
@@ -794,7 +794,7 @@ tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
 
   if (nrrdAxisInfoCopy(nparmDst, nparmSrc, axmap, NRRD_AXIS_INFO_SIZE_BIT)
       || nrrdBasicInfoCopy(nparmDst, nparmSrc,
-                           NRRD_BASIC_INFO_DATA_BIT
+                           NRRD_BASIC_INFO_DATA_BIT /* */
                            | NRRD_BASIC_INFO_TYPE_BIT
                            | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                            | NRRD_BASIC_INFO_DIMENSION_BIT

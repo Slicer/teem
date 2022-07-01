@@ -2005,7 +2005,7 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec,
     if (nrrdMaybeAlloc_va(*nterrP, outType, 3,
                           sizeX, sizeY, sizeZ)
         || nrrdBasicInfoCopy(*nterrP, ndwi,
-                             NRRD_BASIC_INFO_DATA_BIT
+                             NRRD_BASIC_INFO_DATA_BIT /* */
                              | NRRD_BASIC_INFO_TYPE_BIT
                              | NRRD_BASIC_INFO_BLOCKSIZE_BIT
                              | NRRD_BASIC_INFO_DIMENSION_BIT

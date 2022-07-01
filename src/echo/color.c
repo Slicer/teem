@@ -37,6 +37,7 @@ _echoDot(int depth) {
   return _echoBuff;
 }
 
+/* clang-format off */
 void
 echoTextureLookup(echoCol_t rgba[4], Nrrd *ntext,
                   echoPos_t u, echoPos_t v, echoRTParm *parm) {
@@ -73,6 +74,7 @@ echoTextureLookup(echoCol_t rgba[4], Nrrd *ntext,
                    vf*(1-uf)*tdata10[3] + vf*uf*tdata11[3])/255.0);
   }
 }
+/* clang-format on */
 
 void
 echoIntxMaterialColor(echoCol_t rgba[4], echoIntx *intx, echoRTParm *parm) {

@@ -51,6 +51,7 @@ airMyEndian(void) {
   return ret;
 }
 
+/* clang-format off */
 static const char *
 _airEndianStr[] = {
   "(unknown endian)",
@@ -84,4 +85,4 @@ _airEndian = {
 
 const airEnum *const
 airEndian = &_airEndian;
-
+/* clang-format on */

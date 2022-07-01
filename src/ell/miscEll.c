@@ -43,7 +43,7 @@ ell_biff_key = "ell";
 */
 int ell_debug = 0;
 
-
+/* clang-format off */
 const char *
 _ell_quadratic_root_str[] = {
   "(unknown ell_quadratic_root)",
@@ -102,7 +102,6 @@ _ell_cubic_root = {
 };
 const airEnum *const
 ell_cubic_root = &_ell_cubic_root;
-
 
 void
 ell_3m_print_f(FILE *f, const float s[9]) {
@@ -179,3 +178,4 @@ ell_4v_print_d(FILE *f, const double s[4]) {
   fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n",
           s[0], s[1], s[2], s[3]);
 }
+/* clang-format on */

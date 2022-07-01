@@ -20,6 +20,7 @@
 */
 
 #include "elf.h"
+/* clang-format off */
 
 /* Creates an elfMaximaContext, which can then be used to find all
  * maxima of a symmetric even-order 3D tensor of the given type.
@@ -196,3 +197,4 @@ int elfMaximaFind_f(float **ls, float **vs, const float *ten,
   free(vals);
   return retval;
 }
+/* clang-format on */

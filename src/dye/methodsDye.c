@@ -30,6 +30,7 @@ dyePresent = 42;
 const char *
 dyeBiffKey = "dye";
 
+/* clang-format off */
 const char *
 dyeSpaceToStr[DYE_MAX_SPACE+1] = {
   "(unknown)",
@@ -70,6 +71,7 @@ _dyeSpace = {
 };
 const airEnum *const
 dyeSpace = &_dyeSpace;
+/* clang-format on */
 
 /*
 ** this function predates the dyeSpace airEnum, so we'll keep it.

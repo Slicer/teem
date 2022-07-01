@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2022  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -34,28 +34,29 @@ typedef union {
   void **v;
 } foobarUnion;
 
+/* clang-format off */  /* for the command below */
 /*
 ******** meetAirEnumAll
 **
-** ALLOCATES and returns a NULL-terminated array of
-** pointers to all the airEnums in Teem
+** ALLOCATES and returns a NULL-terminated array of pointers to all the
+** airEnums in Teem
 **
-** It would be better if this array could be created at compile-time,
-** but efforts at doing this resulted in lots of "initializer is not const"
-** errors.
+** It might be better if this array could be created at compile-time, but
+** efforts at doing this resulted in lots of "initializer is not const" errors.
 **
-** NOTE: the order here reflects the library ordering of the LIBS
-** variable in teem/src/GNUMakefile, which is the canonical dependency
-** ordering of the libraries.  Can manually check completeness by:
-** (TEEM_LIB_LIST)
+** NOTE: the order here reflects the library ordering of the LIBS variable in
+** teem/src/GNUMakefile, which is the canonical dependency ordering of the
+** libraries.  Can manually check that this really does list all the airEnums
+** with: (TEEM_LIB_LIST)
 
 grep "airEnum *" {air,hest,biff,nrrd,ell,unrrdu,alan,moss,tijk,gage,dye,bane,limn,echo,hoover,seek,ten,elf,pull,coil,push,mite}/?*.h | grep EXPORT | more
 
-** (with the ? in "}/?*.h" to stop warnings about / * inside comment)
-** We could grep specifically for "const airEnum *const", but its good to
-** use this occasion to also make sure that all public airEnums are
-** indeed const airEnum *const
+** (with the ? in "}/?*.h" to stop compiler warnings about / * inside comment)
+** We could grep specifically for "const airEnum *const", but its also good to
+** use this occasion to also make sure that all public airEnums are indeed
+** const airEnum *const.
 */
+/* clang-format on */
 const airEnum **
 meetAirEnumAll() {
   airArray *arr;
@@ -66,134 +67,140 @@ meetAirEnumAll() {
   arr = airArrayNew((fbu.enm = &enm, fbu.v),
                     NULL, sizeof(airEnum *), 2);
 
+#define ADD(E) \
+  ii = airArrayLenIncr(arr, 1); \
+  enm[ii] = (E)
+
   /* air */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = airEndian;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = airBool;
+  ADD(airEndian);
+  ADD(airBool);
 
   /* hest: no airEnums */
 
   /* biff: no airEnums */
 
   /* nrrd */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdFormatType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdEncodingType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdCenter;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdKind;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdField;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdSpace;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdSpacingStatus;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdFormatPNGsRGBIntent;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdOrientationHave;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdBoundary;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdMeasure;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdUnaryOp;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdBinaryOp;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdTernaryOp;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdFFTWPlanRigor;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdResampleNonExistent;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = nrrdMetaDataCanonicalVersion;
+  ADD(nrrdFormatType);
+  ADD(nrrdType);
+  ADD(nrrdEncodingType);
+  ADD(nrrdCenter);
+  ADD(nrrdKind);
+  ADD(nrrdField);
+  ADD(nrrdSpace);
+  ADD(nrrdSpacingStatus);
+  ADD(nrrdFormatPNGsRGBIntent);
+  ADD(nrrdOrientationHave);
+  ADD(nrrdBoundary);
+  ADD(nrrdMeasure);
+  ADD(nrrdUnaryOp);
+  ADD(nrrdBinaryOp);
+  ADD(nrrdTernaryOp);
+  ADD(nrrdFFTWPlanRigor);
+  ADD(nrrdResampleNonExistent);
+  ADD(nrrdMetaDataCanonicalVersion);
 
   /* ell */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = ell_quadratic_root;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = ell_cubic_root;
+  ADD(ell_quadratic_root);
+  ADD(ell_cubic_root);
 
   /* unrrdu: no airEnums */
 
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   /* alan */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = alanStop;
+  ADD(alanStop);
 #endif
 
   /* moss: no airEnums */
 
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  ii = airArrayLenIncr(arr, 1); enm[ii] = tijk_class;
+  /* tijk */
+  ADD(tijk_class);
 #endif
 
   /* gage */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = gageErr;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = gageKernel;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = gageItemPackPart;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = gageScl;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = gageVec;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = gage2Vec;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = gageSigmaSampling;
+  ADD(gageErr);
+  ADD(gageKernel);
+  ADD(gageItemPackPart);
+  ADD(gageScl);
+  ADD(gageVec);
+  ADD(gage2Vec);
+  ADD(gageSigmaSampling);
 
   /* dye */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = dyeSpace;
+  ADD(dyeSpace);
 
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   /* bane */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = baneGkmsMeasr;
+  ADD(baneGkmsMeasr);
 #endif
 
   /* limn */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = limnSpace;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = limnPolyDataInfo;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = limnCameraPathTrack;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = limnPrimitive;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = limnSplineType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = limnSplineInfo;
+  ADD(limnSpace);
+  ADD(limnPolyDataInfo);
+  ADD(limnCameraPathTrack);
+  ADD(limnPrimitive);
+  ADD(limnSplineType);
+  ADD(limnSplineInfo);
 
   /* echo */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = echoJitter;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = echoType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = echoMatter;
+  ADD(echoJitter);
+  ADD(echoType);
+  ADD(echoMatter);
 
   /* hoover */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = hooverErr;
+  ADD(hooverErr);
 
   /* seek */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = seekType;
+  ADD(seekType);
 
   /* ten */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = tenAniso;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = tenInterpType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = tenGage;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = tenFiberType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = tenDwiFiberType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = tenFiberStop;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = tenFiberIntg;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = tenGlyphType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = tenEstimate1Method;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = tenEstimate2Method;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = tenTripleType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = tenDwiGage;
+  ADD(tenAniso);
+  ADD(tenInterpType);
+  ADD(tenGage);
+  ADD(tenFiberType);
+  ADD(tenDwiFiberType);
+  ADD(tenFiberStop);
+  ADD(tenFiberIntg);
+  ADD(tenGlyphType);
+  ADD(tenEstimate1Method);
+  ADD(tenEstimate2Method);
+  ADD(tenTripleType);
+  ADD(tenDwiGage);
 
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   /* elf: no airEnums */
 #endif
 
   /* pull */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = pullInterType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = pullEnergyType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = pullInfo;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = pullSource;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = pullProp;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = pullProcessMode;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = pullTraceStop;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = pullInitMethod;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = pullCount;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = pullConstraintFail;
+  ADD(pullInterType);
+  ADD(pullEnergyType);
+  ADD(pullInfo);
+  ADD(pullSource);
+  ADD(pullProp);
+  ADD(pullProcessMode);
+  ADD(pullTraceStop);
+  ADD(pullInitMethod);
+  ADD(pullCount);
+  ADD(pullConstraintFail);
 
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   /* coil */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = coilMethodType;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = coilKindType;
+  ADD(coilMethodType);
+  ADD(coilKindType);
 
   /* push */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = pushEnergyType;
+  ADD(pushEnergyType);
 #endif
 
   /* mite */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = miteVal;
-  ii = airArrayLenIncr(arr, 1); enm[ii] = miteStageOp;
+  ADD(miteVal);
+  ADD(miteStageOp);
 
   /* meet: no new airEnums of its own */
 
   /* NULL-terminate the list */
-  ii = airArrayLenIncr(arr, 1); enm[ii] = NULL;
+  ADD(NULL);
+#undef ADD
 
   /* nix, not nuke the airArray */
   airArrayNix(arr);
@@ -248,40 +255,38 @@ meetAirEnumAllCheck(void) {
 const char *const
 meetTeemLibs[] = {
   /* TEEM_LIB_LIST */
-  "air",
-  "hest",
-  "biff",
-  "nrrd",
-  "ell",
-  "unrrdu",
+  "air", /* */
+  "hest", /* */
+  "biff", /* */
+  "nrrd", /* */
+  "ell", /* */
+  "unrrdu", /* */
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  "alan",
+  "alan", /* */
 #endif
-  "moss",
+  "moss", /* */
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  "tijk",
+  "tijk", /* */
 #endif
-  "gage",
-  "dye",
+  "gage", /* */
+  "dye", /* */
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  "bane",
+  "bane", /* */
 #endif
-  "limn",
-  "echo",
-  "hoover",
-  "seek",
-  "ten",
+  "limn", /* */
+  "echo", /* */
+  "hoover", /* */
+  "seek", /* */
+  "ten", /* */
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  "elf",
+  "elf", /* */
 #endif
-  "pull",
+  "pull", /* */
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  "coil",
-  "push",
+  "coil", /* */
+  "push", /* */
 #endif
-  "mite",
-  "meet",
+  "mite", /* */
+  "meet", /* */
   NULL
 };
-
-

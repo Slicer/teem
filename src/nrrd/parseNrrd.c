@@ -1547,6 +1547,7 @@ int
   free(s);                                                \
   return n
 
+/* clang-format off */
 static size_t   _parseChar P_ARGS { P_BODY(          char,   nrrdTypeChar); }
 static size_t  _parseUChar P_ARGS { P_BODY( unsigned char,  nrrdTypeUChar); }
 static size_t  _parseShort P_ARGS { P_BODY(         short,  nrrdTypeShort); }
@@ -1584,3 +1585,4 @@ size_t
    _parseDouble,
    _parseNoop /* block */
 };
+/* clang-format on */

@@ -23,6 +23,7 @@
 
 #include "alan.h"
 
+/* clang-format off */
 const char *
 _alanStopStr[ALAN_STOP_MAX+1] = {
   "(unknown_stop)",
@@ -54,3 +55,4 @@ _alanStop = {
 };
 const airEnum *const
 alanStop = &_alanStop;
+/* clang-format on */

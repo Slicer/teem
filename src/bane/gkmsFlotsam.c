@@ -266,6 +266,7 @@ baneGkmsUsage(const char *me, hestParm *hparm) {
   }
 }
 
+/* clang-format off */
 static const char *
 _baneGkmsMeasrStr[] = {
   "(unknown measr)",
@@ -298,3 +299,4 @@ _baneGkmsMeasr = {
 
 const airEnum *const
 baneGkmsMeasr = &_baneGkmsMeasr;
+/* clang-format on */

@@ -21,6 +21,7 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/* clang-format off */
 #include "nrrd.h"
 #include "privateNrrd.h"
 
@@ -278,3 +279,4 @@ _nrrdCastClampRound[NRRD_TYPE_MAX+1][NRRD_TYPE_MAX+1] = {
 MAP1(CCRDTO_LIST, _dummy_)
 {NULL}
 };
+/* clang-format on */

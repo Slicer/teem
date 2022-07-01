@@ -24,6 +24,7 @@
 #include "bane.h"
 #include "privateBane.h"
 
+/* clang-format off */
 float _baneGkmsDonData[] = {0 /* AIR_NEG_INF */ , 0, 0, 0,
                             0 /* AIR_NAN */ , 0, 0, 0,
                             0 /* AIR_POS_INF */ , 0, 0, 0,
@@ -52,6 +53,7 @@ float _baneGkmsDonData[] = {0 /* AIR_NEG_INF */ , 0, 0, 0,
     (d)[2 + (i)*4] = 255 - (d)[2 + (i)*4]; \
     (d)[3 + (i)*4] = 255 - (d)[3 + (i)*4]
 #define PVG_HISTEQ_BINS 2048
+/* clang-format on */
 
 Nrrd *
 _baneGkmsDonNew(int invert) {

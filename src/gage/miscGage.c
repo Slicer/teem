@@ -38,6 +38,7 @@ gagePresent = 42;
 double
 gageZeroNormal[3] = {0,0,0};
 
+/* clang-format off */
 const char *
 _gageKernelStr[] = {
   "(unknown_kernel)",
@@ -104,6 +105,7 @@ _gageKernel_enum = {
 };
 const airEnum *const
 gageKernel = &_gageKernel_enum;
+/* clang-format on */
 
 void
 gageParmReset(gageParm *parm) {
@@ -173,6 +175,7 @@ gageItemSpecNix(gageItemSpec *isp) {
   return NULL;
 }
 
+/* clang-format off */
 const char *
 _gageErrStr[GAGE_ERR_MAX+1] = {
   "(unknown gageErr)",
@@ -270,4 +273,4 @@ _gageItemPackPart_enum = {
 };
 const airEnum *const
 gageItemPackPart = &_gageItemPackPart_enum;
-
+/* clang-format on */

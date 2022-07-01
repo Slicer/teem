@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2022  University of Chicago
   Copyright (C) 2010 Thomas Schultz
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -52,12 +52,14 @@
 **
 ** NOTE: ../../CMakeLists.txt's Teem_VERSION variables must be in sync
 */
-#define TEEM_VERSION_MAJOR       1   /* must be 1 digit */
-#define TEEM_VERSION_MINOR      12   /* 1 or 2 digits */
+/* clang-format off */
+#define TEEM_VERSION_MAJOR   1       /* must be 1 digit */
+#define TEEM_VERSION_MINOR    12     /* 1 or 2 digits */
 #define TEEM_VERSION_PATCH      00   /* 1 or 2 digits */
 #define TEEM_VERSION         11200   /* must be 5 digits, to facilitate
                                         easy numerical comparison */
 #define TEEM_VERSION_STRING "1.12.0" /* cannot be so easily compared */
+/* clang-format on */
 
 /* NrrdIO-hack-000 */
 
@@ -112,15 +114,16 @@ typedef unsigned long long airULLong;
 ** confusion about how the maximal strlen() will be less than each of
 ** these numbers. This will be addressed in Teem 2.0.
 */
-#define AIR_STRLEN_SMALL (128+1) /* has to be big enough to hold:
-                                  - printed value of size_t and ptrdiff_t,
-                                  - line of text that should contain file
-                                    format "magic"
-                                  */
+#define AIR_STRLEN_SMALL (128+1)
+/* SMALL has to be big enough to hold:
+   - printed value of size_t and
+   - ptrdiff_t, line of text that
+   - should contain file format "magic"
+*/
 #define AIR_STRLEN_MED   (256+1)
 #define AIR_STRLEN_LARGE (512+1)
-#define AIR_STRLEN_HUGE (1024+1) /* has to be big enough to hold
-                                    a biff error message (one line of it) */
+#define AIR_STRLEN_HUGE (1024+1)
+/* HUGE has to be big enough to hold one line of biff error message */
 
 /*
 ******** airPtrPtrUnion
@@ -154,38 +157,36 @@ typedef union {
 */
 typedef struct {
   const char *name;
-               /* what are these things? */
+  /* what are these things? */
   unsigned int M;
-               /* str[0]: string for the unknown/invalid value;
-                * str[1] .. str[M]: canonical strings for the enum values;
-                * "val" NULL: unknown/invalid = 0;
-                *             valid values are 1 .. M
-                * "val" non-NULL: unknown/invalid = val[0];
-                *                 valid are val[1].. val[M]
-                */
-  const char **str;
-               /* see above */
-  const int *val;
-               /* see above */
+  /* str[0]: string for the unknown/invalid value;
+     str[1] .. str[M]: canonical strings for the enum values;
+     "val"     NULL: unknown/invalid = 0;
+                     valid values are 1 .. M
+     "val" non-NULL: unknown/invalid = val[0];
+                     valid are val[1].. val[M]
+  */
+  const char **str; /* see above */
+  const int *val;   /* see above */
   const char **desc;
-               /* desc[i] is a short description of the enum values represented
-                  by str[i] (thereby starting with the unknown value), to be
-                  used to by things like hest */
+  /* desc[i] is a short description of the enum values represented by
+     str[i] (thereby starting with the unknown value), to be used to
+     by things like hest */
   const char **strEqv;
-               /* If non-NULL, all the variations in strings recognized in
-                  mapping from string to value (the values in valEqv).
-                  This **MUST** be terminated by a zero-length string ("") so
-                  as to signify the end of the list.  This should *not*
-                  contain the string for unknown/invalid.
-                  If "strEqv" is NULL, then mapping from string to value is
-                  done only by traversing "str", and "valEqv" is ignored. */
+  /* If non-NULL, all the variations in strings recognized in mapping
+     from string to value (the values in valEqv).  This **MUST** be
+     terminated by a zero-length string ("") so as to signify the end
+     of the list.  This should *not* contain the string for
+     unknown/invalid.  If "strEqv" is NULL, then mapping from string
+     to value is done only by traversing "str", and "valEqv" is
+     ignored. */
   const int *valEqv;
-               /* If strEqv non-NULL, valEqv holds the values corresponding
-                  to the strings in strEqv, with one integer for each
-                  non-zero-length string in strEqv: strEqv[i] is a valid
-                  string representation for value valEqv[i]. This should *not*
-                  contain the value for unknown/invalid.
-                  This "valEqv" is ignored if "strEqv" is NULL. */
+  /* If strEqv non-NULL, valEqv holds the values corresponding to the
+     strings in strEqv, with one integer for each non-zero-length
+     string in strEqv: strEqv[i] is a valid string representation for
+     value valEqv[i]. This should *not* contain the value for
+     unknown/invalid.  This "valEqv" is ignored if "strEqv" is
+     NULL. */
   int sense;   /* require case matching on strings */
 } airEnum;
 AIR_EXPORT int airEnumUnknown(const airEnum *enm);
@@ -476,7 +477,7 @@ enum {
   airTypeOther,     /* 12 */
   airTypeLast
 };
-#define AIR_TYPE_MAX   12
+#define AIR_TYPE_MAX (airTypeLast - 1)
 /* parseAir.c */
 AIR_EXPORT double airAtod(const char *str);
 AIR_EXPORT int airSingleSscanf(const char *str, const char *fmt, void *ptr);
@@ -551,9 +552,10 @@ enum {
   airInsane_dio,           /*  8: airMyDio set to something invalid */
   airInsane_UCSize,        /*  9: unsigned char isn't 8 bits */
   airInsane_FISize,        /* 10: sizeof(float), sizeof(int) not 4 */
-  airInsane_DLSize         /* 11: sizeof(double), sizeof(airLLong) not 8 */
+  airInsane_DLSize,        /* 11: sizeof(double), sizeof(airLLong) not 8 */
+  airInsane_last
 };
-#define AIR_INSANE_MAX        11
+#define AIR_INSANE_MAX (airInsane_last - 1)
 AIR_EXPORT const char *airInsaneErr(int insane);
 AIR_EXPORT int airSanity(void);
 
@@ -661,9 +663,10 @@ enum {
   airNoDio_fpos,    /*  9: current file position not multiple of d_miniosz */
   airNoDio_setfl,   /* 10: fcntl(fd, SETFL, FDIRECT) failed */
   airNoDio_test,    /* 11: couldn't memalign() even a small bit of memory */
-  airNoDio_disable  /* 12: someone disabled it with airDisableDio */
+  airNoDio_disable, /* 12: someone disabled it with airDisableDio */
+  airNoDio_last
 };
-#define AIR_NODIO_MAX  12
+#define AIR_NODIO_MAX (airNoDio_last - 1)
 AIR_EXPORT const char *airNoDioErr(int noDio);
 AIR_EXPORT const int airMyDio;
 AIR_EXPORT int airDisableDio;
@@ -707,6 +710,7 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 
 #define AIR_TRUE 1
 #define AIR_FALSE 0
+
 #define AIR_WHITESPACE " \t\n\r\v\f"       /* K+R pg. 157 */
 
 /*
@@ -826,11 +830,13 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 #endif
 /* ---- END non-NrrdIO */
 
+/* clang-format off */
 #if defined(_WIN32) || defined(__ECC) || defined(AIR_EXISTS_MACRO_FAILS) /* NrrdIO-hack-002 */
 #define AIR_EXISTS(x) (airExists(x))
 #else
 #define AIR_EXISTS(x) (AIR_CAST(int, !((x) - (x))))
 #endif
+/* clang-format on */
 
 /* ---- BEGIN non-NrrdIO */
 

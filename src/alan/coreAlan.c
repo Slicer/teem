@@ -280,6 +280,7 @@ _alanTuringWorker(void *_task) {
     stop = alanStopNot;
     change = 0;
     conf = 1;  /* if you have no data; this will stay 1 */
+    /* clang-format off */
     for (z = startZ; z < endZ; z++) {
       if (task->actx->wrap) {
         pz = AIR_MOD(z+1, sz);
@@ -425,6 +426,7 @@ _alanTuringWorker(void *_task) {
         }
       }
     }
+    /* clang-format on */
 
     /* add change to global sum in a threadsafe way */
     airThreadMutexLock(task->actx->changeMutex);

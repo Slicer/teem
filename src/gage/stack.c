@@ -280,8 +280,10 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
             lapl1 = (iv31[iii+1] + iv31[iii-1] - 2*val1);
             drv0 = sigma0*lapl0*(sigma1 - sigma0);
             drv1 = sigma1*lapl1*(sigma1 - sigma0);
+            /* clang-format off */
             iv3[iii] = val0 + xx*(drv0 + xx*(drv0*(-2 + xx) + drv1*(-1 + xx)
                                              + (val0 - val1)*(-3 + 2*xx)));
+            /* clang-format on */
             /*
             fprintf(stderr, "!%s: (%u): val %g %g, lapl %g %g, sigma %g %g, drv %g %g --> iv3[%u] = %g\n", me,
                     xi, val0, val1, lapl0, lapl1, sigma0, sigma1, drv0, drv1, iii, iv3[iii]);
@@ -294,8 +296,10 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
           for (zi=  2  ; zi<fd-1; zi++) {
             for (yi=  2  ; yi<fd-1; yi++) {
               for (xi=1; xi<fd-1; xi++) {
+                /* clang-format off */
                 iii =          xi + fd*(yi + fd*(zi + fd*valIdx));
                 iv3[iii] = iv3[xi + fd*(1  + fd*(1  + fd*valIdx))];
+                /* clang-format on */
               }
             }
           }
@@ -317,8 +321,10 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
                        iv31[iii+fd]  + iv31[iii-fd] - 4*val1);
               drv0 = sigma0*lapl0*(sigma1 - sigma0);
               drv1 = sigma1*lapl1*(sigma1 - sigma0);
+              /* clang-format off */
               iv3[iii] = val0 + xx*(drv0 + xx*(drv0*(-2 + xx) + drv1*(-1 + xx)
                                                + (val0 - val1)*(-3 + 2*xx)));
+              /* clang-format on */
               /*
               fprintf(stderr, "!%s: (%u,%u): val %g %g, lapl %g %g, sigma %g %g, drv %g %g --> iv3[%u] = %g\n", me,
                       xi, yi, val0, val1, lapl0, lapl1, sigma0, sigma1, drv0, drv1, iii, iv3[iii]);
@@ -332,8 +338,10 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
           for (zi=  2  ; zi<fd-1; zi++) {
             for (yi=1; yi<fd-1; yi++) {
               for (xi=1; xi<fd-1; xi++) {
+                /* clang-format off */
                 iii =          xi + fd*(yi + fd*(zi + fd*valIdx));
                 iv3[iii] = iv3[xi + fd*(yi + fd*(1  + fd*valIdx))];
+                /* clang-format on */
               }
             }
           }
@@ -363,8 +371,10 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
               /* This inner loop is the bottleneck for some uses of
                  scale-space; a re-arrangement of the Hermite spline
                  evaluation (thanks Mathematica) does save a little time */
+              /* clang-format off */
               iv3[iii] = val0 + xx*(drv0 + xx*(drv0*(-2 + xx) + drv1*(-1 + xx)
                                                + (val0 - val1)*(-3 + 2*xx)));
+              /* clang-format on */
             }
           }
         }

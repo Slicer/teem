@@ -98,8 +98,8 @@ typedef struct {
   char *flag,           /* how the option is identified on the cmd line */
     *name;              /* simple description of option's parameter(s) */
   int type;             /* type of option (from airType enum) */
-  unsigned int min;
-  int max;              /* min and max # of parameters for option */
+  unsigned int min;     /* min # of parameters for option */
+  int max;              /* max # of parameters for option */
   void *valueP;         /* storage of parsed values */
   char *dflt,           /* default value written out as string */
     *info;              /* description to be printed with "glossary" info */

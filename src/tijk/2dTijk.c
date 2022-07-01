@@ -26,6 +26,7 @@
 #include "privateTijk.h"
 
 #include "convertQuietPush.h"
+/* clang-format off */
 
 /* 2nd order 2D unsymmetric */
 
@@ -897,5 +898,6 @@ _tijk_4o2d_sym_hess_f (float *res, const float *A, const float *v) {
 }
 
 TIJK_TYPE_SYM(4o2d_sym, 4, 2, 5)
+/* clang-format on */
 
 #include "convertQuietPop.h"

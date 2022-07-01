@@ -24,6 +24,7 @@
 
 #include "limn.h"
 
+/* clang-format off */
 const char *
 _limnSplineTypeStr[LIMN_SPLINE_TYPE_MAX+1] = {
   "(unknown_spline_type)",
@@ -139,6 +140,7 @@ _limnSplineInfo = {
 };
 const airEnum *const
 limnSplineInfo = &_limnSplineInfo;
+/* clang-format on */
 
 /*
 ******** limnSplineInfoSize[]

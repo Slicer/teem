@@ -24,6 +24,7 @@
 
 #include "seek.h"
 #include "privateSeek.h"
+/* clang-format off */
 
 /* Tries to find a degenerate point on a bilinearly interpolated face
  * of symmetric second-order tensors. Uses the discriminant constraint
@@ -789,3 +790,4 @@ int seekDescendToRidge(double *coord,
 
   return 2; /* hit maxiter */
 }
+/* clang-format on */

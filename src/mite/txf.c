@@ -32,6 +32,7 @@
 char
 miteRangeChar[MITE_RANGE_NUM+1] = "ARGBEadsp";
 
+/* clang-format off */
 const char *
 _miteStageOpStr[] = {
   "(unknown miteStageOp)",
@@ -78,6 +79,7 @@ _miteStageOp = {
 };
 const airEnum *const
 miteStageOp = &_miteStageOp;
+/* clang-format on */
 
 /*
 ******** miteVariableParse()

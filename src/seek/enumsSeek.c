@@ -26,6 +26,7 @@
 const char *
 seekBiffKey = "seek";
 
+/* clang-format off */
 const char *
 _seekTypeStr[SEEK_TYPE_MAX+1] = {
   "(unknown_feature)",
@@ -100,4 +101,4 @@ _seekType = {
 };
 const airEnum *const
 seekType = &_seekType;
-
+/* clang-format on */

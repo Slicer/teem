@@ -24,6 +24,7 @@
 #include "mite.h"
 #include "privateMite.h"
 
+/* clang-format off */
 const char *
 _miteValStr[] = {
   "(unknown miteVal)",
@@ -181,3 +182,4 @@ _miteValGageKind = {
 
 gageKind *
 miteValGageKind = &_miteValGageKind;
+/* clang-format on */

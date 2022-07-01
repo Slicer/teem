@@ -24,6 +24,7 @@
 #include "gage.h"
 #include "privateGage.h"
 
+/* clang-format off */
 /*
 ** _gageSclTable
 **
@@ -362,3 +363,4 @@ _gageItemPackSclValue = {
 
 const gageItemPack *const
 gageItemPackSclValue = &_gageItemPackSclValue;
+/* clang-format on */

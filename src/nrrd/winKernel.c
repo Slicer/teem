@@ -20,6 +20,7 @@
   along with this library; if not, write to Free Software Foundation, Inc.,
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+/* clang-format off */
 
 #include "nrrd.h"
 
@@ -264,4 +265,4 @@ _nrrdKernelDDBlack = {
 };
 NrrdKernel *const
 nrrdKernelBlackmanDD = &_nrrdKernelDDBlack;
-
+/* clang-format on */

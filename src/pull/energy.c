@@ -24,6 +24,7 @@
 #include "pull.h"
 #include "privatePull.h"
 
+/* clang-format off */
 const char *
 _pullInterTypeStr[PULL_INTER_TYPE_MAX+1] = {
   "(unknown_inter)",
@@ -123,6 +124,7 @@ _pullEnergyType = {
 };
 const airEnum *const
 pullEnergyType = &_pullEnergyType;
+/* clang-format on */
 
 double
 _pullEnergyNoWell(double *wx, const double *parm) {
