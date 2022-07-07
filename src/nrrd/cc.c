@@ -91,8 +91,7 @@ _nrrdCCFind_2(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
 #define GETI_2(x,y) ((AIR_IN_CL(0, AIR_CAST(int, x), AIR_CAST(int, sx-1))     \
                       && AIR_IN_CL(0, AIR_CAST(int, y), AIR_CAST(int, sy-1))) \
                      ? out[(x) + sx*(y)] \
-                     : AIR_UINT(-1))  /* CC index (probably!)
-                                                       never assigned */
+                     : AIR_UINT(-1))  /* CC index (probably!) never assigned */
 
   *numid = 0;
   for (y=0; y<sy; y++) {
@@ -100,6 +99,7 @@ _nrrdCCFind_2(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
       if (_nrrdCC_verb) {
         fprintf(stderr, "%s(%d,%d) -----------\n", me, x, y);
       }
+      /* clang-format off */
       if (!x) {
         pvl[1] = GETV_2(-1, y);   pid[1] = GETI_2(-1, y);
         pvl[2] = GETV_2(-1, y-1); pid[2] = GETI_2(-1, y-1);
@@ -111,6 +111,7 @@ _nrrdCCFind_2(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
         pvl[3] = pvl[4];          pid[3] = pid[4];
       }
       pvl[4] = GETV_2(x+1, y-1);  pid[4] = GETI_2(x+1, y-1);
+      /* clang-format on */
       vl = GETV_2(x, y);
       p = 0;
       if (vl == pvl[1]) {
@@ -192,6 +193,7 @@ _nrrdCCFind_3(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
   for (z=0; z<sz; z++) {
     for (y=0; y<sy; y++) {
       for (x=0; x<sx; x++) {
+        /* clang-format off */
         if (!x) {
           pvl[ 1] = GETV_3( -1,   y,   z); pid[ 1] = GETI_3( -1,   y,   z);
           pvl[ 2] = GETV_3( -1, y-1,   z); pid[ 2] = GETI_3( -1, y-1,   z);
@@ -231,6 +233,7 @@ _nrrdCCFind_3(Nrrd *nout, unsigned int *numid, airArray *eqvArr,
             TEST(5); TEST(7); TEST(11); TEST(13);
           }
         }
+        /* clang-format on */
         if (!p) {
           /* didn't match anything previous */
           id = *numid;
@@ -479,6 +482,7 @@ _nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin,
   for (z=0; z<sz; z++) {
     for (y=0; y<sy; y++) {
       for (x=0; x<sx; x++) {
+        /* clang-format off */
         if (!x) {
           pid[ 1] = GETV_3(-1,   y,   z);
           pid[ 2] = GETV_3(-1, y-1,   z);
@@ -515,6 +519,7 @@ _nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin,
             TADJ(5); TADJ(7); TADJ(11); TADJ(13);
           }
         }
+        /* clang-format on */
       }
     }
   }
