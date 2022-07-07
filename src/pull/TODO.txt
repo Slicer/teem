@@ -1,3 +1,4 @@
+http://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/
 
 ==6235== Memcheck, a memory error detector
 ==6235== Copyright (C) 2002-2012, and GNU GPL'd, by Julian Seward et al.
