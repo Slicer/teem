@@ -24,35 +24,24 @@
 #include "ten.h"
 #include "privateTen.h"
 
-const int
-tenPresent = 42;
+const int tenPresent = 42;
 
-const char *
-tenBiffKey = "ten";
+const char *tenBiffKey = "ten";
 
-const char
-tenDefFiberKernel[] = "cubic:0,0.5";
+const char tenDefFiberKernel[] = "cubic:0,0.5";
 
-double
-tenDefFiberStepSize = 0.01;
+double tenDefFiberStepSize = 0.01;
 
-int
-tenDefFiberUseIndexSpace = AIR_FALSE;
+int tenDefFiberUseIndexSpace = AIR_FALSE;
 
-int
-tenDefFiberMaxNumSteps = 0;
+int tenDefFiberMaxNumSteps = 0;
 
-double
-tenDefFiberMaxHalfLen = 3;
+double tenDefFiberMaxHalfLen = 3;
 
-int
-tenDefFiberAnisoStopType = tenAniso_Cl2;
+int tenDefFiberAnisoStopType = tenAniso_Cl2;
 
-double
-tenDefFiberAnisoThresh = 0.5;
+double tenDefFiberAnisoThresh = 0.5;
 
-int
-tenDefFiberIntg = tenFiberIntgEuler;
+int tenDefFiberIntg = tenFiberIntgEuler;
 
-double
-tenDefFiberWPunct = 0;
+double tenDefFiberWPunct = 0;

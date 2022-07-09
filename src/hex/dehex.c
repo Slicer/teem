@@ -33,10 +33,9 @@
 #include <errno.h>
 #include <string.h>
 #ifdef _WIN32
-#include <io.h>
-#include <fcntl.h>
+#  include <io.h>
+#  include <fcntl.h>
 #endif
-
 
 void
 dehexUsage(char *me) {
@@ -44,7 +43,7 @@ dehexUsage(char *me) {
   fprintf(stderr, "usage: %s <in> [<out>]\n", me);
   fprintf(stderr, " <in>: file to read hex data from\n");
   fprintf(stderr, "<out>: file to write raw data to; "
-          "uses stdout by default\n");
+                  "uses stdout by default\n");
   fprintf(stderr, " \"-\" can be used to refer to stdin/stdout\n");
   exit(1);
 }
@@ -52,38 +51,36 @@ dehexUsage(char *me) {
 void
 dehexFclose(FILE *file) {
 
-  if (!( stdin == file || stdout == file )) {
+  if (!(stdin == file || stdout == file)) {
     fclose(file);
   }
 }
 
-int
-dehexTable[128] = {
-/* 0   1   2   3   4   5   6   7   8   9 */
-  -2, -2, -2, -2, -2, -2, -2, -2, -2, -1,  /*   0 */
-  -1, -1, -1, -1, -2, -2, -2, -2, -2, -2,  /*  10 */
-  -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,  /*  20 */
-  -2, -2, -1, -2, -2, -2, -2, -2, -2, -2,  /*  30 */
-  -2, -2, -2, -2, -2, -2, -2, -2,  0,  1,  /*  40 */
-   2,  3,  4,  5,  6,  7,  8,  9, -2, -2,  /*  50 */
-  -2, -2, -2, -2, -2, 10, 11, 12, 13, 14,  /*  60 */
-  15, -2, -2, -2, -2, -2, -2, -2, -2, -2,  /*  70 */
-  -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,  /*  80 */
-  -2, -2, -2, -2, -2, -2, -2, 10, 11, 12,  /*  90 */
-  13, 14, 15, -2, -2, -2, -2, -2, -2, -2,  /* 100 */
-  -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,  /* 110 */
-  -2, -2, -2, -2, -2, -2, -2, -2           /* 120 */
+int dehexTable[128] = {
+  /* 0   1   2   3   4   5   6   7   8   9 */
+  -2, -2, -2, -2, -2, -2, -2, -2, -2, -1, /*   0 */
+  -1, -1, -1, -1, -2, -2, -2, -2, -2, -2, /*  10 */
+  -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, /*  20 */
+  -2, -2, -1, -2, -2, -2, -2, -2, -2, -2, /*  30 */
+  -2, -2, -2, -2, -2, -2, -2, -2, 0,  1,  /*  40 */
+  2,  3,  4,  5,  6,  7,  8,  9,  -2, -2, /*  50 */
+  -2, -2, -2, -2, -2, 10, 11, 12, 13, 14, /*  60 */
+  15, -2, -2, -2, -2, -2, -2, -2, -2, -2, /*  70 */
+  -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, /*  80 */
+  -2, -2, -2, -2, -2, -2, -2, 10, 11, 12, /*  90 */
+  13, 14, 15, -2, -2, -2, -2, -2, -2, -2, /* 100 */
+  -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, /* 110 */
+  -2, -2, -2, -2, -2, -2, -2, -2          /* 120 */
 };
 
 int
 main(int argc, char *argv[]) {
   char *me, *inS, *outS;
   FILE *fin, *fout;
-  int car=0, byte, nibble, even;
+  int car = 0, byte, nibble, even;
 
   me = argv[0];
-  if (!( 2 == argc || 3 == argc ))
-    dehexUsage(me);
+  if (!(2 == argc || 3 == argc)) dehexUsage(me);
 
   inS = argv[1];
   if (!strcmp("-", inS)) {
@@ -91,8 +88,8 @@ main(int argc, char *argv[]) {
   } else {
     fin = fopen(inS, "r");
     if (!fin) {
-      fprintf(stderr, "\n%s: couldn't fopen(\"%s\",\"rb\"): %s\n\n",
-              me, inS, strerror(errno));
+      fprintf(stderr, "\n%s: couldn't fopen(\"%s\",\"rb\"): %s\n\n", me, inS,
+              strerror(errno));
       dehexUsage(me);
     }
   }
@@ -108,8 +105,8 @@ main(int argc, char *argv[]) {
     } else {
       fout = fopen(outS, "w");
       if (!fout) {
-        fprintf(stderr, "\n%s: couldn't fopen(\"%s\",\"w\"): %s\n\n",
-                me, outS, strerror(errno));
+        fprintf(stderr, "\n%s: couldn't fopen(\"%s\",\"w\"): %s\n\n", me, outS,
+                strerror(errno));
         dehexUsage(me);
       }
     }
@@ -117,7 +114,7 @@ main(int argc, char *argv[]) {
 
   byte = 0;
   even = 1;
-  for (car=fgetc(fin); EOF != car; car=fgetc(fin)) {
+  for (car = fgetc(fin); EOF != car; car = fgetc(fin)) {
     nibble = dehexTable[car & 127];
     if (-2 == nibble) {
       /* its an invalid character */

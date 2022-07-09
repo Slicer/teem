@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include <stdio.h>
 
 #include <teem/biff.h>
@@ -31,16 +30,12 @@
 #include <teem/ten.h>
 #include <teem/meet.h>
 
-#define SPACING(spc) (AIR_EXISTS(spc) ? spc: nrrdDefaultSpacing)
+#define SPACING(spc) (AIR_EXISTS(spc) ? spc : nrrdDefaultSpacing)
 
 /* copied this from ten.h; I don't want gage to depend on ten */
-#define PROBE_MAT2LIST(l, m) ( \
-   (l)[1] = (m)[0],          \
-   (l)[2] = (m)[3],          \
-   (l)[3] = (m)[6],          \
-   (l)[4] = (m)[4],          \
-   (l)[5] = (m)[7],          \
-   (l)[6] = (m)[8] )
+#define PROBE_MAT2LIST(l, m)                                                            \
+  ((l)[1] = (m)[0], (l)[2] = (m)[3], (l)[3] = (m)[6], (l)[4] = (m)[4], (l)[5] = (m)[7], \
+   (l)[6] = (m)[8])
 
 static const char *deconvInfo = ("Does deconvolution. ");
 
@@ -63,20 +58,19 @@ main(int argc, const char *argv[]) {
   hparm = hestParmNew();
   airMopAdd(mop, hparm, AIR_CAST(airMopper, hestParmFree), airMopAlways);
   hparm->elideSingleOtherType = AIR_TRUE;
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input volume", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL, "input volume", NULL,
+             NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
              "\"kind\" of volume (\"scalar\", \"vector\", "
              "\"tensor\", or \"dwi\")",
              NULL, NULL, meetHestGageKind);
   hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1, &ksp, NULL,
-             "convolution kernel",
-             NULL, NULL, nrrdHestKernelSpec);
+             "convolution kernel", NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "mi", "max # iters", airTypeUInt, 1, 1, &maxIter, "100",
              "maximum number of iterations with which to compute the "
              "deconvolution");
-  hestOptAdd(&hopt, "e", "epsilon", airTypeDouble, 1, 1, &epsilon,
-             "0.00000001", "convergence threshold");
+  hestOptAdd(&hopt, "e", "epsilon", airTypeDouble, 1, 1, &epsilon, "0.00000001",
+             "convergence threshold");
   hestOptAdd(&hopt, "s", "step", airTypeDouble, 1, 1, &step, "1.0",
              "scaling of value update");
   hestOptAdd(&hopt, "t", "type", airTypeOther, 1, 1, &otype, "default",
@@ -86,10 +80,9 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "sep", "bool", airTypeBool, 1, 1, &separ, "false",
              "use fast separable deconvolution instead of brain-dead "
              "brute-force iterative method");
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output volume");
-  hestParseOrDie(hopt, argc-1, argv+1, hparm,
-                 me, deconvInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-", "output volume");
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, deconvInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   airMopAdd(mop, hopt, AIR_CAST(airMopper, hestOptFree), airMopAlways);
   airMopAdd(mop, hopt, AIR_CAST(airMopper, hestParseFree), airMopAlways);
 
@@ -99,11 +92,8 @@ main(int argc, const char *argv[]) {
   if (separ) {
     ret = gageDeconvolveSeparable(nout, nin, kind, ksp, otype);
   } else {
-    ret = gageDeconvolve(nout, &lastDiff,
-                         nin, kind,
-                         ksp, otype,
-                         maxIter, AIR_TRUE,
-                         step, epsilon, 1);
+    ret = gageDeconvolve(nout, &lastDiff, nin, kind, ksp, otype, maxIter, AIR_TRUE, step,
+                         epsilon, 1);
   }
   if (ret) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);

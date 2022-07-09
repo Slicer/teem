@@ -25,68 +25,63 @@
 #include "privateTen.h"
 
 double
-tenBVecNonLinearFit_error(double *bb, double *ss, double *ww,
-                          unsigned int len,
+tenBVecNonLinearFit_error(double *bb, double *ss, double *ww, unsigned int len,
                           double amp, double dec) {
   unsigned int ii;
   double err, tmp;
 
   err = 0;
-  for (ii=0; ii<len; ii++) {
-    tmp = ww[ii]*(amp*exp(-dec*bb[ii]) - ss[ii]);
-    err += tmp*tmp;
+  for (ii = 0; ii < len; ii++) {
+    tmp = ww[ii] * (amp * exp(-dec * bb[ii]) - ss[ii]);
+    err += tmp * tmp;
   }
   return err;
 }
 
 void
-tenBVecNonLinearFit_linear(double *amp, double *dec,
-                           double *bb, double *ss, double *ww,
+tenBVecNonLinearFit_linear(double *amp, double *dec, double *bb, double *ss, double *ww,
                            unsigned int len) {
-  double x, y, wi=0, xi=0, yi=0, xiyi=0, xisq=0, det;
+  double x, y, wi = 0, xi = 0, yi = 0, xiyi = 0, xisq = 0, det;
   unsigned int ii;
 
-  for (ii=0; ii<len; ii++) {
+  for (ii = 0; ii < len; ii++) {
     x = bb[ii];
     y = log(AIR_MAX(ss[ii], 0.01));
-    xi += ww[ii]*x;
-    yi += ww[ii]*y;
-    xiyi += ww[ii]*x*y;
-    xisq += ww[ii]*x*x;
+    xi += ww[ii] * x;
+    yi += ww[ii] * y;
+    xiyi += ww[ii] * x * y;
+    xisq += ww[ii] * x * x;
     wi += ww[ii];
   }
-  det = xisq*wi - xi*xi;
-  *dec = -(wi*xiyi - xi*yi)/det;   /* negative sign assumed in model */
-  *amp = exp((-xi*xiyi + xisq*yi)/det);
+  det = xisq * wi - xi * xi;
+  *dec = -(wi * xiyi - xi * yi) / det; /* negative sign assumed in model */
+  *amp = exp((-xi * xiyi + xisq * yi) / det);
   return;
 }
 
 void
-tenBVecNonLinearFit_GNstep(double *d_amp, double *d_dec,
-                           double *bb, double *ss, double *ww,
-                           unsigned int len,
-                           double amp, double dec) {
-  double tmp, ff, dfdx1, dfdx2, AA=0, BB=0, CC=0, JTf[2], det;
+tenBVecNonLinearFit_GNstep(double *d_amp, double *d_dec, double *bb, double *ss,
+                           double *ww, unsigned int len, double amp, double dec) {
+  double tmp, ff, dfdx1, dfdx2, AA = 0, BB = 0, CC = 0, JTf[2], det;
   unsigned int ii;
 
   JTf[0] = JTf[1] = 0;
-  for (ii=0; ii<len; ii++) {
-    tmp = exp(-dec*bb[ii]);
-    ff = ww[ii]*(amp*tmp - ss[ii]);
-    dfdx1 = ww[ii]*tmp;
-    dfdx2 = -ww[ii]*amp*bb[ii]*tmp;
-    AA += dfdx1*dfdx1;
-    BB += dfdx1*dfdx2;
-    CC += dfdx2*dfdx2;
-    JTf[0] += dfdx1*ff;
-    JTf[1] += dfdx2*ff;
+  for (ii = 0; ii < len; ii++) {
+    tmp = exp(-dec * bb[ii]);
+    ff = ww[ii] * (amp * tmp - ss[ii]);
+    dfdx1 = ww[ii] * tmp;
+    dfdx2 = -ww[ii] * amp * bb[ii] * tmp;
+    AA += dfdx1 * dfdx1;
+    BB += dfdx1 * dfdx2;
+    CC += dfdx2 * dfdx2;
+    JTf[0] += dfdx1 * ff;
+    JTf[1] += dfdx2 * ff;
   }
-  det = AA*CC - BB*BB;
-  *d_amp = -(CC*JTf[0] - BB*JTf[1])/det;
-  *d_dec = -(-BB*JTf[0] + AA*JTf[1])/det;
+  det = AA * CC - BB * BB;
+  *d_amp = -(CC * JTf[0] - BB * JTf[1]) / det;
+  *d_dec = -(-BB * JTf[0] + AA * JTf[1]) / det;
   return;
 }
-
 
 /*
 ******** tenBVecNonLinearFit
@@ -103,25 +98,25 @@ tenBVecNonLinearFit_GNstep(double *d_amp, double *d_dec,
 ** and all other axes are unchanged from input.  Output type is always double.
 */
 int
-tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
-                    double *bb, double *ww, int iterMax, double eps) {
-  static const char me[]="tenBVecNonLinearFit";
+tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin, double *bb, double *ww, int iterMax,
+                    double eps) {
+  static const char me[] = "tenBVecNonLinearFit";
   int map[NRRD_DIM_MAX], vecSize, iter;
   size_t ii, size[NRRD_DIM_MAX], vecI, vecNum;
   char *vec;
   double *out, ss[AIR_STRLEN_SMALL], amp, dec, d_amp, d_dec, error, diff,
     (*vecLup)(const void *v, size_t I);
 
-  if (!( nout && nin && bb && ww )) {
+  if (!(nout && nin && bb && ww)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
   }
 
-  if (!( nin->dim >= 2 )) {
+  if (!(nin->dim >= 2)) {
     biffAddf(TEN, "%s: nin->dim (%d) not >= 2", me, nin->dim);
     return 1;
   }
-  if (!( nin->axis[0].size < AIR_STRLEN_SMALL )) {
+  if (!(nin->axis[0].size < AIR_STRLEN_SMALL)) {
     char stmp[AIR_STRLEN_SMALL];
     biffAddf(TEN, "%s: sorry need nin->axis[0].size (%s) < %d", me,
              airSprintSize_t(stmp, nin->axis[0].size), AIR_STRLEN_SMALL);
@@ -135,7 +130,7 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
-  for (ii=1; ii<nin->dim; ii++) {
+  for (ii = 1; ii < nin->dim; ii++) {
     map[ii] = AIR_INT(ii);
   }
   map[0] = -1;
@@ -146,38 +141,32 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
 
   /* process all b vectors */
   /* HEY unsigned? */
-  vecSize = AIR_INT(nin->axis[0].size*nrrdTypeSize[nin->type]);
-  vecNum = nrrdElementNumber(nin)/nin->axis[0].size;
+  vecSize = AIR_INT(nin->axis[0].size * nrrdTypeSize[nin->type]);
+  vecNum = nrrdElementNumber(nin) / nin->axis[0].size;
   vecLup = nrrdDLookup[nin->type];
-  vec = (char*)nin->data;
-  out = (double*)nout->data;
-  for (vecI=0; vecI<vecNum; vecI++) {
+  vec = (char *)nin->data;
+  out = (double *)nout->data;
+  for (vecI = 0; vecI < vecNum; vecI++) {
     /* copy DWI signal values */
-    for (ii=0; ii<nin->axis[0].size; ii++) {
+    for (ii = 0; ii < nin->axis[0].size; ii++) {
       ss[ii] = vecLup(vec, ii);
     }
     /* start with linear fit */
-    tenBVecNonLinearFit_linear(&amp, &dec, bb, ss, ww,
-                               AIR_UINT(nin->axis[0].size));
-    error = tenBVecNonLinearFit_error(bb, ss, ww,
-                                      AIR_UINT(nin->axis[0].size),
-                                      amp, dec);
+    tenBVecNonLinearFit_linear(&amp, &dec, bb, ss, ww, AIR_UINT(nin->axis[0].size));
+    error = tenBVecNonLinearFit_error(bb, ss, ww, AIR_UINT(nin->axis[0].size), amp, dec);
     /* possibly refine with gauss-newton */
     if (iterMax > 0) {
       iter = 0;
       do {
         iter++;
         tenBVecNonLinearFit_GNstep(&d_amp, &d_dec, bb, ss, ww,
-                                   AIR_UINT(nin->axis[0].size),
-                                   amp, dec);
-        amp += 0.3*d_amp;
-        dec += 0.3*d_dec;
-        diff = d_amp*d_amp + d_dec*d_dec;
+                                   AIR_UINT(nin->axis[0].size), amp, dec);
+        amp += 0.3 * d_amp;
+        dec += 0.3 * d_dec;
+        diff = d_amp * d_amp + d_dec * d_dec;
       } while (iter < iterMax && diff > eps);
     }
-    error = tenBVecNonLinearFit_error(bb, ss, ww,
-                                      AIR_UINT(nin->axis[0].size),
-                                      amp, dec);
+    error = tenBVecNonLinearFit_error(bb, ss, ww, AIR_UINT(nin->axis[0].size), amp, dec);
     out[0] = amp;
     out[1] = dec;
     out[2] = error;
@@ -187,4 +176,3 @@ tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin,
 
   return 0;
 }
-

@@ -25,22 +25,20 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Permute slices along one axis"
-static const char *_unrrdu_shuffleInfoL =
-(INFO
- ". Slices along one axis are re-arranged as units "
- "according to the given permutation (or its inverse). "
- "The permutation tells which old slice to put at each "
- "new position.  For example, the shuffle "
- "0->1,\t1->2,\t2->0 would be \"2 0 1\".  Obviously, "
- "if you have to rearrange the many slices of a large "
- "dataset, you should probably store the permutation "
- "in a plain text file and use it as a "
- "\"response file\".\n "
- "* Uses nrrdShuffle");
+static const char *_unrrdu_shuffleInfoL
+  = (INFO ". Slices along one axis are re-arranged as units "
+          "according to the given permutation (or its inverse). "
+          "The permutation tells which old slice to put at each "
+          "new position.  For example, the shuffle "
+          "0->1,\t1->2,\t2->0 would be \"2 0 1\".  Obviously, "
+          "if you have to rearrange the many slices of a large "
+          "dataset, you should probably store the permutation "
+          "in a plain text file and use it as a "
+          "\"response file\".\n "
+          "* Uses nrrdShuffle");
 
 int
-unrrdu_shuffleMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_shuffleMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -72,17 +70,15 @@ unrrdu_shuffleMain(int argc, const char **argv, const char *me,
 
   /* we have to do error checking on axis in order to do error
      checking on length of permutation */
-  if (!( axis < nin->dim )) {
-    fprintf(stderr, "%s: axis %d not in valid range [0,%d]\n",
-            me, axis, nin->dim-1);
+  if (!(axis < nin->dim)) {
+    fprintf(stderr, "%s: axis %d not in valid range [0,%d]\n", me, axis, nin->dim - 1);
     airMopError(mop);
     return 1;
   }
-  if (!( permLen == nin->axis[axis].size )) {
+  if (!(permLen == nin->axis[axis].size)) {
     char stmp[AIR_STRLEN_SMALL];
-    fprintf(stderr, "%s: permutation length (%u) != axis %d's size (%s)\n",
-            me, permLen, axis,
-            airSprintSize_t(stmp, nin->axis[axis].size));
+    fprintf(stderr, "%s: permutation length (%u) != axis %d's size (%s)\n", me, permLen,
+            axis, airSprintSize_t(stmp, nin->axis[axis].size));
     airMopError(mop);
     return 1;
   }
@@ -90,8 +86,7 @@ unrrdu_shuffleMain(int argc, const char **argv, const char *me,
     iperm = AIR_CALLOC(permLen, unsigned int);
     airMopAdd(mop, iperm, airFree, airMopAlways);
     if (nrrdInvertPerm(iperm, perm, permLen)) {
-      fprintf(stderr,
-              "%s: couldn't compute inverse of given permutation\n", me);
+      fprintf(stderr, "%s: couldn't compute inverse of given permutation\n", me);
       airMopError(mop);
       return 1;
     }
@@ -102,7 +97,7 @@ unrrdu_shuffleMain(int argc, const char **argv, const char *me,
 
   realperm = AIR_CALLOC(permLen, size_t);
   airMopAdd(mop, realperm, airFree, airMopAlways);
-  for (di=0; di<permLen; di++) {
+  for (di = 0; di < permLen; di++) {
     realperm[di] = whichperm[di];
   }
   if (nrrdShuffle(nout, nin, axis, realperm)) {

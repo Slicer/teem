@@ -70,11 +70,9 @@ main(int argc, const char **argv) {
     exit(0);
   }
   /* else, we should see if they're asking for a command we know about */
-  for (i=0; tendCmdList[i]; i++) {
-    if (!strcmp(argv[1], tendCmdList[i]->name))
-      break;
-    if (!strcmp("--help", argv[1])
-        && !strcmp("about", tendCmdList[i]->name)) {
+  for (i = 0; tendCmdList[i]; i++) {
+    if (!strcmp(argv[1], tendCmdList[i]->name)) break;
+    if (!strcmp("--help", argv[1]) && !strcmp("about", tendCmdList[i]->name)) {
       break;
     }
   }
@@ -86,10 +84,12 @@ main(int argc, const char **argv) {
     sprintf(argv0, "%s %s", TEND, argv[1]);
 
     /* run the individual tend program, saving its exit status */
-    ret = tendCmdList[i]->main(argc-2, argv+2, argv0, hparm);
+    ret = tendCmdList[i]->main(argc - 2, argv + 2, argv0, hparm);
   } else {
-    fprintf(stderr, "%s: unrecognized command: \"%s\"; type \"%s\" for "
-            "complete list\n", me, argv[1], me);
+    fprintf(stderr,
+            "%s: unrecognized command: \"%s\"; type \"%s\" for "
+            "complete list\n",
+            me, argv[1], me);
     ret = 1;
   }
 

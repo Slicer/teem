@@ -25,13 +25,10 @@
 #include "privateTen.h"
 
 #define INFO "Describe everything about one sample in a DT volume"
-static const char *_tend_pointInfoL =
-  (INFO
-   ". ");
+static const char *_tend_pointInfoL = (INFO ". ");
 
 int
-tend_pointMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+tend_pointMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -53,21 +50,22 @@ tend_pointMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: didn't get a valid DT volume:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   sx = AIR_CAST(int, nin->axis[1].size); /* HEY: unsigned? */
   sy = AIR_CAST(int, nin->axis[2].size);
   sz = AIR_CAST(int, nin->axis[3].size);
-  if (!( AIR_IN_CL(0, loc[0], sx-1) &&
-         AIR_IN_CL(0, loc[1], sy-1) &&
-         AIR_IN_CL(0, loc[2], sz-1) )) {
-    fprintf(stderr, "%s: location (%d,%d,%d) not inside volume "
+  if (!(AIR_IN_CL(0, loc[0], sx - 1) && AIR_IN_CL(0, loc[1], sy - 1)
+        && AIR_IN_CL(0, loc[2], sz - 1))) {
+    fprintf(stderr,
+            "%s: location (%d,%d,%d) not inside volume "
             "[0..%d]x[0..%d]x[0..%d]\n",
-            me, loc[0], loc[1], loc[2],
-            sx-1, sy-1, sz-1);
-    airMopError(mop); return 1;
+            me, loc[0], loc[1], loc[2], sx - 1, sy - 1, sz - 1);
+    airMopError(mop);
+    return 1;
   }
 
   /* clang-format off */
@@ -110,4 +108,3 @@ tend_pointMain(int argc, const char **argv, const char *me,
   return 0;
 }
 TEND_CMD(point, INFO);
-

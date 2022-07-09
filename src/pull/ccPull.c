@@ -30,10 +30,9 @@
 */
 int
 pullCCFind(pullContext *pctx) {
-  static const char me[]="pullCCFind";
+  static const char me[] = "pullCCFind";
   airArray *mop, *eqvArr;
-  unsigned int passIdx, binIdx, pointIdx, neighIdx, eqvNum,
-    pointNum, *idmap;
+  unsigned int passIdx, binIdx, pointIdx, neighIdx, eqvNum, pointNum, *idmap;
   pullBin *bin;
   pullPoint *point, *her;
 
@@ -49,7 +48,7 @@ pullCCFind(pullContext *pctx) {
 
   mop = airMopNew();
   pointNum = pullPointNumber(pctx);
-  eqvArr = airArrayNew(NULL, NULL, 2*sizeof(unsigned int), pointNum);
+  eqvArr = airArrayNew(NULL, NULL, 2 * sizeof(unsigned int), pointNum);
   airMopAdd(mop, eqvArr, (airMopper)airArrayNuke, airMopAlways);
   idmap = AIR_CAST(unsigned int *, calloc(pointNum, sizeof(unsigned int)));
   airMopAdd(mop, idmap, airFree, airMopAlways);
@@ -59,9 +58,9 @@ pullCCFind(pullContext *pctx) {
      by having a map from real point->idtag to a point number assigned
      just for the sake of doing CCs */
   pctx->idtagNext = 0;
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+  for (binIdx = 0; binIdx < pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
-    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+    for (pointIdx = 0; pointIdx < bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       point->idtag = pctx->idtagNext++;
     }
@@ -69,15 +68,15 @@ pullCCFind(pullContext *pctx) {
 
   /* same stupidity copied from limn/polymod.c:limnPolyDataCCFind */
   eqvNum = 0;
-  for (passIdx=0; passIdx<2; passIdx++) {
+  for (passIdx = 0; passIdx < 2; passIdx++) {
     if (passIdx) {
       airArrayLenPreSet(eqvArr, eqvNum);
     }
-    for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    for (binIdx = 0; binIdx < pctx->binNum; binIdx++) {
       bin = pctx->bin + binIdx;
-      for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      for (pointIdx = 0; pointIdx < bin->pointNum; pointIdx++) {
         point = bin->point[pointIdx];
-        for (neighIdx=0; neighIdx<point->neighPointNum; neighIdx++) {
+        for (neighIdx = 0; neighIdx < point->neighPointNum; neighIdx++) {
           if (0 == passIdx) {
             ++eqvNum;
           } else {
@@ -93,9 +92,9 @@ pullCCFind(pullContext *pctx) {
   pctx->CCNum = airEqvMap(eqvArr, idmap, pointNum);
 
   /* assign idcc's */
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+  for (binIdx = 0; binIdx < pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
-    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+    for (pointIdx = 0; pointIdx < bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       point->idCC = idmap[point->idtag];
     }
@@ -115,14 +114,14 @@ pullCCFind(pullContext *pctx) {
 */
 int
 pullCCMeasure(pullContext *pctx, Nrrd *nmeasr, int measrInfo, double rho) {
-  static const char me[]="pullCCMeasure";
+  static const char me[] = "pullCCMeasure";
   airArray *mop;
   unsigned int binIdx, pointIdx, ii;
   double *meas, *size;
   pullBin *bin;
   pullPoint *point;
 
-  if (!( pctx && nmeasr )) {
+  if (!(pctx && nmeasr)) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
   }
@@ -132,14 +131,12 @@ pullCCMeasure(pullContext *pctx, Nrrd *nmeasr, int measrInfo, double rho) {
   }
   if (measrInfo) {
     if (airEnumValCheck(pullInfo, measrInfo)) {
-      biffAddf(PULL, "%s: measrInfo %d not a valid %s", me,
-               measrInfo, pullInfo->name);
+      biffAddf(PULL, "%s: measrInfo %d not a valid %s", me, measrInfo, pullInfo->name);
       return 1;
     }
     if (1 != pullInfoLen(measrInfo)) {
       biffAddf(PULL, "%s: measrInfo %s (%d) isn't a scalar (len %u)", me,
-               airEnumStr(pullInfo, measrInfo), measrInfo,
-               pullInfoLen(measrInfo));
+               airEnumStr(pullInfo, measrInfo), measrInfo, pullInfoLen(measrInfo));
       return 1;
     }
     if (!pctx->ispec[measrInfo]) {
@@ -149,8 +146,7 @@ pullCCMeasure(pullContext *pctx, Nrrd *nmeasr, int measrInfo, double rho) {
     }
   } /* else measrInfo is zero, they want to know # points */
   /* in any case nmeasr is allocated for doubles */
-  if (nrrdMaybeAlloc_va(nmeasr, nrrdTypeDouble, 1,
-                        AIR_CAST(size_t, pctx->CCNum))) {
+  if (nrrdMaybeAlloc_va(nmeasr, nrrdTypeDouble, 1, AIR_CAST(size_t, pctx->CCNum))) {
     biffMovef(PULL, NRRD, "%s: couldn't alloc nmeasr", me);
     return 1;
   }
@@ -159,27 +155,25 @@ pullCCMeasure(pullContext *pctx, Nrrd *nmeasr, int measrInfo, double rho) {
   mop = airMopNew();
   /* HEY: don't actually need to allocate and set size[],
      if measrInfo == 0 */
-  if (!(size = AIR_CAST(double *,
-                        calloc(pctx->CCNum, sizeof(double))))) {
+  if (!(size = AIR_CAST(double *, calloc(pctx->CCNum, sizeof(double))))) {
     biffAddf(PULL, "%s: couldn't alloc size", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, size, airFree, airMopAlways);
 
   /* finally, do measurement */
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+  for (binIdx = 0; binIdx < pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
-    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+    for (pointIdx = 0; pointIdx < bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       size[point->idCC]++;
-      meas[point->idCC] += (measrInfo
-                            ? pullPointScalar(pctx, point, measrInfo,
-                                              NULL, NULL)
-                            : 1);
+      meas[point->idCC]
+        += (measrInfo ? pullPointScalar(pctx, point, measrInfo, NULL, NULL) : 1);
     }
   }
   if (measrInfo) {
-    for (ii=0; ii<pctx->CCNum; ii++) {
+    for (ii = 0; ii < pctx->CCNum; ii++) {
       meas[ii] /= size[ii];
       meas[ii] = AIR_LERP(rho, size[ii], meas[ii]);
     }
@@ -201,11 +195,7 @@ ccpairCompare(const void *_a, const void *_b) {
 
   a = AIR_CAST(const ccpair *, _a);
   b = AIR_CAST(const ccpair *, _b);
-  return (a->d < b->d
-          ? +1
-          : (a->d > b->d
-             ? -1
-             : 0));
+  return (a->d < b->d ? +1 : (a->d > b->d ? -1 : 0));
 }
 
 /*
@@ -219,7 +209,7 @@ ccpairCompare(const void *_a, const void *_b) {
 */
 int
 pullCCSort(pullContext *pctx, int measrInfo, double rho) {
-  static const char me[]="pullCCSort";
+  static const char me[] = "pullCCSort";
   ccpair *pair;
   Nrrd *nmeasr;
   airArray *mop;
@@ -240,14 +230,12 @@ pullCCSort(pullContext *pctx, int measrInfo, double rho) {
 
 #define CALLOC(T) (AIR_CAST(T *, calloc(pctx->CCNum, sizeof(T))))
   mop = airMopNew();
-  if (!(nmeasr = nrrdNew())
-      || airMopAdd(mop, nmeasr, (airMopper)nrrdNuke, airMopAlways)
-      || !(pair = CALLOC(ccpair))
-      || airMopAdd(mop, pair, airFree, airMopAlways)
-      || !(revm = CALLOC(unsigned int))
-      || airMopAdd(mop, revm, airFree, airMopAlways)) {
+  if (!(nmeasr = nrrdNew()) || airMopAdd(mop, nmeasr, (airMopper)nrrdNuke, airMopAlways)
+      || !(pair = CALLOC(ccpair)) || airMopAdd(mop, pair, airFree, airMopAlways)
+      || !(revm = CALLOC(unsigned int)) || airMopAdd(mop, revm, airFree, airMopAlways)) {
     biffAddf(PULL, "%s: couldn't allocate everything", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 #undef CALLOC
   if (!measrInfo) {
@@ -259,22 +247,23 @@ pullCCSort(pullContext *pctx, int measrInfo, double rho) {
   }
   if (E) {
     biffAddf(PULL, "%s: problem measuring CCs", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   measr = AIR_CAST(double *, nmeasr->data);
-  for (ii=0; ii<pctx->CCNum; ii++) {
+  for (ii = 0; ii < pctx->CCNum; ii++) {
     pair[ii].i = ii;
     pair[ii].d = measr[ii];
   }
   qsort(pair, pctx->CCNum, sizeof(ccpair), ccpairCompare);
-  for (ii=0; ii<pctx->CCNum; ii++) {
+  for (ii = 0; ii < pctx->CCNum; ii++) {
     revm[pair[ii].i] = ii;
   }
 
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+  for (binIdx = 0; binIdx < pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
-    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+    for (pointIdx = 0; pointIdx < bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       point->idCC = revm[point->idCC];
     }

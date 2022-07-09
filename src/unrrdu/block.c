@@ -25,21 +25,19 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Condense axis-0 scanlines into \"blocks\""
-static const char *_unrrdu_blockInfoL =
-(INFO
- ". Output nrrd will be of type \"block\": the type "
- "for an opaque chunk of "
- "memory.  Block samples can be sliced, cropped, shuffled, "
- "permuted, etc., but there is no scalar value associated "
- "with them, so they can not be histogrammed, quantized, "
- "resampled, converted, etc.  The output nrrd will have "
- "one less dimension than input; axis N information will "
- "be shifted down to axis N-1.  Underlying data "
- "is unchanged.");
+static const char *_unrrdu_blockInfoL
+  = (INFO ". Output nrrd will be of type \"block\": the type "
+          "for an opaque chunk of "
+          "memory.  Block samples can be sliced, cropped, shuffled, "
+          "permuted, etc., but there is no scalar value associated "
+          "with them, so they can not be histogrammed, quantized, "
+          "resampled, converted, etc.  The output nrrd will have "
+          "one less dimension than input; axis N information will "
+          "be shifted down to axis N-1.  Underlying data "
+          "is unchanged.");
 
 int
-unrrdu_blockMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+unrrdu_blockMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -49,8 +47,8 @@ unrrdu_blockMain(int argc, const char **argv, const char *me,
   /* if we gave a default for this, then there it would fine to have
      no command-line arguments whatsoever, and then the user would not
      know how to get the basic usage information */
-  hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &nin, NULL, "input nrrd",
-             NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &nin, NULL, "input nrrd", NULL, NULL,
+             nrrdHestNrrd);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();

@@ -25,16 +25,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Split one axis into two axes"
-static const char *_unrrdu_axsplitInfoL =
-(INFO
- ". More general version of \"unu axinsert\", since a given axis can "
- "be split into fast and slow axes of arbitrary size, as long as the "
- "product of the fast and slow sizes is the same as the original size.\n "
- "* Uses nrrdAxesSplit");
+static const char *_unrrdu_axsplitInfoL
+  = (INFO ". More general version of \"unu axinsert\", since a given axis can "
+          "be split into fast and slow axes of arbitrary size, as long as the "
+          "product of the fast and slow sizes is the same as the original size.\n "
+          "* Uses nrrdAxesSplit");
 
 int
-unrrdu_axsplitMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_axsplitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -44,8 +42,7 @@ unrrdu_axsplitMain(int argc, const char **argv, const char *me,
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "dimension (axis index) to split at");
-  hestOptAdd(&opt, "s,size", "fast, slow sizes", airTypeSize_t, 2, 2,
-             size, NULL,
+  hestOptAdd(&opt, "s,size", "fast, slow sizes", airTypeSize_t, 2, 2, size, NULL,
              "fast and slow axis sizes to produce as result of splitting "
              "given axis.");
   OPT_ADD_NIN(nin, "input nrrd");

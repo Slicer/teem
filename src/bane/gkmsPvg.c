@@ -57,20 +57,20 @@ float _baneGkmsDonData[] = {0 /* AIR_NEG_INF */ , 0, 0, 0,
 
 Nrrd *
 _baneGkmsDonNew(int invert) {
-  static const char me[]="_baneGkmsDonNew";
+  static const char me[] = "_baneGkmsDonNew";
   Nrrd *ret;
   float *data;
 
-  if (nrrdMaybeAlloc_va(ret=nrrdNew(), nrrdTypeFloat, 2,
-                        AIR_CAST(size_t, 4), AIR_CAST(size_t, 23))) {
+  if (nrrdMaybeAlloc_va(ret = nrrdNew(), nrrdTypeFloat, 2, AIR_CAST(size_t, 4),
+                        AIR_CAST(size_t, 23))) {
     biffAddf(BANE, "%s: can't create output", me);
     return NULL;
   }
   data = (float *)ret->data;
-  memcpy(data, _baneGkmsDonData, 4*23*sizeof(float));
-  data[0 + 4*0] = AIR_NEG_INF;
-  data[0 + 4*1] = AIR_NAN;
-  data[0 + 4*2] = AIR_POS_INF;
+  memcpy(data, _baneGkmsDonData, 4 * 23 * sizeof(float));
+  data[0 + 4 * 0] = AIR_NEG_INF;
+  data[0 + 4 * 1] = AIR_NAN;
+  data[0 + 4 * 2] = AIR_POS_INF;
   if (invert) {
     INVERT(data, 0);
     INVERT(data, 1);
@@ -82,16 +82,14 @@ _baneGkmsDonNew(int invert) {
 }
 
 #define PVG_INFO "Create color-mapped pictures of p(v,g)"
-static const char *_baneGkms_pvgInfoL =
-  (PVG_INFO
-   ".  This produces a qualitative visualization of the boundary information "
-   "that was captured in the histogram volume.  The quantity shown is called "
-   "the \"position function\" in GK's published work, but a better term "
-   "would be \"distance map\", as a function of value (v) and gradient "
-   "magnitude (g).");
+static const char *_baneGkms_pvgInfoL
+  = (PVG_INFO ".  This produces a qualitative visualization of the boundary information "
+              "that was captured in the histogram volume.  The quantity shown is called "
+              "the \"position function\" in GK's published work, but a better term "
+              "would be \"distance map\", as a function of value (v) and gradient "
+              "magnitude (g).");
 int
-baneGkms_pvgMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+baneGkms_pvgMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *perr, *mapS;
   Nrrd *ninfo, *nposA, *nposB, *ndon, *npvg;
@@ -107,8 +105,7 @@ baneGkms_pvgMain(int argc, const char **argv, const char *me,
              "save out the colormap used here, so that it can be applied "
              "to other nrrds with \"unu imap -r\"");
   hestOptAdd(&opt, "i", "infoIn", airTypeOther, 1, 1, &ninfo, NULL,
-             "input info file (from \"gkms info\")",
-             NULL, NULL, nrrdHestNrrd);
+             "input info file (from \"gkms info\")", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "o", "imageOut", airTypeString, 1, 1, &outS, NULL,
              "output image, in PPM format");
 
@@ -117,18 +114,17 @@ baneGkms_pvgMain(int argc, const char **argv, const char *me,
   USAGE(_baneGkms_pvgInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
-  airMopAdd(mop, ndon=_baneGkmsDonNew(invert),
-            (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nposA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nposB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, npvg=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nio=nrrdIoStateNew(), (airMopper)nrrdIoStateNix,
-            airMopAlways);
+  airMopAdd(mop, ndon = _baneGkmsDonNew(invert), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nposA = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nposB = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, npvg = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nio = nrrdIoStateNew(), (airMopper)nrrdIoStateNix, airMopAlways);
 
   if (airStrlen(mapS)) {
     if (nrrdSave(mapS, ndon, NULL)) {
       biffMovef(BANE, NRRD, "%s: trouble saving colormap", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
 
@@ -138,7 +134,8 @@ baneGkms_pvgMain(int argc, const char **argv, const char *me,
      us that there can be boundaries at extremely low gradients */
   if (banePosCalc(nposA, 1.0, 0.0, ninfo)) {
     biffAddf(BANE, "%s: trouble calculating position", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   sv = AIR_INT(nposA->axis[0].size); /* HEY should be unsigned */
   sg = AIR_INT(nposA->axis[1].size); /* HEY should be unsigned */
@@ -151,10 +148,9 @@ baneGkms_pvgMain(int argc, const char **argv, const char *me,
   sml = 0;
   smlI = 0;
   min = max = AIR_NAN;
-  for (i=0; i<sv*sg; i++) {
+  for (i = 0; i < sv * sg; i++) {
     p = pos[i];
-    if (!AIR_EXISTS(p))
-      continue;
+    if (!AIR_EXISTS(p)) continue;
     if (!AIR_EXISTS(min)) {
       min = max = p;
       sml = AIR_ABS(p);
@@ -170,11 +166,13 @@ baneGkms_pvgMain(int argc, const char **argv, const char *me,
   }
   if (!AIR_EXISTS(min)) {
     biffAddf(BANE, "%s: didn't see any real data in position array", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdHistoEq(nposB, nposA, NULL, PVG_HISTEQ_BINS, 3, 1.0)) {
     biffMovef(BANE, NRRD, "%s: trouble doing histo-eq on p(v,g)", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   /* warp position values that pos[smlI] gets mapped back to zero,
@@ -188,7 +186,7 @@ baneGkms_pvgMain(int argc, const char **argv, const char *me,
     newmin = -max;
     newmax = max;
   }
-  for (i=0; i<sv*sg; i++) {
+  for (i = 0; i < sv * sg; i++) {
     if (!AIR_EXISTS(pos[i])) {
       continue;
     }
@@ -201,20 +199,20 @@ baneGkms_pvgMain(int argc, const char **argv, const char *me,
   range = nrrdRangeNew(newmin, newmax);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
 
-  if (nrrdFlip(nposA, nposB, 1) ||
-      nrrdApply1DIrregMap(npvg, nposA, range, ndon,
-                          NULL, nrrdTypeUChar, AIR_TRUE)) {
+  if (nrrdFlip(nposA, nposB, 1)
+      || nrrdApply1DIrregMap(npvg, nposA, range, ndon, NULL, nrrdTypeUChar, AIR_TRUE)) {
     biffMovef(BANE, NRRD, "%s: trouble applying colormap", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   nio->format = nrrdFormatPNM;
   if (nrrdSave(outS, npvg, nio)) {
     biffMovef(BANE, NRRD, "%s: trouble saving pvg image", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopOkay(mop);
   return 0;
 }
 BANE_GKMS_CMD(pvg, PVG_INFO);
-

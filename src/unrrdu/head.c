@@ -25,13 +25,13 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Print header of one or more nrrd files"
-static const char *_unrrdu_headInfoL =
-(INFO  ".  The value of this is simply to print the contents of nrrd "
- "headers.  This avoids the use of \"head -N\", where N has to be "
- "determined manually, which always risks printing raw binary data "
- "(following the header) to screen, which tends to clobber terminal "
- "settings, make pointless beeps, and be annoying.\n "
- "* Uses _nrrdOneLine");
+static const char *_unrrdu_headInfoL
+  = (INFO ".  The value of this is simply to print the contents of nrrd "
+          "headers.  This avoids the use of \"head -N\", where N has to be "
+          "determined manually, which always risks printing raw binary data "
+          "(following the header) to screen, which tends to clobber terminal "
+          "settings, make pointless beeps, and be annoying.\n "
+          "* Uses _nrrdOneLine");
 
 int
 unrrdu_headDoit(const char *me, NrrdIoState *nio, char *inS, FILE *fout) {
@@ -40,25 +40,27 @@ unrrdu_headDoit(const char *me, NrrdIoState *nio, char *inS, FILE *fout) {
   FILE *fin;
 
   mop = airMopNew();
-  if (!( fin = airFopen(inS, stdin, "rb") )) {
-    biffAddf(me, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n",
-             me, inS, strerror(errno));
-    airMopError(mop); return 1;
+  if (!(fin = airFopen(inS, stdin, "rb"))) {
+    biffAddf(me, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", me, inS, strerror(errno));
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, fin, (airMopper)airFclose, airMopAlways);
 
   if (_nrrdOneLine(&len, nio, fin)) {
     biffAddf(me, "%s: error getting first line of file \"%s\"", me, inS);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (!len) {
     biffAddf(me, "%s: immediately hit EOF\n", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  if (!( nrrdFormatNRRD->contentStartsLike(nio) )) {
-    biffAddf(me, "%s: first line (\"%s\") isn't a nrrd magic\n",
-             me, nio->line);
-    airMopError(mop); return 1;
+  if (!(nrrdFormatNRRD->contentStartsLike(nio))) {
+    biffAddf(me, "%s: first line (\"%s\") isn't a nrrd magic\n", me, nio->line);
+    airMopError(mop);
+    return 1;
   }
   while (len > 1) {
     fprintf(fout, "%s\n", nio->line);
@@ -80,8 +82,7 @@ unrrdu_headDoit(const char *me, NrrdIoState *nio, char *inS, FILE *fout) {
 }
 
 int
-unrrdu_headMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_headMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, **inS;
   NrrdIoState *nio;
@@ -90,8 +91,8 @@ unrrdu_headMain(int argc, const char **argv, const char *me,
   unsigned int ni, ninLen;
 
   mop = airMopNew();
-  hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL,
-             "input nrrd(s)", &ninLen);
+  hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL, "input nrrd(s)",
+             &ninLen);
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_headInfoL);
@@ -101,17 +102,16 @@ unrrdu_headMain(int argc, const char **argv, const char *me,
   nio = nrrdIoStateNew();
   airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
 
-  for (ni=0; ni<ninLen; ni++) {
+  for (ni = 0; ni < ninLen; ni++) {
     if (ninLen > 1) {
       fprintf(stdout, "==> %s <==\n", inS[ni]);
     }
     if (unrrdu_headDoit(me, nio, inS[ni], stdout)) {
       airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble reading from \"%s\":\n%s",
-              me, inS[ni], err);
+      fprintf(stderr, "%s: trouble reading from \"%s\":\n%s", me, inS[ni], err);
       /* continue working on the remaining files */
     }
-    if (ninLen > 1 && ni < ninLen-1) {
+    if (ninLen > 1 && ni < ninLen - 1) {
       fprintf(stdout, "\n");
     }
   }

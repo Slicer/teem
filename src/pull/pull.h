@@ -65,21 +65,23 @@
 extern "C" {
 #endif
 
-#define PULL pullBiffKey
-#define PULL_THREAD_MAXNUM 512
-#define PULL_VOLUME_MAXNUM 4
+#define PULL                  pullBiffKey
+#define PULL_THREAD_MAXNUM    512
+#define PULL_VOLUME_MAXNUM    4
 #define PULL_POINT_NEIGH_INCR 16
-#define PULL_BIN_MAXNUM 40000000 /* sanity check on max number bins */
-#define PULL_PHIST 0             /* can compile history of positions,
-                                    with tuples of length PULL_PHIST_NUM */
-#define PULL_PHIST_NUM 6         /* doubles saved per history point:
-                                    0  1  2  3   4    5
-                                    X  Y  Z Scl cond val
-                                    where Scl is just scale coordinate,
-                                    cond is from pullCond* enum,
-                                    and val is anything the caller wanted to
-                                    remember at that point */
-#define PULL_HINTER 0
+#define PULL_BIN_MAXNUM       40000000 /* sanity check on max number bins */
+#define PULL_PHIST                                                                      \
+  0 /* can compile history of positions,                                                \
+       with tuples of length PULL_PHIST_NUM */
+#define PULL_PHIST_NUM                                                                  \
+  6 /* doubles saved per history point:                                                 \
+       0  1  2  3   4    5                                                              \
+       X  Y  Z Scl cond val                                                             \
+       where Scl is just scale coordinate,                                              \
+       cond is from pullCond* enum,                                                     \
+       and val is anything the caller wanted to                                         \
+       remember at that point */
+#define PULL_HINTER   0
 #define PULL_TANCOVAR 1
 
 /*
@@ -103,41 +105,41 @@ extern "C" {
 **   that it can't be analytically differentiated in space or scale.
 */
 enum {
-  pullInfoUnknown,            /*  0 */
-  pullInfoTensor,             /*  1: [7] tensor here */
-  pullInfoTensorInverse,      /*  2: [7] inverse of tensor here */
-  pullInfoHessian,            /*  3: [9] hessian used for force distortion */
-  pullInfoInside,             /*  4: [1] containment scalar */
-  pullInfoInsideGradient,     /*  5: [3] containment vector */
-  pullInfoHeight,             /*  6: [1] for gravity, and edge and crease
-                                         feature detection */
-  pullInfoHeightGradient,     /*  7: [3] */
-  pullInfoHeightHessian,      /*  8: [9] */
-  pullInfoHeightLaplacian,    /*  9: [1] for zero-crossing edge detection */
-  pullInfoSeedPreThresh,      /* 10: [1] scalar for pre-thresholding seeding,
-                                 so that points can be quickly eliminated
-                                 (e.g. prior to constraint satisfaction) */
-  pullInfoSeedThresh,         /* 11: [1] scalar for thresholding seeding */
-  pullInfoLiveThresh,         /* 12: [1] scalar for thresholding extant
-                                 particles, AND for future additions from
-                                 population control */
-  pullInfoLiveThresh2,        /* 13: [1] another pullInfoLiveThresh */
-  pullInfoLiveThresh3,        /* 14: [1] yet another pullInfoLiveThresh */
-  pullInfoTangent1,           /* 15: [3] first tangent to motion allowed
-                                 for constraint satisfaction */
-  pullInfoTangent2,           /* 16: [3] second tangent to motion allowed
-                                 for constraint satisfaction */
-  pullInfoNegativeTangent1,   /* 17: [3] like the tangents, but with a negated
-                                 objective function */
-  pullInfoNegativeTangent2,   /* 18: [3] second negative tangent */
-  pullInfoIsovalue,           /* 19: [1] for isosurface extraction */
-  pullInfoIsovalueGradient,   /* 20: [3] */
-  pullInfoIsovalueHessian,    /* 21: [9] */
-  pullInfoStrength,           /* 22: [1] */
-  pullInfoQuality,            /* 23: [1] */
+  pullInfoUnknown,          /*  0 */
+  pullInfoTensor,           /*  1: [7] tensor here */
+  pullInfoTensorInverse,    /*  2: [7] inverse of tensor here */
+  pullInfoHessian,          /*  3: [9] hessian used for force distortion */
+  pullInfoInside,           /*  4: [1] containment scalar */
+  pullInfoInsideGradient,   /*  5: [3] containment vector */
+  pullInfoHeight,           /*  6: [1] for gravity, and edge and crease
+                                       feature detection */
+  pullInfoHeightGradient,   /*  7: [3] */
+  pullInfoHeightHessian,    /*  8: [9] */
+  pullInfoHeightLaplacian,  /*  9: [1] for zero-crossing edge detection */
+  pullInfoSeedPreThresh,    /* 10: [1] scalar for pre-thresholding seeding,
+                               so that points can be quickly eliminated
+                               (e.g. prior to constraint satisfaction) */
+  pullInfoSeedThresh,       /* 11: [1] scalar for thresholding seeding */
+  pullInfoLiveThresh,       /* 12: [1] scalar for thresholding extant
+                               particles, AND for future additions from
+                               population control */
+  pullInfoLiveThresh2,      /* 13: [1] another pullInfoLiveThresh */
+  pullInfoLiveThresh3,      /* 14: [1] yet another pullInfoLiveThresh */
+  pullInfoTangent1,         /* 15: [3] first tangent to motion allowed
+                               for constraint satisfaction */
+  pullInfoTangent2,         /* 16: [3] second tangent to motion allowed
+                               for constraint satisfaction */
+  pullInfoNegativeTangent1, /* 17: [3] like the tangents, but with a negated
+                               objective function */
+  pullInfoNegativeTangent2, /* 18: [3] second negative tangent */
+  pullInfoIsovalue,         /* 19: [1] for isosurface extraction */
+  pullInfoIsovalueGradient, /* 20: [3] */
+  pullInfoIsovalueHessian,  /* 21: [9] */
+  pullInfoStrength,         /* 22: [1] */
+  pullInfoQuality,          /* 23: [1] */
   pullInfoLast
 };
-#define PULL_INFO_MAX            23
+#define PULL_INFO_MAX 23
 
 /*
 ********* pullProp* enum: the various properties of particles in the system
@@ -151,57 +153,57 @@ enum {
 ** consider adding: dot between normalized directions of force and movmt
 */
 enum {
-  pullPropUnknown,            /*  0: nobody knows */
-  pullPropIdtag,              /*  1: [1] idtag (unsigned int) */
-  pullPropIdCC,               /*  2: [1] idcc (unsigned int) */
-  pullPropEnergy,             /*  3: [1] energy from last iteration */
-  pullPropStepEnergy,         /*  4: [1] step size for minimizing energy */
-  pullPropStepConstr,         /*  5: [1] step size for constraint satis. */
-  pullPropStuck,              /*  6: [1] how many iters its been stuck */
-  pullPropPosition,           /*  7: [4] position */
-  pullPropForce,              /*  8: [4] force accumulation */
-  pullPropNeighDistMean,      /*  9: [1] "mean distance" to neighbors */
-  pullPropScale,              /* 10: [1] scale position */
-  pullPropNeighCovar,         /* 11: [10] unique coeffs of covariance matrix
-                                 of offsets to all interacting neighbors,
-                                 in rs-normalized space, updated only during
-                                 pullProcessModeNeighLearn. The layout is:
-                                 0:xx 1:xy 2:xz 3:xs
-                                 .    4:yy 5:yz 6:ys
-                                 .         7:zz 8:zs
-                                 .              9:ss */
-  pullPropNeighCovar7Ten,     /* 12: [7] spatial 3x3 submatrix of covariance,
-                                 formatted as ten-compatible 7-tensor */
-  pullPropNeighTanCovar,      /* 13: [6] covariance of "tangents" of neighbors,
-                                 (e.g. pullInfoTangent1 for crease surfaces)
-                                 including point itself */
-  pullPropNeighInterNum,      /* 14: [1] # neighbors last iter */
-  pullPropNeighCovarTrace,    /* 15: [1] trace of NeighCovar */
-  pullPropNeighCovarDet,      /* 16: [1] det of NeighCovar */
-  pullPropStability,          /* 17: [1] some measure of NeighCovar */
+  pullPropUnknown,         /*  0: nobody knows */
+  pullPropIdtag,           /*  1: [1] idtag (unsigned int) */
+  pullPropIdCC,            /*  2: [1] idcc (unsigned int) */
+  pullPropEnergy,          /*  3: [1] energy from last iteration */
+  pullPropStepEnergy,      /*  4: [1] step size for minimizing energy */
+  pullPropStepConstr,      /*  5: [1] step size for constraint satis. */
+  pullPropStuck,           /*  6: [1] how many iters its been stuck */
+  pullPropPosition,        /*  7: [4] position */
+  pullPropForce,           /*  8: [4] force accumulation */
+  pullPropNeighDistMean,   /*  9: [1] "mean distance" to neighbors */
+  pullPropScale,           /* 10: [1] scale position */
+  pullPropNeighCovar,      /* 11: [10] unique coeffs of covariance matrix
+                              of offsets to all interacting neighbors,
+                              in rs-normalized space, updated only during
+                              pullProcessModeNeighLearn. The layout is:
+                              0:xx 1:xy 2:xz 3:xs
+                              .    4:yy 5:yz 6:ys
+                              .         7:zz 8:zs
+                              .              9:ss */
+  pullPropNeighCovar7Ten,  /* 12: [7] spatial 3x3 submatrix of covariance,
+                              formatted as ten-compatible 7-tensor */
+  pullPropNeighTanCovar,   /* 13: [6] covariance of "tangents" of neighbors,
+                              (e.g. pullInfoTangent1 for crease surfaces)
+                              including point itself */
+  pullPropNeighInterNum,   /* 14: [1] # neighbors last iter */
+  pullPropNeighCovarTrace, /* 15: [1] trace of NeighCovar */
+  pullPropNeighCovarDet,   /* 16: [1] det of NeighCovar */
+  pullPropStability,       /* 17: [1] some measure of NeighCovar */
   pullPropLast
 };
-#define PULL_PROP_MAX            17
+#define PULL_PROP_MAX 17
 
 /*
 ** the components of a point's status that are set as a bitflag
 ** in point->status
 */
 enum {
-  pullStatusUnknown,             /* 0: nobody knows */
-  pullStatusStuck,               /* 1: couldn't move to decrease energy */
-#define PULL_STATUS_STUCK_BIT  (1<< 1)
-  pullStatusNewbie,              /* 2: not binned, testing if the system
-                                    would be better with me in it */
-#define PULL_STATUS_NEWBIE_BIT (1<< 2)
-  pullStatusNixMe,               /* 3: nix me at the *end* of this iter,
-                                    and don't look at me for energy
-                                    during this iteration */
-#define PULL_STATUS_NIXME_BIT  (1<< 3)
-  pullStatusEdge,                /* 4: at the spatial edge of one of the
-                                    volumes: gage had to invent values for
-                                    some samples in the kernel support */
-#define PULL_STATUS_EDGE_BIT   (1<< 4)
+  pullStatusUnknown, /* 0: nobody knows */
+  pullStatusStuck,   /* 1: couldn't move to decrease energy */
+#define PULL_STATUS_STUCK_BIT (1 << 1)
+  pullStatusNewbie, /* 2: not binned, testing if the system
+                       would be better with me in it */
+#define PULL_STATUS_NEWBIE_BIT (1 << 2)
+  pullStatusNixMe, /* 3: nix me at the *end* of this iter,
+                      and don't look at me for energy
+                      during this iteration */
+#define PULL_STATUS_NIXME_BIT (1 << 3)
+  pullStatusEdge, /* 4: at the spatial edge of one of the
+                     volumes: gage had to invent values for
+                     some samples in the kernel support */
+#define PULL_STATUS_EDGE_BIT (1 << 4)
   pullStatusLast
 };
 
@@ -213,15 +215,15 @@ enum {
 ** by radiusScale and radiusSpace
 */
 enum {
-  pullInterTypeUnknown,      /* 0 */
-  pullInterTypeJustR,        /* 1: phi(r,s) = phi_r(r) */
-  pullInterTypeUnivariate,   /* 2: phi(r,s) = phi_r(u); u = sqrt(r*r+s*s) */
-  pullInterTypeSeparable,    /* 3: phi(r,s) = phi_r(r)*phi_s(s) */
-  pullInterTypeAdditive,     /* 4: phi(r,s) = beta*phi_r(r)*win(s)
-                                              + (1-beta)*win(r)*phi_s(s) */
+  pullInterTypeUnknown,    /* 0 */
+  pullInterTypeJustR,      /* 1: phi(r,s) = phi_r(r) */
+  pullInterTypeUnivariate, /* 2: phi(r,s) = phi_r(u); u = sqrt(r*r+s*s) */
+  pullInterTypeSeparable,  /* 3: phi(r,s) = phi_r(r)*phi_s(s) */
+  pullInterTypeAdditive,   /* 4: phi(r,s) = beta*phi_r(r)*win(s)
+                                            + (1-beta)*win(r)*phi_s(s) */
   pullInterTypeLast
 };
-#define PULL_INTER_TYPE_MAX     4
+#define PULL_INTER_TYPE_MAX 4
 
 /*
 ******** pullEnergyType* enum
@@ -245,32 +247,32 @@ enum {
   pullEnergyTypeButterworthParabola, /* 13 */
   pullEnergyTypeLast
 };
-#define PULL_ENERGY_TYPE_MAX            13
+#define PULL_ENERGY_TYPE_MAX 13
 #define PULL_ENERGY_PARM_NUM 3
 
 enum {
-  pullProcessModeUnknown,      /* 0 */
-  pullProcessModeDescent,      /* 1 */
-  pullProcessModeNeighLearn,   /* 2 */
-  pullProcessModeAdding,       /* 3 */
-  pullProcessModeNixing,       /* 4 */
+  pullProcessModeUnknown,    /* 0 */
+  pullProcessModeDescent,    /* 1 */
+  pullProcessModeNeighLearn, /* 2 */
+  pullProcessModeAdding,     /* 3 */
+  pullProcessModeNixing,     /* 4 */
   pullProcessModeLast
 };
-#define PULL_PROCESS_MODE_MAX     4
+#define PULL_PROCESS_MODE_MAX 4
 
 /*
 ** the conditions under which a point may find itself at some position
 */
 enum {
-  pullCondUnknown,            /* 0 */
-  pullCondOld,                /* 1 */
-  pullCondConstraintSatA,     /* 2 */
-  pullCondConstraintSatB,     /* 3 */
-  pullCondEnergyTry,          /* 4 */
-  pullCondConstraintFail,     /* 5 */
-  pullCondConstraintSuccess,  /* 6 */
-  pullCondEnergyBad,          /* 7 */
-  pullCondNew,                /* 8 */
+  pullCondUnknown,           /* 0 */
+  pullCondOld,               /* 1 */
+  pullCondConstraintSatA,    /* 2 */
+  pullCondConstraintSatB,    /* 3 */
+  pullCondEnergyTry,         /* 4 */
+  pullCondConstraintFail,    /* 5 */
+  pullCondConstraintSuccess, /* 6 */
+  pullCondEnergyBad,         /* 7 */
+  pullCondNew,               /* 8 */
   pullCondLast
 };
 
@@ -281,36 +283,36 @@ enum {
 ** the channels now organized around pullInfo
 */
 enum {
-  pullSourceUnknown,  /* 0 */
-  pullSourceGage,     /* 1: measured from gage */
-  pullSourceProp,     /* 2: copied from a pullProp */
+  pullSourceUnknown, /* 0 */
+  pullSourceGage,    /* 1: measured from gage */
+  pullSourceProp,    /* 2: copied from a pullProp */
   pullSourceLast
 };
-#define PULL_SOURCE_MAX  2
+#define PULL_SOURCE_MAX 2
 
 /*
 ** the different kinds of computations and entities that one can
 ** count, for book-keeping and meta-optimization purposes
 */
 enum {
-  pullCountUnknown,             /*  0 */
-  pullCountDescent,             /*  1 */
-  pullCountTestStep,            /*  2 */
-  pullCountEnergyFromImage,     /*  3 */
-  pullCountForceFromImage,      /*  4 */
-  pullCountEnergyFromPoints,    /*  5 */
-  pullCountForceFromPoints,     /*  6 */
-  pullCountProbe,               /*  7 */
-  pullCountConstraintSatisfy,   /*  8 */
-  pullCountAdding,              /*  9 */
-  pullCountNixing,              /* 10 */
-  pullCountPointsStuck,         /* 11 */
-  pullCountPoints,              /* 12 */
-  pullCountCC,                  /* 13 */
-  pullCountIteration,           /* 14 */
+  pullCountUnknown,           /*  0 */
+  pullCountDescent,           /*  1 */
+  pullCountTestStep,          /*  2 */
+  pullCountEnergyFromImage,   /*  3 */
+  pullCountForceFromImage,    /*  4 */
+  pullCountEnergyFromPoints,  /*  5 */
+  pullCountForceFromPoints,   /*  6 */
+  pullCountProbe,             /*  7 */
+  pullCountConstraintSatisfy, /*  8 */
+  pullCountAdding,            /*  9 */
+  pullCountNixing,            /* 10 */
+  pullCountPointsStuck,       /* 11 */
+  pullCountPoints,            /* 12 */
+  pullCountCC,                /* 13 */
+  pullCountIteration,         /* 14 */
   pullCountLast
 };
-#define PULL_COUNT_MAX             14
+#define PULL_COUNT_MAX 14
 
 /*
 ** reasons for pullTraceSet to stop (or go nowhere)
@@ -326,7 +328,7 @@ enum {
   pullTraceStopOrientConstrFail, /* 7 */
   pullTraceStopLast
 };
-#define PULL_TRACE_STOP_MAX         7
+#define PULL_TRACE_STOP_MAX 7
 
 /*
 ** Defines how par-particle information can be learned.  This is
@@ -343,22 +345,22 @@ enum {
 */
 typedef struct pullInfoSpec_t {
   /* ------ INPUT ------ */
-  int info,                     /* from the pullInfo* enum: what is the
-                                   "info" that this infospec defines */
-    source;                     /* from the pullSource* enum: where does
-                                   this information come from */
-  char *volName;                /* volume name */
-  int item,                     /* which gage item (for pullSourceGage) */
-    prop;                       /* which pull property (for pullSourceProp) */
-  double scale,                 /* scaling factor (including sign) */
-    zero;                       /* for height and inside: where is zero,
-                                   for seedThresh, threshold value */
-  int constraint;               /* (for scalar items) minimizing this
-                                   is a constraint to enforce per-point
-                                   per-iteration, not merely a contribution
-                                   to the point's energy */
+  int info,       /* from the pullInfo* enum: what is the
+                     "info" that this infospec defines */
+    source;       /* from the pullSource* enum: where does
+                     this information come from */
+  char *volName;  /* volume name */
+  int item,       /* which gage item (for pullSourceGage) */
+    prop;         /* which pull property (for pullSourceProp) */
+  double scale,   /* scaling factor (including sign) */
+    zero;         /* for height and inside: where is zero,
+                     for seedThresh, threshold value */
+  int constraint; /* (for scalar items) minimizing this
+                     is a constraint to enforce per-point
+                     per-iteration, not merely a contribution
+                     to the point's energy */
   /* ------ INTERNAL ------ */
-  unsigned int volIdx;          /* which volume (for pullSourceGage) */
+  unsigned int volIdx; /* which volume (for pullSourceGage) */
 } pullInfoSpec;
 
 /*
@@ -366,41 +368,41 @@ typedef struct pullInfoSpec_t {
 **
 */
 typedef struct pullPoint_t {
-  unsigned int idtag,         /* unique point ID */
-    idCC;                     /* id for connected component analysis */
+  unsigned int idtag,              /* unique point ID */
+    idCC;                          /* id for connected component analysis */
   struct pullPoint_t **neighPoint; /* list of neighboring points */
   unsigned int neighPointNum;
-  airArray *neighPointArr;    /* airArray around neighPoint and neighNum
-                                 (no callbacks used here) */
-  double neighDistMean;       /* average of distance to neighboring
-                                 points with whom this point interacted,
-                                 in rs-normalized space */
-  float neighCovar[10],       /* unique coeffs in 4x4 covariance matrix of
-                                 neighbors with whom this point interacted */
+  airArray *neighPointArr; /* airArray around neighPoint and neighNum
+                              (no callbacks used here) */
+  double neighDistMean;    /* average of distance to neighboring
+                              points with whom this point interacted,
+                              in rs-normalized space */
+  float neighCovar[10],    /* unique coeffs in 4x4 covariance matrix of
+                              neighbors with whom this point interacted */
 #if PULL_TANCOVAR
-    neighTanCovar[6],         /* covariance of "tangent" info of neighbors */
+    neighTanCovar[6], /* covariance of "tangent" info of neighbors */
 #endif
     stability;                /* the scalar stability measure */
   unsigned int neighInterNum, /* number of particles with which I had some
                                  non-zero interaction on last iteration */
     stuckIterNum;             /* how many iterations I've been stuck */
 #if PULL_PHIST
-  double *phist;              /* history of positions tried in the last iter,
-                                 in sets of 5 doubles: (x,y,z,t,info) */
-  unsigned int phistNum;      /* number of positions stored */
-  airArray *phistArr;         /* airArray around phist */
+  double *phist;         /* history of positions tried in the last iter,
+                            in sets of 5 doubles: (x,y,z,t,info) */
+  unsigned int phistNum; /* number of positions stored */
+  airArray *phistArr;    /* airArray around phist */
 #endif
-  int status;                 /* bit-flag of status info */
-  double pos[4],              /* position in space and scale */
-    energy,                   /* energy accumulator for this iteration */
-    force[4],                 /* force accumulator for this iteration */
-    stepEnergy,               /* step size for energy minimization */
-    stepConstr,               /* step size for constraint satisfaction;
-                                 HEY: this doens't seem to be really used? */
-    info[1];                  /* all information learned from gage that matters
-                                 for particle dynamics.  This is sneakily
-                                 allocated for *more*, depending on needs,
-                                 so this MUST be last field */
+  int status;    /* bit-flag of status info */
+  double pos[4], /* position in space and scale */
+    energy,      /* energy accumulator for this iteration */
+    force[4],    /* force accumulator for this iteration */
+    stepEnergy,  /* step size for energy minimization */
+    stepConstr,  /* step size for constraint satisfaction;
+                    HEY: this doens't seem to be really used? */
+    info[1];     /* all information learned from gage that matters
+                    for particle dynamics.  This is sneakily
+                    allocated for *more*, depending on needs,
+                    so this MUST be last field */
 } pullPoint;
 
 /*
@@ -409,12 +411,12 @@ typedef struct pullPoint_t {
 ** the data structure for doing spatial binning.
 */
 typedef struct pullBin_t {
-  pullPoint **point;         /* dyn. alloc. array of point pointers */
-  unsigned int pointNum;     /* # of points in this bin */
-  airArray *pointArr;        /* airArray around point and pointNum
-                                (no callbacks used here) */
-  struct pullBin_t **neighBin;  /* NULL-terminated list of all
-                                   neighboring bins, including myself */
+  pullPoint **point;           /* dyn. alloc. array of point pointers */
+  unsigned int pointNum;       /* # of points in this bin */
+  airArray *pointArr;          /* airArray around point and pointNum
+                                  (no callbacks used here) */
+  struct pullBin_t **neighBin; /* NULL-terminated list of all
+                                  neighboring bins, including myself */
 } pullBin;
 
 /*
@@ -434,8 +436,7 @@ typedef struct {
   char name[AIR_STRLEN_SMALL];
   unsigned int parmNum;
   double (*well)(double *wx, const double parm[PULL_ENERGY_PARM_NUM]);
-  double (*eval)(double *denr, double dist,
-                 const double parm[PULL_ENERGY_PARM_NUM]);
+  double (*eval)(double *denr, double dist, const double parm[PULL_ENERGY_PARM_NUM]);
 } pullEnergy;
 
 typedef struct {
@@ -450,9 +451,9 @@ typedef struct {
 ** or something, and the rest of them are created within pull per-task.
 */
 typedef struct {
-  int verbose;                 /* blah blah blah */
-  char *name;                  /* how the volume will be identified
-                                  (like its a variable name) */
+  int verbose; /* blah blah blah */
+  char *name;  /* how the volume will be identified
+                  (like its a variable name) */
   const gageKind *kind;
   const Nrrd *ninSingle;       /* don't own */
   const Nrrd *const *ninScale; /* don't own;
@@ -485,38 +486,35 @@ typedef struct {
 ** The information specific for a thread.
 */
 typedef struct pullTask_t {
-  struct pullContext_t
-    *pctx;                      /* parent's context; not const because the
-                                   tasks assign themselves bins to do work */
-  pullVolume
-    *vol[PULL_VOLUME_MAXNUM];   /* volumes copied from parent */
-  const double
-    *ans[PULL_INFO_MAX+1];      /* answer *pointers* for all possible infos,
-                                   pointing into per-task per-volume gctxs
-                                   (or into above per-task pullValAnswer),
-                                   OR: NULL if that info is not being used */
-  int processMode,              /* what kind of point processing is being
-                                   done by this task right now */
-    probeSeedPreThreshOnly;     /* hack-ish flag to communicate to pullProbe
-                                   that we only care about SeedPreThresh */
-  airThread *thread;            /* my thread */
-  unsigned int threadIdx;       /* which thread am I */
-  airRandMTState *rng;          /* state for my RNG */
-  pullPoint *pointBuffer,       /* place for copying point into during
-                                   strength ascent computation; can't be
-                                   statically allocated because pullPoint
-                                   size is known only at run-time */
-    **neighPoint;               /* array of point pointers, either all
-                                   possible points from neighbor bins, or
-                                   last learned interacting neighbors */
-  pullPoint **addPoint;         /* points to add before next iter */
-  unsigned int addPointNum;     /* # of points to add */
-  airArray *addPointArr;        /* airArray around addPoint, addPointNum */
-  pullPoint **nixPoint;         /* points to nix before next iter */
-  unsigned int nixPointNum;     /* # of points to nix */
-  airArray *nixPointArr;        /* airArray around nixPoint, nixPointNum */
-  void *returnPtr;              /* for airThreadJoin */
-  unsigned int stuckNum;        /* # stuck particles seen by this task */
+  struct pullContext_t *pctx;           /* parent's context; not const because the
+                                           tasks assign themselves bins to do work */
+  pullVolume *vol[PULL_VOLUME_MAXNUM];  /* volumes copied from parent */
+  const double *ans[PULL_INFO_MAX + 1]; /* answer *pointers* for all possible infos,
+                                           pointing into per-task per-volume gctxs
+                                           (or into above per-task pullValAnswer),
+                                           OR: NULL if that info is not being used */
+  int processMode,                      /* what kind of point processing is being
+                                           done by this task right now */
+    probeSeedPreThreshOnly;             /* hack-ish flag to communicate to pullProbe
+                                           that we only care about SeedPreThresh */
+  airThread *thread;                    /* my thread */
+  unsigned int threadIdx;               /* which thread am I */
+  airRandMTState *rng;                  /* state for my RNG */
+  pullPoint *pointBuffer,               /* place for copying point into during
+                                           strength ascent computation; can't be
+                                           statically allocated because pullPoint
+                                           size is known only at run-time */
+    **neighPoint;                       /* array of point pointers, either all
+                                           possible points from neighbor bins, or
+                                           last learned interacting neighbors */
+  pullPoint **addPoint;                 /* points to add before next iter */
+  unsigned int addPointNum;             /* # of points to add */
+  airArray *addPointArr;                /* airArray around addPoint, addPointNum */
+  pullPoint **nixPoint;                 /* points to nix before next iter */
+  unsigned int nixPointNum;             /* # of points to nix */
+  airArray *nixPointArr;                /* airArray around nixPoint, nixPointNum */
+  void *returnPtr;                      /* for airThreadJoin */
+  unsigned int stuckNum;                /* # stuck particles seen by this task */
 } pullTask;
 
 /*
@@ -532,7 +530,7 @@ enum {
   pullInitMethodGivenPos,      /* 4 */
   pullInitMethodLast
 };
-#define PULL_INIT_METHOD_MAX      4
+#define PULL_INIT_METHOD_MAX 4
 
 /*
 ******** pullInitParm
@@ -541,31 +539,31 @@ enum {
 ** (note that there is no pullInit* enum; these values are too diverse)
 */
 typedef struct {
-  int method;               /* from pullInitMethod* enum */
-  int liveThreshUse,        /* use the liveThresh info as a criterion
-                               for seeding */
-    unequalShapesAllow;     /* when taking in volumes, allow their shapes
-                               to be unuequal.  Some confusing usage problems
-                               are due to using differently shaped volumes */
-  double jitter;            /* w/ PointPerVoxel,
-                               how much to jitter index space positions */
-  unsigned int numInitial,  /* w/ Random OR Halton, # points to start with */
-    haltonStartIndex,       /* w/ Halton, first index to use */
-    samplesAlongScaleNum,   /* w/ PointPerVoxel,
-                               # of samples along scale (distributed
-                               uniformly in scale's *index* space*/
-    ppvZRange[2];           /* (hack to permit seeding only in part of
-                               volume, when initialization is painfully
-                               the main bottleneck) w/ PointPerVoxel,
-                               range of indices along Z to do seeding
-                               by pointPerVoxel, or, {1,0} to do the
-                               whole volume as normal */
-  int pointPerVoxel;        /* w/ PointPerVoxel,
-                               if this (ppv) is > 0, then use
-                               ppv points per voxel. If ppv < 0, then jitter
-                               point point every -ppv'th voxel
-                               (so ppv=-1 is same as ppv=1) */
-  const Nrrd *npos;         /* positions (4xN array) to start with */
+  int method;              /* from pullInitMethod* enum */
+  int liveThreshUse,       /* use the liveThresh info as a criterion
+                              for seeding */
+    unequalShapesAllow;    /* when taking in volumes, allow their shapes
+                              to be unuequal.  Some confusing usage problems
+                              are due to using differently shaped volumes */
+  double jitter;           /* w/ PointPerVoxel,
+                              how much to jitter index space positions */
+  unsigned int numInitial, /* w/ Random OR Halton, # points to start with */
+    haltonStartIndex,      /* w/ Halton, first index to use */
+    samplesAlongScaleNum,  /* w/ PointPerVoxel,
+                              # of samples along scale (distributed
+                              uniformly in scale's *index* space*/
+    ppvZRange[2];          /* (hack to permit seeding only in part of
+                              volume, when initialization is painfully
+                              the main bottleneck) w/ PointPerVoxel,
+                              range of indices along Z to do seeding
+                              by pointPerVoxel, or, {1,0} to do the
+                              whole volume as normal */
+  int pointPerVoxel;       /* w/ PointPerVoxel,
+                              if this (ppv) is > 0, then use
+                              ppv points per voxel. If ppv < 0, then jitter
+                              point point every -ppv'th voxel
+                              (so ppv=-1 is same as ppv=1) */
+  const Nrrd *npos;        /* positions (4xN array) to start with */
 } pullInitParm;
 
 /*
@@ -614,14 +612,8 @@ enum {
 };
 
 typedef struct {
-  unsigned int min, max,
-    popCntlPeriod,
-    addDescent,
-    constraintMax,
-    stuckMax,
-    callback,
-    snap,
-    energyIncreasePermitHalfLife;
+  unsigned int min, max, popCntlPeriod, addDescent, constraintMax, stuckMax, callback,
+    snap, energyIncreasePermitHalfLife;
 } pullIterParm;
 
 /*
@@ -717,14 +709,10 @@ enum {
 };
 
 typedef struct {
-  double alpha, beta, gamma, separableGammaLearnRescale, wall,
-    radiusSpace, radiusScale, binWidthSpace,
-    neighborTrueProb, probeProb,
-    stepInitial, opporStepScale, backStepScale, constraintStepMin,
-    energyDecreaseMin,
-    energyDecreasePopCntlMin,
-    energyIncreasePermit,
-    fracNeighNixedMax;
+  double alpha, beta, gamma, separableGammaLearnRescale, wall, radiusSpace, radiusScale,
+    binWidthSpace, neighborTrueProb, probeProb, stepInitial, opporStepScale,
+    backStepScale, constraintStepMin, energyDecreaseMin, energyDecreasePopCntlMin,
+    energyIncreasePermit, fracNeighNixedMax;
 } pullSysParm;
 
 /*
@@ -733,17 +721,17 @@ typedef struct {
 ** the various ways constriant satisfaction can fail
 */
 enum {
-  pullConstraintFailUnknown,        /* 0 */
-  pullConstraintFailHessZeroA,      /* 1 */
-  pullConstraintFailHessZeroB,      /* 2 */
-  pullConstraintFailProjGradZeroA,  /* 3 */
-  pullConstraintFailProjGradZeroB,  /* 4 */
-  pullConstraintFailIterMaxed,      /* 5 */
-  pullConstraintFailTravel,         /* 6 */
-  pullConstraintFailProjLenNonExist,/* 7 */
+  pullConstraintFailUnknown,         /* 0 */
+  pullConstraintFailHessZeroA,       /* 1 */
+  pullConstraintFailHessZeroB,       /* 2 */
+  pullConstraintFailProjGradZeroA,   /* 3 */
+  pullConstraintFailProjGradZeroB,   /* 4 */
+  pullConstraintFailIterMaxed,       /* 5 */
+  pullConstraintFailTravel,          /* 6 */
+  pullConstraintFailProjLenNonExist, /* 7 */
   pullConstraintFailLast
 };
-#define PULL_CONSTRAINT_FAIL_MAX       7
+#define PULL_CONSTRAINT_FAIL_MAX 7
 
 /*
 ******** pullFlag* enum
@@ -832,22 +820,10 @@ enum {
 };
 
 typedef struct {
-  int permuteOnRebin,
-    noPopCntlWithZeroAlpha,
-    useBetaForGammaLearn,
-    restrictiveAddToBins,
-    energyFromStrength,
-    nixAtVolumeEdgeSpace,
-    nixAtVolumeEdgeSpaceInitRorH,
-    constraintBeforeSeedThresh,
-    popCntlEnoughTest,
-    convergenceIgnoresPopCntl,
-    noAdd,
-    binSingle,
-    allowCodimension3Constraints,
-    scaleIsTau,
-    startSkipsPoints,
-    zeroZ;
+  int permuteOnRebin, noPopCntlWithZeroAlpha, useBetaForGammaLearn, restrictiveAddToBins,
+    energyFromStrength, nixAtVolumeEdgeSpace, nixAtVolumeEdgeSpaceInitRorH,
+    constraintBeforeSeedThresh, popCntlEnoughTest, convergenceIgnoresPopCntl, noAdd,
+    binSingle, allowCodimension3Constraints, scaleIsTau, startSkipsPoints, zeroZ;
 } pullFlag;
 
 /*
@@ -859,143 +835,141 @@ typedef struct {
 typedef struct pullContext_t {
   /* INPUT ----------------------------- */
 
-  pullInitParm initParm;           /* parms for initialization, set with
-                                      the pullInit*Set() functions */
-  pullIterParm iterParm;           /* parms about iterations and periods, set
-                                      with pullIterParmSet() */
-  pullSysParm sysParm;             /* continuous parameters for system,
-                                      set with pullSysParmSet() */
-  pullFlag flag;                   /* all flags, set with pullFlagSet() */
-  int verbose;                     /* verbosity level, set with
-                                      pullVerboseSet() */
-  unsigned int threadNum,          /* number of threads to use, set with
-                                      pullThreadNumSet() */
-    rngSeed,                       /* seed value for random number generator,
-                                      NOT directly related to seed point
-                                      placement (as name might suggest),
-                                      set with pullRngSeedSet() */
-    progressBinMod;                /* if non-zero, progress indication by
-                                      printing "." is given when the bin index
-                                      is a multiple of this; higher numbers
-                                      give less feedback, set with
-                                      pullProgressBinModSet() */
-  void (*iter_cb)(void *data_cb);  /* callback to call from pullRun() every
-                                      iterParm.callback iterations. This and
-                                      data_cb are set w/ pullCallbackSet() */
-  void *data_cb;                   /* data to pass to callback */
-  pullVolume
-    *vol[PULL_VOLUME_MAXNUM];      /* the volumes we analyze (we DO OWN),
-                                      set by either pullVolumeSingleAdd()
-                                      or pullVolumeStackAdd() */
-  unsigned int volNum;             /* actual length of vol[] used */
-  pullInfoSpec
-    *ispec[PULL_INFO_MAX+1];       /* info ii is in effect if ispec[ii] is
-                                      non-NULL (and we DO OWN ispec[ii]),
-                                      set by pullInfoSpecAdd() */
-  int interType;                   /* from the pullInterType* enum.  This
-                                      and the energy specs below are set by
-                                      pullInterEnergySet() */
-  pullEnergySpec *energySpecR,     /* starting point for radial potential
-                                      energy function, phi_r */
-    *energySpecS,                  /* second energy potential function, for
-                                      scale-space behavior, phi_s */
-    *energySpecWin;                /* function used to window phi_r along s,
-                                      and phi_s along r, for use with
-                                      pullInterTypeAdditive */
+  pullInitParm initParm;                  /* parms for initialization, set with
+                                             the pullInit*Set() functions */
+  pullIterParm iterParm;                  /* parms about iterations and periods, set
+                                             with pullIterParmSet() */
+  pullSysParm sysParm;                    /* continuous parameters for system,
+                                             set with pullSysParmSet() */
+  pullFlag flag;                          /* all flags, set with pullFlagSet() */
+  int verbose;                            /* verbosity level, set with
+                                             pullVerboseSet() */
+  unsigned int threadNum,                 /* number of threads to use, set with
+                                             pullThreadNumSet() */
+    rngSeed,                              /* seed value for random number generator,
+                                             NOT directly related to seed point
+                                             placement (as name might suggest),
+                                             set with pullRngSeedSet() */
+    progressBinMod;                       /* if non-zero, progress indication by
+                                             printing "." is given when the bin index
+                                             is a multiple of this; higher numbers
+                                             give less feedback, set with
+                                             pullProgressBinModSet() */
+  void (*iter_cb)(void *data_cb);         /* callback to call from pullRun() every
+                                             iterParm.callback iterations. This and
+                                             data_cb are set w/ pullCallbackSet() */
+  void *data_cb;                          /* data to pass to callback */
+  pullVolume *vol[PULL_VOLUME_MAXNUM];    /* the volumes we analyze (we DO OWN),
+                                             set by either pullVolumeSingleAdd()
+                                             or pullVolumeStackAdd() */
+  unsigned int volNum;                    /* actual length of vol[] used */
+  pullInfoSpec *ispec[PULL_INFO_MAX + 1]; /* info ii is in effect if ispec[ii] is
+                                             non-NULL (and we DO OWN ispec[ii]),
+                                             set by pullInfoSpecAdd() */
+  int interType;                          /* from the pullInterType* enum.  This
+                                             and the energy specs below are set by
+                                             pullInterEnergySet() */
+  pullEnergySpec *energySpecR,            /* starting point for radial potential
+                                             energy function, phi_r */
+    *energySpecS,                         /* second energy potential function, for
+                                             scale-space behavior, phi_s */
+    *energySpecWin;                       /* function used to window phi_r along s,
+                                             and phi_s along r, for use with
+                                             pullInterTypeAdditive */
 
   /* INTERNAL -------------------------- */
 
-  unsigned int haltonOffset;       /* with pullInitMethodHalton, add this to
-                                      the index to sequence generation, to
-                                      account for the points previously
-                                      generated (which did not meet the
-                                      constraint satisfaction) */
-  double bboxMin[4], bboxMax[4];   /* scale-space bounding box of all volumes:
-                                      region over which binning is defined.
-                                      In 3-D space, the bbox is axis aligned,
-                                      even when the volume is not so aligned,
-                                      which means that some bins might be
-                                      under- or un- utilized, oh well.
-                                      bboxMin[3] and bboxMax[3] are the
-                                      bounds of the volume in *scale* (sigma),
-                                      not t, or tau */
-  unsigned int infoTotalLen,       /* total length of the info buffers needed,
-                                      which determines size of allocated
-                                      binPoint */
-    infoIdx[PULL_INFO_MAX+1],      /* index of answer within pullPoint->info */
-    idtagNext;                     /* next per-point igtag value */
-  int haveScale,                   /* non-zero iff one of the volumes is in
-                                      scale-space */
-    constraint,                    /* if non-zero, we have a constraint to
-                                      satisfy, and this is its info number  */
-    constraintDim,                 /* dimension of *spatial* constraint
-                                      manifold we're working on; or
-                                      -1 if unknown/unset */
-    targetDim,                     /* dimension of total constraint manifold
-                                      which can be different than constraintDim
-                                      because of scale-space, and either
-                                      repulsive (+1) or attractive (+0)
-                                      behavior along scale; or
-                                      -1 if unknown/unset */
-    finished;                      /* used to signal all threads to return */
-  double maxDistSpace,             /* max dist of point-point interaction in
-                                      the spatial axes.*/
-    maxDistScale,                  /* max dist of point-point interaction
-                                      along scale */
-    voxelSizeSpace,                /* mean spatial voxel edge length, for
-                                      limiting travel distance for descent
-                                      and constraint satisfaction */
-    voxelSizeScale,                /* mean voxel edge length in space, for
-                                      limiting travel (along scale) distance
-                                      during descent */
-    eipScale;                      /* how to scale energyIncreasePermit
-                                      at each iteration, in accordance with
-                                      energyIncreasePermitHalfLife */
-  pullBin *bin;                    /* volume of bins (see binsEdge, binNum) */
-  unsigned int binsEdge[4],        /* # bins along each volume edge,
-                                      determined by maxEval and scale */
-    binNum,                        /* total # bins in grid */
-    binNextIdx;                    /* next bin of points to be processed,
-                                      we're done when binNextIdx == binNum */
-  unsigned int *tmpPointPerm;      /* storing points during rebinning */
+  unsigned int haltonOffset;     /* with pullInitMethodHalton, add this to
+                                    the index to sequence generation, to
+                                    account for the points previously
+                                    generated (which did not meet the
+                                    constraint satisfaction) */
+  double bboxMin[4], bboxMax[4]; /* scale-space bounding box of all volumes:
+                                    region over which binning is defined.
+                                    In 3-D space, the bbox is axis aligned,
+                                    even when the volume is not so aligned,
+                                    which means that some bins might be
+                                    under- or un- utilized, oh well.
+                                    bboxMin[3] and bboxMax[3] are the
+                                    bounds of the volume in *scale* (sigma),
+                                    not t, or tau */
+  unsigned int infoTotalLen,     /* total length of the info buffers needed,
+                                    which determines size of allocated
+                                    binPoint */
+    infoIdx[PULL_INFO_MAX + 1],  /* index of answer within pullPoint->info */
+    idtagNext;                   /* next per-point igtag value */
+  int haveScale,                 /* non-zero iff one of the volumes is in
+                                    scale-space */
+    constraint,                  /* if non-zero, we have a constraint to
+                                    satisfy, and this is its info number  */
+    constraintDim,               /* dimension of *spatial* constraint
+                                    manifold we're working on; or
+                                    -1 if unknown/unset */
+    targetDim,                   /* dimension of total constraint manifold
+                                    which can be different than constraintDim
+                                    because of scale-space, and either
+                                    repulsive (+1) or attractive (+0)
+                                    behavior along scale; or
+                                    -1 if unknown/unset */
+    finished;                    /* used to signal all threads to return */
+  double maxDistSpace,           /* max dist of point-point interaction in
+                                    the spatial axes.*/
+    maxDistScale,                /* max dist of point-point interaction
+                                    along scale */
+    voxelSizeSpace,              /* mean spatial voxel edge length, for
+                                    limiting travel distance for descent
+                                    and constraint satisfaction */
+    voxelSizeScale,              /* mean voxel edge length in space, for
+                                    limiting travel (along scale) distance
+                                    during descent */
+    eipScale;                    /* how to scale energyIncreasePermit
+                                    at each iteration, in accordance with
+                                    energyIncreasePermitHalfLife */
+  pullBin *bin;                  /* volume of bins (see binsEdge, binNum) */
+  unsigned int binsEdge[4],      /* # bins along each volume edge,
+                                    determined by maxEval and scale */
+    binNum,                      /* total # bins in grid */
+    binNextIdx;                  /* next bin of points to be processed,
+                                    we're done when binNextIdx == binNum */
+  unsigned int *tmpPointPerm;    /* storing points during rebinning */
   pullPoint **tmpPointPtr;
   unsigned int tmpPointNum;
 
-  airThreadMutex *binMutex;        /* mutex around bin, needed because bins
-                                      are the unit of work for the tasks */
-  pullTask **task;                 /* dynamically allocated array of tasks */
-  airThreadBarrier *iterBarrierA;  /* barriers between iterations */
-  airThreadBarrier *iterBarrierB;  /* barriers between iterations */
+  airThreadMutex *binMutex;       /* mutex around bin, needed because bins
+                                     are the unit of work for the tasks */
+  pullTask **task;                /* dynamically allocated array of tasks */
+  airThreadBarrier *iterBarrierA; /* barriers between iterations */
+  airThreadBarrier *iterBarrierB; /* barriers between iterations */
 #if PULL_HINTER
-  Nrrd *nhinter;                   /* 2-D histogram of (r,s)-space relative
-                                      locations of interacting particles
-                                      (NOT thread safe) */
+  Nrrd *nhinter; /* 2-D histogram of (r,s)-space relative
+                    locations of interacting particles
+                    (NOT thread safe) */
 #endif
-  FILE *logAdd;                    /* text-file record of all the particles
-                                      that have been added
-                                      (NOT thread-safe) */
+  FILE *logAdd; /* text-file record of all the particles
+                   that have been added
+                   (NOT thread-safe) */
 
   /* OUTPUT ---------------------------- */
 
-  double timeIteration,            /* time needed for last (single) iter */
-    timeRun,                       /* total time spent in pullRun() */
-    energy;                        /* final energy of system */
-  unsigned int addNum,             /* # prtls added by PopCntl in last iter */
-    nixNum,                        /* # prtls nixed by PopCntl in last iter */
-    stuckNum,                      /* # stuck particles in last iter */
-    pointNum,                      /* total # particles */
-    CCNum,                         /* # connected components */
-    iter,                          /* how many iterations were needed
-                                      (this is updated per iteration) */
-  /* HEY: this should really be per-task, to be thread-safe!! */
-    count[PULL_COUNT_MAX+1];       /* all possible kinds of counts */
+  double timeIteration, /* time needed for last (single) iter */
+    timeRun,            /* total time spent in pullRun() */
+    energy;             /* final energy of system */
+  unsigned int addNum,  /* # prtls added by PopCntl in last iter */
+    nixNum,             /* # prtls nixed by PopCntl in last iter */
+    stuckNum,           /* # stuck particles in last iter */
+    pointNum,           /* total # particles */
+    CCNum,              /* # connected components */
+    iter,               /* how many iterations were needed
+                           (this is updated per iteration) */
+                        /* HEY: this should really be per-task, to be thread-safe!! */
+    count[PULL_COUNT_MAX + 1]; /* all possible kinds of counts */
 } pullContext;
 
 /*
 ******** pullTrace
 */
 typedef struct {
-  double seedPos[4];    /* where was the seed point */
+  double seedPos[4]; /* where was the seed point */
   /* ------- output ------- */
   Nrrd *nvert,          /* (x,y,z,s) locations of tract vertices */
     *nstrn,             /* if nstrn->data non-NULL:
@@ -1048,19 +1022,15 @@ PULL_EXPORT int pullInitRandomSet(pullContext *pctx, unsigned int numInitial);
 PULL_EXPORT int pullInitHaltonSet(pullContext *pctx, unsigned int numInitial,
                                   unsigned int start);
 PULL_EXPORT int pullInitPointPerVoxelSet(pullContext *pctx, int pointPerVoxel,
-                                         unsigned int zSlcMin,
-                                         unsigned int zSlcMax,
-                                         unsigned int alongScaleNum,
-                                         double jitter);
+                                         unsigned int zSlcMin, unsigned int zSlcMax,
+                                         unsigned int alongScaleNum, double jitter);
 PULL_EXPORT int pullInitGivenPosSet(pullContext *pctx, const Nrrd *npos);
 PULL_EXPORT int pullInitLiveThreshUseSet(pullContext *pctx, int liveThreshUse);
 PULL_EXPORT int pullInitUnequalShapesAllowSet(pullContext *pctx, int allow);
 
 /* parmPull.c */
-PULL_EXPORT int pullIterParmSet(pullContext *pctx, int which,
-                                unsigned int pval);
-PULL_EXPORT int pullSysParmSet(pullContext *pctx, int which,
-                               double pval);
+PULL_EXPORT int pullIterParmSet(pullContext *pctx, int which, unsigned int pval);
+PULL_EXPORT int pullSysParmSet(pullContext *pctx, int which, double pval);
 PULL_EXPORT int pullFlagSet(pullContext *pctx, int which, int flag);
 PULL_EXPORT int pullVerboseSet(pullContext *pctx, int verbose);
 PULL_EXPORT int pullThreadNumSet(pullContext *pctx, unsigned int threadNum);
@@ -1092,13 +1062,12 @@ PULL_EXPORT const pullEnergy *const pullEnergyQuarticWell;
 PULL_EXPORT const pullEnergy *const pullEnergyHepticWell;
 PULL_EXPORT const pullEnergy *const pullEnergyZero;
 PULL_EXPORT const pullEnergy *const pullEnergyButterworthParabola;
-PULL_EXPORT const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX+1];
+PULL_EXPORT const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX + 1];
 PULL_EXPORT pullEnergySpec *pullEnergySpecNew(void);
 PULL_EXPORT void pullEnergySpecSet(pullEnergySpec *ensp,
                                    const pullEnergy *energy,
                                    const double parm[PULL_ENERGY_PARM_NUM]);
-PULL_EXPORT void pullEnergySpecCopy(pullEnergySpec *esDst,
-                                    const pullEnergySpec *esSrc);
+PULL_EXPORT void pullEnergySpecCopy(pullEnergySpec *esDst, const pullEnergySpec *esSrc);
 PULL_EXPORT pullEnergySpec *pullEnergySpecNix(pullEnergySpec *ensp);
 PULL_EXPORT int pullEnergySpecParse(pullEnergySpec *ensp, const char *str);
 PULL_EXPORT hestCB *pullHestEnergySpec;
@@ -1106,10 +1075,8 @@ PULL_EXPORT hestCB *pullHestEnergySpec;
 /* volumePull.c */
 PULL_EXPORT pullVolume *pullVolumeNew(void);
 PULL_EXPORT pullVolume *pullVolumeNix(pullVolume *vol);
-PULL_EXPORT int pullVolumeSingleAdd(pullContext *pctx,
-                                    const gageKind *kind,
-                                    char *name, const Nrrd *nin,
-                                    const NrrdKernelSpec *ksp00,
+PULL_EXPORT int pullVolumeSingleAdd(pullContext *pctx, const gageKind *kind, char *name,
+                                    const Nrrd *nin, const NrrdKernelSpec *ksp00,
                                     const NrrdKernelSpec *ksp11,
                                     const NrrdKernelSpec *ksp22);
 PULL_EXPORT int pullVolumeStackAdd(pullContext *pctx,
@@ -1127,8 +1094,7 @@ PULL_EXPORT int pullVolumeStackAdd(pullContext *pctx,
                                    const NrrdKernelSpec *kspSS);
 PULL_EXPORT const pullVolume *pullVolumeLookup(const pullContext *pctx,
                                                const char *volName);
-PULL_EXPORT int pullConstraintScaleRange(pullContext *pctx,
-                                         double ssrange[2]);
+PULL_EXPORT int pullConstraintScaleRange(pullContext *pctx, double ssrange[2]);
 
 /* enumsPull.c */
 PULL_EXPORT const airEnum *const pullInfo;
@@ -1154,18 +1120,14 @@ PULL_EXPORT int pullInfoSpecSprint(char str[AIR_STRLEN_LARGE],
 /* contextPull.c */
 PULL_EXPORT pullContext *pullContextNew(void);
 PULL_EXPORT pullContext *pullContextNix(pullContext *pctx);
-PULL_EXPORT int pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut,
-                              Nrrd *nStrengthOut,
+PULL_EXPORT int pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
                               const double scaleVec[3], double scaleRad,
                               pullContext *pctx);
-PULL_EXPORT int pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut,
-                                    Nrrd *nStrengthOut,
+PULL_EXPORT int pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
                                     const double scaleVec[3], double scaleRad,
-                                    pullContext *pctx,
-                                    unsigned int idtagMin,
+                                    pullContext *pctx, unsigned int idtagMin,
                                     unsigned int idtagMax);
-PULL_EXPORT int pullPositionHistoryPolydataGet(limnPolyData *pld,
-                                               pullContext *pctx);
+PULL_EXPORT int pullPositionHistoryPolydataGet(limnPolyData *pld, pullContext *pctx);
 PULL_EXPORT int pullPositionHistoryNrrdGet(Nrrd *nhist, pullContext *pctx,
                                            pullPoint *point);
 PULL_EXPORT int pullPropGet(Nrrd *nprop, int prop, pullContext *pctx);
@@ -1185,9 +1147,8 @@ PULL_EXPORT int pullPointInitializeGivenPos(pullContext *pctx,
                                             const unsigned int pointIdx,
                                             pullPoint *point,
                                             int *createFailP);
-PULL_EXPORT double pullPointScalar(const pullContext *pctx,
-                                   const pullPoint *point, int sclInfo,
-                                   double grad[4], double hess[9]);
+PULL_EXPORT double pullPointScalar(const pullContext *pctx, const pullPoint *point,
+                                   int sclInfo, double grad[4], double hess[9]);
 PULL_EXPORT unsigned int pullPointNumber(const pullContext *pctx);
 PULL_EXPORT unsigned int pullPointNumberFilter(const pullContext *pctx,
                                                unsigned int idtagMin,
@@ -1216,34 +1177,27 @@ PULL_EXPORT void pullTraceStability(double *spcStab,
                                     const double ori1[3],
                                     double sigma0,
                                     const pullContext *pctx);
-PULL_EXPORT int pullTraceSet(pullContext *pctx, pullTrace *trc,
-                             int recordStrength,
+PULL_EXPORT int pullTraceSet(pullContext *pctx, pullTrace *trc, int recordStrength,
                              double scaleDelta, double halfScaleWin,
-                             double orientTestLen,
-                             unsigned int arrIncr,
+                             double orientTestLen, unsigned int arrIncr,
                              const double seedPos[4]);
 PULL_EXPORT pullTraceMulti *pullTraceMultiNew(void);
 PULL_EXPORT pullTraceMulti *pullTraceMultiNix(pullTraceMulti *mtrc);
-PULL_EXPORT int pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc,
-                                  int *addedP);
+PULL_EXPORT int pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc, int *addedP);
 PULL_EXPORT int pullTraceMultiFilterConcaveDown(Nrrd *nfilt,
                                                 const pullTraceMulti *mtrc,
                                                 double winLenFrac);
-PULL_EXPORT int pullTraceMultiPlotAdd(Nrrd *nplot,
-                                      const pullTraceMulti *mtrc,
-                                      const Nrrd *nfilt, int strengthUse,
-                                      int smooth, int flatWght,
-                                      unsigned int trcIdxMin,
-                                      unsigned int trcNum,
-                                      Nrrd *nmaskedpos,
+PULL_EXPORT int pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
+                                      const Nrrd *nfilt, int strengthUse, int smooth,
+                                      int flatWght, unsigned int trcIdxMin,
+                                      unsigned int trcNum, Nrrd *nmaskedpos,
                                       const Nrrd *nmask);
 PULL_EXPORT int pullTraceMultiWrite(FILE *file, const pullTraceMulti *mtrc);
 PULL_EXPORT int pullTraceMultiRead(pullTraceMulti *mtrc, FILE *file);
 
 /* actionPull.c */
-PULL_EXPORT int pullEnergyPlot(pullContext *pctx, Nrrd *nplot,
-                               double xx, double yy, double zz,
-                               unsigned int res);
+PULL_EXPORT int pullEnergyPlot(pullContext *pctx, Nrrd *nplot, double xx, double yy,
+                               double zz, unsigned int res);
 PULL_EXPORT int pullBinProcess(pullTask *task, unsigned int myBinIdx);
 PULL_EXPORT int pullGammaLearn(pullContext *pctx);
 
@@ -1254,8 +1208,7 @@ PULL_EXPORT int pullFinish(pullContext *pctx);
 
 /* ccPull.c */
 PULL_EXPORT int pullCCFind(pullContext *pctx);
-PULL_EXPORT int pullCCMeasure(pullContext *pctx, Nrrd *nmeas,
-                              int measrInfo, double rho);
+PULL_EXPORT int pullCCMeasure(pullContext *pctx, Nrrd *nmeas, int measrInfo, double rho);
 PULL_EXPORT int pullCCSort(pullContext *pctx, int measrInfo, double rho);
 
 #ifdef __cplusplus

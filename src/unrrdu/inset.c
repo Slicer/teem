@@ -25,13 +25,12 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Replace a sub-region with a different nrrd"
-static const char *_unrrdu_insetInfoL =
-(INFO ". This is functionally the opposite of \"crop\".\n "
- "* Uses nrrdInset");
+static const char *_unrrdu_insetInfoL
+  = (INFO ". This is functionally the opposite of \"crop\".\n "
+          "* Uses nrrdInset");
 
 int
-unrrdu_insetMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+unrrdu_insetMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nsub;
@@ -49,8 +48,8 @@ unrrdu_insetMain(int argc, const char **argv, const char *me,
                 "to the last sample on the axis (M == #samples-1).",
                 minLen);
   hestOptAdd(&opt, "s,subset", "nsub", airTypeOther, 1, 1, &(nsub), NULL,
-             "sub-region nrrd.  This the data to be inset in \"nin\"",
-             NULL, NULL, nrrdHestNrrd);
+             "sub-region nrrd.  This the data to be inset in \"nin\"", NULL, NULL,
+             nrrdHestNrrd);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -61,23 +60,20 @@ unrrdu_insetMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( minLen == nin->dim )) {
-    fprintf(stderr,
-            "%s: # min coords (%d) != nrrd dim (%d)\n",
-            me, minLen, nin->dim);
+  if (!(minLen == nin->dim)) {
+    fprintf(stderr, "%s: # min coords (%d) != nrrd dim (%d)\n", me, minLen, nin->dim);
     airMopError(mop);
     return 1;
   }
-  for (ai=0; ai<nin->dim; ai++) {
-    if (-1 == minOff[0 + 2*ai]) {
-      fprintf(stderr, "%s: can't use m+<int> specification for axis %u min\n",
-              me, ai);
+  for (ai = 0; ai < nin->dim; ai++) {
+    if (-1 == minOff[0 + 2 * ai]) {
+      fprintf(stderr, "%s: can't use m+<int> specification for axis %u min\n", me, ai);
       airMopError(mop);
       return 1;
     }
   }
-  for (ai=0; ai<=nin->dim-1; ai++) {
-    min[ai] = minOff[0 + 2*ai]*(nin->axis[ai].size-1) + minOff[1 + 2*ai];
+  for (ai = 0; ai <= nin->dim - 1; ai++) {
+    min[ai] = minOff[0 + 2 * ai] * (nin->axis[ai].size - 1) + minOff[1 + 2 * ai];
   }
 
   nout = nrrdNew();

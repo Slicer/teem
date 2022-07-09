@@ -40,27 +40,25 @@ extern "C" {
 #define _GAGE_NON_ERR_STR "(error)"
 
 /* shape.c */
-extern int _gageShapeSet(const gageContext *ctx, gageShape *shape,
-                         const Nrrd *nin, unsigned int baseDim);
+extern int _gageShapeSet(const gageContext *ctx, gageShape *shape, const Nrrd *nin,
+                         unsigned int baseDim);
 
 /* ctx.c */
 extern int _gageProbe(gageContext *ctx, double xi, double yi, double zi,
                       double stackIdx);
-extern int _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz,
-                           double ss, int indexSpace, int clamp);
+extern int _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
+                           int indexSpace, int clamp);
 
 /* pvl.c */
 extern gagePerVolume *_gagePerVolumeCopy(gagePerVolume *pvl, unsigned int fd);
-extern double *_gageAnswerPointer(const gageContext *ctx,
-                                  gagePerVolume *pvl, int item);
+extern double *_gageAnswerPointer(const gageContext *ctx, gagePerVolume *pvl, int item);
 
 /* print.c */
 extern void _gagePrint_off(FILE *, gageContext *ctx);
 extern void _gagePrint_fslw(FILE *, gageContext *ctx);
 
 /* filter.c */
-extern int _gageLocationSet(gageContext *ctx,
-                            double x, double y, double z, double s);
+extern int _gageLocationSet(gageContext *ctx, double x, double y, double z, double s);
 
 /* stack.c */
 extern int _gageStackBaseIv3Fill(gageContext *ctx);

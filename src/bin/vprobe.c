@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include <stdio.h>
 
 #include <teem/biff.h>
@@ -31,12 +30,11 @@
 #include <teem/ten.h>
 #include <teem/meet.h>
 
-static const char *probeInfo =
-  ("Shows off the functionality of the gage library. "
-   "Uses gageProbe() to query various kinds of volumes "
-   "to learn various measured or derived quantities. "
-   "Can set environment variable TEEM_VPROBE_HACK_ZI "
-   "to limit probing to a single z slice.");
+static const char *probeInfo = ("Shows off the functionality of the gage library. "
+                                "Uses gageProbe() to query various kinds of volumes "
+                                "to learn various measured or derived quantities. "
+                                "Can set environment variable TEEM_VPROBE_HACK_ZI "
+                                "to limit probing to a single z slice.");
 
 int
 main(int argc, const char *argv[]) {
@@ -46,24 +44,24 @@ main(int argc, const char *argv[]) {
   hestParm *hparm;
   hestOpt *hopt = NULL;
   NrrdKernelSpec *k00, *k11, *k22, *kSS, *kSSblur;
-  int what, E=0, renorm, SSuniform, SSoptim, verbose, zeroZ,
-    orientationFromSpacing, SSnormd;
+  int what, E = 0, renorm, SSuniform, SSoptim, verbose, zeroZ, orientationFromSpacing,
+            SSnormd;
   unsigned int iBaseDim, oBaseDim, axi, numSS, ninSSIdx, seed;
   const double *answer;
-  Nrrd *nin, *nout, **ninSS=NULL;
-  Nrrd *ngrad=NULL, *nbmat=NULL;
+  Nrrd *nin, *nout, **ninSS = NULL;
+  Nrrd *ngrad = NULL, *nbmat = NULL;
   size_t ai, ansLen, idx, xi, yi, zi, six, siy, siz, sox, soy, soz;
-  double bval=0, gmc, rangeSS[2], wrlSS, idxSS=AIR_NAN,
-    dsix, dsiy, dsiz, dsox, dsoy, dsoz;
+  double bval = 0, gmc, rangeSS[2], wrlSS, idxSS = AIR_NAN, dsix, dsiy, dsiz, dsox, dsoy,
+         dsoz;
   gageContext *ctx;
-  gagePerVolume *pvl=NULL;
+  gagePerVolume *pvl = NULL;
   double t0, t1, x, y, z, scale[3], rscl[3], min[3], maxOut[3], maxIn[3];
   airArray *mop;
   unsigned int hackZi, *skip, skipNum;
   double (*ins)(void *v, size_t I, double d);
   gageStackBlurParm *sbp;
 
-  char hackKeyStr[]="TEEM_VPROBE_HACK_ZI", *hackValStr;
+  char hackKeyStr[] = "TEEM_VPROBE_HACK_ZI", *hackValStr;
   int otype, hackSet;
   char stmp[4][AIR_STRLEN_SMALL];
 
@@ -80,9 +78,9 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "  %s: nrrd sanity check FAILED.\n", me);
     fprintf(stderr, "\n");
     fprintf(stderr, "  This means that either nrrd can't work on this "
-            "platform, or (more likely)\n");
+                    "platform, or (more likely)\n");
     fprintf(stderr, "  there was an error in the compilation options "
-            "and variable definitions\n");
+                    "and variable definitions\n");
     fprintf(stderr, "  for how Teem was built here.\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "  %s\n", err = biffGetDone(NRRD));
@@ -97,8 +95,8 @@ main(int argc, const char *argv[]) {
   hparm = hestParmNew();
   airMopAdd(mop, hparm, AIR_CAST(airMopper, hestParmFree), airMopAlways);
   hparm->elideSingleOtherType = AIR_TRUE;
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input volume", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL, "input volume", NULL,
+             NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
              "\"kind\" of volume (\"scalar\", \"vector\", "
              "\"tensor\", or \"dwi\")",
@@ -107,49 +105,42 @@ main(int argc, const char *argv[]) {
              "verbosity level");
   hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
              "the quantity (scalar, vector, or matrix) to learn by probing");
-  hestOptAdd(&hopt, "s", "sclX sclY sxlZ", airTypeDouble, 3, 3, scale,
-             "1.0 1.0 1.0",
+  hestOptAdd(&hopt, "s", "sclX sclY sxlZ", airTypeDouble, 3, 3, scale, "1.0 1.0 1.0",
              "scaling factor for resampling on each axis "
              "(>1.0 : supersampling)");
-  hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00,
-             "tent", "kernel for gageKernel00",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k11", "kern11", airTypeOther, 1, 1, &k11,
-             "cubicd:1,0", "kernel for gageKernel11",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k22", "kern22", airTypeOther, 1, 1, &k22,
-             "cubicdd:1,0", "kernel for gageKernel22",
-             NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00, "tent",
+             "kernel for gageKernel00", NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "k11", "kern11", airTypeOther, 1, 1, &k11, "cubicd:1,0",
+             "kernel for gageKernel11", NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "k22", "kern22", airTypeOther, 1, 1, &k22, "cubicdd:1,0",
+             "kernel for gageKernel22", NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "seed", "N", airTypeUInt, 1, 1, &seed, "42",
              "RNG seed; mostly for debugging");
   hestOptAdd(&hopt, "zz", "bool", airTypeBool, 1, 1, &zeroZ, "false",
              "enable \"zeroZ\" behavior in gage that partially "
              "implements working with 3D images as if they are 2D");
 
-  hestOptAdd(&hopt, "ssn", "SS #", airTypeUInt, 1, 1, &numSS,
-             "0", "how many scale-space samples to evaluate, or, "
+  hestOptAdd(&hopt, "ssn", "SS #", airTypeUInt, 1, 1, &numSS, "0",
+             "how many scale-space samples to evaluate, or, "
              "0 to turn-off all scale-space behavior");
-  hestOptAdd(&hopt, "ssr", "scale range", airTypeDouble, 2, 2, rangeSS,
-             "nan nan", "range of scales in scale-space");
-  hestOptAdd(&hopt, "ssrf", "SS read format", airTypeString, 1, 1,
-             &stackReadFormat, "",
+  hestOptAdd(&hopt, "ssr", "scale range", airTypeDouble, 2, 2, rangeSS, "nan nan",
+             "range of scales in scale-space");
+  hestOptAdd(&hopt, "ssrf", "SS read format", airTypeString, 1, 1, &stackReadFormat, "",
              "printf-style format (including a \"%u\") for the "
              "filenames from which to *read* "
              "pre-blurred volumes computed for the stack");
-  hestOptAdd(&hopt, "sssf", "SS save format", airTypeString, 1, 1,
-             &stackSaveFormat, "",
+  hestOptAdd(&hopt, "sssf", "SS save format", airTypeString, 1, 1, &stackSaveFormat, "",
              "printf-style format (including a \"%u\") for the "
              "filenames in which to *save* "
              "pre-blurred volumes computed for the stack");
   hestOptAdd(&hopt, "ssw", "SS pos", airTypeDouble, 1, 1, &wrlSS, "0",
              "\"world\"-space position (true sigma) "
              "at which to sample in scale-space");
-  hestOptAdd(&hopt, "kssb", "kernel", airTypeOther, 1, 1, &kSSblur,
-             "dgauss:1,5", "blurring kernel, to sample scale space",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "kssr", "kernel", airTypeOther, 1, 1, &kSS,
-             "hermite", "kernel for reconstructing from scale space samples",
-             NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "kssb", "kernel", airTypeOther, 1, 1, &kSSblur, "dgauss:1,5",
+             "blurring kernel, to sample scale space", NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "kssr", "kernel", airTypeOther, 1, 1, &kSS, "hermite",
+             "kernel for reconstructing from scale space samples", NULL, NULL,
+             nrrdHestKernelSpec);
   hestOptAdd(&hopt, "ssu", NULL, airTypeInt, 0, 0, &SSuniform, NULL,
              "do uniform samples along sigma, and not (by default) "
              "samples according to the effective diffusion scale");
@@ -163,26 +154,25 @@ main(int argc, const char *argv[]) {
              "renormalize kernel weights at each new sample location. "
              "\"Accurate\" kernels don't need this; doing it always "
              "makes things go slower");
-  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc,
-             "0.0", "For curvature-based queries, use zero when gradient "
+  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc, "0.0",
+             "For curvature-based queries, use zero when gradient "
              "magnitude is below this");
-  hestOptAdd(&hopt, "ofs", "ofs", airTypeInt, 0, 0, &orientationFromSpacing,
-             NULL, "If only per-axis spacing is available, use that to "
+  hestOptAdd(&hopt, "ofs", "ofs", airTypeInt, 0, 0, &orientationFromSpacing, NULL,
+             "If only per-axis spacing is available, use that to "
              "contrive full orientation info");
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &otype, "float",
              "type of output volume", NULL, nrrdType);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output volume");
-  hestParseOrDie(hopt, argc-1, argv+1, hparm,
-                 me, probeInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-", "output volume");
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, probeInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   airMopAdd(mop, hopt, AIR_CAST(airMopper, hestOptFree), airMopAlways);
   airMopAdd(mop, hopt, AIR_CAST(airMopper, hestParseFree), airMopAlways);
 
   what = airEnumVal(kind->enm, whatS);
   if (!what) {
     /* 0 indeed always means "unknown" for any gageKind */
-    fprintf(stderr, "%s: couldn't parse \"%s\" as measure of \"%s\" volume\n",
-            me, whatS, kind->name);
+    fprintf(stderr, "%s: couldn't parse \"%s\" as measure of \"%s\" volume\n", me, whatS,
+            kind->name);
     hestUsage(stderr, hopt, me, hparm);
     hestGlossary(stderr, hopt, hparm);
     airMopError(mop);
@@ -194,19 +184,21 @@ main(int argc, const char *argv[]) {
     if (tenDWMRIKeyValueParse(&ngrad, &nbmat, &bval, &skip, &skipNum, nin)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if (skipNum) {
       fprintf(stderr, "%s: sorry, can't do DWI skipping in tenDwiGage", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     /* this could stand to use some more command-line arguments */
-    if (tenDwiGageKindSet(kind, 50, 1, bval, 0.001, ngrad, nbmat,
-                          tenEstimate1MethodLLS,
+    if (tenDwiGageKindSet(kind, 50, 1, bval, 0.001, ngrad, nbmat, tenEstimate1MethodLLS,
                           tenEstimate2MethodQSegLLS, seed)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
 
@@ -218,48 +210,50 @@ main(int argc, const char *argv[]) {
     ninSS = AIR_CAST(Nrrd **, calloc(numSS, sizeof(Nrrd *)));
     if (!ninSS) {
       fprintf(stderr, "%s: couldn't allocate ninSS", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
-    for (ninSSIdx=0; ninSSIdx<numSS; ninSSIdx++) {
+    for (ninSSIdx = 0; ninSSIdx < numSS; ninSSIdx++) {
       ninSS[ninSSIdx] = nrrdNew();
       airMopAdd(mop, ninSS[ninSSIdx], (airMopper)nrrdNuke, airMopAlways);
     }
-    if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1],
-                                  SSuniform, SSoptim)
+    if (gageStackBlurParmScaleSet(sbp, numSS, rangeSS[0], rangeSS[1], SSuniform, SSoptim)
         || gageStackBlurParmKernelSet(sbp, kSSblur)
         || gageStackBlurParmRenormalizeSet(sbp, AIR_TRUE)
         || gageStackBlurParmBoundarySet(sbp, nrrdBoundaryBleed, AIR_NAN)
         || gageStackBlurParmVerboseSet(sbp, verbose)) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble with stack blur info:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if (airStrlen(stackReadFormat)) {
-      if (nrrdLoadMulti(ninSS, numSS,
-                        stackReadFormat, 0, NULL)) {
+      if (nrrdLoadMulti(ninSS, numSS, stackReadFormat, 0, NULL)) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble loading blurrings:\n%s\n", me, err);
-        airMopError(mop); return 1;
+        airMopError(mop);
+        return 1;
       }
-      if (gageStackBlurCheck(AIR_CAST(const Nrrd *const*, ninSS),
-                             sbp, nin, kind)) {
+      if (gageStackBlurCheck(AIR_CAST(const Nrrd *const *, ninSS), sbp, nin, kind)) {
         airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-        airMopError(mop); return 1;
+        airMopError(mop);
+        return 1;
       }
     } else {
       if (gageStackBlur(ninSS, sbp, nin, kind)) {
         airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble pre-computing blurrings:\n%s\n", me, err);
-        airMopError(mop); return 1;
+        airMopError(mop);
+        return 1;
       }
       if (airStrlen(stackSaveFormat) && !airStrlen(stackReadFormat)) {
-        if (nrrdSaveMulti(stackSaveFormat,
-                          AIR_CAST(const Nrrd *const *, ninSS),
-                          numSS, 0, NULL)) {
+        if (nrrdSaveMulti(stackSaveFormat, AIR_CAST(const Nrrd *const *, ninSS), numSS,
+                          0, NULL)) {
           airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
           fprintf(stderr, "%s: trouble saving blurrings:\n%s\n", me, err);
-          airMopError(mop); return 1;
+          airMopError(mop);
+          return 1;
         }
       }
     }
@@ -271,22 +265,21 @@ main(int argc, const char *argv[]) {
        "world" space, not the (potentially non-uniform) index space.
        So here, we have to actually replicate work that is done by
        _gageProbeSpace() in converting from world to index space */
-    for (vi=0; vi<numSS-1; vi++) {
-      if (AIR_IN_CL(sbp->sigma[vi], wrlSS, sbp->sigma[vi+1])) {
-        idxSS = vi + AIR_AFFINE(sbp->sigma[vi], wrlSS, sbp->sigma[vi+1], 0, 1);
+    for (vi = 0; vi < numSS - 1; vi++) {
+      if (AIR_IN_CL(sbp->sigma[vi], wrlSS, sbp->sigma[vi + 1])) {
+        idxSS = vi + AIR_AFFINE(sbp->sigma[vi], wrlSS, sbp->sigma[vi + 1], 0, 1);
         if (verbose > 1) {
-          fprintf(stderr, "%s: scale pos %g -> idx %g = %u + %g\n", me,
-                  wrlSS, idxSS, vi,
-                  AIR_AFFINE(sbp->sigma[vi], wrlSS, sbp->sigma[vi+1], 0, 1));
+          fprintf(stderr, "%s: scale pos %g -> idx %g = %u + %g\n", me, wrlSS, idxSS, vi,
+                  AIR_AFFINE(sbp->sigma[vi], wrlSS, sbp->sigma[vi + 1], 0, 1));
         }
         break;
       }
     }
-    if (vi == numSS-1) {
-      fprintf(stderr, "%s: scale pos %g outside range %g=%g, %g=%g\n", me,
-              wrlSS, rangeSS[0], sbp->sigma[0],
-              rangeSS[1], sbp->sigma[numSS-1]);
-      airMopError(mop); return 1;
+    if (vi == numSS - 1) {
+      fprintf(stderr, "%s: scale pos %g outside range %g=%g, %g=%g\n", me, wrlSS,
+              rangeSS[0], sbp->sigma[0], rangeSS[1], sbp->sigma[numSS - 1]);
+      airMopError(mop);
+      return 1;
     }
   } else {
     ninSS = NULL;
@@ -315,12 +308,12 @@ main(int argc, const char *argv[]) {
     gagePerVolume **pvlSS;
     gageParmSet(ctx, gageParmStackUse, AIR_TRUE);
     gageParmSet(ctx, gageParmStackNormalizeDeriv, SSnormd);
-    if (!E) E |= !(pvlSS = AIR_CAST(gagePerVolume **,
-                                    calloc(numSS, sizeof(gagePerVolume *))));
+    if (!E)
+      E |= !(pvlSS = AIR_CAST(gagePerVolume **, calloc(numSS, sizeof(gagePerVolume *))));
     if (!E) airMopAdd(mop, pvlSS, (airMopper)airFree, airMopAlways);
-    if (!E) E |= gageStackPerVolumeNew(ctx, pvlSS,
-                                       AIR_CAST(const Nrrd*const*, ninSS),
-                                       numSS, kind);
+    if (!E)
+      E |= gageStackPerVolumeNew(ctx, pvlSS, AIR_CAST(const Nrrd *const *, ninSS), numSS,
+                                 kind);
     if (!E) E |= gageStackPerVolumeAttach(ctx, pvl, pvlSS, sbp->sigma, numSS);
     if (!E) E |= gageKernelSet(ctx, gageKernelStack, kSS->kernel, kSS->parm);
   } else {
@@ -342,58 +335,48 @@ main(int argc, const char *argv[]) {
   ansLen = kind->table[what].answerLength;
   iBaseDim = kind->baseDim;
   oBaseDim = 1 == ansLen ? 0 : 1;
-  six = nin->axis[0+iBaseDim].size;
-  siy = nin->axis[1+iBaseDim].size;
-  siz = nin->axis[2+iBaseDim].size;
+  six = nin->axis[0 + iBaseDim].size;
+  siy = nin->axis[1 + iBaseDim].size;
+  siz = nin->axis[2 + iBaseDim].size;
   dsix = AIR_CAST(double, six);
   dsiy = AIR_CAST(double, siy);
   dsiz = AIR_CAST(double, siz);
-  sox = AIR_CAST(size_t, scale[0]*dsix);
-  soy = AIR_CAST(size_t, scale[1]*dsiy);
-  soz = AIR_CAST(size_t, scale[2]*dsiz);
+  sox = AIR_CAST(size_t, scale[0] * dsix);
+  soy = AIR_CAST(size_t, scale[1] * dsiy);
+  soz = AIR_CAST(size_t, scale[2] * dsiz);
   dsox = AIR_CAST(double, sox);
   dsoy = AIR_CAST(double, soy);
   dsoz = AIR_CAST(double, soz);
   if (verbose) {
-    fprintf(stderr, "%s: six,y,z = %u %u %u\n", me,
-            AIR_UINT(six),
-            AIR_UINT(siy),
+    fprintf(stderr, "%s: six,y,z = %u %u %u\n", me, AIR_UINT(six), AIR_UINT(siy),
             AIR_UINT(siz));
-    fprintf(stderr, "%s: sox,y,z = %u %u %u\n", me,
-            AIR_UINT(sox),
-            AIR_UINT(soy),
+    fprintf(stderr, "%s: sox,y,z = %u %u %u\n", me, AIR_UINT(sox), AIR_UINT(soy),
             AIR_UINT(soz));
   }
-  rscl[0] = dsix/dsox;
-  rscl[1] = dsiy/dsoy;
-  rscl[2] = dsiz/dsoz;
+  rscl[0] = dsix / dsox;
+  rscl[1] = dsiy / dsoy;
+  rscl[2] = dsiz / dsoz;
 
   if (verbose) {
-    fprintf(stderr, "%s: kernel support = %d^3 samples\n", me,
-            2*ctx->radius);
-    fprintf(stderr, "%s: effective scaling is %g %g %g\n", me,
-            rscl[0], rscl[1], rscl[2]);
+    fprintf(stderr, "%s: kernel support = %d^3 samples\n", me, 2 * ctx->radius);
+    fprintf(stderr, "%s: effective scaling is %g %g %g\n", me, rscl[0], rscl[1],
+            rscl[2]);
   }
   /* else, normal volume probing */
   if (ansLen > 1) {
     if (verbose) {
       fprintf(stderr, "%s: creating %s x %s x %s x %s output\n", me,
-              airSprintSize_t(stmp[0], ansLen),
-              airSprintSize_t(stmp[1], sox),
-              airSprintSize_t(stmp[2], soy),
-              airSprintSize_t(stmp[3], soz));
+              airSprintSize_t(stmp[0], ansLen), airSprintSize_t(stmp[1], sox),
+              airSprintSize_t(stmp[2], soy), airSprintSize_t(stmp[3], soz));
     }
-    if (!E) E |= nrrdMaybeAlloc_va(nout=nrrdNew(), otype, 4,
-                                   ansLen, sox, soy, soz);
+    if (!E) E |= nrrdMaybeAlloc_va(nout = nrrdNew(), otype, 4, ansLen, sox, soy, soz);
   } else {
     if (verbose) {
       fprintf(stderr, "%s: creating %s x %s x %s output\n", me,
-              airSprintSize_t(stmp[0], sox),
-              airSprintSize_t(stmp[1], soy),
+              airSprintSize_t(stmp[0], sox), airSprintSize_t(stmp[1], soy),
               airSprintSize_t(stmp[2], soz));
     }
-    if (!E) E |= nrrdMaybeAlloc_va(nout=nrrdNew(), otype, 3,
-                                   sox, soy, soz);
+    if (!E) E |= nrrdMaybeAlloc_va(nout = nrrdNew(), otype, 3, sox, soy, soz);
   }
   if (E) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
@@ -405,36 +388,34 @@ main(int argc, const char *argv[]) {
 
   hackSet = nrrdGetenvUInt(&hackZi, &hackValStr, hackKeyStr);
   if (AIR_FALSE == hackSet) {
-    fprintf(stderr, "%s: couldn't parse value of \"%s\" (\"%s\") as uint\n",
-            me, hackKeyStr, hackValStr);
+    fprintf(stderr, "%s: couldn't parse value of \"%s\" (\"%s\") as uint\n", me,
+            hackKeyStr, hackValStr);
     airMopError(mop);
     return 1;
   }
   if (AIR_TRUE == hackSet) {
-    fprintf(stderr, "%s: %s hack on: will only measure Zi=%u\n",
-            me, hackKeyStr, hackZi);
+    fprintf(stderr, "%s: %s hack on: will only measure Zi=%u\n", me, hackKeyStr, hackZi);
   }
 
   if (nrrdCenterCell == ctx->shape->center) {
     ELL_3V_SET(min, -0.5, -0.5, -0.5);
-    ELL_3V_SET(maxOut, dsox-0.5, dsoy-0.5, dsoz-0.5);
-    ELL_3V_SET(maxIn,  dsix-0.5, dsiy-0.5, dsiz-0.5);
+    ELL_3V_SET(maxOut, dsox - 0.5, dsoy - 0.5, dsoz - 0.5);
+    ELL_3V_SET(maxIn, dsix - 0.5, dsiy - 0.5, dsiz - 0.5);
   } else {
     ELL_3V_SET(min, 0, 0, 0);
-    ELL_3V_SET(maxOut, dsox-1, dsoy-1, dsoz-1);
-    ELL_3V_SET(maxIn, dsix-1, dsiy-1, dsiz-1);
+    ELL_3V_SET(maxOut, dsox - 1, dsoy - 1, dsoz - 1);
+    ELL_3V_SET(maxIn, dsix - 1, dsiy - 1, dsiz - 1);
   }
   t0 = airTime();
   ins = nrrdDInsert[nout->type];
-  gageParmSet(ctx, gageParmVerbose, verbose/10);
-  for (zi=0; zi<soz; zi++) {
+  gageParmSet(ctx, gageParmVerbose, verbose / 10);
+  for (zi = 0; zi < soz; zi++) {
     if (verbose) {
       if (verbose > 1) {
         fprintf(stderr, "z = ");
       }
-      fprintf(stderr, " %s/%s",
-              airSprintSize_t(stmp[0], zi),
-              airSprintSize_t(stmp[1], soz-1));
+      fprintf(stderr, " %s/%s", airSprintSize_t(stmp[0], zi),
+              airSprintSize_t(stmp[1], soz - 1));
       fflush(stderr);
       if (verbose > 1) {
         fprintf(stderr, "\n");
@@ -447,40 +428,33 @@ main(int argc, const char *argv[]) {
     }
 
     z = AIR_AFFINE(min[2], zi, maxOut[2], min[2], maxIn[2]);
-    for (yi=0; yi<soy; yi++) {
+    for (yi = 0; yi < soy; yi++) {
       y = AIR_AFFINE(min[1], yi, maxOut[1], min[1], maxIn[1]);
       if (2 == verbose) {
-        fprintf(stderr, " %u/%u", AIR_UINT(yi),
-                AIR_UINT(soy));
+        fprintf(stderr, " %u/%u", AIR_UINT(yi), AIR_UINT(soy));
         fflush(stderr);
       }
-      for (xi=0; xi<sox; xi++) {
+      for (xi = 0; xi < sox; xi++) {
         if (verbose > 2) {
-          fprintf(stderr, " (%u,%u)/(%u,%u)",
-                  AIR_UINT(xi), AIR_UINT(yi),
-                  AIR_UINT(sox), AIR_UINT(soy));
+          fprintf(stderr, " (%u,%u)/(%u,%u)", AIR_UINT(xi), AIR_UINT(yi), AIR_UINT(sox),
+                  AIR_UINT(soy));
           fflush(stderr);
         }
         x = AIR_AFFINE(min[0], xi, maxOut[0], min[0], maxIn[0]);
-        idx = xi + sox*(yi + soy*zi);
-        E = (numSS
-             ? gageStackProbe(ctx, x, y, z, idxSS)
-             : gageProbe(ctx, x, y, z));
+        idx = xi + sox * (yi + soy * zi);
+        E = (numSS ? gageStackProbe(ctx, x, y, z, idxSS) : gageProbe(ctx, x, y, z));
         if (E) {
-          fprintf(stderr,
-                  "%s: trouble at i=(%s,%s,%s) -> f=(%g,%g,%g):\n%s\n(%d)\n",
-                  me, airSprintSize_t(stmp[0], xi),
-                  airSprintSize_t(stmp[1], yi),
-                  airSprintSize_t(stmp[2], zi), x, y, z,
-                  ctx->errStr, ctx->errNum);
+          fprintf(stderr, "%s: trouble at i=(%s,%s,%s) -> f=(%g,%g,%g):\n%s\n(%d)\n", me,
+                  airSprintSize_t(stmp[0], xi), airSprintSize_t(stmp[1], yi),
+                  airSprintSize_t(stmp[2], zi), x, y, z, ctx->errStr, ctx->errNum);
           airMopError(mop);
           return 1;
         }
         if (1 == ansLen) {
           ins(nout->data, idx, *answer);
         } else {
-          for (ai=0; ai<=ansLen-1; ai++) {
-            ins(nout->data, ai + ansLen*idx, answer[ai]);
+          for (ai = 0; ai <= ansLen - 1; ai++) {
+            ins(nout->data, ai + ansLen * idx, answer[ai]);
           }
         }
       }
@@ -491,23 +465,20 @@ main(int argc, const char *argv[]) {
      for gageKindScl and gageKindVec */
   nrrdContentSet_va(nout, "probe", nin, "%s", airEnumStr(kind->enm, what));
 
-  for (axi=0; axi<3; axi++) {
+  for (axi = 0; axi < 3; axi++) {
     /* HEY: why not using nrrdAxisInfoCopy? */
-    nout->axis[axi+oBaseDim].label = airStrdup(nin->axis[axi+iBaseDim].label);
-    nout->axis[axi+oBaseDim].center = ctx->shape->center;
-    nout->axis[axi+oBaseDim].kind = nin->axis[axi+iBaseDim].kind;
+    nout->axis[axi + oBaseDim].label = airStrdup(nin->axis[axi + iBaseDim].label);
+    nout->axis[axi + oBaseDim].center = ctx->shape->center;
+    nout->axis[axi + oBaseDim].kind = nin->axis[axi + iBaseDim].kind;
   }
 
-  nrrdBasicInfoCopy(nout, nin, (NRRD_BASIC_INFO_DATA_BIT
-                                | NRRD_BASIC_INFO_TYPE_BIT
-                                | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                                | NRRD_BASIC_INFO_DIMENSION_BIT
-                                | NRRD_BASIC_INFO_CONTENT_BIT
-                                | NRRD_BASIC_INFO_SPACEORIGIN_BIT
-                                | NRRD_BASIC_INFO_OLDMIN_BIT
-                                | NRRD_BASIC_INFO_OLDMAX_BIT
-                                | NRRD_BASIC_INFO_COMMENTS_BIT
-                                | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT));
+  nrrdBasicInfoCopy(nout, nin,
+                    (NRRD_BASIC_INFO_DATA_BIT | NRRD_BASIC_INFO_TYPE_BIT
+                     | NRRD_BASIC_INFO_BLOCKSIZE_BIT | NRRD_BASIC_INFO_DIMENSION_BIT
+                     | NRRD_BASIC_INFO_CONTENT_BIT | NRRD_BASIC_INFO_SPACEORIGIN_BIT
+                     | NRRD_BASIC_INFO_OLDMIN_BIT | NRRD_BASIC_INFO_OLDMAX_BIT
+                     | NRRD_BASIC_INFO_COMMENTS_BIT
+                     | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT));
   if (ctx->shape->fromOrientation) {
     if (nin->space) {
       nrrdSpaceSet(nout, nin->space);
@@ -515,25 +486,23 @@ main(int argc, const char *argv[]) {
       nrrdSpaceDimensionSet(nout, nin->spaceDim);
     }
     nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
-    for (axi=0; axi<3; axi++) {
-      nrrdSpaceVecScale(nout->axis[axi+oBaseDim].spaceDirection,
+    for (axi = 0; axi < 3; axi++) {
+      nrrdSpaceVecScale(nout->axis[axi + oBaseDim].spaceDirection,
                         rscl[axi],
-                        nin->axis[axi+iBaseDim].spaceDirection);
+                        nin->axis[axi + iBaseDim].spaceDirection);
       z = AIR_AFFINE(min[axi], 0, maxOut[axi], min[axi], maxIn[axi]);
-      nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
-                            1.0, nout->spaceOrigin,
-                            z, nin->axis[axi+iBaseDim].spaceDirection);
+      nrrdSpaceVecScaleAdd2(nout->spaceOrigin, 1.0, nout->spaceOrigin, z,
+                            nin->axis[axi + iBaseDim].spaceDirection);
     }
   } else {
-    for (axi=0; axi<3; axi++) {
-      nout->axis[axi+oBaseDim].spacing =
-        rscl[axi]*nin->axis[axi+iBaseDim].spacing;
+    for (axi = 0; axi < 3; axi++) {
+      nout->axis[axi + oBaseDim].spacing = rscl[axi] * nin->axis[axi + iBaseDim].spacing;
     }
   }
 
   fprintf(stderr, "\n");
   t1 = airTime();
-  fprintf(stderr, "probe rate = %g KHz\n", dsox*dsoy*dsoz/(1000.0*(t1-t0)));
+  fprintf(stderr, "probe rate = %g KHz\n", dsox * dsoy * dsoz / (1000.0 * (t1 - t0)));
   if (nrrdSave(outS, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble saving output:\n%s\n", me, err);

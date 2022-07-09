@@ -24,8 +24,7 @@
 #include "seek.h"
 #include "privateSeek.h"
 
-const int
-seekPresent = 42;
+const int seekPresent = 42;
 
 seekContext *
 seekContextNew(void) {
@@ -68,7 +67,7 @@ seekContextNew(void) {
 
     sctx->nin = NULL;
     sctx->flag = AIR_CAST(int *, calloc(flagLast, sizeof(int)));
-    for (fi=flagUnknown+1; fi<flagLast; fi++) {
+    for (fi = flagUnknown + 1; fi < flagLast; fi++) {
       sctx->flag[fi] = AIR_FALSE;
     }
     sctx->baseDim = 0;
@@ -165,4 +164,3 @@ seekContextNix(seekContext *sctx) {
   }
   return NULL;
 }
-

@@ -25,13 +25,11 @@
 #include "privateTen.h"
 
 #define INFO "Calculates exp() of the tensor"
-static const char *_tend_expInfoL =
-  (INFO
-   ", which is based on exp() of the eigenvalues.");
+static const char *_tend_expInfoL = (INFO
+                                     ", which is based on exp() of the eigenvalues.");
 
 int
-tend_expMain(int argc, const char **argv, const char *me,
-             hestParm *hparm) {
+tend_expMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -42,8 +40,7 @@ tend_expMain(int argc, const char **argv, const char *me,
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
              "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
-             "output image");
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL, "output image");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -54,14 +51,16 @@ tend_expMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenExp(nout, nin)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

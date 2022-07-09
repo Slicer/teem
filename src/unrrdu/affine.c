@@ -25,43 +25,36 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Affine (lerp) mapping on 5 nrrds or constants"
-static const char *_unrrdu_affineInfoL =
-(INFO
- ". All the 5 arguments can be either nrrds or single "
- "floating-point values.  When all args are single values, this "
- "is subsuming the functionality of the previous stand-alone "
- "\"affine\" program. "
- "Use \"-\" for an operand to signify "
- "a nrrd to be read from stdin (a pipe).  Note, however, "
- "that \"-\" can probably only be used once (reliably).\n "
- "* Uses nrrdArithAffine or nrrdArithIterAffine");
+static const char *_unrrdu_affineInfoL
+  = (INFO ". All the 5 arguments can be either nrrds or single "
+          "floating-point values.  When all args are single values, this "
+          "is subsuming the functionality of the previous stand-alone "
+          "\"affine\" program. "
+          "Use \"-\" for an operand to signify "
+          "a nrrd to be read from stdin (a pipe).  Note, however, "
+          "that \"-\" can probably only be used once (reliably).\n "
+          "* Uses nrrdArithAffine or nrrdArithIterAffine");
 
 int
-unrrdu_affineMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+unrrdu_affineMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   NrrdIter *minIn, *in, *maxIn, *minOut, *maxOut, *args[5];
-  Nrrd *nout, *ntmp=NULL;
+  Nrrd *nout, *ntmp = NULL;
   int type, E, pret, clamp;
   airArray *mop;
   unsigned int ai, nn;
 
   hestOptAdd(&opt, NULL, "minIn", airTypeOther, 1, 1, &minIn, NULL,
-             "Lower end of input value range.",
-             NULL, NULL, nrrdHestIter);
-  hestOptAdd(&opt, NULL, "in", airTypeOther, 1, 1, &in, NULL,
-             "Input value.",
-             NULL, NULL, nrrdHestIter);
+             "Lower end of input value range.", NULL, NULL, nrrdHestIter);
+  hestOptAdd(&opt, NULL, "in", airTypeOther, 1, 1, &in, NULL, "Input value.", NULL, NULL,
+             nrrdHestIter);
   hestOptAdd(&opt, NULL, "maxIn", airTypeOther, 1, 1, &maxIn, NULL,
-             "Upper end of input value range.",
-             NULL, NULL, nrrdHestIter);
+             "Upper end of input value range.", NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "minOut", airTypeOther, 1, 1, &minOut, NULL,
-             "Lower end of output value range.",
-             NULL, NULL, nrrdHestIter);
+             "Lower end of output value range.", NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "maxOut", airTypeOther, 1, 1, &maxOut, NULL,
-             "Upper end of output value range.",
-             NULL, NULL, nrrdHestIter);
+             "Upper end of output value range.", NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
              "type to convert all nrrd inputs to, prior to "
              "doing operation.  This also determines output type. "
@@ -88,15 +81,15 @@ unrrdu_affineMain(int argc, const char **argv, const char *me,
   args[3] = minOut;
   args[4] = maxOut;
   nn = 0;
-  for (ai=0; ai<5; ai++) {
+  for (ai = 0; ai < 5; ai++) {
     nn += !!args[ai]->ownNrrd;
   }
   if (nrrdTypeDefault != type) {
     /* they wanted to convert nrrds to some other type first */
     E = 0;
-    for (ai=0; ai<5; ai++) {
+    for (ai = 0; ai < 5; ai++) {
       if (args[ai]->ownNrrd) {
-        if (!E) E |= nrrdConvert(ntmp=nrrdNew(), args[ai]->ownNrrd, type);
+        if (!E) E |= nrrdConvert(ntmp = nrrdNew(), args[ai]->ownNrrd, type);
         if (!E) nrrdIterSetOwnNrrd(args[ai], ntmp);
       }
     }
@@ -112,8 +105,7 @@ unrrdu_affineMain(int argc, const char **argv, const char *me,
     /* actually, there are no nrrds; we represent the functionality
        of the previous stand-alone binary "affine" */
     double valOut;
-    valOut = AIR_AFFINE(minIn->val, in->val, maxIn->val,
-                        minOut->val, maxOut->val);
+    valOut = AIR_AFFINE(minIn->val, in->val, maxIn->val, minOut->val, maxOut->val);
     if (clamp) {
       double mmin = AIR_MIN(minOut->val, maxOut->val);
       double mmax = AIR_MAX(minOut->val, maxOut->val);
@@ -123,8 +115,8 @@ unrrdu_affineMain(int argc, const char **argv, const char *me,
   } else {
     /* we have a nrrd output */
     if (1 == nn && in->ownNrrd) {
-      E = nrrdArithAffine(nout, minIn->val, in->ownNrrd, maxIn->val,
-                          minOut->val, maxOut->val, clamp);
+      E = nrrdArithAffine(nout, minIn->val, in->ownNrrd, maxIn->val, minOut->val,
+                          maxOut->val, clamp);
     } else {
       E = nrrdArithIterAffine(nout, minIn, in, maxIn, minOut, maxOut, clamp);
     }
@@ -142,4 +134,3 @@ unrrdu_affineMain(int argc, const char **argv, const char *me,
 }
 
 UNRRDU_CMD(affine, INFO);
-

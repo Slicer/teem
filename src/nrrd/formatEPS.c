@@ -38,22 +38,19 @@ _nrrdFormatEPS_nameLooksLike(const char *filename) {
 }
 
 static int
-_nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
-                        int useBiff) {
-  static const char me[]="_nrrdFormatEPS_fitsInto";
+_nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding, int useBiff) {
+  static const char me[] = "_nrrdFormatEPS_fitsInto";
   int ret;
 
   AIR_UNUSED(encoding);
   /* encoding information is ignored- its always going to be hex */
   if (!nrrd) {
-    biffMaybeAddf(useBiff, NRRD, "%s: got NULL nrrd (%p)",
-                  me, AIR_CVOIDP(nrrd));
+    biffMaybeAddf(useBiff, NRRD, "%s: got NULL nrrd (%p)", me, AIR_CVOIDP(nrrd));
     return AIR_FALSE;
   }
   if (nrrdTypeUChar != nrrd->type) {
     biffMaybeAddf(useBiff, NRRD, "%s: type must be %s (not %s)", me,
-                  airEnumStr(nrrdType, nrrdTypeUChar),
-                  airEnumStr(nrrdType, nrrd->type));
+                  airEnumStr(nrrdType, nrrdTypeUChar), airEnumStr(nrrdType, nrrd->type));
     return AIR_FALSE;
   }
   if (2 == nrrd->dim) {
@@ -73,13 +70,12 @@ _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
       /* else its no good */
       char stmp[AIR_STRLEN_SMALL];
       biffMaybeAddf(useBiff, NRRD,
-                    "%s: dim is 3, but 1st axis size is %s, not 1, 3, or 4",
-                    me, airSprintSize_t(stmp, nrrd->axis[0].size));
+                    "%s: dim is 3, but 1st axis size is %s, not 1, 3, or 4", me,
+                    airSprintSize_t(stmp, nrrd->axis[0].size));
       return AIR_FALSE;
     }
   } else {
-    biffMaybeAddf(useBiff, NRRD, "%s: dimension is %d, not 2 or 3",
-                  me, nrrd->dim);
+    biffMaybeAddf(useBiff, NRRD, "%s: dimension is %d, not 2 or 3", me, nrrd->dim);
     return AIR_FALSE;
   }
   return ret;
@@ -95,7 +91,7 @@ _nrrdFormatEPS_contentStartsLike(NrrdIoState *nio) {
 
 static int
 _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
-  static const char me[]="_nrrdFormatEPS_read";
+  static const char me[] = "_nrrdFormatEPS_read";
 
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
@@ -106,27 +102,28 @@ _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
 static int
 _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
-  static const char me[]="_nrrdFormatEPS_write";
+  static const char me[] = "_nrrdFormatEPS_write";
   int color, cmyk;
   Nrrd *nrrd;
   double aspect, minX, minY, maxX, maxY, scale;
-  unsigned int  sx, sy;
+  unsigned int sx, sy;
   airArray *mop;
 
   mop = airMopNew();
   airMopAdd(mop, nrrd = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdCopy(nrrd, _nrrd)) {
     biffAddf(NRRD, "%s: couldn't make private copy", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (3 == nrrd->dim && 1 == nrrd->axis[0].size) {
     if (nrrdAxesDelete(nrrd, nrrd, 0)) {
       biffAddf(NRRD, "%s:", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
-  color = (3 == nrrd->dim) && (3 == nrrd->axis[0].size
-                               || 4 == nrrd->axis[0].size);
+  color = (3 == nrrd->dim) && (3 == nrrd->axis[0].size || 4 == nrrd->axis[0].size);
   cmyk = color && 4 == nrrd->axis[0].size;
   if (color) {
     sx = AIR_UINT(nrrd->axis[1].size);
@@ -135,46 +132,42 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
     sx = AIR_UINT(nrrd->axis[0].size);
     sy = AIR_UINT(nrrd->axis[1].size);
   }
-  aspect = AIR_DOUBLE(sx)/sy;
-  if (aspect > 7.5/10) {
+  aspect = AIR_DOUBLE(sx) / sy;
+  if (aspect > 7.5 / 10) {
     /* image has a wider aspect ratio than safely printable page area */
     minX = 0.5;
     maxX = 8.0;
-    minY = 5.50 - 7.5*sy/sx/2;
-    maxY = 5.50 + 7.5*sy/sx/2;
-    scale = 7.5/sx;
+    minY = 5.50 - 7.5 * sy / sx / 2;
+    maxY = 5.50 + 7.5 * sy / sx / 2;
+    scale = 7.5 / sx;
   } else {
     /* image is taller ... */
-    minX = 4.25 - 10.0*sx/sy/2;
-    maxX = 4.25 + 10.0*sx/sy/2;
+    minX = 4.25 - 10.0 * sx / sy / 2;
+    maxX = 4.25 + 10.0 * sx / sy / 2;
     minY = 0.5;
     maxY = 10.5;
-    scale = 10.0/sy;
+    scale = 10.0 / sy;
   }
-  minX *= 72; minY *= 72;
-  maxX *= 72; maxY *= 72;
+  minX *= 72;
+  minY *= 72;
+  maxX *= 72;
+  maxY *= 72;
   scale *= 72;
 
   fprintf(file, "%%!PS-Adobe-3.0 EPSF-3.0\n");
   fprintf(file, "%%%%Creator: Nrrd Utilities From the "
-          "Great Nation of Deseret\n");
+                "Great Nation of Deseret\n");
   fprintf(file, "%%%%Title: %s\n",
           nrrd->content ? nrrd->content : "A lovely little image");
   fprintf(file, "%%%%Pages: 1\n");
-  fprintf(file, "%%%%BoundingBox: %d %d %d %d\n",
-          (int)floor(minX), (int)floor(minY),
+  fprintf(file, "%%%%BoundingBox: %d %d %d %d\n", (int)floor(minX), (int)floor(minY),
           (int)ceil(maxX), (int)ceil(maxY));
-  fprintf(file, "%%%%HiResBoundingBox: %g %g %g %g\n",
-          minX, minY, maxX, maxY);
+  fprintf(file, "%%%%HiResBoundingBox: %g %g %g %g\n", minX, minY, maxX, maxY);
   fprintf(file, "%%%%EndComments\n");
   fprintf(file, "%%%%BeginProlog\n");
   fprintf(file, "%% linestr creates an empty string to hold "
-          "one scanline\n");
-  fprintf(file, "/linestr %d string def\n", sx*(color
-                                                ? (cmyk
-                                                   ? 4
-                                                   : 3)
-                                                : 1));
+                "one scanline\n");
+  fprintf(file, "/linestr %d string def\n", sx * (color ? (cmyk ? 4 : 3) : 1));
   fprintf(file, "%%%%EndProlog\n");
   fprintf(file, "%%%%Page: 1 1\n");
   fprintf(file, "gsave\n");
@@ -186,17 +179,18 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   fprintf(file, "clip\n");
   fprintf(file, "gsave newpath\n");
   fprintf(file, "%g %g translate\n", minX, minY);
-  fprintf(file, "%g %g scale\n", sx*scale, sy*scale);
+  fprintf(file, "%g %g scale\n", sx * scale, sy * scale);
   fprintf(file, "%u %u 8\n", sx, sy);
   fprintf(file, "[%u 0 0 -%u 0 %u]\n", sx, sy, sy);
   if (color) {
-    fprintf(file, "{currentfile linestr readhexstring pop} "
-            "false %d colorimage\n", cmyk ? 4 : 3);
+    fprintf(file,
+            "{currentfile linestr readhexstring pop} "
+            "false %d colorimage\n",
+            cmyk ? 4 : 3);
   } else {
     fprintf(file, "{currentfile linestr readhexstring pop} image\n");
   }
-  nrrdEncodingHex->write(file, nrrd->data, nrrdElementNumber(nrrd),
-                         nrrd, nio);
+  nrrdEncodingHex->write(file, nrrd->data, nrrdElementNumber(nrrd), nrrd, nio);
   fprintf(file, "\n");
   fprintf(file, "grestore\n");
   fprintf(file, "grestore\n");
@@ -205,19 +199,15 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   return 0;
 }
 
-const NrrdFormat
-_nrrdFormatEPS = {
-  "EPS",
-  AIR_FALSE,  /* isImage */
-  AIR_FALSE,  /* readable */
-  AIR_FALSE,  /* usesDIO */
-  _nrrdFormatEPS_available,
-  _nrrdFormatEPS_nameLooksLike,
-  _nrrdFormatEPS_fitsInto,
-  _nrrdFormatEPS_contentStartsLike,
-  _nrrdFormatEPS_read,
-  _nrrdFormatEPS_write
-};
+const NrrdFormat _nrrdFormatEPS = {"EPS",
+                                   AIR_FALSE, /* isImage */
+                                   AIR_FALSE, /* readable */
+                                   AIR_FALSE, /* usesDIO */
+                                   _nrrdFormatEPS_available,
+                                   _nrrdFormatEPS_nameLooksLike,
+                                   _nrrdFormatEPS_fitsInto,
+                                   _nrrdFormatEPS_contentStartsLike,
+                                   _nrrdFormatEPS_read,
+                                   _nrrdFormatEPS_write};
 
-const NrrdFormat *const
-nrrdFormatEPS = &_nrrdFormatEPS;
+const NrrdFormat *const nrrdFormatEPS = &_nrrdFormatEPS;

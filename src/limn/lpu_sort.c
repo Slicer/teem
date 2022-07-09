@@ -25,13 +25,10 @@
 #include "privateLimn.h"
 
 #define INFO "Sorts primitives according to given values"
-static const char *myinfo =
-(INFO
- ". ");
+static const char *myinfo = (INFO ". ");
 
 int
-limnpu_sortMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+limnpu_sortMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;
@@ -42,11 +39,9 @@ limnpu_sortMain(int argc, const char **argv, const char *me,
   char *out;
 
   hestOptAdd(&hopt, NULL, "input lpld", airTypeOther, 1, 1, &pld, NULL,
-             "input polydata filename",
-             NULL, NULL, limnHestPolyDataLMPD);
+             "input polydata filename", NULL, NULL, limnHestPolyDataLMPD);
   hestOptAdd(&hopt, NULL, "input nrrd", airTypeOther, 1, 1, &nin, NULL,
-             "input nrrd filename",
-             NULL, NULL, nrrdHestNrrd);
+             "input nrrd filename", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
              "output lpld filename");
 
@@ -75,5 +70,4 @@ limnpu_sortMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_sortCmd = { "sort", INFO, limnpu_sortMain, AIR_FALSE };
-
+unrrduCmd limnpu_sortCmd = {"sort", INFO, limnpu_sortMain, AIR_FALSE};

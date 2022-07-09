@@ -30,7 +30,7 @@ _pushPointTotal(pushContext *pctx) {
   pushBin *bin;
 
   pointNum = 0;
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+  for (binIdx = 0; binIdx < pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
     pointNum += bin->pointNum;
   }
@@ -39,19 +39,20 @@ _pushPointTotal(pushContext *pctx) {
 
 int
 _pushProbe(pushTask *task, pushPoint *point) {
-  static const char me[]="_pushProbe";
+  static const char me[] = "_pushProbe";
   double posWorld[4], posIdx[4];
 
-  ELL_3V_COPY(posWorld, point->pos); posWorld[3] = 1.0;
+  ELL_3V_COPY(posWorld, point->pos);
+  posWorld[3] = 1.0;
   ELL_4MV_MUL(posIdx, task->gctx->shape->WtoI, posWorld);
   ELL_4V_HOMOG(posIdx, posIdx);
-  posIdx[0] = AIR_CLAMP(-0.5, posIdx[0], task->gctx->shape->size[0]-0.5);
-  posIdx[1] = AIR_CLAMP(-0.5, posIdx[1], task->gctx->shape->size[1]-0.5);
-  posIdx[2] = AIR_CLAMP(-0.5, posIdx[2], task->gctx->shape->size[2]-0.5);
+  posIdx[0] = AIR_CLAMP(-0.5, posIdx[0], task->gctx->shape->size[0] - 0.5);
+  posIdx[1] = AIR_CLAMP(-0.5, posIdx[1], task->gctx->shape->size[1] - 0.5);
+  posIdx[2] = AIR_CLAMP(-0.5, posIdx[2], task->gctx->shape->size[2] - 0.5);
 
   if (gageProbe(task->gctx, posIdx[0], posIdx[1], posIdx[2])) {
-    biffAddf(PUSH, "%s: gageProbe failed:\n (%d) %s\n", me,
-             task->gctx->errNum, task->gctx->errStr);
+    biffAddf(PUSH, "%s: gageProbe failed:\n (%d) %s\n", me, task->gctx->errNum,
+             task->gctx->errStr);
     return 1;
   }
 
@@ -69,9 +70,8 @@ _pushProbe(pushTask *task, pushPoint *point) {
 }
 
 int
-pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
-              pushContext *pctx) {
-  static const char me[]="pushOutputGet";
+pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut, pushContext *pctx) {
+  static const char me[] = "pushOutputGet";
   unsigned int binIdx, pointRun, pointNum, pointIdx;
   int E;
   float *posOut, *tenOut, *enrOut;
@@ -81,38 +81,35 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
   pointNum = _pushPointTotal(pctx);
   E = AIR_FALSE;
   if (nPosOut) {
-    E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeFloat, 2,
-                           AIR_CAST(size_t, 3),
+    E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeFloat, 2, AIR_CAST(size_t, 3),
                            AIR_CAST(size_t, pointNum));
   }
   if (nTenOut) {
-    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeFloat, 2,
-                           AIR_CAST(size_t, 7),
+    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeFloat, 2, AIR_CAST(size_t, 7),
                            AIR_CAST(size_t, pointNum));
   }
   if (nEnrOut) {
-    E |= nrrdMaybeAlloc_va(nEnrOut, nrrdTypeFloat, 1,
-                           AIR_CAST(size_t, pointNum));
+    E |= nrrdMaybeAlloc_va(nEnrOut, nrrdTypeFloat, 1, AIR_CAST(size_t, pointNum));
   }
   if (E) {
     biffMovef(PUSH, NRRD, "%s: trouble allocating outputs", me);
     return 1;
   }
-  posOut = nPosOut ? (float*)(nPosOut->data) : NULL;
-  tenOut = nTenOut ? (float*)(nTenOut->data) : NULL;
-  enrOut = nEnrOut ? (float*)(nEnrOut->data) : NULL;
+  posOut = nPosOut ? (float *)(nPosOut->data) : NULL;
+  tenOut = nTenOut ? (float *)(nTenOut->data) : NULL;
+  enrOut = nEnrOut ? (float *)(nEnrOut->data) : NULL;
 
   pointRun = 0;
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+  for (binIdx = 0; binIdx < pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
-    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+    for (pointIdx = 0; pointIdx < bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       if (posOut) {
-        ELL_3V_SET_TT(posOut + 3*pointRun, float,
-                      point->pos[0], point->pos[1], point->pos[2]);
+        ELL_3V_SET_TT(posOut + 3 * pointRun, float, point->pos[0], point->pos[1],
+                      point->pos[2]);
       }
       if (tenOut) {
-        TEN_T_COPY_TT(tenOut + 7*pointRun, float, point->ten);
+        TEN_T_COPY_TT(tenOut + 7 * pointRun, float, point->ten);
       }
       if (enrOut) {
         enrOut[pointRun] = AIR_FLOAT(point->enr);
@@ -125,36 +122,29 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut,
 }
 
 int
-_pushPairwiseEnergy(pushTask *task,
-                    double *enrP,
-                    double frc[3],
-                    pushEnergySpec *ensp,
-                    pushPoint *myPoint, pushPoint *herPoint,
-                    double YY[3], double iscl) {
-  static const char me[]="_pushPairwiseEnergy";
+_pushPairwiseEnergy(pushTask *task, double *enrP, double frc[3], pushEnergySpec *ensp,
+                    pushPoint *myPoint, pushPoint *herPoint, double YY[3], double iscl) {
+  static const char me[] = "_pushPairwiseEnergy";
   double inv[7], XX[3], nXX[3], rr, mag, WW[3];
 
   if (task->pctx->midPntSmp) {
     pushPoint _tmpPoint;
     double det;
-    ELL_3V_SCALE_ADD2(_tmpPoint.pos,
-                      0.5, myPoint->pos,
-                      0.5, herPoint->pos);
+    ELL_3V_SCALE_ADD2(_tmpPoint.pos, 0.5, myPoint->pos, 0.5, herPoint->pos);
     if (_pushProbe(task, &_tmpPoint)) {
-      biffAddf(PUSH, "%s: at midpoint of %u and %u", me,
-               myPoint->ttaagg, herPoint->ttaagg);
-      *enrP = AIR_NAN; return 1;
+      biffAddf(PUSH, "%s: at midpoint of %u and %u", me, myPoint->ttaagg,
+               herPoint->ttaagg);
+      *enrP = AIR_NAN;
+      return 1;
     }
     TEN_T_INV(inv, _tmpPoint.ten, det);
   } else {
-    TEN_T_SCALE_ADD2(inv,
-                     0.5, myPoint->inv,
-                     0.5, herPoint->inv);
+    TEN_T_SCALE_ADD2(inv, 0.5, myPoint->inv, 0.5, herPoint->inv);
   }
   TEN_TV_MUL(XX, inv, YY);
   ELL_3V_NORM(nXX, XX, rr);
 
-  ensp->energy->eval(enrP, &mag, rr*iscl, ensp->parm);
+  ensp->energy->eval(enrP, &mag, rr * iscl, ensp->parm);
   if (mag) {
     mag *= iscl;
     TEN_TV_MUL(WW, inv, nXX);
@@ -167,24 +157,24 @@ _pushPairwiseEnergy(pushTask *task,
 }
 
 #define EPS_PER_MAX_DIST 200
-#define SEEK_MAX_ITER 30
+#define SEEK_MAX_ITER    30
 
 int
 pushBinProcess(pushTask *task, unsigned int myBinIdx) {
-  static const char me[]="pushBinProcess";
+  static const char me[] = "pushBinProcess";
   pushBin *myBin, *herBin, **neighbor;
   unsigned int myPointIdx, herPointIdx;
   pushPoint *myPoint, *herPoint;
-  double enr, frc[3], delta[3], deltaLen, deltaNorm[3], warp[3], limit,
-    maxDiffLenSqrd, iscl, diff[3], diffLenSqrd;
+  double enr, frc[3], delta[3], deltaLen, deltaNorm[3], warp[3], limit, maxDiffLenSqrd,
+    iscl, diff[3], diffLenSqrd;
 
   if (task->pctx->verbose > 2) {
     fprintf(stderr, "%s(%u): doing bin %u\n", me, task->threadIdx, myBinIdx);
   }
-  maxDiffLenSqrd = (task->pctx->maxDist)*(task->pctx->maxDist);
+  maxDiffLenSqrd = (task->pctx->maxDist) * (task->pctx->maxDist);
   myBin = task->pctx->bin + myBinIdx;
-  iscl = 1.0/(2*task->pctx->scale);
-  for (myPointIdx=0; myPointIdx<myBin->pointNum; myPointIdx++) {
+  iscl = 1.0 / (2 * task->pctx->scale);
+  for (myPointIdx = 0; myPointIdx < myBin->pointNum; myPointIdx++) {
     myPoint = myBin->point[myPointIdx];
     myPoint->enr = 0;
     ELL_3V_SET(myPoint->frc, 0, 0, 0);
@@ -197,7 +187,7 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
         airArrayLenSet(myPoint->neighArr, 0);
       }
       while ((herBin = *neighbor)) {
-        for (herPointIdx=0; herPointIdx<herBin->pointNum; herPointIdx++) {
+        for (herPointIdx = 0; herPointIdx < herBin->pointNum; herPointIdx++) {
           herPoint = herBin->point[herPointIdx];
           if (myPoint == herPoint) {
             /* can't interact with myself */
@@ -209,13 +199,13 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
             /* too far away to interact */
             continue;
           }
-          if (_pushPairwiseEnergy(task, &enr, frc, task->pctx->ensp,
-                                  myPoint, herPoint, diff, iscl)) {
-            biffAddf(PUSH, "%s: between points %u and %u, A", me,
-                     myPoint->ttaagg, herPoint->ttaagg);
+          if (_pushPairwiseEnergy(task, &enr, frc, task->pctx->ensp, myPoint, herPoint,
+                                  diff, iscl)) {
+            biffAddf(PUSH, "%s: between points %u and %u, A", me, myPoint->ttaagg,
+                     herPoint->ttaagg);
             return 1;
           }
-          myPoint->enr += enr/2;
+          myPoint->enr += enr / 2;
           if (ELL_3V_DOT(frc, frc)) {
             ELL_3V_INCR(myPoint->frc, frc);
             if (1.0 > task->pctx->neighborTrueProb) {
@@ -238,16 +228,16 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
          iteration where we use the list.  So the body of this loop
          has to be the same as the meat of the above loop */
       unsigned int neighIdx;
-      for (neighIdx=0; neighIdx<myPoint->neighArr->len; neighIdx++) {
+      for (neighIdx = 0; neighIdx < myPoint->neighArr->len; neighIdx++) {
         herPoint = myPoint->neigh[neighIdx];
         ELL_3V_SUB(diff, herPoint->pos, myPoint->pos);
-        if (_pushPairwiseEnergy(task, &enr, frc, task->pctx->ensp,
-                                myPoint, herPoint, diff, iscl)) {
-          biffAddf(PUSH, "%s: between points %u and %u, B", me,
-                   myPoint->ttaagg, herPoint->ttaagg);
+        if (_pushPairwiseEnergy(task, &enr, frc, task->pctx->ensp, myPoint, herPoint,
+                                diff, iscl)) {
+          biffAddf(PUSH, "%s: between points %u and %u, B", me, myPoint->ttaagg,
+                   herPoint->ttaagg);
           return 1;
         }
-        myPoint->enr += enr/2;
+        myPoint->enr += enr / 2;
         ELL_3V_INCR(myPoint->frc, frc);
       }
     }
@@ -260,13 +250,12 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
     /* each point sees containment forces */
     ELL_3V_SCALE(frc, task->pctx->cntScl, myPoint->cnt);
     ELL_3V_INCR(myPoint->frc, frc);
-    myPoint->enr += task->pctx->cntScl*(1 - myPoint->ten[0]);
+    myPoint->enr += task->pctx->cntScl * (1 - myPoint->ten[0]);
 
     /* each point also maybe experiences gravity */
     if (tenGageUnknown != task->pctx->gravItem) {
       ELL_3V_SCALE(frc, -task->pctx->gravScl, myPoint->gravGrad);
-      myPoint->enr +=
-        task->pctx->gravScl*(myPoint->grav - task->pctx->gravZero);
+      myPoint->enr += task->pctx->gravScl * (myPoint->grav - task->pctx->gravZero);
       ELL_3V_INCR(myPoint->frc, frc);
     }
     if (!ELL_3V_EXISTS(myPoint->frc)) {
@@ -280,26 +269,27 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       /* there's an effort here to get the forces and energies, which
          are actually computed in index space, to be correctly scaled
          into world space, but no promises that its right ... */
-      double enrIdx[4]={0,0,0,0}, enrWorld[4];
+      double enrIdx[4] = {0, 0, 0, 0}, enrWorld[4];
       unsigned int ci;
       double posWorld[4], posIdx[4], len, frcIdx[4], frcWorld[4];
-      ELL_3V_COPY(posWorld, myPoint->pos); posWorld[3] = 1.0;
+      ELL_3V_COPY(posWorld, myPoint->pos);
+      posWorld[3] = 1.0;
       ELL_4MV_MUL(posIdx, task->pctx->gctx->shape->WtoI, posWorld);
       ELL_4V_HOMOG(posIdx, posIdx);
-      for (ci=0; ci<3; ci++) {
+      for (ci = 0; ci < 3; ci++) {
         if (1 == task->pctx->gctx->shape->size[ci]) {
           frcIdx[ci] = 0;
         } else {
           len = posIdx[ci] - -0.5;
           if (len < 0) {
             len *= -1;
-            frcIdx[ci] = task->pctx->wall*len;
-            enrIdx[ci] = task->pctx->wall*len*len/2;
+            frcIdx[ci] = task->pctx->wall * len;
+            enrIdx[ci] = task->pctx->wall * len * len / 2;
           } else {
             len = posIdx[ci] - (task->pctx->gctx->shape->size[ci] - 0.5);
             if (len > 0) {
-              frcIdx[ci] = -task->pctx->wall*len;
-              enrIdx[ci] = task->pctx->wall*len*len/2;
+              frcIdx[ci] = -task->pctx->wall * len;
+              enrIdx[ci] = task->pctx->wall * len * len / 2;
             } else {
               frcIdx[ci] = 0;
               enrIdx[ci] = 0;
@@ -333,41 +323,44 @@ pushBinProcess(pushTask *task, unsigned int myBinIdx) {
       return 0;
     }
     if (!(AIR_EXISTS(deltaLen) && ELL_3V_EXISTS(deltaNorm))) {
-      biffAddf(PUSH, "%s: deltaLen %g or deltaNorm (%g,%g,%g) doesn't exist",
-               me, deltaLen, deltaNorm[0], deltaNorm[1], deltaNorm[2]);
+      biffAddf(PUSH, "%s: deltaLen %g or deltaNorm (%g,%g,%g) doesn't exist", me,
+               deltaLen, deltaNorm[0], deltaNorm[1], deltaNorm[2]);
       return 1;
     }
     if (deltaLen) {
       double newDelta;
       TEN_TV_MUL(warp, myPoint->inv, delta);
       /* limit is some fraction of glyph radius along direction of delta */
-      limit = (task->pctx->deltaLimit
-               *task->pctx->scale*deltaLen/(FLT_MIN + ELL_3V_LEN(warp)));
-      newDelta = limit*deltaLen/(limit + deltaLen);
+      limit = (task->pctx->deltaLimit * task->pctx->scale * deltaLen
+               / (FLT_MIN + ELL_3V_LEN(warp)));
+      newDelta = limit * deltaLen / (limit + deltaLen);
       /* by definition newDelta <= deltaLen */
-      task->deltaFracSum += newDelta/deltaLen;
+      task->deltaFracSum += newDelta / deltaLen;
       ELL_3V_SCALE_INCR(myPoint->pos, newDelta, deltaNorm);
       if (!ELL_3V_EXISTS(myPoint->pos)) {
-        biffAddf(PUSH, "%s: myPoint->pos %g*(%g,%g,%g) --> (%g,%g,%g) "
-                 "doesn't exist", me,
-                 newDelta, deltaNorm[0], deltaNorm[1], deltaNorm[2],
-                 myPoint->pos[0], myPoint->pos[1], myPoint->pos[2]);
+        biffAddf(PUSH,
+                 "%s: myPoint->pos %g*(%g,%g,%g) --> (%g,%g,%g) "
+                 "doesn't exist",
+                 me, newDelta, deltaNorm[0], deltaNorm[1], deltaNorm[2], myPoint->pos[0],
+                 myPoint->pos[1], myPoint->pos[2]);
         return 1;
       }
     }
     if (2 == task->pctx->dimIn) {
       double posIdx[4], posWorld[4], posOrig[4];
-      ELL_3V_COPY(posOrig, myPoint->pos); posOrig[3] = 1.0;
+      ELL_3V_COPY(posOrig, myPoint->pos);
+      posOrig[3] = 1.0;
       ELL_4MV_MUL(posIdx, task->pctx->gctx->shape->WtoI, posOrig);
       ELL_4V_HOMOG(posIdx, posIdx);
       posIdx[task->pctx->sliceAxis] = 0.0;
       ELL_4MV_MUL(posWorld, task->pctx->gctx->shape->ItoW, posIdx);
       ELL_34V_HOMOG(myPoint->pos, posWorld);
       if (!ELL_3V_EXISTS(myPoint->pos)) {
-        biffAddf(PUSH, "%s: myPoint->pos (%g,%g,%g) -> (%g,%g,%g) "
-                 "doesn't exist", me,
-                 posOrig[0], posOrig[1], posOrig[2],
-                 myPoint->pos[0], myPoint->pos[1], myPoint->pos[2]);
+        biffAddf(PUSH,
+                 "%s: myPoint->pos (%g,%g,%g) -> (%g,%g,%g) "
+                 "doesn't exist",
+                 me, posOrig[0], posOrig[1], posOrig[2], myPoint->pos[0],
+                 myPoint->pos[1], myPoint->pos[2]);
         return 1;
       }
     }

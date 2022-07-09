@@ -33,13 +33,11 @@
 #include <errno.h>
 #include <string.h>
 #ifdef _WIN32
-#include <io.h>
-#include <fcntl.h>
+#  include <io.h>
+#  include <fcntl.h>
 #endif
 
-
-int
-enhexColumns = 70;  /* number of characters per line */
+int enhexColumns = 70; /* number of characters per line */
 
 void
 enhexUsage(char *me) {
@@ -47,7 +45,7 @@ enhexUsage(char *me) {
   fprintf(stderr, "usage: %s <in> [<out>]\n", me);
   fprintf(stderr, " <in>: file to read raw data from\n");
   fprintf(stderr, "<out>: file to write hex data to; "
-          "uses stdout by default\n");
+                  "uses stdout by default\n");
   fprintf(stderr, " \"-\" can be used to refer to stdin/stdout\n");
   exit(1);
 }
@@ -55,27 +53,22 @@ enhexUsage(char *me) {
 void
 enhexFclose(FILE *file) {
 
-  if (!( stdin == file || stdout == file )) {
+  if (!(stdin == file || stdout == file)) {
     fclose(file);
   }
 }
 
-int
-enhexTable[16] = {
-  '0', '1', '2', '3', '4', '5', '6', '7',
-  '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
-};
-
+int enhexTable[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
+                      '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
 int
 main(int argc, char *argv[]) {
   char *me, *inS, *outS;
   FILE *fin, *fout;
-  int car=0, col;
+  int car = 0, col;
 
   me = argv[0];
-  if (!( 2 == argc || 3 == argc ))
-    enhexUsage(me);
+  if (!(2 == argc || 3 == argc)) enhexUsage(me);
 
   inS = argv[1];
   if (!strcmp("-", inS)) {
@@ -86,8 +79,8 @@ main(int argc, char *argv[]) {
   } else {
     fin = fopen(inS, "rb");
     if (!fin) {
-      fprintf(stderr, "\n%s: couldn't fopen(\"%s\",\"rb\"): %s\n\n",
-              me, inS, strerror(errno));
+      fprintf(stderr, "\n%s: couldn't fopen(\"%s\",\"rb\"): %s\n\n", me, inS,
+              strerror(errno));
       enhexUsage(me);
     }
   }
@@ -100,8 +93,8 @@ main(int argc, char *argv[]) {
     } else {
       fout = fopen(outS, "w");
       if (!fout) {
-        fprintf(stderr, "\n%s: couldn't fopen(\"%s\",\"w\"): %s\n\n",
-                me, outS, strerror(errno));
+        fprintf(stderr, "\n%s: couldn't fopen(\"%s\",\"w\"): %s\n\n", me, outS,
+                strerror(errno));
         enhexUsage(me);
       }
     }
@@ -114,7 +107,7 @@ main(int argc, char *argv[]) {
       fprintf(fout, "\n");
       col = 0;
     }
-    fprintf(fout, "%c%c", enhexTable[car>>4], enhexTable[car&15]);
+    fprintf(fout, "%c%c", enhexTable[car >> 4], enhexTable[car & 15]);
     col += 2;
     car = fgetc(fin);
   }

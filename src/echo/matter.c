@@ -24,8 +24,7 @@
 #include "echo.h"
 #include "privateEcho.h"
 
-int
-echoObjectHasMatter[ECHO_TYPE_NUM] = {
+int echoObjectHasMatter[ECHO_TYPE_NUM] = {
   1, /* echoTypeSphere */
   1, /* echoTypeCylinder */
   1, /* echoTypeSuperquad */
@@ -41,8 +40,7 @@ echoObjectHasMatter[ECHO_TYPE_NUM] = {
 };
 
 void
-echoColorSet(echoObject *obj,
-             echoCol_t R, echoCol_t G, echoCol_t B, echoCol_t A) {
+echoColorSet(echoObject *obj, echoCol_t R, echoCol_t G, echoCol_t B, echoCol_t A) {
 
   if (obj && echoObjectHasMatter[obj->type]) {
     ELL_4V_SET(obj->rgba, R, G, B, A);
@@ -50,8 +48,8 @@ echoColorSet(echoObject *obj,
 }
 
 void
-echoMatterPhongSet(echoScene *scene, echoObject *obj,
-                   echoCol_t ka, echoCol_t kd, echoCol_t ks, echoCol_t sp) {
+echoMatterPhongSet(echoScene *scene, echoObject *obj, echoCol_t ka, echoCol_t kd,
+                   echoCol_t ks, echoCol_t sp) {
 
   if (scene && obj && echoObjectHasMatter[obj->type]) {
     obj->matter = echoMatterPhong;
@@ -63,8 +61,7 @@ echoMatterPhongSet(echoScene *scene, echoObject *obj,
 }
 
 void
-echoMatterGlassSet(echoScene *scene, echoObject *obj,
-                   echoCol_t indexr, echoCol_t ka,
+echoMatterGlassSet(echoScene *scene, echoObject *obj, echoCol_t indexr, echoCol_t ka,
                    echoCol_t kd, echoCol_t fuzzy) {
 
   if (scene && obj && echoObjectHasMatter[obj->type]) {
@@ -77,8 +74,7 @@ echoMatterGlassSet(echoScene *scene, echoObject *obj,
 }
 
 void
-echoMatterMetalSet(echoScene *scene, echoObject *obj,
-                   echoCol_t R0, echoCol_t ka,
+echoMatterMetalSet(echoScene *scene, echoObject *obj, echoCol_t R0, echoCol_t ka,
                    echoCol_t kd, echoCol_t fuzzy) {
 
   if (scene && obj && echoObjectHasMatter[obj->type]) {
@@ -91,8 +87,7 @@ echoMatterMetalSet(echoScene *scene, echoObject *obj,
 }
 
 void
-echoMatterLightSet(echoScene *scene, echoObject *obj,
-                   echoCol_t power, echoCol_t unit) {
+echoMatterLightSet(echoScene *scene, echoObject *obj, echoCol_t power, echoCol_t unit) {
 
   if (scene && obj && echoObjectHasMatter[obj->type]) {
     obj->matter = echoMatterLight;
@@ -106,10 +101,8 @@ echoMatterLightSet(echoScene *scene, echoObject *obj,
 void
 echoMatterTextureSet(echoScene *scene, echoObject *obj, Nrrd *ntext) {
 
-  if (scene && obj && ntext && echoObjectHasMatter[obj->type] &&
-      3 == ntext->dim &&
-      nrrdTypeUChar == ntext->type &&
-      4 == ntext->axis[0].size) {
+  if (scene && obj && ntext && echoObjectHasMatter[obj->type] && 3 == ntext->dim
+      && nrrdTypeUChar == ntext->type && 4 == ntext->axis[0].size) {
     obj->ntext = ntext;
     _echoSceneNrrdAdd(scene, ntext);
   }

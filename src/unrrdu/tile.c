@@ -25,20 +25,18 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Tile slices of one axis into two other axes"
-static const char *_unrrdu_tileInfoL =
-(INFO
- ". Tiling an array means splitting one axis into fast and slow parts, "
- "and then interleaving those parts into other (existing) axes by doing "
- "two axis merges, which combine an existing axis with part of the split "
- "axis.  This reduces the dimension by one.  The three axis arguments all "
- "identify axes in the input array as is.  This provides, for example, "
- "a simple way of viewing the 128 slices along the slow axis of a 3-D volume "
- "as a 16x8 tiled array of 2-D slices, as with \"-a 2 0 1 -s 16 8\".\n "
- "* Uses nrrdTile2D");
+static const char *_unrrdu_tileInfoL
+  = (INFO ". Tiling an array means splitting one axis into fast and slow parts, "
+          "and then interleaving those parts into other (existing) axes by doing "
+          "two axis merges, which combine an existing axis with part of the split "
+          "axis.  This reduces the dimension by one.  The three axis arguments all "
+          "identify axes in the input array as is.  This provides, for example, "
+          "a simple way of viewing the 128 slices along the slow axis of a 3-D volume "
+          "as a 16x8 tiled array of 2-D slices, as with \"-a 2 0 1 -s 16 8\".\n "
+          "* Uses nrrdTile2D");
 
 int
-unrrdu_tileMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_tileMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

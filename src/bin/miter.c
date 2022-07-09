@@ -29,14 +29,13 @@
 #include <teem/hoover.h>
 #include <teem/mite.h>
 
-static const char *miteInfo =
-  ("A simple but effective little volume renderer.");
+static const char *miteInfo = ("A simple but effective little volume renderer.");
 
 int
 main(int argc, const char *argv[]) {
   airArray *mop;
-  hestOpt *hopt=NULL;
-  hestParm *hparm=NULL;
+  hestOpt *hopt = NULL;
+  hestParm *hparm = NULL;
   miteUser *muu;
   const char *me;
   char *errS, *outS, *shadeStr, *normalStr, debugStr[AIR_STRLEN_MED];
@@ -63,17 +62,14 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "ti", "ntin", airTypeOther, 1, 1, &(muu->ntin), "",
              "input tensor volume to render", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "txf", "nin", airTypeOther, 1, -1, &(muu->ntxf), NULL,
-             "one or more transfer functions",
-             &(muu->ntxfNum), NULL, nrrdHestNrrd);
-  limnHestCameraOptAdd(&hopt, muu->hctx->cam,
-                       NULL, "0 0 0", "0 0 1",
-                       NULL, NULL, NULL,
+             "one or more transfer functions", &(muu->ntxfNum), NULL, nrrdHestNrrd);
+  limnHestCameraOptAdd(&hopt, muu->hctx->cam, NULL, "0 0 0", "0 0 1", NULL, NULL, NULL,
                        "nan nan", "nan nan", "20");
   hestOptAdd(&hopt, "offfr", NULL, airTypeInt, 0, 0, &offfr, NULL,
              "the given eye point (\"-fr\") is to be interpreted "
              "as an offset from the at point.");
-  hestOptAdd(&hopt, "ffr", "fake from", airTypeDouble, 3, 3,
-             &(muu->fakeFrom), "nan nan nan",
+  hestOptAdd(&hopt, "ffr", "fake from", airTypeDouble, 3, 3, &(muu->fakeFrom),
+             "nan nan nan",
              "eye point to use for view-dependent transfer functions. "
              "By default (not using this option), the point used is the "
              "normally specified camera eye point.");
@@ -81,37 +77,30 @@ main(int argc, const char *argv[]) {
              "angle (degrees) by which to rotate the from point around "
              "true up, for making stereo pairs.  Positive means move "
              "towards positive U (the right)");
-  hestOptAdd(&hopt, "am", "ambient", airTypeFloat, 3, 3, muu->lit->amb,
-             "1 1 1", "ambient light color");
-  hestOptAdd(&hopt, "ld", "light pos", airTypeFloat, 3, 3, muu->lit->_dir[0],
-             "0 0 -1", "view space light position (extended to infinity)");
-  hestOptAdd(&hopt, "is", "image size", airTypeInt, 2, 2, muu->hctx->imgSize,
-             "256 256", "image dimensions");
+  hestOptAdd(&hopt, "am", "ambient", airTypeFloat, 3, 3, muu->lit->amb, "1 1 1",
+             "ambient light color");
+  hestOptAdd(&hopt, "ld", "light pos", airTypeFloat, 3, 3, muu->lit->_dir[0], "0 0 -1",
+             "view space light position (extended to infinity)");
+  hestOptAdd(&hopt, "is", "image size", airTypeInt, 2, 2, muu->hctx->imgSize, "256 256",
+             "image dimensions");
   hestOptAdd(&hopt, "iss", "scale", airTypeFloat, 1, 1, &isScale, "1.0",
              "scaling of image size (from \"is\")");
-  hestOptAdd(&hopt, "ads", "ka kd ks", airTypeFloat, 3, 3, ads,
-             "0.1 0.6 0.3", "phong components");
-  hestOptAdd(&hopt, "sp", "spec pow", mite_at, 1, 1,
-             &(muu->rangeInit[miteRangeSP]), "30", "phong specular power");
-  hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1,
-             &(muu->ksp[gageKernel00]),
-             "tent", "value reconstruction kernel",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k11", "kernel", airTypeOther, 1, 1,
-             &(muu->ksp[gageKernel11]),
-             "cubicd:1,0", "first derivative kernel",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k22", "kernel", airTypeOther, 1, 1,
-             &(muu->ksp[gageKernel22]),
-             "cubicdd:1,0",  "second derivative kernel",
-             NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "ads", "ka kd ks", airTypeFloat, 3, 3, ads, "0.1 0.6 0.3",
+             "phong components");
+  hestOptAdd(&hopt, "sp", "spec pow", mite_at, 1, 1, &(muu->rangeInit[miteRangeSP]),
+             "30", "phong specular power");
+  hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1, &(muu->ksp[gageKernel00]),
+             "tent", "value reconstruction kernel", NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "k11", "kernel", airTypeOther, 1, 1, &(muu->ksp[gageKernel11]),
+             "cubicd:1,0", "first derivative kernel", NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "k22", "kernel", airTypeOther, 1, 1, &(muu->ksp[gageKernel22]),
+             "cubicdd:1,0", "second derivative kernel", NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "ss", "shading spec", airTypeString, 1, 1, &shadeStr,
              "phong:gage(scalar:n)", "how to do shading");
-  hestOptAdd(&hopt, "ns", "normal spec", airTypeString, 1, 1, &normalStr,
-             "", "\"normal\" to use for those miteVal's that need one");
-  hestOptAdd(&hopt, "side", "normal side", airTypeInt, 1, 1,
-             &(muu->normalSide),
-             "1", "how to interpret gradients as normals:\n "
+  hestOptAdd(&hopt, "ns", "normal spec", airTypeString, 1, 1, &normalStr, "",
+             "\"normal\" to use for those miteVal's that need one");
+  hestOptAdd(&hopt, "side", "normal side", airTypeInt, 1, 1, &(muu->normalSide), "1",
+             "how to interpret gradients as normals:\n "
              "\b\bo \"1\": normal points to lower values (higher == "
              "more \"inside\")\n "
              "\b\bo \"0\": \"two-sided\": dot-products are abs()'d\n "
@@ -124,25 +113,24 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc, "0.0",
              "For curvature-based transfer functions, set curvature to "
              "zero when gradient magnitude is below this");
-  hestOptAdd(&hopt, "step", "size", airTypeDouble, 1, 1, &(muu->rayStep),
-             "0.01", "step size along ray in world space");
-  hestOptAdd(&hopt, "ref", "size", airTypeDouble, 1, 1, &(muu->refStep),
-             "0.01", "\"reference\" step size (world space) for doing "
+  hestOptAdd(&hopt, "step", "size", airTypeDouble, 1, 1, &(muu->rayStep), "0.01",
+             "step size along ray in world space");
+  hestOptAdd(&hopt, "ref", "size", airTypeDouble, 1, 1, &(muu->refStep), "0.01",
+             "\"reference\" step size (world space) for doing "
              "opacity correction in compositing");
-  hestOptAdd(&hopt, "vp", "verbose pixel", airTypeInt, 2, 2, verbPix,
-             "-1 -1", "pixel for which to turn on verbose messages");
-  hestOptAdd(&hopt, "n1", "near1", airTypeDouble, 1, 1, &(muu->opacNear1),
-             "0.99", "opacity close enough to 1.0 to terminate ray");
-  hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1,
-             &(muu->hctx->numThreads), "1",
+  hestOptAdd(&hopt, "vp", "verbose pixel", airTypeInt, 2, 2, verbPix, "-1 -1",
+             "pixel for which to turn on verbose messages");
+  hestOptAdd(&hopt, "n1", "near1", airTypeDouble, 1, 1, &(muu->opacNear1), "0.99",
+             "opacity close enough to 1.0 to terminate ray");
+  hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1, &(muu->hctx->numThreads), "1",
              (airThreadCapable
-              ? "number of threads hoover should use"
-              : "if pthreads where enabled in this Teem build, this is how "
-              "you would control the number of threads hoover should use"));
-  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS,
-             NULL, "file to write output nrrd to");
-  hestParseOrDie(hopt, argc-1, argv+1, hparm,
-                 me, miteInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+                ? "number of threads hoover should use"
+                : "if pthreads where enabled in this Teem build, this is how "
+                  "you would control the number of threads hoover should use"));
+  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, NULL,
+             "file to write output nrrd to");
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, miteInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -166,23 +154,21 @@ main(int argc, const char *argv[]) {
   muu->rangeInit[miteRangeKd] = ads[1];
   muu->rangeInit[miteRangeKs] = ads[2];
   gageParmSet(muu->gctx0, gageParmGradMagCurvMin, gmc);
-  gageParmSet(muu->gctx0, gageParmRenormalize,
-              renorm ? AIR_TRUE : AIR_FALSE);
+  gageParmSet(muu->gctx0, gageParmRenormalize, renorm ? AIR_TRUE : AIR_FALSE);
   muu->verbUi = verbPix[0];
   muu->verbVi = verbPix[1];
   if (offfr) {
     ELL_3V_INCR(muu->hctx->cam->from, muu->hctx->cam->at);
   }
-  muu->hctx->imgSize[0] = AIR_INT(isScale*muu->hctx->imgSize[0]);
-  muu->hctx->imgSize[1] = AIR_INT(isScale*muu->hctx->imgSize[1]);
+  muu->hctx->imgSize[0] = AIR_INT(isScale * muu->hctx->imgSize[0]);
+  muu->hctx->imgSize[1] = AIR_INT(isScale * muu->hctx->imgSize[1]);
 
   muu->nout = nrrdNew();
   airMopAdd(mop, muu->nout, (airMopper)nrrdNuke, airMopAlways);
   ELL_3V_SET(muu->lit->col[0], 1, 1, 1);
   muu->lit->on[0] = AIR_TRUE;
   muu->lit->vsp[0] = AIR_TRUE;
-  if (AIR_EXISTS(muu->hctx->cam->uRange[0])
-      && AIR_EXISTS(muu->hctx->cam->uRange[1])
+  if (AIR_EXISTS(muu->hctx->cam->uRange[0]) && AIR_EXISTS(muu->hctx->cam->uRange[1])
       && AIR_EXISTS(muu->hctx->cam->vRange[0])
       && AIR_EXISTS(muu->hctx->cam->vRange[1])) {
     /* someone went to the trouble of setting the U,V minmax, which
@@ -191,23 +177,20 @@ main(int argc, const char *argv[]) {
        from the (unavoidable) default */
     muu->hctx->cam->fov = AIR_NAN;
   }
-  if (limnCameraAspectSet(muu->hctx->cam,
-                          muu->hctx->imgSize[0], muu->hctx->imgSize[1],
+  if (limnCameraAspectSet(muu->hctx->cam, muu->hctx->imgSize[0], muu->hctx->imgSize[1],
                           nrrdCenterCell)
-      || limnCameraUpdate(muu->hctx->cam)
-      || limnLightUpdate(muu->lit, muu->hctx->cam)) {
+      || limnCameraUpdate(muu->hctx->cam) || limnLightUpdate(muu->lit, muu->hctx->cam)) {
     airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble setting camera:\n%s\n", me, errS);
     airMopError(mop);
     return 1;
   }
   if (turn) {
-    turn *= AIR_PI/180;
+    turn *= AIR_PI / 180;
     ELL_3V_SUB(eye, muu->hctx->cam->from, muu->hctx->cam->at);
     ELL_3V_NORM(eye, eye, eyedist);
-    ELL_3V_SCALE_ADD2(muu->hctx->cam->from,
-                      cos(turn), eye,
-                      sin(turn), muu->hctx->cam->U);
+    ELL_3V_SCALE_ADD2(muu->hctx->cam->from, cos(turn), eye, sin(turn),
+                      muu->hctx->cam->U);
     ELL_3V_SCALE(muu->hctx->cam->from, eyedist, muu->hctx->cam->from);
     if (limnCameraUpdate(muu->hctx->cam)) {
       airMopAdd(mop, errS = biffGetDone(LIMN), airFree, airMopAlways);
@@ -228,17 +211,17 @@ main(int argc, const char *argv[]) {
   airStrcpy(muu->shadeStr, AIR_STRLEN_MED, shadeStr);
   airStrcpy(muu->normalStr, AIR_STRLEN_MED, normalStr);
   if (0) {
-    muu->hctx->volSize[0] = nin->axis[baseDim+0].size;
-    muu->hctx->volSize[1] = nin->axis[baseDim+1].size;
-    muu->hctx->volSize[2] = nin->axis[baseDim+2].size;
+    muu->hctx->volSize[0] = nin->axis[baseDim + 0].size;
+    muu->hctx->volSize[1] = nin->axis[baseDim + 1].size;
+    muu->hctx->volSize[2] = nin->axis[baseDim + 2].size;
     /* Get the proper spacing from the NRRD volume */
-    nrrdSpacingCalculate ( nin, baseDim+0, &(muu->hctx->volSpacing[0]), v );
-    nrrdSpacingCalculate ( nin, baseDim+1, &(muu->hctx->volSpacing[1]), v );
-    nrrdSpacingCalculate ( nin, baseDim+2, &(muu->hctx->volSpacing[2]), v );
+    nrrdSpacingCalculate(nin, baseDim + 0, &(muu->hctx->volSpacing[0]), v);
+    nrrdSpacingCalculate(nin, baseDim + 1, &(muu->hctx->volSpacing[1]), v);
+    nrrdSpacingCalculate(nin, baseDim + 2, &(muu->hctx->volSpacing[2]), v);
   } else {
     if (gageShapeSet(muu->shape, nin, baseDim)) {
-      fprintf(stderr, "%s: problem with shape:\n%s\n",
-              me, errS = biffGetDone(GAGE)); free(errS);
+      fprintf(stderr, "%s: problem with shape:\n%s\n", me, errS = biffGetDone(GAGE));
+      free(errS);
       airMopError(mop);
       return 1;
     }
@@ -254,14 +237,17 @@ main(int argc, const char *argv[]) {
   muu->hctx->renderEnd = (hooverRenderEnd_t *)miteRenderEnd;
 
   if (!airThreadCapable && 1 != muu->hctx->numThreads) {
-    fprintf(stderr, "%s: This Teem not compiled with "
-            "multi-threading support.\n", me);
-    fprintf(stderr, "%s: ==> can't use %d threads; only using 1\n",
-            me, muu->hctx->numThreads);
+    fprintf(stderr,
+            "%s: This Teem not compiled with "
+            "multi-threading support.\n",
+            me);
+    fprintf(stderr, "%s: ==> can't use %d threads; only using 1\n", me,
+            muu->hctx->numThreads);
     muu->hctx->numThreads = 1;
   }
 
-  fprintf(stderr, "%s: rendering ... ", me); fflush(stderr);
+  fprintf(stderr, "%s: rendering ... ", me);
+  fflush(stderr);
 
   E = hooverRender(muu->hctx, &Ecode, &Ethread);
   if (E) {
@@ -271,8 +257,8 @@ main(int argc, const char *argv[]) {
       errS = biffGetDone(MITE);
     }
     airMopAdd(mop, errS, airFree, airMopAlways);
-    fprintf(stderr, "%s: %s error (code %d, thread %d):\n%s\n",
-            me, airEnumStr(hooverErr, E), Ecode, Ethread, errS);
+    fprintf(stderr, "%s: %s error (code %d, thread %d):\n%s\n", me,
+            airEnumStr(hooverErr, E), Ecode, Ethread, errS);
     airMopError(mop);
     return 1;
   }
@@ -299,4 +285,3 @@ main(int argc, const char *argv[]) {
   airMopOkay(mop);
   return 0;
 }
-

@@ -25,15 +25,13 @@
 #include "privateTen.h"
 
 #define INFO "Non-linear least-squares fitting of b-value curves"
-static const char *_tend_bfitInfoL =
-  (INFO
-   ". Axis 0 is replaced by three values: amp, dec, err, based on a "
-   "non-linear least-squares fit of amp*exp(-b*dec) to the range of DWI "
-   "values along input axis 0, as a function of changing b values.  ");
+static const char *_tend_bfitInfoL
+  = (INFO ". Axis 0 is replaced by three values: amp, dec, err, based on a "
+          "non-linear least-squares fit of amp*exp(-b*dec) to the range of DWI "
+          "values along input axis 0, as a function of changing b values.  ");
 
 int
-tend_bfitMain(int argc, const char **argv, const char *me,
-              hestParm *hparm) {
+tend_bfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -49,7 +47,8 @@ tend_bfitMain(int argc, const char **argv, const char *me,
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
              "Input nrrd.  List of DWIs from different b-values must "
-             "be along axis 0", NULL, NULL, nrrdHestNrrd);
+             "be along axis 0",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "b", "b1 b2", airTypeDouble, 2, -1, &bb, NULL,
              "b values across axis 0 of input nrrd", &bbLen);
   hestOptAdd(&hopt, "w", "w1 w2", airTypeDouble, 2, -1, &_ww, "nan nan",
@@ -68,25 +67,27 @@ tend_bfitMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( bbLen == nin->axis[0].size )) {
+  if (!(bbLen == nin->axis[0].size)) {
     char stmp[AIR_STRLEN_SMALL];
-    fprintf(stderr, "%s: got %d b-values but axis 0 size is %s\n", me,
-            bbLen, airSprintSize_t(stmp, nin->axis[0].size));
-    airMopError(mop); return 1;
+    fprintf(stderr, "%s: got %d b-values but axis 0 size is %s\n", me, bbLen,
+            airSprintSize_t(stmp, nin->axis[0].size));
+    airMopError(mop);
+    return 1;
   }
   if (AIR_EXISTS(_ww[0])) {
-    if (!( _wwLen == nin->axis[0].size )) {
+    if (!(_wwLen == nin->axis[0].size)) {
       char stmp[AIR_STRLEN_SMALL];
-      fprintf(stderr, "%s: got %d weights but axis 0 size is %s\n", me,
-              _wwLen, airSprintSize_t(stmp, nin->axis[0].size));
-      airMopError(mop); return 1;
+      fprintf(stderr, "%s: got %d weights but axis 0 size is %s\n", me, _wwLen,
+              airSprintSize_t(stmp, nin->axis[0].size));
+      airMopError(mop);
+      return 1;
     }
     ww = _ww;
   } else {
     /* no explicit weights specified */
-    ww = (double*)calloc(nin->axis[0].size, sizeof(double));
+    ww = (double *)calloc(nin->axis[0].size, sizeof(double));
     airMopAdd(mop, ww, airFree, airMopAlways);
-    for (ii=0; ii<nin->axis[0].size; ii++) {
+    for (ii = 0; ii < nin->axis[0].size; ii++) {
       ww[ii] = 1.0;
     }
   }
@@ -95,15 +96,17 @@ tend_bfitMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (tenBVecNonLinearFit(nout, nin, bb, ww, iterMax, eps)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

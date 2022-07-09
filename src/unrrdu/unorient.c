@@ -25,14 +25,11 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Make image orientation be axis-aligned"
-static const char *_unrrdu_unorientInfoL =
-  (INFO
-   ". Does various tricks.\n "
-   "* Uses nrrdOrientationReduce");
+static const char *_unrrdu_unorientInfoL = (INFO ". Does various tricks.\n "
+                                                 "* Uses nrrdOrientationReduce");
 
 int
-unrrdu_unorientMain(int argc, const char **argv, const char *me,
-                    hestParm *hparm) {
+unrrdu_unorientMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -48,8 +45,7 @@ unrrdu_unorientMain(int argc, const char **argv, const char *me,
              "(sorry, can't use usual default of \"-\" for stdin "
              "because of hest quirk)",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "smfo", NULL, airTypeInt, 0, 0,
-             &setMinsFromOrigin, NULL,
+  hestOptAdd(&opt, "smfo", NULL, airTypeInt, 0, 0, &setMinsFromOrigin, NULL,
              "set some axis mins based on space origin (hack)");
   OPT_ADD_NOUT(out, "output nrrd");
 

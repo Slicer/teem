@@ -21,29 +21,34 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#define MOSS_SX(img) AIR_UINT((3 == (img)->dim            \
-                               ? (img)->axis[1].size      \
-                               : (img)->axis[0].size ))
-#define MOSS_SY(img) AIR_UINT((3 == (img)->dim            \
-                               ? (img)->axis[2].size      \
-                               : (img)->axis[1].size ))
+#define MOSS_SX(img)                                                                    \
+  AIR_UINT((3 == (img)->dim ? (img)->axis[1].size : (img)->axis[0].size))
+#define MOSS_SY(img)                                                                    \
+  AIR_UINT((3 == (img)->dim ? (img)->axis[2].size : (img)->axis[1].size))
 
-#define MOSS_MAT_SET(mat, a, b, x, c, d, y) \
-  (mat)[0]=(a); (mat)[1]=(b); (mat)[2]=(x); \
-  (mat)[3]=(c); (mat)[4]=(d); (mat)[5]=(y)
+#define MOSS_MAT_SET(mat, a, b, x, c, d, y)                                             \
+  (mat)[0] = (a);                                                                       \
+  (mat)[1] = (b);                                                                       \
+  (mat)[2] = (x);                                                                       \
+  (mat)[3] = (c);                                                                       \
+  (mat)[4] = (d);                                                                       \
+  (mat)[5] = (y)
 
-#define MOSS_MAT_COPY(m2, m1) \
-  (m2)[0] = (m1)[0]; (m2)[1] = (m1)[1]; (m2)[2] = (m1)[2]; \
-  (m2)[3] = (m1)[3]; (m2)[4] = (m1)[4]; (m2)[5] = (m1)[5]
+#define MOSS_MAT_COPY(m2, m1)                                                           \
+  (m2)[0] = (m1)[0];                                                                    \
+  (m2)[1] = (m1)[1];                                                                    \
+  (m2)[2] = (m1)[2];                                                                    \
+  (m2)[3] = (m1)[3];                                                                    \
+  (m2)[4] = (m1)[4];                                                                    \
+  (m2)[5] = (m1)[5]
 
-#define MOSS_MAT_6TO9(m2, m1) \
-  ELL_3V_COPY((m2)+0, (m1)+0); \
-  ELL_3V_COPY((m2)+3, (m1)+3); \
-  ELL_3V_SET((m2)+6, 0, 0, 1)
+#define MOSS_MAT_6TO9(m2, m1)                                                           \
+  ELL_3V_COPY((m2) + 0, (m1) + 0);                                                      \
+  ELL_3V_COPY((m2) + 3, (m1) + 3);                                                      \
+  ELL_3V_SET((m2) + 6, 0, 0, 1)
 
-#define MOSS_MAT_9TO6(m2, m1) \
+#define MOSS_MAT_9TO6(m2, m1)                                                           \
   MOSS_MAT_SET(m2, (m1)[0], (m1)[1], (m1)[2], (m1)[3], (m1)[4], (m1)[5])
-
 
 /* methodsMoss.c */
 extern int _mossCenter(int center);

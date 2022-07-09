@@ -23,14 +23,10 @@
 
 #include "coil.h"
 
-const int
-coilPresent = 42;
+const int coilPresent = 42;
 
-const char *
-coilBiffKey = "coil";
+const char *coilBiffKey = "coil";
 
-int
-coilDefaultRadius = 1;
+int coilDefaultRadius = 1;
 
-int
-coilVerbose = 0;
+int coilVerbose = 0;

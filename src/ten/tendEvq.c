@@ -25,18 +25,16 @@
 #include "privateTen.h"
 
 #define INFO "Quantize directions of diffusion"
-static const char *_tend_evqInfoL =
-  (INFO
-   ". Because VTK doesn't do multi-dimensional colormaps, we have to "
-   "quantize directions of diffusion (usually just the principal eigenvector) "
-   "in order to create the usual XYZ<->RGB coloring.  Because "
-   "eigenvector directions are poorly defined in regions of low "
-   "anisotropy, the length of the vector (pre-quantization) is modulated "
-   "by anisotropy, requiring the selection of some anisotropy metric.");
+static const char *_tend_evqInfoL
+  = (INFO ". Because VTK doesn't do multi-dimensional colormaps, we have to "
+          "quantize directions of diffusion (usually just the principal eigenvector) "
+          "in order to create the usual XYZ<->RGB coloring.  Because "
+          "eigenvector directions are poorly defined in regions of low "
+          "anisotropy, the length of the vector (pre-quantization) is modulated "
+          "by anisotropy, requiring the selection of some anisotropy metric.");
 
 int
-tend_evqMain(int argc, const char **argv, const char *me,
-             hestParm *hparm) {
+tend_evqMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -73,15 +71,17 @@ tend_evqMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenEvqVolume(nout, nin, which, aniso, !dontScaleByAniso)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble quantizing eigenvectors:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

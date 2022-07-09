@@ -25,14 +25,12 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Draws ASCII-art box plots"
-static const char *_unrrdu_aabplotInfoL =
-  (INFO
-   ".  Because why not.\n "
-   "* (uses nrrd, but no Nrrd function has this functionality)");
+static const char *_unrrdu_aabplotInfoL
+  = (INFO ".  Because why not.\n "
+          "* (uses nrrd, but no Nrrd function has this functionality)");
 
 int
-unrrdu_aabplotMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_aabplotMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   /* these are stock for unrrdu */
   hestOpt *opt = NULL;
   airArray *mop;
@@ -66,7 +64,7 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( 2 == _nin->dim || 1 == _nin->dim )) {
+  if (!(2 == _nin->dim || 1 == _nin->dim)) {
     fprintf(stderr, "%s: need 1-D or 2-D array\n", me);
     airMopError(mop);
     return 1;
@@ -89,8 +87,7 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
   }
   if (_nsingle) {
     if (nrrdElementNumber(_nsingle) != nin->axis[1].size) {
-      fprintf(stderr, "%s: \"-s\" input doesn't match size of \"-i\" input",
-              me);
+      fprintf(stderr, "%s: \"-s\" input doesn't match size of \"-i\" input", me);
       airMopError(mop);
       return 1;
     }
@@ -102,7 +99,7 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
       airMopError(mop);
       return 1;
     }
-    single = (double*)nsingle->data;
+    single = (double *)nsingle->data;
   } else {
     nsingle = NULL;
     single = NULL;
@@ -110,7 +107,7 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
 
   {
 #define PTNUM 5
-    double *in, *buff, ptile[PTNUM]={5,25,50,75,95};
+    double *in, *buff, ptile[PTNUM] = {5, 25, 50, 75, 95};
     unsigned int xi, yi, pi, ti, sx, sy, pti[PTNUM];
     char *line, rbuff[128];
     Nrrd *nbuff;
@@ -125,12 +122,12 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
       airMopError(mop);
       return 1;
     }
-    line = calloc(plen+1, sizeof(char));
-    in = (double*)nin->data;
-    buff = (double*)nbuff->data;
+    line = calloc(plen + 1, sizeof(char));
+    in = (double *)nin->data;
+    buff = (double *)nbuff->data;
 
     if (rshow) {
-      for (pi=0; pi<plen; pi++) {
+      for (pi = 0; pi < plen; pi++) {
         line[pi] = ' ';
       }
       sprintf(rbuff, "|<-- %g", vrange[0]);
@@ -143,14 +140,13 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
       }
       printf("\n");
     }
-    for (yi=0; yi<sy; yi++) {
-      for (xi=0; xi<sx; xi++) {
-        buff[xi] = in[xi + sx*yi];
+    for (yi = 0; yi < sy; yi++) {
+      for (xi = 0; xi < sx; xi++) {
+        buff[xi] = in[xi + sx * yi];
       }
       qsort(buff, sx, sizeof(double), nrrdValCompare[nrrdTypeDouble]);
-      for (ti=0; ti<PTNUM; ti++) {
-        pti[ti] = airIndexClamp(vrange[0],
-                                buff[airIndexClamp(0, ptile[ti], 100, sx)],
+      for (ti = 0; ti < PTNUM; ti++) {
+        pti[ti] = airIndexClamp(vrange[0], buff[airIndexClamp(0, ptile[ti], 100, sx)],
                                 vrange[1], plen);
         /*
         fprintf(stderr, "ti %u (%g) -> buff[%u] = %g -> %u\n", ti,
@@ -158,24 +154,24 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me,
                 buff[airIndexClamp(0, ptile[ti], 100, sx)], pti[ti]);
         */
       }
-      for (pi=0; pi<plen; pi++) {
+      for (pi = 0; pi < plen; pi++) {
         line[pi] = pi % 2 ? ' ' : '.';
       }
-      for (pi=pti[0]; pi<=pti[4]; pi++) {
+      for (pi = pti[0]; pi <= pti[4]; pi++) {
         line[pi] = '-';
       }
-      for (pi=pti[1]; pi<=pti[3]; pi++) {
+      for (pi = pti[1]; pi <= pti[3]; pi++) {
         line[pi] = '=';
       }
-      line[pti[2]]='m';
+      line[pti[2]] = 'm';
       if (pti[2] > 0) {
-        line[pti[2]-1]='<';
+        line[pti[2] - 1] = '<';
       }
-      if (pti[2] < plen-1) {
-        line[pti[2]+1]='>';
+      if (pti[2] < plen - 1) {
+        line[pti[2] + 1] = '>';
       }
       if (single) {
-        line[airIndexClamp(vrange[0], single[yi], vrange[1], plen)]='X';
+        line[airIndexClamp(vrange[0], single[yi], vrange[1], plen)] = 'X';
       }
       printf("%s", line);
       if (medshow) {

@@ -25,14 +25,12 @@
 #include "privateTen.h"
 
 #define INFO "Apply an anisotropy metric to a DT volume"
-static const char *_tend_anvolInfoL =
-  (INFO
-   ".  The anisotropy value will be zero in the locations which "
-   "don't meet the given confidence threshold.");
+static const char *_tend_anvolInfoL
+  = (INFO ".  The anisotropy value will be zero in the locations which "
+          "don't meet the given confidence threshold.");
 
 int
-tend_anvolMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+tend_anvolMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -44,8 +42,7 @@ tend_anvolMain(int argc, const char **argv, const char *me,
   float thresh;
 
   hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, NULL,
-             "Which anisotropy metric to plot.  " TEN_ANISO_DESC,
-             NULL, tenAniso);
+             "Which anisotropy metric to plot.  " TEN_ANISO_DESC, NULL, tenAniso);
   hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
              "confidence threshold");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
@@ -62,14 +59,16 @@ tend_anvolMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenAnisoVolume(nout, nin, aniso, thresh)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making aniso volume:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

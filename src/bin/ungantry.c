@@ -27,10 +27,10 @@
 #include <teem/nrrd.h>
 #include <teem/gage.h>
 
-char info[]="Gantry tilt be gone!  This program is actually of limited "
-"utility: it can only change the tilt by shearing with the "
-"X and Z axis fixed, by some angle \"around\" the X axis, assuming "
-"that (X,Y,Z) is a right-handed frame. ";
+char info[] = "Gantry tilt be gone!  This program is actually of limited "
+              "utility: it can only change the tilt by shearing with the "
+              "X and Z axis fixed, by some angle \"around\" the X axis, assuming "
+              "that (X,Y,Z) is a right-handed frame. ";
 
 int
 main(int argc, const char *argv[]) {
@@ -55,13 +55,11 @@ main(int argc, const char *argv[]) {
   hparm->elideSingleOtherType = AIR_TRUE;
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input volume, in nrrd format",
-             NULL, NULL, nrrdHestNrrd);
+             "input volume, in nrrd format", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "a", "angle", airTypeFloat, 1, 1, &angle, NULL,
              "angle, in degrees, of the gantry tilt around the X axis. "
              "This is opposite of the amount of tweak we apply.");
-  hestOptAdd(&hopt, "k", "kern", airTypeOther, 1, 1, &gantric,
-             "tent",
+  hestOptAdd(&hopt, "k", "kern", airTypeOther, 1, 1, &gantric, "tent",
              "The kernel to use for resampling.  Chances are, there "
              "is no justification for anything more than \"tent\".  "
              "Possibilities include:\n "
@@ -84,8 +82,8 @@ main(int argc, const char *argv[]) {
              "boundary of the volume with");
   hestOptAdd(&hopt, "o", "output", airTypeString, 1, 1, &outS, NULL,
              "output volume in nrrd format");
-  hestParseOrDie(hopt, argc-1, argv+1, hparm,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, info, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
 
   sx = AIR_UINT(nin->axis[0].size);
   sy = AIR_UINT(nin->axis[1].size);
@@ -97,8 +95,7 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "%s: all axis spacings must exist in input nrrd\n", me);
     exit(1);
   }
-  fprintf(stderr, "%s: input and output have dimensions %d %d %d\n",
-          me, sx, sy, sz);
+  fprintf(stderr, "%s: input and output have dimensions %d %d %d\n", me, sx, sy, sz);
 
   /* start by just copying the nrrd; then we'll meddle with the values */
   if (nrrdCopy(nout = nrrdNew(), nin)) {
@@ -114,8 +111,7 @@ main(int argc, const char *argv[]) {
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, gageKindScl));
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
-  if (!E) E |= gageKernelSet(ctx, gageKernel00,
-                             gantric->kernel, gantric->parm);
+  if (!E) E |= gageKernelSet(ctx, gageKernel00, gantric->kernel, gantric->parm);
   if (!E) E |= gageQueryItemOn(ctx, pvl, gageSclValue);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
@@ -125,22 +121,22 @@ main(int argc, const char *argv[]) {
   gageParmSet(ctx, gageParmVerbose, 0);
   val = gageAnswerPointer(ctx, pvl, gageSclValue);
 
-  for (zi=0; zi<sz; zi++) {
-    for (yi=0; yi<sy; yi++) {
-      for (xi=0; xi<sx; xi++) {
+  for (zi = 0; zi < sz; zi++) {
+    for (yi = 0; yi < sy; yi++) {
+      for (xi = 0; xi < sx; xi++) {
 
         /* convert to world space, use angle to determine new
            world space position, convert back to index space,
            clamp z to find inside old volume */
 
-        y = (yi - sy/2.0)*ys;
-        z = (zi*zs + y*sin(-angle*3.141592653/180.0))/zs;
-        if (clamp || AIR_IN_OP(0, z, sz-1)) {
-          z = AIR_CLAMP(0, z, sz-1);
+        y = (yi - sy / 2.0) * ys;
+        z = (zi * zs + y * sin(-angle * 3.141592653 / 180.0)) / zs;
+        if (clamp || AIR_IN_OP(0, z, sz - 1)) {
+          z = AIR_CLAMP(0, z, sz - 1);
           gageProbe(ctx, xi, yi, zi);
-          insert(out, xi + sx*(yi + sy*zi), *val);
+          insert(out, xi + sx * (yi + sy * zi), *val);
         } else {
-          insert(out, xi + sx*(yi + sy*zi), padval);
+          insert(out, xi + sx * (yi + sy * zi), padval);
         }
       }
     }

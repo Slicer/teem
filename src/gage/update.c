@@ -30,7 +30,7 @@ _gagePvlFlagCheck(gageContext *ctx, int pvlFlag) {
   unsigned int pvlIdx;
 
   ret = AIR_FALSE;
-  for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
+  for (pvlIdx = 0; pvlIdx < ctx->pvlNum; pvlIdx++) {
     ret |= ctx->pvl[pvlIdx]->flag[pvlFlag];
   }
   return ret;
@@ -40,7 +40,7 @@ void
 _gagePvlFlagDown(gageContext *ctx, int pvlFlag) {
   unsigned int pvlIdx;
 
-  for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
+  for (pvlIdx = 0; pvlIdx < ctx->pvlNum; pvlIdx++) {
     ctx->pvl[pvlIdx]->flag[pvlFlag] = AIR_FALSE;
   }
 }
@@ -57,17 +57,17 @@ _gagePvlFlagDown(gageContext *ctx, int pvlFlag) {
 */
 void
 _gagePvlNeedDUpdate(gageContext *ctx) {
-  static const char me[]="_gagePvlNeedDUpdate";
+  static const char me[] = "_gagePvlNeedDUpdate";
   gagePerVolume *pvl;
-  int que, needD[GAGE_DERIV_MAX+1];
+  int que, needD[GAGE_DERIV_MAX + 1];
   unsigned int pvlIdx, di;
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
-  for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
+  for (pvlIdx = 0; pvlIdx < ctx->pvlNum; pvlIdx++) {
     pvl = ctx->pvl[pvlIdx];
     if (pvl->flag[gagePvlFlagQuery]) {
       GAGE_DV_SET(needD, 0, 0, 0);
-      que = pvl->kind->itemMax+1;
+      que = pvl->kind->itemMax + 1;
       do {
         que--;
         if (GAGE_QUERY_ITEM_TEST(pvl->query, que)) {
@@ -77,7 +77,7 @@ _gagePvlNeedDUpdate(gageContext *ctx) {
       if (!GAGE_DV_EQUAL(needD, pvl->needD)) {
         if (ctx->verbose) {
           fprintf(stderr, "%s: updating pvl[%d]'s needD to (", me, pvlIdx);
-          for (di=0; di<=GAGE_DERIV_MAX; di++) {
+          for (di = 0; di <= GAGE_DERIV_MAX; di++) {
             fprintf(stderr, "%s%d", di ? "," : "", needD[di]);
           }
           fprintf(stderr, "\n");
@@ -96,23 +96,23 @@ _gagePvlNeedDUpdate(gageContext *ctx) {
 */
 void
 _gageNeedDUpdate(gageContext *ctx) {
-  static const char me[]="_gageNeedDUpdate";
+  static const char me[] = "_gageNeedDUpdate";
   gagePerVolume *pvl;
-  int needD[GAGE_DERIV_MAX+1];
+  int needD[GAGE_DERIV_MAX + 1];
   unsigned int pvlIdx, di;
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   GAGE_DV_SET(needD, 0, 0, 0);
-  for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
+  for (pvlIdx = 0; pvlIdx < ctx->pvlNum; pvlIdx++) {
     pvl = ctx->pvl[pvlIdx];
-    for (di=0; di<=GAGE_DERIV_MAX; di++) {
+    for (di = 0; di <= GAGE_DERIV_MAX; di++) {
       needD[di] |= pvl->needD[di];
     }
   }
   if (!GAGE_DV_EQUAL(needD, ctx->needD)) {
     if (ctx->verbose) {
       fprintf(stderr, "%s: updating ctx's needD to (", me);
-      for (di=0; di<=GAGE_DERIV_MAX; di++) {
+      for (di = 0; di <= GAGE_DERIV_MAX; di++) {
         fprintf(stderr, "%s%d", di ? "," : "", needD[di]);
       }
       fprintf(stderr, "\n");
@@ -130,12 +130,12 @@ _gageNeedDUpdate(gageContext *ctx) {
 */
 static int
 _gageNeedKUpdate(gageContext *ctx) {
-  static const char me[]="_gageNeedKUpdate";
-  int kernIdx, needK[GAGE_KERNEL_MAX+1], change;
+  static const char me[] = "_gageNeedKUpdate";
+  int kernIdx, needK[GAGE_KERNEL_MAX + 1], change;
   unsigned int di;
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
-  for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
+  for (kernIdx = gageKernelUnknown + 1; kernIdx < gageKernelLast; kernIdx++) {
     needK[kernIdx] = AIR_FALSE;
   }
   if (!ctx->parm.k3pack) {
@@ -152,28 +152,27 @@ _gageNeedKUpdate(gageContext *ctx) {
   }
   di += 1;
   if (ctx->needD[di]) {
-    needK[gageKernel00] = needK[gageKernel11] =
-      needK[gageKernel22] = AIR_TRUE;
+    needK[gageKernel00] = needK[gageKernel11] = needK[gageKernel22] = AIR_TRUE;
   }
   if (GAGE_DERIV_MAX != di) {
-    biffAddf(GAGE, "%s: sorry, code needs updating for GAGE_DERIV_MAX %u",
-             me, GAGE_DERIV_MAX);
+    biffAddf(GAGE, "%s: sorry, code needs updating for GAGE_DERIV_MAX %u", me,
+             GAGE_DERIV_MAX);
     return 1;
   }
   change = AIR_FALSE;
-  for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
+  for (kernIdx = gageKernelUnknown + 1; kernIdx < gageKernelLast; kernIdx++) {
     change |= (needK[kernIdx] != ctx->needK[kernIdx]);
   }
   if (change) {
     if (ctx->verbose) {
       fprintf(stderr, "%s: changing needK to (", me);
-      for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
-        fprintf(stderr, "%s%d", kernIdx > gageKernelUnknown+1 ? "," : "",
+      for (kernIdx = gageKernelUnknown + 1; kernIdx < gageKernelLast; kernIdx++) {
+        fprintf(stderr, "%s%d", kernIdx > gageKernelUnknown + 1 ? "," : "",
                 needK[kernIdx]);
       }
       fprintf(stderr, ")\n");
     }
-    for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
+    for (kernIdx = gageKernelUnknown + 1; kernIdx < gageKernelLast; kernIdx++) {
       ctx->needK[kernIdx] = needK[kernIdx];
     }
     ctx->flag[gageCtxFlagNeedK] = AIR_TRUE;
@@ -189,27 +188,26 @@ _gageNeedKUpdate(gageContext *ctx) {
 */
 int
 _gageRadiusUpdate(gageContext *ctx) {
-  static const char me[]="_gageRadiusUpdate";
+  static const char me[] = "_gageRadiusUpdate";
   unsigned int kernIdx, radius;
   double maxRad, rad;
   NrrdKernelSpec *ksp;
 
   if (ctx->verbose) fprintf(stderr, "%s: hello\n", me);
   maxRad = 0;
-  for (kernIdx=gageKernelUnknown+1; kernIdx<gageKernelLast; kernIdx++) {
+  for (kernIdx = gageKernelUnknown + 1; kernIdx < gageKernelLast; kernIdx++) {
     if (ctx->needK[kernIdx]) {
       ksp = ctx->ksp[kernIdx];
       if (!ksp) {
-        biffAddf(GAGE, "%s: need kernel %s but it hasn't been set",
-                 me, airEnumStr(gageKernel, kernIdx));
+        biffAddf(GAGE, "%s: need kernel %s but it hasn't been set", me,
+                 airEnumStr(gageKernel, kernIdx));
         return 1;
       }
       rad = ksp->kernel->support(ksp->parm);
       maxRad = AIR_MAX(maxRad, rad);
       if (ctx->verbose) {
         fprintf(stderr, "%s: k[%s]=%s -> rad = %g -> maxRad = %g\n", me,
-                airEnumStr(gageKernel, kernIdx), ksp->kernel->name,
-                rad, maxRad);
+                airEnumStr(gageKernel, kernIdx), ksp->kernel->name, rad, maxRad);
       }
     }
   }
@@ -218,18 +216,17 @@ _gageRadiusUpdate(gageContext *ctx) {
      we in fact don't need any kernels, then we need to do this to
      ensure that we generate a valid radius */
   radius = AIR_MAX(radius, 1);
-  if (ctx->parm.stackUse && (nrrdKernelHermiteScaleSpaceFlag
-                             == ctx->ksp[gageKernelStack]->kernel)) {
+  if (ctx->parm.stackUse
+      && (nrrdKernelHermiteScaleSpaceFlag == ctx->ksp[gageKernelStack]->kernel)) {
     if (ctx->verbose) {
-      fprintf(stderr, "%s: hermite on stack: bumping radius %d --> %d\n",
-              me, radius, radius+1);
+      fprintf(stderr, "%s: hermite on stack: bumping radius %d --> %d\n", me, radius,
+              radius + 1);
     }
     radius += 1;
   }
   if (radius != ctx->radius) {
     if (ctx->verbose) {
-      fprintf(stderr, "%s: changing radius from %d to %d\n",
-              me, ctx->radius, radius);
+      fprintf(stderr, "%s: changing radius from %d to %d\n", me, ctx->radius, radius);
     }
     ctx->radius = radius;
     ctx->flag[gageCtxFlagRadius] = AIR_TRUE;
@@ -241,24 +238,23 @@ _gageRadiusUpdate(gageContext *ctx) {
 
 int
 _gageCacheSizeUpdate(gageContext *ctx) {
-  static const char me[]="_gageCacheSizeUpdate";
+  static const char me[] = "_gageCacheSizeUpdate";
   int fd;
   gagePerVolume *pvl;
   unsigned int pvlIdx;
 
-  if (ctx->verbose) fprintf(stderr, "%s: hello (radius = %d)\n",
-                            me, ctx->radius);
-  if (!( ctx->radius > 0 )) {
+  if (ctx->verbose) fprintf(stderr, "%s: hello (radius = %d)\n", me, ctx->radius);
+  if (!(ctx->radius > 0)) {
     biffAddf(GAGE, "%s: have bad radius %d", me, ctx->radius);
     return 1;
   }
-  fd = 2*ctx->radius;
+  fd = 2 * ctx->radius;
   ctx->fsl = (double *)airFree(ctx->fsl);
   ctx->fw = (double *)airFree(ctx->fw);
   ctx->off = (unsigned int *)airFree(ctx->off);
-  ctx->fsl = (double *)calloc(fd*3, sizeof(double));
-  ctx->fw = (double *)calloc(fd*3*(GAGE_KERNEL_MAX+1), sizeof(double));
-  ctx->off = (unsigned int *)calloc(fd*fd*fd, sizeof(unsigned int));
+  ctx->fsl = (double *)calloc(fd * 3, sizeof(double));
+  ctx->fw = (double *)calloc(fd * 3 * (GAGE_KERNEL_MAX + 1), sizeof(double));
+  ctx->off = (unsigned int *)calloc(fd * fd * fd, sizeof(unsigned int));
   if (!(ctx->fsl && ctx->fw && ctx->off)) {
     biffAddf(GAGE, "%s: couldn't allocate filter caches for fd=%d", me, fd);
     return 1;
@@ -266,17 +262,17 @@ _gageCacheSizeUpdate(gageContext *ctx) {
   /* note that all pvls get caches allocated for the same size, even if
      their queries don't involve the largest-size kernels. This is actually
      the feature that enabled the stack functionality to be easily added. */
-  for (pvlIdx=0; pvlIdx<ctx->pvlNum; pvlIdx++) {
+  for (pvlIdx = 0; pvlIdx < ctx->pvlNum; pvlIdx++) {
     pvl = ctx->pvl[pvlIdx];
     pvl->iv3 = (double *)airFree(pvl->iv3);
     pvl->iv2 = (double *)airFree(pvl->iv2);
     pvl->iv1 = (double *)airFree(pvl->iv1);
-    pvl->iv3 = (double *)calloc(fd*fd*fd*pvl->kind->valLen, sizeof(double));
-    pvl->iv2 = (double *)calloc(fd*fd*pvl->kind->valLen, sizeof(double));
-    pvl->iv1 = (double *)calloc(fd*pvl->kind->valLen, sizeof(double));
+    pvl->iv3 = (double *)calloc(fd * fd * fd * pvl->kind->valLen, sizeof(double));
+    pvl->iv2 = (double *)calloc(fd * fd * pvl->kind->valLen, sizeof(double));
+    pvl->iv1 = (double *)calloc(fd * pvl->kind->valLen, sizeof(double));
     if (!(pvl->iv3 && pvl->iv2 && pvl->iv1)) {
-      biffAddf(GAGE, "%s: couldn't allocate pvl[%d]'s value caches for fd=%d",
-               me, pvlIdx, fd);
+      biffAddf(GAGE, "%s: couldn't allocate pvl[%d]'s value caches for fd=%d", me,
+               pvlIdx, fd);
       return 1;
     }
   }
@@ -287,7 +283,7 @@ _gageCacheSizeUpdate(gageContext *ctx) {
 
 void
 _gageOffValueUpdate(gageContext *ctx) {
-  static const char me[]="_gageOffValueUpdate";
+  static const char me[] = "_gageOffValueUpdate";
   int fd, i, j, k;
   unsigned int sx, sy;
 
@@ -295,12 +291,12 @@ _gageOffValueUpdate(gageContext *ctx) {
 
   sx = ctx->shape->size[0];
   sy = ctx->shape->size[1];
-  fd = 2*ctx->radius;
+  fd = 2 * ctx->radius;
   /* HEY: look into special casing this for small fd */
-  for (k=0; k<fd; k++) {
-    for (j=0; j<fd; j++) {
-      for (i=0; i<fd; i++) {
-        ctx->off[i + fd*(j + fd*k)] = i + sx*(j + sy*k);
+  for (k = 0; k < fd; k++) {
+    for (j = 0; j < fd; j++) {
+      for (i = 0; i < fd; i++) {
+        ctx->off[i + fd * (j + fd * k)] = i + sx * (j + sy * k);
       }
     }
   }
@@ -317,11 +313,11 @@ _gageOffValueUpdate(gageContext *ctx) {
 */
 int
 gageUpdate(gageContext *ctx) {
-  static const char me[]="gageUpdate";
+  static const char me[] = "gageUpdate";
   unsigned int pi;
   int i, haveQuery;
 
-  if (!( ctx )) {
+  if (!(ctx)) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
@@ -330,14 +326,12 @@ gageUpdate(gageContext *ctx) {
     return 1;
   }
   haveQuery = AIR_FALSE;
-  for (pi=0; pi<ctx->pvlNum; pi++) {
+  for (pi = 0; pi < ctx->pvlNum; pi++) {
     haveQuery |= GAGE_QUERY_NONZERO(ctx->pvl[pi]->query);
   }
   if (!haveQuery) {
     biffAddf(GAGE, "%s: no query item set in %s", me,
-             (ctx->pvlNum == 1
-              ? "the pervolume"
-              : "any of the pervolumes"));
+             (ctx->pvlNum == 1 ? "the pervolume" : "any of the pervolumes"));
     return 1;
   }
 
@@ -348,14 +342,14 @@ gageUpdate(gageContext *ctx) {
                airEnumStr(gageKernel, gageKernelStack));
       return 1;
     }
-    if (!( 2 <= ctx->pvlNum )) {
+    if (!(2 <= ctx->pvlNum)) {
       biffAddf(GAGE, "%s: need at least 2 pervolumes for stack", me);
       return 1;
     }
-    for (pi=1; pi<ctx->pvlNum; pi++) {
-      if (!( ctx->pvl[0]->kind == ctx->pvl[pi]->kind )) {
-        biffAddf(GAGE, "%s: pvl[%u] kind (%s) != pvl[0] kind (%s)", me,
-                 pi, ctx->pvl[pi]->kind->name, ctx->pvl[0]->kind->name);
+    for (pi = 1; pi < ctx->pvlNum; pi++) {
+      if (!(ctx->pvl[0]->kind == ctx->pvl[pi]->kind)) {
+        biffAddf(GAGE, "%s: pvl[%u] kind (%s) != pvl[0] kind (%s)", me, pi,
+                 ctx->pvl[pi]->kind->name, ctx->pvl[0]->kind->name);
         return 1;
       }
     }
@@ -365,12 +359,12 @@ gageUpdate(gageContext *ctx) {
   if (ctx->verbose) {
     fprintf(stderr, "%s: hello ____________________ \n", me);
     fprintf(stderr, "    context flags:");
-    for (i=gageCtxFlagUnknown+1; i<gageCtxFlagLast; i++) {
+    for (i = gageCtxFlagUnknown + 1; i < gageCtxFlagLast; i++) {
       fprintf(stderr, " %d=%d", i, ctx->flag[i]);
     }
     fprintf(stderr, "\n");
     fprintf(stderr, "    pvl flags:");
-    for (i=gagePvlFlagUnknown+1; i<gagePvlFlagLast; i++) {
+    for (i = gagePvlFlagUnknown + 1; i < gagePvlFlagLast; i++) {
       fprintf(stderr, " %d=%d", i, _gagePvlFlagCheck(ctx, i));
     }
     fprintf(stderr, "\n");
@@ -385,14 +379,16 @@ gageUpdate(gageContext *ctx) {
   }
   if (ctx->flag[gageCtxFlagNeedD] || ctx->flag[gageCtxFlagK3Pack]) {
     if (_gageNeedKUpdate(ctx)) {
-      biffAddf(GAGE, "%s: trouble", me); return 1;
+      biffAddf(GAGE, "%s: trouble", me);
+      return 1;
     }
     ctx->flag[gageCtxFlagNeedD] = AIR_FALSE;
     ctx->flag[gageCtxFlagK3Pack] = AIR_FALSE;
   }
   if (ctx->flag[gageCtxFlagKernel] || ctx->flag[gageCtxFlagNeedK]) {
     if (_gageRadiusUpdate(ctx)) {
-      biffAddf(GAGE, "%s: trouble", me); return 1;
+      biffAddf(GAGE, "%s: trouble", me);
+      return 1;
     }
     ctx->flag[gageCtxFlagKernel] = AIR_FALSE;
     ctx->flag[gageCtxFlagNeedK] = AIR_FALSE;
@@ -405,7 +401,8 @@ gageUpdate(gageContext *ctx) {
          just because a new pervolume was attached . . . */
       || _gagePvlFlagCheck(ctx, gagePvlFlagVolume)) {
     if (_gageCacheSizeUpdate(ctx)) {
-      biffAddf(GAGE, "%s: trouble", me); return 1;
+      biffAddf(GAGE, "%s: trouble", me);
+      return 1;
     }
   }
   if (ctx->flag[gageCtxFlagRadius]
@@ -421,7 +418,7 @@ gageUpdate(gageContext *ctx) {
      during successive calls to gageProbe() */
   gagePointReset(&ctx->point);
 
-  for (pi=0; pi<ctx->pvlNum; pi++) {
+  for (pi = 0; pi < ctx->pvlNum; pi++) {
     if (ctx->pvl[pi]->kind->pvlDataUpdate) {
       if (ctx->pvl[pi]->kind->pvlDataUpdate(ctx->pvl[pi]->kind,
                                             ctx,
@@ -434,9 +431,9 @@ gageUpdate(gageContext *ctx) {
   }
 
   if (ctx->verbose > 3 && ctx->stackPos) {
-    fprintf(stderr, "%s: pvlNum = %u -> stack of %u [0,%u]\n", me,
-            ctx->pvlNum, ctx->pvlNum-1, ctx->pvlNum-2);
-    for (pi=0; pi<ctx->pvlNum-1; pi++) {
+    fprintf(stderr, "%s: pvlNum = %u -> stack of %u [0,%u]\n", me, ctx->pvlNum,
+            ctx->pvlNum - 1, ctx->pvlNum - 2);
+    for (pi = 0; pi < ctx->pvlNum - 1; pi++) {
       fprintf(stderr, "%s: stackPos[%u] = %g\n", me, pi, ctx->stackPos[pi]);
     }
   }

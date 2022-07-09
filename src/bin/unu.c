@@ -94,12 +94,11 @@ main(int argc, const char **argv) {
     exit(0);
   }
   /* else, we should see if they're asking for a command we know about */
-  for (i=0; unrrduCmdList[i]; i++) {
+  for (i = 0; unrrduCmdList[i]; i++) {
     if (!strcmp(argv[1], unrrduCmdList[i]->name)) {
       break;
     }
-    if (!strcmp("--help", argv[1])
-        && !strcmp("about", unrrduCmdList[i]->name)) {
+    if (!strcmp("--help", argv[1]) && !strcmp("about", unrrduCmdList[i]->name)) {
       break;
     }
   }
@@ -112,10 +111,12 @@ main(int argc, const char **argv) {
     sprintf(argv0, "%s %s", UNU, argv[1]);
 
     /* run the individual unu program, saving its exit status */
-    ret = unrrduCmdList[i]->main(argc-2, argv+2, argv0, hparm);
+    ret = unrrduCmdList[i]->main(argc - 2, argv + 2, argv0, hparm);
   } else {
-    fprintf(stderr, "%s: unrecognized command \"%s\"; type \"%s\" for "
-            "complete list\n", me, argv[1], me);
+    fprintf(stderr,
+            "%s: unrecognized command \"%s\"; type \"%s\" for "
+            "complete list\n",
+            me, argv[1], me);
     ret = 1;
   }
 

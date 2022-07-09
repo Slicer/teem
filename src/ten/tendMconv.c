@@ -25,13 +25,10 @@
 #include "privateTen.h"
 
 #define INFO "convert from one model to another"
-static const char *_tend_mconvInfoL =
-  (INFO
-   ". More docs here.");
+static const char *_tend_mconvInfoL = (INFO ". More docs here.");
 
 int
-tend_mconvMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+tend_mconvMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -48,8 +45,7 @@ tend_mconvMain(int argc, const char **argv, const char *me,
              "model converting from; if not set, will try to determine "
              "from input nrrd");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input nrrd of model parms",
-             NULL, NULL, nrrdHestNrrd);
+             "input nrrd of model parms", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output nrrd of model parms");
 
@@ -62,34 +58,37 @@ tend_mconvMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenModelParse(&modelDst, &saveB0, AIR_FALSE, modelDstS)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble parsing model \"%s\":\n%s\n", me,
-            modelDstS, err);
-    airMopError(mop); return 1;
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble parsing model \"%s\":\n%s\n", me, modelDstS, err);
+    airMopError(mop);
+    return 1;
   }
   if (saveB0) {
     printf("%s: warning: saving B0 is determined by input nrrd "
-           "having B0 info.\n", me);
+           "having B0 info.\n",
+           me);
   }
   if (airStrlen(modelSrcS)) {
     if (tenModelParse(&modelSrc, &saveB0, AIR_FALSE, modelSrcS)) {
-      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble parsing model \"%s\":\n%s\n", me,
-              modelSrcS, err);
-      airMopError(mop); return 1;
+      airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble parsing model \"%s\":\n%s\n", me, modelSrcS, err);
+      airMopError(mop);
+      return 1;
     }
   } else {
     modelSrc = NULL;
   }
   if (tenModelConvert(nout, NULL, modelDst, nin, modelSrc)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble converting:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

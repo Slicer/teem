@@ -25,14 +25,11 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Replace each scanline along an axis with its histogram"
-static const char *_unrrdu_histaxInfoL =
-  (INFO
-   ".\n "
-   "* Uses nrrdHistoAxis");
+static const char *_unrrdu_histaxInfoL = (INFO ".\n "
+                                               "* Uses nrrdHistoAxis");
 
 int
-unrrdu_histaxMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+unrrdu_histaxMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -47,8 +44,7 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me,
              "# of bins in histogram");
   OPT_ADD_TYPE(type, "output type", "uchar");
   /* HEY copy and paste from unrrdu/quantize.c */
-  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1,
-             &minStr, "nan",
+  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1, &minStr, "nan",
              "The value to map to zero, given explicitly as a regular number, "
              "*or*, if the number is given with a \"" NRRD_MINMAX_PERC_SUFF
              "\" suffix, this "
@@ -60,8 +56,7 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me,
              "1% of the lowest values are all mapped to zero. "
              "By default (not using this option), the lowest input value is "
              "used.");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1,
-             &maxStr, "nan",
+  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1, &maxStr, "nan",
              "The value to map to the highest unsigned integral value, given "
              "explicitly as a regular number, "
              "*or*, if the number is given with "
@@ -94,10 +89,8 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdRangePercentileFromStringSet(range, nin, minStr, maxStr,
-                                       zeroCenter,
-                                       10*bins /* HEY magic */,
-                                       blind8BitRange)
+  if (nrrdRangePercentileFromStringSet(range, nin, minStr, maxStr, zeroCenter,
+                                       10 * bins /* HEY magic */, blind8BitRange)
       || nrrdHistoAxis(nout, nin, range, axis, bins, type)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing axis histogramming:\n%s", me, err);

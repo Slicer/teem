@@ -25,7 +25,7 @@
 #include "privateGage.h"
 
 void
-_gageVecIv3Print (FILE *file, gageContext *ctx, gagePerVolume *pvl) {
+_gageVecIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
 
   AIR_UNUSED(ctx);
   AIR_UNUSED(pvl);

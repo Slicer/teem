@@ -25,9 +25,8 @@
 #include "privateMoss.h"
 
 int
-_mossHestTransformParse (void *ptr, const char *_str,
-                         char err[AIR_STRLEN_HUGE]) {
-  char me[]="_mossHestTransformParse", *str;
+_mossHestTransformParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
+  char me[] = "_mossHestTransformParse", *str;
   double **matP, tx, ty, sx, sy, angle, mat[6], shf, sha;
   airArray *mop;
 
@@ -66,29 +65,25 @@ _mossHestTransformParse (void *ptr, const char *_str,
   } else if (2 == sscanf(str, "shear:%lf,%lf", &shf, &sha)) {
     mossMatShearSet(*matP, shf, sha);
 
-  } else if (6 == sscanf(str, "%lf,%lf,%lf,%lf,%lf,%lf",
-                         mat+0, mat+1, mat+2, mat+3, mat+4, mat+5)) {
+  } else if (6
+             == sscanf(str, "%lf,%lf,%lf,%lf,%lf,%lf", mat + 0, mat + 1, mat + 2,
+                       mat + 3, mat + 4, mat + 5)) {
     MOSS_MAT_COPY(*matP, mat);
 
   } else {
     sprintf(err, "%s: couldn't parse \"%s\" as a transform", me, _str);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
   return 0;
 }
 
-hestCB
-_mossHestTransform = {
-  sizeof(double*),
-  "2D transform",
-  _mossHestTransformParse,
-  airFree
-};
+hestCB _mossHestTransform = {sizeof(double *), "2D transform", _mossHestTransformParse,
+                             airFree};
 
-hestCB *
-mossHestTransform = &_mossHestTransform;
+hestCB *mossHestTransform = &_mossHestTransform;
 
 /* ----------------------------------------------------------------- */
 
@@ -100,8 +95,8 @@ mossHestTransform = &_mossHestTransform;
 ** u(x,y): position in unit box [0,1]x[0,1] --> val[3] = (1,x,y)
 */
 int
-_mossHestOriginParse (void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="_mossHestOriginParse";
+_mossHestOriginParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[] = "_mossHestOriginParse";
   double **valP;
   airArray *mop;
 
@@ -115,21 +110,15 @@ _mossHestOriginParse (void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
     (*valP)[0] = 1;
   } else {
     sprintf(err, "%s: couldn't parse \"%s\" as origin", me, str);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
   return 0;
 }
 
-hestCB
-_mossHestOrigin = {
-  sizeof(double*),
-  "origin specification",
-  _mossHestOriginParse,
-  airFree
-};
+hestCB _mossHestOrigin = {sizeof(double *), "origin specification", _mossHestOriginParse,
+                          airFree};
 
-hestCB *
-mossHestOrigin = &_mossHestOrigin;
-
+hestCB *mossHestOrigin = &_mossHestOrigin;

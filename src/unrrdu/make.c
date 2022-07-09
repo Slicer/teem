@@ -31,61 +31,57 @@
 #define NO_STRING "."
 
 #define INFO "Create a nrrd (or nrrd header) from scratch"
-static const char *_unrrdu_makeInfoL =
-(INFO
- ".  The data can be in one or more files, or coming from stdin. "
- "This provides an easy way of specifying the information about some "
- "data as to wrap it in a NRRD file, either to pass on for further "
- "unu processing, or to save to disk.  Note that with \"-h\", this creates "
- "a detached nrrd header file, without ever reading or writing data files. "
- "\n \n "
- "When using multiple datafiles, the data from each is simply "
- "concatenated in memory (as opposed to interleaving along a faster axis). "
- "Keep in mind that all the options below refer to the finished data segment "
- "resulting from joining all the data pieces together, "
- "except for \"-ls\", \"-bs\", and \"-e\", which apply (uniformly) to the "
- "individual data files. Use the \"-fd\" option when the things being joined "
- "together are not slices of the final result, but slabs or scanlines. "
- "It may be easier to put multiple filenames in a response file; "
- "there can be one or more filenames per line of the response file. "
- "You can also use a sprintf-style format to identify a numbered "
- "range of files, so for example \"-i I.%03d 1 90 1\" "
- "refers to I.001, I.002, ... I.090, using the inclusive range from the first "
- "to the second integer (following the sprintf-style format), in steps of "
- "the third.  Can optionally give a fourth integer to serve same role as "
- "\"-fd\"."
- "\n \n "
- "NOTE: for the \"-l\" (labels), \"-u\" (units), and \"-spu\" (space units) "
- "options below, you can use a single unquoted period (.) to signify "
- "an empty string.  This creates a convenient way to convey something that "
- "the shell doesn't make it easy to convey.  Shell expansion weirdness "
- "also requires the use of quotes around the arguments to \"-orig\" (space "
- "origin), \"-dirs\" (space directions), and \"-mf\" (measurement frame).\n "
- "\n "
- "* Uses various components of file and data IO, but currently there is no "
- "library function that encapsulates the functionality here.");
+static const char *_unrrdu_makeInfoL
+  = (INFO ".  The data can be in one or more files, or coming from stdin. "
+          "This provides an easy way of specifying the information about some "
+          "data as to wrap it in a NRRD file, either to pass on for further "
+          "unu processing, or to save to disk.  Note that with \"-h\", this creates "
+          "a detached nrrd header file, without ever reading or writing data files. "
+          "\n \n "
+          "When using multiple datafiles, the data from each is simply "
+          "concatenated in memory (as opposed to interleaving along a faster axis). "
+          "Keep in mind that all the options below refer to the finished data segment "
+          "resulting from joining all the data pieces together, "
+          "except for \"-ls\", \"-bs\", and \"-e\", which apply (uniformly) to the "
+          "individual data files. Use the \"-fd\" option when the things being joined "
+          "together are not slices of the final result, but slabs or scanlines. "
+          "It may be easier to put multiple filenames in a response file; "
+          "there can be one or more filenames per line of the response file. "
+          "You can also use a sprintf-style format to identify a numbered "
+          "range of files, so for example \"-i I.%03d 1 90 1\" "
+          "refers to I.001, I.002, ... I.090, using the inclusive range from the first "
+          "to the second integer (following the sprintf-style format), in steps of "
+          "the third.  Can optionally give a fourth integer to serve same role as "
+          "\"-fd\"."
+          "\n \n "
+          "NOTE: for the \"-l\" (labels), \"-u\" (units), and \"-spu\" (space units) "
+          "options below, you can use a single unquoted period (.) to signify "
+          "an empty string.  This creates a convenient way to convey something that "
+          "the shell doesn't make it easy to convey.  Shell expansion weirdness "
+          "also requires the use of quotes around the arguments to \"-orig\" (space "
+          "origin), \"-dirs\" (space directions), and \"-mf\" (measurement frame).\n "
+          "\n "
+          "* Uses various components of file and data IO, but currently there is no "
+          "library function that encapsulates the functionality here.");
 
 int
-unrrdu_makeMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *outData, *err,
-    **dataFileNames, **kvp, *content, encInfo[AIR_STRLEN_LARGE];
+  char *out, *outData, *err, **dataFileNames, **kvp, *content, encInfo[AIR_STRLEN_LARGE];
   Nrrd *nrrd;
   size_t *size, bufLen;
-  int headerOnly, pret, lineSkip, endian, type,
-    encodingType, gotSpacing, gotThickness, gotMin, gotMax, space,
-    spaceSet;
+  int headerOnly, pret, lineSkip, endian, type, encodingType, gotSpacing, gotThickness,
+    gotMin, gotMax, space, spaceSet;
   long int byteSkip;
-  unsigned int ii, kindsLen, thicknessLen, spacingLen, sizeLen, nameLen,
-    centeringsLen, unitsLen, labelLen, kvpLen, spunitsLen, dataFileDim,
-      spaceDim, minLen, maxLen, thicknessIdx, spacingIdx, minIdx, maxIdx;
+  unsigned int ii, kindsLen, thicknessLen, spacingLen, sizeLen, nameLen, centeringsLen,
+    unitsLen, labelLen, kvpLen, spunitsLen, dataFileDim, spaceDim, minLen, maxLen,
+    thicknessIdx, spacingIdx, minIdx, maxIdx;
   double *spacing, *axmin, *axmax, *thickness;
   airArray *mop;
   NrrdIoState *nio;
   FILE *fileOut;
-  char **label, **units, **spunits, **kinds, **centerings, *parseBuf,
-    *spcStr, *_origStr, *origStr, *_dirStr, *dirStr, *_mframeStr, *mframeStr;
+  char **label, **units, **spunits, **kinds, **centerings, *parseBuf, *spcStr, *_origStr,
+    *origStr, *_dirStr, *dirStr, *_mframeStr, *mframeStr;
   const NrrdEncoding *encoding;
 
   /* so that long lists of filenames can be read from file */
@@ -101,60 +97,61 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
              "extension) determined by the options below. The single "
              "constraint is that detached headers are incompatible with "
              "using stdin as the data source.");
-  hestOptAdd(&opt, "i,input", "file", airTypeString, 1, -1,
-             &dataFileNames, "-",
+  hestOptAdd(&opt, "i,input", "file", airTypeString, 1, -1, &dataFileNames, "-",
              "Filename(s) of data file(s); use \"-\" for stdin. *OR*, can "
              "use sprintf-style format for identifying a range of numbered "
-             "files, see above for details.", &nameLen);
+             "files, see above for details.",
+             &nameLen);
   hestOptAdd(&opt, "t,type", "type", airTypeEnum, 1, 1, &type, NULL,
              "type of data (e.g. \"uchar\", \"int\", \"float\", "
              "\"double\", etc.)",
              NULL, nrrdType);
   hestOptAdd(&opt, "s,size", "sz0 sz1", airTypeSize_t, 1, -1, &size, NULL,
              "number of samples along each axis (and implicit indicator "
-             "of dimension of nrrd)", &sizeLen);
-  hestOptAdd(&opt, "fd,filedim", "dim", airTypeUInt, 1, 1,
-             &dataFileDim, "0",
+             "of dimension of nrrd)",
+             &sizeLen);
+  hestOptAdd(&opt, "fd,filedim", "dim", airTypeUInt, 1, 1, &dataFileDim, "0",
              "When using *multiple* input data files (to \"-i\"), what is "
              "the dimension of the array data in each individual file. By "
              "default (not using this option), this dimension is assumed "
              "to be one less than the whole data dimension. ");
-  spacingIdx =
-  hestOptAdd(&opt, "sp,spacing", "sp0 sp1", airTypeDouble, 1, -1,
-             &spacing, "nan",
-             "spacing between samples on each axis.  Use \"nan\" for "
-             "any non-spatial axes (e.g. spacing between red, green, and blue "
-             "along axis 0 of interleaved RGB image data)", &spacingLen);
+  spacingIdx
+    = hestOptAdd(&opt, "sp,spacing", "sp0 sp1", airTypeDouble, 1, -1, &spacing, "nan",
+                 "spacing between samples on each axis.  Use \"nan\" for "
+                 "any non-spatial axes (e.g. spacing between red, green, and blue "
+                 "along axis 0 of interleaved RGB image data)",
+                 &spacingLen);
   /* NB: these are like unu jhisto's -min -max, not like unu crop's */
-  minIdx =
-  hestOptAdd(&opt, "min,axismin", "min0 min1", airTypeDouble, 1, -1,
-             &axmin, "nan",
-             "When each axis has a distinct meaning (as in a joint "
-             "histogram), the per-axis min is the smallest \"position\" "
-             "associated with the first sample on the axis. Use \"nan\" for "
-             "\"no value to set\" when other axes do have axis min",
-             &minLen);
-  maxIdx =
-  hestOptAdd(&opt, "max,axismax", "max0 max1", airTypeDouble, 1, -1,
-             &axmax, "nan",
-             "Goes with -min: the per-axis maximum \"position\". "
-             "-max and -min should probably be used together, and having "
-             "this information logically supersedes the -sp spacing on those "
-             "axes.", &maxLen);
-  thicknessIdx =
-  hestOptAdd(&opt, "th,thickness", "th0 th1", airTypeDouble, 1, -1,
-             &thickness, "nan",
-             "thickness of region represented by one sample along each axis. "
-             "  As with -sp spacing, use \"nan\" for "
-             "any non-spatial axes.", &thicknessLen);
+  minIdx = hestOptAdd(&opt, "min,axismin", "min0 min1", airTypeDouble, 1, -1, &axmin,
+                      "nan",
+                      "When each axis has a distinct meaning (as in a joint "
+                      "histogram), the per-axis min is the smallest \"position\" "
+                      "associated with the first sample on the axis. Use \"nan\" for "
+                      "\"no value to set\" when other axes do have axis min",
+                      &minLen);
+  maxIdx = hestOptAdd(&opt, "max,axismax", "max0 max1", airTypeDouble, 1, -1, &axmax,
+                      "nan",
+                      "Goes with -min: the per-axis maximum \"position\". "
+                      "-max and -min should probably be used together, and having "
+                      "this information logically supersedes the -sp spacing on those "
+                      "axes.",
+                      &maxLen);
+  thicknessIdx
+    = hestOptAdd(&opt, "th,thickness", "th0 th1", airTypeDouble, 1, -1, &thickness,
+                 "nan",
+                 "thickness of region represented by one sample along each axis. "
+                 "  As with -sp spacing, use \"nan\" for "
+                 "any non-spatial axes.",
+                 &thicknessLen);
   hestOptAdd(&opt, "k,kind", "k0 k1", airTypeString, 1, -1, &kinds, "",
              "what \"kind\" is each axis, from the nrrdKind airEnum "
              "(e.g. space, time, 3-vector, 3D-masked-symmetric-matrix, "
-             "or \"none\" to signify no kind)", &kindsLen);
-  hestOptAdd(&opt, "cn,centering", "c0 c1", airTypeString, 1, -1,
-             &centerings, "",
+             "or \"none\" to signify no kind)",
+             &kindsLen);
+  hestOptAdd(&opt, "cn,centering", "c0 c1", airTypeString, 1, -1, &centerings, "",
              "kind of centering (node or cell) for each axis, or "
-             "\"none\" to signify no centering", &centeringsLen);
+             "\"none\" to signify no centering",
+             &centeringsLen);
   hestOptAdd(&opt, "l,label", "lb0 lb1", airTypeString, 1, -1, &label, "",
              "short string labels for each of the axes", &labelLen);
   hestOptAdd(&opt, "u,unit", "un0 un1", airTypeString, 1, -1, &units, "",
@@ -175,16 +172,13 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
          "values within line are delimited by space, tab, or comma"
          "\n \b\bo \"hex\": two hex digits per byte");
   if (nrrdEncodingGzip->available()) {
-    strcat(encInfo,
-           "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
+    strcat(encInfo, "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
   }
   if (nrrdEncodingBzip2->available()) {
-    strcat(encInfo,
-           "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
+    strcat(encInfo, "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
   }
-  hestOptAdd(&opt, "e,encoding", "enc", airTypeEnum, 1, 1,
-             &encodingType, "raw",
-             encInfo, NULL, nrrdEncodingType);
+  hestOptAdd(&opt, "e,encoding", "enc", airTypeEnum, 1, 1, &encodingType, "raw", encInfo,
+             NULL, nrrdEncodingType);
   hestOptAdd(&opt, "en,endian", "end", airTypeEnum, 1, 1, &endian,
              airEnumStr(airEndian, airMyEndian()),
              "Endianness of data; relevent for any data with value "
@@ -199,7 +193,8 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
              "pair must be a single string (put it in \"\"s "
              "if the key or the value contain spaces).  The format of each "
              "pair is \"<key>:=<value>\", with no spaces before or after "
-             "\":=\".", &kvpLen);
+             "\":=\".",
+             &kvpLen);
   hestOptAdd(&opt, "spc,space", "space", airTypeString, 1, 1, &spcStr, "",
              "identify the space (e.g. \"RAS\", \"LPS\") in which the array "
              "conceptually lives, from the nrrdSpace airEnum, which in turn "
@@ -214,8 +209,7 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
              "of the first sample, of the form \"(x,y,z)\" (or however "
              "many coefficients are needed for the chosen space). Quoting the "
              "vector is needed to stop interpretation from the shell");
-  hestOptAdd(&opt, "dirs,directions", "v0 v1 ...", airTypeString, 1, 1,
-             &_dirStr, "",
+  hestOptAdd(&opt, "dirs,directions", "v0 v1 ...", airTypeString, 1, 1, &_dirStr, "",
              "(NOTE: must quote whole vector list) The \"space directions\": "
              "the vectors in space spanned by incrementing (by one) each "
              "axis index (the column vectors of the index-to-world "
@@ -224,8 +218,8 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
              "supersedes both per-axis -sp spacing and -min,-max. "
              "(Quoting around whole vector list, not "
              "individually, is needed because of limitations in the parser)");
-  hestOptAdd(&opt, "mf,measurementframe", "v0 v1 ...", airTypeString, 1, 1,
-             &_mframeStr, "",
+  hestOptAdd(&opt, "mf,measurementframe", "v0 v1 ...", airTypeString, 1, 1, &_mframeStr,
+             "",
              "(NOTE: must quote whole vector list). Each vector is a *column* "
              "vector of the matrix which transforms from coordinates in "
              "measurement frame (in which the coefficients of vectors and "
@@ -233,10 +227,10 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
              "\"-spc\"). This is not a per-axis field: the column vectors "
              "comprise a D-by-D square matrix, where D is the dimension of "
              "world space.");
-  hestOptAdd(&opt, "spu,spaceunit", "su0 su1", airTypeString, 1, -1,
-             &spunits, "",
+  hestOptAdd(&opt, "spu,spaceunit", "su0 su1", airTypeString, 1, -1, &spunits, "",
              "short strings giving units with which the coefficients of the "
-             "space origin and direction vectors are measured.", &spunitsLen);
+             "space origin and direction vectors are measured.",
+             &spunitsLen);
   hestOptAdd(&opt, "o,output", "nout", airTypeString, 1, 1, &out, "-",
              "output filename.  If \"-h\" has been used, the output file is "
              "always a detached header.  Otherwise, use extension "
@@ -259,80 +253,77 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
   /* ---------------- BEGIN ERROR CHECKING --------------- */
 
   if (headerOnly) {
-    for (ii=0; ii<nameLen; ii++) {
+    for (ii = 0; ii < nameLen; ii++) {
       if (!strcmp("-", dataFileNames[ii])) {
-        fprintf(stderr, "%s: can't use detached headers (\"-h\") "
+        fprintf(stderr,
+                "%s: can't use detached headers (\"-h\") "
                 "with stdin (\"-\") as data source "
-                "(filename %d of %d)\n", me, ii+1, nameLen);
-        airMopError(mop); return 1;
+                "(filename %d of %d)\n",
+                me, ii + 1, nameLen);
+        airMopError(mop);
+        return 1;
       }
     }
   }
   /* given the information we have, we set the fields in the nrrdIoState
      so as to simulate having read the information from a header */
-  if (!( AIR_IN_CL(1, sizeLen, NRRD_DIM_MAX) )) {
-    fprintf(stderr, "%s: # axis sizes (%d) not in valid nrrd dimension "
-            "range [1,NRRD_DIM_MAX] = [1,%d]\n", me, sizeLen, NRRD_DIM_MAX);
+  if (!(AIR_IN_CL(1, sizeLen, NRRD_DIM_MAX))) {
+    fprintf(stderr,
+            "%s: # axis sizes (%d) not in valid nrrd dimension "
+            "range [1,NRRD_DIM_MAX] = [1,%d]\n",
+            me, sizeLen, NRRD_DIM_MAX);
     airMopError(mop);
     return 1;
   }
   gotSpacing = (opt[spacingIdx].source == hestSourceUser);
   if (gotSpacing && spacingLen != sizeLen) {
-    fprintf(stderr,
-            "%s: number of spacings (%u) not same as dimension (%u)\n",
-            me, spacingLen, sizeLen);
+    fprintf(stderr, "%s: number of spacings (%u) not same as dimension (%u)\n", me,
+            spacingLen, sizeLen);
     airMopError(mop);
     return 1;
   }
   gotThickness = (opt[thicknessIdx].source == hestSourceUser);
   if (gotThickness && thicknessLen != sizeLen) {
-    fprintf(stderr,
-            "%s: number of thicknesses (%u) not same as dimension (%u)\n",
-            me, thicknessLen, sizeLen);
+    fprintf(stderr, "%s: number of thicknesses (%u) not same as dimension (%u)\n", me,
+            thicknessLen, sizeLen);
     airMopError(mop);
     return 1;
   }
   gotMin = (opt[minIdx].source == hestSourceUser);
   if (gotMin && minLen != sizeLen) {
-    fprintf(stderr,
-            "%s: number of mins (%u) not same as dimension (%u)\n",
-            me, minLen, sizeLen);
+    fprintf(stderr, "%s: number of mins (%u) not same as dimension (%u)\n", me, minLen,
+            sizeLen);
     airMopError(mop);
     return 1;
   }
   gotMax = (opt[maxIdx].source == hestSourceUser);
   if (gotMax && maxLen != sizeLen) {
-    fprintf(stderr,
-            "%s: number of maxs (%u) not same as dimension (%u)\n",
-            me, maxLen, sizeLen);
+    fprintf(stderr, "%s: number of maxs (%u) not same as dimension (%u)\n", me, maxLen,
+            sizeLen);
     airMopError(mop);
     return 1;
   }
   if (airStrlen(label[0]) && sizeLen != labelLen) {
-    fprintf(stderr,
-            "%s: number of labels (%u) not same as dimension (%u)\n",
-            me, labelLen, sizeLen);
+    fprintf(stderr, "%s: number of labels (%u) not same as dimension (%u)\n", me,
+            labelLen, sizeLen);
     airMopError(mop);
     return 1;
   }
   if (airStrlen(units[0]) && sizeLen != unitsLen) {
-    fprintf(stderr,
-            "%s: number of units (%u) not same as dimension (%u)\n",
-            me, unitsLen, sizeLen);
+    fprintf(stderr, "%s: number of units (%u) not same as dimension (%u)\n", me,
+            unitsLen, sizeLen);
     airMopError(mop);
     return 1;
   }
   if (airStrlen(kinds[0]) && sizeLen != kindsLen) {
-    fprintf(stderr,
-            "%s: number of kinds (%u) not same as dimension (%u)\n",
-            me, kindsLen, sizeLen);
+    fprintf(stderr, "%s: number of kinds (%u) not same as dimension (%u)\n", me,
+            kindsLen, sizeLen);
     airMopError(mop);
     return 1;
   }
   if (airStrlen(centerings[0]) && sizeLen != centeringsLen) {
-    fprintf(stderr,
-            "%s: number of centerings (%u) not same as dimension (%u)\n",
-            me, centeringsLen, sizeLen);
+    fprintf(stderr, "%s: number of centerings (%u) not same as dimension (%u)\n", me,
+            centeringsLen, sizeLen);
     airMopError(mop);
     return 1;
   }
@@ -354,19 +345,21 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
   if (_nrrdContainsPercentThisAndMore(dataFileNames[0], 'd')) {
     /* trying to do a formatted filename list */
     if (nameLen < 4 || nameLen > 5) {
-      fprintf(stderr, "%s: formatted list of filenames needs between "
-              "3 and 4 ints after the format (not %d)\n", me, nameLen-1);
+      fprintf(stderr,
+              "%s: formatted list of filenames needs between "
+              "3 and 4 ints after the format (not %d)\n",
+              me, nameLen - 1);
       airMopError(mop);
       return 1;
     }
     bufLen = 0;
-    for (ii=0; ii<nameLen; ii++) {
+    for (ii = 0; ii < nameLen; ii++) {
       bufLen += strlen(dataFileNames[ii]) + 1;
     }
-    parseBuf = AIR_CALLOC(bufLen+1, char);
+    parseBuf = AIR_CALLOC(bufLen + 1, char);
     airMopAdd(mop, parseBuf, airFree, airMopAlways);
     strcpy(parseBuf, "");
-    for (ii=0; ii<nameLen; ii++) {
+    for (ii = 0; ii < nameLen; ii++) {
       if (ii) {
         strcat(parseBuf, " ");
       }
@@ -374,30 +367,32 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
     }
     nio->line = parseBuf;
     nio->pos = 0;
-    if (nrrdFieldInfoParse[nrrdField_data_file](NULL, nrrd,
-                                                nio, AIR_TRUE)) {
+    if (nrrdFieldInfoParse[nrrdField_data_file](NULL, nrrd, nio, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble with formatted filename list \"%s\":\n%s",
-              me, parseBuf, err);
-      nio->line = NULL; airMopError(mop); return 1;
+      fprintf(stderr, "%s: trouble with formatted filename list \"%s\":\n%s", me,
+              parseBuf, err);
+      nio->line = NULL;
+      airMopError(mop);
+      return 1;
     }
     nio->line = NULL;
   } else {
     /* single or regular LIST of files */
     if (nameLen > 1) {
-      nio->dataFileDim = dataFileDim ? dataFileDim : nrrd->dim-1;
+      nio->dataFileDim = dataFileDim ? dataFileDim : nrrd->dim - 1;
     } else {
       nio->dataFileDim = nrrd->dim;
     }
     airArrayLenSet(nio->dataFNArr, nameLen);
-    for (ii=0; ii<nameLen; ii++) {
+    for (ii = 0; ii < nameLen; ii++) {
       nio->dataFN[ii] = airStrdup(dataFileNames[ii]);
     }
   }
   if (_nrrdDataFNCheck(nio, nrrd, AIR_TRUE)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble with input datafiles:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (gotSpacing) {
@@ -413,7 +408,7 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
     nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoMax, axmax);
   }
   if (airStrlen(label[0])) {
-    for (ii=0; ii<nrrd->dim; ii++) {
+    for (ii = 0; ii < nrrd->dim; ii++) {
       if (!strcmp(NO_STRING, label[ii])) {
         strcpy(label[ii], "");
       }
@@ -421,7 +416,7 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
     nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoLabel, label);
   }
   if (airStrlen(units[0])) {
-    for (ii=0; ii<nrrd->dim; ii++) {
+    for (ii = 0; ii < nrrd->dim; ii++) {
       if (!strcmp(NO_STRING, units[ii])) {
         strcpy(units[ii], "");
       }
@@ -432,7 +427,7 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
     nrrd->content = airStrdup(content);
   }
   if (kvpLen) {
-    for (ii=0; ii<kvpLen; ii++) {
+    for (ii = 0; ii < kvpLen; ii++) {
       /* a hack: have to use NrrdIoState->line as the channel to communicate
          the key/value pair, since we have to emulate it having been
          read from a NRRD header.  But because nio doesn't own the
@@ -440,12 +435,13 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
          NrrdIoStateNix being called by the mop. */
       nio->line = kvp[ii];
       nio->pos = 0;
-      if (nrrdFieldInfoParse[nrrdField_keyvalue](NULL, nrrd,
-                                                 nio, AIR_TRUE)) {
+      if (nrrdFieldInfoParse[nrrdField_keyvalue](NULL, nrrd, nio, AIR_TRUE)) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-        fprintf(stderr, "%s: trouble with key/value %d \"%s\":\n%s",
-                me, ii, kvp[ii], err);
-        nio->line = NULL; airMopError(mop); return 1;
+        fprintf(stderr, "%s: trouble with key/value %d \"%s\":\n%s", me, ii, kvp[ii],
+                err);
+        nio->line = NULL;
+        airMopError(mop);
+        return 1;
       }
       nio->line = NULL;
     }
@@ -453,13 +449,13 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
   if (airStrlen(kinds[0])) {
     /* have to allocate line then pass it to parsing */
     bufLen = 0;
-    for (ii=0; ii<sizeLen; ii++) {
+    for (ii = 0; ii < sizeLen; ii++) {
       bufLen += airStrlen(" ") + airStrlen(kinds[ii]);
     }
-    parseBuf = AIR_CALLOC(bufLen+1, char);
+    parseBuf = AIR_CALLOC(bufLen + 1, char);
     airMopAdd(mop, parseBuf, airFree, airMopAlways);
     strcpy(parseBuf, "");
-    for (ii=0; ii<sizeLen; ii++) {
+    for (ii = 0; ii < sizeLen; ii++) {
       if (ii) {
         strcat(parseBuf, " ");
       }
@@ -467,25 +463,25 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
     }
     nio->line = parseBuf;
     nio->pos = 0;
-    if (nrrdFieldInfoParse[nrrdField_kinds](NULL, nrrd,
-                                            nio, AIR_TRUE)) {
+    if (nrrdFieldInfoParse[nrrdField_kinds](NULL, nrrd, nio, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble with kinds \"%s\":\n%s",
-              me, parseBuf, err);
-      nio->line = NULL; airMopError(mop); return 1;
+      fprintf(stderr, "%s: trouble with kinds \"%s\":\n%s", me, parseBuf, err);
+      nio->line = NULL;
+      airMopError(mop);
+      return 1;
     }
     nio->line = NULL;
   }
   if (airStrlen(centerings[0])) {
     /* have to allocate line then pass it to parsing */
     bufLen = 0;
-    for (ii=0; ii<sizeLen; ii++) {
+    for (ii = 0; ii < sizeLen; ii++) {
       bufLen += airStrlen(" ") + airStrlen(centerings[ii]);
     }
-    parseBuf = AIR_CALLOC(bufLen+1, char);
+    parseBuf = AIR_CALLOC(bufLen + 1, char);
     airMopAdd(mop, parseBuf, airFree, airMopAlways);
     strcpy(parseBuf, "");
-    for (ii=0; ii<sizeLen; ii++) {
+    for (ii = 0; ii < sizeLen; ii++) {
       if (ii) {
         strcat(parseBuf, " ");
       }
@@ -493,12 +489,12 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
     }
     nio->line = parseBuf;
     nio->pos = 0;
-    if (nrrdFieldInfoParse[nrrdField_centers](NULL, nrrd,
-                                              nio, AIR_TRUE)) {
+    if (nrrdFieldInfoParse[nrrdField_centers](NULL, nrrd, nio, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble with centerings \"%s\":\n%s",
-              me, parseBuf, err);
-      nio->line = NULL; airMopError(mop); return 1;
+      fprintf(stderr, "%s: trouble with centerings \"%s\":\n%s", me, parseBuf, err);
+      nio->line = NULL;
+      airMopError(mop);
+      return 1;
     }
     nio->line = NULL;
   }
@@ -507,9 +503,12 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
     if (!space) {
       /* couldn't parse it as space, perhaps its a uint */
       if (1 != sscanf(spcStr, "%u", &spaceDim)) {
-        fprintf(stderr, "%s: couldn't parse \"%s\" as a nrrdSpace "
-                "or as a uint", me, spcStr);
-        airMopError(mop); return 1;
+        fprintf(stderr,
+                "%s: couldn't parse \"%s\" as a nrrdSpace "
+                "or as a uint",
+                me, spcStr);
+        airMopError(mop);
+        return 1;
       }
       /* else we did parse it as a uint */
       nrrd->space = nrrdSpaceUnknown;
@@ -528,8 +527,8 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
     /* why this is necessary is a bit confusing to me, both the check for
        enclosing quotes, and the need to use to a separate variable (isn't
        hest doing memory management of addresses, not variables?) */
-    if ('\"' == _origStr[0] && '\"' == _origStr[strlen(_origStr)-1]) {
-      _origStr[strlen(_origStr)-1] = 0;
+    if ('\"' == _origStr[0] && '\"' == _origStr[strlen(_origStr) - 1]) {
+      _origStr[strlen(_origStr) - 1] = 0;
       origStr = _origStr + 1;
     } else {
       origStr = _origStr;
@@ -537,19 +536,19 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
     /* same hack about using NrrdIoState->line as basis for parsing */
     nio->line = origStr;
     nio->pos = 0;
-    if (nrrdFieldInfoParse[nrrdField_space_origin](NULL, nrrd,
-                                                   nio, AIR_TRUE)) {
+    if (nrrdFieldInfoParse[nrrdField_space_origin](NULL, nrrd, nio, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble with origin \"%s\":\n%s",
-              me, origStr, err);
-      nio->line = NULL; airMopError(mop); return 1;
+      fprintf(stderr, "%s: trouble with origin \"%s\":\n%s", me, origStr, err);
+      nio->line = NULL;
+      airMopError(mop);
+      return 1;
     }
     nio->line = NULL;
   }
   if (airStrlen(_dirStr)) {
     /* same confusion as above */
-    if ('\"' == _dirStr[0] && '\"' == _dirStr[strlen(_dirStr)-1]) {
-      _dirStr[strlen(_dirStr)-1] = 0;
+    if ('\"' == _dirStr[0] && '\"' == _dirStr[strlen(_dirStr) - 1]) {
+      _dirStr[strlen(_dirStr) - 1] = 0;
       dirStr = _dirStr + 1;
     } else {
       dirStr = _dirStr;
@@ -557,19 +556,19 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
     /* same hack about using NrrdIoState->line as basis for parsing */
     nio->line = dirStr;
     nio->pos = 0;
-    if (nrrdFieldInfoParse[nrrdField_space_directions](NULL, nrrd,
-                                                       nio, AIR_TRUE)) {
+    if (nrrdFieldInfoParse[nrrdField_space_directions](NULL, nrrd, nio, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble with space directions \"%s\":\n%s",
-              me, dirStr, err);
-      nio->line = NULL; airMopError(mop); return 1;
+      fprintf(stderr, "%s: trouble with space directions \"%s\":\n%s", me, dirStr, err);
+      nio->line = NULL;
+      airMopError(mop);
+      return 1;
     }
     nio->line = NULL;
   }
   if (airStrlen(_mframeStr)) {
     /* same confusion as above */
-    if ('\"' == _mframeStr[0] && '\"' == _mframeStr[strlen(_mframeStr)-1]) {
-      _mframeStr[strlen(_mframeStr)-1] = 0;
+    if ('\"' == _mframeStr[0] && '\"' == _mframeStr[strlen(_mframeStr) - 1]) {
+      _mframeStr[strlen(_mframeStr) - 1] = 0;
       mframeStr = _mframeStr + 1;
     } else {
       mframeStr = _mframeStr;
@@ -577,19 +576,21 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
     /* same hack about using NrrdIoState->line as basis for parsing */
     nio->line = mframeStr;
     nio->pos = 0;
-    if (nrrdFieldInfoParse[nrrdField_measurement_frame](NULL, nrrd,
-                                                        nio, AIR_TRUE)) {
+    if (nrrdFieldInfoParse[nrrdField_measurement_frame](NULL, nrrd, nio, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble with measurement frame \"%s\":\n%s",
-              me, mframeStr, err);
-      nio->line = NULL; airMopError(mop); return 1;
+      fprintf(stderr, "%s: trouble with measurement frame \"%s\":\n%s", me, mframeStr,
+              err);
+      nio->line = NULL;
+      airMopError(mop);
+      return 1;
     }
     nio->line = NULL;
   }
   if (airStrlen(spunits[0])) {
     if (!spaceSet) {
       fprintf(stderr, "%s: can't have space units with no space set\n", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if (nrrd->spaceDim != spunitsLen) {
       fprintf(stderr,
@@ -599,20 +600,20 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
       airMopError(mop);
       return 1;
     }
-    for (ii=0; ii<nrrd->spaceDim; ii++) {
+    for (ii = 0; ii < nrrd->spaceDim; ii++) {
       if (!strcmp(NO_STRING, spunits[ii])) {
         strcpy(spunits[ii], "");
       }
     }
     /* have to allocate line then pass it to parsing */
     bufLen = 0;
-    for (ii=0; ii<nrrd->spaceDim; ii++) {
+    for (ii = 0; ii < nrrd->spaceDim; ii++) {
       bufLen += airStrlen(" ") + airStrlen("\"\"") + airStrlen(spunits[ii]);
     }
-    parseBuf = AIR_CALLOC(bufLen+1, char);
+    parseBuf = AIR_CALLOC(bufLen + 1, char);
     airMopAdd(mop, parseBuf, airFree, airMopAlways);
     strcpy(parseBuf, "");
-    for (ii=0; ii<nrrd->spaceDim; ii++) {
+    for (ii = 0; ii < nrrd->spaceDim; ii++) {
       if (ii) {
         strcat(parseBuf, " ");
       }
@@ -622,19 +623,20 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
     }
     nio->line = parseBuf;
     nio->pos = 0;
-    if (nrrdFieldInfoParse[nrrdField_space_units](NULL, nrrd,
-                                                  nio, AIR_TRUE)) {
+    if (nrrdFieldInfoParse[nrrdField_space_units](NULL, nrrd, nio, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble with space units \"%s\":\n%s",
-              me, parseBuf, err);
-      nio->line = NULL; airMopError(mop); return 1;
+      fprintf(stderr, "%s: trouble with space units \"%s\":\n%s", me, parseBuf, err);
+      nio->line = NULL;
+      airMopError(mop);
+      return 1;
     }
     nio->line = NULL;
   }
   if (_nrrdCheck(nrrd, AIR_FALSE, AIR_TRUE)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: problems with nrrd as set up:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   /* ----------------- END SETTING INFO ---------------- */
@@ -651,10 +653,11 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
   if (headerOnly) {
     /* we open and hand off the output FILE* to the nrrd writer, which
        will not write any data, because of nio->skipData = AIR_TRUE */
-    if (!( fileOut = airFopen(out, stdout, "wb") )) {
-      fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n",
-              me, out, strerror(errno));
-      airMopError(mop); return 1;
+    if (!(fileOut = airFopen(out, stdout, "wb"))) {
+      fprintf(stderr, "%s: couldn't fopen(\"%s\",\"wb\"): %s\n", me, out,
+              strerror(errno));
+      airMopError(mop);
+      return 1;
     }
     airMopAdd(mop, fileOut, (airMopper)airFclose, airMopAlways);
     /* whatever line and byte skipping is required will be simply
@@ -664,7 +667,8 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
     if (nrrdFormatNRRD->write(fileOut, nrrd, nio)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble writing header:\n%s", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   } else {
     /* all this does is read the data from the files.  We up the verbosity
@@ -673,7 +677,8 @@ unrrdu_makeMain(int argc, const char **argv, const char *me,
     if (nrrdFormatNRRD->read(NULL, nrrd, nio)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble reading data files:\n%s", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     nrrdStateVerboseIO--;
     /* then save normally */

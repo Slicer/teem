@@ -25,14 +25,11 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Interchange ordering of two axes"
-static const char *_unrrdu_swapInfoL =
-  (INFO
-   ". Special case of \"unu\tpermute\".\n "
-   "* Uses nrrdAxesSwap");
+static const char *_unrrdu_swapInfoL = (INFO ". Special case of \"unu\tpermute\".\n "
+                                             "* Uses nrrdAxesSwap");
 
 int
-unrrdu_swapMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_swapMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

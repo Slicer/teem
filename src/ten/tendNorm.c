@@ -25,15 +25,13 @@
 #include "privateTen.h"
 
 #define INFO "Normalize tensor size"
-static const char *_tend_normInfoL =
-  (INFO
-   ". This operates on the eigenvalues of the tensor, and allows "
-   "normalizing some user-defined weighting (\"-w\") of the eigenvalues by "
-   "some user-defined amount (\"-a\").");
+static const char *_tend_normInfoL
+  = (INFO ". This operates on the eigenvalues of the tensor, and allows "
+          "normalizing some user-defined weighting (\"-w\") of the eigenvalues by "
+          "some user-defined amount (\"-a\").");
 
 int
-tend_normMain(int argc, const char **argv, const char *me,
-              hestParm *hparm) {
+tend_normMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -67,14 +65,16 @@ tend_normMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenSizeNormalize(nout, nin, weight, amount, target)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

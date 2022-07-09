@@ -24,11 +24,9 @@
 #include "echo.h"
 #include "privateEcho.h"
 
-const int
-echoPresent = 42;
+const int echoPresent = 42;
 
-const char *
-echoBiffKey = "echo";
+const char *echoBiffKey = "echo";
 
 echoRTParm *
 echoRTParmNew(void) {
@@ -49,7 +47,7 @@ echoRTParmNew(void) {
     parm->sqNRI = 15;
     parm->numThreads = 1;
     parm->sqTol = 0.0001;
-    parm->aperture = 0.0;     /* pinhole camera by default */
+    parm->aperture = 0.0; /* pinhole camera by default */
     parm->timeGamma = 6.0;
     parm->boxOpac = 0.2f;
     parm->shadow = 1.0;
@@ -136,28 +134,20 @@ echoSceneNew(void) {
   if (ret) {
     ret->cat = NULL;
     ret->catArr = airArrayNew((eppu.obj = &(ret->cat), eppu.v), NULL,
-                              sizeof(echoObject *),
-                              ECHO_LIST_OBJECT_INCR);
-    airArrayPointerCB(ret->catArr,
-                      airNull,
-                      (void *(*)(void *))echoObjectNix);
+                              sizeof(echoObject *), ECHO_LIST_OBJECT_INCR);
+    airArrayPointerCB(ret->catArr, airNull, (void *(*)(void *))echoObjectNix);
     ret->rend = NULL;
     ret->rendArr = airArrayNew((eppu.obj = &(ret->rend), eppu.v), NULL,
-                               sizeof(echoObject *),
-                               ECHO_LIST_OBJECT_INCR);
+                               sizeof(echoObject *), ECHO_LIST_OBJECT_INCR);
     /* no callbacks set, renderable objecs are nixed from catArr */
     ret->light = NULL;
     ret->lightArr = airArrayNew((eppu.obj = &(ret->light), eppu.v), NULL,
-                                sizeof(echoObject *),
-                                ECHO_LIST_OBJECT_INCR);
+                                sizeof(echoObject *), ECHO_LIST_OBJECT_INCR);
     /* no callbacks set; light objects are nixed from catArr */
     ret->nrrd = NULL;
-    ret->nrrdArr = airArrayNew((eppu.nrd = &(ret->nrrd), eppu.v), NULL,
-                               sizeof(Nrrd *),
+    ret->nrrdArr = airArrayNew((eppu.nrd = &(ret->nrrd), eppu.v), NULL, sizeof(Nrrd *),
                                ECHO_LIST_OBJECT_INCR);
-    airArrayPointerCB(ret->nrrdArr,
-                      airNull,
-                      (void *(*)(void *))nrrdNuke);
+    airArrayPointerCB(ret->nrrdArr, airNull, (void *(*)(void *))nrrdNuke);
     ret->envmap = NULL;
     ELL_3V_SET(ret->ambi, 1.0, 1.0, 1.0);
     ELL_3V_SET(ret->bkgr, 0.0, 0.0, 0.0);
@@ -169,7 +159,7 @@ void
 _echoSceneLightAdd(echoScene *scene, echoObject *obj) {
   unsigned int idx;
 
-  for (idx=0; idx<scene->lightArr->len; idx++) {
+  for (idx = 0; idx < scene->lightArr->len; idx++) {
     if (obj == scene->light[idx]) {
       break;
     }
@@ -184,7 +174,7 @@ void
 _echoSceneNrrdAdd(echoScene *scene, Nrrd *nrrd) {
   unsigned int idx;
 
-  for (idx=0; idx<scene->nrrdArr->len; idx++) {
+  for (idx = 0; idx < scene->nrrdArr->len; idx++) {
     if (nrrd == scene->nrrd[idx]) {
       break;
     }

@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "limn.h"
 
 limnLight *
@@ -102,7 +101,7 @@ limnWindowNew(int device) {
   win = (limnWindow *)calloc(1, sizeof(limnWindow));
   if (win) {
     win->device = device;
-    switch(device) {
+    switch (device) {
     case limnDevicePS:
       win->yFlip = 1;
       _limnOptsPSDefaults(&(win->ps));

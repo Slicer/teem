@@ -25,15 +25,13 @@
 #include "privateTen.h"
 
 #define INFO "Modify shape by clamping eigenvalues in some range"
-static const char *_tend_evalclampInfoL =
-  (INFO
-   ". The orientation of the tensor is unchanged.  Note that unlike "
-   "\"tend anscale\", this operation can completely change the shape "
-   "of the tensor.");
+static const char *_tend_evalclampInfoL
+  = (INFO ". The orientation of the tensor is unchanged.  Note that unlike "
+          "\"tend anscale\", this operation can completely change the shape "
+          "of the tensor.");
 
 int
-tend_evalclampMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+tend_evalclampMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -65,14 +63,16 @@ tend_evalclampMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenEigenvalueClamp(nout, nin, min, max)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

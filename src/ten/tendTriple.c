@@ -25,14 +25,12 @@
 #include "privateTen.h"
 
 #define INFO "Compute volume of shape triples"
-static const char *_tend_tripleInfoL =
-  (INFO
-   ".  The triple can be eignvalues, invariants (J, K, R), "
-   "and lots of other things.");
+static const char *_tend_tripleInfoL
+  = (INFO ".  The triple can be eignvalues, invariants (J, K, R), "
+          "and lots of other things.");
 
 int
-tend_tripleMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+tend_tripleMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -44,8 +42,8 @@ tend_tripleMain(int argc, const char **argv, const char *me,
 
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &ttype, NULL,
              "desired output triple type", NULL, tenTripleType);
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input tensor volume", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-", "input tensor volume",
+             NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output triple volume");
 
@@ -58,14 +56,16 @@ tend_tripleMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenTripleCalc(nout, ttype, nin)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

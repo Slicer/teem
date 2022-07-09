@@ -21,17 +21,16 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "bane.h"
 #include "privateBane.h"
 
 int
 baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
   Nrrd *gA, *hA, *gB, *hB;
-  static const char me[]="baneRawScatterplots";
+  static const char me[] = "baneRawScatterplots";
   int E;
 
-  if (!( nvg && nvh && hvol )) {
+  if (!(nvg && nvh && hvol)) {
     biffAddf(BANE, "%s: got NULL pointer", me);
     return 1;
   }
@@ -40,8 +39,10 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
     return 1;
   }
 
-  gA = nrrdNew(); gB = nrrdNew();
-  hA = nrrdNew(); hB = nrrdNew();
+  gA = nrrdNew();
+  gB = nrrdNew();
+  hA = nrrdNew();
+  hB = nrrdNew();
   /* create initial projections */
   E = 0;
   if (!E) E |= nrrdProject(gA, hvol, 1, nrrdMeasureSum, nrrdTypeDefault);
@@ -53,10 +54,10 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
 
   /* do histogram equalization on them */
   if (histEq) {
-    if (!E) E |= nrrdHistoEq(gB, gA, NULL, baneStateHistEqBins,
-                             baneStateHistEqSmart, 1.0);
-    if (!E) E |= nrrdHistoEq(hB, hA, NULL, baneStateHistEqBins,
-                             baneStateHistEqSmart, 1.0);
+    if (!E)
+      E |= nrrdHistoEq(gB, gA, NULL, baneStateHistEqBins, baneStateHistEqSmart, 1.0);
+    if (!E)
+      E |= nrrdHistoEq(hB, hA, NULL, baneStateHistEqBins, baneStateHistEqSmart, 1.0);
   } else {
     if (!E) E |= nrrdCopy(gB, gA);
     if (!E) E |= nrrdCopy(hB, hA);
@@ -83,7 +84,9 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
     return 1;
   }
 
-  nrrdNuke(gA); nrrdNuke(gB);
-  nrrdNuke(hA); nrrdNuke(hB);
+  nrrdNuke(gA);
+  nrrdNuke(gB);
+  nrrdNuke(hA);
+  nrrdNuke(hB);
   return 0;
 }

@@ -25,14 +25,12 @@
 #include "privateBane.h"
 
 #define OPAC_INFO "Generate opacity functions"
-static const char *_baneGkms_opacInfoL =
-  (OPAC_INFO
-   ". Takes information from an \"info\" file and from a \"boundary "
-   "emphasis function\" to generate 1D or 2D (depending on info file) "
-   "opacity functions. ");
+static const char *_baneGkms_opacInfoL
+  = (OPAC_INFO ". Takes information from an \"info\" file and from a \"boundary "
+               "emphasis function\" to generate 1D or 2D (depending on info file) "
+               "opacity functions. ");
 int
-baneGkms_opacMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+baneGkms_opacMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *perr, *befS;
   Nrrd *ninfo, *nbef, *nout, *nmax, *npos, *nopac;
@@ -74,8 +72,7 @@ baneGkms_opacMain(int argc, const char **argv, const char *me,
              "corresponding nrrd to <befOut>, suitable for use in this "
              "command or \"unu imap\"");
   hestOptAdd(&opt, "i", "infoIn", airTypeOther, 1, 1, &ninfo, NULL,
-             "input info file (from \"gkms info\")",
-             NULL, NULL, nrrdHestNrrd);
+             "input info file (from \"gkms info\")", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "o", "opacOut", airTypeString, 1, 1, &outS, NULL,
              "output 1D or 2D opacity function");
 
@@ -84,26 +81,29 @@ baneGkms_opacMain(int argc, const char **argv, const char *me,
   USAGE(_baneGkms_opacInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
-  airMopAdd(mop, nmax=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, npos=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nopac=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nmax = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, npos = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nopac = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nout = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
   if (baneInfoCheck(ninfo, AIR_FALSE)) {
     biffAddf(BANE, "%s: didn't get a valid histogram info file", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  idim = ninfo->dim-1;
+  idim = ninfo->dim - 1;
   if (nbef->ptr && airStrlen(befS)) {
     if (nrrdSave(befS, nbef, NULL)) {
       biffMovef(BANE, NRRD, "%s: trouble saving boundary emphasis", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
   if (!AIR_EXISTS(sigma)) {
     if (baneSigmaCalc(&sigma, ninfo)) {
       biffAddf(BANE, "%s: trouble calculating sigma", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     fprintf(stderr, "%s: calculated sigma = %g\n", me, sigma);
   }
@@ -111,40 +111,42 @@ baneGkms_opacMain(int argc, const char **argv, const char *me,
     gthresh = gthrInfo[1];
   } else {
     if (2 == idim) {
-      gthresh = AIR_FLOAT(gthrInfo[1]*ninfo->axis[2].max);
-    }
-    else {
+      gthresh = AIR_FLOAT(gthrInfo[1] * ninfo->axis[2].max);
+    } else {
       if (nrrdProject(nmax, ninfo, 1, nrrdMeasureMax, nrrdTypeDefault)) {
         biffAddf(BANE, "%s: couldn't do max projection of 1D histo-info", me);
-        airMopError(mop); return 1;
+        airMopError(mop);
+        return 1;
       }
-      gthresh = gthrInfo[1]*nrrdFLookup[nmax->type](nmax->data, 0);
+      gthresh = gthrInfo[1] * nrrdFLookup[nmax->type](nmax->data, 0);
     }
     fprintf(stderr, "%s: calculated gthresh = %g\n", me, gthresh);
   }
-  if (banePosCalc(npos, sigma, gthresh, ninfo)
-      || baneOpacCalc(nopac, nbef, npos)) {
+  if (banePosCalc(npos, sigma, gthresh, ninfo) || baneOpacCalc(nopac, nbef, npos)) {
     biffAddf(BANE, "%s: trouble calculating position or opacity", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (radius) {
     if (nrrdCheapMedian(nout, nopac, AIR_TRUE, AIR_FALSE, radius, 1.0, 2048)) {
       biffMovef(BANE, NRRD, "%s: error in median filtering", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   } else {
     if (nrrdCopy(nout, nopac)) {
       biffMovef(BANE, NRRD, "%s: error in copying output", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
   if (nrrdSave(outS, nout, NULL)) {
     biffMovef(BANE, NRRD, "%s: trouble saving opacity function", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
   return 0;
 }
 BANE_GKMS_CMD(opac, OPAC_INFO);
-

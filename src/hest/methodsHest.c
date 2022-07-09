@@ -25,8 +25,7 @@
 #include "privateHest.h"
 #include <limits.h>
 
-const int
-hestPresent = 42;
+const int hestPresent = 42;
 
 hestParm *
 hestParmNew() {
@@ -40,14 +39,10 @@ hestParmNew() {
     parm->elideSingleOtherType = hestElideSingleOtherType;
     parm->elideSingleOtherDefault = hestElideSingleOtherDefault;
     parm->greedySingleString = hestGreedySingleString;
-    parm->elideSingleNonExistFloatDefault =
-      hestElideSingleNonExistFloatDefault;
-    parm->elideMultipleNonExistFloatDefault =
-      hestElideMultipleNonExistFloatDefault;
-    parm->elideSingleEmptyStringDefault =
-      hestElideSingleEmptyStringDefault;
-    parm->elideMultipleEmptyStringDefault =
-      hestElideMultipleEmptyStringDefault;
+    parm->elideSingleNonExistFloatDefault = hestElideSingleNonExistFloatDefault;
+    parm->elideMultipleNonExistFloatDefault = hestElideMultipleNonExistFloatDefault;
+    parm->elideSingleEmptyStringDefault = hestElideSingleEmptyStringDefault;
+    parm->elideMultipleEmptyStringDefault = hestElideMultipleEmptyStringDefault;
     parm->cleverPluralizeOtherY = hestCleverPluralizeOtherY;
     parm->columns = hestColumns;
     parm->respFileFlag = hestRespFileFlag;
@@ -103,24 +98,20 @@ hestOptNew(void) {
 ** option just added.  Returns UINT_MAX in case of error.
 */
 unsigned int
-hestOptAdd(hestOpt **optP,
-           const char *flag, const char *name,
-           int type, int min, int max,
-           void *valueP, const char *dflt, const char *info, ...) {
+hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type, int min,
+           int max, void *valueP, const char *dflt, const char *info, ...) {
   hestOpt *ret = NULL;
   int num;
   va_list ap;
   unsigned int retIdx;
 
-  if (!optP)
-    return UINT_MAX;
+  if (!optP) return UINT_MAX;
 
   num = *optP ? _hestNumOpts(*optP) : 0;
-  if (!( ret = AIR_CALLOC(num+2, hestOpt) )) {
+  if (!(ret = AIR_CALLOC(num + 2, hestOpt))) {
     return UINT_MAX;
   }
-  if (num)
-    memcpy(ret, *optP, num*sizeof(hestOpt));
+  if (num) memcpy(ret, *optP, num * sizeof(hestOpt));
   retIdx = AIR_UINT(num);
   ret[num].flag = airStrdup(flag);
   ret[num].name = airStrdup(name);
@@ -139,26 +130,25 @@ hestOptAdd(hestOpt **optP,
   /* deal with var args */
   if (5 == _hestKind(&(ret[num]))) {
     va_start(ap, info);
-    ret[num].sawP = va_arg(ap, unsigned int*);
+    ret[num].sawP = va_arg(ap, unsigned int *);
     va_end(ap);
   }
   if (airTypeEnum == type) {
     va_start(ap, info);
-    va_arg(ap, unsigned int*);  /* skip sawP */
-    ret[num].enm = va_arg(ap, airEnum*);
+    va_arg(ap, unsigned int *); /* skip sawP */
+    ret[num].enm = va_arg(ap, airEnum *);
     va_end(ap);
   }
   if (airTypeOther == type) {
     va_start(ap, info);
-    va_arg(ap, unsigned int*);  /* skip sawP */
-    va_arg(ap, airEnum*);       /* skip enm */
-    ret[num].CB = va_arg(ap, hestCB*);
+    va_arg(ap, unsigned int *); /* skip sawP */
+    va_arg(ap, airEnum *);      /* skip enm */
+    ret[num].CB = va_arg(ap, hestCB *);
     va_end(ap);
   }
-  _hestOptInit(&(ret[num+1]));
-  ret[num+1].min = 1;
-  if (*optP)
-    free(*optP);
+  _hestOptInit(&(ret[num + 1]));
+  ret[num + 1].min = 1;
+  if (*optP) free(*optP);
   *optP = ret;
   return retIdx;
 }
@@ -177,14 +167,13 @@ hestOpt *
 hestOptFree(hestOpt *opt) {
   int op, num;
 
-  if (!opt)
-    return NULL;
+  if (!opt) return NULL;
 
   num = _hestNumOpts(opt);
   if (opt[num].min) {
     /* we only try to free this if it looks like something we allocated */
-    for (op=0; op<num; op++) {
-      _hestOptFree(opt+op);
+    for (op = 0; op < num; op++) {
+      _hestOptFree(opt + op);
     }
     free(opt);
   }
@@ -193,16 +182,17 @@ hestOptFree(hestOpt *opt) {
 
 int
 hestOptCheck(hestOpt *opt, char **errP) {
-  char *err, me[]="hestOptCheck";
+  char *err, me[] = "hestOptCheck";
   hestParm *parm;
   int big;
 
   big = _hestErrStrlen(opt, 0, NULL);
-  if (!( err = AIR_CALLOC(big, char) )) {
-    fprintf(stderr, "%s PANIC: couldn't allocate error message "
-            "buffer (size %d)\n", me, big);
-    if (errP)
-      *errP = NULL;
+  if (!(err = AIR_CALLOC(big, char))) {
+    fprintf(stderr,
+            "%s PANIC: couldn't allocate error message "
+            "buffer (size %d)\n",
+            me, big);
+    if (errP) *errP = NULL;
     return 1;
   }
   parm = hestParmNew();
@@ -211,8 +201,7 @@ hestOptCheck(hestOpt *opt, char **errP) {
     if (errP) {
       /* they did give a pointer address; they'll free it */
       *errP = err;
-    }
-    else {
+    } else {
       /* they didn't give a pointer address; their loss */
       free(err);
     }
@@ -220,13 +209,11 @@ hestOptCheck(hestOpt *opt, char **errP) {
     return 1;
   }
   /* else, no problems */
-  if (errP)
-    *errP = NULL;
+  if (errP) *errP = NULL;
   free(err);
   hestParmFree(parm);
   return 0;
 }
-
 
 /*
 ** _hestIdent()
@@ -242,15 +229,12 @@ _hestIdent(char *ident, hestOpt *opt, const hestParm *parm, int brief) {
     sep = strchr(copy, parm->multiFlagSep);
     *sep = '\0';
     if (brief)
-      sprintf(ident, "-%s%c--%s option", copy, parm->multiFlagSep, sep+1);
+      sprintf(ident, "-%s%c--%s option", copy, parm->multiFlagSep, sep + 1);
     else
       sprintf(ident, "-%s option", copy);
-  }
-  else {
-    sprintf(ident, "%s%s%s option",
-            opt->flag ? "\"-"      : "<",
-            opt->flag ? opt->flag : opt->name,
-            opt->flag ? "\""       : ">");
+  } else {
+    sprintf(ident, "%s%s%s option", opt->flag ? "\"-" : "<",
+            opt->flag ? opt->flag : opt->name, opt->flag ? "\"" : ">");
   }
   return ident;
 }
@@ -269,7 +253,7 @@ _hestKind(const hestOpt *opt) {
   int max;
 
   max = _hestMax(opt->max);
-  if (!( (int)opt->min <= max )) {    /* HEY scrutinize casts */
+  if (!((int)opt->min <= max)) { /* HEY scrutinize casts */
     /* invalid */
     return -1;
   }
@@ -284,7 +268,7 @@ _hestKind(const hestOpt *opt) {
     return 2;
   }
 
-  if (2 <= opt->min && 2 <= max && (int)opt->min == max) {  /* HEY scrutinize casts */
+  if (2 <= opt->min && 2 <= max && (int)opt->min == max) { /* HEY scrutinize casts */
     /* multiple fixed parameters */
     return 3;
   }
@@ -303,7 +287,7 @@ _hestPrintArgv(int argc, char **argv) {
   int a;
 
   printf("argc=%d : ", argc);
-  for (a=0; a<argc; a++) {
+  for (a = 0; a < argc; a++) {
     printf("%s ", argv[a]);
   }
   printf("\n");
@@ -320,51 +304,40 @@ _hestPrintArgv(int argc, char **argv) {
 */
 int
 _hestWhichFlag(hestOpt *opt, char *flag, const hestParm *parm) {
-  char buff[2*AIR_STRLEN_HUGE], copy[AIR_STRLEN_HUGE], *sep;
+  char buff[2 * AIR_STRLEN_HUGE], copy[AIR_STRLEN_HUGE], *sep;
   int op, numOpts;
 
   numOpts = _hestNumOpts(opt);
   if (parm->verbosity)
     printf("_hestWhichFlag: flag = %s, numOpts = %d\n", flag, numOpts);
-  for (op=0; op<numOpts; op++) {
-    if (parm->verbosity)
-      printf("_hestWhichFlag: op = %d\n", op);
-    if (!opt[op].flag)
-      continue;
-    if (strchr(opt[op].flag, parm->multiFlagSep) ) {
+  for (op = 0; op < numOpts; op++) {
+    if (parm->verbosity) printf("_hestWhichFlag: op = %d\n", op);
+    if (!opt[op].flag) continue;
+    if (strchr(opt[op].flag, parm->multiFlagSep)) {
       strcpy(copy, opt[op].flag);
       sep = strchr(copy, parm->multiFlagSep);
       *sep = '\0';
       /* first try the short version */
       sprintf(buff, "-%s", copy);
-      if (!strcmp(flag, buff))
-        return op;
+      if (!strcmp(flag, buff)) return op;
       /* then try the long version */
-      sprintf(buff, "--%s", sep+1);
-      if (!strcmp(flag, buff))
-        return op;
-    }
-    else {
+      sprintf(buff, "--%s", sep + 1);
+      if (!strcmp(flag, buff)) return op;
+    } else {
       /* flag has only the short version */
       sprintf(buff, "-%s", opt[op].flag);
-      if (!strcmp(flag, buff))
-        return op;
+      if (!strcmp(flag, buff)) return op;
     }
   }
-  if (parm->verbosity)
-    printf("_hestWhichFlag: numOpts = %d\n", numOpts);
+  if (parm->verbosity) printf("_hestWhichFlag: numOpts = %d\n", numOpts);
   if (parm->varParamStopFlag) {
     sprintf(buff, "-%c", parm->varParamStopFlag);
-    if (parm->verbosity)
-      printf("_hestWhichFlag: flag = %s, buff = %s\n", flag, buff);
-    if (!strcmp(flag, buff))
-      return -2;
+    if (parm->verbosity) printf("_hestWhichFlag: flag = %s, buff = %s\n", flag, buff);
+    if (!strcmp(flag, buff)) return -2;
   }
-  if (parm->verbosity)
-    printf("_hestWhichFlag: numOpts = %d\n", numOpts);
+  if (parm->verbosity) printf("_hestWhichFlag: numOpts = %d\n", numOpts);
   return -1;
 }
-
 
 /*
 ** _hestCase()
@@ -377,12 +350,9 @@ _hestCase(hestOpt *opt, int *udflt, unsigned int *nprm, int *appr, int op) {
 
   if (opt[op].flag && !appr[op]) {
     return 0;
-  }
-  else if ( (4 == opt[op].kind && udflt[op]) ||
-            (5 == opt[op].kind && !nprm[op]) ) {
+  } else if ((4 == opt[op].kind && udflt[op]) || (5 == opt[op].kind && !nprm[op])) {
     return 1;
-  }
-  else {
+  } else {
     return 2;
   }
 }
@@ -399,42 +369,40 @@ _hestExtract(int *argcP, char **argv, unsigned int base, unsigned int pnum) {
   unsigned int len, pidx;
   char *ret;
 
-  if (!pnum)
-    return NULL;
+  if (!pnum) return NULL;
 
   len = 0;
-  for (pidx=0; pidx<pnum; pidx++) {
-    if (base+pidx==AIR_UINT(*argcP)) {
+  for (pidx = 0; pidx < pnum; pidx++) {
+    if (base + pidx == AIR_UINT(*argcP)) {
       return NULL;
     }
-    len += AIR_UINT(strlen(argv[base+pidx]));
-    if (strstr(argv[base+pidx], " ")) {
+    len += AIR_UINT(strlen(argv[base + pidx]));
+    if (strstr(argv[base + pidx], " ")) {
       len += 2;
     }
   }
   len += pnum;
   ret = AIR_CALLOC(len, char);
   strcpy(ret, "");
-  for (pidx=0; pidx<pnum; pidx++) {
+  for (pidx = 0; pidx < pnum; pidx++) {
     /* if a single element of argv has spaces in it, someone went
        to the trouble of putting it in quotes, and we perpetuate
        the favor by quoting it when we concatenate all the argv
        elements together, so that airParseStrS will recover it as a
        single string again */
-    if (strstr(argv[base+pidx], " ")) {
+    if (strstr(argv[base + pidx], " ")) {
       strcat(ret, "\"");
     }
     /* HEY: if there is a '\"' character in this string, quoted or
        not, its going to totally confuse later parsing */
-    strcat(ret, argv[base+pidx]);
-    if (strstr(argv[base+pidx], " ")) {
+    strcat(ret, argv[base + pidx]);
+    if (strstr(argv[base + pidx], " ")) {
       strcat(ret, "\"");
     }
-    if (pidx < pnum-1)
-      strcat(ret, " ");
+    if (pidx < pnum - 1) strcat(ret, " ");
   }
-  for (pidx=base+pnum; pidx<=AIR_UINT(*argcP); pidx++) {
-    argv[pidx-pnum] = argv[pidx];
+  for (pidx = base + pnum; pidx <= AIR_UINT(*argcP); pidx++) {
+    argv[pidx - pnum] = argv[pidx];
   }
   *argcP -= pnum;
   return ret;
@@ -449,4 +417,3 @@ _hestNumOpts(const hestOpt *opt) {
   }
   return num;
 }
-

@@ -25,15 +25,13 @@
 #include "privateBane.h"
 
 #define MITE_INFO "Modify opacity function to work with \"mite\""
-static const char *_baneGkms_miteInfoL =
-  (MITE_INFO
-   ". Useful when using the \"mite\" Teem library, or the \"miter\" "
-   "command-line renderer.  This adds a \"stub\" axis 0, and setting the "
-   "axis labels to identify the domain and range of the opacity function. "
-   "The underlying opacity function is not modified.");
+static const char *_baneGkms_miteInfoL
+  = (MITE_INFO ". Useful when using the \"mite\" Teem library, or the \"miter\" "
+               "command-line renderer.  This adds a \"stub\" axis 0, and setting the "
+               "axis labels to identify the domain and range of the opacity function. "
+               "The underlying opacity function is not modified.");
 int
-baneGkms_miteMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+baneGkms_miteMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *perr;
   Nrrd *nin, *nout;
@@ -53,8 +51,7 @@ baneGkms_miteMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  if (1 == nin->axis[0].size && nin->axis[0].label &&
-      !strcmp("A", nin->axis[0].label)) {
+  if (1 == nin->axis[0].size && nin->axis[0].label && !strcmp("A", nin->axis[0].label)) {
     fprintf(stderr, "%s: already\n", me);
     nout = nin;
   } else {
@@ -68,18 +65,18 @@ baneGkms_miteMain(int argc, const char **argv, const char *me,
       if (!E) E |= !(nout->axis[2].label = airStrdup("gage(gm)"));
     }
     if (E) {
-      biffMovef(BANE, NRRD,
-                "%s: trouble modifying opacity function nrrd", me);
-      airMopError(mop); return 1;
+      biffMovef(BANE, NRRD, "%s: trouble modifying opacity function nrrd", me);
+      airMopError(mop);
+      return 1;
     }
   }
   if (nrrdSave(out, nout, NULL)) {
     biffMovef(BANE, NRRD, "%s: trouble saving opacity function", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
   return 0;
 }
 BANE_GKMS_CMD(mite, MITE_INFO);
-

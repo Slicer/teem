@@ -25,15 +25,13 @@
 #include "privateBane.h"
 
 #define SCAT_INFO "Make V-G and V-H scatterplots"
-static const char *_baneGkms_scatInfoL =
-  (SCAT_INFO
-   ". These provide a quick way to inspect a histogram volume, in order to "
-   "verify that the derivative inclusion ranges were appropriate, and to "
-   "get an initial sense of what sorts of boundaries were present in the "
-   "original volume.");
+static const char *_baneGkms_scatInfoL
+  = (SCAT_INFO ". These provide a quick way to inspect a histogram volume, in order to "
+               "verify that the derivative inclusion ranges were appropriate, and to "
+               "get an initial sense of what sorts of boundaries were present in the "
+               "original volume.");
 int
-baneGkms_scatMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+baneGkms_scatMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out[2], *perr;
   Nrrd *hvol, *nvgRaw, *nvhRaw, *nvgQuant, *nvhQuant;
@@ -47,8 +45,7 @@ baneGkms_scatMain(int argc, const char **argv, const char *me,
              "gamma > 1.0 brightens; gamma < 1.0 darkens. "
              "Negative gammas invert values (like in xv). ");
   hestOptAdd(&opt, "i", "hvolIn", airTypeOther, 1, 1, &hvol, NULL,
-             "input histogram volume (from \"gkms hvol\")",
-             NULL, NULL, nrrdHestNrrd);
+             "input histogram volume (from \"gkms hvol\")", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "o", "vgOut vhOut", airTypeString, 2, 2, out, NULL,
              "Filenames to use for two output scatterplots, (gradient "
              "magnitude versus value, and 2nd derivative versus value); "
@@ -70,7 +67,8 @@ baneGkms_scatMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nvhQuant, (airMopper)nrrdNuke, airMopAlways);
   if (baneRawScatterplots(nvgRaw, nvhRaw, hvol, AIR_TRUE)) {
     biffAddf(BANE, "%s: trouble creating raw scatterplots", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   vgRange = nrrdRangeNewSet(nvgRaw, nrrdBlind8BitRangeFalse);
   vhRange = nrrdRangeNewSet(nvhRaw, nrrdBlind8BitRangeFalse);
@@ -83,18 +81,19 @@ baneGkms_scatMain(int argc, const char **argv, const char *me,
   if (!E) E |= nrrdQuantize(nvhQuant, nvhRaw, vhRange, 8);
   if (E) {
     biffMovef(BANE, NRRD, "%s: trouble doing gamma or quantization", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (!E) E |= nrrdSave(out[0], nvgQuant, NULL);
   if (!E) E |= nrrdSave(out[1], nvhQuant, NULL);
   if (E) {
     biffMovef(BANE, NRRD, "%s: trouble saving scatterplot images", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
   return 0;
 }
 BANE_GKMS_CMD(scat, SCAT_INFO);
-

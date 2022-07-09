@@ -42,7 +42,7 @@ airMyEndian(void) {
      (the "first" byte in memory ordering).
      On big endian, we're getting the most significant byte (0);
      on little endian, we're getting least significant byte (1) */
-  leastbyte = *(AIR_CAST(char*, &tmpI));
+  leastbyte = *(AIR_CAST(char *, &tmpI));
   if (leastbyte) {
     ret = airEndianLittle;
   } else {

@@ -26,24 +26,23 @@
 
 int
 nrrdCCValid(const Nrrd *nin) {
-  static const char me[]="nrrdCCValid";
+  static const char me[] = "nrrdCCValid";
 
   if (nrrdCheck(nin)) {
     biffAddf(NRRD, "%s: basic validity check failed", me);
     return 0;
   }
-  if (!( nrrdTypeIsIntegral[nin->type] )) {
+  if (!(nrrdTypeIsIntegral[nin->type])) {
     biffAddf(NRRD, "%s: need an integral type (not %s)", me,
              airEnumStr(nrrdType, nin->type));
     return 0;
   }
-  if (!( nrrdTypeSize[nin->type] <= 2 ||
-         nrrdTypeInt == nin->type ||
-         nrrdTypeUInt == nin->type )) {
-    biffAddf(NRRD, "%s: valid connected component types are 1- and 2-byte "
-             "integers, and %s and %s", me,
-             airEnumStr(nrrdType, nrrdTypeInt),
-             airEnumStr(nrrdType, nrrdTypeUInt));
+  if (!(nrrdTypeSize[nin->type] <= 2 || nrrdTypeInt == nin->type
+        || nrrdTypeUInt == nin->type)) {
+    biffAddf(NRRD,
+             "%s: valid connected component types are 1- and 2-byte "
+             "integers, and %s and %s",
+             me, airEnumStr(nrrdType, nrrdTypeInt), airEnumStr(nrrdType, nrrdTypeUInt));
     return 0;
   }
   return 1;
@@ -58,24 +57,23 @@ nrrdCCValid(const Nrrd *nin) {
 
 unsigned int
 nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
-  static const char me[]="nrrdCCSize", func[]="ccsize";
+  static const char me[] = "nrrdCCSize", func[] = "ccsize";
   unsigned int *out, maxid, (*lup)(const void *, size_t);
   size_t I, NN;
 
-  if (!( nout && nrrdCCValid(nin) )) {
+  if (!(nout && nrrdCCValid(nin))) {
     biffAddf(NRRD, "%s: invalid args", me);
     return 1;
   }
   maxid = nrrdCCMax(nin);
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeUInt, 1,
-                        AIR_CAST(size_t, maxid+1))) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeUInt, 1, AIR_CAST(size_t, maxid + 1))) {
     biffAddf(NRRD, "%s: can't allocate output", me);
     return 1;
   }
   out = (unsigned int *)(nout->data);
   lup = nrrdUILookup[nin->type];
   NN = nrrdElementNumber(nin);
-  for (I=0; I<NN; I++) {
+  for (I = 0; I < NN; I++) {
     out[lup(nin->data, I)] += 1;
   }
   if (nrrdContentSet_va(nout, func, nin, "")) {
@@ -104,7 +102,7 @@ nrrdCCMax(const Nrrd *nin) {
   lup = nrrdUILookup[nin->type];
   NN = nrrdElementNumber(nin);
   max = 0;
-  for (I=0; I<NN; I++) {
+  for (I = 0; I < NN; I++) {
     id = lup(nin->data, I);
     max = AIR_MAX(max, id);
   }
@@ -129,15 +127,15 @@ nrrdCCNum(const Nrrd *nin) {
   lup = nrrdUILookup[nin->type];
   NN = nrrdElementNumber(nin);
   max = nrrdCCMax(nin);
-  hist = (unsigned char *)calloc(max+1, sizeof(unsigned char));
+  hist = (unsigned char *)calloc(max + 1, sizeof(unsigned char));
   if (!hist) {
     return 0;
   }
-  for (I=0; I<NN; I++) {
+  for (I = 0; I < NN; I++) {
     hist[lup(nin->data, I)] = 1;
   }
   num = 0;
-  for (I=0; I<=max; I++) {
+  for (I = 0; I <= max; I++) {
     num += hist[I];
   }
   free(hist);

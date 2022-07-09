@@ -25,16 +25,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Permute ordering of axes"
-static const char *_unrrdu_permuteInfoL =
-(INFO
- ". The permutation gives the new ordering of the old "
- "axes (in 0-based numbering). For example, the "
- "permutation 0->1,\t1->2,\t2->0 would be \"2 0 1\".\n "
- "* Uses nrrdAxesPermute");
+static const char *_unrrdu_permuteInfoL
+  = (INFO ". The permutation gives the new ordering of the old "
+          "axes (in 0-based numbering). For example, the "
+          "permutation 0->1,\t1->2,\t2->0 would be \"2 0 1\".\n "
+          "* Uses nrrdAxesPermute");
 
 int
-unrrdu_permuteMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_permuteMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -57,9 +55,9 @@ unrrdu_permuteMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (!( permLen == nin->dim )) {
-    fprintf(stderr,"%s: # axes in permutation (%u) != nrrd dim (%d)\n",
-            me, permLen, nin->dim);
+  if (!(permLen == nin->dim)) {
+    fprintf(stderr, "%s: # axes in permutation (%u) != nrrd dim (%d)\n", me, permLen,
+            nin->dim);
     airMopError(mop);
     return 1;
   }

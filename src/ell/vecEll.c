@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "ell.h"
 
 void
@@ -29,26 +28,24 @@ ell_4v_norm_f(float bv[4], const float av[4]) {
   float len;
 
   len = AIR_FLOAT(ELL_4V_LEN(av));
-  ELL_4V_SCALE(bv, 1.0f/len, av);
+  ELL_4V_SCALE(bv, 1.0f / len, av);
   return;
 }
 
-#define PERP \
-  idx = 0; \
-  if (b[0]*b[0] < b[1]*b[1]) \
-    idx = 1; \
-  if (b[idx]*b[idx] < b[2]*b[2]) \
-    idx = 2; \
-  switch (idx) { \
-  case 0: \
-    ELL_3V_SET(a, b[1] - b[2], -b[0], b[0]); \
-    break; \
-  case 1: \
-    ELL_3V_SET(a, -b[1], b[0] - b[2], b[1]); \
-    break; \
-  case 2: \
-    ELL_3V_SET(a, -b[2], b[2], b[0] - b[1]); \
-    break; \
+#define PERP                                                                            \
+  idx = 0;                                                                              \
+  if (b[0] * b[0] < b[1] * b[1]) idx = 1;                                               \
+  if (b[idx] * b[idx] < b[2] * b[2]) idx = 2;                                           \
+  switch (idx) {                                                                        \
+  case 0:                                                                               \
+    ELL_3V_SET(a, b[1] - b[2], -b[0], b[0]);                                            \
+    break;                                                                              \
+  case 1:                                                                               \
+    ELL_3V_SET(a, -b[1], b[0] - b[2], b[1]);                                            \
+    break;                                                                              \
+  case 2:                                                                               \
+    ELL_3V_SET(a, -b[2], b[2], b[0] - b[1]);                                            \
+    break;                                                                              \
   }
 
 /*
@@ -119,10 +116,10 @@ ell_3v_angle_f(const float _uu[3], const float _vv[3]) {
   ELL_3V_NORM_TT(vv, float, _vv, len);
   if (ELL_3V_DOT(uu, vv) < 0.0) {
     ELL_3V_ADD2(tmp, uu, vv);
-    ret = AIR_FLOAT(AIR_PI - 2*asin(ELL_3V_LEN(tmp)/2.0));
+    ret = AIR_FLOAT(AIR_PI - 2 * asin(ELL_3V_LEN(tmp) / 2.0));
   } else {
     ELL_3V_SUB(tmp, uu, vv);
-    ret = AIR_FLOAT(2*asin(ELL_3V_LEN(tmp)/2.0));
+    ret = AIR_FLOAT(2 * asin(ELL_3V_LEN(tmp) / 2.0));
   }
   return ret;
 }
@@ -136,10 +133,10 @@ ell_3v_angle_d(const double _uu[3], const double _vv[3]) {
   ELL_3V_NORM(vv, _vv, len);
   if (ELL_3V_DOT(uu, vv) < 0.0) {
     ELL_3V_ADD2(tmp, uu, vv);
-    ret = AIR_PI - 2*asin(ELL_3V_LEN(tmp)/2.0);
+    ret = AIR_PI - 2 * asin(ELL_3V_LEN(tmp) / 2.0);
   } else {
     ELL_3V_SUB(tmp, uu, vv);
-    ret = 2*asin(ELL_3V_LEN(tmp)/2.0);
+    ret = 2 * asin(ELL_3V_LEN(tmp) / 2.0);
   }
   return ret;
 }
@@ -153,10 +150,10 @@ ell_2v_angle_f(const float _uu[2], const float _vv[2]) {
   ELL_2V_NORM_TT(vv, float, _vv, len);
   if (ELL_2V_DOT(uu, vv) < 0.0) {
     ELL_2V_ADD2(tmp, uu, vv);
-    ret = AIR_FLOAT(AIR_PI - 2*asin(ELL_2V_LEN(tmp)/2.0));
+    ret = AIR_FLOAT(AIR_PI - 2 * asin(ELL_2V_LEN(tmp) / 2.0));
   } else {
     ELL_2V_SUB(tmp, uu, vv);
-    ret = AIR_FLOAT(2*asin(ELL_2V_LEN(tmp)/2.0));
+    ret = AIR_FLOAT(2 * asin(ELL_2V_LEN(tmp) / 2.0));
   }
   return ret;
 }
@@ -170,10 +167,10 @@ ell_2v_angle_d(const double _uu[2], const double _vv[2]) {
   ELL_2V_NORM(vv, _vv, len);
   if (ELL_2V_DOT(uu, vv) < 0.0) {
     ELL_2V_ADD2(tmp, uu, vv);
-    ret = AIR_PI - 2*asin(ELL_2V_LEN(tmp)/2.0);
+    ret = AIR_PI - 2 * asin(ELL_2V_LEN(tmp) / 2.0);
   } else {
     ELL_2V_SUB(tmp, uu, vv);
-    ret = 2*asin(ELL_2V_LEN(tmp)/2.0);
+    ret = 2 * asin(ELL_2V_LEN(tmp) / 2.0);
   }
   return ret;
 }
@@ -215,7 +212,7 @@ ell_3v_barycentric_spherical_d(double bary[3],
   bary[2] = ell_3v_area_spherical_d(vv, av, bv);
   sum = bary[0] + bary[1] + bary[2];
   if (sum) {
-    ELL_3V_SCALE(bary, 1.0/sum, bary);
+    ELL_3V_SCALE(bary, 1.0 / sum, bary);
   }
   return;
 }

@@ -25,17 +25,15 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Brighten or darken values with a gamma"
-static const char *_unrrdu_gammaInfoL =
-(INFO
- ". Just as in xv, the gamma value here is actually the "
- "reciprocal of the exponent actually used to transform "
- "the values. Can also do the non-linear transforms used "
- "in the sRGB standard (see https://en.wikipedia.org/wiki/SRGB)\n "
- "* Uses nrrdArithGamma or nrrdArithGammaSRGB");
+static const char *_unrrdu_gammaInfoL
+  = (INFO ". Just as in xv, the gamma value here is actually the "
+          "reciprocal of the exponent actually used to transform "
+          "the values. Can also do the non-linear transforms used "
+          "in the sRGB standard (see https://en.wikipedia.org/wiki/SRGB)\n "
+          "* Uses nrrdArithGamma or nrrdArithGammaSRGB");
 
 int
-unrrdu_gammaMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+unrrdu_gammaMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -80,8 +78,10 @@ unrrdu_gammaMain(int argc, const char **argv, const char *me,
     srgb = AIR_FALSE;
     forward = AIR_FALSE;
     if (1 != airSingleSscanf(GammaS, "%lf", &Gamma)) {
-      fprintf(stderr, "%s: couldn't parse gamma \"%s\" as double, and wasn't either "
-              "\"srgb\" or \"1/srgb\"\n", me, GammaS);
+      fprintf(stderr,
+              "%s: couldn't parse gamma \"%s\" as double, and wasn't either "
+              "\"srgb\" or \"1/srgb\"\n",
+              me, GammaS);
       airMopError(mop);
       return 1;
     }
@@ -93,9 +93,9 @@ unrrdu_gammaMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   nrrdRangeSafeSet(range, nin, blind8BitRange);
   if (srgb) {
-    E =nrrdArithSRGBGamma(nout, nin, range, forward);
+    E = nrrdArithSRGBGamma(nout, nin, range, forward);
   } else {
-    E =nrrdArithGamma(nout, nin, range, Gamma);
+    E = nrrdArithGamma(nout, nin, range, Gamma);
   }
   if (E) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

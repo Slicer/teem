@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "ell.h"
 
 /*
@@ -29,11 +28,9 @@
 ** properly consistent with the ell library name convention) because
 ** we want to facilitate systematic testing of all libraries
 */
-const int
-ellPresent = 42;
+const int ellPresent = 42;
 
-const char *
-ell_biff_key = "ell";
+const char *ell_biff_key = "ell";
 
 /*
 ******** ell_debug

@@ -28,7 +28,7 @@ NrrdIter *
 nrrdIterNew() {
   NrrdIter *iter;
 
-  if ( (iter = (NrrdIter *)calloc(1, sizeof(NrrdIter))) ) {
+  if ((iter = (NrrdIter *)calloc(1, sizeof(NrrdIter)))) {
     iter->nrrd = NULL;
     iter->ownNrrd = NULL;
     iter->val = AIR_NAN;
@@ -48,7 +48,7 @@ nrrdIterSetValue(NrrdIter *iter, double val) {
     iter->ownNrrd = iter->ownNrrd ? nrrdNuke(iter->ownNrrd) : NULL;
     iter->val = val;
     iter->size = nrrdTypeSize[nrrdTypeDouble];
-    iter->data = (char*)&(iter->val);
+    iter->data = (char *)&(iter->val);
     iter->left = 0;
     iter->load = nrrdDLoad[nrrdTypeDouble];
   }
@@ -69,7 +69,7 @@ nrrdIterSetNrrd(NrrdIter *iter, const Nrrd *nrrd) {
     iter->val = AIR_NAN;
     iter->size = nrrdTypeSize[nrrd->type];
     iter->data = (char *)nrrd->data;
-    iter->left = nrrdElementNumber(nrrd)-1;
+    iter->left = nrrdElementNumber(nrrd) - 1;
     iter->load = nrrdDLoad[nrrd->type];
   }
   return;
@@ -93,7 +93,7 @@ nrrdIterSetOwnNrrd(NrrdIter *iter, Nrrd *nrrd) {
     iter->val = AIR_NAN;
     iter->size = nrrdTypeSize[nrrd->type];
     iter->data = (char *)nrrd->data;
-    iter->left = nrrdElementNumber(nrrd)-1;
+    iter->left = nrrdElementNumber(nrrd) - 1;
     iter->load = nrrdDLoad[nrrd->type];
   }
   return;
@@ -111,7 +111,7 @@ nrrdIterValue(NrrdIter *iter) {
         iter->left -= 1;
       } else {
         iter->data = (char *)(_NRRD_ITER_NRRD(iter)->data);
-        iter->left = nrrdElementNumber(_NRRD_ITER_NRRD(iter))-1;
+        iter->left = nrrdElementNumber(_NRRD_ITER_NRRD(iter)) - 1;
       }
     }
   }
@@ -152,4 +152,3 @@ nrrdIterNix(NrrdIter *iter) {
   }
   return NULL;
 }
-

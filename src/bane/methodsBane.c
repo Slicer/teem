@@ -21,12 +21,10 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "bane.h"
 #include "privateBane.h"
 
-const int
-banePresent = 42;
+const int banePresent = 42;
 
 void
 _baneAxisInit(baneAxis *axis) {
@@ -58,9 +56,9 @@ baneHVolParmNew() {
     _baneAxisInit(hvp->axis + 1);
     _baneAxisInit(hvp->axis + 2);
     hvp->k3pack = AIR_TRUE;
-    for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
+    for (i = gageKernelUnknown + 1; i < gageKernelLast; i++) {
       hvp->k[i] = NULL;
-      for (j=0; j<NRRD_KERNEL_PARMS_NUM; j++)
+      for (j = 0; j < NRRD_KERNEL_PARMS_NUM; j++)
         hvp->kparm[i][j] = AIR_NAN;
     }
     hvp->renormalize = baneDefRenormalize;
@@ -71,8 +69,8 @@ baneHVolParmNew() {
 }
 
 void
-baneHVolParmAxisSet(baneHVolParm *hvp, unsigned int axisIdx,
-                    unsigned int res, baneMeasr *measr, baneInc *inc) {
+baneHVolParmAxisSet(baneHVolParm *hvp, unsigned int axisIdx, unsigned int res,
+                    baneMeasr *measr, baneInc *inc) {
 
   if (hvp && axisIdx <= 2) {
     _baneAxisEmpty(hvp->axis + axisIdx);
@@ -148,10 +146,10 @@ baneHVolParmGKMSInit(baneHVolParm *hvp) {
     inc = baneIncNix(inc);
 
     nrrdKernelParse(&(hvp->k[gageKernel00]), hvp->kparm[gageKernel00],
-                    "cubic:0,0.5");  /* catmull-rom */
+                    "cubic:0,0.5"); /* catmull-rom */
     nrrdKernelParse(&(hvp->k[gageKernel11]), hvp->kparm[gageKernel11],
-                    "cubicd:1,0");   /* b-spline */
+                    "cubicd:1,0"); /* b-spline */
     nrrdKernelParse(&(hvp->k[gageKernel22]), hvp->kparm[gageKernel22],
-                    "cubicdd:1,0");  /* b-spline */
+                    "cubicdd:1,0"); /* b-spline */
   }
 }

@@ -32,12 +32,9 @@
 #  define snprintf _snprintf
 #endif
 
-static biffMsg **
-_bmsg=NULL;            /* master array of biffMsg pointers */
-static unsigned int
-_bmsgNum=0;            /* length of _biffErr == # keys maintained */
-static airArray *
-_bmsgArr=NULL;         /* air array of _biffErr and _biffNum */
+static biffMsg **_bmsg = NULL;    /* master array of biffMsg pointers */
+static unsigned int _bmsgNum = 0; /* length of _biffErr == # keys maintained */
+static airArray *_bmsgArr = NULL; /* air array of _biffErr and _biffNum */
 
 #define __INCR 2
 
@@ -56,7 +53,7 @@ typedef union {
 */
 static void
 _bmsgStart(void) {
-  static const char me[]="[biff] _bmsgStart";
+  static const char me[] = "[biff] _bmsgStart";
   _beu uu;
 
   if (_bmsgArr) {
@@ -64,7 +61,7 @@ _bmsgStart(void) {
     return;
   }
   uu.b = &_bmsg;
-  _bmsgArr = airArrayNew(uu.v, &_bmsgNum, sizeof(biffMsg*), __INCR);
+  _bmsgArr = airArrayNew(uu.v, &_bmsgNum, sizeof(biffMsg *), __INCR);
   if (!_bmsgArr) {
     fprintf(stderr, "%s: PANIC: couldn't allocate internal data\n", me);
     /* exit(1); */
@@ -92,7 +89,7 @@ _bmsgFinish(void) {
 */
 static biffMsg *
 _bmsgFind(const char *key) {
-  static const char me[]="[biff] _bmsgFind";
+  static const char me[] = "[biff] _bmsgFind";
   biffMsg *msg;
   unsigned int ii;
 
@@ -102,7 +99,7 @@ _bmsgFind(const char *key) {
   }
   msg = NULL;
   if (_bmsgNum) {
-    for (ii=0; ii<_bmsgNum; ii++) {
+    for (ii = 0; ii < _bmsgNum; ii++) {
       if (!strcmp(_bmsg[ii]->key, key)) {
         msg = _bmsg[ii];
         break;
@@ -119,7 +116,7 @@ static unsigned int
 _bmsgFindIdx(biffMsg *msg) {
   unsigned int ii;
 
-  for (ii=0; ii<_bmsgNum; ii++) {
+  for (ii = 0; ii < _bmsgNum; ii++) {
     if (msg == _bmsg[ii]) {
       break;
     }
@@ -136,13 +133,13 @@ _bmsgFindIdx(biffMsg *msg) {
 */
 static biffMsg *
 _bmsgAdd(const char *key) {
-  static const char me[]="[biff] _bmsgAdd";
+  static const char me[] = "[biff] _bmsgAdd";
   unsigned int ii;
   biffMsg *msg;
 
   msg = NULL;
   /* find if key exists already */
-  for (ii=0; ii<_bmsgNum; ii++) {
+  for (ii = 0; ii < _bmsgNum; ii++) {
     if (!strcmp(key, _bmsg[ii]->key)) {
       msg = _bmsg[ii];
       break;
@@ -256,7 +253,6 @@ biffMaybeAddf(int useBiff, const char *key, const char *errfmt, ...) {
   return;
 }
 
-
 /*
 ******** biffGet()
 **
@@ -265,19 +261,19 @@ biffMaybeAddf(int useBiff, const char *key, const char *errfmt, ...) {
 ** be considered a glorified strdup(): it is the callers responsibility
 ** to free() this string later
 */
-char * /*Teem: allocates char* */     /* this comment is an experiment */
+char * /*Teem: allocates char* */ /* this comment is an experiment */
 biffGet(const char *key) {
-  static const char me[]="biffGet";
+  static const char me[] = "biffGet";
   char *ret;
   biffMsg *msg;
 
   _bmsgStart();
   msg = _bmsgFind(key);
   if (!msg) {
-    static const char err[]="[%s] No information for this key!";
+    static const char err[] = "[%s] No information for this key!";
     size_t errlen;
     fprintf(stderr, "%s: WARNING: no information for key \"%s\"\n", me, key);
-    errlen = strlen(err)+strlen(key)+1;
+    errlen = strlen(err) + strlen(key) + 1;
     ret = AIR_CALLOC(errlen, char);
     if (!ret) {
       fprintf(stderr, "%s: PANIC: unable to allocate buffer\n", me);
@@ -287,7 +283,7 @@ biffGet(const char *key) {
     return ret;
   }
 
-  ret = AIR_CALLOC(biffMsgStrlen(msg)+1, char);
+  ret = AIR_CALLOC(biffMsgStrlen(msg) + 1, char);
   if (!ret) {
     fprintf(stderr, "%s: PANIC: unable to allocate buffer\n", me);
     return NULL; /* exit(1); */
@@ -304,7 +300,7 @@ biffGet(const char *key) {
 */
 unsigned int
 biffGetStrlen(const char *key) {
-  static const char me[]="biffGetStrlen";
+  static const char me[] = "biffGetStrlen";
   biffMsg *msg;
   unsigned int len;
 
@@ -315,8 +311,8 @@ biffGetStrlen(const char *key) {
     return 0;
   }
   len = biffMsgStrlen(msg);
-  len += 1;  /* GLK forgets if the convention is that the caller allocates
-                for one more to include '\0'; this is safer */
+  len += 1; /* GLK forgets if the convention is that the caller allocates
+               for one more to include '\0'; this is safer */
   return len;
 }
 
@@ -328,7 +324,7 @@ biffGetStrlen(const char *key) {
 */
 void
 biffSetStr(char *str, const char *key) {
-  static const char me[]="biffSetStr";
+  static const char me[] = "biffSetStr";
   biffMsg *msg;
 
   if (!str) {
@@ -368,7 +364,7 @@ biffCheck(const char *key) {
 */
 void
 biffDone(const char *key) {
-  static const char me[]="biffDone";
+  static const char me[] = "biffDone";
   unsigned int idx;
   biffMsg *msg;
 
@@ -384,7 +380,7 @@ biffDone(const char *key) {
   if (_bmsgNum > 1) {
     /* if we have more than one key in action, move the last biffMsg
        to the position that was just cleared up */
-    _bmsg[idx] = _bmsg[_bmsgNum-1];
+    _bmsg[idx] = _bmsg[_bmsgNum - 1];
   }
   airArrayLenIncr(_bmsgArr, -1);
   /* if that was the last key, close shop */
@@ -397,7 +393,7 @@ biffDone(const char *key) {
 
 void
 biffMove(const char *destKey, const char *err, const char *srcKey) {
-  static const char me[]="biffMove";
+  static const char me[] = "biffMove";
   biffMsg *dest, *src;
 
   _bmsgStart();
@@ -412,9 +408,8 @@ biffMove(const char *destKey, const char *err, const char *srcKey) {
 }
 
 static void
-_biffMoveVL(const char *destKey, const char *srcKey,
-            const char *errfmt, va_list args) {
-  static const char me[]="biffMovev";
+_biffMoveVL(const char *destKey, const char *srcKey, const char *errfmt, va_list args) {
+  static const char me[] = "biffMovev";
   biffMsg *dest, *src;
 
   _bmsgStart();
@@ -429,8 +424,7 @@ _biffMoveVL(const char *destKey, const char *srcKey,
 }
 
 void
-biffMovef(const char *destKey, const char *srcKey,
-          const char *errfmt, ...) {
+biffMovef(const char *destKey, const char *srcKey, const char *errfmt, ...) {
   va_list args;
 
   va_start(args, errfmt);
@@ -446,7 +440,7 @@ biffGetDone(const char *key) {
   _bmsgStart();
 
   ret = biffGet(key);
-  biffDone(key);  /* will call _bmsgFinish if this is the last key */
+  biffDone(key); /* will call _bmsgFinish if this is the last key */
 
   return ret;
 }
@@ -458,7 +452,7 @@ biffSetStrDone(char *str, const char *key) {
   _bmsgStart();
 
   biffSetStr(str, key);
-  biffDone(key);  /* will call _bmsgFinish if this is the last key */
+  biffDone(key); /* will call _bmsgFinish if this is the last key */
 
   return;
 }

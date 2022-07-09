@@ -21,13 +21,12 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "bane.h"
 #include "privateBane.h"
 
 int
-baneInputCheck (Nrrd *nin, baneHVolParm *hvp) {
-  static const char me[]="baneInputCheck";
+baneInputCheck(Nrrd *nin, baneHVolParm *hvp) {
+  static const char me[] = "baneInputCheck";
   int i;
 
   if (nrrdCheck(nin)) {
@@ -42,14 +41,13 @@ baneInputCheck (Nrrd *nin, baneHVolParm *hvp) {
     biffAddf(BANE, "%s: can't operate on block type", me);
     return 1;
   }
-  if (!( AIR_EXISTS(nin->axis[0].spacing) && nin->axis[0].spacing != 0 &&
-         AIR_EXISTS(nin->axis[1].spacing) && nin->axis[1].spacing != 0 &&
-         AIR_EXISTS(nin->axis[2].spacing) && nin->axis[2].spacing != 0 )) {
-    biffAddf(BANE, "%s: must have non-zero existent spacing for all 3 axes",
-             me);
+  if (!(AIR_EXISTS(nin->axis[0].spacing) && nin->axis[0].spacing != 0
+        && AIR_EXISTS(nin->axis[1].spacing) && nin->axis[1].spacing != 0
+        && AIR_EXISTS(nin->axis[2].spacing) && nin->axis[2].spacing != 0)) {
+    biffAddf(BANE, "%s: must have non-zero existent spacing for all 3 axes", me);
     return 1;
   }
-  for (i=0; i<=2; i++) {
+  for (i = 0; i <= 2; i++) {
     if (_baneAxisCheck(hvp->axis + i)) {
       biffAddf(BANE, "%s: trouble with axis %d", me, i);
       return 1;
@@ -65,22 +63,21 @@ baneInputCheck (Nrrd *nin, baneHVolParm *hvp) {
 }
 
 int
-baneHVolCheck (Nrrd *hvol) {
-  static const char me[]="baneHVolCheck";
+baneHVolCheck(Nrrd *hvol) {
+  static const char me[] = "baneHVolCheck";
 
   if (3 != hvol->dim) {
     biffAddf(BANE, "%s: need dimension to be 3 (not %d)", me, hvol->dim);
     return 1;
   }
   if (nrrdTypeUChar != hvol->type) {
-    biffAddf(BANE, "%s: need type to be %s (not %s)",
-             me, airEnumStr(nrrdType, nrrdTypeUChar),
-             airEnumStr(nrrdType, hvol->type));
+    biffAddf(BANE, "%s: need type to be %s (not %s)", me,
+             airEnumStr(nrrdType, nrrdTypeUChar), airEnumStr(nrrdType, hvol->type));
     return 1;
   }
-  if (!( AIR_EXISTS(hvol->axis[0].min) && AIR_EXISTS(hvol->axis[0].max) &&
-         AIR_EXISTS(hvol->axis[1].min) && AIR_EXISTS(hvol->axis[1].max) &&
-         AIR_EXISTS(hvol->axis[2].min) && AIR_EXISTS(hvol->axis[2].max) )) {
+  if (!(AIR_EXISTS(hvol->axis[0].min) && AIR_EXISTS(hvol->axis[0].max)
+        && AIR_EXISTS(hvol->axis[1].min) && AIR_EXISTS(hvol->axis[1].max)
+        && AIR_EXISTS(hvol->axis[2].min) && AIR_EXISTS(hvol->axis[2].max))) {
     biffAddf(BANE, "%s: axisMin and axisMax must be set for all axes", me);
     return 1;
   }
@@ -108,8 +105,8 @@ baneHVolCheck (Nrrd *hvol) {
 }
 
 int
-baneInfoCheck (Nrrd *info, int wantDim) {
-  static const char me[]="baneInfoCheck";
+baneInfoCheck(Nrrd *info, int wantDim) {
+  static const char me[] = "baneInfoCheck";
   int gotDim;
 
   if (!info) {
@@ -122,12 +119,11 @@ baneInfoCheck (Nrrd *info, int wantDim) {
       biffAddf(BANE, "%s: wantDim should be 1 or 2, not %d", me, wantDim);
       return 1;
     }
-    if (wantDim+1 != gotDim) {
-      biffAddf(BANE, "%s: dim is %d, not %d", me, gotDim, wantDim+1);
+    if (wantDim + 1 != gotDim) {
+      biffAddf(BANE, "%s: dim is %d, not %d", me, gotDim, wantDim + 1);
       return 1;
     }
-  }
-  else {
+  } else {
     if (!(2 == gotDim || 3 == gotDim)) {
       biffAddf(BANE, "%s: dim is %d, not 2 or 3", me, gotDim);
       return 1;
@@ -147,8 +143,8 @@ baneInfoCheck (Nrrd *info, int wantDim) {
 }
 
 int
-banePosCheck (Nrrd *pos, int wantDim) {
-  static const char me[]="banePosCheck";
+banePosCheck(Nrrd *pos, int wantDim) {
+  static const char me[] = "banePosCheck";
   int gotDim;
 
   if (!pos) {
@@ -165,8 +161,7 @@ banePosCheck (Nrrd *pos, int wantDim) {
       biffAddf(BANE, "%s: dim is %d, not %d", me, gotDim, wantDim);
       return 1;
     }
-  }
-  else {
+  } else {
     if (!(1 == gotDim || 2 == gotDim)) {
       biffAddf(BANE, "%s: dim is %d, not 1 or 2", me, gotDim);
       return 1;
@@ -183,8 +178,8 @@ banePosCheck (Nrrd *pos, int wantDim) {
 }
 
 int
-baneBcptsCheck (Nrrd *Bcpts) {
-  static const char me[]="baneBcptsCheck";
+baneBcptsCheck(Nrrd *Bcpts) {
+  static const char me[] = "baneBcptsCheck";
   int i, len;
   float *data;
 
@@ -204,13 +199,12 @@ baneBcptsCheck (Nrrd *Bcpts) {
   }
   len = AIR_INT(Bcpts->axis[1].size); /* HEY should be unsigned */
   data = (float *)Bcpts->data;
-  for (i=0; i<=len-2; i++) {
-    if (!(data[0 + 2*i] <= data[0 + 2*(i+1)])) {
-      biffAddf(BANE, "%s: value coord %d (%g) not <= coord %d (%g)", me,
-               i, data[0 + 2*i], i+1, data[0 + 2*(i+1)]);
+  for (i = 0; i <= len - 2; i++) {
+    if (!(data[0 + 2 * i] <= data[0 + 2 * (i + 1)])) {
+      biffAddf(BANE, "%s: value coord %d (%g) not <= coord %d (%g)", me, i,
+               data[0 + 2 * i], i + 1, data[0 + 2 * (i + 1)]);
       return 1;
     }
   }
   return 0;
 }
-

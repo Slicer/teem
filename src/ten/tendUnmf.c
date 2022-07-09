@@ -25,16 +25,14 @@
 #include "privateTen.h"
 
 #define INFO "Applies and removes the measurement frame"
-static const char *_tend_unmfInfoL =
-  (INFO
-   ". When the given tensor volume has a measurement frame associated "
-   "with it, this will apply the measurement frame transform to all "
-   "tensors to convert them into world space, and remove the measurement "
-   "frame from the nrrd.");
+static const char *_tend_unmfInfoL
+  = (INFO ". When the given tensor volume has a measurement frame associated "
+          "with it, this will apply the measurement frame transform to all "
+          "tensors to convert them into world space, and remove the measurement "
+          "frame from the nrrd.");
 
 int
-tend_unmfMain(int argc, const char **argv, const char *me,
-              hestParm *hparm) {
+tend_unmfMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -60,15 +58,17 @@ tend_unmfMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenMeasurementFrameReduce(nout, nin)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

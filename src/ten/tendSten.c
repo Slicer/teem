@@ -25,13 +25,11 @@
 #include "privateTen.h"
 
 #define INFO "Calculate structure tensors from a scalar field"
-static const char *_tend_stenInfoL =
-  (INFO
-   ".  Not a diffusion tensor, but it is symmetric and positive-definate.");
+static const char *_tend_stenInfoL
+  = (INFO ".  Not a diffusion tensor, but it is symmetric and positive-definate.");
 
 int
-tend_stenMain(int argc, const char **argv, const char *me,
-              hestParm *hparm) {
+tend_stenMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -51,11 +49,9 @@ tend_stenMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "df", "downsample factor", airTypeInt, 1, 1, &dsmp, "1",
              "the factor by which to downsample when creating volume of "
              "structure tensors");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input scalar volume",
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-", "input scalar volume",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output filename");
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-", "output filename");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -67,21 +63,20 @@ tend_stenMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (gageStructureTensor(nout, nin, dScale, iScale, dsmp)) {
-    airMopAdd(mop, err=biffGetDone(GAGE), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble calculating structure tensors:\n%s\n",
-            me, err);
-    airMopError(mop); return 1;
+    airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble calculating structure tensors:\n%s\n", me, err);
+    airMopError(mop);
+    return 1;
   }
 
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
   return 0;
 }
 TEND_CMD(sten, INFO);
-
-

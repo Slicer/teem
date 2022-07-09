@@ -25,13 +25,10 @@
 #include "privateTen.h"
 
 #define INFO "Make an RGB volume from an eigenvector and an anisotropy"
-static const char *_tend_evecrgbInfoL =
-  (INFO
-   ". ");
+static const char *_tend_evecrgbInfoL = (INFO ". ");
 
 int
-tend_evecrgbMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+tend_evecrgbMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -54,10 +51,10 @@ tend_evecrgbMain(int argc, const char **argv, const char *me,
              "Which anisotropy to use for modulating the saturation "
              "of the colors.  " TEN_ANISO_DESC,
              NULL, tenAniso);
-  hestOptAdd(&hopt, "t", "thresh", airTypeDouble, 1, 1, &(rgbp->confThresh),
-             "0.5", "confidence threshold");
-  hestOptAdd(&hopt, "bg", "background", airTypeDouble, 1, 1, &(rgbp->bgGray),
-             "0", "gray level to use for voxels who's confidence is zero ");
+  hestOptAdd(&hopt, "t", "thresh", airTypeDouble, 1, 1, &(rgbp->confThresh), "0.5",
+             "confidence threshold");
+  hestOptAdd(&hopt, "bg", "background", airTypeDouble, 1, 1, &(rgbp->bgGray), "0",
+             "gray level to use for voxels who's confidence is zero ");
   hestOptAdd(&hopt, "gr", "gray", airTypeDouble, 1, 1, &(rgbp->isoGray), "0",
              "the gray level to desaturate towards as anisotropy "
              "decreases (while confidence remains 1.0)");
@@ -76,14 +73,16 @@ tend_evecrgbMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenEvecRGB(nout, nin, rgbp)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble doing colormapping:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

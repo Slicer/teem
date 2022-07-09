@@ -26,8 +26,7 @@
 
 /* --------------------------------------------- */
 
-unsigned int
-_pullInfoLen[PULL_INFO_MAX+1] = {
+unsigned int _pullInfoLen[PULL_INFO_MAX + 1] = {
   0, /* pullInfoUnknown */
   7, /* pullInfoTensor */
   7, /* pullInfoTensorInverse */
@@ -111,7 +110,7 @@ pullInfoSpecNew(void) {
     ispec->info = pullInfoUnknown;
     ispec->source = pullSourceUnknown;
     ispec->volName = NULL;
-    ispec->item = 0;  /* should be the unknown item for any kind */
+    ispec->item = 0; /* should be the unknown item for any kind */
     ispec->prop = pullPropUnknown;
     ispec->scale = AIR_NAN;
     ispec->zero = AIR_NAN;
@@ -133,30 +132,28 @@ pullInfoSpecNix(pullInfoSpec *ispec) {
 
 int
 pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
-  static const char me[]="pullInfoSpecAdd";
+  static const char me[] = "pullInfoSpecAdd";
   unsigned int ii, vi, haveLen, needLen;
   const gageKind *kind;
 
-  if (!( pctx && ispec )) {
+  if (!(pctx && ispec)) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
   }
   if (airEnumValCheck(pullInfo, ispec->info)) {
-    biffAddf(PULL, "%s: %d not a valid %s value", me,
-             ispec->info, pullInfo->name);
+    biffAddf(PULL, "%s: %d not a valid %s value", me, ispec->info, pullInfo->name);
     return 1;
   }
   if (airEnumValCheck(pullSource, ispec->source)) {
-    biffAddf(PULL, "%s: %d not a valid %s value", me,
-             ispec->source, pullSource->name);
+    biffAddf(PULL, "%s: %d not a valid %s value", me, ispec->source, pullSource->name);
     return 1;
   }
   if (pctx->ispec[ispec->info]) {
-    biffAddf(PULL, "%s: already set info %s (%d)", me,
-             airEnumStr(pullInfo, ispec->info), ispec->info);
+    biffAddf(PULL, "%s: already set info %s (%d)", me, airEnumStr(pullInfo, ispec->info),
+             ispec->info);
     return 1;
   }
-  for (ii=0; ii<=PULL_INFO_MAX; ii++) {
+  for (ii = 0; ii <= PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii] == ispec) {
       biffAddf(PULL, "%s(%s): already got ispec %p as ispec[%u]", me,
                airEnumStr(pullInfo, ispec->info), AIR_VOIDP(ispec), ii);
@@ -164,8 +161,8 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
     }
   }
   if (pctx->verbose) {
-    printf("%s: ispec %s from vol %s\n", me,
-           airEnumStr(pullInfo, ispec->info), ispec->volName);
+    printf("%s: ispec %s from vol %s\n", me, airEnumStr(pullInfo, ispec->info),
+           ispec->volName);
   }
   needLen = pullInfoLen(ispec->info);
   if (pullSourceGage == ispec->source) {
@@ -183,14 +180,13 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
     }
     haveLen = kind->table[ispec->item].answerLength;
     if (needLen != haveLen) {
-      biffAddf(PULL, "%s(%s): need len %u, but \"%s\" item \"%s\" has len %u",
-               me, airEnumStr(pullInfo, ispec->info), needLen,
-               kind->name, airEnumStr(kind->enm, ispec->item), haveLen);
+      biffAddf(PULL, "%s(%s): need len %u, but \"%s\" item \"%s\" has len %u", me,
+               airEnumStr(pullInfo, ispec->info), needLen, kind->name,
+               airEnumStr(kind->enm, ispec->item), haveLen);
       return 1;
     }
     /* very tricky: seedOnly is initialized to true for everything */
-    if (pullInfoSeedThresh != ispec->info
-        && pullInfoSeedPreThresh != ispec->info) {
+    if (pullInfoSeedThresh != ispec->info && pullInfoSeedPreThresh != ispec->info) {
       /* if the info is neither seedthresh nor seedprethresh, then the
          volume will have to be probed after the first iter, so turn
          *off* seedOnly */
@@ -206,19 +202,16 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
       }
     }
     /* now set item in gage query */
-    if (gageQueryItemOn(pctx->vol[vi]->gctx, pctx->vol[vi]->gpvl,
-                        ispec->item)) {
-      biffMovef(PULL, GAGE, "%s: trouble adding item %u to vol %u", me,
-                ispec->item, vi);
+    if (gageQueryItemOn(pctx->vol[vi]->gctx, pctx->vol[vi]->gpvl, ispec->item)) {
+      biffMovef(PULL, GAGE, "%s: trouble adding item %u to vol %u", me, ispec->item, vi);
       return 1;
     }
     ispec->volIdx = vi;
   } else if (pullSourceProp == ispec->source) {
     haveLen = pullPropLen(ispec->prop);
     if (needLen != haveLen) {
-      biffAddf(PULL, "%s: need len %u, but \"%s\" \"%s\" has len %u",
-               me, needLen, pullProp->name,
-               airEnumStr(pullProp, ispec->prop), haveLen);
+      biffAddf(PULL, "%s: need len %u, but \"%s\" \"%s\" has len %u", me, needLen,
+               pullProp->name, airEnumStr(pullProp, ispec->prop), haveLen);
       return 1;
     }
 
@@ -228,8 +221,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
     return 1;
   }
   if (haveLen > 9) {
-    biffAddf(PULL, "%s: sorry, answer length (%u) > 9 unsupported", me,
-             haveLen);
+    biffAddf(PULL, "%s: sorry, answer length (%u) > 9 unsupported", me, haveLen);
     return 1;
   }
 
@@ -248,18 +240,18 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
 */
 int
 _pullInfoSetup(pullContext *pctx) {
-  static const char me[]="_pullInfoSetup";
+  static const char me[] = "_pullInfoSetup";
   unsigned int ii;
 
   pctx->infoTotalLen = 0;
   pctx->constraint = 0;
   pctx->constraintDim = 0;
-  for (ii=0; ii<=PULL_INFO_MAX; ii++) {
+  for (ii = 0; ii <= PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii]) {
       pctx->infoIdx[ii] = pctx->infoTotalLen;
       if (pctx->verbose) {
-        printf("!%s: infoIdx[%u] (%s) = %u\n", me,
-               ii, airEnumStr(pullInfo, ii), pctx->infoIdx[ii]);
+        printf("!%s: infoIdx[%u] (%s) = %u\n", me, ii, airEnumStr(pullInfo, ii),
+               pctx->infoIdx[ii]);
       }
       pctx->infoTotalLen += pullInfoLen(ii);
       if (!pullInfoLen(ii)) {
@@ -319,9 +311,8 @@ _pullInfoSetup(pullContext *pctx) {
     pctx->targetDim = 0;
   }
   if (pctx->verbose) {
-    printf("!%s: infoTotalLen=%u, constr=%d, constr,targetDim = %d,%d\n",
-           me, pctx->infoTotalLen, pctx->constraint,
-           pctx->constraintDim, pctx->targetDim);
+    printf("!%s: infoTotalLen=%u, constr=%d, constr,targetDim = %d,%d\n", me,
+           pctx->infoTotalLen, pctx->constraint, pctx->constraintDim, pctx->targetDim);
   }
   return 0;
 }
@@ -333,66 +324,87 @@ _infoCopy1(double *dst, const double *src) {
 
 static void
 _infoCopy2(double *dst, const double *src) {
-  dst[0] = src[0]; dst[1] = src[1];
+  dst[0] = src[0];
+  dst[1] = src[1];
 }
 
 static void
 _infoCopy3(double *dst, const double *src) {
-  dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2];
+  dst[0] = src[0];
+  dst[1] = src[1];
+  dst[2] = src[2];
 }
 
 static void
 _infoCopy4(double *dst, const double *src) {
-  dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; dst[3] = src[3];
+  dst[0] = src[0];
+  dst[1] = src[1];
+  dst[2] = src[2];
+  dst[3] = src[3];
 }
 
 static void
 _infoCopy5(double *dst, const double *src) {
-  dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; dst[3] = src[3];
+  dst[0] = src[0];
+  dst[1] = src[1];
+  dst[2] = src[2];
+  dst[3] = src[3];
   dst[4] = src[4];
 }
 
 static void
 _infoCopy6(double *dst, const double *src) {
-  dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; dst[3] = src[3];
-  dst[4] = src[4]; dst[5] = src[5];
+  dst[0] = src[0];
+  dst[1] = src[1];
+  dst[2] = src[2];
+  dst[3] = src[3];
+  dst[4] = src[4];
+  dst[5] = src[5];
 }
 
 static void
 _infoCopy7(double *dst, const double *src) {
-  dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; dst[3] = src[3];
-  dst[4] = src[4]; dst[5] = src[5]; dst[6] = src[6];
+  dst[0] = src[0];
+  dst[1] = src[1];
+  dst[2] = src[2];
+  dst[3] = src[3];
+  dst[4] = src[4];
+  dst[5] = src[5];
+  dst[6] = src[6];
 }
 
 static void
 _infoCopy8(double *dst, const double *src) {
-  dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; dst[3] = src[3];
-  dst[4] = src[4]; dst[5] = src[5]; dst[6] = src[6]; dst[7] = src[7];
+  dst[0] = src[0];
+  dst[1] = src[1];
+  dst[2] = src[2];
+  dst[3] = src[3];
+  dst[4] = src[4];
+  dst[5] = src[5];
+  dst[6] = src[6];
+  dst[7] = src[7];
 }
 
 static void
 _infoCopy9(double *dst, const double *src) {
-  dst[0] = src[0]; dst[1] = src[1]; dst[2] = src[2]; dst[3] = src[3];
-  dst[4] = src[4]; dst[5] = src[5]; dst[6] = src[6]; dst[7] = src[7];
+  dst[0] = src[0];
+  dst[1] = src[1];
+  dst[2] = src[2];
+  dst[3] = src[3];
+  dst[4] = src[4];
+  dst[5] = src[5];
+  dst[6] = src[6];
+  dst[7] = src[7];
   dst[8] = src[8];
 }
 
-void (*_pullInfoCopy[10])(double *, const double *) = {
-  NULL,
-  _infoCopy1,
-  _infoCopy2,
-  _infoCopy3,
-  _infoCopy4,
-  _infoCopy5,
-  _infoCopy6,
-  _infoCopy7,
-  _infoCopy8,
-  _infoCopy9
-};
+void (*_pullInfoCopy[10])(double *, const double *)
+  = {NULL,       _infoCopy1, _infoCopy2, _infoCopy3, _infoCopy4,
+     _infoCopy5, _infoCopy6, _infoCopy7, _infoCopy8, _infoCopy9};
 
 int
 pullInfoGet(Nrrd *ninfo, int info, pullContext *pctx) {
-  static const char me[]="pullInfoGet";
+  static const char me[] = "pullInfoGet";
   size_t size[2];
   unsigned int dim, pointNum, pointIdx, binIdx, outIdx, alen, aidx;
   double *out_d;
@@ -421,9 +433,9 @@ pullInfoGet(Nrrd *ninfo, int info, pullContext *pctx) {
   out_d = AIR_CAST(double *, ninfo->data);
 
   outIdx = 0;
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+  for (binIdx = 0; binIdx < pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
-    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+    for (pointIdx = 0; pointIdx < bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       _pullInfoCopy[alen](out_d + outIdx, point->info + aidx);
       outIdx += alen;
@@ -436,13 +448,13 @@ pullInfoGet(Nrrd *ninfo, int info, pullContext *pctx) {
 /* HEY this was written in a hurry;
 ** needs to be checked against parsing code */
 int
-pullInfoSpecSprint(char str[AIR_STRLEN_LARGE],
-                   const pullContext *pctx, const pullInfoSpec *ispec) {
-  static const char me[]="pullInfoSpecSprint";
+pullInfoSpecSprint(char str[AIR_STRLEN_LARGE], const pullContext *pctx,
+                   const pullInfoSpec *ispec) {
+  static const char me[] = "pullInfoSpecSprint";
   const pullVolume *pvol;
   char stmp[AIR_STRLEN_LARGE];
 
-  if (!( str && pctx && ispec )) {
+  if (!(str && pctx && ispec)) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
   }
@@ -455,8 +467,7 @@ pullInfoSpecSprint(char str[AIR_STRLEN_LARGE],
   strcat(str, ":");
   if (pullSourceGage == ispec->source) {
     if (UINT_MAX == ispec->volIdx) {
-      biffAddf(PULL, "%s: never learned volIdx for \"%s\"", me,
-               ispec->volName);
+      biffAddf(PULL, "%s: never learned volIdx for \"%s\"", me, ispec->volName);
       return 1;
     }
     strcat(str, ispec->volName);
@@ -469,11 +480,8 @@ pullInfoSpecSprint(char str[AIR_STRLEN_LARGE],
     biffAddf(PULL, "%s: unexplained source %d", me, ispec->source);
     return 1;
   }
-  if ( (pullSourceGage == ispec->source
-        && 1 == pullInfoLen(ispec->info))
-       ||
-       (pullSourceProp == ispec->source
-        && 1 == pullPropLen(ispec->prop)) ) {
+  if ((pullSourceGage == ispec->source && 1 == pullInfoLen(ispec->info))
+      || (pullSourceProp == ispec->source && 1 == pullPropLen(ispec->prop))) {
     sprintf(stmp, "%g", ispec->zero);
     strcat(str, stmp);
     strcat(str, ":");
@@ -482,4 +490,3 @@ pullInfoSpecSprint(char str[AIR_STRLEN_LARGE],
   }
   return 0;
 }
-

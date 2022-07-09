@@ -21,17 +21,18 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "ten.h"
 #include "privateTen.h"
 
 typedef struct {
-  double weight[3], amount, target;            /* tenSizeNormalize */
+  double weight[3], amount, target; /* tenSizeNormalize */
   /* amount: tenSizeScale */
-  double scale; int fixDet; int makePositive;  /* tenAnisoScale */
-  double min, max;                             /* tenEigenvalueClamp */
-  double expo;                                 /* tenEigenvaluePower */
-  double val;                                  /* tenEigenvalueAdd */
+  double scale;
+  int fixDet;
+  int makePositive; /* tenAnisoScale */
+  double min, max;  /* tenEigenvalueClamp */
+  double expo;      /* tenEigenvaluePower */
+  double val;       /* tenEigenvalueAdd */
 } funcParm;
 
 enum {
@@ -50,14 +51,14 @@ enum {
 
 static int
 theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
-  static const char me[]="theFunc";
+  static const char me[] = "theFunc";
   float *tin, *tout, eval[3], evec[9], weight[3], size, mean;
   size_t NN, II;
   unsigned int ri;
 
   if (!AIR_IN_OP(funcUnknown, func, funcLast)) {
-    biffAddf(TEN, "%s: given func %d out of range [%d,%d]", me, func,
-             funcUnknown+1, funcLast-1);
+    biffAddf(TEN, "%s: given func %d out of range [%d,%d]", me, func, funcUnknown + 1,
+             funcLast - 1);
     return 1;
   }
   if (!(nout && nin && parm)) {
@@ -75,10 +76,10 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
     }
   }
 
-  tin = (float*)(nin->data);
-  tout = (float*)(nout->data);
-  NN = nrrdElementNumber(nin)/7;
-  switch(func) {
+  tin = (float *)(nin->data);
+  tout = (float *)(nout->data);
+  NN = nrrdElementNumber(nin) / 7;
+  switch (func) {
   case funcSizeNormalize:
     ELL_3V_COPY_TT(weight, float, parm->weight);
     size = weight[0] + weight[1] + weight[2];
@@ -89,39 +90,33 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
     weight[0] /= size;
     weight[1] /= size;
     weight[2] /= size;
-    for (II=0; II<=NN-1; II++) {
+    for (II = 0; II <= NN - 1; II++) {
       tenEigensolve_f(eval, evec, tin);
-      size = (weight[0]*AIR_ABS(eval[0])
-              + weight[1]*AIR_ABS(eval[1])
-              + weight[2]*AIR_ABS(eval[2]));
+      size = (weight[0] * AIR_ABS(eval[0]) + weight[1] * AIR_ABS(eval[1])
+              + weight[2] * AIR_ABS(eval[2]));
       ELL_3V_SET_TT(eval, float,
-                    AIR_AFFINE(0, parm->amount, 1,
-                               eval[0], parm->target*eval[0]/size),
-                    AIR_AFFINE(0, parm->amount, 1,
-                               eval[1], parm->target*eval[1]/size),
-                    AIR_AFFINE(0, parm->amount, 1,
-                               eval[2], parm->target*eval[2]/size));
+                    AIR_AFFINE(0, parm->amount, 1, eval[0],
+                               parm->target * eval[0] / size),
+                    AIR_AFFINE(0, parm->amount, 1, eval[1],
+                               parm->target * eval[1] / size),
+                    AIR_AFFINE(0, parm->amount, 1, eval[2],
+                               parm->target * eval[2] / size));
       tenMakeSingle_f(tout, tin[0], eval, evec);
       tin += 7;
       tout += 7;
     }
     break;
   case funcSizeScale:
-    for (II=0; II<=NN-1; II++) {
-      TEN_T_SET_TT(tout, float,
-                   tin[0],
-                   parm->amount*tin[1],
-                   parm->amount*tin[2],
-                   parm->amount*tin[3],
-                   parm->amount*tin[4],
-                   parm->amount*tin[5],
-                   parm->amount*tin[6]);
+    for (II = 0; II <= NN - 1; II++) {
+      TEN_T_SET_TT(tout, float, tin[0], parm->amount *tin[1], parm->amount *tin[2],
+                   parm->amount *tin[3], parm->amount *tin[4], parm->amount *tin[5],
+                   parm->amount *tin[6]);
       tin += 7;
       tout += 7;
     }
     break;
   case funcAnisoScale:
-    for (II=0; II<=NN-1; II++) {
+    for (II = 0; II <= NN - 1; II++) {
       tenEigensolve_f(eval, evec, tin);
       if (parm->fixDet) {
         eval[0] = AIR_MAX(eval[0], 0.00001f);
@@ -129,9 +124,8 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
         eval[2] = AIR_MAX(eval[2], 0.00001f);
         ELL_3V_SET_TT(eval, float, log(eval[0]), log(eval[1]), log(eval[2]));
       }
-      mean = (eval[0] + eval[1] + eval[2])/3.0f;
-      ELL_3V_SET_TT(eval, float,
-                    AIR_LERP(parm->scale, mean, eval[0]),
+      mean = (eval[0] + eval[1] + eval[2]) / 3.0f;
+      ELL_3V_SET_TT(eval, float, AIR_LERP(parm->scale, mean, eval[0]),
                     AIR_LERP(parm->scale, mean, eval[1]),
                     AIR_LERP(parm->scale, mean, eval[2]));
       if (parm->fixDet) {
@@ -148,19 +142,15 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
     }
     break;
   case funcEigenvalueClamp:
-    for (II=0; II<=NN-1; II++) {
+    for (II = 0; II <= NN - 1; II++) {
       tenEigensolve_f(eval, evec, tin);
       if (AIR_EXISTS(parm->min)) {
-        ELL_3V_SET_TT(eval, float,
-                      AIR_MAX(eval[0], parm->min),
-                      AIR_MAX(eval[1], parm->min),
-                      AIR_MAX(eval[2], parm->min));
+        ELL_3V_SET_TT(eval, float, AIR_MAX(eval[0], parm->min),
+                      AIR_MAX(eval[1], parm->min), AIR_MAX(eval[2], parm->min));
       }
       if (AIR_EXISTS(parm->max)) {
-        ELL_3V_SET_TT(eval, float,
-                      AIR_MIN(eval[0], parm->max),
-                      AIR_MIN(eval[1], parm->max),
-                      AIR_MIN(eval[2], parm->max));
+        ELL_3V_SET_TT(eval, float, AIR_MIN(eval[0], parm->max),
+                      AIR_MIN(eval[1], parm->max), AIR_MIN(eval[2], parm->max));
       }
       tenMakeSingle_f(tout, tin[0], eval, evec);
       tin += 7;
@@ -168,11 +158,9 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
     }
     break;
   case funcEigenvaluePower:
-    for (II=0; II<=NN-1; II++) {
+    for (II = 0; II <= NN - 1; II++) {
       tenEigensolve_f(eval, evec, tin);
-      ELL_3V_SET_TT(eval, float,
-                    pow(eval[0], parm->expo),
-                    pow(eval[1], parm->expo),
+      ELL_3V_SET_TT(eval, float, pow(eval[0], parm->expo), pow(eval[1], parm->expo),
                     pow(eval[2], parm->expo));
       tenMakeSingle_f(tout, tin[0], eval, evec);
       tin += 7;
@@ -180,12 +168,10 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
     }
     break;
   case funcEigenvalueAdd:
-    for (II=0; II<=NN-1; II++) {
+    for (II = 0; II <= NN - 1; II++) {
       /* HEY: this doesn't require eigensolve */
       tenEigensolve_f(eval, evec, tin);
-      ELL_3V_SET_TT(eval, float,
-                    eval[0] + parm->val,
-                    eval[1] + parm->val,
+      ELL_3V_SET_TT(eval, float, eval[0] + parm->val, eval[1] + parm->val,
                     eval[2] + parm->val);
       tenMakeSingle_f(tout, tin[0], eval, evec);
       tin += 7;
@@ -193,22 +179,20 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
     }
     break;
   case funcEigenvalueMultiply:
-    for (II=0; II<=NN-1; II++) {
+    for (II = 0; II <= NN - 1; II++) {
       /* HEY: this doesn't require eigensolve */
       tenEigensolve_f(eval, evec, tin);
-      ELL_3V_SET_TT(eval, float,
-                    eval[0]*parm->val,
-                    eval[1]*parm->val,
-                    eval[2]*parm->val);
+      ELL_3V_SET_TT(eval, float, eval[0] * parm->val, eval[1] * parm->val,
+                    eval[2] * parm->val);
       tenMakeSingle_f(tout, tin[0], eval, evec);
       tin += 7;
       tout += 7;
     }
     break;
   case funcLog:
-    for (II=0; II<=NN-1; II++) {
+    for (II = 0; II <= NN - 1; II++) {
       tenEigensolve_f(eval, evec, tin);
-      for (ri=0; ri<3; ri++) {
+      for (ri = 0; ri < 3; ri++) {
         eval[ri] = AIR_FLOAT(log(eval[ri]));
         eval[ri] = AIR_EXISTS(eval[ri]) ? eval[ri] : -1000000;
       }
@@ -218,9 +202,9 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
     }
     break;
   case funcExp:
-    for (II=0; II<=NN-1; II++) {
+    for (II = 0; II <= NN - 1; II++) {
       tenEigensolve_f(eval, evec, tin);
-      for (ri=0; ri<3; ri++) {
+      for (ri = 0; ri < 3; ri++) {
         eval[ri] = AIR_FLOAT(exp(eval[ri]));
         eval[ri] = AIR_EXISTS(eval[ri]) ? eval[ri] : 0;
       }
@@ -236,9 +220,9 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
 }
 
 int
-tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double _weight[3],
-                 double amount, double target) {
-  static const char me[]="tenSizeNormalize";
+tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double _weight[3], double amount,
+                 double target) {
+  static const char me[] = "tenSizeNormalize";
   funcParm parm;
 
   ELL_3V_COPY(parm.weight, _weight);
@@ -253,7 +237,7 @@ tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double _weight[3],
 
 int
 tenSizeScale(Nrrd *nout, const Nrrd *nin, double amount) {
-  static const char me[]="tenSizeScale";
+  static const char me[] = "tenSizeScale";
   funcParm parm;
 
   parm.amount = amount;
@@ -264,16 +248,14 @@ tenSizeScale(Nrrd *nout, const Nrrd *nin, double amount) {
   return 0;
 }
 
-
 /*
 ******** tenAnisoScale
 **
 ** scales the "deviatoric" part of a tensor up or down
 */
 int
-tenAnisoScale(Nrrd *nout, const Nrrd *nin, double scale,
-              int fixDet, int makePositive) {
-  static const char me[]="tenAnisoScale";
+tenAnisoScale(Nrrd *nout, const Nrrd *nin, double scale, int fixDet, int makePositive) {
+  static const char me[] = "tenAnisoScale";
   funcParm parm;
 
   parm.scale = scale;
@@ -293,7 +275,7 @@ tenAnisoScale(Nrrd *nout, const Nrrd *nin, double scale,
 */
 int
 tenEigenvalueClamp(Nrrd *nout, const Nrrd *nin, double min, double max) {
-  static const char me[]="tenEigenvalueClamp";
+  static const char me[] = "tenEigenvalueClamp";
   funcParm parm;
 
   parm.min = min;
@@ -312,7 +294,7 @@ tenEigenvalueClamp(Nrrd *nout, const Nrrd *nin, double min, double max) {
 */
 int
 tenEigenvaluePower(Nrrd *nout, const Nrrd *nin, double expo) {
-  static const char me[]="tenEigenvaluePower";
+  static const char me[] = "tenEigenvaluePower";
   funcParm parm;
 
   parm.expo = expo;
@@ -330,7 +312,7 @@ tenEigenvaluePower(Nrrd *nout, const Nrrd *nin, double expo) {
 */
 int
 tenEigenvalueAdd(Nrrd *nout, const Nrrd *nin, double val) {
-  static const char me[]="tenEigenvalueAdd";
+  static const char me[] = "tenEigenvalueAdd";
   funcParm parm;
 
   parm.val = val;
@@ -348,7 +330,7 @@ tenEigenvalueAdd(Nrrd *nout, const Nrrd *nin, double val) {
 */
 int
 tenEigenvalueMultiply(Nrrd *nout, const Nrrd *nin, double val) {
-  static const char me[]="tenEigenvalueMultiply";
+  static const char me[] = "tenEigenvalueMultiply";
   funcParm parm;
 
   parm.val = val;
@@ -366,7 +348,7 @@ tenEigenvalueMultiply(Nrrd *nout, const Nrrd *nin, double val) {
 */
 int
 tenLog(Nrrd *nout, const Nrrd *nin) {
-  static const char me[]="tenLog";
+  static const char me[] = "tenLog";
   funcParm parm;
 
   if (theFunc(nout, nin, funcLog, &parm)) {
@@ -383,7 +365,7 @@ tenLog(Nrrd *nout, const Nrrd *nin) {
 */
 int
 tenExp(Nrrd *nout, const Nrrd *nin) {
-  static const char me[]="tenExp";
+  static const char me[] = "tenExp";
   funcParm parm;
 
   if (theFunc(nout, nin, funcExp, &parm)) {

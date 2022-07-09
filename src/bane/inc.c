@@ -45,7 +45,7 @@ void
 _baneIncProcess_Stdv(baneInc *inc, double val) {
 
   inc->S += val;
-  inc->SS += val*val;
+  inc->SS += val * val;
   inc->num += 1;
   return;
 }
@@ -63,7 +63,7 @@ _baneIncProcess_HistFill(baneInc *inc, double val) {
           inc->nhist->axis[0].size, idx);
   */
   if (idx < inc->nhist->axis[0].size) {
-    hist = (int*)inc->nhist->data;
+    hist = (int *)inc->nhist->data;
     hist[idx]++;
   }
   return;
@@ -76,8 +76,7 @@ _baneIncProcess_HistFill(baneInc *inc, double val) {
 ** incParm[1]: new max
 */
 int
-_baneIncAnswer_Absolute(double *minP, double *maxP,
-                        Nrrd *hist, double *incParm,
+_baneIncAnswer_Absolute(double *minP, double *maxP, Nrrd *hist, double *incParm,
                         baneRange *range) {
   AIR_UNUSED(hist);
   AIR_UNUSED(range);
@@ -93,10 +92,9 @@ _baneIncAnswer_Absolute(double *minP, double *maxP,
 ** sent through the associated range function.
 */
 int
-_baneIncAnswer_RangeRatio(double *minP, double *maxP,
-                          Nrrd *hist, double *incParm,
+_baneIncAnswer_RangeRatio(double *minP, double *maxP, Nrrd *hist, double *incParm,
                           baneRange *range) {
-  static const char me[]="_baneIncAnwer_RangeRatio";
+  static const char me[] = "_baneIncAnwer_RangeRatio";
   double mid;
 
   if (range->answer(minP, maxP, hist->axis[0].min, hist->axis[0].max)) {
@@ -105,7 +103,7 @@ _baneIncAnswer_RangeRatio(double *minP, double *maxP,
   }
 
   if (baneRangeAnywhere == range->type) {
-    mid = AIR_EXISTS(range->center) ? range->center : (*minP + *maxP)/2;
+    mid = AIR_EXISTS(range->center) ? range->center : (*minP + *maxP) / 2;
     *minP = AIR_AFFINE(-1, -incParm[0], 0, *minP, mid);
     *maxP = AIR_AFFINE(0, incParm[0], 1, mid, *maxP);
   } else {
@@ -124,10 +122,9 @@ _baneIncAnswer_RangeRatio(double *minP, double *maxP,
 ** range type
 */
 int
-_baneIncAnswer_Percentile(double *minP, double *maxP,
-                          Nrrd *nhist, double *incParm,
+_baneIncAnswer_Percentile(double *minP, double *maxP, Nrrd *nhist, double *incParm,
                           baneRange *range) {
-  static const char me[]="_baneIncAnswer_Percentile";
+  static const char me[] = "_baneIncAnswer_Percentile";
   int *hist, i, histSize, sum;
   float minIncr, maxIncr, out, outsofar, mid, minIdx, maxIdx;
   double min, max;
@@ -136,7 +133,7 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
   sum = 0;
   hist = (int *)nhist->data;
   histSize = AIR_INT(nhist->axis[0].size); /* HEY should be unsigned */
-  for (i=0; i<histSize; i++) {
+  for (i = 0; i < histSize; i++) {
     sum += hist[i];
   }
   if (!sum) {
@@ -147,19 +144,16 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
   sprintf(err, "%03d-histo.nrrd", baneHack); nrrdSave(err, nhist, NULL);
   baneHack++;
   */
-  out = AIR_FLOAT(sum*incParm[1]/100.0);
-  fprintf(stderr, "##%s: hist's size=%d, sum=%d --> out = %g\n", me,
-          histSize, sum, out);
+  out = AIR_FLOAT(sum * incParm[1] / 100.0);
+  fprintf(stderr, "##%s: hist's size=%d, sum=%d --> out = %g\n", me, histSize, sum, out);
   if (range->answer(&min, &max, nhist->axis[0].min, nhist->axis[0].max)) {
-    biffAddf(BANE, "%s:", me); return 1;
+    biffAddf(BANE, "%s:", me);
+    return 1;
   }
-  fprintf(stderr, "##%s: hist's min,max (%g,%g) ---%s---> %g, %g\n",
-          me, nhist->axis[0].min, nhist->axis[0].max,
-          range->name, min, max);
+  fprintf(stderr, "##%s: hist's min,max (%g,%g) ---%s---> %g, %g\n", me,
+          nhist->axis[0].min, nhist->axis[0].max, range->name, min, max);
   if (baneRangeAnywhere == range->type) {
-    mid = AIR_FLOAT((AIR_EXISTS(range->center)
-                     ? range->center
-                     : (min + max)/2));
+    mid = AIR_FLOAT((AIR_EXISTS(range->center) ? range->center : (min + max) / 2));
   } else {
     mid = 0;
     /* yes, this is okay.  The "mid" is the value we march towards
@@ -168,46 +162,46 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
        there is no marching up from below
        HOWEVER: the mode of histogram would probably be better. */
   }
-  fprintf(stderr, "##%s: hist (%g,%g) --> min,max = (%g,%g) --> mid = %g\n",
-          me, nhist->axis[0].min, nhist->axis[0].max, min, max, mid);
-  if (max-mid > mid-min) {
+  fprintf(stderr, "##%s: hist (%g,%g) --> min,max = (%g,%g) --> mid = %g\n", me,
+          nhist->axis[0].min, nhist->axis[0].max, min, max, mid);
+  if (max - mid > mid - min) {
     /* the max is further from the mid than the min */
     maxIncr = 1;
-    minIncr = AIR_FLOAT((mid-min)/(max-mid));
+    minIncr = AIR_FLOAT((mid - min) / (max - mid));
   } else {
     /* the min is further */
     minIncr = 1;
-    maxIncr = AIR_FLOAT((max-mid)/(mid-min));
+    maxIncr = AIR_FLOAT((max - mid) / (mid - min));
   }
-  if (!( AIR_EXISTS(minIncr) && AIR_EXISTS(maxIncr) )) {
+  if (!(AIR_EXISTS(minIncr) && AIR_EXISTS(maxIncr))) {
     biffAddf(BANE, "%s: minIncr, maxIncr don't both exist", me);
     return 1;
   }
   fprintf(stderr, "##%s: --> {min,max}Incr = %g,%g\n", me, minIncr, maxIncr);
-  minIdx = AIR_FLOAT(AIR_AFFINE(nhist->axis[0].min, min, nhist->axis[0].max,
-                                0, histSize-1));
-  maxIdx = AIR_FLOAT(AIR_AFFINE(nhist->axis[0].min, max, nhist->axis[0].max,
-                                0, histSize-1));
+  minIdx = AIR_FLOAT(AIR_AFFINE(nhist->axis[0].min, min, nhist->axis[0].max, 0,
+                                histSize - 1));
+  maxIdx = AIR_FLOAT(AIR_AFFINE(nhist->axis[0].min, max, nhist->axis[0].max, 0,
+                                histSize - 1));
   outsofar = 0;
   while (outsofar < out) {
-    if (AIR_IN_CL(0, minIdx, histSize-1)) {
-      outsofar += minIncr*hist[AIR_ROUNDUP(minIdx)];
+    if (AIR_IN_CL(0, minIdx, histSize - 1)) {
+      outsofar += minIncr * hist[AIR_ROUNDUP(minIdx)];
     }
-    if (AIR_IN_CL(0, maxIdx, histSize-1)) {
-      outsofar += maxIncr*hist[AIR_ROUNDUP(maxIdx)];
+    if (AIR_IN_CL(0, maxIdx, histSize - 1)) {
+      outsofar += maxIncr * hist[AIR_ROUNDUP(maxIdx)];
     }
     minIdx += minIncr;
     maxIdx -= maxIncr;
     if (minIdx > maxIdx) {
-      biffAddf(BANE, "%s: minIdx (%g) passed maxIdx (%g) during "
-               "histogram traversal", me, minIdx, maxIdx);
+      biffAddf(BANE,
+               "%s: minIdx (%g) passed maxIdx (%g) during "
+               "histogram traversal",
+               me, minIdx, maxIdx);
       return 1;
     }
   }
-  *minP = AIR_AFFINE(0, minIdx, histSize-1,
-                     nhist->axis[0].min, nhist->axis[0].max);
-  *maxP = AIR_AFFINE(0, maxIdx, histSize-1,
-                     nhist->axis[0].min, nhist->axis[0].max);
+  *minP = AIR_AFFINE(0, minIdx, histSize - 1, nhist->axis[0].min, nhist->axis[0].max);
+  *maxP = AIR_AFFINE(0, maxIdx, histSize - 1, nhist->axis[0].min, nhist->axis[0].max);
   fprintf(stderr, "##%s: --> output min, max = %g, %g\n", me, *minP, *maxP);
   return 0;
 }
@@ -218,19 +212,18 @@ _baneIncAnswer_Percentile(double *minP, double *maxP,
 ** incParm[0]: range is standard deviation times this
 */
 int
-_baneIncAnswer_Stdv(double *minP, double *maxP,
-                    Nrrd *hist, double *incParm,
+_baneIncAnswer_Stdv(double *minP, double *maxP, Nrrd *hist, double *incParm,
                     baneRange *range) {
   float SS, stdv, mid, mean, width;
   int count;
 
   count = AIR_INT(hist->axis[1].size); /* HEY should be unsigned */
-  mean = AIR_FLOAT(hist->axis[1].min/count);
-  SS = AIR_FLOAT(hist->axis[1].max/count);
-  stdv = AIR_FLOAT(sqrt(SS - mean*mean));
-  width = AIR_FLOAT(incParm[0]*stdv);
-  fprintf(stderr, "##%s: mean=%g, stdv=%g --> width=%g\n",
-          "_baneIncAnswer_Stdv", mean, stdv, width);
+  mean = AIR_FLOAT(hist->axis[1].min / count);
+  SS = AIR_FLOAT(hist->axis[1].max / count);
+  stdv = AIR_FLOAT(sqrt(SS - mean * mean));
+  width = AIR_FLOAT(incParm[0] * stdv);
+  fprintf(stderr, "##%s: mean=%g, stdv=%g --> width=%g\n", "_baneIncAnswer_Stdv", mean,
+          stdv, width);
   switch (range->type) {
   case baneRangePositive:
     *minP = 0;
@@ -241,13 +234,13 @@ _baneIncAnswer_Stdv(double *minP, double *maxP,
     *maxP = 0;
     break;
   case baneRangeZeroCentered:
-    *minP = -width/2;
-    *maxP = width/2;
+    *minP = -width / 2;
+    *maxP = width / 2;
     break;
   case baneRangeAnywhere:
     mid = AIR_FLOAT(AIR_EXISTS(range->center) ? range->center : mean);
-    *minP = mid - width/2;
-    *maxP = mid + width/2;
+    *minP = mid - width / 2;
+    *maxP = mid + width / 2;
     break;
   default:
     *minP = *maxP = AIR_NAN;
@@ -258,7 +251,7 @@ _baneIncAnswer_Stdv(double *minP, double *maxP,
 
 baneInc *
 baneIncNew(int type, baneRange *range, double *parm) {
-  static const char me[]="baneIncNew";
+  static const char me[] = "baneIncNew";
   baneInc *inc;
 
   if (!(AIR_IN_OP(baneIncUnknown, type, baneIncLast))) {
@@ -269,7 +262,7 @@ baneIncNew(int type, baneRange *range, double *parm) {
     biffAddf(BANE, "%s: got NULL baneRange or parm", me);
     return NULL;
   }
-  inc = (baneInc*)calloc(1, sizeof(baneInc));
+  inc = (baneInc *)calloc(1, sizeof(baneInc));
   if (!inc) {
     biffAddf(BANE, "%s: couldn't allocated baneInc!", me);
     return NULL;
@@ -279,7 +272,8 @@ baneIncNew(int type, baneRange *range, double *parm) {
   inc->range = baneRangeCopy(range);
   if (!inc->range) {
     biffAddf(BANE, "%s: couldn't copy baneRange!", me);
-    baneIncNix(inc); return NULL;
+    baneIncNix(inc);
+    return NULL;
   }
   inc->type = type;
   switch (type) {
@@ -287,12 +281,13 @@ baneIncNew(int type, baneRange *range, double *parm) {
   case baneIncAbsolute:
     sprintf(inc->name, "absolute");
     inc->nhist = NULL;
-    if (!( AIR_EXISTS(parm[0]) && AIR_EXISTS(parm[1]) )) {
+    if (!(AIR_EXISTS(parm[0]) && AIR_EXISTS(parm[1]))) {
       biffAddf(BANE, "%s: parm[0] and parm[1] don't both exist", me);
-      baneIncNix(inc); return NULL;
+      baneIncNix(inc);
+      return NULL;
     }
-    inc->parm[0] = parm[0];  /* enforced min */
-    inc->parm[1] = parm[1];  /* enforced max */
+    inc->parm[0] = parm[0]; /* enforced min */
+    inc->parm[1] = parm[1]; /* enforced max */
     inc->process[0] = NULL;
     inc->process[1] = NULL;
     inc->answer = _baneIncAnswer_Absolute;
@@ -303,9 +298,10 @@ baneIncNew(int type, baneRange *range, double *parm) {
     inc->nhist = nrrdNew();
     if (!AIR_EXISTS(parm[0])) {
       biffAddf(BANE, "%s: parm[0] doesn't exist", me);
-      baneIncNix(inc); return NULL;
+      baneIncNix(inc);
+      return NULL;
     }
-    inc->parm[0] = parm[0];  /* scaling on range */
+    inc->parm[0] = parm[0]; /* scaling on range */
     inc->process[0] = NULL;
     inc->process[1] = _baneIncProcess_LearnMinMax;
     inc->answer = _baneIncAnswer_RangeRatio;
@@ -314,17 +310,18 @@ baneIncNew(int type, baneRange *range, double *parm) {
   case baneIncPercentile:
     sprintf(inc->name, "percentile");
     inc->nhist = nrrdNew();
-    if (!( AIR_EXISTS(parm[0]) && AIR_EXISTS(parm[1]) )) {
+    if (!(AIR_EXISTS(parm[0]) && AIR_EXISTS(parm[1]))) {
       biffAddf(BANE, "%s: parm[0] and parm[1] don't both exist", me);
-      baneIncNix(inc); return NULL;
+      baneIncNix(inc);
+      return NULL;
     }
-    inc->parm[0] = parm[0];  /* size of histogram */
-    if (nrrdMaybeAlloc_va(inc->nhist, nrrdTypeInt, 1,
-                          AIR_CAST(size_t, parm[0]))) {
+    inc->parm[0] = parm[0]; /* size of histogram */
+    if (nrrdMaybeAlloc_va(inc->nhist, nrrdTypeInt, 1, AIR_CAST(size_t, parm[0]))) {
       biffMovef(BANE, NRRD, "%s: couldn't allocate histogram", me);
-      baneIncNix(inc); return NULL;
+      baneIncNix(inc);
+      return NULL;
     }
-    inc->parm[1] = parm[1];  /* percentile to exclude */
+    inc->parm[1] = parm[1]; /* percentile to exclude */
     inc->process[0] = _baneIncProcess_LearnMinMax;
     inc->process[1] = _baneIncProcess_HistFill;
     inc->answer = _baneIncAnswer_Percentile;
@@ -335,9 +332,10 @@ baneIncNew(int type, baneRange *range, double *parm) {
     inc->nhist = NULL;
     if (!AIR_EXISTS(parm[0])) {
       biffAddf(BANE, "%s: parm[0] doesn't exist", me);
-      baneIncNix(inc); return NULL;
+      baneIncNix(inc);
+      return NULL;
     }
-    inc->parm[0] = parm[0];  /* multiple of standard dev to use */
+    inc->parm[0] = parm[0]; /* multiple of standard dev to use */
     inc->process[0] = NULL;
     inc->process[1] = _baneIncProcess_Stdv;
     inc->answer = _baneIncAnswer_Stdv;
@@ -345,7 +343,8 @@ baneIncNew(int type, baneRange *range, double *parm) {
     /* --------------------------------------------------------- */
   default:
     biffAddf(BANE, "%s: Sorry, baneInc %d not implemented", me, type);
-    baneIncNix(inc); return NULL;
+    baneIncNix(inc);
+    return NULL;
   }
   return inc;
 }
@@ -361,9 +360,9 @@ baneIncProcess(baneInc *inc, int passIdx, double val) {
 
 int
 baneIncAnswer(baneInc *inc, double *minP, double *maxP) {
-  static const char me[]="baneIncAnswer";
+  static const char me[] = "baneIncAnswer";
 
-  if (!( inc && minP && maxP )) {
+  if (!(inc && minP && maxP)) {
     biffAddf(BANE, "%s: got NULL pointer", me);
     return 1;
   }
@@ -376,7 +375,7 @@ baneIncAnswer(baneInc *inc, double *minP, double *maxP) {
 
 baneInc *
 baneIncCopy(baneInc *inc) {
-  static const char me[]="baneIncCopy";
+  static const char me[] = "baneIncCopy";
   baneInc *ret = NULL;
 
   ret = baneIncNew(inc->type, inc->range, inc->parm);
@@ -397,4 +396,3 @@ baneIncNix(baneInc *inc) {
   }
   return NULL;
 }
-

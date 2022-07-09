@@ -25,23 +25,21 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Cheap histogram-based median/mode filtering"
-static const char *_unrrdu_cmedianInfoL =
-(INFO
- ". Only works on 1, 2, or 3 dimensions.  The window "
- "over which filtering is done is always square, and "
- "only a simplistic weighting scheme is available. "
- "The method is cheap because it does the median "
- "or mode based on a histogram, which enforces a quantization to the number "
- "of bins in the histogram, which probably means a loss of precision for "
- "anything except 8-bit data.  Also, integral values can be recovered "
- "exactly only when the number of bins is exactly min-max+1 (as reported "
- "by \"unu minmax\").\n "
- "* Uses nrrdCheapMedian, plus nrrdSlice and nrrdJoin in "
- "case of \"-c\"");
+static const char *_unrrdu_cmedianInfoL
+  = (INFO ". Only works on 1, 2, or 3 dimensions.  The window "
+          "over which filtering is done is always square, and "
+          "only a simplistic weighting scheme is available. "
+          "The method is cheap because it does the median "
+          "or mode based on a histogram, which enforces a quantization to the number "
+          "of bins in the histogram, which probably means a loss of precision for "
+          "anything except 8-bit data.  Also, integral values can be recovered "
+          "exactly only when the number of bins is exactly min-max+1 (as reported "
+          "by \"unu minmax\").\n "
+          "* Uses nrrdCheapMedian, plus nrrdSlice and nrrdJoin in "
+          "case of \"-c\"");
 
 int
-unrrdu_cmedianMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_cmedianMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *ntmp, **mnout;
@@ -95,15 +93,14 @@ unrrdu_cmedianMain(int argc, const char **argv, const char *me,
 
   if (chan) {
     nsize = AIR_UINT(nin->axis[0].size);
-    mnout = AIR_CALLOC(nsize, Nrrd*);
+    mnout = AIR_CALLOC(nsize, Nrrd *);
     airMopAdd(mop, mnout, airFree, airMopAlways);
     ntmp = nrrdNew();
     airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
-    for (ni=0; ni<nsize; ni++) {
+    for (ni = 0; ni < nsize; ni++) {
       if (nrrdSlice(ntmp, nin, 0, ni)) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-        fprintf(stderr, "%s: error slicing input at pos = %d:\n%s",
-                me, ni, err);
+        fprintf(stderr, "%s: error slicing input at pos = %d:\n%s", me, ni, err);
         airMopError(mop);
         return 1;
       }
@@ -115,7 +112,7 @@ unrrdu_cmedianMain(int argc, const char **argv, const char *me,
         return 1;
       }
     }
-    if (nrrdJoin(nout, (const Nrrd*const*)mnout, nsize, 0, AIR_TRUE)) {
+    if (nrrdJoin(nout, (const Nrrd *const *)mnout, nsize, 0, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error doing final join:\n%s", me, err);
       airMopError(mop);
@@ -124,14 +121,12 @@ unrrdu_cmedianMain(int argc, const char **argv, const char *me,
     nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
     if (nrrdBasicInfoCopy(nout, nin,
                           NRRD_BASIC_INFO_DATA_BIT /* */
-                          | NRRD_BASIC_INFO_TYPE_BIT
-                          | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                          | NRRD_BASIC_INFO_DIMENSION_BIT
-                          | NRRD_BASIC_INFO_CONTENT_BIT
-                          | NRRD_BASIC_INFO_COMMENTS_BIT
-                          | (nrrdStateKeyValuePairsPropagate
-                             ? 0
-                             : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+                            | NRRD_BASIC_INFO_TYPE_BIT | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                            | NRRD_BASIC_INFO_DIMENSION_BIT | NRRD_BASIC_INFO_CONTENT_BIT
+                            | NRRD_BASIC_INFO_COMMENTS_BIT
+                            | (nrrdStateKeyValuePairsPropagate
+                                 ? 0
+                                 : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error copying basic info:\n%s", me, err);
       airMopError(mop);

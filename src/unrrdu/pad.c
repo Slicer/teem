@@ -25,13 +25,11 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Pad along each axis to make a bigger nrrd"
-static const char *_unrrdu_padInfoL =
-  (INFO ".\n "
-   "* Uses nrrdPad_nva");
+static const char *_unrrdu_padInfoL = (INFO ".\n "
+                                            "* Uses nrrdPad_nva");
 
 int
-unrrdu_padMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+unrrdu_padMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -74,27 +72,25 @@ unrrdu_padMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( minLen == (int)nin->dim && maxLen == (int)nin->dim )) {
-    fprintf(stderr,
-            "%s: # min coords (%d) or max coords (%d) != nrrd dim (%d)\n",
-            me, minLen, maxLen, nin->dim);
+  if (!(minLen == (int)nin->dim && maxLen == (int)nin->dim)) {
+    fprintf(stderr, "%s: # min coords (%d) or max coords (%d) != nrrd dim (%d)\n", me,
+            minLen, maxLen, nin->dim);
     airMopError(mop);
     return 1;
   }
-  for (ai=0; ai<nin->dim; ai++) {
-    if (-1 == minOff[0 + 2*ai]) {
-      fprintf(stderr, "%s: can't use m+<int> specification for axis %d min\n",
-              me, ai);
+  for (ai = 0; ai < nin->dim; ai++) {
+    if (-1 == minOff[0 + 2 * ai]) {
+      fprintf(stderr, "%s: can't use m+<int> specification for axis %d min\n", me, ai);
       airMopError(mop);
       return 1;
     }
   }
-  for (ai=0; ai<nin->dim; ai++) {
-    min[ai] = minOff[0 + 2*ai]*(nin->axis[ai].size-1) + minOff[1 + 2*ai];
-    if (-1 == maxOff[0 + 2*ai]) {
-      max[ai] = min[ai] + maxOff[1 + 2*ai];
+  for (ai = 0; ai < nin->dim; ai++) {
+    min[ai] = minOff[0 + 2 * ai] * (nin->axis[ai].size - 1) + minOff[1 + 2 * ai];
+    if (-1 == maxOff[0 + 2 * ai]) {
+      max[ai] = min[ai] + maxOff[1 + 2 * ai];
     } else {
-      max[ai] = maxOff[0 + 2*ai]*(nin->axis[ai].size-1) + maxOff[1 + 2*ai];
+      max[ai] = maxOff[0 + 2 * ai] * (nin->axis[ai].size - 1) + maxOff[1 + 2 * ai];
     }
     /*
     fprintf(stderr, "%s: ai %2d: min = %4d, max = %4d\n",

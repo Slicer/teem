@@ -25,15 +25,13 @@
 #include "privateTen.h"
 
 #define INFO "Create DT volume from confidence and eigensystem"
-static const char *_tend_makeInfoL =
-  (INFO
-   ".  The input is in the form of three nrrds, one for confidence "
-   "values (3D), one for eigenvalues (4D, three evals per voxel), and "
-   "one for eigenvectors (4D, nine evec components per voxel).");
+static const char *_tend_makeInfoL
+  = (INFO ".  The input is in the form of three nrrds, one for confidence "
+          "values (3D), one for eigenvalues (4D, three evals per voxel), and "
+          "one for eigenvectors (4D, nine evec components per voxel).");
 
 int
-tend_makeMain(int argc, const char **argv, const char *me,
-              hestParm *hparm) {
+tend_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -56,15 +54,17 @@ tend_makeMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenMake(nout, nin[0], nin[1], nin[2])) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making tensor volume:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

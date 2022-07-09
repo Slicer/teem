@@ -40,7 +40,7 @@ _gageHash(int x, int y, int z) {
   s[5] = (z >> 8) & 0xff;
 
   h = 0;
-  for (i=0; i<=5; i++) {
+  for (i = 0; i <= 5; i++) {
     h = (h << 4) + s[i];
     if ((g = h & 0xf0000000)) {
       h = h ^ (g >> 24);
@@ -51,26 +51,23 @@ _gageHash(int x, int y, int z) {
 }
 
 void
-_gageCacheProbe(gageContext *ctx, double *grad,
-                int *cc, double *gc,
-                int x, int y, int z) {
+_gageCacheProbe(gageContext *ctx, double *grad, int *cc, double *gc, int x, int y,
+                int z) {
   int hi;
 
   hi = _gageHash(x, y, z);
-  if ( (cc[3*hi + 0] == x) &&
-       (cc[3*hi + 1] == y) &&
-       (cc[3*hi + 2] == z) ) {
+  if ((cc[3 * hi + 0] == x) && (cc[3 * hi + 1] == y) && (cc[3 * hi + 2] == z)) {
     /* cache hit */
-    ELL_3V_COPY(grad, gc + 3*hi);
+    ELL_3V_COPY(grad, gc + 3 * hi);
   } else {
     /* cache miss */
-    cc[3*hi + 0] = x;
-    cc[3*hi + 1] = y;
-    cc[3*hi + 2] = z;
+    cc[3 * hi + 0] = x;
+    cc[3 * hi + 1] = y;
+    cc[3 * hi + 2] = z;
     gageProbe(ctx, x, y, z);
-    ELL_3V_COPY(gc + 3*hi, grad);
+    ELL_3V_COPY(gc + 3 * hi, grad);
   }
-  return ;
+  return;
 }
 
 /*
@@ -85,12 +82,11 @@ _gageCacheProbe(gageContext *ctx, double *grad,
 ** an appropriate iScale > 1, so that you don't undersample.
 */
 int
-gageStructureTensor(Nrrd *nout, const Nrrd *nin,
-                    int dScale, int iScale, int dsmp) {
-  static const char me[]="gageStructureTensor";
+gageStructureTensor(Nrrd *nout, const Nrrd *nin, int dScale, int iScale, int dsmp) {
+  static const char me[] = "gageStructureTensor";
   NrrdKernelSpec *gk0, *gk1, *ik0;
-  int E, rad, diam, osx, osy, osz, oxi, oyi, ozi,
-    _ixi, _iyi, _izi, ixi, iyi, izi, wi, *coordCache;
+  int E, rad, diam, osx, osy, osz, oxi, oyi, ozi, _ixi, _iyi, _izi, ixi, iyi, izi, wi,
+    *coordCache;
   gageContext *ctx;
   gageQuery query;
   gagePerVolume *pvl;
@@ -102,7 +98,7 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!( 3 == nin->dim && nrrdTypeBlock != nin->type )) {
+  if (!(3 == nin->dim && nrrdTypeBlock != nin->type)) {
     biffAddf(GAGE, "%s: nin isn't a 3D non-block type nrrd", me);
     return 1;
   }
@@ -114,9 +110,9 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   */
-  if (!( dScale >= 1 && iScale >= 1 && dsmp >= 1 )) {
-    biffAddf(GAGE, "%s: dScale (%d), iScale (%d), dsmp (%d) not all >= 1",
-             me, dScale, iScale, dsmp);
+  if (!(dScale >= 1 && iScale >= 1 && dsmp >= 1)) {
+    biffAddf(GAGE, "%s: dScale (%d), iScale (%d), dsmp (%d) not all >= 1", me, dScale,
+             iScale, dsmp);
     return 1;
   }
 
@@ -127,16 +123,16 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   airMopAdd(mop, gk0, (airMopper)nrrdKernelSpecNix, airMopAlways);
   airMopAdd(mop, gk1, (airMopper)nrrdKernelSpecNix, airMopAlways);
   airMopAdd(mop, ik0, (airMopper)nrrdKernelSpecNix, airMopAlways);
-  if ( nrrdKernelSpecParse(gk0, "cubic:1,0")
-       || nrrdKernelSpecParse(gk1, "cubicd:1,0")
-       || nrrdKernelSpecParse(ik0, "cubic:1,0")) {
+  if (nrrdKernelSpecParse(gk0, "cubic:1,0") || nrrdKernelSpecParse(gk1, "cubicd:1,0")
+      || nrrdKernelSpecParse(ik0, "cubic:1,0")) {
     biffMovef(GAGE, NRRD, "%s: couldn't set up kernels", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   /* manually set scale parameters */
   gk0->parm[0] = dScale;
   gk1->parm[0] = dScale;
-  ik0->parm[0] = 1.0;       /* this is more complicated . . . */
+  ik0->parm[0] = 1.0; /* this is more complicated . . . */
   ctx = gageContextNew();
   airMopAdd(mop, ctx, (airMopper)gageContextNix, airMopAlways);
   gageParmSet(ctx, gageParmRenormalize, AIR_TRUE);
@@ -151,7 +147,8 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     biffAddf(GAGE, "%s: ", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   grad = _gageAnswerPointer(ctx, pvl, gageSclGradVec);
 
@@ -161,22 +158,21 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   xs = AIR_EXISTS(xs) ? AIR_ABS(xs) : 1.0;
   ys = AIR_EXISTS(ys) ? AIR_ABS(ys) : 1.0;
   zs = AIR_EXISTS(zs) ? AIR_ABS(zs) : 1.0;
-  ms = airCbrt(xs*ys*zs);
+  ms = airCbrt(xs * ys * zs);
   /* ms is geometric mean of {xs,ys,zs} */
   xs /= ms;
   ys /= ms;
   zs /= ms;
-  fprintf(stderr, "iScale = %d, xs, ys, zs = %g, %g, %g\n",
-          iScale, xs, ys, xs);
+  fprintf(stderr, "iScale = %d, xs, ys, zs = %g, %g, %g\n", iScale, xs, ys, xs);
 
   rad = 0;
-  ik0->parm[0] = iScale/xs;
+  ik0->parm[0] = iScale / xs;
   rad = AIR_MAX(rad, AIR_ROUNDUP(ik0->kernel->support(ik0->parm)));
-  ik0->parm[0] = iScale/ys;
+  ik0->parm[0] = iScale / ys;
   rad = AIR_MAX(rad, AIR_ROUNDUP(ik0->kernel->support(ik0->parm)));
-  ik0->parm[0] = iScale/zs;
+  ik0->parm[0] = iScale / zs;
   rad = AIR_MAX(rad, AIR_ROUNDUP(ik0->kernel->support(ik0->parm)));
-  diam = 2*rad + 1;
+  diam = 2 * rad + 1;
   ixw = AIR_CALLOC(diam, double);
   iyw = AIR_CALLOC(diam, double);
   izw = AIR_CALLOC(diam, double);
@@ -185,78 +181,76 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
   airMopAdd(mop, izw, airFree, airMopAlways);
   if (!(ixw && iyw && izw)) {
     biffAddf(GAGE, "%s: couldn't allocate grad vector or weight buffers", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   /* the only reason that it is thread-safe to cache gageProbe results,
      without having the cache hang directly off the gageContext, is that
      we're doing all the probing for one context in one shot- producing
      an entirely volume of structure tensors with one function call */
-  gradCache = AIR_CALLOC(3*GAGE_CACHE_LEN, double);
-  coordCache = AIR_CALLOC(3*GAGE_CACHE_LEN, int);
+  gradCache = AIR_CALLOC(3 * GAGE_CACHE_LEN, double);
+  coordCache = AIR_CALLOC(3 * GAGE_CACHE_LEN, int);
   airMopAdd(mop, gradCache, airFree, airMopAlways);
   airMopAdd(mop, coordCache, airFree, airMopAlways);
   if (!(gradCache && coordCache)) {
     biffAddf(GAGE, "%s: couldn't allocate caches", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  for (ixi=0; ixi<GAGE_CACHE_LEN; ixi++) {
-    coordCache[3*ixi + 0] = -1;
-    coordCache[3*ixi + 1] = -1;
-    coordCache[3*ixi + 2] = -1;
-  }
-
-  for (wi=-rad; wi<=rad; wi++) {
-    ik0->parm[0] = iScale/xs;
-    ixw[wi+rad] = ik0->kernel->eval1_d(wi, ik0->parm);
-    ik0->parm[0] = iScale/ys;
-    iyw[wi+rad] = ik0->kernel->eval1_d(wi, ik0->parm);
-    ik0->parm[0] = iScale/zs;
-    izw[wi+rad] = ik0->kernel->eval1_d(wi, ik0->parm);
-    fprintf(stderr, "%d --> (%g,%g,%g) -> (%g,%g,%g)\n",
-            wi, wi/xs, wi/ys, wi/zs, ixw[wi+rad], iyw[wi+rad], izw[wi+rad]);
+  for (ixi = 0; ixi < GAGE_CACHE_LEN; ixi++) {
+    coordCache[3 * ixi + 0] = -1;
+    coordCache[3 * ixi + 1] = -1;
+    coordCache[3 * ixi + 2] = -1;
   }
 
-  osx = AIR_INT((nin->axis[0].size)/dsmp);
-  osy = AIR_INT((nin->axis[1].size)/dsmp);
-  osz = AIR_INT((nin->axis[2].size)/dsmp);
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 4,
-                        AIR_CAST(size_t, 7),
-                        AIR_CAST(size_t, osx),
-                        AIR_CAST(size_t, osy),
+  for (wi = -rad; wi <= rad; wi++) {
+    ik0->parm[0] = iScale / xs;
+    ixw[wi + rad] = ik0->kernel->eval1_d(wi, ik0->parm);
+    ik0->parm[0] = iScale / ys;
+    iyw[wi + rad] = ik0->kernel->eval1_d(wi, ik0->parm);
+    ik0->parm[0] = iScale / zs;
+    izw[wi + rad] = ik0->kernel->eval1_d(wi, ik0->parm);
+    fprintf(stderr, "%d --> (%g,%g,%g) -> (%g,%g,%g)\n", wi, wi / xs, wi / ys, wi / zs,
+            ixw[wi + rad], iyw[wi + rad], izw[wi + rad]);
+  }
+
+  osx = AIR_INT((nin->axis[0].size) / dsmp);
+  osy = AIR_INT((nin->axis[1].size) / dsmp);
+  osz = AIR_INT((nin->axis[2].size) / dsmp);
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 4, AIR_CAST(size_t, 7),
+                        AIR_CAST(size_t, osx), AIR_CAST(size_t, osy),
                         AIR_CAST(size_t, osz))) {
     biffAddf(GAGE, NRRD, "%s: couldn't allocate output", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, nout, (airMopper)nrrdEmpty, airMopOnError);
 
   out = AIR_CAST(double *, nout->data);
-  for (ozi=0; ozi<osz; ozi++) {
-    fprintf(stderr, "%s: z = %d/%d\n", me, ozi+1, osz);
-    for (oyi=0; oyi<osy; oyi++) {
-      for (oxi=0; oxi<osx; oxi++) {
+  for (ozi = 0; ozi < osz; ozi++) {
+    fprintf(stderr, "%s: z = %d/%d\n", me, ozi + 1, osz);
+    for (oyi = 0; oyi < osy; oyi++) {
+      for (oxi = 0; oxi < osx; oxi++) {
 
         sten[0] = sten[1] = sten[2] = sten[3] = sten[4] = sten[5] = 0;
-        for (_izi=0; _izi<diam; _izi++) {
-          izi = AIR_CLAMP(0, _izi - rad + ozi*dsmp,
-                          (int)nin->axis[2].size-1);
+        for (_izi = 0; _izi < diam; _izi++) {
+          izi = AIR_CLAMP(0, _izi - rad + ozi * dsmp, (int)nin->axis[2].size - 1);
           if (!izw[_izi]) continue;
-          for (_iyi=0; _iyi<diam; _iyi++) {
-            iyi = AIR_CLAMP(0, _iyi - rad + oyi*dsmp,
-                            (int)nin->axis[1].size-1);
+          for (_iyi = 0; _iyi < diam; _iyi++) {
+            iyi = AIR_CLAMP(0, _iyi - rad + oyi * dsmp, (int)nin->axis[1].size - 1);
             if (!iyw[_iyi]) continue;
-            for (_ixi=0; _ixi<diam; _ixi++) {
-              ixi = AIR_CLAMP(0, _ixi - rad + oxi*dsmp,
-                              (int)nin->axis[0].size-1);
+            for (_ixi = 0; _ixi < diam; _ixi++) {
+              ixi = AIR_CLAMP(0, _ixi - rad + oxi * dsmp, (int)nin->axis[0].size - 1);
               if (!ixw[_ixi]) continue;
-              wght = ixw[_ixi]*iyw[_iyi]*izw[_izi];
+              wght = ixw[_ixi] * iyw[_iyi] * izw[_izi];
               _gageCacheProbe(ctx, grad, coordCache, gradCache, ixi, iyi, izi);
-              sten[0] += wght*grad[0]*grad[0];
-              sten[1] += wght*grad[0]*grad[1];
-              sten[2] += wght*grad[0]*grad[2];
-              sten[3] += wght*grad[1]*grad[1];
-              sten[4] += wght*grad[1]*grad[2];
-              sten[5] += wght*grad[2]*grad[2];
+              sten[0] += wght * grad[0] * grad[0];
+              sten[1] += wght * grad[0] * grad[1];
+              sten[2] += wght * grad[0] * grad[2];
+              sten[3] += wght * grad[1] * grad[1];
+              sten[4] += wght * grad[1] * grad[2];
+              sten[5] += wght * grad[2] * grad[2];
             }
           }
         }
@@ -268,7 +262,6 @@ gageStructureTensor(Nrrd *nout, const Nrrd *nin,
         out[5] = sten[4];
         out[6] = sten[5];
         out += 7;
-
       }
     }
   }

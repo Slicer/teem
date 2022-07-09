@@ -42,9 +42,9 @@ main(int argc, const char **argv) {
     fprintf(stderr, "  %s: nrrd sanity check FAILED.\n", me);
     fprintf(stderr, "\n");
     fprintf(stderr, "  This means that either nrrd can't work on this "
-            "platform, or (more likely)\n");
+                    "platform, or (more likely)\n");
     fprintf(stderr, "  there was an error in the compilation options "
-            "and variable definitions\n");
+                    "and variable definitions\n");
     fprintf(stderr, "  for Teem.\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "  %s\n", err = biffGetDone(NRRD));
@@ -76,29 +76,30 @@ main(int argc, const char **argv) {
   }
   /* else, we should see if they're asking for a command we know about */
   /* baneGkmsCmdList[] is NULL-terminated */
-  for (i=0; baneGkmsCmdList[i]; i++) {
-    if (!strcmp(argv[1], baneGkmsCmdList[i]->name))
-      break;
+  for (i = 0; baneGkmsCmdList[i]; i++) {
+    if (!strcmp(argv[1], baneGkmsCmdList[i]->name)) break;
   }
   if (baneGkmsCmdList[i]) {
     /* yes, we have that command */
     /* initialize variables used by the various commands */
-    argv0 = AIR_CAST(char*, malloc(strlen(GKMS) + strlen(argv[1]) + 2));
+    argv0 = AIR_CAST(char *, malloc(strlen(GKMS) + strlen(argv[1]) + 2));
     airMopMem(mop, &argv0, airMopAlways);
     sprintf(argv0, "%s %s", GKMS, argv[1]);
 
     /* run the individual unu program, saving its exit status */
-    ret = baneGkmsCmdList[i]->main(argc-2, argv+2, argv0, hparm);
+    ret = baneGkmsCmdList[i]->main(argc - 2, argv + 2, argv0, hparm);
     if (1 == ret) {
-      airMopAdd(mop, err=biffGetDone(BANE), airFree, airMopAlways);
+      airMopAdd(mop, err = biffGetDone(BANE), airFree, airMopAlways);
       fprintf(stderr, "%s: error:\n%s", argv0, err);
     } else if (2 == ret) {
       /* gkms command has already handled printing error messages */
       ret = 1;
     }
   } else {
-    fprintf(stderr, "%s: unrecognized command: \"%s\"; type \"%s\" for "
-            "complete list\n", me, argv[1], me);
+    fprintf(stderr,
+            "%s: unrecognized command: \"%s\"; type \"%s\" for "
+            "complete list\n",
+            me, argv[1], me);
     ret = 1;
   }
 

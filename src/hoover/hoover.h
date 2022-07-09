@@ -56,38 +56,33 @@ extern "C" {
 /*
 ******** the mess of typedefs for callbacks used below
 */
-typedef int (hooverRenderBegin_t)(void **renderP,
-                                  void *user);
-typedef int (hooverThreadBegin_t)(void **threadP,
-                                  void *render,
-                                  void *user,
-                                  int whichThread);
-typedef int (hooverRayBegin_t)(void *thread,
+typedef int(hooverRenderBegin_t)(void **renderP, void *user);
+typedef int(hooverThreadBegin_t)(void **threadP,
+                                 void *render,
+                                 void *user,
+                                 int whichThread);
+typedef int(hooverRayBegin_t)(void *thread,
+                              void *render,
+                              void *user,
+                              int uIndex, /* img coords of current ray */
+                              int vIndex,
+                              double rayLen, /* length of ray segment between
+                                                near and far planes,  */
+                              double rayStartWorld[3],
+                              double rayStartIndex[3],
+                              double rayDirWorld[3],
+                              double rayDirIndex[3]);
+typedef double(hooverSample_t)(void *thread,
                                void *render,
                                void *user,
-                               int uIndex,    /* img coords of current ray */
-                               int vIndex,
-                               double rayLen, /* length of ray segment between
-                                                 near and far planes,  */
-                               double rayStartWorld[3],
-                               double rayStartIndex[3],
-                               double rayDirWorld[3],
-                               double rayDirIndex[3]);
-typedef double (hooverSample_t)(void *thread,
-                                void *render,
-                                void *user,
-                                int num,    /* which sample this is, 0-based */
-                                double rayT,/* position along ray */
-                                int inside, /* sample is inside the volume */
-                                double samplePosWorld[3],
-                                double samplePosIndex[3]);
-typedef int (hooverRayEnd_t)(void *thread,
-                             void *render,
-                             void *user);
-typedef int (hooverThreadEnd_t)(void *thread,
-                                void *render,
-                                void *user);
-typedef int (hooverRenderEnd_t)(void *rend, void *user);
+                               int num,     /* which sample this is, 0-based */
+                               double rayT, /* position along ray */
+                               int inside,  /* sample is inside the volume */
+                               double samplePosWorld[3],
+                               double samplePosIndex[3]);
+typedef int(hooverRayEnd_t)(void *thread, void *render, void *user);
+typedef int(hooverThreadEnd_t)(void *thread, void *render, void *user);
+typedef int(hooverRenderEnd_t)(void *rend, void *user);
 
 /*
 ******** hooverContext struct
@@ -104,23 +99,23 @@ typedef int (hooverRenderEnd_t)(void *rend, void *user);
 typedef struct {
 
   /******** 1) camera information */
-  limnCamera *cam;           /* camera info */
+  limnCamera *cam; /* camera info */
 
   /******** 2) volume information: size and spacing, centering, or
             a gageShape that sets everything */
-  int volSize[3];            /* X,Y,Z resolution of volume */
-  double volSpacing[3];      /* distance between samples in X,Y,Z direction */
-  int volCentering;          /* either nrrdCenterNode or nrrdCenterCell */
-  const gageShape *shape;    /* if non-NULL, use this gageShape (which we do
-                                NOT own), which over-rides
-                                volSize, volSpacing, volCentering */
+  int volSize[3];         /* X,Y,Z resolution of volume */
+  double volSpacing[3];   /* distance between samples in X,Y,Z direction */
+  int volCentering;       /* either nrrdCenterNode or nrrdCenterCell */
+  const gageShape *shape; /* if non-NULL, use this gageShape (which we do
+                             NOT own), which over-rides
+                             volSize, volSpacing, volCentering */
 
   /******** 3) image information: dimensions + centering */
-  int imgSize[2],            /* # samples of image along U and V axes */
-    imgCentering;            /* either nrrdCenterNode or nrrdCenterCell */
+  int imgSize[2], /* # samples of image along U and V axes */
+    imgCentering; /* either nrrdCenterNode or nrrdCenterCell */
 
   /******** 4) opaque "user information" pointer */
-  void *user;                /* passed to all callbacks */
+  void *user; /* passed to all callbacks */
 
   /******** 5) stuff about multi-threading */
   unsigned int numThreads;   /* number of threads to spawn per rendering */
@@ -251,20 +246,20 @@ typedef struct {
 ** otherwise, return indicates which call-back had trouble
 */
 enum {
-  hooverErrNone,           /*  0 */
-  hooverErrInit,           /*  1: call biffGet(HOOVER) */
-  hooverErrRenderBegin,    /*  2 */
-  hooverErrThreadCreate,   /*  3 */
-  hooverErrThreadBegin,    /*  4 */
-  hooverErrRayBegin,       /*  5 */
-  hooverErrSample,         /*  6 */
-  hooverErrRayEnd,         /*  7 */
-  hooverErrThreadEnd,      /*  8 */
-  hooverErrThreadJoin,     /*  9 */
-  hooverErrRenderEnd,      /* 10 */
+  hooverErrNone,         /*  0 */
+  hooverErrInit,         /*  1: call biffGet(HOOVER) */
+  hooverErrRenderBegin,  /*  2 */
+  hooverErrThreadCreate, /*  3 */
+  hooverErrThreadBegin,  /*  4 */
+  hooverErrRayBegin,     /*  5 */
+  hooverErrSample,       /*  6 */
+  hooverErrRayEnd,       /*  7 */
+  hooverErrThreadEnd,    /*  8 */
+  hooverErrThreadJoin,   /*  9 */
+  hooverErrRenderEnd,    /* 10 */
   hooverErrLast
 };
-#define HOOVER_ERR_MAX        10
+#define HOOVER_ERR_MAX 10
 
 /* defaultsHoover.c */
 HOOVER_EXPORT const int hooverPresent;
@@ -279,8 +274,7 @@ HOOVER_EXPORT int hooverContextCheck(hooverContext *ctx);
 HOOVER_EXPORT void *hooverContextNix(hooverContext *ctx);
 
 /* rays.c */
-HOOVER_EXPORT int hooverRender(hooverContext *ctx,
-                               int *errCodeP, int *errThreadP);
+HOOVER_EXPORT int hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP);
 
 /* stub.c */
 HOOVER_EXPORT hooverRenderBegin_t hooverStubRenderBegin;

@@ -25,16 +25,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Modify whole-array attributes (not per-axis)"
-static const char *_unrrdu_basinfoInfoL =
-(INFO
- ", which is called \"basic info\" in Nrrd terminology. "
- "The only attributes which are set are those for which command-line "
- "options are given.\n "
- "* Uses no particular function; just sets fields in the Nrrd");
+static const char *_unrrdu_basinfoInfoL
+  = (INFO ", which is called \"basic info\" in Nrrd terminology. "
+          "The only attributes which are set are those for which command-line "
+          "options are given.\n "
+          "* Uses no particular function; just sets fields in the Nrrd");
 
 int
-unrrdu_basinfoMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_basinfoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   /* these are stock for unrrdu */
   hestOpt *opt = NULL;
   airArray *mop;
@@ -68,16 +66,15 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
              "pair must be a single string (put it in \"\"s "
              "if the key or the value contain spaces).  The format of each "
              "pair is \"<key>:=<value>\", with no spaces before or after "
-             "\":=\".", &kvpLen);
+             "\":=\".",
+             &kvpLen);
   hestOptAdd(&opt, "dk,delkey", "key", airTypeString, 1, -1, &dkey, "",
              "keys to be deleted (erased) from key/value pairs", &dkeyLen);
-  hestOptAdd(&opt, "xkv,nixkeyvalue", NULL, airTypeBool, 0, 0,
-             &nixkvp, NULL,
+  hestOptAdd(&opt, "xkv,nixkeyvalue", NULL, airTypeBool, 0, 0, &nixkvp, NULL,
              "nix (clear) all key/value pairs");
-  cIdx =
-  hestOptAdd(&opt, "c,content", "content", airTypeString, 1, 1, &content, "",
-             "Specifies the content string of the nrrd, which is built upon "
-             "by many nrrd function to record a history of operations");
+  cIdx = hestOptAdd(&opt, "c,content", "content", airTypeString, 1, 1, &content, "",
+                    "Specifies the content string of the nrrd, which is built upon "
+                    "by many nrrd function to record a history of operations");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -105,9 +102,12 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
     if (!space) {
       /* couldn't parse it as space, perhaps its a uint */
       if (1 != sscanf(spcStr, "%u", &spaceDim)) {
-        fprintf(stderr, "%s: couldn't parse \"%s\" as a nrrdSpace "
-                "or as a uint", me, spcStr);
-        airMopError(mop); return 1;
+        fprintf(stderr,
+                "%s: couldn't parse \"%s\" as a nrrdSpace "
+                "or as a uint",
+                me, spcStr);
+        airMopError(mop);
+        return 1;
       }
       /* else we did parse it as a uint */
       nout->space = nrrdSpaceUnknown;
@@ -134,8 +134,8 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
     /* why this is necessary is a bit confusing to me, both the check for
        enclosing quotes, and the need to use to a separate variable (isn't
        hest doing memory management of addresses, not variables?) */
-    if ('\"' == _origStr[0] && '\"' == _origStr[strlen(_origStr)-1]) {
-      _origStr[strlen(_origStr)-1] = 0;
+    if ('\"' == _origStr[0] && '\"' == _origStr[strlen(_origStr) - 1]) {
+      _origStr[strlen(_origStr) - 1] = 0;
       origStr = _origStr + 1;
     } else {
       origStr = _origStr;
@@ -143,19 +143,19 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
     /* same hack about using NrrdIoState->line as basis for parsing */
     nio->line = origStr;
     nio->pos = 0;
-    if (nrrdFieldInfoParse[nrrdField_space_origin](NULL, nout,
-                                                   nio, AIR_TRUE)) {
+    if (nrrdFieldInfoParse[nrrdField_space_origin](NULL, nout, nio, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble with origin \"%s\":\n%s",
-              me, origStr, err);
-      nio->line = NULL; airMopError(mop); return 1;
+      fprintf(stderr, "%s: trouble with origin \"%s\":\n%s", me, origStr, err);
+      nio->line = NULL;
+      airMopError(mop);
+      return 1;
     }
     nio->line = NULL;
   }
 
   /* HEY: copy and paste from unrrdu/make.c */
   if (kvpLen) {
-    for (ii=0; ii<kvpLen; ii++) {
+    for (ii = 0; ii < kvpLen; ii++) {
       /* a hack: have to use NrrdIoState->line as the channel to communicate
          the key/value pair, since we have to emulate it having been
          read from a NRRD header.  But because nio doesn't own the
@@ -163,12 +163,13 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
          NrrdIoStateNix being called by the mop. */
       nio->line = kvp[ii];
       nio->pos = 0;
-      if (nrrdFieldInfoParse[nrrdField_keyvalue](NULL, nout,
-                                                 nio, AIR_TRUE)) {
+      if (nrrdFieldInfoParse[nrrdField_keyvalue](NULL, nout, nio, AIR_TRUE)) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-        fprintf(stderr, "%s: trouble with key/value %d \"%s\":\n%s",
-                me, ii, kvp[ii], err);
-        nio->line = NULL; airMopError(mop); return 1;
+        fprintf(stderr, "%s: trouble with key/value %d \"%s\":\n%s", me, ii, kvp[ii],
+                err);
+        nio->line = NULL;
+        airMopError(mop);
+        return 1;
       }
       nio->line = NULL;
     }
@@ -176,12 +177,13 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me,
 
   /* now delete ("erase") the keys that aren't wanted */
   if (dkeyLen) {
-    for (ii=0; ii<dkeyLen; ii++) {
+    for (ii = 0; ii < dkeyLen; ii++) {
       if (nrrdKeyValueErase(nout, dkey[ii])) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-        fprintf(stderr, "%s: trouble erasing key/value %d \"%s\":\n%s",
-                me, ii, dkey[ii], err);
-        airMopError(mop); return 1;
+        fprintf(stderr, "%s: trouble erasing key/value %d \"%s\":\n%s", me, ii, dkey[ii],
+                err);
+        airMopError(mop);
+        return 1;
       }
     }
   }

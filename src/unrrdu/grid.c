@@ -26,22 +26,22 @@
 
 static int
 gridGen(Nrrd *nout, int typeOut, const Nrrd *nin, int psz, int psg) {
-  static const char me[]="gridGen";
+  static const char me[] = "gridGen";
   size_t II, NN, size[NRRD_DIM_MAX], osz[NRRD_DIM_MAX], coord[NRRD_DIM_MAX];
-  double loc[NRRD_SPACE_DIM_MAX],
-    sdir[NRRD_DIM_MAX][NRRD_SPACE_DIM_MAX],
+  double loc[NRRD_SPACE_DIM_MAX], sdir[NRRD_DIM_MAX][NRRD_SPACE_DIM_MAX],
     (*ins)(void *v, size_t I, double d);
-  unsigned int axi, dim, sdim, base, oxi=0;
+  unsigned int axi, dim, sdim, base, oxi = 0;
   void *out;
 
   if (nrrdTypeBlock == typeOut) {
-    biffAddf(UNRRDU, "%s: can't use type %s", me,
-             airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAddf(UNRRDU, "%s: can't use type %s", me, airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
   if (!(nin->spaceDim)) {
-    biffAddf(UNRRDU, "%s: can currently only work on arrays "
-             "with space directions and space origin", me);
+    biffAddf(UNRRDU,
+             "%s: can currently only work on arrays "
+             "with space directions and space origin",
+             me);
     return 1;
   }
   dim = nin->dim;
@@ -50,9 +50,11 @@ gridGen(Nrrd *nout, int typeOut, const Nrrd *nin, int psz, int psg) {
     biffAddf(UNRRDU, "%s: space origin didn't exist", me);
     return 1;
   }
-  if (!( sdim <= dim )) {
-    biffAddf(UNRRDU, "%s: sorry, can't currently handle space dimension %u "
-             "> dimension %u", me, sdim, dim);
+  if (!(sdim <= dim)) {
+    biffAddf(UNRRDU,
+             "%s: sorry, can't currently handle space dimension %u "
+             "> dimension %u",
+             me, sdim, dim);
     return 1;
   }
   base = dim - sdim;
@@ -60,12 +62,12 @@ gridGen(Nrrd *nout, int typeOut, const Nrrd *nin, int psz, int psg) {
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSpaceDirection, sdir);
   if (psg) {
-    osz[0] = 1+sdim;
-    osz[1] = 1+sdim;
+    osz[0] = 1 + sdim;
+    osz[1] = 1 + sdim;
   } else {
     osz[oxi++] = sdim;
   }
-  for (axi=base; axi<dim; axi++) {
+  for (axi = base; axi < dim; axi++) {
     if (!nrrdSpaceVecExists(sdim, sdir[axi])) {
       biffAddf(UNRRDU, "%s: axis %u space dir didn't exist", me, axi);
       return 1;
@@ -89,23 +91,23 @@ gridGen(Nrrd *nout, int typeOut, const Nrrd *nin, int psz, int psg) {
     unsigned int jj;
     ins(out, 0, sdim);
     nrrdSpaceVecCopy(loc, nin->spaceOrigin);
-    for (jj=0; jj<sdim; jj++) {
+    for (jj = 0; jj < sdim; jj++) {
       ins(out, 1 + jj, loc[jj]);
     }
-    for (axi=base; axi<dim; axi++) {
-      unsigned int oi = (1+sdim)*(1+axi-base);
+    for (axi = base; axi < dim; axi++) {
+      unsigned int oi = (1 + sdim) * (1 + axi - base);
       ins(out, oi, size[axi]);
-      for (jj=0; jj<sdim; jj++) {
-        ins(out, oi+1+jj, sdir[axi][jj]);
+      for (jj = 0; jj < sdim; jj++) {
+        ins(out, oi + 1 + jj, sdir[axi][jj]);
       }
     }
   } else {
-    for (axi=0; axi<dim; axi++) {
+    for (axi = 0; axi < dim; axi++) {
       coord[axi] = 0;
     }
-    for (II=0; II<NN; II++) {
+    for (II = 0; II < NN; II++) {
       nrrdSpaceVecCopy(loc, nin->spaceOrigin);
-      for (axi=base; axi<dim; axi++) {
+      for (axi = base; axi < dim; axi++) {
         nrrdSpaceVecScaleAdd2(loc, 1, loc, coord[axi], sdir[axi]);
       }
       /*
@@ -116,8 +118,8 @@ gridGen(Nrrd *nout, int typeOut, const Nrrd *nin, int psz, int psg) {
               AIR_UINT(coord[2]),
               loc[0], loc[1]);
       */
-      for (axi=0; axi<sdim; axi++) {
-        ins(out, axi + sdim*II, loc[axi]);
+      for (axi = 0; axi < sdim; axi++) {
+        ins(out, axi + sdim * II, loc[axi]);
       }
       NRRD_COORD_INCR(coord, size, dim, base);
     }
@@ -126,23 +128,22 @@ gridGen(Nrrd *nout, int typeOut, const Nrrd *nin, int psz, int psg) {
 }
 
 #define INFO "Describe image sample locations"
-static const char *_unrrdu_gridInfoL =
-(INFO ". For a N-D grid, the output is (by default) "
- "a 2-D M-by-S array of grid sample "
- "locations, where M is the space dimension of the oriented grid, and S "
- "is the total number of real samples in the grid. "
- "With the -ps option, the shape of input axes is better preserved. "
- "With the -pg option, the output is a 2-D array that specifies the "
- "sampling grid, in the format used by gprobe. Unfortunately the "
- "implementation is currently incomplete, because of a number of "
- "unresolved design questions (one limitation is that this can't "
- "handle a 2D slice of a vector field: dimension == space dimension "
- "but axis 0 is not spatial).\n "
- "* (not based on any particular nrrd function)");
+static const char *_unrrdu_gridInfoL
+  = (INFO ". For a N-D grid, the output is (by default) "
+          "a 2-D M-by-S array of grid sample "
+          "locations, where M is the space dimension of the oriented grid, and S "
+          "is the total number of real samples in the grid. "
+          "With the -ps option, the shape of input axes is better preserved. "
+          "With the -pg option, the output is a 2-D array that specifies the "
+          "sampling grid, in the format used by gprobe. Unfortunately the "
+          "implementation is currently incomplete, because of a number of "
+          "unresolved design questions (one limitation is that this can't "
+          "handle a 2D slice of a vector field: dimension == space dimension "
+          "but axis 0 is not spatial).\n "
+          "* (not based on any particular nrrd function)");
 
 int
-unrrdu_gridMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_gridMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *err;
   int pret;

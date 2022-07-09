@@ -46,19 +46,18 @@ extern "C" {
 /* glyphElf.c */
 ELF_EXPORT const int elfPresent;
 ELF_EXPORT float elfGlyphHOME(limnPolyData *glyph, const char antipodal,
-                              const float *ten, const tijk_type *type,
-                              char *isdef, const char normalize);
+                              const float *ten, const tijk_type *type, char *isdef,
+                              const char normalize);
 
 ELF_EXPORT float elfGlyphPolar(limnPolyData *glyph, const char antipodal,
-                               const float *ten, const tijk_type *type,
-                               char *isdef, const char clamp,
-                               const char normalize,
+                               const float *ten, const tijk_type *type, char *isdef,
+                               const char clamp, const char normalize,
                                const unsigned char *posColor,
                                const unsigned char *negColor);
 
 ELF_EXPORT float elfGlyphKDE(limnPolyData *glyph, const char antipodal,
-                             const float *vecs, const size_t n_vecs,
-                             const float gamma, const char normalize);
+                             const float *vecs, const size_t n_vecs, const float gamma,
+                             const char normalize);
 
 ELF_EXPORT int elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
                                    const int *neighbors, unsigned int nbstride,
@@ -78,7 +77,7 @@ typedef struct {
   int refine;
   int *neighbors;
   unsigned int nbstride;
-  float *vertices_f; /* we're only storing the non-redundant ones */
+  float *vertices_f;  /* we're only storing the non-redundant ones */
   double *vertices_d; /* only filled when needed */
 } elfMaximaContext;
 
@@ -86,8 +85,7 @@ typedef struct {
 ELF_EXPORT elfMaximaContext *elfMaximaContextNew(const tijk_type *type,
                                                  unsigned int level);
 ELF_EXPORT elfMaximaContext *elfMaximaContextNix(elfMaximaContext *emc);
-ELF_EXPORT void elfMaximaParmSet(elfMaximaContext *emc,
-                                 tijk_refine_rank1_parm *parm);
+ELF_EXPORT void elfMaximaParmSet(elfMaximaContext *emc, tijk_refine_rank1_parm *parm);
 ELF_EXPORT void elfMaximaRefineSet(elfMaximaContext *emc, int refine);
 ELF_EXPORT int elfMaximaFind_d(double **ls, double **vs, const double *ten,
                                elfMaximaContext *emc);
@@ -97,22 +95,19 @@ ELF_EXPORT int elfMaximaFind_f(float **ls, float **vs, const float *ten,
 /* ESHEstimElf.c */
 ELF_EXPORT void elfCart2Thetaphi_d(double *thetaphi, const double *dirs,
                                    unsigned int ct);
-ELF_EXPORT void elfCart2Thetaphi_f(float *thetaphi, const float *dirs,
-                                   unsigned int ct);
+ELF_EXPORT void elfCart2Thetaphi_f(float *thetaphi, const float *dirs, unsigned int ct);
 
 ELF_EXPORT int elfESHEstimMatrix_d(double *T, double *H, unsigned int order,
-                                   const double *thetaphi,
-                                   unsigned int ct, double lambda, double *w);
+                                   const double *thetaphi, unsigned int ct,
+                                   double lambda, double *w);
 ELF_EXPORT int elfESHEstimMatrix_f(float *T, float *H, unsigned int order,
-                                   const float *thetaphi,
-                                   unsigned int ct, float lambda, float *w);
+                                   const float *thetaphi, unsigned int ct, float lambda,
+                                   float *w);
 
 ELF_EXPORT int elfTenEstimMatrix_d(double *T, double *H, const tijk_type *type,
-                                   const double *vecs, unsigned int ct,
-                                   double *w);
+                                   const double *vecs, unsigned int ct, double *w);
 ELF_EXPORT int elfTenEstimMatrix_f(float *T, float *H, const tijk_type *type,
-                                   const float *vecs, unsigned int ct,
-                                   float *w);
+                                   const float *vecs, unsigned int ct, float *w);
 
 /* ballStickElf.c */
 
@@ -128,11 +123,11 @@ typedef struct {
   unsigned int dwino; /* number of dwis */
 } elfSingleShellDWI;
 
-ELF_EXPORT int elfKernelStick_f(float *kernel, unsigned int order, float bd,
-                                float b0, int delta);
+ELF_EXPORT int elfKernelStick_f(float *kernel, unsigned int order, float bd, float b0,
+                                int delta);
 ELF_EXPORT int elfBallStickODF_f(float *odf, float *fiso, float *d,
-                                 const elfSingleShellDWI *dwi,
-                                 const float *T, unsigned int order, int delta);
+                                 const elfSingleShellDWI *dwi, const float *T,
+                                 unsigned int order, int delta);
 
 /* elfBallStickParms:
  *
@@ -151,8 +146,8 @@ typedef struct {
 } elfBallStickParms;
 
 ELF_EXPORT int elfBallStickPredict_f(elfBallStickParms *parms, float *odf,
-                                     const tijk_type *type, unsigned int k,
-                                     float d, float fiso);
+                                     const tijk_type *type, unsigned int k, float d,
+                                     float fiso);
 ELF_EXPORT int elfBallStickOptimize_f(elfBallStickParms *parms,
                                       const elfSingleShellDWI *dwi);
 

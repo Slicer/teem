@@ -25,17 +25,16 @@
 #include "privateUnrrdu.h"
 
 #define INFO "converts from 1-D index to world position"
-static const char *_unrrdu_i2wInfoL =
-(INFO  ", given the centering of the data (cell vs. node), "
- "the range of positions, and the number of intervals into "
- "which position has been quantized. "
- "This is a demo/utility, which does not actually operate on any nrrds. "
- "Previously available as the stand-alone idx2pos binary.\n "
- "* Uses NRRD_POS macro");
+static const char *_unrrdu_i2wInfoL
+  = (INFO ", given the centering of the data (cell vs. node), "
+          "the range of positions, and the number of intervals into "
+          "which position has been quantized. "
+          "This is a demo/utility, which does not actually operate on any nrrds. "
+          "Previously available as the stand-alone idx2pos binary.\n "
+          "* Uses NRRD_POS macro");
 
 int
-unrrdu_i2wMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+unrrdu_i2wMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   airArray *mop;
   int pret;
@@ -51,7 +50,8 @@ unrrdu_i2wMain(int argc, const char **argv, const char *me,
              "\b\bo \"cell\": for histogram bins, quantized values, and "
              "pixels-as-squares\n "
              "\b\bo \"node\": for non-trivially interpolated "
-             "sample points", NULL, nrrdCenter);
+             "sample points",
+             NULL, nrrdCenter);
   hestOptAdd(&opt, NULL, "minPos", airTypeDouble, 1, 1, &minPos, NULL,
              "smallest position associated with index 0");
   hestOptAdd(&opt, NULL, "maxPos", airTypeDouble, 1, 1, &maxPos, NULL,

@@ -38,14 +38,11 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "airMyEndian() == %d\n", airMyEndian());
     fprintf(stderr, "AIR_QNANHIBIT == %d\n", AIR_QNANHIBIT);
     fprintf(stderr, "AIR_DIO == %d\n", AIR_DIO);
-    fprintf(stderr, "sizeof(size_t) = %s\n",
-            airSprintSize_t(stmp, sizeof(size_t)));
-    fprintf(stderr, "sizeof(void*) = %s\n",
-            airSprintSize_t(stmp, sizeof(void*)));
+    fprintf(stderr, "sizeof(size_t) = %s\n", airSprintSize_t(stmp, sizeof(size_t)));
+    fprintf(stderr, "sizeof(void*) = %s\n", airSprintSize_t(stmp, sizeof(void *)));
     return 0;
   }
   /* else */
-  fprintf(stderr, "%s: air sanity check FAILED:\n%s\n",
-          me, airInsaneErr(aret));
+  fprintf(stderr, "%s: air sanity check FAILED:\n%s\n", me, airInsaneErr(aret));
   return 1;
 }

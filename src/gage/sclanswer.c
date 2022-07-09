@@ -25,37 +25,28 @@
 #include "privateGage.h"
 
 /* HEY copied from ten.h */
-#define TEN_M2T(t, m) (                         \
-                       (t)[1] = (m)[0],         \
-                       (t)[2] = ((m)[1]+(m)[3])/2.0,    \
-                       (t)[3] = ((m)[2]+(m)[6])/2.0,    \
-                       (t)[4] = (m)[4],                 \
-                       (t)[5] = ((m)[5]+(m)[7])/2.0,    \
-                       (t)[6] = (m)[8])
-#define TEN_T_SCALE(a, s, b) (    \
-                              (a)[0] = (b)[0],  \
-                              (a)[1] = (s)*(b)[1],      \
-                              (a)[2] = (s)*(b)[2],      \
-                              (a)[3] = (s)*(b)[3],      \
-                              (a)[4] = (s)*(b)[4],      \
-                              (a)[5] = (s)*(b)[5],      \
-                              (a)[6] = (s)*(b)[6])
+#define TEN_M2T(t, m)                                                                   \
+  ((t)[1] = (m)[0], (t)[2] = ((m)[1] + (m)[3]) / 2.0, (t)[3] = ((m)[2] + (m)[6]) / 2.0, \
+   (t)[4] = (m)[4], (t)[5] = ((m)[5] + (m)[7]) / 2.0, (t)[6] = (m)[8])
+#define TEN_T_SCALE(a, s, b)                                                            \
+  ((a)[0] = (b)[0], (a)[1] = (s) * (b)[1], (a)[2] = (s) * (b)[2],                       \
+   (a)[3] = (s) * (b)[3], (a)[4] = (s) * (b)[4], (a)[5] = (s) * (b)[5],                 \
+   (a)[6] = (s) * (b)[6])
 
 void
 _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_gageSclAnswer";
-  double gmag=0, *hess, *norm, *gvec, *gten, *k1, *k2, curv=0,
-    sHess[9]={0,0,0,0,0,0,0,0,0};
+  char me[] = "_gageSclAnswer";
+  double gmag = 0, *hess, *norm, *gvec, *gten, *k1, *k2, curv = 0,
+         sHess[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
   double tmpMat[9], tmpVec[3], hevec[9], heval[3];
-  double len, gp1[3], gp2[3], *nPerp, ncTen[9], nProj[9]={0,0,0,0,0,0,0,0,0};
+  double len, gp1[3], gp2[3], *nPerp, ncTen[9], nProj[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
   double alpha = 0.5;
   double beta = 0.5;
   double _gamma = 5;
   double cc = 1e-6;
 #define FD_MEDIAN_MAX 16
   int fd, nidx, xi, yi, zi;
-  double *fw, iv3wght[2*FD_MEDIAN_MAX*FD_MEDIAN_MAX*FD_MEDIAN_MAX],
-    wghtSum, wght;
+  double *fw, iv3wght[2 * FD_MEDIAN_MAX * FD_MEDIAN_MAX * FD_MEDIAN_MAX], wghtSum, wght;
 
   /* convenience pointers for work below */
   hess = pvl->directAnswer[gageSclHessian];
@@ -89,7 +80,7 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
 
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclNormal)) {
     if (gmag) {
-      ELL_3V_SCALE(norm, 1/gmag, gvec);
+      ELL_3V_SCALE(norm, 1 / gmag, gvec);
       /* polishing
          len = sqrt(ELL_3V_DOT(norm, norm));
          ELL_3V_SCALE(norm, 1/len, norm);
@@ -119,14 +110,12 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessianTen)) {
     pvl->directAnswer[gageSclHessianTen][0] = 1.0;
-    TEN_M2T(pvl->directAnswer[gageSclHessianTen],
-            pvl->directAnswer[gageSclHessian]);
+    TEN_M2T(pvl->directAnswer[gageSclHessianTen], pvl->directAnswer[gageSclHessian]);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclLaplacian)) {
     pvl->directAnswer[gageSclLaplacian][0] = hess[0] + hess[4] + hess[8];
     if (ctx->verbose > 2) {
-      fprintf(stderr, "%s: lapl = %g + %g + %g  = %g\n", me,
-              hess[0], hess[4], hess[8],
+      fprintf(stderr, "%s: lapl = %g + %g + %g  = %g\n", me, hess[0], hess[4], hess[8],
               pvl->directAnswer[gageSclLaplacian][0]);
     }
   }
@@ -148,22 +137,19 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
 #if 1
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessRidgeness)) {
     double A, B, S;
-    if (heval[1] >0 || heval[2]>0) {
+    if (heval[1] > 0 || heval[2] > 0) {
       pvl->directAnswer[gageSclHessRidgeness][0] = 0;
-    }
-    else if (AIR_ABS(heval[1])<1e-10 || AIR_ABS(heval[2])<1e-10) {
+    } else if (AIR_ABS(heval[1]) < 1e-10 || AIR_ABS(heval[2]) < 1e-10) {
       pvl->directAnswer[gageSclHessRidgeness][0] = 0;
-    }
-    else {
+    } else {
       double *ans;
-      A = AIR_ABS(heval[1])/AIR_ABS(heval[2]);
-      B = AIR_ABS(heval[0])/sqrt(AIR_ABS(heval[1]*heval[2]));
-      S = sqrt(heval[0]*heval[0] + heval[1]*heval[1] + heval[2]*heval[2]);
+      A = AIR_ABS(heval[1]) / AIR_ABS(heval[2]);
+      B = AIR_ABS(heval[0]) / sqrt(AIR_ABS(heval[1] * heval[2]));
+      S = sqrt(heval[0] * heval[0] + heval[1] * heval[1] + heval[2] * heval[2]);
       ans = pvl->directAnswer[gageSclHessRidgeness];
-      ans[0] = (1-exp(-A*A/(2*alpha*alpha))) *
-        exp(-B*B/(2*beta*beta)) *
-        (1-exp(-S*S/(2*_gamma*_gamma))) *
-        exp(-2*cc*cc/(AIR_ABS(heval[1])*heval[2]*heval[2]));
+      ans[0] = (1 - exp(-A * A / (2 * alpha * alpha))) * exp(-B * B / (2 * beta * beta))
+             * (1 - exp(-S * S / (2 * _gamma * _gamma)))
+             * exp(-2 * cc * cc / (AIR_ABS(heval[1]) * heval[2] * heval[2]));
     }
   }
 #else
@@ -172,10 +158,16 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
      discontinuity at heval[0] = -heval[1] */
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessRidgeness)) {
     double ev[4], tmp;
-    ELL_3V_COPY(ev+1, heval);
-    if (AIR_ABS(ev[2]) > AIR_ABS(ev[3])) { ELL_SWAP2(ev[2], ev[3], tmp); }
-    if (AIR_ABS(ev[1]) > AIR_ABS(ev[2])) { ELL_SWAP2(ev[1], ev[2], tmp); }
-    if (AIR_ABS(ev[2]) > AIR_ABS(ev[3])) { ELL_SWAP2(ev[2], ev[3], tmp); }
+    ELL_3V_COPY(ev + 1, heval);
+    if (AIR_ABS(ev[2]) > AIR_ABS(ev[3])) {
+      ELL_SWAP2(ev[2], ev[3], tmp);
+    }
+    if (AIR_ABS(ev[1]) > AIR_ABS(ev[2])) {
+      ELL_SWAP2(ev[1], ev[2], tmp);
+    }
+    if (AIR_ABS(ev[2]) > AIR_ABS(ev[3])) {
+      ELL_SWAP2(ev[2], ev[3], tmp);
+    }
     if (ev[2] > 0 || ev[3] > 0) {
       pvl->directAnswer[gageSclHessRidgeness][0] = 0;
     } else {
@@ -183,44 +175,42 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
       a1 = AIR_ABS(ev[1]);
       a2 = AIR_ABS(ev[2]);
       a3 = AIR_ABS(ev[3]);
-      RB = a1/sqrt(a2*a3);
-      RA = a2/a3;
-      SS = sqrt(a1*a1 + a2*a2 + a3*a3);
+      RB = a1 / sqrt(a2 * a3);
+      RA = a2 / a3;
+      SS = sqrt(a1 * a1 + a2 * a2 + a3 * a3);
       aa = bb = 0.5;
       gg = 1;
-      fa = 1 - exp(-RA*RA/(2*aa*aa));
-      fb = exp(-RB*RB/(2*bb*bb));
-      fg = 1 - exp(-SS*SS/(2*gg*gg));
-      frangi = fa*fb*fg;
-      if (!AIR_EXISTS(frangi)) { frangi = 0.0; }
+      fa = 1 - exp(-RA * RA / (2 * aa * aa));
+      fb = exp(-RB * RB / (2 * bb * bb));
+      fg = 1 - exp(-SS * SS / (2 * gg * gg));
+      frangi = fa * fb * fg;
+      if (!AIR_EXISTS(frangi)) {
+        frangi = 0.0;
+      }
       pvl->directAnswer[gageSclHessRidgeness][0] = frangi;
     }
   }
 #endif
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessValleyness)) {
     double A, B, S;
-    if (heval[0] <0 || heval[1]<0) {
+    if (heval[0] < 0 || heval[1] < 0) {
       pvl->directAnswer[gageSclHessValleyness][0] = 0;
-    }
-    else if (AIR_ABS(heval[0])<1e-10 || AIR_ABS(heval[1])<1e-10) {
+    } else if (AIR_ABS(heval[0]) < 1e-10 || AIR_ABS(heval[1]) < 1e-10) {
       pvl->directAnswer[gageSclHessValleyness][0] = 0;
-    }
-    else {
+    } else {
       double *ans;
-      A = AIR_ABS(heval[1])/AIR_ABS(heval[0]);
-      B = AIR_ABS(heval[2])/sqrt(AIR_ABS(heval[1]*heval[0]));
-      S = sqrt(heval[0]*heval[0] + heval[1]*heval[1] + heval[2]*heval[2]);
+      A = AIR_ABS(heval[1]) / AIR_ABS(heval[0]);
+      B = AIR_ABS(heval[2]) / sqrt(AIR_ABS(heval[1] * heval[0]));
+      S = sqrt(heval[0] * heval[0] + heval[1] * heval[1] + heval[2] * heval[2]);
       ans = pvl->directAnswer[gageSclHessValleyness];
-      ans[0] = (1-exp(-A*A/(2*alpha*alpha))) *
-        exp(-B*B/(2*beta*beta)) *
-        (1-exp(-S*S/(2*_gamma*_gamma))) *
-        exp(-2*cc*cc/(AIR_ABS(heval[1])*heval[0]*heval[0]));
+      ans[0] = (1 - exp(-A * A / (2 * alpha * alpha))) * exp(-B * B / (2 * beta * beta))
+             * (1 - exp(-S * S / (2 * _gamma * _gamma)))
+             * exp(-2 * cc * cc / (AIR_ABS(heval[1]) * heval[0] * heval[0]));
     }
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclHessDotPeakness)) {
 #define OSQT 0.57735026918962576451
-    double neval[3], hlen, pness,
-      peak[3] = {-OSQT, -OSQT, -OSQT};
+    double neval[3], hlen, pness, peak[3] = {-OSQT, -OSQT, -OSQT};
     ELL_3V_NORM(neval, heval, hlen);
     if (!hlen) {
       pness = 0;
@@ -243,7 +233,7 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
     if (gmag > ctx->parm.gradMagCurvMin) {
       /* parm.curvNormalSide applied here to determine the sense of the
          normal when doing all curvature calculations */
-      ELL_3M_SCALE(sHess, -(ctx->parm.curvNormalSide)/gmag, hess);
+      ELL_3M_SCALE(sHess, -(ctx->parm.curvNormalSide) / gmag, hess);
 
       /* gten = nPerp * sHess * nPerp */
       ELL_3M_MUL(tmpMat, sHess, nPerp);
@@ -262,8 +252,7 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
         ELL_3V_CROSS(gp2, gp1, norm);
         ELL_3MV_MUL(tmpVec, gten, gp2);
         len = ELL_3V_LEN(tmpVec);
-        fprintf(stderr, "%s: should (also) be bigger: %30.15f\n",
-                me, (double)len);
+        fprintf(stderr, "%s: should (also) be bigger: %30.15f\n", me, (double)len);
       }
     } else {
       ELL_3M_ZERO_SET(gten);
@@ -271,25 +260,22 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclGeomTensTen)) {
     pvl->directAnswer[gageSclGeomTensTen][0] = 1.0;
-    TEN_M2T(pvl->directAnswer[gageSclGeomTensTen],
-            pvl->directAnswer[gageSclGeomTens]);
+    TEN_M2T(pvl->directAnswer[gageSclGeomTensTen], pvl->directAnswer[gageSclGeomTens]);
     TEN_T_SCALE(pvl->directAnswer[gageSclGeomTensTen], -1,
                 pvl->directAnswer[gageSclGeomTensTen]);
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclTotalCurv)) {
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclTotalCurv)) {
     curv = pvl->directAnswer[gageSclTotalCurv][0] = ELL_3M_FROB(gten);
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclShapeTrace)) {
-    pvl->directAnswer[gageSclShapeTrace][0] = (curv
-                                               ? ELL_3M_TRACE(gten)/curv
-                                               : 0);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclShapeTrace)) {
+    pvl->directAnswer[gageSclShapeTrace][0] = (curv ? ELL_3M_TRACE(gten) / curv : 0);
   }
-  if ( (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclK1)) ||
-       (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclK2)) ){
+  if ((GAGE_QUERY_ITEM_TEST(pvl->query, gageSclK1))
+      || (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclK2))) {
     double T, N, D;
     T = ELL_3M_TRACE(gten);
     N = curv;
-    D = 2*N*N - T*T;
+    D = 2 * N * N - T * T;
     /*
       if (D < -0.0000001) {
       fprintf(stderr, "%s: %g %g\n", me, T, N);
@@ -300,25 +286,25 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
     */
     D = AIR_MAX(D, 0);
     D = sqrt(D);
-    k1[0] = 0.5*(T + D);
-    k2[0] = 0.5*(T - D);
+    k1[0] = 0.5 * (T + D);
+    k2[0] = 0.5 * (T - D);
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclMeanCurv)) {
-    pvl->directAnswer[gageSclMeanCurv][0] = (*k1 + *k2)/2;
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclMeanCurv)) {
+    pvl->directAnswer[gageSclMeanCurv][0] = (*k1 + *k2) / 2;
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclGaussCurv)) {
-    pvl->directAnswer[gageSclGaussCurv][0] = (*k1)*(*k2);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclGaussCurv)) {
+    pvl->directAnswer[gageSclGaussCurv][0] = (*k1) * (*k2);
   }
-  if (GAGE_QUERY_ITEM_TEST(pvl->query,  gageSclShapeIndex)) {
-    pvl->directAnswer[gageSclShapeIndex][0] =
-      -(2/AIR_PI)*atan2(*k1 + *k2, *k1 - *k2);
+  if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclShapeIndex)) {
+    pvl->directAnswer[gageSclShapeIndex][0] = -(2 / AIR_PI)
+                                            * atan2(*k1 + *k2, *k1 - *k2);
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, gageSclCurvDir1)) {
     /* HEY: this only works when K1, K2, 0 are all well mutually distinct,
        since these are the eigenvalues of the geometry tensor, and this
        code assumes that the eigenspaces are all one-dimensional */
     ELL_3M_COPY(tmpMat, gten);
-    ELL_3M_DIAG_SET(tmpMat, gten[0] - *k1, gten[4]- *k1, gten[8] - *k1);
+    ELL_3M_DIAG_SET(tmpMat, gten[0] - *k1, gten[4] - *k1, gten[8] - *k1);
     ell_3m_1d_nullspace_d(tmpVec, tmpMat);
     ELL_3V_COPY(pvl->directAnswer[gageSclCurvDir1], tmpVec);
   }
@@ -348,35 +334,37 @@ _gageSclAnswer(gageContext *ctx, gagePerVolume *pvl) {
     /* this item is currently a complete oddball in that it does not
        benefit from anything done in the "filter" stage, which is in
        fact a waste of time if the query consists only  of this item */
-    fd = 2*ctx->radius;
+    fd = 2 * ctx->radius;
     if (fd > FD_MEDIAN_MAX) {
-      fprintf(stderr, "%s: PANIC: current filter diameter = %d "
-              "> FD_MEDIAN_MAX = %d\n", me, fd, FD_MEDIAN_MAX);
+      fprintf(stderr,
+              "%s: PANIC: current filter diameter = %d "
+              "> FD_MEDIAN_MAX = %d\n",
+              me, fd, FD_MEDIAN_MAX);
       exit(1);
     }
-    fw = ctx->fw + fd*3*gageKernel00;
+    fw = ctx->fw + fd * 3 * gageKernel00;
     /* HEY: this needs some optimization help */
     wghtSum = 0;
     nidx = 0;
-    for (xi=0; xi<fd; xi++) {
-      for (yi=0; yi<fd; yi++) {
-        for (zi=0; zi<fd; zi++) {
-          iv3wght[0 + 2*nidx] = pvl->iv3[nidx];
-          iv3wght[1 + 2*nidx] = fw[xi + 0*fd]*fw[yi + 1*fd]*fw[zi + 2*fd];
-          wghtSum += iv3wght[1 + 2*nidx];
+    for (xi = 0; xi < fd; xi++) {
+      for (yi = 0; yi < fd; yi++) {
+        for (zi = 0; zi < fd; zi++) {
+          iv3wght[0 + 2 * nidx] = pvl->iv3[nidx];
+          iv3wght[1 + 2 * nidx] = fw[xi + 0 * fd] * fw[yi + 1 * fd] * fw[zi + 2 * fd];
+          wghtSum += iv3wght[1 + 2 * nidx];
           nidx++;
         }
       }
     }
-    qsort(iv3wght, fd*fd*fd, 2*sizeof(double), nrrdValCompare[nrrdTypeDouble]);
+    qsort(iv3wght, fd * fd * fd, 2 * sizeof(double), nrrdValCompare[nrrdTypeDouble]);
     wght = 0;
-    for (nidx=0; nidx<fd*fd*fd; nidx++) {
-      wght += iv3wght[1 + 2*nidx];
-      if (wght > wghtSum/2) {
+    for (nidx = 0; nidx < fd * fd * fd; nidx++) {
+      wght += iv3wght[1 + 2 * nidx];
+      if (wght > wghtSum / 2) {
         break;
       }
     }
-    pvl->directAnswer[gageSclMedian][0] = iv3wght[0 + 2*nidx];
+    pvl->directAnswer[gageSclMedian][0] = iv3wght[0 + 2 * nidx];
   }
   return;
 }

@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "bane.h"
 
 /* learned:
@@ -31,30 +30,28 @@
 ** was freeing random stuff, but (and this is the weird part)
 ** only on some 1-D nrrds of 256 floats (pos1D info), and not others.
 */
-Nrrd *baneNpos=NULL;
+Nrrd *baneNpos = NULL;
 
 #define TREX_LUTLEN 256
 
-float _baneTesting[256]={0};
+float _baneTesting[256] = {0};
 
 float *
 _baneTRexRead(char *fname) {
-  char me[]="_baneTRexRead";
+  char me[] = "_baneTRexRead";
 
-  if (nrrdLoad(baneNpos=nrrdNew(), fname, NULL)) {
-    fprintf(stderr, "%s: !!! trouble reading \"%s\":\n%s\n", me,
-            fname, biffGet(NRRD));
+  if (nrrdLoad(baneNpos = nrrdNew(), fname, NULL)) {
+    fprintf(stderr, "%s: !!! trouble reading \"%s\":\n%s\n", me, fname, biffGet(NRRD));
     return NULL;
   }
   if (banePosCheck(baneNpos, 1)) {
-    fprintf(stderr, "%s: !!! didn't get a valid p(x) file:\n%s\n", me,
-            biffGet(BANE));
+    fprintf(stderr, "%s: !!! didn't get a valid p(x) file:\n%s\n", me, biffGet(BANE));
     return NULL;
   }
   if (TREX_LUTLEN != baneNpos->axis[0].size) {
     char stmp[AIR_STRLEN_SMALL];
-    fprintf(stderr, "%s: !!! need a length %d p(x) (not %s)\n", me,
-            TREX_LUTLEN, airSprintSize_t(stmp, baneNpos->axis[0].size));
+    fprintf(stderr, "%s: !!! need a length %d p(x) (not %s)\n", me, TREX_LUTLEN,
+            airSprintSize_t(stmp, baneNpos->axis[0].size));
     return NULL;
   }
 

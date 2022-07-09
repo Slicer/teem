@@ -30,8 +30,7 @@ extern int _pushVerbose;
 
 /* binning.c */
 extern pushBin *_pushBinLocate(pushContext *pctx, double *pos);
-extern void _pushBinPointAdd(pushContext *pctx,
-                             pushBin *bin, pushPoint *point);
+extern void _pushBinPointAdd(pushContext *pctx, pushBin *bin, pushPoint *point);
 
 /* setup.c */
 extern pushTask *_pushTaskNew(pushContext *pctx, int threadIdx);

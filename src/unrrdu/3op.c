@@ -25,21 +25,19 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Ternary operation on three nrrds or constants"
-static const char *_unrrdu_3opInfoL =
-(INFO
- ". Can have one, two, or three nrrds, but not zero. "
- "Use \"-\" for an operand to signify "
- "a nrrd to be read from stdin (a pipe).  Note, however, "
- "that \"-\" can probably only be used once (reliably).\n "
- "* Uses nrrdArithIterTernaryOp or (with -w) nrrdArithIterTernaryOpSelect");
+static const char *_unrrdu_3opInfoL
+  = (INFO ". Can have one, two, or three nrrds, but not zero. "
+          "Use \"-\" for an operand to signify "
+          "a nrrd to be read from stdin (a pipe).  Note, however, "
+          "that \"-\" can probably only be used once (reliably).\n "
+          "* Uses nrrdArithIterTernaryOp or (with -w) nrrdArithIterTernaryOpSelect");
 
 int
-unrrdu_3opMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+unrrdu_3opMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   NrrdIter *in1, *in2, *in3;
-  Nrrd *nout, *ntmp=NULL;
+  Nrrd *nout, *ntmp = NULL;
   int op, type, E, pret, which;
   airArray *mop;
 
@@ -74,14 +72,12 @@ unrrdu_3opMain(int argc, const char **argv, const char *me,
              "and stdv=3rd value",
              NULL, nrrdTernaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
-             "First input.  Can be a single value or a nrrd.",
-             NULL, NULL, nrrdHestIter);
+             "First input.  Can be a single value or a nrrd.", NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "in2", airTypeOther, 1, 1, &in2, NULL,
-             "Second input.  Can be a single value or a nrrd.",
-             NULL, NULL, nrrdHestIter);
+             "Second input.  Can be a single value or a nrrd.", NULL, NULL,
+             nrrdHestIter);
   hestOptAdd(&opt, NULL, "in3", airTypeOther, 1, 1, &in3, NULL,
-             "Third input.  Can be a single value or a nrrd.",
-             NULL, NULL, nrrdHestIter);
+             "Third input.  Can be a single value or a nrrd.", NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
              "type to convert all nrrd inputs to, prior to "
              "doing operation.  This also determines output type. "
@@ -113,15 +109,15 @@ unrrdu_3opMain(int argc, const char **argv, const char *me,
     /* they wanted to convert nrrds to some other type first */
     E = 0;
     if (in1->ownNrrd) {
-      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in1->ownNrrd, type);
+      if (!E) E |= nrrdConvert(ntmp = nrrdNew(), in1->ownNrrd, type);
       if (!E) nrrdIterSetOwnNrrd(in1, ntmp);
     }
     if (in2->ownNrrd) {
-      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in2->ownNrrd, type);
+      if (!E) E |= nrrdConvert(ntmp = nrrdNew(), in2->ownNrrd, type);
       if (!E) nrrdIterSetOwnNrrd(in2, ntmp);
     }
     if (in3->ownNrrd) {
-      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in3->ownNrrd, type);
+      if (!E) E |= nrrdConvert(ntmp = nrrdNew(), in3->ownNrrd, type);
       if (!E) nrrdIterSetOwnNrrd(in3, ntmp);
     }
     if (E) {
@@ -138,9 +134,8 @@ unrrdu_3opMain(int argc, const char **argv, const char *me,
      if there are any 3ops involving random numbers */
 
   if (-1 == which
-      ? nrrdArithIterTernaryOp(nout, op, in1, in2, in3)
-      : nrrdArithIterTernaryOpSelect(nout, op, in1, in2, in3,
-                                     AIR_UINT(which))) {
+        ? nrrdArithIterTernaryOp(nout, op, in1, in2, in3)
+        : nrrdArithIterTernaryOpSelect(nout, op, in1, in2, in3, AIR_UINT(which))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing ternary operation:\n%s", me, err);
     airMopError(mop);
@@ -154,4 +149,3 @@ unrrdu_3opMain(int argc, const char **argv, const char *me,
 }
 
 UNRRDU_CMD(3op, INFO);
-

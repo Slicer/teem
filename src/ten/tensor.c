@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "ten.h"
 #include "privateTen.h"
 
@@ -57,7 +56,7 @@ tenRotateSingle_f(float tenOut[7], const float rot[9], const float tenIn[7]) {
 */
 int
 tenTensorCheck(const Nrrd *nin, int wantType, int want4D, int useBiff) {
-  static const char me[]="tenTensorCheck";
+  static const char me[] = "tenTensorCheck";
 
   if (!nin) {
     if (useBiff) biffAddf(TEN, "%s: got NULL pointer", me);
@@ -65,21 +64,19 @@ tenTensorCheck(const Nrrd *nin, int wantType, int want4D, int useBiff) {
   }
   if (wantType) {
     if (nin->type != wantType) {
-      if (useBiff) biffAddf(TEN, "%s: wanted type %s, got type %s", me,
-                            airEnumStr(nrrdType, wantType),
-                            airEnumStr(nrrdType, nin->type));
+      if (useBiff)
+        biffAddf(TEN, "%s: wanted type %s, got type %s", me,
+                 airEnumStr(nrrdType, wantType), airEnumStr(nrrdType, nin->type));
       return 1;
     }
-  }
-  else {
+  } else {
     if (!(nin->type == nrrdTypeFloat || nin->type == nrrdTypeShort)) {
       if (useBiff) biffAddf(TEN, "%s: need data of type float or short", me);
       return 1;
     }
   }
   if (want4D && !(4 == nin->dim)) {
-    if (useBiff)
-      biffAddf(TEN, "%s: given dimension is %d, not 4", me, nin->dim);
+    if (useBiff) biffAddf(TEN, "%s: given dimension is %d, not 4", me, nin->dim);
     return 1;
   }
   if (!(7 == nin->axis[0].size)) {
@@ -95,7 +92,7 @@ tenTensorCheck(const Nrrd *nin, int wantType, int want4D, int useBiff) {
 
 int
 tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin) {
-  static const char me[]="tenMeasurementFrameReduce";
+  static const char me[] = "tenMeasurementFrameReduce";
   double MF[9], MFT[9], tenMeasr[9], tenWorld[9];
   float *tdata;
   size_t ii, nn;
@@ -110,8 +107,8 @@ tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin) {
     return 1;
   }
   if (3 != nin->spaceDim) {
-    biffAddf(TEN, "%s: input nrrd needs 3-D (not %u-D) space dimension",
-             me, nin->spaceDim);
+    biffAddf(TEN, "%s: input nrrd needs 3-D (not %u-D) space dimension", me,
+             nin->spaceDim);
     return 1;
   }
   /*
@@ -140,22 +137,22 @@ tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin) {
       return 1;
     }
   }
-  nn = nrrdElementNumber(nout)/nout->axis[0].size;
-  tdata = (float*)(nout->data);
-  for (ii=0; ii<nn; ii++) {
+  nn = nrrdElementNumber(nout) / nout->axis[0].size;
+  tdata = (float *)(nout->data);
+  for (ii = 0; ii < nn; ii++) {
     TEN_T2M(tenMeasr, tdata);
     ell_3m_mul_d(tenWorld, MF, tenMeasr);
     ell_3m_mul_d(tenWorld, tenWorld, MFT);
     TEN_M2T_TT(tdata, float, tenWorld);
     tdata += 7;
   }
-  for (si=0; si<NRRD_SPACE_DIM_MAX; si++) {
-    for (sj=0; sj<NRRD_SPACE_DIM_MAX; sj++) {
+  for (si = 0; si < NRRD_SPACE_DIM_MAX; si++) {
+    for (sj = 0; sj < NRRD_SPACE_DIM_MAX; sj++) {
       nout->measurementFrame[si][sj] = AIR_NAN;
     }
   }
-  for (si=0; si<3; si++) {
-    for (sj=0; sj<3; sj++) {
+  for (si = 0; si < 3; si++) {
+    for (sj = 0; sj < 3; sj++) {
       nout->measurementFrame[si][sj] = (si == sj);
     }
   }
@@ -165,11 +162,11 @@ tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin) {
 
 int
 tenExpand2D(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
-  static const char me[]="tenExpand2D";
+  static const char me[] = "tenExpand2D";
   size_t N, I, sx, sy;
   float *masked, *redund;
 
-  if (!( nout && nin && AIR_EXISTS(thresh) )) {
+  if (!(nout && nin && AIR_EXISTS(thresh))) {
     biffAddf(TEN, "%s: got NULL pointer or non-existent threshold", me);
     return 1;
   }
@@ -184,8 +181,7 @@ tenExpand2D(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   }
   if (nin->type != nrrdTypeFloat) {
     biffAddf(TEN, "%s: wanted type %s, got type %s", me,
-             airEnumStr(nrrdType, nrrdTypeFloat),
-             airEnumStr(nrrdType, nin->type));
+             airEnumStr(nrrdType, nrrdTypeFloat), airEnumStr(nrrdType, nin->type));
     return 1;
   } else {
     if (!(nin->type == nrrdTypeFloat || nin->type == nrrdTypeShort)) {
@@ -200,21 +196,20 @@ tenExpand2D(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   if (!(4 == nin->axis[0].size)) {
     char stmp[AIR_STRLEN_SMALL];
     biffAddf(TEN, "%s: axis 0 has size %s, not 4", me,
-               airSprintSize_t(stmp, nin->axis[0].size));
+             airSprintSize_t(stmp, nin->axis[0].size));
     return 1;
   }
 
   sx = nin->axis[1].size;
   sy = nin->axis[2].size;
-  N = sx*sy;
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3,
-                        AIR_CAST(size_t, 4), sx, sy)) {
+  N = sx * sy;
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3, AIR_CAST(size_t, 4), sx, sy)) {
     biffMovef(TEN, NRRD, "%s: trouble", me);
     return 1;
   }
-  for (I=0; I<=N-1; I++) {
-    masked = (float*)(nin->data) + I*4;
-    redund = (float*)(nout->data) + I*4;
+  for (I = 0; I <= N - 1; I++) {
+    masked = (float *)(nin->data) + I * 4;
+    redund = (float *)(nout->data) + I * 4;
     if (masked[0] < thresh) {
       ELL_4V_ZERO_SET(redund);
       continue;
@@ -225,16 +220,14 @@ tenExpand2D(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
     redund[3] = masked[3];
     ELL_4V_SCALE(redund, AIR_FLOAT(scale), redund);
   }
-  if (nrrdAxisInfoCopy(nout, nin, NULL,
-                       NRRD_AXIS_INFO_SIZE_BIT)) {
+  if (nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_SIZE_BIT)) {
     biffMovef(TEN, NRRD, "%s: trouble", me);
     return 1;
   }
   /* by call above we just copied axis-0 kind, which might be wrong;
      we actually know the output kind now, so we might as well set it */
   nout->axis[0].kind = nrrdKind2DMatrix;
-  if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
+  if (nrrdBasicInfoCopy(nout, nin, NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
     biffAddf(TEN, "%s:", me);
     return 1;
   }
@@ -243,11 +236,11 @@ tenExpand2D(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
 
 int
 tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
-  static const char me[]="tenExpand";
+  static const char me[] = "tenExpand";
   size_t N, I, sx, sy, sz;
   float *seven, *nine;
 
-  if (!( nout && nin && AIR_EXISTS(thresh) )) {
+  if (!(nout && nin && AIR_EXISTS(thresh))) {
     biffAddf(TEN, "%s: got NULL pointer or non-existent threshold", me);
     return 1;
   }
@@ -263,15 +256,14 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   sx = nin->axis[1].size;
   sy = nin->axis[2].size;
   sz = nin->axis[3].size;
-  N = sx*sy*sz;
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4,
-                        AIR_CAST(size_t, 9), sx, sy, sz)) {
+  N = sx * sy * sz;
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, AIR_CAST(size_t, 9), sx, sy, sz)) {
     biffMovef(TEN, NRRD, "%s: trouble", me);
     return 1;
   }
-  for (I=0; I<=N-1; I++) {
-    seven = (float*)(nin->data) + I*7;
-    nine = (float*)(nout->data) + I*9;
+  for (I = 0; I <= N - 1; I++) {
+    seven = (float *)(nin->data) + I * 7;
+    nine = (float *)(nout->data) + I * 9;
     if (seven[0] < thresh) {
       ELL_3M_ZERO_SET(nine);
       continue;
@@ -279,16 +271,14 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
     TEN_T2M(nine, seven);
     ELL_3M_SCALE(nine, AIR_FLOAT(scale), nine);
   }
-  if (nrrdAxisInfoCopy(nout, nin, NULL,
-                       NRRD_AXIS_INFO_SIZE_BIT)) {
+  if (nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_SIZE_BIT)) {
     biffMovef(TEN, NRRD, "%s: trouble", me);
     return 1;
   }
   /* by call above we just copied axis-0 kind, which might be wrong;
      we actually know the output kind now, so we might as well set it */
   nout->axis[0].kind = nrrdKind3DMatrix;
-  if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
+  if (nrrdBasicInfoCopy(nout, nin, NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
     biffAddf(TEN, "%s:", me);
     return 1;
   }
@@ -302,7 +292,7 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
 
 int
 tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
-  static const char me[]="tenShrink";
+  static const char me[] = "tenShrink";
   size_t I, N, sx, sy, sz;
   float *seven, *conf, *nine;
 
@@ -314,59 +304,51 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
     biffAddf(TEN, "%s: sorry, need different nrrds for input and output", me);
     return 1;
   }
-  if (!( nrrdTypeFloat == tnine->type &&
-         4 == tnine->dim &&
-         9 == tnine->axis[0].size )) {
+  if (!(nrrdTypeFloat == tnine->type && 4 == tnine->dim && 9 == tnine->axis[0].size)) {
     char stmp[AIR_STRLEN_SMALL];
-    biffAddf(TEN, "%s: type not %s (was %s) or dim not 4 (was %d) "
-             "or first axis size not 9 (was %s)", me,
-             airEnumStr(nrrdType, nrrdTypeFloat),
-             airEnumStr(nrrdType, tnine->type), tnine->dim,
-             airSprintSize_t(stmp, tnine->axis[0].size));
+    biffAddf(TEN,
+             "%s: type not %s (was %s) or dim not 4 (was %d) "
+             "or first axis size not 9 (was %s)",
+             me, airEnumStr(nrrdType, nrrdTypeFloat), airEnumStr(nrrdType, tnine->type),
+             tnine->dim, airSprintSize_t(stmp, tnine->axis[0].size));
     return 1;
   }
   sx = tnine->axis[1].size;
   sy = tnine->axis[2].size;
   sz = tnine->axis[3].size;
   if (nconf) {
-    if (!( nrrdTypeFloat == nconf->type &&
-           3 == nconf->dim &&
-           sx == nconf->axis[0].size &&
-           sy == nconf->axis[1].size &&
-           sz == nconf->axis[2].size )) {
-      biffAddf(TEN, "%s: confidence type not %s (was %s) or dim not 3 (was %d) "
-               "or dimensions didn't match tensor volume", me,
-               airEnumStr(nrrdType, nrrdTypeFloat),
-               airEnumStr(nrrdType, nconf->type),
-               nconf->dim);
+    if (!(nrrdTypeFloat == nconf->type && 3 == nconf->dim && sx == nconf->axis[0].size
+          && sy == nconf->axis[1].size && sz == nconf->axis[2].size)) {
+      biffAddf(TEN,
+               "%s: confidence type not %s (was %s) or dim not 3 (was %d) "
+               "or dimensions didn't match tensor volume",
+               me, airEnumStr(nrrdType, nrrdTypeFloat),
+               airEnumStr(nrrdType, nconf->type), nconf->dim);
       return 1;
     }
   }
-  if (nrrdMaybeAlloc_va(tseven, nrrdTypeFloat, 4,
-                        AIR_CAST(size_t, 7), sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(tseven, nrrdTypeFloat, 4, AIR_CAST(size_t, 7), sx, sy, sz)) {
     biffMovef(TEN, NRRD, "%s: trouble allocating output", me);
     return 1;
   }
   seven = (float *)tseven->data;
   conf = nconf ? (float *)nconf->data : NULL;
   nine = (float *)tnine->data;
-  N = sx*sy*sz;
-  for (I=0; I<N; I++) {
+  N = sx * sy * sz;
+  for (I = 0; I < N; I++) {
     TEN_M2T_TT(seven, float, nine);
     seven[0] = conf ? conf[I] : 1.0f;
     seven += 7;
     nine += 9;
   }
-  if (nrrdAxisInfoCopy(tseven, tnine, NULL,
-                       NRRD_AXIS_INFO_SIZE_BIT)) {
+  if (nrrdAxisInfoCopy(tseven, tnine, NULL, NRRD_AXIS_INFO_SIZE_BIT)) {
     biffMovef(TEN, NRRD, "%s: trouble", me);
     return 1;
   }
   /* by call above we just copied axis-0 kind, which might be wrong;
      we actually know the output kind now, so we might as well set it */
   tseven->axis[0].kind = nrrdKind3DMaskedSymMatrix;
-  if (nrrdBasicInfoCopy(tseven, tnine,
-                        NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
+  if (nrrdBasicInfoCopy(tseven, tnine, NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
     biffAddf(TEN, "%s:", me);
     return 1;
   }
@@ -396,7 +378,7 @@ tenEigensolve_f(float _eval[3], float _evec[9], const float t[7]) {
   int ret;
 
   TEN_T2M(m, t);
-  trc = ELL_3M_TRACE(m)/3.0;
+  trc = ELL_3M_TRACE(m) / 3.0;
   ELL_3M_IDENTITY_SET(iso);
   ELL_3M_SCALE_SET(iso, -trc, -trc, -trc);
   ELL_3M_ADD2(m, m, iso);
@@ -422,21 +404,17 @@ tenEigensolve_f(float _eval[3], float _evec[9], const float t[7]) {
       /* this was added to fix a stupid problem with very nearly
          isotropic glyphs, used for demonstration figures */
       if (eval[0] == eval[1]) {
-        ELL_3V_CROSS(_evec+6, _evec+0, _evec+3);
+        ELL_3V_CROSS(_evec + 6, _evec + 0, _evec + 3);
       } else {
-        ELL_3V_CROSS(_evec+0, _evec+3, _evec+6);
+        ELL_3V_CROSS(_evec + 0, _evec + 3, _evec + 6);
       }
     }
     if ((tenVerbose > 1) && _eval[2] < 0) {
       fprintf(stderr, "tenEigensolve_f -------------\n");
-      fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n",
-              t[1], t[2], t[3]);
-      fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n",
-              t[2], t[4], t[5]);
-      fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n",
-              t[3], t[5], t[6]);
-      fprintf(stderr, " --> % 15.7f % 15.7f % 15.7f\n",
-              _eval[0], _eval[1], _eval[2]);
+      fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", t[1], t[2], t[3]);
+      fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", t[2], t[4], t[5]);
+      fprintf(stderr, "% 15.7f % 15.7f % 15.7f\n", t[3], t[5], t[6]);
+      fprintf(stderr, " --> % 15.7f % 15.7f % 15.7f\n", _eval[0], _eval[1], _eval[2]);
     }
   } else {
     /* caller only wants eigenvalues */
@@ -453,7 +431,7 @@ tenEigensolve_d(double _eval[3], double evec[9], const double t[7]) {
   int ret;
 
   TEN_T2M(m, t);
-  trc = ELL_3M_TRACE(m)/3.0;
+  trc = ELL_3M_TRACE(m) / 3.0;
   ELL_3M_SCALE_SET(iso, -trc, -trc, -trc);
   ELL_3M_ADD2(m, m, iso);
   /*
@@ -469,9 +447,9 @@ tenEigensolve_d(double _eval[3], double evec[9], const double t[7]) {
       /* this was added to fix a stupid problem with very nearly
          isotropic glyphs, used for demonstration figures */
       if (eval[0] == eval[1]) {
-        ELL_3V_CROSS(evec+6, evec+0, evec+3);
+        ELL_3V_CROSS(evec + 6, evec + 0, evec + 3);
       } else {
-        ELL_3V_CROSS(evec+0, evec+3, evec+6);
+        ELL_3V_CROSS(evec + 0, evec + 3, evec + 6);
       }
     }
   } else {
@@ -481,8 +459,6 @@ tenEigensolve_d(double _eval[3], double evec[9], const double t[7]) {
   }
   return ret;
 }
-
-
 
 /*  lop A
     fprintf(stderr, "###################################  I = %d\n", (int)I);
@@ -560,7 +536,7 @@ tenMakeSingle_d(double ten[7], double conf, const double eval[3], const double e
 */
 int
 tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
-  static const char me[]="tenTensorMake";
+  static const char me[] = "tenTensorMake";
   size_t I, N, sx, sy, sz;
   float *out, *conf, *eval, *evec;
   int map[4];
@@ -575,70 +551,62 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
     biffMovef(TEN, NRRD, "%s: didn't get three valid nrrds", me);
     return 1;
   }
-  if (!( 3 == nconf->dim && nrrdTypeFloat == nconf->type )) {
-    biffAddf(TEN, "%s: first nrrd not a confidence volume "
-             "(dim = %d, not 3; type = %s, not %s)", me,
-             nconf->dim, airEnumStr(nrrdType, nconf->type),
+  if (!(3 == nconf->dim && nrrdTypeFloat == nconf->type)) {
+    biffAddf(TEN,
+             "%s: first nrrd not a confidence volume "
+             "(dim = %d, not 3; type = %s, not %s)",
+             me, nconf->dim, airEnumStr(nrrdType, nconf->type),
              airEnumStr(nrrdType, nrrdTypeFloat));
     return 1;
   }
   sx = nconf->axis[0].size;
   sy = nconf->axis[1].size;
   sz = nconf->axis[2].size;
-  if (!( 4 == neval->dim && 4 == nevec->dim &&
-         nrrdTypeFloat == neval->type &&
-         nrrdTypeFloat == nevec->type )) {
-    biffAddf(TEN, "%s: second and third nrrd aren't both 4-D (%d and %d) "
+  if (!(4 == neval->dim && 4 == nevec->dim && nrrdTypeFloat == neval->type
+        && nrrdTypeFloat == nevec->type)) {
+    biffAddf(TEN,
+             "%s: second and third nrrd aren't both 4-D (%d and %d) "
              "and type %s (%s and %s)",
-             me, neval->dim, nevec->dim,
-             airEnumStr(nrrdType, nrrdTypeFloat),
-             airEnumStr(nrrdType, neval->type),
-             airEnumStr(nrrdType, nevec->type));
+             me, neval->dim, nevec->dim, airEnumStr(nrrdType, nrrdTypeFloat),
+             airEnumStr(nrrdType, neval->type), airEnumStr(nrrdType, nevec->type));
     return 1;
   }
-  if (!( 3 == neval->axis[0].size &&
-         sx == neval->axis[1].size &&
-         sy == neval->axis[2].size &&
-         sz == neval->axis[3].size )) {
-    biffAddf(TEN, "%s: second nrrd sizes wrong: "
-             "(%s,%s,%s,%s) not (3,%s,%s,%s)", me,
-             airSprintSize_t(stmp[0], neval->axis[0].size),
+  if (!(3 == neval->axis[0].size && sx == neval->axis[1].size
+        && sy == neval->axis[2].size && sz == neval->axis[3].size)) {
+    biffAddf(TEN,
+             "%s: second nrrd sizes wrong: "
+             "(%s,%s,%s,%s) not (3,%s,%s,%s)",
+             me, airSprintSize_t(stmp[0], neval->axis[0].size),
              airSprintSize_t(stmp[1], neval->axis[1].size),
              airSprintSize_t(stmp[2], neval->axis[2].size),
-             airSprintSize_t(stmp[3], neval->axis[3].size),
-             airSprintSize_t(stmp[4], sx),
-             airSprintSize_t(stmp[5], sy),
-             airSprintSize_t(stmp[6], sz));
+             airSprintSize_t(stmp[3], neval->axis[3].size), airSprintSize_t(stmp[4], sx),
+             airSprintSize_t(stmp[5], sy), airSprintSize_t(stmp[6], sz));
     return 1;
   }
-  if (!( 9 == nevec->axis[0].size &&
-         sx == nevec->axis[1].size &&
-         sy == nevec->axis[2].size &&
-         sz == nevec->axis[3].size )) {
-    biffAddf(TEN, "%s: third nrrd sizes wrong: "
-             "(%s,%s,%s,%s) not (9,%s,%s,%s)", me,
-             airSprintSize_t(stmp[0], nevec->axis[0].size),
+  if (!(9 == nevec->axis[0].size && sx == nevec->axis[1].size
+        && sy == nevec->axis[2].size && sz == nevec->axis[3].size)) {
+    biffAddf(TEN,
+             "%s: third nrrd sizes wrong: "
+             "(%s,%s,%s,%s) not (9,%s,%s,%s)",
+             me, airSprintSize_t(stmp[0], nevec->axis[0].size),
              airSprintSize_t(stmp[1], nevec->axis[1].size),
              airSprintSize_t(stmp[2], nevec->axis[2].size),
-             airSprintSize_t(stmp[3], nevec->axis[3].size),
-             airSprintSize_t(stmp[4], sx),
-             airSprintSize_t(stmp[5], sy),
-             airSprintSize_t(stmp[6], sz));
+             airSprintSize_t(stmp[3], nevec->axis[3].size), airSprintSize_t(stmp[4], sx),
+             airSprintSize_t(stmp[5], sy), airSprintSize_t(stmp[6], sz));
     return 1;
   }
 
   /* finally */
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4,
-                        AIR_CAST(size_t, 7), sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, AIR_CAST(size_t, 7), sx, sy, sz)) {
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
-  N = sx*sy*sz;
+  N = sx * sy * sz;
   conf = (float *)(nconf->data);
   eval = (float *)neval->data;
   evec = (float *)nevec->data;
   out = (float *)nout->data;
-  for (I=0; I<N; I++) {
+  for (I = 0; I < N; I++) {
     tenMakeSingle_f(out, conf[I], eval, evec);
     /* lop A */
     out += 7;
@@ -655,14 +623,12 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
   nout->axis[0].kind = nrrdKind3DMaskedSymMatrix;
   if (nrrdBasicInfoCopy(nout, nconf,
                         NRRD_BASIC_INFO_DATA_BIT /* */
-                        | NRRD_BASIC_INFO_TYPE_BIT
-                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                        | NRRD_BASIC_INFO_DIMENSION_BIT
-                        | NRRD_BASIC_INFO_CONTENT_BIT
-                        | NRRD_BASIC_INFO_COMMENTS_BIT
-                        | (nrrdStateKeyValuePairsPropagate
-                           ? 0
-                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+                          | NRRD_BASIC_INFO_TYPE_BIT | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                          | NRRD_BASIC_INFO_DIMENSION_BIT | NRRD_BASIC_INFO_CONTENT_BIT
+                          | NRRD_BASIC_INFO_COMMENTS_BIT
+                          | (nrrdStateKeyValuePairsPropagate
+                               ? 0
+                               : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     biffMovef(TEN, NRRD, "%s:", me);
     return 1;
   }
@@ -671,10 +637,9 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
 }
 
 int
-tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
-         size_t pos, unsigned int dim) {
-  static const char me[]="tenSlice";
-  Nrrd *nslice, **ncoeff=NULL;
+tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis, size_t pos, unsigned int dim) {
+  static const char me[] = "tenSlice";
+  Nrrd *nslice, **ncoeff = NULL;
   int ci[4];
   airArray *mop;
   char stmp[2][AIR_STRLEN_SMALL];
@@ -691,14 +656,14 @@ tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
     biffAddf(TEN, "%s: given dim (%d) not 2 or 3", me, dim);
     return 1;
   }
-  if (!( axis <= 2 )) {
+  if (!(axis <= 2)) {
     biffAddf(TEN, "%s: axis %u not in valid range [0,1,2]", me, axis);
     return 1;
   }
-  if (!( pos < nten->axis[1+axis].size )) {
+  if (!(pos < nten->axis[1 + axis].size)) {
     biffAddf(TEN, "%s: slice position %s not in valid range [0..%s]", me,
              airSprintSize_t(stmp[0], pos),
-             airSprintSize_t(stmp[1], nten->axis[1+axis].size-1));
+             airSprintSize_t(stmp[1], nten->axis[1 + axis].size - 1));
     return 1;
   }
 
@@ -709,24 +674,25 @@ tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
   ** Dxz Dyz Dzz     (3) (5)  6
   */
   mop = airMopNew();
-  airMopAdd(mop, nslice=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nslice = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (3 == dim) {
-    if (nrrdSlice(nslice, nten, axis+1, pos)
-        || nrrdAxesInsert(nout, nslice, axis+1)) {
+    if (nrrdSlice(nslice, nten, axis + 1, pos)
+        || nrrdAxesInsert(nout, nslice, axis + 1)) {
       biffMovef(TEN, NRRD, "%s: trouble making slice", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   } else {
     /* HEY: this used to be ncoeff[4], but its passing to nrrdJoin caused
        "dereferencing type-punned pointer might break strict-aliasing rules"
        warning; GLK not sure how else to fix it */
-    ncoeff = AIR_CALLOC(4, Nrrd*);
+    ncoeff = AIR_CALLOC(4, Nrrd *);
     airMopAdd(mop, ncoeff, airFree, airMopAlways);
-    airMopAdd(mop, ncoeff[0]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-    airMopAdd(mop, ncoeff[1]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-    airMopAdd(mop, ncoeff[2]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-    airMopAdd(mop, ncoeff[3]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-    switch(axis) {
+    airMopAdd(mop, ncoeff[0] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    airMopAdd(mop, ncoeff[1] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    airMopAdd(mop, ncoeff[2] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    airMopAdd(mop, ncoeff[3] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    switch (axis) {
     case 0:
       ELL_4V_SET(ci, 0, 4, 5, 6);
       break;
@@ -738,17 +704,18 @@ tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis,
       break;
     default:
       biffAddf(TEN, "%s: axis %d bogus", me, axis);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
       break;
     }
-    if (nrrdSlice(nslice, nten, axis+1, pos)
-        || nrrdSlice(ncoeff[0], nslice, 0, ci[0])
+    if (nrrdSlice(nslice, nten, axis + 1, pos) || nrrdSlice(ncoeff[0], nslice, 0, ci[0])
         || nrrdSlice(ncoeff[1], nslice, 0, ci[1])
         || nrrdSlice(ncoeff[2], nslice, 0, ci[2])
         || nrrdSlice(ncoeff[3], nslice, 0, ci[3])
-        || nrrdJoin(nout, (const Nrrd *const*)ncoeff, 4, 0, AIR_TRUE)) {
+        || nrrdJoin(nout, (const Nrrd *const *)ncoeff, 4, 0, AIR_TRUE)) {
       biffMovef(TEN, NRRD, "%s: trouble collecting coefficients", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     nout->axis[0].kind = nrrdKind2DMaskedSymMatrix;
   }
@@ -785,15 +752,14 @@ _tenEvalSkewnessGradient_d(double skw[7],
   double dot, scl, norm;
 
   /* start with gradient of determinant */
-  TEN_T_SET(skw, ten[0],
-            Tyy*Tzz - Tyz*Tyz, Txz*Tyz - Txy*Tzz, Txy*Tyz - Txz*Tyy,
-            Txx*Tzz - Txz*Txz, Txy*Txz - Tyz*Txx,
-            Txx*Tyy - Txy*Txy);
+  TEN_T_SET(skw, ten[0], Tyy * Tzz - Tyz * Tyz, Txz * Tyz - Txy * Tzz,
+            Txy * Tyz - Txz * Tyy, Txx * Tzz - Txz * Txz, Txy * Txz - Tyz * Txx,
+            Txx * Tyy - Txy * Txy);
   /* this normalization is so that minnorm comparison below
      is meaningful regardless of scale of input */
   /* HEY: should have better handling of case where determinant
      gradient magnitude is near zero */
-  scl = 1.0/(DBL_EPSILON + TEN_T_NORM(skw));
+  scl = 1.0 / (DBL_EPSILON + TEN_T_NORM(skw));
   TEN_T_SCALE(skw, scl, skw);
   dot = TEN_T_DOT(skw, perp1);
   TEN_T_SCALE_INCR(skw, -dot, perp1);
@@ -805,21 +771,21 @@ _tenEvalSkewnessGradient_d(double skw[7],
     double eval[3], evec[9], matA[9], matB[9], matC[9], mev, third;
 
     tenEigensolve_d(eval, evec, ten);
-    mev = (eval[0] + eval[1] + eval[2])/3;
+    mev = (eval[0] + eval[1] + eval[2]) / 3;
     eval[0] -= mev;
     eval[1] -= mev;
     eval[2] -= mev;
-    third = (eval[0]*eval[0]*eval[0]
-             + eval[1]*eval[1]*eval[1]
-             + eval[2]*eval[2]*eval[2])/3;
+    third = (eval[0] * eval[0] * eval[0] + eval[1] * eval[1] * eval[1]
+             + eval[2] * eval[2] * eval[2])
+          / 3;
     if (third > 0) {
       /* skw is positive: linear: eval[1] = eval[2] */
-      ELL_3MV_OUTER(matA, evec + 1*3, evec + 1*3);
-      ELL_3MV_OUTER(matB, evec + 2*3, evec + 2*3);
+      ELL_3MV_OUTER(matA, evec + 1 * 3, evec + 1 * 3);
+      ELL_3MV_OUTER(matB, evec + 2 * 3, evec + 2 * 3);
     } else {
       /* skw is negative: planar: eval[0] = eval[1] */
-      ELL_3MV_OUTER(matA, evec + 0*3, evec + 0*3);
-      ELL_3MV_OUTER(matB, evec + 1*3, evec + 1*3);
+      ELL_3MV_OUTER(matA, evec + 0 * 3, evec + 0 * 3);
+      ELL_3MV_OUTER(matB, evec + 1 * 3, evec + 1 * 3);
     }
     ELL_3M_SCALE_ADD2(matC, SQRT_1_OVER_2, matA, -SQRT_1_OVER_2, matB);
     TEN_M2T(skw, matC);
@@ -831,7 +797,7 @@ _tenEvalSkewnessGradient_d(double skw[7],
     TEN_T_SCALE_INCR(skw, -dot, perp2);
     norm = TEN_T_NORM(skw);
   }
-  TEN_T_SCALE(skw, 1.0/norm, skw);
+  TEN_T_SCALE(skw, 1.0 / norm, skw);
   return;
 }
 
@@ -840,62 +806,46 @@ tenInvariantGradientsK_d(double mu1[7], double mu2[7], double skw[7],
                          const double ten[7], const double minnorm) {
   double dot, norm;
 
-  TEN_T_SET(mu1, ten[0],
-            SQRT_1_OVER_3, 0, 0,
-            SQRT_1_OVER_3, 0,
-            SQRT_1_OVER_3);
+  TEN_T_SET(mu1, ten[0], SQRT_1_OVER_3, 0, 0, SQRT_1_OVER_3, 0, SQRT_1_OVER_3);
 
-  TEN_T_SET(mu2, ten[0],
-            2*Txx - Tyy - Tzz, 3*Txy, 3*Txz,
-            2*Tyy - Txx - Tzz, 3*Tyz,
-            2*Tzz - Txx - Tyy);
+  TEN_T_SET(mu2, ten[0], 2 * Txx - Tyy - Tzz, 3 * Txy, 3 * Txz, 2 * Tyy - Txx - Tzz,
+            3 * Tyz, 2 * Tzz - Txx - Tyy);
   norm = TEN_T_NORM(mu2);
   if (norm < minnorm) {
     /* they gave us a diagonal matrix */
-    TEN_T_SET(mu2, ten[0],
-              SQRT_2_OVER_3, 0, 0,
-              -SQRT_1_OVER_6, 0,
-              -SQRT_1_OVER_6);
+    TEN_T_SET(mu2, ten[0], SQRT_2_OVER_3, 0, 0, -SQRT_1_OVER_6, 0, -SQRT_1_OVER_6);
   }
   /* next two lines shouldn't really be necessary */
   dot = TEN_T_DOT(mu2, mu1);
   TEN_T_SCALE_INCR(mu2, -dot, mu1);
   norm = TEN_T_NORM(mu2);
-  TEN_T_SCALE(mu2, 1.0/norm, mu2);
+  TEN_T_SCALE(mu2, 1.0 / norm, mu2);
   _tenEvalSkewnessGradient_d(skw, mu1, mu2, ten, minnorm);
 
   return;
 }
 
 void
-tenInvariantGradientsR_d(double R1[7], double R2[7], double R3[7],
-                         const double ten[7], const double minnorm) {
+tenInvariantGradientsR_d(double R1[7], double R2[7], double R3[7], const double ten[7],
+                         const double minnorm) {
   double dot, dev[7], norm, tenNorm, devNorm;
 
   TEN_T_COPY(R1, ten);
   tenNorm = norm = TEN_T_NORM(R1);
   if (norm < minnorm) {
-    TEN_T_SET(R1, ten[0],
-              SQRT_1_OVER_3, 0, 0,
-              SQRT_1_OVER_3, 0,
-              SQRT_1_OVER_3);
+    TEN_T_SET(R1, ten[0], SQRT_1_OVER_3, 0, 0, SQRT_1_OVER_3, 0, SQRT_1_OVER_3);
     norm = TEN_T_NORM(R1);
   }
-  TEN_T_SCALE(R1, 1.0/norm, R1);
+  TEN_T_SCALE(R1, 1.0 / norm, R1);
 
-  TEN_T_SET(dev, ten[0],
-            (2*Txx - Tyy - Tzz)/3, Txy, Txz,
-            (2*Tyy - Txx - Tzz)/3, Tyz,
-            (2*Tzz - Txx - Tyy)/3);
+  TEN_T_SET(dev, ten[0], (2 * Txx - Tyy - Tzz) / 3, Txy, Txz, (2 * Tyy - Txx - Tzz) / 3,
+            Tyz, (2 * Tzz - Txx - Tyy) / 3);
   devNorm = TEN_T_NORM(dev);
   if (devNorm < minnorm) {
     /* they gave us a diagonal matrix */
-    TEN_T_SET(R2, ten[0],
-              SQRT_2_OVER_3, 0, 0,
-              -SQRT_1_OVER_6, 0,
-              -SQRT_1_OVER_6);
+    TEN_T_SET(R2, ten[0], SQRT_2_OVER_3, 0, 0, -SQRT_1_OVER_6, 0, -SQRT_1_OVER_6);
   } else {
-    TEN_T_SCALE_ADD2(R2, tenNorm/devNorm, dev, -devNorm/tenNorm, ten);
+    TEN_T_SCALE_ADD2(R2, tenNorm / devNorm, dev, -devNorm / tenNorm, ten);
   }
   /* next two lines shouldn't really be necessary */
   dot = TEN_T_DOT(R2, R1);
@@ -903,12 +853,9 @@ tenInvariantGradientsR_d(double R1[7], double R2[7], double R3[7],
   norm = TEN_T_NORM(R2);
   if (norm < minnorm) {
     /* Traceless tensor */
-    TEN_T_SET(R2, ten[0],
-              SQRT_2_OVER_3, 0, 0,
-              -SQRT_1_OVER_6, 0,
-              -SQRT_1_OVER_6);
+    TEN_T_SET(R2, ten[0], SQRT_2_OVER_3, 0, 0, -SQRT_1_OVER_6, 0, -SQRT_1_OVER_6);
   } else {
-    TEN_T_SCALE(R2, 1.0/norm, R2);
+    TEN_T_SCALE(R2, 1.0 / norm, R2);
   }
   _tenEvalSkewnessGradient_d(R3, R1, R2, ten, minnorm);
 
@@ -927,24 +874,24 @@ tenRotationTangents_d(double phi1[7],
 
   if (phi1) {
     phi1[0] = 1.0;
-    ELL_3MV_OUTER(outA, evec + 1*3, evec + 2*3);
-    ELL_3MV_OUTER(outB, evec + 2*3, evec + 1*3);
+    ELL_3MV_OUTER(outA, evec + 1 * 3, evec + 2 * 3);
+    ELL_3MV_OUTER(outB, evec + 2 * 3, evec + 1 * 3);
     ELL_3M_SCALE_ADD2(mat, SQRT_1_OVER_2, outA, SQRT_1_OVER_2, outB);
     TEN_M2T(phi1, mat);
   }
 
   if (phi2) {
     phi2[0] = 1.0;
-    ELL_3MV_OUTER(outA, evec + 0*3, evec + 2*3);
-    ELL_3MV_OUTER(outB, evec + 2*3, evec + 0*3);
+    ELL_3MV_OUTER(outA, evec + 0 * 3, evec + 2 * 3);
+    ELL_3MV_OUTER(outB, evec + 2 * 3, evec + 0 * 3);
     ELL_3M_SCALE_ADD2(mat, SQRT_1_OVER_2, outA, SQRT_1_OVER_2, outB);
     TEN_M2T(phi2, mat);
   }
 
   if (phi3) {
     phi3[0] = 1.0;
-    ELL_3MV_OUTER(outA, evec + 0*3, evec + 1*3);
-    ELL_3MV_OUTER(outB, evec + 1*3, evec + 0*3);
+    ELL_3MV_OUTER(outA, evec + 0 * 3, evec + 1 * 3);
+    ELL_3MV_OUTER(outB, evec + 1 * 3, evec + 0 * 3);
     ELL_3M_SCALE_ADD2(mat, SQRT_1_OVER_2, outA, SQRT_1_OVER_2, outB);
     TEN_M2T(phi3, mat);
   }
@@ -972,10 +919,10 @@ tenLogSingle_d(double logten[7], const double ten[7]) {
   unsigned int ii;
 
   tenEigensolve_d(eval, evec, ten);
-  for (ii=0; ii<3; ii++) {
+  for (ii = 0; ii < 3; ii++) {
     eval[ii] = log(eval[ii]);
     if (!AIR_EXISTS(eval[ii])) {
-      eval[ii] = -FLT_MAX;  /* making stuff up */
+      eval[ii] = -FLT_MAX; /* making stuff up */
     }
   }
   tenMakeSingle_d(logten, ten[0], eval, evec);
@@ -987,10 +934,10 @@ tenLogSingle_f(float logten[7], const float ten[7]) {
   unsigned int ii;
 
   tenEigensolve_f(eval, evec, ten);
-  for (ii=0; ii<3; ii++) {
+  for (ii = 0; ii < 3; ii++) {
     eval[ii] = AIR_FLOAT(log(eval[ii]));
     if (!AIR_EXISTS(eval[ii])) {
-      eval[ii] = -FLT_MAX/10; /* still making stuff up */
+      eval[ii] = -FLT_MAX / 10; /* still making stuff up */
     }
   }
   tenMakeSingle_f(logten, ten[0], eval, evec);
@@ -1002,7 +949,7 @@ tenExpSingle_d(double expten[7], const double ten[7]) {
   unsigned int ii;
 
   tenEigensolve_d(eval, evec, ten);
-  for (ii=0; ii<3; ii++) {
+  for (ii = 0; ii < 3; ii++) {
     eval[ii] = exp(eval[ii]);
   }
   tenMakeSingle_d(expten, ten[0], eval, evec);
@@ -1014,7 +961,7 @@ tenExpSingle_f(float expten[7], const float ten[7]) {
   unsigned int ii;
 
   tenEigensolve_f(eval, evec, ten);
-  for (ii=0; ii<3; ii++) {
+  for (ii = 0; ii < 3; ii++) {
     eval[ii] = AIR_FLOAT(exp(eval[ii]));
   }
   tenMakeSingle_f(expten, ten[0], eval, evec);
@@ -1026,7 +973,7 @@ tenSqrtSingle_d(double sqrtten[7], const double ten[7]) {
   unsigned int ii;
 
   tenEigensolve_d(eval, evec, ten);
-  for (ii=0; ii<3; ii++) {
+  for (ii = 0; ii < 3; ii++) {
     eval[ii] = eval[ii] > 0 ? sqrt(eval[ii]) : 0;
   }
   tenMakeSingle_d(sqrtten, ten[0], eval, evec);
@@ -1038,7 +985,7 @@ tenSqrtSingle_f(float sqrtten[7], const float ten[7]) {
   unsigned int ii;
 
   tenEigensolve_f(eval, evec, ten);
-  for (ii=0; ii<3; ii++) {
+  for (ii = 0; ii < 3; ii++) {
     eval[ii] = AIR_FLOAT(eval[ii] > 0 ? sqrt(eval[ii]) : 0);
   }
   tenMakeSingle_f(sqrtten, ten[0], eval, evec);
@@ -1050,7 +997,7 @@ tenPowSingle_d(double powten[7], const double ten[7], double power) {
   unsigned int ii;
 
   tenEigensolve_d(_eval, evec, ten);
-  for (ii=0; ii<3; ii++) {
+  for (ii = 0; ii < 3; ii++) {
     eval[ii] = pow(_eval[ii], power);
   }
   tenMakeSingle_d(powten, ten[0], eval, evec);
@@ -1062,13 +1009,13 @@ tenPowSingle_f(float powten[7], const float ten[7], float power) {
   unsigned int ii;
 
   tenEigensolve_f(eval, evec, ten);
-  for (ii=0; ii<3; ii++) {
+  for (ii = 0; ii < 3; ii++) {
     eval[ii] = AIR_FLOAT(pow(eval[ii], power));
   }
   tenMakeSingle_f(powten, ten[0], eval, evec);
 }
 
-/* clang-off off */
+/* clang-format off */
 double
 tenDoubleContract_d(double a[7], double T[21], double b[7]) {
   double ret;
@@ -1082,4 +1029,4 @@ tenDoubleContract_d(double a[7], double T[21], double b[7]) {
 
   return ret;
 }
-/* clang-off on */
+/* clang-format on */

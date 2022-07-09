@@ -31,20 +31,20 @@ extern "C" {
 #endif
 
 /* feel free to set these to higher values and recompile */
-#define NRRD_DIM_MAX 16
+#define NRRD_DIM_MAX       16
 /*                             Max array dimension (nrrd->dim) */
 #define NRRD_SPACE_DIM_MAX 8
 /*                             Max dimension of "space" around array
                                (nrrd->spaceDim) */
 
-#define NRRD_EXT_NRRD   ".nrrd"
-#define NRRD_EXT_NHDR   ".nhdr"
-#define NRRD_EXT_PGM    ".pgm"
-#define NRRD_EXT_PPM    ".ppm"
-#define NRRD_EXT_PNG    ".png"
-#define NRRD_EXT_VTK    ".vtk"
-#define NRRD_EXT_TEXT   ".txt"
-#define NRRD_EXT_EPS    ".eps"
+#define NRRD_EXT_NRRD ".nrrd"
+#define NRRD_EXT_NHDR ".nhdr"
+#define NRRD_EXT_PGM  ".pgm"
+#define NRRD_EXT_PPM  ".ppm"
+#define NRRD_EXT_PNG  ".png"
+#define NRRD_EXT_VTK  ".vtk"
+#define NRRD_EXT_TEXT ".txt"
+#define NRRD_EXT_EPS  ".eps"
 
 /* HEY: should this be renamed -> MAXNUM ? Would be more consistent
    with other Teem pound-define names */
@@ -67,8 +67,8 @@ extern "C" {
 ** terms of explicit values (which agree with those defined by C99).
 */
 
-#define NRRD_LLONG_MAX AIR_LLONG(9223372036854775807)
-#define NRRD_LLONG_MIN (-NRRD_LLONG_MAX-AIR_LLONG(1))
+#define NRRD_LLONG_MAX  AIR_LLONG(9223372036854775807)
+#define NRRD_LLONG_MIN  (-NRRD_LLONG_MAX - AIR_LLONG(1))
 #define NRRD_ULLONG_MAX AIR_ULLONG(18446744073709551615)
 
 /*
@@ -79,28 +79,28 @@ extern "C" {
 /* suffix string that indicates percentile-based min/max */
 #define NRRD_MINMAX_PERC_SUFF "%"
 /* ---- END non-NrrdIO */
-#define NRRD_COMMENT_CHAR '#'
-#define NRRD_FILENAME_INCR 32
-#define NRRD_COMMENT_INCR 16
-#define NRRD_KEYVALUE_INCR 32
-#define NRRD_LIST_FLAG "LIST"
-#define NRRD_SKIPLIST_FLAG "SKIPLIST"
-#define NRRD_PNM_COMMENT "# NRRD>"
+#define NRRD_COMMENT_CHAR     '#'
+#define NRRD_FILENAME_INCR    32
+#define NRRD_COMMENT_INCR     16
+#define NRRD_KEYVALUE_INCR    32
+#define NRRD_LIST_FLAG        "LIST"
+#define NRRD_SKIPLIST_FLAG    "SKIPLIST"
+#define NRRD_PNM_COMMENT      "# NRRD>"
 /*                                   this is designed to be robust against the
                                      mungling that xv does, but no promises for
                                      any other image programs */
 
-#define NRRD_PNG_FIELD_KEY "NRRD"
+#define NRRD_PNG_FIELD_KEY   "NRRD"
 /*                                   this is the key used for getting nrrd
                                      fields into/out of png comments */
 #define NRRD_PNG_COMMENT_KEY "NRRD#"
 /*                                   this is the key used for getting nrrd
                                      comments into/out of png comments */
-#define NRRD_UNKNOWN  "???"
+#define NRRD_UNKNOWN         "???"
 /*                                   how to represent something unknown in a
                                      field of the nrrd header, when it being
                                      unknown is not an error */
-#define NRRD_NONE "none"
+#define NRRD_NONE            "none"
 /*                                   like NRRD_UNKNOWN, but with an air of
                                      certainty */
 

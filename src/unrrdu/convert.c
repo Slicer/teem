@@ -25,20 +25,19 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Convert to another type (as if by cast, w/ optional clamp)"
-static const char *_unrrdu_convertInfoL =
-(INFO ". By default this does not transform, scale, or intelligently "
- "quantize values; it just copies them from one type to another, which "
- "replicates exactly what you'd get in C when you assign from a variable "
- "of one type to another, or when you cast to a different type. However, "
- "clamping values to the representable range of the output type is possible. "
- "with \"-clamp\". "
- "See also \"unu quantize\","
- "\"unu 2op x\", and \"unu 3op clamp\".\n "
- "* Uses nrrdConvert or nrrdClampConvert");
+static const char *_unrrdu_convertInfoL
+  = (INFO ". By default this does not transform, scale, or intelligently "
+          "quantize values; it just copies them from one type to another, which "
+          "replicates exactly what you'd get in C when you assign from a variable "
+          "of one type to another, or when you cast to a different type. However, "
+          "clamping values to the representable range of the output type is possible. "
+          "with \"-clamp\". "
+          "See also \"unu quantize\","
+          "\"unu 2op x\", and \"unu 3op clamp\".\n "
+          "* Uses nrrdConvert or nrrdClampConvert");
 
 int
-unrrdu_convertMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_convertMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

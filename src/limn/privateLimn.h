@@ -30,27 +30,27 @@ extern "C" {
 
 /* USAGE, PARSE: both copied verbatim from unrrdu/privateUnrrdu.h */
 
-#define USAGE(info) \
-  if (!argc) { \
-    hestInfo(stderr, me, (info), hparm); \
-    hestUsage(stderr, hopt, me, hparm); \
-    hestGlossary(stderr, hopt, hparm); \
-    airMopError(mop); \
-    return 2; \
+#define USAGE(info)                                                                     \
+  if (!argc) {                                                                          \
+    hestInfo(stderr, me, (info), hparm);                                                \
+    hestUsage(stderr, hopt, me, hparm);                                                 \
+    hestGlossary(stderr, hopt, hparm);                                                  \
+    airMopError(mop);                                                                   \
+    return 2;                                                                           \
   }
 
-#define PARSE() \
-  if ((pret=hestParse(hopt, argc, argv, &perr, hparm))) { \
-    if (1 == pret) { \
-      fprintf(stderr, "%s: %s\n", me, perr); free(perr); \
-      hestUsage(stderr, hopt, me, hparm); \
-      airMopError(mop); \
-      return 2; \
-    } else { \
-      exit(1); \
-    } \
+#define PARSE()                                                                         \
+  if ((pret = hestParse(hopt, argc, argv, &perr, hparm))) {                             \
+    if (1 == pret) {                                                                    \
+      fprintf(stderr, "%s: %s\n", me, perr);                                            \
+      free(perr);                                                                       \
+      hestUsage(stderr, hopt, me, hparm);                                               \
+      airMopError(mop);                                                                 \
+      return 2;                                                                         \
+    } else {                                                                            \
+      exit(1);                                                                          \
+    }                                                                                   \
   }
-
 
 #ifdef __cplusplus
 }

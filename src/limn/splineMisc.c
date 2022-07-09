@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "limn.h"
 
 /* clang-format off */
@@ -147,15 +146,14 @@ limnSplineInfo = &_limnSplineInfo;
 **
 ** gives the number of scalars per "value" for each splineInfo
 */
-unsigned int
-limnSplineInfoSize[LIMN_SPLINE_INFO_MAX+1] = {
-  0,  /* limnSplineInfoUnknown */
-  1,  /* limnSplineInfoScalar */
-  2,  /* limnSplineInfo2Vector */
-  3,  /* limnSplineInfo3Vector */
-  3,  /* limnSplineInfoNormal */
-  4,  /* limnSplineInfo4Vector */
-  4   /* limnSplineInfoQuaternion */
+unsigned int limnSplineInfoSize[LIMN_SPLINE_INFO_MAX + 1] = {
+  0, /* limnSplineInfoUnknown */
+  1, /* limnSplineInfoScalar */
+  2, /* limnSplineInfo2Vector */
+  3, /* limnSplineInfo3Vector */
+  3, /* limnSplineInfoNormal */
+  4, /* limnSplineInfo4Vector */
+  4  /* limnSplineInfoQuaternion */
 };
 
 /*
@@ -165,8 +163,7 @@ limnSplineInfoSize[LIMN_SPLINE_INFO_MAX+1] = {
 ** main control point values, without needing additional control
 ** points (as in cubic Bezier) or tangent information (as in Hermite)
 */
-int
-limnSplineTypeHasImplicitTangents[LIMN_SPLINE_TYPE_MAX+1] = {
+int limnSplineTypeHasImplicitTangents[LIMN_SPLINE_TYPE_MAX + 1] = {
   AIR_FALSE, /* limnSplineTypeUnknown */
   AIR_TRUE,  /* limnSplineTypeLinear */
   AIR_FALSE, /* limnSplineTypeTimeWarp */
@@ -206,9 +203,9 @@ limnSplineMaxT(limnSpline *spline) {
   if (spline) {
     N = AIR_INT(spline->ncpt->axis[2].size); /* HEY be unsigned */
     if (spline->time) {
-      ret = spline->time[N-1];
+      ret = spline->time[N - 1];
     } else {
-      ret = spline->loop ? N : N-1;
+      ret = spline->loop ? N : N - 1;
     }
   }
   return ret;
@@ -225,55 +222,54 @@ limnSplineBCSet(limnSpline *spline, double B, double C) {
 
 limnSplineTypeSpec *
 limnSplineTypeSpecParse(const char *_str) {
-  static const char me[]="limnSplineTypeSpecParse";
+  static const char me[] = "limnSplineTypeSpecParse";
   limnSplineTypeSpec *spec;
   int type;
   double B, C;
   char *str, *col, *bcS;
   airArray *mop;
 
-  if (!( _str && airStrlen(_str) )) {
+  if (!(_str && airStrlen(_str))) {
     biffAddf(LIMN, "%s: got NULL or emptry string", me);
     return NULL;
   }
   mop = airMopNew();
-  airMopAdd(mop, str=airStrdup(_str), airFree, airMopAlways);
+  airMopAdd(mop, str = airStrdup(_str), airFree, airMopAlways);
   col = strchr(str, ':');
   if (col) {
     *col = 0;
-    bcS = col+1;
+    bcS = col + 1;
   } else {
     bcS = NULL;
   }
   if (limnSplineTypeUnknown == (type = airEnumVal(limnSplineType, str))) {
     biffAddf(LIMN, "%s: couldn't parse \"%s\" as spline type", me, str);
-    airMopError(mop); return NULL;
+    airMopError(mop);
+    return NULL;
   }
 
-  if (!( (limnSplineTypeBC == type) == !!bcS )) {
-    biffAddf(LIMN, "%s: spline type %s %s, but %s a parameter string %s%s%s",
-             me,
+  if (!((limnSplineTypeBC == type) == !!bcS)) {
+    biffAddf(LIMN, "%s: spline type %s %s, but %s a parameter string %s%s%s", me,
              (limnSplineTypeBC == type) ? "is" : "is not",
              airEnumStr(limnSplineType, limnSplineTypeBC),
-             !!bcS ? "got unexpected" : "did not get",
-             !!bcS ? "\"" : "",
-             !!bcS ? bcS : "",
-             !!bcS ? "\"" : "");
-    airMopError(mop); return NULL;
+             !!bcS ? "got unexpected" : "did not get", !!bcS ? "\"" : "",
+             !!bcS ? bcS : "", !!bcS ? "\"" : "");
+    airMopError(mop);
+    return NULL;
   }
   if (limnSplineTypeBC == type) {
     if (2 != sscanf(bcS, "%lg,%lg", &B, &C)) {
-      biffAddf(LIMN, "%s: couldn't parse \"B,C\" parameters from \"%s\"", me,
-               bcS);
-      airMopError(mop); return NULL;
+      biffAddf(LIMN, "%s: couldn't parse \"B,C\" parameters from \"%s\"", me, bcS);
+      airMopError(mop);
+      return NULL;
     }
   }
-  spec = (limnSplineTypeBC == type
-          ? limnSplineTypeSpecNew(type, B, C)
-          : limnSplineTypeSpecNew(type));
+  spec = (limnSplineTypeBC == type ? limnSplineTypeSpecNew(type, B, C)
+                                   : limnSplineTypeSpecNew(type));
   if (!spec) {
     biffAddf(LIMN, "%s: limnSplineTypeSpec allocation failed", me);
-    airMopError(mop); return NULL;
+    airMopError(mop);
+    return NULL;
   }
 
   airMopOkay(mop);
@@ -282,7 +278,7 @@ limnSplineTypeSpecParse(const char *_str) {
 
 limnSpline *
 limnSplineParse(const char *_str) {
-  static const char me[]="limnSplineParse";
+  static const char me[] = "limnSplineParse";
   char *str, *col, *fnameS, *infoS, *typeS, *tmpS;
   int info;
   limnSpline *spline;
@@ -290,65 +286,76 @@ limnSplineParse(const char *_str) {
   Nrrd *ninA, *ninB;
   airArray *mop;
 
-  if (!( _str && airStrlen(_str) )) {
+  if (!(_str && airStrlen(_str))) {
     biffAddf(LIMN, "%s: got NULL or empty string", me);
     return NULL;
   }
   mop = airMopNew();
-  airMopAdd(mop, str=airStrdup(_str), airFree, airMopAlways);
+  airMopAdd(mop, str = airStrdup(_str), airFree, airMopAlways);
 
   /* find separation between filename and "<splineInfo>:<splineType>[:B,C]" */
   col = strchr(str, ':');
   if (!col) {
-    biffAddf(LIMN, "%s: saw no colon separator (between nrrd filename and "
-             "spline info) in \"%s\"", me, _str);
-    airMopError(mop); return NULL;
+    biffAddf(LIMN,
+             "%s: saw no colon separator (between nrrd filename and "
+             "spline info) in \"%s\"",
+             me, _str);
+    airMopError(mop);
+    return NULL;
   }
   fnameS = str;
   *col = 0;
-  tmpS = col+1;
+  tmpS = col + 1;
   airMopAdd(mop, ninA = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdLoad(ninA, fnameS, NULL)) {
     biffMovef(LIMN, NRRD, "%s: couldn't read control point nrrd:\n", me);
-    airMopError(mop); return NULL;
+    airMopError(mop);
+    return NULL;
   }
 
   /* find separation between splineInfo and "<splineType>[:B,C]" */
   col = strchr(tmpS, ':');
   if (!col) {
-    biffAddf(LIMN, "%s: saw no colon separator (between spline info "
-             "and spline type) in \"%s\"", me, tmpS);
-    airMopError(mop); return NULL;
+    biffAddf(LIMN,
+             "%s: saw no colon separator (between spline info "
+             "and spline type) in \"%s\"",
+             me, tmpS);
+    airMopError(mop);
+    return NULL;
   }
   infoS = tmpS;
   *col = 0;
-  typeS = col+1;
+  typeS = col + 1;
   if (limnSplineInfoUnknown == (info = airEnumVal(limnSplineInfo, infoS))) {
     biffAddf(LIMN, "%s: couldn't parse \"%s\" as spline info", me, infoS);
-    airMopError(mop); return NULL;
+    airMopError(mop);
+    return NULL;
   }
 
   /* now parse <splineType>[:B,C] */
-  if (!( spec = limnSplineTypeSpecParse(typeS) )) {
+  if (!(spec = limnSplineTypeSpecParse(typeS))) {
     biffAddf(LIMN, "%s: couldn't parse spline type in \"%s\":\n", me, typeS);
-    airMopError(mop); return NULL;
+    airMopError(mop);
+    return NULL;
   }
-  if (limnSplineTypeTimeWarp == spec->type
-      && limnSplineInfoScalar != info) {
+  if (limnSplineTypeTimeWarp == spec->type && limnSplineInfoScalar != info) {
     biffAddf(LIMN, "%s: can only time-warp %s info, not %s", me,
              airEnumStr(limnSplineInfo, limnSplineInfoScalar),
              airEnumStr(limnSplineInfo, info));
-    airMopError(mop); return NULL;
+    airMopError(mop);
+    return NULL;
   }
 
   airMopAdd(mop, ninB = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (limnSplineNrrdCleverFix(ninB, ninA, info, spec->type)) {
     biffAddf(LIMN, "%s: couldn't reshape given nrrd:\n", me);
-    airMopError(mop); return NULL;
+    airMopError(mop);
+    return NULL;
   }
-  if (!( spline = limnSplineNew(ninB, info, spec) )) {
+  if (!(spline = limnSplineNew(ninB, info, spec))) {
     biffAddf(LIMN, "%s: couldn't create spline:\n", me);
-    airMopError(mop); return NULL;
+    airMopError(mop);
+    return NULL;
   }
 
   airMopOkay(mop);
@@ -360,8 +367,7 @@ limnSplineParse(const char *_str) {
 ** <splineType>[:B,C]
 */
 int
-_limnHestSplineTypeSpecParse(void *ptr, const char *str,
-                             char err[AIR_STRLEN_HUGE]) {
+_limnHestSplineTypeSpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   static const char me[] = "_limnHestSplineTypeSpecParse";
   char *err2;
   limnSplineTypeSpec **specP;
@@ -372,35 +378,30 @@ _limnHestSplineTypeSpecParse(void *ptr, const char *str,
   }
   specP = (limnSplineTypeSpec **)ptr;
 
-  if (!( *specP = limnSplineTypeSpecParse(str) )) {
+  if (!(*specP = limnSplineTypeSpecParse(str))) {
     err2 = biffGetDone(LIMN);
     sprintf(err, "%s: couldn't parse \"%s\":\n", me, str);
-    strncat(err, err2, AIR_STRLEN_HUGE-1-strlen(err));
-    free(err2); return 1;
+    strncat(err, err2, AIR_STRLEN_HUGE - 1 - strlen(err));
+    free(err2);
+    return 1;
   }
 
   return 0;
 }
 
+hestCB _limnHestSplineTypeSpec = {sizeof(limnSplineTypeSpec *),
+                                  "spline type specification",
+                                  _limnHestSplineTypeSpecParse,
+                                  (airMopper)limnSplineTypeSpecNix};
 
-hestCB
-_limnHestSplineTypeSpec = {
-  sizeof(limnSplineTypeSpec *),
-  "spline type specification",
-  _limnHestSplineTypeSpecParse,
-  (airMopper)limnSplineTypeSpecNix
-};
-
-hestCB *
-limnHestSplineTypeSpec = &_limnHestSplineTypeSpec;
+hestCB *limnHestSplineTypeSpec = &_limnHestSplineTypeSpec;
 
 /*
 ** the spline command-line specification is of the form
 ** <nrrdFileName>:<splineInfo>:<splineType>[:B,C]
 */
 int
-_limnHestSplineParse(void *ptr, const char *str,
-                     char err[AIR_STRLEN_HUGE]) {
+_limnHestSplineParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   static const char me[] = "_limnHestSplineParse";
   char *err2;
   limnSpline **splineP;
@@ -417,24 +418,18 @@ _limnHestSplineParse(void *ptr, const char *str,
     return 0;
   }
 
-  if (!( *splineP = limnSplineParse(str) )) {
+  if (!(*splineP = limnSplineParse(str))) {
     err2 = biffGetDone(LIMN);
     sprintf(err, "%s: couldn't parse \"%s\":\n", me, str);
-    strncat(err, err2, AIR_STRLEN_HUGE-1-strlen(err));
-    free(err2); return 1;
+    strncat(err, err2, AIR_STRLEN_HUGE - 1 - strlen(err));
+    free(err2);
+    return 1;
   }
 
   return 0;
 }
 
+hestCB _limnHestSpline = {sizeof(limnSpline *), "spline specification",
+                          _limnHestSplineParse, (airMopper)limnSplineNix};
 
-hestCB
-_limnHestSpline = {
-  sizeof(limnSpline *),
-  "spline specification",
-  _limnHestSplineParse,
-  (airMopper)limnSplineNix
-};
-
-hestCB *
-limnHestSpline = &_limnHestSpline;
+hestCB *limnHestSpline = &_limnHestSpline;

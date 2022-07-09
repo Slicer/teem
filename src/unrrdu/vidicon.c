@@ -25,16 +25,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Try to create the look of early 80s analog B+W video"
-static const char *_unrrdu_vidiconInfoL =
-  (INFO
-   ". Does various things, some more justified than others.\n "
-   "* (as yet there's no single nrrd function which does all this)");
+static const char *_unrrdu_vidiconInfoL
+  = (INFO ". Does various things, some more justified than others.\n "
+          "* (as yet there's no single nrrd function which does all this)");
 
 int
-unrrdu_vidiconMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_vidiconMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  airArray *mop, *submop=NULL;
+  airArray *mop, *submop = NULL;
 
   unsigned int vsize[2], vpadding[2], rpadding[2];
   double rescale, rperc;
@@ -48,15 +46,13 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me,
   hparm->elideSingleOtherDefault = AIR_FALSE;
 
   hestOptAdd(&opt, "i", "input", airTypeOther, 1, 1, &nin, NULL,
-             "input image. Should be grayscale PNG.",
-             NULL, NULL, nrrdHestNrrd);
+             "input image. Should be grayscale PNG.", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "rs", "rescale", airTypeDouble, 1, 1, &rescale, "0.75",
              "how to rescale (downsample) the image prior to processing, "
              "just to get a better representation of the floating-point "
              "range of image values (overcoming 8-bit quantization effects)");
   hestOptAdd(&opt, "rsk", "kern", airTypeOther, 1, 1, &rescaleKsp, "hann:5",
-             "kernel for rescaling.",
-             NULL, NULL, nrrdHestKernelSpec);
+             "kernel for rescaling.", NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&opt, "rsp", "percentile", airTypeDouble, 1, 1, &rperc, "1.5",
              "after rescaling, the highest and lowest percentiles are mapped "
              "to 0.0 and 255.0, just to have a uniform range of intensities "
@@ -78,8 +74,7 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me,
   hestOptAdd(&opt, "stp", "prefix", airTypeString, 1, 1, &stpfx, "",
              "if a string is given here, a series of images are saved, "
              "representing the various stages of processing");
-  hestOptAdd(&opt, "o", "output", airTypeString, 1, 1, &out, NULL,
-             "output nrrd");
+  hestOptAdd(&opt, "o", "output", airTypeString, 1, 1, &out, NULL, "output nrrd");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
@@ -93,10 +88,11 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me,
   b8range = nrrdRangeNew(0.0, 255.0);
   airMopAdd(mop, b8range, (airMopper)nrrdRangeNix, airMopAlways);
 
-  if (!( 2 == nin->dim && nrrdTypeBlock != nin->type )) {
-    fprintf(stderr, "%s: need input as 2D grayscale image (not %u-d %s)\n",
-            me, nin->dim, airEnumStr(nrrdType, nin->type));
-    airMopError(mop); return 1;
+  if (!(2 == nin->dim && nrrdTypeBlock != nin->type)) {
+    fprintf(stderr, "%s: need input as 2D grayscale image (not %u-d %s)\n", me, nin->dim,
+            airEnumStr(nrrdType, nin->type));
+    airMopError(mop);
+    return 1;
   }
   nrescale = nrrdNew();
   airMopAdd(mop, nrescale, (airMopper)nrrdNuke, airMopAlways);
@@ -108,29 +104,27 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me,
       || nrrdResampleInputSet(rsmc, nin)
       || nrrdResampleKernelSet(rsmc, 0, rescaleKsp->kernel, rescaleKsp->parm)
       || nrrdResampleKernelSet(rsmc, 1, rescaleKsp->kernel, rescaleKsp->parm)
-      || nrrdResampleSamplesSet(rsmc, 0, AIR_CAST(size_t,
-                                                  rescale*nin->axis[0].size))
-      || nrrdResampleSamplesSet(rsmc, 1, AIR_CAST(size_t,
-                                                  rescale*nin->axis[1].size))
-      || nrrdResampleRangeFullSet(rsmc, 0)
-      || nrrdResampleRangeFullSet(rsmc, 1)
+      || nrrdResampleSamplesSet(rsmc, 0, AIR_CAST(size_t, rescale * nin->axis[0].size))
+      || nrrdResampleSamplesSet(rsmc, 1, AIR_CAST(size_t, rescale * nin->axis[1].size))
+      || nrrdResampleRangeFullSet(rsmc, 0) || nrrdResampleRangeFullSet(rsmc, 1)
       || nrrdResampleTypeOutSet(rsmc, nrrdTypeFloat)
       || nrrdResampleRenormalizeSet(rsmc, AIR_TRUE)
       || nrrdResampleExecute(rsmc, nrescale)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: problem rescaling:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
-#define SAVE_TMP(name, nrrd)                                            \
-  if (airStrlen(stpfx)) {                                               \
-    sprintf(stname, "%s-" #name ".png", stpfx);                         \
-    if (nrrdQuantize(ntmp, nrrd, b8range, 8)                            \
-        || nrrdSave(stname, ntmp, 0)) {                                 \
-      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);   \
-      fprintf(stderr, "%s: problem saving %s:\n%s", me, stname, err);   \
-      airMopError(mop); return 1;                                       \
-    }                                                                   \
+#define SAVE_TMP(name, nrrd)                                                            \
+  if (airStrlen(stpfx)) {                                                               \
+    sprintf(stname, "%s-" #name ".png", stpfx);                                         \
+    if (nrrdQuantize(ntmp, nrrd, b8range, 8) || nrrdSave(stname, ntmp, 0)) {            \
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);                   \
+      fprintf(stderr, "%s: problem saving %s:\n%s", me, stname, err);                   \
+      airMopError(mop);                                                                 \
+      return 1;                                                                         \
+    }                                                                                   \
   }
   SAVE_TMP(rescale, nrescale);
 
@@ -149,58 +143,60 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me,
     if (nrrdHisto(nhist, nrescale, NULL, NULL, hbins, nrrdTypeDouble)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble making histogram:\n%s", me, err);
-      airMopError(submop); airMopError(mop); return 1;
+      airMopError(submop);
+      airMopError(mop);
+      return 1;
     }
     hist = AIR_CAST(double *, nhist->data);
     total = AIR_CAST(double, nrrdElementNumber(nrescale));
     minval = AIR_NAN;
     sum = 0;
-    for (hi=0; hi<hbins; hi++) {
+    for (hi = 0; hi < hbins; hi++) {
       sum += hist[hi];
-      if (sum >= rperc*total/100.0) {
-        minval = AIR_AFFINE(0, hi, hbins-1,
-                            nhist->axis[0].min, nhist->axis[0].max);
+      if (sum >= rperc * total / 100.0) {
+        minval = AIR_AFFINE(0, hi, hbins - 1, nhist->axis[0].min, nhist->axis[0].max);
         break;
       }
     }
     if (hi == hbins || !AIR_EXISTS(minval)) {
-      fprintf(stderr, "%s: failed to find lower %g-percentile value",
-              me, rperc);
-      airMopError(submop); airMopError(mop); return 1;
+      fprintf(stderr, "%s: failed to find lower %g-percentile value", me, rperc);
+      airMopError(submop);
+      airMopError(mop);
+      return 1;
     }
     maxval = AIR_NAN;
     sum = 0;
-    for (hi=hbins; hi; hi--) {
-      sum += hist[hi-1];
-      if (sum >= rperc*total/100.0) {
-        maxval = AIR_AFFINE(0, hi-1, hbins-1,
-                            nhist->axis[0].min, nhist->axis[0].max);
+    for (hi = hbins; hi; hi--) {
+      sum += hist[hi - 1];
+      if (sum >= rperc * total / 100.0) {
+        maxval = AIR_AFFINE(0, hi - 1, hbins - 1, nhist->axis[0].min,
+                            nhist->axis[0].max);
         break;
       }
     }
     if (!hi || !AIR_EXISTS(maxval)) {
-      fprintf(stderr, "%s: failed to find upper %g-percentile value",
-              me, rperc);
-      airMopError(submop); airMopError(mop); return 1;
+      fprintf(stderr, "%s: failed to find upper %g-percentile value", me, rperc);
+      airMopError(submop);
+      airMopError(mop);
+      return 1;
     }
     fprintf(stderr, "%s: min %g --> 0, max %g --> 255\n", me, minval, maxval);
     nn = nrrdElementNumber(nrescale);
     rescaled = AIR_CAST(float *, nrescale->data);
-    for (ii=0; ii<nn; ii++) {
-      rescaled[ii] = AIR_FLOAT(AIR_AFFINE(minval, rescaled[ii],
-                                          maxval, 0.0, 255.0));
+    for (ii = 0; ii < nn; ii++) {
+      rescaled[ii] = AIR_FLOAT(AIR_AFFINE(minval, rescaled[ii], maxval, 0.0, 255.0));
     }
     airMopOkay(submop);
     submop = NULL;
   }
 
   /* padding rescaled image with black */
-  rpadding[0] = AIR_ROUNDUP(AIR_CAST(double, vpadding[0])
-                            * nrescale->axis[0].size / vsize[0]);
-  rpadding[1] = AIR_ROUNDUP(AIR_CAST(double, vpadding[1])
-                            * nrescale->axis[1].size / vsize[1]);
-  fprintf(stderr, "%s: padding in rescaled image: %u x %u\n",
-          me, rpadding[0], rpadding[1]);
+  rpadding[0] = AIR_ROUNDUP(AIR_CAST(double, vpadding[0]) * nrescale->axis[0].size
+                            / vsize[0]);
+  rpadding[1] = AIR_ROUNDUP(AIR_CAST(double, vpadding[1]) * nrescale->axis[1].size
+                            / vsize[1]);
+  fprintf(stderr, "%s: padding in rescaled image: %u x %u\n", me, rpadding[0],
+          rpadding[1]);
   npad = nrrdNew();
   airMopAdd(mop, npad, (airMopper)nrrdNuke, airMopAlways);
   {
@@ -212,30 +208,30 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me,
     if (nrrdPad_nva(npad, nrescale, pmin, pmax, nrrdBoundaryPad, 0.0)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: problem padding:\n%s", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
 
   /* rescaling down to "video" resolution */
   fprintf(stderr, "%s: downsampling to %u x %u\n", me,
-          AIR_UINT(vsize[0] + 2*vpadding[0]),
-          AIR_UINT(vsize[1] + 2*vpadding[1]));
+          AIR_UINT(vsize[0] + 2 * vpadding[0]), AIR_UINT(vsize[1] + 2 * vpadding[1]));
   nvbase = nrrdNew();
   airMopAdd(mop, nvbase, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdResampleDefaultCenterSet(rsmc, nrrdCenterCell)
       || nrrdResampleInputSet(rsmc, npad)
       || nrrdResampleKernelSet(rsmc, 0, vdsmp[0]->kernel, vdsmp[0]->parm)
       || nrrdResampleKernelSet(rsmc, 1, vdsmp[1]->kernel, vdsmp[1]->parm)
-      || nrrdResampleSamplesSet(rsmc, 0, vsize[0] + 2*vpadding[0])
-      || nrrdResampleSamplesSet(rsmc, 1, vsize[1] + 2*vpadding[1])
-      || nrrdResampleRangeFullSet(rsmc, 0)
-      || nrrdResampleRangeFullSet(rsmc, 1)
+      || nrrdResampleSamplesSet(rsmc, 0, vsize[0] + 2 * vpadding[0])
+      || nrrdResampleSamplesSet(rsmc, 1, vsize[1] + 2 * vpadding[1])
+      || nrrdResampleRangeFullSet(rsmc, 0) || nrrdResampleRangeFullSet(rsmc, 1)
       || nrrdResampleTypeOutSet(rsmc, nrrdTypeFloat)
       || nrrdResampleRenormalizeSet(rsmc, AIR_TRUE)
       || nrrdResampleExecute(rsmc, nvbase)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: problem downsampling to video resolution:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   /* halo, lowfilt, windowing, noise, filt, interlace, noise, fuzz, upsample */

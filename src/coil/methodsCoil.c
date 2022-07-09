@@ -25,7 +25,7 @@
 
 int
 coilVolumeCheck(const Nrrd *nin, const coilKind *kind) {
-  static const char me[]="coilVolumeCheck";
+  static const char me[] = "coilVolumeCheck";
   unsigned int baseDim;
 
   if (!(nin && kind)) {
@@ -39,8 +39,8 @@ coilVolumeCheck(const Nrrd *nin, const coilKind *kind) {
   }
   baseDim = (1 == kind->valLen ? 0 : 1);
   if (3 + baseDim != nin->dim) {
-    biffAddf(COIL, "%s: dim of input must be 3+%d (3 + baseDim), not %d",
-             me, baseDim, nin->dim);
+    biffAddf(COIL, "%s: dim of input must be 3+%d (3 + baseDim), not %d", me, baseDim,
+             nin->dim);
     return 1;
   }
 
@@ -68,18 +68,17 @@ coilContextNew() {
 }
 
 int
-coilContextAllSet(coilContext *cctx, const Nrrd *nin,
-                  const coilKind *kind, const coilMethod *method,
-                  unsigned int radius, unsigned int numThreads, int verbose,
-                  double parm[COIL_PARMS_NUM]) {
-  static const char me[]="coilContextAllSet";
+coilContextAllSet(coilContext *cctx, const Nrrd *nin, const coilKind *kind,
+                  const coilMethod *method, unsigned int radius, unsigned int numThreads,
+                  int verbose, double parm[COIL_PARMS_NUM]) {
+  static const char me[] = "coilContextAllSet";
   int someExist, allExist, baseDim, pi;
   size_t size[NRRD_DIM_MAX], sx, sy, sz;
   double xsp, ysp, zsp;
   airArray *mop;
 
   cctx->verbose = verbose;
-  if (!( cctx && nin && kind && method )) {
+  if (!(cctx && nin && kind && method)) {
     biffAddf(COIL, "%s: got NULL pointer", me);
     return 1;
   }
@@ -87,38 +86,39 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
     biffAddf(COIL, "%s: input volume not usable as %s", me, kind->name);
     return 1;
   }
-  if (!( radius >= 1 && numThreads >= 1 )) {
-    biffAddf(COIL, "%s: radius (%d) not >= 1 or numThreads (%d) not >= 1", me,
-             radius, numThreads);
+  if (!(radius >= 1 && numThreads >= 1)) {
+    biffAddf(COIL, "%s: radius (%d) not >= 1 or numThreads (%d) not >= 1", me, radius,
+             numThreads);
     return 1;
   }
-  if (!( AIR_IN_OP(coilMethodTypeUnknown, method->type,
-                   coilMethodTypeLast) )) {
+  if (!(AIR_IN_OP(coilMethodTypeUnknown, method->type, coilMethodTypeLast))) {
     biffAddf(COIL, "%s: method->type %d not valid", me, method->type);
     return 1;
   }
 
   if (!kind->filter[method->type]) {
-    biffAddf(COIL, "%s: sorry, %s filtering not available on %s kind",
-             me, method->name, kind->name);
+    biffAddf(COIL, "%s: sorry, %s filtering not available on %s kind", me, method->name,
+             kind->name);
     return 1;
   }
 
   /* warn if we can't do the multiple threads user wants */
   if (numThreads > 1 && !airThreadCapable && airThreadNoopWarning) {
-    fprintf(stderr, "%s: WARNING: this Teem not thread capable: using 1 "
-            "thread, not %d\n", me, numThreads);
+    fprintf(stderr,
+            "%s: WARNING: this Teem not thread capable: using 1 "
+            "thread, not %d\n",
+            me, numThreads);
     numThreads = 1;
   }
 
   mop = airMopNew();
 
   /* set parms */
-  for (pi=0; pi<method->numParm; pi++) {
+  for (pi = 0; pi < method->numParm; pi++) {
     if (!AIR_EXISTS(parm[pi])) {
-      biffAddf(COIL, "%s: parm[%d] (need %d) doesn't exist",
-               me, pi, method->numParm);
-      airMopError(mop); return 1;
+      biffAddf(COIL, "%s: parm[%d] (need %d) doesn't exist", me, pi, method->numParm);
+      airMopError(mop);
+      return 1;
     }
     cctx->parm[pi] = parm[pi];
   }
@@ -131,8 +131,10 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   if (sz < numThreads) {
     char stmp[AIR_STRLEN_SMALL];
     airSprintSize_t(stmp, sz);
-    fprintf(stderr, "%s: wanted %d threads but volume only has %s slices, "
-            "using %s threads instead\n", me, numThreads, stmp, stmp);
+    fprintf(stderr,
+            "%s: wanted %d threads but volume only has %s slices, "
+            "using %s threads instead\n",
+            me, numThreads, stmp, stmp);
     numThreads = AIR_UINT(sz);
   }
   ELL_3V_SET(cctx->size, sx, sy, sz);
@@ -141,22 +143,23 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   zsp = nin->axis[2 + baseDim].spacing;
   someExist = AIR_EXISTS(xsp) || AIR_EXISTS(ysp) || AIR_EXISTS(zsp);
   allExist = AIR_EXISTS(xsp) && AIR_EXISTS(ysp) && AIR_EXISTS(zsp);
-  if (!( someExist )) {
+  if (!(someExist)) {
     fprintf(stderr, "%s: WARNING: assuming unit spacing for all axes\n", me);
     xsp = 1;
     ysp = 1;
     zsp = 1;
   } else {
-    if ( !allExist ) {
-      biffAddf(COIL, "%s: spacings (%g,%g,%g) not uniformly existent",
-               me, xsp, ysp, zsp);
-      airMopError(mop); return 1;
+    if (!allExist) {
+      biffAddf(COIL, "%s: spacings (%g,%g,%g) not uniformly existent", me, xsp, ysp,
+               zsp);
+      airMopError(mop);
+      return 1;
     }
   }
   ELL_3V_SET(cctx->spacing, xsp, ysp, zsp);
   if (cctx->verbose) {
-    fprintf(stderr, "%s: spacings: %g %g %g\n", me,
-            cctx->spacing[0], cctx->spacing[1], cctx->spacing[2]);
+    fprintf(stderr, "%s: spacings: %g %g %g\n", me, cctx->spacing[0], cctx->spacing[1],
+            cctx->spacing[2]);
   }
 
   /* allocate nvol */
@@ -167,9 +170,9 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
   }
   cctx->nvol = nrrdNew();
   if (nrrdMaybeAlloc_nva(cctx->nvol, coil_nrrdType, 4 + baseDim, size)) {
-    biffMovef(COIL, NRRD,
-              "%s: couldn't allocate internal processing volume", me);
-    airMopError(mop); return 1;
+    biffMovef(COIL, NRRD, "%s: couldn't allocate internal processing volume", me);
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, cctx->nvol, (airMopper)nrrdNuke, airMopOnError);
 
@@ -197,7 +200,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin,
 */
 int
 coilOutputGet(Nrrd *nout, coilContext *cctx) {
-  static const char me[]="coilOutputGet";
+  static const char me[] = "coilOutputGet";
   int baseDim;
 
   if (!(nout && cctx)) {
@@ -209,14 +212,12 @@ coilOutputGet(Nrrd *nout, coilContext *cctx) {
       || nrrdAxisInfoCopy(nout, cctx->nin, NULL, NRRD_AXIS_INFO_NONE)
       || nrrdBasicInfoCopy(nout, cctx->nin,
                            NRRD_BASIC_INFO_DATA_BIT /* */
-                           | NRRD_BASIC_INFO_TYPE_BIT
-                           | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                           | NRRD_BASIC_INFO_DIMENSION_BIT
-                           | NRRD_BASIC_INFO_CONTENT_BIT
-                           | NRRD_BASIC_INFO_COMMENTS_BIT
-                           | (nrrdStateKeyValuePairsPropagate
-                              ? 0
-                              : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+                             | NRRD_BASIC_INFO_TYPE_BIT | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                             | NRRD_BASIC_INFO_DIMENSION_BIT
+                             | NRRD_BASIC_INFO_CONTENT_BIT | NRRD_BASIC_INFO_COMMENTS_BIT
+                             | (nrrdStateKeyValuePairsPropagate
+                                  ? 0
+                                  : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     biffMovef(COIL, NRRD, "%s: trouble getting output", me);
     return 1;
   }

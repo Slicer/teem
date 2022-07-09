@@ -23,15 +23,11 @@
 
 #include "hoover.h"
 
-const int
-hooverPresent = 42;
+const int hooverPresent = 42;
 
-const char *
-hooverBiffKey = "hoover";
-int
-hooverDefVolCentering = nrrdCenterNode;
-int
-hooverDefImgCentering = nrrdCenterCell;
+const char *hooverBiffKey = "hoover";
+int hooverDefVolCentering = nrrdCenterNode;
+int hooverDefImgCentering = nrrdCenterCell;
 
 /* clang-format off */
 const char *

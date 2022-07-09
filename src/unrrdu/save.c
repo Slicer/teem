@@ -25,22 +25,19 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Write nrrd with specific format, encoding, or endianness"
-static const char *_unrrdu_saveInfoL =
-(INFO
- ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
- "PGM-compatible nrrds on unix.  EPS output is a EPSF-3.0 file with "
- "BoundingBox and HiResBoundingBox DSC comments, and is suitable for "
- "inclusion into other PostScript documents.  As a stand-alone file, the "
- "image is conveniently centered on an 8.5x11 inch page, with 0.5 "
- "inch margins.\n "
- "* Uses various fields in the NrrdIOState passed to nrrdSave");
+static const char *_unrrdu_saveInfoL
+  = (INFO ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
+          "PGM-compatible nrrds on unix.  EPS output is a EPSF-3.0 file with "
+          "BoundingBox and HiResBoundingBox DSC comments, and is suitable for "
+          "inclusion into other PostScript documents.  As a stand-alone file, the "
+          "image is conveniently centered on an 8.5x11 inch page, with 0.5 "
+          "inch margins.\n "
+          "* Uses various fields in the NrrdIOState passed to nrrdSave");
 
 int
-unrrdu_saveMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_saveMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, *outData,
-    encInfo[AIR_STRLEN_HUGE], fmtInfo[AIR_STRLEN_HUGE];
+  char *out, *err, *outData, encInfo[AIR_STRLEN_HUGE], fmtInfo[AIR_STRLEN_HUGE];
   Nrrd *nin, *nout;
   airArray *mop;
   NrrdIoState *nio;
@@ -60,13 +57,11 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
          "        starting with \"#\"\n "
          "\b\bo \"vtk\": VTK \"STRUCTURED_POINTS\" dataset");
   if (nrrdFormatPNG->available()) {
-    strcat(fmtInfo,
-           "\n \b\bo \"png\": PNG image");
+    strcat(fmtInfo, "\n \b\bo \"png\": PNG image");
   }
-  strcat(fmtInfo,
-         "\n \b\bo \"eps\": EPS file");
-  hestOptAdd(&opt, "f,format", "form", airTypeOther, 1, 1, frmt, NULL,
-             fmtInfo, NULL, NULL, &unrrduHestFormatCB);
+  strcat(fmtInfo, "\n \b\bo \"eps\": EPS file");
+  hestOptAdd(&opt, "f,format", "form", airTypeOther, 1, 1, frmt, NULL, fmtInfo, NULL,
+             NULL, &unrrduHestFormatCB);
   strcpy(encInfo,
          "encoding of data in file.  Not all encodings are supported in "
          "a given format. Possibilities include:"
@@ -74,12 +69,10 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
          "\n \b\bo \"ascii\": print data in ascii"
          "\n \b\bo \"hex\": two hex digits per byte");
   if (nrrdEncodingGzip->available()) {
-    strcat(encInfo,
-           "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
+    strcat(encInfo, "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
   }
   if (nrrdEncodingBzip2->available()) {
-    strcat(encInfo,
-           "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
+    strcat(encInfo, "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
   }
   if (nrrdEncodingGzip->available() || nrrdEncodingBzip2->available()) {
     strcat(encInfo,
@@ -92,8 +85,8 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
            "\b\bo \"f\": specialized for filtered data\n "
            "For example, \"gz\", \"gz:9\", \"gz:9f\" are all valid");
   }
-  hestOptAdd(&opt, "e,encoding", "enc", airTypeOther, 1, 1, enc, "raw",
-             encInfo, NULL, NULL, &unrrduHestEncodingCB);
+  hestOptAdd(&opt, "e,encoding", "enc", airTypeOther, 1, 1, enc, "raw", encInfo, NULL,
+             NULL, &unrrduHestEncodingCB);
   hestOptAdd(&opt, "en,endian", "end", airTypeEnum, 1, 1, &(nio->endian),
              airEnumStr(airEndian, airMyEndian()),
              "Endianness to save data out as; \"little\" for Intel and "
@@ -135,8 +128,7 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
 
   if (airEndsWith(out, NRRD_EXT_NHDR)) {
     if (nio->format != nrrdFormatNRRD) {
-      fprintf(stderr, "%s: WARNING: will use %s format\n", me,
-              nrrdFormatNRRD->name);
+      fprintf(stderr, "%s: WARNING: will use %s format\n", me, nrrdFormatNRRD->name);
       nio->format = nrrdFormatNRRD;
     }
     if (strlen(outData)) {

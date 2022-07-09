@@ -44,9 +44,9 @@
 ** functions in this file only
 */
 enum {
-  kindLut=0,
-  kindRmap=1,
-  kindImap=2
+  kindLut = 0,
+  kindRmap = 1,
+  kindImap = 2
 };
 
 double
@@ -66,7 +66,7 @@ _nrrdApplyDomainMax(const Nrrd *nmap, int ramps, int mapAxis) {
   ret = nmap->axis[mapAxis].max;
   if (!AIR_EXISTS(ret)) {
     ret = AIR_DOUBLE(nmap->axis[mapAxis].size);
-    ret = ramps ? ret-1 : ret;
+    ret = ramps ? ret - 1 : ret;
   }
   return ret;
 }
@@ -85,25 +85,17 @@ _nrrdApplyDomainMax(const Nrrd *nmap, int ramps, int mapAxis) {
 ** be NULL, and both range->min and range->max must exist.
 */
 int
-_nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
-                  const Nrrd *nmap, int kind, int typeOut,
-                  int rescale, int multi) {
-  static const char me[]="_nrrdApply1DSetUp";
+_nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, const Nrrd *nmap,
+                  int kind, int typeOut, int rescale, int multi) {
+  static const char me[] = "_nrrdApply1DSetUp";
   char *mapcnt;
-  char nounStr[][AIR_STRLEN_SMALL]={"lut",
-                                    "regular map",
-                                    "irregular map"};
-  char mnounStr[][AIR_STRLEN_SMALL]={"multi lut",
-                                     "multi regular map",
-                                     "multi irregular map"};
-                                      /* wishful thinking */
-  char verbStr[][AIR_STRLEN_SMALL]={"lut",
-                                    "rmap",
-                                    "imap"};
-  char mverbStr[][AIR_STRLEN_SMALL]={"mlut",
-                                     "mrmap",
-                                     "mimap"}; /* wishful thinking */
-  int mapAxis, copyMapAxis0=AIR_FALSE, axisMap[NRRD_DIM_MAX];
+  char nounStr[][AIR_STRLEN_SMALL] = {"lut", "regular map", "irregular map"};
+  char mnounStr[][AIR_STRLEN_SMALL] = {"multi lut", "multi regular map",
+                                       "multi irregular map"};
+  /* wishful thinking */
+  char verbStr[][AIR_STRLEN_SMALL] = {"lut", "rmap", "imap"};
+  char mverbStr[][AIR_STRLEN_SMALL] = {"mlut", "mrmap", "mimap"}; /* wishful thinking */
+  int mapAxis, copyMapAxis0 = AIR_FALSE, axisMap[NRRD_DIM_MAX];
   unsigned int ax, dim, entLen;
   size_t size[NRRD_DIM_MAX];
   double domMin, domMax;
@@ -117,8 +109,8 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     return 1;
   }
   if (nrrdTypeBlock == nin->type || nrrdTypeBlock == typeOut) {
-    biffAddf(NRRD, "%s: input or requested output type is %s, need scalar",
-             me, airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAddf(NRRD, "%s: input or requested output type is %s, need scalar", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
   if (rescale) {
@@ -126,9 +118,11 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
       biffAddf(NRRD, "%s: want rescaling but didn't get a range", me);
       return 1;
     }
-    if (!( AIR_EXISTS(range->min) && AIR_EXISTS(range->max) )) {
-      biffAddf(NRRD, "%s: want rescaling but not both "
-               "range->{min,max} %g %g exist", me, range->min, range->max);
+    if (!(AIR_EXISTS(range->min) && AIR_EXISTS(range->max))) {
+      biffAddf(NRRD,
+               "%s: want rescaling but not both "
+               "range->{min,max} %g %g exist",
+               me, range->min, range->max);
       return 1;
     }
     /* HEY: consider adding an error check for range->min == range->max
@@ -140,35 +134,34 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     if (!multi) {
       mapAxis = nmap->dim - 1;
       if (!(0 == mapAxis || 1 == mapAxis)) {
-        biffAddf(NRRD, "%s: dimension of %s should be 1 or 2, not %d",
-                 me, nounStr[kind], nmap->dim);
+        biffAddf(NRRD, "%s: dimension of %s should be 1 or 2, not %d", me, nounStr[kind],
+                 nmap->dim);
         return 1;
       }
       copyMapAxis0 = (1 == mapAxis);
     } else {
       mapAxis = nmap->dim - nin->dim - 1;
       if (!(0 == mapAxis || 1 == mapAxis)) {
-        biffAddf(NRRD, "%s: dimension of %s should be %d or %d, not %d",
-                 me, mnounStr[kind],
-                 nin->dim + 1, nin->dim + 2, nmap->dim);
+        biffAddf(NRRD, "%s: dimension of %s should be %d or %d, not %d", me,
+                 mnounStr[kind], nin->dim + 1, nin->dim + 2, nmap->dim);
         return 1;
       }
       copyMapAxis0 = (1 == mapAxis);
       /* need to make sure the relevant sizes match */
-      for (ax=0; ax<nin->dim; ax++) {
+      for (ax = 0; ax < nin->dim; ax++) {
         unsigned int taxi = mapAxis + 1 + ax;
-        if (taxi > NRRD_DIM_MAX-1) {
-          biffAddf(NRRD, "%s: test axis index %u exceeds NRRD_DIM_MAX-1 %u",
-                   me, taxi, NRRD_DIM_MAX-1);
+        if (taxi > NRRD_DIM_MAX - 1) {
+          biffAddf(NRRD, "%s: test axis index %u exceeds NRRD_DIM_MAX-1 %u", me, taxi,
+                   NRRD_DIM_MAX - 1);
           return 1;
         }
         if (nin->axis[ax].size != nmap->axis[taxi].size) {
           char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
-          biffAddf(NRRD, "%s: input and mmap don't have compatible sizes: "
+          biffAddf(NRRD,
+                   "%s: input and mmap don't have compatible sizes: "
                    "nin->axis[%d].size (%s) "
-                   "!= nmap->axis[%d].size (%s): ", me,
-                   ax, airSprintSize_t(stmp1, nin->axis[ax].size),
-                   mapAxis + 1 + ax,
+                   "!= nmap->axis[%d].size (%s): ",
+                   me, ax, airSprintSize_t(stmp1, nin->axis[ax].size), mapAxis + 1 + ax,
                    airSprintSize_t(stmp2, nmap->axis[taxi].size));
           return 1;
         }
@@ -176,14 +169,14 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     }
     domMin = _nrrdApplyDomainMin(nmap, AIR_FALSE, mapAxis);
     domMax = _nrrdApplyDomainMax(nmap, AIR_FALSE, mapAxis);
-    if (!( domMin < domMax )) {
-      biffAddf(NRRD, "%s: (axis %d) domain min (%g) not less than max (%g)",
-               me, mapAxis, domMin, domMax);
+    if (!(domMin < domMax)) {
+      biffAddf(NRRD, "%s: (axis %d) domain min (%g) not less than max (%g)", me, mapAxis,
+               domMin, domMax);
       return 1;
     }
     if (nrrdHasNonExist(nmap)) {
-      biffAddf(NRRD, "%s: %s nrrd has non-existent values",
-               me, multi ? mnounStr[kind] : nounStr[kind]);
+      biffAddf(NRRD, "%s: %s nrrd has non-existent values", me,
+               multi ? mnounStr[kind] : nounStr[kind]);
       return 1;
     }
     entLen = mapAxis ? AIR_UINT(nmap->axis[0].size) : 1;
@@ -200,22 +193,22 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     /* mapAxis has no meaning for irregular maps, but we'll pretend ... */
     mapAxis = nmap->axis[0].size == 2 ? 0 : 1;
     copyMapAxis0 = AIR_TRUE;
-    entLen = AIR_UINT(nmap->axis[0].size-1);
+    entLen = AIR_UINT(nmap->axis[0].size - 1);
   }
   if (mapAxis + nin->dim > NRRD_DIM_MAX) {
-    biffAddf(NRRD, "%s: input nrrd dim %d through non-scalar %s exceeds "
+    biffAddf(NRRD,
+             "%s: input nrrd dim %d through non-scalar %s exceeds "
              "NRRD_DIM_MAX %d",
-             me, nin->dim,
-             multi ? mnounStr[kind] : nounStr[kind], NRRD_DIM_MAX);
+             me, nin->dim, multi ? mnounStr[kind] : nounStr[kind], NRRD_DIM_MAX);
     return 1;
   }
-  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size+mapAxis);
+  nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size + mapAxis);
   if (mapAxis) {
     size[0] = entLen;
     axisMap[0] = -1;
   }
-  for (dim=0; dim<nin->dim; dim++) {
-    axisMap[dim+mapAxis] = dim;
+  for (dim = 0; dim < nin->dim; dim++) {
+    axisMap[dim + mapAxis] = dim;
   }
   /*
   fprintf(stderr, "##%s: pre maybe alloc: nout->data = %p\n", me, nout->data);
@@ -247,26 +240,24 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
     return 1;
   }
   if (copyMapAxis0) {
-    _nrrdAxisInfoCopy(nout->axis + 0, nmap->axis + 0,
-                      NRRD_AXIS_INFO_SIZE_BIT);
+    _nrrdAxisInfoCopy(nout->axis + 0, nmap->axis + 0, NRRD_AXIS_INFO_SIZE_BIT);
   }
 
   mapcnt = _nrrdContentGet(nmap);
-  if (nrrdContentSet_va(nout, multi ? mverbStr[kind] : verbStr[kind],
-                        nin, "%s", mapcnt)) {
+  if (nrrdContentSet_va(nout, multi ? mverbStr[kind] : verbStr[kind], nin, "%s",
+                        mapcnt)) {
     biffAddf(NRRD, "%s:", me);
-    free(mapcnt); return 1;
+    free(mapcnt);
+    return 1;
   }
   free(mapcnt);
   if (nrrdBasicInfoCopy(nout, nin,
                         NRRD_BASIC_INFO_DATA_BIT /* */
-                        | NRRD_BASIC_INFO_TYPE_BIT
-                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                        | NRRD_BASIC_INFO_DIMENSION_BIT
-                        | NRRD_BASIC_INFO_CONTENT_BIT
-                        | (nrrdStateKeyValuePairsPropagate
-                           ? 0
-                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+                          | NRRD_BASIC_INFO_TYPE_BIT | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                          | NRRD_BASIC_INFO_DIMENSION_BIT | NRRD_BASIC_INFO_CONTENT_BIT
+                          | (nrrdStateKeyValuePairsPropagate
+                               ? 0
+                               : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     biffAddf(NRRD, "%s:", me);
     return 1;
   }
@@ -296,46 +287,45 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
 int
 _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
                         const Nrrd *nmap, int ramps, int rescale, int multi) {
-  static const char me[]="_nrrdApply1DLutOrRegMap";
+  static const char me[] = "_nrrdApply1DLutOrRegMap";
   char *inData, *outData, *mapData, *entData0, *entData1;
   size_t N, I;
   double (*inLoad)(const void *v), (*mapLup)(const void *v, size_t I),
-    (*outInsert)(void *v, size_t I, double d),
-    val, mapIdxFrac, domMin, domMax;
+    (*outInsert)(void *v, size_t I, double d), val, mapIdxFrac, domMin, domMax;
   unsigned int i, mapAxis, mapLen, mapIdx, entSize, entLen, inSize, outSize;
 
   if (!multi) {
-    mapAxis = nmap->dim - 1;           /* axis of nmap containing entries */
+    mapAxis = nmap->dim - 1; /* axis of nmap containing entries */
   } else {
     mapAxis = nmap->dim - nin->dim - 1;
   }
-  mapData = (char *)nmap->data;        /* map data, as char* */
-                                       /* low end of map domain */
+  mapData = (char *)nmap->data; /* map data, as char* */
+                                /* low end of map domain */
   domMin = _nrrdApplyDomainMin(nmap, ramps, mapAxis);
-                                       /* high end of map domain */
+  /* high end of map domain */
   domMax = _nrrdApplyDomainMax(nmap, ramps, mapAxis);
-  mapLen = AIR_UINT(nmap->axis[mapAxis].size);   /* number of entries in map */
-  mapLup = nrrdDLookup[nmap->type];    /* how to get doubles out of map */
-  inData = (char *)nin->data;          /* input data, as char* */
-  inLoad = nrrdDLoad[nin->type];       /* how to get doubles out of nin */
-  inSize = AIR_UINT(nrrdElementSize(nin));       /* size of one input value */
-  outData = (char *)nout->data;        /* output data, as char* */
-  outInsert = nrrdDInsert[nout->type]; /* putting doubles into output */
-  entLen = (mapAxis                    /* number of elements in one entry */
-            ? AIR_UINT(nmap->axis[0].size)
-            : 1);
+  mapLen = AIR_UINT(nmap->axis[mapAxis].size); /* number of entries in map */
+  mapLup = nrrdDLookup[nmap->type];            /* how to get doubles out of map */
+  inData = (char *)nin->data;                  /* input data, as char* */
+  inLoad = nrrdDLoad[nin->type];               /* how to get doubles out of nin */
+  inSize = AIR_UINT(nrrdElementSize(nin));     /* size of one input value */
+  outData = (char *)nout->data;                /* output data, as char* */
+  outInsert = nrrdDInsert[nout->type];         /* putting doubles into output */
+  entLen = (mapAxis                            /* number of elements in one entry */
+              ? AIR_UINT(nmap->axis[0].size)
+              : 1);
   if (ramps && !(mapLen >= 2)) {
-     biffAddf(NRRD, "%s: ramps need >= 2 control points (not %u) of %u vals",
-              me, mapLen, entLen);
-     return 1;
+    biffAddf(NRRD, "%s: ramps need >= 2 control points (not %u) of %u vals", me, mapLen,
+             entLen);
+    return 1;
   }
-  outSize = entLen*AIR_UINT(nrrdElementSize(nout)); /* size of entry in output */
-  entSize = entLen*AIR_UINT(nrrdElementSize(nmap)); /* size of entry in map */
+  outSize = entLen * AIR_UINT(nrrdElementSize(nout)); /* size of entry in output */
+  entSize = entLen * AIR_UINT(nrrdElementSize(nmap)); /* size of entry in map */
 
-  N = nrrdElementNumber(nin);       /* the number of values to be mapped */
+  N = nrrdElementNumber(nin); /* the number of values to be mapped */
   if (ramps) {
     /* regular map */
-    for (I=0; I<N; I++) {
+    for (I = 0; I < N; I++) {
       /* ...
       fprintf(stderr, "I = %d\n", (int)I);
       ... */
@@ -345,8 +335,8 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
       ... */
       if (rescale) {
         val = (range->min != range->max
-               ? AIR_AFFINE(range->min, val, range->max, domMin, domMax)
-               : domMin);
+                 ? AIR_AFFINE(range->min, val, range->max, domMin, domMax)
+                 : domMin);
         /* ...
         fprintf(stderr, "\nb% 31.15f (min,max = %g,%g)--> ", val,
                 range->min, range->max);
@@ -358,23 +348,23 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
       ... */
       if (AIR_EXISTS(val)) {
         val = AIR_CLAMP(domMin, val, domMax);
-        mapIdxFrac = AIR_AFFINE(domMin, val, domMax, 0, mapLen-1);
+        mapIdxFrac = AIR_AFFINE(domMin, val, domMax, 0, mapLen - 1);
         /* ...
         fprintf(stderr, "mapIdxFrac = \nd% 31.15f --> ",
                 mapIdxFrac);
         ... */
         mapIdx = (unsigned int)mapIdxFrac;
-        mapIdx -= mapIdx == mapLen-1;
+        mapIdx -= mapIdx == mapLen - 1;
         mapIdxFrac -= mapIdx;
         /* ...
         fprintf(stderr, "%s: (%d,\ne% 31.15f) --> \n",
                 me, mapIdx, mapIdxFrac);
         ... */
-        entData0 = mapData + mapIdx*entSize;
-        entData1 = mapData + (mapIdx+1)*entSize;
-        for (i=0; i<entLen; i++) {
-          val = ((1-mapIdxFrac)*mapLup(entData0, i) +
-                 mapIdxFrac*mapLup(entData1, i));
+        entData0 = mapData + mapIdx * entSize;
+        entData1 = mapData + (mapIdx + 1) * entSize;
+        for (i = 0; i < entLen; i++) {
+          val = ((1 - mapIdxFrac) * mapLup(entData0, i)
+                 + mapIdxFrac * mapLup(entData1, i));
           outInsert(outData, i, val);
           /* ...
           fprintf(stderr, "f% 31.15f\n", val);
@@ -382,41 +372,41 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
         }
       } else {
         /* copy non-existent values from input to output */
-        for (i=0; i<entLen; i++) {
+        for (i = 0; i < entLen; i++) {
           outInsert(outData, i, val);
         }
       }
       inData += inSize;
       outData += outSize;
       if (multi) {
-        mapData += mapLen*entSize;
+        mapData += mapLen * entSize;
       }
     }
   } else {
     /* lookup table */
-    for (I=0; I<N; I++) {
+    for (I = 0; I < N; I++) {
       val = inLoad(inData);
       if (rescale) {
         val = (range->min != range->max
-               ? AIR_AFFINE(range->min, val, range->max, domMin, domMax)
-               : domMin);
+                 ? AIR_AFFINE(range->min, val, range->max, domMin, domMax)
+                 : domMin);
       }
       if (AIR_EXISTS(val)) {
         mapIdx = airIndexClamp(domMin, val, domMax, mapLen);
-        entData0 = mapData + mapIdx*entSize;
-        for (i=0; i<entLen; i++) {
+        entData0 = mapData + mapIdx * entSize;
+        for (i = 0; i < entLen; i++) {
           outInsert(outData, i, mapLup(entData0, i));
         }
       } else {
         /* copy non-existent values from input to output */
-        for (i=0; i<entLen; i++) {
+        for (i = 0; i < entLen; i++) {
           outInsert(outData, i, val);
         }
       }
       inData += inSize;
       outData += outSize;
       if (multi) {
-        mapData += mapLen*entSize;
+        mapData += mapLen * entSize;
       }
     }
   }
@@ -442,10 +432,9 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
 ** This allows lut length to be simply 1.
 */
 int
-nrrdApply1DLut(Nrrd *nout, const Nrrd *nin,
-               const NrrdRange *_range, const Nrrd *nlut,
+nrrdApply1DLut(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, const Nrrd *nlut,
                int typeOut, int rescale) {
-  static const char me[]="nrrdApply1DLut";
+  static const char me[] = "nrrdApply1DLut";
   NrrdRange *range;
   airArray *mop;
 
@@ -461,22 +450,22 @@ nrrdApply1DLut(Nrrd *nout, const Nrrd *nin,
     range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeState);
   }
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  if (_nrrdApply1DSetUp(nout, nin, range, nlut, kindLut, typeOut,
-                        rescale, AIR_FALSE /* multi */)
-      || _nrrdApply1DLutOrRegMap(nout, nin, range, nlut, AIR_FALSE /* ramps */,
-                                 rescale, AIR_FALSE /* multi */)) {
+  if (_nrrdApply1DSetUp(nout, nin, range, nlut, kindLut, typeOut, rescale,
+                        AIR_FALSE /* multi */)
+      || _nrrdApply1DLutOrRegMap(nout, nin, range, nlut, AIR_FALSE /* ramps */, rescale,
+                                 AIR_FALSE /* multi */)) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopOkay(mop);
   return 0;
 }
 
 int
-nrrdApplyMulti1DLut(Nrrd *nout, const Nrrd *nin,
-                    const NrrdRange *_range, const Nrrd *nmlut,
-                    int typeOut, int rescale) {
-  static const char me[]="nrrdApplyMulti1DLut";
+nrrdApplyMulti1DLut(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
+                    const Nrrd *nmlut, int typeOut, int rescale) {
+  static const char me[] = "nrrdApplyMulti1DLut";
   NrrdRange *range;
   airArray *mop;
 
@@ -492,13 +481,13 @@ nrrdApplyMulti1DLut(Nrrd *nout, const Nrrd *nin,
     range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeState);
   }
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  if (_nrrdApply1DSetUp(nout, nin, range, nmlut, kindLut, typeOut,
-                        rescale, AIR_TRUE /* multi */)
-      || _nrrdApply1DLutOrRegMap(nout, nin, range, nmlut,
-                                 AIR_FALSE /* ramps */,
-                                 rescale, AIR_TRUE /* multi */)) {
+  if (_nrrdApply1DSetUp(nout, nin, range, nmlut, kindLut, typeOut, rescale,
+                        AIR_TRUE /* multi */)
+      || _nrrdApply1DLutOrRegMap(nout, nin, range, nmlut, AIR_FALSE /* ramps */, rescale,
+                                 AIR_TRUE /* multi */)) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopOkay(mop);
   return 0;
@@ -523,10 +512,9 @@ nrrdApplyMulti1DLut(Nrrd *nout, const Nrrd *nin,
 ** This allows map length to be simply 1.
 */
 int
-nrrdApply1DRegMap(Nrrd *nout, const Nrrd *nin,
-                  const NrrdRange *_range, const Nrrd *nmap,
+nrrdApply1DRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, const Nrrd *nmap,
                   int typeOut, int rescale) {
-  static const char me[]="nrrdApply1DRegMap";
+  static const char me[] = "nrrdApply1DRegMap";
   NrrdRange *range;
   airArray *mop;
 
@@ -542,22 +530,22 @@ nrrdApply1DRegMap(Nrrd *nout, const Nrrd *nin,
     range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeState);
   }
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  if (_nrrdApply1DSetUp(nout, nin, range, nmap, kindRmap, typeOut,
-                        rescale, AIR_FALSE /* multi */)
-      || _nrrdApply1DLutOrRegMap(nout, nin, range, nmap, AIR_TRUE /* ramps */,
-                                 rescale, AIR_FALSE /* multi */)) {
+  if (_nrrdApply1DSetUp(nout, nin, range, nmap, kindRmap, typeOut, rescale,
+                        AIR_FALSE /* multi */)
+      || _nrrdApply1DLutOrRegMap(nout, nin, range, nmap, AIR_TRUE /* ramps */, rescale,
+                                 AIR_FALSE /* multi */)) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopOkay(mop);
   return 0;
 }
 
 int
-nrrdApplyMulti1DRegMap(Nrrd *nout, const Nrrd *nin,
-                       const NrrdRange *_range, const Nrrd *nmmap,
-                       int typeOut, int rescale) {
-  static const char me[]="nrrdApplyMulti1DRegMap";
+nrrdApplyMulti1DRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
+                       const Nrrd *nmmap, int typeOut, int rescale) {
+  static const char me[] = "nrrdApplyMulti1DRegMap";
   NrrdRange *range;
   airArray *mop;
 
@@ -573,12 +561,13 @@ nrrdApplyMulti1DRegMap(Nrrd *nout, const Nrrd *nin,
     range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeState);
   }
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  if (_nrrdApply1DSetUp(nout, nin, range, nmmap, kindRmap, typeOut,
-                        rescale, AIR_TRUE /* multi */)
-      || _nrrdApply1DLutOrRegMap(nout, nin, range, nmmap, AIR_TRUE /* ramps */,
-                                 rescale, AIR_TRUE /* multi */)) {
+  if (_nrrdApply1DSetUp(nout, nin, range, nmmap, kindRmap, typeOut, rescale,
+                        AIR_TRUE /* multi */)
+      || _nrrdApply1DLutOrRegMap(nout, nin, range, nmmap, AIR_TRUE /* ramps */, rescale,
+                                 AIR_TRUE /* multi */)) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopOkay(mop);
   return 0;
@@ -597,7 +586,7 @@ nrrdApplyMulti1DRegMap(Nrrd *nout, const Nrrd *nin,
 */
 int
 nrrd1DIrregMapCheck(const Nrrd *nmap) {
-  static const char me[]="nrrd1DIrregMapCheck";
+  static const char me[] = "nrrd1DIrregMapCheck";
   double (*mapLup)(const void *v, size_t I);
   int i, entLen, mapLen, baseI;
   size_t min[2], max[2];
@@ -612,31 +601,34 @@ nrrd1DIrregMapCheck(const Nrrd *nmap) {
     return 1;
   }
   if (nrrdTypeBlock == nmap->type) {
-    biffAddf(NRRD, "%s: map is %s type, need scalar",
-             me, airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAddf(NRRD, "%s: map is %s type, need scalar", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
   if (2 != nmap->dim) {
-    biffAddf(NRRD, "%s: map needs to have dimension 2, not %d",
-             me, nmap->dim);
+    biffAddf(NRRD, "%s: map needs to have dimension 2, not %d", me, nmap->dim);
     return 1;
   }
   entLen = AIR_UINT(nmap->axis[0].size);
   mapLen = AIR_UINT(nmap->axis[1].size);
-  if (!( entLen >= 2 && mapLen >= 2 )) {
-    biffAddf(NRRD, "%s: both map's axes sizes should be >= 2 (not %d,%d)",
-             me, entLen, mapLen);
+  if (!(entLen >= 2 && mapLen >= 2)) {
+    biffAddf(NRRD, "%s: both map's axes sizes should be >= 2 (not %d,%d)", me, entLen,
+             mapLen);
     return 1;
   }
-  min[0] = 1; max[0] = nmap->axis[0].size-1;
-  min[1] = 0; max[1] = nmap->axis[1].size-1;
-  if (nrrdCrop(nrange=nrrdNew(), nmap, min, max)) {
+  min[0] = 1;
+  max[0] = nmap->axis[0].size - 1;
+  min[1] = 0;
+  max[1] = nmap->axis[1].size - 1;
+  if (nrrdCrop(nrange = nrrdNew(), nmap, min, max)) {
     biffAddf(NRRD, "%s: couldn't crop to isolate range of map", me);
-    nrrdNuke(nrange); return 1;
+    nrrdNuke(nrange);
+    return 1;
   }
   if (nrrdHasNonExist(nrange)) {
     biffAddf(NRRD, "%s: map has non-existent values in its range", me);
-    nrrdNuke(nrange); return 1;
+    nrrdNuke(nrange);
+    return 1;
   }
   nrrdNuke(nrange);
   mapLup = nrrdDLookup[nmap->type];
@@ -644,37 +636,40 @@ nrrd1DIrregMapCheck(const Nrrd *nmap) {
     baseI = 0;
   } else {
     baseI = 3;
-    if (!( mapLen >= 5 )) {
-      biffAddf(NRRD, "%s: length of map w/ non-existent locations must "
-               "be >= 5 (not %d)", me, mapLen);
+    if (!(mapLen >= 5)) {
+      biffAddf(NRRD,
+               "%s: length of map w/ non-existent locations must "
+               "be >= 5 (not %d)",
+               me, mapLen);
       return 1;
     }
-    if (!( airFP_NEG_INF == airFPClass_d(mapLup(nmap->data, 0*entLen)) &&
-           airFP_QNAN    == airFPClass_d(mapLup(nmap->data, 1*entLen)) &&
-           airFP_POS_INF == airFPClass_d(mapLup(nmap->data, 2*entLen)) )) {
-      biffAddf(NRRD, "%s: 1st entry's position non-existent, but position "
+    if (!(airFP_NEG_INF == airFPClass_d(mapLup(nmap->data, 0 * entLen))
+          && airFP_QNAN == airFPClass_d(mapLup(nmap->data, 1 * entLen))
+          && airFP_POS_INF == airFPClass_d(mapLup(nmap->data, 2 * entLen)))) {
+      biffAddf(NRRD,
+               "%s: 1st entry's position non-existent, but position "
                "of 1st three entries (%g:%d,%g:%d,%g:%d) not "
-               "-inf, NaN, and +inf", me,
-               mapLup(nmap->data, 0*entLen),
-               airFPClass_d(mapLup(nmap->data, 0*entLen)),
-               mapLup(nmap->data, 1*entLen),
-               airFPClass_d(mapLup(nmap->data, 1*entLen)),
-               mapLup(nmap->data, 2*entLen),
-               airFPClass_d(mapLup(nmap->data, 2*entLen)));
+               "-inf, NaN, and +inf",
+               me, mapLup(nmap->data, 0 * entLen),
+               airFPClass_d(mapLup(nmap->data, 0 * entLen)),
+               mapLup(nmap->data, 1 * entLen),
+               airFPClass_d(mapLup(nmap->data, 1 * entLen)),
+               mapLup(nmap->data, 2 * entLen),
+               airFPClass_d(mapLup(nmap->data, 2 * entLen)));
       return 1;
     }
   }
-  for (i=baseI; i<mapLen; i++) {
-    if (!AIR_EXISTS(mapLup(nmap->data, i*entLen))) {
+  for (i = baseI; i < mapLen; i++) {
+    if (!AIR_EXISTS(mapLup(nmap->data, i * entLen))) {
       biffAddf(NRRD, "%s: entry %d has non-existent position", me, i);
       return 1;
     }
   }
-  for (i=baseI; i<mapLen-1; i++) {
-    if (!( mapLup(nmap->data, i*entLen) < mapLup(nmap->data, (i+1)*entLen) )) {
-      biffAddf(NRRD, "%s: map entry %d pos (%g) not < entry %d pos (%g)",
-               me, i, mapLup(nmap->data, i*entLen),
-               i+1, mapLup(nmap->data, (i+1)*entLen));
+  for (i = baseI; i < mapLen - 1; i++) {
+    if (!(mapLup(nmap->data, i * entLen) < mapLup(nmap->data, (i + 1) * entLen))) {
+      biffAddf(NRRD, "%s: map entry %d pos (%g) not < entry %d pos (%g)", me, i,
+               mapLup(nmap->data, i * entLen), i + 1,
+               mapLup(nmap->data, (i + 1) * entLen));
       return 1;
     }
   }
@@ -688,7 +683,7 @@ nrrd1DIrregMapCheck(const Nrrd *nmap) {
 */
 int
 nrrd1DIrregAclCheck(const Nrrd *nacl) {
-  static const char me[]="nrrd1DIrregAclCheck";
+  static const char me[] = "nrrd1DIrregAclCheck";
 
   if (!nacl) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -700,15 +695,14 @@ nrrd1DIrregAclCheck(const Nrrd *nacl) {
   }
   if (nrrdTypeUShort != nacl->type) {
     biffAddf(NRRD, "%s: type should be %s, not %s", me,
-             airEnumStr(nrrdType, nrrdTypeUShort),
-             airEnumStr(nrrdType, nacl->type));
+             airEnumStr(nrrdType, nrrdTypeUShort), airEnumStr(nrrdType, nacl->type));
     return 1;
   }
   if (2 != nacl->dim) {
     biffAddf(NRRD, "%s: dimension should be 2, not %d", me, nacl->dim);
     return 1;
   }
-  if (!( nacl->axis[0].size == 2 && nacl->axis[1].size >= 2 )) {
+  if (!(nacl->axis[0].size == 2 && nacl->axis[1].size >= 2)) {
     char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
     biffAddf(NRRD, "%s: sizes (%s,%s) not (2,>=2)", me,
              airSprintSize_t(stmp1, nacl->axis[0].size),
@@ -730,7 +724,7 @@ nrrd1DIrregAclCheck(const Nrrd *nacl) {
 */
 double *
 _nrrd1DIrregMapDomain(int *posLenP, int *baseIP, const Nrrd *nmap) {
-  static const char me[]="_nrrd1DIrregMapDomain";
+  static const char me[] = "_nrrd1DIrregMapDomain";
   int i, entLen, baseI, posLen;
   double *pos, (*mapLup)(const void *v, size_t I);
 
@@ -744,13 +738,13 @@ _nrrd1DIrregMapDomain(int *posLenP, int *baseIP, const Nrrd *nmap) {
   if (posLenP) {
     *posLenP = posLen;
   }
-  pos = (double*)malloc(posLen * sizeof(double));
+  pos = (double *)malloc(posLen * sizeof(double));
   if (!pos) {
     biffAddf(NRRD, "%s: couldn't allocate %d doubles\n", me, posLen);
     return NULL;
   }
-  for (i=0; i<posLen; i++) {
-    pos[i] = mapLup(nmap->data, (baseI+i)*entLen);
+  for (i = 0; i < posLen; i++) {
+    pos[i] = mapLup(nmap->data, (baseI + i) * entLen);
   }
   return pos;
 }
@@ -784,17 +778,17 @@ _nrrd1DIrregFindInterval(const double *pos, double p, int loI, int hiI) {
           hiI, pos[hiI], pos[hiI+1]);
   */
   while (loI < hiI) {
-    midI = (loI + hiI)/2;
-    if ( pos[midI] <= p && ((midI <  hiI && p <  pos[midI+1]) ||
-                            (midI == hiI && p <= pos[midI+1])) ) {
+    midI = (loI + hiI) / 2;
+    if (pos[midI] <= p
+        && ((midI < hiI && p < pos[midI + 1]) || (midI == hiI && p <= pos[midI + 1]))) {
       /* p is between (pos[midI],pos[midI+1]): we're done */
       loI = hiI = midI;
     } else if (pos[midI] > p) {
       /* p is below interval midI: midI-1 is valid upper bound */
-      hiI = midI-1;
+      hiI = midI - 1;
     } else {
       /* p is above interval midI: midI+1 is valid lower bound */
-      loI = midI+1;
+      loI = midI + 1;
     }
     /*
     fprintf(stderr, "##%s(%g): %d/%g-%g | %d/%g-%g | %d/%g-%g\n",
@@ -821,7 +815,7 @@ _nrrd1DIrregFindInterval(const double *pos, double p, int loI, int hiI) {
 */
 int
 nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap, size_t aclLen) {
-  static const char me[]="nrrd1DIrregAclGenerate";
+  static const char me[] = "nrrd1DIrregAclGenerate";
   int posLen;
   unsigned int ii;
   unsigned short *acl;
@@ -837,8 +831,8 @@ nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap, size_t aclLen) {
              airSprintSize_t(stmp, aclLen));
     return 1;
   }
-  if (nrrdMaybeAlloc_va(nacl, nrrdTypeUShort, 2,
-                        AIR_CAST(size_t, 2), AIR_CAST(size_t, aclLen))) {
+  if (nrrdMaybeAlloc_va(nacl, nrrdTypeUShort, 2, AIR_CAST(size_t, 2),
+                        AIR_CAST(size_t, aclLen))) {
     biffAddf(NRRD, "%s: ", me);
     return 1;
   }
@@ -849,12 +843,12 @@ nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap, size_t aclLen) {
     return 1;
   }
   nacl->axis[1].min = min = pos[0];
-  nacl->axis[1].max = max = pos[posLen-1];
-  for (ii=0; ii<=aclLen-1; ii++) {
+  nacl->axis[1].max = max = pos[posLen - 1];
+  for (ii = 0; ii <= aclLen - 1; ii++) {
     lo = AIR_AFFINE(0, ii, aclLen, min, max);
-    hi = AIR_AFFINE(0, ii+1, aclLen, min, max);
-    acl[0 + 2*ii] = AIR_USHORT(_nrrd1DIrregFindInterval(pos, lo, 0, posLen-2));
-    acl[1 + 2*ii] = AIR_USHORT(_nrrd1DIrregFindInterval(pos, hi, 0, posLen-2));
+    hi = AIR_AFFINE(0, ii + 1, aclLen, min, max);
+    acl[0 + 2 * ii] = AIR_USHORT(_nrrd1DIrregFindInterval(pos, lo, 0, posLen - 2));
+    acl[1 + 2 * ii] = AIR_USHORT(_nrrd1DIrregFindInterval(pos, hi, 0, posLen - 2));
   }
   free(pos);
 
@@ -886,14 +880,12 @@ nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap, size_t aclLen) {
 */
 int
 nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
-                    const Nrrd *nmap, const Nrrd *nacl,
-                    int typeOut, int rescale) {
-  static const char me[]="nrrdApply1DIrregMap";
+                    const Nrrd *nmap, const Nrrd *nacl, int typeOut, int rescale) {
+  static const char me[] = "nrrdApply1DIrregMap";
   size_t N, I;
-  int i, *acl, entLen, posLen, aclLen, mapIdx, aclIdx,
-    entSize, colSize, inSize, lo, hi, baseI;
-  double val, *pos, domMin, domMax, mapIdxFrac,
-    (*mapLup)(const void *v, size_t I),
+  int i, *acl, entLen, posLen, aclLen, mapIdx, aclIdx, entSize, colSize, inSize, lo, hi,
+    baseI;
+  double val, *pos, domMin, domMax, mapIdxFrac, (*mapLup)(const void *v, size_t I),
     (*inLoad)(const void *v), (*outInsert)(void *v, size_t I, double d);
   char *inData, *outData, *entData0, *entData1;
   NrrdRange *range;
@@ -914,14 +906,16 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeState);
   }
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  if (_nrrdApply1DSetUp(nout, nin, range, nmap,
-                        kindImap, typeOut, rescale, AIR_FALSE /* multi */)) {
+  if (_nrrdApply1DSetUp(nout, nin, range, nmap, kindImap, typeOut, rescale,
+                        AIR_FALSE /* multi */)) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nacl && nrrd1DIrregAclCheck(nacl)) {
     biffAddf(NRRD, "%s: given acl isn't valid", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (nacl) {
@@ -934,7 +928,8 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   pos = _nrrd1DIrregMapDomain(&posLen, &baseI, nmap);
   if (!pos) {
     biffAddf(NRRD, "%s: couldn't determine domain", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, pos, airFree, airMopAlways);
   mapLup = nrrdDLookup[nmap->type];
@@ -943,21 +938,19 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   inLoad = nrrdDLoad[nin->type];
   inSize = AIR_UINT(nrrdElementSize(nin));
   mapLup = nrrdDLookup[nmap->type];
-  entLen = AIR_UINT(nmap->axis[0].size);    /* entLen is really 1 + entry length */
-  entSize = entLen*AIR_UINT(nrrdElementSize(nmap));
-  colSize = (entLen-1)*AIR_UINT(nrrdTypeSize[typeOut]);
+  entLen = AIR_UINT(nmap->axis[0].size); /* entLen is really 1 + entry length */
+  entSize = entLen * AIR_UINT(nrrdElementSize(nmap));
+  colSize = (entLen - 1) * AIR_UINT(nrrdTypeSize[typeOut]);
   outData = (char *)nout->data;
   outInsert = nrrdDInsert[nout->type];
   domMin = pos[0];
-  domMax = pos[posLen-1];
+  domMax = pos[posLen - 1];
   /*
   fprintf(stderr, "!%s: domMin, domMax = %g, %g\n", me, domMin, domMax);
   */
 
   N = nrrdElementNumber(nin);
-  for (I=0;
-       I<N;
-       I++, inData += inSize, outData += colSize) {
+  for (I = 0; I < N; I++, inData += inSize, outData += colSize) {
     val = inLoad(inData);
     /*
     fprintf(stderr, "!%s: (%d) val = % 31.15f\n", me, (int)I, val);
@@ -979,16 +972,17 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
           break;
         default:
           mapIdx = 0;
-          fprintf(stderr, "%s: PANIC: non-existent value/class %g/%d "
+          fprintf(stderr,
+                  "%s: PANIC: non-existent value/class %g/%d "
                   "not handled\n",
                   me, val, airFPClass_d(val));
           exit(1);
         }
-        entData0 = (char*)(nmap->data) + mapIdx*entSize;
-        for (i=1; i<entLen; i++) {
-          outInsert(outData, i-1, mapLup(entData0, i));
+        entData0 = (char *)(nmap->data) + mapIdx * entSize;
+        for (i = 1; i < entLen; i++) {
+          outInsert(outData, i - 1, mapLup(entData0, i));
         }
-        continue;  /* we're done! (with this value) */
+        continue; /* we're done! (with this value) */
       } else {
         /* we don't know how to properly deal with this non-existent value:
            we use the first entry, and then fall through to code below */
@@ -999,17 +993,17 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
       /* we have an existent value */
       if (rescale) {
         val = (range->min != range->max
-               ? AIR_AFFINE(range->min, val, range->max, domMin, domMax)
-               : domMin);
+                 ? AIR_AFFINE(range->min, val, range->max, domMin, domMax)
+                 : domMin);
       }
       val = AIR_CLAMP(domMin, val, domMax);
       if (acl) {
         aclIdx = airIndex(domMin, val, domMax, aclLen);
-        lo = acl[0 + 2*aclIdx];
-        hi = acl[1 + 2*aclIdx];
+        lo = acl[0 + 2 * aclIdx];
+        hi = acl[1 + 2 * aclIdx];
       } else {
         lo = 0;
-        hi = posLen-2;
+        hi = posLen - 2;
       }
       if (lo < hi) {
         mapIdx = _nrrd1DIrregFindInterval(pos, val, lo, hi);
@@ -1022,21 +1016,20 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
               me, val, lo, hi, mapIdx);
       */
     }
-    mapIdxFrac = AIR_AFFINE(pos[mapIdx], val, pos[mapIdx+1], 0.0, 1.0);
+    mapIdxFrac = AIR_AFFINE(pos[mapIdx], val, pos[mapIdx + 1], 0.0, 1.0);
     /*
     fprintf(stderr, "!%s:    mapIdxFrac = %g\n", me, mapIdxFrac);
     */
-    entData0 = (char*)(nmap->data) + (baseI+mapIdx)*entSize;
-    entData1 = (char*)(nmap->data) + (baseI+mapIdx+1)*entSize;
-    for (i=1; i<entLen; i++) {
-      val = ((1-mapIdxFrac)*mapLup(entData0, i) +
-             mapIdxFrac*mapLup(entData1, i));
+    entData0 = (char *)(nmap->data) + (baseI + mapIdx) * entSize;
+    entData1 = (char *)(nmap->data) + (baseI + mapIdx + 1) * entSize;
+    for (i = 1; i < entLen; i++) {
+      val = ((1 - mapIdxFrac) * mapLup(entData0, i) + mapIdxFrac * mapLup(entData1, i));
       /*
       fprintf(stderr, "!%s: %g * %g   +   %g * %g = %g\n", me,
               1-mapIdxFrac, mapLup(entData0, i),
               mapIdxFrac, mapLup(entData1, i), val);
       */
-      outInsert(outData, i-1, val);
+      outInsert(outData, i - 1, val);
     }
   }
   airMopOkay(mop);
@@ -1061,7 +1054,7 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 */
 int
 nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *_nsubst) {
-  static const char me[]="nrrdApply1DSubstitution";
+  static const char me[] = "nrrdApply1DSubstitution";
   double (*lup)(const void *, size_t);
   double (*ins)(void *, size_t, double);
   Nrrd *nsubst;
@@ -1075,21 +1068,20 @@ nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *_nsubst) {
     return 1;
   }
   if (nrrdTypeBlock == nin->type || nrrdTypeBlock == _nsubst->type) {
-    biffAddf(NRRD, "%s: input or substitution type is %s, need scalar",
-             me, airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAddf(NRRD, "%s: input or substitution type is %s, need scalar", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
   if (2 != _nsubst->dim) {
-    biffAddf(NRRD, "%s: substitution table has to be 2-D, not %d-D",
-             me, _nsubst->dim);
+    biffAddf(NRRD, "%s: substitution table has to be 2-D, not %d-D", me, _nsubst->dim);
     return 1;
   }
   /* nrrdAxisInfoGet_va(_nsubst, nrrdAxisInfoSize, &asize0, &asize1); */
   asize0 = _nsubst->axis[0].size;
   asize1 = _nsubst->axis[1].size;
   if (2 != asize0) {
-    biffAddf(NRRD, "%s: substitution table has to be 2xN, not %uxN",
-             me, AIR_UINT(asize0));
+    biffAddf(NRRD, "%s: substitution table has to be 2xN, not %uxN", me,
+             AIR_UINT(asize0));
     return 1;
   }
   if (nout != nin) {
@@ -1103,20 +1095,20 @@ nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *_nsubst) {
   nsubst = nrrdNew();
   airMopAdd(mop, nsubst, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(nsubst, _nsubst, nrrdTypeDouble)) {
-    biffAddf(NRRD, "%s: couldn't create double copy of substitution table",
-             me);
-    airMopError(mop); return 1;
+    biffAddf(NRRD, "%s: couldn't create double copy of substitution table", me);
+    airMopError(mop);
+    return 1;
   }
   lup = nrrdDLookup[nout->type];
   ins = nrrdDInsert[nout->type];
   subst = (double *)nsubst->data;
   num = nrrdElementNumber(nout);
-  for (ii=0; ii<num; ii++) {
+  for (ii = 0; ii < num; ii++) {
     val = lup(nout->data, ii);
     changed = AIR_FALSE;
-    for (jj=0; jj<asize1; jj++) {
-      if (val == subst[jj*2+0]) {
-        val = subst[jj*2+1];
+    for (jj = 0; jj < asize1; jj++) {
+      if (val == subst[jj * 2 + 0]) {
+        val = subst[jj * 2 + 1];
         changed = AIR_TRUE;
       }
     }

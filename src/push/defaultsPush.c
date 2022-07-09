@@ -24,11 +24,8 @@
 #include "push.h"
 #include "privatePush.h"
 
-const int
-pushPresent = 42;
+const int pushPresent = 42;
 
-const char *
-pushBiffKey = "push";
+const char *pushBiffKey = "push";
 
-int
-_pushVerbose = 0;
+int _pushVerbose = 0;

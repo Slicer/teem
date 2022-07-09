@@ -21,12 +21,11 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "limn.h"
 
 int
 limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win) {
-  static const char me[]="limnObjectRender";
+  static const char me[] = "limnObjectRender";
   int E;
 
   E = 0;
@@ -58,11 +57,8 @@ _limnPSPreamble(limnObject *obj, limnCamera *cam, limnWindow *win) {
   fprintf(win->file, "%%!PS-Adobe-2.0 EPSF-2.0\n");
   fprintf(win->file, "%%%%Creator: limn\n");
   fprintf(win->file, "%%%%Pages: 1\n");
-  fprintf(win->file, "%%%%BoundingBox: %d %d %d %d\n",
-          (int)(win->bbox[0]),
-          (int)(win->bbox[1]),
-          (int)(win->bbox[2]),
-          (int)(win->bbox[3]));
+  fprintf(win->file, "%%%%BoundingBox: %d %d %d %d\n", (int)(win->bbox[0]),
+          (int)(win->bbox[1]), (int)(win->bbox[2]), (int)(win->bbox[3]));
   fprintf(win->file, "%%%%EndComments\n");
   fprintf(win->file, "%%%%EndProlog\n");
   fprintf(win->file, "%%%%Page: 1 1\n");
@@ -73,8 +69,8 @@ _limnPSPreamble(limnObject *obj, limnCamera *cam, limnWindow *win) {
   fprintf(win->file, "%g %g lineto\n", win->bbox[0], win->bbox[3]);
   fprintf(win->file, "closepath\n");
   if (!win->ps.noBackground) {
-    fprintf(win->file, "gsave %g %g %g setrgbcolor fill grestore\n",
-            win->ps.bg[0], win->ps.bg[1], win->ps.bg[2]);
+    fprintf(win->file, "gsave %g %g %g setrgbcolor fill grestore\n", win->ps.bg[0],
+            win->ps.bg[1], win->ps.bg[2]);
   }
   fprintf(win->file, "clip\n");
   fprintf(win->file, "gsave newpath\n");
@@ -105,8 +101,8 @@ _limnPSEpilogue(limnObject *obj, limnCamera *cam, limnWindow *win) {
 }
 
 void
-_limnPSDrawFace(limnObject *obj, limnFace *face,
-                limnCamera *cam, Nrrd *nmap, limnWindow *win) {
+_limnPSDrawFace(limnObject *obj, limnFace *face, limnCamera *cam, Nrrd *nmap,
+                limnWindow *win) {
   /* static const char me[]="_limnPSDrawFace"; */
   unsigned int vii;
   limnVertex *vert;
@@ -116,24 +112,23 @@ _limnPSDrawFace(limnObject *obj, limnFace *face,
 
   AIR_UNUSED(cam);
   look = obj->look + face->lookIdx;
-  for (vii=0; vii<face->sideNum; vii++) {
+  for (vii = 0; vii < face->sideNum; vii++) {
     vert = obj->vert + face->vertIdx[vii];
-    fprintf(win->file, "%g %g %s\n",
-            vert->coord[0], vert->coord[1], vii ? "L" : "M");
+    fprintf(win->file, "%g %g %s\n", vert->coord[0], vert->coord[1], vii ? "L" : "M");
   }
-  R = look->kads[0]*look->rgba[0];
-  G = look->kads[0]*look->rgba[1];
-  B = look->kads[0]*look->rgba[2];
+  R = look->kads[0] * look->rgba[0];
+  G = look->kads[0] * look->rgba[1];
+  B = look->kads[0] * look->rgba[2];
   if (nmap) {
     qn = limnVtoQN_f[limnQN16octa](face->worldNormal);
     map = (float *)nmap->data;
-    R += look->kads[1]*look->rgba[0]*map[0 + 3*qn];
-    G += look->kads[1]*look->rgba[1]*map[1 + 3*qn];
-    B += look->kads[1]*look->rgba[2]*map[2 + 3*qn];
+    R += look->kads[1] * look->rgba[0] * map[0 + 3 * qn];
+    G += look->kads[1] * look->rgba[1] * map[1 + 3 * qn];
+    B += look->kads[1] * look->rgba[2] * map[2 + 3 * qn];
   } else {
-    R += look->kads[1]*look->rgba[0];
-    G += look->kads[1]*look->rgba[1];
-    B += look->kads[1]*look->rgba[2];
+    R += look->kads[1] * look->rgba[0];
+    G += look->kads[1] * look->rgba[1];
+    B += look->kads[1] * look->rgba[2];
   }
   /* HEY: not evaluating phong specular for now */
   R = AIR_CLAMP(0, R, 1);
@@ -148,15 +143,13 @@ _limnPSDrawFace(limnObject *obj, limnFace *face,
        incantation in the EPS header, for now it is simpler to forego
        the small economy implemented here */
     fprintf(win->file, "CP %g Gr F\n", R);
-  }
-  else {
+  } else {
     fprintf(win->file, "CP %g %g %g RGB F\n", R, G, B);
   }
 }
 
 void
-_limnPSDrawEdge(limnObject *obj, limnEdge *edge,
-                limnCamera *cam, limnWindow *win) {
+_limnPSDrawEdge(limnObject *obj, limnEdge *edge, limnCamera *cam, limnWindow *win) {
   limnVertex *vert0, *vert1;
   float R, G, B;
 
@@ -190,15 +183,18 @@ _limnPSDrawEdge(limnObject *obj, limnEdge *edge,
 ** correct specular lighting is not possible
 */
 int
-limnObjectPSDraw(limnObject *obj, limnCamera *cam,
-                 Nrrd *nmap, limnWindow *win) {
-  static const char me[]="limnObjectPSDraw";
+limnObjectPSDraw(limnObject *obj, limnCamera *cam, Nrrd *nmap, limnWindow *win) {
+  static const char me[] = "limnObjectPSDraw";
   int inside;
   float angle;
-  limnFace *face, *face0, *face1; unsigned int fii;
-  limnEdge *edge; unsigned int eii;
-  limnPart *part; unsigned int partIdx;
-  limnVertex *vert; unsigned int vii;
+  limnFace *face, *face0, *face1;
+  unsigned int fii;
+  limnEdge *edge;
+  unsigned int eii;
+  limnPart *part;
+  unsigned int partIdx;
+  limnVertex *vert;
+  unsigned int vii;
 
   if (limnSpaceDevice != obj->vertSpace) {
     biffAddf(LIMN, "%s: object's verts in %s (not %s) space", me,
@@ -217,15 +213,15 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
 
   _limnPSPreamble(obj, cam, win);
 
-  for (partIdx=0; partIdx<obj->partNum; partIdx++) {
+  for (partIdx = 0; partIdx < obj->partNum; partIdx++) {
     part = obj->part[partIdx];
 
     /* only draw the parts that are inside the field of view */
     inside = 0;
-    for (vii=0; vii<part->vertIdxNum; vii++) {
+    for (vii = 0; vii < part->vertIdxNum; vii++) {
       vert = obj->vert + part->vertIdx[vii];
-      inside |= (AIR_IN_CL(win->bbox[0], vert->coord[0], win->bbox[2]) &&
-                 AIR_IN_CL(win->bbox[1], vert->coord[1], win->bbox[3]));
+      inside |= (AIR_IN_CL(win->bbox[0], vert->coord[0], win->bbox[2])
+                 && AIR_IN_CL(win->bbox[1], vert->coord[1], win->bbox[3]));
       if (inside) {
         /* at least vertex is in, we know we can't skip this part */
         break;
@@ -255,14 +251,13 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
     } else {
       /* this part is either a lone face or a solid:
          draw the front-facing, shaded faces */
-      for (fii=0; fii<part->faceIdxNum; fii++) {
+      for (fii = 0; fii < part->faceIdxNum; fii++) {
         face = obj->face + part->faceIdx[fii];
         /* The consequence of having a left-handed frame is that world-space
            CC-wise vertex traversal becomes C-wise screen-space traversal, so
            all the normals are backwards of what we want */
-        face->visible = (cam->rightHanded
-                         ? face->screenNormal[2] < 0
-                         : face->screenNormal[2] > 0);
+        face->visible = (cam->rightHanded ? face->screenNormal[2] < 0
+                                          : face->screenNormal[2] > 0);
         if (face->sideNum == part->vertIdxNum && !face->visible) {
           /* lone faces are always visible */
           face->visible = AIR_TRUE;
@@ -274,7 +269,7 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
       }
 
       /* draw ALL edges */
-      for (eii=0; eii<part->edgeIdxNum; eii++) {
+      for (eii = 0; eii < part->edgeIdxNum; eii++) {
         /* hack to change contour of particular object/glyph
         if (24 == partIdx) {
           win->ps.lineWidth[limnEdgeTypeContour] = 1.2;
@@ -284,24 +279,20 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
         */
         edge = obj->edge + part->edgeIdx[eii];
         face0 = obj->face + edge->faceIdx[0];
-        face1 = (-1 == edge->faceIdx[1]
-                 ? NULL
-                 : obj->face + edge->faceIdx[1]);
+        face1 = (-1 == edge->faceIdx[1] ? NULL : obj->face + edge->faceIdx[1]);
         if (!face1) {
           edge->type = limnEdgeTypeBorder;
         } else {
-          angle = AIR_FLOAT(180/AIR_PI*acos(ELL_3V_DOT(face0->worldNormal,
-                                                       face1->worldNormal)));
+          angle = AIR_FLOAT(180 / AIR_PI
+                            * acos(ELL_3V_DOT(face0->worldNormal, face1->worldNormal)));
           if (face0->visible && face1->visible) {
-            edge->type = (angle > win->ps.creaseAngle
-                          ? limnEdgeTypeFrontCrease
-                          : limnEdgeTypeFrontFacet);
+            edge->type = (angle > win->ps.creaseAngle ? limnEdgeTypeFrontCrease
+                                                      : limnEdgeTypeFrontFacet);
           } else if (face0->visible ^ face1->visible) {
             edge->type = limnEdgeTypeContour;
           } else {
-            edge->type = (angle > win->ps.creaseAngle
-                          ? limnEdgeTypeBackCrease
-                          : limnEdgeTypeBackFacet);
+            edge->type = (angle > win->ps.creaseAngle ? limnEdgeTypeBackCrease
+                                                      : limnEdgeTypeBackFacet);
           }
         }
         _limnPSDrawEdge(obj, edge, cam, win);
@@ -322,13 +313,14 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam,
 ** contours near oblique faces correct...
 */
 int
-limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
-                     Nrrd *nmap, limnWindow *win) {
-  static const char me[]="limnObjectPSDrawConcave";
+limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam, Nrrd *nmap, limnWindow *win) {
+  static const char me[] = "limnObjectPSDrawConcave";
   float angle;
   limnPart *part;
-  limnFace *face, *face0, *face1; unsigned int faceIdx;
-  limnEdge *edge; unsigned int edgeIdx, eii;
+  limnFace *face, *face0, *face1;
+  unsigned int faceIdx;
+  limnEdge *edge;
+  unsigned int edgeIdx, eii;
 
   if (limnSpaceDevice != obj->vertSpace) {
     biffAddf(LIMN, "%s: object's verts in %s (not %s) space", me,
@@ -348,12 +340,11 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
   _limnPSPreamble(obj, cam, win);
 
   /* set every face's visibility */
-  for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
+  for (faceIdx = 0; faceIdx < obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
     part = obj->part[face->partIdx];
-    face->visible = (cam->rightHanded
-                     ? face->screenNormal[2] < 0
-                     : face->screenNormal[2] > 0);
+    face->visible = (cam->rightHanded ? face->screenNormal[2] < 0
+                                      : face->screenNormal[2] > 0);
     if (face->sideNum == part->vertIdxNum && !face->visible) {
       /* lone faces are always visible */
       face->visible = AIR_TRUE;
@@ -363,35 +354,31 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
 
   /* categorize all edges by traversing edge array, and looking
      at each of their two faces */
-  for (edgeIdx=0; edgeIdx<obj->edgeNum; edgeIdx++) {
+  for (edgeIdx = 0; edgeIdx < obj->edgeNum; edgeIdx++) {
     edge = obj->edge + edgeIdx;
     part = obj->part[edge->partIdx];
     face0 = obj->face + edge->faceIdx[0];
-    face1 = (-1 == edge->faceIdx[1]
-             ? NULL
-             : obj->face + edge->faceIdx[1]);
+    face1 = (-1 == edge->faceIdx[1] ? NULL : obj->face + edge->faceIdx[1]);
     if (!face1) {
       edge->type = limnEdgeTypeBorder;
     } else {
-      angle = AIR_FLOAT(180/AIR_PI*acos(ELL_3V_DOT(face0->worldNormal,
-                                                   face1->worldNormal)));
+      angle = AIR_FLOAT(180 / AIR_PI
+                        * acos(ELL_3V_DOT(face0->worldNormal, face1->worldNormal)));
       if (face0->visible && face1->visible) {
-        edge->type = (angle > win->ps.creaseAngle
-                      ? limnEdgeTypeFrontCrease
-                      : limnEdgeTypeFrontFacet);
+        edge->type = (angle > win->ps.creaseAngle ? limnEdgeTypeFrontCrease
+                                                  : limnEdgeTypeFrontFacet);
       } else if (face0->visible ^ face1->visible) {
         edge->type = limnEdgeTypeContour;
       } else {
-        edge->type = (angle > win->ps.creaseAngle
-                      ? limnEdgeTypeBackCrease
-                      : limnEdgeTypeBackFacet);
+        edge->type = (angle > win->ps.creaseAngle ? limnEdgeTypeBackCrease
+                                                  : limnEdgeTypeBackFacet);
       }
     }
   }
 
   /* draw front-faces and their edges
      (contours, front crease, front non-crease) */
-  for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
+  for (faceIdx = 0; faceIdx < obj->faceNum; faceIdx++) {
     face = obj->faceSort[faceIdx];
     part = obj->part[face->partIdx];
     if (!face->visible) {
@@ -402,7 +389,7 @@ limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
     }
     /* draw those edges around the face that won't be seen again by
        future faces in the depth-first traversal */
-    for (eii=0; eii<face->sideNum; eii++) {
+    for (eii = 0; eii < face->sideNum; eii++) {
       edge = obj->edge + face->edgeIdx[eii];
       if (limnEdgeTypeContour == edge->type) {
         _limnPSDrawEdge(obj, edge, cam, win);

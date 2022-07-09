@@ -71,7 +71,6 @@
 #  define MEET_EXPORT extern
 #endif
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -116,25 +115,24 @@ MEET_EXPORT hestCB *meetHestConstGageKind;
 */
 typedef struct {
   const gageKind *kind;
-  char *fileName,
-    *volName;
-  gageStackBlurParm *sbp;  /* the right place to store everything about how to
-                              pre-compute a blurring of an image, replacing
-                              uniformSS, optimSS, needSpatialBlurSS,
-                              rangeSS[2], numSS, and posSS.  More sensible to
-                              have this here, now that gage can parse the
-                              terse string-based description of scale-space
-                              sampling that originated in meet (via Deft) */
-  int leeching,            /* non-zero iff using the same nin and ninSS
-                              as another meetPullVol (so as to avoid
-                              redundant copies in memory) */
-    derivNormSS,           /* normalize derivatives based on scale */
-    recomputedSS;          /* (OUTPUT) non-zero if meetPullVolLoadMulti
-                              had to recompute these, versus being read
-                              from disk */
-  double derivNormBiasSS;  /* for gageParmStackNormalizeDerivBias */
-  Nrrd *nin;               /* we DO own */
-  Nrrd **ninSS;            /* we DO own */
+  char *fileName, *volName;
+  gageStackBlurParm *sbp; /* the right place to store everything about how to
+                             pre-compute a blurring of an image, replacing
+                             uniformSS, optimSS, needSpatialBlurSS,
+                             rangeSS[2], numSS, and posSS.  More sensible to
+                             have this here, now that gage can parse the
+                             terse string-based description of scale-space
+                             sampling that originated in meet (via Deft) */
+  int leeching,           /* non-zero iff using the same nin and ninSS
+                             as another meetPullVol (so as to avoid
+                             redundant copies in memory) */
+    derivNormSS,          /* normalize derivatives based on scale */
+    recomputedSS;         /* (OUTPUT) non-zero if meetPullVolLoadMulti
+                             had to recompute these, versus being read
+                             from disk */
+  double derivNormBiasSS; /* for gageParmStackNormalizeDerivBias */
+  Nrrd *nin;              /* we DO own */
+  Nrrd **ninSS;           /* we DO own */
 } meetPullVol;
 
 /*
@@ -151,13 +149,13 @@ typedef struct {
 ** number.
 */
 typedef struct {
-  int info,                    /* which pullInfo is being defined */
-    source,                    /* the source (from pullSource* enum) */
-    prop,                      /* which property (if pullSourceProp) */
-    constraint;                /* this info should be a constraint */
-  char *volName,               /* name of volume from which info is measured */
-    *itemStr;                  /* which item in that volume gives the info */
-  double zero, scale;          /* affine mapping of scalar info */
+  int info,           /* which pullInfo is being defined */
+    source,           /* the source (from pullSource* enum) */
+    prop,             /* which property (if pullSourceProp) */
+    constraint;       /* this info should be a constraint */
+  char *volName,      /* name of volume from which info is measured */
+    *itemStr;         /* which item in that volume gives the info */
+  double zero, scale; /* affine mapping of scalar info */
 } meetPullInfo;
 
 /* meetPull.c */
@@ -178,11 +176,9 @@ MEET_EXPORT int meetPullVolStackBlurParmFinishMulti(meetPullVol **mpv,
                                                     const NrrdBoundarySpec *bsp);
 MEET_EXPORT int meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
                                      char *cachePath, int verbose);
-MEET_EXPORT int meetPullVolAddMulti(pullContext *pctx,
-                                    meetPullVol **mpv, unsigned int mpvNum,
-                                    const NrrdKernelSpec *k00,
-                                    const NrrdKernelSpec *k11,
-                                    const NrrdKernelSpec *k22,
+MEET_EXPORT int meetPullVolAddMulti(pullContext *pctx, meetPullVol **mpv,
+                                    unsigned int mpvNum, const NrrdKernelSpec *k00,
+                                    const NrrdKernelSpec *k11, const NrrdKernelSpec *k22,
                                     const NrrdKernelSpec *kSSrecon);
 MEET_EXPORT meetPullInfo *meetPullInfoNew(void);
 MEET_EXPORT meetPullInfo *meetPullInfoNix(meetPullInfo *minf);
@@ -191,7 +187,6 @@ MEET_EXPORT hestCB *meetHestPullInfo;
 MEET_EXPORT int meetPullInfoAddMulti(pullContext *pctx,
                                      meetPullInfo **minf,
                                      unsigned int minfNum);
-
 
 #ifdef __cplusplus
 }

@@ -39,12 +39,10 @@
 */
 int
 nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
-  static const char me[]="nrrdSlice", func[]="slice";
-  size_t
-    I,
-    rowLen,                  /* length of segment */
-    colStep,                 /* distance between start of each segment */
-    colLen,                  /* number of periods */
+  static const char me[] = "nrrdSlice", func[] = "slice";
+  size_t I, rowLen, /* length of segment */
+    colStep,        /* distance between start of each segment */
+    colLen,         /* number of periods */
     szOut[NRRD_DIM_MAX];
   unsigned int ai, outdim;
   int map[NRRD_DIM_MAX];
@@ -63,21 +61,20 @@ nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
   }
   if (1 == cnin->dim) {
     if (0 != saxi) {
-      biffAddf(NRRD, "%s: slice axis must be 0, not %u, for 1-D array",
-               me, saxi);
+      biffAddf(NRRD, "%s: slice axis must be 0, not %u, for 1-D array", me, saxi);
       return 1;
     }
   } else {
-    if (!( saxi < cnin->dim )) {
-      biffAddf(NRRD, "%s: slice axis %d out of bounds (0 to %d)",
-               me, saxi, cnin->dim-1);
+    if (!(saxi < cnin->dim)) {
+      biffAddf(NRRD, "%s: slice axis %d out of bounds (0 to %d)", me, saxi,
+               cnin->dim - 1);
       return 1;
     }
   }
-  if (!( pos < cnin->axis[saxi].size )) {
+  if (!(pos < cnin->axis[saxi].size)) {
     biffAddf(NRRD, "%s: position %s out of bounds (0 to %s)", me,
              airSprintSize_t(stmp[0], pos),
-             airSprintSize_t(stmp[1], cnin->axis[saxi].size-1));
+             airSprintSize_t(stmp[1], cnin->axis[saxi].size - 1));
     return 1;
   }
   /* this shouldn't actually be necessary .. */
@@ -98,7 +95,8 @@ nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
     airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdAxesInsert(nin, cnin, 1)) {
       biffAddf(NRRD, "%s: trouble inserting axis on 1-D array", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   } else {
     nin = NULL;
@@ -106,7 +104,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
 
   /* set up control variables */
   rowLen = colLen = 1;
-  for (ai=0; ai<(nin ? nin : cnin)->dim; ai++) {
+  for (ai = 0; ai < (nin ? nin : cnin)->dim; ai++) {
     if (ai < saxi) {
       rowLen *= (nin ? nin : cnin)->axis[ai].size;
     } else if (ai > saxi) {
@@ -114,24 +112,25 @@ nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
     }
   }
   rowLen *= nrrdElementSize(nin ? nin : cnin);
-  colStep = rowLen*(nin ? nin : cnin)->axis[saxi].size;
+  colStep = rowLen * (nin ? nin : cnin)->axis[saxi].size;
 
-  outdim = (nin ? nin : cnin)->dim-1;
-  for (ai=0; ai<outdim; ai++) {
+  outdim = (nin ? nin : cnin)->dim - 1;
+  for (ai = 0; ai < outdim; ai++) {
     map[ai] = AIR_INT(ai) + (ai >= saxi);
     szOut[ai] = (nin ? nin : cnin)->axis[map[ai]].size;
   }
   nout->blockSize = (nin ? nin : cnin)->blockSize;
   if (nrrdMaybeAlloc_nva(nout, (nin ? nin : cnin)->type, outdim, szOut)) {
     biffAddf(NRRD, "%s: failed to create slice", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   /* the skinny */
   src = AIR_CAST(const char *, (nin ? nin : cnin)->data);
   dest = AIR_CAST(char *, nout->data);
-  src += rowLen*pos;
-  for (I=0; I<colLen; I++) {
+  src += rowLen * pos;
+  for (I = 0; I < colLen; I++) {
     /* HEY: replace with AIR_MEMCPY() or similar, when applicable */
     memcpy(dest, src, rowLen);
     src += colStep;
@@ -141,32 +140,32 @@ nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
   /* copy the peripheral information */
   if (nrrdAxisInfoCopy(nout, (nin ? nin : cnin), map, NRRD_AXIS_INFO_NONE)) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  if (nrrdContentSet_va(nout, func, cnin /* hide possible axinsert*/,
-                        "%d,%d", saxi, pos)) {
+  if (nrrdContentSet_va(nout, func, cnin /* hide possible axinsert*/, "%d,%d", saxi,
+                        pos)) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdBasicInfoCopy(nout, (nin ? nin : cnin),
                         NRRD_BASIC_INFO_DATA_BIT /* */
-                        | NRRD_BASIC_INFO_TYPE_BIT
-                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                        | NRRD_BASIC_INFO_DIMENSION_BIT
-                        | NRRD_BASIC_INFO_SPACEORIGIN_BIT
-                        | NRRD_BASIC_INFO_CONTENT_BIT
-                        | NRRD_BASIC_INFO_COMMENTS_BIT
-                        | (nrrdStateKeyValuePairsPropagate
-                           ? 0
-                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+                          | NRRD_BASIC_INFO_TYPE_BIT | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                          | NRRD_BASIC_INFO_DIMENSION_BIT
+                          | NRRD_BASIC_INFO_SPACEORIGIN_BIT | NRRD_BASIC_INFO_CONTENT_BIT
+                          | NRRD_BASIC_INFO_COMMENTS_BIT
+                          | (nrrdStateKeyValuePairsPropagate
+                               ? 0
+                               : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   /* translate origin if this was a spatial axis, otherwise copy */
   /* note that if there is no spatial info at all, this is all harmless */
   if (AIR_EXISTS((nin ? nin : cnin)->axis[saxi].spaceDirection[0])) {
-    nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
-                          1.0, (nin ? nin : cnin)->spaceOrigin,
+    nrrdSpaceVecScaleAdd2(nout->spaceOrigin, 1.0, (nin ? nin : cnin)->spaceOrigin,
                           AIR_CAST(double, pos),
                           (nin ? nin : cnin)->axis[saxi].spaceDirection);
   } else {
@@ -185,18 +184,16 @@ nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
 */
 int
 nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
-  static const char me[]="nrrdCrop", func[] = "crop";
-  char buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
+  static const char me[] = "nrrdCrop", func[] = "crop";
+  char buff1[NRRD_DIM_MAX * 30], buff2[AIR_STRLEN_SMALL];
   unsigned int ai;
-  size_t I,
-    lineSize,                /* #bytes in one scanline to be copied */
-    typeSize,                /* size of data type */
-    cIn[NRRD_DIM_MAX],       /* coords for line start, in input */
-    cOut[NRRD_DIM_MAX],      /* coords for line start, in output */
-    szIn[NRRD_DIM_MAX],
-    szOut[NRRD_DIM_MAX],
-    idxIn, idxOut,           /* linear indices for input and output */
-    numLines;                /* number of scanlines in output nrrd */
+  size_t I, lineSize,   /* #bytes in one scanline to be copied */
+    typeSize,           /* size of data type */
+    cIn[NRRD_DIM_MAX],  /* coords for line start, in input */
+    cOut[NRRD_DIM_MAX], /* coords for line start, in output */
+    szIn[NRRD_DIM_MAX], szOut[NRRD_DIM_MAX], idxIn,
+    idxOut,   /* linear indices for input and output */
+    numLines; /* number of scanlines in output nrrd */
   char *dataIn, *dataOut, stmp[3][AIR_STRLEN_SMALL];
 
   /* errors */
@@ -208,18 +205,16 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
     biffAddf(NRRD, "%s: nout==nin disallowed", me);
     return 1;
   }
-  for (ai=0; ai<nin->dim; ai++) {
+  for (ai = 0; ai < nin->dim; ai++) {
     if (!(min[ai] <= max[ai])) {
       biffAddf(NRRD, "%s: axis %d min (%s) not <= max (%s)", me, ai,
-               airSprintSize_t(stmp[0], min[ai]),
-               airSprintSize_t(stmp[1], max[ai]));
+               airSprintSize_t(stmp[0], min[ai]), airSprintSize_t(stmp[1], max[ai]));
       return 1;
     }
-    if (!( min[ai] < nin->axis[ai].size && max[ai] < nin->axis[ai].size )) {
-      biffAddf(NRRD, "%s: axis %d min (%s) or max (%s) out of bounds [0,%s]",
-               me, ai, airSprintSize_t(stmp[0], min[ai]),
-               airSprintSize_t(stmp[1], max[ai]),
-               airSprintSize_t(stmp[2], nin->axis[ai].size-1));
+    if (!(min[ai] < nin->axis[ai].size && max[ai] < nin->axis[ai].size)) {
+      biffAddf(NRRD, "%s: axis %d min (%s) or max (%s) out of bounds [0,%s]", me, ai,
+               airSprintSize_t(stmp[0], min[ai]), airSprintSize_t(stmp[1], max[ai]),
+               airSprintSize_t(stmp[2], nin->axis[ai].size - 1));
       return 1;
     }
   }
@@ -232,7 +227,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   /* allocate */
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
   numLines = 1;
-  for (ai=0; ai<nin->dim; ai++) {
+  for (ai = 0; ai < nin->dim; ai++) {
     szOut[ai] = max[ai] - min[ai] + 1;
     if (ai) {
       numLines *= szOut[ai];
@@ -243,13 +238,13 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
     biffAddf(NRRD, "%s:", me);
     return 1;
   }
-  lineSize = szOut[0]*nrrdElementSize(nin);
+  lineSize = szOut[0] * nrrdElementSize(nin);
 
   /* the skinny */
   typeSize = nrrdElementSize(nin);
   dataIn = (char *)nin->data;
   dataOut = (char *)nout->data;
-  memset(cOut, 0, NRRD_DIM_MAX*sizeof(*cOut));
+  memset(cOut, 0, NRRD_DIM_MAX * sizeof(*cOut));
   /*
   printf("!%s: nin->dim = %d\n", me, nin->dim);
   printf("!%s: min  = %d %d %d\n", me, min[0], min[1], min[2]);
@@ -259,8 +254,8 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   printf("!%s: typeSize = %d\n", me, typeSize);
   printf("!%s: numLines = %d\n", me, (int)numLines);
   */
-  for (I=0; I<numLines; I++) {
-    for (ai=0; ai<nin->dim; ai++) {
+  for (I = 0; I < numLines; I++) {
+    for (ai = 0; ai < nin->dim; ai++) {
       cIn[ai] = cOut[ai] + min[ai];
     }
     NRRD_INDEX_GEN(idxOut, cOut, szOut, nin->dim);
@@ -271,21 +266,20 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
     printf("!%s: %5d:  cIn=(%3d,%3d,%3d) -->  idxIn = %5d\n",
            me, (int)I, cIn[0], cIn[1], cIn[2], (int)idxIn);
     */
-    memcpy(dataOut + idxOut*typeSize, dataIn + idxIn*typeSize, lineSize);
+    memcpy(dataOut + idxOut * typeSize, dataIn + idxIn * typeSize, lineSize);
     /* the lowest coordinate in cOut[] will stay zero, since we are
        copying one (1-D) scanline at a time */
     NRRD_COORD_INCR(cOut, szOut, nin->dim, 1);
   }
-  if (nrrdAxisInfoCopy(nout, nin, NULL, (NRRD_AXIS_INFO_SIZE_BIT |
-                                         NRRD_AXIS_INFO_MIN_BIT |
-                                         NRRD_AXIS_INFO_MAX_BIT ))) {
+  if (nrrdAxisInfoCopy(nout, nin, NULL,
+                       (NRRD_AXIS_INFO_SIZE_BIT | NRRD_AXIS_INFO_MIN_BIT
+                        | NRRD_AXIS_INFO_MAX_BIT))) {
     biffAddf(NRRD, "%s:", me);
     return 1;
   }
-  for (ai=0; ai<nin->dim; ai++) {
-    nrrdAxisInfoPosRange(&(nout->axis[ai].min), &(nout->axis[ai].max),
-                         nin, ai, AIR_CAST(double, min[ai]),
-                         AIR_CAST(double, max[ai]));
+  for (ai = 0; ai < nin->dim; ai++) {
+    nrrdAxisInfoPosRange(&(nout->axis[ai].min), &(nout->axis[ai].max), nin, ai,
+                         AIR_CAST(double, min[ai]), AIR_CAST(double, max[ai]));
     /* do the safe thing first */
     nout->axis[ai].kind = _nrrdKindAltered(nin->axis[ai].kind, AIR_FALSE);
     /* try cleverness */
@@ -293,43 +287,35 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
       if (nout->axis[ai].size == nin->axis[ai].size) {
         /* we can safely copy kind; the samples didn't change */
         nout->axis[ai].kind = nin->axis[ai].kind;
-      } else if (nrrdKind4Color == nin->axis[ai].kind
-                 && 3 == szOut[ai]) {
+      } else if (nrrdKind4Color == nin->axis[ai].kind && 3 == szOut[ai]) {
         nout->axis[ai].kind = nrrdKind3Color;
-      } else if (nrrdKind4Vector == nin->axis[ai].kind
-                 && 3 == szOut[ai]) {
+      } else if (nrrdKind4Vector == nin->axis[ai].kind && 3 == szOut[ai]) {
         nout->axis[ai].kind = nrrdKind3Vector;
       } else if ((nrrdKind4Vector == nin->axis[ai].kind
                   || nrrdKind3Vector == nin->axis[ai].kind)
                  && 2 == szOut[ai]) {
         nout->axis[ai].kind = nrrdKind2Vector;
-      } else if (nrrdKindRGBAColor == nin->axis[ai].kind
-                 && 0 == min[ai]
+      } else if (nrrdKindRGBAColor == nin->axis[ai].kind && 0 == min[ai]
                  && 2 == max[ai]) {
         nout->axis[ai].kind = nrrdKindRGBColor;
-      } else if (nrrdKind2DMaskedSymMatrix == nin->axis[ai].kind
-                 && 1 == min[ai]
-                 && max[ai] == szIn[ai]-1) {
+      } else if (nrrdKind2DMaskedSymMatrix == nin->axis[ai].kind && 1 == min[ai]
+                 && max[ai] == szIn[ai] - 1) {
         nout->axis[ai].kind = nrrdKind2DSymMatrix;
-      } else if (nrrdKind2DMaskedMatrix == nin->axis[ai].kind
-                 && 1 == min[ai]
-                 && max[ai] == szIn[ai]-1) {
+      } else if (nrrdKind2DMaskedMatrix == nin->axis[ai].kind && 1 == min[ai]
+                 && max[ai] == szIn[ai] - 1) {
         nout->axis[ai].kind = nrrdKind2DMatrix;
-      } else if (nrrdKind3DMaskedSymMatrix == nin->axis[ai].kind
-                 && 1 == min[ai]
-                 && max[ai] == szIn[ai]-1) {
+      } else if (nrrdKind3DMaskedSymMatrix == nin->axis[ai].kind && 1 == min[ai]
+                 && max[ai] == szIn[ai] - 1) {
         nout->axis[ai].kind = nrrdKind3DSymMatrix;
-      } else if (nrrdKind3DMaskedMatrix == nin->axis[ai].kind
-                 && 1 == min[ai]
-                 && max[ai] == szIn[ai]-1) {
+      } else if (nrrdKind3DMaskedMatrix == nin->axis[ai].kind && 1 == min[ai]
+                 && max[ai] == szIn[ai] - 1) {
         nout->axis[ai].kind = nrrdKind3DMatrix;
       }
     }
   }
   strcpy(buff1, "");
-  for (ai=0; ai<nin->dim; ai++) {
-    sprintf(buff2, "%s[%s,%s]", (ai ? "x" : ""),
-            airSprintSize_t(stmp[0], min[ai]),
+  for (ai = 0; ai < nin->dim; ai++) {
+    sprintf(buff2, "%s[%s,%s]", (ai ? "x" : ""), airSprintSize_t(stmp[0], min[ai]),
             airSprintSize_t(stmp[1], max[ai]));
     strcat(buff1, buff2);
   }
@@ -339,29 +325,24 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   }
   if (nrrdBasicInfoCopy(nout, nin,
                         NRRD_BASIC_INFO_DATA_BIT /* */
-                        | NRRD_BASIC_INFO_TYPE_BIT
-                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                        | NRRD_BASIC_INFO_DIMENSION_BIT
-                        | NRRD_BASIC_INFO_SPACEORIGIN_BIT
-                        | NRRD_BASIC_INFO_CONTENT_BIT
-                        | NRRD_BASIC_INFO_COMMENTS_BIT
-                        | (nrrdStateKeyValuePairsPropagate
-                           ? 0
-                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+                          | NRRD_BASIC_INFO_TYPE_BIT | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                          | NRRD_BASIC_INFO_DIMENSION_BIT
+                          | NRRD_BASIC_INFO_SPACEORIGIN_BIT | NRRD_BASIC_INFO_CONTENT_BIT
+                          | NRRD_BASIC_INFO_COMMENTS_BIT
+                          | (nrrdStateKeyValuePairsPropagate
+                               ? 0
+                               : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     biffAddf(NRRD, "%s:", me);
     return 1;
   }
   /* copy origin, then shift it along the spatial axes */
   nrrdSpaceVecCopy(nout->spaceOrigin, nin->spaceOrigin);
-  for (ai=0; ai<nin->dim; ai++) {
+  for (ai = 0; ai < nin->dim; ai++) {
     if (AIR_EXISTS(nin->axis[ai].spaceDirection[0])) {
-      nrrdSpaceVecScaleAdd2(nout->spaceOrigin,
-                            1.0, nout->spaceOrigin,
-                            AIR_CAST(double, min[ai]),
-                            nin->axis[ai].spaceDirection);
+      nrrdSpaceVecScaleAdd2(nout->spaceOrigin, 1.0, nout->spaceOrigin,
+                            AIR_CAST(double, min[ai]), nin->axis[ai].spaceDirection);
     }
   }
-
 
   return 0;
 }
@@ -384,21 +365,20 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
 ** empty output.
 */
 int
-nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
-                unsigned int saxi, Nrrd *_nline, double thresh) {
-  static const char me[]="nrrdSliceSelect";
+nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin, unsigned int saxi,
+                Nrrd *_nline, double thresh) {
+  static const char me[] = "nrrdSliceSelect";
   airArray *mop;
   Nrrd *nline, *nslice, *noutPrep[2] /* pre-axes-permute */, *nout[2];
   NrrdRange *rng;
   double *line;
-  size_t II, LL, numAbove, numBelow, stride,
-    size[2 /* 0=above 1=below */][NRRD_DIM_MAX];
+  size_t II, LL, numAbove, numBelow, stride, size[2 /* 0=above 1=below */][NRRD_DIM_MAX];
   unsigned int aa, bb, oi,
-    axperm[NRRD_DIM_MAX]; /* for doing the axis permute to final out */
+    axperm[NRRD_DIM_MAX];  /* for doing the axis permute to final out */
   int axmap[NRRD_DIM_MAX]; /* for copying axis info from nin to outputs */
   char *ABdata[2], stmp[2][AIR_STRLEN_SMALL];
 
-  if (!( (noutAbove || noutBelow) && nin && _nline )) {
+  if (!((noutAbove || noutBelow) && nin && _nline)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
@@ -407,8 +387,7 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
     return 1;
   }
   if (!(saxi < nin->dim)) {
-    biffAddf(NRRD, "%s: can't select axis %u of a %u-D input nrrd", me,
-             saxi, nin->dim);
+    biffAddf(NRRD, "%s: can't select axis %u of a %u-D input nrrd", me, saxi, nin->dim);
     return 1;
   }
   if (nrrdCheck(nin) || nrrdCheck(_nline)) {
@@ -422,21 +401,22 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
              airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
-  if (!( nrrdTypeBlock != _nline->type
-         && 1 == _nline->dim)) {
-    biffAddf(NRRD, "%s: nline must be 1-D array of scalars (not %u-D of %s)",
-             me, _nline->dim, airEnumStr(nrrdType, _nline->type));
+  if (!(nrrdTypeBlock != _nline->type && 1 == _nline->dim)) {
+    biffAddf(NRRD, "%s: nline must be 1-D array of scalars (not %u-D of %s)", me,
+             _nline->dim, airEnumStr(nrrdType, _nline->type));
     return 1;
   }
-  if (!( _nline->axis[0].size == nin->axis[saxi].size )) {
+  if (!(_nline->axis[0].size == nin->axis[saxi].size)) {
     biffAddf(NRRD, "%s: line length (%s) != axis[%u].size (%s)", me,
              airSprintSize_t(stmp[0], _nline->axis[0].size), saxi,
              airSprintSize_t(stmp[1], nin->axis[saxi].size));
     return 1;
   }
   if (1 == nin->dim) {
-    biffAddf(NRRD, "%s: sorry, current slice-based implementation "
-             "requires input dimension > 1", me);
+    biffAddf(NRRD,
+             "%s: sorry, current slice-based implementation "
+             "requires input dimension > 1",
+             me);
     return 1;
   }
 
@@ -445,7 +425,8 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
   airMopAdd(mop, rng, (airMopper)nrrdRangeNix, airMopAlways);
   if (rng->hasNonExist) {
     biffAddf(NRRD, "%s: had non-existent values in line", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   nslice = nrrdNew();
@@ -455,13 +436,14 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
   airMopAdd(mop, nline, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(nline, _nline, nrrdTypeDouble)) {
     biffAddf(NRRD, "%s: problem copying line", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   line = AIR_CAST(double *, nline->data);
   LL = nline->axis[0].size;
   numAbove = numBelow = 0;
-  for (II=0; II<LL; II++) {
+  for (II = 0; II < LL; II++) {
     if (line[II] >= thresh) {
       numAbove++;
     } else {
@@ -470,10 +452,12 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
   }
   if (noutAbove) {
     if (!numAbove) {
-      biffAddf(NRRD, "%s: want slices for val >= thresh %g, "
-               "but highest value is %g < %g\n", me, thresh,
-               rng->max, thresh);
-      airMopError(mop); return 1;
+      biffAddf(NRRD,
+               "%s: want slices for val >= thresh %g, "
+               "but highest value is %g < %g\n",
+               me, thresh, rng->max, thresh);
+      airMopError(mop);
+      return 1;
     }
     noutPrep[0] = nrrdNew();
     airMopAdd(mop, noutPrep[0], (airMopper)nrrdNuke, airMopAlways);
@@ -483,10 +467,12 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
   }
   if (noutBelow) {
     if (!numBelow) {
-      biffAddf(NRRD, "%s: want slices for val < thresh %g, "
-               "but lowest value is %g >= %g\n", me, thresh,
-               rng->min, thresh);
-      airMopError(mop); return 1;
+      biffAddf(NRRD,
+               "%s: want slices for val < thresh %g, "
+               "but lowest value is %g >= %g\n",
+               me, thresh, rng->min, thresh);
+      airMopError(mop);
+      return 1;
     }
     noutPrep[1] = nrrdNew();
     airMopAdd(mop, noutPrep[1], (airMopper)nrrdNuke, airMopAlways);
@@ -505,15 +491,15 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
      arithmetic about axes, sizes, and how input axes are mapped to (final,
      post-axis-permute) output. "stride" is stride between slices in the
      initial (Prep) output */
-  nslice->dim = nin->dim-1;
+  nslice->dim = nin->dim - 1;
   nslice->type = nin->type;
   bb = 0;
   stride = nrrdElementSize(nin);
-  for (aa=0; aa<nin->dim; aa++) {
+  for (aa = 0; aa < nin->dim; aa++) {
     if (aa != saxi) {
       size_t ssz = nin->axis[aa].size;
       stride *= ssz;
-      axmap[aa] = aa; /* for nrrdAxisInfoCopy */
+      axmap[aa] = aa;  /* for nrrdAxisInfoCopy */
       axperm[aa] = bb; /* for nrrdAxesPermute */
       size[0][bb] = size[1][bb] = ssz;
       nslice->axis[bb].size = ssz;
@@ -521,17 +507,18 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
     }
   }
   axmap[saxi] = -1;
-  axperm[saxi] = nin->dim-1;
-  size[0][nin->dim-1] = numAbove;
-  size[1][nin->dim-1] = numBelow;
+  axperm[saxi] = nin->dim - 1;
+  size[0][nin->dim - 1] = numAbove;
+  size[1][nin->dim - 1] = numBelow;
 
   /* allocate pre-permutation outputs */
-  for (oi=0; oi<=1; oi++) {
+  for (oi = 0; oi <= 1; oi++) {
     if (nout[oi]) /* noutAbove or noutBelow */ {
       if (nrrdMaybeAlloc_nva(noutPrep[oi], nin->type, nin->dim, size[oi])) {
-        biffAddf(NRRD, "%s: trouble allocating output for slices %s",
-                 me, !oi ? "above" : "below");
-        airMopError(mop); return 1;
+        biffAddf(NRRD, "%s: trouble allocating output for slices %s", me,
+                 !oi ? "above" : "below");
+        airMopError(mop);
+        return 1;
       }
       ABdata[oi] = AIR_CAST(char *, noutPrep[oi]->data);
     } else {
@@ -540,17 +527,18 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
   }
 
   /* slice and concat */
-  for (II=0; II<LL; II++) {
+  for (II = 0; II < LL; II++) {
     int test[2];
     test[0] = (line[II] >= thresh);
     test[1] = !test[0];
-    for (oi=0; oi<=1; oi++) {
-      if (test[oi] && nout[oi] /* noutAbove or noutBelow */)  {
+    for (oi = 0; oi <= 1; oi++) {
+      if (test[oi] && nout[oi] /* noutAbove or noutBelow */) {
         nslice->data = ABdata[oi];
         if (nrrdSlice(nslice, nin, saxi, II)) {
-          biffAddf(NRRD, "%s: trouble slicing (%s) at %s", me,
-                   !oi ? "above" : "below", airSprintSize_t(stmp[0], II));
-          airMopError(mop); return 1;
+          biffAddf(NRRD, "%s: trouble slicing (%s) at %s", me, !oi ? "above" : "below",
+                   airSprintSize_t(stmp[0], II));
+          airMopError(mop);
+          return 1;
         }
         ABdata[oi] += stride;
       }
@@ -558,22 +546,21 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
   }
 
   /* now do permute */
-  for (oi=0; oi<=1; oi++) {
+  for (oi = 0; oi <= 1; oi++) {
     if (nout[oi]) /* noutAbove or noutBelow */ {
       if (nrrdAxesPermute(nout[oi], noutPrep[oi], axperm)
           /* nrrdAxisInfoCopy doesn't use biff but does have error returns */
           || nrrdAxisInfoCopy(nout[oi], nin, axmap, NRRD_AXIS_INFO_NONE)
           || nrrdBasicInfoCopy(nout[oi], nin,
                                NRRD_BASIC_INFO_DATA_BIT /* */
-                               | NRRD_BASIC_INFO_TYPE_BIT
-                               | NRRD_BASIC_INFO_DIMENSION_BIT
-                               | NRRD_BASIC_INFO_CONTENT_BIT
-                               | NRRD_BASIC_INFO_COMMENTS_BIT
-                               | (nrrdStateKeyValuePairsPropagate
-                                  ? 0
-                                  : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
-        biffAddf(NRRD, "%s: trouble with %s output", me,
-                 !oi ? "above" : "below");
+                                 | NRRD_BASIC_INFO_TYPE_BIT
+                                 | NRRD_BASIC_INFO_DIMENSION_BIT
+                                 | NRRD_BASIC_INFO_CONTENT_BIT
+                                 | NRRD_BASIC_INFO_COMMENTS_BIT
+                                 | (nrrdStateKeyValuePairsPropagate
+                                      ? 0
+                                      : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+        biffAddf(NRRD, "%s: trouble with %s output", me, !oi ? "above" : "below");
         return 1;
       }
     }
@@ -591,7 +578,7 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin,
 */
 int
 nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
-  static const char me[]="nrrdSample_nva";
+  static const char me[] = "nrrdSample_nva";
   size_t I, size[NRRD_DIM_MAX], typeSize;
   unsigned int ai;
   char stmp[2][AIR_STRLEN_SMALL];
@@ -608,18 +595,18 @@ nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
 
   typeSize = nrrdElementSize(nrrd);
   nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
-  for (ai=0; ai<nrrd->dim; ai++) {
-    if (!( coord[ai] < size[ai] )) {
-      biffAddf(NRRD, "%s: coordinate %s on axis %d out of bounds (0 to %s)",
-               me, airSprintSize_t(stmp[0], coord[ai]),
-               ai, airSprintSize_t(stmp[1], size[ai]-1));
+  for (ai = 0; ai < nrrd->dim; ai++) {
+    if (!(coord[ai] < size[ai])) {
+      biffAddf(NRRD, "%s: coordinate %s on axis %d out of bounds (0 to %s)", me,
+               airSprintSize_t(stmp[0], coord[ai]), ai,
+               airSprintSize_t(stmp[1], size[ai] - 1));
       return 1;
     }
   }
 
   NRRD_INDEX_GEN(I, coord, size, nrrd->dim);
 
-  memcpy(val, (char*)(nrrd->data) + I*typeSize, typeSize);
+  memcpy(val, (char *)(nrrd->data) + I * typeSize, typeSize);
   return 0;
 }
 
@@ -630,7 +617,7 @@ nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
 */
 int
 nrrdSample_va(void *val, const Nrrd *nrrd, ...) {
-  static const char me[]="nrrdSample_va";
+  static const char me[] = "nrrdSample_va";
   unsigned int ai;
   size_t coord[NRRD_DIM_MAX];
   va_list ap;
@@ -641,7 +628,7 @@ nrrdSample_va(void *val, const Nrrd *nrrd, ...) {
   }
 
   va_start(ap, nrrd);
-  for (ai=0; ai<nrrd->dim; ai++) {
+  for (ai = 0; ai < nrrd->dim; ai++) {
     coord[ai] = va_arg(ap, size_t);
   }
   va_end(ap);
@@ -659,7 +646,7 @@ nrrdSample_va(void *val, const Nrrd *nrrd, ...) {
 */
 int
 nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop) {
-  static const char me[]="nrrdSimpleCrop";
+  static const char me[] = "nrrdSimpleCrop";
   unsigned int ai;
   size_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
 
@@ -667,9 +654,9 @@ nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  for (ai=0; ai<nin->dim; ai++) {
+  for (ai = 0; ai < nin->dim; ai++) {
     min[ai] = crop;
-    max[ai] = nin->axis[ai].size-1 - crop;
+    max[ai] = nin->axis[ai].size - 1 - crop;
   }
   if (nrrdCrop(nout, nin, min, max)) {
     biffAddf(NRRD, "%s:", me);
@@ -679,11 +666,10 @@ nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop) {
 }
 
 int
-nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
-             size_t _min[NRRD_DIM_MAX], size_t _max[NRRD_DIM_MAX],
-             const unsigned int *keep, unsigned int keepNum,
+nrrdCropAuto(Nrrd *nout, const Nrrd *nin, size_t _min[NRRD_DIM_MAX],
+             size_t _max[NRRD_DIM_MAX], const unsigned int *keep, unsigned int keepNum,
              int measr, double frac, int offset) {
-  static const char me[]="nrrdCropAuto";
+  static const char me[] = "nrrdCropAuto";
   size_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX], NN, II;
   int cropdo[NRRD_DIM_MAX];
   airArray *mop;
@@ -691,7 +677,7 @@ nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
   unsigned int axi;
   double *line;
 
-  if (!( nout && nin )) {
+  if (!(nout && nin)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
@@ -700,21 +686,20 @@ nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (airEnumValCheck(nrrdMeasure, measr)) {
-    biffAddf(NRRD, "%s: invalid %s measr %d", me,
-             nrrdMeasure->name, measr);
+    biffAddf(NRRD, "%s: invalid %s measr %d", me, nrrdMeasure->name, measr);
     return 1;
   }
-  if (!( AIR_EXISTS(frac) && frac >= 0.0 && frac < 0.5 )) {
+  if (!(AIR_EXISTS(frac) && frac >= 0.0 && frac < 0.5)) {
     biffAddf(NRRD, "%s: frac %g not in interval [0.0,0.5)", me, frac);
     return 1;
   }
-  for (axi=0; axi<nin->dim; axi++) {
+  for (axi = 0; axi < nin->dim; axi++) {
     cropdo[axi] = AIR_TRUE;
   }
-  for (axi=0; axi<keepNum; axi++) {
-    if (!( keep[axi] < nin->dim )) {
-      biffAddf(NRRD, "%s: keep[%u] %u out of range [0,%u]", me,
-               axi, keep[axi], nin->dim-1);
+  for (axi = 0; axi < keepNum; axi++) {
+    if (!(keep[axi] < nin->dim)) {
+      biffAddf(NRRD, "%s: keep[%u] %u out of range [0,%u]", me, axi, keep[axi],
+               nin->dim - 1);
       return 1;
     }
     if (!cropdo[keep[axi]]) {
@@ -738,52 +723,55 @@ nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
   airMopAdd(mop, nperm, (airMopper)nrrdNuke, airMopAlways);
   nline = nrrdNew();
   airMopAdd(mop, nline, (airMopper)nrrdNuke, airMopAlways);
-  for (axi=0; axi<nin->dim; axi++) {
+  for (axi = 0; axi < nin->dim; axi++) {
     double wsum, part;
     min[axi] = 0;
-    max[axi] = nin->axis[axi].size-1;
+    max[axi] = nin->axis[axi].size - 1;
     if (!cropdo[axi]) {
       continue;
     }
     /* else some analysis is required for this axis */
     /* NN is product of axes NOT being cropped */
-    NN = nrrdElementNumber(nin)/nin->axis[axi].size;
-    if (nrrdAxesSwap(nperm, nin, axi, nin->dim-1)
+    NN = nrrdElementNumber(nin) / nin->axis[axi].size;
+    if (nrrdAxesSwap(nperm, nin, axi, nin->dim - 1)
         || nrrdReshape_va(nperm, nperm, 2, NN, nin->axis[axi].size)
         || nrrdProject(nline, nperm, 0, measr, nrrdTypeDouble)) {
       biffAddf(NRRD, "%s: trouble forming projection line", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     /* find sum of array */
     line = AIR_CAST(double *, nline->data);
     wsum = part = 0.0;
-    for (II=0; II<nin->axis[axi].size; II++) {
+    for (II = 0; II < nin->axis[axi].size; II++) {
       wsum += line[II];
     }
     /* sum bottom of array until hit fraction */
-    for (II=0; II<nin->axis[axi].size; II++) {
+    for (II = 0; II < nin->axis[axi].size; II++) {
       part += line[II];
-      if (part/wsum > frac) {
+      if (part / wsum > frac) {
         min[axi] = II;
         break;
       }
     }
     if (II == nin->axis[axi].size) {
       biffAddf(NRRD, "%s: confusion on bottom of axis %u", me, axi);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     /* sum top of array until hit fraction */
     part = 0.0;
-    for (II=nin->axis[axi].size; II>0; II--) {
-      part += line[II-1];
-      if (part/wsum > frac) {
-        max[axi] = II-1;
+    for (II = nin->axis[axi].size; II > 0; II--) {
+      part += line[II - 1];
+      if (part / wsum > frac) {
+        max[axi] = II - 1;
         break;
       }
     }
     if (II == 0) {
       biffAddf(NRRD, "%s: confusion on top of axis %u", me, axi);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     /*
     fprintf(stderr, "!%s: axis %u [%u,%u] --> ", me, axi,
@@ -799,7 +787,7 @@ nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
         min[axi] -= offset;
       }
       max[axi] += offset;
-      max[axi] = AIR_MIN(max[axi], nin->axis[axi].size-1);
+      max[axi] = AIR_MIN(max[axi], nin->axis[axi].size - 1);
     }
     /*
     fprintf(stderr, "[%u,%u]\n",
@@ -814,7 +802,7 @@ nrrdCropAuto(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   /* save the extents */
-  for (axi=0; axi<nin->dim; axi++) {
+  for (axi = 0; axi < nin->dim; axi++) {
     if (_min) {
       _min[axi] = min[axi];
     }

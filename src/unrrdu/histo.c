@@ -25,15 +25,13 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Create 1-D histogram of values in a nrrd"
-static const char *_unrrdu_histoInfoL =
-  (INFO
-   ". Can explicitly set bounds of histogram domain or can learn these "
-   "from the data.\n "
-   "* Uses nrrdHisto");
+static const char *_unrrdu_histoInfoL
+  = (INFO ". Can explicitly set bounds of histogram domain or can learn these "
+          "from the data.\n "
+          "* Uses nrrdHisto");
 
 int
-unrrdu_histoMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+unrrdu_histoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nwght;
@@ -51,8 +49,7 @@ unrrdu_histoMain(int argc, const char **argv, const char *me,
              "sample, but by giving a nrrd, the value in the nrrd at the "
              "corresponding location will be the bin count increment ",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1,
-             &minStr, "nan",
+  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1, &minStr, "nan",
              "Value at low end of histogram, given explicitly as a "
              "regular number, "
              "*or*, if the number is given with a \"" NRRD_MINMAX_PERC_SUFF
@@ -61,8 +58,7 @@ unrrdu_histoMain(int argc, const char **argv, const char *me,
              "input that are lower. "
              "By default (not using this option), the lowest value "
              "found in input nrrd.");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1,
-             &maxStr, "nan",
+  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1, &maxStr, "nan",
              "Value at high end of histogram, given "
              "explicitly as a regular number, "
              "*or*, if the number is given with "
@@ -94,10 +90,8 @@ unrrdu_histoMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdRangePercentileFromStringSet(range, nin, minStr, maxStr,
-                                       zeroCenter,
-                                       10*bins /* HEY magic */,
-                                       blind8BitRange)
+  if (nrrdRangePercentileFromStringSet(range, nin, minStr, maxStr, zeroCenter,
+                                       10 * bins /* HEY magic */, blind8BitRange)
       || nrrdHisto(nout, nin, range, nwght, bins, type)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error with range or quantizing:\n%s", me, err);

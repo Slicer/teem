@@ -22,7 +22,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "limn.h"
 
 int
@@ -30,14 +29,14 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
                            unsigned int infoBitFlag, Nrrd *nvertmap,
                            unsigned int tubeFacet, unsigned int endFacet,
                            double radius) {
-  static const char me[]="limnPolyDataSpiralTubeWrap";
+  static const char me[] = "limnPolyDataSpiralTubeWrap";
   double *cost, *sint;
   unsigned int tubeVertNum = 0, tubeIndxNum = 0, primIdx, pi, *vertmap;
   unsigned int inVertTotalIdx = 0, outVertTotalIdx = 0, outIndxIdx = 0;
   int color;
   airArray *mop;
 
-  if (!( pldOut && pldIn )) {
+  if (!(pldOut && pldIn)) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
@@ -46,14 +45,14 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
              airEnumStr(limnPrimitive, limnPrimitiveLineStrip));
     return 1;
   }
-  for (primIdx=0; primIdx<pldIn->primNum; primIdx++) {
+  for (primIdx = 0; primIdx < pldIn->primNum; primIdx++) {
     unsigned int tvni, tini;
     if (endFacet) {
-      tvni = tubeFacet*(2*endFacet + pldIn->icnt[primIdx]) + 1;
-      tini = 2*tubeFacet*(2*endFacet + pldIn->icnt[primIdx] + 1) -2;
+      tvni = tubeFacet * (2 * endFacet + pldIn->icnt[primIdx]) + 1;
+      tini = 2 * tubeFacet * (2 * endFacet + pldIn->icnt[primIdx] + 1) - 2;
     } else {
-      tvni = tubeFacet*(2 + pldIn->icnt[primIdx]);
-      tini = 2*tubeFacet*(1 + pldIn->icnt[primIdx]);
+      tvni = tubeFacet * (2 + pldIn->icnt[primIdx]);
+      tini = 2 * tubeFacet * (1 + pldIn->icnt[primIdx]);
     }
     tubeVertNum += tvni;
     tubeIndxNum += tini;
@@ -62,14 +61,13 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
                         /* sorry have to have normals, even if they weren't
                            asked for, because currently they're used as part
                            of vertex position calc */
-                        (infoBitFlag | (1 << limnPolyDataInfoNorm)),
-                        tubeVertNum, tubeIndxNum, pldIn->primNum)) {
+                        (infoBitFlag | (1 << limnPolyDataInfoNorm)), tubeVertNum,
+                        tubeIndxNum, pldIn->primNum)) {
     biffAddf(LIMN, "%s: trouble allocating output", me);
     return 1;
   }
   if (nvertmap) {
-    if (nrrdMaybeAlloc_va(nvertmap, nrrdTypeUInt, 1,
-                          AIR_CAST(size_t, tubeVertNum))) {
+    if (nrrdMaybeAlloc_va(nvertmap, nrrdTypeUInt, 1, AIR_CAST(size_t, tubeVertNum))) {
       biffMovef(LIMN, NRRD, "%s: trouble allocating vert map", me);
       return 1;
     }
@@ -87,51 +85,47 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
   airMopAdd(mop, sint, airFree, airMopAlways);
   if (!(cost && sint)) {
     biffAddf(LIMN, "%s: couldn't allocate lookup tables", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  for (pi=0; pi<tubeFacet; pi++) {
+  for (pi = 0; pi < tubeFacet; pi++) {
     double angle;
-    angle = AIR_AFFINE(0, pi, tubeFacet, 0, 2*AIR_PI);
+    angle = AIR_AFFINE(0, pi, tubeFacet, 0, 2 * AIR_PI);
     cost[pi] = cos(angle);
     sint[pi] = sin(angle);
   }
-  for (primIdx=0; primIdx<pldIn->primNum; primIdx++) {
+  for (primIdx = 0; primIdx < pldIn->primNum; primIdx++) {
     unsigned int inVertIdx;
     pldOut->type[primIdx] = limnPrimitiveTriangleStrip;
     if (endFacet) {
-      pldOut->icnt[primIdx] =
-        2*tubeFacet*(2*endFacet + pldIn->icnt[primIdx] + 1) - 2;
+      pldOut->icnt[primIdx] = 2 * tubeFacet * (2 * endFacet + pldIn->icnt[primIdx] + 1)
+                            - 2;
     } else {
-      pldOut->icnt[primIdx] =
-        2*tubeFacet*(1 + pldIn->icnt[primIdx]);
+      pldOut->icnt[primIdx] = 2 * tubeFacet * (1 + pldIn->icnt[primIdx]);
     }
 
-    for (inVertIdx=0;
-         inVertIdx<pldIn->icnt[primIdx];
-         inVertIdx++) {
+    for (inVertIdx = 0; inVertIdx < pldIn->icnt[primIdx]; inVertIdx++) {
       unsigned int forwIdx, backIdx, tubeEndIdx;
       double tang[3], tmp, scl, step, perp[3], pimp[3];
       /* inVrt = pldIn->vert + pldIn->indx[inVertTotalIdx]; */
       if (0 == inVertIdx) {
-        forwIdx = inVertTotalIdx+1;
+        forwIdx = inVertTotalIdx + 1;
         backIdx = inVertTotalIdx;
         scl = 1;
-      } else if (pldIn->icnt[primIdx]-1 == inVertIdx) {
+      } else if (pldIn->icnt[primIdx] - 1 == inVertIdx) {
         forwIdx = inVertTotalIdx;
-        backIdx = inVertTotalIdx-1;
+        backIdx = inVertTotalIdx - 1;
         scl = 1;
       } else {
-        forwIdx = inVertTotalIdx+1;
-        backIdx = inVertTotalIdx-1;
+        forwIdx = inVertTotalIdx + 1;
+        backIdx = inVertTotalIdx - 1;
         scl = 0.5;
       }
       if (1 == pldIn->icnt[primIdx]) {
         ELL_3V_SET(tang, 0, 0, 1); /* completely arbitrary, as it must be */
         step = 0;
       } else {
-        ELL_3V_SUB(tang,
-                   pldIn->xyzw + 4*forwIdx,
-                   pldIn->xyzw + 4*backIdx);
+        ELL_3V_SUB(tang, pldIn->xyzw + 4 * forwIdx, pldIn->xyzw + 4 * backIdx);
         ELL_3V_NORM(tang, tang, step);
         step *= scl;
       }
@@ -152,196 +146,169 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
         unsigned int startIdx, ei;
         startIdx = outVertTotalIdx;
         if (endFacet) {
-          for (ei=0; ei<endFacet; ei++) {
-            for (pi=0; pi<tubeFacet; pi++) {
+          for (ei = 0; ei < endFacet; ei++) {
+            for (pi = 0; pi < tubeFacet; pi++) {
               double costh, sinth, cosph, sinph, phi, theta;
-              phi = (AIR_AFFINE(0, ei, endFacet, 0, AIR_PI/2)
-                     + AIR_AFFINE(0, pi, tubeFacet,
-                                  0, AIR_PI/2)/endFacet);
-              theta = AIR_AFFINE(0, pi, tubeFacet, 0.0, 2*AIR_PI);
+              phi = (AIR_AFFINE(0, ei, endFacet, 0, AIR_PI / 2)
+                     + AIR_AFFINE(0, pi, tubeFacet, 0, AIR_PI / 2) / endFacet);
+              theta = AIR_AFFINE(0, pi, tubeFacet, 0.0, 2 * AIR_PI);
               cosph = cos(phi);
               sinph = sin(phi);
               costh = cos(theta);
               sinth = sin(theta);
-              ELL_3V_SCALE_ADD3_TT(pldOut->norm + 3*outVertTotalIdx, float,
-                                   -cosph, tang,
-                                   costh*sinph, perp,
-                                   sinth*sinph, pimp);
-              ELL_3V_SCALE_ADD3_TT(pldOut->xyzw + 4*outVertTotalIdx, float,
-                                   1, pldIn->xyzw + 4*inVertTotalIdx,
-                                   -step/2, tang,
-                                   radius,
-                                   pldOut->norm + 3*outVertTotalIdx);
-              (pldOut->xyzw + 4*outVertTotalIdx)[3] = 1.0;
+              ELL_3V_SCALE_ADD3_TT(pldOut->norm + 3 * outVertTotalIdx, float, -cosph,
+                                   tang, costh *sinph, perp, sinth *sinph, pimp);
+              ELL_3V_SCALE_ADD3_TT(pldOut->xyzw + 4 * outVertTotalIdx, float, 1,
+                                   pldIn->xyzw + 4 * inVertTotalIdx, -step / 2, tang,
+                                   radius, pldOut->norm + 3 * outVertTotalIdx);
+              (pldOut->xyzw + 4 * outVertTotalIdx)[3] = 1.0;
               if (vertmap) {
                 vertmap[outVertTotalIdx] = inVertTotalIdx;
               }
               if (color) {
-                ELL_4V_COPY(pldOut->rgba + 4*outVertTotalIdx,
-                            pldIn->rgba + 4*inVertTotalIdx);
-
+                ELL_4V_COPY(pldOut->rgba + 4 * outVertTotalIdx,
+                            pldIn->rgba + 4 * inVertTotalIdx);
               }
               outVertTotalIdx++;
             }
           }
-          for (pi=1; pi<tubeFacet; pi++) {
+          for (pi = 1; pi < tubeFacet; pi++) {
             pldOut->indx[outIndxIdx++] = startIdx;
             pldOut->indx[outIndxIdx++] = startIdx + pi;
           }
-          for (ei=0; ei<endFacet; ei++) {
+          for (ei = 0; ei < endFacet; ei++) {
             /* at the highest ei we're actually linking with the first
                row of vertices at the start of the tube */
-            for (pi=0; pi<tubeFacet; pi++) {
-              pldOut->indx[outIndxIdx++] = (startIdx + pi
-                                            + (ei + 0)*tubeFacet);
-              pldOut->indx[outIndxIdx++] = (startIdx + pi
-                                            + (ei + 1)*tubeFacet);
+            for (pi = 0; pi < tubeFacet; pi++) {
+              pldOut->indx[outIndxIdx++] = (startIdx + pi + (ei + 0) * tubeFacet);
+              pldOut->indx[outIndxIdx++] = (startIdx + pi + (ei + 1) * tubeFacet);
             }
           }
         } else {
           /* no endcap, open tube */
-          for (pi=0; pi<tubeFacet; pi++) {
+          for (pi = 0; pi < tubeFacet; pi++) {
             double costh, sinth, theta;
-            theta = AIR_AFFINE(0, pi, tubeFacet, 0.0, 2*AIR_PI);
+            theta = AIR_AFFINE(0, pi, tubeFacet, 0.0, 2 * AIR_PI);
             costh = cos(theta);
             sinth = sin(theta);
-            ELL_3V_SCALE_ADD2_TT(pldOut->norm + 3*outVertTotalIdx, float,
-                                 costh, perp,
+            ELL_3V_SCALE_ADD2_TT(pldOut->norm + 3 * outVertTotalIdx, float, costh, perp,
                                  sinth, pimp);
-            ELL_3V_SCALE_ADD3_TT(pldOut->xyzw + 4*outVertTotalIdx, float,
-                                 1, pldIn->xyzw + 4*inVertTotalIdx,
-                                 -step/2 + step/(2*tubeFacet), tang,
-                                 radius, pldOut->norm + 3*outVertTotalIdx);
-            (pldOut->xyzw + 4*outVertTotalIdx)[3] = 1.0;
+            ELL_3V_SCALE_ADD3_TT(pldOut->xyzw + 4 * outVertTotalIdx, float, 1,
+                                 pldIn->xyzw + 4 * inVertTotalIdx,
+                                 -step / 2 + step / (2 * tubeFacet), tang, radius,
+                                 pldOut->norm + 3 * outVertTotalIdx);
+            (pldOut->xyzw + 4 * outVertTotalIdx)[3] = 1.0;
             if (vertmap) {
               vertmap[outVertTotalIdx] = inVertTotalIdx;
             }
             if (color) {
-              ELL_4V_COPY(pldOut->rgba + 4*outVertTotalIdx,
-                          pldIn->rgba + 4*inVertTotalIdx);
-
+              ELL_4V_COPY(pldOut->rgba + 4 * outVertTotalIdx,
+                          pldIn->rgba + 4 * inVertTotalIdx);
             }
             outVertTotalIdx++;
           }
-          for (pi=0; pi<tubeFacet; pi++) {
-            pldOut->indx[outIndxIdx++] = (startIdx + pi + 0*tubeFacet);
-            pldOut->indx[outIndxIdx++] = (startIdx + pi + 1*tubeFacet);
+          for (pi = 0; pi < tubeFacet; pi++) {
+            pldOut->indx[outIndxIdx++] = (startIdx + pi + 0 * tubeFacet);
+            pldOut->indx[outIndxIdx++] = (startIdx + pi + 1 * tubeFacet);
           }
         }
       } /* if (0 == inVertIdx) */
       /* -------------------------------------- END initial endcap */
-      for (pi=0; pi<tubeFacet; pi++) {
+      for (pi = 0; pi < tubeFacet; pi++) {
         double shift, cosa, sina;
-        shift = AIR_AFFINE(-0.5, pi, tubeFacet-0.5, -step/2, step/2);
+        shift = AIR_AFFINE(-0.5, pi, tubeFacet - 0.5, -step / 2, step / 2);
         cosa = cost[pi];
         sina = sint[pi];
         /* outVrt = pldOut->vert + outVertTotalIdx; */
-        ELL_3V_SCALE_ADD2_TT(pldOut->norm + 3*outVertTotalIdx, float,
-                             cosa, perp, sina, pimp);
-        ELL_3V_SCALE_ADD3_TT(pldOut->xyzw + 4*outVertTotalIdx, float,
-                             1, pldIn->xyzw + 4*inVertTotalIdx,
-                             radius,
-                             pldOut->norm + 3*outVertTotalIdx,
-                             shift, tang);
-        (pldOut->xyzw + 4*outVertTotalIdx)[3] = 1.0;
+        ELL_3V_SCALE_ADD2_TT(pldOut->norm + 3 * outVertTotalIdx, float, cosa, perp, sina,
+                             pimp);
+        ELL_3V_SCALE_ADD3_TT(pldOut->xyzw + 4 * outVertTotalIdx, float, 1,
+                             pldIn->xyzw + 4 * inVertTotalIdx, radius,
+                             pldOut->norm + 3 * outVertTotalIdx, shift, tang);
+        (pldOut->xyzw + 4 * outVertTotalIdx)[3] = 1.0;
         pldOut->indx[outIndxIdx++] = outVertTotalIdx;
         pldOut->indx[outIndxIdx++] = outVertTotalIdx + tubeFacet;
         if (vertmap) {
           vertmap[outVertTotalIdx] = inVertTotalIdx;
         }
         if (color) {
-          ELL_4V_COPY(pldOut->rgba + 4*outVertTotalIdx,
-                      pldIn->rgba + 4*inVertTotalIdx);
-
+          ELL_4V_COPY(pldOut->rgba + 4 * outVertTotalIdx,
+                      pldIn->rgba + 4 * inVertTotalIdx);
         }
         outVertTotalIdx++;
       }
       tubeEndIdx = outVertTotalIdx;
       /* -------------------------------------- BEGIN final endcap */
-      if (inVertIdx == pldIn->icnt[primIdx]-1) {
+      if (inVertIdx == pldIn->icnt[primIdx] - 1) {
         unsigned int ei;
         if (endFacet) {
-          for (ei=0; ei<endFacet; ei++) {
-            for (pi=0; pi<tubeFacet; pi++) {
+          for (ei = 0; ei < endFacet; ei++) {
+            for (pi = 0; pi < tubeFacet; pi++) {
               double costh, sinth, cosph, sinph, phi, theta;
-              phi = (AIR_AFFINE(0, ei, endFacet, AIR_PI/2, AIR_PI)
-                     + AIR_AFFINE(0, pi, tubeFacet,
-                                  0, AIR_PI/2)/endFacet);
-              theta = AIR_AFFINE(0, pi, tubeFacet, 0.0, 2*AIR_PI);
+              phi = (AIR_AFFINE(0, ei, endFacet, AIR_PI / 2, AIR_PI)
+                     + AIR_AFFINE(0, pi, tubeFacet, 0, AIR_PI / 2) / endFacet);
+              theta = AIR_AFFINE(0, pi, tubeFacet, 0.0, 2 * AIR_PI);
               cosph = cos(phi);
               sinph = sin(phi);
               costh = cos(theta);
               sinth = sin(theta);
               /* outVrt = pldOut->vert + outVertTotalIdx; */
-              ELL_3V_SCALE_ADD3_TT(pldOut->norm + 3*outVertTotalIdx, float,
-                                   -cosph, tang,
-                                   costh*sinph, perp,
-                                   sinth*sinph, pimp);
-              ELL_3V_SCALE_ADD3_TT(pldOut->xyzw + 4*outVertTotalIdx, float,
-                                   1, pldIn->xyzw + 4*inVertTotalIdx,
-                                   step/2, tang,
-                                   radius,
-                                   pldOut->norm + 3*outVertTotalIdx);
-              (pldOut->xyzw + 4*outVertTotalIdx)[3] = 1.0;
+              ELL_3V_SCALE_ADD3_TT(pldOut->norm + 3 * outVertTotalIdx, float, -cosph,
+                                   tang, costh *sinph, perp, sinth *sinph, pimp);
+              ELL_3V_SCALE_ADD3_TT(pldOut->xyzw + 4 * outVertTotalIdx, float, 1,
+                                   pldIn->xyzw + 4 * inVertTotalIdx, step / 2, tang,
+                                   radius, pldOut->norm + 3 * outVertTotalIdx);
+              (pldOut->xyzw + 4 * outVertTotalIdx)[3] = 1.0;
               if (vertmap) {
                 vertmap[outVertTotalIdx] = inVertTotalIdx;
               }
               if (color) {
-                ELL_4V_COPY(pldOut->rgba + 4*outVertTotalIdx,
-                            pldIn->rgba + 4*inVertTotalIdx);
-
+                ELL_4V_COPY(pldOut->rgba + 4 * outVertTotalIdx,
+                            pldIn->rgba + 4 * inVertTotalIdx);
               }
               outVertTotalIdx++;
             }
           }
           /* outVrt = pldOut->vert + outVertTotalIdx; */
-          ELL_3V_COPY_TT(pldOut->norm + 3*outVertTotalIdx, float, tang);
-          ELL_3V_SCALE_ADD3_TT(pldOut->xyzw + 4*outVertTotalIdx, float,
-                               1, pldIn->xyzw + 4*inVertTotalIdx,
-                               step/2, tang,
-                               radius,
-                               pldOut->norm + 3*outVertTotalIdx);
-          (pldOut->xyzw + 4*outVertTotalIdx)[3] = 1.0;
+          ELL_3V_COPY_TT(pldOut->norm + 3 * outVertTotalIdx, float, tang);
+          ELL_3V_SCALE_ADD3_TT(pldOut->xyzw + 4 * outVertTotalIdx, float, 1,
+                               pldIn->xyzw + 4 * inVertTotalIdx, step / 2, tang, radius,
+                               pldOut->norm + 3 * outVertTotalIdx);
+          (pldOut->xyzw + 4 * outVertTotalIdx)[3] = 1.0;
           if (vertmap) {
             vertmap[outVertTotalIdx] = inVertTotalIdx;
           }
           outVertTotalIdx++;
-          for (ei=0; ei<endFacet-1; ei++) {
-            for (pi=0; pi<tubeFacet; pi++) {
-              pldOut->indx[outIndxIdx++] = (tubeEndIdx + pi
-                                            + (ei + 0)*tubeFacet);
-              pldOut->indx[outIndxIdx++] = (tubeEndIdx + pi
-                                            + (ei + 1)*tubeFacet);
+          for (ei = 0; ei < endFacet - 1; ei++) {
+            for (pi = 0; pi < tubeFacet; pi++) {
+              pldOut->indx[outIndxIdx++] = (tubeEndIdx + pi + (ei + 0) * tubeFacet);
+              pldOut->indx[outIndxIdx++] = (tubeEndIdx + pi + (ei + 1) * tubeFacet);
             }
           }
-          for (pi=0; pi<tubeFacet; pi++) {
-            pldOut->indx[outIndxIdx++] = (tubeEndIdx + pi
-                                          + (endFacet - 1)*tubeFacet);
-            pldOut->indx[outIndxIdx++] = (tubeEndIdx
-                                          + (endFacet - 0)*tubeFacet);
+          for (pi = 0; pi < tubeFacet; pi++) {
+            pldOut->indx[outIndxIdx++] = (tubeEndIdx + pi + (endFacet - 1) * tubeFacet);
+            pldOut->indx[outIndxIdx++] = (tubeEndIdx + (endFacet - 0) * tubeFacet);
           }
         } else {
           /* no endcap, open tube */
-          for (pi=0; pi<tubeFacet; pi++) {
+          for (pi = 0; pi < tubeFacet; pi++) {
             double costh, sinth, theta;
-            theta = AIR_AFFINE(0, pi, tubeFacet, 0.0, 2*AIR_PI);
+            theta = AIR_AFFINE(0, pi, tubeFacet, 0.0, 2 * AIR_PI);
             costh = cos(theta);
             sinth = sin(theta);
-            ELL_3V_SCALE_ADD2_TT(pldOut->norm + 3*outVertTotalIdx, float,
-                                 costh, perp,
+            ELL_3V_SCALE_ADD2_TT(pldOut->norm + 3 * outVertTotalIdx, float, costh, perp,
                                  sinth, pimp);
-            ELL_3V_SCALE_ADD3_TT(pldOut->xyzw + 4*outVertTotalIdx, float,
-                                 1, pldIn->xyzw + 4*inVertTotalIdx,
-                                 step/2 - step/(2*tubeFacet), tang,
-                                 radius, pldOut->norm + 3*outVertTotalIdx);
-            (pldOut->xyzw + 4*outVertTotalIdx)[3] = 1.0;
+            ELL_3V_SCALE_ADD3_TT(pldOut->xyzw + 4 * outVertTotalIdx, float, 1,
+                                 pldIn->xyzw + 4 * inVertTotalIdx,
+                                 step / 2 - step / (2 * tubeFacet), tang, radius,
+                                 pldOut->norm + 3 * outVertTotalIdx);
+            (pldOut->xyzw + 4 * outVertTotalIdx)[3] = 1.0;
             if (vertmap) {
               vertmap[outVertTotalIdx] = inVertTotalIdx;
             }
             if (color) {
-              ELL_4V_COPY(pldOut->rgba + 4*outVertTotalIdx,
-                          pldIn->rgba + 4*inVertTotalIdx);
-
+              ELL_4V_COPY(pldOut->rgba + 4 * outVertTotalIdx,
+                          pldIn->rgba + 4 * inVertTotalIdx);
             }
             outVertTotalIdx++;
           }
@@ -368,77 +335,82 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
  * Returns -1 and leaves a message on biff upon error.
  */
 int
-limnPolyDataSmoothHC(limnPolyData *pld, int *neighbors, int *idx,
-                     double alpha, double beta, int iter) {
-  static const char me[]="limnPolyDataSmoothHC";
+limnPolyDataSmoothHC(limnPolyData *pld, int *neighbors, int *idx, double alpha,
+                     double beta, int iter) {
+  static const char me[] = "limnPolyDataSmoothHC";
   float *orig, *in, *out, *b;
   unsigned int v;
   int i, nb;
   airArray *mop;
-  mop=airMopNew();
-  if (pld==NULL || neighbors==NULL || idx==NULL) {
+  mop = airMopNew();
+  if (pld == NULL || neighbors == NULL || idx == NULL) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
-    airMopError(mop); return -1;
+    airMopError(mop);
+    return -1;
   }
-  if (alpha<0 || alpha>1 || beta<0 || beta>1) {
+  if (alpha < 0 || alpha > 1 || beta < 0 || beta > 1) {
     biffAddf(LIMN, "%s: alpha/beta outside parameter range [0,1]", me);
-    airMopError(mop); return -1;
+    airMopError(mop);
+    return -1;
   }
   orig = in = pld->xyzw;
-  out = (float*) malloc(sizeof(float)*4*pld->xyzwNum);
-  if (out==NULL) {
+  out = (float *)malloc(sizeof(float) * 4 * pld->xyzwNum);
+  if (out == NULL) {
     biffAddf(LIMN, "%s: couldn't allocate output buffer", me);
-    airMopError(mop); return -1;
+    airMopError(mop);
+    return -1;
   }
   airMopAdd(mop, out, airFree, airMopOnError);
-  b = (float*) malloc(sizeof(float)*4*pld->xyzwNum);
-  if (b==NULL) {
+  b = (float *)malloc(sizeof(float) * 4 * pld->xyzwNum);
+  if (b == NULL) {
     biffAddf(LIMN, "%s: couldn't allocate buffer b", me);
-    airMopError(mop); return -1;
+    airMopError(mop);
+    return -1;
   }
   airMopAdd(mop, b, airFree, airMopAlways);
 
-  for (i=0; i<iter; i++) {
+  for (i = 0; i < iter; i++) {
     /* Laplacian smoothing / compute bs */
-    for (v=0; v<pld->xyzwNum; v++) {
-      int p=4*v;
-      if (idx[v]==idx[v+1]) {
-        ELL_4V_COPY(out+p, in+p);
+    for (v = 0; v < pld->xyzwNum; v++) {
+      int p = 4 * v;
+      if (idx[v] == idx[v + 1]) {
+        ELL_4V_COPY(out + p, in + p);
       } else {
-        ELL_4V_SET(out+p,0,0,0,0);
-        for (nb=idx[v]; nb<idx[v+1]; nb++) {
-          ELL_4V_INCR(out+p, in+4*neighbors[nb]);
+        ELL_4V_SET(out + p, 0, 0, 0, 0);
+        for (nb = idx[v]; nb < idx[v + 1]; nb++) {
+          ELL_4V_INCR(out + p, in + 4 * neighbors[nb]);
         }
-        ELL_4V_SCALE_TT(out+p, float, 1.0/(idx[v+1]-idx[v]), out+p);
+        ELL_4V_SCALE_TT(out + p, float, 1.0 / (idx[v + 1] - idx[v]), out + p);
       }
-      ELL_4V_SET_TT(b+p, float, out[p]-(alpha*orig[p]+(1-alpha)*in[p]),
-                    out[p+1]-(alpha*orig[p+1]+(1-alpha)*in[p+1]),
-                    out[p+2]-(alpha*orig[p+2]+(1-alpha)*in[p+2]),
-                    out[p+3]-(alpha*orig[p+3]+(1-alpha)*in[p+3]));
+      ELL_4V_SET_TT(b + p, float, out[p] - (alpha * orig[p] + (1 - alpha) * in[p]),
+                    out[p + 1] - (alpha * orig[p + 1] + (1 - alpha) * in[p + 1]),
+                    out[p + 2] - (alpha * orig[p + 2] + (1 - alpha) * in[p + 2]),
+                    out[p + 3] - (alpha * orig[p + 3] + (1 - alpha) * in[p + 3]));
     }
     /* HC correction step */
-    for (v=0; v<pld->xyzwNum; v++) {
-      int p=4*v;
-      if (idx[v]<idx[v+1]) {
-        float avgb[4]={0,0,0,0};
-        for (nb=idx[v]; nb<idx[v+1]; nb++) {
-          ELL_4V_INCR(avgb, b+4*neighbors[nb]);
+    for (v = 0; v < pld->xyzwNum; v++) {
+      int p = 4 * v;
+      if (idx[v] < idx[v + 1]) {
+        float avgb[4] = {0, 0, 0, 0};
+        for (nb = idx[v]; nb < idx[v + 1]; nb++) {
+          ELL_4V_INCR(avgb, b + 4 * neighbors[nb]);
         }
-        ELL_4V_SCALE_TT(avgb, float, 1.0/(idx[v+1]-idx[v]), avgb);
-        ELL_4V_LERP_TT(avgb, float, beta, b+p, avgb);
-        ELL_4V_SUB(out+p,out+p,avgb);
+        ELL_4V_SCALE_TT(avgb, float, 1.0 / (idx[v + 1] - idx[v]), avgb);
+        ELL_4V_LERP_TT(avgb, float, beta, b + p, avgb);
+        ELL_4V_SUB(out + p, out + p, avgb);
       }
     }
-    if (i==0 && iter>1) {
+    if (i == 0 && iter > 1) {
       in = out;
-      out = (float*) malloc(sizeof(float)*4*pld->xyzwNum);
+      out = (float *)malloc(sizeof(float) * 4 * pld->xyzwNum);
     } else { /* swap */
-      float *tmp = in; in = out; out = tmp;
+      float *tmp = in;
+      in = out;
+      out = tmp;
     }
   }
 
-  if (iter>1)
-    airFree(out);
+  if (iter > 1) airFree(out);
   airFree(pld->xyzw);
   pld->xyzw = in;
   airMopOkay(mop);

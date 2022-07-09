@@ -25,13 +25,11 @@
 #include "privateLimn.h"
 
 #define INFO "Select some subset of primitives"
-static const char *myinfo =
-(INFO
- ". Can either specify a range, or a list, or not, until implemented.");
+static const char *myinfo
+  = (INFO ". Can either specify a range, or a list, or not, until implemented.");
 
 int
-limnpu_pselMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+limnpu_pselMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;
@@ -47,8 +45,7 @@ limnpu_pselMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "r", "range", airTypeUInt, 2, 2, prange, NULL,
              "range of indices of primitives to select");
   hestOptAdd(&hopt, NULL, "input", airTypeOther, 1, 1, &pldIn, NULL,
-             "input polydata filename",
-             NULL, NULL, limnHestPolyDataLMPD);
+             "input polydata filename", NULL, NULL, limnHestPolyDataLMPD);
   hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
              "output polydata filename");
 
@@ -59,16 +56,14 @@ limnpu_pselMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( prange[0] <= pldIn->primNum-1 &&
-         prange[1] <= pldIn->primNum-1 )) {
-    fprintf(stderr, "%s: prange[0] %u or [1] %u outside range [0,%u]", me,
-            prange[0], prange[1], pldIn->primNum-1);
+  if (!(prange[0] <= pldIn->primNum - 1 && prange[1] <= pldIn->primNum - 1)) {
+    fprintf(stderr, "%s: prange[0] %u or [1] %u outside range [0,%u]", me, prange[0],
+            prange[1], pldIn->primNum - 1);
     airMopError(mop);
     return 1;
   }
-  if (!( prange[0] <= prange[1] )) {
-    fprintf(stderr, "%s: need prange[0] %u <= [1] %u", me,
-            prange[0], prange[1]);
+  if (!(prange[0] <= prange[1])) {
+    fprintf(stderr, "%s: need prange[0] %u <= [1] %u", me, prange[0], prange[1]);
     airMopError(mop);
     return 1;
   }
@@ -84,7 +79,7 @@ limnpu_pselMain(int argc, const char **argv, const char *me,
   }
 
   sel = AIR_CAST(double *, nsel->data);
-  for (pi=prange[0]; pi<=prange[1]; pi++) {
+  for (pi = prange[0]; pi <= prange[1]; pi++) {
     sel[pi] = 1;
   }
 
@@ -102,5 +97,4 @@ limnpu_pselMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_pselCmd = { "psel", INFO, limnpu_pselMain, AIR_FALSE };
-
+unrrduCmd limnpu_pselCmd = {"psel", INFO, limnpu_pselMain, AIR_FALSE};

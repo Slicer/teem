@@ -138,18 +138,18 @@ _echoRayIntx_Sphere(RAYINTX_ARGS(Sphere)) {
   AIR_UNUSED(tstate);
   ELL_3V_SUB(r, ray->from, obj->pos);
   A = ELL_3V_DOT(ray->dir, ray->dir);
-  B = 2*ELL_3V_DOT(ray->dir, r);
-  C = ELL_3V_DOT(r, r) - obj->rad*obj->rad;
-  dscr = B*B - 4*A*C;
+  B = 2 * ELL_3V_DOT(ray->dir, r);
+  C = ELL_3V_DOT(r, r) - obj->rad * obj->rad;
+  dscr = B * B - 4 * A * C;
   if (dscr <= 0) {
     /* grazes or misses (most common case) */
     return AIR_FALSE;
   }
   /* else */
   dscr = sqrt(dscr);
-  t = (-B - dscr)/(2*A);
+  t = (-B - dscr) / (2 * A);
   if (!AIR_IN_CL(ray->neer, t, ray->faar)) {
-    t = (-B + dscr)/(2*A);
+    t = (-B + dscr) / (2 * A);
     if (!AIR_IN_CL(ray->neer, t, ray->faar)) {
       return AIR_FALSE;
     }
@@ -172,9 +172,8 @@ _echoRayIntxUV_Sphere(echoIntx *intx) {
     u = atan2(intx->norm[1], intx->norm[0]);
     intx->u = AIR_AFFINE(-AIR_PI, u, AIR_PI, 0.0, 1.0);
     v = -asin(intx->norm[2]);
-    intx->v = AIR_AFFINE(-AIR_PI/2, v, AIR_PI/2, 0.0, 1.0);
-  }
-  else {
+    intx->v = AIR_AFFINE(-AIR_PI / 2, v, AIR_PI / 2, 0.0, 1.0);
+  } else {
     intx->u = 0;
     /* this is valid because if we're here, then intx->norm[2]
        is either 1.0 or -1.0 */
@@ -184,28 +183,31 @@ _echoRayIntxUV_Sphere(echoIntx *intx) {
 
 int
 _echoRayIntx_Cylinder(RAYINTX_ARGS(Cylinder)) {
-  echoPos_t A, B, C, aa, bb, cc, dd, ee, ff, dscr, cylt1, cylt2, t, tmax,
-    twot[2], cylp1, cylp2, pos[3], tmp;
+  echoPos_t A, B, C, aa, bb, cc, dd, ee, ff, dscr, cylt1, cylt2, t, tmax, twot[2], cylp1,
+    cylp2, pos[3], tmp;
   int tidx, radi0, radi1, twocap[2], cap;
 
   AIR_UNUSED(parm);
   AIR_UNUSED(tstate);
 
-  if (!_echoRayIntx_CubeSolid(&t, &tmax,
-                              -1-ECHO_EPSILON, 1+ECHO_EPSILON,
-                              -1-ECHO_EPSILON, 1+ECHO_EPSILON,
-                              -1-ECHO_EPSILON, 1+ECHO_EPSILON, ray)) {
+  if (!_echoRayIntx_CubeSolid(&t, &tmax, -1 - ECHO_EPSILON, 1 + ECHO_EPSILON,
+                              -1 - ECHO_EPSILON, 1 + ECHO_EPSILON, -1 - ECHO_EPSILON,
+                              1 + ECHO_EPSILON, ray)) {
     return AIR_FALSE;
   }
-  switch(obj->axis) {
+  switch (obj->axis) {
   case 0:
-    radi0 = 1; radi1 = 2;
+    radi0 = 1;
+    radi1 = 2;
     break;
   case 1:
-    radi0 = 0; radi1 = 2;
+    radi0 = 0;
+    radi1 = 2;
     break;
-  case 2: default:
-    radi0 = 0; radi1 = 1;
+  case 2:
+  default:
+    radi0 = 0;
+    radi1 = 1;
     break;
   }
   aa = ray->dir[radi0];
@@ -214,10 +216,10 @@ _echoRayIntx_Cylinder(RAYINTX_ARGS(Cylinder)) {
   cc = ray->from[radi0];
   dd = ray->from[radi1];
   ff = ray->from[obj->axis];
-  A = aa*aa + bb*bb;
-  B = 2*(aa*cc + bb*dd);
-  C = cc*cc + dd*dd - 1;
-  dscr = B*B - 4*A*C;
+  A = aa * aa + bb * bb;
+  B = 2 * (aa * cc + bb * dd);
+  C = cc * cc + dd * dd - 1;
+  dscr = B * B - 4 * A * C;
   if (dscr <= 0) {
     /* infinite ray grazes or misses the infinite cylinder (not
        bounded to [-1,1] along cylinder's axis), so therefore the ray
@@ -226,12 +228,11 @@ _echoRayIntx_Cylinder(RAYINTX_ARGS(Cylinder)) {
   }
   /* else infinite ray intersects the infinite cylinder */
   dscr = sqrt(dscr);
-  cylt1 = (-B - dscr)/(2*A);
-  cylp1 = ff + cylt1*ee;
-  cylt2 = (-B + dscr)/(2*A);
-  cylp2 = ff + cylt2*ee;
-  if ( (cylp1 <= -1 && cylp2 <= -1)
-       || (cylp1 >= 1 && cylp2 >= 1) ) {
+  cylt1 = (-B - dscr) / (2 * A);
+  cylp1 = ff + cylt1 * ee;
+  cylt2 = (-B + dscr) / (2 * A);
+  cylp2 = ff + cylt2 * ee;
+  if ((cylp1 <= -1 && cylp2 <= -1) || (cylp1 >= 1 && cylp2 >= 1)) {
     /* both intersections with infinite cylinder lie on ONE side of the
        finite extent, so there can't be an intersection */
     return AIR_FALSE;
@@ -251,9 +252,11 @@ _echoRayIntx_Cylinder(RAYINTX_ARGS(Cylinder)) {
   }
   if (tidx < 2) {
     /* at least one of the two intersections is with the endcaps */
-    t = (-ff - 1)/ee;
+    t = (-ff - 1) / ee;
     ELL_3V_SCALE_ADD2(pos, 1, ray->from, t, ray->dir);
-    aa = pos[radi0]; bb = pos[radi1]; cc = aa*aa + bb*bb;
+    aa = pos[radi0];
+    bb = pos[radi1];
+    cc = aa * aa + bb * bb;
     if (cc <= 1) {
       twot[tidx] = t;
       twocap[tidx] = 1;
@@ -261,9 +264,11 @@ _echoRayIntx_Cylinder(RAYINTX_ARGS(Cylinder)) {
     }
     if (tidx < 2) {
       /* try other endcap */
-      t = (-ff + 1)/ee;
+      t = (-ff + 1) / ee;
       ELL_3V_SCALE_ADD2(pos, 1, ray->from, t, ray->dir);
-      aa = pos[radi0]; bb = pos[radi1]; cc = aa*aa + bb*bb;
+      aa = pos[radi0];
+      bb = pos[radi1];
+      cc = aa * aa + bb * bb;
       if (cc <= 1) {
         twot[tidx] = t;
         twocap[tidx] = 1;
@@ -293,15 +298,16 @@ _echoRayIntx_Cylinder(RAYINTX_ARGS(Cylinder)) {
   /* else one of the intxs is in [neer,faar] segment */
   intx->t = t;
   ELL_3V_SCALE_ADD2(pos, 1, ray->from, t, ray->dir);
-  switch(obj->axis) {
+  switch (obj->axis) {
   case 0:
-    ELL_3V_SET(intx->norm,     cap*pos[0], (1-cap)*pos[1], (1-cap)*pos[2]);
+    ELL_3V_SET(intx->norm, cap * pos[0], (1 - cap) * pos[1], (1 - cap) * pos[2]);
     break;
   case 1:
-    ELL_3V_SET(intx->norm, (1-cap)*pos[0],     cap*pos[1], (1-cap)*pos[2]);
+    ELL_3V_SET(intx->norm, (1 - cap) * pos[0], cap * pos[1], (1 - cap) * pos[2]);
     break;
-  case 2: default:
-    ELL_3V_SET(intx->norm, (1-cap)*pos[0], (1-cap)*pos[1],     cap*pos[2]);
+  case 2:
+  default:
+    ELL_3V_SET(intx->norm, (1 - cap) * pos[0], (1 - cap) * pos[1], cap * pos[2]);
     break;
   }
   ELL_3V_NORM(intx->norm, intx->norm, tmp);
@@ -316,23 +322,24 @@ _echoRayIntx_Cube(RAYINTX_ARGS(Cube)) {
   int ax, dir;
 
   AIR_UNUSED(parm);
-  if (!_echoRayIntx_CubeSurf(&t, &ax, &dir,
-                             -1, 1,
-                             -1, 1,
-                             -1, 1, ray))
-    return AIR_FALSE;
+  if (!_echoRayIntx_CubeSurf(&t, &ax, &dir, -1, 1, -1, 1, -1, 1, ray)) return AIR_FALSE;
   intx->obj = (echoObject *)obj;
   intx->t = t;
-  switch(ax) {
-  case 0: ELL_3V_SET(intx->norm, dir, 0, 0); break;
-  case 1: ELL_3V_SET(intx->norm, 0, dir, 0); break;
-  case 2: ELL_3V_SET(intx->norm, 0, 0, dir); break;
+  switch (ax) {
+  case 0:
+    ELL_3V_SET(intx->norm, dir, 0, 0);
+    break;
+  case 1:
+    ELL_3V_SET(intx->norm, 0, dir, 0);
+    break;
+  case 2:
+    ELL_3V_SET(intx->norm, 0, 0, dir);
+    break;
   }
-  intx->face = ax + 3*(dir + 1)/2;
+  intx->face = ax + 3 * (dir + 1) / 2;
   if (tstate->verbose) {
-    fprintf(stderr, "%s%s: ax = %d --> norm = (%g,%g,%g)\n",
-            _echoDot(tstate->depth), "_echoRayIntx_Cube", ax,
-            intx->norm[0], intx->norm[1], intx->norm[2]);
+    fprintf(stderr, "%s%s: ax = %d --> norm = (%g,%g,%g)\n", _echoDot(tstate->depth),
+            "_echoRayIntx_Cube", ax, intx->norm[0], intx->norm[1], intx->norm[2]);
   }
   /* does NOT set u, v */
   return AIR_TRUE;
@@ -343,7 +350,7 @@ _echoRayIntxUV_Cube(echoIntx *intx) {
   echoPos_t x, y, z;
 
   ELL_3V_GET(x, y, z, intx->pos);
-  switch(intx->face) {
+  switch (intx->face) {
   case 0:
     intx->u = AIR_AFFINE(-1, y, 1, 0.0, 1.0);
     intx->v = AIR_AFFINE(-1, -z, 1, 0.0, 1.0);
@@ -381,28 +388,27 @@ _echoRayIntxUV_Cube(echoIntx *intx) {
 ** - sets v, and rules out intx based on COND
 ** - sets t, and rules out intx based on (t < neer || t > faar)
 */
-#define TRI_INTX(ray, origin, edge0, edge1, pvec, qvec, tvec,                \
-                 det, t, u, v, COND, NOPE)                                   \
-  ELL_3V_CROSS(pvec, ray->dir, edge1);                                       \
-  det = ELL_3V_DOT(pvec, edge0);                                             \
-  if (det > -ECHO_EPSILON && det < ECHO_EPSILON) {                           \
-    NOPE;                                                                    \
-  }                                                                          \
-  /* now det is the reciprocal of the determinant */                         \
-  det = 1.0/det;                                                             \
-  ELL_3V_SUB(tvec, ray->from, origin);                                       \
-  u = det * ELL_3V_DOT(pvec, tvec);                                          \
-  if (u < 0.0 || u > 1.0) {                                                  \
-    NOPE;                                                                    \
-  }                                                                          \
-  ELL_3V_CROSS(qvec, tvec, edge0);                                           \
-  v = det * ELL_3V_DOT(qvec, ray->dir);                                      \
-  if (COND) {                                                                \
-    NOPE;                                                                    \
-  }                                                                          \
-  t = det * ELL_3V_DOT(qvec, edge1);                                         \
-  if (t < ray->neer || t > ray->faar) {                                      \
-    NOPE;                                                                    \
+#define TRI_INTX(ray, origin, edge0, edge1, pvec, qvec, tvec, det, t, u, v, COND, NOPE) \
+  ELL_3V_CROSS(pvec, ray->dir, edge1);                                                  \
+  det = ELL_3V_DOT(pvec, edge0);                                                        \
+  if (det > -ECHO_EPSILON && det < ECHO_EPSILON) {                                      \
+    NOPE;                                                                               \
+  }                                                                                     \
+  /* now det is the reciprocal of the determinant */                                    \
+  det = 1.0 / det;                                                                      \
+  ELL_3V_SUB(tvec, ray->from, origin);                                                  \
+  u = det * ELL_3V_DOT(pvec, tvec);                                                     \
+  if (u < 0.0 || u > 1.0) {                                                             \
+    NOPE;                                                                               \
+  }                                                                                     \
+  ELL_3V_CROSS(qvec, tvec, edge0);                                                      \
+  v = det * ELL_3V_DOT(qvec, ray->dir);                                                 \
+  if (COND) {                                                                           \
+    NOPE;                                                                               \
+  }                                                                                     \
+  t = det * ELL_3V_DOT(qvec, edge1);                                                    \
+  if (t < ray->neer || t > ray->faar) {                                                 \
+    NOPE;                                                                               \
   }
 
 int
@@ -410,14 +416,12 @@ _echoRayIntx_Rectangle(RAYINTX_ARGS(Rectangle)) {
   echoPos_t pvec[3], qvec[3], tvec[3], det, t, u, v, *edge0, *edge1, tmp;
 
   AIR_UNUSED(tstate);
-  if (echoMatterLight == obj->matter
-      && (ray->shadow || !parm->renderLights)) {
+  if (echoMatterLight == obj->matter && (ray->shadow || !parm->renderLights)) {
     return AIR_FALSE;
   }
   edge0 = obj->edge0;
   edge1 = obj->edge1;
-  TRI_INTX(ray, obj->origin, edge0, edge1,
-           pvec, qvec, tvec, det, t, u, v,
+  TRI_INTX(ray, obj->origin, edge0, edge1, pvec, qvec, tvec, det, t, u, v,
            (v < 0.0 || v > 1.0), return AIR_FALSE);
   intx->t = t;
   intx->u = u;
@@ -437,9 +441,8 @@ _echoRayIntx_Triangle(RAYINTX_ARGS(Triangle)) {
   AIR_UNUSED(tstate);
   ELL_3V_SUB(edge0, obj->vert[1], obj->vert[0]);
   ELL_3V_SUB(edge1, obj->vert[2], obj->vert[0]);
-  TRI_INTX(ray, obj->vert[0], edge0, edge1,
-           pvec, qvec, tvec, det, t, u, v,
-            (v < 0.0 || u + v > 1.0), return AIR_FALSE);
+  TRI_INTX(ray, obj->vert[0], edge0, edge1, pvec, qvec, tvec, det, t, u, v,
+           (v < 0.0 || u + v > 1.0), return AIR_FALSE);
   intx->t = t;
   intx->u = u;
   intx->v = v;
@@ -452,36 +455,32 @@ _echoRayIntx_Triangle(RAYINTX_ARGS(Triangle)) {
 
 int
 _echoRayIntx_TriMesh(RAYINTX_ARGS(TriMesh)) {
-  echoPos_t *pos, vert0[3], edge0[3], edge1[3], pvec[3], qvec[3], tvec[3],
-    det, t, tmax, u, v, tmp;
+  echoPos_t *pos, vert0[3], edge0[3], edge1[3], pvec[3], qvec[3], tvec[3], det, t, tmax,
+    u, v, tmp;
   echoTriMesh *trim;
   int i, ret;
 
   AIR_UNUSED(parm);
   trim = TRIMESH(obj);
-  if (!_echoRayIntx_CubeSolid(&t, &tmax,
-                              trim->min[0], trim->max[0],
-                              trim->min[1], trim->max[1],
-                              trim->min[2], trim->max[2], ray)) {
+  if (!_echoRayIntx_CubeSolid(&t, &tmax, trim->min[0], trim->max[0], trim->min[1],
+                              trim->max[1], trim->min[2], trim->max[2], ray)) {
     if (tstate->verbose) {
       fprintf(stderr, "%s%s: trimesh bbox (%g,%g,%g) --> (%g,%g,%g) not hit\n",
-              _echoDot(tstate->depth), "_echoRayIntx_TriMesh",
-              trim->min[0], trim->min[1], trim->min[2],
-              trim->max[0], trim->max[1], trim->max[2]);
+              _echoDot(tstate->depth), "_echoRayIntx_TriMesh", trim->min[0],
+              trim->min[1], trim->min[2], trim->max[0], trim->max[1], trim->max[2]);
     }
     return AIR_FALSE;
   }
   /* stupid linear search for now */
   ret = AIR_FALSE;
-  for (i=0; i<trim->numF; i++) {
-    pos = trim->pos + 3*trim->vert[0 + 3*i];
+  for (i = 0; i < trim->numF; i++) {
+    pos = trim->pos + 3 * trim->vert[0 + 3 * i];
     ELL_3V_COPY(vert0, pos);
-    pos = trim->pos + 3*trim->vert[1 + 3*i];
+    pos = trim->pos + 3 * trim->vert[1 + 3 * i];
     ELL_3V_SUB(edge0, pos, vert0);
-    pos = trim->pos + 3*trim->vert[2 + 3*i];
+    pos = trim->pos + 3 * trim->vert[2 + 3 * i];
     ELL_3V_SUB(edge1, pos, vert0);
-    TRI_INTX(ray, vert0, edge0, edge1,
-             pvec, qvec, tvec, det, t, u, v,
+    TRI_INTX(ray, vert0, edge0, edge1, pvec, qvec, tvec, det, t, u, v,
              (v < 0.0 || u + v > 1.0), continue);
     if (ray->shadow) {
       return AIR_TRUE;
@@ -509,9 +508,8 @@ _echoRayIntxUV_TriMesh(echoIntx *intx) {
     u = atan2(norm[1], norm[0]);
     intx->u = AIR_AFFINE(-AIR_PI, u, AIR_PI, 0.0, 1.0);
     v = -asin(norm[2]);
-    intx->v = AIR_AFFINE(-AIR_PI/2, v, AIR_PI/2, 0.0, 1.0);
-  }
-  else {
+    intx->v = AIR_AFFINE(-AIR_PI / 2, v, AIR_PI / 2, 0.0, 1.0);
+  } else {
     intx->u = 0;
     intx->v = AIR_AFFINE(1.0, norm[2], -1.0, 0.0, 1.0);
   }
@@ -524,10 +522,8 @@ _echoRayIntx_AABBox(RAYINTX_ARGS(AABBox)) {
   echoPos_t t, tmax;
 
   box = AABBOX(obj);
-  if (_echoRayIntx_CubeSolid(&t, &tmax,
-                             box->min[0], box->max[0],
-                             box->min[1], box->max[1],
-                             box->min[2], box->max[2], ray)) {
+  if (_echoRayIntx_CubeSolid(&t, &tmax, box->min[0], box->max[0], box->min[1],
+                             box->max[1], box->min[2], box->max[2], ray)) {
     intx->boxhits++;
     ret = _echoRayIntx[box->obj->type](intx, ray, box->obj, parm, tstate);
   } else {
@@ -538,7 +534,7 @@ _echoRayIntx_AABBox(RAYINTX_ARGS(AABBox)) {
 
 int
 _echoRayIntx_Split(RAYINTX_ARGS(Split)) {
-  char me[]="_echoRayIntx_Split";
+  char me[] = "_echoRayIntx_Split";
   echoObject *a, *b;
   echoPos_t *mina, *minb, *maxa, *maxb, t, tmax;
   int ret;
@@ -550,8 +546,7 @@ _echoRayIntx_Split(RAYINTX_ARGS(Split)) {
     b = obj->obj1;
     minb = obj->min1;
     maxb = obj->max1;
-  }
-  else {
+  } else {
     a = obj->obj1;
     mina = obj->min1;
     maxa = obj->max1;
@@ -561,23 +556,18 @@ _echoRayIntx_Split(RAYINTX_ARGS(Split)) {
   }
 
   if (tstate->verbose) {
-    fprintf(stderr, "%s%s: (shadow = %d):\n",
-            _echoDot(tstate->depth), me, ray->shadow);
+    fprintf(stderr, "%s%s: (shadow = %d):\n", _echoDot(tstate->depth), me, ray->shadow);
     fprintf(stderr, "%s%s: 1st: (%g,%g,%g) -- (%g,%g,%g) (obj %d)\n",
-            _echoDot(tstate->depth), me,
-            mina[0], mina[1], mina[2],
-            maxa[0], maxa[1], maxa[2], a->type);
+            _echoDot(tstate->depth), me, mina[0], mina[1], mina[2], maxa[0], maxa[1],
+            maxa[2], a->type);
     fprintf(stderr, "%s%s: 2nd: (%g,%g,%g) -- (%g,%g,%g) (obj %d)\n",
-            _echoDot(tstate->depth), me,
-            minb[0], minb[1], minb[2],
-            maxb[0], maxb[1], maxb[2], b->type);
+            _echoDot(tstate->depth), me, minb[0], minb[1], minb[2], maxb[0], maxb[1],
+            maxb[2], b->type);
   }
 
   ret = AIR_FALSE;
-  if (_echoRayIntx_CubeSolid(&t, &tmax,
-                             mina[0], maxa[0],
-                             mina[1], maxa[1],
-                             mina[2], maxa[2], ray)) {
+  if (_echoRayIntx_CubeSolid(&t, &tmax, mina[0], maxa[0], mina[1], maxa[1], mina[2],
+                             maxa[2], ray)) {
     intx->boxhits++;
     if (_echoRayIntx[a->type](intx, ray, a, parm, tstate)) {
       if (ray->shadow) {
@@ -587,10 +577,8 @@ _echoRayIntx_Split(RAYINTX_ARGS(Split)) {
       ret = AIR_TRUE;
     }
   }
-  if (_echoRayIntx_CubeSolid(&t, &tmax,
-                             minb[0], maxb[0],
-                             minb[1], maxb[1],
-                             minb[2], maxb[2], ray)) {
+  if (_echoRayIntx_CubeSolid(&t, &tmax, minb[0], maxb[0], minb[1], maxb[1], minb[2],
+                             maxb[2], ray)) {
     intx->boxhits++;
     if (_echoRayIntx[b->type](intx, ray, b, parm, tstate)) {
       ray->faar = intx->t;
@@ -607,7 +595,7 @@ _echoRayIntx_List(RAYINTX_ARGS(List)) {
   echoObject *kid;
 
   ret = AIR_FALSE;
-  for (i=0; i<obj->objArr->len; i++) {
+  for (i = 0; i < obj->objArr->len; i++) {
     kid = obj->obj[i];
     if (_echoRayIntx[kid->type](intx, ray, kid, parm, tstate)) {
       ray->faar = intx->t;
@@ -638,11 +626,11 @@ _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
   ELL_4MV_MUL(b, obj->Mi, a);
   ELL_3V_COPY(iray.dir, b);
   if (tstate->verbose) {
-    fprintf(stderr, "%s%s: dir (%g,%g,%g)\n%s   -- Mi --> "
+    fprintf(stderr,
+            "%s%s: dir (%g,%g,%g)\n%s   -- Mi --> "
             "(%g,%g,%g,%g)\n%s   --> (%g,%g,%g)\n",
-            _echoDot(tstate->depth), "_echoRayIntx_Instance",
-            a[0], a[1], a[2], _echoDot(tstate->depth),
-            b[0], b[1], b[2], b[3], _echoDot(tstate->depth),
+            _echoDot(tstate->depth), "_echoRayIntx_Instance", a[0], a[1], a[2],
+            _echoDot(tstate->depth), b[0], b[1], b[2], b[3], _echoDot(tstate->depth),
             iray.dir[0], iray.dir[1], iray.dir[2]);
   }
 
@@ -656,12 +644,11 @@ _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
     ELL_3V_COPY(intx->norm, b);
     ELL_3V_NORM(intx->norm, intx->norm, tmp);
     if (tstate->verbose) {
-      fprintf(stderr, "%s%s: hit a %d (at t=%g) with M == \n",
-              _echoDot(tstate->depth), "_echoRayIntx_Instance",
-              obj->obj->type, intx->t);
+      fprintf(stderr, "%s%s: hit a %d (at t=%g) with M == \n", _echoDot(tstate->depth),
+              "_echoRayIntx_Instance", obj->obj->type, intx->t);
       ell_4m_PRINT(stderr, obj->M);
-      fprintf(stderr, "%s   ... (det = %f), and Mi == \n",
-              _echoDot(tstate->depth), ell_4m_DET(obj->M));
+      fprintf(stderr, "%s   ... (det = %f), and Mi == \n", _echoDot(tstate->depth),
+              ell_4m_DET(obj->M));
       ell_4m_PRINT(stderr, obj->Mi);
     }
     return AIR_TRUE;
@@ -680,24 +667,16 @@ _echoRayIntxUV_Noop(echoIntx *intx) {
 ** NB: the intersections with real objects need to normalize
 ** intx->norm
 */
-_echoRayIntx_t
-_echoRayIntx[ECHO_TYPE_NUM] = {
-  (_echoRayIntx_t)_echoRayIntx_Sphere,
-  (_echoRayIntx_t)_echoRayIntx_Cylinder,
-  (_echoRayIntx_t)_echoRayIntx_Superquad,
-  (_echoRayIntx_t)_echoRayIntx_Cube,
-  (_echoRayIntx_t)_echoRayIntx_Triangle,
-  (_echoRayIntx_t)_echoRayIntx_Rectangle,
-  (_echoRayIntx_t)_echoRayIntx_TriMesh,
-  (_echoRayIntx_t)_echoRayIntx_Noop,
-  (_echoRayIntx_t)_echoRayIntx_AABBox,
-  (_echoRayIntx_t)_echoRayIntx_Split,
-  (_echoRayIntx_t)_echoRayIntx_List,
-  (_echoRayIntx_t)_echoRayIntx_Instance,
+_echoRayIntx_t _echoRayIntx[ECHO_TYPE_NUM] = {
+  (_echoRayIntx_t)_echoRayIntx_Sphere,    (_echoRayIntx_t)_echoRayIntx_Cylinder,
+  (_echoRayIntx_t)_echoRayIntx_Superquad, (_echoRayIntx_t)_echoRayIntx_Cube,
+  (_echoRayIntx_t)_echoRayIntx_Triangle,  (_echoRayIntx_t)_echoRayIntx_Rectangle,
+  (_echoRayIntx_t)_echoRayIntx_TriMesh,   (_echoRayIntx_t)_echoRayIntx_Noop,
+  (_echoRayIntx_t)_echoRayIntx_AABBox,    (_echoRayIntx_t)_echoRayIntx_Split,
+  (_echoRayIntx_t)_echoRayIntx_List,      (_echoRayIntx_t)_echoRayIntx_Instance,
 };
 
-_echoRayIntxUV_t
-_echoRayIntxUV[ECHO_TYPE_NUM] = {
+_echoRayIntxUV_t _echoRayIntxUV[ECHO_TYPE_NUM] = {
   _echoRayIntxUV_Sphere,  /* echoTypeSphere */
   _echoRayIntxUV_Noop,    /* echoTypeCylinder */
   _echoRayIntxUV_Noop,    /* sqd.c: echoTypeSuperquad */
@@ -713,8 +692,8 @@ _echoRayIntxUV[ECHO_TYPE_NUM] = {
 };
 
 int
-echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene,
-            echoRTParm *parm, echoThreadState *tstate) {
+echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene, echoRTParm *parm,
+            echoThreadState *tstate) {
   unsigned int idx;
   int ret;
   echoObject *kid;
@@ -723,7 +702,7 @@ echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene,
   _echoVerbose = tstate->verbose;
 
   ret = AIR_FALSE;
-  for (idx=0; idx<scene->rendArr->len; idx++) {
+  for (idx = 0; idx < scene->rendArr->len; idx++) {
     kid = scene->rend[idx];
     if (_echoRayIntx[kid->type](intx, ray, kid, parm, tstate)) {
       ray->faar = intx->t;

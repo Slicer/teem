@@ -39,9 +39,9 @@
 ** post-NrrdRange policy:
 */
 int
-nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
-          const Nrrd *nwght, size_t bins, int type) {
-  static const char me[]="nrrdHisto", func[]="histo";
+nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, const Nrrd *nwght,
+          size_t bins, int type) {
+  static const char me[] = "nrrdHisto", func[] = "histo";
   size_t I, num, idx;
   airArray *mop;
   NrrdRange *range;
@@ -58,8 +58,7 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   }
   if (!(bins > 0)) {
     char stmp[AIR_STRLEN_SMALL];
-    biffAddf(NRRD, "%s: bins value (%s) invalid", me,
-             airSprintSize_t(stmp, bins));
+    biffAddf(NRRD, "%s: bins value (%s) invalid", me, airSprintSize_t(stmp, bins));
     return 1;
   }
   if (airEnumValCheck(nrrdType, type) || nrrdTypeBlock == type) {
@@ -67,7 +66,7 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
     return 1;
   }
   if (nwght) {
-    if (nout==nwght) {
+    if (nout == nwght) {
       biffAddf(NRRD, "%s: nout==nwght disallowed", me);
       return 1;
     }
@@ -121,15 +120,15 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 
   /* make histogram */
   num = nrrdElementNumber(nin);
-  for (I=0; I<num; I++) {
+  for (I = 0; I < num; I++) {
     val = nrrdDLookup[nin->type](nin->data, I);
     if (AIR_EXISTS(val)) {
-      if (val < min || val > max+eps) {
+      if (val < min || val > max + eps) {
         /* value is outside range; ignore it */
         continue;
       }
       if (AIR_IN_CL(min, val, max)) {
-        idx = airIndex(min, val, max+eps, AIR_UINT(bins));
+        idx = airIndex(min, val, max + eps, AIR_UINT(bins));
         /*
         printf("!%s: %d: index(%g, %g, %g, %d) = %d\n",
                me, (int)I, min, val, max, bins, idx);
@@ -146,7 +145,8 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 
   if (nrrdContentSet_va(nout, func, nin, "%d", bins)) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   nout->axis[0].label = (char *)airFree(nout->axis[0].label);
   nout->axis[0].label = (char *)airStrdup(nout->content);
@@ -160,15 +160,15 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 
 int
 nrrdHistoCheck(const Nrrd *nhist) {
-  static const char me[]="nrrdHistoCheck";
+  static const char me[] = "nrrdHistoCheck";
 
   if (!nhist) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (nrrdTypeBlock == nhist->type) {
-    biffAddf(NRRD, "%s: has non-scalar %s type",
-             me, airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAddf(NRRD, "%s: has non-scalar %s type", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
   if (nrrdHasNonExist(nhist)) {
@@ -176,8 +176,7 @@ nrrdHistoCheck(const Nrrd *nhist) {
     return 1;
   }
   if (1 != nhist->dim) {
-    biffAddf(NRRD, "%s: dim == %u != 1",
-             me, nhist->dim);
+    biffAddf(NRRD, "%s: dim == %u != 1", me, nhist->dim);
     return 1;
   }
   if (!(nhist->axis[0].size > 1)) {
@@ -189,9 +188,8 @@ nrrdHistoCheck(const Nrrd *nhist) {
 }
 
 int
-nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
-              size_t sy, int showLog, double max) {
-  static const char me[]="nrrdHistoDraw", func[]="dhisto";
+nrrdHistoDraw(Nrrd *nout, const Nrrd *nin, size_t sy, int showLog, double max) {
+  static const char me[] = "nrrdHistoDraw", func[] = "dhisto";
   char cmt[AIR_STRLEN_MED], stmp[AIR_STRLEN_SMALL];
   unsigned int ki, numticks, *linY, *logY, tick, *ticks;
   double hits, maxhits, usemaxhits;
@@ -229,7 +227,7 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
   pgmData = (unsigned char *)nout->data;
   maxhits = 0.0;
   maxhitidx = 0;
-  for (xi=0; xi<sx; xi++) {
+  for (xi = 0; xi < sx; xi++) {
     hits = nrrdDLookup[nin->type](nin->data, xi);
     if (maxhits < hits) {
       maxhits = hits;
@@ -253,47 +251,41 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
   airMopMem(mop, &logY, airMopAlways);
   if (!(ticks && linY && logY)) {
     biffAddf(NRRD, "%s: failed to allocate temp arrays", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  for (ki=0; ki<numticks; ki++) {
-    ticks[ki] = airIndex(0, log10(pow(10,ki+1) + 1), log10(usemaxhits+1),
+  for (ki = 0; ki < numticks; ki++) {
+    ticks[ki] = airIndex(0, log10(pow(10, ki + 1) + 1), log10(usemaxhits + 1),
                          AIR_UINT(sy));
   }
-  for (xi=0; xi<sx; xi++) {
+  for (xi = 0; xi < sx; xi++) {
     hits = nrrdDLookup[nin->type](nin->data, xi);
-    linY[xi] = airIndex(0, hits, usemaxhits,
-                        AIR_UINT(sy));
-    logY[xi] = airIndex(0, log10(hits+1), log10(usemaxhits+1),
-                        AIR_UINT(sy));
+    linY[xi] = airIndex(0, hits, usemaxhits, AIR_UINT(sy));
+    logY[xi] = airIndex(0, log10(hits + 1), log10(usemaxhits + 1), AIR_UINT(sy));
     /* printf("%d -> %d,%d", x, linY[x], logY[x]); */
   }
-  for (yi=0; yi<sy; yi++) {
+  for (yi = 0; yi < sy; yi++) {
     tick = 0;
-    for (ki=0; ki<numticks; ki++)
+    for (ki = 0; ki < numticks; ki++)
       tick |= ticks[ki] == yi;
-    for (xi=0; xi<sx; xi++) {
-      pgmData[xi + sx*(sy-1-yi)] =
-        (2 == showLog    /* HACK: draw log curve, but not log tick marks */
-         ? (yi >= logY[xi]
-            ? 0                   /* above log curve                     */
-            : (yi >= linY[xi]
-               ? 128              /* below log curve, above normal curve */
-               : 255              /* below log curve, below normal curve */
-               )
-            )
-         : (!showLog
-            ? (yi >= linY[xi] ? 0 : 255)
-            : (yi >= logY[xi]     /* above log curve                     */
-               ? (!tick ? 0       /*                    not on tick mark */
-                  : 255)          /*                    on tick mark     */
-               : (yi >= linY[xi]  /* below log curve, above normal curve */
-                  ? (!tick ? 128  /*                    not on tick mark */
-                     : 0)         /*                    on tick mark     */
-                  :255            /* below log curve, below normal curve */
-                  )
-               )
-            )
-         );
+    for (xi = 0; xi < sx; xi++) {
+      pgmData[xi + sx * (sy - 1 - yi)]
+        = (2 == showLog /* HACK: draw log curve, but not log tick marks */
+             ? (yi >= logY[xi]
+                  ? 0                     /* above log curve                     */
+                  : (yi >= linY[xi] ? 128 /* below log curve, above normal curve */
+                                    : 255 /* below log curve, below normal curve */
+                     ))
+             : (!showLog
+                  ? (yi >= linY[xi] ? 0 : 255)
+                  : (yi >= logY[xi]        /* above log curve                     */
+                       ? (!tick ? 0        /*                    not on tick mark */
+                                : 255)     /*                    on tick mark     */
+                       : (yi >= linY[xi]   /* below log curve, above normal curve */
+                            ? (!tick ? 128 /*                    not on tick mark */
+                                     : 0)  /*                    on tick mark     */
+                            : 255          /* below log curve, below normal curve */
+                          ))));
     }
   }
   E = 0;
@@ -305,11 +297,11 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
           airSprintSize_t(stmp, maxhitidx),
           nrrdAxisInfoPos(nout, 0, AIR_CAST(double, maxhitidx)));
   if (!E) E |= nrrdCommentAdd(nout, cmt);
-  if (!E) E |= nrrdContentSet_va(nout, func, nin, "%s",
-                                 airSprintSize_t(stmp, sy));
+  if (!E) E |= nrrdContentSet_va(nout, func, nin, "%s", airSprintSize_t(stmp, sy));
   if (E) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   /* bye */
@@ -332,9 +324,9 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin,
 ** slow too...
 */
 int
-nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
-              unsigned int hax, size_t bins, int type) {
-  static const char me[]="nrrdHistoAxis", func[]="histax";
+nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, unsigned int hax,
+              size_t bins, int type) {
+  static const char me[] = "nrrdHistoAxis", func[] = "histax";
   int map[NRRD_DIM_MAX];
   unsigned int ai, hidx;
   size_t szIn[NRRD_DIM_MAX], szOut[NRRD_DIM_MAX], size[NRRD_DIM_MAX],
@@ -354,17 +346,15 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   }
   if (!(bins > 0)) {
     char stmp[AIR_STRLEN_SMALL];
-    biffAddf(NRRD, "%s: bins value (%s) invalid", me,
-             airSprintSize_t(stmp, bins));
+    biffAddf(NRRD, "%s: bins value (%s) invalid", me, airSprintSize_t(stmp, bins));
     return 1;
   }
   if (airEnumValCheck(nrrdType, type) || nrrdTypeBlock == type) {
     biffAddf(NRRD, "%s: invalid nrrd type %d", me, type);
     return 1;
   }
-  if (!( hax <= nin->dim-1 )) {
-    biffAddf(NRRD, "%s: axis %d is not in range [0,%d]",
-             me, hax, nin->dim-1);
+  if (!(hax <= nin->dim - 1)) {
+    biffAddf(NRRD, "%s: axis %d is not in range [0,%d]", me, hax, nin->dim - 1);
     return 1;
   }
   mop = airMopNew();
@@ -379,11 +369,12 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   size[hax] = bins;
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     biffAddf(NRRD, "%s: failed to alloc output nrrd", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   /* copy axis information */
-  for (ai=0; ai<nin->dim; ai++) {
+  for (ai = 0; ai < nin->dim; ai++) {
     map[ai] = ai != hax ? (int)ai : -1;
   }
   nrrdAxisInfoCopy(nout, nin, map, NRRD_AXIS_INFO_NONE);
@@ -395,14 +386,14 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   nout->axis[hax].max = range->max;
   nout->axis[hax].center = nrrdCenterCell;
   if (nin->axis[hax].label) {
-    nout->axis[hax].label = AIR_CALLOC(strlen("histax()")
-                                       + strlen(nin->axis[hax].label)
-                                       + 1, char);
+    nout->axis[hax].label
+      = AIR_CALLOC(strlen("histax()") + strlen(nin->axis[hax].label) + 1, char);
     if (nout->axis[hax].label) {
       sprintf(nout->axis[hax].label, "histax(%s)", nin->axis[hax].label);
     } else {
       biffAddf(NRRD, "%s: couldn't allocate output label", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   } else {
     nout->axis[hax].label = NULL;
@@ -417,14 +408,14 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
      disaster */
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, szIn);
   nrrdAxisInfoGet_nva(nout, nrrdAxisInfoSize, szOut);
-  memset(coordIn, 0, NRRD_DIM_MAX*sizeof(size_t));
+  memset(coordIn, 0, NRRD_DIM_MAX * sizeof(size_t));
   num = nrrdElementNumber(nin);
-  for (I=0; I<num; I++) {
+  for (I = 0; I < num; I++) {
     /* get input nrrd value and compute its histogram index */
     val = nrrdDLookup[nin->type](nin->data, I);
     if (AIR_EXISTS(val) && AIR_IN_CL(range->min, val, range->max)) {
       hidx = airIndex(range->min, val, range->max, AIR_UINT(bins));
-      memcpy(coordOut, coordIn, nin->dim*sizeof(size_t));
+      memcpy(coordOut, coordIn, nin->dim * sizeof(size_t));
       coordOut[hax] = (unsigned int)hidx;
       NRRD_INDEX_GEN(hI, coordOut, szOut, nout->dim);
       count = nrrdDLookup[nout->type](nout->data, hI);
@@ -436,25 +427,24 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 
   if (nrrdContentSet_va(nout, func, nin, "%d,%d", hax, bins)) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   nrrdBasicInfoInit(nout, (NRRD_BASIC_INFO_DATA_BIT /* */
-                           | NRRD_BASIC_INFO_TYPE_BIT
-                           | NRRD_BASIC_INFO_DIMENSION_BIT
-                           | 0 /* what? */ ));
+                           | NRRD_BASIC_INFO_TYPE_BIT | NRRD_BASIC_INFO_DIMENSION_BIT
+                           | 0 /* what? */));
   airMopOkay(mop);
   return 0;
 }
 
 int
-nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
-               const NrrdRange *const *_range, unsigned int numNin,
-               const Nrrd *nwght, const size_t *bins,
-               int type, const int *clamp) {
-  static const char me[]="nrrdHistoJoint", func[]="jhisto";
+nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin, const NrrdRange *const *_range,
+               unsigned int numNin, const Nrrd *nwght, const size_t *bins, int type,
+               const int *clamp) {
+  static const char me[] = "nrrdHistoJoint", func[] = "jhisto";
   int skip, hadContent;
-  double val, count, incr, (*lup)(const void *v, size_t I),
-    rmin[NRRD_DIM_MAX], rmax[NRRD_DIM_MAX];
+  double val, count, incr, (*lup)(const void *v, size_t I), rmin[NRRD_DIM_MAX],
+    rmax[NRRD_DIM_MAX];
   size_t Iin, Iout, numEl, coord[NRRD_DIM_MAX], totalContentStrlen;
   airArray *mop;
   NrrdRange **range;
@@ -463,9 +453,8 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
   /* error checking */
   /* nwght can be NULL -> weighting is constant 1.0 */
   if (!(nout && nin && bins && clamp)) {
-    biffAddf(NRRD, "%s: got NULL pointer (%p, %p, %p, %p)", me,
-             AIR_VOIDP(nout), AIR_CVOIDP(nin),
-             AIR_CVOIDP(bins), AIR_CVOIDP(clamp));
+    biffAddf(NRRD, "%s: got NULL pointer (%p, %p, %p, %p)", me, AIR_VOIDP(nout),
+             AIR_CVOIDP(nin), AIR_CVOIDP(bins), AIR_CVOIDP(clamp));
     return 1;
   }
   if (!(numNin >= 1)) {
@@ -473,16 +462,16 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
     return 1;
   }
   if (numNin > NRRD_DIM_MAX) {
-    biffAddf(NRRD, "%s: can only deal with up to %d nrrds (not %d)", me,
-             NRRD_DIM_MAX, numNin);
+    biffAddf(NRRD, "%s: can only deal with up to %d nrrds (not %d)", me, NRRD_DIM_MAX,
+             numNin);
     return 1;
   }
-  for (nii=0; nii<numNin; nii++) {
+  for (nii = 0; nii < numNin; nii++) {
     if (!(nin[nii])) {
       biffAddf(NRRD, "%s: input nrrd #%u NULL", me, nii);
       return 1;
     }
-    if (nout==nin[nii]) {
+    if (nout == nin[nii]) {
       biffAddf(NRRD, "%s: nout==nin[%d] disallowed", me, nii);
       return 1;
     }
@@ -497,9 +486,9 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
     return 1;
   }
   mop = airMopNew();
-  range = AIR_CALLOC(numNin, NrrdRange*);
+  range = AIR_CALLOC(numNin, NrrdRange *);
   airMopAdd(mop, range, airFree, airMopAlways);
-  for (ai=0; ai<numNin; ai++) {
+  for (ai = 0; ai < numNin; ai++) {
     if (_range && _range[ai]) {
       range[ai] = nrrdRangeCopy(_range[ai]);
       nrrdRangeSafeSet(range[ai], nin[ai], nrrdBlind8BitRangeState);
@@ -508,7 +497,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
     }
     airMopAdd(mop, range[ai], (airMopper)nrrdRangeNix, airMopAlways);
   }
-  for (ai=0; ai<numNin; ai++) {
+  for (ai = 0; ai < numNin; ai++) {
     if (!nin[ai]) {
       biffAddf(NRRD, "%s: input nrrd[%d] NULL", me, ai);
       return 1;
@@ -528,7 +517,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
   /* check nwght */
   if (nwght) {
     char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
-    if (nout==nwght) {
+    if (nout == nwght) {
       biffAddf(NRRD, "%s: nout==nwght disallowed", me);
       return 1;
     }
@@ -555,7 +544,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
   }
   hadContent = 0;
   totalContentStrlen = 0;
-  for (ai=0; ai<numNin; ai++) {
+  for (ai = 0; ai < numNin; ai++) {
     nout->axis[ai].size = bins[ai];
     nout->axis[ai].spacing = AIR_NAN;
     nout->axis[ai].thickness = AIR_NAN;
@@ -568,10 +557,8 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
     if (nin[ai]->content) {
       hadContent = 1;
       totalContentStrlen += strlen(nin[ai]->content);
-      nout->axis[ai].label = AIR_CALLOC(strlen("histo(,)")
-                                        + strlen(nin[ai]->content)
-                                        + 11
-                                        + 1, char);
+      nout->axis[ai].label
+        = AIR_CALLOC(strlen("histo(,)") + strlen(nin[ai]->content) + 11 + 1, char);
       if (nout->axis[ai].label) {
         char stmp[AIR_STRLEN_SMALL];
         sprintf(nout->axis[ai].label, "histo(%s,%s)", nin[ai]->content,
@@ -587,7 +574,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
   }
 
   /* the skinny */
-  for (ai=0; ai<numNin; ai++) {
+  for (ai = 0; ai < numNin; ai++) {
     if (range[ai]->min <= range[ai]->max) {
       rmin[ai] = range[ai]->min;
       rmax[ai] = range[ai]->max;
@@ -597,9 +584,9 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
     }
   }
   numEl = nrrdElementNumber(nin[0]);
-  for (Iin=0; Iin<numEl; Iin++) {
+  for (Iin = 0; Iin < numEl; Iin++) {
     skip = 0;
-    for (ai=0; ai<numNin; ai++) {
+    for (ai = 0; ai < numNin; ai++) {
       val = nrrdDLookup[nin[ai]->type](nin[ai]->data, Iin);
       if (!AIR_EXISTS(val)) {
         /* coordinate d in the joint histo can't be determined
@@ -615,10 +602,9 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
           break;
         }
       }
-      coord[ai] = AIR_CAST(size_t, airIndexClampULL(range[ai]->min,
-                                                    val,
-                                                    range[ai]->max,
-                                                    bins[ai]));
+      coord[ai] = AIR_CAST(size_t,
+                           airIndexClampULL(range[ai]->min, val, range[ai]->max,
+                                            bins[ai]));
     }
     if (skip) {
       continue;
@@ -632,21 +618,19 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
 
   /* HEY: switch to nrrdContentSet_va? */
   if (hadContent) {
-    nout->content = AIR_CALLOC(strlen(func) + strlen("()")
-                               + numNin*strlen(",")
-                               + totalContentStrlen
-                               + 1, char);
+    nout->content = AIR_CALLOC(strlen(func) + strlen("()") + numNin * strlen(",")
+                                 + totalContentStrlen + 1,
+                               char);
     if (nout->content) {
       size_t len;
       sprintf(nout->content, "%s(", func);
-      for (ai=0; ai<numNin; ai++) {
+      for (ai = 0; ai < numNin; ai++) {
         len = strlen(nout->content);
-        strcpy(nout->content + len,
-               nin[ai]->content ? nin[ai]->content : "?");
+        strcpy(nout->content + len, nin[ai]->content ? nin[ai]->content : "?");
         len = strlen(nout->content);
-        nout->content[len] = ai < numNin-1 ? ',' : ')';
+        nout->content[len] = ai < numNin - 1 ? ',' : ')';
       }
-      nout->content[len+1] = '\0';
+      nout->content[len + 1] = '\0';
     } else {
       biffAddf(NRRD, "%s: couldn't allocate output content", me);
       return 1;
@@ -666,11 +650,11 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin,
 */
 int
 nrrdHistoThresholdOtsu(double *threshP, const Nrrd *_nhist, double expo) {
-  static const char me[]="nrrdHistoThresholdOtsu";
+  static const char me[] = "nrrdHistoThresholdOtsu";
   unsigned int histLen, histIdx, maxIdx;
   Nrrd *nhist, *nbvar;
-  double *hist, *bvar, thresh, num0, num1, mean0, mean1,
-    onum0, onum1, omean0, omean1, max;
+  double *hist, *bvar, thresh, num0, num1, mean0, mean1, onum0, onum1, omean0, omean1,
+    max;
   airArray *mop;
 
   if (!(threshP && _nhist)) {
@@ -685,40 +669,40 @@ nrrdHistoThresholdOtsu(double *threshP, const Nrrd *_nhist, double expo) {
   mop = airMopNew();
   airMopAdd(mop, nhist = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nbvar = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdConvert(nhist, _nhist, nrrdTypeDouble)
-      || nrrdCopy(nbvar, nhist)) {
+  if (nrrdConvert(nhist, _nhist, nrrdTypeDouble) || nrrdCopy(nbvar, nhist)) {
     biffAddf(NRRD, "%s: making local copies", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  hist = AIR_CAST(double*, nhist->data);
-  bvar = AIR_CAST(double*, nbvar->data);
+  hist = AIR_CAST(double *, nhist->data);
+  bvar = AIR_CAST(double *, nbvar->data);
 
   histLen = AIR_UINT(nhist->axis[0].size);
   num1 = mean1 = 0;
-  for (histIdx=0; histIdx<histLen; histIdx++) {
+  for (histIdx = 0; histIdx < histLen; histIdx++) {
     num1 += hist[histIdx];
-    mean1 += hist[histIdx]*histIdx;
+    mean1 += hist[histIdx] * histIdx;
   }
   if (num1) {
     num0 = 0;
     mean0 = 0;
     mean1 /= num1;
-    for (histIdx=0; histIdx<histLen; histIdx++) {
+    for (histIdx = 0; histIdx < histLen; histIdx++) {
       if (histIdx) {
         onum0 = num0;
         onum1 = num1;
         omean0 = mean0;
         omean1 = mean1;
-        num0 = onum0 + hist[histIdx-1];
-        num1 = onum1 - hist[histIdx-1];
-        mean0 = (omean0*onum0 + hist[histIdx-1]*(histIdx-1)) / num0;
-        mean1 = (omean1*onum1 - hist[histIdx-1]*(histIdx-1)) / num1;
+        num0 = onum0 + hist[histIdx - 1];
+        num1 = onum1 - hist[histIdx - 1];
+        mean0 = (omean0 * onum0 + hist[histIdx - 1] * (histIdx - 1)) / num0;
+        mean1 = (omean1 * onum1 - hist[histIdx - 1] * (histIdx - 1)) / num1;
       }
-      bvar[histIdx] = num0*num1*airSgnPow(mean1 - mean0, expo);
+      bvar[histIdx] = num0 * num1 * airSgnPow(mean1 - mean0, expo);
     }
     max = bvar[0];
     maxIdx = 0;
-    for (histIdx=1; histIdx<histLen; histIdx++) {
+    for (histIdx = 1; histIdx < histLen; histIdx++) {
       if (bvar[histIdx] > max) {
         max = bvar[histIdx];
         maxIdx = histIdx;
@@ -726,12 +710,11 @@ nrrdHistoThresholdOtsu(double *threshP, const Nrrd *_nhist, double expo) {
     }
     thresh = maxIdx;
   } else {
-    thresh = histLen/2;
+    thresh = histLen / 2;
   }
 
   if (AIR_EXISTS(nhist->axis[0].min) && AIR_EXISTS(nhist->axis[0].max)) {
-    thresh = NRRD_CELL_POS(nhist->axis[0].min, nhist->axis[0].max,
-                           histLen, thresh);
+    thresh = NRRD_CELL_POS(nhist->axis[0].min, nhist->axis[0].max, histLen, thresh);
   }
   *threshP = thresh;
   airMopOkay(mop);

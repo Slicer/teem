@@ -43,8 +43,8 @@ meetNrrdKernelAll(void) {
   ku.k = &kern;
   arr = airArrayNew(ku.v, NULL, sizeof(NrrdKernel *), 2);
 
-#define ADD(K) \
-  ii = airArrayLenIncr(arr, 1); \
+#define ADD(K)                                                                          \
+  ii = airArrayLenIncr(arr, 1);                                                         \
   kern[ii] = (K)
 
   /* kernel.c */
@@ -137,10 +137,10 @@ meetNrrdKernelAll(void) {
   dmax = AIR_INT(nrrdKernelTMF_maxD);
   cmax = AIR_INT(nrrdKernelTMF_maxC);
   amax = AIR_INT(nrrdKernelTMF_maxA);
-  for (di=-1; di<=dmax; di++) {
-    for (ci=-1; ci<=cmax; ci++) {
-      for (ai=1; ai<=amax; ai++) {
-        ADD(nrrdKernelTMF[di+1][ci+1][ai]);
+  for (di = -1; di <= dmax; di++) {
+    for (ci = -1; ci <= cmax; ci++) {
+      for (ai = 1; ai <= amax; ai++) {
+        ADD(nrrdKernelTMF[di + 1][ci + 1][ai]);
       }
     }
   }
@@ -158,12 +158,15 @@ meetNrrdKernelAll(void) {
    that will be built into kernels in a future Teem version */
 static const NrrdKernel *
 kintegral(const NrrdKernel *kd) {
-  const NrrdKernel *ret=NULL;
+  const NrrdKernel *ret = NULL;
 
   /* the statement "INTGL(K)" is saying that K has a derivative with the
      usual name K##D.  This is made more convenient by the
      consistent use of the "D" suffix for indicating a derivative */
-#define INTGL(K) if (K##D == kd) { ret = K; }
+#define INTGL(K)                                                                        \
+  if (K##D == kd) {                                                                     \
+    ret = K;                                                                            \
+  }
   INTGL(nrrdKernelHann);
   INTGL(nrrdKernelHannD);
   INTGL(nrrdKernelBlackman);
@@ -227,14 +230,12 @@ kintegral(const NrrdKernel *kd) {
 */
 int
 meetNrrdKernelAllCheck(void) {
-  static const char me[]="meetNrrdKernelAllCheck";
+  static const char me[] = "meetNrrdKernelAllCheck";
   const NrrdKernel **kern, *kk, *ll;
   unsigned int ki, kj, pnum;
   airArray *mop;
-  double epsl, XX, YY,
-    parm0[NRRD_KERNEL_PARMS_NUM],
-    parm1_1[NRRD_KERNEL_PARMS_NUM], parm1_X[NRRD_KERNEL_PARMS_NUM],
-    parm[NRRD_KERNEL_PARMS_NUM];
+  double epsl, XX, YY, parm0[NRRD_KERNEL_PARMS_NUM], parm1_1[NRRD_KERNEL_PARMS_NUM],
+    parm1_X[NRRD_KERNEL_PARMS_NUM], parm[NRRD_KERNEL_PARMS_NUM];
   size_t evalNum;
   int EE;
 
@@ -246,8 +247,8 @@ meetNrrdKernelAllCheck(void) {
                        the integral is numerically computed; the current
                        value here represents some experimentation */
   epsl = 0.9e-5;
-  XX = 7.0/3.0;  /* 2.333.. */
-  YY = 43.0/9.0; /* 4.777.. */
+  XX = 7.0 / 3.0;     /* 2.333.. */
+  YY = 43.0 / 9.0;    /* 4.777.. */
   parm0[0] = AIR_NAN; /* shouldn't be read */
   parm1_1[0] = 1.0;
   parm1_X[0] = XX;
@@ -257,14 +258,16 @@ meetNrrdKernelAllCheck(void) {
     while (kj < ki) {
       ll = kern[kj];
       if (kk == ll) {
-        biffAddf(MEET, "%s: kern[%u] and [%u] were identical (%s)",
-                 me, kj, ki, kk->name);
-        airMopError(mop); return 1;
+        biffAddf(MEET, "%s: kern[%u] and [%u] were identical (%s)", me, kj, ki,
+                 kk->name);
+        airMopError(mop);
+        return 1;
       }
       if (!airStrcmp(kk->name, ll->name)) {
-        biffAddf(MEET, "%s: kern[%u] and [%u] have same name (%s)",
-                 me, kj, ki, kk->name);
-        airMopError(mop); return 1;
+        biffAddf(MEET, "%s: kern[%u] and [%u] have same name (%s)", me, kj, ki,
+                 kk->name);
+        airMopError(mop);
+        return 1;
       }
       kj++;
     }
@@ -274,10 +277,8 @@ meetNrrdKernelAllCheck(void) {
        permissible error in kernel evaluations (between float and double)
        The kernels for which this is higher should be targets for
        re-coding with an eye towards numerical accuracy */
-#define CHECK(P, S, N)                                                  \
-    if (!EE) EE |= nrrdKernelCheck(kk, (P), evalNum, epsl*(S),          \
-                                   N, N,                                \
-                                   kintegral(kk), (P));
+#define CHECK(P, S, N)                                                                  \
+  if (!EE) EE |= nrrdKernelCheck(kk, (P), evalNum, epsl * (S), N, N, kintegral(kk), (P));
     /* clang-format off */
     if (nrrdKernelBCCubic == kk ||
         nrrdKernelBCCubicD == kk ||
@@ -393,9 +394,9 @@ meetNrrdKernelAllCheck(void) {
     /* clang-format on */
 #undef CHECK
     if (EE) {
-      biffMovef(MEET, NRRD, "%s: problem with kern[%u] \"%s\"", me, ki,
-                kk->name);
-      airMopError(mop); return 1;
+      biffMovef(MEET, NRRD, "%s: problem with kern[%u] \"%s\"", me, ki, kk->name);
+      airMopError(mop);
+      return 1;
     }
     ki++;
   }

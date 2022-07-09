@@ -25,14 +25,12 @@
 #include "privateBane.h"
 
 #define INFO_INFO "Project histogram volume for opacity function generation"
-static const char *_baneGkms_infoInfoL =
-  (INFO_INFO
-   ". This distills the histogram volume down to the information required "
-   "to create either 1-D or 2-D opacity functions.");
+static const char *_baneGkms_infoInfoL
+  = (INFO_INFO ". This distills the histogram volume down to the information required "
+               "to create either 1-D or 2-D opacity functions.");
 
 int
-baneGkms_infoMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+baneGkms_infoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *perr;
   Nrrd *hvol, *nout;
@@ -50,8 +48,7 @@ baneGkms_infoMain(int argc, const char **argv, const char *me,
   hestOptAdd(&opt, "one", NULL, airTypeInt, 0, 0, &one, NULL,
              "Create 1-dimensional info file; default is 2-dimensional");
   hestOptAdd(&opt, "i", "hvolIn", airTypeOther, 1, 1, &hvol, NULL,
-             "input histogram volume (from \"gkms hvol\")",
-             NULL, NULL, nrrdHestNrrd);
+             "input histogram volume (from \"gkms hvol\")", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "o", "infoOut", airTypeString, 1, 1, &outS, NULL,
              "output info file, used by \"gkms pvg\" and \"gkms opac\"");
 
@@ -65,16 +62,17 @@ baneGkms_infoMain(int argc, const char **argv, const char *me,
 
   if (baneOpacInfo(nout, hvol, one ? 1 : 2, measr)) {
     biffAddf(BANE, "%s: trouble distilling histogram info", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (nrrdSave(outS, nout, NULL)) {
     biffMovef(BANE, NRRD, "%s: trouble saving info file", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
   return 0;
 }
 BANE_GKMS_CMD(info, INFO_INFO);
-

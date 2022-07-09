@@ -25,8 +25,8 @@
 #define UNRRDU_PRIVATE_HAS_BEEN_INCLUDED
 
 #ifdef _WIN32
-#include <io.h>
-#include <fcntl.h>
+#  include <io.h>
+#  include <fcntl.h>
 #endif
 
 #ifdef __cplusplus
@@ -56,27 +56,27 @@ extern "C" {
 ** is given before each macro.
 */
 /* Nrrd *var */
-#define OPT_ADD_NIN(var, desc) \
-  hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &(var), "-", desc, \
-             NULL, NULL, nrrdHestNrrd)
+#define OPT_ADD_NIN(var, desc)                                                          \
+  hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &(var), "-", desc, NULL, NULL, \
+             nrrdHestNrrd)
 
 /* char *var */
-#define OPT_ADD_NOUT(var, desc) \
+#define OPT_ADD_NOUT(var, desc)                                                         \
   hestOptAdd(&opt, "o,output", "nout", airTypeString, 1, 1, &(var), "-", desc)
 
 /* unsigned int var */
-#define OPT_ADD_AXIS(var, desc) \
+#define OPT_ADD_AXIS(var, desc)                                                         \
   hestOptAdd(&opt, "a,axis", "axis", airTypeUInt, 1, 1, &(var), NULL, desc)
 
 /* int *var; int saw */
-#define OPT_ADD_BOUND(name, needmin, var, deflt, desc, saw)             \
-  hestOptAdd(&opt, name, "pos0", airTypeOther, needmin, -1, &(var),     \
-             deflt, desc, &(saw), NULL, &unrrduHestPosCB)
+#define OPT_ADD_BOUND(name, needmin, var, deflt, desc, saw)                             \
+  hestOptAdd(&opt, name, "pos0", airTypeOther, needmin, -1, &(var), deflt, desc,        \
+             &(saw), NULL, &unrrduHestPosCB)
 
 /* int var */
-#define OPT_ADD_TYPE(var, desc, dflt) \
-  hestOptAdd(&opt, "t,type", "type", airTypeEnum, 1, 1, &(var), dflt, desc, \
-             NULL, nrrdType)
+#define OPT_ADD_TYPE(var, desc, dflt)                                                   \
+  hestOptAdd(&opt, "t,type", "type", airTypeEnum, 1, 1, &(var), dflt, desc, NULL,       \
+             nrrdType)
 
 /*
 ** USAGE, PARSE, SAVE
@@ -92,16 +92,16 @@ extern "C" {
 ** be treated as an erroneous invocation; unu about and unu env (which
 ** don't use this macro) had already been this way.
 */
-#define USAGE(info) \
-  if (!argc) { \
-    hestInfo(stdout, me, (info), hparm); \
-    hestUsage(stdout, opt, me, hparm); \
-    hestGlossary(stdout, opt, hparm); \
-    airMopError(mop); \
-    return 0; \
+#define USAGE(info)                                                                     \
+  if (!argc) {                                                                          \
+    hestInfo(stdout, me, (info), hparm);                                                \
+    hestUsage(stdout, opt, me, hparm);                                                  \
+    hestGlossary(stdout, opt, hparm);                                                   \
+    airMopError(mop);                                                                   \
+    return 0;                                                                           \
   }
 
-  /*
+/*
 
 I nixed this because it meant unu invocations with only a
 few args (less than hestMinNumArgs()), which were botched
@@ -115,38 +115,39 @@ in the error messages.
 ** the case of cvs/svn-like commands.
 
 
-  if ( (hparm->respFileEnable && !argc) || \
-       (!hparm->respFileEnable && argc < hestMinNumArgs(opt)) ) { \
-  */
+if ( (hparm->respFileEnable && !argc) || \
+     (!hparm->respFileEnable && argc < hestMinNumArgs(opt)) ) { \
+*/
 
 /*
 ** NOTE: of all places it is inside the PARSE() macro that the
 ** "quiet-quit" functionality is implemented; this is defensible
 ** because all unu commands use PARSE
 */
-#define PARSE()                                                         \
-  if ((pret=hestParse(opt, argc, argv, &err, hparm))) {                 \
-    if (1 == pret || 2 == pret) {                                       \
-      if (!(getenv(UNRRDU_QUIET_QUIT_ENV)                               \
-            && airEndsWith(err, UNRRDU_QUIET_QUIT_STR "\n"))) {         \
-        fprintf(stderr, "%s: %s\n", me, err); free(err);                \
-        hestUsage(stderr, opt, me, hparm);                              \
-        hestGlossary(stderr, opt, hparm);                               \
-      }                                                                 \
-      airMopError(mop);                                                 \
-      return 1;                                                         \
-    } else {                                                            \
-      /* . . . like tears . . . in rain. Time . . . to die. */          \
-      exit(1);                                                          \
-    }                                                                   \
+#define PARSE()                                                                         \
+  if ((pret = hestParse(opt, argc, argv, &err, hparm))) {                               \
+    if (1 == pret || 2 == pret) {                                                       \
+      if (!(getenv(UNRRDU_QUIET_QUIT_ENV)                                               \
+            && airEndsWith(err, UNRRDU_QUIET_QUIT_STR "\n"))) {                         \
+        fprintf(stderr, "%s: %s\n", me, err);                                           \
+        free(err);                                                                      \
+        hestUsage(stderr, opt, me, hparm);                                              \
+        hestGlossary(stderr, opt, hparm);                                               \
+      }                                                                                 \
+      airMopError(mop);                                                                 \
+      return 1;                                                                         \
+    } else {                                                                            \
+      /* . . . like tears . . . in rain. Time . . . to die. */                          \
+      exit(1);                                                                          \
+    }                                                                                   \
   }
 
-#define SAVE(outS, nout, io) \
-  if (nrrdSave((outS), (nout), (io))) { \
-    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways); \
-    fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, (outS), err); \
-    airMopError(mop); \
-    return 1; \
+#define SAVE(outS, nout, io)                                                            \
+  if (nrrdSave((outS), (nout), (io))) {                                                 \
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);                     \
+    fprintf(stderr, "%s: error saving nrrd to \"%s\":\n%s\n", me, (outS), err);         \
+    airMopError(mop);                                                                   \
+    return 1;                                                                           \
   }
 
 #ifdef __cplusplus

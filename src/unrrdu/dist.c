@@ -25,20 +25,18 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Euclidean distance transform"
-static const char *_unrrdu_distInfoL =
-(INFO
- ". Based on \"Distance Transforms of Sampled Functions\" by "
- "Pedro F. Felzenszwalb and Daniel P. Huttenlocher, "
- "Cornell Computing and Information Science TR2004-1963. "
- "This function first thresholds at the specified value and then "
- "does the distance transform of the resulting binary image. "
- "The signed distance (negative values inside object) is also available. "
- "Distances between non-isotropic samples are handled correctly.\n "
- "* Uses nrrdDistanceL2 or nrrdDistanceL2Signed");
+static const char *_unrrdu_distInfoL
+  = (INFO ". Based on \"Distance Transforms of Sampled Functions\" by "
+          "Pedro F. Felzenszwalb and Daniel P. Huttenlocher, "
+          "Cornell Computing and Information Science TR2004-1963. "
+          "This function first thresholds at the specified value and then "
+          "does the distance transform of the resulting binary image. "
+          "The signed distance (negative values inside object) is also available. "
+          "Distances between non-isotropic samples are handled correctly.\n "
+          "* Uses nrrdDistanceL2 or nrrdDistanceL2Signed");
 
 int
-unrrdu_distMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_distMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -76,8 +74,10 @@ unrrdu_distMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (bias && sign) {
-    fprintf(stderr, "%s: sorry, signed and biased transform not "
-            "yet implemented\n", me);
+    fprintf(stderr,
+            "%s: sorry, signed and biased transform not "
+            "yet implemented\n",
+            me);
     airMopError(mop);
     return 1;
   }

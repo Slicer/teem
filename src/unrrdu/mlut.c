@@ -25,18 +25,16 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through whole nrrd of univariate lookup tables"
-static const char *_unrrdu_mlutInfoL =
-(INFO
- ", with one lookup table per element of input nrrd.  The multiple "
- "tables are stored in a nrrd with a dimension which is either 1 or 2 "
- "more than the dimension of the input nrrd, resulting in an output "
- "which has either the same or one more dimension than the input, "
- "resptectively.\n "
- "* Uses nrrdApplyMulti1DLut");
+static const char *_unrrdu_mlutInfoL
+  = (INFO ", with one lookup table per element of input nrrd.  The multiple "
+          "tables are stored in a nrrd with a dimension which is either 1 or 2 "
+          "more than the dimension of the input nrrd, resulting in an output "
+          "which has either the same or one more dimension than the input, "
+          "resptectively.\n "
+          "* Uses nrrdApplyMulti1DLut");
 
 int
-unrrdu_mlutMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_mlutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, **_nmlut, *nmlut, *nout;
@@ -44,7 +42,7 @@ unrrdu_mlutMain(int argc, const char **argv, const char *me,
   int typeOut, rescale, pret, blind8BitRange;
   unsigned int _nmlutLen, mapAxis;
   double min, max;
-  NrrdRange *range=NULL;
+  NrrdRange *range = NULL;
 
   hestOptAdd(&opt, "m,map", "mlut", airTypeOther, 1, -1, &_nmlut, NULL,
              "one nrrd of lookup tables to map input nrrd through, or, "
@@ -103,8 +101,7 @@ unrrdu_mlutMain(int argc, const char **argv, const char *me,
     /* assume that mlut component nrrds are all compatible sizes,
        nrrdJoin will fail if they aren't */
     mapAxis = _nmlut[0]->dim - nin->dim;
-    if (nrrdJoin(nmlut, (const Nrrd*const*)_nmlut, _nmlutLen,
-                 mapAxis, AIR_TRUE)) {
+    if (nrrdJoin(nmlut, (const Nrrd *const *)_nmlut, _nmlutLen, mapAxis, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble joining mlut:\n%s", me, err);
       airMopError(mop);
@@ -115,8 +112,7 @@ unrrdu_mlutMain(int argc, const char **argv, const char *me,
     nmlut->axis[mapAxis].max = max;
   }
 
-  if (!( AIR_EXISTS(nmlut->axis[mapAxis].min) &&
-         AIR_EXISTS(nmlut->axis[mapAxis].max) )) {
+  if (!(AIR_EXISTS(nmlut->axis[mapAxis].min) && AIR_EXISTS(nmlut->axis[mapAxis].max))) {
     rescale = AIR_TRUE;
   }
   if (rescale) {

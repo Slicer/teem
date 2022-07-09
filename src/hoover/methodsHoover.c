@@ -48,12 +48,12 @@ hooverContextNew() {
     ctx->threadEnd = hooverStubThreadEnd;
     ctx->renderEnd = hooverStubRenderEnd;
   }
-  return(ctx);
+  return (ctx);
 }
 
 int
 hooverContextCheck(hooverContext *ctx) {
-  static const char me[]="hooverContextCheck";
+  static const char me[] = "hooverContextCheck";
   int sxe, sye, sze, minSize, centr;
 
   if (!ctx) {
@@ -61,8 +61,7 @@ hooverContextCheck(hooverContext *ctx) {
     return 1;
   }
   if (airEnumValCheck(nrrdCenter, ctx->imgCentering)) {
-    biffAddf(HOOVER, "%s: pixel centering (%d) invalid",
-             me, ctx->imgCentering);
+    biffAddf(HOOVER, "%s: pixel centering (%d) invalid", me, ctx->imgCentering);
     return 1;
   }
   centr = (ctx->shape ? ctx->shape->center : ctx->volCentering);
@@ -70,8 +69,7 @@ hooverContextCheck(hooverContext *ctx) {
     biffAddf(HOOVER, "%s: voxel centering (%d) invalid", me, centr);
     return 1;
   }
-  if (limnCameraAspectSet(ctx->cam,
-                          ctx->imgSize[0], ctx->imgSize[1], ctx->imgCentering)
+  if (limnCameraAspectSet(ctx->cam, ctx->imgSize[0], ctx->imgSize[1], ctx->imgCentering)
       || limnCameraUpdate(ctx->cam)) {
     biffMovef(HOOVER, LIMN, "%s: trouble setting up camera", me);
     return 1;
@@ -83,11 +81,10 @@ hooverContextCheck(hooverContext *ctx) {
     }
   } else {
     minSize = (nrrdCenterCell == centr ? 1 : 2);
-    if (!(ctx->volSize[0] >= minSize
-          && ctx->volSize[1] >= minSize
+    if (!(ctx->volSize[0] >= minSize && ctx->volSize[1] >= minSize
           && ctx->volSize[2] >= minSize)) {
-      biffAddf(HOOVER, "%s: volume dimensions (%dx%dx%d) too small", me,
-               ctx->volSize[0], ctx->volSize[1], ctx->volSize[2]);
+      biffAddf(HOOVER, "%s: volume dimensions (%dx%dx%d) too small", me, ctx->volSize[0],
+               ctx->volSize[1], ctx->volSize[2]);
       return 1;
     }
     sxe = AIR_EXISTS(ctx->volSpacing[0]);
@@ -98,18 +95,17 @@ hooverContextCheck(hooverContext *ctx) {
          and assume unit spacing */
       ctx->volSpacing[0] = nrrdDefaultSpacing;
       ctx->volSpacing[1] = ctx->volSpacing[2] = ctx->volSpacing[0];
-      fprintf(stderr, "%s: WARNING: assuming spacing %g for all axes\n",
-              me, ctx->volSpacing[0]);
+      fprintf(stderr, "%s: WARNING: assuming spacing %g for all axes\n", me,
+              ctx->volSpacing[0]);
       /* HEY : nrrdDefaultSpacing need not be the same as gageParm's
          defaultSpacing, but we don't know anything about gage here,
          so what else can we do? */
     } else if (sxe && sye && sze) {
       /* all existed */
-      if (!(ctx->volSpacing[0] > 0.0
-            && ctx->volSpacing[1] > 0.0
+      if (!(ctx->volSpacing[0] > 0.0 && ctx->volSpacing[1] > 0.0
             && ctx->volSpacing[2] > 0.0)) {
-        biffAddf(HOOVER, "%s: volume spacing (%gx%gx%g) invalid", me,
-                 ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
+        biffAddf(HOOVER, "%s: volume spacing (%gx%gx%g) invalid", me, ctx->volSpacing[0],
+                 ctx->volSpacing[1], ctx->volSpacing[2]);
         return 1;
       }
     } else {
@@ -120,8 +116,8 @@ hooverContextCheck(hooverContext *ctx) {
     }
   }
   if (!(ctx->imgSize[0] > 0 && ctx->imgSize[1] > 0)) {
-    biffAddf(HOOVER, "%s: image dimensions (%dx%d) invalid", me,
-             ctx->imgSize[0], ctx->imgSize[1]);
+    biffAddf(HOOVER, "%s: image dimensions (%dx%d) invalid", me, ctx->imgSize[0],
+             ctx->imgSize[1]);
     return 1;
   }
   if (!(ctx->numThreads >= 1)) {
@@ -129,8 +125,8 @@ hooverContextCheck(hooverContext *ctx) {
     return 1;
   }
   if (!(ctx->numThreads <= HOOVER_THREAD_MAX)) {
-    biffAddf(HOOVER, "%s: sorry, number threads (%d) > max (%d)", me,
-             ctx->numThreads, HOOVER_THREAD_MAX);
+    biffAddf(HOOVER, "%s: sorry, number threads (%d) > max (%d)", me, ctx->numThreads,
+             HOOVER_THREAD_MAX);
     return 1;
   }
   if (!ctx->renderBegin) {
@@ -175,4 +171,3 @@ hooverContextNix(hooverContext *ctx) {
   }
   return NULL;
 }
-

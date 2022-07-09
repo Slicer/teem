@@ -25,33 +25,30 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through *irregular* univariate map (\"colormap\")"
-static const char *_unrrdu_imapInfoL =
-(INFO
- ". A map is irregular if the control points are not evenly "
- "spaced along the domain, and hence their position must be "
- "explicitly represented in the map.  As nrrds, these maps "
- "are necessarily 2D.  Along axis 0, the first value is the "
- "location of the control point, and the remaining values "
- "give are the range of the map for that control point. "
- "The output value(s) is the result of linearly "
- "interpolating between value(s) from the map.\n "
- "* Uses nrrdApply1DIrregMap");
+static const char *_unrrdu_imapInfoL
+  = (INFO ". A map is irregular if the control points are not evenly "
+          "spaced along the domain, and hence their position must be "
+          "explicitly represented in the map.  As nrrds, these maps "
+          "are necessarily 2D.  Along axis 0, the first value is the "
+          "location of the control point, and the remaining values "
+          "give are the range of the map for that control point. "
+          "The output value(s) is the result of linearly "
+          "interpolating between value(s) from the map.\n "
+          "* Uses nrrdApply1DIrregMap");
 
 int
-unrrdu_imapMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_imapMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nmap, *nacl, *nout;
   airArray *mop;
-  NrrdRange *range=NULL;
+  NrrdRange *range = NULL;
   unsigned int aclLen;
   int typeOut, rescale, pret, blind8BitRange;
   double min, max;
 
   hestOptAdd(&opt, "m,map", "map", airTypeOther, 1, 1, &nmap, NULL,
-             "irregular map to map input nrrd through",
-             NULL, NULL, nrrdHestNrrd);
+             "irregular map to map input nrrd through", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "l,length", "aclLen", airTypeUInt, 1, 1, &aclLen, "0",
              "length of accelerator array, used to try to speed-up "
              "task of finding between which pair of control points "
@@ -132,4 +129,3 @@ unrrdu_imapMain(int argc, const char **argv, const char *me,
 }
 
 UNRRDU_CMD(imap, INFO);
-

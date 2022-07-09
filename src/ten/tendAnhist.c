@@ -25,15 +25,13 @@
 #include "privateTen.h"
 
 #define INFO "Generate barycentric histograms of anisotropy"
-static const char *_tend_anhistInfoL =
-  (INFO
-   ".  The barycentric space used is either one of Westin's "
-   "triple of spherical, linear, and planar anisotropy.  The bin "
-   "counts in the histogram are weighted by the confidence value.");
+static const char *_tend_anhistInfoL
+  = (INFO ".  The barycentric space used is either one of Westin's "
+          "triple of spherical, linear, and planar anisotropy.  The bin "
+          "counts in the histogram are weighted by the confidence value.");
 
 int
-tend_anhistMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+tend_anhistMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -72,14 +70,16 @@ tend_anhistMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (tenAnisoHistogram(nout, nin, nwght, right, version, res)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making histogram:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

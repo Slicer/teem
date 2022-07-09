@@ -24,24 +24,22 @@
 #include <teem/unrrdu.h>
 #include <teem/moss.h>
 
-static const char *ilkInfo =
-  ("(I)mage (L)inear Trans(X-->K)forms. "
-   "Applies linear (homogenous coordinate) transforms "
-   "to a given image, using the given kernel for "
-   "resampling. ");
+static const char *ilkInfo = ("(I)mage (L)inear Trans(X-->K)forms. "
+                              "Applies linear (homogenous coordinate) transforms "
+                              "to a given image, using the given kernel for "
+                              "resampling. ");
 
 int
 main(int argc, const char *argv[]) {
   const char *me;
   char *errS, *outS;
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   hestParm *hparm;
   airArray *mop;
   Nrrd *nin, *nout;
   NrrdKernelSpec *ksp;
   mossSampler *msp;
-  double mat[6], **matList, *origInfo, origMat[6], origInvMat[6], ox, oy,
-    min[2], max[2];
+  double mat[6], **matList, *origInfo, origMat[6], origInvMat[6], ox, oy, min[2], max[2];
   int d, bound, ax0, size[2]; /* HEY size[] should be size_t */
   unsigned int matListLen, _bkgLen, i, avgNum, bkgIdx;
   float *_bkg, *bkg, scale[4];
@@ -56,8 +54,8 @@ main(int argc, const char *argv[]) {
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hparm->respFileEnable = AIR_TRUE;
 
-  hestOptAdd(&hopt, "i", "image", airTypeOther, 1, 1, &nin, "-",
-             "input image", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "i", "image", airTypeOther, 1, 1, &nin, "-", "input image", NULL,
+             NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "0", "origin", airTypeOther, 1, 1, &origInfo, "p:0,0",
              "where to location (0,0) prior to applying transforms.\n "
              "\b\bo \"u:<float>,<float>\" locate origin in a unit box "
@@ -80,9 +78,8 @@ main(int argc, const char *argv[]) {
              "\b\bo \"a,b,tx,c,d,ty\": specify the transform explicitly "
              "in row-major order (opposite of PostScript) ",
              &matListLen, NULL, mossHestTransform);
-  hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp,
-             "cubic:0,0.5", "reconstruction kernel",
-             NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp, "cubic:0,0.5",
+             "reconstruction kernel", NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "min", "xMin yMin", airTypeDouble, 2, 2, min, "nan nan",
              "lower bounding corner of output image. Default (by not "
              "using this option) is the lower corner of input image. ");
@@ -95,11 +92,10 @@ main(int argc, const char *argv[]) {
              "\b\bo \"wrap\": do wrap-around on image locations\n "
              "\b\bo \"pad\": use a given background value (via \"-bg\")",
              NULL, nrrdBoundary);
-  bkgIdx =
-  hestOptAdd(&hopt, "bg", "bg0 bg1", airTypeFloat, 1, -1, &_bkg, "nan",
-             "background color to use with boundary behavior \"pad\". "
-             "Defaults to all zeroes.",
-             &_bkgLen);
+  bkgIdx = hestOptAdd(&hopt, "bg", "bg0 bg1", airTypeFloat, 1, -1, &_bkg, "nan",
+                      "background color to use with boundary behavior \"pad\". "
+                      "Defaults to all zeroes.",
+                      &_bkgLen);
   hestOptAdd(&hopt, "s", "xSize ySize", airTypeOther, 2, 2, scale, "x1 x1",
              "For each axis, information about how many samples in output:\n "
              "\b\bo \"x<float>\": number of output samples is some scaling of "
@@ -111,8 +107,8 @@ main(int argc, const char *argv[]) {
              "rotation)");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
              "file to write output nrrd to");
-  hestParseOrDie(hopt, argc-1, argv+1, hparm,
-                 me, ilkInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, ilkInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -122,63 +118,64 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, msp, (airMopper)mossSamplerNix, airMopAlways);
   msp->boundary = bound;
   if (mossSamplerKernelSet(msp, ksp->kernel, ksp->parm)) {
-    fprintf(stderr, "%s: trouble with sampler:\n%s\n",
-            me, errS = biffGetDone(MOSS)); free(errS);
-    airMopError(mop); return 1;
+    fprintf(stderr, "%s: trouble with sampler:\n%s\n", me, errS = biffGetDone(MOSS));
+    free(errS);
+    airMopError(mop);
+    return 1;
   }
   if (nrrdBoundaryPad == bound) {
     if (_bkgLen != MOSS_NCOL(nin)) {
       char stmp[AIR_STRLEN_SMALL];
-      fprintf(stderr, "%s: got %u background colors, image has %s colors\n",
-              me, _bkgLen, airSprintSize_t(stmp, MOSS_NCOL(nin)));
-      airMopError(mop); return 1;
+      fprintf(stderr, "%s: got %u background colors, image has %s colors\n", me, _bkgLen,
+              airSprintSize_t(stmp, MOSS_NCOL(nin)));
+      airMopError(mop);
+      return 1;
     } else {
       bkg = _bkg;
     }
   } else {
     if (hestSourceUser == hopt[bkgIdx].source) {
-      fprintf(stderr, "%s: WARNING: got %u background colors, but with %s "
-              "padding, they will not be used\n", me,
-              _bkgLen, airEnumStr(nrrdBoundary, bound));
+      fprintf(stderr,
+              "%s: WARNING: got %u background colors, but with %s "
+              "padding, they will not be used\n",
+              me, _bkgLen, airEnumStr(nrrdBoundary, bound));
     }
     bkg = NULL;
   }
 
   ax0 = MOSS_AXIS0(nin);
-  if (!( AIR_EXISTS(nin->axis[ax0+0].min)
-         && AIR_EXISTS(nin->axis[ax0+0].max))) {
-    nrrdAxisInfoMinMaxSet(nin, ax0+0, mossDefCenter);
+  if (!(AIR_EXISTS(nin->axis[ax0 + 0].min) && AIR_EXISTS(nin->axis[ax0 + 0].max))) {
+    nrrdAxisInfoMinMaxSet(nin, ax0 + 0, mossDefCenter);
   }
-  if (!( AIR_EXISTS(nin->axis[ax0+1].min)
-         && AIR_EXISTS(nin->axis[ax0+1].max))) {
-    nrrdAxisInfoMinMaxSet(nin, ax0+1, mossDefCenter);
+  if (!(AIR_EXISTS(nin->axis[ax0 + 1].min) && AIR_EXISTS(nin->axis[ax0 + 1].max))) {
+    nrrdAxisInfoMinMaxSet(nin, ax0 + 1, mossDefCenter);
   }
-  min[0] = AIR_EXISTS(min[0]) ? min[0] : nin->axis[ax0+0].min;
-  max[0] = AIR_EXISTS(max[0]) ? max[0] : nin->axis[ax0+0].max;
-  min[1] = AIR_EXISTS(min[1]) ? min[1] : nin->axis[ax0+1].min;
-  max[1] = AIR_EXISTS(max[1]) ? max[1] : nin->axis[ax0+1].max;
+  min[0] = AIR_EXISTS(min[0]) ? min[0] : nin->axis[ax0 + 0].min;
+  max[0] = AIR_EXISTS(max[0]) ? max[0] : nin->axis[ax0 + 0].max;
+  min[1] = AIR_EXISTS(min[1]) ? min[1] : nin->axis[ax0 + 1].min;
+  max[1] = AIR_EXISTS(max[1]) ? max[1] : nin->axis[ax0 + 1].max;
 
-  for (d=0; d<2; d++) {
-    fprintf(stderr, "%s: scale[0 + 2*%d] = %d\n", me, d,
-            AIR_INT(scale[0 + 2*d]));
-    switch(AIR_INT(scale[0 + 2*d])) {
+  for (d = 0; d < 2; d++) {
+    fprintf(stderr, "%s: scale[0 + 2*%d] = %d\n", me, d, AIR_INT(scale[0 + 2 * d]));
+    switch (AIR_INT(scale[0 + 2 * d])) {
     case 0:
       /* same number of samples as input */
-      size[d] = AIR_INT(nin->axis[ax0+d].size);
+      size[d] = AIR_INT(nin->axis[ax0 + d].size);
       break;
     case 1:
       /* scaling of input # samples */
-      size[d] = AIR_INT(scale[1 + 2*d]*nin->axis[ax0+d].size);
+      size[d] = AIR_INT(scale[1 + 2 * d] * nin->axis[ax0 + d].size);
       break;
     case 2:
       /* explicit # of samples */
-      size[d] = AIR_INT(scale[1 + 2*d]);
+      size[d] = AIR_INT(scale[1 + 2 * d]);
       break;
     default:
       /* error */
-      fprintf(stderr, "%s: scale[0 + 2*%d] == %d unexpected\n",
-              me, AIR_INT(scale[0 + 2*d]), d);
-      airMopError(mop); return 1;
+      fprintf(stderr, "%s: scale[0 + 2*%d] == %d unexpected\n", me,
+              AIR_INT(scale[0 + 2 * d]), d);
+      airMopError(mop);
+      return 1;
     }
   }
 
@@ -188,10 +185,10 @@ main(int argc, const char *argv[]) {
     mossMatTranslateSet(origMat, -origInfo[1], -origInfo[2]);
   } else {
     /* in unit box [0,1]x[0,1] */
-    ox = AIR_AFFINE(0.0, origInfo[1], 1.0,
-                    nin->axis[ax0+0].min, nin->axis[ax0+0].max);
-    oy = AIR_AFFINE(0.0, origInfo[2], 1.0,
-                    nin->axis[ax0+1].min, nin->axis[ax0+1].max);
+    ox = AIR_AFFINE(0.0, origInfo[1], 1.0, nin->axis[ax0 + 0].min,
+                    nin->axis[ax0 + 0].max);
+    oy = AIR_AFFINE(0.0, origInfo[2], 1.0, nin->axis[ax0 + 1].min,
+                    nin->axis[ax0 + 1].max);
     mossMatTranslateSet(origMat, -ox, -oy);
   }
   mossMatInvert(origInvMat, origMat);
@@ -199,16 +196,16 @@ main(int argc, const char *argv[]) {
   /* form complete transform */
   mossMatIdentitySet(mat);
   mossMatLeftMultiply(mat, origMat);
-  for (i=0; i<matListLen; i++) {
+  for (i = 0; i < matListLen; i++) {
     mossMatLeftMultiply(mat, matList[i]);
   }
   mossMatLeftMultiply(mat, origInvMat);
 
-  if (!AIR_EXISTS(nin->axis[ax0+0].min) || !AIR_EXISTS(nin->axis[ax0+0].max)) {
-    nrrdAxisInfoMinMaxSet(nin, ax0+0, mossDefCenter);
+  if (!AIR_EXISTS(nin->axis[ax0 + 0].min) || !AIR_EXISTS(nin->axis[ax0 + 0].max)) {
+    nrrdAxisInfoMinMaxSet(nin, ax0 + 0, mossDefCenter);
   }
-  if (!AIR_EXISTS(nin->axis[ax0+1].min) || !AIR_EXISTS(nin->axis[ax0+1].max)) {
-    nrrdAxisInfoMinMaxSet(nin, ax0+1, mossDefCenter);
+  if (!AIR_EXISTS(nin->axis[ax0 + 1].min) || !AIR_EXISTS(nin->axis[ax0 + 1].max)) {
+    nrrdAxisInfoMinMaxSet(nin, ax0 + 1, mossDefCenter);
   }
   if (avgNum > 1) {
     unsigned int ai;
@@ -228,21 +225,22 @@ main(int argc, const char *argv[]) {
     E = 0;
     angleMax = atan2(mat[3], mat[0]);
     fprintf(stderr, "%s: %u angles ", me, avgNum);
-    for (ai=0; ai<avgNum; ai++) {
-      fprintf(stderr, "."); fflush(stderr);
-      angle = (180/AIR_PI)*AIR_AFFINE(0, ai, avgNum-1, angleMax, -angleMax);
+    for (ai = 0; ai < avgNum; ai++) {
+      fprintf(stderr, ".");
+      fflush(stderr);
+      angle = (180 / AIR_PI) * AIR_AFFINE(0, ai, avgNum - 1, angleMax, -angleMax);
       mossMatIdentitySet(mat);
       mossMatLeftMultiply(mat, origMat);
       mossMatRotateSet(mrot, angle);
       mossMatLeftMultiply(mat, mrot);
       mossMatLeftMultiply(mat, origInvMat);
-      if (mossLinearTransform(ntmp, nin, bkg,
-                              mat, msp,
-                              min[0], max[0], min[1], max[1],
+      if (mossLinearTransform(ntmp, nin, bkg, mat, msp, min[0], max[0], min[1], max[1],
                               size[0], size[1])) {
-        fprintf(stderr, "%s: problem doing transform:\n%s\n",
-                me, errS = biffGetDone(MOSS)); free(errS);
-        airMopError(mop); return 1;
+        fprintf(stderr, "%s: problem doing transform:\n%s\n", me,
+                errS = biffGetDone(MOSS));
+        free(errS);
+        airMopError(mop);
+        return 1;
       }
       if (!ai) {
         if (!E) E |= nrrdCopy(nacc, ntmp);
@@ -256,28 +254,29 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "\n");
     nrrdIterSetNrrd(itA, nacc);
     nrrdIterSetValue(itB, avgNum);
-    if (!E) E |= nrrdArithIterBinaryOp(nout, nrrdBinaryOpDivide,
-                                       itA, itB);
+    if (!E) E |= nrrdArithIterBinaryOp(nout, nrrdBinaryOpDivide, itA, itB);
     if (E) {
-      fprintf(stderr, "%s: problem making output:\n%s\n",
-              me, errS = biffGetDone(NRRD)); free(errS);
-      airMopError(mop); return 1;
+      fprintf(stderr, "%s: problem making output:\n%s\n", me, errS = biffGetDone(NRRD));
+      free(errS);
+      airMopError(mop);
+      return 1;
     }
   } else {
-    if (mossLinearTransform(nout, nin, bkg,
-                            mat, msp,
-                            min[0], max[0], min[1], max[1],
+    if (mossLinearTransform(nout, nin, bkg, mat, msp, min[0], max[0], min[1], max[1],
                             size[0], size[1])) {
-      fprintf(stderr, "%s: problem doing transform:\n%s\n",
-              me, errS = biffGetDone(MOSS)); free(errS);
-      airMopError(mop); return 1;
+      fprintf(stderr, "%s: problem doing transform:\n%s\n", me,
+              errS = biffGetDone(MOSS));
+      free(errS);
+      airMopError(mop);
+      return 1;
     }
   }
 
   if (nrrdSave(outS, nout, NULL)) {
-    fprintf(stderr, "%s: problem saving output:\n%s\n",
-            me, errS = biffGetDone(NRRD)); free(errS);
-    airMopError(mop); return 1;
+    fprintf(stderr, "%s: problem saving output:\n%s\n", me, errS = biffGetDone(NRRD));
+    free(errS);
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

@@ -24,8 +24,7 @@
 #include "gage.h"
 #include "privateGage.h"
 
-const int
-gagePresent = 42;
+const int gagePresent = 42;
 
 /*
 ******** gageZeroNormal[]
@@ -35,8 +34,7 @@ gagePresent = 42;
 ** set this to {AIR_NAN, AIR_NAN, AIR_NAN}, but simply passing
 ** NANs around can make things fantastically slow . . .
 */
-double
-gageZeroNormal[3] = {0,0,0};
+double gageZeroNormal[3] = {0, 0, 0};
 
 /* clang-format off */
 const char *
@@ -138,8 +136,7 @@ gagePointReset(gagePoint *point) {
        non-dot-net windows compilers proclaim that QNAN == x
        for any existent x!!!  For some reason though, infinity
        is handled correctly */
-    ELL_4V_SET(point->frac,
-               AIR_POS_INF, AIR_POS_INF, AIR_POS_INF, AIR_POS_INF);
+    ELL_4V_SET(point->frac, AIR_POS_INF, AIR_POS_INF, AIR_POS_INF, AIR_POS_INF);
     big = AIR_UINT(-1);
     ELL_4V_SET(point->idx, big, big, big, big);
     point->stackFwNonZeroNum = 0;

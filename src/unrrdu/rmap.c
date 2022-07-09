@@ -25,37 +25,34 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through one *regular* univariate map (\"colormap\")"
-static const char *_unrrdu_rmapInfoL =
-(INFO
- ". A map is regular if the control points are evenly "
- "spaced along the domain, and hence their position isn't "
- "explicitly represented in the map; the axis min, axis "
- "max, and number of points determine their location. "
- "The map can be a 1D nrrd (for \"grayscale\"), "
- "in which case the "
- "output has the same dimension as the input, "
- "or a 2D nrrd (for \"color\"), in which case "
- "the output has one more dimension than the input.  In "
- "either case, the output is the result of linearly "
- "interpolating between map points, either scalar values "
- "(\"grayscale\"), or scanlines along axis 0 "
- "(\"color\").\n "
- "* Uses nrrdApply1DRegMap");
+static const char *_unrrdu_rmapInfoL
+  = (INFO ". A map is regular if the control points are evenly "
+          "spaced along the domain, and hence their position isn't "
+          "explicitly represented in the map; the axis min, axis "
+          "max, and number of points determine their location. "
+          "The map can be a 1D nrrd (for \"grayscale\"), "
+          "in which case the "
+          "output has the same dimension as the input, "
+          "or a 2D nrrd (for \"color\"), in which case "
+          "the output has one more dimension than the input.  In "
+          "either case, the output is the result of linearly "
+          "interpolating between map points, either scalar values "
+          "(\"grayscale\"), or scanlines along axis 0 "
+          "(\"color\").\n "
+          "* Uses nrrdApply1DRegMap");
 
 int
-unrrdu_rmapMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_rmapMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nmap, *nout;
   airArray *mop;
-  NrrdRange *range=NULL;
+  NrrdRange *range = NULL;
   int typeOut, rescale, pret, blind8BitRange;
   double min, max;
 
   hestOptAdd(&opt, "m,map", "map", airTypeOther, 1, 1, &nmap, NULL,
-             "regular map to map input nrrd through",
-             NULL, NULL, nrrdHestNrrd);
+             "regular map to map input nrrd through", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "r,rescale", NULL, airTypeInt, 0, 0, &rescale, NULL,
              "rescale the input values from the input range to the "
              "map domain.  The map domain is either explicitly "
@@ -105,8 +102,8 @@ unrrdu_rmapMain(int argc, const char **argv, const char *me,
      user range specification, instead of letting nrrdApply1DRegMap
      find the input range itself (by passing a NULL NrrdRange).
   */
-  if (!( AIR_EXISTS(nmap->axis[nmap->dim - 1].min) &&
-         AIR_EXISTS(nmap->axis[nmap->dim - 1].max) )) {
+  if (!(AIR_EXISTS(nmap->axis[nmap->dim - 1].min)
+        && AIR_EXISTS(nmap->axis[nmap->dim - 1].max))) {
     rescale = AIR_TRUE;
   }
   if (rescale) {

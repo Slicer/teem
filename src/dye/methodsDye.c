@@ -21,14 +21,11 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "dye.h"
 
-const int
-dyePresent = 42;
+const int dyePresent = 42;
 
-const char *
-dyeBiffKey = "dye";
+const char *dyeBiffKey = "dye";
 
 /* clang-format off */
 const char *
@@ -82,9 +79,9 @@ dyeStrToSpace(char *_str) {
   char *str;
 
   spc = dyeSpaceUnknown;
-  if ( (str = airStrdup(_str)) ) {
+  if ((str = airStrdup(_str))) {
     airToUpper(str);
-    for (spc=0; spc<dyeSpaceLast; spc++) {
+    for (spc = 0; spc < dyeSpaceLast; spc++) {
       if (!strcmp(str, dyeSpaceToStr[spc])) {
         break;
       }
@@ -120,9 +117,8 @@ dyeColorSet(dyeColor *col, int space, float v0, float v1, float v2) {
     /* We switch to the other one if the current one seems to be used,
        but we don't switch if new and current colorspaces are the same.
        If the other one is being used too, oh well.  */
-    if (dyeSpaceUnknown != col->spc[col->ii] &&
-        AIR_EXISTS(col->val[col->ii][0]) &&
-        col->spc[col->ii] != space) {
+    if (dyeSpaceUnknown != col->spc[col->ii] && AIR_EXISTS(col->val[col->ii][0])
+        && col->spc[col->ii] != space) {
       col->ii = 1 - col->ii;
     }
 
@@ -146,8 +142,7 @@ dyeColorGet(float *v0P, float *v1P, float *v2P, dyeColor *col) {
 }
 
 int
-dyeColorGetAs(float *v0P, float *v1P, float *v2P,
-              dyeColor *colIn, int space) {
+dyeColorGetAs(float *v0P, float *v1P, float *v2P, dyeColor *colIn, int space) {
   dyeColor _col, *col;
 
   col = &_col;
@@ -186,7 +181,7 @@ dyeColorNix(dyeColor *col) {
 
 int
 dyeColorParse(dyeColor *col, char *_str) {
-  static const char me[]="dyeColorParse";
+  static const char me[] = "dyeColorParse";
   char *str;
   char *colon, *valS;
   float v0, v1, v2;
@@ -205,7 +200,7 @@ dyeColorParse(dyeColor *col, char *_str) {
     return 1;
   }
   *colon = '\0';
-  valS = colon+1;
+  valS = colon + 1;
   if (3 != sscanf(valS, "%g,%g,%g", &v0, &v1, &v2)) {
     biffAddf(DYE, "%s: couldn't parse three floats from \"%s\"", me, valS);
     return 1;
@@ -226,10 +221,8 @@ dyeColorSprintf(char *str, dyeColor *col) {
 
   if (str && col) {
     col->ii = AIR_CLAMP(0, col->ii, 1);
-    sprintf(str, "%s:%g,%g,%g", dyeSpaceToStr[col->spc[col->ii]],
-            col->val[col->ii][0],
-            col->val[col->ii][1],
-            col->val[col->ii][2]);
+    sprintf(str, "%s:%g,%g,%g", dyeSpaceToStr[col->spc[col->ii]], col->val[col->ii][0],
+            col->val[col->ii][1], col->val[col->ii][2]);
   }
   return str;
 }

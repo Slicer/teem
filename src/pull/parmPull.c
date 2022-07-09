@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "pull.h"
 #include "privatePull.h"
 
@@ -78,7 +77,7 @@ _pullFlagInit(pullFlag *flag) {
   flag->nixAtVolumeEdgeSpaceInitRorH = AIR_FALSE;
   flag->constraintBeforeSeedThresh = AIR_FALSE;
   flag->noAdd = AIR_FALSE;
-  flag->popCntlEnoughTest = AIR_TRUE; /* really needs to be true by default */
+  flag->popCntlEnoughTest = AIR_TRUE;          /* really needs to be true by default */
   flag->convergenceIgnoresPopCntl = AIR_FALSE; /* false by default for
                                                   backwards compatibility,
                                                   even thought this was
@@ -93,12 +92,11 @@ _pullFlagInit(pullFlag *flag) {
 
 int
 _pullIterParmCheck(pullIterParm *iterParm) {
-  static const char me[]="_pullIterParmCheck";
+  static const char me[] = "_pullIterParmCheck";
 
-  if (!( 1 <= iterParm->constraintMax
-         && iterParm->constraintMax <= 500 )) {
-    biffAddf(PULL, "%s: iterParm->constraintMax %u not in range [%u,%u]",
-             me, iterParm->constraintMax, 1, _PULL_CONSTRAINT_ITER_MAX);
+  if (!(1 <= iterParm->constraintMax && iterParm->constraintMax <= 500)) {
+    biffAddf(PULL, "%s: iterParm->constraintMax %u not in range [%u,%u]", me,
+             iterParm->constraintMax, 1, _PULL_CONSTRAINT_ITER_MAX);
     return 1;
   }
   return 0;
@@ -106,7 +104,7 @@ _pullIterParmCheck(pullIterParm *iterParm) {
 
 int
 pullIterParmSet(pullContext *pctx, int which, unsigned int pval) {
-  static const char me[]="pullIterParmSet";
+  static const char me[] = "pullIterParmSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -116,7 +114,7 @@ pullIterParmSet(pullContext *pctx, int which, unsigned int pval) {
     biffAddf(PULL, "%s: iter parm %d not valid", me, which);
     return 1;
   }
-  switch(which) {
+  switch (which) {
   case pullIterParmMin:
     pctx->iterParm.min = pval;
     break;
@@ -144,7 +142,7 @@ pullIterParmSet(pullContext *pctx, int which, unsigned int pval) {
   case pullIterParmEnergyIncreasePermitHalfLife:
     pctx->iterParm.energyIncreasePermitHalfLife = pval;
     if (pval) {
-      pctx->eipScale = pow(0.5, 1.0/pval);
+      pctx->eipScale = pow(0.5, 1.0 / pval);
     } else {
       pctx->eipScale = 1;
     }
@@ -156,17 +154,17 @@ pullIterParmSet(pullContext *pctx, int which, unsigned int pval) {
   return 0;
 }
 
-#define CHECK(thing, min, max)                                         \
-  if (!( AIR_EXISTS(sysParm->thing)                                    \
-         && min <= sysParm->thing && sysParm->thing <= max )) {        \
-    biffAddf(PULL, "%s: sysParm->" #thing " %g not in range [%g,%g]",  \
-             me, sysParm->thing, min, max);                            \
-    return 1;                                                          \
+#define CHECK(thing, min, max)                                                          \
+  if (!(AIR_EXISTS(sysParm->thing) && min <= sysParm->thing                             \
+        && sysParm->thing <= max)) {                                                    \
+    biffAddf(PULL, "%s: sysParm->" #thing " %g not in range [%g,%g]", me,               \
+             sysParm->thing, min, max);                                                 \
+    return 1;                                                                           \
   }
 
 int
 _pullSysParmCheck(pullSysParm *sysParm) {
-  static const char me[]="_pullSysParmCheck";
+  static const char me[] = "_pullSysParmCheck";
 
   /* these reality-check bounds are somewhat arbitrary */
   CHECK(alpha, 0.0, 1.0);
@@ -178,10 +176,8 @@ _pullSysParmCheck(pullSysParm *sysParm) {
   CHECK(binWidthSpace, 1.0, 15.0);
   CHECK(neighborTrueProb, 0.02, 1.0);
   CHECK(probeProb, 0.02, 1.0);
-  if (!( AIR_EXISTS(sysParm->stepInitial)
-         && sysParm->stepInitial > 0 )) {
-    biffAddf(PULL, "%s: sysParm->stepInitial %g not > 0", me,
-             sysParm->stepInitial);
+  if (!(AIR_EXISTS(sysParm->stepInitial) && sysParm->stepInitial > 0)) {
+    biffAddf(PULL, "%s: sysParm->stepInitial %g not > 0", me, sysParm->stepInitial);
     return 1;
   }
   CHECK(opporStepScale, 1.0, 5.0);
@@ -197,7 +193,7 @@ _pullSysParmCheck(pullSysParm *sysParm) {
 
 int
 pullSysParmSet(pullContext *pctx, int which, double pval) {
-  static const char me[]="pullSysParmSet";
+  static const char me[] = "pullSysParmSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -207,7 +203,7 @@ pullSysParmSet(pullContext *pctx, int which, double pval) {
     biffAddf(PULL, "%s: sys parm %d not valid", me, which);
     return 1;
   }
-  switch(which) {
+  switch (which) {
   case pullSysParmAlpha:
     pctx->sysParm.alpha = pval;
     break;
@@ -276,7 +272,7 @@ pullSysParmSet(pullContext *pctx, int which, double pval) {
 */
 int
 pullFlagSet(pullContext *pctx, int which, int flag) {
-  static const char me[]="pullFlagSet";
+  static const char me[] = "pullFlagSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -351,7 +347,7 @@ pullFlagSet(pullContext *pctx, int which, int flag) {
 */
 int
 pullVerboseSet(pullContext *pctx, int verbose) {
-  static const char me[]="pullVerboseSet";
+  static const char me[] = "pullVerboseSet";
   unsigned int volIdx, taskIdx;
 
   if (!pctx) {
@@ -359,13 +355,13 @@ pullVerboseSet(pullContext *pctx, int verbose) {
     return 1;
   }
   pctx->verbose = verbose;
-  for (volIdx=0; volIdx<pctx->volNum; volIdx++) {
+  for (volIdx = 0; volIdx < pctx->volNum; volIdx++) {
     int v;
     v = verbose > 0 ? verbose - 1 : 0;
     gageParmSet(pctx->vol[volIdx]->gctx, gageParmVerbose, v);
   }
-  for (taskIdx=0; taskIdx<pctx->threadNum; taskIdx++) {
-    for (volIdx=0; volIdx<pctx->volNum; volIdx++) {
+  for (taskIdx = 0; taskIdx < pctx->threadNum; taskIdx++) {
+    for (volIdx = 0; volIdx < pctx->volNum; volIdx++) {
       int v;
       v = verbose > 0 ? verbose - 1 : 0;
       gageParmSet(pctx->task[taskIdx]->vol[volIdx]->gctx, gageParmVerbose, v);
@@ -376,7 +372,7 @@ pullVerboseSet(pullContext *pctx, int verbose) {
 
 int
 pullThreadNumSet(pullContext *pctx, unsigned int threadNum) {
-  static const char me[]="pullThreadNumSet";
+  static const char me[] = "pullThreadNumSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -388,7 +384,7 @@ pullThreadNumSet(pullContext *pctx, unsigned int threadNum) {
 
 int
 pullRngSeedSet(pullContext *pctx, unsigned int rngSeed) {
-  static const char me[]="pullRngSeedSet";
+  static const char me[] = "pullRngSeedSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -400,7 +396,7 @@ pullRngSeedSet(pullContext *pctx, unsigned int rngSeed) {
 
 int
 pullProgressBinModSet(pullContext *pctx, unsigned int bmod) {
-  static const char me[]="pullProgressBinModSet";
+  static const char me[] = "pullProgressBinModSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -411,10 +407,8 @@ pullProgressBinModSet(pullContext *pctx, unsigned int bmod) {
 }
 
 int
-pullCallbackSet(pullContext *pctx,
-                void (*iter_cb)(void *data_cb),
-                void *data_cb) {
-  static const char me[]="pullCallbackSet";
+pullCallbackSet(pullContext *pctx, void (*iter_cb)(void *data_cb), void *data_cb) {
+  static const char me[] = "pullCallbackSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -438,11 +432,9 @@ pullCallbackSet(pullContext *pctx,
 ** and a vector of NaNs.
 */
 int
-pullInterEnergySet(pullContext *pctx, int interType,
-                   const pullEnergySpec *enspR,
-                   const pullEnergySpec *enspS,
-                   const pullEnergySpec *enspWin) {
-  static const char me[]="pullInterEnergySet";
+pullInterEnergySet(pullContext *pctx, int interType, const pullEnergySpec *enspR,
+                   const pullEnergySpec *enspS, const pullEnergySpec *enspWin) {
+  static const char me[] = "pullInterEnergySet";
   unsigned int zpi;
   double zeroParm[PULL_ENERGY_PARM_NUM];
 
@@ -454,16 +446,16 @@ pullInterEnergySet(pullContext *pctx, int interType,
     biffAddf(PULL, "%s: interType %d not valid", me, interType);
     return 1;
   }
-  for (zpi=0; zpi<PULL_ENERGY_PARM_NUM; zpi++) {
+  for (zpi = 0; zpi < PULL_ENERGY_PARM_NUM; zpi++) {
     zeroParm[zpi] = AIR_NAN;
   }
 
-#define CHECK_N_COPY(X)                                                 \
-  if (!ensp##X) {                                                       \
-    biffAddf(PULL, "%s: need non-NULL ensp" #X " for interType %s", me, \
-             airEnumStr(pullInterType, interType));                     \
-    return 1;                                                           \
-  }                                                                     \
+#define CHECK_N_COPY(X)                                                                 \
+  if (!ensp##X) {                                                                       \
+    biffAddf(PULL, "%s: need non-NULL ensp" #X " for interType %s", me,                 \
+             airEnumStr(pullInterType, interType));                                     \
+    return 1;                                                                           \
+  }                                                                                     \
   pullEnergySpecCopy(pctx->energySpec##X, ensp##X)
 
   switch (interType) {
@@ -502,7 +494,7 @@ pullInterEnergySet(pullContext *pctx, int interType,
 */
 int
 pullLogAddSet(pullContext *pctx, FILE *flog) {
-  static const char me[]="pullLogAddSet";
+  static const char me[] = "pullLogAddSet";
 
   if (!(pctx)) {
     biffAddf(PULL, "%s: got NULL pointer", me);

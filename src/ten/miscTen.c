@@ -21,14 +21,12 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "ten.h"
 #include "privateTen.h"
 
 int
-tenEvecRGB(Nrrd *nout, const Nrrd *nin,
-           const tenEvecRGBParm *rgbp) {
-  static const char me[]="tenEvecRGB";
+tenEvecRGB(Nrrd *nout, const Nrrd *nin, const tenEvecRGBParm *rgbp) {
+  static const char me[] = "tenEvecRGB";
   size_t size[NRRD_DIM_MAX];
   float (*lup)(const void *, size_t), (*ins)(void *, size_t, float);
   float ten[7], eval[3], evec[9], RGB[3];
@@ -37,8 +35,7 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
   unsigned short *odataUS;
 
   if (!(nout && nin)) {
-    biffAddf(TEN, "%s: got NULL pointer (%p,%p)",
-             me, AIR_VOIDP(nout), AIR_CVOIDP(nin));
+    biffAddf(TEN, "%s: got NULL pointer (%p,%p)", me, AIR_VOIDP(nout), AIR_CVOIDP(nin));
     return 1;
   }
   if (tenEvecRGBParmCheck(rgbp)) {
@@ -47,56 +44,57 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
   }
   if (!(2 <= nin->dim && 7 == nin->axis[0].size)) {
     char stmp[AIR_STRLEN_SMALL];
-    biffAddf(TEN, "%s: need nin->dim >= 2 (not %u), axis[0].size == 7 "
-             "(not %s)", me, nin->dim,
-             airSprintSize_t(stmp, nin->axis[0].size));
+    biffAddf(TEN,
+             "%s: need nin->dim >= 2 (not %u), axis[0].size == 7 "
+             "(not %s)",
+             me, nin->dim, airSprintSize_t(stmp, nin->axis[0].size));
     return 1;
   }
 
   nrrdAxisInfoGet_nva(nin, nrrdAxisInfoSize, size);
   size[0] = rgbp->genAlpha ? 4 : 3;
-  if (nrrdMaybeAlloc_nva(nout, (nrrdTypeDefault == rgbp->typeOut
-                                ? nin->type
-                                : rgbp->typeOut), nin->dim, size)) {
+  if (nrrdMaybeAlloc_nva(nout,
+                         (nrrdTypeDefault == rgbp->typeOut ? nin->type : rgbp->typeOut),
+                         nin->dim, size)) {
     biffMovef(TEN, NRRD, "%s: couldn't alloc output", me);
     return 1;
   }
   odataUC = AIR_CAST(unsigned char *, nout->data);
   odataUS = AIR_CAST(unsigned short *, nout->data);
 
-  NN = nrrdElementNumber(nin)/7;
+  NN = nrrdElementNumber(nin) / 7;
   lup = nrrdFLookup[nin->type];
   ins = nrrdFInsert[nout->type];
-  for (II=0; II<NN; II++) {
-    TEN_T_SET(ten, lup(nin->data, 0 + 7*II),
-              lup(nin->data, 1 + 7*II), lup(nin->data, 2 + 7*II),
-              lup(nin->data, 3 + 7*II), lup(nin->data, 4 + 7*II),
-              lup(nin->data, 5 + 7*II), lup(nin->data, 6 + 7*II));
+  for (II = 0; II < NN; II++) {
+    TEN_T_SET(ten, lup(nin->data, 0 + 7 * II), lup(nin->data, 1 + 7 * II),
+              lup(nin->data, 2 + 7 * II), lup(nin->data, 3 + 7 * II),
+              lup(nin->data, 4 + 7 * II), lup(nin->data, 5 + 7 * II),
+              lup(nin->data, 6 + 7 * II));
     tenEigensolve_f(eval, evec, ten);
-    tenEvecRGBSingle_f(RGB, ten[0], eval, evec + 3*(rgbp->which), rgbp);
+    tenEvecRGBSingle_f(RGB, ten[0], eval, evec + 3 * (rgbp->which), rgbp);
     switch (nout->type) {
     case nrrdTypeUChar:
-      odataUC[0 + size[0]*II] = AIR_UCHAR(airIndexClamp(0, RGB[0], 1, 256));
-      odataUC[1 + size[0]*II] = AIR_UCHAR(airIndexClamp(0, RGB[1], 1, 256));
-      odataUC[2 + size[0]*II] = AIR_UCHAR(airIndexClamp(0, RGB[2], 1, 256));
+      odataUC[0 + size[0] * II] = AIR_UCHAR(airIndexClamp(0, RGB[0], 1, 256));
+      odataUC[1 + size[0] * II] = AIR_UCHAR(airIndexClamp(0, RGB[1], 1, 256));
+      odataUC[2 + size[0] * II] = AIR_UCHAR(airIndexClamp(0, RGB[2], 1, 256));
       if (rgbp->genAlpha) {
-        odataUC[3 + size[0]*II] = 255;
+        odataUC[3 + size[0] * II] = 255;
       }
       break;
     case nrrdTypeUShort:
-      odataUS[0 + size[0]*II] = AIR_USHORT(airIndexClamp(0,RGB[0],1,65536));
-      odataUS[1 + size[0]*II] = AIR_USHORT(airIndexClamp(0,RGB[1],1,65536));
-      odataUS[2 + size[0]*II] = AIR_USHORT(airIndexClamp(0,RGB[2],1,65536));
+      odataUS[0 + size[0] * II] = AIR_USHORT(airIndexClamp(0, RGB[0], 1, 65536));
+      odataUS[1 + size[0] * II] = AIR_USHORT(airIndexClamp(0, RGB[1], 1, 65536));
+      odataUS[2 + size[0] * II] = AIR_USHORT(airIndexClamp(0, RGB[2], 1, 65536));
       if (rgbp->genAlpha) {
-        odataUS[3 + size[0]*II] = 65535;
+        odataUS[3 + size[0] * II] = 65535;
       }
       break;
     default:
-      ins(nout->data, 0 + size[0]*II, RGB[0]);
-      ins(nout->data, 1 + size[0]*II, RGB[1]);
-      ins(nout->data, 2 + size[0]*II, RGB[2]);
+      ins(nout->data, 0 + size[0] * II, RGB[0]);
+      ins(nout->data, 1 + size[0] * II, RGB[1]);
+      ins(nout->data, 2 + size[0] * II, RGB[2]);
       if (rgbp->genAlpha) {
-        ins(nout->data, 3 + size[0]*II, 1.0);
+        ins(nout->data, 3 + size[0] * II, 1.0);
       }
       break;
     }
@@ -106,8 +104,7 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   nout->axis[0].kind = nrrdKind3Color;
-  if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
+  if (nrrdBasicInfoCopy(nout, nin, NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
     biffAddf(TEN, "%s:", me);
     return 1;
   }
@@ -115,18 +112,18 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin,
   return 0;
 }
 
-#define SQR(i) ((i)*(i))
+#define SQR(i) ((i) * (i))
 
 short
 tenEvqSingle(float vec[3], float scl) {
-  static const char me[]="tenEvqSingle";
+  static const char me[] = "tenEvqSingle";
   float tmp, L1;
   int mi, bins, base, vi, ui;
   short ret;
 
   ELL_3V_NORM_TT(vec, float, vec, tmp);
   L1 = AIR_ABS(vec[0]) + AIR_ABS(vec[1]) + AIR_ABS(vec[2]);
-  ELL_3V_SCALE(vec, 1/L1, vec);
+  ELL_3V_SCALE(vec, 1 / L1, vec);
   scl = AIR_CLAMP(0.0f, scl, 1.0f);
   scl = AIR_FLOAT(pow(scl, 0.75));
   mi = airIndex(0.0, scl, 1.0, 6);
@@ -143,20 +140,18 @@ tenEvqSingle(float vec[3], float scl) {
       fprintf(stderr, "%s: PANIC: mi = %d\n", me, mi);
       exit(0);
     }
-    vi = airIndex(-1, vec[0]+vec[1], 1, bins);
-    ui = airIndex(-1, vec[0]-vec[1], 1, bins);
-    ret = AIR_CAST(short, vi*bins + ui + base);
-  }
-  else {
+    vi = airIndex(-1, vec[0] + vec[1], 1, bins);
+    ui = airIndex(-1, vec[0] - vec[1], 1, bins);
+    ret = AIR_CAST(short, vi *bins + ui + base);
+  } else {
     ret = 0;
   }
   return ret;
 }
 
 int
-tenEvqVolume(Nrrd *nout,
-             const Nrrd *nin, int which, int aniso, int scaleByAniso) {
-  static const char me[]="tenEvqVolume";
+tenEvqVolume(Nrrd *nout, const Nrrd *nin, int which, int aniso, int scaleByAniso) {
+  static const char me[] = "tenEvqVolume";
   int map[3];
   short *qdata;
   const float *tdata;
@@ -184,32 +179,30 @@ tenEvqVolume(Nrrd *nout,
   sx = nin->axis[1].size;
   sy = nin->axis[2].size;
   sz = nin->axis[3].size;
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeShort, 3,
-                        sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeShort, 3, sx, sy, sz)) {
     biffMovef(TEN, NRRD, "%s: can't allocate output", me);
     return 1;
   }
-  N = sx*sy*sz;
+  N = sx * sy * sz;
   tdata = (float *)nin->data;
   qdata = (short *)nout->data;
-  for (I=0; I<N; I++) {
+  for (I = 0; I < N; I++) {
     tenEigensolve_f(eval, evec, tdata);
     if (scaleByAniso) {
       an = tenAnisoEval_f(eval, aniso);
     } else {
       an = 1.0;
     }
-    qdata[I] = tenEvqSingle(evec+ 3*which, an);
+    qdata[I] = tenEvqSingle(evec + 3 * which, an);
     tdata += 7;
   }
   ELL_3V_SET(map, 1, 2, 3);
-  if (nrrdAxisInfoCopy(nout, nin, map, (NRRD_AXIS_INFO_SIZE_BIT
-                                        | NRRD_AXIS_INFO_KIND_BIT) )) {
+  if (nrrdAxisInfoCopy(nout, nin, map,
+                       (NRRD_AXIS_INFO_SIZE_BIT | NRRD_AXIS_INFO_KIND_BIT))) {
     biffMovef(TEN, NRRD, "%s: trouble", me);
     return 1;
   }
-  if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
+  if (nrrdBasicInfoCopy(nout, nin, NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
     biffAddf(TEN, "%s:", me);
     return 1;
   }
@@ -219,13 +212,13 @@ tenEvqVolume(Nrrd *nout,
 
 int
 tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
-  static const char me[]="tenBMatrixCheck";
+  static const char me[] = "tenBMatrixCheck";
 
   if (nrrdCheck(nbmat)) {
     biffMovef(TEN, NRRD, "%s: basic validity check failed", me);
     return 1;
   }
-  if (!( 6 == nbmat->axis[0].size && 2 == nbmat->dim )) {
+  if (!(6 == nbmat->axis[0].size && 2 == nbmat->dim)) {
     char stmp[AIR_STRLEN_SMALL];
     biffAddf(TEN, "%s: need a 6xN 2-D array (not a %s x? %d-D array)", me,
              airSprintSize_t(stmp, nbmat->axis[0].size), nbmat->dim);
@@ -241,7 +234,7 @@ tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
              airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
-  if (!( minnum <= nbmat->axis[1].size )) {
+  if (!(minnum <= nbmat->axis[1].size)) {
     char stmp[AIR_STRLEN_SMALL];
     biffAddf(TEN, "%s: have only %s B-matrices, need at least %d", me,
              airSprintSize_t(stmp, nbmat->axis[1].size), minnum);
@@ -263,7 +256,7 @@ tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
 */
 int
 _tenFindValley(double *valP, const Nrrd *nhist, double tweak, int save) {
-  static const char me[]="_tenFindValley";
+  static const char me[] = "_tenFindValley";
   double gparm[NRRD_KERNEL_PARMS_NUM], dparm[NRRD_KERNEL_PARMS_NUM];
   Nrrd *ntmpA, *ntmpB, *nhistD, *nhistDD;
   float *hist, *histD, *histDD;
@@ -279,52 +272,51 @@ _tenFindValley(double *valP, const Nrrd *nhist, double tweak, int save) {
   */
 
   mop = airMopNew();
-  airMopAdd(mop, ntmpA=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, ntmpB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nhistD=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nhistDD=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, ntmpA = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, ntmpB = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nhistD = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nhistDD = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
   bins = nhist->axis[0].size;
-  gparm[0] = bins/128;  /* wacky heuristic for gaussian stdev */
-  gparm[1] = 3;        /* how many stdevs to cut-off at */
-  dparm[0] = 1.0;      /* unit spacing */
-  dparm[1] = 1.0;      /* B-Spline kernel */
+  gparm[0] = bins / 128; /* wacky heuristic for gaussian stdev */
+  gparm[1] = 3;          /* how many stdevs to cut-off at */
+  dparm[0] = 1.0;        /* unit spacing */
+  dparm[1] = 1.0;        /* B-Spline kernel */
   dparm[2] = 0.0;
   if (nrrdCheapMedian(ntmpA, nhist, AIR_TRUE, AIR_FALSE, 2, 1.0, 1024)
-      || nrrdSimpleResample(ntmpB, ntmpA,
-                            nrrdKernelGaussian, gparm, &bins, NULL)
-      || nrrdSimpleResample(nhistD, ntmpB,
-                            nrrdKernelBCCubicD, dparm, &bins, NULL)
-      || nrrdSimpleResample(nhistDD, ntmpB,
-                            nrrdKernelBCCubicDD, dparm, &bins, NULL)) {
+      || nrrdSimpleResample(ntmpB, ntmpA, nrrdKernelGaussian, gparm, &bins, NULL)
+      || nrrdSimpleResample(nhistD, ntmpB, nrrdKernelBCCubicD, dparm, &bins, NULL)
+      || nrrdSimpleResample(nhistDD, ntmpB, nrrdKernelBCCubicDD, dparm, &bins, NULL)) {
     biffMovef(TEN, NRRD, "%s: trouble processing histogram", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (save) {
     nrrdSave("tmp-histA.nrrd", ntmpA, NULL);
     nrrdSave("tmp-histB.nrrd", ntmpB, NULL);
   }
-  hist = (float*)(ntmpB->data);
-  histD = (float*)(nhistD->data);
-  histDD = (float*)(nhistDD->data);
+  hist = (float *)(ntmpB->data);
+  histD = (float *)(nhistD->data);
+  histDD = (float *)(nhistDD->data);
   range = nrrdRangeNewSet(ntmpB, nrrdBlind8BitRangeState);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  for (bb=0; bb<bins-1; bb++) {
+  for (bb = 0; bb < bins - 1; bb++) {
     if (hist[bb] == range->max) {
       /* first seek to max in histogram */
       break;
     }
   }
   maxbb = bb;
-  for (; bb<bins-1; bb++) {
-    if (histD[bb]*histD[bb+1] < 0 && histDD[bb] > 0) {
+  for (; bb < bins - 1; bb++) {
+    if (histD[bb] * histD[bb + 1] < 0 && histDD[bb] > 0) {
       /* zero-crossing in 1st deriv, positive 2nd deriv */
       break;
     }
   }
-  if (bb == bins-1) {
+  if (bb == bins - 1) {
     biffAddf(TEN, "%s: never saw a satisfactory zero crossing", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   *valP = nrrdAxisInfoPos(nhist, 0, AIR_AFFINE(0, tweak, 1, maxbb, bb));
@@ -332,4 +324,3 @@ _tenFindValley(double *valP, const Nrrd *nhist, double tweak, int save) {
   airMopOkay(mop);
   return 0;
 }
-

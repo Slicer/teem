@@ -26,7 +26,7 @@
 
 miteThread *
 miteThreadNew() {
-  static const char me[]="miteThreadNew";
+  static const char me[] = "miteThreadNew";
   miteThread *mtt;
   int ii;
 
@@ -39,7 +39,8 @@ miteThreadNew() {
   mtt->rmop = airMopNew();
   if (!mtt->rmop) {
     biffAddf(MITE, "%s: couldn't calloc thread's mop", me);
-    airFree(mtt); return NULL;
+    airFree(mtt);
+    return NULL;
   }
   mtt->gctx = NULL;
   mtt->ansScl = mtt->ansVec = mtt->ansTen = NULL;
@@ -50,17 +51,15 @@ miteThreadNew() {
   mtt->shadeScl1 = NULL;
   /* were miteVal a full-fledged gageKind, the following would
      be done by gagePerVolumeNew */
-  mtt->ansMiteVal = AIR_CALLOC(gageKindTotalAnswerLength(miteValGageKind),
-                               double);
-  mtt->directAnsMiteVal = AIR_CALLOC(miteValGageKind->itemMax+1,
-                                     double *);
+  mtt->ansMiteVal = AIR_CALLOC(gageKindTotalAnswerLength(miteValGageKind), double);
+  mtt->directAnsMiteVal = AIR_CALLOC(miteValGageKind->itemMax + 1, double *);
   if (!(mtt->ansMiteVal && mtt->directAnsMiteVal)) {
     biffAddf(MITE, "%s: couldn't calloc miteVal answer arrays", me);
     return NULL;
   }
-  for (ii=0; ii<=miteValGageKind->itemMax; ii++) {
+  for (ii = 0; ii <= miteValGageKind->itemMax; ii++) {
     mtt->directAnsMiteVal[ii] = mtt->ansMiteVal
-      + gageKindAnswerOffset(miteValGageKind, ii);
+                              + gageKindAnswerOffset(miteValGageKind, ii);
   }
   mtt->verbose = 0;
   mtt->skip = 0;
@@ -92,9 +91,8 @@ miteThreadNix(miteThread *mtt) {
 ** this has some of the body of what would be miteThreadInit
 */
 int
-miteThreadBegin(miteThread **mttP, miteRender *mrr,
-                miteUser *muu, int whichThread) {
-  static const char me[]="miteThreadBegin";
+miteThreadBegin(miteThread **mttP, miteRender *mrr, miteUser *muu, int whichThread) {
+  static const char me[] = "miteThreadBegin";
 
   /* all the miteThreads have already been allocated */
   (*mttP) = mrr->tt[whichThread];
@@ -106,16 +104,14 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
     /* we have to generate a new gageContext */
     (*mttP)->gctx = gageContextCopy(muu->gctx0);
     if (!(*mttP)->gctx) {
-      biffMovef(MITE, GAGE,
-                "%s: couldn't set up thread %d", me, whichThread);
+      biffMovef(MITE, GAGE, "%s: couldn't set up thread %d", me, whichThread);
       return 1;
     }
   }
 
   if (-1 != mrr->sclPvlIdx) {
     (*mttP)->ansScl = (*mttP)->gctx->pvl[mrr->sclPvlIdx]->answer;
-    (*mttP)->nPerp = ((*mttP)->ansScl
-                      + gageKindAnswerOffset(gageKindScl, gageSclNPerp));
+    (*mttP)->nPerp = ((*mttP)->ansScl + gageKindAnswerOffset(gageKindScl, gageSclNPerp));
     (*mttP)->geomTens = ((*mttP)->ansScl
                          + gageKindAnswerOffset(gageKindScl, gageSclGeomTens));
   } else {
@@ -123,12 +119,10 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
     (*mttP)->nPerp = NULL;
     (*mttP)->geomTens = NULL;
   }
-  (*mttP)->ansVec = (-1 != mrr->vecPvlIdx
-                     ? (*mttP)->gctx->pvl[mrr->vecPvlIdx]->answer
-                     : NULL);
-  (*mttP)->ansTen = (-1 != mrr->tenPvlIdx
-                     ? (*mttP)->gctx->pvl[mrr->tenPvlIdx]->answer
-                     : NULL);
+  (*mttP)->ansVec = (-1 != mrr->vecPvlIdx ? (*mttP)->gctx->pvl[mrr->vecPvlIdx]->answer
+                                          : NULL);
+  (*mttP)->ansTen = (-1 != mrr->tenPvlIdx ? (*mttP)->gctx->pvl[mrr->tenPvlIdx]->answer
+                                          : NULL);
   (*mttP)->thrid = whichThread;
   (*mttP)->raySample = 0;
   (*mttP)->samples = 0;
@@ -137,7 +131,7 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
   (*mttP)->_normal = _miteAnswerPointer(*mttP, mrr->normalSpec);
 
   /* set up shading answers */
-  switch(mrr->shadeSpec->method) {
+  switch (mrr->shadeSpec->method) {
   case miteShadeMethodNone:
     /* nothing to do */
     break;
@@ -151,8 +145,7 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
     (*mttP)->shadeScl1 = _miteAnswerPointer(*mttP, mrr->shadeSpec->scl1);
     break;
   default:
-    biffAddf(MITE, "%s: shade method %d not implemented!",
-            me, mrr->shadeSpec->method);
+    biffAddf(MITE, "%s: shade method %d not implemented!", me, mrr->shadeSpec->method);
     return 1;
     break;
   }
@@ -165,12 +158,10 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr,
 }
 
 int
-miteThreadEnd(miteThread *mtt, miteRender *mrr,
-              miteUser *muu) {
+miteThreadEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
 
   AIR_UNUSED(mtt);
   AIR_UNUSED(mrr);
   AIR_UNUSED(muu);
   return 0;
 }
-

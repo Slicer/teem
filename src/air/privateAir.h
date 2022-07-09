@@ -23,4 +23,3 @@
 
 /* miscAir.c */
 extern double _airSanityHelper(double val);
-

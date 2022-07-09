@@ -25,24 +25,20 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Remap CC values down to lowest contiguous values"
-static const char *_unrrdu_ccsettleInfoL =
-(INFO
- ".\n "
- "* Uses nrrdCCSettle");
+static const char *_unrrdu_ccsettleInfoL = (INFO ".\n "
+                                                 "* Uses nrrdCCSettle");
 
 int
-unrrdu_ccsettleMain(int argc, const char **argv, const char *me,
-                    hestParm *hparm) {
+unrrdu_ccsettleMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *valS;
-  Nrrd *nin, *nout, *nval=NULL;
+  Nrrd *nin, *nout, *nval = NULL;
   airArray *mop;
   int pret;
 
   mop = airMopNew();
-  hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input nrrd",
-             NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &nin, NULL, "input nrrd", NULL,
+             NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "v,values", "filename", airTypeString, 1, 1, &valS, "",
              "Giving a filename here allows you to save out the mapping "
              "from new (settled) values to old values, in the form of a "

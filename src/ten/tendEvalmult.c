@@ -25,13 +25,11 @@
 #include "privateTen.h"
 
 #define INFO "Modify shape by multiplying eigenvalues by a constant"
-static const char *_tend_evalmultInfoL =
-  (INFO
-   ". The orientation of the tensor is unchanged.");
+static const char *_tend_evalmultInfoL
+  = (INFO ". The orientation of the tensor is unchanged.");
 
 int
-tend_evalmultMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+tend_evalmultMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -57,14 +55,16 @@ tend_evalmultMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenEigenvalueMultiply(nout, nin, val)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

@@ -69,9 +69,8 @@ pushEnergyType = &_pushEnergyType;
 ** ----------------------------------------------------------------
 */
 void
-_pushEnergyUnknownEval(double *enr, double *frc,
-                       double dist, const double *parm) {
-  static const char me[]="_pushEnergyUnknownEval";
+_pushEnergyUnknownEval(double *enr, double *frc, double dist, const double *parm) {
+  static const char me[] = "_pushEnergyUnknownEval";
 
   AIR_UNUSED(dist);
   AIR_UNUSED(parm);
@@ -83,22 +82,16 @@ _pushEnergyUnknownEval(double *enr, double *frc,
 
 double
 _pushEnergyUnknownSupport(const double *parm) {
-  static const char me[]="_pushEnergyUnknownSupport";
+  static const char me[] = "_pushEnergyUnknownSupport";
 
   AIR_UNUSED(parm);
   fprintf(stderr, "%s: ERROR- using unknown energy.\n", me);
   return AIR_NAN;
 }
 
-pushEnergy
-_pushEnergyUnknown = {
-  "unknown",
-  0,
-  _pushEnergyUnknownEval,
-  _pushEnergyUnknownSupport
-};
-const pushEnergy *const
-pushEnergyUnknown = &_pushEnergyUnknown;
+pushEnergy _pushEnergyUnknown = {"unknown", 0, _pushEnergyUnknownEval,
+                                 _pushEnergyUnknownSupport};
+const pushEnergy *const pushEnergyUnknown = &_pushEnergyUnknown;
 
 /* ----------------------------------------------------------------
 ** ------------------------------ SPRING --------------------------
@@ -109,8 +102,7 @@ pushEnergyUnknown = &_pushEnergyUnknown;
 ** learned: "1/2" is not 0.5 !!!!!
 */
 void
-_pushEnergySpringEval(double *enr, double *frc,
-                      double dist, const double *parm) {
+_pushEnergySpringEval(double *enr, double *frc, double dist, const double *parm) {
   /* static const char me[]="_pushEnergySpringEval"; */
   double xx, pull;
 
@@ -120,10 +112,10 @@ _pushEnergySpringEval(double *enr, double *frc,
     *enr = 0;
     *frc = 0;
   } else if (xx > 0) {
-    *enr = xx*xx*(xx*xx/(4*pull*pull) - 2*xx/(3*pull) + 1.0/2.0);
-    *frc = xx*(xx*xx/(pull*pull) - 2*xx/pull + 1);
+    *enr = xx * xx * (xx * xx / (4 * pull * pull) - 2 * xx / (3 * pull) + 1.0 / 2.0);
+    *frc = xx * (xx * xx / (pull * pull) - 2 * xx / pull + 1);
   } else {
-    *enr = xx*xx/2;
+    *enr = xx * xx / 2;
     *frc = xx;
   }
   /*
@@ -141,15 +133,9 @@ _pushEnergySpringSupport(const double *parm) {
   return 1.0 + parm[0];
 }
 
-const pushEnergy
-_pushEnergySpring = {
-  SPRING,
-  1,
-  _pushEnergySpringEval,
-  _pushEnergySpringSupport
-};
-const pushEnergy *const
-pushEnergySpring = &_pushEnergySpring;
+const pushEnergy _pushEnergySpring = {SPRING, 1, _pushEnergySpringEval,
+                                      _pushEnergySpringSupport};
+const pushEnergy *const pushEnergySpring = &_pushEnergySpring;
 
 /* ----------------------------------------------------------------
 ** ------------------------------ GAUSS --------------------------
@@ -159,17 +145,16 @@ pushEnergySpring = &_pushEnergySpring;
 ** parm[0]: cut-off (as a multiple of standard dev (which is 1.0))
 */
 /* HEY: copied from teem/src/nrrd/kernel.c */
-#define _GAUSS(x, sig, cut) ( \
-   x >= sig*cut ? 0           \
-   : exp(-x*x/(2.0*sig*sig))/(sig*2.50662827463100050241))
+#define _GAUSS(x, sig, cut)                                                             \
+  (x >= sig * cut ? 0 : exp(-x * x / (2.0 * sig * sig)) / (sig * 2.50662827463100050241))
 
-#define _DGAUSS(x, sig, cut) ( \
-   x >= sig*cut ? 0            \
-   : -exp(-x*x/(2.0*sig*sig))*x/(sig*sig*sig*2.50662827463100050241))
+#define _DGAUSS(x, sig, cut)                                                            \
+  (x >= sig * cut ? 0                                                                   \
+                  : -exp(-x * x / (2.0 * sig * sig)) * x                                \
+                      / (sig * sig * sig * 2.50662827463100050241))
 
 void
-_pushEnergyGaussEval(double *enr, double *frc,
-                     double dist, const double *parm) {
+_pushEnergyGaussEval(double *enr, double *frc, double dist, const double *parm) {
   double cut;
 
   cut = parm[0];
@@ -184,15 +169,9 @@ _pushEnergyGaussSupport(const double *parm) {
   return parm[0];
 }
 
-const pushEnergy
-_pushEnergyGauss = {
-  GAUSS,
-  1,
-  _pushEnergyGaussEval,
-  _pushEnergyGaussSupport
-};
-const pushEnergy *const
-pushEnergyGauss = &_pushEnergyGauss;
+const pushEnergy _pushEnergyGauss = {GAUSS, 1, _pushEnergyGaussEval,
+                                     _pushEnergyGaussSupport};
+const pushEnergy *const pushEnergyGauss = &_pushEnergyGauss;
 
 /* ----------------------------------------------------------------
 ** ------------------------------ CHARGE --------------------------
@@ -202,11 +181,10 @@ pushEnergyGauss = &_pushEnergyGauss;
 ** parm[0]: cut-off (as multiple of "1.0")
 */
 void
-_pushEnergyCoulombEval(double *enr, double *frc,
-                       double dist, const double *parm) {
+_pushEnergyCoulombEval(double *enr, double *frc, double dist, const double *parm) {
 
-  *enr = (dist > parm[0] ? 0 : 1.0/dist);
-  *frc = (dist > parm[0] ? 0 : -1.0/(dist*dist));
+  *enr = (dist > parm[0] ? 0 : 1.0 / dist);
+  *frc = (dist > parm[0] ? 0 : -1.0 / (dist * dist));
   return;
 }
 
@@ -216,15 +194,9 @@ _pushEnergyCoulombSupport(const double *parm) {
   return parm[0];
 }
 
-const pushEnergy
-_pushEnergyCoulomb = {
-  COULOMB,
-  1,
-  _pushEnergyCoulombEval,
-  _pushEnergyCoulombSupport
-};
-const pushEnergy *const
-pushEnergyCoulomb = &_pushEnergyCoulomb;
+const pushEnergy _pushEnergyCoulomb = {COULOMB, 1, _pushEnergyCoulombEval,
+                                       _pushEnergyCoulombSupport};
+const pushEnergy *const pushEnergyCoulomb = &_pushEnergyCoulomb;
 
 /* ----------------------------------------------------------------
 ** ------------------------------ COTAN ---------------------------
@@ -232,15 +204,14 @@ pushEnergyCoulomb = &_pushEnergyCoulomb;
 ** 0 parms!
 */
 void
-_pushEnergyCotanEval(double *enr, double *frc,
-                     double dist, const double *parm) {
+_pushEnergyCotanEval(double *enr, double *frc, double dist, const double *parm) {
   double pot, cc;
 
   AIR_UNUSED(parm);
-  pot = AIR_PI/2.0;
-  cc = 1.0/(FLT_MIN + tan(dist*pot));
-  *enr = dist > 1 ? 0 : cc + dist*pot - pot;
-  *frc = dist > 1 ? 0 : -cc*cc*pot;
+  pot = AIR_PI / 2.0;
+  cc = 1.0 / (FLT_MIN + tan(dist * pot));
+  *enr = dist > 1 ? 0 : cc + dist * pot - pot;
+  *frc = dist > 1 ? 0 : -cc * cc * pot;
   return;
 }
 
@@ -251,15 +222,9 @@ _pushEnergyCotanSupport(const double *parm) {
   return 1;
 }
 
-const pushEnergy
-_pushEnergyCotan = {
-  COTAN,
-  0,
-  _pushEnergyCotanEval,
-  _pushEnergyCotanSupport
-};
-const pushEnergy *const
-pushEnergyCotan = &_pushEnergyCotan;
+const pushEnergy _pushEnergyCotan = {COTAN, 0, _pushEnergyCotanEval,
+                                     _pushEnergyCotanSupport};
+const pushEnergy *const pushEnergyCotan = &_pushEnergyCotan;
 
 /* ----------------------------------------------------------------
 ** ------------------------------- ZERO ---------------------------
@@ -267,8 +232,7 @@ pushEnergyCotan = &_pushEnergyCotan;
 ** 0 parms:
 */
 void
-_pushEnergyZeroEval(double *enr, double *frc,
-                    double dist, const double *parm) {
+_pushEnergyZeroEval(double *enr, double *frc, double dist, const double *parm) {
 
   AIR_UNUSED(dist);
   AIR_UNUSED(parm);
@@ -284,28 +248,22 @@ _pushEnergyZeroSupport(const double *parm) {
   return 1.0;
 }
 
-const pushEnergy
-_pushEnergyZero = {
-  ZERO,
-  0,
-  _pushEnergyZeroEval,
-  _pushEnergyZeroSupport
-};
-const pushEnergy *const
-pushEnergyZero = &_pushEnergyZero;
+const pushEnergy _pushEnergyZero = {ZERO, 0, _pushEnergyZeroEval,
+                                    _pushEnergyZeroSupport};
+const pushEnergy *const pushEnergyZero = &_pushEnergyZero;
 
 /* ----------------------------------------------------------------
 ** ----------------------------------------------------------------
 ** ----------------------------------------------------------------
 */
 
-const pushEnergy *const pushEnergyAll[PUSH_ENERGY_TYPE_MAX+1] = {
-  &_pushEnergyUnknown,  /* 0 */
-  &_pushEnergySpring,   /* 1 */
-  &_pushEnergyGauss,    /* 2 */
-  &_pushEnergyCoulomb,  /* 3 */
-  &_pushEnergyCotan,    /* 4 */
-  &_pushEnergyZero      /* 5 */
+const pushEnergy *const pushEnergyAll[PUSH_ENERGY_TYPE_MAX + 1] = {
+  &_pushEnergyUnknown, /* 0 */
+  &_pushEnergySpring,  /* 1 */
+  &_pushEnergyGauss,   /* 2 */
+  &_pushEnergyCoulomb, /* 3 */
+  &_pushEnergyCotan,   /* 4 */
+  &_pushEnergyZero     /* 5 */
 };
 
 pushEnergySpec *
@@ -316,7 +274,7 @@ pushEnergySpecNew() {
   ensp = (pushEnergySpec *)calloc(1, sizeof(pushEnergySpec));
   if (ensp) {
     ensp->energy = pushEnergyUnknown;
-    for (pi=0; pi<PUSH_ENERGY_PARM_NUM; pi++) {
+    for (pi = 0; pi < PUSH_ENERGY_PARM_NUM; pi++) {
       ensp->parm[pi] = AIR_NAN;
     }
   }
@@ -330,7 +288,7 @@ pushEnergySpecSet(pushEnergySpec *ensp, const pushEnergy *energy,
 
   if (ensp && energy && parm) {
     ensp->energy = energy;
-    for (pi=0; pi<PUSH_ENERGY_PARM_NUM; pi++) {
+    for (pi = 0; pi < PUSH_ENERGY_PARM_NUM; pi++) {
       ensp->parm[pi] = parm[pi];
     }
   }
@@ -346,14 +304,14 @@ pushEnergySpecNix(pushEnergySpec *ensp) {
 
 int
 pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
-  static const char me[]="pushEnergySpecParse";
+  static const char me[] = "pushEnergySpecParse";
   char *str, *col, *_pstr, *pstr;
   int etype;
   unsigned int pi, haveParm;
   airArray *mop;
   double pval;
 
-  if (!( ensp && _str )) {
+  if (!(ensp && _str)) {
     biffAddf(PUSH, "%s: got NULL pointer", me);
     return 1;
   }
@@ -369,7 +327,7 @@ pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
       return 1;
     }
     /* the energy needs 0 parameters */
-    for (pi=0; pi<PUSH_ENERGY_PARM_NUM; pi++) {
+    for (pi = 0; pi < PUSH_ENERGY_PARM_NUM; pi++) {
       ensp->parm[pi] = AIR_NAN;
     }
     return 0;
@@ -381,16 +339,19 @@ pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
   airMopAdd(mop, str, (airMopper)airFree, airMopAlways);
   col = strchr(str, ':');
   if (!col) {
-    biffAddf(PUSH, "%s: \"%s\" isn't a parameter-free energy, but it has no "
-             "\":\" separator to indicate parameters", me, str);
-    airMopError(mop); return 1;
+    biffAddf(PUSH,
+             "%s: \"%s\" isn't a parameter-free energy, but it has no "
+             "\":\" separator to indicate parameters",
+             me, str);
+    airMopError(mop);
+    return 1;
   }
   *col = '\0';
   etype = airEnumVal(pushEnergyType, str);
   if (pushEnergyTypeUnknown == etype) {
-    biffAddf(PUSH, "%s: didn't recognize \"%s\" as a %s", me,
-             str, pushEnergyType->name);
-    airMopError(mop); return 1;
+    biffAddf(PUSH, "%s: didn't recognize \"%s\" as a %s", me, str, pushEnergyType->name);
+    airMopError(mop);
+    return 1;
   }
 
   ensp->energy = pushEnergyAll[etype];
@@ -400,39 +361,43 @@ pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
     return 1;
   }
 
-  _pstr = pstr = col+1;
+  _pstr = pstr = col + 1;
   /* code lifted from teem/src/nrrd/kernel.c, should probably refactor... */
-  for (haveParm=0; haveParm<ensp->energy->parmNum; haveParm++) {
+  for (haveParm = 0; haveParm < ensp->energy->parmNum; haveParm++) {
     if (!pstr) {
       break;
     }
     if (1 != sscanf(pstr, "%lg", &pval)) {
-      biffAddf(PUSH, "%s: trouble parsing \"%s\" as double (in \"%s\")",
-               me, _pstr, _str);
-      airMopError(mop); return 1;
+      biffAddf(PUSH, "%s: trouble parsing \"%s\" as double (in \"%s\")", me, _pstr,
+               _str);
+      airMopError(mop);
+      return 1;
     }
     ensp->parm[haveParm] = pval;
     if ((pstr = strchr(pstr, ','))) {
       pstr++;
       if (!*pstr) {
-        biffAddf(PUSH, "%s: nothing after last comma in \"%s\" (in \"%s\")",
-                 me, _pstr, _str);
-        airMopError(mop); return 1;
+        biffAddf(PUSH, "%s: nothing after last comma in \"%s\" (in \"%s\")", me, _pstr,
+                 _str);
+        airMopError(mop);
+        return 1;
       }
     }
   }
   /* haveParm is now the number of parameters that were parsed. */
   if (haveParm < ensp->energy->parmNum) {
-    biffAddf(PUSH, "%s: parsed only %u of %u required parms (for %s energy)"
+    biffAddf(PUSH,
+             "%s: parsed only %u of %u required parms (for %s energy)"
              "from \"%s\" (in \"%s\")",
-             me, haveParm, ensp->energy->parmNum,
-             ensp->energy->name, _pstr, _str);
-    airMopError(mop); return 1;
+             me, haveParm, ensp->energy->parmNum, ensp->energy->name, _pstr, _str);
+    airMopError(mop);
+    return 1;
   } else {
     if (pstr) {
-      biffAddf(PUSH, "%s: \"%s\" (in \"%s\") has more than %u doubles",
-               me, _pstr, _str, ensp->energy->parmNum);
-      airMopError(mop); return 1;
+      biffAddf(PUSH, "%s: \"%s\" (in \"%s\") has more than %u doubles", me, _pstr, _str,
+               ensp->energy->parmNum);
+      airMopError(mop);
+      return 1;
     }
   }
 
@@ -443,7 +408,7 @@ pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
 int
 _pushHestEnergyParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   pushEnergySpec **enspP;
-  static const char me[]="_pushHestForceParse";
+  static const char me[] = "_pushHestForceParse";
   char *perr;
 
   if (!(ptr && str)) {
@@ -461,13 +426,7 @@ _pushHestEnergyParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB
-_pushHestEnergySpec = {
-  sizeof(pushEnergySpec*),
-  "energy specification",
-  _pushHestEnergyParse,
-  (airMopper)pushEnergySpecNix
-};
+hestCB _pushHestEnergySpec = {sizeof(pushEnergySpec *), "energy specification",
+                              _pushHestEnergyParse, (airMopper)pushEnergySpecNix};
 
-hestCB *
-pushHestEnergySpec = &_pushHestEnergySpec;
+hestCB *pushHestEnergySpec = &_pushHestEnergySpec;

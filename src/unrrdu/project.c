@@ -25,24 +25,22 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Collapse scanlines to scalars along some axis"
-static const char *_unrrdu_projectInfoL =
-(INFO
- ". The scanline is reduced to a single scalar by "
- "\"measuring\" all the values in the scanline "
- "with some measure.  The output nrrd has dimension "
- "one less than input (except when the input is itself 1-D); "
- "the output type depends on "
- "the measure in a non-trivial way, or it can be set explicitly "
- "with the \"-t\" option.  To save the overhead of multiple input data "
- "reads if projections along different axes are needed, you can give "
- "multiple axes to \"-a\" (and a matching number of output filenames "
- "to \"-o\"), as well as multiple measures to \"-m\" (and possibly a "
- "specific type to \"-t\" to permit their joining on fastest axis).\n "
- "* Uses nrrdProject, and nrrdJoin if multiple measures");
+static const char *_unrrdu_projectInfoL
+  = (INFO ". The scanline is reduced to a single scalar by "
+          "\"measuring\" all the values in the scanline "
+          "with some measure.  The output nrrd has dimension "
+          "one less than input (except when the input is itself 1-D); "
+          "the output type depends on "
+          "the measure in a non-trivial way, or it can be set explicitly "
+          "with the \"-t\" option.  To save the overhead of multiple input data "
+          "reads if projections along different axes are needed, you can give "
+          "multiple axes to \"-a\" (and a matching number of output filenames "
+          "to \"-o\"), as well as multiple measures to \"-m\" (and possibly a "
+          "specific type to \"-t\" to permit their joining on fastest axis).\n "
+          "* Uses nrrdProject, and nrrdJoin if multiple measures");
 
 int
-unrrdu_projectMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_projectMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char **out, *err;
   Nrrd *nin, *nout;
@@ -57,8 +55,8 @@ unrrdu_projectMain(int argc, const char **argv, const char *me,
              "How to \"measure\" a scanline, by summarizing all its values "
              "with a single scalar. Multiple measures will be joined along "
              "fastest axis if output, but you may need to set output type "
-             "explicitly via \"-t\" so that the join works. "
-             NRRD_MEASURE_DESC, &measrLen, nrrdMeasure);
+             "explicitly via \"-t\" so that the join works. " NRRD_MEASURE_DESC,
+             &measrLen, nrrdMeasure);
   hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
              "type to use for output. By default (not using this option), "
              "the output type is determined auto-magically",
@@ -66,7 +64,8 @@ unrrdu_projectMain(int argc, const char **argv, const char *me,
   OPT_ADD_NIN(nin, "input nrrd");
   hestOptAdd(&opt, "o,output", "nout", airTypeString, 1, -1, &out, "-",
              "one or more output nrrd filenames. Number of names here "
-             "has to match number of axes specified.", &outLen);
+             "has to match number of axes specified.",
+             &outLen);
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
@@ -75,8 +74,8 @@ unrrdu_projectMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (axisLen != outLen) {
-    fprintf(stderr, "%s: got %u \"-a\" axes but %u \"-o\" outputs\n", me,
-            axisLen, outLen);
+    fprintf(stderr, "%s: got %u \"-a\" axes but %u \"-o\" outputs\n", me, axisLen,
+            outLen);
     airMopError(mop);
     return 1;
   }
@@ -84,7 +83,7 @@ unrrdu_projectMain(int argc, const char **argv, const char *me,
   if (measrLen > 1) {
     nslice = AIR_CALLOC(measrLen, Nrrd *);
     airMopAdd(mop, nslice, airFree, airMopAlways);
-    for (measrIdx=0; measrIdx<measrLen; measrIdx++) {
+    for (measrIdx = 0; measrIdx < measrLen; measrIdx++) {
       nslice[measrIdx] = nrrdNew();
       airMopAdd(mop, nslice[measrIdx], (airMopper)nrrdNuke, airMopAlways);
     }
@@ -94,23 +93,23 @@ unrrdu_projectMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  for (outIdx=0; outIdx<outLen; outIdx++) {
+  for (outIdx = 0; outIdx < outLen; outIdx++) {
     if (measrLen > 1) {
       /* first project into slices */
-      for (measrIdx=0; measrIdx<measrLen; measrIdx++) {
-        if (nrrdProject(nslice[measrIdx], nin, axis[outIdx],
-                        measr[measrIdx], type)) {
+      for (measrIdx = 0; measrIdx < measrLen; measrIdx++) {
+        if (nrrdProject(nslice[measrIdx], nin, axis[outIdx], measr[measrIdx], type)) {
           airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-          fprintf(stderr, "%s: error projecting nrrd %u/%u:\n%s",
-                  me, outIdx, measrIdx, err);
+          fprintf(stderr, "%s: error projecting nrrd %u/%u:\n%s", me, outIdx, measrIdx,
+                  err);
           airMopError(mop);
           return 1;
         }
       }
       /* then join slices into output */
-      if (nrrdJoin(nout, (const Nrrd *const*)nslice, measrLen, 0, AIR_TRUE)) {
+      if (nrrdJoin(nout, (const Nrrd *const *)nslice, measrLen, 0, AIR_TRUE)) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-        fprintf(stderr, "%s: error joining nrrd %u; will have to use \"-t\" "
+        fprintf(stderr,
+                "%s: error joining nrrd %u; will have to use \"-t\" "
                 "option to make sure all projections have same type:\n%s",
                 me, outIdx, err);
         airMopError(mop);

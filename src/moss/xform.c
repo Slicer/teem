@@ -40,16 +40,14 @@
 */
 
 void
-mossMatPrint (FILE *f, double *mat) {
+mossMatPrint(FILE *f, double *mat) {
 
-  fprintf(f, "% 15.7f % 15.7f % 15.7f\n",
-          (float)mat[0], (float)mat[1], (float)mat[2]);
-  fprintf(f, "% 15.7f % 15.7f % 15.7f\n",
-          (float)mat[3], (float)mat[4], (float)mat[5]);
+  fprintf(f, "% 15.7f % 15.7f % 15.7f\n", (float)mat[0], (float)mat[1], (float)mat[2]);
+  fprintf(f, "% 15.7f % 15.7f % 15.7f\n", (float)mat[3], (float)mat[4], (float)mat[5]);
 }
 
 double *
-mossMatRightMultiply (double *_mat, double *_x) {
+mossMatRightMultiply(double *_mat, double *_x) {
   double mat[9], x[9];
 
   MOSS_MAT_6TO9(x, _x);
@@ -60,7 +58,7 @@ mossMatRightMultiply (double *_mat, double *_x) {
 }
 
 double *
-mossMatLeftMultiply (double *_mat, double *_x) {
+mossMatLeftMultiply(double *_mat, double *_x) {
   double mat[9], x[9];
 
   MOSS_MAT_6TO9(x, _x);
@@ -71,7 +69,7 @@ mossMatLeftMultiply (double *_mat, double *_x) {
 }
 
 double *
-mossMatInvert (double *inv, double *mat) {
+mossMatInvert(double *inv, double *mat) {
   double inv9[9], mat9[9];
 
   MOSS_MAT_6TO9(mat9, mat);
@@ -81,29 +79,29 @@ mossMatInvert (double *inv, double *mat) {
 }
 
 double *
-mossMatIdentitySet (double *mat) {
+mossMatIdentitySet(double *mat) {
 
   MOSS_MAT_SET(mat, 1, 0, 0, 0, 1, 0);
   return mat;
 }
 
 double *
-mossMatTranslateSet (double *mat, double tx, double ty) {
+mossMatTranslateSet(double *mat, double tx, double ty) {
 
   MOSS_MAT_SET(mat, 1, 0, tx, 0, 1, ty);
   return mat;
 }
 
 double *
-mossMatRotateSet (double *mat, double angle) {
+mossMatRotateSet(double *mat, double angle) {
 
-  angle *= AIR_PI/180.0;
+  angle *= AIR_PI / 180.0;
   MOSS_MAT_SET(mat, cos(angle), -sin(angle), 0, sin(angle), cos(angle), 0);
   return mat;
 }
 
 double *
-mossMatFlipSet (double *mat, double angle) {
+mossMatFlipSet(double *mat, double angle) {
   double rot[6], flip[6];
 
   MOSS_MAT_SET(flip, -1, 0, 0, 0, 1, 0);
@@ -115,7 +113,7 @@ mossMatFlipSet (double *mat, double angle) {
 }
 
 double *
-mossMatShearSet (double *mat, double angleFixed, double amount) {
+mossMatShearSet(double *mat, double angleFixed, double amount) {
   double rot[6], shear[6];
 
   MOSS_MAT_SET(shear, 1, amount, 0, 0, 1, 0);
@@ -127,26 +125,24 @@ mossMatShearSet (double *mat, double angleFixed, double amount) {
 }
 
 double *
-mossMatScaleSet (double *mat, double sx, double sy) {
+mossMatScaleSet(double *mat, double sx, double sy) {
 
   MOSS_MAT_SET(mat, sx, 0, 0, 0, sy, 0);
   return mat;
 }
 
 void
-mossMatApply (double *ox, double *oy, double *mat, double ix, double iy) {
+mossMatApply(double *ox, double *oy, double *mat, double ix, double iy) {
 
-  *ox = mat[0]*ix + mat[1]*iy + mat[2];
-  *oy = mat[3]*ix + mat[4]*iy + mat[5];
+  *ox = mat[0] * ix + mat[1] * iy + mat[2];
+  *oy = mat[3] * ix + mat[4] * iy + mat[5];
 }
 
 int
-mossLinearTransform (Nrrd *nout, Nrrd *nin, float *bg,
-                     double *mat, mossSampler *msp,
-                     double xMin, double xMax,
-                     double yMin, double yMax,
-                     int xSize, int ySize) {
-  static const char me[]="mossLinearTransform";
+mossLinearTransform(Nrrd *nout, Nrrd *nin, float *bg, double *mat, mossSampler *msp,
+                    double xMin, double xMax, double yMin, double yMax, int xSize,
+                    int ySize) {
+  static const char me[] = "mossLinearTransform";
   int ncol, xi, yi, ci, ax0, xCent, yCent;
   float *val, (*ins)(void *v, size_t I, float f), (*clamp)(float val);
   double inv[6], xInPos, xOutPos, yInPos, yOutPos;
@@ -159,47 +155,47 @@ mossLinearTransform (Nrrd *nout, Nrrd *nin, float *bg,
     biffAddf(MOSS, "%s: trouble with sampler", me);
     return 1;
   }
-  if (!( xMin != xMax && yMin != yMax && xSize > 1 && ySize > 1 )) {
+  if (!(xMin != xMax && yMin != yMax && xSize > 1 && ySize > 1)) {
     biffAddf(MOSS, "%s: bad args: {x,y}Min == {x,y}Max or {x,y}Size <= 1", me);
     return 1;
   }
   ax0 = MOSS_AXIS0(nin);
-  if (!( AIR_EXISTS(nin->axis[ax0+0].min)
-         && AIR_EXISTS(nin->axis[ax0+0].max)
-         && AIR_EXISTS(nin->axis[ax0+1].min)
-         && AIR_EXISTS(nin->axis[ax0+1].max) )) {
-    biffAddf(MOSS, "%s: input axis min,max not set on axes %d and %d", me,
-             ax0+0, ax0+1);
+  if (!(AIR_EXISTS(nin->axis[ax0 + 0].min) && AIR_EXISTS(nin->axis[ax0 + 0].max)
+        && AIR_EXISTS(nin->axis[ax0 + 1].min) && AIR_EXISTS(nin->axis[ax0 + 1].max))) {
+    biffAddf(MOSS, "%s: input axis min,max not set on axes %d and %d", me, ax0 + 0,
+             ax0 + 1);
     return 1;
   }
 
   ncol = MOSS_NCOL(nin);
   if (mossImageAlloc(nout, nin->type, xSize, ySize, ncol)) {
-    biffAddf(MOSS, "%s: ", me); return 1;
+    biffAddf(MOSS, "%s: ", me);
+    return 1;
   }
-  val = (float*)calloc(ncol, sizeof(float));
-  if (nrrdCenterUnknown == nout->axis[ax0+0].center)
-    nout->axis[ax0+0].center = _mossCenter(nin->axis[ax0+0].center);
-  xCent = nout->axis[ax0+0].center;
-  if (nrrdCenterUnknown == nout->axis[ax0+1].center)
-    nout->axis[ax0+1].center = _mossCenter(nin->axis[ax0+1].center);
-  yCent = nout->axis[ax0+1].center;
-  nout->axis[ax0+0].min = xMin;
-  nout->axis[ax0+0].max = xMax;
-  nout->axis[ax0+1].min = yMin;
-  nout->axis[ax0+1].max = yMax;
+  val = (float *)calloc(ncol, sizeof(float));
+  if (nrrdCenterUnknown == nout->axis[ax0 + 0].center)
+    nout->axis[ax0 + 0].center = _mossCenter(nin->axis[ax0 + 0].center);
+  xCent = nout->axis[ax0 + 0].center;
+  if (nrrdCenterUnknown == nout->axis[ax0 + 1].center)
+    nout->axis[ax0 + 1].center = _mossCenter(nin->axis[ax0 + 1].center);
+  yCent = nout->axis[ax0 + 1].center;
+  nout->axis[ax0 + 0].min = xMin;
+  nout->axis[ax0 + 0].max = xMax;
+  nout->axis[ax0 + 1].min = yMin;
+  nout->axis[ax0 + 1].max = yMax;
   ins = nrrdFInsert[nin->type];
   clamp = nrrdFClamp[nin->type];
 
   if (mossSamplerSample(val, msp, 0, 0)) {
     biffAddf(MOSS, "%s: trouble in sampler", me);
-    free(val); return 1;
+    free(val);
+    return 1;
   }
 
   mossMatInvert(inv, mat);
-  for (yi=0; yi<ySize; yi++) {
+  for (yi = 0; yi < ySize; yi++) {
     yOutPos = NRRD_POS(yCent, yMin, yMax, ySize, yi);
-    for (xi=0; xi<xSize; xi++) {
+    for (xi = 0; xi < xSize; xi++) {
       /*
       mossVerbose = ( (36 == xi && 72 == yi) ||
                       (37 == xi && 73 == yi) ||
@@ -207,13 +203,13 @@ mossLinearTransform (Nrrd *nout, Nrrd *nin, float *bg,
       */
       xOutPos = NRRD_POS(xCent, xMin, xMax, xSize, xi);
       mossMatApply(&xInPos, &yInPos, inv, xOutPos, yOutPos);
-      xInPos = NRRD_IDX(xCent, nin->axis[ax0+0].min, nin->axis[ax0+0].max,
-                        nin->axis[ax0+0].size, xInPos);
-      yInPos = NRRD_IDX(yCent, nin->axis[ax0+1].min, nin->axis[ax0+1].max,
-                        nin->axis[ax0+1].size, yInPos);
+      xInPos = NRRD_IDX(xCent, nin->axis[ax0 + 0].min, nin->axis[ax0 + 0].max,
+                        nin->axis[ax0 + 0].size, xInPos);
+      yInPos = NRRD_IDX(yCent, nin->axis[ax0 + 1].min, nin->axis[ax0 + 1].max,
+                        nin->axis[ax0 + 1].size, yInPos);
       mossSamplerSample(val, msp, xInPos, yInPos);
-      for (ci=0; ci<ncol; ci++) {
-        ins(nout->data, ci + ncol*(xi + xSize*yi), clamp(val[ci]));
+      for (ci = 0; ci < ncol; ci++) {
+        ins(nout->data, ci + ncol * (xi + xSize * yi), clamp(val[ci]));
       }
     }
   }

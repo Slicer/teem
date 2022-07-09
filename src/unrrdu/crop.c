@@ -25,13 +25,11 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Crop along each axis to make a smaller nrrd"
-static const char *_unrrdu_cropInfoL =
-  (INFO ".\n "
-   "* Uses nrrdCrop");
+static const char *_unrrdu_cropInfoL = (INFO ".\n "
+                                             "* Uses nrrdCrop");
 
 int
-unrrdu_cropMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_cropMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -54,8 +52,7 @@ unrrdu_cropMain(int argc, const char **argv, const char *me,
                 "there's also:\n "
                 "\b\bo m+<int> give index relative to minimum.",
                 maxLen);
-  hestOptAdd(&opt, "b,bounds", "filename", airTypeOther, 1, 1,
-             &_nbounds, "",
+  hestOptAdd(&opt, "b,bounds", "filename", airTypeOther, 1, 1, &_nbounds, "",
              "a filename given here overrides the -min and -max "
              "options (they don't need to be used) and provides the "
              "cropping bounds as a 2-D array; first scanline is for "
@@ -74,27 +71,25 @@ unrrdu_cropMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (!_nbounds) {
-    if (!( minLen == (int)nin->dim && maxLen == (int)nin->dim )) {
-      fprintf(stderr,
-              "%s: # min coords (%d) or max coords (%d) != nrrd dim (%d)\n",
-              me, minLen, maxLen, nin->dim);
+    if (!(minLen == (int)nin->dim && maxLen == (int)nin->dim)) {
+      fprintf(stderr, "%s: # min coords (%d) or max coords (%d) != nrrd dim (%d)\n", me,
+              minLen, maxLen, nin->dim);
       airMopError(mop);
       return 1;
     }
-    for (ai=0; ai<nin->dim; ai++) {
-      if (-1 == minOff[0 + 2*ai]) {
-        fprintf(stderr, "%s: can't use m+<int> specification for axis %d min\n",
-                me, ai);
+    for (ai = 0; ai < nin->dim; ai++) {
+      if (-1 == minOff[0 + 2 * ai]) {
+        fprintf(stderr, "%s: can't use m+<int> specification for axis %d min\n", me, ai);
         airMopError(mop);
         return 1;
       }
     }
-    for (ai=0; ai<nin->dim; ai++) {
-      min[ai] = minOff[0 + 2*ai]*(nin->axis[ai].size-1) + minOff[1 + 2*ai];
-      if (-1 == maxOff[0 + 2*ai]) {
-        max[ai] = min[ai] + maxOff[1 + 2*ai];
+    for (ai = 0; ai < nin->dim; ai++) {
+      min[ai] = minOff[0 + 2 * ai] * (nin->axis[ai].size - 1) + minOff[1 + 2 * ai];
+      if (-1 == maxOff[0 + 2 * ai]) {
+        max[ai] = min[ai] + maxOff[1 + 2 * ai];
       } else {
-        max[ai] = maxOff[0 + 2*ai]*(nin->axis[ai].size-1) + maxOff[1 + 2*ai];
+        max[ai] = maxOff[0 + 2 * ai] * (nin->axis[ai].size - 1) + maxOff[1 + 2 * ai];
       }
       /*
         fprintf(stderr, "%s: ai %2d: min = %4d, max = %4d\n",
@@ -105,8 +100,7 @@ unrrdu_cropMain(int argc, const char **argv, const char *me,
     Nrrd *nbounds;
     airULLong *bounds;
     unsigned int axi;
-    if (!(2 == _nbounds->dim
-          && nin->dim == AIR_UINT(_nbounds->axis[0].size)
+    if (!(2 == _nbounds->dim && nin->dim == AIR_UINT(_nbounds->axis[0].size)
           && 2 == _nbounds->axis[1].size)) {
       char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
       if (_nbounds->dim >= 2) {
@@ -114,11 +108,12 @@ unrrdu_cropMain(int argc, const char **argv, const char *me,
       } else {
         strcpy(stmp1, "");
       }
-      fprintf(stderr, "%s: expected 2-D %u-by-2 array of cropping bounds, "
-              "not %u-D %s%s%s%s\n", me, nin->dim, _nbounds->dim,
+      fprintf(stderr,
+              "%s: expected 2-D %u-by-2 array of cropping bounds, "
+              "not %u-D %s%s%s%s\n",
+              me, nin->dim, _nbounds->dim,
               airSprintSize_t(stmp2, _nbounds->axis[0].size),
-              _nbounds->dim >= 2 ? "-by-" : "-long",
-              _nbounds->dim >= 2 ? stmp1 : "",
+              _nbounds->dim >= 2 ? "-by-" : "-long", _nbounds->dim >= 2 ? stmp1 : "",
               _nbounds->dim > 2 ? "-by-X" : "");
       airMopError(mop);
       return 1;
@@ -131,10 +126,10 @@ unrrdu_cropMain(int argc, const char **argv, const char *me,
       airMopError(mop);
       return 1;
     }
-    bounds = AIR_CAST(airULLong*, nbounds->data);
-    for (axi=0; axi<nin->dim; axi++) {
-      min[axi] = AIR_CAST(size_t, bounds[axi + 0*(nin->dim)]);
-      max[axi] = AIR_CAST(size_t, bounds[axi + 1*(nin->dim)]);
+    bounds = AIR_CAST(airULLong *, nbounds->data);
+    for (axi = 0; axi < nin->dim; axi++) {
+      min[axi] = AIR_CAST(size_t, bounds[axi + 0 * (nin->dim)]);
+      max[axi] = AIR_CAST(size_t, bounds[axi + 1 * (nin->dim)]);
     }
   }
 

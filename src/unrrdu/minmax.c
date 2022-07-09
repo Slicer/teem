@@ -25,11 +25,11 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Print out min and max values in one or more nrrds"
-static const char *_unrrdu_minmaxInfoL =
-(INFO ". Unlike other commands, this doesn't produce a nrrd.  It only "
- "prints to standard out the min and max values found in the input nrrd(s), "
- "and it also indicates if there are non-existent values.\n "
- "* Uses nrrdRangeNewSet");
+static const char *_unrrdu_minmaxInfoL
+  = (INFO ". Unlike other commands, this doesn't produce a nrrd.  It only "
+          "prints to standard out the min and max values found in the input nrrd(s), "
+          "and it also indicates if there are non-existent values.\n "
+          "* Uses nrrdRangeNewSet");
 
 int
 unrrdu_minmaxDoit(const char *me, char *inS, int blind8BitRange, FILE *fout) {
@@ -38,10 +38,11 @@ unrrdu_minmaxDoit(const char *me, char *inS, int blind8BitRange, FILE *fout) {
   airArray *mop;
 
   mop = airMopNew();
-  airMopAdd(mop, nrrd=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nrrd = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdLoad(nrrd, inS, NULL)) {
     biffMovef(me, NRRD, "%s: trouble loading \"%s\"", me, inS);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   range = nrrdRangeNewSet(nrrd, blind8BitRange);
@@ -64,8 +65,7 @@ unrrdu_minmaxDoit(const char *me, char *inS, int blind8BitRange, FILE *fout) {
 }
 
 int
-unrrdu_minmaxMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+unrrdu_minmaxMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, **inS;
   airArray *mop;
@@ -84,25 +84,24 @@ unrrdu_minmaxMain(int argc, const char **argv, const char *me,
              "(" B8DEF ") is potentialy over-riding the effect of "
              "environment variable NRRD_STATE_BLIND_8_BIT_RANGE; "
              "see \"unu env\"");
-  hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL,
-             "input nrrd(s)", &ninLen);
+  hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL, "input nrrd(s)",
+             &ninLen);
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_minmaxInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  for (ni=0; ni<ninLen; ni++) {
+  for (ni = 0; ni < ninLen; ni++) {
     if (ninLen > 1) {
       fprintf(stdout, "==> %s <==\n", inS[ni]);
     }
     if (unrrdu_minmaxDoit(me, inS[ni], blind8BitRange, stdout)) {
       airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble with \"%s\":\n%s",
-              me, inS[ni], err);
+      fprintf(stderr, "%s: trouble with \"%s\":\n%s", me, inS[ni], err);
       /* continue working on the remaining files */
     }
-    if (ninLen > 1 && ni < ninLen-1) {
+    if (ninLen > 1 && ni < ninLen - 1) {
       fprintf(stdout, "\n");
     }
   }

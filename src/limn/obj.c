@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "limn.h"
 
 /* restricted to this file now since here is the only place its needed */
@@ -47,7 +46,6 @@ limnObjectLookAdd(limnObject *obj) {
   return lookIdx;
 }
 
-
 limnObject *
 limnObjectNew(int incr, int doEdges) {
   limnObject *obj;
@@ -63,23 +61,17 @@ limnObjectNew(int incr, int doEdges) {
   obj->look = NULL;
 
   /* create all various airArrays */
-  obj->vertArr = airArrayNew((lppu.vert = &(obj->vert), lppu.v),
-                             &(obj->vertNum),
+  obj->vertArr = airArrayNew((lppu.vert = &(obj->vert), lppu.v), &(obj->vertNum),
                              sizeof(limnVertex), incr);
-  obj->edgeArr = airArrayNew((lppu.edge = &(obj->edge), lppu.v),
-                             &(obj->edgeNum),
+  obj->edgeArr = airArrayNew((lppu.edge = &(obj->edge), lppu.v), &(obj->edgeNum),
                              sizeof(limnEdge), incr);
-  obj->faceArr = airArrayNew((lppu.face = &(obj->face), lppu.v),
-                             &(obj->faceNum),
+  obj->faceArr = airArrayNew((lppu.face = &(obj->face), lppu.v), &(obj->faceNum),
                              sizeof(limnFace), incr);
-  obj->partArr = airArrayNew((lppu.partp = &(obj->part), lppu.v),
-                             &(obj->partNum),
-                             sizeof(limnPart*), incr);
+  obj->partArr = airArrayNew((lppu.partp = &(obj->part), lppu.v), &(obj->partNum),
+                             sizeof(limnPart *), incr);
   obj->partPoolArr = airArrayNew((lppu.partp = &(obj->partPool), lppu.v),
-                                 &(obj->partPoolNum),
-                                 sizeof(limnPart*), incr);
-  obj->lookArr = airArrayNew((lppu.look = &(obj->look), lppu.v),
-                             &(obj->lookNum),
+                                 &(obj->partPoolNum), sizeof(limnPart *), incr);
+  obj->lookArr = airArrayNew((lppu.look = &(obj->look), lppu.v), &(obj->lookNum),
                              sizeof(limnLook), incr);
 
   /* create (default) look 0 */
@@ -104,14 +96,11 @@ _limnObjectPartNew(int incr) {
     part->edgeIdx = NULL;
     part->faceIdx = NULL;
     part->vertIdxArr = airArrayNew((appu.ui = &(part->vertIdx), appu.v),
-                                   &(part->vertIdxNum),
-                                   sizeof(int), incr);
+                                   &(part->vertIdxNum), sizeof(int), incr);
     part->edgeIdxArr = airArrayNew((appu.ui = &(part->edgeIdx), appu.v),
-                                   &(part->edgeIdxNum),
-                                   sizeof(int), incr);
+                                   &(part->edgeIdxNum), sizeof(int), incr);
     part->faceIdxArr = airArrayNew((appu.ui = &(part->faceIdx), appu.v),
-                                   &(part->faceIdxNum),
-                                   sizeof(int), incr);
+                                   &(part->faceIdxNum), sizeof(int), incr);
   }
   return part;
 }
@@ -143,15 +132,15 @@ limnObjectNix(limnObject *obj) {
   unsigned int partIdx, faceIdx;
 
   if (obj) {
-    for (partIdx=0; partIdx<obj->partNum; partIdx++) {
+    for (partIdx = 0; partIdx < obj->partNum; partIdx++) {
       _limnObjectPartNix(obj->part[partIdx]);
     }
     airArrayNuke(obj->partArr);
-    for (partIdx=0; partIdx<obj->partPoolNum; partIdx++) {
+    for (partIdx = 0; partIdx < obj->partPoolNum; partIdx++) {
       _limnObjectPartNix(obj->partPool[partIdx]);
     }
     airArrayNuke(obj->partPoolArr);
-    for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
+    for (faceIdx = 0; faceIdx < obj->faceNum; faceIdx++) {
       _limnObjectFaceEmpty(obj->face + faceIdx);
     }
     airArrayNuke(obj->faceArr);
@@ -168,15 +157,15 @@ void
 limnObjectEmpty(limnObject *obj) {
   unsigned int partIdx, faceIdx;
 
-  for (partIdx=0; partIdx<obj->partNum; partIdx++) {
+  for (partIdx = 0; partIdx < obj->partNum; partIdx++) {
     _limnObjectPartNix(obj->part[partIdx]);
   }
   airArrayLenSet(obj->partArr, 0);
-  for (partIdx=0; partIdx<obj->partPoolNum; partIdx++) {
+  for (partIdx = 0; partIdx < obj->partPoolNum; partIdx++) {
     _limnObjectPartNix(obj->partPool[partIdx]);
   }
   airArrayLenSet(obj->partPoolArr, 0);
-  for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
+  for (faceIdx = 0; faceIdx < obj->faceNum; faceIdx++) {
     _limnObjectFaceEmpty(obj->face + faceIdx);
   }
   airArrayLenSet(obj->faceArr, 0);
@@ -199,21 +188,21 @@ limnObjectEmpty(limnObject *obj) {
 ** with growing any of the airArrays inside
 */
 int
-limnObjectPreSet(limnObject *obj, unsigned int partNum,
-                 unsigned int lookNum, unsigned int vertPerPart,
-                 unsigned int edgePerPart, unsigned int facePerPart) {
+limnObjectPreSet(limnObject *obj, unsigned int partNum, unsigned int lookNum,
+                 unsigned int vertPerPart, unsigned int edgePerPart,
+                 unsigned int facePerPart) {
   limnPart *part;
   unsigned int partIdx;
 
   limnObjectEmpty(obj);
-  airArrayLenPreSet(obj->vertArr, partNum*vertPerPart);
-  airArrayLenPreSet(obj->edgeArr, partNum*edgePerPart);
-  airArrayLenPreSet(obj->faceArr, partNum*facePerPart);
+  airArrayLenPreSet(obj->vertArr, partNum * vertPerPart);
+  airArrayLenPreSet(obj->edgeArr, partNum * edgePerPart);
+  airArrayLenPreSet(obj->faceArr, partNum * facePerPart);
   airArrayLenPreSet(obj->lookArr, lookNum);
   airArrayLenPreSet(obj->partArr, partNum);
 
   airArrayLenSet(obj->partPoolArr, partNum);
-  for (partIdx=0; partIdx<partNum; partIdx++) {
+  for (partIdx = 0; partIdx < partNum; partIdx++) {
     part = obj->partPool[partIdx] = _limnObjectPartNew(obj->incr);
     airArrayLenPreSet(part->vertIdxArr, vertPerPart);
     airArrayLenPreSet(part->edgeIdxArr, edgePerPart);
@@ -245,8 +234,7 @@ limnObjectPartAdd(limnObject *obj) {
 }
 
 int
-limnObjectVertexNumPreSet(limnObject *obj, unsigned int partIdx,
-                          unsigned int vertNum) {
+limnObjectVertexNumPreSet(limnObject *obj, unsigned int partIdx, unsigned int vertNum) {
   limnPart *part;
 
   part = obj->part[partIdx];
@@ -256,8 +244,7 @@ limnObjectVertexNumPreSet(limnObject *obj, unsigned int partIdx,
 }
 
 int
-limnObjectVertexAdd(limnObject *obj, unsigned int partIdx,
-                    float x, float y, float z) {
+limnObjectVertexAdd(limnObject *obj, unsigned int partIdx, float x, float y, float z) {
   limnPart *part;
   limnVertex *vert;
   int vertIdx, vertIdxIdx;
@@ -285,12 +272,11 @@ limnObjectVertexAdd(limnObject *obj, unsigned int partIdx,
 }
 
 int
-limnObjectEdgeAdd(limnObject *obj, unsigned int partIdx,
-                  unsigned int lookIdx, unsigned int faceIdx,
-                  unsigned int vertIdx0, unsigned int vertIdx1) {
-  int tmp, edgeIdx=-42;
+limnObjectEdgeAdd(limnObject *obj, unsigned int partIdx, unsigned int lookIdx,
+                  unsigned int faceIdx, unsigned int vertIdx0, unsigned int vertIdx1) {
+  int tmp, edgeIdx = -42;
   unsigned int edgeIdxIdx;
-  limnEdge *edge=NULL;
+  limnEdge *edge = NULL;
   limnPart *part;
 
   part = obj->part[partIdx];
@@ -299,11 +285,10 @@ limnObjectEdgeAdd(limnObject *obj, unsigned int partIdx,
   }
 
   /* do a linear search through this part's existing edges */
-  for (edgeIdxIdx=0; edgeIdxIdx<part->edgeIdxNum; edgeIdxIdx++) {
+  for (edgeIdxIdx = 0; edgeIdxIdx < part->edgeIdxNum; edgeIdxIdx++) {
     edgeIdx = part->edgeIdx[edgeIdxIdx];
     edge = obj->edge + edgeIdx;
-    if (edge->vertIdx[0] == vertIdx0
-        && edge->vertIdx[1] == vertIdx1) {
+    if (edge->vertIdx[0] == vertIdx0 && edge->vertIdx[1] == vertIdx1) {
       break;
     }
   }
@@ -330,8 +315,7 @@ limnObjectEdgeAdd(limnObject *obj, unsigned int partIdx,
 }
 
 int
-limnObjectFaceNumPreSet(limnObject *obj, unsigned int partIdx,
-                        unsigned int faceNum) {
+limnObjectFaceNumPreSet(limnObject *obj, unsigned int partIdx, unsigned int faceNum) {
   limnPart *part;
 
   part = obj->part[partIdx];
@@ -341,9 +325,8 @@ limnObjectFaceNumPreSet(limnObject *obj, unsigned int partIdx,
 }
 
 int
-limnObjectFaceAdd(limnObject *obj, unsigned int partIdx,
-                  unsigned int lookIdx, unsigned int sideNum,
-                  unsigned int *vertIdx) {
+limnObjectFaceAdd(limnObject *obj, unsigned int partIdx, unsigned int lookIdx,
+                  unsigned int sideNum, unsigned int *vertIdx) {
   limnFace *face;
   limnPart *part;
   unsigned int faceIdx, faceIdxIdx, sideIdx;
@@ -359,13 +342,12 @@ limnObjectFaceAdd(limnObject *obj, unsigned int partIdx,
   if (obj->doEdges) {
     face->edgeIdx = AIR_CALLOC(sideNum, unsigned int);
   }
-  for (sideIdx=0; sideIdx<sideNum; sideIdx++) {
+  for (sideIdx = 0; sideIdx < sideNum; sideIdx++) {
     face->vertIdx[sideIdx] = vertIdx[sideIdx];
     if (obj->doEdges) {
-      face->edgeIdx[sideIdx] =
-        limnObjectEdgeAdd(obj, partIdx, 0, faceIdx,
-                          vertIdx[sideIdx],
-                          vertIdx[AIR_MOD((int)sideIdx+1, (int)sideNum)]);
+      face->edgeIdx[sideIdx]
+        = limnObjectEdgeAdd(obj, partIdx, 0, faceIdx, vertIdx[sideIdx],
+                            vertIdx[AIR_MOD((int)sideIdx + 1, (int)sideNum)]);
     }
   }
   ELL_3V_SET(face->worldNormal, AIR_NAN, AIR_NAN, AIR_NAN);
@@ -379,4 +361,3 @@ limnObjectFaceAdd(limnObject *obj, unsigned int partIdx,
 
   return faceIdx;
 }
-

@@ -24,14 +24,10 @@
 #include "moss.h"
 #include "privateMoss.h"
 
-const char *
-mossBiffKey = "moss";
+const char *mossBiffKey = "moss";
 
-int
-mossDefBoundary = nrrdBoundaryBleed;
+int mossDefBoundary = nrrdBoundaryBleed;
 
-int
-mossDefCenter = nrrdCenterCell;
+int mossDefCenter = nrrdCenterCell;
 
-int
-mossVerbose = 0;
+int mossVerbose = 0;

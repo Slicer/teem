@@ -26,13 +26,13 @@
 
 #if TEEM_FFTW3 /* ============================================ */
 
-#include <fftw3.h>
+#  include <fftw3.h>
 
 const int nrrdFFTWEnabled = AIR_TRUE;
 
 int
 nrrdFFTWWisdomRead(FILE *file) {
-  static const char me[]="nrrdFFTWWisdomRead";
+  static const char me[] = "nrrdFFTWWisdomRead";
 
   if (!(file)) {
     biffAddf(NRRD, "%s: given file NULL", me);
@@ -63,12 +63,12 @@ static void
 _nrrdDimsReverse(fftw_iodim *dims, unsigned int len) {
   fftw_iodim buff[NRRD_DIM_MAX];
   unsigned int ii;
-  for (ii=0; ii<len; ii++) {
-    buff[len-1-ii].n = dims[ii].n;
-    buff[len-1-ii].is = dims[ii].is;
-    buff[len-1-ii].os = dims[ii].os;
+  for (ii = 0; ii < len; ii++) {
+    buff[len - 1 - ii].n = dims[ii].n;
+    buff[len - 1 - ii].is = dims[ii].is;
+    buff[len - 1 - ii].os = dims[ii].os;
   }
-  for (ii=0; ii<len; ii++) {
+  for (ii = 0; ii < len; ii++) {
     dims[ii].n = buff[ii].n;
     dims[ii].is = buff[ii].is;
     dims[ii].os = buff[ii].os;
@@ -87,10 +87,9 @@ _nrrdDimsReverse(fftw_iodim *dims, unsigned int len) {
 ** require it, though it is set on the output.
 */
 int
-nrrdFFT(Nrrd *nout, const Nrrd *_nin,
-        unsigned int *axes, unsigned int axesNum,
-        int sign, int rescale, int rigor) {
-  static const char me[]="nrrdFFT";
+nrrdFFT(Nrrd *nout, const Nrrd *_nin, unsigned int *axes, unsigned int axesNum, int sign,
+        int rescale, int rigor) {
+  static const char me[] = "nrrdFFT";
   size_t inSize[NRRD_DIM_MAX], II, NN, nprod;
   double *inData, *outData;
   airArray *mop;
@@ -106,32 +105,33 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!( _nin->dim > 1 && 2 == _nin->axis[0].size )) {
+  if (!(_nin->dim > 1 && 2 == _nin->axis[0].size)) {
     biffAddf(NRRD, "%s: nin doesn't look like a complex-valued array", me);
     return 1;
   }
-  if (!( axesNum >= 1 )) {
+  if (!(axesNum >= 1)) {
     biffAddf(NRRD, "%s: axesNum 0, no axes to transform?", me);
     return 1;
   }
-  for (axi=0; axi<_nin->dim; axi++) {
+  for (axi = 0; axi < _nin->dim; axi++) {
     axisDo[axi] = 0;
   }
-  for (axi=0; axi<axesNum; axi++) {
+  for (axi = 0; axi < axesNum; axi++) {
     if (0 == axes[axi]) {
-      biffAddf(NRRD, "%s: can't transform axis 0 (axes[%u]) for "
-               "real/complex values", me, axi);
+      biffAddf(NRRD,
+               "%s: can't transform axis 0 (axes[%u]) for "
+               "real/complex values",
+               me, axi);
       return 1;
     }
-    if (!( axes[axi] < _nin->dim )) {
-      biffAddf(NRRD, "%s: axis %u (axes[%u]) out of range [1,%u]", me,
-               axes[axi], axi, _nin->dim-1);
+    if (!(axes[axi] < _nin->dim)) {
+      biffAddf(NRRD, "%s: axis %u (axes[%u]) out of range [1,%u]", me, axes[axi], axi,
+               _nin->dim - 1);
       return 1;
     }
     axisDo[axes[axi]]++;
     if (2 == axisDo[axes[axi]]) {
-      biffAddf(NRRD, "%s: axis %u (axes[%u]) already transformed",
-               me, axes[axi], axi);
+      biffAddf(NRRD, "%s: axis %u (axes[%u]) already transformed", me, axes[axi], axi);
       return 1;
     }
   }
@@ -144,7 +144,7 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
      the memory-alignment-savvy fftw_malloc; the freeing is handled by both
      _nrrdFftwFreeWrapper and nrrdNix. */
   /* (NN = 2 * number of complex values) */
-  inData = AIR_CAST(double *, fftw_malloc(NN*sizeof(double)));
+  inData = AIR_CAST(double *, fftw_malloc(NN * sizeof(double)));
   if (!inData) {
     biffAddf(NRRD, "%s: couldn't allocate input data copy", me);
     return 1;
@@ -178,7 +178,7 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
   txfRank = howRank = 0;
   stride = 1;
   nprod = 1;
-  for (axi=1; axi<nin->dim; axi++) {
+  for (axi = 1; axi < nin->dim; axi++) {
     if (axisDo[axi]) {
       txfDims[txfRank].n = AIR_INT(inSize[axi]);
       txfDims[txfRank].is = txfDims[txfRank].os = AIR_INT(stride);
@@ -222,18 +222,18 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
     break;
   default:
     biffAddf(NRRD, "%s: unsupported rigor %d", me, rigor);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   /* HEY: figure out why fftw expects txfRank and howRank to be
      signed and not unsigned */
-  plan = fftw_plan_guru_dft(AIR_INT(txfRank), txfDims,
-                            AIR_INT(howRank), howDims,
+  plan = fftw_plan_guru_dft(AIR_INT(txfRank), txfDims, AIR_INT(howRank), howDims,
                             AIR_CAST(fftw_complex *, inData),
-                            AIR_CAST(fftw_complex *, outData),
-                            sign, flags);
+                            AIR_CAST(fftw_complex *, outData), sign, flags);
   if (!plan) {
     biffAddf(NRRD, "%s: unable to create plan", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, plan, _nrrdFftwDestroyPlanWrapper, airMopAlways);
 
@@ -242,13 +242,14 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
   dataBef = nin->data;
   if (nrrdConvert(nin, _nin, nrrdTypeDouble)) {
     biffAddf(NRRD, "%s: couldn't initialize input", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   /* a reasonable assert: data buffer was allocated correctly */
   if (dataBef != nin->data) {
-    biffAddf(NRRD, "%s: pre-allocation error; nrrdConvert reallocated data",
-             me);
-    airMopError(mop); return 1;
+    biffAddf(NRRD, "%s: pre-allocation error; nrrdConvert reallocated data", me);
+    airMopError(mop);
+    return 1;
   }
 
   /* run the transform; HEY, no indication of success? */
@@ -257,8 +258,8 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
   /* if wanted, remove the sqrt(nprod) scaling that fftw adds at each pass */
   if (rescale) {
     double scale;
-    scale = sqrt(1.0/AIR_CAST(double, nprod));
-    for (II=0; II<NN; II++) {
+    scale = sqrt(1.0 / AIR_CAST(double, nprod));
+    for (II = 0; II < NN; II++) {
       outData[II] *= scale;
     }
   }
@@ -266,16 +267,15 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
   if (nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE)
       || nrrdBasicInfoCopy(nout, nin,
                            NRRD_BASIC_INFO_DATA_BIT /* */
-                           | NRRD_BASIC_INFO_TYPE_BIT
-                           | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                           | NRRD_BASIC_INFO_DIMENSION_BIT
-                           | NRRD_BASIC_INFO_CONTENT_BIT
-                           | NRRD_BASIC_INFO_COMMENTS_BIT
-                           | (nrrdStateKeyValuePairsPropagate
-                              ? 0
-                              : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+                             | NRRD_BASIC_INFO_TYPE_BIT | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                             | NRRD_BASIC_INFO_DIMENSION_BIT
+                             | NRRD_BASIC_INFO_CONTENT_BIT | NRRD_BASIC_INFO_COMMENTS_BIT
+                             | (nrrdStateKeyValuePairsPropagate
+                                  ? 0
+                                  : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   nout->axis[0].kind = nrrdKindComplex;
 
@@ -285,7 +285,7 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin,
 
 int
 nrrdFFTWWisdomWrite(FILE *file) {
-  static const char me[]="nrrdFFTWWisdomWrite";
+  static const char me[] = "nrrdFFTWWisdomWrite";
 
   if (!(file)) {
     biffAddf(NRRD, "%s: given file NULL", me);
@@ -295,7 +295,6 @@ nrrdFFTWWisdomWrite(FILE *file) {
   fftw_export_wisdom_to_file(file);
   return 0;
 }
-
 
 #else /* TEEM_FFTW3 ============================================ */
 
@@ -311,10 +310,9 @@ nrrdFFTWWisdomRead(FILE *file) {
 }
 
 int
-nrrdFFT(Nrrd *nout, const Nrrd *nin,
-        unsigned int *axes, unsigned int axesNum,
-        int sign, int rescale, int rigor) {
-  static const char me[]="nrrdFFT";
+nrrdFFT(Nrrd *nout, const Nrrd *nin, unsigned int *axes, unsigned int axesNum, int sign,
+        int rescale, int rigor) {
+  static const char me[] = "nrrdFFT";
 
   AIR_UNUSED(nout);
   AIR_UNUSED(nin);

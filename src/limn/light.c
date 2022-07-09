@@ -21,9 +21,7 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "limn.h"
-
 
 /*
 ******** limnLightSet()
@@ -32,11 +30,10 @@
 **
 */
 void
-limnLightSet(limnLight *lit, int which, int vsp,
-             float r, float g, float b,
-             float x, float y, float z) {
+limnLightSet(limnLight *lit, int which, int vsp, float r, float g, float b, float x,
+             float y, float z) {
 
-  if (lit && AIR_IN_CL(0, which, LIMN_LIGHT_NUM-1)) {
+  if (lit && AIR_IN_CL(0, which, LIMN_LIGHT_NUM - 1)) {
     lit->on[which] = 1;
     lit->vsp[which] = vsp;
     ELL_4V_SET(lit->col[which], r, g, b, 1.0);
@@ -70,8 +67,8 @@ limnLightAmbientSet(limnLight *lit, float r, float g, float b) {
 */
 int
 limnLightUpdate(limnLight *lit, limnCamera *cam) {
-  static const char me[]="limnLightUpdate";
-  double dir[3], _dir[3], uvn[9]={0,0,0,0,0,0,0,0,0}, norm;
+  static const char me[] = "limnLightUpdate";
+  double dir[3], _dir[3], uvn[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0}, norm;
   int i;
 
   if (cam) {
@@ -81,7 +78,7 @@ limnLightUpdate(limnLight *lit, limnCamera *cam) {
     }
     ELL_34M_EXTRACT(uvn, cam->V2W);
   }
-  for (i=0; i<LIMN_LIGHT_NUM; i++) {
+  for (i = 0; i < LIMN_LIGHT_NUM; i++) {
     ELL_3V_COPY(_dir, lit->_dir[i]);
     if (cam && lit->vsp[i]) {
       ELL_3MV_MUL(dir, uvn, _dir);
@@ -104,7 +101,7 @@ limnLightUpdate(limnLight *lit, limnCamera *cam) {
 void
 limnLightSwitch(limnLight *lit, int which, int on) {
 
-  if (lit && AIR_IN_CL(0, which, LIMN_LIGHT_NUM-1)) {
+  if (lit && AIR_IN_CL(0, which, LIMN_LIGHT_NUM - 1)) {
     lit->on[which] = on;
   }
 }
@@ -115,7 +112,7 @@ limnLightReset(limnLight *lit) {
 
   if (lit) {
     ELL_4V_SET(lit->amb, 0, 0, 0, 1);
-    for (i=0; i<LIMN_LIGHT_NUM; i++) {
+    for (i = 0; i < LIMN_LIGHT_NUM; i++) {
       ELL_4V_SET(lit->_dir[i], 0, 0, 0, 0);
       ELL_4V_SET(lit->dir[i], 0, 0, 0, 0);
       ELL_4V_SET(lit->col[i], 0, 0, 0, 1);

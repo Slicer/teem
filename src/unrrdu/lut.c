@@ -25,30 +25,27 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through one univariate lookup table"
-static const char *_unrrdu_lutInfoL =
-(INFO
- " (itself represented as a nrrd). The lookup table "
- "can be 1D, in which case the output "
- "has the same dimension as the input, or 2D, in which case "
- "the output has one more dimension than the input, and each "
- "value is mapped to a scanline (along axis 0) from the "
- "lookup table.\n "
- "* Uses nrrdApply1DLut");
+static const char *_unrrdu_lutInfoL
+  = (INFO " (itself represented as a nrrd). The lookup table "
+          "can be 1D, in which case the output "
+          "has the same dimension as the input, or 2D, in which case "
+          "the output has one more dimension than the input, and each "
+          "value is mapped to a scanline (along axis 0) from the "
+          "lookup table.\n "
+          "* Uses nrrdApply1DLut");
 
 int
-unrrdu_lutMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+unrrdu_lutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nlut, *nout;
   airArray *mop;
   int typeOut, rescale, pret, blind8BitRange;
   double min, max;
-  NrrdRange *range=NULL;
+  NrrdRange *range = NULL;
 
   hestOptAdd(&opt, "m,map", "lut", airTypeOther, 1, 1, &nlut, NULL,
-             "lookup table to map input nrrd through",
-             NULL, NULL, nrrdHestNrrd);
+             "lookup table to map input nrrd through", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "r,rescale", NULL, airTypeInt, 0, 0, &rescale, NULL,
              "rescale the input values from the input range to the "
              "lut domain.  The lut domain is either explicitly "
@@ -88,8 +85,8 @@ unrrdu_lutMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   /* see comment rmap.c */
-  if (!( AIR_EXISTS(nlut->axis[nlut->dim - 1].min) &&
-         AIR_EXISTS(nlut->axis[nlut->dim - 1].max) )) {
+  if (!(AIR_EXISTS(nlut->axis[nlut->dim - 1].min)
+        && AIR_EXISTS(nlut->axis[nlut->dim - 1].max))) {
     rescale = AIR_TRUE;
   }
   if (rescale) {

@@ -25,14 +25,11 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Reverse order of slices along one axis"
-static const char *_unrrdu_flipInfoL =
-  (INFO
-   ". Special case of \"unu\tshuffle\".\n "
-   "* Uses nrrdFlip");
+static const char *_unrrdu_flipInfoL = (INFO ". Special case of \"unu\tshuffle\".\n "
+                                             "* Uses nrrdFlip");
 
 int
-unrrdu_flipMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_flipMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

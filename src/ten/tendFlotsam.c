@@ -30,11 +30,7 @@
 ** NULL-terminated array of unrrduCmd pointers, as ordered by
 ** TEN_MAP macro
 */
-unrrduCmd *
-tendCmdList[] = {
-  TEND_MAP(TEND_LIST)
-  NULL
-};
+unrrduCmd *tendCmdList[] = {TEND_MAP(TEND_LIST) NULL};
 
 const char *tendTitle = "tend: Diffusion Image Processing and Analysis";
 
@@ -50,7 +46,7 @@ const char *tendTitle = "tend: Diffusion Image Processing and Analysis";
 */
 int
 tendFiberStopParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="tenFiberStopParse", *str, *opt, *opt2;
+  char me[] = "tenFiberStopParse", *str, *opt, *opt2;
   double *info;
   airArray *mop;
   int integer;
@@ -68,37 +64,38 @@ tendFiberStopParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
   if (!opt) {
     /* couldn't parse string as nrrdEncoding, but there wasn't a colon */
     sprintf(err, "%s: didn't see a colon in \"%s\"", me, str);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   *opt = '\0';
   opt++;
   info[0] = AIR_CAST(int, airEnumVal(tenFiberStop, str));
   if (tenFiberStopUnknown == AIR_CAST(int, info[0])) {
-    sprintf(err, "%s: didn't recognize \"%s\" as %s",
-            me, str, tenFiberStop->name);
-    airMopError(mop); return 1;
+    sprintf(err, "%s: didn't recognize \"%s\" as %s", me, str, tenFiberStop->name);
+    airMopError(mop);
+    return 1;
   }
-  switch(AIR_CAST(int, info[0])) {
+  switch (AIR_CAST(int, info[0])) {
   case tenFiberStopAniso:
     /* <aniso>,<level> : tenAniso,double */
     opt2 = strchr(opt, ',');
     if (!opt2) {
-      sprintf(err, "%s: didn't see comma between aniso and level in \"%s\"",
-              me, opt);
-      airMopError(mop); return 1;
+      sprintf(err, "%s: didn't see comma between aniso and level in \"%s\"", me, opt);
+      airMopError(mop);
+      return 1;
     }
     *opt2 = '\0';
     opt2++;
     info[1] = AIR_CAST(int, airEnumVal(tenAniso, opt));
     if (tenAnisoUnknown == AIR_CAST(int, info[1])) {
-      sprintf(err, "%s: didn't recognize \"%s\" as %s",
-              me, opt, tenAniso->name);
-      airMopError(mop); return 1;
+      sprintf(err, "%s: didn't recognize \"%s\" as %s", me, opt, tenAniso->name);
+      airMopError(mop);
+      return 1;
     }
-    if (1 != sscanf(opt2, "%lg", info+2)) {
-      sprintf(err, "%s: couldn't parse aniso level \"%s\" as double",
-              me, opt2);
-      airMopError(mop); return 1;
+    if (1 != sscanf(opt2, "%lg", info + 2)) {
+      sprintf(err, "%s: couldn't parse aniso level \"%s\" as double", me, opt2);
+      airMopError(mop);
+      return 1;
     }
     /*
     fprintf(stderr, "!%s: parsed aniso:%s,%g\n", me,
@@ -111,10 +108,11 @@ tendFiberStopParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
   case tenFiberStopConfidence:
   case tenFiberStopMinLength:
     /* all of these take a single double */
-    if (1 != sscanf(opt, "%lg", info+1)) {
+    if (1 != sscanf(opt, "%lg", info + 1)) {
       sprintf(err, "%s: couldn't parse %s \"%s\" as double", me,
               airEnumStr(tenFiberStop, AIR_CAST(int, info[0])), opt);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     /*
     fprintf(stderr, "!%s: parse %s:%g\n", me,
@@ -127,7 +125,8 @@ tendFiberStopParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
     /* <#steps> : int */
     if (1 != sscanf(opt, "%d", &integer)) {
       sprintf(err, "%s: couldn't parse \"%s\" as int", me, opt);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     info[1] = integer;
     /* fprintf(stderr, "!%s: parse steps:%d\n", me, integer); */
@@ -136,22 +135,15 @@ tendFiberStopParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
     /* moron */
     break;
   default:
-    sprintf(err, "%s: stop method %d not supported", me,
-            AIR_CAST(int, info[0]));
-    airMopError(mop); return 1;
+    sprintf(err, "%s: stop method %d not supported", me, AIR_CAST(int, info[0]));
+    airMopError(mop);
+    return 1;
     break;
   }
   airMopOkay(mop);
   return 0;
 }
 
-hestCB
-_tendFiberStopCB = {
-  3*sizeof(double),
-  "fiber stop",
-  tendFiberStopParse,
-  NULL
-};
+hestCB _tendFiberStopCB = {3 * sizeof(double), "fiber stop", tendFiberStopParse, NULL};
 
-hestCB *
-tendFiberStopCB = &_tendFiberStopCB;
+hestCB *tendFiberStopCB = &_tendFiberStopCB;

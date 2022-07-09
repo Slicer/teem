@@ -26,8 +26,8 @@
 
 typedef struct {
   double *buffTen, *buffWght;
-  tenInterpParm *tip;  /* sneakiness: using tip->allocLen to record
-                          allocation sizes of buffTen and buffWght, too */
+  tenInterpParm *tip; /* sneakiness: using tip->allocLen to record
+                         allocation sizes of buffTen and buffWght, too */
 } _tenGagePvlData;
 
 /* clang-format off */

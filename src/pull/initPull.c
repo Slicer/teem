@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "pull.h"
 #include "privatePull.h"
 
@@ -42,17 +41,16 @@ _pullInitParmInit(pullInitParm *initParm) {
   return;
 }
 
-#define CHECK(thing, min, max)                                         \
-  if (!( AIR_EXISTS(iparm->thing)                                      \
-         && min <= iparm->thing && iparm->thing <= max )) {            \
-    biffAddf(PULL, "%s: initParm->" #thing " %g not in range [%g,%g]", \
-             me, iparm->thing, min, max);                              \
-    return 1;                                                          \
+#define CHECK(thing, min, max)                                                          \
+  if (!(AIR_EXISTS(iparm->thing) && min <= iparm->thing && iparm->thing <= max)) {      \
+    biffAddf(PULL, "%s: initParm->" #thing " %g not in range [%g,%g]", me,              \
+             iparm->thing, min, max);                                                   \
+    return 1;                                                                           \
   }
 
 int
 _pullInitParmCheck(pullInitParm *iparm) {
-  static const char me[]="_pullInitParmCheck";
+  static const char me[] = "_pullInitParmCheck";
 
   if (!AIR_IN_OP(pullInitMethodUnknown, iparm->method, pullInitMethodLast)) {
     biffAddf(PULL, "%s: init method %d not valid", me, iparm->method);
@@ -65,15 +63,14 @@ _pullInitParmCheck(pullInitParm *iparm) {
       biffMovef(PULL, NRRD, "%s: got a broken npos", me);
       return 1;
     }
-    if (!( 2 == iparm->npos->dim
-           && 4 == iparm->npos->axis[0].size
-           && (nrrdTypeDouble == iparm->npos->type
-               || nrrdTypeFloat == iparm->npos->type) )) {
-      biffAddf(PULL, "%s: npos not a 2-D 4-by-N array of %s or %s"
-               "(got %u-D %u-by-X of %s)", me,
-               airEnumStr(nrrdType, nrrdTypeFloat),
-               airEnumStr(nrrdType, nrrdTypeDouble),
-               iparm->npos->dim,
+    if (!(2 == iparm->npos->dim && 4 == iparm->npos->axis[0].size
+          && (nrrdTypeDouble == iparm->npos->type
+              || nrrdTypeFloat == iparm->npos->type))) {
+      biffAddf(PULL,
+               "%s: npos not a 2-D 4-by-N array of %s or %s"
+               "(got %u-D %u-by-X of %s)",
+               me, airEnumStr(nrrdType, nrrdTypeFloat),
+               airEnumStr(nrrdType, nrrdTypeDouble), iparm->npos->dim,
                AIR_UINT(iparm->npos->axis[0].size),
                airEnumStr(nrrdType, iparm->npos->type));
       return 1;
@@ -81,8 +78,7 @@ _pullInitParmCheck(pullInitParm *iparm) {
     break;
   case pullInitMethodPointPerVoxel:
     if (iparm->pointPerVoxel < -3001 || iparm->pointPerVoxel > 10) {
-      biffAddf(PULL, "%s: pointPerVoxel %d unreasonable", me,
-               iparm->pointPerVoxel);
+      biffAddf(PULL, "%s: pointPerVoxel %d unreasonable", me, iparm->pointPerVoxel);
       return 1;
     }
     if (-1 == iparm->pointPerVoxel) {
@@ -97,16 +93,14 @@ _pullInitParmCheck(pullInitParm *iparm) {
     break;
   case pullInitMethodRandom:
   case pullInitMethodHalton:
-    if (!( iparm->numInitial >= 1 )) {
-      biffAddf(PULL, "%s: iparm->numInitial (%d) not >= 1\n", me,
-               iparm->numInitial);
+    if (!(iparm->numInitial >= 1)) {
+      biffAddf(PULL, "%s: iparm->numInitial (%d) not >= 1\n", me, iparm->numInitial);
       return 1;
     }
     break;
   /* no check needed on haltonStartIndex */
   default:
-    biffAddf(PULL, "%s: init method %d valid but not handled?", me,
-             iparm->method);
+    biffAddf(PULL, "%s: init method %d valid but not handled?", me, iparm->method);
     return 1;
   }
 
@@ -115,7 +109,7 @@ _pullInitParmCheck(pullInitParm *iparm) {
 
 int
 pullInitRandomSet(pullContext *pctx, unsigned int numInitial) {
-  static const char me[]="pullInitRandomSet";
+  static const char me[] = "pullInitRandomSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -132,9 +126,8 @@ pullInitRandomSet(pullContext *pctx, unsigned int numInitial) {
 }
 
 int
-pullInitHaltonSet(pullContext *pctx, unsigned int numInitial,
-                  unsigned int startIndex) {
-  static const char me[]="pullInitHaltonSet";
+pullInitHaltonSet(pullContext *pctx, unsigned int numInitial, unsigned int startIndex) {
+  static const char me[] = "pullInitHaltonSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -152,11 +145,10 @@ pullInitHaltonSet(pullContext *pctx, unsigned int numInitial,
 }
 
 int
-pullInitPointPerVoxelSet(pullContext *pctx, int pointPerVoxel,
-                         unsigned int zSlcMin, unsigned int zSlcMax,
-                         unsigned int alongScaleNum,
+pullInitPointPerVoxelSet(pullContext *pctx, int pointPerVoxel, unsigned int zSlcMin,
+                         unsigned int zSlcMax, unsigned int alongScaleNum,
                          double jitter) {
-  static const char me[]="pullInitPointPerVoxelSet";
+  static const char me[] = "pullInitPointPerVoxelSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -182,7 +174,7 @@ pullInitPointPerVoxelSet(pullContext *pctx, int pointPerVoxel,
 
 int
 pullInitGivenPosSet(pullContext *pctx, const Nrrd *npos) {
-  static const char me[]="pullInitGivenPosSet";
+  static const char me[] = "pullInitGivenPosSet";
 
   if (!(pctx && npos)) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -196,7 +188,7 @@ pullInitGivenPosSet(pullContext *pctx, const Nrrd *npos) {
 
 int
 pullInitLiveThreshUseSet(pullContext *pctx, int liveThreshUse) {
-  static const char me[]="pullInitLiveThreshUseSet";
+  static const char me[] = "pullInitLiveThreshUseSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -209,7 +201,7 @@ pullInitLiveThreshUseSet(pullContext *pctx, int liveThreshUse) {
 
 int
 pullInitUnequalShapesAllowSet(pullContext *pctx, int allow) {
-  static const char me[]="pullInitUnequalShapesAllowSet";
+  static const char me[] = "pullInitUnequalShapesAllowSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -222,5 +214,4 @@ pullInitUnequalShapesAllowSet(pullContext *pctx, int allow) {
 
 #undef CHECK
 
-FILE *
-_pullPointAddLog = NULL;
+FILE *_pullPointAddLog = NULL;

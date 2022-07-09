@@ -25,18 +25,16 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Merge CCs with their neighbors, under various constraints"
-static const char *_unrrdu_ccmergeInfoL =
-(INFO
- ".  This operates on the output of \"ccfind\". "
- "Merging of a CC is always done into its largest neighbor. "
- "Whether or not to merge can be constrained by one or more of: "
- "CC size (\"-s\"), original CC value being brighter or darker (\"-d\"), "
- "and number of neighbors (\"-n\").\n "
- "* Uses nrrdCCMerge");
+static const char *_unrrdu_ccmergeInfoL
+  = (INFO ".  This operates on the output of \"ccfind\". "
+          "Merging of a CC is always done into its largest neighbor. "
+          "Whether or not to merge can be constrained by one or more of: "
+          "CC size (\"-s\"), original CC value being brighter or darker (\"-d\"), "
+          "and number of neighbors (\"-n\").\n "
+          "* Uses nrrdCCMerge");
 
 int
-unrrdu_ccmergeMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_ccmergeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nout2, *nval;
@@ -53,14 +51,12 @@ unrrdu_ccmergeMain(int argc, const char **argv, const char *me,
              "surround.  CCs larger than this are deemed too significant "
              "to mess with.  Or, use \"0\" to remove any such restriction "
              "on merging.");
-  hestOptAdd(&opt, "n,neighbor", "max # neigh", airTypeInt, 1, 1,
-             &maxNeigh, "1",
+  hestOptAdd(&opt, "n,neighbor", "max # neigh", airTypeInt, 1, 1, &maxNeigh, "1",
              "a cap on the number of neighbors that a CC may have if it is "
              "to be be merged.  \"1\" allows only islands to be merged, "
              "\"2\" does merging with bigger of two neighbors, etc, while "
              "\"0\" says that number of neighbors is no constraint");
-  hestOptAdd(&opt, "c,connect", "connectivity", airTypeUInt, 1, 1,
-             &conny, NULL,
+  hestOptAdd(&opt, "c,connect", "connectivity", airTypeUInt, 1, 1, &conny, NULL,
              "what kind of connectivity to use: the number of coordinates "
              "that vary in order to traverse the neighborhood of a given "
              "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");
@@ -85,8 +81,8 @@ unrrdu_ccmergeMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nout2=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nout = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nout2 = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
   if (nrrdCCMerge(nout, nin, nval, dir, maxSize, maxNeigh, conny)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

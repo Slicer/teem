@@ -84,17 +84,17 @@
 #include "air.h"
 #include "privateAir.h"
 
-#define AIR_RANDMT_M 397
+#define AIR_RANDMT_M            397
 #define AIR_RANDMT_DEFAULT_SEED 42
 
 /* Inlined class member functions that I made macros */
-#define HIBIT( u ) ((u) & 0x80000000UL)
-#define LOBIT( u ) ((u) & 0x00000001UL)
-#define LOBITS( u ) ((u) & 0x7fffffffUL)
-#define MIXBITS( u, v ) (HIBIT(u) | LOBITS(v))
-#define TWOSCOMP( u ) (~(u)+1)
-#define TWIST( m, s0, s1 ) \
-  ((m) ^ (MIXBITS(s0,s1)>>1) ^ (TWOSCOMP(LOBIT(s1)) & 0x9908b0dfUL))
+#define HIBIT(u)      ((u)&0x80000000UL)
+#define LOBIT(u)      ((u)&0x00000001UL)
+#define LOBITS(u)     ((u)&0x7fffffffUL)
+#define MIXBITS(u, v) (HIBIT(u) | LOBITS(v))
+#define TWOSCOMP(u)   (~(u) + 1)
+#define TWIST(m, s0, s1)                                                                \
+  ((m) ^ (MIXBITS(s0, s1) >> 1) ^ (TWOSCOMP(LOBIT(s1)) & 0x9908b0dfUL))
 
 /* airRandMTStateGlobal is not allocated at compile-time because of
    weirdness of where non-initialized global objects go in shared
@@ -119,8 +119,8 @@ _airRandMTInitialize(airRandMTState *rng, unsigned int seed) {
   register unsigned int *r = rng->state;
   register int i = 1;
   *s++ = seed & 0xffffffffUL;
-  for( ; i < AIR_RANDMT_N; ++i ) {
-    *s++ = ( 1812433253UL * ( *r ^ (*r >> 30) ) + i ) & 0xffffffffUL;
+  for (; i < AIR_RANDMT_N; ++i) {
+    *s++ = (1812433253UL * (*r ^ (*r >> 30)) + i) & 0xffffffffUL;
     r++;
   }
 }
@@ -131,13 +131,13 @@ _airRandMTReload(airRandMTState *rng) {
      Matthew Bellew (matthew.bellew@home.com) */
   register int i;
   register unsigned int *p = rng->state;
-  for (i=AIR_RANDMT_N - AIR_RANDMT_M; i--; ++p) {
-    *p = TWIST( p[AIR_RANDMT_M], p[0], p[1] );
+  for (i = AIR_RANDMT_N - AIR_RANDMT_M; i--; ++p) {
+    *p = TWIST(p[AIR_RANDMT_M], p[0], p[1]);
   }
-  for (i=AIR_RANDMT_M; --i; ++p) {
-    *p = TWIST( p[AIR_RANDMT_M-AIR_RANDMT_N], p[0], p[1] );
+  for (i = AIR_RANDMT_M; --i; ++p) {
+    *p = TWIST(p[AIR_RANDMT_M - AIR_RANDMT_N], p[0], p[1]);
   }
-  *p = TWIST( p[AIR_RANDMT_M-AIR_RANDMT_N], p[0], rng->state[0] );
+  *p = TWIST(p[AIR_RANDMT_M - AIR_RANDMT_N], p[0], rng->state[0]);
 
   rng->left = AIR_RANDMT_N;
   rng->pNext = rng->state;
@@ -145,9 +145,9 @@ _airRandMTReload(airRandMTState *rng) {
 
 airRandMTState *
 airRandMTStateNew(unsigned int seed) {
-  airRandMTState* ret;
+  airRandMTState *ret;
 
-  ret = AIR_CAST(airRandMTState*, malloc(sizeof(airRandMTState)));
+  ret = AIR_CAST(airRandMTState *, malloc(sizeof(airRandMTState)));
   airSrandMT_r(ret, seed);
   return ret;
 }
@@ -179,16 +179,16 @@ airUIrandMT_r(airRandMTState *rng) {
 
   s1 = *rng->pNext++;
   s1 ^= (s1 >> 11);
-  s1 ^= (s1 <<  7) & 0x9d2c5680UL;
+  s1 ^= (s1 << 7) & 0x9d2c5680UL;
   s1 ^= (s1 << 15) & 0xefc60000UL;
-  return ( s1 ^ (s1 >> 18) );
+  return (s1 ^ (s1 >> 18));
 }
 
 /* This generates the closed interval [0,1] */
 double
 airDrandMT_r(airRandMTState *rng) {
   double result = airUIrandMT_r(rng);
-  return result * (1.0/4294967295.0);
+  return result * (1.0 / 4294967295.0);
 }
 
 /* [0,1) w/ 53 bit precision (capacity of IEEE double precision) */
@@ -197,18 +197,18 @@ airDrandMT53_r(airRandMTState *rng) {
   unsigned int a, b;
   a = airUIrandMT_r(rng) >> 5;
   b = airUIrandMT_r(rng) >> 6;
-  return ( a * 67108864.0 + b ) * (1.0/9007199254740992.0); /* by Isaku Wada */
+  return (a * 67108864.0 + b) * (1.0 / 9007199254740992.0); /* by Isaku Wada */
 }
 
-#define _GLOBAL_ALLOC \
-  if (!_airRandMTStateGlobal_allocated) { \
-    airRandMTStateGlobal = airRandMTStateNew(0); \
-    _airRandMTStateGlobal_allocated = AIR_TRUE; \
+#define _GLOBAL_ALLOC                                                                   \
+  if (!_airRandMTStateGlobal_allocated) {                                               \
+    airRandMTStateGlobal = airRandMTStateNew(0);                                        \
+    _airRandMTStateGlobal_allocated = AIR_TRUE;                                         \
   }
-#define _GLOBAL_INIT \
-  if (!_airRandMTStateGlobal_initialized) { \
-    airSrandMT(AIR_RANDMT_DEFAULT_SEED); \
-  } \
+#define _GLOBAL_INIT                                                                    \
+  if (!_airRandMTStateGlobal_initialized) {                                             \
+    airSrandMT(AIR_RANDMT_DEFAULT_SEED);                                                \
+  }
 
 /*
 ******** airRandMTStateGlobalInit
@@ -249,13 +249,13 @@ unsigned int
 airRandInt(unsigned int N) {
   _GLOBAL_ALLOC;
   _GLOBAL_INIT;
-  return airUIrandMT_r(airRandMTStateGlobal)%N;
+  return airUIrandMT_r(airRandMTStateGlobal) % N;
 }
 
 unsigned int
 airRandInt_r(airRandMTState *state, unsigned int N) {
 
-  return airUIrandMT_r(state)%N;
+  return airUIrandMT_r(state) % N;
 }
 
 /* This checks to see if the sequence of numbers we get is what we
@@ -268,7 +268,7 @@ int
 airRandMTSanity(void) {
   int result = 0;
   /* Create a new generator with our seed */
-  airRandMTState* rng = airRandMTStateNew(AIR_RANDMT_DEFAULT_SEED);
+  airRandMTState *rng = airRandMTStateNew(AIR_RANDMT_DEFAULT_SEED);
 
   if (!rng) {
     /* Couldn't allocate memory */
@@ -280,12 +280,12 @@ airRandMTSanity(void) {
   result |= airUIrandMT_r(rng) != 1608637542U;
   result |= airUIrandMT_r(rng) != 3421126067U;
   result |= airUIrandMT_r(rng) != 4083286876U;
-  result |= airUIrandMT_r(rng) !=  787846414U;
+  result |= airUIrandMT_r(rng) != 787846414U;
   result |= airUIrandMT_r(rng) != 3143890026U;
   result |= airUIrandMT_r(rng) != 3348747335U;
   result |= airUIrandMT_r(rng) != 2571218620U;
   result |= airUIrandMT_r(rng) != 2563451924U;
-  result |= airUIrandMT_r(rng) !=  670094950U;
+  result |= airUIrandMT_r(rng) != 670094950U;
   result |= airUIrandMT_r(rng) != 1914837113U;
 
   airRandMTStateNix(rng);

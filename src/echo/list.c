@@ -28,9 +28,7 @@ void
 echoListAdd(echoObject *list, echoObject *child) {
   int idx;
 
-  if (!( list && child &&
-         (echoTypeList == list->type ||
-          echoTypeAABBox == list->type) ))
+  if (!(list && child && (echoTypeList == list->type || echoTypeAABBox == list->type)))
     return;
 
   idx = airArrayLenIncr(LIST(list)->objArr, 1);
@@ -53,14 +51,12 @@ _echoPosCompare(double *A, double *B) {
 */
 echoObject *
 echoListSplit(echoScene *scene, echoObject *list, int axis) {
-  echoPos_t lo[3], hi[3], loest0[3], hiest0[3],
-    loest1[3], hiest1[3];
+  echoPos_t lo[3], hi[3], loest0[3], hiest0[3], loest1[3], hiest1[3];
   double *mids;
   echoObject *o, *split, *list0, *list1;
   int i, splitIdx, len;
 
-  if (!( echoTypeList == list->type ||
-         echoTypeAABBox == list->type )) {
+  if (!(echoTypeList == list->type || echoTypeAABBox == list->type)) {
     return list;
   }
 
@@ -78,14 +74,14 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
   SPLIT(split)->obj1 = list1;
 
   mids = (double *)malloc(2 * len * sizeof(double));
-  for (i=0; i<len; i++) {
+  for (i = 0; i < len; i++) {
     o = LIST(list)->obj[i];
     echoBoundsGet(lo, hi, o);
-    mids[0 + 2*i] = (lo[axis] + hi[axis])/2;
-    *((unsigned int *)(mids + 1 + 2*i)) = i;
+    mids[0 + 2 * i] = (lo[axis] + hi[axis]) / 2;
+    *((unsigned int *)(mids + 1 + 2 * i)) = i;
   }
   /* overkill, I know, I know */
-  qsort(mids, len, 2*sizeof(double),
+  qsort(mids, len, 2 * sizeof(double),
         (int (*)(const void *, const void *))_echoPosCompare);
   /*
   for (i=0; i<len; i++) {
@@ -93,15 +89,15 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
   }
   */
 
-  splitIdx = len/2;
+  splitIdx = len / 2;
   /* printf("splitIdx = %d\n", splitIdx); */
   ELL_3V_SET(loest0, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
   ELL_3V_SET(loest1, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
   ELL_3V_SET(hiest0, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
   ELL_3V_SET(hiest1, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
   airArrayLenSet(LIST(list0)->objArr, splitIdx);
-  for (i=0; i<splitIdx; i++) {
-    o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
+  for (i = 0; i < splitIdx; i++) {
+    o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2 * i))];
     LIST(list0)->obj[i] = o;
     echoBoundsGet(lo, hi, o);
     /*
@@ -111,10 +107,10 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
     ELL_3V_MIN(loest0, loest0, lo);
     ELL_3V_MAX(hiest0, hiest0, hi);
   }
-  airArrayLenSet(LIST(list1)->objArr, len-splitIdx);
-  for (i=splitIdx; i<len; i++) {
-    o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
-    LIST(list1)->obj[i-splitIdx] = o;
+  airArrayLenSet(LIST(list1)->objArr, len - splitIdx);
+  for (i = splitIdx; i < len; i++) {
+    o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2 * i))];
+    LIST(list1)->obj[i - splitIdx] = o;
     echoBoundsGet(lo, hi, o);
     /*
     printf("111 lo = (%g,%g,%g), hi = (%g,%g,%g)\n",
@@ -147,46 +143,42 @@ echoObject *
 echoListSplit3(echoScene *scene, echoObject *list, int depth) {
   echoObject *ret, *tmp0, *tmp1;
 
-  if (!( echoTypeList == list->type ||
-         echoTypeAABBox == list->type ))
-    return NULL;
+  if (!(echoTypeList == list->type || echoTypeAABBox == list->type)) return NULL;
 
-  if (!depth)
-    return list;
+  if (!depth) return list;
 
   ret = echoListSplit(scene, list, 0);
 
 #define DOIT(obj, ax) ((obj) = echoListSplit(scene, (obj), (ax)))
-#define MORE(obj) echoTypeSplit == (obj)->type
+#define MORE(obj)     echoTypeSplit == (obj)->type
 
   if (MORE(ret)) {
     tmp0 = DOIT(SPLIT(ret)->obj0, 1);
     if (MORE(tmp0)) {
       tmp1 = DOIT(SPLIT(tmp0)->obj0, 2);
       if (MORE(tmp1)) {
-        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth-1);
-        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth-1);
+        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth - 1);
+        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth - 1);
       }
       tmp1 = DOIT(SPLIT(tmp0)->obj1, 2);
       if (MORE(tmp1)) {
-        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth-1);
-        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth-1);
+        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth - 1);
+        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth - 1);
       }
     }
     tmp0 = DOIT(SPLIT(ret)->obj1, 1);
     if (MORE(tmp0)) {
       tmp1 = DOIT(SPLIT(tmp0)->obj0, 2);
       if (MORE(tmp1)) {
-        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth-1);
-        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth-1);
+        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth - 1);
+        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth - 1);
       }
       tmp1 = DOIT(SPLIT(tmp0)->obj1, 2);
       if (MORE(tmp1)) {
-        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth-1);
-        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth-1);
+        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth - 1);
+        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth - 1);
       }
     }
   }
   return ret;
 }
-

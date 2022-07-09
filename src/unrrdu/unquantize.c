@@ -25,15 +25,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Recover floating point values from quantized data"
-static const char *_unrrdu_unquantizeInfoL =
-  (INFO ". Uses the oldMin and oldMax fields in the Nrrd of quantized values "
-   "to regenerate approximate versions of the original unquantized values. "
-   "Can also override these with \"-min\" and \"-max\".\n "
-   "* Uses nrrdUnquantize");
+static const char *_unrrdu_unquantizeInfoL
+  = (INFO ". Uses the oldMin and oldMax fields in the Nrrd of quantized values "
+          "to regenerate approximate versions of the original unquantized values. "
+          "Can also override these with \"-min\" and \"-max\".\n "
+          "* Uses nrrdUnquantize");
 
 int
-unrrdu_unquantizeMain(int argc, const char **argv, const char *me,
-                      hestParm *hparm) {
+unrrdu_unquantizeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -69,10 +68,8 @@ unrrdu_unquantizeMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (AIR_EXISTS(oldMin))
-    nin->oldMin = oldMin;
-  if (AIR_EXISTS(oldMax))
-    nin->oldMax = oldMax;
+  if (AIR_EXISTS(oldMin)) nin->oldMin = oldMin;
+  if (AIR_EXISTS(oldMax)) nin->oldMax = oldMax;
   if (nrrdUnquantize(nout, nin, dbl ? nrrdTypeDouble : nrrdTypeFloat)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error unquantizing nrrd:\n%s", me, err);

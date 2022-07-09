@@ -25,15 +25,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "a hack of some kind"
-static const char *_unrrdu_hackInfoL =
-(INFO ". This is used as a place to put whatever one-off code "
- "you want to try, with the whatever benefits come with being a "
- "unu command.\n "
- "* (not based on any particular nrrd function)");
+static const char *_unrrdu_hackInfoL
+  = (INFO ". This is used as a place to put whatever one-off code "
+          "you want to try, with the whatever benefits come with being a "
+          "unu command.\n "
+          "* (not based on any particular nrrd function)");
 
 int
-unrrdu_hackMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_hackMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -42,8 +41,7 @@ unrrdu_hackMain(int argc, const char **argv, const char *me,
 
   char *what;
 
-  hestOptAdd(&opt, NULL, "what", airTypeString, 1, 1, &what, NULL,
-             "what hack to do");
+  hestOptAdd(&opt, NULL, "what", airTypeString, 1, 1, &what, NULL, "what hack to do");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -74,7 +72,7 @@ unrrdu_hackMain(int argc, const char **argv, const char *me,
     nout->spaceDim = sdim + 1;
     nout->space = nrrdSpaceUnknown;
     nout->spaceOrigin[sdim] = 0.0;
-    for (axi=0; axi<nout->dim; axi++) {
+    for (axi = 0; axi < nout->dim; axi++) {
       if (nrrdSpaceVecExists(sdim, nout->axis[axi].spaceDirection)) {
         nout->axis[axi].spaceDirection[sdim] = 0.0;
       }

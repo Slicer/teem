@@ -25,35 +25,33 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Write data segment of a nrrd file"
-static const char *_unrrdu_dataInfoL =
-(INFO  ".  The value of this is to pass the data segment in isolation to a "
- "stand-alone decoder, in case this Teem build lacks an optional "
- "data encoding required for a given nrrd file.  Caveats: "
- "Will start copying characters from the datafile "
- "to output file until EOF is hit, so this won't work "
- "correctly if the datafile has extraneous content at the end.  Will "
- "skip lines (as per \"line skip:\" header field) if needed, but can only "
- "skip bytes (as per \"byte skip:\") if the encoding is NOT a compression. "
- "\n \n "
- "To make vol.raw contain the uncompressed data from vol.nrrd "
- "which uses \"gz\" encoding: \"unu data vol.nrrd | gunzip > vol.raw\"\n "
- "\n "
- "* Uses nrrdLoad with nio->skipData and nio->keepNrrdDataFileOpen both "
- "true in the NrrdIoState nio.");
+static const char *_unrrdu_dataInfoL
+  = (INFO ".  The value of this is to pass the data segment in isolation to a "
+          "stand-alone decoder, in case this Teem build lacks an optional "
+          "data encoding required for a given nrrd file.  Caveats: "
+          "Will start copying characters from the datafile "
+          "to output file until EOF is hit, so this won't work "
+          "correctly if the datafile has extraneous content at the end.  Will "
+          "skip lines (as per \"line skip:\" header field) if needed, but can only "
+          "skip bytes (as per \"byte skip:\") if the encoding is NOT a compression. "
+          "\n \n "
+          "To make vol.raw contain the uncompressed data from vol.nrrd "
+          "which uses \"gz\" encoding: \"unu data vol.nrrd | gunzip > vol.raw\"\n "
+          "\n "
+          "* Uses nrrdLoad with nio->skipData and nio->keepNrrdDataFileOpen both "
+          "true in the NrrdIoState nio.");
 
 int
-unrrdu_dataMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_dataMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *err, *inS=NULL;
+  char *err, *inS = NULL;
   Nrrd *nin;
   NrrdIoState *nio;
   airArray *mop;
   int car, pret;
 
   mop = airMopNew();
-  hestOptAdd(&opt, NULL, "nin", airTypeString, 1, 1, &inS, NULL,
-             "input nrrd");
+  hestOptAdd(&opt, NULL, "nin", airTypeString, 1, 1, &inS, NULL, "input nrrd");
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(_unrrdu_dataInfoL);
@@ -74,14 +72,17 @@ unrrdu_dataMain(int argc, const char **argv, const char *me,
     return 1;
   }
   if (_nrrdDataFNNumber(nio) > 1) {
-    fprintf(stderr, "%s: sorry, currently can't operate with multiple "
-            "detached datafiles\n", me);
+    fprintf(stderr,
+            "%s: sorry, currently can't operate with multiple "
+            "detached datafiles\n",
+            me);
     airMopError(mop);
     return 1;
   }
-  if (!( nrrdFormatNRRD == nio->format )) {
+  if (!(nrrdFormatNRRD == nio->format)) {
     fprintf(stderr, "%s: can only print data of NRRD format files\n", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   car = fgetc(nio->dataFile);
 #ifdef _MSC_VER

@@ -25,22 +25,20 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through a whole nrrd of regular univariate maps"
-static const char *_unrrdu_mrmapInfoL =
-(INFO
- ", one map per sample in input. The \"mmap\" nrrd has the same dimensional "
- "constraints as the \"mlut\" nrrd for \"unu mlut\".  This functionality "
- "is a generalization of \"unu 3op lerp\": it allows you to lerp through "
- "multiple nrrds, instead of just two.\n "
- "* Uses nrrdApplyMulti1DRegMap");
+static const char *_unrrdu_mrmapInfoL
+  = (INFO ", one map per sample in input. The \"mmap\" nrrd has the same dimensional "
+          "constraints as the \"mlut\" nrrd for \"unu mlut\".  This functionality "
+          "is a generalization of \"unu 3op lerp\": it allows you to lerp through "
+          "multiple nrrds, instead of just two.\n "
+          "* Uses nrrdApplyMulti1DRegMap");
 
 int
-unrrdu_mrmapMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+unrrdu_mrmapMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, **_nmmap, *nmmap, *nout;
   airArray *mop;
-  NrrdRange *range=NULL;
+  NrrdRange *range = NULL;
   unsigned int mapAxis;
   int typeOut, rescale, pret, blind8BitRange;
   unsigned int _nmmapLen;
@@ -109,7 +107,7 @@ unrrdu_mrmapMain(int argc, const char **argv, const char *me,
     /* assume that mmap component nrrds are all compatible sizes,
        nrrdJoin will fail if they aren't */
     mapAxis = _nmmap[0]->dim - nin->dim;
-    if (nrrdJoin(nmmap, (const Nrrd*const*)_nmmap, _nmmapLen, mapAxis, AIR_TRUE)) {
+    if (nrrdJoin(nmmap, (const Nrrd *const *)_nmmap, _nmmapLen, mapAxis, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble joining mmap:\n%s", me, err);
       airMopError(mop);
@@ -120,8 +118,7 @@ unrrdu_mrmapMain(int argc, const char **argv, const char *me,
     nmmap->axis[mapAxis].max = max;
   }
 
-  if (!( AIR_EXISTS(nmmap->axis[mapAxis].min) &&
-         AIR_EXISTS(nmmap->axis[mapAxis].max) )) {
+  if (!(AIR_EXISTS(nmmap->axis[mapAxis].min) && AIR_EXISTS(nmmap->axis[mapAxis].max))) {
     rescale = AIR_TRUE;
   }
   if (rescale) {

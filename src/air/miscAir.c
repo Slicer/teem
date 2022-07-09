@@ -25,11 +25,11 @@
 #include "privateAir.h"
 /* timer functions */
 #ifdef _WIN32
-#include <io.h>
-#include <fcntl.h>
-#include <time.h>
+#  include <io.h>
+#  include <fcntl.h>
+#  include <time.h>
 #else
-#include <sys/time.h>
+#  include <sys/time.h>
 #endif
 
 /*
@@ -41,12 +41,9 @@
 ** the Teem version number and release date.  Originated in version 1.5;
 ** use of TEEM_VERSION #defines started in 1.9
 */
-const char *
-airTeemVersion = TEEM_VERSION_STRING;
-const int
-airTeemReleaseDone = AIR_FALSE;
-const char *
-airTeemReleaseDate = "maybe 2019 or 2020";
+const char *airTeemVersion = TEEM_VERSION_STRING;
+const int airTeemReleaseDone = AIR_FALSE;
+const char *airTeemReleaseDate = "maybe 2019 or 2020";
 
 /*
 ******** airTeemVersionSprint
@@ -55,17 +52,15 @@ airTeemReleaseDate = "maybe 2019 or 2020";
 */
 void
 airTeemVersionSprint(char buff[AIR_STRLEN_LARGE]) {
-  sprintf(buff, "Teem version %s, %s%s%s",
-          airTeemVersion,
-          airTeemReleaseDone ? "released on " : "",
-          airTeemReleaseDate,
+  sprintf(buff, "Teem version %s, %s%s%s", airTeemVersion,
+          airTeemReleaseDone ? "released on " : "", airTeemReleaseDate,
           airTeemReleaseDone ? "" : " (not yet released)");
   return;
 }
 
 double
 _airSanityHelper(double val) {
-  return val*val*val;
+  return val * val * val;
 }
 
 /*
@@ -145,7 +140,7 @@ FILE *
 airFclose(FILE *file) {
 
   if (file) {
-    if (!( stdin == file || stdout == file || stderr == file )) {
+    if (!(stdin == file || stdout == file || stderr == file)) {
       fclose(file);
     }
   }
@@ -173,9 +168,9 @@ airFclose(FILE *file) {
 int
 airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
   char *fmt, buff[AIR_STRLEN_LARGE];
-  double val=0, gVal, fVal;
+  double val = 0, gVal, fVal;
   int ret, isF, isD, cls;
-  char *conv=NULL, *p0, *p1, *p2, *p3, *p4, *p5;
+  char *conv = NULL, *p0, *p1, *p2, *p3, *p4, *p5;
   va_list ap;
 
   va_start(ap, _fmt);
@@ -219,7 +214,7 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
       }
       break;
     }
-#define PRINT(F, S, C, V) ((F) ? fprintf((F),(C),(V)) : sprintf((S),(C),(V)))
+#define PRINT(F, S, C, V) ((F) ? fprintf((F), (C), (V)) : sprintf((S), (C), (V)))
     switch (cls) {
     case airFP_SNAN:
     case airFP_QNAN:
@@ -274,7 +269,7 @@ airSprintSize_t(char _str[AIR_STRLEN_SMALL], size_t val) {
   if (!_str) {
     return NULL;
   }
-  si = AIR_STRLEN_SMALL-1;
+  si = AIR_STRLEN_SMALL - 1;
   str[si] = '\0';
   do {
     str[--si] = AIR_CAST(char, (val % 10) + '0');
@@ -299,7 +294,7 @@ airSprintPtrdiff_t(char _str[AIR_STRLEN_SMALL], ptrdiff_t val) {
   if (!_str) {
     return NULL;
   }
-  si = AIR_STRLEN_SMALL-1;
+  si = AIR_STRLEN_SMALL - 1;
   str[si] = '\0';
   sign = (val < 0 ? -1 : 1);
   do {
@@ -317,8 +312,7 @@ airSprintPtrdiff_t(char _str[AIR_STRLEN_SMALL], ptrdiff_t val) {
 
 /* ---- BEGIN non-NrrdIO */
 
-const int
-airPresent = 42;
+const int airPresent = 42;
 
 /*
 ** sprints a length-"len" vector "vec" of size_t values into "dst", which is
@@ -335,7 +329,7 @@ airSprintVecSize_t(char *dst, const size_t *vec, unsigned int len) {
     return dst;
   }
   strcpy(dst, "[");
-  for (axi=0; axi<len; axi++) {
+  for (axi = 0; axi < len; axi++) {
     if (axi) {
       strcat(dst, ",");
     }
@@ -363,8 +357,8 @@ airPrettySprintSize_t(char str[AIR_STRLEN_SMALL], size_t val) {
   }
   suffIdx = 0;
   dval = AIR_CAST(double, val);
-  suffNum = AIR_UINT(sizeof(suff)/sizeof(suff[0]));
-  while (suffIdx < suffNum-1) {  /* while we can go to a bigger suffix */
+  suffNum = AIR_UINT(sizeof(suff) / sizeof(suff[0]));
+  while (suffIdx < suffNum - 1) { /* while we can go to a bigger suffix */
     if (dval > 1024) {
       dval /= 1024;
       suffIdx++;
@@ -401,7 +395,7 @@ unsigned int
 airBitsSet(unsigned int vv) {
   /* http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetKernighan */
   unsigned int cc;
-  for (cc=0; vv; cc++) {
+  for (cc = 0; vv; cc++) {
     /* wherever lowest bit is on in vv; vv-1 will have it off, and leave
        unchanged all the higher bits */
     vv &= vv - 1;
@@ -492,12 +486,12 @@ airIndex(double min, double val, double max, unsigned int N) {
 
   mnm = max - min;
   if (mnm > 0) {
-    idx = AIR_UINT(N*(val - min)/mnm);
+    idx = AIR_UINT(N * (val - min) / mnm);
     idx -= (idx == N);
   } else if (mnm < 0) {
-    idx = AIR_UINT(N*(val - max)/(-mnm));
+    idx = AIR_UINT(N * (val - max) / (-mnm));
     idx -= (idx == N);
-    idx = N-1-idx;
+    idx = N - 1 - idx;
   } else {
     idx = 0;
   }
@@ -512,13 +506,13 @@ airIndexClamp(double min, double val, double max, unsigned int N) {
   mnm = max - min;
   if (mnm > 0) {
     val = AIR_MAX(min, val);
-    idx = AIR_UINT(N*(val - min)/mnm);
-    idx = AIR_MIN(idx, N-1);
+    idx = AIR_UINT(N * (val - min) / mnm);
+    idx = AIR_MIN(idx, N - 1);
   } else if (mnm < 0) {
     val = AIR_MAX(max, val);
-    idx = AIR_UINT(N*(val - max)/(-mnm));
-    idx = AIR_MIN(idx, N-1);
-    idx = N-1-idx;
+    idx = AIR_UINT(N * (val - max) / (-mnm));
+    idx = AIR_MIN(idx, N - 1);
+    idx = N - 1 - idx;
   } else {
     idx = 0;
   }
@@ -532,16 +526,16 @@ airIndexULL(double min, double val, double max, airULLong N) {
     return 0;
   }
   if (min > max) {
-    return N-1-airIndexULL(max, val, min, N);
+    return N - 1 - airIndexULL(max, val, min, N);
   }
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
   /* compile error on Win32-vs60: "error C2520: conversion from
      unsigned __int64 to double not implemented, use signed __int64 */
   airLLong sidx;
-  sidx = AIR_CAST(airLLong, AIR_CAST(double, N)*(val - min)/(max - min));
+  sidx = AIR_CAST(airLLong, AIR_CAST(double, N) * (val - min) / (max - min));
   idx = AIR_CAST(airULLong, sidx);
 #else
-  idx = AIR_CAST(airULLong, AIR_CAST(double, N)*(val - min)/(max - min));
+  idx = AIR_CAST(airULLong, AIR_CAST(double, N) * (val - min) / (max - min));
 #endif
   idx -= (idx == N);
   return idx;
@@ -554,18 +548,18 @@ airIndexClampULL(double min, double val, double max, airULLong N) {
     return 0;
   }
   if (min > max) {
-    return N-1-airIndexULL(max, val, min, N);
+    return N - 1 - airIndexULL(max, val, min, N);
   }
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
   airLLong sidx;
   val = AIR_MAX(min, val); /* see note in airIndexClamp */
-  sidx = AIR_CAST(airLLong, AIR_CAST(double, N)*(val - min)/(max - min));
+  sidx = AIR_CAST(airLLong, AIR_CAST(double, N) * (val - min) / (max - min));
   idx = AIR_CAST(airULLong, sidx);
 #else
   val = AIR_MAX(min, val); /* see note in airIndexClamp */
-  idx = AIR_CAST(airULLong, AIR_CAST(double, N)*(val - min)/(max - min));
+  idx = AIR_CAST(airULLong, AIR_CAST(double, N) * (val - min) / (max - min));
 #endif
-  idx = AIR_MIN(idx, N-1);
+  idx = AIR_MIN(idx, N - 1);
   return idx;
 }
 
@@ -581,24 +575,22 @@ airIndexClampULL(double min, double val, double max, airULLong N) {
 */
 char *
 airDoneStr(double start, double here, double end, char *str) {
-  int perc=0;
+  int perc = 0;
 
   if (str) {
     if (end != start)
-      perc = (int)(1000*(here-start)/(end-start) + 0.5);
+      perc = (int)(1000 * (here - start) / (end - start) + 0.5);
     else
       perc = 1000;
     if (perc < 0) {
       sprintf(str, "\b\b\b\b\b\b ---- ");
     } else if (perc < 1000) {
-      sprintf(str, "\b\b\b\b\b\b% 3d.%d%%", perc/10, perc%10);
-    }
-    else if (perc == 1000) {
+      sprintf(str, "\b\b\b\b\b\b% 3d.%d%%", perc / 10, perc % 10);
+    } else if (perc == 1000) {
       /* the "% 3d" formatting sequence should have taken care
          of this, but whatever */
       sprintf(str, "\b\b\b\b\b\b100.0%%");
-    }
-    else {
+    } else {
       sprintf(str, "\b\b\b\b\b\b done.");
     }
   }
@@ -618,7 +610,7 @@ double
 airTime() {
 #ifdef _WIN32
   /* HEY: this has crummy precision */
-  return (double)clock()/CLOCKS_PER_SEC;
+  return (double)clock() / CLOCKS_PER_SEC;
 #else
   double sec, usec;
   struct timeval tv;
@@ -626,7 +618,7 @@ airTime() {
   gettimeofday(&tv, NULL);
   sec = AIR_CAST(double, tv.tv_sec);
   usec = AIR_CAST(double, tv.tv_usec);
-  return sec + usec*1.0e-6;
+  return sec + usec * 1.0e-6;
 #endif
 }
 
@@ -685,21 +677,21 @@ airEqvSettle(unsigned int *map, unsigned int len) {
   unsigned int i, j, count, max, *hit;
 
   max = 0;
-  for (i=0; i<len; i++) {
+  for (i = 0; i < len; i++) {
     max = AIR_MAX(max, map[i]);
   }
-  hit = (unsigned int *)calloc(1+max, sizeof(unsigned int));
-  for (i=0; i<len; i++) {
+  hit = (unsigned int *)calloc(1 + max, sizeof(unsigned int));
+  for (i = 0; i < len; i++) {
     hit[map[i]] = 1;
   }
   count = 0;
-  for (j=0; j<=max; j++) {
+  for (j = 0; j <= max; j++) {
     if (hit[j]) {
       hit[j] = count;
       count += 1;
     }
   }
-  for (i=0; i<len; i++) {
+  for (i = 0; i < len; i++) {
     map[i] = hit[map[i]];
   }
   free(hit);
@@ -724,13 +716,13 @@ unsigned int
 airEqvMap(airArray *eqvArr, unsigned int *map, unsigned int len) {
   unsigned int *eqv, j, k, t, eqi;
 
-  for (j=0; j<len; j++) {
+  for (j = 0; j < len; j++) {
     map[j] = j;
   }
-  eqv = (unsigned int*)(eqvArr->data);
-  for (eqi=0; eqi<eqvArr->len; eqi++) {
-    j = eqv[0 + 2*eqi];
-    k = eqv[1 + 2*eqi];
+  eqv = (unsigned int *)(eqvArr->data);
+  for (eqi = 0; eqi < eqvArr->len; eqi++) {
+    j = eqv[0 + 2 * eqi];
+    k = eqv[1 + 2 * eqi];
     while (map[j] != j) {
       j = map[j];
     }
@@ -739,12 +731,14 @@ airEqvMap(airArray *eqvArr, unsigned int *map, unsigned int len) {
     }
     if (j != k) {
       if (j < k) {
-        t = j; j = k; k = t;
+        t = j;
+        j = k;
+        k = t;
       }
       map[j] = k;
     }
   }
-  for (j=0; j<len; j++) {
+  for (j = 0; j < len; j++) {
     while (map[j] != map[map[j]]) {
       map[j] = map[map[j]];
     }
@@ -766,18 +760,18 @@ airEqvAdd(airArray *eqvArr, unsigned int j, unsigned int k) {
   if (eqvArr->len) {
     /* we have some equivalences, but we're only going to check against
        the last one in an effort to reduce duplicate entries */
-    eqv = AIR_CAST(unsigned int*, eqvArr->data);
-    eqi = eqvArr->len-1;
-    if ( (eqv[0 + 2*eqi] == j && eqv[1 + 2*eqi] == k) ||
-         (eqv[0 + 2*eqi] == k && eqv[1 + 2*eqi] == j) ) {
+    eqv = AIR_CAST(unsigned int *, eqvArr->data);
+    eqi = eqvArr->len - 1;
+    if ((eqv[0 + 2 * eqi] == j && eqv[1 + 2 * eqi] == k)
+        || (eqv[0 + 2 * eqi] == k && eqv[1 + 2 * eqi] == j)) {
       /* don't add a duplicate */
       return;
     }
   }
   eqi = airArrayLenIncr(eqvArr, 1);
-  eqv = AIR_CAST(unsigned int*, eqvArr->data);
-  eqv[0 + 2*eqi] = j;
-  eqv[1 + 2*eqi] = k;
+  eqv = AIR_CAST(unsigned int *, eqvArr->data);
+  eqv[0 + 2 * eqi] = j;
+  eqv[1 + 2 * eqi] = k;
   return;
 }
 /* ---- END non-NrrdIO */

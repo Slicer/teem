@@ -29,34 +29,30 @@
  * conjugate eigenvalues of a 3x3 non-symmetric matrix
  */
 double
-gage_imaginary_part_eigenvalues(double *M ) {
-    double A, B, C, scale, frob, m[9], _eval[3];
-    double beta, _gamma;
-    int roots;
+gage_imaginary_part_eigenvalues(double *M) {
+  double A, B, C, scale, frob, m[9], _eval[3];
+  double beta, _gamma;
+  int roots;
 
-    frob = ELL_3M_FROB(M);
-    scale = frob > 10 ? 10.0/frob : 1.0;
-    ELL_3M_SCALE(m, scale, M);
-    /*
-    ** from gordon with mathematica; these are the coefficients of the
-    ** cubic polynomial in x: det(x*I - M).  The full cubic is
-    ** x^3 + A*x^2 + B*x + C.
-    */
-    A = -m[0] - m[4] - m[8];
-    B = m[0]*m[4] - m[3]*m[1]
-        + m[0]*m[8] - m[6]*m[2]
-        + m[4]*m[8] - m[7]*m[5];
-    C = (m[6]*m[4] - m[3]*m[7])*m[2]
-        + (m[0]*m[7] - m[6]*m[1])*m[5]
-        + (m[3]*m[1] - m[0]*m[4])*m[8];
-    roots = ell_cubic(_eval, A, B, C, AIR_TRUE);
-    if ( roots != ell_cubic_root_single )
-        return 0.;
+  frob = ELL_3M_FROB(M);
+  scale = frob > 10 ? 10.0 / frob : 1.0;
+  ELL_3M_SCALE(m, scale, M);
+  /*
+  ** from gordon with mathematica; these are the coefficients of the
+  ** cubic polynomial in x: det(x*I - M).  The full cubic is
+  ** x^3 + A*x^2 + B*x + C.
+  */
+  A = -m[0] - m[4] - m[8];
+  B = m[0] * m[4] - m[3] * m[1] + m[0] * m[8] - m[6] * m[2] + m[4] * m[8] - m[7] * m[5];
+  C = (m[6] * m[4] - m[3] * m[7]) * m[2] + (m[0] * m[7] - m[6] * m[1]) * m[5]
+    + (m[3] * m[1] - m[0] * m[4]) * m[8];
+  roots = ell_cubic(_eval, A, B, C, AIR_TRUE);
+  if (roots != ell_cubic_root_single) return 0.;
 
-    /* 2 complex conjuguate eigenvalues */
-    beta = A + _eval[0];
-    _gamma = -C/_eval[0];
-    return sqrt( 4.*_gamma - beta*beta );
+  /* 2 complex conjuguate eigenvalues */
+  beta = A + _eval[0];
+  _gamma = -C / _eval[0];
+  return sqrt(4. * _gamma - beta * beta);
 }
 
 /* clang-format off */

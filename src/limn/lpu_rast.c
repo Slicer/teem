@@ -25,13 +25,10 @@
 #include "privateLimn.h"
 
 #define INFO "Rasterize polydata"
-static const char *myinfo =
-(INFO
- ". ");
+static const char *myinfo = (INFO ". ");
 
 int
-limnpu_rastMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+limnpu_rastMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;
@@ -44,18 +41,14 @@ limnpu_rastMain(int argc, const char **argv, const char *me,
   int type;
   size_t size[NRRD_DIM_MAX];
 
-  hestOptAdd(&hopt, "min", "min", airTypeDouble, 3, 3, min, NULL,
-             "bottom corner");
-  hestOptAdd(&hopt, "max", "max", airTypeDouble, 3, 3, max, NULL,
-             "top corner");
+  hestOptAdd(&hopt, "min", "min", airTypeDouble, 3, 3, min, NULL, "bottom corner");
+  hestOptAdd(&hopt, "max", "max", airTypeDouble, 3, 3, max, NULL, "top corner");
   hestOptAdd(&hopt, "s", "size", airTypeSize_t, 3, 3, size, NULL,
              "number of samples along each axis");
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &type, "uchar",
-             "type of output nrrd",
-             NULL, nrrdType);
+             "type of output nrrd", NULL, nrrdType);
   hestOptAdd(&hopt, NULL, "input", airTypeOther, 1, 1, &pld, NULL,
-             "input polydata filename",
-             NULL, NULL, limnHestPolyDataLMPD);
+             "input polydata filename", NULL, NULL, limnHestPolyDataLMPD);
   hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
              "output nrrd filename");
 
@@ -86,5 +79,4 @@ limnpu_rastMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_rastCmd = { "rast", INFO, limnpu_rastMain, AIR_FALSE };
-
+unrrduCmd limnpu_rastCmd = {"rast", INFO, limnpu_rastMain, AIR_FALSE};

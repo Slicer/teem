@@ -25,18 +25,16 @@
 #include "privateTen.h"
 
 #define INFO "Estimate tensors from a set of DW images"
-static const char *_tend_estimInfoL =
-  (INFO
-   ". The tensor coefficient weightings associated with "
-   "each of the DWIs, the B-matrix, is given either as a separate array, "
-   "(see \"tend bmat\" usage info for details), or by the key-value pairs "
-   "in the DWI nrrd header.  A \"confidence\" value is computed with the "
-   "tensor, based on a soft thresholding of the sum of all the DWIs, "
-   "according to the threshold and softness parameters. ");
+static const char *_tend_estimInfoL
+  = (INFO ". The tensor coefficient weightings associated with "
+          "each of the DWIs, the B-matrix, is given either as a separate array, "
+          "(see \"tend bmat\" usage info for details), or by the key-value pairs "
+          "in the DWI nrrd header.  A \"confidence\" value is computed with the "
+          "tensor, based on a soft thresholding of the sum of all the DWIs, "
+          "according to the threshold and softness parameters. ");
 
 int
-tend_estimMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+tend_estimMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -49,7 +47,7 @@ tend_estimMain(int argc, const char **argv, const char *me,
   unsigned int ninLen, axmap[4], wlsi, *skip, skipNum, skipIdx;
   double valueMin, thresh;
 
-  Nrrd *ngradKVP=NULL, *nbmatKVP=NULL;
+  Nrrd *ngradKVP = NULL, *nbmatKVP = NULL;
   double bKVP, bval;
 
   tenEstimateContext *tec;
@@ -59,12 +57,10 @@ tend_estimMain(int argc, const char **argv, const char *me,
              "the old tenEstimateLinear code");
   hestOptAdd(&hopt, "sigma", "sigma", airTypeFloat, 1, 1, &sigma, "nan",
              "Rician noise parameter");
-  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0",
-             "verbosity level");
-  hestOptAdd(&hopt, "est", "estimate method", airTypeEnum, 1, 1, &estmeth,
-             "lls",
-             "estimation method to use. \"lls\": linear-least squares",
-             NULL, tenEstimate1Method);
+  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0", "verbosity level");
+  hestOptAdd(&hopt, "est", "estimate method", airTypeEnum, 1, 1, &estmeth, "lls",
+             "estimation method to use. \"lls\": linear-least squares", NULL,
+             tenEstimate1Method);
   hestOptAdd(&hopt, "wlsi", "WLS iters", airTypeUInt, 1, 1, &wlsi, "1",
              "when using weighted-least-squares (\"-est wls\"), how "
              "many iterations to do after the initial weighted fit.");
@@ -146,12 +142,14 @@ tend_estimMain(int argc, const char **argv, const char *me,
     /* its NOT coming from key/value pairs */
     if (!AIR_EXISTS(bval)) {
       fprintf(stderr, "%s: need to specify scalar b-value\n", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if (nrrdLoad(nbmat, bmatS, NULL)) {
-      airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble loading B-matrix:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     nin4d = nin[0];
     skip = NULL;
@@ -159,54 +157,64 @@ tend_estimMain(int argc, const char **argv, const char *me,
   } else {
     /* it IS coming from key/value pairs */
     if (1 != ninLen) {
-      fprintf(stderr, "%s: require a single 4-D DWI volume for "
-              "key/value pair based calculation of B-matrix\n", me);
-      airMopError(mop); return 1;
+      fprintf(stderr,
+              "%s: require a single 4-D DWI volume for "
+              "key/value pair based calculation of B-matrix\n",
+              me);
+      airMopError(mop);
+      return 1;
     }
     if (oldstuff) {
       if (knownB0) {
-        fprintf(stderr, "%s: sorry, key/value-based DWI info not compatible "
-                "with older implementation of knownB0\n", me);
-        airMopError(mop); return 1;
+        fprintf(stderr,
+                "%s: sorry, key/value-based DWI info not compatible "
+                "with older implementation of knownB0\n",
+                me);
+        airMopError(mop);
+        return 1;
       }
     }
-    if (tenDWMRIKeyValueParse(&ngradKVP, &nbmatKVP, &bKVP,
-                              &skip, &skipNum, nin[0])) {
-      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    if (tenDWMRIKeyValueParse(&ngradKVP, &nbmatKVP, &bKVP, &skip, &skipNum, nin[0])) {
+      airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble parsing DWI info:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if (AIR_EXISTS(bval)) {
-      fprintf(stderr, "%s: WARNING: key/value pair derived b-value %g "
-              "over-riding %g from command-line", me, bKVP, bval);
+      fprintf(stderr,
+              "%s: WARNING: key/value pair derived b-value %g "
+              "over-riding %g from command-line",
+              me, bKVP, bval);
     }
     bval = bKVP;
     if (ngradKVP) {
       airMopAdd(mop, ngradKVP, (airMopper)nrrdNuke, airMopAlways);
       if (tenBMatrixCalc(nbmat, ngradKVP)) {
-        airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+        airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble finding B-matrix:\n%s\n", me, err);
-        airMopError(mop); return 1;
+        airMopError(mop);
+        return 1;
       }
     } else {
       airMopAdd(mop, nbmatKVP, (airMopper)nrrdNuke, airMopAlways);
       if (nrrdConvert(nbmat, nbmatKVP, nrrdTypeDouble)) {
-        airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble converting B-matrix:\n%s\n", me, err);
-        airMopError(mop); return 1;
+        airMopError(mop);
+        return 1;
       }
     }
     /* this will work because of the impositions of tenDWMRIKeyValueParse */
-    dwiax = ((nrrdKindList == nin[0]->axis[0].kind ||
-              nrrdKindVector == nin[0]->axis[0].kind)
-             ? 0
-             : ((nrrdKindList == nin[0]->axis[1].kind ||
-                 nrrdKindVector == nin[0]->axis[1].kind)
-                ? 1
-                : ((nrrdKindList == nin[0]->axis[2].kind ||
-                    nrrdKindVector == nin[0]->axis[2].kind)
-                   ? 2
-                   : 3)));
+    dwiax = ((nrrdKindList == nin[0]->axis[0].kind
+              || nrrdKindVector == nin[0]->axis[0].kind)
+               ? 0
+               : ((nrrdKindList == nin[0]->axis[1].kind
+                   || nrrdKindVector == nin[0]->axis[1].kind)
+                    ? 1
+                    : ((nrrdKindList == nin[0]->axis[2].kind
+                        || nrrdKindVector == nin[0]->axis[2].kind)
+                         ? 2
+                         : 3)));
     if (0 == dwiax) {
       nin4d = nin[0];
     } else {
@@ -217,9 +225,10 @@ tend_estimMain(int argc, const char **argv, const char *me,
       nin4d = nrrdNew();
       airMopAdd(mop, nin4d, (airMopper)nrrdNuke, airMopAlways);
       if (nrrdAxesPermute(nin4d, nin[0], axmap)) {
-        airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble creating DWI volume:\n%s\n", me, err);
-        airMopError(mop); return 1;
+        airMopError(mop);
+        return 1;
       }
     }
   }
@@ -228,9 +237,12 @@ tend_estimMain(int argc, const char **argv, const char *me,
   nB0 = NULL;
   if (!oldstuff) {
     if (1 != ninLen) {
-      fprintf(stderr, "%s: sorry, currently need single 4D volume "
-              "for new implementation\n", me);
-      airMopError(mop); return 1;
+      fprintf(stderr,
+              "%s: sorry, currently need single 4D volume "
+              "for new implementation\n",
+              me);
+      airMopError(mop);
+      return 1;
     }
     if (!AIR_EXISTS(thresh)) {
       unsigned char *isB0 = NULL;
@@ -239,24 +251,23 @@ tend_estimMain(int argc, const char **argv, const char *me,
       /* from nbmat, create an array that indicates B0 images */
       if (tenBMatrixCheck(nbmat, nrrdTypeDouble, 6)) {
         biffAddf(TEN, "%s: problem within given b-matrix", me);
-        airMopError(mop); return 1;
+        airMopError(mop);
+        return 1;
       }
       isB0 = AIR_CAST(unsigned char *, malloc(nbmat->axis[1].size));
       airMopAdd(mop, isB0, airFree, airMopAlways);
-      bmat = (double*) nbmat->data;
-      for (sl=0; sl<nbmat->axis[1].size; sl++) {
-        TEN_T_SET(bten, 1.0,
-                  bmat[0], bmat[1], bmat[2],
-                  bmat[3], bmat[4],
-                  bmat[5]);
+      bmat = (double *)nbmat->data;
+      for (sl = 0; sl < nbmat->axis[1].size; sl++) {
+        TEN_T_SET(bten, 1.0, bmat[0], bmat[1], bmat[2], bmat[3], bmat[4], bmat[5]);
         bnorm = TEN_T_NORM(bten);
-        isB0[sl]=(bnorm==0.0);
-        bmat+=6;
+        isB0[sl] = (bnorm == 0.0);
+        bmat += 6;
       }
       if (tenEstimateThresholdFind(&thresh, isB0, nin4d)) {
-        airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+        airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble finding threshold:\n%s\n", me, err);
-        airMopError(mop); return 1;
+        airMopError(mop);
+        return 1;
       }
       /* HACK to lower threshold a titch */
       thresh *= 0.93;
@@ -271,11 +282,11 @@ tend_estimMain(int argc, const char **argv, const char *me,
     if (!EE) EE |= tenEstimateMethodSet(tec, estmeth);
     if (!EE) EE |= tenEstimateBMatricesSet(tec, nbmat, bval, !knownB0);
     if (!EE) EE |= tenEstimateValueMinSet(tec, valueMin);
-    for (skipIdx=0; skipIdx<skipNum; skipIdx++) {
+    for (skipIdx = 0; skipIdx < skipNum; skipIdx++) {
       /* fprintf(stderr, "%s: skipping %u\n", me, skip[skipIdx]); */
       if (!EE) EE |= tenEstimateSkipSet(tec, skip[skipIdx], AIR_TRUE);
     }
-    switch(estmeth) {
+    switch (estmeth) {
     case tenEstimate1MethodLLS:
       if (airStrlen(terrS)) {
         tec->recordErrorLogDwi = AIR_TRUE;
@@ -295,10 +306,10 @@ tend_estimMain(int argc, const char **argv, const char *me,
       break;
     case tenEstimate1MethodMLE:
       if (!(AIR_EXISTS(sigma) && sigma > 0.0)) {
-        fprintf(stderr, "%s: can't do %s w/out sigma > 0 (not %g)\n",
-                me, airEnumStr(tenEstimate1Method, tenEstimate1MethodMLE),
-                sigma);
-        airMopError(mop); return 1;
+        fprintf(stderr, "%s: can't do %s w/out sigma > 0 (not %g)\n", me,
+                airEnumStr(tenEstimate1Method, tenEstimate1MethodMLE), sigma);
+        airMopError(mop);
+        return 1;
       }
       if (!EE) EE |= tenEstimateSigmaSet(tec, sigma);
       if (airStrlen(terrS)) {
@@ -309,18 +320,17 @@ tend_estimMain(int argc, const char **argv, const char *me,
     if (!EE) EE |= tenEstimateThresholdSet(tec, thresh, soft);
     if (!EE) EE |= tenEstimateUpdate(tec);
     if (EE) {
-      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble setting up estimation:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
-    if (tenEstimate1TensorVolume4D(tec, nout, &nB0,
-                                   airStrlen(terrS)
-                                   ? &nterr
-                                   : NULL,
+    if (tenEstimate1TensorVolume4D(tec, nout, &nB0, airStrlen(terrS) ? &nterr : NULL,
                                    nin4d, nrrdTypeFloat)) {
-      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble doing estimation:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if (airStrlen(terrS)) {
       airMopAdd(mop, nterr, (airMopper)nrrdNuke, airMopAlways);
@@ -328,17 +338,18 @@ tend_estimMain(int argc, const char **argv, const char *me,
   } else {
     EE = 0;
     if (1 == ninLen) {
-      EE = tenEstimateLinear4D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
-                               nin4d, nbmat, knownB0, thresh, soft, bval);
+      EE = tenEstimateLinear4D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0, nin4d,
+                               nbmat, knownB0, thresh, soft, bval);
     } else {
       EE = tenEstimateLinear3D(nout, airStrlen(terrS) ? &nterr : NULL, &nB0,
-                               (const Nrrd*const*)nin, ninLen, nbmat,
-                               knownB0, thresh, soft, bval);
+                               (const Nrrd *const *)nin, ninLen, nbmat, knownB0, thresh,
+                               soft, bval);
     }
     if (EE) {
-      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble making tensor volume:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
   if (nterr) {
@@ -351,31 +362,34 @@ tend_estimMain(int argc, const char **argv, const char *me,
   }
   if (1 != scale) {
     if (tenSizeScale(nout, nout, scale)) {
-      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble doing scaling:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
   if (nterr) {
     if (nrrdSave(terrS, nterr, NULL)) {
-      airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble writing error image:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
   if (!knownB0 && airStrlen(eb0S)) {
     if (nrrdSave(eb0S, nB0, NULL)) {
-      airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble writing estimated B=0 image:\n%s\n",
-              me, err);
-      airMopError(mop); return 1;
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble writing estimated B=0 image:\n%s\n", me, err);
+      airMopError(mop);
+      return 1;
     }
   }
 
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

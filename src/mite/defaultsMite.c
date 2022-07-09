@@ -24,23 +24,16 @@
 #include "mite.h"
 #include "privateMite.h"
 
-const int
-mitePresent = 42;
+const int mitePresent = 42;
 
-const char *
-miteBiffKey = "mite";
+const char *miteBiffKey = "mite";
 
-double
-miteDefRefStep = 0.01;
+double miteDefRefStep = 0.01;
 
-int
-miteDefRenorm = AIR_FALSE;
+int miteDefRenorm = AIR_FALSE;
 
-int
-miteDefNormalSide = 1;
+int miteDefNormalSide = 1;
 
-double
-miteDefOpacNear1 = 0.98;
+double miteDefOpacNear1 = 0.98;
 
-double
-miteDefOpacMatters = 0.05;
+double miteDefOpacMatters = 0.05;

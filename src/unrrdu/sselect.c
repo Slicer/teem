@@ -25,15 +25,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Select subset of slices along an axis"
-static const char *_unrrdu_sselectInfoL =
-  (INFO ". The choice to keep or nix a slice is determined by whether the "
-   "values in a given 1-D line of values is above or below a given "
-   "threshold.\n "
-   "* Uses nrrdSliceSelect");
+static const char *_unrrdu_sselectInfoL
+  = (INFO ". The choice to keep or nix a slice is determined by whether the "
+          "values in a given 1-D line of values is above or below a given "
+          "threshold.\n "
+          "* Uses nrrdSliceSelect");
 
 int
-unrrdu_sselectMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_sselectMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err;
   Nrrd *nin, *noutAbove, *noutBelow, *nline;
@@ -46,12 +45,11 @@ unrrdu_sselectMain(int argc, const char **argv, const char *me,
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_AXIS(axis, "axis to slice along");
   hestOptAdd(&opt, "s,selector", "nline", airTypeOther, 1, 1, &nline, NULL,
-             "the 1-D nrrd of values to compare with threshold",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "th", "thresh", airTypeDouble, 1, 1, &thresh,
-             NULL, "threshold on selector line");
-  hestOptAdd(&opt, "o,output", "above below", airTypeString, 2, 2,
-             outS, "- x",
+             "the 1-D nrrd of values to compare with threshold", NULL, NULL,
+             nrrdHestNrrd);
+  hestOptAdd(&opt, "th", "thresh", airTypeDouble, 1, 1, &thresh, NULL,
+             "threshold on selector line");
+  hestOptAdd(&opt, "o,output", "above below", airTypeString, 2, 2, outS, "- x",
              "outputs for slices corresponding to values "
              "above (first) and below (second) given threshold. "
              "Use \"x\" to say that no output is desired.");
@@ -64,8 +62,10 @@ unrrdu_sselectMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (!strcmp(outS[0], "x") && !strcmp(outS[1], "x")) {
-    fprintf(stderr, "%s: need to save either above or below slices "
-            "(can't use \"x\" for both)\n", me);
+    fprintf(stderr,
+            "%s: need to save either above or below slices "
+            "(can't use \"x\" for both)\n",
+            me);
     airMopError(mop);
     return 1;
   }
@@ -82,8 +82,7 @@ unrrdu_sselectMain(int argc, const char **argv, const char *me,
     noutBelow = NULL;
   }
 
-  if (nrrdSliceSelect(noutAbove, noutBelow, nin, axis,
-                      nline, thresh)) {
+  if (nrrdSliceSelect(noutAbove, noutBelow, nin, axis, nline, thresh)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error selecting slices:\n%s", me, err);
     airMopError(mop);

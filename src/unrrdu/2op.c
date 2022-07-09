@@ -25,21 +25,19 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Binary operation on two nrrds, or on a nrrd and a constant"
-static const char *_unrrdu_2opInfoL =
-(INFO
- ". Either the first or second operand can be a float constant, "
- "but not both.  Use \"-\" for an operand to signify "
- "a nrrd to be read from stdin (a pipe).  Note, however, "
- "that \"-\" can probably only be used once (reliably).\n "
- "* Uses nrrdArithIterBinaryOp or (with -w) nrrdArithIterBinaryOpSelect");
+static const char *_unrrdu_2opInfoL
+  = (INFO ". Either the first or second operand can be a float constant, "
+          "but not both.  Use \"-\" for an operand to signify "
+          "a nrrd to be read from stdin (a pipe).  Note, however, "
+          "that \"-\" can probably only be used once (reliably).\n "
+          "* Uses nrrdArithIterBinaryOp or (with -w) nrrdArithIterBinaryOpSelect");
 
 int
-unrrdu_2opMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+unrrdu_2opMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *seedS;
   NrrdIter *in1, *in2;
-  Nrrd *nout, *ntmp=NULL;
+  Nrrd *nout, *ntmp = NULL;
   int op, type, E, pret, which;
   airArray *mop;
   unsigned int seed;
@@ -71,11 +69,10 @@ unrrdu_2opMain(int argc, const char **argv, const char *me,
              "for \"true\" mean, and 2nd value for sigma",
              NULL, nrrdBinaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
-             "First input.  Can be a single value or a nrrd.",
-             NULL, NULL, nrrdHestIter);
+             "First input.  Can be a single value or a nrrd.", NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "in2", airTypeOther, 1, 1, &in2, NULL,
-             "Second input.  Can be a single value or a nrrd.",
-             NULL, NULL, nrrdHestIter);
+             "Second input.  Can be a single value or a nrrd.", NULL, NULL,
+             nrrdHestIter);
   hestOptAdd(&opt, "s,seed", "seed", airTypeString, 1, 1, &seedS, "",
              "seed value for RNG for nrand, so that you "
              "can get repeatable results between runs, or, "
@@ -113,11 +110,11 @@ unrrdu_2opMain(int argc, const char **argv, const char *me,
     /* they wanted to convert nrrds to some other type first */
     E = 0;
     if (in1->ownNrrd) {
-      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in1->ownNrrd, type);
+      if (!E) E |= nrrdConvert(ntmp = nrrdNew(), in1->ownNrrd, type);
       if (!E) nrrdIterSetOwnNrrd(in1, ntmp);
     }
     if (in2->ownNrrd) {
-      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in2->ownNrrd, type);
+      if (!E) E |= nrrdConvert(ntmp = nrrdNew(), in2->ownNrrd, type);
       if (!E) nrrdIterSetOwnNrrd(in2, ntmp);
     }
     if (E) {
@@ -151,10 +148,8 @@ unrrdu_2opMain(int argc, const char **argv, const char *me,
     /* got no request for specific seed */
     airSrandMT(AIR_UINT(airTime()));
   }
-  if (-1 == which
-      ? nrrdArithIterBinaryOp(nout, op, in1, in2)
-      : nrrdArithIterBinaryOpSelect(nout, op, in1, in2,
-                                    AIR_UINT(which))) {
+  if (-1 == which ? nrrdArithIterBinaryOp(nout, op, in1, in2)
+                  : nrrdArithIterBinaryOpSelect(nout, op, in1, in2, AIR_UINT(which))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing binary operation:\n%s", me, err);
     airMopError(mop);

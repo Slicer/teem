@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "ell.h"
 
 void
@@ -226,16 +225,16 @@ ell_6m_mul_d(double AB[36], const double A[36], const double B[36]) {
   unsigned int ll, mm, nn;
   double tmp;
 
-  if (!( AB && A && B )) {
+  if (!(AB && A && B)) {
     return;
   }
-  for (ll=0; ll<6; ll++) {
-    for (nn=0; nn<6; nn++) {
+  for (ll = 0; ll < 6; ll++) {
+    for (nn = 0; nn < 6; nn++) {
       tmp = 0;
-      for (mm=0; mm<6; mm++) {
-        tmp += A[mm + 6*ll]*B[nn + 6*mm];
+      for (mm = 0; mm < 6; mm++) {
+        tmp += A[mm + 6 * ll] * B[nn + 6 * mm];
       }
-      AB[nn + 6*ll] = tmp;
+      AB[nn + 6 * ll] = tmp;
     }
   }
   return;
@@ -250,7 +249,7 @@ ell_3m_rotate_between_d(double rot[9], double from[3], double to[3]) {
   double vv[3];
   double e, h, f;
 
-  if (!( rot && from && to)) {
+  if (!(rot && from && to)) {
     return;
   }
   ELL_3V_CROSS(vv, from, to);
@@ -268,53 +267,58 @@ ell_3m_rotate_between_d(double rot[9], double from[3], double to[3]) {
 
     if (xx[0] < xx[1]) {
       if (xx[0] < xx[2]) {
-        xx[0] = 1.0; xx[1] = xx[2] = 0.0;
+        xx[0] = 1.0;
+        xx[1] = xx[2] = 0.0;
       } else {
-        xx[2] = 1.0; xx[0] = xx[1] = 0.0;
+        xx[2] = 1.0;
+        xx[0] = xx[1] = 0.0;
       }
     } else {
       if (xx[1] < xx[2]) {
-        xx[1] = 1.0; xx[0] = xx[2] = 0.0;
+        xx[1] = 1.0;
+        xx[0] = xx[2] = 0.0;
       } else {
-        xx[2] = 1.0; xx[0] = xx[1] = 0.0;
+        xx[2] = 1.0;
+        xx[0] = xx[1] = 0.0;
       }
     }
 
-    tu[0] = xx[0] - from[0]; tu[1] = xx[1] - from[1]; tu[2] = xx[2] - from[2];
-    tv[0] = xx[0] - to[0];   tv[1] = xx[1] - to[1];   tv[2] = xx[2] - to[2];
+    tu[0] = xx[0] - from[0];
+    tu[1] = xx[1] - from[1];
+    tu[2] = xx[2] - from[2];
+    tv[0] = xx[0] - to[0];
+    tv[1] = xx[1] - to[1];
+    tv[2] = xx[2] - to[2];
 
     c1 = 2.0 / ELL_3V_DOT(tu, tu);
     c2 = 2.0 / ELL_3V_DOT(tv, tv);
-    c3 = c1 * c2  * ELL_3V_DOT(tu, tv);
+    c3 = c1 * c2 * ELL_3V_DOT(tu, tv);
 
     for (i = 0; i < 3; i++) {
       for (j = 0; j < 3; j++) {
-        rot[3*i + j] =  - c1 * tu[i] * tu[j]
-                     - c2 * tv[i] * tv[j]
-                     + c3 * tv[i] * tu[j];
+        rot[3 * i + j] = -c1 * tu[i] * tu[j] - c2 * tv[i] * tv[j] + c3 * tv[i] * tu[j];
       }
-      rot[3*i + i] += 1.0;
+      rot[3 * i + i] += 1.0;
     }
   } else { /* the most common case, unless "from"="to", or "from"=-"to" */
     double hvx, hvz, hvxy, hvxz, hvyz;
-    h = 1.0/(1.0 + e);      /* optimization by Gottfried Chen */
+    h = 1.0 / (1.0 + e); /* optimization by Gottfried Chen */
     hvx = h * vv[0];
     hvz = h * vv[2];
     hvxy = hvx * vv[1];
     hvxz = hvx * vv[2];
     hvyz = hvz * vv[1];
-    rot[3*0 + 0] = e + hvx * vv[0];
-    rot[3*0 + 1] = hvxy - vv[2];
-    rot[3*0 + 2] = hvxz + vv[1];
+    rot[3 * 0 + 0] = e + hvx * vv[0];
+    rot[3 * 0 + 1] = hvxy - vv[2];
+    rot[3 * 0 + 2] = hvxz + vv[1];
 
-    rot[3*1 + 0] = hvxy + vv[2];
-    rot[3*1 + 1] = e + h * vv[1] * vv[1];
-    rot[3*1 + 2] = hvyz - vv[0];
+    rot[3 * 1 + 0] = hvxy + vv[2];
+    rot[3 * 1 + 1] = e + h * vv[1] * vv[1];
+    rot[3 * 1 + 2] = hvyz - vv[0];
 
-    rot[3*2 + 0] = hvxz - vv[1];
-    rot[3*2 + 1] = hvyz + vv[0];
-    rot[3*2 + 2] = e + hvz * vv[2];
+    rot[3 * 2 + 0] = hvxz - vv[1];
+    rot[3 * 2 + 1] = hvyz + vv[0];
+    rot[3 * 2 + 2] = e + hvz * vv[2];
   }
   return;
 }
-

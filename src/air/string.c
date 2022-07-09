@@ -39,9 +39,8 @@ airStrdup(const char *s) {
 
   if (!s) {
     ret = NULL;
-  }
-  else {
-    ret = (char *)malloc(strlen(s)+1);
+  } else {
+    ret = (char *)malloc(strlen(s) + 1);
     if (ret) {
       strcpy(ret, s);
     }
@@ -60,8 +59,7 @@ airStrlen(const char *s) {
 
   if (!s) {
     ret = 0;
-  }
-  else {
+  } else {
     ret = strlen(s);
   }
   return ret;
@@ -77,7 +75,7 @@ airStrlen(const char *s) {
 */
 int
 airStrcmp(const char *_s1, const char *_s2) {
-  static const char empty[]="";
+  static const char empty[] = "";
   const char *s1, *s2;
   int ret;
 
@@ -112,8 +110,7 @@ airStrtok(char *s, const char *ct, char **last) {
     return NULL;
   }
   h = s ? s : *last;
-  if (!airStrlen(h))
-    return NULL;
+  if (!airStrlen(h)) return NULL;
   h += strspn(h, ct);
   if ('\"' == *h && airStrtokQuoting) {
     /* something is trying to be quoted, and, we'll respect that */
@@ -135,8 +132,7 @@ airStrtok(char *s, const char *ct, char **last) {
   }
   if ('\0' == *e) {
     *last = e;
-  }
-  else {
+  } else {
     *e = '\0';
     *last = e + 1;
   }
@@ -151,7 +147,7 @@ airStrtok(char *s, const char *ct, char **last) {
 */
 unsigned int
 airStrntok(const char *_s, const char *ct) {
-  char *s, *t, *l=NULL;
+  char *s, *t, *l = NULL;
   unsigned int n = 0;
 
   if (_s && ct) {
@@ -161,7 +157,7 @@ airStrntok(const char *_s, const char *ct) {
       n++;
       t = airStrtok(NULL, ct, &l);
     }
-    airFree(s);  /* no NULL assignment to s, else compile warnings */
+    airFree(s); /* no NULL assignment to s, else compile warnings */
   }
   return n;
 }
@@ -172,7 +168,7 @@ airStrtrans(char *s, char from, char to) {
 
   if (s) {
     l = strlen(s);
-    for (i=0; i<l; i++) {
+    for (i = 0; i < l; i++) {
       if (s[i] == from) {
         s[i] = to;
       }
@@ -211,8 +207,8 @@ airStrcpy(char *dst, size_t dstSize, const char *src) {
     return dst;
   }
   /* else dstSize > 1  AND src is a non-empy string */
-  copyLen = AIR_MIN(dstSize-1, srcLen);
-  for (ii=0; ii<copyLen; ii++) {
+  copyLen = AIR_MIN(dstSize - 1, srcLen);
+  for (ii = 0; ii < copyLen; ii++) {
     dst[ii] = src[ii];
   }
   dst[copyLen] = '\0';
@@ -227,10 +223,8 @@ airStrcpy(char *dst, size_t dstSize, const char *src) {
 int
 airEndsWith(const char *s, const char *suff) {
 
-  if (!(s && suff))
-    return 0;
-  if (!(strlen(s) >= strlen(suff)))
-    return 0;
+  if (!(s && suff)) return 0;
+  if (!(strlen(s) >= strlen(suff))) return 0;
   if (!strncmp(s + strlen(s) - strlen(suff), suff, strlen(suff)))
     return 1;
   else
@@ -246,22 +240,26 @@ airEndsWith(const char *s, const char *suff) {
 char *
 airUnescape(char *s) {
   size_t i, j, len;
-  int found=0;
+  int found = 0;
 
   len = airStrlen(s);
-  if (!len)
-    return s;
+  if (!len) return s;
 
-  for (i=1, j=0; i<len; i++, j++) {
-    if (s[i-1] == '\\' && s[i] == '\\') {
-      s[j] = '\\'; i++; found = 1;
-    } else if (s[i-1] == '\\' && s[i] == 'n') {
-      s[j] = '\n'; i++; found = 1;
+  for (i = 1, j = 0; i < len; i++, j++) {
+    if (s[i - 1] == '\\' && s[i] == '\\') {
+      s[j] = '\\';
+      i++;
+      found = 1;
+    } else if (s[i - 1] == '\\' && s[i] == 'n') {
+      s[j] = '\n';
+      i++;
+      found = 1;
     } else {
-      s[j] = s[i-1]; found = 0;
+      s[j] = s[i - 1];
+      found = 0;
     }
   }
-  if (i == len || !found) s[j++] = s[len-1];
+  if (i == len || !found) s[j++] = s[len - 1];
   s[j] = 0;
 
   return s;
@@ -286,19 +284,18 @@ airOneLinify(char *s) {
   size_t i, j, len;
 
   len = airStrlen(s);
-  if (!len)
-    return s;
+  if (!len) return s;
 
   /* convert white space to space (' '), and delete unprintables */
-  for (i=0; i<len; i++) {
+  for (i = 0; i < len; i++) {
     if (isspace(AIR_INT(s[i]))) {
       s[i] = ' ';
       continue;
     }
     if (!isprint(AIR_INT(s[i]))) {
-      for (j=i; j<len; j++) {
+      for (j = i; j < len; j++) {
         /* this will copy the '\0' at the end */
-        s[j] = s[j+1];
+        s[j] = s[j + 1];
       }
       i--;
       /* string got shorter (prevent ininite loop) */
@@ -308,18 +305,18 @@ airOneLinify(char *s) {
   }
 
   /* compress all contiguous spaces into one */
-  for (i=0; i<len; i++) {
-    while (' ' == s[i] && ' ' == s[i+1]) {
-      for (j=i+1; j<len; j++) {
-        s[j] = s[j+1];
+  for (i = 0; i < len; i++) {
+    while (' ' == s[i] && ' ' == s[i + 1]) {
+      for (j = i + 1; j < len; j++) {
+        s[j] = s[j + 1];
       }
     }
   }
 
   /* lose trailing white space */
   i = airStrlen(s);
-  if (' ' == s[i-1]) {
-    s[i-1] = '\0';
+  if (' ' == s[i - 1]) {
+    s[i - 1] = '\0';
   }
 
   return s;
@@ -396,19 +393,18 @@ airToUpper(char *str) {
 */
 unsigned int
 airOneLine(FILE *file, char *line, unsigned int size) {
-  int cc=0;
+  int cc = 0;
   unsigned int ii;
 
-  if (!(size >= 3  /* need room for a character and a Windows newline */
+  if (!(size >= 3 /* need room for a character and a Windows newline */
         && line && file)) {
     return 0;
   }
   /* c is always set at least once, but not so for any char in line[]  */
-  for (ii=0;
-       (ii <= size-2              /* room for line[ii] and \0 after that */
-        && EOF != (cc=getc(file)) /* didn't hit EOF trying to read char */
-        && cc != '\n'             /* char isn't newline */
-        && cc != '\r');           /* char isn't carriage return */
+  for (ii = 0; (ii <= size - 2              /* room for line[ii] and \0 after that */
+                && EOF != (cc = getc(file)) /* didn't hit EOF trying to read char */
+                && cc != '\n'               /* char isn't newline */
+                && cc != '\r');             /* char isn't carriage return */
        ++ii) {
     line[ii] = AIR_CAST(char, cc);
   }
@@ -428,7 +424,7 @@ airOneLine(FILE *file, char *line, unsigned int size) {
       }
     }
     line[ii] = '\0';
-    return ii+1;
+    return ii + 1;
   } else {
     /* for-loop terminated because we got to end of buffer (ii == size-1) */
     cc = getc(file);
@@ -441,19 +437,18 @@ airOneLine(FILE *file, char *line, unsigned int size) {
         ungetc(dd, file);
       }
       line[ii] = '\0';
-      return ii+1;
+      return ii + 1;
     } else if ('\n' == cc) {
       line[ii] = '\0';
-      return ii+1;
+      return ii + 1;
     } else {
       /* weren't about to get a line termination,
          we really did run out of buffer */
       if (EOF != cc) {
-        ungetc(cc, file);  /* we're allowed one ungetc on ANY stream */
+        ungetc(cc, file); /* we're allowed one ungetc on ANY stream */
       }
-      line[size-1] = '\0';
-      return size+1;
+      line[size - 1] = '\0';
+      return size + 1;
     }
   }
 }
-

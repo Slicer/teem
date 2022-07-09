@@ -25,16 +25,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Sees if two nrrds are different in any way"
-static const char *_unrrdu_diffInfoL =
-(INFO
- ". Looks through all fields to see if two given nrrds contain the "
- "same information. Or, array meta-data can be excluded, and comparison "
- "only on the data values is done with the -od flag.\n "
- "* Uses nrrdCompare");
+static const char *_unrrdu_diffInfoL
+  = (INFO ". Looks through all fields to see if two given nrrds contain the "
+          "same information. Or, array meta-data can be excluded, and comparison "
+          "only on the data values is done with the -od flag.\n "
+          "* Uses nrrdCompare");
 
 int
-unrrdu_diffMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_diffMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err;
   airArray *mop;
@@ -46,11 +44,9 @@ unrrdu_diffMain(int argc, const char **argv, const char *me,
   char explain[AIR_STRLEN_LARGE];
 
   mop = airMopNew();
-  hestOptAdd(&opt, NULL, "ninA", airTypeOther, 1, 1, &ninA, NULL,
-             "First input nrrd.",
+  hestOptAdd(&opt, NULL, "ninA", airTypeOther, 1, 1, &ninA, NULL, "First input nrrd.",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, NULL, "ninB", airTypeOther, 1, 1, &ninB, NULL,
-             "Second input nrrd.",
+  hestOptAdd(&opt, NULL, "ninB", airTypeOther, 1, 1, &ninB, NULL, "Second input nrrd.",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "eps,epsilon", "eps", airTypeDouble, 1, 1, &epsilon, "0.0",
              "threshold for allowable difference in values in "
@@ -76,9 +72,8 @@ unrrdu_diffMain(int argc, const char **argv, const char *me,
     return 1;
   }
   if (differ) {
-    printf("%s: %s differ: %s\n", me, onlyData ? "data values" : "nrrds",
-           explain);
-    ret=1;
+    printf("%s: %s differ: %s\n", me, onlyData ? "data values" : "nrrds", explain);
+    ret = 1;
   } else {
     if (!quiet) {
       if (0 == epsilon) {
@@ -88,7 +83,7 @@ unrrdu_diffMain(int argc, const char **argv, const char *me,
                onlyData ? "data values" : "nrrds", epsilon);
       }
     }
-    ret=0;
+    ret = 0;
   }
 
   airMopOkay(mop);

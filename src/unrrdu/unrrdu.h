@@ -45,7 +45,7 @@ extern "C" {
 
 #define UNRRDU unrrduBiffKey
 
-#define UNRRDU_COLUMNS 78  /* how many chars per line do we allow hest */
+#define UNRRDU_COLUMNS 78 /* how many chars per line do we allow hest */
 
 /*
 ******** unrrduCmd
@@ -56,8 +56,7 @@ extern "C" {
 */
 typedef struct {
   const char *name, *info;
-  int (*main)(int argc, const char **argv, const char *me,
-              hestParm *hparm);
+  int (*main)(int argc, const char **argv, const char *me, hestParm *hparm);
   int hidden;
 } unrrduCmd;
 
@@ -104,78 +103,78 @@ typedef struct {
     That's it.
 ********************************************************** */
 #define UNRRDU_DECLARE(C) UNRRDU_EXPORT unrrduCmd unrrdu_##C##Cmd;
-#define UNRRDU_LIST(C) &unrrdu_##C##Cmd,
-#define UNRRDU_MAP(F) \
-F(about) \
-F(env) \
-F(i2w) \
-F(w2i) \
-F(make) \
-F(head) \
-F(data) \
-F(convert) \
-F(resample) \
-F(fft) \
-F(cmedian) \
-F(dering) \
-F(dist) \
-F(minmax) \
-F(cksum) \
-F(diff) \
-F(quantize) \
-F(unquantize) \
-F(project) \
-F(slice) \
-F(sselect) \
-F(dice) \
-F(splice) \
-F(join) \
-F(crop) \
-F(acrop) \
-F(inset) \
-F(pad) \
-F(reshape) \
-F(permute) \
-F(swap) \
-F(shuffle) \
-F(flip) \
-F(unorient) \
-F(basinfo) \
-F(axinfo) \
-F(axinsert) \
-F(axsplit) \
-F(axdelete) \
-F(axmerge) \
-F(tile) \
-F(untile) \
-F(histo) \
-F(dhisto) \
-F(jhisto) \
-F(histax) \
-F(heq) \
-F(gamma) \
-F(1op) \
-F(2op) \
-F(3op) \
-F(affine) \
-F(lut) \
-F(mlut) \
-F(subst) \
-F(rmap) \
-F(mrmap) \
-F(imap) \
-F(lut2) \
-F(ccfind) \
-F(ccadj) \
-F(ccmerge) \
-F(ccsettle) \
-F(dnorm) \
-F(vidicon) \
-F(grid) \
-F(hack) \
-F(aabplot) \
-F(undos) \
-F(save)
+#define UNRRDU_LIST(C)    &unrrdu_##C##Cmd,
+#define UNRRDU_MAP(F)                                                                   \
+  F(about)                                                                              \
+  F(env)                                                                                \
+  F(i2w)                                                                                \
+  F(w2i)                                                                                \
+  F(make)                                                                               \
+  F(head)                                                                               \
+  F(data)                                                                               \
+  F(convert)                                                                            \
+  F(resample)                                                                           \
+  F(fft)                                                                                \
+  F(cmedian)                                                                            \
+  F(dering)                                                                             \
+  F(dist)                                                                               \
+  F(minmax)                                                                             \
+  F(cksum)                                                                              \
+  F(diff)                                                                               \
+  F(quantize)                                                                           \
+  F(unquantize)                                                                         \
+  F(project)                                                                            \
+  F(slice)                                                                              \
+  F(sselect)                                                                            \
+  F(dice)                                                                               \
+  F(splice)                                                                             \
+  F(join)                                                                               \
+  F(crop)                                                                               \
+  F(acrop)                                                                              \
+  F(inset)                                                                              \
+  F(pad)                                                                                \
+  F(reshape)                                                                            \
+  F(permute)                                                                            \
+  F(swap)                                                                               \
+  F(shuffle)                                                                            \
+  F(flip)                                                                               \
+  F(unorient)                                                                           \
+  F(basinfo)                                                                            \
+  F(axinfo)                                                                             \
+  F(axinsert)                                                                           \
+  F(axsplit)                                                                            \
+  F(axdelete)                                                                           \
+  F(axmerge)                                                                            \
+  F(tile)                                                                               \
+  F(untile)                                                                             \
+  F(histo)                                                                              \
+  F(dhisto)                                                                             \
+  F(jhisto)                                                                             \
+  F(histax)                                                                             \
+  F(heq)                                                                                \
+  F(gamma)                                                                              \
+  F(1op)                                                                                \
+  F(2op)                                                                                \
+  F(3op)                                                                                \
+  F(affine)                                                                             \
+  F(lut)                                                                                \
+  F(mlut)                                                                               \
+  F(subst)                                                                              \
+  F(rmap)                                                                               \
+  F(mrmap)                                                                              \
+  F(imap)                                                                               \
+  F(lut2)                                                                               \
+  F(ccfind)                                                                             \
+  F(ccadj)                                                                              \
+  F(ccmerge)                                                                            \
+  F(ccsettle)                                                                           \
+  F(dnorm)                                                                              \
+  F(vidicon)                                                                            \
+  F(grid)                                                                               \
+  F(hack)                                                                               \
+  F(aabplot)                                                                            \
+  F(undos)                                                                              \
+  F(save)
 /* these two have been removed since no one uses them
 F(block) \
 F(unblock) \
@@ -188,14 +187,10 @@ F(unblock) \
 ** ("xxx.c") to simplify defining a unrrduCmd.  "name" should just be
 ** the command, UNQUOTED, such as flip or slice.
 */
-#define UNRRDU_CMD(name, info)                  \
-  unrrduCmd unrrdu_##name##Cmd = {              \
-    #name, info, unrrdu_##name##Main, AIR_FALSE \
-  }
-#define UNRRDU_CMD_HIDE(name, info)             \
-  unrrduCmd unrrdu_##name##Cmd = {              \
-    #name, info, unrrdu_##name##Main, AIR_TRUE  \
-  }
+#define UNRRDU_CMD(name, info)                                                          \
+  unrrduCmd unrrdu_##name##Cmd = {#name, info, unrrdu_##name##Main, AIR_FALSE}
+#define UNRRDU_CMD_HIDE(name, info)                                                     \
+  unrrduCmd unrrdu_##name##Cmd = {#name, info, unrrdu_##name##Main, AIR_TRUE}
 
 /* xxx.c */
 /* Declare the extern unrrduCmds unrrdu_xxxCmd, for all xxx.  These are
@@ -224,15 +219,14 @@ enum {
 UNRRDU_EXPORT const int unrrduPresent;
 UNRRDU_EXPORT const char *unrrduBiffKey;
 UNRRDU_EXPORT unsigned int unrrduDefNumColumns;
-UNRRDU_EXPORT int unrrduCmdMain(int argc, const char **argv,
-                                const char *cmd, const char *title,
-                                const unrrduCmd *const *cmdList,
+UNRRDU_EXPORT int unrrduCmdMain(int argc, const char **argv, const char *cmd,
+                                const char *title, const unrrduCmd *const *cmdList,
                                 hestParm *hparm, FILE *fusage);
 /* addresses of all unrrdu_xxxCmd */
 UNRRDU_EXPORT unrrduCmd *unrrduCmdList[];
 UNRRDU_EXPORT void unrrduUsageUnu(const char *me, hestParm *hparm);
-UNRRDU_EXPORT int unrrduUsage(const char *me, hestParm *hparm,
-                              const char *title, unrrduCmd **cmdList);
+UNRRDU_EXPORT int unrrduUsage(const char *me, hestParm *hparm, const char *title,
+                              unrrduCmd **cmdList);
 UNRRDU_EXPORT hestCB unrrduHestPosCB;
 UNRRDU_EXPORT hestCB unrrduHestMaybeTypeCB;
 UNRRDU_EXPORT hestCB unrrduHestScaleCB;
@@ -240,7 +234,6 @@ UNRRDU_EXPORT hestCB unrrduHestBitsCB;
 UNRRDU_EXPORT hestCB unrrduHestFileCB;
 UNRRDU_EXPORT hestCB unrrduHestEncodingCB;
 UNRRDU_EXPORT hestCB unrrduHestFormatCB;
-
 
 #ifdef __cplusplus
 }

@@ -25,23 +25,22 @@
 #include "privateUnrrdu.h"
 
 #define INFO "List relevant environment variables and their values"
-static const char *_unrrdu_envInfoL =
-  (INFO
-   ". These environment variables provide a way of "
-   "setting global variables that can affect"
-   " the way Nrrd (and unu) operates.\n "
-   "* Uses nrrdGetenvBool, nrrdGetenvEnum, "
-   "nrrdGetenvInt, and nrrdGetenvUInt");
+static const char *_unrrdu_envInfoL = (INFO
+                                       ". These environment variables provide a way of "
+                                       "setting global variables that can affect"
+                                       " the way Nrrd (and unu) operates.\n "
+                                       "* Uses nrrdGetenvBool, nrrdGetenvEnum, "
+                                       "nrrdGetenvInt, and nrrdGetenvUInt");
 
 void
-_unrrdu_envBool(FILE *file, const char *envKey, int currVal,
-                const char *varName, const char *desc, int columns) {
+_unrrdu_envBool(FILE *file, const char *envKey, int currVal, const char *varName,
+                const char *desc, int columns) {
   int val, ret;
   char *envVal;
 
   fprintf(file, "%s (bool): ", envKey);
   ret = nrrdGetenvBool(&val, &envVal, envKey);
-  switch(ret) {
+  switch (ret) {
   case -1:
     fprintf(file, "not set\n");
     break;
@@ -52,15 +51,14 @@ _unrrdu_envBool(FILE *file, const char *envKey, int currVal,
     fprintf(file, "set to \"%s\"? (invalid) \n", envVal);
     break;
   }
-  switch(ret) {
+  switch (ret) {
   case -1:
   case AIR_FALSE:
-    fprintf(file, "  (%s == %s; unchanged)\n",
-            varName, airEnumStr(airBool, currVal));
+    fprintf(file, "  (%s == %s; unchanged)\n", varName, airEnumStr(airBool, currVal));
     break;
   case AIR_TRUE:
-    fprintf(file, "  ==> %s = %s   **********************\n",
-            varName, airEnumStr(airBool, currVal));
+    fprintf(file, "  ==> %s = %s   **********************\n", varName,
+            airEnumStr(airBool, currVal));
     break;
   }
   _hestPrintStr(file, 0, 0, columns, desc, AIR_FALSE);
@@ -68,16 +66,15 @@ _unrrdu_envBool(FILE *file, const char *envKey, int currVal,
 }
 
 void
-_unrrdu_envEnum(FILE *file, const airEnum *enm, const char *envKey,
-                int currVal, const char *varName,
-                const char *desc, int columns) {
+_unrrdu_envEnum(FILE *file, const airEnum *enm, const char *envKey, int currVal,
+                const char *varName, const char *desc, int columns) {
   int val, ret;
   char *envVal;
 
   /* !!! HEY: CUT + PASTE !!! */
   fprintf(file, "%s (%s enum): ", envKey, enm->name);
   ret = nrrdGetenvEnum(&val, &envVal, enm, envKey);
-  switch(ret) {
+  switch (ret) {
   case -1:
     fprintf(file, "not set\n");
     break;
@@ -88,15 +85,14 @@ _unrrdu_envEnum(FILE *file, const airEnum *enm, const char *envKey,
     fprintf(file, "set to \"%s\"? (invalid) \n", envVal);
     break;
   }
-  switch(ret) {
+  switch (ret) {
   case -1:
   case AIR_FALSE:
-    fprintf(file, "  (%s == %s; unchanged)\n",
-            varName, airEnumStr(enm, currVal));
+    fprintf(file, "  (%s == %s; unchanged)\n", varName, airEnumStr(enm, currVal));
     break;
   case AIR_TRUE:
-    fprintf(file, "  ==> %s = %s   **********************\n",
-            varName, airEnumStr(enm, currVal));
+    fprintf(file, "  ==> %s = %s   **********************\n", varName,
+            airEnumStr(enm, currVal));
     break;
   }
   _hestPrintStr(file, 0, 0, columns, desc, AIR_FALSE);
@@ -105,8 +101,7 @@ _unrrdu_envEnum(FILE *file, const airEnum *enm, const char *envKey,
 }
 
 void
-_unrrdu_envInt(FILE *file, const char *envKey,
-               int currVal, const char *varName,
+_unrrdu_envInt(FILE *file, const char *envKey, int currVal, const char *varName,
                const char *desc, int columns) {
   int val, ret;
   char *envVal;
@@ -114,7 +109,7 @@ _unrrdu_envInt(FILE *file, const char *envKey,
   /* !!! HEY: CUT + PASTE !!! */
   fprintf(file, "%s (int): ", envKey);
   ret = nrrdGetenvInt(&val, &envVal, envKey);
-  switch(ret) {
+  switch (ret) {
   case -1:
     fprintf(file, "not set\n");
     break;
@@ -125,15 +120,13 @@ _unrrdu_envInt(FILE *file, const char *envKey,
     fprintf(file, "set to \"%s\"? (invalid) \n", envVal);
     break;
   }
-  switch(ret) {
+  switch (ret) {
   case -1:
   case AIR_FALSE:
-    fprintf(file, "  (%s == %d; unchanged)\n",
-            varName, currVal);
+    fprintf(file, "  (%s == %d; unchanged)\n", varName, currVal);
     break;
   case AIR_TRUE:
-    fprintf(file, "  ==> %s = %d   **********************\n",
-            varName, currVal);
+    fprintf(file, "  ==> %s = %d   **********************\n", varName, currVal);
     break;
   }
   _hestPrintStr(file, 0, 0, columns, desc, AIR_FALSE);
@@ -142,9 +135,8 @@ _unrrdu_envInt(FILE *file, const char *envKey,
 }
 
 void
-_unrrdu_envUInt(FILE *file, const char *envKey,
-                unsigned int currVal, const char *varName,
-                const char *desc, int columns) {
+_unrrdu_envUInt(FILE *file, const char *envKey, unsigned int currVal,
+                const char *varName, const char *desc, int columns) {
   int ret;
   unsigned int val;
   char *envVal;
@@ -152,7 +144,7 @@ _unrrdu_envUInt(FILE *file, const char *envKey,
   /* !!! HEY: CUT + PASTE !!! */
   fprintf(file, "%s (unsigned int): ", envKey);
   ret = nrrdGetenvUInt(&val, &envVal, envKey);
-  switch(ret) {
+  switch (ret) {
   case -1:
     fprintf(file, "not set\n");
     break;
@@ -163,15 +155,13 @@ _unrrdu_envUInt(FILE *file, const char *envKey,
     fprintf(file, "set to \"%s\"? (invalid) \n", envVal);
     break;
   }
-  switch(ret) {
+  switch (ret) {
   case -1:
   case AIR_FALSE:
-    fprintf(file, "  (%s == %d; unchanged)\n",
-            varName, currVal);
+    fprintf(file, "  (%s == %d; unchanged)\n", varName, currVal);
     break;
   case AIR_TRUE:
-    fprintf(file, "  ==> %s = %u   **********************\n",
-            varName, currVal);
+    fprintf(file, "  ==> %s = %u   **********************\n", varName, currVal);
     break;
   }
   _hestPrintStr(file, 0, 0, columns, desc, AIR_FALSE);
@@ -180,8 +170,7 @@ _unrrdu_envUInt(FILE *file, const char *envKey,
 }
 
 int
-unrrdu_envMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+unrrdu_envMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   FILE *out;
 
   AIR_UNUSED(argc);
@@ -242,18 +231,14 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                   "nrrd to output nrrd just like other basic info that hasn't "
                   "just been modified (e.g. type, dimension, block size).",
                   hparm->columns);
-  _unrrdu_envEnum(out,
-                  nrrdCenter, nrrdEnvVarDefaultCenter,
-                  nrrdDefaultCenter,
+  _unrrdu_envEnum(out, nrrdCenter, nrrdEnvVarDefaultCenter, nrrdDefaultCenter,
                   "nrrdDefaultCenter",
                   "The type of sample centering to use when none has been "
                   "set but one has to be chosen for some operation "
                   "(e.g. resampling).",
                   hparm->columns);
-  _unrrdu_envEnum(out,
-                  nrrdEncodingType, nrrdEnvVarDefaultWriteEncodingType,
-                  nrrdDefaultWriteEncodingType,
-                  "nrrdDefaultWriteEncodingType",
+  _unrrdu_envEnum(out, nrrdEncodingType, nrrdEnvVarDefaultWriteEncodingType,
+                  nrrdDefaultWriteEncodingType, "nrrdDefaultWriteEncodingType",
                   "When writing nrrds, what encoding to use. Only "
                   "\"unu save\" affords explicit control of output encoding.",
                   hparm->columns);
@@ -270,7 +255,7 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                  nrrdStateVerboseIO,
                  "nrrdStateVerboseIO",
                  "The verbosity level of Nrrd input/output operations.",
-                  hparm->columns);
+                 hparm->columns);
   _unrrdu_envBool(out,
                   nrrdEnvVarStateBlind8BitRange,
                   nrrdStateBlind8BitRange,
@@ -294,9 +279,7 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                   "When true, text files used for saving nrrds can "
                   "losslessly store values of more than just float type.",
                   hparm->columns);
-  _unrrdu_envEnum(out,
-                  nrrdType, nrrdEnvVarStateMeasureType,
-                  nrrdStateMeasureType,
+  _unrrdu_envEnum(out, nrrdType, nrrdEnvVarStateMeasureType, nrrdStateMeasureType,
                   "nrrdStateMeasureType",
                   "For measurements (\"unu project\") like sum and product, "
                   "the type of the output result, when one hasn't been "
@@ -308,11 +291,9 @@ unrrdu_envMain(int argc, const char **argv, const char *me,
                  "nrrdStateMeasureModeBins",
                  "When measuring mode but without a given histogram, how many "
                  "bins to use in the temporary internal histogram.",
-                  hparm->columns);
-  _unrrdu_envEnum(out,
-                  nrrdType, nrrdEnvVarStateMeasureHistoType,
-                  nrrdStateMeasureHistoType,
-                  "nrrdStateMeasureHistoType",
+                 hparm->columns);
+  _unrrdu_envEnum(out, nrrdType, nrrdEnvVarStateMeasureHistoType,
+                  nrrdStateMeasureHistoType, "nrrdStateMeasureHistoType",
                   "Output type for most measurements of histograms, when one "
                   "hasn't been explicitly requested",
                   hparm->columns);

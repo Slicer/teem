@@ -21,10 +21,8 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "bane.h"
 #include "privateBane.h"
-
 
 int
 _baneClipAnswer_Absolute(int *countP, Nrrd *hvol, double *clipParm) {
@@ -42,22 +40,22 @@ _baneClipAnswer_PeakRatio(int *countP, Nrrd *hvol, double *clipParm) {
   hits = (int *)hvol->data;
   maxhits = 0;
   num = nrrdElementNumber(hvol);
-  for (idx=0; idx<num; idx++) {
+  for (idx = 0; idx < num; idx++) {
     maxhits = AIR_MAX(maxhits, hits[idx]);
   }
 
-  *countP = (int)(maxhits*clipParm[0]);
+  *countP = (int)(maxhits * clipParm[0]);
   return 0;
 }
 
 int
 _baneClipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
-  static const char me[]="_baneClipAnswer_Percentile";
+  static const char me[] = "_baneClipAnswer_Percentile";
   Nrrd *ncopy;
   int *hits, clip;
   size_t num, sum, out, outsofar, hi;
 
-  if (nrrdCopy(ncopy=nrrdNew(), hvol)) {
+  if (nrrdCopy(ncopy = nrrdNew(), hvol)) {
     biffMovef(BANE, NRRD, "%s: couldn't create copy of histovol", me);
     return 1;
   }
@@ -65,12 +63,12 @@ _baneClipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
   num = nrrdElementNumber(ncopy);
   qsort(hits, num, sizeof(int), nrrdValCompare[nrrdTypeInt]);
   sum = 0;
-  for (hi=0; hi<num; hi++) {
+  for (hi = 0; hi < num; hi++) {
     sum += hits[hi];
   }
-  out = (size_t)(sum*clipParm[0]/100);
+  out = (size_t)(sum * clipParm[0] / 100);
   outsofar = 0;
-  hi = num-1;
+  hi = num - 1;
   do {
     outsofar += hits[hi--];
   } while (outsofar < out);
@@ -83,20 +81,20 @@ _baneClipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
 
 int
 _baneClipAnswer_TopN(int *countP, Nrrd *hvol, double *clipParm) {
-  static const char me[]="_baneClipAnwer_TopN";
+  static const char me[] = "_baneClipAnwer_TopN";
   Nrrd *copy;
   int *hits, tmp;
   size_t num;
 
-  if (nrrdCopy(copy=nrrdNew(), hvol)) {
+  if (nrrdCopy(copy = nrrdNew(), hvol)) {
     biffMovef(BANE, NRRD, "%s: couldn't create copy of histovol", me);
     return 1;
   }
   hits = (int *)copy->data;
   num = nrrdElementNumber(copy);
   qsort(hits, num, sizeof(int), nrrdValCompare[nrrdTypeInt]);
-  tmp = AIR_CLAMP(0, (int)clipParm[0], (int)num-1);
-  *countP = hits[num-tmp-1];
+  tmp = AIR_CLAMP(0, (int)clipParm[0], (int)num - 1);
+  *countP = hits[num - tmp - 1];
   nrrdNuke(copy);
 
   return 0;
@@ -104,10 +102,10 @@ _baneClipAnswer_TopN(int *countP, Nrrd *hvol, double *clipParm) {
 
 baneClip *
 baneClipNew(int type, double *parm) {
-  static const char me[]="baneClipNew";
+  static const char me[] = "baneClipNew";
   baneClip *clip;
 
-  if (!( AIR_IN_OP(baneClipUnknown, type, baneClipLast) )) {
+  if (!(AIR_IN_OP(baneClipUnknown, type, baneClipLast))) {
     biffAddf(BANE, "%s: baneClip %d invalid", me, type);
     return NULL;
   }
@@ -119,14 +117,14 @@ baneClipNew(int type, double *parm) {
     biffAddf(BANE, "%s: parm[0] doesn't exist", me);
     return NULL;
   }
-  clip = (baneClip*)calloc(1, sizeof(baneClip));
+  clip = (baneClip *)calloc(1, sizeof(baneClip));
   if (!clip) {
     biffAddf(BANE, "%s: couldn't allocate baneClip!", me);
     return NULL;
   }
   clip->parm[0] = parm[0];
   clip->type = type;
-  switch(type) {
+  switch (type) {
   case baneClipAbsolute:
     sprintf(clip->name, "absolute");
     clip->answer = _baneClipAnswer_Absolute;
@@ -145,7 +143,8 @@ baneClipNew(int type, double *parm) {
     break;
   default:
     biffAddf(BANE, "%s: sorry, baneClip %d not implemented", me, type);
-    baneClipNix(clip); return NULL;
+    baneClipNix(clip);
+    return NULL;
     break;
   }
   return clip;
@@ -153,9 +152,9 @@ baneClipNew(int type, double *parm) {
 
 int
 baneClipAnswer(int *countP, baneClip *clip, Nrrd *hvol) {
-  static const char me[]="baneClipAnswer";
+  static const char me[] = "baneClipAnswer";
 
-  if (!( countP && clip && hvol )) {
+  if (!(countP && clip && hvol)) {
     biffAddf(BANE, "%s: got NULL pointer", me);
     return 0;
   }
@@ -168,7 +167,7 @@ baneClipAnswer(int *countP, baneClip *clip, Nrrd *hvol) {
 
 baneClip *
 baneClipCopy(baneClip *clip) {
-  static const char me[]="baneClipCopy";
+  static const char me[] = "baneClipCopy";
   baneClip *ret = NULL;
 
   ret = baneClipNew(clip->type, clip->parm);
@@ -188,4 +187,3 @@ baneClipNix(baneClip *clip) {
   }
   return NULL;
 }
-

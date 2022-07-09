@@ -23,11 +23,9 @@
 
 #include "meet.h"
 
-const int
-meetPresent = 42;
+const int meetPresent = 42;
 
-const char *
-meetBiffKey = "meet";
+const char *meetBiffKey = "meet";
 
 typedef union {
   const airEnum ***enm;
@@ -64,11 +62,10 @@ meetAirEnumAll() {
   unsigned int ii;
   foobarUnion fbu;
 
-  arr = airArrayNew((fbu.enm = &enm, fbu.v),
-                    NULL, sizeof(airEnum *), 2);
+  arr = airArrayNew((fbu.enm = &enm, fbu.v), NULL, sizeof(airEnum *), 2);
 
-#define ADD(E) \
-  ii = airArrayLenIncr(arr, 1); \
+#define ADD(E)                                                                          \
+  ii = airArrayLenIncr(arr, 1);                                                         \
   enm[ii] = (E)
 
   /* air */
@@ -228,7 +225,7 @@ meetAirEnumAllPrint(FILE *file) {
 
 int
 meetAirEnumAllCheck(void) {
-  static const char me[]="meetAirEnumAllCheck";
+  static const char me[] = "meetAirEnumAllCheck";
   const airEnum **enm, *ee;
   char err[AIR_STRLEN_LARGE];
   unsigned int ei;
@@ -236,7 +233,7 @@ meetAirEnumAllCheck(void) {
 
   mop = airMopNew();
   enm = meetAirEnumAll();
-  airMopAdd(mop, (void*)enm, airFree, airMopAlways);
+  airMopAdd(mop, (void *)enm, airFree, airMopAlways);
   ei = 0;
   while ((ee = enm[ei])) {
     /* fprintf(stderr, "!%s: %u %s\n", me, ei, ee->name); */
@@ -252,14 +249,13 @@ meetAirEnumAllCheck(void) {
   return 0;
 }
 
-const char *const
-meetTeemLibs[] = {
+const char *const meetTeemLibs[] = {
   /* TEEM_LIB_LIST */
-  "air", /* */
-  "hest", /* */
-  "biff", /* */
-  "nrrd", /* */
-  "ell", /* */
+  "air",    /* */
+  "hest",   /* */
+  "biff",   /* */
+  "nrrd",   /* */
+  "ell",    /* */
   "unrrdu", /* */
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   "alan", /* */
@@ -269,15 +265,15 @@ meetTeemLibs[] = {
   "tijk", /* */
 #endif
   "gage", /* */
-  "dye", /* */
+  "dye",  /* */
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   "bane", /* */
 #endif
-  "limn", /* */
-  "echo", /* */
+  "limn",   /* */
+  "echo",   /* */
   "hoover", /* */
-  "seek", /* */
-  "ten", /* */
+  "seek",   /* */
+  "ten",    /* */
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   "elf", /* */
 #endif
@@ -288,5 +284,4 @@ meetTeemLibs[] = {
 #endif
   "mite", /* */
   "meet", /* */
-  NULL
-};
+  NULL};

@@ -54,15 +54,15 @@ extern "C" {
 
 /* used by ilk, hence not in privateMoss.h */
 #define MOSS_AXIS0(img) (3 == (img)->dim ? 1 : 0)
-#define MOSS_NCOL(img) AIR_UINT(3 == (img)->dim ? (img)->axis[0].size : 1)
+#define MOSS_NCOL(img)  AIR_UINT(3 == (img)->dim ? (img)->axis[0].size : 1)
 
 enum {
-  mossFlagUnknown=-1,  /* -1: nobody knows */
-  mossFlagImage,       /*  0: image being sampled */
-  mossFlagKernel,      /*  1: kernel(s) used for sampling */
+  mossFlagUnknown = -1, /* -1: nobody knows */
+  mossFlagImage,        /*  0: image being sampled */
+  mossFlagKernel,       /*  1: kernel(s) used for sampling */
   mossFlagLast
 };
-#define MOSS_FLAG_NUM      2
+#define MOSS_FLAG_NUM 2
 
 typedef struct {
   Nrrd *image;                         /* the image to sample */
@@ -93,17 +93,15 @@ MOSS_EXPORT int mossSamplerFill(mossSampler *smplr, int fdiam, int ncol);
 MOSS_EXPORT void mossSamplerEmpty(mossSampler *smplr);
 MOSS_EXPORT mossSampler *mossSamplerNix(mossSampler *smplr);
 MOSS_EXPORT int mossImageCheck(Nrrd *image);
-MOSS_EXPORT int mossImageAlloc(Nrrd *image, int type,
-                               int sx, int sy, int ncol);
+MOSS_EXPORT int mossImageAlloc(Nrrd *image, int type, int sx, int sy, int ncol);
 
 /* sampler.c */
-MOSS_EXPORT int mossSamplerImageSet(mossSampler *smplr,
-                                    Nrrd *image, float *bg);
-MOSS_EXPORT int mossSamplerKernelSet(mossSampler *smplr,
-                                     const NrrdKernel *kernel, double *kparm);
+MOSS_EXPORT int mossSamplerImageSet(mossSampler *smplr, Nrrd *image, float *bg);
+MOSS_EXPORT int mossSamplerKernelSet(mossSampler *smplr, const NrrdKernel *kernel,
+                                     double *kparm);
 MOSS_EXPORT int mossSamplerUpdate(mossSampler *smplr);
-MOSS_EXPORT int mossSamplerSample(float *val, mossSampler *smplr,
-                                  double xPos, double yPos);
+MOSS_EXPORT int mossSamplerSample(float *val, mossSampler *smplr, double xPos,
+                                  double yPos);
 
 /* hestMoss.c */
 MOSS_EXPORT hestCB *mossHestTransform;
@@ -112,24 +110,18 @@ MOSS_EXPORT hestCB *mossHestOrigin;
 /* xform.c */
 MOSS_EXPORT void mossMatPrint(FILE *f, double *mat);
 MOSS_EXPORT double *mossMatRightMultiply(double *mat, double *x);
-MOSS_EXPORT double *mossMatLeftMultiply (double *mat, double *x);
+MOSS_EXPORT double *mossMatLeftMultiply(double *mat, double *x);
 MOSS_EXPORT double *mossMatInvert(double *inv, double *mat);
 MOSS_EXPORT double *mossMatIdentitySet(double *mat);
 MOSS_EXPORT double *mossMatTranslateSet(double *mat, double tx, double ty);
 MOSS_EXPORT double *mossMatRotateSet(double *mat, double angle);
 MOSS_EXPORT double *mossMatFlipSet(double *mat, double angle);
-MOSS_EXPORT double *mossMatShearSet(double *mat, double angleFixed,
-                                    double amount);
+MOSS_EXPORT double *mossMatShearSet(double *mat, double angleFixed, double amount);
 MOSS_EXPORT double *mossMatScaleSet(double *mat, double sx, double sy);
-MOSS_EXPORT void mossMatApply(double *ox, double *oy, double *mat,
-                              double ix, double iy);
-MOSS_EXPORT int mossLinearTransform(Nrrd *nout, Nrrd *nin, float *bg,
-                                    double *mat,
-                                    mossSampler *msp,
-                                    double xMin, double xMax,
-                                    double yMin, double yMax,
-                                    int sx, int sy);
-
+MOSS_EXPORT void mossMatApply(double *ox, double *oy, double *mat, double ix, double iy);
+MOSS_EXPORT int mossLinearTransform(Nrrd *nout, Nrrd *nin, float *bg, double *mat,
+                                    mossSampler *msp, double xMin, double xMax,
+                                    double yMin, double yMax, int sx, int sy);
 
 #ifdef __cplusplus
 }

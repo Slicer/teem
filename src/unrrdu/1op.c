@@ -25,17 +25,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Unary operation on a nrrd"
-static const char *_unrrdu_1opInfoL =
-  (INFO
-   ".\n "
-   "* Uses nrrdArithUnaryOp");
+static const char *_unrrdu_1opInfoL = (INFO ".\n "
+                                            "* Uses nrrdArithUnaryOp");
 
 int
-unrrdu_1opMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+unrrdu_1opMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *seedS;
-  Nrrd *nin, *nout, *ntmp=NULL;
+  Nrrd *nin, *nout, *ntmp = NULL;
   int op, pret, type;
   airArray *mop;
   unsigned int seed;
@@ -90,7 +87,7 @@ unrrdu_1opMain(int argc, const char **argv, const char *me,
 
   if (nrrdTypeDefault != type) {
     /* they requested conversion to another type prior to the 1op */
-    airMopAdd(mop, ntmp=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+    airMopAdd(mop, ntmp = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(ntmp, nin, type)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error converting input nrrd:\n%s", me, err);

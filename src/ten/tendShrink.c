@@ -25,14 +25,12 @@
 #include "privateTen.h"
 
 #define INFO "Converts a 9-value DT volume to a 7-value DT volume"
-static const char *_tend_shrinkInfoL =
-  (INFO
-   ". The confidence value is set to 1.0 everwhere.  You can \"unu splice\" "
-   "or nrrdSplice() something else in its place later.");
+static const char *_tend_shrinkInfoL
+  = (INFO ". The confidence value is set to 1.0 everwhere.  You can \"unu splice\" "
+          "or nrrdSplice() something else in its place later.");
 
 int
-tend_shrinkMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+tend_shrinkMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -57,15 +55,17 @@ tend_shrinkMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenShrink(nout, NULL, nin)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble shrinking tensors:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

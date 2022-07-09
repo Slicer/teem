@@ -25,13 +25,10 @@
 #include "privateTen.h"
 
 #define INFO "Estimate models from a set of DW images"
-static const char *_tend_mfitInfoL =
-  (INFO
-   ". More docs here.");
+static const char *_tend_mfitInfoL = (INFO ". More docs here.");
 
 int
-tend_mfitMain(int argc, const char **argv, const char *me,
-              hestParm *hparm) {
+tend_mfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -45,8 +42,7 @@ tend_mfitMain(int argc, const char **argv, const char *me,
   const tenModel *model;
   tenExperSpec *espec;
 
-  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0",
-             "verbosity level");
+  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0", "verbosity level");
   hestOptAdd(&hopt, "m", "model", airTypeString, 1, 1, &modS, NULL,
              "which model to fit. Use optional \"b0+\" prefix to "
              "indicate that the B0 image should also be saved "
@@ -78,11 +74,10 @@ tend_mfitMain(int argc, const char **argv, const char *me,
              "known or had to be esimated");
   */
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &typeOut, "float",
-             "output type of model parameters",
-             NULL, nrrdType);
+             "output type of model parameters", NULL, nrrdType);
   hestOptAdd(&hopt, "i", "dwi", airTypeOther, 1, 1, &nin, "-",
-             "all the diffusion-weighted images in one 4D nrrd",
-             NULL, NULL, nrrdHestNrrd);
+             "all the diffusion-weighted images in one 4D nrrd", NULL, NULL,
+             nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output parameter vector image");
   hestOptAdd(&hopt, "eo", "filename", airTypeString, 1, 1, &terrS, "",
@@ -110,35 +105,34 @@ tend_mfitMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenModelParse(&model, &saveB0, AIR_FALSE, modS)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble parsing model \"%s\":\n%s\n", me, modS, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (tenExperSpecFromKeyValueSet(espec, nin)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble getting exper from kvp:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  if (tenModelSqeFit(nout,
-                     airStrlen(terrS) ? &nterr : NULL,
-                     airStrlen(convS) ? &nconv : NULL,
-                     airStrlen(iterS) ? &niter : NULL,
-                     model, espec, nin,
-                     knownB0, saveB0, typeOut,
-                     minIter, maxIter, starts, eps,
-                     NULL, verbose)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+  if (tenModelSqeFit(nout, airStrlen(terrS) ? &nterr : NULL,
+                     airStrlen(convS) ? &nconv : NULL, airStrlen(iterS) ? &niter : NULL,
+                     model, espec, nin, knownB0, saveB0, typeOut, minIter, maxIter,
+                     starts, eps, NULL, verbose)) {
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble fitting:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
-  if (nrrdSave(outS, nout, NULL)
-      || (airStrlen(terrS) && nrrdSave(terrS, nterr, NULL))
+  if (nrrdSave(outS, nout, NULL) || (airStrlen(terrS) && nrrdSave(terrS, nterr, NULL))
       || (airStrlen(convS) && nrrdSave(convS, nconv, NULL))
       || (airStrlen(iterS) && nrrdSave(iterS, niter, NULL))) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing output:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

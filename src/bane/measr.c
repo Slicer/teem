@@ -33,17 +33,17 @@ _baneMeasr_StockAnswer(baneMeasr *measr, double *san, double *parm) {
 
 baneMeasr *
 baneMeasrNew(int type, double *parm) {
-  static const char me[]="baneMeasrNew";
+  static const char me[] = "baneMeasrNew";
   baneMeasr *measr;
   int item;
 
   AIR_UNUSED(parm);
-  if (!( AIR_IN_OP(baneMeasrUnknown, type, baneMeasrLast) )) {
+  if (!(AIR_IN_OP(baneMeasrUnknown, type, baneMeasrLast))) {
     biffAddf(BANE, "%s: baneMeasr %d invalid", me, type);
     return NULL;
   }
   /* for now, parm is ignored */
-  measr = (baneMeasr*)calloc(1, sizeof(baneMeasr));
+  measr = (baneMeasr *)calloc(1, sizeof(baneMeasr));
   if (!measr) {
     biffAddf(BANE, "%s: couldn't allocate baneMeasr!", me);
     return NULL;
@@ -51,7 +51,7 @@ baneMeasrNew(int type, double *parm) {
   measr->type = type;
   measr->range = NULL;
   GAGE_QUERY_RESET(measr->query);
-  switch(type) {
+  switch (type) {
     /* --------------------------------------------------------------- */
   case baneMeasrValuePositive:
     item = gageSclValue;
@@ -127,14 +127,15 @@ baneMeasrNew(int type, double *parm) {
     /* --------------------------------------------------------------- */
   default:
     biffAddf(BANE, "%s: Sorry, baneMeasr %d not implemented", me, type);
-    baneMeasrNix(measr); return NULL;
+    baneMeasrNix(measr);
+    return NULL;
   }
   return measr;
 }
 
 double
 baneMeasrAnswer(baneMeasr *measr, gageContext *gctx) {
-  static const char me[]="baneMeasrAnswer";
+  static const char me[] = "baneMeasrAnswer";
   double ret;
 
   if (measr && gctx && 1 == gctx->pvlNum) {
@@ -148,7 +149,7 @@ baneMeasrAnswer(baneMeasr *measr, gageContext *gctx) {
 
 baneMeasr *
 baneMeasrCopy(baneMeasr *measr) {
-  static const char me[]="baneMeasrCopy";
+  static const char me[] = "baneMeasrCopy";
   baneMeasr *ret = NULL;
 
   ret = baneMeasrNew(measr->type, measr->parm);

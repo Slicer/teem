@@ -56,8 +56,7 @@ nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin) {
 */
 
 /* ---- BEGIN non-NrrdIO */
-const int
-nrrdPresent = 42;
+const int nrrdPresent = 42;
 
 /* ------------------------------------------------------------ */
 
@@ -96,21 +95,21 @@ nrrdBoundarySpecCopy(const NrrdBoundarySpec *bspec) {
 
 int
 nrrdBoundarySpecCheck(const NrrdBoundarySpec *bspec) {
-  static const char me[]="nrrdBoundarySpecCheck";
+  static const char me[] = "nrrdBoundarySpecCheck";
 
   if (!bspec) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
   if (airEnumValCheck(nrrdBoundary, bspec->boundary)) {
-    biffAddf(NRRD, "%s: %d is not a valid %s value", me,
-             bspec->boundary, nrrdBoundary->name);
+    biffAddf(NRRD, "%s: %d is not a valid %s value", me, bspec->boundary,
+             nrrdBoundary->name);
     return 1;
   }
   if (nrrdBoundaryPad == bspec->boundary) {
     if (!AIR_EXISTS(bspec->padValue)) {
-      biffAddf(NRRD, "%s: need existing pad value (not %g) with %s %s",
-               me, bspec->padValue, nrrdBoundary->name,
+      biffAddf(NRRD, "%s: need existing pad value (not %g) with %s %s", me,
+               bspec->padValue, nrrdBoundary->name,
                airEnumStr(nrrdBoundary, nrrdBoundaryPad));
       return 1;
     }
@@ -120,7 +119,7 @@ nrrdBoundarySpecCheck(const NrrdBoundarySpec *bspec) {
 
 int
 nrrdBoundarySpecParse(NrrdBoundarySpec *bspec, const char *_str) {
-  static const char me[]="nrrdBoundarySpecParse";
+  static const char me[] = "nrrdBoundarySpecParse";
   char *str, *parm;
   airArray *mop;
 
@@ -142,31 +141,34 @@ nrrdBoundarySpecParse(NrrdBoundarySpec *bspec, const char *_str) {
   }
   bspec->boundary = airEnumVal(nrrdBoundary, str);
   if (nrrdBoundaryUnknown == bspec->boundary) {
-    biffAddf(NRRD, "%s: couldn't parse %s as a %s", me,
-             str, nrrdBoundary->name);
-    airMopError(mop); return 1;
+    biffAddf(NRRD, "%s: couldn't parse %s as a %s", me, str, nrrdBoundary->name);
+    airMopError(mop);
+    return 1;
   }
   if (parm) {
     if (nrrdBoundaryPad != bspec->boundary) {
       biffAddf(NRRD, "%s: can only have parms for %s (not %s)", me,
                airEnumStr(nrrdBoundary, nrrdBoundaryPad),
                airEnumStr(nrrdBoundary, bspec->boundary));
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if (1 != sscanf(parm, "%lg", &(bspec->padValue))) {
       biffAddf(NRRD, "%s: couldn't parse \"%s\" as double", me, parm);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if (!AIR_EXISTS(bspec->padValue)) {
-      biffAddf(NRRD, "%s: need existant pad value (not %g)", me,
-               bspec->padValue);
-      airMopError(mop); return 1;
+      biffAddf(NRRD, "%s: need existant pad value (not %g)", me, bspec->padValue);
+      airMopError(mop);
+      return 1;
     }
   } else {
     if (nrrdBoundaryPad == bspec->boundary) {
       biffAddf(NRRD, "%s: need padValue parm for %s", me,
                airEnumStr(nrrdBoundary, nrrdBoundaryPad));
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     bspec->padValue = AIR_NAN;
   }
@@ -175,12 +177,11 @@ nrrdBoundarySpecParse(NrrdBoundarySpec *bspec, const char *_str) {
 }
 
 int
-nrrdBoundarySpecSprint(char str[AIR_STRLEN_LARGE],
-                       const NrrdBoundarySpec *bspec) {
-  static const char me[]="nrrdBoundarySpecSprint";
+nrrdBoundarySpecSprint(char str[AIR_STRLEN_LARGE], const NrrdBoundarySpec *bspec) {
+  static const char me[] = "nrrdBoundarySpecSprint";
   char *out;
 
-  if (!( str && bspec )) {
+  if (!(str && bspec)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
@@ -198,10 +199,9 @@ nrrdBoundarySpecSprint(char str[AIR_STRLEN_LARGE],
 }
 
 int
-nrrdBoundarySpecCompare(const NrrdBoundarySpec *aa,
-                        const NrrdBoundarySpec *bb,
+nrrdBoundarySpecCompare(const NrrdBoundarySpec *aa, const NrrdBoundarySpec *bb,
                         int *differ, char explain[AIR_STRLEN_LARGE]) {
-  static const char me[]="nrrdBoundarySpecEqual";
+  static const char me[] = "nrrdBoundarySpecEqual";
 
   if (!differ) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -209,15 +209,16 @@ nrrdBoundarySpecCompare(const NrrdBoundarySpec *aa,
   }
   if (!!aa != !!bb) {
     if (explain) {
-      sprintf(explain, "NULL-ities differ: %s != %s",
-              aa ? "non-NULL" : "NULL",
+      sprintf(explain, "NULL-ities differ: %s != %s", aa ? "non-NULL" : "NULL",
               bb ? "non-NULL" : "NULL");
     }
-    *differ = 1; return 0;
+    *differ = 1;
+    return 0;
   }
   if (!aa) {
     /* got two NULL boundary specs ==> equal */
-    *differ = 0; return 0;
+    *differ = 0;
+    return 0;
   }
   if (aa->boundary != bb->boundary) {
     if (explain) {
@@ -225,15 +226,16 @@ nrrdBoundarySpecCompare(const NrrdBoundarySpec *aa,
               airEnumStr(nrrdBoundary, aa->boundary),
               airEnumStr(nrrdBoundary, bb->boundary));
     }
-    *differ = 1; return 0;
+    *differ = 1;
+    return 0;
   }
   if (nrrdBoundaryPad == aa->boundary) {
     if (aa->padValue != bb->padValue) {
       if (explain) {
-        sprintf(explain, "padValue differ: %.17g != %.17g",
-                aa->padValue, bb->padValue);
+        sprintf(explain, "padValue differ: %.17g != %.17g", aa->padValue, bb->padValue);
       }
-      *differ = 1; return 0;
+      *differ = 1;
+      return 0;
     }
   }
   *differ = 0;
@@ -271,7 +273,7 @@ nrrdIoStateInit(NrrdIoState *nio) {
     nio->headerStrlen = 0;
     nio->headerStrpos = 0;
     nio->byteSkip = 0;
-    memset(nio->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
+    memset(nio->seen, 0, (NRRD_FIELD_MAX + 1) * sizeof(int));
     nio->detachedHeader = AIR_FALSE;
     nio->bareText = nrrdDefaultWriteBareText;
     nio->moreThanFloatInText = nrrdDefaultWriteMoreThanFloatInText;
@@ -313,13 +315,11 @@ nrrdIoStateNew(void) {
     nio->headerStringRead = NULL;
     nio->headerStringWrite = NULL;
     appu.cp = &(nio->dataFN);
-    nio->dataFNArr = airArrayNew(appu.v, NULL,
-                                 sizeof(char *), NRRD_FILENAME_INCR);
+    nio->dataFNArr = airArrayNew(appu.v, NULL, sizeof(char *), NRRD_FILENAME_INCR);
     airArrayPointerCB(nio->dataFNArr, airNull, airFree);
     nio->dataFSkip = NULL;
     appu.li = &(nio->dataFSkip);
-    nio->dataFSkipArr = airArrayNew(appu.v, NULL,
-                                    sizeof(long int), NRRD_FILENAME_INCR);
+    nio->dataFSkipArr = airArrayNew(appu.v, NULL, sizeof(long int), NRRD_FILENAME_INCR);
     nio->format = nrrdFormatUnknown;
     nio->encoding = nrrdEncodingUnknown;
     nrrdIoStateInit(nio);
@@ -337,7 +337,7 @@ nrrdIoStateNix(NrrdIoState *nio) {
   nio->dataFNArr = airArrayNuke(nio->dataFNArr);
   nio->dataFSkipArr = airArrayNuke(nio->dataFSkipArr);
   /* the NrrdIoState never owned nio->oldData; we don't free it */
-  airFree(nio);  /* no NULL assignment, else compile warnings */
+  airFree(nio); /* no NULL assignment, else compile warnings */
   return NULL;
 }
 
@@ -349,11 +349,11 @@ void
 _nrrdResampleInfoInit(NrrdResampleInfo *info) {
   int i, d;
 
-  for (d=0; d<NRRD_DIM_MAX; d++) {
+  for (d = 0; d < NRRD_DIM_MAX; d++) {
     info->kernel[d] = NULL;
     info->samples[d] = 0;
     info->parm[d][0] = nrrdDefaultKernelParm0;
-    for (i=1; i<NRRD_KERNEL_PARMS_NUM; i++)
+    for (i = 1; i < NRRD_KERNEL_PARMS_NUM; i++)
       info->parm[d][i] = AIR_NAN;
     info->min[d] = info->max[d] = AIR_NAN;
   }
@@ -370,7 +370,7 @@ NrrdResampleInfo *
 nrrdResampleInfoNew(void) {
   NrrdResampleInfo *info;
 
-  info = (NrrdResampleInfo*)(calloc(1, sizeof(NrrdResampleInfo)));
+  info = (NrrdResampleInfo *)(calloc(1, sizeof(NrrdResampleInfo)));
   if (info) {
     /* explicitly sets pointers to NULL */
     _nrrdResampleInfoInit(info);
@@ -395,8 +395,8 @@ nrrdKernelSpecNew(void) {
   ksp = (NrrdKernelSpec *)calloc(1, sizeof(NrrdKernelSpec));
   if (ksp) {
     ksp->kernel = NULL;
-    for (i=0; i<NRRD_KERNEL_PARMS_NUM; i++) {
-      ksp->parm[i] = airNaN();  /* valgrind complained about AIR_NAN at -O2 */
+    for (i = 0; i < NRRD_KERNEL_PARMS_NUM; i++) {
+      ksp->parm[i] = airNaN(); /* valgrind complained about AIR_NAN at -O2 */
     }
   }
   return ksp;
@@ -404,7 +404,7 @@ nrrdKernelSpecNew(void) {
 
 NrrdKernelSpec *
 nrrdKernelSpecCopy(const NrrdKernelSpec *oldKsp) {
-  NrrdKernelSpec *ksp=NULL;
+  NrrdKernelSpec *ksp = NULL;
 
   if (oldKsp) {
     ksp = (NrrdKernelSpec *)calloc(1, sizeof(NrrdKernelSpec));
@@ -429,7 +429,7 @@ nrrdKernelSpecSet(NrrdKernelSpec *ksp, const NrrdKernel *k,
 
   if (ksp && k && kparm) {
     ksp->kernel = k;
-    for (p=0; p<(k->numParm); p++) {
+    for (p = 0; p < (k->numParm); p++) {
       ksp->parm[p] = kparm[p];
     }
   }
@@ -442,7 +442,7 @@ nrrdKernelParmSet(const NrrdKernel **kP, double kparm[NRRD_KERNEL_PARMS_NUM],
 
   if (kP && kparm && ksp) {
     *kP = ksp->kernel;
-    for (p=0; p<NRRD_KERNEL_PARMS_NUM; p++) {
+    for (p = 0; p < NRRD_KERNEL_PARMS_NUM; p++) {
       kparm[p] = ksp->parm[p];
     }
   }
@@ -499,18 +499,18 @@ nrrdBasicInfoInit(Nrrd *nrrd, int bitflag) {
     nrrd->spaceDim = 0;
   }
   if (!(NRRD_BASIC_INFO_SPACEUNITS_BIT & bitflag)) {
-    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
+    for (dd = 0; dd < NRRD_SPACE_DIM_MAX; dd++) {
       nrrd->spaceUnits[dd] = (char *)airFree(nrrd->spaceUnits[dd]);
     }
   }
   if (!(NRRD_BASIC_INFO_SPACEORIGIN_BIT & bitflag)) {
-    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
+    for (dd = 0; dd < NRRD_SPACE_DIM_MAX; dd++) {
       nrrd->spaceOrigin[dd] = AIR_NAN;
     }
   }
   if (!(NRRD_BASIC_INFO_MEASUREMENTFRAME_BIT & bitflag)) {
-    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
-      for (ee=0; ee<NRRD_SPACE_DIM_MAX; ee++) {
+    for (dd = 0; dd < NRRD_SPACE_DIM_MAX; dd++) {
+      for (ee = 0; ee < NRRD_SPACE_DIM_MAX; ee++) {
         nrrd->measurementFrame[dd][ee] = AIR_NAN;
       }
     }
@@ -540,11 +540,10 @@ nrrdBasicInfoInit(Nrrd *nrrd, int bitflag) {
 */
 int
 nrrdBasicInfoCopy(Nrrd *dest, const Nrrd *src, int bitflag) {
-  static const char me[]="nrrdBasicInfoCopy";
+  static const char me[] = "nrrdBasicInfoCopy";
   unsigned int dd, ee;
 
-  if (!( dest && src ))
-    return 0;
+  if (!(dest && src)) return 0;
   if (dest == src) {
     /* nothing to do */
     return 0;
@@ -585,7 +584,7 @@ nrrdBasicInfoCopy(Nrrd *dest, const Nrrd *src, int bitflag) {
     dest->spaceDim = src->spaceDim;
   }
   if (!(NRRD_BASIC_INFO_SPACEUNITS_BIT & bitflag)) {
-    for (dd=0; dd<src->spaceDim; dd++) {
+    for (dd = 0; dd < src->spaceDim; dd++) {
       dest->spaceUnits[dd] = (char *)airFree(dest->spaceUnits[dd]);
       dest->spaceUnits[dd] = airStrdup(src->spaceUnits[dd]);
       if (src->spaceUnits[dd] && !dest->spaceUnits[dd]) {
@@ -593,13 +592,13 @@ nrrdBasicInfoCopy(Nrrd *dest, const Nrrd *src, int bitflag) {
         return 1;
       }
     }
-    for (dd=src->spaceDim; dd<NRRD_SPACE_DIM_MAX; dd++) {
+    for (dd = src->spaceDim; dd < NRRD_SPACE_DIM_MAX; dd++) {
       dest->spaceUnits[dd] = (char *)airFree(dest->spaceUnits[dd]);
     }
   }
   if (!(NRRD_BASIC_INFO_SPACEORIGIN_BIT & bitflag)) {
-    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
-      if (dd <= src->spaceDim-1) {
+    for (dd = 0; dd < NRRD_SPACE_DIM_MAX; dd++) {
+      if (dd <= src->spaceDim - 1) {
         dest->spaceOrigin[dd] = src->spaceOrigin[dd];
       } else {
         dest->spaceOrigin[dd] = AIR_NAN;
@@ -607,16 +606,16 @@ nrrdBasicInfoCopy(Nrrd *dest, const Nrrd *src, int bitflag) {
     }
   }
   if (!(NRRD_BASIC_INFO_MEASUREMENTFRAME_BIT & bitflag)) {
-    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
-      for (ee=0; ee<NRRD_SPACE_DIM_MAX; ee++) {
-        if (dd <= src->spaceDim-1 && ee <= src->spaceDim-1) {
+    for (dd = 0; dd < NRRD_SPACE_DIM_MAX; dd++) {
+      for (ee = 0; ee < NRRD_SPACE_DIM_MAX; ee++) {
+        if (dd <= src->spaceDim - 1 && ee <= src->spaceDim - 1) {
           dest->measurementFrame[dd][ee] = src->measurementFrame[dd][ee];
         } else {
           dest->measurementFrame[dd][ee] = AIR_NAN;
         }
       }
     }
-    for (dd=src->spaceDim; dd<NRRD_SPACE_DIM_MAX; dd++) {
+    for (dd = src->spaceDim; dd < NRRD_SPACE_DIM_MAX; dd++) {
       dest->spaceOrigin[dd] = AIR_NAN;
     }
   }
@@ -654,7 +653,7 @@ nrrdInit(Nrrd *nrrd) {
 
   if (nrrd) {
     nrrdBasicInfoInit(nrrd, NRRD_BASIC_INFO_NONE);
-    for (ii=0; ii<NRRD_DIM_MAX; ii++) {
+    for (ii = 0; ii < NRRD_DIM_MAX; ii++) {
       _nrrdAxisInfoInit(nrrd->axis + ii);
     }
   }
@@ -674,7 +673,7 @@ nrrdNew(void) {
   Nrrd *nrrd;
   airPtrPtrUnion appu;
 
-  nrrd = (Nrrd*)(calloc(1, sizeof(Nrrd)));
+  nrrd = (Nrrd *)(calloc(1, sizeof(Nrrd)));
   if (!nrrd) {
     return NULL;
   }
@@ -682,10 +681,10 @@ nrrdNew(void) {
   /* explicitly set pointers to NULL, since calloc isn't officially
      guaranteed to do that.  */
   nrrd->data = NULL;
-  for (ii=0; ii<NRRD_DIM_MAX; ii++) {
+  for (ii = 0; ii < NRRD_DIM_MAX; ii++) {
     _nrrdAxisInfoNewInit(nrrd->axis + ii);
   }
-  for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
+  for (ii = 0; ii < NRRD_SPACE_DIM_MAX; ii++) {
     nrrd->spaceUnits[ii] = NULL;
   }
   nrrd->content = NULL;
@@ -703,8 +702,7 @@ nrrdNew(void) {
   /* create key/value airArray (even thought it starts empty) */
   nrrd->kvp = NULL;
   appu.cp = &(nrrd->kvp);
-  nrrd->kvpArr = airArrayNew(appu.v, NULL,
-                             2*sizeof(char *), NRRD_KEYVALUE_INCR);
+  nrrd->kvpArr = airArrayNew(appu.v, NULL, 2 * sizeof(char *), NRRD_KEYVALUE_INCR);
   if (!nrrd->kvpArr) {
     return NULL;
   }
@@ -731,10 +729,10 @@ nrrdNix(Nrrd *nrrd) {
   int ii;
 
   if (nrrd) {
-    for (ii=0; ii<NRRD_DIM_MAX; ii++) {
+    for (ii = 0; ii < NRRD_DIM_MAX; ii++) {
       _nrrdAxisInfoInit(&(nrrd->axis[ii]));
     }
-    for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
+    for (ii = 0; ii < NRRD_SPACE_DIM_MAX; ii++) {
       nrrd->spaceUnits[ii] = (char *)airFree(nrrd->spaceUnits[ii]);
     }
     nrrd->content = (char *)airFree(nrrd->content);
@@ -786,21 +784,22 @@ nrrdNuke(Nrrd *nrrd) {
 
 int
 _nrrdSizeCheck(const size_t *size, unsigned int dim, int useBiff) {
-  static const char me[]="_nrrdSizeCheck";
+  static const char me[] = "_nrrdSizeCheck";
   size_t num, pre;
   unsigned int ai;
 
   pre = num = 1;
-  for (ai=0; ai<dim; ai++) {
+  for (ai = 0; ai < dim; ai++) {
     if (!size[ai]) {
       biffMaybeAddf(useBiff, NRRD, "%s: axis %u size is zero!", me, ai);
       return 1;
     }
     num *= size[ai];
-    if (num/size[ai] != pre) {
+    if (num / size[ai] != pre) {
       biffMaybeAddf(useBiff, NRRD,
                     "%s: total # of elements too large to be represented in "
-                    "type size_t, so too large for current architecture", me);
+                    "type size_t, so too large for current architecture",
+                    me);
       return 1;
     }
     pre *= size[ai];
@@ -820,9 +819,8 @@ _nrrdSizeCheck(const size_t *size, unsigned int dim, int useBiff) {
 ** set nrrd->blockSize at some other time.
 */
 int
-nrrdWrap_nva(Nrrd *nrrd, void *data, int type,
-             unsigned int dim, const size_t *size) {
-  static const char me[]="nrrdWrap_nva";
+nrrdWrap_nva(Nrrd *nrrd, void *data, int type, unsigned int dim, const size_t *size) {
+  static const char me[] = "nrrdWrap_nva";
 
   if (!(nrrd && size)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -853,7 +851,7 @@ nrrdWrap_nva(Nrrd *nrrd, void *data, int type,
 */
 int
 nrrdWrap_va(Nrrd *nrrd, void *data, int type, unsigned int dim, ...) {
-  static const char me[]="nrrdWrap_va";
+  static const char me[] = "nrrdWrap_va";
   va_list ap;
   size_t size[NRRD_DIM_MAX];
   unsigned int ai;
@@ -863,7 +861,7 @@ nrrdWrap_va(Nrrd *nrrd, void *data, int type, unsigned int dim, ...) {
     return 1;
   }
   va_start(ap, dim);
-  for (ai=0; ai<dim; ai++) {
+  for (ai = 0; ai < dim; ai++) {
     size[ai] = va_arg(ap, size_t);
   }
   va_end(ap);
@@ -890,7 +888,7 @@ _nrrdTraverse(Nrrd *nrrd) {
 
 int
 _nrrdCopy(Nrrd *nout, const Nrrd *nin, int bitflag) {
-  static const char me[]="_nrrdCopy";
+  static const char me[] = "_nrrdCopy";
   size_t size[NRRD_DIM_MAX];
 
   if (!(nin && nout)) {
@@ -914,8 +912,7 @@ _nrrdCopy(Nrrd *nout, const Nrrd *nin, int bitflag) {
       biffAddf(NRRD, "%s: couldn't allocate data", me);
       return 1;
     }
-    memcpy(nout->data, nin->data,
-           nrrdElementNumber(nin)*nrrdElementSize(nin));
+    memcpy(nout->data, nin->data, nrrdElementNumber(nin) * nrrdElementSize(nin));
   } else {
     /* someone is trying to copy structs without data, fine fine fine */
     if (nrrdWrap_nva(nout, NULL, nin->type, nin->dim, size)) {
@@ -945,7 +942,7 @@ _nrrdCopy(Nrrd *nout, const Nrrd *nin, int bitflag) {
 */
 int
 nrrdCopy(Nrrd *nout, const Nrrd *nin) {
-  static const char me[]="nrrdCopy";
+  static const char me[] = "nrrdCopy";
 
   if (_nrrdCopy(nout, nin, NRRD_BASIC_INFO_NONE)) {
     biffAddf(NRRD, "%s:", me);
@@ -975,7 +972,7 @@ nrrdCopy(Nrrd *nout, const Nrrd *nin) {
 */
 int
 nrrdAlloc_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
-  static const char me[]="nrrdAlloc_nva";
+  static const char me[] = "nrrdAlloc_nva";
   size_t num, esize;
   char stmp[2][AIR_STRLEN_SMALL];
 
@@ -995,24 +992,22 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
     }
   }
   if (!AIR_IN_CL(1, dim, NRRD_DIM_MAX)) {
-    biffAddf(NRRD, "%s: dim (%d) not in valid range [1,%d]",
-             me, dim, NRRD_DIM_MAX);
+    biffAddf(NRRD, "%s: dim (%d) not in valid range [1,%d]", me, dim, NRRD_DIM_MAX);
     return 1;
   }
 
   nrrd->data = airFree(nrrd->data);
   if (nrrdWrap_nva(nrrd, NULL, type, dim, size)) {
     biffAddf(NRRD, "%s:", me);
-    return 1 ;
+    return 1;
   }
   num = nrrdElementNumber(nrrd);
   esize = nrrdElementSize(nrrd);
   nrrd->data = calloc(num, esize);
   if (!(nrrd->data)) {
-    biffAddf(NRRD, "%s: calloc(%s,%s) failed", me,
-             airSprintSize_t(stmp[0], num),
+    biffAddf(NRRD, "%s: calloc(%s,%s) failed", me, airSprintSize_t(stmp[0], num),
              airSprintSize_t(stmp[1], esize));
-    return 1 ;
+    return 1;
   }
 
   return 0;
@@ -1026,7 +1021,7 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
 */
 int
 nrrdAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
-  static const char me[]="nrrdAlloc_va";
+  static const char me[] = "nrrdAlloc_va";
   size_t size[NRRD_DIM_MAX];
   unsigned int ai;
   va_list ap;
@@ -1036,7 +1031,7 @@ nrrdAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
     return 1;
   }
   va_start(ap, dim);
-  for (ai=0; ai<dim; ai++) {
+  for (ai = 0; ai < dim; ai++) {
     size[ai] = va_arg(ap, size_t);
   }
   va_end(ap);
@@ -1046,7 +1041,6 @@ nrrdAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
   }
   return 0;
 }
-
 
 /*
 ** _nrrdMaybeAllocMaybeZero_nva
@@ -1058,10 +1052,9 @@ nrrdAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
 ** think of a name that wasn't silly
 */
 int
-_nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type,
-                             unsigned int dim, const size_t *size,
+_nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size,
                              int zeroWhenNoAlloc) {
-  static const char me[]="nrrdMaybeAllocMaybeZero_nva";
+  static const char me[] = "nrrdMaybeAllocMaybeZero_nva";
   size_t sizeWant, sizeHave, numWant, elementSizeWant;
   int need;
   unsigned int ai;
@@ -1098,7 +1091,7 @@ _nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type,
     need = 1;
   } else {
     numWant = 1;
-    for (ai=0; ai<dim; ai++) {
+    for (ai = 0; ai < dim; ai++) {
       numWant *= size[ai];
     }
     if (!nrrdElementSize(nrrd)) {
@@ -1129,7 +1122,7 @@ _nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type,
     }
     /* but we may have to initialize memory */
     if (zeroWhenNoAlloc) {
-      memset(nrrd->data, 0, nrrdElementNumber(nrrd)*nrrdElementSize(nrrd));
+      memset(nrrd->data, 0, nrrdElementNumber(nrrd) * nrrdElementSize(nrrd));
     }
   }
 
@@ -1148,12 +1141,10 @@ _nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type,
 ** also subscribes to the "don't mess with peripheral information" philosophy
 */
 int
-nrrdMaybeAlloc_nva(Nrrd *nrrd, int type,
-                   unsigned int dim, const size_t *size) {
-  static const char me[]="nrrdMaybeAlloc_nva";
+nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
+  static const char me[] = "nrrdMaybeAlloc_nva";
   int ret;
-  ret = _nrrdMaybeAllocMaybeZero_nva(nrrd, type, dim, size,
-                                     AIR_TRUE);
+  ret = _nrrdMaybeAllocMaybeZero_nva(nrrd, type, dim, size, AIR_TRUE);
   if (ret) {
     biffAddf(NRRD, "%s: trouble", me);
   }
@@ -1168,7 +1159,7 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type,
 */
 int
 nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
-  static const char me[]="nrrdMaybeAlloc_va";
+  static const char me[] = "nrrdMaybeAlloc_va";
   size_t size[NRRD_DIM_MAX];
   unsigned int ai;
   va_list ap;
@@ -1178,7 +1169,7 @@ nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
     return 1;
   }
   va_start(ap, dim);
-  for (ai=0; ai<dim; ai++) {
+  for (ai = 0; ai < dim; ai++) {
     size[ai] = va_arg(ap, size_t);
   }
   va_end(ap);
@@ -1208,16 +1199,15 @@ nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
 ** nrrdAxisInfoCompare, and any improvements here should be reflected there
 */
 int
-nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
-            int onlyData, double epsilon,
+nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData, double epsilon,
             int *differ, char explain[AIR_STRLEN_LARGE]) {
-  static const char me[]="nrrdCompare";
+  static const char me[] = "nrrdCompare";
   size_t numA, numB;
   unsigned int axi, saxi;
 
   if (!(ninA && ninB && differ)) {
-    biffAddf(NRRD, "%s: got NULL pointer (%p, %p, or %p)", me,
-             AIR_CVOIDP(ninA), AIR_CVOIDP(ninB), AIR_VOIDP(differ));
+    biffAddf(NRRD, "%s: got NULL pointer (%p, %p, or %p)", me, AIR_CVOIDP(ninA),
+             AIR_CVOIDP(ninB), AIR_VOIDP(differ));
     return 1;
   }
 
@@ -1228,8 +1218,8 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
     if (ninA->dim != ninB->dim) {
       *differ = ninA->dim < ninB->dim ? -1 : 1;
       if (explain) {
-        sprintf(explain, "nin{A,B}->dim %u %s %u",
-                ninA->dim, *differ < 0 ? "<" : ">", ninB->dim);
+        sprintf(explain, "nin{A,B}->dim %u %s %u", ninA->dim, *differ < 0 ? "<" : ">",
+                ninB->dim);
       }
       return 0;
     }
@@ -1237,9 +1227,8 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
   if (ninA->type != ninB->type) {
     *differ = ninA->type < ninB->type ? -1 : 1;
     if (explain) {
-      sprintf(explain, "nin{A,B}->type %s %s %s",
-              airEnumStr(nrrdType, ninA->type), *differ < 0 ? "<" : ">",
-              airEnumStr(nrrdType, ninB->type));
+      sprintf(explain, "nin{A,B}->type %s %s %s", airEnumStr(nrrdType, ninA->type),
+              *differ < 0 ? "<" : ">", airEnumStr(nrrdType, ninB->type));
     }
     return 0;
   }
@@ -1248,14 +1237,13 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
   if (numA != numB) {
     char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
     *differ = numA < numB ? -1 : 1;
-    sprintf(explain, "element # {A,B} %s %s %s",
-            airSprintSize_t(stmp1, numA), *differ < 0 ? "<" : ">",
-            airSprintSize_t(stmp2, numB));
+    sprintf(explain, "element # {A,B} %s %s %s", airSprintSize_t(stmp1, numA),
+            *differ < 0 ? "<" : ">", airSprintSize_t(stmp2, numB));
     return 0;
   }
   /* this will always set *differ */
-  if (nrrdArrayCompare(ninA->type, ninA->data, ninB->data, numA,
-                       epsilon, differ, explain)) {
+  if (nrrdArrayCompare(ninA->type, ninA->data, ninB->data, numA, epsilon, differ,
+                       explain)) {
     biffAddf(NRRD, "%s: problem comparing values", me);
     return 1;
   }
@@ -1268,10 +1256,9 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
     return 0;
   }
 
-  for (axi=0; axi<ninA->dim; axi++) {
+  for (axi = 0; axi < ninA->dim; axi++) {
     /* this always sets *differ */
-    if (nrrdAxisInfoCompare(ninA->axis + axi, ninB->axis + axi,
-                            differ, explain)) {
+    if (nrrdAxisInfoCompare(ninA->axis + axi, ninB->axis + axi, differ, explain)) {
       biffAddf(NRRD, "%s: problem comparing axis %u", me, axi);
       return 1;
     }
@@ -1284,15 +1271,14 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
     }
   }
 
-#define STRING_COMPARE(VAL, STR)                                      \
-  *differ = airStrcmp(ninA->VAL, ninB->VAL);                          \
-  if (*differ) {                                                      \
-    if (explain) {                                                    \
-      /* can't print whole string because of fixed-size of explain */ \
-      sprintf(explain, "ninA->%s %s ninB->%s",                        \
-              STR, *differ < 0 ? "<" : ">", STR);                     \
-    }                                                                 \
-    return 0;                                                         \
+#define STRING_COMPARE(VAL, STR)                                                        \
+  *differ = airStrcmp(ninA->VAL, ninB->VAL);                                            \
+  if (*differ) {                                                                        \
+    if (explain) {                                                                      \
+      /* can't print whole string because of fixed-size of explain */                   \
+      sprintf(explain, "ninA->%s %s ninB->%s", STR, *differ < 0 ? "<" : ">", STR);      \
+    }                                                                                   \
+    return 0;                                                                           \
   }
 
   STRING_COMPARE(content, "content");
@@ -1301,8 +1287,7 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
     *differ = ninA->space < ninB->space ? -1 : 1;
     if (explain) {
       sprintf(explain, "ninA->space %s %s ninB->space %s",
-              airEnumStr(nrrdSpace, ninA->space),
-              *differ < 0 ? "<" : ">",
+              airEnumStr(nrrdSpace, ninA->space), *differ < 0 ? "<" : ">",
               airEnumStr(nrrdSpace, ninB->space));
     }
     return 0;
@@ -1310,8 +1295,8 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
   if (ninA->spaceDim != ninB->spaceDim) {
     *differ = ninA->spaceDim < ninB->spaceDim ? -1 : 1;
     if (explain) {
-      sprintf(explain, "ninA->spaceDim %u %s ninB->spaceDim %u",
-              ninA->spaceDim, *differ < 0 ? "<" : ">", ninB->spaceDim);
+      sprintf(explain, "ninA->spaceDim %u %s ninB->spaceDim %u", ninA->spaceDim,
+              *differ < 0 ? "<" : ">", ninB->spaceDim);
     }
     return 0;
   }
@@ -1320,32 +1305,30 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
     if (explain) {
       char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
       sprintf(explain, "ninA->blockSize %s %s ninB->blockSize %s",
-              airSprintSize_t(stmp1, ninA->blockSize),
-              *differ < 0 ? "<" : ">",
+              airSprintSize_t(stmp1, ninA->blockSize), *differ < 0 ? "<" : ">",
               airSprintSize_t(stmp2, ninB->blockSize));
     }
     return 0;
   }
 
-#define DOUBLE_COMPARE(VAL, STR)                                       \
-  *differ = _nrrdDblcmp(ninA->VAL, ninB->VAL);                         \
-  if (*differ) {                                                       \
-    if (explain) {                                                     \
-      sprintf(explain, "ninA->%s %.17g %s ninB->%s %.17g",             \
-              STR, ninA->VAL, *differ < 0 ? "<" : ">",                 \
-              STR, ninB->VAL);                                         \
-    }                                                                  \
-    return 0;                                                          \
+#define DOUBLE_COMPARE(VAL, STR)                                                        \
+  *differ = _nrrdDblcmp(ninA->VAL, ninB->VAL);                                          \
+  if (*differ) {                                                                        \
+    if (explain) {                                                                      \
+      sprintf(explain, "ninA->%s %.17g %s ninB->%s %.17g", STR, ninA->VAL,              \
+              *differ < 0 ? "<" : ">", STR, ninB->VAL);                                 \
+    }                                                                                   \
+    return 0;                                                                           \
   }
 
-  for (saxi=0; saxi<NRRD_SPACE_DIM_MAX; saxi++) {
+  for (saxi = 0; saxi < NRRD_SPACE_DIM_MAX; saxi++) {
     char stmp[AIR_STRLEN_SMALL];
     unsigned int saxj;
     sprintf(stmp, "spaceOrigin[%u]", saxi);
     DOUBLE_COMPARE(spaceOrigin[saxi], stmp);
     sprintf(stmp, "spaceUnits[%u]", saxi);
     STRING_COMPARE(spaceUnits[saxi], stmp);
-    for (saxj=0; saxj<NRRD_SPACE_DIM_MAX; saxj++) {
+    for (saxj = 0; saxj < NRRD_SPACE_DIM_MAX; saxj++) {
       sprintf(stmp, "measurementFrame[%u][%u]", saxi, saxj);
       DOUBLE_COMPARE(measurementFrame[saxi][saxj], stmp);
     }
@@ -1357,14 +1340,14 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
   if (ninA->cmtArr->len != ninB->cmtArr->len) {
     *differ = ninA->cmtArr->len < ninB->cmtArr->len ? -1 : 1;
     if (explain) {
-      sprintf(explain, "ninA # comments %u %s ninB # comments %u",
-              ninA->cmtArr->len, *differ < 0 ? "<" : ">", ninB->cmtArr->len);
+      sprintf(explain, "ninA # comments %u %s ninB # comments %u", ninA->cmtArr->len,
+              *differ < 0 ? "<" : ">", ninB->cmtArr->len);
     }
     return 0;
   } else {
     unsigned int ii;
     char stmp[AIR_STRLEN_SMALL];
-    for (ii=0; ii<ninA->cmtArr->len; ii++) {
+    for (ii = 0; ii < ninA->cmtArr->len; ii++) {
       sprintf(stmp, "comment[%u]", ii);
       STRING_COMPARE(cmt[ii], stmp);
     }
@@ -1372,18 +1355,18 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
   if (ninA->kvpArr->len != ninB->kvpArr->len) {
     *differ = ninA->kvpArr->len < ninB->kvpArr->len ? -1 : 1;
     if (explain) {
-      sprintf(explain, "ninA # key/values %u %s ninB # key/values %u",
-              ninA->kvpArr->len, *differ < 0 ? "<" : ">", ninB->kvpArr->len);
+      sprintf(explain, "ninA # key/values %u %s ninB # key/values %u", ninA->kvpArr->len,
+              *differ < 0 ? "<" : ">", ninB->kvpArr->len);
     }
     return 0;
   } else {
     unsigned int ii;
     char stmp[AIR_STRLEN_SMALL];
-    for (ii=0; ii<ninA->kvpArr->len; ii++) {
+    for (ii = 0; ii < ninA->kvpArr->len; ii++) {
       sprintf(stmp, "key/value key[%u]", ii);
-      STRING_COMPARE(kvp[2*ii + 0], stmp);
+      STRING_COMPARE(kvp[2 * ii + 0], stmp);
       sprintf(stmp, "key/value value[%u]", ii);
-      STRING_COMPARE(kvp[2*ii + 1], stmp);
+      STRING_COMPARE(kvp[2 * ii + 1], stmp);
     }
   }
 #undef STRING_COMPARE
@@ -1403,14 +1386,12 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB,
 */
 int
 nrrdPPM(Nrrd *ppm, size_t sx, size_t sy) {
-  static const char me[]="nrrdPPM";
+  static const char me[] = "nrrdPPM";
   char stmp[2][AIR_STRLEN_SMALL];
 
-  if (nrrdMaybeAlloc_va(ppm, nrrdTypeUChar, 3,
-                        AIR_CAST(size_t, 3), sx, sy)) {
+  if (nrrdMaybeAlloc_va(ppm, nrrdTypeUChar, 3, AIR_CAST(size_t, 3), sx, sy)) {
     biffAddf(NRRD, "%s: couldn't allocate %s x %s 24-bit image", me,
-             airSprintSize_t(stmp[0], sx),
-             airSprintSize_t(stmp[1], sy));
+             airSprintSize_t(stmp[0], sx), airSprintSize_t(stmp[1], sy));
     return 1;
   }
   return 0;
@@ -1425,14 +1406,12 @@ nrrdPPM(Nrrd *ppm, size_t sx, size_t sy) {
 */
 int
 nrrdPGM(Nrrd *pgm, size_t sx, size_t sy) {
-  static const char me[]="nrrdPGM";
+  static const char me[] = "nrrdPGM";
   char stmp[2][AIR_STRLEN_SMALL];
 
-  if (nrrdMaybeAlloc_va(pgm, nrrdTypeUChar, 2,
-                        sx, sy)) {
+  if (nrrdMaybeAlloc_va(pgm, nrrdTypeUChar, 2, sx, sy)) {
     biffAddf(NRRD, "%s: couldn't allocate %s x %s 8-bit image", me,
-             airSprintSize_t(stmp[0], sx),
-             airSprintSize_t(stmp[1], sy));
+             airSprintSize_t(stmp[0], sx), airSprintSize_t(stmp[1], sy));
     return 1;
   }
   return 0;

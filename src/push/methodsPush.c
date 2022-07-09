@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "push.h"
 #include "privatePush.h"
 
@@ -40,18 +39,15 @@ pushPointNew(pushContext *pctx) {
       pnt->ttaagg = pctx->ttaagg++;
       ELL_3V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN);
       ELL_3V_SET(pnt->frc, AIR_NAN, AIR_NAN, AIR_NAN);
-      TEN_T_SET(pnt->ten, AIR_NAN, AIR_NAN, AIR_NAN,
-                AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
-      TEN_T_SET(pnt->inv, AIR_NAN, AIR_NAN, AIR_NAN,
-                AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
+      TEN_T_SET(pnt->ten, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
+      TEN_T_SET(pnt->inv, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
       ELL_3V_SET(pnt->cnt, AIR_NAN, AIR_NAN, AIR_NAN);
       pnt->grav = AIR_NAN;
       ELL_3V_SET(pnt->gravGrad, AIR_NAN, AIR_NAN, AIR_NAN);
       pnt->seedThresh = AIR_NAN;
-      pnt->enr = DBL_MAX;  /* any finite quantity will be less than this */
+      pnt->enr = DBL_MAX; /* any finite quantity will be less than this */
 
-      pnt->neighArr = airArrayNew((pppu.point = &(pnt->neigh), pppu.v),
-                                  &(pnt->neighNum),
+      pnt->neighArr = airArrayNew((pppu.point = &(pnt->neigh), pppu.v), &(pnt->neighNum),
                                   sizeof(pushPoint *), 10);
     }
   } else {
@@ -66,7 +62,6 @@ pushPointNix(pushPoint *pnt) {
   airFree(pnt);
   return NULL;
 }
-
 
 pushContext *
 pushContextNew(void) {
@@ -105,7 +100,7 @@ pushContextNew(void) {
     pctx->gravScl = AIR_NAN;
     pctx->gravZero = AIR_NAN;
 
-    pctx->seedThreshItem  = tenGageUnknown;
+    pctx->seedThreshItem = tenGageUnknown;
     pctx->seedThreshSign = +1;
     pctx->seedThresh = 0.0;
 
@@ -127,7 +122,7 @@ pushContextNew(void) {
     pctx->ipvl = NULL;
     pctx->finished = AIR_FALSE;
     pctx->dimIn = 0;
-    pctx->sliceAxis = 42;  /* an invalid value */
+    pctx->sliceAxis = 42; /* an invalid value */
 
     pctx->bin = NULL;
     ELL_3V_SET(pctx->binsEdge, 0, 0, 0);

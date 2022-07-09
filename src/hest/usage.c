@@ -28,10 +28,10 @@
 ** don't ask
 */
 void
-_hestSetBuff(char *B, const hestOpt *O, const hestParm *P,
-             int showshort, int showlong) {
+_hestSetBuff(char *B, const hestOpt *O, const hestParm *P, int showshort, int showlong) {
   char copy[AIR_STRLEN_HUGE], *sep;
-  int max; unsigned int len;
+  int max;
+  unsigned int len;
 
   max = _hestMax(O->max);
   if (O->flag) {
@@ -46,10 +46,10 @@ _hestSetBuff(char *B, const hestOpt *O, const hestParm *P,
         if (showshort) {
           len = AIR_UINT(strlen(B));
           B[len] = P->multiFlagSep;
-          B[len+1] = '\0';
+          B[len + 1] = '\0';
         }
         strcat(B, "--");
-        strcat(B, sep+1);
+        strcat(B, sep + 1);
       }
     } else {
       strcat(B, "-");
@@ -76,16 +76,15 @@ _hestSetBuff(char *B, const hestOpt *O, const hestParm *P,
 }
 
 /* early version of _hestSetBuff() function */
-#define SETBUFF(B, O) \
-  strcat(B, O.flag ? "-" : ""), \
-  strcat(B, O.flag ? O.flag : ""), \
-  strcat(B, O.flag && (O.min || _hestMax(O.max)) ? "\t" : ""), \
-  strcat(B, !O.min && _hestMax(O.max) ? "[" : ""), \
-  strcat(B, O.min || _hestMax(O.max) ? "<" : ""), \
-  strcat(B, O.min || _hestMax(O.max) ? O.name : ""), \
-  strcat(B, (O.min < _hestMax(O.max) && (_hestMax(O.max) > 1)) ? " ...": ""), \
-  strcat(B, O.min || _hestMax(O.max) ? ">" : ""), \
-  strcat(B, !O.min && _hestMax(O.max) ? "]" : "");
+#define SETBUFF(B, O)                                                                   \
+  strcat(B, O.flag ? "-" : ""), strcat(B, O.flag ? O.flag : ""),                        \
+    strcat(B, O.flag && (O.min || _hestMax(O.max)) ? "\t" : ""),                        \
+    strcat(B, !O.min && _hestMax(O.max) ? "[" : ""),                                    \
+    strcat(B, O.min || _hestMax(O.max) ? "<" : ""),                                     \
+    strcat(B, O.min || _hestMax(O.max) ? O.name : ""),                                  \
+    strcat(B, (O.min < _hestMax(O.max) && (_hestMax(O.max) > 1)) ? " ..." : ""),        \
+    strcat(B, O.min || _hestMax(O.max) ? ">" : ""),                                     \
+    strcat(B, !O.min && _hestMax(O.max) ? "]" : "");
 
 /*
 ** _hestPrintStr()
@@ -93,15 +92,16 @@ _hestSetBuff(char *B, const hestOpt *O, const hestParm *P,
 ** not a useful function.  Do not use.
 */
 void
-_hestPrintStr(FILE *f, unsigned int indent, unsigned int already,
-              unsigned int width, const char *_str, int bslash) {
+_hestPrintStr(FILE *f, unsigned int indent, unsigned int already, unsigned int width,
+              const char *_str, int bslash) {
   char *str, *ws, *last;
-  int newed=AIR_FALSE; unsigned int wrd, nwrd, ii, pos;
+  int newed = AIR_FALSE;
+  unsigned int wrd, nwrd, ii, pos;
 
   str = airStrdup(_str);
   nwrd = airStrntok(str, " ");
   pos = already;
-  for (wrd=0; wrd<nwrd; wrd++) {
+  for (wrd = 0; wrd < nwrd; wrd++) {
     /* we used airStrtok() to delimit words on spaces ... */
     ws = airStrtok(!wrd ? str : NULL, " ", &last);
     /* ... but then convert tabs to spaces */
@@ -118,15 +118,15 @@ _hestPrintStr(FILE *f, unsigned int indent, unsigned int already,
         fprintf(f, " \\");
       }
       fprintf(f, "\n");
-      for (ii=0; ii<indent; ii++) {
+      for (ii = 0; ii < indent; ii++) {
         fprintf(f, " ");
       }
       fprintf(f, "%s", ws);
       pos = indent + AIR_UINT(strlen(ws));
     }
     /* if the last character of the word was a newline, then indent */
-    if ('\n' == ws[strlen(ws)-1]) {
-      for (ii=0; ii<indent; ii++) {
+    if ('\n' == ws[strlen(ws) - 1]) {
+      for (ii = 0; ii < indent; ii++) {
         fprintf(f, " ");
       }
       pos = indent;
@@ -191,7 +191,7 @@ hestMinNumArgs(hestOpt *opt) {
   }
   count = 0;
   numOpts = _hestNumOpts(opt);
-  for (i=0; i<numOpts; i++) {
+  for (i = 0; i < numOpts; i++) {
     if (!opt[i].dflt) {
       count += opt[i].min;
       if (!(0 == opt[i].min && 0 == opt[i].max)) {
@@ -204,8 +204,7 @@ hestMinNumArgs(hestOpt *opt) {
 }
 
 void
-hestInfo(FILE *file, const char *argv0, const char *info,
-         const hestParm *_parm) {
+hestInfo(FILE *file, const char *argv0, const char *info, const hestParm *_parm) {
   hestParm *parm;
 
   parm = _parm ? NULL : hestParmNew();
@@ -215,8 +214,8 @@ hestInfo(FILE *file, const char *argv0, const char *info,
   if (info) {
     if (argv0) {
       fprintf(file, "\n%s: ", argv0);
-      _hestPrintStr(file, 0, AIR_UINT(strlen(argv0)) + 2,
-                    PARM->columns, info, AIR_FALSE);
+      _hestPrintStr(file, 0, AIR_UINT(strlen(argv0)) + 2, PARM->columns, info,
+                    AIR_FALSE);
       if (PARM->noBlankLineBeforeUsage) {
         /* we still want a blank line to separate info and usage */
         fprintf(file, "\n");
@@ -231,10 +230,9 @@ hestInfo(FILE *file, const char *argv0, const char *info,
 }
 
 void
-hestUsage(FILE *f, hestOpt *opt, const char *argv0,
-          const hestParm *_parm) {
+hestUsage(FILE *f, hestOpt *opt, const char *argv0, const hestParm *_parm) {
   int i, numOpts;
-  char buff[2*AIR_STRLEN_HUGE], tmpS[AIR_STRLEN_HUGE];
+  char buff[2 * AIR_STRLEN_HUGE], tmpS[AIR_STRLEN_HUGE];
   hestParm *parm;
 
   parm = _parm ? NULL : hestParmNew();
@@ -257,17 +255,14 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0,
     sprintf(tmpS, " [%cfile\t...]", PARM->respFileFlag);
     strcat(buff, tmpS);
   }
-  for (i=0; i<numOpts; i++) {
+  for (i = 0; i < numOpts; i++) {
     strcat(buff, " ");
-    if (1 == opt[i].kind || (opt[i].flag && opt[i].dflt))
-      strcat(buff, "[");
+    if (1 == opt[i].kind || (opt[i].flag && opt[i].dflt)) strcat(buff, "[");
     _hestSetBuff(buff, opt + i, PARM, AIR_TRUE, AIR_TRUE);
-    if (1 == opt[i].kind || (opt[i].flag && opt[i].dflt))
-      strcat(buff, "]");
+    if (1 == opt[i].kind || (opt[i].flag && opt[i].dflt)) strcat(buff, "]");
   }
 
-  _hestPrintStr(f, AIR_UINT(strlen("Usage: ")), 0,
-                PARM->columns, buff, AIR_TRUE);
+  _hestPrintStr(f, AIR_UINT(strlen("Usage: ")), 0, PARM->columns, buff, AIR_TRUE);
   if (parm) {
     hestParmFree(parm);
   }
@@ -276,8 +271,9 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0,
 
 void
 hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
-  int i, j, maxlen, numOpts; unsigned int len;
-  char buff[2*AIR_STRLEN_HUGE], tmpS[AIR_STRLEN_HUGE];
+  int i, j, maxlen, numOpts;
+  unsigned int len;
+  char buff[2 * AIR_STRLEN_HUGE], tmpS[AIR_STRLEN_HUGE];
   hestParm *parm;
 
   parm = _parm ? NULL : hestParmNew();
@@ -296,7 +292,7 @@ hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
   if (numOpts) {
     fprintf(f, "\n");
   }
-  for (i=0; i<numOpts; i++) {
+  for (i = 0; i < numOpts; i++) {
     strcpy(buff, "");
     _hestSetBuff(buff, opt + i, PARM, AIR_TRUE, AIR_FALSE);
     maxlen = AIR_MAX((int)strlen(buff), maxlen);
@@ -304,19 +300,19 @@ hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
   if (PARM->respFileEnable) {
     sprintf(buff, "%cfile ...", PARM->respFileFlag);
     len = AIR_UINT(strlen(buff));
-    for (j=len; j<maxlen; j++) {
+    for (j = len; j < maxlen; j++) {
       fprintf(f, " ");
     }
     fprintf(f, "%s = ", buff);
     strcpy(buff, "response file(s) containing command-line arguments");
     _hestPrintStr(f, maxlen + 3, maxlen + 3, PARM->columns, buff, AIR_FALSE);
   }
-  for (i=0; i<numOpts; i++) {
+  for (i = 0; i < numOpts; i++) {
     strcpy(buff, "");
     _hestSetBuff(buff, opt + i, PARM, AIR_TRUE, AIR_FALSE);
     airOneLinify(buff);
     len = AIR_UINT(strlen(buff));
-    for (j=len; j<maxlen; j++) {
+    for (j = len; j < maxlen; j++) {
       fprintf(f, " ");
     }
     fprintf(f, "%s", buff);
@@ -338,35 +334,29 @@ hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
       strcat(buff, opt[i].info);
     }
     if ((opt[i].min || _hestMax(opt[i].max))
-        && (!( 2 == opt[i].kind
-               && airTypeEnum == opt[i].type
-               && PARM->elideSingleEnumType ))
-        && (!( 2 == opt[i].kind
-               && airTypeOther == opt[i].type
-               && PARM->elideSingleOtherType ))
-        ) {
+        && (!(2 == opt[i].kind && airTypeEnum == opt[i].type
+              && PARM->elideSingleEnumType))
+        && (!(2 == opt[i].kind && airTypeOther == opt[i].type
+              && PARM->elideSingleOtherType))) {
       /* if there are newlines in the info, then we want to clarify the
          type by printing it on its own line */
       if (opt[i].info && strchr(opt[i].info, '\n')) {
         strcat(buff, "\n ");
-      }
-      else {
+      } else {
         strcat(buff, " ");
       }
       strcat(buff, "(");
       if (opt[i].min == 0 && _hestMax(opt[i].max) == 1) {
         strcat(buff, "optional\t");
-      }
-      else {
-        if ((int)opt[i].min == _hestMax(opt[i].max) && _hestMax(opt[i].max) > 1) { /* HEY scrutinize casts */
+      } else {
+        if ((int)opt[i].min == _hestMax(opt[i].max)
+            && _hestMax(opt[i].max) > 1) { /* HEY scrutinize casts */
           sprintf(tmpS, "%d\t", _hestMax(opt[i].max));
           strcat(buff, tmpS);
-        }
-        else if ((int)opt[i].min < _hestMax(opt[i].max)) { /* HEY scrutinize casts */
+        } else if ((int)opt[i].min < _hestMax(opt[i].max)) { /* HEY scrutinize casts */
           if (-1 == opt[i].max) {
             sprintf(tmpS, "%d\tor\tmore\t", opt[i].min);
-          }
-          else {
+          } else {
             sprintf(tmpS, "%d..%d\t", opt[i].min, _hestMax(opt[i].max));
           }
           strcat(buff, tmpS);
@@ -374,17 +364,16 @@ hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
       }
       sprintf(tmpS, "%s%s",
               (airTypeEnum == opt[i].type
-               ? opt[i].enm->name
-               : (airTypeOther == opt[i].type
-                  ? opt[i].CB->type
-                  : airTypeStr[opt[i].type])),
+                 ? opt[i].enm->name
+                 : (airTypeOther == opt[i].type ? opt[i].CB->type
+                                                : airTypeStr[opt[i].type])),
               (_hestMax(opt[i].max) > 1
-               ? (airTypeOther == opt[i].type
-                  && 'y' == opt[i].CB->type[airStrlen(opt[i].CB->type)-1]
-                  && PARM->cleverPluralizeOtherY
-                  ? "\bies"
-                  : "s")
-               : ""));
+                 ? (airTypeOther == opt[i].type
+                        && 'y' == opt[i].CB->type[airStrlen(opt[i].CB->type) - 1]
+                        && PARM->cleverPluralizeOtherY
+                      ? "\bies"
+                      : "s")
+                 : ""));
       strcat(buff, tmpS);
       strcat(buff, ")");
     }
@@ -392,34 +381,27 @@ hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
     fprintf(stderr, "!%s: PARM->elideSingleOtherDefault = %d\n",
             "hestGlossary", PARM->elideSingleOtherDefault);
     */
-    if (opt[i].dflt
-        && (opt[i].min || _hestMax(opt[i].max))
-        && (!( 2 == opt[i].kind
-               && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
-               && !AIR_EXISTS(airAtod(opt[i].dflt))
-               && PARM->elideSingleNonExistFloatDefault ))
-        && (!( (3 == opt[i].kind || 5 == opt[i].kind)
-               && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
-               && !AIR_EXISTS(airAtod(opt[i].dflt))
-               && PARM->elideMultipleNonExistFloatDefault ))
-        && (!( 2 == opt[i].kind
-               && airTypeOther == opt[i].type
-               && PARM->elideSingleOtherDefault ))
-        && (!( 2 == opt[i].kind
-               && airTypeString == opt[i].type
-               && PARM->elideSingleEmptyStringDefault
-               && 0 == airStrlen(opt[i].dflt) ))
-        && (!( (3 == opt[i].kind || 5 == opt[i].kind)
-               && airTypeString == opt[i].type
-               && PARM->elideMultipleEmptyStringDefault
-               && 0 == airStrlen(opt[i].dflt) ))
-        ) {
+    if (opt[i].dflt && (opt[i].min || _hestMax(opt[i].max))
+        && (!(2 == opt[i].kind
+              && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
+              && !AIR_EXISTS(airAtod(opt[i].dflt))
+              && PARM->elideSingleNonExistFloatDefault))
+        && (!((3 == opt[i].kind || 5 == opt[i].kind)
+              && (airTypeFloat == opt[i].type || airTypeDouble == opt[i].type)
+              && !AIR_EXISTS(airAtod(opt[i].dflt))
+              && PARM->elideMultipleNonExistFloatDefault))
+        && (!(2 == opt[i].kind && airTypeOther == opt[i].type
+              && PARM->elideSingleOtherDefault))
+        && (!(2 == opt[i].kind && airTypeString == opt[i].type
+              && PARM->elideSingleEmptyStringDefault && 0 == airStrlen(opt[i].dflt)))
+        && (!((3 == opt[i].kind || 5 == opt[i].kind) && airTypeString == opt[i].type
+              && PARM->elideMultipleEmptyStringDefault
+              && 0 == airStrlen(opt[i].dflt)))) {
       /* if there are newlines in the info, then we want to clarify the
          default by printing it on its own line */
       if (opt[i].info && strchr(opt[i].info, '\n')) {
         strcat(buff, "\n ");
-      }
-      else {
+      } else {
         strcat(buff, "; ");
       }
       strcat(buff, "default:\t");
@@ -439,4 +421,3 @@ hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
 }
 
 #undef PARM
-

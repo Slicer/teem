@@ -25,38 +25,34 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Filtering and {up,down}sampling with a separable kernel"
-static const char *_unrrdu_resampleInfoL =
-(INFO
- ". Simplifies access to the NrrdResampleContext functions "
- "by assuming (among other things) that the same kernel "
- "is used for resampling "
- "every axis that is being resampled.  Only required option is "
- "\"-s\" to specify which axes to resample and how many "
- "output samples to generate.  Resampling kernel \"-k\" defaults "
- "to an interpolating cubic, but many other choices are available. "
- "By default, resampling an axis resamples the full extent of its "
- "samples, but it is possible to offset this range via \"-off\", "
- "or to crop and/or pad via \"-min\" and \"-max\". "
- "The resampling respects the difference between cell- and "
- "node-centered data, but you can over-ride known centering "
- "with \"-co\".\n "
- "* Uses the many nrrdResample* functions operating on a nrrdResampleContext");
+static const char *_unrrdu_resampleInfoL
+  = (INFO ". Simplifies access to the NrrdResampleContext functions "
+          "by assuming (among other things) that the same kernel "
+          "is used for resampling "
+          "every axis that is being resampled.  Only required option is "
+          "\"-s\" to specify which axes to resample and how many "
+          "output samples to generate.  Resampling kernel \"-k\" defaults "
+          "to an interpolating cubic, but many other choices are available. "
+          "By default, resampling an axis resamples the full extent of its "
+          "samples, but it is possible to offset this range via \"-off\", "
+          "or to crop and/or pad via \"-min\" and \"-max\". "
+          "The resampling respects the difference between cell- and "
+          "node-centered data, but you can over-ride known centering "
+          "with \"-co\".\n "
+          "* Uses the many nrrdResample* functions operating on a nrrdResampleContext");
 
 int
-unrrdu_resampleMain(int argc, const char **argv, const char *me,
-                    hestParm *hparm) {
+unrrdu_resampleMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  int type, bb, pret, norenorm, neb, older, E, defaultCenter,
-    verbose, overrideCenter, minSet=AIR_FALSE, maxSet=AIR_FALSE,
-    offSet=AIR_FALSE;
-  unsigned int scaleLen, ai, minLen, maxLen, offLen,
-    aspRatNum, nonAspRatNum;
-  size_t samplesOut=0; // initializing to quiet a warning
+  int type, bb, pret, norenorm, neb, older, E, defaultCenter, verbose, overrideCenter,
+    minSet = AIR_FALSE, maxSet = AIR_FALSE, offSet = AIR_FALSE;
+  unsigned int scaleLen, ai, minLen, maxLen, offLen, aspRatNum, nonAspRatNum;
+  size_t samplesOut = 0; // initializing to quiet a warning
   airArray *mop;
   double *scale;
-  double padVal, *min, *max, *off, aspRatScl=AIR_NAN;
+  double padVal, *min, *max, *off, aspRatScl = AIR_NAN;
   NrrdResampleInfo *info;
   NrrdResampleContext *rsmc;
   NrrdKernelSpec *unuk;
@@ -93,19 +89,21 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
              "space) of the lower end of the sampling domain. "
              "Either -off can be used, or -min and -max "
              "together, or none of these (so that, by default, the full "
-             "domain of the axis is resampled).",  &offLen);
+             "domain of the axis is resampled).",
+             &offLen);
   hestOptAdd(&opt, "min,minimum", "min0", airTypeDouble, 0, -1, &min, "",
              "For each axis, the lower end (in index space) of the domain "
              "of the resampling. Either -off can be used, or -min and -max "
              "together, or none of these (so that, by default, the full "
-             "domain of the axis is resampled).",  &minLen);
+             "domain of the axis is resampled).",
+             &minLen);
   hestOptAdd(&opt, "max,maximum", "max0", airTypeDouble, 0, -1, &max, "",
              "For each axis, the upper end (in index space) of the domain "
              "of the resampling. Either -off can be used, or -min and -max "
              "together, or none of these, so that (by default), the full "
-             "domain of the axis is resampled.",  &maxLen);
-  hestOptAdd(&opt, "k,kernel", "kern", airTypeOther, 1, 1, &unuk,
-             "cubic:0,0.5",
+             "domain of the axis is resampled.",
+             &maxLen);
+  hestOptAdd(&opt, "k,kernel", "kern", airTypeOther, 1, 1, &unuk, "cubic:0,0.5",
              "The kernel to use for resampling.  "
              "Kernels logically live in the input index space for upsampling, "
              "and in the output index space for downsampling.  "
@@ -139,8 +137,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
              "needed to avoid \"grating\" on non-integral "
              "down-sampling.  Disabling the renormalization is needed for "
              "correct results with artificially narrow kernels. ");
-  hestOptAdd(&opt, "ne,nonexistent", "behavior", airTypeEnum, 1, 1,
-             &neb, "noop",
+  hestOptAdd(&opt, "ne,nonexistent", "behavior", airTypeEnum, 1, 1, &neb, "noop",
              "When resampling floating-point values, how to handle "
              "non-existent values within kernel support:\n "
              "\b\bo \"noop\": do nothing; let them pollute result\n "
@@ -172,15 +169,12 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
              "When used in conjunction with \"-k box\", this can implement "
              "subsampling which chooses every Nth value. ");
   hestOptAdd(&opt, "c,center", "center", airTypeEnum, 1, 1, &defaultCenter,
-             (nrrdCenterCell == nrrdDefaultCenter
-              ? "cell"
-              : "node"),
+             (nrrdCenterCell == nrrdDefaultCenter ? "cell" : "node"),
              "(not available with \"-old\") "
              "default centering of axes when input nrrd "
              "axes don't have a known centering: \"cell\" or \"node\" ",
              NULL, nrrdCenter);
-  hestOptAdd(&opt, "co,center-override", NULL, airTypeInt, 0, 0,
-             &overrideCenter, NULL,
+  hestOptAdd(&opt, "co,center-override", NULL, airTypeInt, 0, 0, &overrideCenter, NULL,
              "(not available with \"-old\") "
              "centering info specified via \"-c\" should *over-ride* "
              "known centering, rather than simply be used when centering "
@@ -200,8 +194,8 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (scaleLen != nin->dim) {
-    fprintf(stderr, "%s: # sampling sizes %d != input nrrd dimension %d\n",
-            me, scaleLen, nin->dim);
+    fprintf(stderr, "%s: # sampling sizes %d != input nrrd dimension %d\n", me, scaleLen,
+            nin->dim);
     airMopError(mop);
     return 1;
   }
@@ -209,16 +203,13 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
     if (offLen >= 1) {
       /* seems to want to set off[] */
       if (offLen != scaleLen) {
-        fprintf(stderr, "%s: offLen %u != scaleLen %u\n", me,
-                offLen, scaleLen);
+        fprintf(stderr, "%s: offLen %u != scaleLen %u\n", me, offLen, scaleLen);
         airMopError(mop);
         return 1;
       }
-      for (ai=0; ai<offLen; ai++) {
-        if (unrrduScaleNothing != (int)(scale[0 + 2*ai])
-            && !AIR_EXISTS(off[ai])) {
-          fprintf(stderr, "%s: off[%u] %g doesn't exist\n", me,
-                  ai, off[ai]);
+      for (ai = 0; ai < offLen; ai++) {
+        if (unrrduScaleNothing != (int)(scale[0 + 2 * ai]) && !AIR_EXISTS(off[ai])) {
+          fprintf(stderr, "%s: off[%u] %g doesn't exist\n", me, ai, off[ai]);
           airMopError(mop);
           return 1;
         }
@@ -230,16 +221,13 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
     if (minLen >= 1 && AIR_EXISTS(min[0])) { /* HEY copy and paste */
       /* seems to want to set min[] */
       if (minLen != scaleLen) {
-        fprintf(stderr, "%s: minLen %u != scaleLen %u\n", me,
-                minLen, scaleLen);
+        fprintf(stderr, "%s: minLen %u != scaleLen %u\n", me, minLen, scaleLen);
         airMopError(mop);
         return 1;
       }
-      for (ai=0; ai<minLen; ai++) {
-        if (unrrduScaleNothing != (int)(scale[0 + 2*ai])
-            && !AIR_EXISTS(min[ai])) {
-          fprintf(stderr, "%s: min[%u] %g doesn't exist\n", me,
-                  ai, min[ai]);
+      for (ai = 0; ai < minLen; ai++) {
+        if (unrrduScaleNothing != (int)(scale[0 + 2 * ai]) && !AIR_EXISTS(min[ai])) {
+          fprintf(stderr, "%s: min[%u] %g doesn't exist\n", me, ai, min[ai]);
           airMopError(mop);
           return 1;
         }
@@ -251,16 +239,13 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
     if (maxLen >= 1 && AIR_EXISTS(max[0])) { /* HEY copy and paste */
       /* seems to want to set max[] */
       if (maxLen != scaleLen) {
-        fprintf(stderr, "%s: maxLen %u != scaleLen %u\n", me,
-                maxLen, scaleLen);
+        fprintf(stderr, "%s: maxLen %u != scaleLen %u\n", me, maxLen, scaleLen);
         airMopError(mop);
         return 1;
       }
-      for (ai=0; ai<maxLen; ai++) {
-        if (unrrduScaleNothing != (int)(scale[0 + 2*ai])
-            && !AIR_EXISTS(max[ai])) {
-          fprintf(stderr, "%s: max[%u] %g doesn't exist\n", me,
-                  ai, max[ai]);
+      for (ai = 0; ai < maxLen; ai++) {
+        if (unrrduScaleNothing != (int)(scale[0 + 2 * ai]) && !AIR_EXISTS(max[ai])) {
+          fprintf(stderr, "%s: max[%u] %g doesn't exist\n", me, ai, max[ai]);
           airMopError(mop);
           return 1;
         }
@@ -269,7 +254,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
     } else {
       maxSet = AIR_FALSE;
     }
-    if (!( (minSet && maxSet) || (!minSet && !maxSet) )) {
+    if (!((minSet && maxSet) || (!minSet && !maxSet))) {
       fprintf(stderr, "%s: need -min and -max to be set consistently\n", me);
       airMopError(mop);
       return 1;
@@ -280,8 +265,8 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
       return 1;
     }
     aspRatNum = nonAspRatNum = 0;
-    for (ai=0; ai<nin->dim; ai++) {
-      int dowhat = AIR_INT(scale[0 + 2*ai]);
+    for (ai = 0; ai < nin->dim; ai++) {
+      int dowhat = AIR_INT(scale[0 + 2 * ai]);
       if (!(unrrduScaleNothing == dowhat)) {
         if (unrrduScaleAspectRatio == dowhat) {
           aspRatNum++;
@@ -292,10 +277,11 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
     }
     if (aspRatNum) {
       if (1 != nonAspRatNum) {
-        fprintf(stderr, "%s: sorry, aspect-ratio-preserving "
+        fprintf(stderr,
+                "%s: sorry, aspect-ratio-preserving "
                 "resampling must currently be used on all but one "
-                "(not %u) resampled axis, if any\n", me,
-                nonAspRatNum);
+                "(not %u) resampled axis, if any\n",
+                me, nonAspRatNum);
         airMopError(mop);
         return 1;
       }
@@ -307,12 +293,12 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
     E = AIR_FALSE;
     if (!E) E |= nrrdResampleDefaultCenterSet(rsmc, defaultCenter);
     if (!E) E |= nrrdResampleInputSet(rsmc, nin);
-    for (ai=0; ai<nin->dim; ai++) {
+    for (ai = 0; ai < nin->dim; ai++) {
       double spin, spout, svec[NRRD_SPACE_DIM_MAX];
       int spstat;
-      int dowhat = AIR_INT(scale[0 + 2*ai]);
-      size_t incr = AIR_CAST(size_t, scale[1 + 2*ai]);
-      switch(dowhat) {
+      int dowhat = AIR_INT(scale[0 + 2 * ai]);
+      size_t incr = AIR_CAST(size_t, scale[1 + 2 * ai]);
+      switch (dowhat) {
       case unrrduScaleNothing:
         /* no resampling */
         if (!E) E |= nrrdResampleKernelSet(rsmc, ai, NULL, NULL);
@@ -326,39 +312,39 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
           if (!E) E |= nrrdResampleOverrideCenterSet(rsmc, ai, defaultCenter);
         }
         if (!E) E |= nrrdResampleKernelSet(rsmc, ai, unuk->kernel, unuk->parm);
-        switch(dowhat) {
+        switch (dowhat) {
           char stmp[AIR_STRLEN_SMALL];
         case unrrduScaleMultiply:
-          samplesOut = AIR_ROUNDUP_UI(nin->axis[ai].size*scale[1 + 2*ai]);
+          samplesOut = AIR_ROUNDUP_UI(nin->axis[ai].size * scale[1 + 2 * ai]);
           break;
         case unrrduScaleDivide:
-          samplesOut = AIR_ROUNDUP_UI(nin->axis[ai].size/scale[1 + 2*ai]);
+          samplesOut = AIR_ROUNDUP_UI(nin->axis[ai].size / scale[1 + 2 * ai]);
           break;
         case unrrduScaleAdd:
           samplesOut = nin->axis[ai].size + incr;
           break;
         case unrrduScaleSubtract:
           if (nin->axis[ai].size - 1 < incr) {
-            fprintf(stderr, "%s: can't subtract %u from axis size %s\n",
-                    me, (unsigned int)incr,
-                    airSprintSize_t(stmp, nin->axis[ai].size));
+            fprintf(stderr, "%s: can't subtract %u from axis size %s\n", me,
+                    (unsigned int)incr, airSprintSize_t(stmp, nin->axis[ai].size));
             airMopError(mop);
             return 1;
           }
           samplesOut = nin->axis[ai].size - incr;
           break;
         }
-        aspRatScl = AIR_CAST(double, samplesOut)/nin->axis[ai].size;
+        aspRatScl = AIR_CAST(double, samplesOut) / nin->axis[ai].size;
         if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
         break;
       case unrrduScaleSpacingTarget:
         /* wants the output spacing to be something particular */
         spstat = nrrdSpacingCalculate(nin, ai, &spin, svec);
-        spout = scale[1 + 2*ai];
+        spout = scale[1 + 2 * ai];
         switch (spstat) {
         case nrrdSpacingStatusUnknown:
         case nrrdSpacingStatusNone:
-          fprintf(stderr, "%s: want to set output axis %u spacing (to %g), "
+          fprintf(stderr,
+                  "%s: want to set output axis %u spacing (to %g), "
                   "but can't find input axis spacing\n",
                   me, ai, spout);
           airMopError(mop);
@@ -368,16 +354,17 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
         case nrrdSpacingStatusScalarWithSpace:
         case nrrdSpacingStatusDirection:
           if (!AIR_EXISTS(spin)) {
-          fprintf(stderr, "%s: want to set output axis %u spacing (to %g), "
-                  "but can't input axis spacing was %g\n",
-                  me, ai, spout, spin);
+            fprintf(stderr,
+                    "%s: want to set output axis %u spacing (to %g), "
+                    "but can't input axis spacing was %g\n",
+                    me, ai, spout, spin);
             airMopError(mop);
             return 1;
           }
-          samplesOut = AIR_ROUNDUP_UI(nin->axis[ai].size*spin/spout);
+          samplesOut = AIR_ROUNDUP_UI(nin->axis[ai].size * spin / spout);
           break;
         }
-        aspRatScl = AIR_CAST(double, samplesOut)/nin->axis[ai].size;
+        aspRatScl = AIR_CAST(double, samplesOut) / nin->axis[ai].size;
         if (defaultCenter && overrideCenter) {
           if (!E) E |= nrrdResampleOverrideCenterSet(rsmc, ai, defaultCenter);
         }
@@ -390,8 +377,8 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
           if (!E) E |= nrrdResampleOverrideCenterSet(rsmc, ai, defaultCenter);
         }
         if (!E) E |= nrrdResampleKernelSet(rsmc, ai, unuk->kernel, unuk->parm);
-        samplesOut = (size_t)scale[1 + 2*ai];
-        aspRatScl = AIR_CAST(double, samplesOut)/nin->axis[ai].size;
+        samplesOut = (size_t)scale[1 + 2 * ai];
+        aspRatScl = AIR_CAST(double, samplesOut) / nin->axis[ai].size;
         if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
         break;
       case unrrduScaleAspectRatio:
@@ -403,8 +390,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
         /* will set samples later, after aspRatScl has been set */
         break;
       default:
-        fprintf(stderr, "%s: sorry, unrecognized unrrduScale value %d\n",
-                me, dowhat);
+        fprintf(stderr, "%s: sorry, unrecognized unrrduScale value %d\n", me, dowhat);
         airMopError(mop);
         return 1;
       }
@@ -424,15 +410,17 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
     }
     if (!E && aspRatNum) {
       if (!AIR_EXISTS(aspRatScl)) {
-        fprintf(stderr, "%s: confusion, should have learned scaling "
-                "of aspect-ratio-preserving resampling by now", me);
+        fprintf(stderr,
+                "%s: confusion, should have learned scaling "
+                "of aspect-ratio-preserving resampling by now",
+                me);
         airMopError(mop);
         return 1;
       }
-      for (ai=0; ai<nin->dim; ai++) {
-        int dowhat = AIR_INT(scale[0 + 2*ai]);
+      for (ai = 0; ai < nin->dim; ai++) {
+        int dowhat = AIR_INT(scale[0 + 2 * ai]);
         if (unrrduScaleAspectRatio == dowhat) {
-          samplesOut = AIR_ROUNDUP_UI(nin->axis[ai].size*aspRatScl);
+          samplesOut = AIR_ROUNDUP_UI(nin->axis[ai].size * aspRatScl);
           if (!E) E |= nrrdResampleSamplesSet(rsmc, ai, samplesOut);
         }
       }
@@ -450,38 +438,34 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
       return 1;
     }
   } else {
-    for (ai=0; ai<nin->dim; ai++) {
-      int dowhat = AIR_INT(scale[0 + 2*ai]);
+    for (ai = 0; ai < nin->dim; ai++) {
+      int dowhat = AIR_INT(scale[0 + 2 * ai]);
       /* this may be over-written below */
       info->kernel[ai] = unuk->kernel;
-      switch(dowhat) {
+      switch (dowhat) {
       case unrrduScaleNothing:
         /* no resampling */
         info->kernel[ai] = NULL;
         break;
       case unrrduScaleMultiply:
         /* scaling of input # samples */
-        info->samples[ai] = AIR_ROUNDUP_UI(scale[1 + 2*ai]*nin->axis[ai].size);
+        info->samples[ai] = AIR_ROUNDUP_UI(scale[1 + 2 * ai] * nin->axis[ai].size);
         break;
       case unrrduScaleExact:
         /* explicit # of samples */
-        info->samples[ai] = (size_t)scale[1 + 2*ai];
+        info->samples[ai] = (size_t)scale[1 + 2 * ai];
         break;
       default:
-        fprintf(stderr, "%s: sorry, unrecognized unrrduScale value %d\n",
-                me, dowhat);
+        fprintf(stderr, "%s: sorry, unrecognized unrrduScale value %d\n", me, dowhat);
         airMopError(mop);
         return 1;
       }
-      memcpy(info->parm[ai], unuk->parm,
-             NRRD_KERNEL_PARMS_NUM*sizeof(*unuk->parm));
-      if (info->kernel[ai] &&
-          (!( AIR_EXISTS(nin->axis[ai].min)
-              && AIR_EXISTS(nin->axis[ai].max))) ) {
+      memcpy(info->parm[ai], unuk->parm, NRRD_KERNEL_PARMS_NUM * sizeof(*unuk->parm));
+      if (info->kernel[ai]
+          && (!(AIR_EXISTS(nin->axis[ai].min) && AIR_EXISTS(nin->axis[ai].max)))) {
         nrrdAxisInfoMinMaxSet(nin, ai,
-                              (nin->axis[ai].center
-                               ? nin->axis[ai].center
-                               : nrrdDefaultCenter));
+                              (nin->axis[ai].center ? nin->axis[ai].center
+                                                    : nrrdDefaultCenter));
       }
       info->min[ai] = nin->axis[ai].min;
       info->max[ai] = nin->axis[ai].max;
@@ -497,7 +481,6 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me,
       return 1;
     }
   }
-
 
   SAVE(out, nout, NULL);
 

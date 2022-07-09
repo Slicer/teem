@@ -25,17 +25,15 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Superficially change dimension and/or axes sizes"
-static const char *_unrrdu_reshapeInfoL =
-(INFO
- ". The underlying linear ordering of the samples is "
- "unchanged, but the reported dimension or axes sizes "
- "are changed.  Identical in concept to Matlab's "
- "\"reshape\" command.\n "
- "* Uses nrrdReshape_nva");
+static const char *_unrrdu_reshapeInfoL
+  = (INFO ". The underlying linear ordering of the samples is "
+          "unchanged, but the reported dimension or axes sizes "
+          "are changed.  Identical in concept to Matlab's "
+          "\"reshape\" command.\n "
+          "* Uses nrrdReshape_nva");
 
 int
-unrrdu_reshapeMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_reshapeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

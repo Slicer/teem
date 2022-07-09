@@ -34,28 +34,27 @@ gageStackWtoI(gageContext *ctx, double swrl, int *outside) {
       /* we'll extrapolate from stackPos[0] and [1] */
       sidx = 0;
       *outside = AIR_TRUE;
-    } else if (swrl > ctx->stackPos[ctx->pvlNum-2]) {
+    } else if (swrl > ctx->stackPos[ctx->pvlNum - 2]) {
       /* extrapolate from stackPos[ctx->pvlNum-3] and [ctx->pvlNum-2];
          gageStackPerVolumeAttach ensures that we there are at least two
          blurrings pvls & one base pvl ==> pvlNum >= 3 ==> pvlNum-3 >= 0 */
-      sidx = ctx->pvlNum-3;
+      sidx = ctx->pvlNum - 3;
       *outside = AIR_TRUE;
     } else {
       /* HEY: stupid linear search */
-      for (sidx=0; sidx<ctx->pvlNum-2; sidx++) {
-        if (AIR_IN_CL(ctx->stackPos[sidx], swrl, ctx->stackPos[sidx+1])) {
+      for (sidx = 0; sidx < ctx->pvlNum - 2; sidx++) {
+        if (AIR_IN_CL(ctx->stackPos[sidx], swrl, ctx->stackPos[sidx + 1])) {
           break;
         }
       }
-      if (sidx == ctx->pvlNum-2) {
+      if (sidx == ctx->pvlNum - 2) {
         /* search failure */
         *outside = AIR_FALSE;
         return AIR_NAN;
       }
       *outside = AIR_FALSE;
     }
-    si = AIR_AFFINE(ctx->stackPos[sidx], swrl, ctx->stackPos[sidx+1],
-                    sidx, sidx+1);
+    si = AIR_AFFINE(ctx->stackPos[sidx], swrl, ctx->stackPos[sidx + 1], sidx, sidx + 1);
   } else {
     si = AIR_NAN;
   }
@@ -71,15 +70,15 @@ gageStackItoW(gageContext *ctx, double si, int *outside) {
     if (si < 0) {
       sidx = 0;
       *outside = AIR_TRUE;
-    } else if (si > ctx->pvlNum-2) {
-      sidx = ctx->pvlNum-3;
+    } else if (si > ctx->pvlNum - 2) {
+      sidx = ctx->pvlNum - 3;
       *outside = AIR_TRUE;
     } else {
       sidx = AIR_UINT(si);
       *outside = AIR_FALSE;
     }
     sfrac = si - sidx;
-    swrl = AIR_AFFINE(0, sfrac, 1, ctx->stackPos[sidx], ctx->stackPos[sidx+1]);
+    swrl = AIR_AFFINE(0, sfrac, 1, ctx->stackPos[sidx], ctx->stackPos[sidx + 1]);
     /*
     fprintf(stderr, "!%s: si %g (%u) --> %u + %g --> [%g,%g] -> %g\n", me,
             si, ctx->pvlNum, sidx, sfrac,
@@ -98,14 +97,13 @@ gageStackItoW(gageContext *ctx, double si, int *outside) {
 ** gage allocates the pervolume itself.
 */
 int
-gageStackPerVolumeNew(gageContext *ctx,
-                      gagePerVolume **pvlStack,
+gageStackPerVolumeNew(gageContext *ctx, gagePerVolume **pvlStack,
                       const Nrrd *const *nblur, unsigned int blNum,
                       const gageKind *kind) {
-  static const char me[]="gageStackPerVolumeNew";
+  static const char me[] = "gageStackPerVolumeNew";
   unsigned int blIdx;
 
-  if (!( ctx && pvlStack && nblur && kind )) {
+  if (!(ctx && pvlStack && nblur && kind)) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
@@ -114,8 +112,8 @@ gageStackPerVolumeNew(gageContext *ctx,
     return 1;
   }
 
-  for (blIdx=0; blIdx<blNum; blIdx++) {
-    if (!( pvlStack[blIdx] = gagePerVolumeNew(ctx, nblur[blIdx], kind) )) {
+  for (blIdx = 0; blIdx < blNum; blIdx++) {
+    if (!(pvlStack[blIdx] = gagePerVolumeNew(ctx, nblur[blIdx], kind))) {
       biffAddf(GAGE, "%s: on pvl %u of %u", me, blIdx, blNum);
       return 1;
     }
@@ -131,16 +129,15 @@ int
 gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
                          gagePerVolume **pvlStack, const double *stackPos,
                          unsigned int blNum) {
-  static const char me[]="gageStackPerVolumeAttach";
+  static const char me[] = "gageStackPerVolumeAttach";
   unsigned int blIdx;
 
   if (!(ctx && pvlBase && pvlStack && stackPos)) {
-    biffAddf(GAGE, "%s: got NULL pointer %p %p %p %p", me,
-             AIR_VOIDP(ctx), AIR_VOIDP(pvlBase),
-             AIR_VOIDP(pvlStack), AIR_CVOIDP(stackPos));
+    biffAddf(GAGE, "%s: got NULL pointer %p %p %p %p", me, AIR_VOIDP(ctx),
+             AIR_VOIDP(pvlBase), AIR_VOIDP(pvlStack), AIR_CVOIDP(stackPos));
     return 1;
   }
-  if (!( blNum >= 2 )) {
+  if (!(blNum >= 2)) {
     /* this constraint is important for the logic of stack reconstruction:
        minimum number of node-centered samples is 2, and the number of
        pvls has to be at least 3 (two blurrings + one base pvl) */
@@ -148,27 +145,28 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
     return 1;
   }
   if (ctx->pvlNum) {
-    biffAddf(GAGE, "%s: can't have pre-existing volumes (%u) "
-             "prior to stack attachment", me, ctx->pvlNum);
+    biffAddf(GAGE,
+             "%s: can't have pre-existing volumes (%u) "
+             "prior to stack attachment",
+             me, ctx->pvlNum);
     return 1;
   }
-  for (blIdx=0; blIdx<blNum; blIdx++) {
+  for (blIdx = 0; blIdx < blNum; blIdx++) {
     if (!AIR_EXISTS(stackPos[blIdx])) {
-      biffAddf(GAGE, "%s: stackPos[%u] = %g doesn't exist", me, blIdx,
-               stackPos[blIdx]);
+      biffAddf(GAGE, "%s: stackPos[%u] = %g doesn't exist", me, blIdx, stackPos[blIdx]);
       return 1;
     }
-    if (blIdx < blNum-1) {
-      if (!( stackPos[blIdx] < stackPos[blIdx+1] )) {
-        biffAddf(GAGE, "%s: stackPos[%u] = %g not < stackPos[%u] = %g", me,
-                 blIdx, stackPos[blIdx], blIdx+1, stackPos[blIdx+1]);
+    if (blIdx < blNum - 1) {
+      if (!(stackPos[blIdx] < stackPos[blIdx + 1])) {
+        biffAddf(GAGE, "%s: stackPos[%u] = %g not < stackPos[%u] = %g", me, blIdx,
+                 stackPos[blIdx], blIdx + 1, stackPos[blIdx + 1]);
         return 1;
       }
     }
   }
 
   /* the base volume is LAST, after all the stack samples */
-  for (blIdx=0; blIdx<blNum; blIdx++) {
+  for (blIdx = 0; blIdx < blNum; blIdx++) {
     if (gagePerVolumeAttach(ctx, pvlStack[blIdx])) {
       biffAddf(GAGE, "%s: on pvl %u of %u", me, blIdx, blNum);
       return 1;
@@ -185,14 +183,13 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
   ctx->stackPos = AIR_CALLOC(blNum, double);
   ctx->stackFsl = AIR_CALLOC(blNum, double);
   ctx->stackFw = AIR_CALLOC(blNum, double);
-  if (!( ctx->stackPos && ctx->stackFsl && ctx->stackFw )) {
+  if (!(ctx->stackPos && ctx->stackFsl && ctx->stackFw)) {
     biffAddf(GAGE, "%s: couldn't allocate stack buffers (%p %p %p)", me,
-             AIR_VOIDP(ctx->stackPos),
-             AIR_VOIDP(ctx->stackFsl),
+             AIR_VOIDP(ctx->stackPos), AIR_VOIDP(ctx->stackFsl),
              AIR_VOIDP(ctx->stackFw));
     return 1;
   }
-  for (blIdx=0; blIdx<blNum; blIdx++) {
+  for (blIdx = 0; blIdx < blNum; blIdx++) {
     ctx->stackPos[blIdx] = stackPos[blIdx];
   }
 
@@ -208,22 +205,21 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
 */
 int
 _gageStackBaseIv3Fill(gageContext *ctx) {
-  static const char me[]="_gageStackBaseIv3Fill";
+  static const char me[] = "_gageStackBaseIv3Fill";
   unsigned int fd, pvlIdx, cacheIdx, cacheLen, baseIdx, valLen;
 
-  fd = 2*ctx->radius;
+  fd = 2 * ctx->radius;
   /* the "base" pvl is the LAST pvl */
   baseIdx = ctx->pvlNum - 1;
-  cacheLen = fd*fd*fd*ctx->pvl[0]->kind->valLen;
+  cacheLen = fd * fd * fd * ctx->pvl[0]->kind->valLen;
   if (ctx->verbose > 2) {
     fprintf(stderr, "%s: cacheLen = %u\n", me, cacheLen);
   }
-  if (nrrdKernelHermiteScaleSpaceFlag  == ctx->ksp[gageKernelStack]->kernel) {
+  if (nrrdKernelHermiteScaleSpaceFlag == ctx->ksp[gageKernelStack]->kernel) {
     unsigned int iii, xi, yi, zi, blurIdx, valIdx, fdd, sz, sy;
-    double xx, *iv3, *iv30, *iv31, sigma0, sigma1,
-      val0, val1, drv0, drv1, lapl0, lapl1;
+    double xx, *iv3, *iv30, *iv31, sigma0, sigma1, val0, val1, drv0, drv1, lapl0, lapl1;
 
-    fdd = fd*fd;
+    fdd = fd * fd;
     /* initialize the output iv3 to all zeros, since we won't be
        usefully setting the values on the boundary (the boundary which
        is required in the rest of the stack's iv3s in order to do the
@@ -232,13 +228,13 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
        kind of nrrdBoundaryBleed thing here, because the kernel
        weights really should be zero on the boundary. */
     iv3 = ctx->pvl[baseIdx]->iv3;
-    for (cacheIdx=0; cacheIdx<cacheLen; cacheIdx++) {
+    for (cacheIdx = 0; cacheIdx < cacheLen; cacheIdx++) {
       iv3[cacheIdx] = 0;
     }
 
     /* find the interval in the pre-blurred volumes containing the
        desired scale location */
-    for (pvlIdx=0; pvlIdx<ctx->pvlNum-1; pvlIdx++) {
+    for (pvlIdx = 0; pvlIdx < ctx->pvlNum - 1; pvlIdx++) {
       if (ctx->stackFw[pvlIdx]) {
         /* has to be non-zero somewhere, since _gageLocationSet()
            gives an error if there aren't non-zero stackFw[i] */
@@ -246,11 +242,11 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
       }
     }
     /* so no way that pvlIdx == pvlNum-1 */
-    if (pvlIdx == ctx->pvlNum-2) {
+    if (pvlIdx == ctx->pvlNum - 2) {
       /* pvlNum-2 is pvl index of last pre-blurred volume */
       /* gageStackPerVolumeAttach() enforces getting at least two
          pre-blurred volumes --> pvlNum >= 3 --> blurIdx >= 0 */
-      blurIdx = pvlIdx-1;
+      blurIdx = pvlIdx - 1;
       xx = 1;
     } else {
       blurIdx = pvlIdx;
@@ -260,42 +256,42 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
       xx = 1 - ctx->stackFw[pvlIdx];
     }
     iv30 = ctx->pvl[blurIdx]->iv3;
-    iv31 = ctx->pvl[blurIdx+1]->iv3;
+    iv31 = ctx->pvl[blurIdx + 1]->iv3;
     sigma0 = ctx->stackPos[blurIdx];
-    sigma1 = ctx->stackPos[blurIdx+1];
+    sigma1 = ctx->stackPos[blurIdx + 1];
     valLen = ctx->pvl[baseIdx]->kind->valLen;
     sy = ctx->shape->size[1];
     sz = ctx->shape->size[2];
     if (1 == sz) {
       if (1 == sy) {
         /* (1-D data: HEY copy and paste; see 2D case below) */
-        for (valIdx=0; valIdx<valLen; valIdx++) {
+        for (valIdx = 0; valIdx < valLen; valIdx++) {
           /* nixed "for zi" and "for yi" loop; zi==yi==1 */
-          for (xi=1; xi<fd-1; xi++) {
-            iii = xi + fd*(1 /* yi */ + fd*(1 /* zi */ + fd*valIdx));
+          for (xi = 1; xi < fd - 1; xi++) {
+            iii = xi + fd * (1 /* yi */ + fd * (1 /* zi */ + fd * valIdx));
             val0 = iv30[iii];
             /* can do a 1D instead of 2D discrete laplacian */
-            lapl0 = (iv30[iii+1] + iv30[iii-1] - 2*val0);
+            lapl0 = (iv30[iii + 1] + iv30[iii - 1] - 2 * val0);
             val1 = iv31[iii];
-            lapl1 = (iv31[iii+1] + iv31[iii-1] - 2*val1);
-            drv0 = sigma0*lapl0*(sigma1 - sigma0);
-            drv1 = sigma1*lapl1*(sigma1 - sigma0);
+            lapl1 = (iv31[iii + 1] + iv31[iii - 1] - 2 * val1);
+            drv0 = sigma0 * lapl0 * (sigma1 - sigma0);
+            drv1 = sigma1 * lapl1 * (sigma1 - sigma0);
             /* clang-format off */
             iv3[iii] = val0 + xx*(drv0 + xx*(drv0*(-2 + xx) + drv1*(-1 + xx)
                                              + (val0 - val1)*(-3 + 2*xx)));
             /* clang-format on */
             /*
-            fprintf(stderr, "!%s: (%u): val %g %g, lapl %g %g, sigma %g %g, drv %g %g --> iv3[%u] = %g\n", me,
-                    xi, val0, val1, lapl0, lapl1, sigma0, sigma1, drv0, drv1, iii, iv3[iii]);
-            fprintf(stderr, "!%s: lapl0 %g = %g + %g + %g + %g - 4*%g\n", me, lapl0,
-                    iv30[iii+1] , iv30[iii-1] , iv30[iii+fd] , iv30[iii-fd] , val0);
-            fprintf(stderr, "!%s: lapl1 %g = %g + %g + %g + %g - 4*%g\n", me, lapl1,
-                    iv31[iii+1] , iv31[iii-1] , iv31[iii+fd] , iv31[iii-fd] , val1);
+            fprintf(stderr, "!%s: (%u): val %g %g, lapl %g %g, sigma %g %g, drv %g %g -->
+            iv3[%u] = %g\n", me, xi, val0, val1, lapl0, lapl1, sigma0, sigma1, drv0,
+            drv1, iii, iv3[iii]); fprintf(stderr, "!%s: lapl0 %g = %g + %g + %g + %g -
+            4*%g\n", me, lapl0, iv30[iii+1] , iv30[iii-1] , iv30[iii+fd] , iv30[iii-fd] ,
+            val0); fprintf(stderr, "!%s: lapl1 %g = %g + %g + %g + %g - 4*%g\n", me,
+            lapl1, iv31[iii+1] , iv31[iii-1] , iv31[iii+fd] , iv31[iii-fd] , val1);
             */
           }
-          for (zi=  2  ; zi<fd-1; zi++) {
-            for (yi=  2  ; yi<fd-1; yi++) {
-              for (xi=1; xi<fd-1; xi++) {
+          for (zi = 2; zi < fd - 1; zi++) {
+            for (yi = 2; yi < fd - 1; yi++) {
+              for (xi = 1; xi < fd - 1; xi++) {
                 /* clang-format off */
                 iii =          xi + fd*(yi + fd*(zi + fd*valIdx));
                 iv3[iii] = iv3[xi + fd*(1  + fd*(1  + fd*valIdx))];
@@ -307,37 +303,38 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
       } else {
         /* as in gageIv3Fill; we do some special-case-ing for 2-D images;
            (HEY copy and paste; see sz > 1 below for explanatory comments) */
-        for (valIdx=0; valIdx<valLen; valIdx++) {
+        for (valIdx = 0; valIdx < valLen; valIdx++) {
           /* nixed "for zi" loop; zi==1 */
-          for (yi=1; yi<fd-1; yi++) {
-            for (xi=1; xi<fd-1; xi++) {
-              iii = xi + fd*(yi + fd*(1 /* zi */ + fd*valIdx));
+          for (yi = 1; yi < fd - 1; yi++) {
+            for (xi = 1; xi < fd - 1; xi++) {
+              iii = xi + fd * (yi + fd * (1 /* zi */ + fd * valIdx));
               val0 = iv30[iii];
               /* can do a 2D instead of 3D discrete laplacian */
-              lapl0 = (iv30[iii+1]   + iv30[iii-1] +
-                       iv30[iii+fd]  + iv30[iii-fd] - 4*val0);
+              lapl0 = (iv30[iii + 1] + iv30[iii - 1] + iv30[iii + fd] + iv30[iii - fd]
+                       - 4 * val0);
               val1 = iv31[iii];
-              lapl1 = (iv31[iii+1]   + iv31[iii-1] +
-                       iv31[iii+fd]  + iv31[iii-fd] - 4*val1);
-              drv0 = sigma0*lapl0*(sigma1 - sigma0);
-              drv1 = sigma1*lapl1*(sigma1 - sigma0);
+              lapl1 = (iv31[iii + 1] + iv31[iii - 1] + iv31[iii + fd] + iv31[iii - fd]
+                       - 4 * val1);
+              drv0 = sigma0 * lapl0 * (sigma1 - sigma0);
+              drv1 = sigma1 * lapl1 * (sigma1 - sigma0);
               /* clang-format off */
               iv3[iii] = val0 + xx*(drv0 + xx*(drv0*(-2 + xx) + drv1*(-1 + xx)
                                                + (val0 - val1)*(-3 + 2*xx)));
               /* clang-format on */
               /*
-              fprintf(stderr, "!%s: (%u,%u): val %g %g, lapl %g %g, sigma %g %g, drv %g %g --> iv3[%u] = %g\n", me,
-                      xi, yi, val0, val1, lapl0, lapl1, sigma0, sigma1, drv0, drv1, iii, iv3[iii]);
-              fprintf(stderr, "!%s: lapl0 %g = %g + %g + %g + %g - 4*%g\n", me, lapl0,
-                      iv30[iii+1] , iv30[iii-1] , iv30[iii+fd] , iv30[iii-fd] , val0);
-              fprintf(stderr, "!%s: lapl1 %g = %g + %g + %g + %g - 4*%g\n", me, lapl1,
-                      iv31[iii+1] , iv31[iii-1] , iv31[iii+fd] , iv31[iii-fd] , val1);
+              fprintf(stderr, "!%s: (%u,%u): val %g %g, lapl %g %g, sigma %g %g, drv %g
+              %g --> iv3[%u] = %g\n", me, xi, yi, val0, val1, lapl0, lapl1, sigma0,
+              sigma1, drv0, drv1, iii, iv3[iii]); fprintf(stderr, "!%s: lapl0 %g = %g +
+              %g + %g + %g - 4*%g\n", me, lapl0, iv30[iii+1] , iv30[iii-1] , iv30[iii+fd]
+              , iv30[iii-fd] , val0); fprintf(stderr, "!%s: lapl1 %g = %g + %g + %g + %g
+              - 4*%g\n", me, lapl1, iv31[iii+1] , iv31[iii-1] , iv31[iii+fd] ,
+              iv31[iii-fd] , val1);
               */
             }
           }
-          for (zi=  2  ; zi<fd-1; zi++) {
-            for (yi=1; yi<fd-1; yi++) {
-              for (xi=1; xi<fd-1; xi++) {
+          for (zi = 2; zi < fd - 1; zi++) {
+            for (yi = 1; yi < fd - 1; yi++) {
+              for (xi = 1; xi < fd - 1; xi++) {
                 /* clang-format off */
                 iii =          xi + fd*(yi + fd*(zi + fd*valIdx));
                 iv3[iii] = iv3[xi + fd*(yi + fd*(1  + fd*valIdx))];
@@ -349,25 +346,23 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
       }
     } else {
       /* sz > 1 */
-      for (valIdx=0; valIdx<valLen; valIdx++) {
-        for (zi=1; zi<fd-1; zi++) {
-          for (yi=1; yi<fd-1; yi++) {
-            for (xi=1; xi<fd-1; xi++) {
+      for (valIdx = 0; valIdx < valLen; valIdx++) {
+        for (zi = 1; zi < fd - 1; zi++) {
+          for (yi = 1; yi < fd - 1; yi++) {
+            for (xi = 1; xi < fd - 1; xi++) {
               /* note that iv3 axis ordering is x, y, z, tuple */
-              iii = xi + fd*(yi + fd*(zi + fd*valIdx));
+              iii = xi + fd * (yi + fd * (zi + fd * valIdx));
               val0 = iv30[iii];
-              lapl0 = (iv30[iii+1]   + iv30[iii-1] +
-                       iv30[iii+fd]  + iv30[iii-fd] +
-                       iv30[iii+fdd] + iv30[iii-fdd] - 6*val0);
+              lapl0 = (iv30[iii + 1] + iv30[iii - 1] + iv30[iii + fd] + iv30[iii - fd]
+                       + iv30[iii + fdd] + iv30[iii - fdd] - 6 * val0);
               val1 = iv31[iii];
-              lapl1 = (iv31[iii+1]   + iv31[iii-1] +
-                       iv31[iii+fd]  + iv31[iii-fd] +
-                       iv31[iii+fdd] + iv31[iii-fdd] - 6*val1);
+              lapl1 = (iv31[iii + 1] + iv31[iii - 1] + iv31[iii + fd] + iv31[iii - fd]
+                       + iv31[iii + fdd] + iv31[iii - fdd] - 6 * val1);
               /* the (sigma1 - sigma0) factor is needed to convert the
                  derivative with respect to sigma (sigma*lapl) into the
                  derivative with respect to xx (ranges from 0 to 1) */
-              drv0 = sigma0*lapl0*(sigma1 - sigma0);
-              drv1 = sigma1*lapl1*(sigma1 - sigma0);
+              drv0 = sigma0 * lapl0 * (sigma1 - sigma0);
+              drv1 = sigma1 * lapl1 * (sigma1 - sigma0);
               /* This inner loop is the bottleneck for some uses of
                  scale-space; a re-arrangement of the Hermite spline
                  evaluation (thanks Mathematica) does save a little time */
@@ -384,13 +379,11 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
     /* we're doing simple convolution-based recon on the stack */
     /* NOTE we are treating the 4D fd*fd*fd*valLen iv3 as a big 1-D array */
     double wght, val;
-    for (cacheIdx=0; cacheIdx<cacheLen; cacheIdx++) {
+    for (cacheIdx = 0; cacheIdx < cacheLen; cacheIdx++) {
       val = 0;
-      for (pvlIdx=0; pvlIdx<ctx->pvlNum-1; pvlIdx++) {
+      for (pvlIdx = 0; pvlIdx < ctx->pvlNum - 1; pvlIdx++) {
         wght = ctx->stackFw[pvlIdx];
-        val += (wght
-                ? wght*ctx->pvl[pvlIdx]->iv3[cacheIdx]
-                : 0);
+        val += (wght ? wght * ctx->pvl[pvlIdx]->iv3[cacheIdx] : 0);
       }
       ctx->pvl[baseIdx]->iv3[cacheIdx] = val;
     }
@@ -402,9 +395,8 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
 ******** gageStackProbe()
 */
 int
-gageStackProbe(gageContext *ctx,
-               double xi, double yi, double zi, double stackIdx) {
-  static const char me[]="gageStackProbe";
+gageStackProbe(gageContext *ctx, double xi, double yi, double zi, double stackIdx) {
+  static const char me[] = "gageStackProbe";
 
   if (!ctx) {
     return 1;
@@ -422,16 +414,15 @@ gageStackProbe(gageContext *ctx,
 }
 
 int
-gageStackProbeSpace(gageContext *ctx,
-                    double xx, double yy, double zz, double ss,
+gageStackProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
                     int indexSpace, int clamp) {
-  static const char me[]="gageStackProbeSpace";
+  static const char me[] = "gageStackProbeSpace";
   int ret;
   /*
   fprintf(stderr, "!%s(%g,%g,%g,%g, %d,%d): hello\n", me,
           xx, yy, zz, ss, indexSpace, clamp);
-  if (AIR_ABS(-98.2539 - xx) < 0.1 && AIR_ABS(yy) < 0.1 && AIR_ABS(zz) < 0.1 && AIR_ABS(495.853 - ss)) {
-    ctx->verbose += 10;
+  if (AIR_ABS(-98.2539 - xx) < 0.1 && AIR_ABS(yy) < 0.1 && AIR_ABS(zz) < 0.1 &&
+  AIR_ABS(495.853 - ss)) { ctx->verbose += 10;
   }
   */
   if (!ctx) {
@@ -450,4 +441,3 @@ gageStackProbeSpace(gageContext *ctx,
   /* fprintf(stderr, "!%s: returning %d\n", me, ret); */
   return ret;
 }
-

@@ -26,13 +26,12 @@
 #define INFO "Information about this program and its use"
 
 int
-limnpu_aboutMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+limnpu_aboutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_MED];
   char par1[] = "\t\t\t\t"
-    "\"lpu\" is a complete hack.\n";
+                "\"lpu\" is a complete hack.\n";
   char par2[] = "\t\t\t\t"
-    "Users are encouraged to take cover.\n";
+                "Users are encouraged to take cover.\n";
 
   AIR_UNUSED(argc);
   AIR_UNUSED(argv);
@@ -40,12 +39,10 @@ limnpu_aboutMain(int argc, const char **argv, const char *me,
 
   fprintf(stderr, "\n");
   sprintf(buff, "--- lpu: LimnPolyData command-line interface ---");
-  sprintf(fmt, "%%%ds\n",
-          (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
+  sprintf(fmt, "%%%ds\n", (int)((hparm->columns - strlen(buff)) / 2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
   airTeemVersionSprint(buff);
-  sprintf(fmt, "%%%ds\n",
-          (int)((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
+  sprintf(fmt, "%%%ds\n", (int)((hparm->columns - strlen(buff)) / 2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
   fprintf(stderr, "\n");
 
@@ -55,5 +52,4 @@ limnpu_aboutMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_aboutCmd = { "about", INFO, limnpu_aboutMain, AIR_FALSE };
-
+unrrduCmd limnpu_aboutCmd = {"about", INFO, limnpu_aboutMain, AIR_FALSE};

@@ -25,34 +25,33 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Converts DOS text files to normal, and more"
-static const char *_unrrdu_undosInfoL =
-  (INFO
-   ". The characters involved are:\n *\t\t\t\t\t\t\t"
-   "       carraige return = CR = '\\r' = 0x0d = decimal 13 = octal 015\n "
-   "* \"new line\" = line feed = LF = '\\n' = 0x0a = decimal 10 = octal 012\n "
-   "though see https://en.wikipedia.org/wiki/Newline for messy details. "
-   "This program converts CR-LF pairs (DOS/Windows line breaks) "
-   "to just LF (Unix line break). With the \"-r\" option, however, "
-   "this converts the other way, for whatever sick reason you'd want that. "
-   "With the \"-m\" option, this can convert legacy MAC text files "
-   "(which use only CR for line break, which may appear as \"^M\" in text "
-   "displays). Unlike simple sed/perl scripts for this purpose, this program "
-   "is careful to be idempotent in all modes of operation. Also, this makes an "
-   "effort to not meddle with binary files (on which this may be mistakenly "
-   "invoked), by not converting files with a high percentage of non-printing "
-   "characters, as controlled by the \"-pnp\" option. A message "
-   "is printed to stderr for all the files actually modified.\n "
-   "* (not actually based on Nrrd)");
+static const char *_unrrdu_undosInfoL
+  = (INFO ". The characters involved are:\n *\t\t\t\t\t\t\t"
+          "       carraige return = CR = '\\r' = 0x0d = decimal 13 = octal 015\n "
+          "* \"new line\" = line feed = LF = '\\n' = 0x0a = decimal 10 = octal 012\n "
+          "though see https://en.wikipedia.org/wiki/Newline for messy details. "
+          "This program converts CR-LF pairs (DOS/Windows line breaks) "
+          "to just LF (Unix line break). With the \"-r\" option, however, "
+          "this converts the other way, for whatever sick reason you'd want that. "
+          "With the \"-m\" option, this can convert legacy MAC text files "
+          "(which use only CR for line break, which may appear as \"^M\" in text "
+          "displays). Unlike simple sed/perl scripts for this purpose, this program "
+          "is careful to be idempotent in all modes of operation. Also, this makes an "
+          "effort to not meddle with binary files (on which this may be mistakenly "
+          "invoked), by not converting files with a high percentage of non-printing "
+          "characters, as controlled by the \"-pnp\" option. A message "
+          "is printed to stderr for all the files actually modified.\n "
+          "* (not actually based on Nrrd)");
 
 #define CR 0x0d
 #define LF 0x0a
 
 static void
-undosConvert(const char *me, char *name, int reverse, int mac,
-             int quiet, int noAction, float badPerc) {
+undosConvert(const char *me, char *name, int reverse, int mac, int quiet, int noAction,
+             float badPerc) {
   airArray *mop;
   FILE *fin, *fout;
-  char *data=NULL;
+  char *data = NULL;
   airArray *dataArr;
   unsigned int ci, len;
   int car, numBad, willConvert;
@@ -61,7 +60,8 @@ undosConvert(const char *me, char *name, int reverse, int mac,
   mop = airMopNew();
   if (!airStrlen(name)) {
     fprintf(stderr, "%s: empty filename\n", me);
-    airMopError(mop); return;
+    airMopError(mop);
+    return;
   }
 
   /* -------------------------------------------------------- */
@@ -69,10 +69,11 @@ undosConvert(const char *me, char *name, int reverse, int mac,
   fin = airFopen(name, stdin, "rb");
   if (!fin) {
     if (!quiet) {
-      fprintf(stderr, "%s: couldn't open \"%s\" for reading: \"%s\"\n",
-              me, name, strerror(errno));
+      fprintf(stderr, "%s: couldn't open \"%s\" for reading: \"%s\"\n", me, name,
+              strerror(errno));
     }
-    airMopError(mop); return;
+    airMopError(mop);
+    return;
   }
   airMopAdd(mop, fin, (airMopper)airFclose, airMopOnError);
 
@@ -84,7 +85,8 @@ undosConvert(const char *me, char *name, int reverse, int mac,
     if (!quiet) {
       fprintf(stderr, "%s: internal allocation error #1\n", me);
     }
-    airMopError(mop); return;
+    airMopError(mop);
+    return;
   }
   airMopAdd(mop, dataArr, (airMopper)airArrayNuke, airMopAlways);
 
@@ -96,7 +98,8 @@ undosConvert(const char *me, char *name, int reverse, int mac,
     if (!quiet) {
       fprintf(stderr, "%s: \"%s\" is empty, skipping ...\n", me, name);
     }
-    airMopError(mop); return;
+    airMopError(mop);
+    return;
   }
   do {
     ci = airArrayLenIncr(dataArr, 1);
@@ -104,18 +107,22 @@ undosConvert(const char *me, char *name, int reverse, int mac,
       if (!quiet) {
         fprintf(stderr, "%s: internal allocation error #2\n", me);
       }
-      airMopError(mop); return;
+      airMopError(mop);
+      return;
     }
     data[ci] = AIR_CAST(char, car);
     numBad += !isprint(car) && !isspace(car);
     car = getc(fin);
-  } while (EOF != car && badPerc > 100.0*numBad/dataArr->len);
+  } while (EOF != car && badPerc > 100.0 * numBad / dataArr->len);
   if (EOF != car) {
     if (!quiet) {
-      fprintf(stderr, "%s: more than %g%% of \"%s\" is non-printing, "
-              "skipping ...\n", me, badPerc, name);
+      fprintf(stderr,
+              "%s: more than %g%% of \"%s\" is non-printing, "
+              "skipping ...\n",
+              me, badPerc, name);
     }
-    airMopError(mop); return;
+    airMopError(mop);
+    return;
   }
   fin = airFclose(fin);
   len = dataArr->len; /* learn array length */
@@ -126,8 +133,8 @@ undosConvert(const char *me, char *name, int reverse, int mac,
   if (!strcmp("-", name)) {
     willConvert = AIR_TRUE;
   } else if (reverse) { /* REVERSE operation, away from unix LF */
-    for (ci=0; ci<len; ci++) {
-      if (LF == data[ci] && (ci && CR != data[ci-1])) {
+    for (ci = 0; ci < len; ci++) {
+      if (LF == data[ci] && (ci && CR != data[ci - 1])) {
         /* If converting to DOS, we're looking for LF not preceded by CR.
            If converting to MAC, we could just look for LF, but the
            principle here is that we are only converting from unix,
@@ -137,15 +144,15 @@ undosConvert(const char *me, char *name, int reverse, int mac,
       }
     }
   } else { /* !reverse, normal operation */
-    for (ci=0; ci<len; ci++) {
+    for (ci = 0; ci < len; ci++) {
       if (mac) {
-        if (CR == data[ci] && (ci+1<len && LF != data[ci+1])) {
+        if (CR == data[ci] && (ci + 1 < len && LF != data[ci + 1])) {
           /* If converting from MAC, our job is NOT to convert DOS CR-LFs */
           willConvert = AIR_TRUE;
           break;
         }
       } else {
-        if (CR == data[ci] && (ci+1<len && LF == data[ci+1])) {
+        if (CR == data[ci] && (ci + 1 < len && LF == data[ci + 1])) {
           willConvert = AIR_TRUE;
           break;
         }
@@ -159,9 +166,7 @@ undosConvert(const char *me, char *name, int reverse, int mac,
   } else {
     if (!quiet) {
       fprintf(stderr, "%s: %s \"%s\" %s %s ... \n", me,
-              noAction ? "would convert" : "converting",
-              name,
-              reverse ? "to" : "from",
+              noAction ? "would convert" : "converting", name, reverse ? "to" : "from",
               mac ? "MAC" : "DOS");
     }
   }
@@ -177,20 +182,21 @@ undosConvert(const char *me, char *name, int reverse, int mac,
   fout = airFopen(name, stdout, "wb");
   if (!fout) {
     if (!quiet) {
-      fprintf(stderr, "%s: couldn't open \"%s\" for writing: \"%s\"\n",
-              me, name, strerror(errno));
+      fprintf(stderr, "%s: couldn't open \"%s\" for writing: \"%s\"\n", me, name,
+              strerror(errno));
     }
-    airMopError(mop); return;
+    airMopError(mop);
+    return;
   }
   airMopAdd(mop, fout, (airMopper)airFclose, airMopOnError);
 
   /* -------------------------------------------------------- */
   /* write output file */
-  car = 'a'; /* something not EOF */
+  car = 'a';     /* something not EOF */
   if (reverse) { /* away from LF to either CR-LF (or mac CR) */
-    for (ci=0; EOF != car && ci<len; ci++) {
+    for (ci = 0; EOF != car && ci < len; ci++) {
       if (LF == data[ci]) {
-        if (ci && CR == data[ci-1]) {
+        if (ci && CR == data[ci - 1]) {
           /* if this LF was preceded by a CR, it is, if !mac, already
              the intended DOS CR-LF, and we've already putc the CR, so
              now we putc LF. Or, if mac, we're narrowly focusing on
@@ -207,10 +213,10 @@ undosConvert(const char *me, char *name, int reverse, int mac,
       }
     }
   } else { /* normal operation: from CR-LF (or mac CR but not CR-LF) to LF */
-    for (ci=0; EOF != car && ci<len; ci++) {
+    for (ci = 0; EOF != car && ci < len; ci++) {
       if (CR == data[ci]) {
         if (mac) {
-          if (ci+1<len && LF == data[ci+1]) {
+          if (ci + 1 < len && LF == data[ci + 1]) {
             /* not our job to convert CR-LF, so this CR passes through */
             car = putc(CR, fout);
           } else {
@@ -218,7 +224,7 @@ undosConvert(const char *me, char *name, int reverse, int mac,
             car = putc(LF, fout);
           }
         } else {
-          if (ci+1<len && LF == data[ci+1]) {
+          if (ci + 1 < len && LF == data[ci + 1]) {
             /* converting CR-LF to LF is our job */
             car = putc(LF, fout);
             ci++;
@@ -235,8 +241,10 @@ undosConvert(const char *me, char *name, int reverse, int mac,
   }
   if (EOF == car) {
     if (!quiet) {
-      fprintf(stderr, "%s: ERROR writing \"%s\" possible data loss !!! "
-              "(sorry)\n", me, name);
+      fprintf(stderr,
+              "%s: ERROR writing \"%s\" possible data loss !!! "
+              "(sorry)\n",
+              me, name);
     }
   }
   fout = airFclose(fout);
@@ -246,8 +254,7 @@ undosConvert(const char *me, char *name, int reverse, int mac,
 }
 
 int
-unrrdu_undosMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+unrrdu_undosMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   /* these are stock for unrrdu */
   hestOpt *opt = NULL;
   airArray *mop;
@@ -277,7 +284,8 @@ unrrdu_undosMain(int argc, const char **argv, const char *me,
   hestOptAdd(&opt, NULL, "file", airTypeString, 1, -1, &name, NULL,
              "all the files to convert.  Each file will be over-written "
              "with its converted contents.  Use \"-\" to read from stdin "
-             "and write to stdout", &lenName);
+             "and write to stdout",
+             &lenName);
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
@@ -285,7 +293,7 @@ unrrdu_undosMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  for (ni=0; ni<lenName; ni++) {
+  for (ni = 0; ni < lenName; ni++) {
     undosConvert(me, name[ni], reverse, mac, quiet, noAction, badPerc);
   }
 
@@ -296,21 +304,21 @@ unrrdu_undosMain(int argc, const char **argv, const char *me,
 UNRRDU_CMD_HIDE(undos, INFO);
 
 #if 0 /* this is the program used for testing */
-#include <stdio.h>
-#include <math.h>
+#  include <stdio.h>
+#  include <math.h>
 
 int
 main(int argc, char **argv) {
 
-#if 0
-#  define MM "M\r"   /* 4d 0d */
-#  define DD "D\r\n" /* 44 0d 0a */
-#  define UU "U\n"   /* 55 0a */
-#else
-#  define MM "M\r\r"
-#  define DD "D\r\n\r\n"
-#  define UU "U\n\n"
-#endif
+#  if 0
+#    define MM "M\r"   /* 4d 0d */
+#    define DD "D\r\n" /* 44 0d 0a */
+#    define UU "U\n"   /* 55 0a */
+#  else
+#    define MM "M\r\r"
+#    define DD "D\r\n\r\n"
+#    define UU "U\n\n"
+#  endif
 
   if (2 == argc && 'M' == argv[1][0]) {
     printf(DD UU MM);

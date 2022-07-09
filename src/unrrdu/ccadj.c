@@ -25,16 +25,14 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Form adjecency matrix of connected components"
-static const char *_unrrdu_ccadjInfoL =
-(INFO
- ".  This operates on the output of \"ccfind\".  Output is unsigned char "
- "array containing 1 at locations (I,J) and (J,I) if CCs with ids I and J are "
- "adjacent, according to the chosen style of adjacency.\n "
- "* Uses nrrdCCAdjacency");
+static const char *_unrrdu_ccadjInfoL
+  = (INFO ".  This operates on the output of \"ccfind\".  Output is unsigned char "
+          "array containing 1 at locations (I,J) and (J,I) if CCs with ids I and J are "
+          "adjacent, according to the chosen style of adjacency.\n "
+          "* Uses nrrdCCAdjacency");
 
 int
-unrrdu_ccadjMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+unrrdu_ccadjMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -42,8 +40,7 @@ unrrdu_ccadjMain(int argc, const char **argv, const char *me,
   int pret;
   unsigned int conny;
 
-  hestOptAdd(&opt, "c,connect", "connectivity", airTypeUInt, 1, 1,
-             &conny, NULL,
+  hestOptAdd(&opt, "c,connect", "connectivity", airTypeUInt, 1, 1, &conny, NULL,
              "what kind of connectivity to use: the number of coordinates "
              "that vary in order to traverse the neighborhood of a given "
              "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");

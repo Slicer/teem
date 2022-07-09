@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include <stdio.h>
 
 #include <teem/hest.h>
@@ -29,10 +28,10 @@
 #include <teem/alan.h>
 #include <teem/ten.h>
 
-static const char *spotsInfo =
-  ("Generate reaction-diffusion textures based on "
-   "Turing's second example formulation (page 65) of "
-   "his 1954 paper \"The Chemical Basis of Morphogenesis.\" ");
+static const char *spotsInfo
+  = ("Generate reaction-diffusion textures based on "
+     "Turing's second example formulation (page 65) of "
+     "his 1954 paper \"The Chemical Basis of Morphogenesis.\" ");
 
 int
 main(int argc, const char *argv[]) {
@@ -46,12 +45,11 @@ main(int argc, const char *argv[]) {
   int *size, sizeLen, fi, si, wrap, nt, cfn, ha, maxi;
   unsigned int srnd;
   double deltaT, mch, xch, alphabeta[2], time0, time1, deltaX, react, rrange;
-  Nrrd *ninit=NULL, *nten=NULL, *nparm=NULL;
+  Nrrd *ninit = NULL, *nten = NULL, *nparm = NULL;
 
   me = argv[0];
   hestOptAdd(&hopt, "s", "sx sy", airTypeInt, 2, 3, &size, "128 128",
-             "size of texture, and also determines its dimension",
-             &sizeLen);
+             "size of texture, and also determines its dimension", &sizeLen);
   hestOptAdd(&hopt, "srand", "N", airTypeUInt, 1, 1, &srnd, "42",
              "number to seed random number generator with.  This uses "
              "airDrandMT(), so it should be portable.");
@@ -68,8 +66,7 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "wrap", NULL, airTypeInt, 0, 0, &wrap, NULL,
              "wrap edges of texture around a topological torus (which "
              "makes a texture suitable for tiling)");
-  hestOptAdd(&hopt, "ab", "alpha beta", airTypeDouble, 2, 2, alphabeta,
-             "16.0 12.0",
+  hestOptAdd(&hopt, "ab", "alpha beta", airTypeDouble, 2, 2, alphabeta, "16.0 12.0",
              "the growth and decay parameters appearing in the reaction "
              "terms of the reaction-diffusion equations.  The default "
              "values were the ones published by Turing.");
@@ -102,15 +99,14 @@ main(int argc, const char *argv[]) {
              "when saving out frames or snapshots, use a constant filename, "
              "instead of incrementing it each save");
   hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1, &nt, "1",
-             (airThreadCapable
-              ? "number of threads to use in computation"
-              : "number of \"threads\" to use in computation, which is "
-              "moot here because this Teem build doesn't support "
-              "multi-threading. "));
+             (airThreadCapable ? "number of threads to use in computation"
+                               : "number of \"threads\" to use in computation, which is "
+                                 "moot here because this Teem build doesn't support "
+                                 "multi-threading. "));
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
              "filename for output of final converged (two-channel) texture");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL,
-                 me, spotsInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, spotsInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
@@ -118,8 +114,7 @@ main(int argc, const char *argv[]) {
   actx = alanContextNew();
   airMopAdd(mop, actx, (airMopper)alanContextNix, airMopAlways);
   if (nten) {
-    if (alanDimensionSet(actx, nten->dim - 1)
-        || alanTensorSet(actx, nten, 1)) {
+    if (alanDimensionSet(actx, nten->dim - 1) || alanTensorSet(actx, nten, 1)) {
       airMopAdd(mop, err = biffGetDone(ALAN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble setting parameters:\n%s\n", me, err);
       airMopError(mop);
@@ -174,9 +169,8 @@ main(int argc, const char *argv[]) {
     return 1;
   }
   time1 = airTime();
-  fprintf(stderr, "%s: stopped after %d iterations (%g seconds): %s\n",
-          me, actx->iter, time1 - time0,
-          airEnumDesc(alanStop, actx->stop));
+  fprintf(stderr, "%s: stopped after %d iterations (%g seconds): %s\n", me, actx->iter,
+          time1 - time0, airEnumDesc(alanStop, actx->stop));
 
   if (nrrdSave(outS, actx->nlev, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
@@ -184,7 +178,6 @@ main(int argc, const char *argv[]) {
     airMopError(mop);
     return 1;
   }
-
 
   airMopOkay(mop);
   return 0;

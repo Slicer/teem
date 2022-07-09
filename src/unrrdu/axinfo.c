@@ -25,18 +25,15 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Modify attributes of one or more axes"
-static const char *_unrrdu_axinfoInfoL =
-(INFO
- ". The only attributes which are set are those for which command-line "
- "options are given.\n "
- "* Uses no particular function; just sets fields in the NrrdAxisInfo");
+static const char *_unrrdu_axinfoInfoL
+  = (INFO ". The only attributes which are set are those for which command-line "
+          "options are given.\n "
+          "* Uses no particular function; just sets fields in the NrrdAxisInfo");
 
 int
-unrrdu_axinfoMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+unrrdu_axinfoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, *label, *units, *centerStr, *kindStr,
-    *_dirStr, *dirStr, *mmStr[2];
+  char *out, *err, *label, *units, *centerStr, *kindStr, *_dirStr, *dirStr, *mmStr[2];
   Nrrd *nin, *nout;
   int pret, center, kind;
   unsigned int *axes, axesLen, axi, mmIdx, spIdx;
@@ -49,12 +46,10 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
              "label to associate with axis");
   hestOptAdd(&opt, "u,units", "units", airTypeString, 1, 1, &units, "",
              "units of measurement");
-  mmIdx =
-  hestOptAdd(&opt, "mm,minmax", "min max", airTypeString, 2, 2, mmStr, "nan nan",
-             "min and max values along axis");
-  spIdx =
-  hestOptAdd(&opt, "sp,spacing", "spacing", airTypeDouble, 1, 1, &spc, "nan",
-             "spacing between samples along axis");
+  mmIdx = hestOptAdd(&opt, "mm,minmax", "min max", airTypeString, 2, 2, mmStr, "nan nan",
+                     "min and max values along axis");
+  spIdx = hestOptAdd(&opt, "sp,spacing", "spacing", airTypeDouble, 1, 1, &spc, "nan",
+                     "spacing between samples along axis");
   /* There used to be a complaint here about how hest doesn't allow
      you to learn whether the option was parsed from the supplied
      default versus from the command-line itself.  That issue has been
@@ -87,19 +82,22 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  for (axi=0; axi<axesLen; axi++) {
-    if (!( axes[axi] < nin->dim )) {
-      fprintf(stderr, "%s: axis %u not in valid range [0,%u]\n",
-              me, axes[axi], nin->dim-1);
+  for (axi = 0; axi < axesLen; axi++) {
+    if (!(axes[axi] < nin->dim)) {
+      fprintf(stderr, "%s: axis %u not in valid range [0,%u]\n", me, axes[axi],
+              nin->dim - 1);
       airMopError(mop);
       return 1;
     }
   }
   /* parse the strings given via -mm */
-  if (2 != airSingleSscanf(mmStr[0], "%lf", mm+0)
-      + airSingleSscanf(mmStr[1], "%lf", mm+1)) {
-    fprintf(stderr, "%s: couldn't parse both \"%s\" and \"%s\" "
-            "(from \"-mm\") as doubles\n", me, mmStr[0], mmStr[1]);
+  if (2
+      != airSingleSscanf(mmStr[0], "%lf", mm + 0)
+           + airSingleSscanf(mmStr[1], "%lf", mm + 1)) {
+    fprintf(stderr,
+            "%s: couldn't parse both \"%s\" and \"%s\" "
+            "(from \"-mm\") as doubles\n",
+            me, mmStr[0], mmStr[1]);
     airMopError(mop);
     return 1;
   }
@@ -114,14 +112,16 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
   }
   if (airStrlen(_dirStr)) {
     if (!nin->spaceDim) {
-      fprintf(stderr, "%s: wanted to add space direction, but input "
-              "doesn't have space dimension set", me);
+      fprintf(stderr,
+              "%s: wanted to add space direction, but input "
+              "doesn't have space dimension set",
+              me);
       airMopError(mop);
       return 1;
     }
     /* mindlessly copying logic from unu make; unsure of the value */
-    if ('\"' == _dirStr[0] && '\"' == _dirStr[strlen(_dirStr)-1]) {
-      _dirStr[strlen(_dirStr)-1] = 0;
+    if ('\"' == _dirStr[0] && '\"' == _dirStr[strlen(_dirStr) - 1]) {
+      _dirStr[strlen(_dirStr) - 1] = 0;
       dirStr = _dirStr + 1;
     } else {
       dirStr = _dirStr;
@@ -136,7 +136,7 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
     dirStr = NULL;
   }
 
-  for (axi=0; axi<axesLen; axi++) {
+  for (axi = 0; axi < axesLen; axi++) {
     unsigned int axis;
     axis = axes[axi];
     if (strlen(label)) {
@@ -174,13 +174,12 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
     }
     */
     if (airStrlen(centerStr)) {
-      if (!strcmp("none", centerStr)
-          || !strcmp("???", centerStr)) {
+      if (!strcmp("none", centerStr) || !strcmp("???", centerStr)) {
         center = nrrdCenterUnknown;
       } else {
         if (!(center = airEnumVal(nrrdCenter, centerStr))) {
-          fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me,
-                  centerStr, nrrdCenter->name);
+          fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me, centerStr,
+                  nrrdCenter->name);
           airMopError(mop);
           return 1;
         }
@@ -188,13 +187,12 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
       nout->axis[axis].center = center;
     }
     if (airStrlen(kindStr)) {
-      if (!strcmp("none", kindStr)
-          || !strcmp("???", kindStr)) {
+      if (!strcmp("none", kindStr) || !strcmp("???", kindStr)) {
         kind = nrrdKindUnknown;
       } else {
         if (!(kind = airEnumVal(nrrdKind, kindStr))) {
-          fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me,
-                  kindStr, nrrdKind->name);
+          fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me, kindStr,
+                  nrrdKind->name);
           airMopError(mop);
           return 1;
         }

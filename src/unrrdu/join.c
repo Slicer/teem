@@ -25,23 +25,21 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Connect slices and/or slabs into a bigger nrrd"
-static const char *_unrrdu_joinInfoL =
-(INFO
- ". Can stich images into volumes, or tile images side "
- "by side, or attach images onto volumes.  If there are many many "
- "files to name in the \"-i\" option, and using wildcards won't work, "
- "consider putting the list of "
- "filenames into a separate text file (e.g. \"slices.txt\"), and then "
- "name this file as a response file (e.g. \"-i @slices.txt\"). "
- "This command now allows you to set the same pieces of information that "
- "previously had to be set with \"unu axinfo\": label, spacing, and min/max. "
- "These can be use whether the join axis is new (because of \"-incr\") or "
- "not.\n "
- "* Uses nrrdJoin");
+static const char *_unrrdu_joinInfoL
+  = (INFO ". Can stich images into volumes, or tile images side "
+          "by side, or attach images onto volumes.  If there are many many "
+          "files to name in the \"-i\" option, and using wildcards won't work, "
+          "consider putting the list of "
+          "filenames into a separate text file (e.g. \"slices.txt\"), and then "
+          "name this file as a response file (e.g. \"-i @slices.txt\"). "
+          "This command now allows you to set the same pieces of information that "
+          "previously had to be set with \"unu axinfo\": label, spacing, and min/max. "
+          "These can be use whether the join axis is new (because of \"-incr\") or "
+          "not.\n "
+          "* Uses nrrdJoin");
 
 int
-unrrdu_joinMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_joinMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *label, *kindStr;
   Nrrd **nin;
@@ -54,8 +52,7 @@ unrrdu_joinMain(int argc, const char **argv, const char *me,
   hparm->respFileEnable = AIR_TRUE;
 
   hestOptAdd(&opt, "i,input", "nin0", airTypeOther, 1, -1, &nin, NULL,
-             "everything to be joined together",
-             &ninLen, NULL, nrrdHestNrrd);
+             "everything to be joined together", &ninLen, NULL, nrrdHestNrrd);
   OPT_ADD_AXIS(axis, "axis to join along");
   hestOptAdd(&opt, "incr", NULL, airTypeInt, 0, 0, &incrDim, NULL,
              "in situations where the join axis is *not* among the existing "
@@ -84,8 +81,7 @@ unrrdu_joinMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdJoin(nout, AIR_CAST(const Nrrd*const*, nin), ninLen,
-               axis, incrDim)) {
+  if (nrrdJoin(nout, AIR_CAST(const Nrrd *const *, nin), ninLen, axis, incrDim)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error joining nrrds:\n%s", me, err);
     airMopError(mop);
@@ -96,13 +92,12 @@ unrrdu_joinMain(int argc, const char **argv, const char *me,
     nout->axis[axis].label = airStrdup(label);
   }
   if (airStrlen(kindStr)) {
-    if (!strcmp("none", kindStr)
-        || !strcmp("???", kindStr)) {
+    if (!strcmp("none", kindStr) || !strcmp("???", kindStr)) {
       kind = nrrdKindUnknown;
     } else {
       if (!(kind = airEnumVal(nrrdKind, kindStr))) {
-        fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me,
-                kindStr, nrrdKind->name);
+        fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me, kindStr,
+                nrrdKind->name);
         airMopError(mop);
         return 1;
       }

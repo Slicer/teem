@@ -40,32 +40,28 @@ extern "C" {
 ** is either nrrdCenterCell or nrrdCenterNode, but not nrrdCenterUnknown.
 */
 /* index to position, cell centering */
-#define NRRD_CELL_POS(min, max, size, idx)       \
+#define NRRD_CELL_POS(min, max, size, idx)                                              \
   AIR_AFFINE(0, (idx) + 0.5, (size), (min), (max))
 
 /* index to position, node centering */
-#define NRRD_NODE_POS(min, max, size, idx)       \
-  AIR_AFFINE(0, (idx), (size)-1, (min), (max))
+#define NRRD_NODE_POS(min, max, size, idx) AIR_AFFINE(0, (idx), (size)-1, (min), (max))
 
 /* index to position, either centering */
-#define NRRD_POS(center, min, max, size, idx)    \
-  (nrrdCenterCell == (center)                         \
-   ? NRRD_CELL_POS((min), (max), (size), (idx))  \
-   : NRRD_NODE_POS((min), (max), (size), (idx)))
+#define NRRD_POS(center, min, max, size, idx)                                           \
+  (nrrdCenterCell == (center) ? NRRD_CELL_POS((min), (max), (size), (idx))              \
+                              : NRRD_NODE_POS((min), (max), (size), (idx)))
 
 /* position to index, cell centering */
-#define NRRD_CELL_IDX(min, max, size, pos)       \
+#define NRRD_CELL_IDX(min, max, size, pos)                                              \
   (AIR_AFFINE((min), (pos), (max), 0, (size)) - 0.5)
 
 /* position to index, node centering */
-#define NRRD_NODE_IDX(min, max, size, pos)       \
-  AIR_AFFINE((min), (pos), (max), 0, (size)-1)
+#define NRRD_NODE_IDX(min, max, size, pos) AIR_AFFINE((min), (pos), (max), 0, (size)-1)
 
 /* position to index, either centering */
-#define NRRD_IDX(center, min, max, size, pos)    \
-  (nrrdCenterCell == (center)                         \
-   ? NRRD_CELL_IDX((min), (max), (size), (pos))  \
-   : NRRD_NODE_IDX((min), (max), (size), (pos)))
+#define NRRD_IDX(center, min, max, size, pos)                                           \
+  (nrrdCenterCell == (center) ? NRRD_CELL_IDX((min), (max), (size), (pos))              \
+                              : NRRD_NODE_IDX((min), (max), (size), (pos)))
 
 /*
 ******** NRRD_SPACING
@@ -76,10 +72,9 @@ extern "C" {
 ** Unlike nrrdAxisSpacing, this assumes that center is either
 ** nrrdCenterCell or nrrdCenterNode, but not nrrdCenterUnknown.
 */
-#define NRRD_SPACING(center, min, max, size)        \
-  (nrrdCenterCell == center                         \
-   ? ((max) - (min))/AIR_CAST(double, size)         \
-   : ((max) - (min))/(AIR_CAST(double, (size)- 1))) \
+#define NRRD_SPACING(center, min, max, size)                                            \
+  (nrrdCenterCell == center ? ((max) - (min)) / AIR_CAST(double, size)                  \
+                            : ((max) - (min)) / (AIR_CAST(double, (size)-1)))
 
 /*
 ******** NRRD_COORD_UPDATE
@@ -102,18 +97,16 @@ extern "C" {
 ** The "ddd" variable name in this and subsequent macros is an effort to
 ** avoid possible symbol name shadowing.
 */
-#define NRRD_COORD_UPDATE(coord, size, dim)                             \
-  {                                                                     \
-    unsigned int ddd;                                                   \
-    for (ddd=0;                                                         \
-         ddd+1 < (dim) && (coord)[ddd] >= (size)[ddd];                  \
-         ddd++) {                                                       \
-      (coord)[ddd] = 0;                                                 \
-      (coord)[ddd+1]++;                                                 \
-    }                                                                   \
-    if (dim) {                                                          \
-      (coord)[(dim)-1] = AIR_MIN((coord)[(dim)-1], (size)[(dim)-1]-1);  \
-    }                                                                   \
+#define NRRD_COORD_UPDATE(coord, size, dim)                                             \
+  {                                                                                     \
+    unsigned int ddd;                                                                   \
+    for (ddd = 0; ddd + 1 < (dim) && (coord)[ddd] >= (size)[ddd]; ddd++) {              \
+      (coord)[ddd] = 0;                                                                 \
+      (coord)[ddd + 1]++;                                                               \
+    }                                                                                   \
+    if (dim) {                                                                          \
+      (coord)[(dim)-1] = AIR_MIN((coord)[(dim)-1], (size)[(dim)-1] - 1);                \
+    }                                                                                   \
   }
 
 /*
@@ -124,10 +117,10 @@ extern "C" {
 ** nothing if idx>=dim, since that would be an invalid index into
 ** coord[] and size[]
 */
-#define NRRD_COORD_INCR(coord, size, dim, idx)                          \
-  if ((idx) < (dim)) {                                                  \
-    (coord)[(idx)]++;                                                   \
-    NRRD_COORD_UPDATE((coord)+(idx), (size)+(idx), (dim)-(idx));        \
+#define NRRD_COORD_INCR(coord, size, dim, idx)                                          \
+  if ((idx) < (dim)) {                                                                  \
+    (coord)[(idx)]++;                                                                   \
+    NRRD_COORD_UPDATE((coord) + (idx), (size) + (idx), (dim) - (idx));                  \
   }
 
 /*
@@ -138,14 +131,14 @@ extern "C" {
 ** coordinates are for *faster* axes), and stores it in "I".  Has the same
 ** assumptions as NRRD_COORD_UPDATE.
 */
-#define NRRD_INDEX_GEN(I, coord, size, dim)             \
-  {                                                     \
-    unsigned int ddd = (dim);                           \
-    (I) = 0;                                            \
-    while (ddd) {                                       \
-      ddd--;                                            \
-      (I) = (coord)[ddd] + (size)[ddd]*(I);             \
-    }                                                   \
+#define NRRD_INDEX_GEN(I, coord, size, dim)                                             \
+  {                                                                                     \
+    unsigned int ddd = (dim);                                                           \
+    (I) = 0;                                                                            \
+    while (ddd) {                                                                       \
+      ddd--;                                                                            \
+      (I) = (coord)[ddd] + (size)[ddd] * (I);                                           \
+    }                                                                                   \
   }
 
 /*
@@ -154,14 +147,14 @@ extern "C" {
 ** opposite of NRRD_INDEX_GEN: going from linear index "I" to
 ** coordinate array "coord".
 */
-#define NRRD_COORD_GEN(coord, size, dim, I)   \
-  {                                           \
-    unsigned int ddd;                         \
-    size_t myI = (I);                         \
-    for (ddd=0; ddd<(dim); ddd++) {           \
-      (coord)[ddd] = myI % (size)[ddd];       \
-      myI /= (size)[ddd];                     \
-    }                                         \
+#define NRRD_COORD_GEN(coord, size, dim, I)                                             \
+  {                                                                                     \
+    unsigned int ddd;                                                                   \
+    size_t myI = (I);                                                                   \
+    for (ddd = 0; ddd < (dim); ddd++) {                                                 \
+      (coord)[ddd] = myI % (size)[ddd];                                                 \
+      myI /= (size)[ddd];                                                               \
+    }                                                                                   \
   }
 
 #ifdef __cplusplus

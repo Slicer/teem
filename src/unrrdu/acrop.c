@@ -25,18 +25,17 @@
 #include "privateUnrrdu.h"
 
 #define INFO " Automatically crop axes based on given measure"
-static const char *_unrrdu_acropInfoL =
-  (INFO ". For the axes that are to be cropped, the slices perpendicular "
-   "to that axis are projected down to a scalar with the specified measure. "
-   "The resulting 1D array is analyzed by determining what portions at the "
-   "beginning and end constitute less than some portion of the cumulative "
-   "array sum; these ends are cropped off.  The cropping bounds determined "
-   "here can be saved and applied to other arrays via the \"-b\" option.\n "
-   "* Uses nrrdCropAuto");
+static const char *_unrrdu_acropInfoL
+  = (INFO ". For the axes that are to be cropped, the slices perpendicular "
+          "to that axis are projected down to a scalar with the specified measure. "
+          "The resulting 1D array is analyzed by determining what portions at the "
+          "beginning and end constitute less than some portion of the cumulative "
+          "array sum; these ends are cropped off.  The cropping bounds determined "
+          "here can be saved and applied to other arrays via the \"-b\" option.\n "
+          "* Uses nrrdCropAuto");
 
 int
-unrrdu_acropMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+unrrdu_acropMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -63,7 +62,8 @@ unrrdu_acropMain(int argc, const char **argv, const char *me,
              "\b\bo \"cov\": coefficient of variation\n "
              "\b\bo \"product\", \"sum\": product or sum of all values\n "
              "\b\bo \"L1\", \"L2\", \"NL2\", \"RMS\", \"Linf\": "
-             "different norms.", NULL, nrrdMeasure);
+             "different norms.",
+             NULL, nrrdMeasure);
   hestOptAdd(&opt, "f,frac", "frac", airTypeDouble, 1, 1, &frac, "0.1",
              "threshold of cumulative sum of 1-D array at which to crop. "
              "Needs to be in interval [0.0,0.5).");
@@ -71,8 +71,7 @@ unrrdu_acropMain(int argc, const char **argv, const char *me,
              "how much to offset the numerically determined cropping; "
              "positive offsets means expanding the interval of kept "
              "indices (less cropping)");
-  hestOptAdd(&opt, "b,bounds", "filename", airTypeString, 1, 1,
-             &boundsSave, "",
+  hestOptAdd(&opt, "b,bounds", "filename", airTypeString, 1, 1, &boundsSave, "",
              "if a filename is given here, the automatically determined "
              "min and max bounds for cropping are saved to this file "
              "as a 2-D array; first scanline is for -min, second is for -max. "
@@ -91,9 +90,7 @@ unrrdu_acropMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdCropAuto(nout, nin, min, max,
-                   axes, axesLen,
-                   measr, frac, offset)) {
+  if (nrrdCropAuto(nout, nin, min, max, axes, axesLen, measr, frac, offset)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error cropping nrrd:\n%s", me, err);
     airMopError(mop);
@@ -104,24 +101,21 @@ unrrdu_acropMain(int argc, const char **argv, const char *me,
     airULLong *bounds;
     nbounds = nrrdNew();
     airMopAdd(mop, nbounds, (airMopper)nrrdNuke, airMopAlways);
-    if (nrrdMaybeAlloc_va(nbounds, nrrdTypeULLong, 2,
-                          AIR_CAST(airULLong, nin->dim),
+    if (nrrdMaybeAlloc_va(nbounds, nrrdTypeULLong, 2, AIR_CAST(airULLong, nin->dim),
                           AIR_CAST(airULLong, 2))) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: error allocating cropping bounds array:\n%s",
-              me, err);
+      fprintf(stderr, "%s: error allocating cropping bounds array:\n%s", me, err);
       airMopError(mop);
       return 1;
     }
-    bounds = AIR_CAST(airULLong*, nbounds->data);
-    for (axi=0; axi<nin->dim; axi++) {
-      bounds[axi + 0*(nin->dim)] = AIR_CAST(airULLong, min[axi]);
-      bounds[axi + 1*(nin->dim)] = AIR_CAST(airULLong, max[axi]);
+    bounds = AIR_CAST(airULLong *, nbounds->data);
+    for (axi = 0; axi < nin->dim; axi++) {
+      bounds[axi + 0 * (nin->dim)] = AIR_CAST(airULLong, min[axi]);
+      bounds[axi + 1 * (nin->dim)] = AIR_CAST(airULLong, max[axi]);
     }
     if (nrrdSave(boundsSave, nbounds, NULL)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: error saving cropping bounds array:\n%s",
-              me, err);
+      fprintf(stderr, "%s: error saving cropping bounds array:\n%s", me, err);
       airMopError(mop);
       return 1;
     }

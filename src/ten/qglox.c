@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "ten.h"
 #include "privateTen.h"
 
@@ -39,65 +38,65 @@ _tenQGL_blah(double rr0, double rr1) {
   } else {
     /*   rr1 <= rr0 --> rr1/rr0 <= 1 --> rr1/rr0 - 1 <=  0 --> bb <=  0 */
     /* and rr1 >= 0 --> rr1/rr0 >= 0 --> rr1/rr0 - 1 >= -1 --> bb >= -1 */
-    bb = rr0 ? (rr1/rr0 - 1) : 0;
+    bb = rr0 ? (rr1 / rr0 - 1) : 0;
     if (bb > -0.0001) {
-      ret = rr0*(1 + bb*(0.5001249976477329
-                         - bb*(7.0/6 + bb*(1.0/6 - bb/720.0))));
+      ret = rr0
+          * (1
+             + bb * (0.5001249976477329 - bb * (7.0 / 6 + bb * (1.0 / 6 - bb / 720.0))));
     } else {
       /* had trouble finding a high-quality approximation for b near -1 */
-      bb = AIR_MAX(bb, -1 + 100*FLT_EPSILON);
-      ret = rr0*bb/log(bb + 1);
+      bb = AIR_MAX(bb, -1 + 100 * FLT_EPSILON);
+      ret = rr0 * bb / log(bb + 1);
     }
   }
   return ret;
 }
 
-#define rr0  (RThZA[0])
-#define rr1  (RThZB[0])
+#define rr0 (RThZA[0])
+#define rr1 (RThZB[0])
 #define rr  (oRThZ[0])
-#define th0  (RThZA[1])
-#define th1  (RThZB[1])
+#define th0 (RThZA[1])
+#define th1 (RThZB[1])
 #define th  (oRThZ[1])
-#define zz0  (RThZA[2])
-#define zz1  (RThZB[2])
+#define zz0 (RThZA[2])
+#define zz1 (RThZB[2])
 #define zz  (oRThZ[2])
 
 void
-tenQGLInterpTwoEvalK(double oeval[3],
-                     const double evalA[3], const double evalB[3],
+tenQGLInterpTwoEvalK(double oeval[3], const double evalA[3], const double evalB[3],
                      const double tt) {
   double RThZA[3], RThZB[3], oRThZ[3], bb;
 
-  tenTripleConvertSingle_d(RThZA, tenTripleTypeRThetaZ,
-                           evalA, tenTripleTypeEigenvalue);
-  tenTripleConvertSingle_d(RThZB, tenTripleTypeRThetaZ,
-                           evalB, tenTripleTypeEigenvalue);
+  tenTripleConvertSingle_d(RThZA, tenTripleTypeRThetaZ, evalA, tenTripleTypeEigenvalue);
+  tenTripleConvertSingle_d(RThZB, tenTripleTypeRThetaZ, evalB, tenTripleTypeEigenvalue);
   if (rr1 > rr0) {
     /* the bb calculation below could blow up, so we recurse
        with flipped order */
-    tenQGLInterpTwoEvalK(oeval, evalB, evalA, 1-tt);
+    tenQGLInterpTwoEvalK(oeval, evalB, evalA, 1 - tt);
   } else {
     rr = AIR_LERP(tt, rr0, rr1);
     zz = AIR_LERP(tt, zz0, zz1);
-    bb = rr0 ? (rr1/rr0 - 1) : 0;
+    bb = rr0 ? (rr1 / rr0 - 1) : 0;
     /* bb can't be positive, because rr1 <= rr0 enforced above, so below
        is really test for -0.001 < bb <= 0  */
     if (bb > -0.0001) {
       double dth;
       dth = th1 - th0;
       /* rr0 and rr1 are similar, use stable approximation */
-      th = th0 + tt*(dth
-                     + (0.5 - tt/2)*dth*bb
-                     + (-1.0/12 - tt/4 + tt*tt/3)*dth*bb*bb
-                     + (1.0/24 + tt/24 + tt*tt/6 - tt*tt*tt/4)*dth*bb*bb*bb);
+      th = th0
+         + tt
+             * (dth + (0.5 - tt / 2) * dth * bb
+                + (-1.0 / 12 - tt / 4 + tt * tt / 3) * dth * bb * bb
+                + (1.0 / 24 + tt / 24 + tt * tt / 6 - tt * tt * tt / 4) * dth * bb * bb
+                    * bb);
     } else {
       /* use original formula */
       /* have to clamp value of b so that log() values don't explode */
-      bb = AIR_MAX(bb, -1 + 100*FLT_EPSILON);
-      th = th0 + (th1 - th0)*log(1 + bb*tt)/log(1 + bb);
+      bb = AIR_MAX(bb, -1 + 100 * FLT_EPSILON);
+      th = th0 + (th1 - th0) * log(1 + bb * tt) / log(1 + bb);
     }
-    tenTripleConvertSingle_d(oeval, tenTripleTypeEigenvalue,
-                             oRThZ, tenTripleTypeRThetaZ);
+    tenTripleConvertSingle_d(oeval, tenTripleTypeEigenvalue, oRThZ,
+                             tenTripleTypeRThetaZ);
     /*
     fprintf(stderr, "%s: (b = %g) %g %g %g <-- %g %g %g\n", "blah", bb,
             oeval[0], oeval[1], oeval[2],
@@ -112,33 +111,31 @@ _tenQGL_Kdist(const double RThZA[3], const double RThZB[3]) {
 
   dr = rr1 - rr0;
   bl = _tenQGL_blah(rr0, rr1);
-  dth = th1  - th0;
+  dth = th1 - th0;
   dz = zz1 - zz0;
-  dist = sqrt(dr*dr + bl*bl*dth*dth + dz*dz);
+  dist = sqrt(dr * dr + bl * bl * dth * dth + dz * dz);
   return dist;
 }
 
 void
-_tenQGL_Klog(double klog[3],
-             const double RThZA[3], const double RThZB[3]) {
+_tenQGL_Klog(double klog[3], const double RThZA[3], const double RThZB[3]) {
   double dr, bl, dth, dz;
 
   dr = rr1 - rr0;
   bl = _tenQGL_blah(rr0, rr1);
-  dth = th1  - th0;
+  dth = th1 - th0;
   dz = zz1 - zz0;
-  ELL_3V_SET(klog, dr, bl*dth, dz);
+  ELL_3V_SET(klog, dr, bl * dth, dz);
   return;
 }
 
 void
-_tenQGL_Kexp(double RThZB[3],
-             const double RThZA[3], const double klog[3]) {
+_tenQGL_Kexp(double RThZB[3], const double RThZA[3], const double klog[3]) {
   double bl;
 
   rr1 = rr0 + klog[0];
   bl = _tenQGL_blah(rr0, rr1);
-  th1 = th0 + (bl ? klog[1]/bl : 0);
+  th1 = th0 + (bl ? klog[1] / bl : 0);
   zz1 = zz0 + klog[2];
   return;
 }
@@ -162,7 +159,7 @@ _tenQGL_fooo(double ph1, double ph0) {
 
   if (ph0 > ph1) {
     ret = _tenQGL_fooo(ph0, ph1);
-  } else if (0 == ph0/2) {
+  } else if (0 == ph0 / 2) {
     ret = 0;
   } else {
     /* ph1 >= ph0 > 0 */
@@ -171,30 +168,27 @@ _tenQGL_fooo(double ph1, double ph0) {
       dph = ph1 - ph0;
       ss = sin(ph1);
       cc = cos(ph1);
-      ret = (ss
-             + cc*dph/2
-             + ((cos(2*ph1) - 3)/ss)*dph*dph/24
-             + (cc/(ss*ss))*dph*dph*dph/24);
+      ret = (ss + cc * dph / 2 + ((cos(2 * ph1) - 3) / ss) * dph * dph / 24
+             + (cc / (ss * ss)) * dph * dph * dph / 24);
     } else {
-      ret = (ph1 - ph0)/(log(tan(ph1/2)) - log(tan(ph0/2)));
+      ret = (ph1 - ph0) / (log(tan(ph1 / 2)) - log(tan(ph0 / 2)));
     }
   }
   return ret;
 }
 
-#define rr0  (RThPhA[0])
-#define rr1  (RThPhB[0])
+#define rr0 (RThPhA[0])
+#define rr1 (RThPhB[0])
 #define rr  (oRThPh[0])
-#define th0  (RThPhA[1])
-#define th1  (RThPhB[1])
+#define th0 (RThPhA[1])
+#define th1 (RThPhB[1])
 #define th  (oRThPh[1])
-#define ph0  (RThPhA[2])
-#define ph1  (RThPhB[2])
+#define ph0 (RThPhA[2])
+#define ph1 (RThPhB[2])
 #define ph  (oRThPh[2])
 
 void
-_tenQGL_Rlog(double rlog[3],
-             const double RThPhA[3], const double RThPhB[3]) {
+_tenQGL_Rlog(double rlog[3], const double RThPhA[3], const double RThPhB[3]) {
   double dr, dth, dph, bl, fo;
 
   dr = rr1 - rr0;
@@ -203,20 +197,19 @@ _tenQGL_Rlog(double rlog[3],
   bl = _tenQGL_blah(rr0, rr1);
   fo = _tenQGL_fooo(ph0, ph1);
   /*             rlog[0]  rlog[1]   rlog[2] */
-  ELL_3V_SET(rlog,  dr,  bl*dth*fo, dph*bl);
+  ELL_3V_SET(rlog, dr, bl * dth * fo, dph * bl);
 }
 
 void
-_tenQGL_Rexp(double RThPhB[3],
-             const double RThPhA[3], const double rlog[3]) {
+_tenQGL_Rexp(double RThPhB[3], const double RThPhA[3], const double rlog[3]) {
   double bl, fo;
 
   rr1 = rr0 + rlog[0];
   bl = _tenQGL_blah(rr0, rr1);
-  ph1 = ph0 + (bl ? rlog[2]/bl : 0);
+  ph1 = ph0 + (bl ? rlog[2] / bl : 0);
   fo = _tenQGL_fooo(ph0, ph1);
   fo *= bl; // instead of saying "bl*fo ?" below, which caused warnings
-  th1 = th0 + (fo ? rlog[1]/fo : 0);
+  th1 = th0 + (fo ? rlog[1] / fo : 0);
   return;
 }
 
@@ -224,20 +217,19 @@ _tenQGL_Rexp(double RThPhB[3],
    implementing pair-wise interpolation in terms of log and exp
 */
 void
-tenQGLInterpTwoEvalR(double oeval[3],
-                     const double evalA[3], const double evalB[3],
+tenQGLInterpTwoEvalR(double oeval[3], const double evalA[3], const double evalB[3],
                      const double tt) {
   double RThPhA[3], RThPhB[3], rlog[3], oRThPh[3];
 
-  tenTripleConvertSingle_d(RThPhA, tenTripleTypeRThetaPhi,
-                           evalA, tenTripleTypeEigenvalue);
-  tenTripleConvertSingle_d(RThPhB, tenTripleTypeRThetaPhi,
-                           evalB, tenTripleTypeEigenvalue);
+  tenTripleConvertSingle_d(RThPhA, tenTripleTypeRThetaPhi, evalA,
+                           tenTripleTypeEigenvalue);
+  tenTripleConvertSingle_d(RThPhB, tenTripleTypeRThetaPhi, evalB,
+                           tenTripleTypeEigenvalue);
   _tenQGL_Rlog(rlog, RThPhA, RThPhB);
   ELL_3V_SCALE(rlog, tt, rlog);
   _tenQGL_Rexp(oRThPh, RThPhA, rlog);
-  tenTripleConvertSingle_d(oeval, tenTripleTypeEigenvalue,
-                           oRThPh, tenTripleTypeRThetaPhi);
+  tenTripleConvertSingle_d(oeval, tenTripleTypeEigenvalue, oRThPh,
+                           tenTripleTypeRThetaPhi);
   return;
 }
 
@@ -250,7 +242,7 @@ _tenQGL_Rdist(const double RThPhA[3], const double RThPhB[3]) {
   dph = ph1 - ph0;
   bl = _tenQGL_blah(rr0, rr1);
   fo = _tenQGL_fooo(ph0, ph1);
-  return sqrt(dr*dr + bl*bl*(dth*dth*fo*fo + dph*dph));
+  return sqrt(dr * dr + bl * bl * (dth * dth * fo * fo + dph * dph));
 }
 
 #undef rr0
@@ -269,23 +261,17 @@ _tenQGL_Rdist(const double RThPhA[3], const double RThPhB[3]) {
 int
 _tenQGL_q_align(double qOut[4], const double qRef[4], const double qIn[4]) {
   unsigned int ii, maxDotIdx;
-  double unitq[8][4] = {{+1, 0, 0, 0},
-                        {-1, 0, 0, 0},
-                        {0, +1, 0, 0},
-                        {0, -1, 0, 0},
-                        {0, 0, +1, 0},
-                        {0, 0, -1, 0},
-                        {0, 0, 0, +1},
-                        {0, 0, 0, -1}};
+  double unitq[8][4] = {{+1, 0, 0, 0}, {-1, 0, 0, 0}, {0, +1, 0, 0}, {0, -1, 0, 0},
+                        {0, 0, +1, 0}, {0, 0, -1, 0}, {0, 0, 0, +1}, {0, 0, 0, -1}};
   double dot[8], qInMul[8][4], maxDot;
 
-  for (ii=0; ii<8; ii++) {
+  for (ii = 0; ii < 8; ii++) {
     ell_q_mul_d(qInMul[ii], qIn, unitq[ii]);
     dot[ii] = ELL_4V_DOT(qRef, qInMul[ii]);
   }
   maxDotIdx = 0;
   maxDot = dot[maxDotIdx];
-  for (ii=1; ii<8; ii++) {
+  for (ii = 1; ii < 8; ii++) {
     if (dot[ii] > maxDot) {
       maxDotIdx = ii;
       maxDot = dot[maxDotIdx];
@@ -296,11 +282,10 @@ _tenQGL_q_align(double qOut[4], const double qRef[4], const double qIn[4]) {
 }
 
 void
-tenQGLInterpTwoEvec(double oevec[9],
-                    const double evecA[9], const double evecB[9],
+tenQGLInterpTwoEvec(double oevec[9], const double evecA[9], const double evecB[9],
                     double tt) {
-  double rotA[9], rotB[9], orot[9],
-    oq[4], qA[4], qB[4], _qB[4], qdiv[4], angle, axis[3], qq[4];
+  double rotA[9], rotB[9], orot[9], oq[4], qA[4], qB[4], _qB[4], qdiv[4], angle, axis[3],
+    qq[4];
 
   ELL_3M_TRANSPOSE(rotA, evecA);
   ELL_3M_TRANSPOSE(rotB, evecB);
@@ -310,16 +295,15 @@ tenQGLInterpTwoEvec(double oevec[9],
   /* there's probably a faster way to do this slerp qA --> qB */
   ell_q_div_d(qdiv, qA, qB); /* div = A^-1 * B */
   angle = ell_q_to_aa_d(axis, qdiv);
-  ell_aa_to_q_d(qq, angle*tt, axis);
+  ell_aa_to_q_d(qq, angle * tt, axis);
   ell_q_mul_d(oq, qA, qq);
   ell_q_to_3m_d(orot, oq);
   ELL_3M_TRANSPOSE(oevec, orot);
 }
 
 void
-tenQGLInterpTwo(double oten[7],
-                const double tenA[7], const double tenB[7],
-                int ptype, double tt, tenInterpParm *tip) {
+tenQGLInterpTwo(double oten[7], const double tenA[7], const double tenB[7], int ptype,
+                double tt, tenInterpParm *tip) {
   double oeval[3], evalA[3], evalB[3], oevec[9], evecA[9], evecB[9], cc;
 
   AIR_UNUSED(tip);
@@ -344,12 +328,10 @@ tenQGLInterpTwo(double oten[7],
 ** we do in fact require non-NULL tip, because it holds the buffers we need
 */
 int
-_tenQGLInterpNEval(double evalOut[3],
-                   const double *evalIn, /* size 3 -by- NN */
-                   const double *wght,   /* size NN */
-                   unsigned int NN,
-                   int ptype, tenInterpParm *tip) {
-  static const char me[]="_tenQGLInterpNEval";
+_tenQGLInterpNEval(double evalOut[3], const double *evalIn, /* size 3 -by- NN */
+                   const double *wght,                      /* size NN */
+                   unsigned int NN, int ptype, tenInterpParm *tip) {
+  static const char me[] = "_tenQGLInterpNEval";
   double RTh_Out[3], elen;
   unsigned int ii, iter;
   int rttype;
@@ -371,12 +353,12 @@ _tenQGLInterpNEval(double evalOut[3],
     lexp = _tenQGL_Rexp;
   }
   ELL_3V_SET(RTh_Out, 0, 0, 0);
-  for (ii=0; ii<NN; ii++) {
+  for (ii = 0; ii < NN; ii++) {
     double ww;
-    tenTripleConvertSingle_d(tip->rtIn + 3*ii, rttype,
-                             evalIn + 3*ii, tenTripleTypeEigenvalue);
-    ww = wght ? wght[ii] : 1.0/NN;
-    ELL_3V_SCALE_INCR(RTh_Out, ww, tip->rtIn + 3*ii);
+    tenTripleConvertSingle_d(tip->rtIn + 3 * ii, rttype, evalIn + 3 * ii,
+                             tenTripleTypeEigenvalue);
+    ww = wght ? wght[ii] : 1.0 / NN;
+    ELL_3V_SCALE_INCR(RTh_Out, ww, tip->rtIn + 3 * ii);
   }
 
   /* compute iterated weighted mean, stored in RTh_Out */
@@ -384,15 +366,15 @@ _tenQGLInterpNEval(double evalOut[3],
   do {
     double logavg[3];
     /* take log of everyone */
-    for (ii=0; ii<NN; ii++) {
-      llog(tip->rtLog + 3*ii, RTh_Out, tip->rtIn + 3*ii);
+    for (ii = 0; ii < NN; ii++) {
+      llog(tip->rtLog + 3 * ii, RTh_Out, tip->rtIn + 3 * ii);
     }
     /* average, and find length */
     ELL_3V_SET(logavg, 0, 0, 0);
-    for (ii=0; ii<NN; ii++) {
+    for (ii = 0; ii < NN; ii++) {
       double ww;
-      ww = wght ? wght[ii] : 1.0/NN;
-      ELL_3V_SCALE_INCR(logavg, ww, tip->rtLog + 3*ii);
+      ww = wght ? wght[ii] : 1.0 / NN;
+      ELL_3V_SCALE_INCR(logavg, ww, tip->rtLog + 3 * ii);
     }
     elen = ELL_3V_LEN(logavg);
     lexp(RTh_Out, RTh_Out, logavg);
@@ -401,50 +383,49 @@ _tenQGLInterpNEval(double evalOut[3],
 
   if (elen > tip->convEps) {
     ELL_3V_SET(evalOut, AIR_NAN, AIR_NAN, AIR_NAN);
-    biffAddf(TEN, "%s: still have error %g (> eps %g) after max %d iters", me,
-             elen, tip->convEps, tip->maxIter);
+    biffAddf(TEN, "%s: still have error %g (> eps %g) after max %d iters", me, elen,
+             tip->convEps, tip->maxIter);
     return 1;
   }
 
   /* finish, convert to eval */
-  tenTripleConvertSingle_d(evalOut, tenTripleTypeEigenvalue,
-                           RTh_Out, rttype);
+  tenTripleConvertSingle_d(evalOut, tenTripleTypeEigenvalue, RTh_Out, rttype);
 
   return 0;
 }
 
 double
-_tenQGL_q_interdot(unsigned int *centerIdxP,
-                   double *qq, double *inter, unsigned int NN) {
+_tenQGL_q_interdot(unsigned int *centerIdxP, double *qq, double *inter,
+                   unsigned int NN) {
   unsigned int ii, jj;
   double sum, dot, max;
 
-  for (jj=0; jj<NN; jj++) {
-    for (ii=0; ii<NN; ii++) {
-      inter[ii + NN*jj] = 0;
+  for (jj = 0; jj < NN; jj++) {
+    for (ii = 0; ii < NN; ii++) {
+      inter[ii + NN * jj] = 0;
     }
   }
   sum = 0;
-  for (jj=0; jj<NN; jj++) {
-    inter[jj + NN*jj] = 1.0;
-    for (ii=jj+1; ii<NN; ii++) {
-      dot = ELL_4V_DOT(qq + 4*ii, qq + 4*jj);
-      inter[ii + NN*jj] = dot;
-      inter[jj + NN*ii] = dot;
+  for (jj = 0; jj < NN; jj++) {
+    inter[jj + NN * jj] = 1.0;
+    for (ii = jj + 1; ii < NN; ii++) {
+      dot = ELL_4V_DOT(qq + 4 * ii, qq + 4 * jj);
+      inter[ii + NN * jj] = dot;
+      inter[jj + NN * ii] = dot;
       sum += dot;
     }
   }
-  for (jj=0; jj<NN; jj++) {
-    for (ii=1; ii<NN; ii++) {
-      inter[0 + NN*jj] += inter[ii + NN*jj];
+  for (jj = 0; jj < NN; jj++) {
+    for (ii = 1; ii < NN; ii++) {
+      inter[0 + NN * jj] += inter[ii + NN * jj];
     }
   }
   *centerIdxP = 0;
-  max = inter[0 + NN*(*centerIdxP)];
-  for (jj=1; jj<NN; jj++) {
-    if (inter[0 + NN*jj] > max) {
+  max = inter[0 + NN * (*centerIdxP)];
+  for (jj = 1; jj < NN; jj++) {
+    if (inter[0 + NN * jj] > max) {
       *centerIdxP = jj;
-      max = inter[0 + NN*(*centerIdxP)];
+      max = inter[0 + NN * (*centerIdxP)];
     }
   }
   return sum;
@@ -461,18 +442,18 @@ _tenQGLInterpNEvec(double evecOut[9],
                    const double *wght,   /* size NN */
                    unsigned int NN,
                    tenInterpParm *tip) {
-  static const char me[]="_tenQGLInterpNEvec";
+  static const char me[] = "_tenQGLInterpNEvec";
   double qOut[4], maxWght, len, /* odsum, */ dsum, rot[9];
-  unsigned int ii, centerIdx=0, fix, qiter;
+  unsigned int ii, centerIdx = 0, fix, qiter;
 
-  if (!( evecOut && evecIn && tip )) {
+  if (!(evecOut && evecIn && tip)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
   }
   /* convert to quaternions */
-  for (ii=0; ii<NN; ii++) {
-    ELL_3M_TRANSPOSE(rot, evecIn + 9*ii);
-    ell_3m_to_q_d(tip->qIn + 4*ii, rot);
+  for (ii = 0; ii < NN; ii++) {
+    ELL_3M_TRANSPOSE(rot, evecIn + 9 * ii);
+    ell_3m_to_q_d(tip->qIn + 4 * ii, rot);
   }
   /* HEY: what should this be used for?  variable odsum set but not used */
   /* odsum = _tenQGL_q_interdot(&centerIdx, tip->qIn, tip->qInter, NN); */
@@ -483,18 +464,18 @@ _tenQGLInterpNEvec(double evecOut[9],
   centerIdx = 0;
   if (wght) {
     maxWght = wght[centerIdx];
-    for (ii=1; ii<NN; ii++) {
+    for (ii = 1; ii < NN; ii++) {
       if (wght[ii] > maxWght) {
         centerIdx = ii;
         maxWght = wght[centerIdx];
       }
     }
   }
-  for (ii=0; ii<NN; ii++) {
+  for (ii = 0; ii < NN; ii++) {
     if (ii == centerIdx) {
       continue;
     }
-    _tenQGL_q_align(tip->qIn + 4*ii, tip->qIn + 4*centerIdx, tip->qIn + 4*ii);
+    _tenQGL_q_align(tip->qIn + 4 * ii, tip->qIn + 4 * centerIdx, tip->qIn + 4 * ii);
   }
   dsum = _tenQGL_q_interdot(&centerIdx, tip->qIn, tip->qInter, NN);
 
@@ -502,18 +483,19 @@ _tenQGLInterpNEvec(double evecOut[9],
   qiter = 0;
   do {
     fix = 0;
-    for (ii=0; ii<NN; ii++) {
+    for (ii = 0; ii < NN; ii++) {
       unsigned int ff;
       if (ii == centerIdx) {
         continue;
       }
-      ff = _tenQGL_q_align(tip->qIn + 4*ii, tip->qIn + 4*centerIdx,
-                           tip->qIn + 4*ii);
+      ff = _tenQGL_q_align(tip->qIn + 4 * ii, tip->qIn + 4 * centerIdx,
+                           tip->qIn + 4 * ii);
       fix = AIR_MAX(fix, ff);
     }
     dsum = _tenQGL_q_interdot(&centerIdx, tip->qIn, tip->qInter, NN);
     if (tip->maxIter && qiter > tip->maxIter) {
-      biffAddf(TEN, "%s: q tightening unconverged after %u iters; "
+      biffAddf(TEN,
+               "%s: q tightening unconverged after %u iters; "
                "interdot = %g -> maxfix = %u; center = %u\n",
                me, tip->maxIter, dsum, fix, centerIdx);
       return 1;
@@ -524,13 +506,13 @@ _tenQGLInterpNEvec(double evecOut[9],
   fprintf(stderr, "!%s: dsum %g --%u--> %g\n", me, odsum, qiter, dsum);
   */
   /* make sure they're normalized */
-  for (ii=0; ii<NN; ii++) {
-    ELL_4V_NORM(tip->qIn + 4*ii, tip->qIn + 4*ii, len);
+  for (ii = 0; ii < NN; ii++) {
+    ELL_4V_NORM(tip->qIn + 4 * ii, tip->qIn + 4 * ii, len);
   }
 
   /* compute iterated weighted mean, stored in qOut */
-  if (ell_q_avgN_d(qOut, &qiter, tip->qIn, tip->qBuff, wght,
-                   NN, tip->convEps, tip->maxIter)) {
+  if (ell_q_avgN_d(qOut, &qiter, tip->qIn, tip->qBuff, wght, NN, tip->convEps,
+                   tip->maxIter)) {
     biffMovef(TEN, ELL, "%s: problem doing quaternion mean", me);
     return 1;
   }
@@ -544,4 +526,3 @@ _tenQGLInterpNEvec(double evecOut[9],
 
   return 0;
 }
-

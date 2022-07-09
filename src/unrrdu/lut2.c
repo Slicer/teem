@@ -25,45 +25,39 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through a bivariate lookup table"
-static const char *_unrrdu_lut2InfoL =
-(INFO
- " (itself represented as a nrrd). The lookup table "
- "can be 2D, in which case the output "
- "has the same dimension as the input, or 3D, in which case "
- "the output has one more dimension than the input, and each "
- "pair of values is mapped to a scanline (along axis 0) from the "
- "lookup table.  In any case, axis 0 of the input must have length two.\n "
- "* Uses nrrdApply2DLut");
+static const char *_unrrdu_lut2InfoL
+  = (INFO " (itself represented as a nrrd). The lookup table "
+          "can be 2D, in which case the output "
+          "has the same dimension as the input, or 3D, in which case "
+          "the output has one more dimension than the input, and each "
+          "pair of values is mapped to a scanline (along axis 0) from the "
+          "lookup table.  In any case, axis 0 of the input must have length two.\n "
+          "* Uses nrrdApply2DLut");
 
 int
-unrrdu_lut2Main(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+unrrdu_lut2Main(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nlut, *nout, *ntmp[2];
   airArray *mop;
   int typeOut, rescale[2], pret, blind8BitRange;
   double min[2], max[2];
-  NrrdRange *range[2]={NULL,NULL};
+  NrrdRange *range[2] = {NULL, NULL};
   unsigned int mapAxis, rai;
 
   hestOptAdd(&opt, "m,map", "lut", airTypeOther, 1, 1, &nlut, NULL,
-             "lookup table to map input nrrd through",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "r,rescale", "bool bool", airTypeBool, 2, 2, rescale,
-             "false false",
+             "lookup table to map input nrrd through", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&opt, "r,rescale", "bool bool", airTypeBool, 2, 2, rescale, "false false",
              "rescale one or both of the input values from the "
              "input range to the lut domain.  The lut domain is either "
              "explicitly defined by the axis min,max along axis 0 or 1, "
              "or, it is implicitly defined as zero to the length of that axis "
              "minus one.");
-  hestOptAdd(&opt, "min,minimum", "min0 min1", airTypeDouble, 2, 2, min,
-             "nan nan",
+  hestOptAdd(&opt, "min,minimum", "min0 min1", airTypeDouble, 2, 2, min, "nan nan",
              "Low ends of input range. Defaults to lowest values "
              "found in input nrrd.  Explicitly setting this is useful "
              "only with rescaling (\"-r\")");
-  hestOptAdd(&opt, "max,maximum", "max0 max1", airTypeDouble, 2, 2, max,
-             "nan nan",
+  hestOptAdd(&opt, "max,maximum", "max0 max1", airTypeDouble, 2, 2, max, "nan nan",
              "High end of input range. Defaults to highest values "
              "found in input nrrd.  Explicitly setting this is useful "
              "only with rescaling (\"-r\")");
@@ -91,26 +85,26 @@ unrrdu_lut2Main(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (!( nin->dim > 1 && 2 == nin->axis[0].size )) {
+  if (!(nin->dim > 1 && 2 == nin->axis[0].size)) {
     char stmp[AIR_STRLEN_SMALL];
-    fprintf(stderr, "%s: input nrrd dim must be > 1, and axis[0].size "
-            "must be 2 (not %s)\n", me,
-            airSprintSize_t(stmp, nin->axis[0].size));
+    fprintf(stderr,
+            "%s: input nrrd dim must be > 1, and axis[0].size "
+            "must be 2 (not %s)\n",
+            me, airSprintSize_t(stmp, nin->axis[0].size));
     airMopError(mop);
     return 1;
   }
   mapAxis = nlut->dim - 2;
   if (!(0 == mapAxis || 1 == mapAxis)) {
-    fprintf(stderr, "%s: dimension of lut should be 2 or 3, not %d",
-            me, nlut->dim);
+    fprintf(stderr, "%s: dimension of lut should be 2 or 3, not %d", me, nlut->dim);
     airMopError(mop);
     return 1;
   }
 
   /* see comment in rmap.c */
-  for (rai=0; rai<=1; rai++) {
-    if (!( AIR_EXISTS(nlut->axis[mapAxis + rai].min) &&
-           AIR_EXISTS(nlut->axis[mapAxis + rai].max) )) {
+  for (rai = 0; rai <= 1; rai++) {
+    if (!(AIR_EXISTS(nlut->axis[mapAxis + rai].min)
+          && AIR_EXISTS(nlut->axis[mapAxis + rai].max))) {
       rescale[rai] = AIR_TRUE;
     }
     if (rescale[rai]) {
@@ -118,8 +112,7 @@ unrrdu_lut2Main(int argc, const char **argv, const char *me,
       airMopAdd(mop, ntmp[rai], AIR_CAST(airMopper, nrrdNuke), airMopAlways);
       if (nrrdSlice(ntmp[rai], nin, 0, rai)) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-        fprintf(stderr, "%s: trouble slicing input value %u:\n%s",
-                me, rai, err);
+        fprintf(stderr, "%s: trouble slicing input value %u:\n%s", me, rai, err);
         airMopError(mop);
         return 1;
       }
@@ -131,8 +124,8 @@ unrrdu_lut2Main(int argc, const char **argv, const char *me,
   if (nrrdTypeDefault == typeOut) {
     typeOut = nlut->type;
   }
-  if (nrrdApply2DLut(nout, nin, 0, range[0], range[1], nlut, typeOut,
-                     rescale[0], rescale[1])) {
+  if (nrrdApply2DLut(nout, nin, 0, range[0], range[1], nlut, typeOut, rescale[0],
+                     rescale[1])) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble applying 2-D LUT:\n%s", me, err);
     airMopError(mop);

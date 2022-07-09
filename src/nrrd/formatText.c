@@ -33,21 +33,18 @@ _nrrdFormatText_available(void) {
 static int
 _nrrdFormatText_nameLooksLike(const char *fname) {
 
-  return (airEndsWith(fname, NRRD_EXT_TEXT)
-          || airEndsWith(fname, ".text")
+  return (airEndsWith(fname, NRRD_EXT_TEXT) || airEndsWith(fname, ".text")
           || airEndsWith(fname, ".ascii"));
 }
 
 static int
-_nrrdFormatText_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
-                         int useBiff) {
-  static const char me[]="_nrrdFormatText_fitsInto";
+_nrrdFormatText_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding, int useBiff) {
+  static const char me[] = "_nrrdFormatText_fitsInto";
 
   AIR_UNUSED(encoding);
   /* encoding ignored- always ascii */
-  if (!(1  == nrrd->dim || 2 == nrrd->dim)) {
-    biffMaybeAddf(useBiff, NRRD, "%s: dimension is %d, not 1 or 2",
-                  me, nrrd->dim);
+  if (!(1 == nrrd->dim || 2 == nrrd->dim)) {
+    biffMaybeAddf(useBiff, NRRD, "%s: dimension is %d, not 1 or 2", me, nrrd->dim);
     return AIR_FALSE;
   }
   if (nrrdTypeBlock == nrrd->type) {
@@ -68,7 +65,7 @@ _nrrdFormatText_contentStartsLike(NrrdIoState *nio) {
 
 static int
 _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
-  static const char me[]="_nrrdFormatText_read";
+  static const char me[] = "_nrrdFormatText_read";
   const char *fs;
   char *errS;
   unsigned int llen;
@@ -82,14 +79,14 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   airPtrPtrUnion appu;
 
   if (!_nrrdFormatText_contentStartsLike(nio)) {
-    biffAddf(NRRD, "%s: this doesn't look like a %s file", me,
-             nrrdFormatText->name);
+    biffAddf(NRRD, "%s: this doesn't look like a %s file", me, nrrdFormatText->name);
     return 1;
   }
 
   /* this goofiness is just to leave the nrrd as we found it
      (specifically, nrrd->dim) when we hit an error */
-#define UNSETTWO if (settwo) nrrd->dim = settwo
+#define UNSETTWO                                                                        \
+  if (settwo) nrrd->dim = settwo
 
   /* we only get here with the first line already in nio->line */
   line = 1;
@@ -117,8 +114,10 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     fs = airEnumStr(nrrdField, fidx);
     if (!_nrrdFieldValidInText[fidx]) {
       if (1 <= nrrdStateVerboseIO) {
-        fprintf(stderr, "(%s: field \"%s\" not allowed in plain text "
-                "--> plain comment)\n", me, fs);
+        fprintf(stderr,
+                "(%s: field \"%s\" not allowed in plain text "
+                "--> plain comment)\n",
+                me, fs);
       }
       fidx = 0;
       goto plain;
@@ -129,8 +128,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       errS = biffGetDone(NRRD);
       if (1 <= nrrdStateVerboseIO) {
         fprintf(stderr, "%s: %s", me, errS);
-        fprintf(stderr, "(%s: malformed field \"%s\" --> plain comment)\n",
-                me, fs);
+        fprintf(stderr, "(%s: malformed field \"%s\" --> plain comment)\n", me, fs);
       }
       if (nrrdField_dimension == fidx) {
         /* "# dimension: 0" lead nrrd->dim being set to 0 */
@@ -144,14 +142,18 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     if (nrrdField_dimension == fidx) {
       if (!(1 == nrrd->dim || 2 == nrrd->dim)) {
         if (1 <= nrrdStateVerboseIO) {
-          fprintf(stderr, "(%s: plain text dimension can only be 1 or 2; "
-                  "resetting to 2)\n", me);
+          fprintf(stderr,
+                  "(%s: plain text dimension can only be 1 or 2; "
+                  "resetting to 2)\n",
+                  me);
         }
         nrrd->dim = 2;
       }
       if (1 == nrrd->dim && gotOnePerAxis) {
-        fprintf(stderr, "(%s: already parsed per-axis field, can't reset "
-                "dimension to 1; resetting to 2)\n", me);
+        fprintf(stderr,
+                "(%s: already parsed per-axis field, can't reset "
+                "dimension to 1; resetting to 2)\n",
+                me);
         nrrd->dim = 2;
       }
     }
@@ -163,16 +165,19 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     if (!fidx) {
       if (nrrdCommentAdd(nrrd, nio->line + 1)) {
         biffAddf(NRRD, "%s: couldn't add comment", me);
-        UNSETTWO; return 1;
+        UNSETTWO;
+        return 1;
       }
     }
     if (_nrrdOneLine(&llen, nio, file)) {
       biffAddf(NRRD, "%s: error getting a line", me);
-      UNSETTWO; return 1;
+      UNSETTWO;
+      return 1;
     }
     if (!llen) {
       biffAddf(NRRD, "%s: hit EOF before any numbers parsed", me);
-      UNSETTWO; return 1;
+      UNSETTWO;
+      return 1;
     }
     line++;
   }
@@ -184,14 +189,16 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     char stmp[AIR_STRLEN_SMALL];
     biffAddf(NRRD, "%s: couldn't parse a single number on line %s", me,
              airSprintSize_t(stmp, line));
-    UNSETTWO; return 1;
+    UNSETTWO;
+    return 1;
   }
   flArr = airArrayNew(NULL, NULL, sizeof(float), _NRRD_TEXT_INCR);
   if (!flArr) {
     biffAddf(NRRD, "%s: couldn't create array for first line values", me);
-    UNSETTWO; return 1;
+    UNSETTWO;
+    return 1;
   }
-  for (sx=1; 1; sx++) {
+  for (sx = 1; 1; sx++) {
     /* there is obviously a limit to the number of numbers that can
        be parsed from a single finite line of input text */
     airArrayLenSet(flArr, AIR_UINT(sx));
@@ -199,10 +206,10 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       char stmp[AIR_STRLEN_SMALL];
       biffAddf(NRRD, "%s: couldn't alloc space for %s values", me,
                airSprintSize_t(stmp, sx));
-      UNSETTWO; return 1;
+      UNSETTWO;
+      return 1;
     }
-    if (sx > airParseStrF(flArr->data, nio->line,
-                          _nrrdTextSep, AIR_UINT(sx))) {
+    if (sx > airParseStrF(flArr->data, nio->line, _nrrdTextSep, AIR_UINT(sx))) {
       /* We asked for sx ints and got less.  We know that we successfully
          got one value, so we did succeed in parsing sx-1 values */
       sx--;
@@ -214,14 +221,16 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     char stmp[AIR_STRLEN_SMALL];
     biffAddf(NRRD, "%s: wanted 1-D nrrd, but got %s values on 1st line", me,
              airSprintSize_t(stmp, sx));
-    UNSETTWO; return 1;
+    UNSETTWO;
+    return 1;
   }
   /* else sx == 1 when nrrd->dim == 1 */
 
   if (nrrdTypeBlock == nrrd->type) {
     biffAddf(NRRD, "%s: can't read %s type data from text", me,
              airEnumStr(nrrdType, nrrdTypeBlock));
-    UNSETTWO; return 1;
+    UNSETTWO;
+    return 1;
   }
   /* If nrrd->type is non-zero (something other than nrrdTypeUnknown), that
      means the value type in the text file has been explicitly documented via
@@ -242,10 +251,11 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
   /* now see how many more lines there are */
   appu.c = &data;
-  dataArr = airArrayNew(appu.v, NULL, sx*elsz, _NRRD_TEXT_INCR);
+  dataArr = airArrayNew(appu.v, NULL, sx * elsz, _NRRD_TEXT_INCR);
   if (!dataArr) {
     biffAddf(NRRD, "%s: couldn't create data buffer", me);
-    UNSETTWO; return 1;
+    UNSETTWO;
+    return 1;
   }
   sy = 0;
   while (llen) {
@@ -254,22 +264,24 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       char stmp[AIR_STRLEN_SMALL];
       biffAddf(NRRD, "%s: couldn't create scanline of %s values", me,
                airSprintSize_t(stmp, sx));
-      UNSETTWO; return 1;
+      UNSETTWO;
+      return 1;
     }
-    plen = parser(data + sy*sx*elsz, nio->line, _nrrdTextSep, sx);
+    plen = parser(data + sy * sx * elsz, nio->line, _nrrdTextSep, sx);
     if (sx > plen) {
-      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL],
-        stmp3[AIR_STRLEN_SMALL];
+      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL], stmp3[AIR_STRLEN_SMALL];
       biffAddf(NRRD, "%s: could only parse %s values (not %s) on line %s", me,
                airSprintSize_t(stmp1, plen), airSprintSize_t(stmp2, sx),
                airSprintSize_t(stmp3, line));
-      UNSETTWO; return 1;
+      UNSETTWO;
+      return 1;
     }
     sy++;
     line++;
     if (_nrrdOneLine(&llen, nio, file)) {
       biffAddf(NRRD, "%s: error getting a line", me);
-      UNSETTWO; return 1;
+      UNSETTWO;
+      return 1;
     }
   }
   /*
@@ -277,7 +289,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
           me, nrrd->dim, sx, sy);
   */
 
-  if (!( 1 == nrrd->dim || 2 == nrrd->dim )) {
+  if (!(1 == nrrd->dim || 2 == nrrd->dim)) {
     fprintf(stderr, "%s: PANIC about to save, but dim = %d\n", me, nrrd->dim);
     exit(1);
   }
@@ -288,16 +300,17 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     size[1] = sy;
   }
 
-  if (nio->oldData && nio->oldDataSize == sx*sy*elsz) {
+  if (nio->oldData && nio->oldDataSize == sx * sy * elsz) {
     nret = nrrdWrap_nva(nrrd, nio->oldData, nrrd->type, nrrd->dim, size);
   } else {
     nret = nrrdMaybeAlloc_nva(nrrd, nrrd->type, nrrd->dim, size);
   }
   if (nret) {
     biffAddf(NRRD, "%s: couldn't create nrrd for plain text data", me);
-    UNSETTWO; return 1;
+    UNSETTWO;
+    return 1;
   }
-  memcpy(nrrd->data, data, sx*sy*elsz);
+  memcpy(nrrd->data, data, sx * sy * elsz);
 
   dataArr = airArrayNuke(dataArr);
   return 0;
@@ -315,20 +328,18 @@ _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
 
   /* should we exercise new functionality to save more than just
      float in a text file */
-  moreThanFloat = (nrrdTypeFloat != nrrd->type
-                   && !nio->bareText
+  moreThanFloat = (nrrdTypeFloat != nrrd->type && !nio->bareText
                    && nio->moreThanFloatInText);
   sprintf(cmt, "%c ", NRRD_COMMENT_CHAR);
   if (!nio->bareText) {
     if (1 == nrrd->dim) {
-      _nrrdFprintFieldInfo(file, cmt, nrrd, nio, nrrdField_dimension,
-                           AIR_FALSE);
+      _nrrdFprintFieldInfo(file, cmt, nrrd, nio, nrrdField_dimension, AIR_FALSE);
     }
-    for (i=1; i<=NRRD_FIELD_MAX; i++) {
-      if (_nrrdFieldValidInText[i] /* (nrrdType is now valid) */
-          && nrrdField_dimension != i  /* dimension is handled above */
+    for (i = 1; i <= NRRD_FIELD_MAX; i++) {
+      if (_nrrdFieldValidInText[i]    /* (nrrdType is now valid) */
+          && nrrdField_dimension != i /* dimension is handled above */
           && _nrrdFieldInteresting(nrrd, nio, i)
-          && (nrrdField_type != i /* either not type */
+          && (nrrdField_type != i  /* either not type */
               || moreThanFloat)) { /* or is type, and we should
                                       record non-float type */
         _nrrdFprintFieldInfo(file, cmt, nrrd, nio, i, AIR_FALSE);
@@ -336,10 +347,9 @@ _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     }
     if (nrrdKeyValueSize(nrrd)) {
       unsigned int kvi;
-      for (kvi=0; kvi<nrrd->kvpArr->len; kvi++) {
-        _nrrdKeyValueWrite(file, NULL, "#",
-                           nrrd->kvp[0 + 2*kvi],
-                           nrrd->kvp[1 + 2*kvi]);
+      for (kvi = 0; kvi < nrrd->kvpArr->len; kvi++) {
+        _nrrdKeyValueWrite(file, NULL, "#", nrrd->kvp[0 + 2 * kvi],
+                           nrrd->kvp[1 + 2 * kvi]);
       }
     }
   }
@@ -347,19 +357,18 @@ _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   if (1 == nrrd->dim) {
     sx = 1;
     sy = AIR_CAST(int, nrrd->axis[0].size);
-  }
-  else {
+  } else {
     sx = AIR_CAST(int, nrrd->axis[0].size);
     sy = AIR_CAST(int, nrrd->axis[1].size);
   }
   data = nrrd->data;
-  cdata = (const char*)nrrd->data;
+  cdata = (const char *)nrrd->data;
   dsz = nrrdTypeSize[nrrd->type];
   I = 0;
-  for (y=0; y<sy; y++) {
-    for (x=0; x<sx; x++) {
+  for (y = 0; y < sy; y++) {
+    for (x = 0; x < sx; x++) {
       if (moreThanFloat) {
-        nrrdSprint[nrrd->type](buff, cdata + I*dsz);
+        nrrdSprint[nrrd->type](buff, cdata + I * dsz);
       } else {
         val = nrrdFLookup[nrrd->type](data, I);
         nrrdSprint[nrrdTypeFloat](buff, &val);
@@ -374,19 +383,15 @@ _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   return 0;
 }
 
-const NrrdFormat
-_nrrdFormatText = {
-  "text",
-  AIR_FALSE,  /* isImage */
-  AIR_TRUE,   /* readable */
-  AIR_FALSE,  /* usesDIO */
-  _nrrdFormatText_available,
-  _nrrdFormatText_nameLooksLike,
-  _nrrdFormatText_fitsInto,
-  _nrrdFormatText_contentStartsLike,
-  _nrrdFormatText_read,
-  _nrrdFormatText_write
-};
+const NrrdFormat _nrrdFormatText = {"text",
+                                    AIR_FALSE, /* isImage */
+                                    AIR_TRUE,  /* readable */
+                                    AIR_FALSE, /* usesDIO */
+                                    _nrrdFormatText_available,
+                                    _nrrdFormatText_nameLooksLike,
+                                    _nrrdFormatText_fitsInto,
+                                    _nrrdFormatText_contentStartsLike,
+                                    _nrrdFormatText_read,
+                                    _nrrdFormatText_write};
 
-const NrrdFormat *const
-nrrdFormatText = &_nrrdFormatText;
+const NrrdFormat *const nrrdFormatText = &_nrrdFormatText;

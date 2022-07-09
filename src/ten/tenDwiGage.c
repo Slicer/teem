@@ -24,11 +24,11 @@
 #include "ten.h"
 #include "privateTen.h"
 #if TEEM_LEVMAR
-#include <levmar.h>
+#  include <levmar.h>
 #endif
 
 /* --------------------------------------------------------------------- */
-/* clang-off off */
+/* clang-format off */
 
 const char *
 _tenDwiGageStr[] = {
@@ -1195,4 +1195,4 @@ tenDwiGageKindCheck(const gageKind *kind) {
   }
   return 0;
 }
-/* clang-off on */
+/* clang-format on */

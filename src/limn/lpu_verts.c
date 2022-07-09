@@ -25,13 +25,10 @@
 #include "privateLimn.h"
 
 #define INFO "Extract the vertex array"
-static const char *myinfo =
-(INFO
- ". ");
+static const char *myinfo = (INFO ". ");
 
 int
-limnpu_vertsMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+limnpu_vertsMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;
@@ -42,8 +39,7 @@ limnpu_vertsMain(int argc, const char **argv, const char *me,
   char *out;
 
   hestOptAdd(&hopt, NULL, "input", airTypeOther, 1, 1, &pld, NULL,
-             "input polydata filename",
-             NULL, NULL, limnHestPolyDataLMPD);
+             "input polydata filename", NULL, NULL, limnHestPolyDataLMPD);
   hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
              "output nrrd filename");
 
@@ -69,4 +65,4 @@ limnpu_vertsMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_vertsCmd = { "verts", INFO, limnpu_vertsMain, AIR_FALSE };
+unrrduCmd limnpu_vertsCmd = {"verts", INFO, limnpu_vertsMain, AIR_FALSE};

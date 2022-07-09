@@ -25,19 +25,17 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Remove one or more singleton axes from a nrrd"
-static const char *_unrrdu_axdeleteInfoL =
-(INFO
- ". Singleton axes have only a single sample along them. "
- "The underlying linear ordering of the samples is "
- "unchanged, and the information about the other axes is "
- "shifted downwards as needed.  As a total hack, if you give "
- "-1 as the axis, this will do a matlab-style \"squeeze\", in which "
- "any and all singleton axes are removed.\n "
- "* Uses nrrdAxesDelete");
+static const char *_unrrdu_axdeleteInfoL
+  = (INFO ". Singleton axes have only a single sample along them. "
+          "The underlying linear ordering of the samples is "
+          "unchanged, and the information about the other axes is "
+          "shifted downwards as needed.  As a total hack, if you give "
+          "-1 as the axis, this will do a matlab-style \"squeeze\", in which "
+          "any and all singleton axes are removed.\n "
+          "* Uses nrrdAxesDelete");
 
 int
-unrrdu_axdeleteMain(int argc, const char **argv, const char *me,
-                    hestParm *hparm) {
+unrrdu_axdeleteMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *ntmp;
@@ -66,29 +64,27 @@ unrrdu_axdeleteMain(int argc, const char **argv, const char *me,
     if (nrrdCopy(nout, nin)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error copying axis:\n%s", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
-    for (axis=0;
-         axis<nout->dim && nout->axis[axis].size > 1;
-         axis++)
+    for (axis = 0; axis < nout->dim && nout->axis[axis].size > 1; axis++)
       ;
-    while (axis<nout->dim) {
-      if (nrrdAxesDelete(ntmp, nout, axis)
-          || nrrdCopy(nout, ntmp)) {
+    while (axis < nout->dim) {
+      if (nrrdAxesDelete(ntmp, nout, axis) || nrrdCopy(nout, ntmp)) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
         fprintf(stderr, "%s: error deleting axis:\n%s", me, err);
-        airMopError(mop); return 1;
+        airMopError(mop);
+        return 1;
       }
-      for (axis=0;
-           axis<nout->dim && nout->axis[axis].size > 1;
-           axis++)
+      for (axis = 0; axis < nout->dim && nout->axis[axis].size > 1; axis++)
         ;
     }
   } else {
     if (nrrdAxesDelete(nout, nin, _axis)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error deleting axis:\n%s", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
 

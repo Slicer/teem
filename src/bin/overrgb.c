@@ -26,18 +26,18 @@
 #include <teem/hest.h>
 #include <teem/nrrd.h>
 
-static const char *overInfo = (
-  "Composites an RGBA nrrd over "
-  "a background color (or image), after doing gamma correction, "
-  "then quantizes to an 8-bit image.  Actually, the "
-  "input nrrd can have more than 4 values per pixel, "
-  "but only the first four are used.  If the RGBA nrrd "
-  "is floating point, the values are taken at face value; "
-  "if it is fixed point, the values interpreted as having "
-  "been quantized (so that 8-bit RGBA images will act as "
-  "you expect).  When compositing with a background image, the given "
-  "background image does not have to be the same size as the input "
-  "image; it will be resampled (with linear interpolation) to fit. ");
+static const char *overInfo
+  = ("Composites an RGBA nrrd over "
+     "a background color (or image), after doing gamma correction, "
+     "then quantizes to an 8-bit image.  Actually, the "
+     "input nrrd can have more than 4 values per pixel, "
+     "but only the first four are used.  If the RGBA nrrd "
+     "is floating point, the values are taken at face value; "
+     "if it is fixed point, the values interpreted as having "
+     "been quantized (so that 8-bit RGBA images will act as "
+     "you expect).  When compositing with a background image, the given "
+     "background image does not have to be the same size as the input "
+     "image; it will be resampled (with linear interpolation) to fit. ");
 
 double
 docontrast(double val, double cfp, double cpow) {
@@ -57,12 +57,12 @@ docontrast(double val, double cfp, double cpow) {
 
 int
 main(int argc, const char *argv[]) {
-  hestOpt *hopt=NULL;
-  Nrrd *nin, *nout,    /* initial input and final output */
-    *ninD,             /* input converted to double */
-    *_nbg,             /* given background image (optional) */
-    *nbg,              /* resampled background image */
-    *nrgbaD;           /* rgba input as double */
+  hestOpt *hopt = NULL;
+  Nrrd *nin, *nout, /* initial input and final output */
+    *ninD,          /* input converted to double */
+    *_nbg,          /* given background image (optional) */
+    *nbg,           /* resampled background image */
+    *nrgbaD;        /* rgba input as double */
   const char *me;
   char *outS, *errS, *gammaS;
   double _gamma, contr, cfp, cpow, back[3], *rgbaD, r, g, b, a;
@@ -90,62 +90,66 @@ main(int argc, const char *argv[]) {
              "\"srgb\" to apply the roughly 2.2 gamma associated "
              "with sRGB (see https://en.wikipedia.org/wiki/SRGB). ");
   srgbIdx = /* HEY copied to unrrdu/quantize.c */
-  hestOptAdd(&hopt, "srgb", "intent", airTypeEnum, 1, 1, &srgb, "none",
-             /* the default is "none" for backwards compatibility: until now
-                Teem's support of PNG hasn't handled the sRGB intent, so
-                we shouldn't start using it without being asked */
-             "If saving to PNG (when supported), how to set the rendering "
-             "intent in the sRGB chunk of the PNG file format. Can be "
-             "absolute, relative, perceptual, saturation, or none. This is "
-             "independent of using \"srgb\" as the -g gamma",
-             NULL, nrrdFormatPNGsRGBIntent);
+    hestOptAdd(&hopt, "srgb", "intent", airTypeEnum, 1, 1, &srgb, "none",
+               /* the default is "none" for backwards compatibility: until now
+                  Teem's support of PNG hasn't handled the sRGB intent, so
+                  we shouldn't start using it without being asked */
+               "If saving to PNG (when supported), how to set the rendering "
+               "intent in the sRGB chunk of the PNG file format. Can be "
+               "absolute, relative, perceptual, saturation, or none. This is "
+               "independent of using \"srgb\" as the -g gamma",
+               NULL, nrrdFormatPNGsRGBIntent);
   hestOptAdd(&hopt, "b", "background", airTypeDouble, 3, 3, back, "0 0 0",
              "background color to composite against; white is "
              "1 1 1, not 255 255 255.");
   hestOptAdd(&hopt, "bi", "nbg", airTypeOther, 1, 1, &_nbg, "",
-             "8-bit RGB background image to composite against",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS,
-             NULL, "file to write output PPM image to");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL, me, overInfo,
-                 AIR_TRUE, AIR_TRUE, AIR_TRUE);
+             "8-bit RGB background image to composite against", NULL, NULL,
+             nrrdHestNrrd);
+  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, NULL,
+             "file to write output PPM image to");
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, overInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   if (!(3 == nin->dim && 4 <= nin->axis[0].size)) {
     fprintf(stderr, "%s: doesn't look like an RGBA nrrd\n", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdTypeBlock == nin->type) {
     fprintf(stderr, "%s: can't use a %s nrrd\n", me,
             airEnumStr(nrrdType, nrrdTypeBlock));
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   /* HEY copied to unrrdu/quantize.c */
-  if (!( !strcmp(gammaS, "srgb") || 1 == sscanf(gammaS, "%lf", &_gamma) )) {
-    fprintf(stderr, "%s: gamma \"%s\" neither \"srgb\" nor "
-            "parseable as double", me, gammaS);
-    airMopError(mop); return 1;
+  if (!(!strcmp(gammaS, "srgb") || 1 == sscanf(gammaS, "%lf", &_gamma))) {
+    fprintf(stderr,
+            "%s: gamma \"%s\" neither \"srgb\" nor "
+            "parseable as double",
+            me, gammaS);
+    airMopError(mop);
+    return 1;
   }
 
-  if (hestSourceUser == hopt[srgbIdx].source
-      && !nrrdFormatPNG->available()) {
-    fprintf(stderr, "%s: wanted to store sRGB intent \"%s\" in PNG output, but "
-            "this Teem build does not support the PNG file format.", me,
-            airEnumStr(nrrdFormatPNGsRGBIntent, srgb));
-    airMopError(mop); return 1;
+  if (hestSourceUser == hopt[srgbIdx].source && !nrrdFormatPNG->available()) {
+    fprintf(stderr,
+            "%s: wanted to store sRGB intent \"%s\" in PNG output, but "
+            "this Teem build does not support the PNG file format.",
+            me, airEnumStr(nrrdFormatPNGsRGBIntent, srgb));
+    airMopError(mop);
+    return 1;
   }
 
   sx = nin->axis[1].size;
   sy = nin->axis[2].size;
   if (_nbg) {
-    if (!(3 == _nbg->dim
-          && 3 == _nbg->axis[0].size
-          && 2 <= _nbg->axis[1].size
-          && 2 <= _nbg->axis[2].size
-          && nrrdTypeUChar == _nbg->type)) {
+    if (!(3 == _nbg->dim && 3 == _nbg->axis[0].size && 2 <= _nbg->axis[1].size
+          && 2 <= _nbg->axis[2].size && nrrdTypeUChar == _nbg->type)) {
       fprintf(stderr, "%s: background not an 8-bit RGB image\n", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     nbg = nrrdNew();
     airMopAdd(mop, nbg, (airMopper)nrrdNuke, airMopAlways);
@@ -163,11 +167,11 @@ main(int argc, const char *argv[]) {
       rinfo->kernel[0] = NULL;
       nrrdKernelParse(&(rinfo->kernel[1]), rinfo->parm[1], "tent");
       rinfo->min[1] = _nbg->axis[1].min = 0;
-      rinfo->max[1] = _nbg->axis[1].max = _nbg->axis[1].size-1;
+      rinfo->max[1] = _nbg->axis[1].max = _nbg->axis[1].size - 1;
       rinfo->samples[1] = sx;
       nrrdKernelParse(&(rinfo->kernel[2]), rinfo->parm[2], "tent");
       rinfo->min[2] = _nbg->axis[2].min = 0;
-      rinfo->max[2] = _nbg->axis[2].max = _nbg->axis[2].size-1;
+      rinfo->max[2] = _nbg->axis[2].max = _nbg->axis[2].size - 1;
       rinfo->samples[2] = sy;
       rinfo->renormalize = AIR_TRUE;
       rinfo->round = AIR_TRUE;
@@ -176,7 +180,8 @@ main(int argc, const char *argv[]) {
     if (E) {
       airMopAdd(mop, errS = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s", me, errS);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   } else {
     nbg = NULL;
@@ -186,7 +191,7 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, ninD, (airMopper)nrrdNuke, airMopAlways);
   nrgbaD = nrrdNew();
   airMopAdd(mop, nrgbaD, (airMopper)nrrdNuke, airMopAlways);
-  nout=nrrdNew();
+  nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   E = 0;
@@ -199,22 +204,23 @@ main(int argc, const char *argv[]) {
   }
   min[0] = min[1] = min[2] = 0;
   max[0] = 3;
-  max[1] = sx-1;
-  max[2] = sy-1;
+  max[1] = sx - 1;
+  max[2] = sy - 1;
   if (!E) E |= nrrdCrop(nrgbaD, ninD, min, max);
   if (!E) E |= nrrdPPM(nout, sx, sy);
   if (E) {
     airMopAdd(mop, errS = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s", me, errS);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   contr = AIR_CLAMP(-1, contr, 1);
-  cpow = tan(AIR_AFFINE(-1.000001, contr, 1.000001, 0, AIR_PI/2));
-  outUC = (unsigned char*)nout->data;
+  cpow = tan(AIR_AFFINE(-1.000001, contr, 1.000001, 0, AIR_PI / 2));
+  outUC = (unsigned char *)nout->data;
   bgUC = nbg ? (unsigned char *)nbg->data : NULL;
   rgbaD = (double *)nrgbaD->data;
-  for (pi=0; pi<sx*sy; pi++) {
+  for (pi = 0; pi < sx * sy; pi++) {
     r = AIR_CLAMP(0, rgbaD[0], 1);
     g = AIR_CLAMP(0, rgbaD[1], 1);
     b = AIR_CLAMP(0, rgbaD[2], 1);
@@ -229,18 +235,18 @@ main(int argc, const char *argv[]) {
       g = nrrdSRGBGamma(g);
       b = nrrdSRGBGamma(b);
     } else {
-      r = pow(r, 1.0/_gamma);
-      g = pow(g, 1.0/_gamma);
-      b = pow(b, 1.0/_gamma);
+      r = pow(r, 1.0 / _gamma);
+      g = pow(g, 1.0 / _gamma);
+      b = pow(b, 1.0 / _gamma);
     }
     if (bgUC) {
-      r = a*r + (1-a)*bgUC[0 + 3*pi]/255;
-      g = a*g + (1-a)*bgUC[1 + 3*pi]/255;
-      b = a*b + (1-a)*bgUC[2 + 3*pi]/255;
+      r = a * r + (1 - a) * bgUC[0 + 3 * pi] / 255;
+      g = a * g + (1 - a) * bgUC[1 + 3 * pi] / 255;
+      b = a * b + (1 - a) * bgUC[2 + 3 * pi] / 255;
     } else {
-      r = a*r + (1-a)*back[0];
-      g = a*g + (1-a)*back[1];
-      b = a*b + (1-a)*back[2];
+      r = a * r + (1 - a) * back[0];
+      g = a * g + (1 - a) * back[1];
+      b = a * b + (1 - a) * back[2];
     }
     outUC[0] = AIR_UCHAR(airIndex(0.0, r, 1.0, 256));
     outUC[1] = AIR_UCHAR(airIndex(0.0, g, 1.0, 256));
@@ -260,7 +266,8 @@ main(int argc, const char *argv[]) {
   if (nrrdSave(outS, nout, nio)) {
     airMopAdd(mop, errS = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s", me, errS);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

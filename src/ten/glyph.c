@@ -44,7 +44,7 @@ tenGlyphParmNew() {
     parm->sqdSharp = 3.0;
     ELL_5V_SET(parm->edgeWidth, 0.0f, 0.0f, 0.4f, 0.2f, 0.1f);
 
-    parm->colEvec = 0;  /* first */
+    parm->colEvec = 0; /* first */
     parm->colMaxSat = 1;
     parm->colGamma = 1;
     parm->colIsoGray = 1;
@@ -71,9 +71,9 @@ tenGlyphParmNix(tenGlyphParm *parm) {
 }
 
 int
-tenGlyphParmCheck(tenGlyphParm *parm,
-                  const Nrrd *nten, const Nrrd *npos, const Nrrd *nslc) {
-  static const char me[]="tenGlyphParmCheck";
+tenGlyphParmCheck(tenGlyphParm *parm, const Nrrd *nten, const Nrrd *npos,
+                  const Nrrd *nslc) {
+  static const char me[] = "tenGlyphParmCheck";
   int duh;
   size_t tenSize[3];
   char stmp[5][AIR_STRLEN_SMALL];
@@ -83,26 +83,22 @@ tenGlyphParmCheck(tenGlyphParm *parm,
     return 1;
   }
   if (airEnumValCheck(tenAniso, parm->anisoType)) {
-    biffAddf(TEN, "%s: unset (or invalid) anisoType (%d)",
-             me, parm->anisoType);
+    biffAddf(TEN, "%s: unset (or invalid) anisoType (%d)", me, parm->anisoType);
     return 1;
   }
   if (airEnumValCheck(tenAniso, parm->colAnisoType)) {
-    biffAddf(TEN, "%s: unset (or invalid) colAnisoType (%d)",
-             me, parm->colAnisoType);
+    biffAddf(TEN, "%s: unset (or invalid) colAnisoType (%d)", me, parm->colAnisoType);
     return 1;
   }
-  if (!( parm->facetRes >= 3 )) {
+  if (!(parm->facetRes >= 3)) {
     biffAddf(TEN, "%s: facet resolution %d not >= 3", me, parm->facetRes);
     return 1;
   }
-  if (!( AIR_IN_OP(tenGlyphTypeUnknown, parm->glyphType,
-                   tenGlyphTypeLast) )) {
-    biffAddf(TEN, "%s: unset (or invalid) glyphType (%d)",
-             me, parm->glyphType);
+  if (!(AIR_IN_OP(tenGlyphTypeUnknown, parm->glyphType, tenGlyphTypeLast))) {
+    biffAddf(TEN, "%s: unset (or invalid) glyphType (%d)", me, parm->glyphType);
     return 1;
   }
-  if (!( parm->glyphScale > 0)) {
+  if (!(parm->glyphScale > 0)) {
     biffAddf(TEN, "%s: glyphScale must be > 0 (not %g)", me, parm->glyphScale);
     return 1;
   }
@@ -111,10 +107,9 @@ tenGlyphParmCheck(tenGlyphParm *parm,
       biffAddf(TEN, "%s: can't do masking with explicit coordinate list", me);
       return 1;
     }
-    if (!( 3 == parm->nmask->dim
-           && parm->nmask->axis[0].size == nten->axis[1].size
-           && parm->nmask->axis[1].size == nten->axis[2].size
-           && parm->nmask->axis[2].size == nten->axis[3].size )) {
+    if (!(3 == parm->nmask->dim && parm->nmask->axis[0].size == nten->axis[1].size
+          && parm->nmask->axis[1].size == nten->axis[2].size
+          && parm->nmask->axis[2].size == nten->axis[3].size)) {
       biffAddf(TEN, "%s: mask isn't 3-D or doesn't have sizes (%s,%s,%s)", me,
                airSprintSize_t(stmp[0], nten->axis[1].size),
                airSprintSize_t(stmp[1], nten->axis[2].size),
@@ -126,8 +121,7 @@ tenGlyphParmCheck(tenGlyphParm *parm,
       return 1;
     }
   }
-  if (!( AIR_EXISTS(parm->anisoThresh)
-         && AIR_EXISTS(parm->confThresh) )) {
+  if (!(AIR_EXISTS(parm->anisoThresh) && AIR_EXISTS(parm->confThresh))) {
     biffAddf(TEN, "%s: anisoThresh and confThresh haven't both been set", me);
     return 1;
   }
@@ -136,33 +130,30 @@ tenGlyphParmCheck(tenGlyphParm *parm,
       biffAddf(TEN, "%s: can't do slice with explicit coordinate list", me);
       return 1;
     }
-    if (!( parm->sliceAxis <=2 )) {
+    if (!(parm->sliceAxis <= 2)) {
       biffAddf(TEN, "%s: slice axis %d invalid", me, parm->sliceAxis);
       return 1;
     }
-    if (!( parm->slicePos < nten->axis[1+parm->sliceAxis].size )) {
+    if (!(parm->slicePos < nten->axis[1 + parm->sliceAxis].size)) {
       biffAddf(TEN, "%s: slice pos %s not in valid range [0..%s]", me,
                airSprintSize_t(stmp[0], parm->slicePos),
-               airSprintSize_t(stmp[1], nten->axis[1+parm->sliceAxis].size-1));
+               airSprintSize_t(stmp[1], nten->axis[1 + parm->sliceAxis].size - 1));
       return 1;
     }
     if (nslc) {
       if (2 != nslc->dim) {
-        biffAddf(TEN, "%s: explicit slice must be 2-D (not %d)",
-                 me, nslc->dim);
+        biffAddf(TEN, "%s: explicit slice must be 2-D (not %d)", me, nslc->dim);
         return 1;
       }
       tenSize[0] = nten->axis[1].size;
       tenSize[1] = nten->axis[2].size;
       tenSize[2] = nten->axis[3].size;
-      for (duh=parm->sliceAxis; duh<2; duh++) {
-        tenSize[duh] = tenSize[duh+1];
+      for (duh = parm->sliceAxis; duh < 2; duh++) {
+        tenSize[duh] = tenSize[duh + 1];
       }
-      if (!( tenSize[0] == nslc->axis[0].size
-             && tenSize[1] == nslc->axis[1].size )) {
+      if (!(tenSize[0] == nslc->axis[0].size && tenSize[1] == nslc->axis[1].size)) {
         biffAddf(TEN, "%s: axis %u slice of %sx%sx%s volume != %sx%s", me,
-                 parm->sliceAxis,
-                 airSprintSize_t(stmp[0], nten->axis[1].size),
+                 parm->sliceAxis, airSprintSize_t(stmp[0], nten->axis[1].size),
                  airSprintSize_t(stmp[1], nten->axis[2].size),
                  airSprintSize_t(stmp[2], nten->axis[3].size),
                  airSprintSize_t(stmp[3], nslc->axis[0].size),
@@ -171,8 +162,8 @@ tenGlyphParmCheck(tenGlyphParm *parm,
       }
     } else {
       if (airEnumValCheck(tenAniso, parm->sliceAnisoType)) {
-        biffAddf(TEN, "%s: unset (or invalid) sliceAnisoType (%d)",
-                 me, parm->sliceAnisoType);
+        biffAddf(TEN, "%s: unset (or invalid) sliceAnisoType (%d)", me,
+                 parm->sliceAnisoType);
         return 1;
       }
     }
@@ -181,21 +172,19 @@ tenGlyphParmCheck(tenGlyphParm *parm,
 }
 
 int
-tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
-            tenGlyphParm *parm,
+tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho, tenGlyphParm *parm,
             const Nrrd *nten, const Nrrd *npos, const Nrrd *nslc) {
-  static const char me[]="tenGlyphGen";
+  static const char me[] = "tenGlyphGen";
   gageShape *shape;
   airArray *mop;
-  float *tdata, eval[3], evec[9], *cvec, rotEvec[9], mA_f[16],
-    absEval[3], glyphScl[3];
-  double pI[3], pW[3], cl, cp, sRot[16], mA[16], mB[16], msFr[9], tmpvec[3],
-    R, G, B, qA, qB, qC, glyphAniso, sliceGray;
+  float *tdata, eval[3], evec[9], *cvec, rotEvec[9], mA_f[16], absEval[3], glyphScl[3];
+  double pI[3], pW[3], cl, cp, sRot[16], mA[16], mB[16], msFr[9], tmpvec[3], R, G, B, qA,
+    qB, qC, glyphAniso, sliceGray;
   unsigned int duh;
-  int slcCoord[3], idx, glyphIdx, axis, numGlyphs,
-    svRGBAfl=AIR_FALSE;
-  limnLook *look; int lookIdx;
-  echoObject *eglyph, *inst, *list=NULL, *split, *esquare;
+  int slcCoord[3], idx, glyphIdx, axis, numGlyphs, svRGBAfl = AIR_FALSE;
+  limnLook *look;
+  int lookIdx;
+  echoObject *eglyph, *inst, *list = NULL, *split, *esquare;
   echoPos_t eM[16], originOffset[3], edge0[3], edge1[3];
   char stmp[AIR_STRLEN_SMALL];
   /*
@@ -203,7 +192,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   double tmp1[3], tmp2[3];
   */
 
-  if (!( (glyphsLimn || glyphsEcho) && nten && parm)) {
+  if (!((glyphsLimn || glyphsEcho) && nten && parm)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
     return 1;
   }
@@ -212,60 +201,66 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   shape->defaultCenter = nrrdCenterCell;
   airMopAdd(mop, shape, (airMopper)gageShapeNix, airMopAlways);
   if (npos) {
-    if (!( 2 == nten->dim && 7 == nten->axis[0].size )) {
+    if (!(2 == nten->dim && 7 == nten->axis[0].size)) {
       biffAddf(TEN, "%s: nten isn't 2-D 7-by-N array", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
-    if (!( 2 == npos->dim && 3 == npos->axis[0].size
-           && nten->axis[1].size == npos->axis[1].size )) {
+    if (!(2 == npos->dim && 3 == npos->axis[0].size
+          && nten->axis[1].size == npos->axis[1].size)) {
       biffAddf(TEN, "%s: npos isn't 2-D 3-by-%s array", me,
                airSprintSize_t(stmp, nten->axis[1].size));
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
-    if (!( nrrdTypeFloat == nten->type && nrrdTypeFloat == npos->type )) {
+    if (!(nrrdTypeFloat == nten->type && nrrdTypeFloat == npos->type)) {
       biffAddf(TEN, "%s: nten and npos must be %s, not %s and %s", me,
-               airEnumStr(nrrdType, nrrdTypeFloat),
-               airEnumStr(nrrdType, nten->type),
+               airEnumStr(nrrdType, nrrdTypeFloat), airEnumStr(nrrdType, nten->type),
                airEnumStr(nrrdType, npos->type));
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   } else {
     if (tenTensorCheck(nten, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
       biffAddf(TEN, "%s: didn't get a valid DT volume", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
   if (tenGlyphParmCheck(parm, nten, npos, nslc)) {
     biffAddf(TEN, "%s: trouble", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (!npos) {
     if (gageShapeSet(shape, nten, tenGageKind->baseDim)) {
       biffMovef(TEN, GAGE, "%s: trouble", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
   if (parm->doSlice) {
     ELL_3V_COPY(edge0, shape->spacing);
     ELL_3V_COPY(edge1, shape->spacing);
     edge0[parm->sliceAxis] = edge1[parm->sliceAxis] = 0.0;
-    switch(parm->sliceAxis) {
+    switch (parm->sliceAxis) {
     case 0:
       edge0[1] = edge1[2] = 0;
-      ELL_4M_ROTATE_Y_SET(sRot, AIR_PI/2);
+      ELL_4M_ROTATE_Y_SET(sRot, AIR_PI / 2);
       break;
     case 1:
       edge0[0] = edge1[2] = 0;
-      ELL_4M_ROTATE_X_SET(sRot, AIR_PI/2);
+      ELL_4M_ROTATE_X_SET(sRot, AIR_PI / 2);
       break;
-    case 2: default:
+    case 2:
+    default:
       edge0[0] = edge1[1] = 0;
       ELL_4M_IDENTITY_SET(sRot);
       break;
     }
     ELL_3V_COPY(originOffset, shape->spacing);
     ELL_3V_SCALE(originOffset, -0.5, originOffset);
-    originOffset[parm->sliceAxis] *= -2*parm->sliceOffset;
+    originOffset[parm->sliceAxis] *= -2 * parm->sliceOffset;
   }
   if (glyphsLimn) {
     /* create limnLooks for diffuse and ambient-only shading */
@@ -283,8 +278,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     numGlyphs = shape->size[0] * shape->size[1] * shape->size[2];
   }
   /* find measurement frame transform */
-  if (3 == nten->spaceDim
-      && AIR_EXISTS(nten->measurementFrame[0][0])) {
+  if (3 == nten->spaceDim && AIR_EXISTS(nten->measurementFrame[0][0])) {
     /*     msFr        nten->measurementFrame
     **   0  1  2      [0][0]   [1][0]   [2][0]
     **   3  4  5      [0][1]   [1][1]   [2][1]
@@ -302,25 +296,23 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
   } else {
     ELL_3M_IDENTITY_SET(msFr);
   }
-  for (idx=0; idx<numGlyphs; idx++) {
-    tdata = (float*)(nten->data) + 7*idx;
+  for (idx = 0; idx < numGlyphs; idx++) {
+    tdata = (float *)(nten->data) + 7 * idx;
     if (parm->verbose >= 2) {
-      fprintf(stderr, "%s: glyph %d/%d: hello %g    %g %g %g %g %g %g\n",
-              me, idx, numGlyphs, tdata[0],
-              tdata[1], tdata[2], tdata[3],
-              tdata[4], tdata[5], tdata[6]);
+      fprintf(stderr, "%s: glyph %d/%d: hello %g    %g %g %g %g %g %g\n", me, idx,
+              numGlyphs, tdata[0], tdata[1], tdata[2], tdata[3], tdata[4], tdata[5],
+              tdata[6]);
     }
-    if (!( TEN_T_EXISTS(tdata) )) {
+    if (!(TEN_T_EXISTS(tdata))) {
       /* there's nothing we can do here */
       if (parm->verbose >= 2) {
-        fprintf(stderr, "%s: glyph %d/%d: non-existent data\n",
-                me, idx, numGlyphs);
+        fprintf(stderr, "%s: glyph %d/%d: non-existent data\n", me, idx, numGlyphs);
       }
       continue;
     }
     if (npos) {
-      ELL_3V_COPY(pW, (float*)(npos->data) + 3*idx);
-      if (!( AIR_EXISTS(pW[0]) && AIR_EXISTS(pW[1]) && AIR_EXISTS(pW[2]) )) {
+      ELL_3V_COPY(pW, (float *)(npos->data) + 3 * idx);
+      if (!(AIR_EXISTS(pW[0]) && AIR_EXISTS(pW[1]) && AIR_EXISTS(pW[2]))) {
         /* position doesn't exist- perhaps because its from the push
            library, which might kill points by setting coords to nan */
         continue;
@@ -330,11 +322,11 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       /* this does take into account full orientation */
       gageShapeItoW(shape, pW, pI);
       if (parm->nmask) {
-        if (!( nrrdFLookup[parm->nmask->type](parm->nmask->data, idx)
-               >= parm->maskThresh )) {
+        if (!(nrrdFLookup[parm->nmask->type](parm->nmask->data, idx)
+              >= parm->maskThresh)) {
           if (parm->verbose >= 2) {
-            fprintf(stderr, "%s: glyph %d/%d: doesn't meet mask thresh\n",
-                    me, idx, numGlyphs);
+            fprintf(stderr, "%s: glyph %d/%d: doesn't meet mask thresh\n", me, idx,
+                    numGlyphs);
           }
           continue;
         }
@@ -353,29 +345,28 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       ELL_3V_SCALE(evec + 6, -1, evec + 6);
     }
     ELL_3M_TRANSPOSE(rotEvec, evec);
-    if (parm->doSlice
-        && pI[parm->sliceAxis] == parm->slicePos) {
+    if (parm->doSlice && pI[parm->sliceAxis] == parm->slicePos) {
       /* set sliceGray */
       if (nslc) {
         /* we aren't masked by confidence, as anisotropy slice is */
-        for (duh=0; duh<parm->sliceAxis; duh++) {
+        for (duh = 0; duh < parm->sliceAxis; duh++) {
           slcCoord[duh] = (int)(pI[duh]);
         }
-        for (duh=duh<parm->sliceAxis; duh<2; duh++) {
-          slcCoord[duh] = (int)(pI[duh+1]);
+        for (duh = duh < parm->sliceAxis; duh < 2; duh++) {
+          slcCoord[duh] = (int)(pI[duh + 1]);
         }
         /* HEY: GLK has no idea what's going here */
         slcCoord[0] = (int)(pI[0]);
         slcCoord[1] = (int)(pI[1]);
         slcCoord[2] = (int)(pI[2]);
-        sliceGray =
-          nrrdFLookup[nslc->type](nslc->data, slcCoord[0]
-                                  + nslc->axis[0].size*slcCoord[1]);
+        sliceGray = nrrdFLookup[nslc->type](nslc->data,
+                                            slcCoord[0]
+                                              + nslc->axis[0].size * slcCoord[1]);
       } else {
-        if (!( tdata[0] >= parm->confThresh )) {
+        if (!(tdata[0] >= parm->confThresh)) {
           if (parm->verbose >= 2) {
-            fprintf(stderr, "%s: glyph %d/%d (slice): conf %g < thresh %g\n",
-                    me, idx, numGlyphs, tdata[0], parm->confThresh);
+            fprintf(stderr, "%s: glyph %d/%d (slice): conf %g < thresh %g\n", me, idx,
+                    numGlyphs, tdata[0], parm->confThresh);
           }
           continue;
         }
@@ -383,10 +374,10 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       }
       if (parm->sliceGamma > 0) {
         sliceGray = AIR_AFFINE(0, sliceGray, 1, parm->sliceBias, 1);
-        sliceGray = pow(sliceGray, 1.0/parm->sliceGamma);
+        sliceGray = pow(sliceGray, 1.0 / parm->sliceGamma);
       } else {
-        sliceGray = AIR_AFFINE(0, sliceGray, 1, 0, 1-parm->sliceBias);
-        sliceGray = 1.0 - pow(sliceGray, -1.0/parm->sliceGamma);
+        sliceGray = AIR_AFFINE(0, sliceGray, 1, 0, 1 - parm->sliceBias);
+        sliceGray = 1.0 - pow(sliceGray, -1.0 / parm->sliceGamma);
       }
       /* make slice contribution */
       /* HEY: this is *NOT* aware of shape->fromOrientation */
@@ -400,31 +391,23 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
         ELL_4M_IDENTITY_SET(mA);
         ell_4m_post_mul_d(mA, sRot);
         if (!npos) {
-          ELL_4M_SCALE_SET(mB,
-                           shape->spacing[0],
-                           shape->spacing[1],
-                           shape->spacing[2]);
+          ELL_4M_SCALE_SET(mB, shape->spacing[0], shape->spacing[1], shape->spacing[2]);
         }
         ell_4m_post_mul_d(mA, mB);
         ELL_4M_TRANSLATE_SET(mB, pW[0], pW[1], pW[2]);
         ell_4m_post_mul_d(mA, mB);
-        ELL_4M_TRANSLATE_SET(mB,
-                             originOffset[0],
-                             originOffset[1],
-                             originOffset[2]);
+        ELL_4M_TRANSLATE_SET(mB, originOffset[0], originOffset[1], originOffset[2]);
         ell_4m_post_mul_d(mA, mB);
         ELL_4M_COPY_TT(mA_f, float, mA);
         limnObjectPartTransform(glyphsLimn, glyphIdx, mA_f);
       }
       if (glyphsEcho) {
-        esquare = echoObjectNew(glyphsEcho,echoTypeRectangle);
-        ELL_3V_ADD2(((echoRectangle*)esquare)->origin, pW, originOffset);
-        ELL_3V_COPY(((echoRectangle*)esquare)->edge0, edge0);
-        ELL_3V_COPY(((echoRectangle*)esquare)->edge1, edge1);
-        echoColorSet(esquare,
-                     AIR_CAST(echoCol_t, sliceGray),
-                     AIR_CAST(echoCol_t, sliceGray),
-                     AIR_CAST(echoCol_t, sliceGray), 1);
+        esquare = echoObjectNew(glyphsEcho, echoTypeRectangle);
+        ELL_3V_ADD2(((echoRectangle *)esquare)->origin, pW, originOffset);
+        ELL_3V_COPY(((echoRectangle *)esquare)->edge0, edge0);
+        ELL_3V_COPY(((echoRectangle *)esquare)->edge1, edge1);
+        echoColorSet(esquare, AIR_CAST(echoCol_t, sliceGray),
+                     AIR_CAST(echoCol_t, sliceGray), AIR_CAST(echoCol_t, sliceGray), 1);
         /* this is pretty arbitrary- but I want shadows to have some effect.
            Previously, the material was all ambient: (A,D,S) = (1,0,0),
            which avoided all shadow effects. */
@@ -436,24 +419,24 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       if (eval[2] < 0) {
         /* didn't have all positive eigenvalues, its outta here */
         if (parm->verbose >= 2) {
-          fprintf(stderr, "%s: glyph %d/%d: not all evals %g %g %g > 0\n",
-                  me, idx, numGlyphs, eval[0], eval[1], eval[2]);
+          fprintf(stderr, "%s: glyph %d/%d: not all evals %g %g %g > 0\n", me, idx,
+                  numGlyphs, eval[0], eval[1], eval[2]);
         }
         continue;
       }
     }
-    if (!( tdata[0] >= parm->confThresh )) {
+    if (!(tdata[0] >= parm->confThresh)) {
       if (parm->verbose >= 2) {
-        fprintf(stderr, "%s: glyph %d/%d: conf %g < thresh %g\n",
-                me, idx, numGlyphs, tdata[0], parm->confThresh);
+        fprintf(stderr, "%s: glyph %d/%d: conf %g < thresh %g\n", me, idx, numGlyphs,
+                tdata[0], parm->confThresh);
       }
       continue;
     }
-    if (!( tenAnisoEval_f(eval, parm->anisoType) >= parm->anisoThresh )) {
+    if (!(tenAnisoEval_f(eval, parm->anisoType) >= parm->anisoThresh)) {
       if (parm->verbose >= 2) {
-        fprintf(stderr, "%s: glyph %d/%d: aniso[%d] %g < thresh %g\n",
-                me, idx, numGlyphs, parm->anisoType,
-                tenAnisoEval_f(eval, parm->anisoType), parm->anisoThresh);
+        fprintf(stderr, "%s: glyph %d/%d: aniso[%d] %g < thresh %g\n", me, idx,
+                numGlyphs, parm->anisoType, tenAnisoEval_f(eval, parm->anisoType),
+                parm->anisoThresh);
       }
       continue;
     }
@@ -470,19 +453,19 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
 
     /* set transform (in mA) */
     ELL_3V_ABS(absEval, eval);
-    ELL_4M_IDENTITY_SET(mA);                        /* reset */
+    ELL_4M_IDENTITY_SET(mA);                           /* reset */
     ELL_3V_SCALE(glyphScl, parm->glyphScale, absEval); /* scale by evals */
     ELL_4M_SCALE_SET(mB, glyphScl[0], glyphScl[1], glyphScl[2]);
 
     ell_4m_post_mul_d(mA, mB);
-    ELL_43M_INSET(mB, rotEvec);                     /* rotate by evecs */
+    ELL_43M_INSET(mB, rotEvec); /* rotate by evecs */
     ell_4m_post_mul_d(mA, mB);
-    ELL_4M_TRANSLATE_SET(mB, pW[0], pW[1], pW[2]);  /* translate */
+    ELL_4M_TRANSLATE_SET(mB, pW[0], pW[1], pW[2]); /* translate */
     ell_4m_post_mul_d(mA, mB);
 
     /* set color (in R,G,B) */
-    cvec = evec + 3*(AIR_CLAMP(0, parm->colEvec, 2));
-    R = AIR_ABS(cvec[0]);                           /* standard mapping */
+    cvec = evec + 3 * (AIR_CLAMP(0, parm->colEvec, 2));
+    R = AIR_ABS(cvec[0]); /* standard mapping */
     G = AIR_ABS(cvec[1]);
     B = AIR_ABS(cvec[2]);
     /* desaturate by colMaxSat */
@@ -490,12 +473,12 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
     G = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, parm->colIsoGray, G);
     B = AIR_AFFINE(0.0, parm->colMaxSat, 1.0, parm->colIsoGray, B);
     /* desaturate some by anisotropy */
-    R = AIR_AFFINE(0.0, parm->colAnisoModulate, 1.0,
-                   R, AIR_AFFINE(0.0, glyphAniso, 1.0, parm->colIsoGray, R));
-    G = AIR_AFFINE(0.0, parm->colAnisoModulate, 1.0,
-                   G, AIR_AFFINE(0.0, glyphAniso, 1.0, parm->colIsoGray, G));
-    B = AIR_AFFINE(0.0, parm->colAnisoModulate, 1.0,
-                   B, AIR_AFFINE(0.0, glyphAniso, 1.0, parm->colIsoGray, B));
+    R = AIR_AFFINE(0.0, parm->colAnisoModulate, 1.0, R,
+                   AIR_AFFINE(0.0, glyphAniso, 1.0, parm->colIsoGray, R));
+    G = AIR_AFFINE(0.0, parm->colAnisoModulate, 1.0, G,
+                   AIR_AFFINE(0.0, glyphAniso, 1.0, parm->colIsoGray, G));
+    B = AIR_AFFINE(0.0, parm->colAnisoModulate, 1.0, B,
+                   AIR_AFFINE(0.0, glyphAniso, 1.0, parm->colIsoGray, B));
     /* clamp and do gamma */
     R = AIR_CLAMP(0.0, R, 1.0);
     G = AIR_CLAMP(0.0, G, 1.0);
@@ -511,12 +494,12 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       cp = AIR_MIN(0.99, tenAnisoEval_f(eval, tenAniso_Cp1));
       if (cl > cp) {
         axis = 0;
-        qA = pow(1-cp, parm->sqdSharp);
-        qB = pow(1-cl, parm->sqdSharp);
+        qA = pow(1 - cp, parm->sqdSharp);
+        qB = pow(1 - cl, parm->sqdSharp);
       } else {
         axis = 2;
-        qA = pow(1-cl, parm->sqdSharp);
-        qB = pow(1-cp, parm->sqdSharp);
+        qA = pow(1 - cl, parm->sqdSharp);
+        qB = pow(1 - cp, parm->sqdSharp);
       }
       qC = qB;
     } else if (eval[0] < 0) {
@@ -529,28 +512,28 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       cp = AIR_MIN(0.99, tenAnisoEval_f(aef, tenAniso_Cp1));
       if (cl > cp) {
         axis = 2;
-        qA = pow(1-cp, parm->sqdSharp);
-        qB = pow(1-cl, parm->sqdSharp);
+        qA = pow(1 - cp, parm->sqdSharp);
+        qB = pow(1 - cl, parm->sqdSharp);
       } else {
         axis = 0;
-        qA = pow(1-cl, parm->sqdSharp);
-        qB = pow(1-cp, parm->sqdSharp);
+        qA = pow(1 - cl, parm->sqdSharp);
+        qB = pow(1 - cp, parm->sqdSharp);
       }
       qC = qB;
     } else {
 #define OOSQRT2 0.70710678118654752440
 #define OOSQRT3 0.57735026918962576451
       /* double poleA[3]={OOSQRT3, OOSQRT3, OOSQRT3}; */
-      double poleB[3]={1, 0, 0};
-      double poleC[3]={OOSQRT2, OOSQRT2, 0};
-      double poleD[3]={OOSQRT3, -OOSQRT3, -OOSQRT3};
-      double poleE[3]={OOSQRT2, 0, -OOSQRT2};
-      double poleF[3]={OOSQRT3, OOSQRT3, -OOSQRT3};
-      double poleG[3]={0, -OOSQRT2, -OOSQRT2};
-      double poleH[3]={0, 0, -1};
+      double poleB[3] = {1, 0, 0};
+      double poleC[3] = {OOSQRT2, OOSQRT2, 0};
+      double poleD[3] = {OOSQRT3, -OOSQRT3, -OOSQRT3};
+      double poleE[3] = {OOSQRT2, 0, -OOSQRT2};
+      double poleF[3] = {OOSQRT3, OOSQRT3, -OOSQRT3};
+      double poleG[3] = {0, -OOSQRT2, -OOSQRT2};
+      double poleH[3] = {0, 0, -1};
       /* double poleI[3]={-OOSQRT3, -OOSQRT3, -OOSQRT3}; */
-      double funk[3]={0,4,2}, thrn[3]={1,4,4};
-      double octa[3]={0,2,2}, cone[3]={1,2,2};
+      double funk[3] = {0, 4, 2}, thrn[3] = {1, 4, 4};
+      double octa[3] = {0, 2, 2}, cone[3] = {1, 2, 2};
       double evalN[3], tmp, bary[3];
       double qq[3];
 
@@ -598,8 +581,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
 
     /* add the glyph */
     if (parm->verbose >= 2) {
-      fprintf(stderr, "%s: glyph %d/%d: the glyph stays!\n",
-              me, idx, numGlyphs);
+      fprintf(stderr, "%s: glyph %d/%d: the glyph stays!\n", me, idx, numGlyphs);
     }
     if (glyphsLimn) {
       lookIdx = limnObjectLookAdd(glyphsLimn);
@@ -607,34 +589,30 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
       ELL_4V_SET_TT(look->rgba, float, R, G, B, 1);
       ELL_3V_SET(look->kads, parm->ADSP[0], parm->ADSP[1], parm->ADSP[2]);
       look->spow = 0;
-      switch(parm->glyphType) {
+      switch (parm->glyphType) {
       case tenGlyphTypeBox:
         glyphIdx = limnObjectCubeAdd(glyphsLimn, lookIdx);
         break;
       case tenGlyphTypeSphere:
         glyphIdx = limnObjectPolarSphereAdd(glyphsLimn, lookIdx, axis,
-                                            2*parm->facetRes, parm->facetRes);
+                                            2 * parm->facetRes, parm->facetRes);
         break;
       case tenGlyphTypeCylinder:
-        glyphIdx = limnObjectCylinderAdd(glyphsLimn, lookIdx, axis,
-                                         parm->facetRes);
+        glyphIdx = limnObjectCylinderAdd(glyphsLimn, lookIdx, axis, parm->facetRes);
         break;
       case tenGlyphTypeSuperquad:
       default:
-        glyphIdx =
-          limnObjectPolarSuperquadFancyAdd(glyphsLimn, lookIdx, axis,
-                                           AIR_FLOAT(qA),
-                                           AIR_FLOAT(qB),
-                                           AIR_FLOAT(qC), 0,
-                                           2*parm->facetRes,
-                                           parm->facetRes);
+        glyphIdx = limnObjectPolarSuperquadFancyAdd(glyphsLimn, lookIdx, axis,
+                                                    AIR_FLOAT(qA), AIR_FLOAT(qB),
+                                                    AIR_FLOAT(qC), 0, 2 * parm->facetRes,
+                                                    parm->facetRes);
         break;
       }
       ELL_4M_COPY_TT(mA_f, float, mA);
       limnObjectPartTransform(glyphsLimn, glyphIdx, mA_f);
     }
     if (glyphsEcho) {
-      switch(parm->glyphType) {
+      switch (parm->glyphType) {
       case tenGlyphTypeBox:
         eglyph = echoObjectNew(glyphsEcho, echoTypeCube);
         /* nothing else to set */
@@ -653,13 +631,10 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho,
         echoSuperquadSet(eglyph, axis, qA, qB);
         break;
       }
-      echoColorSet(eglyph,
-                   AIR_CAST(echoCol_t, R),
-                   AIR_CAST(echoCol_t, G),
+      echoColorSet(eglyph, AIR_CAST(echoCol_t, R), AIR_CAST(echoCol_t, G),
                    AIR_CAST(echoCol_t, B), 1);
-      echoMatterPhongSet(glyphsEcho, eglyph,
-                         parm->ADSP[0], parm->ADSP[1],
-                         parm->ADSP[2], parm->ADSP[3]);
+      echoMatterPhongSet(glyphsEcho, eglyph, parm->ADSP[0], parm->ADSP[1], parm->ADSP[2],
+                         parm->ADSP[3]);
       inst = echoObjectNew(glyphsEcho, echoTypeInstance);
       ELL_4M_COPY(eM, mA);
       echoInstanceSet(inst, eM, eglyph);
@@ -696,7 +671,7 @@ tenGlyphBqdZoneEval(const double eval[3]) {
       } else {
         zone = 1;
       }
-    } else {     /* 2 3 4 */
+    } else { /* 2 3 4 */
       if (y > -z) {
         zone = 2;
       } else if (x > -z) {
@@ -714,7 +689,7 @@ tenGlyphBqdZoneEval(const double eval[3]) {
       } else {
         zone = 7;
       }
-    } else {     /* 8 9 */
+    } else { /* 8 9 */
       if (x - y > y - z) {
         zone = 8;
       } else {
@@ -736,13 +711,13 @@ tenGlyphBqdUvEval(double uv[2], const double eval[3]) {
   ay = AIR_ABS(eval[1]);
   az = AIR_ABS(eval[2]);
   mm = AIR_MAX(ax, AIR_MAX(ay, az));
-  if (mm==0) { /* do not divide */
-    uv[0]=uv[1]=0;
+  if (mm == 0) { /* do not divide */
+    uv[0] = uv[1] = 0;
     return;
   }
-  xx = eval[0]/mm;
-  yy = eval[1]/mm;
-  zz = eval[2]/mm;
+  xx = eval[0] / mm;
+  yy = eval[1] / mm;
+  zz = eval[2] / mm;
   uv[0] = AIR_AFFINE(-1, yy, 1, 0, 1);
   if (xx > -zz) {
     uv[1] = AIR_AFFINE(-1, zz, 1, 0, 1) - uv[0] + 1;
@@ -789,15 +764,15 @@ tenGlyphBqdZoneUv(const double uv[2]) {
   u = uv[0];
   v = uv[1];
   upv = u + v;
-  tupv = 2*u + v;
-  if (u > 0.5) {       /* 0 1 2 3 4 */
+  tupv = 2 * u + v;
+  if (u > 0.5) {     /* 0 1 2 3 4 */
     if (upv > 1.5) { /* 0 1 */
       if (u < v) {
         zone = 0;
       } else {
         zone = 1;
       }
-    } else {           /* 2 3 4 */
+    } else { /* 2 3 4 */
       if (tupv > 2) {
         zone = 2;
       } else if (upv > 1) {
@@ -806,7 +781,7 @@ tenGlyphBqdZoneUv(const double uv[2]) {
         zone = 4;
       }
     }
-  } else {             /* 5 6 7 8 9 */
+  } else {           /* 5 6 7 8 9 */
     if (upv > 0.5) { /* 5 6 7 */
       if (upv > 1) {
         zone = 5;
@@ -815,7 +790,7 @@ tenGlyphBqdZoneUv(const double uv[2]) {
       } else {
         zone = 7;
       }
-    } else {           /* 8 9 */
+    } else { /* 8 9 */
       if (u < v) {
         zone = 8;
       } else {
@@ -859,14 +834,12 @@ baryFind(double bcoord[3], const double uvp[2],
 /* clang-format on */
 
 static void
-baryBlend(double abc[3], const double co[3],
-          const double abc0[3],
-          const double abc1[3],
+baryBlend(double abc[3], const double co[3], const double abc0[3], const double abc1[3],
           const double abc2[3]) {
   unsigned int ii;
 
-  for (ii=0; ii<3; ii++) {
-    abc[ii] = co[0]*abc0[ii] + co[1]*abc1[ii] + co[2]*abc2[ii];
+  for (ii = 0; ii < 3; ii++) {
+    abc[ii] = co[0] * abc0[ii] + co[1] * abc1[ii] + co[2] * abc2[ii];
   }
   return;
 }
@@ -883,19 +856,19 @@ tenGlyphBqdAbcUv(double abc[3], const double uv[2], double betaMax) {
                                                 {6, 7, 9},   /* 7 */
                                                 {7, 8, 10},  /* 8 */
                                                 {8, 9, 10}}; /* 9 */
-  static const double uvVert[11][2] = {{1.00, 1.00},   /* 0 */
-                                       {0.50, 1.00},   /* 1 */
-                                       {0.75, 0.75},   /* 2 */
-                                       {1.00, 0.50},   /* 3 */
-                                       {1.00, 0.00},   /* 4 */
-                                       {0.50, 0.50},   /* 5 */
-                                       {0.00, 1.00},   /* 6 */
-                                       {0.00, 0.50},   /* 7 */
-                                       {0.25, 0.25},   /* 8 */
-                                       {0.50, 0.00},   /* 9 */
-                                       {0.00, 0.00}};  /* 10 */
-  double abcBall[3], abcCyli[3], abcFunk[3], abcThrn[3],
-    abcOcta[3], abcCone[3], abcHalf[3];
+  static const double uvVert[11][2] = {{1.00, 1.00},         /* 0 */
+                                       {0.50, 1.00},         /* 1 */
+                                       {0.75, 0.75},         /* 2 */
+                                       {1.00, 0.50},         /* 3 */
+                                       {1.00, 0.00},         /* 4 */
+                                       {0.50, 0.50},         /* 5 */
+                                       {0.00, 1.00},         /* 6 */
+                                       {0.00, 0.50},         /* 7 */
+                                       {0.25, 0.25},         /* 8 */
+                                       {0.50, 0.00},         /* 9 */
+                                       {0.00, 0.00}};        /* 10 */
+  double abcBall[3], abcCyli[3], abcFunk[3], abcThrn[3], abcOcta[3], abcCone[3],
+    abcHalf[3];
   /* clang-format off */
   /* old compile-time setting
   const double *abcAll[10][11] = {
@@ -918,7 +891,7 @@ tenGlyphBqdAbcUv(double abc[3], const double uv[2], double betaMax) {
 
   ELL_3V_SET(abcBall, 1, 1, 1);
   ELL_3V_SET(abcCyli, 1, 0, 0);
-  ELL_3V_SET(abcFunk, 0, betaMax, 2);  /* only one with c != b  */
+  ELL_3V_SET(abcFunk, 0, betaMax, 2); /* only one with c != b  */
   ELL_3V_SET(abcThrn, 1, betaMax, 3);
   ELL_3V_SET(abcOcta, 0, 2, 2);
   ELL_3V_SET(abcCone, 1, 2, 2);
@@ -928,14 +901,14 @@ tenGlyphBqdAbcUv(double abc[3], const double uv[2], double betaMax) {
                                          seam to be shape-continuous */
   /* run-time setting of abcAll[][]; compile-time setting (comments above)
      gives "initializer element is not computable at load time" warnings */
-  for (zone=0; zone<10; zone++) {
-    for (vert=0; vert<11; vert++) {
-      abcAll[zone][vert]=NULL;
+  for (zone = 0; zone < 10; zone++) {
+    for (vert = 0; vert < 11; vert++) {
+      abcAll[zone][vert] = NULL;
     }
   }
-#define SET(zi, vi0, vi1, vi2, sh0, sh1, sh2) \
-  abcAll[zi][vi0] = abc##sh0; \
-  abcAll[zi][vi1] = abc##sh1; \
+#define SET(zi, vi0, vi1, vi2, sh0, sh1, sh2)                                           \
+  abcAll[zi][vi0] = abc##sh0;                                                           \
+  abcAll[zi][vi1] = abc##sh1;                                                           \
   abcAll[zi][vi2] = abc##sh2
 
   SET(0, 0, 1, 2, Ball, Cyli, Half);
@@ -946,18 +919,15 @@ tenGlyphBqdAbcUv(double abc[3], const double uv[2], double betaMax) {
   SET(5, 1, 5, 6, Cone, Funk, Thrn);
   SET(6, 5, 6, 9, Funk, Thrn, Octa);
   SET(7, 6, 7, 9, Thrn, Cone, Octa);
-  SET(8, 7, 8,10, Cyli, Half, Ball);
-  SET(9, 8, 9,10, Half, Cyli, Ball);
+  SET(8, 7, 8, 10, Cyli, Half, Ball);
+  SET(9, 8, 9, 10, Half, Cyli, Ball);
 
 #undef SET
 
   zone = tenGlyphBqdZoneUv(uv);
   ELL_3V_COPY(pvi, vertsZone[zone]);
   baryFind(bcoord, uv, uvVert[pvi[0]], uvVert[pvi[1]], uvVert[pvi[2]]);
-  baryBlend(abc, bcoord,
-            abcAll[zone][pvi[0]],
-            abcAll[zone][pvi[1]],
+  baryBlend(abc, bcoord, abcAll[zone][pvi[0]], abcAll[zone][pvi[1]],
             abcAll[zone][pvi[2]]);
   return;
 }
-

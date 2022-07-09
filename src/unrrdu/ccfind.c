@@ -25,18 +25,16 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Find connected components (CCs)"
-static const char *_unrrdu_ccfindInfoL =
-(INFO
- ". This works on 1-byte and 2-byte integral values, as well as "
- "4-byte ints.\n "
- "* Uses nrrdCCFind");
+static const char *_unrrdu_ccfindInfoL
+  = (INFO ". This works on 1-byte and 2-byte integral values, as well as "
+          "4-byte ints.\n "
+          "* Uses nrrdCCFind");
 
 int
-unrrdu_ccfindMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+unrrdu_ccfindMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *valS;
-  Nrrd *nin, *nout, *nval=NULL;
+  Nrrd *nin, *nout, *nval = NULL;
   airArray *mop;
   int type, pret;
   unsigned int conny;
@@ -53,8 +51,7 @@ unrrdu_ccfindMain(int argc, const char **argv, const char *me,
              "Using this option allows one to specify the integral type to "
              "be used.",
              NULL, NULL, &unrrduHestMaybeTypeCB);
-  hestOptAdd(&opt, "c,connect", "connectivity", airTypeUInt, 1, 1,
-             &conny, NULL,
+  hestOptAdd(&opt, "c,connect", "connectivity", airTypeUInt, 1, 1, &conny, NULL,
              "what kind of connectivity to use: the number of coordinates "
              "that vary in order to traverse the neighborhood of a given "
              "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");

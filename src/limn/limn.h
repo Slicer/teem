@@ -51,7 +51,7 @@
 extern "C" {
 #endif
 
-#define LIMN limnBiffKey
+#define LIMN           limnBiffKey
 #define LIMN_LIGHT_NUM 8
 
 /*
@@ -73,29 +73,29 @@ extern "C" {
 ** Has no dynamically allocated information or pointers.
 */
 typedef struct limnCamera_t {
-  double from[3],     /* location of eyepoint */
-    at[3],            /* what eye is looking at */
-    up[3],            /* what is up direction for eye (this is not updated
-                         to the "true" up) */
-    uRange[2],        /* range of U values to put on horiz. image axis */
-    vRange[2],        /* range of V values to put on vert. image axis */
-    fov,              /* if non-NaN, and aspect is non-NaN, then {u,v}Range
-                         will be set accordingly by limnCameraUpdate().
-                         "fov" is the angle, in degrees, vertically subtended
-                         by the view window */
-    aspect,           /* the ratio of horizontal to vertical size of the
-                         view window */
-    neer, faar,       /* near and far clipping plane distances
-                         (misspelled for the sake of a McRosopht compiler) */
-    dist;             /* distance to image plane */
-  int atRelative,     /* if non-zero: given neer, faar, and dist
-                         quantities indicate distance relative to the
-                         _at_ point, instead of the usual (in computer
-                         graphics) sense if being relative to the
-                         eye point */
-    orthographic,     /* no perspective projection: just orthographic */
-    rightHanded;      /* if rightHanded, V = NxU (V points "downwards"),
-                         otherwise, V = UxN (V points "upwards") */
+  double from[3], /* location of eyepoint */
+    at[3],        /* what eye is looking at */
+    up[3],        /* what is up direction for eye (this is not updated
+                     to the "true" up) */
+    uRange[2],    /* range of U values to put on horiz. image axis */
+    vRange[2],    /* range of V values to put on vert. image axis */
+    fov,          /* if non-NaN, and aspect is non-NaN, then {u,v}Range
+                     will be set accordingly by limnCameraUpdate().
+                     "fov" is the angle, in degrees, vertically subtended
+                     by the view window */
+    aspect,       /* the ratio of horizontal to vertical size of the
+                     view window */
+    neer, faar,   /* near and far clipping plane distances
+                     (misspelled for the sake of a McRosopht compiler) */
+    dist;         /* distance to image plane */
+  int atRelative, /* if non-zero: given neer, faar, and dist
+                     quantities indicate distance relative to the
+                     _at_ point, instead of the usual (in computer
+                     graphics) sense if being relative to the
+                     eye point */
+    orthographic, /* no perspective projection: just orthographic */
+    rightHanded;  /* if rightHanded, V = NxU (V points "downwards"),
+                     otherwise, V = UxN (V points "upwards") */
   /* --------------------------------------------------------------------
      End of user-set parameters.  Things below are set by limnCameraUpdate
      -------------------------------------------------------------------- */
@@ -156,36 +156,35 @@ enum {
   limnEdgeTypeLone,        /* 7: attached to no faces */
   limnEdgeTypeLast
 };
-#define LIMN_EDGE_TYPE_MAX    7
+#define LIMN_EDGE_TYPE_MAX 7
 
 typedef struct {
-  float lineWidth[LIMN_EDGE_TYPE_MAX+1],
-    creaseAngle,      /* difference between crease and facet, in *degrees* */
-    bg[3],            /* background color */
-    edgeColor[3];     /* edge color */
-  int showpage,       /* finish with "showpage" */
-    wireFrame,        /* just render wire-frame */
-    noBackground;     /* refrain from initially filling with bg[] color */
+  float lineWidth[LIMN_EDGE_TYPE_MAX + 1],
+    creaseAngle,  /* difference between crease and facet, in *degrees* */
+    bg[3],        /* background color */
+    edgeColor[3]; /* edge color */
+  int showpage,   /* finish with "showpage" */
+    wireFrame,    /* just render wire-frame */
+    noBackground; /* refrain from initially filling with bg[] color */
 } limnOptsPS;
 
 typedef struct {
   limnOptsPS ps;
   int device;
-  float scale,
-    bbox[4];          /* minX minY maxX maxY */
+  float scale, bbox[4]; /* minX minY maxX maxY */
   int yFlip;
   FILE *file;
 } limnWindow;
 
 enum {
-  limnSpaceUnknown,  /* 0 */
-  limnSpaceWorld,    /* 1 */
-  limnSpaceView,     /* 2 */
-  limnSpaceScreen,   /* 3 */
-  limnSpaceDevice,   /* 4 */
+  limnSpaceUnknown, /* 0 */
+  limnSpaceWorld,   /* 1 */
+  limnSpaceView,    /* 2 */
+  limnSpaceScreen,  /* 3 */
+  limnSpaceDevice,  /* 4 */
   limnSpaceLast
 };
-#define LIMN_SPACE_MAX  4
+#define LIMN_SPACE_MAX 4
 
 /*
 ******** limnPrimitive* enum
@@ -206,7 +205,7 @@ enum {
   limnPrimitiveLines,         /* 7: line soup (for GL_LINES) */
   limnPrimitiveLast
 };
-#define LIMN_PRIMITIVE_MAX       7
+#define LIMN_PRIMITIVE_MAX 7
 
 /*
 ******** struct limnLook
@@ -216,8 +215,8 @@ enum {
 */
 typedef struct {
   float rgba[4];
-  float kads[3],              /* phong: ka, kd, ks */
-    spow;                     /* specular power */
+  float kads[3], /* phong: ka, kd, ks */
+    spow;        /* specular power */
 } limnLook;
 
 /*
@@ -234,10 +233,10 @@ typedef struct {
 ** Has no dynamically allocated information or pointers
 */
 typedef struct {
-  float world[4],             /* world coordinates (homogeneous) */
-    rgba[4],                  /* RGBA color */
-    coord[4],                 /* coordinates in some space */
-    worldNormal[3];           /* vertex normal (world coords only) */
+  float world[4],   /* world coordinates (homogeneous) */
+    rgba[4],        /* RGBA color */
+    coord[4],       /* coordinates in some space */
+    worldNormal[3]; /* vertex normal (world coords only) */
 } limnVertex;
 
 /*
@@ -262,16 +261,14 @@ typedef struct limnEdge_t {
 ** all the information about a face
 */
 typedef struct limnFace_t {
-  float worldNormal[3],
-    screenNormal[3];
-  unsigned int *vertIdx,      /* regular array (*not* airArray) of vertex
-                                 indices in object's master vert array */
-    *edgeIdx,                 /* likewise for edges */
-    sideNum,                  /* number of sides (allocated length of
-                                 {vert,edge}Idx arrays */
-    lookIdx,
-    partIdx;
-  int visible;                /* non-zero if face currently visible */
+  float worldNormal[3], screenNormal[3];
+  unsigned int *vertIdx, /* regular array (*not* airArray) of vertex
+                            indices in object's master vert array */
+    *edgeIdx,            /* likewise for edges */
+    sideNum,             /* number of sides (allocated length of
+                            {vert,edge}Idx arrays */
+    lookIdx, partIdx;
+  int visible; /* non-zero if face currently visible */
   float depth;
 } limnFace;
 
@@ -316,23 +313,29 @@ typedef struct limnPart_t {
 ** airArray is a fine way to create such confusion.
 */
 typedef struct {
-  limnVertex *vert; unsigned int vertNum;
+  limnVertex *vert;
+  unsigned int vertNum;
   airArray *vertArr;
 
-  limnEdge *edge; unsigned int edgeNum;
+  limnEdge *edge;
+  unsigned int edgeNum;
   airArray *edgeArr;
 
-  limnFace *face; unsigned int faceNum;
+  limnFace *face;
+  unsigned int faceNum;
   airArray *faceArr;
-  limnFace **faceSort;    /* pointers into "face", sorted by depth */
+  limnFace **faceSort; /* pointers into "face", sorted by depth */
 
-  limnPart **part; unsigned int partNum;  /* double indirection, see above */
+  limnPart **part;
+  unsigned int partNum; /* double indirection, see above */
   airArray *partArr;
 
-  limnPart **partPool; unsigned int partPoolNum;
+  limnPart **partPool;
+  unsigned int partPoolNum;
   airArray *partPoolArr;
 
-  limnLook *look; unsigned int lookNum;
+  limnLook *look;
+  unsigned int lookNum;
   airArray *lookArr;
 
   int vertSpace,           /* which space limnVertex->coord is in */
@@ -366,14 +369,14 @@ typedef struct {
 ** allocated and present.  This is the optional extra per-vertex information.
 */
 enum {
-  limnPolyDataInfoUnknown,    /* 0: nobody knows */
-  limnPolyDataInfoRGBA,       /* 1: RGBA 4-tuple */
-  limnPolyDataInfoNorm,       /* 2: (x,y,z) unit-length 3-vector */
-  limnPolyDataInfoTex2,       /* 3: (s,t) 2D texture coordinates */
-  limnPolyDataInfoTang,       /* 4: unit-length surface tangent 3-vector */
+  limnPolyDataInfoUnknown, /* 0: nobody knows */
+  limnPolyDataInfoRGBA,    /* 1: RGBA 4-tuple */
+  limnPolyDataInfoNorm,    /* 2: (x,y,z) unit-length 3-vector */
+  limnPolyDataInfoTex2,    /* 3: (s,t) 2D texture coordinates */
+  limnPolyDataInfoTang,    /* 4: unit-length surface tangent 3-vector */
   limnPolyDataInfoLast
 };
-#define LIMN_POLY_DATA_INFO_MAX  4
+#define LIMN_POLY_DATA_INFO_MAX 4
 
 /*
 ******** limnPolyData
@@ -399,24 +402,24 @@ enum {
 ** stuff moved to the "seek" library)
 */
 typedef struct {
-  float *xyzw;           /* (always allocated) xyzwNum position 4-tuples */
-  unsigned int xyzwNum;  /* logical size of xyzw */
-  unsigned char *rgba;   /* if non-NULL, rgbaNum RGBA color 4-tuples */
-  unsigned int rgbaNum;  /* logical size of rgba */
-  float *norm;           /* if non-NULL, normNum (x,y,z) unit normals */
-  unsigned int normNum;  /* logical size of norm */
-  float *tex2;           /* if non-NULL, tex2Num (s,t) 2D texture coords */
-  unsigned int tex2Num;  /* logical size of tex2 */
-  float *tang;           /* if non-NULL, tangNum unit surface tangents */
-  unsigned int tangNum;  /* logical size of tang */
+  float *xyzw;          /* (always allocated) xyzwNum position 4-tuples */
+  unsigned int xyzwNum; /* logical size of xyzw */
+  unsigned char *rgba;  /* if non-NULL, rgbaNum RGBA color 4-tuples */
+  unsigned int rgbaNum; /* logical size of rgba */
+  float *norm;          /* if non-NULL, normNum (x,y,z) unit normals */
+  unsigned int normNum; /* logical size of norm */
+  float *tex2;          /* if non-NULL, tex2Num (s,t) 2D texture coords */
+  unsigned int tex2Num; /* logical size of tex2 */
+  float *tang;          /* if non-NULL, tangNum unit surface tangents */
+  unsigned int tangNum; /* logical size of tang */
 
-  unsigned int indxNum;  /* there are indxNum vertex indices in indx[] */
-  unsigned int *indx;    /* all indices (into above arrays) for all primitives,
-                            concatenated together into one array */
+  unsigned int indxNum; /* there are indxNum vertex indices in indx[] */
+  unsigned int *indx;   /* all indices (into above arrays) for all primitives,
+                           concatenated together into one array */
 
-  unsigned int primNum;  /* there are primNum primitives (e.g. tristrips) */
-  unsigned char *type;   /* prim ii is a type[ii] (limnPrimitive* enum) */
-  unsigned int *icnt;    /* prim ii has icnt[ii] vertex indices */
+  unsigned int primNum; /* there are primNum primitives (e.g. tristrips) */
+  unsigned char *type;  /* prim ii is a type[ii] (limnPrimitive* enum) */
+  unsigned int *icnt;   /* prim ii has icnt[ii] vertex indices */
 } limnPolyData;
 
 /*
@@ -425,26 +428,26 @@ typedef struct {
 ** the different quantized normal schemes currently supported
 */
 enum {
-  limnQNUnknown,     /*  0 */
-  limnQN16simple,    /*  1 */
-  limnQN16border1,   /*  2 */
-  limnQN16checker,   /*  3 */
-  limnQN16octa,      /*  4 */
-  limnQN15octa,      /*  5 */
-  limnQN14checker,   /*  6 */
-  limnQN14octa,      /*  7 */
-  limnQN13octa,      /*  8 */
-  limnQN12checker,   /*  9 */
-  limnQN12octa,      /* 10 */
-  limnQN11octa,      /* 11 */
-  limnQN10checker,   /* 12 */
-  limnQN10octa,      /* 13 */
-  limnQN9octa,       /* 14 */
-  limnQN8checker,    /* 15 */
-  limnQN8octa,       /* 16 */
+  limnQNUnknown,   /*  0 */
+  limnQN16simple,  /*  1 */
+  limnQN16border1, /*  2 */
+  limnQN16checker, /*  3 */
+  limnQN16octa,    /*  4 */
+  limnQN15octa,    /*  5 */
+  limnQN14checker, /*  6 */
+  limnQN14octa,    /*  7 */
+  limnQN13octa,    /*  8 */
+  limnQN12checker, /*  9 */
+  limnQN12octa,    /* 10 */
+  limnQN11octa,    /* 11 */
+  limnQN10checker, /* 12 */
+  limnQN10octa,    /* 13 */
+  limnQN9octa,     /* 14 */
+  limnQN8checker,  /* 15 */
+  limnQN8octa,     /* 16 */
   limnQNLast
 };
-#define LIMN_QN_MAX     16
+#define LIMN_QN_MAX 16
 
 enum {
   limnSplineTypeUnknown,     /* 0 */
@@ -455,7 +458,7 @@ enum {
   limnSplineTypeBC,          /* 5 */
   limnSplineTypeLast
 };
-#define LIMN_SPLINE_TYPE_MAX    5
+#define LIMN_SPLINE_TYPE_MAX 5
 
 enum {
   limnSplineInfoUnknown,    /* 0 */
@@ -467,7 +470,7 @@ enum {
   limnSplineInfoQuaternion, /* 6 */
   limnSplineInfoLast
 };
-#define LIMN_SPLINE_INFO_MAX   6
+#define LIMN_SPLINE_INFO_MAX 6
 
 enum {
   limnCameraPathTrackUnknown, /* 0 */
@@ -497,18 +500,18 @@ enum {
 ** and it will is deleted with limnSplineNix.
 */
 typedef struct limnSpline_t {
-  int type,          /* from limnSplineType* enum */
-    info,            /* from limnSplineInfo* enum */
-    loop;            /* the last (implicit) control point is the first */
-  double B, C;       /* B,C values for BC-splines */
-  Nrrd *ncpt;        /* the control point info, ALWAYS a 3-D nrrd */
-  double *time;      /* ascending times for non-uniform control points.
-                        Currently, only used for limnSplineTypeTimeWarp */
+  int type,     /* from limnSplineType* enum */
+    info,       /* from limnSplineInfo* enum */
+    loop;       /* the last (implicit) control point is the first */
+  double B, C;  /* B,C values for BC-splines */
+  Nrrd *ncpt;   /* the control point info, ALWAYS a 3-D nrrd */
+  double *time; /* ascending times for non-uniform control points.
+                   Currently, only used for limnSplineTypeTimeWarp */
 } limnSpline;
 
 typedef struct limnSplineTypeSpec_t {
-  int type;          /* from limnSplineType* enum */
-  double B, C;       /* B,C values for BC-splines */
+  int type;    /* from limnSplineType* enum */
+  double B, C; /* B,C values for BC-splines */
 } limnSplineTypeSpec;
 
 /*
@@ -531,10 +534,10 @@ typedef struct {
 ** a multi-segment path in the context of cubic Bezier fitting
 */
 typedef struct {
-  limnCBFSeg *seg;      /* array of limnCBFSeg */
-  unsigned int segNum;  /* length of seg array */
-  airArray *segArr;     /* manages seg and segNum */
-  int isLoop;           /* path is closed loop */
+  limnCBFSeg *seg;     /* array of limnCBFSeg */
+  unsigned int segNum; /* length of seg array */
+  airArray *segArr;    /* manages seg and segNum */
+  int isLoop;          /* path is closed loop */
 } limnCBFPath;
 
 /*
@@ -551,49 +554,49 @@ typedef struct {
 */
 typedef struct {
   /* ----------- input ---------- */
-  int verbose,              /* verbosity level */
-    cornNMS;                /* non-minimal-suppression of corners: accept as
-                               corners only those with locally minimal angle */
-  unsigned int nrpIterMax;  /* max # iters of nrp */
-  double scale,             /* scale (in sense of nrrdKernelDiscreteGaussian)
-                               at which to estimate spline endpoints and
-                               tangents; scale=0 means the endpoints are
-                               exactly on vertices, and tangents are from
-                               the smallest-support finite differences */
-    distMin,                /* min distance to given points: this controls
-                               both splitting done by limnCBFMulti, and nrp
-                               within limnCBFSingle */
-    nrpDeltaMax,            /* in nrp, capping parameterization change to this
-                               scaling of average u[i+1]-u[i]. This wasn't in
-                               author's original code (so their idea of doing
-                               at most ~5 iters of nrp may no longer hold), but
-                               it can help stabilize things */
-    nrpDistScl,             /* scaling on distMin to use when testing distance
-                               during nrp; setting this < 1 means that nrp
-                               tries to be more stringent that the overall
-                               fitting, but with the benefit of sometimes
-                               being smarter about where to split, when that
-                               is needed */
-    nrpPsi,                 /* don't even try nrp if max dist is bigger than
-                               nrpPsi*distMin, instead just subdivide */
-    nrpDeltaMin,            /* min total parameterization change by nrp */
-    alphaMin,               /* alpha can't be negative, and we enforce
-                               distinct positivity to ensure that spline
-                               doesn't slow down too much near endpoints */
-    detMin,                 /* absolute value of determinant of 2x2 matrix
-                               to invert can't below this */
-    cornAngle;              /* angle, in degrees, between (one-sided) incoming
-                               and outgoing tangents, *below* which a vertex
-                               should be considered a corner. Vertices in a
-                               straight line have an angle of 180 degrees. Or,
-                               if 0, no effort is made to detect corners. */
+  int verbose,             /* verbosity level */
+    cornNMS;               /* non-minimal-suppression of corners: accept as
+                              corners only those with locally minimal angle */
+  unsigned int nrpIterMax; /* max # iters of nrp */
+  double scale,            /* scale (in sense of nrrdKernelDiscreteGaussian)
+                              at which to estimate spline endpoints and
+                              tangents; scale=0 means the endpoints are
+                              exactly on vertices, and tangents are from
+                              the smallest-support finite differences */
+    distMin,               /* min distance to given points: this controls
+                              both splitting done by limnCBFMulti, and nrp
+                              within limnCBFSingle */
+    nrpDeltaMax,           /* in nrp, capping parameterization change to this
+                              scaling of average u[i+1]-u[i]. This wasn't in
+                              author's original code (so their idea of doing
+                              at most ~5 iters of nrp may no longer hold), but
+                              it can help stabilize things */
+    nrpDistScl,            /* scaling on distMin to use when testing distance
+                              during nrp; setting this < 1 means that nrp
+                              tries to be more stringent that the overall
+                              fitting, but with the benefit of sometimes
+                              being smarter about where to split, when that
+                              is needed */
+    nrpPsi,                /* don't even try nrp if max dist is bigger than
+                              nrpPsi*distMin, instead just subdivide */
+    nrpDeltaMin,           /* min total parameterization change by nrp */
+    alphaMin,              /* alpha can't be negative, and we enforce
+                              distinct positivity to ensure that spline
+                              doesn't slow down too much near endpoints */
+    detMin,                /* absolute value of determinant of 2x2 matrix
+                              to invert can't below this */
+    cornAngle;             /* angle, in degrees, between (one-sided) incoming
+                              and outgoing tangents, *below* which a vertex
+                              should be considered a corner. Vertices in a
+                              straight line have an angle of 180 degrees. Or,
+                              if 0, no effort is made to detect corners. */
   /* ----------- internal --------- */
-  double *uu,               /* buffer used for nrp */
-    *vw,                    /* weights for endpoint vertex calculation */
-    *tw,                    /* weights for endpoint tangent calculation */
-    *mine;                  /* helps remember who allocated the above */
-  unsigned int wLen;        /* how long are vw, tw */
-  double lenF2L;            /* length of segment from first to last */
+  double *uu,        /* buffer used for nrp */
+    *vw,             /* weights for endpoint vertex calculation */
+    *tw,             /* weights for endpoint tangent calculation */
+    *mine;           /* helps remember who allocated the above */
+  unsigned int wLen; /* how long are vw, tw */
+  double lenF2L;     /* length of segment from first to last */
   /* ----------- output --------- */
   unsigned int nrpIterDone, /* number of nrp iters taken */
     distIdx;                /* which point had distance distDone */
@@ -622,12 +625,12 @@ typedef struct {
 ** 3D), but if this becomes more general, that generality will be inside here
 */
 typedef struct {
-  const double *pp;         /* point coords, we do not own buffer */
-  double *ppOwn;            /* point coords, we DO own buffer */
-  unsigned int num;         /* how many points */
-  int isLoop;               /* points form a loop: logical indices into coord
-                               array are . . . num-2, num-1, 0, 1, . . .
-                               and index 0 is effectively arbitrary */
+  const double *pp; /* point coords, we do not own buffer */
+  double *ppOwn;    /* point coords, we DO own buffer */
+  unsigned int num; /* how many points */
+  int isLoop;       /* points form a loop: logical indices into coord
+                       array are . . . num-2, num-1, 0, 1, . . .
+                       and index 0 is effectively arbitrary */
 } limnPoints;
 
 /* defaultsLimn.c */
@@ -644,27 +647,24 @@ LIMN_EXPORT const airEnum *const limnCameraPathTrack;
 LIMN_EXPORT const airEnum *const limnPrimitive;
 
 /* qn.c */
-LIMN_EXPORT unsigned int limnQNBins[LIMN_QN_MAX+1];
-LIMN_EXPORT void (*limnQNtoV_f[LIMN_QN_MAX+1])(float *vec, unsigned int qn);
-LIMN_EXPORT void (*limnQNtoV_d[LIMN_QN_MAX+1])(double *vec, unsigned int qn);
-LIMN_EXPORT unsigned int (*limnVtoQN_f[LIMN_QN_MAX+1])(const float *vec);
-LIMN_EXPORT unsigned int (*limnVtoQN_d[LIMN_QN_MAX+1])(const double *vec);
+LIMN_EXPORT unsigned int limnQNBins[LIMN_QN_MAX + 1];
+LIMN_EXPORT void (*limnQNtoV_f[LIMN_QN_MAX + 1])(float *vec, unsigned int qn);
+LIMN_EXPORT void (*limnQNtoV_d[LIMN_QN_MAX + 1])(double *vec, unsigned int qn);
+LIMN_EXPORT unsigned int (*limnVtoQN_f[LIMN_QN_MAX + 1])(const float *vec);
+LIMN_EXPORT unsigned int (*limnVtoQN_d[LIMN_QN_MAX + 1])(const double *vec);
 LIMN_EXPORT int limnQNDemo(Nrrd *nqn, unsigned int reso, int qni);
 
 /* light.c */
-LIMN_EXPORT void limnLightSet(limnLight *lit, int which, int vsp,
-                              float r, float g, float b,
-                              float x, float y, float z);
-LIMN_EXPORT void limnLightAmbientSet(limnLight *lit,
-                                     float r, float g, float b);
+LIMN_EXPORT void limnLightSet(limnLight *lit, int which, int vsp, float r, float g,
+                              float b, float x, float y, float z);
+LIMN_EXPORT void limnLightAmbientSet(limnLight *lit, float r, float g, float b);
 LIMN_EXPORT void limnLightSwitch(limnLight *lit, int which, int on);
 LIMN_EXPORT void limnLightReset(limnLight *lit);
 LIMN_EXPORT int limnLightUpdate(limnLight *lit, limnCamera *cam);
 
 /* envmap.c */
 typedef void (*limnEnvMapCB)(float rgb[3], float vec[3], void *data);
-LIMN_EXPORT int limnEnvMapFill(Nrrd *envMap, limnEnvMapCB cb,
-                               int qnMethod, void *data);
+LIMN_EXPORT int limnEnvMapFill(Nrrd *envMap, limnEnvMapCB cb, int qnMethod, void *data);
 LIMN_EXPORT void limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit);
 LIMN_EXPORT int limnEnvMapCheck(Nrrd *envMap);
 
@@ -686,13 +686,11 @@ LIMN_EXPORT void limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam,
                                       const char *fvDef);
 
 /* cam.c */
-LIMN_EXPORT int limnCameraAspectSet(limnCamera *cam,
-                                    unsigned int horz, unsigned int vert,
-                                    int centering);
+LIMN_EXPORT int limnCameraAspectSet(limnCamera *cam, unsigned int horz,
+                                    unsigned int vert, int centering);
 LIMN_EXPORT int limnCameraUpdate(limnCamera *cam);
-LIMN_EXPORT int limnCameraPathMake(limnCamera *cam, int numFrames,
-                                   limnCamera *keycam, double *time,
-                                   int numKeys, int trackFrom,
+LIMN_EXPORT int limnCameraPathMake(limnCamera *cam, int numFrames, limnCamera *keycam,
+                                   double *time, int numKeys, int trackFrom,
                                    limnSplineTypeSpec *quatType,
                                    limnSplineTypeSpec *posType,
                                    limnSplineTypeSpec *distType,
@@ -713,9 +711,8 @@ LIMN_EXPORT int limnObjectPartAdd(limnObject *obj);
 LIMN_EXPORT int limnObjectVertexNumPreSet(limnObject *obj,
                                           unsigned int partIdx,
                                           unsigned int vertNum);
-LIMN_EXPORT int limnObjectVertexAdd(limnObject *obj,
-                                    unsigned int partIdx,
-                                    float x, float y, float z);
+LIMN_EXPORT int limnObjectVertexAdd(limnObject *obj, unsigned int partIdx, float x,
+                                    float y, float z);
 LIMN_EXPORT int limnObjectEdgeAdd(limnObject *obj,
                                   unsigned int partIdx,
                                   unsigned int lookIdx,
@@ -744,23 +741,19 @@ LIMN_EXPORT size_t limnPolyDataSize(const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA);
 LIMN_EXPORT int limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA,
                                   unsigned int num);
-LIMN_EXPORT void limnPolyDataTransform_f(limnPolyData *pld,
-                                         const float homat[16]);
-LIMN_EXPORT void limnPolyDataTransform_d(limnPolyData *pld,
-                                         const double homat[16]);
+LIMN_EXPORT void limnPolyDataTransform_f(limnPolyData *pld, const float homat[16]);
+LIMN_EXPORT void limnPolyDataTransform_d(limnPolyData *pld, const double homat[16]);
 LIMN_EXPORT unsigned int limnPolyDataPolygonNumber(const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataVertexNormals(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataVertexNormalsNO(limnPolyData *pld);
 LIMN_EXPORT unsigned int limnPolyDataPrimitiveTypes(const limnPolyData *pld);
-LIMN_EXPORT int limnPolyDataPrimitiveVertexNumber(Nrrd *nout,
-                                                  limnPolyData *pld);
+LIMN_EXPORT int limnPolyDataPrimitiveVertexNumber(Nrrd *nout, limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld);
-LIMN_EXPORT int limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld,
-                                      double min[3], double max[3],
-                                      size_t size[3], int type);
-LIMN_EXPORT void limnPolyDataColorSet(limnPolyData *pld,
-                                      unsigned char RR, unsigned char GG,
-                                      unsigned char BB, unsigned char AA);
+LIMN_EXPORT int limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld, double min[3],
+                                      double max[3], size_t size[3], int type);
+LIMN_EXPORT void limnPolyDataColorSet(limnPolyData *pld, unsigned char RR,
+                                      unsigned char GG, unsigned char BB,
+                                      unsigned char AA);
 
 /* polyshapes.c */
 LIMN_EXPORT int limnPolyDataCube(limnPolyData *pld,
@@ -772,27 +765,21 @@ LIMN_EXPORT int limnPolyDataCubeTriangles(limnPolyData *pld,
 LIMN_EXPORT int limnPolyDataOctahedron(limnPolyData *pld,
                                        unsigned int infoBitFlag,
                                        int sharpEdge);
-LIMN_EXPORT int limnPolyDataCone(limnPolyData *pld,
-                                 unsigned int infoBitFlag,
+LIMN_EXPORT int limnPolyDataCone(limnPolyData *pld, unsigned int infoBitFlag,
                                  unsigned int res, int sharpEdge);
-LIMN_EXPORT int limnPolyDataCylinder(limnPolyData *pld,
-                                     unsigned int infoBitFlag,
+LIMN_EXPORT int limnPolyDataCylinder(limnPolyData *pld, unsigned int infoBitFlag,
                                      unsigned int res, int sharpEdge);
-LIMN_EXPORT int limnPolyDataSuperquadric(limnPolyData *pld,
-                                         unsigned int infoBitFlag,
-                                         float A, float B,
-                                         unsigned int thetaRes,
+LIMN_EXPORT int limnPolyDataSuperquadric(limnPolyData *pld, unsigned int infoBitFlag,
+                                         float A, float B, unsigned int thetaRes,
                                          unsigned int phiRes);
 LIMN_EXPORT int limnPolyDataSpiralBetterquadric(limnPolyData *pld,
-                                                unsigned int infoBitFlag,
-                                                float alpha, float beta,
-                                                float cee, float minRad,
+                                                unsigned int infoBitFlag, float alpha,
+                                                float beta, float cee, float minRad,
                                                 unsigned int thetaRes,
                                                 unsigned int phiRes);
 LIMN_EXPORT int limnPolyDataSpiralSuperquadric(limnPolyData *pld,
-                                               unsigned int infoBitFlag,
-                                               float A, float B,
-                                               unsigned int thetaRes,
+                                               unsigned int infoBitFlag, float A,
+                                               float B, unsigned int thetaRes,
                                                unsigned int phiRes);
 LIMN_EXPORT int limnPolyDataPolarSphere(limnPolyData *pld,
                                         unsigned int infoBitFlag,
@@ -805,26 +792,19 @@ LIMN_EXPORT int limnPolyDataSpiralSphere(limnPolyData *pld,
 LIMN_EXPORT int limnPolyDataIcoSphere(limnPolyData *pld,
                                       unsigned int infoBitFlag,
                                       unsigned int level);
-LIMN_EXPORT int limnPolyDataPlane(limnPolyData *pld,
-                                  unsigned int infoBitFlag,
+LIMN_EXPORT int limnPolyDataPlane(limnPolyData *pld, unsigned int infoBitFlag,
                                   unsigned int uRes, unsigned int vRes);
-LIMN_EXPORT int limnPolyDataSquare(limnPolyData *pld,
-                                   unsigned int infoBitFlag);
-LIMN_EXPORT int limnPolyDataSuperquadric2D(limnPolyData *pld,
-                                           unsigned int infoBitFlag,
+LIMN_EXPORT int limnPolyDataSquare(limnPolyData *pld, unsigned int infoBitFlag);
+LIMN_EXPORT int limnPolyDataSuperquadric2D(limnPolyData *pld, unsigned int infoBitFlag,
                                            float alpha, unsigned int res);
 
 /* polymod.c */
-LIMN_EXPORT int limnPolyDataEdgeHalve(limnPolyData *pldOut,
-                                      const limnPolyData *pldIn);
-LIMN_EXPORT int limnPolyDataVertexWindingFix(limnPolyData *pld,
-                                             int allowSplitting);
+LIMN_EXPORT int limnPolyDataEdgeHalve(limnPolyData *pldOut, const limnPolyData *pldIn);
+LIMN_EXPORT int limnPolyDataVertexWindingFix(limnPolyData *pld, int allowSplitting);
 LIMN_EXPORT int limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh);
-LIMN_EXPORT int limnPolyDataClipMulti(limnPolyData *pld, Nrrd *nval,
-                                      double *thresh);
+LIMN_EXPORT int limnPolyDataClipMulti(limnPolyData *pld, Nrrd *nval, double *thresh);
 LIMN_EXPORT limnPolyData *limnPolyDataCompress(const limnPolyData *pld);
-LIMN_EXPORT limnPolyData *limnPolyDataJoin(const limnPolyData **plds,
-                                           unsigned int num);
+LIMN_EXPORT limnPolyData *limnPolyDataJoin(const limnPolyData **plds, unsigned int num);
 LIMN_EXPORT int limnPolyDataVertexWindingFlip(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataCCFind(limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *nval);
@@ -832,8 +812,7 @@ LIMN_EXPORT int limnPolyDataPrimitiveSelect(limnPolyData *pldOut,
                                             const limnPolyData *pldIn,
                                             const Nrrd *nmask);
 LIMN_EXPORT int limnPolyDataNeighborList(unsigned int **nblist, size_t *len,
-                                         unsigned int *maxnb,
-                                         const limnPolyData *pld);
+                                         unsigned int *maxnb, const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataNeighborArray(int **neighbors, unsigned int *maxnb,
                                           const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataNeighborArrayComp(int **neighbors, int **idx,
@@ -847,9 +826,8 @@ LIMN_EXPORT int limnPolyDataSpiralTubeWrap(limnPolyData *pldOut,
                                            unsigned int tubeFacet,
                                            unsigned int endFacet,
                                            double radius);
-LIMN_EXPORT int limnPolyDataSmoothHC(limnPolyData *pld, int *neighbors,
-                                     int *idx, double alpha, double beta,
-                                     int iter);
+LIMN_EXPORT int limnPolyDataSmoothHC(limnPolyData *pld, int *neighbors, int *idx,
+                                     double alpha, double beta, int iter);
 /* io.c */
 LIMN_EXPORT int limnObjectDescribe(FILE *file, const limnObject *obj);
 LIMN_EXPORT int limnObjectReadOFF(limnObject *obj, FILE *file);
@@ -869,23 +847,16 @@ LIMN_EXPORT int limnObjectSquareAdd(limnObject *obj, unsigned int lookIdx);
 LIMN_EXPORT int limnObjectCylinderAdd(limnObject *obj, unsigned int lookIdx,
                                       unsigned int axis, unsigned int res);
 LIMN_EXPORT int limnObjectPolarSphereAdd(limnObject *obj, unsigned int lookIdx,
-                                         unsigned int axis,
-                                         unsigned int thetaRes,
+                                         unsigned int axis, unsigned int thetaRes,
                                          unsigned int phiRes);
 LIMN_EXPORT int limnObjectConeAdd(limnObject *obj, unsigned int lookIdx,
                                   unsigned int axis, unsigned int res);
-LIMN_EXPORT int limnObjectPolarSuperquadAdd(limnObject *obj,
-                                            unsigned int lookIdx,
-                                            unsigned int axis,
-                                            float A, float B,
-                                            unsigned int thetaRes,
-                                            unsigned int phiRes);
-LIMN_EXPORT int limnObjectPolarSuperquadFancyAdd(limnObject *obj,
-                                                 unsigned int lookIdx,
-                                                 unsigned int axis,
-                                                 float A, float B,
-                                                 float C, float R,
-                                                 unsigned int thetaRes,
+LIMN_EXPORT int limnObjectPolarSuperquadAdd(limnObject *obj, unsigned int lookIdx,
+                                            unsigned int axis, float A, float B,
+                                            unsigned int thetaRes, unsigned int phiRes);
+LIMN_EXPORT int limnObjectPolarSuperquadFancyAdd(limnObject *obj, unsigned int lookIdx,
+                                                 unsigned int axis, float A, float B,
+                                                 float C, float R, unsigned int thetaRes,
                                                  unsigned int phiRes);
 
 /* transform.c */
@@ -901,22 +872,18 @@ LIMN_EXPORT int limnObjectDepthSortFaces(limnObject *obj);
 LIMN_EXPORT int limnObjectFaceReverse(limnObject *obj);
 
 /* renderLimn.c */
-LIMN_EXPORT int limnObjectRender(limnObject *obj, limnCamera *cam,
+LIMN_EXPORT int limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win);
+LIMN_EXPORT int limnObjectPSDraw(limnObject *obj, limnCamera *cam, Nrrd *envMap,
                                  limnWindow *win);
-LIMN_EXPORT int limnObjectPSDraw(limnObject *obj, limnCamera *cam,
-                                 Nrrd *envMap, limnWindow *win);
-LIMN_EXPORT int limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam,
-                                        Nrrd *envMap, limnWindow *win);
+LIMN_EXPORT int limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam, Nrrd *envMap,
+                                        limnWindow *win);
 
 /* splineMethods.c */
 LIMN_EXPORT limnSplineTypeSpec *limnSplineTypeSpecNew(int type, ...);
-LIMN_EXPORT limnSplineTypeSpec *
-  limnSplineTypeSpecNix(limnSplineTypeSpec *spec);
-LIMN_EXPORT limnSpline *limnSplineNew(Nrrd *ncpt, int info,
-                                      limnSplineTypeSpec *spec);
+LIMN_EXPORT limnSplineTypeSpec *limnSplineTypeSpecNix(limnSplineTypeSpec *spec);
+LIMN_EXPORT limnSpline *limnSplineNew(Nrrd *ncpt, int info, limnSplineTypeSpec *spec);
 LIMN_EXPORT limnSpline *limnSplineNix(limnSpline *spline);
-LIMN_EXPORT int limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin,
-                                        int info, int type);
+LIMN_EXPORT int limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type);
 LIMN_EXPORT limnSpline *limnSplineCleverNew(Nrrd *ncpt, int info,
                                             limnSplineTypeSpec *spec);
 LIMN_EXPORT int limnSplineUpdate(limnSpline *spline, Nrrd *ncpt);
@@ -928,24 +895,21 @@ LIMN_EXPORT limnSpline *limnSplineParse(const char *str);
 LIMN_EXPORT limnSplineTypeSpec *limnSplineTypeSpecParse(const char *str);
 LIMN_EXPORT hestCB *limnHestSpline;
 LIMN_EXPORT hestCB *limnHestSplineTypeSpec;
-LIMN_EXPORT unsigned int limnSplineInfoSize[LIMN_SPLINE_INFO_MAX+1];
-LIMN_EXPORT int limnSplineTypeHasImplicitTangents[LIMN_SPLINE_TYPE_MAX+1];
+LIMN_EXPORT unsigned int limnSplineInfoSize[LIMN_SPLINE_INFO_MAX + 1];
+LIMN_EXPORT int limnSplineTypeHasImplicitTangents[LIMN_SPLINE_TYPE_MAX + 1];
 LIMN_EXPORT int limnSplineNumPoints(limnSpline *spline);
 LIMN_EXPORT double limnSplineMinT(limnSpline *spline);
 LIMN_EXPORT double limnSplineMaxT(limnSpline *spline);
 LIMN_EXPORT void limnSplineBCSet(limnSpline *spline, double B, double C);
 
 /* splineEval.c */
-LIMN_EXPORT void limnSplineEvaluate(double *out,
-                                    limnSpline *spline, double time);
-LIMN_EXPORT int limnSplineNrrdEvaluate(Nrrd *nout,
-                                       limnSpline *spline, Nrrd *nin);
-LIMN_EXPORT int limnSplineSample(Nrrd *nout, limnSpline *spline,
-                                 double minT, size_t M, double maxT);
+LIMN_EXPORT void limnSplineEvaluate(double *out, limnSpline *spline, double time);
+LIMN_EXPORT int limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin);
+LIMN_EXPORT int limnSplineSample(Nrrd *nout, limnSpline *spline, double minT, size_t M,
+                                 double maxT);
 
 /* splineFit.c */
-LIMN_EXPORT limnPoints *limnPointsNew(const double *pp,
-                                      unsigned int nn, int isLoop);
+LIMN_EXPORT limnPoints *limnPointsNew(const double *pp, unsigned int nn, int isLoop);
 LIMN_EXPORT limnPoints *limnPointsNix(limnPoints *lpnt);
 LIMN_EXPORT void limnCBFSegEval(double *xy, const limnCBFSeg *seg, double tt);
 LIMN_EXPORT limnCBFPath *limnCBFPathNew(void);
@@ -953,38 +917,35 @@ LIMN_EXPORT limnCBFPath *limnCBFPathNix(limnCBFPath *path);
 LIMN_EXPORT void limnCBFPathSample(double *xy, unsigned int pNum,
                                    const limnCBFPath *path);
 LIMN_EXPORT void limnCBFContextInit(limnCBFContext *fctx, int outputOnly);
-LIMN_EXPORT int limnCBFCheck(const limnCBFContext *fctx,
-                             const limnPoints *lpnt);
+LIMN_EXPORT int limnCBFCheck(const limnCBFContext *fctx, const limnPoints *lpnt);
 LIMN_EXPORT int limnCBFitSingle(double alpha[2], limnCBFContext *fctx,
                                 const double vv0[2], const double tt1[2],
                                 const double tt2[2], const double vv3[2],
-                                const double *xy,
-                                unsigned int pNum, int isLoop);
+                                const double *xy, unsigned int pNum, int isLoop);
 LIMN_EXPORT int limnCBFMulti(limnCBFPath *path, limnCBFContext *fctx,
                              const double vv0[2], const double tt1[2],
                              const double tt2[2], const double vv3[2],
-                             const limnPoints *lpnt,
-                             unsigned int loi, unsigned int hii);
+                             const limnPoints *lpnt, unsigned int loi, unsigned int hii);
 LIMN_EXPORT int limnCBFCorners(unsigned int **cornIdx, unsigned int *cornNum,
                                limnCBFContext *fctx, const limnPoints *lpnt);
-LIMN_EXPORT int limnCBFit(limnCBFPath *path, limnCBFContext *fctx,
-                          const double *xy, unsigned int pNum, int isLoop);
+LIMN_EXPORT int limnCBFit(limnCBFPath *path, limnCBFContext *fctx, const double *xy,
+                          unsigned int pNum, int isLoop);
 
 /* lpu{Flotsam,. . .}.c */
 #define LIMN_DECLARE(C) LIMN_EXPORT unrrduCmd limnpu_##C##Cmd;
-#define LIMN_LIST(C) &limnpu_##C##Cmd,
+#define LIMN_LIST(C)    &limnpu_##C##Cmd,
 /* F(clip) \ */
 /* F(vwflip) \ */
 /* F(vwfix) */
-#define LIMN_MAP(F) \
-F(about) \
-F(ccfind) \
-F(psel) \
-F(rast) \
-F(verts) \
-F(meas) \
-F(sort) \
-F(cbfit)
+#define LIMN_MAP(F)                                                                     \
+  F(about)                                                                              \
+  F(ccfind)                                                                             \
+  F(psel)                                                                               \
+  F(rast)                                                                               \
+  F(verts)                                                                              \
+  F(meas)                                                                               \
+  F(sort)                                                                               \
+  F(cbfit)
 LIMN_MAP(LIMN_DECLARE)
 LIMN_EXPORT unrrduCmd *limnpuCmdList[];
 LIMN_EXPORT void limnpuUsage(const char *me, hestParm *hparm);

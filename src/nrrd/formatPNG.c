@@ -26,7 +26,7 @@
 
 #include <teemPng.h>
 #if TEEM_PNG
-#include <png.h>
+#  include <png.h>
 #endif
 
 #define MAGIC "\211PNG"
@@ -48,31 +48,28 @@ _nrrdFormatPNG_nameLooksLike(const char *filename) {
 }
 
 static int
-_nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
-                        int useBiff) {
-  static const char me[]="_nrrdFormatPNG_fitsInto";
+_nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding, int useBiff) {
+  static const char me[] = "_nrrdFormatPNG_fitsInto";
 
-#if !TEEM_PNG  /* ------------------------------------------- */
+#if !TEEM_PNG /* ------------------------------------------- */
 
   AIR_UNUSED(nrrd);
   AIR_UNUSED(encoding);
-  biffMaybeAddf(useBiff, NRRD,
-                "%s: %s format not available in this Teem build",
-                me, nrrdFormatPNG->name);
+  biffMaybeAddf(useBiff, NRRD, "%s: %s format not available in this Teem build", me,
+                nrrdFormatPNG->name);
   return AIR_FALSE;
 
-#else  /* ------------------------------------------- */
+#else /* ------------------------------------------- */
 
   int ret;
 
-  if (!( nrrd && encoding )) {
-    biffMaybeAddf(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)",
-                  me, AIR_CVOIDP(nrrd), AIR_CVOIDP(encoding));
+  if (!(nrrd && encoding)) {
+    biffMaybeAddf(useBiff, NRRD, "%s: got NULL nrrd (%p) or encoding (%p)", me,
+                  AIR_CVOIDP(nrrd), AIR_CVOIDP(encoding));
     return AIR_FALSE;
   }
-  if (!( nrrdTypeUChar == nrrd->type || nrrdTypeUShort == nrrd->type )) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: type must be %s or %s (not %s)", me,
+  if (!(nrrdTypeUChar == nrrd->type || nrrdTypeUShort == nrrd->type)) {
+    biffMaybeAddf(useBiff, NRRD, "%s: type must be %s or %s (not %s)", me,
                   airEnumStr(nrrdType, nrrdTypeUChar),
                   airEnumStr(nrrdType, nrrdTypeUShort),
                   airEnumStr(nrrdType, nrrd->type));
@@ -84,26 +81,22 @@ _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
     /* its a gray-scale image */
     ret = AIR_TRUE;
   } else if (3 == nrrd->dim) {
-    if (!( 1 == nrrd->axis[0].size
-           || 2 == nrrd->axis[0].size
-           || 3 == nrrd->axis[0].size
-           || 4 == nrrd->axis[0].size )) {
+    if (!(1 == nrrd->axis[0].size || 2 == nrrd->axis[0].size || 3 == nrrd->axis[0].size
+          || 4 == nrrd->axis[0].size)) {
       char stmp[AIR_STRLEN_SMALL];
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: 1st axis size is %s, not 1, 2, 3, or 4", me,
+      biffMaybeAddf(useBiff, NRRD, "%s: 1st axis size is %s, not 1, 2, 3, or 4", me,
                     airSprintSize_t(stmp, nrrd->axis[0].size));
       return AIR_FALSE;
     }
     /* else */
     ret = AIR_TRUE;
   } else {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: dimension is %d, not 2 or 3", me, nrrd->dim);
+    biffMaybeAddf(useBiff, NRRD, "%s: dimension is %d, not 2 or 3", me, nrrd->dim);
     return AIR_FALSE;
   }
   return ret;
 
-#endif   /* ------------------------------------------- */
+#endif /* ------------------------------------------- */
 }
 
 static int
@@ -114,9 +107,8 @@ _nrrdFormatPNG_contentStartsLike(NrrdIoState *nio) {
 
 #if TEEM_PNG
 static void
-_nrrdErrorHandlerPNG (png_structp png, png_const_charp message)
-{
-  static const char me[]="_nrrdErrorHandlerPNG";
+_nrrdErrorHandlerPNG(png_structp png, png_const_charp message) {
+  static const char me[] = "_nrrdErrorHandlerPNG";
   /* add PNG error message to biff */
   biffAddf(NRRD, "%s: PNG error: %s", me, message);
   /* longjmp back to the setjmp, return 1 */
@@ -124,9 +116,8 @@ _nrrdErrorHandlerPNG (png_structp png, png_const_charp message)
 }
 
 static void
-_nrrdWarningHandlerPNG (png_structp png, png_const_charp message)
-{
-  static const char me[]="_nrrdWarningHandlerPNG";
+_nrrdWarningHandlerPNG(png_structp png, png_const_charp message) {
+  static const char me[] = "_nrrdWarningHandlerPNG";
   AIR_UNUSED(png);
   /* add the png warning message to biff */
   biffAddf(NRRD, "%s: PNG warning: %s", me, message);
@@ -135,40 +126,37 @@ _nrrdWarningHandlerPNG (png_structp png, png_const_charp message)
 
 /* we need to use the file I/O callbacks on windows
    to make sure we can mix VC6 libpng with VC7 Teem */
-#ifdef _WIN32
+#  ifdef _WIN32
 static void
-_nrrdReadDataPNG (png_structp png, png_bytep data, png_size_t len)
-{
+_nrrdReadDataPNG(png_structp png, png_bytep data, png_size_t len) {
   png_size_t read;
-  read = (png_size_t)fread(data, (png_size_t)1, len, (FILE*)png_get_io_ptr(png));
+  read = (png_size_t)fread(data, (png_size_t)1, len, (FILE *)png_get_io_ptr(png));
   if (read != len) png_error(png, "file read error");
 }
 static void
-_nrrdWriteDataPNG (png_structp png, png_bytep data, png_size_t len)
-{
+_nrrdWriteDataPNG(png_structp png, png_bytep data, png_size_t len) {
   png_size_t written;
-  written = fwrite(data, 1, len, (FILE*)png_get_io_ptr(png));
+  written = fwrite(data, 1, len, (FILE *)png_get_io_ptr(png));
   if (written != len) png_error(png, "file write error");
 }
 
 static void
-_nrrdFlushDataPNG (png_structp png)
-{
+_nrrdFlushDataPNG(png_structp png) {
   FILE *io_ptr = png_get_io_ptr(png);
   if (io_ptr != NULL) fflush(io_ptr);
 }
-#endif /* _WIN32 */
-#endif /* TEEM_PNG */
+#  endif /* _WIN32 */
+#endif   /* TEEM_PNG */
 
 static int
 _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
-  static const char me[]="_nrrdFormatPNG_read";
+  static const char me[] = "_nrrdFormatPNG_read";
 #if TEEM_PNG
   png_structp png;
   png_infop info;
   png_bytep *row;
   png_uint_32 width, height, rowsize, hi;
-  png_text* txt;
+  png_text *txt;
   int depth, type, i, channels, numtxt, ret;
   int ntype, ndim;
   size_t nsize[3];
@@ -178,18 +166,17 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
   if (!_nrrdFormatPNG_contentStartsLike(nio)) {
-    biffAddf(NRRD, "%s: this doesn't look like a %s file", me,
-             nrrdFormatPNG->name);
+    biffAddf(NRRD, "%s: this doesn't look like a %s file", me, nrrdFormatPNG->name);
     return 1;
   }
 
 #if TEEM_PNG
   /* create png struct with the error handlers above */
-  png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL,
-                               _nrrdErrorHandlerPNG,
+  png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, _nrrdErrorHandlerPNG,
                                _nrrdWarningHandlerPNG);
   if (png == NULL) {
-    biffAddf(NRRD, "%s: failed to create PNG read struct "
+    biffAddf(NRRD,
+             "%s: failed to create PNG read struct "
              "(PNG_LIBPNG_VER_STRING=%s at Teem compile time)",
              me, PNG_LIBPNG_VER_STRING);
     return 1;
@@ -209,22 +196,20 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     return 1;
   }
   /* initialize png I/O */
-#ifdef _WIN32
+#  ifdef _WIN32
   png_set_read_fn(png, (png_voidp)file, _nrrdReadDataPNG);
-#else
+#  else
   png_init_io(png, file);
-#endif
+#  endif
   /* if we are here, we have already read 6 bytes from the file */
   png_set_sig_bytes(png, 6);
   /* png_read_info() returns all information from the file
      before the first data chunk */
   png_read_info(png, info);
-  png_get_IHDR(png, info, &width, &height, &depth, &type,
-               NULL, NULL, NULL);
+  png_get_IHDR(png, info, &width, &height, &depth, &type, NULL, NULL, NULL);
   /* following order in http://www.libpng.org/pub/png/libpng-manual.txt */
   /* expand paletted colors into rgb triplets */
-  if (type == PNG_COLOR_TYPE_PALETTE)
-    png_set_palette_to_rgb(png);
+  if (type == PNG_COLOR_TYPE_PALETTE) png_set_palette_to_rgb(png);
   /* expand paletted or rgb images with transparency to full alpha
      channels so the data will be available as rgba quartets */
   if (png_get_valid(png, info, PNG_INFO_tRNS)) {
@@ -232,15 +217,14 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   /* expand grayscale images to 8 bits from 1, 2, or 4 bits */
   if (type == PNG_COLOR_TYPE_GRAY && depth < 8)
-#if PNG_LIBPNG_VER_MINOR > 1
+#  if PNG_LIBPNG_VER_MINOR > 1
     png_set_expand_gray_1_2_4_to_8(png);
-#else
+#  else
     png_set_expand(png);
-#endif
+#  endif
   /* fix endianness for 16 bit formats */
-  if (depth > 8 && airMyEndian() == airEndianLittle)
-    png_set_swap(png);
-#if 0
+  if (depth > 8 && airMyEndian() == airEndianLittle) png_set_swap(png);
+#  if 0
   /* HEY GLK asks why is this commented out? */
   /* GLK later thinks: perhaps because this would confound the NRRD-centric
      idea of PNG files as being a mere container of bytes */
@@ -259,7 +243,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     else
       png_set_gamma(png, screen_gamma, 1.0);
   }
-#endif
+#  endif
   {
     int intent;
     if (png_get_sRGB(png, info, &intent)) {
@@ -276,23 +260,33 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
      convert of an animated gif, which had a tRNS chunk, and depth,type went
      from 8,0 to 8,4;
      https://stackoverflow.com/a/28653360 seems to warn of this? */
-  png_get_IHDR(png, info, &width, &height, &depth, &type,
-               NULL, NULL, NULL);
+  png_get_IHDR(png, info, &width, &height, &depth, &type, NULL, NULL, NULL);
   /* allocate memory for the image data */
   ntype = depth > 8 ? nrrdTypeUShort : nrrdTypeUChar;
   switch (type) {
   case PNG_COLOR_TYPE_GRAY: /* 0 */
-    ndim = 2; nsize[0] = width; nsize[1] = height;
-    nsize[2] = 1;  /* to simplify code below */
+    ndim = 2;
+    nsize[0] = width;
+    nsize[1] = height;
+    nsize[2] = 1; /* to simplify code below */
     break;
   case PNG_COLOR_TYPE_GRAY_ALPHA: /* 4 */
-    ndim = 3; nsize[0] = 2; nsize[1] = width; nsize[2] = height;
+    ndim = 3;
+    nsize[0] = 2;
+    nsize[1] = width;
+    nsize[2] = height;
     break;
   case PNG_COLOR_TYPE_RGB: /* 2 */
-    ndim = 3; nsize[0] = 3; nsize[1] = width; nsize[2] = height;
+    ndim = 3;
+    nsize[0] = 3;
+    nsize[1] = width;
+    nsize[2] = height;
     break;
   case PNG_COLOR_TYPE_RGB_ALPHA: /* 6 */
-    ndim = 3; nsize[0] = 4; nsize[1] = width; nsize[2] = height;
+    ndim = 3;
+    nsize[0] = 4;
+    nsize[1] = width;
+    nsize[2] = height;
     break;
   case PNG_COLOR_TYPE_PALETTE: /* 3 */
     /* TODO: merge this with the outer switch, needs to be tested */
@@ -301,9 +295,14 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
        palette type may not be possible (TODO confirm this) */
     channels = png_get_channels(png, info);
     if (channels < 2) {
-      ndim = 2; nsize[0] = width; nsize[1] = height;
+      ndim = 2;
+      nsize[0] = width;
+      nsize[1] = height;
     } else {
-      ndim = 3; nsize[0] = channels; nsize[1] = width; nsize[2] = height;
+      ndim = 3;
+      nsize[0] = channels;
+      nsize[1] = width;
+      nsize[2] = height;
     }
     break;
   default:
@@ -314,7 +313,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   if (nio->oldData
       && (nio->oldDataSize
-          == (size_t)(nrrdTypeSize[ntype]*nsize[0]*nsize[1]*nsize[2]))) {
+          == (size_t)(nrrdTypeSize[ntype] * nsize[0] * nsize[1] * nsize[2]))) {
     ret = nrrdWrap_nva(nrrd, nio->oldData, ntype, ndim, nsize);
   } else {
     ret = nrrdMaybeAlloc_nva(nrrd, ntype, ndim, nsize);
@@ -327,29 +326,28 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* query row size */
   rowsize = AIR_CAST(png_uint_32, png_get_rowbytes(png, info));
   /* check byte size */
-  if (nrrdElementNumber(nrrd)*nrrdElementSize(nrrd) != height*rowsize) {
+  if (nrrdElementNumber(nrrd) * nrrdElementSize(nrrd) != height * rowsize) {
     png_destroy_read_struct(&png, &info, NULL);
-    biffAddf(NRRD, "%s: size mismatch: el num*size %s*%s = %s != "
-             "%s = %s*%s = height*rowsize", me,
-             airSprintSize_t(stmp[0], nrrdElementNumber(nrrd)),
+    biffAddf(NRRD,
+             "%s: size mismatch: el num*size %s*%s = %s != "
+             "%s = %s*%s = height*rowsize",
+             me, airSprintSize_t(stmp[0], nrrdElementNumber(nrrd)),
              airSprintSize_t(stmp[1], nrrdElementSize(nrrd)),
-             airSprintSize_t(stmp[2],
-                             nrrdElementNumber(nrrd)*nrrdElementSize(nrrd)),
-             airSprintSize_t(stmp[3], height*rowsize),
-             airSprintSize_t(stmp[4], height),
-             airSprintSize_t(stmp[5], rowsize));
+             airSprintSize_t(stmp[2], nrrdElementNumber(nrrd) * nrrdElementSize(nrrd)),
+             airSprintSize_t(stmp[3], height * rowsize),
+             airSprintSize_t(stmp[4], height), airSprintSize_t(stmp[5], rowsize));
     return 1;
   }
   /* set up row pointers */
-  row = (png_bytep*)malloc(sizeof(png_bytep)*height);
-  for (hi=0; hi<height; hi++) {
-    row[hi] = &((png_bytep)nrrd->data)[hi*rowsize];
+  row = (png_bytep *)malloc(sizeof(png_bytep) * height);
+  for (hi = 0; hi < height; hi++) {
+    row[hi] = &((png_bytep)nrrd->data)[hi * rowsize];
   }
   /* read the entire image in one pass */
   png_read_image(png, row);
   /* read all text fields from the text chunk */
   numtxt = png_get_text(png, info, &txt, NULL);
-  for (i=0; i<numtxt; i++) {
+  for (i = 0; i < numtxt; i++) {
     if (!strcmp(txt[i].key, NRRD_PNG_FIELD_KEY)) {
       nio->pos = 0;
       /* Reading PNGs teaches Gordon that his scheme for parsing nrrd header
@@ -361,24 +359,27 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       nio->line = airStrdup(txt[i].text);
       ret = _nrrdReadNrrdParseField(nio, AIR_FALSE);
       if (ret) {
-        const char* fs = airEnumStr(nrrdField, ret);
+        const char *fs = airEnumStr(nrrdField, ret);
         if (nrrdField_comment == ret) {
           ret = 0;
           goto plain;
         }
         if (!_nrrdFieldValidInImage[ret]) {
           if (1 <= nrrdStateVerboseIO) {
-            fprintf(stderr, "(%s: field \"%s\" (not allowed in PNG) "
-                    "--> plain comment)\n", me, fs);
+            fprintf(stderr,
+                    "(%s: field \"%s\" (not allowed in PNG) "
+                    "--> plain comment)\n",
+                    me, fs);
           }
           ret = 0;
           goto plain;
         }
-        if (!nio->seen[ret]
-            && nrrdFieldInfoParse[ret](file, nrrd, nio, AIR_FALSE)) {
+        if (!nio->seen[ret] && nrrdFieldInfoParse[ret](file, nrrd, nio, AIR_FALSE)) {
           if (1 <= nrrdStateVerboseIO) {
-            fprintf(stderr, "(%s: unparsable info \"%s\" for field \"%s\" "
-                    "--> plain comment)\n", me, nio->line + nio->pos, fs);
+            fprintf(stderr,
+                    "(%s: unparsable info \"%s\" for field \"%s\" "
+                    "--> plain comment)\n",
+                    me, nio->line + nio->pos, fs);
           }
           ret = 0;
           goto plain;
@@ -415,7 +416,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* finish reading */
   png_read_end(png, info);
   /* clean up */
-  row = (png_byte**)airFree(row);
+  row = (png_byte **)airFree(row);
   png_destroy_read_struct(&png, &info, NULL);
 
   return 0;
@@ -427,7 +428,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
 static int
 _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
-  static const char me[]="_nrrdFormatPNG_write";
+  static const char me[] = "_nrrdFormatPNG_write";
 #if TEEM_PNG
   int fi, depth, type, csize;
   unsigned int jj, numtxt, txtidx;
@@ -440,12 +441,13 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
 
   /* no need to check type and format, done in FitsInFormat */
   /* create png struct with the error handlers above */
-  png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,
-                                _nrrdErrorHandlerPNG,
+  png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, _nrrdErrorHandlerPNG,
                                 _nrrdWarningHandlerPNG);
   if (png == NULL) {
-    biffAddf(NRRD, "%s: failed to create PNG write struct (compiled with "
-             "PNG_LIBPNG_VER_STRING=" PNG_LIBPNG_VER_STRING ")", me);
+    biffAddf(NRRD,
+             "%s: failed to create PNG write struct (compiled with "
+             "PNG_LIBPNG_VER_STRING=" PNG_LIBPNG_VER_STRING ")",
+             me);
     return 1;
   }
   /* create image info struct */
@@ -456,19 +458,18 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     return 1;
   }
   /* set up error png style error handling */
-  if (setjmp(png_jmpbuf(png)))
-  {
+  if (setjmp(png_jmpbuf(png))) {
     /* the error is reported inside the error handler,
        but we still need to clean up an return with an error */
     png_destroy_write_struct(&png, &info);
     return 1;
   }
   /* initialize png I/O */
-#ifdef _WIN32
+#  ifdef _WIN32
   png_set_write_fn(png, file, _nrrdWriteDataPNG, _nrrdFlushDataPNG);
-#else
+#  else
   png_init_io(png, file);
-#endif
+#  endif
   /* calculate depth, width, height, and row size */
   depth = nrrd->type == nrrdTypeUChar ? 8 : 16;
   switch (nrrd->dim) {
@@ -477,13 +478,12 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     width = AIR_CAST(png_uint_32, nrrd->axis[0].size);
     height = AIR_CAST(png_uint_32, nrrd->axis[1].size);
     type = PNG_COLOR_TYPE_GRAY;
-    rowsize = AIR_CAST(png_uint_32, width*nrrdElementSize(nrrd));
+    rowsize = AIR_CAST(png_uint_32, width * nrrdElementSize(nrrd));
     break;
   case 3: /* g, ga, rgb, rgba */
     width = AIR_CAST(png_uint_32, nrrd->axis[1].size);
     height = AIR_CAST(png_uint_32, nrrd->axis[2].size);
-    rowsize = AIR_CAST(png_uint_32,
-                       width*nrrd->axis[0].size*nrrdElementSize(nrrd));
+    rowsize = AIR_CAST(png_uint_32, width * nrrd->axis[0].size * nrrdElementSize(nrrd));
     switch (nrrd->axis[0].size) {
     case 1:
       type = PNG_COLOR_TYPE_GRAY;
@@ -507,28 +507,25 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     break;
   default:
     png_destroy_write_struct(&png, &info);
-    biffAddf(NRRD, "%s: dimension (%d) not compatible with PNG",
-             me, nrrd->dim);
+    biffAddf(NRRD, "%s: dimension (%d) not compatible with PNG", me, nrrd->dim);
     return 1;
     break;
   }
   /* set image header info */
-  png_set_IHDR(png, info, width, height, depth, type,
-               PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
-               PNG_FILTER_TYPE_BASE);
+  png_set_IHDR(png, info, width, height, depth, type, PNG_INTERLACE_NONE,
+               PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
   /* set sRGB intent, if known */
-  if (nio->PNGsRGBIntentKnown
-      && nrrdFormatPNGsRGBIntentNone != nio->PNGsRGBIntent) {
+  if (nio->PNGsRGBIntentKnown && nrrdFormatPNGsRGBIntentNone != nio->PNGsRGBIntent) {
     png_set_sRGB_gAMA_and_cHRM(png, info, nio->PNGsRGBIntent);
   }
   /* calculate numtxt and allocate txt[] array */
   numtxt = 0;
-  for (fi=nrrdField_unknown+1; fi<nrrdField_last; fi++) {
+  for (fi = nrrdField_unknown + 1; fi < nrrdField_last; fi++) {
     if (_nrrdFieldValidInImage[fi] && _nrrdFieldInteresting(nrrd, nio, fi)) {
       numtxt++;
     }
   }
-  for (jj=0; jj<nrrdKeyValueSize(nrrd); jj++) {
+  for (jj = 0; jj < nrrdKeyValueSize(nrrd); jj++) {
     nrrdKeyValueIndex(nrrd, &key, &value, jj);
     /* HEY: why is the NULL check needed?? */
     if (NULL != key && NULL != value) {
@@ -550,7 +547,7 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     /* add nrrd fields to the text chunk */
     csize = 0;
     txtidx = 0;
-    for (fi=nrrdField_unknown+1; fi<nrrdField_last; fi++) {
+    for (fi = nrrdField_unknown + 1; fi < nrrdField_last; fi++) {
       if (_nrrdFieldValidInImage[fi] && _nrrdFieldInteresting(nrrd, nio, fi)) {
         txt[txtidx].key = airStrdup(NRRD_PNG_FIELD_KEY);
         txt[txtidx].compression = PNG_TEXT_COMPRESSION_NONE;
@@ -560,7 +557,7 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       }
     }
     /* add nrrd key/value pairs to the chunk */
-    for (jj=0; jj<nrrdKeyValueSize(nrrd); jj++) {
+    for (jj = 0; jj < nrrdKeyValueSize(nrrd); jj++) {
       nrrdKeyValueIndex(nrrd, &key, &value, jj);
       if (NULL != key && NULL != value) {
         txt[txtidx].key = key;
@@ -573,12 +570,12 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     if (nrrd->cmtArr->len > 0) {
       txt[txtidx].key = airStrdup(NRRD_PNG_COMMENT_KEY);
       txt[txtidx].compression = PNG_TEXT_COMPRESSION_NONE;
-      for (jj=0; jj<nrrd->cmtArr->len; jj++) {
+      for (jj = 0; jj < nrrd->cmtArr->len; jj++) {
         csize += airStrlen(nrrd->cmt[jj]) + 1;
       }
       txt[txtidx].text = (png_charp)malloc(csize + 1);
       txt[txtidx].text[0] = 0;
-      for (jj=0; jj<nrrd->cmtArr->len; jj++) {
+      for (jj = 0; jj < nrrd->cmtArr->len; jj++) {
         strcat(txt[txtidx].text, nrrd->cmt[jj]);
         strcat(txt[txtidx].text, "\n");
       }
@@ -593,9 +590,9 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
     png_set_swap(png);
   }
   /* set up row pointers */
-  row = (png_bytep*)malloc(sizeof(png_bytep)*height);
-  for (hi=0; hi<height; hi++) {
-    row[hi] = &((png_bytep)nrrd->data)[hi*rowsize];
+  row = (png_bytep *)malloc(sizeof(png_bytep) * height);
+  for (hi = 0; hi < height; hi++) {
+    row[hi] = &((png_bytep)nrrd->data)[hi * rowsize];
   }
   png_set_rows(png, info, row);
   /* write the entire image in one pass */
@@ -604,13 +601,13 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   png_write_end(png, info);
   /* clean up */
   if (txt) {
-    for (jj=0; jj<numtxt; jj++) {
+    for (jj = 0; jj < numtxt; jj++) {
       txt[jj].key = (char *)airFree(txt[jj].key);
       txt[jj].text = (char *)airFree(txt[jj].text);
     }
     free(txt);
   }
-  row = (png_byte**)airFree(row);
+  row = (png_byte **)airFree(row);
   png_destroy_write_struct(&png, &info);
 
   return 0;
@@ -623,19 +620,15 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
 #endif
 }
 
-const NrrdFormat
-_nrrdFormatPNG = {
-  "PNG",
-  AIR_TRUE,   /* isImage */
-  AIR_TRUE,   /* readable */
-  AIR_FALSE,  /* usesDIO */
-  _nrrdFormatPNG_available,
-  _nrrdFormatPNG_nameLooksLike,
-  _nrrdFormatPNG_fitsInto,
-  _nrrdFormatPNG_contentStartsLike,
-  _nrrdFormatPNG_read,
-  _nrrdFormatPNG_write
-};
+const NrrdFormat _nrrdFormatPNG = {"PNG",
+                                   AIR_TRUE,  /* isImage */
+                                   AIR_TRUE,  /* readable */
+                                   AIR_FALSE, /* usesDIO */
+                                   _nrrdFormatPNG_available,
+                                   _nrrdFormatPNG_nameLooksLike,
+                                   _nrrdFormatPNG_fitsInto,
+                                   _nrrdFormatPNG_contentStartsLike,
+                                   _nrrdFormatPNG_read,
+                                   _nrrdFormatPNG_write};
 
-const NrrdFormat *const
-nrrdFormatPNG = &_nrrdFormatPNG;
+const NrrdFormat *const nrrdFormatPNG = &_nrrdFormatPNG;

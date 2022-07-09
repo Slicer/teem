@@ -25,17 +25,15 @@
 #include "privateTen.h"
 
 #define INFO "Scale the anisotropic component of the tensors"
-static const char *_tend_anscaleInfoL =
-  (INFO
-   ". This maintains the isotropic component of the tensor, and fixes "
-   "either the trace or determinant, "
-   "while scaling up (or down) the \"deviatoric\" component "
-   "of the tensor.  Good for exaggerating the shape of nearly isotropic "
-   "tensors.");
+static const char *_tend_anscaleInfoL
+  = (INFO ". This maintains the isotropic component of the tensor, and fixes "
+          "either the trace or determinant, "
+          "while scaling up (or down) the \"deviatoric\" component "
+          "of the tensor.  Good for exaggerating the shape of nearly isotropic "
+          "tensors.");
 
 int
-tend_anscaleMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+tend_anscaleMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -68,14 +66,16 @@ tend_anscaleMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenAnisoScale(nout, nin, scale, fixDet, makePositive)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

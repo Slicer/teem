@@ -25,14 +25,13 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Create image of 1-D value histogram"
-static const char *_unrrdu_dhistoInfoL =
-  (INFO
-   ". With \"-nolog\", this becomes a quick & dirty way of plotting a function.\n "
-   "* Uses nrrdHistoDraw");
+static const char *_unrrdu_dhistoInfoL
+  = (INFO
+     ". With \"-nolog\", this becomes a quick & dirty way of plotting a function.\n "
+     "* Uses nrrdHistoDraw");
 
 int
-unrrdu_dhistoMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+unrrdu_dhistoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
@@ -48,8 +47,7 @@ unrrdu_dhistoMain(int argc, const char **argv, const char *me,
              "do not show the log-scaled histogram with decade tick-marks");
   hestOptAdd(&opt, "notick", NULL, airTypeInt, 0, 0, &notick, NULL,
              "do not draw the log decade tick marks");
-  hestOptAdd(&opt, "max,maximum", "max # hits", airTypeDouble, 1, 1,
-             &max, "nan",
+  hestOptAdd(&opt, "max,maximum", "max # hits", airTypeDouble, 1, 1, &max, "nan",
              "constrain the top of the drawn histogram to be at this "
              "number of hits.  This will either scale the drawn histogram "
              "downward or clip its top, depending on whether the given max "
@@ -69,9 +67,7 @@ unrrdu_dhistoMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdHistoDraw(nout, nin, size,
-                    nolog ? AIR_FALSE : (notick ? 2 : AIR_TRUE),
-                    max)) {
+  if (nrrdHistoDraw(nout, nin, size, nolog ? AIR_FALSE : (notick ? 2 : AIR_TRUE), max)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error drawing histogram nrrd:\n%s", me, err);
     airMopError(mop);

@@ -25,36 +25,25 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Fast Fourier Transform of selected axes"
-static const char *_unrrdu_fftInfoL_yes =
-  (INFO
-   ". Initial attempt at wrapping the FFTW3 library; options are "
-   "likely to change in Teem 2.0.\n "
-   "* Uses nrrdFFT");
+static const char *_unrrdu_fftInfoL_yes
+  = (INFO ". Initial attempt at wrapping the FFTW3 library; options are "
+          "likely to change in Teem 2.0.\n "
+          "* Uses nrrdFFT");
 
-static const char *_unrrdu_fftInfoL_no =
-  (INFO
-   ". This Teem has NOT been compiled with FFTW3 <http://www.fftw.org/>. "
-   "If it had been, "
-   "this would be a command-line interface to that functionality. "
-   "There is currently no non-FFTW implementation of the FFT available.\n "
-   "* Uses nrrdFFT");
+static const char *_unrrdu_fftInfoL_no
+  = (INFO ". This Teem has NOT been compiled with FFTW3 <http://www.fftw.org/>. "
+          "If it had been, "
+          "this would be a command-line interface to that functionality. "
+          "There is currently no non-FFTW implementation of the FFT available.\n "
+          "* Uses nrrdFFT");
 
 /* We create an airEnum to parse the "forward" and "backwards" values
    needed to specify which kind of transform to run */
 
-static const char *
-_directionStr[] = {
-  "(unknown direction)",
-  "forward",
-  "backward"
-};
+static const char *_directionStr[] = {"(unknown direction)", "forward", "backward"};
 
-static const char *
-_directionDesc[] = {
-  "unknown direction",
-  "forward transform",
-  "backward (inverse) transform"
-};
+static const char *_directionDesc[] = {"unknown direction", "forward transform",
+                                       "backward (inverse) transform"};
 
 /*  from fftw3.h
 #define FFTW_FORWARD (-1)
@@ -64,44 +53,23 @@ _directionDesc[] = {
 #define FORW (-1)
 #define BACK (+1)
 
-static const int
-_directionVal[] = {
-  0,
-  FORW,
-  BACK
-};
+static const int _directionVal[] = {0, FORW, BACK};
 
-static const char *
-_directionStrEqv[] = {
-  "f", "forw", "forward",
-  "b", "back", "backward", "i", "inv", "inverse",
-  ""
-};
+static const char *_directionStrEqv[] = {"f", "forw", "forward", "b", "back", "backward",
+                                         "i", "inv",  "inverse", ""};
 
-static const int
-_directionValEqv[] = {
-  FORW, FORW, FORW,
-  BACK, BACK, BACK, BACK, BACK, BACK
-};
+static const int _directionValEqv[] = {FORW, FORW, FORW, BACK, BACK,
+                                       BACK, BACK, BACK, BACK};
 
-static const airEnum
-_direction_enm = {
-  "direction",
-  2,
-  _directionStr,
-  _directionVal,
-  _directionDesc,
-  _directionStrEqv,
-  _directionValEqv,
-  AIR_FALSE
-};
+static const airEnum _direction_enm = {"direction",      2,
+                                       _directionStr,    _directionVal,
+                                       _directionDesc,   _directionStrEqv,
+                                       _directionValEqv, AIR_FALSE};
 
-static const airEnum *const
-direction_enm = &_direction_enm;
+static const airEnum *const direction_enm = &_direction_enm;
 
 int
-unrrdu_fftMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+unrrdu_fftMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *_nin, *nout;
@@ -115,7 +83,8 @@ unrrdu_fftMain(int argc, const char **argv, const char *me,
 
   hestOptAdd(&opt, NULL, "dir", airTypeEnum, 1, 1, &sign, NULL,
              "forward (\"forw\", \"f\") or backward/inverse "
-             "(\"back\", \"b\") transform ", NULL, direction_enm);
+             "(\"back\", \"b\") transform ",
+             NULL, direction_enm);
   hestOptAdd(&opt, "a,axes", "ax0", airTypeUInt, 1, -1, &axes, NULL,
              "the one or more axes that should be transformed", &axesLen);
   hestOptAdd(&opt, "pr,planrigor", "pr", airTypeEnum, 1, 1, &rigor, "est",
@@ -172,9 +141,9 @@ unrrdu_fftMain(int argc, const char **argv, const char *me,
     airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
     minPad[0] = 0;
     maxPad[0] = 1;
-    for (axi=1; axi<ntmp->dim; axi++) {
+    for (axi = 1; axi < ntmp->dim; axi++) {
       minPad[axi] = 0;
-      maxPad[axi] = AIR_CAST(ptrdiff_t, ntmp->axis[axi].size-1);
+      maxPad[axi] = AIR_CAST(ptrdiff_t, ntmp->axis[axi].size - 1);
     }
     if (nrrdPad_nva(nin, ntmp, minPad, maxPad, nrrdBoundaryPad, 0.0)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
@@ -183,7 +152,7 @@ unrrdu_fftMain(int argc, const char **argv, const char *me,
       return 1;
     }
     /* increment specified axes to transform */
-    for (axi=0; axi<axesLen; axi++) {
+    for (axi = 0; axi < axesLen; axi++) {
       axes[axi]++;
     }
     /* ntmp is really done with, we can free up the space now; this
@@ -206,8 +175,10 @@ unrrdu_fftMain(int argc, const char **argv, const char *me,
       }
       fclose(fwise);
     } else {
-      fprintf(stderr, "%s: (\"%s\" couldn't be opened, will try to save "
-              "wisdom afterwards)", me, wispath);
+      fprintf(stderr,
+              "%s: (\"%s\" couldn't be opened, will try to save "
+              "wisdom afterwards)",
+              me, wispath);
     }
   }
 
@@ -220,8 +191,8 @@ unrrdu_fftMain(int argc, const char **argv, const char *me,
 
   if (airStrlen(wispath) && nrrdFFTWEnabled) {
     if (!(fwise = fopen(wispath, "w"))) {
-      fprintf(stderr, "%s: couldn't open %s for writing: %s\n",
-              me, wispath, strerror(errno));
+      fprintf(stderr, "%s: couldn't open %s for writing: %s\n", me, wispath,
+              strerror(errno));
       airMopError(mop);
       return 1;
     }

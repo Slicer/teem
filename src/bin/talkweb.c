@@ -30,34 +30,33 @@
 
 #define TKWB "talkweb"
 
-#define TKWB_TAG_TOC 0
+#define TKWB_TAG_TOC   0
 #define TKWB_TAG_TITLE 1
 #define TKWB_TAG_IMAGE 2
 #define TKWB_TAG_FIRST 3
-#define TKWB_TAG_PREV 4
-#define TKWB_TAG_NEXT 5
-#define TKWB_TAG_LAST 6
-#define TKWB_TAG_TEXT 7
+#define TKWB_TAG_PREV  4
+#define TKWB_TAG_NEXT  5
+#define TKWB_TAG_LAST  6
+#define TKWB_TAG_TEXT  7
 
 #define TKWB_TAG_MAX 7
 
-static const char *tkwbInfo =
-("Generates HTML pages from slide images and text. "
- "This program takes multiple inputs: a template for the table of contents "
- "that will become \"index.html\" (\"-i\"), a template for the pages "
- "generated for each slide e.g. \"slide000.html\" (\"-t\"), and a script "
- "text file that contains all the information that will go into the slide "
- "pages.  The format of this file is:\n "
- "\t\t- Separator line indicating slide transitions, e.g. \"-------------\"\n "
- "\t\t- Title of first slide (one line)\n "
- "\t\t- Filename for image to put on first slide (one line)\n "
- "\t\t- Body of HTML text to put with the slide image (multiple lines)\n "
- "\t\t- Separator\n "
- "followed by information for the second slide, and so forth.  Textual "
- "subtitutions are performed in the template files, according to the "
- "replacement tags (\"-r\", see below).  Within the slide pages, navigation "
- "arrows are based on remaining command-line options."
-);
+static const char *tkwbInfo
+  = ("Generates HTML pages from slide images and text. "
+     "This program takes multiple inputs: a template for the table of contents "
+     "that will become \"index.html\" (\"-i\"), a template for the pages "
+     "generated for each slide e.g. \"slide000.html\" (\"-t\"), and a script "
+     "text file that contains all the information that will go into the slide "
+     "pages.  The format of this file is:\n "
+     "\t\t- Separator line indicating slide transitions, e.g. \"-------------\"\n "
+     "\t\t- Title of first slide (one line)\n "
+     "\t\t- Filename for image to put on first slide (one line)\n "
+     "\t\t- Body of HTML text to put with the slide image (multiple lines)\n "
+     "\t\t- Separator\n "
+     "followed by information for the second slide, and so forth.  Textual "
+     "subtitutions are performed in the template files, according to the "
+     "replacement tags (\"-r\", see below).  Within the slide pages, navigation "
+     "arrows are based on remaining command-line options.");
 
 int tkwbArrayIncr = 16;
 
@@ -69,7 +68,7 @@ tkwbSlide *
 tkwbSlideNew(char *title, char *image, char *text) {
   tkwbSlide *ret;
 
-  ret = (tkwbSlide*)calloc(1, sizeof(tkwbSlide));
+  ret = (tkwbSlide *)calloc(1, sizeof(tkwbSlide));
   if (ret) {
     ret->title = airStrdup(title);
     ret->image = airStrdup(image);
@@ -103,14 +102,13 @@ tkwbReadFileToString(char **strP, int *hitEOF, FILE *file, char *stop) {
   _tkwbU uu;
 
   uu.pc = &all;
-  allArr = airArrayNew(uu.v, &allLen, sizeof(char*), tkwbArrayIncr);
+  allArr = airArrayNew(uu.v, &allLen, sizeof(char *), tkwbArrayIncr);
   airArrayPointerCB(allArr, airNull, airFree);
   lineLen = airOneLine(file, line, AIR_STRLEN_HUGE);
   totalLen = 0;
-  while (lineLen && (!( airStrlen(stop) && !strcmp(line, stop) )) ) {
+  while (lineLen && (!(airStrlen(stop) && !strcmp(line, stop)))) {
     lineIdx = airArrayLenIncr(allArr, 1); /* HEY error checking */
-    all[lineIdx] = (char *)calloc(strlen(line) + strlen("\n") + 1,
-                                  sizeof(char));
+    all[lineIdx] = (char *)calloc(strlen(line) + strlen("\n") + 1, sizeof(char));
     sprintf(all[lineIdx], "%s\n", line);
     totalLen += strlen(line) + 1;
     lineLen = airOneLine(file, line, AIR_STRLEN_HUGE);
@@ -119,9 +117,9 @@ tkwbReadFileToString(char **strP, int *hitEOF, FILE *file, char *stop) {
     *hitEOF = !lineLen;
   }
 
-  *strP = (char*)calloc(totalLen+1, sizeof(char));
+  *strP = (char *)calloc(totalLen + 1, sizeof(char));
   strcpy(*strP, "");
-  for (lineIdx=0; lineIdx<allLen; lineIdx++) {
+  for (lineIdx = 0; lineIdx < allLen; lineIdx++) {
     strcat(*strP, all[lineIdx]);
   }
 
@@ -131,20 +129,22 @@ tkwbReadFileToString(char **strP, int *hitEOF, FILE *file, char *stop) {
 
 int
 tkwbReadTemplate(char **tmplSP, char *filename) {
-  char me[]="tkwbReadTemplate";
+  char me[] = "tkwbReadTemplate";
   FILE *file;
   airArray *mop;
 
   mop = airMopNew();
-  if (!( file = airFopen(filename, stdin, "rb") )) {
+  if (!(file = airFopen(filename, stdin, "rb"))) {
     biffAddf(TKWB, "%s: couldn't open %s: %s", me, filename, strerror(errno));
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
   if (tkwbReadFileToString(tmplSP, NULL, file, NULL)) {
     biffAddf(TKWB, "%s: couldn't read in template file %s", me, filename);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
@@ -153,31 +153,32 @@ tkwbReadTemplate(char **tmplSP, char *filename) {
 
 int
 tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
-  static const char me[]="tkwbReadSlides";
+  static const char me[] = "tkwbReadSlides";
   FILE *file;
   airArray *mop, *slideArr;
   tkwbSlide **slide = NULL;
   char *title, *image, *text, stop[AIR_STRLEN_HUGE], line[AIR_STRLEN_HUGE];
-  int slideIdx=0, hitEOF, notReally;
+  int slideIdx = 0, hitEOF, notReally;
   unsigned int len;
   _tkwbU uu;
 
   mop = airMopNew();
-  if (!( file = airFopen(filename, stdin, "rb") )) {
+  if (!(file = airFopen(filename, stdin, "rb"))) {
     biffAddf(TKWB, "%s: couldn't open %s: %s", me, filename, strerror(errno));
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
   len = airOneLine(file, stop, AIR_STRLEN_HUGE);
-  if (!( len > 1 )) {
+  if (!(len > 1)) {
     biffAddf(TKWB, "%s: didn't get a stop delimiter from %s", me, filename);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   uu.ps = &slide;
-  slideArr = airArrayNew(uu.v, NULL,
-                         sizeof(tkwbSlide*), tkwbArrayIncr);
+  slideArr = airArrayNew(uu.v, NULL, sizeof(tkwbSlide *), tkwbArrayIncr);
   airMopAdd(mop, slideArr, (airMopper)airArrayNix, airMopAlways);
   hitEOF = notReally = AIR_FALSE;
   while (!hitEOF) {
@@ -196,15 +197,16 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
     image = airStrdup(line);
     if (tkwbReadFileToString(&text, &hitEOF, file, stop)) {
       biffAddf(TKWB, "%s: couldn't read in slide %d", me, slideIdx);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     slide[slideIdx] = tkwbSlideNew(title, image, text);
     airMopAdd(pmop, slide[slideIdx], (airMopper)tkwbSlideNix, airMopAlways);
   }
   if (!hitEOF && !notReally) {
-    biffAddf(TKWB, "%s: got incomplete slide info for slide %d\n",
-             me, slideIdx);
-    airMopError(mop); return 1;
+    biffAddf(TKWB, "%s: got incomplete slide info for slide %d\n", me, slideIdx);
+    airMopError(mop);
+    return 1;
   }
   if (!notReally) {
     slideIdx = airArrayLenIncr(slideArr, 1); /* HEY error checking */
@@ -218,7 +220,7 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
 
 int
 tkwbExpandImageInfo(tkwbSlide **slide) {
-  static const char me[]="tkwbExpandImageInfo";
+  static const char me[] = "tkwbExpandImageInfo";
   char *image;
   Nrrd *nimg;
   int si, sx, sy, len;
@@ -227,25 +229,25 @@ tkwbExpandImageInfo(tkwbSlide **slide) {
   mop = airMopNew();
   nimg = nrrdNew();
   airMopAdd(mop, nimg, (airMopper)nrrdNuke, airMopAlways);
-  for (si=0; slide[si]; si++) {
+  for (si = 0; slide[si]; si++) {
     if (nrrdLoad(nimg, slide[si]->image, NULL)) {
-      biffMovef(TKWB, NRRD, "%s: trouble reading slide image \"%s\"",
-                me, slide[si]->image);
-      airMopError(mop); return 1;
+      biffMovef(TKWB, NRRD, "%s: trouble reading slide image \"%s\"", me,
+                slide[si]->image);
+      airMopError(mop);
+      return 1;
     }
     if (!nrrdFormatPNG->fitsInto(nimg, nrrdEncodingGzip, AIR_TRUE)) {
-      biffMovef(TKWB, NRRD,
-                "%s: slide image \"%s\" doesn't seem to be an image",
-                me, slide[si]->image);
-      airMopError(mop); return 1;
+      biffMovef(TKWB, NRRD, "%s: slide image \"%s\" doesn't seem to be an image", me,
+                slide[si]->image);
+      airMopError(mop);
+      return 1;
     }
-    sx = nimg->axis[nimg->dim-2].size;
-    sy = nimg->axis[nimg->dim-1].size;
-    len = (strlen("<img width=xxxx height=xxxx src=\"\">")
-           + strlen(slide[si]->image) + 1);
+    sx = nimg->axis[nimg->dim - 2].size;
+    sy = nimg->axis[nimg->dim - 1].size;
+    len = (strlen("<img width=xxxx height=xxxx src=\"\">") + strlen(slide[si]->image)
+           + 1);
     image = (char *)calloc(len, sizeof(char));
-    sprintf(image, "<img width=%d height=%d src=\"%s\">",
-            sx, sy, slide[si]->image);
+    sprintf(image, "<img width=%d height=%d src=\"%s\">", sx, sy, slide[si]->image);
     free(slide[si]->image);
     slide[si]->image = image;
   }
@@ -256,12 +258,11 @@ tkwbExpandImageInfo(tkwbSlide **slide) {
 
 int
 tkwbWriteStringToFile(const char *filename, const char *content) {
-  static const char me[]="tkwbWriteStringToFile";
+  static const char me[] = "tkwbWriteStringToFile";
   FILE *file;
 
   if (!(file = fopen(filename, "wb"))) {
-    biffAddf(TKWB, "%s: trouble opening file \"%s\": %s",
-             me, filename, strerror(errno));
+    biffAddf(TKWB, "%s: trouble opening file \"%s\": %s", me, filename, strerror(errno));
     return 1;
   }
   fprintf(file, "%s", content);
@@ -271,18 +272,18 @@ tkwbWriteStringToFile(const char *filename, const char *content) {
 }
 
 int
-_tkwbStringSubst(char **sP,  /* string to search in */
-                 char *f,    /* find */
-                 char *r) {  /* replace */
-  char *p,                   /* place where find was found */
-    *n;                      /* new string */
+_tkwbStringSubst(char **sP, /* string to search in */
+                 char *f,   /* find */
+                 char *r) { /* replace */
+  char *p,                  /* place where find was found */
+    *n;                     /* new string */
 
   p = strstr(*sP, f);
   if (!p) {
     /* nothing to do */
     return 0;
   }
-  n = (char*)calloc(strlen(*sP) - strlen(f) + strlen(r) + 1, sizeof(char));
+  n = (char *)calloc(strlen(*sP) - strlen(f) + strlen(r) + 1, sizeof(char));
   strncpy(n, *sP, p - *sP);
   strncpy(n + (p - *sP), r, strlen(r));
   strcpy(n + (p - *sP) + strlen(r), p + strlen(f));
@@ -295,17 +296,17 @@ _tkwbStringSubst(char **sP,  /* string to search in */
 ** NOTE: this will re-allocate *stringP if a substitution is done
 */
 void
-tkwbStringSubst(char **sP,  /* string to search in */
-                char *f,    /* find */
-                char *r) {  /* replace */
+tkwbStringSubst(char **sP, /* string to search in */
+                char *f,   /* find */
+                char *r) { /* replace */
 
   _tkwbStringSubst(sP, f, r);
   return;
 }
 
 int
-tkwbWriteIndex(char *_indx, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
-  static const char me[]="tkwbWriteIndex";
+tkwbWriteIndex(char *_indx, tkwbSlide **slide, char *tag[TKWB_TAG_MAX + 1]) {
+  static const char me[] = "tkwbWriteIndex";
   char *repl, *indx, tmp[AIR_STRLEN_MED];
   int replLen, si;
   airArray *mop;
@@ -313,22 +314,22 @@ tkwbWriteIndex(char *_indx, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
   mop = airMopNew();
   replLen = 0;
   replLen += strlen("<ol>\n");
-  for (si=0; slide[si]; si++) {
+  for (si = 0; slide[si]; si++) {
     replLen += (strlen("<li> <a href=\"slideXXX.html\"></a>\n")
                 + strlen(slide[si]->title));
   }
   replLen += strlen("</ol>\n");
 
-  if (!(repl = (char*)calloc(replLen+1, sizeof(char)))) {
+  if (!(repl = (char *)calloc(replLen + 1, sizeof(char)))) {
     biffAddf(TKWB, "%s: couldn't allocate link buffer!", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, repl, airFree, airMopAlways);
 
   strcpy(repl, "<ol>\n");
-  for (si=0; slide[si]; si++) {
-    sprintf(tmp, "<li> <a href=\"slide%03d.html\">%s</a>\n",
-            si+1, slide[si]->title);
+  for (si = 0; slide[si]; si++) {
+    sprintf(tmp, "<li> <a href=\"slide%03d.html\">%s</a>\n", si + 1, slide[si]->title);
     strcat(repl, tmp);
   }
   strcat(repl, "</ol>");
@@ -338,7 +339,8 @@ tkwbWriteIndex(char *_indx, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
   airMopAdd(mop, indx, airFree, airMopAlways);
   if (tkwbWriteStringToFile("index.html", indx)) {
     biffAddf(TKWB, "%s: couldn't write \"index.html\"", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
@@ -347,8 +349,8 @@ tkwbWriteIndex(char *_indx, tkwbSlide **slide, char *tag[TKWB_TAG_MAX+1]) {
 
 int
 tkwbWriteSlides(tkwbSlide **slide, int numSlides, char *tmpl,
-                char *tag[TKWB_TAG_MAX+1], char *link[4]) {
-  static const char me[]="tkwbWriteSlides";
+                char *tag[TKWB_TAG_MAX + 1], char *link[4]) {
+  static const char me[] = "tkwbWriteSlides";
   char *text, name[AIR_STRLEN_MED], frst[AIR_STRLEN_MED], prev[AIR_STRLEN_MED],
     next[AIR_STRLEN_MED], last[AIR_STRLEN_MED];
   int si;
@@ -357,7 +359,7 @@ tkwbWriteSlides(tkwbSlide **slide, int numSlides, char *tmpl,
   mop = airMopNew();
   sprintf(frst, "<a href=\"slide001.html\">%s</a>", link[0]);
   sprintf(last, "<a href=\"slide%03d.html\">%s</a>", numSlides, link[3]);
-  for (si=0; si<numSlides; si++) {
+  for (si = 0; si < numSlides; si++) {
     text = airStrdup(tmpl);
     tkwbStringSubst(&text, tag[TKWB_TAG_TITLE], slide[si]->title);
     tkwbStringSubst(&text, tag[TKWB_TAG_IMAGE], slide[si]->image);
@@ -367,16 +369,17 @@ tkwbWriteSlides(tkwbSlide **slide, int numSlides, char *tmpl,
       sprintf(prev, "<a href=\"slide%03d.html\">%s</a>", si, link[1]);
       tkwbStringSubst(&text, tag[TKWB_TAG_PREV], prev);
     }
-    if (si < numSlides-1) {
+    if (si < numSlides - 1) {
       tkwbStringSubst(&text, tag[TKWB_TAG_LAST], last);
-      sprintf(next, "<a href=\"slide%03d.html\">%s</a>", si+2, link[2]);
+      sprintf(next, "<a href=\"slide%03d.html\">%s</a>", si + 2, link[2]);
       tkwbStringSubst(&text, tag[TKWB_TAG_NEXT], next);
     }
     airMopAdd(mop, text, airFree, airMopAlways);
-    sprintf(name, "slide%03d.html", si+1);
+    sprintf(name, "slide%03d.html", si + 1);
     if (tkwbWriteStringToFile(name, text)) {
       biffAddf(TKWB, "%s: couldn't write \"%s\"", me, name);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
 
@@ -385,9 +388,9 @@ tkwbWriteSlides(tkwbSlide **slide, int numSlides, char *tmpl,
 }
 
 int
-tkwbDoit(char *indxS, char *tmplS, char *scriptS,
-         char *tag[TKWB_TAG_MAX+1], char *link[4]) {
-  static const char me[]="tkwbDoit";
+tkwbDoit(char *indxS, char *tmplS, char *scriptS, char *tag[TKWB_TAG_MAX + 1],
+         char *link[4]) {
+  static const char me[] = "tkwbDoit";
   char *indx, *tmpl;
   tkwbSlide **slide;
   airArray *mop;
@@ -396,37 +399,43 @@ tkwbDoit(char *indxS, char *tmplS, char *scriptS,
   mop = airMopNew();
   if (tkwbReadTemplate(&indx, indxS)) {
     biffAddf(TKWB, "%s: trouble reading in index template file", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, indx, airFree, airMopAlways);
 
   if (tkwbReadTemplate(&tmpl, tmplS)) {
     biffAddf(TKWB, "%s: trouble reading in slide template file", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, tmpl, airFree, airMopAlways);
 
   if (tkwbReadSlides(&slide, scriptS, mop)) {
     biffAddf(TKWB, "%s: trouble reading in slide script", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, slide, airFree, airMopAlways);
 
   if (tkwbExpandImageInfo(slide)) {
     biffAddf(TKWB, "%s: trouble learning details of images", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (tkwbWriteIndex(indx, slide, tag)) {
     biffAddf(TKWB, "%s: trouble writing index.html", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
-  for (numSlides=0; slide[numSlides]; numSlides++)
+  for (numSlides = 0; slide[numSlides]; numSlides++)
     ;
   if (tkwbWriteSlides(slide, numSlides, tmpl, tag, link)) {
     biffAddf(TKWB, "%s: trouble writing slide pages", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
@@ -436,8 +445,7 @@ tkwbDoit(char *indxS, char *tmplS, char *scriptS,
 int
 main(int argc, const char *argv[]) {
   const char *me;
-  char *err, *indxS, *tmplS, *scriptS, *pretag[TKWB_TAG_MAX+1],
-    *tag[AIR_STRLEN_MED],
+  char *err, *indxS, *tmplS, *scriptS, *pretag[TKWB_TAG_MAX + 1], *tag[AIR_STRLEN_MED],
     *frstLink, *prevLink, *nextLink, *lastLink, *link[4];
   hestOpt *hopt = NULL;
   airArray *mop;
@@ -457,9 +465,8 @@ main(int argc, const char *argv[]) {
              "script filename.  This file contains information about each "
              "slide: the slide title, the slide image filename, and the "
              "HTML text to accompany the slide image.");
-  hestOptAdd(&hopt, "r", "tags", airTypeString,
-             TKWB_TAG_MAX+1, TKWB_TAG_MAX+1, pretag,
-             "TOC TITLE IMAGE FIRST PREV NEXT LAST TEXT",
+  hestOptAdd(&hopt, "r", "tags", airTypeString, TKWB_TAG_MAX + 1, TKWB_TAG_MAX + 1,
+             pretag, "TOC TITLE IMAGE FIRST PREV NEXT LAST TEXT",
              "replacement tags that will be converted into links. "
              "The actual replcement tag is the string given here embedded "
              "in an HTML comment (no space).  So saying \"TOC\" means the "
@@ -475,18 +482,18 @@ main(int argc, const char *argv[]) {
              "\b\bo The link to the next slide\n "
              "\b\bo The link to the last slide\n "
              "\b\bo The text accompanying each slide");
-  hestOptAdd(&hopt, "first", "text", airTypeString, 1, 1, &frstLink,
-             "<b>|&lt;&lt;</b>", "Snippet of HTML text to be converted into "
+  hestOptAdd(&hopt, "first", "text", airTypeString, 1, 1, &frstLink, "<b>|&lt;&lt;</b>",
+             "Snippet of HTML text to be converted into "
              "link to first slide.  Some image could be used here. "
              "Following three arguments are similar. ");
-  hestOptAdd(&hopt, "prev", "text", airTypeString, 1, 1, &prevLink,
-             "<b>&lt;--</b>", "HTML for link to previous slide");
-  hestOptAdd(&hopt, "next", "text", airTypeString, 1, 1, &nextLink,
-             "<b>--&gt;</b>", "HTML for link to next slide");
-  hestOptAdd(&hopt, "last", "text", airTypeString, 1, 1, &lastLink,
-             "<b>&gt;&gt;|</b>", "HTML for link to last slide");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL, me, tkwbInfo,
-                 AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestOptAdd(&hopt, "prev", "text", airTypeString, 1, 1, &prevLink, "<b>&lt;--</b>",
+             "HTML for link to previous slide");
+  hestOptAdd(&hopt, "next", "text", airTypeString, 1, 1, &nextLink, "<b>--&gt;</b>",
+             "HTML for link to next slide");
+  hestOptAdd(&hopt, "last", "text", airTypeString, 1, 1, &lastLink, "<b>&gt;&gt;|</b>",
+             "HTML for link to last slide");
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, tkwbInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
@@ -495,16 +502,16 @@ main(int argc, const char *argv[]) {
   link[1] = prevLink;
   link[2] = nextLink;
   link[3] = lastLink;
-  for (ti=0; ti<=TKWB_TAG_MAX; ti++) {
-    tag[ti] = (char *)calloc(strlen(pretag[ti]) + strlen("<!---->") + 1,
-                             sizeof(char));
+  for (ti = 0; ti <= TKWB_TAG_MAX; ti++) {
+    tag[ti] = (char *)calloc(strlen(pretag[ti]) + strlen("<!---->") + 1, sizeof(char));
     airMopAdd(mop, tag[ti], airFree, airMopAlways);
     sprintf(tag[ti], "<!--%s-->", pretag[ti]);
   }
   if (tkwbDoit(indxS, tmplS, scriptS, tag, link)) {
     airMopAdd(mop, err = biffGetDone(TKWB), airFree, airMopAlways);
     fprintf(stderr, "%s: error:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

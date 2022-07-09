@@ -24,59 +24,43 @@
 #include "gage.h"
 #include "privateGage.h"
 
-const char *
-gageBiffKey = "gage";
+const char *gageBiffKey = "gage";
 
-int
-gageDefVerbose = 0;
+int gageDefVerbose = 0;
 
-double
-gageDefGradMagCurvMin = 0.0;
+double gageDefGradMagCurvMin = 0.0;
 
-int
-gageDefRenormalize = AIR_FALSE;
+int gageDefRenormalize = AIR_FALSE;
 
-int
-gageDefCheckIntegrals = AIR_TRUE;
+int gageDefCheckIntegrals = AIR_TRUE;
 
-int
-gageDefK3Pack = AIR_TRUE;
+int gageDefK3Pack = AIR_TRUE;
 
-int
-gageDefCurvNormalSide = 1;
+int gageDefCurvNormalSide = 1;
 
-double
-gageDefKernelIntegralNearZero = 0.0001;
+double gageDefKernelIntegralNearZero = 0.0001;
 
-int
-gageDefDefaultCenter = nrrdCenterCell;
+int gageDefDefaultCenter = nrrdCenterCell;
 
-int
-gageDefStackUse = AIR_FALSE; /* GLK doesn't see any reasonable circumstance
-                                where this could be AIR_TRUE, since it
-                                significantly changes the behavior of gage */
+int gageDefStackUse = AIR_FALSE; /* GLK doesn't see any reasonable circumstance
+                                    where this could be AIR_TRUE, since it
+                                    significantly changes the behavior of gage */
 
-int
-gageDefStackNormalizeRecon = AIR_FALSE;
+int gageDefStackNormalizeRecon = AIR_FALSE;
 
-int
-gageDefStackNormalizeDeriv = AIR_FALSE;
+int gageDefStackNormalizeDeriv = AIR_FALSE;
 
-double
-gageDefStackNormalizeDerivBias = 0.0;
+double gageDefStackNormalizeDerivBias = 0.0;
 
-int
-gageDefOrientationFromSpacing = AIR_FALSE;
+int gageDefOrientationFromSpacing = AIR_FALSE;
 /* Before teem 1.10.0, gage behaved inconsistently: Derivatives were
    taken as if orientationFromSpacing were TRUE, the index space to
    world space mapping acted as if it were FALSE. Now, you have the
    choice and get consistent results in either case. */
 
-int
-gageDefGenerateErrStr = AIR_TRUE;
+int gageDefGenerateErrStr = AIR_TRUE;
 /* Before Teem 1.11, error strings were always sprintf, which can easily
    become a bottleneck in some situations, but this should still stay
    the default behavior */
 
-int
-gageDefTwoDimZeroZ = AIR_FALSE; /* no way this can default to true */
+int gageDefTwoDimZeroZ = AIR_FALSE; /* no way this can default to true */

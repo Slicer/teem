@@ -34,7 +34,7 @@
 */
 int
 _pushTensorFieldSetup(pushContext *pctx) {
-  static const char me[]="_pushTensorFieldSetup";
+  static const char me[] = "_pushTensorFieldSetup";
   NrrdRange *nrange;
   airArray *mop;
   Nrrd *ntmp;
@@ -56,13 +56,9 @@ _pushTensorFieldSetup(pushContext *pctx) {
   numSingle += (1 == pctx->nin->axis[3].size);
   if (1 == numSingle) {
     pctx->dimIn = 2;
-    pctx->sliceAxis = (1 == pctx->nin->axis[1].size
-                       ? 0
-                       : (1 == pctx->nin->axis[2].size
-                          ? 1
-                          : 2));
-    fprintf(stderr, "!%s: got 2-D input with sliceAxis %u\n",
-            me, pctx->sliceAxis);
+    pctx->sliceAxis
+      = (1 == pctx->nin->axis[1].size ? 0 : (1 == pctx->nin->axis[2].size ? 1 : 2));
+    fprintf(stderr, "!%s: got 2-D input with sliceAxis %u\n", me, pctx->sliceAxis);
   } else {
     pctx->dimIn = 3;
     pctx->sliceAxis = 52; /* HEY: what the heck is 52 ? */
@@ -73,18 +69,19 @@ _pushTensorFieldSetup(pushContext *pctx) {
   if (!E) E |= nrrdCopy(pctx->ninv, pctx->nten);
   if (E) {
     biffMovef(PUSH, NRRD, "%s: trouble creating 3D tensor input", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  _ten = (float*)pctx->nten->data;
-  _inv = (float*)pctx->ninv->data;
-  NN = nrrdElementNumber(pctx->nten)/7;
-  for (ii=0; ii<NN; ii++) {
+  _ten = (float *)pctx->nten->data;
+  _inv = (float *)pctx->ninv->data;
+  NN = nrrdElementNumber(pctx->nten) / 7;
+  for (ii = 0; ii < NN; ii++) {
     double det;
     TEN_T_COPY(ten, _ten);
     TEN_T_INV(inv, ten, det);
     if (!det || !AIR_EXISTS(det)) {
-      fprintf(stderr, "!%s: tensor %u/%u has determinant %g\n", me,
-              AIR_UINT(ii), AIR_UINT(NN), det);
+      fprintf(stderr, "!%s: tensor %u/%u has determinant %g\n", me, AIR_UINT(ii),
+              AIR_UINT(NN), det);
     }
     TEN_T_COPY_TT(_inv, float, inv);
     _ten += 7;
@@ -94,13 +91,15 @@ _pushTensorFieldSetup(pushContext *pctx) {
   if (!E) E |= nrrdSlice(pctx->nmask, pctx->nten, 0, 0);
   if (E) {
     biffMovef(PUSH, NRRD, "%s: trouble creating mask", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   nrange = nrrdRangeNewSet(pctx->nmask, nrrdBlind8BitRangeFalse);
   airMopAdd(mop, nrange, (airMopper)nrrdRangeNix, airMopAlways);
   if (AIR_ABS(1.0 - nrange->max) > 0.005) {
     biffAddf(PUSH, "%s: tensor mask max %g not close 1.0", me, nrange->max);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   pctx->nten->axis[1].center = nrrdCenterCell;
@@ -123,7 +122,7 @@ _pushTensorFieldSetup(pushContext *pctx) {
 */
 int
 _pushGageSetup(pushContext *pctx) {
-  static const char me[]="_pushGageSetup";
+  static const char me[] = "_pushGageSetup";
   gagePerVolume *mpvl;
   int E;
 
@@ -131,29 +130,26 @@ _pushGageSetup(pushContext *pctx) {
   /* gageParmSet(pctx->gctx, gageParmRequireAllSpacings, AIR_TRUE); */
   E = AIR_FALSE;
   /* set up tensor probing */
-  if (!E) E |= !(pctx->tpvl = gagePerVolumeNew(pctx->gctx,
-                                               pctx->nten, tenGageKind));
+  if (!E) E |= !(pctx->tpvl = gagePerVolumeNew(pctx->gctx, pctx->nten, tenGageKind));
   if (!E) E |= gagePerVolumeAttach(pctx->gctx, pctx->tpvl);
-  if (!E) E |= gageKernelSet(pctx->gctx, gageKernel00,
-                             pctx->ksp00->kernel, pctx->ksp00->parm);
+  if (!E)
+    E |= gageKernelSet(pctx->gctx, gageKernel00, pctx->ksp00->kernel, pctx->ksp00->parm);
   if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, tenGageTensor);
   if (tenGageUnknown != pctx->gravItem) {
     if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, pctx->gravItem);
     if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, pctx->gravGradItem);
   }
   /* set up tensor inverse probing */
-  if (!E) E |= !(pctx->ipvl = gagePerVolumeNew(pctx->gctx,
-                                               pctx->ninv, tenGageKind));
+  if (!E) E |= !(pctx->ipvl = gagePerVolumeNew(pctx->gctx, pctx->ninv, tenGageKind));
   if (!E) E |= gagePerVolumeAttach(pctx->gctx, pctx->ipvl);
   if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->ipvl, tenGageTensor);
   /* set up mask gradient probing */
-  if (!E) E |= !(mpvl = gagePerVolumeNew(pctx->gctx,
-                                         pctx->nmask, gageKindScl));
+  if (!E) E |= !(mpvl = gagePerVolumeNew(pctx->gctx, pctx->nmask, gageKindScl));
   if (!E) E |= gagePerVolumeAttach(pctx->gctx, mpvl);
   if (!E) E |= gageQueryItemOn(pctx->gctx, mpvl, gageSclGradVec);
 
-  if (!E) E |= gageKernelSet(pctx->gctx, gageKernel11,
-                             pctx->ksp11->kernel, pctx->ksp11->parm);
+  if (!E)
+    E |= gageKernelSet(pctx->gctx, gageKernel11, pctx->ksp11->kernel, pctx->ksp11->parm);
   /* (maybe) turn on seed thresholding */
   if (tenGageUnknown != pctx->seedThreshItem) {
     if (!E) E |= gageQueryItemOn(pctx->gctx, pctx->tpvl, pctx->seedThreshItem);
@@ -170,7 +166,7 @@ _pushGageSetup(pushContext *pctx) {
 
 pushTask *
 _pushTaskNew(pushContext *pctx, int threadIdx) {
-  static const char me[]="_pushTaskNew";
+  static const char me[] = "_pushTaskNew";
   pushTask *task;
 
   task = (pushTask *)calloc(1, sizeof(pushTask));
@@ -184,12 +180,9 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
     ** HEY: its a limitation in gage that we have to know a priori
     ** the ordering of per-volumes in the context ...
     */
-    task->tenAns = gageAnswerPointer(task->gctx, task->gctx->pvl[0],
-                                     tenGageTensor);
-    task->invAns = gageAnswerPointer(task->gctx, task->gctx->pvl[1],
-                                     tenGageTensor);
-    task->cntAns = gageAnswerPointer(task->gctx, task->gctx->pvl[2],
-                                     gageSclGradVec);
+    task->tenAns = gageAnswerPointer(task->gctx, task->gctx->pvl[0], tenGageTensor);
+    task->invAns = gageAnswerPointer(task->gctx, task->gctx->pvl[1], tenGageTensor);
+    task->cntAns = gageAnswerPointer(task->gctx, task->gctx->pvl[2], gageSclGradVec);
     if (tenGageUnknown != task->pctx->gravItem) {
       task->gravAns = gageAnswerPointer(task->gctx, task->gctx->pvl[0],
                                         task->pctx->gravItem);
@@ -214,7 +207,6 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
     task->energySum = 0;
     task->deltaFracSum = 0;
     task->returnPtr = NULL;
-
   }
   return task;
 }
@@ -240,7 +232,7 @@ _pushTaskNix(pushTask *task) {
 */
 int
 _pushTaskSetup(pushContext *pctx) {
-  static const char me[]="_pushTaskSetup";
+  static const char me[] = "_pushTaskSetup";
   unsigned int tidx;
 
   pctx->task = (pushTask **)calloc(pctx->threadNum, sizeof(pushTask *));
@@ -248,7 +240,7 @@ _pushTaskSetup(pushContext *pctx) {
     biffAddf(PUSH, "%s: couldn't allocate array of tasks", me);
     return 1;
   }
-  for (tidx=0; tidx<pctx->threadNum; tidx++) {
+  for (tidx = 0; tidx < pctx->threadNum; tidx++) {
     if (pctx->verbose) {
       fprintf(stderr, "%s: creating task %u/%u\n", me, tidx, pctx->threadNum);
     }
@@ -270,19 +262,19 @@ _pushTaskSetup(pushContext *pctx) {
 */
 int
 _pushBinSetup(pushContext *pctx) {
-  static const char me[]="_pushBinSetup";
+  static const char me[] = "_pushBinSetup";
   float eval[3], *tdata;
   unsigned int ii, nn, count;
   double col[3][4], volEdge[3];
 
   /* ------------------------ find maxEval, maxDet, and set up binning */
-  nn = AIR_UINT(nrrdElementNumber(pctx->nten)/7);
+  nn = AIR_UINT(nrrdElementNumber(pctx->nten) / 7);
   pctx->maxEval = 0;
   pctx->maxDet = 0;
   pctx->meanEval = 0;
   count = 0;
-  tdata = (float*)pctx->nten->data;
-  for (ii=0; ii<nn; ii++) {
+  tdata = (float *)pctx->nten->data;
+  for (ii = 0; ii < nn; ii++) {
     tenEigensolve_f(eval, NULL, tdata);
     if (tdata[0] > 0.5) {
       /* HEY: this limitation may be a bad idea */
@@ -294,22 +286,20 @@ _pushBinSetup(pushContext *pctx) {
         /* HEY! HEY! this assumes not only that the measurement frame
            has been taken care of, but that the volume is axis-aligned */
         det2d = (0 == pctx->sliceAxis
-                 ? TEN_T_DET_YZ(tdata)
-                 : (1 == pctx->sliceAxis
-                    ? TEN_T_DET_XZ(tdata)
-                    : TEN_T_DET_XY(tdata)));
+                   ? TEN_T_DET_YZ(tdata)
+                   : (1 == pctx->sliceAxis ? TEN_T_DET_XZ(tdata) : TEN_T_DET_XY(tdata)));
         pctx->maxDet = AIR_MAX(pctx->maxDet, det2d);
       } else {
-        pctx->maxDet = AIR_MAX(pctx->maxDet, eval[0]*eval[1]*eval[2]);
+        pctx->maxDet = AIR_MAX(pctx->maxDet, eval[0] * eval[1] * eval[2]);
       }
     }
     tdata += 7;
   }
-  fprintf(stderr, "!%s: dimIn = %u(%u) --> maxDet = %g\n", me,
-          pctx->dimIn, pctx->sliceAxis, pctx->maxDet);
+  fprintf(stderr, "!%s: dimIn = %u(%u) --> maxDet = %g\n", me, pctx->dimIn,
+          pctx->sliceAxis, pctx->maxDet);
   pctx->meanEval /= count;
-  pctx->maxDist = (2*pctx->scale*pctx->maxEval
-                   *pctx->ensp->energy->support(pctx->ensp->parm));
+  pctx->maxDist = (2 * pctx->scale * pctx->maxEval
+                   * pctx->ensp->energy->support(pctx->ensp->parm));
 
   if (pctx->binSingle) {
     pctx->binsEdge[0] = 1;
@@ -317,34 +307,36 @@ _pushBinSetup(pushContext *pctx) {
     pctx->binsEdge[2] = 1;
     pctx->binNum = 1;
   } else {
-    ELL_4MV_COL0_GET(col[0], pctx->gctx->shape->ItoW); col[0][3] = 0.0;
-    ELL_4MV_COL1_GET(col[1], pctx->gctx->shape->ItoW); col[1][3] = 0.0;
-    ELL_4MV_COL2_GET(col[2], pctx->gctx->shape->ItoW); col[2][3] = 0.0;
-    volEdge[0] = ELL_3V_LEN(col[0])*pctx->gctx->shape->size[0];
-    volEdge[1] = ELL_3V_LEN(col[1])*pctx->gctx->shape->size[1];
-    volEdge[2] = ELL_3V_LEN(col[2])*pctx->gctx->shape->size[2];
-    fprintf(stderr, "!%s: volEdge = %g %g %g\n", me,
-            volEdge[0], volEdge[1], volEdge[2]);
-    pctx->binsEdge[0] = AIR_UINT(floor(volEdge[0]/pctx->maxDist));
+    ELL_4MV_COL0_GET(col[0], pctx->gctx->shape->ItoW);
+    col[0][3] = 0.0;
+    ELL_4MV_COL1_GET(col[1], pctx->gctx->shape->ItoW);
+    col[1][3] = 0.0;
+    ELL_4MV_COL2_GET(col[2], pctx->gctx->shape->ItoW);
+    col[2][3] = 0.0;
+    volEdge[0] = ELL_3V_LEN(col[0]) * pctx->gctx->shape->size[0];
+    volEdge[1] = ELL_3V_LEN(col[1]) * pctx->gctx->shape->size[1];
+    volEdge[2] = ELL_3V_LEN(col[2]) * pctx->gctx->shape->size[2];
+    fprintf(stderr, "!%s: volEdge = %g %g %g\n", me, volEdge[0], volEdge[1], volEdge[2]);
+    pctx->binsEdge[0] = AIR_UINT(floor(volEdge[0] / pctx->maxDist));
     pctx->binsEdge[0] = pctx->binsEdge[0] ? pctx->binsEdge[0] : 1;
-    pctx->binsEdge[1] = AIR_UINT(floor(volEdge[1]/pctx->maxDist));
+    pctx->binsEdge[1] = AIR_UINT(floor(volEdge[1] / pctx->maxDist));
     pctx->binsEdge[1] = pctx->binsEdge[1] ? pctx->binsEdge[1] : 1;
-    pctx->binsEdge[2] = AIR_UINT(floor(volEdge[2]/pctx->maxDist));
+    pctx->binsEdge[2] = AIR_UINT(floor(volEdge[2] / pctx->maxDist));
     pctx->binsEdge[2] = pctx->binsEdge[2] ? pctx->binsEdge[2] : 1;
     if (2 == pctx->dimIn) {
       pctx->binsEdge[pctx->sliceAxis] = 1;
     }
-    fprintf(stderr, "!%s: maxEval=%g -> maxDist=%g -> binsEdge=(%u,%u,%u)\n",
-            me, pctx->maxEval, pctx->maxDist,
-            pctx->binsEdge[0], pctx->binsEdge[1], pctx->binsEdge[2]);
-    pctx->binNum = pctx->binsEdge[0]*pctx->binsEdge[1]*pctx->binsEdge[2];
+    fprintf(stderr, "!%s: maxEval=%g -> maxDist=%g -> binsEdge=(%u,%u,%u)\n", me,
+            pctx->maxEval, pctx->maxDist, pctx->binsEdge[0], pctx->binsEdge[1],
+            pctx->binsEdge[2]);
+    pctx->binNum = pctx->binsEdge[0] * pctx->binsEdge[1] * pctx->binsEdge[2];
   }
   pctx->bin = (pushBin *)calloc(pctx->binNum, sizeof(pushBin));
-  if (!( pctx->bin )) {
+  if (!(pctx->bin)) {
     biffAddf(PUSH, "%s: trouble allocating bin arrays", me);
     return 1;
   }
-  for (ii=0; ii<pctx->binNum; ii++) {
+  for (ii = 0; ii < pctx->binNum; ii++) {
     pushBinInit(pctx->bin + ii, pctx->binIncr);
   }
   pushBinAllNeighborSet(pctx);
@@ -363,7 +355,7 @@ _pushBinSetup(pushContext *pctx) {
 */
 int
 _pushPointSetup(pushContext *pctx) {
-  static const char me[]="_pushPointSetup";
+  static const char me[] = "_pushPointSetup";
   double (*lup)(const void *v, size_t I), maxDet;
   unsigned int pointIdx;
   pushPoint *point;
@@ -373,9 +365,7 @@ _pushPointSetup(pushContext *pctx) {
     {50, 50, 0, 1}};
   */
 
-  pctx->pointNum = (pctx->npos
-                    ? AIR_UINT(pctx->npos->axis[1].size)
-                    : pctx->pointNum);
+  pctx->pointNum = (pctx->npos ? AIR_UINT(pctx->npos->axis[1].size) : pctx->pointNum);
   lup = pctx->npos ? nrrdDLookup[pctx->npos->type] : NULL;
   fprintf(stderr, "!%s: initilizing/seeding ... \n", me);
   /* HEY: we end up keeping a local copy of maxDet because convolution
@@ -383,7 +373,7 @@ _pushPointSetup(pushContext *pctx) {
      original sample.  However, if this is going into effect,
      detReject should probably *not* be enabled... */
   maxDet = pctx->maxDet;
-  for (pointIdx=0; pointIdx<pctx->pointNum; pointIdx++) {
+  for (pointIdx = 0; pointIdx < pctx->pointNum; pointIdx++) {
     double detProbe;
     /*
     fprintf(stderr, "!%s: pointIdx = %u/%u\n", me, pointIdx, pctx->pointNum);
@@ -391,9 +381,9 @@ _pushPointSetup(pushContext *pctx) {
     point = pushPointNew(pctx);
     if (pctx->npos) {
       ELL_3V_SET(point->pos,
-                 lup(pctx->npos->data, 0 + 3*pointIdx),
-                 lup(pctx->npos->data, 1 + 3*pointIdx),
-                 lup(pctx->npos->data, 2 + 3*pointIdx));
+                 lup(pctx->npos->data, 0 + 3 * pointIdx),
+                 lup(pctx->npos->data, 1 + 3 * pointIdx),
+                 lup(pctx->npos->data, 2 + 3 * pointIdx));
       if (_pushProbe(pctx->task[0], point)) {
         biffAddf(PUSH, "%s: probing pointIdx %u of npos", me, pointIdx);
         return 1;
@@ -407,12 +397,12 @@ _pushPointSetup(pushContext *pctx) {
       */
       do {
         double posIdx[4], posWorld[4];
-        posIdx[0] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
-                               -0.5, pctx->gctx->shape->size[0]-0.5);
-        posIdx[1] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
-                               -0.5, pctx->gctx->shape->size[1]-0.5);
-        posIdx[2] = AIR_AFFINE(0.0, airDrandMT(), 1.0,
-                               -0.5, pctx->gctx->shape->size[2]-0.5);
+        posIdx[0] = AIR_AFFINE(0.0, airDrandMT(), 1.0, -0.5,
+                               pctx->gctx->shape->size[0] - 0.5);
+        posIdx[1] = AIR_AFFINE(0.0, airDrandMT(), 1.0, -0.5,
+                               pctx->gctx->shape->size[1] - 0.5);
+        posIdx[2] = AIR_AFFINE(0.0, airDrandMT(), 1.0, -0.5,
+                               pctx->gctx->shape->size[2] - 0.5);
         posIdx[3] = 1.0;
         if (2 == pctx->dimIn) {
           posIdx[pctx->sliceAxis] = 0.0;
@@ -435,10 +425,9 @@ _pushPointSetup(pushContext *pctx) {
         if (2 == pctx->dimIn) {
           /* see above HEY! HEY! */
           detProbe = (0 == pctx->sliceAxis
-                      ? TEN_T_DET_YZ(point->ten)
-                      : (1 == pctx->sliceAxis
-                         ? TEN_T_DET_XZ(point->ten)
-                         : TEN_T_DET_XY(point->ten)));
+                        ? TEN_T_DET_YZ(point->ten)
+                        : (1 == pctx->sliceAxis ? TEN_T_DET_XZ(point->ten)
+                                                : TEN_T_DET_XY(point->ten)));
         } else {
           detProbe = TEN_T_DET(point->ten);
         }
@@ -455,12 +444,9 @@ _pushPointSetup(pushContext *pctx) {
            make us REJECT this last sample */
       } while (point->ten[0] < 0.5
                || (tenGageUnknown != pctx->seedThreshItem
-                   && ((pctx->seedThresh - point->seedThresh)
-                       *pctx->seedThreshSign > 0)
-                   )
-               || (pctx->detReject
-                   && (airDrandMT() < detProbe/maxDet))
-               );
+                   && ((pctx->seedThresh - point->seedThresh) * pctx->seedThreshSign
+                       > 0))
+               || (pctx->detReject && (airDrandMT() < detProbe / maxDet)));
     }
     if (pushBinPointAdd(pctx, point)) {
       biffAddf(PUSH, "%s: trouble binning point %u", me, point->ttaagg);
@@ -470,4 +456,3 @@ _pushPointSetup(pushContext *pctx) {
   fprintf(stderr, "!%s: ... seeding DONE\n", me);
   return 0;
 }
-

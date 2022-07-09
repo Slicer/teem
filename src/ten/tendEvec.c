@@ -25,13 +25,10 @@
 #include "privateTen.h"
 
 #define INFO "Calculate one or more eigenvectors in a DT volume"
-static const char *_tend_evecInfoL =
-  (INFO
-   ". ");
+static const char *_tend_evecInfoL = (INFO ". ");
 
 int
-tend_evecMain(int argc, const char **argv, const char *me,
-              hestParm *hparm) {
+tend_evecMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -61,17 +58,19 @@ tend_evecMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  for (cc=0; cc<compLen; cc++) {
+  for (cc = 0; cc < compLen; cc++) {
     if (!AIR_IN_CL(0, comp[cc], 2)) {
-      fprintf(stderr, "%s: requested component %d (%d of 3) not in [0..2]\n",
-              me, comp[cc], cc+1);
-      airMopError(mop); return 1;
+      fprintf(stderr, "%s: requested component %d (%d of 3) not in [0..2]\n", me,
+              comp[cc], cc + 1);
+      airMopError(mop);
+      return 1;
     }
   }
   if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: didn't get a valid DT volume:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   sx = nin->axis[1].size;
@@ -80,54 +79,57 @@ tend_evecMain(int argc, const char **argv, const char *me,
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  ret = nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4,
-                          AIR_CAST(size_t, 3*compLen), sx, sy, sz);
+  ret = nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, AIR_CAST(size_t, 3 * compLen), sx, sy,
+                          sz);
   if (ret) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble allocating output:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
-  N = sx*sy*sz;
+  N = sx * sy * sz;
   edata = (float *)nout->data;
   tdata = (float *)nin->data;
   if (1 == compLen) {
-    for (I=0; I<N; I++) {
+    for (I = 0; I < N; I++) {
       tenEigensolve_f(eval, evec, tdata);
       scl = AIR_FLOAT(tdata[0] >= thresh);
-      ELL_3V_SCALE(edata, scl, evec+3*comp[0]);
+      ELL_3V_SCALE(edata, scl, evec + 3 * comp[0]);
       edata += 3;
       tdata += 7;
     }
   } else {
-    for (I=0; I<N; I++) {
+    for (I = 0; I < N; I++) {
       tenEigensolve_f(eval, evec, tdata);
       scl = AIR_FLOAT(tdata[0] >= thresh);
-      for (cc=0; cc<compLen; cc++) {
-        ELL_3V_SCALE(edata+3*cc, scl, evec+3*comp[cc]);
+      for (cc = 0; cc < compLen; cc++) {
+        ELL_3V_SCALE(edata + 3 * cc, scl, evec + 3 * comp[cc]);
       }
-      edata += 3*compLen;
+      edata += 3 * compLen;
       tdata += 7;
     }
   }
   if (nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_SIZE_BIT)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+  if (nrrdBasicInfoCopy(nout, nin, NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   nout->axis[0].label = (char *)airFree(nout->axis[0].label);
   nout->axis[0].kind = nrrdKindUnknown;
 
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

@@ -25,26 +25,25 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Quantize values to 8, 16, or 32 bits"
-static const char *_unrrdu_quantizeInfoL =
-(INFO ". Input values can be fixed point (e.g. quantizing ushorts down to "
- "uchars) or floating point.  Values are clamped to the min and max before "
- "they are quantized, so there is no risk of getting 255 where you expect 0 "
- "(with unsigned char output, for example).  The min and max can be specified "
- "explicitly (as a regular number), or in terms of percentiles (a number "
- "suffixed with \"" NRRD_MINMAX_PERC_SUFF "\", no space in between). "
- "This does only linear quantization. "
- "See also \"unu convert\", \"unu 2op x\", "
- "and \"unu 3op clamp\".\n "
- "* Uses nrrdQuantize");
+static const char *_unrrdu_quantizeInfoL
+  = (INFO ". Input values can be fixed point (e.g. quantizing ushorts down to "
+          "uchars) or floating point.  Values are clamped to the min and max before "
+          "they are quantized, so there is no risk of getting 255 where you expect 0 "
+          "(with unsigned char output, for example).  The min and max can be specified "
+          "explicitly (as a regular number), or in terms of percentiles (a number "
+          "suffixed with \"" NRRD_MINMAX_PERC_SUFF "\", no space in between). "
+          "This does only linear quantization. "
+          "See also \"unu convert\", \"unu 2op x\", "
+          "and \"unu 3op clamp\".\n "
+          "* Uses nrrdQuantize");
 
 int
-unrrdu_quantizeMain(int argc, const char **argv, const char *me,
-                    hestParm *hparm) {
+unrrdu_quantizeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
   char *minStr, *maxStr, *gammaS;
-  int pret, zeroCenter, blind8BitRange, srgb, E=0;
+  int pret, zeroCenter, blind8BitRange, srgb, E = 0;
   unsigned int bits, hbins, srgbIdx;
   double gamma;
   NrrdRange *range;
@@ -58,8 +57,7 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
              "\b\bo \"16\": unsigned short\n "
              "\b\bo \"32\": unsigned int",
              NULL, NULL, &unrrduHestBitsCB);
-  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1,
-             &minStr, "nan",
+  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1, &minStr, "nan",
              "The value to map to zero, given explicitly as a regular number, "
              "*or*, if the number is given with a \"" NRRD_MINMAX_PERC_SUFF
              "\" suffix, this "
@@ -71,8 +69,7 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
              "1% of the lowest values are all mapped to zero. "
              "By default (not using this option), the lowest input value is "
              "used.");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1,
-             &maxStr, "nan",
+  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1, &maxStr, "nan",
              "The value to map to the highest unsigned integral value, given "
              "explicitly as a regular number, "
              "*or*, if the number is given with "
@@ -92,16 +89,16 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
              "Negative gammas invert values. Or, can be the string "
              "\"srgb\" to apply the roughly 2.2 gamma associated "
              "with sRGB (see https://en.wikipedia.org/wiki/SRGB). ");
-  srgbIdx=  /* HEY copied from overrgb.c */
-  hestOptAdd(&opt, "srgb", "intent", airTypeEnum, 1, 1, &srgb, "none",
-             /* the default is "none" for backwards compatibility: until now
-                Teem's support of PNG hasn't handled the sRGB intent, so
-                we shouldn't start using it without being asked */
-             "If saving to PNG (when supported), how to set the rendering "
-             "intent in the sRGB chunk of the PNG file format. Can be "
-             "absolute, relative, perceptual, saturation, or none. This is "
-             "independent of using \"srgb\" as the -g gamma",
-             NULL, nrrdFormatPNGsRGBIntent);
+  srgbIdx = /* HEY copied from overrgb.c */
+    hestOptAdd(&opt, "srgb", "intent", airTypeEnum, 1, 1, &srgb, "none",
+               /* the default is "none" for backwards compatibility: until now
+                  Teem's support of PNG hasn't handled the sRGB intent, so
+                  we shouldn't start using it without being asked */
+               "If saving to PNG (when supported), how to set the rendering "
+               "intent in the sRGB chunk of the PNG file format. Can be "
+               "absolute, relative, perceptual, saturation, or none. This is "
+               "independent of using \"srgb\" as the -g gamma",
+               NULL, nrrdFormatPNGsRGBIntent);
   hestOptAdd(&opt, "hb,bins", "bins", airTypeUInt, 1, 1, &hbins, "5000",
              "number of bins in histogram of values, for determining min "
              "or max by percentiles.  This has to be large enough so that "
@@ -124,22 +121,25 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   /* HEY copied from overrgb */
-  if (!( !strcmp(gammaS, "srgb") || 1 == sscanf(gammaS, "%lf", &gamma) )) {
-    fprintf(stderr, "%s: gamma \"%s\" neither \"srgb\" nor "
-            "parseable as double", me, gammaS);
-    airMopError(mop); return 1;
+  if (!(!strcmp(gammaS, "srgb") || 1 == sscanf(gammaS, "%lf", &gamma))) {
+    fprintf(stderr,
+            "%s: gamma \"%s\" neither \"srgb\" nor "
+            "parseable as double",
+            me, gammaS);
+    airMopError(mop);
+    return 1;
   }
 
   range = nrrdRangeNew(AIR_NAN, AIR_NAN);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdRangePercentileFromStringSet(range, nin,
-                                       minStr, maxStr, zeroCenter,
-                                       hbins, blind8BitRange)) {
+  if (nrrdRangePercentileFromStringSet(range, nin, minStr, maxStr, zeroCenter, hbins,
+                                       blind8BitRange)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error learning range:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (!strcmp(gammaS, "srgb")) {
     E = nrrdArithSRGBGamma(nin, nin, range, AIR_TRUE);
@@ -149,12 +149,14 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
   if (E) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error going gamma:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdQuantize(nout, nin, range, bits)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error quantizing:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (hestSourceUser == opt[srgbIdx].source) {

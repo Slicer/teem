@@ -25,15 +25,13 @@
 #include "privateTen.h"
 
 #define INFO "Modify shape by adding a constant to all eigenvalues"
-static const char *_tend_evaladdInfoL =
-  (INFO
-   ". The orientation of the tensor is unchanged.  Note that unlike "
-   "\"tend anscale\", this operation can completely change the shape "
-   "of the tensor.");
+static const char *_tend_evaladdInfoL
+  = (INFO ". The orientation of the tensor is unchanged.  Note that unlike "
+          "\"tend anscale\", this operation can completely change the shape "
+          "of the tensor.");
 
 int
-tend_evaladdMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+tend_evaladdMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -59,14 +57,16 @@ tend_evaladdMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenEigenvalueAdd(nout, nin, val)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

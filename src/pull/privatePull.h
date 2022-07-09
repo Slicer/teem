@@ -25,7 +25,7 @@
 extern "C" {
 #endif
 
-#define _PHN PULL_PHIST_NUM    /* short-cut */
+#define _PHN PULL_PHIST_NUM /* short-cut */
 
 /*
 ** These heuristics/parameters have been adjusted, and don't seem to need
@@ -108,15 +108,13 @@ extern int _pullSysParmCheck(pullSysParm *sysParm);
 extern void _pullFlagInit(pullFlag *flag);
 
 /* volumePull.c */
-extern pullVolume *_pullVolumeCopy(const pullContext *pctx,
-                                   const pullVolume *pvol);
+extern pullVolume *_pullVolumeCopy(const pullContext *pctx, const pullVolume *pvol);
 extern int _pullVolumeSetup(pullContext *pctx);
 extern int _pullInsideBBox(pullContext *pctx, double pos[4]);
-extern unsigned int _pullVolumeIndex(const pullContext *pctx,
-                                     const char *volName);
+extern unsigned int _pullVolumeIndex(const pullContext *pctx, const char *volName);
 
 /* infoPull.c */
-extern unsigned int _pullInfoLen[PULL_INFO_MAX+1];
+extern unsigned int _pullInfoLen[PULL_INFO_MAX + 1];
 extern void (*_pullInfoCopy[10])(double *, const double *);
 extern int _pullInfoSetup(pullContext *pctx);
 
@@ -133,27 +131,22 @@ extern void _pullTaskFinish(pullContext *pctx);
 extern double _pullPrayCorner[2][2][3];
 extern size_t _pullPrayRes[2];
 extern double _pullDistLimit(pullTask *task, pullPoint *point);
-extern double _pullEnergyFromPoints(pullTask *task, pullBin *bin,
-                                    pullPoint *point,
+extern double _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
                                     /* output */
                                     double egradSum[4]);
-extern double _pullPointEnergyTotal(pullTask *task, pullBin *bin,
-                                    pullPoint *point, int ignoreImage,
-                                    double force[4]);
-extern int _pullPointProcessDescent(pullTask *task, pullBin *bin,
-                                    pullPoint *point, int ignoreImage);
-extern double _pullEnergyInterParticle(pullContext *pctx,
-                                       pullPoint *me, const pullPoint *she,
-                                       double spaceDist, double scaleDist,
-                                       double egrad[4]);
+extern double _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
+                                    int ignoreImage, double force[4]);
+extern int _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
+                                    int ignoreImage);
+extern double _pullEnergyInterParticle(pullContext *pctx, pullPoint *me,
+                                       const pullPoint *she, double spaceDist,
+                                       double scaleDist, double egrad[4]);
 
 /* constraints.c */
 extern double _pullSigma(const pullContext *pctx, const double pos[4]);
-extern int _pullConstraintSatisfy(pullTask *task, pullPoint *point,
-                                  double travelMax,
+extern int _pullConstraintSatisfy(pullTask *task, pullPoint *point, double travelMax,
                                   int *constrFailP);
-extern void _pullConstraintTangent(pullTask *task, pullPoint *point,
-                                   double proj[9]);
+extern void _pullConstraintTangent(pullTask *task, pullPoint *point, double proj[9]);
 extern int _pullConstraintDim(const pullContext *pctx);
 
 /* pointPull.c */
@@ -161,8 +154,8 @@ extern int _pullConstraintDim(const pullContext *pctx);
 extern void _pullPointHistInit(pullPoint *point);
 extern void _pullPointHistAdd(pullPoint *point, int cond, double val);
 #else
-#define _pullPointHistInit(p)       /* no-op */
-#define _pullPointHistAdd(p, c, v)  /* no-op */
+#  define _pullPointHistInit(p)      /* no-op */
+#  define _pullPointHistAdd(p, c, v) /* no-op */
 #endif
 extern double _pullStepInterAverage(const pullContext *pctx);
 extern double _pullStepConstrAverage(const pullContext *pctx);
@@ -172,12 +165,9 @@ extern int _pullPointSetup(pullContext *pctx);
 extern void _pullPointFinish(pullContext *pctx);
 
 /* popcntl.c */
-extern int _pullPointProcessNeighLearn(pullTask *task, pullBin *bin,
-                                       pullPoint *point);
-extern int _pullPointProcessAdding(pullTask *task, pullBin *bin,
-                                   pullPoint *point);
-extern int _pullPointProcessNixing(pullTask *task, pullBin *bin,
-                                   pullPoint *point);
+extern int _pullPointProcessNeighLearn(pullTask *task, pullBin *bin, pullPoint *point);
+extern int _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point);
+extern int _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point);
 extern int _pullIterFinishNeighLearn(pullContext *pctx);
 extern int _pullIterFinishAdding(pullContext *pctx);
 extern int _pullIterFinishNixing(pullContext *pctx);

@@ -25,19 +25,17 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Normalizes array orientation and meta-data"
-static const char *_unrrdu_dnormInfoL =
-  (INFO
-   ". Forces information about kind and orientation into "
-   "a consistent form, and nixes various other fields. This was "
-   "originally created as a utility for the Diderot project "
-   "(http://diderot-language.cs.uchicago.edu), hence the name, "
-   "but it has proven useful in other contexts (uses of gage) in which "
-   "it is nice to have standardized orientation information.\n "
-   "* Uses nrrdMetaDataNormalize");
+static const char *_unrrdu_dnormInfoL
+  = (INFO ". Forces information about kind and orientation into "
+          "a consistent form, and nixes various other fields. This was "
+          "originally created as a utility for the Diderot project "
+          "(http://diderot-language.cs.uchicago.edu), hence the name, "
+          "but it has proven useful in other contexts (uses of gage) in which "
+          "it is nice to have standardized orientation information.\n "
+          "* Uses nrrdMetaDataNormalize");
 
 int
-unrrdu_dnormMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+unrrdu_dnormMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *outS;
   int pret;
 
@@ -52,10 +50,11 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
 
   hestOptAdd(&opt, "h,header", NULL, airTypeInt, 0, 0, &headerOnly, NULL,
              "output header of nrrd file only, not the data itself");
-  hestOptAdd(&opt, "v,version", "version", airTypeEnum, 1,1,&version, "alpha",
+  hestOptAdd(&opt, "v,version", "version", airTypeEnum, 1, 1, &version, "alpha",
              "what version of canonical meta-data to convert to; "
              "\"alpha\" is what has been used for Diderot until at least "
-             "2016", NULL, nrrdMetaDataCanonicalVersion);
+             "2016",
+             NULL, nrrdMetaDataCanonicalVersion);
   hestOptAdd(&opt, "to", NULL, airTypeInt, 0, 0, &trivialOrient, NULL,
              "(*t*rivial *o*rientation) "
              "even if the input nrrd comes with full orientation or "
@@ -64,8 +63,7 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
   hestOptAdd(&opt, "rc,recenter", NULL, airTypeInt, 0, 0, &recenter, NULL,
              "re-locate output spaceOrigin so that field is centered "
              "around origin of space coordinates");
-  hestOptAdd(&opt, "sp,spacing", "scl", airTypeDouble, 1, 1, &newSpacing,
-             "1.0",
+  hestOptAdd(&opt, "sp,spacing", "scl", airTypeDouble, 1, 1, &newSpacing, "1.0",
              "when having to contrive orientation information and there's "
              "no per-axis min/max or spacing, this is the sample spacing "
              "to assert");
@@ -86,20 +84,20 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
     airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   }
 
-  if (nrrdMetaDataNormalize(nout, nin,
-                            version, trivialOrient,
-                            AIR_FALSE /* permuteComponentAxisFastest */,
-                            recenter,
-                            newSpacing,
-                            &lostmf)) {
+  if (nrrdMetaDataNormalize(nout, nin, version, trivialOrient,
+                            AIR_FALSE /* permuteComponentAxisFastest */, recenter,
+                            newSpacing, &lostmf)) {
     airMopAdd(mop, err = biffGet(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (lostmf) {
-    fprintf(stderr, "%s: WARNING: input array measurement frame "
-            "will be erased on output.\n", me);
+    fprintf(stderr,
+            "%s: WARNING: input array measurement frame "
+            "will be erased on output.\n",
+            me);
   }
 
   nio = nrrdIoStateNew();
@@ -111,9 +109,9 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me,
   }
   if (nrrdSave(outS, nout, nio)) {
     airMopAdd(mop, err = biffGet(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble saving \"%s\":\n%s",
-            me, outS, err);
-    airMopError(mop); return 1;
+    fprintf(stderr, "%s: trouble saving \"%s\":\n%s", me, outS, err);
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

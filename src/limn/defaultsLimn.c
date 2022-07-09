@@ -23,15 +23,10 @@
 
 #include "limn.h"
 
-const int
-limnPresent = 42;
+const int limnPresent = 42;
 
-const char *
-limnBiffKey = "limn";
+const char *limnBiffKey = "limn";
 
-int
-limnDefCameraAtRelative = AIR_FALSE;
-int
-limnDefCameraOrthographic = AIR_FALSE;
-int
-limnDefCameraRightHanded = AIR_TRUE;
+int limnDefCameraAtRelative = AIR_FALSE;
+int limnDefCameraOrthographic = AIR_FALSE;
+int limnDefCameraRightHanded = AIR_TRUE;

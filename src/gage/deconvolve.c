@@ -25,35 +25,32 @@
 #include "privateGage.h"
 
 int
-gageDeconvolve(Nrrd *_nout, double *lastDiffP,
-               const Nrrd *nin, const gageKind *kind,
-               const NrrdKernelSpec *ksp, int typeOut,
-               unsigned int maxIter, int saveAnyway,
-               double step, double epsilon, int verbose) {
-  static const char me[]="gageDeconvolve";
+gageDeconvolve(Nrrd *_nout, double *lastDiffP, const Nrrd *nin, const gageKind *kind,
+               const NrrdKernelSpec *ksp, int typeOut, unsigned int maxIter,
+               int saveAnyway, double step, double epsilon, int verbose) {
+  static const char me[] = "gageDeconvolve";
   gageContext *ctx[2];
   gagePerVolume *pvl[2];
-  double *out[2], *val[2], alpha, (*lup)(const void *, size_t), meandiff=0;
+  double *out[2], *val[2], alpha, (*lup)(const void *, size_t), meandiff = 0;
   const double *ans[2];
   Nrrd *nout[2];
   airArray *mop;
-  unsigned int sx, sy, sz, xi, yi, zi, anslen, thiz=0, last, inIdx, iter;
+  unsigned int sx, sy, sz, xi, yi, zi, anslen, thiz = 0, last, inIdx, iter;
   int E, valItem;
 
   if (!(_nout && lastDiffP && nin && kind && ksp)) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!(nrrdTypeDefault == typeOut
-        || !airEnumValCheck(nrrdType, typeOut))) {
+  if (!(nrrdTypeDefault == typeOut || !airEnumValCheck(nrrdType, typeOut))) {
     biffAddf(GAGE, "%s: typeOut %d not valid", me, typeOut);
     return 1;
   }
-  if (!( maxIter >= 1 )) {
+  if (!(maxIter >= 1)) {
     biffAddf(GAGE, "%s: need maxIter >= 1 (not %u)", me, maxIter);
     return 1;
   }
-  if (!( epsilon >= 0 )) {
+  if (!(epsilon >= 0)) {
     biffAddf(GAGE, "%s: need epsilon >= 0.0 (not %g)", me, epsilon);
     return 1;
   }
@@ -62,28 +59,28 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
   valItem = 1;
 
   mop = airMopNew();
-  for (iter=0; iter<2; iter++) {
+  for (iter = 0; iter < 2; iter++) {
     nout[iter] = nrrdNew();
     airMopAdd(mop, nout[iter], (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(nout[iter], nin, nrrdTypeDouble)) {
-      biffMovef(GAGE, NRRD, "%s: couldn't allocate working buffer %u",
-                me, iter);
-      airMopError(mop); return 1;
+      biffMovef(GAGE, NRRD, "%s: couldn't allocate working buffer %u", me, iter);
+      airMopError(mop);
+      return 1;
     }
     ctx[iter] = gageContextNew();
     airMopAdd(mop, ctx[iter], (airMopper)gageContextNix, airMopAlways);
     E = 0;
     if (!E) E |= !(pvl[iter] = gagePerVolumeNew(ctx[iter], nout[iter], kind));
     if (!E) E |= gagePerVolumeAttach(ctx[iter], pvl[iter]);
-    if (!E) E |= gageKernelSet(ctx[iter], gageKernel00,
-                               ksp->kernel, ksp->parm);
+    if (!E) E |= gageKernelSet(ctx[iter], gageKernel00, ksp->kernel, ksp->parm);
     if (!E) E |= gageQueryItemOn(ctx[iter], pvl[iter], valItem);
     if (!E) E |= gageUpdate(ctx[iter]);
     if (E) {
       biffAddf(GAGE, "%s: trouble setting up context %u", me, iter);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
-    out[iter] = AIR_CAST(double*, nout[iter]->data);
+    out[iter] = AIR_CAST(double *, nout[iter]->data);
     ans[iter] = gageAnswerPointer(ctx[iter], pvl[iter], valItem);
   }
 
@@ -95,24 +92,24 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
   sy = ctx[0]->shape->size[1];
   sz = ctx[0]->shape->size[2];
 
-  for (iter=0; iter<maxIter; iter++) {
-    thiz = (iter+1) % 2;
-    last = (iter+0) % 2;
+  for (iter = 0; iter < maxIter; iter++) {
+    thiz = (iter + 1) % 2;
+    last = (iter + 0) % 2;
     val[thiz] = out[thiz];
     val[last] = out[last];
     inIdx = 0;
     meandiff = 0;
-    for (zi=0; zi<sz; zi++) {
-      for (yi=0; yi<sy; yi++) {
-        for (xi=0; xi<sx; xi++) {
+    for (zi = 0; zi < sz; zi++) {
+      for (yi = 0; yi < sy; yi++) {
+        for (xi = 0; xi < sx; xi++) {
           unsigned int ai;
           double in, aa;
           gageProbe(ctx[last], xi, yi, zi);
-          for (ai=0; ai<anslen; ai++) {
-            in = lup(nin->data, ai + anslen*inIdx);
+          for (ai = 0; ai < anslen; ai++) {
+            in = lup(nin->data, ai + anslen * inIdx);
             aa = ans[last][ai];
-            val[thiz][ai] = val[last][ai] + step*(in - aa)/alpha;
-            meandiff += 2*(in - aa)*(in - aa)/(DBL_EPSILON + in*in + aa*aa);
+            val[thiz][ai] = val[last][ai] + step * (in - aa) / alpha;
+            meandiff += 2 * (in - aa) * (in - aa) / (DBL_EPSILON + in * in + aa * aa);
           }
           val[thiz] += anslen;
           val[last] += anslen;
@@ -120,7 +117,7 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
         }
       }
     }
-    meandiff /= sx*sy*sz;
+    meandiff /= sx * sy * sz;
     if (verbose) {
       fprintf(stderr, "%s: iter %u meandiff = %g\n", me, iter, meandiff);
     }
@@ -131,22 +128,23 @@ gageDeconvolve(Nrrd *_nout, double *lastDiffP,
   }
   if (iter == maxIter) {
     if (!saveAnyway) {
-      biffAddf(GAGE, "%s: failed to converge in %u iterations, meandiff = %g",
-               me, maxIter, meandiff);
-      airMopError(mop); return 1;
+      biffAddf(GAGE, "%s: failed to converge in %u iterations, meandiff = %g", me,
+               maxIter, meandiff);
+      airMopError(mop);
+      return 1;
     } else {
       if (verbose) {
-        fprintf(stderr, "%s: at maxIter %u; err %g still > thresh %g\n", me,
-                iter, meandiff, epsilon);
+        fprintf(stderr, "%s: at maxIter %u; err %g still > thresh %g\n", me, iter,
+                meandiff, epsilon);
       }
     }
   }
 
-  if (nrrdClampConvert(_nout, nout[thiz], (nrrdTypeDefault == typeOut
-                                           ? nin->type
-                                           : typeOut))) {
+  if (nrrdClampConvert(_nout, nout[thiz],
+                       (nrrdTypeDefault == typeOut ? nin->type : typeOut))) {
     biffAddf(GAGE, "%s: couldn't create output", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   *lastDiffP = meandiff;
 
@@ -182,12 +180,10 @@ deconvTrivial(const NrrdKernelSpec *ksp) {
 
   /* HEY this will be much easier once kernels have a way of
      advertising whether or not they interpolate */
-  if (1 == ksp->parm[0] &&
-      (ksp->kernel == nrrdKernelHann ||
-       ksp->kernel == nrrdKernelBlackman ||
-       ksp->kernel == nrrdKernelBox ||
-       ksp->kernel == nrrdKernelCheap ||
-       ksp->kernel == nrrdKernelTent)) {
+  if (1 == ksp->parm[0]
+      && (ksp->kernel == nrrdKernelHann || ksp->kernel == nrrdKernelBlackman
+          || ksp->kernel == nrrdKernelBox || ksp->kernel == nrrdKernelCheap
+          || ksp->kernel == nrrdKernelTent)) {
     ret = AIR_TRUE;
   } else {
     ret = AIR_FALSE;
@@ -201,8 +197,7 @@ gageDeconvolveSeparableKnown(const NrrdKernelSpec *ksp) {
 
   if (!ksp) {
     ret = 0;
-  } else if (deconvTrivial(ksp)
-             || nrrdKernelBSpline3 == ksp->kernel
+  } else if (deconvTrivial(ksp) || nrrdKernelBSpline3 == ksp->kernel
              || nrrdKernelBSpline5 == ksp->kernel) {
     ret = 1;
   } else {
@@ -212,13 +207,10 @@ gageDeconvolveSeparableKnown(const NrrdKernelSpec *ksp) {
 }
 
 int
-gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
-                        const gageKind *kind,
-                        const NrrdKernelSpec *ksp,
-                        int typeOut) {
-  static const char me[]="gageDeconvolveSeparable";
-  double *line, (*lup)(const void *, size_t),
-    (*ins)(void *, size_t, double);
+gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin, const gageKind *kind,
+                        const NrrdKernelSpec *ksp, int typeOut) {
+  static const char me[] = "gageDeconvolveSeparable";
+  double *line, (*lup)(const void *, size_t), (*ins)(void *, size_t, double);
   airArray *mop;
   size_t lineLen, sx, sy, sz, idx, ii, jj;
   unsigned int vi, valLen;
@@ -227,24 +219,21 @@ gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
     biffAddf(GAGE, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!(nrrdTypeDefault == typeOut
-        || !airEnumValCheck(nrrdType, typeOut))) {
+  if (!(nrrdTypeDefault == typeOut || !airEnumValCheck(nrrdType, typeOut))) {
     biffAddf(GAGE, "%s: typeOut %d not valid", me, typeOut);
     return 1;
   }
   if (!gageDeconvolveSeparableKnown(ksp)) {
-    biffAddf(GAGE, "%s: separable deconv not known for %s kernel",
-             me, ksp->kernel->name);
+    biffAddf(GAGE, "%s: separable deconv not known for %s kernel", me,
+             ksp->kernel->name);
     return 1;
   }
   if (gageKindVolumeCheck(kind, nin)) {
-    biffAddf(GAGE, "%s: given volume doesn't fit %s kind",
-             me, kind->name);
+    biffAddf(GAGE, "%s: given volume doesn't fit %s kind", me, kind->name);
     return 1;
   }
-  if (nrrdTypeDefault == typeOut
-      ? nrrdCopy(nout, nin)
-      : nrrdConvert(nout, nin, typeOut)) {
+  if (nrrdTypeDefault == typeOut ? nrrdCopy(nout, nin)
+                                 : nrrdConvert(nout, nin, typeOut)) {
     biffMovef(GAGE, NRRD, "%s: problem allocating output", me);
     return 1;
   }
@@ -265,69 +254,69 @@ gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin,
   ins = nrrdDInsert[nout->type];
 
   mop = airMopNew();
-  line = AIR_CALLOC(lineLen*valLen, double);
+  line = AIR_CALLOC(lineLen * valLen, double);
   airMopAdd(mop, line, airFree, airMopAlways);
 
   /* process along X scanlines */
-  for (jj=0; jj<sy*sz; jj++) {
+  for (jj = 0; jj < sy * sz; jj++) {
     /* xi = 0, yi = jj%sy, zi = jj/sy
        ==> xi + sx*(yi + sy*zi)
        == 0 + sx*(jj%sy + sy*(jj/sy)) == 0 + sx*jj */
-    idx = 0 + valLen*(0 + sx*jj);
-    for (ii=0; ii<sx; ii++) {
-      for (vi=0; vi<valLen; vi++) {
-        line[ii + sx*vi] = lup(nin->data, idx + vi + valLen*ii);
+    idx = 0 + valLen * (0 + sx * jj);
+    for (ii = 0; ii < sx; ii++) {
+      for (vi = 0; vi < valLen; vi++) {
+        line[ii + sx * vi] = lup(nin->data, idx + vi + valLen * ii);
       }
     }
-    for (vi=0; vi<valLen; vi++) {
-      deconvLine(line + sx*vi, sx, ksp);
+    for (vi = 0; vi < valLen; vi++) {
+      deconvLine(line + sx * vi, sx, ksp);
     }
-    for (ii=0; ii<sx; ii++) {
-      for (vi=0; vi<valLen; vi++) {
-        ins(nout->data, idx + vi + valLen*ii, line[ii + sx*vi]);
+    for (ii = 0; ii < sx; ii++) {
+      for (vi = 0; vi < valLen; vi++) {
+        ins(nout->data, idx + vi + valLen * ii, line[ii + sx * vi]);
       }
     }
   }
 
   /* process along Y scanlines */
-  for (jj=0; jj<sx*sz; jj++) {
+  for (jj = 0; jj < sx * sz; jj++) {
     /* xi = jj%sx, yi = 0, zi = jj/sx
        ==> xi + sx*(yi + sy*zi)
        == jj%sx + sx*(0 + sy*jj/sx) */
-    idx = 0 + valLen*((jj%sx) + sx*(0 + sy*(jj/sx)));
-    for (ii=0; ii<sy; ii++) {
-      for (vi=0; vi<valLen; vi++) {
-        line[ii + sy*vi] = lup(nin->data, idx + vi + valLen*sx*ii);
+    idx = 0 + valLen * ((jj % sx) + sx * (0 + sy * (jj / sx)));
+    for (ii = 0; ii < sy; ii++) {
+      for (vi = 0; vi < valLen; vi++) {
+        line[ii + sy * vi] = lup(nin->data, idx + vi + valLen * sx * ii);
       }
     }
-    for (vi=0; vi<valLen; vi++) {
-      deconvLine(line + sy*vi, sy, ksp);
+    for (vi = 0; vi < valLen; vi++) {
+      deconvLine(line + sy * vi, sy, ksp);
     }
-    for (ii=0; ii<sx; ii++) {
-      for (vi=0; vi<valLen; vi++) {
-        ins(nout->data, idx + vi + valLen*sx*ii, line[ii + sy*vi]);
+    for (ii = 0; ii < sx; ii++) {
+      for (vi = 0; vi < valLen; vi++) {
+        ins(nout->data, idx + vi + valLen * sx * ii, line[ii + sy * vi]);
       }
     }
   }
 
   /* process along Z scanlines */
-  for (jj=0; jj<sx*sy; jj++) {
+  for (jj = 0; jj < sx * sy; jj++) {
     /* xi = jj%sx, yi = jj/sx, zi = 0
        ==> xi + sx*(yi + sy*zi)
        == jj%sx + sx*(jj/sx + sy*0)
        == jj%sx + sx*(jj/sx) == jj */
-    idx = 0 + valLen*jj;
-    for (ii=0; ii<sz; ii++) {
-      for (vi=0; vi<valLen; vi++) {
-        line[ii + sz*vi] = lup(nin->data, idx + vi + valLen*sx*sy*ii);
+    idx = 0 + valLen * jj;
+    for (ii = 0; ii < sz; ii++) {
+      for (vi = 0; vi < valLen; vi++) {
+        line[ii + sz * vi] = lup(nin->data, idx + vi + valLen * sx * sy * ii);
       }
     }
-    for (vi=0; vi<valLen; vi++) {
-      deconvLine(line + sz*vi, sz, ksp);
+    for (vi = 0; vi < valLen; vi++) {
+      deconvLine(line + sz * vi, sz, ksp);
     }
-    for (ii=0; ii<sx; ii++) {
-      for (vi=0; vi<valLen; vi++) {
-        ins(nout->data, idx + vi + valLen*sx*sy*ii, line[ii + sz*vi]);
+    for (ii = 0; ii < sx; ii++) {
+      for (vi = 0; vi < valLen; vi++) {
+        ins(nout->data, idx + vi + valLen * sx * sy * ii, line[ii + sz * vi]);
       }
     }
   }

@@ -25,17 +25,15 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Merge two adjacent axes into one"
-static const char *_unrrdu_axmergeInfoL =
-(INFO
- ". A more general version of \"unu axdelete\". "
- "The underlying linear ordering of the samples is "
- "unchanged, and the information about the other axes is "
- "shifted downwards as needed.\n "
- "* Uses nrrdAxesMerge");
+static const char *_unrrdu_axmergeInfoL
+  = (INFO ". A more general version of \"unu axdelete\". "
+          "The underlying linear ordering of the samples is "
+          "unchanged, and the information about the other axes is "
+          "shifted downwards as needed.\n "
+          "* Uses nrrdAxesMerge");
 
 int
-unrrdu_axmergeMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+unrrdu_axmergeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout[2];
@@ -48,7 +46,8 @@ unrrdu_axmergeMain(int argc, const char **argv, const char *me,
              "lower of the pair of axes that will be merged.  Saying \"-a 2\" "
              "means to merge axis 2 and axis 3 into axis 2.  If multiple "
              "merges are to be done, the indices listed here are for "
-             "the axes prior to any merging.", &axesLen);
+             "the axes prior to any merging.",
+             &axesLen);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -59,8 +58,8 @@ unrrdu_axmergeMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  airMopAdd(mop, nout[0]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nout[1]=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nout[0] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nout[1] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
   if (axesLen > 1) {
     /* sort merge axes into ascending order */
@@ -68,20 +67,20 @@ unrrdu_axmergeMain(int argc, const char **argv, const char *me,
   }
 
   ni = 0;
-  for (ii=0; ii<axesLen; ii++) {
-    if (nrrdAxesMerge(nout[ni], !ii ? nin : nout[1-ni], axes[ii])) {
+  for (ii = 0; ii < axesLen; ii++) {
+    if (nrrdAxesMerge(nout[ni], !ii ? nin : nout[1 - ni], axes[ii])) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: error merging axes:\n%s", me, err);
       airMopError(mop);
       return 1;
     }
-    for (jj=ii+1; jj<axesLen; jj++) {
+    for (jj = ii + 1; jj < axesLen; jj++) {
       axes[jj] -= 1;
     }
-    ni = 1-ni;
+    ni = 1 - ni;
   }
 
-  SAVE(out, nout[1-ni], NULL);
+  SAVE(out, nout[1 - ni], NULL);
 
   airMopOkay(mop);
   return 0;

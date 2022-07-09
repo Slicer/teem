@@ -67,19 +67,19 @@ enum {
 */
 enum {
   nrrdFormatTypeUnknown,
-  nrrdFormatTypeNRRD,   /* 1: basic nrrd format (associated with any of
-                           the magics starting with "NRRD") */
-  nrrdFormatTypePNM,    /* 2: PNM image */
-  nrrdFormatTypePNG,    /* 3: PNG image */
-  nrrdFormatTypeVTK,    /* 4: VTK Structured Points datasets (v1.0 and 2.0) */
-  nrrdFormatTypeText,   /* 5: ASCII text for 2D arrays, which may or may
-                              not be bare (i.e. just numbers, no header
-                              lines that start with "#") according
-                              to NrrdIoState->bareText */
-  nrrdFormatTypeEPS,    /* 6: Encapsulated PostScript (write-only) */
+  nrrdFormatTypeNRRD, /* 1: basic nrrd format (associated with any of
+                         the magics starting with "NRRD") */
+  nrrdFormatTypePNM,  /* 2: PNM image */
+  nrrdFormatTypePNG,  /* 3: PNG image */
+  nrrdFormatTypeVTK,  /* 4: VTK Structured Points datasets (v1.0 and 2.0) */
+  nrrdFormatTypeText, /* 5: ASCII text for 2D arrays, which may or may
+                            not be bare (i.e. just numbers, no header
+                            lines that start with "#") according
+                            to NrrdIoState->bareText */
+  nrrdFormatTypeEPS,  /* 6: Encapsulated PostScript (write-only) */
   nrrdFormatTypeLast
 };
-#define NRRD_FORMAT_TYPE_MAX    6
+#define NRRD_FORMAT_TYPE_MAX 6
 
 /*
 ******** nrrdBoundary* enum
@@ -88,16 +88,16 @@ enum {
 */
 enum {
   nrrdBoundaryUnknown,
-  nrrdBoundaryPad,      /* 1: fill with some user-specified value */
-  nrrdBoundaryBleed,    /* 2: copy the last/first value out as needed */
-  nrrdBoundaryWrap,     /* 3: wrap-around */
-  nrrdBoundaryWeight,   /* 4: normalize the weighting on the existing samples;
-                           ONLY sensible for a strictly positive kernel
-                           which integrates to unity (as in blurring) */
-  nrrdBoundaryMirror,   /* 5: mirror folding */
+  nrrdBoundaryPad,    /* 1: fill with some user-specified value */
+  nrrdBoundaryBleed,  /* 2: copy the last/first value out as needed */
+  nrrdBoundaryWrap,   /* 3: wrap-around */
+  nrrdBoundaryWeight, /* 4: normalize the weighting on the existing samples;
+                         ONLY sensible for a strictly positive kernel
+                         which integrates to unity (as in blurring) */
+  nrrdBoundaryMirror, /* 5: mirror folding */
   nrrdBoundaryLast
 };
-#define NRRD_BOUNDARY_MAX  5
+#define NRRD_BOUNDARY_MAX 5
 
 /*
 ******** nrrdType* enum
@@ -113,26 +113,27 @@ enum {
 ** and being simply default.
 */
 enum {
-  nrrdTypeUnknown=0,     /*  0: signifies "type is unset/unknown" */
-  nrrdTypeDefault=0,     /*  0: signifies "determine output type for me" */
-  nrrdTypeChar,          /*  1:   signed 1-byte integer */
-  nrrdTypeUChar,         /*  2: unsigned 1-byte integer */
-  nrrdTypeShort,         /*  3:   signed 2-byte integer */
-  nrrdTypeUShort,        /*  4: unsigned 2-byte integer */
-  nrrdTypeInt,           /*  5:   signed 4-byte integer */
-  nrrdTypeUInt,          /*  6: unsigned 4-byte integer */
-  nrrdTypeLLong,         /*  7:   signed 8-byte integer */
-  nrrdTypeULLong,        /*  8: unsigned 8-byte integer */
-  nrrdTypeFloat,         /*  9:          4-byte floating point */
-  nrrdTypeDouble,        /* 10:          8-byte floating point */
-  nrrdTypeBlock,         /* 11: size user defined at run time; MUST BE LAST */
+  nrrdTypeUnknown = 0, /*  0: signifies "type is unset/unknown" */
+  nrrdTypeDefault = 0, /*  0: signifies "determine output type for me" */
+  nrrdTypeChar,        /*  1:   signed 1-byte integer */
+  nrrdTypeUChar,       /*  2: unsigned 1-byte integer */
+  nrrdTypeShort,       /*  3:   signed 2-byte integer */
+  nrrdTypeUShort,      /*  4: unsigned 2-byte integer */
+  nrrdTypeInt,         /*  5:   signed 4-byte integer */
+  nrrdTypeUInt,        /*  6: unsigned 4-byte integer */
+  nrrdTypeLLong,       /*  7:   signed 8-byte integer */
+  nrrdTypeULLong,      /*  8: unsigned 8-byte integer */
+  nrrdTypeFloat,       /*  9:          4-byte floating point */
+  nrrdTypeDouble,      /* 10:          8-byte floating point */
+  nrrdTypeBlock,       /* 11: size user defined at run time; MUST BE LAST */
   nrrdTypeLast
 };
-#define NRRD_TYPE_MAX       11
-#define NRRD_TYPE_SIZE_MAX   8    /* max(sizeof()) over all scalar types */
-#define NRRD_TYPE_BIGGEST double  /* this should be a basic C type which
-                                     requires for storage the maximum size
-                                     of all the basic C types */
+#define NRRD_TYPE_MAX      11
+#define NRRD_TYPE_SIZE_MAX 8 /* max(sizeof()) over all scalar types */
+#define NRRD_TYPE_BIGGEST                                                               \
+  double /* this should be a basic C type which                                         \
+            requires for storage the maximum size                                       \
+            of all the basic C types */
 
 /*
 ******** nrrdEncodingType enum
@@ -141,12 +142,12 @@ enum {
 */
 enum {
   nrrdEncodingTypeUnknown,
-  nrrdEncodingTypeRaw,      /* 1: same as memory layout (modulo endianness) */
-  nrrdEncodingTypeAscii,    /* 2: decimal values are spelled out in ascii */
-  nrrdEncodingTypeHex,      /* 3: hexidecimal (two chars per byte) */
-  nrrdEncodingTypeGzip,     /* 4: gzip'ed raw data */
-  nrrdEncodingTypeBzip2,    /* 5: bzip2'ed raw data */
-  nrrdEncodingTypeZRL,      /* 6: zero run-length compresion */
+  nrrdEncodingTypeRaw,   /* 1: same as memory layout (modulo endianness) */
+  nrrdEncodingTypeAscii, /* 2: decimal values are spelled out in ascii */
+  nrrdEncodingTypeHex,   /* 3: hexidecimal (two chars per byte) */
+  nrrdEncodingTypeGzip,  /* 4: gzip'ed raw data */
+  nrrdEncodingTypeBzip2, /* 5: bzip2'ed raw data */
+  nrrdEncodingTypeZRL,   /* 6: zero run-length compresion */
   nrrdEncodingTypeLast
 };
 #define NRRD_ENCODING_TYPE_MAX 6
@@ -158,12 +159,12 @@ enum {
 */
 enum {
   nrrdZlibStrategyUnknown,
-  nrrdZlibStrategyDefault,   /* 1: default (Huffman + string match) */
-  nrrdZlibStrategyHuffman,   /* 2: Huffman only */
-  nrrdZlibStrategyFiltered,  /* 3: specialized for filtered data */
+  nrrdZlibStrategyDefault,  /* 1: default (Huffman + string match) */
+  nrrdZlibStrategyHuffman,  /* 2: Huffman only */
+  nrrdZlibStrategyFiltered, /* 3: specialized for filtered data */
   nrrdZlibStrategyLast
 };
-#define NRRD_ZLIB_STRATEGY_MAX  3
+#define NRRD_ZLIB_STRATEGY_MAX 3
 
 /*
 ******** nrrdCenter enum
@@ -171,18 +172,18 @@ enum {
 ** node-centered vs. cell-centered
 */
 enum {
-  nrrdCenterUnknown,         /* 0: no centering known for this axis */
-  nrrdCenterNode,            /* 1: samples at corners of things
-                                (how "voxels" are usually imagined)
-                                |\______/|\______/|\______/|
-                                X        X        X        X   */
-  nrrdCenterCell,            /* 2: samples at middles of things
-                                (characteristic of histogram bins)
-                                 \___|___/\___|___/\___|___/
-                                     X        X        X       */
+  nrrdCenterUnknown, /* 0: no centering known for this axis */
+  nrrdCenterNode,    /* 1: samples at corners of things
+                        (how "voxels" are usually imagined)
+                        |\______/|\______/|\______/|
+                        X        X        X        X   */
+  nrrdCenterCell,    /* 2: samples at middles of things
+                        (characteristic of histogram bins)
+                         \___|___/\___|___/\___|___/
+                             X        X        X       */
   nrrdCenterLast
 };
-#define NRRD_CENTER_MAX         2
+#define NRRD_CENTER_MAX 2
 
 /*
 ******** nrrdKind enum
@@ -217,16 +218,16 @@ enum {
 */
 enum {
   nrrdKindUnknown,
-  nrrdKindDomain,            /*  1: any image domain */
-  nrrdKindSpace,             /*  2: a spatial domain */
-  nrrdKindTime,              /*  3: a temporal domain */
+  nrrdKindDomain, /*  1: any image domain */
+  nrrdKindSpace,  /*  2: a spatial domain */
+  nrrdKindTime,   /*  3: a temporal domain */
   /* -------------------------- end domain kinds */
   /* -------------------------- begin range kinds */
-  nrrdKindList,              /*  4: any list of values, non-resample-able */
-  nrrdKindPoint,             /*  5: coords of a point */
-  nrrdKindVector,            /*  6: coeffs of (contravariant) vector */
-  nrrdKindCovariantVector,   /*  7: coeffs of covariant vector (eg gradient) */
-  nrrdKindNormal,            /*  8: coeffs of unit-length covariant vector */
+  nrrdKindList,            /*  4: any list of values, non-resample-able */
+  nrrdKindPoint,           /*  5: coords of a point */
+  nrrdKindVector,          /*  6: coeffs of (contravariant) vector */
+  nrrdKindCovariantVector, /*  7: coeffs of covariant vector (eg gradient) */
+  nrrdKindNormal,          /*  8: coeffs of unit-length covariant vector */
   /* -------------------------- end arbitrary size kinds */
   /* -------------------------- begin size-specific kinds */
   nrrdKindStub,              /*  9: axis with one sample (a placeholder) */
@@ -254,7 +255,7 @@ enum {
   nrrdKind3DMaskedMatrix,    /* 31: mask Mxx Mxy Mxz Myx Myy Myz Mzx Mzy Mzz */
   nrrdKindLast
 };
-#define NRRD_KIND_MAX           31
+#define NRRD_KIND_MAX 31
 
 /*
 ******** nrrdAxisInfo enum
@@ -410,7 +411,7 @@ enum {
   nrrdField_data_file,         /* 32 */
   nrrdField_last
 };
-#define NRRD_FIELD_MAX            32
+#define NRRD_FIELD_MAX 32
 
 /*
 ******** nrrdHasNonExist* enum
@@ -425,10 +426,10 @@ enum {
 ** probably harmlessly conservative.  Time will tell.
 */
 enum {
-  nrrdHasNonExistFalse,     /* 0: no non-existent values were seen */
-  nrrdHasNonExistTrue,      /* 1: some non-existent values were seen */
-  nrrdHasNonExistOnly,      /* 2: NOTHING BUT non-existent values were seen */
-  nrrdHasNonExistUnknown,   /* 3 */
+  nrrdHasNonExistFalse,   /* 0: no non-existent values were seen */
+  nrrdHasNonExistTrue,    /* 1: some non-existent values were seen */
+  nrrdHasNonExistOnly,    /* 2: NOTHING BUT non-existent values were seen */
+  nrrdHasNonExistUnknown, /* 3 */
   nrrdHasNonExistLast
 };
 #define NRRD_HAS_NON_EXIST_MAX 3
@@ -485,7 +486,7 @@ enum {
   nrrdSpace3DLeftHandedTime,          /* 14: */
   nrrdSpaceLast
 };
-#define NRRD_SPACE_MAX                   14
+#define NRRD_SPACE_MAX 14
 
 /*
 ******** nrrdSpacingStatus* enum
@@ -494,22 +495,22 @@ enum {
 ** given axis, as determined by nrrdSpacingCalculate
 */
 enum {
-  nrrdSpacingStatusUnknown,           /* 0: nobody knows,
-                                         or invalid axis choice */
-  nrrdSpacingStatusNone,              /* 1: neither axis->spacing nor
-                                         axis->spaceDirection is set */
-  nrrdSpacingStatusScalarNoSpace,     /* 2: axis->spacing set,
-                                         w/out space info */
-  nrrdSpacingStatusScalarWithSpace,   /* 3: axis->spacing set, but there *is*
-                                         space info, which means the spacing
-                                         does *not* live in the surrounding
-                                         space */
-  nrrdSpacingStatusDirection,         /* 4: axis->spaceDirection set, and
-                                         measured according to surrounding
-                                         space */
+  nrrdSpacingStatusUnknown,         /* 0: nobody knows,
+                                       or invalid axis choice */
+  nrrdSpacingStatusNone,            /* 1: neither axis->spacing nor
+                                       axis->spaceDirection is set */
+  nrrdSpacingStatusScalarNoSpace,   /* 2: axis->spacing set,
+                                       w/out space info */
+  nrrdSpacingStatusScalarWithSpace, /* 3: axis->spacing set, but there *is*
+                                       space info, which means the spacing
+                                       does *not* live in the surrounding
+                                       space */
+  nrrdSpacingStatusDirection,       /* 4: axis->spaceDirection set, and
+                                       measured according to surrounding
+                                       space */
   nrrdSpacingStatusLast
 };
-#define NRRD_SPACING_STATUS_MAX          4
+#define NRRD_SPACING_STATUS_MAX 4
 
 /*
 ******** nrrdOriginStatus* enum
@@ -538,15 +539,15 @@ enum {
 ** http://www.libpng.org/pub/png/book/chapter10.html
 */
 enum {
-  nrrdFormatPNGsRGBIntentUnknown=-1, /* -1: nobody knows */
-  nrrdFormatPNGsRGBIntentPerceptual,  /* 0: PNG_sRGB_INTENT_PERCEPTUAL */
-  nrrdFormatPNGsRGBIntentRelative,    /* 1: PNG_sRGB_INTENT_RELATIVE */
-  nrrdFormatPNGsRGBIntentSaturation,  /* 2: PNG_sRGB_INTENT_SATURATION */
-  nrrdFormatPNGsRGBIntentAbsolute,    /* 3: PNG_sRGB_INTENT_ABSOLUTE */
-  nrrdFormatPNGsRGBIntentNone,        /* 4: do not indicate intent */
+  nrrdFormatPNGsRGBIntentUnknown = -1, /* -1: nobody knows */
+  nrrdFormatPNGsRGBIntentPerceptual,   /* 0: PNG_sRGB_INTENT_PERCEPTUAL */
+  nrrdFormatPNGsRGBIntentRelative,     /* 1: PNG_sRGB_INTENT_RELATIVE */
+  nrrdFormatPNGsRGBIntentSaturation,   /* 2: PNG_sRGB_INTENT_SATURATION */
+  nrrdFormatPNGsRGBIntentAbsolute,     /* 3: PNG_sRGB_INTENT_ABSOLUTE */
+  nrrdFormatPNGsRGBIntentNone,         /* 4: do not indicate intent */
   nrrdFormatPNGsRGBIntentLast
 };
-#define NRRD_FORMAT_PNG_SRGB_INTENT_NUM  5
+#define NRRD_FORMAT_PNG_SRGB_INTENT_NUM 5
 
 /*
 ******** nrrdOrientationHave* enum
@@ -564,7 +565,7 @@ enum {
   nrrdOrientationHaveOriginDirections, /* 6 */
   nrrdOrientationHaveLast
 };
-#define NRRD_ORIENTATION_HAVE_MAX         6
+#define NRRD_ORIENTATION_HAVE_MAX 6
 
 /*
 ******** nrrdMeasure enum
@@ -600,35 +601,34 @@ enum {
   ** the nrrduMeasureHisto* measures interpret the array as a
   ** histogram of some implied value distribution
   */
-  nrrdMeasureHistoMin,       /* 21 */
-  nrrdMeasureHistoMax,       /* 22 */
-  nrrdMeasureHistoMean,      /* 23 */
-  nrrdMeasureHistoMedian,    /* 24 */
-  nrrdMeasureHistoMode,      /* 25 */
-  nrrdMeasureHistoProduct,   /* 26 */
-  nrrdMeasureHistoSum,       /* 27 */
-  nrrdMeasureHistoL2,        /* 28 */
-  nrrdMeasureHistoVariance,  /* 29 */
-  nrrdMeasureHistoSD,        /* 30 */
+  nrrdMeasureHistoMin,      /* 21 */
+  nrrdMeasureHistoMax,      /* 22 */
+  nrrdMeasureHistoMean,     /* 23 */
+  nrrdMeasureHistoMedian,   /* 24 */
+  nrrdMeasureHistoMode,     /* 25 */
+  nrrdMeasureHistoProduct,  /* 26 */
+  nrrdMeasureHistoSum,      /* 27 */
+  nrrdMeasureHistoL2,       /* 28 */
+  nrrdMeasureHistoVariance, /* 29 */
+  nrrdMeasureHistoSD,       /* 30 */
   nrrdMeasureLast
 };
-#define NRRD_MEASURE_MAX        30
-#define NRRD_MEASURE_DESC \
-   "Possibilities include:\n " \
-   "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\", " \
-     "\"skew\", \"sum\", \"product\", : (self-explanatory)\n " \
-   "\b\bo \"intc\", \"slope\", \"error\": " \
-     "intercept, slope, and error from line fitting\n " \
-   "\b\bo \"stdv\": standard deviation\n " \
-   "\b\bo \"cov\": coefficient of variation\n " \
-   "\b\bo \"product\", \"sum\": product or sum of all values\n " \
-   "\b\bo \"L1\", \"L2\", \"L4\", \"NL2\", \"RMS\", \"Linf\": vector norms\n " \
-   "\b\bo \"histo-min\", \"histo-max\", \"histo-mean\"," \
-     "\"histo-median\", \"histo-mode\", \"histo-product\", \"histo-l2\", " \
-     "\"histo-sum\", \"histo-variance\", \"histo-sd\": same measures, " \
-     "but for situations " \
-     "where we're given not the original values, but a histogram of them."
-
+#define NRRD_MEASURE_MAX 30
+#define NRRD_MEASURE_DESC                                                               \
+  "Possibilities include:\n "                                                           \
+  "\b\bo \"min\", \"max\", \"mean\", \"median\", \"mode\", \"variance\", "              \
+  "\"skew\", \"sum\", \"product\", : (self-explanatory)\n "                             \
+  "\b\bo \"intc\", \"slope\", \"error\": "                                              \
+  "intercept, slope, and error from line fitting\n "                                    \
+  "\b\bo \"stdv\": standard deviation\n "                                               \
+  "\b\bo \"cov\": coefficient of variation\n "                                          \
+  "\b\bo \"product\", \"sum\": product or sum of all values\n "                         \
+  "\b\bo \"L1\", \"L2\", \"L4\", \"NL2\", \"RMS\", \"Linf\": vector norms\n "           \
+  "\b\bo \"histo-min\", \"histo-max\", \"histo-mean\","                                 \
+  "\"histo-median\", \"histo-mode\", \"histo-product\", \"histo-l2\", "                 \
+  "\"histo-sum\", \"histo-variance\", \"histo-sd\": same measures, "                    \
+  "but for situations "                                                                 \
+  "where we're given not the original values, but a histogram of them."
 
 /*
 ******** nrrdBlind8BitRange
@@ -637,12 +637,12 @@ enum {
 ** [0,255] (uchar) or [SCHAR_MIN,SCHAR_MAX] (signed char)
 */
 enum {
-  nrrdBlind8BitRangeUnknown,   /* 0 */
-  nrrdBlind8BitRangeTrue,      /* 1: blindly use the widest extrema (e.g.,
-                                  [0-255] for uchar, regardless of what's
-                                  really present in the data values */
-  nrrdBlind8BitRangeFalse,     /* 2: use the exact value range in the data */
-  nrrdBlind8BitRangeState,     /* 3: defer to nrrdStateBlind8BitMinMax */
+  nrrdBlind8BitRangeUnknown, /* 0 */
+  nrrdBlind8BitRangeTrue,    /* 1: blindly use the widest extrema (e.g.,
+                                [0-255] for uchar, regardless of what's
+                                really present in the data values */
+  nrrdBlind8BitRangeFalse,   /* 2: use the exact value range in the data */
+  nrrdBlind8BitRangeState,   /* 3: defer to nrrdStateBlind8BitMinMax */
   nrrdBlind8BitRangeLast
 };
 #define NRRD_BLIND_8BIT_RANGE_MAX 3
@@ -688,7 +688,7 @@ enum {
   nrrdUnaryOpSigmaOfTau, /* 32 */
   nrrdUnaryOpLast
 };
-#define NRRD_UNARY_OP_MAX   32
+#define NRRD_UNARY_OP_MAX 32
 
 /*
 ******** nrrdBinaryOp enum
@@ -697,40 +697,40 @@ enum {
 */
 enum {
   nrrdBinaryOpUnknown,
-  nrrdBinaryOpAdd,        /*  1 */
-  nrrdBinaryOpSubtract,   /*  2 */
-  nrrdBinaryOpMultiply,   /*  3 */
-  nrrdBinaryOpDivide,     /*  4 */
-  nrrdBinaryOpPow,        /*  5 */
-  nrrdBinaryOpSgnPow,     /*  6 */
-  nrrdBinaryOpFlippedSgnPow, /*  7 */
-  nrrdBinaryOpMod,        /*  8 */
-  nrrdBinaryOpFmod,       /*  9 */
-  nrrdBinaryOpAtan2,      /* 10 */
-  nrrdBinaryOpMin,        /* 11 */
-  nrrdBinaryOpMax,        /* 12 */
-  nrrdBinaryOpLT,         /* 13 */
-  nrrdBinaryOpLTE,        /* 14 */
-  nrrdBinaryOpGT,         /* 15 */
-  nrrdBinaryOpGTE,        /* 16 */
-  nrrdBinaryOpCompare,    /* 17 */
-  nrrdBinaryOpEqual,      /* 18 */
-  nrrdBinaryOpNotEqual,   /* 19 */
-  nrrdBinaryOpExists,     /* 20 */
-  nrrdBinaryOpIf,         /* 21 */
+  nrrdBinaryOpAdd,                /*  1 */
+  nrrdBinaryOpSubtract,           /*  2 */
+  nrrdBinaryOpMultiply,           /*  3 */
+  nrrdBinaryOpDivide,             /*  4 */
+  nrrdBinaryOpPow,                /*  5 */
+  nrrdBinaryOpSgnPow,             /*  6 */
+  nrrdBinaryOpFlippedSgnPow,      /*  7 */
+  nrrdBinaryOpMod,                /*  8 */
+  nrrdBinaryOpFmod,               /*  9 */
+  nrrdBinaryOpAtan2,              /* 10 */
+  nrrdBinaryOpMin,                /* 11 */
+  nrrdBinaryOpMax,                /* 12 */
+  nrrdBinaryOpLT,                 /* 13 */
+  nrrdBinaryOpLTE,                /* 14 */
+  nrrdBinaryOpGT,                 /* 15 */
+  nrrdBinaryOpGTE,                /* 16 */
+  nrrdBinaryOpCompare,            /* 17 */
+  nrrdBinaryOpEqual,              /* 18 */
+  nrrdBinaryOpNotEqual,           /* 19 */
+  nrrdBinaryOpExists,             /* 20 */
+  nrrdBinaryOpIf,                 /* 21 */
   nrrdBinaryOpNormalRandScaleAdd, /* 22 */
-  nrrdBinaryOpRicianRand, /* 23 */
+  nrrdBinaryOpRicianRand,         /* 23 */
   /* Adding these is a bit of a hack- whether or not to clamp to the
      representational range of an output integer type should really be an
      argument to the arithmetic functions, but this allows it be done
      without any API change */
-  nrrdBinaryOpAddClamp,   /* 24 */
+  nrrdBinaryOpAddClamp,      /* 24 */
   nrrdBinaryOpSubtractClamp, /* 25 */
   nrrdBinaryOpMultiplyClamp, /* 26 */
   nrrdBinaryOpULPDistance,   /* 27 */
   nrrdBinaryOpLast
 };
-#define NRRD_BINARY_OP_MAX   27
+#define NRRD_BINARY_OP_MAX 27
 
 /*
 ******** nrrdTernaryOp
@@ -757,7 +757,7 @@ enum {
   nrrdTernaryOpRician,    /* 16 */
   nrrdTernaryOpLast
 };
-#define NRRD_TERNARY_OP_MAX  16
+#define NRRD_TERNARY_OP_MAX 16
 
 /*
 ******** nrrdFFTWPlanRigor
@@ -772,7 +772,7 @@ enum {
   nrrdFFTWPlanRigorExhaustive, /* 4 */
   nrrdFFTWPlanRigorLast
 };
-#define NRRD_FFTW_PLAN_RIGOR_MAX  4
+#define NRRD_FFTW_PLAN_RIGOR_MAX 4
 
 /*
 ******** nrrdResampleNonExistent
@@ -781,12 +781,12 @@ enum {
 */
 enum {
   nrrdResampleNonExistentUnknown,
-  nrrdResampleNonExistentNoop,         /* 1 */
-  nrrdResampleNonExistentRenormalize,  /* 2 */
-  nrrdResampleNonExistentWeight,       /* 3 */
+  nrrdResampleNonExistentNoop,        /* 1 */
+  nrrdResampleNonExistentRenormalize, /* 2 */
+  nrrdResampleNonExistentWeight,      /* 3 */
   nrrdResampleNonExistentLast
 };
-#define NRRD_RESAMPLE_NON_EXISTENT_MAX    3
+#define NRRD_RESAMPLE_NON_EXISTENT_MAX 3
 
 /*
 ******** nrrdMetaDataCanonicalVersion
@@ -795,10 +795,10 @@ enum {
 */
 enum {
   nrrdMetaDataCanonicalVersionUnknown,
-  nrrdMetaDataCanonicalVersionAlpha,       /* 1 */
+  nrrdMetaDataCanonicalVersionAlpha, /* 1 */
   nrrdMetaDataCanonicalVersionLast
 };
-#define NRRD_META_DATA_CANONICAL_VERSION_MAX  1
+#define NRRD_META_DATA_CANONICAL_VERSION_MAX 1
 
 /* ---- END non-NrrdIO */
 

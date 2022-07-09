@@ -25,20 +25,18 @@
 #include "privateTen.h"
 
 #define INFO "Converts masked non-redundant tensor images to redundant"
-static const char *_tend_expandInfoL =
-  (INFO
-   ". For images of 3D tensors, this converts from a 7-value tensor "
-   "starting with the confidence/mask value "
-   "(conf, Dxx, Dxy, Dxz, Dyy, Dyz, Dzz) to "
-   "a 9-value tensor with the full matrix "
-   "(Dxx, Dxy, Dxz, Dxy, Dyy, Dyz, Dxz, Dyz, Dzz). "
-   "This is set to all zeros when the confidence is below the given "
-   "threshold. For images of 2D tensors, the conversion is from "
-   "(conf, Dxx, Dxy, Dyy) to (Dxx, Dxy, Dxy, Dyy). " );
+static const char *_tend_expandInfoL
+  = (INFO ". For images of 3D tensors, this converts from a 7-value tensor "
+          "starting with the confidence/mask value "
+          "(conf, Dxx, Dxy, Dxz, Dyy, Dyz, Dzz) to "
+          "a 9-value tensor with the full matrix "
+          "(Dxx, Dxy, Dxz, Dxy, Dyy, Dyz, Dxz, Dyz, Dzz). "
+          "This is set to all zeros when the confidence is below the given "
+          "threshold. For images of 2D tensors, the conversion is from "
+          "(conf, Dxx, Dxy, Dyy) to (Dxx, Dxy, Dxy, Dyy). ");
 
 int
-tend_expandMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+tend_expandMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -60,14 +58,13 @@ tend_expandMain(int argc, const char **argv, const char *me,
              "apply and remove the measurement frame, if it exists");
   hestOptAdd(&hopt, "ro", NULL, airTypeInt, 0, 0, &orientRed, NULL,
              "reduce general image orientation to axis-aligned spacings");
-  hestOptAdd(&hopt, "roo", NULL, airTypeInt, 0, 0,
-             &orientRedWithOrigin, NULL,
+  hestOptAdd(&hopt, "roo", NULL, airTypeInt, 0, 0, &orientRedWithOrigin, NULL,
              "reduce general image orientation to axis-aligned spacings, "
              "while also making some effort to set axis mins from "
              "space origin");
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input diffusion tensor volume, with 7 values per sample",
-             NULL, NULL, nrrdHestNrrd);
+             "input diffusion tensor volume, with 7 values per sample", NULL, NULL,
+             nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
              "output tensor volume, with the 9 matrix components per sample");
 
@@ -79,37 +76,35 @@ tend_expandMain(int argc, const char **argv, const char *me,
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (mfRed
-      && 3 == nin->spaceDim
-      && AIR_EXISTS(nin->measurementFrame[0][0])) {
+  if (mfRed && 3 == nin->spaceDim && AIR_EXISTS(nin->measurementFrame[0][0])) {
     if (tenMeasurementFrameReduce(nin, nin)) {
-      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+      airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble with measurement frame:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
-  if (4 == nin->axis[0].size
-      ? tenExpand2D(nout, nin, scale, thresh)
-      : tenExpand(nout, nin, scale, thresh)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+  if (4 == nin->axis[0].size ? tenExpand2D(nout, nin, scale, thresh)
+                             : tenExpand(nout, nin, scale, thresh)) {
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble expanding tensors:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (orientRedWithOrigin || orientRed) {
-    if (nrrdOrientationReduce(nout, nout,
-                              orientRedWithOrigin
-                              ? AIR_TRUE
-                              : AIR_FALSE)) {
-      airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    if (nrrdOrientationReduce(nout, nout, orientRedWithOrigin ? AIR_TRUE : AIR_FALSE)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble unorienting:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
 
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

@@ -24,11 +24,8 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-static const int
-_nrrdWriteHexTable[16] = {
-  '0', '1', '2', '3', '4', '5', '6', '7',
-  '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
-};
+static const int _nrrdWriteHexTable[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
+                                           '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
 /*
 ** -2: not allowed, error
@@ -62,18 +59,18 @@ _nrrdEncodingHex_available(void) {
 }
 
 static int
-_nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum,
-                      Nrrd *nrrd, NrrdIoState *nio) {
-  static const char me[]="_nrrdEncodingHex_read";
+_nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
+                      NrrdIoState *nio) {
+  static const char me[] = "_nrrdEncodingHex_read";
   size_t nibIdx, nibNum;
   unsigned char *data;
-  int car=0, nib;
+  int car = 0, nib;
 
   AIR_UNUSED(nio);
   data = AIR_CAST(unsigned char *, _data);
   nibIdx = 0;
-  nibNum = 2*elNum*nrrdElementSize(nrrd);
-  if (nibNum/elNum != 2*nrrdElementSize(nrrd)) {
+  nibNum = 2 * elNum * nrrdElementSize(nrrd);
+  if (nibNum / elNum != 2 * nrrdElementSize(nrrd)) {
     biffAddf(NRRD, "%s: size_t can't hold 2*(#bytes in array)\n", me);
     return 1;
   }
@@ -91,7 +88,7 @@ _nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum,
       continue;
     }
     /* else it is a valid character, representing a value from 0 to 15 */
-    nibshift = AIR_UCHAR(nib << (4*(1-(nibIdx & 1))));
+    nibshift = AIR_UCHAR(nib << (4 * (1 - (nibIdx & 1))));
     /* HEY not sure why the cast is needed with gcc v4.8 -Wconversion */
     *data = AIR_UCHAR(*data + nibshift);
     data += nibIdx & 1;
@@ -101,13 +98,13 @@ _nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum,
     char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
     if (EOF == car) {
       biffAddf(NRRD, "%s: hit EOF getting byte %s of %s", me,
-               airSprintSize_t(stmp1, nibIdx/2),
-               airSprintSize_t(stmp2, nibNum/2));
+               airSprintSize_t(stmp1, nibIdx / 2), airSprintSize_t(stmp2, nibNum / 2));
     } else {
-      biffAddf(NRRD, "%s: hit invalid character ('%c') getting "
-               "byte %s of %s", me, car,
-               airSprintSize_t(stmp1, nibIdx/2),
-               airSprintSize_t(stmp2, nibNum/2));
+      biffAddf(NRRD,
+               "%s: hit invalid character ('%c') getting "
+               "byte %s of %s",
+               me, car, airSprintSize_t(stmp1, nibIdx / 2),
+               airSprintSize_t(stmp2, nibNum / 2));
     }
     return 1;
   }
@@ -115,26 +112,25 @@ _nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum,
 }
 
 static int
-_nrrdEncodingHex_write(FILE *file, const void *_data, size_t elNum,
-                       const Nrrd *nrrd, NrrdIoState *nio) {
-  static const char me[]="_nrrdEncodingHex_write";
+_nrrdEncodingHex_write(FILE *file, const void *_data, size_t elNum, const Nrrd *nrrd,
+                       NrrdIoState *nio) {
+  static const char me[] = "_nrrdEncodingHex_write";
   const unsigned char *data;
   size_t byteIdx, byteNum;
   unsigned int bytesPerLine;
 
-  if (!( file && _data && nrrd && nio )) {
-    biffAddf(NRRD, "%s: got NULL pointer (%p,%p,%p,%p)", me,
-             (void*)file, (const void*)_data, (const void*)nrrd, (void*)nio);
+  if (!(file && _data && nrrd && nio)) {
+    biffAddf(NRRD, "%s: got NULL pointer (%p,%p,%p,%p)", me, (void *)file,
+             (const void *)_data, (const void *)nrrd, (void *)nio);
     return 1;
   }
-  bytesPerLine = AIR_MAX(1, nio->charsPerLine/2);
-  data = AIR_CAST(const unsigned char*, _data);
-  byteNum = elNum*nrrdElementSize(nrrd);
-  for (byteIdx=0; byteIdx<byteNum; byteIdx++) {
-    fprintf(file, "%c%c",
-            _nrrdWriteHexTable[(*data)>>4],
-            _nrrdWriteHexTable[(*data)&15]);
-    if (bytesPerLine-1 == byteIdx % bytesPerLine) {
+  bytesPerLine = AIR_MAX(1, nio->charsPerLine / 2);
+  data = AIR_CAST(const unsigned char *, _data);
+  byteNum = elNum * nrrdElementSize(nrrd);
+  for (byteIdx = 0; byteIdx < byteNum; byteIdx++) {
+    fprintf(file, "%c%c", _nrrdWriteHexTable[(*data) >> 4],
+            _nrrdWriteHexTable[(*data) & 15]);
+    if (bytesPerLine - 1 == byteIdx % bytesPerLine) {
       fprintf(file, "\n");
     }
     data++;
@@ -144,16 +140,12 @@ _nrrdEncodingHex_write(FILE *file, const void *_data, size_t elNum,
   return 0;
 }
 
-const NrrdEncoding
-_nrrdEncodingHex = {
-  "hex",      /* name */
-  "hex",      /* suffix */
-  AIR_TRUE,   /* endianMatters */
-  AIR_FALSE,   /* isCompression */
-  _nrrdEncodingHex_available,
-  _nrrdEncodingHex_read,
-  _nrrdEncodingHex_write
-};
+const NrrdEncoding _nrrdEncodingHex = {"hex",     /* name */
+                                       "hex",     /* suffix */
+                                       AIR_TRUE,  /* endianMatters */
+                                       AIR_FALSE, /* isCompression */
+                                       _nrrdEncodingHex_available,
+                                       _nrrdEncodingHex_read,
+                                       _nrrdEncodingHex_write};
 
-const NrrdEncoding *const
-nrrdEncodingHex = &_nrrdEncodingHex;
+const NrrdEncoding *const nrrdEncodingHex = &_nrrdEncodingHex;

@@ -24,15 +24,14 @@
 #include "moss.h"
 #include "privateMoss.h"
 
-const int
-mossPresent = 42;
+const int mossPresent = 42;
 
 /*
 ******** mossSamplerNew()
 **
 */
 mossSampler *
-mossSamplerNew (void) {
+mossSamplerNew(void) {
   mossSampler *smplr;
   int i;
 
@@ -40,7 +39,7 @@ mossSamplerNew (void) {
   if (smplr) {
     smplr->image = NULL;
     smplr->kernel = NULL;
-    for (i=0; i<NRRD_KERNEL_PARMS_NUM; i++)
+    for (i = 0; i < NRRD_KERNEL_PARMS_NUM; i++)
       smplr->kparm[i] = AIR_NAN;
     smplr->ivc = NULL;
     smplr->xFslw = smplr->yFslw = NULL;
@@ -48,27 +47,26 @@ mossSamplerNew (void) {
     smplr->bg = NULL;
     smplr->fdiam = smplr->ncol = 0;
     smplr->boundary = mossDefBoundary;
-    for (i=0; i<MOSS_FLAG_NUM; i++)
+    for (i = 0; i < MOSS_FLAG_NUM; i++)
       smplr->flag[i] = AIR_FALSE;
   }
   return smplr;
 }
 
 int
-mossSamplerFill (mossSampler *smplr, int fdiam, int ncol) {
-  static const char me[]="_mossSamplerFill";
+mossSamplerFill(mossSampler *smplr, int fdiam, int ncol) {
+  static const char me[] = "_mossSamplerFill";
 
   if (!(smplr)) {
     biffAddf(MOSS, "%s: got NULL pointer", me);
     return 1;
   }
-  smplr->ivc = (float*)calloc(fdiam*fdiam*ncol, sizeof(float));
-  smplr->xFslw = (double*)calloc(fdiam, sizeof(double));
-  smplr->yFslw = (double*)calloc(fdiam, sizeof(double));
+  smplr->ivc = (float *)calloc(fdiam * fdiam * ncol, sizeof(float));
+  smplr->xFslw = (double *)calloc(fdiam, sizeof(double));
+  smplr->yFslw = (double *)calloc(fdiam, sizeof(double));
   smplr->xIdx = AIR_CALLOC(fdiam, unsigned int);
   smplr->yIdx = AIR_CALLOC(fdiam, unsigned int);
-  if (!( smplr->ivc && smplr->xFslw && smplr->yFslw
-         && smplr->xIdx && smplr->yIdx )) {
+  if (!(smplr->ivc && smplr->xFslw && smplr->yFslw && smplr->xIdx && smplr->yIdx)) {
     biffAddf(MOSS, "%s: couldn't allocate buffers", me);
     return 1;
   }
@@ -78,7 +76,7 @@ mossSamplerFill (mossSampler *smplr, int fdiam, int ncol) {
 }
 
 void
-mossSamplerEmpty (mossSampler *smplr) {
+mossSamplerEmpty(mossSampler *smplr) {
 
   if (smplr) {
     smplr->ivc = (float *)airFree(smplr->ivc);
@@ -93,7 +91,7 @@ mossSamplerEmpty (mossSampler *smplr) {
 }
 
 mossSampler *
-mossSamplerNix (mossSampler *smplr) {
+mossSamplerNix(mossSampler *smplr) {
 
   if (smplr) {
     mossSamplerEmpty(smplr);
@@ -104,17 +102,16 @@ mossSamplerNix (mossSampler *smplr) {
 }
 
 int
-mossImageCheck (Nrrd *image) {
-  static const char me[]="mossImageCheck";
+mossImageCheck(Nrrd *image) {
+  static const char me[] = "mossImageCheck";
 
   if (nrrdCheck(image)) {
     biffMovef(MOSS, NRRD, "%s: given nrrd invalid", me);
     return 1;
   }
-  if (!( (2 == image->dim || 3 == image->dim)
-         && nrrdTypeBlock != image->type )) {
-    biffAddf(MOSS, "%s: image has invalid dimension (%d) or type (%s)", me,
-             image->dim, airEnumStr(nrrdType, image->type));
+  if (!((2 == image->dim || 3 == image->dim) && nrrdTypeBlock != image->type)) {
+    biffAddf(MOSS, "%s: image has invalid dimension (%d) or type (%s)", me, image->dim,
+             airEnumStr(nrrdType, image->type));
     return 1;
   }
 
@@ -122,23 +119,19 @@ mossImageCheck (Nrrd *image) {
 }
 
 int
-mossImageAlloc (Nrrd *image, int type, int sx, int sy, int ncol) {
-  static const char me[]="mossImageAlloc";
+mossImageAlloc(Nrrd *image, int type, int sx, int sy, int ncol) {
+  static const char me[] = "mossImageAlloc";
   int ret;
 
-  if (!(image && AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeBlock)
-        && sx > 0 && sy > 0 && ncol > 0)) {
+  if (!(image && AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeBlock) && sx > 0 && sy > 0
+        && ncol > 0)) {
     biffAddf(MOSS, "%s: got NULL pointer or bad args", me);
     return 1;
   }
   if (1 == ncol) {
-    ret = nrrdMaybeAlloc_va(image, type, 2,
-                            AIR_CAST(size_t, sx),
-                            AIR_CAST(size_t, sy));
+    ret = nrrdMaybeAlloc_va(image, type, 2, AIR_CAST(size_t, sx), AIR_CAST(size_t, sy));
   } else {
-    ret = nrrdMaybeAlloc_va(image, type, 3,
-                            AIR_CAST(size_t, ncol),
-                            AIR_CAST(size_t, sx),
+    ret = nrrdMaybeAlloc_va(image, type, 3, AIR_CAST(size_t, ncol), AIR_CAST(size_t, sx),
                             AIR_CAST(size_t, sy));
   }
   if (ret) {
@@ -146,16 +139,13 @@ mossImageAlloc (Nrrd *image, int type, int sx, int sy, int ncol) {
     return 1;
   }
 
-
   return 0;
 }
 
 int
 _mossCenter(int center) {
 
-  center =  (nrrdCenterUnknown == center
-             ? mossDefCenter
-             : center);
-  center = AIR_CLAMP(nrrdCenterUnknown+1, center, nrrdCenterLast-1);
+  center = (nrrdCenterUnknown == center ? mossDefCenter : center);
+  center = AIR_CLAMP(nrrdCenterUnknown + 1, center, nrrdCenterLast - 1);
   return center;
 }

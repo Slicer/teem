@@ -25,14 +25,12 @@
 #include "privateTen.h"
 
 #define INFO "Convert between different shape triples"
-static const char *_tend_tconvInfoL =
-  (INFO
-   ".  The triples can be eignvalues, invariants (J, K, R), "
-   "and lots of other things.");
+static const char *_tend_tconvInfoL
+  = (INFO ".  The triples can be eignvalues, invariants (J, K, R), "
+          "and lots of other things.");
 
 int
-tend_tconvMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+tend_tconvMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -43,12 +41,10 @@ tend_tconvMain(int argc, const char **argv, const char *me,
   char *outS;
 
   hestOptAdd(&hopt, "t", "inType outType", airTypeEnum, 2, 2, ttype, NULL,
-             "given input and desired output type of triples",
-             NULL, tenTripleType);
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input array of triples", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output array");
+             "given input and desired output type of triples", NULL, tenTripleType);
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-", "input array of triples",
+             NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-", "output array");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -59,14 +55,16 @@ tend_tconvMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenTripleConvert(nout, ttype[1], nin, ttype[0])) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble converting:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

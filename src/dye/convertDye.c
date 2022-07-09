@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "dye.h"
 
 /*
@@ -35,14 +34,10 @@
 ** never got transposed at the same time that matrices in Teem
 ** were switched from column-major to row-major ordering
 */
-float dyeRGBtoXYZMatx[9] = {
-  0.412453f, 0.357580f, 0.180423f,
-  0.212671f, 0.715160f, 0.072169f,
-  0.019334f, 0.119193f, 0.950227f};
-float dyeXYZtoRGBMatx[9] = {
-  3.240479f, -1.537150f, -0.498535f,
-  -0.969256f, 1.875992f, 0.041556f,
-  0.055648f, -0.204043f, 1.057311f};
+float dyeRGBtoXYZMatx[9] = {0.412453f, 0.357580f, 0.180423f, 0.212671f, 0.715160f,
+                            0.072169f, 0.019334f, 0.119193f, 0.950227f};
+float dyeXYZtoRGBMatx[9] = {3.240479f, -1.537150f, -0.498535f, -0.969256f, 1.875992f,
+                            0.041556f, 0.055648f,  -0.204043f, 1.057311f};
 
 /* summing the rows of the RGBtoXYZ matrix to get X_n, Y_n, Z_n */
 float dyeWhiteXYZ_n[3] = {0.950456f, 1.0f, 1.088754f};
@@ -58,18 +53,17 @@ float dyeWhiteXYZ_n[3] = {0.950456f, 1.0f, 1.088754f};
 float dyeWhiteuvp_n[2] = {0.197839f, 0.468342f};
 
 void
-dyeRGBtoHSV(float *H, float *S, float *V,
-            float  R, float  G, float  B) {
+dyeRGBtoHSV(float *H, float *S, float *V, float R, float G, float B) {
   float max, min, delta;
 
-  max = AIR_MAX(R,G);
-  max = AIR_MAX(B,max);
-  min = AIR_MIN(R,G);
-  min = AIR_MIN(B,min);
+  max = AIR_MAX(R, G);
+  max = AIR_MAX(B, max);
+  min = AIR_MIN(R, G);
+  min = AIR_MIN(B, min);
 
   *V = max;
   if (max != 0)
-    *S = (max - min)/max;
+    *S = (max - min) / max;
   else
     *S = 0;
   if (0 == *S) {
@@ -79,14 +73,13 @@ dyeRGBtoHSV(float *H, float *S, float *V,
   /* else there is hue */
   delta = max - min;
   if (R == max)
-    *H = (G - B)/delta;
+    *H = (G - B) / delta;
   else if (G == max)
-    *H = 2 + (B - R)/delta;
+    *H = 2 + (B - R) / delta;
   else
-    *H = 4 + (R - G)/delta;
+    *H = 4 + (R - G) / delta;
   *H /= 6;
-  if (*H < 0)
-    *H += 1;
+  if (*H < 0) *H += 1;
   return;
 }
 
@@ -101,8 +94,7 @@ dyeRGBtoHSV(float *H, float *S, float *V,
 ** From Foley + vanDam, 2nd Ed., p. 593
 */
 void
-dyeHSVtoRGB(float *R, float *G, float *B,
-            float  H, float  S, float  V) {
+dyeHSVtoRGB(float *R, float *G, float *B, float H, float S, float V) {
   float min, fract, vsf, mid1, mid2;
   int sextant;
 
@@ -111,13 +103,12 @@ dyeHSVtoRGB(float *R, float *G, float *B,
     return;
   }
   /* else there is hue */
-  if (1 == H)
-    H = 0;
+  if (1 == H) H = 0;
   H *= 6;
-  sextant = (int) floor(H);
+  sextant = (int)floor(H);
   fract = H - sextant;
-  vsf = V*S*fract;
-  min = V*(1 - S);
+  vsf = V * S * fract;
+  min = V * (1 - S);
   mid1 = min + vsf;
   mid2 = V - vsf;
   /* clang-format off */
@@ -146,36 +137,34 @@ dyeHSVtoRGB(float *R, float *G, float *B,
 ** From Foley + vanDam, 2nd Ed., p. 595
 */
 void
-dyeRGBtoHSL(float *H, float *S, float *L,
-            float  R, float  G, float  B) {
+dyeRGBtoHSL(float *H, float *S, float *L, float R, float G, float B) {
   float min, max, lev, delta;
 
-  max = AIR_MAX(R,G);
-  max = AIR_MAX(max,B);
-  min = AIR_MIN(R,G);
-  min = AIR_MIN(min,B);
+  max = AIR_MAX(R, G);
+  max = AIR_MAX(max, B);
+  min = AIR_MIN(R, G);
+  min = AIR_MIN(min, B);
 
-  *L = lev = (max + min)/2.0f;
+  *L = lev = (max + min) / 2.0f;
   if (max == min) {
     *S = 0;
-    *H = 0;  /* actually, undefined */
+    *H = 0; /* actually, undefined */
     return;
   }
   /* else there is hue */
   delta = max - min;
   if (lev <= 0.5)
-    *S = delta/(max + min);
+    *S = delta / (max + min);
   else
-    *S = delta/(2-(max + min));
+    *S = delta / (2 - (max + min));
   if (R == max)
-    *H = (G - B)/delta;
+    *H = (G - B) / delta;
   else if (G == max)
-    *H = 2 + (B - R)/delta;
+    *H = 2 + (B - R) / delta;
   else
-    *H = 4 + (R - G)/delta;
+    *H = 4 + (R - G) / delta;
   *H /= 6;
-  if (*H < 0)
-    *H += 1;
+  if (*H < 0) *H += 1;
   return;
 }
 
@@ -190,8 +179,7 @@ dyeRGBtoHSL(float *H, float *S, float *L,
 ** From Foley + vanDam, 2nd Ed., p. 596
 */
 void
-dyeHSLtoRGB(float *R, float *G, float *B,
-            float  H, float  S, float  L) {
+dyeHSLtoRGB(float *R, float *G, float *B, float H, float S, float L) {
   float m1, m2, fract, mid1, mid2;
   int sextant;
 
@@ -201,17 +189,16 @@ dyeHSLtoRGB(float *R, float *G, float *B,
   }
   /* else there is hue */
   if (L <= 0.5)
-    m2 = L*(1+S);  /* the book says L*(L+S) which is ?? wrong ?? */
+    m2 = L * (1 + S); /* the book says L*(L+S) which is ?? wrong ?? */
   else
-    m2 = L + S - L*S;
-  m1 = 2*L - m2;
-  if (1 == H)
-    H = 0;
+    m2 = L + S - L * S;
+  m1 = 2 * L - m2;
+  if (1 == H) H = 0;
   H *= 6;
-  sextant = (int) floor(H);
+  sextant = (int)floor(H);
   fract = H - sextant;
-  mid1 = m1 + fract*(m2 - m1);
-  mid2 = m2 + fract*(m1 - m2);
+  mid1 = m1 + fract * (m2 - m1);
+  mid2 = m2 + fract * (m1 - m2);
   /* clang-format off */
   /* compared to HSVtoRGB: V -> m2, min -> m1 */
   switch (sextant) {
@@ -226,8 +213,7 @@ dyeHSLtoRGB(float *R, float *G, float *B,
 }
 
 void
-dyeRGBtoXYZ(float *X, float *Y, float *Z,
-            float  R, float  G, float  B) {
+dyeRGBtoXYZ(float *X, float *Y, float *Z, float R, float G, float B) {
   float in[3], out[3];
 
   ELL_3V_SET(in, R, G, B);
@@ -237,8 +223,7 @@ dyeRGBtoXYZ(float *X, float *Y, float *Z,
 }
 
 void
-dyeXYZtoRGB(float *R, float *G, float *B,
-            float  X, float  Y, float  Z) {
+dyeXYZtoRGB(float *R, float *G, float *B, float X, float Y, float Z) {
   float in[3], out[3];
 
   ELL_3V_SET(in, X, Y, Z);
@@ -249,104 +234,93 @@ dyeXYZtoRGB(float *R, float *G, float *B,
 
 float
 dyeLcbrt(float t) {
-  return AIR_FLOAT(t > 0.008856
-                   ? airCbrt(t)
-                   : 7.787*t + 16.0/116.0);
+  return AIR_FLOAT(t > 0.008856 ? airCbrt(t) : 7.787 * t + 16.0 / 116.0);
 }
 
 float
 dyeLcubed(float t) {
-  return(t > 0.206893 ? t*t*t : (t - 16.0f/116.0f)/7.787f);
+  return (t > 0.206893 ? t * t * t : (t - 16.0f / 116.0f) / 7.787f);
 }
 
 void
-dyeXYZtoLAB(float *L, float *A, float *B,
-            float  X, float  Y, float  Z) {
+dyeXYZtoLAB(float *L, float *A, float *B, float X, float Y, float Z) {
   float Xnorm, Ynorm, Znorm;
 
-  Xnorm = X/dyeWhiteXYZ_n[0];
-  Ynorm = Y/dyeWhiteXYZ_n[1];
-  Znorm = Z/dyeWhiteXYZ_n[2];
-  *L = 116.0f*dyeLcbrt(Ynorm) - 16.0f;
-  *A = 500.0f*(dyeLcbrt(Xnorm) - dyeLcbrt(Ynorm));
-  *B = 200.0f*(dyeLcbrt(Ynorm) - dyeLcbrt(Znorm));
+  Xnorm = X / dyeWhiteXYZ_n[0];
+  Ynorm = Y / dyeWhiteXYZ_n[1];
+  Znorm = Z / dyeWhiteXYZ_n[2];
+  *L = 116.0f * dyeLcbrt(Ynorm) - 16.0f;
+  *A = 500.0f * (dyeLcbrt(Xnorm) - dyeLcbrt(Ynorm));
+  *B = 200.0f * (dyeLcbrt(Ynorm) - dyeLcbrt(Znorm));
 }
 
 void
-dyeXYZtoLUV(float *L, float *U, float *V,
-            float  X, float  Y, float  Z) {
+dyeXYZtoLUV(float *L, float *U, float *V, float X, float Y, float Z) {
   float Ynorm, up, vp;
 
-  Ynorm = Y/dyeWhiteXYZ_n[1];
-  *L = 116.0f*dyeLcbrt(Ynorm) - 16.0f;
-  up = 4.0f*X/(X + 15.0f*Y + 3.0f*Z);
-  vp = 9.0f*Y/(X + 15.0f*Y + 3.0f*Z);
-  *U = 13.0f*(*L)*(up - dyeWhiteuvp_n[0]);
-  *V = 13.0f*(*L)*(vp - dyeWhiteuvp_n[1]);
+  Ynorm = Y / dyeWhiteXYZ_n[1];
+  *L = 116.0f * dyeLcbrt(Ynorm) - 16.0f;
+  up = 4.0f * X / (X + 15.0f * Y + 3.0f * Z);
+  vp = 9.0f * Y / (X + 15.0f * Y + 3.0f * Z);
+  *U = 13.0f * (*L) * (up - dyeWhiteuvp_n[0]);
+  *V = 13.0f * (*L) * (vp - dyeWhiteuvp_n[1]);
 }
 
 void
-dyeLABtoXYZ(float *X, float *Y, float *Z,
-            float  L, float  A, float  B) {
+dyeLABtoXYZ(float *X, float *Y, float *Z, float L, float A, float B) {
   float YnormCbrt;
 
-  YnormCbrt = (16 + L)/116;
-  *X = dyeWhiteXYZ_n[0]*dyeLcubed(YnormCbrt + A/500);
-  *Y = dyeWhiteXYZ_n[1]*dyeLcubed(YnormCbrt);
-  *Z = dyeWhiteXYZ_n[2]*dyeLcubed(YnormCbrt - B/200);
+  YnormCbrt = (16 + L) / 116;
+  *X = dyeWhiteXYZ_n[0] * dyeLcubed(YnormCbrt + A / 500);
+  *Y = dyeWhiteXYZ_n[1] * dyeLcubed(YnormCbrt);
+  *Z = dyeWhiteXYZ_n[2] * dyeLcubed(YnormCbrt - B / 200);
   return;
 }
 
 void
-dyeLUVtoXYZ(float *X, float *Y, float *Z,
-            float  L, float  U, float  V) {
+dyeLUVtoXYZ(float *X, float *Y, float *Z, float L, float U, float V) {
   float up, vp, YnormCbrt;
 
-  YnormCbrt = (16 + L)/116;
-  up = U/(13*L) + dyeWhiteuvp_n[0];
-  vp = V/(13*L) + dyeWhiteuvp_n[1];
-  *Y = dyeWhiteXYZ_n[1]*dyeLcubed(YnormCbrt);
-  *X = -9*(*Y)*up/((up - 4)*vp - up*vp);
-  *Z = (9*(*Y) - 15*vp*(*Y) - vp*(*X))/(3*vp);
+  YnormCbrt = (16 + L) / 116;
+  up = U / (13 * L) + dyeWhiteuvp_n[0];
+  vp = V / (13 * L) + dyeWhiteuvp_n[1];
+  *Y = dyeWhiteXYZ_n[1] * dyeLcubed(YnormCbrt);
+  *X = -9 * (*Y) * up / ((up - 4) * vp - up * vp);
+  *Z = (9 * (*Y) - 15 * vp * (*Y) - vp * (*X)) / (3 * vp);
   return;
 }
 
 void
-dyeLABtoLCH(float *Lp, float *C, float *H,
-            float  L, float  A, float  B) {
+dyeLABtoLCH(float *Lp, float *C, float *H, float L, float A, float B) {
 
   *Lp = L;
-  *C = sqrtf(A*A + B*B);
-  *H = (float)(atan2f(B, A)/(2*AIR_PI) + 0.5);
+  *C = sqrtf(A * A + B * B);
+  *H = (float)(atan2f(B, A) / (2 * AIR_PI) + 0.5);
 }
 
 void
-dyeLCHtoLAB(float *Lp, float *A, float *B,
-            float  L, float  C, float  H) {
-  float phi = (float)((H*2 - 1)*AIR_PI);
+dyeLCHtoLAB(float *Lp, float *A, float *B, float L, float C, float H) {
+  float phi = (float)((H * 2 - 1) * AIR_PI);
   *Lp = L;
-  *A = C*cosf(phi);
-  *B = C*sinf(phi);
+  *A = C * cosf(phi);
+  *B = C * sinf(phi);
 }
 
 void
-dyeXYZtoLCH(float *_L, float *C, float *H,
-            float  X, float  Y, float  Z) {
+dyeXYZtoLCH(float *_L, float *C, float *H, float X, float Y, float Z) {
   float L, A, B;
   dyeXYZtoLAB(&L, &A, &B, X, Y, Z);
   dyeLABtoLCH(_L, C, H, L, A, B);
 }
 void
-dyeLCHtoXYZ(float *X, float *Y, float *Z,
-            float _L, float  C, float  H) {
+dyeLCHtoXYZ(float *X, float *Y, float *Z, float _L, float C, float H) {
   float L, A, B;
   dyeLCHtoLAB(&L, &A, &B, _L, C, H);
   dyeLABtoXYZ(X, Y, Z, L, A, B);
 }
 
 void
-dyeIdentity(float *A, float *B, float *C,
-            float  a, float  b, float  c) {
+dyeIdentity(float *A, float *B, float *C, float a, float b, float c) {
   *A = a;
   *B = b;
   *C = c;
@@ -395,53 +369,45 @@ dyeConvert(dyeColor *col, int outSpace) {
     return 1;
   }
 
-  if ( (simple = dyeSimpleConvert[inSpace][outSpace]) ) {
+  if ((simple = dyeSimpleConvert[inSpace][outSpace])) {
     (*simple)(&o0, &o1, &o2, i0, i1, i2);
     dyeColorSet(col, outSpace, o0, o1, o2);
-  }
-  else {
+  } else {
     /* we have some work to do . . . */
     if (inSpace < dyeSpaceRGB && outSpace < dyeSpaceRGB) {
       /* its an easy HSV <-- RGB --> HSL conversion */
       if (!E) E |= dyeConvert(col, dyeSpaceRGB);
       if (!E) E |= dyeConvert(col, outSpace);
-    }
-    else if (inSpace > dyeSpaceXYZ && outSpace > dyeSpaceXYZ) {
+    } else if (inSpace > dyeSpaceXYZ && outSpace > dyeSpaceXYZ) {
       /* its an easy conversion among XYZ, LAB, LUV, LCH */
       if (!E) E |= dyeConvert(col, dyeSpaceXYZ);
       if (!E) E |= dyeConvert(col, outSpace);
-    }
-    else {
+    } else {
       /* the start and end spaces are at different stages */
       if (inSpace < outSpace) {
         /* we are going towards higher stages */
         if (inSpace < dyeSpaceRGB) {
           if (!E) E |= dyeConvert(col, dyeSpaceRGB);
           if (!E) E |= dyeConvert(col, outSpace);
-        }
-        else if (inSpace == dyeSpaceRGB) {
+        } else if (inSpace == dyeSpaceRGB) {
           if (!E) E |= dyeConvert(col, dyeSpaceXYZ);
           if (!E) E |= dyeConvert(col, outSpace);
-        }
-        else {
-          biffAddf(DYE, "%s: CONFUSED! can't go %s -> %s\n",
-                   me, dyeSpaceToStr[inSpace], dyeSpaceToStr[outSpace]);
+        } else {
+          biffAddf(DYE, "%s: CONFUSED! can't go %s -> %s\n", me, dyeSpaceToStr[inSpace],
+                   dyeSpaceToStr[outSpace]);
           E = 1;
         }
-      }
-      else {
+      } else {
         /* we are going towards lower stages */
         if (outSpace < dyeSpaceRGB) {
           if (!E) E |= dyeConvert(col, dyeSpaceRGB);
           if (!E) E |= dyeConvert(col, outSpace);
-        }
-        else if (outSpace == dyeSpaceRGB) {
+        } else if (outSpace == dyeSpaceRGB) {
           if (!E) E |= dyeConvert(col, dyeSpaceXYZ);
           if (!E) E |= dyeConvert(col, dyeSpaceRGB);
-        }
-        else {
-          biffAddf(DYE, "%s: CONFUSED! can't go %s -> %s\n",
-                   me, dyeSpaceToStr[inSpace], dyeSpaceToStr[outSpace]);
+        } else {
+          biffAddf(DYE, "%s: CONFUSED! can't go %s -> %s\n", me, dyeSpaceToStr[inSpace],
+                   dyeSpaceToStr[outSpace]);
           E = 1;
         }
       }

@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include <teem/ell.h>
 
 char *me;
@@ -54,8 +53,8 @@ main(int argc, char **argv) {
 
   ell_debug = AIR_TRUE;
   ret = ell_cubic(r, A, B, C, AIR_TRUE);
-  ans0 = C + r[0]*(B + r[0]*(A + r[0]));
-  switch(ret) {
+  ans0 = C + r[0] * (B + r[0] * (A + r[0]));
+  switch (ret) {
   case ell_cubic_root_single:
     printf("1 single root: %f -> %f\n", r[0], ans0);
     break;
@@ -63,15 +62,14 @@ main(int argc, char **argv) {
     printf("1 triple root: %f -> %f\n", r[0], ans0);
     break;
   case ell_cubic_root_single_double:
-    ans1 = C + r[1]*(B + r[1]*(A + r[1]));
-    printf("1 single root %f -> %f, 1 double root %f -> %f\n",
-           r[0], ans0, r[1], ans1);
+    ans1 = C + r[1] * (B + r[1] * (A + r[1]));
+    printf("1 single root %f -> %f, 1 double root %f -> %f\n", r[0], ans0, r[1], ans1);
     break;
   case ell_cubic_root_three:
-    ans1 = C + r[1]*(B + r[1]*(A + r[1]));
-    ans2 = C + r[2]*(B + r[2]*(A + r[2]));
-    printf("3 distinct roots:\n %f -> %f\n %f -> %f\n %f -> %f\n",
-           r[0], ans0, r[1], ans1, r[2], ans2);
+    ans1 = C + r[1] * (B + r[1] * (A + r[1]));
+    ans2 = C + r[2] * (B + r[2] * (A + r[2]));
+    printf("3 distinct roots:\n %f -> %f\n %f -> %f\n %f -> %f\n", r[0], ans0, r[1],
+           ans1, r[2], ans2);
     break;
   default:
     printf("%s: something fatally wacky happened\n", me);

@@ -25,21 +25,19 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Undo \"unu tile\": merge slow parts of two axis splits"
-static const char *_unrrdu_untileInfoL =
-(INFO
- ". Untiling an array means spliting two axes, permuting the slow parts "
- "of those axes to be adjecent in the axis ordering, and then merging "
- "them.  This increases the dimension by one.  Undoing a \"unu tile\" "
- "uses the same \"-s\" argument, and sometimes a different \"-a\" argument, "
- "as demonstrated here for a 3-D array:\n "
- "\"unu untile -a 2 0 1\" undoes \"unu tile -a 2 0 1\"\n "
- "\"unu untile -a 1 0 1\" undoes \"unu tile -a 1 0 2\"\n "
- "\"unu untile -a 0 0 1\" undoes \"unu tile -a 0 1 2\".\n "
- "* Uses nrrdUntile2D");
+static const char *_unrrdu_untileInfoL
+  = (INFO ". Untiling an array means spliting two axes, permuting the slow parts "
+          "of those axes to be adjecent in the axis ordering, and then merging "
+          "them.  This increases the dimension by one.  Undoing a \"unu tile\" "
+          "uses the same \"-s\" argument, and sometimes a different \"-a\" argument, "
+          "as demonstrated here for a 3-D array:\n "
+          "\"unu untile -a 2 0 1\" undoes \"unu tile -a 2 0 1\"\n "
+          "\"unu untile -a 1 0 1\" undoes \"unu tile -a 1 0 2\"\n "
+          "\"unu untile -a 0 0 1\" undoes \"unu tile -a 0 1 2\".\n "
+          "* Uses nrrdUntile2D");
 
 int
-unrrdu_untileMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+unrrdu_untileMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;

@@ -23,35 +23,24 @@
 
 #include "bane.h"
 
-const char *
-baneBiffKey = "bane";
+const char *baneBiffKey = "bane";
 
-int
-baneDefVerbose = 0;
+int baneDefVerbose = 0;
 
-int
-baneDefMakeMeasrVol = AIR_TRUE;
+int baneDefMakeMeasrVol = AIR_TRUE;
 
-double
-baneDefIncLimit = 0.80;  /* throwing away more than 20% is too much */
+double baneDefIncLimit = 0.80; /* throwing away more than 20% is too much */
 
-int
-baneDefRenormalize = AIR_TRUE;
+int baneDefRenormalize = AIR_TRUE;
 
-int
-baneDefPercHistBins = 1024;
+int baneDefPercHistBins = 1024;
 
-int
-baneStateHistEqBins = 4096;
+int baneStateHistEqBins = 4096;
 
-int
-baneStateHistEqSmart = 2;
+int baneStateHistEqSmart = 2;
 
-int
-baneHack = 0;
+int baneHack = 0;
 
-const char
-baneDefLHKernel00[] = "cubic:0.333,0.333";
+const char baneDefLHKernel00[] = "cubic:0.333,0.333";
 
-const char
-baneDefLHKernel11[] = "cubicd:0.333,0.333";
+const char baneDefLHKernel11[] = "cubicd:0.333,0.333";

@@ -25,14 +25,12 @@
 #include "privateTen.h"
 
 #define INFO "Average across tensor volumes"
-static const char *_tend_avgInfoL =
-  (INFO
-   ".  The output is the same size as the any one of the inputs. "
-   "The individual tensors may be averaged in various ways.");
+static const char *_tend_avgInfoL
+  = (INFO ".  The output is the same size as the any one of the inputs. "
+          "The individual tensors may be averaged in various ways.");
 
 int
-tend_avgMain(int argc, const char **argv, const char *me,
-             hestParm *hparm) {
+tend_avgMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -43,10 +41,8 @@ tend_avgMain(int argc, const char **argv, const char *me,
   char *outS;
 
   hestOptAdd(&hopt, "i", "nin1 nin2", airTypeOther, 2, -1, &nin, NULL,
-             "list of input diffusion tensor volumes",
-             &ninLen, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &itype, "linear",
-             "averaging method",
+             "list of input diffusion tensor volumes", &ninLen, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &itype, "linear", "averaging method",
              NULL, tenInterpType);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output image (floating point)");
@@ -60,17 +56,19 @@ tend_avgMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (tenInterpMulti3D(nout, AIR_CAST(const Nrrd*const*, nin), NULL,
-                       ninLen, itype, NULL)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+  if (tenInterpMulti3D(nout, AIR_CAST(const Nrrd *const *, nin), NULL, ninLen, itype,
+                       NULL)) {
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

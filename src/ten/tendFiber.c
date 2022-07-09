@@ -25,13 +25,11 @@
 #include "privateTen.h"
 
 #define INFO "Fiber tractography, from one or more seeds"
-static const char *_tend_fiberInfoL =
-  (INFO
-   ".  A fairly complete command-line interface to the tenFiber API.");
+static const char *_tend_fiberInfoL
+  = (INFO ".  A fairly complete command-line interface to the tenFiber API.");
 
 int
-tend_fiberMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+tend_fiberMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -44,16 +42,15 @@ tend_fiberMain(int argc, const char **argv, const char *me,
   double start[3], step, *_stop, *stop;
   const airEnum *ftypeEnum;
   char *ftypeS;
-  int E, intg, useDwi, allPaths, verbose, worldSpace, worldSpaceOut,
-    ftype, ftypeDef;
+  int E, intg, useDwi, allPaths, verbose, worldSpace, worldSpaceOut, ftype, ftypeDef;
   Nrrd *nin, *nseed, *nmat, *_nmat;
   unsigned int si, stopLen, whichPath;
-  double matx[16]={1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+  double matx[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
   tenFiberMulti *tfml;
   limnPolyData *fiberPld;
 
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input volume", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-", "input volume", NULL,
+             NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "dwi", NULL, airTypeInt, 0, 0, &useDwi, NULL,
              "input volume is a DWI volume, not a single tensor volume");
   hestOptAdd(&hopt, "s", "seed point", airTypeDouble, 3, 3, start, "0 0 0",
@@ -67,11 +64,9 @@ tend_fiberMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "t", "type", airTypeString, 1, 1, &ftypeS, "",
              "fiber type; defaults to something");
   hestOptAdd(&hopt, "n", "intg", airTypeEnum, 1, 1, &intg, "rk4",
-             "integration method for fiber tracking",
-             NULL, tenFiberIntg);
+             "integration method for fiber tracking", NULL, tenFiberIntg);
   hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp, "tent",
-             "kernel for reconstructing tensor field",
-             NULL, NULL, nrrdHestKernelSpec);
+             "kernel for reconstructing tensor field", NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "wp", "which", airTypeUInt, 1, 1, &whichPath, "0",
              "when doing multi-tensor tracking, index of path to follow "
              "(made moot by \"-ap\")");
@@ -107,15 +102,13 @@ tend_fiberMain(int argc, const char **argv, const char *me,
              "\b\bo \"minsteps:<N>\": discard fiber if its final number of "
              "steps is below N (not really a termination criterion)",
              &stopLen, NULL, tendFiberStopCB);
-  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0",
-             "verbosity level");
+  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0", "verbosity level");
   hestOptAdd(&hopt, "nmat", "transform", airTypeOther, 1, 1, &_nmat, "",
              "a 4x4 homogenous transform matrix (as a nrrd, or just a text "
              "file) given with this option will be applied to the output "
              "tractography vertices just prior to output",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "out", airTypeString, 1, 1, &outS, "-",
-             "output fiber(s)");
+  hestOptAdd(&hopt, "o", "out", airTypeString, 1, 1, &outS, "-", "output fiber(s)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -127,29 +120,28 @@ tend_fiberMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, tfbs, (airMopper)tenFiberSingleNix, airMopAlways);
 
   if (_nmat) {
-    if (!(2 == _nmat->dim
-          && 4 == _nmat->axis[0].size
-          && 4 == _nmat->axis[1].size)) {
-      fprintf(stderr, "%s: transform matrix must be 2-D 4-by-4 array "
-              "not %u-D %u-by-?\n", me,
-              AIR_UINT(_nmat->dim),
-              AIR_UINT(_nmat->axis[0].size));
-      airMopError(mop); return 1;
+    if (!(2 == _nmat->dim && 4 == _nmat->axis[0].size && 4 == _nmat->axis[1].size)) {
+      fprintf(stderr,
+              "%s: transform matrix must be 2-D 4-by-4 array "
+              "not %u-D %u-by-?\n",
+              me, AIR_UINT(_nmat->dim), AIR_UINT(_nmat->axis[0].size));
+      airMopError(mop);
+      return 1;
     }
     nmat = nrrdNew();
     airMopAdd(mop, nmat, (airMopper)nrrdNuke, airMopAlways);
     if (nrrdConvert(nmat, _nmat, nrrdTypeDouble)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: problem with transform matrix\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     ELL_4M_COPY(matx, AIR_CAST(double *, nmat->data));
     fprintf(stderr, "%s: transforming output by:\n", me);
     ell_4m_print_d(stderr, matx);
   }
   if (useDwi) {
-    tfx = tenFiberContextDwiNew(nin, 50, 1, 1,
-                                tenEstimate1MethodLLS,
+    tfx = tenFiberContextDwiNew(nin, 50, 1, 1, tenEstimate1MethodLLS,
                                 tenEstimate2MethodPeled);
   } else {
     tfx = tenFiberContextNew(nin);
@@ -157,22 +149,21 @@ tend_fiberMain(int argc, const char **argv, const char *me,
   if (!tfx) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: failed to create the fiber context:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, tfx, (airMopper)tenFiberContextNix, airMopAlways);
   E = 0;
-  for (si=0, stop=_stop; si<stopLen; si++, stop+=3) {
-    int istop;  /* not from Apple */
+  for (si = 0, stop = _stop; si < stopLen; si++, stop += 3) {
+    int istop; /* not from Apple */
     istop = AIR_CAST(int, stop[0]);
-    switch(istop) {
+    switch (istop) {
     case tenFiberStopAniso:
-      if (!E) E |= tenFiberStopSet(tfx, istop,
-                                   AIR_CAST(int, stop[1]), stop[2]);
+      if (!E) E |= tenFiberStopSet(tfx, istop, AIR_CAST(int, stop[1]), stop[2]);
       break;
     case tenFiberStopNumSteps:
     case tenFiberStopMinNumSteps:
-      if (!E) E |= tenFiberStopSet(tfx, istop,
-                                   AIR_UINT(stop[1]));
+      if (!E) E |= tenFiberStopSet(tfx, istop, AIR_UINT(stop[1]));
       break;
     case tenFiberStopLength:
     case tenFiberStopConfidence:
@@ -185,9 +176,9 @@ tend_fiberMain(int argc, const char **argv, const char *me,
       /* nothing to actually do */
       break;
     default:
-      fprintf(stderr, "%s: stop method %d not supported\n", me,
-              istop);
-      airMopError(mop); return 1;
+      fprintf(stderr, "%s: stop method %d not supported\n", me, istop);
+      airMopError(mop);
+      return 1;
       break;
     }
   }
@@ -202,27 +193,30 @@ tend_fiberMain(int argc, const char **argv, const char *me,
     if (airStrlen(ftypeS)) {
       ftype = airEnumVal(ftypeEnum, ftypeS);
       if (airEnumUnknown(ftypeEnum) == ftype) {
-        fprintf(stderr, "%s: couldn't parse \"%s\" as a %s\n", me,
-                ftypeS, ftypeEnum->name);
-        airMopError(mop); return 1;
+        fprintf(stderr, "%s: couldn't parse \"%s\" as a %s\n", me, ftypeS,
+                ftypeEnum->name);
+        airMopError(mop);
+        return 1;
       }
     } else {
       ftype = ftypeDef;
-      fprintf(stderr, "%s: (defaulting %s to %s)\n", me,
-              ftypeEnum->name, airEnumStr(ftypeEnum, ftype));
+      fprintf(stderr, "%s: (defaulting %s to %s)\n", me, ftypeEnum->name,
+              airEnumStr(ftypeEnum, ftype));
     }
     E |= tenFiberTypeSet(tfx, ftype);
   }
   if (!E) E |= tenFiberKernelSet(tfx, ksp->kernel, ksp->parm);
   if (!E) E |= tenFiberIntgSet(tfx, intg);
   if (!E) E |= tenFiberParmSet(tfx, tenFiberParmStepSize, step);
-  if (!E) E |= tenFiberParmSet(tfx, tenFiberParmUseIndexSpace,
-                               worldSpace ? AIR_FALSE: AIR_TRUE);
+  if (!E)
+    E |= tenFiberParmSet(tfx, tenFiberParmUseIndexSpace,
+                         worldSpace ? AIR_FALSE : AIR_TRUE);
   if (!E) E |= tenFiberUpdate(tfx);
   if (E) {
     airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   tenFiberVerboseSet(tfx, verbose);
@@ -230,7 +224,8 @@ tend_fiberMain(int argc, const char **argv, const char *me,
     if (tenFiberSingleTrace(tfx, tfbs, start, whichPath)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if (tenFiberStopUnknown == tfx->whyNowhere) {
       fprintf(stderr, "%s: steps[back,forw] = %u,%u; seedIdx = %u\n", me,
@@ -240,26 +235,32 @@ tend_fiberMain(int argc, const char **argv, const char *me,
               airEnumStr(tenFiberStop, tfbs->whyStop[1]));
       if (worldSpaceOut && !worldSpace) {
         /* have to convert output to worldspace */
-        fprintf(stderr, "%s: WARNING!!! output conversion "
-                "to worldspace not done!!!\n", me);
+        fprintf(stderr,
+                "%s: WARNING!!! output conversion "
+                "to worldspace not done!!!\n",
+                me);
       }
       if (_nmat) {
-        fprintf(stderr, "%s: WARNING!!! output transform "
-                "not done!!!\n", me);
+        fprintf(stderr,
+                "%s: WARNING!!! output transform "
+                "not done!!!\n",
+                me);
       }
       if (nrrdSave(outS, tfbs->nvert, NULL)) {
-        airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-        airMopError(mop); return 1;
+        airMopError(mop);
+        return 1;
       }
     } else {
-      fprintf(stderr, "%s: fiber failed to start: %s.\n",
-              me, airEnumDesc(tenFiberStop, tfx->whyNowhere));
+      fprintf(stderr, "%s: fiber failed to start: %s.\n", me,
+              airEnumDesc(tenFiberStop, tfx->whyNowhere));
     }
   } else {
     if (!nseed) {
       fprintf(stderr, "%s: didn't get seed nrrd via \"-ns\"\n", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     tfml = tenFiberMultiNew();
     airMopAdd(mop, tfml, (airMopper)tenFiberMultiNix, airMopAlways);
@@ -277,35 +278,37 @@ tend_fiberMain(int argc, const char **argv, const char *me,
         || tenFiberMultiPolyData(tfx, fiberPld, tfml)) {
       airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if (worldSpaceOut && !worldSpace) {
       /* have to convert output to worldspace */
       unsigned int ii;
       double indx[4], world[3];
-      for (ii=0; ii<fiberPld->xyzwNum; ii++) {
-        ELL_4V_COPY(indx, fiberPld->xyzw + 4*ii);
+      for (ii = 0; ii < fiberPld->xyzwNum; ii++) {
+        ELL_4V_COPY(indx, fiberPld->xyzw + 4 * ii);
         ELL_4V_HOMOG(indx, indx);
         gageShapeItoW(tfx->gtx->shape, world, indx);
-        ELL_3V_COPY_TT(fiberPld->xyzw + 4*ii, float, world);
-        (fiberPld->xyzw + 4*ii)[3] = 1.0;
+        ELL_3V_COPY_TT(fiberPld->xyzw + 4 * ii, float, world);
+        (fiberPld->xyzw + 4 * ii)[3] = 1.0;
       }
     }
     if (_nmat) {
       /* have to further transform output by given matrix */
       unsigned int ii;
       double xxx[4], yyy[4];
-      for (ii=0; ii<fiberPld->xyzwNum; ii++) {
-        ELL_4V_COPY(xxx, fiberPld->xyzw + 4*ii);
+      for (ii = 0; ii < fiberPld->xyzwNum; ii++) {
+        ELL_4V_COPY(xxx, fiberPld->xyzw + 4 * ii);
         ELL_4MV_MUL(yyy, matx, xxx);
         ELL_4V_HOMOG(yyy, yyy);
-        ELL_4V_COPY_TT(fiberPld->xyzw + 4*ii, float, yyy);
+        ELL_4V_COPY_TT(fiberPld->xyzw + 4 * ii, float, yyy);
       }
     }
     if (limnPolyDataSave(outS, fiberPld)) {
       airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble saving:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
 

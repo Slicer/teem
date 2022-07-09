@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "pull.h"
 #include "privatePull.h"
 
@@ -43,7 +42,7 @@ _pointEnergyOfNeighbors(pullTask *task, pullBin *bin, pullPoint *point,
 
   enr = 0;
   xx = 0;
-  for (ii=0; ii<point->neighPointNum; ii++) {
+  for (ii = 0; ii < point->neighPointNum; ii++) {
     her = point->neighPoint[ii];
     if (her->status & PULL_STATUS_NIXME_BIT) {
       xx += 1;
@@ -51,18 +50,15 @@ _pointEnergyOfNeighbors(pullTask *task, pullBin *bin, pullPoint *point,
       enr += _pullEnergyFromPoints(task, bin, her, NULL);
     }
   }
-  *fracNixed = (point->neighPointNum
-                ? AIR_CAST(double, xx)/point->neighPointNum
-                : 0);
+  *fracNixed = (point->neighPointNum ? AIR_CAST(double, xx) / point->neighPointNum : 0);
   return enr;
 }
 
 int
 _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
-  static const char me[]="_pullPointProcessAdding";
+  static const char me[] = "_pullPointProcessAdding";
   unsigned int npi, iter, api;
-  double noffavg[4], npos[4], enrWith, enrWithout,
-    fracNixed, newSpcDist, tmp;
+  double noffavg[4], npos[4], enrWith, enrWithout, fracNixed, newSpcDist, tmp;
   pullPoint *newpnt;
   int E;
 
@@ -76,13 +72,13 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
       tardim -= 1;
     }
     plenty = (1 == tardim
-              ? 3
-              : (2 == tardim
-                 ? 7
-                 : (3 == tardim
-                    ? 13 /* = 1 + 12
-                            = 1 + coordination number of 3D sphere packing */
-                    : 0 /* shouldn't get here */)));
+                ? 3
+                : (2 == tardim
+                     ? 7
+                     : (3 == tardim
+                          ? 13 /* = 1 + 12
+                                  = 1 + coordination number of 3D sphere packing */
+                          : 0 /* shouldn't get here */)));
     /*
     if (0 == (point->idtag % 100)) {
       printf("!%s: #num %d >?= plenty %d\n", me, point->neighPointNum, plenty);
@@ -104,11 +100,11 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
          task->pctx->flag.popCntlEnoughTest);
   */
   ELL_4V_SET(noffavg, 0, 0, 0, 0);
-  for (npi=0; npi<point->neighPointNum; npi++) {
+  for (npi = 0; npi < point->neighPointNum; npi++) {
     double off[4];
     ELL_4V_SUB(off, point->pos, point->neighPoint[npi]->pos);
     /* normalize the offset */
-    ELL_3V_SCALE(off, 1/task->pctx->sysParm.radiusSpace, off);
+    ELL_3V_SCALE(off, 1 / task->pctx->sysParm.radiusSpace, off);
     if (task->pctx->haveScale) {
       off[3] /= task->pctx->sysParm.radiusScale;
     }
@@ -122,8 +118,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
              _PULL_NEIGH_OFFSET_SUM_THRESH);
     }
     */
-    if (ELL_4V_LEN(noffavg)/point->neighPointNum
-        < _PULL_NEIGH_OFFSET_SUM_THRESH) {
+    if (ELL_4V_LEN(noffavg) / point->neighPointNum < _PULL_NEIGH_OFFSET_SUM_THRESH) {
       /* we have neighbors, and they seem to be balanced well enough;
          don't try to add */
       return 0;
@@ -165,8 +160,8 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   */
   if (!_pullInsideBBox(task->pctx, npos)) {
     if (task->pctx->verbose > 2) {
-      printf("%s: new pnt would start (%g,%g,%g,%g) outside bbox, nope\n",
-             me, npos[0], npos[1], npos[2], npos[3]);
+      printf("%s: new pnt would start (%g,%g,%g,%g) outside bbox, nope\n", me, npos[0],
+             npos[1], npos[2], npos[3]);
     }
     return 0;
   }
@@ -183,12 +178,11 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   /* satisfy constraint if needed */
   if (task->pctx->constraint) {
     int constrFail;
-    if (_pullConstraintSatisfy(task, newpnt,
-                               _PULL_CONSTRAINT_TRAVEL_MAX,
-                               &constrFail)) {
-      biffAddf(PULL, "%s: on newbie point %u (spawned from %u)", me,
-               newpnt->idtag, point->idtag);
-      pullPointNix(newpnt); return 1;
+    if (_pullConstraintSatisfy(task, newpnt, _PULL_CONSTRAINT_TRAVEL_MAX, &constrFail)) {
+      biffAddf(PULL, "%s: on newbie point %u (spawned from %u)", me, newpnt->idtag,
+               point->idtag);
+      pullPointNix(newpnt);
+      return 1;
     }
     if (constrFail) {
       /* constraint satisfaction failed, which isn't an error for us,
@@ -199,9 +193,9 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     }
     if (!_pullInsideBBox(task->pctx, newpnt->pos)) {
       if (task->pctx->verbose > 2) {
-        printf("%s: post constr newpnt %u (%g,%g,%g,%g) outside bbox; nope\n",
-               me, newpnt->idtag, newpnt->pos[0], newpnt->pos[1],
-               newpnt->pos[2], newpnt->pos[3]);
+        printf("%s: post constr newpnt %u (%g,%g,%g,%g) outside bbox; nope\n", me,
+               newpnt->idtag, newpnt->pos[0], newpnt->pos[1], newpnt->pos[2],
+               newpnt->pos[3]);
       }
       newpnt = pullPointNix(newpnt);
       return 0;
@@ -215,17 +209,18 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
      changing the per-task process mode . . . */
   task->processMode = pullProcessModeDescent;
   E = 0;
-  for (iter=0; iter<task->pctx->iterParm.addDescent; iter++) {
+  for (iter = 0; iter < task->pctx->iterParm.addDescent; iter++) {
     double diff[4];
-    if (!E) E |= _pullPointProcessDescent(task, bin, newpnt,
-                                          /* ignoreImage; actually it is
-                                           this use which motivated the
-                                           creation of ignoreImage */
-                                          AIR_TRUE);
+    if (!E)
+      E |= _pullPointProcessDescent(task, bin, newpnt,
+                                    /* ignoreImage; actually it is
+                                     this use which motivated the
+                                     creation of ignoreImage */
+                                    AIR_TRUE);
     if (newpnt->status & PULL_STATUS_STUCK_BIT) {
       if (task->pctx->verbose > 2) {
-        printf("%s: possible newpnt %u stuck @ iter %u; nope\n", me,
-               newpnt->idtag, iter);
+        printf("%s: possible newpnt %u stuck @ iter %u; nope\n", me, newpnt->idtag,
+               iter);
       }
       newpnt = pullPointNix(newpnt);
       /* if we don't change the mode back, then pullBinProcess() won't
@@ -235,21 +230,21 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
     }
     if (!_pullInsideBBox(task->pctx, newpnt->pos)) {
       if (task->pctx->verbose > 2) {
-        printf("%s: newpnt %u went (%g,%g,%g,%g) outside bbox; nope\n",
-               me, newpnt->idtag, newpnt->pos[0], newpnt->pos[1],
-               newpnt->pos[2], newpnt->pos[3]);
+        printf("%s: newpnt %u went (%g,%g,%g,%g) outside bbox; nope\n", me,
+               newpnt->idtag, newpnt->pos[0], newpnt->pos[1], newpnt->pos[2],
+               newpnt->pos[3]);
       }
       newpnt = pullPointNix(newpnt);
       task->processMode = pullProcessModeAdding;
       return 0;
     }
     ELL_4V_SUB(diff, newpnt->pos, point->pos);
-    ELL_3V_SCALE(diff, 1/task->pctx->sysParm.radiusSpace, diff);
+    ELL_3V_SCALE(diff, 1 / task->pctx->sysParm.radiusSpace, diff);
     diff[3] /= task->pctx->sysParm.radiusScale;
     if (ELL_4V_LEN(diff) > _PULL_NEWPNT_STRAY_DIST) {
       if (task->pctx->verbose > 2) {
-        printf("%s: newpnt %u went too far %g from old point %u; nope\n",
-               me, newpnt->idtag, ELL_4V_LEN(diff), point->idtag);
+        printf("%s: newpnt %u went too far %g from old point %u; nope\n", me,
+               newpnt->idtag, ELL_4V_LEN(diff), point->idtag);
       }
       newpnt = pullPointNix(newpnt);
       task->processMode = pullProcessModeAdding;
@@ -270,32 +265,28 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   /* now that newbie point is final test location, see if it meets
      the live thresh, if there is one */
   if (task->pctx->ispec[pullInfoLiveThresh]
-      && 0 > pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh,
-                             NULL, NULL)) {
+      && 0 > pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh, NULL, NULL)) {
     /* didn't meet threshold */
     newpnt = pullPointNix(newpnt);
     task->processMode = pullProcessModeAdding;
     return 0;
   }
   if (task->pctx->ispec[pullInfoLiveThresh2] /* HEY: copy & paste */
-      && 0 > pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh2,
-                             NULL, NULL)) {
+      && 0 > pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh2, NULL, NULL)) {
     /* didn't meet threshold */
     newpnt = pullPointNix(newpnt);
     task->processMode = pullProcessModeAdding;
     return 0;
   }
   if (task->pctx->ispec[pullInfoLiveThresh3] /* HEY: copy & paste */
-      && 0 > pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh3,
-                             NULL, NULL)) {
+      && 0 > pullPointScalar(task->pctx, newpnt, pullInfoLiveThresh3, NULL, NULL)) {
     /* didn't meet threshold */
     newpnt = pullPointNix(newpnt);
     task->processMode = pullProcessModeAdding;
     return 0;
   }
   /* see if the new point should be nixed because its at a volume edge */
-  if (task->pctx->flag.nixAtVolumeEdgeSpace
-      && (newpnt->status & PULL_STATUS_EDGE_BIT)) {
+  if (task->pctx->flag.nixAtVolumeEdgeSpace && (newpnt->status & PULL_STATUS_EDGE_BIT)) {
     newpnt = pullPointNix(newpnt);
     task->processMode = pullProcessModeAdding;
     return 0;
@@ -308,14 +299,14 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   task->processMode = pullProcessModeNeighLearn;
   _pullEnergyFromPoints(task, bin, newpnt, NULL);
   /* and teach the neighbors their neighbors (possibly including newpnt) */
-  for (npi=0; npi<newpnt->neighPointNum; npi++) {
+  for (npi = 0; npi < newpnt->neighPointNum; npi++) {
     _pullEnergyFromPoints(task, bin, newpnt->neighPoint[npi], NULL);
   }
   /* now back to the actual mode we came here with */
   task->processMode = pullProcessModeAdding;
   enrWith = (_pullEnergyFromPoints(task, bin, newpnt, NULL)
              + _pointEnergyOfNeighbors(task, bin, newpnt, &fracNixed));
-  newpnt->status |= PULL_STATUS_NIXME_BIT;  /* turn nixme on */
+  newpnt->status |= PULL_STATUS_NIXME_BIT; /* turn nixme on */
   enrWithout = _pointEnergyOfNeighbors(task, bin, newpnt, &fracNixed);
   newpnt->status &= ~PULL_STATUS_NIXME_BIT; /* turn nixme off */
   if (enrWith < enrWithout) {
@@ -325,9 +316,9 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
       double posdiff[4];
       ELL_4V_SUB(posdiff, newpnt->pos, point->pos);
       fprintf(task->pctx->logAdd, "%u %g %g %g %g %g %g\n", newpnt->idtag,
-              ELL_3V_LEN(posdiff)/task->pctx->sysParm.radiusSpace,
-              AIR_ABS(posdiff[3])/task->pctx->sysParm.radiusScale,
-              newpnt->pos[0], newpnt->pos[1], newpnt->pos[2], newpnt->pos[3]);
+              ELL_3V_LEN(posdiff) / task->pctx->sysParm.radiusSpace,
+              AIR_ABS(posdiff[3]) / task->pctx->sysParm.radiusScale, newpnt->pos[0],
+              newpnt->pos[1], newpnt->pos[2], newpnt->pos[3]);
     }
   } else {
     /* adding point is not an improvement, remove it from the add queue */
@@ -336,7 +327,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
        HEY this is the part that is totally screwed with multiple threads */
     task->processMode = pullProcessModeNeighLearn;
     newpnt->status |= PULL_STATUS_NIXME_BIT;
-    for (npi=0; npi<newpnt->neighPointNum; npi++) {
+    for (npi = 0; npi < newpnt->neighPointNum; npi++) {
       _pullEnergyFromPoints(task, bin, newpnt->neighPoint[npi], NULL);
     }
     task->processMode = pullProcessModeAdding;
@@ -347,36 +338,32 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
 
 int
 _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
-  static const char me[]="_pullPointProcessNixing";
+  static const char me[] = "_pullPointProcessNixing";
   double enrWith, enrNeigh, enrWithout, fracNixed;
 
   task->pctx->count[pullCountNixing] += 1;
 
   if (0 && 289 == task->pctx->iter) {
     fprintf(stderr, "!%s(%04u): hello lthr %p -> %g %g %g\n", me, point->idtag,
-            (void*)task->pctx->ispec[pullInfoLiveThresh],
+            (void *)task->pctx->ispec[pullInfoLiveThresh],
             pullPointScalar(task->pctx, point, pullInfoLiveThresh, NULL, NULL),
-            point->pos[0], point->pos[1]
-            );
+            point->pos[0], point->pos[1]);
   }
   /* if there's a live thresh, do we meet it? */
   if (task->pctx->ispec[pullInfoLiveThresh]
-      && 0 > pullPointScalar(task->pctx, point, pullInfoLiveThresh,
-                             NULL, NULL)) {
+      && 0 > pullPointScalar(task->pctx, point, pullInfoLiveThresh, NULL, NULL)) {
     point->status |= PULL_STATUS_NIXME_BIT;
     return 0;
   }
   /* HEY copy & paste */
   if (task->pctx->ispec[pullInfoLiveThresh2]
-      && 0 > pullPointScalar(task->pctx, point, pullInfoLiveThresh2,
-                             NULL, NULL)) {
+      && 0 > pullPointScalar(task->pctx, point, pullInfoLiveThresh2, NULL, NULL)) {
     point->status |= PULL_STATUS_NIXME_BIT;
     return 0;
   }
   /* HEY copy & paste */
   if (task->pctx->ispec[pullInfoLiveThresh3]
-      && 0 > pullPointScalar(task->pctx, point, pullInfoLiveThresh3,
-                             NULL, NULL)) {
+      && 0 > pullPointScalar(task->pctx, point, pullInfoLiveThresh3, NULL, NULL)) {
     point->status |= PULL_STATUS_NIXME_BIT;
     return 0;
   }
@@ -388,7 +375,7 @@ _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
   if (fracNixed < task->pctx->sysParm.fracNeighNixedMax) {
     /* is energy lower without us around? */
     enrWith = enrNeigh + _pullEnergyFromPoints(task, bin, point, NULL);
-    point->status |= PULL_STATUS_NIXME_BIT;    /* turn nixme on */
+    point->status |= PULL_STATUS_NIXME_BIT; /* turn nixme on */
     enrWithout = _pointEnergyOfNeighbors(task, bin, point, &fracNixed);
     if (enrWith <= enrWithout) {
       /* Energy isn't distinctly lowered without the point, so keep it;
@@ -405,7 +392,7 @@ _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
 
 int
 _pullIterFinishNeighLearn(pullContext *pctx) {
-  static const char me[]="_pullIterFinishNeighLearn";
+  static const char me[] = "_pullIterFinishNeighLearn";
 
   /* a no-op for now */
   AIR_UNUSED(pctx);
@@ -416,17 +403,17 @@ _pullIterFinishNeighLearn(pullContext *pctx) {
 
 int
 _pullIterFinishAdding(pullContext *pctx) {
-  static const char me[]="_pullIterFinishAdding";
+  static const char me[] = "_pullIterFinishAdding";
   unsigned int taskIdx;
 
   pctx->addNum = 0;
-  for (taskIdx=0; taskIdx<pctx->threadNum; taskIdx++) {
+  for (taskIdx = 0; taskIdx < pctx->threadNum; taskIdx++) {
     pullTask *task;
     task = pctx->task[taskIdx];
     if (task->addPointNum) {
       unsigned int pointIdx;
       int added;
-      for (pointIdx=0; pointIdx<task->addPointNum; pointIdx++) {
+      for (pointIdx = 0; pointIdx < task->addPointNum; pointIdx++) {
         pullPoint *point;
         pullBin *bin;
         point = task->addPoint[pointIdx];
@@ -446,7 +433,7 @@ _pullIterFinishAdding(pullContext *pctx) {
           /* ugh, have to signal to neigs that its no longer their neighbor */
           task->processMode = pullProcessModeNeighLearn;
           point->status |= PULL_STATUS_NIXME_BIT;
-          for (npi=0; npi<point->neighPointNum; npi++) {
+          for (npi = 0; npi < point->neighPointNum; npi++) {
             _pullEnergyFromPoints(task, bin, point->neighPoint[npi], NULL);
           }
           task->processMode = pullProcessModeAdding;
@@ -469,7 +456,7 @@ _pullNixTheNixed(pullContext *pctx) {
   unsigned int binIdx;
 
   pctx->nixNum = 0;
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+  for (binIdx = 0; binIdx < pctx->binNum; binIdx++) {
     pullBin *bin;
     unsigned int pointIdx;
     bin = pctx->bin + binIdx;
@@ -477,14 +464,13 @@ _pullNixTheNixed(pullContext *pctx) {
     while (pointIdx < bin->pointNum) {
       pullPoint *point;
       point = bin->point[pointIdx];
-      if (pctx->flag.nixAtVolumeEdgeSpace
-          && (point->status & PULL_STATUS_EDGE_BIT)) {
+      if (pctx->flag.nixAtVolumeEdgeSpace && (point->status & PULL_STATUS_EDGE_BIT)) {
         point->status |= PULL_STATUS_NIXME_BIT;
       }
       if (point->status & PULL_STATUS_NIXME_BIT) {
         pullPointNix(point);
         /* copy last point pointer to this slot */
-        bin->point[pointIdx] = bin->point[bin->pointNum-1];
+        bin->point[pointIdx] = bin->point[bin->pointNum - 1];
         airArrayLenIncr(bin->pointArr, -1); /* will decrement bin->pointNum */
         pctx->nixNum++;
       } else {
@@ -497,17 +483,17 @@ _pullNixTheNixed(pullContext *pctx) {
 
 int
 _pullIterFinishNixing(pullContext *pctx) {
-  static const char me[]="_pullIterFinishNixing";
+  static const char me[] = "_pullIterFinishNixing";
   unsigned int taskIdx;
 
   _pullNixTheNixed(pctx);
   /* finish nixing the things that we decided not to add */
-  for (taskIdx=0; taskIdx<pctx->threadNum; taskIdx++) {
+  for (taskIdx = 0; taskIdx < pctx->threadNum; taskIdx++) {
     pullTask *task;
     task = pctx->task[taskIdx];
     if (task->nixPointNum) {
       unsigned int xpi;
-      for (xpi=0; xpi<task->nixPointNum; xpi++) {
+      for (xpi = 0; xpi < task->nixPointNum; xpi++) {
         pullPointNix(task->nixPoint[xpi]);
       }
       airArrayLenSet(task->nixPointArr, 0);
@@ -518,4 +504,3 @@ _pullIterFinishNixing(pullContext *pctx) {
   }
   return 0;
 }
-

@@ -41,11 +41,9 @@ _miteRenderNew(void) {
     mrr->vecPvlIdx = -1;
     mrr->tenPvlIdx = -1;
     mrr->normalSpec = gageItemSpecNew();
-    airMopAdd(mrr->rmop, mrr->normalSpec,
-              (airMopper)gageItemSpecNix, airMopAlways);
+    airMopAdd(mrr->rmop, mrr->normalSpec, (airMopper)gageItemSpecNix, airMopAlways);
     mrr->shadeSpec = miteShadeSpecNew();
-    airMopAdd(mrr->rmop, mrr->shadeSpec,
-              (airMopper)miteShadeSpecNix, airMopAlways);
+    airMopAdd(mrr->rmop, mrr->shadeSpec, (airMopper)miteShadeSpecNix, airMopAlways);
     mrr->time0 = AIR_NAN;
     GAGE_QUERY_RESET(mrr->queryMite);
     mrr->queryMiteNonzero = AIR_FALSE;
@@ -65,7 +63,7 @@ _miteRenderNix(miteRender *mrr) {
 
 int
 miteRenderBegin(miteRender **mrrP, miteUser *muu) {
-  static const char me[]="miteRenderBegin";
+  static const char me[] = "miteRenderBegin";
   gagePerVolume *pvl;
   int E, pvlIdx;
   gageQuery queryScl, queryVec, queryTen;
@@ -80,7 +78,7 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
     biffAddf(MITE, "%s: problem with user-set parameters", me);
     return 1;
   }
-  if (!( *mrrP = _miteRenderNew() )) {
+  if (!(*mrrP = _miteRenderNew())) {
     biffAddf(MITE, "%s: couldn't alloc miteRender", me);
     return 1;
   }
@@ -93,15 +91,14 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   GAGE_QUERY_RESET(queryVec);
   GAGE_QUERY_RESET(queryTen);
   GAGE_QUERY_RESET((*mrrP)->queryMite);
-  for (T=0; T<muu->ntxfNum; T++) {
-    for (axi=1; axi<muu->ntxf[T]->dim; axi++) {
+  for (T = 0; T < muu->ntxfNum; T++) {
+    for (axi = 1; axi < muu->ntxf[T]->dim; axi++) {
       miteVariableParse(&isp, muu->ntxf[T]->axis[axi].label);
       miteQueryAdd(queryScl, queryVec, queryTen, (*mrrP)->queryMite, &isp);
     }
   }
   miteVariableParse((*mrrP)->normalSpec, muu->normalStr);
-  miteQueryAdd(queryScl, queryVec, queryTen, (*mrrP)->queryMite,
-               (*mrrP)->normalSpec);
+  miteQueryAdd(queryScl, queryVec, queryTen, (*mrrP)->queryMite, (*mrrP)->normalSpec);
   miteShadeSpecParse((*mrrP)->shadeSpec, muu->shadeStr);
   miteShadeSpecQueryAdd(queryScl, queryVec, queryTen, (*mrrP)->queryMite,
                         (*mrrP)->shadeSpec);
@@ -127,25 +124,23 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
     if (!E) E |= gagePerVolumeAttach(muu->gctx0, pvl);
     if (!E) (*mrrP)->tenPvlIdx = pvlIdx++;
   }
-  if (!E) E |= gageKernelSet(muu->gctx0, gageKernel00,
-                             muu->ksp[gageKernel00]->kernel,
-                             muu->ksp[gageKernel00]->parm);
-  if (!E) E |= gageKernelSet(muu->gctx0, gageKernel11,
-                             muu->ksp[gageKernel11]->kernel,
-                             muu->ksp[gageKernel11]->parm);
-  if (!E) E |= gageKernelSet(muu->gctx0, gageKernel22,
-                             muu->ksp[gageKernel22]->kernel,
-                             muu->ksp[gageKernel22]->parm);
+  if (!E)
+    E |= gageKernelSet(muu->gctx0, gageKernel00, muu->ksp[gageKernel00]->kernel,
+                       muu->ksp[gageKernel00]->parm);
+  if (!E)
+    E |= gageKernelSet(muu->gctx0, gageKernel11, muu->ksp[gageKernel11]->kernel,
+                       muu->ksp[gageKernel11]->parm);
+  if (!E)
+    E |= gageKernelSet(muu->gctx0, gageKernel22, muu->ksp[gageKernel22]->kernel,
+                       muu->ksp[gageKernel22]->parm);
   if (!E) E |= gageUpdate(muu->gctx0);
   if (E) {
     biffMovef(MITE, GAGE, "%s: gage trouble", me);
     return 1;
   }
-  fprintf(stderr, "!%s: kernel support = %d^3 samples\n",
-          me, 2*muu->gctx0->radius);
+  fprintf(stderr, "!%s: kernel support = %d^3 samples\n", me, 2 * muu->gctx0->radius);
 
-  if (nrrdMaybeAlloc_va(muu->nout, mite_nt, 3,
-                        AIR_CAST(size_t, 5) /* RGBAZ */ ,
+  if (nrrdMaybeAlloc_va(muu->nout, mite_nt, 3, AIR_CAST(size_t, 5) /* RGBAZ */,
                         AIR_CAST(size_t, muu->hctx->imgSize[0]),
                         AIR_CAST(size_t, muu->hctx->imgSize[1]))) {
     biffMovef(MITE, NRRD, "%s: nrrd trouble", me);
@@ -158,14 +153,13 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   muu->nout->axis[2].min = muu->hctx->cam->vRange[0];
   muu->nout->axis[2].max = muu->hctx->cam->vRange[1];
 
-  for (thr=0; thr<muu->hctx->numThreads; thr++) {
+  for (thr = 0; thr < muu->hctx->numThreads; thr++) {
     (*mrrP)->tt[thr] = miteThreadNew();
     if (!((*mrrP)->tt[thr])) {
       biffAddf(MITE, "%s: couldn't allocate thread[%d]", me, thr);
       return 1;
     }
-    airMopAdd((*mrrP)->rmop, (*mrrP)->tt[thr],
-              (airMopper)miteThreadNix, airMopAlways);
+    airMopAdd((*mrrP)->rmop, (*mrrP)->tt[thr], (airMopper)miteThreadNix, airMopAlways);
   }
 
   (*mrrP)->time0 = airTime();
@@ -179,10 +173,10 @@ miteRenderEnd(miteRender *mrr, miteUser *muu) {
 
   muu->rendTime = airTime() - mrr->time0;
   samples = 0;
-  for (thr=0; thr<muu->hctx->numThreads; thr++) {
+  for (thr = 0; thr < muu->hctx->numThreads; thr++) {
     samples += mrr->tt[thr]->samples;
   }
-  muu->sampRate = samples/(1000.0*muu->rendTime);
+  muu->sampRate = samples / (1000.0 * muu->rendTime);
   _miteRenderNix(mrr);
   return 0;
 }

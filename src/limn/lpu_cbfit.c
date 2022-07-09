@@ -25,34 +25,28 @@
 #include "privateLimn.h"
 
 #define INFO "Fit Bezier cubic spline to points"
-static const char *myinfo =
-(INFO
- ". \"nrp\" == Newton-based ReParameterization of spline domain");
+static const char *myinfo
+  = (INFO ". \"nrp\" == Newton-based ReParameterization of spline domain");
 
 int
-limnpu_cbfitMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+limnpu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;
   int pret;
 
   Nrrd *_nin, *nin;
-  double *xy, alpha[2],
-    vv0[2], tt1[2], tt2[2], vv3[2],
-    deltaMin, psi, cangle, distMin, distScl, utt1[2], utt2[2],
-    time0, dtime, scale;
+  double *xy, alpha[2], vv0[2], tt1[2], tt2[2], vv3[2], deltaMin, psi, cangle, distMin,
+    distScl, utt1[2], utt2[2], time0, dtime, scale;
   unsigned int ii, pNum, iterMax;
   int loop, petc, verbose, synth, nofit;
   char *synthOut;
   limnCBFContext fctx;
   limnCBFPath *path;
 
-  hestOptAdd(&hopt, "i", "input", airTypeOther, 1, 1, &_nin, NULL,
-             "input xy points",
+  hestOptAdd(&hopt, "i", "input", airTypeOther, 1, 1, &_nin, NULL, "input xy points",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "1",
-             "verbosity level");
+  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "1", "verbosity level");
   hestOptAdd(&hopt, "s", "synth", airTypeInt, 0, 0, &synth, NULL,
              "synthesize xy points from control points");
   hestOptAdd(&hopt, "so", "synth out", airTypeString, 1, 1, &synthOut, "",
@@ -74,8 +68,7 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
              "and points goes below this");
   hestOptAdd(&hopt, "dists", "scl", airTypeDouble, 1, 1, &distScl, "0.25",
              "scaling on nrp distMin check");
-  hestOptAdd(&hopt, "psi", "psi", airTypeDouble, 1, 1, &psi, "10",
-             "psi, of course");
+  hestOptAdd(&hopt, "psi", "psi", airTypeDouble, 1, 1, &psi, "10", "psi, of course");
   hestOptAdd(&hopt, "ca", "angle", airTypeDouble, 1, 1, &cangle, "100",
              "angle indicating a corner");
   hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1, &scale, "0",
@@ -97,16 +90,17 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( 2 == _nin->dim && 2 == _nin->axis[0].size )) {
-    fprintf(stderr, "%s: want 2-D (not %u) array with axis[0].size "
-            "2 (not %u)\n", me, _nin->dim,
-            (unsigned int)_nin->axis[0].size);
+  if (!(2 == _nin->dim && 2 == _nin->axis[0].size)) {
+    fprintf(stderr,
+            "%s: want 2-D (not %u) array with axis[0].size "
+            "2 (not %u)\n",
+            me, _nin->dim, (unsigned int)_nin->axis[0].size);
     airMopError(mop);
     return 1;
   }
   if (synth && 6 != _nin->axis[1].size) {
-    fprintf(stderr, "%s: need 2-by-6 array (not 2-by-%u) for synthetic xy\n",
-            me, (unsigned int)_nin->axis[1].size);
+    fprintf(stderr, "%s: need 2-by-6 array (not 2-by-%u) for synthetic xy\n", me,
+            (unsigned int)_nin->axis[1].size);
     airMopError(mop);
     return 1;
   }
@@ -121,33 +115,34 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
   }
 
   if (!synth) {
-    xy = (double*)nin->data;
+    xy = (double *)nin->data;
     pNum = (unsigned int)nin->axis[1].size;
   } else {
     /* synthesize data from control points */
-    double *cpt = (double*)nin->data;
+    double *cpt = (double *)nin->data;
     limnCBFSeg seg;
     pNum = (unsigned int)cpt[1];
-    if (!( 0 == cpt[0] && pNum == cpt[1] )) {
-      fprintf(stderr, "%s: need 0,int for first 2 cpt values (not %g,%g)\n",
-              me, cpt[0], cpt[1]);
+    if (!(0 == cpt[0] && pNum == cpt[1])) {
+      fprintf(stderr, "%s: need 0,int for first 2 cpt values (not %g,%g)\n", me, cpt[0],
+              cpt[1]);
       airMopError(mop);
       return 1;
     }
     ELL_2V_COPY(alpha, cpt + 2);
-    ELL_2V_COPY(vv0, cpt + 4);  ELL_2V_COPY(seg.xy + 0, vv0);
+    ELL_2V_COPY(vv0, cpt + 4);
+    ELL_2V_COPY(seg.xy + 0, vv0);
     ELL_2V_COPY(tt1, cpt + 6);
     ELL_2V_COPY(tt2, cpt + 8);
-    ELL_2V_COPY(vv3, cpt + 10); ELL_2V_COPY(seg.xy + 6, vv3);
+    ELL_2V_COPY(vv3, cpt + 10);
+    ELL_2V_COPY(seg.xy + 6, vv3);
     ELL_2V_SCALE_ADD2(seg.xy + 2, 1, vv0, alpha[0], tt1);
     ELL_2V_SCALE_ADD2(seg.xy + 4, 1, vv3, alpha[1], tt2);
-    printf("%s: synth seg: (%g,%g) -- (%g,%g) -- (%g,%g) -- (%g,%g)\n", me,
-           seg.xy[0], seg.xy[1], seg.xy[2], seg.xy[3],
-           seg.xy[4], seg.xy[5], seg.xy[6], seg.xy[7]);
-    xy = AIR_MALLOC(2*pNum, double);
+    printf("%s: synth seg: (%g,%g) -- (%g,%g) -- (%g,%g) -- (%g,%g)\n", me, seg.xy[0],
+           seg.xy[1], seg.xy[2], seg.xy[3], seg.xy[4], seg.xy[5], seg.xy[6], seg.xy[7]);
+    xy = AIR_MALLOC(2 * pNum, double);
     airMopAdd(mop, xy, airFree, airMopAlways);
-    for (ii=0; ii<pNum; ii++) {
-      limnCBFSegEval(xy + 2*ii, &seg, AIR_AFFINE(0, ii, pNum-1, 0, 1));
+    for (ii = 0; ii < pNum; ii++) {
+      limnCBFSegEval(xy + 2 * ii, &seg, AIR_AFFINE(0, ii, pNum - 1, 0, 1));
     }
     if (airStrlen(synthOut)) {
       Nrrd *nsyn = nrrdNew();
@@ -170,7 +165,7 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
     /* set up 2-vector-valued arguments to fitting */
     double len;
     ELL_2V_COPY(vv0, xy);
-    ELL_2V_COPY(vv3, xy + 2*(pNum-1));
+    ELL_2V_COPY(vv3, xy + 2 * (pNum - 1));
     if (ELL_2V_EXISTS(utt1)) {
       ELL_2V_COPY(tt1, utt1);
     } else {
@@ -180,7 +175,7 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
     if (ELL_2V_EXISTS(utt2)) {
       ELL_2V_COPY(tt2, utt2);
     } else {
-      ELL_2V_SUB(tt2, xy + 2*(pNum-2), vv3);
+      ELL_2V_SUB(tt2, xy + 2 * (pNum - 2), vv3);
     }
     ELL_2V_NORM(tt1, tt1, len);
     ELL_2V_NORM(tt2, tt2, len);
@@ -208,31 +203,27 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
     airMopError(mop);
     return 1;
   }
-  dtime = (airTime() - time0)*1000;
-  printf("%s: time= %g ms;iterDone= %u ;deltaDone=%g, dist=%g (@%u)\n", me,
-         dtime, fctx.nrpIterDone, fctx.nrpDeltaDone,
-         fctx.dist, fctx.distIdx);
+  dtime = (airTime() - time0) * 1000;
+  printf("%s: time= %g ms;iterDone= %u ;deltaDone=%g, dist=%g (@%u)\n", me, dtime,
+         fctx.nrpIterDone, fctx.nrpDeltaDone, fctx.dist, fctx.distIdx);
   {
     unsigned int si;
     printf("%s: path has %u segments:\n", me, path->segNum);
-    for (si=0; si<path->segNum; si++) {
+    for (si = 0; si < path->segNum; si++) {
       limnCBFSeg *seg = path->seg + si;
-      printf("seg %u (%3u): (%g,%g) -- (%g,%g) -- (%g,%g) -- (%g,%g)\n",
-             si, seg->pNum,
-             seg->xy[0], seg->xy[1],
-             seg->xy[2], seg->xy[3],
-             seg->xy[4], seg->xy[5],
+      printf("seg %u (%3u): (%g,%g) -- (%g,%g) -- (%g,%g) -- (%g,%g)\n", si, seg->pNum,
+             seg->xy[0], seg->xy[1], seg->xy[2], seg->xy[3], seg->xy[4], seg->xy[5],
              seg->xy[6], seg->xy[7]);
     }
   }
 
   if (1) {
-    unsigned int oNum = pNum*100;
-    double *pp = AIR_MALLOC(oNum*2, double);
+    unsigned int oNum = pNum * 100;
+    double *pp = AIR_MALLOC(oNum * 2, double);
     airMopAdd(mop, pp, airFree, airMopAlways);
     limnCBFPathSample(pp, oNum, path);
-    for (ii=0; ii<oNum; ii++) {
-      printf("done %u %g %g\n", ii, (pp + 2*ii)[0], (pp + 2*ii)[1]);
+    for (ii = 0; ii < oNum; ii++) {
+      printf("done %u %g %g\n", ii, (pp + 2 * ii)[0], (pp + 2 * ii)[1]);
     }
   }
 
@@ -240,4 +231,4 @@ limnpu_cbfitMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_cbfitCmd = { "cbfit", INFO, limnpu_cbfitMain, AIR_FALSE };
+unrrduCmd limnpu_cbfitCmd = {"cbfit", INFO, limnpu_cbfitMain, AIR_FALSE};

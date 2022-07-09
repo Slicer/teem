@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "pull.h"
 #include "privatePull.h"
 
@@ -46,11 +45,11 @@ pullContextNew(void) {
   pctx->iter_cb = NULL;
   pctx->data_cb = NULL;
 
-  for (ii=0; ii<PULL_VOLUME_MAXNUM; ii++) {
+  for (ii = 0; ii < PULL_VOLUME_MAXNUM; ii++) {
     pctx->vol[ii] = NULL;
   }
   pctx->volNum = 0;
-  for (ii=0; ii<=PULL_INFO_MAX; ii++) {
+  for (ii = 0; ii <= PULL_INFO_MAX; ii++) {
     pctx->ispec[ii] = NULL;
     pctx->infoIdx[ii] = UINT_MAX;
   }
@@ -89,7 +88,7 @@ pullContextNew(void) {
   pctx->iterBarrierA = NULL;
   pctx->iterBarrierB = NULL;
 #if PULL_HINTER
-  pctx->nhinter  = nrrdNew();
+  pctx->nhinter = nrrdNew();
 #endif
   pctx->logAdd = NULL;
 
@@ -101,7 +100,7 @@ pullContextNew(void) {
   pctx->stuckNum = 0;
   pctx->pointNum = 0;
   pctx->iter = 0;
-  for (ii=pullCountUnknown; ii<pullCountLast; ii++) {
+  for (ii = pullCountUnknown; ii < pullCountLast; ii++) {
     pctx->count[ii] = 0;
   }
   return pctx;
@@ -116,11 +115,11 @@ pullContextNix(pullContext *pctx) {
   unsigned int ii;
 
   if (pctx) {
-    for (ii=0; ii<pctx->volNum; ii++) {
+    for (ii = 0; ii < pctx->volNum; ii++) {
       pctx->vol[ii] = pullVolumeNix(pctx->vol[ii]);
     }
     pctx->volNum = 0;
-    for (ii=0; ii<=PULL_INFO_MAX; ii++) {
+    for (ii = 0; ii <= PULL_INFO_MAX; ii++) {
       if (pctx->ispec[ii]) {
         pctx->ispec[ii] = pullInfoSpecNix(pctx->ispec[ii]);
       }
@@ -139,17 +138,17 @@ pullContextNix(pullContext *pctx) {
 
 int
 _pullMiscParmCheck(pullContext *pctx) {
-  static const char me[]="_pullMiscParmCheck";
+  static const char me[] = "_pullMiscParmCheck";
   double denr;
 
-  if (!( AIR_IN_CL(1, pctx->threadNum, PULL_THREAD_MAXNUM) )) {
+  if (!(AIR_IN_CL(1, pctx->threadNum, PULL_THREAD_MAXNUM))) {
     biffAddf(PULL, "%s: pctx->threadNum (%d) outside valid range [1,%d]", me,
              pctx->threadNum, PULL_THREAD_MAXNUM);
     return 1;
   }
   if (airEnumValCheck(pullInterType, pctx->interType)) {
-    biffAddf(PULL, "%s: pctx->interType %d not a valid %s", me,
-             pctx->interType, pullInterType->name);
+    biffAddf(PULL, "%s: pctx->interType %d not a valid %s", me, pctx->interType,
+             pullInterType->name);
     return 1;
   }
   /* HEY: error checking on energySpec's seems rather spotty . . . */
@@ -174,9 +173,8 @@ _pullMiscParmCheck(pullContext *pctx) {
   }
   /* make sure that spatial repulsion is really repulsive at r=0 */
   pctx->energySpecR->energy->eval(&denr, 0.0000001, pctx->energySpecR->parm);
-  if (!( denr < 0 )) {
-    biffAddf(PULL, "%s: spatial energy doesn't have negative slope near r=0",
-             me);
+  if (!(denr < 0)) {
+    biffAddf(PULL, "%s: spatial energy doesn't have negative slope near r=0", me);
     return 1;
   }
 
@@ -185,7 +183,7 @@ _pullMiscParmCheck(pullContext *pctx) {
 
 int
 _pullContextCheck(pullContext *pctx) {
-  static const char me[]="_pullContextCheck";
+  static const char me[] = "_pullContextCheck";
   unsigned int ii, ccount;
   int gotIspec, gotConstr;
   const pullInfoSpec *lthr, *strn;
@@ -194,10 +192,8 @@ _pullContextCheck(pullContext *pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
   }
-  if (_pullInitParmCheck(&(pctx->initParm))
-      || _pullIterParmCheck(&(pctx->iterParm))
-      || _pullSysParmCheck(&(pctx->sysParm))
-      || _pullMiscParmCheck(pctx)) {
+  if (_pullInitParmCheck(&(pctx->initParm)) || _pullIterParmCheck(&(pctx->iterParm))
+      || _pullSysParmCheck(&(pctx->sysParm)) || _pullMiscParmCheck(pctx)) {
     biffAddf(PULL, "%s: problem with parameters", me);
     return 1;
   }
@@ -208,24 +204,26 @@ _pullContextCheck(pullContext *pctx) {
   }
   gotConstr = 0;
   gotIspec = AIR_FALSE;
-  for (ii=0; ii<=PULL_INFO_MAX; ii++) {
+  for (ii = 0; ii <= PULL_INFO_MAX; ii++) {
     if (pctx->ispec[ii]) {
       if (pctx->ispec[ii]->constraint) {
         if (1 != pullInfoLen(ii)) {
-          biffAddf(PULL, "%s: can't use non-scalar (len %u) %s as constraint",
-                   me, pullInfoLen(ii), airEnumStr(pullInfo, ii));
+          biffAddf(PULL, "%s: can't use non-scalar (len %u) %s as constraint", me,
+                   pullInfoLen(ii), airEnumStr(pullInfo, ii));
           return 1;
         }
         if (pullSourceGage != pctx->ispec[ii]->source) {
-          biffAddf(PULL, "%s: sorry, constraints can currently only "
-                   "come from %s", me,
-                   airEnumStr(pullSource, pullSourceGage));
+          biffAddf(PULL,
+                   "%s: sorry, constraints can currently only "
+                   "come from %s",
+                   me, airEnumStr(pullSource, pullSourceGage));
           return 1;
         }
         if (gotConstr) {
-          biffAddf(PULL, "%s: can't also have %s constraint, already have "
-                   "constraint on %s ", me, airEnumStr(pullInfo, ii),
-                   airEnumStr(pullInfo, gotConstr));
+          biffAddf(PULL,
+                   "%s: can't also have %s constraint, already have "
+                   "constraint on %s ",
+                   me, airEnumStr(pullInfo, ii), airEnumStr(pullInfo, gotConstr));
           return 1;
         }
         /* elso no problems having constraint on ii */
@@ -242,11 +240,10 @@ _pullContextCheck(pullContext *pctx) {
       case pullInfoLiveThresh3:
       case pullInfoIsovalue:
       case pullInfoStrength:
-        if (!( AIR_EXISTS(pctx->ispec[ii]->scale)
-               && AIR_EXISTS(pctx->ispec[ii]->zero) )) {
+        if (!(AIR_EXISTS(pctx->ispec[ii]->scale) && AIR_EXISTS(pctx->ispec[ii]->zero))) {
           biffAddf(PULL, "%s: %s info needs scale (%g) and zero (%g)", me,
-                   airEnumStr(pullInfo, ii),
-                   pctx->ispec[ii]->scale, pctx->ispec[ii]->zero);
+                   airEnumStr(pullInfo, ii), pctx->ispec[ii]->scale,
+                   pctx->ispec[ii]->zero);
           return 1;
         }
         break;
@@ -302,12 +299,14 @@ _pullContextCheck(pullContext *pctx) {
     return 1;
   }
   if (3 == ccount && !pctx->flag.allowCodimension3Constraints) {
-    biffAddf(PULL, "%s: must turn on allowCodimension3Constraints "
-             "with 3 tangents", me);
+    biffAddf(PULL,
+             "%s: must turn on allowCodimension3Constraints "
+             "with 3 tangents",
+             me);
     return 1;
   }
   if (pctx->ispec[pullInfoHeight]) {
-    if (!( pctx->ispec[pullInfoHeightGradient] )) {
+    if (!(pctx->ispec[pullInfoHeightGradient])) {
       biffAddf(PULL, "%s: want %s but don't have %s set", me,
                airEnumStr(pullInfo, pullInfoHeight),
                airEnumStr(pullInfo, pullInfoHeightGradient));
@@ -320,14 +319,13 @@ _pullContextCheck(pullContext *pctx) {
                  airEnumStr(pullInfo, pullInfoHeightHessian));
         return 1;
       }
-      if (!( pctx->ispec[pullInfoTangent1]
-             || pctx->ispec[pullInfoNegativeTangent1] )) {
+      if (!(pctx->ispec[pullInfoTangent1] || pctx->ispec[pullInfoNegativeTangent1])) {
         if (!pctx->flag.allowCodimension3Constraints) {
-          biffAddf(PULL, "%s: want constrained %s but need (at least) "
+          biffAddf(PULL,
+                   "%s: want constrained %s but need (at least) "
                    "%s or %s set (maybe enable "
                    "pullFlagAllowCodimension3Constraints?)",
-                   me,
-                   airEnumStr(pullInfo, pullInfoHeight),
+                   me, airEnumStr(pullInfo, pullInfoHeight),
                    airEnumStr(pullInfo, pullInfoTangent1),
                    airEnumStr(pullInfo, pullInfoNegativeTangent1));
           return 1;
@@ -336,7 +334,7 @@ _pullContextCheck(pullContext *pctx) {
     }
   }
   if (pctx->ispec[pullInfoHeightLaplacian]) {
-    if (!( pctx->ispec[pullInfoHeight] )) {
+    if (!(pctx->ispec[pullInfoHeight])) {
       biffAddf(PULL, "%s: want %s but don't have %s set", me,
                airEnumStr(pullInfo, pullInfoHeightLaplacian),
                airEnumStr(pullInfo, pullInfoHeight));
@@ -344,8 +342,8 @@ _pullContextCheck(pullContext *pctx) {
     }
   }
   if (pctx->ispec[pullInfoIsovalue]) {
-    if (!( pctx->ispec[pullInfoIsovalueGradient]
-           && pctx->ispec[pullInfoIsovalueHessian] )) {
+    if (!(pctx->ispec[pullInfoIsovalueGradient]
+          && pctx->ispec[pullInfoIsovalueHessian])) {
       biffAddf(PULL, "%s: want %s but don't have %s and %s set", me,
                airEnumStr(pullInfo, pullInfoIsovalue),
                airEnumStr(pullInfo, pullInfoIsovalueGradient),
@@ -353,23 +351,22 @@ _pullContextCheck(pullContext *pctx) {
       return 1;
     }
   }
-  if ((lthr = pctx->ispec[pullInfoLiveThresh])
-      && (strn = pctx->ispec[pullInfoStrength])
-      && lthr->volIdx == strn->volIdx
-      && lthr->item == strn->item
-      && lthr->scale*strn->scale < 0) {
-    biffAddf(PULL, "%s: %s and %s refer to same item (%s in %s), but have "
-             "scaling factors with different signs (%g and %g); really?", me,
-             airEnumStr(pullInfo, pullInfoLiveThresh),
+  if ((lthr = pctx->ispec[pullInfoLiveThresh]) && (strn = pctx->ispec[pullInfoStrength])
+      && lthr->volIdx == strn->volIdx && lthr->item == strn->item
+      && lthr->scale * strn->scale < 0) {
+    biffAddf(PULL,
+             "%s: %s and %s refer to same item (%s in %s), but have "
+             "scaling factors with different signs (%g and %g); really?",
+             me, airEnumStr(pullInfo, pullInfoLiveThresh),
              airEnumStr(pullInfo, pullInfoStrength),
-             airEnumStr(pctx->vol[lthr->volIdx]->kind->enm, lthr->item),
-             lthr->volName, lthr->scale, strn->scale);
+             airEnumStr(pctx->vol[lthr->volIdx]->kind->enm, lthr->item), lthr->volName,
+             lthr->scale, strn->scale);
     return 1;
   }
   if (pullInitMethodPointPerVoxel == pctx->initParm.method) {
-    if (!( pctx->ispec[pullInfoSeedThresh] )) {
-      biffAddf(PULL, "%s: sorry, need to have %s info set with %s init",
-               me, airEnumStr(pullInfo, pullInfoSeedThresh),
+    if (!(pctx->ispec[pullInfoSeedThresh])) {
+      biffAddf(PULL, "%s: sorry, need to have %s info set with %s init", me,
+               airEnumStr(pullInfo, pullInfoSeedThresh),
                "point-per-voxel" /* HEY no airEnum for this */);
       return 1;
     }
@@ -384,10 +381,9 @@ _pullContextCheck(pullContext *pctx) {
 */
 int
 pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
-                    const double _scaleVec[3], double scaleRad,
-                    pullContext *pctx,
+                    const double _scaleVec[3], double scaleRad, pullContext *pctx,
                     unsigned int idtagMin, unsigned int idtagMax) {
-  static const char me[]="pullOutputGetFilter";
+  static const char me[] = "pullOutputGetFilter";
   unsigned int binIdx, pointNum, pointIdx, outIdx;
   int E;
   double *posOut, *tenOut, *strnOut, scaleVec[3], scaleDir[3], scaleMag;
@@ -399,8 +395,8 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
     return 1;
   }
   if (nStrengthOut && !pctx->ispec[pullInfoStrength]) {
-    biffAddf(PULL, "%s: can't save out %s info that hasn't been set",
-             me, airEnumStr(pullInfo, pullInfoStrength));
+    biffAddf(PULL, "%s: can't save out %s info that hasn't been set", me,
+             airEnumStr(pullInfo, pullInfoStrength));
     return 1;
   }
   if (!AIR_EXISTS(scaleRad)) {
@@ -423,35 +419,30 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
   pointNum = pullPointNumberFilter(pctx, idtagMin, idtagMax);
   E = AIR_FALSE;
   if (nPosOut) {
-    E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeDouble, 2,
-                           AIR_CAST(size_t, 4),
+    E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeDouble, 2, AIR_CAST(size_t, 4),
                            AIR_CAST(size_t, pointNum));
   }
   if (nTenOut) {
-    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeDouble, 2,
-                           AIR_CAST(size_t, 7),
+    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeDouble, 2, AIR_CAST(size_t, 7),
                            AIR_CAST(size_t, pointNum));
   }
   if (nStrengthOut) {
-    E |= nrrdMaybeAlloc_va(nStrengthOut, nrrdTypeDouble, 1,
-                           AIR_CAST(size_t, pointNum));
+    E |= nrrdMaybeAlloc_va(nStrengthOut, nrrdTypeDouble, 1, AIR_CAST(size_t, pointNum));
   }
   if (E) {
     biffMovef(PULL, NRRD, "%s: trouble allocating outputs", me);
     return 1;
   }
-  posOut = nPosOut ? (double*)(nPosOut->data) : NULL;
-  tenOut = nTenOut ? (double*)(nTenOut->data) : NULL;
-  strnOut = nStrengthOut ? (double*)(nStrengthOut->data) : NULL;
+  posOut = nPosOut ? (double *)(nPosOut->data) : NULL;
+  tenOut = nTenOut ? (double *)(nTenOut->data) : NULL;
+  strnOut = nStrengthOut ? (double *)(nStrengthOut->data) : NULL;
 
   outIdx = 0;
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+  for (binIdx = 0; binIdx < pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
-    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+    for (pointIdx = 0; pointIdx < bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
-      if (!( idtagMin <= point->idtag
-             && (0 == idtagMax
-                 || point->idtag <= idtagMax) )) {
+      if (!(idtagMin <= point->idtag && (0 == idtagMax || point->idtag <= idtagMax))) {
         continue;
       }
       /** to find idtag of point at particular location **/
@@ -466,14 +457,14 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
       }
       */
       if (nPosOut) {
-        ELL_4V_COPY(posOut + 4*outIdx, point->pos);
+        ELL_4V_COPY(posOut + 4 * outIdx, point->pos);
         if (pctx->haveScale && scaleMag) {
           double *tpos, tvec[3], sc;
-          tpos = posOut + 4*outIdx;
+          tpos = posOut + 4 * outIdx;
           sc = ELL_3V_DOT(tpos, scaleDir);
           ELL_3V_SCALE(tvec, sc, scaleDir);
           ELL_3V_SUB(tpos, tpos, tvec);
-          ELL_3V_SCALE(tvec, scaleMag*tpos[3], scaleDir);
+          ELL_3V_SCALE(tvec, scaleMag * tpos[3], scaleDir);
           ELL_3V_ADD2(tpos, tpos, tvec);
         }
         /*
@@ -486,8 +477,7 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
         */
       }
       if (nStrengthOut) {
-        strnOut[outIdx] = pullPointScalar(pctx, point, pullInfoStrength,
-                                          NULL, NULL);
+        strnOut[outIdx] = pullPointScalar(pctx, point, pullInfoStrength, NULL, NULL);
       }
       if (nTenOut) {
         double scl, tout[7];
@@ -502,7 +492,8 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
             /* do this if using general symmetric tensor glyphs */
             TEN_M2T(tout, hess);
             tout[0] = 1.0;
-          } if (0) {
+          }
+          if (0) {
             /* for spheres and only spheres */
             TEN_T_SET(tout, 1, 1, 0, 0, 1, 0, 1);
           } else {
@@ -511,14 +502,14 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
             eval[1] = AIR_ABS(eval[1]);
             eval[2] = AIR_ABS(eval[2]);
             /* elen = ELL_3V_LEN(eval); */
-            elen = (eval[0]+eval[1]+eval[2]);
-            eceil = elen ? 10/elen : 10;
-            eval[0] = eval[0] ? AIR_MIN(eceil, 1.0/eval[0]) : eceil;
-            eval[1] = eval[1] ? AIR_MIN(eceil, 1.0/eval[1]) : eceil;
-            eval[2] = eval[2] ? AIR_MIN(eceil, 1.0/eval[2]) : eceil;
+            elen = (eval[0] + eval[1] + eval[2]);
+            eceil = elen ? 10 / elen : 10;
+            eval[0] = eval[0] ? AIR_MIN(eceil, 1.0 / eval[0]) : eceil;
+            eval[1] = eval[1] ? AIR_MIN(eceil, 1.0 / eval[1]) : eceil;
+            eval[2] = eval[2] ? AIR_MIN(eceil, 1.0 / eval[2]) : eceil;
             maxi = ELL_MAX3_IDX(eval[0], eval[1], eval[2]);
             maxeval = eval[maxi];
-            ELL_3V_SCALE(eval, 1/maxeval, eval);
+            ELL_3V_SCALE(eval, 1 / maxeval, eval);
             tenMakeSingle_d(tout, 1, eval, evec);
             if (scaleRad && pctx->ispec[pullInfoHeight]->constraint) {
               double emin, sig;
@@ -527,24 +518,24 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
               } else {
                 sig = point->pos[3];
               }
-              tenEigensolve_d(eval, evec, tout);  /* lazy way to sort */
+              tenEigensolve_d(eval, evec, tout); /* lazy way to sort */
               emin = eval[2];
               if (1 == pctx->constraintDim) {
-                eval[1] = scaleRad*sig + emin/2;
-                eval[2] = scaleRad*sig + emin/2;
-              } if (2 == pctx->constraintDim) {
+                eval[1] = scaleRad * sig + emin / 2;
+                eval[2] = scaleRad * sig + emin / 2;
+              }
+              if (2 == pctx->constraintDim) {
                 double eavg;
-                eavg = (2*eval[0] + eval[2])/3;
+                eavg = (2 * eval[0] + eval[2]) / 3;
                 eval[0] = eavg;
                 eval[1] = eavg;
-                eval[2] = scaleRad*sig + emin/2;
+                eval[2] = scaleRad * sig + emin / 2;
               }
               tenMakeSingle_d(tout, 1, eval, evec);
             }
           }
-        } else if (0   /* another hack for general symmetric tensor glyphs */
-                   && pctx->constraint
-                   && (pctx->ispec[pullInfoIsovalueHessian])) {
+        } else if (0 /* another hack for general symmetric tensor glyphs */
+                   && pctx->constraint && (pctx->ispec[pullInfoIsovalueHessian])) {
           double *hess;
           hess = point->info + pctx->infoIdx[pullInfoIsovalueHessian];
           TEN_M2T(tout, hess);
@@ -553,9 +544,10 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
                    && (pctx->ispec[pullInfoHeightGradient]
                        || pctx->ispec[pullInfoIsovalueGradient])) {
           double *grad, norm[3], len, mat[9], out[9];
-          grad = point->info + (pctx->ispec[pullInfoHeightGradient]
-                                ? pctx->infoIdx[pullInfoHeightGradient]
-                                : pctx->infoIdx[pullInfoIsovalueGradient]);
+          grad = point->info
+               + (pctx->ispec[pullInfoHeightGradient]
+                    ? pctx->infoIdx[pullInfoHeightGradient]
+                    : pctx->infoIdx[pullInfoIsovalueGradient]);
           ELL_3V_NORM(norm, grad, len);
           ELL_3MV_OUTER(out, norm, norm);
           ELL_3M_IDENTITY_SET(mat);
@@ -566,7 +558,7 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
           TEN_T_SET(tout, 1, 1, 0, 0, 1, 0, 1);
         }
         TEN_T_SCALE(tout, scl, tout);
-        TEN_T_COPY(tenOut + 7*outIdx, tout);
+        TEN_T_COPY(tenOut + 7 * outIdx, tout);
         /*
         if (4523 == point->idtag) {
           fprintf(stderr, "!%s: point %u at index %u and ten (%g) %g %g %g %g %g %g\n",
@@ -584,22 +576,21 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
 }
 
 int
-pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
-              const double scaleVec[3], double scaleRad,
-              pullContext *pctx) {
-  static const char me[]="pullOutputGet";
+pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut, const double scaleVec[3],
+              double scaleRad, pullContext *pctx) {
+  static const char me[] = "pullOutputGet";
 
-  if (pullOutputGetFilter(nPosOut, nTenOut, nStrengthOut, scaleVec, scaleRad, pctx, 0, 0)) {
+  if (pullOutputGetFilter(nPosOut, nTenOut, nStrengthOut, scaleVec, scaleRad, pctx, 0,
+                          0)) {
     biffAddf(PULL, "%s: trouble", me);
     return 1;
   }
   return 0;
 }
 
-
 int
 pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
-  static const char me[]="pullPropGet";
+  static const char me[] = "pullPropGet";
   int typeOut;
   size_t size[2];
   unsigned int dim, pointNum, pointIdx, binIdx, *out_ui, outIdx;
@@ -610,7 +601,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
   pullPoint *point;
 
   pointNum = pullPointNumber(pctx);
-  switch(prop) {
+  switch (prop) {
   case pullPropEnergy:
   case pullPropStepEnergy:
   case pullPropStepConstr:
@@ -675,12 +666,12 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
   out_uc = AIR_CAST(unsigned char *, nprop->data);
 
   outIdx = 0;
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+  for (binIdx = 0; binIdx < pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
-    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+    for (pointIdx = 0; pointIdx < bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       pnc = point->neighCovar;
-      switch(prop) {
+      switch (prop) {
       case pullPropEnergy:
         out_d[outIdx] = point->energy;
         break;
@@ -701,22 +692,21 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
         break;
       case pullPropStuck:
         out_uc[outIdx] = ((point->status & PULL_STATUS_STUCK_BIT)
-                          ? AIR_UCHAR(AIR_MIN(255, point->stuckIterNum))
-                          : 0);
+                            ? AIR_UCHAR(AIR_MIN(255, point->stuckIterNum))
+                            : 0);
         break;
       case pullPropPosition:
-        ELL_4V_COPY(out_d + 4*outIdx, point->pos);
+        ELL_4V_COPY(out_d + 4 * outIdx, point->pos);
         break;
       case pullPropForce:
-        ELL_4V_COPY(out_d + 4*outIdx, point->force);
+        ELL_4V_COPY(out_d + 4 * outIdx, point->force);
         break;
       case pullPropNeighDistMean:
         out_d[outIdx] = point->neighDistMean;
         break;
       case pullPropScale:
-        out_d[outIdx] = (pctx->flag.scaleIsTau
-                         ? gageSigOfTau(point->pos[3])
-                         : point->pos[3]);
+        out_d[outIdx] = (pctx->flag.scaleIsTau ? gageSigOfTau(point->pos[3])
+                                               : point->pos[3]);
         break;
         /*
           0:xx 1:xy 2:xz 3:xs
@@ -725,31 +715,20 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
           3    6    8    9:ss
         */
       case pullPropNeighCovar:
-        ELL_10V_COPY(out_f + 10*outIdx, point->neighCovar);
+        ELL_10V_COPY(out_f + 10 * outIdx, point->neighCovar);
         break;
       case pullPropNeighCovar7Ten:
-        TEN_T_SET(out_f + 7*outIdx, 1.0f,
-                  pnc[0],
-                  pnc[1],
-                  pnc[2],
-                  pnc[4],
-                  pnc[5],
+        TEN_T_SET(out_f + 7 * outIdx, 1.0f, pnc[0], pnc[1], pnc[2], pnc[4], pnc[5],
                   pnc[7]);
         break;
       case pullPropNeighTanCovar:
 #if PULL_TANCOVAR
-        TEN_T_SET(out_f + 7*outIdx, 1.0f,
-                  point->neighTanCovar[0],
-                  point->neighTanCovar[1],
-                  point->neighTanCovar[2],
-                  point->neighTanCovar[3],
-                  point->neighTanCovar[4],
+        TEN_T_SET(out_f + 7 * outIdx, 1.0f, point->neighTanCovar[0],
+                  point->neighTanCovar[1], point->neighTanCovar[2],
+                  point->neighTanCovar[3], point->neighTanCovar[4],
                   point->neighTanCovar[5]);
 #else
-        TEN_T_SET(out_f + 7*outIdx, 0.0f,
-                  0.0f, 0.0f, 0.0f,
-                  0.0f, 0.0f,
-                  0.0f);
+        TEN_T_SET(out_f + 7 * outIdx, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 #endif
         break;
       case pullPropNeighCovarTrace:
@@ -757,15 +736,15 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
         break;
       case pullPropNeighCovarDet:
         if (pctx->haveScale) {
-          ELL_4V_SET(covar +  0, pnc[0], pnc[1], pnc[2], pnc[3]);
-          ELL_4V_SET(covar +  4, pnc[1], pnc[4], pnc[5], pnc[6]);
-          ELL_4V_SET(covar +  8, pnc[2], pnc[5], pnc[7], pnc[8]);
+          ELL_4V_SET(covar + 0, pnc[0], pnc[1], pnc[2], pnc[3]);
+          ELL_4V_SET(covar + 4, pnc[1], pnc[4], pnc[5], pnc[6]);
+          ELL_4V_SET(covar + 8, pnc[2], pnc[5], pnc[7], pnc[8]);
           ELL_4V_SET(covar + 12, pnc[3], pnc[6], pnc[8], pnc[9]);
           out_d[outIdx] = ELL_4M_DET(covar);
         } else {
-          ELL_3V_SET(covar +  0, pnc[0], pnc[1], pnc[2]);
-          ELL_3V_SET(covar +  3, pnc[1], pnc[4], pnc[5]);
-          ELL_3V_SET(covar +  6, pnc[2], pnc[5], pnc[7]);
+          ELL_3V_SET(covar + 0, pnc[0], pnc[1], pnc[2]);
+          ELL_3V_SET(covar + 3, pnc[1], pnc[4], pnc[5]);
+          ELL_3V_SET(covar + 6, pnc[2], pnc[5], pnc[7]);
           out_d[outIdx] = ELL_3M_DET(covar);
         }
         break;
@@ -789,7 +768,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
 */
 int
 pullPositionHistoryNrrdGet(Nrrd *nhist, pullContext *pctx, pullPoint *point0) {
-  static const char me[]="pullPositionHistoryNrrdGet";
+  static const char me[] = "pullPositionHistoryNrrdGet";
 #if PULL_PHIST
   pullBin *bin;
   unsigned int binIdx, pointIdx, stepNum, stepIdx, phistIdx, phistNum, ii;
@@ -802,9 +781,9 @@ pullPositionHistoryNrrdGet(Nrrd *nhist, pullContext *pctx, pullPoint *point0) {
 
   if (!point0) {
     stepNum = 0;
-    for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    for (binIdx = 0; binIdx < pctx->binNum; binIdx++) {
       bin = pctx->bin + binIdx;
-      for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      for (pointIdx = 0; pointIdx < bin->pointNum; pointIdx++) {
         pullPoint *point;
         point = bin->point[pointIdx];
         stepNum += point->phistArr->len;
@@ -813,8 +792,7 @@ pullPositionHistoryNrrdGet(Nrrd *nhist, pullContext *pctx, pullPoint *point0) {
   } else {
     stepNum = point0->phistArr->len;
   }
-  if (nrrdMaybeAlloc_va(nhist, nrrdTypeDouble, 2,
-                        AIR_CAST(size_t, 1 + _PHN),
+  if (nrrdMaybeAlloc_va(nhist, nrrdTypeDouble, 2, AIR_CAST(size_t, 1 + _PHN),
                         AIR_CAST(size_t, stepNum))) {
     biffMovef(PULL, NRRD, "%s: couldn't allocate output", me);
     return 1;
@@ -822,30 +800,30 @@ pullPositionHistoryNrrdGet(Nrrd *nhist, pullContext *pctx, pullPoint *point0) {
   hist = AIR_CAST(double *, nhist->data);
   stepIdx = 0;
   if (!point0) {
-    for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+    for (binIdx = 0; binIdx < pctx->binNum; binIdx++) {
       bin = pctx->bin + binIdx;
-      for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+      for (pointIdx = 0; pointIdx < bin->pointNum; pointIdx++) {
         pullPoint *point;
         point = bin->point[pointIdx];
         phistNum = point->phistArr->len;
-        for (phistIdx=0; phistIdx<phistNum; phistIdx++) {
+        for (phistIdx = 0; phistIdx < phistNum; phistIdx++) {
           double *hh;
-          hh = hist + stepIdx*(1 + _PHN);
+          hh = hist + stepIdx * (1 + _PHN);
           hh[0] = AIR_CAST(double, point->idtag);
-          for (ii=0; ii<_PHN; ii++) {
-            hh[ii+1] = (point->phist + _PHN*phistIdx)[ii];
+          for (ii = 0; ii < _PHN; ii++) {
+            hh[ii + 1] = (point->phist + _PHN * phistIdx)[ii];
           }
           stepIdx++;
         }
       }
     }
   } else {
-    for (stepIdx=0; stepIdx<stepNum; stepIdx++) {
+    for (stepIdx = 0; stepIdx < stepNum; stepIdx++) {
       double *hh;
-      hh = hist + stepIdx*(1 + _PHN);
+      hh = hist + stepIdx * (1 + _PHN);
       hh[0] = AIR_CAST(double, point0->idtag);
-      for (ii=0; ii<_PHN; ii++) {
-        hh[ii+1] = (point0->phist + _PHN*stepIdx)[ii];
+      for (ii = 0; ii < _PHN; ii++) {
+        hh[ii + 1] = (point0->phist + _PHN * stepIdx)[ii];
       }
     }
   }
@@ -862,12 +840,11 @@ pullPositionHistoryNrrdGet(Nrrd *nhist, pullContext *pctx, pullPoint *point0) {
 
 int
 pullPositionHistoryPolydataGet(limnPolyData *pld, pullContext *pctx) {
-  static const char me[]="pullPositionHistoryPolydataGet";
+  static const char me[] = "pullPositionHistoryPolydataGet";
 #if PULL_PHIST
   pullBin *bin;
   pullPoint *point;
-  unsigned int binIdx, pointIdx, pointNum, vertNum, vertIdx,
-    primIdx, phistIdx, phistNum;
+  unsigned int binIdx, pointIdx, pointNum, vertNum, vertIdx, primIdx, phistIdx, phistNum;
 
   if (!(pld && pctx)) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -876,33 +853,32 @@ pullPositionHistoryPolydataGet(limnPolyData *pld, pullContext *pctx) {
 
   pointNum = 0;
   vertNum = 0;
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+  for (binIdx = 0; binIdx < pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
-    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+    for (pointIdx = 0; pointIdx < bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       vertNum += point->phistArr->len;
       pointNum++;
     }
   }
-  if (limnPolyDataAlloc(pld, 1 << limnPolyDataInfoRGBA,
-                        vertNum, vertNum, pointNum)) {
+  if (limnPolyDataAlloc(pld, 1 << limnPolyDataInfoRGBA, vertNum, vertNum, pointNum)) {
     biffMovef(PULL, LIMN, "%s: couldn't allocate output", me);
     return 1;
   }
   primIdx = 0;
   vertIdx = 0;
-  for (binIdx=0; binIdx<pctx->binNum; binIdx++) {
+  for (binIdx = 0; binIdx < pctx->binNum; binIdx++) {
     bin = pctx->bin + binIdx;
-    for (pointIdx=0; pointIdx<bin->pointNum; pointIdx++) {
+    for (pointIdx = 0; pointIdx < bin->pointNum; pointIdx++) {
       point = bin->point[pointIdx];
       phistNum = point->phistArr->len;
-      for (phistIdx=0; phistIdx<phistNum; phistIdx++) {
+      for (phistIdx = 0; phistIdx < phistNum; phistIdx++) {
         int cond;
         unsigned char rgb[3];
         ELL_3V_SET(rgb, 0, 0, 0);
-        ELL_3V_COPY(pld->xyzw + 4*vertIdx, point->phist + 5*phistIdx);
-        (pld->xyzw + 4*vertIdx)[3] = 1;
-        cond = AIR_INT((point->phist + 5*phistIdx)[4]);
+        ELL_3V_COPY(pld->xyzw + 4 * vertIdx, point->phist + 5 * phistIdx);
+        (pld->xyzw + 4 * vertIdx)[3] = 1;
+        cond = AIR_INT((point->phist + 5 * phistIdx)[4]);
         switch (cond) {
         case pullCondOld:
           ELL_3V_SET(rgb, 128, 128, 128);
@@ -926,7 +902,7 @@ pullPositionHistoryPolydataGet(limnPolyData *pld, pullContext *pctx) {
           ELL_3V_SET(rgb, 128, 255, 128);
           break;
         }
-        ELL_4V_SET(pld->rgba + 4*vertIdx, rgb[0], rgb[1], rgb[2], 255);
+        ELL_4V_SET(pld->rgba + 4 * vertIdx, rgb[0], rgb[1], rgb[2], 255);
         pld->indx[vertIdx] = vertIdx;
         vertIdx++;
       }
@@ -944,4 +920,3 @@ pullPositionHistoryPolydataGet(limnPolyData *pld, pullContext *pctx) {
   return 1;
 #endif
 }
-

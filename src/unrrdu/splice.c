@@ -25,13 +25,12 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Replace a slice with a different nrrd"
-static const char *_unrrdu_spliceInfoL =
-  (INFO ". This is functionally the opposite of \"slice\".\n "
-   "* Uses nrrdSplice");
+static const char *_unrrdu_spliceInfoL
+  = (INFO ". This is functionally the opposite of \"slice\".\n "
+          "* Uses nrrdSplice");
 
 int
-unrrdu_spliceMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+unrrdu_spliceMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nslice;
@@ -49,10 +48,10 @@ unrrdu_spliceMain(int argc, const char **argv, const char *me,
              "to the last sample on the axis (M == #samples-1).",
              NULL, NULL, &unrrduHestPosCB);
   hestOptAdd(&opt, "s,slice", "nslice", airTypeOther, 1, 1, &(nslice), NULL,
-             "slice nrrd.  This is the slice to insert into \"nin\"",
-             NULL, NULL, nrrdHestNrrd);
+             "slice nrrd.  This is the slice to insert into \"nin\"", NULL, NULL,
+             nrrdHestNrrd);
   OPT_ADD_NIN(nin, "input nrrd.  This is the nrrd into which the slice is "
-              "inserted");
+                   "inserted");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
@@ -61,15 +60,15 @@ unrrdu_spliceMain(int argc, const char **argv, const char *me,
   USAGE(_unrrdu_spliceInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
-  if (!( axis < nin->dim )) {
-    fprintf(stderr, "%s: axis %u not in range [0,%u]\n", me, axis, nin->dim-1);
+  if (!(axis < nin->dim)) {
+    fprintf(stderr, "%s: axis %u not in range [0,%u]\n", me, axis, nin->dim - 1);
     return 1;
   }
   if (_pos[0] == -1) {
     fprintf(stderr, "%s: m+<int> specification format meaningless here\n", me);
     return 1;
   }
-  pos = _pos[0]*(nin->axis[axis].size-1) + _pos[1];
+  pos = _pos[0] * (nin->axis[axis].size - 1) + _pos[1];
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);

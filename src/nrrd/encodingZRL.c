@@ -31,10 +31,10 @@ _nrrdEncodingZRL_available(void) {
 }
 
 static int
-_nrrdEncodingZRL_read(FILE *file, void *data, size_t elementNum,
-                      Nrrd *nrrd, NrrdIoState *nio) {
-  unsigned char *output_buffer = (unsigned char *) data;
-  size_t toread = elementNum*nrrdElementSize(nrrd);
+_nrrdEncodingZRL_read(FILE *file, void *data, size_t elementNum, Nrrd *nrrd,
+                      NrrdIoState *nio) {
+  unsigned char *output_buffer = (unsigned char *)data;
+  size_t toread = elementNum * nrrdElementSize(nrrd);
   int cc, dd;
   unsigned int j = 0;
   AIR_UNUSED(nio);
@@ -45,7 +45,7 @@ _nrrdEncodingZRL_read(FILE *file, void *data, size_t elementNum,
       dd = fgetc(file);
       if (dd == 0) {
         dd = fgetc(file);
-        j += dd + fgetc(file)*256;
+        j += dd + fgetc(file) * 256;
       } else {
         j += (unsigned char)dd;
       }
@@ -59,9 +59,9 @@ _nrrdEncodingZRL_read(FILE *file, void *data, size_t elementNum,
 }
 
 static int
-_nrrdEncodingZRL_write(FILE *file, const void *data, size_t elementNum,
-                       const Nrrd *nrrd, NrrdIoState *nio) {
-  static const char me[]="_nrrdEncodingZRL_write";
+_nrrdEncodingZRL_write(FILE *file, const void *data, size_t elementNum, const Nrrd *nrrd,
+                       NrrdIoState *nio) {
+  static const char me[] = "_nrrdEncodingZRL_write";
 
   AIR_UNUSED(file);
   AIR_UNUSED(data);
@@ -73,26 +73,23 @@ _nrrdEncodingZRL_write(FILE *file, const void *data, size_t elementNum,
   return 0;
 }
 
-const NrrdEncoding
-_nrrdEncodingZRL = {
-  "zrl",      /* name */
-  "zrl",      /* suffix */
-  AIR_TRUE,   /* endianMatters */
-  AIR_FALSE,   /* isCompression: HEY this is a hack: this IS certainly a
-                  compression. However, with compressed encodings the nrrd
-                  format has no way of specifying whether a byteskip
-                  between be outside the encoding (in the uncompressed
-                  data) vs inside the encoding (within the compuressed
-                  data).  To date the convention has been that byte skip is
-                  done *inside* compressions, but for the ZRL-encoded data
-                  as currently generated, the relevant byte skipping is
-                  certainly *outside* the compression.  Thus we claim
-                  ignorance about how ZRL is a compression, so that byte
-                  skipping can be used. */
-  _nrrdEncodingZRL_available,
-  _nrrdEncodingZRL_read,
-  _nrrdEncodingZRL_write
-};
+const NrrdEncoding _nrrdEncodingZRL
+  = {"zrl",     /* name */
+     "zrl",     /* suffix */
+     AIR_TRUE,  /* endianMatters */
+     AIR_FALSE, /* isCompression: HEY this is a hack: this IS certainly a
+                   compression. However, with compressed encodings the nrrd
+                   format has no way of specifying whether a byteskip
+                   between be outside the encoding (in the uncompressed
+                   data) vs inside the encoding (within the compuressed
+                   data).  To date the convention has been that byte skip is
+                   done *inside* compressions, but for the ZRL-encoded data
+                   as currently generated, the relevant byte skipping is
+                   certainly *outside* the compression.  Thus we claim
+                   ignorance about how ZRL is a compression, so that byte
+                   skipping can be used. */
+     _nrrdEncodingZRL_available,
+     _nrrdEncodingZRL_read,
+     _nrrdEncodingZRL_write};
 
-const NrrdEncoding *const
-nrrdEncodingZRL = &_nrrdEncodingZRL;
+const NrrdEncoding *const nrrdEncodingZRL = &_nrrdEncodingZRL;

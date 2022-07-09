@@ -23,7 +23,6 @@
 
 #include "meet.h"
 
-
 gageKind * /*Teem: error if (!ret) */
 _meetGageKindParse(const char *_str, int constOnly) {
   char *str;
@@ -70,8 +69,7 @@ meetConstGageKindParse(const char *_str) {
 ** which isn't const
 */
 int
-_meetHestConstGageKindParse(void *ptr, const char *str,
-                            char err[AIR_STRLEN_HUGE]) {
+_meetHestConstGageKindParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "_meetHestGageConstKindParse";
   const gageKind **kindP;
 
@@ -85,8 +83,7 @@ _meetHestConstGageKindParse(void *ptr, const char *str,
   *kindP = meetConstGageKindParse(str);
   if (!*kindP) {
     sprintf(err, "%s: \"%s\" not \"%s\", \"%s\", \"%s\", or \"%s\"", me, str,
-            gageKindScl->name, gageKind2Vec->name,
-            gageKindVec->name, tenGageKind->name);
+            gageKindScl->name, gageKind2Vec->name, gageKindVec->name, tenGageKind->name);
     return 1;
   }
 
@@ -94,8 +91,7 @@ _meetHestConstGageKindParse(void *ptr, const char *str,
 }
 
 int
-_meetHestGageKindParse(void *ptr, const char *str,
-                       char err[AIR_STRLEN_HUGE]) {
+_meetHestGageKindParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "_meetHestGageKindParse";
   gageKind **kindP;
 
@@ -106,9 +102,9 @@ _meetHestGageKindParse(void *ptr, const char *str,
   kindP = (gageKind **)ptr;
   *kindP = meetGageKindParse(str);
   if (!*kindP) {
-    sprintf(err, "%s: \"%s\" not \"%s\", \"%s\", \"%s\", \"%s\", or \"%s\"", me,
-            str, gageKindScl->name, gageKind2Vec->name, gageKindVec->name,
-            tenGageKind->name, TEN_DWI_GAGE_KIND_NAME);
+    sprintf(err, "%s: \"%s\" not \"%s\", \"%s\", \"%s\", \"%s\", or \"%s\"", me, str,
+            gageKindScl->name, gageKind2Vec->name, gageKindVec->name, tenGageKind->name,
+            TEN_DWI_GAGE_KIND_NAME);
     return 1;
   }
 
@@ -128,28 +124,16 @@ _meetHestGageKindDestroy(void *ptr) {
   return NULL;
 }
 
-static hestCB
-_meetHestGageKind = {
-  sizeof(gageKind *),
-  "gageKind",
-  _meetHestGageKindParse,
-  _meetHestGageKindDestroy
-};
+static hestCB _meetHestGageKind = {sizeof(gageKind *), "gageKind",
+                                   _meetHestGageKindParse, _meetHestGageKindDestroy};
 
-static hestCB
-_meetHestConstGageKind = {
-  sizeof(gageKind *),
-  "gageKind",
-  _meetHestConstGageKindParse,
-  NULL
-};
+static hestCB _meetHestConstGageKind = {sizeof(gageKind *), "gageKind",
+                                        _meetHestConstGageKindParse, NULL};
 
 /*
 ******** meetHestGageKind
 **
 ** This provides a uniform way to parse gageKinds from the command-line
 */
-hestCB *
-meetHestGageKind = &_meetHestGageKind;
-hestCB *
-meetHestConstGageKind = &_meetHestConstGageKind;
+hestCB *meetHestGageKind = &_meetHestGageKind;
+hestCB *meetHestConstGageKind = &_meetHestConstGageKind;

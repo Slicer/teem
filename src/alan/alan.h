@@ -46,7 +46,7 @@
 extern "C" {
 #endif
 
-#define ALAN alanBiffKey
+#define ALAN            alanBiffKey
 #define ALAN_THREAD_MAX 256
 
 enum {
@@ -83,7 +83,7 @@ enum {
 };
 
 enum {
-  alanStopUnknown=0,
+  alanStopUnknown = 0,
   alanStopNot,          /* 1 */
   alanStopMaxIteration, /* 2 */
   alanStopNonExist,     /* 3 */
@@ -91,7 +91,7 @@ enum {
   alanStopDiverged,     /* 5 */
   alanStopLast
 };
-#define ALAN_STOP_MAX      5
+#define ALAN_STOP_MAX 5
 
 /* all morphogen values are stored as
 ** 1: floats
@@ -99,21 +99,19 @@ enum {
 */
 #if 1
 typedef float alan_t;
-#  define alan_nt nrrdTypeFloat
+#  define alan_nt    nrrdTypeFloat
 #  define ALAN_FLOAT 1
 #else
 typedef double alan_t;
-#  define alan_nt nrrdTypeDouble
+#  define alan_nt    nrrdTypeDouble
 #  define ALAN_FLOAT 0
 #endif
 
 typedef struct alanContext_t {
   /* INPUT ----------------------------- */
-  unsigned int
-    dim,              /* either 2 or 3 */
+  unsigned int dim,   /* either 2 or 3 */
     size[3];          /* number of texels in X, Y, (Z) */
-  int verbose,
-    wrap,             /* do toroidal boundary wrapping */
+  int verbose, wrap,  /* do toroidal boundary wrapping */
     textureType,      /* what kind are we (from alanTextureType* enum) */
     oversample,       /* oversampling of tensors to texels */
     homogAniso,       /* homogenous anisotropy approximation */
@@ -141,20 +139,19 @@ typedef struct alanContext_t {
   int (*perIteration)(struct alanContext_t *, int iter);
 
   /* INTERNAL -------------------------- */
-  int iter;           /* current iteration */
-  Nrrd *_nlev[2],     /* levels of morphogens, alternating buffers */
-    *nlev;            /* pointer to last iterations output */
-  Nrrd *nparm;        /* alpha, beta values for all texels */
-  alan_t
-    averageChange;    /* average amount of "change" in last iteration */
-  int changeCount;    /* # of contributions to averageChange */
-                      /* to control update of averageChange and changeCount */
+  int iter;             /* current iteration */
+  Nrrd *_nlev[2],       /* levels of morphogens, alternating buffers */
+    *nlev;              /* pointer to last iterations output */
+  Nrrd *nparm;          /* alpha, beta values for all texels */
+  alan_t averageChange; /* average amount of "change" in last iteration */
+  int changeCount;      /* # of contributions to averageChange */
+                        /* to control update of averageChange and changeCount */
   airThreadMutex *changeMutex;
-                      /* to synchronize separate iterations of simulation */
+  /* to synchronize separate iterations of simulation */
   airThreadBarrier *iterBarrier;
 
   /* OUTPUT ---------------------------- */
-  int stop;          /* why we stopped */
+  int stop; /* why we stopped */
 } alanContext;
 
 /* methodsAlan.c */
@@ -164,8 +161,7 @@ ALAN_EXPORT alanContext *alanContextNew(void);
 ALAN_EXPORT alanContext *alanContextNix(alanContext *actx);
 ALAN_EXPORT int alanDimensionSet(alanContext *actx, int dim);
 ALAN_EXPORT int alan2DSizeSet(alanContext *actx, int sizeX, int sizeY);
-ALAN_EXPORT int alan3DSizeSet(alanContext *actx,
-                              int sizeX, int sizeY, int sizeZ);
+ALAN_EXPORT int alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ);
 ALAN_EXPORT int alanTensorSet(alanContext *actx, Nrrd *nten, int oversample);
 ALAN_EXPORT int alanParmSet(alanContext *actx, int whichParm, double parm);
 
@@ -174,8 +170,7 @@ ALAN_EXPORT const airEnum *const alanStop;
 
 /* coreAlan.c */
 ALAN_EXPORT int alanUpdate(alanContext *actx);
-ALAN_EXPORT int alanInit(alanContext *actx,
-                         const Nrrd *nlevInit, const Nrrd *nparmInit);
+ALAN_EXPORT int alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit);
 ALAN_EXPORT int alanPriorityParm(alanContext *actx, const Nrrd *npri);
 ALAN_EXPORT int alanRun(alanContext *actx);
 

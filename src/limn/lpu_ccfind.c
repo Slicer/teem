@@ -25,13 +25,10 @@
 #include "privateLimn.h"
 
 #define INFO "Find connected components (CCs)"
-static const char *myinfo =
-(INFO
- ", and then sorts primitive according to area.");
+static const char *myinfo = (INFO ", and then sorts primitive according to area.");
 
 int
-limnpu_ccfindMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+limnpu_ccfindMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;
@@ -42,8 +39,7 @@ limnpu_ccfindMain(int argc, const char **argv, const char *me,
   char *out;
 
   hestOptAdd(&hopt, NULL, "input", airTypeOther, 1, 1, &pld, NULL,
-             "input polydata filename",
-             NULL, NULL, limnHestPolyDataLMPD);
+             "input polydata filename", NULL, NULL, limnHestPolyDataLMPD);
   hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
              "output polydata filename");
 
@@ -57,10 +53,8 @@ limnpu_ccfindMain(int argc, const char **argv, const char *me,
   nmeas = nrrdNew();
   airMopAdd(mop, nmeas, (airMopper)nrrdNuke, airMopAlways);
 
-  if (limnPolyDataCCFind(pld)
-      || limnPolyDataPrimitiveArea(nmeas, pld)
-      || limnPolyDataPrimitiveSort(pld, nmeas)
-      || limnPolyDataSave(out, pld)) {
+  if (limnPolyDataCCFind(pld) || limnPolyDataPrimitiveArea(nmeas, pld)
+      || limnPolyDataPrimitiveSort(pld, nmeas) || limnPolyDataSave(out, pld)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s", me, err);
     airMopError(mop);
@@ -71,5 +65,4 @@ limnpu_ccfindMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_ccfindCmd = { "ccfind", INFO, limnpu_ccfindMain, AIR_FALSE };
-
+unrrduCmd limnpu_ccfindCmd = {"ccfind", INFO, limnpu_ccfindMain, AIR_FALSE};

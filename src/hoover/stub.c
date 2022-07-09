@@ -43,13 +43,9 @@ hooverStubThreadBegin(void **threadInfoP, void *rendInfo, void *userInfo,
 }
 
 int
-hooverStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo,
-                   int uIndex,
-                   int vIndex,
-                   double rayLen,
-                   double rayStartWorld[3],
-                   double rayStartIndex[3],
-                   double rayDirWorld[3],
+hooverStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo, int uIndex,
+                   int vIndex, double rayLen, double rayStartWorld[3],
+                   double rayStartIndex[3], double rayDirWorld[3],
                    double rayDirIndex[3]) {
 
   AIR_UNUSED(threadInfo);
@@ -76,10 +72,8 @@ hooverStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo,
 }
 
 double
-hooverStubSample(void *threadInfo, void *renderInfo, void *userInfo,
-                 int num, double rayT,
-                 int inside,
-                 double samplePosWorld[3],
+hooverStubSample(void *threadInfo, void *renderInfo, void *userInfo, int num,
+                 double rayT, int inside, double samplePosWorld[3],
                  double samplePosIndex[3]) {
 
   AIR_UNUSED(threadInfo);
@@ -129,4 +123,3 @@ hooverStubRenderEnd(void *rendInfo, void *userInfo) {
 
   return 0;
 }
-

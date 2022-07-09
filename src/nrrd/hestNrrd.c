@@ -64,24 +64,16 @@ _nrrdHestNrrdParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB
-_nrrdHestNrrd = {
-  sizeof(Nrrd *),
-  "nrrd",
-  _nrrdHestNrrdParse,
-  (airMopper)nrrdNuke
-};
+hestCB _nrrdHestNrrd = {sizeof(Nrrd *), "nrrd", _nrrdHestNrrdParse, (airMopper)nrrdNuke};
 
-hestCB *
-nrrdHestNrrd = &_nrrdHestNrrd;
+hestCB *nrrdHestNrrd = &_nrrdHestNrrd;
 
 /* ------------------------ NrrdKernelSpec -------------------------- */
 
 int
-_nrrdHestKernelSpecParse(void *ptr, const char *str,
-                         char err[AIR_STRLEN_HUGE]) {
+_nrrdHestKernelSpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   NrrdKernelSpec **ksP;
-  char me[]="_nrrdHestKernelSpecParse", *nerr;
+  char me[] = "_nrrdHestKernelSpecParse", *nerr;
 
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -98,24 +90,17 @@ _nrrdHestKernelSpecParse(void *ptr, const char *str,
   return 0;
 }
 
-hestCB
-_nrrdHestKernelSpec = {
-  sizeof(NrrdKernelSpec*),
-  "kernel specification",
-  _nrrdHestKernelSpecParse,
-  (airMopper)nrrdKernelSpecNix
-};
+hestCB _nrrdHestKernelSpec = {sizeof(NrrdKernelSpec *), "kernel specification",
+                              _nrrdHestKernelSpecParse, (airMopper)nrrdKernelSpecNix};
 
-hestCB *
-nrrdHestKernelSpec = &_nrrdHestKernelSpec;
+hestCB *nrrdHestKernelSpec = &_nrrdHestKernelSpec;
 
 /* ------------------------ NrrdBoundarySpec -------------------------- */
 
 int
-_nrrdHestBoundarySpecParse(void *ptr, const char *str,
-                           char err[AIR_STRLEN_HUGE]) {
+_nrrdHestBoundarySpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   NrrdBoundarySpec **bsp;
-  char me[]="_nrrdHestBoundarySpecParse", *nerr;
+  char me[] = "_nrrdHestBoundarySpecParse", *nerr;
 
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -133,16 +118,11 @@ _nrrdHestBoundarySpecParse(void *ptr, const char *str,
   return 0;
 }
 
-hestCB
-_nrrdHestBoundarySpec = {
-  sizeof(NrrdBoundarySpec*),
-  "boundary specification",
-  _nrrdHestBoundarySpecParse,
-  (airMopper)nrrdBoundarySpecNix
-};
+hestCB _nrrdHestBoundarySpec = {sizeof(NrrdBoundarySpec *), "boundary specification",
+                                _nrrdHestBoundarySpecParse,
+                                (airMopper)nrrdBoundarySpecNix};
 
-hestCB *
-nrrdHestBoundarySpec = &_nrrdHestBoundarySpec;
+hestCB *nrrdHestBoundarySpec = &_nrrdHestBoundarySpec;
 
 /* --------------------------- NrrdIter ----------------------------- */
 
@@ -161,11 +141,20 @@ _nrrdLooksLikeANumber(const char *str) {
     int lwc, cc = *str;
     lwc = tolower(cc);
     switch (lwc) {
-    case '-': case '+':
+    case '-':
+    case '+':
       count[0]++;
       break;
-    case '0': case '1': case '2': case '3': case '4':
-    case '5': case '6': case '7': case '8': case '9':
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
       count[1]++;
       break;
     case '.':
@@ -180,10 +169,8 @@ _nrrdLooksLikeANumber(const char *str) {
     }
     str++;
   }
-  if (count[1] > 0 &&
-      AIR_IN_CL(0, count[2], 1) &&
-      AIR_IN_CL(0, count[3], 1) &&
-      count[4] == 0) {
+  if (count[1] > 0 && AIR_IN_CL(0, count[2], 1) && AIR_IN_CL(0, count[3], 1)
+      && count[4] == 0) {
     return AIR_TRUE;
   } else {
     return AIR_FALSE;
@@ -192,7 +179,7 @@ _nrrdLooksLikeANumber(const char *str) {
 
 int
 _nrrdHestIterParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="_nrrdHestIterParse", *nerr;
+  char me[] = "_nrrdHestIterParse", *nerr;
   Nrrd *nrrd;
   NrrdIter **iterP;
   airArray *mop;
@@ -236,15 +223,16 @@ _nrrdHestIterParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
       /* it failed because of something besides the fopen(), so complain */
       nerr = biffGetDone(NRRD);
       airStrcpy(err, AIR_STRLEN_HUGE, nerr);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     } else {
       /* fopen() failed, so it probably wasn't meant to be a filename */
       free(biffGetDone(NRRD));
       ret = airSingleSscanf(str, "%lf", &val);
       if (_nrrdLooksLikeANumber(str)
-          || (1 == ret && (!AIR_EXISTS(val)
-                           || AIR_ABS(AIR_PI - val) < 0.0001
-                           || AIR_ABS(-AIR_PI - val) < 0.0001))) {
+          || (1 == ret
+              && (!AIR_EXISTS(val) || AIR_ABS(AIR_PI - val) < 0.0001
+                  || AIR_ABS(-AIR_PI - val) < 0.0001))) {
         /* either it patently looks like a number, or,
            it already parsed as a number and it is a special value */
         if (1 == ret) {
@@ -260,7 +248,8 @@ _nrrdHestIterParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
         if (nrrdLoad(nrrd = nrrdNew(), str, NULL)) {
           nerr = biffGetDone(NRRD);
           airStrcpy(err, AIR_STRLEN_HUGE, nerr);
-          airMopError(mop); return 1;
+          airMopError(mop);
+          return 1;
         } else {
           /* what the hell? */
           fprintf(stderr, "%s: PANIC, is it a nrrd or not?", me);
@@ -274,13 +263,7 @@ _nrrdHestIterParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB
-_nrrdHestIter = {
-  sizeof(NrrdIter *),
-  "nrrd/value",
-  _nrrdHestIterParse,
-  (airMopper)nrrdIterNix
-};
+hestCB _nrrdHestIter = {sizeof(NrrdIter *), "nrrd/value", _nrrdHestIterParse,
+                        (airMopper)nrrdIterNix};
 
-hestCB *
-nrrdHestIter = &_nrrdHestIter;
+hestCB *nrrdHestIter = &_nrrdHestIter;

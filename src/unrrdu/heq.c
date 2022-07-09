@@ -25,19 +25,17 @@
 #include "privateUnrrdu.h"
 
 #define INFO "Perform histogram equalization"
-static const char *_unrrdu_heqInfoL =
-(INFO
- ". If this seems to be doing nothing, try increasing the "
- "number of histograms bins by an order of magnitude or "
- "two (or more).  Or, use \"unu gamma\" to warp the values "
- "in the direction you know they need to go.  Either of "
- "these might work because extremely tall and narrow peaks "
- "in the equalization histogram will produce poor results.\n "
- "* Uses nrrdHistoEq");
+static const char *_unrrdu_heqInfoL
+  = (INFO ". If this seems to be doing nothing, try increasing the "
+          "number of histograms bins by an order of magnitude or "
+          "two (or more).  Or, use \"unu gamma\" to warp the values "
+          "in the direction you know they need to go.  Either of "
+          "these might work because extremely tall and narrow peaks "
+          "in the equalization histogram will produce poor results.\n "
+          "* Uses nrrdHistoEq");
 
 int
-unrrdu_heqMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+unrrdu_heqMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *mapS;
   Nrrd *nin, *nout, *nmap;
@@ -82,8 +80,7 @@ unrrdu_heqMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdHistoEq(nout, nin, airStrlen(mapS) ? &nmap : NULL,
-                  bins, smart, amount)) {
+  if (nrrdHistoEq(nout, nin, airStrlen(mapS) ? &nmap : NULL, bins, smart, amount)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble histogram equalizing:\n%s", me, err);
     airMopError(mop);

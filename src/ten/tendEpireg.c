@@ -25,21 +25,19 @@
 #include "privateTen.h"
 
 #define INFO "Register diffusion-weighted echo-planar images"
-static const char *_tend_epiregInfoL =
-  (INFO
-   ". This registration corrects the shear, scale, and translate along "
-   "the phase encoding direction (assumed to be the Y (second) axis of "
-   "the image) caused by eddy currents from the diffusion-encoding "
-   "gradients with echo-planar imaging.  The method is based on calculating "
-   "moments of segmented images, where the segmentation is a simple "
-   "procedure based on blurring (optional), thresholding and "
-   "connected component analysis. "
-   "The registered DWIs are resampled with the "
-   "chosen kernel, with the separate DWIs stacked along axis 0.");
+static const char *_tend_epiregInfoL
+  = (INFO ". This registration corrects the shear, scale, and translate along "
+          "the phase encoding direction (assumed to be the Y (second) axis of "
+          "the image) caused by eddy currents from the diffusion-encoding "
+          "gradients with echo-planar imaging.  The method is based on calculating "
+          "moments of segmented images, where the segmentation is a simple "
+          "procedure based on blurring (optional), thresholding and "
+          "connected component analysis. "
+          "The registered DWIs are resampled with the "
+          "chosen kernel, with the separate DWIs stacked along axis 0.");
 
 int
-tend_epiregMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+tend_epiregMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret, rret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -123,26 +121,29 @@ tend_epiregMain(int argc, const char **argv, const char *me,
 
   if (strcmp("kvp", gradS)) {
     /* they're NOT coming from key/value pairs */
-    if (nrrdLoad(ngrad=nrrdNew(), gradS, NULL)) {
-      airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    if (nrrdLoad(ngrad = nrrdNew(), gradS, NULL)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble loading gradient list:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   } else {
     if (1 != ninLen) {
       fprintf(stderr, "%s: can do key/value pairs only from single nrrd", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     /* they are coming from key/value pairs */
-    if (tenDWMRIKeyValueParse(&ngradKVP, &nbmatKVP, &bvalue,
-                              &skip, &skipNum, nin[0])) {
-      airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    if (tenDWMRIKeyValueParse(&ngradKVP, &nbmatKVP, &bvalue, &skip, &skipNum, nin[0])) {
+      airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble parsing gradient list:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if (nbmatKVP) {
       fprintf(stderr, "%s: sorry, can only use gradients, not b-matrices", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     ngrad = ngradKVP;
   }
@@ -154,52 +155,50 @@ tend_epiregMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nout4D, (airMopper)nrrdNuke, airMopAlways);
   buff = AIR_CALLOC(airStrlen(outS) + 10, char);
   airMopAdd(mop, buff, airFree, airMopAlways);
-  if (!( nout3D && nout4D && buff )) {
+  if (!(nout3D && nout4D && buff)) {
     fprintf(stderr, "%s: couldn't allocate buffers", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  for (ni=0; ni<ninLen; ni++) {
-    nout3D[ni]=nrrdNew();
+  for (ni = 0; ni < ninLen; ni++) {
+    nout3D[ni] = nrrdNew();
     airMopAdd(mop, nout3D[ni], (airMopper)nrrdNuke, airMopAlways);
   }
   if (1 == ninLen) {
-    rret = tenEpiRegister4D(nout4D, nin[0], ngrad,
-                            ref,
-                            bw[0], bw[1], fitFrac, thr, !nocc,
-                            ksp->kernel, ksp->parm,
-                            progress, !noverbose);
+    rret = tenEpiRegister4D(nout4D, nin[0], ngrad, ref, bw[0], bw[1], fitFrac, thr,
+                            !nocc, ksp->kernel, ksp->parm, progress, !noverbose);
   } else {
-    rret = tenEpiRegister3D(nout3D, nin, ninLen, ngrad,
-                            ref,
-                            bw[0], bw[1], fitFrac, thr, !nocc,
-                            ksp->kernel, ksp->parm,
-                            progress, !noverbose);
+    rret = tenEpiRegister3D(nout3D, nin, ninLen, ngrad, ref, bw[0], bw[1], fitFrac, thr,
+                            !nocc, ksp->kernel, ksp->parm, progress, !noverbose);
   }
   if (rret) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble doing epireg:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (1 == ninLen) {
     if (nrrdSave(outS, nout4D, NULL)) {
-      airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble writing \"%s\":\n%s\n", me, outS, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   } else {
-    for (ni=0; ni<ninLen; ni++) {
-      if (ninLen+baseNum > 99) {
-        sprintf(buff, "%s%05d.nrrd", outS, ni+baseNum);
-      } else if (ninLen+baseNum > 9) {
-        sprintf(buff, "%s%02d.nrrd", outS, ni+baseNum);
+    for (ni = 0; ni < ninLen; ni++) {
+      if (ninLen + baseNum > 99) {
+        sprintf(buff, "%s%05d.nrrd", outS, ni + baseNum);
+      } else if (ninLen + baseNum > 9) {
+        sprintf(buff, "%s%02d.nrrd", outS, ni + baseNum);
       } else {
-        sprintf(buff, "%s%d.nrrd", outS, ni+baseNum);
+        sprintf(buff, "%s%d.nrrd", outS, ni + baseNum);
       }
       if (nrrdSave(buff, nout3D[ni], NULL)) {
-        airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+        airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble writing \"%s\":\n%s\n", me, buff, err);
-        airMopError(mop); return 1;
+        airMopError(mop);
+        return 1;
       }
     }
   }
