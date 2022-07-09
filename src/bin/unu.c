@@ -98,8 +98,11 @@ main(int argc, const char **argv) {
     if (!strcmp(argv[1], unrrduCmdList[i]->name)) {
       break;
     }
-    if (!strcmp("--help", argv[1]) && !strcmp("about", unrrduCmdList[i]->name)) {
-      break;
+    if (!strcmp("about", unrrduCmdList[i]->name)) {
+      /* we interpret "help" and "--help" as asking for "about" */
+      if (!strcmp("--help", argv[1]) || !strcmp("help", argv[1])) {
+        break;
+      }
     }
   }
   /* unrrduCmdList[] is NULL-terminated */
