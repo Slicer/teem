@@ -170,7 +170,7 @@ gageStackBlurParmCompare(const gageStackBlurParm *aa, const char *_nameA,
     *differ = 1;                                                                        \
     return 0;                                                                           \
   }
-  CHECK(num, % u);
+  CHECK(num, % d);
   CHECK(sigmaRange[0], % .17g);
   CHECK(sigmaRange[1], % .17g);
   CHECK(renormalize, % d);
