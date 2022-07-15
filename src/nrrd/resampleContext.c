@@ -780,7 +780,7 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
             rawIdx = AIR_MOD(rawIdx, AIR_INT(axis->sizeIn));
             break;
           case nrrdBoundaryMirror:
-            rawIdx = _nrrdMirror_32(AIR_UINT(axis->sizeIn), rawIdx);
+            rawIdx = airIndexMirror32(rawIdx, AIR_UINT(axis->sizeIn));
             break;
           default:
             biffAddf(NRRD, "%s: boundary behavior %d unknown/unimplemented", me,

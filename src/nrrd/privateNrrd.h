@@ -202,9 +202,6 @@ extern int _nrrdGzWrite(gzFile file, const void *buf, unsigned int len,
 extern double _nrrdApplyDomainMin(const Nrrd *nmap, int ramps, int mapAxis);
 extern double _nrrdApplyDomainMax(const Nrrd *nmap, int ramps, int mapAxis);
 
-/* superset.c */
-extern size_t _nrrdMirror_64(size_t N, ptrdiff_t I);
-extern unsigned int _nrrdMirror_32(unsigned int N, int I);
 /* ---- END non-NrrdIO */
 
 #ifdef __cplusplus

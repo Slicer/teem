@@ -396,7 +396,7 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP, int **indexP, double *rat
         idx = AIR_MOD(idx, sizeIn);
         break;
       case nrrdBoundaryMirror:
-        idx = _nrrdMirror_32(sizeIn, idx);
+        idx = airIndexMirror32(idx, sizeIn);
         break;
       default:
         biffAddf(NRRD, "%s: boundary behavior %d unknown/unimplemented", me,

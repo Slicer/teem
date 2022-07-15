@@ -274,31 +274,6 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
   return 0;
 }
 
-#define MIRROR(N, I, M)                                                                 \
-  M = (I < 0 ? -I : I);                                                                 \
-  M = M % (2 * N);                                                                      \
-  M = (M >= N ? 2 * N - 1 - M : M)
-
-size_t
-_nrrdMirror_64(size_t N, ptrdiff_t I) {
-  size_t M;
-
-  M = (I < 0 ? -I : I);
-  M = M % (2 * N);
-  M = (M >= N ? 2 * N - 1 - M : M);
-  return M;
-}
-
-unsigned int
-_nrrdMirror_32(unsigned int N, int I) {
-  unsigned int M;
-
-  M = (I < 0 ? -I : I);
-  M = M % (2 * N);
-  M = (M >= N ? 2 * N - 1 - M : M);
-  return M;
-}
-
 /*
 ******** nrrdPad_va()
 **
@@ -426,7 +401,7 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin, const ptrdiff_t *min, const ptrdiff_t *m
         break;
       case nrrdBoundaryMirror:
         if (!AIR_IN_CL(0, cIn[ai], (ptrdiff_t)szIn[ai] - 1)) {
-          cIn[ai] = _nrrdMirror_64(szIn[ai], cIn[ai]);
+          cIn[ai] = airIndexMirror64(cIn[ai], (ptrdiff_t)szIn[ai]);
           outside = 1;
         }
         break;
