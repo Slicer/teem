@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2022  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -319,6 +319,29 @@ airSgn(double v) {
           : (v < 0
              ? -1
              : 0));
+}
+
+/* this "mirror" stuff is how nrrdBoundaryMirror is implemented,
+   but it seemed general purpose enough that it belonged in air */
+#define MIRROR(M, I, N) \
+  M = (I < 0 ? -I : I); \
+  M = M % (2 * N); \
+  M = (M >= N ? 2 * N - 1 - M : M)
+
+size_t
+airIndexMirror64(ptrdiff_t I, size_t N) {
+  size_t M;
+
+  MIRROR(M, I, N);
+  return M;
+}
+
+unsigned int
+airIndexMirror32(int I, unsigned int N) {
+  unsigned int M;
+
+  MIRROR(M, I, N);
+  return M;
 }
 
 /*

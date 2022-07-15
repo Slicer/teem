@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2009--2022  University of Chicago
   Copyright (C) 2010 Thomas Schultz
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
@@ -594,8 +594,10 @@ AIR_EXPORT double airMode3_d(const double v[3]);
 AIR_EXPORT double airSgnPow(double, double);
 AIR_EXPORT double airFlippedSgnPow(double, double);
 AIR_EXPORT double airIntPow(double v, int p);
-AIR_EXPORT int airSgn(double);
 AIR_EXPORT int airLog2(size_t n);
+AIR_EXPORT int airSgn(double);
+AIR_EXPORT size_t airIndexMirror64(ptrdiff_t I, size_t N);
+AIR_EXPORT unsigned int airIndexMirror32(int I, unsigned int N);
 AIR_EXPORT double airErfc(double x);
 AIR_EXPORT double airErf(double x);
 AIR_EXPORT double airGaussian(double x, double mean, double stdv);
