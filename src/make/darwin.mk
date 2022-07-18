@@ -37,7 +37,7 @@ ARCH_CFLAG = -W -Wall
 ARCH_LDFLAG =
 
 ifeq ($(SUBARCH),64)
-  ARCH_CFLAG = -W -Wall -arch x86_64
+  ARCH_CFLAG = -W -Wall -Wextra -arch x86_64
 else
   ifeq ($(SUBARCH),32)
   ARCH_CFLAG = -W -Wall -arch i386
