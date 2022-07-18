@@ -38,17 +38,18 @@ static const char *_unrrdu_ilkInfoL
 
 /*
   NOTE: should be "const Nrrd *nin" but hacky code currently sets per-axis min,max as
-  needed. double **matList would also benefit from some const-ness
+  needed. double **matList would also benefit from some const-ness, as could min and max.
  */
 static int
 ilkGo(airArray *mop, Nrrd *nout, Nrrd *nin, const NrrdKernelSpec *ksp, const int *debug,
       int bound, const double *_bkg, unsigned int _bkgLen, int bkgSource,
+      double *min, double *max,
       double **matList, unsigned int matListLen, const double *scale,
       const double *origInfo, unsigned int avgNum) {
   static const char me[] = "ilkGo";
   mossSampler *msp;
   const double *bkg;
-  double min[2], max[2], origMat[6], origInvMat[6], mat[6];
+  double origMat[6], origInvMat[6], mat[6];
   unsigned int ii;
   int ax0, size[2] /* HEY size[] should be size_t, no? */;
 
@@ -204,7 +205,7 @@ ilkGo(airArray *mop, Nrrd *nout, Nrrd *nin, const NrrdKernelSpec *ksp, const int
   } else {
     if (mossLinearTransform(nout, nin, bound, bkg, mat, msp, min[0], max[0], min[1],
                             max[1], size[0], size[1])) {
-      biffAddf(UNRRDU, "%s: problem doing transform", me);
+      biffMovef(UNRRDU, MOSS, "%s: problem doing transform", me);
       return 1;
     }
   }
@@ -293,7 +294,7 @@ unrrdu_ilkMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (ilkGo(mop, nout, nin, ksp, debug, bound, _bkg, _bkgLen, opt[bkgIdx].source,
-            matList, matListLen, scale, origInfo, avgNum)) {
+            min, max, matList, matListLen, scale, origInfo, avgNum)) {
     airMopAdd(mop, err = biffGetDone(UNRRDU), airFree, airMopAlways);
     fprintf(stderr, "%s: error:\n%s", me, err);
     airMopError(mop);
