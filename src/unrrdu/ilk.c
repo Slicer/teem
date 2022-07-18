@@ -42,9 +42,8 @@ static const char *_unrrdu_ilkInfoL
  */
 static int
 ilkGo(airArray *mop, Nrrd *nout, Nrrd *nin, const NrrdKernelSpec *ksp, const int *debug,
-      int bound, const double *_bkg, unsigned int _bkgLen, int bkgSource,
-      double *min, double *max,
-      double **matList, unsigned int matListLen, const double *scale,
+      int bound, const double *_bkg, unsigned int _bkgLen, int bkgSource, double *min,
+      double *max, double **matList, unsigned int matListLen, const double *scale,
       const double *origInfo, unsigned int avgNum) {
   static const char me[] = "ilkGo";
   mossSampler *msp;
@@ -293,8 +292,8 @@ unrrdu_ilkMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (ilkGo(mop, nout, nin, ksp, debug, bound, _bkg, _bkgLen, opt[bkgIdx].source,
-            min, max, matList, matListLen, scale, origInfo, avgNum)) {
+  if (ilkGo(mop, nout, nin, ksp, debug, bound, _bkg, _bkgLen, opt[bkgIdx].source, min,
+            max, matList, matListLen, scale, origInfo, avgNum)) {
     airMopAdd(mop, err = biffGetDone(UNRRDU), airFree, airMopAlways);
     fprintf(stderr, "%s: error:\n%s", me, err);
     airMopError(mop);
