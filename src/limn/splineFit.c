@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2021  University of Chicago
+  Copyright (C) 2009--2022  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -229,7 +229,7 @@ findVT(double vv[2], double tt[2], const limnCBFContext *fctx, const limnPoints 
     uint mi, pi, iplus, imnus;
     const double *xy, *xyP, *xyM;
     if (lpnt->isLoop) {
-      iplus = AIR_MOD(loi + ii + 1, pNum);
+      iplus = (loi + ii + 1) % pNum;
       imnus = (uint)AIR_MOD((int)(loi + ii) - 1, (int)pNum);
     } else {
       /* regardless of lpnt->isLoop, we only look in [loi,hii] */
