@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2022  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -23,11 +23,13 @@
 
 #include <teem/unrrdu.h>
 #include <teem/moss.h>
+#include <sys/ioctl.h>
 
-static const char *ilkInfo = ("(I)mage (L)inear Trans(X-->K)forms. "
-                              "Applies linear (homogenous coordinate) transforms "
-                              "to a given image, using the given kernel for "
-                              "resampling. ");
+static const char *ilkInfo
+  = ("(I)mage (L)inear Trans(X-->K)forms. Applies linear (homogenous coordinate) "
+     "transforms to a given image, using the given kernel for resampling. "
+     "Unfortunately the moss library that this tool is built on *currently* knows "
+     "nothing about world-space; so this tool only knows about index space.");
 
 int
 main(int argc, const char *argv[]) {
@@ -39,10 +41,12 @@ main(int argc, const char *argv[]) {
   Nrrd *nin, *nout;
   NrrdKernelSpec *ksp;
   mossSampler *msp;
-  double mat[6], **matList, *origInfo, origMat[6], origInvMat[6], ox, oy, min[2], max[2];
-  int d, bound, ax0, size[2]; /* HEY size[] should be size_t */
+  double mat[6], **matList, *origInfo, origMat[6], origInvMat[6], ox, oy, min[2], max[2],
+    *_bkg, *bkg;
+  int debug[2], d, bound, ax0, size[2]; /* HEY size[] should be size_t */
   unsigned int matListLen, _bkgLen, i, avgNum, bkgIdx;
-  float *_bkg, *bkg, scale[4];
+  float scale[4];
+  struct winsize wsz;
 
   me = argv[0];
   mop = airMopNew();
@@ -53,6 +57,11 @@ main(int argc, const char *argv[]) {
   hparm->elideSingleOtherDefault = AIR_FALSE;
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hparm->respFileEnable = AIR_TRUE;
+
+  ioctl(0, TIOCGWINSZ, &wsz);
+  /* -2 because else "\" for continuation can wrap when it shouldn't
+    (which may be a hest bug) */
+  hparm->columns = AIR_MAX(59, wsz.ws_col - 2);
 
   hestOptAdd(&hopt, "i", "image", airTypeOther, 1, 1, &nin, "-", "input image", NULL,
              NULL, nrrdHestNrrd);
@@ -92,7 +101,7 @@ main(int argc, const char *argv[]) {
              "\b\bo \"wrap\": do wrap-around on image locations\n "
              "\b\bo \"pad\": use a given background value (via \"-bg\")",
              NULL, nrrdBoundary);
-  bkgIdx = hestOptAdd(&hopt, "bg", "bg0 bg1", airTypeFloat, 1, -1, &_bkg, "nan",
+  bkgIdx = hestOptAdd(&hopt, "bg", "bg0 bg1", airTypeDouble, 1, -1, &_bkg, "nan",
                       "background color to use with boundary behavior \"pad\". "
                       "Defaults to all zeroes.",
                       &_bkgLen);
@@ -104,7 +113,10 @@ main(int argc, const char *argv[]) {
              NULL, NULL, &unrrduHestScaleCB);
   hestOptAdd(&hopt, "a", "avg #", airTypeUInt, 1, 1, &avgNum, "0",
              "number of averages (if there there is only one "
-             "rotation)");
+             "rotation as transform)");
+  hestOptAdd(&hopt, "db", "x y", airTypeInt, 2, 2, debug, "-1 -1",
+             "if both non-negative, turn on verbose debugging for this output "
+             "image pixel");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
              "file to write output nrrd to");
   hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, ilkInfo, AIR_TRUE, AIR_TRUE,
@@ -116,18 +128,19 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   msp = mossSamplerNew();
   airMopAdd(mop, msp, (airMopper)mossSamplerNix, airMopAlways);
-  msp->boundary = bound;
-  if (mossSamplerKernelSet(msp, ksp->kernel, ksp->parm)) {
-    fprintf(stderr, "%s: trouble with sampler:\n%s\n", me, errS = biffGetDone(MOSS));
+  if (mossSamplerKernelSet(msp, ksp)) {
+    fprintf(stderr, "%s: trouble with setting kernel:\n%s\n", me,
+            errS = biffGetDone(MOSS));
     free(errS);
     airMopError(mop);
     return 1;
   }
+  ELL_2V_COPY(msp->verbPixel, debug);
   if (nrrdBoundaryPad == bound) {
-    if (_bkgLen != MOSS_NCOL(nin)) {
+    if (_bkgLen != MOSS_CHAN_NUM(nin)) {
       char stmp[AIR_STRLEN_SMALL];
-      fprintf(stderr, "%s: got %u background colors, image has %s colors\n", me, _bkgLen,
-              airSprintSize_t(stmp, MOSS_NCOL(nin)));
+      fprintf(stderr, "%s: got length %u background, image has %s channels\n", me,
+              _bkgLen, airSprintSize_t(stmp, MOSS_CHAN_NUM(nin)));
       airMopError(mop);
       return 1;
     } else {
@@ -136,8 +149,8 @@ main(int argc, const char *argv[]) {
   } else {
     if (hestSourceUser == hopt[bkgIdx].source) {
       fprintf(stderr,
-              "%s: WARNING: got %u background colors, but with %s "
-              "padding, they will not be used\n",
+              "%s: WARNING: got %u background colors, but with boundary %s, "
+              "they will not be used\n",
               me, _bkgLen, airEnumStr(nrrdBoundary, bound));
     }
     bkg = NULL;
@@ -156,7 +169,6 @@ main(int argc, const char *argv[]) {
   max[1] = AIR_EXISTS(max[1]) ? max[1] : nin->axis[ax0 + 1].max;
 
   for (d = 0; d < 2; d++) {
-    fprintf(stderr, "%s: scale[0 + 2*%d] = %d\n", me, d, AIR_INT(scale[0 + 2 * d]));
     switch (AIR_INT(scale[0 + 2 * d])) {
     case 0:
       /* same number of samples as input */
@@ -208,6 +220,10 @@ main(int argc, const char *argv[]) {
     nrrdAxisInfoMinMaxSet(nin, ax0 + 1, mossDefCenter);
   }
   if (avgNum > 1) {
+    /* GLK is not sure what the original purpose of this was: if transform is a single
+     * rotation this divides that rotation into avgNum steps, and applies and then
+     * averages all the sub-rotation increments. This seems like a kind of motion blur,
+     * but if that's the case why make it specific to rotation? */
     unsigned int ai;
     double angleMax, angle, mrot[6];
     Nrrd *ntmp, *nacc;
@@ -234,8 +250,8 @@ main(int argc, const char *argv[]) {
       mossMatRotateSet(mrot, angle);
       mossMatLeftMultiply(mat, mrot);
       mossMatLeftMultiply(mat, origInvMat);
-      if (mossLinearTransform(ntmp, nin, bkg, mat, msp, min[0], max[0], min[1], max[1],
-                              size[0], size[1])) {
+      if (mossLinearTransform(ntmp, nin, bound, bkg, mat, msp, min[0], max[0], min[1],
+                              max[1], size[0], size[1])) {
         fprintf(stderr, "%s: problem doing transform:\n%s\n", me,
                 errS = biffGetDone(MOSS));
         free(errS);
@@ -243,7 +259,7 @@ main(int argc, const char *argv[]) {
         return 1;
       }
       if (!ai) {
-        if (!E) E |= nrrdCopy(nacc, ntmp);
+        if (!E) E |= nrrdConvert(nacc, ntmp, nrrdTypeFloat);
       } else {
         if (!E) E |= nrrdArithBinaryOp(nacc, nrrdBinaryOpAdd, nacc, ntmp);
       }
@@ -254,7 +270,10 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "\n");
     nrrdIterSetNrrd(itA, nacc);
     nrrdIterSetValue(itB, avgNum);
-    if (!E) E |= nrrdArithIterBinaryOp(nout, nrrdBinaryOpDivide, itA, itB);
+    if (!E) E |= nrrdArithIterBinaryOp(ntmp, nrrdBinaryOpDivide, itA, itB);
+    if (!E)
+      E |= nrrdCastClampRound(nout, ntmp, nin->type, AIR_TRUE /* clamp */,
+                              0 /* round dir */);
     if (E) {
       fprintf(stderr, "%s: problem making output:\n%s\n", me, errS = biffGetDone(NRRD));
       free(errS);
@@ -262,8 +281,8 @@ main(int argc, const char *argv[]) {
       return 1;
     }
   } else {
-    if (mossLinearTransform(nout, nin, bkg, mat, msp, min[0], max[0], min[1], max[1],
-                            size[0], size[1])) {
+    if (mossLinearTransform(nout, nin, bound, bkg, mat, msp, min[0], max[0], min[1],
+                            max[1], size[0], size[1])) {
       fprintf(stderr, "%s: problem doing transform:\n%s\n", me,
               errS = biffGetDone(MOSS));
       free(errS);
