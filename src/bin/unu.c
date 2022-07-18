@@ -23,10 +23,9 @@
 
 #include <teem/unrrdu.h>
 
-/* learning columns
+/* to learn # columns */
 #include <sys/types.h>
 #include <sys/ioctl.h>
-*/
 
 #define UNU "unu"
 
@@ -70,14 +69,14 @@ main(int argc, const char **argv) {
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
   hparm->elideMultipleEmptyStringDefault = AIR_TRUE;
-  hparm->columns = unrrduDefNumColumns;
-  /* learning columns
   if (1) {
-    struct winsize ws;
-    ioctl(1, TIOCGWINSZ, &ws);
-    hparm->columns = ws.ws_col - 1;
+    /* dynamically learn number of columns */
+    struct winsize wsz;
+    ioctl(1, TIOCGWINSZ, &wsz);
+    hparm->columns = AIR_MAX(59, wsz.ws_col - 2);
+  } else {
+    hparm->columns = unrrduDefNumColumns;
   }
-  */
   hparm->greedySingleString = AIR_TRUE;
 
   /* if there are no arguments, then we give general usage information */
