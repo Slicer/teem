@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2022  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -25,9 +25,9 @@
 #include "privateMoss.h"
 
 int
-mossSamplerImageSet(mossSampler *smplr, Nrrd *image, float *bg) {
+mossSamplerImageSet(mossSampler *smplr, const Nrrd *image, int boundary,
+                    const double *bg) {
   static const char me[] = "mossSamplerImageSet";
-  unsigned int ci, ncol;
 
   if (!(smplr && image)) {
     biffAddf(MOSS, "%s: got NULL pointer", me);
@@ -37,40 +37,70 @@ mossSamplerImageSet(mossSampler *smplr, Nrrd *image, float *bg) {
     biffAddf(MOSS, "%s: ", me);
     return 1;
   }
-  smplr->image = image;
-  smplr->flag[mossFlagImage] = AIR_TRUE;
-  ncol = MOSS_NCOL(image);
-  smplr->bg = (float *)airFree(smplr->bg);
-  if (bg) {
-    smplr->bg = (float *)calloc(ncol, sizeof(float));
-    for (ci = 0; ci < ncol; ci++) {
+  if (airEnumValCheck(nrrdBoundary, boundary)) {
+    biffAddf(MOSS, "%s: %d not a valid %s", me, boundary, nrrdBoundary->name);
+    return 1;
+  }
+  smplr->bg = airFree(smplr->bg);
+  /* after error chacking, allocation of smplr->bg array handled here, since it is
+     directly associated with image, and it's too annoying to maintain separate info
+     about how long bg is allocated for, separately from chanNum */
+  if (nrrdBoundaryPad != boundary) {
+    if (bg) {
+      biffAddf(MOSS,
+               "%s: want %s %s (which does not need a background color), but given "
+               "non-NULL background color bg",
+               me, nrrdBoundary->name, airEnumStr(nrrdBoundary, boundary));
+      return 1;
+    }
+  } else { /* nrrdBoundaryPad == boundary */
+    unsigned int ci, chanNum;
+    if (!bg) {
+      biffAddf(MOSS,
+               "%s: want %s %s (which needs background color), but given NULL "
+               "background color bg",
+               me, nrrdBoundary->name, airEnumStr(nrrdBoundary, boundary));
+      return 1;
+    }
+    /* because bg is allocate-able directly from image, we handle that here,
+       instead of in mossSamplerUpdate */
+    chanNum = MOSS_CHAN_NUM(image);
+    smplr->bg = AIR_CALLOC(chanNum, double);
+    for (ci = 0; ci < chanNum; ci++) {
       smplr->bg[ci] = bg[ci];
     }
   }
+  smplr->image = image;
+  smplr->boundary = boundary;
+  smplr->flag[mossFlagImage] = AIR_TRUE;
   return 0;
 }
 
 int
-mossSamplerKernelSet(mossSampler *smplr, const NrrdKernel *kernel, double *kparm) {
+mossSamplerKernelSet(mossSampler *smplr, const NrrdKernelSpec *kspec) {
   static const char me[] = "mossSamplerKernelSet";
-  unsigned int ki;
 
-  if (!(smplr && kernel && kparm)) {
+  if (!(smplr && kspec)) {
     biffAddf(MOSS, "%s: got NULL pointer", me);
     return 1;
   }
-  smplr->kernel = kernel;
-  for (ki = 0; ki < kernel->numParm; ki++) {
-    smplr->kparm[ki] = kparm[ki];
-  }
+  nrrdKernelSpecSet(smplr->kspec, kspec->kernel, kspec->parm);
   smplr->flag[mossFlagKernel] = AIR_TRUE;
   return 0;
+}
+
+static int
+flagUp(const mossSampler *smplr) {
+  int fi, up = 0;
+  for (fi = mossFlagUnknown + 1; fi < mossFlagLast; fi++) {
+    up |= smplr->flag[fi];
+  }
+  return up;
 }
 
 int
 mossSamplerUpdate(mossSampler *smplr) {
   static const char me[] = "mossSamplerUpdate";
-  unsigned int ncol = 0, fdiam = 0;
 
   if (!(smplr)) {
     biffAddf(MOSS, "%s: got NULL pointer", me);
@@ -78,85 +108,145 @@ mossSamplerUpdate(mossSampler *smplr) {
   }
 
   if (smplr->flag[mossFlagImage]) {
-    ncol = MOSS_NCOL(smplr->image);
-    if (ncol != smplr->ncol) {
-      mossSamplerEmpty(smplr);
-      smplr->ncol = ncol;
+    if (smplr->verbose) {
+      printf("%s: see mossFlagImage UP\n", me);
     }
-  }
-  if (smplr->flag[mossFlagKernel]) {
-    fdiam = 2 * AIR_ROUNDUP_UI(smplr->kernel->support(smplr->kparm));
-    if (fdiam != smplr->fdiam) {
-      mossSamplerEmpty(smplr);
-      smplr->fdiam = fdiam;
+    unsigned int chn = MOSS_CHAN_NUM(smplr->image);
+    if (chn != smplr->chanNum) {
+      if (smplr->verbose) {
+        printf("%s: new %u chanNum != old %u --> raising mossFlagChanNum UP\n", me, chn,
+               smplr->chanNum);
+      }
+      smplr->chanNum = chn;
+      smplr->flag[mossFlagChanNum] = AIR_TRUE;
     }
-  }
-  if (!(smplr->ivc)) {
-    if (mossSamplerFill(smplr, fdiam, ncol)) {
-      biffAddf(MOSS, "%s: ", me);
-      return 1;
+    smplr->flag[mossFlagImage] = AIR_FALSE;
+    if (smplr->verbose) {
+      printf("%s: pulling mossFlagImage down\n", me);
     }
-  }
-  if (nrrdBoundaryPad == smplr->boundary && !smplr->bg) {
-    biffAddf(MOSS, "%s: want %s boundary behavior, but bg vector is NULL", me,
-             airEnumStr(nrrdBoundary, nrrdBoundaryPad));
-    return 1;
   }
 
+  if (smplr->flag[mossFlagKernel]) {
+    /* note that filterDiam will always be EVEN */
+    unsigned int fdiam
+      = 2 * AIR_ROUNDUP_UI(smplr->kspec->kernel->support(smplr->kspec->parm));
+    if (smplr->verbose) {
+      printf("%s: see mossFlagKernel UP\n", me);
+    }
+    if (fdiam != smplr->filterDiam) {
+      if (smplr->verbose) {
+        printf("%s: old filter diam %u != new %u --> raising mossFlagFilterDiam\n", me,
+               smplr->filterDiam, fdiam);
+      }
+      smplr->filterDiam = fdiam;
+      smplr->flag[mossFlagFilterDiam] = AIR_TRUE;
+    }
+    if (smplr->verbose) {
+      printf("%s: pulling mossFlagKernel down\n", me);
+    }
+    smplr->flag[mossFlagKernel] = AIR_FALSE;
+  }
+
+  if (smplr->flag[mossFlagFilterDiam]) {
+    if (smplr->verbose) {
+      printf("%s: see mossFlagFilterDiam UP --> realloc {x,y}{Idx,Fslw}\n", me);
+    }
+    airFree(smplr->xIdx);
+    airFree(smplr->yIdx);
+    airFree(smplr->xFslw);
+    airFree(smplr->yFslw);
+    smplr->xIdx = AIR_CALLOC(smplr->filterDiam, int);
+    smplr->yIdx = AIR_CALLOC(smplr->filterDiam, int);
+    smplr->xFslw = AIR_CALLOC(smplr->filterDiam, double);
+    smplr->yFslw = AIR_CALLOC(smplr->filterDiam, double);
+  }
+  if (smplr->flag[mossFlagFilterDiam] || smplr->flag[mossFlagChanNum]) {
+    if (smplr->verbose) {
+      printf("%s: see either mossFlag{FilterDiam,ChanNum} UP --> realloc ivc\n", me);
+    }
+    unsigned int fdiam = smplr->filterDiam, nchan = smplr->chanNum;
+    airFree(smplr->ivc);
+    smplr->ivc = AIR_CALLOC(fdiam * fdiam * nchan, double);
+  }
+  if (smplr->flag[mossFlagFilterDiam]) {
+    if (smplr->verbose) {
+      printf("%s: setting mossFlagFilterDiam DOWN\n", me);
+    }
+    smplr->flag[mossFlagFilterDiam] = AIR_FALSE;
+  }
+  if (smplr->flag[mossFlagChanNum]) {
+    if (smplr->verbose) {
+      printf("%s: setting mossFlagChanNum DOWN\n", me);
+    }
+    smplr->flag[mossFlagChanNum] = AIR_FALSE;
+  }
+
+  if (flagUp(smplr)) {
+    biffAddf(MOSS, "%s: flag handling error", me);
+    return 1;
+  }
   return 0;
 }
 
+/*
+** NOTE: this currently ONLY works with (xPos,yPos) in *index* space
+**
+** returns non-zero in case of error, but does NOT use biff (too heavy weight)
+*/
 int
-mossSamplerSample(float *val, mossSampler *smplr, double xPos, double yPos) {
+mossSamplerSample(double *val, mossSampler *smplr, double xPos, double yPos) {
   static const char me[] = "mossSamplerSample";
-  unsigned int i, xi, yi, ci, sx, sy, fdiam, frad, ncol;
-  double xf, yf, tmp;
-  float (*lup)(const void *v, size_t I);
+  double xf, yf;
+  int ii, jj, sx, sy, xi, yi, fdiam, frad;
+  unsigned int ci, nchan;
+  double (*lup)(const void *v, size_t I);
+  const void *data;
 
-  if (!(val && smplr)) {
-    biffAddf(MOSS, "%s: got NULL pointer", me);
-    return 1;
-  }
-  if (!(smplr->ivc)) {
-    biffAddf(MOSS, "%s: given sampler not ready (no caches)", me);
+  if (!(val && smplr && smplr->ivc)) {
     return 1;
   }
 
   /* set {x,y}Idx, set {x,y}Fslw to sample locations */
-  if (mossVerbose) {
-    fprintf(stderr, "%s: pos = %g %g\n", me, xPos, yPos);
-  }
   sx = MOSS_SX(smplr->image);
   sy = MOSS_SY(smplr->image);
-  xi = AIR_ROUNDDOWN_UI(xPos);
+  xi = (int)floor(xPos);
+  yi = (int)floor(yPos);
   xf = xPos - xi;
-  yi = AIR_ROUNDDOWN_UI(yPos);
   yf = yPos - yi;
-  fdiam = smplr->fdiam;
+  fdiam = smplr->filterDiam; /* always EVEN */
   frad = fdiam / 2;
-  for (i = 0; i < fdiam; i++) {
-    smplr->xIdx[i] = xi + i - frad + 1;
-    smplr->yIdx[i] = yi + i - frad + 1;
-    smplr->xFslw[i] = xf - i + frad - 1;
-    smplr->yFslw[i] = yf - i + frad - 1;
+  if (smplr->verbose) {
+    printf("%s: fdiam = %d; frad = %d\n", me, fdiam, frad);
+    printf("%s: {x,y}Pos = %g %g --> %d %d  +  %g %g\n", me, xPos, yPos, xi, yi, xf, yf);
   }
-  if (mossVerbose) {
-    fprintf(stderr, " --> xIdx: %d %d ; xFsl %g %g\n", smplr->xIdx[0], smplr->xIdx[1],
-            smplr->xFslw[0], smplr->xFslw[1]);
-    fprintf(stderr, "     yIdx: %d %d ; yFsl %g %g\n", smplr->yIdx[0], smplr->yIdx[1],
-            smplr->yFslw[0], smplr->yFslw[1]);
+  for (ii = 1 - frad; ii <= frad; ii++) {
+    int ai = ii - (1 - frad);
+    smplr->xIdx[ai] = xi + ii;
+    smplr->yIdx[ai] = yi + ii;
+    smplr->xFslw[ai] = xf - ii;
+    smplr->yFslw[ai] = yf - ii;
+    if (smplr->verbose) {
+      printf("  orig --> {x,y}Idx[%d->%d]: %d %d ; {x,y}Fsl %g %g\n", ii, ai,
+             smplr->xIdx[ai], smplr->yIdx[ai], smplr->xFslw[ai], smplr->yFslw[ai]);
+    }
   }
   switch (smplr->boundary) {
   case nrrdBoundaryBleed:
-    for (i = 0; i < fdiam; i++) {
-      smplr->xIdx[i] = AIR_CLAMP(0, smplr->xIdx[i], sx - 1);
-      smplr->yIdx[i] = AIR_CLAMP(0, smplr->yIdx[i], sy - 1);
+    for (ii = 0; ii < fdiam; ii++) {
+      smplr->xIdx[ii] = AIR_CLAMP(0, smplr->xIdx[ii], sx - 1);
+      smplr->yIdx[ii] = AIR_CLAMP(0, smplr->yIdx[ii], sy - 1);
     }
     break;
   case nrrdBoundaryWrap:
-    for (i = 0; i < fdiam; i++) {
-      smplr->xIdx[i] = AIR_MOD(smplr->xIdx[i], sx);
-      smplr->yIdx[i] = AIR_MOD(smplr->yIdx[i], sy);
+    for (ii = 0; ii < fdiam; ii++) {
+      smplr->xIdx[ii] = AIR_MOD(smplr->xIdx[ii], sx);
+      smplr->yIdx[ii] = AIR_MOD(smplr->yIdx[ii], sy);
+    }
+    break;
+  case nrrdBoundaryMirror:
+    for (ii = 0; ii < fdiam; ii++) {
+      smplr->xIdx[ii] = airIndexMirror32(smplr->xIdx[ii], AIR_UINT(sx));
+      smplr->yIdx[ii] = airIndexMirror32(smplr->yIdx[ii], AIR_UINT(sy));
     }
     break;
   case nrrdBoundaryPad:
@@ -167,55 +257,70 @@ mossSamplerSample(float *val, mossSampler *smplr, double xPos, double yPos) {
              airEnumStr(nrrdBoundary, smplr->boundary));
     return 1;
   }
-  if (mossVerbose) {
-    fprintf(stderr, " --> xIdx: %d %d ; xFsl %g %g\n", smplr->xIdx[0], smplr->xIdx[1],
-            smplr->xFslw[0], smplr->xFslw[1]);
+  if (smplr->verbose) {
+    for (ii = 0; ii < fdiam; ii++) {
+      printf(" bound --> {x,y}Idx[%u]: %d %d\n", ii, smplr->xIdx[ii], smplr->yIdx[ii]);
+    }
   }
 
   /* copy values to ivc, set {x,y}Fslw to filter sample weights */
-  lup = nrrdFLookup[smplr->image->type];
-  ncol = smplr->ncol;
+  nchan = smplr->chanNum;
+  data = smplr->image->data;
+  lup = nrrdDLookup[smplr->image->type];
   if (nrrdBoundaryPad == smplr->boundary) {
-    for (yi = 0; yi < fdiam; yi++) {
-      for (xi = 0; xi < fdiam; xi++) {
-        if (AIR_IN_CL(0, smplr->xIdx[xi], sx - 1)
-            && AIR_IN_CL(0, smplr->yIdx[yi], sy - 1)) {
-          for (ci = 0; ci < ncol; ci++) {
-            smplr->ivc[xi + fdiam * (yi + fdiam * ci)]
-              = lup(smplr->image->data,
-                    ci + ncol * (smplr->xIdx[xi] + sx * smplr->yIdx[yi]));
+    for (jj = 0; jj < fdiam; jj++) {
+      yi = smplr->yIdx[jj];
+      for (ii = 0; ii < fdiam; ii++) {
+        xi = smplr->xIdx[ii];
+        if (AIR_IN_CL(0, xi, sx - 1) && AIR_IN_CL(0, yi, sy - 1)) {
+          for (ci = 0; ci < nchan; ci++) {
+            smplr->ivc[ii + fdiam * (jj + fdiam * ci)]
+              = lup(data, ci + nchan * (xi + sx * yi));
           }
         } else {
-          for (ci = 0; ci < ncol; ci++) {
-            smplr->ivc[xi + fdiam * (yi + fdiam * ci)] = smplr->bg[ci];
+          for (ci = 0; ci < nchan; ci++) {
+            smplr->ivc[ii + fdiam * (jj + fdiam * ci)] = smplr->bg[ci];
+          }
+        }
+        if (smplr->verbose) {
+          for (ci = 0; ci < nchan; ci++) {
+            printf("  ivc[ii=%d, jj=%d, ci=%u] = %g\n", ii, jj, ci,
+                   smplr->ivc[ii + fdiam * (jj + fdiam * ci)]);
           }
         }
       }
     }
   } else {
-    for (yi = 0; yi < fdiam; yi++) {
-      for (xi = 0; xi < fdiam; xi++) {
-        for (ci = 0; ci < ncol; ci++) {
-          smplr->ivc[xi + fdiam * (yi + fdiam * ci)]
-            = lup(smplr->image->data,
-                  ci + ncol * (smplr->xIdx[xi] + sx * smplr->yIdx[yi]));
+    for (jj = 0; jj < fdiam; jj++) {
+      yi = smplr->yIdx[jj];
+      for (ii = 0; ii < fdiam; ii++) {
+        xi = smplr->xIdx[ii];
+        for (ci = 0; ci < nchan; ci++) {
+          smplr->ivc[ii + fdiam * (jj + fdiam * ci)] = lup(data,
+                                                           ci + nchan * (xi + sx * yi));
         }
       }
     }
   }
-  smplr->kernel->evalN_d(smplr->xFslw, smplr->xFslw, fdiam, smplr->kparm);
-  smplr->kernel->evalN_d(smplr->yFslw, smplr->yFslw, fdiam, smplr->kparm);
+  smplr->kspec->kernel->evalN_d(smplr->xFslw, smplr->xFslw, fdiam, smplr->kspec->parm);
+  smplr->kspec->kernel->evalN_d(smplr->yFslw, smplr->yFslw, fdiam, smplr->kspec->parm);
+  if (smplr->verbose) {
+    for (ii = 0; ii < fdiam; ii++) {
+      printf("   [%d] --> {x,y}Fsw %g %g\n", ii, smplr->xFslw[ii], smplr->yFslw[ii]);
+    }
+  }
 
   /* do convolution */
-  memset(val, 0, ncol * sizeof(float));
-  for (ci = 0; ci < ncol; ci++) {
+  memset(val, 0, nchan * sizeof(double));
+  ii = 0;
+  for (ci = 0; ci < nchan; ci++) {
+    double tmp = 0;
     for (yi = 0; yi < fdiam; yi++) {
-      tmp = 0;
       for (xi = 0; xi < fdiam; xi++) {
-        tmp += smplr->xFslw[xi] * smplr->ivc[xi + fdiam * (yi + fdiam * ci)];
+        tmp += (smplr->yFslw[yi] * smplr->xFslw[xi] * smplr->ivc[ii++]);
       }
-      val[ci] += AIR_FLOAT(smplr->yFslw[yi] * tmp);
     }
+    val[ci] += tmp;
   }
 
   return 0;

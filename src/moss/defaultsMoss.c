@@ -26,8 +26,5 @@
 
 const char *mossBiffKey = "moss";
 
-int mossDefBoundary = nrrdBoundaryBleed;
-
+/* must be a valid centering (nrrdCenterCell or nrrdCenterNode) */
 int mossDefCenter = nrrdCenterCell;
-
-int mossVerbose = 0;

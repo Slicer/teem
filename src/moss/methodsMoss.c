@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2022  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -35,74 +35,44 @@ mossSamplerNew(void) {
   mossSampler *smplr;
   int i;
 
-  smplr = (mossSampler *)calloc(1, sizeof(mossSampler));
+  smplr = AIR_CALLOC(1, mossSampler);
   if (smplr) {
+    smplr->verbose = 0;
     smplr->image = NULL;
-    smplr->kernel = NULL;
-    for (i = 0; i < NRRD_KERNEL_PARMS_NUM; i++)
-      smplr->kparm[i] = AIR_NAN;
-    smplr->ivc = NULL;
-    smplr->xFslw = smplr->yFslw = NULL;
+    smplr->boundary = nrrdBoundaryUnknown;
+    smplr->kspec = nrrdKernelSpecNew();
+    smplr->filterDiam = smplr->chanNum = 0;
     smplr->xIdx = smplr->yIdx = NULL;
-    smplr->bg = NULL;
-    smplr->fdiam = smplr->ncol = 0;
-    smplr->boundary = mossDefBoundary;
-    for (i = 0; i < MOSS_FLAG_NUM; i++)
+    smplr->ivc = smplr->xFslw = smplr->yFslw = smplr->bg = NULL;
+    for (i = 0; i <= MOSS_FLAG_MAX; i++) {
       smplr->flag[i] = AIR_FALSE;
+    }
   }
   return smplr;
-}
-
-int
-mossSamplerFill(mossSampler *smplr, int fdiam, int ncol) {
-  static const char me[] = "_mossSamplerFill";
-
-  if (!(smplr)) {
-    biffAddf(MOSS, "%s: got NULL pointer", me);
-    return 1;
-  }
-  smplr->ivc = (float *)calloc(fdiam * fdiam * ncol, sizeof(float));
-  smplr->xFslw = (double *)calloc(fdiam, sizeof(double));
-  smplr->yFslw = (double *)calloc(fdiam, sizeof(double));
-  smplr->xIdx = AIR_CALLOC(fdiam, unsigned int);
-  smplr->yIdx = AIR_CALLOC(fdiam, unsigned int);
-  if (!(smplr->ivc && smplr->xFslw && smplr->yFslw && smplr->xIdx && smplr->yIdx)) {
-    biffAddf(MOSS, "%s: couldn't allocate buffers", me);
-    return 1;
-  }
-  smplr->fdiam = fdiam;
-  smplr->ncol = ncol;
-  return 0;
-}
-
-void
-mossSamplerEmpty(mossSampler *smplr) {
-
-  if (smplr) {
-    smplr->ivc = (float *)airFree(smplr->ivc);
-    smplr->xFslw = (double *)airFree(smplr->xFslw);
-    smplr->yFslw = (double *)airFree(smplr->yFslw);
-    smplr->xIdx = (unsigned int *)airFree(smplr->xIdx);
-    smplr->yIdx = (unsigned int *)airFree(smplr->yIdx);
-    smplr->fdiam = 0;
-    smplr->ncol = 0;
-  }
-  return;
 }
 
 mossSampler *
 mossSamplerNix(mossSampler *smplr) {
 
   if (smplr) {
-    mossSamplerEmpty(smplr);
-    smplr->bg = (float *)airFree(smplr->bg);
+    /* do not own image */
+    nrrdKernelSpecNix(smplr->kspec);
+    airFree(smplr->xIdx);
+    airFree(smplr->yIdx);
+    airFree(smplr->ivc);
+    airFree(smplr->xFslw);
+    airFree(smplr->yFslw);
+    airFree(smplr->bg);
     free(smplr);
   }
   return NULL;
 }
 
+/*
+** mossImageCheck: ensures that given image works as an *input* image
+*/
 int
-mossImageCheck(Nrrd *image) {
+mossImageCheck(const Nrrd *image) {
   static const char me[] = "mossImageCheck";
 
   if (nrrdCheck(image)) {
@@ -118,21 +88,30 @@ mossImageCheck(Nrrd *image) {
   return 0;
 }
 
+/*
+** mossImageAlloc: helper function to allocate *output* image within the given Nrrd
+** container "image"
+*/
 int
-mossImageAlloc(Nrrd *image, int type, int sx, int sy, int ncol) {
+mossImageAlloc(Nrrd *image, int type, unsigned int _sx, unsigned int _sy,
+               unsigned int _chanNum) {
   static const char me[] = "mossImageAlloc";
+  size_t sx, sy, chanNum;
   int ret;
 
-  if (!(image && AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeBlock) && sx > 0 && sy > 0
-        && ncol > 0)) {
+  if (!(image                                              /* */
+        && AIR_IN_OP(nrrdTypeUnknown, type, nrrdTypeBlock) /* */
+        && _sx > 0 && _sy > 0 && _chanNum > 0)) {
     biffAddf(MOSS, "%s: got NULL pointer or bad args", me);
     return 1;
   }
-  if (1 == ncol) {
-    ret = nrrdMaybeAlloc_va(image, type, 2, AIR_CAST(size_t, sx), AIR_CAST(size_t, sy));
+  sx = AIR_CAST(size_t, _sx);
+  sy = AIR_CAST(size_t, _sy);
+  chanNum = AIR_CAST(size_t, _chanNum);
+  if (1 == chanNum) {
+    ret = nrrdMaybeAlloc_va(image, type, 2, sx, sy);
   } else {
-    ret = nrrdMaybeAlloc_va(image, type, 3, AIR_CAST(size_t, ncol), AIR_CAST(size_t, sx),
-                            AIR_CAST(size_t, sy));
+    ret = nrrdMaybeAlloc_va(image, type, 3, chanNum, sx, sy);
   }
   if (ret) {
     biffMovef(MOSS, NRRD, "%s: couldn't allocate image", me);
@@ -145,7 +124,5 @@ mossImageAlloc(Nrrd *image, int type, int sx, int sy, int ncol) {
 int
 _mossCenter(int center) {
 
-  center = (nrrdCenterUnknown == center ? mossDefCenter : center);
-  center = AIR_CLAMP(nrrdCenterUnknown + 1, center, nrrdCenterLast - 1);
-  return center;
+  return (airEnumValCheck(nrrdCenter, center) ? mossDefCenter : center);
 }
