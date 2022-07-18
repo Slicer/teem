@@ -45,7 +45,7 @@ main(int argc, const char *argv[]) {
     *_bkg, *bkg;
   int debug[2], d, bound, ax0, size[2]; /* HEY size[] should be size_t */
   unsigned int matListLen, _bkgLen, i, avgNum, bkgIdx;
-  float scale[4];
+  double scale[4];
   struct winsize wsz;
 
   me = argv[0];
@@ -184,8 +184,8 @@ main(int argc, const char *argv[]) {
       break;
     default:
       /* error */
-      fprintf(stderr, "%s: scale[0 + 2*%d] == %d unexpected\n", me,
-              AIR_INT(scale[0 + 2 * d]), d);
+      fprintf(stderr, "%s: scale[0 + 2*%d] == %d unexpected\n", me, d,
+              AIR_INT(scale[0 + 2 * d]));
       airMopError(mop);
       return 1;
     }
