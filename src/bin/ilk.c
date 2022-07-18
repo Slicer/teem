@@ -29,7 +29,14 @@ static const char *ilkInfo
   = ("(I)mage (L)inear Trans(X-->K)forms. Applies linear (homogenous coordinate) "
      "transforms to a given image, using the given kernel for resampling. "
      "Unfortunately the moss library that this tool is built on *currently* knows "
-     "nothing about world-space; so this tool only knows about index space.");
+     "nothing about world-space; so this tool only knows about index space. "
+     "\n "
+     "\n "
+     "NOTE: ********* \n "
+     "NOTE: ********* \n "
+     "NOTE: *** this stand-alone tool is deprecated; use \"unu ilk\" instead!\n "
+     "NOTE: ********* \n "
+     "NOTE: ********* \n ");
 
 int
 main(int argc, const char *argv[]) {
@@ -124,6 +131,13 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
+  fprintf(stderr,
+          "NOTE: *********\n"
+          "NOTE: *********\n"
+          "NOTE: *** this stand-alone tool is deprecated; use \"unu ilk\" instead!\n"
+          "NOTE: *********\n"
+          "NOTE: *********\n");
+
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   msp = mossSamplerNew();
@@ -170,15 +184,19 @@ main(int argc, const char *argv[]) {
 
   for (d = 0; d < 2; d++) {
     switch (AIR_INT(scale[0 + 2 * d])) {
-    case 0:
+    case unrrduScaleNothing:
       /* same number of samples as input */
       size[d] = AIR_INT(nin->axis[ax0 + d].size);
       break;
-    case 1:
+    case unrrduScaleMultiply:
       /* scaling of input # samples */
-      size[d] = AIR_INT(scale[1 + 2 * d] * nin->axis[ax0 + d].size);
+      size[d] = AIR_ROUNDUP(nin->axis[ax0 + d].size * scale[1 + 2 * d]);
       break;
-    case 2:
+    case unrrduScaleDivide:
+      /* scaling of input # samples */
+      size[d] = AIR_ROUNDUP(nin->axis[ax0 + d].size / scale[1 + 2 * d]);
+      break;
+    case unrrduScaleExact:
       /* explicit # of samples */
       size[d] = AIR_INT(scale[1 + 2 * d]);
       break;
