@@ -97,9 +97,9 @@ typedef struct {
 ** the two macros above over the list of unu commands.  Functional
 ** programming meets the C pre-processor.  Therefore:
 ***********************************************************
-    You add commands to unu by:
-    1) adjusting the definition of UNRRDU_MAP()
-    2) listing the appropriate object in GNUmakefile and sources.cmake
+    You add command foo to unu by:
+    1) adding F(foo) to definition of UNRRDU_MAP()
+    2) implement foo.c, and list foo.o in GNUmakefile and CmakeLists.txt
     That's it.
 ********************************************************** */
 #define UNRRDU_DECLARE(C) UNRRDU_EXPORT unrrduCmd unrrdu_##C##Cmd;
@@ -171,6 +171,7 @@ typedef struct {
   F(dnorm)                                                                              \
   F(vidicon)                                                                            \
   F(grid)                                                                               \
+  F(ilk)                                                                                \
   F(hack)                                                                               \
   F(aabplot)                                                                            \
   F(undos)                                                                              \
