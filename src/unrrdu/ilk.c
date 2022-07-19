@@ -280,11 +280,11 @@ unrrdu_ilkMain(int argc, const char **argv, const char *me, hestParm *hparm) {
              "upper bounding corner of output image. Default (by not "
              "using this option) is the upper corner of input image. ");
   hestOptAdd(&opt, "xyc", "file", airTypeOther, 1, 1, &nxyc, "",
-             "IF this option is used, it over-rides all previous options. Instead, a "
+             "IF this option is used, it over-rides all previous options (use \"-t "
+             "identity\" to satisfy that option). Instead, a general homog coord "
              "transform is set up to regularly sample the rectangle that, due to "
              "perspective distortion, has corners with the X,Y coordinates given in "
-             "this filename, in scan-line order. A general homog coord transform is "
-             "computed from these 4 points.",
+             "this filename, in scan-line order.",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "b", "boundary", airTypeEnum, 1, 1, &bound, "bleed",
              "what to do when sampling outside original image.\n "
@@ -298,7 +298,7 @@ unrrdu_ilkMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                       "background color to use with boundary behavior \"pad\". "
                       "Defaults to all zeroes.",
                       &_bkgLen);
-  hestOptAdd(&opt, "s", "xSize ySize", airTypeOther, 2, 2, scale, "x1 x1",
+  hestOptAdd(&opt, "s", "xSize ySize", airTypeOther, 2, 2, scale, "x1 xfrqs1x1",
              "For each axis, information about how many samples in output:\n "
              "\b\bo \"x<float>\": number of output samples is some scaling of "
              " the number input of samples; multiplied by <float>\n "
