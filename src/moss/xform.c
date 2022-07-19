@@ -216,3 +216,89 @@ mossLinearTransform(Nrrd *nout, const Nrrd *nin, int boundary, const double *bg,
   free(val);
   return 0;
 }
+
+int
+mossFourPointTransform(Nrrd *nout, const Nrrd *nin, int boundary, const double *bg,
+                       const double xyc[8], mossSampler *msp, int xSize, int ySize) {
+  static const char me[] = "mossFourPointTransform";
+  int xi, yi;
+  unsigned int ci, nchan;
+  double *val, (*ins)(void *v, size_t I, double f), (*clamp)(double val), PM[8];
+
+  if (!(nout && nin && msp && !mossImageCheck(nin))) {
+    biffAddf(MOSS, "%s: got NULL pointer or bad image", me);
+    return 1;
+  }
+  // HEY SET UP verbPixel for this HEY HEY HEY
+  msp->verbose = (msp->verbPixel[0] >= 0 && msp->verbPixel[1] >= 0);
+  if (mossSamplerImageSet(msp, nin, boundary, bg) || mossSamplerUpdate(msp)) {
+    biffAddf(MOSS, "%s: trouble with sampler", me);
+    return 1;
+  }
+  msp->verbose = 0;
+
+  nchan = MOSS_CHAN_NUM(nin);
+  if (mossImageAlloc(nout, nin->type, xSize, ySize, nchan)) {
+    biffAddf(MOSS, "%s: ", me);
+    return 1;
+  }
+  val = AIR_CALLOC(nchan, double);
+  if (mossSamplerSample(val, msp, 0, 0)) {
+    biffAddf(MOSS, "%s: trouble using sampler", me);
+    free(val);
+    return 1;
+  }
+
+  {
+    double x0 = xyc[0], y0 = xyc[1];
+    double x1 = xyc[2], y1 = xyc[3];
+    double x2 = xyc[4], y2 = xyc[5];
+    double x3 = xyc[6], y3 = xyc[7];
+    /* expressions for matrix entries from GLK using Mathematica */
+    PM[0] = -((-(x1 * x2 * y0) + x1 * x3 * y0 + x0 * x2 * y1 - x0 * x3 * y1
+               + x0 * x3 * y2 - x1 * x3 * y2 - x0 * x2 * y3 + x1 * x2 * y3)
+              / (x2 * y1 - x3 * y1 - x1 * y2 + x3 * y2 + x1 * y3 - x2 * y3));
+    PM[1] = -((x1 * x2 * y0 - x2 * x3 * y0 - x0 * x3 * y1 + x2 * x3 * y1 - x0 * x1 * y2
+               + x0 * x3 * y2 + x0 * x1 * y3 - x1 * x2 * y3)
+              / (x2 * y1 - x3 * y1 - x1 * y2 + x3 * y2 + x1 * y3 - x2 * y3));
+    PM[2] = x0;
+    PM[3] = -((-(x1 * y0 * y2) + x3 * y0 * y2 + x0 * y1 * y2 - x3 * y1 * y2
+               + x1 * y0 * y3 - x2 * y0 * y3 - x0 * y1 * y3 + x2 * y1 * y3)
+              / (x2 * y1 - x3 * y1 - x1 * y2 + x3 * y2 + x1 * y3 - x2 * y3));
+    PM[4] = -((x2 * y0 * y1 - x3 * y0 * y1 - x0 * y1 * y2 + x3 * y1 * y2 + x1 * y0 * y3
+               - x2 * y0 * y3 + x0 * y2 * y3 - x1 * y2 * y3)
+              / (x2 * y1 - x3 * y1 - x1 * y2 + x3 * y2 + x1 * y3 - x2 * y3));
+    PM[5] = y0;
+    PM[6] = -((-(x2 * y0) + x3 * y0 + x2 * y1 - x3 * y1 + x0 * y2 - x1 * y2 - x0 * y3
+               + x1 * y3)
+              / (x2 * y1 - x3 * y1 - x1 * y2 + x3 * y2 + x1 * y3 - x2 * y3));
+    PM[7]
+      = -((x1 * y0 - x3 * y0 - x0 * y1 + x2 * y1 - x1 * y2 + x3 * y2 + x0 * y3 - x2 * y3)
+          / (x2 * y1 - x3 * y1 - x1 * y2 + x3 * y2 + x1 * y3 - x2 * y3));
+  }
+
+  ins = nrrdDInsert[nin->type];
+  clamp = nrrdDClamp[nin->type];
+  for (yi = 0; yi < ySize; yi++) {
+    /* or should it be cell-centered? */
+    double yr = NRRD_NODE_POS(0.0, 1.0, ySize, yi);
+    for (xi = 0; xi < xSize; xi++) {
+      double xr = NRRD_NODE_POS(0.0, 1.0, xSize, xi);
+      double xx = PM[0] * xr + PM[1] * yr + PM[2];
+      double yy = PM[3] * xr + PM[4] * yr + PM[5];
+      double ww = PM[6] * xr + PM[7] * yr + 1;
+      msp->verbose = (xi == msp->verbPixel[0] && yi == msp->verbPixel[1]);
+      if (msp->verbose) {
+        printf("%s[%d,%d] --> rect x,y = %g,%g --> x,y,z = %g %g %g --> %g %g\n", me, xi,
+               yi, xr, yr, xx, yy, ww, xx / ww, yy / ww);
+      }
+      mossSamplerSample(val, msp, xx / ww, yy / ww);
+      for (ci = 0; ci < nchan; ci++) {
+        ins(nout->data, ci + nchan * (xi + xSize * yi), clamp(val[ci]));
+      }
+    }
+  }
+
+  free(val);
+  return 0;
+}

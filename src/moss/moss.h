@@ -132,6 +132,9 @@ MOSS_EXPORT int mossLinearTransform(Nrrd *nout, const Nrrd *nin, int boundary,
                                     const double *bg, const double *mat,
                                     mossSampler *msp, double xMin, double xMax,
                                     double yMin, double yMax, int sx, int sy);
+MOSS_EXPORT int mossFourPointTransform(Nrrd *nout, const Nrrd *nin, int boundary,
+                                       const double *bg, const double xyc[8],
+                                       mossSampler *msp, int xSize, int ySize);
 
 #ifdef __cplusplus
 }
