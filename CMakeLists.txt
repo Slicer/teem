@@ -271,6 +271,7 @@ if(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "")
     set(BUILD_EXPERIMENTAL_LIBS ON)
 endif()
 
+## (TEEM_LIB_LIST)
 # set the Teem library as a list
 set(Teem_LIBRARIES "air" "hest" "biff" "nrrd" "ell" "unrrdu" "moss" "gage" "dye" "limn" "echo" "hoover" "seek" "ten" "pull" "mite" "meet")
 if(BUILD_EXPERIMENTAL_LIBS)
