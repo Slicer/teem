@@ -1333,7 +1333,7 @@ NRRD_EXPORT int nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout);
 **
 ** Choose by setting "#if" arg to 1 (for float) or 0 (for double)
 */
-#if 0
+#if 0 /* nrrdResample_t; */
 typedef float nrrdResample_t;
 #  define nrrdResample_nt     nrrdTypeFloat
 #  define NRRD_RESAMPLE_FLOAT 1
