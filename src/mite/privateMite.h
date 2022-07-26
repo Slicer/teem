@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2022  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -28,13 +28,13 @@
 extern "C" {
 #endif
 
-/*
- # if GAGE_TYPE_FLOAT
- # define limnVtoQN_GT limnVtoQN_f
- # else
- # define limnVtoQN_GT limnVtoQN_d
- # endif
-*/
+#if MITE_T_DOUBLE
+#  define mite_nt   nrrdTypeDouble
+#  define limnVTOQN limnVtoQN_d
+#else
+#  define mite_nt   nrrdTypeFloat
+#  define limnVTOQN limnVtoQN_f
+#endif
 
 /* txf.c */
 extern double *_miteAnswerPointer(miteThread *mtt, gageItemSpec *isp);

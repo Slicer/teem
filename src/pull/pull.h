@@ -65,14 +65,18 @@
 extern "C" {
 #endif
 
-#define PULL                  pullBiffKey
+#define PULL pullBiffKey
+
+/* limits on computation; but (HEY) why not in privatePull.h? */
 #define PULL_THREAD_MAXNUM    512
 #define PULL_VOLUME_MAXNUM    4
 #define PULL_POINT_NEIGH_INCR 16
 #define PULL_BIN_MAXNUM       40000000 /* sanity check on max number bins */
-#define PULL_PHIST                                                                      \
-  0 /* can compile history of positions,                                                \
-       with tuples of length PULL_PHIST_NUM */
+
+#define PULL_HINTER   0
+#define PULL_TANCOVAR 0
+/* can compile history of positions, with tuples of length PULL_PHIST_NUM */
+#define PULL_PHIST    0
 #define PULL_PHIST_NUM                                                                  \
   6 /* doubles saved per history point:                                                 \
        0  1  2  3   4    5                                                              \
@@ -81,8 +85,6 @@ extern "C" {
        cond is from pullCond* enum,                                                     \
        and val is anything the caller wanted to                                         \
        remember at that point */
-#define PULL_HINTER   0
-#define PULL_TANCOVAR 1
 
 /*
 ******** pullInfo enum
@@ -331,7 +333,7 @@ enum {
 #define PULL_TRACE_STOP_MAX 7
 
 /*
-** Defines how par-particle information can be learned.  This is
+** Defines how per-particle information can be learned.  This is
 ** typically via measurements in the image by gage, but other sources
 ** are possible (as indicated by the source field).
 **

@@ -100,29 +100,30 @@ typedef unsigned long long airULLong;
 /* ---- END non-NrrdIO */
 
 /*
-** These serve as conservative estimates on how large various strings
-** might end up being.  It would be theoretically better to completely
-** avoid the use of fixed-size buffers, but in many contexts the
-** implementation complexity of handling them reliably is distracts
-** from more urgent implementation goals.  In the mean time, these can
-** be used safely as long as the lengths are used consistently.
-**
-** The possibly unfortunate convention that has become established in
-** Teem is code using these tends to NOT add the "+1", to explicitly
-** indicate the space for 0-termination, and instead assumes it is
-** part of the numbers below, even though this is at the cost of
-** confusion about how the maximal strlen() will be less than each of
-** these numbers. This will be addressed in Teem 2.0.
-*/
-#define AIR_STRLEN_SMALL (128 + 1)
+ * These serve as conservative estimates on how large various strings might end up being.
+ * It would be theoretically better to completely avoid the use of fixed-size buffers,
+ * but in many contexts the implementation complexity of handling them reliably is
+ * distracts from more urgent implementation goals.  In the mean time, these can be used
+ * safely as long as the lengths are used consistently.
+ *
+ * The possibly unfortunate convention that has become established in Teem is code using
+ * these tends to NOT add the +1 to explicitly indicate the space for 0-termination, and
+ * instead assumes it is part of the numbers below, even though this is at the cost of
+ * confusion about how the maximal strlen() will be less than each of
+ * these numbers. This will be addressed in Teem 2.0.
+ *
+ * (NOTE: The +1 has been done manually here to assist the modest C parser used in
+ * (Python module) cffi's FFI.cdef())
+ */
+#define AIR_STRLEN_SMALL 129
 /* SMALL has to be big enough to hold:
    - printed value of size_t and
    - ptrdiff_t, line of text that
    - should contain file format "magic"
 */
-#define AIR_STRLEN_MED   (256 + 1)
-#define AIR_STRLEN_LARGE (512 + 1)
-#define AIR_STRLEN_HUGE  (1024 + 1)
+#define AIR_STRLEN_MED   257
+#define AIR_STRLEN_LARGE 513
+#define AIR_STRLEN_HUGE  1025
 /* HUGE has to be big enough to hold one line of biff error message */
 
 /*
@@ -472,7 +473,7 @@ enum {
   airTypeOther,    /* 12 */
   airTypeLast
 };
-#define AIR_TYPE_MAX (airTypeLast - 1)
+#define AIR_TYPE_MAX 12
 /* parseAir.c */
 AIR_EXPORT double airAtod(const char *str);
 AIR_EXPORT int airSingleSscanf(const char *str, const char *fmt, void *ptr);
@@ -542,7 +543,7 @@ enum {
   airInsane_DLSize,        /* 11: sizeof(double), sizeof(airLLong) not 8 */
   airInsane_last
 };
-#define AIR_INSANE_MAX (airInsane_last - 1)
+#define AIR_INSANE_MAX 11
 AIR_EXPORT const char *airInsaneErr(int insane);
 AIR_EXPORT int airSanity(void);
 
@@ -647,7 +648,7 @@ enum {
   airNoDio_disable, /* 12: someone disabled it with airDisableDio */
   airNoDio_last
 };
-#define AIR_NODIO_MAX (airNoDio_last - 1)
+#define AIR_NODIO_MAX 12
 AIR_EXPORT const char *airNoDioErr(int noDio);
 AIR_EXPORT const int airMyDio;
 AIR_EXPORT int airDisableDio;

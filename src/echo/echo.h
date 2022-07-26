@@ -57,7 +57,7 @@ extern "C" {
 ** 1: float
 ** 0: double
 */
-#if 0
+#if 1 /* float == echoPos_t */
 typedef float echoPos_t;
 #  define ECHO_POS_FLOAT 1
 #else
@@ -69,7 +69,7 @@ typedef double echoPos_t;
 ** 1: float
 ** 0: double
 */
-#if 1
+#if 1 /* float == echoCol_t */
 typedef float echoCol_t;
 #  define echoCol_nt nrrdTypeFloat
 #else
@@ -260,11 +260,8 @@ enum {
 /*
 ******** echoObject (generic) and all other object structs
 **
-** every starts with ECHO_OBJECT_COMMON, and all the "real" objects
-** have a ECHO_OBJECT_MATTER following that
+** all the "real" objects have a ECHO_OBJECT_MATTER following type
 */
-
-#define ECHO_OBJECT_COMMON signed char type
 
 #define ECHO_OBJECT_MATTER                                                              \
   unsigned char matter;                                                                 \
@@ -273,26 +270,26 @@ enum {
   Nrrd *ntext
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
+  signed char type;
   ECHO_OBJECT_MATTER; /* ha! its not actually in every object, but in
                          those cases were we want to access it without
                          knowing object type, then it will be there. */
 } echoObject;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
+  signed char type;
   ECHO_OBJECT_MATTER;
   echoPos_t pos[3], rad;
 } echoSphere;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
+  signed char type;
   ECHO_OBJECT_MATTER;
   int axis;
 } echoCylinder;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
+  signed char type;
   ECHO_OBJECT_MATTER;
   int axis;
   echoPos_t A, B;
@@ -300,12 +297,12 @@ typedef struct {
 
 /* edges are unit length, [-0.5, 0.5] on every edge */
 typedef struct {
-  ECHO_OBJECT_COMMON;
+  signed char type;
   ECHO_OBJECT_MATTER;
 } echoCube;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
+  signed char type;
   ECHO_OBJECT_MATTER;
   echoPos_t vert[3][3]; /* e0 = vert[1]-vert[0],
                            e1 = vert[2]-vert[0],
@@ -313,13 +310,13 @@ typedef struct {
 } echoTriangle;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
+  signed char type;
   ECHO_OBJECT_MATTER;
   echoPos_t origin[3], edge0[3], edge1[3];
 } echoRectangle;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
+  signed char type;
   ECHO_OBJECT_MATTER;
   echoPos_t meanvert[3], min[3], max[3];
   int numV, numF;
@@ -328,7 +325,7 @@ typedef struct {
 } echoTriMesh;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
+  signed char type;
   ECHO_OBJECT_MATTER;
   /* this needs more stuff, perhaps a gageContext */
   Nrrd *volume;
@@ -336,26 +333,26 @@ typedef struct {
 } echoIsosurface;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
+  signed char type;
   echoObject *obj;
   echoPos_t min[3], max[3];
 } echoAABBox;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
+  signed char type;
   int axis;                                     /* which axis was split: 0:X, 1:Y, 2:Z */
   echoPos_t min0[3], max0[3], min1[3], max1[3]; /* bboxes of two children */
   echoObject *obj0, *obj1;                      /* two splits, or ??? */
 } echoSplit;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
+  signed char type;
   echoObject **obj;
   airArray *objArr;
 } echoList;
 
 typedef struct {
-  ECHO_OBJECT_COMMON;
+  signed char type;
   echoPos_t Mi[16], M[16];
   echoObject *obj;
 } echoInstance;

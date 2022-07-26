@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2022  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -58,17 +58,14 @@ extern "C" {
 ** 0: double
 */
 
-#if 0
+#if 0 /* float == mite_t */
 typedef float mite_t;
-#  define mite_nt       nrrdTypeFloat
+/* mite_at is not used in mite API, but is needed by miter */
 #  define mite_at       airTypeFloat
-#  define limnVTOQN     limnVtoQN_f
 #  define MITE_T_DOUBLE 0
 #else
 typedef double mite_t;
-#  define mite_nt       nrrdTypeDouble
 #  define mite_at       airTypeDouble
-#  define limnVTOQN     limnVtoQN_d
 #  define MITE_T_DOUBLE 1
 #endif
 
