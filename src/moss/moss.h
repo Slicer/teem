@@ -65,7 +65,7 @@ enum {
   mossFlagFilterDiam, /* 4: kernel filter diameter */
   mossFlagLast
 };
-#define MOSS_FLAG_MAX (mossFlagLast - 1)
+#define MOSS_FLAG_MAX 4
 
 /* container for moss sampling. With July 2022 re-write, changed all floating-point
    types to double (from a confusing mix of float and double) */
