@@ -123,7 +123,7 @@ ell_4m_pre_mul_f(float _m[16], const float x[16]) {
 }
 
 void
-ell_4m_pre_mMul_d(double _m[16], const double x[16]) {
+ell_4m_pre_mul_d(double _m[16], const double x[16]) {
   double m[16];
   ELL_4M_MUL(m, _m, x);
   ELL_4M_COPY(_m, m);
