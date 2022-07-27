@@ -3,9 +3,6 @@
 x,*y=1,2 # NOTE: A SyntaxError means you need python3, not python2
 del x, y
 
-# TODO:
-# annotate top of cdef_teem.h with description of how its made (ONLY for cffi, not good as a general teem.h)
-
 # useful/needed?
 # # given reliance on files in specific places; set cwd to directory containing this file
 # chdir(Path(path.realpath(__file__)).parent)
@@ -18,6 +15,7 @@ import argparse
 import re
 
 verbose = 0
+haveExpr = False
 
 if platform == 'darwin':  # Mac
     shext = 'dylib'
@@ -36,26 +34,27 @@ libs = [
     {'name': 'nrrd',   'expr': False}, # also need: nrrdEnums.h nrrdDefines.h
     {'name': 'ell',    'expr': False}, # (don't need ellMacros.h)
     {'name': 'unrrdu', 'expr': False},
-#    {'name': 'alan',   'expr': True},
+    {'name': 'alan',   'expr': True},
     {'name': 'moss',   'expr': False},
-#    {'name': 'tijk',   'expr': True},
+    {'name': 'tijk',   'expr': True},
     {'name': 'gage',   'expr': False},
     {'name': 'dye',    'expr': False},
-#    {'name': 'bane',   'expr': True},
+    {'name': 'bane',   'expr': True},
     {'name': 'limn',   'expr': False},
     {'name': 'echo',   'expr': False},
     {'name': 'hoover', 'expr': False},
     {'name': 'seek',   'expr': False},
     {'name': 'ten',    'expr': False},
-#    {'name': 'elf',    'expr': True},
+    {'name': 'elf',    'expr': True},
     {'name': 'pull',   'expr': False},
-#    {'name': 'coil',   'expr': True},
-#    {'name': 'push',   'expr': True},
+    {'name': 'coil',   'expr': True},
+    {'name': 'push',   'expr': True},
     {'name': 'mite',   'expr': False},
     {'name': 'meet',   'expr': False},
 ]
 
 def check_path(iPath, lPath):
+    global haveExpr
     if (not path.isdir(iPath) or
         not path.isdir(lPath)):
         raise Exception(f'Need both {iPath} and {lPath} to be subdirs of teem install dir')
@@ -77,17 +76,24 @@ def check_path(iPath, lPath):
     missingExprHdrs = [H for H in filter(lambda F: not path.isfile(f'{itPath}/{F}'), exprHdrs)]
     haveHdrs = baseHdrs
     if (len(missingExprHdrs)):
-        # some of the non-core "Experimental" header files missing
+        # missing one or more of the non-core "Experimental" header files
         if (len(missingExprHdrs) < len(exprHdrs)):
             raise Exception("Missing some (but not all) non-core header(s) "
                             + f"{' '.join(missingExprHdrs)} in {itPath} for one or more of the "
                             + "core Teem libs")
         # else len(missingExprHdrs) == len(exprHdrs)) aka all missing, ok, so not Experimental
+        # (haveExpr initialized to False above)
         if (verbose):
             print('(Teem build does *not* appear include "Experimental" libraries)')
     else:
-        # it is Experimental
-        haveHdrs += exprHdrs
+        # it is Experimental; reform the header list in dependency order (above)
+        haveExpr = True
+        haveHdrs = [f"{L['name']}.h" for L in libs]
+        # HEY stupid copy-and-paste
+        if ('nrrd.h' in haveHdrs):
+            # other headers are needed to define nrrd library API
+            haveHdrs.insert(haveHdrs.index('nrrd.h'), 'nrrdDefines.h')
+            haveHdrs.insert(haveHdrs.index('nrrd.h'), 'nrrdEnums.h')
         if (verbose):
             print('(Teem build includes "Experimental" libraries)')
     return haveHdrs
@@ -214,7 +220,18 @@ def hdrProc(out, hf, hn):
         # drop control of nrrdResample_t (no effect on API)
         dropAt('#if 0 /* float == nrrdResample_t; */', 9, lines)
     if (hn == 'unrrdu.h'):
+        # Not removing these creates a problem for the modest CFFI C parser, especially
+        # since these macro definitions were removed from its input. The error message
+        # will be a rather cryptic:
+        #   File ". . ./site-packages/pycparser/plyparser.py", line 67, in _parse_error
+        #     raise ParseError("%s: %s" % (coord, msg))
+        # pycparser.plyparser.ParseError: <cdef source string>: At end of input
         lines.remove('UNRRDU_MAP(UNRRDU_DECLARE)')
+    if (hn == 'alan.h'):
+        idx = dropAt('#if 1 /* float == alan_t */', 9, lines)
+        lines.insert(idx, 'typedef float alan_t;')
+    if (hn == 'bane.h'):
+       lines.remove('BANE_GKMS_MAP(BANE_GKMS_DECLARE)')
     if (hn == 'limn.h'):
        lines.remove('LIMN_MAP(LIMN_DECLARE)')
     if (hn == 'echo.h'):
@@ -259,6 +276,9 @@ def hdrProc(out, hf, hn):
             if copying:
                 olines.append(L)
         lines = olines
+    if (hn == 'coil.h'):
+        idx = dropAt('#if 1 /* float == coil_t */', 9, lines)
+        lines.insert(idx, 'typedef float coil_t;')
     if (hn == 'mite.h'):
         idx = dropAt('#if 0 /* float == mite_t */', 10, lines)
         lines.insert(idx, 'typedef double mite_t;')
@@ -275,7 +295,15 @@ def build(path):
     iPath = path + '/include'
     lPath = path + '/lib'
     hdrs = check_path(iPath, lPath)
+    if (verbose):
+        print("#################### writing cdef_teem.h ...")
     with open('cdef_teem.h', 'w') as out:
+        out.write('/* NOTE: This file is automatically generated by build_teem.py.\n')
+        out.write(' * It is NOTE usable as a single teem.h header for all of Teem, because\n')
+        out.write(' * many hacky transformations have been to work with the limitations of the\n')
+        out.write(' * CFFI C parser, specifically, lacking C pre-processor (e.g., all #include\n')
+        out.write(' * directives have been removed).\n')
+        out.write(' * The top-level header for all of Teem is teem/meet.h\n')
         for hh in hdrs:
             out.write(f'/* =========== {hh} =========== */\n')
             with open(f'{iPath}/teem/{hh}') as hf:
@@ -287,20 +315,26 @@ def build(path):
                       libraries=['teem'],  # HEY? need png, z, etc?
                       include_dirs=[iPath],
                       library_dirs=[lPath],
+                      extra_compile_args=(['-DTEEM_BUILD_EXPERIMENTAL_LIBS'] if haveExpr else None),
 
                       # HEY?
                       # this module will only be used in this here directory
                       extra_link_args=['-Wl,-rpath,.'],
-
                       # HEY needed?
                       # https://docs.python.org/3/distutils/apiref.html#distutils.core.Extension
                       undef_macros = [ "NDEBUG" ], # keep asserts()
     )
     ## so that teem.py can call free()
     ffibld.cdef('extern void free(void *);')
+    if (verbose):
+        print("#################### reading cdef_teem.h ...")
     with open('cdef_teem.h', 'r') as file:
         ffibld.cdef(file.read())
+    if (verbose):
+        print("#################### compiling (slow!) ...")
     ffibld.compile(verbose=(verbose > 0))
+    if (verbose):
+        print("#################### ... done.")
 
 def parse_args():
     # https://docs.python.org/3/library/argparse.html
