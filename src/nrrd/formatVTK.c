@@ -97,7 +97,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
 #define GETLINE(what)                                                                   \
   do {                                                                                  \
-    ret = _nrrdOneLine(&llen, nio, file);                                               \
+    ret = nrrdOneLine(&llen, nio, file);                                                \
   } while (!ret && (1 == llen));                                                        \
   if (ret || !llen) {                                                                   \
     biffAddf(NRRD, "%s: couldn't get " #what " line", me);                              \

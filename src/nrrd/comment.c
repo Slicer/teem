@@ -32,7 +32,7 @@
 **
 ** This function does NOT use biff.
 */
-int
+int /* Biff: none */
 nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
   /* static const char me[]="nrrdCommentAdd";*/
   char *str;
@@ -97,7 +97,7 @@ nrrdCommentClear(Nrrd *nrrd) {
 **
 ** This does NOT use biff.
 */
-int
+int /* Biff: none */
 nrrdCommentCopy(Nrrd *nout, const Nrrd *nin) {
   /* static const char me[]="nrrdCommentCopy"; */
   int E;

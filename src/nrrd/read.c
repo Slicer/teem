@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2009--2019  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -62,7 +62,7 @@ _nrrdHeaderStringOneLine(NrrdIoState *nio) {
 }
 
 /*
-** _nrrdOneLine
+** nrrdOneLine
 **
 ** wrapper around airOneLine; does re-allocation of line buffer
 ** ("line") in the NrrdIoState if needed.  The return value semantics
@@ -71,12 +71,10 @@ _nrrdHeaderStringOneLine(NrrdIoState *nio) {
 ** something couldn't be allocated), *lenP is set to 0, and
 ** we return 1.  HITTING EOF IS NOT ACTUALLY AN ERROR, see code
 ** below.  Otherwise we return 0.
-**
-** Does use biff
 */
-int
-_nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
-  static const char me[] = "_nrrdOneLine";
+int /* Biff: 1 */
+nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
+  static const char me[] = "nrrdOneLine";
   char **line;
   airArray *mop, *lineArr;
   airPtrPtrUnion appu;
@@ -196,7 +194,7 @@ _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
 **
 ** NOTE: this assumes the checking that is done by _nrrdHeaderCheck
 */
-int
+int /* Biff: private 1 */
 _nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio, FILE *file) {
   static const char me[] = "_nrrdCalloc";
   size_t needDataSize;
@@ -236,16 +234,16 @@ _nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio, FILE *file) {
 ******** nrrdLineSkip
 **
 ** public for the sake of things like "unu make"
-** uses the NrrdIoState for its line buffer (used by _nrrdOneLine)
+** uses the NrrdIoState for its line buffer (used by nrrdOneLine)
 */
-int
+int /* Biff: 1 */
 nrrdLineSkip(FILE *dataFile, NrrdIoState *nio) {
   static const char me[] = "nrrdLineSkip";
   unsigned int lsi, skipRet;
 
   /* For compressed data: If you don't actually have ascii headers on
      top of your gzipped data then you will potentially huge lines
-     while _nrrdOneLine looks for line terminations.  Quoting Gordon:
+     while nrrdOneLine looks for line terminations.  Quoting Gordon:
      "Garbage in, Garbage out." */
 
   if (!(dataFile && nio)) {
@@ -254,7 +252,7 @@ nrrdLineSkip(FILE *dataFile, NrrdIoState *nio) {
   }
 
   for (lsi = 0; lsi < nio->lineSkip; lsi++) {
-    if (_nrrdOneLine(&skipRet, nio, dataFile)) {
+    if (nrrdOneLine(&skipRet, nio, dataFile)) {
       biffAddf(NRRD, "%s: error skipping line %u of %u", me, lsi + 1, nio->lineSkip);
       return 1;
     }
@@ -266,7 +264,7 @@ nrrdLineSkip(FILE *dataFile, NrrdIoState *nio) {
   return 0;
 }
 
-int
+int /* Biff: private 1 */
 _nrrdByteSkipSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio, long int byteSkip) {
   static const char me[] = "nrrdByteSkipSkip";
   int skipRet;
@@ -334,7 +332,7 @@ _nrrdByteSkipSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio, long int byteSki
 ** uses nio for information about how much data should actually be skipped
 ** with negative byteSkip
 */
-int
+int /* Biff: 1 */
 nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "nrrdByteSkip";
 
@@ -366,7 +364,7 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
 ** found. If (string), the headerStr-related fields in the _nio will
 ** be set/used
 */
-int
+static int /* Biff: static 1 */
 _nrrdRead(Nrrd *nrrd, FILE *file, const char *string, NrrdIoState *_nio) {
   static const char me[] = "_nrrdRead";
   unsigned int llen;
@@ -417,7 +415,7 @@ _nrrdRead(Nrrd *nrrd, FILE *file, const char *string, NrrdIoState *_nio) {
   /* tell the nio where to find the string to read from */
   nio->headerStringRead = string;
 
-  if (_nrrdOneLine(&llen, nio, file)) {
+  if (nrrdOneLine(&llen, nio, file)) {
     biffAddf(NRRD, "%s: error getting first line (containing \"magic\")", me);
     airMopError(mop);
     return 1;
@@ -498,7 +496,7 @@ _nrrdRead(Nrrd *nrrd, FILE *file, const char *string, NrrdIoState *_nio) {
 **
 ** now just a wrapper around _nrrdRead(); reads a NRRD from a FILE *
 */
-int
+int /* Biff: 1 */
 nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *_nio) {
   static const char me[] = "nrrdRead";
 
@@ -518,7 +516,7 @@ nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *_nio) {
 ** about using existing nrrd->data when possible applies, as does the
 ** action of nrrdStateGrayscaleImage3D
 */
-int
+int /* Biff: 1 */
 nrrdStringRead(Nrrd *nrrd, const char *string, NrrdIoState *_nio) {
   static const char me[] = "nrrdRead";
 
@@ -595,7 +593,7 @@ _nrrdSplitName(char **dirP, char **baseP, const char *name) {
 **    | read.c/nrrdRead
 **       | nio->format->read
 **       = formatNRRD.c/_nrrdFormatNRRD_read:
-**          | read.c/_nrrdOneLine
+**          | read.c/nrrdOneLine
 **          | parseNrrd.c/_nrrdReadNrrdParseField
 **          | parseNrrd.c/nrrdFieldInfoParse[]
 **          = parseNrrd.c/_nrrdReadNrrdParse_data_file
@@ -614,7 +612,7 @@ _nrrdSplitName(char **dirP, char **baseP, const char *name) {
 ** sneakiness: returns 2 if the reason for problem was a failed fopen().
 **
 */
-int /*Teem: biff if (ret) */
+int /* Biff: 1 */
 nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *nio) {
   static const char me[] = "nrrdLoad";
   FILE *file;
@@ -668,7 +666,7 @@ nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *nio) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdLoadMulti(Nrrd *const *nin, unsigned int ninLen, const char *fnameFormat,
               unsigned int numStart, NrrdIoState *nio) {
   static const char me[] = "nrrdLoadMulti";
@@ -680,7 +678,7 @@ nrrdLoadMulti(Nrrd *const *nin, unsigned int ninLen, const char *fnameFormat,
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!(_nrrdContainsPercentThisAndMore(fnameFormat, 'u'))) {
+  if (!(nrrdContainsPercentThisAndMore(fnameFormat, 'u'))) {
     biffAddf(NRRD,
              "%s: given format \"%s\" doesn't seem to "
              "have the \"%%u\" conversion specification to sprintf "

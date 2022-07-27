@@ -83,7 +83,7 @@ nrrdSpaceDimension(int space) {
 ** What to use to set space, when a value from nrrdSpace enum is known,
 ** or, to nullify all space-related information when passed nrrdSpaceUnknown
 */
-int
+int /* Biff: 1 */
 nrrdSpaceSet(Nrrd *nrrd, int space) {
   static const char me[] = "nrrdSpaceSet";
   unsigned axi, saxi;
@@ -120,7 +120,7 @@ nrrdSpaceSet(Nrrd *nrrd, int space) {
 ** What to use to set space, based on spaceDim alone (nrrd->space set to
 ** nrrdSpaceUnknown)
 */
-int
+int /* Biff: 1 */
 nrrdSpaceDimensionSet(Nrrd *nrrd, unsigned int spaceDim) {
   static const char me[] = "nrrdSpaceDimensionSet";
 
@@ -172,7 +172,7 @@ nrrdSpaceOriginGet(const Nrrd *nrrd, double vector[NRRD_SPACE_DIM_MAX]) {
 **
 ** returns 1 if there were problems, 0 otherwise
 */
-int
+int /* Biff: 1 */
 nrrdSpaceOriginSet(Nrrd *nrrd, const double *vector) {
   static const char me[] = "nrrdSpaceOriginSet";
   unsigned int sdi;
@@ -225,7 +225,7 @@ nrrdSpaceOriginSet(Nrrd *nrrd, const double *vector) {
 **
 ** nrrdOriginStatusOkay:           all is well
 */
-int
+int /* Biff: none */
 nrrdOriginCalculate(const Nrrd *nrrd, unsigned int *axisIdx, unsigned int axisIdxNum,
                     int defaultCenter, double *origin) {
   const NrrdAxisInfo *axis[NRRD_SPACE_DIM_MAX];
@@ -406,7 +406,7 @@ _nrrdContentGet(const Nrrd *nin) {
   return ret;
 }
 
-int
+int /* Biff: private 1 */
 _nrrdContentSet_nva(Nrrd *nout, const char *func, char *content, const char *format,
                     va_list arg) {
   static const char me[] = "_nrrdContentSet_nva";
@@ -443,7 +443,7 @@ _nrrdContentSet_nva(Nrrd *nout, const char *func, char *content, const char *for
   return 0;
 }
 
-int
+int /* Biff: private 1 */
 _nrrdContentSet_va(Nrrd *nout, const char *func, char *content, const char *format,
                    ...) {
   static const char me[] = "_nrrdContentSet_va";
@@ -473,7 +473,7 @@ _nrrdContentSet_va(Nrrd *nout, const char *func, char *content, const char *form
 ** Does the string allocation and some attempts at error detection.
 ** Does allow nout==nin, which requires some care.
 */
-int
+int /* Biff: 1 */
 nrrdContentSet_va(Nrrd *nout, const char *func, const Nrrd *nin, const char *format,
                   ...) {
   static const char me[] = "nrrdContentSet_va";
@@ -586,7 +586,7 @@ nrrdSpaceVecExists(unsigned int sdim, const double vec[NRRD_SPACE_DIM_MAX]) {
 ** The most important part of this is asserting the per-axis mutual
 ** exclusion of min/max/spacing/units versus using spaceDirection.
 */
-static int
+static int /* Biff: static 1?2 */
 _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheckSpaceInfo";
   unsigned int dd, ii;
@@ -1075,7 +1075,7 @@ int (*_nrrdFieldCheck[NRRD_FIELD_MAX + 1])(const Nrrd *, int useBiff) = {
   _nrrdFieldCheck_noop, /* data_file */
 };
 
-int
+int /* Biff: ?1 */
 _nrrdCheck(const Nrrd *nrrd, int checkData, int useBiff) {
   static const char me[] = "_nrrdCheck";
   int fi;
@@ -1112,7 +1112,7 @@ _nrrdCheck(const Nrrd *nrrd, int checkData, int useBiff) {
 ** but that is really only for testing sufficiency of information
 ** required to do the data reading.
 */
-int /*Teem: biff if (ret) */
+int /* Biff: 1 */
 nrrdCheck(const Nrrd *nrrd) {
   static const char me[] = "nrrdCheck";
 
@@ -1133,7 +1133,7 @@ nrrdCheck(const Nrrd *nrrd) {
 ** the same size, so that if they aren't, some descriptive (error) message
 ** can be generated according to useBiff
 */
-int /*Teem: biff?2 if (!ret) */
+int /* Biff: 0?3 */
 nrrdSameSize(const Nrrd *n1, const Nrrd *n2, int useBiff) {
   static const char me[] = "nrrdSameSize";
   unsigned int ai;
@@ -1367,7 +1367,7 @@ err:
 **
 ** returns 1 if all is okay, 0 if there is a problem
 */
-int /*Teem: biff if (!ret) */
+int /* Biff: 0 */
 nrrdSanity(void) {
   static const char me[] = "nrrdSanity";
   int aret, type;

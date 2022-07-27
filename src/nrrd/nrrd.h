@@ -250,7 +250,7 @@ typedef struct {
      is recognized as the beginning of this format */
   int (*contentStartsLike)(struct NrrdIoState_t *nio);
 
-  /* reader and writer */
+  /* reader and writer. Both are expected to use biff */
   int (*read)(FILE *file, Nrrd *nrrd, struct NrrdIoState_t *nio);
   int (*write)(FILE *file, const Nrrd *nrrd, struct NrrdIoState_t *nio);
 } NrrdFormat;
@@ -279,7 +279,8 @@ typedef struct NrrdEncoding_t {
     nrrd->axis[0].size: need for proper formatting of nrrdEncodingAscii
             nrrd->type: needed for nrrdEncodingAscii, since its action is
                         entirely parameterized by type
-       nrrd->blockSize: needed for nrrdElementSize in case of nrrdTypeBlock */
+       nrrd->blockSize: needed for nrrdElementSize in case of nrrdTypeBlock
+    Both read and write functions are expected to use biff. */
   int (*read)(FILE *file, void *data, size_t elementNum, Nrrd *nrrd,
               struct NrrdIoState_t *nio);
   int (*write)(FILE *file, const void *data, size_t elementNum, const Nrrd *nrrd,
@@ -990,7 +991,7 @@ NRRD_EXPORT const NrrdEncoding *const nrrdEncodingArray[NRRD_ENCODING_TYPE_MAX +
 NRRD_EXPORT int (*nrrdFieldInfoParse[NRRD_FIELD_MAX + 1])(FILE *file, Nrrd *nrrd,
                                                           NrrdIoState *nio, int useBiff);
 NRRD_EXPORT unsigned int _nrrdDataFNNumber(NrrdIoState *nio);
-NRRD_EXPORT int _nrrdContainsPercentThisAndMore(const char *str, char thss);
+NRRD_EXPORT int nrrdContainsPercentThisAndMore(const char *str, char thss);
 NRRD_EXPORT int _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff);
 /* ---- BEGIN non-NrrdIO */
 NRRD_EXPORT int nrrdSpaceVectorParse(double dir[NRRD_SPACE_DIM_MAX], const char *str,
@@ -1002,7 +1003,7 @@ NRRD_EXPORT size_t (*const nrrdStringValsParse[NRRD_TYPE_MAX + 1])(void *out,
                                                                    size_t n);
 
 /* read.c */
-NRRD_EXPORT int _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file);
+NRRD_EXPORT int nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file);
 NRRD_EXPORT int nrrdLineSkip(FILE *dataFile, NrrdIoState *nio);
 NRRD_EXPORT int nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio);
 NRRD_EXPORT int nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *nio);

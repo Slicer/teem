@@ -31,7 +31,7 @@ static const char *_unrrdu_headInfoL
           "determined manually, which always risks printing raw binary data "
           "(following the header) to screen, which tends to clobber terminal "
           "settings, make pointless beeps, and be annoying.\n "
-          "* Uses _nrrdOneLine");
+          "* Uses nrrdOneLine");
 
 int
 unrrdu_headDoit(const char *me, NrrdIoState *nio, char *inS, FILE *fout) {
@@ -47,7 +47,7 @@ unrrdu_headDoit(const char *me, NrrdIoState *nio, char *inS, FILE *fout) {
   }
   airMopAdd(mop, fin, (airMopper)airFclose, airMopAlways);
 
-  if (_nrrdOneLine(&len, nio, fin)) {
+  if (nrrdOneLine(&len, nio, fin)) {
     biffAddf(me, "%s: error getting first line of file \"%s\"", me, inS);
     airMopError(mop);
     return 1;
@@ -64,7 +64,7 @@ unrrdu_headDoit(const char *me, NrrdIoState *nio, char *inS, FILE *fout) {
   }
   while (len > 1) {
     fprintf(fout, "%s\n", nio->line);
-    _nrrdOneLine(&len, nio, fin);
+    nrrdOneLine(&len, nio, fin);
   };
 
   /* experience has shown that on at least windows and darwin, the writing

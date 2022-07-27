@@ -171,7 +171,7 @@ nrrdIoStateDataFileIterBegin(NrrdIoState *nio) {
 **
 ** NOTE: this should work okay with nio->headerStringRead, I think ...
 */
-int
+static int /* Biff: static */
 nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
   static const char me[] = "nrrdIoStateDataFileIterNext";
   char *fname = NULL;
@@ -366,7 +366,7 @@ _nrrdFormatNRRD_contentStartsLike(NrrdIoState *nio) {
 ** nrrdCheck(), because it includes I/O-specific stuff
 **
 */
-int
+int /* Biff: private */
 _nrrdHeaderCheck(Nrrd *nrrd, NrrdIoState *nio, int checkSeen) {
   static const char me[] = "_nrrdHeaderCheck";
   int i;
@@ -418,7 +418,7 @@ _nrrdHeaderCheck(Nrrd *nrrd, NrrdIoState *nio, int checkSeen) {
 ** NOTE: by giving a NULL "file", you can make this function basically
 ** do the work of reading in datafiles, without any header parsing
 */
-static int
+static int /* Biff: static */
 _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatNRRD_read";
   /* Dynamically allocated for space reasons. */
@@ -444,7 +444,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     /* parse all the header lines */
     do {
       nio->pos = 0;
-      if (_nrrdOneLine(&llen, nio, file)) {
+      if (nrrdOneLine(&llen, nio, file)) {
         biffAddf(NRRD, "%s: trouble getting line of header", me);
         return 1;
       }
@@ -598,7 +598,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   return 0;
 }
 
-static int
+static int /* Biff: static */
 _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatNRRD_write";
   char strbuf[AIR_STRLEN_MED], *strptr, *tmp;

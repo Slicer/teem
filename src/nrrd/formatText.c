@@ -169,7 +169,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
         return 1;
       }
     }
-    if (_nrrdOneLine(&llen, nio, file)) {
+    if (nrrdOneLine(&llen, nio, file)) {
       biffAddf(NRRD, "%s: error getting a line", me);
       UNSETTWO;
       return 1;
@@ -278,7 +278,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     }
     sy++;
     line++;
-    if (_nrrdOneLine(&llen, nio, file)) {
+    if (nrrdOneLine(&llen, nio, file)) {
       biffAddf(NRRD, "%s: error getting a line", me);
       UNSETTWO;
       return 1;

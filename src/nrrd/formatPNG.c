@@ -354,7 +354,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
          information is inappropriately specific to reading PNMs and NRRDs,
          since in this case the text from which we parse a nrrd field
          descriptor did NOT come from a line of text as read by
-         _nrrdOneLine */
+         nrrdOneLine */
       nio->line = (char *)airFree(nio->line);
       nio->line = airStrdup(txt[i].text);
       ret = _nrrdReadNrrdParseField(nio, AIR_FALSE);

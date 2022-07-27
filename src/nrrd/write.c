@@ -1044,7 +1044,7 @@ nrrdSaveMulti(const char *fnameFormat, const Nrrd *const *nin, unsigned int ninL
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
-  if (!(_nrrdContainsPercentThisAndMore(fnameFormat, 'u'))) {
+  if (!(nrrdContainsPercentThisAndMore(fnameFormat, 'u'))) {
     biffAddf(NRRD,
              "%s: given format \"%s\" doesn't seem to "
              "have the \"%%u\" conversion specification to sprintf "

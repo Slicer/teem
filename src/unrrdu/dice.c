@@ -92,8 +92,8 @@ unrrdu_diceMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   /* HEY: this should use nrrdSaveMulti(), and if there's additional
      smarts here, they should be moved into nrrdSaveMulti() */
   if (airStrlen(ftmpl)) {
-    if (!(_nrrdContainsPercentThisAndMore(ftmpl, 'd')
-          || _nrrdContainsPercentThisAndMore(ftmpl, 'u'))) {
+    if (!(nrrdContainsPercentThisAndMore(ftmpl, 'd')
+          || nrrdContainsPercentThisAndMore(ftmpl, 'u'))) {
       fprintf(stderr,
               "%s: given filename format \"%s\" doesn't seem to "
               "have the converstion specification to print an integer\n",

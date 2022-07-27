@@ -29,7 +29,7 @@
 **
 ** This is for parsing the stuff BEFORE the colon
 */
-int
+int /* Biff: private */
 _nrrdReadNrrdParseField(NrrdIoState *nio, int useBiff) {
   static const char me[] = "_nrrdReadNrrdParseField";
   char *next, *buff, *colon, *keysep;
@@ -516,7 +516,7 @@ _nrrdSpaceVectorParse(double val[NRRD_SPACE_DIM_MAX], char **hhP, unsigned int s
 ** vector to parse in a non-const string, this seems like a sane and
 ** minimal effort option
 */
-int
+int /* Biff: ?1 */
 nrrdSpaceVectorParse(double dir[NRRD_SPACE_DIM_MAX], const char *_str,
                      unsigned int spaceDim, int useBiff) {
   static const char me[] = "nrrdSpaceVectorParse";
@@ -1139,8 +1139,8 @@ _nrrdReadNrrdParse_measurement_frame(FILE *file, Nrrd *nrrd, NrrdIoState *nio,
   return 0;
 }
 
-int
-_nrrdContainsPercentThisAndMore(const char *str, char thss) {
+int /* Biff: none */
+nrrdContainsPercentThisAndMore(const char *str, char thss) {
   const char *hh, *tmp;
 
   tmp = str;
@@ -1165,7 +1165,7 @@ _nrrdContainsPercentThisAndMore(const char *str, char thss) {
   return !!hh;
 }
 
-unsigned int
+unsigned int /* Biff: none */
 _nrrdDataFNNumber(NrrdIoState *nio) {
   unsigned int ret;
   int ii;
@@ -1193,7 +1193,7 @@ _nrrdDataFNNumber(NrrdIoState *nio) {
 /*
 ** this always requires that the per-axis size fields have been set
 */
-int
+int /* Biff: ?1 */
 _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdDataFNCheck";
   size_t pieceSize, pieceNum;
@@ -1270,9 +1270,9 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd, NrrdIoState *nio, int useB
   airMopAdd(mop, info, airFree, airMopAlways);
 
   /* HEY: this change should be made someday
-  if (_nrrdContainsPercentThisAndMore(info, 'd')
-      || _nrrdContainsPercentThisAndMore(info, 'u')) { */
-  if (_nrrdContainsPercentThisAndMore(info, 'd')) {
+  if (nrrdContainsPercentThisAndMore(info, 'd')
+      || nrrdContainsPercentThisAndMore(info, 'u')) { */
+  if (nrrdContainsPercentThisAndMore(info, 'd')) {
     /* ---------------------------------------------------------- */
     /* --------- format.%d <min> <max> <step> [<dim>] ----------- */
     /* ---------------------------------------------------------- */
@@ -1375,7 +1375,7 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd, NrrdIoState *nio, int useB
     do {
       /* yes, nio->line is re-used/over-written here, but I don't
          think that's a problem */
-      if (_nrrdOneLine(&linelen, nio, ffile)) {
+      if (nrrdOneLine(&linelen, nio, ffile)) {
         biffMaybeAddf(useBiff, NRRD, "%s: trouble getting file name line %u", me,
                       lineidx);
         airMopError(mop);

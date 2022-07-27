@@ -26,7 +26,10 @@
 /* learned: C++ name mangling means that you can't simply declare the
    function as extern, you need to do the same extern "C" wrapping as
    is done in the header file
-*/
+
+   (but this became moot once _nrrdOneLine was added to nrrd.h
+    prior to being renamed nrrdOneLine)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,6 +37,7 @@ extern int _nrrdOneLine(unsigned int *lenP, NrrdIoState *io, FILE *file);
 #ifdef __cplusplus
 }
 #endif
+*/
 
 FILE *
 myopen(char *name) {
@@ -75,7 +79,7 @@ main(int argc, char *argv[]) {
   }
   io = nrrdIoStateNew();
   do {
-    if (_nrrdOneLine(&llen, io, file)) {
+    if (nrrdOneLine(&llen, io, file)) {
       fprintf(stderr, "%s: trouble:\n%s", me, biffGet(NRRD));
       exit(1);
     }

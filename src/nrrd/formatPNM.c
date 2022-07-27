@@ -150,7 +150,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   want = 3;
   while (got < want) {
     nio->pos = 0;
-    if (_nrrdOneLine(&llen, nio, file)) {
+    if (nrrdOneLine(&llen, nio, file)) {
       biffAddf(NRRD, "%s: failed to get line from PNM header", me);
       return 1;
     }

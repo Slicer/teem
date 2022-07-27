@@ -1223,7 +1223,7 @@ nrrdSpacingCalculate(const Nrrd *nrrd, unsigned int ax, double *spacing,
   return ret;
 }
 
-int
+int /* Biff: 1 */
 nrrdOrientationReduce(Nrrd *nout, const Nrrd *nin, int setMinsFromOrigin) {
   static const char me[] = "nrrdOrientationReduce";
   unsigned int spatialAxisNum, spatialAxisIdx[NRRD_DIM_MAX], saxii;
@@ -1268,7 +1268,7 @@ nrrdOrientationReduce(Nrrd *nout, const Nrrd *nin, int setMinsFromOrigin) {
 ** This function probably doesn't belong in this file, but it is kind
 ** the opposite of nrrdOrientationReduce (above), so here it is
 */
-int
+int /* Biff: 1 */
 nrrdMetaDataNormalize(Nrrd *nout, const Nrrd *nin, int version, int trivialOrient,
                       int permuteComponentAxisFastest, int recenterGrid,
                       double sampleSpacing, int *lostMeasurementFrame) {
