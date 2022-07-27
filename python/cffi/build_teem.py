@@ -35,15 +35,15 @@ libs = [
     {'name': 'biff',   'expr': False},
     {'name': 'nrrd',   'expr': False}, # also need: nrrdEnums.h nrrdDefines.h
     {'name': 'ell',    'expr': False}, # (don't need ellMacros.h)
-#    {'name': 'unrrdu', 'expr': False}, # FIXME (and check all following headers)
+    {'name': 'unrrdu', 'expr': False},
 #    {'name': 'alan',   'expr': True},
-#    {'name': 'moss',   'expr': False},
+    {'name': 'moss',   'expr': False},
 #    {'name': 'tijk',   'expr': True},
-#    {'name': 'gage',   'expr': False},
-#    {'name': 'dye',    'expr': False},
+    {'name': 'gage',   'expr': False},
+    {'name': 'dye',    'expr': False},
 #    {'name': 'bane',   'expr': True},
-#    {'name': 'limn',   'expr': False},
-#    {'name': 'echo',   'expr': False},
+    {'name': 'limn',   'expr': False},
+#    {'name': 'echo',   'expr': False}, # FIXME (and check all following headers)
 #    {'name': 'hoover', 'expr': False},
 #    {'name': 'seek',   'expr': False},
 #    {'name': 'ten',    'expr': False},
@@ -215,6 +215,8 @@ def hdrProc(out, hf, hn):
     if (hn == 'nrrd.h'):
         # drop control of nrrdResample_t (no effect on API)
         dropAt('#if 0 /* float == nrrdResample_t; */', 9, lines)
+    if (hn == 'unrrdu.h'):
+        lines.remove('UNRRDU_MAP(UNRRDU_DECLARE)')
     if (hn == 'limn.h'):
        lines.remove('LIMN_MAP(LIMN_DECLARE)')
     if (hn == 'echo.h'):
