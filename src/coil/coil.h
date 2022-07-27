@@ -62,14 +62,14 @@ extern "C" {
 ** 1: float
 */
 
-#if 0
-typedef double coil_t;
-#  define coil_nrrdType   nrrdTypeDouble
-#  define COIL_TYPE_FLOAT 0
-#else
+#if 1 /* float == coil_t */
 typedef float coil_t;
 #  define coil_nrrdType   nrrdTypeFloat
 #  define COIL_TYPE_FLOAT 1
+#else
+typedef double coil_t;
+#  define coil_nrrdType   nrrdTypeDouble
+#  define COIL_TYPE_FLOAT 0
 #endif
 
 /*
@@ -235,7 +235,6 @@ COIL_EXPORT const coilKind *coilKind7Tensor;
 
 /* realmethods.c */
 COIL_EXPORT const coilMethod *coilMethodTesting;
-COIL_EXPORT const coilMethod *coilMethodIsotropic;
 COIL_EXPORT const coilMethod *coilMethodArray[COIL_METHOD_TYPE_MAX + 1];
 
 /* methodsCoil.c (sorry, confusing name!) */
