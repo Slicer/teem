@@ -97,7 +97,7 @@ enum {
 ** 1: floats
 ** 0: doubles
 */
-#if 1
+#if 1 /* float == alan_t */
 typedef float alan_t;
 #  define alan_nt    nrrdTypeFloat
 #  define ALAN_FLOAT 1
@@ -171,7 +171,6 @@ ALAN_EXPORT const airEnum *const alanStop;
 /* coreAlan.c */
 ALAN_EXPORT int alanUpdate(alanContext *actx);
 ALAN_EXPORT int alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit);
-ALAN_EXPORT int alanPriorityParm(alanContext *actx, const Nrrd *npri);
 ALAN_EXPORT int alanRun(alanContext *actx);
 
 #ifdef __cplusplus
