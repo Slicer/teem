@@ -1,6 +1,8 @@
 # This variable will help provide a master list of all the sources.
 # Add new source files here.
-# NOTE that the lpu_*.c files are not included (no lpu from a CMake build)
+# NOTE: used to be that lpu_*.c files were not listed here, since the CMake
+# build didn't create the "lpu" utility.  However, with the July 2022 CFFI
+# work, had to ensure that libteem was consistent with headers
 set(LIMN_SOURCES
   cam.c
   defaultsLimn.c
@@ -25,6 +27,15 @@ set(LIMN_SOURCES
   splineMisc.c
   splineFit.c
   transform.c
+  lpuFlotsam.c
+  lpu_about.c
+  lpu_ccfind.c
+  lpu_psel.c
+  lpu_rast.c
+  lpu_verts.c
+  lpu_meas.c
+  lpu_sort.c
+  lpu_cbfit.c
   )
 
 target_sources(teem PRIVATE ${LIMN_SOURCES})
