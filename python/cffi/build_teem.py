@@ -43,16 +43,16 @@ libs = [
     {'name': 'dye',    'expr': False},
 #    {'name': 'bane',   'expr': True},
     {'name': 'limn',   'expr': False},
-#    {'name': 'echo',   'expr': False}, # FIXME (and check all following headers)
-#    {'name': 'hoover', 'expr': False},
-#    {'name': 'seek',   'expr': False},
-#    {'name': 'ten',    'expr': False},
+    {'name': 'echo',   'expr': False},
+    {'name': 'hoover', 'expr': False},
+    {'name': 'seek',   'expr': False},
+    {'name': 'ten',    'expr': False},
 #    {'name': 'elf',    'expr': True},
-#    {'name': 'pull',   'expr': False},
+    {'name': 'pull',   'expr': False},
 #    {'name': 'coil',   'expr': True},
 #    {'name': 'push',   'expr': True},
-#    {'name': 'mite',   'expr': False},
-#    {'name': 'meet',   'expr': False},
+    {'name': 'mite',   'expr': False},
+    {'name': 'meet',   'expr': False},
 ]
 
 def check_path(iPath, lPath):
@@ -162,9 +162,7 @@ def dropAtMatch(rgx, N, lines):
             break
     if (not found):
         raise Exception(f'found regex "{rgx}" nowhere in lines')
-    print(f'\n\nfound {rgx} at {idx}\n')
     for _ in range(N):
-        print(f'\n\n want to pop {lines[idx]}')
         lines.pop(idx)
     return idx
 
@@ -224,9 +222,8 @@ def hdrProc(out, hf, hn):
         lines.insert(idx, 'typedef float echoPos_t;')
         idx = dropAt('#if 1 /* float == echoCol_t */', 7, lines)
         lines.insert(idx, 'typedef float echoCol_t;')
-        # yikes, we're doing the work of the pre-processor here
-        dropAt('#define ECHO_OBJECT_MATTER                                                              \\',
-               5, lines)
+        # unmacro removed the multi-line ECHO_OBJECT_MATTER macro, but its contents are needed
+        # to complete the struct definitions (we're doing the pre-processor work)
         matdef = 'unsigned char matter; echoCol_t rgba[4]; echoCol_t mat[ECHO_MATTER_PARM_NUM]; Nrrd *ntext'
         lines = [L.replace('ECHO_OBJECT_MATTER', matdef) for L in lines]
     if (hn == 'ten.h'):
