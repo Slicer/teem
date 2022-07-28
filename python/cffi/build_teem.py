@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # halt if python2; thanks to https://preview.tinyurl.com/44f2beza
-x,*y=1,2 # NOTE: A SyntaxError means you need python3, not python2
-del x, y
+_x,*_y=1,2 # NOTE: A SyntaxError here means you need python3, not python2
+del _x, _y
 
 # useful/needed?
 # # given reliance on files in specific places; set cwd to directory containing this file
