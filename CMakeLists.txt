@@ -43,7 +43,7 @@ set(Teem_VERSION_STRING ${Teem_VERSION_MAJOR}.${Teem_VERSION_MINOR}.${Teem_VERSI
 
 # DESCRIPTION was added to set a project description in CMake 3.9
 project(Teem VERSION ${Teem_VERSION_STRING}
-        DESCRIPTION "Teem libraries developed by Gordon Kindlmann et. al."
+        DESCRIPTION "Teem libraries developed by Gordon Kindlmann et al."
         LANGUAGES C CXX)
 
 # specifying a search path for CMake modules to be loaded by the include() or find_package()
