@@ -23,7 +23,7 @@
 
 #include "meet.h"
 
-gageKind * /*Teem: error if (!ret) */
+gageKind *
 _meetGageKindParse(const char *_str, int constOnly) {
   char *str;
   gageKind *ret;
@@ -52,13 +52,13 @@ _meetGageKindParse(const char *_str, int constOnly) {
   return ret;
 }
 
-gageKind * /*Teem: error if (!ret) */
+gageKind *
 meetGageKindParse(const char *_str) {
 
   return _meetGageKindParse(_str, AIR_FALSE);
 }
 
-const gageKind * /*Teem: error if (!ret) */
+const gageKind *
 meetConstGageKindParse(const char *_str) {
 
   return _meetGageKindParse(_str, AIR_TRUE);
