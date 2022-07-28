@@ -26,7 +26,7 @@ cat > tab.txt
 (tab) (return)
 ^D
 
-find . -name \*.c -exec grep -f tab.txt {} /dev/null \; | more       for 1.13.0 PICK UP HERE                               
+find . -name \*.c -exec grep -f tab.txt {} /dev/null \; | more
 find . -name \*.h -exec grep -f tab.txt {} /dev/null \; | more
 find . -name \*.txt -exec grep -f tab.txt {} /dev/null \; | more
 rm -f tab.txt
@@ -34,7 +34,7 @@ rm -f tab.txt
 -1) finalize TEEM_VERSION* in air/air.h and airTeemReleaseDate in air/misc.c
 and set airTeemReleaseDone to AIR_TRUE
 
--0.5) regenerate teem/python/ctypes/teem.py
+-0.5) regenerate python wrappers in teem/python
 
 -0.25) regenerate NrrdIO
 
@@ -84,6 +84,7 @@ mv NrrdIO-${VERSION}-src.tar.gz ~/rel
 4) Checkout a tree:
 
 "make teem/install" on all platforms ...
+(actually this is ancient guidance, from before CMake)
 
 rapture/ray/muse:
 setenv TEEM_ARCH irix6.64
