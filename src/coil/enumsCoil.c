@@ -24,7 +24,7 @@
 #include "coil.h"
 
 /* clang-format off */
-const char *
+static const char *
 _coilMethodTypeStr[COIL_METHOD_TYPE_MAX+1] = {
   "(unknown_method)",
   "testing",
@@ -37,7 +37,7 @@ _coilMethodTypeStr[COIL_METHOD_TYPE_MAX+1] = {
   "finish"
 };
 
-const char *
+static const char *
 _coilMethodTypeDesc[COIL_METHOD_TYPE_MAX+1] = {
   "unknown_method",
   "nothing, actually, just here for testing",
@@ -50,7 +50,7 @@ _coilMethodTypeDesc[COIL_METHOD_TYPE_MAX+1] = {
   "finish a phd already"
 };
 
-const char *
+static const char *
 _coilMethodTypeStrEqv[] = {
   "test", "testing",
   "iso", "homog", "homogeneous",
@@ -63,7 +63,7 @@ _coilMethodTypeStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _coilMethodTypeValEqv[] = {
   coilMethodTypeTesting, coilMethodTypeTesting,
   coilMethodTypeHomogeneous, coilMethodTypeHomogeneous, coilMethodTypeHomogeneous,
@@ -75,7 +75,7 @@ _coilMethodTypeValEqv[] = {
   coilMethodTypeFinish,
 };
 
-const airEnum
+static const airEnum
 _coilMethodType = {
   "method",
   COIL_METHOD_TYPE_MAX,
@@ -89,7 +89,7 @@ coilMethodType = &_coilMethodType;
 
 /* -------------------------------------------------- */
 
-const char *
+static const char *
 _coilKindTypeStr[COIL_KIND_TYPE_MAX+1] = {
   "(unknown_kind)",
   "scalar",
@@ -97,7 +97,7 @@ _coilKindTypeStr[COIL_KIND_TYPE_MAX+1] = {
   "7tensor"
 };
 
-const char *
+static const char *
 _coilKindTypeDesc[COIL_KIND_TYPE_MAX+1] = {
   "unknown_kind",
   "plain old scalar quantities",
@@ -105,7 +105,7 @@ _coilKindTypeDesc[COIL_KIND_TYPE_MAX+1] = {
   "ten-style 7-valued tensor"
 };
 
-const char *
+static const char *
 _coilKindTypeStrEqv[] = {
   "scalar",
   "3color",
@@ -113,14 +113,14 @@ _coilKindTypeStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _coilKindTypeValEqv[] = {
   coilKindTypeScalar,
   coilKindType3Color,
   coilKindType7Tensor, coilKindType7Tensor
 };
 
-const airEnum
+static const airEnum
 _coilKindType = {
   "kind",
   COIL_KIND_TYPE_MAX,
