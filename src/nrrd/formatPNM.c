@@ -85,7 +85,7 @@ _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding, int useB
   return ret;
 }
 
-int
+static int
 _nrrdFormatPNM_contentStartsLike(NrrdIoState *nio) {
 
   return (!strcmp(MAGIC_P6, nio->line) || !strcmp(MAGIC_P5, nio->line)

@@ -24,7 +24,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-int /* HEY unsigned? */
+static int /* HEY unsigned? */
 _nrrdCM_median(const float *hist, float half) {
   float sum = 0;
   const float *hpt;
@@ -37,7 +37,7 @@ _nrrdCM_median(const float *hist, float half) {
   return AIR_INT(hpt - 1 - hist);
 }
 
-int
+static int
 _nrrdCM_mode(const float *hist, int bins) {
   float max;
   int i, mi;
@@ -57,7 +57,8 @@ _nrrdCM_mode(const float *hist, int bins) {
 #define INDEX(nin, range, lup, idxIn, bins, val)                                        \
   (val = (lup)((nin)->data, (idxIn)), airIndex((range)->min, (val), (range)->max, bins))
 
-void
+/* not currently used
+static void
 _nrrdCM_printhist(const float *hist, int bins, const char *desc) {
   int i;
 
@@ -68,8 +69,9 @@ _nrrdCM_printhist(const float *hist, int bins, const char *desc) {
     }
   }
 }
+*/
 
-float *
+static float *
 _nrrdCM_wtAlloc(int radius, float wght) {
   float *wt, sum;
   int diam, r;
@@ -96,7 +98,7 @@ _nrrdCM_wtAlloc(int radius, float wght) {
   return wt;
 }
 
-void
+static void
 _nrrdCheapMedian1D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, int radius,
                    float wght, int bins, int mode, float *hist) {
   /* static const char me[]="_nrrdCheapMedian1D"; */
@@ -147,7 +149,7 @@ _nrrdCheapMedian1D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, int radi
   }
 }
 
-void
+static void
 _nrrdCheapMedian2D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, int radius,
                    float wght, int bins, int mode, float *hist) {
   /* static const char me[]="_nrrdCheapMedian2D"; */
@@ -209,7 +211,7 @@ _nrrdCheapMedian2D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, int radi
   }
 }
 
-void
+static void
 _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, int radius,
                    float wght, int bins, int mode, float *hist) {
   static const char me[] = "_nrrdCheapMedian3D";
@@ -294,7 +296,7 @@ _nrrdCheapMedian3D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, int radi
 }
 
 /* HEY: total copy-and-paste from _nrrdCheapMedian3D */
-void
+static void
 _nrrdCheapMedian4D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, int radius,
                    float wght, int bins, int mode, float *hist) {
   static const char me[] = "_nrrdCheapMedian4D";

@@ -29,15 +29,16 @@
 ** defined and declared here, but which are NOT initialized, then
 ** C++ apps which are linking against Teem will have problems!!!
 ** This was first seen on the mac.
+** (much later) but these don't need to be globals!
 */
-int _nrrdCC_verb = 0;
-int _nrrdCC_EqvIncr = 10000; /* HEY: this has to be big so that ccfind is not
+static int _nrrdCC_verb = 0;
+static int _nrrdCC_EqvIncr = 10000; /* HEY: this has to be big so that ccfind is not
                                 stuck constantly re-allocating the eqv array.
                                 This is will be one of the best places to
                                 test the new multiplicative reallocation
                                 strategy, planned for Teem 2.0 */
 
-int
+static int
 _nrrdCCFind_1(Nrrd *nout, unsigned int *numid, const Nrrd *nin) {
   /* static const char me[]="_nrrdCCFind_1"; */
   unsigned int sx, I, id, lval, val, *out, (*lup)(const void *, size_t);
@@ -71,7 +72,7 @@ _nrrdCCFind_1(Nrrd *nout, unsigned int *numid, const Nrrd *nin) {
 **  |
 **  v Y
 */
-int
+static int
 _nrrdCCFind_2(Nrrd *nout, unsigned int *numid, airArray *eqvArr, const Nrrd *nin,
               unsigned int conny) {
   static const char me[] = "_nrrdCCFind_2";
@@ -163,7 +164,7 @@ _nrrdCCFind_2(Nrrd *nout, unsigned int *numid, airArray *eqvArr, const Nrrd *nin
 **  / 1  .  .  again, 0 index never used, for reasons forgotten
 ** Z  .  .  .
 */
-int
+static int
 _nrrdCCFind_3(Nrrd *nout, unsigned int *numid, airArray *eqvArr, const Nrrd *nin,
               unsigned int conny) {
   /* static const char me[]="_nrrdCCFind_3" ; */
@@ -249,7 +250,7 @@ _nrrdCCFind_3(Nrrd *nout, unsigned int *numid, airArray *eqvArr, const Nrrd *nin
   return 0;
 }
 
-int
+static int
 _nrrdCCFind_N(Nrrd *nout, unsigned int *numid, airArray *eqvArr, const Nrrd *nin,
               unsigned int conny) {
   static const char me[] = "_nrrdCCFind_N";
@@ -423,7 +424,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type, unsigned int con
   return 0;
 }
 
-int
+static int
 _nrrdCCAdj_1(unsigned char *out, int numid, const Nrrd *nin) {
 
   AIR_UNUSED(out);
@@ -432,7 +433,7 @@ _nrrdCCAdj_1(unsigned char *out, int numid, const Nrrd *nin) {
   return 0;
 }
 
-int
+static int
 _nrrdCCAdj_2(unsigned char *out, unsigned int numid, const Nrrd *nin,
              unsigned int conny) {
   unsigned int (*lup)(const void *, size_t), x, y, sx, sy, id = 0;
@@ -470,7 +471,7 @@ _nrrdCCAdj_2(unsigned char *out, unsigned int numid, const Nrrd *nin,
   return 0;
 }
 
-int
+static int
 _nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin, unsigned int conny) {
   unsigned int (*lup)(const void *, size_t), x, y, z, sx, sy, sz, id = 0;
   double pid[14] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -527,7 +528,7 @@ _nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin, unsigned int conny)
   return 0;
 }
 
-int
+static int
 _nrrdCCAdj_N(unsigned char *out, int numid, const Nrrd *nin, unsigned int conny) {
   static const char me[] = "_nrrdCCAdj_N";
 

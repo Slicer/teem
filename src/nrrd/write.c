@@ -749,7 +749,7 @@ _nrrdFprintFieldInfo(FILE *file, const char *prefix, const Nrrd *nrrd, NrrdIoSta
   return;
 }
 
-int
+static int
 _nrrdEncodingMaybeSet(NrrdIoState *nio) {
   static const char me[] = "_nrrdEncodingMaybeSet";
 
@@ -778,7 +778,7 @@ _nrrdEncodingMaybeSet(NrrdIoState *nio) {
 **
 ** we must set nio->format to something useful/non-trivial
 */
-int
+static int
 _nrrdFormatMaybeGuess(const Nrrd *nrrd, NrrdIoState *nio, const char *filename) {
   static const char me[] = "_nrrdFormatMaybeGuess";
   char mesg[AIR_STRLEN_MED];

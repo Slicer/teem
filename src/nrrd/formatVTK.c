@@ -28,19 +28,19 @@
 #define MAGIC2 "# vtk DataFile Version 2.0"
 #define MAGIC3 "# vtk DataFile Version 3.0"
 
-int
+static int
 _nrrdFormatVTK_available(void) {
 
   return AIR_TRUE;
 }
 
-int
+static int
 _nrrdFormatVTK_nameLooksLike(const char *fname) {
 
   return airEndsWith(fname, NRRD_EXT_VTK);
 }
 
-int
+static int
 _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding, int useBiff) {
   static const char me[] = "_nrrdFormatVTK_fitsInto";
 
@@ -74,14 +74,14 @@ _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding, int useB
   return AIR_TRUE;
 }
 
-int
+static int
 _nrrdFormatVTK_contentStartsLike(NrrdIoState *nio) {
 
   return (!strcmp(MAGIC1, nio->line) || !strcmp(MAGIC2, nio->line)
           || !strcmp(MAGIC3, nio->line));
 }
 
-int
+static int
 _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdReadVTK";
   char *three[3];
@@ -271,7 +271,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 }
 
 /* this strongly assumes that nrrdFitsInFormat() was true */
-int
+static int
 _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatVTK_write";
   int i, sax;
