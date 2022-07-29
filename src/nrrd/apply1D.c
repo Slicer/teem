@@ -84,7 +84,7 @@ _nrrdApplyDomainMax(const Nrrd *nmap, int ramps, int mapAxis) {
 ** The given NrrdRange has to be fleshed out by the caller: it can't
 ** be NULL, and both range->min and range->max must exist.
 */
-int
+static int
 _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, const Nrrd *nmap,
                   int kind, int typeOut, int rescale, int multi) {
   static const char me[] = "_nrrdApply1DSetUp";
@@ -284,7 +284,7 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, const Nrr
 ** or error handling based on nrrdStateDisallowIntegerNonExist, but
 ** there really should be.
 */
-int
+static int
 _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
                         const Nrrd *nmap, int ramps, int rescale, int multi) {
   static const char me[] = "_nrrdApply1DLutOrRegMap";

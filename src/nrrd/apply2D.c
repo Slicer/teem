@@ -42,7 +42,7 @@ enum {
 ** The given NrrdRange has to be fleshed out by the caller: it can't
 ** be NULL, and both range->min and range->max must exist.
 */
-int
+static int
 _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range0,
                   const NrrdRange *range1, const Nrrd *nmap, int kind, int typeOut,
                   int rescale0, int rescale1) {
@@ -201,7 +201,7 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range0,
 ** or error handling based on nrrdStateDisallowIntegerNonExist, but
 ** there really should be.
 */
-int
+static int
 _nrrdApply2DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range0,
                         const NrrdRange *range1, const Nrrd *nmap, int ramps,
                         int rescale0, int rescale1) {
