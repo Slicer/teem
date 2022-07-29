@@ -46,7 +46,7 @@ $(L).SEEN := true
 #### Describe library here
 ####
 ####
-$(L).NEED = ell nrrd biff air
+$(L).NEED = ell nrrd air
 $(L).PUBLIC_HEADERS = tijk.h
 $(L).PRIVATE_HEADERS = privateTijk.h shtables.h convertQuietPush.h convertQuietPop.h
 $(L).OBJS = 2dTijk.o 3dTijk.o approxTijk.o enumsTijk.o fsTijk.o miscTijk.o \
