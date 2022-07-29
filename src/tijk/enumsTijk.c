@@ -21,7 +21,7 @@
 /* clang-format off */
 #include "tijk.h"
 
-const char *
+static const char *
 _tijk_class_str[TIJK_CLASS_MAX+1] = {
   "(unknown_class)",
   "tensor",
@@ -29,7 +29,7 @@ _tijk_class_str[TIJK_CLASS_MAX+1] = {
   "efs",
 };
 
-const char *
+static const char *
 _tijk_class_desc[TIJK_CLASS_MAX+1] = {
   "unknown class",
   "tensor, specified by a tijk_type",
@@ -37,7 +37,7 @@ _tijk_class_desc[TIJK_CLASS_MAX+1] = {
   "even-order fourier series, specified by order",
 };
 
-const char *
+static const char *
 _tijk_class_str_eqv[] = {
   "tensor",
   "esh",
@@ -45,14 +45,14 @@ _tijk_class_str_eqv[] = {
   ""
 };
 
-int
+static int
 _tijk_class_val_eqv[] = {
   tijk_class_tensor,
   tijk_class_esh,
   tijk_class_efs,
 };
 
-airEnum
+static const airEnum
 _tijk_class_enum = {
   "class",
   TIJK_CLASS_MAX,

@@ -28,7 +28,7 @@
 
 /* for unsymmetric tensors */
 #define TIJK_TYPE_UNSYM(name, order, dim, num)           \
-  tijk_type                                              \
+  static const tijk_type                                 \
   _tijk_##name = {                                       \
     #name, order, dim, num,                              \
     NULL, NULL, NULL, NULL,                              \
@@ -44,7 +44,7 @@
 
 /* for partially symmetric and antisymmetric tensors */
 #define TIJK_TYPE(name, order, dim, num)                 \
-  tijk_type                                              \
+  static const tijk_type                                 \
   _tijk_##name = {                                       \
     #name, order, dim, num,                              \
     _tijk_##name##_mult, _tijk_##name##_unsym2uniq,      \
@@ -61,7 +61,7 @@
 
 /* for totally symmetric tensors */
 #define TIJK_TYPE_SYM(name, order, dim, num)                  \
-  tijk_sym_fun                                                \
+  static const tijk_sym_fun                                   \
   _tijk_sym_fun_##name = {                                    \
     _tijk_##name##_s_form_d, _tijk_##name##_s_form_f,         \
     _tijk_##name##_mean_d, _tijk_##name##_mean_f,             \
@@ -73,7 +73,7 @@
     _tijk_##name##_make_rank1_d, _tijk_##name##_make_rank1_f, \
     _tijk_##name##_make_iso_d, _tijk_##name##_make_iso_f      \
   };                                                          \
-  tijk_type                                                   \
+  static const tijk_type                                      \
   _tijk_##name = {                                            \
     #name, order, dim, num,                                   \
     _tijk_##name##_mult, _tijk_##name##_unsym2uniq,           \
