@@ -29,9 +29,9 @@
 
 #include "alan.h"
 
-int
+static int
 _alanCheck(alanContext *actx) {
-  static const char me[] = "alanCheck";
+  static const char me[] = "_alanCheck";
 
   if (!actx) {
     biffAddf(ALAN, "%s: got NULL pointer", me);
@@ -174,7 +174,7 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
   return 0;
 }
 
-int
+static int
 _alanPerIteration(alanContext *actx, int iter) {
   static const char me[] = "_alanPerIteration";
   char fname[AIR_STRLEN_MED];
@@ -219,7 +219,7 @@ typedef struct {
   void *me;
 } alanTask;
 
-void *
+static void *
 _alanTuringWorker(void *_task) {
   alan_t *tendata, *ten, react, conf, Dxx, Dxy, Dyy, /* Dxz, Dyz, */
     *tpx, *tmx, *tpy, *tmy,                          /* *tpz, *tmz, */
