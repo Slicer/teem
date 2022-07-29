@@ -24,9 +24,9 @@
 #include "bane.h"
 #include "privateBane.h"
 
-int
-_baneRangePositive_Answer(double *ominP, double *omaxP, double imin, double imax) {
-  static const char me[] = "_baneRangePositive_Answer";
+static int
+_rangePositive_Answer(double *ominP, double *omaxP, double imin, double imax) {
+  static const char me[] = "_rangePositive_Answer";
 
   if (!(AIR_EXISTS(imin) && AIR_EXISTS(imax))) {
     biffAddf(BANE, "%s: imin and imax don't both exist", me);
@@ -37,9 +37,9 @@ _baneRangePositive_Answer(double *ominP, double *omaxP, double imin, double imax
   return 0;
 }
 
-int
-_baneRangeNegative_Answer(double *ominP, double *omaxP, double imin, double imax) {
-  static const char me[] = "_baneRangeNegative_Answer";
+static int
+_rangeNegative_Answer(double *ominP, double *omaxP, double imin, double imax) {
+  static const char me[] = "_rangeNegative_Answer";
 
   if (!(AIR_EXISTS(imin) && AIR_EXISTS(imax))) {
     biffAddf(BANE, "%s: imin and imax don't both exist", me);
@@ -51,16 +51,16 @@ _baneRangeNegative_Answer(double *ominP, double *omaxP, double imin, double imax
 }
 
 /*
-** _baneRangeZeroCentered_Answer
+** _rangeZeroCentered_Answer
 **
 ** Unlike the last version of this function, this is conservative: we
 ** choose the smallest zero-centered range that includes the original
 ** min and max.  Previously the average of the min and max magnitude
 ** were used.
 */
-int
-_baneRangeZeroCentered_Answer(double *ominP, double *omaxP, double imin, double imax) {
-  static const char me[] = "_baneRangeZeroCentered_Answer";
+static int
+_rangeZeroCentered_Answer(double *ominP, double *omaxP, double imin, double imax) {
+  static const char me[] = "_rangeZeroCentered_Answer";
 
   if (!(AIR_EXISTS(imin) && AIR_EXISTS(imax))) {
     biffAddf(BANE, "%s: imin and imax don't both exist", me);
@@ -74,9 +74,9 @@ _baneRangeZeroCentered_Answer(double *ominP, double *omaxP, double imin, double 
   return 0;
 }
 
-int
-_baneRangeAnywhere_Answer(double *ominP, double *omaxP, double imin, double imax) {
-  static const char me[] = "_baneRangeAnywhere_Answer";
+static int
+_rangeAnywhere_Answer(double *ominP, double *omaxP, double imin, double imax) {
+  static const char me[] = "_rangeAnywhere_Answer";
 
   if (!(AIR_EXISTS(imin) && AIR_EXISTS(imax))) {
     biffAddf(BANE, "%s: imin and imax don't both exist", me);
@@ -106,19 +106,19 @@ baneRangeNew(int type) {
   switch (type) {
   case baneRangePositive:
     sprintf(range->name, "positive");
-    range->answer = _baneRangePositive_Answer;
+    range->answer = _rangePositive_Answer;
     break;
   case baneRangeNegative:
     sprintf(range->name, "negative");
-    range->answer = _baneRangeNegative_Answer;
+    range->answer = _rangeNegative_Answer;
     break;
   case baneRangeZeroCentered:
     sprintf(range->name, "zero-centered");
-    range->answer = _baneRangeZeroCentered_Answer;
+    range->answer = _rangeZeroCentered_Answer;
     break;
   case baneRangeAnywhere:
     sprintf(range->name, "anywhere");
-    range->answer = _baneRangeAnywhere_Answer;
+    range->answer = _rangeAnywhere_Answer;
     break;
   default:
     biffAddf(BANE, "%s: Sorry, baneRange %d not implemented", me, type);

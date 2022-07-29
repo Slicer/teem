@@ -37,8 +37,8 @@ Nrrd *baneNpos = NULL;
 float _baneTesting[256] = {0};
 
 float *
-_baneTRexRead(char *fname) {
-  char me[] = "_baneTRexRead";
+baneTRexRead(char *fname) {
+  char me[] = "baneTRexRead";
 
   if (nrrdLoad(baneNpos = nrrdNew(), fname, NULL)) {
     fprintf(stderr, "%s: !!! trouble reading \"%s\":\n%s\n", me, fname, biffGet(NRRD));
@@ -59,7 +59,7 @@ _baneTRexRead(char *fname) {
 }
 
 void
-_baneTRexDone() {
+baneTRexDone() {
 
   nrrdNuke(baneNpos);
 }

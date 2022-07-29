@@ -57,7 +57,7 @@ static const float _baneGkmsDonData[] = {
 #define PVG_HISTEQ_BINS 2048
 /* clang-format on */
 
-Nrrd *
+static Nrrd *
 _baneGkmsDonNew(int invert) {
   static const char me[] = "_baneGkmsDonNew";
   Nrrd *ret;

@@ -24,16 +24,16 @@
 #include "bane.h"
 #include "privateBane.h"
 
-int
-_baneClipAnswer_Absolute(int *countP, Nrrd *hvol, double *clipParm) {
+static int
+_clipAnswer_Absolute(int *countP, Nrrd *hvol, double *clipParm) {
 
   AIR_UNUSED(hvol);
   *countP = (int)(clipParm[0]);
   return 0;
 }
 
-int
-_baneClipAnswer_PeakRatio(int *countP, Nrrd *hvol, double *clipParm) {
+static int
+_clipAnswer_PeakRatio(int *countP, Nrrd *hvol, double *clipParm) {
   int *hits, maxhits;
   size_t idx, num;
 
@@ -48,9 +48,9 @@ _baneClipAnswer_PeakRatio(int *countP, Nrrd *hvol, double *clipParm) {
   return 0;
 }
 
-int
-_baneClipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
-  static const char me[] = "_baneClipAnswer_Percentile";
+static int
+_clipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
+  static const char me[] = "_clipAnswer_Percentile";
   Nrrd *ncopy;
   int *hits, clip;
   size_t num, sum, out, outsofar, hi;
@@ -79,9 +79,9 @@ _baneClipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
   return 0;
 }
 
-int
-_baneClipAnswer_TopN(int *countP, Nrrd *hvol, double *clipParm) {
-  static const char me[] = "_baneClipAnwer_TopN";
+static int
+_clipAnswer_TopN(int *countP, Nrrd *hvol, double *clipParm) {
+  static const char me[] = "_clipAnwer_TopN";
   Nrrd *copy;
   int *hits, tmp;
   size_t num;
@@ -127,19 +127,19 @@ baneClipNew(int type, double *parm) {
   switch (type) {
   case baneClipAbsolute:
     sprintf(clip->name, "absolute");
-    clip->answer = _baneClipAnswer_Absolute;
+    clip->answer = _clipAnswer_Absolute;
     break;
   case baneClipPeakRatio:
     sprintf(clip->name, "peak ratio");
-    clip->answer = _baneClipAnswer_PeakRatio;
+    clip->answer = _clipAnswer_PeakRatio;
     break;
   case baneClipPercentile:
     sprintf(clip->name, "percentile");
-    clip->answer = _baneClipAnswer_Percentile;
+    clip->answer = _clipAnswer_Percentile;
     break;
   case baneClipTopN:
     sprintf(clip->name, "top N");
-    clip->answer = _baneClipAnswer_TopN;
+    clip->answer = _clipAnswer_TopN;
     break;
   default:
     biffAddf(BANE, "%s: sorry, baneClip %d not implemented", me, type);

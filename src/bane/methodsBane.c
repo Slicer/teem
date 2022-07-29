@@ -26,16 +26,16 @@
 
 const int banePresent = 42;
 
-void
-_baneAxisInit(baneAxis *axis) {
+static void
+_axisInit(baneAxis *axis) {
 
   axis->res = 0;
   axis->measr = NULL;
   axis->inc = NULL;
 }
 
-void
-_baneAxisEmpty(baneAxis *axis) {
+static void
+_axisEmpty(baneAxis *axis) {
 
   axis->measr = baneMeasrNix(axis->measr);
   axis->inc = baneIncNix(axis->inc);
@@ -52,9 +52,9 @@ baneHVolParmNew() {
     hvp->makeMeasrVol = baneDefMakeMeasrVol;
     hvp->measrVol = NULL;
     hvp->measrVolDone = AIR_FALSE;
-    _baneAxisInit(hvp->axis + 0);
-    _baneAxisInit(hvp->axis + 1);
-    _baneAxisInit(hvp->axis + 2);
+    _axisInit(hvp->axis + 0);
+    _axisInit(hvp->axis + 1);
+    _axisInit(hvp->axis + 2);
     hvp->k3pack = AIR_TRUE;
     for (i = gageKernelUnknown + 1; i < gageKernelLast; i++) {
       hvp->k[i] = NULL;
@@ -73,7 +73,7 @@ baneHVolParmAxisSet(baneHVolParm *hvp, unsigned int axisIdx, unsigned int res,
                     baneMeasr *measr, baneInc *inc) {
 
   if (hvp && axisIdx <= 2) {
-    _baneAxisEmpty(hvp->axis + axisIdx);
+    _axisEmpty(hvp->axis + axisIdx);
     hvp->axis[axisIdx].res = res;
     hvp->axis[axisIdx].measr = baneMeasrCopy(measr);
     hvp->axis[axisIdx].inc = baneIncCopy(inc);
@@ -98,9 +98,9 @@ baneHVolParmNix(baneHVolParm *hvp) {
     if (hvp->measrVol) {
       nrrdNuke(hvp->measrVol);
     }
-    _baneAxisEmpty(hvp->axis + 0);
-    _baneAxisEmpty(hvp->axis + 1);
-    _baneAxisEmpty(hvp->axis + 2);
+    _axisEmpty(hvp->axis + 0);
+    _axisEmpty(hvp->axis + 1);
+    _axisEmpty(hvp->axis + 2);
     baneClipNix(hvp->clip);
     free(hvp);
   }

@@ -24,8 +24,8 @@
 #include "bane.h"
 #include "privateBane.h"
 
-void
-_baneIncProcess_LearnMinMax(baneInc *inc, double val) {
+static void
+_incProcess_LearnMinMax(baneInc *inc, double val) {
 
   if (AIR_EXISTS(inc->nhist->axis[0].min)) {
     /* then both min and max have seen at least one valid value */
@@ -35,14 +35,14 @@ _baneIncProcess_LearnMinMax(baneInc *inc, double val) {
     inc->nhist->axis[0].min = inc->nhist->axis[0].max = val;
   }
   /*
-  fprintf(stderr, "## _baneInc_LearnMinMax: (%g,%g)\n",
+  fprintf(stderr, "## _inc_LearnMinMax: (%g,%g)\n",
           inc->nhist->axis[0].min, inc->nhist->axis[0].max);
   */
   return;
 }
 
-void
-_baneIncProcess_Stdv(baneInc *inc, double val) {
+static void
+_incProcess_Stdv(baneInc *inc, double val) {
 
   inc->S += val;
   inc->SS += val * val;
@@ -50,15 +50,15 @@ _baneIncProcess_Stdv(baneInc *inc, double val) {
   return;
 }
 
-void
-_baneIncProcess_HistFill(baneInc *inc, double val) {
+static void
+_incProcess_HistFill(baneInc *inc, double val) {
   int *hist;
   unsigned int idx;
 
   idx = airIndex(inc->nhist->axis[0].min, val, inc->nhist->axis[0].max,
                  AIR_UINT(inc->nhist->axis[0].size));
   /*
-  fprintf(stderr, "## _baneInc_HistFill: (%g,%g,%g) %d ---> %d\n",
+  fprintf(stderr, "## _inc_HistFill: (%g,%g,%g) %d ---> %d\n",
           inc->nhist->axis[0].min, val, inc->nhist->axis[0].max,
           inc->nhist->axis[0].size, idx);
   */
@@ -70,14 +70,14 @@ _baneIncProcess_HistFill(baneInc *inc, double val) {
 }
 
 /*
-** _baneIncAnswer_Absolute
+** _incAnswer_Absolute
 **
 ** incParm[0]: new min
 ** incParm[1]: new max
 */
-int
-_baneIncAnswer_Absolute(double *minP, double *maxP, Nrrd *hist, double *incParm,
-                        baneRange *range) {
+static int
+_incAnswer_Absolute(double *minP, double *maxP, Nrrd *hist, double *incParm,
+                    baneRange *range) {
   AIR_UNUSED(hist);
   AIR_UNUSED(range);
   *minP = incParm[0];
@@ -86,15 +86,15 @@ _baneIncAnswer_Absolute(double *minP, double *maxP, Nrrd *hist, double *incParm,
 }
 
 /*
-** _baneIncAnswer_RangeRatio
+** _incAnswer_RangeRatio
 **
 ** incParm[0]: scales the size of the range after it has been
 ** sent through the associated range function.
 */
-int
-_baneIncAnswer_RangeRatio(double *minP, double *maxP, Nrrd *hist, double *incParm,
-                          baneRange *range) {
-  static const char me[] = "_baneIncAnwer_RangeRatio";
+static int
+_incAnswer_RangeRatio(double *minP, double *maxP, Nrrd *hist, double *incParm,
+                      baneRange *range) {
+  static const char me[] = "_incAnwer_RangeRatio";
   double mid;
 
   if (range->answer(minP, maxP, hist->axis[0].min, hist->axis[0].max)) {
@@ -114,17 +114,17 @@ _baneIncAnswer_RangeRatio(double *minP, double *maxP, Nrrd *hist, double *incPar
 }
 
 /*
-** _baneIncAnswer_Percentile
+** _incAnswer_Percentile
 **
 ** incParm[0]: resolution of histogram generated
 ** incParm[1]: PERCENT of hits to throw away, by nibbling away at
 ** lower and upper ends of range, in a manner dependant on the
 ** range type
 */
-int
-_baneIncAnswer_Percentile(double *minP, double *maxP, Nrrd *nhist, double *incParm,
-                          baneRange *range) {
-  static const char me[] = "_baneIncAnswer_Percentile";
+static int
+_incAnswer_Percentile(double *minP, double *maxP, Nrrd *nhist, double *incParm,
+                      baneRange *range) {
+  static const char me[] = "_incAnswer_Percentile";
   int *hist, i, histSize, sum;
   float minIncr, maxIncr, out, outsofar, mid, minIdx, maxIdx;
   double min, max;
@@ -207,13 +207,13 @@ _baneIncAnswer_Percentile(double *minP, double *maxP, Nrrd *nhist, double *incPa
 }
 
 /*
-** _baneIncAnswer_Stdv()
+** _incAnswer_Stdv()
 **
 ** incParm[0]: range is standard deviation times this
 */
-int
-_baneIncAnswer_Stdv(double *minP, double *maxP, Nrrd *hist, double *incParm,
-                    baneRange *range) {
+static int
+_incAnswer_Stdv(double *minP, double *maxP, Nrrd *hist, double *incParm,
+                baneRange *range) {
   float SS, stdv, mid, mean, width;
   int count;
 
@@ -222,7 +222,7 @@ _baneIncAnswer_Stdv(double *minP, double *maxP, Nrrd *hist, double *incParm,
   SS = AIR_FLOAT(hist->axis[1].max / count);
   stdv = AIR_FLOAT(sqrt(SS - mean * mean));
   width = AIR_FLOAT(incParm[0] * stdv);
-  fprintf(stderr, "##%s: mean=%g, stdv=%g --> width=%g\n", "_baneIncAnswer_Stdv", mean,
+  fprintf(stderr, "##%s: mean=%g, stdv=%g --> width=%g\n", "_incAnswer_Stdv", mean,
           stdv, width);
   switch (range->type) {
   case baneRangePositive:
@@ -290,7 +290,7 @@ baneIncNew(int type, baneRange *range, double *parm) {
     inc->parm[1] = parm[1]; /* enforced max */
     inc->process[0] = NULL;
     inc->process[1] = NULL;
-    inc->answer = _baneIncAnswer_Absolute;
+    inc->answer = _incAnswer_Absolute;
     break;
     /* --------------------------------------------------------- */
   case baneIncRangeRatio:
@@ -303,8 +303,8 @@ baneIncNew(int type, baneRange *range, double *parm) {
     }
     inc->parm[0] = parm[0]; /* scaling on range */
     inc->process[0] = NULL;
-    inc->process[1] = _baneIncProcess_LearnMinMax;
-    inc->answer = _baneIncAnswer_RangeRatio;
+    inc->process[1] = _incProcess_LearnMinMax;
+    inc->answer = _incAnswer_RangeRatio;
     break;
     /* --------------------------------------------------------- */
   case baneIncPercentile:
@@ -322,9 +322,9 @@ baneIncNew(int type, baneRange *range, double *parm) {
       return NULL;
     }
     inc->parm[1] = parm[1]; /* percentile to exclude */
-    inc->process[0] = _baneIncProcess_LearnMinMax;
-    inc->process[1] = _baneIncProcess_HistFill;
-    inc->answer = _baneIncAnswer_Percentile;
+    inc->process[0] = _incProcess_LearnMinMax;
+    inc->process[1] = _incProcess_HistFill;
+    inc->answer = _incAnswer_Percentile;
     break;
     /* --------------------------------------------------------- */
   case baneIncStdv:
@@ -337,8 +337,8 @@ baneIncNew(int type, baneRange *range, double *parm) {
     }
     inc->parm[0] = parm[0]; /* multiple of standard dev to use */
     inc->process[0] = NULL;
-    inc->process[1] = _baneIncProcess_Stdv;
-    inc->answer = _baneIncAnswer_Stdv;
+    inc->process[1] = _incProcess_Stdv;
+    inc->answer = _incAnswer_Stdv;
     break;
     /* --------------------------------------------------------- */
   default:

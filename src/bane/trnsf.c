@@ -190,9 +190,9 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   return 0;
 }
 
-int
-_baneSigmaCalc1D(float *sP, Nrrd *info1D) {
-  static const char me[] = "_baneSigmaCalc1D";
+static int
+sigmaCalc1D(float *sP, Nrrd *info1D) {
+  static const char me[] = "sigmaCalc1D";
   int i, len;
   float maxg, maxh, minh, *data;
 
@@ -243,7 +243,7 @@ baneSigmaCalc(float *sP, Nrrd *_info) {
   } else {
     info = _info;
   }
-  if (_baneSigmaCalc1D(sP, info)) {
+  if (sigmaCalc1D(sP, info)) {
     biffAddf(BANE, "%s: trouble calculating sigma", me);
     return 1;
   }
@@ -322,8 +322,8 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
 }
 
 void
-_baneOpacCalcA(unsigned int lutLen, float *opacLut, unsigned int numCpts, float *xo,
-               float *pos) {
+baneOpacCalcA(unsigned int lutLen, float *opacLut, unsigned int numCpts, float *xo,
+              float *pos) {
   unsigned int i, j;
   float p;
 
@@ -355,9 +355,9 @@ _baneOpacCalcA(unsigned int lutLen, float *opacLut, unsigned int numCpts, float 
 }
 
 void
-_baneOpacCalcB(unsigned int lutLen, float *opacLut, unsigned int numCpts, float *x,
-               float *o, float *pos) {
-  /* static const char me[]="_baneOpacCalcB"; */
+baneOpacCalcB(unsigned int lutLen, float *opacLut, unsigned int numCpts, float *x,
+              float *o, float *pos) {
+  /* static const char me[]="baneOpacCalcB"; */
   unsigned int i, j;
   double p, op;
 
@@ -435,7 +435,7 @@ baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos) {
     bdata = (float *)Bcpts->data;
     pdata = (float *)pos->data;
     npts = AIR_INT(Bcpts->axis[1].size); /* HEY should be unsigned */
-    _baneOpacCalcA(len, odata, npts, bdata, pdata);
+    baneOpacCalcA(len, odata, npts, bdata, pdata);
   } else {
     sv = AIR_INT(pos->axis[0].size); /* HEY should be unsigned */
     sg = AIR_INT(pos->axis[1].size); /* HEY should be unsigned */
@@ -452,7 +452,7 @@ baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos) {
     bdata = (float *)Bcpts->data;
     pdata = (float *)pos->data;
     npts = AIR_INT(Bcpts->axis[1].size); /* HEY should be unsigned */
-    _baneOpacCalcA(sv * sg, odata, npts, bdata, pdata);
+    baneOpacCalcA(sv * sg, odata, npts, bdata, pdata);
   }
   return 0;
 }
