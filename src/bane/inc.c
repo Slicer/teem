@@ -222,8 +222,8 @@ _incAnswer_Stdv(double *minP, double *maxP, Nrrd *hist, double *incParm,
   SS = AIR_FLOAT(hist->axis[1].max / count);
   stdv = AIR_FLOAT(sqrt(SS - mean * mean));
   width = AIR_FLOAT(incParm[0] * stdv);
-  fprintf(stderr, "##%s: mean=%g, stdv=%g --> width=%g\n", "_incAnswer_Stdv", mean,
-          stdv, width);
+  fprintf(stderr, "##%s: mean=%g, stdv=%g --> width=%g\n", "_incAnswer_Stdv", mean, stdv,
+          width);
   switch (range->type) {
   case baneRangePositive:
     *minP = 0;

@@ -30,7 +30,7 @@ static const char *_unrrdu_dhistoInfoL
      ". With \"-nolog\", this becomes a quick & dirty way of plotting a function.\n "
      "* Uses nrrdHistoDraw");
 
-static  int
+static int
 unrrdu_dhistoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

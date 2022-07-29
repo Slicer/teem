@@ -357,10 +357,10 @@ BANE_EXPORT int baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr);
 BANE_EXPORT int bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D);
 BANE_EXPORT int baneSigmaCalc(float *sP, Nrrd *info);
 BANE_EXPORT int banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info);
-BANE_EXPORT void baneOpacCalcA(unsigned int lutLen, float *opacLut,
-                               unsigned int numCpts, float *xo, float *pos);
-BANE_EXPORT void baneOpacCalcB(unsigned int lutLen, float *opacLut,
-                               unsigned int numCpts, float *x, float *o, float *pos);
+BANE_EXPORT void baneOpacCalcA(unsigned int lutLen, float *opacLut, unsigned int numCpts,
+                               float *xo, float *pos);
+BANE_EXPORT void baneOpacCalcB(unsigned int lutLen, float *opacLut, unsigned int numCpts,
+                               float *x, float *o, float *pos);
 BANE_EXPORT int baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos);
 
 /* trex.c */

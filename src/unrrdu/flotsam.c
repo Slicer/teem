@@ -445,8 +445,7 @@ parseBits(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-const hestCB unrrduHestBitsCB = {sizeof(int), "quantization bits", parseBits,
-                                 NULL};
+const hestCB unrrduHestBitsCB = {sizeof(int), "quantization bits", parseBits, NULL};
 
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
@@ -530,8 +529,7 @@ parseScale(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-const hestCB unrrduHestScaleCB = {2 * sizeof(double),
-                                  "sampling/scaling specification",
+const hestCB unrrduHestScaleCB = {2 * sizeof(double), "sampling/scaling specification",
                                   parseScale, NULL};
 
 /* --------------------------------------------------------- */
@@ -658,8 +656,7 @@ parseEncoding(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-const hestCB unrrduHestEncodingCB = {3 * sizeof(int), "encoding", parseEncoding,
-                                     NULL};
+const hestCB unrrduHestEncodingCB = {3 * sizeof(int), "encoding", parseEncoding, NULL};
 
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
