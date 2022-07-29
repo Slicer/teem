@@ -827,7 +827,7 @@ _nrrdFormatPNGsRGBIntentStr[NRRD_FORMAT_PNG_SRGB_INTENT_NUM+1] = {
   "none"
 };
 
-int
+static int
 _nrrdFormatPNGsRGBIntentVal[NRRD_FORMAT_PNG_SRGB_INTENT_NUM+1] = {
   nrrdFormatPNGsRGBIntentUnknown,    /* -1: nobody knows */
   /* it is true and perhaps odd that we aren't using the values like
@@ -854,7 +854,7 @@ _nrrdFormatPNGsRGBIntentStrEqv[] = {
   ""
 };
 
-int
+static int
 _nrrdFormatPNGsRGBIntentValEqv[] = {
   nrrdFormatPNGsRGBIntentPerceptual, nrrdFormatPNGsRGBIntentPerceptual, nrrdFormatPNGsRGBIntentPerceptual,
   nrrdFormatPNGsRGBIntentRelative,   nrrdFormatPNGsRGBIntentRelative,   nrrdFormatPNGsRGBIntentRelative,
