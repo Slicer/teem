@@ -24,7 +24,8 @@
 #include "coil.h"
 /* clang-format off */
 
-void
+/* ?? this function isn't used
+static void
 _coilKind7TensorTangents(coil_t traceGrad[6],
                          coil_t varianceGrad[6],
                          coil_t skewGrad[6],
@@ -40,7 +41,6 @@ _coilKind7TensorTangents(coil_t traceGrad[6],
   AIR_UNUSED(rot1Grad);
   AIR_UNUSED(rot2Grad);
   AIR_UNUSED(tensor);
-  /*
   coil_t a, b, c, d, e, f;
 
   a = tensor[1];
@@ -50,10 +50,10 @@ _coilKind7TensorTangents(coil_t traceGrad[6],
   e = tensor[5];
   f = tensor[6];
   ELL_6V_SET(traceGrad, 1, 0, 0, 1, 0, 1);
-  */
 }
+*/
 
-void
+static void
 _coilKind7TensorFilterTesting(coil_t *delta,
                               int xi, int yi, int zi,
                               coil_t **iv3, double spacing[3],
@@ -129,7 +129,7 @@ _coilKind7TensorFilterTesting(coil_t *delta,
    + rspsqY*(IND(iv3, vi, 1, 0, 1) - 2*IND(iv3, vi, 1, 1, 1) + IND(iv3, vi, 1, 2, 1)) \
    + rspsqZ*(IND(iv3, vi, 1, 1, 0) - 2*IND(iv3, vi, 1, 1, 1) + IND(iv3, vi, 1, 1, 2)))
 
-void
+static void
 _coilKind7TensorFilterHomogeneous(coil_t *delta,
                                   int xi, int yi, int zi,
                                   coil_t **iv3, double spacing[3],
@@ -171,7 +171,7 @@ _coilKind7TensorFilterHomogeneous(coil_t *delta,
 /*
 ** watch out for false advertising!
 */
-void
+static void
 _coilKind7TensorFilterSelf(coil_t *delta,
                            int xi, int yi, int zi,
                            coil_t **iv3, double spacing[3],
@@ -199,7 +199,7 @@ _coilKind7TensorFilterSelf(coil_t *delta,
   HESS(hess, iv3, 6, rspX, rspY, rspZ); delta[6] = lin*parm0*tens[0]*TEN_T_DOT(hess, tens);
 }
 
-void
+static void
 _coilKind7TensorFilterFinish(coil_t *delta,
                              int xi, int yi, int zi,
                              coil_t **iv3, double spacing[3],
@@ -259,7 +259,7 @@ _coilKind7TensorFilterFinish(coil_t *delta,
   delta[6]= AIR_CAST(coil_t, parm[0]*cnd*LAPL(iv3, 6, rspsqX, rspsqY, rspsqZ));
 }
 
-void
+static void
 _coilKind7TensorUpdate(coil_t *val, coil_t *delta) {
 
   val[0] += delta[0]; /* WARNING: this could change confidence! */
@@ -271,7 +271,7 @@ _coilKind7TensorUpdate(coil_t *val, coil_t *delta) {
   val[6] += delta[6];
 }
 
-const coilKind
+const coilKind /* NOT static! */
 _coilKind7Tensor = {
   "tensor",
   7,
@@ -287,6 +287,6 @@ _coilKind7Tensor = {
   _coilKind7TensorUpdate
 };
 
-const coilKind *
+const coilKind *const
 coilKind7Tensor = &_coilKind7Tensor;
 /* clang-format on */

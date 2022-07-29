@@ -67,7 +67,7 @@
 **
 ** this should be parameterized on both radius and valLen
 */
-void
+static void
 _coilIv3Fill_R_L(coil_t **iv3, coil_t *here, unsigned int radius, int valLen, int xx0,
                  int yy0, int zz0, int sizeX, int sizeY, int sizeZ) {
   int diam, vi,    /* value index */
@@ -80,7 +80,7 @@ _coilIv3Fill_R_L(coil_t **iv3, coil_t *here, unsigned int radius, int valLen, in
   return;
 }
 
-void
+static void
 _coilIv3Fill_1_1(coil_t **iv3, coil_t *here, unsigned int radius, int valLen, int xx0,
                  int yy0, int zz0, int sizeX, int sizeY, int sizeZ) {
   int vi,          /* value index */
@@ -95,7 +95,7 @@ _coilIv3Fill_1_1(coil_t **iv3, coil_t *here, unsigned int radius, int valLen, in
   return;
 }
 
-void
+static void
 _coilIv3Fill_1_7(coil_t **iv3, coil_t *here, unsigned int radius, int valLen, int xx0,
                  int yy0, int zz0, int sizeX, int sizeY, int sizeZ) {
   int vi,          /* value index */
@@ -110,7 +110,7 @@ _coilIv3Fill_1_7(coil_t **iv3, coil_t *here, unsigned int radius, int valLen, in
   return;
 }
 
-unsigned int
+static unsigned int
 _coilThisZGet(coilTask *task, int doFilter) {
   int *thisFlag, *thatFlag;
   unsigned int thisZ;
@@ -145,7 +145,7 @@ _coilThisZGet(coilTask *task, int doFilter) {
   return thisZ;
 }
 
-void
+static void
 _coilProcess(coilTask *task, int doFilter) {
   static const char me[] = "_coilProcess";
   unsigned int xi, yi, sizeX, sizeY, thisZ, sizeZ, valLen, radius;
@@ -202,7 +202,7 @@ _coilProcess(coilTask *task, int doFilter) {
   return;
 }
 
-coilTask *
+static coilTask *
 _coilTaskNew(coilContext *cctx, int threadIdx) {
   coilTask *task;
   int len, diam, xi;
@@ -231,7 +231,7 @@ _coilTaskNew(coilContext *cctx, int threadIdx) {
   return task;
 }
 
-coilTask *
+static coilTask *
 _coilTaskNix(coilTask *task) {
 
   if (task) {
@@ -243,7 +243,7 @@ _coilTaskNix(coilTask *task) {
   return NULL;
 }
 
-void *
+static void *
 _coilWorker(void *_task) {
   static const char me[] = "_coilWorker";
   coilTask *task;

@@ -38,7 +38,7 @@
 **           [0][8]  [1][8]  [2][8]
 */
 
-coil_t
+static coil_t
 _coilLaplacian3(coil_t **iv3, double spacing[3]) {
   double ret;
 
@@ -48,7 +48,7 @@ _coilLaplacian3(coil_t **iv3, double spacing[3]) {
   return AIR_CAST(coil_t, ret);
 }
 
-void
+static void
 _coilKindScalarFilterTesting(coil_t *delta,
                              int xi, int yi, int zi,
                              coil_t **iv3, double spacing[3],
@@ -62,7 +62,7 @@ _coilKindScalarFilterTesting(coil_t *delta,
   delta[0] = 0;
 }
 
-void
+static void
 _coilKindScalarFilterHomogeneous(coil_t *delta,
                                  int xi, int yi, int zi,
                                  coil_t **iv3, double spacing[3],
@@ -74,7 +74,7 @@ _coilKindScalarFilterHomogeneous(coil_t *delta,
   delta[0] = AIR_CAST(coil_t, parm[0])*_coilLaplacian3(iv3, spacing);
 }
 
-void
+static void
 _coilKindScalar3x3x3Gradients(coil_t *forwX, coil_t *backX,
                               coil_t *forwY, coil_t *backY,
                               coil_t *forwZ, coil_t *backZ,
@@ -116,7 +116,7 @@ _coilKindScalar3x3x3Gradients(coil_t *forwX, coil_t *backX,
   AIR_CAST(coil_t, 1.0/(1.0 + (LL)/(KK)))
 */
 
-void
+static void
 _coilKindScalarFilterPeronaMalik(coil_t *delta,
                                  int xi, int yi, int zi,
                                  coil_t **iv3, double spacing[3],
@@ -159,7 +159,7 @@ _coilKindScalarFilterPeronaMalik(coil_t *delta,
 **   0    1    2   (3)
 ** step   K  lerp (lerp=1: all laplacian)
 */
-void
+static void
 _coilKindScalarFilterModifiedCurvature(coil_t *delta,
                                        int xi, int yi, int zi,
                                        coil_t **iv3, double spacing[3],
@@ -246,7 +246,7 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta,
 **   0      1      2     3       4      5      (6)
 ** step  K_perp  K_tan  lerp  X_ring  Y_ring
 */
-void
+static void
 _coilKindScalarFilterModifiedCurvatureRings(coil_t *delta,
                                             int xi, int yi, int zi,
                                             coil_t **iv3, double spacing[3],
@@ -316,13 +316,13 @@ _coilKindScalarFilterModifiedCurvatureRings(coil_t *delta,
   delta[0] *= AIR_CAST(coil_t, parm[0]);
 }
 
-void
+static void
 _coilKindScalarUpdate(coil_t *val, coil_t *delta) {
 
   val[0] += delta[0];
 }
 
-const coilKind
+const coilKind /* NOT static */
 _coilKindScalar = {
   "scalar",
   1,
@@ -338,7 +338,7 @@ _coilKindScalar = {
   _coilKindScalarUpdate
 };
 
-const coilKind *
+const coilKind *const
 coilKindScalar = &_coilKindScalar;
 
 /* ------------------------------------------ */
