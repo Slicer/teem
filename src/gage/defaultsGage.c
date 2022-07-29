@@ -24,7 +24,7 @@
 #include "gage.h"
 #include "privateGage.h"
 
-const char *gageBiffKey = "gage";
+const char *const gageBiffKey = "gage";
 
 int gageDefVerbose = 0;
 

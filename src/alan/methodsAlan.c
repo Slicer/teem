@@ -25,7 +25,7 @@
 
 const int alanPresent = 42;
 
-const char *alanBiffKey = "alan";
+const char *const alanBiffKey = "alan";
 
 void
 alanContextInit(alanContext *actx) {

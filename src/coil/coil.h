@@ -217,7 +217,7 @@ typedef struct coilContext_t {
 
 /* defaultsCoil.c */
 COIL_EXPORT const int coilPresent;
-COIL_EXPORT const char *coilBiffKey;
+COIL_EXPORT const char *const coilBiffKey;
 COIL_EXPORT int coilDefaultRadius;
 COIL_EXPORT int coilVerbose;
 

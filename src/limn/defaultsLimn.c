@@ -25,7 +25,7 @@
 
 const int limnPresent = 42;
 
-const char *limnBiffKey = "limn";
+const char *const limnBiffKey = "limn";
 
 int limnDefCameraAtRelative = AIR_FALSE;
 int limnDefCameraOrthographic = AIR_FALSE;

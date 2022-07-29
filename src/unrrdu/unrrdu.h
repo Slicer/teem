@@ -218,7 +218,7 @@ enum {
 
 /* flotsam.c */
 UNRRDU_EXPORT const int unrrduPresent;
-UNRRDU_EXPORT const char *unrrduBiffKey;
+UNRRDU_EXPORT const char *const unrrduBiffKey;
 UNRRDU_EXPORT unsigned int unrrduDefNumColumns;
 UNRRDU_EXPORT int unrrduCmdMain(int argc, const char **argv, const char *cmd,
                                 const char *title, const unrrduCmd *const *cmdList,

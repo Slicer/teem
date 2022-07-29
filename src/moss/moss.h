@@ -92,7 +92,7 @@ typedef struct {
 } mossSampler;
 
 /* defaultsMoss.c */
-MOSS_EXPORT const char *mossBiffKey;
+MOSS_EXPORT const char *const mossBiffKey;
 MOSS_EXPORT int mossDefCenter;
 
 /* methodsMoss.c */

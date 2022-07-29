@@ -899,7 +899,7 @@ NRRD_EXPORT int nrrdMetaDataNormalize(Nrrd *nout, const Nrrd *nin, int version,
 
 /******** simple things */
 /* simple.c */
-NRRD_EXPORT const char *nrrdBiffKey;
+NRRD_EXPORT const char *const nrrdBiffKey;
 NRRD_EXPORT unsigned int nrrdSpaceDimension(int space);
 NRRD_EXPORT int nrrdSpaceSet(Nrrd *nrrd, int space);
 NRRD_EXPORT int nrrdSpaceDimensionSet(Nrrd *nrrd, unsigned int spaceDim);

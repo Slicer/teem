@@ -290,7 +290,7 @@ typedef struct {
 } baneHVolParm;
 
 /* defaultsBane.c */
-BANE_EXPORT const char *baneBiffKey;
+BANE_EXPORT const char *const baneBiffKey;
 BANE_EXPORT int baneDefVerbose;
 BANE_EXPORT int baneDefMakeMeasrVol;
 BANE_EXPORT double baneDefIncLimit;

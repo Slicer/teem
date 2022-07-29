@@ -32,4 +32,4 @@ const int pullPhistEnabled = 1;
 const int pullPhistEnabled = 0;
 #endif
 
-const char *pullBiffKey = "pull";
+const char *const pullBiffKey = "pull";

@@ -108,7 +108,7 @@ enum {
 
 /* miscEll.c */
 ELL_EXPORT const int ellPresent;
-ELL_EXPORT const char *ell_biff_key;
+ELL_EXPORT const char *const ell_biff_key;
 ELL_EXPORT const airEnum *const ell_quadratic_root;
 ELL_EXPORT const airEnum *const ell_cubic_root;
 ELL_EXPORT int ell_debug;

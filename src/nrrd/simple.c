@@ -28,7 +28,7 @@
 
 /* The "/ *Teem:" (without space) comments in here are an experiment */
 
-const char *nrrdBiffKey = "nrrd";
+const char *const nrrdBiffKey = "nrrd";
 
 /*
 ******** nrrdSpaceDimension

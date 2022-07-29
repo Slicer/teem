@@ -268,7 +268,7 @@ typedef union {
 
 /* defaultsPush.c */
 PUSH_EXPORT const int pushPresent;
-PUSH_EXPORT const char *pushBiffKey;
+PUSH_EXPORT const char *const pushBiffKey;
 
 /* methodsPush.c */
 PUSH_EXPORT pushPoint *pushPointNew(pushContext *pctx);

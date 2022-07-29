@@ -1041,7 +1041,7 @@ typedef struct {
 } gageOptimSigContext;
 
 /* defaultsGage.c */
-GAGE_EXPORT const char *gageBiffKey;
+GAGE_EXPORT const char *const gageBiffKey;
 GAGE_EXPORT int gageDefVerbose;
 GAGE_EXPORT double gageDefGradMagCurvMin;
 GAGE_EXPORT int gageDefRenormalize;

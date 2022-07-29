@@ -26,7 +26,7 @@
 
 const int tenPresent = 42;
 
-const char *tenBiffKey = "ten";
+const char *const tenBiffKey = "ten";
 
 const char tenDefFiberKernel[] = "cubic:0,0.5";
 

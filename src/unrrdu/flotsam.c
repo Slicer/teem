@@ -28,7 +28,7 @@
 
 const int unrrduPresent = 42;
 
-const char *unrrduBiffKey = "unrrdu";
+const char *const unrrduBiffKey = "unrrdu";
 
 /* number of columns that hest will used */
 unsigned int unrrduDefNumColumns = 78;

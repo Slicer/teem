@@ -25,7 +25,7 @@
 
 const int meetPresent = 42;
 
-const char *meetBiffKey = "meet";
+const char *const meetBiffKey = "meet";
 
 typedef union {
   const airEnum ***enm;

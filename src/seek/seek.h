@@ -189,7 +189,7 @@ typedef struct {
 } seekContext;
 
 /* enumsSeek.c */
-SEEK_EXPORT const char *seekBiffKey;
+SEEK_EXPORT const char *const seekBiffKey;
 SEEK_EXPORT const airEnum *const seekType;
 
 /* tables.c */

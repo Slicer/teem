@@ -26,6 +26,6 @@
 
 const int pushPresent = 42;
 
-const char *pushBiffKey = "push";
+const char *const pushBiffKey = "push";
 
 int _pushVerbose = 0;

@@ -1017,7 +1017,7 @@ typedef union {
 /* defaultsPull.c */
 PULL_EXPORT const int pullPresent;
 PULL_EXPORT const int pullPhistEnabled;
-PULL_EXPORT const char *pullBiffKey;
+PULL_EXPORT const char *const pullBiffKey;
 
 /* initPull.c */
 PULL_EXPORT int pullInitRandomSet(pullContext *pctx, unsigned int numInitial);

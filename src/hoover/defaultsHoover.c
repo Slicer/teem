@@ -25,7 +25,7 @@
 
 const int hooverPresent = 42;
 
-const char *hooverBiffKey = "hoover";
+const char *const hooverBiffKey = "hoover";
 int hooverDefVolCentering = nrrdCenterNode;
 int hooverDefImgCentering = nrrdCenterCell;
 

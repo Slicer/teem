@@ -25,7 +25,7 @@
 
 const int dyePresent = 42;
 
-const char *dyeBiffKey = "dye";
+const char *const dyeBiffKey = "dye";
 
 /* clang-format off */
 const char *

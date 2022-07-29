@@ -30,7 +30,7 @@
 */
 const int ellPresent = 42;
 
-const char *ell_biff_key = "ell";
+const char *const ell_biff_key = "ell";
 
 /*
 ******** ell_debug

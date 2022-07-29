@@ -26,7 +26,7 @@
 
 const int echoPresent = 42;
 
-const char *echoBiffKey = "echo";
+const char *const echoBiffKey = "echo";
 
 echoRTParm *
 echoRTParmNew(void) {

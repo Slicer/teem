@@ -25,7 +25,7 @@
 
 const int coilPresent = 42;
 
-const char *coilBiffKey = "coil";
+const char *const coilBiffKey = "coil";
 
 int coilDefaultRadius = 1;
 

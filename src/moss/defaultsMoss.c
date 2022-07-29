@@ -24,7 +24,7 @@
 #include "moss.h"
 #include "privateMoss.h"
 
-const char *mossBiffKey = "moss";
+const char *const mossBiffKey = "moss";
 
 /* must be a valid centering (nrrdCenterCell or nrrdCenterNode) */
 int mossDefCenter = nrrdCenterCell;

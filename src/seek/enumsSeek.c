@@ -23,7 +23,7 @@
 
 #include "seek.h"
 
-const char *seekBiffKey = "seek";
+const char *const seekBiffKey = "seek";
 
 /* clang-format off */
 const char *

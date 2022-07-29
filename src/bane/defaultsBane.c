@@ -23,7 +23,7 @@
 
 #include "bane.h"
 
-const char *baneBiffKey = "bane";
+const char *const baneBiffKey = "bane";
 
 int baneDefVerbose = 0;
 

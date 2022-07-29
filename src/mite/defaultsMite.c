@@ -26,7 +26,7 @@
 
 const int mitePresent = 42;
 
-const char *miteBiffKey = "mite";
+const char *const miteBiffKey = "mite";
 
 double miteDefRefStep = 0.01;
 
