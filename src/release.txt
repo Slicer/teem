@@ -34,6 +34,8 @@ rm -f tab.txt
 -1) finalize TEEM_VERSION* in air/air.h and airTeemReleaseDate in air/misc.c
 and set airTeemReleaseDone to AIR_TRUE
 
+-0.75) make sure all code has been clang-format'd
+
 -0.5) regenerate python wrappers in teem/python
 
 -0.25) regenerate NrrdIO
