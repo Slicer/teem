@@ -33,7 +33,7 @@ static const char *_tend_evqInfoL
           "anisotropy, the length of the vector (pre-quantization) is modulated "
           "by anisotropy, requiring the selection of some anisotropy metric.");
 
-int
+static int
 tend_evqMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

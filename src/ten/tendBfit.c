@@ -30,7 +30,7 @@ static const char *_tend_bfitInfoL
           "non-linear least-squares fit of amp*exp(-b*dec) to the range of DWI "
           "values along input axis 0, as a function of changing b values.  ");
 
-int
+static int
 tend_bfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

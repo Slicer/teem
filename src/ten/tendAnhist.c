@@ -30,7 +30,7 @@ static const char *_tend_anhistInfoL
           "triple of spherical, linear, and planar anisotropy.  The bin "
           "counts in the histogram are weighted by the confidence value.");
 
-int
+static int
 tend_anhistMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

@@ -29,7 +29,7 @@ static const char *_tend_avgInfoL
   = (INFO ".  The output is the same size as the any one of the inputs. "
           "The individual tensors may be averaged in various ways.");
 
-int
+static int
 tend_avgMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

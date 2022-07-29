@@ -27,7 +27,7 @@
 #define INFO "Describe everything about one sample in a DT volume"
 static const char *_tend_pointInfoL = (INFO ". ");
 
-int
+static int
 tend_pointMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

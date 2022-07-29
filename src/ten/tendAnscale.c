@@ -32,7 +32,7 @@ static const char *_tend_anscaleInfoL
           "of the tensor.  Good for exaggerating the shape of nearly isotropic "
           "tensors.");
 
-int
+static int
 tend_anscaleMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

@@ -43,7 +43,7 @@ static const char *_tend_helixInfoL
           "right-handed helix, as if the the tensor field is modeling the result "
           "if twisting a set of fibers into single-stranded helical bundle. ");
 
-void
+static void
 tend_helixDoit(Nrrd *nout, double bnd, double orig[3], double i2w[9], double mf[9],
                double r, double R, double S, double angle, int incrtwist, double ev[3],
                double bgEval, int verbose) {
@@ -149,7 +149,7 @@ tend_helixDoit(Nrrd *nout, double bnd, double orig[3], double i2w[9], double mf[
   return;
 }
 
-int
+static int
 tend_helixMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

@@ -44,9 +44,10 @@ const char *const tendTitle = "tend: Diffusion Image Processing and Analysis";
 ** info[1]: 1st parameter associated with stop method (always used)
 ** info[2]: 2nd parameter, used occasionally
 */
-int
-tendFiberStopParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "tenFiberStopParse", *str, *opt, *opt2;
+static int
+fiberStopParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "fiberStopParse";
+  char *str, *opt, *opt2;
   double *info;
   airArray *mop;
   int integer;
@@ -144,7 +145,7 @@ tendFiberStopParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-const hestCB _tendFiberStopCB = {3 * sizeof(double), "fiber stop", tendFiberStopParse,
+const hestCB _tendFiberStopCB = {3 * sizeof(double), "fiber stop", fiberStopParse,
                                  NULL};
 
 const hestCB *const tendFiberStopCB = &_tendFiberStopCB;

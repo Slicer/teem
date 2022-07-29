@@ -35,7 +35,7 @@ static const char *_tend_expandInfoL
           "threshold. For images of 2D tensors, the conversion is from "
           "(conf, Dxx, Dxy, Dyy) to (Dxx, Dxy, Dxy, Dyy). ");
 
-int
+static int
 tend_expandMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

@@ -98,7 +98,7 @@ _tendGlyphReadCams(int imgSize[2], limnCamera **camP, unsigned int *numCamsP,
   return 0;
 }
 
-int
+static int
 tend_glyphMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret, doRT = AIR_FALSE;
   hestOpt *hopt = NULL;

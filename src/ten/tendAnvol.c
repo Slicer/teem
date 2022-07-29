@@ -29,7 +29,7 @@ static const char *_tend_anvolInfoL
   = (INFO ".  The anisotropy value will be zero in the locations which "
           "don't meet the given confidence threshold.");
 
-int
+static int
 tend_anvolMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

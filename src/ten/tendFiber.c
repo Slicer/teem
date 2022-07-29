@@ -28,7 +28,7 @@
 static const char *_tend_fiberInfoL
   = (INFO ".  A fairly complete command-line interface to the tenFiber API.");
 
-int
+static int
 tend_fiberMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

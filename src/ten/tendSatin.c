@@ -29,7 +29,7 @@ static const char *_tend_satinInfoL
   = (INFO ".  The surface of a sphere or torus is covered with either linear or "
           "planar anisotropic tensors, or somewhere in between.");
 
-void
+static void
 tend_satinSphereEigen(float *eval, float *evec, float x, float y, float z, float parm,
                       float mina, float maxa, float thick, float bnd, float evsc) {
   float aniso, bound1, bound2, r, norm, tmp[3];
@@ -66,7 +66,7 @@ tend_satinSphereEigen(float *eval, float *evec, float x, float y, float z, float
   return;
 }
 
-void
+static void
 tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z, float parm,
                      float mina, float maxa, float thick, float bnd, float evsc) {
   float bound, R, r, norm, out[3], up[3], aniso;
@@ -107,7 +107,7 @@ tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z, float 
   return;
 }
 
-int
+static int
 tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize, float thick,
               float scaling, float bnd, float bndRm, float evsc, int torus) {
   static const char me[] = "tend_satinGen";
@@ -180,7 +180,7 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize, float t
   return 0;
 }
 
-int
+static int
 tend_satinMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

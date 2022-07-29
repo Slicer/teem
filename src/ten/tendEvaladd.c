@@ -30,7 +30,7 @@ static const char *_tend_evaladdInfoL
           "\"tend anscale\", this operation can completely change the shape "
           "of the tensor.");
 
-int
+static int
 tend_evaladdMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

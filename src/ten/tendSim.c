@@ -35,7 +35,7 @@ static const char *_tend_simInfoL
           "the given gradients or B-matrices are already expressed in that "
           "measurement frame. ");
 
-int
+static int
 tend_simMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

@@ -27,7 +27,7 @@
 #define INFO "Slice 3D tensors to get slab/image of 3D/2D  tensors"
 static const char *_tend_sliceInfoL = (INFO ". ");
 
-int
+static int
 tend_sliceMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

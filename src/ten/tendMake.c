@@ -30,7 +30,7 @@ static const char *_tend_makeInfoL
           "values (3D), one for eigenvalues (4D, three evals per voxel), and "
           "one for eigenvectors (4D, nine evec components per voxel).");
 
-int
+static int
 tend_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

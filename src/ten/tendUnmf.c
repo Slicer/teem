@@ -31,7 +31,7 @@ static const char *_tend_unmfInfoL
           "tensors to convert them into world space, and remove the measurement "
           "frame from the nrrd.");
 
-int
+static int
 tend_unmfMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

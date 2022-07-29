@@ -36,7 +36,7 @@ static const char *_tend_epiregInfoL
           "The registered DWIs are resampled with the "
           "chosen kernel, with the separate DWIs stacked along axis 0.");
 
-int
+static int
 tend_epiregMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret, rret;
   hestOpt *hopt = NULL;

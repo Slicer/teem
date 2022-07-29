@@ -28,7 +28,7 @@
 static const char *_tend_expInfoL = (INFO
                                      ", which is based on exp() of the eigenvalues.");
 
-int
+static int
 tend_expMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

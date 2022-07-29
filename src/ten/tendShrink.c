@@ -29,7 +29,7 @@ static const char *_tend_shrinkInfoL
   = (INFO ". The confidence value is set to 1.0 everwhere.  You can \"unu splice\" "
           "or nrrdSplice() something else in its place later.");
 
-int
+static int
 tend_shrinkMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

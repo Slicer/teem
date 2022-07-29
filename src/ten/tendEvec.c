@@ -27,7 +27,7 @@
 #define INFO "Calculate one or more eigenvectors in a DT volume"
 static const char *_tend_evecInfoL = (INFO ". ");
 
-int
+static int
 tend_evecMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

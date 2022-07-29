@@ -27,7 +27,7 @@
 #define INFO "Make an RGB volume from an eigenvector and an anisotropy"
 static const char *_tend_evecrgbInfoL = (INFO ". ");
 
-int
+static int
 tend_evecrgbMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

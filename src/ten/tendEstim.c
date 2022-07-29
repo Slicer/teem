@@ -33,7 +33,7 @@ static const char *_tend_estimInfoL
           "tensor, based on a soft thresholding of the sum of all the DWIs, "
           "according to the threshold and softness parameters. ");
 
-int
+static int
 tend_estimMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

@@ -35,7 +35,7 @@ static const char *_tend_anplotInfoL
           "teem/src/limntest/triimg) to transform the domain into an equilateral "
           "triangle.");
 
-int
+static int
 tend_anplotMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

@@ -27,7 +27,7 @@
 #define INFO "Estimate models from a set of DW images"
 static const char *_tend_mfitInfoL = (INFO ". More docs here.");
 
-int
+static int
 tend_mfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

@@ -29,7 +29,7 @@ static const char *_tend_tconvInfoL
   = (INFO ".  The triples can be eignvalues, invariants (J, K, R), "
           "and lots of other things.");
 
-int
+static int
 tend_tconvMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

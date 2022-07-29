@@ -30,7 +30,7 @@ static const char *_tend_normInfoL
           "normalizing some user-defined weighting (\"-w\") of the eigenvalues by "
           "some user-defined amount (\"-a\").");
 
-int
+static int
 tend_normMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

@@ -29,7 +29,7 @@ static const char *_tend_tripleInfoL
   = (INFO ".  The triple can be eignvalues, invariants (J, K, R), "
           "and lots of other things.");
 
-int
+static int
 tend_tripleMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

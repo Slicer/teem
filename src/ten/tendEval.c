@@ -27,7 +27,7 @@
 #define INFO "Calculate one or more eigenvalues in a DT volume"
 static const char *_tend_evalInfoL = (INFO ". ");
 
-int
+static int
 tend_evalMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret, map[4];
   hestOpt *hopt = NULL;

@@ -27,7 +27,7 @@
 #define INFO "Generate postscript renderings of 2D glyphs"
 static const char *_tend_ellipseInfoL = (INFO ".  Not much to look at here.");
 
-int
+static int
 tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn, float min[2],
                  float max[2], float gscale, float dotRad, float lineWidth,
                  float cthresh, int invert) {
@@ -203,7 +203,7 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn, float min[2],
   return 0;
 }
 
-int
+static int
 tend_ellipseMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

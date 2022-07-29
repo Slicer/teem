@@ -37,7 +37,7 @@ static const char *_tend_bmatInfoL
           "ordering Bxx, Bxy, Bxz, Byy, Byz, Bzz, and with the off-diagonal "
           "elements NOT pre-multiplied by 2.");
 
-int
+static int
 tend_bmatMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

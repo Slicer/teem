@@ -27,7 +27,7 @@
 #define INFO "convert from one model to another"
 static const char *_tend_mconvInfoL = (INFO ". More docs here.");
 
-int
+static int
 tend_mconvMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;

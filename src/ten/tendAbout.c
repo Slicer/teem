@@ -26,7 +26,7 @@
 
 #define INFO "Information about this program and its use"
 
-int
+static int
 tend_aboutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_MED];
   char par1[] = "\t\t\t\t"

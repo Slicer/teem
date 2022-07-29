@@ -38,7 +38,7 @@ static const char *_tend_gradsInfoL
           "doesn't seem to be finishing in a reasonable amount of time, try "
           "restarting with a different \"-seed\".");
 
-int
+static int
 tend_gradsMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
