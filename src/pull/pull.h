@@ -1072,7 +1072,7 @@ PULL_EXPORT void pullEnergySpecSet(pullEnergySpec *ensp,
 PULL_EXPORT void pullEnergySpecCopy(pullEnergySpec *esDst, const pullEnergySpec *esSrc);
 PULL_EXPORT pullEnergySpec *pullEnergySpecNix(pullEnergySpec *ensp);
 PULL_EXPORT int pullEnergySpecParse(pullEnergySpec *ensp, const char *str);
-PULL_EXPORT hestCB *pullHestEnergySpec;
+PULL_EXPORT const hestCB *const pullHestEnergySpec;
 
 /* volumePull.c */
 PULL_EXPORT pullVolume *pullVolumeNew(void);
