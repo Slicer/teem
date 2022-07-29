@@ -32,9 +32,9 @@ static const char *_unrrdu_envInfoL = (INFO
                                        "* Uses nrrdGetenvBool, nrrdGetenvEnum, "
                                        "nrrdGetenvInt, and nrrdGetenvUInt");
 
-void
-_unrrdu_envBool(FILE *file, const char *envKey, int currVal, const char *varName,
-                const char *desc, int columns) {
+static void
+envBool(FILE *file, const char *envKey, int currVal, const char *varName,
+        const char *desc, int columns) {
   int val, ret;
   char *envVal;
 
@@ -65,9 +65,9 @@ _unrrdu_envBool(FILE *file, const char *envKey, int currVal, const char *varName
   fprintf(file, "\n");
 }
 
-void
-_unrrdu_envEnum(FILE *file, const airEnum *enm, const char *envKey, int currVal,
-                const char *varName, const char *desc, int columns) {
+static void
+envEnum(FILE *file, const airEnum *enm, const char *envKey, int currVal,
+        const char *varName, const char *desc, int columns) {
   int val, ret;
   char *envVal;
 
@@ -100,9 +100,9 @@ _unrrdu_envEnum(FILE *file, const airEnum *enm, const char *envKey, int currVal,
   /* !!! HEY: CUT + PASTE !!! */
 }
 
-void
-_unrrdu_envInt(FILE *file, const char *envKey, int currVal, const char *varName,
-               const char *desc, int columns) {
+static void
+envInt(FILE *file, const char *envKey, int currVal, const char *varName,
+       const char *desc, int columns) {
   int val, ret;
   char *envVal;
 
@@ -134,9 +134,9 @@ _unrrdu_envInt(FILE *file, const char *envKey, int currVal, const char *varName,
   /* !!! HEY: CUT + PASTE !!! */
 }
 
-void
-_unrrdu_envUInt(FILE *file, const char *envKey, unsigned int currVal,
-                const char *varName, const char *desc, int columns) {
+static void
+envUInt(FILE *file, const char *envKey, unsigned int currVal, const char *varName,
+        const char *desc, int columns) {
   int ret;
   unsigned int val;
   char *envVal;
@@ -223,115 +223,115 @@ unrrdu_envMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   }
   fprintf(out, "\n");
 
-  _unrrdu_envBool(out,
-                  nrrdEnvVarStateKeyValuePairsPropagate,
-                  nrrdStateKeyValuePairsPropagate,
-                  "nrrdStateKeyValuePairsPropagate",
-                  "When true, key/value pairs are copied from input "
-                  "nrrd to output nrrd just like other basic info that hasn't "
-                  "just been modified (e.g. type, dimension, block size).",
-                  hparm->columns);
-  _unrrdu_envEnum(out, nrrdCenter, nrrdEnvVarDefaultCenter, nrrdDefaultCenter,
-                  "nrrdDefaultCenter",
-                  "The type of sample centering to use when none has been "
-                  "set but one has to be chosen for some operation "
-                  "(e.g. resampling).",
-                  hparm->columns);
-  _unrrdu_envEnum(out, nrrdEncodingType, nrrdEnvVarDefaultWriteEncodingType,
-                  nrrdDefaultWriteEncodingType, "nrrdDefaultWriteEncodingType",
-                  "When writing nrrds, what encoding to use. Only "
-                  "\"unu save\" affords explicit control of output encoding.",
-                  hparm->columns);
-  _unrrdu_envBool(out,
-                  nrrdEnvVarStateKindNoop,
-                  nrrdStateKindNoop,
-                  "nrrdStateKindNoop",
-                  "When true, Nrrd makes not even the slightest effort to be "
-                  "smart about setting the \"kind\" field of an axis after "
-                  "some operation that modified its samples.",
-                  hparm->columns);
-  _unrrdu_envInt(out,
-                 nrrdEnvVarStateVerboseIO,
-                 nrrdStateVerboseIO,
-                 "nrrdStateVerboseIO",
-                 "The verbosity level of Nrrd input/output operations.",
-                 hparm->columns);
-  _unrrdu_envBool(out,
-                  nrrdEnvVarStateBlind8BitRange,
-                  nrrdStateBlind8BitRange,
-                  "nrrdStateBlind8BitRange",
-                  "When true, the determined range of 8-bit data will always "
-                  "be [0,255] (for uchar) or [-128,127] (for signed char), "
-                  "instead of actually looking into the data to find its "
-                  "range.",
-                  hparm->columns);
-  _unrrdu_envBool(out,
-                  nrrdEnvVarDefaultWriteBareText,
-                  nrrdDefaultWriteBareText,
-                  "nrrdDefaultWriteBareText",
-                  "When false, text files used for saving nrrds start with "
-                  "comment (\"# ...\") lines containing nrrd fields.",
-                  hparm->columns);
-  _unrrdu_envBool(out,
-                  nrrdEnvVarDefaultWriteMoreThanFloatInText,
-                  nrrdDefaultWriteMoreThanFloatInText,
-                  "nrrdDefaultWriteMoreThanFloatInText",
-                  "When true, text files used for saving nrrds can "
-                  "losslessly store values of more than just float type.",
-                  hparm->columns);
-  _unrrdu_envEnum(out, nrrdType, nrrdEnvVarStateMeasureType, nrrdStateMeasureType,
-                  "nrrdStateMeasureType",
-                  "For measurements (\"unu project\") like sum and product, "
-                  "the type of the output result, when one hasn't been "
-                  "explicitly requested.",
-                  hparm->columns);
-  _unrrdu_envInt(out,
-                 nrrdEnvVarStateMeasureModeBins,
-                 nrrdStateMeasureModeBins,
-                 "nrrdStateMeasureModeBins",
-                 "When measuring mode but without a given histogram, how many "
-                 "bins to use in the temporary internal histogram.",
-                 hparm->columns);
-  _unrrdu_envEnum(out, nrrdType, nrrdEnvVarStateMeasureHistoType,
-                  nrrdStateMeasureHistoType, "nrrdStateMeasureHistoType",
-                  "Output type for most measurements of histograms, when one "
-                  "hasn't been explicitly requested",
-                  hparm->columns);
-  _unrrdu_envBool(out,
-                  nrrdEnvVarStateAlwaysSetContent,
-                  nrrdStateAlwaysSetContent,
-                  "nrrdStateAlwaysSetContent",
-                  "If true, the output content string is set even when the "
-                  "input content string is not set.",
-                  hparm->columns);
-  _unrrdu_envBool(out,
-                  nrrdEnvVarStateDisableContent,
-                  nrrdStateDisableContent,
-                  "nrrdStateDisableContent",
-                  "If true, output content is never set.",
-                  hparm->columns);
-  _unrrdu_envUInt(out,
-                  nrrdEnvVarDefaultWriteCharsPerLine,
-                  nrrdDefaultWriteCharsPerLine,
-                  "nrrdDefaultWriteCharsPerLine",
-                  "When using text encoding, maximum # characters allowed "
-                  "per line.",
-                  hparm->columns);
-  _unrrdu_envUInt(out,
-                  nrrdEnvVarDefaultWriteValsPerLine,
-                  nrrdDefaultWriteValsPerLine,
-                  "nrrdDefaultWriteValsPerLine",
-                  "When using text encoding, maximum # values allowed "
-                  "per line",
-                  hparm->columns);
-  _unrrdu_envBool(out,
-                  nrrdEnvVarStateGrayscaleImage3D,
-                  nrrdStateGrayscaleImage3D,
-                  "nrrdStateGrayscaleImage3D",
-                  "If true, reading a 2-D grayscale image results in a "
-                  "3-D image with a single sample (size=1) on the first "
-                  "(fastest) axis.",
-                  hparm->columns);
+  envBool(out,
+          nrrdEnvVarStateKeyValuePairsPropagate,
+          nrrdStateKeyValuePairsPropagate,
+          "nrrdStateKeyValuePairsPropagate",
+          "When true, key/value pairs are copied from input "
+          "nrrd to output nrrd just like other basic info that hasn't "
+          "just been modified (e.g. type, dimension, block size).",
+          hparm->columns);
+  envEnum(out, nrrdCenter, nrrdEnvVarDefaultCenter, nrrdDefaultCenter,
+          "nrrdDefaultCenter",
+          "The type of sample centering to use when none has been "
+          "set but one has to be chosen for some operation "
+          "(e.g. resampling).",
+          hparm->columns);
+  envEnum(out, nrrdEncodingType, nrrdEnvVarDefaultWriteEncodingType,
+          nrrdDefaultWriteEncodingType, "nrrdDefaultWriteEncodingType",
+          "When writing nrrds, what encoding to use. Only "
+          "\"unu save\" affords explicit control of output encoding.",
+          hparm->columns);
+  envBool(out,
+          nrrdEnvVarStateKindNoop,
+          nrrdStateKindNoop,
+          "nrrdStateKindNoop",
+          "When true, Nrrd makes not even the slightest effort to be "
+          "smart about setting the \"kind\" field of an axis after "
+          "some operation that modified its samples.",
+          hparm->columns);
+  envInt(out,
+         nrrdEnvVarStateVerboseIO,
+         nrrdStateVerboseIO,
+         "nrrdStateVerboseIO",
+         "The verbosity level of Nrrd input/output operations.",
+         hparm->columns);
+  envBool(out,
+          nrrdEnvVarStateBlind8BitRange,
+          nrrdStateBlind8BitRange,
+          "nrrdStateBlind8BitRange",
+          "When true, the determined range of 8-bit data will always "
+          "be [0,255] (for uchar) or [-128,127] (for signed char), "
+          "instead of actually looking into the data to find its "
+          "range.",
+          hparm->columns);
+  envBool(out,
+          nrrdEnvVarDefaultWriteBareText,
+          nrrdDefaultWriteBareText,
+          "nrrdDefaultWriteBareText",
+          "When false, text files used for saving nrrds start with "
+          "comment (\"# ...\") lines containing nrrd fields.",
+          hparm->columns);
+  envBool(out,
+          nrrdEnvVarDefaultWriteMoreThanFloatInText,
+          nrrdDefaultWriteMoreThanFloatInText,
+          "nrrdDefaultWriteMoreThanFloatInText",
+          "When true, text files used for saving nrrds can "
+          "losslessly store values of more than just float type.",
+          hparm->columns);
+  envEnum(out, nrrdType, nrrdEnvVarStateMeasureType, nrrdStateMeasureType,
+          "nrrdStateMeasureType",
+          "For measurements (\"unu project\") like sum and product, "
+          "the type of the output result, when one hasn't been "
+          "explicitly requested.",
+          hparm->columns);
+  envInt(out,
+         nrrdEnvVarStateMeasureModeBins,
+         nrrdStateMeasureModeBins,
+         "nrrdStateMeasureModeBins",
+         "When measuring mode but without a given histogram, how many "
+         "bins to use in the temporary internal histogram.",
+         hparm->columns);
+  envEnum(out, nrrdType, nrrdEnvVarStateMeasureHistoType, nrrdStateMeasureHistoType,
+          "nrrdStateMeasureHistoType",
+          "Output type for most measurements of histograms, when one "
+          "hasn't been explicitly requested",
+          hparm->columns);
+  envBool(out,
+          nrrdEnvVarStateAlwaysSetContent,
+          nrrdStateAlwaysSetContent,
+          "nrrdStateAlwaysSetContent",
+          "If true, the output content string is set even when the "
+          "input content string is not set.",
+          hparm->columns);
+  envBool(out,
+          nrrdEnvVarStateDisableContent,
+          nrrdStateDisableContent,
+          "nrrdStateDisableContent",
+          "If true, output content is never set.",
+          hparm->columns);
+  envUInt(out,
+          nrrdEnvVarDefaultWriteCharsPerLine,
+          nrrdDefaultWriteCharsPerLine,
+          "nrrdDefaultWriteCharsPerLine",
+          "When using text encoding, maximum # characters allowed "
+          "per line.",
+          hparm->columns);
+  envUInt(out,
+          nrrdEnvVarDefaultWriteValsPerLine,
+          nrrdDefaultWriteValsPerLine,
+          "nrrdDefaultWriteValsPerLine",
+          "When using text encoding, maximum # values allowed "
+          "per line",
+          hparm->columns);
+  envBool(out,
+          nrrdEnvVarStateGrayscaleImage3D,
+          nrrdStateGrayscaleImage3D,
+          "nrrdStateGrayscaleImage3D",
+          "If true, reading a 2-D grayscale image results in a "
+          "3-D image with a single sample (size=1) on the first "
+          "(fastest) axis.",
+          hparm->columns);
 
 #if 0
   /* GLK is ambivalent about the continued existence of these ... */
