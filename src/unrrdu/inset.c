@@ -29,7 +29,7 @@ static const char *_unrrdu_insetInfoL
   = (INFO ". This is functionally the opposite of \"crop\".\n "
           "* Uses nrrdInset");
 
-int
+static int
 unrrdu_insetMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

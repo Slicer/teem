@@ -28,7 +28,7 @@
 static const char *_unrrdu_swapInfoL = (INFO ". Special case of \"unu\tpermute\".\n "
                                              "* Uses nrrdAxesSwap");
 
-int
+static int
 unrrdu_swapMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

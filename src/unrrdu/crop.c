@@ -28,7 +28,7 @@
 static const char *_unrrdu_cropInfoL = (INFO ".\n "
                                              "* Uses nrrdCrop");
 
-int
+static int
 unrrdu_cropMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

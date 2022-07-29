@@ -31,7 +31,7 @@ static const char *_unrrdu_ccadjInfoL
           "adjacent, according to the chosen style of adjacency.\n "
           "* Uses nrrdCCAdjacency");
 
-int
+static int
 unrrdu_ccadjMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

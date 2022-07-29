@@ -39,7 +39,7 @@ static const char *_unrrdu_projectInfoL
           "specific type to \"-t\" to permit their joining on fastest axis).\n "
           "* Uses nrrdProject, and nrrdJoin if multiple measures");
 
-int
+static int
 unrrdu_projectMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char **out, *err;

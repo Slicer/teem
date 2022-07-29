@@ -35,7 +35,7 @@ static const char *_unrrdu_tileInfoL
           "as a 16x8 tiled array of 2-D slices, as with \"-a 2 0 1 -s 16 8\".\n "
           "* Uses nrrdTile2D");
 
-int
+static int
 unrrdu_tileMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

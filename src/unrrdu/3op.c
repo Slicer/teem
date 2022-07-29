@@ -32,7 +32,7 @@ static const char *_unrrdu_3opInfoL
           "that \"-\" can probably only be used once (reliably).\n "
           "* Uses nrrdArithIterTernaryOp or (with -w) nrrdArithIterTernaryOpSelect");
 
-int
+static int
 unrrdu_3opMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

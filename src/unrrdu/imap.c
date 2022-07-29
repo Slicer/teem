@@ -36,7 +36,7 @@ static const char *_unrrdu_imapInfoL
           "interpolating between value(s) from the map.\n "
           "* Uses nrrdApply1DIrregMap");
 
-int
+static int
 unrrdu_imapMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

@@ -36,7 +36,7 @@ static const char *_unrrdu_blockInfoL
           "be shifted down to axis N-1.  Underlying data "
           "is unchanged.");
 
-int
+static int
 unrrdu_blockMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

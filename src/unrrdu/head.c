@@ -33,7 +33,7 @@ static const char *_unrrdu_headInfoL
           "settings, make pointless beeps, and be annoying.\n "
           "* Uses nrrdOneLine");
 
-int
+static int
 unrrdu_headDoit(const char *me, NrrdIoState *nio, char *inS, FILE *fout) {
   airArray *mop;
   unsigned int len;
@@ -81,7 +81,7 @@ unrrdu_headDoit(const char *me, NrrdIoState *nio, char *inS, FILE *fout) {
   return 0;
 }
 
-int
+static int
 unrrdu_headMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, **inS;

@@ -169,7 +169,7 @@ _unrrdu_envUInt(FILE *file, const char *envKey, unsigned int currVal,
   /* !!! HEY: CUT + PASTE !!! */
 }
 
-int
+static int
 unrrdu_envMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   FILE *out;
 

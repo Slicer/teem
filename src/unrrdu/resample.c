@@ -41,7 +41,7 @@ static const char *_unrrdu_resampleInfoL
           "with \"-co\".\n "
           "* Uses the many nrrdResample* functions operating on a nrrdResampleContext");
 
-int
+static int
 unrrdu_resampleMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

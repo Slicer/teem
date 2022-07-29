@@ -31,7 +31,7 @@ static const char *_unrrdu_unblockInfoL
           "Axis N information will be bumped up to axis N+1. "
           "Underlying data is unchanged.");
 
-int
+static int
 unrrdu_unblockMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

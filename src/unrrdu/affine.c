@@ -35,7 +35,7 @@ static const char *_unrrdu_affineInfoL
           "that \"-\" can probably only be used once (reliably).\n "
           "* Uses nrrdArithAffine or nrrdArithIterAffine");
 
-int
+static int
 unrrdu_affineMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

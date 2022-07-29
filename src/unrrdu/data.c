@@ -41,7 +41,7 @@ static const char *_unrrdu_dataInfoL
           "* Uses nrrdLoad with nio->skipData and nio->keepNrrdDataFileOpen both "
           "true in the NrrdIoState nio.");
 
-int
+static int
 unrrdu_dataMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, *inS = NULL;

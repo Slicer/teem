@@ -32,7 +32,7 @@ static const char *_unrrdu_mrmapInfoL
           "multiple nrrds, instead of just two.\n "
           "* Uses nrrdApplyMulti1DRegMap");
 
-int
+static int
 unrrdu_mrmapMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

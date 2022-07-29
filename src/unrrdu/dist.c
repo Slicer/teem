@@ -35,7 +35,7 @@ static const char *_unrrdu_distInfoL
           "Distances between non-isotropic samples are handled correctly.\n "
           "* Uses nrrdDistanceL2 or nrrdDistanceL2Signed");
 
-int
+static int
 unrrdu_distMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

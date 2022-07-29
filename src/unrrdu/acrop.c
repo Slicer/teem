@@ -34,7 +34,7 @@ static const char *_unrrdu_acropInfoL
           "here can be saved and applied to other arrays via the \"-b\" option.\n "
           "* Uses nrrdCropAuto");
 
-int
+static int
 unrrdu_acropMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

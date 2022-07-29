@@ -31,7 +31,7 @@ static const char *_unrrdu_hackInfoL
           "unu command.\n "
           "* (not based on any particular nrrd function)");
 
-int
+static int
 unrrdu_hackMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

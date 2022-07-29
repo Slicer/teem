@@ -38,7 +38,7 @@ static const char *_unrrdu_cmedianInfoL
           "* Uses nrrdCheapMedian, plus nrrdSlice and nrrdJoin in "
           "case of \"-c\"");
 
-int
+static int
 unrrdu_cmedianMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

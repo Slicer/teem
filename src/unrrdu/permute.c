@@ -31,7 +31,7 @@ static const char *_unrrdu_permuteInfoL
           "permutation 0->1,\t1->2,\t2->0 would be \"2 0 1\".\n "
           "* Uses nrrdAxesPermute");
 
-int
+static int
 unrrdu_permuteMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

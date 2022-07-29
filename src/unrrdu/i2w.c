@@ -33,7 +33,7 @@ static const char *_unrrdu_i2wInfoL
           "Previously available as the stand-alone idx2pos binary.\n "
           "* Uses NRRD_POS macro");
 
-int
+static int
 unrrdu_i2wMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   airArray *mop;

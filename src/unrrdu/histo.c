@@ -30,7 +30,7 @@ static const char *_unrrdu_histoInfoL
           "from the data.\n "
           "* Uses nrrdHisto");
 
-int
+static int
 unrrdu_histoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

@@ -31,7 +31,7 @@ static const char *_unrrdu_minmaxInfoL
           "and it also indicates if there are non-existent values.\n "
           "* Uses nrrdRangeNewSet");
 
-int
+static int
 unrrdu_minmaxDoit(const char *me, char *inS, int blind8BitRange, FILE *fout) {
   Nrrd *nrrd;
   NrrdRange *range;
@@ -64,7 +64,7 @@ unrrdu_minmaxDoit(const char *me, char *inS, int blind8BitRange, FILE *fout) {
   return 0;
 }
 
-int
+static int
 unrrdu_minmaxMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, **inS;

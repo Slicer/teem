@@ -29,7 +29,7 @@ static const char *_unrrdu_spliceInfoL
   = (INFO ". This is functionally the opposite of \"slice\".\n "
           "* Uses nrrdSplice");
 
-int
+static int
 unrrdu_spliceMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

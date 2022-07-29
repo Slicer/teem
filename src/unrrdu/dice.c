@@ -31,7 +31,7 @@ static const char *_unrrdu_diceInfoL
           "file for each sample along that axis.\n "
           "* Uses repeated calls to nrrdSlice and nrrdSave");
 
-int
+static int
 unrrdu_diceMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *base, *err, fnout[AIR_STRLEN_MED], /* file name out */

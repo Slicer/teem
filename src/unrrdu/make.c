@@ -64,7 +64,7 @@ static const char *_unrrdu_makeInfoL
           "* Uses various components of file and data IO, but currently there is no "
           "library function that encapsulates the functionality here.");
 
-int
+static int
 unrrdu_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *outData, *err, **dataFileNames, **kvp, *content, encInfo[AIR_STRLEN_LARGE];

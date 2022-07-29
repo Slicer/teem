@@ -28,7 +28,7 @@
 static const char *_unrrdu_deringInfoL = (INFO
                                           ". Should be considered a work-in-progress. ");
 
-int
+static int
 unrrdu_deringMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

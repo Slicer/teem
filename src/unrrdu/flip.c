@@ -28,7 +28,7 @@
 static const char *_unrrdu_flipInfoL = (INFO ". Special case of \"unu\tshuffle\".\n "
                                              "* Uses nrrdFlip");
 
-int
+static int
 unrrdu_flipMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

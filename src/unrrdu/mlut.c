@@ -33,7 +33,7 @@ static const char *_unrrdu_mlutInfoL
           "resptectively.\n "
           "* Uses nrrdApplyMulti1DLut");
 
-int
+static int
 unrrdu_mlutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

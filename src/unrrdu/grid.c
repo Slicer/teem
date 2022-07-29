@@ -142,7 +142,7 @@ static const char *_unrrdu_gridInfoL
           "but axis 0 is not spatial).\n "
           "* (not based on any particular nrrd function)");
 
-int
+static int
 unrrdu_gridMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *err;

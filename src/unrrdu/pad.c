@@ -28,7 +28,7 @@
 static const char *_unrrdu_padInfoL = (INFO ".\n "
                                             "* Uses nrrdPad_nva");
 
-int
+static int
 unrrdu_padMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

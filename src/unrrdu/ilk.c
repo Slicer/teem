@@ -231,7 +231,7 @@ ilkGo(airArray *mop, Nrrd *nout, Nrrd *nin, mossSampler *msp, int bound,
   return 0;
 }
 
-int
+static int
 unrrdu_ilkMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *err;

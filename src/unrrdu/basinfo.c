@@ -31,7 +31,7 @@ static const char *_unrrdu_basinfoInfoL
           "options are given.\n "
           "* Uses no particular function; just sets fields in the Nrrd");
 
-int
+static int
 unrrdu_basinfoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   /* these are stock for unrrdu */
   hestOpt *opt = NULL;

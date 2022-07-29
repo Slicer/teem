@@ -33,7 +33,7 @@ static const char *_unrrdu_sliceInfoL
           "Per-axis information is preserved.\n "
           "* Uses nrrdSlice (possibly called multiple times)");
 
-int
+static int
 unrrdu_sliceMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

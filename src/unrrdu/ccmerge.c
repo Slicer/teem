@@ -33,7 +33,7 @@ static const char *_unrrdu_ccmergeInfoL
           "and number of neighbors (\"-n\").\n "
           "* Uses nrrdCCMerge");
 
-int
+static int
 unrrdu_ccmergeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

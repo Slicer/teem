@@ -32,7 +32,7 @@ static const char *_unrrdu_gammaInfoL
           "in the sRGB standard (see https://en.wikipedia.org/wiki/SRGB)\n "
           "* Uses nrrdArithGamma or nrrdArithGammaSRGB");
 
-int
+static int
 unrrdu_gammaMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

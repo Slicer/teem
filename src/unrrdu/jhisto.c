@@ -33,7 +33,7 @@ static const char *_unrrdu_jhistoInfoL
           "of the bin.\n "
           "* Uses nrrdHistoJoint");
 
-int
+static int
 unrrdu_jhistoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

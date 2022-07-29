@@ -34,7 +34,7 @@ static const char *_unrrdu_dnormInfoL
           "it is nice to have standardized orientation information.\n "
           "* Uses nrrdMetaDataNormalize");
 
-int
+static int
 unrrdu_dnormMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *outS;
   int pret;

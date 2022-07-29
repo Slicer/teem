@@ -313,9 +313,9 @@ unrrduUsage(const char *me, hestParm *hparm, const char *title,
 ** pos[0] ==  1: pos[1] gives the position relative to the last index
 ** pos[0] == -1: pos[1] gives the position relative to a "minimum" position
 */
-int
-unrrduParsePos(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "unrrduParsePos";
+static int
+parsePos(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "parsePos";
   long int *pos;
 
   if (!(ptr && str)) {
@@ -365,7 +365,7 @@ unrrduParsePos(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-const hestCB unrrduHestPosCB = {2 * sizeof(long int), "position", unrrduParsePos, NULL};
+const hestCB unrrduHestPosCB = {2 * sizeof(long int), "position", parsePos, NULL};
 
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
@@ -387,9 +387,9 @@ const hestCB unrrduHestPosCB = {2 * sizeof(long int), "position", unrrduParsePos
 ** for "default", even though currently nrrdTypeUnknown is the same
 ** value as nrrdTypeDefault.
 */
-int
-unrrduParseMaybeType(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "unrrduParseMaybeType";
+static int
+parseMaybeType(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "parseMaybeType";
   int *typeP;
 
   /* fprintf(stderr, "!%s: str = \"%s\"\n", me, str); */
@@ -413,7 +413,7 @@ unrrduParseMaybeType(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-const hestCB unrrduHestMaybeTypeCB = {sizeof(int), "type", unrrduParseMaybeType, NULL};
+const hestCB unrrduHestMaybeTypeCB = {sizeof(int), "type", parseMaybeType, NULL};
 
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
@@ -424,9 +424,9 @@ const hestCB unrrduHestMaybeTypeCB = {sizeof(int), "type", unrrduParseMaybeType,
 **
 ** for parsing an int that can be 8, 16, or 32
 */
-int
-unrrduParseBits(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "unrrduParseBits";
+static int
+parseBits(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "parseBits";
   unsigned int *bitsP;
 
   if (!(ptr && str)) {
@@ -445,7 +445,7 @@ unrrduParseBits(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-const hestCB unrrduHestBitsCB = {sizeof(int), "quantization bits", unrrduParseBits,
+const hestCB unrrduHestBitsCB = {sizeof(int), "quantization bits", parseBits,
                                  NULL};
 
 /* --------------------------------------------------------- */
@@ -468,9 +468,9 @@ const hestCB unrrduHestBitsCB = {sizeof(int), "quantization bits", unrrduParseBi
 ** <uint>    : unrrduScaleExact
 ** s<float>  : unrrduScaleSpacingTarget
 */
-int
-unrrduParseScale(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "unrrduParseScale";
+static int
+parseScale(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[] = "parseScale";
   double *scale;
   unsigned int num;
 
@@ -530,8 +530,9 @@ unrrduParseScale(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-const hestCB unrrduHestScaleCB = {2 * sizeof(double), "sampling specification",
-                                  unrrduParseScale, NULL};
+const hestCB unrrduHestScaleCB = {2 * sizeof(double),
+                                  "sampling/scaling specification",
+                                  parseScale, NULL};
 
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
@@ -544,8 +545,8 @@ const hestCB unrrduHestScaleCB = {2 * sizeof(double), "sampling specification",
 ** getting a FILE *.  "-" is interpreted as stdin, which is not
 ** fclose()ed at the end, unlike all other files.
 */
-void *
-unrrduMaybeFclose(void *_file) {
+static void *
+maybeFclose(void *_file) {
   FILE *file;
 
   file = (FILE *)_file;
@@ -555,9 +556,9 @@ unrrduMaybeFclose(void *_file) {
   return NULL;
 }
 
-int
-unrrduParseFile(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "unrrduParseFile";
+static int
+parseFile(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  char me[] = "parseFile";
   FILE **fileP;
 
   if (!(ptr && str)) {
@@ -575,8 +576,8 @@ unrrduParseFile(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
 const hestCB unrrduHestFileCB = {
   sizeof(FILE *),
   "filename",
-  unrrduParseFile,
-  unrrduMaybeFclose,
+  parseFile,
+  maybeFclose,
 };
 
 /* --------------------------------------------------------- */
@@ -591,9 +592,10 @@ const hestCB unrrduHestFileCB = {
 ** enc[1]: for compressions: zlib "level" and bzip2 "blocksize"
 ** enc[2]: for zlib: strategy, from nrrdZlibStrategy* enum
 */
-int
-unrrduParseEncoding(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "unrrduParseEncoding", *str, *opt;
+static int
+parseEncoding(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "parseEncoding";
+  char *str, *opt;
   int *enc;
   airArray *mop;
 
@@ -656,7 +658,7 @@ unrrduParseEncoding(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-const hestCB unrrduHestEncodingCB = {3 * sizeof(int), "encoding", unrrduParseEncoding,
+const hestCB unrrduHestEncodingCB = {3 * sizeof(int), "encoding", parseEncoding,
                                      NULL};
 
 /* --------------------------------------------------------- */
@@ -671,9 +673,9 @@ const hestCB unrrduHestEncodingCB = {3 * sizeof(int), "encoding", unrrduParseEnc
 ** enc[1]: for nrrdFormatText: bool for whether to enforce plain "bare" text
 **         as indicated by one of: btext, ptext, baretext, plaintext
 */
-int
-unrrduParseFormat(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "unrrduParseFormat";
+static int
+parseFormat(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "parseFormat";
   int *enc;
 
   if (!(ptr && str)) {
@@ -702,4 +704,4 @@ unrrduParseFormat(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-const hestCB unrrduHestFormatCB = {2 * sizeof(int), "format", unrrduParseFormat, NULL};
+const hestCB unrrduHestFormatCB = {2 * sizeof(int), "format", parseFormat, NULL};

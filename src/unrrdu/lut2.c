@@ -34,7 +34,7 @@ static const char *_unrrdu_lut2InfoL
           "lookup table.  In any case, axis 0 of the input must have length two.\n "
           "* Uses nrrdApply2DLut");
 
-int
+static int
 unrrdu_lut2Main(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

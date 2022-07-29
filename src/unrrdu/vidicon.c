@@ -29,7 +29,7 @@ static const char *_unrrdu_vidiconInfoL
   = (INFO ". Does various things, some more justified than others.\n "
           "* (as yet there's no single nrrd function which does all this)");
 
-int
+static int
 unrrdu_vidiconMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   airArray *mop, *submop = NULL;

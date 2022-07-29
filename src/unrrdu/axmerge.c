@@ -32,7 +32,7 @@ static const char *_unrrdu_axmergeInfoL
           "shifted downwards as needed.\n "
           "* Uses nrrdAxesMerge");
 
-int
+static int
 unrrdu_axmergeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

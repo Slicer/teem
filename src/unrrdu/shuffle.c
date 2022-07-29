@@ -37,7 +37,7 @@ static const char *_unrrdu_shuffleInfoL
           "\"response file\".\n "
           "* Uses nrrdShuffle");
 
-int
+static int
 unrrdu_shuffleMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

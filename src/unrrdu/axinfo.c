@@ -30,7 +30,7 @@ static const char *_unrrdu_axinfoInfoL
           "options are given.\n "
           "* Uses no particular function; just sets fields in the NrrdAxisInfo");
 
-int
+static int
 unrrdu_axinfoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *label, *units, *centerStr, *kindStr, *_dirStr, *dirStr, *mmStr[2];

@@ -41,7 +41,7 @@ static const char *_unrrdu_rmapInfoL
           "(\"color\").\n "
           "* Uses nrrdApply1DRegMap");
 
-int
+static int
 unrrdu_rmapMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

@@ -34,7 +34,7 @@ static const char *_unrrdu_lutInfoL
           "lookup table.\n "
           "* Uses nrrdApply1DLut");
 
-int
+static int
 unrrdu_lutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

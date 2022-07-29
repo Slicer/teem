@@ -36,7 +36,7 @@ static const char *_unrrdu_untileInfoL
           "\"unu untile -a 0 0 1\" undoes \"unu tile -a 0 1 2\".\n "
           "* Uses nrrdUntile2D");
 
-int
+static int
 unrrdu_untileMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

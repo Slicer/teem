@@ -29,7 +29,7 @@ static const char *_unrrdu_aabplotInfoL
   = (INFO ".  Because why not.\n "
           "* (uses nrrd, but no Nrrd function has this functionality)");
 
-int
+static int
 unrrdu_aabplotMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   /* these are stock for unrrdu */
   hestOpt *opt = NULL;

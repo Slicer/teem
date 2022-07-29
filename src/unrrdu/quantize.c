@@ -37,7 +37,7 @@ static const char *_unrrdu_quantizeInfoL
           "and \"unu 3op clamp\".\n "
           "* Uses nrrdQuantize");
 
-int
+static int
 unrrdu_quantizeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

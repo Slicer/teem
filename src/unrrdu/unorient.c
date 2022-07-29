@@ -28,7 +28,7 @@
 static const char *_unrrdu_unorientInfoL = (INFO ". Does various tricks.\n "
                                                  "* Uses nrrdOrientationReduce");
 
-int
+static int
 unrrdu_unorientMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

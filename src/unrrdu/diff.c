@@ -31,7 +31,7 @@ static const char *_unrrdu_diffInfoL
           "only on the data values is done with the -od flag.\n "
           "* Uses nrrdCompare");
 
-int
+static int
 unrrdu_diffMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err;

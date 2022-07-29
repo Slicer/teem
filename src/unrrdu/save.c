@@ -34,7 +34,7 @@ static const char *_unrrdu_saveInfoL
           "inch margins.\n "
           "* Uses various fields in the NrrdIOState passed to nrrdSave");
 
-int
+static int
 unrrdu_saveMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *outData, encInfo[AIR_STRLEN_HUGE], fmtInfo[AIR_STRLEN_HUGE];

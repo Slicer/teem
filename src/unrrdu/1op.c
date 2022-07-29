@@ -28,7 +28,7 @@
 static const char *_unrrdu_1opInfoL = (INFO ".\n "
                                             "* Uses nrrdArithUnaryOp");
 
-int
+static int
 unrrdu_1opMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *seedS;

@@ -31,7 +31,7 @@ static const char *_unrrdu_axsplitInfoL
           "product of the fast and slow sizes is the same as the original size.\n "
           "* Uses nrrdAxesSplit");
 
-int
+static int
 unrrdu_axsplitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

@@ -38,7 +38,7 @@ static const char *_unrrdu_joinInfoL
           "not.\n "
           "* Uses nrrdJoin");
 
-int
+static int
 unrrdu_joinMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *label, *kindStr;

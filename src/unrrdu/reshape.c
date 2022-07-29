@@ -32,7 +32,7 @@ static const char *_unrrdu_reshapeInfoL
           "\"reshape\" command.\n "
           "* Uses nrrdReshape_nva");
 
-int
+static int
 unrrdu_reshapeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

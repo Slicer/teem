@@ -68,7 +68,7 @@ static const airEnum _direction_enm = {"direction",      2,
 
 static const airEnum *const direction_enm = &_direction_enm;
 
-int
+static int
 unrrdu_fftMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;

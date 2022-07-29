@@ -30,7 +30,7 @@ static const char *_unrrdu_ccfindInfoL
           "4-byte ints.\n "
           "* Uses nrrdCCFind");
 
-int
+static int
 unrrdu_ccfindMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *valS;

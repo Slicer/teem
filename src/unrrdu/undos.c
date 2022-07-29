@@ -253,7 +253,7 @@ undosConvert(const char *me, char *name, int reverse, int mac, int quiet, int no
   return;
 }
 
-int
+static int
 unrrdu_undosMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   /* these are stock for unrrdu */
   hestOpt *opt = NULL;
