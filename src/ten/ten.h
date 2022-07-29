@@ -1442,14 +1442,14 @@ TEN_EXPORT int tenEstimate1TensorVolume4D(tenEstimateContext *tec, Nrrd *nten,
 TEN_EXPORT tenEstimateContext *tenEstimateContextNix(tenEstimateContext *tec);
 
 /* aniso.c */
-TEN_EXPORT float (*_tenAnisoEval_f[TEN_ANISO_MAX + 1])(const float eval[3]);
+TEN_EXPORT float (*const _tenAnisoEval_f[TEN_ANISO_MAX + 1])(const float eval[3]);
 TEN_EXPORT float tenAnisoEval_f(const float eval[3], int aniso);
-TEN_EXPORT double (*_tenAnisoEval_d[TEN_ANISO_MAX + 1])(const double eval[3]);
+TEN_EXPORT double (*const _tenAnisoEval_d[TEN_ANISO_MAX + 1])(const double eval[3]);
 TEN_EXPORT double tenAnisoEval_d(const double eval[3], int aniso);
 
-TEN_EXPORT float (*_tenAnisoTen_f[TEN_ANISO_MAX + 1])(const float ten[7]);
+TEN_EXPORT float (*const _tenAnisoTen_f[TEN_ANISO_MAX + 1])(const float ten[7]);
 TEN_EXPORT float tenAnisoTen_f(const float ten[7], int aniso);
-TEN_EXPORT double (*_tenAnisoTen_d[TEN_ANISO_MAX + 1])(const double ten[7]);
+TEN_EXPORT double (*const _tenAnisoTen_d[TEN_ANISO_MAX + 1])(const double ten[7]);
 TEN_EXPORT double tenAnisoTen_d(const double ten[7], int aniso);
 
 TEN_EXPORT int tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res, int hflip,
