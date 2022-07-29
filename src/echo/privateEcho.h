@@ -79,7 +79,6 @@ extern void _echoSceneNrrdAdd(echoScene *scene, Nrrd *nrrd);
   echoIntx *intx, echoRay *ray, echo##TYPE *obj, echoRTParm *parm,                      \
     echoThreadState *tstate
 typedef int (*_echoRayIntx_t)(RAYINTX_ARGS(Object));
-extern _echoRayIntx_t _echoRayIntx[/* object type idx */];
 typedef void (*_echoRayIntxUV_t)(echoIntx *intx);
 extern _echoRayIntxUV_t _echoRayIntxUV[/* object type idx */];
 extern int _echoRayIntx_CubeSolid(echoPos_t *tminP, echoPos_t *tmaxP, echoPos_t xmin,
@@ -96,7 +95,7 @@ extern char *_echoDot(int depth);
   echoCol_t rgba[4], echoIntx *intx, echoScene *scene, echoRTParm *parm,                \
     echoThreadState *tstate
 typedef void (*_echoIntxColor_t)(INTXCOLOR_ARGS);
-extern _echoIntxColor_t _echoIntxColor[/* matter idx */];
+extern _echoIntxColor_t const _echoIntxColor[/* matter idx */];
 
 #ifdef __cplusplus
 }

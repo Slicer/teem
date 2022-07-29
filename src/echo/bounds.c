@@ -26,7 +26,8 @@
 
 typedef void (*_echoBoundsGet_t)(echoPos_t lo[3], echoPos_t hi[3], echoObject *obj);
 
-extern _echoBoundsGet_t _echoBoundsGet[ECHO_TYPE_NUM];
+/* GLK not sure how to do forward declaration of static array */
+/* extern const _echoBoundsGet_t _echoBoundsGet[ECHO_TYPE_NUM]; */
 
 #define BNDS_TMPL(TYPE, BODY)                                                           \
   void _echo##TYPE##_bounds(echoPos_t lo[3], echoPos_t hi[3], echo##TYPE *obj) {        \
@@ -82,7 +83,8 @@ BNDS_TMPL(
   ELL_3V_SET(hi, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
   for (i = 0; i < obj->objArr->len; i++) {
     o = obj->obj[i];
-    _echoBoundsGet[o->type](l, h, o);
+    /* due to making this array static, can't: _echoBoundsGet[o->type](l, h, o); */
+    echoBoundsGet(l, h, o);
     ELL_3V_MIN(lo, lo, l);
     ELL_3V_MAX(hi, hi, h);
   })
@@ -92,26 +94,26 @@ BNDS_TMPL(Split, AIR_UNUSED(obj);
 
 BNDS_TMPL(Instance, echoPos_t a[8][4]; echoPos_t b[8][4]; echoPos_t l[3]; echoPos_t h[3];
 
-          _echoBoundsGet[obj->obj->type](l, h, obj->obj);
-          ELL_4V_SET(a[0], l[0], l[1], l[2], 1); ELL_4V_SET(a[1], h[0], l[1], l[2], 1);
-          ELL_4V_SET(a[2], l[0], h[1], l[2], 1); ELL_4V_SET(a[3], h[0], h[1], l[2], 1);
-          ELL_4V_SET(a[4], l[0], l[1], h[2], 1); ELL_4V_SET(a[5], h[0], l[1], h[2], 1);
-          ELL_4V_SET(a[6], l[0], h[1], h[2], 1); ELL_4V_SET(a[7], h[0], h[1], h[2], 1);
-          ELL_4MV_MUL(b[0], obj->M, a[0]); ELL_4V_HOMOG(b[0], b[0]);
-          ELL_4MV_MUL(b[1], obj->M, a[1]); ELL_4V_HOMOG(b[1], b[1]);
-          ELL_4MV_MUL(b[2], obj->M, a[2]); ELL_4V_HOMOG(b[2], b[2]);
-          ELL_4MV_MUL(b[3], obj->M, a[3]); ELL_4V_HOMOG(b[3], b[3]);
-          ELL_4MV_MUL(b[4], obj->M, a[4]); ELL_4V_HOMOG(b[4], b[4]);
-          ELL_4MV_MUL(b[5], obj->M, a[5]); ELL_4V_HOMOG(b[5], b[5]);
-          ELL_4MV_MUL(b[6], obj->M, a[6]); ELL_4V_HOMOG(b[6], b[6]);
-          ELL_4MV_MUL(b[7], obj->M, a[7]); ELL_4V_HOMOG(b[7], b[7]);
-          ELL_3V_MIN(lo, b[0], b[1]); ELL_3V_MIN(lo, lo, b[2]); ELL_3V_MIN(lo, lo, b[3]);
-          ELL_3V_MIN(lo, lo, b[4]); ELL_3V_MIN(lo, lo, b[5]); ELL_3V_MIN(lo, lo, b[6]);
-          ELL_3V_MIN(lo, lo, b[7]); ELL_3V_MAX(hi, b[0], b[1]); ELL_3V_MAX(hi, hi, b[2]);
-          ELL_3V_MAX(hi, hi, b[3]); ELL_3V_MAX(hi, hi, b[4]); ELL_3V_MAX(hi, hi, b[5]);
-          ELL_3V_MAX(hi, hi, b[6]); ELL_3V_MAX(hi, hi, b[7]);)
+          /* see above; can't: _echoBoundsGet[obj->obj->type](l, h, obj->obj); */
+          echoBoundsGet(l, h, obj->obj); ELL_4V_SET(a[0], l[0], l[1], l[2], 1);
+          ELL_4V_SET(a[1], h[0], l[1], l[2], 1); ELL_4V_SET(a[2], l[0], h[1], l[2], 1);
+          ELL_4V_SET(a[3], h[0], h[1], l[2], 1); ELL_4V_SET(a[4], l[0], l[1], h[2], 1);
+          ELL_4V_SET(a[5], h[0], l[1], h[2], 1); ELL_4V_SET(a[6], l[0], h[1], h[2], 1);
+          ELL_4V_SET(a[7], h[0], h[1], h[2], 1); ELL_4MV_MUL(b[0], obj->M, a[0]);
+          ELL_4V_HOMOG(b[0], b[0]); ELL_4MV_MUL(b[1], obj->M, a[1]);
+          ELL_4V_HOMOG(b[1], b[1]); ELL_4MV_MUL(b[2], obj->M, a[2]);
+          ELL_4V_HOMOG(b[2], b[2]); ELL_4MV_MUL(b[3], obj->M, a[3]);
+          ELL_4V_HOMOG(b[3], b[3]); ELL_4MV_MUL(b[4], obj->M, a[4]);
+          ELL_4V_HOMOG(b[4], b[4]); ELL_4MV_MUL(b[5], obj->M, a[5]);
+          ELL_4V_HOMOG(b[5], b[5]); ELL_4MV_MUL(b[6], obj->M, a[6]);
+          ELL_4V_HOMOG(b[6], b[6]); ELL_4MV_MUL(b[7], obj->M, a[7]);
+          ELL_4V_HOMOG(b[7], b[7]); ELL_3V_MIN(lo, b[0], b[1]); ELL_3V_MIN(lo, lo, b[2]);
+          ELL_3V_MIN(lo, lo, b[3]); ELL_3V_MIN(lo, lo, b[4]); ELL_3V_MIN(lo, lo, b[5]);
+          ELL_3V_MIN(lo, lo, b[6]); ELL_3V_MIN(lo, lo, b[7]); ELL_3V_MAX(hi, b[0], b[1]);
+          ELL_3V_MAX(hi, hi, b[2]); ELL_3V_MAX(hi, hi, b[3]); ELL_3V_MAX(hi, hi, b[4]);
+          ELL_3V_MAX(hi, hi, b[5]); ELL_3V_MAX(hi, hi, b[6]); ELL_3V_MAX(hi, hi, b[7]);)
 
-_echoBoundsGet_t _echoBoundsGet[ECHO_TYPE_NUM] = {
+static const _echoBoundsGet_t _echoBoundsGet[ECHO_TYPE_NUM] = {
   (_echoBoundsGet_t)_echoSphere_bounds,    (_echoBoundsGet_t)_echoCylinder_bounds,
   (_echoBoundsGet_t)_echoSuperquad_bounds, (_echoBoundsGet_t)_echoCube_bounds,
   (_echoBoundsGet_t)_echoTriangle_bounds,  (_echoBoundsGet_t)_echoRectangle_bounds,

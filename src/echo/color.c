@@ -410,7 +410,7 @@ _echoIntxColorUnknown(INTXCOLOR_ARGS) {
           _echoDot(tstate->depth), "_echoIntxColorNone");
 }
 
-_echoIntxColor_t _echoIntxColor[ECHO_MATTER_MAX + 1] = {
+_echoIntxColor_t const _echoIntxColor[ECHO_MATTER_MAX + 1] = {
   _echoIntxColorUnknown, _echoIntxColorPhong, _echoIntxColorGlass,
   _echoIntxColorMetal,   _echoIntxColorLight,
 };

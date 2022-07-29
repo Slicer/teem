@@ -26,7 +26,7 @@
 /* clang-format off */
 /* ------------------------------- jitter --------------------------- */
 
-const char *
+static const char *
 _echoJitterStr[ECHO_JITTER_NUM+1] = {
   "(unknown_jitter)",
   "none",
@@ -35,7 +35,7 @@ _echoJitterStr[ECHO_JITTER_NUM+1] = {
   "random"
 };
 
-const int
+static const int
 _echoJitterVal[ECHO_JITTER_NUM+1] = {
   echoJitterUnknown,
   echoJitterNone,
@@ -44,7 +44,7 @@ _echoJitterVal[ECHO_JITTER_NUM+1] = {
   echoJitterRandom
 };
 
-const char *
+static const char *
 _echoJitterDesc[ECHO_JITTER_NUM+1] = {
   "unknown jitter",
   "nothing- samples are ALWAYS at center of region",
@@ -53,7 +53,7 @@ _echoJitterDesc[ECHO_JITTER_NUM+1] = {
   "samples are randomly located within region"
 };
 
-const char *
+static const char *
 _echoJitterStrEqv[] = {
   "none",
   "grid", "regular",
@@ -62,7 +62,7 @@ _echoJitterStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _echoJitterValEqv[] = {
   echoJitterNone,
   echoJitterGrid, echoJitterGrid,
@@ -70,7 +70,7 @@ _echoJitterValEqv[] = {
   echoJitterRandom
 };
 
-const airEnum
+static const airEnum
 _echoJitter = {
   "jitter",
   ECHO_JITTER_NUM,
@@ -84,7 +84,7 @@ echoJitter = &_echoJitter;
 
 /* ------------------------------- object type --------------------------- */
 
-const char *
+static const char *
 _echoTypeStr[ECHO_TYPE_NUM+1] = {
   "(unknown_object)",
   "sphere",
@@ -101,7 +101,7 @@ _echoTypeStr[ECHO_TYPE_NUM+1] = {
   "instance"
 };
 
-const int
+static const int
 _echoTypeVal[ECHO_TYPE_NUM+1] = {
   echoTypeUnknown,
   echoTypeSphere,
@@ -118,7 +118,7 @@ _echoTypeVal[ECHO_TYPE_NUM+1] = {
   echoTypeInstance
 };
 
-const char *
+static const char *
 _echoTypeDesc[ECHO_TYPE_NUM+1] = {
   "unknown_object",
   "sphere",
@@ -135,7 +135,7 @@ _echoTypeDesc[ECHO_TYPE_NUM+1] = {
   "instance"
 };
 
-const char *
+static const char *
 _echoTypeStrEqv[] = {
   "sphere",
   "cylinder", "cylind", "rod",
@@ -152,7 +152,7 @@ _echoTypeStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _echoTypeValEqv[] = {
   echoTypeSphere,
   echoTypeCylinder, echoTypeCylinder, echoTypeCylinder,
@@ -168,7 +168,7 @@ _echoTypeValEqv[] = {
   echoTypeInstance
 };
 
-const airEnum
+static const airEnum
 _echoType = {
   "object type",
   ECHO_TYPE_NUM,
@@ -182,7 +182,7 @@ echoType = &_echoType;
 
 /* ------------------------------ material types --------------------------- */
 
-const char *
+static const char *
 _echoMatterStr[ECHO_MATTER_MAX+1] = {
   "(unknown_matter)",
   "phong",
@@ -191,7 +191,7 @@ _echoMatterStr[ECHO_MATTER_MAX+1] = {
   "light"
 };
 
-const char *
+static const char *
 _echoMatterDesc[ECHO_MATTER_MAX+1] = {
   "unknown material",
   "phong shaded surface",
@@ -200,7 +200,7 @@ _echoMatterDesc[ECHO_MATTER_MAX+1] = {
   "light emitter"
 };
 
-const airEnum
+static const airEnum
 _echoMatter = {
   "matter",
   ECHO_MATTER_MAX,

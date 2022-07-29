@@ -29,6 +29,9 @@
 ** needed for shadow rays
 */
 
+/* forward declaration */
+extern _echoRayIntx_t _echoRayIntx[ECHO_TYPE_NUM];
+
 int _echoVerbose = 0;
 
 /*
@@ -43,7 +46,7 @@ int _echoVerbose = 0;
 ** Setting intx->pos and intx->view (normalized) is done by echoRayIntx
 */
 
-int
+static int
 _echoRayIntx_Noop(RAYINTX_ARGS(Object)) {
 
   AIR_UNUSED(intx);
@@ -55,7 +58,7 @@ _echoRayIntx_Noop(RAYINTX_ARGS(Object)) {
 }
 
 /* clang-format off */
-int
+static int
 _echoRayIntx_CubeSurf(echoPos_t *tP, int *axP, int *dirP,
                       echoPos_t xmin, echoPos_t xmax,
                       echoPos_t ymin, echoPos_t ymax,
@@ -130,7 +133,7 @@ _echoRayIntx_CubeSolid(echoPos_t *tminP, echoPos_t *tmaxP,
 }
 /* clang-format on */
 
-int
+static int
 _echoRayIntx_Sphere(RAYINTX_ARGS(Sphere)) {
   echoPos_t t, A, B, C, r[3], dscr, pos[3], tmp;
 
@@ -164,7 +167,7 @@ _echoRayIntx_Sphere(RAYINTX_ARGS(Sphere)) {
   return AIR_TRUE;
 }
 
-void
+static void
 _echoRayIntxUV_Sphere(echoIntx *intx) {
   echoPos_t u, v;
 
@@ -181,7 +184,7 @@ _echoRayIntxUV_Sphere(echoIntx *intx) {
   }
 }
 
-int
+static int
 _echoRayIntx_Cylinder(RAYINTX_ARGS(Cylinder)) {
   echoPos_t A, B, C, aa, bb, cc, dd, ee, ff, dscr, cylt1, cylt2, t, tmax, twot[2], cylp1,
     cylp2, pos[3], tmp;
@@ -316,7 +319,7 @@ _echoRayIntx_Cylinder(RAYINTX_ARGS(Cylinder)) {
   return AIR_TRUE;
 }
 
-int
+static int
 _echoRayIntx_Cube(RAYINTX_ARGS(Cube)) {
   echoPos_t t;
   int ax, dir;
@@ -345,7 +348,7 @@ _echoRayIntx_Cube(RAYINTX_ARGS(Cube)) {
   return AIR_TRUE;
 }
 
-void
+static void
 _echoRayIntxUV_Cube(echoIntx *intx) {
   echoPos_t x, y, z;
 
@@ -411,7 +414,7 @@ _echoRayIntxUV_Cube(echoIntx *intx) {
     NOPE;                                                                               \
   }
 
-int
+static int
 _echoRayIntx_Rectangle(RAYINTX_ARGS(Rectangle)) {
   echoPos_t pvec[3], qvec[3], tvec[3], det, t, u, v, *edge0, *edge1, tmp;
 
@@ -433,7 +436,7 @@ _echoRayIntx_Rectangle(RAYINTX_ARGS(Rectangle)) {
   return AIR_TRUE;
 }
 
-int
+static int
 _echoRayIntx_Triangle(RAYINTX_ARGS(Triangle)) {
   echoPos_t pvec[3], qvec[3], tvec[3], det, t, u, v, edge0[3], edge1[3], tmp;
 
@@ -453,7 +456,7 @@ _echoRayIntx_Triangle(RAYINTX_ARGS(Triangle)) {
   return AIR_TRUE;
 }
 
-int
+static int
 _echoRayIntx_TriMesh(RAYINTX_ARGS(TriMesh)) {
   echoPos_t *pos, vert0[3], edge0[3], edge1[3], pvec[3], qvec[3], tvec[3], det, t, tmax,
     u, v, tmp;
@@ -496,7 +499,7 @@ _echoRayIntx_TriMesh(RAYINTX_ARGS(TriMesh)) {
   return ret;
 }
 
-void
+static void
 _echoRayIntxUV_TriMesh(echoIntx *intx) {
   echoPos_t u, v, norm[3], len;
   echoTriMesh *trim;
@@ -515,7 +518,7 @@ _echoRayIntxUV_TriMesh(echoIntx *intx) {
   }
 }
 
-int
+static int
 _echoRayIntx_AABBox(RAYINTX_ARGS(AABBox)) {
   int ret;
   echoAABBox *box;
@@ -532,7 +535,7 @@ _echoRayIntx_AABBox(RAYINTX_ARGS(AABBox)) {
   return ret;
 }
 
-int
+static int
 _echoRayIntx_Split(RAYINTX_ARGS(Split)) {
   char me[] = "_echoRayIntx_Split";
   echoObject *a, *b;
@@ -588,7 +591,7 @@ _echoRayIntx_Split(RAYINTX_ARGS(Split)) {
   return ret;
 }
 
-int
+static int
 _echoRayIntx_List(RAYINTX_ARGS(List)) {
   unsigned int i;
   int ret;
@@ -610,7 +613,7 @@ _echoRayIntx_List(RAYINTX_ARGS(List)) {
   return ret;
 }
 
-int
+static int
 _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
   echoPos_t a[4], b[4], tmp;
   echoRay iray;
@@ -657,7 +660,7 @@ _echoRayIntx_Instance(RAYINTX_ARGS(Instance)) {
   return AIR_FALSE;
 }
 
-void
+static void
 _echoRayIntxUV_Noop(echoIntx *intx) {
 
   AIR_UNUSED(intx);

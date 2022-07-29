@@ -103,7 +103,7 @@ NIX_TMPL(List, airArrayNuke(obj->objArr);)
 NEW_TMPL(Instance, ELL_4M_IDENTITY_SET(obj->M); ELL_4M_IDENTITY_SET(obj->Mi);
          obj->obj = NULL;)
 
-echoObject *(*_echoObjectNew[ECHO_TYPE_NUM])(void)
+static echoObject *(*_echoObjectNew[ECHO_TYPE_NUM])(void)
   = {(echoObject * (*)(void)) _echoSphere_new,
      (echoObject * (*)(void)) _echoCylinder_new,
      (echoObject * (*)(void)) _echoSuperquad_new,
@@ -141,7 +141,7 @@ echoObjectAdd(echoScene *scene, echoObject *obj) {
   return 0;
 }
 
-echoObject *(*_echoObjectNix[ECHO_TYPE_NUM])(echoObject *) = {
+static echoObject *(*_echoObjectNix[ECHO_TYPE_NUM])(echoObject *) = {
   (echoObject * (*)(echoObject *)) airFree,        /* echoTypeSphere */
   (echoObject *(*)(echoObject *))airFree,          /* echoTypeCylinder */
   (echoObject *(*)(echoObject *))airFree,          /* echoTypeSuperquad */
