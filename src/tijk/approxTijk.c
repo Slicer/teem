@@ -184,7 +184,7 @@ tijk_refine_rank1_parm
  *         2 when the Armijo scheme failed to produce a valid stepsize
  */
 #define _TIJK_REFINE_RANK1ORMAX(TYPE, SUF, DIM)                         \
-  int                                                                   \
+  static int                                                            \
   _tijk_refine_rank1ormax_##DIM##d_##SUF(TYPE *s, TYPE *v, const TYPE *ten, \
                                          const tijk_type *type,         \
                                          const tijk_refine_rank1_parm *parm, \

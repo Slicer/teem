@@ -68,7 +68,7 @@ _tijk_2o2d_unsym_trans_f (float *res, const float *A, const float *M) {
 
 /* macro-based pseudo-template for type-generic code */
 #define _TIJK_2O2D_UNSYM_CONVERT(TYPE, SUF)                             \
-  int                                                                   \
+  static int                                                            \
   _tijk_2o2d_unsym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                   const TYPE *A) {                      \
     if (res_type==tijk_2o2d_unsym) { /* copy over */                    \
@@ -84,7 +84,7 @@ _TIJK_2O2D_UNSYM_CONVERT(double, d)
 _TIJK_2O2D_UNSYM_CONVERT(float, f)
 
 #define _TIJK_2O2D_UNSYM_APPROX(TYPE, SUF)                             \
-  int                                                                  \
+  static int                                                           \
   _tijk_2o2d_unsym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                  const TYPE *A) {                      \
     if (res_type==tijk_2o2d_sym) {                                     \
@@ -151,7 +151,7 @@ _tijk_2o2d_sym_trans_f (float *res, const float *A, const float *M) {
 }
 
 #define _TIJK_2O2D_SYM_CONVERT(TYPE, SUF)                             \
-  int                                                                 \
+  static int                                                          \
   _tijk_2o2d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                 const TYPE *A) {                      \
     if (res_type==tijk_2o2d_sym) { /* copy over */                    \
@@ -174,7 +174,7 @@ _TIJK_2O2D_SYM_CONVERT(double, d)
 _TIJK_2O2D_SYM_CONVERT(float, f)
 
 #define _TIJK_2O2D_SYM_APPROX(TYPE, SUF)                             \
-  int                                                                \
+  static int                                                         \
   _tijk_2o2d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                const TYPE *A) {                      \
     if (NULL!=res_type->_approx_from_##SUF)                          \
@@ -337,7 +337,7 @@ _tijk_2o2d_asym_trans_f (float *res, const float *A, const float *M) {
 }
 
 #define _TIJK_2O2D_ASYM_CONVERT(TYPE, SUF)                             \
-  int                                                                  \
+  static int                                                           \
   _tijk_2o2d_asym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                  const TYPE *A) {                      \
     if (res_type==tijk_2o2d_asym) { /* copy over */                    \
@@ -356,7 +356,7 @@ _TIJK_2O2D_ASYM_CONVERT(double, d)
 _TIJK_2O2D_ASYM_CONVERT(float, f)
 
 #define _TIJK_2O2D_ASYM_APPROX(TYPE, SUF)                             \
-  int                                                                 \
+  static int                                                          \
   _tijk_2o2d_asym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                 const TYPE *A) {                      \
     if (NULL!=res_type->_approx_from_##SUF)                           \
@@ -402,7 +402,7 @@ _tijk_3o2d_sym_norm_f (const float *A) {
 }
 
 #define _TIJK_3O2D_SYM_CONVERT(TYPE, SUF)                             \
-  int                                                                 \
+  static int                                                          \
   _tijk_3o2d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                 const TYPE *A) {                      \
     if (res_type==tijk_3o2d_sym) { /* copy over */                    \
@@ -418,7 +418,7 @@ _TIJK_3O2D_SYM_CONVERT(double, d)
 _TIJK_3O2D_SYM_CONVERT(float, f)
 
 #define _TIJK_3O2D_SYM_APPROX(TYPE, SUF)                             \
-  int                                                                \
+  static int                                                         \
   _tijk_3o2d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                const TYPE *A) {                      \
     if (NULL!=res_type->_approx_from_##SUF)                          \
@@ -606,7 +606,7 @@ _tijk_4o2d_unsym_norm_f (const float *A) {
 }
 
 #define _TIJK_4O2D_UNSYM_TRANS(TYPE, SUF)                               \
-  void                                                                  \
+  static void                                                           \
   _tijk_4o2d_unsym_trans_##SUF (TYPE *res, const TYPE *A, const TYPE *M) \
   { /* Tijkl = Mim Mjn Mko Mlp Tmnop                                    \
      * For efficiency, we transform mode by mode, right to left */      \
@@ -639,7 +639,7 @@ _TIJK_4O2D_UNSYM_TRANS(double, d)
 _TIJK_4O2D_UNSYM_TRANS(float, f)
 
 #define _TIJK_4O2D_UNSYM_CONVERT(TYPE, SUF)                             \
-  int                                                                   \
+  static int                                                            \
   _tijk_4o2d_unsym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                   const TYPE *A) {                      \
     if (res_type==tijk_4o2d_unsym) { /* copy over */                    \
@@ -656,7 +656,7 @@ _TIJK_4O2D_UNSYM_CONVERT(double, d)
 _TIJK_4O2D_UNSYM_CONVERT(float, f)
 
 #define _TIJK_4O2D_UNSYM_APPROX(TYPE, SUF)                             \
-  int                                                                  \
+  static int                                                           \
   _tijk_4o2d_unsym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                  const TYPE *A) {                      \
     if (res_type==tijk_4o2d_sym) {                                     \
@@ -708,7 +708,7 @@ _tijk_4o2d_sym_norm_f (const float *A) {
 }
 
 #define _TIJK_4O2D_SYM_CONVERT(TYPE, SUF)                             \
-  int                                                                 \
+  static int                                                          \
   _tijk_4o2d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                 const TYPE *A) {                      \
     if (res_type==tijk_4o2d_sym) { /* copy over */                    \
@@ -729,7 +729,7 @@ _TIJK_4O2D_SYM_CONVERT(double, d)
 _TIJK_4O2D_SYM_CONVERT(float, f)
 
 #define _TIJK_4O2D_SYM_APPROX(TYPE, SUF)                             \
-  int                                                                \
+  static int                                                         \
   _tijk_4o2d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                const TYPE *A) {                      \
     if (res_type==tijk_2o2d_sym) {                                   \

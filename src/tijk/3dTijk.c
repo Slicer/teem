@@ -68,7 +68,7 @@ _tijk_1o3d_trans_f (float *res, const float *A, const float *M) {
 
 /* macro-based pseudo-template for type-generic code */
 #define _TIJK_1O3D_CONVERT(TYPE, SUF)                             \
-  int                                                             \
+  static int                                                      \
   _tijk_1o3d_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                             const TYPE *A) {                      \
     if (res_type==tijk_1o3d) { /* copy over */                    \
@@ -89,7 +89,7 @@ _TIJK_1O3D_CONVERT(double, d)
 _TIJK_1O3D_CONVERT(float, f)
 
 #define _TIJK_1O3D_APPROX(TYPE, SUF)                             \
-  int                                                            \
+  static int                                                     \
   _tijk_1o3d_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                            const TYPE *A) {                      \
     if (NULL!=res_type->_approx_from_##SUF)                      \
@@ -242,7 +242,7 @@ _tijk_2o3d_unsym_trans_f (float *res, const float *A, const float *M) {
 
 /* macro-based pseudo-template for type-generic code */
 #define _TIJK_2O3D_UNSYM_CONVERT(TYPE, SUF)                             \
-  int                                                                   \
+  static int                                                            \
   _tijk_2o3d_unsym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                   const TYPE *A) {                      \
     if (res_type==tijk_2o3d_unsym) { /* copy over */                    \
@@ -258,7 +258,7 @@ _TIJK_2O3D_UNSYM_CONVERT(double, d)
 _TIJK_2O3D_UNSYM_CONVERT(float, f)
 
 #define _TIJK_2O3D_UNSYM_APPROX(TYPE, SUF)                             \
-  int                                                                  \
+  static int                                                           \
   _tijk_2o3d_unsym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                  const TYPE *A) {                      \
     if (res_type==tijk_2o3d_sym) {                                     \
@@ -312,7 +312,7 @@ _tijk_2o3d_sym_norm_f (const float *A) {
 }
 
 #define _TIJK_2O3D_SYM_CONVERT(TYPE, SUF)                             \
-  int                                                                 \
+  static int                                                          \
   _tijk_2o3d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                 const TYPE *A) {                      \
     if (res_type==tijk_2o3d_sym) { /* copy over */                    \
@@ -339,7 +339,7 @@ _TIJK_2O3D_SYM_CONVERT(double, d)
 _TIJK_2O3D_SYM_CONVERT(float, f)
 
 #define _TIJK_2O3D_SYM_APPROX(TYPE, SUF)                             \
-  int                                                                \
+  static int                                                         \
   _tijk_2o3d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                const TYPE *A) {                      \
     if (NULL!=res_type->_approx_from_##SUF)                          \
@@ -478,7 +478,7 @@ _tijk_2o3d_sym_grad_f (float *res, const float *A, const float *v) {
 }
 
 #define _TIJK_2O3D_SYM_HESS(TYPE, SUF)                                  \
-  void                                                                  \
+  static void                                                           \
   _tijk_2o3d_sym_hess_##SUF (TYPE *res, const TYPE *A, const TYPE *v) { \
     /* get two orthonormal tangents */                                  \
     TYPE t[2][3], h[4], der, norm, tmp[6];                              \
@@ -542,7 +542,7 @@ _tijk_2o3d_asym_norm_f (const float *A) {
 }
 
 #define _TIJK_2O3D_ASYM_CONVERT(TYPE, SUF)                             \
-  int                                                                  \
+  static int                                                           \
   _tijk_2o3d_asym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                  const TYPE *A) {                      \
     if (res_type==tijk_2o3d_asym) { /* copy over */                    \
@@ -563,7 +563,7 @@ _TIJK_2O3D_ASYM_CONVERT(double, d)
 _TIJK_2O3D_ASYM_CONVERT(float, f)
 
 #define _TIJK_2O3D_ASYM_APPROX(TYPE, SUF)                             \
-  int                                                                 \
+  static int                                                          \
   _tijk_2o3d_asym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                 const TYPE *A) {                      \
     if (NULL!=res_type->_approx_from_##SUF)                           \
@@ -674,7 +674,7 @@ _tijk_3o3d_unsym_trans_f (float *res, const float *A, const float *M) {
 }
 
 #define _TIJK_3O3D_UNSYM_CONVERT(TYPE, SUF)                             \
-  int                                                                   \
+  static int                                                            \
   _tijk_3o3d_unsym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                   const TYPE *A) {                      \
     if (res_type==tijk_3o3d_unsym) { /* copy over */                    \
@@ -692,7 +692,7 @@ _TIJK_3O3D_UNSYM_CONVERT(double, d)
 _TIJK_3O3D_UNSYM_CONVERT(float, f)
 
 #define _TIJK_3O3D_UNSYM_APPROX(TYPE, SUF)                             \
-  int                                                                  \
+  static int                                                           \
   _tijk_3o3d_unsym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                  const TYPE *A) {                      \
     if (res_type==tijk_3o3d_sym) {                                     \
@@ -752,7 +752,7 @@ _tijk_3o3d_sym_norm_f (const float *A) {
 }
 
 #define _TIJK_3O3D_SYM_CONVERT(TYPE, SUF)                             \
-  int                                                                 \
+  static int                                                          \
   _tijk_3o3d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                 const TYPE *A) {                      \
     if (res_type==tijk_3o3d_sym) { /* copy over */                    \
@@ -773,7 +773,7 @@ _TIJK_3O3D_SYM_CONVERT(double, d)
 _TIJK_3O3D_SYM_CONVERT(float, f)
 
 #define _TIJK_3O3D_SYM_APPROX(TYPE, SUF)                             \
-  int                                                                \
+  static int                                                         \
   _tijk_3o3d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                const TYPE *A){                       \
     if (res_type==tijk_1o3d) {                                       \
@@ -938,7 +938,7 @@ _tijk_3o3d_sym_grad_f (float *res, const float *A, const float *v) {
 }
 
 #define _TIJK_3O3D_SYM_HESS(TYPE, SUF)                                  \
-  void                                                                  \
+  static void                                                           \
   _tijk_3o3d_sym_hess_##SUF (TYPE *res, const TYPE *A, const TYPE *v) { \
     /* get two orthonormal tangents */                                  \
     TYPE t[2][3], cv[2][3], h[6], der, norm, tmp[6];                    \
@@ -1011,7 +1011,7 @@ _tijk_4o3d_sym_norm_f (const float *A) {
 }
 
 #define _TIJK_4O3D_SYM_TRANS(TYPE, SUF)                                 \
-  void                                                                  \
+  static void                                                           \
   _tijk_4o3d_sym_trans_##SUF (TYPE *res, const TYPE *A, const TYPE *M) { \
     /* Tijkl = Mim Mjn Mko Mlp Tmnop                                    \
      * For efficiency, we transform mode by mode; the intermediate results \
@@ -1056,7 +1056,7 @@ _TIJK_4O3D_SYM_TRANS(double, d)
 _TIJK_4O3D_SYM_TRANS(float, f)
 
 #define _TIJK_4O3D_SYM_CONVERT(TYPE, SUF)                             \
-  int                                                                 \
+  static int                                                          \
   _tijk_4o3d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                 const TYPE *A) {                      \
     if (res_type==tijk_4o3d_sym) { /* copy over */                    \
@@ -1078,7 +1078,7 @@ _TIJK_4O3D_SYM_CONVERT(double, d)
 _TIJK_4O3D_SYM_CONVERT(float, f)
 
 #define _TIJK_4O3D_SYM_APPROX(TYPE, SUF)                             \
-  int                                                                \
+  static int                                                         \
   _tijk_4o3d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                const TYPE *A){                       \
     if (res_type==tijk_2o3d_sym) {                                   \
@@ -1271,7 +1271,7 @@ _tijk_4o3d_sym_grad_f (float *res, const float *A, const float *v) {
 }
 
 #define _TIJK_4O3D_SYM_HESS(TYPE, SUF)                                  \
-  void                                                                  \
+  static void                                                           \
   _tijk_4o3d_sym_hess_##SUF (TYPE *res, const TYPE *A, const TYPE *v) { \
     /* get two orthonormal tangents */                                  \
     TYPE t[2][3], cv[2][3], h[6], der, norm, tmp[6];                    \
@@ -1350,7 +1350,7 @@ _tijk_6o3d_sym_norm_f (const float *A) {
 }
 
 #define _TIJK_6O3D_SYM_TRANS(TYPE, SUF)                                 \
-  void                                                                  \
+  static void                                                           \
   _tijk_6o3d_sym_trans_##SUF (TYPE *res, const TYPE *A, const TYPE *M) { \
     /* Tijklmn = Mio Mjp Mkq Mlr Mms Mnt Topqrst                        \
      * For efficiency, we transform mode by mode; the intermediate results \
@@ -1411,7 +1411,7 @@ _TIJK_6O3D_SYM_TRANS(double, d)
 _TIJK_6O3D_SYM_TRANS(float, f)
 
 #define _TIJK_6O3D_SYM_CONVERT(TYPE, SUF)                             \
-  int                                                                 \
+  static int                                                          \
   _tijk_6o3d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                 const TYPE *A) {                      \
     if (res_type==tijk_6o3d_sym) { /* copy over */                    \
@@ -1426,7 +1426,7 @@ _TIJK_6O3D_SYM_CONVERT(double, d)
 _TIJK_6O3D_SYM_CONVERT(float, f)
 
 #define _TIJK_6O3D_SYM_APPROX(TYPE, SUF)                                \
-  int                                                                   \
+  static int                                                            \
   _tijk_6o3d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type,    \
                                const TYPE *A){                          \
     if (res_type==tijk_2o3d_sym) {                                      \
@@ -1639,7 +1639,7 @@ _tijk_6o3d_sym_var_f (const float *A) {
 }
 
 #define _TIJK_6O3D_SYM_V_FORM(TYPE, SUF)                                \
-  void                                                                  \
+  static void                                                           \
   _tijk_6o3d_sym_v_form_##SUF (TYPE *res, const TYPE *A, const TYPE *v) { \
     TYPE v00=v[0]*v[0], v01=v[0]*v[1], v02=v[0]*v[2],                   \
       v11=v[1]*v[1], v12=v[1]*v[2], v22=v[2]*v[2];                      \
@@ -1719,7 +1719,7 @@ _TIJK_6O3D_SYM_V_FORM(double, d)
 _TIJK_6O3D_SYM_V_FORM(float, f)
 
 #define _TIJK_6O3D_SYM_M_FORM(TYPE, SUF)                                \
-  void                                                                  \
+  static void                                                           \
   _tijk_6o3d_sym_m_form_##SUF (TYPE *res, const TYPE *A, const TYPE *v) { \
     TYPE v00=v[0]*v[0], v01=v[0]*v[1], v02=v[0]*v[2],                   \
       v11=v[1]*v[1], v12=v[1]*v[2], v22=v[2]*v[2];                      \
@@ -1823,7 +1823,7 @@ _TIJK_6O3D_SYM_M_FORM(double, d)
 _TIJK_6O3D_SYM_M_FORM(float, f)
 
 #define _TIJK_6O3D_SYM_MAKE_RANK1(TYPE, SUF)                             \
-  void                                                                   \
+  static void                                                            \
   _tijk_6o3d_sym_make_rank1_##SUF (TYPE *res, const TYPE s, const TYPE *v) { \
     TYPE v00=v[0]*v[0], v01=v[0]*v[1], v02=v[0]*v[2],                    \
       v11=v[1]*v[1], v12=v[1]*v[2], v22=v[2]*v[2];                       \
@@ -1885,7 +1885,7 @@ _tijk_6o3d_sym_grad_f (float *res, const float *A, const float *v) {
 }
 
 #define _TIJK_6O3D_SYM_HESS(TYPE, SUF)                                  \
-  void                                                                  \
+  static void                                                           \
   _tijk_6o3d_sym_hess_##SUF (TYPE *res, const TYPE *A, const TYPE *v) { \
     /* get two orthonormal tangents */                                  \
     TYPE t[2][3], cv[2][3], h[6], der, norm, tmp[6];                    \
@@ -1961,7 +1961,7 @@ _tijk_8o3d_sym_norm_f (const float *A) {
 }
 
 #define _TIJK_8O3D_SYM_TRANS(TYPE, SUF)                                 \
-  void                                                                  \
+  static void                                                           \
   _tijk_8o3d_sym_trans_##SUF (TYPE *res, const TYPE *A, const TYPE *M) { \
     /* Tijklmnop = Miq Mjr Mks Mlt Mmu Mnv Mow Mpx Tqrstuvwx            \
      * For efficiency, we transform mode by mode; the intermediate results \
@@ -2044,7 +2044,7 @@ _TIJK_8O3D_SYM_TRANS(float, f)
 
 /* For convenience, do this via SH conversion */
 #define _TIJK_8O3D_SYM_APPROX(TYPE, SUF)                             \
-  int                                                                \
+  static int                                                         \
   _tijk_8o3d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                const TYPE *A) {                      \
     if (res_type==tijk_2o3d_sym ||                                   \
@@ -2187,7 +2187,7 @@ _tijk_8o3d_sym_mean_f (const float *A) {
 #define _tijk_8o3d_sym_var_d NULL
 
 #define _TIJK_8O3D_SYM_V_FORM(TYPE, SUF)                                \
-  void                                                                  \
+  static void                                                           \
   _tijk_8o3d_sym_v_form_##SUF (TYPE *res, const TYPE *A, const TYPE *v) { \
     TYPE v00=v[0]*v[0], v01=v[0]*v[1], v02=v[0]*v[2],                   \
       v11=v[1]*v[1], v12=v[1]*v[2], v22=v[2]*v[2];                      \
@@ -2312,7 +2312,7 @@ _TIJK_8O3D_SYM_V_FORM(double, d)
 _TIJK_8O3D_SYM_V_FORM(float, f)
 
 #define _TIJK_8O3D_SYM_M_FORM(TYPE, SUF)                                \
-  void                                                                  \
+  static void                                                           \
   _tijk_8o3d_sym_m_form_##SUF (TYPE *res, const TYPE *A, const TYPE *v) { \
     TYPE v00=v[0]*v[0], v01=v[0]*v[1], v02=v[0]*v[2],                   \
       v11=v[1]*v[1], v12=v[1]*v[2], v22=v[2]*v[2];                      \
@@ -2494,7 +2494,7 @@ _TIJK_8O3D_SYM_M_FORM(double, d)
 _TIJK_8O3D_SYM_M_FORM(float, f)
 
 #define _TIJK_8O3D_SYM_MAKE_RANK1(TYPE, SUF)                                         \
-  void                                                                               \
+  static void                                                                        \
   _tijk_8o3d_sym_make_rank1_##SUF (TYPE *res, const TYPE s, const TYPE *v) {         \
     TYPE v00=v[0]*v[0], v01=v[0]*v[1], v02=v[0]*v[2],                                \
       v11=v[1]*v[1], v12=v[1]*v[2], v22=v[2]*v[2];                                   \
@@ -2563,7 +2563,7 @@ _tijk_8o3d_sym_grad_f (float *res, const float *A, const float *v) {
 }
 
 #define _TIJK_8O3D_SYM_HESS(TYPE, SUF)                                  \
-  void                                                                  \
+  static void                                                           \
   _tijk_8o3d_sym_hess_##SUF (TYPE *res, const TYPE *A, const TYPE *v) { \
     /* get two orthonormal tangents */                                  \
     TYPE t[2][3], cv[2][3], h[6], der, norm, tmp[6];                    \
