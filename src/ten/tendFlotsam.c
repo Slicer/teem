@@ -30,9 +30,9 @@
 ** NULL-terminated array of unrrduCmd pointers, as ordered by
 ** TEN_MAP macro
 */
-unrrduCmd *tendCmdList[] = {TEND_MAP(TEND_LIST) NULL};
+const unrrduCmd *const tendCmdList[] = {TEND_MAP(TEND_LIST) NULL};
 
-const char *tendTitle = "tend: Diffusion Image Processing and Analysis";
+const char *const tendTitle = "tend: Diffusion Image Processing and Analysis";
 
 /*
 ******** tendFiberStopParse
@@ -144,6 +144,7 @@ tendFiberStopParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB _tendFiberStopCB = {3 * sizeof(double), "fiber stop", tendFiberStopParse, NULL};
+const hestCB _tendFiberStopCB = {3 * sizeof(double), "fiber stop", tendFiberStopParse,
+                                 NULL};
 
-hestCB *tendFiberStopCB = &_tendFiberStopCB;
+const hestCB *const tendFiberStopCB = &_tendFiberStopCB;

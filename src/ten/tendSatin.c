@@ -305,4 +305,4 @@ tend_satinMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   return 0;
 }
 /* TEND_CMD(satin, INFO); */
-unrrduCmd tend_satinCmd = {"satin", INFO, tend_satinMain, AIR_FALSE};
+const unrrduCmd tend_satinCmd = {"satin", INFO, tend_satinMain, AIR_FALSE};

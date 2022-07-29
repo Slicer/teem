@@ -38,7 +38,7 @@ unsigned int unrrduDefNumColumns = 78;
 **
 ** NULL-terminated array of unrrduCmd pointers, as ordered by UNRRDU_MAP macro
 */
-unrrduCmd *unrrduCmdList[] = {UNRRDU_MAP(UNRRDU_LIST) NULL};
+const unrrduCmd *const unrrduCmdList[] = {UNRRDU_MAP(UNRRDU_LIST) NULL};
 
 /*
 ******** unrrduCmdMain
@@ -253,7 +253,8 @@ unrrduUsageUnu(const char *me, hestParm *hparm) {
 ** does not use biff
 */
 int
-unrrduUsage(const char *me, hestParm *hparm, const char *title, unrrduCmd **cmdList) {
+unrrduUsage(const char *me, hestParm *hparm, const char *title,
+            const unrrduCmd *const *cmdList) {
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
   unsigned int cmdi, chi, len, maxlen;
 
@@ -364,7 +365,7 @@ unrrduParsePos(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduHestPosCB = {2 * sizeof(long int), "position", unrrduParsePos, NULL};
+const hestCB unrrduHestPosCB = {2 * sizeof(long int), "position", unrrduParsePos, NULL};
 
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
@@ -412,7 +413,7 @@ unrrduParseMaybeType(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduHestMaybeTypeCB = {sizeof(int), "type", unrrduParseMaybeType, NULL};
+const hestCB unrrduHestMaybeTypeCB = {sizeof(int), "type", unrrduParseMaybeType, NULL};
 
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
@@ -444,7 +445,8 @@ unrrduParseBits(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduHestBitsCB = {sizeof(int), "quantization bits", unrrduParseBits, NULL};
+const hestCB unrrduHestBitsCB = {sizeof(int), "quantization bits", unrrduParseBits,
+                                 NULL};
 
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
@@ -528,8 +530,8 @@ unrrduParseScale(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduHestScaleCB = {2 * sizeof(double), "sampling specification",
-                            unrrduParseScale, NULL};
+const hestCB unrrduHestScaleCB = {2 * sizeof(double), "sampling specification",
+                                  unrrduParseScale, NULL};
 
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
@@ -570,7 +572,7 @@ unrrduParseFile(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduHestFileCB = {
+const hestCB unrrduHestFileCB = {
   sizeof(FILE *),
   "filename",
   unrrduParseFile,
@@ -654,7 +656,8 @@ unrrduParseEncoding(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduHestEncodingCB = {3 * sizeof(int), "encoding", unrrduParseEncoding, NULL};
+const hestCB unrrduHestEncodingCB = {3 * sizeof(int), "encoding", unrrduParseEncoding,
+                                     NULL};
 
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
@@ -699,4 +702,4 @@ unrrduParseFormat(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduHestFormatCB = {2 * sizeof(int), "format", unrrduParseFormat, NULL};
+const hestCB unrrduHestFormatCB = {2 * sizeof(int), "format", unrrduParseFormat, NULL};

@@ -24,7 +24,7 @@
 #include "alan.h"
 
 /* clang-format off */
-const char *
+static const char *
 _alanStopStr[ALAN_STOP_MAX+1] = {
   "(unknown_stop)",
   "not",
@@ -34,7 +34,7 @@ _alanStopStr[ALAN_STOP_MAX+1] = {
   "diverged"
 };
 
-const char *
+static const char *
 _alanStopDesc[ALAN_STOP_MAX+1] = {
   "unknown_stop",
   "there is no reason to stop",
@@ -44,7 +44,7 @@ _alanStopDesc[ALAN_STOP_MAX+1] = {
   "simulation hit divergent instability"
 };
 
-const airEnum
+static const airEnum
 _alanStop = {
   "stop",
   ALAN_STOP_MAX,

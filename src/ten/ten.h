@@ -1565,7 +1565,7 @@ TEN_EXPORT double tenExperSpecMaxBGet(const tenExperSpec *espec);
 TEN_EXPORT int tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi, const tenExperSpec *espec);
 
 /* tenModel.c */
-TEN_EXPORT const char *tenModelPrefixStr;
+TEN_EXPORT const char tenModelPrefixStr[];
 TEN_EXPORT int tenModelParse(const tenModel **model, int *plusB0, int requirePrefix,
                              const char *str);
 TEN_EXPORT int tenModelFromAxisLearnPossible(const NrrdAxisInfo *axinfo);
@@ -1676,7 +1676,7 @@ TEN_EXPORT tenEMBimodalParm *tenEMBimodalParmNix(tenEMBimodalParm *biparm);
 TEN_EXPORT int tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *nhisto);
 
 /* tend{Flotsam,Anplot,Anvol,Evec,Eval,. . .}.c */
-#define TEND_DECLARE(C) TEN_EXPORT unrrduCmd tend_##C##Cmd;
+#define TEND_DECLARE(C) TEN_EXPORT const unrrduCmd tend_##C##Cmd;
 #define TEND_LIST(C)    &tend_##C##Cmd,
 /* removed from below (superseded by estim): F(calc) \ */
 #define TEND_MAP(F)                                                                     \
@@ -1721,9 +1721,9 @@ TEN_EXPORT int tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *nhisto);
   F(bfit)                                                                               \
   F(satin)
 TEND_MAP(TEND_DECLARE)
-TEN_EXPORT unrrduCmd *tendCmdList[];
-TEN_EXPORT hestCB *tendFiberStopCB;
-TEN_EXPORT const char *tendTitle;
+TEN_EXPORT const unrrduCmd *const tendCmdList[];
+TEN_EXPORT const hestCB *const tendFiberStopCB;
+TEN_EXPORT const char *const tendTitle;
 
 #ifdef __cplusplus
 }

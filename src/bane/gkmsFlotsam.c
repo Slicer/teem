@@ -81,10 +81,11 @@ baneGkmsParseIncStrategy(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) 
   return 1;
 }
 
-hestCB _baneGkmsHestIncStrategy = {(1 + BANE_PARM_NUM) * sizeof(double),
-                                   "inclusion strategy", baneGkmsParseIncStrategy, NULL};
+const hestCB _baneGkmsHestIncStrategy = {(1 + BANE_PARM_NUM) * sizeof(double),
+                                         "inclusion strategy", baneGkmsParseIncStrategy,
+                                         NULL};
 
-hestCB *baneGkmsHestIncStrategy = &_baneGkmsHestIncStrategy;
+const hestCB *const baneGkmsHestIncStrategy = &_baneGkmsHestIncStrategy;
 
 /* ----------------------------------------------------------- */
 /* ----------------------------------------------------------- */
@@ -153,10 +154,10 @@ baneGkmsParseBEF(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB _baneGkmsHestBEF = {sizeof(Nrrd *), "boundary emphasis function",
-                           baneGkmsParseBEF, (airMopper)nrrdNuke};
+const hestCB _baneGkmsHestBEF = {sizeof(Nrrd *), "boundary emphasis function",
+                                 baneGkmsParseBEF, (airMopper)nrrdNuke};
 
-hestCB *baneGkmsHestBEF = &_baneGkmsHestBEF;
+const hestCB *const baneGkmsHestBEF = &_baneGkmsHestBEF;
 
 /* ----------------------------------------------------------- */
 /* ----------------------------------------------------------- */
@@ -194,10 +195,10 @@ baneGkmsParseGthresh(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB _baneGkmsHestGthresh = {2 * sizeof(float), "gthresh specification",
-                               baneGkmsParseGthresh, NULL};
+const hestCB _baneGkmsHestGthresh = {2 * sizeof(float), "gthresh specification",
+                                     baneGkmsParseGthresh, NULL};
 
-hestCB *baneGkmsHestGthresh = &_baneGkmsHestGthresh;
+const hestCB *const baneGkmsHestGthresh = &_baneGkmsHestGthresh;
 
 /* ----------------------------------------------------------- */
 /* ----------------------------------------------------------- */

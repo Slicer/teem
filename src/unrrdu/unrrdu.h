@@ -102,7 +102,7 @@ typedef struct {
     2) implement foo.c, and list foo.o in GNUmakefile and CmakeLists.txt
     That's it.
 ********************************************************** */
-#define UNRRDU_DECLARE(C) UNRRDU_EXPORT unrrduCmd unrrdu_##C##Cmd;
+#define UNRRDU_DECLARE(C) UNRRDU_EXPORT const unrrduCmd unrrdu_##C##Cmd;
 #define UNRRDU_LIST(C)    &unrrdu_##C##Cmd,
 #define UNRRDU_MAP(F)                                                                   \
   F(about)                                                                              \
@@ -189,9 +189,9 @@ F(unblock) \
 ** the command, UNQUOTED, such as flip or slice.
 */
 #define UNRRDU_CMD(name, info)                                                          \
-  unrrduCmd unrrdu_##name##Cmd = {#name, info, unrrdu_##name##Main, AIR_FALSE}
+  const unrrduCmd unrrdu_##name##Cmd = {#name, info, unrrdu_##name##Main, AIR_FALSE}
 #define UNRRDU_CMD_HIDE(name, info)                                                     \
-  unrrduCmd unrrdu_##name##Cmd = {#name, info, unrrdu_##name##Main, AIR_TRUE}
+  const unrrduCmd unrrdu_##name##Cmd = {#name, info, unrrdu_##name##Main, AIR_TRUE}
 
 /* xxx.c */
 /* Declare the extern unrrduCmds unrrdu_xxxCmd, for all xxx.  These are
@@ -224,17 +224,17 @@ UNRRDU_EXPORT int unrrduCmdMain(int argc, const char **argv, const char *cmd,
                                 const char *title, const unrrduCmd *const *cmdList,
                                 hestParm *hparm, FILE *fusage);
 /* addresses of all unrrdu_xxxCmd */
-UNRRDU_EXPORT unrrduCmd *unrrduCmdList[];
+UNRRDU_EXPORT const unrrduCmd *const unrrduCmdList[];
 UNRRDU_EXPORT void unrrduUsageUnu(const char *me, hestParm *hparm);
 UNRRDU_EXPORT int unrrduUsage(const char *me, hestParm *hparm, const char *title,
-                              unrrduCmd **cmdList);
-UNRRDU_EXPORT hestCB unrrduHestPosCB;
-UNRRDU_EXPORT hestCB unrrduHestMaybeTypeCB;
-UNRRDU_EXPORT hestCB unrrduHestScaleCB;
-UNRRDU_EXPORT hestCB unrrduHestBitsCB;
-UNRRDU_EXPORT hestCB unrrduHestFileCB;
-UNRRDU_EXPORT hestCB unrrduHestEncodingCB;
-UNRRDU_EXPORT hestCB unrrduHestFormatCB;
+                              const unrrduCmd *const *cmdList);
+UNRRDU_EXPORT const hestCB unrrduHestPosCB;
+UNRRDU_EXPORT const hestCB unrrduHestMaybeTypeCB;
+UNRRDU_EXPORT const hestCB unrrduHestScaleCB;
+UNRRDU_EXPORT const hestCB unrrduHestBitsCB;
+UNRRDU_EXPORT const hestCB unrrduHestFileCB;
+UNRRDU_EXPORT const hestCB unrrduHestEncodingCB;
+UNRRDU_EXPORT const hestCB unrrduHestFormatCB;
 
 #ifdef __cplusplus
 }

@@ -24,7 +24,7 @@
 #include "ten.h"
 #include "privateTen.h"
 
-const char *tenModelPrefixStr = "DWMRI_model:";
+const char tenModelPrefixStr[] = "DWMRI_model:";
 
 static const tenModel *
 str2model(const char *str) {
