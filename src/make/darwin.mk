@@ -27,7 +27,7 @@ RANLIB = ranlib
 
 LD = gcc
 
-OPT_CFLAG ?= -O3 -g
+OPT_CFLAG ?= -O3 -g -DTEEM_BUILD_EXPERIMENTAL_LIBS
 STATIC_CFLAG = -Wl,-prebind
 SHARED_CFLAG =
 SHARED_LDFLAG = -dynamic -dynamiclib -fno-common
