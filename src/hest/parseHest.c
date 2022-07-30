@@ -705,7 +705,7 @@ airIStore(void *v, int t, int i) {
 ** this function moved from air/miscAir; the usage below
 ** is its only usage in Teem
 */
-double
+static double
 airDLoad(void *v, int t) {
 
   switch (t) {
