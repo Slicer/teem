@@ -24,7 +24,10 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-static FILE *_fileSave = NULL;
+/* this was part of an old hail Mary debugging effort;
+  bug has probably been found :)
+  Removing this since it is a weird symbol to see in the "nm" output */
+/* static FILE *_fileSave = NULL; */
 
 static int
 _nrrdEncodingAscii_available(void) {
@@ -43,7 +46,7 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
   int tmp;
 
   AIR_UNUSED(nio);
-  _fileSave = file;
+  /* _fileSave = file; */
   if (nrrdTypeBlock == nrrd->type) {
     biffAddf(NRRD, "%s: can't read nrrd type %s from %s", me,
              airEnumStr(nrrdType, nrrdTypeBlock), nrrdEncodingAscii->name);
@@ -68,12 +71,14 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
                airSprintSize_t(stmp1, I + 1), airSprintSize_t(stmp2, elNum));
       return 1;
     }
+    /*
     if (file != _fileSave) {
       fprintf(stderr, "%s: PANIC memory corruption detected\n", me);
-      /* this may crash, hence the fprintf above to help debug */
+      / * this may crash, hence the fprintf above to help debug * /
       biffAddf(NRRD, "%s: PANIC memory corruption detected", me);
       return 1;
     }
+    */
     if (!strcmp(",", numbStr)) {
       /* its an isolated comma, not a value, pass over this */
       continue;
