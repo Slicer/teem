@@ -21,6 +21,10 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MOSS_SX(img)                                                                    \
   AIR_INT((3 == (img)->dim ? (img)->axis[1].size : (img)->axis[0].size))
 #define MOSS_SY(img)                                                                    \
@@ -52,3 +56,7 @@
 
 /* methodsMoss.c */
 extern int _mossCenter(int center);
+
+#ifdef __cplusplus
+}
+#endif

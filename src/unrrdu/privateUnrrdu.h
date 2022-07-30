@@ -21,9 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef UNRRDU_PRIVATE_HAS_BEEN_INCLUDED
-#define UNRRDU_PRIVATE_HAS_BEEN_INCLUDED
-
 #ifdef _WIN32
 #  include <io.h>
 #  include <fcntl.h>
@@ -153,5 +150,3 @@ if ( (hparm->respFileEnable && !argc) || \
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* UNRRDU_PRIVATE_HAS_BEEN_INCLUDED */

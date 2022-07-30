@@ -21,9 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef BIFF_PRIVATE_HAS_BEEN_INCLUDED
-#define BIFF_PRIVATE_HAS_BEEN_INCLUDED
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -45,4 +42,3 @@ extern void _biffMsgMoveVL(biffMsg *dest, biffMsg *src, const char *errfmt,
 #ifdef __cplusplus
 }
 #endif
-#endif /* BIFF_PRIVATE_HAS_BEEN_INCLUDED */

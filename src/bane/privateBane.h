@@ -21,9 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef BANE_PRIVATE_HAS_BEEN_INCLUDED
-#define BANE_PRIVATE_HAS_BEEN_INCLUDED
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -61,5 +58,3 @@ extern int _baneAxisCheck(baneAxis *axis);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* BANE_PRIVATE_HAS_BEEN_INCLUDED */

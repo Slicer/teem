@@ -21,9 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef NRRD_PRIVATE_HAS_BEEN_INCLUDED
-#define NRRD_PRIVATE_HAS_BEEN_INCLUDED
-
 #ifdef _WIN32
 #  include <io.h>
 #  include <fcntl.h>
@@ -207,5 +204,3 @@ extern double _nrrdApplyDomainMax(const Nrrd *nmap, int ramps, int mapAxis);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* NRRD_PRIVATE_HAS_BEEN_INCLUDED */

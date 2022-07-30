@@ -21,9 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef HEST_PRIVATE_HAS_BEEN_INCLUDED
-#define HEST_PRIVATE_HAS_BEEN_INCLUDED
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -45,5 +42,3 @@ extern int _hestErrStrlen(const hestOpt *opt, int argc, const char **argv);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* HEST_HAS_BEEN_INCLUDED */

@@ -21,9 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef GAGE_PRIVATE_HAS_BEEN_INCLUDED
-#define GAGE_PRIVATE_HAS_BEEN_INCLUDED
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -78,5 +75,3 @@ extern void _gageVecIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* GAGE_PRIVATE_HAS_BEEN_INCLUDED */

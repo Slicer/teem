@@ -21,9 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef TEN_PRIVATE_HAS_BEEN_INCLUDED
-#define TEN_PRIVATE_HAS_BEEN_INCLUDED
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -398,5 +395,3 @@ TEN_EXPORT double _tenModelSqeFitSingle(const tenModel *model, double *testParm,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* TEN_PRIVATE_HAS_BEEN_INCLUDED */

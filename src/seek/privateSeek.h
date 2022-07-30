@@ -21,6 +21,10 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum {
   flagUnknown,
   flagData,
@@ -76,3 +80,7 @@ extern void _seekHessder2Tder(double *Tder, const double *hessder, const double 
 extern int _seekShuffleProbeT(seekContext *sctx, baggage *bag);
 
 extern int _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld);
+
+#ifdef __cplusplus
+}
+#endif

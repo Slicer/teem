@@ -21,9 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef MITE_PRIVATE_HAS_BEEN_INCLUDED
-#define MITE_PRIVATE_HAS_BEEN_INCLUDED
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -48,5 +45,3 @@ extern int _miteUserCheck(miteUser *muu);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* MITE_PRIVATE_HAS_BEEN_INCLUDED */

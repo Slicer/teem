@@ -20,12 +20,10 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef TIJK_PRIVATE_HAS_BEEN_INCLUDED
-#define TIJK_PRIVATE_HAS_BEEN_INCLUDED
-/* clang-format off */
 #ifdef __cplusplus
 extern "C" {
 #endif
+/* clang-format off */
 
 /* macros to facilitate definition of new tensor types */
 
@@ -91,8 +89,7 @@ extern "C" {
   };                                                          \
   const tijk_type *const tijk_##name = &_tijk_##name;
 
+/* clang-format on */
 #ifdef __cplusplus
 }
 #endif
-/* clang-format on */
-#endif /* TIJK_PRIVATE_HAS_BEEN_INCLUDED */
