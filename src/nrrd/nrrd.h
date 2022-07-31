@@ -1413,7 +1413,7 @@ NRRD_EXPORT int nrrdFFTWWisdomWrite(FILE *file);
    nrrdKernelTMF[D+1][C+1][A] is d<D>_c<C>_<A>ef:
    Dth-derivative, C-order continuous ("smooth"), A-order accurate
    (for D and C, index 0 accesses the function for -1) */
-NRRD_EXPORT NrrdKernel *const nrrdKernelTMF[4][5][5];
+NRRD_EXPORT const NrrdKernel *const nrrdKernelTMF[4][5][5];
 NRRD_EXPORT const unsigned int nrrdKernelTMF_maxD;
 NRRD_EXPORT const unsigned int nrrdKernelTMF_maxC;
 NRRD_EXPORT const unsigned int nrrdKernelTMF_maxA;
@@ -1428,7 +1428,7 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelBlackmanDD;   /* 2nd derivative */
 /* bsplKernel.c: b-splines of various orders; these do not interpolate,
    but the ApproxInverse kernels are ok for pre-filtering so that they do */
-NRRD_EXPORT NrrdKernel
+NRRD_EXPORT const NrrdKernel
   *const nrrdKernelBSpline1,     /* 1st order B-spline */
   *const nrrdKernelBSpline1D,
   *const nrrdKernelBSpline2,     /* 2nd order (quadratic) B-spline */
@@ -1458,7 +1458,7 @@ NRRD_EXPORT NrrdKernel
   *const nrrdKernelBSpline7DDD,
   *const nrrdKernelBSpline7ApproxInverse;
 /* kernel.c: the rest of the kernels and kernel utility functions */
-NRRD_EXPORT NrrdKernel
+NRRD_EXPORT const NrrdKernel
   *const nrrdKernelZero,         /* zero everywhere (though still takes
                                     a single "support" parm[0]) */
   *const nrrdKernelBox,          /* box filter (nearest neighbor) */

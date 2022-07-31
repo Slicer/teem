@@ -88,7 +88,7 @@ _nrrd_TMFBAD_N_f(float *f, const float *x, size_t len, const double *parm) {
   fprintf(stderr, "_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\n");
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernel_TMFBAD = {
   "TMFBAD",
   1, _nrrd_TMFBAD_Sup, _nrrd_TMFBAD_Int,
@@ -6630,7 +6630,7 @@ _nrrdKernel_TMF_d2_c3_4ef = {
 };
 
 
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelTMF[4][5][5] = {
   {            /* d = n */
     {

@@ -84,7 +84,7 @@ print "  AIR_UNUSED(len);\n";
 print "  AIR_UNUSED(parm);\n";
 print "  fprintf\(stderr, \"_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\\n\"\);\n";
 print "}\n\n";
-print "static NrrdKernel\n";
+print "static const NrrdKernel\n";
 print "_nrrdKernel_TMFBAD = {\n";
 print "  \"TMFBAD\",\n";
 print "  1, _nrrd_TMFBAD_Sup, _nrrd_TMFBAD_Int,\n";
@@ -182,7 +182,7 @@ for ($_d=0; $_d<=3; $_d++) {
 }
 
 # create master array of all kernels
-print "\nNrrdKernel *const\n";
+print "\nconst NrrdKernel *const\n";
 print "nrrdKernelTMF[4][5][5] = {\n";
 for ($_d=0; $_d<=3; $_d++) {
     $d = (($_d > 0) ? $_d-1 : "n");

@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2022  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -168,13 +168,13 @@ _nrrdZeroN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelZero = {
   "zero",
   1, _nrrdZeroSup, returnZero,
   _nrrdZero1_f, _nrrdZeroN_f, _nrrdZero1_d, _nrrdZeroN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelZero = &_nrrdKernelZero;
 
 /* ------------------------------------------------------------ */
@@ -234,13 +234,13 @@ _nrrdBoxN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBox = {
   "box",
   1, _nrrdBoxSup, returnOne,
   _nrrdBox1_f,  _nrrdBoxN_f,  _nrrdBox1_d,  _nrrdBoxN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBox = &_nrrdKernelBox;
 
 /* ------------------------------------------------------------ */
@@ -287,13 +287,13 @@ _nrrdBoxSDN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBoxSupportDebug = {
   "boxsup",
   1, _nrrdBoxSDSup, returnOne,
   _nrrdBoxSD1_f,  _nrrdBoxSDN_f,  _nrrdBoxSD1_d,  _nrrdBoxSDN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBoxSupportDebug = &_nrrdKernelBoxSupportDebug;
 
 /* ------------------------------------------------------------ */
@@ -350,13 +350,13 @@ _nrrdCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCos4SupportDebug = {
   "cos4sup",
   1, _nrrdCos4SDSup, _nrrdCos4SDInt,
   _nrrdCos4SD1_f,  _nrrdCos4SDN_f,  _nrrdCos4SD1_d,  _nrrdCos4SDN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCos4SupportDebug = &_nrrdKernelCos4SupportDebug;
 
 /* ------------------------------------------------------------ */
@@ -413,13 +413,13 @@ _nrrdDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCos4SupportDebugD = {
   "cos4supD",
   1, _nrrdDCos4SDSup, returnZero,
   _nrrdDCos4SD1_f,   _nrrdDCos4SDN_f,   _nrrdDCos4SD1_d,   _nrrdDCos4SDN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCos4SupportDebugD = &_nrrdKernelCos4SupportDebugD;
 
 /* ------------------------------------------------------------ */
@@ -469,13 +469,13 @@ _nrrdDDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCos4SupportDebugDD = {
   "cos4supDD",
   1, _nrrdDDCos4SDSup, returnZero,
   _nrrdDDCos4SD1_f,  _nrrdDDCos4SDN_f,  _nrrdDDCos4SD1_d,  _nrrdDDCos4SDN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCos4SupportDebugDD = &_nrrdKernelCos4SupportDebugDD;
 
 /* ------------------------------------------------------------ */
@@ -531,13 +531,13 @@ _nrrdDDDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCos4SupportDebugDDD = {
   "cos4supDDD",
   1, _nrrdDDDCos4SDSup, returnZero,
   _nrrdDDDCos4SD1_f, _nrrdDDDCos4SDN_f, _nrrdDDDCos4SD1_d, _nrrdDDDCos4SDN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCos4SupportDebugDDD = &_nrrdKernelCos4SupportDebugDDD;
 
 /* ------------------------------------------------------------ */
@@ -592,13 +592,13 @@ _nrrdCheapN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCheap = {
   "cheap",
   1, _nrrdCheapSup, returnOne,
   _nrrdCheap1_f,  _nrrdCheapN_f,  _nrrdCheap1_d,  _nrrdCheapN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCheap = &_nrrdKernelCheap;
 
 /* ------------------------------------------------------------ */
@@ -656,13 +656,13 @@ _nrrdTentN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelTent = {
   "tent",
   1, _nrrdTentSup, returnOne,
   _nrrdTent1_f, _nrrdTentN_f, _nrrdTent1_d, _nrrdTentN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelTent = &_nrrdKernelTent;
 
 /* ------------------------------------------------------------ */
@@ -717,13 +717,13 @@ _nrrdHermiteN_f(float *f, const float *x, size_t len, const double *parm) {
 
 /* HEY: should just re-use fields from nrrdKernelTent, instead
    of creating new functions */
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelHermiteScaleSpaceFlag = {
   "hermiteSS",
   0, returnOne, returnOne,
   _nrrdHermite1_f, _nrrdHermiteN_f, _nrrdHermite1_d, _nrrdHermiteN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelHermiteScaleSpaceFlag = &_nrrdKernelHermiteScaleSpaceFlag;
 
 /* ------------------------------------------------------------ */
@@ -782,13 +782,13 @@ _nrrdFDN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelFD = {
   "fordif",
   1, _nrrdFDSup, returnZero,
   _nrrdFD1_f,   _nrrdFDN_f,   _nrrdFD1_d,   _nrrdFDN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelForwDiff = &_nrrdKernelFD;
 
 /* ------------------------------------------------------------ */
@@ -849,13 +849,13 @@ _nrrdCDN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCD = {
   "cendif",
   1, _nrrdCDSup, returnZero,
   _nrrdCD1_f,   _nrrdCDN_f,   _nrrdCD1_d,   _nrrdCDN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCentDiff = &_nrrdKernelCD;
 
 /* ------------------------------------------------------------ */
@@ -924,13 +924,13 @@ _nrrdBCN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBC = {
   "BCcubic",
   3, _nrrdBCSup, returnOne,
   _nrrdBC1_f,   _nrrdBCN_f,   _nrrdBC1_d,   _nrrdBCN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBCCubic = &_nrrdKernelBC;
 
 /* ------------------------------------------------------------ */
@@ -1005,13 +1005,13 @@ _nrrdDBCN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDBC = {
   "BCcubicD",
   3, _nrrdDBCSup, returnZero,
   _nrrdDBC1_f,  _nrrdDBCN_f,  _nrrdDBC1_d,  _nrrdDBCN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBCCubicD = &_nrrdKernelDBC;
 
 /* ------------------------------------------------------------ */
@@ -1080,13 +1080,13 @@ _nrrdDDBCN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDDBC = {
   "BCcubicDD",
   3, _nrrdDDBCSup, returnZero,
   _nrrdDDBC1_f, _nrrdDDBCN_f, _nrrdDDBC1_d, _nrrdDDBCN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBCCubicDD = &_nrrdKernelDDBC;
 
 /* ------------------------------------------------------------ */
@@ -1132,13 +1132,13 @@ _nrrdCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCatmullRom = {
   "catmull-rom",
   0, returnTwo, returnOne,
   _nrrdCTMR1_f,   _nrrdCTMRN_f,   _nrrdCTMR1_d,   _nrrdCTMRN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCatmullRom = &_nrrdKernelCatmullRom;
 
 
@@ -1148,13 +1148,13 @@ _nrrdCtmrSDSup(const double *parm) {
   return AIR_MAX(2.0, parm[0]);
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCatmullRomSupportDebug = {
   "ctmrsup",
   1, _nrrdCtmrSDSup, returnOne,
   _nrrdCTMR1_f,   _nrrdCTMRN_f,   _nrrdCTMR1_d,   _nrrdCTMRN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCatmullRomSupportDebug = &_nrrdKernelCatmullRomSupportDebug;
 
 /* ------------------------------------------------------------ */
@@ -1204,22 +1204,22 @@ _nrrdDCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCatmullRomD = {
   "catmull-romD",
   0, returnTwo, returnZero,
   _nrrdDCTMR1_f,   _nrrdDCTMRN_f,   _nrrdDCTMR1_d,   _nrrdDCTMRN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCatmullRomD = &_nrrdKernelCatmullRomD;
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCatmullRomSupportDebugD = {
   "ctmrsupD",
   1, _nrrdCtmrSDSup, returnZero,
   _nrrdDCTMR1_f,   _nrrdDCTMRN_f,   _nrrdDCTMR1_d,   _nrrdDCTMRN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCatmullRomSupportDebugD = &_nrrdKernelCatmullRomSupportDebugD;
 
 /* ------------------------------------------------------------ */
@@ -1265,22 +1265,22 @@ _nrrdDDCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCatmullRomDD = {
   "catmull-romDD",
   0, returnTwo, returnZero,
   _nrrdDDCTMR1_f,   _nrrdDDCTMRN_f,   _nrrdDDCTMR1_d,   _nrrdDDCTMRN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCatmullRomDD = &_nrrdKernelCatmullRomDD;
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCatmullRomSupportDebugDD = {
   "ctmrsupDD",
   1, _nrrdCtmrSDSup, returnZero,
   _nrrdDDCTMR1_f,   _nrrdDDCTMRN_f,   _nrrdDDCTMR1_d,   _nrrdDDCTMRN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCatmullRomSupportDebugDD = &_nrrdKernelCatmullRomSupportDebugDD;
 
 /* ------------------------------------------------------------ */
@@ -1348,13 +1348,13 @@ _nrrdA4N_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelA4 = {
   "Aquartic",
   2, _nrrdA4Sup, returnOne,
   _nrrdA41_f,   _nrrdA4N_f,   _nrrdA41_d,   _nrrdA4N_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelAQuartic = &_nrrdKernelA4;
 
 /* ------------------------------------------------------------ */
@@ -1427,13 +1427,13 @@ _nrrdDA4N_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDA4 = {
   "AquarticD",
   2, _nrrdDA4Sup, returnZero,
   _nrrdDA41_f,  _nrrdDA4N_f,  _nrrdDA41_d,  _nrrdDA4N_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelAQuarticD = &_nrrdKernelDA4;
 
 /* ------------------------------------------------------------ */
@@ -1500,13 +1500,13 @@ _nrrdDDA4N_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDDA4 = {
   "AquarticDD",
   2, _nrrdDDA4Sup, returnZero,
   _nrrdDDA41_f, _nrrdDDA4N_f, _nrrdDDA41_d, _nrrdDDA4N_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelAQuarticDD = &_nrrdKernelDDA4;
 
 /* ------------------------------------------------------------ */
@@ -1574,13 +1574,13 @@ _c3quintN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _c3quint = {
   "C3Quintic",
   0, returnTwo, returnOne,
   _c3quint1_f,   _c3quintN_f,   _c3quint1_d,   _c3quintN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC3Quintic = &_c3quint;
 
 /* ------------------------------------------------------------ */
@@ -1633,13 +1633,13 @@ _Dc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDC3Quintic = {
   "C3QuinticD",
   0, returnTwo, returnZero,
   _Dc3quint1_f,  _Dc3quintN_f,  _Dc3quint1_d,  _Dc3quintN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC3QuinticD = &_nrrdKernelDC3Quintic;
 
 /* ------------------------------------------------------------ */
@@ -1688,13 +1688,13 @@ _DDc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _DDc3quint = {
   "C3QuinticDD",
   0, returnTwo, returnZero,
   _DDc3quint1_f,   _DDc3quintN_f,   _DDc3quint1_d,   _DDc3quintN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC3QuinticDD = &_DDc3quint;
 
 /* ------------------------------------------------------------ */
@@ -1757,13 +1757,13 @@ _c4hexN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _c4hex = {
   "C4Hexic",
   0, returnThree, returnOne,
   _c4hex1_f,   _c4hexN_f,   _c4hex1_d,   _c4hexN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC4Hexic = &_c4hex;
 
 /* ------------------------------------------------------------ */
@@ -1819,13 +1819,13 @@ _Dc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDC4hexic = {
   "C4HexicD",
   0, returnThree, returnZero,
   _Dc4hex1_f,  _Dc4hexN_f,  _Dc4hex1_d,  _Dc4hexN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC4HexicD = &_nrrdKernelDC4hexic;
 
 /* ------------------------------------------------------------ */
@@ -1877,13 +1877,13 @@ _DDc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _DDc4hex = {
   "C4HexicDD",
   0, returnThree, returnZero,
   _DDc4hex1_f,   _DDc4hexN_f,   _DDc4hex1_d,   _DDc4hexN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC4HexicDD = &_DDc4hex;
 
 /* ------------------------------------------------------------ */
@@ -1940,13 +1940,13 @@ _DDDc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDDDC4hexic = {
   "C4HexicDDD",
   0, returnThree, returnZero,
   _DDDc4hex1_f,  _DDDc4hexN_f,  _DDDc4hex1_d,  _DDDc4hexN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC4HexicDDD = &_nrrdKernelDDDC4hexic;
 
 
@@ -2024,14 +2024,14 @@ _c4hex_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelC4HexicApproxInverse = {
   "C4HexicAI", 0,
   _c4hex_ANI_sup, returnOne,
   _c4hex_ANI_1f, _c4hex_ANI_Nf,
   _c4hex_ANI_1d, _c4hex_ANI_Nd
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC4HexicApproxInverse = &_nrrdKernelC4HexicApproxInverse;
 
 /* ------------------------- c5septic ------------------------------ */
@@ -2104,13 +2104,13 @@ _c5septN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _c5sept = {
   "C5Septic",
   0, returnFour, returnOne,
   _c5sept1_f,   _c5septN_f,   _c5sept1_d,   _c5septN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC5Septic = &_c5sept;
 
 #define _DC5SEPT0(x) (x*(-3.308641975308642 + x*x*(4.292181069958848 + x*x*(-2.6998456790123457 + x*0.9785236625514403))))
@@ -2178,13 +2178,13 @@ _dc5septN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _dc5sept = {
   "C5SepticD",
   0, returnFour, returnZero,
   _dc5sept1_f,   _dc5septN_f,   _dc5sept1_d,   _dc5septN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC5SepticD = &_dc5sept;
 
 #define _DDC5SEPT0(x) (-3.308641975308642 + x*x*(12.876543209876543 + x*x*(-13.499228395061728 + x*5.871141975308642)))
@@ -2248,13 +2248,13 @@ _ddc5septN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _ddc5sept = {
   "C5SepticDD",
   0, returnFour, returnZero,
   _ddc5sept1_f,   _ddc5septN_f,   _ddc5sept1_d,   _ddc5septN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC5SepticDD = &_ddc5sept;
 
 #define _DDDC5SEPT0(x) (x*(25.75308641975309 + x*x*(-53.99691358024691 + x*29.35570987654321)))
@@ -2322,13 +2322,13 @@ _dddc5septN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _dddc5sept = {
   "C5SepticDDD",
   0, returnFour, returnZero,
   _dddc5sept1_f,   _dddc5septN_f,   _dddc5sept1_d,   _dddc5septN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC5SepticDDD = &_dddc5sept;
 
 /* note that this implies a much more accurate inverse than is given
@@ -2432,14 +2432,14 @@ _c5sept_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelC5SepticApproxInverse = {
   "C5SepticAI", 0,
   _c5sept_ANI_sup, _c5sept_ANI_int,
   _c5sept_ANI_1f, _c5sept_ANI_Nf,
   _c5sept_ANI_1d, _c5sept_ANI_Nd
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC5SepticApproxInverse = &_nrrdKernelC5SepticApproxInverse;
 
 /* ------------------------------------------------------------ */
@@ -2513,13 +2513,13 @@ _nrrdGN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelG = {
   "gauss",
   2, _nrrdGSup,  _nrrdGInt,
   _nrrdG1_f,   _nrrdGN_f,   _nrrdG1_d,   _nrrdGN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelGaussian = &_nrrdKernelG;
 
 /* ------------------------------------------------------------ */
@@ -2615,14 +2615,14 @@ _nrrdDiscGaussianN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDiscreteGaussian = {
   "discretegauss", 2,
   _nrrdDiscGaussianSup,  _nrrdDiscGaussianInt,
   _nrrdDiscGaussian1_f, _nrrdDiscGaussianN_f,
   _nrrdDiscGaussian1_d, _nrrdDiscGaussianN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelDiscreteGaussian = &_nrrdKernelDiscreteGaussian;
 
 /* The current implementation of nrrdKernelDiscreteGaussian, with the current
@@ -2709,13 +2709,13 @@ _nrrdDGN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDG = {
   "gaussD",
   2, _nrrdDGSup,  _nrrdDGInt,
   _nrrdDG1_f,   _nrrdDGN_f,   _nrrdDG1_d,   _nrrdDGN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelGaussianD = &_nrrdKernelDG;
 
 /* ------------------------------------------------------------ */
@@ -2791,19 +2791,18 @@ _nrrdDDGN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDDG = {
   "gaussDD",
   2, _nrrdDDGSup,  _nrrdDDGInt,
   _nrrdDDG1_f,   _nrrdDDGN_f,   _nrrdDDG1_d,   _nrrdDDGN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelGaussianDD = &_nrrdKernelDDG;
-
 
 /* ------------------------------------------------------------ */
 
-NrrdKernel *
+const NrrdKernel *
 _nrrdKernelStrToKern(char *str) {
 
   if (!strcmp("zero", str))       return nrrdKernelZero;

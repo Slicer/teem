@@ -533,7 +533,7 @@ _volInterp(Nrrd *ninterp, double rho, gageOptimSigContext *oscx) {
 static void
 _kernset(double **kzP, double **kyP, double **kxP, gageOptimSigContext *oscx,
          double rho) {
-  NrrdKernel *dg;
+  const NrrdKernel *dg;
   double sig, kparm[NRRD_KERNEL_PARMS_NUM], *kloc, *kern, *ktmp1, *ktmp2;
   unsigned int ki, kj, kk, sx;
 
