@@ -118,13 +118,13 @@ WS_1_F(Hann, _HANN, POW1)
 WS_N_F(Hann, _HANN, POW1)
 WS_N_D(Hann, _HANN, POW1)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelHann = {
   "hann",
   2, _nrrdWindSincSup,  _nrrdWindSincInt,
   _nrrdHann_1_f, _nrrdHann_N_f, _nrrdHann_1_d, _nrrdHann_N_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelHann = &_nrrdKernelHann;
 
 /* ------------------------------------------------------------ */
@@ -142,13 +142,13 @@ WS_1_F(DHann, _DHANN, POW2)
 WS_N_F(DHann, _DHANN, POW2)
 WS_N_D(DHann, _DHANN, POW2)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDHann = {
   "hannD",
   2, _nrrdWindSincSup, _nrrdDWindSincInt,
   _nrrdDHann_1_f,  _nrrdDHann_N_f,  _nrrdDHann_1_d,  _nrrdDHann_N_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelHannD = &_nrrdKernelDHann;
 
 /* ------------------------------------------------------------ */
@@ -171,13 +171,13 @@ WS_1_F(DDHann, _DDHANN, POW3)
 WS_N_F(DDHann, _DDHANN, POW3)
 WS_N_D(DDHann, _DDHANN, POW3)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDDHann = {
   "hannDD",
   2, _nrrdWindSincSup, _nrrdDWindSincInt,
   _nrrdDDHann_1_f, _nrrdDDHann_N_f, _nrrdDDHann_1_d, _nrrdDDHann_N_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelHannDD = &_nrrdKernelDDHann;
 
 /* ------------------------------------------------------------ */
@@ -194,13 +194,13 @@ WS_1_F(Black, _BLACK, POW1)
 WS_N_F(Black, _BLACK, POW1)
 WS_N_D(Black, _BLACK, POW1)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBlackman = {
   "blackman",
   2, _nrrdWindSincSup,  _nrrdWindSincInt,
   _nrrdBlack_1_f, _nrrdBlack_N_f, _nrrdBlack_1_d, _nrrdBlack_N_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBlackman = &_nrrdKernelBlackman;
 
 /* ------------------------------------------------------------ */
@@ -223,13 +223,13 @@ WS_1_F(DBlack, _DBLACK, POW2)
 WS_N_F(DBlack, _DBLACK, POW2)
 WS_N_D(DBlack, _DBLACK, POW2)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDBlack = {
   "blackmanD",
   2, _nrrdWindSincSup, _nrrdDWindSincInt,
   _nrrdDBlack_1_f,  _nrrdDBlack_N_f,  _nrrdDBlack_1_d,  _nrrdDBlack_N_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBlackmanD = &_nrrdKernelDBlack;
 
 /* ------------------------------------------------------------ */
@@ -257,12 +257,12 @@ WS_1_F(DDBlack, _DDBLACK, POW3)
 WS_N_F(DDBlack, _DDBLACK, POW3)
 WS_N_D(DDBlack, _DDBLACK, POW3)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDDBlack = {
   "blackmanDD",
   2, _nrrdWindSincSup, _nrrdDWindSincInt,
   _nrrdDDBlack_1_f, _nrrdDDBlack_N_f, _nrrdDDBlack_1_d, _nrrdDDBlack_N_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBlackmanDD = &_nrrdKernelDDBlack;
 /* clang-format on */

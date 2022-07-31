@@ -1419,7 +1419,7 @@ NRRD_EXPORT const unsigned int nrrdKernelTMF_maxC;
 NRRD_EXPORT const unsigned int nrrdKernelTMF_maxA;
 /* clang-format off */
 /* winKernel.c : various kinds of windowed sincs */
-NRRD_EXPORT NrrdKernel
+NRRD_EXPORT const NrrdKernel
   *const nrrdKernelHann,         /* Hann (cosine-bell) windowed sinc */
   *const nrrdKernelHannD,        /* 1st derivative of Hann windowed since */
   *const nrrdKernelHannDD,       /* 2nd derivative */
