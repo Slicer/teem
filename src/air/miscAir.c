@@ -41,9 +41,9 @@
 ** the Teem version number and release date.  Originated in version 1.5;
 ** use of TEEM_VERSION #defines started in 1.9
 */
-const char *airTeemVersion = TEEM_VERSION_STRING;
+const char *const airTeemVersion = TEEM_VERSION_STRING;
 const int airTeemReleaseDone = AIR_FALSE;
-const char *airTeemReleaseDate = "maybe 2019 or 2020";
+const char *const airTeemReleaseDate = "maybe 2019 or 2020";
 
 /*
 ******** airTeemVersionSprint

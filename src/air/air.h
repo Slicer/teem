@@ -320,6 +320,7 @@ AIR_EXPORT const int airThreadCapable;
 ** mutexes are not available, the operations on them will be
 ** no-ops. When this variable is non-zero, we fprintf(stderr) a
 ** warning to this effect when those constructs are used
+** (NOTE that this is a mutable global variable)
 */
 AIR_EXPORT int airThreadNoopWarning;
 
@@ -484,6 +485,11 @@ AIR_EXPORT unsigned int airParseStrI(int *out, const char *s, const char *ct,
                                      unsigned int n, ... /* (nothing used) */);
 AIR_EXPORT unsigned int airParseStrUI(unsigned int *out, const char *s, const char *ct,
                                       unsigned int n, ... /* (nothing used) */);
+AIR_EXPORT unsigned int airParseStrLI(long int *out, const char *s, const char *ct,
+                                      unsigned int n, ... /* (nothing used) */);
+AIR_EXPORT unsigned int airParseStrULI(unsigned long int *out, const char *s,
+                                       const char *ct, unsigned int n,
+                                       ... /* (nothing used) */);
 AIR_EXPORT unsigned int airParseStrZ(size_t *out, const char *s, const char *ct,
                                      unsigned int n, ... /* (nothing used) */);
 AIR_EXPORT unsigned int airParseStrF(float *out, const char *s, const char *ct,
@@ -497,9 +503,9 @@ AIR_EXPORT unsigned int airParseStrS(char **out, const char *s, const char *ct,
                                      ... /* REQ'D even if n>1: int greedy */);
 AIR_EXPORT unsigned int airParseStrE(int *out, const char *s, const char *ct,
                                      unsigned int n, ... /* REQUIRED: airEnum *e */);
-AIR_EXPORT unsigned int (*airParseStr[AIR_TYPE_MAX + 1])(void *, const char *,
-                                                         const char *, unsigned int,
-                                                         ...);
+AIR_EXPORT unsigned int (*const airParseStr[AIR_TYPE_MAX + 1])(void *, const char *,
+                                                               const char *,
+                                                               unsigned int, ...);
 
 /* string.c */
 AIR_EXPORT char *airStrdup(const char *s);
@@ -548,9 +554,9 @@ AIR_EXPORT const char *airInsaneErr(int insane);
 AIR_EXPORT int airSanity(void);
 
 /* miscAir.c */
-AIR_EXPORT const char *airTeemVersion;
+AIR_EXPORT const char *const airTeemVersion;
 AIR_EXPORT const int airTeemReleaseDone;
-AIR_EXPORT const char *airTeemReleaseDate;
+AIR_EXPORT const char *const airTeemReleaseDate;
 AIR_EXPORT void airTeemVersionSprint(char buff[AIR_STRLEN_LARGE]);
 AIR_EXPORT void *airNull(void);
 AIR_EXPORT void *airSetNull(void **ptrP);

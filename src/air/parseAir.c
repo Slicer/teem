@@ -381,8 +381,8 @@ airParseStrE(int *out, const char *_s, const char *ct, unsigned int n, ...) {
   return n;
 }
 
-unsigned int (*airParseStr[AIR_TYPE_MAX + 1])(void *, const char *, const char *,
-                                              unsigned int, ...)
+unsigned int (*const airParseStr[AIR_TYPE_MAX + 1])(void *, const char *, const char *,
+                                                    unsigned int, ...)
   = {
     NULL,
     (unsigned int (*)(void *, const char *, const char *, unsigned int,
