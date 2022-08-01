@@ -29,7 +29,7 @@
 /* Functions for symmetric tensor approximation */
 
 /* a coarse sampling of the unit semicircle */
-const unsigned int _tijk_max_candidates_2d=8;
+static const unsigned int _tijk_max_candidates_2d=8;
 
 #define _CANDIDATES_2D(TYPE, SUF)                 \
   static TYPE _candidates_2d_##SUF[16] = {        \
@@ -46,7 +46,7 @@ _CANDIDATES_2D(double, d)
 _CANDIDATES_2D(float, f)
 
 /* a coarse sampling of the unit sphere */
-const unsigned int _tijk_max_candidates_3d=30;
+static const unsigned int _tijk_max_candidates_3d=30;
 
 #define _CANDIDATES_3D(TYPE, SUF)             \
   static TYPE _candidates_3d_##SUF[90] = {    \
