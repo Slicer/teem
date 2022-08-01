@@ -9,15 +9,13 @@ import argparse
 import subprocess
 import re
 
-# TODO: nrrd moss gage dye bane limn echo hoover ten pull coil push
+# TODO: nrrd moss gage dye bane limn echo hoover ten pull coil
 # still with curious symbols: air biff
-# done: hest ell alan tijk seek elf unrrdu ... mite meet
+# done: hest ell alan tijk seek elf unrrdu ... push mite meet
 verbose = 1
 archDir = None
 libDir = None
 allTypes = ['const', 'unsigned',
-            'int', 'void', 'double', 'float', 'char', 'short', 'size_t',
-            'FILE',
             # manually generated list of Teem-derived types
             'airLLong', 'airULLong', 'airArray', 'airEnum', 'airHeap', 'airFloat',
             'airRandMTState', 'airThread', 'airThreadMutex',
@@ -51,9 +49,11 @@ allTypes = ['const', 'unsigned',
             'pullEnergy', 'pullEnergySpec', 'pullVolume', 'pullInfoSpec', 'pullContext',
             'pullTrace', 'pullTraceMulti', 'pullTask', 'pullBin',
             'coilKind', 'coilMethod', 'coilContext',
-            'pushContext', 'pushEnergy', 'pushEnergySpec', 'pushBin', 'pushTask',
+            'pushContext', 'pushEnergy', 'pushEnergySpec', 'pushBin', 'pushTask', 'pushPoint',
             'miteUser', 'miteShadeSpec', 'miteThread',
             'meetPullVol', 'meetPullInfo',
+            # have to put these at end, since things like "int" will also match 'pushPoint' (!)
+            'int', 'void', 'double', 'float', 'char', 'short', 'size_t', 'FILE',
             ]
 
 # the variable _ is (totally against python conventions) standing for some particular!
@@ -179,7 +179,10 @@ def declList(lib):
                     # remove types
                     #print(f'foo0 |{L}|')
                     for QT in allTypes:
+                        #preL = L
                         L = L.replace(QT+' ', '')
+                        #if (L != preL):
+                        #    print(f'   {QT} : |{preL}| -> |{L}|')
                     #print(f'foo1 |{L}|')
                     if (match := re.match(r'.+?(/\*.+?\*/)', L)):
                         # if there a single-line self-contained comment, remove it
