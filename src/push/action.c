@@ -24,7 +24,7 @@
 #include "push.h"
 #include "privatePush.h"
 
-unsigned int
+static unsigned int
 _pushPointTotal(pushContext *pctx) {
   unsigned int binIdx, pointNum;
   pushBin *bin;
@@ -121,7 +121,7 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut, pushContext *pctx) {
   return 0;
 }
 
-int
+static int
 _pushPairwiseEnergy(pushTask *task, double *enrP, double frc[3], pushEnergySpec *ensp,
                     pushPoint *myPoint, pushPoint *herPoint, double YY[3], double iscl) {
   static const char me[] = "_pushPairwiseEnergy";

@@ -111,7 +111,7 @@ _pushBinPointAdd(pushContext *pctx, pushBin *bin, pushPoint *point) {
 /*
 ** the bin loses track of the point, caller responsible for ownership
 */
-void
+static void
 _pushBinPointRemove(pushContext *pctx, pushBin *bin, int loseIdx) {
 
   AIR_UNUSED(pctx);
@@ -121,7 +121,7 @@ _pushBinPointRemove(pushContext *pctx, pushBin *bin, int loseIdx) {
   return;
 }
 
-void
+static void
 _pushBinNeighborSet(pushBin *bin, pushBin **nei, unsigned int num) {
   unsigned int neiI;
 

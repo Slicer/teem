@@ -28,7 +28,7 @@
 ** this is the core of the worker threads: as long as there are bins
 ** left to process, get the next one, and process it
 */
-int
+static int
 _pushProcess(pushTask *task) {
   static const char me[] = "_pushProcess";
   unsigned int binIdx;
@@ -61,7 +61,7 @@ _pushProcess(pushTask *task) {
 }
 
 /* the main loop for each worker thread */
-void *
+static void *
 _pushWorker(void *_task) {
   static const char me[] = "_pushWorker";
   pushTask *task;
@@ -98,7 +98,7 @@ _pushWorker(void *_task) {
   return _task;
 }
 
-int
+static int
 _pushContextCheck(pushContext *pctx) {
   static const char me[] = "_pushContextCheck";
   unsigned int numSingle;

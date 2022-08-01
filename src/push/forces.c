@@ -31,7 +31,7 @@
 #define ZERO    "zero"
 
 /* clang-format off */
-const char *
+static const char *
 _pushEnergyTypeStr[PUSH_ENERGY_TYPE_MAX+1] = {
   "(unknown_energy)",
   SPRING,
@@ -41,7 +41,7 @@ _pushEnergyTypeStr[PUSH_ENERGY_TYPE_MAX+1] = {
   ZERO
 };
 
-const char *
+static const char *
 _pushEnergyTypeDesc[PUSH_ENERGY_TYPE_MAX+1] = {
   "unknown_energy",
   "Hooke's law-based potential, with a tunable region of attraction",
@@ -51,7 +51,7 @@ _pushEnergyTypeDesc[PUSH_ENERGY_TYPE_MAX+1] = {
   "no energy"
 };
 
-const airEnum
+static const airEnum
 _pushEnergyType = {
   "energy",
   PUSH_ENERGY_TYPE_MAX,
@@ -68,7 +68,7 @@ pushEnergyType = &_pushEnergyType;
 ** ------------------------------ UNKNOWN -------------------------
 ** ----------------------------------------------------------------
 */
-void
+static void
 _pushEnergyUnknownEval(double *enr, double *frc, double dist, const double *parm) {
   static const char me[] = "_pushEnergyUnknownEval";
 
@@ -80,7 +80,7 @@ _pushEnergyUnknownEval(double *enr, double *frc, double dist, const double *parm
   return;
 }
 
-double
+static double
 _pushEnergyUnknownSupport(const double *parm) {
   static const char me[] = "_pushEnergyUnknownSupport";
 
@@ -89,8 +89,8 @@ _pushEnergyUnknownSupport(const double *parm) {
   return AIR_NAN;
 }
 
-pushEnergy _pushEnergyUnknown = {"unknown", 0, _pushEnergyUnknownEval,
-                                 _pushEnergyUnknownSupport};
+static const pushEnergy _pushEnergyUnknown = {"unknown", 0, _pushEnergyUnknownEval,
+                                              _pushEnergyUnknownSupport};
 const pushEnergy *const pushEnergyUnknown = &_pushEnergyUnknown;
 
 /* ----------------------------------------------------------------
@@ -101,7 +101,7 @@ const pushEnergy *const pushEnergyUnknown = &_pushEnergyUnknown;
 **
 ** learned: "1/2" is not 0.5 !!!!!
 */
-void
+static void
 _pushEnergySpringEval(double *enr, double *frc, double dist, const double *parm) {
   /* static const char me[]="_pushEnergySpringEval"; */
   double xx, pull;
@@ -127,14 +127,14 @@ _pushEnergySpringEval(double *enr, double *frc, double dist, const double *parm)
   return;
 }
 
-double
+static double
 _pushEnergySpringSupport(const double *parm) {
 
   return 1.0 + parm[0];
 }
 
-const pushEnergy _pushEnergySpring = {SPRING, 1, _pushEnergySpringEval,
-                                      _pushEnergySpringSupport};
+static const pushEnergy _pushEnergySpring = {SPRING, 1, _pushEnergySpringEval,
+                                             _pushEnergySpringSupport};
 const pushEnergy *const pushEnergySpring = &_pushEnergySpring;
 
 /* ----------------------------------------------------------------
@@ -153,7 +153,7 @@ const pushEnergy *const pushEnergySpring = &_pushEnergySpring;
                   : -exp(-x * x / (2.0 * sig * sig)) * x                                \
                       / (sig * sig * sig * 2.50662827463100050241))
 
-void
+static void
 _pushEnergyGaussEval(double *enr, double *frc, double dist, const double *parm) {
   double cut;
 
@@ -163,14 +163,14 @@ _pushEnergyGaussEval(double *enr, double *frc, double dist, const double *parm) 
   return;
 }
 
-double
+static double
 _pushEnergyGaussSupport(const double *parm) {
 
   return parm[0];
 }
 
-const pushEnergy _pushEnergyGauss = {GAUSS, 1, _pushEnergyGaussEval,
-                                     _pushEnergyGaussSupport};
+static const pushEnergy _pushEnergyGauss = {GAUSS, 1, _pushEnergyGaussEval,
+                                            _pushEnergyGaussSupport};
 const pushEnergy *const pushEnergyGauss = &_pushEnergyGauss;
 
 /* ----------------------------------------------------------------
@@ -180,7 +180,7 @@ const pushEnergy *const pushEnergyGauss = &_pushEnergyGauss;
 ** (scale: distance to "1.0" in graph of x^(-2))
 ** parm[0]: cut-off (as multiple of "1.0")
 */
-void
+static void
 _pushEnergyCoulombEval(double *enr, double *frc, double dist, const double *parm) {
 
   *enr = (dist > parm[0] ? 0 : 1.0 / dist);
@@ -188,14 +188,14 @@ _pushEnergyCoulombEval(double *enr, double *frc, double dist, const double *parm
   return;
 }
 
-double
+static double
 _pushEnergyCoulombSupport(const double *parm) {
 
   return parm[0];
 }
 
-const pushEnergy _pushEnergyCoulomb = {COULOMB, 1, _pushEnergyCoulombEval,
-                                       _pushEnergyCoulombSupport};
+static const pushEnergy _pushEnergyCoulomb = {COULOMB, 1, _pushEnergyCoulombEval,
+                                              _pushEnergyCoulombSupport};
 const pushEnergy *const pushEnergyCoulomb = &_pushEnergyCoulomb;
 
 /* ----------------------------------------------------------------
@@ -203,7 +203,7 @@ const pushEnergy *const pushEnergyCoulomb = &_pushEnergyCoulomb;
 ** ----------------------------------------------------------------
 ** 0 parms!
 */
-void
+static void
 _pushEnergyCotanEval(double *enr, double *frc, double dist, const double *parm) {
   double pot, cc;
 
@@ -215,15 +215,15 @@ _pushEnergyCotanEval(double *enr, double *frc, double dist, const double *parm) 
   return;
 }
 
-double
+static double
 _pushEnergyCotanSupport(const double *parm) {
 
   AIR_UNUSED(parm);
   return 1;
 }
 
-const pushEnergy _pushEnergyCotan = {COTAN, 0, _pushEnergyCotanEval,
-                                     _pushEnergyCotanSupport};
+static const pushEnergy _pushEnergyCotan = {COTAN, 0, _pushEnergyCotanEval,
+                                            _pushEnergyCotanSupport};
 const pushEnergy *const pushEnergyCotan = &_pushEnergyCotan;
 
 /* ----------------------------------------------------------------
@@ -231,7 +231,7 @@ const pushEnergy *const pushEnergyCotan = &_pushEnergyCotan;
 ** ----------------------------------------------------------------
 ** 0 parms:
 */
-void
+static void
 _pushEnergyZeroEval(double *enr, double *frc, double dist, const double *parm) {
 
   AIR_UNUSED(dist);
@@ -241,15 +241,15 @@ _pushEnergyZeroEval(double *enr, double *frc, double dist, const double *parm) {
   return;
 }
 
-double
+static double
 _pushEnergyZeroSupport(const double *parm) {
 
   AIR_UNUSED(parm);
   return 1.0;
 }
 
-const pushEnergy _pushEnergyZero = {ZERO, 0, _pushEnergyZeroEval,
-                                    _pushEnergyZeroSupport};
+static const pushEnergy _pushEnergyZero = {ZERO, 0, _pushEnergyZeroEval,
+                                           _pushEnergyZeroSupport};
 const pushEnergy *const pushEnergyZero = &_pushEnergyZero;
 
 /* ----------------------------------------------------------------
@@ -405,7 +405,7 @@ pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
   return 0;
 }
 
-int
+static int
 _pushHestEnergyParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   pushEnergySpec **enspP;
   static const char me[] = "_pushHestForceParse";
@@ -426,7 +426,8 @@ _pushHestEnergyParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB _pushHestEnergySpec = {sizeof(pushEnergySpec *), "energy specification",
-                              _pushHestEnergyParse, (airMopper)pushEnergySpecNix};
+static const hestCB _pushHestEnergySpec = {sizeof(pushEnergySpec *),
+                                           "energy specification", _pushHestEnergyParse,
+                                           (airMopper)pushEnergySpecNix};
 
-hestCB *pushHestEnergySpec = &_pushHestEnergySpec;
+const hestCB *const pushHestEnergySpec = &_pushHestEnergySpec;

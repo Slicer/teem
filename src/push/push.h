@@ -291,7 +291,7 @@ PUSH_EXPORT void pushEnergySpecSet(pushEnergySpec *ensp,
                                    const double parm[PUSH_ENERGY_PARM_NUM]);
 PUSH_EXPORT pushEnergySpec *pushEnergySpecNix(pushEnergySpec *ensp);
 PUSH_EXPORT int pushEnergySpecParse(pushEnergySpec *ensp, const char *str);
-PUSH_EXPORT hestCB *pushHestEnergySpec;
+PUSH_EXPORT const hestCB *const pushHestEnergySpec;
 
 /* corePush.c */
 PUSH_EXPORT int pushStart(pushContext *pctx);
