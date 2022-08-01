@@ -9,9 +9,9 @@ import argparse
 import subprocess
 import re
 
-# TODO: nrrd unrrdu moss gage dye bane limn echo hoover ten pull coil push mite meet
+# TODO: nrrd moss gage dye bane limn echo hoover ten pull coil push mite meet
 # still with curious symbols: air biff
-# done: hest ell alan tijk seek elf
+# done: hest ell alan tijk seek elf unrrdu
 verbose = 1
 archDir = None
 libDir = None
@@ -279,6 +279,9 @@ if __name__ == '__main__':
                 if not ('S' == symbT and 'D' == declT):
                     print(f"disaagree on {N} type (nm {symbT} vs .h {declT})")
         else:
+            if (re.match(r'unrrdu_\w+Cmd', N)):
+                # actually it (probably!) is declared in privateUnrrdu.h, but via macro
+                continue
             print(f'HEY: lib{args.lib} {symbT} symbol {N} not declared')
     for N in decl:
         if not N in symb:
