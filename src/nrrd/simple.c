@@ -1039,7 +1039,7 @@ _nrrdFieldCheck_measurement_frame(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-int (*_nrrdFieldCheck[NRRD_FIELD_MAX + 1])(const Nrrd *, int useBiff) = {
+int (*const _nrrdFieldCheck[NRRD_FIELD_MAX + 1])(const Nrrd *, int useBiff) = {
   _nrrdFieldCheck_noop, /* nonfield */
   _nrrdFieldCheck_noop, /* comment */
   _nrrdFieldCheck_noop, /* content */
