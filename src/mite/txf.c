@@ -29,10 +29,10 @@
 #include "mite.h"
 #include "privateMite.h"
 
-char miteRangeChar[MITE_RANGE_NUM + 1] = "ARGBEadsp";
+const char *const miteRangeChar /* [MITE_RANGE_NUM + 1] */ = "ARGBEadsp";
 
 /* clang-format off */
-const char *
+static const char *
 _miteStageOpStr[] = {
   "(unknown miteStageOp)",
   "min",
@@ -41,7 +41,7 @@ _miteStageOpStr[] = {
   "multiply"
 };
 
-const int
+static const int
 _miteStageOpVal[] = {
   miteStageOpUnknown,
   miteStageOpMin,
@@ -50,7 +50,7 @@ _miteStageOpVal[] = {
   miteStageOpMultiply
 };
 
-const char *
+static const char *
 _miteStageOpStrEqv[] = {
   "min",
   "max",
@@ -59,7 +59,7 @@ _miteStageOpStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _miteStageOpValEqv[] = {
   miteStageOpMin,
   miteStageOpMax,
@@ -67,7 +67,7 @@ _miteStageOpValEqv[] = {
   miteStageOpMultiply, miteStageOpMultiply, miteStageOpMultiply
 };
 
-const airEnum
+static const airEnum
 _miteStageOp = {
   "miteStageOp",
   MITE_STAGE_OP_MAX,
@@ -400,7 +400,7 @@ miteQueryAdd(gageQuery queryScl, gageQuery queryVec, gageQuery queryTen,
   return;
 }
 
-int
+static int
 _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
   static const char me[] = "_miteNtxfCopy";
   unsigned int ni;
@@ -481,7 +481,7 @@ _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
   return 0;
 }
 
-int
+static int
 _miteStageNum(miteRender *mrr) {
   unsigned int num, ni;
 
@@ -492,7 +492,7 @@ _miteStageNum(miteRender *mrr) {
   return num;
 }
 
-void
+static void
 _miteStageInit(miteStage *stage) {
   int rii;
 

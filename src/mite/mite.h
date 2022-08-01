@@ -431,11 +431,11 @@ MITE_EXPORT double miteDefOpacMatters;
 
 /* kindnot.c */
 MITE_EXPORT const airEnum *const miteVal;
-MITE_EXPORT gageKind *miteValGageKind;
+MITE_EXPORT const gageKind *const miteValGageKind;
 
 /* txf.c */
 MITE_EXPORT const airEnum *const miteStageOp;
-MITE_EXPORT char miteRangeChar[MITE_RANGE_NUM + 1];
+MITE_EXPORT const char *const miteRangeChar;
 MITE_EXPORT int miteVariableParse(gageItemSpec *isp, const char *label);
 MITE_EXPORT void miteVariablePrint(char *buff, const gageItemSpec *isp);
 MITE_EXPORT int miteNtxfCheck(const Nrrd *ntxf);

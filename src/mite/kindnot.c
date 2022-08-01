@@ -25,7 +25,7 @@
 #include "privateMite.h"
 
 /* clang-format off */
-const char *
+static const char *
 _miteValStr[] = {
   "(unknown miteVal)",
   "Xw",
@@ -49,7 +49,7 @@ _miteValStr[] = {
   "WdotD"
 };
 
-const int
+static const int
 _miteValVal[] = {
   miteValUnknown,
   miteValXw,
@@ -73,7 +73,7 @@ _miteValVal[] = {
   miteValWdotD,
 };
 
-const char *
+static const char *
 _miteValStrEqv[] = {
   "xw",
   "xi",
@@ -97,7 +97,7 @@ _miteValStrEqv[] = {
   ""
 };
 
-int
+static const int
 _miteValValEqv[] = {
   miteValXw,
   miteValXi,
@@ -120,7 +120,7 @@ _miteValValEqv[] = {
   miteValWdotD
 };
 
-const airEnum
+static const airEnum
 _miteVal = {
   "miteVal",
   MITE_VAL_ITEM_MAX,
@@ -138,7 +138,7 @@ miteVal = &_miteVal;
 ** the prerequisites here are all blank.  Go look in miteQueryAdd()
 ** to see these items' true prereqs
 */
-gageItemEntry
+static gageItemEntry
 _miteValTable[MITE_VAL_ITEM_MAX+1] = {
   /* enum value        len,deriv, prereqs,  parent item, index, needData*/
   {miteValUnknown,       0,  0,   {0},              0,   0,     AIR_FALSE},
@@ -164,7 +164,7 @@ _miteValTable[MITE_VAL_ITEM_MAX+1] = {
 };
 
 
-gageKind
+static const gageKind
 _miteValGageKind = {
   AIR_FALSE,
   "mite",
@@ -180,6 +180,6 @@ _miteValGageKind = {
   NULL
 };
 
-gageKind *
+const gageKind *const
 miteValGageKind = &_miteValGageKind;
 /* clang-format on */

@@ -67,7 +67,7 @@ miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu, int uIndex, int vI
   return 0;
 }
 
-void
+static void
 _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A, miteThread *mtt,
               miteRender *mrr, miteUser *muu) {
   static const char me[] = "_miteRGBACalc";

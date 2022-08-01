@@ -24,7 +24,7 @@
 #include "mite.h"
 #include "privateMite.h"
 
-miteRender *
+static miteRender *
 _miteRenderNew(void) {
   miteRender *mrr;
 
@@ -51,7 +51,7 @@ _miteRenderNew(void) {
   return mrr;
 }
 
-miteRender *
+static miteRender *
 _miteRenderNix(miteRender *mrr) {
 
   if (mrr) {
