@@ -27,7 +27,7 @@
 /*
 ** don't ask
 */
-void
+static void
 _hestSetBuff(char *B, const hestOpt *O, const hestParm *P, int showshort, int showlong) {
   char copy[AIR_STRLEN_HUGE], *sep;
   int max;

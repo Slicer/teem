@@ -44,11 +44,12 @@ twice with differen values
 ** long as it needs to be, and we can avoid using an airArray.  The drawback
 ** is that we open and read through the response files twice.  Alas.
 */
-int
+static int
 _hestArgsInResponseFiles(int *argcP, int *nrfP, const char **argv, char *err,
                          const hestParm *parm) {
   FILE *file;
-  char me[] = "_hestArgsInResponseFiles: ", line[AIR_STRLEN_HUGE], *pound;
+  static const char me[] = "_hestArgsInResponseFiles: ";
+  char line[AIR_STRLEN_HUGE], *pound;
   int ai, len;
 
   *argcP = 0;
@@ -97,7 +98,7 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP, const char **argv, char *err,
 ** even if response files are disabled, this is the function that
 ** copies from the user's argc,argv to our local copy.
 */
-int
+static int
 _hestResponseFiles(char **newArgv, const char **oldArgv, const hestParm *parm,
                    airArray *pmop) {
   char line[AIR_STRLEN_HUGE], *pound;
@@ -159,7 +160,8 @@ _hestResponseFiles(char **newArgv, const char **oldArgv, const hestParm *parm,
 */
 int
 _hestPanic(hestOpt *opt, char *err, const hestParm *parm) {
-  char me[] = "_hestPanic: ", tbuff[AIR_STRLEN_HUGE], *sep;
+  static const char me[] = "_hestPanic: ";
+  char tbuff[AIR_STRLEN_HUGE], *sep;
   int numvar, op, numOpts;
 
   numOpts = _hestNumOpts(opt);
@@ -395,10 +397,11 @@ _hestErrStrlen(const hestOpt *opt, int argc, const char **argv) {
 ** The "saw" information is not set here, since it is better set
 ** at value parsing time, which happens after defaults are enstated.
 */
-int
+static int
 _hestExtractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **argv,
                     hestOpt *opt, char *err, const hestParm *parm, airArray *pmop) {
-  char me[] = "_hestExtractFlagged: ", ident1[AIR_STRLEN_HUGE], ident2[AIR_STRLEN_HUGE];
+  static const char me[] = "_hestExtractFlagged: ";
+  char ident1[AIR_STRLEN_HUGE], ident2[AIR_STRLEN_HUGE];
   int a, np, flag, endflag, numOpts, op;
 
   a = 0;
@@ -482,7 +485,7 @@ _hestExtractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char
   return 0;
 }
 
-int
+static int
 _hestNextUnflagged(int op, hestOpt *opt, int numOpts) {
 
   for (; op <= numOpts - 1; op++) {
@@ -491,10 +494,11 @@ _hestNextUnflagged(int op, hestOpt *opt, int numOpts) {
   return op;
 }
 
-int
+static int
 _hestExtractUnflagged(char **prms, unsigned int *nprm, int *argcP, char **argv,
                       hestOpt *opt, char *err, const hestParm *parm, airArray *pmop) {
-  char me[] = "_hestExtractUnflagged: ", ident[AIR_STRLEN_HUGE];
+  static const char me[] = "_hestExtractUnflagged: ";
+  char ident[AIR_STRLEN_HUGE];
   int nvp, np, op, unflag1st, unflagVar, numOpts;
 
   numOpts = _hestNumOpts(opt);
@@ -584,10 +588,11 @@ _hestExtractUnflagged(char **prms, unsigned int *nprm, int *argcP, char **argv,
   return 0;
 }
 
-int
+static int
 _hestDefaults(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
               char *err, const hestParm *parm, airArray *mop) {
-  char *tmpS, me[] = "_hestDefaults: ", ident[AIR_STRLEN_HUGE];
+  static const char me[] = "_hestDefaults: ";
+  char *tmpS, ident[AIR_STRLEN_HUGE];
   int op, numOpts;
 
   numOpts = _hestNumOpts(opt);
@@ -742,11 +747,11 @@ airDLoad(void *v, int t) {
   }
 }
 
-int
+static int
 _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
                char *err, const hestParm *parm, airArray *pmop) {
-  char ident[AIR_STRLEN_HUGE], me[] = "_hestSetValues: ", cberr[AIR_STRLEN_HUGE], *tok,
-                               *last, *prmsCopy;
+  static const char me[] = "_hestSetValues: ";
+  char ident[AIR_STRLEN_HUGE], cberr[AIR_STRLEN_HUGE], *tok, *last, *prmsCopy;
   double tmpD;
   int op, type, numOpts, p, ret;
   void *vP;
@@ -1100,7 +1105,7 @@ _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *
 int
 hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
           const hestParm *_parm) {
-  char me[] = "hestParse: ";
+  static const char me[] = "hestParse: ";
   char *param, *param_copy;
   char **argv, **prms, *err;
   int a, argc, argr, *appr, *udflt, nrf, numOpts, big, ret, i;

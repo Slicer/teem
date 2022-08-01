@@ -64,7 +64,7 @@ hestParmFree(hestParm *parm) {
   return NULL;
 }
 
-void
+static void
 _hestOptInit(hestOpt *opt) {
 
   opt->flag = opt->name = NULL;
@@ -153,7 +153,7 @@ hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type, int min
   return retIdx;
 }
 
-void
+static void
 _hestOptFree(hestOpt *opt) {
 
   opt->flag = (char *)airFree(opt->flag);
