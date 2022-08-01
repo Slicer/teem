@@ -9,6 +9,9 @@ import argparse
 import subprocess
 import re
 
+# TODO: nrrd unrrdu moss gage dye bane limn echo hoover ten pull coil push mite meet
+# still with curious symbols: air biff
+# done: hest ell alan tijk seek elf
 verbose = 1
 archDir = None
 libDir = None
@@ -182,9 +185,9 @@ def declList(lib):
                         # if there a single-line self-contained comment, remove it
                         L = L.replace(match.group(1), '').rstrip()
                     #print(f'foo2 |{L}|')
-                    while (match := re.match(r'.+?(\[[^\[\]]*?\])', L)):
+                    while (match := re.match(r'.+?(\[[^\[\]]+?\])', L)):
                         # remove arrays
-                        L = L.replace(match.group(1), '').rstrip()
+                        L = L.replace(match.group(1), '[]').rstrip()
                     #print(f'foo3 |{L}|')
                     if (match := re.match(r'.+(\([^\(\)]+)$', L)):
                         # if start of multi-line function declaration, simplify it
@@ -219,7 +222,17 @@ def declList(lib):
                     # it doesn't look like a declaration, move on to next line
                     continue
                 # else we think we have the name isolated
-                if L.endswith('();'):
+                if L.endswith('[][][];'):
+                    decl[L[:-7]] = 'D'
+                elif L.endswith('[][]();'):
+                    decl[L[:-7]] = 'D'
+                elif L.endswith('[]();'):
+                    decl[L[:-5]] = 'D'
+                elif L.endswith('[][];'):
+                    decl[L[:-5]] = 'D'
+                elif L.endswith('[];'):
+                    decl[L[:-3]] = 'D'
+                elif L.endswith('();'):
                     decl[L[:-3]] = 'T'
                 elif L.endswith(';'):
                     decl[L[:-1]] = 'D'
