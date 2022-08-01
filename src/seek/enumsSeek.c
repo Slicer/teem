@@ -26,7 +26,7 @@
 const char *const seekBiffKey = "seek";
 
 /* clang-format off */
-const char *
+static const char *
 _seekTypeStr[SEEK_TYPE_MAX+1] = {
   "(unknown_feature)",
   "isocontour",
@@ -42,7 +42,7 @@ _seekTypeStr[SEEK_TYPE_MAX+1] = {
   "T valley surface"
 };
 
-const char *
+static const char *
 _seekTypeDesc[SEEK_TYPE_MAX+1] = {
   "unknown_feature",
   "standard marching cubes surface",
@@ -58,7 +58,7 @@ _seekTypeDesc[SEEK_TYPE_MAX+1] = {
   "valley surface using tensor T"
 };
 
-const char *
+static const char *
 _seekTypeStrEqv[] = {
   "isocontour",
   "ridge surface", "ridgesurface", "rs",
@@ -74,7 +74,7 @@ _seekTypeStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _seekTypeValEqv[] = {
   seekTypeIsocontour,
   seekTypeRidgeSurface, seekTypeRidgeSurface, seekTypeRidgeSurface,
@@ -89,7 +89,7 @@ _seekTypeValEqv[] = {
   seekTypeValleySurfaceT, seekTypeValleySurfaceT, seekTypeValleySurfaceT
 };
 
-const airEnum
+static const airEnum
 _seekType = {
   "format",
   SEEK_TYPE_MAX,
