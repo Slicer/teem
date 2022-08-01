@@ -9,9 +9,9 @@ import argparse
 import subprocess
 import re
 
-# TODO: nrrd moss gage dye bane limn echo hoover ten pull coil push mite meet
+# TODO: nrrd moss gage dye bane limn echo hoover ten pull coil push
 # still with curious symbols: air biff
-# done: hest ell alan tijk seek elf unrrdu
+# done: hest ell alan tijk seek elf unrrdu ... mite meet
 verbose = 1
 archDir = None
 libDir = None
@@ -216,7 +216,7 @@ def declList(lib):
                         L = L.replace(match.group(1), '();')
                     #print(f'foo8 |{L}|')
                     L = L.replace('()(),', '();') # ugh, hacky for airArrayStructCB
-                    L = L.removeprefix('*')
+                    L = L.removeprefix('*').removeprefix('*')
                     #print(f'foo9 |{L}|')
                 else:
                     # it doesn't look like a declaration, move on to next line
