@@ -12,6 +12,46 @@ import re
 verbose = 1
 archDir = None
 libDir = None
+allTypes = ['const', 'unsigned',
+            'int', 'void', 'double', 'float', 'char', 'short', 'size_t',
+            'FILE',
+            # manually generated list of Teem-derived types
+            'airLLong', 'airULLong', 'airArray', 'airEnum', 'airHeap', 'airFloat',
+            'airRandMTState', 'airThread', 'airThreadMutex',
+            'airThreadCond', 'airThreadBarrier',
+            'biffMsg',
+            'hestCB', 'hestParm', 'hestOpt',
+            'gzFile',
+            'NrrdEncoding', 'NrrdKernel', 'NrrdFormat', 'Nrrd', 'NrrdRange', 'NrrdIoState',
+            'NrrdIter', 'NrrdResampleContext', 'NrrdDeringContext', 'NrrdBoundarySpec',
+            'NrrdResampleInfo', 'NrrdKernelSpec',
+            'unrrduCmd',
+            'alanContext',
+            'mossSampler',
+            'tijk_type', 'tijk_refine_rank1_parm', 'tijk_refine_rankk_parm',
+            'tijk_approx_heur_parm',
+            'gageItemSpec', 'gageScl3PFilter_t', 'gageKind', 'gageItemPack', 'gageShape',
+            'gagePerVolume', 'gageOptimSigContext', 'gageStackBlurParm', 'gageContext',
+            'dyeColor', 'dyeConverter',
+            'baneRange', 'baneInc', 'baneClip', 'baneMeasr', 'baneHVolParm',
+            'limnLight', 'limnCamera', 'limnWindow', 'limnObject', 'limnPolyData',
+            'limnSplineTypeSpec', 'limnSpline', 'limnSplineTypeSpec', 'limnPoints', 'limnCBFPath',
+            'echoRTParm', 'echoGlobalState', 'echoThreadState', 'echoScene', 'echoObject',
+            '_echoRayIntxUV_t', '_echoIntxColor_t',
+            'hooverContext', 'hooverRenderBegin_t', 'hooverThreadBegin_t', 'hooverRenderEnd_t',
+            'hooverRayBegin_t', 'hooverSample_t', 'hooverRayEnd_t', 'hooverThreadEnd_t',
+            'seekContext',
+            'tenGradientParm', 'tenInterpParm', 'tenGlyphParm', 'tenEstimateContext',
+            'tenEvecRGBParm', 'tenFiberSingle', 'tenFiberContext', 'tenFiberMulti', 'tenModel',
+            'tenEMBimodalParm', 'tenExperSpec',
+            'elfMaximaContext',
+            'pullEnergy', 'pullEnergySpec', 'pullVolume', 'pullInfoSpec', 'pullContext',
+            'pullTrace', 'pullTraceMulti', 'pullTask', 'pullBin',
+            'coilKind', 'coilMethod', 'coilContext',
+            'pushContext', 'pushEnergy', 'pushEnergySpec', 'pushBin', 'pushTask',
+            'miteUser', 'miteShadeSpec', 'miteThread',
+            'meetPullVol', 'meetPullInfo',
+            ]
 
 # the variable _ is (totally against python conventions) standing for some particular!
 # for interpreting "nm" output
@@ -72,9 +112,9 @@ def symbList(lib, firstClean):
             continue
         if not re.match(r'[0-9a-fA-F]+ [TDS] ', L):
             # flag this but don't raise an Exception; sometimes these are ok
-            print(f'\nHEY: weird symbol "{L}" in {currObj}.c\n')
+            print(f'HEY: curious symbol "{L}" in {currObj}.c')
             continue;
-        if dropUnder: #        (----- 1 -----)(- 2 -)  ( 3)
+        if dropUnder: # (Mac)  (----- 1 -----)(- 2 -)  ( 3)
             match = re.match(r'([0-9a-fA-F]+ )([TDS]) _(.*)$', L)
             if not match:
                 raise Exception(f'malformed (no leading underscore) "{L}" in {currObj}.c')
@@ -90,6 +130,19 @@ def symbList(lib, firstClean):
         symb[ss] = {'type': match.group(2), 'object': currObj}
     return symb
 
+# starts with '  *const nrrdKernel'
+def kernelLineProc(L):
+    L0 = L
+    if (match := re.match(r'.+?(/\*.+?)$', L)):
+        # if there is a start of a multi-line comment, remove it
+        L = L.replace(match.group(1), '').rstrip()
+    if ',' == L[-1]:
+        # uncommented part of kernel list
+        L = L[:-1] + ';'
+    if ';' != L[-1]:
+        raise Exception(f'kernel def "{L0}" of unexpected form')
+    return L
+
 def declList(lib):
     pubH = f'{lib}.h'
     prvH = f'private{lib.title()}.h'
@@ -102,22 +155,77 @@ def declList(lib):
     decl = {}
     for HN in hdrs:
         pub = (0 == hdrs.index(HN))
-        want = f'{lib.upper()}_EXPORT ' if pub else 'extern '
+        externStr = f'{lib.upper()}_EXPORT ' if pub else 'extern '
         with open(HN) as HF:
             lines = [line.rstrip() for line in HF.readlines()]
-            # HEY need special handling of:
-            # NRRD_EXPORT NrrdKernel
-            #  *const nrrdKernel ..
-            # initial grep on whether the line starts like a declaration
-            lines = [L for L in filter(lambda L: L.startswith(want), lines)]
             # remove 'extern "C" {' in from list for private
             if not pub: lines.remove('extern "C" {')
-            # remove LIB_EXPORT or extern prefix
-            lines = [L.removeprefix(want) for L in lines]
-            #for L in lines:
-            #    print(L)
+            for L in lines:
+                origL = L
+                # special handling of inside of list of nrrdKernels
+                if 'nrrd.h' == HN and L.startswith('  *const nrrdKernel'):
+                    L = 'NRRD_EXPORT const NrrdKernel' + kernelLineProc(L[1:])
+                # does it looks like the start of a declaration?
+                if L.startswith(externStr):
+                    # remove LIB_EXPORT or extern prefix
+                    L = L.removeprefix(externStr)
+                    if L == 'const NrrdKernel':
+                        # its the start of a kernel list; each handled separately above
+                        continue
+                    # else work on isolating the symbol name
+                    # remove types
+                    #print(f'foo0 |{L}|')
+                    for QT in allTypes:
+                        L = L.replace(QT+' ', '')
+                    #print(f'foo1 |{L}|')
+                    if (match := re.match(r'.+?(/\*.+?\*/)', L)):
+                        # if there a single-line self-contained comment, remove it
+                        L = L.replace(match.group(1), '').rstrip()
+                    #print(f'foo2 |{L}|')
+                    while (match := re.match(r'.+?(\[[^\[\]]*?\])', L)):
+                        # remove arrays
+                        L = L.replace(match.group(1), '').rstrip()
+                    #print(f'foo3 |{L}|')
+                    if (match := re.match(r'.+(\([^\(\)]+)$', L)):
+                        # if start of multi-line function declaration, simplify it
+                        #print(f'start of multi-line func decl |{L}|')
+                        L = L.replace(match.group(1), '();')
+                    #print(f'foo4 |{L}|')
+                    while (match := re.match(r'.*?\(.+?(\*\(.+?\)\(.+?\))', L)):
+                        # remove function args like *(*threadBody)(void *), for airThreadStart
+                        L = L.replace(match.group(1), 'XX').rstrip()
+                    #print(f'foo5 |{L}|')
+                    while (match := re.match(r'.+?(\([^\)]+\))', L)):
+                        # if single-line function declaration, simplfy it
+                        #print(f'single-line func decl |{L}|')
+                        L = L.replace(match.group(1), '()')
+                    #print(f'foo6 |{L}|')
+                    if (match := re.match(r'.*?(\(\*[^ \)]+\))', L)):
+                        # remove indication of being a function pointer
+                        L = L.replace(match.group(1), match.group(1)[2:-1])
+                    #print(f'foo7 |{L}|')
+                    if L.endswith('()'):
+                        L += ';'
+                    #print(f'foo6 |{L}|')
+                    if (match := re.match(r'.+(\([^\(\)]+)$', L)):
+                        # another whack at this, for airArrayPointerCB
+                        # if start of multi-line function declaration, simplify it
+                        L = L.replace(match.group(1), '();')
+                    #print(f'foo8 |{L}|')
+                    L = L.replace('()(),', '();') # ugh, hacky for airArrayStructCB
+                    L = L.removeprefix('*')
+                    #print(f'foo9 |{L}|')
+                else:
+                    # it doesn't look like a declaration, move on to next line
+                    continue
+                # else we think we have the name isolated
+                if L.endswith('();'):
+                    decl[L[:-3]] = 'T'
+                elif L.endswith(';'):
+                    decl[L[:-1]] = 'D'
+                else:
+                    raise Exception(f'confused about |{L}| from |{origL}|')
     return decl
-
 
 def parse_args():
     # https://docs.python.org/3/library/argparse.html
@@ -147,3 +255,18 @@ if __name__ == '__main__':
     decl = declList(args.lib)
     if (verbose > 1):
         print('========== found declarations:', decl)
+    for N in symb:
+        if 'D' == symb[N]['type']: print(f'HEY: {args.lib} lib has global {N}')
+        symbT = symb[N]['type']
+        if N in decl:
+            declT = decl[N]
+            if declT == symbT:
+                if verbose > 1: print(f'agree on {N}')
+            else:
+                if not ('S' == symbT and 'D' == declT):
+                    print(f"disaagree on {N} type (nm {symbT} vs .h {declT})")
+        else:
+            print(f'HEY: lib{args.lib} {symbT} symbol {N} not declared')
+    for N in decl:
+        if not N in symb:
+            print(f'HEY: some {args.lib} .h declares {N} but not in lib')
