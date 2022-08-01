@@ -77,19 +77,19 @@ MAP(LOAD_DEF, JN)
 MAP(LOAD_DEF, FL)
 MAP(LOAD_DEF, DB)
 
-unsigned int (*
+unsigned int (* const
 nrrdUILoad[NRRD_TYPE_MAX+1])(const void*) = {
   NULL, MAP(LOAD_LIST, UI) NULL
 };
-int (*
+int (* const
 nrrdILoad[NRRD_TYPE_MAX+1])(const void*) = {
   NULL, MAP(LOAD_LIST, JN) NULL
 };
-float (*
+float (* const
 nrrdFLoad[NRRD_TYPE_MAX+1])(const void*) = {
   NULL, MAP(LOAD_LIST, FL) NULL
 };
-double (*
+double (* const
 nrrdDLoad[NRRD_TYPE_MAX+1])(const void*) = {
   NULL, MAP(LOAD_LIST, DB) NULL
 };
@@ -115,19 +115,19 @@ MAP(STORE_DEF, JN)
 MAP(STORE_DEF, FL)
 MAP(STORE_DEF, DB)
 
-unsigned int (*
+unsigned int (* const
 nrrdUIStore[NRRD_TYPE_MAX+1])(void *, unsigned int) = {
   NULL, MAP(STORE_LIST, UI) NULL
 };
-int (*
+int (* const
 nrrdIStore[NRRD_TYPE_MAX+1])(void *, int) = {
   NULL, MAP(STORE_LIST, JN) NULL
 };
-float (*
+float (* const
 nrrdFStore[NRRD_TYPE_MAX+1])(void *, float) = {
   NULL, MAP(STORE_LIST, FL) NULL
 };
-double (*
+double (* const
 nrrdDStore[NRRD_TYPE_MAX+1])(void *, double) = {
   NULL, MAP(STORE_LIST, DB) NULL
 };
@@ -151,19 +151,19 @@ MAP(LOOKUP_DEF, JN)
 MAP(LOOKUP_DEF, FL)
 MAP(LOOKUP_DEF, DB)
 
-unsigned int (*
+unsigned int (* const
 nrrdUILookup[NRRD_TYPE_MAX+1])(const void *, size_t) = {
   NULL, MAP(LOOKUP_LIST, UI) NULL
 };
-int (*
+int (* const
 nrrdILookup[NRRD_TYPE_MAX+1])(const void *, size_t) = {
   NULL, MAP(LOOKUP_LIST, JN) NULL
 };
-float (*
+float (* const
 nrrdFLookup[NRRD_TYPE_MAX+1])(const void *, size_t) = {
   NULL, MAP(LOOKUP_LIST, FL) NULL
 };
-double (*
+double (* const
 nrrdDLookup[NRRD_TYPE_MAX+1])(const void *, size_t) = {
   NULL, MAP(LOOKUP_LIST, DB) NULL
 };
@@ -189,19 +189,19 @@ MAP(INSERT_DEF, JN)
 MAP(INSERT_DEF, FL)
 MAP(INSERT_DEF, DB)
 
-unsigned int (*
+unsigned int (* const
 nrrdUIInsert[NRRD_TYPE_MAX+1])(void *, size_t, unsigned int) = {
   NULL, MAP(INSERT_LIST, UI) NULL
 };
-int (*
+int (* const
 nrrdIInsert[NRRD_TYPE_MAX+1])(void *, size_t, int) = {
   NULL, MAP(INSERT_LIST, JN) NULL
 };
-float (*
+float (* const
 nrrdFInsert[NRRD_TYPE_MAX+1])(void *, size_t, float) = {
   NULL, MAP(INSERT_LIST, FL) NULL
 };
-double (*
+double (* const
 nrrdDInsert[NRRD_TYPE_MAX+1])(void *, size_t, double) = {
   NULL, MAP(INSERT_LIST, DB) NULL
 };
@@ -232,7 +232,7 @@ static int _nrrdSprintFL(char *s, const FL *v) {
   return airSinglePrintf(NULL, s, "%.9g", (double)(*v)); }
 static int _nrrdSprintDB(char *s, const DB *v) {
   return airSinglePrintf(NULL, s, "%.17g", *v); }
-int (*
+int (* const
 nrrdSprint[NRRD_TYPE_MAX+1])(char *, const void *) = {
   NULL,
   (int (*)(char *, const void *))_nrrdSprintCH,
@@ -271,7 +271,7 @@ static int _nrrdFprintFL(FILE *f, const FL *v) {
   return airSinglePrintf(f, NULL, "%.8g", (double)(*v)); }
 static int _nrrdFprintDB(FILE *f, const DB *v) {
   return airSinglePrintf(f, NULL, "%.17g", *v); }
-int (*
+int (* const
 nrrdFprint[NRRD_TYPE_MAX+1])(FILE *, const void *) = {
   NULL,
   (int (*)(FILE *, const void *))_nrrdFprintCH,
@@ -405,7 +405,7 @@ static void _nrrdMinMaxExactFindDB (_MMEF_ARGS(DB)) {_MMEF_FLOAT(DB)}
 **
 ** These also sets *hneP, using a value from the nrrdHasNonExist* enum
 */
-void (*
+void (* const
 nrrdMinMaxExactFind[NRRD_TYPE_MAX+1])(void *minP, void *maxP,
                                       int *hneP, const Nrrd *) = {
   NULL,
@@ -458,7 +458,7 @@ static int _nrrdValCompareLL (_VC_ARGS(LL)) {return _VC_FIXED;}
 static int _nrrdValCompareUL (_VC_ARGS(UL)) {return _VC_FIXED;}
 static int _nrrdValCompareFL (_VC_ARGS(FL)) {_VC_FLOAT; return ret;}
 static int _nrrdValCompareDB (_VC_ARGS(DB)) {_VC_FLOAT; return ret;}
-int (*
+int (* const
 nrrdValCompare[NRRD_TYPE_MAX+1])(const void *, const void *) = {
   NULL,
   (int (*)(const void *, const void *))_nrrdValCompareCH,
@@ -487,7 +487,7 @@ static int _nrrdValCompareInvLL (_VC_ARGS(LL)) {return -_VC_FIXED;}
 static int _nrrdValCompareInvUL (_VC_ARGS(UL)) {return -_VC_FIXED;}
 static int _nrrdValCompareInvFL (_VC_ARGS(FL)) {_VC_FLOAT; return -ret;}
 static int _nrrdValCompareInvDB (_VC_ARGS(DB)) {_VC_FLOAT; return -ret;}
-int (*
+int (* const
 nrrdValCompareInv[NRRD_TYPE_MAX+1])(const void *, const void *) = {
   NULL,
   (int (*)(const void *, const void *))_nrrdValCompareInvCH,

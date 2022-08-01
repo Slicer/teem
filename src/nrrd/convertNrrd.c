@@ -196,7 +196,7 @@ static float _nrrdFClampLL(FL v) { return AIR_CLAMP(NRRD_LLONG_MIN, v,
 static float _nrrdFClampUL(FL v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
 static float _nrrdFClampFL(FL v) { return v; }
 static float _nrrdFClampDB(FL v) { return v; }
-float (*
+float (* const
 nrrdFClamp[NRRD_TYPE_MAX+1])(FL) = {
   NULL,
   _nrrdFClampCH,
@@ -228,7 +228,7 @@ static double _nrrdDClampLL(DB v) { return AIR_CLAMP(NRRD_LLONG_MIN, v,
 static double _nrrdDClampUL(DB v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
 static double _nrrdDClampFL(DB v) { return AIR_CLAMP(-FLT_MAX, v, FLT_MAX); }
 static double _nrrdDClampDB(DB v) { return v; }
-double (*
+double (* const
 nrrdDClamp[NRRD_TYPE_MAX+1])(DB) = {
   NULL,
   _nrrdDClampCH,
@@ -259,21 +259,21 @@ MAP1(MAP2, CCRD_DEF)
 ** hopefully will not break a poor compiler with limitations on
 ** line-length...
 */
-CF
+CF const
 _nrrdConv[NRRD_TYPE_MAX+1][NRRD_TYPE_MAX+1] = {
 {NULL},
 MAP1(CONVTO_LIST, _dummy_)
 {NULL}
 };
 
-CF
+CF const
 _nrrdClampConv[NRRD_TYPE_MAX+1][NRRD_TYPE_MAX+1] = {
 {NULL},
 MAP1(CLCVTO_LIST, _dummy_)
 {NULL}
 };
 
-CN
+CN const
 _nrrdCastClampRound[NRRD_TYPE_MAX+1][NRRD_TYPE_MAX+1] = {
 {NULL},
 MAP1(CCRDTO_LIST, _dummy_)

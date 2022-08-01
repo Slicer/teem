@@ -1054,7 +1054,7 @@ nrrdDomainAxesGet(const Nrrd *nrrd, unsigned int axisIdx[NRRD_DIM_MAX]) {
   return domAxi;
 }
 
-int
+static int
 _nrrdSpaceVecExists(const Nrrd *nrrd, unsigned int axi) {
   unsigned int sai;
   int ret;

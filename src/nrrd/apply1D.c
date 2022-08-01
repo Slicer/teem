@@ -722,7 +722,7 @@ nrrd1DIrregAclCheck(const Nrrd *nacl) {
 **
 ** Assumes that nrrd1DIrregMapCheck has been called on "nmap".
 */
-double *
+static double *
 _nrrd1DIrregMapDomain(int *posLenP, int *baseIP, const Nrrd *nmap) {
   static const char me[] = "_nrrd1DIrregMapDomain";
   int i, entLen, baseI, posLen;

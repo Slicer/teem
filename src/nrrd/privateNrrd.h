@@ -137,10 +137,11 @@ extern int _nrrdCenter2(int center, int def);
 extern int _nrrdDblcmp(double aa, double bb);
 
 /* convertNrrd.c */
-extern void (*_nrrdConv[][NRRD_TYPE_MAX + 1])(void *, const void *, size_t);
-extern void (*_nrrdClampConv[][NRRD_TYPE_MAX + 1])(void *, const void *, size_t);
-extern void (*_nrrdCastClampRound[][NRRD_TYPE_MAX + 1])(void *, const void *, size_t,
-                                                        int doClamp, int roundd);
+extern void (*const _nrrdConv[][NRRD_TYPE_MAX + 1])(void *, const void *, size_t);
+extern void (*const _nrrdClampConv[][NRRD_TYPE_MAX + 1])(void *, const void *, size_t);
+extern void (*const _nrrdCastClampRound[][NRRD_TYPE_MAX + 1])(void *, const void *,
+                                                              size_t, int doClamp,
+                                                              int roundd);
 /* ---- END non-NrrdIO */
 
 /* read.c */
@@ -180,6 +181,8 @@ extern int _nrrdGzClose(gzFile file);
 extern int _nrrdGzRead(gzFile file, void *buf, unsigned int len, unsigned int *read);
 extern int _nrrdGzWrite(gzFile file, const void *buf, unsigned int len,
                         unsigned int *written);
+#else
+extern int _nrrdGzDummySymbol(void);
 #endif
 
 /* ---- BEGIN non-NrrdIO */

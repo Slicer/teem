@@ -291,7 +291,7 @@ static double _nrrdUnaryOpOne(double a) {
 static double _nrrdUnaryOpTauOfSigma(double s) { return airTauOfSigma(s); }
 static double _nrrdUnaryOpSigmaOfTau(double t) { return airSigmaOfTau(t); }
 
-double (*_nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
+static double (*const _nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
   NULL,
   _nrrdUnaryOpNegative,
   _nrrdUnaryOpReciprocal,
@@ -496,7 +496,7 @@ static double _nrrdBinaryOpULPDistance(double dA, double dB) {
 #undef QLAMP
 /* end of code lifted from GLK's UChicago CMSC 23710 SciVis class code */
 
-double (*_nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
+static double (*const _nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
   NULL,
   _nrrdBinaryOpAdd,
   _nrrdBinaryOpSubtract,
@@ -821,7 +821,7 @@ static double _nrrdTernaryOpGaussian(double x, double mu, double sig) {
 static double _nrrdTernaryOpRician(double x, double mu, double sig) {
   return airRician(x, mu, sig);
 }
-double (*_nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
+static double (*const _nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, double) = {
   NULL,
   _nrrdTernaryOpAdd,
   _nrrdTernaryOpMultiply,

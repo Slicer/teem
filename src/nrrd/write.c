@@ -852,7 +852,7 @@ _nrrdFormatMaybeSet(NrrdIoState *nio) {
 ** called, all writing parameters must be given explicitly, and their
 ** appropriateness is explicitly tested
 */
-int
+static int
 _nrrdWrite(FILE *file, char **stringP, const Nrrd *nrrd, NrrdIoState *_nio) {
   static const char me[] = "_nrrdWrite";
   NrrdIoState *nio;

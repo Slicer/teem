@@ -1445,7 +1445,7 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd, NrrdIoState *nio, int useB
 **
 ** These are all for parsing the stuff AFTER the colon
 */
-int (*nrrdFieldInfoParse[NRRD_FIELD_MAX + 1])(FILE *, Nrrd *, NrrdIoState *, int)
+int (*const nrrdFieldInfoParse[NRRD_FIELD_MAX + 1])(FILE *, Nrrd *, NrrdIoState *, int)
   = {_nrrdReadNrrdParse_nonfield,
      _nrrdReadNrrdParse_comment,
      _nrrdReadNrrdParse_content,

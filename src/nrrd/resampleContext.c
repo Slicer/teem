@@ -83,8 +83,8 @@ enum {
 };
 #define FLAG_MAX (flagLast - 1)
 
-void
-nrrdResampleContextInit(NrrdResampleContext *rsmc) {
+static void
+resampleContextInit(NrrdResampleContext *rsmc) {
   unsigned int axIdx, axJdx, kpIdx, flagIdx;
   NrrdResampleAxis *axis;
 
@@ -146,7 +146,7 @@ nrrdResampleContextNew() {
   rsmc = AIR_CALLOC(1, NrrdResampleContext);
   if (rsmc) {
     rsmc->flag = AIR_CALLOC(1 + FLAG_MAX, int);
-    nrrdResampleContextInit(rsmc);
+    resampleContextInit(rsmc);
   }
   return rsmc;
 }

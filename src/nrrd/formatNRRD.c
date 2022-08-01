@@ -147,7 +147,7 @@ On output:
 const char *const _nrrdFormatURLLine0 = "Complete NRRD file format specification at:";
 const char *const _nrrdFormatURLLine1 = "http://teem.sourceforge.net/nrrd/format.html";
 
-void
+static void
 nrrdIoStateDataFileIterBegin(NrrdIoState *nio) {
 
   nio->dataFNIndex = 0;

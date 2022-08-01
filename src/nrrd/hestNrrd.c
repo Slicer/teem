@@ -130,7 +130,7 @@ const hestCB *const nrrdHestBoundarySpec = &_nrrdHestBoundarySpec;
 
 /* --------------------------- NrrdIter ----------------------------- */
 
-int
+static int
 _nrrdLooksLikeANumber(const char *str) {
   /* 0: -+                (no restriction, but that's a little daft)
      1: 0123456789        n > 0

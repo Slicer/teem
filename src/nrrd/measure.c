@@ -1032,8 +1032,8 @@ _nrrdMeasureHistoMin(void *ans, int ansType, const void *line, int lineType, siz
   nrrdDStore[ansType](ans, val);
 }
 
-void (*nrrdMeasureLine[NRRD_MEASURE_MAX + 1])(void *, int, const void *, int, size_t,
-                                              double, double)
+void (*const nrrdMeasureLine[NRRD_MEASURE_MAX + 1])(void *, int, const void *, int,
+                                                    size_t, double, double)
   = {_nrrdMeasureUnknown,
      _nrrdMeasureMin,
      _nrrdMeasureMax,

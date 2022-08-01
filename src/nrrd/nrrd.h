@@ -988,8 +988,9 @@ NRRD_EXPORT const NrrdEncoding *const nrrdEncodingArray[NRRD_ENCODING_TYPE_MAX +
 /* this needs the "FILE *file" first arg for the sole reason that
    parsing a "data file: " field which identifies a LIST must then
    read in all the data filenames from the same file */
-NRRD_EXPORT int (*nrrdFieldInfoParse[NRRD_FIELD_MAX + 1])(FILE *file, Nrrd *nrrd,
-                                                          NrrdIoState *nio, int useBiff);
+NRRD_EXPORT int (*const nrrdFieldInfoParse[NRRD_FIELD_MAX + 1])(FILE *file, Nrrd *nrrd,
+                                                                NrrdIoState *nio,
+                                                                int useBiff);
 NRRD_EXPORT unsigned int _nrrdDataFNNumber(NrrdIoState *nio);
 NRRD_EXPORT int nrrdContainsPercentThisAndMore(const char *str, char thss);
 NRRD_EXPORT int _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff);
@@ -1030,32 +1031,35 @@ NRRD_EXPORT int nrrdStringWrite(char **stringP, const Nrrd *nrrd, NrrdIoState *n
 /******** getting value into and out of an array of general type, and
    all other simplistic functionality pseudo-parameterized by type */
 /* accessors.c */
-NRRD_EXPORT double (*nrrdDLoad[NRRD_TYPE_MAX + 1])(const void *v);
-NRRD_EXPORT float (*nrrdFLoad[NRRD_TYPE_MAX + 1])(const void *v);
-NRRD_EXPORT int (*nrrdILoad[NRRD_TYPE_MAX + 1])(const void *v);
-NRRD_EXPORT unsigned int (*nrrdUILoad[NRRD_TYPE_MAX + 1])(const void *v);
-NRRD_EXPORT double (*nrrdDStore[NRRD_TYPE_MAX + 1])(void *v, double d);
-NRRD_EXPORT float (*nrrdFStore[NRRD_TYPE_MAX + 1])(void *v, float f);
-NRRD_EXPORT int (*nrrdIStore[NRRD_TYPE_MAX + 1])(void *v, int j);
-NRRD_EXPORT unsigned int (*nrrdUIStore[NRRD_TYPE_MAX + 1])(void *v, unsigned int j);
-NRRD_EXPORT double (*nrrdDLookup[NRRD_TYPE_MAX + 1])(const void *v, size_t I);
-NRRD_EXPORT float (*nrrdFLookup[NRRD_TYPE_MAX + 1])(const void *v, size_t I);
-NRRD_EXPORT int (*nrrdILookup[NRRD_TYPE_MAX + 1])(const void *v, size_t I);
-NRRD_EXPORT unsigned int (*nrrdUILookup[NRRD_TYPE_MAX + 1])(const void *v, size_t I);
-NRRD_EXPORT double (*nrrdDInsert[NRRD_TYPE_MAX + 1])(void *v, size_t I, double d);
-NRRD_EXPORT float (*nrrdFInsert[NRRD_TYPE_MAX + 1])(void *v, size_t I, float f);
-NRRD_EXPORT int (*nrrdIInsert[NRRD_TYPE_MAX + 1])(void *v, size_t I, int j);
-NRRD_EXPORT unsigned int (*nrrdUIInsert[NRRD_TYPE_MAX + 1])(void *v, size_t I,
-                                                            unsigned int j);
-NRRD_EXPORT int (*nrrdSprint[NRRD_TYPE_MAX + 1])(char *, const void *);
+NRRD_EXPORT double (*const nrrdDLoad[NRRD_TYPE_MAX + 1])(const void *v);
+NRRD_EXPORT float (*const nrrdFLoad[NRRD_TYPE_MAX + 1])(const void *v);
+NRRD_EXPORT int (*const nrrdILoad[NRRD_TYPE_MAX + 1])(const void *v);
+NRRD_EXPORT unsigned int (*const nrrdUILoad[NRRD_TYPE_MAX + 1])(const void *v);
+NRRD_EXPORT double (*const nrrdDStore[NRRD_TYPE_MAX + 1])(void *v, double d);
+NRRD_EXPORT float (*const nrrdFStore[NRRD_TYPE_MAX + 1])(void *v, float f);
+NRRD_EXPORT int (*const nrrdIStore[NRRD_TYPE_MAX + 1])(void *v, int j);
+NRRD_EXPORT unsigned int (*const nrrdUIStore[NRRD_TYPE_MAX + 1])(void *v,
+                                                                 unsigned int j);
+NRRD_EXPORT double (*const nrrdDLookup[NRRD_TYPE_MAX + 1])(const void *v, size_t I);
+NRRD_EXPORT float (*const nrrdFLookup[NRRD_TYPE_MAX + 1])(const void *v, size_t I);
+NRRD_EXPORT int (*const nrrdILookup[NRRD_TYPE_MAX + 1])(const void *v, size_t I);
+NRRD_EXPORT unsigned int (*const nrrdUILookup[NRRD_TYPE_MAX + 1])(const void *v,
+                                                                  size_t I);
+NRRD_EXPORT double (*const nrrdDInsert[NRRD_TYPE_MAX + 1])(void *v, size_t I, double d);
+NRRD_EXPORT float (*const nrrdFInsert[NRRD_TYPE_MAX + 1])(void *v, size_t I, float f);
+NRRD_EXPORT int (*const nrrdIInsert[NRRD_TYPE_MAX + 1])(void *v, size_t I, int j);
+NRRD_EXPORT unsigned int (*const nrrdUIInsert[NRRD_TYPE_MAX + 1])(void *v, size_t I,
+                                                                  unsigned int j);
+NRRD_EXPORT int (*const nrrdSprint[NRRD_TYPE_MAX + 1])(char *, const void *);
 /* ---- BEGIN non-NrrdIO */
-NRRD_EXPORT int (*nrrdFprint[NRRD_TYPE_MAX + 1])(FILE *, const void *);
-NRRD_EXPORT void (*nrrdMinMaxExactFind[NRRD_TYPE_MAX + 1])(void *minP,
-                                                           void *maxP,
-                                                           int *hasNonExistP,
-                                                           const Nrrd *nrrd);
-NRRD_EXPORT int (*nrrdValCompare[NRRD_TYPE_MAX + 1])(const void *, const void *);
-NRRD_EXPORT int (*nrrdValCompareInv[NRRD_TYPE_MAX + 1])(const void *, const void *);
+NRRD_EXPORT int (*const nrrdFprint[NRRD_TYPE_MAX + 1])(FILE *, const void *);
+NRRD_EXPORT void (*const nrrdMinMaxExactFind[NRRD_TYPE_MAX + 1])(void *minP,
+                                                                 void *maxP,
+                                                                 int *hasNonExistP,
+                                                                 const Nrrd *nrrd);
+NRRD_EXPORT int (*const nrrdValCompare[NRRD_TYPE_MAX + 1])(const void *, const void *);
+NRRD_EXPORT int (*const nrrdValCompareInv[NRRD_TYPE_MAX + 1])(const void *,
+                                                              const void *);
 NRRD_EXPORT int nrrdArrayCompare(int type, const void *valA, const void *valB,
                                  size_t valNum, double epsilon, int *differ,
                                  char explain[AIR_STRLEN_LARGE]);
@@ -1132,9 +1136,11 @@ NRRD_EXPORT NrrdRange *nrrdRangeNewSet(const Nrrd *nrrd, int blind8BitRange);
 NRRD_EXPORT int nrrdHasNonExist(const Nrrd *nrrd);
 
 /******** some of the point-wise value remapping, conversion, and such */
+/* convertNrrd.c */
+NRRD_EXPORT float (*const nrrdFClamp[NRRD_TYPE_MAX + 1])(float);
+NRRD_EXPORT double (*const nrrdDClamp[NRRD_TYPE_MAX + 1])(double);
+
 /* map.c */
-NRRD_EXPORT float (*nrrdFClamp[NRRD_TYPE_MAX + 1])(float);
-NRRD_EXPORT double (*nrrdDClamp[NRRD_TYPE_MAX + 1])(double);
 NRRD_EXPORT int nrrdConvert(Nrrd *nout, const Nrrd *nin, int type);
 NRRD_EXPORT int nrrdClampConvert(Nrrd *nout, const Nrrd *nin, int type);
 NRRD_EXPORT int nrrdCastClampRound(Nrrd *nout, const Nrrd *nin, int type, int doClamp,
@@ -1206,10 +1212,12 @@ NRRD_EXPORT int nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub,
 
 /******** measuring and projecting */
 /* measure.c */
-NRRD_EXPORT void (*nrrdMeasureLine[NRRD_MEASURE_MAX + 1])(void *ans, int ansType,
-                                                          const void *line, int lineType,
-                                                          size_t lineLen, double axMin,
-                                                          double axMax);
+NRRD_EXPORT void (*const nrrdMeasureLine[NRRD_MEASURE_MAX + 1])(void *ans, int ansType,
+                                                                const void *line,
+                                                                int lineType,
+                                                                size_t lineLen,
+                                                                double axMin,
+                                                                double axMax);
 NRRD_EXPORT int nrrdProject(Nrrd *nout, const Nrrd *nin, unsigned int axis, int measr,
                             int type);
 

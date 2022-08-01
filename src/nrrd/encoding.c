@@ -82,13 +82,13 @@ _nrrdEncodingUnknown_write(FILE *file, const void *data, size_t elementNum,
   return 1;
 }
 
-const NrrdEncoding _nrrdEncodingUnknown = {"unknown", /* name */
-                                           "unknown", /* suffix */
-                                           AIR_FALSE, /* endianMatters */
-                                           AIR_FALSE, /* isCompression */
-                                           _nrrdEncodingUnknown_available,
-                                           _nrrdEncodingUnknown_read,
-                                           _nrrdEncodingUnknown_write};
+static const NrrdEncoding _nrrdEncodingUnknown = {"unknown", /* name */
+                                                  "unknown", /* suffix */
+                                                  AIR_FALSE, /* endianMatters */
+                                                  AIR_FALSE, /* isCompression */
+                                                  _nrrdEncodingUnknown_available,
+                                                  _nrrdEncodingUnknown_read,
+                                                  _nrrdEncodingUnknown_write};
 
 const NrrdEncoding *const nrrdEncodingUnknown = &_nrrdEncodingUnknown;
 
