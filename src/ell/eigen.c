@@ -212,7 +212,7 @@ ell_2m_eigensolve_d(double eval[2], double evec[4], const double m[4]) {
   return ret;
 }
 
-void
+static void
 _ell_align3_d(double v[9]) {
   double d0, d1, d2;
   int Mi, ai, bi;
@@ -239,7 +239,7 @@ _ell_align3_d(double v[9]) {
 ** are mutually orthogonal.  Also leaves the magnitudes of all
 ** vectors unchanged.
 */
-void
+static void
 _ell_3m_enforce_orthogonality(double v[9]) {
   double d00, d10, d11, d20, d21, d22, scl, tv[3];
 
@@ -262,7 +262,7 @@ _ell_3m_enforce_orthogonality(double v[9]) {
 ** makes sure that v+3*2 has a positive dot product with
 ** cross product of v+3*0 and v+3*1
 */
-void
+static void
 _ell_3m_make_right_handed_d(double v[9]) {
   double x[3];
 
@@ -406,10 +406,9 @@ ell_3m_eigenvalues_d(double _eval[3], const double _m[9], const int newton) {
 }
 
 /*
-** not static because it might be useful, but it's a weird function
-** because eval is modified!
+** it's a weird function because eval is modified!
 */
-void
+static void
 _ell_3m_evecs_d(double evec[9], double eval[3], int roots, const double m[9]) {
   double n[9], e0 = 0, e1 = 0.0, e2 = 0.0, t /* , tmpv[3] */;
 
@@ -583,7 +582,7 @@ ell_3m2sub_eigenvalues_d(double eval[3], const double _m[9]) {
   return roots;
 }
 
-void
+static void
 _ell_22v_enforce_orthogonality(double uu[2], double _vv[2]) {
   double dot, vv[2], len;
 
@@ -597,7 +596,7 @@ _ell_22v_enforce_orthogonality(double uu[2], double _vv[2]) {
 ** NOTE: assumes that eval and roots have come from
 ** ell_3m2sub_eigenvalues_d(m)
 */
-void
+static void
 _ell_3m2sub_evecs_d(double evec[9], double eval[3], int roots, const double m[9]) {
   double n[4];
   static const char me[] = "_ell_3m2sub_evecs_d";

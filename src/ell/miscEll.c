@@ -41,7 +41,7 @@ const char *const ell_biff_key = "ell";
 int ell_debug = 0;
 
 /* clang-format off */
-const char *
+static const char *
 _ell_quadratic_root_str[] = {
   "(unknown ell_quadratic_root)",
   "two",
@@ -49,7 +49,7 @@ _ell_quadratic_root_str[] = {
   "complex"
 };
 
-const char *
+static const char *
 _ell_quadratic_root_desc[] = {
   "(unknown ell_quadratic_root)",
   "two distinct roots",
@@ -57,7 +57,7 @@ _ell_quadratic_root_desc[] = {
   "complex conjugate roots",
 };
 
-airEnum
+static const airEnum
 _ell_quadratic_root = {
   "quadratic root solutions",
   ELL_QUADRATIC_ROOT_MAX,
@@ -70,7 +70,7 @@ const airEnum *const
 ell_quadratic_root = &_ell_quadratic_root;
 
 
-const char *
+static const char *
 _ell_cubic_root_str[] = {
   "(unknown ell_cubic_root)",
   "single",
@@ -79,7 +79,7 @@ _ell_cubic_root_str[] = {
   "three distinct"
 };
 
-const char *
+static const char *
 _ell_cubic_root_desc[] = {
   "(unknown ell_cubic_root)",
   "one single root",
@@ -88,7 +88,7 @@ _ell_cubic_root_desc[] = {
   "three distinct roots"
 };
 
-airEnum
+static const airEnum
 _ell_cubic_root = {
   "cubic root solutions",
   ELL_CUBIC_ROOT_MAX,

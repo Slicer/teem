@@ -151,7 +151,7 @@ ell_Nm_mul(Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
 **
 ** in-place LU decomposition
 */
-int
+static int
 _ell_LU_decomp(double *aa, size_t *indx, size_t NN) {
   static const char me[] = "_ell_LU_decomp";
   int ret = 0;
@@ -252,7 +252,7 @@ seeya:
 ** some matrix M, solves for x in the linear equation Mx = b, and
 ** puts the result back into b
 */
-void
+static void
 _ell_LU_back_sub(double *aa, size_t *indx, double *bb, size_t NN) {
   size_t ii, jj;
   double sum;
@@ -287,7 +287,7 @@ _ell_LU_back_sub(double *aa, size_t *indx, double *bb, size_t NN) {
 ** then repeated backsubstitution is used to get successive columns of
 ** the inverse.
 */
-int
+static int
 _ell_inv(double *inv, double *_mat, size_t NN) {
   static const char me[] = "_ell_inv";
   size_t ii, jj, *indx = NULL;
