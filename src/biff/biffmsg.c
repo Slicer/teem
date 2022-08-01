@@ -322,7 +322,7 @@ biffMsgStrGet(const biffMsg *msg) {
   return ret;
 }
 
-biffMsg _biffMsgNoop = {NULL, NULL, 0, NULL};
+static biffMsg _biffMsgNoop = {NULL, NULL, 0, NULL};
 
 /*
 ******** biffMsgNoop
@@ -332,4 +332,4 @@ biffMsg _biffMsgNoop = {NULL, NULL, 0, NULL};
 ** functions into no-ops (except that var-args are still consumed
 ** where they are used)
 */
-biffMsg *biffMsgNoop = &_biffMsgNoop;
+biffMsg *const biffMsgNoop = &_biffMsgNoop;

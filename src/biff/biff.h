@@ -91,7 +91,7 @@ BIFF_EXPORT void biffMsgStrSet(char *ret, const biffMsg *msg);
 BIFF_EXPORT char *biffMsgStrAlloc(const biffMsg *msg);
 BIFF_EXPORT char *biffMsgStrGet(const biffMsg *msg);
 /* ---- END non-NrrdIO */
-BIFF_EXPORT biffMsg *biffMsgNoop;
+BIFF_EXPORT biffMsg *const biffMsgNoop;
 
 /* biffbiff.c */
 BIFF_EXPORT void biffAdd(const char *key, const char *err);
