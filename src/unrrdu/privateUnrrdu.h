@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2009--2019  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -29,6 +29,143 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/*
+**
+** Twisted C-preprocessor tricks.  The idea is to make it as simple
+** as possible to add new commands to unu, so that the new commands
+** have to be added to only one thing in this source file, and
+** the Makefile.
+**
+** Associated with each unu command are some pieces of information:
+** the single word command (e.g. "slice") that is used by invoke it,
+** the short (approx. one-line) description of its function, and the
+** "main" function to call with the appropriate argc, argv.  It would
+** be nice to use a struct to hold this information, and we can: the
+** unrrduCmd struct is defined above.  It would also be nice to have
+** all the command's information be held in one array of unrrduCmds.
+** Unfortunately, declaring this is not possible unless all the
+** unrrduCmds and their fields are IN THIS FILE, because otherwise
+** they're not constant expressions, so they can't initialize an
+** aggregate data type.  So, we instead make an array of unrrduCmd
+** POINTERS, which can be initialized with the addresses of individual
+** unrrduCmd structs, declared and defined in the global scope. is
+** done in flotsam.c.  Each of the source files for the various unu
+** commands are responsible for setting the fields (at compile-time)
+** of their associated unrrduCmd.
+**
+** We use three macros to automate this somewhat:
+** UNRRDU_DECLARE: declares unrrdu_xxxCmd as an extern unrrduCmd
+**                 (defined in xxx.c), used later in this header file.
+** UNRRDU_LIST:    the address of unrrdu_xxxCmd, for listing in the array of
+**                 unrrduCmd structs in the (compile-time) definition of
+**                 unrrduCmdList[].  This is used in flotsam.c.
+****
+** Then, to facilitate running these macros on each of the different
+** commands, there is a UNRRDU_MAP macro which is used to essentially map
+** the two macros above over the list of unu commands.  Functional
+** programming meets the C pre-processor.  Therefore:
+***********************************************************
+    You add command foo to unu by:
+    1) adding F(foo) to definition of UNRRDU_MAP()
+    2) implement foo.c, and list foo.o in GNUmakefile and CmakeLists.txt
+    That's it.
+********************************************************** */
+#define UNRRDU_DECLARE(C) UNRRDU_EXPORT const unrrduCmd unrrdu_##C##Cmd;
+#define UNRRDU_LIST(C)    &unrrdu_##C##Cmd,
+#define UNRRDU_MAP(F)                                                                   \
+  F(about)                                                                              \
+  F(env)                                                                                \
+  F(i2w)                                                                                \
+  F(w2i)                                                                                \
+  F(make)                                                                               \
+  F(head)                                                                               \
+  F(data)                                                                               \
+  F(convert)                                                                            \
+  F(resample)                                                                           \
+  F(fft)                                                                                \
+  F(cmedian)                                                                            \
+  F(dering)                                                                             \
+  F(dist)                                                                               \
+  F(minmax)                                                                             \
+  F(cksum)                                                                              \
+  F(diff)                                                                               \
+  F(quantize)                                                                           \
+  F(unquantize)                                                                         \
+  F(project)                                                                            \
+  F(slice)                                                                              \
+  F(sselect)                                                                            \
+  F(dice)                                                                               \
+  F(splice)                                                                             \
+  F(join)                                                                               \
+  F(crop)                                                                               \
+  F(acrop)                                                                              \
+  F(inset)                                                                              \
+  F(pad)                                                                                \
+  F(reshape)                                                                            \
+  F(permute)                                                                            \
+  F(swap)                                                                               \
+  F(shuffle)                                                                            \
+  F(flip)                                                                               \
+  F(unorient)                                                                           \
+  F(basinfo)                                                                            \
+  F(axinfo)                                                                             \
+  F(axinsert)                                                                           \
+  F(axsplit)                                                                            \
+  F(axdelete)                                                                           \
+  F(axmerge)                                                                            \
+  F(tile)                                                                               \
+  F(untile)                                                                             \
+  F(histo)                                                                              \
+  F(dhisto)                                                                             \
+  F(jhisto)                                                                             \
+  F(histax)                                                                             \
+  F(heq)                                                                                \
+  F(gamma)                                                                              \
+  F(1op)                                                                                \
+  F(2op)                                                                                \
+  F(3op)                                                                                \
+  F(affine)                                                                             \
+  F(lut)                                                                                \
+  F(mlut)                                                                               \
+  F(subst)                                                                              \
+  F(rmap)                                                                               \
+  F(mrmap)                                                                              \
+  F(imap)                                                                               \
+  F(lut2)                                                                               \
+  F(ccfind)                                                                             \
+  F(ccadj)                                                                              \
+  F(ccmerge)                                                                            \
+  F(ccsettle)                                                                           \
+  F(dnorm)                                                                              \
+  F(vidicon)                                                                            \
+  F(grid)                                                                               \
+  F(ilk)                                                                                \
+  F(hack)                                                                               \
+  F(aabplot)                                                                            \
+  F(undos)                                                                              \
+  F(save)
+/* these two have been removed since no one uses them
+F(block) \
+F(unblock) \
+*/
+
+/* xxx.c */
+/* Declare the extern unrrduCmds unrrdu_xxxCmd, for all xxx.  These are
+   defined in as many different source files as there are commands. */
+UNRRDU_MAP(UNRRDU_DECLARE)
+
+/*
+******** UNRRDU_CMD
+**
+** This is used at the very end of the various command sources
+** ("xxx.c") to simplify defining a unrrduCmd.  "name" should just be
+** the command, UNQUOTED, such as flip or slice.
+*/
+#define UNRRDU_CMD(name, info)                                                          \
+  const unrrduCmd unrrdu_##name##Cmd = {#name, info, unrrdu_##name##Main, AIR_FALSE}
+#define UNRRDU_CMD_HIDE(name, info)                                                     \
+  const unrrduCmd unrrdu_##name##Cmd = {#name, info, unrrdu_##name##Main, AIR_TRUE}
 
 /* handling of "quiet quit", to avoid having a string of piped unu
    commands generate multiple pages of unwelcome usage info */
