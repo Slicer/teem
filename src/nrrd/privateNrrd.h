@@ -110,12 +110,6 @@ extern const NrrdEncoding _nrrdEncodingGzip;
 extern const NrrdEncoding _nrrdEncodingBzip2;
 extern const NrrdEncoding _nrrdEncodingZRL;
 
-/* read.c */
-extern int _nrrdByteSkipSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio,
-                             long int byteSkip);
-extern int _nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio, FILE *file);
-extern char _nrrdFieldSep[];
-
 /* arrays.c */
 extern const int _nrrdFieldValidInImage[NRRD_FIELD_MAX + 1];
 extern const int _nrrdFieldValidInText[NRRD_FIELD_MAX + 1];
@@ -152,13 +146,15 @@ extern void (*_nrrdCastClampRound[][NRRD_TYPE_MAX + 1])(void *, const void *, si
 
 /* read.c */
 extern char _nrrdFieldStr[NRRD_FIELD_MAX + 1][AIR_STRLEN_SMALL];
-extern char _nrrdRelativePathFlag[];
-extern char _nrrdFieldSep[];
-extern char _nrrdNoSpaceVector[];
-extern char _nrrdTextSep[];
+extern const char *const _nrrdFieldSep;
+extern const char *const _nrrdTextSep;
+extern const char *const _nrrdNoSpaceVector;
 /* ---- BEGIN non-NrrdIO */
 extern int _nrrdReshapeUpGrayscale(Nrrd *nimg);
 /* ---- END non-NrrdIO */
+extern int _nrrdByteSkipSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio,
+                             long int byteSkip);
+extern int _nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio, FILE *file);
 extern void _nrrdSplitName(char **dirP, char **baseP, const char *name);
 
 /* write.c */

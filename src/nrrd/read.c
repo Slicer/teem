@@ -28,13 +28,11 @@
 #  include <bzlib.h>
 #endif
 
-/* The "/ *Teem:" (without space) comments in here are an experiment */
-
-char _nrrdRelativePathFlag[] = "./";
-char _nrrdFieldSep[] = " \t";
-char _nrrdLineSep[] = "\r\n";
-char _nrrdNoSpaceVector[] = "none";
-char _nrrdTextSep[] = " ,\t";
+/* (not apparently used) const char *const _nrrdRelativePathFlag = "./"; */
+const char *const _nrrdFieldSep = " \t";
+const char *const _nrrdLineSep = "\r\n";
+const char *const _nrrdTextSep = " ,\t";
+const char *const _nrrdNoSpaceVector = "none";
 
 /*
 ** return length of next "line" in nio->headerStringRead
