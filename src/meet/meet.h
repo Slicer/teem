@@ -92,8 +92,8 @@ MEET_EXPORT int meetNrrdKernelAllCheck(void);
 /* meetGage.c */
 MEET_EXPORT gageKind *meetGageKindParse(const char *str);
 MEET_EXPORT const gageKind *meetConstGageKindParse(const char *str);
-MEET_EXPORT hestCB *meetHestGageKind;
-MEET_EXPORT hestCB *meetHestConstGageKind;
+MEET_EXPORT const hestCB *const meetHestGageKind;
+MEET_EXPORT const hestCB *const meetHestConstGageKind;
 
 /*
 ******** meetPullVol
@@ -167,7 +167,7 @@ MEET_EXPORT int meetPullVolLeechable(const meetPullVol *lchr,
                                      int *can,
                                      char explain[AIR_STRLEN_LARGE]);
 MEET_EXPORT meetPullVol *meetPullVolNix(meetPullVol *pvol);
-MEET_EXPORT hestCB *meetHestPullVol;
+MEET_EXPORT const hestCB *const meetHestPullVol;
 MEET_EXPORT int meetPullVolStackBlurParmFinishMulti(meetPullVol **mpv,
                                                     unsigned int mpvNum,
                                                     unsigned int *kssSetP,
@@ -183,7 +183,7 @@ MEET_EXPORT int meetPullVolAddMulti(pullContext *pctx, meetPullVol **mpv,
 MEET_EXPORT meetPullInfo *meetPullInfoNew(void);
 MEET_EXPORT meetPullInfo *meetPullInfoNix(meetPullInfo *minf);
 MEET_EXPORT int meetPullInfoParse(meetPullInfo *minf, const char *str);
-MEET_EXPORT hestCB *meetHestPullInfo;
+MEET_EXPORT const hestCB *const meetHestPullInfo;
 MEET_EXPORT int meetPullInfoAddMulti(pullContext *pctx,
                                      meetPullInfo **minf,
                                      unsigned int minfNum);
