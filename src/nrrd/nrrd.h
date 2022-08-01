@@ -230,7 +230,7 @@ struct NrrdEncoding_t;
 typedef struct {
   char name[AIR_STRLEN_SMALL]; /* short identifying string */
   int isImage,                 /* this format is intended solely for "2D" images, which
-                                  controls the invocation of _nrrdReshapeUpGrayscale()
+                                  controls the invocation of nrrdAxesInsert()
                                   if nrrdStateGrayscaleImage3D */
     readable,                  /* we can read as well as write this format */
     usesDIO;                   /* this format can use Direct IO */
@@ -1094,10 +1094,10 @@ NRRD_EXPORT int nrrdUntile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0,
 
 /******** things useful with hest */
 /* hestNrrd.c */
-NRRD_EXPORT hestCB *nrrdHestNrrd;
-NRRD_EXPORT hestCB *nrrdHestKernelSpec;
-NRRD_EXPORT hestCB *nrrdHestBoundarySpec;
-NRRD_EXPORT hestCB *nrrdHestIter;
+NRRD_EXPORT const hestCB *const nrrdHestNrrd;
+NRRD_EXPORT const hestCB *const nrrdHestKernelSpec;
+NRRD_EXPORT const hestCB *const nrrdHestBoundarySpec;
+NRRD_EXPORT const hestCB *const nrrdHestIter;
 
 /******** nrrd value iterator gadget */
 /* iter.c */

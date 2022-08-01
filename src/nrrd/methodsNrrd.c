@@ -26,8 +26,7 @@
 
 /*
 Wed Sep 14 05:55:40 EDT 2005: these are no longer used
-void
-nrrdPeripheralInit(Nrrd *nrrd) {
+void nrrdPeripheralInit(Nrrd *nrrd) {
 
   nrrdBasicInfoInit(nrrd,
                     NRRD_BASIC_INFO_DATA_BIT
@@ -40,8 +39,7 @@ nrrdPeripheralInit(Nrrd *nrrd) {
   return;
 }
 
-int
-nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin) {
+int nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin) {
 
   nrrdBasicInfoCopy(nout, nin,
                     NRRD_BASIC_INFO_DATA_BIT

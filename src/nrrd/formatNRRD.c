@@ -144,8 +144,8 @@ On output:
 #define MAGIC5 "NRRD0005"
 #define MAGIC6 "NRRD0006"
 
-const char *_nrrdFormatURLLine0 = "Complete NRRD file format specification at:";
-const char *_nrrdFormatURLLine1 = "http://teem.sourceforge.net/nrrd/format.html";
+const char *const _nrrdFormatURLLine0 = "Complete NRRD file format specification at:";
+const char *const _nrrdFormatURLLine1 = "http://teem.sourceforge.net/nrrd/format.html";
 
 void
 nrrdIoStateDataFileIterBegin(NrrdIoState *nio) {

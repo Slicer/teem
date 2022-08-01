@@ -34,7 +34,7 @@
 ** when we get an empty string, we give back a NULL pointer, and
 ** that is just fine
 */
-int
+static int
 _nrrdHestNrrdParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "_nrrdHestNrrdParse", *nerr;
   Nrrd **nrrdP;
@@ -64,13 +64,14 @@ _nrrdHestNrrdParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB _nrrdHestNrrd = {sizeof(Nrrd *), "nrrd", _nrrdHestNrrdParse, (airMopper)nrrdNuke};
+static const hestCB _nrrdHestNrrd = {sizeof(Nrrd *), "nrrd", _nrrdHestNrrdParse,
+                                     (airMopper)nrrdNuke};
 
-hestCB *nrrdHestNrrd = &_nrrdHestNrrd;
+const hestCB *const nrrdHestNrrd = &_nrrdHestNrrd;
 
 /* ------------------------ NrrdKernelSpec -------------------------- */
 
-int
+static int
 _nrrdHestKernelSpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   NrrdKernelSpec **ksP;
   char me[] = "_nrrdHestKernelSpecParse", *nerr;
@@ -90,14 +91,16 @@ _nrrdHestKernelSpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) 
   return 0;
 }
 
-hestCB _nrrdHestKernelSpec = {sizeof(NrrdKernelSpec *), "kernel specification",
-                              _nrrdHestKernelSpecParse, (airMopper)nrrdKernelSpecNix};
+static const hestCB _nrrdHestKernelSpec = {sizeof(NrrdKernelSpec *),
+                                           "kernel specification",
+                                           _nrrdHestKernelSpecParse,
+                                           (airMopper)nrrdKernelSpecNix};
 
-hestCB *nrrdHestKernelSpec = &_nrrdHestKernelSpec;
+const hestCB *const nrrdHestKernelSpec = &_nrrdHestKernelSpec;
 
 /* ------------------------ NrrdBoundarySpec -------------------------- */
 
-int
+static int
 _nrrdHestBoundarySpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   NrrdBoundarySpec **bsp;
   char me[] = "_nrrdHestBoundarySpecParse", *nerr;
@@ -118,11 +121,12 @@ _nrrdHestBoundarySpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]
   return 0;
 }
 
-hestCB _nrrdHestBoundarySpec = {sizeof(NrrdBoundarySpec *), "boundary specification",
-                                _nrrdHestBoundarySpecParse,
-                                (airMopper)nrrdBoundarySpecNix};
+static const hestCB _nrrdHestBoundarySpec = {sizeof(NrrdBoundarySpec *),
+                                             "boundary specification",
+                                             _nrrdHestBoundarySpecParse,
+                                             (airMopper)nrrdBoundarySpecNix};
 
-hestCB *nrrdHestBoundarySpec = &_nrrdHestBoundarySpec;
+const hestCB *const nrrdHestBoundarySpec = &_nrrdHestBoundarySpec;
 
 /* --------------------------- NrrdIter ----------------------------- */
 
@@ -177,7 +181,7 @@ _nrrdLooksLikeANumber(const char *str) {
   }
 }
 
-int
+static int
 _nrrdHestIterParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   char me[] = "_nrrdHestIterParse", *nerr;
   Nrrd *nrrd;
@@ -263,7 +267,7 @@ _nrrdHestIterParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB _nrrdHestIter = {sizeof(NrrdIter *), "nrrd/value", _nrrdHestIterParse,
-                        (airMopper)nrrdIterNix};
+static const hestCB _nrrdHestIter = {sizeof(NrrdIter *), "nrrd/value",
+                                     _nrrdHestIterParse, (airMopper)nrrdIterNix};
 
-hestCB *nrrdHestIter = &_nrrdHestIter;
+const hestCB *const nrrdHestIter = &_nrrdHestIter;
