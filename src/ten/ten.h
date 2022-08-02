@@ -1276,7 +1276,6 @@ TEN_EXPORT int tenGradientGenerate(Nrrd *nout, unsigned int num,
 /* enumsTen.c */
 TEN_EXPORT const airEnum *const tenAniso;
 TEN_EXPORT const airEnum *const tenInterpType;
-TEN_EXPORT const airEnum _tenGage;
 TEN_EXPORT const airEnum *const tenGage;
 TEN_EXPORT const airEnum *const tenFiberType;
 TEN_EXPORT const airEnum *const tenDwiFiberType;
@@ -1368,14 +1367,14 @@ TEN_EXPORT double tenDoubleContract_d(double a[7], double T[21], double b[7]);
 
 /* chan.c */
 /* old tenCalc* functions superceded/deprecated by new tenEstimate* code */
-TEN_EXPORT const char *tenDWMRIModalityKey;
-TEN_EXPORT const char *tenDWMRIModalityVal;
-TEN_EXPORT const char *tenDWMRINAVal;
-TEN_EXPORT const char *tenDWMRIBValueKey;
-TEN_EXPORT const char *tenDWMRIGradKeyFmt;
-TEN_EXPORT const char *tenDWMRIBmatKeyFmt;
-TEN_EXPORT const char *tenDWMRINexKeyFmt;
-TEN_EXPORT const char *tenDWMRISkipKeyFmt;
+TEN_EXPORT const char *const tenDWMRIModalityKey;
+TEN_EXPORT const char *const tenDWMRIModalityVal;
+TEN_EXPORT const char *const tenDWMRINAVal;
+TEN_EXPORT const char *const tenDWMRIBValueKey;
+TEN_EXPORT const char *const tenDWMRIGradKeyFmt;
+TEN_EXPORT const char *const tenDWMRIBmatKeyFmt;
+TEN_EXPORT const char *const tenDWMRINexKeyFmt;
+TEN_EXPORT const char *const tenDWMRISkipKeyFmt;
 TEN_EXPORT int tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP, double *bP,
                                      unsigned int **skip, unsigned int *skipNum,
                                      const Nrrd *ndwi);
@@ -1526,8 +1525,6 @@ TEN_EXPORT int tenFiberMultiProbeVals(tenFiberContext *tfx, Nrrd *nval,
                                       tenFiberMulti *tfml);
 
 /* epireg.c */
-TEN_EXPORT int _tenEpiRegThresholdFind(double *DWthrP, Nrrd **nin, int ninLen, int save,
-                                       double expo);
 TEN_EXPORT int tenEpiRegister3D(Nrrd **nout, Nrrd **ndwi, unsigned int dwiLen,
                                 Nrrd *ngrad, int reference, double bwX, double bwY,
                                 double fitFrac, double DWthr, int doCC,
@@ -1550,14 +1547,13 @@ TEN_EXPORT int tenExperSpecGradBValSet(tenExperSpec *espec,
                                        const double *bval,
                                        const double *grad,
                                        unsigned int bgNum);
-/*
-TEN_EXPORT int tenExperSpecGradBValWghtSet(tenExperSpec *espec,
+/* TEN_EXPORT int tenExperSpecGradBValWghtSet(tenExperSpec *espec,
                                            int insertB0,
                                            const double *bval,
                                            const double *grad,
                                            const double *wght,
-                                           unsigned int bgwNum);
-*/
+                                           unsigned int bgwNum); */
+
 TEN_EXPORT int tenExperSpecFromKeyValueSet(tenExperSpec *espec, const Nrrd *ndwi);
 TEN_EXPORT tenExperSpec *tenExperSpecNix(tenExperSpec *espec);
 TEN_EXPORT double tenExperSpecKnownB0Get(const tenExperSpec *espec, const double *dwi);
@@ -1651,7 +1647,7 @@ TEN_EXPORT int tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin, double *bb, doub
                                    int iterMax, double eps);
 
 /* tenGage.c */
-TEN_EXPORT gageKind *tenGageKind;
+TEN_EXPORT gageKind *const tenGageKind;
 
 /* tenDwiGage.c */
 /* we can't declare or define a tenDwiGageKind->name (analogous to
@@ -1659,7 +1655,6 @@ TEN_EXPORT gageKind *tenGageKind;
    dynamically allocated, but at least we can declare a cannonical
    name (HEY: ugly) */
 #define TEN_DWI_GAGE_KIND_NAME "dwi"
-TEN_EXPORT const airEnum _tenDwiGage;
 TEN_EXPORT const airEnum *const tenDwiGage;
 TEN_EXPORT gageKind *tenDwiGageKindNew(void);
 TEN_EXPORT gageKind *tenDwiGageKindNix(gageKind *dwiKind);

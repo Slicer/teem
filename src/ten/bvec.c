@@ -24,7 +24,7 @@
 #include "ten.h"
 #include "privateTen.h"
 
-double
+static double
 tenBVecNonLinearFit_error(double *bb, double *ss, double *ww, unsigned int len,
                           double amp, double dec) {
   unsigned int ii;
@@ -38,7 +38,7 @@ tenBVecNonLinearFit_error(double *bb, double *ss, double *ww, unsigned int len,
   return err;
 }
 
-void
+static void
 tenBVecNonLinearFit_linear(double *amp, double *dec, double *bb, double *ss, double *ww,
                            unsigned int len) {
   double x, y, wi = 0, xi = 0, yi = 0, xiyi = 0, xisq = 0, det;
@@ -59,7 +59,7 @@ tenBVecNonLinearFit_linear(double *amp, double *dec, double *bb, double *ss, dou
   return;
 }
 
-void
+static void
 tenBVecNonLinearFit_GNstep(double *d_amp, double *d_dec, double *bb, double *ss,
                            double *ww, unsigned int len, double amp, double dec) {
   double tmp, ff, dfdx1, dfdx2, AA = 0, BB = 0, CC = 0, JTf[2], det;

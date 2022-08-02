@@ -69,7 +69,7 @@ _TEN_NLL
 _TEN_NLL_GRAD_STUB
 _TEN_NLL_FIT_STUB
 
-tenModel
+static const tenModel
 _tenModel1Vector2D = {
   TEN_MODEL_STR_1VECTOR2D,
   _TEN_MODEL_FIELDS

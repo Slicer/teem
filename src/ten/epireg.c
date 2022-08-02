@@ -24,7 +24,7 @@
 #include "ten.h"
 #include "privateTen.h"
 
-int
+static int
 _tenEpiRegSave(const char *fname, Nrrd *nsingle, Nrrd **nmulti, int len,
                const char *desc) {
   static const char me[] = "_tenEpiRegSave";
@@ -52,7 +52,7 @@ _tenEpiRegSave(const char *fname, Nrrd *nsingle, Nrrd **nmulti, int len,
   return 0;
 }
 
-int
+static int
 _tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, unsigned int dwiLen, Nrrd *ngrad,
                 int reference, double bwX, double bwY, double DWthr,
                 const NrrdKernel *kern, double *kparm) {
@@ -112,7 +112,7 @@ _tenEpiRegCheck(Nrrd **nout, Nrrd **ndwi, unsigned int dwiLen, Nrrd *ngrad,
 ** this assumes that all nblur[i] are valid nrrds, and does nothing
 ** to manage them
 */
-int
+static int
 _tenEpiRegBlur(Nrrd **nblur, Nrrd **ndwi, unsigned int dwiLen, double bwX, double bwY,
                int verb) {
   static const char me[] = "_tenEpiRegBlur";
@@ -267,7 +267,7 @@ _tenEpiRegThresholdFind(double *DWthrP, Nrrd **nin, int ninLen, int save, double
   return 0;
 }
 
-int
+static int
 _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen, double DWthr,
                     int verb, int progress, double expo) {
   static const char me[] = "_tenEpiRegThreshold";
@@ -320,7 +320,7 @@ _tenEpiRegThreshold(Nrrd **nthresh, Nrrd **nblur, unsigned int ninLen, double DW
 /*
 ** _tenEpiRegBB: find the biggest bright CC
 */
-int
+static int
 _tenEpiRegBB(Nrrd *nval, Nrrd *nsize) {
   unsigned char *val;
   int *size, big;
@@ -335,7 +335,7 @@ _tenEpiRegBB(Nrrd *nval, Nrrd *nsize) {
   return big;
 }
 
-int
+static int
 _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
   static const char me[] = "_tenEpiRegCC";
   Nrrd *nslc, *ncc, *nval, *nsize;
@@ -417,7 +417,7 @@ _tenEpiRegCC(Nrrd **nthr, int ninLen, int conny, int verb) {
 **       0       1       2       3       4
 **   mean(x)  mean(y)  M_02    M_11    M_20
 */
-int
+static int
 _tenEpiRegMoments(Nrrd **nmom, Nrrd **nthresh, unsigned int ninLen, int verb) {
   static const char me[] = "_tenEpiRegMoments";
   size_t sx, sy, sz, xi, yi, zi, ni;
@@ -519,7 +519,7 @@ _tenEpiRegMoments(Nrrd **nmom, Nrrd **nthresh, unsigned int ninLen, int verb) {
 ** xfr[2 +              "            ] is translate in the transform
 ** that maps slice zi from volume A to volume B.
 */
-int
+static int
 _tenEpiRegPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
   static const char me[] = "_tenEpiRegPairXforms";
   double *xfr, *A, *B, hh, ss, tt;
@@ -556,7 +556,7 @@ _tenEpiRegPairXforms(Nrrd *npxfr, Nrrd **nmom, int ninLen) {
 #define SCALE 3
 #define TRAN  4
 
-int
+static int
 _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
   static const char me[] = "_tenEpiRegEstimHST";
   double *hst, *grad, *mat, *vec, *ans, *pxfr, *gA, *gB;
@@ -750,7 +750,7 @@ _tenEpiRegEstimHST(Nrrd *nhst, Nrrd *npxfr, int ninLen, Nrrd *ngrad) {
   return 0;
 }
 
-int
+static int
 _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen, double goodFrac, int prog,
                  int verb) {
   static const char me[] = "_tenEpiRegFitHST";
@@ -863,7 +863,7 @@ _tenEpiRegFitHST(Nrrd *nhst, Nrrd **_ncc, int ninLen, double goodFrac, int prog,
   return 0;
 }
 
-int
+static int
 _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP, int reference, int ni, int zi,
                  Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad) {
   double *xfr, *hst, *_g, grad[9]; /* big enough for 2nd order */
@@ -923,7 +923,7 @@ _tenEpiRegGetHST(double *hhP, double *ssP, double *ttP, int reference, int ni, i
 ** - nin is been transposed to have the resampled axis fastest in memory,
 **   but nout output will not be transposed
 */
-int
+static int
 _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
                     const NrrdKernel *kern, double *kparm, double hh, double ss,
                     double tt, double cx, double cy) {
@@ -977,7 +977,7 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
 ** _tenEpiRegWarp()
 **
 */
-int
+static int
 _tenEpiRegWarp(Nrrd **ndone, Nrrd *npxfr, Nrrd *nhst, Nrrd *ngrad, Nrrd **nin,
                unsigned int ninLen, int reference, const NrrdKernel *kern, double *kparm,
                int verb) {

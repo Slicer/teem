@@ -274,7 +274,7 @@ tenGradientMeasure(double *pot, double *minAngle, double *minEdge, const Nrrd *n
 ** this function is not static, though it could be, so that mac's
 ** "Sampler" app can profile this
 */
-int
+static int
 _tenGradientUpdate(double *meanVel, double *edgeMin, Nrrd *npos, double edge,
                    tenGradientParm *tgparm) {
   /* static const char me[] = "_tenGradientUpdate"; */

@@ -27,7 +27,7 @@
 /*
 ** computes (r1 - r0)/(log(r1) - log(r0))
 */
-double
+static double
 _tenQGL_blah(double rr0, double rr1) {
   double bb, ret;
 
@@ -153,7 +153,7 @@ _tenQGL_Kexp(double RThZB[3], const double RThZA[3], const double klog[3]) {
 /*
 ** stable computation of (ph1 - ph0)/(log(tan(ph1/2)) - log(tan(ph0/2)))
 */
-double
+static double
 _tenQGL_fooo(double ph1, double ph0) {
   double ret;
 
@@ -258,7 +258,7 @@ _tenQGL_Rdist(const double RThPhA[3], const double RThPhB[3]) {
 /* returns the index into unitq[] of the quaternion that led to the
    right alignment.  If it was already aligned, this will be 0,
    because unitq[0] is the identity quaternion */
-int
+static int
 _tenQGL_q_align(double qOut[4], const double qRef[4], const double qIn[4]) {
   unsigned int ii, maxDotIdx;
   double unitq[8][4] = {{+1, 0, 0, 0}, {-1, 0, 0, 0}, {0, +1, 0, 0}, {0, -1, 0, 0},
@@ -394,7 +394,7 @@ _tenQGLInterpNEval(double evalOut[3], const double *evalIn, /* size 3 -by- NN */
   return 0;
 }
 
-double
+static double
 _tenQGL_q_interdot(unsigned int *centerIdxP, double *qq, double *inter,
                    unsigned int NN) {
   unsigned int ii, jj;

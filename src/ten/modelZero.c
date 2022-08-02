@@ -130,7 +130,7 @@ nllFit(double *parm, const tenExperSpec *espec,
   return AIR_NAN;
 }
 
-tenModel
+static const tenModel
 _tenModelZero = {
   TEN_MODEL_STR_ZERO,
   _TEN_MODEL_FIELDS

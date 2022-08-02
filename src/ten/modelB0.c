@@ -64,7 +64,7 @@ _TEN_NLL
 _TEN_NLL_GRAD_STUB
 _TEN_NLL_FIT_STUB
 
-tenModel
+static const tenModel
 _tenModelB0 = {
   TEN_MODEL_STR_B0,
   _TEN_MODEL_FIELDS

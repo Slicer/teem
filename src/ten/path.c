@@ -424,7 +424,7 @@ tenInterpN_d(double tenOut[7], const double *tenIn, const double *wght, unsigned
   return 0;
 }
 
-int
+static int
 _tenInterpGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata, unsigned int ii,
                          int rotnoop, double scl, tenInterpParm *tip) {
   static const char me[] = "_tenInterpGeoLoxRelaxOne";
@@ -526,7 +526,7 @@ _tenInterpGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata, unsigned i
   return 0;
 }
 
-void
+static void
 _tenInterpGeoLoxIGRT(double *igrt, double *ten, int useK, int rotNoop, double minnorm) {
   /* static const char me[] = "_tenInterpGeoLoxIGRT"; */
   double eval[3], evec[9];
@@ -602,7 +602,7 @@ tenInterpPathLength(Nrrd *ntt, int doubleVerts, int fancy, int shape) {
   return len;
 }
 
-double
+static double
 _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
   /* static const char me[] = "_tenPathSpacingEqualize"; */
   double *in, *out, len, diff[7], lenTotal, /* total length of input */
@@ -673,7 +673,7 @@ _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
   return lenTotal;
 }
 
-int
+static int
 _tenInterpGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter, const double tenA[7],
                          const double tenB[7], unsigned int NN, int useK, int rotnoop,
                          tenInterpParm *tip) {

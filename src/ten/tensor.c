@@ -742,7 +742,7 @@ tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis, size_t pos, unsigned i
 ** other invariant gradients, NORMALIZED, to which
 ** eigenvalue skewness should be perpendicular
 */
-void
+static void
 _tenEvalSkewnessGradient_d(double skw[7],
                            const double perp1[7],
                            const double perp2[7],

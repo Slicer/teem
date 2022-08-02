@@ -58,7 +58,7 @@ tenEMBimodalParmNix(tenEMBimodalParm *biparm) {
   return NULL;
 }
 
-int
+static int
 _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
   static const char me[] = "_tenEMBimodalInit";
   unsigned int i, median;
@@ -136,7 +136,8 @@ _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
   return 0;
 }
 
-void
+#if 0
+static void
 _tenEMBimodalBoost(double *pp1P, double *pp2P, double b) {
   double p1, p2, tmp;
   int sw = AIR_FALSE;
@@ -155,12 +156,13 @@ _tenEMBimodalBoost(double *pp1P, double *pp2P, double b) {
     *pp2P = p2;
   }
 }
+#endif
 
 /*
 ** what is posterior probability that measured value x comes from
 ** material 1 and 2, stored in pp1 and pp2
 */
-void
+static void
 _tenEMBimodalPP(tenEMBimodalParm *biparm) {
   unsigned int i;
   double g1, g2, pp1, pp2, f1, min;
@@ -192,7 +194,7 @@ _tenEMBimodalPP(tenEMBimodalParm *biparm) {
   return;
 }
 
-double
+static double
 _tenEMBimodalNewFraction1(tenEMBimodalParm *biparm) {
   unsigned int i;
   double pp1, pp2, h, sum1, sum2;
@@ -208,7 +210,7 @@ _tenEMBimodalNewFraction1(tenEMBimodalParm *biparm) {
   return sum1 / (sum1 + sum2);
 }
 
-void
+static void
 _tenEMBimodalNewMean(double *m1P, double *m2P, tenEMBimodalParm *biparm) {
   unsigned int i;
   double pp1, pp2, h, sum1, isum1, sum2, isum2;
@@ -227,7 +229,7 @@ _tenEMBimodalNewMean(double *m1P, double *m2P, tenEMBimodalParm *biparm) {
   *m2P = isum2 / sum2;
 }
 
-void
+static void
 _tenEMBimodalNewSigma(double *s1P, double *s2P, double m1, double m2,
                       tenEMBimodalParm *biparm) {
   unsigned int i;
@@ -247,7 +249,7 @@ _tenEMBimodalNewSigma(double *s1P, double *s2P, double m1, double m2,
   *s2P = sqrt(isum2 / sum2);
 }
 
-void
+static void
 _tenEMBimodalSaveImage(tenEMBimodalParm *biparm) {
   char name[AIR_STRLEN_MED];
   Nrrd *nh, *nm, *nhi, *nmi, *ni;
@@ -285,7 +287,7 @@ _tenEMBimodalSaveImage(tenEMBimodalParm *biparm) {
   return;
 }
 
-int
+static int
 _tenEMBimodalIterate(tenEMBimodalParm *biparm) {
   static const char me[] = "_tenEMBimodalIterate";
   double om1, os1, om2, os2, of1, m1, s1, m2, s2, f1;
@@ -328,7 +330,7 @@ _tenEMBimodalIterate(tenEMBimodalParm *biparm) {
   return 0;
 }
 
-int
+static int
 _tenEMBimodalConfThresh(tenEMBimodalParm *biparm) {
   static const char me[] = "_tenEMBimodalConfThresh";
   double m1, s1, m2, s2, f1, f2, A, B, C, D, t1, t2;
@@ -373,7 +375,7 @@ _tenEMBimodalConfThresh(tenEMBimodalParm *biparm) {
   return 0;
 }
 
-int
+static int
 _tenEMBimodalCheck(tenEMBimodalParm *biparm) {
   static const char me[] = "_tenEMBimodalCheck";
 

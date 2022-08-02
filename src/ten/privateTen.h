@@ -86,6 +86,9 @@ extern "C" {
     nrrdNuke(npadtmp);                                                                  \
   }
 
+/* enumsTen.c */
+extern const airEnum _tenGage;
+
 /* qseg.c: 2-tensor estimation */
 extern void _tenQball(const double b, const int gradcount, const double svals[],
                       const double grads[], double qvals[]);
@@ -106,8 +109,9 @@ extern double _tenPldist(const double point[], const double line[]);
 /* arishFuncs.c: Arish's implementation of Peled's 2-tensor fit */
 #define VEC_SIZE 3
 
-extern void twoTensFunc(double *p, double *x, int m, int n, void *data);
-extern void formTensor2D(double ten[7], double lam1, double lam3, double phi);
+/* epireg.c */
+extern int _tenEpiRegThresholdFind(double *DWthrP, Nrrd **nin, int ninLen, int save,
+                                   double expo);
 
 /* qglox.c: stuff for quaternion geodesic-loxodromes that has dubious
    utility for the general public */
@@ -132,27 +136,23 @@ extern int _tenQGLInterpNEvec(double evecOut[9],
                               const double *wght,   /* size NN */
                               unsigned int NN,
                               tenInterpParm *tip);
-extern int tenQGLInterpN(double tenOut[7], const double *tenIn, const double *wght,
-                         unsigned int NN, int ptype, tenInterpParm *tip);
 
 /* experSpec.c */
-TEN_EXPORT double _tenExperSpec_sqe(const double *dwiMeas,
-                                    const double *dwiSim,
-                                    const tenExperSpec *espec,
-                                    int knownB0);
-TEN_EXPORT double _tenExperSpec_nll(const double *dwiMeas, const double *dwiSim,
-                                    const tenExperSpec *espec, int rician, double sigma,
-                                    int knownB0);
+extern double _tenExperSpec_sqe(const double *dwiMeas,
+                                const double *dwiSim,
+                                const tenExperSpec *espec,
+                                int knownB0);
+extern double _tenExperSpec_nll(const double *dwiMeas, const double *dwiSim,
+                                const tenExperSpec *espec, int rician, double sigma,
+                                int knownB0);
 
-/* tenModel.c */
-TEN_EXPORT double _tenModelSqeFitSingle(const tenModel *model, double *testParm,
-                                        double *grad, double *parm, double *convFrac,
-                                        unsigned int *itersTaken,
-                                        const tenExperSpec *espec, double *dwiBuff,
-                                        const double *dwiMeas, const double *parmInit,
-                                        int knownB0, unsigned int minIter,
-                                        unsigned int maxIter, double convEps,
-                                        int verbose);
+extern double _tenModelSqeFitSingle(const tenModel *model, double *testParm,
+                                    double *grad, double *parm, double *convFrac,
+                                    unsigned int *itersTaken, const tenExperSpec *espec,
+                                    double *dwiBuff, const double *dwiMeas,
+                                    const double *parmInit, int knownB0,
+                                    unsigned int minIter, unsigned int maxIter,
+                                    double convEps, int verbose);
 
 /* model*.c */
 /*

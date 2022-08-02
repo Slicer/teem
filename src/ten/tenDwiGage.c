@@ -30,7 +30,7 @@
 /* --------------------------------------------------------------------- */
 /* clang-format off */
 
-const char *
+static const char *
 _tenDwiGageStr[] = {
   "(unknown tenDwiGage)",
   "all",
@@ -70,7 +70,7 @@ _tenDwiGageStr[] = {
   "2peledlminfo",
 };
 
-const int
+static const int
 _tenDwiGageVal[] = {
   tenDwiGageUnknown,
   tenDwiGageAll,
@@ -110,7 +110,7 @@ _tenDwiGageVal[] = {
   tenDwiGage2TensorPeledLevmarInfo
 };
 
-const airEnum
+static const airEnum
 _tenDwiGage = {
   "tenDwiGage",
   TEN_DWI_GAGE_ITEM_MAX,
@@ -124,7 +124,7 @@ tenDwiGage = &_tenDwiGage;
 
 /* --------------------------------------------------------------------- */
 
-gageItemEntry
+static gageItemEntry
 _tenDwiGageTable[TEN_DWI_GAGE_ITEM_MAX+1] = {
   /* enum value                     len,deriv, prereqs,                           parent item, parent index, needData */
   {tenDwiGageUnknown,                 0,  0,  {0},                                                    0,  0, AIR_TRUE},
@@ -183,7 +183,7 @@ _tenDwiGageTable[TEN_DWI_GAGE_ITEM_MAX+1] = {
   {tenDwiGage2TensorPeledLevmarInfo,  5,  0,  {tenDwiGage2TensorPeled},                               0,  0, AIR_TRUE}
 };
 
-void
+static void
 _tenDwiGageIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
   static const char me[] = "_tenDwiGageIv3Print";
 
@@ -193,7 +193,7 @@ _tenDwiGageIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
-void
+static void
 _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
   static const char me[] = "_tenDwiGageFilter";
   double *fw00, *fw11, *fw22, *dwi;
@@ -248,7 +248,8 @@ _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
 ** n: number of observations: number of DWI's in our case
 ** k: number of parameters: number of tensor components in our case
 */
-double
+#if 0
+static double
 _tenComputeAIC(double residual, int n, int k) {
    double AIC = 0;
 
@@ -267,7 +268,7 @@ _tenComputeAIC(double residual, int n, int k) {
 }
 
 /* Form a 2D tensor from the parameters */
-void
+static void
 _tenPeledRotate2D(double ten[7], double lam1, double lam3, double phi) {
   double cc, ss, d3, d1, d2;
 
@@ -280,7 +281,7 @@ _tenPeledRotate2D(double ten[7], double lam1, double lam3, double phi) {
   TEN_T_SET(ten, 1.0,    d1, d3, 0,    d2, 0,    lam3);
   return;
 }
-
+#endif
 /* The main callback function that is iterated during levmar */
 
 /* vector pp of parameters is as follows:
@@ -289,7 +290,8 @@ _tenPeledRotate2D(double ten[7], double lam1, double lam3, double phi) {
 ** pp[2]: phi for 1st tensor
 ** pp[3]: phi for 2nd tensor
 */
-void
+#if 0
+static void
 _tenLevmarPeledCB(double *pp, double *xx, int mm, int nn, void *_pvlData) {
   /* static const char me[] = "_tenLevmarPeledCB"; */
   double tenA[7], tenB[7];
@@ -322,8 +324,8 @@ _tenLevmarPeledCB(double *pp, double *xx, int mm, int nn, void *_pvlData) {
   }
   return;
 }
-
-void
+#endif
+static void
 _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   static const char me[] = "_tenDwiGageAnswer";
   unsigned int dwiIdx;
@@ -744,7 +746,7 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 /* --------------------- pvlData */
 
 /* note use of the GAGE biff key */
-void *
+static void *
 _tenDwiGagePvlDataNew(const gageKind *kind) {
   static const char me[] = "_tenDwiGagePvlDataNew";
   tenDwiGagePvlData *pvlData;
@@ -845,7 +847,7 @@ _tenDwiGagePvlDataNew(const gageKind *kind) {
   return AIR_VOIDP(pvlData);
 }
 
-void *
+static void *
 _tenDwiGagePvlDataCopy(const gageKind *kind, const void *_pvlDataOld) {
   const tenDwiGagePvlData *pvlDataOld;
   tenDwiGagePvlData *pvlDataNew;
@@ -876,7 +878,7 @@ _tenDwiGagePvlDataCopy(const gageKind *kind, const void *_pvlDataOld) {
   return pvlDataNew;
 }
 
-int
+static int
 _tenDwiGagePvlDataUpdate(const gageKind *kind,
                          const gageContext *ctx,
                          const gagePerVolume *pvl, void *_pvlData) {
@@ -919,7 +921,7 @@ _tenDwiGagePvlDataUpdate(const gageKind *kind,
   return 0;
 }
 
-void *
+static void *
 _tenDwiGagePvlDataNix(const gageKind *kind, void *_pvlData) {
   tenDwiGagePvlData *pvlData;
 
@@ -943,7 +945,7 @@ _tenDwiGagePvlDataNix(const gageKind *kind, void *_pvlData) {
 
 /* --------------------- kindData */
 
-tenDwiGageKindData*
+static tenDwiGageKindData*
 tenDwiGageKindDataNew(void) {
   tenDwiGageKindData *ret;
 
@@ -960,7 +962,7 @@ tenDwiGageKindDataNew(void) {
   return ret;
 }
 
-tenDwiGageKindData*
+static tenDwiGageKindData*
 tenDwiGageKindDataNix(tenDwiGageKindData *kindData) {
 
   if (kindData) {
@@ -980,7 +982,7 @@ tenDwiGageKindDataNix(tenDwiGageKindData *kindData) {
 ** nice way of having a way of referring to the dwiKind
 ** without having to allocate it each time
 */
-gageKind
+static gageKind
 _tenDwiGageKindTmpl = {
   AIR_TRUE, /* dynamically allocated */
   TEN_DWI_GAGE_KIND_NAME,

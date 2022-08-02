@@ -75,7 +75,7 @@ _TEN_NLL
 _TEN_NLL_GRAD_STUB
 _TEN_NLL_FIT_STUB
 
-tenModel
+static const tenModel
 _tenModel1Stick = {
   TEN_MODEL_STR_1STICK,
   _TEN_MODEL_FIELDS

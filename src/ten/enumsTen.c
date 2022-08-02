@@ -27,7 +27,7 @@
 /* clang-format off */
 /* -------------------------------------------------------------- */
 
-const char *
+static const char *
 _tenAnisoStr[TEN_ANISO_MAX+1] = {
   "(unknown aniso)",
   "Conf",
@@ -61,7 +61,7 @@ _tenAnisoStr[TEN_ANISO_MAX+1] = {
   "eval2"
 };
 
-const airEnum
+static const airEnum
 _tenAniso = {
   "anisotropy metric",
   TEN_ANISO_MAX,
@@ -75,7 +75,7 @@ tenAniso = &_tenAniso;
 
 /* --------------------------------------------------------------------- */
 
-const char *
+static const char *
 _tenInterpTypeStr[TEN_INTERP_TYPE_MAX+1] = {
   "(unknown interp type)",
   "lin",
@@ -91,7 +91,7 @@ _tenInterpTypeStr[TEN_INTERP_TYPE_MAX+1] = {
   "rtplin"
 };
 
-const char *
+static const char *
 _tenInterpTypeStrEqv[] = {
   "lin", "linear", "lerp",
   "loglin", "loglinear", "loglerp",
@@ -107,7 +107,7 @@ _tenInterpTypeStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _tenInterpTypeValEqv[] = {
   tenInterpTypeLinear, tenInterpTypeLinear, tenInterpTypeLinear,
   tenInterpTypeLogLinear, tenInterpTypeLogLinear, tenInterpTypeLogLinear,
@@ -122,7 +122,7 @@ _tenInterpTypeValEqv[] = {
   tenInterpTypeRThetaPhiLinear
 };
 
-const airEnum
+static const airEnum
 _tenInterpType = {
   "interp type",
   TEN_INTERP_TYPE_MAX,
@@ -136,7 +136,7 @@ tenInterpType = &_tenInterpType;
 
 /* --------------------------------------------------------------------- */
 
-const char *
+static const char *
 _tenGageStr[] = {
   "(unknown tenGage)",
 
@@ -379,7 +379,7 @@ _tenGageStr[] = {
   "anisotropies"
 };
 
-const char *
+static const char *
 _tenGageDesc[] = {
   "(unknown tenGage item)",
   "tensor",
@@ -593,7 +593,7 @@ _tenGageDesc[] = {
   "anisotropies"
 };
 
-const int
+static const int
 _tenGageVal[] = {
   tenGageUnknown,
   tenGageTensor,        /* "t", the reconstructed tensor: GT[7] */
@@ -805,7 +805,7 @@ _tenGageVal[] = {
   tenGageAniso,
 };
 
-const char *
+static const char *
 _tenGageStrEqv[] = {
   "t", "ten", "tensor",
   "c", "conf", "confidence",
@@ -1024,7 +1024,7 @@ _tenGageStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _tenGageValEqv[] = {
   tenGageTensor, tenGageTensor, tenGageTensor,
   tenGageConfidence, tenGageConfidence, tenGageConfidence,
@@ -1247,7 +1247,7 @@ _tenGageValEqv[] = {
   tenGageAniso, tenGageAniso, tenGageAniso
 };
 
-const airEnum
+const airEnum /* not static since need its address to compile tenGageKind */
 _tenGage = {
   "tenGage",
   TEN_GAGE_ITEM_MAX,
@@ -1261,7 +1261,7 @@ tenGage = &_tenGage;
 
 /* --------------------------------------------------------------------- */
 
-const char *
+static const char *
 _tenFiberTypeStr[] = {
   "(unknown tenFiberType)",
   "evec0",
@@ -1272,7 +1272,7 @@ _tenFiberTypeStr[] = {
   "zhukov"
 };
 
-const char *
+static const char *
 _tenFiberTypeDesc[] = {
   "unknown tenFiber type",
   "simply follow principal eigenvector",
@@ -1283,7 +1283,7 @@ _tenFiberTypeDesc[] = {
   "Zhukov\'s oriented tensors"
 };
 
-const char *
+static const char *
 _tenFiberTypeStrEqv[] = {
   "ev0", "evec0",
   "ev1", "evec1",
@@ -1294,7 +1294,7 @@ _tenFiberTypeStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _tenFiberTypeValEqv[] = {
   tenFiberTypeEvec0, tenFiberTypeEvec0,
   tenFiberTypeEvec1, tenFiberTypeEvec1,
@@ -1304,7 +1304,7 @@ _tenFiberTypeValEqv[] = {
   tenFiberTypeZhukov, tenFiberTypeZhukov
 };
 
-const airEnum
+static const airEnum
 _tenFiberType = {
   "tenFiberType",
   TEN_FIBER_TYPE_MAX,
@@ -1318,7 +1318,7 @@ tenFiberType = &_tenFiberType;
 
 /* --------------------------------------------------------------------- */
 
-const char *
+static const char *
 _tenDwiFiberTypeStr[] = {
   "(unknown tenDwiFiberType)",
   "1evec0",
@@ -1326,7 +1326,7 @@ _tenDwiFiberTypeStr[] = {
   "12BlendEvec0"
 };
 
-const char *
+static const char *
 _tenDwiFiberTypeDesc[] = {
   "unknown tenDwiFiber type",
   "single tensor evec0-based",
@@ -1334,7 +1334,7 @@ _tenDwiFiberTypeDesc[] = {
   "parameterized blend between 1- and 2-tensor fits"
 };
 
-const char *
+static const char *
 _tenDwiFiberTypeStrEqv[] = {
   "1evec0", "1e0",
   "2evec0", "2e0",
@@ -1342,14 +1342,14 @@ _tenDwiFiberTypeStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _tenDwiFiberTypeValEqv[] = {
   tenDwiFiberType1Evec0, tenDwiFiberType1Evec0,
   tenDwiFiberType2Evec0, tenDwiFiberType2Evec0,
   tenDwiFiberType12BlendEvec0, tenDwiFiberType12BlendEvec0
 };
 
-const airEnum
+static const airEnum
 _tenDwiFiberType = {
   "tenDwiFiberType",
   TEN_DWI_FIBER_TYPE_MAX,
@@ -1363,7 +1363,7 @@ tenDwiFiberType = &_tenDwiFiberType;
 
 /* ----------------------------------------------------------------------- */
 
-const char *
+static const char *
 _tenFiberStopStr[] = {
   "(unknown tenFiberStop)",
   "aniso",
@@ -1378,7 +1378,7 @@ _tenFiberStopStr[] = {
   "minsteps",
 };
 
-const char *
+static const char *
 _tenFiberStopStrEqv[] = {
   "aniso",
   "length", "len",
@@ -1393,7 +1393,7 @@ _tenFiberStopStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _tenFiberStopValEqv[] = {
   tenFiberStopAniso,
   tenFiberStopLength, tenFiberStopLength,
@@ -1407,7 +1407,7 @@ _tenFiberStopValEqv[] = {
   tenFiberStopMinNumSteps, tenFiberStopMinNumSteps,
 };
 
-const char *
+static const char *
 _tenFiberStopDesc[] = {
   "unknown tenFiber stop",
   "anisotropy went below threshold",
@@ -1422,7 +1422,7 @@ _tenFiberStopDesc[] = {
   "whole fiber has too few numbers of steps"
 };
 
-const airEnum
+static const airEnum
 _tenFiberStop = {
   "fiber stopping criteria",
   TEN_FIBER_STOP_MAX,
@@ -1436,7 +1436,7 @@ tenFiberStop = &_tenFiberStop;
 
 /* ----------------------------------------------------------------------- */
 
-const char *
+static const char *
 _tenFiberIntgStr[] = {
   "(unknown tenFiberIntg)",
   "euler",
@@ -1444,7 +1444,7 @@ _tenFiberIntgStr[] = {
   "rk4"
 };
 
-const char *
+static const char *
 _tenFiberIntgStrEqv[] = {
   "euler",
   "midpoint", "rk2",
@@ -1452,14 +1452,14 @@ _tenFiberIntgStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _tenFiberIntgValEqv[] = {
   tenFiberIntgEuler,
   tenFiberIntgMidpoint, tenFiberIntgMidpoint,
   tenFiberIntgRK4
 };
 
-const char *
+static const char *
 _tenFiberIntgDesc[] = {
   "unknown tenFiber intg",
   "plain Euler",
@@ -1467,7 +1467,7 @@ _tenFiberIntgDesc[] = {
   "4rth order Runge-Kutta"
 };
 
-const airEnum
+static const airEnum
 _tenFiberIntg = {
   "fiber integration method",
   TEN_FIBER_INTG_MAX,
@@ -1481,7 +1481,7 @@ tenFiberIntg = &_tenFiberIntg;
 
 /* ----------------------------------------------------------------------- */
 
-const char *
+static const char *
 _tenGlyphTypeStr[] = {
   "(unknown tenGlyphType)",
   "box",
@@ -1497,7 +1497,7 @@ _tenGlyphTypeStr[] = {
 #define CYL tenGlyphTypeCylinder
 #define SQD tenGlyphTypeSuperquad
 
-const char *
+static const char *
 _tenGlyphTypeStrEqv[] = {
   "b", "box",
   "s", "sph", "sphere",
@@ -1508,7 +1508,7 @@ _tenGlyphTypeStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _tenGlyphTypeValEqv[] = {
   BOX, BOX,
   SPH, SPH, SPH,
@@ -1518,7 +1518,7 @@ _tenGlyphTypeValEqv[] = {
   tenGlyphTypePolarPlot, tenGlyphTypePolarPlot
 };
 
-const char *
+static const char *
 _tenGlyphTypeDesc[] = {
   "unknown tenGlyph type",
   "box/cube (rectangular prisms)",
@@ -1529,7 +1529,7 @@ _tenGlyphTypeDesc[] = {
   "polar plot",
 };
 
-const airEnum
+static const airEnum
 _tenGlyphType = {
   "tenGlyphType",
   TEN_GLYPH_TYPE_MAX,
@@ -1543,7 +1543,7 @@ tenGlyphType = &_tenGlyphType;
 
 /* ---------------------------------------------- */
 
-const char *
+static const char *
 _tenEstimate1MethodStr[] = {
   "(unknown tenEstimate1Method)",
   "LLS",
@@ -1552,7 +1552,7 @@ _tenEstimate1MethodStr[] = {
   "MLE"
 };
 
-const char *
+static const char *
 _tenEstimate1MethodDesc[] = {
   "unknown tenEstimate1Method",
   "linear least-squares fit of log(DWI)",
@@ -1561,7 +1561,7 @@ _tenEstimate1MethodDesc[] = {
   "maximum likelihood estimate from DWI"
 };
 
-const airEnum
+static const airEnum
 _tenEstimate1Method = {
   "single-tensor-estimation",
   TEN_ESTIMATE_1_METHOD_MAX,
@@ -1575,21 +1575,21 @@ tenEstimate1Method= &_tenEstimate1Method;
 
 /* ---------------------------------------------- */
 
-const char *
+static const char *
 _tenEstimate2MethodStr[] = {
   "(unknown tenEstimate2Method)",
   "QSegLLS",
   "Peled"
 };
 
-const char *
+static const char *
 _tenEstimate2MethodDesc[] = {
   "unknown tenEstimate2Method",
   "Q-ball segmentation",
   "Peled"
 };
 
-const airEnum
+static const airEnum
 _tenEstimate2Method = {
   "two-tensor-estimation",
   TEN_ESTIMATE_2_METHOD_MAX,
@@ -1603,7 +1603,7 @@ tenEstimate2Method= &_tenEstimate2Method;
 
 /* ---------------------------------------------- */
 
-const char *
+static const char *
 _tenTripleTypeStr[] = {
   "(unknown tenTriple)",
   "eigenvalue",
@@ -1617,7 +1617,7 @@ _tenTripleTypeStr[] = {
   "wheelParms"
 };
 
-const char *
+static const char *
 _tenTripleTypeDesc[] = {
   "unknown tenTriple",
   "eigenvalues sorted in descending order",
@@ -1631,7 +1631,7 @@ _tenTripleTypeDesc[] = {
   "eigenvalue wheel (center,radius,angle)"
 };
 
-const char *
+static const char *
 _tenTripleTypeStrEqv[] = {
   "eigenvalue", "eval", "ev",
   "moment", "mu",
@@ -1645,7 +1645,7 @@ _tenTripleTypeStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _tenTripleTypeValEqv[] = {
   tenTripleTypeEigenvalue, tenTripleTypeEigenvalue, tenTripleTypeEigenvalue,
   tenTripleTypeMoment, tenTripleTypeMoment,
@@ -1658,7 +1658,7 @@ _tenTripleTypeValEqv[] = {
   tenTripleTypeWheelParm, tenTripleTypeWheelParm, tenTripleTypeWheelParm
 };
 
-const airEnum
+static const airEnum
 _tenTripleType = {
   "tenTripleType",
   TEN_TRIPLE_TYPE_MAX,

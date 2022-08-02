@@ -24,21 +24,21 @@
 #include "ten.h"
 #include "privateTen.h"
 
-const char *tenDWMRIModalityKey = "modality";
+const char *const tenDWMRIModalityKey = "modality";
 
-const char *tenDWMRIModalityVal = "DWMRI";
+const char *const tenDWMRIModalityVal = "DWMRI";
 
-const char *tenDWMRINAVal = "n/a";
+const char *const tenDWMRINAVal = "n/a";
 
-const char *tenDWMRIBValueKey = "DWMRI_b-value";
+const char *const tenDWMRIBValueKey = "DWMRI_b-value";
 
-const char *tenDWMRIGradKeyFmt = "DWMRI_gradient_%04u";
+const char *const tenDWMRIGradKeyFmt = "DWMRI_gradient_%04u";
 
-const char *tenDWMRIBmatKeyFmt = "DWMRI_B-matrix_%04u";
+const char *const tenDWMRIBmatKeyFmt = "DWMRI_B-matrix_%04u";
 
-const char *tenDWMRINexKeyFmt = "DWMRI_NEX_%04u";
+const char *const tenDWMRINexKeyFmt = "DWMRI_NEX_%04u";
 
-const char *tenDWMRISkipKeyFmt = "DWMRI_skip_%04u";
+const char *const tenDWMRISkipKeyFmt = "DWMRI_skip_%04u";
 
 /*
 ******** tenDWMRIKeyValueParse
@@ -928,7 +928,7 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten, const Nrrd *_nbmat,
 }
 
 /* old stuff, prior to tenEstimationMatrix .. */
-
+#if 0
 /*
 ******** tenCalcOneTensor1
 **
@@ -1080,3 +1080,4 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin, int version, float thresh, float slope, flo
   }
   return 0;
 }
+#endif

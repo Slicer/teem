@@ -1346,7 +1346,7 @@ _tenEvecRGBComp_f(float conf, float aniso, float comp, const tenEvecRGBParm *rgb
   return AIR_FLOAT(conf > rgbp->confThresh ? X : rgbp->bgGray);
 }
 
-double
+static double
 _tenEvecRGBComp_d(double conf, double aniso, double comp, const tenEvecRGBParm *rgbp) {
   double X;
 

@@ -50,7 +50,7 @@
 ** of tfx->lastDir and tfx->lastDirSet, could stand to have further
 ** debugging and documentation ...
 */
-int
+static int
 _tenFiberProbe(tenFiberContext *tfx, int *gageRet, double wPos[3], int seedProbe) {
   static const char me[] = "_tenFiberProbe";
   double iPos[3];
@@ -199,7 +199,7 @@ _tenFiberProbe(tenFiberContext *tfx, int *gageRet, double wPos[3], int seedProbe
   return ret;
 }
 
-int
+static int
 _tenFiberStopCheck(tenFiberContext *tfx) {
   static const char me[] = "_tenFiberStopCheck";
 
@@ -248,7 +248,7 @@ _tenFiberStopCheck(tenFiberContext *tfx) {
   return 0;
 }
 
-void
+static void
 _tenFiberAlign(tenFiberContext *tfx, double vec[3]) {
   static const char me[] = "_tenFiberAlign";
   double scale, dot;
@@ -289,7 +289,7 @@ _tenFiberAlign(tenFiberContext *tfx, double vec[3]) {
 ** parm[1]: "t": (parm[1],0) is control point between (0,0) and (1,1)
 ** parm[2]: "d": parabolic blend between parm[1]-parm[2] and parm[1]+parm[2]
 */
-void
+static void
 _tenFiberAnisoSpeed(double *step, double xx, double parm[3]) {
   double aa, dd, tt, yy;
 
@@ -309,7 +309,7 @@ _tenFiberAnisoSpeed(double *step, double xx, double parm[3]) {
 ** the given step[] vector.  Without anisoStepSize, this should be
 ** UNIT LENGTH, with anisoStepSize, its scaled by that anisotropy measure
 */
-void
+static void
 _tenFiberStep_Evec(tenFiberContext *tfx, double step[3]) {
 
   /* fiberEvec points to the correct gage answer based on fiberType */
@@ -320,7 +320,7 @@ _tenFiberStep_Evec(tenFiberContext *tfx, double step[3]) {
   }
 }
 
-void
+static void
 _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
   double cl, evec0[3], vout[3], vin[3], len;
 
@@ -349,7 +349,7 @@ _tenFiberStep_TensorLine(tenFiberContext *tfx, double step[3]) {
   }
 }
 
-void
+static void
 _tenFiberStep_PureLine(tenFiberContext *tfx, double step[3]) {
   static const char me[] = "_tenFiberStep_PureLine";
 
@@ -358,7 +358,7 @@ _tenFiberStep_PureLine(tenFiberContext *tfx, double step[3]) {
   fprintf(stderr, "%s: sorry, unimplemented!\n", me);
 }
 
-void
+static void
 _tenFiberStep_Zhukov(tenFiberContext *tfx, double step[3]) {
   static const char me[] = "_tenFiberStep_Zhukov";
 
@@ -367,7 +367,7 @@ _tenFiberStep_Zhukov(tenFiberContext *tfx, double step[3]) {
   fprintf(stderr, "%s: sorry, unimplemented!\n", me);
 }
 
-void (*_tenFiberStep[TEN_FIBER_TYPE_MAX + 1])(tenFiberContext *, double *)
+static void (*const _tenFiberStep[TEN_FIBER_TYPE_MAX + 1])(tenFiberContext *, double *)
   = {NULL,
      _tenFiberStep_Evec,
      _tenFiberStep_Evec,
@@ -383,7 +383,7 @@ void (*_tenFiberStep[TEN_FIBER_TYPE_MAX + 1])(tenFiberContext *, double *)
 ** _tenFiberProbe(tfx, tfx->wPos, AIR_FALSE) has just been called
 */
 
-int
+static int
 _tenFiberIntegrate_Euler(tenFiberContext *tfx, double forwDir[3]) {
 
   _tenFiberStep[tfx->fiberType](tfx, forwDir);
@@ -391,7 +391,7 @@ _tenFiberIntegrate_Euler(tenFiberContext *tfx, double forwDir[3]) {
   return 0;
 }
 
-int
+static int
 _tenFiberIntegrate_Midpoint(tenFiberContext *tfx, double forwDir[3]) {
   double loc[3], half[3];
   int gret;
@@ -405,7 +405,7 @@ _tenFiberIntegrate_Midpoint(tenFiberContext *tfx, double forwDir[3]) {
   return 0;
 }
 
-int
+static int
 _tenFiberIntegrate_RK4(tenFiberContext *tfx, double forwDir[3]) {
   double loc[3], k1[3], k2[3], k3[3], k4[3], c1, c2, c3, c4, h;
   int gret;
@@ -438,7 +438,8 @@ _tenFiberIntegrate_RK4(tenFiberContext *tfx, double forwDir[3]) {
   return 0;
 }
 
-int (*_tenFiberIntegrate[TEN_FIBER_INTG_MAX + 1])(tenFiberContext *tfx, double *)
+static int (*const _tenFiberIntegrate[TEN_FIBER_INTG_MAX + 1])(tenFiberContext *tfx,
+                                                               double *)
   = {NULL, _tenFiberIntegrate_Euler, _tenFiberIntegrate_Midpoint,
      _tenFiberIntegrate_RK4};
 
@@ -982,7 +983,7 @@ tenFiberMultiNew() {
   return ret;
 }
 
-int
+static int
 tenFiberMultiCheck(airArray *arr) {
   static const char me[] = "tenFiberMultiCheck";
 

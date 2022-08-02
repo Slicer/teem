@@ -31,7 +31,7 @@ typedef struct {
 } _tenGagePvlData;
 
 /* clang-format off */
-gageItemEntry
+static gageItemEntry
 _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   /* enum value                  len,deriv, prereqs,                                                   parent item, parent index, needData */
   {tenGageUnknown,                 0,  0,  {0},                                                                  0,        0,     AIR_FALSE},
@@ -289,7 +289,7 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageAniso,     TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2},                           0,        0,     AIR_FALSE}
 };
 
-void
+static void
 _tenGageIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
   double *iv3;
   int i, fd;
@@ -333,7 +333,7 @@ _tenGageIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
-void
+static void
 _tenGageFilter(gageContext *ctx, gagePerVolume *pvl) {
   static const char me[] = "_tenGageFilter";
   double *fw00, *fw11, *fw22, *ten, *tgrad, *thess;
@@ -380,7 +380,7 @@ _tenGageFilter(gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
-void
+static void
 _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   static const char me[] = "_tenGageAnswer";
   double *tenAns, *evalAns, *evecAns, *vecTmp=NULL, *matTmp=NULL,
@@ -2034,7 +2034,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 }
 
 
-void *
+static void *
 _tenGagePvlDataNew(const struct gageKind_t *kind) {
   _tenGagePvlData *pvlData;
 
@@ -2048,7 +2048,7 @@ _tenGagePvlDataNew(const struct gageKind_t *kind) {
   return pvlData;
 }
 
-void *
+static void *
 _tenGagePvlDataCopy(const struct gageKind_t *kind,
                     const void *_pvlDataOld) {
   _tenGagePvlData *pvlDataNew;
@@ -2067,7 +2067,7 @@ _tenGagePvlDataCopy(const struct gageKind_t *kind,
   return pvlDataNew;
 }
 
-void *
+static void *
 _tenGagePvlDataNix(const struct gageKind_t *kind,
                    void *_pvlData) {
   _tenGagePvlData *pvlData;
@@ -2081,7 +2081,7 @@ _tenGagePvlDataNix(const struct gageKind_t *kind,
   return NULL;
 }
 
-int
+static int
 _tenGagePvlDataUpdate(const struct gageKind_t *kind,
                       const gageContext *ctx, const gagePerVolume *pvl,
                       void *_pvlData) {
@@ -2107,7 +2107,7 @@ _tenGagePvlDataUpdate(const struct gageKind_t *kind,
 }
 
 
-gageKind
+static gageKind
 _tenGageKind = {
   AIR_FALSE, /* statically allocated */
   "tensor",
@@ -2125,6 +2125,6 @@ _tenGageKind = {
   _tenGagePvlDataUpdate,
   NULL
 };
-gageKind *
+gageKind *const
 tenGageKind = &_tenGageKind;
 /* clang-format on */

@@ -130,7 +130,7 @@ _TEN_NLL
 _TEN_NLL_GRAD_STUB
 _TEN_NLL_FIT_STUB
 
-tenModel
+static const tenModel
 _tenModel1Tensor2 = {
   TEN_MODEL_STR_1TENSOR2,
   _TEN_MODEL_FIELDS
