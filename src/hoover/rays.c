@@ -42,7 +42,7 @@
 **
 ** NOTE: none of this comes into play if we have ctx->shape
 */
-void
+static void
 _hooverLearnLengths(double volHLen[3], double voxLen[3], hooverContext *ctx) {
   double maxLen;
   int numSamples[3], numElements[3];
@@ -88,7 +88,7 @@ typedef struct {
     rayZero[3];      /* location of near plane, line of sight interxion */
 } _hooverExtraContext;
 
-_hooverExtraContext *
+static _hooverExtraContext *
 _hooverExtraContextNew(hooverContext *ctx) {
   _hooverExtraContext *ec;
 
@@ -105,7 +105,7 @@ _hooverExtraContextNew(hooverContext *ctx) {
   return ec;
 }
 
-_hooverExtraContext *
+static _hooverExtraContext *
 _hooverExtraContextNix(_hooverExtraContext *ec) {
 
   if (ec) {
@@ -137,7 +137,7 @@ typedef struct {
   int errCode;
 } _hooverThreadArg;
 
-void *
+static void *
 _hooverThreadBody(void *_arg) {
   _hooverThreadArg *arg;
   void *thread;
