@@ -34,13 +34,15 @@
 ** never got transposed at the same time that matrices in Teem
 ** were switched from column-major to row-major ordering
 */
-float dyeRGBtoXYZMatx[9] = {0.412453f, 0.357580f, 0.180423f, 0.212671f, 0.715160f,
-                            0.072169f, 0.019334f, 0.119193f, 0.950227f};
-float dyeXYZtoRGBMatx[9] = {3.240479f, -1.537150f, -0.498535f, -0.969256f, 1.875992f,
-                            0.041556f, 0.055648f,  -0.204043f, 1.057311f};
+static const float dyeRGBtoXYZMatx[9] = {0.412453f, 0.357580f, 0.180423f,
+                                         0.212671f, 0.715160f, 0.072169f,
+                                         0.019334f, 0.119193f, 0.950227f};
+static const float dyeXYZtoRGBMatx[9] = {3.240479f,  -1.537150f, -0.498535f,
+                                         -0.969256f, 1.875992f,  0.041556f,
+                                         0.055648f,  -0.204043f, 1.057311f};
 
 /* summing the rows of the RGBtoXYZ matrix to get X_n, Y_n, Z_n */
-float dyeWhiteXYZ_n[3] = {0.950456f, 1.0f, 1.088754f};
+static const float dyeWhiteXYZ_n[3] = {0.950456f, 1.0f, 1.088754f};
 /* so  x = X/(X+Y+Z) = 0.312731268 and
    and y = Y/(X+Y+Z) = 0..32903287;
    then http://en.wikipedia.org/wiki/Illuminant_D65
@@ -50,7 +52,7 @@ float dyeWhiteXYZ_n[3] = {0.950456f, 1.0f, 1.088754f};
    u'_n = 4X_n / (X_n + 15Y_n + 3Z_n)
    v'_n = 9Y_n / (X_n + 15Y_n + 3Z_n)
 */
-float dyeWhiteuvp_n[2] = {0.197839f, 0.468342f};
+static const float dyeWhiteuvp_n[2] = {0.197839f, 0.468342f};
 
 void
 dyeRGBtoHSV(float *H, float *S, float *V, float R, float G, float B) {
@@ -232,12 +234,12 @@ dyeXYZtoRGB(float *R, float *G, float *B, float X, float Y, float Z) {
   return;
 }
 
-float
+static float
 dyeLcbrt(float t) {
   return AIR_FLOAT(t > 0.008856 ? airCbrt(t) : 7.787 * t + 16.0 / 116.0);
 }
 
-float
+static float
 dyeLcubed(float t) {
   return (t > 0.206893 ? t * t * t : (t - 16.0f / 116.0f) / 7.787f);
 }
@@ -319,7 +321,7 @@ dyeLCHtoXYZ(float *X, float *Y, float *Z, float _L, float C, float H) {
   dyeLABtoXYZ(X, Y, Z, L, A, B);
 }
 
-void
+static void
 dyeIdentity(float *A, float *B, float *C, float a, float b, float c) {
   *A = a;
   *B = b;
@@ -328,7 +330,7 @@ dyeIdentity(float *A, float *B, float *C, float a, float b, float c) {
 }
 
 /* clang-format off */
-dyeConverter dyeSimpleConvert[DYE_MAX_SPACE+1][DYE_MAX_SPACE+1] =
+dyeConverter const dyeSimpleConvert[DYE_MAX_SPACE+1][DYE_MAX_SPACE+1] =
 {
   {NULL,          NULL,          NULL,          NULL,          NULL,          NULL,          NULL,          NULL},
   {NULL,          dyeIdentity,   NULL,          dyeHSVtoRGB,   NULL,          NULL,          NULL,          NULL},

@@ -28,7 +28,7 @@ const int dyePresent = 42;
 const char *const dyeBiffKey = "dye";
 
 /* clang-format off */
-const char *
+const char *const
 dyeSpaceToStr[DYE_MAX_SPACE+1] = {
   "(unknown)",
   "HSV",
@@ -61,7 +61,11 @@ static const airEnum
 _dyeSpace = {
   "colorspace",
   DYE_MAX_SPACE,
-  dyeSpaceToStr, NULL,
+  /* that we need this cast is a sign that the airEnum could perhaps to have more
+    const-correctness, i.e. instead of the "const char **str" field maybe we should
+    have "const char *const *str" or "const char *const *const str"?  Hmmm */
+  AIR_CAST(const char **, dyeSpaceToStr),
+  NULL,
   _dyeSpaceDesc,
   NULL, NULL,
   AIR_FALSE

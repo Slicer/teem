@@ -73,7 +73,7 @@ typedef struct {
 /* methodsDye.c */
 DYE_EXPORT const int dyePresent;
 DYE_EXPORT const char *const dyeBiffKey;
-DYE_EXPORT const char *dyeSpaceToStr[DYE_MAX_SPACE + 1];
+DYE_EXPORT const char *const dyeSpaceToStr[DYE_MAX_SPACE + 1];
 DYE_EXPORT const airEnum *const dyeSpace;
 DYE_EXPORT int dyeStrToSpace(char *str);
 DYE_EXPORT dyeColor *dyeColorInit(dyeColor *col);
@@ -117,7 +117,7 @@ DYE_EXPORT void dyeXYZtoLCH(float *L, float *C, float *H, /* */
                             float X, float Y, float Z);
 DYE_EXPORT void dyeLCHtoXYZ(float *X, float *Y, float *Z, /* */
                             float L, float C, float H);
-DYE_EXPORT dyeConverter dyeSimpleConvert[DYE_MAX_SPACE + 1][DYE_MAX_SPACE + 1];
+DYE_EXPORT dyeConverter const dyeSimpleConvert[DYE_MAX_SPACE + 1][DYE_MAX_SPACE + 1];
 DYE_EXPORT int dyeConvert(dyeColor *col, int space);
 
 #ifdef __cplusplus
