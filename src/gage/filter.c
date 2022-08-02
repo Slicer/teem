@@ -35,7 +35,7 @@
 ** weights may not be the desired ones.  Forward differencing (via
 ** nrrdKernelForwDiff) is a good example of this.
 */
-void
+static void
 _gageFslSet(gageContext *ctx) {
   int fr, i;
   double *fslx, *fsly, *fslz;
@@ -76,9 +76,9 @@ _gageFslSet(gageContext *ctx) {
 ** constraint: the sum of the weights must be zero, but
 ** sign of individual weights must be preserved
 */
-void
+static void
 _gageFwDerivRenormalize(gageContext *ctx, int wch) {
-  char me[]="_gageFwDerivRenormalize";
+  static const char me[]="_gageFwDerivRenormalize";
   double negX, negY, negZ, posX, posY, posZ, fixX, fixY, fixZ,
     *fwX, *fwY, *fwZ;
   int i, fd;
@@ -119,7 +119,7 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
 ** constraint: the sum of the weights must equal the continuous
 ** integral of the kernel
 */
-void
+static void
 _gageFwValueRenormalize(gageContext *ctx, int wch) {
   double integral, sumX, sumY, sumZ, *fwX, *fwY, *fwZ;
   int i, fd;
@@ -143,9 +143,9 @@ _gageFwValueRenormalize(gageContext *ctx, int wch) {
   return;
 }
 
-void
+static void
 _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
-  char me[] = "_gageFwSet";
+  static const char me[] = "_gageFwSet";
   int kidx;
   unsigned int fd;
 

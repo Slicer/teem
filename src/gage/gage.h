@@ -1236,7 +1236,7 @@ GAGE_EXPORT int gageStackBlurParmParse(gageStackBlurParm *sbp,
                                        int extraFlags[256],
                                        char **extraParmsP,
                                        const char *str);
-GAGE_EXPORT hestCB *gageHestStackBlurParm;
+GAGE_EXPORT const hestCB *const gageHestStackBlurParm;
 GAGE_EXPORT int gageStackBlurParmSprint(char str[AIR_STRLEN_LARGE],
                                         const gageStackBlurParm *sbp,
                                         int extraFlag[256],

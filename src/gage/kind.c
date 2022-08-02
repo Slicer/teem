@@ -158,7 +158,7 @@ gageKindTotalAnswerLength(const gageKind *kind) {
 **
 ** I don't think this will work if there are sub-sub-items
 */
-int
+static int
 _gageKindAnswerOffset(const gageKind *kind, int item) {
   int parent, ii;
 

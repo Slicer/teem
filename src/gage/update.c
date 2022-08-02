@@ -24,7 +24,7 @@
 #include "gage.h"
 #include "privateGage.h"
 
-int
+static int
 _gagePvlFlagCheck(gageContext *ctx, int pvlFlag) {
   int ret;
   unsigned int pvlIdx;
@@ -36,7 +36,7 @@ _gagePvlFlagCheck(gageContext *ctx, int pvlFlag) {
   return ret;
 }
 
-void
+static void
 _gagePvlFlagDown(gageContext *ctx, int pvlFlag) {
   unsigned int pvlIdx;
 
@@ -55,7 +55,7 @@ _gagePvlFlagDown(gageContext *ctx, int pvlFlag) {
 /*
 ** for each pvl: pvl's query --> pvl's needD
 */
-void
+static void
 _gagePvlNeedDUpdate(gageContext *ctx) {
   static const char me[] = "_gagePvlNeedDUpdate";
   gagePerVolume *pvl;
@@ -94,7 +94,7 @@ _gagePvlNeedDUpdate(gageContext *ctx) {
 /*
 ** all pvls' needD --> ctx's needD
 */
-void
+static void
 _gageNeedDUpdate(gageContext *ctx) {
   static const char me[] = "_gageNeedDUpdate";
   gagePerVolume *pvl;
@@ -186,7 +186,7 @@ _gageNeedKUpdate(gageContext *ctx) {
 ** ctx's ksp[] & needK --> radius
 **
 */
-int
+static int
 _gageRadiusUpdate(gageContext *ctx) {
   static const char me[] = "_gageRadiusUpdate";
   unsigned int kernIdx, radius;
@@ -236,7 +236,7 @@ _gageRadiusUpdate(gageContext *ctx) {
   return 0;
 }
 
-int
+static int
 _gageCacheSizeUpdate(gageContext *ctx) {
   static const char me[] = "_gageCacheSizeUpdate";
   int fd;
@@ -281,7 +281,7 @@ _gageCacheSizeUpdate(gageContext *ctx) {
   return 0;
 }
 
-void
+static void
 _gageOffValueUpdate(gageContext *ctx) {
   static const char me[] = "_gageOffValueUpdate";
   int fd, i, j, k;

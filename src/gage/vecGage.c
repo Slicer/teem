@@ -28,7 +28,7 @@
  * highly inefficient computation of the imaginary part of complex
  * conjugate eigenvalues of a 3x3 non-symmetric matrix
  */
-double
+static double
 gage_imaginary_part_eigenvalues(double *M) {
   double A, B, C, scale, frob, m[9], _eval[3];
   double beta, _gamma;
@@ -56,7 +56,7 @@ gage_imaginary_part_eigenvalues(double *M) {
 }
 
 /* clang-format off */
-gageItemEntry
+static gageItemEntry
 _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
   /* enum value         len, deriv, prereqs,                                                  parent item, parent index, needData */
   {gageVecUnknown,         0,  0,   {0},                                                                0,      0,       AIR_FALSE},
@@ -94,9 +94,9 @@ _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
   {gageVecMGEvec,          9,  1,   {gageVecMultiGrad, gageVecMGEval},                                  0,      0,       AIR_FALSE}
 };
 
-void
+static void
 _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_gageVecFilter";
+  static const char me[]="_gageVecFilter";
   double *fw00, *fw11, *fw22, *vec, *jac, *hes;
   int fd;
   gageScl3PFilter_t *filter[5] = {NULL, gageScl3PFilter2, gageScl3PFilter4,
@@ -140,9 +140,9 @@ _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
-void
+static void
 _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_gageVecAnswer";
+  static const char me[]="_gageVecAnswer";
   double cmag, tmpMat[9], mgevec[9], mgeval[3];
   double asym[9], tran[9], eval[3], tmpVec[3], norm;
   double *vecAns, *normAns, *jacAns, *strainAns, *somegaAns,
@@ -387,7 +387,7 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
-const char *
+static const char *
 _gageVecStr[] = {
   "(unknown gageVec)",
   "vector",
@@ -423,7 +423,7 @@ _gageVecStr[] = {
   "multigrad eigenvectors",
 };
 
-const char *
+static const char *
 _gageVecDesc[] = {
   "unknown gageVec query",
   "component-wise-interpolated vector",
@@ -459,7 +459,7 @@ _gageVecDesc[] = {
   "eigenvectors of multi-gradient"
 };
 
-const int
+static const int
 _gageVecVal[] = {
   gageVecUnknown,
   gageVecVector,
@@ -527,7 +527,7 @@ _gageVecVal[] = {
 #define GV_ML  gageVecMGEval
 #define GV_MC  gageVecMGEvec
 
-const char *
+static const char *
 _gageVecStrEqv[] = {
   "v", "vector", "vec",
   "v0", "vector0", "vec0",
@@ -563,7 +563,7 @@ _gageVecStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _gageVecValEqv[] = {
   GV_V, GV_V, GV_V,
   GV_V0, GV_V0, GV_V0,
@@ -598,7 +598,7 @@ _gageVecValEqv[] = {
   GV_MC, GV_MC, GV_MC
 };
 
-const airEnum
+static const airEnum
 _gageVec = {
   "gageVec",
   GAGE_VEC_ITEM_MAX,
@@ -610,7 +610,7 @@ _gageVec = {
 const airEnum *const
 gageVec = &_gageVec;
 
-gageKind
+static gageKind
 _gageKindVec = {
   AIR_FALSE, /* statically allocated */
   "vector",

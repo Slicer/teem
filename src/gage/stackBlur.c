@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2009--2019  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -25,7 +25,7 @@
 #include "privateGage.h"
 
 /* clang-format off */
-const char *
+static const char *
 _gageSigmaSamplingStr[] = {
   "(unknown_sampling)",
   "unisig", /* "uniform-sigma", */
@@ -33,7 +33,7 @@ _gageSigmaSamplingStr[] = {
   "optil2" /* "optimal-3d-l2l2" */
 };
 
-const char *
+static const char *
 _gageSigmaSamplingDesc[] = {
   "unknown sampling",
   "uniform samples along sigma",
@@ -41,7 +41,7 @@ _gageSigmaSamplingDesc[] = {
   "optimal sampling (3D L2 image error and L2 error across scales)"
 };
 
-const char *
+static const char *
 _gageSigmaSamplingStrEqv[] = {
   "uniform-sigma", "unisigma", "unisig",
   "uniform-tau", "unitau",
@@ -49,7 +49,7 @@ _gageSigmaSamplingStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _gageSigmaSamplingValEqv[] = {
   gageSigmaSamplingUniformSigma, gageSigmaSamplingUniformSigma,
   /* */ gageSigmaSamplingUniformSigma,
@@ -58,7 +58,7 @@ _gageSigmaSamplingValEqv[] = {
   /* */ gageSigmaSamplingOptimal3DL2L2
 };
 
-const airEnum
+static const airEnum
 _gageSigmaSampling_enum = {
   "sigma sampling strategy",
   GAGE_SIGMA_SAMPLING_MAX,
@@ -892,10 +892,11 @@ gageStackBlurParmSprint(char str[AIR_STRLEN_LARGE],
   return 0;
 }
 
-int
+static int
 _gageHestStackBlurParmParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   gageStackBlurParm **sbp;
-  char me[] = "_gageHestStackBlurParmParse", *nerr;
+  static const char me[] = "_gageHestStackBlurParmParse";
+  char *nerr;
 
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -922,11 +923,12 @@ _gageHestStackBlurParmParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE
   return 0;
 }
 
-hestCB _gageHestStackBlurParm = {sizeof(gageStackBlurParm *), "stack blur specification",
-                                 _gageHestStackBlurParmParse,
-                                 (airMopper)gageStackBlurParmNix};
+static const hestCB _gageHestStackBlurParm = {sizeof(gageStackBlurParm *),
+                                              "stack blur specification",
+                                              _gageHestStackBlurParmParse,
+                                              (airMopper)gageStackBlurParmNix};
 
-hestCB *gageHestStackBlurParm = &_gageHestStackBlurParm;
+const hestCB *const gageHestStackBlurParm = &_gageHestStackBlurParm;
 
 static int
 _checkNrrd(Nrrd *const nblur[], const Nrrd *const ncheck[], unsigned int blNum,

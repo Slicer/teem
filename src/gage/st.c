@@ -26,7 +26,7 @@
 
 #define GAGE_CACHE_LEN 1013
 
-unsigned int
+static unsigned int
 _gageHash(int x, int y, int z) {
   unsigned int h, g;
   unsigned char s[6];
@@ -50,7 +50,7 @@ _gageHash(int x, int y, int z) {
   return h % GAGE_CACHE_LEN;
 }
 
-void
+static void
 _gageCacheProbe(gageContext *ctx, double *grad, int *cc, double *gc, int x, int y,
                 int z) {
   int hi;

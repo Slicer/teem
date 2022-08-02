@@ -30,7 +30,7 @@
 **
 ** the static array of item information for the scalar kind.
 */
-gageItemEntry
+static gageItemEntry
 _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   /* enum value        len,deriv,  prereqs,                                 parent item,  parent index,  needData */
   {gageSclUnknown,       0,  0,  {0},                                            0,               0,   AIR_FALSE},
@@ -72,7 +72,7 @@ _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   {gageSclHessMode,      1,  2,  {gageSclHessEval},                              0,               0,   AIR_FALSE}
 };
 
-const char *
+static const char *
 _gageSclStr[] = {
   "(unknown gageScl)",
   "value",
@@ -113,7 +113,7 @@ _gageSclStr[] = {
   "Hessian mode"
 };
 
-const char *
+static const char *
 _gageSclDesc[] = {
   "unknown gageScl query",
   "reconstructed scalar data value",
@@ -154,7 +154,7 @@ _gageSclDesc[] = {
   "mode of Hessian eigenvalues"
 };
 
-int
+static int
 _gageSclVal[] = {
   gageSclUnknown,
   gageSclValue,
@@ -232,7 +232,7 @@ _gageSclVal[] = {
 #define GS_PK  gageSclHessDotPeakness
 #define GS_HM  gageSclHessMode
 
-const char *
+static const char *
 _gageSclStrEqv[] = {
   "v", "val", "value",
   "gv", "gvec", "gradvec", "grad vec", "gradient vector",
@@ -274,7 +274,7 @@ _gageSclStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _gageSclValEqv[] = {
   GS_V, GS_V, GS_V,
   GS_GV, GS_GV, GS_GV, GS_GV, GS_GV,
@@ -314,7 +314,7 @@ _gageSclValEqv[] = {
   GS_HM, GS_HM, GS_HM
 };
 
-const airEnum
+static const airEnum
 _gageScl = {
   "gageScl",
   GAGE_SCL_ITEM_MAX,
@@ -326,7 +326,7 @@ _gageScl = {
 const airEnum *const
 gageScl = &_gageScl;
 
-gageKind
+static gageKind
 _gageKindScl = {
   AIR_FALSE, /* statically allocated */
   "scalar",
@@ -344,7 +344,7 @@ _gageKindScl = {
 gageKind *const
 gageKindScl = &_gageKindScl;
 
-const gageItemPack
+static const gageItemPack
 _gageItemPackSclValue = {
   &_gageKindScl,
   {gageSclUnknown,

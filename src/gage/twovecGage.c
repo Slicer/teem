@@ -25,7 +25,7 @@
 #include "privateGage.h"
 
 /* clang-format off */
-const char *
+static const char *
 _gage2VecStr[] = {
   "(unknown gage2Vec)",
   "vector",
@@ -34,7 +34,7 @@ _gage2VecStr[] = {
   "length",
 };
 
-const char *
+static const char *
 _gage2VecDesc[] = {
   "unknown gage2Vec query",
   "component-wise-interpolated vector",
@@ -43,7 +43,7 @@ _gage2VecDesc[] = {
   "length of vector",
 };
 
-const int
+static const int
 _gage2VecVal[] = {
   gage2VecUnknown,
   gage2VecVector,
@@ -57,7 +57,7 @@ _gage2VecVal[] = {
 #define GV_V1  gage2VecVector1
 #define GV_L   gage2VecLength
 
-const char *
+static const char *
 _gage2VecStrEqv[] = {
   "v", "vector", "vec",
   "v0", "vector0", "vec0",
@@ -66,7 +66,7 @@ _gage2VecStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _gage2VecValEqv[] = {
   GV_V, GV_V, GV_V,
   GV_V0, GV_V0, GV_V0,
@@ -74,7 +74,7 @@ _gage2VecValEqv[] = {
   GV_L, GV_L, GV_L,
 };
 
-const airEnum
+static const airEnum
 _gage2Vec = {
   "gage2Vec",
   GAGE_2VEC_ITEM_MAX,
@@ -86,7 +86,7 @@ _gage2Vec = {
 const airEnum *const
 gage2Vec = &_gage2Vec;
 
-gageItemEntry
+static gageItemEntry
 _gage2VecTable[GAGE_2VEC_ITEM_MAX+1] = {
   /* enum value         len, deriv, prereqs,                                                  parent item, parent index, needData */
   {gage2VecUnknown,        0,  0,   {0},                                                                0,      0,       AIR_FALSE},
@@ -96,7 +96,7 @@ _gage2VecTable[GAGE_2VEC_ITEM_MAX+1] = {
   {gage2VecLength,         1,  0,   {gage2VecVector},                                                   0,      0,       AIR_FALSE},
 };
 
-void
+static void
 _gage2VecFilter(gageContext *ctx, gagePerVolume *pvl) {
   static const char me[]="_gage2VecFilter";
   double *fw00, *fw11, *fw22, *vec;
@@ -140,7 +140,7 @@ _gage2VecFilter(gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
-void
+static void
 _gage2VecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   /* static const char me[]="_gage2VecAnswer"; */
   double *vecAns;
@@ -167,7 +167,7 @@ _gage2VecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
-void
+static void
 _gage2VecIv3Print (FILE *file, gageContext *ctx, gagePerVolume *pvl) {
 
   AIR_UNUSED(ctx);
@@ -175,7 +175,7 @@ _gage2VecIv3Print (FILE *file, gageContext *ctx, gagePerVolume *pvl) {
   fprintf(file, "_gage2VecIv3Print() not implemented\n");
 }
 
-gageKind
+static gageKind
 _gageKind2Vec = {
   AIR_FALSE, /* statically allocated */
   "2vector",

@@ -493,7 +493,7 @@ gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl) {
 }
 
 /*
-** gageIv3Fill()
+** _gageIv3Fill()
 **
 ** based on ctx's shape and radius, and the (xi,yi,zi) determined from
 ** the probe location, fills the iv3 cache in the given pervolume
@@ -505,9 +505,9 @@ gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl) {
 ** neighborhoods) did not noticeably speed anything up.
 **
 */
-void
-gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
-  static const char me[] = "gageIv3Fill";
+static void
+_gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
+  static const char me[] = "_gageIv3Fill";
   int lx, ly, lz, hx, hy, hz, _xx, _yy, _zz;
   unsigned int xx, yy, zz, fr, cacheIdx, dataIdx, fddd;
   unsigned int sx, sy, sz;
@@ -740,10 +740,10 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
     if (!ctx->parm.stackUse) {
       for (pvlIdx = 0; pvlIdx < ctx->pvlNum; pvlIdx++) {
         if (ctx->verbose > 3) {
-          fprintf(stderr, "%s: gageIv3Fill(pvl[%u/%u] %s): .......\n", me, pvlIdx,
+          fprintf(stderr, "%s: _gageIv3Fill(pvl[%u/%u] %s): .......\n", me, pvlIdx,
                   ctx->pvlNum, ctx->pvl[pvlIdx]->kind->name);
         }
-        gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
+        _gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
       }
     } else {
       for (pvlIdx = 0; pvlIdx < ctx->pvlNum - 1; pvlIdx++) {
@@ -757,7 +757,7 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
             fprintf(stderr, "%s: stackFw[%u] == %g -> iv3fill needed\n", me, pvlIdx,
                     ctx->stackFw[pvlIdx]);
           }
-          gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
+          _gageIv3Fill(ctx, ctx->pvl[pvlIdx]);
         } else {
           if (ctx->verbose > 3) {
             fprintf(stderr, "%s: stackFw[%u] == %g -> NO iv3fill\n", me, pvlIdx,

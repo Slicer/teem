@@ -37,7 +37,7 @@ const int gagePresent = 42;
 double gageZeroNormal[3] = {0, 0, 0};
 
 /* clang-format off */
-const char *
+static const char *
 _gageKernelStr[] = {
   "(unknown_kernel)",
   "00",
@@ -51,7 +51,7 @@ _gageKernelStr[] = {
   "stack"
 };
 
-const char *
+static const char *
 _gageKernelDesc[] = {
   "unknown kernel",
   "kernel for reconstructing values",
@@ -65,7 +65,7 @@ _gageKernelDesc[] = {
   "kernel for reconstruction across a stack"
 };
 
-const char *
+static const char *
 _gageKernelStrEqv[] = {
   "00", "k00",
   "10", "k10",
@@ -79,7 +79,7 @@ _gageKernelStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _gageKernelValEqv[] = {
   gageKernel00, gageKernel00,
   gageKernel10, gageKernel10,
@@ -92,7 +92,7 @@ _gageKernelValEqv[] = {
   gageKernelStack, gageKernelStack, gageKernelStack
 };
 
-const airEnum
+static const airEnum
 _gageKernel_enum = {
   "kernel",
   GAGE_KERNEL_MAX,
@@ -173,7 +173,7 @@ gageItemSpecNix(gageItemSpec *isp) {
 }
 
 /* clang-format off */
-const char *
+static const char *
 _gageErrStr[GAGE_ERR_MAX+1] = {
   "(unknown gageErr)",
   "none",
@@ -184,7 +184,7 @@ _gageErrStr[GAGE_ERR_MAX+1] = {
   "stack unused"
 };
 
-const airEnum
+static const airEnum
 _gageErr = {
   "gageErr",
   GAGE_ERR_MAX,
@@ -196,7 +196,7 @@ _gageErr = {
 const airEnum *const
 gageErr = &_gageErr;
 
-const char *
+static const char *
 _gageItemPackPartStr[] = {
   "(unknown_pack_part)",
   "scalar",
@@ -212,7 +212,7 @@ _gageItemPackPartStr[] = {
   "hessevec2"
 };
 
-const char *
+static const char *
 _gageItemPackPartDesc[] = {
   "unknown pack part",
   "the base scalar F",
@@ -228,7 +228,7 @@ _gageItemPackPartDesc[] = {
   "3rd eigenvector of Hessian of F"
 };
 
-const char *
+static const char *
 _gageItemPackPartStrEqv[] = {
   "scalar", "scl",
   "gradvec", "gvec",
@@ -244,7 +244,7 @@ _gageItemPackPartStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _gageItemPackPartValEqv[] = {
   gageItemPackPartScalar,      gageItemPackPartScalar,
   gageItemPackPartGradVec,     gageItemPackPartGradVec,
@@ -259,7 +259,7 @@ _gageItemPackPartValEqv[] = {
   gageItemPackPartHessEvec2,   gageItemPackPartHessEvec2,
 };
 
-const airEnum
+static const airEnum
 _gageItemPackPart_enum = {
   "pack part",
   GAGE_ITEM_PACK_PART_MAX,
