@@ -351,7 +351,7 @@ extern const coilKind _coilKind7Tensor;
 }
 #endif
 
-const coilKind*
+const coilKind* const
 coilKindArray[COIL_KIND_TYPE_MAX+1] = {
   NULL,
   &_coilKindScalar,

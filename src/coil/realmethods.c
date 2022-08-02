@@ -25,77 +25,63 @@
 /* clang-format off */
 
 /* ------------------------------------------ */
-const coilMethod
+static const coilMethod
 _coilMethodTesting = {
   "testing",
   coilMethodTypeTesting,
   0
 };
-const coilMethod*
-coilMethodTesting = &_coilMethodTesting;
 
 /* ------------------------------------------ */
-const coilMethod
+static const coilMethod
 _coilMethodHomogeneous = {
   "homogeneous",
   coilMethodTypeHomogeneous,
   1
 };
-const coilMethod*
-coilMethodHomogeneous = &_coilMethodHomogeneous;
 
 /* ------------------------------------------ */
-const coilMethod
+static const coilMethod
 _coilMethodPeronaMalik = {
   "perona-malik",
   coilMethodTypePeronaMalik,
   2
 };
-const coilMethod*
-coilMethodPeronaMalik = &_coilMethodPeronaMalik;
 
 /* ------------------------------------------ */
-const coilMethod
+static const coilMethod
 _coilMethodModifiedCurvature = {
   "modified-curvature",
   coilMethodTypeModifiedCurvature,
   3
 };
-const coilMethod*
-coilMethodModifiedCurvature = &_coilMethodModifiedCurvature;
 
 /* ------------------------------------------ */
-const coilMethod
+static const coilMethod
 _coilMethodModifiedCurvatureRings = {
   "modified-curvature-rings",
   coilMethodTypeModifiedCurvatureRings,
   6
 };
-const coilMethod*
-coilMethodModifiedCurvatureRings = &_coilMethodModifiedCurvatureRings;
 
 /* ------------------------------------------ */
-const coilMethod
+static const coilMethod
 _coilMethodSelf = {
   "self",
   coilMethodTypeSelf,
   1
 };
-const coilMethod*
-coilMethodSelf = &_coilMethodSelf;
 
 /* ------------------------------------------ */
-const coilMethod
+static const coilMethod
 _coilMethodFinish = {
   "finish",
   coilMethodTypeFinish,
   4
 };
-const coilMethod*
-coilMethodFinish = &_coilMethodFinish;
 
 /* ------------------------------------------ */
-const coilMethod*
+const coilMethod* const
 coilMethodArray[COIL_METHOD_TYPE_MAX+1] = {
   NULL,
   &_coilMethodTesting,
