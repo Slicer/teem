@@ -392,7 +392,8 @@ qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist, unsigned int *sz, in
 int
 qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist, unsigned int *sz,
              float *perc, Nrrd *nvghF) {
-  static const char me[] = "qbertMakeVgh", cmt[AIR_STRLEN_SMALL];
+  static const char me[] = "qbertMakeVgh";
+  char cmt[AIR_STRLEN_SMALL];
   double minv, maxv, ming, maxg, minh = 0, maxh = 0;
   int lose, *vhist, *ghist, *hhist = NULL, vi, gi, hi, doH;
   unsigned int i, nval, bins;
