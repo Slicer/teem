@@ -29,7 +29,7 @@ static const char *_baneGkms_opacInfoL
   = (OPAC_INFO ". Takes information from an \"info\" file and from a \"boundary "
                "emphasis function\" to generate 1D or 2D (depending on info file) "
                "opacity functions. ");
-int
+static int
 baneGkms_opacMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *perr, *befS;

@@ -30,7 +30,7 @@ static const char *_baneGkms_miteInfoL
                "command-line renderer.  This adds a \"stub\" axis 0, and setting the "
                "axis labels to identify the domain and range of the opacity function. "
                "The underlying opacity function is not modified.");
-int
+static int
 baneGkms_miteMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *perr;

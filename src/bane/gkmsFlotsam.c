@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2009--2019  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -34,7 +34,7 @@
 ** inc[0]: member of baneInc* enum
 ** inc[1], inc[2] ... : incParm[0], incParm[1] ...
 */
-int
+static int
 baneGkmsParseIncStrategy(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   static const char me[] = "baneGkmsParseIncStrategy";
   double *inc, *incParm;
@@ -81,9 +81,9 @@ baneGkmsParseIncStrategy(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) 
   return 1;
 }
 
-const hestCB _baneGkmsHestIncStrategy = {(1 + BANE_PARM_NUM) * sizeof(double),
-                                         "inclusion strategy", baneGkmsParseIncStrategy,
-                                         NULL};
+static const hestCB _baneGkmsHestIncStrategy = {(1 + BANE_PARM_NUM) * sizeof(double),
+                                                "inclusion strategy",
+                                                baneGkmsParseIncStrategy, NULL};
 
 const hestCB *const baneGkmsHestIncStrategy = &_baneGkmsHestIncStrategy;
 
@@ -91,7 +91,7 @@ const hestCB *const baneGkmsHestIncStrategy = &_baneGkmsHestIncStrategy;
 /* ----------------------------------------------------------- */
 /* ----------------------------------------------------------- */
 
-int
+static int
 baneGkmsParseBEF(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   static const char me[] = "baneGkmsParseBEF";
   char mesg[AIR_STRLEN_MED], *nerr;
@@ -155,8 +155,8 @@ baneGkmsParseBEF(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-const hestCB _baneGkmsHestBEF = {sizeof(Nrrd *), "boundary emphasis function",
-                                 baneGkmsParseBEF, (airMopper)nrrdNuke};
+static const hestCB _baneGkmsHestBEF = {sizeof(Nrrd *), "boundary emphasis function",
+                                        baneGkmsParseBEF, (airMopper)nrrdNuke};
 
 const hestCB *const baneGkmsHestBEF = &_baneGkmsHestBEF;
 
@@ -169,7 +169,7 @@ const hestCB *const baneGkmsHestBEF = &_baneGkmsHestBEF;
 **           0: absolute                 "<float>"
 ** gthr[1] = the scaling, or the absolute
 */
-int
+static int
 baneGkmsParseGthresh(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   static const char me[] = "baneGkmsParseGthresh";
   float *gthr;
@@ -196,8 +196,8 @@ baneGkmsParseGthresh(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-const hestCB _baneGkmsHestGthresh = {2 * sizeof(float), "gthresh specification",
-                                     baneGkmsParseGthresh, NULL};
+static const hestCB _baneGkmsHestGthresh = {2 * sizeof(float), "gthresh specification",
+                                            baneGkmsParseGthresh, NULL};
 
 const hestCB *const baneGkmsHestGthresh = &_baneGkmsHestGthresh;
 
@@ -211,7 +211,7 @@ const hestCB *const baneGkmsHestGthresh = &_baneGkmsHestGthresh;
 ** NULL-terminated array of unrrduCmd pointers, as ordered by
 ** BANE_GKMS_MAP macro
 */
-unrrduCmd *baneGkmsCmdList[] = {BANE_GKMS_MAP(BANE_GKMS_LIST) NULL};
+const unrrduCmd *const baneGkmsCmdList[] = {BANE_GKMS_MAP(BANE_GKMS_LIST) NULL};
 
 /*
 ******** baneGkmsUsage
@@ -260,7 +260,7 @@ _baneGkmsMeasrStr[] = {
   "mode"
 };
 
-const int
+static const int
 _baneGkmsMeasrVal[] = {
   nrrdMeasureUnknown,
   nrrdMeasureHistoMin,
@@ -270,7 +270,7 @@ _baneGkmsMeasrVal[] = {
   nrrdMeasureHistoMode
 };
 
-const airEnum
+static const airEnum
 _baneGkmsMeasr = {
   "measurement",
   5,

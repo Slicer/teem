@@ -90,7 +90,7 @@ static const char *_baneGkms_pvgInfoL
               "the \"position function\" in GK's published work, but a better term "
               "would be \"distance map\", as a function of value (v) and gradient "
               "magnitude (g).");
-int
+static int
 baneGkms_pvgMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *perr, *mapS;

@@ -30,11 +30,9 @@
 ** was freeing random stuff, but (and this is the weird part)
 ** only on some 1-D nrrds of 256 floats (pos1D info), and not others.
 */
-Nrrd *baneNpos = NULL;
+static Nrrd *baneNpos = NULL;
 
 #define TREX_LUTLEN 256
-
-float _baneTesting[256] = {0};
 
 float *
 baneTRexRead(char *fname) {

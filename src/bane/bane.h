@@ -371,7 +371,7 @@ BANE_EXPORT void baneTRexDone(void);
 BANE_EXPORT int baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq);
 
 /* gkms{Flotsam,Hvol,Scat,Pvg,Opac,Mite}.c */
-#define BANE_GKMS_DECLARE(C) BANE_EXPORT unrrduCmd baneGkms_##C##Cmd;
+#define BANE_GKMS_DECLARE(C) BANE_EXPORT const unrrduCmd baneGkms_##C##Cmd;
 #define BANE_GKMS_LIST(C)    &baneGkms_##C##Cmd,
 #define BANE_GKMS_MAP(F)                                                                \
   F(hvol)                                                                               \
@@ -383,7 +383,7 @@ BANE_EXPORT int baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq
   F(txf)
 BANE_GKMS_MAP(BANE_GKMS_DECLARE)
 BANE_EXPORT const airEnum *const baneGkmsMeasr;
-BANE_EXPORT unrrduCmd *baneGkmsCmdList[];
+BANE_EXPORT const unrrduCmd *const baneGkmsCmdList[];
 BANE_EXPORT void baneGkmsUsage(const char *me, hestParm *hparm);
 BANE_EXPORT const hestCB *const baneGkmsHestIncStrategy;
 BANE_EXPORT const hestCB *const baneGkmsHestBEF;
