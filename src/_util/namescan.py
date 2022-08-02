@@ -10,7 +10,7 @@ import subprocess
 import re
 
 # TODO: echo
-# still with curious symbols: air biff gage
+# still with curious symbols: air biff nrrd gage
 # done: hest ell alan tijk seek elf nrrd unrrdu moss dye bane limn ... hoover ten pull coil push mite meet
 
 verbose = 1
@@ -160,7 +160,7 @@ def declList(lib):
     else:
         hdrs = [pubH]
     if (verbose):
-        print(f"========== scanning {lib} headers {hdrs}... ")
+        print(f"========== scanning {lib} headers {hdrs} ... ")
     decl = {}
     for HN in hdrs:
         pub = (0 == hdrs.index(HN))
@@ -282,7 +282,7 @@ if __name__ == '__main__':
     if (verbose > 1):
         print('========== found declarations:', decl)
     for N in symb:
-        if 'D' == symb[N]['type']: print(f'HEY: {args.lib} lib has global {N}')
+        if 'D' == symb[N]['type']: print(f'--> {args.lib} lib has global variable {N}')
         symbT = symb[N]['type']
         if N in decl:
             declT = decl[N]
