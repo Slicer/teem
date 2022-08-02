@@ -112,8 +112,8 @@ MOSS_EXPORT int mossSamplerSample(double *val, mossSampler *smplr, double xPos,
                                   double yPos);
 
 /* hestMoss.c */
-MOSS_EXPORT hestCB *mossHestTransform;
-MOSS_EXPORT hestCB *mossHestOrigin;
+MOSS_EXPORT const hestCB *const mossHestTransform;
+MOSS_EXPORT const hestCB *const mossHestOrigin;
 
 /* xform.c */
 MOSS_EXPORT void mossMatPrint(FILE *f, const double *mat);

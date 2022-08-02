@@ -24,9 +24,10 @@
 #include "moss.h"
 #include "privateMoss.h"
 
-int
+static int
 _mossHestTransformParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "_mossHestTransformParse", *str;
+  static const char me[] = "_mossHestTransformParse";
+  char *str;
   double **matP, tx, ty, sx, sy, angle, mat[6], shf, sha;
   airArray *mop;
 
@@ -80,10 +81,10 @@ _mossHestTransformParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) 
   return 0;
 }
 
-hestCB _mossHestTransform = {sizeof(double *), "2D transform", _mossHestTransformParse,
-                             airFree};
+static const hestCB _mossHestTransform = {sizeof(double *), "2D transform",
+                                          _mossHestTransformParse, airFree};
 
-hestCB *mossHestTransform = &_mossHestTransform;
+const hestCB *const mossHestTransform = &_mossHestTransform;
 
 /* ----------------------------------------------------------------- */
 
@@ -94,9 +95,9 @@ hestCB *mossHestTransform = &_mossHestTransform;
 ** p(x,y): absolute pixel position --> val[3] = (0,x,y)
 ** u(x,y): position in unit box [0,1]x[0,1] --> val[3] = (1,x,y)
 */
-int
+static int
 _mossHestOriginParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "_mossHestOriginParse";
+  static const char me[] = "_mossHestOriginParse";
   double **valP;
   airArray *mop;
 
@@ -118,7 +119,7 @@ _mossHestOriginParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB _mossHestOrigin = {sizeof(double *), "origin specification", _mossHestOriginParse,
-                          airFree};
+static const hestCB _mossHestOrigin = {sizeof(double *), "origin specification",
+                                       _mossHestOriginParse, airFree};
 
-hestCB *mossHestOrigin = &_mossHestOrigin;
+const hestCB *const mossHestOrigin = &_mossHestOrigin;
