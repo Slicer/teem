@@ -9,9 +9,9 @@ import argparse
 import subprocess
 import re
 
-# TODO: dye bane limn echo
+# TODO: echo
 # still with curious symbols: air biff gage
-# done: hest ell alan tijk seek elf nrrd unrrdu moss ... hoover ten pull coil push mite meet
+# done: hest ell alan tijk seek elf nrrd unrrdu moss dye bane limn ... hoover ten pull coil push mite meet
 
 verbose = 1
 archDir = None
@@ -293,7 +293,10 @@ if __name__ == '__main__':
                     print(f"disaagree on {N} type (nm {symbT} vs .h {declT})")
         else:
             if ('unrrdu' == args.lib and re.match(r'unrrdu_\w+Cmd', N)) \
-                or ('ten' == args.lib and re.match(r'tend_\w+Cmd', N)):
+                or ('ten' == args.lib and re.match(r'tend_\w+Cmd', N)) \
+                or ('bane' == args.lib and re.match(r'baneGkms_\w+Cmd', N)) \
+                or ('limn' == args.lib and re.match(r'limnpu_\w+Cmd', N)) \
+                :
                 # actually it (probably!) is declared in a private header, via inscrutable macro
                 continue
             if ('ten' == args.lib and re.match('_tenQGL_', N)):
