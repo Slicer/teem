@@ -9,52 +9,57 @@ import argparse
 import subprocess
 import re
 
-# TODO: nrrd moss gage dye bane limn echo hoover ten pull coil
-# still with curious symbols: air biff
-# done: hest ell alan tijk seek elf unrrdu ... push mite meet
+# TODO: dye bane limn echo hoover ten pull
+# still with curious symbols: air biff gage
+# done: hest ell alan tijk seek elf nrrd unrrdu moss ... coil push mite meet
+
 verbose = 1
 archDir = None
 libDir = None
-allTypes = ['const', 'unsigned',
-            # manually generated list of Teem-derived types
-            'airLLong', 'airULLong', 'airArray', 'airEnum', 'airHeap', 'airFloat',
-            'airRandMTState', 'airThread', 'airThreadMutex',
-            'airThreadCond', 'airThreadBarrier',
-            'biffMsg',
-            'hestCB', 'hestParm', 'hestOpt',
-            'gzFile',
-            'NrrdEncoding', 'NrrdKernel', 'NrrdFormat', 'Nrrd', 'NrrdRange', 'NrrdIoState',
-            'NrrdIter', 'NrrdResampleContext', 'NrrdDeringContext', 'NrrdBoundarySpec',
-            'NrrdResampleInfo', 'NrrdKernelSpec',
-            'unrrduCmd',
-            'alanContext',
-            'mossSampler',
-            'tijk_type', 'tijk_refine_rank1_parm', 'tijk_refine_rankk_parm',
-            'tijk_approx_heur_parm',
-            'gageItemSpec', 'gageScl3PFilter_t', 'gageKind', 'gageItemPack', 'gageShape',
-            'gagePerVolume', 'gageOptimSigContext', 'gageStackBlurParm', 'gageContext',
-            'dyeColor', 'dyeConverter',
-            'baneRange', 'baneInc', 'baneClip', 'baneMeasr', 'baneHVolParm',
-            'limnLight', 'limnCamera', 'limnWindow', 'limnObject', 'limnPolyData',
-            'limnSplineTypeSpec', 'limnSpline', 'limnSplineTypeSpec', 'limnPoints', 'limnCBFPath',
-            'echoRTParm', 'echoGlobalState', 'echoThreadState', 'echoScene', 'echoObject',
-            '_echoRayIntxUV_t', '_echoIntxColor_t',
-            'hooverContext', 'hooverRenderBegin_t', 'hooverThreadBegin_t', 'hooverRenderEnd_t',
-            'hooverRayBegin_t', 'hooverSample_t', 'hooverRayEnd_t', 'hooverThreadEnd_t',
-            'seekContext',
-            'tenGradientParm', 'tenInterpParm', 'tenGlyphParm', 'tenEstimateContext',
-            'tenEvecRGBParm', 'tenFiberSingle', 'tenFiberContext', 'tenFiberMulti', 'tenModel',
-            'tenEMBimodalParm', 'tenExperSpec',
-            'elfMaximaContext',
-            'pullEnergy', 'pullEnergySpec', 'pullVolume', 'pullInfoSpec', 'pullContext',
-            'pullTrace', 'pullTraceMulti', 'pullTask', 'pullBin',
-            'coilKind', 'coilMethod', 'coilContext',
-            'pushContext', 'pushEnergy', 'pushEnergySpec', 'pushBin', 'pushTask', 'pushPoint',
-            'miteUser', 'miteShadeSpec', 'miteThread',
-            'meetPullVol', 'meetPullInfo',
-            # have to put these at end, since things like "int" will also match 'pushPoint' (!)
-            'int', 'void', 'double', 'float', 'char', 'short', 'size_t', 'FILE',
-            ]
+
+# All the types (and type qualifiers) we try to parse away
+# The list has to be sorted (from long to short) because things like 'int'
+# will also match 'pullPoint'
+allTypes = sorted(
+    ['const', 'unsigned',
+    'int', 'void', 'double', 'float', 'char', 'short', 'size_t', 'FILE',
+    # manually generated list of Teem-derived types
+    'airLLong', 'airULLong', 'airArray', 'airEnum', 'airHeap', 'airFloat',
+    'airRandMTState', 'airThread', 'airThreadMutex',
+    'airThreadCond', 'airThreadBarrier',
+    'biffMsg',
+    'hestCB', 'hestParm', 'hestOpt',
+    'gzFile',
+    'NrrdEncoding', 'NrrdKernel', 'NrrdFormat', 'Nrrd', 'NrrdRange', 'NrrdIoState',
+    'NrrdIter', 'NrrdResampleContext', 'NrrdDeringContext', 'NrrdBoundarySpec',
+    'NrrdResampleInfo', 'NrrdKernelSpec',
+    'unrrduCmd',
+    'alanContext',
+    'mossSampler',
+    'tijk_type', 'tijk_refine_rank1_parm', 'tijk_refine_rankk_parm',
+    'tijk_approx_heur_parm',
+    'gageItemSpec', 'gageScl3PFilter_t', 'gageKind', 'gageItemPack', 'gageShape',
+    'gagePerVolume', 'gageOptimSigContext', 'gageStackBlurParm', 'gageContext',
+    'dyeColor', 'dyeConverter',
+    'baneRange', 'baneInc', 'baneClip', 'baneMeasr', 'baneHVolParm',
+    'limnLight', 'limnCamera', 'limnWindow', 'limnObject', 'limnPolyData',
+    'limnSplineTypeSpec', 'limnSpline', 'limnSplineTypeSpec', 'limnPoints', 'limnCBFPath',
+    'echoRTParm', 'echoGlobalState', 'echoThreadState', 'echoScene', 'echoObject',
+    '_echoRayIntxUV_t', '_echoIntxColor_t',
+    'hooverContext', 'hooverRenderBegin_t', 'hooverThreadBegin_t', 'hooverRenderEnd_t',
+    'hooverRayBegin_t', 'hooverSample_t', 'hooverRayEnd_t', 'hooverThreadEnd_t',
+    'seekContext',
+    'tenGradientParm', 'tenInterpParm', 'tenGlyphParm', 'tenEstimateContext',
+    'tenEvecRGBParm', 'tenFiberSingle', 'tenFiberContext', 'tenFiberMulti', 'tenModel',
+    'tenEMBimodalParm', 'tenExperSpec',
+    'elfMaximaContext',
+    'pullEnergy', 'pullEnergySpec', 'pullVolume', 'pullInfoSpec', 'pullContext',
+    'pullTrace', 'pullTraceMulti', 'pullTask', 'pullBin',
+    'coilKind', 'coilMethod', 'coilContext',
+    'pushContext', 'pushEnergy', 'pushEnergySpec', 'pushBin', 'pushTask', 'pushPoint',
+    'miteUser', 'miteShadeSpec', 'miteThread',
+    'meetPullVol', 'meetPullInfo',
+    ], key=len, reverse=True)
 
 # the variable _ is (totally against python conventions) standing for some particular!
 # for interpreting "nm" output
@@ -237,6 +242,8 @@ def declList(lib):
                     decl[L[:-3]] = 'D'
                 elif L.endswith('();'):
                     decl[L[:-3]] = 'T'
+                elif L.startswith('gageScl3PFilter'):
+                    decl[L[:-1]] = 'T' # there's a functer typedef
                 elif L.endswith(';'):
                     decl[L[:-1]] = 'D'
                 else:
