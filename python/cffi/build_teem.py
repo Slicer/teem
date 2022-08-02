@@ -12,6 +12,16 @@ del _x, _y
 # With _teem.py, you should then be able to use the pre-generated teem.py to wrap around
 # _teem.py; teem.py turns biff errors into exceptions.
 
+# learned:
+# The C parser used by CFFI is modest, and can generate obscure error message
+# e.g. unrrdu.h use to declare all the unrrdu_fooCmd structs, with meta-macro use
+#   UNRRDU_MAP(UNRRDU_DECLARE)
+# and this led to error:
+#   File ". . ./site-packages/pycparser/plyparser.py", line 67, in _parse_error
+#     raise ParseError("%s: %s" % (coord, msg))
+#   pycparser.plyparser.ParseError: <cdef source string>: At end of input
+# (but this was made moot by moving this macro use to a private header)
+
 from cffi import FFI
 from os import path #, chdir
 # from pathlib import Path
@@ -224,14 +234,6 @@ def hdrProc(out, hf, hn):
     if (hn == 'nrrd.h'):
         # drop control of nrrdResample_t (no effect on API)
         dropAt('#if 0 /* float == nrrdResample_t; */', 9, lines)
-    if (hn == 'unrrdu.h'):
-        # Not removing these creates a problem for the modest CFFI C parser, especially
-        # since these macro definitions were removed from its input. The error message
-        # will be a rather cryptic:
-        #   File ". . ./site-packages/pycparser/plyparser.py", line 67, in _parse_error
-        #     raise ParseError("%s: %s" % (coord, msg))
-        # pycparser.plyparser.ParseError: <cdef source string>: At end of input
-        lines.remove('UNRRDU_MAP(UNRRDU_DECLARE)')
     if (hn == 'alan.h'):
         idx = dropAt('#if 1 /* float == alan_t */', 9, lines)
         lines.insert(idx, 'typedef float alan_t;')
