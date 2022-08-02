@@ -39,7 +39,7 @@ int qbertSaveAll = AIR_FALSE; /* can be used to save output of every stage */
 */
 int
 qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz, NrrdKernelSpec *uk) {
-  char me[] = "qbertSizeUp";
+  static const char me[] = "qbertSizeUp";
   int i, anyneed, need;
   ptrdiff_t padMin[3], padMax[3];
   NrrdResampleInfo *rsi;
@@ -130,7 +130,7 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz, NrrdKernelSpec *uk) {
 */
 int
 qbertSizeDown(Nrrd *nout, Nrrd *nin, unsigned int *sz, NrrdKernelSpec *dk) {
-  char me[] = "qbertSizeDown";
+  static const char me[] = "qbertSizeDown";
   NrrdResampleInfo *rsi;
   int need;
   unsigned int i;
@@ -197,7 +197,8 @@ qbertSizeDown(Nrrd *nout, Nrrd *nin, unsigned int *sz, NrrdKernelSpec *dk) {
 int
 qbertProbe(Nrrd *nout, Nrrd *nin, NrrdKernelSpec *k00, NrrdKernelSpec *k11,
            NrrdKernelSpec *k22, int doH, unsigned int *sz) {
-  char me[] = "qbertProbe", prog[AIR_STRLEN_SMALL];
+  static const char me[] = "qbertProbe";
+  char prog[AIR_STRLEN_SMALL];
   gageContext *ctx;
   gagePerVolume *pvl;
   const double *val, *gmag, *scnd;
@@ -291,7 +292,7 @@ qbertProbe(Nrrd *nout, Nrrd *nin, NrrdKernelSpec *k00, NrrdKernelSpec *k11,
 int
 qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist, unsigned int *sz, int bins,
                   Nrrd *nvghF, Nrrd *nin) {
-  char me[] = "qbertMakeVghHists";
+  static const char me[] = "qbertMakeVghHists";
   double minv, maxv, ming, maxg, minh = 0, maxh = 0;
   float *vghF;
   unsigned int i, nval;
@@ -391,7 +392,7 @@ qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist, unsigned int *sz, in
 int
 qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist, unsigned int *sz,
              float *perc, Nrrd *nvghF) {
-  char me[] = "qbertMakeVgh", cmt[AIR_STRLEN_SMALL];
+  static const char me[] = "qbertMakeVgh", cmt[AIR_STRLEN_SMALL];
   double minv, maxv, ming, maxg, minh = 0, maxh = 0;
   int lose, *vhist, *ghist, *hhist = NULL, vi, gi, hi, doH;
   unsigned int i, nval, bins;

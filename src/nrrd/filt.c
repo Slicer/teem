@@ -101,7 +101,7 @@ _nrrdCM_wtAlloc(int radius, float wght) {
 static void
 _nrrdCheapMedian1D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, int radius,
                    float wght, int bins, int mode, float *hist) {
-  /* static const char me[]="_nrrdCheapMedian1D"; */
+  /* static const char me[] = "_nrrdCheapMedian1D"; */
   size_t num;
   int X, I, idx, diam;
   float half, *wt;
@@ -152,7 +152,7 @@ _nrrdCheapMedian1D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, int radi
 static void
 _nrrdCheapMedian2D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, int radius,
                    float wght, int bins, int mode, float *hist) {
-  /* static const char me[]="_nrrdCheapMedian2D"; */
+  /* static const char me[] = "_nrrdCheapMedian2D"; */
   int X, Y, I, J;
   int sx, sy, idx, diam;
   float half, *wt;

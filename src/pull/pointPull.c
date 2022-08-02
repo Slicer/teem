@@ -618,7 +618,7 @@ pullProbe(pullTask *task, pullPoint *point) {
 
 static int
 _threshFail(const pullContext *pctx, const pullPoint *point, int info) {
-  /* static const char me[]="_threshFail"; */
+  /* static const char me[] = "_threshFail"; */
   double val;
   int ret;
 
@@ -794,7 +794,7 @@ finish:
 static void
 _pullUnitToWorld(const pullContext *pctx, const pullVolume *scaleVol, double wrld[4],
                  const double unit[4]) {
-  /* static const char me[]="_pullUnitToWorld"; */
+  /* static const char me[] = "_pullUnitToWorld"; */
 
   wrld[0] = AIR_AFFINE(0.0, unit[0], 1.0, pctx->bboxMin[0], pctx->bboxMax[0]);
   wrld[1] = AIR_AFFINE(0.0, unit[1], 1.0, pctx->bboxMin[1], pctx->bboxMax[1]);

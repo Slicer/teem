@@ -45,7 +45,7 @@
 */
 int
 ell_cubic(double root[3], double A, double B, double C, int newton) {
-  char me[] = "ell_cubic";
+  static const char me[] = "ell_cubic";
   double epsilon = 1.0E-11, AA, Q, R, QQQ, D, sqrt_D, der, u, v, x, theta, t, sub;
 
   /*

@@ -73,7 +73,7 @@ nrrdMinMaxSet(Nrrd *nrrd) {
 
 int
 nrrdMinMaxCleverSet(Nrrd *nrrd) {
-  static const char me[]="nrrdMinMaxCleverSet";
+  static const char me[] = "nrrdMinMaxCleverSet";
   double min, max;
 
   if (!nrrd) {

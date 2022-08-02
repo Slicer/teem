@@ -52,7 +52,7 @@ nrrdSRGBGammaInverse(double val) {
 int
 nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
                const NrrdRange *_range, double Gamma) {
-  static const char me[]="nrrdArithGamma", func[]="gamma";
+  static const char me[] = "nrrdArithGamma", func[] = "gamma";
   double val, min, max;
   size_t I, num;
   NrrdRange *range;
@@ -140,7 +140,7 @@ nrrdArithGamma(Nrrd *nout, const Nrrd *nin,
 int
 nrrdArithSRGBGamma(Nrrd *nout, const Nrrd *nin,
                    const NrrdRange *_range, int forward) {
-  static const char me[]="nrrdArithSRGBGamma", func[]="sRGBgamma";
+  static const char me[] = "nrrdArithSRGBGamma", func[] = "sRGBgamma";
   double val, min, max;
   size_t I, num;
   NrrdRange *range;
@@ -329,7 +329,7 @@ static double (*const _nrrdUnaryOp[NRRD_UNARY_OP_MAX+1])(double) = {
 
 int
 nrrdArithUnaryOp(Nrrd *nout, int op, const Nrrd *nin) {
-  static const char me[]="nrrdArithUnaryOp";
+  static const char me[] = "nrrdArithUnaryOp";
   size_t N, I;
   int size[NRRD_DIM_MAX];
   double (*insert)(void *v, size_t I, double d),
@@ -537,7 +537,7 @@ static double (*const _nrrdBinaryOp[NRRD_BINARY_OP_MAX+1])(double, double) = {
 */
 int
 nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
-  static const char me[]="nrrdArithBinaryOp";
+  static const char me[] = "nrrdArithBinaryOp";
   char *contA, *contB;
   size_t N, I, size[NRRD_DIM_MAX];
   double (*ins)(void *v, size_t I, double d), (*clmp)(double d),
@@ -626,7 +626,7 @@ int
 nrrdArithIterBinaryOpSelect(Nrrd *nout, int op,
                             NrrdIter *inA, NrrdIter *inB,
                             unsigned int which) {
-  static const char me[]="nrrdArithIterBinaryOpSelect";
+  static const char me[] = "nrrdArithIterBinaryOpSelect";
   char *contA, *contB;
   size_t N, I, size[NRRD_DIM_MAX];
   int type;
@@ -715,7 +715,7 @@ nrrdArithIterBinaryOpSelect(Nrrd *nout, int op,
 
 int
 nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
-  static const char me[]="nrrdArithIterBinaryOp";
+  static const char me[] = "nrrdArithIterBinaryOp";
   unsigned int which;
 
   if (!(nout && inA && inB)) {
@@ -853,7 +853,7 @@ static double (*const _nrrdTernaryOp[NRRD_TERNARY_OP_MAX+1])(double, double, dou
 int
 nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA,
                    const Nrrd *ninB, const Nrrd *ninC) {
-  static const char me[]="nrrdArithTernaryOp";
+  static const char me[] = "nrrdArithTernaryOp";
   char *contA, *contB, *contC;
   size_t N, I, size[NRRD_DIM_MAX];
   double (*ins)(void *v, size_t I, double d),
@@ -932,7 +932,7 @@ int
 nrrdArithIterTernaryOpSelect(Nrrd *nout, int op,
                              NrrdIter *inA, NrrdIter *inB, NrrdIter *inC,
                              unsigned int which) {
-  static const char me[]="nrrdArithIterTernaryOpSelect";
+  static const char me[] = "nrrdArithIterTernaryOpSelect";
   char *contA, *contB, *contC;
   size_t N, I, size[NRRD_DIM_MAX];
   int type;
@@ -1021,7 +1021,7 @@ nrrdArithIterTernaryOpSelect(Nrrd *nout, int op,
 int
 nrrdArithIterTernaryOp(Nrrd *nout, int op,
                        NrrdIter *inA, NrrdIter *inB, NrrdIter *inC) {
-  static const char me[]="nrrdArithIterTernaryOp";
+  static const char me[] = "nrrdArithIterTernaryOp";
   unsigned int which;
 
   if (!(nout && inA && inB && inC)) {
@@ -1050,7 +1050,7 @@ int
 nrrdArithAffine(Nrrd *nout, double minIn,
                 const Nrrd *nin, double maxIn,
                 double minOut, double maxOut, int clamp) {
-  static const char me[]="nrrdArithAffine";
+  static const char me[] = "nrrdArithAffine";
   size_t I, N;
   double (*ins)(void *v, size_t I, double d),
     (*lup)(const void *v, size_t I), mmin, mmax;
@@ -1094,7 +1094,7 @@ int
 nrrdArithIterAffine(Nrrd *nout, NrrdIter *minIn,
                     NrrdIter *in, NrrdIter *maxIn,
                     NrrdIter *minOut, NrrdIter *maxOut, int clamp) {
-  static const char me[]="nrrdArithInterAffine";
+  static const char me[] = "nrrdArithInterAffine";
   double (*ins)(void *v, size_t I, double d),
     mini, vin, maxi, mino, maxo, vout;
   const Nrrd *nin;

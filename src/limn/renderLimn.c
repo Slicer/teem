@@ -103,7 +103,7 @@ _limnPSEpilogue(limnObject *obj, limnCamera *cam, limnWindow *win) {
 void
 _limnPSDrawFace(limnObject *obj, limnFace *face, limnCamera *cam, Nrrd *nmap,
                 limnWindow *win) {
-  /* static const char me[]="_limnPSDrawFace"; */
+  /* static const char me[] = "_limnPSDrawFace"; */
   unsigned int vii;
   limnVertex *vert;
   limnLook *look;

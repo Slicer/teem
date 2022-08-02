@@ -335,7 +335,7 @@ _tenGageIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
 
 void
 _tenGageFilter(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_tenGageFilter";
+  static const char me[] = "_tenGageFilter";
   double *fw00, *fw11, *fw22, *ten, *tgrad, *thess;
   int fd;
   gageScl3PFilter_t *filter[5] = {NULL, gageScl3PFilter2, gageScl3PFilter4,
@@ -382,7 +382,7 @@ _tenGageFilter(gageContext *ctx, gagePerVolume *pvl) {
 
 void
 _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_tenGageAnswer";
+  static const char me[] = "_tenGageAnswer";
   double *tenAns, *evalAns, *evecAns, *vecTmp=NULL, *matTmp=NULL,
     *gradDtA=NULL, *gradDtB=NULL, *gradDtC=NULL,
     *gradDtD=NULL, *gradDtE=NULL, *gradDtF=NULL,

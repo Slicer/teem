@@ -138,7 +138,7 @@ airArrayPointerCB(airArray *a, void *(*allocCB)(void), void *(*freeCB)(void *)) 
 */
 void
 airArrayLenPreSet(airArray *a, unsigned int newlen) {
-  /* char me[]="airArrayLenPreSet"; */
+  /* static const char me[] = "airArrayLenPreSet"; */
   unsigned int newsize;
   void *newdata;
 
@@ -202,7 +202,7 @@ airArrayLenPreSet(airArray *a, unsigned int newlen) {
 */
 void
 airArrayLenSet(airArray *a, unsigned int newlen) {
-  /* char me[]="airArrayLenSet"; */
+  /* static const char me[] = "airArrayLenSet"; */
   unsigned int ii, newsize;
   void *addr, *newdata;
 
@@ -290,7 +290,7 @@ airArrayLenSet(airArray *a, unsigned int newlen) {
 */
 unsigned int
 airArrayLenIncr(airArray *a, int delta) {
-  /* char me[]="airArrayLenIncr"; */
+  /* static const char me[] = "airArrayLenIncr"; */
   unsigned int oldlen, ret, negdel;
 
   if (!a) {

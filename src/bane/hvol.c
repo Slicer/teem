@@ -472,7 +472,7 @@ baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc) {
 /*
 int
 baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
-  static const char me[]="baneApplyMeasr";
+  static const char me[] = "baneApplyMeasr";
   int sx, sy, sz, x, y, z, marg;
   baneMeasrType msr;
   nrrdBigInt idx;

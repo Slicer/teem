@@ -73,7 +73,7 @@ limnPointsNix(limnPoints *lpnt) {
 
 static int
 pointsCheck(const limnPoints *lpnt) {
-  const char me[] = "pointsCheck";
+  static const char me[] = "pointsCheck";
   uint pnmin;
   int have;
 
@@ -213,7 +213,7 @@ limnCBFPathSample(double *xy, uint pNum, const limnCBFPath *path) {
 static void
 findVT(double vv[2], double tt[2], const limnCBFContext *fctx, const limnPoints *lpnt,
        uint loi, uint hii, uint ii, int dir) {
-  /* const char me[]="findVT"; */
+  /* static const char me[] = "findVT"; */
   double len;
   uint pNum, /* total number of points in lpnts */
     sgsz;    /* segment size: number of points in [loi,hii] */
@@ -392,7 +392,7 @@ static void
 findalpha(double alpha[2], limnCBFContext *fctx, /* must be non-NULL */
           const double vv0[2], const double tt1[2], const double tt2[2],
           const double vv3[2], const limnPoints *lpnt, uint loi, uint hii) {
-  const char me[] = "findalpha";
+  static const char me[] = "findalpha";
   uint ii, pNum;
   double det;
 
@@ -462,7 +462,7 @@ reparm(const limnCBFContext *fctx, /* must be non-NULL */
        const double alpha[2], const double vv0[2], const double tt1[2],
        const double tt2[2], const double vv3[2], const limnPoints *lpnt, uint loi,
        uint hii) {
-  const char me[] = "reparm";
+  static const char me[] = "reparm";
   uint ii, pNum;
   double vv1[2], vv2[2], delta, maxdelu;
   double *uu = fctx->uu;
@@ -588,7 +588,7 @@ limnCBFContextInit(limnCBFContext *fctx, int outputOnly) {
 */
 int
 limnCBFCheck(const limnCBFContext *fctx, const limnPoints *lpnt) {
-  const char me[] = "limnCBFCheck";
+  static const char me[] = "limnCBFCheck";
 
   if (!(fctx && lpnt)) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
@@ -760,7 +760,7 @@ fitSingle(double alpha[2], limnCBFContext *fctx, const double vv0[2],
 */
 static int
 buffersNew(limnCBFContext *fctx, uint pNum) {
-  const char me[] = "buffers";
+  static const char me[] = "buffersNew";
   double kw, kparm[2], vsum, tsum, scl = fctx->scale;
   /* one: what value in summing kernel weights should count as 1.0. This
      should probably be a parm in fctx, but not very interesting to
@@ -861,7 +861,7 @@ int
 limnCBFitSingle(double alpha[2], limnCBFContext *_fctx, const double _vv0[2],
                 const double _tt1[2], const double _tt2[2], const double _vv3[2],
                 const double *xy, uint pNum, int isLoop) {
-  const char me[] = "limnCBFSingle";
+  static const char me[] = "limnCBFSingle";
   double own, vv0[2], tt1[2], tt2[2], vv3[2];
   uint loi, hii;
   limnCBFContext *fctx, myfctx;
@@ -952,7 +952,7 @@ int
 limnCBFMulti(limnCBFPath *path, limnCBFContext *fctx, const double _vv0[2],
              const double _tt1[2], const double _tt2[2], const double _vv3[2],
              const limnPoints *lpnt, uint loi, uint hii) {
-  const char me[] = "limnCBFMulti";
+  static const char me[] = "limnCBFMulti";
   double vv0[2], tt1[2], tt2[2], vv3[2], alpha[2];
   /* &ownbuff determines who frees buffers inside fctx, since each
      function call will have distinct stack location for ownbuff */
@@ -1053,7 +1053,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFContext *fctx, const double _vv0[2],
 int
 limnCBFCorners(uint **cornIdx, uint *cornNum, limnCBFContext *fctx,
                const limnPoints *lpnt) {
-  const char me[] = "limnCBFCorners";
+  static const char me[] = "limnCBFCorners";
   airArray *mop, *cornArr;
   double ownbuff, *angle;
   uint ii, pNum, loi, hii;
@@ -1123,7 +1123,7 @@ limnCBFCorners(uint **cornIdx, uint *cornNum, limnCBFContext *fctx,
 int
 limnCBFit(limnCBFPath *path, limnCBFContext *fctx, const double *xy, uint pNum,
           int isLoop) {
-  const char me[] = "limnFctxt";
+  static const char me[] = "limnCBFit";
   uint *cornIdx = NULL, cornNum = 0, cii, loi, hii;
   limnCBFPath *rpth;
   limnPoints *lpnt;

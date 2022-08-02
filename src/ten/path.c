@@ -528,7 +528,7 @@ _tenInterpGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata, unsigned i
 
 void
 _tenInterpGeoLoxIGRT(double *igrt, double *ten, int useK, int rotNoop, double minnorm) {
-  /* static const char me[]="_tenInterpGeoLoxIGRT"; */
+  /* static const char me[] = "_tenInterpGeoLoxIGRT"; */
   double eval[3], evec[9];
 
   if (useK) {
@@ -604,7 +604,7 @@ tenInterpPathLength(Nrrd *ntt, int doubleVerts, int fancy, int shape) {
 
 double
 _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
-  /* static const char me[]="_tenPathSpacingEqualize"; */
+  /* static const char me[] = "_tenPathSpacingEqualize"; */
   double *in, *out, len, diff[7], lenTotal, /* total length of input */
     lenStep, /* correct length on input polyline between output vertices */
     lenIn,   /* length along input processed so far */

@@ -227,7 +227,7 @@ nrrdKeyValueGet(const Nrrd *nrrd, const char *key) {
 void
 _nrrdWriteEscaped(FILE *file, char *dst, const char *str, const char *toescape,
                   const char *tospace) {
-  /* static const char me[]="_nrrdWriteEscaped"; */
+  /* static const char me[] = "_nrrdWriteEscaped"; */
   size_t ci, gslen; /* given strlen */
 
   gslen = strlen(str);

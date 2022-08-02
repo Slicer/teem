@@ -378,7 +378,7 @@ gageScl3PFilterN(gageShape *shape, int fd, double *ivX, double *ivY, double *ivZ
 
 void
 _gageSclFilter(gageContext *ctx, gagePerVolume *pvl) {
-  char me[] = "_gageSclFilter";
+  static const char me[] = "_gageSclFilter";
   int fd;
   double *fw00, *fw11, *fw22;
   gageScl3PFilter_t *filter[5] = {NULL, gageScl3PFilter2, gageScl3PFilter4,

@@ -77,7 +77,7 @@
 */
 int
 ell_quadratic(double root[2], double A, double B, double C) {
-  /* static const char me[]="ell_quadratic"; */
+  /* static const char me[] = "ell_quadratic"; */
   int ret;
   double disc, rd, tmp, eps = 1.0E-12;
 
@@ -116,7 +116,7 @@ ell_2m_eigenvalues_d(double eval[2], const double m[4]) {
 
 void
 ell_2m_1d_nullspace_d(double ans[2], const double _n[4]) {
-  /* static const char me[]="ell_2m_1d_nullspace_d"; */
+  /* static const char me[] = "ell_2m_1d_nullspace_d"; */
   double n[4], dot, len, rowv[2];
 
   ELL_4V_COPY(n, _n);
@@ -152,7 +152,7 @@ ell_2m_1d_nullspace_d(double ans[2], const double _n[4]) {
 */
 int
 ell_2m_eigensolve_d(double eval[2], double evec[4], const double m[4]) {
-  /* static const char me[]="ell_2m_eigensolve_d"; */
+  /* static const char me[] = "ell_2m_eigensolve_d"; */
   double nul[4], ident[4] = {1, 0, 0, 1};
   int ret;
 
@@ -539,7 +539,7 @@ int
 ell_3m2sub_eigenvalues_d(double eval[3], const double _m[9]) {
   double A, B, m[4], D, Dsq, eps = 1.0E-11;
   int roots;
-  /* static const char me[]="ell_3m2sub_eigenvalues_d"; */
+  /* static const char me[] = "ell_3m2sub_eigenvalues_d"; */
 
   m[0] = _m[0];
   m[1] = _m[1];
@@ -756,7 +756,7 @@ _compar(const void *A_void, const void *B_void) {
 int
 ell_6ms_eigensolve_d(double eval[6], double _evec[36], const double sym[21],
                      const double eps) {
-  /* char me[]="ell_6ms_eigensolve_d"; */
+  /* static const char me[] = "ell_6ms_eigensolve_d"; */
   double mat[2][6][6], evec[2][6][6], sumon, sumoff, evtmp[12];
   unsigned int cur, rrI, ccI, maxI[2], iter;
 

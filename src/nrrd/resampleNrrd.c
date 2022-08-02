@@ -204,7 +204,7 @@ _nrrdResampleComputePermute(unsigned int permute[],
                             unsigned int *passes,
                             const Nrrd *nin,
                             const NrrdResampleInfo *info) {
-  /* char me[]="_nrrdResampleComputePermute"; */
+  /* static const char me[] = "_nrrdResampleComputePermute"; */
   unsigned int bi, ai, pi;
 
   /* what are the first (top) and last (bottom) axes being resampled? */

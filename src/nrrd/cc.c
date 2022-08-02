@@ -40,7 +40,7 @@ static int _nrrdCC_EqvIncr = 10000; /* HEY: this has to be big so that ccfind is
 
 static int
 _nrrdCCFind_1(Nrrd *nout, unsigned int *numid, const Nrrd *nin) {
-  /* static const char me[]="_nrrdCCFind_1"; */
+  /* static const char me[] = "_nrrdCCFind_1"; */
   unsigned int sx, I, id, lval, val, *out, (*lup)(const void *, size_t);
 
   lup = nrrdUILookup[nin->type];
@@ -167,7 +167,7 @@ _nrrdCCFind_2(Nrrd *nout, unsigned int *numid, airArray *eqvArr, const Nrrd *nin
 static int
 _nrrdCCFind_3(Nrrd *nout, unsigned int *numid, airArray *eqvArr, const Nrrd *nin,
               unsigned int conny) {
-  /* static const char me[]="_nrrdCCFind_3" ; */
+  /* static const char me[] = "_nrrdCCFind_3" ; */
   double pvl[14] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, vl = 0;
   unsigned int id, *out, (*lup)(const void *, size_t),
     pid[14] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

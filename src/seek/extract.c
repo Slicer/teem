@@ -649,7 +649,7 @@ vvalIsoSet(seekContext *sctx, baggage *bag, double vval[8], unsigned int xi,
 static void
 vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8], unsigned int xi,
             unsigned int yi) {
-  /* static const char me[]="vvalSurfSet"; */
+  /* static const char me[] = "vvalSurfSet"; */
   double evec[8][3], grad[8][3], stng[8], maxStrength = 0;
   signed char flip[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, flipProd;
   unsigned int sx, si, vi, ei, vrti[8];
@@ -725,7 +725,7 @@ vvalSurfSet(seekContext *sctx, baggage *bag, double vval[8], unsigned int xi,
 
 static int
 triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
-  /* static const char me[]="triangulate"; */
+  /* static const char me[] = "triangulate"; */
   unsigned xi, yi, sx, sy, si, spi;
   /* ========================================================== */
   /* NOTE: these things must agree with information in tables.c */

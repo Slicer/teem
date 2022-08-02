@@ -164,7 +164,7 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta,
                                        int xi, int yi, int zi,
                                        coil_t **iv3, double spacing[3],
                                        double parm[COIL_PARMS_NUM]) {
-  /* char me[]="_coilKindScalarFilterModifiedCurvature"; */
+  /* static const char me[] = "_coilKindScalarFilterModifiedCurvature"; */
   coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3],
     grad[3], gm, eps, KK, LL, denom, rspX, rspY, rspZ, lerp;
 

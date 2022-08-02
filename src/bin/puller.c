@@ -106,7 +106,8 @@ isovalue_cb(fltk::Widget *widget, pullBag *bag) {
 
 void
 outputGet(pullBag *bag) {
-  char me[] = "outputGet", *err;
+  static const char me[] = "outputGet";
+  char *err;
   size_t cropMin[2], cropMax[2];
 
   if (pullOutputGet(bag->nPosOut, bag->nTenOut, bag->nstrn, /* may be NULL */
@@ -160,7 +161,8 @@ outputGet(pullBag *bag) {
 /* ... DEFT ... */
 void
 outputShow(pullBag *bag) {
-  char me[] = "outputShow", *err;
+  static const char me[] = "outputShow";
+  char *err;
   float *rgb;
   unsigned int ii, nn, *idcc;
   unsigned char *stuck;
@@ -380,7 +382,8 @@ iter_cb(void *_bag) {
 void
 step_cb(fltk::Widget *, pullBag *bag) {
   /*  static double lastthresh = -42; */
-  char me[] = "step_cb", *err;
+  static const char me[] = "step_cb";
+  char *err;
   static unsigned int itersTotal = 0;
 
   unsigned int iters = bag->iters->ivalue();
@@ -408,7 +411,7 @@ step_cb(fltk::Widget *, pullBag *bag) {
 
 void
 gammaSet_cb(fltk::Widget *, pullBag *bag) {
-  char me[] = "gammaSet_cb";
+  static const char me[] = "gammaSet_cb";
 
   if (pullGammaLearn(bag->pctx)) {
     char *err = biffGetDone(PULL);
@@ -425,7 +428,7 @@ gammaSet_cb(fltk::Widget *, pullBag *bag) {
 
 void
 cc_cb(fltk::Widget *, pullBag *bag) {
-  char me[] = "cc_cb";
+  static const char me[] = "cc_cb";
   unsigned int cc;
   float *rgb;
 

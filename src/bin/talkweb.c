@@ -129,7 +129,7 @@ tkwbReadFileToString(char **strP, int *hitEOF, FILE *file, char *stop) {
 
 int
 tkwbReadTemplate(char **tmplSP, char *filename) {
-  char me[] = "tkwbReadTemplate";
+  static const char me[] = "tkwbReadTemplate";
   FILE *file;
   airArray *mop;
 

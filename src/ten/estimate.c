@@ -707,7 +707,7 @@ _tenEstimateDwiAllocUpdate(tenEstimateContext *tec) {
 
 int
 _tenEstimateAllSetUpdate(tenEstimateContext *tec) {
-  /* static const char me[]="_tenEstimateAllSetUpdate"; */
+  /* static const char me[] = "_tenEstimateAllSetUpdate"; */
   /* unsigned int skipListIdx, skipIdx, skip, dwiIdx */;
 
   if (tec->flag[flagAllAlloc] || tec->flag[flagDwiNum]) {
@@ -717,7 +717,7 @@ _tenEstimateAllSetUpdate(tenEstimateContext *tec) {
 
 int
 _tenEstimateDwiSetUpdate(tenEstimateContext *tec) {
-  /* static const char me[]="_tenEstimateDwiSetUpdate"; */
+  /* static const char me[] = "_tenEstimateDwiSetUpdate"; */
   double (*lup)(const void *, size_t I), gg[3], *bmat;
   unsigned int allIdx, dwiIdx, bmIdx;
 
@@ -762,7 +762,7 @@ _tenEstimateDwiSetUpdate(tenEstimateContext *tec) {
 
 int
 _tenEstimateWghtUpdate(tenEstimateContext *tec) {
-  /* static const char me[]="_tenEstimateWghtUpdate"; */
+  /* static const char me[] = "_tenEstimateWghtUpdate"; */
   unsigned int dwiIdx;
   double *wght;
 

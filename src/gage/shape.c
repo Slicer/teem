@@ -436,7 +436,7 @@ gageShapeUnitWtoI(gageShape *shape, double indx[3], double world[3]) {
 
 void
 gageShapeWtoI(const gageShape *shape, double _indx[3], const double _world[3]) {
-  /* static const char me[]="gageShapeWtoI"; */
+  /* static const char me[] = "gageShapeWtoI"; */
   double indx[4], world[4];
 
   /*
@@ -518,7 +518,7 @@ gageShapeEqual(const gageShape *shape1, const char *_name1, const gageShape *sha
 
 void
 gageShapeBoundingBox(double min[3], double max[3], const gageShape *shape) {
-  /* static const char me[]="gageShapeBoundingBox"; */
+  /* static const char me[] = "gageShapeBoundingBox"; */
   double minIdx[3], maxIdx[3], cornerIdx[8][3], tmp[3];
   unsigned int ii;
 

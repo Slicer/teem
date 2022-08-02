@@ -59,7 +59,7 @@ hooverStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo, int uInde
   AIR_UNUSED(rayDirWorld);
   AIR_UNUSED(rayDirIndex);
   /*
-  char me[]="hooverStubRayBegin";
+  static const char me[] = "hooverStubRayBegin";
   fprintf(stderr, "%s: ray(%d,%d), len=%g\n"
           "  start=(%g,%g,%g)\n"
           "  dir=(%g,%g,%g)\n",
@@ -86,7 +86,7 @@ hooverStubSample(void *threadInfo, void *renderInfo, void *userInfo, int num,
   AIR_UNUSED(samplePosIndex);
 
   /*
-  char me[]="hooverStubSample";
+  static const char me[] = "hooverStubSample";
   fprintf(stderr, "%s:      sample(%g,%g,%g)\n", me,
           samplePosWorld[0], samplePosWorld[1], samplePosWorld[2]);
   */

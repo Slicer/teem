@@ -64,7 +64,7 @@ static void
 flipNeighborsGet(Nrrd *nTriWithVert, Nrrd *nVertWithTri, unsigned int neighGot[3],
                  unsigned int neighInfo[3][3], unsigned int *intxBuff,
                  unsigned int triIdx) {
-  /* static const char me[]="flipNeighborsGet"; */
+  /* static const char me[] = "flipNeighborsGet"; */
   unsigned int intxNum, vertA, vertB, neighIdx, maxTriPerVert, *vertWithTri,
     *triWithVert;
   int ii;
@@ -141,7 +141,7 @@ static unsigned int
 neighborsCheckPush(Nrrd *nTriWithVert, Nrrd *nVertWithTri, unsigned char *triDone,
                    airArray *okayArr, unsigned int *intxBuff, airArray *splitArr,
                    unsigned int triIdx, int splitting) {
-  /* static const char me[]="neighborsCheckPush"; */
+  /* static const char me[] = "neighborsCheckPush"; */
   unsigned int neighGot[3], neighInfo[3][3], ii, *okay, okayIdx, *vertWithTri, pushedNum;
 
   vertWithTri = AIR_CAST(unsigned int *, nVertWithTri->data);
@@ -506,7 +506,7 @@ static unsigned int
 splitTriSweep(unsigned int *sweep, unsigned int triStart, unsigned int vertPivot,
               unsigned int vertStart, unsigned int triStop0, unsigned int triStop1,
               Nrrd *nTriWithVert, Nrrd *nVertWithTri) {
-  /* static const char me[]="splitTriSweep"; */
+  /* static const char me[] = "splitTriSweep"; */
   unsigned int sweepLen;
   unsigned int maxTriPerVert, *triWithVert, *vertWithTri, *triLine, *vertLine, triCurr,
     vertLast, vertNext;

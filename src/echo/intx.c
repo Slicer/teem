@@ -537,7 +537,7 @@ _echoRayIntx_AABBox(RAYINTX_ARGS(AABBox)) {
 
 static int
 _echoRayIntx_Split(RAYINTX_ARGS(Split)) {
-  char me[] = "_echoRayIntx_Split";
+  static const char me[] = "_echoRayIntx_Split";
   echoObject *a, *b;
   echoPos_t *mina, *minb, *maxa, *maxb, t, tmax;
   int ret;

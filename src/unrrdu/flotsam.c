@@ -469,7 +469,7 @@ const hestCB unrrduHestBitsCB = {sizeof(int), "quantization bits", parseBits, NU
 */
 static int
 parseScale(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "parseScale";
+  static const char me[] = "parseScale";
   double *scale;
   unsigned int num;
 
@@ -556,7 +556,7 @@ maybeFclose(void *_file) {
 
 static int
 parseFile(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "parseFile";
+  static const char me[] = "parseFile";
   FILE **fileP;
 
   if (!(ptr && str)) {

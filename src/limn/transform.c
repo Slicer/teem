@@ -98,7 +98,7 @@ limnObjectFaceNormals(limnObject *obj, int space) {
 
 int
 limnObjectVertexNormals(limnObject *obj) {
-  /* static const char me[]="limnObjectVertexNormals"; */
+  /* static const char me[] = "limnObjectVertexNormals"; */
   unsigned int vertIdx, vertIdxIdx, faceIdx;
   limnVertex *vert;
   limnFace *face;

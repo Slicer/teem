@@ -686,7 +686,7 @@ tenModelNllFit(Nrrd *nparm, Nrrd **nnllP, const tenModel *model,
 int
 tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
                 const Nrrd *nparmSrc, const tenModel *_modelSrc) {
-  static char me[] = "tenModelConvert";
+  static const char me[] = "tenModelConvert";
   const tenModel *modelSrc;
   double *dpdst, *dpsrc, (*lup)(const void *v, size_t I),
     (*ins)(void *v, size_t I, double d);

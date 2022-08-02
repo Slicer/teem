@@ -748,7 +748,7 @@ _tenEvalSkewnessGradient_d(double skw[7],
                            const double perp2[7],
                            const double ten[7],
                            const double minnorm) {
-  /* static const char me[]="_tenEvalSkewnessGradient_d"; */
+  /* static const char me[] = "_tenEvalSkewnessGradient_d"; */
   double dot, scl, norm;
 
   /* start with gradient of determinant */

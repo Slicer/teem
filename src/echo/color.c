@@ -285,7 +285,7 @@ _echoRefract(echoPos_t T[3], echoPos_t V[3], echoPos_t N[3], echoCol_t indexr,
 
 void
 _echoIntxColorGlass(INTXCOLOR_ARGS) {
-  char me[] = "_echoIntxColorGlass";
+  static const char me[] = "_echoIntxColorGlass";
   echoCol_t ambi[3], diff[3], ka, kd, RP, RS, RT, R0,
     indexr,     /* (index of material we're going into) /
                    (index of material we're leaving) */

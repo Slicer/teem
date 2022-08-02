@@ -323,7 +323,7 @@ seekItemStrengthSet(seekContext *sctx, int item) {
 */
 int
 seekItemHessSet(seekContext *sctx, int item) {
-  char me[] = "seekItemHessSet";
+  static const char me[] = "seekItemHessSet";
 
   if (itemCheck(sctx, item, 9)) {
     biffAddf(SEEK, "%s: trouble", me);
@@ -440,7 +440,7 @@ seekIsovalueSet(seekContext *sctx, double isovalue) {
 */
 int
 seekEvalDiffThreshSet(seekContext *sctx, double evalDiffThresh) {
-  char me[] = "seekEvalDiffThreshSet";
+  static const char me[] = "seekEvalDiffThreshSet";
 
   if (!sctx) {
     biffAddf(SEEK, "%s: got NULL pointer", me);

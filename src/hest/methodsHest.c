@@ -182,7 +182,8 @@ hestOptFree(hestOpt *opt) {
 
 int
 hestOptCheck(hestOpt *opt, char **errP) {
-  char *err, me[] = "hestOptCheck";
+  static const char me[] = "hestOptCheck";
+  char *err;
   hestParm *parm;
   int big;
 

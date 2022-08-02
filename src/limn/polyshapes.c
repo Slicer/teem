@@ -29,7 +29,7 @@ int
 limnPolyDataCube(limnPolyData *pld,
                  unsigned int infoBitFlag,
                  int sharpEdge) {
-  static const char me[]="limnPolyDataCube";
+  static const char me[] = "limnPolyDataCube";
   unsigned int vertNum, vertIdx, primNum, indxNum, cnum, ci;
 
   vertNum = sharpEdge ? 6*4 : 8;
@@ -139,7 +139,7 @@ int
 limnPolyDataCubeTriangles(limnPolyData *pld,
                           unsigned int infoBitFlag,
                           int sharpEdge) {
-  static const char me[]="limnPolyDataCubeTriangles";
+  static const char me[] = "limnPolyDataCubeTriangles";
   unsigned int vertNum, vertIdx, primNum, indxNum, cnum, ci;
 
   vertNum = sharpEdge ? 6*4 : 8;
@@ -349,7 +349,7 @@ int
 limnPolyDataOctahedron(limnPolyData *pld,
                        unsigned int infoBitFlag,
                        int sharpEdge) {
-  static const char me[]="limnPolyDataOctahedron";
+  static const char me[] = "limnPolyDataOctahedron";
   unsigned int vertNum, vertIdx, primNum, indxNum, cnum, ci;
 
   vertNum = sharpEdge ? 4*6 : 6;

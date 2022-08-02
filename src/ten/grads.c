@@ -186,7 +186,7 @@ tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist) {
 void
 tenGradientMeasure(double *pot, double *minAngle, double *minEdge, const Nrrd *npos,
                    tenGradientParm *tgparm, int edgeNormalize) {
-  /* static const char me[]="tenGradientMeasure"; */
+  /* static const char me[] = "tenGradientMeasure"; */
   double diff[3], *pos, atmp = 0, ptmp, edge, len;
   unsigned int ii, jj, num;
 
@@ -277,7 +277,7 @@ tenGradientMeasure(double *pot, double *minAngle, double *minEdge, const Nrrd *n
 int
 _tenGradientUpdate(double *meanVel, double *edgeMin, Nrrd *npos, double edge,
                    tenGradientParm *tgparm) {
-  /* static const char me[]="_tenGradientUpdate"; */
+  /* static const char me[] = "_tenGradientUpdate"; */
   double *pos, newpos[3], grad[3], ngrad[3], dir[3], len, rep, step, diff[3], limit,
     expo;
   int num, ii, jj, E;

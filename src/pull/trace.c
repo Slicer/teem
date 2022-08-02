@@ -84,7 +84,7 @@ pullTraceStability(double *spcStab,
   /*
   static double maxvelo = 0;
   if (1 && vv > maxvelo) {
-    char me[]="pullTraceStability";
+    static const char me[] = "pullTraceStability";
     printf("\n%s: [%g,%g,%g,%g] - [%g,%g,%g,%g] = [%g,%g,%g,%g]\n", me,
            pos0[0], pos0[1], pos0[2], pos0[3],
            pos1[0], pos1[1], pos1[2], pos1[3],
@@ -653,7 +653,7 @@ typedef union {
 
 pullTraceMulti *
 pullTraceMultiNew(void) {
-  /* static const char me[]="pullTraceMultiNew"; */
+  /* static const char me[] = "pullTraceMultiNew"; */
   pullTraceMulti *ret;
   blahblahUnion bbu;
 

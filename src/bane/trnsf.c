@@ -357,7 +357,7 @@ baneOpacCalcA(unsigned int lutLen, float *opacLut, unsigned int numCpts, float *
 void
 baneOpacCalcB(unsigned int lutLen, float *opacLut, unsigned int numCpts, float *x,
               float *o, float *pos) {
-  /* static const char me[]="baneOpacCalcB"; */
+  /* static const char me[] = "baneOpacCalcB"; */
   unsigned int i, j;
   double p, op;
 

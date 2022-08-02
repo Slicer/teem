@@ -185,7 +185,7 @@ _tenDwiGageTable[TEN_DWI_GAGE_ITEM_MAX+1] = {
 
 void
 _tenDwiGageIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
-  static const char me[]="_tenDwiGageIv3Print";
+  static const char me[] = "_tenDwiGageIv3Print";
 
   AIR_UNUSED(ctx);
   AIR_UNUSED(pvl);
@@ -195,7 +195,7 @@ _tenDwiGageIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
 
 void
 _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
-  static const char me[]="_tenDwiGageFilter";
+  static const char me[] = "_tenDwiGageFilter";
   double *fw00, *fw11, *fw22, *dwi;
   int fd, needD[3]={AIR_TRUE, AIR_FALSE, AIR_FALSE};
   /* tenDwiGageKindData *kindData; */
@@ -291,7 +291,7 @@ _tenPeledRotate2D(double ten[7], double lam1, double lam3, double phi) {
 */
 void
 _tenLevmarPeledCB(double *pp, double *xx, int mm, int nn, void *_pvlData) {
-  /* static const char me[]="_tenLevmarPeledCB"; */
+  /* static const char me[] = "_tenLevmarPeledCB"; */
   double tenA[7], tenB[7];
   int ii;
   tenDwiGagePvlData *pvlData;
@@ -325,7 +325,7 @@ _tenLevmarPeledCB(double *pp, double *xx, int mm, int nn, void *_pvlData) {
 
 void
 _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
-  static const char me[]="_tenDwiGageAnswer";
+  static const char me[] = "_tenDwiGageAnswer";
   unsigned int dwiIdx;
   tenDwiGageKindData *kindData;
   tenDwiGagePvlData *pvlData;
@@ -746,7 +746,7 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 /* note use of the GAGE biff key */
 void *
 _tenDwiGagePvlDataNew(const gageKind *kind) {
-  static const char me[]="_tenDwiGagePvlDataNew";
+  static const char me[] = "_tenDwiGagePvlDataNew";
   tenDwiGagePvlData *pvlData;
   tenDwiGageKindData *kindData;
   const int segcount = 2;
@@ -880,7 +880,7 @@ int
 _tenDwiGagePvlDataUpdate(const gageKind *kind,
                          const gageContext *ctx,
                          const gagePerVolume *pvl, void *_pvlData) {
-  /* static const char me[]="_tenDwiGagePvlDataUpdate"; */
+  /* static const char me[] = "_tenDwiGagePvlDataUpdate"; */
   tenDwiGagePvlData *pvlData;
 
   AIR_UNUSED(ctx);
@@ -1039,7 +1039,7 @@ tenDwiGageKindSet(gageKind *dwiKind,
                   const Nrrd *nbmat,
                   int e1method, int e2method,
                   unsigned int randSeed) {
-  static const char me[]="tenDwiGageKindSet";
+  static const char me[] = "tenDwiGageKindSet";
   tenDwiGageKindData *kindData;
   double grad[3], (*lup)(const void *, size_t);
   unsigned int gi;
@@ -1174,7 +1174,7 @@ tenDwiGageKindSet(gageKind *dwiKind,
 
 int
 tenDwiGageKindCheck(const gageKind *kind) {
-  static const char me[]="tenDwiGageKindCheck";
+  static const char me[] = "tenDwiGageKindCheck";
 
   if (!kind) {
     biffAddf(TEN, "%s: got NULL pointer", me);

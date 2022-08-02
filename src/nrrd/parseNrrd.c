@@ -150,7 +150,7 @@ _nrrdReadNrrdParse_content(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff
 static int
 _nrrdReadNrrdParse_number(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
   /*
-  static const char me[]="_nrrdReadNrrdParse_number";
+  static const char me[] = "_nrrdReadNrrdParse_number";
   char *info;
 
   info = nio->line + nio->pos;

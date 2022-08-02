@@ -47,7 +47,7 @@ static int
 gridProbe(gageContext *ctx, gagePerVolume *pvl, int what, Nrrd *nout, int typeOut,
           Nrrd *_ngrid, int indexSpace, int verbose, int clamp, int scaleIsTau,
           double eft, double eftVal) {
-  char me[] = "gridProbe";
+  static const char me[] = "gridProbe";
   Nrrd *ngrid;
   airArray *mop;
   double *grid, pos[4];

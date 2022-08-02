@@ -1491,7 +1491,7 @@ nrrdUntile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0, unsigned int ax1,
 int
 nrrdShift(Nrrd *nout, const Nrrd *nin, const ptrdiff_t *offset,
           int boundary, double padValue) {
-  static const char me[]="nrrdShift", func[] = "shift";
+  static const char me[] = "nrrdShift", func[] = "shift";
 
   if (!(nout && nin && offset)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);

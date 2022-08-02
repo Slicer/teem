@@ -518,7 +518,7 @@ nrrdValCompareInv[NRRD_TYPE_MAX+1])(const void *, const void *) = {
 int nrrdArrayCompare(int type, const void *_valA, const void *_valB,
                      size_t valNum, double epsilon, int *differ,
                      char explain[AIR_STRLEN_LARGE]) {
-  static const char me[]="nrrdArrayCompare";
+  static const char me[] = "nrrdArrayCompare";
   const unsigned char *valA, *valB;
   int (*compare)(const void *, const void *);
   size_t ii, sze;

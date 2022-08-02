@@ -2955,7 +2955,7 @@ _nrrdKernelStrToKern(char *str) {
    it does NOT do range checking */
 static int
 _nrrdKernelParseTMFInt(int *val, char *str) {
-  static const char me[]="nrrdKernelParseTMFInt";
+  static const char me[] = "nrrdKernelParseTMFInt";
 
   if (!strcmp("n", str)) {
     *val = -1;
@@ -2971,7 +2971,7 @@ _nrrdKernelParseTMFInt(int *val, char *str) {
 int
 nrrdKernelParse(const NrrdKernel **kernelP,
                 double *parm, const char *_str) {
-  static const char me[]="nrrdKernelParse";
+  static const char me[] = "nrrdKernelParse";
   char str[AIR_STRLEN_HUGE],
     kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr,
     *tmfStr[4] = {NULL, NULL, NULL, NULL};
@@ -3139,7 +3139,7 @@ nrrdKernelParse(const NrrdKernel **kernelP,
 
 int
 nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str) {
-  static const char me[]="nrrdKernelSpecParse";
+  static const char me[] = "nrrdKernelSpecParse";
   const NrrdKernel *kern;
   double kparm[NRRD_KERNEL_PARMS_NUM];
 
@@ -3161,7 +3161,7 @@ nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str) {
 */
 int
 nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], const NrrdKernelSpec *ksp) {
-  static const char me[]="nrrdKernelSpecSprint";
+  static const char me[] = "nrrdKernelSpecSprint";
   unsigned int warnLen = AIR_STRLEN_LARGE/3;
   char stmp[AIR_STRLEN_LARGE];
 
@@ -3221,7 +3221,7 @@ nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], const NrrdKernelSpec *ksp) {
 int
 nrrdKernelSprint(char str[AIR_STRLEN_LARGE], const NrrdKernel *kernel,
                  const double kparm[NRRD_KERNEL_PARMS_NUM]) {
-  static const char me[]="nrrdKernelSprint";
+  static const char me[] = "nrrdKernelSprint";
   NrrdKernelSpec ksp;
 
   nrrdKernelSpecSet(&ksp, kernel, kparm);
@@ -3242,7 +3242,7 @@ nrrdKernelCompare(const NrrdKernel *kernA,
                   const NrrdKernel *kernB,
                   const double parmB[NRRD_KERNEL_PARMS_NUM],
                   int *differ, char explain[AIR_STRLEN_LARGE]) {
-  static const char me[]="nrrdKernelCompare";
+  static const char me[] = "nrrdKernelCompare";
   unsigned int pnum, pidx;
 
   if (!(kernA && kernB && differ)) {
@@ -3291,7 +3291,7 @@ int
 nrrdKernelSpecCompare(const NrrdKernelSpec *aa,
                       const NrrdKernelSpec *bb,
                       int *differ, char explain[AIR_STRLEN_LARGE]) {
-  static const char me[]="nrrdKernelSpecCompare";
+  static const char me[] = "nrrdKernelSpecCompare";
   char subexplain[AIR_STRLEN_LARGE];
 
   if (!( differ )) {
@@ -3366,7 +3366,7 @@ nrrdKernelCheck(const NrrdKernel *kern,
                 const double iparm[NRRD_KERNEL_PARMS_NUM]) {
   const NrrdKernel *parsedkern;
   double parsedparm[NRRD_KERNEL_PARMS_NUM], supp, integral;
-  static const char me[]="nrrdKernelCheck";
+  static const char me[] = "nrrdKernelCheck";
   char kstr[AIR_STRLEN_LARGE], kspstr[AIR_STRLEN_LARGE],
     explain[AIR_STRLEN_LARGE], stmp[AIR_STRLEN_SMALL];
   int differ;

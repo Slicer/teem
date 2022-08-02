@@ -1884,7 +1884,7 @@ _seekShuffleProbeT(seekContext *sctx, baggage *bag) {
  */
 int
 seekVertexStrength(Nrrd *nval, seekContext *sctx, limnPolyData *pld) {
-  static const char me[]="seekVertexStrength";
+  static const char me[] = "seekVertexStrength";
   unsigned int i;
   double *data;
   int E=0;

@@ -136,7 +136,7 @@ _pushBinNeighborSet(pushBin *bin, pushBin **nei, unsigned int num) {
 
 void
 pushBinAllNeighborSet(pushContext *pctx) {
-  /* static const char me[]="pushBinAllNeighborSet"; */
+  /* static const char me[] = "pushBinAllNeighborSet"; */
   pushBin *nei[3 * 3 * 3];
   unsigned int neiNum, xi, yi, zi, xx, yy, zz, xmax, ymax, zmax, binIdx;
   int xmin, ymin, zmin;

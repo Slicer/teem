@@ -523,7 +523,7 @@ deringXYtoRT(NrrdDeringContext *drc, deringBag *dbg, unsigned int xi, unsigned i
 
 static int
 deringPtxfDo(NrrdDeringContext *drc, deringBag *dbg) {
-  /* static const char me[]="deringPtxfDo"; */
+  /* static const char me[] = "deringPtxfDo"; */
   unsigned int sx, sy, xi, yi, rrIdx, thIdx;
 
   nrrdZeroSet(dbg->nptxf[ORIG]);
@@ -671,7 +671,7 @@ deringRingMagMeasure(NrrdDeringContext *drc, deringBag *dbg) {
 
 static int
 deringSubtract(NrrdDeringContext *drc, deringBag *dbg) {
-  /* static const char me[]="deringSubtract"; */
+  /* static const char me[] = "deringSubtract"; */
   unsigned int sx, sy, xi, yi, rrIdx, thIdx;
 
   sx = AIR_UINT(drc->nin->axis[0].size);

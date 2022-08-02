@@ -936,7 +936,7 @@ _nrrdFieldCheck_kinds(const Nrrd *nrrd, int useBiff) {
 
 static int
 _nrrdFieldCheck_labels(const Nrrd *nrrd, int useBiff) {
-  /* char me[]="_nrrdFieldCheck_labels"; */
+  /* static const char me[] = "_nrrdFieldCheck_labels"; */
 
   AIR_UNUSED(nrrd);
   AIR_UNUSED(useBiff);
@@ -989,7 +989,7 @@ _nrrdFieldCheck_old_max(const Nrrd *nrrd, int useBiff) {
 
 static int
 _nrrdFieldCheck_keyvalue(const Nrrd *nrrd, int useBiff) {
-  /* char me[]="_nrrdFieldCheck_keyvalue"; */
+  /* static const char me[] = "_nrrdFieldCheck_keyvalue"; */
 
   AIR_UNUSED(nrrd);
   AIR_UNUSED(useBiff);

@@ -26,7 +26,7 @@
 
 static int
 _experAlloc(tenExperSpec *espec, unsigned int num) {
-  static char me[] = "_experAlloc";
+  static const char me[] = "_experAlloc";
 
   airFree(espec->bval);
   espec->bval = NULL;
@@ -150,7 +150,7 @@ tenExperSpecGradBValWghtSet(tenExperSpec *espec,
                             const double *bval,
                             const double *grad,
                             const double *wght) {
-  static const char me[]="tenExperSpecGradBValWghtSet";
+  static const char me[] = "tenExperSpecGradBValWghtSet";
   unsigned int ii;
 
   if (!espec) {
@@ -328,7 +328,7 @@ _tenExperSpec_nll(const double *dwiMeas, const double *dwiSim, const tenExperSpe
 
 int
 tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi, const tenExperSpec *espec) {
-  static char me[] = "tenDWMRIKeyValueFromExperSpecSet";
+  static const char me[] = "tenDWMRIKeyValueFromExperSpecSet";
   char keystr[AIR_STRLEN_MED], valstr[AIR_STRLEN_MED];
   double maxb, bb;
   unsigned int ii;

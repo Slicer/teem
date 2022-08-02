@@ -31,7 +31,7 @@
 */
 void
 echoLightPosition(echoPos_t pos[3], echoObject *light, echoThreadState *tstate) {
-  char me[] = "echoLightPos";
+  static const char me[] = "echoLightPos";
   echoPos_t x, y;
   echoRectangle *rectLight;
 

@@ -103,7 +103,7 @@ const pushEnergy *const pushEnergyUnknown = &_pushEnergyUnknown;
 */
 static void
 _pushEnergySpringEval(double *enr, double *frc, double dist, const double *parm) {
-  /* static const char me[]="_pushEnergySpringEval"; */
+  /* static const char me[] = "_pushEnergySpringEval"; */
   double xx, pull;
 
   pull = parm[0];

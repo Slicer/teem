@@ -238,7 +238,7 @@ airThreadJoin(airThread *thread, void **retP) {
 
 airThread *
 airThreadNix(airThread *_thread) {
-  char me[] = "airThreadNix";
+  static const char me[] = "airThreadNix";
 
   if (0 == CloseHandle(_thread->handle)) {
     fprintf(stderr, "%s: CloseHandle failed, something is wrong\n", me);
@@ -467,7 +467,7 @@ airThreadMutexNew(void) {
 
 int
 airThreadMutexLock(airThreadMutex *mutex) {
-  char me[] = "airThreadMutexLock";
+  static const char me[] = "airThreadMutexLock";
 
   AIR_UNUSED(mutex);
   if (airThreadNoopWarning) {
@@ -478,7 +478,7 @@ airThreadMutexLock(airThreadMutex *mutex) {
 
 int
 airThreadMutexUnlock(airThreadMutex *mutex) {
-  char me[] = "airThreadMutexUnlock";
+  static const char me[] = "airThreadMutexUnlock";
 
   AIR_UNUSED(mutex);
   if (airThreadNoopWarning) {
@@ -504,7 +504,7 @@ airThreadCondNew(void) {
 
 int
 airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex) {
-  char me[] = "airThreadCondWait";
+  static const char me[] = "airThreadCondWait";
 
   AIR_UNUSED(cond);
   AIR_UNUSED(mutex);
@@ -516,7 +516,7 @@ airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex) {
 
 int
 airThreadCondSignal(airThreadCond *cond) {
-  char me[] = "airThreadCondSignal";
+  static const char me[] = "airThreadCondSignal";
 
   AIR_UNUSED(cond);
   if (airThreadNoopWarning) {
@@ -527,7 +527,7 @@ airThreadCondSignal(airThreadCond *cond) {
 
 int
 airThreadCondBroadcast(airThreadCond *cond) {
-  char me[] = "airThreadCondBroadcast";
+  static const char me[] = "airThreadCondBroadcast";
 
   AIR_UNUSED(cond);
   if (airThreadNoopWarning) {

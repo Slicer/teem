@@ -171,7 +171,7 @@ gageContextCopy(gageContext *ctx) {
 */
 gageContext *
 gageContextNix(gageContext *ctx) {
-  /* static const char me[]="gageContextNix"; */
+  /* static const char me[] = "gageContextNix"; */
   unsigned int pvlIdx;
 
   if (ctx) {
@@ -273,7 +273,7 @@ gageKernelSet(gageContext *ctx, int which, const NrrdKernel *k, const double *kp
 */
 void
 gageKernelReset(gageContext *ctx) {
-  /* static const char me[]="gageKernelReset"; */
+  /* static const char me[] = "gageKernelReset"; */
   int i;
 
   if (ctx) {

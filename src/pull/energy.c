@@ -165,7 +165,7 @@ const pullEnergy *const pullEnergyUnknown = &_pullEnergyUnknown;
 */
 static double
 _pullEnergySpringEval(double *denr, double dist, const double *parm) {
-  /* static const char me[]="_pullEnergySpringEval"; */
+  /* static const char me[] = "_pullEnergySpringEval"; */
   double enr, xx, pull;
 
   pull = parm[0];

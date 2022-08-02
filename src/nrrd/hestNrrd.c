@@ -36,7 +36,8 @@
 */
 static int
 _nrrdHestNrrdParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "_nrrdHestNrrdParse", *nerr;
+  static const char me[] = "_nrrdHestNrrdParse";
+  char *nerr;
   Nrrd **nrrdP;
   airArray *mop;
 
@@ -74,7 +75,8 @@ const hestCB *const nrrdHestNrrd = &_nrrdHestNrrd;
 static int
 _nrrdHestKernelSpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   NrrdKernelSpec **ksP;
-  char me[] = "_nrrdHestKernelSpecParse", *nerr;
+  static const char me[] = "_nrrdHestKernelSpecParse";
+  char *nerr;
 
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -103,7 +105,8 @@ const hestCB *const nrrdHestKernelSpec = &_nrrdHestKernelSpec;
 static int
 _nrrdHestBoundarySpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   NrrdBoundarySpec **bsp;
-  char me[] = "_nrrdHestBoundarySpecParse", *nerr;
+  static const char me[] = "_nrrdHestBoundarySpecParse";
+  char *nerr;
 
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -183,7 +186,8 @@ _nrrdLooksLikeANumber(const char *str) {
 
 static int
 _nrrdHestIterParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "_nrrdHestIterParse", *nerr;
+  static const char me[] = "_nrrdHestIterParse";
+  char *nerr;
   Nrrd *nrrd;
   NrrdIter **iterP;
   airArray *mop;

@@ -115,7 +115,7 @@ static unsigned int
 _limnQN16border1_VtoQN_f(const float *vec) {
   float L, u, v, x, y, z;
   unsigned int ui, vi, zi;
-  char me[] = "limnQNVto16PB1";
+  static const char me[] = "limnQNVto16PB1";
 
   x = vec[0];
   y = vec[1];

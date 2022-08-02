@@ -482,7 +482,7 @@ tenEstimateLinearSingle_d(double *ten, double *B0P,              /* output */
                           double soft, double b) {
   double logB0, tmp, mean;
   unsigned int ii, jj;
-  /* static const char me[]="tenEstimateLinearSingle_d"; */
+  /* static const char me[] = "tenEstimateLinearSingle_d"; */
 
   if (knownB0) {
     if (B0P) {

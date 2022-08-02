@@ -96,7 +96,7 @@ _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
 
 static void
 _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
-  static const char me[]="_gageVecFilter";
+  static const char me[] = "_gageVecFilter";
   double *fw00, *fw11, *fw22, *vec, *jac, *hes;
   int fd;
   gageScl3PFilter_t *filter[5] = {NULL, gageScl3PFilter2, gageScl3PFilter4,
@@ -142,7 +142,7 @@ _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
 
 static void
 _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
-  static const char me[]="_gageVecAnswer";
+  static const char me[] = "_gageVecAnswer";
   double cmag, tmpMat[9], mgevec[9], mgeval[3];
   double asym[9], tran[9], eval[3], tmpVec[3], norm;
   double *vecAns, *normAns, *jacAns, *strainAns, *somegaAns,

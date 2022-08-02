@@ -36,7 +36,7 @@
 */
 int
 baneGkmsParseIncStrategy(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "baneGkmsParseIncStrategy";
+  static const char me[] = "baneGkmsParseIncStrategy";
   double *inc, *incParm;
   int i, bins;
 
@@ -93,7 +93,8 @@ const hestCB *const baneGkmsHestIncStrategy = &_baneGkmsHestIncStrategy;
 
 int
 baneGkmsParseBEF(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "baneGkmsParseBEF", mesg[AIR_STRLEN_MED], *nerr;
+  static const char me[] = "baneGkmsParseBEF";
+  char mesg[AIR_STRLEN_MED], *nerr;
   float cent, width, shape, alpha, off, *bef;
   Nrrd **nrrdP;
   airArray *mop;
@@ -170,7 +171,7 @@ const hestCB *const baneGkmsHestBEF = &_baneGkmsHestBEF;
 */
 int
 baneGkmsParseGthresh(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "baneGkmsParseGthresh";
+  static const char me[] = "baneGkmsParseGthresh";
   float *gthr;
 
   if (!(ptr && str)) {

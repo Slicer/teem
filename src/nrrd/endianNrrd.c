@@ -99,7 +99,7 @@ _nrrdNoopEndian(void *data, size_t N) {
 
 static void
 _nrrdBlockEndian(void *data, size_t N) {
-  char me[] = "_nrrdBlockEndian";
+  static const char me[] = "_nrrdBlockEndian";
 
   AIR_UNUSED(data);
   AIR_UNUSED(N);

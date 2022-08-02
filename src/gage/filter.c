@@ -78,7 +78,7 @@ _gageFslSet(gageContext *ctx) {
 */
 static void
 _gageFwDerivRenormalize(gageContext *ctx, int wch) {
-  static const char me[]="_gageFwDerivRenormalize";
+  static const char me[] = "_gageFwDerivRenormalize";
   double negX, negY, negZ, posX, posY, posZ, fixX, fixY, fixZ,
     *fwX, *fwY, *fwZ;
   int i, fd;
@@ -245,7 +245,7 @@ _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
 */
 int
 _gageLocationSet(gageContext *ctx, double xif, double yif, double zif, double sif) {
-  char me[] = "_gageProbeLocationSet";
+  static const char me[] = "_gageProbeLocationSet";
   unsigned int top[3], /* "top" x, y, z: highest valid index in volume */
     idx[4];
   int sdiff; /* computed integral positions in volume */

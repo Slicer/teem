@@ -36,7 +36,7 @@ static int
 probeIso(pullTask *task, pullPoint *point, unsigned int iter, int cond,
          double pos[3],
          stateIso *state) {
-  static const char me[]="probeIso";
+  static const char me[] = "probeIso";
 
   ELL_3V_COPY(point->pos, pos);  / * NB: not touching point->pos[3] * /
   _pullPointHistAdd(point, cond, AIR_NAN);

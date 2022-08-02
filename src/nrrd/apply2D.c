@@ -362,7 +362,7 @@ int
 nrrdApply2DRegMap(Nrrd *nout, const Nrrd *nin,
                   const NrrdRange *_range0, const NrrdRange *_range1,
                   const Nrrd *nmap, int typeOut, int rescale) {
-  static const char me[]="nrrdApply2DRegMap";
+  static const char me[] = "nrrdApply2DRegMap";
   NrrdRange *range;
   airArray *mop;
 

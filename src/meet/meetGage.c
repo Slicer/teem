@@ -70,7 +70,7 @@ meetConstGageKindParse(const char *_str) {
 */
 static int
 _meetHestConstGageKindParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "_meetHestGageConstKindParse";
+  static const char me[] = "_meetHestGageConstKindParse";
   const gageKind **kindP;
 
   if (!(ptr && str)) {
@@ -92,7 +92,7 @@ _meetHestConstGageKindParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE
 
 static int
 _meetHestGageKindParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "_meetHestGageKindParse";
+  static const char me[] = "_meetHestGageKindParse";
   gageKind **kindP;
 
   if (!(ptr && str)) {
