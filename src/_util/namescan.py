@@ -9,9 +9,9 @@ import argparse
 import subprocess
 import re
 
-# TODO: dye bane limn echo hoover ten pull
+# TODO: dye bane limn echo hoover
 # still with curious symbols: air biff gage
-# done: hest ell alan tijk seek elf nrrd unrrdu moss ... coil push mite meet
+# done: hest ell alan tijk seek elf nrrd unrrdu moss ... ten pull coil push mite meet
 
 verbose = 1
 archDir = None
@@ -54,7 +54,7 @@ allTypes = sorted(
     'tenEMBimodalParm', 'tenExperSpec',
     'elfMaximaContext',
     'pullEnergy', 'pullEnergySpec', 'pullVolume', 'pullInfoSpec', 'pullContext',
-    'pullTrace', 'pullTraceMulti', 'pullTask', 'pullBin',
+    'pullTrace', 'pullTraceMulti', 'pullTask', 'pullBin', 'pullPoint',
     'coilKind', 'coilMethod', 'coilContext',
     'pushContext', 'pushEnergy', 'pushEnergySpec', 'pushBin', 'pushTask', 'pushPoint',
     'miteUser', 'miteShadeSpec', 'miteThread',
@@ -100,6 +100,7 @@ def symbList(lib, firstClean):
         print(f'========== recompiling {lib} ... ')
     if firstClean:
         runthis('make clean', False)
+    runthis('make', False)
     runthis('make install', False)
     nmOut = runthis(f'nm {archDir}/lib/lib{lib}.a', True).stdout.decode('UTF-8').splitlines()
     nmOut.pop(0) # first line is empty (at least on Mac)
@@ -289,8 +290,12 @@ if __name__ == '__main__':
                 if not ('S' == symbT and 'D' == declT):
                     print(f"disaagree on {N} type (nm {symbT} vs .h {declT})")
         else:
-            if (re.match(r'unrrdu_\w+Cmd', N)):
-                # actually it (probably!) is declared in privateUnrrdu.h, but via macro
+            if ('unrrdu' == args.lib and re.match(r'unrrdu_\w+Cmd', N)) \
+                or ('ten' == args.lib and re.match(r'tend_\w+Cmd', N)):
+                # actually it (probably!) is declared in a private header, via inscrutable macro
+                continue
+            if ('ten' == args.lib and re.match('_tenQGL_', N)):
+                # is not declared in privateTen.h, but used by some ten/test demos
                 continue
             print(f'HEY: lib{args.lib} {symbT} symbol {N} not declared')
     for N in decl:
