@@ -2802,7 +2802,7 @@ nrrdKernelGaussianDD = &_nrrdKernelDDG;
 
 /* ------------------------------------------------------------ */
 
-const NrrdKernel *
+static const NrrdKernel *
 _nrrdKernelStrToKern(char *str) {
 
   if (!strcmp("zero", str))       return nrrdKernelZero;
@@ -2953,7 +2953,7 @@ _nrrdKernelStrToKern(char *str) {
 /* this returns a number between -1 and max;
    it does NOT do the increment-by-one;
    it does NOT do range checking */
-int
+static int
 _nrrdKernelParseTMFInt(int *val, char *str) {
   static const char me[]="nrrdKernelParseTMFInt";
 

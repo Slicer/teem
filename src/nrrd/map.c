@@ -571,7 +571,7 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
 ** used by nrrdHistoEq in smart mode to sort the "steady" array
 ** in _descending_ order
 */
-int
+static int
 _nrrdHistoEqCompare(const void *a, const void *b) {
 
   return *((const unsigned int *)b) - *((const unsigned int *)a);

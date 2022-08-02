@@ -125,7 +125,7 @@ nrrdSimpleResample(Nrrd *nout, const Nrrd *nin, const NrrdKernel *kernel,
 ** - all required parameters exist
 ** - both min[d] and max[d] for all axes d
 */
-int
+static int
 _nrrdResampleCheckInfo(const Nrrd *nin, const NrrdResampleInfo *info) {
   static const char me[] = "_nrrdResampleCheckInfo";
   const NrrdKernel *k;
@@ -195,7 +195,7 @@ _nrrdResampleCheckInfo(const Nrrd *nin, const NrrdResampleInfo *info) {
 ** figures out information related to how the axes in a nrrd are
 ** permuted during resampling: permute, topRax, botRax, passes, ax[][], sz[][]
 */
-void
+static void
 _nrrdResampleComputePermute(unsigned int permute[],
                             unsigned int ax[NRRD_DIM_MAX][NRRD_DIM_MAX],
                             size_t sz[NRRD_DIM_MAX][NRRD_DIM_MAX],
@@ -289,7 +289,7 @@ _nrrdResampleComputePermute(unsigned int permute[],
 ** returns "dotLen", the number of input samples which are required
 ** for resampling this axis, or 0 if there was an error.  Uses biff.
 */
-int
+static int
 _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP, int **indexP, double *ratioP,
                              const Nrrd *nin, const NrrdResampleInfo *info,
                              unsigned int ai) {

@@ -30,14 +30,14 @@
 
 /* (not apparently used) const char *const _nrrdRelativePathFlag = "./"; */
 const char *const _nrrdFieldSep = " \t";
-const char *const _nrrdLineSep = "\r\n";
+static const char *const _nrrdLineSep = "\r\n";
 const char *const _nrrdTextSep = " ,\t";
 const char *const _nrrdNoSpaceVector = "none";
 
 /*
 ** return length of next "line" in nio->headerStringRead
 */
-unsigned int
+static unsigned int
 _nrrdHeaderStringOneLineStrlen(NrrdIoState *nio) {
 
   return AIR_UINT(strcspn(nio->headerStringRead + nio->headerStrpos, _nrrdLineSep));
@@ -46,7 +46,7 @@ _nrrdHeaderStringOneLineStrlen(NrrdIoState *nio) {
 /*
 ** read next "line" in nio->headerStringRead
 */
-unsigned int
+static unsigned int
 _nrrdHeaderStringOneLine(NrrdIoState *nio) {
   unsigned int len1, len2;
 

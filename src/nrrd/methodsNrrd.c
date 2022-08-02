@@ -343,7 +343,7 @@ nrrdIoStateNix(NrrdIoState *nio) {
 
 /* ------------------------------------------------------------ */
 
-void
+static void
 _nrrdResampleInfoInit(NrrdResampleInfo *info) {
   int i, d;
 

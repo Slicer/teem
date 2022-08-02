@@ -216,7 +216,7 @@ nrrdIoStateFormatGet(NrrdIoState *nio) {
   return nio ? nio->format : nrrdFormatUnknown;
 }
 
-void
+static void
 _nrrdStrcatSpaceVector(char *str, unsigned int spaceDim,
                        const double val[NRRD_SPACE_DIM_MAX]) {
   char buff[AIR_STRLEN_MED]; /* bad Gordon */
@@ -824,7 +824,7 @@ _nrrdFormatMaybeGuess(const Nrrd *nrrd, NrrdIoState *nio, const char *filename) 
   return 0;
 }
 
-int
+static int
 _nrrdFormatMaybeSet(NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatMaybeSet";
 
