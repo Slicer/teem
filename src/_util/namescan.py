@@ -9,9 +9,9 @@ import argparse
 import subprocess
 import re
 
-# TODO: dye bane limn echo hoover
+# TODO: dye bane limn echo
 # still with curious symbols: air biff gage
-# done: hest ell alan tijk seek elf nrrd unrrdu moss ... ten pull coil push mite meet
+# done: hest ell alan tijk seek elf nrrd unrrdu moss ... hoover ten pull coil push mite meet
 
 verbose = 1
 archDir = None
@@ -218,15 +218,15 @@ def declList(lib):
                     #print(f'foo7 |{L}|')
                     if L.endswith('()'):
                         L += ';'
-                    #print(f'foo6 |{L}|')
+                    #print(f'foo8 |{L}|')
                     if (match := re.match(r'.+(\([^\(\)]+)$', L)):
                         # another whack at this, for airArrayPointerCB
                         # if start of multi-line function declaration, simplify it
                         L = L.replace(match.group(1), '();')
-                    #print(f'foo8 |{L}|')
+                    #print(f'foo9 |{L}|')
                     L = L.replace('()(),', '();') # ugh, hacky for airArrayStructCB
                     L = L.removeprefix('*').removeprefix('*')
-                    #print(f'foo9 |{L}|')
+                    #print(f'fooA |{L}|')
                 else:
                     # it doesn't look like a declaration, move on to next line
                     continue
@@ -244,7 +244,9 @@ def declList(lib):
                 elif L.endswith('();'):
                     decl[L[:-3]] = 'T'
                 elif L.startswith('gageScl3PFilter'):
-                    decl[L[:-1]] = 'T' # there's a functer typedef
+                    decl[L[:-1]] = 'T' # there's a function typedef
+                elif (re.match(r'hoover[\w]+Begin;', L) or re.match(r'hoover[\w]+End;', L)) or ('hooverStubSample;' == L):
+                    decl[L[:-1]] = 'T' # there's a function typedef
                 elif L.endswith(';'):
                     decl[L[:-1]] = 'D'
                 else:
