@@ -136,7 +136,7 @@ pullContextNix(pullContext *pctx) {
   return NULL;
 }
 
-int
+static int
 _pullMiscParmCheck(pullContext *pctx) {
   static const char me[] = "_pullMiscParmCheck";
   double denr;

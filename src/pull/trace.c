@@ -112,7 +112,7 @@ pullTraceStability(double *spcStab,
   return;
 }
 
-int
+static int
 _pullConstrTanSlap(pullContext *pctx, pullPoint *point, double tlen,
                    /* input+output */ double toff[3],
                    /* output */ int *constrFailP) {
@@ -152,7 +152,7 @@ _pullConstrTanSlap(pullContext *pctx, pullPoint *point, double tlen,
   return 0;
 }
 
-int
+static int
 _pullConstrOrientFind(pullContext *pctx, pullPoint *point,
                       int normalfind, /* find normal two 2D surface,
                                          else find tangent to 1D curve */

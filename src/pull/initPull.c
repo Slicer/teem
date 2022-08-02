@@ -214,4 +214,4 @@ pullInitUnequalShapesAllowSet(pullContext *pctx, int allow) {
 
 #undef CHECK
 
-FILE *_pullPointAddLog = NULL;
+/* FILE *_pullPointAddLog = NULL; */

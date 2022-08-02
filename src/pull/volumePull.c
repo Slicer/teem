@@ -85,7 +85,7 @@ pullVolumeNix(pullVolume *vol) {
 ** in which case pctx is NULL
 ** ...................
 */
-int
+static int
 _pullVolumeSet(const pullContext *pctx, int taskCopy, pullVolume *vol,
                const gageKind *kind, int verbose, const char *name,
                const Nrrd *ninSingle, const Nrrd *const *ninScale, double *scalePos,

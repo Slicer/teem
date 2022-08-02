@@ -1063,7 +1063,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   return 0;
 }
 
-int
+static int
 _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   static const char me[] = "_pullPointProcess";
   int E;

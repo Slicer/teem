@@ -53,7 +53,7 @@ _pullBinDone(pullBin *bin) {
   return;
 }
 
-int
+static int
 _pullBinNeighborSet(pullContext *pctx, pullBin *bin) {
   static const char me[] = "_pullBinNeighborSet";
   unsigned int neiIdx, neiNum, be[4], binIdx;
@@ -137,7 +137,7 @@ _pullBinLocate(pullContext *pctx, double *posWorld) {
 /*
 ** this makes the bin the owner of the point
 */
-int
+static int
 _pullBinPointAdd(pullContext *pctx, pullBin *bin, pullPoint *point) {
   static const char me[] = "_pullBinPointAdd";
   int pntI;

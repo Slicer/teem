@@ -128,8 +128,6 @@ extern int _pullTaskSetup(pullContext *pctx);
 extern void _pullTaskFinish(pullContext *pctx);
 
 /* actionPull.c */
-extern double _pullPrayCorner[2][2][3];
-extern size_t _pullPrayRes[2];
 extern double _pullDistLimit(pullTask *task, pullPoint *point);
 extern double _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
                                     /* output */
