@@ -56,7 +56,7 @@ limnSplineTypeSpecNix(limnSplineTypeSpec *spec) {
 **
 ** implements GK's patented time warping technology
 */
-int
+static int
 _limnSplineTimeWarpSet(limnSpline *spline) {
   static const char me[] = "_limnSplineTimeWarpSet";
   double *cpt, *time, ss;

@@ -23,7 +23,7 @@
 
 #include "limn.h"
 
-void
+static void
 _limnSplineIntervalFind_Unknown(int *ii, double *ff, limnSpline *spline, double tt) {
   static const char me[] = "_limnSplineIntervalFind_Unknown";
 
@@ -35,7 +35,7 @@ _limnSplineIntervalFind_Unknown(int *ii, double *ff, limnSpline *spline, double 
   return;
 }
 
-void
+static void
 _limnSplineIntervalFind_NonWarp(int *ii, double *ff, limnSpline *spline, double tt) {
   int N; /* HEY should be unsigned */
 
@@ -46,7 +46,7 @@ _limnSplineIntervalFind_NonWarp(int *ii, double *ff, limnSpline *spline, double 
   return;
 }
 
-void
+static void
 _limnSplineIntervalFind_Warp(int *ii, double *ff, limnSpline *spline, double tt) {
   int N;
 
@@ -67,12 +67,12 @@ _limnSplineIntervalFind_Warp(int *ii, double *ff, limnSpline *spline, double tt)
 }
 
 typedef void (*_limnSplineIntervalFind_t)(int *, double *, limnSpline *, double);
-_limnSplineIntervalFind_t _limnSplineIntervalFind[LIMN_SPLINE_TYPE_MAX + 1]
+static const _limnSplineIntervalFind_t _limnSplineIntervalFind[LIMN_SPLINE_TYPE_MAX + 1]
   = {_limnSplineIntervalFind_Unknown, _limnSplineIntervalFind_NonWarp,
      _limnSplineIntervalFind_Warp,    _limnSplineIntervalFind_NonWarp,
      _limnSplineIntervalFind_NonWarp, _limnSplineIntervalFind_NonWarp};
 
-void
+static void
 _limnSplineWeightsFind_Unknown(double *wght, limnSpline *spline, double f) {
   static const char me[] = "_limnSplineWeights_Unknown";
 
@@ -83,7 +83,7 @@ _limnSplineWeightsFind_Unknown(double *wght, limnSpline *spline, double f) {
   return;
 }
 
-void
+static void
 _limnSplineWeightsFind_Linear(double *wght, limnSpline *spline, double f) {
 
   AIR_UNUSED(spline);
@@ -95,7 +95,7 @@ _limnSplineWeightsFind_Linear(double *wght, limnSpline *spline, double f) {
   return;
 }
 
-void
+static void
 _limnSplineWeightsFind_Hermite(double *wght, limnSpline *spline, double f) {
   double f3, f2;
 
@@ -105,7 +105,7 @@ _limnSplineWeightsFind_Hermite(double *wght, limnSpline *spline, double f) {
   return;
 }
 
-void
+static void
 _limnSplineWeightsFind_CubicBezier(double *wght, limnSpline *spline, double f) {
   double g;
 
@@ -124,7 +124,7 @@ _limnSplineWeightsFind_CubicBezier(double *wght, limnSpline *spline, double f) {
               + 4 * C                                                                   \
           : ((2 - 3 * B / 2 - C) * (x)-3 + 2 * B + C) * (x) * (x) + 1 - B / 3))
 
-void
+static void
 _limnSplineWeightsFind_BC(double *wght, limnSpline *spline, double f) {
   double B, C, f0, f1, f2, f3;
 
@@ -144,13 +144,13 @@ _limnSplineWeightsFind_BC(double *wght, limnSpline *spline, double f) {
 
 typedef void (*_limnSplineWeightsFind_t)(double *, limnSpline *, double);
 
-_limnSplineWeightsFind_t _limnSplineWeightsFind[LIMN_SPLINE_TYPE_MAX + 1]
+static const _limnSplineWeightsFind_t _limnSplineWeightsFind[LIMN_SPLINE_TYPE_MAX + 1]
   = {_limnSplineWeightsFind_Unknown, _limnSplineWeightsFind_Linear,
      _limnSplineWeightsFind_Hermite, /* TimeWarp */
      _limnSplineWeightsFind_Hermite, _limnSplineWeightsFind_CubicBezier,
      _limnSplineWeightsFind_BC};
 
-void
+static void
 _limnSplineIndexFind(int *idx, limnSpline *spline, int ii) {
   int N, ti[4];
 
@@ -188,7 +188,7 @@ _limnSplineIndexFind(int *idx, limnSpline *spline, int ii) {
   }
 }
 
-void
+static void
 _limnSplineFinish_Unknown(double *out, limnSpline *spline, int ii, double *wght) {
   static const char me[] = "_limnSplineFinish_Unknown";
 
@@ -201,7 +201,7 @@ _limnSplineFinish_Unknown(double *out, limnSpline *spline, int ii, double *wght)
 }
 
 /* clang-format off */
-void
+static void
 _limnSplineFinish_Scalar(double *out, limnSpline *spline,
                          int ii, double *wght) {
   int idx[4];
@@ -214,7 +214,7 @@ _limnSplineFinish_Scalar(double *out, limnSpline *spline,
   return;
 }
 
-void
+static void
 _limnSplineFinish_2Vec(double *out, limnSpline *spline,
                        int ii, double *wght) {
   int idx[4];
@@ -229,7 +229,7 @@ _limnSplineFinish_2Vec(double *out, limnSpline *spline,
   return;
 }
 
-void
+static void
 _limnSplineFinish_3Vec(double *out, limnSpline *spline,
                        int ii, double *wght) {
   int idx[4];
@@ -246,7 +246,7 @@ _limnSplineFinish_3Vec(double *out, limnSpline *spline,
   return;
 }
 
-void
+static void
 _limnSplineFinish_Normal(double *out, limnSpline *spline,
                          int ii, double *wght) {
 
@@ -258,7 +258,7 @@ _limnSplineFinish_Normal(double *out, limnSpline *spline,
   return;
 }
 
-void
+static void
 _limnSplineFinish_4Vec(double *out, limnSpline *spline,
                        int ii, double *wght) {
   int idx[4];
@@ -280,7 +280,7 @@ _limnSplineFinish_4Vec(double *out, limnSpline *spline,
 /*
 ** HEY: I have no idea whether Hermite splines work with this
 */
-void
+static void
 _limnSplineFinish_Quaternion(double *out, limnSpline *spline,
                              int ii, double *wght) {
   int idx[4];
@@ -296,7 +296,7 @@ _limnSplineFinish_Quaternion(double *out, limnSpline *spline,
 }
 
 typedef void (*_limnSplineFinish_t)(double *, limnSpline *, int, double *);
-_limnSplineFinish_t
+static const _limnSplineFinish_t
 _limnSplineFinish[LIMN_SPLINE_INFO_MAX+1] = {
   _limnSplineFinish_Unknown,
   _limnSplineFinish_Scalar,

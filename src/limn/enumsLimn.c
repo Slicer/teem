@@ -24,7 +24,7 @@
 #include "limn.h"
 
 /* clang-format off */
-const char *
+static const char *
 _limnSpaceStr[LIMN_SPACE_MAX+1] = {
   "(unknown space)",
   "world",
@@ -33,7 +33,7 @@ _limnSpaceStr[LIMN_SPACE_MAX+1] = {
   "device"
 };
 
-const airEnum
+static const airEnum
 _limnSpace = {
   "limn space",
   LIMN_SPACE_MAX,
@@ -47,7 +47,7 @@ limnSpace = &_limnSpace;
 
 /* ------------------------------------------------------------ */
 
-const char *
+static const char *
 _limnPolyDataInfoStr[LIMN_POLY_DATA_INFO_MAX+1] = {
   "(unknown info)",
   "rgba",
@@ -56,7 +56,7 @@ _limnPolyDataInfoStr[LIMN_POLY_DATA_INFO_MAX+1] = {
   "tang"
 };
 
-const airEnum
+static const airEnum
 _limnPolyDataInfo = {
   "limn polydata info",
   LIMN_POLY_DATA_INFO_MAX,
@@ -70,7 +70,7 @@ limnPolyDataInfo = &_limnPolyDataInfo;
 
 /* ------------------------------------------------------------ */
 
-const char *
+static const char *
 _limnCameraPathTrackStr[] = {
   "(unknown limnCameraPathTrack)",
   "from",
@@ -78,7 +78,7 @@ _limnCameraPathTrackStr[] = {
   "both"
 };
 
-const char *
+static const char *
 _limnCameraPathTrackDesc[] = {
   "unknown limnCameraPathTrack",
   "track through eye points, quaternions for camera orientation",
@@ -86,7 +86,7 @@ _limnCameraPathTrackDesc[] = {
   "track eye point, look-at point, and up vector with separate splines"
 };
 
-const char *
+static const char *
 _limnCameraPathTrackStrEqv[] = {
   "from", "fr",
   "at", "look-at", "lookat",
@@ -94,14 +94,14 @@ _limnCameraPathTrackStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _limnCameraPathTrackValEqv[] = {
   limnCameraPathTrackFrom, limnCameraPathTrackFrom,
   limnCameraPathTrackAt, limnCameraPathTrackAt, limnCameraPathTrackAt,
   limnCameraPathTrackBoth
 };
 
-const airEnum
+static const airEnum
 _limnCameraPathTrack = {
   "limnCameraPathTrack",
   LIMN_CAMERA_PATH_TRACK_MAX,
@@ -115,7 +115,7 @@ limnCameraPathTrack = &_limnCameraPathTrack;
 
 /* ------------------------------------------------------------ */
 
-const char *
+static const char *
 _limnPrimitiveStr[] = {
   "(unknown limnPrimitive)",
   "noop",
@@ -127,7 +127,7 @@ _limnPrimitiveStr[] = {
   "lines"
 };
 
-const char *
+static const char *
 _limnPrimitiveDesc[] = {
   "unknown limnPrimitive",
   "no-op",
@@ -139,7 +139,7 @@ _limnPrimitiveDesc[] = {
   "lines"
 };
 
-const char *
+static const char *
 _limnPrimitiveStrEqv[] = {
   "noop",
   "triangles",
@@ -151,7 +151,7 @@ _limnPrimitiveStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _limnPrimitiveValEqv[] = {
   limnPrimitiveNoop,
   limnPrimitiveTriangles,
@@ -162,7 +162,7 @@ _limnPrimitiveValEqv[] = {
   limnPrimitiveLines
 };
 
-const airEnum
+static const airEnum
 _limnPrimitive = {
   "limnPrimitive",
   LIMN_PRIMITIVE_MAX,

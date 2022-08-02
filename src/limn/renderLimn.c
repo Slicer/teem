@@ -49,7 +49,7 @@ limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win) {
   return 0;
 }
 
-void
+static void
 _limnPSPreamble(limnObject *obj, limnCamera *cam, limnWindow *win) {
 
   AIR_UNUSED(obj);
@@ -87,7 +87,7 @@ _limnPSPreamble(limnObject *obj, limnCamera *cam, limnWindow *win) {
   fprintf(win->file, "\n");
 }
 
-void
+static void
 _limnPSEpilogue(limnObject *obj, limnCamera *cam, limnWindow *win) {
 
   AIR_UNUSED(obj);
@@ -100,7 +100,7 @@ _limnPSEpilogue(limnObject *obj, limnCamera *cam, limnWindow *win) {
   fprintf(win->file, "%%%%Trailer\n");
 }
 
-void
+static void
 _limnPSDrawFace(limnObject *obj, limnFace *face, limnCamera *cam, Nrrd *nmap,
                 limnWindow *win) {
   /* static const char me[] = "_limnPSDrawFace"; */
@@ -148,7 +148,7 @@ _limnPSDrawFace(limnObject *obj, limnFace *face, limnCamera *cam, Nrrd *nmap,
   }
 }
 
-void
+static void
 _limnPSDrawEdge(limnObject *obj, limnEdge *edge, limnCamera *cam, limnWindow *win) {
   limnVertex *vert0, *vert1;
   float R, G, B;

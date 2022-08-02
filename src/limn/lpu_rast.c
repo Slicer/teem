@@ -27,7 +27,7 @@
 #define INFO "Rasterize polydata"
 static const char *myinfo = (INFO ". ");
 
-int
+static int
 limnpu_rastMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
@@ -79,4 +79,4 @@ limnpu_rastMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   return 0;
 }
 
-unrrduCmd limnpu_rastCmd = {"rast", INFO, limnpu_rastMain, AIR_FALSE};
+const  unrrduCmd limnpu_rastCmd = {"rast", INFO, limnpu_rastMain, AIR_FALSE};

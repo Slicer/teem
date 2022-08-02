@@ -27,7 +27,7 @@
 #define INFO "Extract the vertex array"
 static const char *myinfo = (INFO ". ");
 
-int
+static int
 limnpu_vertsMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
@@ -65,4 +65,4 @@ limnpu_vertsMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   return 0;
 }
 
-unrrduCmd limnpu_vertsCmd = {"verts", INFO, limnpu_vertsMain, AIR_FALSE};
+const unrrduCmd limnpu_vertsCmd = {"verts", INFO, limnpu_vertsMain, AIR_FALSE};

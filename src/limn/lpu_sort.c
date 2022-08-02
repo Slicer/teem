@@ -27,7 +27,7 @@
 #define INFO "Sorts primitives according to given values"
 static const char *myinfo = (INFO ". ");
 
-int
+static int
 limnpu_sortMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
@@ -70,4 +70,4 @@ limnpu_sortMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   return 0;
 }
 
-unrrduCmd limnpu_sortCmd = {"sort", INFO, limnpu_sortMain, AIR_FALSE};
+const unrrduCmd limnpu_sortCmd = {"sort", INFO, limnpu_sortMain, AIR_FALSE};

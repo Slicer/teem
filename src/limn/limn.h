@@ -838,8 +838,8 @@ LIMN_EXPORT int limnPolyDataReadLMPD(limnPolyData *pld, FILE *file);
 LIMN_EXPORT int limnPolyDataWriteVTK(FILE *file, const limnPolyData *pld);
 LIMN_EXPORT int limnPolyDataReadOFF(limnPolyData *pld, FILE *file);
 LIMN_EXPORT int limnPolyDataSave(const char *fname, const limnPolyData *lpld);
-LIMN_EXPORT hestCB *limnHestPolyDataLMPD;
-LIMN_EXPORT hestCB *limnHestPolyDataOFF;
+LIMN_EXPORT const hestCB *const limnHestPolyDataLMPD;
+LIMN_EXPORT const hestCB *const limnHestPolyDataOFF;
 
 /* shapes.c */
 LIMN_EXPORT int limnObjectCubeAdd(limnObject *obj, unsigned int lookIdx);
@@ -893,10 +893,10 @@ LIMN_EXPORT const airEnum *const limnSplineType;
 LIMN_EXPORT const airEnum *const limnSplineInfo;
 LIMN_EXPORT limnSpline *limnSplineParse(const char *str);
 LIMN_EXPORT limnSplineTypeSpec *limnSplineTypeSpecParse(const char *str);
-LIMN_EXPORT hestCB *limnHestSpline;
-LIMN_EXPORT hestCB *limnHestSplineTypeSpec;
-LIMN_EXPORT unsigned int limnSplineInfoSize[LIMN_SPLINE_INFO_MAX + 1];
-LIMN_EXPORT int limnSplineTypeHasImplicitTangents[LIMN_SPLINE_TYPE_MAX + 1];
+LIMN_EXPORT const hestCB *const limnHestSpline;
+LIMN_EXPORT const hestCB *const limnHestSplineTypeSpec;
+LIMN_EXPORT unsigned int const limnSplineInfoSize[LIMN_SPLINE_INFO_MAX + 1];
+LIMN_EXPORT int const limnSplineTypeHasImplicitTangents[LIMN_SPLINE_TYPE_MAX + 1];
 LIMN_EXPORT int limnSplineNumPoints(limnSpline *spline);
 LIMN_EXPORT double limnSplineMinT(limnSpline *spline);
 LIMN_EXPORT double limnSplineMaxT(limnSpline *spline);
@@ -932,7 +932,7 @@ LIMN_EXPORT int limnCBFit(limnCBFPath *path, limnCBFContext *fctx, const double 
                           unsigned int pNum, int isLoop);
 
 /* lpu{Flotsam,. . .}.c */
-#define LIMN_DECLARE(C) LIMN_EXPORT unrrduCmd limnpu_##C##Cmd;
+#define LIMN_DECLARE(C) LIMN_EXPORT const unrrduCmd limnpu_##C##Cmd;
 #define LIMN_LIST(C)    &limnpu_##C##Cmd,
 /* F(clip) \ */
 /* F(vwflip) \ */
@@ -947,7 +947,7 @@ LIMN_EXPORT int limnCBFit(limnCBFPath *path, limnCBFContext *fctx, const double 
   F(sort)                                                                               \
   F(cbfit)
 LIMN_MAP(LIMN_DECLARE)
-LIMN_EXPORT unrrduCmd *limnpuCmdList[];
+LIMN_EXPORT const unrrduCmd *const limnpuCmdList[];
 LIMN_EXPORT void limnpuUsage(const char *me, hestParm *hparm);
 
 #ifdef __cplusplus

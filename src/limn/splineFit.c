@@ -933,7 +933,7 @@ limnCBFPathNix(limnCBFPath *path) {
   return NULL;
 }
 
-void
+static void
 limnCBFPathJoin(limnCBFPath *dst, const limnCBFPath *src) {
   uint bb = airArrayLenIncr(dst->segArr, src->segNum);
   memcpy(dst->seg + bb, src->seg, (src->segNum) * sizeof(limnCBFSeg));

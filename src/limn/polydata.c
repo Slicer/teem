@@ -69,7 +69,7 @@ limnPolyDataNix(limnPolyData *pld) {
 /*
 ** doesn't set pld->xyzwNum, only the per-attribute xxxNum variables
 */
-int
+static int
 _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
                        unsigned int vertNum) {
   static const char me[] = "_limnPolyDataInfoAlloc";

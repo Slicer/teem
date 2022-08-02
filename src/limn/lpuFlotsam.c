@@ -29,7 +29,7 @@
 ** NULL-terminated array of unrrduCmd pointers, as ordered by
 ** LIMN_MAP macro
 */
-unrrduCmd *limnpuCmdList[] = {LIMN_MAP(LIMN_LIST) NULL};
+const unrrduCmd *const limnpuCmdList[] = {LIMN_MAP(LIMN_LIST) NULL};
 
 /*
 ******** limnpuUsage

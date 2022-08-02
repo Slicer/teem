@@ -28,7 +28,7 @@
 static const char *myinfo = (INFO
                              ". Actually all it can measure is area at this point...");
 
-int
+static int
 limnpu_measMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
@@ -72,4 +72,4 @@ limnpu_measMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   return 0;
 }
 
-unrrduCmd limnpu_measCmd = {"meas", INFO, limnpu_measMain, AIR_FALSE};
+const unrrduCmd limnpu_measCmd = {"meas", INFO, limnpu_measMain, AIR_FALSE};

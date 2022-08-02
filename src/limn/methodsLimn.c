@@ -75,7 +75,7 @@ limnCameraNix(limnCamera *cam) {
   return NULL;
 }
 
-void
+static void
 _limnOptsPSDefaults(limnOptsPS *ps) {
 
   ps->lineWidth[limnEdgeTypeUnknown] = AIR_NAN;

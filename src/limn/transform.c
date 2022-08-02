@@ -122,7 +122,7 @@ limnObjectVertexNormals(limnObject *obj) {
   return 0;
 }
 
-int
+static int
 _limnObjectViewTransform(limnObject *obj, limnCamera *cam) {
   unsigned int vertIdx;
   limnVertex *vert;
@@ -143,7 +143,7 @@ _limnObjectViewTransform(limnObject *obj, limnCamera *cam) {
   return 0;
 }
 
-int
+static int
 _limnObjectScreenTransform(limnObject *obj, limnCamera *cam) {
   static const char me[] = "_limnObjectScreenTransform";
   unsigned int vertIdx;
@@ -171,7 +171,7 @@ _limnObjectScreenTransform(limnObject *obj, limnCamera *cam) {
   return 0;
 }
 
-int
+static int
 _limnObjectDeviceTransform(limnObject *obj, limnCamera *cam, limnWindow *win) {
   static const char me[] = "_limnObjectDeviceTransform";
   unsigned int vertIdx;
@@ -254,7 +254,7 @@ limnObjectPartTransform(limnObject *obj, unsigned int partIdx, float xform[16]) 
   return 0;
 }
 
-int
+static int
 _limnPartDepthCompare(const void *_a, const void *_b) {
   limnPart *const *a;
   limnPart *const *b;
@@ -300,7 +300,7 @@ limnObjectDepthSortParts(limnObject *obj) {
   return 0;
 }
 
-int
+static int
 _limnFaceDepthCompare(const void *_a, const void *_b) {
   limnFace *const *a;
   limnFace *const *b;

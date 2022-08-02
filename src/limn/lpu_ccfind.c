@@ -27,7 +27,7 @@
 #define INFO "Find connected components (CCs)"
 static const char *myinfo = (INFO ", and then sorts primitive according to area.");
 
-int
+static int
 limnpu_ccfindMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
@@ -65,4 +65,4 @@ limnpu_ccfindMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   return 0;
 }
 
-unrrduCmd limnpu_ccfindCmd = {"ccfind", INFO, limnpu_ccfindMain, AIR_FALSE};
+const unrrduCmd limnpu_ccfindCmd = {"ccfind", INFO, limnpu_ccfindMain, AIR_FALSE};

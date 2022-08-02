@@ -85,7 +85,7 @@ limnObjectNew(int incr, int doEdges) {
   return obj;
 }
 
-limnPart *
+static limnPart *
 _limnObjectPartNew(int incr) {
   limnPart *part;
   airPtrPtrUnion appu;
@@ -105,7 +105,7 @@ _limnObjectPartNew(int incr) {
   return part;
 }
 
-limnPart *
+static limnPart *
 _limnObjectPartNix(limnPart *part) {
 
   if (part) {
@@ -117,7 +117,7 @@ _limnObjectPartNix(limnPart *part) {
   return NULL;
 }
 
-void
+static void
 _limnObjectFaceEmpty(limnFace *face) {
 
   if (face) {

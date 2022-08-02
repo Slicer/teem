@@ -25,7 +25,7 @@
 
 #define INFO "Information about this program and its use"
 
-int
+static int
 limnpu_aboutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_MED];
   char par1[] = "\t\t\t\t"
@@ -52,4 +52,4 @@ limnpu_aboutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   return 0;
 }
 
-unrrduCmd limnpu_aboutCmd = {"about", INFO, limnpu_aboutMain, AIR_FALSE};
+const unrrduCmd limnpu_aboutCmd = {"about", INFO, limnpu_aboutMain, AIR_FALSE};

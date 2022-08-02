@@ -873,7 +873,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
   return 0;
 }
 
-int
+static int
 _limnHestPolyDataLMPDParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   static const char me[] = "_limnHestPolyDataLMPDParse";
   char *nerr;
@@ -913,12 +913,13 @@ _limnHestPolyDataLMPDParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]
   return 0;
 }
 
-hestCB _limnHestPolyDataLMPD = {sizeof(limnPolyData *), "polydata",
-                                _limnHestPolyDataLMPDParse, (airMopper)limnPolyDataNix};
+static const hestCB _limnHestPolyDataLMPD = {sizeof(limnPolyData *), "polydata",
+                                             _limnHestPolyDataLMPDParse,
+                                             (airMopper)limnPolyDataNix};
 
-hestCB *limnHestPolyDataLMPD = &_limnHestPolyDataLMPD;
+const hestCB *const limnHestPolyDataLMPD = &_limnHestPolyDataLMPD;
 
-int
+static int
 _limnHestPolyDataOFFParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   static const char me[] = "_limnHestPolyDataOFFParse";
   char *nerr;
@@ -957,10 +958,11 @@ _limnHestPolyDataOFFParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE])
   return 0;
 }
 
-hestCB _limnHestPolyDataOFF = {sizeof(limnPolyData *), "polydata",
-                               _limnHestPolyDataOFFParse, (airMopper)limnPolyDataNix};
+static const hestCB _limnHestPolyDataOFF = {sizeof(limnPolyData *), "polydata",
+                                            _limnHestPolyDataOFFParse,
+                                            (airMopper)limnPolyDataNix};
 
-hestCB *limnHestPolyDataOFF = &_limnHestPolyDataOFF;
+const hestCB *const limnHestPolyDataOFF = &_limnHestPolyDataOFF;
 
 int
 limnPolyDataWriteVTK(FILE *file, const limnPolyData *pld) {
