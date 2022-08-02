@@ -1186,11 +1186,10 @@ PULL_EXPORT int pullTraceSet(pullContext *pctx, pullTrace *trc, int recordStreng
 PULL_EXPORT pullTraceMulti *pullTraceMultiNew(void);
 PULL_EXPORT pullTraceMulti *pullTraceMultiNix(pullTraceMulti *mtrc);
 PULL_EXPORT int pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc, int *addedP);
-/* where is this function defined? seems to be lost
-PULL_EXPORT int pullTraceMultiFilterConcaveDown(Nrrd *nfilt,
+/* where is this function defined? seems to be lost */
+/* PULL_EXPORT int pullTraceMultiFilterConcaveDown(Nrrd *nfilt,
                                                 const pullTraceMulti *mtrc,
-                                                double winLenFrac);
-*/
+                                                double winLenFrac); */
 PULL_EXPORT int pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc,
                                       const Nrrd *nfilt, int strengthUse, int smooth,
                                       int flatWght, unsigned int trcIdxMin,

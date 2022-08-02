@@ -114,8 +114,8 @@ extern int _pullInsideBBox(pullContext *pctx, double pos[4]);
 extern unsigned int _pullVolumeIndex(const pullContext *pctx, const char *volName);
 
 /* infoPull.c */
-extern unsigned int _pullInfoLen[PULL_INFO_MAX + 1];
-extern void (*_pullInfoCopy[10])(double *, const double *);
+extern unsigned int const _pullInfoLen[PULL_INFO_MAX + 1];
+extern void (*const _pullInfoCopy[10])(double *, const double *);
 extern int _pullInfoSetup(pullContext *pctx);
 
 /* contextPull.c */

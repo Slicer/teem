@@ -173,7 +173,7 @@ pullInfo = &_pullInfo;
 
 /* --------------------------------------------------------- */
 
-const char *
+static const char *
 _pullPropStr[] = {
   "(unknown_prop)",
   "idtag",            /* pullPropIdtag */
@@ -209,7 +209,7 @@ pullProp = &_pullProp;
 
 /* --------------------------------------------------------- */
 
-const char *
+static const char *
 _pullProcessModeStr[] = {
   "(unknown_mode)",
   "descent",
@@ -218,7 +218,7 @@ _pullProcessModeStr[] = {
   "nixing"
 };
 
-const airEnum
+static const airEnum
 _pullProcessMode = {
   "process mode",
   PULL_PROCESS_MODE_MAX,
@@ -231,7 +231,7 @@ pullProcessMode = &_pullProcessMode;
 
 /* --------------------------------------------------------- */
 
-const char *
+static const char *
 _pullTraceStopStr[] = {
   "(unknown_trace_stop)",
   "speeding",
@@ -243,7 +243,7 @@ _pullTraceStopStr[] = {
   "orientconstrfail"
 };
 
-const airEnum
+static const airEnum
 _pullTraceStop = {
   "trace stop",
   PULL_TRACE_STOP_MAX,
@@ -256,7 +256,7 @@ pullTraceStop = &_pullTraceStop;
 
 /* --------------------------------------------------------- */
 
-const char *
+static const char *
 _pullInitMethodStr[] = {
   "(unknown_init_method)",
   "random",
@@ -265,7 +265,7 @@ _pullInitMethodStr[] = {
   "given"
 };
 
-const airEnum
+static const airEnum
 _pullInitMethod = {
   "init method",
   PULL_INIT_METHOD_MAX,
@@ -278,7 +278,7 @@ pullInitMethod = &_pullInitMethod;
 
 /* --------------------------------------------------------- */
 
-const char *
+static const char *
 _pullCountStr[] = {
   "(unknown_countable)",
   "descent",
@@ -297,7 +297,7 @@ _pullCountStr[] = {
   "iter"
 };
 
-const airEnum
+static const airEnum
 _pullCount = {
   "countable",
   PULL_COUNT_MAX,
@@ -310,7 +310,7 @@ pullCount = &_pullCount;
 
 /* --------------------------------------------------------- */
 
-const char *
+static const char *
 _pullConstraintFailStr[PULL_CONSTRAINT_FAIL_MAX+1] = {
   "(unknown or no contraint fail)",
   "needed Hessian 0 (A)",
@@ -322,7 +322,7 @@ _pullConstraintFailStr[PULL_CONSTRAINT_FAIL_MAX+1] = {
   "plen doesn't exist"
 };
 
-const airEnum
+static const airEnum
 _pullConstraintFail = {
   "constraint fail",
   PULL_CONSTRAINT_FAIL_MAX,

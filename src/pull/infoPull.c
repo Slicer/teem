@@ -26,7 +26,7 @@
 
 /* --------------------------------------------- */
 
-unsigned int _pullInfoLen[PULL_INFO_MAX + 1] = {
+unsigned int const _pullInfoLen[PULL_INFO_MAX + 1] = {
   0, /* pullInfoUnknown */
   7, /* pullInfoTensor */
   7, /* pullInfoTensorInverse */
@@ -398,7 +398,7 @@ _infoCopy9(double *dst, const double *src) {
   dst[8] = src[8];
 }
 
-void (*_pullInfoCopy[10])(double *, const double *)
+void (*const _pullInfoCopy[10])(double *, const double *)
   = {NULL,       _infoCopy1, _infoCopy2, _infoCopy3, _infoCopy4,
      _infoCopy5, _infoCopy6, _infoCopy7, _infoCopy8, _infoCopy9};
 

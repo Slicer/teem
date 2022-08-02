@@ -730,7 +730,7 @@ pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
   return 0;
 }
 
-int
+static int
 _pullHestEnergyParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   static const char me[] = "_pullHestForceParse";
   pullEnergySpec **enspP;
