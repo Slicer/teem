@@ -1,5 +1,5 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2009--2019  University of Chicago
   Copyright (C) 2011  Thomas Schultz
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
