@@ -353,8 +353,11 @@ def build(path):
     if (verbose):
         print("#################### ... done.")
     # should have now created a new _teem.cpython-<version>.so shared library
-    # on Mac: should be able to (e.g.) "otool -L _teem.cpython-39-darwin.so"
+    # so should be able to, on Mac, (e.g.) "otool -L _teem.cpython-39-darwin.so"
+    # or, on linux, (e.g.) "ldd _teem.cpython-38-x86_64-linux-gnu.so"
     # to confirm that this want to dynamically link to the libteem shared library
+    # (something about the mac build process allows this to work even if -Wl,-rpath
+    # is not passed to set_source, but this seems necessary on linux)
 
 def parse_args():
     # https://docs.python.org/3/library/argparse.html
