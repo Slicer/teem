@@ -230,9 +230,9 @@ def declList(lib):
                     L = L.removeprefix('*').removeprefix('*')
                     #print(f'fooA |{L}|')
                 else:
-                    # it doesn't look like a declaration, move on to next line
+                    # it doesn't look like either a #define or a declaration, move on to next line
                     continue
-                # else we think we have the name isolated
+                # else it was a declaration, and we think we have the name isolated
                 if L.endswith('[][][];'):
                     decl[L[:-7]] = 'D'
                 elif L.endswith('[][]();'):
@@ -279,10 +279,10 @@ if __name__ == '__main__':
     os.chdir(libDir)
     symb = symbList(args.lib, args.c)
     if (verbose > 1):
-        print('========== found symbols:', symb)
+        print('========== found (in lib) symbols:', symb)
     decl = declList(args.lib)
     if (verbose > 1):
-        print('========== found declarations:', decl)
+        print('========== found (in .h) declarations:', decl)
     for N in symb:
         if 'D' == symb[N]['type']: print(f'--> {args.lib} lib has global variable {N}')
         symbT = symb[N]['type']
@@ -292,7 +292,7 @@ if __name__ == '__main__':
                 if verbose > 1: print(f'agree on {N}')
             else:
                 if not ('S' == symbT and 'D' == declT):
-                    print(f"disaagree on {N} type (nm {symbT} vs .h {declT})")
+                    print(f"disagree on {N} type (nm {symbT} vs .h {declT})")
         else:
             if ('unrrdu' == args.lib and re.match(r'unrrdu_\w+Cmd', N)) \
                 or ('ten' == args.lib and re.match(r'tend_\w+Cmd', N)) \
