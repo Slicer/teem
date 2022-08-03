@@ -1,3 +1,10 @@
+# Created by GLK in June 2022 as part of rebooting effort to do a Teem release
+# Significant experimentation went into trying to match the existing style,
+# with with columns going from 79 to 89.
+# This file is what provides info to "clang-format -style=file" when run in
+# this directory or a subdirectory.  The teem/src/_util/clang-format.sh
+# script helps do this.
+# For more info see: https://clang.llvm.org/docs/ClangFormat.htm
 ---
 Language: Cpp
 BasedOnStyle: LLVM
