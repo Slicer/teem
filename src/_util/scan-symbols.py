@@ -19,6 +19,7 @@ import re
 verbose = 1
 archDir = None
 libDir = None
+srcLines = {} # cache of lines of source files
 
 # All the types (and type qualifiers) we try to parse away
 # The list has to be sorted (from long to short) because things like 'int'
@@ -170,95 +171,155 @@ def declList(lib):
         externStr = f'{lib.upper()}_EXPORT ' if pub else 'extern '
         with open(HN) as HF:
             lines = [line.rstrip() for line in HF.readlines()]
-            # remove 'extern "C" {' in from list for private
-            if not pub: lines.remove('extern "C" {')
-            for L in lines:
-                origL = L
-                # special handling of inside of list of nrrdKernels
-                if 'nrrd.h' == HN and L.startswith('  *const nrrdKernel'):
-                    L = 'NRRD_EXPORT const NrrdKernel' + kernelLineProc(L[1:])
-                # does it looks like the start of a declaration?
-                if L.startswith(externStr):
-                    # remove LIB_EXPORT or extern prefix
-                    L = L.removeprefix(externStr)
-                    if L == 'const NrrdKernel':
-                        # its the start of a kernel list; each handled separately above
-                        continue
-                    # else work on isolating the symbol name
-                    # remove types
-                    #print(f'foo0 |{L}|')
-                    for QT in allTypes:
-                        #preL = L
-                        L = L.replace(QT+' ', '')
-                        #if (L != preL):
-                        #    print(f'   {QT} : |{preL}| -> |{L}|')
-                    #print(f'foo1 |{L}|')
-                    if (match := re.match(r'.+?(/\*.+?\*/)', L)):
-                        # if there a single-line self-contained comment, remove it
-                        L = L.replace(match.group(1), '').rstrip()
-                    #print(f'foo2 |{L}|')
-                    while (match := re.match(r'.+?(\[[^\[\]]+?\])', L)):
-                        # remove arrays
-                        L = L.replace(match.group(1), '[]').rstrip()
-                    #print(f'foo3 |{L}|')
-                    if (match := re.match(r'.+(\([^\(\)]+)$', L)):
-                        # if start of multi-line function declaration, simplify it
-                        #print(f'start of multi-line func decl |{L}|')
-                        L = L.replace(match.group(1), '();')
-                    #print(f'foo4 |{L}|')
-                    while (match := re.match(r'.*?\(.+?(\*\(.+?\)\(.+?\))', L)):
-                        # remove function args like *(*threadBody)(void *), for airThreadStart
-                        L = L.replace(match.group(1), 'XX').rstrip()
-                    #print(f'foo5 |{L}|')
-                    while (match := re.match(r'.+?(\([^\(\)]+\))', L)):
-                        # if single-line function declaration, simplfy it
-                        #print(f'single-line func decl |{L}|')
-                        L = L.replace(match.group(1), '()')
-                    #print(f'foo5b|{L}|')
-                    if (match := re.match(r'.+?(\([A-Z]+_ARGS\(\)\))', L)):
-                        # echo uses macros to fill out arguments in function declarations
-                        L = L.replace(match.group(1), '()')
-                    #print(f'foo6 |{L}|')
-                    if (match := re.match(r'.*?(\(\*[^ \)]+\))', L)):
-                        # remove indication of being a function pointer
-                        L = L.replace(match.group(1), match.group(1)[2:-1])
-                    #print(f'foo7 |{L}|')
-                    if L.endswith('()'):
-                        L += ';'
-                    #print(f'foo8 |{L}|')
-                    if (match := re.match(r'.+(\([^\(\)]+)$', L)):
-                        # another whack at this, for airArrayPointerCB
-                        # if start of multi-line function declaration, simplify it
-                        L = L.replace(match.group(1), '();')
-                    #print(f'foo9 |{L}|')
-                    L = L.replace('()(),', '();') # ugh, hacky for airArrayStructCB
-                    L = L.removeprefix('*').removeprefix('*')
-                    #print(f'fooA |{L}|')
-                else:
-                    # it doesn't look like either a #define or a declaration, move on to next line
+        # remove 'extern "C" {' in from list for private
+        if not pub: lines.remove('extern "C" {')
+        for L in lines:
+            origL = L
+            # special handling of inside of list of nrrdKernels
+            if 'nrrd.h' == HN and L.startswith('  *const nrrdKernel'):
+                L = 'NRRD_EXPORT const NrrdKernel' + kernelLineProc(L[1:])
+            # does it looks like the start of a declaration?
+            if L.startswith(externStr):
+                # remove LIB_EXPORT or extern prefix
+                L = L.removeprefix(externStr)
+                if L == 'const NrrdKernel':
+                    # its the start of a kernel list; each handled separately above
                     continue
-                # else it was a declaration, and we think we have the name isolated
-                if L.endswith('[][][];'):
-                    decl[L[:-7]] = 'D'
-                elif L.endswith('[][]();'):
-                    decl[L[:-7]] = 'D'
-                elif L.endswith('[]();'):
-                    decl[L[:-5]] = 'D'
-                elif L.endswith('[][];'):
-                    decl[L[:-5]] = 'D'
-                elif L.endswith('[];'):
-                    decl[L[:-3]] = 'D'
-                elif L.endswith('();'):
-                    decl[L[:-3]] = 'T'
-                elif L.startswith('gageScl3PFilter'):
-                    decl[L[:-1]] = 'T' # there's a function typedef
-                elif (re.match(r'hoover[\w]+Begin;', L) or re.match(r'hoover[\w]+End;', L)) or ('hooverStubSample;' == L):
-                    decl[L[:-1]] = 'T' # there's a function typedef
-                elif L.endswith(';'):
-                    decl[L[:-1]] = 'D'
-                else:
-                    raise Exception(f'confused about |{L}| from |{origL}|')
+                # else work on isolating the symbol name
+                # remove types
+                #print(f'foo0 |{L}|')
+                for QT in allTypes:
+                    #preL = L
+                    L = L.replace(QT+' ', '')
+                    #if (L != preL):
+                    #    print(f'   {QT} : |{preL}| -> |{L}|')
+                #print(f'foo1 |{L}|')
+                if (match := re.match(r'.+?(/\*.+?\*/)', L)):
+                    # if there a single-line self-contained comment, remove it
+                    L = L.replace(match.group(1), '').rstrip()
+                #print(f'foo2 |{L}|')
+                while (match := re.match(r'.+?(\[[^\[\]]+?\])', L)):
+                    # remove arrays
+                    L = L.replace(match.group(1), '[]').rstrip()
+                #print(f'foo3 |{L}|')
+                if (match := re.match(r'.+(\([^\(\)]+)$', L)):
+                    # if start of multi-line function declaration, simplify it
+                    #print(f'start of multi-line func decl |{L}|')
+                    L = L.replace(match.group(1), '();')
+                #print(f'foo4 |{L}|')
+                while (match := re.match(r'.*?\(.+?(\*\(.+?\)\(.+?\))', L)):
+                    # remove function args like *(*threadBody)(void *), for airThreadStart
+                    L = L.replace(match.group(1), 'XX').rstrip()
+                #print(f'foo5 |{L}|')
+                while (match := re.match(r'.+?(\([^\(\)]+\))', L)):
+                    # if single-line function declaration, simplfy it
+                    #print(f'single-line func decl |{L}|')
+                    L = L.replace(match.group(1), '()')
+                #print(f'foo5b|{L}|')
+                if (match := re.match(r'.+?(\([A-Z]+_ARGS\(\)\))', L)):
+                    # echo uses macros to fill out arguments in function declarations
+                    L = L.replace(match.group(1), '()')
+                #print(f'foo6 |{L}|')
+                if (match := re.match(r'.*?(\(\*[^ \)]+\))', L)):
+                    # remove indication of being a function pointer
+                    L = L.replace(match.group(1), match.group(1)[2:-1])
+                #print(f'foo7 |{L}|')
+                if L.endswith('()'):
+                    L += ';'
+                #print(f'foo8 |{L}|')
+                if (match := re.match(r'.+(\([^\(\)]+)$', L)):
+                    # another whack at this, for airArrayPointerCB
+                    # if start of multi-line function declaration, simplify it
+                    L = L.replace(match.group(1), '();')
+                #print(f'foo9 |{L}|')
+                L = L.replace('()(),', '();') # ugh, hacky for airArrayStructCB
+                L = L.removeprefix('*').removeprefix('*')
+                #print(f'fooA |{L}|')
+            else:
+                # it doesn't look like either a #define or a declaration, move on to next line
+                continue
+            # else it was a declaration, and we think we have the name isolated
+            if L.endswith('[][][];'):
+                decl[L[:-7]] = 'D'
+            elif L.endswith('[][]();'):
+                decl[L[:-7]] = 'D'
+            elif L.endswith('[]();'):
+                decl[L[:-5]] = 'D'
+            elif L.endswith('[][];'):
+                decl[L[:-5]] = 'D'
+            elif L.endswith('[];'):
+                decl[L[:-3]] = 'D'
+            elif L.endswith('();'):
+                decl[L[:-3]] = 'T'
+            elif L.startswith('gageScl3PFilter'):
+                decl[L[:-1]] = 'T' # there's a function typedef
+            elif (re.match(r'hoover[\w]+Begin;', L) or re.match(r'hoover[\w]+End;', L)) or ('hooverStubSample;' == L):
+                decl[L[:-1]] = 'T' # there's a function typedef
+            elif L.endswith(';'):
+                decl[L[:-1]] = 'D'
+            else:
+                raise Exception(f'confused about |{L}| from |{origL}|')
     return decl
+
+def usesBiff(str, idx, fname):
+    ss = str.lstrip()
+    ret = 0
+    if ss.startswith('biffMaybeMovef') or ss.startswith('biffMaybeAdd'):
+        ret = 2
+    elif ss.startswith('biffAddf') or ss.startswith('biffMovef'):
+        ret = 1
+    elif ss.startswith('biff'):
+        print(f'confusing biff @ line {idx} of {fname}: |{ss}|')
+    return ret
+
+def biffScan(funcName, obj):
+    fileName = f'{obj}.c'
+    # get lines of fileName
+    if fileName in srcLines:
+        if verbose > 2:
+            print(f'(re-using read of {fileName}')
+        lines = srcLines[fileName]
+    else:
+        if verbose > 2:
+            print(f'(reading {fileName} for first time)')
+        with open(fileName) as CF:
+            lines = [L.rstrip() for L in CF.readlines()]
+        srcLines[fileName] = lines
+    # dIdx = index of start of definition (but return type on previous line!)
+    dIdx = -1
+    nlin = len(lines)
+    for idx in range(nlin):
+        L = lines[idx]
+        if L.startswith(funcName+'('):
+            if (-1 == dIdx):
+                dIdx = idx
+            else:
+                print(f'WHOA: both lines {dIdx} ({lines[dIdx]}) and {idx} ({lines[idx]}) seem to define {funcName}; bailing')
+                return None
+    if (-1 == dIdx):
+        print(f'Sorry, could not find {funcName} defined in {fileName}')
+        return
+    # else we think we found it
+    if verbose > 1:
+        print(f'found {funcName} on line {dIdx} of {fileName}: |{lines[dIdx]}|')
+    idx = dIdx
+    rets = []
+    while idx < nlin and '}' != lines[idx]:
+        if (bu := usesBiff(lines[idx], idx, fileName)):
+            bline = lines[idx]
+            bIdx = idx
+            while not (RL := lines[idx].lstrip()).startswith('return'):
+                idx += 1
+            #print(f'{bu}: ({bIdx}) {bline} --> ({idx}) {RL}')
+            match = re.match(r'return (.+);', RL)
+            if not match:
+                raise Exception(f'confusing return line {idx} of {fileName}: |{linex[idx]}|')
+            RV = match.group(1)
+            if not RV in rets: rets.append(RV)
+        idx += 1
+    if rets:
+        print(f'{lines[dIdx]} -> {rets}')
+
 
 def parse_args():
     # https://docs.python.org/3/library/argparse.html
@@ -270,6 +331,8 @@ def parse_args():
                         help='verbosity level (0 for silent)')
     parser.add_argument('-c', action='store_true',
                         help='Do a "make clean" before make')
+    parser.add_argument('-biff', action='store_true',
+                        help='also run biff scanning')
     parser.add_argument('teem_path',
                         help='path of Teem checkout with "src" and "arch" subdirs')
     parser.add_argument('lib',
@@ -290,8 +353,10 @@ if __name__ == '__main__':
     if (verbose > 1):
         print('========== found (in .h) declarations:', decl)
     for N in symb:
-        if 'D' == symb[N]['type']: print(f'--> {args.lib} lib has global variable {N}')
         symbT = symb[N]['type']
+        if 'D' == symbT: print(f'--> {args.lib} lib has global variable {N}')
+        if args.biff and 'T' == symbT and not (args.lib in ['air', 'biff', 'hest']):
+            biffScan(N, symb[N]['object'])
         if N in decl:
             declT = decl[N]
             if declT == symbT:
