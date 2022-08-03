@@ -2,7 +2,7 @@ GLK's list of things to do for each release.  This started with an
 early version of Teem and has been only partially maintained since
 then; consider it a work-in-progress ...
 
--5) use names.pl to make sure all sourcefile names are unique
+-5) use fnames.pl to make sure all sourcefile names are unique
 
 -4) Make sure the CMake and GNUMake agree on source files per-library
 
@@ -56,7 +56,8 @@ scp index.html kindlmann,teem@web.sourceforge.net:/home/project-web/teem/htdocs
 
 1) Check namespace safety
   a) Make sure all library symbols are properly prefixed:
-  run make/release-nm-check.csh and make/release-def-check.csh
+  run src/_util/scan-symbols.py for all libraries,
+  run src/_util/scan-defines.py
 
 2) Make sure it works
   "make teem/dev teem/install" on every supported architecture,
@@ -115,7 +116,6 @@ setenv TEEM_ZLIB_LPATH -L/home/gk/lib
 setenv TEEM_ZLIB_IPATH -I/home/gk/include
 setenv TEEM_PNG_LPATH -L/usr/local/lib
 setenv TEEM_PNG_IPATH -I/usr/local/include
-
 
 5) Create Unix-ish binary builds (without src or docs):
    for each TEEM_ARCH in:
