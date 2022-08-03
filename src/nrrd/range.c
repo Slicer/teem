@@ -120,7 +120,7 @@ nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd, double minPerc,
 
   if (!(range && nrrd)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
-    return 0;
+    return 1;
   }
   nrrdRangeSet(range, nrrd, blind8BitRange);
   /* range->min and range->max
