@@ -79,7 +79,7 @@ def check_path(iPath, lPath):
     if not ltname in lFiles:
         raise Exception(f'Teem library dir {lPath} contents {lFiles} do not seem to include '
                         f'required {ltname} shared library, so later cffi.FFI().compile() will '
-                        'not produce a working wrapper, even if it finished without error.')
+                        'not produce a working wrapper, even if it finishes without error.')
     itPath = iPath + '/teem'
     if not os.path.isdir(itPath):
         raise Exception(f'Need {itPath} to be directory')
@@ -324,25 +324,29 @@ def build(path):
                 hdrProc(out, hf, hh)
             out.write(f'\n\n')
     ffibld = cffi.FFI()
-    ffibld.set_source('_teem',
-                      '#include <teem/meet.h>',
-                      libraries=['teem'],  # HEY? need png, z, etc?
-                      include_dirs=[iPath],
-                      library_dirs=[lPath],
-                      extra_compile_args=(['-DTEEM_BUILD_EXPERIMENTAL_LIBS'] if haveExpr else None),
-                      # HEY: should lPath be added to rpath?
-                      # this module will only be used in this here directory?
-                      extra_link_args=['-Wl,-rpath,.'],
-                      # keep asserts()
-                      # https://docs.python.org/3/distutils/apiref.html#distutils.core.Extension
-                      undef_macros = [ "NDEBUG" ],
-    )
     ## so that teem.py can call free()
     ffibld.cdef('extern void free(void *);')
     if (verbose):
         print("#################### reading cdef_teem.h ...")
     with open('cdef_teem.h', 'r') as file:
         ffibld.cdef(file.read())
+    sourceArgs = {
+        'libraries': ['teem'],
+        'include_dirs': [iPath],
+        'library_dirs': [lPath],
+        'extra_compile_args': ['-DTEEM_BUILD_EXPERIMENTAL_LIBS'] if haveExpr else None,
+        'extra_link_args': [f'-Wl,-rpath,{os.path.abspath(lPath)}'],
+        # keep asserts()
+        # https://docs.python.org/3/distutils/apiref.html#distutils.core.Extension
+        'undef_macros':  [ "NDEBUG" ],
+    }
+    if (verbose):
+        print("#################### calling set_source with ...")
+        for key,val in sourceArgs.items():
+            print(f'   {key} = {val}')
+    ffibld.set_source('_teem',
+                      '#include <teem/meet.h>', # this is effectively teem.h
+                      **sourceArgs)
     if (verbose):
         print("#################### compiling (slow!) ...")
     ffibld.compile(verbose=(verbose > 0))
