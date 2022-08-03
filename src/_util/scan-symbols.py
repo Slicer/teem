@@ -9,7 +9,12 @@ import argparse
 import subprocess
 import re
 
-# still with curious symbols: air biff nrrd gage
+# hacky script by GLK to check consistency of symbols in libraries and
+# declarations in headers. Example usage:
+#   python3 scan-symbols.py ~/teem-install
+
+# FIX: "HEY: some air .h declares airArrayStructCB(*a,  but not in lib"
+# TODO: still with curious symbols: air biff nrrd gage
 
 verbose = 1
 archDir = None
@@ -259,7 +264,8 @@ def parse_args():
     # https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser(description='Utility for seeing if the symbols '
                                      'externally available in a library really are '
-                                     'declared as such.')
+                                     'declared as such, and that things declared in '
+                                     'header files are actually defined.')
     parser.add_argument('-v', metavar='verbosity', type=int, default=1, required=False,
                         help='verbosity level (0 for silent)')
     parser.add_argument('-c', action='store_true',
