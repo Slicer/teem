@@ -40,7 +40,7 @@ else:
     raise Exception('Sorry, currently only know how work on Mac and Linux')
 
 # Array of dicts (object literals) to list all the Teem libraries
-# air hest biff nrrd ell unrrdu alan moss tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet
+# air hest biff nrrd ell moss unrrdu alan tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet
 # (TEEM_LIB_LIST)
 libs = [
     {'name': 'air',    'expr': False}, # (don't need airExistsConf.h)

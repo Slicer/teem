@@ -14,7 +14,7 @@ sPath = None
 verbose = 0
 
 # (TEEM_LIB_LIST)
-libs = ['air', 'hest', 'biff', 'nrrd', 'ell', 'unrrdu', 'alan', 'moss', 'tijk',
+libs = ['air', 'hest', 'biff', 'nrrd', 'ell', 'moss', 'unrrdu', 'alan', 'tijk',
         'gage', 'dye', 'bane', 'limn', 'echo', 'hoover', 'seek', 'ten', 'elf',
         'pull', 'coil', 'push', 'mite', 'meet']
 

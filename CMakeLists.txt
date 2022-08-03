@@ -271,9 +271,8 @@ if(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "")
     set(BUILD_EXPERIMENTAL_LIBS ON)
 endif()
 
-## (TEEM_LIB_LIST)
-# set the Teem library as a list
-set(Teem_LIBRARIES "air" "hest" "biff" "nrrd" "ell" "unrrdu" "moss" "gage" "dye" "limn" "echo" "hoover" "seek" "ten" "pull" "mite" "meet")
+# set the Teem library as a list (TEEM_LIB_LIST)
+set(Teem_LIBRARIES "air" "hest" "biff" "nrrd" "ell" "moss" "unrrdu" "gage" "dye" "limn" "echo" "hoover" "seek" "ten" "pull" "mite" "meet")
 if(BUILD_EXPERIMENTAL_LIBS)
     # This list of the "experimental" libraries must be kept in sync with:
     # * definition of Teem_HEADER_FILES (below)
@@ -295,8 +294,8 @@ set(Teem_HEADER_FILES
     "biff/biff.h"
     "nrrd/nrrd.h"   "nrrd/nrrdDefines.h"   "nrrd/nrrdMacros.h"  "nrrd/nrrdEnums.h"
     "ell/ell.h"     "ell/ellMacros.h"
-    "unrrdu/unrrdu.h"
     "moss/moss.h"
+    "unrrdu/unrrdu.h"
     "gage/gage.h"
     "dye/dye.h"
     "limn/limn.h"
