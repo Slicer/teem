@@ -13,7 +13,7 @@ del _x, _y
 # _teem.py; teem.py turns biff errors into exceptions.
 
 # learned:
-# The C parser used by CFFI is modest, and can generate obscure error message
+# The C parser used by CFFI is meagre, and can generate obscure error message
 # e.g. unrrdu.h use to declare all the unrrdu_fooCmd structs, with meta-macro use
 #   UNRRDU_MAP(UNRRDU_DECLARE)
 # and this led to error:
@@ -22,22 +22,21 @@ del _x, _y
 #   pycparser.plyparser.ParseError: <cdef source string>: At end of input
 # (but this was made moot by moving this macro use to a private header)
 
-from cffi import FFI
-from os import path #, chdir
-# from pathlib import Path
-from sys import platform
+import cffi
+import os
+import sys
 import argparse
 import re
 
 verbose = 0
 haveExpr = False
 
-if platform == 'darwin':  # Mac
+if sys.platform == 'darwin':  # Mac
     shext = 'dylib'
-elif platform == 'linux':
+elif sys.platform == 'linux':
     shext = 'so'
 else:
-    raise Exception('Sorry, currently only know how work on Mac and Linux')
+    raise Exception(f'Sorry, currently only know how work on Mac and Linux (not {sys.platform})')
 
 # Array of dicts (object literals) to list all the Teem libraries
 # air hest biff nrrd ell moss unrrdu alan tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet
@@ -70,11 +69,19 @@ libs = [
 
 def check_path(iPath, lPath):
     global haveExpr
-    if (not path.isdir(iPath) or
-        not path.isdir(lPath)):
+    if (not os.path.isdir(iPath) or
+        not os.path.isdir(lPath)):
         raise Exception(f'Need both {iPath} and {lPath} to be subdirs of teem install dir')
+    lFiles = os.listdir(lPath)
+    if not lFiles:
+        raise Exception(f'Teem library dir {lPath} seems empty')
+    ltname = f'libteem.{shext}'
+    if not ltname in lFiles:
+        raise Exception(f'Teem library dir {lPath} contents {lFiles} do not seem to include '
+                        f'required {ltname} shared library, so later cffi.FFI().compile() will '
+                        'not produce a working wrapper, even if it finished without error.')
     itPath = iPath + '/teem'
-    if (not path.isdir(itPath)):
+    if not os.path.isdir(itPath):
         raise Exception(f'Need {itPath} to be directory')
     baseLibNames = [L['name'] for L in filter(lambda L: not L['expr'], libs)]
     exprLibNames = [L['name'] for L in filter(lambda L:     L['expr'], libs)]
@@ -84,11 +91,11 @@ def check_path(iPath, lPath):
         baseHdrs.insert(baseHdrs.index('nrrd.h'), 'nrrdDefines.h')
         baseHdrs.insert(baseHdrs.index('nrrd.h'), 'nrrdEnums.h')
     exprHdrs = [f'{LN}.h' for LN in exprLibNames]
-    missingHdrs = [H for H in filter(lambda F: not path.isfile(f'{itPath}/{F}'), baseHdrs)]
+    missingHdrs = [H for H in filter(lambda F: not os.path.isfile(f'{itPath}/{F}'), baseHdrs)]
     if (len(missingHdrs)):
         raise Exception(f"Missing header(s) {' '.join(missingHdrs)} in {itPath} "
                         + "for one or more of the core Teem libs")
-    missingExprHdrs = [H for H in filter(lambda F: not path.isfile(f'{itPath}/{F}'), exprHdrs)]
+    missingExprHdrs = [H for H in filter(lambda F: not os.path.isfile(f'{itPath}/{F}'), exprHdrs)]
     haveHdrs = baseHdrs
     if (len(missingExprHdrs)):
         # missing one or more of the non-core "Experimental" header files
@@ -316,20 +323,19 @@ def build(path):
             with open(f'{iPath}/teem/{hh}') as hf:
                 hdrProc(out, hf, hh)
             out.write(f'\n\n')
-    ffibld = FFI()
+    ffibld = cffi.FFI()
     ffibld.set_source('_teem',
                       '#include <teem/meet.h>',
                       libraries=['teem'],  # HEY? need png, z, etc?
                       include_dirs=[iPath],
                       library_dirs=[lPath],
                       extra_compile_args=(['-DTEEM_BUILD_EXPERIMENTAL_LIBS'] if haveExpr else None),
-
-                      # HEY?
-                      # this module will only be used in this here directory
+                      # HEY: should lPath be added to rpath?
+                      # this module will only be used in this here directory?
                       extra_link_args=['-Wl,-rpath,.'],
-                      # HEY needed?
+                      # keep asserts()
                       # https://docs.python.org/3/distutils/apiref.html#distutils.core.Extension
-                      undef_macros = [ "NDEBUG" ], # keep asserts()
+                      undef_macros = [ "NDEBUG" ],
     )
     ## so that teem.py can call free()
     ffibld.cdef('extern void free(void *);')
@@ -342,6 +348,9 @@ def build(path):
     ffibld.compile(verbose=(verbose > 0))
     if (verbose):
         print("#################### ... done.")
+    # should have now created a new _teem.cpython-<version>.so shared library
+    # on Mac: should be able to (e.g.) "otool -L _teem.cpython-39-darwin.so"
+    # to confirm that this want to dynamically link to the libteem shared library
 
 def parse_args():
     # https://docs.python.org/3/library/argparse.html
