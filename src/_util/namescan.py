@@ -9,9 +9,7 @@ import argparse
 import subprocess
 import re
 
-# TODO: echo
 # still with curious symbols: air biff nrrd gage
-# done: hest ell alan tijk seek elf nrrd unrrdu moss dye bane limn ... hoover ten pull coil push mite meet
 
 verbose = 1
 archDir = None
@@ -207,9 +205,13 @@ def declList(lib):
                         # remove function args like *(*threadBody)(void *), for airThreadStart
                         L = L.replace(match.group(1), 'XX').rstrip()
                     #print(f'foo5 |{L}|')
-                    while (match := re.match(r'.+?(\([^\)]+\))', L)):
+                    while (match := re.match(r'.+?(\([^\(\)]+\))', L)):
                         # if single-line function declaration, simplfy it
                         #print(f'single-line func decl |{L}|')
+                        L = L.replace(match.group(1), '()')
+                    #print(f'foo5b|{L}|')
+                    if (match := re.match(r'.+?(\([A-Z]+_ARGS\(\)\))', L)):
+                        # echo uses macros to fill out arguments in function declarations
                         L = L.replace(match.group(1), '()')
                     #print(f'foo6 |{L}|')
                     if (match := re.match(r'.*?(\(\*[^ \)]+\))', L)):
