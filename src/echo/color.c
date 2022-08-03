@@ -183,7 +183,7 @@ echoIntxLightColor(echoCol_t ambi[3], echoCol_t diff[3], echoCol_t spec[3], echo
   return;
 }
 
-void
+static void
 _echoIntxColorPhong(INTXCOLOR_ARGS) {
   echoCol_t ambi[3], diff[3], spec[3], ka, kd, ks, sp;
 
@@ -201,7 +201,7 @@ _echoIntxColorPhong(INTXCOLOR_ARGS) {
   return;
 }
 
-void
+static void
 _echoIntxColorMetal(INTXCOLOR_ARGS) {
   echoCol_t ka, kd, kp, RA, RD, RS, ambi[3], diff[3], spec[4];
   echoPos_t c;
@@ -255,7 +255,7 @@ _echoIntxColorMetal(INTXCOLOR_ARGS) {
 ** "ph" = phi = angle of refraction
 ** "index" = (index of outgoing material)/(index of incoming material)
 */
-int
+static int
 _echoRefract(echoPos_t T[3], echoPos_t V[3], echoPos_t N[3], echoCol_t indexr,
              echoThreadState *tstate) {
   echoPos_t cosTh, cosPh, sinPhSq, cosPhSq, tmp1, tmp2;
@@ -283,7 +283,7 @@ _echoRefract(echoPos_t T[3], echoPos_t V[3], echoPos_t N[3], echoCol_t indexr,
   return AIR_TRUE;
 }
 
-void
+static void
 _echoIntxColorGlass(INTXCOLOR_ARGS) {
   static const char me[] = "_echoIntxColorGlass";
   echoCol_t ambi[3], diff[3], ka, kd, RP, RS, RT, R0,
@@ -391,7 +391,7 @@ _echoIntxColorGlass(INTXCOLOR_ARGS) {
   return;
 }
 
-void
+static void
 _echoIntxColorLight(INTXCOLOR_ARGS) {
 
   AIR_UNUSED(scene);
@@ -399,7 +399,7 @@ _echoIntxColorLight(INTXCOLOR_ARGS) {
   echoIntxMaterialColor(rgba, intx, parm);
 }
 
-void
+static void
 _echoIntxColorUnknown(INTXCOLOR_ARGS) {
 
   AIR_UNUSED(rgba);

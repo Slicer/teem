@@ -24,7 +24,7 @@
 #include "echo.h"
 #include "privateEcho.h"
 
-int echoObjectHasMatter[ECHO_TYPE_NUM] = {
+const int echoObjectHasMatter[ECHO_TYPE_NUM] = {
   1, /* echoTypeSphere */
   1, /* echoTypeCylinder */
   1, /* echoTypeSuperquad */

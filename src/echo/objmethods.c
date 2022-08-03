@@ -25,7 +25,7 @@
 #include "privateEcho.h"
 
 #define NEW_TMPL(TYPE, BODY)                                                            \
-  echo##TYPE *_echo##TYPE##_new(void) {                                                 \
+  static echo##TYPE *_echo##TYPE##_new(void) {                                          \
     echo##TYPE *obj;                                                                    \
                                                                                         \
     obj = (echo##TYPE *)calloc(1, sizeof(echo##TYPE));                                  \
@@ -37,7 +37,7 @@
   }
 
 #define NIX_TMPL(TYPE, BODY)                                                            \
-  echo##TYPE *_echo##TYPE##_nix(echo##TYPE *obj) {                                      \
+  static echo##TYPE *_echo##TYPE##_nix(echo##TYPE *obj) {                               \
     int dummy = 0;                                                                      \
                                                                                         \
     if (obj) {                                                                          \
@@ -49,7 +49,7 @@
     return NULL;                                                                        \
   }
 
-void
+static void
 _echoMatterInit(echoObject *obj) {
 
   obj->matter = echoMatterUnknown;

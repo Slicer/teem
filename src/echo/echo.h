@@ -469,7 +469,7 @@ ECHO_EXPORT void echoTriMeshSet(echoObject *trim, int numV, echoPos_t *pos, int 
 ECHO_EXPORT void echoInstanceSet(echoObject *inst, echoPos_t *M, echoObject *obj);
 
 /* matter.c ------------------------------------------ */
-ECHO_EXPORT int echoObjectHasMatter[ECHO_TYPE_NUM];
+ECHO_EXPORT const int echoObjectHasMatter[ECHO_TYPE_NUM];
 ECHO_EXPORT void echoColorSet(echoObject *obj, echoCol_t R, echoCol_t G, echoCol_t B,
                               echoCol_t A);
 ECHO_EXPORT void echoMatterPhongSet(echoScene *scene, echoObject *obj, echoCol_t ka,

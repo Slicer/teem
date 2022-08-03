@@ -268,7 +268,7 @@ done:
   return;
 }
 
-void *
+static void *
 _echoRTRenderThreadBody(void *_arg) {
   char done[20];
   int imgUi, imgVi,                     /* integral pixel indices */

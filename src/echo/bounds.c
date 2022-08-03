@@ -30,7 +30,7 @@ typedef void (*_echoBoundsGet_t)(echoPos_t lo[3], echoPos_t hi[3], echoObject *o
 /* extern const _echoBoundsGet_t _echoBoundsGet[ECHO_TYPE_NUM]; */
 
 #define BNDS_TMPL(TYPE, BODY)                                                           \
-  void _echo##TYPE##_bounds(echoPos_t lo[3], echoPos_t hi[3], echo##TYPE *obj) {        \
+  static void _echo##TYPE##_bounds(echoPos_t lo[3], echoPos_t hi[3], echo##TYPE *obj) { \
     int dummy = 0;                                                                      \
                                                                                         \
     do {                                                                                \

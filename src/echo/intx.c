@@ -29,10 +29,8 @@
 ** needed for shadow rays
 */
 
-/* forward declaration */
-extern _echoRayIntx_t _echoRayIntx[ECHO_TYPE_NUM];
-
-int _echoVerbose = 0;
+/* forward declaration with incomplete array type */
+static const _echoRayIntx_t _echoRayIntx[];
 
 /*
 ** ALL of the intersection functions are responsible for setting
@@ -670,7 +668,7 @@ _echoRayIntxUV_Noop(echoIntx *intx) {
 ** NB: the intersections with real objects need to normalize
 ** intx->norm
 */
-_echoRayIntx_t _echoRayIntx[ECHO_TYPE_NUM] = {
+static const _echoRayIntx_t _echoRayIntx[ECHO_TYPE_NUM] = {
   (_echoRayIntx_t)_echoRayIntx_Sphere,    (_echoRayIntx_t)_echoRayIntx_Cylinder,
   (_echoRayIntx_t)_echoRayIntx_Superquad, (_echoRayIntx_t)_echoRayIntx_Cube,
   (_echoRayIntx_t)_echoRayIntx_Triangle,  (_echoRayIntx_t)_echoRayIntx_Rectangle,
@@ -679,7 +677,8 @@ _echoRayIntx_t _echoRayIntx[ECHO_TYPE_NUM] = {
   (_echoRayIntx_t)_echoRayIntx_List,      (_echoRayIntx_t)_echoRayIntx_Instance,
 };
 
-_echoRayIntxUV_t _echoRayIntxUV[ECHO_TYPE_NUM] = {
+/* not static, used in color.c */
+const _echoRayIntxUV_t _echoRayIntxUV[ECHO_TYPE_NUM] = {
   _echoRayIntxUV_Sphere,  /* echoTypeSphere */
   _echoRayIntxUV_Noop,    /* echoTypeCylinder */
   _echoRayIntxUV_Noop,    /* sqd.c: echoTypeSuperquad */
@@ -701,8 +700,6 @@ echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene, echoRTParm *parm,
   int ret;
   echoObject *kid;
   echoPos_t tmp;
-
-  _echoVerbose = tstate->verbose;
 
   ret = AIR_FALSE;
   for (idx = 0; idx < scene->rendArr->len; idx++) {

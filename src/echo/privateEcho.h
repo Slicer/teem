@@ -77,7 +77,7 @@ extern void _echoSceneNrrdAdd(echoScene *scene, Nrrd *nrrd);
     echoThreadState *tstate
 typedef int (*_echoRayIntx_t)(RAYINTX_ARGS(Object));
 typedef void (*_echoRayIntxUV_t)(echoIntx *intx);
-extern _echoRayIntxUV_t _echoRayIntxUV[/* object type idx */];
+extern const _echoRayIntxUV_t _echoRayIntxUV[/* object type idx */];
 extern int _echoRayIntx_CubeSolid(echoPos_t *tminP, echoPos_t *tmaxP, echoPos_t xmin,
                                   echoPos_t xmax, echoPos_t ymin, echoPos_t ymax,
                                   echoPos_t zmin, echoPos_t zmax, echoRay *ray);

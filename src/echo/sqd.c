@@ -24,7 +24,7 @@
 #include "echo.h"
 #include "privateEcho.h"
 
-echoPos_t
+static echoPos_t
 _echo_SuperquadX_v(echoPos_t x, echoPos_t y, echoPos_t z, echoPos_t A, echoPos_t B) {
   echoPos_t xxb, yya, zza;
 
@@ -34,7 +34,7 @@ _echo_SuperquadX_v(echoPos_t x, echoPos_t y, echoPos_t z, echoPos_t A, echoPos_t
   return pow(yya + zza, A / B) + xxb - 1;
 }
 
-echoPos_t
+static echoPos_t
 _echo_SuperquadY_v(echoPos_t x, echoPos_t y, echoPos_t z, echoPos_t A, echoPos_t B) {
   echoPos_t xxa, yyb, zza;
 
@@ -44,7 +44,7 @@ _echo_SuperquadY_v(echoPos_t x, echoPos_t y, echoPos_t z, echoPos_t A, echoPos_t
   return pow(xxa + zza, A / B) + yyb - 1;
 }
 
-echoPos_t
+static echoPos_t
 _echo_SuperquadZ_v(echoPos_t x, echoPos_t y, echoPos_t z, echoPos_t A, echoPos_t B) {
   echoPos_t xxa, yya, zzb;
 
@@ -56,7 +56,7 @@ _echo_SuperquadZ_v(echoPos_t x, echoPos_t y, echoPos_t z, echoPos_t A, echoPos_t
 
 /* -------------------------------------------------------- */
 
-echoPos_t
+static echoPos_t
 _echo_SuperquadX_vg(echoPos_t grad[3], echoPos_t x, echoPos_t y, echoPos_t z,
                     echoPos_t A, echoPos_t B) {
   echoPos_t R, xxb, yya, zza;
@@ -69,7 +69,7 @@ _echo_SuperquadX_vg(echoPos_t grad[3], echoPos_t x, echoPos_t y, echoPos_t z,
   return pow(yya + zza, A / B) + xxb - 1;
 }
 
-echoPos_t
+static echoPos_t
 _echo_SuperquadY_vg(echoPos_t grad[3], echoPos_t x, echoPos_t y, echoPos_t z,
                     echoPos_t A, echoPos_t B) {
   echoPos_t R, xxa, yyb, zza;
@@ -82,7 +82,7 @@ _echo_SuperquadY_vg(echoPos_t grad[3], echoPos_t x, echoPos_t y, echoPos_t z,
   return pow(xxa + zza, A / B) + yyb - 1;
 }
 
-echoPos_t
+static echoPos_t
 _echo_SuperquadZ_vg(echoPos_t grad[3], echoPos_t x, echoPos_t y, echoPos_t z,
                     echoPos_t A, echoPos_t B) {
   echoPos_t R, xxa, yya, zzb;
@@ -97,7 +97,7 @@ _echo_SuperquadZ_vg(echoPos_t grad[3], echoPos_t x, echoPos_t y, echoPos_t z,
 
 /* -------------------------------------------------------- */
 
-echoPos_t
+static echoPos_t
 _echo_SuperquadX_lvg(echoPos_t grad[3], echoPos_t x, echoPos_t y, echoPos_t z,
                      echoPos_t A, echoPos_t B) {
   echoPos_t R, xxb, yya, zza, larg;
@@ -144,7 +144,7 @@ _echo_SuperquadX_lvg(echoPos_t grad[3], echoPos_t x, echoPos_t y, echoPos_t z,
   return ret;
 }
 
-echoPos_t
+static echoPos_t
 _echo_SuperquadY_lvg(echoPos_t grad[3], echoPos_t x, echoPos_t y, echoPos_t z,
                      echoPos_t A, echoPos_t B) {
   echoPos_t R, xxa, yyb, zza, larg;
@@ -161,7 +161,7 @@ _echo_SuperquadY_lvg(echoPos_t grad[3], echoPos_t x, echoPos_t y, echoPos_t z,
   return larg > 0 ? log(larg) : ECHO_POS_MIN;
 }
 
-echoPos_t
+static echoPos_t
 _echo_SuperquadZ_lvg(echoPos_t grad[3], echoPos_t x, echoPos_t y, echoPos_t z,
                      echoPos_t A, echoPos_t B) {
   echoPos_t R, xxa, yya, zzb, larg;
@@ -198,7 +198,7 @@ _echo_SuperquadZ_lvg(echoPos_t grad[3], echoPos_t x, echoPos_t y, echoPos_t z,
 
 /* -------------------------------------------------------- */
 
-int
+int /* not static */
 _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
   static const char me[] = "_echoRayIntx_Superquad";
   echoPos_t TT = 0, Tmin, Tmax, t0, t1, t2, t3, v1, v2, diff, tol, saveTmin, Vmin, Vmax,

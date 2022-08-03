@@ -37,7 +37,7 @@ echoListAdd(echoObject *list, echoObject *child) {
   return;
 }
 
-int
+static int
 _echoPosCompare(double *A, double *B) {
 
   return *A < *B ? -1 : (*A > *B ? 1 : 0);

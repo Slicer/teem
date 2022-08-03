@@ -24,7 +24,7 @@
 #include "echo.h"
 #include "privateEcho.h"
 
-void
+static void
 _echoPosSet(echoPos_t *p3, echoPos_t *matx, echoPos_t *p4) {
   echoPos_t a[4], b[4];
 
