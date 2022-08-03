@@ -92,7 +92,7 @@ make files, documentation, symbol enumeration, etc), then always include the
 word "TEEM_LIB_LIST" nearby (to facilitate consistent maintenance), and always
 list the libraries in this dependency order (or its opposite):
 
-  air hest biff nrrd ell unrrdu alan moss tijk gage dye bane
+  air hest biff nrrd ell moss unrrdu alan tijk gage dye bane
   limn echo hoover seek ten elf pull coil push mite meet
 
 * All libraries "lib" contain a const int "libPresent", defined in one of the
@@ -237,7 +237,7 @@ functions can use whatever name they want.
 http://my.cdash.org/index.php?project=Teem
 
 but this has not been updated with a correct svn checkout and GLK has never
-been able to figure out who set this up, in order to get it fixed, alas.
+been able to figure out who set this up, in order to get it fixed or updated.
 
 * The tests in teem/Testing are slowly accumulating.  Much of the effort in
 ongoing Teem development will be in creating and strengthening tests.
