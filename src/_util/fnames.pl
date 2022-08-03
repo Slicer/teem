@@ -29,8 +29,8 @@
 # Currently this is very simple!  Usage is:
 #
 # (TEEM_LIB_LIST)
-# ls -1 ../{air,hest,biff,nrrd,ell,moss,unrrdu,alan,tijk,gage,dye,bane,limn,echo,hoover,seek,ten,elf,pull,coil,push,mite,meet}/*.c | perl names.pl | sort | wc -l
-# ls -1 ../{air,hest,biff,nrrd,ell,moss,unrrdu,alan,tijk,gage,dye,bane,limn,echo,hoover,seek,ten,elf,pull,coil,push,mite,meet}/*.c | perl names.pl | sort | uniq | wc -l
+# ls -1 ../{air,hest,biff,nrrd,ell,moss,unrrdu,alan,tijk,gage,dye,bane,limn,echo,hoover,seek,ten,elf,pull,coil,push,mite,meet}/*.c | perl fnames.pl | sort | wc -l
+# ls -1 ../{air,hest,biff,nrrd,ell,moss,unrrdu,alan,tijk,gage,dye,bane,limn,echo,hoover,seek,ten,elf,pull,coil,push,mite,meet}/*.c | perl fnames.pl | sort | uniq | wc -l
 #
 # and then make sure the two numbers are the same.
 
