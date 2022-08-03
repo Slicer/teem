@@ -2,19 +2,23 @@
 set -o errexit
 set -o nounset
 shopt -s expand_aliases
-JUNK=""
-function junk { JUNK="$JUNK $@"; }
-function cleanup { rm -rf $JUNK; }
-trap cleanup err exit int term
-# https://devmanual.gentoo.org/tools-reference/bash/
-unset UNRRDU_QUIET_QUIT
 
 shopt -s nullglob
 TODO=$(echo *.h *.c)
+if [ "$TODO" = "" ]; then
+    echo "Error: this expects to be be run in a directory with .c and .h files"
+    exit 1
+fi
+
+echo "Running over files: $TODO"
 for F in $TODO; do
     echo ================= $F
     clang-format -style=file < $F > /tmp/tmp
-    diff $F /tmp/tmp ||:
-    # vdiff $F /tmp/tmp
-    cp /tmp/tmp $F
+    set +o errexit
+    diff $F /tmp/tmp
+    RET=$?
+    set -o errexit
+    if [ $RET -ne 0 ]; then
+        mv /tmp/tmp $F
+    fi
 done
