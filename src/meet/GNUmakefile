@@ -46,7 +46,7 @@ $(L).SEEN := true
 #### Describe library here
 ####
 #### TEEM_LIB_LIST (except meet)
-$(L).NEED = air hest biff nrrd ell unrrdu alan moss tijk gage dye bane limn echo hoover seek ten elf pull coil push mite
+$(L).NEED = air hest biff nrrd ell moss unrrdu alan tijk gage dye bane limn echo hoover seek ten elf pull coil push mite
 $(L).PUBLIC_HEADERS = meet.h
 $(L).OBJS = enumall.o meetNrrd.o meetGage.o meetPull.o
 $(L).TESTS = test/strace test/vpnts test/tenums

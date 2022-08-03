@@ -33,11 +33,11 @@
 #include <teem/biff.h>
 #include <teem/nrrd.h>
 #include <teem/ell.h>
+#include <teem/moss.h>
 #include <teem/unrrdu.h>
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #  include <teem/alan.h>
 #endif
-#include <teem/moss.h>
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #  include <teem/tijk.h>
 #endif

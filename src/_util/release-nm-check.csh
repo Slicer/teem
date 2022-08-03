@@ -1,6 +1,6 @@
 #!/bin/csh
 #
-# Teem: Tools to process and visualize scientific data and images              
+# Teem: Tools to process and visualize scientific data and images
 # Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
@@ -51,9 +51,9 @@ nm libteem.a \
   | grep -v " _biff"   | grep -v " __biff" \
   | grep -v " _nrrd"   | grep -v " __nrrd" \
   | grep -v " _ell"    | grep -v " __ell" \
+  | grep -v " _moss"   | grep -v " __moss" \
   | grep -v " _unrrdu" | grep -v " __unrrdu" \
   | grep -v " _alan"   | grep -v " __alan" \
-  | grep -v " _moss"   | grep -v " __moss" \
   | grep -v " _tijk"   | grep -v " __tijk" \
   | grep -v " _gage"   | grep -v " __gage" \
   | grep -v " _dye"    | grep -v " __dye" \

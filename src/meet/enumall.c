@@ -256,12 +256,10 @@ const char *const meetTeemLibs[] = {
   "biff",   /* */
   "nrrd",   /* */
   "ell",    /* */
+  "moss",   /* */
   "unrrdu", /* */
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   "alan", /* */
-#endif
-  "moss", /* */
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   "tijk", /* */
 #endif
   "gage", /* */
