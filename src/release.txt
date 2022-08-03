@@ -1,6 +1,6 @@
 GLK's list of things to do for each release.  This started with an
-early version of Teem and has been only partially maintained since
-then; consider it a work-in-progress ...
+early version of Teem so the later steps about updating things on
+sourceforge are not as relevant
 
 -5) use fnames.pl to make sure all sourcefile names are unique
 
@@ -30,6 +30,9 @@ find . -name \*.c -exec grep -f tab.txt {} /dev/null \; | more
 find . -name \*.h -exec grep -f tab.txt {} /dev/null \; | more
 find . -name \*.txt -exec grep -f tab.txt {} /dev/null \; | more
 rm -f tab.txt
+
+-1.5) use teem/src/_util/clang-format.sh (run in each lib subdir)
+to ensure that clang-format has been run on everything
 
 -1) finalize TEEM_VERSION* in air/air.h and airTeemReleaseDate in air/misc.c
 and set airTeemReleaseDone to AIR_TRUE
