@@ -41,22 +41,21 @@ rgbGen(echoCol_t rgb[3], float evec[3], float an) {
 }
 
 /* changed in ELL, below is only usage */
-#define NOTELL_3V_AFFINE(v,i,x,I,o,O) ( \
-  (v)[0] = AIR_AFFINE((i)[0],(x)[0],(I)[0],(o)[0],(O)[0]), \
-  (v)[1] = AIR_AFFINE((i)[1],(x)[1],(I)[1],(o)[1],(O)[1]), \
-  (v)[2] = AIR_AFFINE((i)[2],(x)[2],(I)[2],(o)[2],(O)[2]))
+#define NOTELL_3V_AFFINE(v, i, x, I, o, O)                                              \
+  ((v)[0] = AIR_AFFINE((i)[0], (x)[0], (I)[0], (o)[0], (O)[0]),                         \
+   (v)[1] = AIR_AFFINE((i)[1], (x)[1], (I)[1], (o)[1], (O)[1]),                         \
+   (v)[2] = AIR_AFFINE((i)[2], (x)[2], (I)[2], (o)[2], (O)[2]))
 
 void
-makeGlyphScene(limnCam *cam, EchoParm *eparm,
-               Nrrd *nten, EchoGlyphParm *gparm,
+makeGlyphScene(limnCam *cam, EchoParm *eparm, Nrrd *nten, EchoGlyphParm *gparm,
                EchoObject **sceneP, airArray **lightArrP) {
-  char me[]="makeGlyphScene";
+  char me[] = "makeGlyphScene";
   int xi, yi, zi, sx, sy, sz, ng;
   echoPos_t x, y, z, dmat[9], MA[16], MB[16], MC[16], ident[9];
   echoCol_t rgb[3];
   EchoObject *glf, *inst;
-  float *tdata, xs, ys, zs, eval[3], evec[9], c[TEN_ANISO_MAX+1],
-    imin[3], imax[3], omin[3], omax[3];
+  float *tdata, xs, ys, zs, eval[3], evec[9], c[TEN_ANISO_MAX + 1], imin[3], imax[3],
+    omin[3], omax[3];
   EchoObject *scene, *rect;
   EchoLight *light;
 
@@ -75,51 +74,46 @@ makeGlyphScene(limnCam *cam, EchoParm *eparm,
   xs = nten->axis[1].spacing;
   ys = nten->axis[2].spacing;
   zs = nten->axis[3].spacing;
-  tdata = nten->data;         /* we specifically requested float below */
+  tdata = nten->data; /* we specifically requested float below */
 
   ELL_3V_SET(imin, -1, -1, -1);
   ELL_3V_SET(imax, 1, 1, 1);
   ELL_3V_SET(omin, 0, 0, 0);
-  ELL_3V_SET(omax, xs*(sx-1), ys*(sy-1), zs*(sz-1));
+  ELL_3V_SET(omax, xs * (sx - 1), ys * (sy - 1), zs * (sz - 1));
   NOTELL_3V_AFFINE(cam->from, imin, cam->from, imax, omin, omax);
   NOTELL_3V_AFFINE(cam->at, imin, cam->at, imax, omin, omax);
 
   ng = 0;
-  for (zi=0; zi<sz; zi++) {
-    printf("%s: zi = %3d/%d ... \n", me, zi, sz-1);
+  for (zi = 0; zi < sz; zi++) {
+    printf("%s: zi = %3d/%d ... \n", me, zi, sz - 1);
     z = zs * zi;
-    for (yi=0; yi<sy; yi++) {
+    for (yi = 0; yi < sy; yi++) {
       y = ys * yi;
-      for (xi=0; xi<sx; xi++) {
+      for (xi = 0; xi < sx; xi++) {
         x = xs * xi;
 
         /* don't render tensor if confidence threshold below 0.5 */
-        if (!( tdata[0] > 0.5 ))
-          goto onward;
+        if (!(tdata[0] > 0.5)) goto onward;
 
         /* do eigensystem solve; don't render if aniso threshold not met */
         tenEigensolve(eval, evec, tdata);
         tenAnisoCalc(c, eval);
-        if (!( c[gparm->aniso] > gparm->anthr ))
-          goto onward;
+        if (!(c[gparm->aniso] > gparm->anthr)) goto onward;
 
         rgbGen(rgb, evec, c[gparm->aniso]);
         if (1) {
           glf = echoObjectNew(echoObjectSphere);
           echoObjectSphereSet(glf, 0, 0, 0, 0.5);
-        }
-        else {
+        } else {
           glf = echoObjectNew(echoObjectCube);
         }
-        echoMatterMetalSet(glf, rgb[0], rgb[1], rgb[2],
-                           0.8, 1.0, 0.0);
-        echoMatterPhongSet(glf, rgb[0], rgb[1], rgb[2], 1.0,
-                           0.1, 1.0, 0.3, 1);
+        echoMatterMetalSet(glf, rgb[0], rgb[1], rgb[2], 0.8, 1.0, 0.0);
+        echoMatterPhongSet(glf, rgb[0], rgb[1], rgb[2], 1.0, 0.1, 1.0, 0.3, 1);
 
         TEN_LIST2MAT(dmat, tdata);
         ELL_3M_SET_IDENTITY(ident);
-        ELL_3M_SCALEADD(dmat, gparm->gscale*(1-gparm->show), ident,
-                        gparm->gscale*gparm->show, dmat);
+        ELL_3M_SCALEADD(dmat, gparm->gscale * (1 - gparm->show), ident,
+                        gparm->gscale * gparm->show, dmat);
         ELL_43M_INSET(MA, dmat);
         ELL_4M_SET_TRANSLATE(MB, x, y, z);
         ELL_4M_MUL(MC, MB, MA);
@@ -152,42 +146,36 @@ makeGlyphScene(limnCam *cam, EchoParm *eparm,
   if (gparm->lrad) {
     rect = echoObjectNew(echoObjectRectangle);
     echoObjectRectangleSet(rect,
-                           AIR_AFFINE(0, gparm->lpos[0], 1, 0, sx*xs)
-                           - gparm->lrad,
-                           AIR_AFFINE(0, gparm->lpos[1], 1, 0, sy*ys)
-                           - gparm->lrad,
-                           0,
-                           2*gparm->lrad, 0, 0,
-                           0, 2*gparm->lrad, 0);
-    eparm->refDistance = sz*(gparm->ldref);
+                           AIR_AFFINE(0, gparm->lpos[0], 1, 0, sx * xs) - gparm->lrad,
+                           AIR_AFFINE(0, gparm->lpos[1], 1, 0, sy * ys) - gparm->lrad, 0,
+                           2 * gparm->lrad, 0, 0, 0, 2 * gparm->lrad, 0);
+    eparm->refDistance = sz * (gparm->ldref);
     printf("llev = %g\n", gparm->llev);
     echoMatterLightSet(rect, gparm->llev, gparm->llev, gparm->llev);
     echoObjectListAdd(scene, rect);
     light = echoLightNew(echoLightArea);
     echoLightAreaSet(light, rect);
     echoLightArrayAdd(*lightArrP, light);
-  }
-  else {
+  } else {
     light = echoLightNew(echoLightDirectional);
     echoLightDirectionalSet(light, 1, 1, 1,
-                            AIR_AFFINE(0, gparm->lpos[0], 1, -sx*xs, sx*xs),
-                            AIR_AFFINE(0, gparm->lpos[1], 1, -sy*ys, sy*ys),
-                            AIR_AFFINE(0, 0, 1, -sz*zs, sz*zs));
+                            AIR_AFFINE(0, gparm->lpos[0], 1, -sx * xs, sx * xs),
+                            AIR_AFFINE(0, gparm->lpos[1], 1, -sy * ys, sy * ys),
+                            AIR_AFFINE(0, 0, 1, -sz * zs, sz * zs));
     echoLightArrayAdd(*lightArrP, light);
   }
 
   if (1) {
-    printf("%s: making BVH ... ", me); fflush(stdout);
+    printf("%s: making BVH ... ", me);
+    fflush(stdout);
     *sceneP = echoObjectListSplit3(scene, 8);
     printf("done\n");
-  }
-  else {
+  } else {
     *sceneP = scene;
   }
 
   return;
 }
-
 
 int
 echoParseTenNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
@@ -205,26 +193,22 @@ echoParseTenNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
   if (nrrdLoad(*nrrdP, str)) {
     airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
-    if (strlen(nerr) > AIR_STRLEN_HUGE - 1)
-      nerr[AIR_STRLEN_HUGE - 1] = '\0';
+    if (strlen(nerr) > AIR_STRLEN_HUGE - 1) nerr[AIR_STRLEN_HUGE - 1] = '\0';
     strcpy(err, nerr);
     airMopError(mop);
     return 1;
   }
   if (!tenValidTensor(*nrrdP, nrrdTypeFloat, AIR_TRUE)) {
     /* why not use the given err[] as a temp buffer */
-    sprintf(err, "%s: \"%s\" isn't a valid tensor volume", me, str);
-    biffAdd(TEN, err);
+    biffAddf(TEN, "%s: \"%s\" isn't a valid tensor volume", me, str);
     airMopAdd(mop, nerr = biffGetDone(TEN), airFree, airMopOnError);
-    if (strlen(nerr) > AIR_STRLEN_HUGE - 1)
-      nerr[AIR_STRLEN_HUGE - 1] = '\0';
+    if (strlen(nerr) > AIR_STRLEN_HUGE - 1) nerr[AIR_STRLEN_HUGE - 1] = '\0';
     strcpy(err, nerr);
     airMopError(mop);
     return 1;
   }
-  if (!( AIR_EXISTS((*nrrdP)->axis[1].spacing) &&
-         AIR_EXISTS((*nrrdP)->axis[2].spacing) &&
-         AIR_EXISTS((*nrrdP)->axis[3].spacing) )) {
+  if (!(AIR_EXISTS((*nrrdP)->axis[1].spacing) && AIR_EXISTS((*nrrdP)->axis[2].spacing)
+        && AIR_EXISTS((*nrrdP)->axis[3].spacing))) {
     sprintf(err, "%s: need existent spacings on x,y,z axes", me);
     airMopError(mop);
     return 1;
@@ -233,12 +217,8 @@ echoParseTenNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB echoParseTenNrrdCB = {
-  sizeof(Nrrd *),
-  "nrrd",
-  echoParseTenNrrd,
-  (airMopper)nrrdNuke
-};
+hestCB echoParseTenNrrdCB = {sizeof(Nrrd *), "nrrd", echoParseTenNrrd,
+                             (airMopper)nrrdNuke};
 
 int
 main(int argc, char *argv[]) {
@@ -249,8 +229,7 @@ main(int argc, char *argv[]) {
   Nrrd *nten, *nraw, *nimg, *nppm, *ntmp, *npgm;
   echoPos_t ur[2], vr[2];
   int E, is[2];
-  char *me, *outS, *err,
-    info[] = "Generates cool images of tensor glyphs";
+  char *me, *outS, *err, info[] = "Generates cool images of tensor glyphs";
   EchoParm *eparm;
   EchoGlobalState *state;
   EchoObject *scene;
@@ -276,11 +255,10 @@ main(int argc, char *argv[]) {
   eparm = echoParmNew();
   airMopAdd(mop, eparm, (airMopper)echoParmNix, airMopAlways);
 
-  hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &nten, NULL,
-             "diffusion tensor data",
+  hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &nten, NULL, "diffusion tensor data",
              NULL, NULL, &echoParseTenNrrdCB);
-  hestOptAdd(&opt, "fr", "eye point", airTypeFloat, 3, 3, cam->from,
-             "40 40 40", "camera eye point");
+  hestOptAdd(&opt, "fr", "eye point", airTypeFloat, 3, 3, cam->from, "40 40 40",
+             "camera eye point");
   hestOptAdd(&opt, "at", "lookat", airTypeFloat, 3, 3, cam->at, "0 0 0",
              "camera look-at point");
   hestOptAdd(&opt, "up", "up", airTypeFloat, 3, 3, cam->up, "0 0 1",
@@ -295,8 +273,8 @@ main(int argc, char *argv[]) {
              "# of samples per pixel (1 --> no jitter)");
   hestOptAdd(&opt, "o", "output", airTypeString, 1, 1, &outS, "out.ppm",
              "PPM image output");
-  hestOptAdd(&opt, "ap", "aperture", airTypeFloat, 1, 1, &(eparm->aperture),
-             "0.0", "camera aperture (0.0 --> no depth of field)");
+  hestOptAdd(&opt, "ap", "aperture", airTypeFloat, 1, 1, &(eparm->aperture), "0.0",
+             "camera aperture (0.0 --> no depth of field)");
   hestOptAdd(&opt, "an", "aniso", airTypeEnum, 1, 1, &(gparm.aniso), "fa",
              "which anisotropy metric", NULL, &tenAniso);
   hestOptAdd(&opt, "th", "thresh", airTypeFloat, 1, 1, &(gparm.anthr), "0.8",
@@ -306,18 +284,21 @@ main(int argc, char *argv[]) {
   hestOptAdd(&opt, "gh", "show", airTypeFloat, 1, 1, &(gparm.show), "1.0",
              "how much to \"show\" the data:\n "
              "0.0 --> all identity; 1.0 --> all data");
-  hestOptAdd(&opt, "lr", "light radius", airTypeFloat, 1, 1,
-             &(gparm.lrad), "5", "\"radius\" of area light over volume");
-  hestOptAdd(&opt, "ld", "ref dist", airTypeFloat, 1, 1,
-             &(gparm.ldref), "0.5", "\"reference distance\" for light, "
+  hestOptAdd(&opt, "lr", "light radius", airTypeFloat, 1, 1, &(gparm.lrad), "5",
+             "\"radius\" of area light over volume");
+  hestOptAdd(&opt, "ld", "ref dist", airTypeFloat, 1, 1, &(gparm.ldref), "0.5",
+             "\"reference distance\" for light, "
              "expressed as a fraction of Z dimension of volume");
-  hestOptAdd(&opt, "ll", "light level", airTypeFloat, 1, 1,
-             &(gparm.llev), "1", "area light intensity");
-  hestOptAdd(&opt, "lp", "light position", airTypeFloat, 2, 2,
-             &(gparm.lpos), "0.5 0.5", "area light position");
-  hestOptAdd(&opt, "sh", NULL, airTypeInt, 0, 0,
-             &(eparm->shadow), NULL, "render shadows");
-  if (hestOptCheck(opt, &err)) { printf("%s\n", err); exit(1); }
+  hestOptAdd(&opt, "ll", "light level", airTypeFloat, 1, 1, &(gparm.llev), "1",
+             "area light intensity");
+  hestOptAdd(&opt, "lp", "light position", airTypeFloat, 2, 2, &(gparm.lpos), "0.5 0.5",
+             "area light position");
+  hestOptAdd(&opt, "sh", NULL, airTypeInt, 0, 0, &(eparm->shadow), NULL,
+             "render shadows");
+  if (hestOptCheck(opt, &err)) {
+    printf("%s\n", err);
+    exit(1);
+  }
 
   if (1 == argc) {
     hestInfo(stderr, argv[0], info, hparm);
@@ -329,8 +310,9 @@ main(int argc, char *argv[]) {
   }
 
   /* parse command line */
-  if (hestParse(opt, argc-1, argv+1, &err, hparm)) {
-    fprintf(stderr, "ERROR: %s\n", err); free(err);
+  if (hestParse(opt, argc - 1, argv + 1, &err, hparm)) {
+    fprintf(stderr, "ERROR: %s\n", err);
+    free(err);
     hestUsage(stderr, opt, argv[0], hparm);
     hestGlossary(stderr, opt, hparm);
     opt = hestOptFree(opt);
@@ -348,8 +330,7 @@ main(int argc, char *argv[]) {
   eparm->jitter = (1 == eparm->samples ? echoJitterNone : echoJitterJitter);
 
   /* do the glyph thing */
-  makeGlyphScene(cam, eparm, nten, &gparm,
-                 &scene, &lightArr);
+  makeGlyphScene(cam, eparm, nten, &gparm, &scene, &lightArr);
 
   /* render */
   nraw = nrrdNew();
@@ -372,14 +353,15 @@ main(int argc, char *argv[]) {
   if (E) {
     airMopAdd(mop, err = biffGetDone(ECHO), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  printf("%s: render time = %g seconds (%g fps)\n",
-         me, state->time, 1.0/state->time);
+  printf("%s: render time = %g seconds (%g fps)\n", me, state->time, 1.0 / state->time);
   if (!E) E |= nrrdSave("raw.nrrd", nraw, NULL);
   if (!E) E |= nrrdSave("out.ppm", nppm, NULL);
   if (!E) E |= nrrdSlice(ntmp, nraw, 0, 3);
-  ntmp->min = 0.0; ntmp->max = 1.0;
+  ntmp->min = 0.0;
+  ntmp->max = 1.0;
   if (!E) E |= nrrdQuantize(npgm, ntmp, 8);
   if (!E) E |= nrrdSave("alpha.pgm", npgm, NULL);
   if (!E) E |= nrrdSlice(ntmp, nraw, 0, 4);
@@ -389,7 +371,8 @@ main(int argc, char *argv[]) {
   if (E) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

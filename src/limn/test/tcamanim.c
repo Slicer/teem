@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "../limn.h"
 
 const char *info = ("Works with camanim.tcl to test camera path splines.");
@@ -31,24 +30,24 @@ const char *info = ("Works with camanim.tcl to test camera path splines.");
 int
 _limnReadCamanim(int imgSize[2], limnCamera **keycamP, double **timeP,
                  unsigned int *numKeysP, FILE *fin) {
-  char me[]="_limnReadCamanim", err[AIR_STRLEN_MED];
+  static const char me[] = "_limnReadCamanim";
   char line[AIR_STRLEN_HUGE];
   unsigned int ki;
   double *tmp, *dwell, di, dn, df, fr[3], at[3], up[3], va;
   airArray *mop, *camA, *dwellA;
 
-  if (!( 0 < airOneLine(fin, line, AIR_STRLEN_HUGE)
-         && !strcmp(_LIMNMAGIC, line) )) {
-    sprintf(err, "%s: couldn't read first line or it wasn't \"%s\"",
-            me, _LIMNMAGIC);
-    biffAdd(LIMN, err); return 1;
+  if (!(0 < airOneLine(fin, line, AIR_STRLEN_HUGE) && !strcmp(_LIMNMAGIC, line))) {
+    biffAddf(LIMN, "%s: couldn't read first line or it wasn't \"%s\"", me, _LIMNMAGIC);
+    return 1;
   }
-  if (!( 0 < airOneLine(fin, line, AIR_STRLEN_HUGE)
-         && 2 == (airStrtrans(airStrtrans(line, '{', ' '), '}', ' '),
-                  sscanf(line, "imgSize %d %d", imgSize+0, imgSize+1)) )) {
-    sprintf(err, "%s: couldn't read second line or it wasn't "
-            "\"imgSize <sizeX> <sizeY>\"", me);
-    biffAdd(LIMN, err); return 1;
+  if (!(0 < airOneLine(fin, line, AIR_STRLEN_HUGE)
+        && 2
+             == (airStrtrans(airStrtrans(line, '{', ' '), '}', ' '),
+                 sscanf(line, "imgSize %d %d", imgSize + 0, imgSize + 1)))) {
+    biffAddf(LIMN,
+             "%s: couldn't read second line or it wasn't \"imgSize <sizeX> <sizeY>\"",
+             me);
+    return 1;
   }
 
   mop = airMopNew();
@@ -57,18 +56,20 @@ _limnReadCamanim(int imgSize[2], limnCamera **keycamP, double **timeP,
   airMopAdd(mop, camA, (airMopper)airArrayNix, airMopAlways);
   airMopAdd(mop, dwellA, (airMopper)airArrayNuke, airMopAlways);
 
-  while ( 0 < airOneLine(fin, line, AIR_STRLEN_HUGE) ) {
+  while (0 < airOneLine(fin, line, AIR_STRLEN_HUGE)) {
     airStrtrans(airStrtrans(line, '{', ' '), '}', ' ');
     ki = airArrayLenIncr(camA, 1);
     airArrayLenIncr(dwellA, 1);
-    if (14 != sscanf(line, "cam.di %lg cam.at %lg %lg %lg "
-                     "cam.up %lg %lg %lg cam.dn %lg cam.df %lg cam.va %lg "
-                     "relDwell %lg cam.fr %lg %lg %lg",
-                     &di, at+0, at+1, at+2,
-                     up+0, up+1, up+2, &dn, &df, &va,
-                     dwell+ki, fr+0, fr+1, fr+2)) {
-      sprintf(err, "%s: trouble parsing line %d: \"%s\"", me, ki, line);
-      biffAdd(LIMN, err); airMopError(mop); return 1;
+    if (14
+        != sscanf(line,
+                  "cam.di %lg cam.at %lg %lg %lg "
+                  "cam.up %lg %lg %lg cam.dn %lg cam.df %lg cam.va %lg "
+                  "relDwell %lg cam.fr %lg %lg %lg",
+                  &di, at + 0, at + 1, at + 2, up + 0, up + 1, up + 2, &dn, &df, &va,
+                  dwell + ki, fr + 0, fr + 1, fr + 2)) {
+      biffAddf(LIMN, "%s: trouble parsing line %d: \"%s\"", me, ki, line);
+      airMopError(mop);
+      return 1;
     }
     (*keycamP)[ki].neer = dn;
     (*keycamP)[ki].faar = df;
@@ -77,25 +78,25 @@ _limnReadCamanim(int imgSize[2], limnCamera **keycamP, double **timeP,
     ELL_3V_COPY((*keycamP)[ki].at, at);
     ELL_3V_COPY((*keycamP)[ki].up, up);
     (*keycamP)[ki].fov = va;
-    (*keycamP)[ki].aspect = (double)imgSize[0]/imgSize[1];
+    (*keycamP)[ki].aspect = (double)imgSize[0] / imgSize[1];
     (*keycamP)[ki].atRelative = AIR_FALSE;
     (*keycamP)[ki].orthographic = AIR_FALSE;
     (*keycamP)[ki].rightHanded = AIR_TRUE;
   }
 
-  tmp = (double*)calloc(*numKeysP, sizeof(double));
+  tmp = (double *)calloc(*numKeysP, sizeof(double));
   airMopAdd(mop, tmp, airFree, airMopAlways);
-  *timeP = (double*)calloc(*numKeysP, sizeof(double));
-  for (ki=0; ki<*numKeysP; ki++) {
+  *timeP = (double *)calloc(*numKeysP, sizeof(double));
+  for (ki = 0; ki < *numKeysP; ki++) {
     dwell[ki] = AIR_CLAMP(0, dwell[ki], 2);
-    tmp[ki] = tan(AIR_AFFINE(-0.01, dwell[ki], 2.01, 0.0, AIR_PI/2));
+    tmp[ki] = tan(AIR_AFFINE(-0.01, dwell[ki], 2.01, 0.0, AIR_PI / 2));
   }
   (*timeP)[0] = 0;
-  for (ki=1; ki<*numKeysP; ki++) {
-    (*timeP)[ki] = (*timeP)[ki-1] + (tmp[ki-1] + tmp[ki])/2;
+  for (ki = 1; ki < *numKeysP; ki++) {
+    (*timeP)[ki] = (*timeP)[ki - 1] + (tmp[ki - 1] + tmp[ki]) / 2;
   }
-  for (ki=0; ki<*numKeysP; ki++) {
-    (*timeP)[ki] /= (*timeP)[*numKeysP-1];
+  for (ki = 0; ki < *numKeysP; ki++) {
+    (*timeP)[ki] /= (*timeP)[*numKeysP - 1];
   }
 
   airMopOkay(mop);
@@ -103,21 +104,19 @@ _limnReadCamanim(int imgSize[2], limnCamera **keycamP, double **timeP,
 }
 
 int
-_limnWriteCamanim(FILE *fout, int imgSize[2],
-                  limnCamera *cam, int numFrames) {
+_limnWriteCamanim(FILE *fout, int imgSize[2], limnCamera *cam, int numFrames) {
   /* char me[]="_limnWriteCamanim", err[AIR_STRLEN_MED]; */
   int fi;
 
   fprintf(fout, "%s\n", _LIMNMAGIC);
   fprintf(fout, "imgSize {%d %d}\n", imgSize[0], imgSize[1]);
-  for (fi=0; fi<numFrames; fi++) {
-    fprintf(fout, "cam.di %g cam.at {%g %g %g } "
+  for (fi = 0; fi < numFrames; fi++) {
+    fprintf(fout,
+            "cam.di %g cam.at {%g %g %g } "
             "cam.up {%g %g %g } cam.dn %g cam.df %g cam.va %g "
             "relDwell 1.0 cam.fr {%g %g %g }\n",
-            cam[fi].dist,
-            cam[fi].at[0], cam[fi].at[1], cam[fi].at[2],
-            cam[fi].up[0], cam[fi].up[1], cam[fi].up[2],
-            cam[fi].neer, cam[fi].faar, cam[fi].fov,
+            cam[fi].dist, cam[fi].at[0], cam[fi].at[1], cam[fi].at[2], cam[fi].up[0],
+            cam[fi].up[1], cam[fi].up[2], cam[fi].neer, cam[fi].faar, cam[fi].fov,
             cam[fi].from[0], cam[fi].from[1], cam[fi].from[2]);
   }
   return 0;
@@ -126,7 +125,7 @@ _limnWriteCamanim(FILE *fout, int imgSize[2],
 int
 main(int argc, const char *argv[]) {
   const char *me;
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   airArray *mop;
 
   char *inS, *outS, *err;
@@ -146,32 +145,30 @@ main(int argc, const char *argv[]) {
              "number of frames in output");
   hestOptAdd(&hopt, "t", "track what", airTypeEnum, 1, 1, &trackWhat, "both",
              "what to track", NULL, limnCameraPathTrack);
-  hestOptAdd(&hopt, "q", "spline", airTypeOther, 1, 1,
-             &quatType, "tent", "spline type for quaternions",
-             NULL, NULL, limnHestSplineTypeSpec);
-  hestOptAdd(&hopt, "p", "spline", airTypeOther, 1, 1,
-             &posType, "tent", "spline type for from/at/up",
-             NULL, NULL, limnHestSplineTypeSpec);
-  hestOptAdd(&hopt, "d", "spline", airTypeOther, 1, 1,
-             &distType, "tent", "spline type for image plane distances",
-             NULL, NULL, limnHestSplineTypeSpec);
-  hestOptAdd(&hopt, "v", "spline", airTypeOther, 1, 1,
-             &viewType, "tent", "spline type for image fov and aspect",
-             NULL, NULL, limnHestSplineTypeSpec);
+  hestOptAdd(&hopt, "q", "spline", airTypeOther, 1, 1, &quatType, "tent",
+             "spline type for quaternions", NULL, NULL, limnHestSplineTypeSpec);
+  hestOptAdd(&hopt, "p", "spline", airTypeOther, 1, 1, &posType, "tent",
+             "spline type for from/at/up", NULL, NULL, limnHestSplineTypeSpec);
+  hestOptAdd(&hopt, "d", "spline", airTypeOther, 1, 1, &distType, "tent",
+             "spline type for image plane distances", NULL, NULL,
+             limnHestSplineTypeSpec);
+  hestOptAdd(&hopt, "v", "spline", airTypeOther, 1, 1, &viewType, "tent",
+             "spline type for image fov and aspect", NULL, NULL, limnHestSplineTypeSpec);
   hestOptAdd(&hopt, "o", "output", airTypeString, 1, 1, &outS, NULL,
              "frame info for camanim.tcl");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( fin = airFopen(inS, stdin, "r") )) {
+  if (!(fin = airFopen(inS, stdin, "r"))) {
     fprintf(stderr, "%s: couldn't open \"%s\" for reading\n", me, inS);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  if (!( fout = airFopen(outS, stdout, "w") )) {
+  if (!(fout = airFopen(outS, stdout, "w"))) {
     fprintf(stderr, "%s: couldn't open \"%s\" for writing\n", me, outS);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, fin, (airMopper)airFclose, airMopAlways);
   airMopAdd(mop, fout, (airMopper)airFclose, airMopAlways);
@@ -179,22 +176,25 @@ main(int argc, const char *argv[]) {
   if (_limnReadCamanim(imgSize, &keycam, &time, &numKeys, fin)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble reading keyframe file:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, keycam, airFree, airMopAlways);
   airMopAdd(mop, time, airFree, airMopAlways);
   cam = (limnCamera *)calloc(N, sizeof(limnCamera));
   airMopAdd(mop, cam, airFree, airMopAlways);
-  if (limnCameraPathMake(cam, N, keycam, time, numKeys, trackWhat,
-                         quatType, posType, distType, viewType)) {
+  if (limnCameraPathMake(cam, N, keycam, time, numKeys, trackWhat, quatType, posType,
+                         distType, viewType)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making camera path:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (_limnWriteCamanim(fout, imgSize, cam, N)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing frame file:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

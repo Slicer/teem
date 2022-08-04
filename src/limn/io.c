@@ -882,7 +882,7 @@ _limnHestPolyDataLMPDParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]
   FILE *file;
 
   if (!(ptr && str)) {
-    sprintf(err, "%s: got NULL pointer", me);
+    biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
 
@@ -895,8 +895,7 @@ _limnHestPolyDataLMPDParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]
 
   mop = airMopNew();
   if (!(file = airFopen(str, stdin, "rb"))) {
-    sprintf(err, "%s: couldn't fopen(\"%s\",\"rb\"): %s", me, str, strerror(errno));
-    biffAdd(LIMN, err);
+    biffAddf(LIMN, "%s: couldn't fopen(\"%s\",\"rb\"): %s", me, str, strerror(errno));
     airMopError(mop);
     return 1;
   }
