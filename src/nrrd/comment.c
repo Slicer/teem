@@ -104,10 +104,7 @@ nrrdCommentCopy(Nrrd *nout, const Nrrd *nin) {
   unsigned int numc, ii;
 
   if (!(nout && nin)) {
-    /*
-    sprintf(err, "%s: got NULL pointer", me);
-    biffMaybeAdd(NRRD, err, useBiff);
-    */
+    /* got NULL pointer */
     return 1;
   }
   if (nout == nin) {
@@ -121,10 +118,7 @@ nrrdCommentCopy(Nrrd *nout, const Nrrd *nin) {
     if (!E) E |= nrrdCommentAdd(nout, nin->cmt[ii]);
   }
   if (E) {
-    /*
-    sprintf(err, "%s: couldn't add all comments", me);
-    biffMaybeAdd(NRRD, err, useBiff);
-    */
+    /* couldn't add all comments */
     return 3;
   }
   return 0;
