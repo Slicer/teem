@@ -412,6 +412,7 @@ _nrrdGzWrite(gzFile file, const void *buf, unsigned int len, unsigned int *writt
   static const char me[] = "_nrrdGzWrite";
   _NrrdGzStream *s = (_NrrdGzStream *)file;
   void *nonconstbuf;
+  int ret;
 
   if (s == NULL || s->mode != 'w') {
     biffAddf(NRRD, "%s: invalid stream or file mode", me);
@@ -428,18 +429,29 @@ _nrrdGzWrite(gzFile file, const void *buf, unsigned int len, unsigned int *writt
   s->stream.next_in = (Bytef *)nonconstbuf;
   s->stream.avail_in = len;
 
+  ret = 0;
   while (s->stream.avail_in != 0) {
     if (s->stream.avail_out == 0) {
       s->stream.next_out = s->outbuf;
       if (fwrite(s->outbuf, 1, _NRRD_Z_BUFSIZE, s->file) != _NRRD_Z_BUFSIZE) {
         s->z_err = Z_ERRNO;
-        biffAddf(NRRD, "%s: failed to write to file", me);
-        break;
+        biffAddf(NRRD, "%s: failed to fwrite to file", me);
+        /* earlier code had a "break" here instead of return, which seemed to
+        permit the function returning 0 instead of 1; so doing the return here
+        and not trying to record any additional state in s */
+        return 1;
       }
       s->stream.avail_out = _NRRD_Z_BUFSIZE;
     }
     s->z_err = deflate(&(s->stream), Z_NO_FLUSH);
-    if (s->z_err != Z_OK) break;
+    if (s->z_err != Z_OK) {
+      /* earlier code had a mere "break" here, which definitely meant that
+      the error was not reflected in the final return (always returned 0),
+      so adding info to biff (and also not trying to record anything in s)
+      */
+      biffAddf(NRRD, "%s: s->z_err (%d) != Z_OK (%d)", me, s->z_err, Z_OK);
+      return 1;
+    }
   }
   s->crc = crc32(s->crc, (const Bytef *)buf, len);
 
