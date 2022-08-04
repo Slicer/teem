@@ -888,10 +888,12 @@ tenFiberDirectionNumber(tenFiberContext *tfx, double seed[3]) {
     case tenDwiFiberType12BlendEvec0:
       biffAddf(TEN, "%s: sorry, type %s not yet implemented", me,
                airEnumStr(tenDwiFiberType, tenDwiFiberType12BlendEvec0));
+      /* return 0; (for biff auto-scan) */
       ret = 0;
       break;
     default:
       biffAddf(TEN, "%s: type %d unknown!", me, tfx->fiberType);
+      /* return 0; (for biff auto-scan) */
       ret = 0;
       break;
     }

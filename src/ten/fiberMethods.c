@@ -394,11 +394,13 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     tfx->anisoThresh = va_arg(ap, double);
     if (!(AIR_IN_OP(tenAnisoUnknown, tfx->anisoStopType, tenAnisoLast))) {
       biffAddf(TEN, "%s: given aniso stop type %d not valid", me, tfx->anisoStopType);
+      /* return 1; (for biff auto-scan) */
       ret = 1;
       goto end;
     }
     if (!(AIR_EXISTS(tfx->anisoThresh))) {
       biffAddf(TEN, "%s: given aniso threshold doesn't exist", me);
+      /* return 1; (for biff auto-scan) */
       ret = 1;
       goto end;
     }
@@ -441,6 +443,7 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
                  "%s: sorry, currently don't have fast %s computation "
                  "via gage",
                  me, airEnumStr(tenAniso, tfx->anisoStopType));
+        /* return 1; (for biff auto-scan) */
         ret = 1;
         goto end;
         break;
@@ -461,6 +464,7 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     if (!(AIR_EXISTS(tfx->maxHalfLen) && tfx->maxHalfLen > 0.0)) {
       biffAddf(TEN, "%s: given maxHalfLen %g doesn't exist or isn't > 0.0", me,
                tfx->maxHalfLen);
+      /* return 1; (for biff auto-scan) */
       ret = 1;
       goto end;
     }
@@ -471,6 +475,7 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     if (!(AIR_EXISTS(tfx->minWholeLen) && tfx->minWholeLen >= 0.0)) {
       biffAddf(TEN, "%s: given minWholeLen %g doesn't exist or isn't >= 0.0", me,
                tfx->minWholeLen);
+      /* return 1; (for biff auto-scan) */
       ret = 1;
       goto end;
     }
@@ -480,6 +485,7 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     tfx->maxNumSteps = va_arg(ap, unsigned int);
     if (!(tfx->maxNumSteps > 0)) {
       biffAddf(TEN, "%s: given maxNumSteps isn't > 0.0", me);
+      /* return 1; (for biff auto-scan) */
       ret = 1;
       goto end;
     }
@@ -493,6 +499,7 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     tfx->confThresh = va_arg(ap, double);
     if (!(AIR_EXISTS(tfx->confThresh))) {
       biffAddf(TEN, "%s: given confThresh doesn't exist", me);
+      /* return 1; (for biff auto-scan) */
       ret = 1;
       goto end;
     }
@@ -502,6 +509,7 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     tfx->minRadius = va_arg(ap, double);
     if (!(AIR_EXISTS(tfx->minRadius))) {
       biffAddf(TEN, "%s: given minimum radius doesn't exist", me);
+      /* return 1; (for biff auto-scan) */
       ret = 1;
       goto end;
     }
@@ -514,12 +522,14 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     if (!tfx->useDwi) {
       biffAddf(TEN, "%s: can only use %s-based termination in DWI tractography", me,
                airEnumStr(tenFiberStop, tenFiberStopFraction));
+      /* return 1; (for biff auto-scan) */
       ret = 1;
       goto end;
     }
     tfx->minFraction = va_arg(ap, double);
     if (!(AIR_EXISTS(tfx->minFraction))) {
       biffAddf(TEN, "%s: given minimum fraction doesn't exist", me);
+      /* return 1; (for biff auto-scan) */
       ret = 1;
       goto end;
     }
@@ -531,6 +541,7 @@ tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
     break;
   default:
     biffAddf(TEN, "%s: stop criterion %d not recognized", me, stop);
+    /* return 1; (for biff auto-scan) */
     ret = 1;
     goto end;
   }
