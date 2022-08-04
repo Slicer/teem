@@ -27,7 +27,10 @@ RANLIB = ranlib
 
 LD = gcc
 
-OPT_CFLAG ?= -O3 -g -DTEEM_BUILD_EXPERIMENTAL_LIBS
+#OPT_CFLAG ?= -O3 -g -DTEEM_BUILD_EXPERIMENTAL_LIBS
+## for trying undefined behavior flagging
+#OPT_CFLAG ?= -O3 -g -DTEEM_BUILD_EXPERIMENTAL_LIBS -fsanitize=undefined
+#CC = clang++
 STATIC_CFLAG = -Wl,-prebind
 SHARED_CFLAG =
 SHARED_LDFLAG = -dynamic -dynamiclib -fno-common
@@ -37,7 +40,7 @@ ARCH_CFLAG = -W -Wall
 ARCH_LDFLAG =
 
 ifeq ($(SUBARCH),64)
-  ARCH_CFLAG = -W -Wall -Wextra -arch x86_64
+  ARCH_CFLAG = -arch x86_64 -W -Wall -Wextra # -Weverything -Wno-poison-system-directories -Wno-padded -Wno-format-nonliteral -Wno-float-equal
 else
   ifeq ($(SUBARCH),32)
   ARCH_CFLAG = -W -Wall -arch i386
