@@ -989,13 +989,16 @@ limnPolyDataSpiralBetterquadric(limnPolyData *pld, unsigned int infoBitFlag, flo
     pld->indx[vertIdx++] = (phiRes - 0) * thetaRes;
   }
 #if 0
-  if ( (cee != beta || minRad > 0.0)
-       && ((1 << limnPolyDataInfoNorm) & infoBitFlag) ) {
-    /* have deformed object in some way that confounds analytic normals */
-    if (limnPolyDataVertexNormals(pld)) {
-      biffAddf(LIMN, "%s: trouble getting normals", me); return 1;
-    }
-  }
+  /* (GLK August 2022) this was #if-0'd out previously, not sure why;
+      but biff usage here confused the autoscan, so also commenting it out */
+  /* if ((cee != beta || minRad > 0.0) && ((1 << limnPolyDataInfoNorm) & infoBitFlag)) {
+   */
+  /*   / * have deformed object in some way that confounds analytic normals * / */
+  /*  if (limnPolyDataVertexNormals(pld)) { */
+  /*    biffAddf(LIMN, "%s: trouble getting normals", me); */
+  /*    return 1; */
+  /* } */
+}
 #endif
   if ((1 << limnPolyDataInfoRGBA) & infoBitFlag) {
     for (vertIdx = 0; vertIdx < pld->rgbaNum; vertIdx++) {
