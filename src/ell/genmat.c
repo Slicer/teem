@@ -390,6 +390,9 @@ ell_Nm_pseudo_inv(Nrrd *ninv, Nrrd *nA) {
   if (ell_Nm_tran(nAt, nA) || ell_Nm_mul(nAtA, nAt, nA) || ell_Nm_inv(nAtAi, nAtA)
       || ell_Nm_mul(ninv, nAtAi, nAt)) {
     biffAddf(ELL, "%s: trouble", me);
+    /* (only for biff auto-scan)
+    return 1;
+    */
     ret = 1;
     goto seeya;
   }
@@ -424,6 +427,9 @@ ell_Nm_wght_pseudo_inv(Nrrd *ninv, Nrrd *nA, Nrrd *nW) {
   if (ell_Nm_tran(nAt, nA) || ell_Nm_mul(nAtW, nAt, nW) || ell_Nm_mul(nAtWA, nAtW, nA)
       || ell_Nm_inv(nAtWAi, nAtWA) || ell_Nm_mul(ninv, nAtWAi, nAtW)) {
     biffAddf(ELL, "%s: trouble", me);
+    /* (only for biff auto-scan)
+    return 1;
+    */
     ret = 1;
     goto seeya;
   }
