@@ -73,7 +73,6 @@ allTypes = sorted(
     'meetPullVol', 'meetPullInfo',
     ], key=len, reverse=True)
 
-# the variable _ is (totally against python conventions) standing for some particular!
 # for interpreting "nm" output
 if sys.platform == 'darwin':  # Mac
     dropUnder = True
@@ -126,7 +125,7 @@ def symbList(lib, firstClean):
             continue
         if not len(L):
             # blank lines delimit objects
-            currSrc = None
+            currObj = None
             continue
         if re.match(r' + U ', L) or re.match(r'[0-9a-fA-F]+ (?:t|d|s) ', L):
             # static (non-external) text, data, or other; no problem
@@ -273,11 +272,12 @@ def declList(lib):
 def usesBiff(str, idx, fname):
     ss = str.lstrip()
     ret = ''
-    # TODO: make sure that these really are the only biff calls in use
-    # by removing the rest of them and seeing if anything breaks
-    if ss.startswith('biffMaybeMovef') or ss.startswith('biffMaybeAdd'):
+    # Now that the biffMsg functions were moved to privateBiff.h,
+    # these really are the only functions to look for. "startswith"
+    # will detect both, e.g. biffAdd() and the more common biffAddf()
+    if ss.startswith('biffMaybeAdd'):
         ret = 'maybe'
-    elif ss.startswith('biffAddf') or ss.startswith('biffMovef'):
+    elif ss.startswith('biffAdd') or ss.startswith('biffMove'):
         ret = 'yes'
     elif ss.startswith('biff'):
         print(f'confusing biff @ line {idx} of {fname}: |{ss}|')
