@@ -156,11 +156,11 @@ baneClipAnswer(int *countP, baneClip *clip, Nrrd *hvol) {
 
   if (!(countP && clip && hvol)) {
     biffAddf(BANE, "%s: got NULL pointer", me);
-    return 0;
+    return 1;
   }
   if (clip->answer(countP, hvol, clip->parm)) {
     biffAddf(BANE, "%s: trouble", me);
-    return 0;
+    return 1;
   }
   return 0;
 }
