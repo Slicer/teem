@@ -610,7 +610,7 @@ _nrrdSplitName(char **dirP, char **baseP, const char *name) {
 ** sneakiness: returns 2 if the reason for problem was a failed fopen().
 **
 */
-int /* Biff: 1 */
+int
 nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *nio) {
   static const char me[] = "nrrdLoad";
   FILE *file;
