@@ -180,6 +180,17 @@ hestOptFree(hestOpt *opt) {
   return NULL;
 }
 
+/* experiments in adding a nixer/free-er that exactly matches the airMopper type,
+   as part of trying to avoid all "undefined behavior" */
+void *
+hestParmFree_vp(void *_parm) {
+  return AIR_VOIDP(hestParmFree((hestParm *)_parm));
+}
+void *
+hestOptFree_vp(void *_opt) {
+  return AIR_VOIDP(hestOptFree((hestOpt *)_opt));
+}
+
 int
 hestOptCheck(hestOpt *opt, char **errP) {
   static const char me[] = "hestOptCheck";

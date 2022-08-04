@@ -224,6 +224,7 @@ HEST_EXPORT char hestMultiFlagSep;
 HEST_EXPORT const int hestPresent;
 HEST_EXPORT hestParm *hestParmNew(void);
 HEST_EXPORT hestParm *hestParmFree(hestParm *parm);
+HEST_EXPORT void *hestParmFree_vp(void *parm);
 HEST_EXPORT unsigned int hestOptAdd(hestOpt **optP,
                                     const char *flag, const char *name,
                                     int type, int min, int max,
@@ -233,6 +234,7 @@ HEST_EXPORT unsigned int hestOptAdd(hestOpt **optP,
                                            airEnum *enm,
                                            const hestCB *CB */);
 HEST_EXPORT hestOpt *hestOptFree(hestOpt *opt);
+HEST_EXPORT void *hestOptFree_vp(void *opt);
 HEST_EXPORT int hestOptCheck(hestOpt *opt, char **errP);
 
 /* parseHest.c */
