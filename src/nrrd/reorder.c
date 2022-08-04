@@ -53,11 +53,10 @@ nrrdInvertPerm(unsigned int *invp, const unsigned int *pp, unsigned int nn) {
     }
     invp[pp[ii]]++;
   }
-  /* for some reason when this code was written (revision 2700 Sun Jul
-     3 04:18:33 2005 UTC) it was decided that all problems with the
-     permutation would be reported with a pile of error messages in
-     biff; rather than bailing at the first problem.  Not clear if
-     this is a good idea. */
+  /* for some reason when this code was written (revision 2700 Sun Jul 3 04:18:33
+     2005 UTC) it was decided that all problems with the  permutation would be
+     reported with a pile of error messages in biff; rather than bailing at the
+     first problem.  Not clear if this is a good idea. */
   problem = AIR_FALSE;
   for (ii = 0; ii < nn; ii++) {
     if (1 != invp[ii]) {
