@@ -32,17 +32,14 @@
 **
 ** This function does NOT use biff.
 */
-int /* Biff: none */
+int
 nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
   /* static const char me[] = "nrrdCommentAdd";*/
   char *str;
   unsigned int ii;
 
   if (!(nrrd && _str)) {
-    /*
-    sprintf(err, "%s: got NULL pointer", me);
-    biffMaybeAdd(NRRD, err, useBiff);
-    */
+    /* got NULL pointer */
     return 1;
   }
   _str += strspn(_str, " #");
@@ -56,20 +53,14 @@ nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
   }
   str = airStrdup(_str);
   if (!str) {
-    /*
-    sprintf(err, "%s: couldn't strdup given string", me);
-    biffMaybeAdd(NRRD, err, useBiff);
-    */
+    /* couldn't strdup given string */
     return 1;
   }
   /* clean out carraige returns that would screw up reader */
   airOneLinify(str);
   ii = airArrayLenIncr(nrrd->cmtArr, 1);
   if (!nrrd->cmtArr->data) {
-    /*
-    sprintf(err, "%s: couldn't lengthen comment array", me);
-    biffMaybeAdd(NRRD, err, useBiff);
-    */
+    /* couldn't lengthen comment array */
     return 1;
   }
   nrrd->cmt[ii] = str;
