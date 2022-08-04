@@ -397,7 +397,7 @@ dyeConvert(dyeColor *col, int outSpace) {
         } else {
           biffAddf(DYE, "%s: CONFUSED! can't go %s -> %s\n", me, dyeSpaceToStr[inSpace],
                    dyeSpaceToStr[outSpace]);
-          E = 1;
+          return 1;
         }
       } else {
         /* we are going towards lower stages */
@@ -410,11 +410,11 @@ dyeConvert(dyeColor *col, int outSpace) {
         } else {
           biffAddf(DYE, "%s: CONFUSED! can't go %s -> %s\n", me, dyeSpaceToStr[inSpace],
                    dyeSpaceToStr[outSpace]);
-          E = 1;
+          return 1;
         }
       }
     }
   }
 
-  return E;
+  return 0;
 }
