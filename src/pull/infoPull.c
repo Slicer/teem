@@ -301,7 +301,7 @@ _pullInfoSetup(pullContext *pctx) {
       default:
         biffAddf(PULL, "%s: sorry, intertype %s not handled here", me,
                  airEnumStr(pullInterType, pctx->interType));
-        break;
+        return 1;
       }
     } else {
       pctx->targetDim = pctx->constraintDim;
