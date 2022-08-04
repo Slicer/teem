@@ -49,9 +49,10 @@
  * Returns 5 if Armijo rule failed to find a valid stepsize
  * Returns 6 if we hit a zero tensor (|T|<1e-300)
  */
-int seekDescendToDeg(double *coord, double *botleft, double *botright,
-                     double *topleft, double *topright,
-                     int maxiter, double eps, char type)
+int
+seekDescendToDeg(double *coord, double *botleft, double *botright,
+                 double *topleft, double *topright,
+                 int maxiter, double eps, char type)
 {
   double discr; /* store discriminant value of previous iteration */
   double hesstop[9]; /* used to interpolate Hessian */
@@ -350,10 +351,11 @@ int seekDescendToDeg(double *coord, double *botleft, double *botright,
  * Returns 5 if Armijo rule failed to find a valid stepsize
  * Returns 6 if we hit a zero tensor (|T|<1e-300)
  */
-int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
-                         double *Hbbl, double *Hbbr,
-                         double *Htfl, double *Htfr, double *Htbl, double *Htbr,
-                         int maxiter, double eps, char type)
+int
+seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
+                     double *Hbbl, double *Hbbr,
+                     double *Htfl, double *Htfr, double *Htbl, double *Htbr,
+                     int maxiter, double eps, char type)
 {
   double discr=0; /* store discriminant value for previous point */
 
@@ -633,13 +635,14 @@ int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
  * Returns 2 if we hit maxiter
  * Returns 3 if Armijo rule failed to find a valid stepsize
  */
-int seekDescendToRidge(double *coord,
-                       double *Hbfl, double *gbfl, double *Hbfr, double *gbfr,
-                       double *Hbbl, double *gbbl, double *Hbbr, double *gbbr,
-                       double *Htfl, double *gtfl, double *Htfr, double *gtfr,
-                       double *Htbl, double *gtbl, double *Htbr, double *gtbr,
-                       int maxiter, double eps, char ridge,
-                       const double evalDiffThresh) {
+int
+seekDescendToRidge(double *coord,
+                   double *Hbfl, double *gbfl, double *Hbfr, double *gbfr,
+                   double *Hbbl, double *gbbl, double *Hbbr, double *gbbr,
+                   double *Htfl, double *gtfl, double *Htfr, double *gtfr,
+                   double *Htbl, double *gtbl, double *Htbr, double *gtbr,
+                   int maxiter, double eps, char ridge,
+                   const double evalDiffThresh) {
   double dist=0; /* store distance value of previous iteration */
 
   double Hfrontleft[9], Hbackleft[9];
