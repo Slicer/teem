@@ -1049,7 +1049,7 @@ nrrdAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
 ** HEY: should consider making this a public function, but GLK couldn't
 ** think of a name that wasn't silly
 */
-int /* Biff: private 1 */
+int
 _nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size,
                              int zeroWhenNoAlloc) {
   static const char me[] = "nrrdMaybeAllocMaybeZero_nva";
@@ -1141,12 +1141,12 @@ _nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type, unsigned int dim, const size_
 int /* Biff: 1 */
 nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
   static const char me[] = "nrrdMaybeAlloc_nva";
-  int ret;
-  ret = _nrrdMaybeAllocMaybeZero_nva(nrrd, type, dim, size, AIR_TRUE);
-  if (ret) {
+
+  if (_nrrdMaybeAllocMaybeZero_nva(nrrd, type, dim, size, AIR_TRUE)) {
     biffAddf(NRRD, "%s: trouble", me);
+    return 1;
   }
-  return ret;
+  return 0;
 }
 
 /*
