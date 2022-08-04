@@ -168,13 +168,13 @@ _nrrdGzOpen(FILE *fd, const char *mode) {
 
   if (!mode) {
     biffAddf(NRRD, "%s: no file mode specified", me);
-    return Z_NULL;
+    return (gzFile)Z_NULL;
   }
   /* allocate stream struct */
   s = (_NrrdGzStream *)calloc(1, sizeof(_NrrdGzStream));
   if (!s) {
     biffAddf(NRRD, "%s: failed to allocate stream buffer", me);
-    return Z_NULL;
+    return (gzFile)Z_NULL;
   }
   /* initialize stream struct */
   s->stream.zalloc = (alloc_func)0;
@@ -206,7 +206,8 @@ _nrrdGzOpen(FILE *fd, const char *mode) {
   } while (*p++ && m != fmode + sizeof(fmode));
   if (s->mode == '\0') {
     biffAddf(NRRD, "%s: invalid file mode", me);
-    return _nrrdGzDestroy(s), (gzFile)Z_NULL;
+    _nrrdGzDestroy(s);
+    return (gzFile)Z_NULL;
   }
 
   if (s->mode == 'w') {
@@ -217,7 +218,8 @@ _nrrdGzOpen(FILE *fd, const char *mode) {
     s->stream.next_out = s->outbuf = (Byte *)calloc(1, _NRRD_Z_BUFSIZE);
     if (error != Z_OK || s->outbuf == Z_NULL) {
       biffAddf(NRRD, "%s: stream init failed", me);
-      return _nrrdGzDestroy(s), (gzFile)Z_NULL;
+      _nrrdGzDestroy(s);
+      return (gzFile)Z_NULL;
     }
   } else {
     s->stream.next_in = s->inbuf = (Byte *)calloc(1, _NRRD_Z_BUFSIZE);
@@ -231,7 +233,8 @@ _nrrdGzOpen(FILE *fd, const char *mode) {
      */
     if (error != Z_OK || s->inbuf == Z_NULL) {
       biffAddf(NRRD, "%s: stream init failed", me);
-      return _nrrdGzDestroy(s), (gzFile)Z_NULL;
+      _nrrdGzDestroy(s);
+      return (gzFile)Z_NULL;
     }
   }
   s->stream.avail_out = _NRRD_Z_BUFSIZE;
@@ -239,7 +242,8 @@ _nrrdGzOpen(FILE *fd, const char *mode) {
   s->file = fd;
   if (s->file == NULL) {
     biffAddf(NRRD, "%s: null file pointer", me);
-    return _nrrdGzDestroy(s), (gzFile)Z_NULL;
+    _nrrdGzDestroy(s);
+    return (gzFile)Z_NULL;
   }
   if (s->mode == 'w') {
     /* Write a very simple .gz header: */
@@ -278,12 +282,17 @@ _nrrdGzClose(gzFile file) {
     error = _nrrdGzDoFlush(file, Z_FINISH);
     if (error != Z_OK) {
       biffAddf(NRRD, "%s: failed to flush pending data", me);
-      return _nrrdGzDestroy((_NrrdGzStream *)file);
+      _nrrdGzDestroy((_NrrdGzStream *)file);
+      return 1; /* _nrrdGzDestroy's return does not communicate our known error */
     }
     _nrrdGzPutLong(s->file, s->crc);
     _nrrdGzPutLong(s->file, s->stream.total_in);
   }
-  return _nrrdGzDestroy((_NrrdGzStream *)file);
+  if (_nrrdGzDestroy((_NrrdGzStream *)file)) {
+    biffAddf(NRRD, "%s: failed to clean up", me);
+    return 1;
+  }
+  return 0;
 }
 
 /*
@@ -539,6 +548,8 @@ _nrrdGzCheckHeader(_NrrdGzStream *s) {
 ** Cleans up then free the given _NrrdGzStream. Returns a zlib error code.
 ** Try freeing in the reverse order of allocations.  FILE* s->file is not
 ** closed.  Because we didn't allocate it, we shouldn't delete it.
+**
+** Returns 1 (not an zlib error code) in case of error
 */
 static int
 _nrrdGzDestroy(_NrrdGzStream *s) {
