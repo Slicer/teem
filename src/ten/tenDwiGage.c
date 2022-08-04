@@ -1048,7 +1048,7 @@ tenDwiGageKindSet(gageKind *dwiKind,
 
   if (!dwiKind) {
     biffAddf(TEN, "%s: got NULL pointer", me);
-    return 0;
+    return 1;
   }
   if (!( !!(ngrad) ^ !!(nbmat) )) {
     biffAddf(TEN, "%s: need exactly one non-NULL in {ngrad,nbmat}", me);
