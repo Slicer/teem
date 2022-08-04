@@ -67,7 +67,7 @@ unrrdu_projectMain(int argc, const char **argv, const char *me, hestParm *hparm)
              "has to match number of axes specified.",
              &outLen);
   mop = airMopNew();
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE(_unrrdu_projectInfoL);
   PARSE();

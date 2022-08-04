@@ -171,7 +171,7 @@ unrrdu_gridMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   OPT_ADD_NOUT(outS, "output nrrd");
 
   mop = airMopNew();
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE(_unrrdu_gridInfoL);
   PARSE();

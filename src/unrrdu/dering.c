@@ -83,7 +83,7 @@ unrrdu_deringMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE(_unrrdu_deringInfoL);
   PARSE();

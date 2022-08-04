@@ -77,7 +77,7 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me, hestParm *hparm)
   hestOptAdd(&opt, "o", "output", airTypeString, 1, 1, &out, NULL, "output nrrd");
 
   mop = airMopNew();
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
   USAGE(_unrrdu_vidiconInfoL);
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);

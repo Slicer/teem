@@ -93,7 +93,7 @@ unrrdu_headMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   mop = airMopNew();
   hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL, "input nrrd(s)",
              &ninLen);
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE(_unrrdu_headInfoL);
   PARSE();

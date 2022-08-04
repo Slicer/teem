@@ -59,7 +59,7 @@ unrrdu_diffMain(int argc, const char **argv, const char *me, hestParm *hparm) {
              "there was a significant difference (as if it's an error)");
   hestOptAdd(&opt, "od,onlydata", NULL, airTypeInt, 0, 0, &onlyData, NULL,
              "Compare data values only, excluding array meta-data");
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE(_unrrdu_diffInfoL);
   PARSE();

@@ -184,7 +184,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me, hestParm *hparm
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE(_unrrdu_resampleInfoL);
   PARSE();

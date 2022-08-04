@@ -101,7 +101,7 @@ unrrdu_saveMain(int argc, const char **argv, const char *me, hestParm *hparm) {
              "instead of (by default, not using this option) having it be "
              "the same filename base as the header file.");
 
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE(_unrrdu_saveInfoL);
   PARSE();

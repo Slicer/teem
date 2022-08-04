@@ -86,7 +86,7 @@ unrrdu_minmaxMain(int argc, const char **argv, const char *me, hestParm *hparm) 
              "see \"unu env\"");
   hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL, "input nrrd(s)",
              &ninLen);
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE(_unrrdu_minmaxInfoL);
   PARSE();

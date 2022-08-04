@@ -44,7 +44,7 @@ unrrdu_ccsettleMain(int argc, const char **argv, const char *me, hestParm *hparm
              "from new (settled) values to old values, in the form of a "
              "1-D lookup table");
   OPT_ADD_NOUT(out, "output nrrd");
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE(_unrrdu_ccsettleInfoL);
   PARSE();

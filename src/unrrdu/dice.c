@@ -66,7 +66,7 @@ unrrdu_diceMain(int argc, const char **argv, const char *me, hestParm *hparm) {
              "with \"/\".");
 
   mop = airMopNew();
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE(_unrrdu_diceInfoL);
   PARSE();
