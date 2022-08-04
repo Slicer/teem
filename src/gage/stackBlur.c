@@ -79,7 +79,7 @@ gageStackBlurParmInit(gageStackBlurParm *parm) {
     parm->sigmaRange[0] = AIR_NAN;
     parm->sigmaRange[1] = AIR_NAN;
     parm->sigmaSampling = gageSigmaSamplingUnknown;
-    parm->sigma = airFree(parm->sigma);
+    parm->sigma = (double *)airFree(parm->sigma);
     parm->kspec = nrrdKernelSpecNix(parm->kspec);
     /* this will be effectively moot when nrrdKernelDiscreteGaussian is used
        with a bit cut-off, and will only help with smaller cut-offs and with
@@ -644,7 +644,7 @@ gageStackBlurParmParse(gageStackBlurParm *sbp,
       }
       ff++;
     }
-    if (flagSeen['u'] && flagSeen['o']) {
+    if (flagSeen[AIR_UCHAR('u')] && flagSeen[AIR_UCHAR('o')]) {
       biffAddf(GAGE,
                "%s: can't have both optimal ('o') and uniform ('u') "
                "flags set in \"%s\"",
@@ -734,12 +734,12 @@ gageStackBlurParmParse(gageStackBlurParm *sbp,
     }
   }
   /* have parsed everything, now error checking and making sense */
-  if (flagSeen['u'] && flagSeen['o']) {
+  if (flagSeen[AIR_UCHAR('u')] && flagSeen[AIR_UCHAR('o')]) {
     biffAddf(GAGE, "%s: can't use flags 'u' and 'o' at same time", me);
     airMopError(mop);
     return 1;
   }
-  if ((flagSeen['u'] || flagSeen['o']) && samplingGot) {
+  if ((flagSeen[AIR_UCHAR('u')] || flagSeen[AIR_UCHAR('o')]) && samplingGot) {
     biffAddf(GAGE,
              "%s: can't use both 'u','o' flags and parms to "
              "specify sigma sampling",
@@ -749,9 +749,9 @@ gageStackBlurParmParse(gageStackBlurParm *sbp,
   }
   if (!samplingGot) {
     /* have to set sampling from flags */
-    if (flagSeen['u']) {
+    if (flagSeen[AIR_UCHAR('u')]) {
       sampling = gageSigmaSamplingUniformSigma;
-    } else if (flagSeen['o']) {
+    } else if (flagSeen[AIR_UCHAR('o')]) {
       sampling = gageSigmaSamplingOptimal3DL2L2;
     } else {
       sampling = gageSigmaSamplingUniformTau;
@@ -763,7 +763,7 @@ gageStackBlurParmParse(gageStackBlurParm *sbp,
   if (kspec) {
     if (!E) E |= gageStackBlurParmKernelSet(sbp, kspec);
   }
-  if (flagSeen['r']) {
+  if (flagSeen[AIR_UCHAR('r')]) {
     if (!E) E |= gageStackBlurParmRenormalizeSet(sbp, AIR_FALSE);
   }
   if (dggsmGot) {
@@ -772,13 +772,13 @@ gageStackBlurParmParse(gageStackBlurParm *sbp,
   if (bspec) {
     if (!E) E |= gageStackBlurParmBoundarySpecSet(sbp, bspec);
   }
-  if (flagSeen['p']) {
+  if (flagSeen[AIR_UCHAR('p')]) {
     if (!E) E |= gageStackBlurParmNeedSpatialBlurSet(sbp, AIR_TRUE);
   }
   if (verboseGot) {
     if (!E) E |= gageStackBlurParmVerboseSet(sbp, verbose);
   }
-  if (flagSeen['1']) {
+  if (flagSeen[AIR_UCHAR('1')]) {
     if (!E) E |= gageStackBlurParmOneDimSet(sbp, AIR_TRUE);
   }
   /* NOT doing the final check, because if this is being called from
