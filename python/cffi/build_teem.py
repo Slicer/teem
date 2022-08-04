@@ -47,9 +47,9 @@ libs = [
     {'name': 'biff',   'expr': False},
     {'name': 'nrrd',   'expr': False}, # also need: nrrdEnums.h nrrdDefines.h
     {'name': 'ell',    'expr': False}, # (don't need ellMacros.h)
+    {'name': 'moss',   'expr': False},
     {'name': 'unrrdu', 'expr': False},
     {'name': 'alan',   'expr': True},
-    {'name': 'moss',   'expr': False},
     {'name': 'tijk',   'expr': True},
     {'name': 'gage',   'expr': False},
     {'name': 'dye',    'expr': False},

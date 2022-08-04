@@ -76,7 +76,7 @@ if len(sys.argv) != 3:
     sys.exit("usage: gen-teem.py <ctypeslib-gccxml source dir> <teem install dir>")
 
 ## (TEEM_LIB_LIST)
-libs_list = ["air", "hest", "biff", "nrrd", "ell", "unrrdu", "alan", "moss", "tijk", "gage", "dye", "bane", "limn", "echo", "hoover", "seek", "ten", "elf", "pull", "coil", "push", "mite", "meet"]
+libs_list = ["air", "hest", "biff", "nrrd", "ell", "moss", "unrrdu", "alan", "tijk", "gage", "dye", "bane", "limn", "echo", "hoover", "seek", "ten", "elf", "pull", "coil", "push", "mite", "meet"]
 
 #
 # validate os
