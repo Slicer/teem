@@ -56,7 +56,7 @@ $(L).OBJS = flotsam.o
 #
 $(L).OBJS  += flip.o slice.o sselect.o convert.o crop.o pad.o permute.o \
 	histo.o resample.o cmedian.o reshape.o shuffle.o minmax.o quantize.o \
-	unquantize.o block.o unblock.o project.o swap.o join.o dhisto.o \
+	unquantize.o project.o swap.o join.o dhisto.o \
 	jhisto.o dice.o heq.o histax.o gamma.o make.o 1op.o 2op.o 3op.o \
 	lut.o subst.o rmap.o imap.o lut2.o save.o head.o data.o splice.o \
 	inset.o axinsert.o axdelete.o axinfo.o ccfind.o ccadj.o ccmerge.o \
@@ -64,6 +64,7 @@ $(L).OBJS  += flip.o slice.o sselect.o convert.o crop.o pad.o permute.o \
 	unorient.o env.o dist.o affine.o i2w.o w2i.o fft.o acrop.o dering.o \
 	diff.o cksum.o dnorm.o vidicon.o undos.o basinfo.o grid.o ilk.o hack.o \
 	aabplot.o
+# no longer used: block.o unblock.o
 ####
 ####
 ####
