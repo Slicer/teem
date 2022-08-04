@@ -1086,6 +1086,7 @@ nrrdArithAffine(Nrrd *nout, double minIn,
                         "%g,%g,%g,%g", minIn, maxIn,
                         minOut, maxOut)) {
     biffAddf(NRRD, "%s:", me);
+    return 1;
   }
   return 0;
 }
