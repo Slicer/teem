@@ -30,8 +30,8 @@
  * icosahedron - level=3 (321 unique directions) should be
  * sufficient. Larger levels reduce the risk of missing one of two (or
  * more) very close maxima, at increased computational cost. */
-elfMaximaContext *elfMaximaContextNew(const tijk_type *type,
-                                      unsigned int level) {
+elfMaximaContext *
+elfMaximaContextNew(const tijk_type *type, unsigned int level) {
   elfMaximaContext *retval;
   limnPolyData *sphere;
   unsigned int vert;
@@ -56,7 +56,8 @@ elfMaximaContext *elfMaximaContextNew(const tijk_type *type,
   return retval;
 }
 
-elfMaximaContext *elfMaximaContextNix(elfMaximaContext *emc) {
+elfMaximaContext *
+elfMaximaContextNix(elfMaximaContext *emc) {
   if (emc!=NULL) {
     free(emc->neighbors);
     free(emc->vertices_f);
@@ -73,8 +74,8 @@ elfMaximaContext *elfMaximaContextNix(elfMaximaContext *emc) {
  * maxima. Note that the elfMaximaContext will "take over possession"
  * of the parm struct, i.e., it will be nix'ed along with the context
  * or when setting another parm */
-void elfMaximaParmSet(elfMaximaContext *emc,
-                      tijk_refine_rank1_parm *parm) {
+void
+elfMaximaParmSet(elfMaximaContext *emc, tijk_refine_rank1_parm *parm) {
   if (emc!=NULL) {
     if (emc->parm!=NULL)
       tijk_refine_rank1_parm_nix(emc->parm);
@@ -84,7 +85,8 @@ void elfMaximaParmSet(elfMaximaContext *emc,
 
 /* By default, discrete maxima are refined via optimization on the sphere.
  * Set this to zero for faster, but less accurate results. */
-void elfMaximaRefineSet(elfMaximaContext *emc, int refine) {
+void
+elfMaximaRefineSet(elfMaximaContext *emc, int refine) {
   if (emc!=NULL) {
     emc->refine = refine;
   }
@@ -94,8 +96,9 @@ void elfMaximaRefineSet(elfMaximaContext *emc, int refine) {
  * storing magnitudes in (malloc'ed) *ls and *vs. Returns the number of
  * distinct maxima, or -1 on error. ls are sorted in descending order.
  */
-int elfMaximaFind_d(double **ls, double **vs, const double *ten,
-                    elfMaximaContext *emc) {
+int
+elfMaximaFind_d(double **ls, double **vs, const double *ten,
+                elfMaximaContext *emc) {
   unsigned int i;
   int retval;
   double *vals;
@@ -150,8 +153,9 @@ int elfMaximaFind_d(double **ls, double **vs, const double *ten,
 
 /* Mostly copy-pasted from above :-/
  */
-int elfMaximaFind_f(float **ls, float **vs, const float *ten,
-                    elfMaximaContext *emc) {
+int
+elfMaximaFind_f(float **ls, float **vs, const float *ten,
+                elfMaximaContext *emc) {
   unsigned int i;
   int retval;
   float *vals;
