@@ -15,11 +15,13 @@ import re
 # to run scan on nrrd library, or
 #   python3 scan-symbols.py ~/teem-src nrrd -biff
 # to also do the biff auto-scan
-# (there's nothing more "auto" in the biff auto-scan than any other scanning that
-# this script does, but GLK started calling it biff auto-scan in commit messages
-# so the name is stuck)
+# (btw there's nothing more "auto" in the "biff auto-scan" than any other scanning
+# that this or any other script does, but GLK started calling it "biff auto-scan"
+# in commit messages so now the name is stuck)
 
-# FIX: "HEY: some air .h declares airArrayStructCB(*a,  but not in lib"
+# to be run on all libraries (TEEM_LIB_LIST) prior to release
+# air hest biff nrrd ell moss unrrdu alan tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet
+
 # TODO: still with curious symbols: air biff nrrd gage
 
 verbose = 1
@@ -238,7 +240,8 @@ def declList(lib):
                     # if start of multi-line function declaration, simplify it
                     L = L.replace(match.group(1), '();')
                 #print(f'foo9 |{L}|')
-                L = L.replace('()(),', '();') # ugh, hacky for airArrayStructCB
+                if (L.startswith('airArrayStructCB')): # wow, super-hacky!
+                    L = 'airArrayStructCB();'
                 L = L.removeprefix('*').removeprefix('*')
                 #print(f'fooA |{L}|')
             else:
@@ -318,10 +321,17 @@ def biffScan(funcName, obj):
         if (bu := usesBiff(lines[idx], idx, fileName)):
             bline = lines[idx]
             bIdx = idx
-            while not (RL := lines[idx].lstrip()).startswith('return'):
+            # saw a line using biff, now look for next "return"
+            found = False
+            while not found:
                 idx += 1
-            #print(f'{bu}: ({bIdx}) {bline} --> ({idx}) {RL}')
-            match = re.match(r'return (.+);', RL)
+                RL = lines[idx].lstrip() # maybe a line with a return
+                # accept returns in comments because sometimes functions (like tenFiberStopSet)
+                # need to use a goto end for clean finishing (like finishing var-args)
+                found = RL.startswith('return ') or RL.startswith('/* return ')
+            if verbose > 1:
+                print(f'{bu}: ({bIdx}) {bline} --> ({idx}) {RL}')
+            match = re.match(r'.*?return (.+);', RL)
             if not match:
                 raise Exception(f'confusing return line {idx} of {fileName}: |{linex[idx]}|')
             uRV = (bu, match.group(1))
