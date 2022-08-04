@@ -62,38 +62,10 @@ typedef struct {
   airArray *errArr;    /* air array for err and num */
 } biffMsg;
 
-/* biffmsg.c */
+/* biffbiff.c */
 /* ---- BEGIN non-NrrdIO */
 BIFF_EXPORT const int biffPresent;
 /* ---- END non-NrrdIO */
-BIFF_EXPORT biffMsg *biffMsgNew(const char *key);
-BIFF_EXPORT biffMsg *biffMsgNix(biffMsg *msg);
-BIFF_EXPORT void biffMsgAdd(biffMsg *msg, const char *err);
-BIFF_EXPORT void biffMsgClear(biffMsg *msg);
-BIFF_EXPORT unsigned int biffMsgLineLenMax(const biffMsg *msg);
-BIFF_EXPORT void biffMsgMove(biffMsg *dest, biffMsg *src, const char *err);
-/* ---- BEGIN non-NrrdIO */
-BIFF_EXPORT void biffMsgAddf(biffMsg *msg, const char *errfmt, ...)
-#ifdef __GNUC__
-  __attribute__((format(printf, 2, 3)))
-#endif
-  ;
-BIFF_EXPORT void biffMsgMovef(biffMsg *dest, biffMsg *src, const char *errfmt, ...)
-#ifdef __GNUC__
-  __attribute__((format(printf, 3, 4)))
-#endif
-  ;
-/* ---- END non-NrrdIO */
-BIFF_EXPORT unsigned int biffMsgErrNum(const biffMsg *msg);
-BIFF_EXPORT unsigned int biffMsgStrlen(const biffMsg *msg);
-BIFF_EXPORT void biffMsgStrSet(char *ret, const biffMsg *msg);
-/* ---- BEGIN non-NrrdIO */
-BIFF_EXPORT char *biffMsgStrAlloc(const biffMsg *msg);
-BIFF_EXPORT char *biffMsgStrGet(const biffMsg *msg);
-/* ---- END non-NrrdIO */
-BIFF_EXPORT biffMsg *const biffMsgNoop;
-
-/* biffbiff.c */
 BIFF_EXPORT void biffAdd(const char *key, const char *err);
 BIFF_EXPORT void biffAddf(const char *key, const char *errfmt, ...)
 #ifdef __GNUC__

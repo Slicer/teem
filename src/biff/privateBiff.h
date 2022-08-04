@@ -26,18 +26,44 @@ extern "C" {
 #endif
 
 /*
-** This private header exists because these functions are used in
-** the biff sources, but no where else.  Also, they take a va_list,
-** which is unusual, and (currently) used for no other public functions
-** in Teem.  Use of va_list args complicates python wrapping (at least
-** with the current ctypeslib mechanism), so these functions are being
-** taken out of the public API.
+** This private header was created because the following two "VL" functions are used
+** only within in the biff sources. They take a va_list, which is unusual, and
+** (currently) used for no other public functions in Teem.
+**
+** Furthermore, pre-1.13 release it became apparent that nothing else in Teem (outside
+** of biff) was using any biffMsg anything, so these were also all moved to here,
+** though out of laziness no _ prefix was added (as is expected of "private" text
+** symbols in the library)
 */
 
 /* biffmsg.c */
 extern void _biffMsgAddVL(biffMsg *msg, const char *errfmt, va_list args);
 extern void _biffMsgMoveVL(biffMsg *dest, biffMsg *src, const char *errfmt,
                            va_list args);
+
+extern biffMsg *biffMsgNew(const char *key);
+extern biffMsg *biffMsgNix(biffMsg *msg);
+extern void biffMsgAdd(biffMsg *msg, const char *err);
+extern void biffMsgClear(biffMsg *msg);
+extern void biffMsgMove(biffMsg *dest, biffMsg *src, const char *err);
+/* ---- BEGIN non-NrrdIO */
+extern void biffMsgAddf(biffMsg *msg, const char *errfmt, ...)
+#ifdef __GNUC__
+  __attribute__((format(printf, 2, 3)))
+#endif
+  ;
+extern void biffMsgMovef(biffMsg *dest, biffMsg *src, const char *errfmt, ...)
+#ifdef __GNUC__
+  __attribute__((format(printf, 3, 4)))
+#endif
+  ;
+/* ---- END non-NrrdIO */
+extern unsigned int biffMsgErrNum(const biffMsg *msg);
+extern unsigned int biffMsgStrlen(const biffMsg *msg);
+extern void biffMsgStrSet(char *ret, const biffMsg *msg);
+/* ---- BEGIN non-NrrdIO */
+extern char *biffMsgStrGet(const biffMsg *msg);
+/* ---- END non-NrrdIO */
 
 #ifdef __cplusplus
 }

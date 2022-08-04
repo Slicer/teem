@@ -24,10 +24,6 @@
 #include "biff.h"
 #include "privateBiff.h"
 
-/* ---- BEGIN non-NrrdIO */
-const int biffPresent = 42;
-/* ---- END non-NrrdIO */
-
 /*
 ** with the Nov'09 re-write of biff, this sourcefile becomes the only
 ** place where a static buffer is used for message handling; this
@@ -36,6 +32,20 @@ const int biffPresent = 42;
 */
 #define _HACK_STRLEN AIR_STRLEN_HUGE
 #define _MSG_INCR    2
+
+static const biffMsg _biffMsgNoop = {NULL, NULL, 0, NULL};
+/*
+******** _biffMsgNoop
+**
+** pass this instead of a real biffMsg (allocated by biffMsgNew) as a
+** flag to say, "don't bother, really".  This turns all the biffMsg
+** functions into no-ops (except that var-args are still consumed
+** where they are used)
+*/
+/* with the privitization of biffMsg stuff this alas became unavailable:
+  biffMsg *const biffMsgNoop = &_biffMsgNoop;
+  However all the code below for handling the Noop has been preserved fwiw
+*/
 
 biffMsg *
 biffMsgNew(const char *key) {
@@ -69,7 +79,7 @@ biffMsgNew(const char *key) {
 biffMsg *
 biffMsgNix(biffMsg *msg) {
 
-  if (msg && msg != biffMsgNoop) {
+  if (msg && msg != &_biffMsgNoop) {
     airFree(msg->key);
     airArrayLenSet(msg->errArr, 0); /* frees all msg->err[i] */
     airArrayNuke(msg->errArr);
@@ -88,7 +98,7 @@ biffMsgAdd(biffMsg *msg, const char *err) {
   static const char me[] = "biffMsgAdd";
   unsigned int idx;
 
-  if (biffMsgNoop == msg) {
+  if (&_biffMsgNoop == msg) {
     return;
   }
   if (!(msg && err)) {
@@ -132,7 +142,7 @@ biffMsgAddf(biffMsg *msg, const char *errfmt, ...) {
 void
 biffMsgClear(biffMsg *msg) {
 
-  if (biffMsgNoop == msg) {
+  if (&_biffMsgNoop == msg) {
     return;
   }
   airArrayLenSet(msg->errArr, 0); /* frees all msg->err[i] */
@@ -143,11 +153,11 @@ biffMsgClear(biffMsg *msg) {
 /*
 ** max length of line formatted "[<key>] <err>\n"
 */
-unsigned int
-biffMsgLineLenMax(const biffMsg *msg) {
+static unsigned int
+_biffMsgLineLenMax(const biffMsg *msg) {
   unsigned int ii, len, maxlen;
 
-  if (biffMsgNoop == msg) {
+  if (&_biffMsgNoop == msg) {
     return 0;
   }
   maxlen = 0;
@@ -169,7 +179,7 @@ biffMsgMove(biffMsg *dest, biffMsg *src, const char *err) {
   unsigned int ii;
   char *buff;
 
-  if (biffMsgNoop == dest || biffMsgNoop == src) {
+  if (&_biffMsgNoop == dest || &_biffMsgNoop == src) {
     return;
   }
   if (!(dest && src)) {
@@ -183,7 +193,7 @@ biffMsgMove(biffMsg *dest, biffMsg *src, const char *err) {
     return;
   }
 
-  buff = AIR_CALLOC(biffMsgLineLenMax(src) + 1, char);
+  buff = AIR_CALLOC(_biffMsgLineLenMax(src) + 1, char);
   if (!buff) {
     fprintf(stderr, "%s: PANIC: can't allocate buffer\n", me);
     return; /* exit(1); */
@@ -227,7 +237,7 @@ biffMsgMovef(biffMsg *dest, biffMsg *src, const char *errfmt, ...) {
 unsigned int
 biffMsgErrNum(const biffMsg *msg) {
 
-  if (biffMsgNoop == msg) {
+  if (&_biffMsgNoop == msg) {
     return 0;
   }
   if (!msg) {
@@ -247,7 +257,7 @@ biffMsgStrlen(const biffMsg *msg) {
   static const char me[] = "biffMsgStrlen";
   unsigned int ii, len;
 
-  if (biffMsgNoop == msg) {
+  if (&_biffMsgNoop == msg) {
     return 0;
   }
   if (!(msg)) {
@@ -262,13 +272,13 @@ biffMsgStrlen(const biffMsg *msg) {
   return len + 1;
 }
 
-char *
-biffMsgStrAlloc(const biffMsg *msg) {
-  static const char me[] = "biffMsgStrAlloc";
+static char *
+_biffMsgStrAlloc(const biffMsg *msg) {
+  static const char me[] = "_biffMsgStrAlloc";
   char *ret;
   unsigned int len;
 
-  if (biffMsgNoop == msg) {
+  if (&_biffMsgNoop == msg) {
     return NULL;
   }
   len = biffMsgStrlen(msg);
@@ -282,7 +292,7 @@ biffMsgStrAlloc(const biffMsg *msg) {
 
 /*
 ** ret is assumed to be allocated for biffMsgStrlen()+1, or is the
-** the return from biffMsgStrAlloc
+** the return from _biffMsgStrAlloc
 */
 void
 biffMsgStrSet(char *ret, const biffMsg *msg) {
@@ -290,14 +300,14 @@ biffMsgStrSet(char *ret, const biffMsg *msg) {
   char *buff;
   unsigned int ii;
 
-  if (biffMsgNoop == msg) {
+  if (&_biffMsgNoop == msg) {
     return;
   }
   if (!ret) {
     fprintf(stderr, "%s: PANIC got NULL ret", me);
     return;
   }
-  buff = AIR_CALLOC(biffMsgLineLenMax(msg) + 1, char);
+  buff = AIR_CALLOC(_biffMsgLineLenMax(msg) + 1, char);
   if (!buff) {
     fprintf(stderr, "%s: PANIC couldn't alloc buffer", me);
     return; /* exit(1); */
@@ -314,22 +324,10 @@ char *
 biffMsgStrGet(const biffMsg *msg) {
   char *ret;
 
-  if (biffMsgNoop == msg) {
+  if (&_biffMsgNoop == msg) {
     return NULL;
   }
-  ret = biffMsgStrAlloc(msg);
+  ret = _biffMsgStrAlloc(msg);
   biffMsgStrSet(ret, msg);
   return ret;
 }
-
-static biffMsg _biffMsgNoop = {NULL, NULL, 0, NULL};
-
-/*
-******** biffMsgNoop
-**
-** pass this instead of a real biffMsg (allocated by biffMsgNew) as a
-** flag to say, "don't bother, really".  This turns all the biffMsg
-** functions into no-ops (except that var-args are still consumed
-** where they are used)
-*/
-biffMsg *const biffMsgNoop = &_biffMsgNoop;

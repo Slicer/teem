@@ -24,6 +24,10 @@
 #include "biff.h"
 #include "privateBiff.h"
 
+/* ---- BEGIN non-NrrdIO */
+const int biffPresent = 42;
+/* ---- END non-NrrdIO */
+
 /*
 ** Until Teem has its own printf implementation, this will have to do;
 ** it is imperfect because these are not functionally identical.
