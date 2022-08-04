@@ -209,7 +209,8 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
       UNSETTWO;
       return 1;
     }
-    if (sx > airParseStrF(flArr->data, nio->line, _nrrdTextSep, AIR_UINT(sx))) {
+    if (sx
+        > airParseStrF((float *)(flArr->data), nio->line, _nrrdTextSep, AIR_UINT(sx))) {
       /* We asked for sx ints and got less.  We know that we successfully
          got one value, so we did succeed in parsing sx-1 values */
       sx--;

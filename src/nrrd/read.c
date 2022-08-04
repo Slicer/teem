@@ -540,7 +540,7 @@ nrrdStringRead(Nrrd *nrrd, const char *string, NrrdIoState *_nio) {
 */
 void
 _nrrdSplitName(char **dirP, char **baseP, const char *name) {
-  char *where;
+  const char *where;
 
   if (dirP) {
     *dirP = (char *)airFree(*dirP);

@@ -1446,7 +1446,7 @@ nrrdMetaDataNormalize(Nrrd *nout, const Nrrd *nin, int version, int trivialOrien
   nrrdKeyValueClear(ntmp);
 
   /* no content field */
-  ntmp->content = airFree(ntmp->content);
+  ntmp->content = (char *)airFree(ntmp->content);
 
   /* normalize domain kinds to "space" */
   /* HEY: if Diderot supports time-varying fields, this will have to change */
@@ -1461,8 +1461,8 @@ nrrdMetaDataNormalize(Nrrd *nout, const Nrrd *nin, int version, int trivialOrien
     }
     ntmp->axis[axi].center = nrrdCenterUnknown;
     ntmp->axis[axi].thickness = AIR_NAN;
-    ntmp->axis[axi].label = airFree(ntmp->axis[axi].label);
-    ntmp->axis[axi].units = airFree(ntmp->axis[axi].units);
+    ntmp->axis[axi].label = (char *)airFree(ntmp->axis[axi].label);
+    ntmp->axis[axi].units = (char *)airFree(ntmp->axis[axi].units);
     ntmp->axis[axi].min = AIR_NAN;
     ntmp->axis[axi].max = AIR_NAN;
     ntmp->axis[axi].spacing = AIR_NAN;

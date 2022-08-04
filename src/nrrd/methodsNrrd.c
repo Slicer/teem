@@ -73,7 +73,7 @@ nrrdBoundarySpecNew(void) {
 NrrdBoundarySpec *
 nrrdBoundarySpecNix(NrrdBoundarySpec *bspec) {
 
-  return airFree(bspec);
+  return (NrrdBoundarySpec *)airFree(bspec);
 }
 
 /* NOTE: this doesn't do a validity check! */
