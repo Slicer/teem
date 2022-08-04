@@ -825,9 +825,9 @@ buffersNew(limnCBFContext *fctx, uint pNum) {
 /* returning a pointer so compatible with an airMopper */
 static void *
 buffersNix(limnCBFContext *fctx) {
-  fctx->uu = airFree(fctx->uu);
-  fctx->vw = airFree(fctx->vw);
-  fctx->tw = airFree(fctx->tw);
+  fctx->uu = (double *)airFree(fctx->uu);
+  fctx->vw = (double *)airFree(fctx->vw);
+  fctx->tw = (double *)airFree(fctx->tw);
   return NULL;
 }
 

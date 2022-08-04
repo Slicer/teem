@@ -41,7 +41,7 @@ mossSamplerImageSet(mossSampler *smplr, const Nrrd *image, int boundary,
     biffAddf(MOSS, "%s: %d not a valid %s", me, boundary, nrrdBoundary->name);
     return 1;
   }
-  smplr->bg = airFree(smplr->bg);
+  smplr->bg = (double *)airFree(smplr->bg);
   /* after error chacking, allocation of smplr->bg array handled here, since it is
      directly associated with image, and it's too annoying to maintain separate info
      about how long bg is allocated for, separately from chanNum */
