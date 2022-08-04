@@ -9,9 +9,15 @@ import argparse
 import subprocess
 import re
 
-# hacky script by GLK to check consistency of symbols in libraries and
-# declarations in headers. Example usage:
-#   python3 scan-symbols.py ~/teem-install
+# hacky script by GLK, started to check consistency of symbols in libraries and
+# declarations in headers, but also does "biff auto-scan". Example usage:
+#   python3 scan-symbols.py ~/teem-src nrrd
+# to run scan on nrrd library, or
+#   python3 scan-symbols.py ~/teem-src nrrd -biff
+# to also do the biff auto-scan
+# (there's nothing more "auto" in the biff auto-scan than any other scanning that
+# this script does, but GLK started calling it biff auto-scan in commit messages
+# so the name is stuck)
 
 # FIX: "HEY: some air .h declares airArrayStructCB(*a,  but not in lib"
 # TODO: still with curious symbols: air biff nrrd gage
@@ -263,11 +269,13 @@ def declList(lib):
 
 def usesBiff(str, idx, fname):
     ss = str.lstrip()
-    ret = 0
+    ret = ''
+    # TODO: make sure that these really are the only biff calls in use
+    # by removing the rest of them and seeing if anything breaks
     if ss.startswith('biffMaybeMovef') or ss.startswith('biffMaybeAdd'):
-        ret = 2
+        ret = 'maybe'
     elif ss.startswith('biffAddf') or ss.startswith('biffMovef'):
-        ret = 1
+        ret = 'yes'
     elif ss.startswith('biff'):
         print(f'confusing biff @ line {idx} of {fname}: |{ss}|')
     return ret
@@ -294,16 +302,18 @@ def biffScan(funcName, obj):
             if (-1 == dIdx):
                 dIdx = idx
             else:
-                print(f'WHOA: both lines {dIdx} ({lines[dIdx]}) and {idx} ({lines[idx]}) seem to define {funcName}; bailing')
+                print(f'WHOA: bailing since two lines seem to define {funcName}:\n' +
+                      (' %4d: %s\n' % (dIdx, lines[dIdx])) +
+                      (' %4d: %s' % (idx, lines[idx])))
                 return None
     if (-1 == dIdx):
-        print(f'Sorry, could not find {funcName} defined in {fileName}')
+        print(f'--> Sorry, could not find {funcName} defined in {fileName}')
         return
     # else we think we found it
     if verbose > 1:
         print(f'found {funcName} on line {dIdx} of {fileName}: |{lines[dIdx]}|')
     idx = dIdx
-    rets = []
+    brets = [] # will stay empty if don't see biff usage
     while idx < nlin and '}' != lines[idx]:
         if (bu := usesBiff(lines[idx], idx, fileName)):
             bline = lines[idx]
@@ -314,11 +324,14 @@ def biffScan(funcName, obj):
             match = re.match(r'return (.+);', RL)
             if not match:
                 raise Exception(f'confusing return line {idx} of {fileName}: |{linex[idx]}|')
-            RV = match.group(1)
-            if not RV in rets: rets.append(RV)
+            uRV = (bu, match.group(1))
+            if not uRV in brets: brets.append(uRV)
         idx += 1
-    if rets:
-        print(f'{lines[dIdx]} -> {rets}')
+    if brets: # apparently using biff
+        # the most common case is using biffAddf/biffMovef, with return 1
+        # if not that, print it out:
+        if (brets != [('yes','1')]):
+            print(f'--> ({obj}.c:{dIdx}) {lines[dIdx]} -> {brets}')
 
 
 def parse_args():
@@ -332,7 +345,7 @@ def parse_args():
     parser.add_argument('-c', action='store_true',
                         help='Do a "make clean" before make')
     parser.add_argument('-biff', action='store_true',
-                        help='also run biff scanning')
+                        help='also run "biff auto-scan"')
     parser.add_argument('teem_path',
                         help='path of Teem checkout with "src" and "arch" subdirs')
     parser.add_argument('lib',
@@ -352,11 +365,12 @@ if __name__ == '__main__':
     decl = declList(args.lib)
     if (verbose > 1):
         print('========== found (in .h) declarations:', decl)
+    toBS = [] # do the declaration-vs-definition stuff first, but remember things to biffScan
     for N in symb:
         symbT = symb[N]['type']
         if 'D' == symbT: print(f'--> {args.lib} lib has global variable {N}')
         if args.biff and 'T' == symbT and not (args.lib in ['air', 'biff', 'hest']):
-            biffScan(N, symb[N]['object'])
+            toBS.append((N, symb[N]['object'])) # will biffScan this next
         if N in decl:
             declT = decl[N]
             if declT == symbT:
@@ -379,3 +393,8 @@ if __name__ == '__main__':
     for N in decl:
         if not N in symb:
             print(f'HEY: some {args.lib} .h declares {N} but not in lib')
+    if args.biff:
+        if (verbose):
+            print(f"========== biff auto-scan ... ")
+        for bs in toBS:
+            biffScan(bs[0], bs[1])
