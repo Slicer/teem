@@ -516,7 +516,7 @@ _nrrdSpaceVectorParse(double val[NRRD_SPACE_DIM_MAX], char **hhP, unsigned int s
 ** vector to parse in a non-const string, this seems like a sane and
 ** minimal effort option
 */
-int /* Biff: ?1 */
+int
 nrrdSpaceVectorParse(double dir[NRRD_SPACE_DIM_MAX], const char *_str,
                      unsigned int spaceDim, int useBiff) {
   static const char me[] = "nrrdSpaceVectorParse";
