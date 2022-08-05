@@ -214,6 +214,9 @@ _nrrdReadNrrdParse_block_size(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useB
                   "%s: couldn't parse size_t"
                   " from \"%s\"",
                   me, info);
+    /* For >15 years this return was missing; highlighting that it was missing was thanks
+     * to the biff auto-scan in teem/src/_util/scan-symbols.py */
+    return 1;
   }
   /* because blockSize and type fields may appear in any order,
      we can't use _nrrdFieldCheck[] */
@@ -666,13 +669,13 @@ _nrrdReadNrrdParse_kinds(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) 
     return 1;
   }
   /* can't run this now because kinds can come before sizes, in which
-     case the kind/size check in _nrrdFieldCheck_kinds will incorrectly
-     flag an error ...
-  if (_nrrdFieldCheck[nrrdField_kinds](nrrd, useBiff)) {
-    biffMaybeAddf(useBiff, NRRD, "%s: trouble", me);
-    airMopError(mop); return 1;
-    }
-  */
+   *   case the kind/size check in _nrrdFieldCheck_kinds will incorrectly
+   *   flag an error ...
+   * if (_nrrdFieldCheck[nrrdField_kinds](nrrd, useBiff)) {
+   *  biffMaybeAddf(useBiff, NRRD, "%s: trouble", me);
+   *  airMopError(mop); return 1;
+   *  }
+   */
   airMopOkay(mop);
   return 0;
 }
