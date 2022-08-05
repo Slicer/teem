@@ -501,7 +501,7 @@ _nrrdGzGetByte(_NrrdGzStream *s) {
 */
 static void
 _nrrdGzCheckHeader(_NrrdGzStream *s) {
-  static const char me[] = "_nrrdGzCheckHeader";
+  /* static const char me[] = "_nrrdGzCheckHeader"; */
   int method; /* method byte */
   int flags;  /* flags byte */
   uInt len;
@@ -523,7 +523,8 @@ _nrrdGzCheckHeader(_NrrdGzStream *s) {
   method = _nrrdGzGetByte(s);
   flags = _nrrdGzGetByte(s);
   if (method != Z_DEFLATED || (flags & _NRRD_RESERVED) != 0) {
-    biffAddf(NRRD, "%s: gzip compression method is not deflate", me);
+    /* (GLK) this (long-standing) biff usage is not acted on by any callers */
+    /* biffAddf(NRRD, "%s: gzip compression method is not deflate", me); */
     s->z_err = Z_DATA_ERROR;
     return;
   }
@@ -552,6 +553,7 @@ _nrrdGzCheckHeader(_NrrdGzStream *s) {
       (void)_nrrdGzGetByte(s);
   }
   s->z_err = s->z_eof ? Z_DATA_ERROR : Z_OK;
+  return;
 }
 
 /*
@@ -581,16 +583,18 @@ _nrrdGzDestroy(_NrrdGzStream *s) {
     }
   }
   if (error != Z_OK) {
-    biffAddf(NRRD, "%s: %s", me, _NRRD_GZ_ERR_MSG(error));
+    biffAddf(NRRD, "%s: %s (%d)", me, _NRRD_GZ_ERR_MSG(error), error);
+    return 1;
   }
-  if (s->z_err < 0) error = s->z_err;
+  if (s->z_err < 0) error = s->z_err; // GLK is curious why
   if (error != Z_OK) {
-    biffAddf(NRRD, "%s: %s", me, _NRRD_GZ_ERR_MSG(error));
+    biffAddf(NRRD, "%s: %s (%d)", me, _NRRD_GZ_ERR_MSG(error), error);
+    return 1;
   }
   s->inbuf = (Byte *)airFree(s->inbuf);
   s->outbuf = (Byte *)airFree(s->outbuf);
-  airFree(s); /* avoiding unused value warnings, no NULL set */
-  return error != Z_OK;
+  airFree(s);
+  return 0;
 }
 
 /*
