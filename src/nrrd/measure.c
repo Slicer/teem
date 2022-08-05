@@ -440,8 +440,9 @@ _nrrdMeasureLinf(void *ans, int ansType, const void *line, int lineType, size_t 
          0 for new two-pass (more accurate)                                             \
          1 for old single-pass */
 
+/* this is the cute but super inaccurate way */
 static void
-_nrrdMeasureVariance(void *ans, int ansType,
+/* _nrrdMeasureVariance(void *ans, int ansType, (comment to help biff auto-scan) */
                      const void *line, int lineType, size_t len,
                      double axmin, double axmax) {
   double val, S, SS, (*lup)(const void*, size_t);
