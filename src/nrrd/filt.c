@@ -621,13 +621,10 @@ distanceL2Sqrd(Nrrd *ndist, double *spcMean) {
   airArray *mop;
 
   if (!(nrrdTypeFloat == ndist->type || nrrdTypeDouble == ndist->type)) {
-    /* MWC: This error condition was/is being ignored. */
-    /*    biffAddf(NRRD, "%s: sorry, can only process type %s or %s (not %s)",
-                  me,
-                  airEnumStr(nrrdType, nrrdTypeFloat),
-                  airEnumStr(nrrdType, nrrdTypeDouble),
-                  airEnumStr(nrrdType, ndist->type));
-    */
+    biffAddf(NRRD, "%s: sorry, can only process type %s or %s (not %s)", me,
+             airEnumStr(nrrdType, nrrdTypeFloat), airEnumStr(nrrdType, nrrdTypeDouble),
+             airEnumStr(nrrdType, ndist->type));
+    return 1;
   }
 
   spcSomeExist = AIR_FALSE;
@@ -679,8 +676,9 @@ distanceL2Sqrd(Nrrd *ndist, double *spcMean) {
   airMopAdd(mop, zz, airFree, airMopAlways);
   airMopAdd(mop, vv, airFree, airMopAlways);
   if (!(dd && ff && zz && vv)) {
-    /* MWC: This error condition was/is being ignored. */
-    /* biffAddf(NRRD, "%s: couldn't allocate scanline buffers", me); */
+    biffAddf(NRRD, "%s: couldn't allocate scanline buffers", me);
+    airMopError(mop);
+    return 1;
   }
 
   /* set up array of buffers */
