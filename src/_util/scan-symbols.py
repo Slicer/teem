@@ -8,6 +8,7 @@ import sys
 import argparse
 import subprocess
 import re
+from enum import Enum
 
 # hacky script by GLK, started to check consistency of symbols in libraries and
 # declarations in headers, but also does "biff auto-scan". Example usage:
@@ -22,12 +23,31 @@ import re
 # to be run on all libraries (TEEM_LIB_LIST) prior to release
 # air hest biff nrrd ell moss unrrdu alan tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet
 
+# for functions, what kind are they (not really a technical term)
+class kind(Enum):
+    PUBLIC = 1 # declared in lib.h (and available in library)
+    PRIVATE = 2 # declared in privateLib.h (also in library)
+    STATIC = 3 # not declared in a header since it is static
+kindStr = {
+    kind.PUBLIC: 'public',
+    kind.PRIVATE: 'private',
+    kind.STATIC: 'static'
+}
+
 # TODO: still with curious symbols: air biff nrrd gage
+
+# for interpreting "nm" output
+if sys.platform == 'darwin':  # Macif sys.platform == 'darwin':  # Mac
+    dropUnder = True
+elif sys.platform == 'linux':
+    dropUnder = False
+else:
+    raise Exception('Sorry, currently only know how work on Mac and Linux')
 
 verbose = 1
 archDir = None
 libDir = None
-srcLines = {} # cache of lines of source files
+srcLines = {} # cache of already read-in lines of source files
 
 # All the types (and type qualifiers) we try to parse away
 # The list has to be sorted (from long to short) because things like 'int'
@@ -73,14 +93,7 @@ allTypes = sorted(
     'meetPullVol', 'meetPullInfo',
     ], key=len, reverse=True)
 
-# for interpreting "nm" output
-if sys.platform == 'darwin':  # Mac
-    dropUnder = True
-elif sys.platform == 'linux':
-    dropUnder = False
-else:
-    raise Exception('Sorry, currently only know how work on Mac and Linux')
-
+# check the two command-line arguments to this script
 def argsCheck(tPath, lib):
     global archDir, libDir
     if (not (os.path.isdir(tPath)
@@ -99,6 +112,7 @@ def argsCheck(tPath, lib):
     if not os.path.isdir(libDir):
         raise Exception(f'Do not see "{libDir}" subdir for lib "{lib}"')
 
+# wrapper around subprocess.run
 def runthis(cmdStr, capOut):
     if (verbose):
         print(f' ... running "{cmdStr}"')
@@ -106,51 +120,66 @@ def runthis(cmdStr, capOut):
     ret = spr if capOut else None
     return ret
 
+########## The DEFINITION (lib.a) side of the declaration-vs-definition correspondence:
+# compile the "lib" library, run nm on it
+# and build up a list of the actual, defined, symbols in it
 def symbList(lib, firstClean):
     if (verbose):
-        print(f'========== recompiling {lib} ... ')
+        print(f'========== recompiling, scanning definitions in {lib}.a ... ')
     if firstClean:
         runthis('make clean', False)
     runthis('make', False)
     runthis('make install', False)
     nmOut = runthis(f'nm {archDir}/lib/lib{lib}.a', True).stdout.decode('UTF-8').splitlines()
     nmOut.pop(0) # first line is empty (at least on Mac)
-    symb = {} # accumulates dict mapping from name to {type, object}
-    currObj = None
+    # symb accumulates a dict mapping from symbol name to little description:
+    # 'type': of the symbol, in the nm sense (not the C sense)
+    # 'file': the .c filename that contributed to this library "archive element"
+    symb = {}
+    currFile = None
     for L in nmOut:
         if (match := re.match(r'[^\()]+\(([^\)]+).o\):$', L)):
-            currObj = match.group(1)
+            currFile = match.group(1) + '.c'
             if (verbose > 1):
-                print(f'   ... {currObj}')
+                print(f'   ... {currFile}')
             continue
         if not len(L):
-            # blank lines delimit objects
-            currObj = None
+            # blank lines delimit archive elements
+            currFile = None
             continue
-        if re.match(r' + U ', L) or re.match(r'[0-9a-fA-F]+ (?:t|d|s) ', L):
-            # static (non-external) text, data, or other; no problem
+        if re.match(r' + U ', L) or re.match(r'[0-9a-fA-F]+ (?:d|s) ', L):
+            # if undefined: totally irrelevant
+            # static (non-external) text, data, or other; not on our radar
             continue
-        if not re.match(r'[0-9a-fA-F]+ [TDS] ', L):
+        # t: static/local function "text" (not externally available in library)
+        # T: non-static function "text"
+        # D: global non-function variable "data"
+        # S: const global (non)variable
+        if not re.match(r'[0-9a-fA-F]+ [tTDS] ', L):
             # flag this but don't raise an Exception; sometimes these are ok
-            print(f'HEY: curious symbol "{L}" in {currObj}.c')
+            print(f'HEY: curious symbol "{L}" in {currFile}')
             continue;
         if dropUnder: # (Mac)  (----- 1 -----)(- 2 -)  ( 3)
-            match = re.match(r'([0-9a-fA-F]+ )([TDS]) _(.*)$', L)
+            match = re.match(r'([0-9a-fA-F]+ )([tTDS]) _(.*)$', L)
             if not match:
-                raise Exception(f'malformed (no leading underscore) "{L}" in {currObj}.c')
+                raise Exception(f'malformed (no leading underscore) "{L}" in {currFile}')
         else: # not trying to drop leading underscore (not on Mac)
             #                  (----- 1 -----)(- 2 -) ( 3)
-            match = re.match(r'([0-9a-fA-F]+ )([TDS]) (.*)$', L)
+            match = re.match(r'([0-9a-fA-F]+ )([tTDS]) (.*)$', L)
             if not match:
-                raise Exception(f'malformed "{L}" in {currObj}.c')
-        ss = match.group(3)
+                raise Exception(f'malformed "{L}" in {currFile}')
+        st = match.group(2) # symbol type
+        sn = match.group(3) # symbol name
         # subsuming role of old _util/release-nm-check.csh
-        if (not ss.startswith(lib) and not ss.startswith(f'_{lib}')):
-            raise Exception(f'symbol {ss} (from {currObj}.c) does not start with {lib} or _{lib}')
-        symb[ss] = {'type': match.group(2), 'object': currObj}
+        if (st != 't' #so it is something that should be prefixed by library name
+            and not (sn.startswith(lib) or sn.startswith(f'_{lib}'))): # but it doesn't
+            raise Exception(f'symbol {sn} (from {currFile}) does not start with {lib} or _{lib}')
+        # all done, record the symbol description
+        symb[sn] = {'type': st, 'file': currFile}
+    #print(symb)
     return symb
 
-# starts with '  *const nrrdKernel'
+# in reading .h file, line L looks like a nrrdKernel declaration
 def kernelLineProc(L):
     L0 = L
     if (match := re.match(r'.+?(/\*.+?)$', L)):
@@ -163,6 +192,11 @@ def kernelLineProc(L):
         raise Exception(f'kernel def "{L0}" of unexpected form')
     return L
 
+########## The DECLARATION (lib.h) side of the declaration-vs-definition correspondence:
+# parse header file lib.h (and maybe privateLib.h) and build up names of things
+# it declares that we expect to find defined the library
+# (the result is another list of symbols, like symbList above returns, but those are
+# the real deal, and these are just potentially empty declarations)
 def declList(lib):
     pubH = f'{lib}.h'
     prvH = f'private{lib.title()}.h'
@@ -171,15 +205,20 @@ def declList(lib):
     else:
         hdrs = [pubH]
     if (verbose):
-        print(f"========== scanning {lib} headers {hdrs} ... ")
+        print(f"========== scanning declarations in {lib} headers {hdrs} ... ")
+    # the decl dict accumulates a mapping from symbol name to little description
+    # 'type': the expected type of the symbol in the library,
+    #         as an nm-style letter: 'D' or 'T'
+    # 'public': True if in lib.h, False if in privateLib.h
     decl = {}
     for HN in hdrs:
-        pub = (0 == hdrs.index(HN))
-        externStr = f'{lib.upper()}_EXPORT ' if pub else 'extern '
+        public = (0 == hdrs.index(HN))
         with open(HN) as HF:
             lines = [line.rstrip() for line in HF.readlines()]
-        # remove 'extern "C" {' in from list for private
-        if not pub: lines.remove('extern "C" {')
+        # remove 'extern "C" {' from the lines (really only an issue for privateLib.h)
+        lines.remove('extern "C" {')
+        # how thing intended for linkable visibility are are announced
+        externStr = f'{lib.upper()}_EXPORT ' if public else 'extern '
         for L in lines:
             origL = L
             # special handling of inside of list of nrrdKernels
@@ -192,10 +231,10 @@ def declList(lib):
                 if L == 'const NrrdKernel':
                     # its the start of a kernel list; each handled separately above
                     continue
-                # else work on isolating the symbol name
-                # remove types
+                # else (hackly) work on isolating the symbol name
                 #print(f'foo0 |{L}|')
                 for QT in allTypes:
+                    # remove all qualifiers and types we know about
                     #preL = L
                     L = L.replace(QT+' ', '')
                     #if (L != preL):
@@ -247,44 +286,50 @@ def declList(lib):
                 # it doesn't look like either a #define or a declaration, move on to next line
                 continue
             # else it was a declaration, and we think we have the name isolated
-            if L.endswith('[][][];'):
-                decl[L[:-7]] = 'D'
-            elif L.endswith('[][]();'):
-                decl[L[:-7]] = 'D'
-            elif L.endswith('[]();'):
-                decl[L[:-5]] = 'D'
-            elif L.endswith('[][];'):
-                decl[L[:-5]] = 'D'
-            elif L.endswith('[];'):
-                decl[L[:-3]] = 'D'
-            elif L.endswith('();'):
-                decl[L[:-3]] = 'T'
+            def desc(K):
+                return {
+                    'type': K,
+                    'kind': kind.PUBLIC if f'{lib}.h' == HN else kind.PRIVATE
+                    # can't be STATIC because then it won't be in header (enforced elsewhere)
+                    }
+            if L.endswith('[][][];'):   decl[L[:-7]] = desc('D')
+            elif L.endswith('[][]();'): decl[L[:-7]] = desc('D')
+            elif L.endswith('[]();'):   decl[L[:-5]] = desc('D')
+            elif L.endswith('[][];'):   decl[L[:-5]] = desc('D')
+            elif L.endswith('[];'):     decl[L[:-3]] = desc('D')
+            elif L.endswith('();'):     decl[L[:-3]] = desc('T')
             elif L.startswith('gageScl3PFilter'):
-                decl[L[:-1]] = 'T' # there's a function typedef
+                decl[L[:-1]] = desc('T') # there's a function typedef
             elif (re.match(r'hoover[\w]+Begin;', L) or re.match(r'hoover[\w]+End;', L)) or ('hooverStubSample;' == L):
-                decl[L[:-1]] = 'T' # there's a function typedef
+                decl[L[:-1]] = desc('T') # there's a function typedef
             elif L.endswith(';'):
-                decl[L[:-1]] = 'D'
+                  decl[L[:-1]] = desc('D')
             else:
                 raise Exception(f'confused about |{L}| from |{origL}|')
+    #print(decl)
     return decl
 
+# TODO: make this an inner function
 def usesBiff(str, idx, fname):
     ss = str.lstrip()
-    ret = ''
     # Now that the biffMsg functions were moved to privateBiff.h,
     # these really are the only functions to look for. "startswith"
-    # will detect both, e.g. biffAdd() and the more common biffAddf()
+    # will detect both, e.g., biffAdd() and the more common biffAddf()
     if ss.startswith('biffMaybeAdd'):
         ret = 'maybe'
     elif ss.startswith('biffAdd') or ss.startswith('biffMove'):
         ret = 'yes'
     elif ss.startswith('biff'):
-        print(f'confusing biff @ line {idx} of {fname}: |{ss}|')
+        raise Exception(f'confusing biff @ line {idx} of {fname}: |{ss}|')
+    else:
+        ret = False
     return ret
 
-def biffScan(funcName, obj):
-    fileName = f'{obj}.c'
+########## Home of the "biff auto-scan"
+# read in .c fileName, looking for lines of C code defining (one function) funcName,
+# and figure out how it is using biff
+def biffScan(funcName, fileName, funcKind):
+    #print('!', funcName, fileName, funcKind)
     # get lines of fileName
     if fileName in srcLines:
         if verbose > 2:
@@ -299,23 +344,39 @@ def biffScan(funcName, obj):
     # dIdx = index of start of definition (but return type on previous line!)
     dIdx = -1
     nlin = len(lines)
+    useBiffIdx = 0 # 1-based number of "useBiff" parameter
     for idx in range(nlin):
         L = lines[idx]
         if L.startswith(funcName+'('):
             if (-1 == dIdx):
                 dIdx = idx
             else:
-                print(f'WHOA: bailing since two lines seem to define {funcName}:\n' +
+                print(f'WHOA: bailing; two lines in {fileName} seem to define {funcName}:\n' +
                       (' %4d: %s\n' % (dIdx, lines[dIdx])) +
                       (' %4d: %s' % (idx, lines[idx])))
                 return None
     if (-1 == dIdx):
-        print(f'--> Sorry, could not find {funcName} defined in {fileName}')
-        return
+        if kind.STATIC != funcKind:
+            # it is very common for static functions to be defined by macros;
+            # so common that it would be annoying to handle possibilities here.
+            # So, we only complain not being able to find definitions of declared
+            # functions (at the risk of losing chance to find biff usage errors
+            # in static functions, such as functions not defined in macros, but
+            # inside a clang-off/clang-on bracket)
+            print(f'--> Sorry, could not find {funcName} defined in {fileName}')
+        return None
     # else we think we found it
-    if verbose > 1:
+    if verbose > 2:
         print(f'found {funcName} on line {dIdx} of {fileName}: |{lines[dIdx]}|')
     idx = dIdx
+    # sometimes the start of the function declaration is multiple lines; we know
+    # we're at the end of the intro when we see a '{' ending the line
+    intro = lines[dIdx]
+    while not intro.endswith('{'):
+        idx += 1
+        intro += ' ' + lines[idx].lstrip()
+    if verbose > 2 and intro != lines[dIdx]:
+        print(f'  full intro: |{intro}|')
     brets = [] # will stay empty if don't see biff usage
     while idx < nlin and '}' != lines[idx]:
         if (bu := usesBiff(lines[idx], idx, fileName)):
@@ -329,20 +390,68 @@ def biffScan(funcName, obj):
                 # accept returns in comments because sometimes functions (like tenFiberStopSet)
                 # need to use a goto end for clean finishing (like finishing var-args)
                 found = RL.startswith('return ') or RL.startswith('/* return ')
-            if verbose > 1:
+            if verbose > 2:
                 print(f'{bu}: ({bIdx}) {bline} --> ({idx}) {RL}')
             match = re.match(r'.*?return (.+);', RL)
             if not match:
                 raise Exception(f'confusing return line {idx} of {fileName}: |{linex[idx]}|')
             uRV = (bu, match.group(1))
-            if not uRV in brets: brets.append(uRV)
+            if not uRV in brets:
+                # haven't yet recorded this "return" value RV after this biff usage bu
+                brets.append(uRV)
         idx += 1
-    if brets: # apparently using biff
-        # the most common case is using biffAddf/biffMovef, with return 1
-        # if not that, print it out:
-        if (brets != [('yes','1')]):
-            print(f'--> ({obj}.c:{dIdx}) {lines[dIdx]} -> {brets}')
-
+        if idx == nlin:
+            raise Exception(f'hit end of file {fileName} looking for }} ending {funcName} defn')
+    if not brets:
+        # we're here to scan for biff usage in function funcName, and found none,
+        # which is totally fine, but there's nothing more for us to do here
+        return None
+    # else we found some biff usage
+    if len(brets) > 1:
+        # make sure uses are either all 'yes' or all 'maybe'
+        uu = list(set([uRV[0] for uRV in brets]))
+        if (len(uu)) > 1:
+            raise Exception(f'function {funcName} in {fileName}:{dIdx} uses a combination of biffAdd/Move and biffMaybeAdd/Move')
+    # the most common case is using biffAddf/biffMovef (bu = 'yes'), with return 1
+    # if not that, print it out (or always print it with high enough verbosity):
+    if brets != [('yes','1')] or verbose > 1:
+        if len(brets) > 1: print('\n**** really? multiple different returns in:')
+        print(f'--> ({fileName} : {dIdx} {kindStr[funcKind]}) {lines[dIdx-1]} {intro} -> {brets}')
+    if 'maybe' == brets[0][0]:
+        # figure out which of the function parameters (1-based numbering) is called "useBiff"
+        if not (match := re.match(r'.+?\((.+?)\)', intro)):
+            raise Exception(f"can't parse parameters from declaration start {intro} in {fileName}:{dIdx}")
+        # parse parameters into list of (lists of words)
+        parms = [P.strip().split(' ') for P in match.group(1).split(',')]
+        # look for useBiff
+        useb = [('useBiff' in PL) for PL in parms]
+        try:
+            useBiffIdx = useb.index(True)
+        except ValueError:
+            raise Exception(f'{funcName} uses biffMaybe but don\'t see "useBiff" in '
+                            f'start of function declaration "{intro}"')
+        # make sure there's only one useBiff
+        useb.pop(useBiffIdx)
+        if [False] != list(set(useb)):
+            raise Exception(f'{funcName} seems to have multiple "useBiff" parms '
+                            f'in its declaration "{intro}"')
+            # make useBiffIdx 1-based
+        useBiffIdx += 1
+    # create and return the annotation that captures what we know:
+    ret = 'Biff? '
+    if kind.STATIC != funcKind:
+        ret += f'({kindStr[funcKind]}) '
+    if 'yes' == brets[0][0]:
+        ret += brets[0][1]
+    else:
+        ret += f'maybe:{useBiffIdx}:{brets[0][1]}'
+    if len(brets) > 1:
+        ret += f' # multiple rets: {[uRV[1] for uRV in brets]}'
+    ret = f'/* {ret} */'
+    # print('!', ret)
+    # TODO: create set of lines for (and write) file with new annotations
+    # according to some policy about respecting vs over-writing existing annotations
+    return ret
 
 def parse_args():
     # https://docs.python.org/3/library/argparse.html
@@ -366,45 +475,56 @@ if __name__ == '__main__':
     args = parse_args()
     verbose = args.v
     argsCheck(args.teem_path, args.lib)
-    if (verbose):
-        print(f'========== cd {libDir} ... ')
+    if (verbose): print(f'========== cd {libDir} ... ')
     os.chdir(libDir)
     symb = symbList(args.lib, args.c)
-    if (verbose > 1):
-        print('========== found (in lib) symbols:', symb)
+    if (verbose > 1): print('========== found (in lib) defined symbols:', symb)
     decl = declList(args.lib)
-    if (verbose > 1):
-        print('========== found (in .h) declarations:', decl)
+    if (verbose > 1): print('========== found (in .h) declarations:', decl)
     toBS = [] # do the declaration-vs-definition stuff first, but remember things to biffScan
+    ######### FIRST: go through all the symbols
+    # - queue things for biff analysis
+    # - are defined symbols actually declared?
     for N in symb:
         symbT = symb[N]['type']
-        if 'D' == symbT: print(f'--> {args.lib} lib has global variable {N}')
-        if args.biff and 'T' == symbT and not (args.lib in ['air', 'biff', 'hest']):
-            toBS.append((N, symb[N]['object'])) # will biffScan this next
+        if 'D' == symbT: print(f'NOTE: {args.lib} lib has global variable {N}')
+        if 't' == symbT and N in decl:
+            raise Exception(f'wut? static function {N} is declared in a {args.lib} header?')
+        if args.biff and symbT in 'tT' and not (args.lib in ['air', 'biff', 'hest']):
+            # if we're doing the biff auto-scan, and this is a function, and it isn't
+            # in a library that can't use biff, then add this to list of things to biffScan
+            # (each item in this list is a dumb little tuple)
+            toBS.append((N, # name
+                         symb[N]['file'], # which file it's defined in
+                         decl[N]['kind'] if N in decl else kind.STATIC # kind of function
+                         ))
         if N in decl:
-            declT = decl[N]
-            if declT == symbT:
-                if verbose > 1: print(f'agree on {N}')
+            declT = decl[N]['type']
+            if declT == symbT or ('S' == symbT and 'D' == declT):
+                # global const variables are type 'S' in nm
+                if verbose > 2: print(f'agree on {N}')
             else:
-                if not ('S' == symbT and 'D' == declT):
-                    print(f"disagree on {N} type (nm {symbT} vs .h {declT})")
+                print(f"HEY: decl/defn disagree on type of {N} (nm {symbT} vs .h {declT})")
         else:
+            # symbol name N was (apparently) not declared in a header
+            if ('t' == symbT):
+                # um, it's static, of course it's not declared
+                continue
             if ('unrrdu' == args.lib and re.match(r'unrrdu_\w+Cmd', N)) \
                 or ('ten' == args.lib and re.match(r'tend_\w+Cmd', N)) \
                 or ('bane' == args.lib and re.match(r'baneGkms_\w+Cmd', N)) \
                 or ('limn' == args.lib and re.match(r'limnpu_\w+Cmd', N)) \
                 :
-                # actually it (probably!) is declared in a private header, via inscrutable macro
+                # actually it (probably!) is declared, in a private header, via inscrutable macro
                 continue
             if ('ten' == args.lib and re.match('_tenQGL_', N)):
-                # is not declared in privateTen.h, but used by some ten/test demos
+                # is not declared in privateTen.h, but used by some ten/test demos; ok
                 continue
             print(f'HEY: lib{args.lib} {symbT} symbol {N} not declared')
     for N in decl:
         if not N in symb:
-            print(f'HEY: some {args.lib} .h declares {N} but not in lib')
+            print(f'HEY: some {args.lib} .h declares {N} but not defined in lib')
     if args.biff:
-        if (verbose):
-            print(f"========== biff auto-scan ... ")
+        if (verbose): print(f"========== biff auto-scan ... ")
         for bs in toBS:
-            biffScan(bs[0], bs[1])
+            biffScan(*bs)
