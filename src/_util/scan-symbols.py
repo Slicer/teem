@@ -14,11 +14,13 @@ from enum import Enum
 # declarations in headers, but also does "biff auto-scan". Example usage:
 #   python3 scan-symbols.py ~/teem-src nrrd
 # to run scan on nrrd library, or
-#   python3 scan-symbols.py ~/teem-src nrrd -biff
+#   python3 scan-symbols.py ~/teem-src nrrd -biff 1
 # to also do the biff auto-scan
 # (btw there's nothing more "auto" in the "biff auto-scan" than any other scanning
-# that this or any other script does, but GLK started calling it "biff auto-scan"
-# in commit messages so now the name is stuck)
+# that this or any other script does, but GLK started goofily calling it the
+# "biff auto-scan" in commit messages so now the name is stuck)
+#
+# See teem/src/biff/README.txt for /* Biff: */ annotation format docs
 
 # to be run on all libraries (TEEM_LIB_LIST) prior to release
 # air hest biff nrrd ell moss unrrdu alan tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet
@@ -47,7 +49,34 @@ else:
 verbose = 1
 archDir = None
 libDir = None
-srcLines = {} # cache of already read-in lines of source files
+srcLines = {} # maps from filename to (list of) lines of code, either from disk or modified
+modified = {} # maps from filename to whether srcLines has been modified
+
+def getLines(fileName):
+    if fileName in srcLines:
+        if verbose > 2:
+            print(f'(re-using read of {fileName})')
+        lines = srcLines[fileName]
+    else:
+        if verbose > 2:
+            print(f'(reading {fileName} for first time)')
+        with open(fileName) as CF:
+            lines = [L.rstrip() for L in CF.readlines()]
+        srcLines[fileName] = lines
+        modified[fileName] = False
+    return lines
+
+# what to do for biffLevel 2 and up:
+#   (in describing annotations, "~same" means an existing annotation is either exactly
+#   the same as annote, or differs only in Biff?->Biff: or in addition of a comment)
+# - if there is nothing after return type, add annotation
+# - if existing annotation ~same: leave it
+# - if existing comment not ~same as annote: complain
+#      and if >2: over-write it
+def biffAnnotate(biffLevel, fileName, lineNum, annote):
+    #TODO            
+    pass
+
 
 # All the types (and type qualifiers) we try to parse away
 # The list has to be sorted (from long to short) because things like 'int'
@@ -92,25 +121,6 @@ allTypes = sorted(
     'miteUser', 'miteShadeSpec', 'miteThread',
     'meetPullVol', 'meetPullInfo',
     ], key=len, reverse=True)
-
-# check the two command-line arguments to this script
-def argsCheck(tPath, lib):
-    global archDir, libDir
-    if (not (os.path.isdir(tPath)
-            and os.path.isdir(f'{tPath}/arch')
-            and os.path.isdir(f'{tPath}/src') )):
-        raise Exception(f'Need {tPath} to be dir with "arch" and "src" subdirs')
-    if (not os.path.isdir(f'{tPath}/src/{lib}')):
-        raise Exception(f'Do not see library "{lib}" subdir in "src" subdir')
-    if not 'TEEM_ARCH' in os.environ:
-        raise Exception(f'Environment variable "TEEM_ARCH" not set')
-    archEV = os.environ['TEEM_ARCH']
-    archDir = f'{tPath}/arch/{archEV}'
-    if not os.path.isdir(archDir):
-        raise Exception(f'Do not see "{archDir}" subdir for TEEM_ARCH "{archEV}"')
-    libDir = f'{tPath}/src/{lib}'
-    if not os.path.isdir(libDir):
-        raise Exception(f'Do not see "{libDir}" subdir for lib "{lib}"')
 
 # wrapper around subprocess.run
 def runthis(cmdStr, capOut):
@@ -327,20 +337,12 @@ def usesBiff(str, idx, fname):
 
 ########## Home of the "biff auto-scan"
 # read in .c fileName, looking for lines of C code defining (one function) funcName,
-# and figure out how it is using biff
+# and figure out how it is using biff.
+# Return a tupe (line#, note): line# is the 0-based index of where annotation note should go
 def biffScan(funcName, fileName, funcKind):
     #print('!', funcName, fileName, funcKind)
     # get lines of fileName
-    if fileName in srcLines:
-        if verbose > 2:
-            print(f'(re-using read of {fileName}')
-        lines = srcLines[fileName]
-    else:
-        if verbose > 2:
-            print(f'(reading {fileName} for first time)')
-        with open(fileName) as CF:
-            lines = [L.rstrip() for L in CF.readlines()]
-        srcLines[fileName] = lines
+    lines = getLines(fileName)
     # dIdx = index of start of definition (but return type on previous line!)
     dIdx = -1
     nlin = len(lines)
@@ -378,6 +380,7 @@ def biffScan(funcName, fileName, funcKind):
     if verbose > 2 and intro != lines[dIdx]:
         print(f'  full intro: |{intro}|')
     brets = [] # will stay empty if don't see biff usage
+    # now scan the body of the function, ending with line '}'
     while idx < nlin and '}' != lines[idx]:
         if (bu := usesBiff(lines[idx], idx, fileName)):
             bline = lines[idx]
@@ -404,8 +407,8 @@ def biffScan(funcName, fileName, funcKind):
             raise Exception(f'hit end of file {fileName} looking for }} ending {funcName} defn')
     if not brets:
         # we're here to scan for biff usage in function funcName, and found none,
-        # which is totally fine, but there's nothing more for us to do here
-        return None
+        # which is totally fine, so we return that annotation and are done
+        return (dIdx-1, '/* Biff? nope */') # RETURN
     # else we found some biff usage
     if len(brets) > 1:
         # make sure uses are either all 'yes' or all 'maybe'
@@ -414,9 +417,9 @@ def biffScan(funcName, fileName, funcKind):
             raise Exception(f'function {funcName} in {fileName}:{dIdx} uses a combination of biffAdd/Move and biffMaybeAdd/Move')
     # the most common case is using biffAddf/biffMovef (bu = 'yes'), with return 1
     # if not that, print it out (or always print it with high enough verbosity):
-    if brets != [('yes','1')] or verbose > 1:
-        if len(brets) > 1: print('\n**** really? multiple different returns in:')
-        print(f'--> ({fileName} : {dIdx} {kindStr[funcKind]}) {lines[dIdx-1]} {intro} -> {brets}')
+    if len(brets) > 1:
+        print('****\n**** really? multiple different returns in:')
+        print(f'--> ({fileName} : {dIdx} {kindStr[funcKind]}) {lines[dIdx-1]} {intro}\n  -> {brets}')
     if 'maybe' == brets[0][0]:
         # figure out which of the function parameters (1-based numbering) is called "useBiff"
         if not (match := re.match(r'.+?\((.+?)\)', intro)):
@@ -437,34 +440,61 @@ def biffScan(funcName, fileName, funcKind):
                             f'in its declaration "{intro}"')
             # make useBiffIdx 1-based
         useBiffIdx += 1
+    if len(brets) > 2:
+        raise Exception(f'Have {len(brets)} > 2 different error return values')
+    if 2 == len(brets) and 'maybe' == brets[0][0]:
+        raise Exception(f'Cannot currently handle "maybe" with 2 different error return values')
     # create and return the annotation that captures what we know:
-    ret = 'Biff? '
-    if kind.STATIC != funcKind:
-        ret += f'({kindStr[funcKind]}) '
+    note = 'Biff? '
+    if kind.PRIVATE == funcKind:
+        note += f'({kindStr[funcKind]}) '
     if 'yes' == brets[0][0]:
-        ret += brets[0][1]
+        if (1 == len(brets)):
+            note += brets[0][1]
+        else:
+            note += f'{brets[0][1]}|{brets[1][1]}'
     else:
-        ret += f'maybe:{useBiffIdx}:{brets[0][1]}'
-    if len(brets) > 1:
-        ret += f' # multiple rets: {[uRV[1] for uRV in brets]}'
-    ret = f'/* {ret} */'
-    # print('!', ret)
-    # TODO: create set of lines for (and write) file with new annotations
-    # according to some policy about respecting vs over-writing existing annotations
-    return ret
+        note += f'maybe:{useBiffIdx}:{brets[0][1]}'
+    note = f'/* {note} */'
+    if not (note == '/* Biff? 1 */' or note == '/* Biff? (private) 1 */'):
+        # interesting enough to print out
+        print(f'{fileName}:{dIdx-1} {note} <-- {intro}')
+    return (dIdx-1, note) # RETURN
+
+# check the two command-line arguments to this script
+def argsCheck(tPath, lib):
+    global archDir, libDir
+    if (not (os.path.isdir(tPath)
+            and os.path.isdir(f'{tPath}/arch')
+            and os.path.isdir(f'{tPath}/src') )):
+        raise Exception(f'Need {tPath} to be dir with "arch" and "src" subdirs')
+    if (not os.path.isdir(f'{tPath}/src/{lib}')):
+        raise Exception(f'Do not see library "{lib}" subdir in "src" subdir')
+    if not 'TEEM_ARCH' in os.environ:
+        raise Exception(f'Environment variable "TEEM_ARCH" not set')
+    archEV = os.environ['TEEM_ARCH']
+    archDir = f'{tPath}/arch/{archEV}'
+    if not os.path.isdir(archDir):
+        raise Exception(f'Do not see "{archDir}" subdir for TEEM_ARCH "{archEV}"')
+    libDir = f'{tPath}/src/{lib}'
+    if not os.path.isdir(libDir):
+        raise Exception(f'Do not see "{libDir}" subdir for lib "{lib}"')
 
 def parse_args():
     # https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser(description='Utility for seeing if the symbols '
                                      'externally available in a library really are '
                                      'declared as such, and that things declared in '
-                                     'header files are actually defined.')
+                                     'header files are actually defined.',
+                                     formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-v', metavar='verbosity', type=int, default=1, required=False,
                         help='verbosity level (0 for silent)')
     parser.add_argument('-c', action='store_true',
                         help='Do a "make clean" before make')
-    parser.add_argument('-biff', action='store_true',
-                        help='also run "biff auto-scan"')
+    parser.add_argument('-biff', metavar='level', type=int, default=0,
+                        help='also run "biff auto-scan", at some level:\n'
+                        '1: do scan to flag issues in code, but no new annotations\n'
+                        '2: foo')
     parser.add_argument('teem_path',
                         help='path of Teem checkout with "src" and "arch" subdirs')
     parser.add_argument('lib',
@@ -475,6 +505,7 @@ if __name__ == '__main__':
     args = parse_args()
     verbose = args.v
     argsCheck(args.teem_path, args.lib)
+    print(args.biff, type(args.biff))
     if (verbose): print(f'========== cd {libDir} ... ')
     os.chdir(libDir)
     symb = symbList(args.lib, args.c)
@@ -494,9 +525,9 @@ if __name__ == '__main__':
             # if we're doing the biff auto-scan, and this is a function, and it isn't
             # in a library that can't use biff, then add this to list of things to biffScan
             # (each item in this list is a dumb little tuple)
-            toBS.append((N, # name
-                         symb[N]['file'], # which file it's defined in
-                         decl[N]['kind'] if N in decl else kind.STATIC # kind of function
+            toBS.append((N, # 0 : name
+                         symb[N]['file'], # 1 : which file it's defined in
+                         decl[N]['kind'] if N in decl else kind.STATIC # 2 : kind of function
                          ))
         if N in decl:
             declT = decl[N]['type']
@@ -527,4 +558,12 @@ if __name__ == '__main__':
     if args.biff:
         if (verbose): print(f"========== biff auto-scan ... ")
         for bs in toBS:
-            biffScan(*bs)
+            bnote = biffScan(*bs)
+            if not bnote or 1 == args.biff:
+                # just passing through
+                continue
+            # else we try to do something with the annotation
+            (lineNum, annote) = bnote
+            fileName = bs[1]
+            #print(f'!{fileName}:{lineNum+1} --- {annote}')
+            biffAnnotate(args.biff, fileName, lineNum, annote)
