@@ -188,6 +188,7 @@ _tenFiberProbe(tenFiberContext *tfx, int *gageRet, double wPos[3], int seedProbe
     default:
       biffAddf(TEN, "%s: %s %s (%d) unimplemented!", me, tenDwiFiberType->name,
                airEnumStr(tenDwiFiberType, tfx->fiberType), tfx->fiberType);
+      /* return 1; (for biff auto-scan) */
       ret = 1;
     } /* switch (tfx->fiberType) */
   }
