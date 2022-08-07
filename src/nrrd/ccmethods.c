@@ -24,7 +24,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-int
+int /* Biff: 0 */
 nrrdCCValid(const Nrrd *nin) {
   static const char me[] = "nrrdCCValid";
 
@@ -53,9 +53,9 @@ nrrdCCValid(const Nrrd *nin) {
 ** - size
 ** - # neighbors (needs conny argument)
 ** - what else?
+** but HEY why is return unsigned int?
 */
-
-unsigned int
+unsigned int /* Biff: 1 */
 nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
   static const char me[] = "nrrdCCSize", func[] = "ccsize";
   unsigned int *out, maxid, (*lup)(const void *, size_t);
@@ -88,10 +88,8 @@ nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
 ******** nrrdCCMax
 **
 ** returns the highest CC ID, or 0 if there were problems
-**
-** does NOT use biff
 */
-unsigned int
+unsigned int /* Biff: nope */
 nrrdCCMax(const Nrrd *nin) {
   unsigned int (*lup)(const void *, size_t), id, max;
   size_t I, NN;
@@ -115,7 +113,7 @@ nrrdCCMax(const Nrrd *nin) {
 ** returns the number of connected components (the # of CC IDs assigned)
 ** a return of 0 indicates an error
 */
-unsigned int
+unsigned int /* Biff: nope */
 nrrdCCNum(const Nrrd *nin) {
   unsigned int (*lup)(const void *, size_t), num;
   size_t I, max, NN;

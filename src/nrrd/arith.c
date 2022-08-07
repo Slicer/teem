@@ -27,11 +27,11 @@
 /* these two functions probably logically belong in dye, not nrrd, oh well.
    The Teem 2.0 plan is to put all of dye inside nrrd, so that nrrd/unu
    can do color-space conversions, which will be a big API change */
-double
+double /* Biff: nope */
 nrrdSRGBGamma(double val) {
   return val <= 0.0031308 ? 12.92 * val : 1.055 * pow(val, 1 / 2.4) - 0.055;
 }
-double
+double /* Biff: nope */
 nrrdSRGBGammaInverse(double val) {
   return val <= 0.04045 ? val / 12.92 : pow((val + 0.055) / 1.055, 2.4);
 }
@@ -48,7 +48,7 @@ nrrdSRGBGammaInverse(double val) {
 ** function has been applied, the value is inverted with respect to
 ** min and max (like in xv).
 */
-int
+int /* Biff: 1 */
 nrrdArithGamma(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, double Gamma) {
   static const char me[] = "nrrdArithGamma", func[] = "gamma";
   double val, min, max;
@@ -136,7 +136,7 @@ nrrdArithGamma(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, double Gamm
 ** non-zero), or its ~0.455 gamma inverse (when "forward" is zero).  Unlike
 ** nrrdArithGamma, this is does not support inverting values.
 */
-int
+int /* Biff: 1 */
 nrrdArithSRGBGamma(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, int forward) {
   static const char me[] = "nrrdArithSRGBGamma", func[] = "sRGBgamma";
   double val, min, max;
@@ -342,7 +342,7 @@ static double (*const _nrrdUnaryOp[NRRD_UNARY_OP_MAX + 1])(double)
      _nrrdUnaryOpTauOfSigma,
      _nrrdUnaryOpSigmaOfTau};
 
-int
+int /* Biff: 1 */
 nrrdArithUnaryOp(Nrrd *nout, int op, const Nrrd *nin) {
   static const char me[] = "nrrdArithUnaryOp";
   size_t N, I;
@@ -551,7 +551,7 @@ static double (*const _nrrdBinaryOp[NRRD_BINARY_OP_MAX + 1])(double, double) = {
 ** that, in a hurry, to operate directly on two nrrds, instead of with
 ** the NrrdIter nonsense
 */
-int
+int /* Biff: 1 */
 nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
   static const char me[] = "nrrdArithBinaryOp";
   char *contA, *contB;
@@ -637,7 +637,7 @@ nrrdArithBinaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdArithIterBinaryOpSelect(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB,
                             unsigned int which) {
   static const char me[] = "nrrdArithIterBinaryOpSelect";
@@ -724,7 +724,7 @@ nrrdArithIterBinaryOpSelect(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdArithIterBinaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB) {
   static const char me[] = "nrrdArithIterBinaryOp";
   unsigned int which;
@@ -874,7 +874,7 @@ static double (*const _nrrdTernaryOp[NRRD_TERNARY_OP_MAX + 1])(double, double, d
 ** that, in a hurry, to operate directly on three nrrds, instead of with
 ** the NrrdIter nonsense
 */
-int
+int /* Biff: 1 */
 nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB,
                    const Nrrd *ninC) {
   static const char me[] = "nrrdArithTernaryOp";
@@ -952,7 +952,7 @@ nrrdArithTernaryOp(Nrrd *nout, int op, const Nrrd *ninA, const Nrrd *ninB,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdArithIterTernaryOpSelect(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB,
                              NrrdIter *inC, unsigned int which) {
   static const char me[] = "nrrdArithIterTernaryOpSelect";
@@ -1040,7 +1040,7 @@ nrrdArithIterTernaryOpSelect(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdArithIterTernaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB, NrrdIter *inC) {
   static const char me[] = "nrrdArithIterTernaryOp";
   unsigned int which;
@@ -1063,7 +1063,7 @@ nrrdArithIterTernaryOp(Nrrd *nout, int op, NrrdIter *inA, NrrdIter *inB, NrrdIte
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdArithAffine(Nrrd *nout, double minIn, const Nrrd *nin, double maxIn, double minOut,
                 double maxOut, int clamp) {
   static const char me[] = "nrrdArithAffine";
@@ -1106,7 +1106,7 @@ nrrdArithAffine(Nrrd *nout, double minIn, const Nrrd *nin, double maxIn, double 
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdArithIterAffine(Nrrd *nout, NrrdIter *minIn, NrrdIter *in, NrrdIter *maxIn,
                     NrrdIter *minOut, NrrdIter *maxOut, int clamp) {
   static const char me[] = "nrrdArithInterAffine";
@@ -1176,7 +1176,7 @@ nrrdArithIterAffine(Nrrd *nout, NrrdIter *minIn, NrrdIter *in, NrrdIter *maxIn,
   return 0;
 }
 
-unsigned int
+unsigned int /* Biff: nope */
 nrrdCRC32(const Nrrd *nin, int endian) {
   size_t nn;
 

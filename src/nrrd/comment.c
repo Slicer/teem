@@ -29,10 +29,8 @@
 **
 ** Adds a given string to the list of comments
 ** Leading spaces (' ') and comment chars ('#') are not included.
-**
-** This function does NOT use biff.
 */
-int
+int /* Biff: nope */
 nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
   /* static const char me[] = "nrrdCommentAdd";*/
   char *str;
@@ -72,7 +70,7 @@ nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
 **
 ** blows away comments, but does not blow away the comment airArray
 */
-void
+void /* Biff: nope */
 nrrdCommentClear(Nrrd *nrrd) {
 
   if (nrrd) {
@@ -85,10 +83,8 @@ nrrdCommentClear(Nrrd *nrrd) {
 **
 ** copies comments from one nrrd to another
 ** Existing comments in nout are blown away
-**
-** This does NOT use biff.
 */
-int /* Biff: none */
+int /* Biff: nope */
 nrrdCommentCopy(Nrrd *nout, const Nrrd *nin) {
   /* static const char me[] = "nrrdCommentCopy"; */
   int E;

@@ -250,7 +250,7 @@ _nrrdCCFind_3(Nrrd *nout, unsigned int *numid, airArray *eqvArr, const Nrrd *nin
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdCCFind_N(Nrrd *nout, unsigned int *numid, airArray *eqvArr, const Nrrd *nin,
               unsigned int conny) {
   static const char me[] = "_nrrdCCFind_N";
@@ -283,7 +283,7 @@ _nrrdCCFind_N(Nrrd *nout, unsigned int *numid, airArray *eqvArr, const Nrrd *nin
 ** non-NULL nval, which will be allocated to an array of the same type
 ** as nin, so that nval->data[I] is the value in nin inside CC #I.
 */
-int
+int /* Biff: 1 */
 nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type, unsigned int conny) {
   static const char me[] = "nrrdCCFind", func[] = "ccfind";
   Nrrd *nfpid; /* first-pass IDs */
@@ -528,7 +528,7 @@ _nrrdCCAdj_3(unsigned char *out, int numid, const Nrrd *nin, unsigned int conny)
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdCCAdj_N(unsigned char *out, int numid, const Nrrd *nin, unsigned int conny) {
   static const char me[] = "_nrrdCCAdj_N";
 
@@ -540,7 +540,7 @@ _nrrdCCAdj_N(unsigned char *out, int numid, const Nrrd *nin, unsigned int conny)
   return 1;
 }
 
-int
+int /* Biff: 1 */
 nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
   static const char me[] = "nrrdCCAdjacency", func[] = "ccadj";
   int ret;
@@ -640,7 +640,7 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
 ** shiftward downwards to their lowest possible values, since this would
 ** needlessly invalidate the nval value store.
 */
-int
+int /* Biff: 1 */
 nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval, int valDir, unsigned int maxSize,
             unsigned int maxNeighbor, unsigned int conny) {
   static const char me[] = "nrrdCCMerge", func[] = "ccmerge";
@@ -790,7 +790,7 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval, int valDir, unsigned int m
 ** obviously, this could be subsumed by nrrdApply1DLut(), but this
 ** is so special purpose that it seemed simpler to code from scratch
 */
-int
+int /* Biff: 1 */
 nrrdCCRevalue(Nrrd *nout, const Nrrd *nin, const Nrrd *nval) {
   static const char me[] = "nrrdCCRevalue";
   size_t I, NN;
@@ -817,7 +817,7 @@ nrrdCCRevalue(Nrrd *nout, const Nrrd *nin, const Nrrd *nval) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
   static const char me[] = "nrrdCCSettle", func[] = "ccsettle";
   unsigned int numid, maxid, jd, id, *map, (*lup)(const void *, size_t),

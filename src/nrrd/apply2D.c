@@ -42,7 +42,7 @@ enum {
 ** The given NrrdRange has to be fleshed out by the caller: it can't
 ** be NULL, and both range->min and range->max must exist.
 */
-static int
+static int /* Biff: 1 */
 _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range0,
                   const NrrdRange *range1, const Nrrd *nmap, int kind, int typeOut,
                   int rescale0, int rescale1) {
@@ -295,7 +295,7 @@ _nrrdApply2DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range0,
 **
 ** This allows lut length to be simply 1.
 */
-int
+int /* Biff: 1 */
 nrrdApply2DLut(Nrrd *nout, const Nrrd *nin, unsigned int domainAxis,
                const NrrdRange *_range0, const NrrdRange *_range1, const Nrrd *nlut,
                int typeOut, int rescale0, int rescale1) {

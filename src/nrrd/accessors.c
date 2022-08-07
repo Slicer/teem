@@ -515,7 +515,7 @@ nrrdValCompareInv[NRRD_TYPE_MAX+1])(const void *, const void *) = {
 ** This is a very rare kind of nrrd function that operates on
 ** a bare array and not a Nrrd itself
 */
-int
+int /* Biff: 1 */
 nrrdArrayCompare(int type, const void *_valA, const void *_valB,
                  size_t valNum, double epsilon, int *differ,
                  char explain[AIR_STRLEN_LARGE]) {

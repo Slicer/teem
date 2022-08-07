@@ -49,7 +49,7 @@ enum {
   kindImap = 2
 };
 
-double
+double /* Biff: nope */
 _nrrdApplyDomainMin(const Nrrd *nmap, int ramps, int mapAxis) {
   double ret;
 
@@ -59,7 +59,7 @@ _nrrdApplyDomainMin(const Nrrd *nmap, int ramps, int mapAxis) {
   return ret;
 }
 
-double
+double /* Biff: nope */
 _nrrdApplyDomainMax(const Nrrd *nmap, int ramps, int mapAxis) {
   double ret;
 
@@ -84,7 +84,7 @@ _nrrdApplyDomainMax(const Nrrd *nmap, int ramps, int mapAxis) {
 ** The given NrrdRange has to be fleshed out by the caller: it can't
 ** be NULL, and both range->min and range->max must exist.
 */
-static int
+static int /* Biff: 1 */
 _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, const Nrrd *nmap,
                   int kind, int typeOut, int rescale, int multi) {
   static const char me[] = "_nrrdApply1DSetUp";
@@ -284,7 +284,7 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, const Nrr
 ** or error handling based on nrrdStateDisallowIntegerNonExist, but
 ** there really should be.
 */
-static int
+static int /* Biff: 1 */
 _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
                         const Nrrd *nmap, int ramps, int rescale, int multi) {
   static const char me[] = "_nrrdApply1DLutOrRegMap";
@@ -431,7 +431,7 @@ _nrrdApply1DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range,
 **
 ** This allows lut length to be simply 1.
 */
-int
+int /* Biff: 1 */
 nrrdApply1DLut(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, const Nrrd *nlut,
                int typeOut, int rescale) {
   static const char me[] = "nrrdApply1DLut";
@@ -462,7 +462,7 @@ nrrdApply1DLut(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, const Nrrd 
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdApplyMulti1DLut(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
                     const Nrrd *nmlut, int typeOut, int rescale) {
   static const char me[] = "nrrdApplyMulti1DLut";
@@ -511,7 +511,7 @@ nrrdApplyMulti1DLut(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 **
 ** This allows map length to be simply 1.
 */
-int
+int /* Biff: 1 */
 nrrdApply1DRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, const Nrrd *nmap,
                   int typeOut, int rescale) {
   static const char me[] = "nrrdApply1DRegMap";
@@ -542,7 +542,7 @@ nrrdApply1DRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, const Nr
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdApplyMulti1DRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
                        const Nrrd *nmmap, int typeOut, int rescale) {
   static const char me[] = "nrrdApplyMulti1DRegMap";
@@ -584,7 +584,7 @@ nrrdApplyMulti1DRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 ** they must increase monotonically.  There must be at least two
 ** points with existent positions.
 */
-int
+int /* Biff: 1 */
 nrrd1DIrregMapCheck(const Nrrd *nmap) {
   static const char me[] = "nrrd1DIrregMapCheck";
   double (*mapLup)(const void *v, size_t I);
@@ -681,7 +681,7 @@ nrrd1DIrregMapCheck(const Nrrd *nmap) {
 **
 ** returns zero only on valid accelerators for 1D irregular mappings
 */
-int
+int /* Biff: 1 */
 nrrd1DIrregAclCheck(const Nrrd *nacl) {
   static const char me[] = "nrrd1DIrregAclCheck";
 
@@ -722,7 +722,7 @@ nrrd1DIrregAclCheck(const Nrrd *nacl) {
 **
 ** Assumes that nrrd1DIrregMapCheck has been called on "nmap".
 */
-static double *
+static double * /* Biff: NULL */
 _nrrd1DIrregMapDomain(int *posLenP, int *baseIP, const Nrrd *nmap) {
   static const char me[] = "_nrrd1DIrregMapDomain";
   int i, entLen, baseI, posLen;
@@ -813,7 +813,7 @@ _nrrd1DIrregFindInterval(const double *pos, double p, int loI, int hiI) {
 **
 ** Assumes that nrrd1DIrregMapCheck has been called on "nmap".
 */
-int
+int /* Biff: 1 */
 nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap, size_t aclLen) {
   static const char me[] = "nrrd1DIrregAclGenerate";
   int posLen;
@@ -878,7 +878,7 @@ nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap, size_t aclLen) {
 ** and that nrrd1DIrregAclCheck has been called on "nacl" (if it is
 ** non-NULL).
 */
-int
+int /* Biff: 1 */
 nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
                     const Nrrd *nmap, const Nrrd *nacl, int typeOut, int rescale) {
   static const char me[] = "nrrdApply1DIrregMap";
@@ -1052,7 +1052,7 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 ** the input type; the output does NOT inherit the type of the
 ** substitution
 */
-int
+int /* Biff: 1 */
 nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *_nsubst) {
   static const char me[] = "nrrdApply1DSubstitution";
   double (*lup)(const void *, size_t);
