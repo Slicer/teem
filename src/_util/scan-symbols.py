@@ -66,23 +66,11 @@ def getLines(fileName):
         modified[fileName] = False
     return lines
 
-# what to do for biffLevel 2 and up:
-#   (in describing annotations, "~same" means an existing annotation is either exactly
-#   the same as annote, or differs only in Biff?->Biff: or in addition of a comment)
-# - if there is nothing after return type, add annotation
-# - if existing annotation ~same: leave it
-# - if existing comment not ~same as annote: complain
-#      and if >2: over-write it
-def biffAnnotate(biffLevel, fileName, lineNum, annote):
-    #TODO            
-    pass
-
-
 # All the types (and type qualifiers) we try to parse away
 # The list has to be sorted (from long to short) because things like 'int'
 # will also match 'pullPoint'
 allTypes = sorted(
-    ['const', 'unsigned',
+    ['const', 'unsigned', 'static',
     'int', 'void', 'double', 'float', 'char', 'short', 'size_t', 'FILE',
     # manually generated list of Teem-derived types
     'airLLong', 'airULLong', 'airArray', 'airEnum', 'airHeap', 'airFloat',
@@ -121,6 +109,76 @@ allTypes = sorted(
     'miteUser', 'miteShadeSpec', 'miteThread',
     'meetPullVol', 'meetPullInfo',
     ], key=len, reverse=True)
+
+# what to do for biffLevel 2 and up:
+#   (in describing annotations, "~same" means an existing annotation is either exactly
+#   the same as annote, or differs only in Biff?->Biff: or in addition of a comment)
+# - if there is nothing after return type, add annotation
+# - if existing annotation ~same: leave it
+# - if existing comment not ~same as annote: complain
+#      and if >2: over-write it
+def biffAnnotate(biffLevel, fileName, lineNum, annote, funcName):
+    # (not doing anything to avoid being called twice on same function)
+    ncmt = f'/* {annote} */' # new annotation comment
+    # source file lines must have been read in
+    L = srcLines[fileName][lineNum]
+    origL = L
+    # the goal now is to get L to have the new annotation, modulo '?' -> ':', and
+    # possibly comment within the annotation
+    wut = f'{fileName}:{lineNum+1} (for {funcName})'
+    #print(f'!{wut} old line "{L}" -vs- new comment "{ncmt}"')
+    match = re.match(r'.+?(\/\*.*\*\/)',L)
+    if not match:
+        # no existing annotation, so add it if:
+        #   declaration is not static, or, (it is static and) function does use biff
+        #   (static functions not using biff is kind of the norm)
+        if not L.startswith('static ') or 'Biff? nope' != annote:
+            L += ' ' + ncmt
+        #print(f'! no old comment, so now L={L}')
+    else:
+        ocmt = match.group(1)
+        if not ocmt.startswith('/* Biff'):
+            if (biffLevel < 3):
+                print(f'{wut} has comment "{ocmt}" that isn\'t a Biff annotation, '
+                      f'refusing to touch it at level {biffLevel}')
+                return
+            else:
+                print(f'NOTE: {wut} deleting old comment "{ocmt}"')
+                L = L.replace(ocmt, ncmt)
+        # else existing comment starts like an annotation
+        elif ocmt == ncmt:
+            # nice, already exactly the same
+            pass
+        elif ocmt == ncmt.replace('/* Biff?', '/* Biff:'):
+            # ah, they differed only in '?' -> ':'
+            pass
+        elif (match := re.match(r'\/\*(.+?)(#.*)\*\/', ocmt)):
+            # existing comment has an annotation comment
+            onote = match.group(1).strip()
+            if onote == annote:
+                # ah, except for annotation comment they're same
+                pass
+            elif onote == annote.replace('Biff?', 'Biff:'):
+                # ah, they differed only in '?' -> ':'
+                pass
+            else:
+                # there was an annotation comment, but actual annotation is different
+                if (biffLevel < 3):
+                    print(f'{fileName}:{lineNum+1} (for {funcName}) has comment "{ocmt}" which itself has an '
+                          f'annotation comment "{match.group(2)}", but old annotation "{onote}" '
+                          f'really differs from new "{annote}"; won\'t change it at level {biffLevel}')
+                    return
+                # else we go ahead and over-write old comment, INCLUDING THE annotation comment
+                print(f'NOTE: {fileName}:{lineNum+1} (for {funcName}) deleting old commented annotation "{ocmt}"')
+                L = L.replace(ocmt, ncmt)
+    if L == origL:
+        # ah, so we had nothing to do
+        return
+    else:
+        # we are modifying the line
+        #print(f'! {wut} |{origL}| -> |{L}|')
+        srcLines[fileName][lineNum] = L
+        modified[fileName] = True
 
 # wrapper around subprocess.run
 def runthis(cmdStr, capOut):
@@ -338,7 +396,8 @@ def usesBiff(str, idx, fname):
 ########## Home of the "biff auto-scan"
 # read in .c fileName, looking for lines of C code defining (one function) funcName,
 # and figure out how it is using biff.
-# Return a tupe (line#, note): line# is the 0-based index of where annotation note should go
+# Return a tupe (line#, annote): line# is the 0-based index of where annotation annote should go,
+# where annote does NOT have wrapping /*  */
 def biffScan(funcName, fileName, funcKind):
     #print('!', funcName, fileName, funcKind)
     # get lines of fileName
@@ -408,7 +467,7 @@ def biffScan(funcName, fileName, funcKind):
     if not brets:
         # we're here to scan for biff usage in function funcName, and found none,
         # which is totally fine, so we return that annotation and are done
-        return (dIdx-1, '/* Biff? nope */') # RETURN
+        return (dIdx-1, 'Biff? nope') # RETURN
     # else we found some biff usage
     if len(brets) > 1:
         # make sure uses are either all 'yes' or all 'maybe'
@@ -445,21 +504,21 @@ def biffScan(funcName, fileName, funcKind):
     if 2 == len(brets) and 'maybe' == brets[0][0]:
         raise Exception(f'Cannot currently handle "maybe" with 2 different error return values')
     # create and return the annotation that captures what we know:
-    note = 'Biff? '
+    annote = 'Biff? '
     if kind.PRIVATE == funcKind:
-        note += f'({kindStr[funcKind]}) '
+        annote += f'({kindStr[funcKind]}) '
     if 'yes' == brets[0][0]:
         if (1 == len(brets)):
-            note += brets[0][1]
+            annote += brets[0][1]
         else:
-            note += f'{brets[0][1]}|{brets[1][1]}'
+            annote += f'{brets[0][1]}|{brets[1][1]}'
     else:
-        note += f'maybe:{useBiffIdx}:{brets[0][1]}'
-    note = f'/* {note} */'
-    if not (note == '/* Biff? 1 */' or note == '/* Biff? (private) 1 */'):
+        annote += f'maybe:{useBiffIdx}:{brets[0][1]}'
+    if not (annote == 'Biff? 1' or annote == 'Biff? (private) 1'):
         # interesting enough to print out
-        print(f'{fileName}:{dIdx-1} {note} <-- {intro}')
-    return (dIdx-1, note) # RETURN
+        print(f'{fileName}:{dIdx-1} /* {annote} */ <-- {intro}')
+    #print(f'! returning annote={annote}')
+    return (dIdx-1, annote) # RETURN
 
 # check the two command-line arguments to this script
 def argsCheck(tPath, lib):
@@ -564,6 +623,16 @@ if __name__ == '__main__':
                 continue
             # else we try to do something with the annotation
             (lineNum, annote) = bnote
+            funcName = bs[0]
             fileName = bs[1]
             #print(f'!{fileName}:{lineNum+1} --- {annote}')
-            biffAnnotate(args.biff, fileName, lineNum, annote)
+            biffAnnotate(args.biff, fileName, lineNum, annote, funcName)
+        allNF = []
+        for MF in [F for F,M in modified.items() if M]: # HEY better way?
+            NF = MF.replace('.c', '-annote.c')
+            allNF.append(NF)
+            with open(NF, 'w') as fout:
+                for L in srcLines[MF]:
+                    fout.write(f'{L}\n')
+        print(f'writing new files in {libDir}: {allNF}')
+
