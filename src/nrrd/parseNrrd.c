@@ -147,7 +147,7 @@ _nrrdReadNrrdParse_content(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff
   return 0;
 }
 
-static int /* Biff: nope */
+static int /* Biff: nope # unlike other parsers, for reasons described below */
 _nrrdReadNrrdParse_number(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
   /*
    *static const char me[] = "_nrrdReadNrrdParse_number";
