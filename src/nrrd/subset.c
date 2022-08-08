@@ -37,7 +37,7 @@
 ** beginning it starts (offset), the length of the "on" part (length),
 ** the period (period), and the number of periods (numper).
 */
-int
+int /* Biff: 1 */
 nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
   static const char me[] = "nrrdSlice", func[] = "slice";
   size_t I, rowLen, /* length of segment */
@@ -182,7 +182,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
 ** nrrd with the same dimensions, but with equal or smaller sizes
 ** along each axis.
 */
-int
+int /* Biff: 1 */
 nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   static const char me[] = "nrrdCrop", func[] = "crop";
   char buff1[NRRD_DIM_MAX * 30], buff2[AIR_STRLEN_SMALL];
@@ -364,7 +364,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
 ** errors and a non-Null nrrd was passed for the correspondingly
 ** empty output.
 */
-int
+int /* Biff: 1 */
 nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin, unsigned int saxi,
                 Nrrd *_nline, double thresh) {
   static const char me[] = "nrrdSliceSelect";
@@ -576,7 +576,7 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin, unsigned int 
 ** given coordinates within a nrrd, copies the
 ** single element into given *val
 */
-int
+int /* Biff: 1 */
 nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
   static const char me[] = "nrrdSample_nva";
   size_t I, size[NRRD_DIM_MAX], typeSize;
@@ -615,7 +615,7 @@ nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
 **
 ** var-args version of nrrdSample_nva()
 */
-int
+int /* Biff: 1 */
 nrrdSample_va(void *val, const Nrrd *nrrd, ...) {
   static const char me[] = "nrrdSample_va";
   unsigned int ai;
@@ -644,7 +644,7 @@ nrrdSample_va(void *val, const Nrrd *nrrd, ...) {
 ******** nrrdSimpleCrop()
 **
 */
-int
+int /* Biff: 1 */
 nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop) {
   static const char me[] = "nrrdSimpleCrop";
   unsigned int ai;
@@ -665,7 +665,7 @@ nrrdSimpleCrop(Nrrd *nout, const Nrrd *nin, unsigned int crop) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdCropAuto(Nrrd *nout, const Nrrd *nin, size_t _min[NRRD_DIM_MAX],
              size_t _max[NRRD_DIM_MAX], const unsigned int *keep, unsigned int keepNum,
              int measr, double frac, int offset) {

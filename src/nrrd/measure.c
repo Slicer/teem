@@ -1128,7 +1128,7 @@ _nrrdMeasureType(const Nrrd *nin, int measr) {
   return type;
 }
 
-int
+int /* Biff: 1 */
 nrrdProject(Nrrd *nout, const Nrrd *cnin, unsigned int axis, int measr, int type) {
   static const char me[] = "nrrdProject", func[] = "project";
   int iType, oType, axmap[NRRD_DIM_MAX];

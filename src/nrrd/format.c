@@ -60,7 +60,7 @@ _nrrdFormatUnknown_nameLooksLike(const char *filename) {
   return AIR_FALSE;
 }
 
-static int
+static int /* Biff: maybe:3:AIR_FALSE */
 _nrrdFormatUnknown_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                             int useBiff) {
   static const char me[] = "_nrrdFormatUnknown_fitsInto";
@@ -85,7 +85,7 @@ _nrrdFormatUnknown_contentStartsLike(NrrdIoState *nio) {
   return AIR_FALSE;
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdFormatUnknown_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatUnknown_read";
 
@@ -98,7 +98,7 @@ _nrrdFormatUnknown_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   return 1;
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdFormatUnknown_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatUnknown_write";
 
