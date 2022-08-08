@@ -58,7 +58,7 @@ _nrrdEncodingHex_available(void) {
   return AIR_TRUE;
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
                       NrrdIoState *nio) {
   static const char me[] = "_nrrdEncodingHex_read";
@@ -111,7 +111,7 @@ _nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdEncodingHex_write(FILE *file, const void *_data, size_t elNum, const Nrrd *nrrd,
                        NrrdIoState *nio) {
   static const char me[] = "_nrrdEncodingHex_write";

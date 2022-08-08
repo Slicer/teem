@@ -49,7 +49,7 @@ two will have very different results!
 
 */
 
-int
+int /* Biff: 1 */
 nrrdSimpleResample(Nrrd *nout, const Nrrd *nin, const NrrdKernel *kernel,
                    const double *parm, const size_t *samples, const double *scalings) {
   static const char me[] = "nrrdSimpleResample";
@@ -125,7 +125,7 @@ nrrdSimpleResample(Nrrd *nout, const Nrrd *nin, const NrrdKernel *kernel,
 ** - all required parameters exist
 ** - both min[d] and max[d] for all axes d
 */
-static int
+static int /* Biff: 1 */
 _nrrdResampleCheckInfo(const Nrrd *nin, const NrrdResampleInfo *info) {
   static const char me[] = "_nrrdResampleCheckInfo";
   const NrrdKernel *k;
@@ -287,9 +287,9 @@ _nrrdResampleComputePermute(unsigned int permute[],
 ** new sample spacing larger, >1: upsampling, new sample spacing smaller)
 **
 ** returns "dotLen", the number of input samples which are required
-** for resampling this axis, or 0 if there was an error.  Uses biff.
+** for resampling this axis, or 0 if there was an error.
 */
-static int
+static int /* Biff: 0 */
 _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP, int **indexP, double *ratioP,
                              const Nrrd *nin, const NrrdResampleInfo *info,
                              unsigned int ai) {
@@ -519,7 +519,7 @@ _nrrdResampleMakeWeightIndex(nrrdResample_t **weightP, int **indexP, double *rat
 ** and then puts them back in place afterwards, depending on the cost
 ** of such axis permutation overhead.
 */
-int
+int /* Biff: 1 */
 nrrdSpatialResample(Nrrd *nout, const Nrrd *nin, const NrrdResampleInfo *info) {
   static const char me[] = "nrrdSpatialResample", func[] = "resample";
   nrrdResample_t *array[NRRD_DIM_MAX], /* intermediate copies of the input data

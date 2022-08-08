@@ -30,7 +30,7 @@ _nrrdEncodingRaw_available(void) {
   return AIR_TRUE;
 }
 
-static int /* Biff: static 1 */
+static int /* Biff: 1 */
 _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum, Nrrd *nrrd,
                       NrrdIoState *nio) {
   static const char me[] = "_nrrdEncodingRaw_read";
@@ -123,7 +123,7 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum, Nrrd *nrrd,
   return 0;
 }
 
-static int /* Biff: static 1 */
+static int /* Biff: 1 */
 _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum, const Nrrd *nrrd,
                        NrrdIoState *nio) {
   static const char me[] = "_nrrdEncodingRaw_write";

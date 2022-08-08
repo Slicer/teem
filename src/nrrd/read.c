@@ -192,7 +192,7 @@ nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
 **
 ** NOTE: this assumes the checking that is done by _nrrdHeaderCheck
 */
-int /* Biff: private 1 */
+int /* Biff: (private) 1 */
 _nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio, FILE *file) {
   static const char me[] = "_nrrdCalloc";
   size_t needDataSize;
@@ -262,7 +262,7 @@ nrrdLineSkip(FILE *dataFile, NrrdIoState *nio) {
   return 0;
 }
 
-int /* Biff: private 1 */
+int /* Biff: (private) 1 */
 _nrrdByteSkipSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio, long int byteSkip) {
   static const char me[] = "nrrdByteSkipSkip";
   int skipRet;
@@ -362,7 +362,7 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
 ** found. If (string), the headerStr-related fields in the _nio will
 ** be set/used
 */
-static int /* Biff: static 1 */
+static int /* Biff: 1 */
 _nrrdRead(Nrrd *nrrd, FILE *file, const char *string, NrrdIoState *_nio) {
   static const char me[] = "_nrrdRead";
   unsigned int llen;
@@ -610,7 +610,7 @@ _nrrdSplitName(char **dirP, char **baseP, const char *name) {
 ** sneakiness: returns 2 if the reason for problem was a failed fopen().
 **
 */
-int
+int /* Biff: 1|2 */
 nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *nio) {
   static const char me[] = "nrrdLoad";
   FILE *file;

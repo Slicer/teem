@@ -30,7 +30,7 @@
 ** (opposite of nrrdSlice): replaces one slice of a nrrd with
 ** another nrrd.  Will allocate memory for output only if nout != nin.
 */
-int
+int /* Biff: 1 */
 nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice, unsigned int axis,
            size_t pos) {
   static const char me[] = "nrrdSplice", func[] = "splice";
@@ -155,7 +155,7 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice, unsigned int axis,
 ** another given nrrd.
 **
 */
-int
+int /* Biff: 1 */
 nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
   static const char me[] = "nrrdInset", func[] = "inset";
   char buff1[NRRD_DIM_MAX * 30], buff2[AIR_STRLEN_SMALL];
@@ -279,7 +279,7 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
 **
 ** strictly for padding
 */
-int
+int /* Biff: 1 */
 nrrdPad_va(Nrrd *nout, const Nrrd *nin, const ptrdiff_t *min, const ptrdiff_t *max,
            int boundary, ...) {
   static const char me[] = "nrrdPad_va", func[] = "pad";
@@ -485,7 +485,7 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin, const ptrdiff_t *min, const ptrdiff_t *m
 ** unlike other {X_va,X_nva} pairs, nrrdPad_nva() is a wrapper around
 ** nrrdPad_va() instead of the other way around.
 */
-int
+int /* Biff: 1 */
 nrrdPad_nva(Nrrd *nout, const Nrrd *nin, const ptrdiff_t *min, const ptrdiff_t *max,
             int boundary, double padValue) {
   static const char me[] = "nrrdPad_nva";
@@ -513,7 +513,7 @@ nrrdPad_nva(Nrrd *nout, const Nrrd *nin, const ptrdiff_t *min, const ptrdiff_t *
 **
 ** pads by a given amount on top and bottom of EVERY axis
 */
-int
+int /* Biff: 1 */
 nrrdSimplePad_va(Nrrd *nout, const Nrrd *nin, unsigned int pad, int boundary, ...) {
   static const char me[] = "nrrdSimplePad_va";
   unsigned ai;
@@ -551,7 +551,7 @@ nrrdSimplePad_va(Nrrd *nout, const Nrrd *nin, unsigned int pad, int boundary, ..
 ** unlike other {X_va,X_nva} pairs, nrrdSimplePad_nva() is a wrapper
 ** around nrrdSimplePad_va() instead of the other way around.
 */
-int
+int /* Biff: 1 */
 nrrdSimplePad_nva(Nrrd *nout, const Nrrd *nin, unsigned int pad, int boundary,
                   double padValue) {
   static const char me[] = "nrrdSimplePad_nva";

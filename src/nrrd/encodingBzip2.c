@@ -38,7 +38,7 @@ _nrrdEncodingBzip2_available(void) {
 #endif
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
                         NrrdIoState *nio) {
   static const char me[] = "_nrrdEncodingBzip2_read";
@@ -137,7 +137,7 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
 #endif
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum, const Nrrd *nrrd,
                          NrrdIoState *nio) {
   static const char me[] = "_nrrdEncodingBzip2_write";

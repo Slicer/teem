@@ -58,7 +58,7 @@ _nrrdEncodingZRL_read(FILE *file, void *data, size_t elementNum, Nrrd *nrrd,
   return 0;
 }
 
-static int
+static int /* Biff: 0 */
 _nrrdEncodingZRL_write(FILE *file, const void *data, size_t elementNum, const Nrrd *nrrd,
                        NrrdIoState *nio) {
   static const char me[] = "_nrrdEncodingZRL_write";

@@ -39,7 +39,7 @@ const char *const nrrdBiffKey = "nrrd";
 ** The expected behavior here is to return 0 for nrrdSpaceUnknown, because
 ** that is the right answer, not because its an error of any kind.
 */
-unsigned int
+unsigned int /* Biff: nope */
 nrrdSpaceDimension(int space) {
   static const char me[] = "nrrdSpaceDimension";
   unsigned int ret;
@@ -145,7 +145,7 @@ nrrdSpaceDimensionSet(Nrrd *nrrd, unsigned int spaceDim) {
 ** of space origin, and all further indices are set to NaN. That is,
 ** this really does write to all NRRD_SPACE_DIM_MAX elements of vector[]
 */
-unsigned int
+unsigned int /* Biff: nope */
 nrrdSpaceOriginGet(const Nrrd *nrrd, double vector[NRRD_SPACE_DIM_MAX]) {
   unsigned int sdi, ret;
 
@@ -225,7 +225,7 @@ nrrdSpaceOriginSet(Nrrd *nrrd, const double *vector) {
 **
 ** nrrdOriginStatusOkay:           all is well
 */
-int /* Biff: none */
+int /* Biff: nope */
 nrrdOriginCalculate(const Nrrd *nrrd, unsigned int *axisIdx, unsigned int axisIdxNum,
                     int defaultCenter, double *origin) {
   const NrrdAxisInfo *axis[NRRD_SPACE_DIM_MAX];
@@ -351,7 +351,7 @@ nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], double scl,
   }
 }
 
-double
+double /* Biff: nope */
 nrrdSpaceVecNorm(unsigned int sdim, const double vec[NRRD_SPACE_DIM_MAX]) {
   unsigned int di;
   double nn;
@@ -392,7 +392,7 @@ nrrdSpaceVecSetZero(double vec[NRRD_SPACE_DIM_MAX]) {
 ** ALLOCATES a string for the content of a given nrrd
 ** panics if allocation failed
 */
-char *
+char * /* Biff: nope */
 _nrrdContentGet(const Nrrd *nin) {
   static const char me[] = "_nrrdContentGet";
   char *ret;
@@ -406,7 +406,7 @@ _nrrdContentGet(const Nrrd *nin) {
   return ret;
 }
 
-int /* Biff: private 1 */
+int /* Biff: (private) 1 */
 _nrrdContentSet_nva(Nrrd *nout, const char *func, char *content, const char *format,
                     va_list arg) {
   static const char me[] = "_nrrdContentSet_nva";
@@ -443,7 +443,7 @@ _nrrdContentSet_nva(Nrrd *nout, const char *func, char *content, const char *for
   return 0;
 }
 
-int /* Biff: private 1 */
+int /* Biff: (private) 1 */
 _nrrdContentSet_va(Nrrd *nout, const char *func, char *content, const char *format,
                    ...) {
   static const char me[] = "_nrrdContentSet_va";
@@ -568,7 +568,7 @@ nrrdDescribe(FILE *file, const Nrrd *nrrd) {
   }
 }
 
-int
+int /* Biff: nope */
 nrrdSpaceVecExists(unsigned int sdim, const double vec[NRRD_SPACE_DIM_MAX]) {
   int exists;
   unsigned int ii;
@@ -586,7 +586,7 @@ nrrdSpaceVecExists(unsigned int sdim, const double vec[NRRD_SPACE_DIM_MAX]) {
 ** The most important part of this is asserting the per-axis mutual
 ** exclusion of min/max/spacing/units versus using spaceDirection.
 */
-static int /* Biff: static 1?2 */
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheckSpaceInfo";
   unsigned int dd, ii;
@@ -720,7 +720,7 @@ _nrrdFieldCheck_noop(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_type(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_type";
 
@@ -731,7 +731,7 @@ _nrrdFieldCheck_type(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_block_size(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_block_size";
   char stmp[AIR_STRLEN_SMALL];
@@ -751,7 +751,7 @@ _nrrdFieldCheck_block_size(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_dimension(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_dimension";
 
@@ -763,7 +763,7 @@ _nrrdFieldCheck_dimension(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_space(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_space";
 
@@ -774,7 +774,7 @@ _nrrdFieldCheck_space(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_space_dimension(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_space_dimension";
 
@@ -785,7 +785,7 @@ _nrrdFieldCheck_space_dimension(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_sizes(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_sizes";
   size_t size[NRRD_DIM_MAX];
@@ -798,7 +798,7 @@ _nrrdFieldCheck_sizes(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_spacings(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_spacings";
   double val[NRRD_DIM_MAX];
@@ -818,7 +818,7 @@ _nrrdFieldCheck_spacings(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_thicknesses(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_thicknesses";
   double val[NRRD_DIM_MAX];
@@ -837,7 +837,7 @@ _nrrdFieldCheck_thicknesses(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_axis_mins(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_axis_mins";
   double val[NRRD_DIM_MAX];
@@ -860,7 +860,7 @@ _nrrdFieldCheck_axis_mins(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_axis_maxs(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_axis_maxs";
   double val[NRRD_DIM_MAX];
@@ -883,7 +883,7 @@ _nrrdFieldCheck_axis_maxs(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_space_directions(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_space_directions";
 
@@ -894,7 +894,7 @@ _nrrdFieldCheck_space_directions(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_centers(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_centers";
   unsigned int ai;
@@ -910,7 +910,7 @@ _nrrdFieldCheck_centers(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_kinds(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_kinds";
   int val[NRRD_DIM_MAX];
@@ -934,6 +934,8 @@ _nrrdFieldCheck_kinds(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
+/* (no Biff annotation because currently scan-symbols.py refrains from annotating static
+   functions that do NOT use biff) */
 static int
 _nrrdFieldCheck_labels(const Nrrd *nrrd, int useBiff) {
   /* static const char me[] = "_nrrdFieldCheck_labels"; */
@@ -948,7 +950,7 @@ _nrrdFieldCheck_labels(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_units(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_units";
 
@@ -961,7 +963,7 @@ _nrrdFieldCheck_units(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_old_min(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_old_min";
   int ret;
@@ -974,7 +976,7 @@ _nrrdFieldCheck_old_min(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_old_max(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_old_max";
   int ret;
@@ -1000,7 +1002,7 @@ _nrrdFieldCheck_keyvalue(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_space_units(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_space_units";
 
@@ -1013,7 +1015,7 @@ _nrrdFieldCheck_space_units(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_space_origin(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_space_origin";
 
@@ -1028,7 +1030,7 @@ _nrrdFieldCheck_space_origin(const Nrrd *nrrd, int useBiff) {
   return 0;
 }
 
-static int
+static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_measurement_frame(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_measurement_frame";
 
@@ -1075,7 +1077,7 @@ int (*const _nrrdFieldCheck[NRRD_FIELD_MAX + 1])(const Nrrd *, int useBiff) = {
   _nrrdFieldCheck_noop, /* data_file */
 };
 
-int /* Biff: ?1 */
+int /* Biff: maybe:3:1 */
 _nrrdCheck(const Nrrd *nrrd, int checkData, int useBiff) {
   static const char me[] = "_nrrdCheck";
   int fi;
@@ -1133,7 +1135,7 @@ nrrdCheck(const Nrrd *nrrd) {
 ** the same size, so that if they aren't, some descriptive (error) message
 ** can be generated according to useBiff
 */
-int /* Biff: 0?3 */
+int /* Biff: maybe:3:0 */
 nrrdSameSize(const Nrrd *n1, const Nrrd *n2, int useBiff) {
   static const char me[] = "nrrdSameSize";
   unsigned int ai;
@@ -1176,7 +1178,7 @@ nrrdSameSize(const Nrrd *n1, const Nrrd *n2, int useBiff) {
 ** Besides learning how many bytes long one element is, this function
 ** is useful as a way of detecting an invalid blocksize on a block nrrd.
 */
-size_t
+size_t /* Biff: nope */
 nrrdElementSize(const Nrrd *nrrd) {
 
   if (!(nrrd && !airEnumValCheck(nrrdType, nrrd->type))) {
@@ -1200,10 +1202,8 @@ nrrdElementSize(const Nrrd *nrrd) {
 ** takes the place of old "nrrd->num": the number of elements in the
 ** nrrd, which is just the product of the axis sizes.  A return of 0
 ** means there's a problem.  Negative numbers are never returned.
-**
-** does NOT use biff
 */
-size_t
+size_t /* Biff: nope */
 nrrdElementNumber(const Nrrd *nrrd) {
   size_t num, size[NRRD_DIM_MAX];
   unsigned int ai;
@@ -1294,7 +1294,7 @@ nrrdHasNonExistSet(Nrrd *nrrd) {
 }
 */
 
-static int
+static int /* Biff: 1 */
 _nrrdCheckEnums(void) {
   static const char me[] = "_nrrdCheckEnums";
   char which[AIR_STRLEN_SMALL];

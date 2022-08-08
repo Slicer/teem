@@ -32,7 +32,7 @@
 ** is not its core functionality, but all the error checking it
 ** provides.
 */
-int
+int /* Biff: 1 */
 nrrdInvertPerm(unsigned int *invp, const unsigned int *pp, unsigned int nn) {
   static const char me[] = "nrrdInvertPerm";
   int problem;
@@ -84,7 +84,7 @@ nrrdInvertPerm(unsigned int *invp, const unsigned int *pp, unsigned int nn) {
 ** this is only for adding a "stub" axis with length 1.  All other
 ** axis attributes are initialized as usual.
 */
-int
+int /* Biff: 1 */
 nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
   static const char me[] = "nrrdAxesInsert", func[] = "axinsert";
   unsigned int ai;
@@ -150,7 +150,7 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
 ** (axis[i] answers: "what do I put here", from the standpoint of the output,
 ** not "where do I put this", from the standpoint of the input)
 */
-int
+int /* Biff: 1 */
 nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
   static const char me[] = "nrrdAxesPermute", func[] = "permute";
   char buff1[NRRD_DIM_MAX * 30], buff2[AIR_STRLEN_SMALL];
@@ -304,7 +304,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
 ** insures that there is an source for all positions along the new
 ** array.
 */
-int
+int /* Biff: 1 */
 nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis, const size_t *perm) {
   static const char me[] = "nrrdShuffle", func[] = "shuffle";
   char buff2[AIR_STRLEN_SMALL];
@@ -449,7 +449,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis, const size_t *perm) 
 ** going through the trouble of creating the permutation array
 ** needed to call nrrdAxesPermute()
 */
-int
+int /* Biff: 1 */
 nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, unsigned int ax1, unsigned int ax2) {
   static const char me[] = "nrrdAxesSwap", func[] = "swap";
   unsigned int ai, axmap[NRRD_DIM_MAX];
@@ -485,7 +485,7 @@ nrrdAxesSwap(Nrrd *nout, const Nrrd *nin, unsigned int ax1, unsigned int ax2) {
 ** Actually, just a wrapper around nrrdShuffle() (with some
 ** extra setting of axis info)
 */
-int
+int /* Biff: 1 */
 nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
   static const char me[] = "nrrdFlip", func[] = "flip";
   size_t *perm, si;
@@ -566,7 +566,7 @@ nrrdFlip(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
 ** NOTE: this seems to destroy all space/orientation info.  What
 ** should be done?
 */
-int
+int /* Biff: 1 */
 nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum, unsigned int axis,
          int incrDim) {
   static const char me[] = "nrrdJoin";
@@ -816,7 +816,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum, unsigned int a
 **
 ** like reshape, but only for splitting one axis into a fast and slow part.
 */
-int
+int /* Biff: 1 */
 nrrdAxesSplit(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t sizeFast,
               size_t sizeSlow) {
   static const char me[] = "nrrdAxesSplit", func[] = "axsplit";
@@ -878,7 +878,7 @@ nrrdAxesSplit(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t sizeFast,
 ** like reshape, but preserves axis information on old axes, and
 ** this is only for removing a "stub" axis with length 1.
 */
-int
+int /* Biff: 1 */
 nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, unsigned int daxi) {
   static const char me[] = "nrrdAxesDelete", func[] = "axdelete";
   unsigned int ai;
@@ -930,7 +930,7 @@ nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, unsigned int daxi) {
 ** like reshape, but preserves axis information on old axes
 ** merges axis ax and ax+1 into one
 */
-int
+int /* Biff: 1 */
 nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, unsigned int maxi) {
   static const char me[] = "nrrdAxesMerge", func[] = "axmerge";
   unsigned int ai;
@@ -980,7 +980,7 @@ nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, unsigned int maxi) {
 ******** nrrdReshape_nva()
 **
 */
-int
+int /* Biff: 1 */
 nrrdReshape_nva(Nrrd *nout, const Nrrd *nin, unsigned int dim, const size_t *size) {
   static const char me[] = "nrrdReshape_nva", func[] = "reshape";
   char buff1[NRRD_DIM_MAX * 30], buff2[AIR_STRLEN_SMALL];
@@ -1048,7 +1048,7 @@ nrrdReshape_nva(Nrrd *nout, const Nrrd *nin, unsigned int dim, const size_t *siz
 **
 ** var-args version of nrrdReshape_nva()
 */
-int
+int /* Biff: 1 */
 nrrdReshape_va(Nrrd *nout, const Nrrd *nin, unsigned int dim, ...) {
   static const char me[] = "nrrdReshape_va";
   unsigned int ai;
@@ -1085,7 +1085,7 @@ nrrdReshape_va(Nrrd *nout, const Nrrd *nin, unsigned int dim, ...) {
 ** an output nrrd of type nrrdTypeBlock.  The input type can be block.
 ** All information for other axes is shifted down one axis.
 */
-int
+int /* Biff: 1 */
 nrrdBlock(Nrrd *nout, const Nrrd *nin) {
   static const char me[] = "nrrdBlock", func[] = "block";
   unsigned int ai;
@@ -1156,7 +1156,7 @@ nrrdBlock(Nrrd *nout, const Nrrd *nin) {
 ** takes a nrrdTypeBlock nrrd and breaks the blocks into elements of
 ** type "type", and shifts other axis information up by one axis
 */
-int
+int /* Biff: 1 */
 nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
   static const char me[] = "nrrdUnblock", func[] = "unblock";
   unsigned int dim;
@@ -1255,7 +1255,7 @@ function.  Probably unu tile.
 ** with their respective newly permuted data.  There should be one
 ** fewer dimensions in the output nrrd than in the input nrrd.
 */
-int
+int /* Biff: 1 */
 nrrdTile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0, unsigned int ax1,
            unsigned int axSplit, size_t sizeFast, size_t sizeSlow) {
   static const char me[] = "nrrdTile2D";
@@ -1369,7 +1369,7 @@ nrrdTile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0, unsigned int ax1,
 ** is in contrast to the axSplit (and ax0 and ax1) argument of nrrdTile2D
 ** which identifies axes in the original nrrd.
 */
-int
+int /* Biff: 1 */
 nrrdUntile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0, unsigned int ax1,
              unsigned int axMerge, size_t sizeFast, size_t sizeSlow) {
   static const char me[] = "nrrdUntile2D";

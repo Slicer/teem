@@ -29,7 +29,7 @@
   #include <unistd.h>
 */
 
-int
+int /* Biff: 1 */
 nrrdIoStateSet(NrrdIoState *nio, int parm, int value) {
   static const char me[] = "nrrdIoStateSet";
 
@@ -102,7 +102,7 @@ nrrdIoStateSet(NrrdIoState *nio, int parm, int value) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdIoStateEncodingSet(NrrdIoState *nio, const NrrdEncoding *encoding) {
   static const char me[] = "nrrdIoStateEncodingSet";
 
@@ -122,7 +122,7 @@ nrrdIoStateEncodingSet(NrrdIoState *nio, const NrrdEncoding *encoding) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdIoStateFormatSet(NrrdIoState *nio, const NrrdFormat *format) {
   static const char me[] = "nrrdIoStateFormatSet";
 
@@ -145,7 +145,7 @@ nrrdIoStateFormatSet(NrrdIoState *nio, const NrrdFormat *format) {
 /*
 ** no biff
 */
-int
+int /* Biff: nope */
 nrrdIoStateGet(NrrdIoState *nio, int parm) {
   static const char me[] = "nrrdIoStateGet";
   int value;
@@ -201,7 +201,7 @@ nrrdIoStateGet(NrrdIoState *nio, int parm) {
 /*
 ** no biff
 */
-const NrrdEncoding *
+const NrrdEncoding * /* Biff: nope */
 nrrdIoStateEncodingGet(NrrdIoState *nio) {
 
   return nio ? nio->encoding : nrrdEncodingUnknown;
@@ -210,7 +210,7 @@ nrrdIoStateEncodingGet(NrrdIoState *nio) {
 /*
 ** no biff
 */
-const NrrdFormat *
+const NrrdFormat * /* Biff: nope */
 nrrdIoStateFormatGet(NrrdIoState *nio) {
 
   return nio ? nio->format : nrrdFormatUnknown;
@@ -237,7 +237,7 @@ _nrrdStrcatSpaceVector(char *str, unsigned int spaceDim,
   return;
 }
 
-int
+int /* Biff: nope */
 _nrrdFieldInteresting(const Nrrd *nrrd, NrrdIoState *nio, int field) {
   int ret;
   unsigned int ai;
@@ -749,7 +749,7 @@ _nrrdFprintFieldInfo(FILE *file, const char *prefix, const Nrrd *nrrd, NrrdIoSta
   return;
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdEncodingMaybeSet(NrrdIoState *nio) {
   static const char me[] = "_nrrdEncodingMaybeSet";
 
@@ -778,7 +778,7 @@ _nrrdEncodingMaybeSet(NrrdIoState *nio) {
 **
 ** we must set nio->format to something useful/non-trivial
 */
-static int
+static int /* Biff: 1 */
 _nrrdFormatMaybeGuess(const Nrrd *nrrd, NrrdIoState *nio, const char *filename) {
   static const char me[] = "_nrrdFormatMaybeGuess";
   char mesg[AIR_STRLEN_MED];
@@ -824,7 +824,7 @@ _nrrdFormatMaybeGuess(const Nrrd *nrrd, NrrdIoState *nio, const char *filename) 
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdFormatMaybeSet(NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatMaybeSet";
 
@@ -852,7 +852,7 @@ _nrrdFormatMaybeSet(NrrdIoState *nio) {
 ** called, all writing parameters must be given explicitly, and their
 ** appropriateness is explicitly tested
 */
-static int
+static int /* Biff: 1 */
 _nrrdWrite(FILE *file, char **stringP, const Nrrd *nrrd, NrrdIoState *_nio) {
   static const char me[] = "_nrrdWrite";
   NrrdIoState *nio;
@@ -942,7 +942,7 @@ _nrrdWrite(FILE *file, char **stringP, const Nrrd *nrrd, NrrdIoState *_nio) {
 **
 ** wrapper around _nrrdWrite; writes to a FILE*
 */
-int
+int /* Biff: 1 */
 nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *_nio) {
   static const char me[] = "nrrdWrite";
 
@@ -958,7 +958,7 @@ nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *_nio) {
 **
 ** wrapper around _nrrdWrite; *allocates* and writes to a string
 */
-int
+int /* Biff: 1 */
 nrrdStringWrite(char **stringP, const Nrrd *nrrd, NrrdIoState *_nio) {
   static const char me[] = "nrrdStringWrite";
 
@@ -979,7 +979,7 @@ nrrdStringWrite(char **stringP, const Nrrd *nrrd, NrrdIoState *_nio) {
 ** whenever the filename ends in NRRD_EXT_NHDR, and when we play this
 ** game, the data file is ALWAYS header relative.
 */
-int
+int /* Biff: 1 */
 nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "nrrdSave";
   FILE *file;
@@ -1032,7 +1032,7 @@ nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *nio) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdSaveMulti(const char *fnameFormat, const Nrrd *const *nin, unsigned int ninLen,
               unsigned int numStart, NrrdIoState *nio) {
   static const char me[] = "nrrdSaveMulti";

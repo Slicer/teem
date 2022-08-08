@@ -24,7 +24,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-NrrdIter *
+NrrdIter * /* Biff: nope */
 nrrdIterNew() {
   NrrdIter *iter;
 
@@ -99,7 +99,7 @@ nrrdIterSetOwnNrrd(NrrdIter *iter, Nrrd *nrrd) {
   return;
 }
 
-double
+double /* Biff: nope */
 nrrdIterValue(NrrdIter *iter) {
   double ret = 0.0;
 
@@ -125,7 +125,7 @@ nrrdIterValue(NrrdIter *iter) {
 ** nrrdStateUnknownContent) or a string version of the value; useful
 ** for when you's use the "content" of a nrrd
 */
-char *
+char * /* Biff: nope */
 nrrdIterContent(NrrdIter *iter) {
   char *ret, buff[AIR_STRLEN_SMALL];
 
@@ -141,7 +141,7 @@ nrrdIterContent(NrrdIter *iter) {
   return ret;
 }
 
-NrrdIter *
+NrrdIter * /* Biff: nope */
 nrrdIterNix(NrrdIter *iter) {
 
   if (iter) {

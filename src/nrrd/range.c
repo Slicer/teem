@@ -24,7 +24,7 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-NrrdRange *
+NrrdRange * /* Biff: nope */
 nrrdRangeNew(double min, double max) {
   NrrdRange *range;
 
@@ -37,7 +37,7 @@ nrrdRangeNew(double min, double max) {
   return range;
 }
 
-NrrdRange *
+NrrdRange * /* Biff: nope */
 nrrdRangeCopy(const NrrdRange *rin) {
   NrrdRange *rout = NULL;
 
@@ -48,7 +48,7 @@ nrrdRangeCopy(const NrrdRange *rin) {
   return rout;
 }
 
-NrrdRange *
+NrrdRange * /* Biff: nope */
 nrrdRangeNix(NrrdRange *range) {
 
   airFree(range);
@@ -106,10 +106,8 @@ nrrdRangeSet(NrrdRange *range, const Nrrd *nrrd, int blind8BitRange) {
 ** this is called when information about the range of values in the
 ** nrrd is requested; and the learned information is put into "range"
 ** (overwriting whatever is there!)
-**
-** uses biff
 */
-int
+int /* Biff: 1 */
 nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd, double minPerc,
                        double maxPerc, unsigned int hbins, int blind8BitRange) {
   static const char me[] = "nrrdRangePercentileSet";
@@ -211,7 +209,7 @@ nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd, double minPerc,
 ** a known percentile (e.g. "3%") or a known explicit value (e.g. "3"),
 ** for both min and max.  Used by "unu quantize" and others.
 */
-int
+int /* Biff: 1 */
 nrrdRangePercentileFromStringSet(NrrdRange *range, const Nrrd *nin, const char *_minStr,
                                  const char *_maxStr, int zeroCenter, unsigned int hbins,
                                  int blind8BitRange) {
@@ -367,10 +365,7 @@ nrrdRangeSafeSet(NrrdRange *range, const Nrrd *nrrd, int blind8BitRange) {
   return;
 }
 
-/*
-** does not use biff
-*/
-NrrdRange *
+NrrdRange * /* Biff: nope */
 nrrdRangeNewSet(const Nrrd *nrrd, int blind8BitRange) {
   NrrdRange *range;
 
@@ -390,7 +385,7 @@ nrrdRangeNewSet(const Nrrd *nrrd, int blind8BitRange) {
 ** of the same name, which would be the usual thing to do with a C enum,
 ** but I don't think an airEnum for this would be useful)
 */
-int
+int /* Biff: nope */
 nrrdHasNonExist(const Nrrd *nrrd) {
   NRRD_TYPE_BIGGEST _min, _max;
   int ret;
