@@ -30,7 +30,9 @@
 
 const int nrrdFFTWEnabled = AIR_TRUE;
 
-int
+/* In a file like this where a function is defined twice, as guarded by some kind of
+   pre-processor #if, we annotate only the first instance */
+int /* Biff: 1 */
 nrrdFFTWWisdomRead(FILE *file) {
   static const char me[] = "nrrdFFTWWisdomRead";
 
@@ -86,7 +88,7 @@ _nrrdDimsReverse(fftw_iodim *dims, unsigned int len) {
 ** have size 2.  nrrdKindComplex would be sensible for input axis 0 but we don't
 ** require it, though it is set on the output.
 */
-int
+int /* Biff: 1 */
 nrrdFFT(Nrrd *nout, const Nrrd *_nin, unsigned int *axes, unsigned int axesNum, int sign,
         int rescale, int rigor) {
   static const char me[] = "nrrdFFT";
@@ -283,7 +285,7 @@ nrrdFFT(Nrrd *nout, const Nrrd *_nin, unsigned int *axes, unsigned int axesNum, 
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdFFTWWisdomWrite(FILE *file) {
   static const char me[] = "nrrdFFTWWisdomWrite";
 
