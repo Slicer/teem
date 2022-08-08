@@ -611,7 +611,7 @@ _nrrdResampleLineAllocateUpdate(NrrdResampleContext *rsmc) {
   return 0;
 }
 
-static int /* Biff 1 */
+static int /* Biff: 1 */
 _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
   static const char me[] = "_nrrdResampleVectorAllocateUpdate";
   unsigned int axIdx, kpIdx, dotLen, minSamples;
@@ -1454,7 +1454,7 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, const char *fun
   return 0;
 }
 
-int /* Biff:  1 */
+int /* Biff: 1 */
 nrrdResampleExecute(NrrdResampleContext *rsmc, Nrrd *nout) {
   static const char me[] = "nrrdResampleExecute", func[] = "resample";
   double time0;

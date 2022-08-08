@@ -171,7 +171,7 @@ nrrdIoStateDataFileIterBegin(NrrdIoState *nio) {
 **
 ** NOTE: this should work okay with nio->headerStringRead, I think ...
 */
-static int /* Biff: static */
+static int /* Biff: 1 */
 nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
   static const char me[] = "nrrdIoStateDataFileIterNext";
   char *fname = NULL;
@@ -294,7 +294,7 @@ nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
 ** function will determine which NRRD00XX magic gets used for the
 ** output file
 */
-int
+int /* Biff: nope */
 _nrrdFormatNRRD_whichVersion(const Nrrd *nrrd, NrrdIoState *nio) {
   int ret;
 
@@ -331,7 +331,7 @@ _nrrdFormatNRRD_nameLooksLike(const char *filename) {
   return (airEndsWith(filename, NRRD_EXT_NRRD) || airEndsWith(filename, NRRD_EXT_NHDR));
 }
 
-static int
+static int /* Biff: maybe:3:AIR_FALSE */
 _nrrdFormatNRRD_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding, int useBiff) {
   static const char me[] = "_nrrdFormatNRRD_fitsInto";
 
@@ -366,7 +366,7 @@ _nrrdFormatNRRD_contentStartsLike(NrrdIoState *nio) {
 ** nrrdCheck(), because it includes I/O-specific stuff
 **
 */
-int /* Biff: private */
+int /* Biff: (private) 1 */
 _nrrdHeaderCheck(Nrrd *nrrd, NrrdIoState *nio, int checkSeen) {
   static const char me[] = "_nrrdHeaderCheck";
   int i;
@@ -418,7 +418,7 @@ _nrrdHeaderCheck(Nrrd *nrrd, NrrdIoState *nio, int checkSeen) {
 ** NOTE: by giving a NULL "file", you can make this function basically
 ** do the work of reading in datafiles, without any header parsing
 */
-static int /* Biff: static */
+static int /* Biff: 1 */
 _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatNRRD_read";
   /* Dynamically allocated for space reasons. */
@@ -598,7 +598,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   return 0;
 }
 
-static int /* Biff: static */
+static int /* Biff: 1 */
 _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatNRRD_write";
   char strbuf[AIR_STRLEN_MED], *strptr, *tmp;
