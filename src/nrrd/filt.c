@@ -24,7 +24,8 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-static int /* HEY unsigned? */
+/* HEY maybe should be unsigned? */
+static int
 _nrrdCM_median(const float *hist, float half) {
   float sum = 0;
   const float *hpt;
@@ -404,7 +405,7 @@ _nrrdCheapMedian4D(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, int radi
 ** !mode: median filtering
 ** mode: mode filtering
 */
-int
+int /* Biff: 1 */
 nrrdCheapMedian(Nrrd *_nout, const Nrrd *_nin, int pad, int mode, unsigned int radius,
                 float wght, unsigned int bins) {
   static const char me[] = "nrrdCheapMedian", func[] = "cmedian";
@@ -608,7 +609,7 @@ distanceL2Sqrd1D(double *dd, const double *ff, double *zz, unsigned int *vv, siz
   return;
 }
 
-static int
+static int /* Biff: 1 */
 distanceL2Sqrd(Nrrd *ndist, double *spcMean) {
   static const char me[] = "distanceL2Sqrd";
   size_t sizeMax; /* max size of all axes */
@@ -728,7 +729,7 @@ distanceL2Sqrd(Nrrd *ndist, double *spcMean) {
 ** helper function for distance transforms, is called by things that want to do
 ** specific kinds of transforms.
 */
-static int
+static int /* Biff: 1 */
 _distanceBase(Nrrd *nout, const Nrrd *nin, int typeOut, const int *axisDo, double thresh,
               double bias, int insideHigher) {
   static const char me[] = "_distanceBase";
@@ -811,7 +812,7 @@ _distanceBase(Nrrd *nout, const Nrrd *nin, int typeOut, const int *axisDo, doubl
 ** distance values is smooth.  Without this trick, there is a
 ** small little plateau at the transition.
 */
-int
+int /* Biff: 1 */
 nrrdDistanceL2(Nrrd *nout, const Nrrd *nin, int typeOut, const int *axisDo,
                double thresh, int insideHigher) {
   static const char me[] = "nrrdDistanceL2";
@@ -823,7 +824,7 @@ nrrdDistanceL2(Nrrd *nout, const Nrrd *nin, int typeOut, const int *axisDo,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdDistanceL2Biased(Nrrd *nout, const Nrrd *nin, int typeOut, const int *axisDo,
                      double thresh, double bias, int insideHigher) {
   static const char me[] = "nrrdDistanceL2Biased";
@@ -835,7 +836,7 @@ nrrdDistanceL2Biased(Nrrd *nout, const Nrrd *nin, int typeOut, const int *axisDo
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdDistanceL2Signed(Nrrd *nout, const Nrrd *nin, int typeOut, const int *axisDo,
                      double thresh, int insideHigher) {
   static const char me[] = "nrrdDistanceL2Signed";

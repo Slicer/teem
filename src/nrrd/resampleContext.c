@@ -139,7 +139,7 @@ resampleContextInit(NrrdResampleContext *rsmc) {
   return;
 }
 
-NrrdResampleContext *
+NrrdResampleContext * /* Biff: nope */
 nrrdResampleContextNew() {
   NrrdResampleContext *rsmc;
 
@@ -151,7 +151,7 @@ nrrdResampleContextNew() {
   return rsmc;
 }
 
-NrrdResampleContext *
+NrrdResampleContext * /* Biff: nope */
 nrrdResampleContextNix(NrrdResampleContext *rsmc) {
   unsigned int axIdx;
 
@@ -168,7 +168,7 @@ nrrdResampleContextNix(NrrdResampleContext *rsmc) {
   return NULL;
 }
 
-int
+int /* Biff: 1 */
 nrrdResampleDefaultCenterSet(NrrdResampleContext *rsmc, int center) {
   static const char me[] = "nrrdResampleDefaultCenterSet";
 
@@ -189,7 +189,7 @@ nrrdResampleDefaultCenterSet(NrrdResampleContext *rsmc, int center) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdResampleNonExistentSet(NrrdResampleContext *rsmc, int nonExist) {
   static const char me[] = "nrrdResampleNonExistentSet";
 
@@ -250,14 +250,14 @@ nrrdResampleNonExistentSet(NrrdResampleContext *rsmc, int nonExist) {
                                                                                         \
   return 0
 
-int
+int /* Biff: nope */
 nrrdResampleNrrdSet(NrrdResampleContext *rsmc, const Nrrd *nin) {
   static const char me[] = "nrrdResampleNrrdSet";
 
   NRRD_RESAMPLE_INPUT_SET_BODY;
 }
 
-int
+int /* Biff: nope */
 nrrdResampleInputSet(NrrdResampleContext *rsmc, const Nrrd *nin) {
   static const char me[] = "nrrdResampleInputSet";
 
@@ -278,7 +278,7 @@ nrrdResampleInputSet(NrrdResampleContext *rsmc, const Nrrd *nin) {
     return 1;                                                                           \
   }
 
-int
+int /* Biff: nope */
 nrrdResampleKernelSet(NrrdResampleContext *rsmc, unsigned int axIdx,
                       const NrrdKernel *kernel, double kparm[NRRD_KERNEL_PARMS_NUM]) {
   static const char me[] = "nrrdResampleKernelSet";
@@ -304,7 +304,7 @@ nrrdResampleKernelSet(NrrdResampleContext *rsmc, unsigned int axIdx,
   return 0;
 }
 
-int
+int /* Biff: nope */
 nrrdResampleSamplesSet(NrrdResampleContext *rsmc, unsigned int axIdx, size_t samples) {
   static const char me[] = "nrrdResampleSamplesSet";
 
@@ -322,7 +322,7 @@ nrrdResampleSamplesSet(NrrdResampleContext *rsmc, unsigned int axIdx, size_t sam
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdResampleRangeSet(NrrdResampleContext *rsmc, unsigned int axIdx, double min,
                      double max) {
   static const char me[] = "nrrdResampleRangeSet";
@@ -341,7 +341,7 @@ nrrdResampleRangeSet(NrrdResampleContext *rsmc, unsigned int axIdx, double min,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdResampleOverrideCenterSet(NrrdResampleContext *rsmc,
                               unsigned int axIdx,
                               int center) {
@@ -374,7 +374,7 @@ _nrrdResampleMinMaxFull(double *minP, double *maxP, int center, size_t size) {
   }
 }
 
-int
+int /* Biff: nope */
 nrrdResampleRangeFullSet(NrrdResampleContext *rsmc, unsigned int axIdx) {
   static const char me[] = "nrrdResampleRangeFullSet";
   double min, max;
@@ -398,7 +398,7 @@ nrrdResampleRangeFullSet(NrrdResampleContext *rsmc, unsigned int axIdx) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdResampleBoundarySet(NrrdResampleContext *rsmc, int boundary) {
   static const char me[] = "nrrdResampleBoundarySet";
 
@@ -419,7 +419,7 @@ nrrdResampleBoundarySet(NrrdResampleContext *rsmc, int boundary) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdResamplePadValueSet(NrrdResampleContext *rsmc, double padValue) {
   static const char me[] = "nrrdResamplePadValueSet";
 
@@ -436,7 +436,7 @@ nrrdResamplePadValueSet(NrrdResampleContext *rsmc, double padValue) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdResampleBoundarySpecSet(NrrdResampleContext *rsmc, const NrrdBoundarySpec *bspec) {
   static const char me[] = "nrrdResampleBoundarySpecSet";
 
@@ -457,7 +457,7 @@ nrrdResampleBoundarySpecSet(NrrdResampleContext *rsmc, const NrrdBoundarySpec *b
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdResampleRenormalizeSet(NrrdResampleContext *rsmc, int renormalize) {
   static const char me[] = "nrrdResampleRenormalizeSet";
 
@@ -474,7 +474,7 @@ nrrdResampleRenormalizeSet(NrrdResampleContext *rsmc, int renormalize) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdResampleTypeOutSet(NrrdResampleContext *rsmc, int type) {
   static const char me[] = "nrrdResampleTypeOutSet";
 
@@ -499,7 +499,7 @@ nrrdResampleTypeOutSet(NrrdResampleContext *rsmc, int type) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdResampleRoundSet(NrrdResampleContext *rsmc, int roundlast) {
   static const char me[] = "nrrdResampleRoundSet";
 
@@ -516,7 +516,7 @@ nrrdResampleRoundSet(NrrdResampleContext *rsmc, int roundlast) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdResampleClampSet(NrrdResampleContext *rsmc, int clamp) {
   static const char me[] = "nrrdResampleClampSet";
 
@@ -587,7 +587,7 @@ _nrrdResampleInputSizesUpdate(NrrdResampleContext *rsmc) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdResampleLineAllocateUpdate(NrrdResampleContext *rsmc) {
   static const char me[] = "_nrrdResampleLineAllocateUpdate";
   unsigned int axIdx;
@@ -611,7 +611,7 @@ _nrrdResampleLineAllocateUpdate(NrrdResampleContext *rsmc) {
   return 0;
 }
 
-static int
+static int /* Biff 1 */
 _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
   static const char me[] = "_nrrdResampleVectorAllocateUpdate";
   unsigned int axIdx, kpIdx, dotLen, minSamples;
@@ -702,7 +702,7 @@ _nrrdResampleLineFillUpdate(NrrdResampleContext *rsmc) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
   static const char me[] = "_nrrdResampleVectorFillUpdate";
   unsigned int axIdx, dotIdx, dotLen, halfLen, smpIdx, kpIdx;
@@ -785,7 +785,7 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
           default:
             biffAddf(NRRD, "%s: boundary behavior %d unknown/unimplemented", me,
                      rsmc->boundary);
-            return 0;
+            return 1;
           }
           indexData[dotIdx] = rawIdx;
         }
@@ -1068,7 +1068,7 @@ _nrrdResamplePermutationUpdate(NrrdResampleContext *rsmc) {
 }
 
 /* Copy input to output, but with the optional clamping and rounding */
-static int
+static int /* Biff: 1 */
 _nrrdResampleTrivial(NrrdResampleContext *rsmc, Nrrd *nout, int typeOut, int doRound,
                      nrrdResample_t (*lup)(const void *, size_t),
                      nrrdResample_t (*clamp)(nrrdResample_t),
@@ -1101,7 +1101,7 @@ _nrrdResampleTrivial(NrrdResampleContext *rsmc, Nrrd *nout, int typeOut, int doR
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout, int typeOut, int doRound,
                   nrrdResample_t (*lup)(const void *, size_t),
                   nrrdResample_t (*clamp)(nrrdResample_t),
@@ -1317,7 +1317,7 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout, int typeOut, int doRoun
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, const char *func) {
   static const char me[] = "_nrrdResampleOutputUpdate";
 #if NRRD_RESAMPLE_FLOAT
@@ -1454,7 +1454,7 @@ _nrrdResampleOutputUpdate(NrrdResampleContext *rsmc, Nrrd *nout, const char *fun
   return 0;
 }
 
-int
+int /* Biff:  1 */
 nrrdResampleExecute(NrrdResampleContext *rsmc, Nrrd *nout) {
   static const char me[] = "nrrdResampleExecute", func[] = "resample";
   double time0;

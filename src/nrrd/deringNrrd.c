@@ -55,7 +55,7 @@
  * with high thetaNum, find mode along theta
 */
 
-NrrdDeringContext *
+NrrdDeringContext * /* Biff: nope */
 nrrdDeringContextNew(void) {
   NrrdDeringContext *drc;
   unsigned int pi;
@@ -90,7 +90,7 @@ nrrdDeringContextNew(void) {
   return drc;
 }
 
-NrrdDeringContext *
+NrrdDeringContext * /* Biff: nope */
 nrrdDeringContextNix(NrrdDeringContext *drc) {
 
   if (drc) {
@@ -99,7 +99,7 @@ nrrdDeringContextNix(NrrdDeringContext *drc) {
   return NULL;
 }
 
-int
+int /* Biff: 1 */
 nrrdDeringVerboseSet(NrrdDeringContext *drc, int verbose) {
   static const char me[] = "nrrdDeringVerboseSet";
 
@@ -112,7 +112,7 @@ nrrdDeringVerboseSet(NrrdDeringContext *drc, int verbose) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdDeringLinearInterpSet(NrrdDeringContext *drc, int linterp) {
   static const char me[] = "nrrdDeringLinearInterpSet";
 
@@ -125,7 +125,7 @@ nrrdDeringLinearInterpSet(NrrdDeringContext *drc, int linterp) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdDeringVerticalSeamSet(NrrdDeringContext *drc, int vertSeam) {
   static const char me[] = "nrrdDeringVerticalSeamSet";
 
@@ -138,7 +138,7 @@ nrrdDeringVerticalSeamSet(NrrdDeringContext *drc, int vertSeam) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdDeringInputSet(NrrdDeringContext *drc, const Nrrd *nin) {
   static const char me[] = "nrrdDeringInputSet";
 
@@ -173,7 +173,7 @@ nrrdDeringInputSet(NrrdDeringContext *drc, const Nrrd *nin) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdDeringCenterSet(NrrdDeringContext *drc, double cx, double cy) {
   static const char me[] = "nrrdDeringCenterSet";
 
@@ -192,7 +192,7 @@ nrrdDeringCenterSet(NrrdDeringContext *drc, double cx, double cy) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdDeringClampPercSet(NrrdDeringContext *drc, double lo, double hi) {
   static const char me[] = "nrrdDeringClampPercSet";
 
@@ -213,7 +213,7 @@ nrrdDeringClampPercSet(NrrdDeringContext *drc, double lo, double hi) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdDeringClampHistoBinsSet(NrrdDeringContext *drc, unsigned int bins) {
   static const char me[] = "nrrdDeringClampHistoBinsSet";
 
@@ -232,7 +232,7 @@ nrrdDeringClampHistoBinsSet(NrrdDeringContext *drc, unsigned int bins) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdDeringRadiusScaleSet(NrrdDeringContext *drc, double rsc) {
   static const char me[] = "nrrdDeringRadiusScaleSet";
 
@@ -250,7 +250,7 @@ nrrdDeringRadiusScaleSet(NrrdDeringContext *drc, double rsc) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdDeringThetaNumSet(NrrdDeringContext *drc, unsigned int thetaNum) {
   static const char me[] = "nrrdDeringThetaNumSet";
 
@@ -268,7 +268,7 @@ nrrdDeringThetaNumSet(NrrdDeringContext *drc, unsigned int thetaNum) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdDeringRadialKernelSet(NrrdDeringContext *drc,
                           const NrrdKernel *rkernel,
                           const double rkparm[NRRD_KERNEL_PARMS_NUM]) {
@@ -288,7 +288,7 @@ nrrdDeringRadialKernelSet(NrrdDeringContext *drc,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdDeringThetaKernelSet(NrrdDeringContext *drc,
                          const NrrdKernel *tkernel,
                          const double tkparm[NRRD_KERNEL_PARMS_NUM]) {
@@ -373,7 +373,7 @@ deringBagNix(deringBag *dbg) {
   return NULL;
 }
 
-static int
+static int /* Biff: 1 */
 deringPtxfAlloc(NrrdDeringContext *drc, deringBag *dbg) {
   static const char me[] = "deringPtxfAlloc";
   unsigned int pi, ri;
@@ -451,7 +451,7 @@ deringPtxfAlloc(NrrdDeringContext *drc, deringBag *dbg) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 deringSliceGet(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
   static const char me[] = "deringSliceGet";
   void *nonconstdata;
@@ -476,7 +476,7 @@ deringSliceGet(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 deringSliceSet(NrrdDeringContext *drc, deringBag *dbg, Nrrd *nout, unsigned int zi) {
   static const char me[] = "deringSliceSet";
 
@@ -580,7 +580,7 @@ deringPtxfDo(NrrdDeringContext *drc, deringBag *dbg) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 deringPtxfFilter(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
   static const char me[] = "deringPtxfFilter";
 
@@ -643,7 +643,7 @@ deringPtxfFilter(NrrdDeringContext *drc, deringBag *dbg, unsigned int zi) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 deringRingMagMeasure(NrrdDeringContext *drc, deringBag *dbg) {
   static const char me[] = "deringRingMagMeasure";
   airArray *mop;
@@ -706,7 +706,7 @@ deringSubtract(NrrdDeringContext *drc, deringBag *dbg) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 deringDo(NrrdDeringContext *drc, deringBag *dbg, Nrrd *nout, unsigned int zi) {
   static const char me[] = "deringDo";
 
@@ -721,7 +721,7 @@ deringDo(NrrdDeringContext *drc, deringBag *dbg, Nrrd *nout, unsigned int zi) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 deringCheck(NrrdDeringContext *drc) {
   static const char me[] = "deringCheck";
 
@@ -749,7 +749,7 @@ deringCheck(NrrdDeringContext *drc) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdDeringExecute(NrrdDeringContext *drc, Nrrd *nout) {
   static const char me[] = "nrrdDeringExecute";
   unsigned int sx, sy, sz, zi;

@@ -106,6 +106,7 @@ _nrrdFormatPNG_contentStartsLike(NrrdIoState *nio) {
 }
 
 #if TEEM_PNG
+/* this is a rare function that legit uses biff, but has void return */
 static void
 _nrrdErrorHandlerPNG(png_structp png, png_const_charp message) {
   static const char me[] = "_nrrdErrorHandlerPNG";
@@ -115,6 +116,8 @@ _nrrdErrorHandlerPNG(png_structp png, png_const_charp message) {
   longjmp(png_jmpbuf(png), 1);
 }
 
+/* this is a rare function that uses biff, but has void return,
+  but HEY is what warning ever actually printed?  hmmm */
 static void
 _nrrdWarningHandlerPNG(png_structp png, png_const_charp message) {
   static const char me[] = "_nrrdWarningHandlerPNG";

@@ -83,15 +83,15 @@ int nrrdStateKeyValueReturnInternalPointers = AIR_FALSE;
 int nrrdStateKindNoop = AIR_FALSE;
 
 /* these are helper functions for min/max testing */
-airLLong
+airLLong /* Biff: nope */
 _nrrdLLongMaxHelp(airLLong val) {
   return val * 2 + 1;
 }
-airLLong
+airLLong /* Biff: nope */
 _nrrdLLongMinHelp(airLLong val) {
   return val * 2;
 }
-airULLong
+airULLong /* Biff: nope */
 _nrrdULLongMaxHelp(airULLong val) {
   return val + 1;
 }
@@ -138,7 +138,7 @@ const char *const nrrdEnvVarStateGrayscaleImage3D = "NRRD_STATE_GRAYSCALE_IMAGE_
 ** AIR_FALSE: set in an invalid way ==> *val NOT set
 */
 
-int
+int /* Biff: nope */
 nrrdGetenvBool(int *val, char **envStr, const char *envVar) {
   char *env;
   int tmp;
@@ -167,7 +167,7 @@ nrrdGetenvBool(int *val, char **envStr, const char *envVar) {
   }
 }
 
-int
+int /* Biff: nope */
 nrrdGetenvEnum(int *val, char **envStr, const airEnum *enm, const char *envVar) {
   char *env;
   int tmp;
@@ -191,7 +191,7 @@ nrrdGetenvEnum(int *val, char **envStr, const airEnum *enm, const char *envVar) 
   }
 }
 
-int
+int /* Biff: nope */
 nrrdGetenvUInt(unsigned int *val, char **envStr, const char *envVar) {
   char *env;
   unsigned int tmp;
@@ -214,7 +214,7 @@ nrrdGetenvUInt(unsigned int *val, char **envStr, const char *envVar) {
   }
 }
 
-int
+int /* Biff: nope */
 nrrdGetenvInt(int *val, char **envStr, const char *envVar) {
   char *env;
   int tmp;
@@ -237,7 +237,7 @@ nrrdGetenvInt(int *val, char **envStr, const char *envVar) {
   }
 }
 
-int
+int /* Biff: nope */
 nrrdGetenvDouble(double *val, char **envStr, const char *envVar) {
   char *env;
   double tmp;
@@ -265,7 +265,7 @@ nrrdGetenvDouble(double *val, char **envStr, const char *envVar) {
 ** as the other nrrdGetenv functions; it was added just to have a more
 ** convenient wrapper around getenv for strings.
 */
-int
+int /* Biff: nope */
 nrrdGetenvString(char **envStr, const char *envVar) {
 
   if (!(envStr && envVar)) {
