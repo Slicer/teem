@@ -41,7 +41,7 @@ _nrrdFormatPNM_nameLooksLike(const char *filename) {
   return (airEndsWith(filename, NRRD_EXT_PGM) || airEndsWith(filename, NRRD_EXT_PPM));
 }
 
-static int
+static int /* Biff: maybe:3:AIR_FALSE */
 _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding, int useBiff) {
   static const char me[] = "_nrrdFormatPNM_fitsInto";
   int ret;
@@ -92,7 +92,7 @@ _nrrdFormatPNM_contentStartsLike(NrrdIoState *nio) {
           || !strcmp(MAGIC_P3, nio->line) || !strcmp(MAGIC_P2, nio->line));
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatPNM_read";
   const char *fs;
@@ -273,7 +273,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatPNM_write";
   int color, sx, sy, magic, fi;

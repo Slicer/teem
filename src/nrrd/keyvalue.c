@@ -35,7 +35,7 @@
 **
 ** returns the number of key/value pairs in a nrrd
 */
-unsigned int
+unsigned int /* Biff: nope */
 nrrdKeyValueSize(const Nrrd *nrrd) {
 
   if (!nrrd) {
@@ -115,7 +115,7 @@ nrrdKeyValueClear(Nrrd *nrrd) {
   return;
 }
 
-int
+int /* Biff: nope */
 nrrdKeyValueErase(Nrrd *nrrd, const char *key) {
   unsigned int nk, ki;
   int found;
@@ -149,10 +149,8 @@ nrrdKeyValueErase(Nrrd *nrrd, const char *key) {
 ** NOTE: Despite what might be most logical, there is no effort made
 ** here to cleanup key or value, including any escaping or filtering
 ** that might be warranted for white space other than \n
-**
-** does NOT use BIFF
 */
-int
+int /* Biff: nope */
 nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value) {
   unsigned int ki;
   int found;
@@ -186,10 +184,8 @@ nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value) {
 ** "inside" the nrrd struct (pointers which you had better not free()!)
 ** is controlled by nrrdStateKeyValueReturnInternalPointers, which defaults
 ** to AIR_FALSE
-**
-** does NOT use BIFF
 */
-char *
+char * /* Biff: nope */
 nrrdKeyValueGet(const Nrrd *nrrd, const char *key) {
   char *ret;
   unsigned int ki;
@@ -281,7 +277,7 @@ _nrrdWriteEscaped(FILE *file, char *dst, const char *str, const char *toescape,
 ** writes a given key and value to a file, starting with the given
 ** prefix (if non-NULL), and ending with "\n"
 */
-int
+int /* Biff: nope */
 _nrrdKeyValueWrite(FILE *file, char **stringP, const char *prefix, const char *key,
                    const char *value) {
 
@@ -322,7 +318,7 @@ _nrrdKeyValueWrite(FILE *file, char **stringP, const char *prefix, const char *k
 ** copies key/value pairs from one nrrd to another
 ** Existing key/value pairs in nout are blown away
 */
-int
+int /* Biff: nope */
 nrrdKeyValueCopy(Nrrd *nout, const Nrrd *nin) {
   char *key, *value;
   unsigned int ki;

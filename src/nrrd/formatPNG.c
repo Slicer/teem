@@ -47,7 +47,7 @@ _nrrdFormatPNG_nameLooksLike(const char *filename) {
   return airEndsWith(filename, NRRD_EXT_PNG);
 }
 
-static int
+static int /* Biff: maybe:3:AIR_FALSE */
 _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding, int useBiff) {
   static const char me[] = "_nrrdFormatPNG_fitsInto";
 
@@ -151,7 +151,7 @@ _nrrdFlushDataPNG(png_structp png) {
 #  endif /* _WIN32 */
 #endif   /* TEEM_PNG */
 
-static int
+static int /* Biff: 1 */
 _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatPNG_read";
 #if TEEM_PNG
@@ -429,7 +429,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 #endif
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatPNG_write";
 #if TEEM_PNG

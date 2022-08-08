@@ -37,7 +37,7 @@ _nrrdFormatEPS_nameLooksLike(const char *filename) {
   return airEndsWith(filename, NRRD_EXT_EPS);
 }
 
-static int
+static int /* Biff: maybe:3:AIR_FALSE */
 _nrrdFormatEPS_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding, int useBiff) {
   static const char me[] = "_nrrdFormatEPS_fitsInto";
   int ret;
@@ -89,7 +89,7 @@ _nrrdFormatEPS_contentStartsLike(NrrdIoState *nio) {
   return AIR_FALSE;
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatEPS_read";
 
@@ -100,7 +100,7 @@ _nrrdFormatEPS_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   return 1;
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatEPS_write";
   int color, cmyk;

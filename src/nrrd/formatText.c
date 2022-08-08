@@ -37,7 +37,7 @@ _nrrdFormatText_nameLooksLike(const char *fname) {
           || airEndsWith(fname, ".ascii"));
 }
 
-static int
+static int /* Biff: maybe:3:AIR_FALSE */
 _nrrdFormatText_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding, int useBiff) {
   static const char me[] = "_nrrdFormatText_fitsInto";
 
@@ -63,7 +63,7 @@ _nrrdFormatText_contentStartsLike(NrrdIoState *nio) {
           || airParseStrF(&oneFloat, nio->line, _nrrdTextSep, 1));
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatText_read";
   const char *fs;

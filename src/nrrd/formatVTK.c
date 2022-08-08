@@ -40,7 +40,7 @@ _nrrdFormatVTK_nameLooksLike(const char *fname) {
   return airEndsWith(fname, NRRD_EXT_VTK);
 }
 
-static int
+static int /* Biff: maybe:3:AIR_FALSE */
 _nrrdFormatVTK_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding, int useBiff) {
   static const char me[] = "_nrrdFormatVTK_fitsInto";
 
@@ -81,7 +81,7 @@ _nrrdFormatVTK_contentStartsLike(NrrdIoState *nio) {
           || !strcmp(MAGIC3, nio->line));
 }
 
-static int
+static int /* Biff: 1 */
 _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdReadVTK";
   char *three[3];
@@ -271,7 +271,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 }
 
 /* this strongly assumes that nrrdFitsInFormat() was true */
-static int
+static int /* Biff: 1 */
 _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatVTK_write";
   int i, sax;
