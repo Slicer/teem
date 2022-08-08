@@ -38,7 +38,7 @@
 **
 ** post-NrrdRange policy:
 */
-int
+int /* Biff: 1 */
 nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, const Nrrd *nwght,
           size_t bins, int type) {
   static const char me[] = "nrrdHisto", func[] = "histo";
@@ -158,7 +158,7 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, const Nrrd *nwgh
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdHistoCheck(const Nrrd *nhist) {
   static const char me[] = "nrrdHistoCheck";
 
@@ -187,7 +187,7 @@ nrrdHistoCheck(const Nrrd *nhist) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdHistoDraw(Nrrd *nout, const Nrrd *nin, size_t sy, int showLog, double max) {
   static const char me[] = "nrrdHistoDraw", func[] = "dhisto";
   char cmt[AIR_STRLEN_MED], stmp[AIR_STRLEN_SMALL];
@@ -323,7 +323,7 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin, size_t sy, int showLog, double max) {
 ** may want to permute axes before and after this, but that can be
 ** slow too...
 */
-int
+int /* Biff: 1 */
 nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, unsigned int hax,
               size_t bins, int type) {
   static const char me[] = "nrrdHistoAxis", func[] = "histax";
@@ -437,7 +437,7 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, unsigned int
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin, const NrrdRange *const *_range,
                unsigned int numNin, const Nrrd *nwght, const size_t *bins, int type,
                const int *clamp) {
@@ -648,7 +648,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin, const NrrdRange *const *_rang
 ** When "expo" is 2.0, it computes variance; lower values probably represent
 ** greater insensitivities to outliers. Idea from ...
 */
-int
+int /* Biff: 1 */
 nrrdHistoThresholdOtsu(double *threshP, const Nrrd *_nhist, double expo) {
   static const char me[] = "nrrdHistoThresholdOtsu";
   unsigned int histLen, histIdx, maxIdx;

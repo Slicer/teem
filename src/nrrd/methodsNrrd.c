@@ -58,7 +58,7 @@ const int nrrdPresent = 42;
 
 /* ------------------------------------------------------------ */
 
-NrrdBoundarySpec *
+NrrdBoundarySpec * /* Biff: nope */
 nrrdBoundarySpecNew(void) {
   NrrdBoundarySpec *ret;
 
@@ -70,14 +70,14 @@ nrrdBoundarySpecNew(void) {
   return ret;
 }
 
-NrrdBoundarySpec *
+NrrdBoundarySpec * /* Biff: nope */
 nrrdBoundarySpecNix(NrrdBoundarySpec *bspec) {
 
   return (NrrdBoundarySpec *)airFree(bspec);
 }
 
 /* NOTE: this doesn't do a validity check! */
-NrrdBoundarySpec *
+NrrdBoundarySpec * /* Biff: nope */
 nrrdBoundarySpecCopy(const NrrdBoundarySpec *bspec) {
   NrrdBoundarySpec *ret;
 
@@ -297,7 +297,7 @@ nrrdIoStateInit(NrrdIoState *nio) {
   return;
 }
 
-NrrdIoState *
+NrrdIoState * /* Biff: nope */
 nrrdIoStateNew(void) {
   NrrdIoState *nio;
 
@@ -325,7 +325,7 @@ nrrdIoStateNew(void) {
   return nio;
 }
 
-NrrdIoState *
+NrrdIoState * /* Biff: nope */
 nrrdIoStateNix(NrrdIoState *nio) {
 
   nio->path = (char *)airFree(nio->path);
@@ -364,7 +364,7 @@ _nrrdResampleInfoInit(NrrdResampleInfo *info) {
   info->padValue = nrrdDefaultResamplePadValue;
 }
 
-NrrdResampleInfo *
+NrrdResampleInfo * /* Biff: nope */
 nrrdResampleInfoNew(void) {
   NrrdResampleInfo *info;
 
@@ -376,7 +376,7 @@ nrrdResampleInfoNew(void) {
   return info;
 }
 
-NrrdResampleInfo *
+NrrdResampleInfo * /* Biff: nope */
 nrrdResampleInfoNix(NrrdResampleInfo *info) {
 
   info = (NrrdResampleInfo *)airFree(info);
@@ -385,7 +385,7 @@ nrrdResampleInfoNix(NrrdResampleInfo *info) {
 
 /* ------------------------------------------------------------ */
 
-NrrdKernelSpec *
+NrrdKernelSpec * /* Biff: nope */
 nrrdKernelSpecNew(void) {
   NrrdKernelSpec *ksp;
   int i;
@@ -400,7 +400,7 @@ nrrdKernelSpecNew(void) {
   return ksp;
 }
 
-NrrdKernelSpec *
+NrrdKernelSpec * /* Biff: nope */
 nrrdKernelSpecCopy(const NrrdKernelSpec *oldKsp) {
   NrrdKernelSpec *ksp = NULL;
 
@@ -413,7 +413,7 @@ nrrdKernelSpecCopy(const NrrdKernelSpec *oldKsp) {
   return ksp;
 }
 
-NrrdKernelSpec *
+NrrdKernelSpec * /* Biff: nope */
 nrrdKernelSpecNix(NrrdKernelSpec *ksp) {
 
   ksp = (NrrdKernelSpec *)airFree(ksp);
@@ -662,10 +662,8 @@ nrrdInit(Nrrd *nrrd) {
 ******** nrrdNew()
 **
 ** creates and initializes a Nrrd
-**
-** this does NOT use biff
 */
-Nrrd *
+Nrrd * /* Biff: nope */
 nrrdNew(void) {
   int ii;
   Nrrd *nrrd;
@@ -719,10 +717,8 @@ nrrdNew(void) {
 ** to free the nrrd itself
 **
 ** returns NULL
-**
-** this does NOT use biff
 */
-Nrrd *
+Nrrd * /* Biff: nope */
 nrrdNix(Nrrd *nrrd) {
   int ii;
 
@@ -751,7 +747,7 @@ nrrdNix(Nrrd *nrrd) {
 ** same as what comes from nrrdNew().  This includes free()ing
 ** any comments.
 */
-Nrrd *
+Nrrd * /* Biff: nope */
 nrrdEmpty(Nrrd *nrrd) {
 
   if (nrrd) {
@@ -768,7 +764,7 @@ nrrdEmpty(Nrrd *nrrd) {
 **
 ** always returns NULL
 */
-Nrrd *
+Nrrd * /* Biff: nope */
 nrrdNuke(Nrrd *nrrd) {
 
   if (nrrd) {
@@ -780,7 +776,7 @@ nrrdNuke(Nrrd *nrrd) {
 
 /* ------------------------------------------------------------ */
 
-int /* Biff: private 1?3 */
+int /* Biff: (private) maybe:3:1 */
 _nrrdSizeCheck(const size_t *size, unsigned int dim, int useBiff) {
   static const char me[] = "_nrrdSizeCheck";
   size_t num, pre;
@@ -884,7 +880,7 @@ _nrrdTraverse(Nrrd *nrrd) {
 }
 */
 
-int /* Biff: private 1 */
+int /* Biff: (private) 1 */
 _nrrdCopy(Nrrd *nout, const Nrrd *nin, int bitflag) {
   static const char me[] = "_nrrdCopy";
   size_t size[NRRD_DIM_MAX];
@@ -1049,7 +1045,7 @@ nrrdAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
 ** HEY: should consider making this a public function, but GLK couldn't
 ** think of a name that wasn't silly
 */
-int
+int /* Biff: (private) 1 */
 _nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size,
                              int zeroWhenNoAlloc) {
   static const char me[] = "nrrdMaybeAllocMaybeZero_nva";

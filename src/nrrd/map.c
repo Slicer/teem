@@ -133,7 +133,7 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
 }
 */
 
-static int
+static int /* Biff: 1 */
 clampRoundConvert(Nrrd *nout, const Nrrd *nin, int type, int doClamp, int roundDir) {
   static const char me[] = "clampRoundConvert";
   char typeS[AIR_STRLEN_SMALL];
@@ -232,7 +232,7 @@ clampRoundConvert(Nrrd *nout, const Nrrd *nin, int type, int doClamp, int roundD
 ** make available on Nrrds the exact same behavior as you have in C
 ** with casts and assignments.
 */
-int
+int /* Biff: 1 */
 nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
   static const char me[] = "nrrdConvert";
 
@@ -252,7 +252,7 @@ nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
 ** HEY: WARNING: may have loss of data when processing long long
 ** (either signed or unsigned)
 */
-int
+int /* Biff: 1 */
 nrrdClampConvert(Nrrd *nout, const Nrrd *nin, int type) {
   static const char me[] = "nrrdClampConvert";
 
@@ -278,7 +278,7 @@ nrrdClampConvert(Nrrd *nout, const Nrrd *nin, int type) {
 ** HEY: WARNING: may have loss of data when processing long long
 ** (either signed or unsigned)
 */
-int
+int /* Biff: 1 */
 nrrdCastClampRound(Nrrd *nout, const Nrrd *nin, int outType, int doClamp, int roundDir) {
   static const char me[] = "nrrdCastClampRound";
 
@@ -300,7 +300,7 @@ nrrdCastClampRound(Nrrd *nout, const Nrrd *nin, int outType, int doClamp, int ro
 ** NOTE: for the time being, this uses a "double" as the intermediate
 ** value holder, which may mean needless loss of precision
 */
-int
+int /* Biff: 1 */
 nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, unsigned int bits) {
   static const char me[] = "nrrdQuantize", func[] = "quantize";
   double valIn, minIn, maxIn, eps;
@@ -472,7 +472,7 @@ static const double _nrrdTypeNumberOfValues[NRRD_TYPE_MAX + 1] = {
 ** (V+0.5)/256
 ** so a 0 will be mapped to 1/512 = 0.00195
 */
-int
+int /* Biff: 1 */
 nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
   static const char me[] = "nrrdUnquantize", func[] = "unquantize";
   float *outF;
@@ -609,7 +609,7 @@ _nrrdHistoEqCompare(const void *a, const void *b) {
 ** histogram equalization is a large amount of background (which is
 ** exactly one fixed value).
 */
-int
+int /* Biff: 1 */
 nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP, unsigned int bins,
             unsigned int smart, float amount) {
   static const char me[] = "nrrdHistoEq", func[] = "heq";

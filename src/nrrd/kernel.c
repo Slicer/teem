@@ -2954,7 +2954,7 @@ _nrrdKernelStrToKern(char *str) {
 /* this returns a number between -1 and max;
    it does NOT do the increment-by-one;
    it does NOT do range checking */
-static int
+static int /* Biff: 1 */
 _nrrdKernelParseTMFInt(int *val, char *str) {
   static const char me[] = "nrrdKernelParseTMFInt";
 
@@ -2969,7 +2969,7 @@ _nrrdKernelParseTMFInt(int *val, char *str) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdKernelParse(const NrrdKernel **kernelP, double *parm, const char *_str) {
   static const char me[] = "nrrdKernelParse";
   char str[AIR_STRLEN_HUGE], kstr[AIR_STRLEN_MED], *_pstr = NULL, *pstr,
@@ -3149,7 +3149,7 @@ nrrdKernelParse(const NrrdKernel **kernelP, double *parm, const char *_str) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str) {
   static const char me[] = "nrrdKernelSpecParse";
   const NrrdKernel *kern;
@@ -3171,7 +3171,7 @@ nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str) {
 ** note that the given string has to be allocated for a certain size
 ** which is plenty big
 */
-int
+int /* Biff: 1 */
 nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], const NrrdKernelSpec *ksp) {
   static const char me[] = "nrrdKernelSpecSprint";
   unsigned int warnLen = AIR_STRLEN_LARGE / 3;
@@ -3226,7 +3226,7 @@ nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], const NrrdKernelSpec *ksp) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdKernelSprint(char str[AIR_STRLEN_LARGE], const NrrdKernel *kernel,
                  const double kparm[NRRD_KERNEL_PARMS_NUM]) {
   static const char me[] = "nrrdKernelSprint";
@@ -3244,7 +3244,7 @@ nrrdKernelSprint(char str[AIR_STRLEN_LARGE], const NrrdKernel *kernel,
 ** This DOES make an effort to set *differ based on "ordering" (-1 or +1)
 ** but HEY that's very contrived; why bother?
 */
-int
+int /* Biff: 1 */
 nrrdKernelCompare(const NrrdKernel *kernA, const double parmA[NRRD_KERNEL_PARMS_NUM],
                   const NrrdKernel *kernB, const double parmB[NRRD_KERNEL_PARMS_NUM],
                   int *differ, char explain[AIR_STRLEN_LARGE]) {
@@ -3293,7 +3293,7 @@ nrrdKernelCompare(const NrrdKernel *kernA, const double parmA[NRRD_KERNEL_PARMS_
 /*
 ** This DOES NOT make an effort to set *differ based on "ordering";
 */
-int
+int /* Biff: 1 */
 nrrdKernelSpecCompare(const NrrdKernelSpec *aa, const NrrdKernelSpec *bb, int *differ,
                       char explain[AIR_STRLEN_LARGE]) {
   static const char me[] = "nrrdKernelSpecCompare";
@@ -3362,7 +3362,7 @@ nrrdKernelSpecCompare(const NrrdKernelSpec *aa, const NrrdKernelSpec *bb, int *d
 ** and also exercises all the ways of evaluating the kernel and
 ** makes sure they all agree, and agree with the integral kernel, if given
 */
-int
+int /* Biff: 1 */
 nrrdKernelCheck(const NrrdKernel *kern, const double parm[NRRD_KERNEL_PARMS_NUM],
                 size_t evalNum, double epsilon, unsigned int diffOkEvalMax,
                 unsigned int diffOkIntglMax, const NrrdKernel *ikern,
@@ -3598,7 +3598,7 @@ nrrdKernelCheck(const NrrdKernel *kern, const double parm[NRRD_KERNEL_PARMS_NUM]
   return 0;
 }
 
-int
+int /* Biff: nope */
 nrrdKernelParm0IsScale(const NrrdKernel *kern) {
   int ret;
 
