@@ -50,7 +50,7 @@ verbose = 1
 archDir = None
 libDir = None
 srcLines = {} # maps from filename to (list of) lines of code, either from disk or modified
-modified = {} # maps from filename to whether srcLines has been modified
+modified = {} # maps from filename to how many srcLines have been modified
 
 def getLines(fileName):
     if fileName in srcLines:
@@ -63,7 +63,7 @@ def getLines(fileName):
         with open(fileName) as CF:
             lines = [L.rstrip() for L in CF.readlines()]
         srcLines[fileName] = lines
-        modified[fileName] = False
+        modified[fileName] = 0
     return lines
 
 # All the types (and type qualifiers) we try to parse away
@@ -129,10 +129,20 @@ def biffAnnotate(biffLevel, fileName, lineNum, annote, funcName):
     #print(f'!{wut} old line "{L}" -vs- new comment "{ncmt}"')
     match = re.match(r'.+?(\/\*.*\*\/)',L)
     if not match:
-        # no existing annotation, so add it if:
-        #   declaration is not static, or, (it is static and) function does use biff
-        #   (static functions not using biff is kind of the norm)
-        if not L.startswith('static ') or 'Biff? nope' != annote:
+        # no existing comment (whether or not it has an annotation)
+        # make sure that a void function is not using biff
+        doesBiff = 'Biff? nope' != annote
+        qts = L.strip().split(' ') # qualifiers and types
+        if ('void' in qts and doesBiff
+            and '_nrrdErrorHandlerPNG' != funcName # except: uses biff w/ PNG's setjmp/longjmp error handler
+            and '_nrrdWarningHandlerPNG' != funcName): # except: uses biff but without setjmp/longjmp, is that ok??
+            raise Exception(f'{wut} is {L} but function uses biff (annote={annote})?')
+        # else no surprises in whether function uses biff
+        # so add annotation when it makes sense to do so:
+        # function is not returning void, and,
+        # function is not static, or, (it is static and) function does use biff
+        #   (static functions not using biff is kind of the norm),
+        if not 'void' in qts and (not 'static' in qts or doesBiff):
             L += ' ' + ncmt
         #print(f'! no old comment, so now L={L}')
     else:
@@ -171,6 +181,16 @@ def biffAnnotate(biffLevel, fileName, lineNum, annote, funcName):
                 # else we go ahead and over-write old comment, INCLUDING THE annotation comment
                 print(f'NOTE: {fileName}:{lineNum+1} (for {funcName}) deleting old commented annotation "{ocmt}"')
                 L = L.replace(ocmt, ncmt)
+        else:
+            # had an old comment that started like an annotation, but its
+            # not the new annotation in any recognizable form
+            if (biffLevel < 3):
+                print(f'{wut} has comment "{ocmt}" that maybe is a Biff annotation, '
+                      f'refusing to touch it at level {biffLevel}')
+                return
+            else:
+                print(f'NOTE: {wut} deleting old comment "{ocmt}"')
+                L = L.replace(ocmt, ncmt)
     if L == origL:
         # ah, so we had nothing to do
         return
@@ -178,7 +198,7 @@ def biffAnnotate(biffLevel, fileName, lineNum, annote, funcName):
         # we are modifying the line
         #print(f'! {wut} |{origL}| -> |{L}|')
         srcLines[fileName][lineNum] = L
-        modified[fileName] = True
+        modified[fileName] += 1
 
 # wrapper around subprocess.run
 def runthis(cmdStr, capOut):
@@ -634,5 +654,6 @@ if __name__ == '__main__':
             with open(NF, 'w') as fout:
                 for L in srcLines[MF]:
                     fout.write(f'{L}\n')
-        print(f'writing new files in {libDir}: {allNF}')
+            print(f'wrote {modified[MF]} annotations in {NF}')
+        #print(f'writing new files in {libDir}: {allNF}')
 
