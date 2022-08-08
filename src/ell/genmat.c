@@ -23,7 +23,7 @@
 
 #include "ell.h"
 
-int
+int /* Biff: 1 */
 ell_Nm_check(Nrrd *mat, int doNrrdCheck) {
   static const char me[] = "ell_Nm_check";
 
@@ -57,7 +57,7 @@ ell_Nm_check(Nrrd *mat, int doNrrdCheck) {
 **     M             N
 ** N [trn]  <--  M [mat]
 */
-int
+int /* Biff: 1 */
 ell_Nm_tran(Nrrd *ntrn, Nrrd *nmat) {
   static const char me[] = "ell_Nm_tran";
   double *mat, *trn;
@@ -102,7 +102,7 @@ ell_Nm_tran(Nrrd *ntrn, Nrrd *nmat) {
 ** matrix-matrix:      M       N
 **                  L [A] . M [B]
 */
-int
+int /* Biff: 1 */
 ell_Nm_mul(Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
   static const char me[] = "ell_Nm_mul";
   double *A, *B, *AB, tmp;
@@ -151,7 +151,7 @@ ell_Nm_mul(Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
 **
 ** in-place LU decomposition
 */
-static int
+static int /* Biff: 1 */
 _ell_LU_decomp(double *aa, size_t *indx, size_t NN) {
   static const char me[] = "_ell_LU_decomp";
   int ret = 0;
@@ -177,6 +177,7 @@ _ell_LU_decomp(double *aa, size_t *indx, size_t NN) {
       char stmp[AIR_STRLEN_SMALL];
       biffAddf(ELL, "%s: singular matrix since column %s all zero", me,
                airSprintSize_t(stmp, ii));
+      /* return 1; (for biff auto-scan) */
       ret = 1;
       goto seeya;
     }
@@ -185,8 +186,8 @@ _ell_LU_decomp(double *aa, size_t *indx, size_t NN) {
 
   for (jj = 0; jj < NN; jj++) {
     /* for aa[ii][jj] in lower triangle (below diagonal), subtract from
-       aa[ii][jj] the dot product of all elements to its left with elements
-       above it (starting at the top) */
+    aa[ii][jj] the dot product of all elements to its left with elements
+    above it (starting at the top) */
     for (ii = 0; ii < jj; ii++) {
       sum = aa[ii * NN + jj];
       for (kk = 0; kk < ii; kk++) {
@@ -287,7 +288,7 @@ _ell_LU_back_sub(double *aa, size_t *indx, double *bb, size_t NN) {
 ** then repeated backsubstitution is used to get successive columns of
 ** the inverse.
 */
-static int
+static int /* Biff: 1 */
 _ell_inv(double *inv, double *_mat, size_t NN) {
   static const char me[] = "_ell_inv";
   size_t ii, jj, *indx = NULL;
@@ -298,6 +299,7 @@ _ell_inv(double *inv, double *_mat, size_t NN) {
         && (mat = (double *)calloc(NN * NN, sizeof(double)))
         && (indx = (size_t *)calloc(NN, sizeof(size_t))))) {
     biffAddf(ELL, "%s: couldn't allocate all buffers", me);
+    /* return 1; (for biff auto-scan) */
     ret = 1;
     goto seeya;
   }
@@ -306,6 +308,7 @@ _ell_inv(double *inv, double *_mat, size_t NN) {
 
   if (_ell_LU_decomp(mat, indx, NN)) {
     biffAddf(ELL, "%s: trouble", me);
+    /* return 1; (for biff auto-scan) */
     ret = 1;
     goto seeya;
   }
@@ -333,7 +336,7 @@ seeya:
 ** inverse in the (maybe allocated) ninv.  Does not touch the
 ** values in nmat.
 */
-int
+int /* Biff: 1 */
 ell_Nm_inv(Nrrd *ninv, Nrrd *nmat) {
   static const char me[] = "ell_Nm_inv";
   double *mat, *inv;
@@ -374,7 +377,7 @@ ell_Nm_inv(Nrrd *ninv, Nrrd *nmat) {
 ** I'll get an SVD-based solution working later, since that gives a more
 ** general solution
 */
-int
+int /* Biff: 1 */
 ell_Nm_pseudo_inv(Nrrd *ninv, Nrrd *nA) {
   static const char me[] = "ell_Nm_pseudo_inv";
   Nrrd *nAt, *nAtA, *nAtAi;
@@ -408,7 +411,7 @@ seeya:
 ** determines a weighted least squares solution via
 ** P = (A^T * W * A)^(-1) * A^T * W
 */
-int
+int /* Biff: 1 */
 ell_Nm_wght_pseudo_inv(Nrrd *ninv, Nrrd *nA, Nrrd *nW) {
   static const char me[] = "ell_Nm_wght_pseudo_inv";
   Nrrd *nAt, *nAtW, *nAtWA, *nAtWAi;
