@@ -4,7 +4,7 @@ _x,*_y=1,2 # NOTE: A SyntaxError here means you need python3, not python2
 del _x, _y
 
 # to biff annotate
-# gage dye bane limn echo hoover seek ten elf pull coil push mite meet
+# ten pull push mite
 
 import os
 import sys
@@ -136,13 +136,15 @@ def biffAnnotate(biffLevel, fileName, lineNum, annote, funcName):
     match = re.match(r'.+?(\/\*.*\*\/)',L)
     if not match:
         # no existing comment (whether or not it has an annotation)
-        # make sure that a void function is not using biff
+        # make sure that a function returning void is not using biff
         doesBiff = 'Biff? nope' != annote
-        qts = L.strip().split(' ') # qualifiers and types
+        # qualifier and return type; distinguishing between returning
+        # void (should not use biff) vs returning void* (fine to use biff)
+        qts = L.strip().replace('void *','void*').split(' ')
         if ('void' in qts and doesBiff
             and '_nrrdErrorHandlerPNG' != funcName # except: uses biff w/ PNG's setjmp/longjmp error handler
             and '_nrrdWarningHandlerPNG' != funcName): # except: uses biff but without setjmp/longjmp, is that ok??
-            raise Exception(f'{wut} is {L} but function uses biff (annote={annote})?')
+            raise Exception(f'{wut} returns "{qts}" but uses biff (annote={annote})?')
         # else no surprises in whether function uses biff
         # so add annotation when it makes sense to do so:
         # function is not returning void, and,
@@ -437,7 +439,7 @@ def usesBiff(str, idx, fname):
             raise Exception(f'unparsable biff call @ line {idx+1} of {fname}: |{ss}|')
         key = match.group(1)
         if LIB != key:
-            print(f'\nHEY {fname}:{idx+1} uses biff key "{key}" != "{LIB}"')
+            print(f'HEY {fname}:{idx+1} uses biff key "{key}" != "{LIB}"')
         # we've made an effort to ensure that the biff key is the library name
         # and, symbList made sure that the library name is parsable from function name
     return wen
@@ -473,7 +475,7 @@ def biffScan(funcName, fileName, funcKind):
             # functions (at the risk of losing chance to find biff usage errors
             # in static functions, such as functions not defined in macros, but
             # inside a clang-off/clang-on bracket)
-            print(f'--> Sorry, could not find {funcName} defined in {fileName}')
+            print(f'--> Sorry, could not (simplistically) find {funcName} defined in {fileName}')
         return None
     # else we think we found it
     if verbose > 2:
