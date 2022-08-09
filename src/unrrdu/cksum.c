@@ -31,7 +31,7 @@ static const char *_unrrdu_cksumInfoL
           "seeking to emulate the formatting of cksum output.\n "
           "* Uses nrrdCRC32");
 
-static int
+static int /* Biff: 1 */
 unrrdu_cksumDoit(const char *me, char *inS, int endian, int printendian, FILE *fout) {
   Nrrd *nrrd;
   airArray *mop;

@@ -36,7 +36,7 @@ static const char *_unrrdu_ilkInfoL
           "so this tool only knows about and computes sampling locations in index space "
           "(and the output image has no meaningful world-space).");
 
-static int
+static int /* Biff: 1 */
 perspGo(airArray *mop, Nrrd *nout, const Nrrd *nin, mossSampler *msp, int bound,
         const double *bkg, const Nrrd *_nxyc, const double *scale) {
   static const char me[] = "perspGo";
@@ -87,7 +87,7 @@ perspGo(airArray *mop, Nrrd *nout, const Nrrd *nin, mossSampler *msp, int bound,
   needed. double **matList would also benefit from some const-ness, as could min and
   max.
  */
-static int
+static int /* Biff: 1 */
 ilkGo(airArray *mop, Nrrd *nout, Nrrd *nin, mossSampler *msp, int bound,
       const double *bkg, double *min, double *max, double **matList,
       unsigned int matListLen, const double *scale, const double *origInfo,

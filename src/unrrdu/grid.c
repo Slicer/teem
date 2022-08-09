@@ -24,7 +24,7 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-static int
+static int /* Biff: 1 */
 gridGen(Nrrd *nout, int typeOut, const Nrrd *nin, int psz, int psg) {
   static const char me[] = "gridGen";
   size_t II, NN, size[NRRD_DIM_MAX], osz[NRRD_DIM_MAX], coord[NRRD_DIM_MAX];

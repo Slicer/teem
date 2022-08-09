@@ -33,7 +33,7 @@ static const char *_unrrdu_headInfoL
           "settings, make pointless beeps, and be annoying.\n "
           "* Uses nrrdOneLine");
 
-static int
+static int /* Biff: 1 */
 unrrdu_headDoit(const char *me, NrrdIoState *nio, char *inS, FILE *fout) {
   airArray *mop;
   unsigned int len;

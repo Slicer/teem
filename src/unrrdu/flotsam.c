@@ -57,7 +57,7 @@ const unrrduCmd *const unrrduCmdList[] = {UNRRDU_MAP(UNRRDU_LIST) NULL};
 ** unu commands alter the given hparm (which probably shouldn't happen).
 ** Until that's fixed, we have a non-const hestParm* coming in here.
 */
-int
+int /* Biff: nope */
 unrrduCmdMain(int argc, const char **argv, const char *cmd, const char *title,
               const unrrduCmd *const *cmdList, hestParm *_hparm, FILE *fusage) {
   int i, ret;
@@ -252,7 +252,7 @@ unrrduUsageUnu(const char *me, hestParm *hparm) {
 **
 ** does not use biff
 */
-int
+int /* Biff: nope */
 unrrduUsage(const char *me, hestParm *hparm, const char *title,
             const unrrduCmd *const *cmdList) {
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
