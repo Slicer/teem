@@ -210,12 +210,12 @@ ell_q_to_4m_d(double m[16], const double q[4]) {
   }                                                                                     \
   return 2 * angle
 
-float
+float /* Biff: nope */
 ell_q_to_aa_f(float axis[3], const float q[4]) {
   _ELL_Q_TO_AA(float);
 }
 
-double
+double /* Biff: nope */
 ell_q_to_aa_d(double axis[3], const double q[4]) {
   _ELL_Q_TO_AA(double);
 }
@@ -241,7 +241,7 @@ ell_aa_to_q_d(double q[4], const double angle, const double axis[3]) {
   _ELL_AA_TO_Q(double);
 }
 
-float
+float /* Biff: nope */
 ell_3m_to_aa_f(float axis[3], const float m[9]) {
   float q[4];
 
@@ -249,7 +249,7 @@ ell_3m_to_aa_f(float axis[3], const float m[9]) {
   return ell_q_to_aa_f(axis, q);
 }
 
-double
+double /* Biff: nope */
 ell_3m_to_aa_d(double axis[3], const double m[9]) {
   double q[4];
 
@@ -257,7 +257,7 @@ ell_3m_to_aa_d(double axis[3], const double m[9]) {
   return ell_q_to_aa_d(axis, q);
 }
 
-float
+float /* Biff: nope */
 ell_4m_to_aa_f(float axis[3], const float m[16]) {
   float q[4];
 
@@ -265,7 +265,7 @@ ell_4m_to_aa_f(float axis[3], const float m[16]) {
   return ell_q_to_aa_f(axis, q);
 }
 
-double
+double /* Biff: nope */
 ell_4m_to_aa_d(double axis[3], const double m[16]) {
   double q[4];
 
@@ -469,7 +469,7 @@ ell_q_4v_rotate_d(double v2[4], const double q[4], const double v1[4]) {
 
 /* #define _ELL_Q_AVG_ITER_MAX 30 */
 
-int
+int /* Biff: 1 */
 ell_q_avg4_d(double m[4], unsigned int *iterP, const double _q1[4], const double _q2[4],
              const double _q3[4], const double _q4[4], const double _wght[4],
              const double eps, const unsigned int maxIter) {
@@ -537,7 +537,7 @@ ell_q_avg4_d(double m[4], unsigned int *iterP, const double _q1[4], const double
 ** unlike the thing above, this one assumes that the quaternions in qq
 ** have already been normalized, and, that the sum of wght[] is 1.0
 */
-int
+int /* Biff: 1 */
 ell_q_avgN_d(double mm[4], unsigned int *iterP, const double *qq, double *qlog,
              const double *wght, const unsigned int NN, const double eps,
              const unsigned int maxIter) {

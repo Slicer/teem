@@ -69,12 +69,12 @@ ell_3m_post_mul_d(double _m[9], const double x[9]) {
   ELL_3M_COPY(_m, m);
 }
 
-float
+float /* Biff: nope */
 ell_3m_det_f(float m[9]) {
   return ELL_3M_DET(m);
 }
 
-double
+double /* Biff: nope */
 ell_3m_det_d(double m[9]) {
   return ELL_3M_DET(m);
 }
@@ -143,12 +143,12 @@ ell_4m_post_mul_d(double _m[16], const double x[16]) {
   ELL_4M_COPY(_m, m);
 }
 
-float
+float /* Biff: nope */
 ell_4m_det_f(float m[16]) {
   return ELL_4M_DET(m);
 }
 
-double
+double /* Biff: nope */
 ell_4m_det_d(double m[16]) {
   return ELL_4M_DET(m);
 }

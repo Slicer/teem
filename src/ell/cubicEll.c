@@ -40,10 +40,8 @@
 **
 ** The values stored in root[] are, in a change from the past, sorted
 ** in descending order!  No need to sort them any more!
-**
-** This does NOT use biff
 */
-int
+int /* Biff: nope */
 ell_cubic(double root[3], double A, double B, double C, int newton) {
   static const char me[] = "ell_cubic";
   double epsilon = 1.0E-11, AA, Q, R, QQQ, D, sqrt_D, der, u, v, x, theta, t, sub;

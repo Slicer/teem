@@ -72,10 +72,8 @@
 ** complex roots needs to be re-thought, as well as this issue:
 ** http://people.csail.mit.edu/bkph/articles/Quadratics.pdf Should
 ** also understand http://www.cs.berkeley.edu/~wkahan/Qdrtcs.pdf
-**
-** This does NOT use biff
 */
-int
+int /* Biff: nope */
 ell_quadratic(double root[2], double A, double B, double C) {
   /* static const char me[] = "ell_quadratic"; */
   int ret;
@@ -102,7 +100,7 @@ ell_quadratic(double root[2], double A, double B, double C) {
   return ret;
 }
 
-int
+int /* Biff: nope */
 ell_2m_eigenvalues_d(double eval[2], const double m[4]) {
   double A, B, C;
   int ret;
@@ -150,7 +148,7 @@ ell_2m_1d_nullspace_d(double ans[2], const double _n[4]) {
 **
 ** Eigensolve 2x2 matrix, which may be asymmetric
 */
-int
+int /* Biff: nope */
 ell_2m_eigensolve_d(double eval[2], double evec[4], const double m[4]) {
   /* static const char me[] = "ell_2m_eigensolve_d"; */
   double nul[4], ident[4] = {1, 0, 0, 1};
@@ -375,7 +373,7 @@ ell_3m_2d_nullspace_d(double ans0[3], double ans1[3], const double _n[9]) {
 ** be migrated here, but GLK is uncertain how it would change the
 ** handling of non-symmetric matrices.
 */
-int
+int /* Biff: nope */
 ell_3m_eigenvalues_d(double _eval[3], const double _m[9], const int newton) {
   double A, B, C, scale, frob, m[9], eval[3];
   int roots;
@@ -505,10 +503,8 @@ _ell_3m_evecs_d(double evec[9], double eval[3], int roots, const double m[9]) {
 **
 ** The eigenvalues (and associated eigenvectors) are sorted in
 ** descending order.
-**
-** This does NOT use biff
 */
-int
+int /* Biff: nope */
 ell_3m_eigensolve_d(double eval[3], double evec[9], const double m[9],
                     const int newton) {
   int roots;
@@ -535,7 +531,7 @@ ell_3m_eigensolve_d(double eval[3], double evec[9], const double m[9],
 ** put last (in eval[2]), possibly in defiance of the usual eigenvalue
 ** ordering.
 */
-int
+int /* Biff: nope */
 ell_3m2sub_eigenvalues_d(double eval[3], const double _m[9]) {
   double A, B, m[4], D, Dsq, eps = 1.0E-11;
   int roots;
@@ -639,7 +635,7 @@ _ell_3m2sub_evecs_d(double evec[9], double eval[3], int roots, const double m[9]
   return;
 }
 
-int
+int /* Biff: nope */
 ell_3m2sub_eigensolve_d(double eval[3], double evec[9], const double m[9]) {
   int roots;
 
@@ -666,7 +662,7 @@ ell_3m2sub_eigensolve_d(double eval[3], double evec[9], const double m[9]) {
 ** HEY: I think this does the wrong thing when given a symmetric
 ** matrix with negative eigenvalues . . .
 */
-int
+int /* Biff: nope */
 ell_3m_svd_d(double uu[9], double sval[3], double vv[9], const double mat[9],
              const int newton) {
   double trn[9], msqr[9], eval[3], evec[9];
@@ -750,10 +746,8 @@ _compar(const void *A_void, const void *B_void) {
 ** eigenvalues, in descending order, in eval[6], and corresponding
 ** eigenvectors in _evec+0, _evec+6, . . ., _evec+30.  NOTE: you can
 ** pass a NULL _evec if eigenvectors aren't needed.
-**
-** does NOT use biff
 */
-int
+int /* Biff: nope */
 ell_6ms_eigensolve_d(double eval[6], double _evec[36], const double sym[21],
                      const double eps) {
   /* static const char me[] = "ell_6ms_eigensolve_d"; */

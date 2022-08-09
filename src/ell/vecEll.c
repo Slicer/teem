@@ -108,7 +108,7 @@ ell_4mv_mul_d(double v2[4], const double m[16], const double v1[4]) {
 /*
 ** hat tip to http://www.plunk.org/~hatch/rightway.php
 */
-float
+float /* Biff: nope */
 ell_3v_angle_f(const float _uu[3], const float _vv[3]) {
   float tmp[3], len, uu[3], vv[3], ret;
 
@@ -125,7 +125,7 @@ ell_3v_angle_f(const float _uu[3], const float _vv[3]) {
 }
 
 /* HEY: copy and paste */
-double
+double /* Biff: nope */
 ell_3v_angle_d(const double _uu[3], const double _vv[3]) {
   double tmp[3], len, uu[3], vv[3], ret;
 
@@ -142,7 +142,7 @@ ell_3v_angle_d(const double _uu[3], const double _vv[3]) {
 }
 
 /* HEY: copy and paste */
-float
+float /* Biff: nope */
 ell_2v_angle_f(const float _uu[2], const float _vv[2]) {
   float tmp[2], len, uu[2], vv[2], ret;
 
@@ -159,7 +159,7 @@ ell_2v_angle_f(const float _uu[2], const float _vv[2]) {
 }
 
 /* HEY: copy and paste */
-double
+double /* Biff: nope */
 ell_2v_angle_d(const double _uu[2], const double _vv[2]) {
   double tmp[2], len, uu[2], vv[2], ret;
 
@@ -178,7 +178,7 @@ ell_2v_angle_d(const double _uu[2], const double _vv[2]) {
 /*
 ** input vectors have to be normalized!
 */
-double
+double /* Biff: nope */
 ell_3v_area_spherical_d(const double avec[3],
                         const double bvec[3],
                         const double cvec[3]) {
