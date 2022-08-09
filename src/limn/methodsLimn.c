@@ -23,7 +23,7 @@
 
 #include "limn.h"
 
-limnLight *
+limnLight * /* Biff: nope */
 limnLightNew(void) {
   limnLight *lit;
 
@@ -31,7 +31,7 @@ limnLightNew(void) {
   return lit;
 }
 
-limnLight *
+limnLight * /* Biff: nope */
 limnLightNix(limnLight *lit) {
 
   if (lit) {
@@ -55,7 +55,7 @@ limnCameraInit(limnCamera *cam) {
   return;
 }
 
-limnCamera *
+limnCamera * /* Biff: nope */
 limnCameraNew(void) {
   limnCamera *cam;
 
@@ -66,7 +66,7 @@ limnCameraNew(void) {
   return cam;
 }
 
-limnCamera *
+limnCamera * /* Biff: nope */
 limnCameraNix(limnCamera *cam) {
 
   if (cam) {
@@ -94,7 +94,7 @@ _limnOptsPSDefaults(limnOptsPS *ps) {
   ELL_3V_SET(ps->edgeColor, 0, 0, 0);
 }
 
-limnWindow *
+limnWindow * /* Biff: nope */
 limnWindowNew(int device) {
   limnWindow *win;
 
@@ -113,7 +113,7 @@ limnWindowNew(int device) {
   return win;
 }
 
-limnWindow *
+limnWindow * /* Biff: nope */
 limnWindowNix(limnWindow *win) {
 
   if (win) {

@@ -23,7 +23,7 @@
 
 #include "limn.h"
 
-int
+int /* Biff: 1 */
 limnObjectRender(limnObject *obj, limnCamera *cam, limnWindow *win) {
   static const char me[] = "limnObjectRender";
   int E;
@@ -182,7 +182,7 @@ _limnPSDrawEdge(limnObject *obj, limnEdge *edge, limnCamera *cam, limnWindow *wi
 ** normal, in a context where, if flat shading is all you have,
 ** correct specular lighting is not possible
 */
-int
+int /* Biff: 1 */
 limnObjectPSDraw(limnObject *obj, limnCamera *cam, Nrrd *nmap, limnWindow *win) {
   static const char me[] = "limnObjectPSDraw";
   int inside;
@@ -312,7 +312,7 @@ limnObjectPSDraw(limnObject *obj, limnCamera *cam, Nrrd *nmap, limnWindow *win) 
 ** thus better handling self-occlusions, but at the cost of not getting
 ** contours near oblique faces correct...
 */
-int
+int /* Biff: 1 */
 limnObjectPSDrawConcave(limnObject *obj, limnCamera *cam, Nrrd *nmap, limnWindow *win) {
   static const char me[] = "limnObjectPSDrawConcave";
   float angle;

@@ -172,7 +172,7 @@ const int limnSplineTypeHasImplicitTangents[LIMN_SPLINE_TYPE_MAX + 1] = {
   AIR_TRUE   /* limnSplineTypeBC */
 };
 
-int
+int /* Biff: nope */
 limnSplineNumPoints(limnSpline *spline) {
   int ret;
 
@@ -183,7 +183,7 @@ limnSplineNumPoints(limnSpline *spline) {
   return ret;
 }
 
-double
+double /* Biff: nope */
 limnSplineMinT(limnSpline *spline) {
   double ret;
 
@@ -194,7 +194,7 @@ limnSplineMinT(limnSpline *spline) {
   return ret;
 }
 
-double
+double /* Biff: nope */
 limnSplineMaxT(limnSpline *spline) {
   double ret;
   int N;
@@ -220,7 +220,7 @@ limnSplineBCSet(limnSpline *spline, double B, double C) {
   }
 }
 
-limnSplineTypeSpec *
+limnSplineTypeSpec * /* Biff: NULL */
 limnSplineTypeSpecParse(const char *_str) {
   static const char me[] = "limnSplineTypeSpecParse";
   limnSplineTypeSpec *spec;
@@ -276,7 +276,7 @@ limnSplineTypeSpecParse(const char *_str) {
   return spec;
 }
 
-limnSpline *
+limnSpline * /* Biff: NULL */
 limnSplineParse(const char *_str) {
   static const char me[] = "limnSplineParse";
   char *str, *col, *fnameS, *infoS, *typeS, *tmpS;

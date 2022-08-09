@@ -321,7 +321,7 @@ limnSplineEvaluate(double *out, limnSpline *spline, double tt) {
   return;
 }
 
-int
+int /* Biff: 1 */
 limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin) {
   static const char me[] = "limnSplineNrrdEvaluate";
   double tt, *out, (*lup)(const void *, size_t);
@@ -359,7 +359,7 @@ limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnSplineSample(Nrrd *nout, limnSpline *spline, double minT, size_t M, double maxT) {
   static const char me[] = "limnSplineSample";
   airArray *mop;

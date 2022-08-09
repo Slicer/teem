@@ -41,7 +41,7 @@ typedef unsigned int uint;
   re-writing; ignorance persists.
 */
 
-limnPoints *
+limnPoints * /* Biff: nope */
 limnPointsNew(const double *pp, uint nn, int isLoop) {
   limnPoints *lpnt;
   lpnt = AIR_CALLOC(1, limnPoints);
@@ -61,7 +61,7 @@ limnPointsNew(const double *pp, uint nn, int isLoop) {
   return lpnt;
 }
 
-limnPoints *
+limnPoints * /* Biff: nope */
 limnPointsNix(limnPoints *lpnt) {
   if (lpnt) {
     /* don't touch lpnt->pp */
@@ -71,7 +71,7 @@ limnPointsNix(limnPoints *lpnt) {
   return NULL;
 }
 
-static int
+static int /* Biff: 1 */
 pointsCheck(const limnPoints *lpnt) {
   static const char me[] = "pointsCheck";
   uint pnmin;
@@ -327,7 +327,7 @@ findVT(double vv[2], double tt[2], const limnCBFContext *fctx, const limnPoints 
   return;
 }
 
-static int
+static int /* Biff: 1 */
 setVTTV(int *given, double vv0[2], double tt1[2], double tt2[2], double vv3[2],
         const double _vv0[2], const double _tt1[2], const double _tt2[2],
         const double _vv3[2], const limnCBFContext *fctx, const limnPoints *lpnt,
@@ -586,7 +586,7 @@ limnCBFContextInit(limnCBFContext *fctx, int outputOnly) {
 **
 ** checks the things that are going to be passed around a lot
 */
-int
+int /* Biff: 1 */
 limnCBFCheck(const limnCBFContext *fctx, const limnPoints *lpnt) {
   static const char me[] = "limnCBFCheck";
 
@@ -758,7 +758,7 @@ fitSingle(double alpha[2], limnCBFContext *fctx, const double vv0[2],
 ** buffersNew: allocates in fctx:
 ** uu, vw, tw
 */
-static int
+static int /* Biff: 1 */
 buffersNew(limnCBFContext *fctx, uint pNum) {
   static const char me[] = "buffersNew";
   double kw, kparm[2], vsum, tsum, scl = fctx->scale;
@@ -857,7 +857,7 @@ buffersNix(limnCBFContext *fctx) {
 ** builds a limnPoints around given xy, determines spline
 ** constraints if necessary, and calls fitSingle
 */
-int
+int /* Biff: 1 */
 limnCBFitSingle(double alpha[2], limnCBFContext *_fctx, const double _vv0[2],
                 const double _tt1[2], const double _tt2[2], const double _vv3[2],
                 const double *xy, uint pNum, int isLoop) {
@@ -911,7 +911,7 @@ segInit(void *_seg) {
   return;
 }
 
-limnCBFPath *
+limnCBFPath * /* Biff: nope */
 limnCBFPathNew() {
   limnCBFPath *path;
   path = AIR_MALLOC(1, limnCBFPath);
@@ -924,7 +924,7 @@ limnCBFPathNew() {
   return path;
 }
 
-limnCBFPath *
+limnCBFPath * /* Biff: nope */
 limnCBFPathNix(limnCBFPath *path) {
   if (path) {
     airArrayNuke(path->segArr);
@@ -948,7 +948,7 @@ limnCBFPathJoin(limnCBFPath *dst, const limnCBFPath *src) {
 ** tangents are different), but does recursively subdivide the points into
 ** left and right sides around points with the highest error from fitSingle.
 */
-int
+int /* Biff: 1 */
 limnCBFMulti(limnCBFPath *path, limnCBFContext *fctx, const double _vv0[2],
              const double _tt1[2], const double _tt2[2], const double _vv3[2],
              const limnPoints *lpnt, uint loi, uint hii) {
@@ -1050,7 +1050,7 @@ limnCBFMulti(limnCBFPath *path, limnCBFContext *fctx, const double _vv0[2],
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnCBFCorners(uint **cornIdx, uint *cornNum, limnCBFContext *fctx,
                const limnPoints *lpnt) {
   static const char me[] = "limnCBFCorners";
@@ -1120,7 +1120,7 @@ limnCBFCorners(uint **cornIdx, uint *cornNum, limnCBFContext *fctx,
 **
 ** top-level function for fitting cubic beziers to given points
 */
-int
+int /* Biff: 1 */
 limnCBFit(limnCBFPath *path, limnCBFContext *fctx, const double *xy, uint pNum,
           int isLoop) {
   static const char me[] = "limnCBFit";

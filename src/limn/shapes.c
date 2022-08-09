@@ -23,7 +23,7 @@
 
 #include "limn.h"
 
-int
+int /* Biff: nope */
 limnObjectCubeAdd(limnObject *obj, unsigned int lookIdx) {
   unsigned int vII[4], vII0, partIdx;
 
@@ -65,7 +65,7 @@ limnObjectCubeAdd(limnObject *obj, unsigned int lookIdx) {
   return partIdx;
 }
 
-int
+int /* Biff: nope */
 limnObjectSquareAdd(limnObject *obj, unsigned int lookIdx) {
   unsigned int vII0, vII[4], partIdx;
 
@@ -88,7 +88,7 @@ limnObjectSquareAdd(limnObject *obj, unsigned int lookIdx) {
 ** adds a cylinder that fills up the bi-unit cube [-1,1]^3,
 ** with axis "axis" (0:X, 1:Y, 2:Z), with discretization "res"
 */
-int
+int /* Biff: nope */
 limnObjectCylinderAdd(limnObject *obj, unsigned int lookIdx, unsigned int axis,
                       unsigned int res) {
   unsigned int partIdx, ii, jj, tmp, vII0 = 0, *vII;
@@ -148,7 +148,7 @@ limnObjectCylinderAdd(limnObject *obj, unsigned int lookIdx, unsigned int axis,
   return partIdx;
 }
 
-int
+int /* Biff: nope */
 limnObjectConeAdd(limnObject *obj, unsigned int lookIdx, unsigned int axis,
                   unsigned int res) {
   double th;
@@ -205,7 +205,7 @@ limnObjectConeAdd(limnObject *obj, unsigned int lookIdx, unsigned int axis,
   return partIdx;
 }
 
-int
+int /* Biff: nope */
 limnObjectPolarSphereAdd(limnObject *obj, unsigned int lookIdx, unsigned int axis,
                          unsigned int thetaRes, unsigned int phiRes) {
   unsigned int partIdx, vII0, nti, ti, pi, vII[4], pl;
@@ -285,7 +285,7 @@ limnObjectPolarSphereAdd(limnObject *obj, unsigned int lookIdx, unsigned int axi
   return partIdx;
 }
 
-int
+int /* Biff: nope */
 limnObjectPolarSuperquadFancyAdd(limnObject *obj, unsigned int lookIdx,
                                  unsigned int axis, float A, float B, float C, float R,
                                  unsigned int thetaRes, unsigned int phiRes) {
@@ -389,7 +389,7 @@ limnObjectPolarSuperquadFancyAdd(limnObject *obj, unsigned int lookIdx,
   return partIdx;
 }
 
-int
+int /* Biff: nope */
 limnObjectPolarSuperquadAdd(limnObject *obj, unsigned int lookIdx, unsigned int axis,
                             float A, float B, unsigned int thetaRes,
                             unsigned int phiRes) {

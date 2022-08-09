@@ -65,7 +65,7 @@ limnLightAmbientSet(limnLight *lit, float r, float g, float b) {
 **
 ** returns 1 if there was a problem in the camera, otherwise 0.
 */
-int
+int /* Biff: 1 */
 limnLightUpdate(limnLight *lit, limnCamera *cam) {
   static const char me[] = "limnLightUpdate";
   double dir[3], _dir[3], uvn[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0}, norm;

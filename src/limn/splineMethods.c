@@ -23,7 +23,7 @@
 
 #include "limn.h"
 
-limnSplineTypeSpec *
+limnSplineTypeSpec * /* Biff: NULL */
 limnSplineTypeSpecNew(int type, ...) {
   static const char me[] = "limnSplineTypeSpecNew";
   limnSplineTypeSpec *spec;
@@ -44,7 +44,7 @@ limnSplineTypeSpecNew(int type, ...) {
   return spec;
 }
 
-limnSplineTypeSpec *
+limnSplineTypeSpec * /* Biff: nope */
 limnSplineTypeSpecNix(limnSplineTypeSpec *spec) {
 
   airFree(spec);
@@ -56,7 +56,7 @@ limnSplineTypeSpecNix(limnSplineTypeSpec *spec) {
 **
 ** implements GK's patented time warping technology
 */
-static int
+static int /* Biff: 1 */
 _limnSplineTimeWarpSet(limnSpline *spline) {
   static const char me[] = "_limnSplineTimeWarpSet";
   double *cpt, *time, ss;
@@ -122,7 +122,7 @@ _limnSplineTimeWarpSet(limnSpline *spline) {
 ** LIES LIES LIES: For BC-splines, you still have to call limnSplineBCSet,
 ** but that's the only exception...
 */
-limnSpline *
+limnSpline * /* Biff: NULL */
 limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
   static const char me[] = "limnSplineNew";
   limnSpline *spline;
@@ -219,7 +219,7 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
   return spline;
 }
 
-limnSpline *
+limnSpline * /* Biff: nope */
 limnSplineNix(limnSpline *spline) {
 
   if (spline) {
@@ -247,7 +247,7 @@ limnSplineNix(limnSpline *spline) {
 **
 ** If requested, we also take a stab at guessing limnSplineInfo.
 */
-int
+int /* Biff: 1 */
 limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
   static const char me[] = "limnSplineNrrdCleverFix";
   ptrdiff_t min[3], max[3];
@@ -392,7 +392,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
   return 0;
 }
 
-limnSpline *
+limnSpline * /* Biff: NULL */
 limnSplineCleverNew(Nrrd *ncpt, int info, limnSplineTypeSpec *spec) {
   static const char me[] = "limnSplineCleverNew";
   limnSpline *spline;
@@ -420,7 +420,7 @@ limnSplineCleverNew(Nrrd *ncpt, int info, limnSplineTypeSpec *spec) {
   return spline;
 }
 
-int
+int /* Biff: 1 */
 limnSplineUpdate(limnSpline *spline, Nrrd *_ncpt) {
   static const char me[] = "limnSplineUpdate";
   Nrrd *ntmp;

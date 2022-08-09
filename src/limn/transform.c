@@ -23,7 +23,7 @@
 
 #include "limn.h"
 
-int
+int /* Biff: 1 */
 limnObjectWorldHomog(limnObject *obj) {
   static const char me[] = "limnObjectWorldHomog";
   unsigned int vertIdx;
@@ -45,7 +45,7 @@ limnObjectWorldHomog(limnObject *obj) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnObjectFaceNormals(limnObject *obj, int space) {
   static const char me[] = "limnObjectFaceNormals";
   unsigned int vii, faceIdx;
@@ -96,7 +96,7 @@ limnObjectFaceNormals(limnObject *obj, int space) {
   return 0;
 }
 
-int
+int /* Biff: nope */
 limnObjectVertexNormals(limnObject *obj) {
   /* static const char me[] = "limnObjectVertexNormals"; */
   unsigned int vertIdx, vertIdxIdx, faceIdx;
@@ -143,7 +143,7 @@ _limnObjectViewTransform(limnObject *obj, limnCamera *cam) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _limnObjectScreenTransform(limnObject *obj, limnCamera *cam) {
   static const char me[] = "_limnObjectScreenTransform";
   unsigned int vertIdx;
@@ -171,7 +171,7 @@ _limnObjectScreenTransform(limnObject *obj, limnCamera *cam) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _limnObjectDeviceTransform(limnObject *obj, limnCamera *cam, limnWindow *win) {
   static const char me[] = "_limnObjectDeviceTransform";
   unsigned int vertIdx;
@@ -208,7 +208,7 @@ _limnObjectDeviceTransform(limnObject *obj, limnCamera *cam, limnWindow *win) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnObjectSpaceTransform(limnObject *obj, limnCamera *cam, limnWindow *win, int space) {
   static const char me[] = "limnObjectSpaceTransform";
   int E = 0;
@@ -237,7 +237,7 @@ limnObjectSpaceTransform(limnObject *obj, limnCamera *cam, limnWindow *win, int 
   return 0;
 }
 
-int
+int /* Biff: nope */
 limnObjectPartTransform(limnObject *obj, unsigned int partIdx, float xform[16]) {
   unsigned int vertIdxIdx;
   limnPart *part;
@@ -264,7 +264,7 @@ _limnPartDepthCompare(const void *_a, const void *_b) {
   return AIR_COMPARE((*b)->depth, (*a)->depth);
 }
 
-int
+int /* Biff: nope */
 limnObjectDepthSortParts(limnObject *obj) {
   limnPart *part;
   limnVertex *vert;
@@ -310,7 +310,7 @@ _limnFaceDepthCompare(const void *_a, const void *_b) {
   return -AIR_COMPARE((*a)->depth, (*b)->depth);
 }
 
-int
+int /* Biff: nope */
 limnObjectDepthSortFaces(limnObject *obj) {
   limnFace *face;
   limnVertex *vert;
@@ -333,7 +333,7 @@ limnObjectDepthSortFaces(limnObject *obj) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnObjectFaceReverse(limnObject *obj) {
   static const char me[] = "limnObjectFaceReverse";
   limnFace *face;

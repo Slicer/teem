@@ -890,7 +890,7 @@ const unsigned int limnQNBins[LIMN_QN_MAX + 1]
      | unu tile -a 2 0 1 -s 2 1 | unu quantize -b 8 -o q${Q}.png
   end
 */
-int
+int /* Biff: 1 */
 limnQNDemo(Nrrd *nqn, unsigned int reso, int qni) {
   static const char me[] = "limnQNDemo";
   unsigned int ui, vi, oi;

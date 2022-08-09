@@ -33,7 +33,7 @@ typedef union {
   void **v;
 } limnPtrPtrUnion;
 
-int
+int /* Biff: nope */
 limnObjectLookAdd(limnObject *obj) {
   int lookIdx;
   limnLook *look;
@@ -46,7 +46,7 @@ limnObjectLookAdd(limnObject *obj) {
   return lookIdx;
 }
 
-limnObject *
+limnObject * /* Biff: nope */
 limnObjectNew(int incr, int doEdges) {
   limnObject *obj;
   limnPtrPtrUnion lppu;
@@ -127,7 +127,7 @@ _limnObjectFaceEmpty(limnFace *face) {
   return;
 }
 
-limnObject *
+limnObject * /* Biff: nope */
 limnObjectNix(limnObject *obj) {
   unsigned int partIdx, faceIdx;
 
@@ -187,7 +187,7 @@ limnObjectEmpty(limnObject *obj) {
 ** limnObject, so that there will be no calloc/memcpy overhead associated
 ** with growing any of the airArrays inside
 */
-int
+int /* Biff: nope */
 limnObjectPreSet(limnObject *obj, unsigned int partNum, unsigned int lookNum,
                  unsigned int vertPerPart, unsigned int edgePerPart,
                  unsigned int facePerPart) {
@@ -212,7 +212,7 @@ limnObjectPreSet(limnObject *obj, unsigned int partNum, unsigned int lookNum,
   return 0;
 }
 
-int
+int /* Biff: nope */
 limnObjectPartAdd(limnObject *obj) {
   unsigned int partIdx;
   limnPart *part;
@@ -233,7 +233,7 @@ limnObjectPartAdd(limnObject *obj) {
   return partIdx;
 }
 
-int
+int /* Biff: nope */
 limnObjectVertexNumPreSet(limnObject *obj, unsigned int partIdx, unsigned int vertNum) {
   limnPart *part;
 
@@ -243,7 +243,7 @@ limnObjectVertexNumPreSet(limnObject *obj, unsigned int partIdx, unsigned int ve
   return 0;
 }
 
-int
+int /* Biff: nope */
 limnObjectVertexAdd(limnObject *obj, unsigned int partIdx, float x, float y, float z) {
   limnPart *part;
   limnVertex *vert;
@@ -271,7 +271,7 @@ limnObjectVertexAdd(limnObject *obj, unsigned int partIdx, float x, float y, flo
   return vertIdx;
 }
 
-int
+int /* Biff: nope */
 limnObjectEdgeAdd(limnObject *obj, unsigned int partIdx, unsigned int lookIdx,
                   unsigned int faceIdx, unsigned int vertIdx0, unsigned int vertIdx1) {
   int tmp, edgeIdx = -42;
@@ -314,7 +314,7 @@ limnObjectEdgeAdd(limnObject *obj, unsigned int partIdx, unsigned int lookIdx,
   return edgeIdx;
 }
 
-int
+int /* Biff: nope */
 limnObjectFaceNumPreSet(limnObject *obj, unsigned int partIdx, unsigned int faceNum) {
   limnPart *part;
 
@@ -324,7 +324,7 @@ limnObjectFaceNumPreSet(limnObject *obj, unsigned int partIdx, unsigned int face
   return 0;
 }
 
-int
+int /* Biff: nope */
 limnObjectFaceAdd(limnObject *obj, unsigned int partIdx, unsigned int lookIdx,
                   unsigned int sideNum, unsigned int *vertIdx) {
   limnFace *face;

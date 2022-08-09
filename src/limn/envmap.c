@@ -23,7 +23,7 @@
 
 #include "limn.h"
 
-int
+int /* Biff: 1 */
 limnEnvMapFill(Nrrd *map, limnEnvMapCB cb, int qnMethod, void *data) {
   static const char me[] = "limnEnvMapFill";
   unsigned int sx, sy, qn;
@@ -117,7 +117,7 @@ limnLightDiffuseCB(float rgb[3], float vec[3], void *_lit) {
   rgb[2] = b;
 }
 
-int
+int /* Biff: 1 */
 limnEnvMapCheck(Nrrd *envMap) {
   static const char me[] = "limnEnvMapCheck";
 

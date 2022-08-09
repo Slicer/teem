@@ -31,7 +31,7 @@
 **
 ** This does use biff to describe problems with camera settings
 */
-int
+int /* Biff: 1 */
 limnCameraUpdate(limnCamera *cam) {
   static const char me[] = "limnCameraUpdate";
   double len, bb[4], uu[4], vv[4], nn[4], TT[16], RR[16];
@@ -128,7 +128,7 @@ limnCameraUpdate(limnCamera *cam) {
 ** call this whenever they have the information required to do so, even
 ** if the "aspect" is not going to be needed for a given camera use
 */
-int
+int /* Biff: 1 */
 limnCameraAspectSet(limnCamera *cam, unsigned int horz, unsigned int vert,
                     int centering) {
   static const char me[] = "limnCameraAspectSet";
@@ -187,7 +187,7 @@ limnCameraAspectSet(limnCamera *cam, unsigned int horz, unsigned int vert,
 ** "aspect" need to set in *all* the keycams, even if neither of them
 ** ever changes!
 */
-int
+int /* Biff: 1 */
 limnCameraPathMake(limnCamera *cam, int numFrames, limnCamera *keycam, double *time,
                    int numKeys, int trackWhat, limnSplineTypeSpec *quatType,
                    limnSplineTypeSpec *posType, limnSplineTypeSpec *distType,

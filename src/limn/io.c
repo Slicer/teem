@@ -23,7 +23,7 @@
 
 #include "limn.h"
 
-int
+int /* Biff: nope */
 limnObjectDescribe(FILE *file, const limnObject *obj) {
   limnFace *face;
   unsigned int si, fii;
@@ -77,7 +77,7 @@ limnObjectDescribe(FILE *file, const limnObject *obj) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnObjectWriteOFF(FILE *file, const limnObject *obj) {
   static const char me[] = "limnObjectWriteOFF";
   unsigned int si;
@@ -136,7 +136,7 @@ limnObjectWriteOFF(FILE *file, const limnObject *obj) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataWriteIV(FILE *file, const limnPolyData *pld) {
   static const char me[] = "limnPolyDataWriteIV";
   unsigned int primIdx, xyzwIdx, rgbaIdx, normIdx, bitFlag, baseVertIdx;
@@ -262,7 +262,7 @@ limnPolyDataWriteIV(FILE *file, const limnPolyData *pld) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnObjectReadOFF(limnObject *obj, FILE *file) {
   static const char me[] = "limnObjectReadOFF";
   double vert[6];
@@ -453,7 +453,7 @@ http://www.npr.org/templates/story/story.php?storyId=4531695
 #define INDX_STR    "indx:"
 #define XYZW_STR    "xyzw:"
 
-int
+int /* Biff: 1 */
 limnPolyDataWriteLMPD(FILE *file, const limnPolyData *pld) {
   static const char me[] = "limnPolyDataWriteLMPD";
   char infoS[AIR_STRLEN_MED];
@@ -580,7 +580,7 @@ limnPolyDataWriteLMPD(FILE *file, const limnPolyData *pld) {
 ** HEY: this was written in a hurry, is pretty hacky, and so it
 ** needs some serious clean-up
 */
-int
+int /* Biff: 1 */
 limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
   static const char me[] = "limnPolyDatReadLMPD";
   char line[AIR_STRLEN_MED], name[AIR_STRLEN_MED], *tmp;
@@ -873,7 +873,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _limnHestPolyDataLMPDParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   static const char me[] = "_limnHestPolyDataLMPDParse";
   char *nerr;
@@ -963,7 +963,7 @@ static const hestCB _limnHestPolyDataOFF = {sizeof(limnPolyData *), "polydata",
 
 const hestCB *const limnHestPolyDataOFF = &_limnHestPolyDataOFF;
 
-int
+int /* Biff: 1 */
 limnPolyDataWriteVTK(FILE *file, const limnPolyData *pld) {
   static const char me[] = "limnPolyDataWriteVTK";
   unsigned int pntIdx, prmIdx, *indx, idxNum;
@@ -1053,7 +1053,7 @@ limnPolyDataWriteVTK(FILE *file, const limnPolyData *pld) {
 ** HEY: this has to be re-written with different allocation strategies
 ** if it is to support anything other than a single limnPrimitiveTriangles
 */
-int
+int /* Biff: 1 */
 limnPolyDataReadOFF(limnPolyData *pld, FILE *file) {
   static const char me[] = "limnPolyDataReadOFF";
   char line[AIR_STRLEN_LARGE]; /* HEY: bad Gordon */
@@ -1158,7 +1158,7 @@ limnPolyDataReadOFF(limnPolyData *pld, FILE *file) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataSave(const char *_fname, const limnPolyData *lpld) {
   static const char me[] = "limnPolyDataSave";
   char *fname;
