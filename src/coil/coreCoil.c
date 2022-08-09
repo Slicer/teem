@@ -285,7 +285,7 @@ _coilWorker(void *_task) {
   return _task;
 }
 
-int
+int /* Biff: 1 */
 coilStart(coilContext *cctx) {
   static const char me[] = "coilStart";
   int valIdx, valLen;
@@ -360,7 +360,7 @@ coilStart(coilContext *cctx) {
 **
 ** NB: this implements the body of thread 0
 */
-int
+int /* Biff: 1 */
 coilIterate(coilContext *cctx, int numIterations) {
   static const char me[] = "coilIterate";
   int iter;
@@ -405,7 +405,7 @@ coilIterate(coilContext *cctx, int numIterations) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 coilFinish(coilContext *cctx) {
   static const char me[] = "coilFinish";
   unsigned int tidx;

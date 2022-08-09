@@ -23,7 +23,7 @@
 
 #include "coil.h"
 
-int
+int /* Biff: 1 */
 coilVolumeCheck(const Nrrd *nin, const coilKind *kind) {
   static const char me[] = "coilVolumeCheck";
   unsigned int baseDim;
@@ -47,7 +47,7 @@ coilVolumeCheck(const Nrrd *nin, const coilKind *kind) {
   return 0;
 }
 
-coilContext *
+coilContext * /* Biff: nope */
 coilContextNew() {
   coilContext *cctx;
 
@@ -67,7 +67,7 @@ coilContextNew() {
   return cctx;
 }
 
-int
+int /* Biff: 1 */
 coilContextAllSet(coilContext *cctx, const Nrrd *nin, const coilKind *kind,
                   const coilMethod *method, unsigned int radius, unsigned int numThreads,
                   int verbose, double parm[COIL_PARMS_NUM]) {
@@ -198,7 +198,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin, const coilKind *kind,
 ** that they started with.  That sort of operation should be under
 ** explicit user control.
 */
-int
+int /* Biff: 1 */
 coilOutputGet(Nrrd *nout, coilContext *cctx) {
   static const char me[] = "coilOutputGet";
   int baseDim;
@@ -224,7 +224,7 @@ coilOutputGet(Nrrd *nout, coilContext *cctx) {
   return 0;
 }
 
-coilContext *
+coilContext * /* Biff: nope */
 coilContextNix(coilContext *cctx) {
 
   if (cctx) {
