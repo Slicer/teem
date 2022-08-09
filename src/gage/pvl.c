@@ -34,7 +34,7 @@
 ** test- which is fine- it just means that the check is not specific
 ** to the parameters that can be set in the gageContext.
 */
-int
+int /* Biff: 1 */
 gageVolumeCheck(const gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
   static const char me[] = "gageVolumeCheck";
   gageShape shape;
@@ -55,7 +55,7 @@ gageVolumeCheck(const gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
 **
 ** uses biff primarily because of the error checking in gageVolumeCheck()
 */
-gagePerVolume *
+gagePerVolume * /* Biff: NULL */
 gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
   static const char me[] = "gagePerVolumeNew";
   gagePerVolume *pvl;
@@ -129,7 +129,7 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
 ** copies a pervolume for use in a copied context, and probably
 ** should only be called by gageContextCopy()
 */
-gagePerVolume *
+gagePerVolume * /* Biff: (private) NULL */
 _gagePerVolumeCopy(gagePerVolume *pvl, unsigned int fd) {
   static const char me[] = "gagePerVolumeCopy";
   gagePerVolume *nvl;
@@ -192,7 +192,7 @@ _gagePerVolumeCopy(gagePerVolume *pvl, unsigned int fd) {
 **
 ** does not use biff
 */
-gagePerVolume *
+gagePerVolume * /* Biff: nope */
 gagePerVolumeNix(gagePerVolume *pvl) {
 
   if (pvl) {
@@ -219,7 +219,7 @@ gagePerVolumeNix(gagePerVolume *pvl) {
 ** of the current query.
 **
 */
-const double *
+const double * /* Biff: nope */
 gageAnswerPointer(const gageContext *ctx, const gagePerVolume *pvl, int item) {
   const double *ret;
 
@@ -233,7 +233,7 @@ gageAnswerPointer(const gageContext *ctx, const gagePerVolume *pvl, int item) {
 }
 
 /* non-const version of the above */
-double *
+double * /* Biff: nope */
 _gageAnswerPointer(const gageContext *ctx, gagePerVolume *pvl, int item) {
   double *ret;
 
@@ -246,7 +246,7 @@ _gageAnswerPointer(const gageContext *ctx, gagePerVolume *pvl, int item) {
   return ret;
 }
 
-unsigned int
+unsigned int /* Biff: nope */
 gageAnswerLength(const gageContext *ctx, const gagePerVolume *pvl, int item) {
   unsigned int ret;
 
@@ -259,7 +259,7 @@ gageAnswerLength(const gageContext *ctx, const gagePerVolume *pvl, int item) {
   return ret;
 }
 
-int
+int /* Biff: 1 */
 gageQueryReset(gageContext *ctx, gagePerVolume *pvl) {
   static const char me[] = "gageQueryReset";
 
@@ -285,7 +285,7 @@ gageQueryReset(gageContext *ctx, gagePerVolume *pvl) {
 ** the gageContext is not actually used here, but I'm cautiously
 ** including it in case its used in the future.
 */
-int
+int /* Biff: 1 */
 gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
   static const char me[] = "gageQuerySet";
   gageQuery lastQuery;
@@ -341,7 +341,7 @@ gageQuerySet(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageQueryAdd(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
   static const char me[] = "gageQueryAdd";
 
@@ -359,7 +359,7 @@ gageQueryAdd(gageContext *ctx, gagePerVolume *pvl, gageQuery query) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageQueryItemOn(gageContext *ctx, gagePerVolume *pvl, int item) {
   static const char me[] = "gageQueryItemOn";
 

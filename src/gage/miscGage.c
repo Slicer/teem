@@ -154,7 +154,7 @@ gageItemSpecInit(gageItemSpec *isp) {
   return;
 }
 
-gageItemSpec *
+gageItemSpec * /* Biff: nope */
 gageItemSpecNew(void) {
   gageItemSpec *isp;
 
@@ -163,7 +163,7 @@ gageItemSpecNew(void) {
   return isp;
 }
 
-gageItemSpec *
+gageItemSpec * /* Biff: nope */
 gageItemSpecNix(gageItemSpec *isp) {
 
   if (isp) {

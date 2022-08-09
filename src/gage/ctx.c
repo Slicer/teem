@@ -31,10 +31,8 @@ typedef union {
 
 /*
 ******** gageContextNew()
-**
-** doesn't use biff
 */
-gageContext *
+gageContext * /* Biff: nope */
 gageContextNew() {
   gageContext *ctx;
   perVolumeUnion pvu;
@@ -88,7 +86,7 @@ gageContextNew() {
 ** before you weren't allowed to do anything but gageProbe() on the
 ** copied context).
 */
-gageContext *
+gageContext * /* Biff: NULL */
 gageContextCopy(gageContext *ctx) {
   static const char me[] = "gageContextCopy";
   gageContext *ntx;
@@ -166,10 +164,8 @@ gageContextCopy(gageContext *ctx) {
 ** responsible for freeing and clearing up everything hanging off a
 ** context so that things can be returned to the way they were prior
 ** to gageContextNew().
-**
-** does not use biff
 */
-gageContext *
+gageContext * /* Biff: nope */
 gageContextNix(gageContext *ctx) {
   /* static const char me[] = "gageContextNix"; */
   unsigned int pvlIdx;
@@ -200,10 +196,8 @@ gageContextNix(gageContext *ctx) {
 ** is all the error checking it does.
 **
 ** Refers to ctx->checkIntegrals and acts appropriately.
-**
-** Does use biff.
 */
-int
+int /* Biff: 1 */
 gageKernelSet(gageContext *ctx, int which, const NrrdKernel *k, const double *kparm) {
   static const char me[] = "gageKernelSet";
   int numParm;
@@ -382,7 +376,7 @@ gageParmSet(gageContext *ctx, int which, double val) {
 ******** gagePerVolumeIsAttached()
 **
 */
-int
+int /* Biff: nope */
 gagePerVolumeIsAttached(const gageContext *ctx, const gagePerVolume *pvl) {
   int ret;
   unsigned int pvlIdx;
@@ -402,7 +396,7 @@ gagePerVolumeIsAttached(const gageContext *ctx, const gagePerVolume *pvl) {
 ** attaches a pervolume to a context, which actually involves
 ** very little work
 */
-int
+int /* Biff: 1 */
 gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
   static const char me[] = "gagePerVolumeAttach";
   gageShape *shape;
@@ -461,7 +455,7 @@ gagePerVolumeAttach(gageContext *ctx, gagePerVolume *pvl) {
 ** with the pervolume; caller may want to call gagePerVolumeNix
 ** if this pervolume will no longer be used
 */
-int
+int /* Biff: 1 */
 gagePerVolumeDetach(gageContext *ctx, gagePerVolume *pvl) {
   static const char me[] = "gagePerVolumeDetach";
   unsigned int pvlIdx, foundIdx = 0;
@@ -692,7 +686,7 @@ _gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
 ** NOTE: the stack filter weights are (like the spatial filter weights)
 ** computed inside _gageLocationSet()
 */
-int
+int /* Biff: nope */
 _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
   static const char me[] = "_gageProbe";
   unsigned int oldIdx[4], oldNnz = 0, pvlIdx;
@@ -816,13 +810,13 @@ _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
 ** bummer: the non-stack gageProbe function is now just a wrapper
 ** around the stack-based gageProbe
 */
-int
+int /* Biff: nope */
 gageProbe(gageContext *ctx, double xi, double yi, double zi) {
 
   return _gageProbe(ctx, xi, yi, zi, 0.0);
 }
 
-int
+int /* Biff: nope */
 _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
                 int indexSpace, int clamp) {
   static const char me[] = "_gageProbeSpace";
@@ -920,7 +914,7 @@ _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
   return _gageProbe(ctx, xi, yi, zi, si);
 }
 
-int
+int /* Biff: nope */
 gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, int indexSpace,
                int clamp) {
 

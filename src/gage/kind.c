@@ -31,7 +31,7 @@
 ** the sorts of mistakes that may be introduced by its hand-coding, although
 ** theoretically this is good for dynamically-generated gageKinds as well.
 */
-int
+int /* Biff: 1 */
 gageKindCheck(const gageKind *kind) {
   static const char me[] = "gageKindCheck";
   int pitem, pindex, alen;
@@ -131,7 +131,7 @@ gageKindCheck(const gageKind *kind) {
   return 0;
 }
 
-unsigned int
+unsigned int /* Biff: nope */
 gageKindTotalAnswerLength(const gageKind *kind) {
   static const char me[] = "gageKindTotalAnswerLength";
   char *err;
@@ -154,7 +154,7 @@ gageKindTotalAnswerLength(const gageKind *kind) {
 /*
 ** _gageKindAnswerOffset
 **
-** return the location of the item in the master answer array
+** return the location of the item in the top-level answer array
 **
 ** I don't think this will work if there are sub-sub-items
 */
@@ -183,7 +183,7 @@ _gageKindAnswerOffset(const gageKind *kind, int item) {
   return (kind->table[ii].answerLength + _gageKindAnswerOffset(kind, ii));
 }
 
-unsigned int
+unsigned int /* Biff: nope */
 gageKindAnswerLength(const gageKind *kind, int item) {
   static const char me[] = "gageKindAnswerLength";
   char *err;
@@ -198,7 +198,7 @@ gageKindAnswerLength(const gageKind *kind, int item) {
   return (!airEnumValCheck(kind->enm, item) ? kind->table[item].answerLength : 0);
 }
 
-int
+int /* Biff: nope */
 gageKindAnswerOffset(const gageKind *kind, int item) {
   static const char me[] = "gageKindAnswerOffset";
   char *err;
@@ -216,7 +216,7 @@ gageKindAnswerOffset(const gageKind *kind, int item) {
 /*
 ** so that you can see if a given volume will work as the given kind
 */
-int
+int /* Biff: 1 */
 gageKindVolumeCheck(const gageKind *kind, const Nrrd *nrrd) {
   static const char me[] = "gageKindVolumeCheck";
 

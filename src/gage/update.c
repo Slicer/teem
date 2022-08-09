@@ -128,7 +128,7 @@ _gageNeedDUpdate(gageContext *ctx) {
 /*
 ** ctx's needD & k3pack --> needK
 */
-static int
+static int /* Biff: 1 */
 _gageNeedKUpdate(gageContext *ctx) {
   static const char me[] = "_gageNeedKUpdate";
   int kernIdx, needK[GAGE_KERNEL_MAX + 1], change;
@@ -186,7 +186,7 @@ _gageNeedKUpdate(gageContext *ctx) {
 ** ctx's ksp[] & needK --> radius
 **
 */
-static int
+static int /* Biff: 1 */
 _gageRadiusUpdate(gageContext *ctx) {
   static const char me[] = "_gageRadiusUpdate";
   unsigned int kernIdx, radius;
@@ -236,7 +236,7 @@ _gageRadiusUpdate(gageContext *ctx) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _gageCacheSizeUpdate(gageContext *ctx) {
   static const char me[] = "_gageCacheSizeUpdate";
   int fd;
@@ -311,7 +311,7 @@ _gageOffValueUpdate(gageContext *ctx) {
 **
 ** call just before probing begins.
 */
-int
+int /* Biff: 1 */
 gageUpdate(gageContext *ctx) {
   static const char me[] = "gageUpdate";
   unsigned int pi;

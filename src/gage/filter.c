@@ -243,7 +243,7 @@ _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
 ** Currently only error is probing outside volume, which sets
 ** ctx->errNum and sprints message into ctx->errStr.
 */
-int
+int /* Biff: nope */
 _gageLocationSet(gageContext *ctx, double xif, double yif, double zif, double sif) {
   static const char me[] = "_gageProbeLocationSet";
   unsigned int top[3], /* "top" x, y, z: highest valid index in volume */

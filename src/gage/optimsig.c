@@ -656,7 +656,7 @@ _errSingle(double *retP, gageOptimSigContext *oscx, double rho) {
   return 0;
 }
 
-static int /* BiffP 1 */
+static int /* Biff: 1 */
 _errTotal(double *retP, gageOptimSigContext *oscx) {
   static const char me[] = "_errTotal";
   unsigned int ii;

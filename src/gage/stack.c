@@ -24,7 +24,7 @@
 #include "gage.h"
 #include "privateGage.h"
 
-double
+double /* Biff: nope */
 gageStackWtoI(gageContext *ctx, double swrl, int *outside) {
   double si;
 
@@ -61,7 +61,7 @@ gageStackWtoI(gageContext *ctx, double swrl, int *outside) {
   return si;
 }
 
-double
+double /* Biff: nope */
 gageStackItoW(gageContext *ctx, double si, int *outside) {
   unsigned int sidx;
   double swrl, sfrac;
@@ -96,7 +96,7 @@ gageStackItoW(gageContext *ctx, double si, int *outside) {
 ** of pvlStack[i] shouldn't be set to anything: as with gagePerVolumeNew(),
 ** gage allocates the pervolume itself.
 */
-int
+int /* Biff: 1 */
 gageStackPerVolumeNew(gageContext *ctx, gagePerVolume **pvlStack,
                       const Nrrd *const *nblur, unsigned int blNum,
                       const gageKind *kind) {
@@ -125,7 +125,7 @@ gageStackPerVolumeNew(gageContext *ctx, gagePerVolume **pvlStack,
 /*
 ** the "base" pvl is the LAST pvl, ctx->pvl[pvlNum-1]
 */
-int
+int /* Biff: 1 */
 gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
                          gagePerVolume **pvlStack, const double *stackPos,
                          unsigned int blNum) {
@@ -203,7 +203,7 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
 ** the across-stack filtering to fill the iv3 of pvl[pvlNum-1] (the
 ** "base" pvl)
 */
-int
+int /* Biff: nope */
 _gageStackBaseIv3Fill(gageContext *ctx) {
   static const char me[] = "_gageStackBaseIv3Fill";
   unsigned int fd, pvlIdx, cacheIdx, cacheLen, baseIdx, valLen;
@@ -394,7 +394,7 @@ _gageStackBaseIv3Fill(gageContext *ctx) {
 /*
 ******** gageStackProbe()
 */
-int
+int /* Biff: nope */
 gageStackProbe(gageContext *ctx, double xi, double yi, double zi, double stackIdx) {
   static const char me[] = "gageStackProbe";
 
@@ -413,7 +413,7 @@ gageStackProbe(gageContext *ctx, double xi, double yi, double zi, double stackId
   return _gageProbe(ctx, xi, yi, zi, stackIdx);
 }
 
-int
+int /* Biff: nope */
 gageStackProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
                     int indexSpace, int clamp) {
   static const char me[] = "gageStackProbeSpace";

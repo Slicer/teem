@@ -81,7 +81,7 @@ _gageCacheProbe(gageContext *ctx, double *grad, int *cc, double *gc, int x, int 
 ** Note, if you want to use dsmp > 1, its your responsibility to give
 ** an appropriate iScale > 1, so that you don't undersample.
 */
-int
+int /* Biff: 1 */
 gageStructureTensor(Nrrd *nout, const Nrrd *nin, int dScale, int iScale, int dsmp) {
   static const char me[] = "gageStructureTensor";
   NrrdKernelSpec *gk0, *gk1, *ik0;

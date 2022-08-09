@@ -55,7 +55,7 @@ _mopShapeReset(void *_shape) {
   return NULL;
 }
 
-gageShape *
+gageShape * /* Biff: nope */
 gageShapeNew() {
   gageShape *shape;
 
@@ -66,7 +66,7 @@ gageShapeNew() {
   return shape;
 }
 
-gageShape *
+gageShape * /* Biff: nope */
 gageShapeCopy(const gageShape *shp) {
   gageShape *nhp;
 
@@ -77,7 +77,7 @@ gageShapeCopy(const gageShape *shp) {
   return nhp;
 }
 
-gageShape *
+gageShape * /* Biff: nope */
 gageShapeNix(gageShape *shape) {
 
   airFree(shape);
@@ -103,7 +103,7 @@ shapeUnitItoW(const gageShape *shape, double world[3], const double indx[3],
 /*
 ** _gageShapeSet
 **
-** we are serving two masters here.  If ctx is non-NULL, we are being called
+** we are serving two purposes here.  If ctx is non-NULL, we are being called
 ** from within gage, and we are to be lax or strict according to the settings
 ** of ctx->parm.requireAllSpacings and ctx->parm.requireEqualCenters.  If
 ** ctx is NULL, gageShapeSet was called, in which case we go with lax
@@ -113,7 +113,7 @@ shapeUnitItoW(const gageShape *shape, double world[3], const double indx[3],
 ** and hence has become this weird beast- part error checker and part
 ** (gageShape) initializer.  Oh well...
 */
-int
+int /* Biff: (private) 1 */
 _gageShapeSet(const gageContext *ctx, gageShape *shape, const Nrrd *nin,
               unsigned int baseDim) {
   static const char me[] = "_gageShapeSet";
@@ -403,7 +403,7 @@ _gageShapeSet(const gageContext *ctx, gageShape *shape, const Nrrd *nin,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageShapeSet(gageShape *shape, const Nrrd *nin, int baseDim) {
   static const char me[] = "gageShapeSet";
 
@@ -466,7 +466,7 @@ gageShapeItoW(const gageShape *shape, double _world[3], const double _indx[3]) {
 ** returning 0 signifies this "error"
 ** returning 1 means no error, they ARE equal
 */
-int
+int /* Biff: 0 */
 gageShapeEqual(const gageShape *shape1, const char *_name1, const gageShape *shape2,
                const char *_name2) {
   static const char me[] = "gageShapeEqual";
