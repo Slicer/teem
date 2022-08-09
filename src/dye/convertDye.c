@@ -349,7 +349,7 @@ dyeConverter const dyeSimpleConvert[DYE_MAX_SPACE+1][DYE_MAX_SPACE+1] =
 ** master color conversion function.  Can convert between any two
 ** types by recursive calls and calls to the simple converters above.
 */
-int
+int /* Biff: 1 */
 dyeConvert(dyeColor *col, int outSpace) {
   static const char me[] = "dyeConvert";
   float i0, i1, i2, o0, o1, o2;

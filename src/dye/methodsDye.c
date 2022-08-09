@@ -77,7 +77,7 @@ dyeSpace = &_dyeSpace;
 /*
 ** this function predates the dyeSpace airEnum, so we'll keep it.
 */
-int
+int /* Biff: nope */
 dyeStrToSpace(char *_str) {
   int spc;
   char *str;
@@ -98,7 +98,7 @@ dyeStrToSpace(char *_str) {
   return spc;
 }
 
-dyeColor *
+dyeColor * /* Biff: nope */
 dyeColorInit(dyeColor *col) {
 
   if (col) {
@@ -112,7 +112,7 @@ dyeColorInit(dyeColor *col) {
   return col;
 }
 
-dyeColor *
+dyeColor * /* Biff: nope */
 dyeColorSet(dyeColor *col, int space, float v0, float v1, float v2) {
 
   if (col && DYE_VALID_SPACE(space)) {
@@ -132,7 +132,7 @@ dyeColorSet(dyeColor *col, int space, float v0, float v1, float v2) {
   return col;
 }
 
-int
+int /* Biff: nope */
 dyeColorGet(float *v0P, float *v1P, float *v2P, dyeColor *col) {
   int spc;
 
@@ -145,7 +145,7 @@ dyeColorGet(float *v0P, float *v1P, float *v2P, dyeColor *col) {
   return spc;
 }
 
-int
+int /* Biff: nope */
 dyeColorGetAs(float *v0P, float *v1P, float *v2P, dyeColor *colIn, int space) {
   dyeColor _col, *col;
 
@@ -156,7 +156,7 @@ dyeColorGetAs(float *v0P, float *v1P, float *v2P, dyeColor *colIn, int space) {
   return dyeColorGet(v0P, v1P, v2P, col);
 }
 
-dyeColor *
+dyeColor * /* Biff: nope */
 dyeColorNew() {
   dyeColor *col;
 
@@ -165,7 +165,7 @@ dyeColorNew() {
   return col;
 }
 
-dyeColor *
+dyeColor * /* Biff: nope */
 dyeColorCopy(dyeColor *c1, dyeColor *c0) {
 
   if (c1 && c0) {
@@ -174,7 +174,7 @@ dyeColorCopy(dyeColor *c1, dyeColor *c0) {
   return c1;
 }
 
-dyeColor *
+dyeColor * /* Biff: nope */
 dyeColorNix(dyeColor *col) {
 
   if (col) {
@@ -183,7 +183,7 @@ dyeColorNix(dyeColor *col) {
   return NULL;
 }
 
-int
+int /* Biff: 1 */
 dyeColorParse(dyeColor *col, char *_str) {
   static const char me[] = "dyeColorParse";
   char *str;
@@ -220,7 +220,7 @@ dyeColorParse(dyeColor *col, char *_str) {
   return 0;
 }
 
-char *
+char * /* Biff: nope */
 dyeColorSprintf(char *str, dyeColor *col) {
 
   if (str && col) {
