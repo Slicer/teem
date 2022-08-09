@@ -54,7 +54,7 @@ seekVerboseSet(seekContext *sctx, int verbose) {
 ** invalidates:
 ** valItem, normItem, gradItem, evalItem, evecItem
 */
-int
+int /* Biff: 1 */
 seekDataSet(seekContext *sctx, const Nrrd *ninscl, gageContext *gctx,
             unsigned int pvlIdx) {
   static const char me[] = "seekDataSet";
@@ -114,7 +114,7 @@ seekDataSet(seekContext *sctx, const Nrrd *ninscl, gageContext *gctx,
 **
 ** sets: samples[3]
 */
-int
+int /* Biff: 1 */
 seekSamplesSet(seekContext *sctx, size_t samples[3]) {
   static const char me[] = "seekSamplesSet";
   unsigned int numZero;
@@ -147,7 +147,7 @@ seekSamplesSet(seekContext *sctx, size_t samples[3]) {
 **
 ** sets: featureType
 */
-int
+int /* Biff: 1 */
 seekTypeSet(seekContext *sctx, int type) {
   static const char me[] = "seekTypeSet";
 
@@ -171,7 +171,7 @@ seekTypeSet(seekContext *sctx, int type) {
 **
 ** sets: lowerInside
 */
-int
+int /* Biff: 1 */
 seekLowerInsideSet(seekContext *sctx, int lowerInside) {
   static const char me[] = "seekLowerInsideSet";
 
@@ -191,7 +191,7 @@ seekLowerInsideSet(seekContext *sctx, int lowerInside) {
 **
 ** sets: normalsFind
 */
-int
+int /* Biff: 1 */
 seekNormalsFindSet(seekContext *sctx, int normalsFind) {
   static const char me[] = "seekNormalsFindSet";
 
@@ -206,7 +206,7 @@ seekNormalsFindSet(seekContext *sctx, int normalsFind) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 seekStrengthUseSet(seekContext *sctx, int doit) {
   static const char me[] = "seekStrengthUseSet";
 
@@ -221,7 +221,7 @@ seekStrengthUseSet(seekContext *sctx, int doit) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 seekStrengthSet(seekContext *sctx, int strengthSign, double strength) {
   static const char me[] = "seekStrengthSet";
 
@@ -248,7 +248,7 @@ seekStrengthSet(seekContext *sctx, int strengthSign, double strength) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 itemCheck(seekContext *sctx, int item, unsigned int wantLen) {
   static const char me[] = "itemCheck";
 
@@ -283,7 +283,7 @@ itemCheck(seekContext *sctx, int item, unsigned int wantLen) {
 **
 ** sets: sclvItem
 */
-int
+int /* Biff: 1 */
 seekItemScalarSet(seekContext *sctx, int item) {
   static const char me[] = "seekItemScalarSet";
 
@@ -302,7 +302,7 @@ seekItemScalarSet(seekContext *sctx, int item) {
 ******** seekItemStrengthSet
 **
 */
-int
+int /* Biff: 1 */
 seekItemStrengthSet(seekContext *sctx, int item) {
   static const char me[] = "seekItemStrengthSet";
 
@@ -321,7 +321,7 @@ seekItemStrengthSet(seekContext *sctx, int item) {
 ******** seekItemHessSet
 **
 */
-int
+int /* Biff: 1 */
 seekItemHessSet(seekContext *sctx, int item) {
   static const char me[] = "seekItemHessSet";
 
@@ -341,7 +341,7 @@ seekItemHessSet(seekContext *sctx, int item) {
 **
 ** sets: gradItem
 */
-int
+int /* Biff: 1 */
 seekItemGradientSet(seekContext *sctx, int item) {
   static const char me[] = "seekItemGradientSet";
 
@@ -362,7 +362,7 @@ seekItemGradientSet(seekContext *sctx, int item) {
 **
 ** sets: normItem
 */
-int
+int /* Biff: 1 */
 seekItemNormalSet(seekContext *sctx, int item) {
   static const char me[] = "seekItemNormalSet";
 
@@ -383,7 +383,7 @@ seekItemNormalSet(seekContext *sctx, int item) {
 **
 ** sets: evalItem, evecItem
 */
-int
+int /* Biff: 1 */
 seekItemEigensystemSet(seekContext *sctx, int evalItem, int evecItem) {
   static const char me[] = "seekItemEigenvectorSet";
 
@@ -412,7 +412,7 @@ seekItemEigensystemSet(seekContext *sctx, int evalItem, int evecItem) {
 **
 ** sets: isovalue
 */
-int
+int /* Biff: 1 */
 seekIsovalueSet(seekContext *sctx, double isovalue) {
   static const char me[] = "seekIsovalueSet";
 
@@ -438,7 +438,7 @@ seekIsovalueSet(seekContext *sctx, double isovalue) {
 ** considered "similar" (cf. Eq. (4) in TVCG paper by
 ** Schultz/Theisel/Seidel)
 */
-int
+int /* Biff: 1 */
 seekEvalDiffThreshSet(seekContext *sctx, double evalDiffThresh) {
   static const char me[] = "seekEvalDiffThreshSet";
 

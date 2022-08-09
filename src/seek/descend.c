@@ -49,7 +49,7 @@
  * Returns 5 if Armijo rule failed to find a valid stepsize
  * Returns 6 if we hit a zero tensor (|T|<1e-300)
  */
-int
+int /* Biff: nope */
 seekDescendToDeg(double *coord, double *botleft, double *botright,
                  double *topleft, double *topright,
                  int maxiter, double eps, char type)
@@ -351,7 +351,7 @@ seekDescendToDeg(double *coord, double *botleft, double *botright,
  * Returns 5 if Armijo rule failed to find a valid stepsize
  * Returns 6 if we hit a zero tensor (|T|<1e-300)
  */
-int
+int /* Biff: nope */
 seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
                      double *Hbbl, double *Hbbr,
                      double *Htfl, double *Htfr, double *Htbl, double *Htbr,
@@ -635,7 +635,7 @@ seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
  * Returns 2 if we hit maxiter
  * Returns 3 if Armijo rule failed to find a valid stepsize
  */
-int
+int /* Biff: nope */
 seekDescendToRidge(double *coord,
                    double *Hbfl, double *gbfl, double *Hbfr, double *gbfr,
                    double *Hbbl, double *gbbl, double *Hbbr, double *gbbr,

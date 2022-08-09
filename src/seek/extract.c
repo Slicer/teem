@@ -113,7 +113,7 @@ baggageNix(baggage *bag) {
   return NULL;
 }
 
-static int
+static int /* Biff: 1 */
 outputInit(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
   static const char me[] = "outputInit";
   unsigned int estVertNum, estFaceNum, minI, maxI, valI, *spanHist;
@@ -220,7 +220,7 @@ _seekIdxProbe(seekContext *sctx, baggage *bag, double xi, double yi, double zi) 
 ** NOTE: this is doing some bounds (on the positive x, y, z edges of the
 ** volume) that probably should be done closer to the caller
 */
-static int
+static int                                                        /* Biff: 1 */
 evecFlipProbe(seekContext *sctx, baggage *bag, signed char *flip, /* OUTPUT HERE */
               unsigned int xi, unsigned int yi, unsigned int ziOff, unsigned int dx,
               unsigned int dy, unsigned int dz) {
@@ -324,7 +324,7 @@ evecFlipProbe(seekContext *sctx, baggage *bag, signed char *flip, /* OUTPUT HERE
 ** setting sctx->treated: 0x01 requests all edges of this voxel, 0x02
 ** states that unique edge 3 was treated, 0x04 for unique edge 4) TS
 */
-static int
+static int /* Biff: 1 */
 evecFlipShuffleProbe(seekContext *sctx, baggage *bag) {
   static const char me[] = "evecFlipShuffleProbe";
   unsigned int xi, yi, sx, sy, si;
@@ -399,7 +399,7 @@ evecFlipShuffleProbe(seekContext *sctx, baggage *bag) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 shuffleProbe(seekContext *sctx, baggage *bag) {
   static const char me[] = "shuffleProbe";
   unsigned int xi, yi, sx, sy, si, spi;
@@ -875,7 +875,7 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
   static const char me[] = "surfaceExtract";
   char done[AIR_STRLEN_SMALL];
@@ -922,7 +922,7 @@ surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 seekExtract(seekContext *sctx, limnPolyData *lpld) {
   static const char me[] = "seekExtract";
   double time0;

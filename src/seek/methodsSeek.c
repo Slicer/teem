@@ -26,7 +26,7 @@
 
 const int seekPresent = 42;
 
-seekContext *
+seekContext * /* Biff: nope */
 seekContextNew(void) {
   seekContext *sctx;
   unsigned int fi;
@@ -128,7 +128,7 @@ seekContextNew(void) {
   return sctx;
 }
 
-seekContext *
+seekContext * /* Biff: nope */
 seekContextNix(seekContext *sctx) {
 
   if (sctx) {

@@ -24,7 +24,7 @@
 #include "seek.h"
 #include "privateSeek.h"
 
-static int
+static int /* Biff: 1 */
 updateNinEtAl(seekContext *sctx) {
   static const char me[] = "updateNinEtAl";
 
@@ -58,7 +58,7 @@ updateNinEtAl(seekContext *sctx) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 updateAnswerPointers(seekContext *sctx) {
   static const char me[] = "updateAnswerPointers";
 
@@ -198,7 +198,7 @@ updateAnswerPointers(seekContext *sctx) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 updateSxSySz(seekContext *sctx) {
   static const char me[] = "updateSxSySz";
   size_t sizeIn[3], sizeOut[3];
@@ -305,7 +305,7 @@ updateTxfNormal(seekContext *sctx) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 updateSlabCacheAlloc(seekContext *sctx) {
   static const char me[] = "updateSlabCacheAlloc";
   int E;
@@ -458,7 +458,7 @@ updateSlabCacheAlloc(seekContext *sctx) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 updateSclDerived(seekContext *sctx) {
   static const char me[] = "updateSclDerived";
   char doneStr[AIR_STRLEN_SMALL];
@@ -515,7 +515,7 @@ updateSclDerived(seekContext *sctx) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 updateSpanSpaceHist(seekContext *sctx) {
   static const char me[] = "updateSpanSpaceHist";
   unsigned int sx, sy, sz, ss, xi, yi, zi, vi, si, minI, maxI, *spanHist;
@@ -611,7 +611,7 @@ updateSpanSpaceHist(seekContext *sctx) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 updateResult(seekContext *sctx) {
   static const char me[] = "updateResult";
 
@@ -673,7 +673,7 @@ updateResult(seekContext *sctx) {
 ** types, for error checking if nothing else, leavings steps as no-ops
 ** as needed.
 */
-int
+int /* Biff: 1 */
 seekUpdate(seekContext *sctx) {
   static const char me[] = "seekUpdate";
   int E;
