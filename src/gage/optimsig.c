@@ -256,41 +256,41 @@ gageOptimSigSet(double *scale, unsigned int num, unsigned int sigmaMax) {
 ** scaled version of the taylor expansion of tau(sigma=0) which meets
 ** up with the large-scale approximation of tau from Lindeberg.
 ** However, because its so flat at sigma=0, its not really invertible
-** there, so its a poor basis for computations that are parameterized
+** there, so it's a poor basis for computations that are parameterized
 ** by rho.  Keeping it around for reference.
-
-static double
-_RhoOfSig(double sig) {
-  double rho;
-
-  if (sig < 1.05189095) {
-    rho = sig*sig*(0.2775733212544225 + 0.13078298856958057*sig*sig);
-  } else {
-    double tee;
-    tee = sig*sig;
-    rho = 0.53653222368715360118 + log(tee)/2.0 + log(1.0 - 1.0/(8.0*tee));
-  }
-  return rho;
-}
-
-static double
-_SigOfRho(double rho) {
-  double sig;
-
-  if (rho < 0.46724360022171363) {
-    sig = 0.00033978812426865065 *
-      sqrt(-9.191366355042886e6 + 245.3752559286824 *
-           sqrt(1.403132301e9 + 9.526961876920057e9*rho));
-  } else {
-    double ee, tee;
-    ee = exp(2.0*rho);
-    tee = 0.0063325739776461107152*(27.0*ee + 2*AIR_PI*AIR_PI
-                                    + 3.0*sqrt(81.0*ee*ee
-                                               + 12*ee*AIR_PI*AIR_PI));
-    sig = sqrt(tee);
-  }
-  return sig;
-}
+*
+*static double
+*_RhoOfSig(double sig) {
+*  double rho;
+*
+*  if (sig < 1.05189095) {
+*    rho = sig*sig*(0.2775733212544225 + 0.13078298856958057*sig*sig);
+*  } else {
+*    double tee;
+*    tee = sig*sig;
+*    rho = 0.53653222368715360118 + log(tee)/2.0 + log(1.0 - 1.0/(8.0*tee));
+*  }
+*  return rho;
+*}
+*
+*static double
+*_SigOfRho(double rho) {
+*  double sig;
+*
+*  if (rho < 0.46724360022171363) {
+*    sig = 0.00033978812426865065 *
+*      sqrt(-9.191366355042886e6 + 245.3752559286824 *
+*           sqrt(1.403132301e9 + 9.526961876920057e9*rho));
+*  } else {
+*    double ee, tee;
+*    ee = exp(2.0*rho);
+*    tee = 0.0063325739776461107152*(27.0*ee + 2*AIR_PI*AIR_PI
+*                                    + 3.0*sqrt(81.0*ee*ee
+*                                               + 12*ee*AIR_PI*AIR_PI));
+*    sig = sqrt(tee);
+*  }
+*  return sig;
+*}
 */
 
 static double
