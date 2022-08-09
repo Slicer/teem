@@ -155,7 +155,7 @@ static uLong _nrrdGzGetLong(_NrrdGzStream *s);
 ** can be checked to distinguish the two cases (if errno is zero, the
 ** zlib error is Z_MEM_ERROR).
 */
-gzFile /* Biff? (private) (gzFile)Z_NULL */
+gzFile /* Biff: (private) (gzFile)Z_NULL */
 _nrrdGzOpen(FILE *fd, const char *mode) {
   static const char me[] = "_nrrdGzOpen";
   int error;
@@ -268,7 +268,7 @@ _nrrdGzOpen(FILE *fd, const char *mode) {
 ** Flushes all pending output if necessary, closes the compressed file
 ** and deallocates the (de)compression state.
 */
-int /* Biff? (private) 1 */
+int /* Biff: (private) 1 */
 _nrrdGzClose(gzFile file) {
   static const char me[] = "_nrrdGzClose";
   int error;
@@ -301,7 +301,7 @@ _nrrdGzClose(gzFile file) {
 ** Reads the given number of uncompressed bytes from the compressed file.
 ** Returns the number of bytes actually read (0 for end of file).
 */
-int /* Biff? (private) 1 */
+int /* Biff: (private) 1 */
 _nrrdGzRead(gzFile file, void *buf, unsigned int len, unsigned int *didread) {
   static const char me[] = "_nrrdGzRead";
   _NrrdGzStream *s = (_NrrdGzStream *)file;
@@ -407,7 +407,7 @@ _nrrdGzRead(gzFile file, void *buf, unsigned int len, unsigned int *didread) {
 ** Writes the given number of uncompressed bytes into the compressed file.
 ** Returns the number of bytes actually written (0 in case of error).
 */
-int /* Biff? (private) 1 */
+int /* Biff: (private) 1 */
 _nrrdGzWrite(gzFile file, const void *buf, unsigned int len, unsigned int *written) {
   static const char me[] = "_nrrdGzWrite";
   _NrrdGzStream *s = (_NrrdGzStream *)file;
@@ -466,7 +466,7 @@ _nrrdGzWrite(gzFile file, const void *buf, unsigned int len, unsigned int *writt
 ** Returns EOF for end of file.
 ** IN assertion: the stream s has been sucessfully opened for reading.
 */
-static int /* Biff? EOF */
+static int /* Biff: EOF */
 _nrrdGzGetByte(_NrrdGzStream *s) {
   static const char me[] = "_nrrdGzGetByte";
 
@@ -565,7 +565,7 @@ _nrrdGzCheckHeader(_NrrdGzStream *s) {
 **
 ** Returns 1 (not an zlib error code) in case of error
 */
-static int /* Biff? 1 */
+static int /* Biff: 1 */
 _nrrdGzDestroy(_NrrdGzStream *s) {
   static const char me[] = "_nrrdGzDestroy";
   int error = Z_OK;
@@ -603,7 +603,7 @@ _nrrdGzDestroy(_NrrdGzStream *s) {
 ** Flushes all pending output into the compressed file. The parameter
 ** flush is the same as in the deflate() function.
 */
-static int /* Biff? Z_STREAM_ERROR */
+static int /* Biff: Z_STREAM_ERROR */
 _nrrdGzDoFlush(gzFile file, int flush) {
   static const char me[] = "_nrrdGzDoFlush";
   uInt len;
@@ -682,7 +682,7 @@ _nrrdGzGetLong(_NrrdGzStream *s) {
 /*
 ** random symbol to have in object file, even when Zlib not enabled
 */
-int /* Biff? nope */
+int /* Biff: nope */
 _nrrdGzDummySymbol(void) {
   return 42;
 }
