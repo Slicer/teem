@@ -29,7 +29,7 @@
 
 #include "alan.h"
 
-static int
+static int /* Biff: 1 */
 _alanCheck(alanContext *actx) {
   static const char me[] = "_alanCheck";
 
@@ -58,7 +58,7 @@ _alanCheck(alanContext *actx) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 alanUpdate(alanContext *actx) {
   static const char me[] = "alanUpdate";
   int ret;
@@ -101,7 +101,7 @@ alanUpdate(alanContext *actx) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
   static const char me[] = "alanInit";
   alan_t *levInit = NULL, *lev0, *parmInit = NULL, *parm;
@@ -454,7 +454,7 @@ _alanTuringWorker(void *_task) {
   return _task;
 }
 
-int
+int /* Biff: 1 */
 alanRun(alanContext *actx) {
   static const char me[] = "alanRun";
   int tid, hack = AIR_FALSE;

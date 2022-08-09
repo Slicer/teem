@@ -64,7 +64,7 @@ alanContextInit(alanContext *actx) {
   return;
 }
 
-alanContext *
+alanContext * /* Biff: nope */
 alanContextNew(void) {
   alanContext *actx;
 
@@ -77,7 +77,7 @@ alanContextNew(void) {
   return actx;
 }
 
-alanContext *
+alanContext * /* Biff: nope */
 alanContextNix(alanContext *actx) {
 
   if (actx) {
@@ -102,7 +102,7 @@ alanContextNix(alanContext *actx) {
     return 1;                                                                           \
   }
 
-int
+int /* Biff: 1 */
 alanDimensionSet(alanContext *actx, int dim) {
   static const char me[] = "alanDimensionSet";
 
@@ -117,7 +117,7 @@ alanDimensionSet(alanContext *actx, int dim) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 alan2DSizeSet(alanContext *actx, int sizeX, int sizeY) {
   static const char me[] = "alan2DSizeSet";
 
@@ -137,7 +137,7 @@ alan2DSizeSet(alanContext *actx, int sizeX, int sizeY) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ) {
   static const char me[] = "alan2DSizeSet";
 
@@ -158,7 +158,7 @@ alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 alanTensorSet(alanContext *actx, Nrrd *nten, int oversample) {
   static const char me[] = "alanTensorSet";
 
@@ -205,7 +205,7 @@ alanTensorSet(alanContext *actx, Nrrd *nten, int oversample) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 alanParmSet(alanContext *actx, int whichParm, double parm) {
   static const char me[] = "alanParmSet";
   int parmI;
