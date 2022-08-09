@@ -23,7 +23,7 @@
 
 #include "hoover.h"
 
-int
+int /* Biff: nope */
 hooverStubRenderBegin(void **rendInfoP, void *userInfo) {
 
   AIR_UNUSED(userInfo);
@@ -31,7 +31,7 @@ hooverStubRenderBegin(void **rendInfoP, void *userInfo) {
   return 0;
 }
 
-int
+int /* Biff: nope */
 hooverStubThreadBegin(void **threadInfoP, void *rendInfo, void *userInfo,
                       int whichThread) {
 
@@ -42,7 +42,7 @@ hooverStubThreadBegin(void **threadInfoP, void *rendInfo, void *userInfo,
   return 0;
 }
 
-int
+int /* Biff: nope */
 hooverStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo, int uIndex,
                    int vIndex, double rayLen, double rayStartWorld[3],
                    double rayStartIndex[3], double rayDirWorld[3],
@@ -71,7 +71,7 @@ hooverStubRayBegin(void *threadInfo, void *renderInfo, void *userInfo, int uInde
   return 0;
 }
 
-double
+double /* Biff: nope */
 hooverStubSample(void *threadInfo, void *renderInfo, void *userInfo, int num,
                  double rayT, int inside, double samplePosWorld[3],
                  double samplePosIndex[3]) {
@@ -95,7 +95,7 @@ hooverStubSample(void *threadInfo, void *renderInfo, void *userInfo, int num,
   return 1.0;
 }
 
-int
+int /* Biff: nope */
 hooverStubRayEnd(void *threadInfo, void *rendInfo, void *userInfo) {
 
   AIR_UNUSED(threadInfo);
@@ -105,7 +105,7 @@ hooverStubRayEnd(void *threadInfo, void *rendInfo, void *userInfo) {
   return 0;
 }
 
-int
+int /* Biff: nope */
 hooverStubThreadEnd(void *threadInfo, void *rendInfo, void *userInfo) {
 
   AIR_UNUSED(threadInfo);
@@ -115,7 +115,7 @@ hooverStubThreadEnd(void *threadInfo, void *rendInfo, void *userInfo) {
   return 0;
 }
 
-int
+int /* Biff: nope */
 hooverStubRenderEnd(void *rendInfo, void *userInfo) {
 
   AIR_UNUSED(rendInfo);

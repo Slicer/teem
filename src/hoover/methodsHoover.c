@@ -23,7 +23,7 @@
 
 #include "hoover.h"
 
-hooverContext *
+hooverContext * /* Biff: nope */
 hooverContextNew() {
   hooverContext *ctx;
 
@@ -51,7 +51,7 @@ hooverContextNew() {
   return (ctx);
 }
 
-int
+int /* Biff: 1 */
 hooverContextCheck(hooverContext *ctx) {
   static const char me[] = "hooverContextCheck";
   int sxe, sye, sze, minSize, centr;

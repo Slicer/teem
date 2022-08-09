@@ -357,7 +357,7 @@ typedef union {
 ** because of the biff usage(), only one thread can call hooverRender(),
 ** and no promises if the threads themselves call biff...
 */
-int
+int /* Biff: hooverErrInit */
 hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP) {
   static const char me[] = "hooverRender";
   _hooverExtraContext *ec;
