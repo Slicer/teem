@@ -28,7 +28,7 @@ const int echoPresent = 42;
 
 const char *const echoBiffKey = "echo";
 
-echoRTParm *
+echoRTParm * /* Biff: nope */
 echoRTParmNew(void) {
   echoRTParm *parm;
 
@@ -57,14 +57,14 @@ echoRTParmNew(void) {
   return parm;
 }
 
-echoRTParm *
+echoRTParm * /* Biff: nope */
 echoRTParmNix(echoRTParm *parm) {
 
   airFree(parm);
   return NULL;
 }
 
-echoGlobalState *
+echoGlobalState * /* Biff: nope */
 echoGlobalStateNew(void) {
   echoGlobalState *state;
 
@@ -82,7 +82,7 @@ echoGlobalStateNew(void) {
   return state;
 }
 
-echoGlobalState *
+echoGlobalState * /* Biff: nope */
 echoGlobalStateNix(echoGlobalState *state) {
 
   airFree(state);
@@ -90,7 +90,7 @@ echoGlobalStateNix(echoGlobalState *state) {
   return NULL;
 }
 
-echoThreadState *
+echoThreadState * /* Biff: nope */
 echoThreadStateNew(void) {
   echoThreadState *state;
 
@@ -111,7 +111,7 @@ echoThreadStateNew(void) {
   return state;
 }
 
-echoThreadState *
+echoThreadState * /* Biff: nope */
 echoThreadStateNix(echoThreadState *state) {
 
   if (state) {
@@ -125,7 +125,7 @@ echoThreadStateNix(echoThreadState *state) {
   return NULL;
 }
 
-echoScene *
+echoScene * /* Biff: nope */
 echoSceneNew(void) {
   echoScene *ret;
   echoPtrPtrUnion eppu;
@@ -185,7 +185,7 @@ _echoSceneNrrdAdd(echoScene *scene, Nrrd *nrrd) {
   }
 }
 
-echoScene *
+echoScene * /* Biff: nope */
 echoSceneNix(echoScene *scene) {
 
   if (scene) {

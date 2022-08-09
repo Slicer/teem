@@ -49,7 +49,7 @@ _echoPosCompare(double *A, double *B) {
 ** returns a echoObjectSplit to point to the same things as pointed
 ** to by the given echoObjectList
 */
-echoObject *
+echoObject * /* Biff: nope */
 echoListSplit(echoScene *scene, echoObject *list, int axis) {
   echoPos_t lo[3], hi[3], loest0[3], hiest0[3], loest1[3], hiest1[3];
   double *mids;
@@ -139,7 +139,7 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
   return split;
 }
 
-echoObject *
+echoObject * /* Biff: nope */
 echoListSplit3(echoScene *scene, echoObject *list, int depth) {
   echoObject *ret, *tmp0, *tmp1;
 

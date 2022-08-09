@@ -96,7 +96,7 @@ _echoRayIntx_CubeSurf(echoPos_t *tP, int *axP, int *dirP,
   return AIR_TRUE;
 }
 
-int
+int /* Biff: nope */
 _echoRayIntx_CubeSolid(echoPos_t *tminP, echoPos_t *tmaxP,
                        echoPos_t xmin, echoPos_t xmax,
                        echoPos_t ymin, echoPos_t ymax,
@@ -693,7 +693,7 @@ const _echoRayIntxUV_t _echoRayIntxUV[ECHO_TYPE_NUM] = {
   _echoRayIntxUV_Noop     /* echoTypeInstance */
 };
 
-int
+int /* Biff: nope */
 echoRayIntx(echoIntx *intx, echoRay *ray, echoScene *scene, echoRTParm *parm,
             echoThreadState *tstate) {
   unsigned int idx;

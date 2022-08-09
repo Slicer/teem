@@ -117,7 +117,7 @@ static echoObject *(*_echoObjectNew[ECHO_TYPE_NUM])(void)
      (echoObject * (*)(void)) _echoList_new,
      (echoObject * (*)(void)) _echoInstance_new};
 
-echoObject *
+echoObject * /* Biff: nope */
 echoObjectNew(echoScene *scene, signed char type) {
   echoObject *ret = NULL;
   int idx;
@@ -130,7 +130,7 @@ echoObjectNew(echoScene *scene, signed char type) {
   return ret;
 }
 
-int
+int /* Biff: nope */
 echoObjectAdd(echoScene *scene, echoObject *obj) {
   int idx;
 
@@ -156,7 +156,7 @@ static echoObject *(*_echoObjectNix[ECHO_TYPE_NUM])(echoObject *) = {
   (echoObject *(*)(echoObject *))airFree           /* echoTypeInstance */
 };
 
-echoObject *
+echoObject * /* Biff: nope */
 echoObjectNix(echoObject *obj) {
 
   if (obj) {

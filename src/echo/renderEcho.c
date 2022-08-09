@@ -24,7 +24,7 @@
 #include "echo.h"
 #include "privateEcho.h"
 
-int
+int /* Biff: 1 */
 echoThreadStateInit(int threadIdx, echoThreadState *tstate, echoRTParm *parm,
                     echoGlobalState *gstate) {
   static const char me[] = "echoThreadStateInit";
@@ -134,7 +134,7 @@ echoJitterCompute(echoRTParm *parm, echoThreadState *tstate) {
 ** does all the error checking required of echoRTRender and
 ** everything that it calls
 */
-int
+int /* Biff: 1 */
 echoRTRenderCheck(Nrrd *nraw, limnCamera *cam, echoScene *scene, echoRTParm *parm,
                   echoGlobalState *gstate) {
   static const char me[] = "echoRTRenderCheck";
@@ -409,7 +409,7 @@ _echoRTRenderThreadBody(void *_arg) {
 ** error checking as possible should be done here and not in the
 ** lower-level functions.
 */
-int
+int /* Biff: 1 */
 echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene, echoRTParm *parm,
              echoGlobalState *gstate) {
   static const char me[] = "echoRTRender";

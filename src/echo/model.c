@@ -37,7 +37,7 @@ _echoPosSet(echoPos_t *p3, echoPos_t *matx, echoPos_t *p4) {
   }
 }
 
-echoObject *
+echoObject * /* Biff: nope */
 echoRoughSphereNew(echoScene *scene, int theRes, int phiRes, echoPos_t *matx) {
   echoObject *trim;
   echoPos_t *_pos, *pos, tmp[3];
