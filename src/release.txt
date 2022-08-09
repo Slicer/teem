@@ -34,10 +34,14 @@ rm -f tab.txt
 -1.5) use teem/src/_util/clang-format.sh (run in each lib subdir)
 to ensure that clang-format has been run on everything
 
+-1.25) Check namespace safety
+  a) Make sure all library symbols are properly prefixed:
+  run src/_util/scan-symbols.py for all libraries,
+      and then again with -biff 3 to check on all biff usage
+  run src/_util/scan-defines.py
+
 -1) finalize TEEM_VERSION* in air/air.h and airTeemReleaseDate in air/misc.c
 and set airTeemReleaseDone to AIR_TRUE
-
--0.75) make sure all code has been clang-format'd
 
 -0.5) regenerate python wrappers in teem/python
 
@@ -57,17 +61,12 @@ also worked (from teemdoc/html)
 scp index.html kindlmann,teem@web.sourceforge.net:/home/project-web/teem/htdocs
 (HEY: need to figure out using rsync to move things to sourceforge)
 
-1) Check namespace safety
-  a) Make sure all library symbols are properly prefixed:
-  run src/_util/scan-symbols.py for all libraries,
-  run src/_util/scan-defines.py
-
-2) Make sure it works
+1) Make sure it works
   "make teem/dev teem/install" on every supported architecture,
   and make sure Windows stuff also still works (if new files or
   libraries were added)
 
-2.5) svn "tag":
+2) svn "tag":
 setenv VERSION <<version>>
 svn copy https://svn.code.sf.net/p/teem/code/teem/trunk \
          https://svn.code.sf.net/p/teem/code/teem/branches/Teem-${VERSION}
