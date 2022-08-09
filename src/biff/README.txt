@@ -8,16 +8,19 @@ is called in response to an error (in, say, a Python wrapper), as follows.
 Even though these annotations were motivated by the needs of Python wrapping
 (which is only wrapping things in the public API), GLK decided to also do these
 annotations for "private" functions (which are are available for linking in the
-library, but are declared in privateLib.h rather than lib.h), and even for some
-static functions. The idea is that this is potentially useful information for
-further analysis or for human coding, and its better to err on the side of more
-info, discretely packaged, when the quality/correctness of the info is high.
+library, but are declared in privateLib.h rather than lib.h), and even for
+static functions that do use biff. The idea is that this is potentially useful
+information for further analysis or for human coding, and its better to err on
+the side of more info, discretely packaged, when the quality/correctness of the
+info is high.
 
-Keep in mind that the Biff annotion on a function reflect a simplistic textual
-analysis of that function definition: it looks like this function uses biff in
-this way.  This is not based on any proper parsing of the code AST, and there
-is certainly no way to know (without execution) whether any called functions
-used biff. But this seems adequate for Python wrapping error handling.
+NOTE that the Biff annotation on a function reflects a simplistic textual
+analysis of that function code: it looks like this function uses biff in this
+way.  This is not based on any proper parsing of the code AST, so calls to biff
+could be hidden behind a #define, and there is certainly no way to know
+(without execution) whether any other functions called from this function used
+biff. The formatting of the newly adopted clang-format is a big help. In any
+case this seems adequate for Python wrapping error handling.
 
 Here is an example annotation from teem/src/nrrd/subset.c
 
@@ -79,7 +82,25 @@ Other examples:
   static int /* Biff: nope # unlike other parsers, for reasons described below */
   _nrrdReadNrrdParse_number(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
 
+Some notes on how GLK creates the annotations, for example for gage:
+GLK has his teem source checkout in ~/teem.
+From the ~/teem/src/_util directory:
 
-                  
-how are these annotations created?                  
-                  
+  python3 scan-symbols.py ~/teem -biff 3 gage
+
+why -biff 3: because -biff 1 is just for observing biff usage;
+-biff 2 is for doing annotations where none have been done before
+and -biff 3 will over-write old comments and wrong annotations.
+But nothing is actually over-written, new file are written, eg:
+
+  wrote 2 annotations in miscGage-annote.c
+  wrote 5 annotations in kind-annote.c
+  wrote 6 annotations in shape-annote.c
+
+Then to process these (in ~/teem/src/gage)
+
+  diff miscGage{-annote,}.c  # to inspect what biff auto-scan wrote
+  mv miscGage{-annote,}.c    # to start editing
+  # edit miscGage.c, changing Biff? to Biff: when to confirm annotation
+  svn diff miscGage.c        # to check what was changed
+  svn commit ...

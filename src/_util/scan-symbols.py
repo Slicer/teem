@@ -3,6 +3,9 @@
 _x,*_y=1,2 # NOTE: A SyntaxError here means you need python3, not python2
 del _x, _y
 
+# to biff annotate
+# gage dye bane limn echo hoover seek ten elf pull coil push mite meet
+
 import os
 import sys
 import argparse
@@ -11,7 +14,9 @@ import re
 from enum import Enum
 
 # hacky script by GLK, started to check consistency of symbols in libraries and
-# declarations in headers, but also does "biff auto-scan". Example usage:
+# declarations in headers, but also the "biff auto-scan"; do read
+# teem/src/biff/README.txt for more about Biff annotations
+# Example usage:
 #   python3 scan-symbols.py ~/teem-src nrrd
 # to run scan on nrrd library, or
 #   python3 scan-symbols.py ~/teem-src nrrd -biff 1
@@ -47,6 +52,7 @@ else:
     raise Exception('Sorry, currently only know how work on Mac and Linux')
 
 verbose = 1
+LIB = None # which library is being scanned
 archDir = None
 libDir = None
 srcLines = {} # maps from filename to (list of) lines of code, either from disk or modified
@@ -403,15 +409,28 @@ def usesBiff(str, idx, fname):
     # Now that the biffMsg functions were moved to privateBiff.h,
     # these really are the only functions to look for. "startswith"
     # will detect both, e.g., biffAdd() and the more common biffAddf()
+    # Also note: we really can get by with such simple string processing
+    # because clang-format has normalized things so completely
     if ss.startswith('biffMaybeAdd'):
-        ret = 'maybe'
+        wen = 'maybe'
+        # HEY this really assumes biffMaybeAddf, not biffMaybeAdd
+        # in fact currently biffMaybeAdd is never actually used in Teem,
+        # which suggests that it should be removed...
+        rgx = r'biff\w+\(useBiff, (\w+),'
     elif ss.startswith('biffAdd') or ss.startswith('biffMove'):
-        ret = 'yes'
+        wen = 'yes'
+        rgx = r'biff\w+\((\w+),'
     elif ss.startswith('biff'):
-        raise Exception(f'confusing biff @ line {idx} of {fname}: |{ss}|')
+        raise Exception(f'confusing biff @ line {idx+1} of {fname}: |{ss}|')
     else:
-        ret = False
-    return ret
+        wen = False
+    if wen:
+        if not (match := re.match(rgx, ss)):
+            raise Exception(f'unparsable biff call @ line {idx+1} of {fname}: |{ss}|')
+        key = match.group(1)
+        if LIB != key:
+            print(f'HEY {fname}:{idx+1} uses biff key "{key}" != "{LIB}"')
+    return wen
 
 ########## Home of the "biff auto-scan"
 # read in .c fileName, looking for lines of C code defining (one function) funcName,
@@ -584,7 +603,7 @@ if __name__ == '__main__':
     args = parse_args()
     verbose = args.v
     argsCheck(args.teem_path, args.lib)
-    print(args.biff, type(args.biff))
+    LIB = args.lib.upper()
     if (verbose): print(f'========== cd {libDir} ... ')
     os.chdir(libDir)
     symb = symbList(args.lib, args.c)
