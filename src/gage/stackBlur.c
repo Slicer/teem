@@ -99,7 +99,7 @@ gageStackBlurParmInit(gageStackBlurParm *parm) {
 /*
 ** does not use biff
 */
-gageStackBlurParm *
+gageStackBlurParm * /* Biff: nope */
 gageStackBlurParmNew() {
   gageStackBlurParm *parm;
 
@@ -108,7 +108,7 @@ gageStackBlurParmNew() {
   return parm;
 }
 
-gageStackBlurParm *
+gageStackBlurParm * /* Biff: nope */
 gageStackBlurParmNix(gageStackBlurParm *sbp) {
 
   if (sbp) {
@@ -123,7 +123,7 @@ gageStackBlurParmNix(gageStackBlurParm *sbp) {
 /*
 ** *differ is set to 0 or 1; not useful for sorting
 */
-int
+int /* Biff: 1 */
 gageStackBlurParmCompare(const gageStackBlurParm *aa, const char *_nameA,
                          const gageStackBlurParm *bb, const char *_nameB, int *differ,
                          char explain[AIR_STRLEN_LARGE]) {
@@ -228,7 +228,7 @@ gageStackBlurParmCompare(const gageStackBlurParm *aa, const char *_nameA,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageStackBlurParmCopy(gageStackBlurParm *dst, const gageStackBlurParm *src) {
   static const char me[] = "gageStackBlurParmCopy";
   int differ;
@@ -265,7 +265,7 @@ gageStackBlurParmCopy(gageStackBlurParm *dst, const gageStackBlurParm *src) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageStackBlurParmSigmaSet(gageStackBlurParm *sbp, unsigned int num, double sigmaMin,
                           double sigmaMax, int sigmaSampling) {
   static const char me[] = "gageStackBlurParmSigmaSet";
@@ -359,7 +359,7 @@ gageStackBlurParmSigmaSet(gageStackBlurParm *sbp, unsigned int num, double sigma
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageStackBlurParmScaleSet(gageStackBlurParm *sbp, unsigned int num, double smin,
                           double smax, int uniform, int optimal) {
   static const char me[] = "gageStackBlurParmScaleSet";
@@ -383,7 +383,7 @@ gageStackBlurParmScaleSet(gageStackBlurParm *sbp, unsigned int num, double smin,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageStackBlurParmKernelSet(gageStackBlurParm *sbp, const NrrdKernelSpec *kspec) {
   static const char me[] = "gageStackBlurParmKernelSet";
 
@@ -396,7 +396,7 @@ gageStackBlurParmKernelSet(gageStackBlurParm *sbp, const NrrdKernelSpec *kspec) 
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageStackBlurParmRenormalizeSet(gageStackBlurParm *sbp, int renormalize) {
   static const char me[] = "gageStackBlurParmRenormalizeSet";
 
@@ -408,7 +408,7 @@ gageStackBlurParmRenormalizeSet(gageStackBlurParm *sbp, int renormalize) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageStackBlurParmBoundarySet(gageStackBlurParm *sbp, int boundary, double padValue) {
   static const char me[] = "gageStackBlurParmBoundarySet";
 
@@ -427,7 +427,7 @@ gageStackBlurParmBoundarySet(gageStackBlurParm *sbp, int boundary, double padVal
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageStackBlurParmBoundarySpecSet(gageStackBlurParm *sbp, const NrrdBoundarySpec *bspec) {
   static const char me[] = "gageStackBlurParmBoundarySet";
 
@@ -444,7 +444,7 @@ gageStackBlurParmBoundarySpecSet(gageStackBlurParm *sbp, const NrrdBoundarySpec 
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageStackBlurParmOneDimSet(gageStackBlurParm *sbp, int oneDim) {
   static const char me[] = "gageStackBlurParmOneDimSet";
 
@@ -456,7 +456,7 @@ gageStackBlurParmOneDimSet(gageStackBlurParm *sbp, int oneDim) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageStackBlurParmNeedSpatialBlurSet(gageStackBlurParm *sbp, int needSpatialBlur) {
   static const char me[] = "gageStackBlurParmNeedSpatialBlurSet";
 
@@ -468,7 +468,7 @@ gageStackBlurParmNeedSpatialBlurSet(gageStackBlurParm *sbp, int needSpatialBlur)
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageStackBlurParmVerboseSet(gageStackBlurParm *sbp, int verbose) {
   static const char me[] = "gageStackBlurParmVerboseSet";
 
@@ -480,7 +480,7 @@ gageStackBlurParmVerboseSet(gageStackBlurParm *sbp, int verbose) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageStackBlurParmDgGoodSigmaMaxSet(gageStackBlurParm *sbp, double dgGoodSigmaMax) {
   static const char me[] = "gageStackBlurParmDgGoodSigmaMaxSet";
 
@@ -496,7 +496,7 @@ gageStackBlurParmDgGoodSigmaMaxSet(gageStackBlurParm *sbp, double dgGoodSigmaMax
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageStackBlurParmCheck(const gageStackBlurParm *sbp) {
   static const char me[] = "gageStackBlurParmCheck";
   unsigned int ii;
@@ -543,7 +543,7 @@ gageStackBlurParmCheck(const gageStackBlurParm *sbp) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageStackBlurParmParse(gageStackBlurParm *sbp,
                        int extraFlags[256],
                        char **extraParmsP,
@@ -802,7 +802,7 @@ gageStackBlurParmParse(gageStackBlurParm *sbp,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageStackBlurParmSprint(char str[AIR_STRLEN_LARGE],
                         const gageStackBlurParm *sbp,
                         int extraFlag[256],
@@ -930,7 +930,7 @@ static const hestCB _gageHestStackBlurParm = {sizeof(gageStackBlurParm *),
 
 const hestCB *const gageHestStackBlurParm = &_gageHestStackBlurParm;
 
-static int
+static int /* Biff: 1 */
 _checkNrrd(Nrrd *const nblur[], const Nrrd *const ncheck[], unsigned int blNum,
            int checking, const Nrrd *nin, const gageKind *kind) {
   static const char me[] = "_checkNrrd";
@@ -979,7 +979,7 @@ typedef struct {
   char val[KVP_NUM][AIR_STRLEN_LARGE];
 } blurVal_t;
 
-static blurVal_t *
+static blurVal_t * /* Biff: NULL */
 _blurValAlloc(airArray *mop, gageStackBlurParm *sbp, NrrdKernelSpec *kssb,
               const Nrrd *nin, int spatialBlurred) {
   static const char me[] = "_blurValAlloc";
@@ -1016,7 +1016,7 @@ _blurValAlloc(airArray *mop, gageStackBlurParm *sbp, NrrdKernelSpec *kssb,
 ** blurring is more accurate.  This is due to how with limited numerical
 ** precision, the FFT can produce very low amplitude noise.
 */
-static int
+static int /* Biff: 1 */
 _stackBlurDiscreteGaussFFT(Nrrd *const nblur[], gageStackBlurParm *sbp, const Nrrd *nin,
                            const gageKind *kind) {
   static const char me[] = "_stackBlurDiscreteGaussFFT";
@@ -1195,7 +1195,7 @@ _stackBlurDiscreteGaussFFT(Nrrd *const nblur[], gageStackBlurParm *sbp, const Nr
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _stackBlurSpatial(Nrrd *const nblur[], gageStackBlurParm *sbp, NrrdKernelSpec *kssb,
                   const Nrrd *nin, const gageKind *kind) {
   static const char me[] = "_stackBlurSpatial";
@@ -1384,7 +1384,7 @@ _stackBlurSpatial(Nrrd *const nblur[], gageStackBlurParm *sbp, NrrdKernelSpec *k
 ** have to point to valid (possibly empty) Nrrds, so they can hold the
 ** results of blurring
 */
-int
+int /* Biff: 1 */
 gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp, const Nrrd *nin,
               const gageKind *kind) {
   static const char me[] = "gageStackBlur";
@@ -1487,7 +1487,7 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp, const Nrrd *nin,
 ** (docs)
 **
 */
-int
+int /* Biff: 1 */
 gageStackBlurCheck(const Nrrd *const nblur[], gageStackBlurParm *sbp, const Nrrd *nin,
                    const gageKind *kind) {
   static const char me[] = "gageStackBlurCheck";
@@ -1595,7 +1595,7 @@ gageStackBlurCheck(const Nrrd *const nblur[], gageStackBlurParm *sbp, const Nrrd
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageStackBlurGet(Nrrd *const nblur[], int *recomputedP, gageStackBlurParm *sbp,
                  const char *format, const Nrrd *nin, const gageKind *kind) {
   static const char me[] = "gageStackBlurGet";
@@ -1696,7 +1696,7 @@ gageStackBlurGet(Nrrd *const nblur[], int *recomputedP, gageStackBlurParm *sbp,
 ** allocates the array of Nrrds, allocates an array of doubles for scale,
 ** and saves output if recomputed
 */
-int
+int /* Biff: 1 */
 gageStackBlurManage(Nrrd ***nblurP, int *recomputedP, gageStackBlurParm *sbp,
                     const char *format, int saveIfComputed, NrrdEncoding *enc,
                     const Nrrd *nin, const gageKind *kind) {

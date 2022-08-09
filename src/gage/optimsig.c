@@ -215,7 +215,7 @@ _optimSigTable[GAGE_OPTIMSIG_SIGMA_MAX][GAGE_OPTIMSIG_SAMPLES_MAXNUM-1][GAGE_OPT
 /*
 ** this is only for retreiving part of the table above
 */
-int
+int /* Biff: 1 */
 gageOptimSigSet(double *scale, unsigned int num, unsigned int sigmaMax) {
   static const char me[] = "gageOptimSigSet";
   unsigned int si;
@@ -309,7 +309,7 @@ _SigOfRho(double rho) {
 ** allocates context, with error checking
 ** does use biff
 */
-gageOptimSigContext *
+gageOptimSigContext * /* Biff: NULL */
 gageOptimSigContextNew(unsigned int dim, unsigned int sampleNumMax,
                        unsigned int trueImgNum, double sigmaMin, double sigmaMax,
                        double cutoff) {
@@ -453,7 +453,7 @@ gageOptimSigContextNew(unsigned int dim, unsigned int sampleNumMax,
   return oscx;
 }
 
-gageOptimSigContext *
+gageOptimSigContext * /* Biff: nope */
 gageOptimSigContextNix(gageOptimSigContext *oscx) {
 
   if (oscx) {
@@ -483,7 +483,7 @@ gageOptimSigContextNix(gageOptimSigContext *oscx) {
   return NULL;
 }
 
-static int
+static int /* Biff: 1 */
 _volInterp(Nrrd *ninterp, double rho, gageOptimSigContext *oscx) {
   static const char me[] = "_volInterp";
   double *interp, scaleIdx, sigma;
@@ -614,7 +614,7 @@ _sampleSet(gageOptimSigContext *oscx, unsigned int si, double rho) {
   return;
 }
 
-static int
+static int /* Biff: 1 */
 _errSingle(double *retP, gageOptimSigContext *oscx, double rho) {
   static const char me[] = "_errSingle";
   double *diff, *kx, *ky, *kz;
@@ -656,7 +656,7 @@ _errSingle(double *retP, gageOptimSigContext *oscx, double rho) {
   return 0;
 }
 
-static int
+static int /* BiffP 1 */
 _errTotal(double *retP, gageOptimSigContext *oscx) {
   static const char me[] = "_errTotal";
   unsigned int ii;
@@ -694,7 +694,7 @@ _errTotal(double *retP, gageOptimSigContext *oscx) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _errTotalLinf(double *retP, gageOptimSigContext *oscx, unsigned int mmIdx[2],
               double mmErr[2]) {
   static const char me[] = "_errTotalLinf";
@@ -755,7 +755,7 @@ _errTotalLinf(double *retP, gageOptimSigContext *oscx, unsigned int mmIdx[2],
 /*
 ** this can be called repeatedly
 */
-static int
+static int /* Biff: 1 */
 _gageSetup(gageOptimSigContext *oscx) {
   static const char me[] = "_gageSetup";
   double kparm[NRRD_KERNEL_PARMS_NUM];
@@ -822,7 +822,7 @@ _timefmt(char tstr[AIR_STRLEN_MED], double deltim) {
   return tstr;
 }
 
-static int
+static int /* Biff: 1 */
 _optsigrun(gageOptimSigContext *oscx) {
   static const char me[] = "_optsigrun";
   char tstr[AIR_STRLEN_MED];
@@ -964,7 +964,7 @@ _optsigrun(gageOptimSigContext *oscx) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _optsigrunLinf(gageOptimSigContext *oscx) {
   static const char me[] = "_optsigrunLinf";
   char tstr[AIR_STRLEN_MED];
@@ -1090,7 +1090,7 @@ _optsigrunLinf(gageOptimSigContext *oscx) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageOptimSigCalculate(gageOptimSigContext *oscx,
                       /* output */ double *sigma, unsigned int sigmaNum,
                       const NrrdKernelSpec *kssSpec, int imgMeasr, int allMeasr,
@@ -1162,7 +1162,7 @@ gageOptimSigCalculate(gageOptimSigContext *oscx,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageOptimSigErrorPlot(gageOptimSigContext *oscx, Nrrd *nout, const double *sigma,
                       unsigned int sigmaNum, const NrrdKernelSpec *kssSpec,
                       int imgMeasr) {
@@ -1253,7 +1253,7 @@ gageOptimSigErrorPlot(gageOptimSigContext *oscx, Nrrd *nout, const double *sigma
   return 0;
 }
 
-int
+int /* Biff: 1 */
 gageOptimSigErrorPlotSliding(gageOptimSigContext *oscx, Nrrd *nout, double windowRho,
                              unsigned int sampleNum, const NrrdKernelSpec *kssSpec,
                              int imgMeasr) {

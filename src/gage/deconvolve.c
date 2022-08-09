@@ -24,7 +24,7 @@
 #include "gage.h"
 #include "privateGage.h"
 
-int
+int /* Biff: 1 */
 gageDeconvolve(Nrrd *_nout, double *lastDiffP, const Nrrd *nin, const gageKind *kind,
                const NrrdKernelSpec *ksp, int typeOut, unsigned int maxIter,
                int saveAnyway, double step, double epsilon, int verbose) {
@@ -191,7 +191,7 @@ deconvTrivial(const NrrdKernelSpec *ksp) {
   return ret;
 }
 
-int
+int /* Biff: nope */
 gageDeconvolveSeparableKnown(const NrrdKernelSpec *ksp) {
   int ret;
 
@@ -206,7 +206,7 @@ gageDeconvolveSeparableKnown(const NrrdKernelSpec *ksp) {
   return ret;
 }
 
-int
+int /* Biff: 1 */
 gageDeconvolveSeparable(Nrrd *nout, const Nrrd *nin, const gageKind *kind,
                         const NrrdKernelSpec *ksp, int typeOut) {
   static const char me[] = "gageDeconvolveSeparable";
