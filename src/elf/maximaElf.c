@@ -30,7 +30,7 @@
  * icosahedron - level=3 (321 unique directions) should be
  * sufficient. Larger levels reduce the risk of missing one of two (or
  * more) very close maxima, at increased computational cost. */
-elfMaximaContext *
+elfMaximaContext * /* Biff: nope */
 elfMaximaContextNew(const tijk_type *type, unsigned int level) {
   elfMaximaContext *retval;
   limnPolyData *sphere;
@@ -56,7 +56,7 @@ elfMaximaContextNew(const tijk_type *type, unsigned int level) {
   return retval;
 }
 
-elfMaximaContext *
+elfMaximaContext * /* Biff: nope */
 elfMaximaContextNix(elfMaximaContext *emc) {
   if (emc!=NULL) {
     free(emc->neighbors);
@@ -96,7 +96,7 @@ elfMaximaRefineSet(elfMaximaContext *emc, int refine) {
  * storing magnitudes in (malloc'ed) *ls and *vs. Returns the number of
  * distinct maxima, or -1 on error. ls are sorted in descending order.
  */
-int
+int /* Biff: nope */
 elfMaximaFind_d(double **ls, double **vs, const double *ten,
                 elfMaximaContext *emc) {
   unsigned int i;
@@ -153,7 +153,7 @@ elfMaximaFind_d(double **ls, double **vs, const double *ten,
 
 /* Mostly copy-pasted from above :-/
  */
-int
+int /* Biff: nope */
 elfMaximaFind_f(float **ls, float **vs, const float *ten,
                 elfMaximaContext *emc) {
   unsigned int i;

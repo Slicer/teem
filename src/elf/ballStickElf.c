@@ -42,7 +42,7 @@
  *
  * returns 0 on success, 1 if order is not supported
  */
-int
+int /* Biff: nope */
 elfKernelStick_f(float *kernel, unsigned int order, float bd,
                  float b0, int delta) {
   double ebd=exp(bd);
@@ -99,7 +99,7 @@ elfKernelStick_f(float *kernel, unsigned int order, float bd,
  *         1 if order is not supported
  *         2 if all DWIs were larger than the B0 image
  */
-int
+int /* Biff: nope */
 elfBallStickODF_f(float *odf, float *fiso, float *d,
                   const elfSingleShellDWI *dwi,
                   const float *T, unsigned int order, int delta)
@@ -157,7 +157,7 @@ elfBallStickODF_f(float *odf, float *fiso, float *d,
  * (ADC) and fiso are used to set d and fs[0].
  * Returns 0 upon success, 1 upon error
  */
-int
+int /* Biff: nope */
 elfBallStickPredict_f(elfBallStickParms *parms, float *odf,
                       const tijk_type *type, unsigned int k,
                       float d, float fiso) {
@@ -323,7 +323,7 @@ _levmarBallStickJacCB(double *p, double *jac, int m, int n, void *_data) {
  *         2 if levmar returned an error
  *         3 if levmar support is missing in this version of teem
  */
-int
+int /* Biff: nope */
 elfBallStickOptimize_f(elfBallStickParms *parms,
                        const elfSingleShellDWI *dwi) {
 #if TEEM_LEVMAR

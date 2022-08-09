@@ -100,7 +100,7 @@ estimateNormalsAntipodal (limnPolyData *glyph, const char normalize) {
 ** input tensor is not positive definite
 ** The return value is the radius of the glyph's bounding sphere
 */
-float
+float /* Biff: nope */
 elfGlyphPolar(limnPolyData *glyph, const char antipodal,
        const float *ten, const tijk_type *type,
        char *isdef, const char clamp, const char normalize,
@@ -189,7 +189,7 @@ elfGlyphPolar(limnPolyData *glyph, const char antipodal,
 ** The return value is the radius of the glyph's bounding sphere, or -1
 ** upon error (odd tensor order; HOME glyph is only defined for even orders)
 */
-float
+float /* Biff: nope */
 elfGlyphHOME(limnPolyData *glyph, const char antipodal,
              const float *ten, const tijk_type *type,
              char *isdef, const char normalize) {
@@ -276,7 +276,7 @@ elfGlyphHOME(limnPolyData *glyph, const char antipodal,
 ** XYZ-RGB map
 ** The return value is the radius of the glyph's bounding sphere
 */
-float
+float /* Biff: nope */
 elfGlyphKDE(limnPolyData *glyph, const char antipodal,
             const float *vecs, const size_t n_vecs,
             const float _gamma, const char normalize) {
@@ -348,7 +348,7 @@ elfGlyphKDE(limnPolyData *glyph, const char antipodal,
 ** glyph is colored according to its maxima
 ** returns zero upon success (fails if memory cannot be allocated)
 */
-int
+int /* Biff: nope */
 elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
                     const int *neighbors, unsigned int nbstride,
                     const float *ten, const tijk_type *type,
