@@ -24,7 +24,7 @@
 
 #include "limn.h"
 
-limnPolyData *
+limnPolyData * /* Biff: nope */
 limnPolyDataNew(void) {
   limnPolyData *pld;
 
@@ -49,7 +49,7 @@ limnPolyDataNew(void) {
   return pld;
 }
 
-limnPolyData *
+limnPolyData * /* Biff: nope */
 limnPolyDataNix(limnPolyData *pld) {
 
   if (pld) {
@@ -69,7 +69,7 @@ limnPolyDataNix(limnPolyData *pld) {
 /*
 ** doesn't set pld->xyzwNum, only the per-attribute xxxNum variables
 */
-static int
+static int /* Biff: 1 */
 _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
                        unsigned int vertNum) {
   static const char me[] = "_limnPolyDataInfoAlloc";
@@ -125,7 +125,7 @@ _limnPolyDataInfoAlloc(limnPolyData *pld, unsigned int infoBitFlag,
   return 0;
 }
 
-unsigned int
+unsigned int /* Biff: nope */
 limnPolyDataInfoBitFlag(const limnPolyData *pld) {
   unsigned int ret;
 
@@ -147,7 +147,7 @@ limnPolyDataInfoBitFlag(const limnPolyData *pld) {
   return ret;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataAlloc(limnPolyData *pld,
                   unsigned int infoBitFlag,
                   unsigned int vertNum,
@@ -201,7 +201,7 @@ limnPolyDataAlloc(limnPolyData *pld,
   return 0;
 }
 
-size_t
+size_t /* Biff: nope */
 limnPolyDataSize(const limnPolyData *pld) {
   size_t ret = 0;
 
@@ -226,7 +226,7 @@ limnPolyDataSize(const limnPolyData *pld) {
   return ret;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA) {
   static const char me[] = "limnPolyDataCopy";
 
@@ -258,7 +258,7 @@ limnPolyDataCopy(limnPolyData *pldB, const limnPolyData *pldA) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataCopyN(limnPolyData *pldB, const limnPolyData *pldA, unsigned int num) {
   static const char me[] = "limnPolyDataCopyN";
   unsigned int ii, jj, size;
@@ -373,7 +373,7 @@ limnPolyDataTransform_d(limnPolyData *pld, const double homat[16]) {
   return;
 }
 
-unsigned int
+unsigned int /* Biff: nope */
 limnPolyDataPolygonNumber(const limnPolyData *pld) {
   unsigned int ret, primIdx;
 
@@ -400,7 +400,7 @@ limnPolyDataPolygonNumber(const limnPolyData *pld) {
   return ret;
 }
 
-static int
+static int /* Biff: 1 */
 limnPolyDataVertexNormals_(limnPolyData *pld, int nonorient) {
   static const char me[] = "limnPolyDataVertexNormals_";
   unsigned int infoBitFlag, primIdx, triIdx, normIdx, baseVertIdx;
@@ -525,18 +525,18 @@ limnPolyDataVertexNormals_(limnPolyData *pld, int nonorient) {
   return 0;
 }
 
-int
+int /* Biff: nope */
 limnPolyDataVertexNormals(limnPolyData *pld) {
   return limnPolyDataVertexNormals_(pld, 0);
 }
 
 /* counterpart for non-orientable surfaces */
-int
+int /* Biff: nope */
 limnPolyDataVertexNormalsNO(limnPolyData *pld) {
   return limnPolyDataVertexNormals_(pld, 1);
 }
 
-unsigned int
+unsigned int /* Biff: nope */
 limnPolyDataPrimitiveTypes(const limnPolyData *pld) {
   unsigned int ret, primIdx;
 
@@ -549,7 +549,7 @@ limnPolyDataPrimitiveTypes(const limnPolyData *pld) {
   return ret;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataPrimitiveVertexNumber(Nrrd *nout, limnPolyData *pld) {
   static const char me[] = "limnPolyDataPrimitiveVertexNumber";
   unsigned int *vnum, pidx;
@@ -571,7 +571,7 @@ limnPolyDataPrimitiveVertexNumber(Nrrd *nout, limnPolyData *pld) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld) {
   static const char me[] = "limnPolyDataPrimitiveArea";
   unsigned int primIdx, baseVertIdx;
@@ -629,7 +629,7 @@ limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld) {
 /*
 ** I may regret making this only be axis-aligned ...
 */
-int
+int /* Biff: 1 */
 limnPolyDataRasterize(Nrrd *nout, limnPolyData *pld, double min[3], double max[3],
                       size_t size[3], int type) {
   static const char me[] = "limnPolyDataRasterize";

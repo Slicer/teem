@@ -25,7 +25,7 @@
 #include "limn.h"
 
 /* clang-format off */
-int
+int /* Biff: 1 */
 limnPolyDataCube(limnPolyData *pld,
                  unsigned int infoBitFlag,
                  int sharpEdge) {
@@ -135,7 +135,7 @@ limnPolyDataCube(limnPolyData *pld,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataCubeTriangles(limnPolyData *pld,
                           unsigned int infoBitFlag,
                           int sharpEdge) {
@@ -345,7 +345,7 @@ limnPolyDataCubeTriangles(limnPolyData *pld,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataOctahedron(limnPolyData *pld,
                        unsigned int infoBitFlag,
                        int sharpEdge) {
@@ -459,7 +459,7 @@ limnPolyDataOctahedron(limnPolyData *pld,
 }
 /* clang-format on */
 
-int
+int /* Biff: 1 */
 limnPolyDataCylinder(limnPolyData *pld, unsigned int infoBitFlag, unsigned int thetaRes,
                      int sharpEdge) {
   static const char me[] = "limnPolyDataCylinder";
@@ -633,7 +633,7 @@ limnPolyDataCylinder(limnPolyData *pld, unsigned int infoBitFlag, unsigned int t
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataCone(limnPolyData *pld, unsigned int infoBitFlag, unsigned int thetaRes,
                  int sharpEdge) {
   static const char me[] = "limnPolyDataCone";
@@ -732,7 +732,7 @@ limnPolyDataCone(limnPolyData *pld, unsigned int infoBitFlag, unsigned int theta
 **
 ** makes a superquadric parameterized around the Z axis
 */
-int
+int /* Biff: 1 */
 limnPolyDataSuperquadric(limnPolyData *pld, unsigned int infoBitFlag, float alpha,
                          float beta, unsigned int thetaRes, unsigned int phiRes) {
   static const char me[] = "limnPolyDataSuperquadric";
@@ -857,7 +857,7 @@ limnPolyDataSuperquadric(limnPolyData *pld, unsigned int infoBitFlag, float alph
 **
 ** puts a "betterquadric" into a single spiral triangle strip
 */
-int
+int /* Biff: 1 */
 limnPolyDataSpiralBetterquadric(limnPolyData *pld, unsigned int infoBitFlag, float alpha,
                                 float beta, float cee, float minRad,
                                 unsigned int thetaRes, unsigned int phiRes) {
@@ -1014,7 +1014,7 @@ limnPolyDataSpiralBetterquadric(limnPolyData *pld, unsigned int infoBitFlag, flo
 **
 ** puts a superquadric into a single spiral triangle strip
 */
-int
+int /* Biff: 1 */
 limnPolyDataSpiralSuperquadric(limnPolyData *pld, unsigned int infoBitFlag, float alpha,
                                float beta, unsigned int thetaRes, unsigned int phiRes) {
   static const char me[] = "limnPolyDataSpiralSuperquadric";
@@ -1032,7 +1032,7 @@ limnPolyDataSpiralSuperquadric(limnPolyData *pld, unsigned int infoBitFlag, floa
 **
 ** makes a unit sphere, centered at the origin, parameterized around Z axis
 */
-int
+int /* Biff: 1 */
 limnPolyDataPolarSphere(limnPolyData *pld, unsigned int infoBitFlag,
                         unsigned int thetaRes, unsigned int phiRes) {
   static const char me[] = "limnPolyDataPolarSphere";
@@ -1044,7 +1044,7 @@ limnPolyDataPolarSphere(limnPolyData *pld, unsigned int infoBitFlag,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataSpiralSphere(limnPolyData *pld,
                          unsigned int infoBitFlag,
                          unsigned int thetaRes,
@@ -1095,7 +1095,7 @@ static unsigned int icofaces[60] = {0,  4,  12, 1,  5,  13, 0,  6,  14, 1,  7,  
 ** a mirrored result for antipodal points (e.g., tensor glyphs).
 */
 
-int
+int /* Biff: 1 */
 limnPolyDataIcoSphere(limnPolyData *pld, unsigned int infoBitFlag, unsigned int level) {
   static const char me[] = "limnPolyDataIcoSphere";
   unsigned int vertNum = 12, edgeNum = 30, faceNum = 20, center;
@@ -1339,7 +1339,7 @@ error_and_exit:
   return 1;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataPlane(limnPolyData *pld, unsigned int infoBitFlag, unsigned int uRes,
                   unsigned int vRes) {
   static const char me[] = "limnPolyDataPlane";
@@ -1394,7 +1394,7 @@ limnPolyDataPlane(limnPolyData *pld, unsigned int infoBitFlag, unsigned int uRes
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataSquare(limnPolyData *pld, unsigned int infoBitFlag) {
   static const char me[] = "limnPolyDataSquare";
 
@@ -1437,7 +1437,7 @@ limnPolyDataSquare(limnPolyData *pld, unsigned int infoBitFlag) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataSuperquadric2D(limnPolyData *pld, unsigned int infoBitFlag, float alpha,
                            unsigned int res) {
   static const char me[] = "limnPolyDataSuperquadric2D";

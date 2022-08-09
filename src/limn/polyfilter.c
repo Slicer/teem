@@ -24,7 +24,7 @@
 
 #include "limn.h"
 
-int
+int /* Biff: 1 */
 limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
                            unsigned int infoBitFlag, Nrrd *nvertmap,
                            unsigned int tubeFacet, unsigned int endFacet,
@@ -334,7 +334,7 @@ limnPolyDataSpiralTubeWrap(limnPolyData *pldOut, const limnPolyData *pldIn,
  *
  * Returns -1 and leaves a message on biff upon error.
  */
-int
+int /* Biff: -1 */
 limnPolyDataSmoothHC(limnPolyData *pld, int *neighbors, int *idx, double alpha,
                      double beta, int iter) {
   static const char me[] = "limnPolyDataSmoothHC";

@@ -240,7 +240,7 @@ maxTrianglePerPrimitive(limnPolyData *pld) {
 /*
 ** fills nTriWithVert with 2D array about which triangles use which vertices
 */
-static int
+static int /* Biff: 1 */
 triangleWithVertex(Nrrd *nTriWithVert, limnPolyData *pld) {
   static const char me[] = "triangleWithVertex";
   unsigned int *triWithVertNum, /* vert ii has triWithVertNum[ii] tris */
@@ -317,7 +317,7 @@ triangleWithVertex(Nrrd *nTriWithVert, limnPolyData *pld) {
 /*
 ** learns which (three vertices) are with which triangle
 */
-static int
+static int /* Biff: 1 */
 vertexWithTriangle(Nrrd *nVertWithTri, limnPolyData *pld) {
   static const char me[] = "vertexWithTriangle";
   unsigned int baseVertIdx, primIdx, *vertWithTri, triNum;
@@ -357,7 +357,7 @@ vertexWithTriangle(Nrrd *nVertWithTri, limnPolyData *pld) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 splitListExtract(unsigned int *listLenP, airArray *edgeArr, unsigned char *hitCount,
                  unsigned int firstVertIdx, unsigned int edgeDoneNum) {
   static const char me[] = "splitListExtract";
@@ -573,7 +573,7 @@ splitTriSweep(unsigned int *sweep, unsigned int triStart, unsigned int vertPivot
 ** then track0 will NOT include the endpoint triangles
 ** (or its not supposed to), and track1 will include them.
 */
-static int
+static int /* Biff: 1 */
 splitTriTrack(unsigned int *track0, unsigned int *track0LenP, unsigned int *track1,
               unsigned int *track1LenP, unsigned int *sweep, Nrrd *nTriWithVert,
               Nrrd *nVertWithTri, airArray *edgeArr, unsigned startIdx,
@@ -741,7 +741,7 @@ splitTriTrack(unsigned int *track0, unsigned int *track0LenP, unsigned int *trac
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 splitVertDup(limnPolyData *pld, airArray *edgeArr, unsigned int edgeDoneNum,
              unsigned int listLen, unsigned int *track, unsigned int trackLen,
              int looping) {
@@ -894,7 +894,7 @@ splitVertDup(limnPolyData *pld, airArray *edgeArr, unsigned int edgeDoneNum,
 **
 ** HEY should we be returning some statistics (e.g. how many points added)?
 */
-static int
+static int /* Biff: 1 */
 doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
             airArray *edgeArr) {
   static const char me[] = "doSplitting";
@@ -1054,7 +1054,7 @@ doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) {
   static const char me[] = "limnPolyDataVertexWindingProcess";
   unsigned int primIdx, /* for indexing through primitives */
@@ -1230,7 +1230,7 @@ _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) {
 ** (new) vertices when the seam in the non-orientable surface
 ** is a closed loop.  Can be debugged later...
 */
-int
+int /* Biff: 1 */
 limnPolyDataVertexWindingFix(limnPolyData *pld, int splitting) {
   static const char me[] = "limnPolyDataVertexWindingFix";
 
@@ -1249,7 +1249,7 @@ limnPolyDataVertexWindingFix(limnPolyData *pld, int splitting) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataCCFind(limnPolyData *pld) {
   static const char me[] = "limnPolyDataCCFind";
   unsigned int realTriNum, *triMap, *triWithVert, vertIdx, *indxOld, *indxNew,
@@ -1380,7 +1380,7 @@ limnPolyDataCCFind(limnPolyData *pld) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *_nval) {
   static const char me[] = "limnPolyDataPrimitiveSort";
   Nrrd *nval, *nrec;
@@ -1463,7 +1463,7 @@ limnPolyDataPrimitiveSort(limnPolyData *pld, const Nrrd *_nval) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataVertexWindingFlip(limnPolyData *pld) {
   static const char me[] = "limnPolyDataVertexWindingFlip";
   unsigned int baseVertIdx, primIdx;
@@ -1492,7 +1492,7 @@ limnPolyDataVertexWindingFlip(limnPolyData *pld) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataPrimitiveSelect(limnPolyData *pldOut,
                             const limnPolyData *pldIn,
                             const Nrrd *_nmask) {
@@ -1707,7 +1707,7 @@ clipEdge(int disc, int kept, Nrrd *nval, double *thresh, int *newIdx, airArray *
  * threshold; triangles with partially discarded vertices are clipped,
  * potentially generating a quad that is then triangulated arbitrarily.
  */
-int
+int /* Biff: 1 */
 limnPolyDataClipMulti(limnPolyData *pld, Nrrd *nval, double *thresh) {
   static const char me[] = "limnPolyDataClipMulti";
   unsigned char *keepVert = NULL;
@@ -1984,7 +1984,7 @@ limnPolyDataClipMulti(limnPolyData *pld, Nrrd *nval, double *thresh) {
 /* Simple wrapper around limnPolyDataClipMulti, in case of only one
  * clipping criterion.
  */
-int
+int /* Biff: nope */
 limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh) {
   return limnPolyDataClipMulti(pld, nval, &thresh);
 }
@@ -1994,7 +1994,7 @@ limnPolyDataClip(limnPolyData *pld, Nrrd *nval, double thresh) {
  *  contains vertices that are referenced by some primitive
  * returns NULL and adds a message to biff upon error
  */
-limnPolyData *
+limnPolyData * /* Biff: NULL */
 limnPolyDataCompress(const limnPolyData *pld) {
   static const char me[] = "limnPolyDataCompress";
   limnPolyData *ret = NULL;
@@ -2084,7 +2084,7 @@ limnPolyDataCompress(const limnPolyData *pld) {
  *  if _all_ input limnPolyDatas had the respective attribute
  * returns NULL and adds a message to biff upon error
  */
-limnPolyData *
+limnPolyData * /* Biff: NULL */
 limnPolyDataJoin(const limnPolyData **plds, unsigned int num) {
   static const char me[] = "limnPolyDataJoin";
   limnPolyData *ret = NULL;
@@ -2152,7 +2152,7 @@ limnPolyDataJoin(const limnPolyData **plds, unsigned int num) {
   return ret;
 }
 
-int
+int /* Biff: 1 */
 limnPolyDataEdgeHalve(limnPolyData *pldOut, const limnPolyData *pldIn) {
   static const char me[] = "limnPolyDataEdgeHalve";
   Nrrd *nnewvert;
@@ -2329,7 +2329,7 @@ registerNeighbor(unsigned int *nblist, size_t *len, unsigned int *maxnb, unsigne
  * If non-NULL, *m is set to the maximum number of neighbors (over all vertices)
  * Return value is 0 upon success, -1 upon error. Biff is used for errors.
  */
-int
+int /* Biff: -1 */
 limnPolyDataNeighborList(unsigned int **nblist, size_t *len, unsigned int *maxnb,
                          const limnPolyData *pld) {
   static const char me[] = "limnPolyDataNeighborList";
@@ -2425,7 +2425,7 @@ limnPolyDataNeighborList(unsigned int **nblist, size_t *len, unsigned int *maxnb
  * *maxnb will be set to m (and is assumed to be non-NULL!)
  * Returns -1 and adds a biff error if there was a problem allocating memory.
  */
-int
+int /* Biff: -1 */
 limnPolyDataNeighborArray(int **neighbors, unsigned int *maxnb,
                           const limnPolyData *pld) {
   static const char me[] = "limnPolyDataNeighborArray";
@@ -2465,7 +2465,7 @@ limnPolyDataNeighborArray(int **neighbors, unsigned int *maxnb,
  * vertex i start
  * Returns -1 and adds a biff error if there was a problem allocating memory.
  */
-int
+int /* Biff: -1 */
 limnPolyDataNeighborArrayComp(int **neighbors, int **idx, const limnPolyData *pld) {
   static const char me[] = "limnPolyDataNeighborArrayComp";
   unsigned int i, ct, *nblist;
