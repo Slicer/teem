@@ -148,7 +148,7 @@ pullIterParmSet(pullContext *pctx, int which, unsigned int pval) {
     }
     break;
   default:
-    biffAddf(me, "%s: sorry, iter parm %d valid but not handled?", me, which);
+    biffAddf(PULL, "%s: sorry, iter parm %d valid but not handled?", me, which);
     return 1;
   }
   return 0;
@@ -259,7 +259,7 @@ pullSysParmSet(pullContext *pctx, int which, double pval) {
     pctx->sysParm.wall = pval;
     break;
   default:
-    biffAddf(me, "%s: sorry, sys parm %d valid but not handled?", me, which);
+    biffAddf(PULL, "%s: sorry, sys parm %d valid but not handled?", me, which);
     return 1;
   }
   return 0;
@@ -332,7 +332,7 @@ pullFlagSet(pullContext *pctx, int which, int flag) {
     pctx->flag.zeroZ = flag;
     break;
   default:
-    biffAddf(me, "%s: sorry, flag %d valid but not handled?", me, which);
+    biffAddf(PULL, "%s: sorry, flag %d valid but not handled?", me, which);
     return 1;
   }
   return 0;
