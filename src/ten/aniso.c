@@ -1191,7 +1191,7 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
     return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin, NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
-    biffAddf(NRRD, "%s:", me);
+    biffMovef(TEN, NRRD, "%s:", me);
     return 1;
   }
 

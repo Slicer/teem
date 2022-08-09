@@ -1994,7 +1994,7 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec, Nrrd *nten, Nrrd **nB0P,
   nrrdAxisInfoCopy(nten, ndwi, axmap, NRRD_AXIS_INFO_NONE);
   nten->axis[0].kind = nrrdKind3DMaskedSymMatrix;
   if (nrrdBasicInfoCopy(nten, ndwi, NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
-    biffAddf(NRRD, "%s:", me);
+    biffMovef(TEN, NRRD, "%s:", me);
     return 1;
   }
 

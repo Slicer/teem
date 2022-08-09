@@ -737,7 +737,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P, const Nrrd *ndwi,
       *nterrP = nrrdNew();
     }
     if (nrrdMaybeAlloc_va(*nterrP, nrrdTypeFloat, 3, sx, sy, sz)) {
-      biffAddf(NRRD, "%s: couldn't allocate error output", me);
+      biffMovef(TEN, NRRD, "%s: couldn't allocate error output", me);
       airMopError(mop);
       return 1;
     }
@@ -752,7 +752,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P, const Nrrd *ndwi,
       *nB0P = nrrdNew();
     }
     if (nrrdMaybeAlloc_va(*nB0P, nrrdTypeFloat, 3, sx, sy, sz)) {
-      biffAddf(NRRD, "%s: couldn't allocate error output", me);
+      biffMovef(TEN, NRRD, "%s: couldn't allocate error output", me);
       airMopError(mop);
       return 1;
     }
@@ -819,7 +819,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P, const Nrrd *ndwi,
   nrrdAxisInfoCopy(nten, ndwi, amap, NRRD_AXIS_INFO_NONE);
   nten->axis[0].kind = nrrdKind3DMaskedSymMatrix;
   if (nrrdBasicInfoCopy(nten, ndwi, NRRD_BASIC_INFO_ALL ^ NRRD_BASIC_INFO_SPACE)) {
-    biffAddf(NRRD, "%s:", me);
+    biffMovef(TEN, NRRD, "%s:", me);
     return 1;
   }
 
