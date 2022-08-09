@@ -27,7 +27,7 @@
 #define BIFF_NULL      "%s: got NULL pointer"
 #define BIFF_NRRDALLOC "%s: couldn't allocate output nrrd"
 
-int
+int /* Biff: 1 */
 baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
   static const char me[] = "baneOpacInfo";
   Nrrd *proj2, *proj1, *projT;
@@ -143,7 +143,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   static const char me[] = "bane1DOpacInfoFrom2D";
   Nrrd *projH2 = NULL, *projH1 = NULL, *projN = NULL, *projG1 = NULL;
@@ -190,7 +190,7 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 sigmaCalc1D(float *sP, Nrrd *info1D) {
   static const char me[] = "sigmaCalc1D";
   int i, len;
@@ -222,7 +222,7 @@ sigmaCalc1D(float *sP, Nrrd *info1D) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 baneSigmaCalc(float *sP, Nrrd *_info) {
   static const char me[] = "baneSigmaCalc";
   Nrrd *info;
@@ -253,7 +253,7 @@ baneSigmaCalc(float *sP, Nrrd *_info) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
   static const char me[] = "banePosCalc";
   int d, i, len, vi, gi, sv, sg;
@@ -404,7 +404,7 @@ baneOpacCalcB(unsigned int lutLen, float *opacLut, unsigned int numCpts, float *
   */
 }
 
-int
+int /* Biff: 1 */
 baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos) {
   static const char me[] = "baneOpacCalc";
   int dim, sv, sg, len, npts;

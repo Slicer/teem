@@ -34,7 +34,7 @@ static Nrrd *baneNpos = NULL;
 
 #define TREX_LUTLEN 256
 
-float *
+float * /* Biff: nope */
 baneTRexRead(char *fname) {
   static const char me[] = "baneTRexRead";
 

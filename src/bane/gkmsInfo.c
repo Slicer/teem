@@ -29,7 +29,7 @@ static const char *_baneGkms_infoInfoL
   = (INFO_INFO ". This distills the histogram volume down to the information required "
                "to create either 1-D or 2-D opacity functions.");
 
-static int
+static int /* Biff: 1 */
 baneGkms_infoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *perr;

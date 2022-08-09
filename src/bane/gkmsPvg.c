@@ -57,7 +57,7 @@ static const float _baneGkmsDonData[] = {
 #define PVG_HISTEQ_BINS 2048
 /* clang-format on */
 
-static Nrrd *
+static Nrrd * /* Biff: NULL */
 _baneGkmsDonNew(int invert) {
   static const char me[] = "_baneGkmsDonNew";
   Nrrd *ret;
@@ -90,7 +90,7 @@ static const char *_baneGkms_pvgInfoL
               "the \"position function\" in GK's published work, but a better term "
               "would be \"distance map\", as a function of value (v) and gradient "
               "magnitude (g).");
-static int
+static int /* Biff: 1 */
 baneGkms_pvgMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *outS, *perr, *mapS;

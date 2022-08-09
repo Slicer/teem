@@ -30,7 +30,7 @@ static const char *_baneGkms_scatInfoL
                "verify that the derivative inclusion ranges were appropriate, and to "
                "get an initial sense of what sorts of boundaries were present in the "
                "original volume.");
-static int
+static int /* Biff: 1 */
 baneGkms_scatMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out[2], *perr;

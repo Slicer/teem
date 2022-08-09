@@ -31,7 +31,7 @@ static const char *_baneGkms_hvolInfoL
                "second directional derivative along the gradient direction.  Creating "
                "it is the first step in semi-automatic transfer function generation.  ");
 
-static int
+static int /* Biff: 1 */
 baneGkms_hvolMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *perr;

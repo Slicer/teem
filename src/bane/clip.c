@@ -48,7 +48,7 @@ _clipAnswer_PeakRatio(int *countP, Nrrd *hvol, double *clipParm) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _clipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
   static const char me[] = "_clipAnswer_Percentile";
   Nrrd *ncopy;
@@ -79,7 +79,7 @@ _clipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _clipAnswer_TopN(int *countP, Nrrd *hvol, double *clipParm) {
   static const char me[] = "_clipAnwer_TopN";
   Nrrd *copy;
@@ -100,7 +100,7 @@ _clipAnswer_TopN(int *countP, Nrrd *hvol, double *clipParm) {
   return 0;
 }
 
-baneClip *
+baneClip * /* Biff: NULL */
 baneClipNew(int type, double *parm) {
   static const char me[] = "baneClipNew";
   baneClip *clip;
@@ -150,7 +150,7 @@ baneClipNew(int type, double *parm) {
   return clip;
 }
 
-int
+int /* Biff: 1 */
 baneClipAnswer(int *countP, baneClip *clip, Nrrd *hvol) {
   static const char me[] = "baneClipAnswer";
 
@@ -165,7 +165,7 @@ baneClipAnswer(int *countP, baneClip *clip, Nrrd *hvol) {
   return 0;
 }
 
-baneClip *
+baneClip * /* Biff: NULL */
 baneClipCopy(baneClip *clip) {
   static const char me[] = "baneClipCopy";
   baneClip *ret = NULL;
@@ -178,7 +178,7 @@ baneClipCopy(baneClip *clip) {
   return ret;
 }
 
-baneClip *
+baneClip * /* Biff: nope */
 baneClipNix(baneClip *clip) {
 
   if (clip) {

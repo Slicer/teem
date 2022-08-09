@@ -37,7 +37,7 @@
 ** and stderr to appear in the right order
 */
 
-int
+int /* Biff: (private) 1 */
 _baneAxisCheck(baneAxis *ax) {
   static const char me[] = "_baneAxisCheck";
 
@@ -85,7 +85,7 @@ baneProbe(double val[3], Nrrd *nin, baneHVolParm *hvp, gageContext *ctx, unsigne
   return;
 }
 
-int
+int /* Biff: 1 */
 baneFindInclusion(double min[3], double max[3], Nrrd *nin, baneHVolParm *hvp,
                   gageContext *ctx) {
   static const char me[] = "baneFindInclusion";
@@ -247,7 +247,7 @@ baneFindInclusion(double min[3], double max[3], Nrrd *nin, baneHVolParm *hvp,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   static const char me[] = "baneMakeHVol";
   char prog[13];
@@ -446,7 +446,7 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   return 0;
 }
 
-Nrrd *
+Nrrd * /* Biff: NULL */
 baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc) {
   static const char me[] = "baneGKMSHVol";
   baneHVolParm *hvp;

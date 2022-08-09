@@ -30,7 +30,7 @@ static const char *_baneGkms_txfInfoL
               "magnitude.  They can be tilted sideways and clipped at the bottom. "
               "This doesn't strictly speaking belong in \"gkms\" but there's no "
               "other good place in Teem.");
-static int
+static int /* Biff: 1 */
 baneGkms_txfMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *perr;

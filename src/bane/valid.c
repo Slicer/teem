@@ -24,7 +24,7 @@
 #include "bane.h"
 #include "privateBane.h"
 
-int
+int /* Biff: 1 */
 baneInputCheck(Nrrd *nin, baneHVolParm *hvp) {
   static const char me[] = "baneInputCheck";
   int i;
@@ -62,7 +62,7 @@ baneInputCheck(Nrrd *nin, baneHVolParm *hvp) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 baneHVolCheck(Nrrd *hvol) {
   static const char me[] = "baneHVolCheck";
 
@@ -104,7 +104,7 @@ baneHVolCheck(Nrrd *hvol) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 baneInfoCheck(Nrrd *info, int wantDim) {
   static const char me[] = "baneInfoCheck";
   int gotDim;
@@ -142,7 +142,7 @@ baneInfoCheck(Nrrd *info, int wantDim) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 banePosCheck(Nrrd *pos, int wantDim) {
   static const char me[] = "banePosCheck";
   int gotDim;
@@ -177,7 +177,7 @@ banePosCheck(Nrrd *pos, int wantDim) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 baneBcptsCheck(Nrrd *Bcpts) {
   static const char me[] = "baneBcptsCheck";
   int i, len;

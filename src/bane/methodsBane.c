@@ -41,7 +41,7 @@ _axisEmpty(baneAxis *axis) {
   axis->inc = baneIncNix(axis->inc);
 }
 
-baneHVolParm *
+baneHVolParm * /* Biff: nope */
 baneHVolParmNew() {
   baneHVolParm *hvp;
   int i, j;
@@ -91,7 +91,7 @@ baneHVolParmClipSet(baneHVolParm *hvp, baneClip *clip) {
   return;
 }
 
-baneHVolParm *
+baneHVolParm * /* Biff: nope */
 baneHVolParmNix(baneHVolParm *hvp) {
 
   if (hvp) {

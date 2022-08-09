@@ -91,7 +91,7 @@ _incAnswer_Absolute(double *minP, double *maxP, Nrrd *hist, double *incParm,
 ** incParm[0]: scales the size of the range after it has been
 ** sent through the associated range function.
 */
-static int
+static int /* Biff: 1 */
 _incAnswer_RangeRatio(double *minP, double *maxP, Nrrd *hist, double *incParm,
                       baneRange *range) {
   static const char me[] = "_incAnwer_RangeRatio";
@@ -121,7 +121,7 @@ _incAnswer_RangeRatio(double *minP, double *maxP, Nrrd *hist, double *incParm,
 ** lower and upper ends of range, in a manner dependant on the
 ** range type
 */
-static int
+static int /* Biff: 1 */
 _incAnswer_Percentile(double *minP, double *maxP, Nrrd *nhist, double *incParm,
                       baneRange *range) {
   static const char me[] = "_incAnswer_Percentile";
@@ -249,7 +249,7 @@ _incAnswer_Stdv(double *minP, double *maxP, Nrrd *hist, double *incParm,
   return 0;
 }
 
-baneInc *
+baneInc * /* Biff: NULL */
 baneIncNew(int type, baneRange *range, double *parm) {
   static const char me[] = "baneIncNew";
   baneInc *inc;
@@ -358,7 +358,7 @@ baneIncProcess(baneInc *inc, int passIdx, double val) {
   return;
 }
 
-int
+int /* Biff: 1 */
 baneIncAnswer(baneInc *inc, double *minP, double *maxP) {
   static const char me[] = "baneIncAnswer";
 
@@ -373,7 +373,7 @@ baneIncAnswer(baneInc *inc, double *minP, double *maxP) {
   return 0;
 }
 
-baneInc *
+baneInc * /* Biff: NULL */
 baneIncCopy(baneInc *inc) {
   static const char me[] = "baneIncCopy";
   baneInc *ret = NULL;
@@ -386,7 +386,7 @@ baneIncCopy(baneInc *inc) {
   return ret;
 }
 
-baneInc *
+baneInc * /* Biff: nope */
 baneIncNix(baneInc *inc) {
 
   if (inc) {

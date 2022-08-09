@@ -24,7 +24,7 @@
 #include "bane.h"
 #include "privateBane.h"
 
-static int
+static int /* Biff: 1 */
 _rangePositive_Answer(double *ominP, double *omaxP, double imin, double imax) {
   static const char me[] = "_rangePositive_Answer";
 
@@ -37,7 +37,7 @@ _rangePositive_Answer(double *ominP, double *omaxP, double imin, double imax) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _rangeNegative_Answer(double *ominP, double *omaxP, double imin, double imax) {
   static const char me[] = "_rangeNegative_Answer";
 
@@ -58,7 +58,7 @@ _rangeNegative_Answer(double *ominP, double *omaxP, double imin, double imax) {
 ** min and max.  Previously the average of the min and max magnitude
 ** were used.
 */
-static int
+static int /* Biff: 1 */
 _rangeZeroCentered_Answer(double *ominP, double *omaxP, double imin, double imax) {
   static const char me[] = "_rangeZeroCentered_Answer";
 
@@ -74,7 +74,7 @@ _rangeZeroCentered_Answer(double *ominP, double *omaxP, double imin, double imax
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _rangeAnywhere_Answer(double *ominP, double *omaxP, double imin, double imax) {
   static const char me[] = "_rangeAnywhere_Answer";
 
@@ -87,7 +87,7 @@ _rangeAnywhere_Answer(double *ominP, double *omaxP, double imin, double imax) {
   return 0;
 }
 
-baneRange *
+baneRange * /* Biff: NULL */
 baneRangeNew(int type) {
   static const char me[] = "baneRangeNew";
   baneRange *range = NULL;
@@ -128,7 +128,7 @@ baneRangeNew(int type) {
   return range;
 }
 
-baneRange *
+baneRange * /* Biff: NULL */
 baneRangeCopy(baneRange *range) {
   static const char me[] = "baneRangeCopy";
   baneRange *ret = NULL;
@@ -142,7 +142,7 @@ baneRangeCopy(baneRange *range) {
   return ret;
 }
 
-int
+int /* Biff: 1 */
 baneRangeAnswer(baneRange *range, double *ominP, double *omaxP, double imin,
                 double imax) {
   static const char me[] = "baneRangeAnswer";
@@ -158,7 +158,7 @@ baneRangeAnswer(baneRange *range, double *ominP, double *omaxP, double imin,
   return 0;
 }
 
-baneRange *
+baneRange * /* Biff: nope */
 baneRangeNix(baneRange *range) {
 
   if (range) {

@@ -31,7 +31,7 @@ _baneMeasr_StockAnswer(baneMeasr *measr, double *san, double *parm) {
   return san[measr->offset0];
 }
 
-baneMeasr *
+baneMeasr * /* Biff: NULL */
 baneMeasrNew(int type, double *parm) {
   static const char me[] = "baneMeasrNew";
   baneMeasr *measr;
@@ -133,7 +133,7 @@ baneMeasrNew(int type, double *parm) {
   return measr;
 }
 
-double
+double /* Biff: nope */
 baneMeasrAnswer(baneMeasr *measr, gageContext *gctx) {
   static const char me[] = "baneMeasrAnswer";
   double ret;
@@ -147,7 +147,7 @@ baneMeasrAnswer(baneMeasr *measr, gageContext *gctx) {
   return ret;
 }
 
-baneMeasr *
+baneMeasr * /* Biff: NULL */
 baneMeasrCopy(baneMeasr *measr) {
   static const char me[] = "baneMeasrCopy";
   baneMeasr *ret = NULL;
@@ -160,7 +160,7 @@ baneMeasrCopy(baneMeasr *measr) {
   return ret;
 }
 
-baneMeasr *
+baneMeasr * /* Biff: nope */
 baneMeasrNix(baneMeasr *measr) {
 
   if (measr) {
