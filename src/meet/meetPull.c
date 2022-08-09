@@ -23,7 +23,7 @@
 
 #include "meet.h"
 
-meetPullVol *
+meetPullVol * /* Biff: nope */
 meetPullVolNew(void) {
   meetPullVol *ret;
 
@@ -42,10 +42,7 @@ meetPullVolNew(void) {
   return ret;
 }
 
-/*
-** DOES use biff
-*/
-meetPullVol *
+meetPullVol * /* Biff: NULL */
 meetPullVolCopy(const meetPullVol *mpv) {
   static const char me[] = "meetPullVolCopy";
   meetPullVol *ret;
@@ -101,7 +98,7 @@ meetPullVolCopy(const meetPullVol *mpv) {
 ** parses a string to extract all the information necessary to create
 ** the pullVolume (this function originated in Deft/src/main-pull.c)
 */
-int
+int /* Biff: 1 */
 meetPullVolParse(meetPullVol *mpv, const char *_str) {
   static const char me[] = "meetPullVolParse";
 #define VFMT_SHRT "<fileName>:<kind>:<volName>"
@@ -270,7 +267,7 @@ meetHestPullVolParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
 **
 ** this frees stuff allocated meetPullVolParse and meetPullVolLoadMulti
 */
-meetPullVol *
+meetPullVol * /* Biff: nope */
 meetPullVolNix(meetPullVol *mpv) {
 
   if (mpv) {
@@ -312,10 +309,8 @@ const hestCB *const meetHestPullVol = &_meetHestPullVol;
 **
 ** indicates whether lchr can leech from orig (saved in *can), and if not,
 ** explanation is saved in explain (if non-NULL)
-**
-** always uses biff
 */
-int
+int /* Biff: 1 */
 meetPullVolLeechable(const meetPullVol *lchr, const meetPullVol *orig, int *can,
                      char explain[AIR_STRLEN_LARGE]) {
   static const char me[] = "meetPullVolLeechable";
@@ -428,7 +423,7 @@ meetPullVolLeech(meetPullVol *vol, const meetPullVol *volPrev) {
 ** (if non-NULL) are set to the number of kernel and boundary specs that are
 ** "finished" in this way.
 */
-int
+int /* Biff: 1 */
 meetPullVolStackBlurParmFinishMulti(meetPullVol **mpv, unsigned int mpvNum,
                                     unsigned int *kssSetP, unsigned int *bspSetP,
                                     const NrrdKernelSpec *kssblur,
@@ -473,7 +468,7 @@ meetPullVolStackBlurParmFinishMulti(meetPullVol **mpv, unsigned int mpvNum,
 ** loading/creating the volumes, which isn't already in the
 ** meetPullVol, is the cachePath, so that is passed explicitly.
 */
-int
+int /* Biff: 1 */
 meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum, char *cachePath,
                      int verbose) {
   static const char me[] = "meetPullVolLoadMulti";
@@ -553,7 +548,7 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum, char *cachePath,
 ** kernels are not (yet) part of the meetPullVol, so have to be passed
 ** in here
 */
-int
+int /* Biff: 1 */
 meetPullVolAddMulti(pullContext *pctx, meetPullVol **mpv, unsigned int mpvNum,
                     const NrrdKernelSpec *k00, const NrrdKernelSpec *k11,
                     const NrrdKernelSpec *k22, const NrrdKernelSpec *kSSrecon) {
@@ -586,7 +581,7 @@ meetPullVolAddMulti(pullContext *pctx, meetPullVol **mpv, unsigned int mpvNum,
   return 0;
 }
 
-meetPullInfo *
+meetPullInfo * /* Biff: nope */
 meetPullInfoNew(void) {
   meetPullInfo *ret;
 
@@ -602,7 +597,7 @@ meetPullInfoNew(void) {
   return ret;
 }
 
-meetPullInfo *
+meetPullInfo * /* Biff: nope */
 meetPullInfoNix(meetPullInfo *minf) {
 
   if (minf) {
@@ -613,7 +608,7 @@ meetPullInfoNix(meetPullInfo *minf) {
   return NULL;
 }
 
-static int
+static int /* Biff: 1 */
 zeroScaleSet(meetPullInfo *minf, int haveZS, char **lastP) {
   static const char me[] = "_zeroScaleSet";
   char *tok;
@@ -635,7 +630,7 @@ zeroScaleSet(meetPullInfo *minf, int haveZS, char **lastP) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 meetPullInfoParse(meetPullInfo *minf, const char *_str) {
   static const char me[] = "meetPullInfoParse";
 #define IFMT_GAGE   "<info>[-c]:<volname>:<item>[:<zero>:<scale>]"
@@ -766,7 +761,7 @@ static const hestCB _meetHestPullInfo = {sizeof(meetPullInfo *), "meetPullInfo",
 
 const hestCB *const meetHestPullInfo = &_meetHestPullInfo;
 
-int
+int /* Biff: 1 */
 meetPullInfoAddMulti(pullContext *pctx, meetPullInfo **minf, unsigned int minfNum) {
   static const char me[] = "meetPullInfoAddMulti";
   const pullVolume *vol;

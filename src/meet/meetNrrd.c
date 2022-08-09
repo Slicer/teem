@@ -32,7 +32,7 @@ typedef union {
 ** ALLOCATES and returns a NULL-terminated array of all the
 ** NrrdKernels in Teem
 */
-const NrrdKernel **
+const NrrdKernel ** /* Biff: nope */
 meetNrrdKernelAll(void) {
   airArray *arr;
   const NrrdKernel **kern;
@@ -228,7 +228,7 @@ kintegral(const NrrdKernel *kd) {
 ** enumerated in some of the if/else statements below; it would be much
 ** better if new kernels didn't need to be so explicitly added!
 */
-int
+int /* Biff: 1 */
 meetNrrdKernelAllCheck(void) {
   static const char me[] = "meetNrrdKernelAllCheck";
   const NrrdKernel **kern, *kk, *ll;

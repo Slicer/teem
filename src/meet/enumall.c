@@ -55,7 +55,7 @@ grep "airEnum *" {air,hest,biff,nrrd,ell,moss,unrrdu,alan,tijk,gage,dye,bane,lim
 ** const airEnum *const.
 */
 /* clang-format on */
-const airEnum **
+const airEnum ** /* Biff: nope */
 meetAirEnumAll() {
   airArray *arr;
   const airEnum **enm;
@@ -223,7 +223,7 @@ meetAirEnumAllPrint(FILE *file) {
   return;
 }
 
-int
+int /* Biff: 1 */
 meetAirEnumAllCheck(void) {
   static const char me[] = "meetAirEnumAllCheck";
   const airEnum **enm, *ee;

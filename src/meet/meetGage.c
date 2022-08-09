@@ -52,13 +52,13 @@ _meetGageKindParse(const char *_str, int constOnly) {
   return ret;
 }
 
-gageKind *
+gageKind * /* Biff: nope */
 meetGageKindParse(const char *_str) {
 
   return _meetGageKindParse(_str, AIR_FALSE);
 }
 
-const gageKind *
+const gageKind * /* Biff: nope */
 meetConstGageKindParse(const char *_str) {
 
   return _meetGageKindParse(_str, AIR_TRUE);
