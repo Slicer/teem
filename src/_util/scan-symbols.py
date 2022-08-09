@@ -265,9 +265,17 @@ def symbList(lib, firstClean):
         st = match.group(2) # symbol type
         sn = match.group(3) # symbol name
         # subsuming role of old _util/release-nm-check.csh
-        if (st != 't' #so it is something that should be prefixed by library name
-            and not (sn.startswith(lib) or sn.startswith(f'_{lib}'))): # but it doesn't
-            raise Exception(f'symbol {sn} (from {currFile}) does not start with {lib} or _{lib}')
+        if (st != 't'): # it is something that should be prefixed by library name
+            if not (sn.startswith(lib) or sn.startswith(f'_{lib}')): # but it doesn't
+                raise Exception(f'symbol {sn} (from {currFile}) does not start with {lib} or _{lib}')
+            # and, how it starts with library name should be parsable
+            nn = sn[1:] if '_' == sn[0] else sn
+            if not (match := re.match(r'([a-z]+)[_A-Z0-9]', nn)):
+                raise Exception(f'can\'t parse library name from symbol name {sn}')
+            mib = match.group(1)
+            if not lib == mib:
+                if not ('tend' == mib and 'ten' == lib): # we allow this to sneak by (HEY)
+                    raise Exception(f'symbol name {sn} implies library name "{match.group(1)}" != "{lib}"')
         # all done, record the symbol description
         symb[sn] = {'type': st, 'file': currFile}
     #print(symb)
@@ -312,7 +320,7 @@ def declList(lib):
         # remove 'extern "C" {' from the lines (really only an issue for privateLib.h)
         lines.remove('extern "C" {')
         # how thing intended for linkable visibility are are announced
-        externStr = f'{lib.upper()}_EXPORT ' if public else 'extern '
+        externStr = f'{LIB}_EXPORT ' if public else 'extern '
         for L in lines:
             origL = L
             # special handling of inside of list of nrrdKernels
@@ -429,7 +437,9 @@ def usesBiff(str, idx, fname):
             raise Exception(f'unparsable biff call @ line {idx+1} of {fname}: |{ss}|')
         key = match.group(1)
         if LIB != key:
-            print(f'HEY {fname}:{idx+1} uses biff key "{key}" != "{LIB}"')
+            print(f'\nHEY {fname}:{idx+1} uses biff key "{key}" != "{LIB}"')
+        # we've made an effort to ensure that the biff key is the library name
+        # and, symbList made sure that the library name is parsable from function name
     return wen
 
 ########## Home of the "biff auto-scan"
@@ -642,7 +652,7 @@ if __name__ == '__main__':
             if ('unrrdu' == args.lib and re.match(r'unrrdu_\w+Cmd', N)) \
                 or ('ten' == args.lib and re.match(r'tend_\w+Cmd', N)) \
                 or ('bane' == args.lib and re.match(r'baneGkms_\w+Cmd', N)) \
-                or ('limn' == args.lib and re.match(r'limnpu_\w+Cmd', N)) \
+                or ('limn' == args.lib and re.match(r'limnPu_\w+Cmd', N)) \
                 :
                 # actually it (probably!) is declared, in a private header, via inscrutable macro
                 continue
