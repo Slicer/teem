@@ -28,7 +28,7 @@
 static const char *myinfo = (INFO ". ");
 
 static int
-limnpu_vertsMain(int argc, const char **argv, const char *me, hestParm *hparm) {
+limnPu_vertsMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;
@@ -65,4 +65,4 @@ limnpu_vertsMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   return 0;
 }
 
-const unrrduCmd limnpu_vertsCmd = {"verts", INFO, limnpu_vertsMain, AIR_FALSE};
+const unrrduCmd limnPu_vertsCmd = {"verts", INFO, limnPu_vertsMain, AIR_FALSE};

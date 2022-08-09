@@ -24,27 +24,27 @@
 #include "limn.h"
 
 /*
-******** limnpuCmdList[]
+******** limnPuCmdList[]
 **
 ** NULL-terminated array of unrrduCmd pointers, as ordered by
 ** LIMN_MAP macro
 */
-const unrrduCmd *const limnpuCmdList[] = {LIMN_MAP(LIMN_LIST) NULL};
+const unrrduCmd *const limnPuCmdList[] = {LIMN_MAP(LIMN_LIST) NULL};
 
 /*
-******** limnpuUsage
+******** limnPuUsage
 **
 ** prints out a little banner, and a listing of all available commands
 ** with their one-line descriptions
 */
 void
-limnpuUsage(const char *me, hestParm *hparm) {
+limnPuUsage(const char *me, hestParm *hparm) {
   unsigned int i, maxlen, len, c;
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
 
   maxlen = 0;
-  for (i = 0; limnpuCmdList[i]; i++) {
-    maxlen = AIR_MAX(maxlen, AIR_UINT(strlen(limnpuCmdList[i]->name)));
+  for (i = 0; limnPuCmdList[i]; i++) {
+    maxlen = AIR_MAX(maxlen, AIR_UINT(strlen(limnPuCmdList[i]->name)));
   }
 
   sprintf(buff, "--- LimnPolyData Hacking ---");
@@ -52,17 +52,17 @@ limnpuUsage(const char *me, hestParm *hparm) {
           AIR_UINT((hparm->columns - strlen(buff)) / 2 + strlen(buff) - 1));
   fprintf(stderr, fmt, buff);
 
-  for (i = 0; limnpuCmdList[i]; i++) {
-    len = AIR_UINT(strlen(limnpuCmdList[i]->name));
+  for (i = 0; limnPuCmdList[i]; i++) {
+    len = AIR_UINT(strlen(limnPuCmdList[i]->name));
     strcpy(buff, "");
     for (c = len; c < maxlen; c++)
       strcat(buff, " ");
     strcat(buff, me);
     strcat(buff, " ");
-    strcat(buff, limnpuCmdList[i]->name);
+    strcat(buff, limnPuCmdList[i]->name);
     strcat(buff, " ... ");
     len = AIR_UINT(strlen(buff));
     fprintf(stderr, "%s", buff);
-    _hestPrintStr(stderr, len, len, hparm->columns, limnpuCmdList[i]->info, AIR_FALSE);
+    _hestPrintStr(stderr, len, len, hparm->columns, limnPuCmdList[i]->info, AIR_FALSE);
   }
 }

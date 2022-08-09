@@ -28,7 +28,7 @@
 static const char *myinfo = (INFO ". ");
 
 static int
-limnpu_rastMain(int argc, const char **argv, const char *me, hestParm *hparm) {
+limnPu_rastMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;
@@ -79,4 +79,4 @@ limnpu_rastMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   return 0;
 }
 
-const  unrrduCmd limnpu_rastCmd = {"rast", INFO, limnpu_rastMain, AIR_FALSE};
+const unrrduCmd limnPu_rastCmd = {"rast", INFO, limnPu_rastMain, AIR_FALSE};

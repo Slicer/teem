@@ -28,7 +28,7 @@
 static const char *myinfo = (INFO ", and then sorts primitive according to area.");
 
 static int
-limnpu_ccfindMain(int argc, const char **argv, const char *me, hestParm *hparm) {
+limnPu_ccfindMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;
@@ -65,4 +65,4 @@ limnpu_ccfindMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   return 0;
 }
 
-const unrrduCmd limnpu_ccfindCmd = {"ccfind", INFO, limnpu_ccfindMain, AIR_FALSE};
+const unrrduCmd limnPu_ccfindCmd = {"ccfind", INFO, limnPu_ccfindMain, AIR_FALSE};

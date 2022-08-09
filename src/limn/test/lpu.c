@@ -50,9 +50,9 @@ main(int argc, const char **argv) {
     fprintf(stderr, "  %s: nrrd sanity check FAILED.\n", me);
     fprintf(stderr, "\n");
     fprintf(stderr, "  This means that either nrrd can't work on this "
-            "platform, or (more likely)\n");
+                    "platform, or (more likely)\n");
     fprintf(stderr, "  there was an error in the compilation options "
-            "and variable definitions\n");
+                    "and variable definitions\n");
     fprintf(stderr, "  for how Teem was built here.\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "  %s\n", err = biffGetDone(NRRD));
@@ -78,17 +78,17 @@ main(int argc, const char **argv) {
 
   /* if there are no arguments, then we give general usage information */
   if (1 >= argc) {
-    limnpuUsage(LPU, hparm);
+    limnPuUsage(LPU, hparm);
     airMopError(mop);
     exit(1);
   }
   /* else, we should see if they're asking for a command we know about */
-  for (i=0; limnpuCmdList[i]; i++) {
-    if (!strcmp(argv[1], limnpuCmdList[i]->name)) {
+  for (i = 0; limnPuCmdList[i]; i++) {
+    if (!strcmp(argv[1], limnPuCmdList[i]->name)) {
       break;
     }
   }
-  if (limnpuCmdList[i]) {
+  if (limnPuCmdList[i]) {
     /* yes, we have that command */
     /* initialize variables used by the various commands */
     argv0 = (char *)calloc(strlen(LPU) + strlen(argv[1]) + 2, sizeof(char));
@@ -97,10 +97,12 @@ main(int argc, const char **argv) {
     sprintf(argv0, "%s %s", LPU, argv[1]);
 
     /* run the individual unu program, saving its exit status */
-    ret = limnpuCmdList[i]->main(argc-2, argv+2, argv0, hparm);
+    ret = limnPuCmdList[i]->main(argc - 2, argv + 2, argv0, hparm);
   } else {
-    fprintf(stderr, "%s: unrecognized command: \"%s\"; type \"%s\" for "
-            "complete list\n", me, argv[1], me);
+    fprintf(stderr,
+            "%s: unrecognized command: \"%s\"; type \"%s\" for "
+            "complete list\n",
+            me, argv[1], me);
     ret = 1;
   }
 

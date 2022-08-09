@@ -932,8 +932,8 @@ LIMN_EXPORT int limnCBFit(limnCBFPath *path, limnCBFContext *fctx, const double 
                           unsigned int pNum, int isLoop);
 
 /* lpu{Flotsam,. . .}.c */
-#define LIMN_DECLARE(C) LIMN_EXPORT const unrrduCmd limnpu_##C##Cmd;
-#define LIMN_LIST(C)    &limnpu_##C##Cmd,
+#define LIMN_DECLARE(C) LIMN_EXPORT const unrrduCmd limnPu_##C##Cmd;
+#define LIMN_LIST(C)    &limnPu_##C##Cmd,
 /* F(clip) \ */
 /* F(vwflip) \ */
 /* F(vwfix) */
@@ -947,8 +947,8 @@ LIMN_EXPORT int limnCBFit(limnCBFPath *path, limnCBFContext *fctx, const double 
   F(sort)                                                                               \
   F(cbfit)
 LIMN_MAP(LIMN_DECLARE)
-LIMN_EXPORT const unrrduCmd *const limnpuCmdList[];
-LIMN_EXPORT void limnpuUsage(const char *me, hestParm *hparm);
+LIMN_EXPORT const unrrduCmd *const limnPuCmdList[];
+LIMN_EXPORT void limnPuUsage(const char *me, hestParm *hparm);
 
 #ifdef __cplusplus
 }

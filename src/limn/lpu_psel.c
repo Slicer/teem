@@ -29,7 +29,7 @@ static const char *myinfo
   = (INFO ". Can either specify a range, or a list, or not, until implemented.");
 
 static int
-limnpu_pselMain(int argc, const char **argv, const char *me, hestParm *hparm) {
+limnPu_pselMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;
@@ -97,4 +97,4 @@ limnpu_pselMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   return 0;
 }
 
-const unrrduCmd limnpu_pselCmd = {"psel", INFO, limnpu_pselMain, AIR_FALSE};
+const unrrduCmd limnPu_pselCmd = {"psel", INFO, limnPu_pselMain, AIR_FALSE};
