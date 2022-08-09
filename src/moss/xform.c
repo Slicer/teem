@@ -46,7 +46,7 @@ mossMatPrint(FILE *f, const double *mat) {
   fprintf(f, "% 15.7f % 15.7f % 15.7f\n", (float)mat[3], (float)mat[4], (float)mat[5]);
 }
 
-double *
+double * /* Biff: nope */
 mossMatRightMultiply(double *_mat, const double *_x) {
   double mat[9], x[9];
 
@@ -57,7 +57,7 @@ mossMatRightMultiply(double *_mat, const double *_x) {
   return _mat;
 }
 
-double *
+double * /* Biff: nope */
 mossMatLeftMultiply(double *_mat, const double *_x) {
   double mat[9], x[9];
 
@@ -68,7 +68,7 @@ mossMatLeftMultiply(double *_mat, const double *_x) {
   return _mat;
 }
 
-double *
+double * /* Biff: nope */
 mossMatInvert(double *inv, const double *mat) {
   double inv9[9], mat9[9];
 
@@ -78,21 +78,21 @@ mossMatInvert(double *inv, const double *mat) {
   return inv;
 }
 
-double *
+double * /* Biff: nope */
 mossMatIdentitySet(double *mat) {
 
   MOSS_MAT_SET(mat, 1, 0, 0, 0, 1, 0);
   return mat;
 }
 
-double *
+double * /* Biff: nope */
 mossMatTranslateSet(double *mat, double tx, double ty) {
 
   MOSS_MAT_SET(mat, 1, 0, tx, 0, 1, ty);
   return mat;
 }
 
-double *
+double * /* Biff: nope */
 mossMatRotateSet(double *mat, double angle) {
 
   angle *= AIR_PI / 180.0;
@@ -100,7 +100,7 @@ mossMatRotateSet(double *mat, double angle) {
   return mat;
 }
 
-double *
+double * /* Biff: nope */
 mossMatFlipSet(double *mat, double angle) {
   double rot[6], flip[6];
 
@@ -112,7 +112,7 @@ mossMatFlipSet(double *mat, double angle) {
   return mat;
 }
 
-double *
+double * /* Biff: nope */
 mossMatShearSet(double *mat, double angleFixed, double amount) {
   double rot[6], shear[6];
 
@@ -124,7 +124,7 @@ mossMatShearSet(double *mat, double angleFixed, double amount) {
   return mat;
 }
 
-double *
+double * /* Biff: nope */
 mossMatScaleSet(double *mat, double sx, double sy) {
 
   MOSS_MAT_SET(mat, sx, 0, 0, 0, sy, 0);
@@ -138,7 +138,7 @@ mossMatApply(double *ox, double *oy, const double *mat, double ix, double iy) {
   *oy = mat[3] * ix + mat[4] * iy + mat[5];
 }
 
-int
+int /* Biff: 1 */
 mossLinearTransform(Nrrd *nout, const Nrrd *nin, int boundary, const double *bg,
                     const double *mat, mossSampler *msp, double xMin, double xMax,
                     double yMin, double yMax, int xSize, int ySize) {
@@ -217,7 +217,7 @@ mossLinearTransform(Nrrd *nout, const Nrrd *nin, int boundary, const double *bg,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 mossFourPointTransform(Nrrd *nout, const Nrrd *nin, int boundary, const double *bg,
                        const double xyc[8], mossSampler *msp, int xSize, int ySize) {
   static const char me[] = "mossFourPointTransform";

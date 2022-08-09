@@ -30,7 +30,7 @@ const int mossPresent = 42;
 ******** mossSamplerNew()
 **
 */
-mossSampler *
+mossSampler * /* Biff: nope */
 mossSamplerNew(void) {
   mossSampler *smplr;
   int i;
@@ -51,7 +51,7 @@ mossSamplerNew(void) {
   return smplr;
 }
 
-mossSampler *
+mossSampler * /* Biff: nope */
 mossSamplerNix(mossSampler *smplr) {
 
   if (smplr) {
@@ -71,7 +71,7 @@ mossSamplerNix(mossSampler *smplr) {
 /*
 ** mossImageCheck: ensures that given image works as an *input* image
 */
-int
+int /* Biff: 1 */
 mossImageCheck(const Nrrd *image) {
   static const char me[] = "mossImageCheck";
 
@@ -92,7 +92,7 @@ mossImageCheck(const Nrrd *image) {
 ** mossImageAlloc: helper function to allocate *output* image within the given Nrrd
 ** container "image"
 */
-int
+int /* Biff: 1 */
 mossImageAlloc(Nrrd *image, int type, unsigned int _sx, unsigned int _sy,
                unsigned int _chanNum) {
   static const char me[] = "mossImageAlloc";
@@ -121,7 +121,7 @@ mossImageAlloc(Nrrd *image, int type, unsigned int _sx, unsigned int _sy,
   return 0;
 }
 
-int
+int /* Biff: nope */
 _mossCenter(int center) {
 
   return (airEnumValCheck(nrrdCenter, center) ? mossDefCenter : center);

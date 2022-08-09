@@ -24,7 +24,7 @@
 #include "moss.h"
 #include "privateMoss.h"
 
-int
+int /* Biff: 1 */
 mossSamplerImageSet(mossSampler *smplr, const Nrrd *image, int boundary,
                     const double *bg) {
   static const char me[] = "mossSamplerImageSet";
@@ -76,7 +76,7 @@ mossSamplerImageSet(mossSampler *smplr, const Nrrd *image, int boundary,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 mossSamplerKernelSet(mossSampler *smplr, const NrrdKernelSpec *kspec) {
   static const char me[] = "mossSamplerKernelSet";
 
@@ -98,7 +98,7 @@ flagUp(const mossSampler *smplr) {
   return up;
 }
 
-int
+int /* Biff: 1 */
 mossSamplerUpdate(mossSampler *smplr) {
   static const char me[] = "mossSamplerUpdate";
 
@@ -193,7 +193,7 @@ mossSamplerUpdate(mossSampler *smplr) {
 **
 ** returns non-zero in case of error, but does NOT use biff (too heavy weight)
 */
-int
+int /* Biff: 1 */
 mossSamplerSample(double *val, mossSampler *smplr, double xPos, double yPos) {
   static const char me[] = "mossSamplerSample";
   double xf, yf;
