@@ -24,7 +24,7 @@
 #include "mite.h"
 #include "privateMite.h"
 
-miteThread *
+miteThread * /* Biff: NULL */
 miteThreadNew() {
   static const char me[] = "miteThreadNew";
   miteThread *mtt;
@@ -74,7 +74,7 @@ miteThreadNew() {
   return mtt;
 }
 
-miteThread *
+miteThread * /* Biff: nope */
 miteThreadNix(miteThread *mtt) {
 
   mtt->ansMiteVal = (double *)airFree(mtt->ansMiteVal);
@@ -90,7 +90,7 @@ miteThreadNix(miteThread *mtt) {
 **
 ** this has some of the body of what would be miteThreadInit
 */
-int
+int /* Biff: 1 */
 miteThreadBegin(miteThread **mttP, miteRender *mrr, miteUser *muu, int whichThread) {
   static const char me[] = "miteThreadBegin";
 
@@ -157,7 +157,7 @@ miteThreadBegin(miteThread **mttP, miteRender *mrr, miteUser *muu, int whichThre
   return 0;
 }
 
-int
+int /* Biff: nope */
 miteThreadEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
 
   AIR_UNUSED(mtt);

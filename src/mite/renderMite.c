@@ -61,7 +61,7 @@ _miteRenderNix(miteRender *mrr) {
   return NULL;
 }
 
-int
+int /* Biff: 1 */
 miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   static const char me[] = "miteRenderBegin";
   gagePerVolume *pvl;
@@ -166,7 +166,7 @@ miteRenderBegin(miteRender **mrrP, miteUser *muu) {
   return 0;
 }
 
-int
+int /* Biff: nope */
 miteRenderEnd(miteRender *mrr, miteUser *muu) {
   unsigned int thr;
   double samples;

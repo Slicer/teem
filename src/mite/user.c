@@ -24,7 +24,7 @@
 #include "mite.h"
 #include "privateMite.h"
 
-miteUser *
+miteUser * /* Biff: nope */
 miteUserNew() {
   miteUser *muu;
   int i;
@@ -74,7 +74,7 @@ miteUserNew() {
   return muu;
 }
 
-miteUser *
+miteUser * /* Biff: nope */
 miteUserNix(miteUser *muu) {
 
   if (muu) {
@@ -84,7 +84,7 @@ miteUserNix(miteUser *muu) {
   return NULL;
 }
 
-int
+int /* Biff: (private) 1 */
 _miteUserCheck(miteUser *muu) {
   static const char me[] = "_miteUserCheck";
   int gotOpac;

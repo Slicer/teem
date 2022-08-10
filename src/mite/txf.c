@@ -99,7 +99,7 @@ miteStageOp = &_miteStageOp;
 ** of the quantity being measured, but rather to the type of volume in
 ** which quantity is measured (i.e., the gageKind used)
 */
-int
+int /* Biff: 1 */
 miteVariableParse(gageItemSpec *isp, const char *label) {
   static const char me[] = "miteVariableParse";
 
@@ -230,7 +230,7 @@ miteVariablePrint(char *buff, const gageItemSpec *isp) {
   return;
 }
 
-int
+int /* Biff: 1 */
 miteNtxfCheck(const Nrrd *ntxf) {
   static const char me[] = "miteNtxfCheck";
   char *rangeStr, *domStr;
@@ -400,7 +400,7 @@ miteQueryAdd(gageQuery queryScl, gageQuery queryVec, gageQuery queryTen,
   return;
 }
 
-static int
+static int /* Biff: 1 */
 _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
   static const char me[] = "_miteNtxfCopy";
   unsigned int ni;
@@ -448,7 +448,7 @@ _miteNtxfCopy(miteRender *mrr, miteUser *muu) {
   return 0;
 }
 
-int
+int /* Biff: (private) 1 */
 _miteNtxfAlphaAdjust(miteRender *mrr, miteUser *muu) {
   static const char me[] = "_miteNtxfAlphaAdjust";
   unsigned int ni, ei, ri, nnum, rnum;
@@ -510,7 +510,7 @@ _miteStageInit(miteStage *stage) {
   return;
 }
 
-double *
+double * /* Biff: nope */
 _miteAnswerPointer(miteThread *mtt, gageItemSpec *isp) {
   static const char me[] = "_miteAnswerPointer";
   double *ret;
@@ -543,7 +543,7 @@ _miteAnswerPointer(miteThread *mtt, gageItemSpec *isp) {
 **
 ** ALLOCATES and initializes stage array in a miteThread
 */
-int
+int /* Biff: (private) 1 */
 _miteStageSet(miteThread *mtt, miteRender *mrr) {
   static const char me[] = "_miteStageSet";
   char *value;

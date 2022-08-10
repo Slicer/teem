@@ -24,7 +24,7 @@
 #include "mite.h"
 #include "privateMite.h"
 
-miteShadeSpec *
+miteShadeSpec * /* Biff: nope */
 miteShadeSpecNew(void) {
   miteShadeSpec *shpec;
 
@@ -42,7 +42,7 @@ miteShadeSpecNew(void) {
   return shpec;
 }
 
-miteShadeSpec *
+miteShadeSpec * /* Biff: nope */
 miteShadeSpecNix(miteShadeSpec *shpec) {
 
   if (shpec) {
@@ -67,7 +67,7 @@ miteShadeSpecNix(miteShadeSpec *shpec) {
 ** where <vector> and <scalar> are specifications of 3-vector and scalar
 ** parsable by miteVariableParse
 */
-int
+int /* Biff: 1 */
 miteShadeSpecParse(miteShadeSpec *shpec, char *shadeStr) {
   static const char me[] = "miteShadeSpecParse";
   char *buff, *qstr, *tok, *state;

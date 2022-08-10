@@ -24,7 +24,7 @@
 #include "mite.h"
 #include "privateMite.h"
 
-int
+int /* Biff: nope */
 miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu, int uIndex, int vIndex,
              double rayLen, double rayStartWorld[3], double rayStartIndex[3],
              double rayDirWorld[3], double rayDirIndex[3]) {
@@ -148,7 +148,8 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A, miteThread *mtt,
   return;
 }
 
-double
+/* interesting test of whether the python wrapper can catch this :) */
+double /* Biff: AIR_NAN */
 miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu, int num, double rayT,
            int inside, double samplePosWorld[3], double samplePosIndex[3]) {
   static const char me[] = "miteSample";
@@ -286,7 +287,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu, int num, double rayT
   return mtt->rayStep;
 }
 
-int
+int /* Biff: nope */
 miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
   unsigned int idx, slen, stageIdx;
   mite_t *imgData;
