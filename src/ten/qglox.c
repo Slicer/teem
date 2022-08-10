@@ -105,7 +105,7 @@ tenQGLInterpTwoEvalK(double oeval[3], const double evalA[3], const double evalB[
   }
 }
 
-double
+double /* Biff: nope */
 _tenQGL_Kdist(const double RThZA[3], const double RThZB[3]) {
   double dr, dth, dz, bl, dist;
 
@@ -233,7 +233,7 @@ tenQGLInterpTwoEvalR(double oeval[3], const double evalA[3], const double evalB[
   return;
 }
 
-double
+double /* Biff: nope */
 _tenQGL_Rdist(const double RThPhA[3], const double RThPhB[3]) {
   double dr, dth, dph, bl, fo;
 
@@ -327,7 +327,8 @@ tenQGLInterpTwo(double oten[7], const double tenA[7], const double tenB[7], int 
 **
 ** we do in fact require non-NULL tip, because it holds the buffers we need
 */
-int
+/* wow clang-format has an interesting idea about where to put the Biff annotation */
+int                                                         /* Biff: (private) 1 */
 _tenQGLInterpNEval(double evalOut[3], const double *evalIn, /* size 3 -by- NN */
                    const double *wght,                      /* size NN */
                    unsigned int NN, int ptype, tenInterpParm *tip) {
@@ -436,7 +437,7 @@ _tenQGL_q_interdot(unsigned int *centerIdxP, double *qq, double *inter,
 **
 ** we do in fact require non-NULL tip, because it holds the buffers we need
 */
-int
+int /* Biff: (private) 1 */
 _tenQGLInterpNEvec(double evecOut[9],
                    const double *evecIn, /* size 9 -by- NN */
                    const double *wght,   /* size NN */

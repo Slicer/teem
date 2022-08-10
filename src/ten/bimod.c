@@ -24,7 +24,7 @@
 #include "ten.h"
 #include "privateTen.h"
 
-tenEMBimodalParm *
+tenEMBimodalParm * /* Biff: nope */
 tenEMBimodalParmNew() {
   tenEMBimodalParm *biparm;
 
@@ -46,7 +46,7 @@ tenEMBimodalParmNew() {
   return biparm;
 }
 
-tenEMBimodalParm *
+tenEMBimodalParm * /* Biff: nope */
 tenEMBimodalParmNix(tenEMBimodalParm *biparm) {
 
   if (biparm) {
@@ -58,7 +58,7 @@ tenEMBimodalParmNix(tenEMBimodalParm *biparm) {
   return NULL;
 }
 
-static int
+static int /* Biff: 1 */
 _tenEMBimodalInit(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
   static const char me[] = "_tenEMBimodalInit";
   unsigned int i, median;
@@ -330,7 +330,7 @@ _tenEMBimodalIterate(tenEMBimodalParm *biparm) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _tenEMBimodalConfThresh(tenEMBimodalParm *biparm) {
   static const char me[] = "_tenEMBimodalConfThresh";
   double m1, s1, m2, s2, f1, f2, A, B, C, D, t1, t2;
@@ -375,7 +375,7 @@ _tenEMBimodalConfThresh(tenEMBimodalParm *biparm) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _tenEMBimodalCheck(tenEMBimodalParm *biparm) {
   static const char me[] = "_tenEMBimodalCheck";
 
@@ -410,7 +410,7 @@ _tenEMBimodalCheck(tenEMBimodalParm *biparm) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenEMBimodal(tenEMBimodalParm *biparm, const Nrrd *_nhisto) {
   static const char me[] = "tenEMBimodal";
   int done, _iter;

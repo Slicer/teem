@@ -413,7 +413,7 @@ tenTripleCalcSingle_f(float dst[3], int ttype, float ten[7]) {
   return;
 }
 
-int
+int /* Biff: 1 */
 tenTripleCalc(Nrrd *nout, int ttype, const Nrrd *nten) {
   static const char me[] = "tenTripleCalc";
   size_t II, NN, size[NRRD_DIM_MAX];
@@ -471,7 +471,7 @@ tenTripleCalc(Nrrd *nout, int ttype, const Nrrd *nten) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenTripleConvert(Nrrd *nout, int dstType, const Nrrd *nin, int srcType) {
   static const char me[] = "tenTripleConvert";
   size_t II, NN;

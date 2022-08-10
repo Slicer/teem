@@ -97,7 +97,7 @@ tenBVecNonLinearFit_GNstep(double *d_amp, double *d_dec, double *bb, double *ss,
 ** 2: error of fit
 ** and all other axes are unchanged from input.  Output type is always double.
 */
-int
+int /* Biff: 1 */
 tenBVecNonLinearFit(Nrrd *nout, const Nrrd *nin, double *bb, double *ww, int iterMax,
                     double eps) {
   static const char me[] = "tenBVecNonLinearFit";

@@ -39,7 +39,7 @@ static const char *_tend_glyphInfoL
 
 #define _LIMNMAGIC "LIMN0000"
 
-static int
+static int /* Biff: 1 */
 _tendGlyphReadCams(int imgSize[2], limnCamera **camP, unsigned int *numCamsP,
                    FILE *fin) {
   static const char me[] = "_tendGlyphReadCams";

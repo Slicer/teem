@@ -61,7 +61,7 @@ str2model(const char *str) {
   return ret;
 }
 
-int
+int /* Biff: 1 */
 tenModelParse(const tenModel **model, int *plusB0, int requirePrefix, const char *_str) {
   static const char me[] = "tenModelParse";
   char *str, *modstr, *pre;
@@ -114,7 +114,7 @@ tenModelParse(const tenModel **model, int *plusB0, int requirePrefix, const char
   return 0;
 }
 
-int
+int /* Biff: nope */
 tenModelFromAxisLearnPossible(const NrrdAxisInfo *axinfo) {
 
   /* HEY keep in synch with nrrdKind* code below */
@@ -122,7 +122,7 @@ tenModelFromAxisLearnPossible(const NrrdAxisInfo *axinfo) {
           || nrrdKind3DMaskedSymMatrix == axinfo->kind || airStrlen(axinfo->label));
 }
 
-int
+int /* Biff: 1 */
 tenModelFromAxisLearn(const tenModel **modelP, int *plusB0, const NrrdAxisInfo *axinfo) {
   static const char me[] = "tenModelFromAxisLearn";
 
@@ -160,7 +160,7 @@ tenModelFromAxisLearn(const tenModel **modelP, int *plusB0, const NrrdAxisInfo *
 **
 ** basic and axis info is derived from _nparm
 */
-int
+int /* Biff: 1 */
 tenModelSimulate(Nrrd *ndwi, int typeOut, tenExperSpec *espec, const tenModel *model,
                  const Nrrd *_nB0, const Nrrd *_nparm, int keyValueSet) {
   static const char me[] = "tenModelSimulate";
@@ -339,7 +339,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut, tenExperSpec *espec, const tenModel *m
 ** sqe fitting.  Returns the sqe at the converged fit location
 ** Requires PARM_NUM length buffers testParm and grad
 */
-double
+double /* Biff: nope */
 _tenModelSqeFitSingle(const tenModel *model, double *testParm, double *grad,
                       double *parm, double *convFrac, unsigned int *itersTaken,
                       const tenExperSpec *espec, double *dwiBuff, const double *dwiMeas,
@@ -408,7 +408,7 @@ _tenModelSqeFitSingle(const tenModel *model, double *testParm, double *grad,
   return val;
 }
 
-int
+int /* Biff: 1 */
 tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP, Nrrd **nconvP, Nrrd **niterP,
                const tenModel *model, const tenExperSpec *espec, const Nrrd *ndwi,
                int knownB0, int saveB0, int typeOut, unsigned int minIter,
@@ -662,7 +662,7 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP, Nrrd **nconvP, Nrrd **niterP,
   return 0;
 }
 
-int
+int /* Biff: nope */
 tenModelNllFit(Nrrd *nparm, Nrrd **nnllP, const tenModel *model,
                const tenExperSpec *espec, const Nrrd *ndwi, int rician, double sigma,
                int knownB0) {
@@ -683,7 +683,7 @@ tenModelNllFit(Nrrd *nparm, Nrrd **nnllP, const tenModel *model,
 ** copy the B0 info if we have it
 ** use the same type on the way out.
 */
-int
+int /* Biff: 1 */
 tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
                 const Nrrd *nparmSrc, const tenModel *_modelSrc) {
   static const char me[] = "tenModelConvert";

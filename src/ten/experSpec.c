@@ -24,7 +24,7 @@
 #include "ten.h"
 #include "privateTen.h"
 
-static int
+static int /* Biff: 1 */
 _experAlloc(tenExperSpec *espec, unsigned int num) {
   static const char me[] = "_experAlloc";
 
@@ -48,7 +48,7 @@ _experAlloc(tenExperSpec *espec, unsigned int num) {
   return 0;
 }
 
-tenExperSpec *
+tenExperSpec * /* Biff: nope */
 tenExperSpecNew(void) {
   tenExperSpec *espec;
 
@@ -61,7 +61,7 @@ tenExperSpecNew(void) {
   return espec;
 }
 
-int
+int /* Biff: 1 */
 tenExperSpecGradSingleBValSet(tenExperSpec *espec,
                               int insertB0,
                               double bval,
@@ -102,7 +102,7 @@ tenExperSpecGradSingleBValSet(tenExperSpec *espec,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenExperSpecGradBValSet(tenExperSpec *espec,
                         int insertB0,
                         const double *bval,
@@ -171,7 +171,7 @@ tenExperSpecGradBValWghtSet(tenExperSpec *espec,
 }
 */
 
-int
+int /* Biff: 1 */
 tenExperSpecFromKeyValueSet(tenExperSpec *espec, const Nrrd *ndwi) {
   static const char me[] = "tenExperSpecFromKeyValueSet";
   unsigned int *skip, skipNum, ii, imgNum, dwiax;
@@ -255,7 +255,7 @@ tenExperSpecFromKeyValueSet(tenExperSpec *espec, const Nrrd *ndwi) {
   return 0;
 }
 
-tenExperSpec *
+tenExperSpec * /* Biff: nope */
 tenExperSpecNix(tenExperSpec *espec) {
 
   if (espec) {
@@ -267,7 +267,7 @@ tenExperSpecNix(tenExperSpec *espec) {
   return NULL;
 }
 
-double
+double /* Biff: nope */
 _tenExperSpec_sqe(const double *dwiMeas, const double *dwiSim, const tenExperSpec *espec,
                   int knownB0) {
   unsigned int ii;
@@ -297,7 +297,7 @@ _tenExperSpec_sqe(const double *dwiMeas, const double *dwiSim, const tenExperSpe
   return sqe;
 }
 
-double
+double /* Biff: nope */
 _tenExperSpec_nll(const double *dwiMeas, const double *dwiSim, const tenExperSpec *espec,
                   int rician, double sigma, int knownB0) {
   double nll;
@@ -326,7 +326,7 @@ _tenExperSpec_nll(const double *dwiMeas, const double *dwiSim, const tenExperSpe
   return nll;
 }
 
-int
+int /* Biff: 1 */
 tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi, const tenExperSpec *espec) {
   static const char me[] = "tenDWMRIKeyValueFromExperSpecSet";
   char keystr[AIR_STRLEN_MED], valstr[AIR_STRLEN_MED];
@@ -364,7 +364,7 @@ tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi, const tenExperSpec *espec) {
 ** without any diffusion weighting, as indicated by espec->bval[ii],
 ** or, returns AIR_NAN when there are no such dwi[ii]
 */
-double
+double /* Biff: nope */
 tenExperSpecKnownB0Get(const tenExperSpec *espec, const double *dwi) {
   unsigned int ii, nb;
   double ret, b0;
@@ -389,7 +389,7 @@ tenExperSpecKnownB0Get(const tenExperSpec *espec, const double *dwi) {
   return ret;
 }
 
-double
+double /* Biff: nope */
 tenExperSpecMaxBGet(const tenExperSpec *espec) {
   unsigned int ii;
   double bval;

@@ -107,7 +107,7 @@ tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z, float 
   return;
 }
 
-static int
+static int /* Biff: 1 */
 tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize, float thick,
               float scaling, float bnd, float bndRm, float evsc, int torus) {
   static const char me[] = "tend_satinGen";

@@ -52,7 +52,7 @@ tenFiberSingleDone(tenFiberSingle *tfbs) {
   tfbs->nval = nrrdNuke(tfbs->nval);
 }
 
-tenFiberSingle *
+tenFiberSingle * /* Biff: nope */
 tenFiberSingleNew() {
   tenFiberSingle *ret;
 
@@ -63,7 +63,7 @@ tenFiberSingleNew() {
   return ret;
 }
 
-tenFiberSingle *
+tenFiberSingle * /* Biff: nope */
 tenFiberSingleNix(tenFiberSingle *tfbs) {
 
   if (tfbs) {
@@ -73,7 +73,7 @@ tenFiberSingleNix(tenFiberSingle *tfbs) {
   return NULL;
 }
 
-static tenFiberContext *
+static tenFiberContext * /* Biff: NULL */
 _tenFiberContextCommonNew(const Nrrd *vol, int useDwi, double thresh, double soft,
                           double valueMin, int ten1method, int ten2method) {
   static const char me[] = "_tenFiberContextCommonNew";
@@ -208,7 +208,7 @@ _tenFiberContextCommonNew(const Nrrd *vol, int useDwi, double thresh, double sof
   return tfx;
 }
 
-tenFiberContext *
+tenFiberContext * /* Biff: NULL */
 tenFiberContextDwiNew(const Nrrd *dwivol, double thresh, double soft, double valueMin,
                       int ten1method, int ten2method) {
   static const char me[] = "tenFiberContextDwiNew";
@@ -222,7 +222,7 @@ tenFiberContextDwiNew(const Nrrd *dwivol, double thresh, double soft, double val
   return tfx;
 }
 
-tenFiberContext *
+tenFiberContext * /* Biff: NULL */
 tenFiberContextNew(const Nrrd *dtvol) {
   static const char me[] = "tenFiberContextNew";
   tenFiberContext *tfx;
@@ -246,7 +246,7 @@ tenFiberVerboseSet(tenFiberContext *tfx, int verbose) {
   return;
 }
 
-int
+int /* Biff: 1 */
 tenFiberTypeSet(tenFiberContext *tfx, int ftype) {
   static const char me[] = "tenFiberTypeSet";
 
@@ -376,7 +376,7 @@ tenFiberTypeSet(tenFiberContext *tfx, int ftype) {
 ** tenFiberStopSet(tfx, tenFiberStopFraction, double fraction)
 ** tenFiberStopSet(tfx, tenFiberStopStub)
 */
-int
+int /* Biff: 1 */
 tenFiberStopSet(tenFiberContext *tfx, int stop, ...) {
   static const char me[] = "tenFiberStopSet";
   va_list ap;
@@ -552,7 +552,7 @@ end:
 }
 
 /* to avoid var-args */
-int
+int /* Biff: 1 */
 tenFiberStopAnisoSet(tenFiberContext *tfx, int anisoType, double anisoThresh) {
   static const char me[] = "tenFiberStopAnisoSet";
 
@@ -564,7 +564,7 @@ tenFiberStopAnisoSet(tenFiberContext *tfx, int anisoType, double anisoThresh) {
 }
 
 /* to avoid var-args */
-int
+int /* Biff: 1 */
 tenFiberStopDoubleSet(tenFiberContext *tfx, int stop, double val) {
   static const char me[] = "tenFiberStopDoubleSet";
 
@@ -588,7 +588,7 @@ tenFiberStopDoubleSet(tenFiberContext *tfx, int stop, double val) {
 }
 
 /* to avoid var-args */
-int
+int /* Biff: 1 */
 tenFiberStopUIntSet(tenFiberContext *tfx, int stop, unsigned int val) {
   static const char me[] = "tenFiberStopUIntSet";
 
@@ -635,7 +635,7 @@ tenFiberStopReset(tenFiberContext *tfx) {
   return;
 }
 
-int
+int /* Biff: 1 */
 tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso, double lerp, double thresh,
                       double soft) {
   static const char me[] = "tenFiberAnisoSpeedSet";
@@ -700,7 +700,7 @@ tenFiberAnisoSpeedSet(tenFiberContext *tfx, int aniso, double lerp, double thres
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenFiberAnisoSpeedReset(tenFiberContext *tfx) {
   static const char me[] = "tenFiberAnisoSpeedReset";
 
@@ -715,7 +715,7 @@ tenFiberAnisoSpeedReset(tenFiberContext *tfx) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenFiberKernelSet(tenFiberContext *tfx,
                   const NrrdKernel *kern,
                   const double parm[NRRD_KERNEL_PARMS_NUM]) {
@@ -734,7 +734,7 @@ tenFiberKernelSet(tenFiberContext *tfx,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenFiberProbeItemSet(tenFiberContext *tfx, int item) {
   static const char me[] = "tenFiberProbeItemSet";
 
@@ -746,7 +746,7 @@ tenFiberProbeItemSet(tenFiberContext *tfx, int item) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenFiberIntgSet(tenFiberContext *tfx, int intg) {
   static const char me[] = "tenFiberIntTypeSet";
 
@@ -763,7 +763,7 @@ tenFiberIntgSet(tenFiberContext *tfx, int intg) {
   return 0;
 }
 
-int
+int /* Biff: nope */
 tenFiberParmSet(tenFiberContext *tfx, int parm, double val) {
   static const char me[] = "tenFiberParmSet";
 
@@ -789,7 +789,7 @@ tenFiberParmSet(tenFiberContext *tfx, int parm, double val) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenFiberUpdate(tenFiberContext *tfx) {
   static const char me[] = "tenFiberUpdate";
 
@@ -839,7 +839,7 @@ tenFiberUpdate(tenFiberContext *tfx) {
 ** So: only after tenFiberUpdate, and don't touch anything, and don't
 ** call anything except tenFiberTrace and tenFiberContextNix
 */
-tenFiberContext *
+tenFiberContext * /* Biff: nope */
 tenFiberContextCopy(tenFiberContext *oldTfx) {
   static const char me[] = "tenFiberContextCopy";
   tenFiberContext *tfx;
@@ -869,7 +869,7 @@ tenFiberContextCopy(tenFiberContext *oldTfx) {
   return tfx;
 }
 
-tenFiberContext *
+tenFiberContext * /* Biff: nope */
 tenFiberContextNix(tenFiberContext *tfx) {
 
   if (tfx) {

@@ -51,46 +51,41 @@ tenRotateSingle_f(float tenOut[7], const float rot[9], const float tenIn[7]) {
 ** in addition to the 6 matrix components, we keep a "threshold" value
 ** which is based on the sum of all the DWIs, which describes if the
 ** calculated tensor means anything or not.
-**
-** useBiff controls if biff is used to describe the problem
 */
-int
+int /* Biff: maybe:4:1 */
 tenTensorCheck(const Nrrd *nin, int wantType, int want4D, int useBiff) {
   static const char me[] = "tenTensorCheck";
 
   if (!nin) {
-    if (useBiff) biffAddf(TEN, "%s: got NULL pointer", me);
+    biffMaybeAddf(useBiff, TEN, "%s: got NULL pointer", me);
     return 1;
   }
   if (wantType) {
     if (nin->type != wantType) {
-      if (useBiff)
-        biffAddf(TEN, "%s: wanted type %s, got type %s", me,
-                 airEnumStr(nrrdType, wantType), airEnumStr(nrrdType, nin->type));
+      biffMaybeAddf(useBiff, TEN, "%s: wanted type %s, got type %s", me,
+                    airEnumStr(nrrdType, wantType), airEnumStr(nrrdType, nin->type));
       return 1;
     }
   } else {
     if (!(nin->type == nrrdTypeFloat || nin->type == nrrdTypeShort)) {
-      if (useBiff) biffAddf(TEN, "%s: need data of type float or short", me);
+      biffMaybeAddf(useBiff, TEN, "%s: need data of type float or short", me);
       return 1;
     }
   }
   if (want4D && !(4 == nin->dim)) {
-    if (useBiff) biffAddf(TEN, "%s: given dimension is %d, not 4", me, nin->dim);
+    biffMaybeAddf(useBiff, TEN, "%s: given dimension is %d, not 4", me, nin->dim);
     return 1;
   }
   if (!(7 == nin->axis[0].size)) {
-    if (useBiff) {
-      char stmp[AIR_STRLEN_SMALL];
-      biffAddf(TEN, "%s: axis 0 has size %s, not 7", me,
-               airSprintSize_t(stmp, nin->axis[0].size));
-    }
+    char stmp[AIR_STRLEN_SMALL];
+    biffMaybeAddf(useBiff, TEN, "%s: axis 0 has size %s, not 7", me,
+                  airSprintSize_t(stmp, nin->axis[0].size));
     return 1;
   }
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin) {
   static const char me[] = "tenMeasurementFrameReduce";
   double MF[9], MFT[9], tenMeasr[9], tenWorld[9];
@@ -160,7 +155,7 @@ tenMeasurementFrameReduce(Nrrd *nout, const Nrrd *nin) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenExpand2D(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   static const char me[] = "tenExpand2D";
   size_t N, I, sx, sy;
@@ -234,7 +229,7 @@ tenExpand2D(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   static const char me[] = "tenExpand";
   size_t N, I, sx, sy, sz;
@@ -290,7 +285,7 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
   static const char me[] = "tenShrink";
   size_t I, N, sx, sy, sz;
@@ -369,10 +364,8 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
 ** row-major- its still the case that the eigenvectors are at
 ** evec+0, evec+3, evec+6: this means that they USED to be the
 ** "columns" of the matrix, and NOW they're the rows.
-**
-** This does NOT use biff
 */
-int
+int /* Biff: nope */
 tenEigensolve_f(float _eval[3], float _evec[9], const float t[7]) {
   double m[9], eval[3], evec[9], trc, iso[9];
   int ret;
@@ -425,7 +418,7 @@ tenEigensolve_f(float _eval[3], float _evec[9], const float t[7]) {
 }
 
 /* HEY: cut and paste !! */
-int
+int /* Biff: nope */
 tenEigensolve_d(double _eval[3], double evec[9], const double t[7]) {
   double m[9], eval[3], trc, iso[9];
   int ret;
@@ -534,7 +527,7 @@ tenMakeSingle_d(double ten[7], double conf, const double eval[3], const double e
 ** create a tensor nrrd from nrrds of confidence, eigenvalues, and
 ** eigenvectors
 */
-int
+int /* Biff: 1 */
 tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
   static const char me[] = "tenTensorMake";
   size_t I, N, sx, sy, sz;
@@ -636,7 +629,7 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis, size_t pos, unsigned int dim) {
   static const char me[] = "tenSlice";
   Nrrd *nslice, **ncoeff = NULL;
@@ -1016,7 +1009,7 @@ tenPowSingle_f(float powten[7], const float ten[7], float power) {
 }
 
 /* clang-format off */
-double
+double /* Biff: nope */
 tenDoubleContract_d(double a[7], double T[21], double b[7]) {
   double ret;
 

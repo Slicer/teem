@@ -24,7 +24,7 @@
 #include "ten.h"
 #include "privateTen.h"
 
-tenInterpParm *
+tenInterpParm * /* Biff: nope */
 tenInterpParmNew(void) {
   tenInterpParm *tip;
 
@@ -62,7 +62,7 @@ tenInterpParmNew(void) {
 ** interpolation, so that they are repeatedly allocated and freed
 ** between calls
 */
-int
+int /* Biff: 1 */
 tenInterpParmBufferAlloc(tenInterpParm *tip, unsigned int num) {
   static const char me[] = "tenInterpParmBufferAlloc";
 
@@ -121,7 +121,7 @@ tenInterpParmBufferAlloc(tenInterpParm *tip, unsigned int num) {
   return 0;
 }
 
-tenInterpParm *
+tenInterpParm * /* Biff: NULL */
 tenInterpParmCopy(tenInterpParm *tip) {
   static const char me[] = "tenInterpParmCopy";
   tenInterpParm *newtip;
@@ -155,7 +155,7 @@ tenInterpParmCopy(tenInterpParm *tip) {
   return newtip;
 }
 
-tenInterpParm *
+tenInterpParm * /* Biff: nope */
 tenInterpParmNix(tenInterpParm *tip) {
 
   if (tip) {
@@ -303,7 +303,7 @@ tenInterpTwo_d(double oten[7], const double tenA[7], const double tenB[7], int p
 ** for simplicity, a pre-allocated tenInterpParm MUST be passed,
 ** regardless of the interpolation requested
 */
-int
+int /* Biff: 1 */
 tenInterpN_d(double tenOut[7], const double *tenIn, const double *wght, unsigned int num,
              int ptype, tenInterpParm *tip) {
   static const char me[] = "tenInterpN_d";
@@ -424,7 +424,7 @@ tenInterpN_d(double tenOut[7], const double *tenIn, const double *wght, unsigned
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _tenInterpGeoLoxRelaxOne(Nrrd *nodata, Nrrd *ntdata, Nrrd *nigrtdata, unsigned int ii,
                          int rotnoop, double scl, tenInterpParm *tip) {
   static const char me[] = "_tenInterpGeoLoxRelaxOne";
@@ -555,7 +555,7 @@ _tenInterpGeoLoxIGRT(double *igrt, double *ten, int useK, int rotNoop, double mi
 **  0   2   4   6   8 --> size=9 --> NN=4
 **    1   3   5   7
 */
-double
+double /* Biff: nope */
 tenInterpPathLength(Nrrd *ntt, int doubleVerts, int fancy, int shape) {
   double *tt, len, diff[7], *tenA, *tenB;
   unsigned int ii, NN;
@@ -673,7 +673,7 @@ _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
   return lenTotal;
 }
 
-static int
+static int /* Biff: 1 */
 _tenInterpGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter, const double tenA[7],
                          const double tenB[7], unsigned int NN, int useK, int rotnoop,
                          tenInterpParm *tip) {
@@ -806,7 +806,7 @@ _tenInterpGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter, const double tenA[7
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenInterpTwoDiscrete_d(Nrrd *nout, const double tenA[7], const double tenB[7], int ptype,
                        unsigned int num, tenInterpParm *_tip) {
   static const char me[] = "tenInterpTwoDiscrete_d";
@@ -879,7 +879,7 @@ tenInterpTwoDiscrete_d(Nrrd *nout, const double tenA[7], const double tenB[7], i
   return 0;
 }
 
-double
+double /* Biff: nope */
 tenInterpDistanceTwo_d(const double tenA[7], const double tenB[7], int ptype,
                        tenInterpParm *_tip) {
   static const char me[] = "tenInterpDistanceTwo_d";
@@ -957,7 +957,7 @@ tenInterpDistanceTwo_d(const double tenA[7], const double tenB[7], int ptype,
 /*
 ** actually, the input nrrds don't have to be 3D ...
 */
-int
+int /* Biff: 1 */
 tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin, const double *wght,
                  unsigned int ninLen, int ptype, tenInterpParm *_tip) {
   static const char me[] = "tenInterpMulti3D";

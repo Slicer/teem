@@ -50,7 +50,7 @@
 ** of tfx->lastDir and tfx->lastDirSet, could stand to have further
 ** debugging and documentation ...
 */
-static int
+static int /* Biff: 1 */
 _tenFiberProbe(tenFiberContext *tfx, int *gageRet, double wPos[3], int seedProbe) {
   static const char me[] = "_tenFiberProbe";
   double iPos[3];
@@ -448,7 +448,7 @@ static int (*const _tenFiberIntegrate[TEN_FIBER_INTG_MAX + 1])(tenFiberContext *
 ** modified body of previous tenFiberTraceSet, in order to
 ** permit passing the nval for storing desired probed values
 */
-static int
+static int /* Biff: 1 */
 _fiberTraceSet(tenFiberContext *tfx, Nrrd *nval, Nrrd *nfiber, double *buff,
                unsigned int halfBuffLen, unsigned int *startIdxP, unsigned int *endIdxP,
                double seed[3]) {
@@ -826,7 +826,7 @@ _fiberTraceSet(tenFiberContext *tfx, Nrrd *nval, Nrrd *nfiber, double *buff,
 ** As of Sun Aug  1 20:40:55 CDT 2010 this is just a wrapper around
 ** _fiberTraceSet; this will probably change in Teem 2.0
 */
-int
+int /* Biff: 1 */
 tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber, double *buff,
                  unsigned int halfBuffLen, unsigned int *startIdxP,
                  unsigned int *endIdxP, double seed[3]) {
@@ -846,7 +846,7 @@ tenFiberTraceSet(tenFiberContext *tfx, Nrrd *nfiber, double *buff,
 ** takes a starting position in index or world space, depending on the
 ** value of tfx->useIndexSpace
 */
-int
+int /* Biff: 1 */
 tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber, double seed[3]) {
   static const char me[] = "tenFiberTrace";
 
@@ -866,7 +866,7 @@ tenFiberTrace(tenFiberContext *tfx, Nrrd *nfiber, double seed[3]) {
 ** isotropy that no directions are possible (though such cleverness
 ** will hopefully be implemented soon)
 */
-unsigned int
+unsigned int /* Biff: 0 */
 tenFiberDirectionNumber(tenFiberContext *tfx, double seed[3]) {
   static const char me[] = "tenFiberDirectionNumber";
   unsigned int ret;
@@ -915,7 +915,7 @@ tenFiberDirectionNumber(tenFiberContext *tfx, double seed[3]) {
 ** NOTE: this will not try any cleverness in setting "num"
 ** according to whether the seedpoint is a non-starter
 */
-int
+int /* Biff: 1 */
 tenFiberSingleTrace(tenFiberContext *tfx, tenFiberSingle *tfbs, double seed[3],
                     unsigned int which) {
   static const char me[] = "tenFiberSingleTrace";
@@ -958,7 +958,7 @@ typedef union {
 } fiberunion;
 
 /* uses biff */
-tenFiberMulti *
+tenFiberMulti * /* Biff: NULL */
 tenFiberMultiNew() {
   static const char me[] = "tenFiberMultiNew";
   tenFiberMulti *ret;
@@ -986,7 +986,7 @@ tenFiberMultiNew() {
   return ret;
 }
 
-static int
+static int /* Biff: 1 */
 tenFiberMultiCheck(airArray *arr) {
   static const char me[] = "tenFiberMultiCheck";
 
@@ -1006,7 +1006,7 @@ tenFiberMultiCheck(airArray *arr) {
   return 0;
 }
 
-tenFiberMulti *
+tenFiberMulti * /* Biff: nope */
 tenFiberMultiNix(tenFiberMulti *tfm) {
 
   if (tfm) {
@@ -1023,7 +1023,7 @@ tenFiberMultiNix(tenFiberMulti *tfm) {
 **
 ** tfml has been returned from tenFiberMultiNew()
 */
-int
+int /* Biff: 1 */
 tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml, const Nrrd *_nseed) {
   static const char me[] = "tenFiberMultiTrace";
   airArray *mop;
@@ -1117,7 +1117,7 @@ tenFiberMultiTrace(tenFiberContext *tfx, tenFiberMulti *tfml, const Nrrd *_nseed
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _fiberMultiExtract(tenFiberContext *tfx, Nrrd *nval, limnPolyData *lpld,
                    tenFiberMulti *tfml) {
   static const char me[] = "_fiberMultiExtract";
@@ -1243,7 +1243,7 @@ _fiberMultiExtract(tenFiberContext *tfx, Nrrd *nval, limnPolyData *lpld,
 ** probably be needed in the future as the way that parameters to the
 ** polydata creation process are passed.
 */
-int
+int /* Biff: 1 */
 tenFiberMultiPolyData(tenFiberContext *tfx, limnPolyData *lpld, tenFiberMulti *tfml) {
   static const char me[] = "tenFiberMultiPolyData";
 
@@ -1254,7 +1254,7 @@ tenFiberMultiPolyData(tenFiberContext *tfx, limnPolyData *lpld, tenFiberMulti *t
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenFiberMultiProbeVals(tenFiberContext *tfx, Nrrd *nval, tenFiberMulti *tfml) {
   static const char me[] = "tenFiberMultiProbeVals";
 
