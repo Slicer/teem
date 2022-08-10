@@ -250,7 +250,8 @@ tend_estimMain(int argc, const char **argv, const char *me, hestParm *hparm) {
       unsigned int sl;
       /* from nbmat, create an array that indicates B0 images */
       if (tenBMatrixCheck(nbmat, nrrdTypeDouble, 6)) {
-        biffAddf(TEN, "%s: problem within given b-matrix", me);
+        airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
+        fprintf(stderr, "%s: problem within given b-matrix:\n%s", me, err);
         airMopError(mop);
         return 1;
       }
