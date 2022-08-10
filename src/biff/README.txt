@@ -99,8 +99,8 @@ But nothing is actually over-written, new file are written, eg:
 
 Then to process these (in ~/teem/src/gage)
 
-  diff miscGage{-annote,}.c  # to inspect what biff auto-scan wrote
-  mv miscGage{-annote,}.c    # to start editing
+  diff miscGage{-annote,}.c   # to inspect what biff auto-scan wrote
+  mv miscGage{-annote,}.c     # to start editing
   # edit miscGage.c, changing Biff? to Biff: when to confirm annotation
-  svn diff miscGage.c        # to check what was changed
+  svn diff -x -U0 miscGage.c  # to confirm what was changed
   svn commit ...
