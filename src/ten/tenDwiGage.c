@@ -745,8 +745,9 @@ _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 
 /* --------------------- pvlData */
 
-/* note use of the GAGE biff key */
-static void *
+/* note use of the GAGE biff key, which is appropriate (at least GLK thought so
+   at the time of writing) given that this is implementing part of a gageKind */
+static void * /* Biff: NULL */
 _tenDwiGagePvlDataNew(const gageKind *kind) {
   static const char me[] = "_tenDwiGagePvlDataNew";
   tenDwiGagePvlData *pvlData;
@@ -1004,7 +1005,7 @@ _tenDwiGageKindTmpl = {
           insides set by tenDwiGageKindSet() */
 };
 
-gageKind *
+gageKind * /* Biff: nope */
 tenDwiGageKindNew() {
   gageKind *kind;
 
@@ -1020,7 +1021,7 @@ tenDwiGageKindNew() {
   return kind;
 }
 
-gageKind *
+gageKind * /* Biff: nope */
 tenDwiGageKindNix(gageKind *kind) {
 
   if (kind) {
@@ -1034,7 +1035,7 @@ tenDwiGageKindNix(gageKind *kind) {
 /*
 ** NOTE: this sets information in both the kind and kindData
 */
-int
+int /* Biff: 1 */
 tenDwiGageKindSet(gageKind *dwiKind,
                   double thresh, double soft, double bval, double valueMin,
                   const Nrrd *ngrad,
@@ -1174,7 +1175,7 @@ tenDwiGageKindSet(gageKind *dwiKind,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenDwiGageKindCheck(const gageKind *kind) {
   static const char me[] = "tenDwiGageKindCheck";
 

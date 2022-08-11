@@ -932,28 +932,28 @@ double (*const _tenAnisoTen_d[TEN_ANISO_MAX + 1])(const double ten[7])
      _tenAnisoTen_eval1_d,
      _tenAnisoTen_eval2_d};
 
-float
+float /* Biff: nope */
 tenAnisoEval_f(const float eval[3], int aniso) {
 
   return (AIR_IN_OP(tenAnisoUnknown, aniso, tenAnisoLast) ? _tenAnisoEval_f[aniso](eval)
                                                           : 0);
 }
 
-double
+double /* Biff: nope */
 tenAnisoEval_d(const double eval[3], int aniso) {
 
   return (AIR_IN_OP(tenAnisoUnknown, aniso, tenAnisoLast) ? _tenAnisoEval_d[aniso](eval)
                                                           : 0);
 }
 
-float
+float /* Biff: nope */
 tenAnisoTen_f(const float ten[7], int aniso) {
 
   return (AIR_IN_OP(tenAnisoUnknown, aniso, tenAnisoLast) ? _tenAnisoTen_f[aniso](ten)
                                                           : 0);
 }
 
-double
+double /* Biff: nope */
 tenAnisoTen_d(const double ten[7], int aniso) {
 
   return (AIR_IN_OP(tenAnisoUnknown, aniso, tenAnisoLast) ? _tenAnisoTen_d[aniso](ten)
@@ -1066,7 +1066,7 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
 }
 #endif
 
-int
+int /* Biff: 1 */
 tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res, int hflip, int whole, int nanout) {
   static const char me[] = "tenAnisoMap";
   float *out, tmp;
@@ -1126,7 +1126,7 @@ tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res, int hflip, int whole, int 
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
   static const char me[] = "tenAnisoVolume";
   size_t N, I;
@@ -1198,7 +1198,7 @@ tenAnisoVolume(Nrrd *nout, const Nrrd *nin, int aniso, double confThresh) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, const Nrrd *nwght, int right, int version,
                   unsigned int res) {
   static const char me[] = "tenAnisoHistogram";
@@ -1284,7 +1284,7 @@ tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, const Nrrd *nwght, int right, int
   return 0;
 }
 
-tenEvecRGBParm *
+tenEvecRGBParm * /* Biff: nope */
 tenEvecRGBParmNew() {
   tenEvecRGBParm *rgbp;
 
@@ -1304,7 +1304,7 @@ tenEvecRGBParmNew() {
   return rgbp;
 }
 
-tenEvecRGBParm *
+tenEvecRGBParm * /* Biff: nope */
 tenEvecRGBParmNix(tenEvecRGBParm *rgbp) {
 
   if (rgbp) {
@@ -1313,7 +1313,7 @@ tenEvecRGBParmNix(tenEvecRGBParm *rgbp) {
   return NULL;
 }
 
-int
+int /* Biff: 1 */
 tenEvecRGBParmCheck(const tenEvecRGBParm *rgbp) {
   static const char me[] = "tenEvecRGBParmCheck";
 

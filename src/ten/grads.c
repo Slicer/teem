@@ -24,7 +24,7 @@
 #include "ten.h"
 #include "privateTen.h"
 
-tenGradientParm *
+tenGradientParm * /* Biff: nope */
 tenGradientParmNew(void) {
   tenGradientParm *ret;
 
@@ -58,14 +58,14 @@ tenGradientParmNew(void) {
   return ret;
 }
 
-tenGradientParm *
+tenGradientParm * /* Biff: nope */
 tenGradientParmNix(tenGradientParm *tgparm) {
 
   airFree(tgparm);
   return NULL;
 }
 
-int
+int /* Biff: 1 */
 tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
   static const char me[] = "tenGradientCheck";
 
@@ -104,7 +104,7 @@ tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
 **
 ** generates num random unit vectors of type double
 */
-int
+int /* Biff: 1 */
 tenGradientRandom(Nrrd *ngrad, unsigned int num, unsigned int seed) {
   static const char me[] = "tenGradientRandom";
   double *grad, len;
@@ -137,7 +137,7 @@ tenGradientRandom(Nrrd *ngrad, unsigned int num, unsigned int seed) {
 ** N gradients (2*N points), but also allowing a boolean "single" flag
 ** saying that we actually care about N points
 */
-double
+double /* Biff: nope */
 tenGradientIdealEdge(unsigned int N, int single) {
 
   return sqrt((!single ? 4 : 8) * AIR_PI / (sqrt(3) * N));
@@ -150,7 +150,7 @@ tenGradientIdealEdge(unsigned int N, int single) {
 ** direction, and then renormalizes. The distance is a fraction
 ** of the ideal edge length (via tenGradientIdealEdge)
 */
-int
+int /* Biff: 1 */
 tenGradientJitter(Nrrd *nout, const Nrrd *nin, double dist) {
   static const char me[] = "tenGradientJitter";
   double *grad, perp0[3], perp1[3], len, theta, cc, ss, edge;
@@ -372,7 +372,7 @@ party(Nrrd *npos, airRandMTState *rstate) {
 /*
 ** parties until the gradients settle down
 */
-int
+int /* Biff: 1 */
 tenGradientBalance(Nrrd *nout, const Nrrd *nin, tenGradientParm *tgparm) {
   static const char me[] = "tenGradientBalance";
   double len, lastLen, improv;
@@ -457,7 +457,7 @@ tenGradientBalance(Nrrd *nout, const Nrrd *nin, tenGradientParm *tgparm) {
 ** by which the step is nudged is halved everytime the step is halved,
 ** to avoid endless cycling through step sizes.
 */
-int
+int /* Biff: 1 */
 tenGradientDistribute(Nrrd *nout, const Nrrd *nin, tenGradientParm *tgparm) {
   static const char me[] = "tenGradientDistribute";
   char filename[AIR_STRLEN_SMALL];
@@ -650,7 +650,7 @@ tenGradientDistribute(Nrrd *nout, const Nrrd *nin, tenGradientParm *tgparm) {
 ** note that if tgparm->insertZeroVec, there will be one sample more
 ** along axis 1 of nout than the requested #gradients "num"
 */
-int
+int /* Biff: 1 */
 tenGradientGenerate(Nrrd *nout, unsigned int num, tenGradientParm *tgparm) {
   static const char me[] = "tenGradientGenerate";
   Nrrd *nin;

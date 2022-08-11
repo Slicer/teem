@@ -49,7 +49,7 @@ enum {
   funcLast
 };
 
-static int
+static int /* Biff: 1 */
 theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
   static const char me[] = "theFunc";
   float *tin, *tout, eval[3], evec[9], weight[3], size, mean;
@@ -219,7 +219,7 @@ theFunc(Nrrd *nout, const Nrrd *nin, int func, funcParm *parm) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double _weight[3], double amount,
                  double target) {
   static const char me[] = "tenSizeNormalize";
@@ -235,7 +235,7 @@ tenSizeNormalize(Nrrd *nout, const Nrrd *nin, double _weight[3], double amount,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenSizeScale(Nrrd *nout, const Nrrd *nin, double amount) {
   static const char me[] = "tenSizeScale";
   funcParm parm;
@@ -253,7 +253,7 @@ tenSizeScale(Nrrd *nout, const Nrrd *nin, double amount) {
 **
 ** scales the "deviatoric" part of a tensor up or down
 */
-int
+int /* Biff: 1 */
 tenAnisoScale(Nrrd *nout, const Nrrd *nin, double scale, int fixDet, int makePositive) {
   static const char me[] = "tenAnisoScale";
   funcParm parm;
@@ -273,7 +273,7 @@ tenAnisoScale(Nrrd *nout, const Nrrd *nin, double scale, int fixDet, int makePos
 **
 ** enstates the given value as the lowest eigenvalue
 */
-int
+int /* Biff: 1 */
 tenEigenvalueClamp(Nrrd *nout, const Nrrd *nin, double min, double max) {
   static const char me[] = "tenEigenvalueClamp";
   funcParm parm;
@@ -292,7 +292,7 @@ tenEigenvalueClamp(Nrrd *nout, const Nrrd *nin, double min, double max) {
 **
 ** raises the eigenvalues to some power
 */
-int
+int /* Biff: 1 */
 tenEigenvaluePower(Nrrd *nout, const Nrrd *nin, double expo) {
   static const char me[] = "tenEigenvaluePower";
   funcParm parm;
@@ -310,7 +310,7 @@ tenEigenvaluePower(Nrrd *nout, const Nrrd *nin, double expo) {
 **
 ** adds something to all eigenvalues
 */
-int
+int /* Biff: 1 */
 tenEigenvalueAdd(Nrrd *nout, const Nrrd *nin, double val) {
   static const char me[] = "tenEigenvalueAdd";
   funcParm parm;
@@ -328,7 +328,7 @@ tenEigenvalueAdd(Nrrd *nout, const Nrrd *nin, double val) {
 **
 ** multiplies eigenvalues by something
 */
-int
+int /* Biff: 1 */
 tenEigenvalueMultiply(Nrrd *nout, const Nrrd *nin, double val) {
   static const char me[] = "tenEigenvalueMultiply";
   funcParm parm;
@@ -346,7 +346,7 @@ tenEigenvalueMultiply(Nrrd *nout, const Nrrd *nin, double val) {
 **
 ** takes the logarithm (by taking the log of the eigenvalues)
 */
-int
+int /* Biff: 1 */
 tenLog(Nrrd *nout, const Nrrd *nin) {
   static const char me[] = "tenLog";
   funcParm parm;
@@ -363,7 +363,7 @@ tenLog(Nrrd *nout, const Nrrd *nin) {
 **
 ** takes the exp()  (by taking exp() of the eigenvalues)
 */
-int
+int /* Biff: 1 */
 tenExp(Nrrd *nout, const Nrrd *nin) {
   static const char me[] = "tenExp";
   funcParm parm;

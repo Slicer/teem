@@ -24,7 +24,7 @@
 #include "ten.h"
 #include "privateTen.h"
 
-tenGlyphParm *
+tenGlyphParm * /* Biff: nope */
 tenGlyphParmNew() {
   tenGlyphParm *parm;
 
@@ -63,14 +63,14 @@ tenGlyphParmNew() {
   return parm;
 }
 
-tenGlyphParm *
+tenGlyphParm * /* Biff: nope */
 tenGlyphParmNix(tenGlyphParm *parm) {
 
   airFree(parm);
   return NULL;
 }
 
-int
+int /* Biff: 1 */
 tenGlyphParmCheck(tenGlyphParm *parm, const Nrrd *nten, const Nrrd *npos,
                   const Nrrd *nslc) {
   static const char me[] = "tenGlyphParmCheck";
@@ -171,7 +171,7 @@ tenGlyphParmCheck(tenGlyphParm *parm, const Nrrd *nten, const Nrrd *npos,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho, tenGlyphParm *parm,
             const Nrrd *nten, const Nrrd *npos, const Nrrd *nslc) {
   static const char me[] = "tenGlyphGen";
@@ -656,7 +656,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho, tenGlyphParm *parm,
 /*
 ** Zone from Eval
 */
-unsigned int
+unsigned int /* Biff: nope */
 tenGlyphBqdZoneEval(const double eval[3]) {
   double x, y, z;
   unsigned int zone;
@@ -750,7 +750,7 @@ tenGlyphBqdEvalUv(double eval[3], const double uv[2]) {
 /*
 ** Zone from UV
 */
-unsigned int
+unsigned int /* Biff: nope */
 tenGlyphBqdZoneUv(const double uv[2]) {
   /* the use of "volatile" here, as well as additional variables for
      expressions involving u and v, is based on browsing this summary of the

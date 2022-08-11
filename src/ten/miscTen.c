@@ -24,7 +24,7 @@
 #include "ten.h"
 #include "privateTen.h"
 
-int
+int /* Biff: 1 */
 tenEvecRGB(Nrrd *nout, const Nrrd *nin, const tenEvecRGBParm *rgbp) {
   static const char me[] = "tenEvecRGB";
   size_t size[NRRD_DIM_MAX];
@@ -114,7 +114,7 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin, const tenEvecRGBParm *rgbp) {
 
 #define SQR(i) ((i) * (i))
 
-short
+short /* Biff: nope */
 tenEvqSingle_f(float vec[3], float scl) {
   static const char me[] = "tenEvqSingle_f";
   float tmp, L1;
@@ -149,7 +149,7 @@ tenEvqSingle_f(float vec[3], float scl) {
   return ret;
 }
 
-int
+int /* Biff: 1 */
 tenEvqVolume(Nrrd *nout, const Nrrd *nin, int which, int aniso, int scaleByAniso) {
   static const char me[] = "tenEvqVolume";
   int map[3];
@@ -210,7 +210,7 @@ tenEvqVolume(Nrrd *nout, const Nrrd *nin, int which, int aniso, int scaleByAniso
   return 0;
 }
 
-int
+int /* Biff: 1 */
 tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
   static const char me[] = "tenBMatrixCheck";
 
@@ -254,7 +254,7 @@ tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
 ** on low side of histogram valley, since stdev for background is much
 ** narrower then stdev for brain
 */
-int
+int /* Biff: 1 */
 _tenFindValley(double *valP, const Nrrd *nhist, double tweak, int save) {
   static const char me[] = "_tenFindValley";
   double gparm[NRRD_KERNEL_PARMS_NUM], dparm[NRRD_KERNEL_PARMS_NUM];

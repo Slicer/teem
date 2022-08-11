@@ -58,7 +58,7 @@ const char *const tenDWMRISkipKeyFmt = "DWMRI_skip_%04u";
 ** array used internally with tenEstimate, this is just a simple 1-D
 ** array; it is not a list of pairs of (index,skipBool).
 */
-int
+int /* Biff: 1 */
 tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP, double *bP, unsigned int **skipP,
                       unsigned int *skipNumP, const Nrrd *ndwi) {
   static const char me[] = "tenDWMRIKeyValueParse";
@@ -346,7 +346,7 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP, double *bP, unsigned int **s
 **
 ** NOTE 2: The off-diagonal elements are NOT pre-multiplied by two.
 */
-int
+int /* Biff: 1 */
 tenBMatrixCalc(Nrrd *nbmat, const Nrrd *_ngrad) {
   static const char me[] = "tenBMatrixCalc";
   Nrrd *ngrad;
@@ -387,7 +387,7 @@ tenBMatrixCalc(Nrrd *nbmat, const Nrrd *_ngrad) {
 ******** tenEMatrixCalc
 **
 */
-int
+int /* Biff: 1 */
 tenEMatrixCalc(Nrrd *nemat, const Nrrd *_nbmat, int knownB0) {
   static const char me[] = "tenEMatrixCalc";
   Nrrd *nbmat, *ntmp;
@@ -580,7 +580,7 @@ tenEstimateLinearSingle_f(float *_ten, float *_B0P,              /* output */
 **
 ** Note: this will copy per-axis peripheral information from _ndwi[0]
 */
-int
+int /* Biff: 1 */
 tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P, const Nrrd *const *_ndwi,
                     unsigned int dwiLen, const Nrrd *_nbmat, int knownB0, double thresh,
                     double soft, double b) {
@@ -627,7 +627,7 @@ tenEstimateLinear3D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P, const Nrrd *const *_
 ** or from a more complete account of the gradients present in an imaging
 ** sequence, and then does the pseudo inverse to get the estimation matrix
 */
-int
+int /* Biff: 1 */
 tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P, const Nrrd *ndwi,
                     const Nrrd *_nbmat, int knownB0, double thresh, double soft,
                     double b) {
@@ -868,7 +868,7 @@ tenSimulateSingle_f(float *dwi, float B0, const float *ten, const double *bmat,
   return;
 }
 
-int
+int /* Biff: 1 */
 tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten, const Nrrd *_nbmat,
             double b) {
   static const char me[] = "tenSimulate";
