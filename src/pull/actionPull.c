@@ -109,7 +109,7 @@ _neighBinPoints(pullTask *task, pullBin *bin, pullPoint *point, double distTest)
 ** egrad will be NULL if this is being called only to assess
 ** the energy at this point, rather than for learning how to move it
 */
-double
+double /* Biff: (private) nope */
 _pullEnergyInterParticle(pullContext *pctx, pullPoint *me, const pullPoint *she,
                          double spaceDist, double scaleDist,
                          /* output */
@@ -230,7 +230,7 @@ _pullEnergyInterParticle(pullContext *pctx, pullPoint *me, const pullPoint *she,
   return en;
 }
 
-int
+int /* Biff: 1 */
 pullEnergyPlot(pullContext *pctx, Nrrd *nplot, double xx, double yy, double zz,
                unsigned int res) {
   static const char meme[] = "pullEnergyPlot";
@@ -302,7 +302,7 @@ pullEnergyPlot(pullContext *pctx, Nrrd *nplot, double xx, double yy, double zz,
 **  (8)   (9)  7=10  8=11
 ** (12)  (13)  (14)  9=15
 */
-double
+double /* Biff: (private) nope */
 _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
                       /* output */
                       double egradSum[4]) {
@@ -701,7 +701,7 @@ _energyFromImage(pullTask *task, pullPoint *point,
 ** do descent on a new point according to other points, but not the
 ** image.
 */
-double
+double /* Biff: (private) nope */
 _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point, int ignoreImage,
                       /* output */
                       double egrad[4]) {
@@ -777,7 +777,7 @@ _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point, int ignore
 ** they aren't allowed to move very far in scale, either, which
 ** is a little weird, but probably okay.
 */
-double
+double /* Biff: (private) nope */
 _pullDistLimit(pullTask *task, pullPoint *point) {
   double ret;
 
@@ -795,7 +795,7 @@ _pullDistLimit(pullTask *task, pullPoint *point) {
 /*
 ** here is where the energy gradient is converted into force
 */
-int
+int /* Biff: (private) 1 */
 _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
                          int ignoreImage) {
   static const char me[] = "_pullPointProcessDescent";
@@ -1063,7 +1063,7 @@ _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   static const char me[] = "_pullPointProcess";
   int E;
@@ -1104,7 +1104,7 @@ _pullPointProcess(pullTask *task, pullBin *bin, pullPoint *point) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   static const char me[] = "pullBinProcess";
   pullBin *myBin;
@@ -1139,7 +1139,7 @@ pullBinProcess(pullTask *task, unsigned int myBinIdx) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullGammaLearn(pullContext *pctx) {
   static const char me[] = "pullGammaLearn";
   unsigned int binIdx, pointIdx, pointNum;

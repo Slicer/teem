@@ -580,7 +580,7 @@ const pullEnergy *const pullEnergyAll[PULL_ENERGY_TYPE_MAX + 1] = {
   &_pullEnergyButterworthParabola /* 13 */
 };
 
-pullEnergySpec *
+pullEnergySpec * /* Biff: nope */
 pullEnergySpecNew() {
   pullEnergySpec *ensp;
   int pi;
@@ -618,14 +618,14 @@ pullEnergySpecCopy(pullEnergySpec *esDst, const pullEnergySpec *esSrc) {
   return;
 }
 
-pullEnergySpec *
+pullEnergySpec * /* Biff: nope */
 pullEnergySpecNix(pullEnergySpec *ensp) {
 
   airFree(ensp);
   return NULL;
 }
 
-int
+int /* Biff: 1 */
 pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
   static const char me[] = "pullEnergySpecParse";
   char *str, *col, *_pstr, *pstr;

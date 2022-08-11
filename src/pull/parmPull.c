@@ -90,7 +90,7 @@ _pullFlagInit(pullFlag *flag) {
   return;
 }
 
-int
+int /* Biff: (private) 1 */
 _pullIterParmCheck(pullIterParm *iterParm) {
   static const char me[] = "_pullIterParmCheck";
 
@@ -102,7 +102,7 @@ _pullIterParmCheck(pullIterParm *iterParm) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullIterParmSet(pullContext *pctx, int which, unsigned int pval) {
   static const char me[] = "pullIterParmSet";
 
@@ -162,7 +162,7 @@ pullIterParmSet(pullContext *pctx, int which, unsigned int pval) {
     return 1;                                                                           \
   }
 
-int
+int /* Biff: (private) 1 */
 _pullSysParmCheck(pullSysParm *sysParm) {
   static const char me[] = "_pullSysParmCheck";
 
@@ -191,7 +191,7 @@ _pullSysParmCheck(pullSysParm *sysParm) {
 }
 #undef CHECK
 
-int
+int /* Biff: 1 */
 pullSysParmSet(pullContext *pctx, int which, double pval) {
   static const char me[] = "pullSysParmSet";
 
@@ -270,7 +270,7 @@ pullSysParmSet(pullContext *pctx, int which, double pval) {
 **
 ** uniform way of setting all the boolean-ish flags
 */
-int
+int /* Biff: 1 */
 pullFlagSet(pullContext *pctx, int which, int flag) {
   static const char me[] = "pullFlagSet";
 
@@ -345,7 +345,7 @@ pullFlagSet(pullContext *pctx, int which, int flag) {
 ** doing something with them, or that changes to them will have some
 ** effect . . .
 */
-int
+int /* Biff: 1 */
 pullVerboseSet(pullContext *pctx, int verbose) {
   static const char me[] = "pullVerboseSet";
   unsigned int volIdx, taskIdx;
@@ -370,7 +370,7 @@ pullVerboseSet(pullContext *pctx, int verbose) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullThreadNumSet(pullContext *pctx, unsigned int threadNum) {
   static const char me[] = "pullThreadNumSet";
 
@@ -382,7 +382,7 @@ pullThreadNumSet(pullContext *pctx, unsigned int threadNum) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullRngSeedSet(pullContext *pctx, unsigned int rngSeed) {
   static const char me[] = "pullRngSeedSet";
 
@@ -394,7 +394,7 @@ pullRngSeedSet(pullContext *pctx, unsigned int rngSeed) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullProgressBinModSet(pullContext *pctx, unsigned int bmod) {
   static const char me[] = "pullProgressBinModSet";
 
@@ -406,7 +406,7 @@ pullProgressBinModSet(pullContext *pctx, unsigned int bmod) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullCallbackSet(pullContext *pctx, void (*iter_cb)(void *data_cb), void *data_cb) {
   static const char me[] = "pullCallbackSet";
 
@@ -431,7 +431,7 @@ pullCallbackSet(pullContext *pctx, void (*iter_cb)(void *data_cb), void *data_cb
 ** is not needed for a given interType, we set it to pullEnergyZero
 ** and a vector of NaNs.
 */
-int
+int /* Biff: 1 */
 pullInterEnergySet(pullContext *pctx, int interType, const pullEnergySpec *enspR,
                    const pullEnergySpec *enspS, const pullEnergySpec *enspWin) {
   static const char me[] = "pullInterEnergySet";
@@ -492,7 +492,7 @@ pullInterEnergySet(pullContext *pctx, int interType, const pullEnergySpec *enspR
 /*
 ** you can pass in a NULL FILE* if you want
 */
-int
+int /* Biff: 1 */
 pullLogAddSet(pullContext *pctx, FILE *flog) {
   static const char me[] = "pullLogAddSet";
 

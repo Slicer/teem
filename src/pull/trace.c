@@ -24,7 +24,7 @@
 #include "pull.h"
 #include "privatePull.h"
 
-pullTrace *
+pullTrace * /* Biff: nope */
 pullTraceNew(void) {
   pullTrace *ret;
 
@@ -45,7 +45,7 @@ pullTraceNew(void) {
   return ret;
 }
 
-pullTrace *
+pullTrace * /* Biff: nope */
 pullTraceNix(pullTrace *pts) {
 
   if (pts) {
@@ -112,7 +112,7 @@ pullTraceStability(double *spcStab,
   return;
 }
 
-static int
+static int /* Biff: 1 */
 _pullConstrTanSlap(pullContext *pctx, pullPoint *point, double tlen,
                    /* input+output */ double toff[3],
                    /* output */ int *constrFailP) {
@@ -152,7 +152,7 @@ _pullConstrTanSlap(pullContext *pctx, pullPoint *point, double tlen,
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _pullConstrOrientFind(pullContext *pctx, pullPoint *point,
                       int normalfind, /* find normal two 2D surface,
                                          else find tangent to 1D curve */
@@ -243,7 +243,7 @@ double halfScaleWin: how far, along scale, trace should go in each direction
 unsigned int arrIncr: increment for storing position (maybe strength)
 const double _seedPos[4]: starting position
 */
-int
+int /* Biff: 1 */
 pullTraceSet(pullContext *pctx, pullTrace *pts, int recordStrength, double scaleDelta,
              double halfScaleWin, double orientTestLen, unsigned int arrIncr,
              const double _seedPos[4]) {
@@ -651,7 +651,7 @@ typedef union {
   void **v;
 } blahblahUnion;
 
-pullTraceMulti *
+pullTraceMulti * /* Biff: nope */
 pullTraceMultiNew(void) {
   /* static const char me[] = "pullTraceMultiNew"; */
   pullTraceMulti *ret;
@@ -672,7 +672,7 @@ pullTraceMultiNew(void) {
   return ret;
 }
 
-int
+int /* Biff: 1 */
 pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc, int *addedP) {
   static const char me[] = "pullTraceMultiAdd";
   unsigned int indx;
@@ -702,7 +702,7 @@ pullTraceMultiAdd(pullTraceMulti *mtrc, pullTrace *trc, int *addedP) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc, const Nrrd *nfilt,
                       int strengthUse, int smooth, int flatWght, unsigned int trcIdxMin,
                       unsigned int trcNum, Nrrd *nmaskedpos, const Nrrd *nmask) {
@@ -943,7 +943,7 @@ nsizeof(const Nrrd *nrrd) {
   return (nrrd ? nrrdElementSize(nrrd) * nrrdElementNumber(nrrd) : 0);
 }
 
-size_t
+size_t /* Biff: nope */
 pullTraceMultiSizeof(const pullTraceMulti *mtrc) {
   size_t ret;
   unsigned int ti;
@@ -962,7 +962,7 @@ pullTraceMultiSizeof(const pullTraceMulti *mtrc) {
   return ret;
 }
 
-pullTraceMulti *
+pullTraceMulti * /* Biff: nope */
 pullTraceMultiNix(pullTraceMulti *mtrc) {
 
   if (mtrc) {
@@ -975,7 +975,7 @@ pullTraceMultiNix(pullTraceMulti *mtrc) {
 #define PULL_MTRC_MAGIC "PULLMTRC0001"
 #define DEMARK_STR      "======"
 
-static int
+static int /* Biff: 1 */
 tracewrite(FILE *file, const pullTrace *trc, unsigned int ti) {
   static const char me[] = "tracewrite";
 
@@ -1012,7 +1012,7 @@ tracewrite(FILE *file, const pullTrace *trc, unsigned int ti) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullTraceMultiWrite(FILE *file, const pullTraceMulti *mtrc) {
   static const char me[] = "pullTraceMultiWrite";
   unsigned int ti;
@@ -1033,7 +1033,7 @@ pullTraceMultiWrite(FILE *file, const pullTraceMulti *mtrc) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
   static const char me[] = "traceread";
   char line[AIR_STRLEN_MED], name[AIR_STRLEN_MED];
@@ -1117,7 +1117,7 @@ traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
 
   return 0;
 }
-int
+int /* Biff: 1 */
 pullTraceMultiRead(pullTraceMulti *mtrc, FILE *file) {
   static const char me[] = "pullTraceMultiRead";
   char line[AIR_STRLEN_MED], name[AIR_STRLEN_MED];

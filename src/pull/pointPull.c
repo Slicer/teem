@@ -31,7 +31,7 @@
 ** are no errors, because this can now be called from multiple
 ** tasks during population control
 */
-pullPoint *
+pullPoint * /* Biff: NULL */
 pullPointNew(pullContext *pctx) {
   static const char me[] = "pullPointNew";
   pullPoint *pnt;
@@ -91,7 +91,7 @@ pullPointNew(pullContext *pctx) {
   return pnt;
 }
 
-pullPoint *
+pullPoint * /* Biff: nope */
 pullPointNix(pullPoint *pnt) {
 
   pnt->neighPointArr = airArrayNuke(pnt->neighPointArr);
@@ -132,7 +132,7 @@ _pullPointHistAdd(pullPoint *point, int cond, double val) {
 ** which could implement all these redundant functions
 */
 
-unsigned int
+unsigned int /* Biff: nope */
 pullPointNumberFilter(const pullContext *pctx,
                       unsigned int idtagMin,
                       unsigned int idtagMax) {
@@ -157,13 +157,13 @@ pullPointNumberFilter(const pullContext *pctx,
   return pointNum;
 }
 
-unsigned int
+unsigned int /* Biff: nope */
 pullPointNumber(const pullContext *pctx) {
 
   return pullPointNumberFilter(pctx, 0, 0);
 }
 
-double
+double /* Biff: (private) nope */
 _pullEnergyTotal(const pullContext *pctx) {
   unsigned int binIdx, pointIdx;
   const pullBin *bin;
@@ -198,7 +198,7 @@ _pullPointStepEnergyScale(pullContext *pctx, double scale) {
   return;
 }
 
-double
+double /* Biff: (private) nope */
 _pullStepInterAverage(const pullContext *pctx) {
   unsigned int binIdx, pointIdx, pointNum;
   const pullBin *bin;
@@ -219,7 +219,7 @@ _pullStepInterAverage(const pullContext *pctx) {
   return avg;
 }
 /* ^^^  vvv HEY HEY HEY: COPY + PASTE COPY + PASTE COPY + PASTE */
-double
+double /* Biff: (private) nope */
 _pullStepConstrAverage(const pullContext *pctx) {
   unsigned int binIdx, pointIdx, pointNum;
   const pullBin *bin;
@@ -244,7 +244,7 @@ _pullStepConstrAverage(const pullContext *pctx) {
 ** convenience function for learning a scalar AND its gradient or hessian
 **
 */
-double
+double /* Biff: nope */
 pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
                 /* output */
                 double grad[3], double hess[9]) {
@@ -356,7 +356,7 @@ pullPointScalar(const pullContext *pctx, const pullPoint *point, int sclInfo,
   return scl;
 }
 
-int
+int /* Biff: 1 */
 pullProbe(pullTask *task, pullPoint *point) {
   static const char me[] = "pullProbe";
   unsigned int ii, gret = 0;
@@ -635,7 +635,7 @@ _threshFail(const pullContext *pctx, const pullPoint *point, int info) {
   return ret;
 }
 
-int
+int /* Biff: 1 */
 pullPointInitializePerVoxel(const pullContext *pctx, const unsigned int pointIdx,
                             pullPoint *point, pullVolume *scaleVol,
                             /* output */
@@ -820,7 +820,7 @@ _pullUnitToWorld(const pullContext *pctx, const pullVolume *scaleVol, double wrl
   return;
 }
 
-int
+int /* Biff: 1 */
 pullPointInitializeRandomOrHalton(pullContext *pctx, const unsigned int pointIdx,
                                   pullPoint *point, pullVolume *scaleVol) {
   static const char me[] = "pullPointInitializeRandomOrHalton";
@@ -989,7 +989,7 @@ pullPointInitializeRandomOrHalton(pullContext *pctx, const unsigned int pointIdx
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullPointInitializeGivenPos(pullContext *pctx,
                             const double *posData,
                             const unsigned int pointIdx,
@@ -1060,7 +1060,7 @@ pullPointInitializeGivenPos(pullContext *pctx,
 ** this should set stuff to be like after an update stage and
 ** just before the rebinning
 */
-int
+int /* Biff: (private) 1 */
 _pullPointSetup(pullContext *pctx) {
   static const char me[] = "_pullPointSetup";
   char doneStr[AIR_STRLEN_SMALL];

@@ -53,7 +53,7 @@ unsigned int const _pullInfoLen[PULL_INFO_MAX + 1] = {
   1, /* pullInfoQuality */
 };
 
-unsigned int
+unsigned int /* Biff: nope */
 pullInfoLen(int info) {
   unsigned int ret;
 
@@ -65,7 +65,7 @@ pullInfoLen(int info) {
   return ret;
 }
 
-unsigned int
+unsigned int /* Biff: nope */
 pullPropLen(int prop) {
   unsigned int ret;
 
@@ -101,7 +101,7 @@ pullPropLen(int prop) {
   return ret;
 }
 
-pullInfoSpec *
+pullInfoSpec * /* Biff: nope */
 pullInfoSpecNew(void) {
   pullInfoSpec *ispec;
 
@@ -120,7 +120,7 @@ pullInfoSpecNew(void) {
   return ispec;
 }
 
-pullInfoSpec *
+pullInfoSpec * /* Biff: nope */
 pullInfoSpecNix(pullInfoSpec *ispec) {
 
   if (ispec) {
@@ -130,7 +130,7 @@ pullInfoSpecNix(pullInfoSpec *ispec) {
   return NULL;
 }
 
-int
+int /* Biff: 1 */
 pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
   static const char me[] = "pullInfoSpecAdd";
   unsigned int ii, vi, haveLen, needLen;
@@ -238,7 +238,7 @@ pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec) {
 ** pctx->constraintDim
 ** pctx->targetDim (non-trivial logic for scale-space!)
 */
-int
+int /* Biff: (private) 1 */
 _pullInfoSetup(pullContext *pctx) {
   static const char me[] = "_pullInfoSetup";
   unsigned int ii;
@@ -402,7 +402,7 @@ void (*const _pullInfoCopy[10])(double *, const double *)
   = {NULL,       _infoCopy1, _infoCopy2, _infoCopy3, _infoCopy4,
      _infoCopy5, _infoCopy6, _infoCopy7, _infoCopy8, _infoCopy9};
 
-int
+int /* Biff: 1 */
 pullInfoGet(Nrrd *ninfo, int info, pullContext *pctx) {
   static const char me[] = "pullInfoGet";
   size_t size[2];
@@ -447,7 +447,7 @@ pullInfoGet(Nrrd *ninfo, int info, pullContext *pctx) {
 
 /* HEY this was written in a hurry;
 ** needs to be checked against parsing code */
-int
+int /* Biff: 1 */
 pullInfoSpecSprint(char str[AIR_STRLEN_LARGE], const pullContext *pctx,
                    const pullInfoSpec *ispec) {
   static const char me[] = "pullInfoSpecSprint";

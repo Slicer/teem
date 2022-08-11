@@ -48,7 +48,7 @@ _pullInitParmInit(pullInitParm *initParm) {
     return 1;                                                                           \
   }
 
-int
+int /* Biff: (private) 1 */
 _pullInitParmCheck(pullInitParm *iparm) {
   static const char me[] = "_pullInitParmCheck";
 
@@ -107,7 +107,7 @@ _pullInitParmCheck(pullInitParm *iparm) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullInitRandomSet(pullContext *pctx, unsigned int numInitial) {
   static const char me[] = "pullInitRandomSet";
 
@@ -125,7 +125,7 @@ pullInitRandomSet(pullContext *pctx, unsigned int numInitial) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullInitHaltonSet(pullContext *pctx, unsigned int numInitial, unsigned int startIndex) {
   static const char me[] = "pullInitHaltonSet";
 
@@ -144,7 +144,7 @@ pullInitHaltonSet(pullContext *pctx, unsigned int numInitial, unsigned int start
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullInitPointPerVoxelSet(pullContext *pctx, int pointPerVoxel, unsigned int zSlcMin,
                          unsigned int zSlcMax, unsigned int alongScaleNum,
                          double jitter) {
@@ -172,7 +172,7 @@ pullInitPointPerVoxelSet(pullContext *pctx, int pointPerVoxel, unsigned int zSlc
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullInitGivenPosSet(pullContext *pctx, const Nrrd *npos) {
   static const char me[] = "pullInitGivenPosSet";
 
@@ -186,7 +186,7 @@ pullInitGivenPosSet(pullContext *pctx, const Nrrd *npos) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullInitLiveThreshUseSet(pullContext *pctx, int liveThreshUse) {
   static const char me[] = "pullInitLiveThreshUseSet";
 
@@ -199,7 +199,7 @@ pullInitLiveThreshUseSet(pullContext *pctx, int liveThreshUse) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullInitUnequalShapesAllowSet(pullContext *pctx, int allow) {
   static const char me[] = "pullInitUnequalShapesAllowSet";
 

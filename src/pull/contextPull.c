@@ -24,7 +24,7 @@
 #include "pull.h"
 #include "privatePull.h"
 
-pullContext *
+pullContext * /* Biff: nope */
 pullContextNew(void) {
   pullContext *pctx;
   unsigned int ii;
@@ -110,7 +110,7 @@ pullContextNew(void) {
 ** this should only nix things created by pullContextNew, or the things
 ** (vols and ispecs) that were explicitly added to this context
 */
-pullContext *
+pullContext * /* Biff: nope */
 pullContextNix(pullContext *pctx) {
   unsigned int ii;
 
@@ -136,7 +136,7 @@ pullContextNix(pullContext *pctx) {
   return NULL;
 }
 
-static int
+static int /* Biff: 1 */
 _pullMiscParmCheck(pullContext *pctx) {
   static const char me[] = "_pullMiscParmCheck";
   double denr;
@@ -181,7 +181,7 @@ _pullMiscParmCheck(pullContext *pctx) {
   return 0;
 }
 
-int
+int /* Biff: (private) 1 */
 _pullContextCheck(pullContext *pctx) {
   static const char me[] = "_pullContextCheck";
   unsigned int ii, ccount;
@@ -379,7 +379,7 @@ _pullContextCheck(pullContext *pctx) {
 ** the API for this is most certainly going to change; the
 ** tensor output at this point is a hack created for vis purposes
 */
-int
+int /* Biff: 1 */
 pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
                     const double _scaleVec[3], double scaleRad, pullContext *pctx,
                     unsigned int idtagMin, unsigned int idtagMax) {
@@ -575,7 +575,7 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut, const double scaleVec[3],
               double scaleRad, pullContext *pctx) {
   static const char me[] = "pullOutputGet";
@@ -588,7 +588,7 @@ pullOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut, const double sca
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
   static const char me[] = "pullPropGet";
   int typeOut;
@@ -766,7 +766,7 @@ pullPropGet(Nrrd *nprop, int prop, pullContext *pctx) {
 /*
 ** extract history as single array, possibly specific to only a single point0
 */
-int
+int /* Biff: 1 */
 pullPositionHistoryNrrdGet(Nrrd *nhist, pullContext *pctx, pullPoint *point0) {
   static const char me[] = "pullPositionHistoryNrrdGet";
 #if PULL_PHIST
@@ -838,7 +838,7 @@ pullPositionHistoryNrrdGet(Nrrd *nhist, pullContext *pctx, pullPoint *point0) {
 #endif
 }
 
-int
+int /* Biff: 1 */
 pullPositionHistoryPolydataGet(limnPolyData *pld, pullContext *pctx) {
   static const char me[] = "pullPositionHistoryPolydataGet";
 #if PULL_PHIST

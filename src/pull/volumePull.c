@@ -24,7 +24,7 @@
 #include "pull.h"
 #include "privatePull.h"
 
-pullVolume *
+pullVolume * /* Biff: nope */
 pullVolumeNew() {
   pullVolume *vol;
 
@@ -55,7 +55,7 @@ pullVolumeNew() {
   return vol;
 }
 
-pullVolume *
+pullVolume * /* Biff: nope */
 pullVolumeNix(pullVolume *vol) {
 
   if (vol) {
@@ -85,7 +85,7 @@ pullVolumeNix(pullVolume *vol) {
 ** in which case pctx is NULL
 ** ...................
 */
-static int
+static int /* Biff: 1 */
 _pullVolumeSet(const pullContext *pctx, int taskCopy, pullVolume *vol,
                const gageKind *kind, int verbose, const char *name,
                const Nrrd *ninSingle, const Nrrd *const *ninScale, double *scalePos,
@@ -210,7 +210,7 @@ _pullVolumeSet(const pullContext *pctx, int taskCopy, pullVolume *vol,
 /*
 ** the effect is to give pctx ownership of the vol
 */
-int
+int /* Biff: 1 */
 pullVolumeSingleAdd(pullContext *pctx, const gageKind *kind, char *name, const Nrrd *nin,
                     const NrrdKernelSpec *ksp00, const NrrdKernelSpec *ksp11,
                     const NrrdKernelSpec *ksp22) {
@@ -236,7 +236,7 @@ pullVolumeSingleAdd(pullContext *pctx, const gageKind *kind, char *name, const N
 /*
 ** the effect is to give pctx ownership of the vol
 */
-int
+int /* Biff: 1 */
 pullVolumeStackAdd(pullContext *pctx,
                    const gageKind *kind,
                    char *name,
@@ -271,7 +271,7 @@ pullVolumeStackAdd(pullContext *pctx,
 **
 ** DOES use biff
 */
-pullVolume *
+pullVolume * /* Biff: (private) NULL */
 _pullVolumeCopy(const pullContext *pctx, const pullVolume *volOrig) {
   static const char me[] = "pullVolumeCopy";
   pullVolume *volNew;
@@ -298,7 +298,7 @@ _pullVolumeCopy(const pullContext *pctx, const pullVolume *volOrig) {
   return volNew;
 }
 
-int
+int /* Biff: (private) nope */
 _pullInsideBBox(pullContext *pctx, double pos[4]) {
 
   return (AIR_IN_CL(pctx->bboxMin[0], pos[0], pctx->bboxMax[0])
@@ -314,7 +314,7 @@ _pullInsideBBox(pullContext *pctx, double pos[4]) {
 ** pctx->bboxMin  ([0] through [3], always)
 ** pctx->bboxMax  (same)
 */
-int
+int /* Biff: (private) 1 */
 _pullVolumeSetup(pullContext *pctx) {
   static const char me[] = "_pullVolumeSetup";
   unsigned int ii, numScale;
@@ -450,7 +450,7 @@ _pullVolumeSetup(pullContext *pctx) {
 **
 ** uses biff, returns UINT_MAX in case of error
 */
-unsigned int
+unsigned int /* Biff: (private) UINT_MAX */
 _pullVolumeIndex(const pullContext *pctx, const char *volName) {
   static const char me[] = "_pullVolumeIndex";
   unsigned int vi;
@@ -475,7 +475,7 @@ _pullVolumeIndex(const pullContext *pctx, const char *volName) {
   return vi;
 }
 
-const pullVolume *
+const pullVolume * /* Biff: NULL */
 pullVolumeLookup(const pullContext *pctx, const char *volName) {
   static const char me[] = "pullVolumeLookup";
   unsigned int vi;
@@ -494,7 +494,7 @@ pullVolumeLookup(const pullContext *pctx, const char *volName) {
 ** returns scale range from a scale-space volume,
 ** either in terms of sigma, or (if pctx->flag.scaleIsTau), tau
 */
-int
+int /* Biff: 1 */
 pullConstraintScaleRange(pullContext *pctx, double ssrange[2]) {
   static const char me[] = "pullConstraintScaleRange";
   pullVolume *cvol;

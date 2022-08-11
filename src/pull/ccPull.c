@@ -28,7 +28,7 @@
 ** HEY: this messes with the points' idtag, and pctx->idtagNext,
 ** even though it really shouldn't have to
 */
-int
+int /* Biff: 1 */
 pullCCFind(pullContext *pctx) {
   static const char me[] = "pullCCFind";
   airArray *mop, *eqvArr;
@@ -112,7 +112,7 @@ pullCCFind(pullContext *pctx) {
 **
 ** rho == 0: only size, rho == 1: only measrInfo
 */
-int
+int /* Biff: 1 */
 pullCCMeasure(pullContext *pctx, Nrrd *nmeasr, int measrInfo, double rho) {
   static const char me[] = "pullCCMeasure";
   airArray *mop;
@@ -207,7 +207,7 @@ ccpairCompare(const void *_a, const void *_b) {
 ** sort by blend of size and measrInfo
 ** rho == 0: only size, rho == 1: only measrInfo
 */
-int
+int /* Biff: 1 */
 pullCCSort(pullContext *pctx, int measrInfo, double rho) {
   static const char me[] = "pullCCSort";
   ccpair *pair;

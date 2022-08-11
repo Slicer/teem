@@ -53,7 +53,7 @@ _pullBinDone(pullBin *bin) {
   return;
 }
 
-static int
+static int /* Biff: 1 */
 _pullBinNeighborSet(pullContext *pctx, pullBin *bin) {
   static const char me[] = "_pullBinNeighborSet";
   unsigned int neiIdx, neiNum, be[4], binIdx;
@@ -105,7 +105,7 @@ _pullBinNeighborSet(pullContext *pctx, pullBin *bin) {
 ** bins on boundary now extend to infinity; so the only time this
 ** returns NULL (indicating error) is for non-existent positions
 */
-pullBin *
+pullBin * /* Biff: (private) NULL */
 _pullBinLocate(pullContext *pctx, double *posWorld) {
   static const char me[] = "_pullBinLocate";
   unsigned int axi, eidx[4], binIdx;
@@ -137,7 +137,7 @@ _pullBinLocate(pullContext *pctx, double *posWorld) {
 /*
 ** this makes the bin the owner of the point
 */
-static int
+static int /* Biff: 1 */
 _pullBinPointAdd(pullContext *pctx, pullBin *bin, pullPoint *point) {
   static const char me[] = "_pullBinPointAdd";
   int pntI;
@@ -181,7 +181,7 @@ _pullBinPointRemove(pullContext *pctx, pullBin *bin, int loseIdx) {
 /*
 ** adds point to context
 */
-int
+int /* Biff: 1 */
 pullBinsPointAdd(pullContext *pctx, pullPoint *point, pullBin **binP) {
   static const char me[] = "pullBinsPointAdd";
   pullBin *bin;
@@ -203,7 +203,7 @@ pullBinsPointAdd(pullContext *pctx, pullPoint *point, pullBin **binP) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
                       /* output */
                       pullBin **binP, int *added) {
@@ -260,7 +260,7 @@ pullBinsPointMaybeAdd(pullContext *pctx, pullPoint *point,
   return 0;
 }
 
-int
+int /* Biff: (private) 1 */
 _pullBinSetup(pullContext *pctx) {
   static const char me[] = "_pullBinSetup";
   unsigned ii;
@@ -372,7 +372,7 @@ _pullBinFinish(pullContext *pctx) {
 ** This function is only called by the master thread, this
 ** does *not* have to be thread-safe in any way
 */
-int
+int /* Biff: (private) 1 */
 _pullIterFinishDescent(pullContext *pctx) {
   static const char me[] = "_pullIterFinishDescent";
   unsigned int oldBinIdx, pointIdx, taskIdx, runIdx, pointNum;

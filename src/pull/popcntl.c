@@ -24,7 +24,7 @@
 #include "pull.h"
 #include "privatePull.h"
 
-int
+int /* Biff: (private) nope */
 _pullPointProcessNeighLearn(pullTask *task, pullBin *bin, pullPoint *point) {
 
   /* sneaky: we just learn (and discard) the energy, and this function
@@ -54,7 +54,7 @@ _pointEnergyOfNeighbors(pullTask *task, pullBin *bin, pullPoint *point,
   return enr;
 }
 
-int
+int /* Biff: (private) 1 */
 _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   static const char me[] = "_pullPointProcessAdding";
   unsigned int npi, iter, api;
@@ -336,7 +336,7 @@ _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point) {
   return 0;
 }
 
-int
+int /* Biff: (private) nope */
 _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
   static const char me[] = "_pullPointProcessNixing";
   double enrWith, enrNeigh, enrWithout, fracNixed;
@@ -390,7 +390,7 @@ _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point) {
   return 0;
 }
 
-int
+int /* Biff: (private) nope */
 _pullIterFinishNeighLearn(pullContext *pctx) {
   static const char me[] = "_pullIterFinishNeighLearn";
 
@@ -401,7 +401,7 @@ _pullIterFinishNeighLearn(pullContext *pctx) {
   return 0;
 }
 
-int
+int /* Biff: (private) 1 */
 _pullIterFinishAdding(pullContext *pctx) {
   static const char me[] = "_pullIterFinishAdding";
   unsigned int taskIdx;
@@ -481,7 +481,7 @@ _pullNixTheNixed(pullContext *pctx) {
   return;
 }
 
-int
+int /* Biff: (private) nope */
 _pullIterFinishNixing(pullContext *pctx) {
   static const char me[] = "_pullIterFinishNixing";
   unsigned int taskIdx;

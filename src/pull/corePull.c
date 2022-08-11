@@ -33,7 +33,7 @@ int _pullVerbose = 0;
 ** this is the core of the worker threads: as long as there are bins
 ** left to process, get the next one, and process it
 */
-int
+int /* Biff: (private) 1 */
 _pullProcess(pullTask *task) {
   static const char me[] = "_pullProcess";
   unsigned int binIdx;
@@ -70,11 +70,13 @@ _pullProcess(pullTask *task) {
 }
 
 /* the main loop for each worker thread */
-void *
+void * /* Biff: (private) NULL */
 _pullWorker(void *_task) {
   static const char me[] = "_pushWorker";
+  void *ret;
   pullTask *task;
 
+  ret = _task;
   task = (pullTask *)_task;
 
   while (1) {
@@ -97,6 +99,8 @@ _pullWorker(void *_task) {
       /* HEY clearly not threadsafe to have errors . . . */
       biffAddf(PULL, "%s: thread %u trouble", me, task->threadIdx);
       task->pctx->finished = AIR_TRUE;
+      /* return NULL; (for biff auto-scan) */
+      ret = NULL;
     }
     if (task->pctx->verbose > 1) {
       fprintf(stderr, "%s(%u): waiting on barrier B\n", me, task->threadIdx);
@@ -104,10 +108,10 @@ _pullWorker(void *_task) {
     airThreadBarrierWait(task->pctx->iterBarrierB);
   }
 
-  return _task;
+  return ret;
 }
 
-int
+int /* Biff: 1 */
 pullStart(pullContext *pctx) {
   static const char me[] = "pullStart";
   unsigned int tidx;
@@ -162,7 +166,7 @@ pullStart(pullContext *pctx) {
 **
 ** should nix everything created by the many _pull*Setup() functions
 */
-int
+int /* Biff: 1 */
 pullFinish(pullContext *pctx) {
   static const char me[] = "pullFinish";
   unsigned int tidx;
@@ -206,7 +210,7 @@ pullFinish(pullContext *pctx) {
 **
 ** NB: this implements the body of thread 0, the master thread
 */
-int
+int /* Biff: (private) 1 */
 _pullIterate(pullContext *pctx, int mode) {
   static const char me[] = "_pullIterate";
   double time0;
@@ -330,7 +334,7 @@ _pullIterate(pullContext *pctx, int mode) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullRun(pullContext *pctx) {
   static const char me[] = "pullRun";
   char poutS[AIR_STRLEN_MED];

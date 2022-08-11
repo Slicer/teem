@@ -251,7 +251,7 @@ constraintSatLapl(pullTask *task, pullPoint *point, double stepMax, double const
 
 /* ------------------------------------------- height (line xor surf) */
 
-static int
+static int /* Biff: 1 */
 probeHeight(pullTask *task, pullPoint *point,
             /* output */
             double *heightP, double grad[3], double hess[9]) {
@@ -363,7 +363,7 @@ creaseProj(pullTask *task, pullPoint *point, int tang1Use, int tang2Use, int neg
           negproj[1], negproj[2], negproj[3], negproj[4], negproj[5], negproj[6],       \
           negproj[7], negproj[8])
 
-static int
+static int /* Biff: 1 */
 constraintSatHght(pullTask *task, pullPoint *point, int tang1Use, int tang2Use,
                   int negtang1Use, int negtang2Use, double stepMax, double constrEps,
                   unsigned int iterMax, int *constrFailP) {
@@ -620,7 +620,7 @@ constraintSatHght(pullTask *task, pullPoint *point, int tang1Use, int tang2Use,
 #undef SAVE
 #undef RESTORE
 
-double
+double /* Biff: (private) nope */
 _pullSigma(const pullContext *pctx, const double pos[4]) {
   double ret = 0;
 
@@ -637,7 +637,7 @@ _pullSigma(const pullContext *pctx, const double pos[4]) {
 **
 ** This uses biff, but only for showstopper problems
 */
-int
+int /* Biff: (private) 1 */
 _pullConstraintSatisfy(pullTask *task, pullPoint *point, double travelMax,
                        /* output */
                        int *constrFailP) {
@@ -785,7 +785,7 @@ _pullConstraintTangent(pullTask *task, pullPoint *point,
 **
 ** a -1 return value represents a biff-able error
 */
-int
+int /* Biff: (private) -1 */
 _pullConstraintDim(const pullContext *pctx) {
   static const char me[] = "_pullConstraintDim";
   int ret, t1, t2, nt1, nt2;

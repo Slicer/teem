@@ -24,7 +24,7 @@
 #include "pull.h"
 #include "privatePull.h"
 
-pullTask *
+pullTask * /* Biff: (private) NULL */
 _pullTaskNew(pullContext *pctx, int threadIdx) {
   static const char me[] = "_pullTaskNew";
   pullTask *task;
@@ -113,7 +113,7 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
   return task;
 }
 
-pullTask *
+pullTask * /* Biff: (private) nope */
 _pullTaskNix(pullTask *task) {
   unsigned int ii;
 
@@ -139,7 +139,7 @@ _pullTaskNix(pullTask *task) {
 **** pctx->task
 **** pctx->task[]
 */
-int
+int /* Biff: (private) 1 */
 _pullTaskSetup(pullContext *pctx) {
   static const char me[] = "_pullTaskSetup";
   unsigned int tidx;
