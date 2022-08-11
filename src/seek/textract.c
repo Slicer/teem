@@ -1320,7 +1320,7 @@ intersectionShuffleProbe(seekContext *sctx, baggage *bag) {
 }
 
 /* special triangulation routine for use with T-based extraction */
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
   unsigned xi, yi, sx, sy, si, i;
 
@@ -1842,7 +1842,7 @@ probeT(seekContext *sctx, baggage *bag, double zi) {
 /* it has now become much easier to make this its own routine
  * (vs. adding many more case distinctions to shuffleProbe)
  * this only duplicates little (and trivial) code */
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _seekShuffleProbeT(seekContext *sctx, baggage *bag) {
   /* for high-quality normal estimation, we need two slices of data
    * context; to keep the code simple, separate shuffle and probe
