@@ -203,7 +203,7 @@ gageStackPerVolumeAttach(gageContext *ctx, gagePerVolume *pvlBase,
 ** the across-stack filtering to fill the iv3 of pvl[pvlNum-1] (the
 ** "base" pvl)
 */
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _gageStackBaseIv3Fill(gageContext *ctx) {
   static const char me[] = "_gageStackBaseIv3Fill";
   unsigned int fd, pvlIdx, cacheIdx, cacheLen, baseIdx, valLen;

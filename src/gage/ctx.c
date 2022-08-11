@@ -686,7 +686,7 @@ _gageIv3Fill(gageContext *ctx, gagePerVolume *pvl) {
 ** NOTE: the stack filter weights are (like the spatial filter weights)
 ** computed inside _gageLocationSet()
 */
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _gageProbe(gageContext *ctx, double _xi, double _yi, double _zi, double _si) {
   static const char me[] = "_gageProbe";
   unsigned int oldIdx[4], oldNnz = 0, pvlIdx;
@@ -816,7 +816,7 @@ gageProbe(gageContext *ctx, double xi, double yi, double zi) {
   return _gageProbe(ctx, xi, yi, zi, 0.0);
 }
 
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
                 int indexSpace, int clamp) {
   static const char me[] = "_gageProbeSpace";

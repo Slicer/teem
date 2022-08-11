@@ -233,7 +233,7 @@ gageAnswerPointer(const gageContext *ctx, const gagePerVolume *pvl, int item) {
 }
 
 /* non-const version of the above */
-double * /* Biff: nope */
+double * /* Biff: (private) nope */
 _gageAnswerPointer(const gageContext *ctx, gagePerVolume *pvl, int item) {
   double *ret;
 
