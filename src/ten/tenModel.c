@@ -339,7 +339,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut, tenExperSpec *espec, const tenModel *m
 ** sqe fitting.  Returns the sqe at the converged fit location
 ** Requires PARM_NUM length buffers testParm and grad
 */
-double /* Biff: nope */
+double /* Biff: (private) nope */
 _tenModelSqeFitSingle(const tenModel *model, double *testParm, double *grad,
                       double *parm, double *convFrac, unsigned int *itersTaken,
                       const tenExperSpec *espec, double *dwiBuff, const double *dwiMeas,

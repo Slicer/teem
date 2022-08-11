@@ -121,7 +121,7 @@ _tenInitcent2(const int gradcount, const double qvals[], const double qpoints[],
 /* Calculates 2 new centroids (and a new segmentation) from distances
    between Q-balls and centroids, returns true if segmentation changed
 */
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _tenCalccent2(const int gradcount, const double qpoints[], const double dists[],
               double centroid[6], unsigned int seg[]) {
 #if 0
@@ -260,7 +260,7 @@ _tenCalcdists(const int centcount, const double centroid[], const int gradcount,
 
 /* Estimates the shortest distance from a point to a line going
    through the origin */
-double /* Biff: nope */
+double /* Biff: (private) nope */
 _tenPldist(const double point[], const double line[]) {
 
   double cross[3];

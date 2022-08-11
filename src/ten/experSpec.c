@@ -267,7 +267,7 @@ tenExperSpecNix(tenExperSpec *espec) {
   return NULL;
 }
 
-double /* Biff: nope */
+double /* Biff: (private) nope */
 _tenExperSpec_sqe(const double *dwiMeas, const double *dwiSim, const tenExperSpec *espec,
                   int knownB0) {
   unsigned int ii;
@@ -297,7 +297,7 @@ _tenExperSpec_sqe(const double *dwiMeas, const double *dwiSim, const tenExperSpe
   return sqe;
 }
 
-double /* Biff: nope */
+double /* Biff: (private) nope */
 _tenExperSpec_nll(const double *dwiMeas, const double *dwiSim, const tenExperSpec *espec,
                   int rician, double sigma, int knownB0) {
   double nll;
