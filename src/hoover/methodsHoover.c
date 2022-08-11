@@ -161,7 +161,7 @@ hooverContextCheck(hooverContext *ctx) {
   return 0;
 }
 
-void *
+void * /* Biff: nope */
 hooverContextNix(hooverContext *ctx) {
 
   if (ctx) {
