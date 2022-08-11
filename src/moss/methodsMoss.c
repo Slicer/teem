@@ -121,7 +121,7 @@ mossImageAlloc(Nrrd *image, int type, unsigned int _sx, unsigned int _sy,
   return 0;
 }
 
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _mossCenter(int center) {
 
   return (airEnumValCheck(nrrdCenter, center) ? mossDefCenter : center);
