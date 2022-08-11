@@ -211,7 +211,7 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
   return task;
 }
 
-pushTask * /* Biff: nope */
+pushTask * /* Biff: (private) nope */
 _pushTaskNix(pushTask *task) {
 
   if (task) {
