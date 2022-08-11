@@ -26,7 +26,7 @@
 
 char _echoBuff[128] = "";
 
-char * /* Biff: nope */
+char * /* Biff: (private) nope */
 _echoDot(int depth) {
   int i;
 

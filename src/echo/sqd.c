@@ -198,7 +198,7 @@ _echo_SuperquadZ_lvg(echoPos_t grad[3], echoPos_t x, echoPos_t y, echoPos_t z,
 
 /* -------------------------------------------------------- */
 
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _echoRayIntx_Superquad(RAYINTX_ARGS(Superquad)) {
   static const char me[] = "_echoRayIntx_Superquad";
   echoPos_t TT = 0, Tmin, Tmax, t0, t1, t2, t3, v1, v2, diff, tol, saveTmin, Vmin, Vmax,

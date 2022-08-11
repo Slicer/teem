@@ -96,7 +96,7 @@ _echoRayIntx_CubeSurf(echoPos_t *tP, int *axP, int *dirP,
   return AIR_TRUE;
 }
 
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _echoRayIntx_CubeSolid(echoPos_t *tminP, echoPos_t *tmaxP,
                        echoPos_t xmin, echoPos_t xmax,
                        echoPos_t ymin, echoPos_t ymax,
