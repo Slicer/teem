@@ -3,9 +3,6 @@
 _x,*_y=1,2 # NOTE: A SyntaxError here means you need python3, not python2
 del _x, _y
 
-# to biff annotate
-# ten pull push mite
-
 import os
 import sys
 import argparse
@@ -137,7 +134,7 @@ def biffAnnotate(biffLevel, fileName, lineNum, annote, funcName):
     if not match:
         # no existing comment (whether or not it has an annotation)
         # make sure that a function returning void is not using biff
-        doesBiff = 'Biff? nope' != annote
+        doesBiff = ('Biff? nope' != annote and 'Biff? (private) nope' != annote)
         # qualifier and return type; distinguishing between returning
         # void (should not use biff) vs returning void* (fine to use biff)
         qts = L.strip().replace('void *','void*').split(' ')
@@ -161,7 +158,7 @@ def biffAnnotate(biffLevel, fileName, lineNum, annote, funcName):
                       f'refusing to touch it at level {biffLevel}')
                 return
             else:
-                print(f'NOTE: {wut} deleting old comment "{ocmt}"')
+                print(f'\nNOTE: {wut} deleting old comment "{ocmt}"')
                 L = L.replace(ocmt, ncmt)
         # else existing comment starts like an annotation
         elif ocmt == ncmt:
@@ -187,7 +184,7 @@ def biffAnnotate(biffLevel, fileName, lineNum, annote, funcName):
                           f'really differs from new "{annote}"; won\'t change it at level {biffLevel}')
                     return
                 # else we go ahead and over-write old comment, INCLUDING THE annotation comment
-                print(f'NOTE: {fileName}:{lineNum+1} (for {funcName}) deleting old commented annotation "{ocmt}"')
+                print(f'\nNOTE: {fileName}:{lineNum+1} (for {funcName}) deleting old commented annotation "{ocmt}"')
                 L = L.replace(ocmt, ncmt)
         else:
             # had an old comment that started like an annotation, but its
@@ -197,7 +194,7 @@ def biffAnnotate(biffLevel, fileName, lineNum, annote, funcName):
                       f'refusing to touch it at level {biffLevel}')
                 return
             else:
-                print(f'NOTE: {wut} deleting old comment "{ocmt}"')
+                print(f'\nNOTE: {wut} deleting old comment "{ocmt}"')
                 L = L.replace(ocmt, ncmt)
     if L == origL:
         # ah, so we had nothing to do
@@ -459,6 +456,8 @@ def biffScan(funcName, fileName, funcKind):
     useBiffIdx = 0 # 1-based number of "useBiff" parameter
     for idx in range(nlin):
         L = lines[idx]
+        # this is assuming the results of clang-format, that in the function definition,
+        # the function name is at the start of the line
         if L.startswith(funcName+'('):
             if (-1 == dIdx):
                 dIdx = idx
@@ -479,7 +478,7 @@ def biffScan(funcName, fileName, funcKind):
         return None
     # else we think we found it
     if verbose > 2:
-        print(f'found {funcName} on line {dIdx} of {fileName}: |{lines[dIdx]}|')
+        print(f'found {funcName} on line {dIdx+1} of {fileName}: |{lines[dIdx]}|')
     idx = dIdx
     # sometimes the start of the function declaration is multiple lines; we know
     # we're at the end of the intro when we see a '{' ending the line
@@ -507,7 +506,7 @@ def biffScan(funcName, fileName, funcKind):
                 print(f'{bu}: ({bIdx}) {bline} --> ({idx}) {RL}')
             match = re.match(r'.*?return (.+);', RL)
             if not match:
-                raise Exception(f'confusing return line {idx} of {fileName}: |{linex[idx]}|')
+                raise Exception(f'confusing return line {idx} of {fileName}: |{lines[idx]}|')
             uRV = (bu, match.group(1))
             if not uRV in brets:
                 # haven't yet recorded this "return" value RV after this biff usage bu
@@ -515,57 +514,67 @@ def biffScan(funcName, fileName, funcKind):
         idx += 1
         if idx == nlin:
             raise Exception(f'hit end of file {fileName} looking for }} ending {funcName} defn')
-    if not brets:
-        # we're here to scan for biff usage in function funcName, and found none,
-        # which is totally fine, so we return that annotation and are done
-        return (dIdx-1, 'Biff? nope') # RETURN
-    # else we found some biff usage
-    if len(brets) > 1:
-        # make sure uses are either all 'yes' or all 'maybe'
-        uu = list(set([uRV[0] for uRV in brets]))
-        if (len(uu)) > 1:
-            raise Exception(f'function {funcName} in {fileName}:{dIdx} uses a combination of biffAdd/Move and biffMaybeAdd/Move')
-    # the most common case is using biffAddf/biffMovef (bu = 'yes'), with return 1
-    # if not that, print it out (or always print it with high enough verbosity):
-    if len(brets) > 1:
-        print('****\n**** really? multiple different returns in:')
-        print(f'--> ({fileName} : {dIdx} {kindStr[funcKind]}) {lines[dIdx-1]} {intro}\n  -> {brets}')
-    if 'maybe' == brets[0][0]:
-        # figure out which of the function parameters (1-based numbering) is called "useBiff"
-        if not (match := re.match(r'.+?\((.+?)\)', intro)):
-            raise Exception(f"can't parse parameters from declaration start {intro} in {fileName}:{dIdx}")
-        # parse parameters into list of (lists of words)
-        parms = [P.strip().split(' ') for P in match.group(1).split(',')]
-        # look for useBiff
-        useb = [('useBiff' in PL) for PL in parms]
-        try:
-            useBiffIdx = useb.index(True)
-        except ValueError:
-            raise Exception(f'{funcName} uses biffMaybe but don\'t see "useBiff" in '
-                            f'start of function declaration "{intro}"')
-        # make sure there's only one useBiff
-        useb.pop(useBiffIdx)
-        if [False] != list(set(useb)):
-            raise Exception(f'{funcName} seems to have multiple "useBiff" parms '
-                            f'in its declaration "{intro}"')
+    #print(f'!({fileName} : {dIdx} {kindStr[funcKind]}) {lines[dIdx-1]} {intro}\n  -> {brets}')
+    if brets:
+        # if there was any biff usage (and its fine if there is not)
+        if len(brets) > 1:
+            # make sure uses are either all 'yes' or all 'maybe'
+            uu = list(set([uRV[0] for uRV in brets]))
+            if (len(uu)) > 1:
+                raise Exception(f'function {funcName} in {fileName}:{dIdx} uses a combination of biffAdd/Move and biffMaybeAdd/Move')
+        # the most common case is using biffAddf/biffMovef (bu = 'yes'), with return 1
+        # if not that, print it out (or always print it with high enough verbosity):
+        if len(brets) > 1:
+            print('****\n**** really? multiple different returns in:')
+            print(f'--> ({fileName} : {dIdx} {kindStr[funcKind]}) {lines[dIdx-1]} {intro}\n  -> {brets}')
+        if 'maybe' == brets[0][0]:
+            # figure out which of the function parameters (1-based numbering) is called "useBiff"
+            if not (match := re.match(r'.+?\((.+?)\)', intro)):
+                raise Exception(f"can't parse parameters from declaration start {intro} in {fileName}:{dIdx}")
+            # parse parameters into list of (lists of words)
+            parms = [P.strip().split(' ') for P in match.group(1).split(',')]
+            # look for useBiff
+            useb = [('useBiff' in PL) for PL in parms]
+            try:
+                useBiffIdx = useb.index(True)
+            except ValueError:
+                raise Exception(f'{funcName} uses biffMaybe but don\'t see "useBiff" in '
+                                f'start of function declaration "{intro}"')
+            # make sure there's only one useBiff
+            useb.pop(useBiffIdx)
+            if [False] != list(set(useb)):
+                raise Exception(f'{funcName} seems to have multiple "useBiff" parms '
+                                f'in its declaration "{intro}"')
             # make useBiffIdx 1-based
-        useBiffIdx += 1
-    if len(brets) > 2:
-        raise Exception(f'Have {len(brets)} > 2 different error return values')
-    if 2 == len(brets) and 'maybe' == brets[0][0]:
-        raise Exception(f'Cannot currently handle "maybe" with 2 different error return values')
+            useBiffIdx += 1
+        if len(brets) > 2:
+            # of course there's no reason why a function can't have multiple error return values
+            # (in fact that is a pretty standard way of communicating how things went south)
+            # but currently the documentation of Biff: annotation in teem/src/biff/README.txt
+            # only covers two return values
+                raise Exception(f'Have {len(brets)} > 2 different error return values')
+        if 2 == len(brets) and 'maybe' == brets[0][0]:
+            # another limitation of the Biff: annotation format, than plausible function behavior
+            raise Exception(f'Cannot currently handle "maybe" with 2 different error return values')
     # create and return the annotation that captures what we know:
     annote = 'Biff? '
     if kind.PRIVATE == funcKind:
         annote += f'({kindStr[funcKind]}) '
-    if 'yes' == brets[0][0]:
+    if not brets:
+        annote += 'nope'
+    # else there is biff usage
+    elif 'yes' == brets[0][0]:
         if (1 == len(brets)):
             annote += brets[0][1]
         else:
+            # here is where multiple return values would be handled
             annote += f'{brets[0][1]}|{brets[1][1]}'
-    else:
+    elif 'maybe' == brets[0][0]:
         annote += f'maybe:{useBiffIdx}:{brets[0][1]}'
-    if not (annote == 'Biff? 1' or annote == 'Biff? (private) 1'):
+    else:
+        raise Exception(f'Sorry very confused about brets={brets}')
+    if not ('Biff? 1' == annote or 'Biff? (private) 1' == annote
+            or 'Biff? nope' == annote or 'Biff? (private) nope' == annote):
         # interesting enough to print out
         print(f'{fileName}:{dIdx-1} /* {annote} */ <-- {intro}')
     #print(f'! returning annote={annote}')
@@ -635,10 +644,12 @@ if __name__ == '__main__':
             # if we're doing the biff auto-scan, and this is a function, and it isn't
             # in a library that can't use biff, then add this to list of things to biffScan
             # (each item in this list is a dumb little tuple)
-            toBS.append((N, # 0 : name
-                         symb[N]['file'], # 1 : which file it's defined in
-                         decl[N]['kind'] if N in decl else kind.STATIC # 2 : kind of function
-                         ))
+            tbt = (N, # 0 : name
+                    symb[N]['file'], # 1 : which file it's defined in
+                    decl[N]['kind'] if N in decl else kind.STATIC # 2 : kind of function
+                    )
+            #print('!', tbt)
+            toBS.append(tbt)
         if N in decl:
             declT = decl[N]['type']
             if declT == symbT or ('S' == symbT and 'D' == declT):
