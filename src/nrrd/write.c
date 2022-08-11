@@ -237,7 +237,7 @@ _nrrdStrcatSpaceVector(char *str, unsigned int spaceDim,
   return;
 }
 
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _nrrdFieldInteresting(const Nrrd *nrrd, NrrdIoState *nio, int field) {
   int ret;
   unsigned int ai;

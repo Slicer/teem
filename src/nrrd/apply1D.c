@@ -49,7 +49,7 @@ enum {
   kindImap = 2
 };
 
-double /* Biff: nope */
+double /* Biff: (private) nope */
 _nrrdApplyDomainMin(const Nrrd *nmap, int ramps, int mapAxis) {
   double ret;
 
@@ -59,7 +59,7 @@ _nrrdApplyDomainMin(const Nrrd *nmap, int ramps, int mapAxis) {
   return ret;
 }
 
-double /* Biff: nope */
+double /* Biff: (private) nope */
 _nrrdApplyDomainMax(const Nrrd *nmap, int ramps, int mapAxis) {
   double ret;
 

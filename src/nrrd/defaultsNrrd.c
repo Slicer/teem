@@ -83,15 +83,15 @@ int nrrdStateKeyValueReturnInternalPointers = AIR_FALSE;
 int nrrdStateKindNoop = AIR_FALSE;
 
 /* these are helper functions for min/max testing */
-airLLong /* Biff: nope */
+airLLong /* Biff: (private) nope */
 _nrrdLLongMaxHelp(airLLong val) {
   return val * 2 + 1;
 }
-airLLong /* Biff: nope */
+airLLong /* Biff: (private) nope */
 _nrrdLLongMinHelp(airLLong val) {
   return val * 2;
 }
-airULLong /* Biff: nope */
+airULLong /* Biff: (private) nope */
 _nrrdULLongMaxHelp(airULLong val) {
   return val + 1;
 }

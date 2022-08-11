@@ -392,7 +392,7 @@ nrrdSpaceVecSetZero(double vec[NRRD_SPACE_DIM_MAX]) {
 ** ALLOCATES a string for the content of a given nrrd
 ** panics if allocation failed
 */
-char * /* Biff: nope */
+char * /* Biff: (private) nope */
 _nrrdContentGet(const Nrrd *nin) {
   static const char me[] = "_nrrdContentGet";
   char *ret;

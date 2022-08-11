@@ -277,7 +277,7 @@ _nrrdWriteEscaped(FILE *file, char *dst, const char *str, const char *toescape,
 ** writes a given key and value to a file, starting with the given
 ** prefix (if non-NULL), and ending with "\n"
 */
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _nrrdKeyValueWrite(FILE *file, char **stringP, const char *prefix, const char *key,
                    const char *value) {
 

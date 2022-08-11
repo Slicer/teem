@@ -294,7 +294,7 @@ nrrdIoStateDataFileIterNext(FILE **fileP, NrrdIoState *nio, int reading) {
 ** function will determine which NRRD00XX magic gets used for the
 ** output file
 */
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _nrrdFormatNRRD_whichVersion(const Nrrd *nrrd, NrrdIoState *nio) {
   int ret;
 

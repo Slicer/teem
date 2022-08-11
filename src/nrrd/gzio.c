@@ -682,7 +682,7 @@ _nrrdGzGetLong(_NrrdGzStream *s) {
 /*
 ** random symbol to have in object file, even when Zlib not enabled
 */
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _nrrdGzDummySymbol(void) {
   return 42;
 }

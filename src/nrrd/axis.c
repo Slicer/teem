@@ -161,7 +161,7 @@ nrrdKindSize(int kind) {
 ** implements logic for how kind should be updated when samples
 ** along the axis are altered
 */
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _nrrdKindAltered(int kindIn, int resampling) {
   int kindOut;
 
@@ -666,7 +666,7 @@ nrrdAxisInfoGet_va(const Nrrd *nrrd, int axInfo, ...) {
 ** Thus, this ALWAYS returns nrrdCenterNode or nrrdCenterCell
 ** (as long as those are the only two centering schemes).
 */
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _nrrdCenter(int center) {
 
   center = (nrrdCenterUnknown == center ? nrrdDefaultCenter : center);
@@ -674,7 +674,7 @@ _nrrdCenter(int center) {
   return center;
 }
 
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _nrrdCenter2(int center, int defCenter) {
 
   center = (nrrdCenterUnknown == center ? defCenter : center);
@@ -901,7 +901,7 @@ nrrdAxisInfoMinMaxSet(Nrrd *nrrd, unsigned int ax, int defCenter) {
 ** may eventually warrant wider availability, for now its here but
 ** accessible to nrrd files via privateNrrd.h
 */
-int /* Biff: nope */
+int /* Biff: (private) nope */
 _nrrdDblcmp(double aa, double bb) {
   int nna, nnb, ret;
 
