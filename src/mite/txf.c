@@ -510,7 +510,7 @@ _miteStageInit(miteStage *stage) {
   return;
 }
 
-double * /* Biff: nope */
+double * /* Biff: (private) nope */
 _miteAnswerPointer(miteThread *mtt, gageItemSpec *isp) {
   static const char me[] = "_miteAnswerPointer";
   double *ret;
