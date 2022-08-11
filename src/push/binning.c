@@ -59,7 +59,7 @@ pushBinDone(pushBin *bin) {
 ** bins on boundary now extend to infinity; so the only time this
 ** returns NULL (indicating error) is for non-existent positions
 */
-pushBin *
+pushBin * /* Biff: (private) NULL */
 _pushBinLocate(pushContext *pctx, double *_posWorld) {
   static const char me[] = "_pushBinLocate";
   double posWorld[4], posIdx[4];
@@ -178,7 +178,7 @@ pushBinAllNeighborSet(pushContext *pctx) {
   return;
 }
 
-int
+int /* Biff: 1 */
 pushBinPointAdd(pushContext *pctx, pushPoint *point) {
   static const char me[] = "pushBinPointAdd";
   pushBin *bin;
@@ -195,7 +195,7 @@ pushBinPointAdd(pushContext *pctx, pushPoint *point) {
 ** This function is only called by the master thread, this
 ** does *not* have to be thread-safe in any way
 */
-int
+int /* Biff: 1 */
 pushRebin(pushContext *pctx) {
   static const char me[] = "pushRebin";
   unsigned int oldBinIdx, pointIdx;

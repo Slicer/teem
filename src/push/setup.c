@@ -32,7 +32,7 @@
 **** pctx->nmask
 ** and checks mask range
 */
-int
+int /* Biff: (private) 1 */
 _pushTensorFieldSetup(pushContext *pctx) {
   static const char me[] = "_pushTensorFieldSetup";
   NrrdRange *nrange;
@@ -120,7 +120,7 @@ _pushTensorFieldSetup(pushContext *pctx) {
 ** _pushGageSetup sets:
 **** pctx->gctx
 */
-int
+int /* Biff: (private) 1 */
 _pushGageSetup(pushContext *pctx) {
   static const char me[] = "_pushGageSetup";
   gagePerVolume *mpvl;
@@ -164,7 +164,7 @@ _pushGageSetup(pushContext *pctx) {
   return 0;
 }
 
-pushTask *
+pushTask * /* Biff: (private) NULL */
 _pushTaskNew(pushContext *pctx, int threadIdx) {
   static const char me[] = "_pushTaskNew";
   pushTask *task;
@@ -211,7 +211,7 @@ _pushTaskNew(pushContext *pctx, int threadIdx) {
   return task;
 }
 
-pushTask *
+pushTask * /* Biff: nope */
 _pushTaskNix(pushTask *task) {
 
   if (task) {
@@ -230,7 +230,7 @@ _pushTaskNix(pushTask *task) {
 **** pctx->task
 **** pctx->task[]
 */
-int
+int /* Biff: (private) 1 */
 _pushTaskSetup(pushContext *pctx) {
   static const char me[] = "_pushTaskSetup";
   unsigned int tidx;
@@ -260,7 +260,7 @@ _pushTaskSetup(pushContext *pctx) {
 **** pctx->bin
 **** pctx->bin[]
 */
-int
+int /* Biff: (private) 1 */
 _pushBinSetup(pushContext *pctx) {
   static const char me[] = "_pushBinSetup";
   float eval[3], *tdata;
@@ -353,7 +353,7 @@ _pushBinSetup(pushContext *pctx) {
 ** this should set stuff to be like after an update stage and
 ** just before the rebinning
 */
-int
+int /* Biff: (private) 1 */
 _pushPointSetup(pushContext *pctx) {
   static const char me[] = "_pushPointSetup";
   double (*lup)(const void *v, size_t I), maxDet;

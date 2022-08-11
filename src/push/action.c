@@ -37,7 +37,7 @@ _pushPointTotal(pushContext *pctx) {
   return pointNum;
 }
 
-int
+int /* Biff: (private) 1 */
 _pushProbe(pushTask *task, pushPoint *point) {
   static const char me[] = "_pushProbe";
   double posWorld[4], posIdx[4];
@@ -69,7 +69,7 @@ _pushProbe(pushTask *task, pushPoint *point) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut, pushContext *pctx) {
   static const char me[] = "pushOutputGet";
   unsigned int binIdx, pointRun, pointNum, pointIdx;
@@ -121,7 +121,7 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut, pushContext *pctx) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 _pushPairwiseEnergy(pushTask *task, double *enrP, double frc[3], pushEnergySpec *ensp,
                     pushPoint *myPoint, pushPoint *herPoint, double YY[3], double iscl) {
   static const char me[] = "_pushPairwiseEnergy";
@@ -159,7 +159,7 @@ _pushPairwiseEnergy(pushTask *task, double *enrP, double frc[3], pushEnergySpec 
 #define EPS_PER_MAX_DIST 200
 #define SEEK_MAX_ITER    30
 
-int
+int /* Biff: 1 */
 pushBinProcess(pushTask *task, unsigned int myBinIdx) {
   static const char me[] = "pushBinProcess";
   pushBin *myBin, *herBin, **neighbor;

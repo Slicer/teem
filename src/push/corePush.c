@@ -28,7 +28,7 @@
 ** this is the core of the worker threads: as long as there are bins
 ** left to process, get the next one, and process it
 */
-static int
+static int /* Biff: 1 */
 _pushProcess(pushTask *task) {
   static const char me[] = "_pushProcess";
   unsigned int binIdx;
@@ -61,11 +61,13 @@ _pushProcess(pushTask *task) {
 }
 
 /* the main loop for each worker thread */
-static void *
+static void * /* Biff: NULL */
 _pushWorker(void *_task) {
   static const char me[] = "_pushWorker";
+  void *ret;
   pushTask *task;
 
+  ret = _task;
   task = (pushTask *)_task;
 
   while (1) {
@@ -87,6 +89,8 @@ _pushWorker(void *_task) {
     if (_pushProcess(task)) {
       /* HEY clearly not threadsafe ... */
       biffAddf(PUSH, "%s: thread %u trouble", me, task->threadIdx);
+      /* return NULL; (for biff auto-scan) */
+      ret = NULL;
       task->pctx->finished = AIR_TRUE;
     }
     if (task->pctx->verbose > 1) {
@@ -95,10 +99,10 @@ _pushWorker(void *_task) {
     airThreadBarrierWait(task->pctx->iterBarrierB);
   }
 
-  return _task;
+  return ret;
 }
 
-static int
+static int /* Biff: 1 */
 _pushContextCheck(pushContext *pctx) {
   static const char me[] = "_pushContextCheck";
   unsigned int numSingle;
@@ -177,7 +181,7 @@ _pushContextCheck(pushContext *pctx) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pushStart(pushContext *pctx) {
   static const char me[] = "pushStart";
   unsigned int tidx;
@@ -227,7 +231,7 @@ pushStart(pushContext *pctx) {
 **
 ** NB: this implements the body of thread 0, the master thread
 */
-int
+int /* Biff: 1 */
 pushIterate(pushContext *pctx) {
   static const char me[] = "pushIterate";
   unsigned int ti, pointNum;
@@ -300,7 +304,7 @@ pushIterate(pushContext *pctx) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pushRun(pushContext *pctx) {
   static const char me[] = "pushRun";
   char poutS[AIR_STRLEN_MED], toutS[AIR_STRLEN_MED];
@@ -390,7 +394,7 @@ pushRun(pushContext *pctx) {
 **
 ** should nix everything created by the many _push*Setup() functions
 */
-int
+int /* Biff: 1 */
 pushFinish(pushContext *pctx) {
   static const char me[] = "pushFinish";
   unsigned int ii, tidx;

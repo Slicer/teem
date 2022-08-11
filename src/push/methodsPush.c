@@ -28,7 +28,7 @@
 ** the reason to take the pushContext *pctx argument is to allow
 ** doling out the ttaagg ID
 */
-pushPoint *
+pushPoint * /* Biff: nope */
 pushPointNew(pushContext *pctx) {
   pushPoint *pnt;
   pushPtrPtrUnion pppu;
@@ -56,14 +56,14 @@ pushPointNew(pushContext *pctx) {
   return pnt;
 }
 
-pushPoint *
+pushPoint * /* Biff: nope */
 pushPointNix(pushPoint *pnt) {
 
   airFree(pnt);
   return NULL;
 }
 
-pushContext *
+pushContext * /* Biff: nope */
 pushContextNew(void) {
   pushContext *pctx;
 
@@ -156,7 +156,7 @@ pushContextNew(void) {
 /*
 ** this should only nix things created by pushContextNew
 */
-pushContext *
+pushContext * /* Biff: nope */
 pushContextNix(pushContext *pctx) {
 
   if (pctx) {

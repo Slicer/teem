@@ -266,7 +266,7 @@ const pushEnergy *const pushEnergyAll[PUSH_ENERGY_TYPE_MAX + 1] = {
   &_pushEnergyZero     /* 5 */
 };
 
-pushEnergySpec *
+pushEnergySpec * /* Biff: nope */
 pushEnergySpecNew() {
   pushEnergySpec *ensp;
   int pi;
@@ -295,14 +295,14 @@ pushEnergySpecSet(pushEnergySpec *ensp, const pushEnergy *energy,
   return;
 }
 
-pushEnergySpec *
+pushEnergySpec * /* Biff: nope */
 pushEnergySpecNix(pushEnergySpec *ensp) {
 
   airFree(ensp);
   return NULL;
 }
 
-int
+int /* Biff: 1 */
 pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
   static const char me[] = "pushEnergySpecParse";
   char *str, *col, *_pstr, *pstr;
