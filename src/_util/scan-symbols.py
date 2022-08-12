@@ -27,6 +27,9 @@ from enum import Enum
 # to be run on all libraries (TEEM_LIB_LIST) prior to release
 # air hest biff nrrd ell moss unrrdu alan tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet
 
+# TODO: refactor so that lib can be given as "ALL";
+# hard now because of use of globals (duh)
+
 # for functions, what kind are they (not really a technical term)
 class kind(Enum):
     PUBLIC = 1 # declared in lib.h (and available in library)
@@ -601,10 +604,11 @@ def argsCheck(tPath, lib):
 
 def parse_args():
     # https://docs.python.org/3/library/argparse.html
-    parser = argparse.ArgumentParser(description='Utility for seeing if the symbols '
-                                     'externally available in a library really are '
-                                     'declared as such, and that things declared in '
-                                     'header files are actually defined.',
+    parser = argparse.ArgumentParser(description='Utility for (1) consistency between symbols '
+                                    'being defined and available for linking in a library, '
+                                    'and being declared in header files, and (2) with "-biff" '
+                                    'the "biff auto-scan", which scrutinizes functions\' biff '
+                                    'usage, and annotates functions to document this',
                                      formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-v', metavar='verbosity', type=int, default=1, required=False,
                         help='verbosity level (0 for silent)')
@@ -613,7 +617,12 @@ def parse_args():
     parser.add_argument('-biff', metavar='level', type=int, default=0,
                         help='also run "biff auto-scan", at some level:\n'
                         '1: do scan to flag issues in code, but no new annotations\n'
-                        '2: foo')
+                        '2: add annotations where there are not, but dont overwrite '
+                        'any existing wrong annotations or comments\n'
+                        '3: create all anntations (including over-writing comments '
+                        'and wrong annotations)\n'
+                        'In fact no original source files are over-written: the result '
+                        'of annotating functions in foo.c is a new file foo-annote.c')
     parser.add_argument('teem_path',
                         help='path of Teem checkout with "src" and "arch" subdirs')
     parser.add_argument('lib',
@@ -698,4 +707,3 @@ if __name__ == '__main__':
                     fout.write(f'{L}\n')
             print(f'wrote {modified[MF]} annotations in {NF}')
         #print(f'writing new files in {libDir}: {allNF}')
-
