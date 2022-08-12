@@ -56,18 +56,27 @@ names start with a single "_".
 
 --- Required:
   "<val>" : The return value <val> indicates a biff-reported error, i.e., if
-           the function returns <val> then someone eventually needs to
-           retrieve that error message. <val> is a string (since it is in a
-           comment), but it should be parsable as the function return type
-           (on this same line, before the comment).
+          the function returns <val> then someone needs to retrieve the biff
+          error message. <val> must not contain '|', ':', or whitespace, and
+          it cannot be "nope" nor "maybe".  <val> is just a string (since it
+          is in a comment), but hopfully it is parsable as the function return
+          type (on this same line, before the comment containing this
+          annotation).  Simple integers are easy, but it could get trickier:
+          example returns (currently used in Teem) include NULL, EOF,
+          AIR_FALSE, AIR_NAN, UINT_MAX, Z_STREAM_ERROR, and
+          nrrdField_unknown. The point is: be prepared to do some work if
+          you're in the business of parsing and acting on Biff annotations.
 or "<v1>|<v2>" : Both values <v1> and <v2> indicate a biff-reported error
 or "maybe:<N>:<val>" : This function uses something like biffMaybeAddf(), which
-           may or may not set a biff error message, depending on the value of
-           one of the function parameters (always called "useBiff", as enforced
-           by biff auto-scan).  In *1*-based numbering, useBiff is the Nth
-           function parameter.
-or "nope" : This function does not use biff (no info about error-vs-nonerror
-           return values is given by this)
+          may or may not set a biff error message, depending on the value of
+          one of the function parameters (always called "useBiff", as enforced
+          by biff auto-scan).  In *1*-based numbering, useBiff is the Nth
+          function parameter.
+or "nope" : This function does not use biff. The function may usefully
+          communicate something about how things went wrong by a returning
+          one of some possible error return values, but that isn't documented
+          here because it doesn't involve biff. (Why "nope" - unlikely to be
+          confused for anything else, and I just saw the Jordan Peele movie)
 
 --- Optional:
   # <comments>  : anything after a '#' is ignored by an annotation parser
@@ -82,6 +91,11 @@ Other examples:
   static int /* Biff: nope # unlike other parsers, for reasons described below */
   _nrrdReadNrrdParse_number(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
 
+You can see the variety of Biff annotations by, from the top-level teem directory
+(with air, biff, hest, etc as subdirs), running:
+
+grep 'Biff:' */*.c | cut -d: -f 2- | cut -d/ -f 2- | cut -d' ' -f 2- | cut -d\* -f 1 | sort | uniq
+
 Some notes on how GLK creates the annotations, for example for gage:
 GLK has his teem source checkout in ~/teem.
 From the ~/teem/src/_util directory:
@@ -91,16 +105,18 @@ From the ~/teem/src/_util directory:
 why -biff 3: because -biff 1 is just for observing biff usage;
 -biff 2 is for doing annotations where none have been done before
 and -biff 3 will over-write old comments and wrong annotations.
-But nothing is actually over-written, new file are written, eg:
+But nothing is actually over-written, new files are created, eg:
 
   wrote 2 annotations in miscGage-annote.c
   wrote 5 annotations in kind-annote.c
   wrote 6 annotations in shape-annote.c
 
+(so, files ending with "-annote.c" can actually get over-written).
 Then to process these (in ~/teem/src/gage)
 
   diff miscGage{-annote,}.c   # to inspect what biff auto-scan wrote
   mv miscGage{-annote,}.c     # to start editing
-  # edit miscGage.c, changing Biff? to Biff: when to confirm annotation
+  # open miscGage.c for editing, confirm each annotation,
+  # and then change "Biff?" to "Biff:" once confirmed.
   svn diff -x -U0 miscGage.c  # to confirm what was changed
   svn commit ...
