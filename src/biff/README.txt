@@ -39,9 +39,10 @@ The single-space-separated words in the comment are, in order:
 
 --- Required:
    "Biff:" : the information in this annotation has been manually verified
-or "Biff?" : this annotation automatically generated, and needs verification
-(If you want to add information about biff usage which doesn't fit within the
-format described here, don't start the comment with "/* Biff:" or "/* Biff?")
+or "Biff?" : this annotation automatically generated, and needs verification.
+Currently *any* comment after the function return type is assumed to be
+a Biff annotation, though in the future this simple syntax may be expanded
+to include other (non-biff) info about the function
 
 --- Optional:
 "(private)" : this function is private (as described above). Otherwise, from
