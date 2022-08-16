@@ -71,6 +71,7 @@ meetAirEnumAll() {
   /* air */
   ADD(airEndian);
   ADD(airBool);
+  ADD(airFPClass_ae);
 
   /* hest: no airEnums */
 
@@ -238,7 +239,7 @@ meetAirEnumAllCheck(void) {
   while ((ee = enm[ei])) {
     /* fprintf(stderr, "!%s: %u %s\n", me, ei, ee->name); */
     if (airEnumCheck(err, ee)) {
-      biffAddf(MEET, "%s: problem with enum %u", me, ei);
+      biffAddf(MEET, "%s: problem with enum \"%s\" (%u)", me, ee->name, ei);
       biffAddf(MEET, "%s", err); /* kind of a hack */
       airMopError(mop);
       return 1;
