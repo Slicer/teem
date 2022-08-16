@@ -115,7 +115,7 @@ airSanity(void) {
   ninfF = (float)ninf;
   airFPValToParts_f(&sign, &expvalue, &mant, nanF);
   mant >>= 22;
-  if (AIR_QNANHIBIT != (int)mant) {
+  if (AIR_QNANHIBIT != mant) {
     return airInsane_QNaNHiBit;
   }
 

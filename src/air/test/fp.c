@@ -28,7 +28,8 @@ char *me;
 
 int
 main(int argc, char *argv[]) {
-  int c, hibit, ret;
+  int c, ret;
+  unsigned int hibit;
   float f, g, parsed_f;
   double d, parsed_d;
   char str[128];
@@ -37,18 +38,17 @@ main(int argc, char *argv[]) {
   me = argv[0];
 
   g = 0.0;
-  g = g/g;
+  g = g / g;
   printf("0.0/0.0 = %f\n", g);
   airFPFprintf_f(stdout, g);
-  hibit = (*((int*)&g) >> 22) & 1;
-  printf("hi bit of 23-bit fraction field = %d\n", hibit);
+  hibit = (*((unsigned int *)&g) >> 22) & 1;
+  printf("hi bit of 23-bit fraction field = %u\n", hibit);
   if (hibit == airMyQNaNHiBit) {
     printf("(agrees with airMyQNaNHiBit)\n");
-  }
-  else {
+  } else {
     printf("%s: !!!!\n", me);
-    printf("%s: !!!! PROBLEM: nan's hi bit is NOT airMyQNaNHiBit (%d)\n",
-           me, airMyQNaNHiBit);
+    printf("%s: !!!! PROBLEM: nan's hi bit is NOT airMyQNaNHiBit (%d)\n", me,
+           airMyQNaNHiBit);
     printf("%s: !!!!\n", me);
   }
 
@@ -56,17 +56,19 @@ main(int argc, char *argv[]) {
   printf(" - - - - -  FLOATS - - - - - - -\n");
   printf(" - - - - - - - - - - - - - - - -\n");
 
-  for(c=airFP_Unknown+1; c<airFP_Last; c++) {
+  for (c = airFP_Unknown + 1; c < airFP_Last; c++) {
     f = airFPGen_f(c);
-    sprintf(str, "%f", f);
-    ret = airSingleSscanf(str, "%d", &parsed_f);
-    printf("********** airFPGen_f(%d) = %f (-> %f(%d)) (AIR_EXISTS = %d)\n",
-           c, f, parsed_f, ret, AIR_EXISTS(f));
-    airSinglePrintf(stdout, NULL, "--<%f>--\n", f);
+    sprintf(str, "%.9g", f);
+    ret = airSingleSscanf(str, "%f", &parsed_f);
+    printf("********** airFPGen_f(%d=%s) = %s (-> %.9g(%d)) "
+           "(AIR_EXISTS %d; airExists %d)\n",
+           c, airEnumStr(airFPClass_ae, c), str, parsed_f, ret, AIR_EXISTS(f),
+           airExists(f));
+    airSinglePrintf(stdout, NULL, "airSinglePrintf: %.9g\n", f);
     if (c != airFPClass_f(f)) {
       printf("\n\n%s: Silly hardware!!!\n", me);
-      printf("%s: can't return a float of class %d %sfrom a function\n\n\n",
-             me, c, airFP_SNAN == c ? "(signaling NaN) " : "");
+      printf("%s: can't return a float of class %d=%s from a function\n\n\n", me, c,
+             airEnumStr(airFPClass_ae, c));
     }
     airFPFprintf_f(stdout, f);
     d = f;
@@ -80,17 +82,19 @@ main(int argc, char *argv[]) {
   printf(" - - - - - DOUBLES - - - - - - -\n");
   printf(" - - - - - - - - - - - - - - - -\n");
 
-  for(c=airFP_Unknown+1; c<airFP_Last; c++) {
+  for (c = airFP_Unknown + 1; c < airFP_Last; c++) {
     d = airFPGen_d(c);
-    sprintf(str, "%f", d);
+    sprintf(str, "%0.17g", d);
     ret = airSingleSscanf(str, "%lf", &parsed_d);
-    printf("********** airFPGen_d(%d) = %f (-> %f(%d)) (AIR_EXISTS = %d)\n",
-           c, d, parsed_d, ret, AIR_EXISTS(d));
-    airSinglePrintf(stdout, NULL, "--<%f>--\n", d);
+    printf("********** airFPGen_d(%d=%s) = %s (-> %f(%d)) "
+           "(AIR_EXISTS %d; airExists %d)\n",
+           c, airEnumStr(airFPClass_ae, c), str, parsed_d, ret, AIR_EXISTS(d),
+           airExists(d));
+    airSinglePrintf(stdout, NULL, "airSinglePrintf: %.17g\n", d);
     if (c != airFPClass_d(d)) {
       printf("\n\n%s: Silly hardware!!!\n", me);
-      printf("%s: can't return a double of class %d %sfrom a function\n\n\n",
-             me, c, airFP_SNAN == c ? "(signaling NaN) " : "");
+      printf("%s: can't return a double of class %d=%s from a function\n\n\n", me, c,
+             airEnumStr(airFPClass_ae, c));
     }
     airFPFprintf_d(stdout, d);
   }
@@ -99,28 +103,35 @@ main(int argc, char *argv[]) {
   printf(" - - - - - - - - - - - - - - - -\n");
 
   f = AIR_SNAN;
-  printf("SNaN test: f = SNaN = float(0x%x) = %f; (QNaNHiBit = %d)\n",
-         airFloatSNaN.i, f, airMyQNaNHiBit);
+  printf("SNaN test: f = SNaN = float(0x%x) = %.9g; (QNaNHiBit = %u)\n", airFloatSNaN.i,
+         f, airMyQNaNHiBit);
   airFPFprintf_f(stdout, f);
-  g = f*f;
-  printf("g = f*f = %f\n", g);
+  g = f * f;
+  printf("g = f*f = %.9g\n", g);
   airFPFprintf_f(stdout, g);
   g = sinf(f);
-  printf("g = sin(f) = %f\n", g);
+  printf("g = sin(f) = %.9g\n", g);
   airFPFprintf_f(stdout, g);
 
   printf("\n");
 
-  printf("FLT_MAX:\n"); airFPFprintf_f(stdout, FLT_MAX); printf("\n");
-  printf("FLT_MIN:\n"); airFPFprintf_f(stdout, FLT_MIN); printf("\n");
-  printf("DBL_MAX:\n"); airFPFprintf_d(stdout, DBL_MAX); printf("\n");
-  printf("DBL_MIN:\n"); airFPFprintf_d(stdout, DBL_MIN); printf("\n");
+  printf("FLT_MAX:\n");
+  airFPFprintf_f(stdout, FLT_MAX);
+  printf("\n");
+  printf("FLT_MIN:\n");
+  airFPFprintf_f(stdout, FLT_MIN);
+  printf("\n");
+  printf("DBL_MAX:\n");
+  airFPFprintf_d(stdout, DBL_MAX);
+  printf("\n");
+  printf("DBL_MIN:\n");
+  airFPFprintf_d(stdout, DBL_MIN);
+  printf("\n");
 
-  printf("AIR_NAN = %f; AIR_EXISTS(AIR_NAN) = %d\n",
-         AIR_NAN, AIR_EXISTS(AIR_NAN));
-  printf("AIR_POS_INF = %f; AIR_EXISTS(AIR_POS_INF) = %d\n",
-         AIR_POS_INF, AIR_EXISTS(AIR_POS_INF));
-  printf("AIR_NEG_INF = %f; AIR_EXISTS(AIR_NEG_INF) = %d\n",
-         AIR_NEG_INF, AIR_EXISTS(AIR_NEG_INF));
+  printf("AIR_NAN = %f; AIR_EXISTS(AIR_NAN) = %d\n", AIR_NAN, AIR_EXISTS(AIR_NAN));
+  printf("AIR_POS_INF = %f; AIR_EXISTS(AIR_POS_INF) = %d\n", AIR_POS_INF,
+         AIR_EXISTS(AIR_POS_INF));
+  printf("AIR_NEG_INF = %f; AIR_EXISTS(AIR_NEG_INF) = %d\n", AIR_NEG_INF,
+         AIR_EXISTS(AIR_NEG_INF));
   exit(0);
 }

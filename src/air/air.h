@@ -384,6 +384,7 @@ enum {
   airFP_NEG_ZERO,   /* 10: -0.0, negative zero */
   airFP_Last        /* after the last valid one */
 };
+#define AIR_FP_MAX 10
 /* 754.c: IEEE-754 related stuff values */
 typedef union {
   unsigned int i;
@@ -393,7 +394,8 @@ typedef union {
   airULLong i;
   double d;
 } airDouble;
-AIR_EXPORT const int airMyQNaNHiBit;
+AIR_EXPORT const airEnum *const airFPClass_ae;
+AIR_EXPORT const unsigned int airMyQNaNHiBit;
 AIR_EXPORT float airFPPartsToVal_f(unsigned int sign,
                                    unsigned int expo,
                                    unsigned int mant);
