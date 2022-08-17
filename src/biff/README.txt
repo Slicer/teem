@@ -1,4 +1,4 @@
-/* Biff: */ annotations (new with Teem 1.13)
+All about /* Biff: */ annotations (new with Teem 1.13)
 
 teem/src/_util/scan-symbols.py -biff (the "biff auto-scan") will scrutinize
 Teem source code to look at how it uses biff. This analysis creates parsable
@@ -14,13 +14,14 @@ information for further analysis or for human coding, and its better to err on
 the side of more info, discretely packaged, when the quality/correctness of the
 info is high.
 
-NOTE that the Biff annotation on a function reflects a simplistic textual
-analysis of that function code: it looks like this function uses biff in this
-way.  This is not based on any proper parsing of the code AST, so calls to biff
-could be hidden behind a #define, and there is certainly no way to know
-(without execution) whether any other functions called from this function used
-biff. The formatting of the newly adopted clang-format is a big help. In any
-case this seems adequate for Python wrapping error handling.
+NOTE that the Biff annotation on a function currently reflects a simplistic
+textual analysis of that function code, saying "it looks like this function
+uses biff in this way." This is not based on any proper parsing of the code
+AST, so calls to biff could be hidden behind a #define, and there is certainly
+no way to know (without execution) whether any other functions called from
+this function used biff. The formatting of the newly adopted clang-format
+is a big help. In any case this seems adequate for Python wrapping error
+handling.
 
 Here is an example annotation from teem/src/nrrd/subset.c
 
@@ -30,19 +31,18 @@ Here is an example annotation from teem/src/nrrd/subset.c
 The annotations are a one-line comment, always on the line with the function
 return type, which is above the function name (this formatting is enforced by
 new use of clang-format).
-** NOTE that in Teem code, the space after the function return type (with the
-** function name on the next line) is reserved for these kinds of annotations.
-** Human-written comments about the return type/qualifers need to be in the
-** previous line.
+** NOTE that in Teem code, the remainder of the line after the function return
+** type (with the function name on the next line) is reserved for these kinds
+** of annotations. Human-written comments about the return type/qualifers need
+** to be in the previous line.  In the future this space may be used for other
+** annotations with other non-biff info about the function.
 
 The single-space-separated words in the comment are, in order:
 
 --- Required:
    "Biff:" : the information in this annotation has been manually verified
 or "Biff?" : this annotation automatically generated, and needs verification.
-Currently *any* comment after the function return type is assumed to be
-a Biff annotation, though in the future this simple syntax may be expanded
-to include other (non-biff) info about the function
+teem/src/_util/scan-symbols.py -biff *only* produces Biff? annotations.
 
 --- Optional:
 "(private)" : this function is private (as described above). Otherwise, from
@@ -68,6 +68,7 @@ names start with a single "_".
           nrrdField_unknown. The point is: be prepared to do some work if
           you're in the business of parsing and acting on Biff annotations.
 or "<v1>|<v2>" : Both values <v1> and <v2> indicate a biff-reported error
+or "<v1>|<v2>|<v3>" : and so on
 or "maybe:<N>:<val>" : This function uses something like biffMaybeAddf(), which
           may or may not set a biff error message, depending on the value of
           one of the function parameters (always called "useBiff", as enforced
@@ -76,7 +77,7 @@ or "maybe:<N>:<val>" : This function uses something like biffMaybeAddf(), which
 or "nope" : This function does not use biff. The function may usefully
           communicate something about how things went wrong by a returning
           one of some possible error return values, but that isn't documented
-          here because it doesn't involve biff. (Why "nope" - unlikely to be
+          here because it doesn't involve biff. (Why "nope": it won't be
           confused for anything else, and I just saw the Jordan Peele movie)
 
 --- Optional:
