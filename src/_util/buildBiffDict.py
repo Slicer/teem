@@ -9,7 +9,7 @@ import re
 
 verbose = 1
 # TEEM_LIB_LIST
-tlibs = [ # 'air', 'hest', 'biff',    (these don't use biff)
+tlibs = [ # 'air', 'hest', 'biff',  (these do not use biff)
 'nrrd', 'ell', 'moss', 'unrrdu', 'alan', 'tijk', 'gage',
 'dye', 'bane', 'limn', 'echo', 'hoover', 'seek', 'ten',
 'elf', 'pull', 'coil', 'push', 'mite', 'meet']
@@ -20,34 +20,34 @@ def argsCheck(tPath):
             and os.path.isdir(f'{tPath}/src') )):
         raise Exception(f'Need {tPath} to be dir with "arch" and "src" subdirs')
 
-# the task is: given the string representation of the error return value tv
-# as it came out of the "Biff:"" annotation from the .c file, convert it to
-# another string representation of a boolean expression that is true if
+# the task is: given the string representation of the error return test value
+# tv as it came out of the "Biff:"" annotation from the .c file, convert it to
+# another string representation of a Python boolean expression that is true if
 # the actual function return value rv is equal to tv.
-# creating the Python string representation here assumes that _teem has been
-# imported successfully already (appropriate for wrapping _teem!)
-# and also that math has been imported
-def vtest(typ, ss):
+# This assumes that the user of our output has:
+# - imported _teem (for enum values)
+# - imported math (for isnan)
+def rvtest(typ, tv):
     ret = None
     if 'int' in typ:
         try:
-            vv = int(ss)
+            vv = int(tv)
             ret = f'({vv} == rv)'
         except ValueError: # int() conversion failed
             # going to take wild-ass guess that this is an enum (e.g. hooverErrInit)
-            # and we're going to rely on assumption that _teem has been imported
-            ret = f'({"_teem.lib." + ss} == rv)'
-    elif 'NULL' == ss:
+            ret = f'({"_teem.lib." + tv} == rv)'
+            # HEY you know we could import _teem here and check ...
+    elif 'NULL' == tv:
         ret = f'(_teem.ffi.NULL == rv)'
-    elif 'AIR_NAN' == ss:
+    elif 'AIR_NAN' == tv:
         ret = f'math.isnan(rv)'
     else:
         # this function is super adhoc-y, and will definitely require future expansion
-        raise Exception(f'sorry don\'t yet know how to handle typ={typ}, ss={ss}')
+        raise Exception(f'sorry don\'t yet know how to handle typ={typ}, tv={tv}')
     return ret
 
 
-def doAnnote(oFile, funcName, retQT, annoteCmt, wher):
+def doAnnote(oFile, funcName, retQT, annoteCmt, fnln):
     qts = retQT.split(' ')
     # remove any comment within annotation
     if '#' in annoteCmt:
@@ -57,13 +57,15 @@ def doAnnote(oFile, funcName, retQT, annoteCmt, wher):
     anlist = annote[6:].split(' ') # remove "Biff: ", and split into list
     # For Python-wrapping the Teem API, we're ignoring some things:
     if 'static' in qts:
-        # function not accessible anyway in the libteem shared library
+        # function not accessible anyway in the libteem library
         return
     if 'nope' in anlist:
         # function doesn't use biff, so nothing for wrapper to do w.r.t biff
         return
     if '(private)' in anlist:
         # wrapper is around public API, so nothing for this either
+        # (this contains some of the more far-out uses of Biff annotations,
+        # so changing this will require more work on rvtest() above )
         return
     if not (match := re.match(r'_*(.+?)[^a-z]', funcName)):
         raise Exception(f'couldn\'t extract library name from function name "{funcName}"')
@@ -78,27 +80,27 @@ def doAnnote(oFile, funcName, retQT, annoteCmt, wher):
     else:
         mubi = 0
     # how this is going to be used
-    # set up: biffdict['func'] = (mubi, evtf, bkey)
+    # set up: biffdict['func'] = (mubi, rvtf, bkey, fnln)
     # later:
     # rv = _teem.lib.func(*args)
     # if ['func'] in biffdict:
-    #    (mubi, evtf, bkey) = biffdict['func']
-    #    if (0 == mubi or args[mubi]) and evtf(rv):
+    #    (mubi, rvtf, bkey, fnln) = biffdict['func']
+    #    if (0 == mubi or args[mubi]) and rvtf(rv):
     #       biffGetDone(bkey)
-    # so need to generate text of (maybe lambda) function evtf
-    evtf = 'lambda rv: ' + ' or '.join([vtest(qts, V) for V in anval.split('|')])
-    print(f'{mubi} |{evtf}| {qts} "{annote}" {anval}')
+    # so need to generate text of (maybe lambda) function rvtf
+    rvtf = 'lambda rv: ' + ' or '.join([rvtest(qts, V) for V in anval.split('|')])
+    if 'lambda rv: (1 == rv)' == rvtf:
+        rvtf = 'equalsOne'
+    #print(f'{mubi} |{rvtf}| {qts} "{annote}" {anval}')
     # write dict entry for handling errors in funcName
-    #oline = f'\'{funcName}\': '
-    #if ['int'] == qts:
-    #    oline += 'lambda rv: )', file=oFile)
-    #print(f'{qts} {funcName} {anlist} ({wher})', file=oFile)
+    print(f'    \'{funcName}\': ({mubi}, {rvtf}, \'{bkey}\', \'{fnln}\'),', file=oFile)
 
 def doSrc(oFile, sFile, sFN):
     lines = [line.strip() for line in sFile.readlines()]
     nlen = len(lines)
     idx = 0
     while idx < nlen:
+        # scan lines of soure file, looking for Biff: annotations
         if (match := re.match(r'(.+?)\/\* (Biff: .+?)\*\/', lines[idx])):
             retQT = match.group(1).strip()
             annote = match.group(2).strip()
@@ -143,5 +145,9 @@ if __name__ == '__main__':
     verbose = args.v
     argsCheck(args.teem_path)
     with open(args.out_file, 'w') as oFile:
+        print('def equalsOne(rv):', file=oFile)
+        print('    return rv == 1\n', file=oFile)
+        print('biffDict = {', file=oFile)
         for L in tlibs:
             doLib(oFile, args.teem_path, L)
+        print('}', file=oFile)
