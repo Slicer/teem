@@ -2,7 +2,13 @@
 _x,*_y=1,2 # NOTE: A SyntaxError here means you need python3, not python2
 del _x, _y
 
-# This teem.py is a wrapper (created by teem/python/cffi/teemPyGen/go.py) around the
+# TODO:
+# - add teem.NULL
+# - do more thinking about how to express testing function returns
+# - make re-generation of teem.py by via Makefile, or smarter python script
+# - fix info below
+
+# This teem.py is a wrapper (created by teem/python/cffi/teemPyGen/GO.sh) around the
 # CFFI-generated (created by teem/python/cffi/build_teem.py) "_teem" Python bindings to
 # the C shared library libteem.{so,dylib} (creating by CMake's "make install" build of
 # Teem). The main value is that for (some) Teem functions using the "biff" error message
@@ -21,15 +27,14 @@ else:
     _shext = 'so'
 
 try:
-    import _teem.lib as _lib
+    import _teem
 except ModuleNotFoundError:
-    print('\n*** teem.py: failed to load shared library wrapper module_teem')
+    print('\n*** teem.py: failed to load shared library wrapper module "_teem.py"')
     print('*** Make sure you first ran: "python3 build_teem.py" to build it')
     print(f'*** an/or try setting the {_lpathVN} environment variable so')
     print(f'*** that the libteem.{_shext} shared library can be found.\n')
     raise
 from _teem import ffi
-NULL = ffi.NULL
 
 # Note that now "ffi" is the only object "exported" by this module that is not a
 # CFFI-generated wrapper for a C symbol in the libteem library. The value of
@@ -37,49 +42,37 @@ NULL = ffi.NULL
 # about the various typedefs that were learned to build the CFFI wrapper, which
 # may in turn be useful for setting up calls into libteem
 
-_biffList = [
-# BIFF_LIST
-]
+# It is not problem if this dictionary contains functions from the "experimental"
+# libraries that are not actually part of the libteem used
+# BIFFDICT
 
-# dictionary mapping from function name to return value signifying error
-_biffing = {}
-for _func in _biffList:
-    if '*' == _func[0]:
-        # if function name starts with '*', then NULL means biff error
-        _ff = _func[1:]
-        _ee = ffi.NULL
-    else:
-        # returning 1 means error, 0 means all ok
-        _ff = _func
-        _ee = 1
-    _biffing[_ff] = _ee
-
-for _sym in dir(_lib):
+# This traverses the actual symbols in the libteem used, which may or may not
+# include the extra "experimenal" libraries
+for _sym in dir(_teem.lib):
     if 'free' == _sym:
         # don't export C runtime's free()
         continue;
     # create a python object in this module the library symbol _sym ...
-    if not _sym in _biffing:
+    if not _sym in _biffDict:
         # ... either a straight renaming of the symbol (a function not
         # known to use biff, or something that's not a function)
-        _code = f'{_sym} = _lib.{_sym}'
+        _code = f'{_sym} = _teem.lib.{_sym}'
     else:
-        # ... or a Python wrapper around a function known to use biff. The
-        # biff key for a given function is (BY CONVENTION ONLY) the string
-        # of lower-case letters prior to the first upper-case letter.
-        _bkey = _re.findall('^[^A-Z]*', _sym)[0]
+        # ... or a Python wrapper around a function known to use biff.
+        (_mubi, _rvtf, _bkey, _fnln) = _biffDict[_sym]
         _code = f"""
 def {_sym}(*args):
-    # pass all the args to the underlying C function
-    ret = _lib.{_sym}(*args)
-    # have an error if integer return >= 1 or pointer return is NULL
-    if {'1 <=' if _biffing[_sym] == 1 else 'ffi.NULL =='} ret:
-        err = _lib.biffGetDone(b'{_bkey}')
+    # pass all args to underlying C function; get return value rv
+    rv = _teem.lib.{_sym}(*args)
+    # if an error if we used biff, and, the return value indicates error
+    if ({_mubi} == 0 or args[{_mubi-1}]) and ({_rvtf})(rv):
+        err = _teem.lib.biffGetDone(b'{_bkey}')
         estr = ffi.string(err).decode('ascii')
-        _lib.free(err)
-        raise RuntimeError('from calling C function {_sym}:\\n'+estr)
-    return ret
-{_sym}.__doc__ = f'error-checking wrapper around C function {_sym}:\\n\\n'+_lib.{_sym}.__doc__
+        _teem.lib.free(err)
+        raise RuntimeError('from calling C function {_sym} ({_fnln}):\\n'+estr)
+    return rv
+{_sym}.__doc__ = f'error-checking wrapper around C function {_sym} ({_fnln}):\\n\\n'+_teem.lib.{_sym}.__doc__
 """
     # now run the Python code in _code
+    print(_code)
     exec(_code)
