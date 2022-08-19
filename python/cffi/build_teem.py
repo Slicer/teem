@@ -4,13 +4,10 @@ _x,*_y=1,2 # NOTE: A SyntaxError here means you need python3, not python2
 del _x, _y
 
 # Once CMake has created the libteem shared library (teem-install/lib/libteem.{so,dylib}
-# for install directory teem-install), you use this program to generate the "_teem.py"
+# for install directory teem-install), you use this program to generate the "_teem"
 # module that wraps around libteem.
 #
 # Run "build_teem.py --help" for more info.
-#
-# With _teem.py, you should then be able to use the pre-generated teem.py to wrap around
-# _teem.py; teem.py turns biff errors into exceptions.
 
 # learned:
 # The C parser used by CFFI is meagre, and can generate obscure error message
