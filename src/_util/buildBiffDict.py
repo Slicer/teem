@@ -80,20 +80,20 @@ def doAnnote(oFile, funcName, retQT, annoteCmt, fnln):
     else:
         mubi = 0
     # how this is going to be used
-    # set up: biffdict['func'] = (mubi, rvtf, bkey, fnln)
+    # set up: biffDict['func'] = (mubi, rvtf, bkey, fnln)
     # later:
     # rv = _teem.lib.func(*args)
-    # if ['func'] in biffdict:
-    #    (mubi, rvtf, bkey, fnln) = biffdict['func']
-    #    if (0 == mubi or args[mubi]) and rvtf(rv):
+    # if ['func'] in biffDict:
+    #    (mubi, rvtf, bkey, fnln) = biffDict['func']
+    #    if (0 == mubi or args[mubi-1]) and rvtf(rv):
     #       biffGetDone(bkey)
     # so need to generate text of (maybe lambda) function rvtf
     rvtf = 'lambda rv: ' + ' or '.join([rvtest(qts, V) for V in anval.split('|')])
     if 'lambda rv: (1 == rv)' == rvtf:
-        rvtf = 'equalsOne'
+        rvtf = '_equalsOne'
     #print(f'{mubi} |{rvtf}| {qts} "{annote}" {anval}')
     # write dict entry for handling errors in funcName
-    print(f'    \'{funcName}\': ({mubi}, {rvtf}, \'{bkey}\', \'{fnln}\'),', file=oFile)
+    print(f'    \'{funcName}\': ({mubi}, \'{rvtf}\', \'{bkey}\', \'{fnln}\'),', file=oFile)
 
 def doSrc(oFile, sFile, sFN):
     lines = [line.strip() for line in sFile.readlines()]
@@ -129,25 +129,26 @@ def parse_args():
     # https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser(description='Scans "Biff:" annotations, and generates '
                                     'a Python dict representing the same information',
-                                     formatter_class=argparse.RawTextHelpFormatter)
+                                    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+                                    # formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-v', metavar='verbosity', type=int, default=1, required=False,
                         help='verbosity level (0 for silent)')
+    parser.add_argument('-o', metavar='outfile', default='../../python/cffi/teemPyGen/biffDict.py',
+                        help='output filename to put biff dict in')
     parser.add_argument('teem_path',
                         help='path of Teem checkout with "src" and "arch" subdirs')
-    parser.add_argument('out_file',
-                        help='output filename to put biff dict in, probably something '
-                        'like ../../python/cffi/biffDict.py')
     # we always do all the libraries (that might use biff)
+    # regardless of "experimental"
     return parser.parse_args()
 
 if __name__ == '__main__':
     args = parse_args()
     verbose = args.v
     argsCheck(args.teem_path)
-    with open(args.out_file, 'w') as oFile:
-        print('def equalsOne(rv):', file=oFile)
+    with open(args.o, 'w') as oFile:
+        print('def _equalsOne(rv):', file=oFile)
         print('    return rv == 1\n', file=oFile)
-        print('biffDict = {', file=oFile)
+        print('_biffDict = {', file=oFile)
         for L in tlibs:
             doLib(oFile, args.teem_path, L)
         print('}', file=oFile)
