@@ -1,4 +1,24 @@
 #!/usr/bin/env python
+#
+# Teem: Tools to process and visualize scientific data and images
+# Copyright (C) 2009--2022  University of Chicago
+# Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
+# Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+#
+# This library is free software; you can redistribute it and/or modify it under the terms
+# of the GNU Lesser General Public License (LGPL) as published by the Free Software
+# Foundation; either version 2.1 of the License, or (at your option) any later version.
+# The terms of redistributing and/or modifying this software also include exceptions to
+# the LGPL that facilitate static linking.
+#
+# This library is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License along with
+# this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+# Fifth Floor, Boston, MA 02110-1301 USA
+
 # halt if python2; thanks to https://preview.tinyurl.com/44f2beza
 _x,*_y=1,2 # NOTE: A SyntaxError here means you need python3, not python2
 del _x, _y
@@ -75,8 +95,8 @@ def check_path(iPath, lPath):
     ltname = f'libteem.{shext}'
     if not ltname in lFiles:
         raise Exception(f'Teem library dir {lPath} contents {lFiles} do not seem to include '
-                        f'required {ltname} shared library, so later cffi.FFI().compile() will '
-                        'not produce a working wrapper, even if it finishes without error.')
+                        f'required {ltname} shared library, which means running cffi.FFI().compile() later '
+                        'will not produce a working wrapper, even if it finishes without error.')
     itPath = iPath + '/teem'
     if not os.path.isdir(itPath):
         raise Exception(f'Need {itPath} to be directory')
@@ -233,7 +253,7 @@ def hdrProc(out, hf, hn):
         dropAt('#if defined(_WIN32) || defined(__ECC) || defined(AIR_EXISTS_MACRO_FAILS) /* NrrdIO-hack-002 */',
                5, lines)
     if (hn == 'biff.h'):
-        # drop the attribute directives aboout biff like printf
+        # drop the attribute directives about biff like printf
         dropAtAll('#ifdef __GNUC__', 3, lines)
     if (hn == 'nrrd.h'):
         # drop control of nrrdResample_t (no effect on API)
@@ -321,7 +341,7 @@ def build(path):
                 hdrProc(out, hf, hh)
             out.write(f'\n\n')
     ffibld = cffi.FFI()
-    ## so that teem.py can call free()
+    ## so that teem.py can call free() as part of biff error handling
     ffibld.cdef('extern void free(void *);')
     if (verbose):
         print("#################### reading cdef_teem.h ...")
