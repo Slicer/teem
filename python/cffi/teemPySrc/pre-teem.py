@@ -37,10 +37,11 @@ else:
 try:
     import _teem
 except ModuleNotFoundError:
-    print('\n*** teem.py: failed to load shared library wrapper module "_teem.py"')
-    print('*** Make sure you first ran: "python3 build_teem.py" to build it')
-    print(f'*** an/or try setting the {_lpathVN} environment variable so')
-    print(f'*** that the libteem.{_shext} shared library can be found.\n')
+    print('\n*** teem.py: failed to load shared library wrapper module "_teem", from')
+    print('*** a shared object file named something like _teem.cpython-platform.so.')
+    print('*** Make sure you first ran: "python3 build_teem.py" to build that,')
+    print(f'*** and/or try setting the {_lpathVN} environment variable so that')
+    print(f'*** the underlying libteem.{_shext} shared library can be found.\n')
     raise
 
 # The value of this ffi, as opposed to "from cffi import FFI; ffi = FFI()" is that it knows
@@ -55,7 +56,6 @@ NULL = ffi.NULL
 # The following dictionary is for all of Teem, including functions from the
 # "experimental" libraries; it is no problem if the libteem in use does not
 # actually contain the experimental libs.
-# The following was made by teem/src/_util/buildBiffDict.py
 # BIFFDICT
 
 # This traverses the actual symbols in the libteem used
