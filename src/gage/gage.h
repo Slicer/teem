@@ -566,7 +566,7 @@ typedef struct gageParm_t {
 ** to determine whether the ctx->fsl, ctx->fw values can be re-used
 ** (based on the "Frac" values), and, whether all the pvl->iv3 have to
 ** be refilled (based on the "Idx" values).  The last index (frac[3]
-** and idx[3])is for the stack, and can safely stay 0 if the stack
+** and idx[3]) is for the stack, and can safely stay 0 if the stack
 ** isn't being used.
 **
 ** with stack usage, stackFwNonZeroNum records how many pvls had
