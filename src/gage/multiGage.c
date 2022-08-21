@@ -31,6 +31,9 @@
 */
 
 /* The "/ *Teem:" (without space) comments in here are an experiment */
+/* and with Aug 2022 work on v1.13, that experiment idea (from late 2011) turned
+   into "Biff:"" annotations, but this file was not processed because it
+   is not currently compiled in gage */
 
 gageMultiItem * /*Teem: error if (!ret) */
 gageMultiItemNew(const gageKind *kind) {
