@@ -48,6 +48,8 @@ except ModuleNotFoundError:
 # about the various typedefs that were learned to build the CFFI wrapper, which may in turn
 # be useful for setting up calls into libteem
 ffi = _teem.ffi
+# enable access to original un-wrapped things, straight from cffi
+lib = _teem.lib
 # for slight convenience, e.g. when calling nrrdLoad with NULL (default) NrrdIoState
 NULL = ffi.NULL
 # NOTE that now "ffi" and "NULL" are only things "exported" by this module that are not a
@@ -57,6 +59,25 @@ NULL = ffi.NULL
 # "experimental" libraries; it is no problem if the libteem in use does not
 # actually contain the experimental libs.
 # BIFFDICT
+
+# experimental helper/wrapper around airEnums.
+# The underlying cffi object for airEnum foo is available is foo.ae
+class airEnum:
+    def __init__(self, ae):
+        self.ae = ae
+        self.name = _teem.ffi.string(self.ae.name).decode('ascii')
+        # looking at airEnum struct definition in air.h
+        self.vals = list(range(1, self.ae.M + 1))
+        if self.ae.val:
+            self.vals = [self.ae.val[i] for i in self.vals]
+    def __iter__(self):
+        return iter(self.vals)
+    def str(self, v):
+        return _teem.ffi.string(_teem.lib.airEnumStr(self.ae, v)).decode('ascii')
+    def desc(self, v):
+        return _teem.ffi.string(_teem.lib.airEnumDesc(self.ae, v)).decode('ascii')
+    def val(self, s):
+        return _teem.lib.airEnumVal(self.ae, s.encode('ascii'))
 
 # This traverses the actual symbols in the libteem used
 for _sym in dir(_teem.lib):
@@ -68,9 +89,15 @@ for _sym in dir(_teem.lib):
     # so we are in the unfortunate business of generating the text of python
     # code that is later passed to exec().  The exported symbol _sym is ...
     if not _sym in _biffDict:
-        # ... either a straight renaming of the symbol in libteem (a function
-        # known to not use biff, or, something that's not a function)
-        _code = f'{_sym} = _teem.lib.{_sym}'
+        # ... either a function known to not use biff, or, not a function
+        # (hacky way to learn about a object we can only refer to by name)
+        exec(f'_is_airEnum = "airEnum *" in str(_teem.lib.{_sym})')
+        if not _is_airEnum:
+            # straight renaming of _sym
+            _code = f'{_sym} = _teem.lib.{_sym}'
+        else:
+            # _sym is name of an airEnum, wrap it as such
+            _code = f'{_sym} = airEnum(_teem.lib.{_sym})'
     else:
         # ... or a Python wrapper around a function known to use biff.
         (_rvte, _bkey, _fnln) = _biffDict[_sym]
