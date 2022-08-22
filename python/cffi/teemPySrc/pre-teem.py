@@ -52,13 +52,9 @@ ffi = _teem.ffi
 lib = _teem.lib
 # for slight convenience, e.g. when calling nrrdLoad with NULL (default) NrrdIoState
 NULL = ffi.NULL
-# NOTE that now "ffi" and "NULL" are only things "exported" by this module that are not a
-# CFFI-generated wrapper for a C symbol in the libteem library.
-
-# The following dictionary is for all of Teem, including functions from the
-# "experimental" libraries; it is no problem if the libteem in use does not
-# actually contain the experimental libs.
-# BIFFDICT
+# NOTE that "ffi", "lib" and "NULL" are currently the only things "exported" by this module
+# that are not either a CFFI-generated wrapper for a C symbol in the libteem library, or an
+# extra Python wrapper around that wrapper (as with biff-using functions, and airEnums)
 
 # this is an experiment
 class airEnum:
@@ -95,6 +91,11 @@ class airEnum:
         """Converts from string s to integer enum value
         (wraps airEnumVal())"""
         return _teem.lib.airEnumVal(self.ae, s.encode('ascii'))
+
+# The following dictionary is for all of Teem, including functions from the
+# "experimental" libraries; it is no problem if the libteem in use does not
+# actually contain the experimental libs.
+# BIFFDICT
 
 # This traverses the actual symbols in the libteem used
 for _sym in dir(_teem.lib):
