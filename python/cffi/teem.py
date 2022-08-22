@@ -584,23 +584,40 @@ _biffDict = {
     'meetPullInfoAddMulti': ('(1 == rv)', 'meet', 'meet/meetPull.c:764'),
 }
 
-# helper/wrapper around airEnums.  The underlying cffi cdata for airEnum foo
-# is available is foo.ae
+# this is an experiment
 class airEnum:
+    """A helper/wrapper around airEnums (or pointers to them) in Teem, which
+    provides convenient ways to convert between integer enum values and real
+    Python strings. The Teem airEnum underlying (Python) airEnum foo is still
+    available as both foo.ae and foo().
+    """
     def __init__(self, ae):
+        """Constructor takes a Teem airEnum pointer (const airEnum *const)."""
         self.ae = ae
+        if not str(ae).startswith('<cdata \'airEnum *\' '):
+            raise TypeError(f'passed argument {ae} does not seem to be a Teem airEnum pointer')
         self.name = _teem.ffi.string(self.ae.name).decode('ascii')
         # looking at airEnum struct definition in air.h
         self.vals = list(range(1, self.ae.M + 1))
         if self.ae.val:
             self.vals = [self.ae.val[i] for i in self.vals]
+    def __call__(self):
+        """Returns (a pointer to) the underlying Teem airEnum."""
+        return self.ae
     def __iter__(self):
+        """Provides a way to iterate through the valid values of the enum"""
         return iter(self.vals)
     def str(self, v):
+        """Converts from integer enum value v to string identifier
+        (wraps airEnumStr())"""
         return _teem.ffi.string(_teem.lib.airEnumStr(self.ae, v)).decode('ascii')
     def desc(self, v):
+        """Converts from integer value v to description string
+        (wraps airEnumDesc())"""
         return _teem.ffi.string(_teem.lib.airEnumDesc(self.ae, v)).decode('ascii')
     def val(self, s):
+        """Converts from string s to integer enum value
+        (wraps airEnumVal())"""
         return _teem.lib.airEnumVal(self.ae, s.encode('ascii'))
 
 # This traverses the actual symbols in the libteem used
@@ -617,10 +634,10 @@ for _sym in dir(_teem.lib):
         # (hacky way to learn about a object we can only refer to by name)
         exec(f'_is_airEnum = "airEnum *" in str(_teem.lib.{_sym})')
         if not _is_airEnum:
-            # straight renaming
+            # straight renaming of _sym
             _code = f'{_sym} = _teem.lib.{_sym}'
         else:
-            # _sym is name of an airEnum, wrap it (consider this very experimental)
+            # _sym is name of an airEnum, wrap it as such
             _code = f'{_sym} = airEnum(_teem.lib.{_sym})'
     else:
         # ... or a Python wrapper around a function known to use biff.
