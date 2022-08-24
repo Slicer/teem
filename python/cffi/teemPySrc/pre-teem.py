@@ -79,18 +79,22 @@ class teemEnum:
     def __iter__(self):
         """Provides a way to iterate through the valid values of the enum"""
         return iter(self.vals)
-    def str(self, v):
+    def str(self, v: int):
         """Converts from integer enum value v to string identifier
         (wraps airEnumStr())"""
         return _teem.ffi.string(_teem.lib.airEnumStr(self.ae, v)).decode('ascii')
-    def desc(self, v):
+    def desc(self, v: int):
         """Converts from integer value v to description string
         (wraps airEnumDesc())"""
         return _teem.ffi.string(_teem.lib.airEnumDesc(self.ae, v)).decode('ascii')
-    def val(self, s):
+    def val(self, s: str):
         """Converts from string s to integer enum value
         (wraps airEnumVal())"""
         return _teem.lib.airEnumVal(self.ae, s.encode('ascii'))
+    def unknown(self):
+        """Returns value representing unknown
+        (wraps airEnumUnknown())"""
+        return _teem.lib.airEnumUnknown(self.ae)
 
 # The following dictionary is for all of Teem, including functions from the
 # "experimental" libraries; it is no problem if the libteem in use does not
@@ -98,7 +102,7 @@ class teemEnum:
 # BIFFDICT
 
 # generates a biff-checking wrapper around function func
-def _biffer(func, funcName, rvtf, mubi, bkey, fnln):
+def _biffer(func, funcName: str, rvtf, mubi: int, bkey, fnln: str):
     def wrapper(*args):
         # pass all args to underlying C function; get return value rv
         rv = func(*args)

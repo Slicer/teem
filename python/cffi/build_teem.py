@@ -84,7 +84,7 @@ libs = [
     {'name': 'meet',   'expr': False},
 ]
 
-def check_path(iPath, lPath):
+def check_path(iPath: str, lPath: str):
     global haveExpr
     if (not os.path.isdir(iPath) or
         not os.path.isdir(lPath)):
@@ -137,7 +137,7 @@ def check_path(iPath, lPath):
             print('(Teem build includes "Experimental" libraries)')
     return haveHdrs
 
-def procLine(L):
+def procLine(L: str):
     # drop the include guards
     if L.find('HAS_BEEN_INCLUDED') >= 0:
         return False
@@ -178,7 +178,7 @@ def procLine(L):
     L = re.sub(r'^[A-Z]+_EXPORT ', 'extern ', L)
     return L
 
-def unmacro(lines):
+def unmacro(lines: list[str]):
     olines = []
     copying = True
     for L in lines:
@@ -199,7 +199,7 @@ def unmacro(lines):
             olines.append(L)
     return olines
 
-def dropAtMatch(rgx, N, lines):
+def dropAtMatch(rgx: str, N: int, lines: list[str]):
     found = False
     for idx in range(len(lines)):
         if re.match(rgx, lines[idx]):
@@ -211,21 +211,21 @@ def dropAtMatch(rgx, N, lines):
         lines.pop(idx)
     return idx
 
-def drop1(str, lines):
+def drop1(str: str, lines: list[str]):
     lines.pop(lines.index(str))
 
-def dropAt(str, N, lines):
+def dropAt(str: str, N: int, lines: list[str]):
     idx = lines.index(str)
     for _ in range(N):
         lines.pop(idx)
     return idx
 
-def dropAtAll(str, N, lines):
+def dropAtAll(str: str, N: int, lines: list[str]):
     while (idx := lines.index(str) if str in lines else -1) >= 0:
         for _ in range(N):
             lines.pop(idx)
 
-def hdrProc(out, hf, hn):
+def hdrProc(out, hf, hn: str): # out, hf: files
     if verbose:
         print(f'hdrProc({hn}) ...')
     # read all lines from hf, strip newlines (and trailing whitespace)
@@ -321,7 +321,7 @@ def hdrProc(out, hf, hn):
     for L in lines:
         out.write(f'{L}\n')
 
-def build(path):
+def build(path: str):
     path = path.rstrip('/')
     iPath = path + '/include'
     lPath = path + '/lib'
@@ -365,10 +365,10 @@ def build(path):
                       '#include <teem/meet.h>', # this is effectively teem.h
                       **sourceArgs)
     if (verbose):
-        print("#################### compiling (slow!) ...")
+        print("#################### compiling _teem (slow!) ...")
     ffibld.compile(verbose=(verbose > 0))
     if (verbose):
-        print("#################### ... done.")
+        print("#################### ... compiling _teem done.")
     # should have now created a new _teem.cpython-<version>.so shared library
     # so should be able to, on Mac, (e.g.) "otool -L _teem.cpython-39-darwin.so"
     # or, on linux, (e.g.) "ldd _teem.cpython-38-x86_64-linux-gnu.so"
