@@ -54,19 +54,19 @@ lib = _teem.lib
 NULL = ffi.NULL
 # NOTE that "ffi", "lib" and "NULL" are currently the only things "exported" by this module
 # that are not either a CFFI-generated wrapper for a C symbol in the libteem library, or an
-# extra Python wrapper around that wrapper (as with biff-using functions, and airEnums)
+# extra Python wrapper around that wrapper (as with biff-using functions, and teemEnums)
 
 # this is an experiment
-class airEnum:
+class teemEnum:
     """A helper/wrapper around airEnums (or pointers to them) in Teem, which
     provides convenient ways to convert between integer enum values and real
-    Python strings. The Teem airEnum underlying (Python) airEnum foo is still
+    Python strings. The C airEnum underlying the Python teemEnum foo is still
     available as both foo.ae and foo().
     """
     def __init__(self, ae):
         """Constructor takes a Teem airEnum pointer (const airEnum *const)."""
         self.ae = ae
-        if not str(ae).startswith('<cdata \'airEnum *\' '):
+        if not str(ae).startswith("<cdata 'airEnum *' "):
             raise TypeError(f'passed argument {ae} does not seem to be a Teem airEnum pointer')
         self.name = _teem.ffi.string(self.ae.name).decode('ascii')
         # looking at airEnum struct definition in air.h
@@ -97,41 +97,46 @@ class airEnum:
 # actually contain the experimental libs.
 # BIFFDICT
 
+# generates a biff-checking wrapper around function func
+def _biffer(func, funcName, rvtf, mubi, bkey, fnln):
+    def wrapper(*args):
+        # pass all args to underlying C function; get return value rv
+        rv = func(*args)
+        # we have to get biff error if the returned value indicates error (rvtf(rv))
+        # and, either: this function definitely uses biff (0 == mubi)
+        #          or: (this function maybe uses biff and) "useBiff" args[mubi-1] is True
+        if rvtf(rv) and (0 == mubi or args[mubi-1]):
+            err = _teem.lib.biffGetDone(bkey)
+            estr = ffi.string(err).decode('ascii').rstrip()
+            _teem.lib.free(err)
+            raise RuntimeError(f'return value {rv} from C function "{funcName}" ({fnln}):\n{estr}')
+        return rv
+    wrapper.__name__ = funcName
+    wrapper.__doc__ = f"""
+error-checking wrapper around C function "{funcName}" ({fnln}):
+{func.__doc__}
+"""
+    return wrapper
+
 # This traverses the actual symbols in the libteem used
-for _sym in dir(_teem.lib):
-    if 'free' == _sym:
-        # don't export C runtime's free(), though we use it below for biff
+for _symName in dir(_teem.lib):
+    if 'free' == _symName:
+        # don't export C runtime's free(), though we use it above in the biff wrapper
         continue
-    # Create a python object in this module for the library symbol _sym.
-    # The dir() above returns a list of names of symbols, not a list of symbols,
-    # so we are in the unfortunate business of generating the text of python
-    # code that is later passed to exec().  The exported symbol _sym is ...
-    if not _sym in _biffDict:
+    _sym = getattr(_teem.lib, _symName)
+    # Create a python object in this module for the library symbol _sym
+    _exp = None
+    # The exported symbol _sym is ...
+    if not _symName in _biffDict:
         # ... either a function known to not use biff, or, not a function
-        # (hacky way to learn about a object we can only refer to by name)
-        exec(f'_is_airEnum = "airEnum *" in str(_teem.lib.{_sym})')
-        if not _is_airEnum:
-            # straight renaming of _sym
-            _code = f'{_sym} = _teem.lib.{_sym}'
-        else:
+        if str(_sym).startswith("<cdata 'airEnum *' "):
             # _sym is name of an airEnum, wrap it as such
-            _code = f'{_sym} = airEnum(_teem.lib.{_sym})'
+            _exp = teemEnum(_sym)
+        else:
+            # straight copy of reference to _sym
+            _exp = _sym
     else:
         # ... or a Python wrapper around a function known to use biff.
-        (_rvte, _bkey, _fnln) = _biffDict[_sym]
-        _code = f"""
-def {_sym}(*args):
-    # pass all args to underlying C function; get return value rv
-    rv = _teem.lib.{_sym}(*args)
-    # evaluate return value test expression ('rv' and 'args' hardcoded)
-    if {_rvte}:
-        err = _teem.lib.biffGetDone(b'{_bkey}')
-        estr = ffi.string(err).decode('ascii')
-        _teem.lib.free(err)
-        raise RuntimeError(f'return value {{rv}} from C function {_sym} ({_fnln}):\\n'+estr)
-    return rv
-{_sym}.__doc__ = f'error-checking wrapper around C function {_sym} ({_fnln}):\\n\\n'+_teem.lib.{_sym}.__doc__
-"""
-    # now evaluate the Python code in _code
-    #print(_code)
-    exec(_code)
+        (_rvtf, _mubi, _bkey, _fnln) = _biffDict[_symName]
+        _exp = _biffer(_sym, _symName, _rvtf, _mubi, _bkey, _fnln)
+    globals()[_symName] = _exp
