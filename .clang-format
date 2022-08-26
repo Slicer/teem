@@ -4,7 +4,7 @@
 # This file is what provides info to "clang-format -style=file" when run in
 # this directory or a subdirectory.  The teem/src/_util/clang-format.sh
 # script helps do this.
-# For more info see: https://clang.llvm.org/docs/ClangFormat.htm
+# For more info see: https://clang.llvm.org/docs/ClangFormat.html
 ---
 Language: Cpp
 BasedOnStyle: LLVM
