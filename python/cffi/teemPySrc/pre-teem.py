@@ -29,7 +29,7 @@ making pythonic interfaces to Teem functionality.  See teem/python/cffi/README.m
 # long BIFFDICT lines don't need to be human-friendly
 # pylint: disable=c-extension-no-member, line-too-long
 
-import math as _math # for snan test
+import math as _math # for isnan test that may appear in _BIFFDICT
 import sys as _sys
 
 # halt if python2; thanks to https://preview.tinyurl.com/44f2beza
