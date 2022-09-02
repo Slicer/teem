@@ -1110,6 +1110,7 @@ nrrdApply1DSubstitution(Nrrd *nout, const Nrrd *nin, const Nrrd *_nsubst) {
       if (val == subst[jj * 2 + 0]) {
         val = subst[jj * 2 + 1];
         changed = AIR_TRUE;
+        break; /* lacking this, new val could match later subst[jj * 2 + 0] */
       }
     }
     if (changed) {
