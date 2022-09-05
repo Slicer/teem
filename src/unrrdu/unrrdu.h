@@ -83,7 +83,8 @@ enum {
 UNRRDU_EXPORT const int unrrduPresent;
 UNRRDU_EXPORT const char *const unrrduBiffKey;
 UNRRDU_EXPORT unsigned int unrrduDefNumColumns;
-/* addresses of all unrrdu_xxxCmd */
+/* unrrduCmdList[] gives addresses of unrrdu_fooCmd for all commands "unu foo".
+   The list of all commands is maintained in privateUnrrdu.h */
 UNRRDU_EXPORT const unrrduCmd *const unrrduCmdList[];
 UNRRDU_EXPORT int unrrduCmdMain(int argc, const char **argv, const char *cmd,
                                 const char *title, const unrrduCmd *const *cmdList,
