@@ -40,7 +40,7 @@ CREATE_EXEC(mrender mrender.c)
 CREATE_EXEC(miter miter.c)
 CREATE_EXEC(vprobe vprobe.c)
 CREATE_EXEC(gprobe gprobe.c)
-CREATE_EXEC(ninspect ninspect.c)
+# CREATE_EXEC(ninspect ninspect.c)   moved to "unu ninspect"
 CREATE_EXEC(unu unu.c)
 CREATE_EXEC(puller puller.c)
 CREATE_EXEC(tend tend.c)
