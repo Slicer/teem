@@ -140,6 +140,7 @@ extern "C" {
   F(dnorm)                                                                              \
   F(vidicon)                                                                            \
   F(grid)                                                                               \
+  F(ninspect)                                                                           \
   F(ilk)                                                                                \
   F(hack)                                                                               \
   F(aabplot)                                                                            \

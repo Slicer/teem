@@ -62,8 +62,8 @@ $(L).OBJS  += flip.o slice.o sselect.o convert.o crop.o pad.o permute.o \
 	inset.o axinsert.o axdelete.o axinfo.o ccfind.o ccadj.o ccmerge.o \
 	ccsettle.o about.o axsplit.o axmerge.o mlut.o mrmap.o tile.o untile.o \
 	unorient.o env.o dist.o affine.o i2w.o w2i.o fft.o acrop.o dering.o \
-	diff.o cksum.o dnorm.o vidicon.o undos.o basinfo.o grid.o ilk.o hack.o \
-	aabplot.o
+	diff.o cksum.o dnorm.o vidicon.o undos.o basinfo.o grid.o ilk.o \
+	ninspect.o hack.o aabplot.o
 # no longer used: block.o unblock.o
 ####
 ####

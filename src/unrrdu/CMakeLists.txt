@@ -50,6 +50,7 @@ set(UNRRDU_SOURCES
   vidicon.c
   grid.c
   ilk.c
+  ninspect.c
   hack.c
   aabplot.c
   undos.c
