@@ -323,8 +323,8 @@ airSgn(double v) {
 
 /* this "mirror" stuff is how nrrdBoundaryMirror is implemented,
    but it seemed general purpose enough that it belonged in air */
-#define MIRROR(M, I, N) \
-  M = (I < 0 ? -I : I); \
+#define MIRROR(TM, M, I, N) \
+  M = AIR_CAST(TM, I < 0 ? -I : I); \
   M = M % (2 * N); \
   M = (M >= N ? 2 * N - 1 - M : M)
 
@@ -332,7 +332,7 @@ size_t
 airIndexMirror64(ptrdiff_t I, size_t N) {
   size_t M;
 
-  MIRROR(M, I, N);
+  MIRROR(size_t, M, I, N);
   return M;
 }
 
@@ -340,7 +340,7 @@ unsigned int
 airIndexMirror32(int I, unsigned int N) {
   unsigned int M;
 
-  MIRROR(M, I, N);
+  MIRROR(unsigned int, M, I, N);
   return M;
 }
 
@@ -375,7 +375,7 @@ airMode3_d(const double _v[3]) {
   num = (v[0] + v[1] - 2*v[2])*(2*v[0] - v[1] - v[2])*(v[0] - 2*v[1] + v[2]);
   den = v[0]*v[0] + v[1]*v[1] + v[2]*v[2] - v[1]*v[2] - v[0]*v[1] - v[0]*v[2];
   den = sqrt(den);
-  return (den ? num/(2*den*den*den) : 0);
+  return (den != 0 ? num/(2*den*den*den) : 0);
 }
 
 double

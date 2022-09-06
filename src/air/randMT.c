@@ -117,7 +117,7 @@ _airRandMTInitialize(airRandMTState *rng, unsigned int seed) {
   */
   register unsigned int *s = rng->state;
   register unsigned int *r = rng->state;
-  register int i = 1;
+  register unsigned int i = 1; /* GLK added unsigned to quiet warning */
   *s++ = seed & 0xffffffffUL;
   for (; i < AIR_RANDMT_N; ++i) {
     *s++ = (1812433253UL * (*r ^ (*r >> 30)) + i) & 0xffffffffUL;

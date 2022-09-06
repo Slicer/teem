@@ -397,7 +397,8 @@ airFPClass_f(float val) {
   unsigned int sign, expo, mant, indexv;
 
   airFPValToParts_f(&sign, &expo, &mant, val);
-  indexv = ((!!sign) << 2) | ((!!expo) << 1) | (!!mant);
+  /* "!" produces an int: https://en.cppreference.com/w/c/language/operator_logical */
+  indexv = (AIR_UINT(!!sign) << 2) | (AIR_UINT(!!expo) << 1) | AIR_UINT(!!mant);
   return wutClass(indexv, 0xff == expo, mant >> 22);
 }
 
@@ -411,7 +412,8 @@ airFPClass_d(double val) {
   unsigned int sign, expo, mant0, mant1, indexv;
 
   airFPValToParts_d(&sign, &expo, &mant0, &mant1, val);
-  indexv = ((!!sign) << 2) | ((!!expo) << 1) | (!!mant0 || !!mant1);
+  indexv = (AIR_UINT(!!sign) << 2) | (AIR_UINT(!!expo) << 1)
+         | (AIR_UINT(!!mant0) || AIR_UINT(!!mant1));
   return wutClass(indexv, 0x7ff == expo, mant0 >> 19);
 }
 
@@ -428,7 +430,7 @@ int
 airIsNaN(double g) {
   unsigned int sign, expo, mant;
 
-  airFPValToParts_f(&sign, &expo, &mant, g);
+  airFPValToParts_f(&sign, &expo, &mant, AIR_FLOAT(g));
   AIR_UNUSED(sign);
   return (0xff == expo && mant);
 }
