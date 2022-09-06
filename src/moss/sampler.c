@@ -108,10 +108,10 @@ mossSamplerUpdate(mossSampler *smplr) {
   }
 
   if (smplr->flag[mossFlagImage]) {
+    unsigned int chn = MOSS_CHAN_NUM(smplr->image);
     if (smplr->verbose) {
       printf("%s: see mossFlagImage UP\n", me);
     }
-    unsigned int chn = MOSS_CHAN_NUM(smplr->image);
     if (chn != smplr->chanNum) {
       if (smplr->verbose) {
         printf("%s: new %u chanNum != old %u --> raising mossFlagChanNum UP\n", me, chn,
@@ -161,10 +161,10 @@ mossSamplerUpdate(mossSampler *smplr) {
     smplr->yFslw = AIR_CALLOC(smplr->filterDiam, double);
   }
   if (smplr->flag[mossFlagFilterDiam] || smplr->flag[mossFlagChanNum]) {
+    unsigned int fdiam = smplr->filterDiam, nchan = smplr->chanNum;
     if (smplr->verbose) {
       printf("%s: see either mossFlag{FilterDiam,ChanNum} UP --> realloc ivc\n", me);
     }
-    unsigned int fdiam = smplr->filterDiam, nchan = smplr->chanNum;
     airFree(smplr->ivc);
     smplr->ivc = AIR_CALLOC(fdiam * fdiam * nchan, double);
   }
