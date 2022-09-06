@@ -229,7 +229,7 @@ mossFourPointTransform(Nrrd *nout, const Nrrd *nin, int boundary, const double *
     biffAddf(MOSS, "%s: got NULL pointer or bad image", me);
     return 1;
   }
-  // HEY SET UP verbPixel for this HEY HEY HEY
+  /* HEY SET UP verbPixel for this HEY HEY HEY */
   msp->verbose = (msp->verbPixel[0] >= 0 && msp->verbPixel[1] >= 0);
   if (mossSamplerImageSet(msp, nin, boundary, bg) || mossSamplerUpdate(msp)) {
     biffAddf(MOSS, "%s: trouble with sampler", me);

@@ -49,7 +49,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me, hestParm *hparm
   int type, bb, pret, norenorm, neb, older, E, defaultCenter, verbose, overrideCenter,
     minSet = AIR_FALSE, maxSet = AIR_FALSE, offSet = AIR_FALSE;
   unsigned int scaleLen, ai, minLen, maxLen, offLen, aspRatNum, nonAspRatNum;
-  size_t samplesOut = 0; // initializing to quiet a warning
+  size_t samplesOut = 0; /* initializing to quiet a warning */
   airArray *mop;
   double *scale;
   double padVal, *min, *max, *off, aspRatScl = AIR_NAN;

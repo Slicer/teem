@@ -586,7 +586,7 @@ _nrrdGzDestroy(_NrrdGzStream *s) {
     biffAddf(NRRD, "%s: %s (%d)", me, _NRRD_GZ_ERR_MSG(error), error);
     return 1;
   }
-  if (s->z_err < 0) error = s->z_err; // GLK is curious why
+  if (s->z_err < 0) error = s->z_err; /* GLK is curious why */
   if (error != Z_OK) {
     biffAddf(NRRD, "%s: %s (%d)", me, _NRRD_GZ_ERR_MSG(error), error);
     return 1;

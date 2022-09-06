@@ -474,7 +474,7 @@ _nrrdBinaryOpULPDistance(double dA, double dB) {
     Ai = FA.i;
     Bi = FB.i;
     if ((A >= 0) == (B >= 0)) {
-      // easy case: two finite values of same sign
+      /* easy case: two finite values of same sign */
       uint diff = Ai > Bi ? Ai - Bi : Bi - Ai;
       ret = QLAMP(diff, maxd);
     } else {
@@ -485,23 +485,23 @@ _nrrdBinaryOpULPDistance(double dA, double dB) {
     }
     break;
   case 1:
-    // only one non-finite value: say simply they're very different
+    /* only one non-finite value: say simply they're very different */
     ret = maxd;
     break;
   case 2:
-    // two non-finite values
+    /* two non-finite values */
     if (isnan(A) && isnan(B)) {
-      ret = 0; // really, no meaningful difference between 2 NaNs
+      ret = 0; /* really, no meaningful difference between 2 NaNs */
     } else if (isnan(A) || isnan(B)) {
-      // one NaN and one inf, which seems like a big difference
+      /* one NaN and one inf, which seems like a big difference */
       ret = maxd;
     } else {
-      // two infs
+      /* two infs */
       if ((A > 0) == (B > 0)) {
-        // two infs of same sign; call them equal
+        /* two infs of same sign; call them equal */
         ret = 0;
       } else {
-        // two infs of different sign: very different
+        /* two infs of different sign: very different */
         ret = maxd;
       }
     }
