@@ -26,8 +26,6 @@
 
 #include <limits.h>
 
-/* The "/ *Teem:" (without space) comments in here are an experiment */
-
 const char *const nrrdBiffKey = "nrrd";
 
 /*
