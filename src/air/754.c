@@ -326,7 +326,7 @@ airFPGen_d(int cls) {
 
 static int
 wutClass(unsigned int index, int expoMax, unsigned int nanHiBit) {
-  int ret;
+  int ret = airFP_Unknown;
   switch (index) {
   case 0:
     /* all fields are zero */
@@ -519,7 +519,7 @@ airFPFprintf_f(FILE *file, float val) {
     af.f = val;
     airFPValToParts_f(&sign, &expo, &mant, val);
     cls = airFPClass_f(val);
-    fprintf(file, "%.9g (class %d=%s) 0x%08x = ", val, cls,
+    fprintf(file, "%.9g (class %d=%s) 0x%08x = ", (double)val, cls,
             airEnumStr(airFPClass_ae, cls), af.i);
     fprintf(file, "sign:0x%x, expo:0x%02x, mant:0x%06x = \n", sign, expo, mant);
     fprintf(file, " S [ . . Exp . . ] "
