@@ -221,7 +221,7 @@ static double _nrrdUnaryOpLog2(double a)       {return log(a)/0.69314718;}
 static double _nrrdUnaryOpLog10(double a)      {return log10(a);}
 /* clang-format on */
 /* This code for log1p and expm1 comes from
-   http://www.plunk.org/~hatch/rightway.php which in turn references
+   http://www.plunk.org/~hatch/rightway.html which in turn references
    http://www.cs.berkeley.edu/~wkahan/Math128/Sumnfp.pdf from the
    great Kahan of IEEE 754 fame, but sadly that URL no longer works
    (though the Math128 directory is still there, as are other documents) */
