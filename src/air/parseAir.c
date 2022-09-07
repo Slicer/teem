@@ -96,7 +96,7 @@ airSingleSscanf(const char *str, const char *fmt, void *ptr) {
     }
     airToLower(tmp);
     if (strstr(tmp, "nan")) {
-      val = AIR_NAN;
+      val = (double)AIR_NAN;
     }
     /* ---- BEGIN non-NrrdIO */
     else if (strstr(tmp, "-pi")) {
@@ -106,9 +106,9 @@ airSingleSscanf(const char *str, const char *fmt, void *ptr) {
     }
     /* ---- END non-NrrdIO */
     else if (strstr(tmp, "-inf")) {
-      val = AIR_NEG_INF;
+      val = (double)AIR_NEG_INF;
     } else if (strstr(tmp, "inf")) {
-      val = AIR_POS_INF;
+      val = (double)AIR_POS_INF;
     } else {
       /* nothing special matched; pass it off to sscanf() */
       /* (save setlocale here) */
