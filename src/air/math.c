@@ -65,7 +65,7 @@ airFastExp(double val) {
          ? eco.dd
          /* seems that only times this happens is when the real exp()
             returns either 0 or +inf */
-         : (val < 0 ? 0 : AIR_POS_INF));
+         : (val < 0.0 ? 0.0 : AIR_POS_INF));
   return ret;
 }
 #undef EXPA
