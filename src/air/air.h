@@ -540,18 +540,19 @@ enum {
   airInsane_pInfExists,    /*  2: AIR_EXISTS(positive infinity) was true */
   airInsane_nInfExists,    /*  3: AIR_EXISTS(negative infinity) was true */
   airInsane_NaNExists,     /*  4: AIR_EXISTS(NaN) was true */
-  airInsane_FltDblFPClass, /*  5: double -> float assignment messed up the
+  airInsane_ExistsBad,     /*  5: AIR_EXISTS of some finite values was false */
+  airInsane_FltDblFPClass, /*  6: double -> float assignment messed up the
                                airFPClass_f() of the value */
-  airInsane_QNaNHiBit,     /*  6: airMyQNaNHiBit is wrong */
-  airInsane_AIR_NAN,       /*  7: airFPClass_f(AIR_QNAN) wrong
+  airInsane_QNaNHiBit,     /*  7: airMyQNaNHiBit is wrong */
+  airInsane_AIR_NAN,       /*  8: airFPClass_f(AIR_QNAN) wrong
                                   (no longer checking on problematic SNAN) */
-  airInsane_dio,           /*  8: airMyDio set to something invalid */
-  airInsane_UCSize,        /*  9: unsigned char isn't 8 bits */
-  airInsane_FISize,        /* 10: sizeof(float), sizeof(int) not 4 */
-  airInsane_DLSize,        /* 11: sizeof(double), sizeof(airLLong) not 8 */
+  airInsane_dio,           /*  9: airMyDio set to something invalid */
+  airInsane_UCSize,        /* 10: unsigned char isn't 8 bits */
+  airInsane_FISize,        /* 11: sizeof(float), sizeof(int) not 4 */
+  airInsane_DLSize,        /* 12: sizeof(double), sizeof(airLLong) not 8 */
   airInsane_last
 };
-#define AIR_INSANE_MAX 11
+#define AIR_INSANE_MAX 12
 AIR_EXPORT const char *airInsaneErr(int insane);
 AIR_EXPORT int airSanity(void);
 
@@ -776,40 +777,35 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 #define AIR_NEG_INF (airFloatNegInf.f)
 
 /*
-******** AIR_EXISTS
+******** AIR_EXISTS(x)
 **
-** is non-zero (true) only for values which are not NaN or +/-infinity
+** Is non-zero (true) only for x which are not NaN or +/-infinity. Modern C has
+** isfinite() for the same purpose. Teem development started prior to isfinite() being
+** reliably available on the platforms it ran on, and the terminology of "exists" rather
+** than "finite" now pervades Teem source code.
 **
-** You'd think that (x == x) might work, but no no no, some optimizing
-** compilers (e.g. SGI's cc) say "well of course they're equal, for all
-** possible values".  Bastards!
+** Much commentary, from a wide-eyed student GLK, used to be here.  The upshot:
+** - Some compilers, with some options, violate IEEE 754 on x == x being false for NaNs
+**   (but, that's moot for this macro because inf == inf).
+** - GLK now believes that whether denormals are flushed to zero, and the role of
+**   extended precision FP registers, are also moot for this macro, but welcomes
+**   counterexamples or expert guidance.
 **
-** One of the benefits of IEEE 754 floating point numbers is that
-** gradual underflow means that x = y <==> x - y = 0 for any (positive
-** or negative) normalized or denormalized float.  Otherwise this
-** macro could not be valid; some floating point conventions say that
-** a zero-valued exponent means zero, regardless of the mantissa.
+** The current definition based on "!(x-x)" has seemed to work since 2012.  With
+** -Wfloat-conversion, Clang warns that "implicit conversion turns floating-point number
+** into integer" with x-x being the operand of "!", which is unfortunate. But there is
+** no undefined behavior, at least as detected by clang -fsanitize=undefined, in !NaN
+** (as arising from !(NaN-NaN) or !(inf-inf)). BTW GLK is unsure why the current macro
+** explicitly casts the result of "!" to int, since "!" already produces an int:
+** https://en.cppreference.com/w/c/language/operator_logical. A more straight-forward
+** alternative, which avoids float conversion warnings, would be to use "x-x == x-x".
 **
-** However, there MAY be problems on machines which use extended
-** (80-bit) floating point registers, such as Intel chips- where the
-** same initial value 1) directly read from the register, versus 2)
-** saved to memory and loaded back, may end up being different.  I
-** have yet to produce this behavior, or convince myself it can't happen.
-**
-** The reason to #define AIR_EXISTS as airExists is that on some
-** optimizing compilers, the !((x) - (x)) doesn't work.  This has been
-** the case on Windows and 64-bit irix6 (64 bit) with -Ofast.  If
-** airSanity fails because a special value "exists", then use the
-** first version of AIR_EXISTS.
-**
-** There is a performance consequence of using airExists(x), in that it
-** is a function call, although (HEY) we should facilitate inline'ing it
-** for compilers that know how to.
-**
-** gcc 4.5.3 -std=c89, at least on cygwin, has problems with
-** the type of "!((x) - (x))" when used with bit-wise xor ^, saying
-** "invalid operands to binary ^ (have ‘int’ and ‘int’)" but these
-** problems oddly went away with the explicit cast to int.
+** Configuring with CMake uses teem/CMake/testAIR_EXISTS.c to test this macro (but NOTE:
+** it has to be copy-pasted to there since it can't read air.h), which then produces
+** teem-install-dir/include/teem/airExistsConf.h, which #define's AIR_EXISTS_MACRO_FAILS
+** or not, which controls whether AIR_EXISTS uses the clever macro or the more reliable
+** function call airExists. Still, there may be failure modes untested by
+** testAIR_EXISTS.c, and by the tests in air/airSanity().
 */
 /* ---- BEGIN non-NrrdIO */
 #if !defined(TEEM_NON_CMAKE)
@@ -830,43 +826,36 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 /*
 ******** AIR_EXISTS_F(x)
 **
-** This is another way to check for non-specialness (not NaN, not
-** +inf, not -inf) of a _float_, by making sure the exponent field
-** isn't all ones.
+** This is another way to check for non-specialness (not NaN, not +inf, not -inf) of
+** a _float_ _variable_, by making sure the exponent field isn't all ones.
 **
-** Unlike !((x) - (x)) or airExists(x), the argument to this macro
-** MUST MUST MUST be a float, and the float must be of the standard
-** 32-bit size, which must also be the size of an int.  The reason for
-** this constraint is that macros are not functions, so there is no
-** implicit cast or conversion to a single type.  Casting the address
-** of the macro arg to an int* only works when the arg has the same
-** size as an int.
-**
-** No cross-platform comparative timings have been done to compare the
-** speed of !((x) - (x)) versus airExists() versus AIR_EXISTS_F()
+** Unlike with AIR_EXISTS() or airExists(), this macro argument MUST be a variable of
+** type (4-byte) float, and 4 == sizeof(int): there is no implicit type converstion as
+** part of macro expansion.
 **
 ** This macro is endian-safe.
 */
-#define AIR_EXISTS_F(x) ((*(unsigned int *)&(x)&0x7f800000) != 0x7f800000)
+#define AIR_EXISTS_F(x) (((*((unsigned int *)&(x))) & 0x7f800000) != 0x7f800000)
 
 /*
 ******** AIR_EXISTS_D(x)
 **
-** like AIR_EXISTS_F(), but the argument here MUST be a double
+** like AIR_EXISTS_F(), but the argument here MUST be a (8-byte) double variable
 */
 #define AIR_EXISTS_D(x)                                                                 \
-  ((*(airULLong *)&(x)&AIR_ULLONG(0x7ff0000000000000)) != AIR_ULLONG(0x7ff0000000000000))
+  (((*((airULLong *)&(x))) & AIR_ULLONG(0x7ff0000000000000))                            \
+   != AIR_ULLONG(0x7ff0000000000000))
 
 /*
 ******** AIR_ISNAN_F(x)
 **
-** detects if a float is NaN by looking at the bits, without relying on
-** any of its arithmetic properties.  As with AIR_EXISTS_F(), this only
-** works when the argument really is a float, and when floats are 4-bytes
+** detects if a float is NaN by looking at the bits, without relying on any of its
+** arithmetic properties.  As with AIR_EXISTS_F(), this only works when the argument
+** is a float variable, and when floats and ints are 4-bytes.
 */
 #define AIR_ISNAN_F(x)                                                                  \
-  (((*(unsigned int *)&(x)&0x7f800000) == 0x7f800000)                                   \
-   && (*(unsigned int *)&(x)&0x007fffff))
+  ((((*((unsigned int *)&(x))) & 0x7f800000) == 0x7f800000)                             \
+   && ((*((unsigned int *)&(x))) & 0x007fffff))
 
 /* ---- END non-NrrdIO */
 
