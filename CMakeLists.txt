@@ -44,7 +44,7 @@ set(Teem_VERSION_STRING ${Teem_VERSION_MAJOR}.${Teem_VERSION_MINOR}.${Teem_VERSI
 # DESCRIPTION was added to set a project description in CMake 3.9
 project(Teem VERSION ${Teem_VERSION_STRING}
         DESCRIPTION "Teem libraries developed by Gordon Kindlmann et al."
-        LANGUAGES C CXX)
+        LANGUAGES C)
 
 # specifying a search path for CMake modules to be loaded by the include() or find_package()
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
@@ -110,8 +110,19 @@ endif()
 # test if AIR_EXISTS macro fails
 # try_run(<runResultVar> <compileResultVar>
 #         <bindir> <srcfile>)
-try_run(AIR_EXISTS_MACRO_FAILS AIR_EXISTS_MACRO_COMPILE
-        ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/CMake/testAirExists.cxx)
+message(STATUS "Check if AIR_EXISTS works to detect IEEE754 special values")
+try_run(AIR_EXISTS_MACRO_FAILS AIR_EXISTS_TEST_COMPILES
+        ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/CMake/TestAIR_EXISTS.c)
+if (NOT AIR_EXISTS_TEST_COMPILES)
+    message(FATAL_ERROR "Failed to compile TestAIR_EXISTS.c so could not test AIR_EXISTS macro")
+endif()
+if(AIR_EXISTS_MACRO_FAILS)
+    file(APPEND ${CMAKE_BINARY_DIR}/CMakeError.log "No, AIR_EXISTS macro FAILS to detect IEEE754 special values")
+    message(STATUS "No, AIR_EXISTS macro FAILS to detect IEEE754 special values")
+else()
+    file(APPEND ${CMAKE_BINARY_DIR}/CMakeError.log "Yes, AIR_EXISTS macro works to detect IEEE754 special values")
+    message(STATUS "Yes, AIR_EXISTS macro works to detect IEEE754 special values")
+endif()
 
 #-----------------------------------------------------------------------------
 # All the Teem build configuration options.
