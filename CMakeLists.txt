@@ -59,6 +59,10 @@ set(CMAKE_REQUIRED_FLAGS ${CMAKE_ANSI_CFLAGS})
 
 #-----------------------------------------------------------------------------
 # Test for some required system information.
+# This checks size of various C type (int, long, void*, char, short, float, double),
+# existence of some headers (limits.h, unistd.h, pthread.h, sys/types.h, sys/prctl.h),
+# and then (why?!?) X11, gethostbyname, connect, remove, shmat, IceConnectionNumber?
+# GLK wonders if this can't be pruned down to what is actually needed (certainly not X11)
 include (CMakeBackwardCompatibilityC)
 
 #-----------------------------------------------------------------------------
@@ -108,9 +112,8 @@ endif()
 
 #-----------------------------------------------------------------------------
 # test if AIR_EXISTS macro fails
-# try_run(<runResultVar> <compileResultVar>
-#         <bindir> <srcfile>)
 message(STATUS "Check if AIR_EXISTS works to detect IEEE754 special values")
+# try_run(<runResultVar> <compileResultVar> <bindir> <srcfile>)
 try_run(AIR_EXISTS_MACRO_FAILS AIR_EXISTS_TEST_COMPILES
         ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/CMake/TestAIR_EXISTS.c)
 if (NOT AIR_EXISTS_TEST_COMPILES)
