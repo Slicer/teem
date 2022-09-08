@@ -50,7 +50,7 @@ hestParmNew() {
     parm->varParamStopFlag = hestVarParamStopFlag;
     parm->multiFlagSep = hestMultiFlagSep;
     /* for these most recent addition to the hestParm,
-       abstaining from added yet another default globals */
+       abstaining from added yet another default global variable */
     parm->dieLessVerbose = AIR_FALSE;
     parm->noBlankLineBeforeUsage = AIR_FALSE;
   }
