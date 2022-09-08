@@ -412,7 +412,6 @@ _nrrdGzWrite(gzFile file, const void *buf, unsigned int len, unsigned int *writt
   static const char me[] = "_nrrdGzWrite";
   _NrrdGzStream *s = (_NrrdGzStream *)file;
   void *nonconstbuf;
-  int ret;
 
   if (s == NULL || s->mode != 'w') {
     biffAddf(NRRD, "%s: invalid stream or file mode", me);
@@ -429,7 +428,6 @@ _nrrdGzWrite(gzFile file, const void *buf, unsigned int len, unsigned int *writt
   s->stream.next_in = (Bytef *)nonconstbuf;
   s->stream.avail_in = len;
 
-  ret = 0;
   while (s->stream.avail_in != 0) {
     if (s->stream.avail_out == 0) {
       s->stream.next_out = s->outbuf;
