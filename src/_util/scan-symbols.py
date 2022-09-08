@@ -41,8 +41,6 @@ kindStr = {
     kind.STATIC: 'static'
 }
 
-# TODO: still with curious symbols: air biff nrrd gage
-
 # for interpreting "nm" output
 if sys.platform == 'darwin':  # Macif sys.platform == 'darwin':  # Mac
     dropUnder = True
