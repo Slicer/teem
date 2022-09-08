@@ -2,7 +2,10 @@ GLK's list of things to do for each release.  This started with an
 early version of Teem so the later steps about updating things on
 sourceforge are not as relevant
 
--5) use fnames.pl to make sure all sourcefile names are unique
+-5) Make sure all source filenames are unique (TEEM_LIB_LIST):
+ls -1 {air,hest,biff,nrrd,ell,moss,unrrdu,alan,tijk,gage,dye,bane,limn,echo,hoover,seek,ten,elf,pull,coil,push,mite,meet}/*.c | sort | wc -l
+ls -1 {air,hest,biff,nrrd,ell,moss,unrrdu,alan,tijk,gage,dye,bane,limn,echo,hoover,seek,ten,elf,pull,coil,push,mite,meet}/*.c | sort | uniq | wc -l
+Should be the same number repeated
 
 -4) Make sure the CMake and GNUMake agree on source files per-library
 
