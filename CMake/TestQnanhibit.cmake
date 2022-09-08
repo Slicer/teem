@@ -35,25 +35,23 @@ macro(TEST_QNANHIBIT VARIABLE LOCAL_TEST_DIR)
       ${CMAKE_BINARY_DIR}
       ${LOCAL_TEST_DIR}/TestQnanhibit.c
       OUTPUT_VARIABLE OUTPUT)
-    message(STATUS "Check the value of the 22nd bit of a 32-bit quiet-NaN")
+    message(STATUS "Find the value of the 22nd bit of a 32-bit quiet NaN")
     if(HAVE_${VARIABLE})
       if(${VARIABLE} LESS 0)
         # GLK wonders if this should instead be a FATAL_ERROR
         message(ERROR " A test (TestQnanhibit.c) necessary for NrrdIO configuration returned error code. NrrdIO may not properly handle NaN's.")
       endif()
       if(${VARIABLE})
-        file(APPEND ${CMAKE_BINARY_DIR}/CMakeError.log
-                    "Value of the 22nd bit of a 32-bit quiet-NaN is 1")
-        message(STATUS "Check the value of the 22nd bit of a 32-bit quiet-NaN - 1")
+        file(APPEND ${CMAKE_BINARY_DIR}/CMakeError.log "22nd bit of a 32-bit quiet NaN = 1")
+        message(STATUS "22nd bit of a 32-bit quiet NaN = 1")
       else()
-        file(APPEND ${CMAKE_BINARY_DIR}/CMakeError.log
-                    "Value of the 22nd bit of a 32-bit quiet-NaN is 0")
-        message(STATUS "Check the value of the 22nd bit of a 32-bit quiet-NaN - 0")
+        file(APPEND ${CMAKE_BINARY_DIR}/CMakeError.log "22nd bit of a 32-bit quiet NaN = 0")
+        message(STATUS "22nd bit of a 32-bit quiet NaN = 0")
       endif()
     else()
       file(APPEND ${CMAKE_BINARY_DIR}/CMakeError.log
-        "\tFailed to compile a test (TestQnanhibit.c) necessary to configure for proper handling of IEEE floating point NaN's.\n")
-      message(FATAL_ERROR " Failed to compile a test (TestQnanhibit.c) necessary to configure for proper handling of IEEE floating point NaN's")
+        "\tFailed to compile a test (TestQnanhibit.c) necessary to configure for proper handling of IEEE floating point NaNs.\n")
+      message(FATAL_ERROR " Failed to compile a test (TestQnanhibit.c) necessary to configure for proper handling of IEEE floating point NaNs")
     endif()
     file(APPEND ${CMAKE_BINARY_DIR}/CMakeError.log "TestQnanhibit.c produced following output:\n${OUTPUT}\n\n")
   endif()
