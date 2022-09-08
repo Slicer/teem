@@ -1372,16 +1372,26 @@ nrrdSanity(void) {
   size_t maxsize;
   airLLong tmpLLI;
   airULLong tmpULLI;
+  /* (much like with air/sane.c airSanity())  for Teem v1.13 GLK decided to remove this
+     optimization, which meant that this function could only run through its tests once.
+     Global state, especially if hidden like this, is fishy (and flagged by
+     teem/src/_util/scan-symbols.py). This function actually reads the values of other
+     global variables (like nrrdDefaultWriteEncodingType) which can absolutely change
+     between calls, so this also is not a valid optimization. If profiling reveals this
+     to be a bottleneck, we might refactor these tests into things that can and cannot
+     be changing at run-time.
   static int _nrrdSanity = 0;
 
   if (_nrrdSanity) {
-    /* we've been through this once before and things looked okay ... */
-    /* Is this thread-safe?  I think so.  If we assume that any two
+    / * we've been through this once before and things looked okay ... * /
+    / * Is this thread-safe?  I think so.  If we assume that any two
        threads are going to compute the same value, isn't it the case
        that, at worse, both of them will go through all the tests and
-       then set _nrrdSanity to the same thing? */
+       then set _nrrdSanity to the same thing? * /
+    ha ha - not if the global variables we read have changed!
     return 1;
   }
+  */
 
   aret = airSanity();
   if (aret != airInsane_not) {
@@ -1540,7 +1550,7 @@ nrrdSanity(void) {
 
   /* HEY: any other assumptions built into Teem? */
 
-  _nrrdSanity = 1;
+  /* _nrrdSanity = 1; (see above) */
   return 1;
 }
 
