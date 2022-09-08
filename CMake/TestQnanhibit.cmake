@@ -38,7 +38,7 @@ macro(TEST_QNANHIBIT VARIABLE LOCAL_TEST_DIR)
     message(STATUS "Check the value of the 22nd bit of a 32-bit quiet-NaN")
     if(HAVE_${VARIABLE})
       if(${VARIABLE} LESS 0)
-        message(ERROR " A test (qnanhibit.c) necessary for NrrdIO configuration returned error code. NrrdIO may not properly handle NaN's.")
+        message(ERROR " A test (TestQnanhibit.c) necessary for NrrdIO configuration returned error code. NrrdIO may not properly handle NaN's.")
       endif()
       if(${VARIABLE})
         file(APPEND ${CMAKE_BINARY_DIR}/CMakeError.log
