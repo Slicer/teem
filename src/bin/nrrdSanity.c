@@ -27,7 +27,7 @@
 int
 main(int argc, char *argv[]) {
   char *me, *err;
-  int enc, form;
+  int enc, form, ret;
 
   me = argv[0];
   if (2 == argc) {
@@ -65,7 +65,7 @@ main(int argc, char *argv[]) {
   if (!nrrdSanity()) {
     printf("%s: nrrd sanity check FAILED:\n%s\n", me, err = biffGet(NRRD));
     free(err);
-    return 1;
+    ret = 1;
   } else {
     printf("%s: nrrd sanity check passed.\n", me);
     printf("\n");
@@ -79,7 +79,8 @@ main(int argc, char *argv[]) {
       printf("%s: %s\n", airEnumStr(nrrdFormatType, form),
              nrrdFormatArray[form]->available() ? "yes" : "not available");
     }
+    ret = 0;
   }
 
-  return 0;
+  return ret;
 }
