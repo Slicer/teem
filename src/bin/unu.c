@@ -26,11 +26,13 @@
 /* to learn # columns */
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 
 #define UNU "unu"
 
 int
 main(int argc, const char **argv) {
+  struct winsize wsz;
   int i, ret;
   const char *me;
   char *argv0 = NULL;
@@ -69,14 +71,17 @@ main(int argc, const char **argv) {
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
   hparm->elideMultipleEmptyStringDefault = AIR_TRUE;
-  if (1) {
-    /* dynamically learn number of columns */
-    struct winsize wsz;
-    ioctl(1, TIOCGWINSZ, &wsz);
-    hparm->columns = AIR_MAX(59, wsz.ws_col - 2);
+  /* Try to dynamically learn number of columns. Learning the terminal size will probably
+     work if stdout is the terminal, but not if we're piping elsewhere (as is common with
+     unu), Then try stderr, or else use unrrduDefNumColumns */
+  if (-1 != ioctl(STDOUT_FILENO, TIOCGWINSZ, &wsz)) {
+    hparm->columns = wsz.ws_col;
+  } else if (-1 != ioctl(STDERR_FILENO, TIOCGWINSZ, &wsz)) {
+    hparm->columns = wsz.ws_col;
   } else {
     hparm->columns = unrrduDefNumColumns;
   }
+
   hparm->greedySingleString = AIR_TRUE;
 
   /* if there are no arguments, then we give general usage information */
