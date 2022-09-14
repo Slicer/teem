@@ -105,12 +105,12 @@ unrrdu_aboutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   fprintf(stdout, fmt, buff);
   fprintf(stdout, "\n");
 
-  _hestPrintStr(stdout, 1, 0, 78, par1, AIR_FALSE);
-  _hestPrintStr(stdout, 1, 0, 78, par2, AIR_FALSE);
-  _hestPrintStr(stdout, 1, 0, 78, par3, AIR_FALSE);
-  _hestPrintStr(stdout, 1, 0, 78, par4, AIR_FALSE);
-  _hestPrintStr(stdout, 1, 0, 78, par5, AIR_FALSE);
-  _hestPrintStr(stdout, 2, 0, 78, par6, AIR_FALSE);
+  _hestPrintStr(stdout, 1, 0, hparm->columns, par1, AIR_FALSE);
+  _hestPrintStr(stdout, 1, 0, hparm->columns, par2, AIR_FALSE);
+  _hestPrintStr(stdout, 1, 0, hparm->columns, par3, AIR_FALSE);
+  _hestPrintStr(stdout, 1, 0, hparm->columns, par4, AIR_FALSE);
+  _hestPrintStr(stdout, 1, 0, hparm->columns, par5, AIR_FALSE);
+  _hestPrintStr(stdout, 2, 0, hparm->columns, par6, AIR_FALSE);
 
   printf(" Formats available:");
   miss = AIR_FALSE;
