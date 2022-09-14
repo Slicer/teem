@@ -267,7 +267,9 @@ if ( (hparm->respFileEnable && !argc) || \
         fprintf(stderr, "%s: %s\n", me, err);                                           \
         free(err);                                                                      \
         hestUsage(stderr, opt, me, hparm);                                              \
-        hestGlossary(stderr, opt, hparm);                                               \
+        /* Its gotten too annoying to always get this glossary; */                      \
+        /* unu <cmd> --help will print it. */                                           \
+        /* hestGlossary(stderr, *opt, hparm); */                                        \
       }                                                                                 \
       airMopError(mop);                                                                 \
       return 1;                                                                         \
