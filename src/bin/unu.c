@@ -75,9 +75,9 @@ main(int argc, const char **argv) {
      work if stdout is the terminal, but not if we're piping elsewhere (as is common with
      unu), Then try stderr, or else use unrrduDefNumColumns */
   if (-1 != ioctl(STDOUT_FILENO, TIOCGWINSZ, &wsz)) {
-    hparm->columns = wsz.ws_col;
+    hparm->columns = wsz.ws_col - 2;
   } else if (-1 != ioctl(STDERR_FILENO, TIOCGWINSZ, &wsz)) {
-    hparm->columns = wsz.ws_col;
+    hparm->columns = wsz.ws_col - 2;
   } else {
     hparm->columns = unrrduDefNumColumns;
   }
