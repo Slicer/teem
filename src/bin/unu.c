@@ -81,7 +81,6 @@ main(int argc, const char **argv) {
   } else {
     hparm->columns = unrrduDefNumColumns;
   }
-
   hparm->greedySingleString = AIR_TRUE;
 
   /* if there are no arguments, then we give general usage information */
