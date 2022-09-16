@@ -33,7 +33,7 @@ import re
 import cffi
 
 # halt if python2; thanks to https://preview.tinyurl.com/44f2beza
-_x,*_y=1,2 # NOTE: A SyntaxError here means you need python3, not python2
+_x, *_y = 1, 2  # NOTE: A SyntaxError here means you need python3, not python2
 del _x, _y
 
 # learned:
@@ -54,30 +54,31 @@ VERB = 0
 # limn echo hoover seek ten elf pull coil push mite meet
 # (TEEM_LIB_LIST)
 LIBS = [
-    {'name': 'air',    'expr': False}, # (don't need airExistsConf.h)
-    {'name': 'hest',   'expr': False},
-    {'name': 'biff',   'expr': False},
-    {'name': 'nrrd',   'expr': False}, # also need: nrrdEnums.h nrrdDefines.h
-    {'name': 'ell',    'expr': False}, # (don't need ellMacros.h)
-    {'name': 'moss',   'expr': False},
+    {'name': 'air', 'expr': False},  # (don't need airExistsConf.h)
+    {'name': 'hest', 'expr': False},
+    {'name': 'biff', 'expr': False},
+    {'name': 'nrrd', 'expr': False},  # also need: nrrdEnums.h nrrdDefines.h
+    {'name': 'ell', 'expr': False},  # (don't need ellMacros.h)
+    {'name': 'moss', 'expr': False},
     {'name': 'unrrdu', 'expr': False},
-    {'name': 'alan',   'expr': True},
-    {'name': 'tijk',   'expr': True},
-    {'name': 'gage',   'expr': False},
-    {'name': 'dye',    'expr': False},
-    {'name': 'bane',   'expr': True},
-    {'name': 'limn',   'expr': False},
-    {'name': 'echo',   'expr': False},
+    {'name': 'alan', 'expr': True},
+    {'name': 'tijk', 'expr': True},
+    {'name': 'gage', 'expr': False},
+    {'name': 'dye', 'expr': False},
+    {'name': 'bane', 'expr': True},
+    {'name': 'limn', 'expr': False},
+    {'name': 'echo', 'expr': False},
     {'name': 'hoover', 'expr': False},
-    {'name': 'seek',   'expr': False},
-    {'name': 'ten',    'expr': False},
-    {'name': 'elf',    'expr': True},
-    {'name': 'pull',   'expr': False},
-    {'name': 'coil',   'expr': True},
-    {'name': 'push',   'expr': True},
-    {'name': 'mite',   'expr': False},
-    {'name': 'meet',   'expr': False},
+    {'name': 'seek', 'expr': False},
+    {'name': 'ten', 'expr': False},
+    {'name': 'elf', 'expr': True},
+    {'name': 'pull', 'expr': False},
+    {'name': 'coil', 'expr': True},
+    {'name': 'push', 'expr': True},
+    {'name': 'mite', 'expr': False},
+    {'name': 'meet', 'expr': False},
 ]
+
 
 def add_extra_nrrd_h(hdrs: list[str]) -> list[str]:
     """Supplements list of header files with extra headers for nrrd"""
@@ -87,6 +88,7 @@ def add_extra_nrrd_h(hdrs: list[str]) -> list[str]:
         hdrs.insert(idx, 'nrrdDefines.h')
         hdrs.insert(idx, 'nrrdEnums.h')
     return hdrs
+
 
 def check_hdr_path(hdr_path: str):
     """
@@ -99,13 +101,16 @@ def check_hdr_path(hdr_path: str):
         raise Exception(f'Need {itpath} to be directory')
     base_lib_names = [L['name'] for L in filter(lambda L: not L['expr'], LIBS)]
     base_hdrs = add_extra_nrrd_h([f'{LN}.h' for LN in base_lib_names])
-    expr_lib_names = [L['name'] for L in filter(lambda L:     L['expr'], LIBS)]
+    expr_lib_names = [L['name'] for L in filter(lambda L: L['expr'], LIBS)]
     expr_hdrs = [f'{LN}.h' for LN in expr_lib_names]
     missing_hdrs = list(filter(lambda F: not os.path.isfile(f'{itpath}/{F}'), base_hdrs))
     if missing_hdrs:
         raise Exception(f"Missing header(s) {' '.join(missing_hdrs)} in {itpath} "
                         + "for one or more of the core Teem libs")
-    missing_expr_hdrs = list(filter(lambda F: not os.path.isfile(f'{itpath}/{F}'), expr_hdrs))
+    missing_expr_hdrs = list(
+        filter(
+            lambda F: not os.path.isfile(f'{itpath}/{F}'),
+            expr_hdrs))
     have_hdrs = base_hdrs
     if missing_expr_hdrs:
         # missing one or more of the non-core "Experimental" header files
@@ -113,7 +118,8 @@ def check_hdr_path(hdr_path: str):
             raise Exception("Missing some (but not all) non-core header(s) "
                             + f"{' '.join(missing_expr_hdrs)} in {itpath} for one or more of the "
                             + "core Teem libs")
-        # else len(missing_expr_hdrs) == len(expr_hdrs)) aka all missing, ok, so not Experimental
+        # else len(missing_expr_hdrs) == len(expr_hdrs)) aka all missing, ok, so
+        # not Experimental
         if VERB:
             print('(Teem build does *not* appear include "Experimental" libraries)')
     else:
@@ -122,6 +128,7 @@ def check_hdr_path(hdr_path: str):
         if VERB:
             print('(Teem build includes "Experimental" libraries)')
     return (not missing_expr_hdrs, have_hdrs)
+
 
 def check_lib_path(lib_path: str) -> None:
     """
@@ -144,6 +151,7 @@ def check_lib_path(lib_path: str) -> None:
                         f'required {ltname} shared library, which means running '
                         'cffi.FFI().compile() later will not produce a working wrapper, even if '
                         'it finishes without error.')
+
 
 def proc_line(line: str) -> str:
     """
@@ -176,13 +184,13 @@ def proc_line(line: str) -> str:
     # drop one-line macro #defines
     # (multi-line macro #defines handled by unmacro)
     elif re.match(r'^#define +\S+ *\([^\)]+\) +\S*?\([^\)]+?\).*?$', line) \
-        and not line.endswith('\\'):
+            and not line.endswith('\\'):
         if VERB >= 2:
             print(f'dropping one-line #define macro "{line}"')
         empty = True
     # drop #defines of (some) parenthesized expressions
     elif re.match(r'^#define +\S+ +\(.*?\)$', line) \
-        or re.match(r'^#define +\S+ +\([^\(\)]*?\([^\(\)]*?\)[^\(\)]*?\)$', line):
+            or re.match(r'^#define +\S+ +\([^\(\)]*?\([^\(\)]*?\)[^\(\)]*?\)$', line):
         if VERB >= 2:
             print(f'dropping (other) #define "{line}"')
         empty = True
@@ -199,6 +207,7 @@ def proc_line(line: str) -> str:
         # transform AIR_EXPORT, BIFF_EXPORT, etc into extern
         ret = re.sub(r'^[A-Z]+_EXPORT ', 'extern ', line)
     return ret
+
 
 def unmacro(lines: list[str]) -> list[str]:
     """
@@ -217,7 +226,7 @@ def unmacro(lines: list[str]) -> list[str]:
             if re.match(r'.*?\\$', line):
                 if VERB >= 2:
                     print(f'        ... more of macro: "{line}"')
-            else: # after starting macro, got to line not ending with '\'
+            else:  # after starting macro, got to line not ending with '\'
                 if VERB >= 2:
                     print(f'         ... end of macro: "{line}"')
                 copying = True
@@ -225,6 +234,7 @@ def unmacro(lines: list[str]) -> list[str]:
         if copying:
             olines.append(line)
     return olines
+
 
 def drop_at_match(rgx: str, num: int, lines: list[str]) -> int:
     """From list of strings lines, drop num lines starting with first match to rgx"""
@@ -238,9 +248,11 @@ def drop_at_match(rgx: str, num: int, lines: list[str]) -> int:
         lines.pop(idx)
     return idx
 
+
 def drop1(bye: str, lines: list[str]) -> None:
     """From list of strings lines, drop first occurance of bye"""
     lines.pop(lines.index(bye))
+
 
 def drop_at(bye: str, num: int, lines: list[str]) -> int:
     """From list of strings lines, drop num lines starting with first occurance of bye"""
@@ -249,13 +261,15 @@ def drop_at(bye: str, num: int, lines: list[str]) -> int:
         lines.pop(idx)
     return idx
 
+
 def drop_at_all(bye: str, num: int, lines: list[str]) -> None:
     """From list of strings lines, drop sets of num lines, each starting with bye"""
     while (idx := lines.index(bye) if bye in lines else -1) >= 0:
         for _ in range(num):
             lines.pop(idx)
 
-def proc_hdr(fout, fin, hname: str) -> None: # out, fin: files
+
+def proc_hdr(fout, fin, hname: str) -> None:  # out, fin: files
     """
     Write to file out the results of processing header file hfin
     """
@@ -270,8 +284,11 @@ def proc_hdr(fout, fin, hname: str) -> None: # out, fin: files
     # remove sets of 3 lines, starting with '#ifdef __cplusplus'
     drop_at_all('#ifdef __cplusplus', 3, lines)
     # remove sets of 9 lines that define <LIB>_EXPORT
-    drop_at_all('#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)', 9, lines)
-    if hname == 'air.h': # handling specific to air.h
+    drop_at_all(
+        '#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)',
+        9,
+        lines)
+    if hname == 'air.h':  # handling specific to air.h
         # air.h has a set of 15 lines around airLLong, airULLong typedefs
         # this currently signals it's start, though (HEY) seems fragile
         idx = drop_at('#if defined(_WIN32) && !defined(__CYGWIN__) '
@@ -319,10 +336,15 @@ def proc_hdr(fout, fin, hname: str) -> None: # out, fin: files
             {'id': 'PHIST'}
         ]
         for pcc in pcntl:
-            pcc['on'] = any(re.match(f"^#define PULL_{pcc['id']} *1$", line) for line in lines)
+            pcc['on'] = any(
+                re.match(
+                    f"^#define PULL_{pcc['id']} *1$",
+                    line) for line in lines)
             if (not pcc['on']
-                and not any(re.match(f"^#define PULL_{pcc['id']} *0$", line) for line in lines)):
-                raise Exception(f"did not see #define PULL_{pcc['id']} in expected form in pull.h")
+                    and not any(re.match(f"^#define PULL_{pcc['id']} *0$", line)
+                                for line in lines)):
+                raise Exception(
+                    f"did not see #define PULL_{pcc['id']} in expected form in pull.h")
             drop_at_match(f"^#define PULL_{pcc['id']}", 1, lines)
         olines = []
         copying = True
@@ -356,6 +378,7 @@ def proc_hdr(fout, fin, hname: str) -> None: # out, fin: files
     for line in lines:
         fout.write(f'{line}\n')
 
+
 def build(path: str):
     """
     Main function: creates cdef_teem.h then feeds it to cffi.FFI() to compile the
@@ -365,26 +388,29 @@ def build(path: str):
     hdr_path = path + '/include'
     lib_path = path + '/lib'
     if (not os.path.isdir(hdr_path) or
-        not os.path.isdir(lib_path)):
-        raise Exception(f'Need both {hdr_path} and {lib_path} to be subdirs of teem install dir')
+            not os.path.isdir(lib_path)):
+        raise Exception(
+            f'Need both {hdr_path} and {lib_path} to be subdirs of teem install dir')
     check_lib_path(lib_path)
     (exper, hdrs) = check_hdr_path(hdr_path)
     if VERB:
         print("#################### writing cdef_teem.h ...")
     with open('cdef_teem.h', 'w', encoding='utf-8') as out:
-        out.write('/* NOTE: This file is automatically generated by build_teem.py.\n')
-        out.write(' * It is NOT usable as a single "teem.h" header for all of Teem, because of\n')
-        out.write(' * the many hacky transformations done to work with the limitations of the\n')
-        out.write(' * CFFI C parser, specifically, lacking C pre-processor (e.g., all #include\n')
-        out.write(' * directives have been removed, and lots of other #defines are gone).\n')
-        out.write(' * The top-level header for all of Teem is teem/meet.h */\n')
+        out.write("""
+/* NOTE: This file is automatically generated by build_teem.py.
+ * It is NOT usable as a single "teem.h" header for all of Teem, because of
+ * the many hacky transformations done to work with the limitations of the
+ * CFFI C parser, specifically, lacking C pre-processor (e.g., all #include
+ * directives have been removed, and lots of other #defines are gone).
+ * The top-level header for all of Teem is teem/meet.h */
+ """)
         for hdr in hdrs:
             out.write(f'/* =========== {hdr} =========== */\n')
             with open(f'{hdr_path}/teem/{hdr}', 'r', encoding='utf-8') as hfin:
                 proc_hdr(out, hfin, hdr)
             out.write('\n\n')
     ffibld = cffi.FFI()
-    ## so that teem.py can call free() as part of biff error handling
+    # so that teem.py can call free() as part of biff error handling
     ffibld.cdef('extern void free(void *);')
     if VERB:
         print("#################### reading cdef_teem.h ...")
@@ -398,14 +424,14 @@ def build(path: str):
         'extra_link_args': [f'-Wl,-rpath,{os.path.abspath(lib_path)}'],
         # keep asserts()
         # https://docs.python.org/3/distutils/apiref.html#distutils.core.Extension
-        'undef_macros':  [ "NDEBUG" ],
+        'undef_macros': ["NDEBUG"],
     }
     if VERB:
         print("#################### calling set_source with ...")
-        for key,val in source_args.items():
+        for key, val in source_args.items():
             print(f'   {key} = {val}')
     ffibld.set_source('_teem',
-                      '#include <teem/meet.h>', # this is effectively teem.h
+                      '#include <teem/meet.h>',  # this is effectively teem.h
                       **source_args)
     if VERB:
         print("#################### compiling _teem (slow!) ...")
@@ -418,6 +444,7 @@ def build(path: str):
     # to confirm that this want to dynamically link to the libteem shared library
     # (something about the mac build process allows this to work even if -Wl,-rpath
     # is not passed to set_source, but this seems necessary on linux)
+
 
 def parse_args():
     """
@@ -432,6 +459,7 @@ def parse_args():
                         help='path into which CMake has install Teem (should have '
                         '\"include\" and \"lib\" subdirectories)')
     return parser.parse_args()
+
 
 if __name__ == '__main__':
     args = parse_args()
