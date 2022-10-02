@@ -49,10 +49,9 @@ typedef size_t IT;
 /* typedef long double LD; */
 
 /*
-** I don't think that I can get out of defining this macro twice,
-** because of the rules of C preprocessor macro expansion.  If
-** you can figure out a way to not use two identical macros, then
-** email me (glk@uchicago.edu) and I'll send you money for dinner.
+** GLK doesn't think we can avoid defining this macro twice,
+** because of the rules of C preprocessor macro expansion.
+** Do you see a way to avoid this?
 **
 ** >>> MAP1 and MAP2 need to be identical <<<
 */
