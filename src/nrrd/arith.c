@@ -475,7 +475,7 @@ _nrrdBinaryOpULPDistance(double dA, double dB) {
     Bi = FB.i;
     if ((A >= 0) == (B >= 0)) {
       /* easy case: two finite values of same sign */
-      uint diff = Ai > Bi ? Ai - Bi : Bi - Ai;
+      unsigned int diff = Ai > Bi ? Ai - Bi : Bi - Ai;
       ret = QLAMP(diff, maxd);
     } else {
       /* harder: two finite values of different sign. The
