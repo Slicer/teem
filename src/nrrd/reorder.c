@@ -573,7 +573,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum, unsigned int a
   unsigned int ni, ai, mindim, maxdim, outdim, permute[NRRD_DIM_MAX],
     ipermute[NRRD_DIM_MAX];
   int diffdim, axmap[NRRD_DIM_MAX];
-  size_t outlen, outnum, chunksize, size[NRRD_DIM_MAX];
+  size_t outlen, chunksize, size[NRRD_DIM_MAX];
   char *dataPerm;
   Nrrd *ntmpperm, /* axis-permuted version of output */
     **ninperm;
@@ -761,15 +761,12 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum, unsigned int a
   /* fprintf(stderr, "!%s: outlen = %u\n", me, (unsigned int)outlen); */
 
   /* allocate temporary nrrd and concat input into it */
-  outnum = 1;
   if (outdim > 1) {
     for (ai = 0; ai < outdim - 1; ai++) {
       size[ai] = ninperm[0]->axis[ai].size;
-      outnum *= size[ai];
     }
   }
   size[outdim - 1] = outlen;
-  outnum *= size[outdim - 1];
   if (nrrdMaybeAlloc_nva(ntmpperm = nrrdNew(), ninperm[0]->type, outdim, size)) {
     biffAddf(NRRD, "%s: trouble allocating permutation nrrd", me);
     airMopError(mop);
