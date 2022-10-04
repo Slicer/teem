@@ -607,7 +607,6 @@ _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
   /* static const char me[] = "_tenPathSpacingEqualize"; */
   double *in, *out, len, diff[7], lenTotal, /* total length of input */
     lenStep, /* correct length on input polyline between output vertices */
-    lenIn,   /* length along input processed so far */
     lenHere, /* length of segment associated with current input index */
     lenRmn,  /* length along past input segments as yet unmapped to output */
     *tenHere, *tenNext;
@@ -623,7 +622,7 @@ _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
           lenTotal, NN, lenStep);
   */
   TEN_T_COPY(out + 7 * 2 * (0 + 0), in + 7 * 2 * (0 + 0));
-  lenIn = lenRmn = 0;
+  lenRmn = 0;
   idxOut = 1;
   for (idxIn = 0; idxIn < NN; idxIn++) {
     tenNext = in + 7 * 2 * (idxIn + 1);
@@ -660,7 +659,6 @@ _tenPathSpacingEqualize(Nrrd *nout, Nrrd *nin) {
       */
     }
     /* now lenRmn < lenStep */
-    lenIn += lenHere;
   }
   /* copy very last one in case we didn't get to it somehow */
   TEN_T_COPY(out + 7 * 2 * (NN + 0), in + 7 * 2 * (NN + 0));
