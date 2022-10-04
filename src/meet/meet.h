@@ -165,7 +165,7 @@ MEET_EXPORT int meetPullVolParse(meetPullVol *mpv, const char *str);
 MEET_EXPORT int meetPullVolLeechable(const meetPullVol *lchr,
                                      const meetPullVol *orig,
                                      int *can,
-                                     char explain[AIR_STRLEN_LARGE]);
+                                     char explain[AIR_STRLEN_HUGE]);
 MEET_EXPORT meetPullVol *meetPullVolNix(meetPullVol *pvol);
 MEET_EXPORT const hestCB *const meetHestPullVol;
 MEET_EXPORT int meetPullVolStackBlurParmFinishMulti(meetPullVol **mpv,

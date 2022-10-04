@@ -308,11 +308,13 @@ const hestCB *const meetHestPullVol = &_meetHestPullVol;
 ******** meetPullVolLeechable
 **
 ** indicates whether lchr can leech from orig (saved in *can), and if not,
-** explanation is saved in explain (if non-NULL)
+** explanation is saved in explain (if non-NULL).  explain is size AIR_STRLEN_HUGE
+** because it has to contain the subexplain from gageStackBlurParmCompare, which
+** is size AIR_STRLEN_LARGE (noted thanks to a gcc warning)
 */
 int /* Biff: 1 */
 meetPullVolLeechable(const meetPullVol *lchr, const meetPullVol *orig, int *can,
-                     char explain[AIR_STRLEN_LARGE]) {
+                     char explain[AIR_STRLEN_HUGE]) {
   static const char me[] = "meetPullVolLeechable";
   char subexplain[AIR_STRLEN_LARGE];
 
@@ -484,7 +486,7 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum, char *cachePath,
   for (mpvIdx = 0; mpvIdx < mpvNum; mpvIdx++) {
     unsigned int pvi;
     int leechable;
-    char explain[AIR_STRLEN_LARGE];
+    char explain[AIR_STRLEN_HUGE];
     vol = mpv[mpvIdx];
     for (pvi = 0; pvi < mpvIdx; pvi++) {
       if (meetPullVolLeechable(vol, mpv[pvi], &leechable, explain)) {
