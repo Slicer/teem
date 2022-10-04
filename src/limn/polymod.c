@@ -971,17 +971,16 @@ doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
     while (vertIdx < vertNum) {
       unsigned int E;
       E = 0;
+      /*
       if (1) {
         unsigned int hitIdx, hitSum;
         hitSum = 0;
         for (hitIdx = 0; hitIdx < vertNum; hitIdx++) {
           hitSum += hitCount[hitIdx];
         }
-        /*
-        fprintf(stderr, "!%s: PRE hitSum = %u (pass %u)\n", me,
-                hitSum, passIdx);
-        */
+        fprintf(stderr, "!%s: PRE hitSum = %u (pass %u)\n", me, hitSum, passIdx);
       }
+      */
       if (!E) E |= splitListExtract(&listLen, edgeArr, hitCount, vertIdx, edgeDoneNum);
       /* HEY: should do a splitListShorten() that cuts across repeated
          triangles, and then shifting downward the rest of the list.
