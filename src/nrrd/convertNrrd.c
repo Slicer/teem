@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2022  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -180,19 +180,55 @@ typedef void (*CN)(void *, const void *, IT, int, int);
 /*
 ******** nrrdFClamp
 **
-** for integral types, clamps a given float to the range representable
-** by that type; for floating point types we just return
-** the given number, since every float must fit in a double.
+** The rationale for this has been: "for integral types, clamps a given float to the
+** range representable by that type; for floating point types, just return the given
+** number, since every float must fit in a double".  However, thinking for the v1.13
+** release finally recognized the fact that INT_MAX is not representable as a float,
+** so you could have: int 2147483584, passed through nrrdFClamp[nrrdTypeInt] to get
+** float 2.14748365e+09 > INT_MAX==2147483647, which when cast back to int gives you
+** -2147483648, which completely violates the intent of these functions! So, now the
+** rationale is just "clamps given float to a range that won't create big surprises
+** due to integer overflow upon casting to that type". There could still be small
+** suprises, as in from negative input generating output that is less than the input
+** (but still negative). The solution adopted here is possibly too slow, but we'll
+** let profiling tell us that, rather than trying to cleverly use bounds known at
+** compile-time when valid.
+**
+** Btw, this is a good example of where warnings about implicit floating-point
+** conversion warnings highlighted actual bugs in code.
 */
 static float _nrrdFClampCH(FL v) { return AIR_CLAMP(SCHAR_MIN, v, SCHAR_MAX);}
 static float _nrrdFClampUC(FL v) { return AIR_CLAMP(0, v, UCHAR_MAX);}
 static float _nrrdFClampSH(FL v) { return AIR_CLAMP(SHRT_MIN, v, SHRT_MAX);}
 static float _nrrdFClampUS(FL v) { return AIR_CLAMP(0, v, USHRT_MAX);}
-static float _nrrdFClampJN(FL v) { return AIR_CLAMP(INT_MIN, v, INT_MAX);}
-static float _nrrdFClampUI(FL v) { return AIR_CLAMP(0, v, UINT_MAX);}
-static float _nrrdFClampLL(FL v) { return AIR_CLAMP(NRRD_LLONG_MIN, v,
-                                                    NRRD_LLONG_MAX);}
-static float _nrrdFClampUL(FL v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
+static float _nrrdFClampJN(FL v) {
+  airFloat umax, umin; /* float, uint union */
+  umax.f = (float)INT_MAX;
+  umax.i -= 1; /* decrease by one ULP */
+  umin.f = (float)INT_MIN;
+  umin.i += 1;
+  return AIR_CLAMP(umin.f, v, umax.f);
+}
+static float _nrrdFClampUI(FL v) {
+  airFloat umax; /* float, uint union */
+  umax.f = (float)UINT_MAX;
+  umax.i -= 1;
+  return AIR_CLAMP(0, v, umax.f);
+}
+static float _nrrdFClampLL(FL v)  { /* HEY copy-pasta from above */
+  airFloat umax, umin;
+  umax.f = (float)NRRD_LLONG_MAX;
+  umax.i -= 1;
+  umin.f = (float)NRRD_LLONG_MIN;
+  umin.i += 1;
+  return AIR_CLAMP(umin.f, v, umax.f);
+}
+static float _nrrdFClampUL(FL v)  {
+  airFloat umax;
+  umax.f = (float)NRRD_ULLONG_MAX;
+  umax.i -= 1;
+  return AIR_CLAMP(0, v, umax.f);
+}
 static float _nrrdFClampFL(FL v) { return v; }
 static float _nrrdFClampDB(FL v) { return v; }
 float (* const
@@ -213,8 +249,9 @@ nrrdFClamp[NRRD_TYPE_MAX+1])(FL) = {
 /*
 ******** nrrdDClamp
 **
-** same as nrrdDClamp, but for doubles.  One change: in the case of
-** floats, doubles are clamped to the range -FLT_MAX to FLT_MAX.
+** same as nrrdDClamp, but for doubles; here the long long int extrema
+** have to be cast to double to avoid implicit conversion warnings.
+** One change: for floats, doubles are clamped to [-FLT_MAX, FLT_MAX].
 */
 static double _nrrdDClampCH(DB v) { return AIR_CLAMP(SCHAR_MIN, v, SCHAR_MAX);}
 static double _nrrdDClampUC(DB v) { return AIR_CLAMP(0, v, UCHAR_MAX);}
@@ -222,9 +259,20 @@ static double _nrrdDClampSH(DB v) { return AIR_CLAMP(SHRT_MIN, v, SHRT_MAX);}
 static double _nrrdDClampUS(DB v) { return AIR_CLAMP(0, v, USHRT_MAX);}
 static double _nrrdDClampJN(DB v) { return AIR_CLAMP(INT_MIN, v, INT_MAX);}
 static double _nrrdDClampUI(DB v) { return AIR_CLAMP(0, v, UINT_MAX);}
-static double _nrrdDClampLL(DB v) { return AIR_CLAMP(NRRD_LLONG_MIN, v,
-                                                     NRRD_LLONG_MAX);}
-static double _nrrdDClampUL(DB v) { return AIR_CLAMP(0, v, NRRD_ULLONG_MAX);}
+static double _nrrdDClampLL(DB v) { /* HEY copy-pasta from above */
+  airDouble umax, umin;
+  umax.d = (double)NRRD_LLONG_MAX;
+  umax.i -= 1;
+  umin.d = (double)NRRD_LLONG_MIN;
+  umin.i += 1;
+  return AIR_CLAMP(umin.d, v, umax.d);
+}
+static double _nrrdDClampUL(DB v) {
+  airDouble umax;
+  umax.d = (double)NRRD_ULLONG_MAX;
+  umax.i -= 1;
+  return AIR_CLAMP(0, v, umax.d);
+}
 static double _nrrdDClampFL(DB v) { return AIR_CLAMP(-FLT_MAX, v, FLT_MAX); }
 static double _nrrdDClampDB(DB v) { return v; }
 double (* const
