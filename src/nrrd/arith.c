@@ -455,7 +455,7 @@ _nrrdBinaryOpULPDistance(double dA, double dB) {
   float A, B;
   int Anf, Bnf;
   airFloat FA, FB;
-  double ret;
+  double ret = 0; /* is always set, but compiler might still warn */
   unsigned int maxd, Ai, Bi;
   A = AIR_CAST(float, dA);
   B = AIR_CAST(float, dB);
