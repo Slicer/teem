@@ -557,9 +557,8 @@ _tenGageDesc[] = {
   "gradient vector of ca1",
   "gradient magnitude of ca1",
   "normal of ca1",
-  "all tensor component gradients, starting with confidence gradient, "
-  /* !! CONCAT !! */
-  "rotated such that eigenvalue derivatives are on the diagonal",
+  ("all tensor component gradients, starting with confidence gradient, "
+  "rotated such that eigenvalue derivatives are on the diagonal"),
   "eigenvalue hessians",
   "cl1 hessian",
   "cl1 hessian evals",

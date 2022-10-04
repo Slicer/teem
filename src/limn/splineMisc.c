@@ -38,8 +38,8 @@ static const char *
 _limnSplineTypeDesc[LIMN_SPLINE_TYPE_MAX+1] = {
   "unknown spline type",
   "simple linear interpolation between control points",
-  "pseudo-Hermite spline for warping time to uniform (integral) "
-    "control point locations",
+  ("pseudo-Hermite spline for warping time to uniform (integral) "
+    "control point locations"),
   "Hermite cubic interpolating spline",
   "cubic Bezier spline",
   "Mitchell-Netravalli BC-family of cubic splines"
