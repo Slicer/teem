@@ -29,36 +29,40 @@ making pythonic interfaces to Teem functionality.  See teem/python/cffi/README.m
 # long BIFFDICT lines don't need to be human-friendly
 # pylint: disable=c-extension-no-member, line-too-long
 
-import math as _math # for isnan test that may appear in _BIFFDICT
+import math as _math  # for isnan test that may appear in _BIFFDICT
 import sys as _sys
 
 # halt if python2; thanks to https://preview.tinyurl.com/44f2beza
-_x,*_y=1,2 # NOTE: A SyntaxError here means you need python3, not python2
+_x, *_y = 1, 2  # NOTE: A SyntaxError here means you need python3, not python2
 del _x, _y
 
+
 class Tenum:
-    """A helper/wrapper around airEnums (or pointers to them) in Teem, which
-    provides convenient ways to convert between integer enum values and real
-    Python strings. The C airEnum underlying the Python Tenum foo is still
-    available as foo().
+    """A helper/wrapper around airEnums (or pointers to them) in Teem, which provides
+    convenient ways to convert between integer enum values and real Python strings.
+    The C airEnum underlying the Python Tenum foo is still available as foo().
     """
+
     def __init__(self, aenm, _name):
         """Constructor takes a Teem airEnum pointer (const airEnum *const)."""
         if not str(aenm).startswith("<cdata 'airEnum *' "):
             raise TypeError(f'passed argument {aenm} does not seem to be a Teem airEnum pointer')
         self.aenm = aenm
         self.name = _teem.ffi.string(self.aenm.name).decode('ascii')
-        self._name = _name # the variable name for the airEnum in libteem
+        self._name = _name  # the variable name for the airEnum in libteem
         # following definition of airEnum struct in air.h
         self.vals = list(range(1, self.aenm.M + 1))
         if self.aenm.val:
             self.vals = [self.aenm.val[i] for i in self.vals]
+
     def __call__(self):
         """Returns (a pointer to) the underlying Teem airEnum."""
         return self.aenm
+
     def __iter__(self):
         """Provides a way to iterate through the valid values of the enum"""
         return iter(self.vals)
+
     def valid(self, ios) -> bool:  # ios = int or string
         """Answers whether given int is a valid value of enum, or whether given string
         is a valid string in enum, depending on incoming type.
@@ -69,6 +73,7 @@ class Tenum:
             return self.unknown() != self.val(ios)
         # else
         raise TypeError(f'Need an int or str argument (not {type(ios)})')
+
     def str(self, val: int, picky=False) -> str:
         """Converts from integer enum value val to string identifier
         (wraps airEnumStr())"""
@@ -77,11 +82,13 @@ class Tenum:
             raise ValueError(f'{val} not a valid {self._name} ("{self.name}") enum value')
         # else
         return _teem.ffi.string(_teem.lib.airEnumStr(self.aenm, val)).decode('ascii')
+
     def desc(self, val: int) -> str:
         """Converts from integer value val to description string
         (wraps airEnumDesc())"""
         assert isinstance(val, int), f'Need an int argument (not {type(val)})'
         return _teem.ffi.string(_teem.lib.airEnumDesc(self.aenm, val)).decode('ascii')
+
     def val(self, sss: str, picky=False) -> int:
         """Converts from string sss to integer enum value
         (wraps airEnumVal())"""
@@ -91,6 +98,7 @@ class Tenum:
             raise ValueError(f'"{sss}" not parsable as {self._name} ("{self.name}") enum value')
         # else
         return ret
+
     def unknown(self) -> int:
         """Returns value representing unknown
         (wraps airEnumUnknown())"""
@@ -102,6 +110,8 @@ class Tenum:
 # BIFFDICT
 
 # generates a biff-checking wrapper around function func
+
+
 def _biffer(func, func_name: str, rvtf, mubi: int, bkey, fnln: str):
     def wrapper(*args):
         # pass all args to underlying C function; get return value
@@ -109,11 +119,12 @@ def _biffer(func, func_name: str, rvtf, mubi: int, bkey, fnln: str):
         # we have to get biff error if rvtf(ret_val) == ret_valindicates error
         # and, either: this function definitely uses biff (0 == mubi)
         #          or: (this function maybe uses biff and) "useBiff" args[mubi-1] is True
-        if rvtf(ret_val) and (0 == mubi or args[mubi-1]):
+        if rvtf(ret_val) and (0 == mubi or args[mubi - 1]):
             err = _teem.lib.biffGetDone(bkey)
             estr = ffi.string(err).decode('ascii').rstrip()
             _teem.lib.free(err)
-            raise RuntimeError(f'return value {ret_val} from C function "{func_name}" ({fnln}):\n{estr}')
+            raise RuntimeError(
+                f'return value {ret_val} from C function "{func_name}" ({fnln}):\n{estr}')
         return ret_val
     wrapper.__name__ = func_name
     wrapper.__doc__ = f"""
@@ -121,6 +132,7 @@ error-checking wrapper around C function "{func_name}" ({fnln}):
 {func.__doc__}
 """
     return wrapper
+
 
 def export_teem():
     """Exports things from _teem.lib, adding biff wrappers to functions where possible."""
@@ -149,12 +161,13 @@ def export_teem():
             raise Exception(f"didn't handle symbol {sym_name}")
         globals()[sym_name] = exp
 
-if 'teem' == __name__: # being imported
+
+if 'teem' == __name__:  # being imported
     if _sys.platform == 'darwin':  # mac
         _LPVNM = 'DYLD_LIBRARY_PATH'
         _SHEXT = 'dylib'
     else:
-        _LPVNM= 'LD_LIBRARY_PATH'
+        _LPVNM = 'LD_LIBRARY_PATH'
         _SHEXT = 'so'
     try:
         import _teem
