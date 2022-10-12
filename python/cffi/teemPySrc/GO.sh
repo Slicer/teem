@@ -2,6 +2,8 @@
 set -o errexit
 set -o nounset
 
+# HEY TODO: this should be via something like a Makefile that
+# can keep track of file modification dates
 if [ ! -f biffDict.py ]; then
     echo "recreating biffDict.py ..."
     cd ../../../src/_util/
