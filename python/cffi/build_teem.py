@@ -107,10 +107,7 @@ def check_hdr_path(hdr_path: str):
     if missing_hdrs:
         raise Exception(f"Missing header(s) {' '.join(missing_hdrs)} in {itpath} "
                         + "for one or more of the core Teem libs")
-    missing_expr_hdrs = list(
-        filter(
-            lambda F: not os.path.isfile(f'{itpath}/{F}'),
-            expr_hdrs))
+    missing_expr_hdrs = list(filter(lambda F: not os.path.isfile(f'{itpath}/{F}'), expr_hdrs))
     have_hdrs = base_hdrs
     if missing_expr_hdrs:
         # missing one or more of the non-core "Experimental" header files
@@ -284,10 +281,7 @@ def proc_hdr(fout, fin, hname: str) -> None:  # out, fin: files
     # remove sets of 3 lines, starting with '#ifdef __cplusplus'
     drop_at_all('#ifdef __cplusplus', 3, lines)
     # remove sets of 9 lines that define <LIB>_EXPORT
-    drop_at_all(
-        '#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)',
-        9,
-        lines)
+    drop_at_all('#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)', 9, lines)
     if hname == 'air.h':  # handling specific to air.h
         # air.h has a set of 15 lines around airLLong, airULLong typedefs
         # this currently signals it's start, though (HEY) seems fragile
@@ -300,8 +294,7 @@ def proc_hdr(fout, fin, hname: str) -> None:  # out, fin: files
         drop_at('#if !defined(TEEM_NON_CMAKE)', 3, lines)
         # drop AIR_EXISTS definition
         drop_at('#if defined(_WIN32) || defined(__ECC) || '
-                'defined(AIR_EXISTS_MACRO_FAILS) /* NrrdIO-hack-002 */',
-                5, lines)
+                'defined(AIR_EXISTS_MACRO_FAILS) /* NrrdIO-hack-002 */', 5, lines)
     elif hname == 'biff.h':
         # drop the attribute directives about biff like printf
         drop_at_all('#ifdef __GNUC__', 3, lines)
@@ -336,15 +329,10 @@ def proc_hdr(fout, fin, hname: str) -> None:  # out, fin: files
             {'id': 'PHIST'}
         ]
         for pcc in pcntl:
-            pcc['on'] = any(
-                re.match(
-                    f"^#define PULL_{pcc['id']} *1$",
-                    line) for line in lines)
-            if (not pcc['on']
-                    and not any(re.match(f"^#define PULL_{pcc['id']} *0$", line)
-                                for line in lines)):
-                raise Exception(
-                    f"did not see #define PULL_{pcc['id']} in expected form in pull.h")
+            pcc['on'] = any(re.match(f"^#define PULL_{pcc['id']} *1$", line) for line in lines)
+            if (not pcc['on'] and not any(
+                    re.match(f"^#define PULL_{pcc['id']} *0$", line) for line in lines)):
+                raise Exception(f"did not see #define PULL_{pcc['id']} in expected form in pull.h")
             drop_at_match(f"^#define PULL_{pcc['id']}", 1, lines)
         olines = []
         copying = True
@@ -421,7 +409,12 @@ def build(path: str):
         'include_dirs': [hdr_path],
         'library_dirs': [lib_path],
         'extra_compile_args': ['-DTEEM_BUILD_EXPERIMENTAL_LIBS'] if exper else None,
-        'extra_link_args': [f'-Wl,-rpath,{os.path.abspath(lib_path)}'],
+        # On linux, path <dir> here is passed to -Wl,--enable-new-dtags,-R<dir>;
+        # "readelf -d ....so | grep PATH" should show <dir> and "ldd .....so" should show
+        # where dependencies were found.
+        # On Mac, path <dir> here is passed to -Wl,-rpath,<dir>, and you can see that
+        # from "otool -l ....so", in the LC_RPATH sections.
+        'runtime_library_dirs': [os.path.abspath(lib_path)],
         # keep asserts()
         # https://docs.python.org/3/distutils/apiref.html#distutils.core.Extension
         'undef_macros': ["NDEBUG"],
@@ -430,8 +423,7 @@ def build(path: str):
         print("#################### calling set_source with ...")
         for key, val in source_args.items():
             print(f'   {key} = {val}')
-    ffibld.set_source('_teem',
-                      '#include <teem/meet.h>',  # this is effectively teem.h
+    ffibld.set_source('_teem', '#include <teem/meet.h>',  # this is effectively teem.h
                       **source_args)
     if VERB:
         print("#################### compiling _teem (slow!) ...")
