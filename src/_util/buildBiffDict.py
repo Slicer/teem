@@ -19,6 +19,8 @@
 # this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
 # Fifth Floor, Boston, MA 02110-1301 USA
 
+# HEY TODO: make pylint happier!
+
 # halt if python2; thanks to https://preview.tinyurl.com/44f2beza
 import re
 import argparse
