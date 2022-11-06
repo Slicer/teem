@@ -652,7 +652,7 @@ def _biffer(func, func_name: str, rvtf, mubi: int, bkey, fnln: str):
         #          or: (this function maybe uses biff and) "useBiff" args[mubi-1] is True
         if rvtf(ret_val) and (0 == mubi or args[mubi - 1]):
             err = _teem.lib.biffGetDone(bkey)
-            estr = ffi.string(err).decode('ascii').rstrip()
+            estr = _teem.ffi.string(err).decode('ascii').rstrip()
             _teem.lib.free(err)
             raise RuntimeError(
                 f'return value {ret_val} from C function "{func_name}" ({fnln}):\n{estr}'
