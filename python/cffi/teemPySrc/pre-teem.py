@@ -78,7 +78,7 @@ class Tenum:
         """Converts from integer enum value val to string identifier
         (wraps airEnumStr())"""
         assert isinstance(val, int), f'Need an int argument (not {type(val)})'
-        if (picky and not self.valid(val)):
+        if picky and not self.valid(val):
             raise ValueError(f'{val} not a valid {self._name} ("{self.name}") enum value')
         # else
         return _teem.ffi.string(_teem.lib.airEnumStr(self.aenm, val)).decode('ascii')
@@ -94,7 +94,7 @@ class Tenum:
         (wraps airEnumVal())"""
         assert isinstance(sss, str), f'Need an string argument (not {type(sss)})'
         ret = _teem.lib.airEnumVal(self.aenm, sss.encode('ascii'))
-        if (picky and ret == self.unknown()):
+        if picky and ret == self.unknown():
             raise ValueError(f'"{sss}" not parsable as {self._name} ("{self.name}") enum value')
         # else
         return ret
@@ -103,6 +103,7 @@ class Tenum:
         """Returns value representing unknown
         (wraps airEnumUnknown())"""
         return _teem.lib.airEnumUnknown(self.aenm)
+
 
 # The following dictionary is for all of Teem, including functions from the
 # "experimental" libraries; it is no problem if the libteem in use does not
@@ -124,8 +125,10 @@ def _biffer(func, func_name: str, rvtf, mubi: int, bkey, fnln: str):
             estr = ffi.string(err).decode('ascii').rstrip()
             _teem.lib.free(err)
             raise RuntimeError(
-                f'return value {ret_val} from C function "{func_name}" ({fnln}):\n{estr}')
+                f'return value {ret_val} from C function "{func_name}" ({fnln}):\n{estr}'
+            )
         return ret_val
+
     wrapper.__name__ = func_name
     wrapper.__doc__ = f"""
 error-checking wrapper around C function "{func_name}" ({fnln}):
