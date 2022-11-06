@@ -105,16 +105,20 @@ def check_hdr_path(hdr_path: str):
     expr_hdrs = [f'{LN}.h' for LN in expr_lib_names]
     missing_hdrs = list(filter(lambda F: not os.path.isfile(f'{itpath}/{F}'), base_hdrs))
     if missing_hdrs:
-        raise Exception(f"Missing header(s) {' '.join(missing_hdrs)} in {itpath} "
-                        + "for one or more of the core Teem libs")
+        raise Exception(
+            f'Missing header(s) {" ".join(missing_hdrs)} in {itpath} '
+            'for one or more of the core Teem libs'
+        )
     missing_expr_hdrs = list(filter(lambda F: not os.path.isfile(f'{itpath}/{F}'), expr_hdrs))
     have_hdrs = base_hdrs
     if missing_expr_hdrs:
         # missing one or more of the non-core "Experimental" header files
         if len(missing_expr_hdrs) < len(expr_hdrs):
-            raise Exception("Missing some (but not all) non-core header(s) "
-                            + f"{' '.join(missing_expr_hdrs)} in {itpath} for one or more of the "
-                            + "core Teem libs")
+            raise Exception(
+                'Missing some (but not all) non-core header(s) '
+                f'{" ".join(missing_expr_hdrs)} in {itpath} for one or more of the '
+                'core Teem libs'
+            )
         # else len(missing_expr_hdrs) == len(expr_hdrs)) aka all missing, ok, so
         # not Experimental
         if VERB:
@@ -137,17 +141,20 @@ def check_lib_path(lib_path: str) -> None:
     elif sys.platform == 'linux':
         shext = 'so'
     else:
-        raise Exception('Sorry, currently only know how work on Mac and Linux '
-                        '(not {sys.platform})')
+        raise Exception(
+            'Sorry, currently only know how work on Mac and Linux ' '(not {sys.platform})'
+        )
     lib_fnames = os.listdir(lib_path)
     if not lib_fnames:
         raise Exception(f'Teem library dir {lib_path} seems empty')
     ltname = f'libteem.{shext}'
     if not ltname in lib_fnames:
-        raise Exception(f'Teem library dir {lib_path} contents {lib_fnames} do not seem to include '
-                        f'required {ltname} shared library, which means running '
-                        'cffi.FFI().compile() later will not produce a working wrapper, even if '
-                        'it finishes without error.')
+        raise Exception(
+            f'Teem library dir {lib_path} contents {lib_fnames} do not seem to include '
+            f'required {ltname} shared library, which means running '
+            'cffi.FFI().compile() later will not produce a working wrapper, even if '
+            'it finishes without error.'
+        )
 
 
 def proc_line(line: str) -> str:
@@ -156,6 +163,9 @@ def proc_line(line: str) -> str:
     that doesn't help cffi's cdef, and transforming the ones that do.
     """
     empty = False
+    macro_start = r'^#define +\S+ *\([^\)]+\) +\S*?\([^\)]+?\).*?$'
+    define_a = r'^#define +\S+ +\(.*?\)$'
+    define_b = r'^#define +\S+ +\([^\(\)]*?\([^\(\)]*?\)[^\(\)]*?\)$'
     # drop the include guards       and    drop any include directives
     if line.find('HAS_BEEN_INCLUDED') >= 0 or re.match('^# *include ', line):
         empty = True
@@ -180,14 +190,12 @@ def proc_line(line: str) -> str:
         empty = True
     # drop one-line macro #defines
     # (multi-line macro #defines handled by unmacro)
-    elif re.match(r'^#define +\S+ *\([^\)]+\) +\S*?\([^\)]+?\).*?$', line) \
-            and not line.endswith('\\'):
+    elif re.match(macro_start, line) and not line.endswith('\\'):
         if VERB >= 2:
             print(f'dropping one-line #define macro "{line}"')
         empty = True
     # drop #defines of (some) parenthesized expressions
-    elif re.match(r'^#define +\S+ +\(.*?\)$', line) \
-            or re.match(r'^#define +\S+ +\([^\(\)]*?\([^\(\)]*?\)[^\(\)]*?\)$', line):
+    elif re.match(define_a, line) or re.match(define_b, line):
         if VERB >= 2:
             print(f'dropping (other) #define "{line}"')
         empty = True
@@ -285,16 +293,21 @@ def proc_hdr(fout, fin, hname: str) -> None:  # out, fin: files
     if hname == 'air.h':  # handling specific to air.h
         # air.h has a set of 15 lines around airLLong, airULLong typedefs
         # this currently signals it's start, though (HEY) seems fragile
-        idx = drop_at('#if defined(_WIN32) && !defined(__CYGWIN__) '
-                      '&& !defined(__MINGW32__)', 15, lines)
+        idx = drop_at(
+            '#if defined(_WIN32) && !defined(__CYGWIN__) ' '&& !defined(__MINGW32__)', 15, lines
+        )
         # restore definitions that seem to work for mac/linux
         lines.insert(idx, 'typedef signed long long airLLong;')
         lines.insert(idx, 'typedef unsigned long long airULLong;')
         # air.h's inclusion of teem/airExistsConf.h moot for cdef
         drop_at('#if !defined(TEEM_NON_CMAKE)', 3, lines)
         # drop AIR_EXISTS definition
-        drop_at('#if defined(_WIN32) || defined(__ECC) || '
-                'defined(AIR_EXISTS_MACRO_FAILS) /* NrrdIO-hack-002 */', 5, lines)
+        drop_at(
+            '#if defined(_WIN32) || defined(__ECC) || '
+            'defined(AIR_EXISTS_MACRO_FAILS) /* NrrdIO-hack-002 */',
+            5,
+            lines,
+        )
     elif hname == 'biff.h':
         # drop the attribute directives about biff like printf
         drop_at_all('#ifdef __GNUC__', 3, lines)
@@ -315,23 +328,22 @@ def proc_hdr(fout, fin, hname: str) -> None:  # out, fin: files
         lines.insert(idx, 'typedef float echoCol_t;')
         # unmacro removed the multi-line ECHO_OBJECT_MATTER macro, but its contents are needed
         # to complete the struct definitions (we're doing the pre-processor work)
-        matdef = 'unsigned char matter; echoCol_t rgba[4]; ' \
-                 'echoCol_t mat[ECHO_MATTER_PARM_NUM]; Nrrd *ntext'
+        matdef = (
+            'unsigned char matter; echoCol_t rgba[4]; '
+            'echoCol_t mat[ECHO_MATTER_PARM_NUM]; Nrrd *ntext'
+        )
         lines = [line.replace('ECHO_OBJECT_MATTER', matdef) for line in lines]
     elif hname == 'ten.h':
         lines.remove('TEND_MAP(TEND_DECLARE)')
     elif hname == 'pull.h':
         # here, there really are #define controls that do change what's visible in the structs
         # so we have to implement the action of the pre-processor
-        pcntl = [
-            {'id': 'HINTER'},
-            {'id': 'TANCOVAR'},
-            {'id': 'PHIST'}
-        ]
+        pcntl = [{'id': 'HINTER'}, {'id': 'TANCOVAR'}, {'id': 'PHIST'}]
         for pcc in pcntl:
             pcc['on'] = any(re.match(f"^#define PULL_{pcc['id']} *1$", line) for line in lines)
-            if (not pcc['on'] and not any(
-                    re.match(f"^#define PULL_{pcc['id']} *0$", line) for line in lines)):
+            if not pcc['on'] and not any(
+                re.match(f"^#define PULL_{pcc['id']} *0$", line) for line in lines
+            ):
                 raise Exception(f"did not see #define PULL_{pcc['id']} in expected form in pull.h")
             drop_at_match(f"^#define PULL_{pcc['id']}", 1, lines)
         olines = []
@@ -375,23 +387,23 @@ def build(path: str):
     path = path.rstrip('/')
     hdr_path = path + '/include'
     lib_path = path + '/lib'
-    if (not os.path.isdir(hdr_path) or
-            not os.path.isdir(lib_path)):
-        raise Exception(
-            f'Need both {hdr_path} and {lib_path} to be subdirs of teem install dir')
+    if not os.path.isdir(hdr_path) or not os.path.isdir(lib_path):
+        raise Exception(f'Need both {hdr_path} and {lib_path} to be subdirs of teem install dir')
     check_lib_path(lib_path)
     (exper, hdrs) = check_hdr_path(hdr_path)
     if VERB:
-        print("#################### writing cdef_teem.h ...")
+        print('#################### writing cdef_teem.h ...')
     with open('cdef_teem.h', 'w', encoding='utf-8') as out:
-        out.write("""
+        out.write(
+            """
 /* NOTE: This file is automatically generated by build_teem.py.
  * It is NOT usable as a single "teem.h" header for all of Teem, because of
  * the many hacky transformations done to work with the limitations of the
  * CFFI C parser, specifically, lacking C pre-processor (e.g., all #include
  * directives have been removed, and lots of other #defines are gone).
  * The top-level header for all of Teem is teem/meet.h */
- """)
+ """
+        )
         for hdr in hdrs:
             out.write(f'/* =========== {hdr} =========== */\n')
             with open(f'{hdr_path}/teem/{hdr}', 'r', encoding='utf-8') as hfin:
@@ -401,7 +413,7 @@ def build(path: str):
     # so that teem.py can call free() as part of biff error handling
     ffibld.cdef('extern void free(void *);')
     if VERB:
-        print("#################### reading cdef_teem.h ...")
+        print('#################### reading cdef_teem.h ...')
     with open('cdef_teem.h', 'r', encoding='utf-8') as file:
         ffibld.cdef(file.read())
     source_args = {
@@ -417,19 +429,20 @@ def build(path: str):
         'runtime_library_dirs': [os.path.abspath(lib_path)],
         # keep asserts()
         # https://docs.python.org/3/distutils/apiref.html#distutils.core.Extension
-        'undef_macros': ["NDEBUG"],
+        'undef_macros': ['NDEBUG'],
     }
     if VERB:
-        print("#################### calling set_source with ...")
+        print('#################### calling set_source with ...')
         for key, val in source_args.items():
             print(f'   {key} = {val}')
-    ffibld.set_source('_teem', '#include <teem/meet.h>',  # this is effectively teem.h
-                      **source_args)
+    ffibld.set_source(
+        '_teem', '#include <teem/meet.h>', **source_args  # this is effectively teem.h
+    )
     if VERB:
-        print("#################### compiling _teem (slow!) ...")
-    ffibld.compile(verbose=(VERB > 0))
+        print('#################### compiling _teem (slow!) ...')
+    out_path = ffibld.compile(verbose=(VERB > 0))
     if VERB:
-        print("#################### ... compiling _teem done.")
+        print(f'#################### ... compiling _teem done; created:\n{out_path}')
     # should have now created a new _teem.<platform>.so shared library
     # so should be able to, on Mac, (e.g.) "otool -L _teem.cpython-39-darwin.so"
     # or, on linux, (e.g.) "ldd _teem.cpython-38-x86_64-linux-gnu.so"
@@ -443,13 +456,22 @@ def parse_args():
     Set up and run argparse command-line parser
     """
     # https://docs.python.org/3/library/argparse.html
-    parser = argparse.ArgumentParser(description='Utility for compiling CFFI-based '
-                                     'python3 module around Teem shared library')
-    parser.add_argument('-v', metavar='verbosity', type=int, default=1, required=False,
-                        help='verbosity level (0 for silent)')
-    parser.add_argument('install_path',
-                        help='path into which CMake has install Teem (should have '
-                        '\"include\" and \"lib\" subdirectories)')
+    parser = argparse.ArgumentParser(
+        description='Utility for compiling CFFI-based ' 'python3 module around Teem shared library'
+    )
+    parser.add_argument(
+        '-v',
+        metavar='verbosity',
+        type=int,
+        default=1,
+        required=False,
+        help='verbosity level (0 for silent)',
+    )
+    parser.add_argument(
+        'install_path',
+        help='path into which CMake has install Teem (should have '
+        '"include" and "lib" subdirectories)',
+    )
     return parser.parse_args()
 
 
