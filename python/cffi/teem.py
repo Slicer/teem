@@ -43,12 +43,19 @@ class Tenum:
     The C airEnum underlying the Python Tenum foo is still available as foo().
     """
 
-    def __init__(self, aenm, _name):
+    def __init__(self, aenm, _name, xmdl=_teem):
         """Constructor takes a Teem airEnum pointer (const airEnum *const)."""
         if not str(aenm).startswith("<cdata 'airEnum *' "):
             raise TypeError(f'passed argument {aenm} does not seem to be a Teem airEnum pointer')
         self.aenm = aenm
-        self.name = _teem.ffi.string(self.aenm.name).decode('ascii')
+        # xmdl: what extension module is this enum coming from; it it is not _teem itself, then
+        # we want to know the module so as to avoid errors (when calling .ffi.string) like:
+        # "TypeError: initializer for ctype 'airEnum *' appears indeed to be 'airEnum *', but
+        # the types are different (check that you are not e.g. mixing up different ffi instances)"
+        # Unfortunately module xmdl also has to have (in its .lib) other Teem functions; this
+        # is an ugly hack until GLK learns more about CFFI wrappers around multiple libraries.
+        self.xmdl = xmdl
+        self.name = self.xmdl.ffi.string(self.aenm.name).decode('ascii')
         self._name = _name  # the variable name for the airEnum in libteem
         # following definition of airEnum struct in air.h
         self.vals = list(range(1, self.aenm.M + 1))
@@ -68,7 +75,7 @@ class Tenum:
         is a valid string in enum, depending on incoming type.
         (wraps airEnumValCheck() and airEnumVal())"""
         if isinstance(ios, int):
-            return not _teem.lib.airEnumValCheck(self.aenm, ios)
+            return not self.xmdl.lib.airEnumValCheck(self.aenm, ios)
         if isinstance(ios, str):
             return self.unknown() != self.val(ios)
         # else
@@ -81,19 +88,19 @@ class Tenum:
         if picky and not self.valid(val):
             raise ValueError(f'{val} not a valid {self._name} ("{self.name}") enum value')
         # else
-        return _teem.ffi.string(_teem.lib.airEnumStr(self.aenm, val)).decode('ascii')
+        return self.xmdl.ffi.string(self.xmdl.lib.airEnumStr(self.aenm, val)).decode('ascii')
 
     def desc(self, val: int) -> str:
         """Converts from integer value val to description string
         (wraps airEnumDesc())"""
         assert isinstance(val, int), f'Need an int argument (not {type(val)})'
-        return _teem.ffi.string(_teem.lib.airEnumDesc(self.aenm, val)).decode('ascii')
+        return self.xmdl.ffi.string(self.xmdl.lib.airEnumDesc(self.aenm, val)).decode('ascii')
 
     def val(self, sss: str, picky=False) -> int:
         """Converts from string sss to integer enum value
         (wraps airEnumVal())"""
         assert isinstance(sss, str), f'Need an string argument (not {type(sss)})'
-        ret = _teem.lib.airEnumVal(self.aenm, sss.encode('ascii'))
+        ret = self.xmdl.lib.airEnumVal(self.aenm, sss.encode('ascii'))
         if picky and ret == self.unknown():
             raise ValueError(f'"{sss}" not parsable as {self._name} ("{self.name}") enum value')
         # else
@@ -102,7 +109,7 @@ class Tenum:
     def unknown(self) -> int:
         """Returns value representing unknown
         (wraps airEnumUnknown())"""
-        return _teem.lib.airEnumUnknown(self.aenm)
+        return self.xmdl.lib.airEnumUnknown(self.aenm)
 
 
 # The following dictionary is for all of Teem, including functions from the
@@ -697,19 +704,15 @@ def export_teem():
 
 if 'teem' == __name__:  # being imported
     if _sys.platform == 'darwin':  # mac
-        _LPVNM = 'DYLD_LIBRARY_PATH'
         _SHEXT = 'dylib'
     else:
-        _LPVNM = 'LD_LIBRARY_PATH'
         _SHEXT = 'so'
     try:
         import _teem
     except ModuleNotFoundError:
         print('\n*** teem.py: failed to load shared library wrapper module "_teem", from')
         print('*** a shared object file named something like _teem.cpython-platform.so.')
-        print('*** Make sure you first ran: "python3 build_teem.py" to build that,')
-        print(f'*** and/or try setting the {_LPVNM} environment variable so that')
-        print(f'*** the underlying libteem.{_SHEXT} shared library can be found.\n')
+        print('*** Make sure you first ran: "python3 build_teem.py" to build that.')
         raise
     # The value of this ffi, as opposed to "from cffi import FFI; ffi = FFI()" is that it knows
     # about the various typedefs that were learned to build the CFFI wrapper, which may in turn
