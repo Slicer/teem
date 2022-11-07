@@ -43,7 +43,7 @@ class Tenum:
     The C airEnum underlying the Python Tenum foo is still available as foo().
     """
 
-    def __init__(self, aenm, _name, xmdl=_teem):
+    def __init__(self, aenm, _name, xmdl):
         """Constructor takes a Teem airEnum pointer (const airEnum *const)."""
         if not str(aenm).startswith("<cdata 'airEnum *' "):
             raise TypeError(f'passed argument {aenm} does not seem to be a Teem airEnum pointer')
@@ -158,7 +158,7 @@ def export_teem():
             # ... either a function known to not use biff, or, not a function
             if str(sym).startswith("<cdata 'airEnum *' "):
                 # _sym is name of an airEnum, wrap it as such
-                exp = Tenum(sym, sym_name)
+                exp = Tenum(sym, sym_name, _teem)
             else:
                 # straight copy of (reference to) sym
                 exp = sym
