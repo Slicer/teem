@@ -13,4 +13,6 @@ if [ ! -f biffDict.py ]; then
 fi
 
 # https://unix.stackexchange.com/questions/683231/replace-the-keyword-with-the-whole-content-of-another-file
+echo "recreating teem.py ..."
 sed -e '/# BIFFDICT/r biffDict.py' -e '//d' pre-teem.py > ../teem.py
+echo "... done"
