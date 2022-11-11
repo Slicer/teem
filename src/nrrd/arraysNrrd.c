@@ -236,8 +236,8 @@ const int _nrrdFieldValidInText[NRRD_FIELD_MAX + 1] = {
         float in text), so this should not be disruptive. */
   0, /* nrrdField_block_size */
   1, /* nrrdField_dimension: but can only be 1 or 2 */
-  0, /* nrrdField_space */
-  0, /* nrrdField_space_dimension */
+  1, /* nrrdField_space */
+  1, /* nrrdField_space_dimension */
   0, /* nrrdField_sizes */
   1, /* nrrdField_spacings */
   1, /* nrrdField_thicknesses */
@@ -258,8 +258,12 @@ const int _nrrdFieldValidInText[NRRD_FIELD_MAX + 1] = {
   0, /* nrrdField_byte_skip */
   1, /* nrrdField_keyvalue */
   0, /* nrrdField_sample_units */
-  0, /* nrrdField_space_units */
-  0, /* nrrdField_space_origin */
+  1, /* nrrdField_space_units */
+  1, /* nrrdField_space_origin: with revision 2368, which was part of adding new "space"
+        orientation meta-data, nrrdField_space_directions WERE said to be valid in text
+        (above in this array), but not space, space dimension, space units, or space
+        origin; this was probably a bug. Now that nio->bareText can be false, these
+        should all be allowed in text files. */
   0, /* nrrdField_measurement_frame */
   0  /* nrrdField_data_file */
 };
