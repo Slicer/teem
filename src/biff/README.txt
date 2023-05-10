@@ -78,7 +78,8 @@ or "nope" : This function does not use biff. The function may usefully
           communicate something about how things went wrong by a returning
           one of some possible error return values, but that isn't documented
           here because it doesn't involve biff. (Why "nope": it won't be
-          confused for anything else, and I just saw the Jordan Peele movie)
+          confused for anything else, and GLK just saw the excellent Jordan
+          Peele movie of the same name)
 
 --- Optional:
   # <comments>  : anything after a '#' is ignored by an annotation parser
