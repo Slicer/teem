@@ -32,7 +32,8 @@ static const char *_unrrdu_uncmtInfoL
      "types \"float\" or \"double\" directly (instead they use a class-specific\n "
      "\"real\" typedef). Grepping for \"float\" and \"double\" isn't informative\n "
      "since they can show up in comments; hence the need for this. Catching\n "
-     "implicit conversions to double-precision is handled separately.\n "
+     "implicit conversions between floating point precisions is handled separately,\n "
+     "in case you were thinking about that.\n"
      "* (not actually based on Nrrd)");
 
 static void
