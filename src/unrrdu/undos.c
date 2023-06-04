@@ -47,9 +47,8 @@ static const char *_unrrdu_undosInfoL
 #define LF 0x0a
 
 static void
-undosConvert(const char *me, const char *name,
-             int reverse, int mac, int quiet, int noAction,
-             float badPerc) {
+undosConvert(const char *me, const char *name, int reverse, int mac, int quiet,
+             int noAction, float badPerc) {
   airArray *mop;
   FILE *fin, *fout;
   char *data = NULL;
