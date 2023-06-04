@@ -145,6 +145,7 @@ extern "C" {
   F(hack)                                                                               \
   F(aabplot)                                                                            \
   F(undos)                                                                              \
+  F(uncmt)                                                                              \
   F(save)
 /* these two have been removed since no one uses them
 F(block) \

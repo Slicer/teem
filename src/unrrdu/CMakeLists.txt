@@ -54,6 +54,7 @@ set(UNRRDU_SOURCES
   hack.c
   aabplot.c
   undos.c
+  uncmt.c
   mlut.c
   mrmap.c
   pad.c
