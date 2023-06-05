@@ -38,9 +38,9 @@ static const char *_unrrdu_uncmtInfoL
 
 enum {
   stateSlash,  /* 0: just got a '/' */
-  stateSAcmt,  /* 1: in Slash Asterisk comment */
+  stateSAcmt,  /* 1: in Slash Asterisk (traditional C) comment */
   stateSAcmtA, /* 2: in Slash Asterisk comment, and saw '*' */
-  stateSScmt,  /* 3: in Slash Slash comment */
+  stateSScmt,  /* 3: in Slash Slash (C++ or C99) comment */
   stateStr,    /* 4: in "" String */
   stateStrEsc, /* 5: in "" String and saw \ */
   stateElse,   /* 6: everything else */
