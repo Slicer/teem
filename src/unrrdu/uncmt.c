@@ -27,13 +27,14 @@
 #define INFO "Removes comments from a C99 input file"
 static const char *_unrrdu_uncmtInfoL
   = (INFO
-     ".\n "
-     "This is useful for a class GLK teaches, wherein students are told not to use\n "
-     "types \"float\" or \"double\" directly (instead they use a class-specific\n "
-     "\"real\" typedef). Grepping for \"float\" and \"double\" isn't informative\n "
-     "since they can show up in comments; hence the need for this. Catching\n "
-     "implicit conversions between floating point precisions is handled separately,\n "
-     "in case you were thinking about that.\n"
+     " or rather removes the "
+     "contents of comments; the comment delimeters are preserved. This is useful "
+     "for a class GLK teaches, wherein students are told not to use types "
+     "\"float\" or \"double\" directly (instead they use a class-specific "
+     "\"real\" typedef). Grepping for \"float\" and \"double\" isn't informative "
+     "since they can show up in comments; hence the need for this. Catching "
+     "implicit conversions between floating point precisions is handled separately, "
+     "in case you were thinking about that.\n "
      "* (not actually based on Nrrd)");
 
 enum {
