@@ -36,18 +36,36 @@ static const char *_unrrdu_uncmtInfoL
      "in case you were thinking about that.\n"
      "* (not actually based on Nrrd)");
 
-static void
+enum {
+  stateSlash,  /* 0: just got a '/' */
+  stateSAcmt,  /* 1: in Slash Asterisk comment */
+  stateSAcmtA, /* 2: in Slash Asterisk comment, and saw '*' */
+  stateSScmt,  /* 3: in Slash Slash comment */
+  stateStr,    /* 4: in "" String */
+  stateStrEsc, /* 5: in "" String and saw \ */
+  stateElse,   /* 6: everything else */
+};
+
+/*
+Does the uncommenting.
+Issues to fix:
+-- does not handle \ newline continuation in the middle of starting / * or
+   ending * / delimiter of comment.
+-- DOS/Windows \r\n line termination inside a comment will be turned into \n
+-- Totally ignorant about Unicode!
+*/
+static int
 uncomment(const char *me, const char *nameIn, const char *nameOut) {
   airArray *mop;
   FILE *fin, *fout;
-  int ci, co;
+  int ci /* char in */, co /* char out */, state /* of scanner */;
 
   mop = airMopNew();
   if (!(airStrlen(nameIn) && airStrlen(nameOut))) {
     fprintf(stderr, "%s: empty filename for in (\"%s\") or out (\"%s\")\n", me, nameIn,
             nameOut);
     airMopError(mop);
-    return;
+    return 1;
   }
 
   /* -------------------------------------------------------- */
@@ -57,7 +75,7 @@ uncomment(const char *me, const char *nameIn, const char *nameOut) {
     fprintf(stderr, "%s: couldn't open \"%s\" for reading: \"%s\"\n", me, nameIn,
             strerror(errno));
     airMopError(mop);
-    return;
+    return 1;
   }
   airMopAdd(mop, fin, (airMopper)airFclose, airMopOnError);
   fout = airFopen(nameOut, stdout, "wb");
@@ -65,21 +83,109 @@ uncomment(const char *me, const char *nameIn, const char *nameOut) {
     fprintf(stderr, "%s: couldn't open \"%s\" for writing: \"%s\"\n", me, nameOut,
             strerror(errno));
     airMopError(mop);
-    return;
+    return 1;
   }
   airMopAdd(mop, fout, (airMopper)airFclose, airMopOnError);
 
   /* -------------------------------------------------------- */
   /* do the conversion.  Some sources of inspiration:
+  https://en.cppreference.com/w/c/comment
+  https://en.cppreference.com/w/c/language/string_literal
+  https://en.cppreference.com/w/c/language/character_constant
+  https://en.cppreference.com/w/c/language/escape
+  https://stackoverflow.com/questions/2394017/remove-comments-from-c-c-code
   https://stackoverflow.com/questions/47565090/need-help-to-extract-comments-from-c-file
   https://stackoverflow.com/questions/27847725/reading-a-c-source-file-and-skipping-comments?rq=3
   */
+  state = stateElse; /* start in straight copying mode */
   while ((ci = fgetc(fin)) != EOF) {
-    co = ci; /* HEY: do conversion */
-    fputc(co, fout);
-  }
+    /* job of uncommenting is to:
+    - read character ci from input
+    - set co = ' ' when ci is a character inside a comment, else set co = ci,
+    - then print co to output.
+    The "state" variable takes on values from the enum above
+    to keep track of what state the scanning is in.
+    */
+    switch (state) {
+    case stateElse:
+      co = ci;
+      if ('/' == ci) {
+        state = stateSlash;
+      } else if ('"' == ci) {
+        state = stateStr;
+      }
+      /* else state stays same */
+      break;
+    case stateSlash:
+      co = ci;
+      if ('/' == ci) {
+        state = stateSScmt;
+      } else if ('*' == ci) {
+        state = stateSAcmt;
+      } else { /* was just a stand-alone slash */
+        state = stateElse;
+      }
+      break;
+    case stateSScmt:
+      if ('\n' == ci) { /* the // comment has ended; record that in output */
+        co = ci;
+        state = stateElse;
+      } else { /* still inside // comment; still converting to spaces */
+        co = ' ';
+      }
+      break;
+    case stateSAcmt:
+      if ('*' == ci) { /* maybe comment is ending, no output until sure */
+        co = 0;
+        state = stateSAcmtA;
+      } else {            /* still inside / * * / comment */
+        if ('\n' == ci) { /* preserve line counts by copying out newlines */
+          co = '\n';
+        } else { /* else just turn to spaces */
+          co = ' ';
+        }
+      }
+      break;
+    case stateSAcmtA:
+      if ('/' == ci) { /* The comment has ended; output that ending */
+        fputc('*', fout);
+        co = ci;
+        state = stateElse;
+      } else {
+        /* false alarm, the * in comment was just a *; convert it to space,
+        and keep converting everything to space */
+        fputc(' ', fout);
+        co = ' ';
+        state = stateSAcmt;
+      }
+      break;
+    case stateStr:
+      co = ci;
+      if ('"' == ci) { /* unescaped ": string has ended */
+        state = stateElse;
+      } else if ('\\' == ci) { /* single backslash = start of an escape sequence */
+        state = stateStrEsc;
+      }
+      /* else state stays same: still in string */
+      break;
+    case stateStrEsc:
+      /* we don't really have to keep track of the different escape sequences;
+      we just have to know its an escape sequence. This will handle \" being in the
+      string, which does not end the string (hence the need for this side state),
+      and but nor do we need code specific to that escape sequence. */
+      co = ci;
+      state = stateStr;
+      break;
+    default:
+      fprintf(stderr, "%s: unimplemented state %d ?!?\n", me, state);
+      return 1;
+    }
+    if (co) {
+      fputc(co, fout);
+    }
+  } /* while fgetc loop */
   airMopOkay(mop);
-  return;
+  return 0;
 }
 
 static int
@@ -103,7 +209,11 @@ unrrdu_uncmtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  uncomment(me, nameIn, nameOut);
+  if (uncomment(me, nameIn, nameOut)) {
+    fprintf(stderr, "%s: something went wrong\n", me);
+    airMopError(mop);
+    return 1;
+  }
 
   airMopOkay(mop);
   return 0;
