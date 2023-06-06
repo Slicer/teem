@@ -236,6 +236,12 @@ uncomment(const char *me, const char *nameOut, const char *cmtSub, int nfds,
         fputc('*', fout);
         co = ci;
         state = stateElse;
+      } else if ('*' == ci) {
+        /* saw ** inside comment; first * was plain comment
+        content; but the second * puts us back in this state */
+        fputc(CMT_SUB('*'), fout);
+        co = 0;
+        state = stateSAcmtA;
       } else {
         /* false alarm: * in comment was not followed by / so convert it normally */
         fputc(CMT_SUB('*'), fout);
