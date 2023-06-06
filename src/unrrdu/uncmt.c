@@ -24,19 +24,19 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Removes comments from a C99 input file"
+#define INFO "Empty comment contents from a C99 input file"
 static const char *_unrrdu_uncmtInfoL
   = (INFO
-     " or rather removes the "
-     "contents of comments; the comment delimeters are preserved. This is useful "
-     "for a class GLK teaches, wherein students are told not to use types "
-     "\"float\" or \"double\" directly (instead they use a class-specific "
+     "; the comment delimeters are preserved. This can also transform the contents of "
+     "strings. This is useful for a class GLK teaches, wherein students are not to use "
+     "types \"float\" or \"double\" directly (but rather a class-specific "
      "\"real\" typedef). Grepping for \"float\" and \"double\" isn't informative "
      "since they can show up in comments; hence the need for this. Catching "
      "implicit conversions between floating point precisions is handled separately, "
      "in case you were thinking about that.\n "
      "* (not actually based on Nrrd)");
 
+/* set of states for little DFA to know whether we're in a comment or not */
 enum {
   stateSlash,  /* 0: just got a '/' */
   stateSAcmt,  /* 1: in Slash Asterisk (traditional C) comment */
@@ -47,30 +47,106 @@ enum {
   stateElse,   /* 6: everything else */
 };
 
+/* nfdsChar: next char for "No Float or Double in String" mode
+Monitors input characters ci, to prevent output of "float" or "double"
+state is maintained by the floatCount and doubleCount variables
+passed by reference */
+int
+nfdsChar(unsigned int *pfc, unsigned int *pdc, int ci) {
+  int co = ci; /* by default, output == input */
+  unsigned int fc = *pfc;
+  unsigned int dc = *pdc;
+
+  switch (ci) {
+  case 'f':
+    fc = 3; /* no matter what came prior */
+    break;
+  case 'l':
+    fc = (3 == fc ? 2 : 4);
+    dc = (1 == dc ? 0 : 5);
+    break;
+  case 'o':
+    fc = (2 == fc ? 1 : 4);
+    dc = (4 == dc ? 3 : 5);
+    break;
+  case 'a':
+    fc = (1 == fc ? 0 : 4);
+    break;
+  case 't':
+    if (!fc) {
+      /* boom - we were about say "float", but we won't */
+      co = 'T';
+    }
+    fc = 4;
+    break;
+  case 'd':
+    dc = 4; /* no matter what came prior */
+    break;
+  /* case 'o' handled above: dc 4 --> 3 */
+  case 'u':
+    dc = (3 == dc ? 2 : 5);
+    break;
+  case 'b':
+    dc = (2 == dc ? 1 : 5);
+    break;
+    /* case 'l' handled above: dc 1 --> 0 */
+  case 'e':
+    if (!dc) {
+      /* boom - we were about say "double", but we won't */
+      co = 'E';
+    }
+    dc = 5;
+    break;
+  default:
+    fc = 4;
+    dc = 5;
+  }
+
+  *pfc = fc;
+  *pdc = dc;
+  return co;
+}
+
 /*
 Does the uncommenting.
 Issues to fix:
 -- does not handle \ newline continuation in the middle of starting / * or
    ending * / delimiter of comment.
--- DOS/Windows \r\n line termination inside a comment will be turned into \n
+-- DOS/Windows \r\n line termination ending a // comment will be turned into \n
 -- Totally ignorant about Unicode!
 */
 static int
-uncomment(const char *me, const char *nameIn, const char *nameOut) {
+uncomment(const char *me, const char *nameOut, const char *cmtSub, int nfds,
+          const char *nameIn) {
   airArray *mop;
   FILE *fin, *fout;
   int ci /* char in */, co /* char out */, state /* of scanner */;
+  unsigned int csLen, csIdx; /* length and index into cmtSub */
+  /* with nfds (No Float or Double in String) mode,
+  we convert 't' to 'T' at end of "float" inside a string, and
+  we convert 'e' to 'E' at end of "double" inside a string.
+  These variables maintain a countdown to when that happens
+  (4 == strlen("float") - 1; 5 == strlen("double") - 1) */
+  unsigned int floatCount = 4, doubleCount = 5;
 
-  mop = airMopNew();
+  /* cmtSub and strSub strings can be NULL */
   if (!(airStrlen(nameIn) && airStrlen(nameOut))) {
     fprintf(stderr, "%s: empty filename for in (\"%s\") or out (\"%s\")\n", me, nameIn,
             nameOut);
-    airMopError(mop);
     return 1;
+  }
+  if (airStrlen(cmtSub) >= 2) {
+    csLen = strlen(cmtSub);
+    if (strstr(cmtSub, "*/") || ('/' == cmtSub[0] && '*' == cmtSub[csLen - 1])) {
+      fprintf(stderr, "%s: comment substitution |%s| contains \"*/\"; no good\n", me,
+              cmtSub);
+      return 1;
+    }
   }
 
   /* -------------------------------------------------------- */
   /* open input and output files  */
+  mop = airMopNew();
   fin = airFopen(nameIn, stdin, "rb");
   if (!fin) {
     fprintf(stderr, "%s: couldn't open \"%s\" for reading: \"%s\"\n", me, nameIn,
@@ -98,12 +174,22 @@ uncomment(const char *me, const char *nameIn, const char *nameOut) {
   https://stackoverflow.com/questions/47565090/need-help-to-extract-comments-from-c-file
   https://stackoverflow.com/questions/27847725/reading-a-c-source-file-and-skipping-comments?rq=3
   */
+  /* initialize substitution string variables */
+  if (cmtSub && strlen(cmtSub)) {
+    csLen = strlen(cmtSub); /* 1 or bigger */
+    csIdx = csLen - 1;      /* last valid index, anticipating action of SUB below */
+  } else {
+    csLen = 0;
+  }
+  /* hacky macros refer to input character ci, which will be defined in usage context */
+#define CMT_SUB (csLen ? (csIdx = AIR_MOD(csIdx + 1, csLen), cmtSub[csIdx]) : ci)
+#define STR_SUB (nfds ? nfdsChar(&floatCount, &doubleCount, ci) : ci)
   state = stateElse; /* start in straight copying mode */
   while ((ci = fgetc(fin)) != EOF) {
     /* job of uncommenting is to:
     - read character ci from input
-    - set co = ' ' when ci is a character inside a comment, else set co = ci,
-    - then print co to output.
+    - set co to something that depends on current state (often same as ci)
+    - print co to output.
     The "state" variable takes on values from the enum above
     to keep track of what state the scanning is in.
     */
@@ -131,20 +217,18 @@ uncomment(const char *me, const char *nameIn, const char *nameOut) {
       if ('\n' == ci) { /* the // comment has ended; record that in output */
         co = ci;
         state = stateElse;
-      } else { /* still inside // comment; still converting to spaces */
-        co = ' ';
+      } else {
+        /* in comment contents, copy out all whitespace, else substitute */
+        co = isspace(ci) ? ci : CMT_SUB;
       }
       break;
     case stateSAcmt:
       if ('*' == ci) { /* maybe comment is ending, no output until sure */
         co = 0;
         state = stateSAcmtA;
-      } else {            /* still inside / * * / comment */
-        if ('\n' == ci) { /* preserve line counts by copying out newlines */
-          co = '\n';
-        } else { /* else just turn to spaces */
-          co = ' ';
-        }
+      } else { /* still inside / * * / comment */
+        /* copy out all whitespace (thus preserving line counts), else substitute */
+        co = isspace(ci) ? ci : CMT_SUB;
       }
       break;
     case stateSAcmtA:
@@ -153,28 +237,34 @@ uncomment(const char *me, const char *nameIn, const char *nameOut) {
         co = ci;
         state = stateElse;
       } else {
-        /* false alarm, the * in comment was just a *; convert it to space,
-        and keep converting everything to space */
-        fputc(' ', fout);
-        co = ' ';
+        /* false alarm: * in comment was just a * not followed by /; convert it as
+        needed; the trickiness here is that without csLen, output should still be '*',
+        which was the previous value of ci. Can't just use CMT_SUB twice because both
+        macros will refer to same ci */
+        fputc(csLen ? CMT_SUB : '*', fout);
+        /* carry on converting comment contents */
+        co = CMT_SUB;
         state = stateSAcmt;
       }
       break;
     case stateStr:
-      co = ci;
       if ('"' == ci) { /* unescaped ": string has ended */
+        co = '"';
         state = stateElse;
-      } else if ('\\' == ci) { /* single backslash = start of an escape sequence */
-        state = stateStrEsc;
+      } else {
+        if ('\\' == ci) { /* single backslash = start of an escape sequence */
+          state = stateStrEsc;
+        } /* else state stays in stateStr */
+        /* whether starting ecape sequence or not; we're still in string */
+        co = STR_SUB;
       }
-      /* else state stays same: still in string */
       break;
     case stateStrEsc:
-      /* we don't really have to keep track of the different escape sequences;
+      /* we don't have to keep track of the different escape sequences;
       we just have to know its an escape sequence. This will handle \" being in the
       string, which does not end the string (hence the need for this side state),
       and but nor do we need code specific to that escape sequence. */
-      co = ci;
+      co = STR_SUB;
       state = stateStr;
       break;
     default:
@@ -185,6 +275,8 @@ uncomment(const char *me, const char *nameIn, const char *nameOut) {
       fputc(co, fout);
     }
   } /* while fgetc loop */
+#undef CMT_SUB
+#undef STR_SUB
   airMopOkay(mop);
   return 0;
 }
@@ -197,8 +289,23 @@ unrrdu_uncmtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   char *err;
   /* these are specific to this command */
-  char *nameIn, *nameOut;
+  char *cmtSubst, *nameIn, *nameOut;
+  int nfds;
 
+  hestOptAdd(
+    &opt, "cs", "cmtsub", airTypeString, 1, 1, &cmtSubst, ".",
+    "non-empty string to loop through when substituting the non-white-space "
+    "characters in comment contents; if given empty string here, "
+    "comment contents will be preserved (contrary to purpose of this command).");
+  hestOptAdd(
+    &opt, "nfds", "bool", airTypeBool, 1, 1, &nfds, "true",
+    "prevent \"float\" or \"double\" from appearing in a string. String contents "
+    "(unlike comment contents) are usually preserved, since doing naive string "
+    "substitution (in the same way as done for comments) will break printf formatting "
+    "strings. But the motivation for this command is to allow grep to see usage of "
+    "\"float\" and \"double\" as types, so by default those strings are not allowed to "
+    "appear in strings: their last character is instead made upper-case. If this option "
+    "is false, however, then string contents are entirely unchanged.");
   hestOptAdd(&opt, NULL, "fileIn", airTypeString, 1, 1, &nameIn, NULL,
              "Single input file to read; use \"-\" for stdin");
   hestOptAdd(&opt, NULL, "fileOut", airTypeString, 1, 1, &nameOut, NULL,
@@ -210,7 +317,8 @@ unrrdu_uncmtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  if (uncomment(me, nameIn, nameOut)) {
+  /* printf("cmtSubst = |%s| len = %u\n", cmtSubst, (unsigned int)strlen(cmtSubst)); */
+  if (uncomment(me, nameOut, strlen(cmtSubst) ? cmtSubst : NULL, nfds, nameIn)) {
     fprintf(stderr, "%s: something went wrong\n", me);
     airMopError(mop);
     return 1;
