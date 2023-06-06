@@ -24,16 +24,16 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Empty comment contents from a C99 input file"
+#define INFO "Change comment contents in a C99 input file"
 static const char *_unrrdu_uncmtInfoL
   = (INFO
-     "; the comment delimeters are preserved. This can also transform the contents of "
-     "strings. This is useful for a class GLK teaches, wherein students are not to use "
-     "types \"float\" or \"double\" directly (but rather a class-specific "
-     "\"real\" typedef). Grepping for \"float\" and \"double\" isn't informative "
-     "since they can show up in comments; hence the need for this. Catching "
-     "implicit conversions between floating point precisions is handled separately, "
-     "in case you were thinking about that.\n "
+     "; the comment delimeters are preserved. This can also change contents of strings "
+     "in a very particular way. This is useful for a class GLK teaches, wherein "
+     "students are not to use types \"float\" or \"double\" directly (but rather a "
+     "class-specific \"real\" typedef). Grepping for \"float\" and \"double\" isn't "
+     "informative since they can show up in comments and string literals; hence the "
+     "need for this. Catching implicit conversions between floating point precisions is "
+     "handled separately, in case you were wondering about that.\n "
      "* (not actually based on Nrrd)");
 
 /* set of states for little DFA to know whether we're in a comment or not */
@@ -181,9 +181,8 @@ uncomment(const char *me, const char *nameOut, const char *cmtSub, int nfds,
   } else {
     csLen = 0;
   }
-  /* hacky macros refer to input character ci, which will be defined in usage context */
-#define CMT_SUB (csLen ? (csIdx = AIR_MOD(csIdx + 1, csLen), cmtSub[csIdx]) : ci)
-#define STR_SUB (nfds ? nfdsChar(&floatCount, &doubleCount, ci) : ci)
+#define CMT_SUB(CI) (csLen ? (csIdx = AIR_MOD(csIdx + 1, csLen), cmtSub[csIdx]) : (CI))
+#define STR_SUB(CI) (nfds ? nfdsChar(&floatCount, &doubleCount, (CI)) : (CI))
   state = stateElse; /* start in straight copying mode */
   while ((ci = fgetc(fin)) != EOF) {
     /* job of uncommenting is to:
@@ -219,7 +218,7 @@ uncomment(const char *me, const char *nameOut, const char *cmtSub, int nfds,
         state = stateElse;
       } else {
         /* in comment contents, copy out all whitespace, else substitute */
-        co = isspace(ci) ? ci : CMT_SUB;
+        co = isspace(ci) ? ci : CMT_SUB(ci);
       }
       break;
     case stateSAcmt:
@@ -228,7 +227,7 @@ uncomment(const char *me, const char *nameOut, const char *cmtSub, int nfds,
         state = stateSAcmtA;
       } else { /* still inside / * * / comment */
         /* copy out all whitespace (thus preserving line counts), else substitute */
-        co = isspace(ci) ? ci : CMT_SUB;
+        co = isspace(ci) ? ci : CMT_SUB(ci);
       }
       break;
     case stateSAcmtA:
@@ -237,13 +236,10 @@ uncomment(const char *me, const char *nameOut, const char *cmtSub, int nfds,
         co = ci;
         state = stateElse;
       } else {
-        /* false alarm: * in comment was just a * not followed by /; convert it as
-        needed; the trickiness here is that without csLen, output should still be '*',
-        which was the previous value of ci. Can't just use CMT_SUB twice because both
-        macros will refer to same ci */
-        fputc(csLen ? CMT_SUB : '*', fout);
+        /* false alarm: * in comment was not followed by / so convert it normally */
+        fputc(CMT_SUB('*'), fout);
         /* carry on converting comment contents */
-        co = CMT_SUB;
+        co = CMT_SUB(ci);
         state = stateSAcmt;
       }
       break;
@@ -256,7 +252,7 @@ uncomment(const char *me, const char *nameOut, const char *cmtSub, int nfds,
           state = stateStrEsc;
         } /* else state stays in stateStr */
         /* whether starting ecape sequence or not; we're still in string */
-        co = STR_SUB;
+        co = STR_SUB(ci);
       }
       break;
     case stateStrEsc:
@@ -264,7 +260,7 @@ uncomment(const char *me, const char *nameOut, const char *cmtSub, int nfds,
       we just have to know its an escape sequence. This will handle \" being in the
       string, which does not end the string (hence the need for this side state),
       and but nor do we need code specific to that escape sequence. */
-      co = STR_SUB;
+      co = STR_SUB(ci);
       state = stateStr;
       break;
     default:
