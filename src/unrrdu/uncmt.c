@@ -296,8 +296,8 @@ unrrdu_uncmtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     "comment contents will be preserved (contrary to purpose of this command).");
   hestOptAdd(
     &opt, "nfds", "bool", airTypeBool, 1, 1, &nfds, "true",
-    "prevent \"float\" or \"double\" from appearing in a string. String contents "
-    "(unlike comment contents) are usually preserved, since doing naive string "
+    "prevent \"float\" or \"double\" from appearing in a string literal. String literal "
+    "contents (unlike comment contents) are usually preserved, since doing naive string "
     "substitution (in the same way as done for comments) will break printf formatting "
     "strings. But the motivation for this command is to allow grep to see usage of "
     "\"float\" and \"double\" as types, so by default those strings are not allowed to "
