@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2023  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -27,13 +27,14 @@
 #define INFO "Change comment contents in a C99 input file"
 static const char *_unrrdu_uncmtInfoL
   = (INFO
-     "; the comment delimeters are preserved. This can also change contents of strings "
-     "in a very particular way. This is useful for a class GLK teaches, wherein "
-     "students are not to use types \"float\" or \"double\" directly (but rather a "
-     "class-specific \"real\" typedef). Grepping for \"float\" and \"double\" isn't "
-     "informative since they can show up in comments and string literals; hence the "
-     "need for this. Catching implicit conversions between floating point precisions is "
-     "handled separately, in case you were wondering about that.\n "
+     "; the comment delimeters are preserved. This can also change contents of string "
+     "literals in a very particular way. This is useful for a class GLK teaches, "
+     "wherein students are not to use types \"float\" or \"double\" directly (but "
+     "rather a class-specific \"real\" typedef). Grepping for \"float\" and \"double\" "
+     "generates false positives since they can show up benignly in comments and string "
+     "literals; these are avoided by passing the source file through \"unu uncmt\". "
+     "Catching implicit conversions between floating point precisions is handled "
+     "separately, in case you were wondering about that.\n "
      "* (not actually based on Nrrd)");
 
 /* set of states for little DFA to know whether we're in a comment or not */
