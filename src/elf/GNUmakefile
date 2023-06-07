@@ -46,11 +46,11 @@ $(L).SEEN := true
 #### Describe library here
 ####
 ####
-$(L).NEED = ten limn tijk ell biff air 
+$(L).NEED = ten tijk limn ell nrrd air
 $(L).PUBLIC_HEADERS = elf.h
-$(L).PRIVATE_HEADERS = 
+$(L).PRIVATE_HEADERS =
 $(L).OBJS = ballStickElf.o ESHEstimElf.o glyphElf.o maximaElf.o
-$(L).TESTS = 
+$(L).TESTS =
 ####
 ####
 ####
