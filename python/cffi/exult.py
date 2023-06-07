@@ -50,6 +50,7 @@ import cffi as _cffi
 _x, *_y = 1, 2  # NOTE: A SyntaxError here means you need python3, not python2
 del _x, _y
 
+# info about all the Teem libraries (TEEM_LIB_LIST)
 _tlibs = {
     'air': {'expr': False, 'deps': []},  # (don't need airExistsConf.h)
     'hest': {'expr': False, 'deps': ['air']},
