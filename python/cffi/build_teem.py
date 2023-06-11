@@ -287,7 +287,7 @@ CFFI, within its many limitations, specifically lacking a C pre-processor
 (so no #include directives, and only certain #defines). */
  """
             )
-            for idx, hdr in enumerate(exult.lib_headers(lib)):
+            for idx, hdr in enumerate(exult.tlib_headers(lib)):
                 if idx:
                     out.write('\n\n')
                 out.write(f'/* =========== {hdr} =========== */\n')
@@ -334,25 +334,14 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
     VERB = args.v
-    (_hdr_path, _lib_path, _have_libs, _) = exult.check_path(args.install_path)
     if args.gch:
+        (_hdr_path, _, _have_libs, _) = exult.check_path_tinst(args.install_path)
         cdef_write('./cdef', _hdr_path, _have_libs)
     else:
-        (ffibld, source_args) = exult.ffi_builder('./cdef', _hdr_path, _lib_path, 'meet', VERB)
-        if VERB:
-            print('#################### calling set_source with ...')
-            for key, val in source_args.items():
-                print(f'   {key} = {val}')
-        ffibld.set_source(
-            '_teem',  # name of extension module
-            '#include <teem/meet.h>',  # this is effectively teem.h
-            **source_args,
-        )
-        if VERB:
-            print('#################### compiling _teem (slow!) ...')
-        out_path = ffibld.compile(verbose=(VERB > 0))
-        if VERB:
-            print(f'#################### ... compiling _teem done; created:\n{out_path}')
+        ffi = exult.Tffi('../..', args.install_path, 'teem', VERB)
+        ffi.cdef()
+        ffi.set_source()
+        ffi.compile()
         # should have now created a new _teem.<platform>.so shared library
         # so should be able to, on Mac, (e.g.) "otool -L _teem.cpython-39-darwin.so"
         # or, on linux, (e.g.) "ldd _teem.cpython-38-x86_64-linux-gnu.so"

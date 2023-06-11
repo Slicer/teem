@@ -44,7 +44,12 @@ about Teem localized to this single file.
 # import math as _math  # for isnan test that may appear in _BIFFDICT
 import sys as _sys
 import os as _os
+import re as _re
+import subprocess as _subprocess
+
 import cffi as _cffi
+
+# TODO: revisit if it makes sense to have these underscores
 
 # halt if python2; thanks to https://preview.tinyurl.com/44f2beza
 _x, *_y = 1, 2  # NOTE: A SyntaxError here means you need python3, not python2
@@ -170,14 +175,14 @@ _tlibs = {
 ### Things useful for *compiling* Teem-based extension modules
 
 
-def lib_all() -> list[str]:
+def tlib_all() -> list[str]:
     """
     Returns list of all Teem libraries in dependency order
     """
     return list(_tlibs.keys())
 
 
-def lib_experimental(lib: str) -> bool:
+def tlib_experimental(lib: str) -> bool:
     """
     Answers if a given Teem library is "experimental"
     """
@@ -188,7 +193,7 @@ def lib_experimental(lib: str) -> bool:
     return info['expr']
 
 
-def lib_depends(lib: str) -> list[str]:
+def tlib_depends(lib: str) -> list[str]:
     """
     Computes dependency expansion of given Teem library
     """
@@ -206,18 +211,19 @@ def lib_depends(lib: str) -> list[str]:
             tmpd = tmpd | set([lib]) | set(_tlibs[nlb]['deps'])
         oldd = newd
         newd = tmpd
-    tla = lib_all()   # linear array of all libs in dependency order
+    tla = tlib_all()   # linear array of all libs in dependency order
     # return dependencies sorted in dependency order
     return sorted(list(newd), key=tla.index)
 
 
-def lib_headers(lib: str) -> list[str]:
+def tlib_headers(lib: str) -> list[str]:
     """
     Returns list of headers (installed by CMake's "make install" the declares the API of given
     Teem library. This is really only the business of things (like build_teem.py) that do the
     one-time generation of cdef headers to be later consumed by CFFI, rather than things that
     use Teem via its python wrappers, but it is nice to have the info about Teem libraries
-    centralized to this file.
+    centralized to this file. For example this handles how the nrrd library needs nrrdDefines.h
+    and nrrdEnums.h as well as nrrd.h.
     """
     try:
         info = _tlibs[lib]
@@ -228,7 +234,7 @@ def lib_headers(lib: str) -> list[str]:
     return ret
 
 
-def check_lib_path(lib_path: str) -> None:
+def check_path_tlib(path_tlib: str) -> None:
     """
     Sanity checks on Teem install "lib" path lib_path.
     May throw various exceptions but returns nothing.
@@ -241,33 +247,34 @@ def check_lib_path(lib_path: str) -> None:
         raise Exception(
             'Sorry, currently only know how work on Mac and Linux (not {_sys.platform})'
         )
-    lib_fnames = _os.listdir(lib_path)
+    lib_fnames = _os.listdir(path_tlib)
     if not lib_fnames:
-        raise Exception(f'Teem library dir {lib_path} seems empty')
+        raise Exception(f'Teem library dir {path_tlib} seems empty')
     ltname = f'libteem.{shext}'
     if not ltname in lib_fnames:
         raise Exception(
-            f'Teem library dir {lib_path} contents {lib_fnames} do not seem to include '
+            f'Teem library dir {path_tlib} contents {lib_fnames} do not seem to include '
             f'required {ltname} shared library, which means running '
             'cffi.FFI().compile() later will not produce a working wrapper, even if '
             'it finishes without error.'
         )
 
 
-def check_hdr_path(hdr_path: str):
+def check_path_thdr(path_thdr: str):
     """
-    Sanity check on include path hdr_path.
-    Returns (exper, have_libs) where exper indicates if this was run on an "experimental"
+    Main purpose is to do sanity check on Teem include path path_thdr.
+    Having done that work, we can also return information learned along the way:
+    (exper, have_libs) where exper indicates if this was run on an "experimental"
     Teem build, and have_libs is the list of libraries for which the .h headers are present
     """
-    itpath = hdr_path + '/teem'
+    itpath = path_thdr + '/teem'
     if not _os.path.isdir(itpath):
         raise Exception(f'Need {itpath} to be directory')
-    all_libs = lib_all()
-    base_libs = list(filter(lambda L: not lib_experimental(L), all_libs))
-    expr_libs = list(filter(lib_experimental, all_libs))
-    base_hdrs = sum([lib_headers(L) for L in base_libs], [])
-    expr_hdrs = sum([lib_headers(L) for L in expr_libs], [])
+    all_libs = tlib_all()
+    base_libs = list(filter(lambda L: not tlib_experimental(L), all_libs))
+    expr_libs = list(filter(tlib_experimental, all_libs))
+    base_hdrs = sum([tlib_headers(L) for L in base_libs], [])
+    expr_hdrs = sum([tlib_headers(L) for L in expr_libs], [])
     missing_hdrs = list(filter(lambda F: not _os.path.isfile(f'{itpath}/{F}'), base_hdrs))
     if missing_hdrs:
         raise Exception(
@@ -292,64 +299,253 @@ def check_hdr_path(hdr_path: str):
     return (not missing_expr_hdrs, have_libs)
 
 
-def check_path(path: str):
+def check_path_tinst(path: str):
     """
-    Calls check_lib_path and check_hdr_path on given install path "path"
+    Checks that the given path really is a path to a CMake-based Teem installation
     """
     path = path.rstrip('/')
-    hdr_path = path + '/include'
-    lib_path = path + '/lib'
-    if not _os.path.isdir(hdr_path) or not _os.path.isdir(lib_path):
-        raise Exception(f'Need both {hdr_path} and {lib_path} to be subdirs of teem install dir')
-    check_lib_path(lib_path)
-    (exper, have_libs) = check_hdr_path(hdr_path)
-    return (hdr_path, lib_path, have_libs, exper)
+    if not _os.path.isdir(path):
+        path = _os.path.expanduser(path)
+        if not _os.path.isdir(path):
+            raise Exception(f'Given path {path} is not a directory')
+    path_thdr = path + '/include'
+    path_tlib = path + '/lib'
+    if not _os.path.isdir(path_thdr) or not _os.path.isdir(path_tlib):
+        raise Exception(
+            f'Need both {path_thdr} and {path_tlib} to be subdirs of teem install dir {path}'
+        )
+    check_path_tlib(path_tlib)
+    (exper, have_libs) = check_path_thdr(path_thdr)
+    return (path_thdr, path_tlib, have_libs, exper)
 
 
-def ffi_builder(cdef_path: str, hdr_path: str, lib_path: str, top_lib: str, verb: bool):
+def scan_cdef(hfilename: str) -> list[str]:
     """
-    Sets up a builder instance of cffi.FFI() by feeding it all the cdef headers needed for
-    library top_lib in Teem, and creates an args dict for builder.set_source. The last steps
-    for the caller to do are call builder.set_source and .compile.
+    Reads header file, looking for a region demarcated by "exult.cdef begin" and "exult.cdef
+    end", and processes the lines in that region to anticipate the limitations of the
+    CFFI.cdef() parser, and returns list of strings that should be pass-able to it.
     """
-    # yes, this is probably redundant with something the caller has already done,
-    # but it would be more annoying to pass back (to here) this information, and
-    # we need to do error checking anyway
-    (exper, have_libs) = check_hdr_path(hdr_path)
-    if not top_lib in have_libs:
-        raise Exception(f'Requested lib {top_lib} not part of this Teem build: {have_libs}')
-    # if 'meet' == top_lib, we're probably being called from build_teem.py, so we use the
-    # learned value of exper as part of setting up source_args. Else:
-    if 'meet' != top_lib:
-        # we set exper according to whether requested library is "experimental"
-        exper = lib_experimental(top_lib)
-    ffibld = _cffi.FFI()
-    # so that teem.py can call free() as part of biff error handling
-    ffibld.cdef('extern void free(void *);')
-    for lib in lib_depends(top_lib):
-        if verb:
-            print(f'#################### reading cdef_{lib}.h ...')
-        with open(f'{cdef_path}/cdef_{lib}.h', 'r', encoding='utf-8') as file:
-            ffibld.cdef(file.read())
-    # NOTE that the caller (if not build_teem.py) will need to add to the arrays:
-    # 'libraries': with name of new teem-using library X
-    # 'runtime_library_dirs': with path to shared library of X.{so,dylib}
-    source_args = {
-        'libraries': ['teem'],
-        'include_dirs': [hdr_path],
-        'library_dirs': [lib_path],
-        'extra_compile_args': ['-DTEEM_BUILD_EXPERIMENTAL_LIBS'] if exper else None,
-        # On linux, path <dir> here is passed to -Wl,--enable-new-dtags,-R<dir>;
-        # "readelf -d ....so | grep PATH" should show <dir> and "ldd .....so" should show
-        # where dependencies were found.
-        # On Mac, path <dir> here is passed to -Wl,-rpath,<dir>, and you can see that
-        # from "otool -l ....so", in the LC_RPATH sections.
-        'runtime_library_dirs': [_os.path.abspath(lib_path)],
-        # keep asserts()
-        # https://docs.python.org/3/distutils/apiref.html#distutils.core.Extension
-        'undef_macros': ['NDEBUG'],
-    }
-    return (ffibld, source_args)
+    if not _os.path.isfile(hfilename):
+        raise Exception(f'header filename {hfilename} not a file')
+    result = _subprocess.run(
+        ['unu', 'uncmt', '-xc', hfilename, '-'], check=True, stdout=_subprocess.PIPE
+    )
+    ilines = result.stdout.decode('utf-8').splitlines()
+    using = True
+    olines = []
+    for linen in ilines:
+        line = linen.strip()   # strip left and right whitespace
+        if not line:
+            continue
+        if line.startswith('#'):
+            # if even CFFI.cdef() can handle certain simple #defines, we don't try
+            if line.startswith('#ifdef') or line.startswith('#ifndef'):
+                print(f'|{line}| is #ifdef')
+                using = False
+            elif line.startswith('#endif'):
+                using = True
+            continue
+        if not using:
+            continue
+        if match := _re.match(r'(__attribute__\(.*\))', line):
+            line = line.replace(match.group(1), '')
+        olines.append(line)
+    return olines
+
+
+class Tffi:
+    """
+    Helps create and use an instance of CFFI's "FFI" object, when creating an extension module
+    for Teem itself, or a library that uses Teem. In particular this manages the many arguments
+    to the .set_source() method, as well as calling .compile().  The basic steps are:
+    (1) tffi = Tffi(...) # instantiate the class
+    tffi.desc(...) # optional: describe the non-Teem library of the extension module
+    (2) tffi.cdef() # do the cdef declarations
+    (3) tffi.set_source() # set up and make call to ffi.set_source()
+    (4) tffi.compile(): # run the compilation
+    self.step remembers the step number just done
+    """
+
+    def __init__(self, path_tsrc: str, path_tinst: str, top_tlib: str, verb: int = 0):
+        """
+        Creates a Tffi from the given arguments:
+        :param str path_tsrc: path into local checkout of Teem source (needed to get to the
+            python/cffi subdirectory with files that are not currently copied uppon Teem install)
+        :param str path_tinst: path into wherever CMake's "make install" put things
+            (like the "include" and "lib" subdirectory)
+        :param str top_tlib: If creating the Teem extension module, pass 'teem', else name the
+            top-most Teem library (depending on the most other Teem libraries) on which your new
+            library's extension module depends.
+        :param int verb: verbosity level
+        :return: a new instance of the Tffi class, which contains a new CFFI FFI instance.
+        """
+        self.verb = verb
+        if not _os.path.isdir(path_tsrc):
+            path_tsrc = _os.path.expanduser(path_tsrc)
+            if not _os.path.isdir(path_tsrc):
+                raise Exception(
+                    f'Need path {path_tsrc} into Teem source checkout to be a directory'
+                )
+        self.path_tsrc = path_tsrc
+        self.path_cdef = path_tsrc + '/python/cffi/cdef'
+        if not _os.path.isdir(self.path_cdef):
+            raise Exception(
+                f'Missing directory with per-Teem-library cdef headers {self.path_cdef}'
+            )
+        # This does a lot error checking
+        (self.path_thdr, self.path_tlib, self.have_tlibs, self.exper) = check_path_tinst(
+            path_tinst
+        )
+        self.path_tinst = path_tinst
+        # initialize other members
+        self.ipath = ''
+        self.lpath = ''
+        self.cdf = ''
+        self.eca = []
+        self.ela = []
+        self.source_args = None
+        self.path_out = None
+        if 'teem' == top_tlib:
+            # we are creating the Teem extension module
+            self.isteem = True
+            self.name = 'teem'
+            self.top_tlib = 'meet'
+            # we keep the experimental-ness value now in self.exper
+        else:
+            if not top_tlib in self.have_tlibs:
+                raise Exception(
+                    f'Requested top lib {top_tlib} not in this Teem build: {self.have_tlibs}'
+                )
+            self.isteem = None
+            self.name = None
+            self.top_tlib = top_tlib
+            # we set exper according to whether requested library is "experimental"
+            self.exper = tlib_experimental(top_tlib)
+        # create the instance, but don't do anything with it; that depends on other methods
+        self.ffi = _cffi.FFI()
+        self.step = 1   # for tracking correct ordering of method calls
+
+    def desc(
+        self, name: str, ipath: str, lpath: str, cdf: str = '', eca: list = [], ela: list = []
+    ):
+        """
+        To create an extension module for a non-Teem library that depends on Teem,
+        describe it here.
+        :param str name: name of the new non-Teem library
+        :param str ipath: path to headers for you library, to give to -I when compiling
+        :param str lpath: path to your compile library, to give to -L when compiling
+        :param str cdf: string to pass to ffi.cdef()
+        :param list eca: for the extra_compile_args parameter to ffi.compile()
+        :param list ela: for the extra_link_args parameter to ffi.compile()
+        """
+        if 1 != self.step:
+            raise Exception('Describing library only possible right after Tffi creation')
+        if self.isteem:
+            raise Exception(
+                "Can't use .desc when making Teem module "
+                "(as implied by top_tlib='teem' arg to init)"
+            )
+        if 'teem' == name or name in self.have_tlibs:
+            raise Exception('Need non-Teem name for non-Teem library')
+        if name.startswith('_'):
+            raise Exception(
+                'Name "{_name}" should not start with "_"; that will be added as needed later'
+            )
+        if not _os.path.isdir(ipath):
+            raise Exception(f'Need ipath {ipath} to be a directory')
+        if not _os.path.isdir(lpath):
+            raise Exception(f'Need lpath {ipath} to be a directory')
+        self.name = name
+        self.ipath = ipath
+        self.lpath = lpath
+        self.cdf = cdf
+        self.eca = eca
+        self.ela = ela
+        # leave self.step at 1
+
+    def cdef(self):
+        """
+        Make calls to ffi.cdef() to declare to CFFI what should be in the extension module
+        (the members of the module's .lib)
+        """
+        if 1 != self.step:
+            raise Exception('Expected .cdef() only right after Tffi creation and optional .desc()')
+        # want free() available in for freeing biff messages
+        self.ffi.cdef('extern void free(void *);')
+        # read in the relevant Teem cdef/ headers
+        for lib in tlib_depends(self.top_tlib):
+            if self.verb:
+                print(f'Tffi.cdef: reading {self.path_cdef}/cdef_{lib}.h ...')
+            with open(f'{self.path_cdef}/cdef_{lib}.h', 'r', encoding='utf-8') as file:
+                self.ffi.cdef(file.read())
+        if self.cdf:
+            if self.verb:
+                print(f'Tffi.cdef: calling cdef(self.cdf = "{self.cdf}")')
+            self.ffi.cdef(self.cdf)
+        if not self.isteem:
+            lines = scan_cdef(f'{self.ipath}/{self.name}.h')
+            if self.verb:
+                print('Tffi.cdef: calling cdef on:')
+                for line in lines:
+                    print(f'...{line}')
+            self.ffi.cdef('\n'.join(lines))
+        self.step = 2
+
+    def set_source(self):
+        """
+        Sets up arguments to ffi.set_source() and calls it
+        """
+        if 2 != self.step:
+            raise Exception('Expected .set_source() only right after .cdef()')
+        self.source_args = {
+            'libraries': ([] if self.isteem else [self.name]) + ['teem'],
+            'include_dirs': ([] if self.isteem else [self.ipath]) + [self.path_thdr],
+            'library_dirs': ([] if self.isteem else [self.lpath]) + [self.path_tlib],
+            'extra_compile_args': (
+                (['-DTEEM_BUILD_EXPERIMENTAL_LIBS'] if self.exper else []) + self.eca
+            ),
+            'extra_link_args': self.ela,
+            # On linux, path <dir> here is passed to -Wl,--enable-new-dtags,-R<dir>;
+            # "readelf -d ....so | grep PATH" should show <dir> and "ldd .....so" should show
+            # where dependencies were found.
+            # On Mac, path <dir> here is passed to -Wl,-rpath,<dir>, and you can see that
+            # from "otool -l ....so", in the LC_RPATH sections.
+            'runtime_library_dirs': [
+                _os.path.abspath(dir)
+                for dir in ([] if self.isteem else [self.lpath]) + [self.path_tlib]
+            ],
+            # keep asserts()
+            # https://docs.python.org/3/distutils/apiref.html#distutils.core.Extension
+            'undef_macros': ['NDEBUG'],
+        }
+        arg1 = f'_{self.name}'   # HERE is where we add the leading underscore
+        arg2 = f'#include <teem/{self.top_tlib}.h>' + (
+            '' if self.isteem else f'\n#include <{self.name}.h>'
+        )
+        if self.verb:
+            print('Tffi.set_source: calling ffi.set_source with ...')
+            print(f"'{arg1}',")
+            print(f"'{arg2}',")
+            for key, val in self.source_args.items():
+                print(f' {key} = {val}')
+        self.ffi.set_source(
+            arg1,
+            arg2,
+            **self.source_args,
+        )
+        self.step = 3
+        return self.source_args
+
+    def compile(self):
+        """Finally call ffi.compile()"""
+        if self.verb:
+            print('Tffi.compile: compiling ... ')
+            if 'meet' == self.top_tlib:
+                print('     (compiling bindings to all of Teem is slow)')
+        self.path_out = self.ffi.compile(verbose=(self.verb > 0))
+        if self.verb:
+            print(f'Tffi.compile: compiling _{self.name} done; created:\n{self.path_out}')
+        return self.path_out
 
 
 ### (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2)
