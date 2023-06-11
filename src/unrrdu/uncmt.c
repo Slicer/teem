@@ -184,9 +184,11 @@ uncomment(const char *me, const char *nameOut, int nixcmt, const char *cmtSub, i
     csLen = 0;
   }
 #define CMT_SUB(CI)                                                                     \
-  (nixcmt  /* */                                                                        \
-     ? ' ' /* */                                                                        \
-     : (csLen ? (csIdx = AIR_MOD(csIdx + 1, csLen), cmtSub[csIdx]) : (CI)))
+  (nixcmt     /* */                                                                     \
+     ? ' '    /* */                                                                     \
+     : (csLen /* */                                                                     \
+          ? (csIdx = AIR_MOD(csIdx + 1, csLen), cmtSub[csIdx])                          \
+          : (CI)))
 #define STR_SUB(CI) (nfds ? nfdsChar(&floatCount, &doubleCount, (CI)) : (CI))
   state = stateElse; /* start in straight copying mode */
   while ((ci = fgetc(fin)) != EOF) {
@@ -269,7 +271,7 @@ uncomment(const char *me, const char *nameOut, int nixcmt, const char *cmtSub, i
         /* false alarm: * in comment was not followed by / so convert it normally */
         fputc(CMT_SUB('*'), fout);
         /* carry on converting comment contents */
-        co = CMT_SUB(ci);
+        co = isspace(ci) ? ci : CMT_SUB(ci);
         state = stateSAcmt;
       }
       break;
