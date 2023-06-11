@@ -27,8 +27,9 @@
 #define INFO "Change comment contents in a C99 input file"
 static const char *_unrrdu_uncmtInfoL
   = (INFO
-     "; the comment delimeters are preserved. This can also change contents of string "
-     "literals in a very particular way. This is useful for a class GLK teaches, "
+     "; the comment delimeters are preserved by default, but comments can be "
+     "entirely excised with the -xc option. This command can also change contents of "
+     "string literals in a very particular way. This is useful for a class GLK teaches, "
      "wherein students are not to use types \"float\" or \"double\" directly (but "
      "rather a class-specific \"real\" typedef). Grepping for \"float\" and \"double\" "
      "generates false positives since they can show up benignly in comments and string "
@@ -117,7 +118,7 @@ Issues to fix:
 -- Totally ignorant about Unicode!
 */
 static int
-uncomment(const char *me, const char *nameOut, const char *cmtSub, int nfds,
+uncomment(const char *me, const char *nameOut, int nixcmt, const char *cmtSub, int nfds,
           const char *nameIn) {
   airArray *mop;
   FILE *fin, *fout;
@@ -182,7 +183,10 @@ uncomment(const char *me, const char *nameOut, const char *cmtSub, int nfds,
   } else {
     csLen = 0;
   }
-#define CMT_SUB(CI) (csLen ? (csIdx = AIR_MOD(csIdx + 1, csLen), cmtSub[csIdx]) : (CI))
+#define CMT_SUB(CI)                                                                     \
+  (nixcmt  /* */                                                                        \
+     ? ' ' /* */                                                                        \
+     : (csLen ? (csIdx = AIR_MOD(csIdx + 1, csLen), cmtSub[csIdx]) : (CI)))
 #define STR_SUB(CI) (nfds ? nfdsChar(&floatCount, &doubleCount, (CI)) : (CI))
   state = stateElse; /* start in straight copying mode */
   while ((ci = fgetc(fin)) != EOF) {
@@ -197,6 +201,10 @@ uncomment(const char *me, const char *nameOut, const char *cmtSub, int nfds,
     case stateElse:
       co = ci;
       if ('/' == ci) {
+        if (nixcmt) {
+          /* actually no can't output / because might be start of comment */
+          co = 0;
+        }
         state = stateSlash;
       } else if ('"' == ci) {
         state = stateStr;
@@ -207,8 +215,18 @@ uncomment(const char *me, const char *nameOut, const char *cmtSub, int nfds,
       co = ci;
       if ('/' == ci) {
         state = stateSScmt;
+        if (nixcmt) {
+          /* have to transform the / / start of comment */
+          fputc(' ', fout);
+          co = ' ';
+        }
       } else if ('*' == ci) {
         state = stateSAcmt;
+        if (nixcmt) {
+          /* have to transform the / * start of comment */
+          fputc(' ', fout);
+          co = ' ';
+        }
       } else { /* was just a stand-alone slash */
         state = stateElse;
       }
@@ -232,9 +250,14 @@ uncomment(const char *me, const char *nameOut, const char *cmtSub, int nfds,
       }
       break;
     case stateSAcmtA:
-      if ('/' == ci) { /* The comment has ended; output that ending */
-        fputc('*', fout);
-        co = ci;
+      if ('/' == ci) { /* The comment has ended */
+        if (nixcmt) {
+          fputc(' ', fout);
+          co = ' ';
+        } else { /* output the * / ending of comment */
+          fputc('*', fout);
+          co = ci;
+        }
         state = stateElse;
       } else if ('*' == ci) {
         /* saw ** inside comment; first * was plain comment
@@ -293,8 +316,14 @@ unrrdu_uncmtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *err;
   /* these are specific to this command */
   char *cmtSubst, *nameIn, *nameOut;
-  int nfds;
+  int nixcmt, nfds;
 
+  hestOptAdd(
+    &opt, "xc", NULL, airTypeInt, 0, 0, &nixcmt, NULL,
+    "If set, comments will be completely excised and replaced with white-space: "
+    "the /* and */ or // comment delimiters will be removed (and the -cs "
+    "option is moot). By default, comment delimiters are preserved, but the "
+    "comment content is transformed.");
   hestOptAdd(
     &opt, "cs", "cmtsub", airTypeString, 1, 1, &cmtSubst, ".",
     "non-empty string to loop through when substituting the non-white-space "
@@ -302,12 +331,17 @@ unrrdu_uncmtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     "comment contents will be preserved (contrary to purpose of this command).");
   hestOptAdd(
     &opt, "nfds", "bool", airTypeBool, 1, 1, &nfds, "true",
-    "prevent \"float\" or \"double\" from appearing in a string literal. String literal "
-    "contents (unlike comment contents) are usually preserved, since doing naive string "
-    "substitution (in the same way as done for comments) will break printf formatting "
+    "prevent \"float\" or \"double\" from appearing in a string literal. String "
+    "literal "
+    "contents (unlike comment contents) are usually preserved, since doing naive "
+    "string "
+    "substitution (in the same way as done for comments) will break printf "
+    "formatting "
     "strings. But the motivation for this command is to allow grep to see usage of "
-    "\"float\" and \"double\" as types, so by default those strings are not allowed to "
-    "appear in strings: their last character is instead made upper-case. If this option "
+    "\"float\" and \"double\" as types, so by default those strings are not allowed "
+    "to "
+    "appear in strings: their last character is instead made upper-case. If this "
+    "option "
     "is false, however, then string contents are entirely unchanged.");
   hestOptAdd(&opt, NULL, "fileIn", airTypeString, 1, 1, &nameIn, NULL,
              "Single input file to read; use \"-\" for stdin");
@@ -320,8 +354,9 @@ unrrdu_uncmtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  /* printf("cmtSubst = |%s| len = %u\n", cmtSubst, (unsigned int)strlen(cmtSubst)); */
-  if (uncomment(me, nameOut, strlen(cmtSubst) ? cmtSubst : NULL, nfds, nameIn)) {
+  /* printf("cmtSubst = |%s| len = %u\n", cmtSubst, (unsigned int)strlen(cmtSubst));
+   */
+  if (uncomment(me, nameOut, nixcmt, strlen(cmtSubst) ? cmtSubst : NULL, nfds, nameIn)) {
     fprintf(stderr, "%s: something went wrong\n", me);
     airMopError(mop);
     return 1;
