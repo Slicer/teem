@@ -20,7 +20,7 @@ uses biff in this way." This is not based on any proper parsing of the code
 AST, so calls to biff could be hidden behind a #define, and there is certainly
 no way to know (without execution) whether any other functions called from
 this function used biff. The formatting of the newly adopted clang-format
-is a big help. In any case this seems adequate for Python wrapping error
+is a big help. In any case this seems adequate for Teem's Python wrapping error
 handling.
 
 Here is an example annotation from teem/src/nrrd/subset.c
@@ -52,8 +52,8 @@ annotation), "static" will mean that the function is static, while not having
 external linkage. Such "private" functions probably aren't even in a python
 wrapper, but the fact of being private is nice to record once known, since you
 can't tell by looking at a function definition where it has been
-declared. Despite the tendency, there is no iron rule that private function
-names start with a single "_".
+declared. Despite the tendency, there is no iron rule in Teem code that private
+function names start with a single "_".
 
 --- Required:
   "<val>" : The return value <val> indicates a biff-reported error, i.e., if
@@ -105,10 +105,12 @@ From the ~/teem/src/_util directory:
 
   python3 scan-symbols.py ~/teem -biff 3 gage
 
-why -biff 3: because -biff 1 is just for observing biff usage;
--biff 2 is for doing annotations where none have been done before
-and -biff 3 will over-write old comments and wrong annotations.
-But nothing is actually over-written, new files are created, eg:
+why -biff 3: because
+-biff 1 is just for observing biff usage;
+-biff 2 is for doing annotations where none have been done before, and
+-biff 3 will over-write old comments and wrong annotations.
+But no original source .c files are actually over-written, instead new files
+are created, eg:
 
   wrote 2 annotations in miscGage-annote.c
   wrote 5 annotations in kind-annote.c
