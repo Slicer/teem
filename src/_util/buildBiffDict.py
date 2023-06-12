@@ -25,6 +25,7 @@
 import re
 import argparse
 import os
+
 _x, *_y = 1, 2  # NOTE: A SyntaxError here means you need python3, not python2
 del _x, _y
 
@@ -32,16 +33,35 @@ del _x, _y
 verbose = 1
 # TEEM_LIB_LIST
 tlibs = [  # 'air', 'hest', 'biff',  (these do not use biff)
-    'nrrd', 'ell', 'moss', 'unrrdu', 'alan', 'tijk', 'gage',
-    'dye', 'bane', 'limn', 'echo', 'hoover', 'seek', 'ten',
-    'elf', 'pull', 'coil', 'push', 'mite', 'meet']
+    'nrrd',
+    'ell',
+    'moss',
+    'unrrdu',
+    'alan',
+    'tijk',
+    'gage',
+    'dye',
+    'bane',
+    'limn',
+    'echo',
+    'hoover',
+    'seek',
+    'ten',
+    'elf',
+    'pull',
+    'coil',
+    'push',
+    'mite',
+    'meet',
+]
 
 
 def argsCheck(tPath):
-    if (not (os.path.isdir(tPath)
-             and os.path.isdir(f'{tPath}/arch')
-             and os.path.isdir(f'{tPath}/src'))):
+    if not (
+        os.path.isdir(tPath) and os.path.isdir(f'{tPath}/arch') and os.path.isdir(f'{tPath}/src')
+    ):
         raise Exception(f'Need {tPath} to be dir with "arch" and "src" subdirs')
+
 
 # the task is: given the string representation of the error return test value
 # tv as it came out of the "Biff:"" annotation from the .c file, convert it to
@@ -68,7 +88,7 @@ def rvtest(typ, tv, rvName):
         ret = f'_math.isnan({rvName})'
     else:
         # this function is super adhoc-y, and will definitely require future expansion
-        raise Exception(f'sorry don\'t yet know how to handle typ={typ}, tv={tv}')
+        raise Exception(f"sorry don't yet know how to handle typ={typ}, tv={tv}")
     return ret
 
 
@@ -95,6 +115,7 @@ def doAnnote(oFile, funcName, retQT, annoteCmt, fnln):
     if 1 != len(anlist):
         raise Exception(f'got multiple words {anlist} (from "{annoteCmt}") but expected 1')
     anval = anlist[0]
+    print(f'anval = {anval}')
     if anval.startswith('maybe:'):
         mlist = anval.split(':')  # mlist[0]='maybe:'
         mubi = mlist[1]  # for Maybe, useBiff index (1-based)
@@ -106,7 +127,8 @@ def doAnnote(oFile, funcName, retQT, annoteCmt, fnln):
     bkey = match.group(1)
     if not bkey in tlibs:
         raise Exception(
-            f'apparent library name prefix "{bkey}" of function "{funcName}" not in Teem library list {tlibs}')
+            f'apparent library name prefix "{bkey}" of function "{funcName}" not in Teem library list {tlibs}'
+        )
     # ** NOTE: this is all very specific to the Python CFFI wrapper in
     # ** teem/python/cffi/teem.py. But the code above is useful logic
     # ** for anything seeking to use the Biff annotations, and wanting
@@ -123,12 +145,12 @@ def doAnnote(oFile, funcName, retQT, annoteCmt, fnln):
     #    if _rvtf(rv) and (0 == _mubi or args[_mubi-1]):
     #       biffGetDone(bkey)
     rvtf = '(lambda rv: ' + ' or '.join([rvtest(qts, V, 'rv') for V in anval.split('|')]) + ')'
-    if ('(lambda rv: 1 == rv)' == rvtf):
-        rvtf = "_equals1"
-    elif ('(lambda rv: _math.isnan(rv))' == rvtf):
-        rvtf = "_math.isnan"
+    if '(lambda rv: 1 == rv)' == rvtf:
+        rvtf = '_equals1'
+    elif '(lambda rv: _math.isnan(rv))' == rvtf:
+        rvtf = '_math.isnan'
     # finally, write dict entry for handling errors in funcName
-    print(f'    \'{funcName}\': ({rvtf}, {mubi}, b\'{bkey}\', \'{fnln}\'),', file=oFile)
+    print(f"    '{funcName}': ({rvtf}, {mubi}, b'{bkey}', '{fnln}'),", file=oFile)
 
 
 def doSrc(oFile, sFile, sFN):
@@ -136,8 +158,8 @@ def doSrc(oFile, sFile, sFN):
     nlen = len(lines)
     idx = 0
     while idx < nlen:
-        # scan lines of soure file, looking for Biff: annotations
-        if (match := re.match(r'(.+?)\/\* (Biff: .+?)\*\/', lines[idx])):
+        # scan lines of source file, looking for Biff: annotations
+        if match := re.match(r'(.+?)\/\* (Biff: .+?)\*\/', lines[idx]):
             retQT = match.group(1).strip()
             annote = match.group(2).strip()
             idx += 1
@@ -157,7 +179,7 @@ def doLib(oFile, tPath, lib):
     idx1 = lines.index(')')
     srcs = filter(lambda fn: fn.endswith('.c'), lines[idx0:idx1])
     for FN in srcs:
-        if (verbose > 1):
+        if verbose > 1:
             print(f'... {lib}/{FN}')
         with open(f'{sPath}/{FN}') as sFile:
             doSrc(oFile, sFile, f'{lib}/{FN}')
@@ -165,16 +187,27 @@ def doLib(oFile, tPath, lib):
 
 def parse_args():
     # https://docs.python.org/3/library/argparse.html
-    parser = argparse.ArgumentParser(description='Scans "Biff:" annotations, and generates '
-                                     'a Python dict representing the same information',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description='Scans "Biff:" annotations, and generates '
+        'a Python dict representing the same information',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
     # formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('-v', metavar='verbosity', type=int, default=1, required=False,
-                        help='verbosity level (0 for silent)')
-    parser.add_argument('-o', metavar='outfile', default='../../python/cffi/teemPySrc/biffDict.py',
-                        help='output filename to put biff dict in')
-    parser.add_argument('teem_path',
-                        help='path of Teem checkout with "src" and "arch" subdirs')
+    parser.add_argument(
+        '-v',
+        metavar='verbosity',
+        type=int,
+        default=1,
+        required=False,
+        help='verbosity level (0 for silent)',
+    )
+    parser.add_argument(
+        '-o',
+        metavar='outfile',
+        default='../../python/cffi/teemPySrc/biffDict.py',
+        help='output filename to put biff dict in',
+    )
+    parser.add_argument('teem_source', help='path of Teem checkout with "src" and "arch" subdirs')
     # we always do all the libraries (that might use biff)
     # regardless of "experimental"
     return parser.parse_args()
@@ -183,7 +216,7 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
     verbose = args.v
-    argsCheck(args.teem_path)
+    argsCheck(args.teem_source)
     with open(args.o, 'w') as oFile:
         print(
             """# (the following generated by teem/src/_util/buildBiffDict.py)
@@ -193,7 +226,9 @@ def _equals1(val):
     return val == 1
 
 
-_BIFFDICT = {""", file=oFile)
+_BIFFDICT = {""",
+            file=oFile,
+        )
         for L in tlibs:
-            doLib(oFile, args.teem_path, L)
+            doLib(oFile, args.teem_source, L)
         print('}', file=oFile)
