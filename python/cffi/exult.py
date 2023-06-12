@@ -330,14 +330,14 @@ class ScanHdr:
 
     def __init__(self, filename: str, defined: list[str], verb: int = 0):
         """
-        Opens given file and sends it through "unu uncmt -xc", and prepares to parse result
+        Opens given file and sends it through "unu uncmt", and prepares to parse result
         """
         if not _os.path.isfile(filename):
             raise Exception(f'header filename {filename} not a file')
         self.filename = filename
         uncmt = _subprocess.run(
-            # run "unu uncmt -xc" to completely excise comments
-            ['unu', 'uncmt', '-xc', filename, '-'],
+            # run "unu uncmt" to completely excise comments
+            ['unu', 'uncmt', filename, '-'],
             check=True,
             stdout=_subprocess.PIPE,
         )
