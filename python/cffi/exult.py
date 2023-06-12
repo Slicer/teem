@@ -599,9 +599,12 @@ class Tffi:
         if _sys.platform.startswith('darwin'):  # make extra sure that rpath is set on Mac
             ela += [f'-Wl,-rpath,{P}' for P in self.path_libs]
         self.source_args = {
-            'libraries': self.libs,
+            # when compiling _{self.name}.c, -I paths telling #include where to look
             'include_dirs': ([] if self.isteem else [self.path_nhdr]) + [self.path_thdr],
+            # when linking extension module library, -L paths telling linker where to look
             'library_dirs': self.path_libs,
+            # when linking extension module library, -l libs to link with
+            'libraries': self.libs,
             'extra_compile_args': (
                 (['-DTEEM_BUILD_EXPERIMENTAL_LIBS'] if self.exper else []) + self.eca
             ),
@@ -629,10 +632,10 @@ class Tffi:
         )
         if self.verb:
             print('Tffi.set_source: calling ffi.set_source with ...')
-            print(f"'{arg1}',")
-            print(f"'{arg2}',")
+            print(f"   '{arg1}',")
+            print(f"   '{arg2}',")
             for key, val in self.source_args.items():
-                print(f' {key} = {val}')
+                print(f'   {key} = {val}')
         self.ffi.set_source(
             arg1,
             arg2,
@@ -668,6 +671,10 @@ class Tffi:
                     raise RuntimeError(
                         f'due to trying to set full path to lib{lname}.dylib in {self.lib_out}'
                     )
+        # should have now created a new _{self.name}.<platform>.so shared library
+        # so should be able to, on Mac, (e.g.) "otool -L _teem.cpython-39-darwin.so"
+        # or, on linux, (e.g.) "ldd _teem.cpython-38-x86_64-linux-gnu.so"
+        # to confirm that it wants to link to self.libs
         return self.lib_out
 
 
