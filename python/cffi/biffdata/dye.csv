@@ -1,0 +1,2 @@
+dyeConvert,int,1,0,dye,dye/convertDye.c:352
+dyeColorParse,int,1,0,dye,dye/methodsDye.c:186
