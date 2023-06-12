@@ -177,7 +177,7 @@ _tlibs = {
 
 def tlib_all() -> list[str]:
     """
-    Returns list of all Teem libraries in dependency order
+    Returns list of all Teem libraries in dependency order, regardless of "experimental" status
     """
     return list(_tlibs.keys())
 
@@ -193,9 +193,10 @@ def tlib_experimental(lib: str) -> bool:
     return info['expr']
 
 
-def tlib_depends(lib: str) -> list[str]:
+def tlib_depends(lib: str, exper: bool) -> list[str]:
     """
-    Computes dependency expansion of given Teem library
+    Computes dependency expansion of given Teem library.
+    Whether "experimental" libraries are also included depends on exper.
     """
     try:
         info = _tlibs[lib]
@@ -213,7 +214,11 @@ def tlib_depends(lib: str) -> list[str]:
         newd = tmpd
     tla = tlib_all()   # linear array of all libs in dependency order
     # return dependencies sorted in dependency order
-    return sorted(list(newd), key=tla.index)
+    ret = sorted(list(newd), key=tla.index)
+    # exclude "experimental" libraries if not exper
+    if not exper:
+        ret = list(filter(lambda L: not tlib_experimental(L), ret))
+    return ret
 
 
 def tlib_headers(lib: str) -> list[str]:
@@ -573,7 +578,7 @@ class Tffi:
         # want free() available in for freeing biff messages
         self.ffi.cdef('extern void free(void *);')
         # read in the relevant Teem cdef/ headers
-        for lib in tlib_depends(self.top_tlib):
+        for lib in tlib_depends(self.top_tlib, self.exper):
             if self.verb:
                 print(f'Tffi.cdef: reading {self.path_cdef}/cdef_{lib}.h ...')
             with open(f'{self.path_cdef}/cdef_{lib}.h', 'r', encoding='utf-8') as file:
