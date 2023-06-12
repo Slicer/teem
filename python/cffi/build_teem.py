@@ -28,6 +28,7 @@ warnings from from pylint.
 """
 import argparse
 import re
+import sys
 
 import exult
 
@@ -324,6 +325,17 @@ def parse_args():
         'extension module.',
     )
     parser.add_argument(
+        '-int',
+        action='store_true',
+        default=False,
+        help=(
+            'On Macs only: '
+            f"{'' if sys.platform.startswith('darwin') else '(and this is not a Mac, so it will have no effect) '}"
+            'after creating cffi extension library, store in it the explicit '
+            'path libteem.dylib, using install_name_tool.'
+        ),
+    )
+    parser.add_argument(
         'install_path',
         help='path into which CMake has install Teem (should have '
         '"include" and "lib" subdirectories)',
@@ -341,10 +353,4 @@ if __name__ == '__main__':
         ffi = exult.Tffi('../..', args.install_path, 'teem', VERB)
         ffi.cdef()
         ffi.set_source()
-        ffi.compile(run_int=True)
-        # should have now created a new _teem.<platform>.so shared library
-        # so should be able to, on Mac, (e.g.) "otool -L _teem.cpython-39-darwin.so"
-        # or, on linux, (e.g.) "ldd _teem.cpython-38-x86_64-linux-gnu.so"
-        # to confirm that this want to dynamically link to the libteem shared library
-        # (something about the mac build process allows this to work even if -Wl,-rpath
-        # is not passed to set_source, but this seems necessary on linux)
+        ffi.compile(run_int=args.int)
