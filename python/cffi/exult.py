@@ -340,6 +340,18 @@ class ScanHdr:
         if not _os.path.isfile(filename):
             raise Exception(f'header filename {filename} not a file')
         self.filename = filename
+        try:
+            _subprocess.run(['unu', '--help'], check=True, stdout=_subprocess.PIPE)
+        except Exception as exc:
+            raise RuntimeError(
+                f'Seems that "unu" is not in $PATH; have you installed Teem?'
+            ) from exc
+        try:
+            _subprocess.run(['unu', 'uncmt'], check=True, stdout=_subprocess.PIPE)
+        except Exception as exc:
+            raise RuntimeError(
+                f'The "unu" in $PATH is not new enough to have "unu uncmt"; try updating Teem'
+            ) from exc
         uncmt = _subprocess.run(
             # run "unu uncmt" to completely excise comments
             ['unu', 'uncmt', filename, '-'],
