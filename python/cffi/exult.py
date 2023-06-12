@@ -356,7 +356,6 @@ class ScanHdr:
         """
         Do our best to scan input self.ilines to make output self.olines
         """
-        keep = True
         for (lnum, linen) in enumerate(self.ilines):
             line = linen.strip()   # strip left and right whitespace
             if not line:
@@ -384,7 +383,7 @@ class ScanHdr:
                         print(f'scan: -----> ifstack = {self.ifstack}')
                 elif _re.match(r'# *else', line):
                     # swap meaning of top-most ifstack element
-                    if not len(self.ifstack):
+                    if not self.ifstack:
                         raise Exception(
                             f'ScanHdr.scan({self.filename}): line {lnum} |{line}| has '
                             f'   #else but #if stack is currently empty'
@@ -394,7 +393,7 @@ class ScanHdr:
                         print(f'scan: -----> ifstack = {self.ifstack}')
                 elif _re.match(r'# *endif', line):
                     # ending scope of top-most ifstack element
-                    if not len(self.ifstack):
+                    if not self.ifstack:
                         raise Exception(
                             f'ScanHdr.scan({self.filename}): line {lnum} |{line}| has '
                             f'   #endif but #if stack is currently empty'
@@ -494,6 +493,7 @@ class Tffi:
         self.path_nlib = ''   # path to library file libname.{so,dylib}
         self.libs = ['teem']   # name(s) of libraries the extension module depends on
         self.path_libs = [self.path_tlib]   # absolute paths to libraries we depend on
+        self.dfnd = []   # things nominally #define'd for sake of cdef()
         self.eca = []   # extra compile args
         self.ela = []   # extra link args
         self.source_args = None
