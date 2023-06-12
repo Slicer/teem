@@ -341,7 +341,7 @@ if __name__ == '__main__':
         ffi = exult.Tffi('../..', args.install_path, 'teem', VERB)
         ffi.cdef()
         ffi.set_source()
-        ffi.compile()
+        ffi.compile(run_int=True)
         # should have now created a new _teem.<platform>.so shared library
         # so should be able to, on Mac, (e.g.) "otool -L _teem.cpython-39-darwin.so"
         # or, on linux, (e.g.) "ldd _teem.cpython-38-x86_64-linux-gnu.so"
