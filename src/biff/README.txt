@@ -67,19 +67,21 @@ function names start with a single "_".
           AIR_FALSE, AIR_NAN, UINT_MAX, Z_STREAM_ERROR, and
           nrrdField_unknown. The point is: be prepared to do some work if
           you're in the business of parsing and acting on Biff annotations.
-or "<v1>|<v2>" : Both values <v1> and <v2> indicate a biff-reported error
-or "<v1>|<v2>|<v3>" : and so on
+or "<v1>|<v2>" : A return value of either <v1> or <v2> indicates an error has
+          been recorded in biff
+or "<v1>|<v2>|<v3>" : Error values are <v1> or <v2> or <v3>
+          (and so on)
 or "maybe:<N>:<val>" : This function uses something like biffMaybeAddf(), which
           may or may not set a biff error message, depending on the value of
           one of the function parameters (always called "useBiff", as enforced
-          by biff auto-scan).  In *1*-based numbering, useBiff is the Nth
-          function parameter.
+          by biff auto-scan).  useBiff is the Nth function parameter, in the
+          *1*-based numbering of the function parameters.
 or "nope" : This function does not use biff. The function may usefully
           communicate something about how things went wrong by a returning
           one of some possible error return values, but that isn't documented
           here because it doesn't involve biff. (Why "nope": it won't be
-          confused for anything else, and GLK just saw the excellent Jordan
-          Peele movie of the same name)
+          confused for anything else, and GLK had just seen the excellent
+          Jordan Peele movie of the same name)
 
 --- Optional:
   # <comments>  : anything after a '#' is ignored by an annotation parser
