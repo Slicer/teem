@@ -27,15 +27,15 @@
 #define INFO "Change comment contents in a C99 input file"
 static const char *_unrrdu_uncmtInfoL
   = (INFO
-     "; the comment delimeters are preserved by default, but comments can be "
-     "entirely excised with the -xc option. This command can also change contents of "
-     "string literals in a very particular way. This is useful for a class GLK teaches, "
-     "wherein students are not to use types \"float\" or \"double\" directly (but "
-     "rather a class-specific \"real\" typedef). Grepping for \"float\" and \"double\" "
-     "generates false positives since they can show up benignly in comments and string "
-     "literals; these are avoided by passing the source file through \"unu uncmt\". "
-     "Catching implicit conversions between floating point precisions is handled "
-     "separately, in case you were wondering about that.\n "
+     "; the comment delimeters are preserved by default, but comments can also be "
+     "entirely excised. This command can also change contents of string literals in a "
+     "very particular way. This is all motivated by a class GLK teaches, wherein "
+     "students are not to use types \"float\" or \"double\" directly (but rather a "
+     "class-specific \"real\" typedef). Grepping for \"float\" and \"double\" gives "
+     "false positives since they can show up benignly in comments and string "
+     "literals; these are avoided by passing the source file through \"unu uncmt "
+     "-nfds\". Catching implicit conversions between floating point precisions is "
+     "handled separately, in case you were thinking about that.\n "
      "* (not actually based on Nrrd)");
 
 /* set of states for little DFA to know whether we're in a comment or not */
@@ -204,7 +204,7 @@ uncomment(const char *me, const char *nameOut, int nixcmt, const char *cmtSub, i
       co = ci;
       if ('/' == ci) {
         if (nixcmt) {
-          /* actually no can't output / because might be start of comment */
+          /* actually can't output / because it might be start of comment */
           co = 0;
         }
         state = stateSlash;
@@ -230,6 +230,10 @@ uncomment(const char *me, const char *nameOut, int nixcmt, const char *cmtSub, i
           co = ' ';
         }
       } else { /* was just a stand-alone slash */
+        if (nixcmt) {
+          /* false alarm, do output / now */
+          fputc('/', fout);
+        }
         state = stateElse;
       }
       break;
@@ -289,7 +293,7 @@ uncomment(const char *me, const char *nameOut, int nixcmt, const char *cmtSub, i
       break;
     case stateStrEsc:
       /* we don't have to keep track of the different escape sequences;
-      we just have to know its an escape sequence. This will handle \" being in the
+      we just have to know it's an escape sequence. This will handle \" being in the
       string, which does not end the string (hence the need for this side state),
       and but nor do we need code specific to that escape sequence. */
       co = STR_SUB(ci);
@@ -318,33 +322,26 @@ unrrdu_uncmtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *err;
   /* these are specific to this command */
   char *cmtSubst, *nameIn, *nameOut;
-  int nixcmt, nfds;
+  int nfds, nosub;
 
   hestOptAdd(
-    &opt, "xc", NULL, airTypeInt, 0, 0, &nixcmt, NULL,
-    "If set, comments will be completely excised and replaced with white-space: "
-    "the /* and */ or // comment delimiters will be removed (and the -cs "
-    "option is moot). By default, comment delimiters are preserved, but the "
-    "comment content is transformed.");
+    &opt, "cs", "cmtsub", airTypeString, 1, 1, &cmtSubst, "",
+    "Given a non-empty string, those characters are looped through to replace the "
+    "non-white space characters is contents; EXCEPT if if a length-2 string of a "
+    "repeating character is given, (e.g. \"-cs xx\") in which case the string contents "
+    "are preserved (contrary to the intended purpose of this command). To both "
+    "transform the comment contents into whitespace and to wholly remove the comment "
+    "delimiters, pass an empty string here (the default).");
   hestOptAdd(
-    &opt, "cs", "cmtsub", airTypeString, 1, 1, &cmtSubst, ".",
-    "non-empty string to loop through when substituting the non-white-space "
-    "characters in comment contents; if given empty string here, "
-    "comment contents will be preserved (contrary to purpose of this command).");
-  hestOptAdd(
-    &opt, "nfds", "bool", airTypeBool, 1, 1, &nfds, "true",
-    "prevent \"float\" or \"double\" from appearing in a string literal. String "
-    "literal "
-    "contents (unlike comment contents) are usually preserved, since doing naive "
-    "string "
-    "substitution (in the same way as done for comments) will break printf "
-    "formatting "
-    "strings. But the motivation for this command is to allow grep to see usage of "
-    "\"float\" and \"double\" as types, so by default those strings are not allowed "
-    "to "
-    "appear in strings: their last character is instead made upper-case. If this "
-    "option "
-    "is false, however, then string contents are entirely unchanged.");
+    &opt, "nfds", NULL, airTypeInt, 0, 0, &nfds, NULL,
+    "prevent \"float\" or \"double\" from appearing in string literals. String "
+    "literal contents (unlike comment contents) are typically preserved by this "
+    "command (since doing naive per-character substitutions in the same way as done for "
+    "comments would totally break printf formatting strings). If this option is used, "
+    "\"float\" and \"double\" are prevented from appearing in string literals by "
+    "turning them into \"floaT\" and \"doublE\". This functionality is part of the "
+    "motivation for this command to exist, but the behavior is weird enough to be off "
+    "by default.");
   hestOptAdd(&opt, NULL, "fileIn", airTypeString, 1, 1, &nameIn, NULL,
              "Single input file to read; use \"-\" for stdin");
   hestOptAdd(&opt, NULL, "fileOut", airTypeString, 1, 1, &nameOut, NULL,
@@ -356,9 +353,11 @@ unrrdu_uncmtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  /* printf("cmtSubst = |%s| len = %u\n", cmtSubst, (unsigned int)strlen(cmtSubst));
-   */
-  if (uncomment(me, nameOut, nixcmt, strlen(cmtSubst) ? cmtSubst : NULL, nfds, nameIn)) {
+  nosub = (2 == strlen(cmtSubst) && cmtSubst[0] == cmtSubst[1]);
+  if (uncomment(me, nameOut,             /* */
+                !strlen(cmtSubst),       /* nixcmt is true iff cmtSubst is empty */
+                nosub ? NULL : cmtSubst, /* */
+                nfds, nameIn)) {
     fprintf(stderr, "%s: something went wrong\n", me);
     airMopError(mop);
     return 1;
