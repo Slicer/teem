@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2009--2022  University of Chicago
+# Copyright (C) 2009--2023  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -20,9 +20,9 @@
 # Fifth Floor, Boston, MA 02110-1301 USA
 
 """
-Processes Teem source .c files to produce data (in csv format) about biff usage,
-to be used for wrappers around a Teem extension module. For the the only user is
-the teem.py Python wrapper, but the generated .csv files are language-agnostic.
+Processes Teem source .c files to produce data (in csv format) about biff usage, to be used for
+wrappers around a Teem extension module. Right now the only consumer of these files is the
+teem.py Python wrapper, but the generated .csv files are language-agnostic.
 """
 
 import re
@@ -98,16 +98,20 @@ def proc_annote(function: str, qualtype: str, annotecomment: str) -> str:
     Processes the annotation found for one function to generate one output csv string
     :param str function: the name of the function
     :param str qualtype: the qualifier(s) and return type of the function
-    :param str annotecomment: everything
+    :param str annotecomment: whole annotation, maybe with comment, starting with "Biff: "
     """
     qtlist = qualtype.split(' ')   # list made from qualifer and type
+    if not annotecomment.startswith('Biff: '):
+        raise Exception(
+            f'for function "{function}" annotation "{annotecomment}" does not start with "Biff: "'
+        )
     # remove any comment within annotation
     if '#' in annotecomment:
         # drop the comment
         annote = annotecomment.split('#')[0].strip()
     else:
         annote = annotecomment
-    anlist = annote[6:].split(' ')  # remove "Biff: ", and split into list
+    anlist = annote[6:].split(' ')  # split whatever follows "Biff: " into list
     # For Python-wrapping the Teem API, we're ignoring some things:
     if 'static' in qtlist:
         # function not accessible anyway in the libteem library
