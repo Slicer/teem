@@ -25,11 +25,11 @@ to be used for wrappers around a Teem extension module. For the the only user is
 the teem.py Python wrapper, but the generated .csv files are language-agnostic.
 """
 
-# halt if python2; thanks to https://preview.tinyurl.com/44f2beza
 import re
 import argparse
 import os
 
+# halt if python2; thanks to https://preview.tinyurl.com/44f2beza
 _x, *_y = 1, 2  # NOTE: A SyntaxError here means you need python3, not python2
 del _x, _y
 
@@ -37,9 +37,9 @@ del _x, _y
 VERB = 1
 # TEEM_LIB_LIST
 TLIBS = [  # 'air', 'hest', 'biff',  (these libraries cannot not use biff, by their nature)
-    # the following are all the libraries, and we may discover that some of them
-    # (like elf, tijk, unrrdu) do not use biff, but that is something to discover
-    # as part of our operation, rather than decreeing from the outset
+    # the following lists ALL the other Teem libraries. It may be that some
+    # (like elf, tijk, unrrdu) do not use biff, but that is something we discover
+    # now as part of our operation, rather than decreeing from the outset.
     'nrrd',
     'ell',
     'moss',
@@ -71,8 +71,7 @@ TLIBS = [  # 'air', 'hest', 'biff',  (these libraries cannot not use biff, by th
 # This assumes that the user of our output has:
 # - imported _teem (for enum values)
 # - imported math as _math (for isnan)
-
-
+#
 # def rvtest(typ, tv, rvName):
 #    ret = None
 #    if 'int' in typ:
@@ -170,7 +169,8 @@ def proc_annote(function: str, qualtype: str, annotecomment: str) -> str:
 def proc_src(file, filename):
     """
     Process all the "Biff:" annotations found in given file (with given filename),
-    return a list of results
+    return a list of results.
+    As a fun side bonus
     """
     olines = []
     ilines = [line.strip() for line in file.readlines()]
@@ -180,22 +180,34 @@ def proc_src(file, filename):
             continue
         # So now: lines[lidx] aka "line {lidx+1}" has a Biff annotation, and
         # lines[lidx+1] aka "line {lidx+2}" is 1st line of function definition
+        # lines[lidx+2] aka "line {lidx+3}" is line that might define me[]
         fdline = ilines[lidx + 1]
+        meline = ilines[lidx + 2]
         qualtype = match.group(1).strip()   # function return qualifier and type
         annote = match.group(2).strip()
         if not (match := re.match(r'(.+?)\(', fdline)):
             raise Exception(
                 f"couldn't parse function name on line {lidx+2} of {filename}: |{fdline}|"
             )
-        if oline := proc_annote(match.group(1), qualtype, annote):
+        function = match.group(1)
+        if oline := proc_annote(function, qualtype, annote):
             olines += [oline + ',' + f'{filename}:{lidx+2}']
+        if match := re.match(r' *static const char me\[\] = "(.*?)"', meline):
+            if function != match.group(1):
+                print(
+                    f'\nWARNING: {filename}:{lidx+2} function {function} has me[]="{match.group(1)}"\n'
+                )
     return olines
 
 
 def proc_lib(path_teem: str, lib: str) -> list[str]:
+    """
+    From Teem source checkout at path_teem, for Teem library lib, generate lines of csv data
+    about Biff annotations
+    """
     path_srcs = f'{path_teem}/src/{lib}'
     # read the CMakeLists.txt file to get list of source files
-    with open(f'{path_srcs}/CMakeLists.txt') as cmfile:
+    with open(f'{path_srcs}/CMakeLists.txt', 'r', encoding='utf8') as cmfile:
         ilines = [line.strip() for line in cmfile.readlines()]
     idx0 = ilines.index(f'set({lib.upper()}_SOURCES')
     idx1 = ilines.index(')')
@@ -204,12 +216,15 @@ def proc_lib(path_teem: str, lib: str) -> list[str]:
     for filename in filenames:
         if VERB > 1:
             print(f'... {lib}/{filename}')
-        with open(f'{path_srcs}/{filename}') as file:
+        with open(f'{path_srcs}/{filename}', 'r', encoding='utf8') as file:
             olines += proc_src(file, f'{lib}/{filename}')
     return olines
 
 
 def parse_args():
+    """
+    Create and run command-line option parser
+    """
     # https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser(
         description='Scans "Biff:" annotations, and generates '
@@ -243,27 +258,31 @@ def check_args(args) -> None:
     """Checks command-line args"""
     if not os.path.isdir(args.o):
         raise Exception(f'Need output {args.o} to be directory')
-    ts = args.teem_source
-    if not (os.path.isdir(ts) and os.path.isdir(f'{ts}/arch') and os.path.isdir(f'{ts}/src')):
-        raise Exception(f'Need Teem source {ts} to be dir with "arch" and "src" subdirs')
+    teemsrc = args.teem_source
+    if not (
+        os.path.isdir(teemsrc)
+        and os.path.isdir(f'{teemsrc}/arch')
+        and os.path.isdir(f'{teemsrc}/src')
+    ):
+        raise Exception(f'Need Teem source {teemsrc} to be dir with "arch" and "src" subdirs')
     return args
 
 
 if __name__ == '__main__':
-    args = check_args(parse_args())
-    VERB = args.v
-    for lib in TLIBS:
+    ARGS = check_args(parse_args())
+    VERB = ARGS.v
+    for LIB in TLIBS:
         if VERB:
-            print(f'processing library {lib} ...')
-        if not (lines := proc_lib(args.teem_source, lib)):
+            print(f'processing library {LIB} ...')
+        if not (lines := proc_lib(ARGS.teem_source, LIB)):
             if VERB:
-                print(f' ... (no Biff annotations found)')
+                print(' ... (no Biff annotations found)')
             continue
         if VERB > 1:
-            print(f'library {lib} lines: {lines}')
-        filename = args.o + f'/{lib}.csv'
-        with open(filename, 'w') as file:
+            print(f'library {LIB} lines: {lines}')
+        ofilename = ARGS.o + f'/{LIB}.csv'
+        with open(ofilename, 'w', encoding='utf8') as ofile:
             for line in lines:
-                file.write(f'{line}\n')
+                ofile.write(f'{line}\n')
         if VERB:
-            print(f' ... wrote {filename}')
+            print(f' ... wrote {ofilename}')
