@@ -1,7 +1,7 @@
-miteSample,double,AIR_NAN,0,mite,mite/ray.c:152
-miteRenderBegin,int,1,0,mite,mite/renderMite.c:64
-miteShadeSpecParse,int,1,0,mite,mite/shade.c:70
-miteThreadNew,miteThread *,NULL,0,mite,mite/thread.c:27
-miteThreadBegin,int,1,0,mite,mite/thread.c:93
-miteVariableParse,int,1,0,mite,mite/txf.c:102
-miteNtxfCheck,int,1,0,mite,mite/txf.c:233
+miteSample,double,AIR_NAN,0,mite,mite/ray.c:153
+miteRenderBegin,int,1,0,mite,mite/renderMite.c:65
+miteShadeSpecParse,int,1,0,mite,mite/shade.c:71
+miteThreadNew,miteThread *,NULL,0,mite,mite/thread.c:28
+miteThreadBegin,int,1,0,mite,mite/thread.c:94
+miteVariableParse,int,1,0,mite,mite/txf.c:103
+miteNtxfCheck,int,1,0,mite,mite/txf.c:234

@@ -1,25 +1,25 @@
-baneClipNew,baneClip *,NULL,0,bane,bane/clip.c:103
-baneClipAnswer,int,1,0,bane,bane/clip.c:153
-baneClipCopy,baneClip *,NULL,0,bane,bane/clip.c:168
-baneFindInclusion,int,1,0,bane,bane/hvol.c:88
-baneMakeHVol,int,1,0,bane,bane/hvol.c:250
-baneGKMSHVol,Nrrd *,NULL,0,bane,bane/hvol.c:449
-baneIncNew,baneInc *,NULL,0,bane,bane/inc.c:252
-baneIncAnswer,int,1,0,bane,bane/inc.c:361
-baneIncCopy,baneInc *,NULL,0,bane,bane/inc.c:376
-baneMeasrNew,baneMeasr *,NULL,0,bane,bane/measr.c:34
-baneMeasrCopy,baneMeasr *,NULL,0,bane,bane/measr.c:150
-baneRangeNew,baneRange *,NULL,0,bane,bane/rangeBane.c:90
-baneRangeCopy,baneRange *,NULL,0,bane,bane/rangeBane.c:131
-baneRangeAnswer,int,1,0,bane,bane/rangeBane.c:145
-baneRawScatterplots,int,1,0,bane,bane/scat.c:27
-baneOpacInfo,int,1,0,bane,bane/trnsf.c:30
-bane1DOpacInfoFrom2D,int,1,0,bane,bane/trnsf.c:146
-baneSigmaCalc,int,1,0,bane,bane/trnsf.c:225
-banePosCalc,int,1,0,bane,bane/trnsf.c:256
-baneOpacCalc,int,1,0,bane,bane/trnsf.c:407
-baneInputCheck,int,1,0,bane,bane/valid.c:27
-baneHVolCheck,int,1,0,bane,bane/valid.c:65
-baneInfoCheck,int,1,0,bane,bane/valid.c:107
-banePosCheck,int,1,0,bane,bane/valid.c:145
-baneBcptsCheck,int,1,0,bane,bane/valid.c:180
+baneClipNew,baneClip *,NULL,0,bane,bane/clip.c:104
+baneClipAnswer,int,1,0,bane,bane/clip.c:154
+baneClipCopy,baneClip *,NULL,0,bane,bane/clip.c:169
+baneFindInclusion,int,1,0,bane,bane/hvol.c:89
+baneMakeHVol,int,1,0,bane,bane/hvol.c:251
+baneGKMSHVol,Nrrd *,NULL,0,bane,bane/hvol.c:450
+baneIncNew,baneInc *,NULL,0,bane,bane/inc.c:253
+baneIncAnswer,int,1,0,bane,bane/inc.c:362
+baneIncCopy,baneInc *,NULL,0,bane,bane/inc.c:377
+baneMeasrNew,baneMeasr *,NULL,0,bane,bane/measr.c:35
+baneMeasrCopy,baneMeasr *,NULL,0,bane,bane/measr.c:151
+baneRangeNew,baneRange *,NULL,0,bane,bane/rangeBane.c:91
+baneRangeCopy,baneRange *,NULL,0,bane,bane/rangeBane.c:132
+baneRangeAnswer,int,1,0,bane,bane/rangeBane.c:146
+baneRawScatterplots,int,1,0,bane,bane/scat.c:28
+baneOpacInfo,int,1,0,bane,bane/trnsf.c:31
+bane1DOpacInfoFrom2D,int,1,0,bane,bane/trnsf.c:147
+baneSigmaCalc,int,1,0,bane,bane/trnsf.c:226
+banePosCalc,int,1,0,bane,bane/trnsf.c:257
+baneOpacCalc,int,1,0,bane,bane/trnsf.c:408
+baneInputCheck,int,1,0,bane,bane/valid.c:28
+baneHVolCheck,int,1,0,bane,bane/valid.c:66
+baneInfoCheck,int,1,0,bane,bane/valid.c:108
+banePosCheck,int,1,0,bane,bane/valid.c:146
+baneBcptsCheck,int,1,0,bane,bane/valid.c:181

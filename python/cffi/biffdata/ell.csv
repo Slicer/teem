@@ -1,8 +1,8 @@
-ell_Nm_check,int,1,0,ell,ell/genmat.c:26
-ell_Nm_tran,int,1,0,ell,ell/genmat.c:60
-ell_Nm_mul,int,1,0,ell,ell/genmat.c:105
-ell_Nm_inv,int,1,0,ell,ell/genmat.c:339
-ell_Nm_pseudo_inv,int,1,0,ell,ell/genmat.c:380
-ell_Nm_wght_pseudo_inv,int,1,0,ell,ell/genmat.c:414
-ell_q_avg4_d,int,1,0,ell,ell/quat.c:472
-ell_q_avgN_d,int,1,0,ell,ell/quat.c:540
+ell_Nm_check,int,1,0,ell,ell/genmat.c:27
+ell_Nm_tran,int,1,0,ell,ell/genmat.c:61
+ell_Nm_mul,int,1,0,ell,ell/genmat.c:106
+ell_Nm_inv,int,1,0,ell,ell/genmat.c:340
+ell_Nm_pseudo_inv,int,1,0,ell,ell/genmat.c:381
+ell_Nm_wght_pseudo_inv,int,1,0,ell,ell/genmat.c:415
+ell_q_avg4_d,int,1,0,ell,ell/quat.c:473
+ell_q_avgN_d,int,1,0,ell,ell/quat.c:541
