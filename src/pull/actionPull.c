@@ -233,35 +233,35 @@ _pullEnergyInterParticle(pullContext *pctx, pullPoint *me, const pullPoint *she,
 int /* Biff: 1 */
 pullEnergyPlot(pullContext *pctx, Nrrd *nplot, double xx, double yy, double zz,
                unsigned int res) {
-  static const char meme[] = "pullEnergyPlot";
-  pullPoint *me, *she;
+  static const char me[] = "pullEnergyPlot";
+  pullPoint *mee, *she;
   airArray *mop;
   double dir[3], len, *plot, _rr, _ss, rr, ss, enr, egrad[4];
   size_t size[3];
   unsigned int ri, si;
 
   if (!(pctx && nplot)) {
-    biffAddf(PULL, "%s: got NULL pointer", meme);
+    biffAddf(PULL, "%s: got NULL pointer", me);
     return 1;
   }
   ELL_3V_SET(dir, xx, yy, zz);
   if (!ELL_3V_LEN(dir)) {
-    biffAddf(PULL, "%s: need non-zero length dir", meme);
+    biffAddf(PULL, "%s: need non-zero length dir", me);
     return 1;
   }
   ELL_3V_NORM(dir, dir, len);
   ELL_3V_SET(size, 3, res, res);
   if (nrrdMaybeAlloc_nva(nplot, nrrdTypeDouble, 3, size)) {
-    biffMovef(PULL, NRRD, "%s: trouble allocating output", meme);
+    biffMovef(PULL, NRRD, "%s: trouble allocating output", me);
     return 1;
   }
 
   mop = airMopNew();
-  me = pullPointNew(pctx);
+  mee = pullPointNew(pctx);
   she = pullPointNew(pctx);
-  airMopAdd(mop, me, (airMopper)pullPointNix, airMopAlways);
+  airMopAdd(mop, mee, (airMopper)pullPointNix, airMopAlways);
   airMopAdd(mop, she, (airMopper)pullPointNix, airMopAlways);
-  ELL_4V_SET(me->pos, 0, 0, 0, 0);
+  ELL_4V_SET(mee->pos, 0, 0, 0, 0);
   plot = AIR_CAST(double *, nplot->data);
   for (si = 0; si < res; si++) {
     _ss = AIR_AFFINE(0, si, res - 1, -1.0, 1.0);
@@ -271,7 +271,7 @@ pullEnergyPlot(pullContext *pctx, Nrrd *nplot, double xx, double yy, double zz,
       rr = _rr * pctx->sysParm.radiusSpace;
       ELL_3V_SCALE(she->pos, rr, dir);
       she->pos[3] = ss;
-      enr = _pullEnergyInterParticle(pctx, me, she, AIR_ABS(rr), AIR_ABS(ss), egrad);
+      enr = _pullEnergyInterParticle(pctx, mee, she, AIR_ABS(rr), AIR_ABS(ss), egrad);
       plot[0] = enr;
       plot[1] = ELL_3V_DOT(egrad, dir);
       plot[2] = egrad[3];
