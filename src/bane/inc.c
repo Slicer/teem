@@ -94,7 +94,7 @@ _incAnswer_Absolute(double *minP, double *maxP, Nrrd *hist, double *incParm,
 static int /* Biff: 1 */
 _incAnswer_RangeRatio(double *minP, double *maxP, Nrrd *hist, double *incParm,
                       baneRange *range) {
-  static const char me[] = "_incAnwer_RangeRatio";
+  static const char me[] = "_incAnswer_RangeRatio";
   double mid;
 
   if (range->answer(minP, maxP, hist->axis[0].min, hist->axis[0].max)) {

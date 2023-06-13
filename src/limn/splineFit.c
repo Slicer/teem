@@ -860,7 +860,7 @@ int /* Biff: 1 */
 limnCBFitSingle(double alpha[2], limnCBFContext *_fctx, const double _vv0[2],
                 const double _tt1[2], const double _tt2[2], const double _vv3[2],
                 const double *xy, uint pNum, int isLoop) {
-  static const char me[] = "limnCBFSingle";
+  static const char me[] = "limnCBFitSingle";
   double own, vv0[2], tt1[2], tt2[2], vv3[2];
   uint loi, hii;
   limnCBFContext *fctx, myfctx;

@@ -214,7 +214,7 @@ int /* Biff: 1 */
 pullVolumeSingleAdd(pullContext *pctx, const gageKind *kind, char *name, const Nrrd *nin,
                     const NrrdKernelSpec *ksp00, const NrrdKernelSpec *ksp11,
                     const NrrdKernelSpec *ksp22) {
-  static const char me[] = "pullVolumeSingleSet";
+  static const char me[] = "pullVolumeSingleAdd";
   pullVolume *vol;
 
   vol = pullVolumeNew();

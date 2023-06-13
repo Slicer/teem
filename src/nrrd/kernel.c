@@ -3367,9 +3367,9 @@ nrrdKernelCheck(const NrrdKernel *kern, const double parm[NRRD_KERNEL_PARMS_NUM]
                 size_t evalNum, double epsilon, unsigned int diffOkEvalMax,
                 unsigned int diffOkIntglMax, const NrrdKernel *ikern,
                 const double iparm[NRRD_KERNEL_PARMS_NUM]) {
+  static const char me[] = "nrrdKernelCheck";
   const NrrdKernel *parsedkern;
   double parsedparm[NRRD_KERNEL_PARMS_NUM], supp, integral;
-  static const char me[] = "nrrdKernelCheck";
   char kstr[AIR_STRLEN_LARGE], kspstr[AIR_STRLEN_LARGE], explain[AIR_STRLEN_LARGE],
     stmp[AIR_STRLEN_SMALL];
   int differ;

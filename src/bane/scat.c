@@ -26,8 +26,8 @@
 
 int /* Biff: 1 */
 baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
-  Nrrd *gA, *hA, *gB, *hB;
   static const char me[] = "baneRawScatterplots";
+  Nrrd *gA, *hA, *gB, *hB;
   int E;
 
   if (!(nvg && nvh && hvol)) {

@@ -1307,7 +1307,7 @@ _tenEstimate1TensorGradient(tenEstimateContext *tec, double *gradB0P, double gra
                                               double gTen[7], double B0, double ten[7]),
                             int (*badnessCB)(tenEstimateContext *tec, double *badP,
                                              double B0, double ten[7])) {
-  static const char me[] = "_tenEstimate1TensorGradper";
+  static const char me[] = "_tenEstimate1TensorGradient";
   double forwTen[7], backTen[7], forwBad, backBad;
   unsigned int ti;
 

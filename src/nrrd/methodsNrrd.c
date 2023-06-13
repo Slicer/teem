@@ -199,7 +199,7 @@ nrrdBoundarySpecSprint(char str[AIR_STRLEN_LARGE], const NrrdBoundarySpec *bspec
 int /* Biff: 1 */
 nrrdBoundarySpecCompare(const NrrdBoundarySpec *aa, const NrrdBoundarySpec *bb,
                         int *differ, char explain[AIR_STRLEN_LARGE]) {
-  static const char me[] = "nrrdBoundarySpecEqual";
+  static const char me[] = "nrrdBoundarySpecCompare";
 
   if (!differ) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -1048,7 +1048,7 @@ nrrdAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
 int /* Biff: (private) 1 */
 _nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size,
                              int zeroWhenNoAlloc) {
-  static const char me[] = "nrrdMaybeAllocMaybeZero_nva";
+  static const char me[] = "_nrrdMaybeAllocMaybeZero_nva";
   size_t sizeWant, sizeHave, numWant, elementSizeWant;
   int need;
   unsigned int ai;

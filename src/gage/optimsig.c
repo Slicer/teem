@@ -1257,7 +1257,7 @@ int /* Biff: 1 */
 gageOptimSigErrorPlotSliding(gageOptimSigContext *oscx, Nrrd *nout, double windowRho,
                              unsigned int sampleNum, const NrrdKernelSpec *kssSpec,
                              int imgMeasr) {
-  static const char me[] = "gageOptimSigRecondErrorPlotSliding";
+  static const char me[] = "gageOptimSigErrorPlotSliding";
   char doneStr[AIR_STRLEN_SMALL];
   unsigned int ii;
   double *out;

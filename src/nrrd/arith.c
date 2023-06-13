@@ -1109,7 +1109,7 @@ nrrdArithAffine(Nrrd *nout, double minIn, const Nrrd *nin, double maxIn, double 
 int /* Biff: 1 */
 nrrdArithIterAffine(Nrrd *nout, NrrdIter *minIn, NrrdIter *in, NrrdIter *maxIn,
                     NrrdIter *minOut, NrrdIter *maxOut, int clamp) {
-  static const char me[] = "nrrdArithInterAffine";
+  static const char me[] = "nrrdArithIterAffine";
   double (*ins)(void *v, size_t I, double d), mini, vin, maxi, mino, maxo, vout;
   const Nrrd *nin;
   char *contA, *contB, *contC, *contD, *contE;
