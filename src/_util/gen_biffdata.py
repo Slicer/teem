@@ -169,34 +169,75 @@ def proc_annote(function: str, qualtype: str, annotecomment: str) -> str:
 def proc_src(file, filename):
     """
     Process all the "Biff:" annotations found in given file (with given filename),
-    return a list of results.
-    As a fun side bonus
+    and return a list of results.
+    As a fun extra bonus, this checks that a biff-using function names itself with
+    a static const char me[] definition that actually matches the function name,
+    and describes any issues as a WARNING (this found many many such glitches)
     """
     olines = []
     ilines = [line.strip() for line in file.readlines()]
+    ilnum = len(ilines)
     for (lidx, iline) in enumerate(ilines):
         # scan lines of source file, looking for Biff: annotations
         if not (match := re.match(r'(.+?)\/\* (Biff: .+?)\*\/', iline)):
             continue
         # So now: lines[lidx] aka "line {lidx+1}" has a Biff annotation, and
         # lines[lidx+1] aka "line {lidx+2}" is 1st line of function definition
-        # lines[lidx+2] aka "line {lidx+3}" is line that might define me[]
-        fdline = ilines[lidx + 1]
-        meline = ilines[lidx + 2]
+        # lines[lidx+2] aka "line {lidx+3}" OR LATER is line that might define me[]
+        line = ilines[lidx + 1]   # line that should have function name
         qualtype = match.group(1).strip()   # function return qualifier and type
         annote = match.group(2).strip()
-        if not (match := re.match(r'(.+?)\(', fdline)):
+        if not (match := re.match(r'(.+?)\(', line)):
             raise Exception(
-                f"couldn't parse function name on line {lidx+2} of {filename}: |{fdline}|"
+                f"couldn't parse function name on line {lidx+2} of {filename}: |{line}|"
             )
         function = match.group(1)
         if oline := proc_annote(function, qualtype, annote):
             olines += [oline + ',' + f'{filename}:{lidx+2}']
-        if match := re.match(r' *static const char me\[\] = "(.*?)"', meline):
+        # We've finished adding information about just-seen Biff annotation.
+        # Now: fun extra bonus: see if me[] definition actually matches function name
+        # epobidx = line index with end paren open brace ") {"; next line should have "me[]"
+        # this is initialized to so first line looked at is "line" above
+        epobidx = lidx + 1
+        me_is_param = False
+        while epobidx < ilnum:
+            if re.match(r'.*const char \*me,', ilines[epobidx]):
+                # oh ok, "me" is already a function parameter (as in some unrrdu-related
+                # functions) so it will not also define static const char me[], so bail
+                me_is_param = True
+                break
+            if re.match(r'.*\) {$', ilines[epobidx]):
+                # great; we found the line with ") {"; we're done
+                break
+            # else still looking for ") {"
+            epobidx += 1
+        if me_is_param:
+            # nothing to do for fun extra bonus; move along to look for next Biff annotation
+            continue
+        # else we try to work on fun extra bonus
+        if not epobidx + 1 < ilnum:
+            raise Exception(
+                f'{filename}:{lidx+1} starts function {function} definition but '
+                'never saw ") {" with line after for me[]'
+            )
+        # "static const char me[]" should appear on line after ") {"
+        line = ilines[epobidx + 1]   # (now) line that should have me[]
+        if match := re.match(r' *static const char me\[\] = "(.*?)"', line):
             if function != match.group(1):
                 print(
-                    f'\nWARNING: {filename}:{lidx+2} function {function} has me[]="{match.group(1)}"\n'
+                    f'\nWARNING: {filename}:{lidx+2} function {function} '
+                    f'has different me[]="{match.group(1)}"\n'
                 )
+        elif match := re.match(r' *static const char .*?me\[\]', line):
+            print(
+                f'\nWARNING: {filename}:{lidx+3} function {function} '
+                f'weird line with me[] |{line}|\n'
+            )
+        elif not (annote.startswith('Biff: nope') or annote.startswith('Biff: (private) nope')):
+            print(
+                f'\nWARNING: {filename}:{lidx+3} function {function} with annote=|{annote}| '
+                f'does not seem to have me[] defined in |{line}|\n'
+            )
     return olines
 
 
@@ -274,15 +315,16 @@ if __name__ == '__main__':
     for LIB in TLIBS:
         if VERB:
             print(f'processing library {LIB} ...')
-        if not (lines := proc_lib(ARGS.teem_source, LIB)):
+        # bd = biffdata
+        if not (bdlines := proc_lib(ARGS.teem_source, LIB)):
             if VERB:
                 print(' ... (no Biff annotations found)')
             continue
         if VERB > 1:
-            print(f'library {LIB} lines: {lines}')
+            print(f'library {LIB} lines: {bdlines}')
         ofilename = ARGS.o + f'/{LIB}.csv'
         with open(ofilename, 'w', encoding='utf8') as ofile:
-            for line in lines:
-                ofile.write(f'{line}\n')
+            for bdline in bdlines:
+                ofile.write(f'{bdline}\n')
         if VERB:
             print(f' ... wrote {ofilename}')
