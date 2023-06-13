@@ -19,7 +19,11 @@
 # this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
 # Fifth Floor, Boston, MA 02110-1301 USA
 
-# HEY TODO: make pylint happier!
+"""
+Processes Teem source .c files to produce data (in csv format) about biff usage,
+to be used for wrappers around a Teem extension module. For the the only user is
+the teem.py Python wrapper, but the generated .csv files are language-agnostic.
+"""
 
 # halt if python2; thanks to https://preview.tinyurl.com/44f2beza
 import re
@@ -32,7 +36,10 @@ del _x, _y
 
 VERB = 1
 # TEEM_LIB_LIST
-TLIBS = [  # 'air', 'hest', 'biff',  (these do not use biff)
+TLIBS = [  # 'air', 'hest', 'biff',  (these libraries cannot not use biff, by their nature)
+    # the following are all the libraries, and we may discover that some of them
+    # (like elf, tijk, unrrdu) do not use biff, but that is something to discover
+    # as part of our operation, rather than decreeing from the outset
     'nrrd',
     'ell',
     'moss',
@@ -56,16 +63,7 @@ TLIBS = [  # 'air', 'hest', 'biff',  (these do not use biff)
 ]
 
 
-def argsCheck(oPath: str, tPath: str) -> None:
-    """Checks command-line args"""
-    if not os.path.isdir(oPath):
-        raise Exception(f'Need output {oPath} to be directory')
-    if not (
-        os.path.isdir(tPath) and os.path.isdir(f'{tPath}/arch') and os.path.isdir(f'{tPath}/src')
-    ):
-        raise Exception(f'Need Teem source {tPath} to be dir with "arch" and "src" subdirs')
-
-
+#### old code vvvvvvvvvvvvvvvvv
 # the task is: given the string representation of the error return test value
 # tv as it came out of the "Biff:"" annotation from the .c file, convert it to
 # another string representation of a Python boolean expression that is true if
@@ -93,49 +91,60 @@ def argsCheck(oPath: str, tPath: str) -> None:
 #        # this function is super adhoc-y, and will definitely require future expansion
 #        raise Exception(f"sorry don't yet know how to handle typ={typ}, tv={tv}")
 #    return ret
+#### old code ^^^^^^^^^^^^^^^^^
 
 
-def doAnnote(oFile, funcName, retQT, annoteCmt, fnln):
-    qts = retQT.split(' ')
+def proc_annote(function: str, qualtype: str, annotecomment: str) -> str:
+    """
+    Processes the annotation found for one function to generate one output csv string
+    :param str function: the name of the function
+    :param str qualtype: the qualifier(s) and return type of the function
+    :param str annotecomment: everything
+    """
+    qtlist = qualtype.split(' ')   # list made from qualifer and type
     # remove any comment within annotation
-    if '#' in annoteCmt:
-        annote = annoteCmt.split('#')[0].strip()
+    if '#' in annotecomment:
+        # drop the comment
+        annote = annotecomment.split('#')[0].strip()
     else:
-        annote = annoteCmt
+        annote = annotecomment
     anlist = annote[6:].split(' ')  # remove "Biff: ", and split into list
     # For Python-wrapping the Teem API, we're ignoring some things:
-    if 'static' in qts:
+    if 'static' in qtlist:
         # function not accessible anyway in the libteem library
-        return
+        return ''
     if 'nope' in anlist:
         # function doesn't use biff, so nothing for wrapper to do w.r.t biff
-        return
+        return ''
     if '(private)' in anlist:
-        # wrapper is around public API, so nothing for this either
+        # intended wrapper is around public API, so nothing for this either
         # (this covers some of the more far-out uses of Biff annotations, so
         # including private functions will require more work on rvtest() above)
-        return
+        return ''
     if 1 != len(anlist):
-        raise Exception(f'got multiple words {anlist} (from "{annoteCmt}") but expected 1')
-    anval = anlist[0]
-    if anval.startswith('maybe:'):
-        mlist = anval.split(':')  # mlist[0]='maybe:'
-        mubi = mlist[1]  # for Maybe, useBiff index (1-based)
-        anval = mlist[2]  # returned value(s) to check
+        raise Exception(f'got multiple words {anlist} (from "{annotecomment}") but expected 1')
+    errval = anlist[0]
+    if errval.startswith('maybe:'):
+        # function may or may not use biff in case of error, depending on value of useBiff param
+        mlist = errval.split(':')  # mlist[0]='maybe:'
+        mubi = mlist[1]  # for *M*aybe, *u*se*B*iff *i*ndex (ONE-based number of function params)
+        errval = mlist[2]  # returned value(s) to check
     else:
+        # function always uses biff in case of error
         mubi = 0
-    if not (match := re.match(r'_*(.+?)[^a-z]', funcName)):
-        raise Exception(f'couldn\'t extract library name from function name "{funcName}"')
-    bkey = match.group(1)
-    if not bkey in TLIBS:
+    if not (match := re.match(r'_*(.+?)[^a-z]', function)):
+        raise Exception(f'couldn\'t extract biff key prefix from function name "{function}"')
+    biffkey = match.group(1)
+    if not biffkey in TLIBS:
         raise Exception(
-            f'apparent library name prefix "{bkey}" of function "{funcName}" not in Teem library list {TLIBS}'
+            f'apparent library name prefix "{biffkey}" of function "{function}" '
+            f'not in Teem library list {TLIBS}'
         )
     # NOTE: The code above is useful logic for anything seeking to use the Biff annotations,
     # and wanting some self-contained repackaging of their info, so we store our processing of
     # it in a simple .csv file that can be parsed and used for the Python/CFFI wrappers, as
     # well as maybe eventually for other languages (e.g. Julia):
-    print(f'{funcName},{" ".join(qts)},{anval},{mubi},{bkey},{fnln}', file=oFile)
+    return f'{function},{qualtype},{errval},{mubi},{biffkey}'
     # old code:
     ##  This code could
     ##  be later expanded to generate analogous dictionaries useful for
@@ -158,36 +167,46 @@ def doAnnote(oFile, funcName, retQT, annoteCmt, fnln):
     # print(f"    '{funcName}': ({rvtf}, {mubi}, b'{bkey}', '{fnln}'),", file=oFile)
 
 
-def doSrc(oFile, sFile, sFN):
-    lines = [line.strip() for line in sFile.readlines()]
-    nlen = len(lines)
-    idx = 0
-    while idx < nlen:
+def proc_src(file, filename):
+    """
+    Process all the "Biff:" annotations found in given file (with given filename),
+    return a list of results
+    """
+    olines = []
+    ilines = [line.strip() for line in file.readlines()]
+    for (lidx, iline) in enumerate(ilines):
         # scan lines of source file, looking for Biff: annotations
-        if match := re.match(r'(.+?)\/\* (Biff: .+?)\*\/', lines[idx]):
-            retQT = match.group(1).strip()
-            annote = match.group(2).strip()
-            idx += 1
-            if not (match := re.match(r'(.+?)\(', lines[idx])):
-                raise Exception(f'couldnt parse function name on line {idx+1} of {sFN}')
-            funcName = match.group(1)
-            doAnnote(oFile, funcName, retQT, annote, f'{sFN}:{idx}')
-        idx += 1
+        if not (match := re.match(r'(.+?)\/\* (Biff: .+?)\*\/', iline)):
+            continue
+        # So now: lines[lidx] aka "line {lidx+1}" has a Biff annotation, and
+        # lines[lidx+1] aka "line {lidx+2}" is 1st line of function definition
+        fdline = ilines[lidx + 1]
+        qualtype = match.group(1).strip()   # function return qualifier and type
+        annote = match.group(2).strip()
+        if not (match := re.match(r'(.+?)\(', fdline)):
+            raise Exception(
+                f"couldn't parse function name on line {lidx+2} of {filename}: |{fdline}|"
+            )
+        if oline := proc_annote(match.group(1), qualtype, annote):
+            olines += [oline + ',' + f'{filename}:{lidx+2}']
+    return olines
 
 
-def doLib(oFile, tPath, lib):
-    sPath = f'{tPath}/src/{lib}'
+def proc_lib(path_teem: str, lib: str) -> list[str]:
+    path_srcs = f'{path_teem}/src/{lib}'
     # read the CMakeLists.txt file to get list of source files
-    with open(f'{sPath}/CMakeLists.txt') as cmfile:
-        lines = [line.strip() for line in cmfile.readlines()]
-    idx0 = 1 + lines.index(f'set({lib.upper()}_SOURCES')
-    idx1 = lines.index(')')
-    srcs = filter(lambda fn: fn.endswith('.c'), lines[idx0:idx1])
-    for FN in srcs:
+    with open(f'{path_srcs}/CMakeLists.txt') as cmfile:
+        ilines = [line.strip() for line in cmfile.readlines()]
+    idx0 = ilines.index(f'set({lib.upper()}_SOURCES')
+    idx1 = ilines.index(')')
+    filenames = filter(lambda fn: fn.endswith('.c'), ilines[idx0 + 1 : idx1])
+    olines = []
+    for filename in filenames:
         if VERB > 1:
-            print(f'... {lib}/{FN}')
-        with open(f'{sPath}/{FN}') as sFile:
-            doSrc(oFile, sFile, f'{lib}/{FN}')
+            print(f'... {lib}/{filename}')
+        with open(f'{path_srcs}/{filename}') as file:
+            olines += proc_src(file, f'{lib}/{filename}')
+    return olines
 
 
 def parse_args():
@@ -220,15 +239,31 @@ def parse_args():
     return parser.parse_args()
 
 
+def check_args(args) -> None:
+    """Checks command-line args"""
+    if not os.path.isdir(args.o):
+        raise Exception(f'Need output {args.o} to be directory')
+    ts = args.teem_source
+    if not (os.path.isdir(ts) and os.path.isdir(f'{ts}/arch') and os.path.isdir(f'{ts}/src')):
+        raise Exception(f'Need Teem source {ts} to be dir with "arch" and "src" subdirs')
+    return args
+
+
 if __name__ == '__main__':
-    args = parse_args()
+    args = check_args(parse_args())
     VERB = args.v
-    argsCheck(args.o, args.teem_source)
     for lib in TLIBS:
         if VERB:
             print(f'processing library {lib} ...')
-        ofn = args.o + f'/{lib}.csv'
-        with open(ofn, 'w') as oFile:
-            doLib(oFile, args.teem_source, lib)
+        if not (lines := proc_lib(args.teem_source, lib)):
+            if VERB:
+                print(f' ... (no Biff annotations found)')
+            continue
+        if VERB > 1:
+            print(f'library {lib} lines: {lines}')
+        filename = args.o + f'/{lib}.csv'
+        with open(filename, 'w') as file:
+            for line in lines:
+                file.write(f'{line}\n')
         if VERB:
-            print(f' ... wrote {ofn}')
+            print(f' ... wrote {filename}')
