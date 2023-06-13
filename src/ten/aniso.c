@@ -1068,7 +1068,7 @@ tenAnisoCalc_f(float c[TEN_ANISO_MAX+1], const float e[3]) {
 
 int /* Biff: 1 */
 tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res, int hflip, int whole, int nanout) {
-  static const char me[] = "tenAnisoMap";
+  static const char me[] = "tenAnisoPlot";
   float *out, tmp;
   unsigned int x, y;
   float m0[3], m1[3], m2[3], c0, c1, c2, e[3];
