@@ -2956,7 +2956,7 @@ _nrrdKernelStrToKern(char *str) {
    it does NOT do range checking */
 static int /* Biff: 1 */
 _nrrdKernelParseTMFInt(int *val, char *str) {
-  static const char me[] = "nrrdKernelParseTMFInt";
+  static const char me[] = "_nrrdKernelParseTMFInt";
 
   if (!strcmp("n", str)) {
     *val = -1;

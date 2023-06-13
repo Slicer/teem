@@ -582,7 +582,7 @@ limnPolyDataWriteLMPD(FILE *file, const limnPolyData *pld) {
 */
 int /* Biff: 1 */
 limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
-  static const char me[] = "limnPolyDatReadLMPD";
+  static const char me[] = "limnPolyDataReadLMPD";
   char line[AIR_STRLEN_MED], name[AIR_STRLEN_MED], *tmp;
   unsigned int vertNum, indxNum, primNum, primIdx, lineLen, infoNum, infoIdx, info, flag;
   Nrrd *nrrd;

@@ -385,7 +385,7 @@ seekItemNormalSet(seekContext *sctx, int item) {
 */
 int /* Biff: 1 */
 seekItemEigensystemSet(seekContext *sctx, int evalItem, int evecItem) {
-  static const char me[] = "seekItemEigenvectorSet";
+  static const char me[] = "seekItemEigensystemSet";
 
   if (itemCheck(sctx, evalItem, 3)) {
     biffAddf(SEEK, "%s: trouble", me);

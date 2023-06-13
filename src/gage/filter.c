@@ -245,7 +245,7 @@ _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
 */
 int /* Biff: (private) nope */
 _gageLocationSet(gageContext *ctx, double xif, double yif, double zif, double sif) {
-  static const char me[] = "_gageProbeLocationSet";
+  static const char me[] = "_gageLocationSet";
   unsigned int top[3], /* "top" x, y, z: highest valid index in volume */
     idx[4];
   int sdiff; /* computed integral positions in volume */

@@ -529,7 +529,7 @@ tenMakeSingle_d(double ten[7], double conf, const double eval[3], const double e
 */
 int /* Biff: 1 */
 tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
-  static const char me[] = "tenTensorMake";
+  static const char me[] = "tenMake";
   size_t I, N, sx, sy, sz;
   float *out, *conf, *eval, *evec;
   int map[4];

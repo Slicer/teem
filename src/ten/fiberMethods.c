@@ -748,7 +748,7 @@ tenFiberProbeItemSet(tenFiberContext *tfx, int item) {
 
 int /* Biff: 1 */
 tenFiberIntgSet(tenFiberContext *tfx, int intg) {
-  static const char me[] = "tenFiberIntTypeSet";
+  static const char me[] = "tenFiberIntgSet";
 
   if (!(tfx)) {
     biffAddf(TEN, "%s: got NULL pointer", me);

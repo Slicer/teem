@@ -139,7 +139,7 @@ alan2DSizeSet(alanContext *actx, int sizeX, int sizeY) {
 
 int /* Biff: 1 */
 alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ) {
-  static const char me[] = "alan2DSizeSet";
+  static const char me[] = "alan3DSizeSet";
 
   GOT_NULL;
   DIM_SET;

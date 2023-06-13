@@ -268,12 +268,10 @@ pullVolumeStackAdd(pullContext *pctx,
 
 /*
 ** this is only used to create pullVolumes for the pullTasks
-**
-** DOES use biff
 */
 pullVolume * /* Biff: (private) NULL */
 _pullVolumeCopy(const pullContext *pctx, const pullVolume *volOrig) {
-  static const char me[] = "pullVolumeCopy";
+  static const char me[] = "_pullVolumeCopy";
   pullVolume *volNew;
 
   volNew = pullVolumeNew();

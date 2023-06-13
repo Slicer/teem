@@ -264,7 +264,7 @@ nrrdLineSkip(FILE *dataFile, NrrdIoState *nio) {
 
 int /* Biff: (private) 1 */
 _nrrdByteSkipSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio, long int byteSkip) {
-  static const char me[] = "nrrdByteSkipSkip";
+  static const char me[] = "_nrrdByteSkipSkip";
   int skipRet;
   size_t bsize;
 
@@ -516,7 +516,7 @@ nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *_nio) {
 */
 int /* Biff: 1 */
 nrrdStringRead(Nrrd *nrrd, const char *string, NrrdIoState *_nio) {
-  static const char me[] = "nrrdRead";
+  static const char me[] = "nrrdStringRead";
 
   if (_nrrdRead(nrrd, NULL, string, _nio)) {
     biffAddf(NRRD, "%s: trouble", me);

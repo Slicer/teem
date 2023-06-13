@@ -131,7 +131,7 @@ gagePerVolumeNew(gageContext *ctx, const Nrrd *nin, const gageKind *kind) {
 */
 gagePerVolume * /* Biff: (private) NULL */
 _gagePerVolumeCopy(gagePerVolume *pvl, unsigned int fd) {
-  static const char me[] = "gagePerVolumeCopy";
+  static const char me[] = "_gagePerVolumeCopy";
   gagePerVolume *nvl;
   int ii;
   airArray *mop;

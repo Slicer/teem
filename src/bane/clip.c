@@ -81,7 +81,7 @@ _clipAnswer_Percentile(int *countP, Nrrd *hvol, double *clipParm) {
 
 static int /* Biff: 1 */
 _clipAnswer_TopN(int *countP, Nrrd *hvol, double *clipParm) {
-  static const char me[] = "_clipAnwer_TopN";
+  static const char me[] = "_clipAnswer_TopN";
   Nrrd *copy;
   int *hits, tmp;
   size_t num;

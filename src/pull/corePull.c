@@ -72,7 +72,7 @@ _pullProcess(pullTask *task) {
 /* the main loop for each worker thread */
 void * /* Biff: (private) NULL */
 _pullWorker(void *_task) {
-  static const char me[] = "_pushWorker";
+  static const char me[] = "_pullWorker";
   void *ret;
   pullTask *task;
 

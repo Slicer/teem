@@ -429,7 +429,7 @@ gageStackBlurParmBoundarySet(gageStackBlurParm *sbp, int boundary, double padVal
 
 int /* Biff: 1 */
 gageStackBlurParmBoundarySpecSet(gageStackBlurParm *sbp, const NrrdBoundarySpec *bspec) {
-  static const char me[] = "gageStackBlurParmBoundarySet";
+  static const char me[] = "gageStackBlurParmBoundarySpecSet";
 
   if (!sbp) {
     biffAddf(GAGE, "%s: got NULL pointer", me);

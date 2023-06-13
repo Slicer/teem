@@ -782,7 +782,7 @@ _tenEstimateWghtUpdate(tenEstimateContext *tec) {
 
 static int /* Biff: 1 */
 _tenEstimateEmatUpdate(tenEstimateContext *tec) {
-  static const char me[] = "tenEstimateEmatUpdate";
+  static const char me[] = "_tenEstimateEmatUpdate";
 
   if (tec->flag[flagDwiSet] || tec->flag[flagWght]) {
 

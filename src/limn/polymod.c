@@ -1055,7 +1055,7 @@ doSplitting(limnPolyData *pld, Nrrd *nTriWithVert, Nrrd *nVertWithTri,
 
 static int /* Biff: 1 */
 _limnPolyDataVertexWindingProcess(limnPolyData *pld, int splitting) {
-  static const char me[] = "limnPolyDataVertexWindingProcess";
+  static const char me[] = "_limnPolyDataVertexWindingProcess";
   unsigned int primIdx, /* for indexing through primitives */
     triIdx,             /* for indexing through triangles in each primitive */
     maxTriPerPrim,      /* max # triangles per primitive, which is essential for

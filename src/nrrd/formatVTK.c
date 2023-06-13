@@ -83,7 +83,7 @@ _nrrdFormatVTK_contentStartsLike(NrrdIoState *nio) {
 
 static int /* Biff: 1 */
 _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
-  static const char me[] = "_nrrdReadVTK";
+  static const char me[] = "_nrrdFormatVTK_read";
   char *three[3];
   int ret;
   double xm = 0.0, ym = 0.0, zm = 0.0, xs = 1.0, ys = 1.0, zs = 1.0;

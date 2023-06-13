@@ -612,7 +612,7 @@ meetPullInfoNix(meetPullInfo *minf) {
 
 static int /* Biff: 1 */
 zeroScaleSet(meetPullInfo *minf, int haveZS, char **lastP) {
-  static const char me[] = "_zeroScaleSet";
+  static const char me[] = "zeroScaleSet";
   char *tok;
 
   if (haveZS) {
