@@ -324,33 +324,46 @@ def parse_args():
         "to Teem releases, but isn't needed for users to create their own _teem "
         'extension module.',
     )
+    on_mac = sys.platform.startswith('darwin')
     parser.add_argument(
         '-int',
         action='store_true',
         default=False,
         help=(
             'On Macs only: '
-            f"{'' if sys.platform.startswith('darwin') else '(and this is not a Mac, so it will have no effect) '}"
+            f"{'' if on_mac else '(and this is not a Mac, so it will have no effect) '}"
             'after creating cffi extension library, store in it the explicit '
             'path libteem.dylib, using install_name_tool.'
         ),
     )
     parser.add_argument(
+        '-wrap',
+        action='store_true',
+        default=False,
+        required=False,
+        help='Do not run .cdef(), .set_source(), or .compile() steps in CFFI wrapper to generate '
+        'the _teem extension module; ONLY run .wrap() to generate the teem.py wrapper around an '
+        'already-compiled _teem extension module. Without -wrap, the _teem extension module is '
+        'compiled anew (which is slow), and then the teem.py wrapper is made around it.',
+    )
+    parser.add_argument(
         'install_path',
-        help='path into which CMake has install Teem (should have '
+        help='path into which CMake has installed Teem (should have '
         '"include" and "lib" subdirectories)',
     )
     return parser.parse_args()
 
 
 if __name__ == '__main__':
-    args = parse_args()
-    VERB = args.v
-    if args.gch:
-        (_hdr_path, _, _have_libs, _) = exult.check_path_tinst(args.install_path)
+    ARGS = parse_args()
+    VERB = ARGS.v
+    if ARGS.gch:
+        (_hdr_path, _, _have_libs, _) = exult.check_path_tinst(ARGS.install_path)
         cdef_write('./cdef', _hdr_path, _have_libs)
     else:
-        ffi = exult.Tffi('../..', args.install_path, 'teem', VERB)
-        ffi.cdef()
-        ffi.set_source()
-        ffi.compile(run_int=args.int)
+        ffi = exult.Tffi('../..', ARGS.install_path, 'teem', VERB)
+        if not ARGS.wrap:
+            ffi.cdef()
+            ffi.set_source()
+            ffi.compile(run_int=ARGS.int)
+        ffi.wrap('teem.py')
