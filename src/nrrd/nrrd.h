@@ -1469,6 +1469,9 @@ NRRD_EXPORT const NrrdKernel
 NRRD_EXPORT const NrrdKernel
   *const nrrdKernelZero,         /* zero everywhere (though still takes
                                     a single "support" parm[0]) */
+  *const nrrdKernelFlag,         /* behaves like nrrdKernelZero, but serves
+                                    as a flag that some kernel-related logic
+                                    has gone south */
   *const nrrdKernelBox,          /* box filter (nearest neighbor) */
   *const nrrdKernelBoxSupportDebug, /* box kernel but with an adjustable
                                        support, not for changing the shape of
@@ -1551,7 +1554,7 @@ NRRD_EXPORT int nrrdKernelCheck(const NrrdKernel *kern,
                                 unsigned int diffOkIntglMax, const NrrdKernel *dkern,
                                 const double dparm[NRRD_KERNEL_PARMS_NUM]);
 NRRD_EXPORT int nrrdKernelParm0IsScale(const NrrdKernel *kern);
-
+NRRD_EXPORT const NrrdKernel *nrrdKernelDerivative(const NrrdKernel *kern);
 /* ---- END non-NrrdIO */
 
 #ifdef __cplusplus

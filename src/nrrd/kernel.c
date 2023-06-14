@@ -179,6 +179,71 @@ nrrdKernelZero = &_nrrdKernelZero;
 
 /* ------------------------------------------------------------ */
 
+/* nrrdKernelFlag behaves just like nrrdKernelZero, but it exists
+to be a flag that some logic on kernels didn't work as expected
+(such as nrrdKernelDerivative can't given an answer with certainty) */
+static double
+_nrrdFlagSup(const double *parm) {
+  double S;
+
+  S = parm[0];
+  return S;
+}
+
+static double
+_nrrdFlag1_d(double x, const double *parm) {
+  double S;
+
+  S = parm[0];
+  x = AIR_ABS(x)/S;
+  return _ZERO(x)/S;
+}
+
+static float
+_nrrdFlag1_f(float x, const double *parm) {
+  float S;
+
+  S = AIR_FLOAT(parm[0]);
+  x = AIR_ABS(x)/S;
+  return _ZERO(x)/S;
+}
+
+static void
+_nrrdFlagN_d(double *f, const double *x, size_t len, const double *parm) {
+  double S;
+  double t;
+  size_t i;
+
+  S = parm[0];
+  for (i=0; i<len; i++) {
+    t = x[i]; t = AIR_ABS(t)/S;
+    f[i] = _ZERO(t)/S;
+  }
+}
+
+static void
+_nrrdFlagN_f(float *f, const float *x, size_t len, const double *parm) {
+  float t, S;
+  size_t i;
+
+  S = AIR_FLOAT(parm[0]);
+  for (i=0; i<len; i++) {
+    t = x[i]; t = AIR_ABS(t)/S;
+    f[i] = _ZERO(t)/S;
+  }
+}
+
+static const NrrdKernel
+_nrrdKernelFlag = {
+  "flag",
+  1, _nrrdFlagSup, returnZero,
+  _nrrdFlag1_f, _nrrdFlagN_f, _nrrdFlag1_d, _nrrdFlagN_d
+};
+const NrrdKernel *const
+nrrdKernelFlag = &_nrrdKernelFlag;
+
+/* ------------------------------------------------------------ */
+
 #define _BOX(x) (x > 0.5 ? 0 : (x < 0.5 ? 1 : 0.5))
 
 static double
@@ -3607,7 +3672,7 @@ nrrdKernelParm0IsScale(const NrrdKernel *kern) {
   } else if (nrrdKernelHann == kern || nrrdKernelHannD == kern
              || nrrdKernelHannDD == kern || nrrdKernelBlackman == kern
              || nrrdKernelBlackmanD == kern || nrrdKernelBlackmanDD == kern
-             || nrrdKernelZero == kern || nrrdKernelBox == kern
+             || nrrdKernelZero == kern || nrrdKernelFlag == kern || nrrdKernelBox == kern
              || nrrdKernelCheap == kern || nrrdKernelTent == kern
              || nrrdKernelForwDiff == kern || nrrdKernelCentDiff == kern
              || nrrdKernelBCCubic == kern || nrrdKernelBCCubicD == kern
@@ -3620,4 +3685,92 @@ nrrdKernelParm0IsScale(const NrrdKernel *kern) {
     ret = 0;
   }
   return ret;
+}
+
+/* Given a kernel, make an attempt to return its derivative,
+  but if can't figure it out return nrrdKernelFlag.
+  The intent is that whatever parameters the given kernel takes; they will
+  also be the right parameters for the returned derivative kernel.
+  NOTE: This is probably returning nrrdKernelFlag more often than necessary;
+  but sorting this out may require a more careful re-assessment of what has
+  really become a mess of kernels */
+const NrrdKernel * /* Biff: nope */
+nrrdKernelDerivative(const NrrdKernel *kern) {
+  if (!kern) return nrrdKernelFlag;
+  if (nrrdKernelAQuartic == kern) return nrrdKernelAQuarticD;
+  if (nrrdKernelAQuarticD == kern) return nrrdKernelAQuarticDD;
+  if (nrrdKernelAQuarticDD == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelBCCubic == kern) return nrrdKernelBCCubicD;
+  if (nrrdKernelBCCubicD == kern) return nrrdKernelBCCubicDD;
+  if (nrrdKernelBCCubicDD == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelBlackman == kern) return nrrdKernelBlackmanD;
+  if (nrrdKernelBlackmanD == kern) return nrrdKernelBlackmanDD;
+  if (nrrdKernelBlackmanDD == kern) return nrrdKernelFlag;
+  if (nrrdKernelBox == kern) return nrrdKernelZero; /* really */
+  if (nrrdKernelBSpline1 == kern) return nrrdKernelBSpline1D;
+  if (nrrdKernelBSpline1D == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelBSpline2 == kern) return nrrdKernelBSpline2D;
+  if (nrrdKernelBSpline2D == kern) return nrrdKernelBSpline2DD;
+  if (nrrdKernelBSpline2DD == kern) return nrrdKernelFlag;            /* !!! */
+  if (nrrdKernelBSpline3ApproxInverse == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelBSpline3 == kern) return nrrdKernelBSpline3D;
+  if (nrrdKernelBSpline3D == kern) return nrrdKernelBSpline3DD;
+  if (nrrdKernelBSpline3DD == kern) return nrrdKernelBSpline3DDD;
+  if (nrrdKernelBSpline3DDD == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelBSpline4 == kern) return nrrdKernelBSpline4D;
+  if (nrrdKernelBSpline4D == kern) return nrrdKernelBSpline4DD;
+  if (nrrdKernelBSpline4DD == kern) return nrrdKernelBSpline4DDD;
+  if (nrrdKernelBSpline4DDD == kern) return nrrdKernelFlag;           /* !!! */
+  if (nrrdKernelBSpline5ApproxInverse == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelBSpline5 == kern) return nrrdKernelBSpline5D;
+  if (nrrdKernelBSpline5D == kern) return nrrdKernelBSpline5DD;
+  if (nrrdKernelBSpline5DD == kern) return nrrdKernelBSpline5DDD;
+  if (nrrdKernelBSpline5DDD == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelBSpline6 == kern) return nrrdKernelBSpline6D;
+  if (nrrdKernelBSpline6D == kern) return nrrdKernelBSpline6DD;
+  if (nrrdKernelBSpline6DD == kern) return nrrdKernelBSpline6DDD;
+  if (nrrdKernelBSpline6DDD == kern) return nrrdKernelFlag;           /* !!! */
+  if (nrrdKernelBSpline7ApproxInverse == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelBSpline7 == kern) return nrrdKernelBSpline7D;
+  if (nrrdKernelBSpline7D == kern) return nrrdKernelBSpline7DD;
+  if (nrrdKernelBSpline7DD == kern) return nrrdKernelBSpline7DDD;
+  if (nrrdKernelBSpline7DDD == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelC3Quintic == kern) return nrrdKernelC3QuinticD;
+  if (nrrdKernelC3QuinticD == kern) return nrrdKernelC3QuinticDD;
+  if (nrrdKernelC3QuinticDD == kern) return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelC4HexicApproxInverse == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelC4Hexic == kern) return nrrdKernelC4HexicD;
+  if (nrrdKernelC4HexicD == kern) return nrrdKernelC4HexicDD;
+  if (nrrdKernelC4HexicDD == kern) return nrrdKernelC4HexicDDD;
+  if (nrrdKernelC4HexicDDD == kern) return nrrdKernelFlag;            /* !!! */
+  if (nrrdKernelC5SepticApproxInverse == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelC5Septic == kern) return nrrdKernelC5SepticD;
+  if (nrrdKernelC5SepticD == kern) return nrrdKernelC5SepticDD;
+  if (nrrdKernelC5SepticDD == kern) return nrrdKernelC5SepticDDD;
+  if (nrrdKernelC5SepticDDD == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelCatmullRom == kern) return nrrdKernelCatmullRomD;
+  if (nrrdKernelCatmullRomD == kern) return nrrdKernelCatmullRomDD;
+  if (nrrdKernelCatmullRomDD == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelCatmullRomSupportDebug == kern) return nrrdKernelCatmullRomSupportDebugD;
+  if (nrrdKernelCatmullRomSupportDebugD == kern)
+    return nrrdKernelCatmullRomSupportDebugDD;
+  if (nrrdKernelCatmullRomSupportDebugDD == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelCentDiff == kern) return nrrdKernelFlag;                 /* !!! */
+  if (nrrdKernelCheap == kern) return nrrdKernelFlag;                    /* !!! */
+  if (nrrdKernelCos4SupportDebug == kern) return nrrdKernelCos4SupportDebugD;
+  if (nrrdKernelCos4SupportDebugD == kern) return nrrdKernelCos4SupportDebugDD;
+  if (nrrdKernelCos4SupportDebugDD == kern) return nrrdKernelCos4SupportDebugDDD;
+  if (nrrdKernelCos4SupportDebugDDD == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelDiscreteGaussian == kern) return nrrdKernelFlag;    /* !!! */
+  if (nrrdKernelForwDiff == kern) return nrrdKernelFlag;            /* !!! */
+  if (nrrdKernelGaussian == kern) return nrrdKernelGaussianD;
+  if (nrrdKernelGaussianD == kern) return nrrdKernelGaussianDD;
+  if (nrrdKernelGaussianDD == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelHann == kern) return nrrdKernelHannD;
+  if (nrrdKernelHannD == kern) return nrrdKernelHannDD;
+  if (nrrdKernelHannDD == kern) return nrrdKernelFlag;                /* !!! */
+  if (nrrdKernelHermiteScaleSpaceFlag == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelTent == kern) return nrrdKernelFlag;                  /* !!! */
+  /* else */
+  return nrrdKernelFlag; /* !!! */
 }
