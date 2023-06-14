@@ -757,7 +757,7 @@ class Tffi:
         """
         if not self.step in (1, 4):
             raise Exception('Expected .wrap() only after creation, .desc(), or .compile()')
-        biffdata = []
+        biffdatas = []   # a list of rows from .csv files
         for lib in tlib_depends(self.top_tlib, self.exper):
             path_bdata = self.path_biffdata + f'/{lib}.csv'
             if not os.path.isfile(path_bdata):
@@ -767,15 +767,16 @@ class Tffi:
             if self.verb:
                 print(f'Tffi.wrap: reading {path_bdata} ...')
             with open(path_bdata, 'r', encoding='utf-8', newline='') as file:
-                bdrows = list(csv.reader(file))
-                if not bdrows[0][3].isdigit():
-                    # The 4th field (0-based field 3) should be an integer "mubi"
-                    # If in bdrows[0] it isn't so, then bdrows[0] is likely a header row; drop it
-                    bdrows.pop(0)
-                biffdata += bdrows
+                biffdatas.append(list(csv.reader(file)))
         if nbdfn:
             with open(nbdfn, 'r', encoding='utf-8') as file:
-                biffdata += csv.reader(file)
+                biffdatas.append(list(csv.reader(file)))
+        for bdrows in biffdatas:
+            if not bdrows[0][3].isdigit():
+                # The 4th field (0-based field 3) should be an integer "mubi"
+                # If in bdrows[0] it isn't so, then bdrows[0] is likely a header row; drop it
+                bdrows.pop(0)
+
         # lliibb.py is the template for python wrapper around extension module _{self.name}
         path_lliibb = self.path_tsrc + '/python/cffi/lliibb.py'
         if not os.path.isfile(path_lliibb):
@@ -797,7 +798,7 @@ class Tffi:
                     # bdl[  0          1         2       3        4        5 ]
                     # f'{function},{qualtype},{errval},{mubi},{biffkey},{fnln}'
                     # ---> (rvtf, mubi, bkey, fnln) = _BIFF_DICT[sym_name]
-                    for bdl in biffdata:
+                    for bdl in sum(biffdatas, []):   # flattening into big list of csv rows
                         rvtf = self._rvt_func(bdl[0], bdl[1], bdl[2])
                         file.write(
                             f"    '{bdl[0]}': ({rvtf}, {bdl[3]}, b'{bdl[4]}', '{bdl[5]}'),\n"
