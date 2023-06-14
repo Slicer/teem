@@ -353,6 +353,9 @@ _nrrdMeasureL2(void *ans, int ansType, const void *line, int lineType, size_t le
   } else {
     aa = AIR_NAN;
   }
+  /* macro expansion above dutifully sets count but doesn't use it;
+    don't have heart to remove that logic from macro now */
+  AIR_UNUSED(count);
   nrrdDStore[ansType](ans, aa);
 }
 
@@ -368,6 +371,9 @@ _nrrdMeasureL4(void *ans, int ansType, const void *line, int lineType, size_t le
   } else {
     aa = AIR_NAN;
   }
+  /* macro expansion above dutifully sets count but doesn't use it;
+    don't have heart to remove that logic from macro now */
+  AIR_UNUSED(count);
   nrrdDStore[ansType](ans, aa);
 }
 
