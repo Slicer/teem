@@ -1,3 +1,4 @@
+func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
 pullEnergyPlot,int,1,0,pull,pull/actionPull.c:234
 pullBinProcess,int,1,0,pull,pull/actionPull.c:1108
 pullGammaLearn,int,1,0,pull,pull/actionPull.c:1143

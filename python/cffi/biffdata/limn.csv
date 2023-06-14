@@ -1,3 +1,4 @@
+func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
 limnCameraUpdate,int,1,0,limn,limn/cam.c:35
 limnCameraAspectSet,int,1,0,limn,limn/cam.c:132
 limnCameraPathMake,int,1,0,limn,limn/cam.c:191

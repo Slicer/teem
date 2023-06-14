@@ -1,3 +1,4 @@
+func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
 nrrdArrayCompare,int,1,0,nrrd,nrrd/accessors.c:519
 nrrdApply1DLut,int,1,0,nrrd,nrrd/apply1D.c:435
 nrrdApplyMulti1DLut,int,1,0,nrrd,nrrd/apply1D.c:466

@@ -1,3 +1,4 @@
+func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
 baneClipNew,baneClip *,NULL,0,bane,bane/clip.c:104
 baneClipAnswer,int,1,0,bane,bane/clip.c:154
 baneClipCopy,baneClip *,NULL,0,bane,bane/clip.c:169

@@ -1,3 +1,4 @@
+func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
 ell_Nm_check,int,1,0,ell,ell/genmat.c:27
 ell_Nm_tran,int,1,0,ell,ell/genmat.c:61
 ell_Nm_mul,int,1,0,ell,ell/genmat.c:106
