@@ -18,38 +18,33 @@
 # this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
 # Fifth Floor, Boston, MA 02110-1301 USA
 """
-exult.py: CFFI *EX*tension module *U*tilities for *L*ibraries depending on *T*eem. Contains two
-kinds of things related to CFFI extension modules for libraries that depend on Teem (including
-Teem itself): creating extension modules, and using them.
+exult.py: CFFI *EX*tension module *U*tilities for *L*ibraries depending on *T*eem. Does two
+main kinds of things related to CFFI extension modules for libraries that depend on Teem
+(including Teem itself): creating extension modules, and wrapping them.
 
 (1) Compiling extension modules involves checks on paths, and knowing which Teem libs
 are dependencies of a given single Teem lib, in order to know which cdef headers to read in.
 This functionality used to be in build_teem.py (which generates the _teem CFFI extension module),
-but it is useful for the building of other Teem-using extension modules.
+but it is useful for the building of other Teem-using extension modules, so that was moved
+into the Tffi class here.
 
-(2) Using extension modules that depend on Teem benefits from some wrapping:
-* for functions that use biff, wrap it in something that detects the biff error,
-  and turn the biff error message into a Python exception
+(2) Using extension modules that depend on Teem (or are teem) benefits from some wrapping:
+* for a function that use biff, wrap it in something that detects the biff error,
+  and can turn the biff error message into a Python exception
 * for airEnums, make a Python object with useful int<->string conversion methods
-This functionality used to be in teem.py (the wrapper around the _teem CFFI extension module),
-but then other Teem-based extension modules would have to copy-paste it. Now, anything wrapping
-a CFFI extension module with .lib elements that are biff-using functions or airEnums (including
-teem.py itself), can use exult.py to generate wrappers for those objects.
-
-The use cases for (1) and (2) above are in fact distinct: (1) is done once on a machine, (2) is
-repeatedly done with every program execution.  Still, for now it is nice to keep information
-about Teem localized to this single file.
+This functionality used to be solely in teem.py (the wrapper around the _teem CFFI extension
+module), but then other Teem-based extension modules would have to copy-paste it. Now, the
+Tffi.wrap() function below generates a foo.py wrapper around CFFI extension module _foo, which
+is mostly a textual massaging of a wrapper template teem/python/cffi/lliibb.py.
 """
 
-# import math as _math  # for isnan test that may appear in _BIFFDICT
-import sys as _sys
-import os as _os
-import re as _re
-import subprocess as _subprocess
+import sys
+import os
+import re
+import subprocess
+import csv
 
-import cffi as _cffi
-
-# TODO: revisit if it makes sense to have the underscores above
+import cffi
 
 # halt if python2; thanks to https://preview.tinyurl.com/44f2beza
 _x, *_y = 1, 2  # NOTE: A SyntaxError here means you need python3, not python2
@@ -169,11 +164,6 @@ _tlibs = {
     },
 }
 
-### (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1)
-### (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1)
-###
-### Things useful for *compiling* Teem-based extension modules
-
 
 def tlib_all() -> list[str]:
     """
@@ -244,15 +234,15 @@ def check_path_tlib(path_tlib: str) -> None:
     Sanity checks on Teem install "lib" path lib_path.
     May throw various exceptions but returns nothing.
     """
-    if _sys.platform.startswith('darwin'):  # Mac
+    if sys.platform.startswith('darwin'):  # Mac
         shext = 'dylib'
-    elif _sys.platform.startswith('linux'):
+    elif sys.platform.startswith('linux'):
         shext = 'so'
     else:
         raise Exception(
-            'Sorry, currently only know how work on Mac and Linux (not {_sys.platform})'
+            'Sorry, currently only know how work on Mac and Linux (not {sys.platform})'
         )
-    lib_fnames = _os.listdir(path_tlib)
+    lib_fnames = os.listdir(path_tlib)
     if not lib_fnames:
         raise Exception(f'Teem library dir {path_tlib} seems empty')
     ltname = f'libteem.{shext}'
@@ -267,27 +257,27 @@ def check_path_tlib(path_tlib: str) -> None:
 
 def check_path_thdr(path_thdr: str):
     """
-    Main purpose is to do sanity check on Teem include path path_thdr.
-    Having done that work, we can also return information learned along the way:
-    (exper, have_libs) where exper indicates if this was run on an "experimental"
-    Teem build, and have_libs is the list of libraries for which the .h headers are present
+    Main purpose is to do sanity check on Teem include path path_thdr and the header files
+    found there. Having done that work, we can also return information learned along the way:
+    (exper, have_libs) where exper indicates if this was run on an "experimental" Teem build,
+    and have_libs is the list of libraries for which the .h headers are present
     """
     itpath = path_thdr + '/teem'
-    if not _os.path.isdir(itpath):
+    if not os.path.isdir(itpath):
         raise Exception(f'Need {itpath} to be directory')
     all_libs = tlib_all()
     base_libs = list(filter(lambda L: not tlib_experimental(L), all_libs))
     expr_libs = list(filter(tlib_experimental, all_libs))
     base_hdrs = sum([tlib_headers(L) for L in base_libs], [])
     expr_hdrs = sum([tlib_headers(L) for L in expr_libs], [])
-    missing_hdrs = list(filter(lambda F: not _os.path.isfile(f'{itpath}/{F}'), base_hdrs))
+    missing_hdrs = list(filter(lambda F: not os.path.isfile(f'{itpath}/{F}'), base_hdrs))
     if missing_hdrs:
         raise Exception(
             f'Missing header(s) {" ".join(missing_hdrs)} in {itpath} '
             'for one or more of the core Teem libs'
         )
     have_libs = base_libs
-    missing_expr_hdrs = list(filter(lambda F: not _os.path.isfile(f'{itpath}/{F}'), expr_hdrs))
+    missing_expr_hdrs = list(filter(lambda F: not os.path.isfile(f'{itpath}/{F}'), expr_hdrs))
     if missing_expr_hdrs:
         # missing one or more of the non-core "Experimental" header files
         if len(missing_expr_hdrs) < len(expr_hdrs):
@@ -311,13 +301,13 @@ def check_path_tinst(path: str):
     the absolute paths to headers and the library
     """
     path = path.rstrip('/')
-    if not _os.path.isdir(path):
-        path = _os.path.expanduser(path)
-        if not _os.path.isdir(path):
+    if not os.path.isdir(path):
+        path = os.path.expanduser(path)
+        if not os.path.isdir(path):
             raise Exception(f'Given path {path} is not a directory')
-    path_thdr = _os.path.abspath(path + '/include')
-    path_tlib = _os.path.abspath(path + '/lib')
-    if not _os.path.isdir(path_thdr) or not _os.path.isdir(path_tlib):
+    path_thdr = os.path.abspath(path + '/include')
+    path_tlib = os.path.abspath(path + '/lib')
+    if not os.path.isdir(path_thdr) or not os.path.isdir(path_tlib):
         raise Exception(
             f'Need both {path_thdr} and {path_tlib} to be subdirs of teem install dir {path}'
         )
@@ -326,7 +316,7 @@ def check_path_tinst(path: str):
     return (path_thdr, path_tlib, have_libs, exper)
 
 
-class ScanHdr:
+class CdefHdr:
     """
     Given a header file, figures out which lines should be passed to ffi.cdef(), by first
     excising comments, and it passing through a very dumb C pre-processor that interprets
@@ -337,26 +327,26 @@ class ScanHdr:
         """
         Opens given file and sends it through "unu uncmt", and prepares to parse result
         """
-        if not _os.path.isfile(filename):
+        if not os.path.isfile(filename):
             raise Exception(f'header filename {filename} not a file')
         self.filename = filename
         try:
-            _subprocess.run(['unu', '--help'], check=True, stdout=_subprocess.PIPE)
+            subprocess.run(['unu', '--help'], check=True, stdout=subprocess.PIPE)
         except Exception as exc:
             raise RuntimeError(
-                f'Seems that "unu" is not in $PATH; have you installed Teem?'
+                'Seems that "unu" is not in $PATH; have you installed Teem?'
             ) from exc
         try:
-            _subprocess.run(['unu', 'uncmt'], check=True, stdout=_subprocess.PIPE)
+            subprocess.run(['unu', 'uncmt'], check=True, stdout=subprocess.PIPE)
         except Exception as exc:
             raise RuntimeError(
-                f'The "unu" in $PATH is not new enough to have "unu uncmt"; try updating Teem'
+                'The "unu" in $PATH is not new enough to have "unu uncmt"; try updating Teem'
             ) from exc
-        uncmt = _subprocess.run(
+        uncmt = subprocess.run(
             # run "unu uncmt" to completely excise comments
             ['unu', 'uncmt', filename, '-'],
             check=True,
-            stdout=_subprocess.PIPE,
+            stdout=subprocess.PIPE,
         )
         # add empty line to make line numbering effectively 1-based
         self.ilines = [''] + uncmt.stdout.decode('utf-8').splitlines()
@@ -381,12 +371,12 @@ class ScanHdr:
                 print(f'scan: input line {lnum} = |{line}|')
             if line.startswith('#'):
                 # look for either #ifdef or #ifndef
-                if match := _re.match(r'# *(ifn{0,1}def) +(\S.*)$', line):
+                if match := re.match(r'# *(ifn{0,1}def) +(\S.*)$', line):
                     ifdef = 'ifdef' == match.group(1)   # else its an ifndef
                     dname = match.group(2)
                     if self.verb > 1:
                         print(f'scan: -------- {match.group(1)} |{dname}|')
-                    if _re.match(r'\S*\s', dname):   # if there is whitespace in dname
+                    if re.match(r'\S*\s', dname):   # if there is whitespace in dname
                         raise Exception(
                             f'ScanHdr.scan({self.filename}): line {lnum} |{line}| has '
                             f'unexpected whitespace in {match.group(1)} argument |{dname}|'
@@ -398,7 +388,7 @@ class ScanHdr:
                     self.ifstack.append(ifdef == (dname in self.defined))
                     if self.verb > 1:
                         print(f'scan: -----> ifstack = {self.ifstack}')
-                elif _re.match(r'# *else', line):
+                elif re.match(r'# *else', line):
                     # swap meaning of top-most ifstack element
                     if not self.ifstack:
                         raise Exception(
@@ -408,7 +398,7 @@ class ScanHdr:
                     self.ifstack.append(not self.ifstack.pop())
                     if self.verb > 1:
                         print(f'scan: -----> ifstack = {self.ifstack}')
-                elif _re.match(r'# *endif', line):
+                elif re.match(r'# *endif', line):
                     # ending scope of top-most ifstack element
                     if not self.ifstack:
                         raise Exception(
@@ -418,14 +408,14 @@ class ScanHdr:
                     self.ifstack.pop()
                     if self.verb > 1:
                         print(f'scan: -----> ifstack = {self.ifstack}')
-                elif match := _re.match(r'# *define +(\S+)(\s*\S*)$', line):
+                elif match := re.match(r'# *define +(\S+)(\s*\S*)$', line):
                     dname = match.group(1)
                     dval = match.group(2)
                     if all(self.ifstack):
                         self.defined.append(dname)
                         if self.verb > 1:
                             print(f'scan: |{dname}|=|{dval}| -------> defined = {self.defined}')
-                elif _re.match(r'# *include', line):
+                elif re.match(r'# *include', line):
                     pass
                 else:
                     # should really always complain if can't parse a pre-processor line,
@@ -446,7 +436,7 @@ class ScanHdr:
                 continue
             # Else we keep the line, and do further processing.
             # The parentheses matching of this re is quite fragile
-            if match := _re.match(r'(__attribute__\(.*\))', line):
+            if match := re.match(r'(__attribute__\(.*\))', line):
                 rpl = line.replace(match.group(1), '')
                 if self.verb > 2:
                     print(f' |{line}| --> |{rpl}|')
@@ -486,17 +476,22 @@ class Tffi:
         self.verb = 0 if verb < 0 else verb
         if self.verb:
             print(f'Tffi.__init__: verb={self.verb}')
-        if not _os.path.isdir(path_tsrc):
-            path_tsrc = _os.path.expanduser(path_tsrc)
-            if not _os.path.isdir(path_tsrc):
+        if not os.path.isdir(path_tsrc):
+            path_tsrc = os.path.expanduser(path_tsrc)
+            if not os.path.isdir(path_tsrc):
                 raise Exception(
                     f'Need path {path_tsrc} into Teem source checkout to be a directory'
                 )
         self.path_tsrc = path_tsrc
         self.path_cdef = path_tsrc + '/python/cffi/cdef'
-        if not _os.path.isdir(self.path_cdef):
+        if not os.path.isdir(self.path_cdef):
             raise Exception(
                 f'Missing directory with per-Teem-library cdef headers {self.path_cdef}'
+            )
+        self.path_biffdata = path_tsrc + '/python/cffi/biffdata'
+        if not os.path.isdir(self.path_biffdata):
+            raise Exception(
+                f'Missing directory with per-Teem-library biff .csv files {self.path_biffdata}'
             )
         # This does a lot of error checking
         (self.path_thdr, self.path_tlib, self.have_tlibs, self.exper) = check_path_tinst(
@@ -532,7 +527,7 @@ class Tffi:
             # we set exper according to whether requested library is "experimental"
             self.exper = tlib_experimental(top_tlib)
         # create the instance, but don't do anything with it; that depends on other methods
-        self.ffi = _cffi.FFI()
+        self.ffi = cffi.FFI()
         self.step = 1   # for tracking correct ordering of method calls
 
     def desc(
@@ -566,14 +561,14 @@ class Tffi:
             )
         if ['teem'] != self.libs:
             raise Exception(f"Expected self.libs to be ['teem'] not {self.libs}")
-        if not _os.path.isdir(path_nhdr):
+        if not os.path.isdir(path_nhdr):
             raise Exception(f'Need path_nhdr {path_nhdr} to be a directory')
-        if not _os.path.isdir(path_nlib):
+        if not os.path.isdir(path_nlib):
             raise Exception(f'Need path_nlib {path_nlib} to be a directory')
         self.libs.insert(0, name)   # now [name, 'teem']
         self.name = name
-        self.path_nhdr = _os.path.abspath(path_nhdr)
-        self.path_nlib = _os.path.abspath(path_nlib)
+        self.path_nhdr = os.path.abspath(path_nhdr)
+        self.path_nlib = os.path.abspath(path_nlib)
         self.path_libs.insert(0, self.path_nlib)
         self.dfnd = dfnd
         self.eca = eca
@@ -596,7 +591,7 @@ class Tffi:
             with open(f'{self.path_cdef}/cdef_{lib}.h', 'r', encoding='utf-8') as file:
                 self.ffi.cdef(file.read())
         if not self.isteem:
-            scnr = ScanHdr(f'{self.path_nhdr}/{self.name}.h', self.dfnd, verb=self.verb)
+            scnr = CdefHdr(f'{self.path_nhdr}/{self.name}.h', self.dfnd, verb=self.verb)
             lines = scnr.scan()
             if self.verb:
                 print('Tffi.cdef: calling cdef on:')
@@ -613,7 +608,7 @@ class Tffi:
             raise Exception('Expected .set_source() only right after .cdef()')
         # for extra_link_args
         ela = self.ela
-        if _sys.platform.startswith('darwin'):  # make extra sure that rpath is set on Mac
+        if sys.platform.startswith('darwin'):  # make extra sure that rpath is set on Mac
             ela += [f'-Wl,-rpath,{P}' for P in self.path_libs]
         self.source_args = {
             # when compiling _{self.name}.c, -I paths telling #include where to look
@@ -663,8 +658,10 @@ class Tffi:
 
     def compile(self, run_int: bool):
         """Finally call ffi.compile()"""
-        if run_int and not _sys.platform.startswith('darwin'):
-            raise Exception(f'Can only run "install_name_tool" on Mac (not {_sys.platform})')
+        if 3 != self.step:
+            raise Exception('Expected .compile() only right after .set_source()')
+        if run_int and not sys.platform.startswith('darwin'):
+            raise Exception(f'Can only run "install_name_tool" on Mac (not {sys.platform})')
         if self.verb:
             print('Tffi.compile: compiling ... ')
             if 'meet' == self.top_tlib:
@@ -674,8 +671,10 @@ class Tffi:
             print(f'Tffi.compile: compiling _{self.name} done; created:\n{self.lib_out}')
         if run_int:
             # This loop is going to run either 1 (if self.isteem) or 2 times,
-            # at most, so it may be overkill, but otherwise the copypasta would be awful
+            # at most, so it may be overkill, but otherwise the copypasta would be awful.
             # We exploit the correspondance between elements of self.libs and self.path_libs
+            # and HEY that suggests that there should some higher-level object that contains
+            # all the properties of a library
             for (lidx, lname) in enumerate(self.libs):
                 cmd = (
                     f'install_name_tool -change @rpath/lib{lname}.dylib '
@@ -684,7 +683,7 @@ class Tffi:
                 if self.verb:
                     print(f'compile(): setting full path to lib{lname}.dylib with:')
                     print('   ', cmd)
-                if _os.system(cmd):
+                if os.system(cmd):
                     raise RuntimeError(
                         f'due to trying to set full path to lib{lname}.dylib in {self.lib_out}'
                     )
@@ -692,91 +691,106 @@ class Tffi:
         # so should be able to, on Mac, (e.g.) "otool -L _teem.cpython-39-darwin.so"
         # or, on linux, (e.g.) "ldd _teem.cpython-38-x86_64-linux-gnu.so"
         # to confirm that it wants to link to self.libs
+        self.step = 4
         return self.lib_out
 
+    def rvt_expr(self, errval_t: str, errval: str, retval: str) -> str:
+        """
+        rvt_expr: *r*eturn *v*alue *t*est expression: Given the string representation of the error
+        return value(s) errval, of type errval_t, as it came out of the biffdata .csv file,
+        return another string representation of a Python boolean *expression* that is true if
+        the actual function return value, named retval, is equal to errval.
 
-### (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2)
-### (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2) (2)
-###
-### Things useful for *wrapping* Teem-using extension module
-
-
-class Tenum:
-    """Helper/wrapper around (pointers to) airEnums (part of Teem's "air" library).
-    This provides convenient ways to convert between integer enum values and real
-    Python strings. The C airEnum underlying the Python Tenum foo is still available
-    as foo().
-    """
-
-    def __init__(self, aenm, _name, xmdl):
-        """Constructor takes a Teem airEnum pointer (const airEnum *const)."""
-        # xmdl: what extension module is this enum coming from; if it is not _teem itself, then
-        # we want to know the module so as to avoid errors (when calling .ffi.string) like:
-        # "TypeError: initializer for ctype 'airEnum *' appears indeed to be 'airEnum *', but
-        # the types are different (check that you are not e.g. mixing up different ffi instances)"
-        # TODO: check that xmdl has:
-        # xmdl.ffi, xmdl.ffi.string
-        # xmdl.lib,
-        # xmdl.lib.airEnumStr
-        # xmdl.lib.airEnumDesc
-        # xmdl.lib.airEnumVal
-        # xmdl.lib.airEnumValCheck
-        if not str(aenm).startswith("<cdata 'airEnum *' "):
-            raise TypeError(f'passed argument {aenm} does not seem to be an airEnum pointer')
-        self.aenm = aenm
-        self.xmdl = xmdl
-        self.name = self.xmdl.ffi.string(self.aenm.name).decode('ascii')
-        self._name = _name  # the variable name for the airEnum in libteem
-        # following definition of airEnum struct in air.h
-        self.vals = list(range(1, self.aenm.M + 1))
-        if self.aenm.val:
-            self.vals = [self.aenm.val[i] for i in self.vals]
-
-    def __call__(self):
-        """Returns (a pointer to) the underlying airEnum."""
-        return self.aenm
-
-    def __iter__(self):
-        """Provides a way to iterate through the valid values of the enum"""
-        return iter(self.vals)
-
-    def valid(self, ios) -> bool:  # ios = int or string
-        """Answers whether given int is a valid value of enum, or whether given string
-        is a valid string in enum, depending on incoming type.
-        (wraps airEnumValCheck() and airEnumVal())"""
-        if isinstance(ios, int):
-            return not self.xmdl.lib.airEnumValCheck(self.aenm, ios)
-        if isinstance(ios, str):
-            return self.unknown() != self.val(ios)
-        # else
-        raise TypeError(f'Need an int or str argument (not {type(ios)})')
-
-    def str(self, val: int, picky=False) -> str:
-        """Converts from integer enum value val to string identifier
-        (wraps airEnumStr())"""
-        assert isinstance(val, int), f'Need an int argument (not {type(val)})'
-        if picky and not self.valid(val):
-            raise ValueError(f'{val} not a valid {self._name} ("{self.name}") enum value')
-        # else
-        return self.xmdl.ffi.string(self.xmdl.lib.airEnumStr(self.aenm, val)).decode('ascii')
-
-    def desc(self, val: int) -> str:
-        """Converts from integer value val to description string
-        (wraps airEnumDesc())"""
-        assert isinstance(val, int), f'Need an int argument (not {type(val)})'
-        return self.xmdl.ffi.string(self.xmdl.lib.airEnumDesc(self.aenm, val)).decode('ascii')
-
-    def val(self, sss: str, picky=False) -> int:
-        """Converts from string sss to integer enum value
-        (wraps airEnumVal())"""
-        assert isinstance(sss, str), f'Need an string argument (not {type(sss)})'
-        ret = self.xmdl.lib.airEnumVal(self.aenm, sss.encode('ascii'))
-        if picky and ret == self.unknown():
-            raise ValueError(f'"{sss}" not parsable as {self._name} ("{self.name}") enum value')
-        # else
+        This assumes that the user of our output has:
+        - imported _teem or whatever extension module contains the enum values that might be used
+        - imported math as _math, for isnan()
+        """
+        ret = None
+        if 'int' in errval_t:
+            try:
+                vv = int(errval)
+                ret = f'{vv} == {retval}'
+            except ValueError:  # int() conversion failed
+                # going to take wild-ass assumption that this is an enum (e.g. hooverErrInit)
+                ret = f'_{self.name}.lib.{errval} == {retval}'
+                # HEY you know we ourselves could import _teem here and check this assumption ...
+        else:
+            # this function is super adhoc-y, and will definitely require future expansion
+            raise Exception(
+                f"sorry don't yet know how to handle errval_t={errval_t}, errval={errval}"
+            )
         return ret
 
-    def unknown(self) -> int:
-        """Returns value representing unknown
-        (wraps airEnumUnknown())"""
-        return self.xmdl.lib.airEnumUnknown(self.aenm)
+    def rvt_func(self, func_name: str, errval_t: str, errval: str) -> str:
+        """
+        rvt_func: *r*eturn *v*alue *t*est function: Given the string representation of the
+        error return value(s) errval, of type errval_t, as it came out of the biffdata .csv
+        file, return another string representation of a Python *function* (which returns a bool
+        given the returned value from the CFFI-wrapped function) to store in the _BIFF_DICT
+        """
+        # most common case: return of 1 means there's a biff error
+        if errval_t.endswith('int') and '1' == errval:
+            ret = '_equals_one'   # this is defined in lliibb.py
+        elif errval_t.endswith('*') and 'NULL' == errval:
+            ret = '_equals_null'   # this is defined in lliibb.py
+        elif 'AIR_NAN' == errval:
+            ret = '_math.isnan'
+        else:
+            evlist = errval.split('|')   # list (likely length-1) of error-indicating return values
+            ret = (
+                '(lambda rv: '  # we make (a string representing) a lambda function
+                # join, with "or", test expressions for everything in evlist
+                + ' or '.join([self.rvt_expr(errval_t, v, 'rv') for v in evlist])
+                + ')'
+            )
+        return ret
+
+    def wrap(self, ofilename) -> None:
+        """
+        Generate the Pythonic wrapper foo.py around the _foo extension module (likely created
+        by the .compile() method above) that links to libfoo.{so,dylib}. The primary job of
+        foo.py is to turn errors generated by calling biff-using functions into Exceptions.
+        """
+        if not self.step in (1, 4):
+            raise Exception('Expected .wrap() only after creation, .desc(), or .compile()')
+        biffdata = []
+        for lib in tlib_depends(self.top_tlib, self.exper):
+            path_bdata = self.path_biffdata + f'/{lib}.csv'
+            if not os.path.isfile(path_bdata):
+                if self.verb:
+                    print(f'Tffi.wrap: library {lib} has no biffdata.csv file, moving on')
+                continue
+            if self.verb:
+                print(f'Tffi.wrap: reading {path_bdata} ...')
+            with open(path_bdata, 'r', encoding='utf-8') as file:
+                biffdata += csv.reader(file)
+        # lliibb.py is the template for python wrapper around extension module _{self.name}
+        path_lliibb = self.path_tsrc + '/python/cffi/lliibb.py'
+        if not os.path.isfile(path_lliibb):
+            raise Exception("Didn't see wrapper template at {path_lliibb}")
+        with open(path_lliibb, 'r', encoding='utf-8') as file:
+            ilines = [line.rstrip() for line in file.readlines()]
+        for (lidx, line) in enumerate(ilines):
+            # first pass of very simple text  transformations we do
+            # 'lliibb' --> self.name
+            # 'LLIIBB' --> 'lliibb'
+            ilines[lidx] = line.replace('lliibb', self.name).replace('LLIIBB', 'lliibb')
+        with open(ofilename, 'w', encoding='utf-8') as file:
+            inserted = False
+            for line in ilines:
+                if 'INSERT_BIFFDICT' in line:
+                    if inserted:
+                        raise Exception('already saw "INSERT_BIFFDICT" in lliibb.py')
+                    inserted = True
+                    # bdl[  0          1         2       3        4        5 ]
+                    # f'{function},{qualtype},{errval},{mubi},{biffkey},{fnln}'
+                    # ---> (rvtf, mubi, bkey, fnln) = _BIFF_DICT[sym_name]
+                    for bdl in biffdata:
+                        rvtf = self.rvt_func(bdl[0], bdl[1], bdl[2])
+                        file.write(
+                            f"    '{bdl[0]}': ({rvtf}, {bdl[3]}, b'{bdl[4]}', '{bdl[5]}'),\n"
+                        )
+                else:
+                    file.write(f'{line}\n')
+        if self.verb:
+            print(f'Tffi.wrap: Wrote wrapper {ofilename}')
