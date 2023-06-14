@@ -70,6 +70,16 @@ def proc_annote(function: str, qualtype: str, annotecomment: str) -> str:
     :param str qualtype: the qualifier(s) and return type of the function
     :param str annotecomment: whole annotation, maybe with comment, starting with "Biff: "
     """
+    # NOTE: The code below is useful logic for anything seeking to use the Biff annotations,
+    # and wanting some self-contained repackaging of their info, so we store our processing of
+    # it in a simple .csv file that can be parsed and used for the Python/CFFI wrappers, as
+    # well as maybe eventually for other languages (e.g. Julia):
+    # mubi = maybe useBiff 1-based index into function parms, or 0 for always uses biff on error
+    if 'HEADER' == function:
+        #            0         1         2           3      4
+        return 'func_name,return_type,error_val(s),mubi,biff_key'
+        # but NOTE that this does not include final entry for filename:linenumber
+    # else used as normall
     qtlist = qualtype.split(' ')   # list made from qualifer and type
     if not annotecomment.startswith('Biff: '):
         raise Exception(
@@ -113,10 +123,6 @@ def proc_annote(function: str, qualtype: str, annotecomment: str) -> str:
             f'apparent library name prefix "{biffkey}" of function "{function}" '
             f'not in Teem library list {TLIBS}'
         )
-    # NOTE: The code above is useful logic for anything seeking to use the Biff annotations,
-    # and wanting some self-contained repackaging of their info, so we store our processing of
-    # it in a simple .csv file that can be parsed and used for the Python/CFFI wrappers, as
-    # well as maybe eventually for other languages (e.g. Julia):
     #           0            1         2       3       4
     return f'{function},{qualtype},{errval},{mubi},{biffkey}'
 
@@ -148,6 +154,7 @@ def proc_src(file, filename):
             )
         function = match.group(1)
         if oline := proc_annote(function, qualtype, annote):
+            # add on the final filename:linenumber field
             olines += [oline + ',' + f'{filename}:{lidx+2}']
         # We've finished adding information about just-seen Biff annotation.
         # Now: fun extra bonus: see if me[] definition actually matches function name
@@ -214,6 +221,8 @@ def proc_lib(path_teem: str, lib: str) -> list[str]:
             print(f'... {lib}/{filename}')
         with open(f'{path_srcs}/{filename}', 'r', encoding='utf8') as file:
             olines += proc_src(file, f'{lib}/{filename}')
+    if olines:
+        olines.insert(0, proc_annote('HEADER', '', '') + ',filename:linenumber')
     return olines
 
 
