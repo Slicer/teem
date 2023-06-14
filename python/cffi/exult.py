@@ -553,6 +553,8 @@ class Tffi:
             raise Exception('Describing library only possible right after Tffi creation')
         if not self.isteem is None:
             raise Exception('Can use .desc() only when making non-Teem module ')
+        if 'lliibb' == name:
+            raise Exception("Sorry, can't risk over-writing template wrapper lliibb.py")
         if 'teem' == name or name in self.have_tlibs:
             raise Exception('Need non-Teem name for non-Teem library')
         if name.startswith('_'):
