@@ -196,9 +196,10 @@ if 'lliibb' == __name__:  # being imported
     try:
         import _lliibb
     except ModuleNotFoundError:
-        print('\n*** lliibb.py: failed to load shared library wrapper module "_lliibb", from')
-        print('*** a shared object file named something like _lliibb.cpython-platform.so.')
-        print('*** Is there a build_lliibb.py script you can run to compile it?')
+        print('\n*** lliibb.py: failed to import extension module "_lliibb" (links to')
+        print('*** underlying shared library liblliibb) from a file named something')
+        print('*** like _lliibb.cpython-platform.so.')
+        print('*** Is there a build_lliibb.py script you can run to recompile it?\n')
         raise
     # The value of this ffi, as opposed to "from cffi import FFI; ffi = FFI()" is that it knows
     # about the various typedefs that were learned to build the CFFI wrapper, which may in turn
