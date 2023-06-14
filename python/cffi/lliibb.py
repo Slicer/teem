@@ -30,11 +30,17 @@ shared library), and to generate this wrapper, which is the result of simple tex
 transformations of the template wrapper in teem/python/cffi/LLIIBB.py
 """
 
-import math as _math   # may be used in BIFF_DICT for testing function return values
+import math as _math   # # likely used in _BIFF_DICT, below, for testing function return values
 
 # halt if python2; thanks to https://preview.tinyurl.com/44f2beza
 _x, *_y = 1, 2  # NOTE: A SyntaxError here means you need python3, not python2
 del _x, _y
+
+
+def string(bstr):
+    """Convenience utility for going from C char* bytes to Python string:
+    string(B) is just _lliibb.ffi.string(B).decode('ascii')"""
+    return _lliibb.ffi.string(bstr).decode('ascii')
 
 
 class Tenum:
@@ -43,24 +49,12 @@ class Tenum:
     strings. The C airEnum underlying the Python Tenum foo is still available as foo().
     """
 
-    def __init__(self, aenm, _name, xmdl):
+    def __init__(self, aenm, _name):
         """Constructor takes a Teem airEnum pointer (const airEnum *const)."""
-        # xmdl: what extension module is this enum coming from; if it is not _teem itself, then
-        # we want to know the module so as to avoid errors (when calling .ffi.string) like:
-        # "TypeError: initializer for ctype 'airEnum *' appears indeed to be 'airEnum *', but
-        # the types are different (check that you are not e.g. mixing up different ffi instances)"
-        # TODO: check that xmdl has:
-        # xmdl.ffi, xmdl.ffi.string
-        # xmdl.lib,
-        # xmdl.lib.airEnumStr
-        # xmdl.lib.airEnumDesc
-        # xmdl.lib.airEnumVal
-        # xmdl.lib.airEnumValCheck
         if not str(aenm).startswith("<cdata 'airEnum *' "):
             raise TypeError(f'passed argument {aenm} does not seem to be an airEnum pointer')
         self.aenm = aenm
-        self.xmdl = xmdl
-        self.name = self.xmdl.ffi.string(self.aenm.name).decode('ascii')
+        self.name = string(self.aenm.name)
         self._name = _name  # the variable name for the airEnum in libteem
         # following definition of airEnum struct in air.h
         self.vals = list(range(1, self.aenm.M + 1))
@@ -80,7 +74,7 @@ class Tenum:
         is a valid string in enum, depending on incoming type.
         (wraps airEnumValCheck() and airEnumVal())"""
         if isinstance(ios, int):
-            return not self.xmdl.lib.airEnumValCheck(self.aenm, ios)
+            return not _lliibb.lib.airEnumValCheck(self.aenm, ios)
         if isinstance(ios, str):
             return self.unknown() != self.val(ios)
         # else
@@ -93,19 +87,19 @@ class Tenum:
         if picky and not self.valid(val):
             raise ValueError(f'{val} not a valid {self._name} ("{self.name}") enum value')
         # else
-        return self.xmdl.ffi.string(self.xmdl.lib.airEnumStr(self.aenm, val)).decode('ascii')
+        return string(_lliibb.lib.airEnumStr(self.aenm, val))
 
     def desc(self, val: int) -> str:
         """Converts from integer value val to description string
         (wraps airEnumDesc())"""
         assert isinstance(val, int), f'Need an int argument (not {type(val)})'
-        return self.xmdl.ffi.string(self.xmdl.lib.airEnumDesc(self.aenm, val)).decode('ascii')
+        return string(_lliibb.lib.airEnumDesc(self.aenm, val))
 
     def val(self, sss: str, picky=False) -> int:
         """Converts from string sss to integer enum value
         (wraps airEnumVal())"""
         assert isinstance(sss, str), f'Need an string argument (not {type(sss)})'
-        ret = self.xmdl.lib.airEnumVal(self.aenm, sss.encode('ascii'))
+        ret = _lliibb.lib.airEnumVal(self.aenm, sss.encode('ascii'))
         if picky and ret == self.unknown():
             raise ValueError(f'"{sss}" not parsable as {self._name} ("{self.name}") enum value')
         # else
@@ -114,16 +108,16 @@ class Tenum:
     def unknown(self) -> int:
         """Returns value representing unknown
         (wraps airEnumUnknown())"""
-        return self.xmdl.lib.airEnumUnknown(self.aenm)
+        return _lliibb.lib.airEnumUnknown(self.aenm)
 
 
-def _equals_one(val):
-    """Used in _BIFF_DICT: returns True iff given val equals 1"""
+def _equals_one(val):   # likely used in _BIFF_DICT, below
+    """Returns True iff given val equals 1"""
     return val == 1
 
 
-def _equals_null(val):
-    """Used in _BIFF_DICT: returns True iff given val equals NULL"""
+def _equals_null(val):   # likely used in _BIFF_DICT, below
+    """Returns True iff given val equals NULL"""
     return val == NULL   # NULL is set at very end of this file
 
 
@@ -132,10 +126,16 @@ _BIFF_DICT = {  # contents here are filled in by teem/python/cffi/exult.py Tffi.
 }
 
 
-def _biffer(func, func_name: str, rvtf, mubi: int, bkey, fnln: str):
+def _biffer(func, func_name: str, blob):
     """
     generates function wrappers that turn C biff errors into Python exceptions
     """
+    (
+        rvtf,  # C-function return value test function
+        mubi,  # Maybe useBiff index (1-based) into function arguments
+        bkey,  # bytes for biff key to retrieve biff error
+        fnln,  # filename and line number of C function
+    ) = blob
 
     def wrapper(*args):
         """
@@ -147,7 +147,7 @@ def _biffer(func, func_name: str, rvtf, mubi: int, bkey, fnln: str):
         #     or: (this function maybe uses biff and) "useBiff" args[mubi-1] is True
         if rvtf(ret_val) and (0 == mubi or args[mubi - 1]):
             err = _lliibb.lib.biffGetDone(bkey)
-            estr = _lliibb.ffi.string(err).decode('ascii').rstrip()
+            estr = string(err).rstrip()
             _lliibb.lib.free(err)
             raise RuntimeError(
                 f'return value {ret_val} from C function "{func_name}" ({fnln}):\n{estr}'
@@ -173,19 +173,18 @@ def export_lliibb():
         sym = getattr(_lliibb.lib, sym_name)
         # Create a python object in this module for the library symbol sym
         xprt = None
-        # The exported symbol _sym is ...
+        # The exported symbol xprt will be ...
         if not sym_name in _BIFF_DICT:
-            # ... either a function known to not use biff, or, not a function
+            # ... either: not a function, or a function known to not use biff
             if str(sym).startswith("<cdata 'airEnum *' "):
                 # _sym is name of an airEnum, wrap it as such
-                xprt = Tenum(sym, sym_name, _lliibb)
+                xprt = Tenum(sym, sym_name)
             else:
                 # straight copy of (reference to) sym
                 xprt = sym
         else:
-            # ... or a Python wrapper around a function known to use biff.
-            (rvtf, mubi, bkey, fnln) = _BIFF_DICT[sym_name]
-            xprt = _biffer(sym, sym_name, rvtf, mubi, bkey, fnln)
+            # ... or: a Python wrapper around a function known to use biff.
+            xprt = _biffer(sym, sym_name, _BIFF_DICT[sym_name])
         # can't do "if not xprt:" because, e.g. AIR_FALSE is 0 but needs to be exported
         if xprt is None:
             raise Exception(f"didn't handle symbol {sym_name}")
@@ -196,9 +195,9 @@ if 'lliibb' == __name__:  # being imported
     try:
         import _lliibb
     except ModuleNotFoundError:
-        print('\n*** lliibb.py: failed to import extension module "_lliibb" (links to')
-        print('*** underlying shared library liblliibb) from a file named something')
-        print('*** like _lliibb.cpython-platform.so.')
+        print('\n*** lliibb.py: failed to "import _lliibb", the _lliibb extension ')
+        print('*** module stored in a file named something like: ')
+        print('*** _lliibb.cpython-platform.so.')
         print('*** Is there a build_lliibb.py script you can run to recompile it?\n')
         raise
     # The value of this ffi, as opposed to "from cffi import FFI; ffi = FFI()" is that it knows
@@ -209,4 +208,5 @@ if 'lliibb' == __name__:  # being imported
     lib = _lliibb.lib
     # for slight convenience, e.g. when calling nrrdLoad with NULL (default) NrrdIoState
     NULL = _lliibb.ffi.NULL
+    # now export/wrap everything
     export_lliibb()
