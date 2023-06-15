@@ -3697,6 +3697,7 @@ nrrdKernelParm0IsScale(const NrrdKernel *kern) {
 const NrrdKernel * /* Biff: nope */
 nrrdKernelDerivative(const NrrdKernel *kern) {
   if (!kern) return nrrdKernelFlag;
+  if (nrrdKernelZero == kern) return nrrdKernelZero; /* really */
   if (nrrdKernelAQuartic == kern) return nrrdKernelAQuarticD;
   if (nrrdKernelAQuarticD == kern) return nrrdKernelAQuarticDD;
   if (nrrdKernelAQuarticDD == kern) return nrrdKernelFlag; /* !!! */
@@ -3762,7 +3763,8 @@ nrrdKernelDerivative(const NrrdKernel *kern) {
   if (nrrdKernelCos4SupportDebugDD == kern) return nrrdKernelCos4SupportDebugDDD;
   if (nrrdKernelCos4SupportDebugDDD == kern) return nrrdKernelFlag; /* !!! */
   if (nrrdKernelDiscreteGaussian == kern) return nrrdKernelFlag;    /* !!! */
-  if (nrrdKernelForwDiff == kern) return nrrdKernelFlag;            /* !!! */
+  if (nrrdKernelTent == kern) return nrrdKernelForwDiff;
+  if (nrrdKernelForwDiff == kern) return nrrdKernelZero; /* really */
   if (nrrdKernelGaussian == kern) return nrrdKernelGaussianD;
   if (nrrdKernelGaussianD == kern) return nrrdKernelGaussianDD;
   if (nrrdKernelGaussianDD == kern) return nrrdKernelFlag; /* !!! */
@@ -3770,7 +3772,6 @@ nrrdKernelDerivative(const NrrdKernel *kern) {
   if (nrrdKernelHannD == kern) return nrrdKernelHannDD;
   if (nrrdKernelHannDD == kern) return nrrdKernelFlag;                /* !!! */
   if (nrrdKernelHermiteScaleSpaceFlag == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelTent == kern) return nrrdKernelFlag;                  /* !!! */
   /* else */
   return nrrdKernelFlag; /* !!! */
 }
