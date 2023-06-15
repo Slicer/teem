@@ -769,6 +769,8 @@ class Tffi:
             with open(path_bdata, 'r', encoding='utf-8', newline='') as file:
                 biffdatas.append(list(csv.reader(file)))
         if nbdfn:
+            if self.verb:
+                print(f'Tffi.wrap: reading {nbdfn} for lib{self.name} ...')
             with open(nbdfn, 'r', encoding='utf-8') as file:
                 biffdatas.append(list(csv.reader(file)))
         for bdrows in biffdatas:
