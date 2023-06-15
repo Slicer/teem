@@ -628,10 +628,11 @@ class Tffi:
             # LD_LIBRARY_PATH on linux or DYLD_LIBRARY_PATH on Mac (on recent Macs the System
             # Integrity Protection (SIP) actually disables DYLD_LIBRARY_PATH).
             # On linux, paths listed here are passed to -Wl,--enable-new-dtags,-R<dir>
-            # and "readelf -d _ort.cpython*-linux-gnu.so | grep PATH" should show these paths,
-            # and "ldd _ort.cpython*-linux-gnu.so" should show where dependencies were found.
+            # and "readelf -d _LIB.cpython*-linux-gnu.so | grep PATH" should show these paths,
+            # (where LIB is the name of the extension module)
+            # and "ldd _LIB.cpython*-linux-gnu.so" should show where dependencies were found.
             # On Mac, paths listed should be passed to -Wl,-rpath,<dir>, and you can see those
-            # with "otool -l _ort.cpython*-darwin.so", in the LC_RPATH sections. However, in
+            # with "otool -l _LIB.cpython*-darwin.so", in the LC_RPATH sections. However, in
             # at least one case GLK observed, this didn't happen, so we redundantly also set
             # rpath directly for Macs, in the extra_link_args (ela set above)
             'runtime_library_dirs': self.path_libs,
