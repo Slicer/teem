@@ -1,24 +1,22 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2022  University of Chicago
+  Copyright (C) 2009--2023  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 /* clang-format off */
 
@@ -3694,84 +3692,87 @@ nrrdKernelParm0IsScale(const NrrdKernel *kern) {
   NOTE: This is probably returning nrrdKernelFlag more often than necessary;
   but sorting this out may require a more careful re-assessment of what has
   really become a mess of kernels */
+/* clang-format off */
 const NrrdKernel * /* Biff: nope */
 nrrdKernelDerivative(const NrrdKernel *kern) {
   if (!kern) return nrrdKernelFlag;
-  if (nrrdKernelZero == kern) return nrrdKernelZero; /* really */
-  if (nrrdKernelAQuartic == kern) return nrrdKernelAQuarticD;
-  if (nrrdKernelAQuarticD == kern) return nrrdKernelAQuarticDD;
-  if (nrrdKernelAQuarticDD == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelBCCubic == kern) return nrrdKernelBCCubicD;
-  if (nrrdKernelBCCubicD == kern) return nrrdKernelBCCubicDD;
-  if (nrrdKernelBCCubicDD == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelBlackman == kern) return nrrdKernelBlackmanD;
-  if (nrrdKernelBlackmanD == kern) return nrrdKernelBlackmanDD;
-  if (nrrdKernelBlackmanDD == kern) return nrrdKernelFlag;
-  if (nrrdKernelBox == kern) return nrrdKernelZero; /* really */
-  if (nrrdKernelBSpline1 == kern) return nrrdKernelBSpline1D;
-  if (nrrdKernelBSpline1D == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelBSpline2 == kern) return nrrdKernelBSpline2D;
-  if (nrrdKernelBSpline2D == kern) return nrrdKernelBSpline2DD;
-  if (nrrdKernelBSpline2DD == kern) return nrrdKernelFlag;            /* !!! */
+  if (nrrdKernelZero == kern)         return nrrdKernelZero; /* really */
+  if (nrrdKernelAQuartic == kern)     return nrrdKernelAQuarticD;
+  if (nrrdKernelAQuarticD == kern)    return nrrdKernelAQuarticDD;
+  if (nrrdKernelAQuarticDD == kern)   return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBCCubic == kern)      return nrrdKernelBCCubicD;
+  if (nrrdKernelBCCubicD == kern)     return nrrdKernelBCCubicDD;
+  if (nrrdKernelBCCubicDD == kern)    return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBlackman == kern)     return nrrdKernelBlackmanD;
+  if (nrrdKernelBlackmanD == kern)    return nrrdKernelBlackmanDD;
+  if (nrrdKernelBlackmanDD == kern)   return nrrdKernelFlag;
+  if (nrrdKernelBox == kern)          return nrrdKernelZero; /* really */
+  if (nrrdKernelBSpline1 == kern)     return nrrdKernelBSpline1D;
+  if (nrrdKernelBSpline1D == kern)    return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBSpline2 == kern)     return nrrdKernelBSpline2D;
+  if (nrrdKernelBSpline2D == kern)    return nrrdKernelBSpline2DD;
+  if (nrrdKernelBSpline2DD == kern)   return nrrdKernelFlag;          /* !!! */
   if (nrrdKernelBSpline3ApproxInverse == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelBSpline3 == kern) return nrrdKernelBSpline3D;
-  if (nrrdKernelBSpline3D == kern) return nrrdKernelBSpline3DD;
-  if (nrrdKernelBSpline3DD == kern) return nrrdKernelBSpline3DDD;
-  if (nrrdKernelBSpline3DDD == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelBSpline4 == kern) return nrrdKernelBSpline4D;
-  if (nrrdKernelBSpline4D == kern) return nrrdKernelBSpline4DD;
-  if (nrrdKernelBSpline4DD == kern) return nrrdKernelBSpline4DDD;
-  if (nrrdKernelBSpline4DDD == kern) return nrrdKernelFlag;           /* !!! */
+  if (nrrdKernelBSpline3 == kern)     return nrrdKernelBSpline3D;
+  if (nrrdKernelBSpline3D == kern)    return nrrdKernelBSpline3DD;
+  if (nrrdKernelBSpline3DD == kern)   return nrrdKernelBSpline3DDD;
+  if (nrrdKernelBSpline3DDD == kern)  return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBSpline4 == kern)     return nrrdKernelBSpline4D;
+  if (nrrdKernelBSpline4D == kern)    return nrrdKernelBSpline4DD;
+  if (nrrdKernelBSpline4DD == kern)   return nrrdKernelBSpline4DDD;
+  if (nrrdKernelBSpline4DDD == kern)  return nrrdKernelFlag;          /* !!! */
   if (nrrdKernelBSpline5ApproxInverse == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelBSpline5 == kern) return nrrdKernelBSpline5D;
-  if (nrrdKernelBSpline5D == kern) return nrrdKernelBSpline5DD;
-  if (nrrdKernelBSpline5DD == kern) return nrrdKernelBSpline5DDD;
-  if (nrrdKernelBSpline5DDD == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelBSpline6 == kern) return nrrdKernelBSpline6D;
-  if (nrrdKernelBSpline6D == kern) return nrrdKernelBSpline6DD;
-  if (nrrdKernelBSpline6DD == kern) return nrrdKernelBSpline6DDD;
-  if (nrrdKernelBSpline6DDD == kern) return nrrdKernelFlag;           /* !!! */
+  if (nrrdKernelBSpline5 == kern)     return nrrdKernelBSpline5D;
+  if (nrrdKernelBSpline5D == kern)    return nrrdKernelBSpline5DD;
+  if (nrrdKernelBSpline5DD == kern)   return nrrdKernelBSpline5DDD;
+  if (nrrdKernelBSpline5DDD == kern)  return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBSpline6 == kern)     return nrrdKernelBSpline6D;
+  if (nrrdKernelBSpline6D == kern)    return nrrdKernelBSpline6DD;
+  if (nrrdKernelBSpline6DD == kern)   return nrrdKernelBSpline6DDD;
+  if (nrrdKernelBSpline6DDD == kern)  return nrrdKernelFlag;          /* !!! */
   if (nrrdKernelBSpline7ApproxInverse == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelBSpline7 == kern) return nrrdKernelBSpline7D;
-  if (nrrdKernelBSpline7D == kern) return nrrdKernelBSpline7DD;
-  if (nrrdKernelBSpline7DD == kern) return nrrdKernelBSpline7DDD;
-  if (nrrdKernelBSpline7DDD == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelC3Quintic == kern) return nrrdKernelC3QuinticD;
-  if (nrrdKernelC3QuinticD == kern) return nrrdKernelC3QuinticDD;
-  if (nrrdKernelC3QuinticDD == kern) return nrrdKernelFlag;          /* !!! */
-  if (nrrdKernelC4HexicApproxInverse == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelC4Hexic == kern) return nrrdKernelC4HexicD;
-  if (nrrdKernelC4HexicD == kern) return nrrdKernelC4HexicDD;
-  if (nrrdKernelC4HexicDD == kern) return nrrdKernelC4HexicDDD;
-  if (nrrdKernelC4HexicDDD == kern) return nrrdKernelFlag;            /* !!! */
+  if (nrrdKernelBSpline7 == kern)     return nrrdKernelBSpline7D;
+  if (nrrdKernelBSpline7D == kern)    return nrrdKernelBSpline7DD;
+  if (nrrdKernelBSpline7DD == kern)   return nrrdKernelBSpline7DDD;
+  if (nrrdKernelBSpline7DDD == kern)  return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelC3Quintic == kern)    return nrrdKernelC3QuinticD;
+  if (nrrdKernelC3QuinticD == kern)   return nrrdKernelC3QuinticDD;
+  if (nrrdKernelC3QuinticDD == kern)  return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelC4HexicApproxInverse == kern) return nrrdKernelFlag;  /* !!! */
+  if (nrrdKernelC4Hexic == kern)      return nrrdKernelC4HexicD;
+  if (nrrdKernelC4HexicD == kern)     return nrrdKernelC4HexicDD;
+  if (nrrdKernelC4HexicDD == kern)    return nrrdKernelC4HexicDDD;
+  if (nrrdKernelC4HexicDDD == kern)   return nrrdKernelFlag;          /* !!! */
   if (nrrdKernelC5SepticApproxInverse == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelC5Septic == kern) return nrrdKernelC5SepticD;
-  if (nrrdKernelC5SepticD == kern) return nrrdKernelC5SepticDD;
-  if (nrrdKernelC5SepticDD == kern) return nrrdKernelC5SepticDDD;
-  if (nrrdKernelC5SepticDDD == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelCatmullRom == kern) return nrrdKernelCatmullRomD;
-  if (nrrdKernelCatmullRomD == kern) return nrrdKernelCatmullRomDD;
-  if (nrrdKernelCatmullRomDD == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelC5Septic == kern)     return nrrdKernelC5SepticD;
+  if (nrrdKernelC5SepticD == kern)    return nrrdKernelC5SepticDD;
+  if (nrrdKernelC5SepticDD == kern)   return nrrdKernelC5SepticDDD;
+  if (nrrdKernelC5SepticDDD == kern)  return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelCatmullRom == kern)   return nrrdKernelCatmullRomD;
+  if (nrrdKernelCatmullRomD == kern)  return nrrdKernelCatmullRomDD;
+  if (nrrdKernelCatmullRomDD == kern) return nrrdKernelFlag;          /* !!! */
   if (nrrdKernelCatmullRomSupportDebug == kern) return nrrdKernelCatmullRomSupportDebugD;
   if (nrrdKernelCatmullRomSupportDebugD == kern)
     return nrrdKernelCatmullRomSupportDebugDD;
-  if (nrrdKernelCatmullRomSupportDebugDD == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelCentDiff == kern) return nrrdKernelFlag;                 /* !!! */
-  if (nrrdKernelCheap == kern) return nrrdKernelFlag;                    /* !!! */
+  if (nrrdKernelCatmullRomSupportDebugDD == kern)
+    return nrrdKernelFlag;                                            /* !!! */
+  if (nrrdKernelCentDiff == kern)     return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelCheap == kern)        return nrrdKernelFlag;          /* !!! */
   if (nrrdKernelCos4SupportDebug == kern) return nrrdKernelCos4SupportDebugD;
   if (nrrdKernelCos4SupportDebugD == kern) return nrrdKernelCos4SupportDebugDD;
   if (nrrdKernelCos4SupportDebugDD == kern) return nrrdKernelCos4SupportDebugDDD;
-  if (nrrdKernelCos4SupportDebugDDD == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelDiscreteGaussian == kern) return nrrdKernelFlag;    /* !!! */
-  if (nrrdKernelTent == kern) return nrrdKernelForwDiff;
-  if (nrrdKernelForwDiff == kern) return nrrdKernelZero; /* really */
-  if (nrrdKernelGaussian == kern) return nrrdKernelGaussianD;
-  if (nrrdKernelGaussianD == kern) return nrrdKernelGaussianDD;
-  if (nrrdKernelGaussianDD == kern) return nrrdKernelFlag; /* !!! */
-  if (nrrdKernelHann == kern) return nrrdKernelHannD;
-  if (nrrdKernelHannD == kern) return nrrdKernelHannDD;
-  if (nrrdKernelHannDD == kern) return nrrdKernelFlag;                /* !!! */
+  if (nrrdKernelCos4SupportDebugDDD == kern) return nrrdKernelFlag;   /* !!! */
+  if (nrrdKernelDiscreteGaussian == kern) return nrrdKernelFlag;      /* !!! */
+  if (nrrdKernelTent == kern)         return nrrdKernelForwDiff;
+  if (nrrdKernelForwDiff == kern)     return nrrdKernelZero; /* really */
+  if (nrrdKernelGaussian == kern)     return nrrdKernelGaussianD;
+  if (nrrdKernelGaussianD == kern)    return nrrdKernelGaussianDD;
+  if (nrrdKernelGaussianDD == kern)   return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelHann == kern)         return nrrdKernelHannD;
+  if (nrrdKernelHannD == kern)        return nrrdKernelHannDD;
+  if (nrrdKernelHannDD == kern)       return nrrdKernelFlag;          /* !!! */
   if (nrrdKernelHermiteScaleSpaceFlag == kern) return nrrdKernelFlag; /* !!! */
   /* else */
   return nrrdKernelFlag; /* !!! */
 }
+/* clang-format on */
