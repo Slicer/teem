@@ -154,15 +154,17 @@ meetNrrdKernelAll(void) {
   return kern;
 }
 
-/* the knowledge here about what is a derivative of what is something
-   that will be built into kernels in a future Teem version */
+/* kintegral(kd) makes an attempt to returns the kernel ki that is the integral of kd:
+   the derivative of ki is kd. The knowledge here about what is a derivative of what is
+   something that will be built into kernels in a future Teem version */
 static const NrrdKernel *
 kintegral(const NrrdKernel *kd) {
   const NrrdKernel *ret = NULL;
 
-  /* the statement "INTGL(K)" is saying that K has a derivative with the
-     usual name K##D.  This is made more convenient by the
-     consistent use of the "D" suffix for indicating a derivative */
+  /* "INTGL(K)" is saying: if the derivative of the kernel named K
+    (only as found by adding "D" to name of K) is kd, then return K.
+    This is only possible to the extent that the D suffix is used consistently
+    for derivative kernels. */
 #define INTGL(K)                                                                        \
   if (K##D == kd) {                                                                     \
     ret = K;                                                                            \
