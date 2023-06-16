@@ -791,17 +791,14 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
         }
       }
 
-      /* Wow - there is a big rift here between old conventions for how
-         NrrdKernels were defined, versus the newer practice of creating
-         parameter-free kernels. The "sneaky trick" code below for changing
-         parm[0] only works if the kernel actually looks at parm[0]!  So at
-         least for the parameter-free kernels (and maybe other kernels, but
-         there's no principled way of knowing! HEY actually there is now; it
-         is called nrrdKernelParm0IsScale()) we have to do what we probably
-         should have been done all along: simulating the kernel scaling by
-         pre-processing the evaluation locations and post-processing the
-         kernel weights */
-      if (0 == axis->kernel->numParm) {
+      /* Wow - there is a big rift here between old conventions for how NrrdKernels were
+         defined, versus the newer practice of creating parameter-free kernels. The
+         "sneaky trick" code below for changing parm[0] only works if the kernel actually
+         looks at parm[0]!  So for the parameter-free kernels, and those for which NOT
+         nrrdKernelParm0IsScale(), we have to do what we probably should have been done
+         all along: simulating the kernel scaling by pre-processing the evaluation
+         locations and post-processing the kernel weights */
+      if (0 == axis->kernel->numParm || !nrrdKernelParm0IsScale(axis->kernel)) {
         size_t nn, ii;
         double ratio;
         nn = dotLen * axis->samples;
