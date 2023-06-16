@@ -53,12 +53,12 @@ nrrdHistoDraw,int,1,0,nrrd,nrrd/histogram.c:191
 nrrdHistoAxis,int,1,0,nrrd,nrrd/histogram.c:327
 nrrdHistoJoint,int,1,0,nrrd,nrrd/histogram.c:441
 nrrdHistoThresholdOtsu,int,1,0,nrrd,nrrd/histogram.c:652
-nrrdKernelParse,int,1,0,nrrd,nrrd/kernel.c:3036
-nrrdKernelSpecParse,int,1,0,nrrd,nrrd/kernel.c:3216
-nrrdKernelSpecSprint,int,1,0,nrrd,nrrd/kernel.c:3238
-nrrdKernelSprint,int,1,0,nrrd,nrrd/kernel.c:3293
-nrrdKernelCompare,int,1,0,nrrd,nrrd/kernel.c:3311
-nrrdKernelSpecCompare,int,1,0,nrrd,nrrd/kernel.c:3360
+nrrdKernelParse,int,1,0,nrrd,nrrd/kernel.c:3032
+nrrdKernelSpecParse,int,1,0,nrrd,nrrd/kernel.c:3212
+nrrdKernelSpecSprint,int,1,0,nrrd,nrrd/kernel.c:3234
+nrrdKernelSprint,int,1,0,nrrd,nrrd/kernel.c:3289
+nrrdKernelCompare,int,1,0,nrrd,nrrd/kernel.c:3307
+nrrdKernelSpecCompare,int,1,0,nrrd,nrrd/kernel.c:3356
 nrrdKernelCheck,int,1,0,nrrd,nrrd/kernel.c:3429
 nrrdConvert,int,1,0,nrrd,nrrd/map.c:236
 nrrdClampConvert,int,1,0,nrrd,nrrd/map.c:256
@@ -120,7 +120,7 @@ nrrdResampleRenormalizeSet,int,1,0,nrrd,nrrd/resampleContext.c:461
 nrrdResampleTypeOutSet,int,1,0,nrrd,nrrd/resampleContext.c:478
 nrrdResampleRoundSet,int,1,0,nrrd,nrrd/resampleContext.c:503
 nrrdResampleClampSet,int,1,0,nrrd,nrrd/resampleContext.c:520
-nrrdResampleExecute,int,1,0,nrrd,nrrd/resampleContext.c:1458
+nrrdResampleExecute,int,1,0,nrrd,nrrd/resampleContext.c:1455
 nrrdFFTWWisdomRead,int,1,0,nrrd,nrrd/fftNrrd.c:36
 nrrdFFT,int,1,0,nrrd,nrrd/fftNrrd.c:92
 nrrdFFTWWisdomWrite,int,1,0,nrrd,nrrd/fftNrrd.c:289
