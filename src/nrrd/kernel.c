@@ -29,34 +29,39 @@
 ** use parm[0] for scale.
 
                                  numParm  parm[0]   parm[1]   parm[2]
-                 nrrdKernelHann    2      scale    cut-off
-             nrrdKernelBlackman    2      scale    cut-off
-           nrrdKernelCatmullRom    0
-             nrrdKernelBSpline3    0
-nrrdKernelBSpline3ApproxInverse    0
-             nrrdKernelBSpline5    0
-nrrdKernelBSpline5ApproxInverse    0
-             nrrdKernelBSpline7    0
-nrrdKernelBSpline7ApproxInverse    0
-                 nrrdKernelZero    1      scale
-                  nrrdKernelBox    1      scale
-nrrdKernelCatmullRomSupportDebug   1      support
-      nrrdKernelBoxSupportDebug    1      support
-     nrrdKernelCos4SupportDebug    1      support
-                nrrdKernelCheap    1      scale
-nrrdKernelHermiteScaleSpaceFlag    0
-                 nrrdKernelTent    1      scale
-             nrrdKernelForwDiff    1      scale
-             nrrdKernelCentDiff    1      scale
-              nrrdKernelBCCubic    3      scale       B        C
-             nrrdKernelAQuartic    2      scale       A
-            nrrdKernelC3Quintic    0
-              nrrdKernelC4Hexic    0
- nrrdKernelC4HexicApproxInverse    0
-             nrrdKernelC5Septic    0
-             nrrdKernelGaussian    2      sigma    cut-off
-     nrrdKernelDiscreteGaussian    2      sigma    cut-off
-            nrrdKernelTMF[][][]    1       a
+                  nrrdKernelZero    1     scale
+                 nrrdKernelCheap    1     scale
+                   nrrdKernelBox    1     scale
+       nrrdKernelBoxSupportDebug    1     support
+nrrdKernelCatmullRomSupportDebug    1     support
+      nrrdKernelCos4SupportDebug    1     support
+ nrrdKernelHermiteScaleSpaceFlag    0
+                  nrrdKernelTent    1     scale
+              nrrdKernelForwDiff    1     scale
+              nrrdKernelCentDiff    1     scale
+               nrrdKernelBCCubic    3     scale       B        C
+            nrrdKernelCatmullRom    0
+              nrrdKernelAQuartic    2     scale       A
+             nrrdKernelC3Quintic    0
+               nrrdKernelC4Hexic    0
+  nrrdKernelC4HexicApproxInverse    0
+              nrrdKernelC5Septic    0
+ nrrdKernelC5SepticApproxInverse    0
+              nrrdKernelGaussian    2     sigma    cut-off
+      nrrdKernelDiscreteGaussian    2     sigma    cut-off
+                  nrrdKernelHann    2     scale    cut-off
+              nrrdKernelBlackman    2     scale    cut-off
+              nrrdKernelBSpline1    0
+              nrrdKernelBSpline2    0
+              nrrdKernelBSpline3    0
+ nrrdKernelBSpline3ApproxInverse    0
+              nrrdKernelBSpline4    0
+              nrrdKernelBSpline5    0
+ nrrdKernelBSpline5ApproxInverse    0
+              nrrdKernelBSpline6    0
+              nrrdKernelBSpline7    0
+ nrrdKernelBSpline7ApproxInverse    0
+             nrrdKernelTMF[][][]    1       a
 
 ** Note that when parm[0] is named "scale", that parameter is optional,
 ** and the default is 1.0, when given in string form
@@ -177,57 +182,42 @@ nrrdKernelZero = &_nrrdKernelZero;
 
 /* ------------------------------------------------------------ */
 
-/* nrrdKernelFlag behaves just like nrrdKernelZero, but it exists
-to be a flag that some logic on kernels didn't work as expected
-(such as nrrdKernelDerivative can't given an answer with certainty) */
+/* nrrdKernelFlag exists to be a flag that some logic on kernels didn't work as expected
+(such as nrrdKernelDerivative can't given an answer with certainty).  It generates AIR_NAN
+in whenever possible. */
 static double
 _nrrdFlagSup(const double *parm) {
-  double S;
-
-  S = parm[0];
-  return S;
+  AIR_UNUSED(parm);
+  return AIR_NAN;
 }
 
 static double
 _nrrdFlag1_d(double x, const double *parm) {
-  double S;
-
-  S = parm[0];
-  x = AIR_ABS(x)/S;
-  return _ZERO(x)/S;
+  AIR_UNUSED(parm);
+  return AIR_NAN;
 }
 
 static float
 _nrrdFlag1_f(float x, const double *parm) {
-  float S;
-
-  S = AIR_FLOAT(parm[0]);
-  x = AIR_ABS(x)/S;
-  return _ZERO(x)/S;
+  AIR_UNUSED(x); AIR_UNUSED(parm);
+  return AIR_NAN;
 }
 
 static void
 _nrrdFlagN_d(double *f, const double *x, size_t len, const double *parm) {
-  double S;
-  double t;
   size_t i;
-
-  S = parm[0];
+  AIR_UNUSED(x); AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
-    t = x[i]; t = AIR_ABS(t)/S;
-    f[i] = _ZERO(t)/S;
+    f[i] = AIR_NAN;
   }
 }
 
 static void
 _nrrdFlagN_f(float *f, const float *x, size_t len, const double *parm) {
-  float t, S;
   size_t i;
-
-  S = AIR_FLOAT(parm[0]);
+  AIR_UNUSED(x); AIR_UNUSED(parm);
   for (i=0; i<len; i++) {
-    t = x[i]; t = AIR_ABS(t)/S;
-    f[i] = _ZERO(t)/S;
+    f[i] = AIR_NAN;
   }
 }
 
@@ -308,6 +298,9 @@ nrrdKernelBox = &_nrrdKernelBox;
 
 /* ------------------------------------------------------------ */
 
+/* nrrdKernelBoxSupportDebug is like nrrdKernelBox but parm[0] determines the "support"; really
+it is still the same underlying function as nrrdKernelBox (only 1 from -0.5 to 0.5) but having
+variable nominal support is useful for some testing */
 static double
 _nrrdBoxSDSup(const double *parm) {
 
@@ -353,14 +346,17 @@ _nrrdBoxSDN_f(float *f, const float *x, size_t len, const double *parm) {
 static const NrrdKernel
 _nrrdKernelBoxSupportDebug = {
   "boxsup",
-  1, _nrrdBoxSDSup, returnOne,
+  1, _nrrdBoxSDSup, returnOne /* well only if parm[0] > 0.5 */,
   _nrrdBoxSD1_f,  _nrrdBoxSDN_f,  _nrrdBoxSD1_d,  _nrrdBoxSDN_d
 };
 const NrrdKernel *const
 nrrdKernelBoxSupportDebug = &_nrrdKernelBoxSupportDebug;
 
 /* ------------------------------------------------------------ */
-
+/* Like nrrdKernelBoxSupportDebug, this kernel really is only non-zero on [0.5,0.5], even if
+the nominal support will be simply parm[0]. Unlike nrrdKernelBoxSupportDebug this is a very
+smooth bump inside that according to cos(pi*x)^4, hence the name nrrdKernelCos4SupportDebug
+*/
 #define COS4(x) (x > 0.5 \
                  ? 0.0 \
                  : cos(AIR_PI*x)*cos(AIR_PI*x)*cos(AIR_PI*x)*cos(AIR_PI*x))
@@ -3422,45 +3418,51 @@ nrrdKernelSpecCompare(const NrrdKernelSpec *aa, const NrrdKernelSpec *bb, int *d
 ** nrrdKernelSpecSet
 ** nrrdKernelSpecSprint
 ** nrrdKernelSpecParse
+** nrrdKernelDerivative
 ** and also exercises all the ways of evaluating the kernel and
-** makes sure they all agree, and agree with the integral kernel, if given
+** makes sure they all agree, and agree with the integral kernel (if given)
+** the derivative kernel (if known by nrrdKernelDerivative)
+** HEY why do we need a separate parameter vector iparm? nrrdKernelDerivative is
+** based on idea that the parm vec is the same for a kernel and its derivative
 */
 int /* Biff: 1 */
 nrrdKernelCheck(const NrrdKernel *kern, const double parm[NRRD_KERNEL_PARMS_NUM],
                 size_t evalNum, double epsilon, unsigned int diffOkEvalMax,
-                unsigned int diffOkIntglMax, const NrrdKernel *ikern,
+                unsigned int diffOkIntglOrDerivMax, const NrrdKernel *ikern,
                 const double iparm[NRRD_KERNEL_PARMS_NUM]) {
   static const char me[] = "nrrdKernelCheck";
-  const NrrdKernel *parsedkern;
+  const NrrdKernel *parsedkern, *kernD;
   double parsedparm[NRRD_KERNEL_PARMS_NUM], supp, integral;
   char kstr[AIR_STRLEN_LARGE], kspstr[AIR_STRLEN_LARGE], explain[AIR_STRLEN_LARGE],
-    stmp[AIR_STRLEN_SMALL];
+    stmp[AIR_STRLEN_SMALL], kdstr[AIR_STRLEN_LARGE];
   int differ;
   size_t evalIdx;
   double *dom_d, *ran_d, wee;
   float *dom_f, *ran_f;
-  unsigned int diffOkEvalNum, diffOkIntglNum;
+  unsigned int diffEvalNum, diffIntglNum, diffDerivNum;
   NrrdKernelSpec *kspA, *kspB;
   airArray *mop;
+
+  /* got tired of seeing these two lines over and over */
+#define ERRR                                                                            \
+  airMopError(mop);                                                                     \
+  return 1
 
   mop = airMopNew();
   if (!kern) {
     biffAddf(NRRD, "%s: got NULL kernel", me);
-    airMopError(mop);
-    return 1;
+    ERRR;
   }
   if (!(evalNum > 20)) {
     biffAddf(NRRD, "%s: need evalNum > 20", me);
-    airMopError(mop);
-    return 1;
+    ERRR;
   }
   if (!(kern->support && kern->integral && kern->eval1_f && kern->evalN_f
         && kern->eval1_d && kern->evalN_d)) {
     biffAddf(NRRD, "%s: kernel has NULL fields (%d,%d,%d,%d,%d,%d)", me,
              !!(kern->support), !!(kern->integral), !!(kern->eval1_f), !!(kern->evalN_f),
              !!(kern->eval1_d), !!(kern->evalN_d));
-    airMopError(mop);
-    return 1;
+    ERRR;
   }
   kspA = nrrdKernelSpecNew();
   airMopAdd(mop, kspA, (airMopper)nrrdKernelSpecNix, airMopAlways);
@@ -3469,44 +3471,39 @@ nrrdKernelCheck(const NrrdKernel *kern, const double parm[NRRD_KERNEL_PARMS_NUM]
   nrrdKernelSpecSet(kspA, kern, parm);
   if (nrrdKernelSprint(kstr, kern, parm) || nrrdKernelSpecSprint(kspstr, kspA)) {
     biffAddf(NRRD, "%s: trouble", me);
-    airMopError(mop);
-    return 1;
+    ERRR;
   }
   if (strcmp(kstr, kspstr)) {
     biffAddf(NRRD, "%s: sprinted kernel |%s| != kspec |%s|", me, kstr, kspstr);
-    airMopError(mop);
-    return 1;
+    ERRR;
   }
   if (nrrdKernelParse(&parsedkern, parsedparm, kstr)
       || nrrdKernelSpecParse(kspB, kstr)) {
     biffAddf(NRRD, "%s: trouble parsing |%s| back to kern/parm pair or kspec", me, kstr);
-    airMopError(mop);
-    return 1;
+    ERRR;
   }
   if (nrrdKernelCompare(kern, parm, parsedkern, parsedparm, &differ, explain)) {
     biffAddf(NRRD, "%s: trouble comparing kern/parm pairs", me);
-    airMopError(mop);
-    return 1;
+    ERRR;
   }
   if (differ) {
     biffAddf(NRRD, "%s: given and re-parsed kernels differ: %s", me, explain);
-    airMopError(mop);
-    return 1;
+    ERRR;
   }
   if (nrrdKernelCompare(kspA->kernel, kspA->parm, kspB->kernel, kspB->parm, &differ,
                         explain)) {
     biffAddf(NRRD, "%s: trouble comparing kspecs", me);
-    airMopError(mop);
-    return 1;
+    ERRR;
   }
   if (differ) {
     biffAddf(NRRD, "%s: given and re-parsed kspecs differ: %s", me, explain);
-    airMopError(mop);
-    return 1;
+    ERRR;
   }
 
   supp = kern->support(parm);
-  /* wee is the step between evaluation points */
+  /* kernel should be non-zero outside [-supp, supp] */
+  /* wee is the step between evaluation points with
+     evalNum cell-centered samples in [-supp,supp] */
   wee = 2 * supp / AIR_CAST(double, evalNum);
   if ((kern->eval1_d)(supp + wee / 1000, parm) || (kern->eval1_d)(supp + wee, parm)
       || (kern->eval1_d)(supp + 10 * wee, parm)
@@ -3515,8 +3512,7 @@ nrrdKernelCheck(const NrrdKernel *kern, const double parm[NRRD_KERNEL_PARMS_NUM]
     if (nrrdKernelCheap != kern) {
       /* the "cheap" kernel alone gets a pass on reporting its support */
       biffAddf(NRRD, "%s: kern %s is non-zero outside support %g", me, kstr, supp);
-      airMopError(mop);
-      return 1;
+      ERRR;
     }
   }
   /* allocate domain and range for both float and double */
@@ -3531,8 +3527,7 @@ nrrdKernelCheck(const NrrdKernel *kern, const double parm[NRRD_KERNEL_PARMS_NUM]
   if (!(dom_d && ran_d && dom_f && ran_f)) {
     biffAddf(NRRD, "%s: couldn't alloc buffers for %s values for %s", me,
              airSprintSize_t(stmp, evalNum), kstr);
-    airMopError(mop);
-    return 1;
+    ERRR;
   }
   for (evalIdx = 0; evalIdx < evalNum; evalIdx++) {
     dom_d[evalIdx] = AIR_AFFINE(-0.5, evalIdx, AIR_CAST(double, evalNum) - 0.5, -supp,
@@ -3548,10 +3543,30 @@ nrrdKernelCheck(const NrrdKernel *kern, const double parm[NRRD_KERNEL_PARMS_NUM]
             dom_d[evalIdx], ran_d[evalIdx]);
   }
   */
-  /* compare evaluations (and maybe derivatives) and numerically compute
+  kernD = nrrdKernelDerivative(kern);
+  if (nrrdKernelFlag == kernD) {
+    /* nrrdKernelDerivative is not confident about knowing derivative of kern */
+    kernD = NULL;
+  } else { /* set kdstr to string specification of kernD and (same) parm */
+    if (nrrdKernelSprint(kdstr, kernD, parm)) {
+      biffAddf(NRRD, "%s: trouble", me);
+      ERRR;
+    }
+  }
+  if (ikern) {
+    const NrrdKernel *ikd;
+    ikd = nrrdKernelDerivative(ikern);
+    if (ikd != kern) {
+      biffAddf(NRRD, "%s: got nrrdKernelDerivative(ikern=%s) = %s != %s=kern", me,
+               ikern->name, ikd->name, kern->name);
+      ERRR;
+    }
+  }
+  /* compare evaluations (and maybe derivatives) and numerically xcompute
      integral */
-  diffOkEvalNum = 0;
-  diffOkIntglNum = 0;
+  diffEvalNum = 0;
+  diffIntglNum = 0;
+  diffDerivNum = 0;
   integral = 0.0;
   for (evalIdx = 0; evalIdx < evalNum; evalIdx++) {
     double single_f, single_d;
@@ -3561,76 +3576,81 @@ nrrdKernelCheck(const NrrdKernel *kern, const double parm[NRRD_KERNEL_PARMS_NUM]
     /* single float vs vector float */
     if (nrrdKernelForwDiff == kern || nrrdKernelBCCubic == kern
         || nrrdKernelBCCubicDD == kern || nrrdKernelAQuarticDD == kern) {
-      /* HEY this is crazy: need a special epsilon for these kernels;
-         WHY WHY do these kernels evaluate to different things in the
-         single versus the vector case? */
-      float specEps;
-      if (nrrdKernelForwDiff == kern) {
-        specEps = 5e-9f;
-      } else if (nrrdKernelBCCubic == kern) {
-        specEps = 5e-8f;
-      } else if (nrrdKernelBCCubicDD == kern) {
-        specEps = 5e-8f;
-      } else if (nrrdKernelAQuarticDD == kern) {
-        specEps = 5e-8f;
-      } else {
-        specEps = 0.0;
-      }
-      if (fabs(single_f - ran_f[evalIdx]) > specEps) {
+      if (fabs(single_f - ran_f[evalIdx]) > 0.0) {
         biffAddf(NRRD,
                  "%s: %s (eval1_f(%.17g)=%.17g) != "
                  "(evalN_f(%.17g)=%.17g) by %.17g > %.17g",
                  me, kstr, dom_f[evalIdx], single_f, dom_f[evalIdx], ran_f[evalIdx],
-                 fabs(single_f - ran_f[evalIdx]), specEps);
-        airMopError(mop);
-        return 1;
+                 fabs(single_f - ran_f[evalIdx]), 0.0);
+        ERRR;
       }
-    } else {
+    } else { /* for most well-behaved kernels */
       if (single_f != ran_f[evalIdx]) {
         biffAddf(NRRD,
                  "%s: %s (eval1_f(%.17g)=%.17g) != "
                  "(evalN_f(%.17g)=%.17g)",
                  me, kstr, dom_f[evalIdx], single_f, dom_f[evalIdx], ran_f[evalIdx]);
-        airMopError(mop);
-        return 1;
+        ERRR;
       }
     }
     /* single double vs vector double */
     if (single_d != ran_d[evalIdx]) {
       biffAddf(NRRD, "%s: %s (eval1_d(%.17g)=%.17g) != (evalN_d(%.17g)=%.17g)", me, kstr,
                dom_d[evalIdx], single_d, dom_d[evalIdx], ran_d[evalIdx]);
-      airMopError(mop);
-      return 1;
+      ERRR;
     }
     /* single float vs single double */
     if (fabs(single_f - single_d) > epsilon) {
-      diffOkEvalNum++;
-      if (diffOkEvalNum > diffOkEvalMax) {
+      diffEvalNum++;
+      if (diffEvalNum > diffOkEvalMax) {
         biffAddf(NRRD,
-                 "%s: %s |eval1_f(%.17g)=%.17g) - (eval1_d(%.17g)=%.17g)|"
-                 " %.17g  >  epsilon %.17g too many times (%u > %u)",
+                 "%s: %s |eval1_f(%.17g)=%.17g) - (eval1_d(%.17g)=%.17g)|="
+                 "%.17g  >  epsilon %.17g too many times (%u > %u)",
                  me, kstr, dom_f[evalIdx], single_f, dom_d[evalIdx], single_d,
-                 fabs(single_f - single_d), epsilon, diffOkEvalNum, diffOkEvalMax);
-        airMopError(mop);
-        return 1;
+                 fabs(single_f - single_d), epsilon, diffEvalNum, diffOkEvalMax);
+        ERRR;
       }
     }
-    /* check whether we're the derivative of ikern */
+    /* check whether we're the derivative of ikern, not with an absolute per-sample test,
+       but by seeing if the number of times it failed the per-sample test exceeded the
+       passed threshold number. GLK does not remember exactly how or why this testing
+       approach evolved; but it probably relates to how thinks get wonky at the
+       boundaries of piece-wise definitions */
     if (ikern) {
       double forw, back, ndrv;
       forw = ikern->eval1_d(dom_d[evalIdx] + wee / 2, iparm);
       back = ikern->eval1_d(dom_d[evalIdx] - wee / 2, iparm);
       ndrv = (forw - back) / wee;
       if (fabs(ndrv - single_d) > epsilon) {
-        diffOkIntglNum++;
-        if (diffOkIntglNum > diffOkIntglMax) {
+        diffIntglNum++;
+        if (diffIntglNum > diffOkIntglOrDerivMax) {
           biffAddf(NRRD,
-                   "%s: %s(%.17g) |num deriv(%s) %.17g - %.17g| "
+                   "%s: %s(%.17g) |numerical deriv of integral(%s) %.17g - %.17g|="
                    "%.17g > %.17g too many times (%u > %u)",
                    me, kstr, dom_d[evalIdx], ikern->name, ndrv, single_d,
-                   fabs(ndrv - single_d), epsilon, diffOkIntglNum, diffOkIntglMax);
-          airMopError(mop);
-          return 1;
+                   fabs(ndrv - single_d), epsilon, diffIntglNum, diffOkIntglOrDerivMax);
+          ERRR;
+        }
+      }
+    }
+    if (kernD) {
+      /* HEY copy-pasta from above, now differentiating given kern to see if it's
+         derivative is kernD */
+      double forw, back, ndrv, dsingle; /* dsingle is single eval of derivative kernel */
+      forw = kern->eval1_d(dom_d[evalIdx] + wee / 2, parm);
+      back = kern->eval1_d(dom_d[evalIdx] - wee / 2, parm);
+      ndrv = (forw - back) / wee;
+      dsingle = kernD->eval1_d(dom_d[evalIdx], parm);
+      if (fabs(ndrv - dsingle) > epsilon) {
+        diffDerivNum++;
+        if (diffDerivNum > diffOkIntglOrDerivMax) {
+          biffAddf(NRRD,
+                   "%s: %s(%.17g) |numerical deriv(%s) %.17g - %.17g=%s(%.17g)|="
+                   "%.17g > %.17g too many times (%u > %u)",
+                   me, kstr, dom_d[evalIdx], kern->name, ndrv, dsingle, kdstr,
+                   dom_d[evalIdx], fabs(ndrv - dsingle), epsilon, diffDerivNum,
+                   diffOkIntglOrDerivMax);
+          ERRR;
         }
       }
     }
@@ -3648,36 +3668,38 @@ nrrdKernelCheck(const NrrdKernel *kern, const double parm[NRRD_KERNEL_PARMS_NUM]
                "%.17g > %.17g",
                me, kstr, integral, kern->integral(parm),
                fabs(integral - kern->integral(parm)), hackeps * epsilon);
-      airMopError(mop);
-      return 1;
+      ERRR;
     }
   }
-
-  /* HEY check being derivative of ikern/iparm */
-  AIR_UNUSED(ikern);
-  AIR_UNUSED(iparm);
+#undef ERRR
 
   airMopOkay(mop);
   return 0;
 }
 
+/* nrrdKernelParm0IsScale answers the question: does the given kernel look at parm[0] to
+   determine the over-all size of the kernel?  In the early days of nrrd, all kernels did
+   this, but gradually the utility of doing that became less obvious, and for
+   simplicity's sake newer kernels were parameter-free. The kernels listed here thus tend
+   to be the older kernels in nrrd. */
 int /* Biff: nope */
 nrrdKernelParm0IsScale(const NrrdKernel *kern) {
   int ret;
 
   if (!kern) {
     ret = 0;
-  } else if (nrrdKernelHann == kern || nrrdKernelHannD == kern
-             || nrrdKernelHannDD == kern || nrrdKernelBlackman == kern
-             || nrrdKernelBlackmanD == kern || nrrdKernelBlackmanDD == kern
-             || nrrdKernelZero == kern || nrrdKernelFlag == kern || nrrdKernelBox == kern
-             || nrrdKernelCheap == kern || nrrdKernelTent == kern
-             || nrrdKernelForwDiff == kern || nrrdKernelCentDiff == kern
-             || nrrdKernelBCCubic == kern || nrrdKernelBCCubicD == kern
-             || nrrdKernelBCCubicDD == kern || nrrdKernelAQuartic == kern
-             || nrrdKernelAQuarticD == kern || nrrdKernelAQuarticDD == kern
-             || nrrdKernelGaussian == kern || nrrdKernelGaussianD == kern
-             || nrrdKernelGaussianDD == kern || nrrdKernelDiscreteGaussian == kern) {
+  } else if (nrrdKernelZero == kern || nrrdKernelBox == kern || nrrdKernelCheap == kern
+             || nrrdKernelTent == kern || nrrdKernelForwDiff == kern
+             || nrrdKernelCentDiff == kern || nrrdKernelBCCubic == kern
+             || nrrdKernelBCCubicD == kern || nrrdKernelBCCubicDD == kern
+             || nrrdKernelAQuartic == kern || nrrdKernelAQuarticD == kern
+             || nrrdKernelAQuarticDD == kern || nrrdKernelGaussian == kern
+             || nrrdKernelGaussianD == kern || nrrdKernelGaussianDD == kern
+             || nrrdKernelDiscreteGaussian == kern || nrrdKernelHann == kern
+             || nrrdKernelHannD == kern || nrrdKernelHannDD == kern
+             || nrrdKernelBlackman == kern || nrrdKernelBlackmanD == kern
+             || nrrdKernelBlackmanDD == kern) {
+    /* nrrdKernelFlag should maybe be part of this, but it's a flag, not a kernel */
     ret = 1;
   } else {
     ret = 0;
@@ -3696,17 +3718,12 @@ nrrdKernelParm0IsScale(const NrrdKernel *kern) {
 const NrrdKernel * /* Biff: nope */
 nrrdKernelDerivative(const NrrdKernel *kern) {
   if (!kern) return nrrdKernelFlag;
-  if (nrrdKernelZero == kern)         return nrrdKernelZero; /* really */
   if (nrrdKernelAQuartic == kern)     return nrrdKernelAQuarticD;
   if (nrrdKernelAQuarticD == kern)    return nrrdKernelAQuarticDD;
   if (nrrdKernelAQuarticDD == kern)   return nrrdKernelFlag;          /* !!! */
   if (nrrdKernelBCCubic == kern)      return nrrdKernelBCCubicD;
   if (nrrdKernelBCCubicD == kern)     return nrrdKernelBCCubicDD;
   if (nrrdKernelBCCubicDD == kern)    return nrrdKernelFlag;          /* !!! */
-  if (nrrdKernelBlackman == kern)     return nrrdKernelBlackmanD;
-  if (nrrdKernelBlackmanD == kern)    return nrrdKernelBlackmanDD;
-  if (nrrdKernelBlackmanDD == kern)   return nrrdKernelFlag;
-  if (nrrdKernelBox == kern)          return nrrdKernelZero; /* really */
   if (nrrdKernelBSpline1 == kern)     return nrrdKernelBSpline1D;
   if (nrrdKernelBSpline1D == kern)    return nrrdKernelFlag;          /* !!! */
   if (nrrdKernelBSpline2 == kern)     return nrrdKernelBSpline2D;
@@ -3735,6 +3752,11 @@ nrrdKernelDerivative(const NrrdKernel *kern) {
   if (nrrdKernelBSpline7D == kern)    return nrrdKernelBSpline7DD;
   if (nrrdKernelBSpline7DD == kern)   return nrrdKernelBSpline7DDD;
   if (nrrdKernelBSpline7DDD == kern)  return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBlackman == kern)     return nrrdKernelBlackmanD;
+  if (nrrdKernelBlackmanD == kern)    return nrrdKernelBlackmanDD;
+  if (nrrdKernelBlackmanDD == kern)   return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBox == kern)          return nrrdKernelZero; /* really */
+  if (nrrdKernelBoxSupportDebug == kern) return nrrdKernelFlag;       /* !!! */
   if (nrrdKernelC3Quintic == kern)    return nrrdKernelC3QuinticD;
   if (nrrdKernelC3QuinticD == kern)   return nrrdKernelC3QuinticDD;
   if (nrrdKernelC3QuinticDD == kern)  return nrrdKernelFlag;          /* !!! */
@@ -3751,11 +3773,9 @@ nrrdKernelDerivative(const NrrdKernel *kern) {
   if (nrrdKernelCatmullRom == kern)   return nrrdKernelCatmullRomD;
   if (nrrdKernelCatmullRomD == kern)  return nrrdKernelCatmullRomDD;
   if (nrrdKernelCatmullRomDD == kern) return nrrdKernelFlag;          /* !!! */
-  if (nrrdKernelCatmullRomSupportDebug == kern) return nrrdKernelCatmullRomSupportDebugD;
-  if (nrrdKernelCatmullRomSupportDebugD == kern)
-    return nrrdKernelCatmullRomSupportDebugDD;
-  if (nrrdKernelCatmullRomSupportDebugDD == kern)
-    return nrrdKernelFlag;                                            /* !!! */
+  if (nrrdKernelCatmullRomSupportDebug == kern)   return nrrdKernelCatmullRomSupportDebugD;
+  if (nrrdKernelCatmullRomSupportDebugD == kern)  return nrrdKernelCatmullRomSupportDebugDD;
+  if (nrrdKernelCatmullRomSupportDebugDD == kern) return nrrdKernelFlag; /* !!! */
   if (nrrdKernelCentDiff == kern)     return nrrdKernelFlag;          /* !!! */
   if (nrrdKernelCheap == kern)        return nrrdKernelFlag;          /* !!! */
   if (nrrdKernelCos4SupportDebug == kern) return nrrdKernelCos4SupportDebugD;
@@ -3772,7 +3792,8 @@ nrrdKernelDerivative(const NrrdKernel *kern) {
   if (nrrdKernelHannD == kern)        return nrrdKernelHannDD;
   if (nrrdKernelHannDD == kern)       return nrrdKernelFlag;          /* !!! */
   if (nrrdKernelHermiteScaleSpaceFlag == kern) return nrrdKernelFlag; /* !!! */
-  /* else */
+  if (nrrdKernelZero == kern)         return nrrdKernelZero; /* really */
+  /* else: includes nrrdKernelTMF[][][] and nrrdKernelFlag itself */
   return nrrdKernelFlag; /* !!! */
 }
 /* clang-format on */
