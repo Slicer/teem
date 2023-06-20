@@ -1008,7 +1008,7 @@ extern int pullPointInitializeGivenPos(pullContext *pctx,
                                             pullPoint *point,
                                             int *createFailP);
 extern double pullPointScalar(const pullContext *pctx, const pullPoint *point,
-                                   int sclInfo, double grad[4], double hess[9]);
+                                   int sclInfo, double grad[3], double hess[9]);
 extern unsigned int pullPointNumber(const pullContext *pctx);
 extern unsigned int pullPointNumberFilter(const pullContext *pctx,
                                                unsigned int idtagMin,

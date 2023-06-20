@@ -22,13 +22,13 @@ tenEstimateSkipSet,int,1,0,ten,ten/estimate.c:397
 tenEstimateSkipReset,int,1,0,ten,ten/estimate.c:415
 tenEstimateThresholdFind,int,1,0,ten,ten/estimate.c:430
 tenEstimateThresholdSet,int,1,0,ten,ten/estimate.c:498
-tenEstimateUpdate,int,1,0,ten,ten/estimate.c:806
-tenEstimate1TensorSimulateSingle_f,int,1,0,ten,ten/estimate.c:980
-tenEstimate1TensorSimulateSingle_d,int,1,0,ten,ten/estimate.c:1008
-tenEstimate1TensorSimulateVolume,int,1,0,ten,ten/estimate.c:1039
-tenEstimate1TensorSingle_f,int,1,0,ten,ten/estimate.c:1744
-tenEstimate1TensorSingle_d,int,1,0,ten,ten/estimate.c:1772
-tenEstimate1TensorVolume4D,int,1,0,ten,ten/estimate.c:1809
+tenEstimateUpdate,int,1,0,ten,ten/estimate.c:804
+tenEstimate1TensorSimulateSingle_f,int,1,0,ten,ten/estimate.c:978
+tenEstimate1TensorSimulateSingle_d,int,1,0,ten,ten/estimate.c:1006
+tenEstimate1TensorSimulateVolume,int,1,0,ten,ten/estimate.c:1037
+tenEstimate1TensorSingle_f,int,1,0,ten,ten/estimate.c:1742
+tenEstimate1TensorSingle_d,int,1,0,ten,ten/estimate.c:1770
+tenEstimate1TensorVolume4D,int,1,0,ten,ten/estimate.c:1807
 tenFiberTraceSet,int,1,0,ten,ten/fiber.c:830
 tenFiberTrace,int,1,0,ten,ten/fiber.c:850
 tenFiberDirectionNumber,unsigned int,0,0,ten,ten/fiber.c:870
