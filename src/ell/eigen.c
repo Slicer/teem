@@ -752,7 +752,7 @@ ell_6ms_eigensolve_d(double eval[6], double _evec[36], const double sym[21],
                      const double eps) {
   /* static const char me[] = "ell_6ms_eigensolve_d"; */
   double mat[2][6][6], evec[2][6][6], sumon, sumoff, evtmp[12];
-  unsigned int cur, rrI, ccI, maxI[2], iter;
+  unsigned int cur, rrI, ccI, maxI[2] /*, iter */;
 
   if (!(eval && sym && eps >= 0)) {
     return 1;
@@ -801,7 +801,7 @@ ell_6ms_eigensolve_d(double eval[6], double _evec[36], const double sym[21],
   maxI[0] = maxI[1] = UINT_MAX; /* quiet warnings about using maxI unset */
   _maxI_sum_find(maxI, &sumon, &sumoff, mat[0]);
   cur = 1; /* fake out anticipating first line of loop */
-  iter = 0;
+  /* iter = 0; */
   while (sumoff / sumon > eps) {
     double th, tt, cc, ss;
     const unsigned int P = maxI[0];
@@ -891,7 +891,7 @@ ell_6ms_eigensolve_d(double eval[6], double _evec[36], const double sym[21],
       fprintf(stderr, "\n");
     }
     */
-    iter++;
+    /* iter++; */
   }
   /* 1-cur is index of final solution */
 
