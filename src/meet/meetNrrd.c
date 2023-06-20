@@ -49,6 +49,7 @@ meetNrrdKernelAll(void) {
 
   /* kernel.c */
   ADD(nrrdKernelZero);
+  /* NOT including nrrdKernelFlag, since it's more of an error code than a kernel */
   ADD(nrrdKernelBox);
   ADD(nrrdKernelBoxSupportDebug);
   ADD(nrrdKernelCatmullRomSupportDebug);
@@ -156,13 +157,16 @@ meetNrrdKernelAll(void) {
 
 /* kintegral(kd) makes an attempt to returns the kernel ki that is the integral of kd:
    the derivative of ki is kd. The knowledge here about what is a derivative of what is
-   something that will be built into kernels in a future Teem version */
+   something that will be built into kernels in a future Teem version.  For now, we also
+   have the new (as of June 2023) nrrdKernelDerivative, which tries to identify the
+   derivative of a given kernel. nrrdKernelCheck checks on consistency of that with the
+   pass "ikern" from this kintegral() */
 static const NrrdKernel *
 kintegral(const NrrdKernel *kd) {
   const NrrdKernel *ret = NULL;
 
-  /* "INTGL(K)" is saying: if the derivative of the kernel named K
-    (only as found by adding "D" to name of K) is kd, then return K.
+  /* "INTGL(K)" is saying: return kernel named K if its derivative
+    (only as found by adding "D" to name of K) turns out to be kd.
     This is only possible to the extent that the D suffix is used consistently
     for derivative kernels. */
 #define INTGL(K)                                                                        \
@@ -244,7 +248,7 @@ meetNrrdKernelAllCheck(void) {
   mop = airMopNew();
   kern = meetNrrdKernelAll();
   airMopAdd(mop, AIR_VOIDP(kern), airFree, airMopAlways);
-  evalNum = 120000; /* success of kernel integral test is surprisingly
+  evalNum = 120001; /* success of kernel integral test is surprisingly
                        dependent on this, likely due to the naive way
                        the integral is numerically computed; the current
                        value here represents some experimentation */
@@ -286,14 +290,14 @@ meetNrrdKernelAllCheck(void) {
         nrrdKernelBCCubicD == kk ||
         nrrdKernelBCCubicDD == kk) {
       /* try a few settings of the 3 parms */
-      ELL_3V_SET(parm, 1.0, 0.0, 0.0); CHECK(parm, 1, 2);
-      ELL_3V_SET(parm, XX, 0.0, 0.0); CHECK(parm, 1, 2);
-      ELL_3V_SET(parm, 1.0, 1.0/3.0, 1.0/3.0); CHECK(parm, 1, 2);
-      ELL_3V_SET(parm, XX, 1.0/3.0, 1.0/3.0); CHECK(parm, 1, 2);
-      ELL_3V_SET(parm, 1.0, 0.0, 1.0); CHECK(parm, 1, 2);
-      ELL_3V_SET(parm, XX, 0.0, 1.0); CHECK(parm, 1, 2);
-      ELL_3V_SET(parm, 1.0, 0.5, 0.0); CHECK(parm, 1, 2);
-      ELL_3V_SET(parm, XX, 0.5, 0.0); CHECK(parm, 1, 2);
+      ELL_3V_SET(parm, 1.0, 0.0, 0.0); CHECK(parm, 2, 3);
+      ELL_3V_SET(parm, XX, 0.0, 0.0); CHECK(parm, 2, 3);
+      ELL_3V_SET(parm, 1.0, 1.0/3.0, 1.0/3.0); CHECK(parm, 2, 3);
+      ELL_3V_SET(parm, XX, 1.0/3.0, 1.0/3.0); CHECK(parm, 2, 3);
+      ELL_3V_SET(parm, 1.0, 0.0, 1.0); CHECK(parm, 2, 3);
+      ELL_3V_SET(parm, XX, 0.0, 1.0); CHECK(parm, 2, 3);
+      ELL_3V_SET(parm, 1.0, 0.5, 0.0); CHECK(parm, 2, 3);
+      ELL_3V_SET(parm, XX, 0.5, 0.0); CHECK(parm, 2, 3);
     } else if (2 == pnum) {
       if (nrrdKernelAQuartic == kk ||
           nrrdKernelAQuarticD == kk ||
@@ -313,23 +317,19 @@ meetNrrdKernelAllCheck(void) {
         ELL_2V_SET(parm, XX, YY);  CHECK(parm, 10, 2);
       } else if (nrrdKernelHann == kk ||
                  nrrdKernelHannD == kk ||
-                 nrrdKernelBlackman == kk) {
-        ELL_2V_SET(parm, 0.5, XX); CHECK(parm, 100, 2);
-        ELL_2V_SET(parm, 0.5, YY); CHECK(parm, 100, 2);
-        ELL_2V_SET(parm, 1.0, XX); CHECK(parm, 100, 2);
-        ELL_2V_SET(parm, 1.0, YY); CHECK(parm, 100, 2);
-        ELL_2V_SET(parm, XX, XX);  CHECK(parm, 100, 2);
-        ELL_2V_SET(parm, XX, YY);  CHECK(parm, 100, 2);
-      } else if (nrrdKernelHannDD == kk ||
+                 nrrdKernelHannDD == kk ||
+                 nrrdKernelBlackman == kk ||
                  nrrdKernelBlackmanD == kk ||
                  nrrdKernelBlackmanDD == kk) {
-        /* there are apparently bugs in these kernels */
-        ELL_2V_SET(parm, 0.5, XX); CHECK(parm, 10000000, 2);
-        ELL_2V_SET(parm, 0.5, YY); CHECK(parm, 10000000, 2);
-        ELL_2V_SET(parm, 1.0, XX); CHECK(parm, 1000000, 2);
-        ELL_2V_SET(parm, 1.0, YY); CHECK(parm, 1000000, 2);
-        ELL_2V_SET(parm, XX, XX);  CHECK(parm, 100000, 2);
-        ELL_2V_SET(parm, XX, YY);  CHECK(parm, 100000, 2);
+        /* these kernels punt on knowing their integral, hence the 80, but their June 2023
+        re-write means that their numerical derivatives are finally agreeing with their
+        analytic derivatives */
+        ELL_2V_SET(parm, 0.5, XX); CHECK(parm, 80, 2);
+        ELL_2V_SET(parm, 0.5, YY); CHECK(parm, 80, 2);
+        ELL_2V_SET(parm, 1.0, XX); CHECK(parm, 80, 2);
+        ELL_2V_SET(parm, 1.0, YY); CHECK(parm, 80, 2);
+        ELL_2V_SET(parm, XX, XX);  CHECK(parm, 80, 2);
+        ELL_2V_SET(parm, XX, YY);  CHECK(parm, 80, 2);
       } else if (nrrdKernelDiscreteGaussian == kk) {
         ELL_2V_SET(parm, 0.1, XX); CHECK(parm, 1, 2);
         ELL_2V_SET(parm, 0.1, YY); CHECK(parm, 1, 2);
@@ -359,6 +359,9 @@ meetNrrdKernelAllCheck(void) {
             nrrdKernelCatmullRomSupportDebugDD == kk) {
           CHECK(parm1_1, 10, 4);
           CHECK(parm1_X, 10, 4);
+        } else if (nrrdKernelBox == kk || nrrdKernelForwDiff == kk) {
+          CHECK(parm1_1, 1, 4);
+          CHECK(parm1_X, 1, 4);
         } else {
           CHECK(parm1_1, 1, 2);
           CHECK(parm1_X, 1, 2);
@@ -385,8 +388,10 @@ meetNrrdKernelAllCheck(void) {
                  nrrdKernelBSpline5DDD == kk ||
                  nrrdKernelBSpline7DD == kk ) {
         CHECK(parm0, 100, 2);
+      } else if (nrrdKernelBSpline7ApproxInverse == kk) {
+        CHECK(parm0, 30, 3);
       } else {
-        CHECK(parm0, 10, 2);
+        CHECK(parm0, 10, 3);
       }
     } else {
       biffAddf(MEET, "%s: sorry, didn't expect %u parms for %s",
