@@ -193,7 +193,7 @@ _nrrdFlagSup(const double *parm) {
 
 static double
 _nrrdFlag1_d(double x, const double *parm) {
-  AIR_UNUSED(parm);
+  AIR_UNUSED(x); AIR_UNUSED(parm);
   return AIR_NAN;
 }
 
