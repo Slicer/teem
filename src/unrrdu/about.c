@@ -28,7 +28,7 @@
 
 static int
 unrrdu_aboutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
-  char buff[AIR_STRLEN_MED], fmt[AIR_STRLEN_MED];
+  char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_MED];
   char par1[] = "\t\t\t\t"
                 "\"unu\" is a command-line interface to much of the functionality "
                 "in \"nrrd\", a C library for raster data processing. Nrrd is one "

@@ -53,6 +53,14 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 # path directory variable should always be quoted since path may contain spaces
 include_directories("${Teem_BINARY_DIR}/include/" "${Teem_SOURCE_DIR}/include/")
 
+# Turn on all of the warnings for debug builds
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror")
+    # Exclude no-type-limits as it flags extra checks in macros vs unsigned
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-type-limits")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
+endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+
 # We need ansi c-flags, especially on HP
 set(CMAKE_C_FLAGS "${CMAKE_ANSI_CFLAGS} ${CMAKE_C_FLAGS}")
 set(CMAKE_REQUIRED_FLAGS ${CMAKE_ANSI_CFLAGS})

@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "teem/air.h"
 
 /*
@@ -51,7 +50,7 @@ AIR_EXPORT unsigned int airEqvSettle(unsigned int *map, unsigned int len);
 
 static size_t
 multiply(size_t aa, size_t bb) {
-  return aa*bb;
+  return aa * bb;
 }
 
 int
@@ -81,8 +80,8 @@ main(int argc, const char *argv[]) {
     }
     ptr2 = airSetNull(&ptr);
     if (!(NULL == ptr && NULL == ptr2)) {
-      fprintf(stderr, "%s: airSetNull() didn't set (%p) or return (%p) NULL\n",
-              me, ptr, ptr2);
+      fprintf(stderr, "%s: airSetNull() didn't set (%p) or return (%p) NULL\n", me, ptr,
+              ptr2);
       exit(1);
     }
   }
@@ -92,13 +91,13 @@ main(int argc, const char *argv[]) {
     size_t big = 1024, times = 1, ii, jj;
     double time0, dtime;
     unsigned int *data, sum;
-    big = big*big*128; /* 128 megs */
+    big = big * big * 128; /* 128 megs */
     time0 = airTime();
     sum = 0;
-    for (ii=0; ii<times; ii++) {
+    for (ii = 0; ii < times; ii++) {
       /* will have a memory leak if airFree() didn't free() */
       data = AIR_CALLOC(big, unsigned int);
-      for (jj=0; jj<big; jj++) {
+      for (jj = 0; jj < big; jj++) {
         sum += data[jj];
       }
       data = airFree(data);
@@ -108,12 +107,11 @@ main(int argc, const char *argv[]) {
       exit(1);
     }
     if (!(NULL == data)) {
-      fprintf(stderr, "%s: airFree() returned %p not NULL\n",
-              me, AIR_VOIDP(data));
+      fprintf(stderr, "%s: airFree() returned %p not NULL\n", me, AIR_VOIDP(data));
       exit(1);
     }
     dtime = airTime() - time0;
-    if (!( dtime > 0 )) {
+    if (!(dtime > 0)) {
       fprintf(stderr, "%s: airTime() => nonsense delta time %g\n", me, dtime);
       exit(1);
     }
@@ -130,13 +128,13 @@ main(int argc, const char *argv[]) {
     }
     fret = airStdout();
     if (stdout != fret) {
-      fprintf(stdout, "%s: airStdout() returned %p not stdout %p\n", me,
+      fprintf(stderr, "%s: airStdout() returned %p not stdout %p\n", me,
               AIR_CAST(void *, fret), AIR_CAST(void *, stdout));
       exit(1);
     }
     fret = airStdin();
     if (stdin != fret) {
-      fprintf(stdin, "%s: airStdin() returned %p not stdin %p\n", me,
+      fprintf(stderr, "%s: airStdin() returned %p not stdin %p\n", me,
               AIR_CAST(void *, fret), AIR_CAST(void *, stdin));
       exit(1);
     }
@@ -146,29 +144,28 @@ main(int argc, const char *argv[]) {
   {
     /* admittedly this not much of a test; mainly it serves to
        demonstrate how the intervals are divided for N=4 */
-    unsigned int N=4;
-    double min=0.0, max=1.0;
-    double val[]={0.000, 0.001, 0.249,
-                  0.251, 0.400, 0.499,
-                  0.501, 0.700, 0.749,
-                  0.751, 0.999, 1.000};
-    unsigned int wantIdx[]={0, 0, 0,
-                            1, 1, 1,
-                            2, 2, 2,
-                            3, 3, 3};
+    unsigned int N = 4;
+    double min = 0.0, max = 1.0;
+    double val[] = {0.000, 0.001, 0.249, 0.251, 0.400, 0.499,
+                    0.501, 0.700, 0.749, 0.751, 0.999, 1.000};
+    unsigned int wantIdx[] = {0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3};
     unsigned int vn, vi, ii, ci;
-    vn = sizeof(wantIdx)/sizeof(unsigned int);
-    for (vi=0; vi<vn; vi++) {
+    vn = sizeof(wantIdx) / sizeof(unsigned int);
+    for (vi = 0; vi < vn; vi++) {
       ii = airIndex(min, val[vi], max, N);
       ci = airIndexClamp(min, val[vi], max, N);
       if (ii != wantIdx[vi]) {
-        fprintf(stderr, "%s: %u = airIndex(%.17g, %.17g, %.17g, %u) "
-                "!= correct %u\n", me, ii, min, val[vi], max, N, wantIdx[vi]);
+        fprintf(stderr,
+                "%s: %u = airIndex(%.17g, %.17g, %.17g, %u) "
+                "!= correct %u\n",
+                me, ii, min, val[vi], max, N, wantIdx[vi]);
         exit(1);
       }
       if (ci != wantIdx[vi]) {
-        fprintf(stderr, "%s: %u = airIndexClamp(%.17g, %.17g, %.17g, %u) "
-                "!= correct %u\n", me, ci, min, val[vi], max, N, wantIdx[vi]);
+        fprintf(stderr,
+                "%s: %u = airIndexClamp(%.17g, %.17g, %.17g, %u) "
+                "!= correct %u\n",
+                me, ci, min, val[vi], max, N, wantIdx[vi]);
         exit(1);
       }
     }
@@ -179,30 +176,30 @@ main(int argc, const char *argv[]) {
   /* airPrettySprintSize_t */
   {
     char prstmp[AIR_STRLEN_SMALL];
-    size_t vals[] = {0,                      /* 0 */
-                     800,                    /* 1 */
-                     1024,                   /* 2 = 2^10 */
-                     1024 + 1,               /* 3 */
-                     500*1024,               /* 4 */
-                     1024*1024,              /* 5 = 2^20 */
-                     1024*(1024 + 1),        /* 6 */
-                     500*1024*1024,          /* 7 */
-                     1024*1024*1024ul,       /* 8 = 2^30 */
-                     1024*1024*(1024ul + 1), /* 9 */
-                     500*1024ul,             /* 10 (will be multiplied below) */
-                     1024*1024ul,            /* 11 = 2^40 */
-                     1024*(1024ul + 1),      /* 12 */
-                     500*1024*1024,          /* 13 */
-                     1024*1024*1024ul,       /* 14 = 2^50 */
-                     1024*1024*(1024ul + 1), /* 15 */
-                     500*1024*1024,          /* 16 */
-                     1024*1024*1024ul,       /* 17 = 2^60 */
-                     1024*1024*(1024ul + 1), /* 18 */
-                     2*1024*1024ul,          /* 19 = 2^61 */
-                     16*1023*1024ul,         /* 20 */
-                     16*1024*1024ul,         /* 21 = 2^64 */
+    size_t vals[] = {0,                          /* 0 */
+                     800,                        /* 1 */
+                     1024,                       /* 2 = 2^10 */
+                     1024 + 1,                   /* 3 */
+                     500 * 1024,                 /* 4 */
+                     1024 * 1024,                /* 5 = 2^20 */
+                     1024 * (1024 + 1),          /* 6 */
+                     500 * 1024 * 1024,          /* 7 */
+                     1024 * 1024 * 1024ul,       /* 8 = 2^30 */
+                     1024 * 1024 * (1024ul + 1), /* 9 */
+                     500 * 1024ul,               /* 10 (will be multiplied below) */
+                     1024 * 1024ul,              /* 11 = 2^40 */
+                     1024 * (1024ul + 1),        /* 12 */
+                     500 * 1024 * 1024,          /* 13 */
+                     1024 * 1024 * 1024ul,       /* 14 = 2^50 */
+                     1024 * 1024 * (1024ul + 1), /* 15 */
+                     500 * 1024 * 1024,          /* 16 */
+                     1024 * 1024 * 1024ul,       /* 17 = 2^60 */
+                     1024 * 1024 * (1024ul + 1), /* 18 */
+                     2 * 1024 * 1024ul,          /* 19 = 2^61 */
+                     16 * 1023 * 1024ul,         /* 20 */
+                     16 * 1024 * 1024ul,         /* 21 = 2^64 */
                      0};
-    static const char * const string[] = {
+    static const char *const string[] = {
       "0 bytes",    /* 0 */
       "800 bytes",  /* 1 */
       "1024 bytes", /* 2 */
@@ -245,20 +242,16 @@ main(int argc, const char *argv[]) {
     vals[19] = multiply(multiply(multiply(multiply(vals[19], 1024), 1024), 1024), 1024);
     vals[20] = multiply(multiply(multiply(multiply(vals[20], 1024), 1024), 1024), 1024);
     vals[21] = multiply(multiply(multiply(multiply(vals[21], 1024), 1024), 1024), 1024);
-    for (ii=0; !ii || vals[ii] > vals[ii-1]; ii++) {
+    for (ii = 0; !ii || vals[ii] > vals[ii - 1]; ii++) {
       airPrettySprintSize_t(prstmp, vals[ii]);
       if (strcmp(string[ii], prstmp)) {
-        fprintf(stderr, "%s: airPrettySprintSize_t made |%s| not |%s|\n",
-                me, prstmp, string[ii]);
+        fprintf(stderr, "%s: airPrettySprintSize_t made |%s| not |%s|\n", me, prstmp,
+                string[ii]);
         exit(1);
       }
       fprintf(stderr, "%u: %s\n", ii, prstmp);
     }
   }
 
-
   exit(0);
 }
-
-
-

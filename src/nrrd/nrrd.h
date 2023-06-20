@@ -1537,7 +1537,7 @@ NRRD_EXPORT int nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE],
                                      const NrrdKernelSpec *ksp);
 NRRD_EXPORT int nrrdKernelSprint(char str[AIR_STRLEN_LARGE],
                                  const NrrdKernel *kernel,
-                                 const double *kparm);
+                                 const double kparm[NRRD_KERNEL_PARMS_NUM]);
 NRRD_EXPORT int nrrdKernelCompare(const NrrdKernel *kernA,
                                   const double parmA[NRRD_KERNEL_PARMS_NUM],
                                   const NrrdKernel *kernB,

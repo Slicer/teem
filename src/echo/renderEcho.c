@@ -228,7 +228,7 @@ echoChannelAverage(echoCol_t *img, echoRTParm *parm, echoThreadState *tstate) {
 ** never called on shadow rays.
 */
 void
-echoRayColor(echoCol_t *chan, echoRay *ray, echoScene *scene, echoRTParm *parm,
+echoRayColor(echoCol_t chan[4], echoRay *ray, echoScene *scene, echoRTParm *parm,
              echoThreadState *tstate) {
   static const char me[] = "echoRayColor";
   echoCol_t rgba[4];

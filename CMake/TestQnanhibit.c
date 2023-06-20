@@ -15,6 +15,8 @@ main(int argc, char *argv[]) {
     int int32bit;
   } qnan;
 
+  (void)argc; /* Force usage of parameter */
+
 #if defined(__BORLANDC__)
   // Disable floating point exceptions in Borland
   _control87(MCW_EM, MCW_EM);
