@@ -719,7 +719,7 @@ static int
 _tenEstimateDwiSetUpdate(tenEstimateContext *tec) {
   /* static const char me[] = "_tenEstimateDwiSetUpdate"; */
   double (*lup)(const void *, size_t I), gg[3], *bmat;
-  unsigned int allIdx, dwiIdx, bmIdx;
+  unsigned int allIdx, bmIdx;
 
   if (tec->flag[flagAllNum] || tec->flag[flagDwiAlloc]) {
     if (tec->_ngrad) {
@@ -727,7 +727,6 @@ _tenEstimateDwiSetUpdate(tenEstimateContext *tec) {
     } else {
       lup = nrrdDLookup[tec->_nbmat->type];
     }
-    dwiIdx = 0;
     bmat = AIR_CAST(double *, tec->nbmat->data);
     for (allIdx = 0; allIdx < tec->allNum; allIdx++) {
       if (!tec->skipLut[allIdx] && (tec->estimateB0 || tec->bnorm[allIdx])) {
@@ -753,7 +752,6 @@ _tenEstimateDwiSetUpdate(tenEstimateContext *tec) {
           bmat[6] = -1;
         }
         bmat += tec->nbmat->axis[0].size;
-        dwiIdx++;
       }
     }
   }

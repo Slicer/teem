@@ -94,7 +94,7 @@ extern void _tenQball(const double b, const int gradcount, const double svals[],
                       const double grads[], double qvals[]);
 extern void _tenSegsamp2(const int gradcount, const double qvals[], const double grads[],
                          const double qpoints[], unsigned int seg[], double dists[]);
-extern void _tenCalcdists(const int centcount, const double centroid[6],
+extern void _tenCalcdists(const int centcount, const double centroid[],
                           const int gradcount, const double qpoints[], double dists[]);
 extern void _tenInitcent2(const int gradcount, const double qvals[],
                           const double grads[], double centroids[6]);
