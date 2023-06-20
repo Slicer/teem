@@ -1150,7 +1150,7 @@ PULL_EXPORT int pullPointInitializeGivenPos(pullContext *pctx,
                                             pullPoint *point,
                                             int *createFailP);
 PULL_EXPORT double pullPointScalar(const pullContext *pctx, const pullPoint *point,
-                                   int sclInfo, double grad[4], double hess[9]);
+                                   int sclInfo, double grad[3], double hess[9]);
 PULL_EXPORT unsigned int pullPointNumber(const pullContext *pctx);
 PULL_EXPORT unsigned int pullPointNumberFilter(const pullContext *pctx,
                                                unsigned int idtagMin,
