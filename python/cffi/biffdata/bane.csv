@@ -1,26 +1,26 @@
 func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
-baneClipNew,baneClip *,NULL,0,bane,bane/clip.c:104
-baneClipAnswer,int,1,0,bane,bane/clip.c:154
-baneClipCopy,baneClip *,NULL,0,bane,bane/clip.c:169
-baneFindInclusion,int,1,0,bane,bane/hvol.c:89
-baneMakeHVol,int,1,0,bane,bane/hvol.c:251
-baneGKMSHVol,Nrrd *,NULL,0,bane,bane/hvol.c:450
-baneIncNew,baneInc *,NULL,0,bane,bane/inc.c:253
-baneIncAnswer,int,1,0,bane,bane/inc.c:362
-baneIncCopy,baneInc *,NULL,0,bane,bane/inc.c:377
-baneMeasrNew,baneMeasr *,NULL,0,bane,bane/measr.c:35
-baneMeasrCopy,baneMeasr *,NULL,0,bane,bane/measr.c:151
-baneRangeNew,baneRange *,NULL,0,bane,bane/rangeBane.c:91
-baneRangeCopy,baneRange *,NULL,0,bane,bane/rangeBane.c:132
-baneRangeAnswer,int,1,0,bane,bane/rangeBane.c:146
-baneRawScatterplots,int,1,0,bane,bane/scat.c:28
-baneOpacInfo,int,1,0,bane,bane/trnsf.c:31
-bane1DOpacInfoFrom2D,int,1,0,bane,bane/trnsf.c:147
-baneSigmaCalc,int,1,0,bane,bane/trnsf.c:226
-banePosCalc,int,1,0,bane,bane/trnsf.c:257
-baneOpacCalc,int,1,0,bane,bane/trnsf.c:408
-baneInputCheck,int,1,0,bane,bane/valid.c:28
-baneHVolCheck,int,1,0,bane,bane/valid.c:66
-baneInfoCheck,int,1,0,bane,bane/valid.c:108
-banePosCheck,int,1,0,bane,bane/valid.c:146
-baneBcptsCheck,int,1,0,bane,bane/valid.c:181
+baneClipNew,baneClip *,NULL,0,bane,bane/clip.c:102
+baneClipAnswer,int,1,0,bane,bane/clip.c:152
+baneClipCopy,baneClip *,NULL,0,bane,bane/clip.c:167
+baneFindInclusion,int,1,0,bane,bane/hvol.c:87
+baneMakeHVol,int,1,0,bane,bane/hvol.c:249
+baneGKMSHVol,Nrrd *,NULL,0,bane,bane/hvol.c:448
+baneIncNew,baneInc *,NULL,0,bane,bane/inc.c:251
+baneIncAnswer,int,1,0,bane,bane/inc.c:360
+baneIncCopy,baneInc *,NULL,0,bane,bane/inc.c:375
+baneMeasrNew,baneMeasr *,NULL,0,bane,bane/measr.c:33
+baneMeasrCopy,baneMeasr *,NULL,0,bane,bane/measr.c:149
+baneRangeNew,baneRange *,NULL,0,bane,bane/rangeBane.c:89
+baneRangeCopy,baneRange *,NULL,0,bane,bane/rangeBane.c:130
+baneRangeAnswer,int,1,0,bane,bane/rangeBane.c:144
+baneRawScatterplots,int,1,0,bane,bane/scat.c:26
+baneOpacInfo,int,1,0,bane,bane/trnsf.c:29
+bane1DOpacInfoFrom2D,int,1,0,bane,bane/trnsf.c:145
+baneSigmaCalc,int,1,0,bane,bane/trnsf.c:224
+banePosCalc,int,1,0,bane,bane/trnsf.c:255
+baneOpacCalc,int,1,0,bane,bane/trnsf.c:406
+baneInputCheck,int,1,0,bane,bane/valid.c:26
+baneHVolCheck,int,1,0,bane,bane/valid.c:64
+baneInfoCheck,int,1,0,bane,bane/valid.c:106
+banePosCheck,int,1,0,bane,bane/valid.c:144
+baneBcptsCheck,int,1,0,bane,bane/valid.c:179
