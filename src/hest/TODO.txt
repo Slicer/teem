@@ -15,3 +15,27 @@ group them somewhat.
 currently the "input nrrd" option to unu comes last as a way of allowing
 hest to do error checking on all other (more error prone) options.  But
 it would be nice to indicate a parsing order seperate from the option order.
+
+-----------------------------------------------------------
+GLK documentary notes to self
+
+    (k) kind of and term for          .
+    different possible options;     .          /
+    learned by _hestKind(hopt)    .          /
+                                .          /
+               (5) multiple    :   (3) multiple
+ 2 ==             variable     :      fixed
+                    parms      :      parms
+      ..........................
+         (4) single  : (2) single
+ 1 ==     variable   :   fixed
+            parm     :    parm
+      ................
+      (1) stand-alone
+ 0 ==       flag
+ ^        no parms
+max           |            |            |
+    min >     0            1            2
+
+The kind of option is independent of whether is flagged or unflagged,
+optional (default given) or mandatory (no default given).
