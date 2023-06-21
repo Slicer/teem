@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2019  University of Chicago
+  Copyright (C) 2009--2023  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -24,20 +24,20 @@
 #include "hest.h"
 #include "privateHest.h"
 
-int hestVerbosity = 0;
-int hestRespFileEnable = AIR_FALSE;
-unsigned int hestColumns = 79;
-int hestElideSingleEnumType = AIR_FALSE;
-int hestElideSingleOtherType = AIR_FALSE;
-int hestElideSingleOtherDefault = AIR_FALSE;
-int hestElideSingleNonExistFloatDefault = AIR_FALSE;
-int hestElideMultipleNonExistFloatDefault = AIR_FALSE;
-int hestElideSingleEmptyStringDefault = AIR_FALSE;
-int hestElideMultipleEmptyStringDefault = AIR_FALSE;
-int hestNoArgsIsNoProblem = AIR_FALSE;
-int hestGreedySingleString = AIR_TRUE;
-int hestCleverPluralizeOtherY = AIR_FALSE;
-char hestRespFileFlag = '@';
-char hestRespFileComment = '#';
-char hestVarParamStopFlag = '-';
-char hestMultiFlagSep = ',';
+int hestDefVerbosity = 0;
+int hestDefRespFileEnable = AIR_FALSE;
+unsigned int hestDefColumns = 79;
+int hestDefElideSingleEnumType = AIR_FALSE;
+int hestDefElideSingleOtherType = AIR_FALSE;
+int hestDefElideSingleOtherDefault = AIR_FALSE;
+int hestDefElideSingleNonExistFloatDefault = AIR_FALSE;
+int hestDefElideMultipleNonExistFloatDefault = AIR_FALSE;
+int hestDefElideSingleEmptyStringDefault = AIR_FALSE;
+int hestDefElideMultipleEmptyStringDefault = AIR_FALSE;
+int hestDefNoArgsIsNoProblem = AIR_FALSE;
+int hestDefGreedySingleString = AIR_TRUE;
+int hestDefCleverPluralizeOtherY = AIR_FALSE;
+char hestDefRespFileFlag = '@';
+char hestDefRespFileComment = '#';
+char hestDefVarParamStopFlag = '-';
+char hestDefMultiFlagSep = ',';

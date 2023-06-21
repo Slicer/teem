@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2021  University of Chicago
+  Copyright (C) 2009--2023  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
@@ -33,22 +33,22 @@ hestParmNew() {
 
   parm = AIR_CALLOC(1, hestParm);
   if (parm) {
-    parm->verbosity = hestVerbosity;
-    parm->respFileEnable = hestRespFileEnable;
-    parm->elideSingleEnumType = hestElideSingleEnumType;
-    parm->elideSingleOtherType = hestElideSingleOtherType;
-    parm->elideSingleOtherDefault = hestElideSingleOtherDefault;
-    parm->greedySingleString = hestGreedySingleString;
-    parm->elideSingleNonExistFloatDefault = hestElideSingleNonExistFloatDefault;
-    parm->elideMultipleNonExistFloatDefault = hestElideMultipleNonExistFloatDefault;
-    parm->elideSingleEmptyStringDefault = hestElideSingleEmptyStringDefault;
-    parm->elideMultipleEmptyStringDefault = hestElideMultipleEmptyStringDefault;
-    parm->cleverPluralizeOtherY = hestCleverPluralizeOtherY;
-    parm->columns = hestColumns;
-    parm->respFileFlag = hestRespFileFlag;
-    parm->respFileComment = hestRespFileComment;
-    parm->varParamStopFlag = hestVarParamStopFlag;
-    parm->multiFlagSep = hestMultiFlagSep;
+    parm->verbosity = hestDefVerbosity;
+    parm->respFileEnable = hestDefRespFileEnable;
+    parm->elideSingleEnumType = hestDefElideSingleEnumType;
+    parm->elideSingleOtherType = hestDefElideSingleOtherType;
+    parm->elideSingleOtherDefault = hestDefElideSingleOtherDefault;
+    parm->greedySingleString = hestDefGreedySingleString;
+    parm->elideSingleNonExistFloatDefault = hestDefElideSingleNonExistFloatDefault;
+    parm->elideMultipleNonExistFloatDefault = hestDefElideMultipleNonExistFloatDefault;
+    parm->elideSingleEmptyStringDefault = hestDefElideSingleEmptyStringDefault;
+    parm->elideMultipleEmptyStringDefault = hestDefElideMultipleEmptyStringDefault;
+    parm->cleverPluralizeOtherY = hestDefCleverPluralizeOtherY;
+    parm->columns = hestDefColumns;
+    parm->respFileFlag = hestDefRespFileFlag;
+    parm->respFileComment = hestDefRespFileComment;
+    parm->varParamStopFlag = hestDefVarParamStopFlag;
+    parm->multiFlagSep = hestDefMultiFlagSep;
     /* for these most recent addition to the hestParm,
        abstaining from added yet another default global variable */
     parm->dieLessVerbose = AIR_FALSE;
@@ -100,7 +100,7 @@ hestOptNew(void) {
 unsigned int
 hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type, int min,
            int max, void *valueP, const char *dflt, const char *info, ...) {
-  hestOpt *ret = NULL;
+  hestOpt *ret = NULL; /* not the function return; but what *optP is set to */
   int num;
   va_list ap;
   unsigned int retIdx;
@@ -125,7 +125,7 @@ hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type, int min
   ret[num].sawP = NULL;
   ret[num].enm = NULL;
   ret[num].CB = NULL;
-  /* seems to be redundant with above _hestOptInit() */
+  /* seems to be redundant with _hestOptInit() below */
   ret[num].source = hestSourceUnknown;
   /* deal with var args */
   if (5 == _hestKind(&(ret[num]))) {
@@ -260,32 +260,40 @@ _hestMax(int max) {
   return max;
 }
 
+/* _hestKind determines the kind (1,2,3,4, or 5) of given opt,
+  from its min and max fields */
 int
 _hestKind(const hestOpt *opt) {
-  int max;
+  int min, max;
 
-  max = _hestMax(opt->max);
-  if (!((int)opt->min <= max)) { /* HEY scrutinize casts */
+  min = AIR_CAST(int, opt->min);
+  if (min < 0) {
     /* invalid */
     return -1;
   }
 
-  if (0 == opt->min && 0 == max) {
+  max = _hestMax(opt->max);
+  if (!(min <= max)) {
+    /* invalid */
+    return -1;
+  }
+
+  if (0 == min && 0 == max) {
     /* flag */
     return 1;
   }
 
-  if (1 == opt->min && 1 == max) {
+  if (1 == min && 1 == max) {
     /* single fixed parameter */
     return 2;
   }
 
-  if (2 <= opt->min && 2 <= max && (int)opt->min == max) { /* HEY scrutinize casts */
+  if (2 <= min && 2 <= max && min == max) {
     /* multiple fixed parameters */
     return 3;
   }
 
-  if (0 == opt->min && 1 == max) {
+  if (0 == min && 1 == max) {
     /* single optional parameter */
     return 4;
   }
@@ -308,10 +316,9 @@ _hestPrintArgv(int argc, char **argv) {
 /*
 ** _hestWhichFlag()
 **
-** given a string in "flag" (with the hypen prefix) finds which of
-** the flags in the given array of options matches that.  Returns
-** the index of the matching option, or -1 if there is no match,
-** but returns -2 if the flag is the end-of-variable-parameter
+** given a string in "flag" (with the hypen prefix) finds which of the flags in the given
+** array of options matches that.  Returns the index of the matching option, or -1 if
+** there is no match, but returns -2 if the flag is the end-of-variable-parameter
 ** marker (according to parm->varParamStopFlag)
 */
 int
@@ -419,7 +426,12 @@ _hestExtract(int *argcP, char **argv, unsigned int base, unsigned int pnum) {
   *argcP -= pnum;
   return ret;
 }
-
+/*
+_hestNumOpts: returns the length of the given hestOpt array
+Unlike argv itself, the hestOpt array is not NULL-terminated, mainly because
+(though this is GLK pondering this in June 2023), "opt" is an array of
+hestOpt structs, not an array of pointers to hestOpt structs.
+*/
 int
 _hestNumOpts(const hestOpt *opt) {
   int num = 0;
