@@ -24,20 +24,20 @@
 #include "hest.h"
 #include "privateHest.h"
 
-int hestDefVerbosity = 0;
-int hestDefRespFileEnable = AIR_FALSE;
-unsigned int hestDefColumns = 79;
-int hestDefElideSingleEnumType = AIR_FALSE;
-int hestDefElideSingleOtherType = AIR_FALSE;
-int hestDefElideSingleOtherDefault = AIR_FALSE;
-int hestDefElideSingleNonExistFloatDefault = AIR_FALSE;
-int hestDefElideMultipleNonExistFloatDefault = AIR_FALSE;
-int hestDefElideSingleEmptyStringDefault = AIR_FALSE;
-int hestDefElideMultipleEmptyStringDefault = AIR_FALSE;
-int hestDefNoArgsIsNoProblem = AIR_FALSE;
-int hestDefGreedySingleString = AIR_TRUE;
-int hestDefCleverPluralizeOtherY = AIR_FALSE;
-char hestDefRespFileFlag = '@';
-char hestDefRespFileComment = '#';
-char hestDefVarParamStopFlag = '-';
-char hestDefMultiFlagSep = ',';
+int hestDefaultVerbosity = 0;
+int hestDefaultRespFileEnable = AIR_FALSE;
+unsigned int hestDefaultColumns = 79;
+int hestDefaultElideSingleEnumType = AIR_FALSE;
+int hestDefaultElideSingleOtherType = AIR_FALSE;
+int hestDefaultElideSingleOtherDefault = AIR_FALSE;
+int hestDefaultElideSingleNonExistFloatDefault = AIR_FALSE;
+int hestDefaultElideMultipleNonExistFloatDefault = AIR_FALSE;
+int hestDefaultElideSingleEmptyStringDefault = AIR_FALSE;
+int hestDefaultElideMultipleEmptyStringDefault = AIR_FALSE;
+int hestDefaultNoArgsIsNoProblem = AIR_FALSE;
+int hestDefaultGreedySingleString = AIR_TRUE;
+int hestDefaultCleverPluralizeOtherY = AIR_FALSE;
+char hestDefaultRespFileFlag = '@';
+char hestDefaultRespFileComment = '#';
+char hestDefaultVarParamStopFlag = '-';
+char hestDefaultMultiFlagSep = ',';

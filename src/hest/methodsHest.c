@@ -33,22 +33,23 @@ hestParmNew() {
 
   parm = AIR_CALLOC(1, hestParm);
   if (parm) {
-    parm->verbosity = hestDefVerbosity;
-    parm->respFileEnable = hestDefRespFileEnable;
-    parm->elideSingleEnumType = hestDefElideSingleEnumType;
-    parm->elideSingleOtherType = hestDefElideSingleOtherType;
-    parm->elideSingleOtherDefault = hestDefElideSingleOtherDefault;
-    parm->greedySingleString = hestDefGreedySingleString;
-    parm->elideSingleNonExistFloatDefault = hestDefElideSingleNonExistFloatDefault;
-    parm->elideMultipleNonExistFloatDefault = hestDefElideMultipleNonExistFloatDefault;
-    parm->elideSingleEmptyStringDefault = hestDefElideSingleEmptyStringDefault;
-    parm->elideMultipleEmptyStringDefault = hestDefElideMultipleEmptyStringDefault;
-    parm->cleverPluralizeOtherY = hestDefCleverPluralizeOtherY;
-    parm->columns = hestDefColumns;
-    parm->respFileFlag = hestDefRespFileFlag;
-    parm->respFileComment = hestDefRespFileComment;
-    parm->varParamStopFlag = hestDefVarParamStopFlag;
-    parm->multiFlagSep = hestDefMultiFlagSep;
+    parm->verbosity = hestDefaultVerbosity;
+    parm->respFileEnable = hestDefaultRespFileEnable;
+    parm->elideSingleEnumType = hestDefaultElideSingleEnumType;
+    parm->elideSingleOtherType = hestDefaultElideSingleOtherType;
+    parm->elideSingleOtherDefault = hestDefaultElideSingleOtherDefault;
+    parm->greedySingleString = hestDefaultGreedySingleString;
+    parm->elideSingleNonExistFloatDefault = hestDefaultElideSingleNonExistFloatDefault;
+    parm->elideMultipleNonExistFloatDefault
+      = hestDefaultElideMultipleNonExistFloatDefault;
+    parm->elideSingleEmptyStringDefault = hestDefaultElideSingleEmptyStringDefault;
+    parm->elideMultipleEmptyStringDefault = hestDefaultElideMultipleEmptyStringDefault;
+    parm->cleverPluralizeOtherY = hestDefaultCleverPluralizeOtherY;
+    parm->columns = hestDefaultColumns;
+    parm->respFileFlag = hestDefaultRespFileFlag;
+    parm->respFileComment = hestDefaultRespFileComment;
+    parm->varParamStopFlag = hestDefaultVarParamStopFlag;
+    parm->multiFlagSep = hestDefaultMultiFlagSep;
     /* for these most recent addition to the hestParm,
        abstaining from added yet another default global variable */
     parm->dieLessVerbose = AIR_FALSE;
@@ -68,7 +69,9 @@ static void
 _hestOptInit(hestOpt *opt) {
 
   opt->flag = opt->name = NULL;
-  opt->type = opt->min = opt->max = 0;
+  opt->type = 0;
+  opt->min = 0;
+  opt->max = 0;
   opt->valueP = NULL;
   opt->dflt = opt->info = NULL;
   opt->sawP = NULL;
@@ -171,7 +174,8 @@ hestOptFree(hestOpt *opt) {
 
   num = _hestNumOpts(opt);
   if (opt[num].min) {
-    /* we only try to free this if it looks like something we allocated */
+    /* we only try to free this array if it looks like something we allocated;
+       this is leveraging how _hestOptInit leaves things */
     for (op = 0; op < num; op++) {
       _hestOptFree(opt + op);
     }
@@ -251,6 +255,7 @@ _hestIdent(char *ident, hestOpt *opt, const hestParm *parm, int brief) {
   return ident;
 }
 
+/* _hestMax(-1) == INT_MAX, otherwise _hestMax(m) == m */
 int
 _hestMax(int max) {
 
@@ -328,7 +333,7 @@ _hestWhichFlag(hestOpt *opt, char *flag, const hestParm *parm) {
 
   numOpts = _hestNumOpts(opt);
   if (parm->verbosity)
-    printf("_hestWhichFlag: flag = %s, numOpts = %d\n", flag, numOpts);
+    printf("_hestWhichFlag: (a) flag = %s, numOpts = %d\n", flag, numOpts);
   for (op = 0; op < numOpts; op++) {
     if (parm->verbosity) printf("_hestWhichFlag: op = %d\n", op);
     if (!opt[op].flag) continue;
@@ -348,32 +353,14 @@ _hestWhichFlag(hestOpt *opt, char *flag, const hestParm *parm) {
       if (!strcmp(flag, buff)) return op;
     }
   }
-  if (parm->verbosity) printf("_hestWhichFlag: numOpts = %d\n", numOpts);
+  if (parm->verbosity) printf("_hestWhichFlag: (b) numOpts = %d\n", numOpts);
   if (parm->varParamStopFlag) {
     sprintf(buff, "-%c", parm->varParamStopFlag);
     if (parm->verbosity) printf("_hestWhichFlag: flag = %s, buff = %s\n", flag, buff);
     if (!strcmp(flag, buff)) return -2;
   }
-  if (parm->verbosity) printf("_hestWhichFlag: numOpts = %d\n", numOpts);
+  if (parm->verbosity) printf("_hestWhichFlag: (c) numOpts = %d\n", numOpts);
   return -1;
-}
-
-/*
-** _hestCase()
-**
-** helps figure out logic of interpreting parameters and defaults
-** for kind 4 and kind 5 options.
-*/
-int
-_hestCase(hestOpt *opt, int *udflt, unsigned int *nprm, int *appr, int op) {
-
-  if (opt[op].flag && !appr[op]) {
-    return 0;
-  } else if ((4 == opt[op].kind && udflt[op]) || (5 == opt[op].kind && !nprm[op])) {
-    return 1;
-  } else {
-    return 2;
-  }
 }
 
 /*

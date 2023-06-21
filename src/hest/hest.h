@@ -182,23 +182,23 @@ typedef struct {
 } hestParm;
 
 /* defaultsHest.c */
-HEST_EXPORT int hestDefVerbosity;
-HEST_EXPORT int hestDefRespFileEnable;
-HEST_EXPORT int hestDefElideSingleEnumType;
-HEST_EXPORT int hestDefElideSingleOtherType;
-HEST_EXPORT int hestDefElideSingleOtherDefault;
-HEST_EXPORT int hestDefElideSingleNonExistFloatDefault;
-HEST_EXPORT int hestDefElideMultipleNonExistFloatDefault;
-HEST_EXPORT int hestDefElideSingleEmptyStringDefault;
-HEST_EXPORT int hestDefElideMultipleEmptyStringDefault;
-HEST_EXPORT int hestDefNoArgsIsNoProblem;
-HEST_EXPORT int hestDefGreedySingleString;
-HEST_EXPORT int hestDefCleverPluralizeOtherY;
-HEST_EXPORT unsigned int hestDefColumns;
-HEST_EXPORT char hestDefRespFileFlag;
-HEST_EXPORT char hestDefRespFileComment;
-HEST_EXPORT char hestDefVarParamStopFlag;
-HEST_EXPORT char hestDefMultiFlagSep;
+HEST_EXPORT int hestDefaultVerbosity;
+HEST_EXPORT int hestDefaultRespFileEnable;
+HEST_EXPORT int hestDefaultElideSingleEnumType;
+HEST_EXPORT int hestDefaultElideSingleOtherType;
+HEST_EXPORT int hestDefaultElideSingleOtherDefault;
+HEST_EXPORT int hestDefaultElideSingleNonExistFloatDefault;
+HEST_EXPORT int hestDefaultElideMultipleNonExistFloatDefault;
+HEST_EXPORT int hestDefaultElideSingleEmptyStringDefault;
+HEST_EXPORT int hestDefaultElideMultipleEmptyStringDefault;
+HEST_EXPORT int hestDefaultNoArgsIsNoProblem;
+HEST_EXPORT int hestDefaultGreedySingleString;
+HEST_EXPORT int hestDefaultCleverPluralizeOtherY;
+HEST_EXPORT unsigned int hestDefaultColumns;
+HEST_EXPORT char hestDefaultRespFileFlag;
+HEST_EXPORT char hestDefaultRespFileComment;
+HEST_EXPORT char hestDefaultVarParamStopFlag;
+HEST_EXPORT char hestDefaultMultiFlagSep;
 
 /* methodsHest.c */
 HEST_EXPORT const int hestPresent;

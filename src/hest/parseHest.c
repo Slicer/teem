@@ -747,6 +747,20 @@ airDLoad(void *v, int t) {
   }
 }
 
+/* whichCase() helps figure out logic of interpreting parameters and defaults
+   for kind 4 and kind 5 options. (formerly "private" _hestCase) */
+static int
+whichCase(hestOpt *opt, int *udflt, unsigned int *nprm, int *appr, int op) {
+
+  if (opt[op].flag && !appr[op]) {
+    return 0;
+  } else if ((4 == opt[op].kind && udflt[op]) || (5 == opt[op].kind && !nprm[op])) {
+    return 1;
+  } else {
+    return 2;
+  }
+}
+
 static int
 _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
                char *err, const hestParm *parm, airArray *pmop) {
@@ -952,7 +966,7 @@ _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *
             return 1;
           }
           opt[op].alloc = 1;
-          if (opt[op].flag && 1 == _hestCase(opt, udflt, nprm, appr, op)) {
+          if (opt[op].flag && 1 == whichCase(opt, udflt, nprm, appr, op)) {
             /* we just parsed the default, but now we want to "invert" it */
             *((char **)vP) = (char *)airFree(*((char **)vP));
             opt[op].alloc = 0;
@@ -968,7 +982,7 @@ _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *
             return 1;
           }
           opt[op].alloc = 0;
-          if (1 == _hestCase(opt, udflt, nprm, appr, op)) {
+          if (1 == whichCase(opt, udflt, nprm, appr, op)) {
             /* we just parsed the default, but now we want to "invert" it */
             tmpD = airDLoad(vP, type);
             airIStore(vP, type, tmpD ? 0 : 1);
@@ -982,7 +996,7 @@ _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *
       /* hammerhead problems in this case;
          may have been from calloc(0), fixed below */
       if (prms[op] && vP) {
-        if (1 == _hestCase(opt, udflt, nprm, appr, op)) {
+        if (1 == whichCase(opt, udflt, nprm, appr, op)) {
           *((void **)vP) = NULL;
           /* alloc and sawP set above */
         } else {
