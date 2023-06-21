@@ -39,3 +39,5 @@ max           |            |            |
 
 The kind of option is independent of whether is flagged or unflagged,
 optional (default given) or mandatory (no default given).
+
+??? What is relationship between parseHest.c/whichCase() and hestOpt.alloc ???

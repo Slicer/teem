@@ -380,6 +380,7 @@ _hestExtract(int *argcP, char **argv, unsigned int base, unsigned int pnum) {
   len = 0;
   for (pidx = 0; pidx < pnum; pidx++) {
     if (base + pidx == AIR_UINT(*argcP)) {
+      /* ran up against end of argv array */
       return NULL;
     }
     len += AIR_UINT(strlen(argv[base + pidx]));
@@ -413,6 +414,7 @@ _hestExtract(int *argcP, char **argv, unsigned int base, unsigned int pnum) {
   *argcP -= pnum;
   return ret;
 }
+
 /*
 _hestNumOpts: returns the length of the given hestOpt array
 Unlike argv itself, the hestOpt array is not NULL-terminated, mainly because
