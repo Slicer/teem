@@ -122,8 +122,8 @@ main(int argc, const char *argv[]) {
     FILE *fret;
     fret = airStderr();
     if (stderr != fret) {
-      fprintf(stderr, "%s: airStderr() returned %p not stderr %p\n", me,
-              AIR_CAST(void *, fret), AIR_CAST(void *, stderr));
+      fprintf(stderr, "%s: airStderr() returned %p not stderr\n", me,
+              AIR_CAST(void *, fret));
       exit(1);
     }
     fret = airStdout();
