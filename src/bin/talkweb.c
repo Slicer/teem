@@ -269,22 +269,40 @@ tkwbWriteStringToFile(const char *filename, const char *content) {
   return 0;
 }
 
+/* a strlen replacement, but don't tell that to the compiler warnings;
+   see usage below (not enough to wrap call to strlen() in a new function) */
+static unsigned int
+notStrlen(const char *str) {
+  unsigned int ii=0;
+  while (str[ii]) {
+    ii++;
+  }
+  return ii;
+}
+
+
 int
 _tkwbStringSubst(char **sP, /* string to search in */
-                 char *f,   /* find */
-                 char *r) { /* replace */
+                 const char *f,   /* find */
+                 const char *r) { /* replace */
   char *p,                  /* place where find was found */
     *n;                     /* new string */
+  unsigned int rslen;
 
   p = strstr(*sP, f);
   if (!p) {
     /* nothing to do */
     return 0;
   }
-  n = (char *)calloc(strlen(*sP) - strlen(f) + strlen(r) + 1, sizeof(char));
+  rslen = notStrlen(r);
+  n = (char *)calloc(strlen(*sP) - strlen(f) + rslen + 1, sizeof(char));
   strncpy(n, *sP, p - *sP);
-  strncpy(n + (p - *sP), r, strlen(r));
-  strcpy(n + (p - *sP) + strlen(r), p + strlen(f));
+  /* warnings in the next line about:
+  - specified bound depends on the length of the source argument
+  - output truncated before terminating nul copying as many bytes from a string as its length
+  were silenced by using a strlen() replacement, above */
+  strncpy(n + (p - *sP), r, rslen);
+  strcpy(n + (p - *sP) + rslen, p + strlen(f));
   free(*sP);
   *sP = n;
   return _tkwbStringSubst(sP, f, r);
