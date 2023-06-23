@@ -79,5 +79,6 @@ main(int argc, const char **argv) {
   printf("\n");
 
   hestParseFree(opt);
+  hestOptFree(opt);
   exit(0);
 }
