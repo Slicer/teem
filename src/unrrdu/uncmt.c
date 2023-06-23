@@ -44,7 +44,12 @@ enum {
   stateSScmt,  /* 3: in Slash Slash (C++ or C99) comment */
   stateStr,    /* 4: in "" String */
   stateStrEsc, /* 5: in "" String and saw \ */
-  stateElse,   /* 6: everything else */
+  stateCC, /* 6: in '' character constant.  Without this state, a '"' character constant
+              sends the DFA into stateStr, and then we fail to uncomment. Funnily enough,
+              this deficiency was discovered by running this command on this source file.
+            */
+  stateCCEsc, /* 7: in '' character constant and saw \ */
+  stateElse,  /* 8: everything else */
 };
 
 /* nfdsChar: next char for "No Float or Double in String" mode
@@ -206,6 +211,8 @@ uncomment(const char *me, const char *nameOut, int nixcmt, const char *cmtSub, i
           co = 0;
         }
         state = stateSlash;
+      } else if ('\'' == ci) {
+        state = stateCC;
       } else if ('"' == ci) {
         state = stateStr;
       }
@@ -289,6 +296,18 @@ uncomment(const char *me, const char *nameOut, int nixcmt, const char *cmtSub, i
         co = STR_SUB(ci);
       }
       break;
+    case stateCC:
+      /* this code is basically copy-paste from stateStr above */
+      co = ci;
+      if ('\'' == ci) { /* unescaped ': character constant has ended */
+        state = stateElse;
+      } else {
+        if ('\\' == ci) { /* single backslash = start of an escape sequence */
+          state = stateCCEsc;
+        } /* else state stays in stateCC */
+        /* whether starting ecape sequence or not; we're still in character constant */
+      }
+      break;
     case stateStrEsc:
       /* we don't have to keep track of the different escape sequences;
       we just have to know it's an escape sequence. This will handle \" being in the
@@ -296,6 +315,11 @@ uncomment(const char *me, const char *nameOut, int nixcmt, const char *cmtSub, i
       and but nor do we need code specific to that escape sequence. */
       co = STR_SUB(ci);
       state = stateStr;
+      break;
+    case stateCCEsc:
+      /* (same logic as above for stateStrEsc) */
+      co = ci;
+      state = stateCC;
       break;
     default:
       fprintf(stderr, "%s: unimplemented state %d ?!?\n", me, state);
