@@ -65,7 +65,6 @@ main(int argc, const char **argv) {
     exit(1);
   }
 
-
   /* else we got something, see if we can parse it */
   if (hestParse(opt, argc - 1, argv + 1, &err, parm)) {
     fprintf(stderr, "ERROR: %s\n", err);
@@ -86,7 +85,7 @@ main(int argc, const char **argv) {
   printf("option = \"%s\"\n", option ? option : "(null)");
   printf("res = %d %d\n", res[0], res[1]);
   printf("\nin = %d files:", numIn);
-  for (n=0; n<=numIn-1; n++) {
+  for (n = 0; n <= numIn - 1; n++) {
     printf(" \"%s\"", in[n] ? in[n] : "(null)");
   }
   printf("\n");
