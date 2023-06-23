@@ -33,14 +33,14 @@ twice with differen values
 #define ME ((parm && parm->verbosity) ? me : "")
 
 /*
-** _hestArgsInResponseFiles()
-**
-** returns the number of args that will be parsed from the response files.
-** The role of this function is solely to simplify the task of avoiding
-** memory leaks.  By knowing exactly how many args we'll get in the response
-** file, then hestParse() can allocate its local argv[] for exactly as
-** long as it needs to be, and we can avoid using an airArray.  The drawback
-** is that we open and read through the response files twice.  Alas.
+_hestArgsInResponseFiles()
+
+returns the number of "args" (i.e. the number of space-separated strings) that will be
+parsed from the response files. The role of this function is solely to simplify the task
+of avoiding memory leaks.  By knowing exactly how many args we'll get in the response
+file, then hestParse() can allocate its local argv[] for exactly as long as it needs to
+be, and we can avoid using an airArray.  The drawback is that we open and read through
+the response files twice.  Alas.
 */
 static int
 _hestArgsInResponseFiles(int *argcP, int *nrfP, const char **argv, char *err,
@@ -60,10 +60,9 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP, const char **argv, char *err,
   ai = 0;
   while (argv[ai]) {
     if (parm->respFileFlag == argv[ai][0]) {
-      /* NOTE: despite the repeated temptation: "-" aka stdin cannot
-         be a response file, because it is going to be read in twice:
-         once by _hestArgsInResponseFiles, and then again by
-         _hestResponseFiles */
+      /* NOTE: despite the repeated temptation: "-" aka stdin cannot be a response file,
+         because it is going to be read in twice: once by _hestArgsInResponseFiles, and
+         then again by copyArgv */
       if (!(file = fopen(argv[ai] + 1, "rb"))) {
         /* can't open the indicated response file for reading */
         sprintf(err, "%scouldn't open \"%s\" for reading as response file", ME,
@@ -74,14 +73,14 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP, const char **argv, char *err,
       }
       len = airOneLine(file, line, AIR_STRLEN_HUGE);
       while (len > 0) {
-        if ((pound = strchr(line, parm->respFileComment))) *pound = '\0';
+        if ((pound = strchr(line, parm->respFileComment))) {
+          *pound = '\0';
+        }
         airOneLinify(line);
         *argcP += airStrntok(line, AIR_WHITESPACE);
         len = airOneLine(file, line, AIR_STRLEN_HUGE);
       }
-      if (stdin != file) {
-        fclose(file);
-      }
+      fclose(file); /* ok because file != stdin, see above */
       (*nrfP)++;
     }
     ai++;
@@ -90,15 +89,15 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP, const char **argv, char *err,
 }
 
 /*
-** _hestResponseFiles()
-**
-** This function is badly named.  Even if there are no response files,
-** even if response files are disabled, this is the function that
-** copies from the user's argc,argv to our local copy.
+copyArgv()
+
+Copies given oldArgv to newArgv, including (if they are enabled) injecting the contents
+of response files.  Allocations of the strings in newArgv are remembered (to be
+airFree'd later) in the given pmop
 */
 static int
-_hestResponseFiles(char **newArgv, const char **oldArgv, const hestParm *parm,
-                   airArray *pmop) {
+copyArgv(char **newArgv, const char **oldArgv, const hestParm *parm, airArray *pmop) {
+  static const char me[] = "copyArgv";
   char line[AIR_STRLEN_HUGE], *pound;
   int len, newArgc, oldArgc, incr, ai;
   FILE *file;
@@ -106,7 +105,7 @@ _hestResponseFiles(char **newArgv, const char **oldArgv, const hestParm *parm,
   newArgc = oldArgc = 0;
   while (oldArgv[oldArgc]) {
     if (parm->verbosity) {
-      printf("!%s:________ newArgc = %d, oldArgc = %d\n", "dammit", newArgc, oldArgc);
+      printf("!%s:________ newArgc = %d, oldArgc = %d\n", me, newArgc, oldArgc);
       _hestPrintArgv(newArgc, newArgv);
     }
     if (!parm->respFileEnable || parm->respFileFlag != oldArgv[oldArgc][0]) {
@@ -120,13 +119,12 @@ _hestResponseFiles(char **newArgv, const char **oldArgv, const hestParm *parm,
       file = fopen(oldArgv[oldArgc] + 1, "rb");
       len = airOneLine(file, line, AIR_STRLEN_HUGE);
       while (len > 0) {
-        if (parm->verbosity) printf("_hestResponseFiles: line: |%s|\n", line);
+        if (parm->verbosity) printf("%s: line: |%s|\n", me, line);
         if ((pound = strchr(line, parm->respFileComment))) *pound = '\0';
-        if (parm->verbosity) printf("_hestResponseFiles: -0-> line: |%s|\n", line);
+        if (parm->verbosity) printf("%s: -0-> line: |%s|\n", me, line);
         airOneLinify(line);
         incr = airStrntok(line, AIR_WHITESPACE);
-        if (parm->verbosity)
-          printf("_hestResponseFiles: -1-> line: |%s|, incr=%d\n", line, incr);
+        if (parm->verbosity) printf("%s: -1-> line: |%s|, incr=%d\n", me, line, incr);
         airParseStrS(newArgv + newArgc, line, AIR_WHITESPACE, incr, AIR_FALSE);
         for (ai = 0; ai < incr; ai++) {
           /* This time, we did allocate memory.  We can use airFree and
@@ -1203,12 +1201,12 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
 
   /* -------- process response files (if any) and set the remaining
      elements of argv */
-  if (PARM->verbosity) printf("%s: #### calling hestResponseFiles\n", me);
-  if (_hestResponseFiles(argv, _argv, PARM, mop)) {
+  if (PARM->verbosity) printf("%s: #### calling copyArgv\n", me);
+  if (copyArgv(argv, _argv, PARM, mop)) {
     airMopError(mop);
     return 1;
   }
-  if (PARM->verbosity) printf("%s: #### hestResponseFiles done!\n", me);
+  if (PARM->verbosity) printf("%s: #### copyArgv done!\n", me);
   /*
   _hestPrintArgv(argc, argv);
   */
