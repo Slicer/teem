@@ -19,11 +19,10 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../hest.h"
 
 int
-parse(void *_ptr, char *str, char *err) {
+parse(void *_ptr, const char *str, char *err) {
   double *ptr;
   int ret;
 
@@ -36,12 +35,7 @@ parse(void *_ptr, char *str, char *err) {
   return 0;
 }
 
-hestCB cbinfo = {
-  2*sizeof(double),
-  "location",
-  parse,
-  NULL
-};
+hestCB cbinfo = {2 * sizeof(double), "location", parse, NULL};
 
 int
 main(int argc, const char **argv) {
@@ -50,37 +44,37 @@ main(int argc, const char **argv) {
   hestOpt *opt = NULL;
   char *err = NULL;
 
-  hestOptAdd(&opt, "A",     "x,y",               airTypeOther, 1,  1, single,
-             "30,50",       "testing A",         NULL,  NULL,  &cbinfo);
-  hestOptAdd(&opt, "B",     "x1,y1 x2,y2 x3,y3", airTypeOther, 3,  3, triple,
-             "1,2 3,4 5,6", "testing B",         NULL,  NULL,  &cbinfo);
-  hestOptAdd(&opt, "C",     "mx,my",             airTypeOther, 0,  1, maybe,
-             "-0.1,-0.2",   "testing C. The utility of this can be better "
+  hestOptAdd(&opt, "A", "x,y", airTypeOther, 1, 1, single, "30,50", "testing A", NULL,
+             NULL, &cbinfo);
+  hestOptAdd(&opt, "B", "x1,y1 x2,y2 x3,y3", airTypeOther, 3, 3, triple, "1,2 3,4 5,6",
+             "testing B", NULL, NULL, &cbinfo);
+  hestOptAdd(&opt, "C", "mx,my", airTypeOther, 0, 1, maybe, "-0.1,-0.2",
+             "testing C. The utility of this can be better "
              "demonstrated in the following manner:\n "
              "- wash the dishes\n "
              "- put the dishes in the cupboard\n "
              "- watch football on TV\n "
              "- remember to walk the dog",
-             NULL,  NULL,   &cbinfo);
-  hestOptAdd(&opt, "D",     "nx,ny",             airTypeOther, 1, -1, &many,
-             "8,8 7,7",     "testing D",         &howMany,     NULL, &cbinfo);
-  hestOptAdd(&opt, "int",    "N",                airTypeInt,   1,  1, &N,
-             NULL,           "an integer");
+             NULL, NULL, &cbinfo);
+  hestOptAdd(&opt, "D", "nx,ny", airTypeOther, 1, -1, &many, "8,8 7,7", "testing D",
+             &howMany, NULL, &cbinfo);
+  hestOptAdd(&opt, "int", "N", airTypeInt, 1, 1, &N, NULL, "an integer");
 
-  if (hestParse(opt, argc-1, argv+1, &err, NULL)) {
-    fprintf(stderr, "ERROR: %s\n", err); free(err);
+  if (hestParse(opt, argc - 1, argv + 1, &err, NULL)) {
+    fprintf(stderr, "ERROR: %s\n", err);
+    free(err);
     hestUsage(stderr, opt, argv[0], NULL);
     hestGlossary(stderr, opt, NULL);
     exit(1);
   }
 
   printf("single: (%g,%g)\n", single[0], single[1]);
-  printf("triple: (%g,%g) (%g,%g) (%g,%g)\n", triple[0], triple[1],
-         triple[2], triple[3], triple[4], triple[5]);
+  printf("triple: (%g,%g) (%g,%g) (%g,%g)\n", triple[0], triple[1], triple[2], triple[3],
+         triple[4], triple[5]);
   printf("maybe: (%g,%g)\n", maybe[0], maybe[1]);
   printf("many(%d):", howMany);
-  for (i=0; i<=howMany-1; i++) {
-    printf(" (%g,%g)", many[0 + 2*i], many[1 + 2*i]);
+  for (i = 0; i <= howMany - 1; i++) {
+    printf(" (%g,%g)", many[0 + 2 * i], many[1 + 2 * i]);
   }
   printf("\n");
 
