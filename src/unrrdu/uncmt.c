@@ -179,13 +179,13 @@ uncomment(const char *me, const char *nameOut, int nixcmt, const char *cmtSub, i
     csLen = strlen(cmtSub); /* 1 or bigger */
     csIdx = csLen - 1;      /* last valid index, anticipating action of SUB below */
   } else {
-    csLen = 0;
+    csLen = csIdx = 0;
   }
 #define CMT_SUB(CI)                                                                     \
   (nixcmt     /* */                                                                     \
      ? ' '    /* */                                                                     \
      : (csLen /* */                                                                     \
-          ? (csIdx = AIR_MOD(csIdx + 1, csLen), cmtSub[csIdx])                          \
+          ? (csIdx = (csIdx + 1) % csLen, cmtSub[csIdx])                                \
           : (CI)))
 #define STR_SUB(CI) (nfds ? nfdsChar(&floatCount, &doubleCount, (CI)) : (CI))
   state = stateElse; /* start in straight copying mode */
