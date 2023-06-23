@@ -79,7 +79,7 @@ unrrdu_aboutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                 "invocations together with pipes (\"|\"), minimizing the "
                 "need to save out intermediate files. For example, if "
                 "\"data.raw.gz\" is a gzip'ed 256\tx\t256\tx\t80 volume of raw floats "
-                "written from a PC, "
+                "written from a little-endian machine, "
                 "then the following will save to \"zsum.png\" a histogram "
                 "equalized summation projection along the slowest axis:\n";
   char par6[] = "\tunu make -i data.raw.gz -t float -s 256 256 80 "
