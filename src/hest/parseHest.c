@@ -98,21 +98,24 @@ printArgv(int argc, char **argv, const char *pfx) {
 /*
 copyArgv()
 
-Copies given oldArgv to newArgv, including (if they are enabled) injecting the contents
-of response files.  Allocations of the strings in newArgv are remembered (to be
-airFree'd later) in the given pmop
+Copies given oldArgv to newArgv, including (if they are enabled) injecting the contents of response files.  BUT: this stops upon seeing "--". Allocations of the strings in newArgv are remembered (to be airFree'd later) in the given pmop
+Returns the number of args set in newArgv
 */
 static int
 copyArgv(char **newArgv, const char **oldArgv, const hestParm *parm, airArray *pmop) {
   static const char me[] = "copyArgv";
-  char line[AIR_STRLEN_HUGE], *pound;
+  char line[AIR_STRLEN_HUGE], *pound, stops[3];
   int len, newArgc, oldArgc, incr, ai;
   FILE *file;
 
+  stops[0] = '-';
+  stops[1] = parm->varParamStopFlag;
+  stops[2] = '\0';
   newArgc = oldArgc = 0;
-  while (oldArgv[oldArgc]) {
+  while (oldArgv[oldArgc] && strcmp(stops, oldArgv[oldArgc])) {
+    /* we only look at args that aren't "--" */
     if (parm->verbosity) {
-      printf("!%s:________ newArgc = %d, oldArgc = %d\n", me, newArgc, oldArgc);
+      printf("!%s:________ newArgc = %d, oldArgc = %d -> \"%s\"\n", me, newArgc, oldArgc, oldArgv[oldArgc]);
       printArgv(newArgc, newArgv, "     ");
     }
     if (!parm->respFileEnable || parm->respFileFlag != oldArgv[oldArgc][0]) {
@@ -151,7 +154,7 @@ copyArgv(char **newArgv, const char **oldArgv, const hestParm *parm, airArray *p
   }
   newArgv[newArgc] = NULL;
 
-  return 0;
+  return newArgc;
 }
 
 /*
@@ -463,38 +466,50 @@ whichFlag(hestOpt *opt, char *flag, const hestParm *parm) {
 }
 
 /*
-extractToStr: takes "pnum" parameters, starting at "base", out of the
-given argv, and puts them into a string WHICH THIS FUNCTION
-ALLOCATES, and also adjusts the argc value given as "*argcP".
+extractToStr: takes "pnum" parameters, starting at "base", out of the given argv, and puts them into a string WHICH THIS FUNCTION ALLOCATES, and also adjusts the argc value given as "*argcP".
+
+HEY HEY: GLK added the logic of using the stops string ("--") here before realizing that that logic really belongs upstream, in copyArgv, so it should be needed here, right?
 */
 static char *
-extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum) {
-  unsigned int len, pidx;
+extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum, unsigned int *pnumGot, const hestParm *parm) {
+  unsigned int len, pidx, true_pnum;
   char *ret;
+  char stops[3] = "";
 
   if (!pnum) return NULL;
 
   len = 0;
+  if (parm) {
+    stops[0] = '-';
+    stops[1] = parm->varParamStopFlag;
+    stops[2] = '\0';
+  } /* else stops stays as empty string */
   for (pidx = 0; pidx < pnum; pidx++) {
     if (base + pidx == AIR_UINT(*argcP)) {
       /* ran up against end of argv array */
       return NULL;
+    }
+    if (!strcmp(argv[base + pidx], stops)) {
+      /* saw something like "--", so that's the end */
+      break;
     }
     len += AIR_UINT(strlen(argv[base + pidx]));
     if (strstr(argv[base + pidx], " ")) {
       len += 2;
     }
   }
-  len += pnum;
+  if (pnumGot) *pnumGot = pidx;
+  true_pnum = pidx;
+  len += true_pnum + 1; /* for spaces between args, and final '\0' */
   ret = AIR_CALLOC(len, char);
   strcpy(ret, "");
-  for (pidx = 0; pidx < pnum; pidx++) {
-    /* if a single element of argv has spaces in it, someone went
+  for (pidx = 0; pidx < true_pnum; pidx++) {
+    if (strstr(argv[base + pidx], " ")) {
+      /* if a single element of argv has spaces in it, someone went
        to the trouble of putting it in quotes, and we perpetuate
        the favor by quoting it when we concatenate all the argv
        elements together, so that airParseStrS will recover it as a
        single string again */
-    if (strstr(argv[base + pidx], " ")) {
       strcat(ret, "\"");
     }
     /* HEY: if there is a '\"' character in this string, quoted or
@@ -503,12 +518,12 @@ extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum) {
     if (strstr(argv[base + pidx], " ")) {
       strcat(ret, "\"");
     }
-    if (pidx < pnum - 1) strcat(ret, " ");
+    if (pidx < true_pnum - 1) strcat(ret, " ");
   }
-  for (pidx = base + pnum; pidx <= AIR_UINT(*argcP); pidx++) {
-    argv[pidx - pnum] = argv[pidx];
+  for (pidx = base + true_pnum; pidx <= AIR_UINT(*argcP); pidx++) {
+    argv[pidx - true_pnum] = argv[pidx];
   }
-  *argcP -= pnum;
+  *argcP -= true_pnum;
   return ret;
 }
 
@@ -588,18 +603,18 @@ extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **ar
       printArgv(*argcP, argv, "     ");
     }
     /* lose the flag argument */
-    free(extractToStr(argcP, argv, a, 1));
+    free(extractToStr(argcP, argv, a, 1, NULL, NULL));
     /* extract the args after the flag */
     if (appr[flag]) {
       airMopSub(pmop, prms[flag], airFree);
       prms[flag] = (char *)airFree(prms[flag]);
     }
-    prms[flag] = extractToStr(argcP, argv, a, nprm[flag]);
+    prms[flag] = extractToStr(argcP, argv, a, nprm[flag], NULL, NULL);
     airMopAdd(pmop, prms[flag], airFree, airMopAlways);
     appr[flag] = AIR_TRUE;
     if (-2 == endflag) {
-      /* we should lose the end-of-variable-parameter marker */
-      free(extractToStr(argcP, argv, a, 1));
+      /* we should lose the end-of-variable-parameter marker ??? ??? */
+      free(extractToStr(argcP, argv, a, 1, NULL, NULL));
     }
     if (parm->verbosity) {
       printArgv(*argcP, argv, "     ");
@@ -645,6 +660,9 @@ extractUnflagged(char **prms, unsigned int *nprm, int *argcP, char **argv,
     /* no unflagged options; we're done */
     return 0;
   }
+  if (parm->verbosity) {
+    printf("!%s numOpts %d != unflag1st %d: have some (of %d) unflagged options\n", me, numOpts, unflag1st, numOpts);
+  }
 
   for (unflagVar = unflag1st; unflagVar != numOpts;
        unflagVar = _hestNextUnflagged(unflagVar + 1, opt, numOpts)) {
@@ -654,11 +672,16 @@ extractUnflagged(char **prms, unsigned int *nprm, int *argcP, char **argv,
   }
   /* now, if there is a variable parameter unflagged opt, unflagVar is its
      index in opt[], or else unflagVar is numOpts */
+  if (parm->verbosity) {
+    printf("!%s unflagVar %d\n", me, unflagVar);
+  }
 
   /* grab parameters for all unflagged opts before opt[t] */
   for (op = _hestNextUnflagged(0, opt, numOpts); op < unflagVar;
        op = _hestNextUnflagged(op + 1, opt, numOpts)) {
-    /* printf("!%s: op = %d; unflagVar = %d\n", me, op, unflagVar); */
+    if (parm->verbosity) {
+      printf("!%s op = %d; unflagVar = %d\n", me, op, unflagVar);
+    }
     np = opt[op].min; /* min == max */
     if (!(np <= *argcP)) {
       sprintf(err, "%sdon't have %d parameter%s %s%s%sfor %s", ME, np, np > 1 ? "s" : "",
@@ -666,7 +689,7 @@ extractUnflagged(char **prms, unsigned int *nprm, int *argcP, char **argv,
               argv[0] ? "\" " : "", identStr(ident, opt + op, parm, AIR_TRUE));
       return 1;
     }
-    prms[op] = extractToStr(argcP, argv, 0, np);
+    prms[op] = extractToStr(argcP, argv, 0, np, NULL, NULL);
     airMopAdd(pmop, prms[op], airFree, airMopAlways);
     nprm[op] = np;
   }
@@ -691,18 +714,21 @@ extractUnflagged(char **prms, unsigned int *nprm, int *argcP, char **argv,
   for (op = _hestNextUnflagged(unflagVar + 1, opt, numOpts); op < numOpts;
        op = _hestNextUnflagged(op + 1, opt, numOpts)) {
     np = opt[op].min;
-    prms[op] = extractToStr(argcP, argv, nvp, np);
+    prms[op] = extractToStr(argcP, argv, nvp, np, NULL, NULL);
     airMopAdd(pmop, prms[op], airFree, airMopAlways);
     nprm[op] = np;
   }
 
   /* now we grab the parameters of the sole variable parameter unflagged opt,
      if it exists (unflagVar < numOpts) */
+  if (parm->verbosity) {
+    printf("!%s (still here) unflagVar %d vs numOpts %d\n", me, unflagVar, numOpts);
+  }
   if (unflagVar < numOpts) {
-    /*
-    printf("!%s: unflagVar=%d: min, nvp, max = %d %d %d\n", me, unflagVar,
+    if (parm->verbosity) {
+      printf("!%s unflagVar=%d: min, nvp, max = %d %d %d\n", me, unflagVar,
            opt[unflagVar].min, nvp, _hestMax(opt[unflagVar].max));
-    */
+    }
     /* we'll do error checking for unexpected args later */
     nvp = AIR_MIN(nvp, _hestMax(opt[unflagVar].max));
     if (nvp < (int)opt[unflagVar].min) { /* HEY scrutinize casts */
@@ -712,9 +738,13 @@ extractUnflagged(char **prms, unsigned int *nprm, int *argcP, char **argv,
       return 1;
     }
     if (nvp) {
-      prms[unflagVar] = extractToStr(argcP, argv, 0, nvp);
+      unsigned int gotp = 0;
+      prms[unflagVar] = extractToStr(argcP, argv, 0, nvp, &gotp, parm);
+      if (parm->verbosity) {
+        printf("!%s extracted %u to new string |%s| (*argcP now %d)\n", me, gotp, prms[unflagVar], *argcP);
+      }
       airMopAdd(pmop, prms[unflagVar], airFree, airMopAlways);
-      nprm[unflagVar] = nvp;
+      nprm[unflagVar] = gotp; /* which is < nvp in case of "--" */
     } else {
       prms[unflagVar] = NULL;
       nprm[unflagVar] = 0;
@@ -1257,7 +1287,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   static const char me[] = "hestParse: ";
   char *param, *param_copy;
   char **argv, **prms, *err;
-  int a, argc, argr, *appr, *udflt, nrf, numOpts, big, ret, i;
+  int a, argc, argc_used, argr, *appr, *udflt, nrf, numOpts, big, ret, i;
   unsigned int *nprm;
   airArray *mop;
   hestParm *parm;
@@ -1330,6 +1360,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
     return 1;
   }
   argc = argr + _argc - nrf;
+  /* HEY HEY now that copyArgv returns argc_used, what is this argc actually needed for? */
 
   if (PARM->verbosity) {
     printf("!%s: nrf = %d; argr = %d; _argc = %d --> argc = %d\n", me, nrf, argr, _argc,
@@ -1341,15 +1372,12 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   /* -------- process response files (if any) and set the remaining
      elements of argv */
   if (PARM->verbosity) printf("%s: #### calling copyArgv\n", me);
-  if (copyArgv(argv, _argv, PARM, mop)) {
-    airMopError(mop);
-    return 1;
-  }
-  if (PARM->verbosity) printf("%s: #### copyArgv done!\n", me);
+  argc_used = copyArgv(argv, _argv, PARM, mop);
+  if (PARM->verbosity) printf("%s: #### copyArgv done (%d args copied)!\n", me, argc_used);
 
   /* -------- extract flags and their associated parameters from argv */
   if (PARM->verbosity) printf("%s: #### calling extractFlagged\n", me);
-  if (extractFlagged(prms, nprm, appr, &argc, argv, opt, err, PARM, mop)) {
+  if (extractFlagged(prms, nprm, appr, &argc_used, argv, opt, err, PARM, mop)) {
     airMopError(mop);
     return 1;
   }
@@ -1357,14 +1385,14 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
 
   /* -------- extract args for unflagged options */
   if (PARM->verbosity) printf("%s: #### calling extractUnflagged\n", me);
-  if (extractUnflagged(prms, nprm, &argc, argv, opt, err, PARM, mop)) {
+  if (extractUnflagged(prms, nprm, &argc_used, argv, opt, err, PARM, mop)) {
     airMopError(mop);
     return 1;
   }
   if (PARM->verbosity) printf("%s: #### extractUnflagged done!\n", me);
 
   /* currently, any left over arguments indicate error */
-  if (argc) {
+  if (argc_used) {
     sprintf(err, "%sunexpected arg%s: \"%s\"", ME,
             ('-' == argv[0][0] ? " (or unrecognized flag)" : ""), argv[0]);
     airMopError(mop);
