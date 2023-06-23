@@ -19,12 +19,11 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../hest.h"
 
 /*
-** this example has been taken out of the build because GLK was sure
-** Fri May 13 00:51:11 CDT 2011 how to handle these annoying warnings:
+Fri May 13 00:51:11 CDT 2011 GLK took this example out of the build
+because unsure how to handle these annoying warnings:
 
 ../hest/test/ex1.c: In function 'main':
 ../hest/test/ex1.c:34: warning: missing initializer
@@ -32,33 +31,36 @@
 ../hest/test/ex1.c:36: warning: missing initializer
 ../hest/test/ex1.c:36: warning: (near initialization for 'opt[1].sawP')
 
+Fri Jun 23 07:25:52 CDT 2023 GLK see that its because the hestOpt
+grew from the initial minimal set of parameters that made it like argtable,
+to a much larger set, while at the same time hestOptAdd became the standard
+way of using hest. Incomplete initializing of struct members has always
+been allowed but warnings about it have gotten louder.  Pragmas added
+below to quiet it in the case of clang.
 */
 
 int
-main(int argc, char **argv) {
-  static int res[2], v, numIn;
-  static char **in, *out;
-  static int *mm, mmm;
-  int n;
-  hestOpt opt[] = {
-    {"res",   "sx sy", airTypeInt,    2,  2,   res,  NULL,
-     "image resolution"},
-    {"v",     "level", airTypeInt,    0,  1,   &v,   NULL /* "0" */,
-     "verbosity level"},
-    {"VV",    "level", airTypeInt,    0,  5,   &mm,  "33 22 11",
-     "gonzo level", &mmm},
-    {"out",   "file",  airTypeString, 1,  1,   &out, "output.ppm",
-     "PPM image output"},
-    {NULL,    "input",  airTypeString, 1, -1,   &in,  NULL,
-     "input image file(s)", &numIn},
-    {NULL, NULL, 0}
-  };
+main(int argc, const char **argv) {
+  int res[2], v;
+  char **in, *out;
+  int *mm;
+  unsigned int n, mmm, numIn;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-field-initializers"
+  hestOpt opt[]
+    = {{"res", "sx sy", airTypeInt, 2, 2, res, NULL, "image resolution"},
+       {"v", "level", airTypeInt, 0, 1, &v, "0", "verbosity level"},
+       {"VV", "level", airTypeInt, 0, 5, &mm, "33 22 11", "gonzo level", &mmm},
+       {"out", "file", airTypeString, 1, 1, &out, "output.ppm", "PPM image output"},
+       {NULL, "input", airTypeString, 1, -1, &in, NULL, "input image file(s)", &numIn},
+       {NULL, NULL, 0}};
+#pragma clang diagnostic pop
   hestParm *parm;
-  char *err = NULL, info[] =
-    "This program does nothing in particular, though it does attempt "
-    "to pose as some sort of command-line image processing program. "
-    "Any implied functionality is purely coincidental, especially since "
-    "this software was written by a sleep-deprived grad student.";
+  char *err = NULL,
+       info[] = "This program does nothing in particular, though it does attempt "
+                "to pose as some sort of command-line image processing program. "
+                "Any implied functionality is purely coincidental, especially since "
+                "this software was written by a sleep-deprived grad student.";
 
   parm = hestParmNew();
   parm->respFileEnable = AIR_TRUE;
@@ -73,8 +75,9 @@ main(int argc, char **argv) {
   }
 
   /* else we got something, see if we can parse it */
-  if (hestParse(opt, argc-1, argv+1, &err, parm)) {
-    fprintf(stderr, "ERROR: %s\n", err); free(err);
+  if (hestParse(opt, argc - 1, argv + 1, &err, parm)) {
+    fprintf(stderr, "ERROR: %s\n", err);
+    free(err);
     hestUsage(stderr, opt, argv[0], parm);
     hestGlossary(stderr, opt, parm);
     parm = hestParmFree(parm);
@@ -86,12 +89,12 @@ main(int argc, char **argv) {
   printf("  v = %d\n", v);
   printf("out = \"%s\"\n", out);
   printf(" mm = %d ints:", mmm);
-  for (n=0; n<=mmm-1; n++) {
+  for (n = 0; n <= mmm - 1; n++) {
     printf(" %d", mm[n]);
   }
   printf("\n");
   printf(" in = %d files:", numIn);
-  for (n=0; n<=numIn-1; n++) {
+  for (n = 0; n <= numIn - 1; n++) {
     printf(" \"%s\"", in[n]);
   }
   printf("\n");
