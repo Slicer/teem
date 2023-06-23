@@ -22,7 +22,7 @@
 #include "../hest.h"
 
 int
-parse(void *_ptr, char *str, char *err) {
+parse(void *_ptr, const char *str, char *err) {
   char **ptrP;
 
   ptrP = _ptr;
