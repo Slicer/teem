@@ -325,7 +325,7 @@ unrrdu_uncmtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOptAdd(
     &opt, "cs", "cmtsub", airTypeString, 1, 1, &cmtSubst, "",
     "Given a non-empty string, those characters are looped through to replace the "
-    "non-white space characters is contents; EXCEPT if if a length-2 string of a "
+    "non-white space characters is contents; EXCEPT if a length-2 string of a "
     "repeating character is given, (e.g. \"-cs xx\") in which case the string contents "
     "are preserved (contrary to the intended purpose of this command). To both "
     "transform the comment contents into whitespace and to wholly remove the comment "
