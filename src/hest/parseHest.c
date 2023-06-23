@@ -422,7 +422,7 @@ whichFlag()
 
 given a string in "flag" (with the hypen prefix) finds which of the flags in the given
 array of options matches that.  Returns the index of the matching option, or -1 if
-there is no match, but returns -2 if the flag is the end-of-variable-parameter
+there is no match, but returns -2 if the flag is the end-of-options
 marker (according to parm->varParamStopFlag)
 */
 static int
@@ -546,11 +546,15 @@ extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum,
 */
 static int
 extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **argv,
-               hestOpt *opt, char *err, const hestParm *parm, airArray *pmop) {
+               hestOpt *opt, char *err, int hitStop, const hestParm *parm,
+               airArray *pmop) {
   static const char me[] = "extractFlagged: ";
-  char ident1[AIR_STRLEN_HUGE], ident2[AIR_STRLEN_HUGE];
+  char ident1[AIR_STRLEN_HUGE], ident2[AIR_STRLEN_HUGE], stops[3];
   int a, np, flag, endflag, numOpts, op;
 
+  stops[0] = '-';
+  stops[1] = parm->varParamStopFlag;
+  stops[2] = '\0';
   a = 0;
   if (parm->verbosity) printf("!%s: *argcP = %d\n", me, *argcP);
   while (a <= *argcP - 1) {
@@ -589,9 +593,12 @@ extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **ar
       /* didn't get minimum number of parameters */
       if (!(a + np + 1 <= *argcP - 1)) {
         sprintf(err,
-                "%shit end of line before getting %d parameter%s "
+                "%shit %s%s before getting %d parameter%s "
                 "for %s (got %d)",
-                ME, opt[flag].min, opt[flag].min > 1 ? "s" : "",
+                ME,                                               /* */
+                hitStop ? "end-of-options flag " : "end of line", /* */
+                hitStop ? "--" : "",                              /* */
+                opt[flag].min, opt[flag].min > 1 ? "s" : "",
                 identStr(ident1, opt + flag, parm, AIR_TRUE), np);
       } else if (-2 != endflag) {
         sprintf(err, "%shit \"%s\" before getting %d parameter%s for %s (got %d)", ME,
@@ -623,7 +630,7 @@ extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **ar
     airMopAdd(pmop, prms[flag], airFree, airMopAlways);
     appr[flag] = AIR_TRUE;
     if (-2 == endflag) {
-      /* we should lose the end-of-variable-parameter marker ??? ??? */
+      /* we should lose the end-of-options marker ??? ??? */
       free(extractToStr(argcP, argv, a, 1, NULL, NULL));
     }
     if (parm->verbosity) {
@@ -1370,8 +1377,6 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
     return 1;
   }
   argc = argr + _argc - nrf;
-  /* HEY HEY now that copyArgv returns argc_used, what is this argc actually needed for?
-   */
 
   if (PARM->verbosity) {
     printf("!%s: nrf = %d; argr = %d; _argc = %d --> argc = %d\n", me, nrf, argr, _argc,
@@ -1389,7 +1394,9 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
 
   /* -------- extract flags and their associated parameters from argv */
   if (PARM->verbosity) printf("%s: #### calling extractFlagged\n", me);
-  if (extractFlagged(prms, nprm, appr, &argc_used, argv, opt, err, PARM, mop)) {
+  /* currently the only reason argc_used < argc is if we hit "--" or the equivalent */
+  if (extractFlagged(prms, nprm, appr, &argc_used, argv, opt, err, argc_used < argc,
+                     PARM, mop)) {
     airMopError(mop);
     return 1;
   }
