@@ -52,7 +52,6 @@ main(int argc, const char **argv) {
              "a list of integers", &numN);
   hestOptAdd(&opt, "res", "sx sy", airTypeInt, 2, 2, res, NULL, "image resolution");
 
-  printf("what 0\n");
   if (1 == argc) {
     /* didn't get anything at all on command line */
     /* print program information ... */
@@ -66,7 +65,6 @@ main(int argc, const char **argv) {
     exit(1);
   }
 
-  printf("what 1\n");
 
   /* else we got something, see if we can parse it */
   if (hestParse(opt, argc - 1, argv + 1, &err, parm)) {
@@ -80,7 +78,6 @@ main(int argc, const char **argv) {
     parm = hestParmFree(parm);
     exit(1);
   }
-  printf("what 2\n");
 
   printf("(err = %s)\n", err ? err : "(null)");
   printf("  v = %d\n", v);
@@ -88,20 +85,16 @@ main(int argc, const char **argv) {
   printf("blah = \"%s\" \"%s\" \"%s\"\n", blah[0], blah[1], blah[2]);
   printf("option = \"%s\"\n", option ? option : "(null)");
   printf("res = %d %d\n", res[0], res[1]);
-  /*
-  printf(" ---- in = %lx\n", (unsigned long)in);
-  printf(" in = %d files:", numIn);
+  printf("\nin = %d files:", numIn);
   for (n=0; n<=numIn-1; n++) {
     printf(" \"%s\"", in[n] ? in[n] : "(null)");
   }
   printf("\n");
-  */
-  printf(" ints = %d ints:", numN);
+  printf("ints = %d ints:", numN);
   for (n = 0; n <= numN - 1; n++) {
     printf(" %d", ints[n]);
   }
   printf("\n");
-  printf("what 3\n");
 
   /* free the memory allocated by parsing ... */
   hestParseFree(opt);
