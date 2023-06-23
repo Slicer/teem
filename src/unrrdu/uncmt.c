@@ -154,7 +154,7 @@ uncomment(const char *me, const char *nameOut, int nixcmt, const char *cmtSub, i
     airMopError(mop);
     return 1;
   }
-  airMopAdd(mop, fin, (airMopper)airFclose, airMopOnError);
+  airMopAdd(mop, fin, (airMopper)airFclose, airMopAlways);
   fout = airFopen(nameOut, stdout, "wb");
   if (!fout) {
     fprintf(stderr, "%s: couldn't open \"%s\" for writing: \"%s\"\n", me, nameOut,
@@ -162,7 +162,7 @@ uncomment(const char *me, const char *nameOut, int nixcmt, const char *cmtSub, i
     airMopError(mop);
     return 1;
   }
-  airMopAdd(mop, fout, (airMopper)airFclose, airMopOnError);
+  airMopAdd(mop, fout, (airMopper)airFclose, airMopAlways);
 
   /* -------------------------------------------------------- */
   /* do the conversion.  Some sources of inspiration:
