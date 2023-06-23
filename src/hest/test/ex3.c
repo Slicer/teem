@@ -78,9 +78,6 @@ main(int argc, const char **argv) {
     /* ... and then avoid memory leaks */
     opt = hestOptFree(opt);
     parm = hestParmFree(parm);
-    printf(" ---- in = %lx\n", (unsigned long)in);
-    printf(" ---- blah[0] = %lx\n", (unsigned long)(blah[0]));
-    printf(" ---- option = %lx\n", (unsigned long)option);
     exit(1);
   }
   printf("what 2\n");
