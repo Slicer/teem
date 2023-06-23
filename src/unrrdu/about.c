@@ -83,10 +83,10 @@ unrrdu_aboutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                 "then the following will save to \"zsum.png\" a histogram "
                 "equalized summation projection along the slowest axis:\n";
   char par6[] = "\tunu make -i data.raw.gz -t float -s 256 256 80 "
-                "-e gzip -en little \\\n "
-                "  | unu project -a 2 -m sum \\\n "
-                "  | unu heq -b 2000 -s 1 \\\n "
-                "  | unu quantize -b 8 -o zsum.png"
+                "-e gzip -en little |\n "
+                "  unu project -a 2 -m sum |\n "
+                "  unu heq -b 2000 -s 1 |\n "
+                "  unu quantize -b 8 -o zsum.png"
                 "\n";
   int enc, form, miss;
 
