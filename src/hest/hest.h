@@ -173,9 +173,9 @@ typedef struct {
                                indicating that this is a response file name */
     respFileComment,        /* comment character for the response files */
     varParamStopFlag, /* prefixed by '-' to form the flag which signals the end of a
-                          variable parameter option (single or multiple), flagged or
-                          unflagged. Originally imagined as most useful for flagged
-                          options, but also works in unflagged. */
+                         variable parameter option (single or multiple), flagged or
+                         unflagged. Originally imagined as most useful for flagged
+                         options, but also works in unflagged. */
     multiFlagSep;     /* character in flag which signifies that there is a long and short
                          version, and which separates the two.  Or, can be set to '\0' to
                          disable this behavior entirely. */
