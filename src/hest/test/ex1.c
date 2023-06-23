@@ -36,7 +36,7 @@ grew from the initial minimal set of parameters that made it like argtable,
 to a much larger set, while at the same time hestOptAdd became the standard
 way of using hest. Incomplete initializing of struct members has always
 been allowed but warnings about it have gotten louder.  Pragmas added
-below to quiet it in the case of clang.
+below to quiet it for hopefully both clang and gcc.
 */
 
 int
@@ -45,6 +45,9 @@ main(int argc, const char **argv) {
   char **in, *out;
   int *mm;
   unsigned int n, mmm, numIn;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-field-initializers"
   hestOpt opt[]
@@ -55,6 +58,7 @@ main(int argc, const char **argv) {
        {NULL, "input", airTypeString, 1, -1, &in, NULL, "input image file(s)", &numIn},
        {NULL, NULL, 0}};
 #pragma clang diagnostic pop
+#pragma GCC diagnostic pop
   hestParm *parm;
   char *err = NULL,
        info[] = "This program does nothing in particular, though it does attempt "
