@@ -19,7 +19,6 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../hest.h"
 
 /*
@@ -38,21 +37,17 @@ int
 main(int argc, char **argv) {
   static int res[2], v, numIn;
   static char **in, *out;
-  hestOpt opt[] = {
-    {"res",   "sx sy", airTypeInt,    2,  2,   res,  NULL,
-     "image resolution"},
-    {"v",     "level", airTypeInt,    1,  1,   &v,   "0",
-     "verbosity level"},
-    {"out",   "file",  airTypeString, 1,  1,   &out, "output.ppm",
-     "PPM image output"},
-    {NULL,    "input",  airTypeString, 1, -1,   &in,  NULL,
-     "input image file(s)", &numIn},
-    {NULL, NULL, 0}
-  };
+  hestOpt opt[]
+    = {{"res", "sx sy", airTypeInt, 2, 2, res, NULL, "image resolution"},
+       {"v", "level", airTypeInt, 1, 1, &v, "0", "verbosity level"},
+       {"out", "file", airTypeString, 1, 1, &out, "output.ppm", "PPM image output"},
+       {NULL, "input", airTypeString, 1, -1, &in, NULL, "input image file(s)", &numIn},
+       {NULL, NULL, 0}};
   char *err = NULL;
 
   if (hestOptCheck(opt, &err)) {
-    fprintf(stderr, "ERROR: %s\n", err); free(err);
+    fprintf(stderr, "ERROR: %s\n", err);
+    free(err);
     exit(1);
   }
   printf("hestOpt array looks fine.\n");

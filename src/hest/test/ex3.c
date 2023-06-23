@@ -19,7 +19,6 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../hest.h"
 
 int
@@ -29,31 +28,29 @@ main(int argc, const char **argv) {
   int n, *ints, numN;
   hestOpt *opt = NULL;
   hestParm *parm;
-  char *err = NULL, info[] =
-    "This program does nothing in particular, though it does attempt "
-    "to pose as some sort of command-line image processing program. "
-    "As usual, any implied functionality is purely coincidental, "
-    "especially since this is the output of a unicyclist.";
+  char *err = NULL,
+       info[] = "This program does nothing in particular, though it does attempt "
+                "to pose as some sort of command-line image processing program. "
+                "As usual, any implied functionality is purely coincidental, "
+                "especially since this is the output of a unicyclist.";
 
   parm = hestParmNew();
   parm->respFileEnable = AIR_TRUE;
   parm->verbosity = 3;
 
   opt = NULL;
-  hestOptAdd(&opt, "v,verbose",     "level", airTypeInt,    0,  1,  &v,   "0",
-             "verbosity level");
-  hestOptAdd(&opt, "out",   "file",  airTypeString, 1,  1,  &out, "output.ppm",
+  hestOptAdd(&opt, "v,verbose", "level", airTypeInt, 0, 1, &v, "0", "verbosity level");
+  hestOptAdd(&opt, "out", "file", airTypeString, 1, 1, &out, "output.ppm",
              "PPM image output");
-  hestOptAdd(&opt, "blah",  "input", airTypeString, 3,  3,  blah,  "a b c",
+  hestOptAdd(&opt, "blah", "input", airTypeString, 3, 3, blah, "a b c",
              "input image file(s)");
-  hestOptAdd(&opt, "option","opt", airTypeString, 0, 1, &option, "default",
+  hestOptAdd(&opt, "option", "opt", airTypeString, 0, 1, &option, "default",
              "this is just a test");
-  hestOptAdd(&opt, NULL,    "input", airTypeString, 1, -1,  &in,  NULL,
-             "input image file(s)", &numIn);
-  hestOptAdd(&opt, "ints",  "N",     airTypeInt,    1,  -1, &ints,  "10 20 30",
+  hestOptAdd(&opt, NULL, "input", airTypeString, 1, -1, &in, NULL, "input image file(s)",
+             &numIn);
+  hestOptAdd(&opt, "ints", "N", airTypeInt, 1, -1, &ints, "10 20 30",
              "a list of integers", &numN);
-  hestOptAdd(&opt, "res",   "sx sy", airTypeInt,    2,  2,  res,  NULL,
-             "image resolution");
+  hestOptAdd(&opt, "res", "sx sy", airTypeInt, 2, 2, res, NULL, "image resolution");
 
   printf("what 0\n");
   if (1 == argc) {
@@ -72,8 +69,9 @@ main(int argc, const char **argv) {
   printf("what 1\n");
 
   /* else we got something, see if we can parse it */
-  if (hestParse(opt, argc-1, argv+1, &err, parm)) {
-    fprintf(stderr, "ERROR: %s\n", err); free(err);
+  if (hestParse(opt, argc - 1, argv + 1, &err, parm)) {
+    fprintf(stderr, "ERROR: %s\n", err);
+    free(err);
     /* print usage information ... */
     hestUsage(stderr, opt, argv[0], parm);
     hestGlossary(stderr, opt, parm);
@@ -102,7 +100,7 @@ main(int argc, const char **argv) {
   printf("\n");
   */
   printf(" ints = %d ints:", numN);
-  for (n=0; n<=numN-1; n++) {
+  for (n = 0; n <= numN - 1; n++) {
     printf(" %d", ints[n]);
   }
   printf("\n");

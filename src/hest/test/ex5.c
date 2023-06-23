@@ -19,7 +19,6 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../hest.h"
 
 int
@@ -36,12 +35,7 @@ parse(void *_ptr, char *str, char *err) {
   return 0;
 }
 
-hestCB cbinfo = {
-  sizeof(char*),
-  "token",
-  parse,
-  airFree
-};
+hestCB cbinfo = {sizeof(char *), "token", parse, airFree};
 
 int
 main(int argc, const char **argv) {
@@ -51,22 +45,20 @@ main(int argc, const char **argv) {
   char *err = NULL;
   unsigned int copi, opi, opn;
 
-  hestOptAdd(&opt, "A",      "token",           airTypeOther, 1,  1, &single,
-             "alpha",        "testing A",       NULL,  NULL,  &cbinfo);
-  hestOptAdd(&opt, "B",      "tok1 tok2 tok3",  airTypeOther, 3,  3, triple,
-             "beta psi rho", "testing B",       NULL,  NULL,  &cbinfo);
-  copi =
-    hestOptAdd(&opt,"C",     "mtok",            airTypeOther, 0,  1, &maybe,
-               "gamma",        "testing C",       NULL,  NULL,  &cbinfo);
-  hestOptAdd(&opt, "D",      "tok",             airTypeOther, 1, -1, &many,
-             "kappa omega",  "testing D",       &howMany, NULL, &cbinfo);
-  opn =
-    hestOptAdd(&opt, "int",  "N",               airTypeInt,   1,  1, &N,
-               NULL,           "an integer");
+  hestOptAdd(&opt, "A", "token", airTypeOther, 1, 1, &single, "alpha", "testing A", NULL,
+             NULL, &cbinfo);
+  hestOptAdd(&opt, "B", "tok1 tok2 tok3", airTypeOther, 3, 3, triple, "beta psi rho",
+             "testing B", NULL, NULL, &cbinfo);
+  copi = hestOptAdd(&opt, "C", "mtok", airTypeOther, 0, 1, &maybe, "gamma", "testing C",
+                    NULL, NULL, &cbinfo);
+  hestOptAdd(&opt, "D", "tok", airTypeOther, 1, -1, &many, "kappa omega", "testing D",
+             &howMany, NULL, &cbinfo);
+  opn = hestOptAdd(&opt, "int", "N", airTypeInt, 1, 1, &N, NULL, "an integer");
   opn++;
 
-  if (hestParse(opt, argc-1, argv+1, &err, NULL)) {
-    fprintf(stderr, "ERROR: %s\n", err); free(err);
+  if (hestParse(opt, argc - 1, argv + 1, &err, NULL)) {
+    fprintf(stderr, "ERROR: %s\n", err);
+    free(err);
     hestUsage(stderr, opt, argv[0], NULL);
     hestGlossary(stderr, opt, NULL);
     exit(1);
@@ -76,13 +68,13 @@ main(int argc, const char **argv) {
   printf("triple: %s %s %s\n", triple[0], triple[1], triple[2]);
   printf("maybe:  %s\n", maybe);
   printf("many(%d):", howMany);
-  for (i=0; i<=howMany-1; i++) {
+  for (i = 0; i <= howMany - 1; i++) {
     printf(" %s", many[i]);
   }
   printf("\n");
 
   printf("source(%s) = %d\n\n", opt[copi].flag, opt[copi].source);
-  for (opi=0; opi<opn; opi++) {
+  for (opi = 0; opi < opn; opi++) {
     printf("source(opt[%u]) = %d\n", opi, opt[opi].source);
   }
 

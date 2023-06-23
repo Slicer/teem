@@ -19,7 +19,6 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../hest.h"
 
 int
@@ -29,24 +28,22 @@ main(int argc, const char **argv) {
   int n;
   hestOpt *opt = NULL;
   hestParm *parm;
-  char *err = NULL, info[] =
-    "This program does nothing in particular, though it does attempt "
-    "to pose as some sort of command-line image processing program. "
-    "As usual, any implied functionality is purely coincidental, "
-    "especially since this is the output of a unicyclist.";
+  char *err = NULL,
+       info[] = "This program does nothing in particular, though it does attempt "
+                "to pose as some sort of command-line image processing program. "
+                "As usual, any implied functionality is purely coincidental, "
+                "especially since this is the output of a unicyclist.";
 
   parm = hestParmNew();
   parm->respFileEnable = AIR_TRUE;
 
   opt = NULL;
-  hestOptAdd(&opt, "res",   "sx sy", airTypeInt,    2,  2,  res,  NULL,
-             "image resolution");
-  hestOptAdd(&opt, "v",     "level", airTypeInt,    0,  1,  &v,   "0",
-             "verbosity level");
-  hestOptAdd(&opt, "out",   "file",  airTypeString, 1,  1,  &out, "output.ppm",
+  hestOptAdd(&opt, "res", "sx sy", airTypeInt, 2, 2, res, NULL, "image resolution");
+  hestOptAdd(&opt, "v", "level", airTypeInt, 0, 1, &v, "0", "verbosity level");
+  hestOptAdd(&opt, "out", "file", airTypeString, 1, 1, &out, "output.ppm",
              "PPM image output");
-  hestOptAdd(&opt, NULL,    "input", airTypeString, 1, -1,  &in,  NULL,
-             "input image file(s)", &numIn);
+  hestOptAdd(&opt, NULL, "input", airTypeString, 1, -1, &in, NULL, "input image file(s)",
+             &numIn);
 
   if (1 == argc) {
     /* didn't get anything at all on command line */
@@ -62,8 +59,9 @@ main(int argc, const char **argv) {
   }
 
   /* else we got something, see if we can parse it */
-  if (hestParse(opt, argc-1, argv+1, &err, parm)) {
-    fprintf(stderr, "ERROR: %s\n", err); free(err);
+  if (hestParse(opt, argc - 1, argv + 1, &err, parm)) {
+    fprintf(stderr, "ERROR: %s\n", err);
+    free(err);
     /* print usage information ... */
     hestUsage(stderr, opt, argv[0], parm);
     hestGlossary(stderr, opt, parm);
@@ -78,7 +76,7 @@ main(int argc, const char **argv) {
   printf("  v = %d\n", v);
   printf("out = \"%s\"\n", out);
   printf(" in = %d files:", numIn);
-  for (n=0; n<=numIn-1; n++) {
+  for (n = 0; n <= numIn - 1; n++) {
     printf(" \"%s\"", in[n]);
   }
   printf("\n");
