@@ -36,6 +36,7 @@ main(int argc, const char *argv[]) {
   const char *me;
   char *err;
   hestOpt *hopt = NULL;
+  hestParm *hparm;
   airArray *mop;
 
   char *outS;
@@ -44,6 +45,10 @@ main(int argc, const char *argv[]) {
   unsigned int srnd;
   double deltaT, mch, xch, alphabeta[2], time0, time1, deltaX, react, rrange;
   Nrrd *ninit = NULL, *nten = NULL, *nparm = NULL;
+
+  hparm = hestParmNew();
+  airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
+  hparm->respectDashDashHelp = AIR_TRUE;
 
   me = argv[0];
   hestOptAdd(&hopt, "s", "sx sy", airTypeInt, 2, 3, &size, "128 128",
@@ -103,7 +108,7 @@ main(int argc, const char *argv[]) {
                                  "multi-threading. "));
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
              "filename for output of final converged (two-channel) texture");
-  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, spotsInfo, AIR_TRUE, AIR_TRUE,
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, spotsInfo, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

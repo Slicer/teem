@@ -56,6 +56,7 @@ docontrast(double val, double cfp, double cpow) {
 int
 main(int argc, const char *argv[]) {
   hestOpt *hopt = NULL;
+  hestParm *hparm;
   Nrrd *nin, *nout, /* initial input and final output */
     *ninD,          /* input converted to double */
     *_nbg,          /* given background image (optional) */
@@ -74,6 +75,9 @@ main(int argc, const char *argv[]) {
 
   me = argv[0];
   mop = airMopNew();
+  hparm = hestParmNew();
+  airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
+  hparm->respectDashDashHelp = AIR_TRUE;
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
              "input nrrd to composite", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "c", "contrast", airTypeDouble, 1, 1, &contr, "0.0",
@@ -105,7 +109,7 @@ main(int argc, const char *argv[]) {
              nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, NULL,
              "file to write output PPM image to");
-  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, overInfo, AIR_TRUE, AIR_TRUE,
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, overInfo, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
