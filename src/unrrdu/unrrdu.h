@@ -87,7 +87,7 @@ UNRRDU_EXPORT const unrrduCmd *const unrrduCmdList[];
 UNRRDU_EXPORT int unrrduCmdMain(int argc, const char **argv, const char *cmd,
                                 const char *title, const unrrduCmd *const *cmdList,
                                 hestParm *hparm, FILE *fusage);
-UNRRDU_EXPORT void unrrduUsageUnu(const char *me, hestParm *hparm);
+UNRRDU_EXPORT void unrrduUsageUnu(const char *me, hestParm *hparm, int alsoHidden);
 UNRRDU_EXPORT int unrrduUsage(const char *me, hestParm *hparm, const char *title,
                               const unrrduCmd *const *cmdList);
 UNRRDU_EXPORT const hestCB unrrduHestPosCB;

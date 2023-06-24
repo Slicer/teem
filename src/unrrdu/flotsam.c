@@ -187,11 +187,11 @@ unrrduCmdMain(int argc, const char **argv, const char *cmd, const char *title,
 /*
 ******** unrrduUsageUnu
 **
-** prints out a little banner, and a listing of all available commands
-** with their one-line descriptions
+** prints out a little banner, and a listing of all available unu
+** commands with their one-line descriptions
 */
 void
-unrrduUsageUnu(const char *me, hestParm *hparm) {
+unrrduUsageUnu(const char *me, hestParm *hparm, int alsoHidden) {
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
   unsigned int cmdi, chi, len, maxlen;
 
@@ -204,12 +204,24 @@ unrrduUsageUnu(const char *me, hestParm *hparm) {
   len = AIR_UINT(strlen(buff));
   sprintf(fmt, "%%%us\n",
           (hparm->columns > len ? hparm->columns - len : 0) / 2 + len - 1);
-  fprintf(stdout, fmt, buff);
+  printf(fmt, buff);
+  if (alsoHidden) {
+    sprintf(buff, "(hidden commands have \" : \" in listing)");
+    len = AIR_UINT(strlen(buff));
+    sprintf(fmt, "%%%us\n",
+            (hparm->columns > len ? hparm->columns - len : 0) / 2 + len - 1);
+    printf(fmt, buff);
+  }
   for (cmdi = 0; unrrduCmdList[cmdi]; cmdi++) {
-    int nofft;
+    int nofft, hidden;
     if (unrrduCmdList[cmdi]->hidden) {
-      /* nothing to see here! */
-      continue;
+      if (!alsoHidden) {
+        /* nothing to see here! */
+        continue;
+      }
+      hidden = AIR_TRUE;
+    } else {
+      hidden = AIR_FALSE;
     }
     nofft = !strcmp(unrrduCmdList[cmdi]->name, "fft") && !nrrdFFTWEnabled;
     len = AIR_UINT(strlen(unrrduCmdList[cmdi]->name));
@@ -223,7 +235,11 @@ unrrduUsageUnu(const char *me, hestParm *hparm) {
     strcat(buff, me);
     strcat(buff, " ");
     strcat(buff, unrrduCmdList[cmdi]->name);
-    strcat(buff, " ... ");
+    if (!hidden) {
+      strcat(buff, " ... ");
+    } else {
+      strcat(buff, "  :  ");
+    }
     len = AIR_UINT(strlen(buff));
     fprintf(stdout, "%s", buff);
     if (nofft) {
