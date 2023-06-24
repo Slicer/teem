@@ -47,11 +47,17 @@ extern "C" {
       fprintf(stderr, "%s: %s\n", me, perr);                                            \
       free(perr);                                                                       \
       hestUsage(stderr, hopt, me, hparm);                                               \
+      fprintf(stderr, "\nFor more info: \"%s\" or \"%s ... --help\"\n", me, me);        \
       airMopError(mop);                                                                 \
       return 2;                                                                         \
     } else {                                                                            \
       exit(1);                                                                          \
     }                                                                                   \
+  } else if (hopt->helpWanted) {                                                        \
+    hestInfo(stdout, me, (INFO), hparm);                                                \
+    hestUsage(stdout, hopt, me, hparm);                                                 \
+    hestGlossary(stdout, hopt, hparm);                                                  \
+    return 0;                                                                           \
   }
 
 /*
