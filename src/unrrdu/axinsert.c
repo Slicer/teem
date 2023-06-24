@@ -67,8 +67,7 @@ unrrdu_axinsertMain(int argc, const char **argv, const char *me, hestParm *hparm
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_axinsertInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_axinsertInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

@@ -59,8 +59,7 @@ unrrdu_w2iMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOptAdd(&opt, NULL, "world", airTypeDouble, 1, 1, &pos, NULL,
              "the input world position, to be converted to index");
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
-  USAGE(_unrrdu_w2iInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_w2iInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   indx = NRRD_IDX(center, minPos, maxPos, size, pos);

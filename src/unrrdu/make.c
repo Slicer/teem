@@ -242,9 +242,8 @@ unrrdu_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
              "the same filename base as the header file.");
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_makeInfoL);
   airStrtokQuoting = AIR_TRUE;
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_makeInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
   encoding = nrrdEncodingArray[encodingType];
 

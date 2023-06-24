@@ -55,8 +55,7 @@ unrrdu_sselectMain(int argc, const char **argv, const char *me, hestParm *hparm)
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_sselectInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_sselectInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (!strcmp(outS[0], "x") && !strcmp(outS[1], "x")) {

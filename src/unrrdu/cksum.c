@@ -79,8 +79,7 @@ unrrdu_cksumMain(int argc, const char **argv, const char *me, hestParm *hparm) {
              &ninLen);
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_cksumInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_cksumInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   for (ni = 0; ni < ninLen; ni++) {

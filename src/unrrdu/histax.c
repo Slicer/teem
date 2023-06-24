@@ -79,8 +79,7 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_histaxInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_histaxInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   range = nrrdRangeNew(AIR_NAN, AIR_NAN);

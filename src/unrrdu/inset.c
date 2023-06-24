@@ -54,8 +54,7 @@ unrrdu_insetMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_insetInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_insetInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (!(minLen == nin->dim)) {

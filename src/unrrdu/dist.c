@@ -64,8 +64,7 @@ unrrdu_distMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_distInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_distInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

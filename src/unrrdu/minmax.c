@@ -106,8 +106,7 @@ unrrdu_minmaxMain(int argc, const char **argv, const char *me, hestParm *hparm) 
              &ninLen);
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_minmaxInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_minmaxInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   for (ni = 0; ni < ninLen; ni++) {

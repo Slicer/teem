@@ -52,8 +52,7 @@ unrrdu_axmergeMain(int argc, const char **argv, const char *me, hestParm *hparm)
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_axmergeInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_axmergeInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   airMopAdd(mop, nout[0] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);

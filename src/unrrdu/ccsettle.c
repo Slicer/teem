@@ -44,8 +44,7 @@ unrrdu_ccsettleMain(int argc, const char **argv, const char *me, hestParm *hparm
   OPT_ADD_NOUT(out, "output nrrd");
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_ccsettleInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_ccsettleInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

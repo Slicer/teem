@@ -81,8 +81,7 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me, hestParm *hparm)
   nio = nrrdIoStateNew();
   airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
 
-  USAGE(_unrrdu_basinfoInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_basinfoInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

@@ -59,8 +59,7 @@ unrrdu_diffMain(int argc, const char **argv, const char *me, hestParm *hparm) {
              "Compare data values only, excluding array meta-data");
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_diffInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_diffInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (nrrdCompare(ninA, ninB, onlyData, epsilon, &differ, explain)) {

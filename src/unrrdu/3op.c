@@ -91,8 +91,7 @@ unrrdu_3opMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_3opInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_3opInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

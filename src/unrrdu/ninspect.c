@@ -353,8 +353,7 @@ unrrdu_ninspectMain(int argc, const char **argv, const char *me, hestParm *hparm
   hestOptAdd(&opt, "o", "img out", airTypeString, 1, 1, &outS, NULL,
              "output image to save to.  Will try to use whatever "
              "format is implied by extension, but will fall back to PPM.");
-  USAGE(_unrrdu_infoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_infoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

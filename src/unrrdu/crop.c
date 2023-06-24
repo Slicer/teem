@@ -64,8 +64,7 @@ unrrdu_cropMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_cropInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_cropInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (!_nbounds) {

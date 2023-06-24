@@ -58,8 +58,7 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me, hestParm *hparm)
 
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
-  USAGE(_unrrdu_aabplotInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_aabplotInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (!(2 == _nin->dim || 1 == _nin->dim)) {

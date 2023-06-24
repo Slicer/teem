@@ -226,9 +226,9 @@ UNRRDU_MAP(UNRRDU_DECLARE)
 ** be treated as an erroneous invocation; unu about and unu env (which
 ** don't use this macro) had already been this way.
 */
-#define USAGE(info)                                                                     \
+#define USAGE(INFO)                                                                     \
   if (!argc) {                                                                          \
-    hestInfo(stdout, me, (info), hparm);                                                \
+    hestInfo(stdout, me, (INFO), hparm);                                                \
     hestUsage(stdout, opt, me, hparm);                                                  \
     hestGlossary(stdout, opt, hparm);                                                   \
     airMopError(mop);                                                                   \
@@ -258,7 +258,7 @@ if ( (hparm->respFileEnable && !argc) || \
 ** "quiet-quit" functionality is implemented; this is defensible
 ** because all unu commands use PARSE
 */
-#define PARSE()                                                                         \
+#define PARSE(INFO)                                                                     \
   if ((pret = hestParse(opt, argc, argv, &err, hparm))) {                               \
     if (1 == pret || 2 == pret) {                                                       \
       if (!(getenv(UNRRDU_QUIET_QUIT_ENV)                                               \
@@ -268,7 +268,8 @@ if ( (hparm->respFileEnable && !argc) || \
         hestUsage(stderr, opt, me, hparm);                                              \
         /* Its gotten too annoying to always get this glossary; */                      \
         /* unu <cmd> --help will print it. */                                           \
-        /* hestGlossary(stderr, *opt, hparm); */                                        \
+        /* hestGlossary(stderr, opt, hparm); */                                         \
+        fprintf(stderr, "\nFor more info: %s --help\n", me);                            \
       }                                                                                 \
       airMopError(mop);                                                                 \
       return 1;                                                                         \
@@ -276,7 +277,17 @@ if ( (hparm->respFileEnable && !argc) || \
       /* . . . like tears . . . in rain. Time . . . to die. */                          \
       exit(1);                                                                          \
     }                                                                                   \
+  } else if (opt->helpWanted) {                                                         \
+    hestInfo(stdout, me, (INFO), hparm);                                                \
+    hestUsage(stdout, opt, me, hparm);                                                  \
+    hestGlossary(stdout, opt, hparm);                                                   \
+    return 0;                                                                           \
   }
+
+/* For the (many) times that USAGE and PARSE are used together */
+#define USAGE_OR_PARSE(INFO)                                                            \
+  USAGE(INFO)                                                                           \
+  PARSE(INFO)
 
 #define SAVE(outS, nout, io)                                                            \
   if (nrrdSave((outS), (nout), (io))) {                                                 \

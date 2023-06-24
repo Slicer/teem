@@ -65,9 +65,7 @@ unrrdu_padMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_padInfoL);
-  /* hammerhead problems were here */
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_padInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (!(minLen == (int)nin->dim && maxLen == (int)nin->dim)) {

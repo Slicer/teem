@@ -287,8 +287,7 @@ unrrdu_undosMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
-  USAGE(_unrrdu_undosInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_undosInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   for (ni = 0; ni < lenName; ni++) {

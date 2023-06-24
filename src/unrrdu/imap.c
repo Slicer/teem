@@ -80,8 +80,7 @@ unrrdu_imapMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_imapInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_imapInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

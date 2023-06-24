@@ -59,8 +59,7 @@ unrrdu_unquantizeMain(int argc, const char **argv, const char *me, hestParm *hpa
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_unquantizeInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_unquantizeInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

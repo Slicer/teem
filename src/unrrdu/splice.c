@@ -55,8 +55,7 @@ unrrdu_spliceMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_spliceInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_spliceInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
   if (!(axis < nin->dim)) {
     fprintf(stderr, "%s: axis %u not in range [0,%u]\n", me, axis, nin->dim - 1);

@@ -371,8 +371,7 @@ unrrdu_uncmtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
-  USAGE(_unrrdu_uncmtInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_uncmtInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nosub = (2 == strlen(cmtSubst) && cmtSubst[0] == cmtSubst[1]);

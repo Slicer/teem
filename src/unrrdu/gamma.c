@@ -62,8 +62,7 @@ unrrdu_gammaMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_gammaInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_gammaInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (!strcmp(GammaS, "srgb")) {

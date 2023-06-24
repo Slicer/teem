@@ -113,11 +113,10 @@ unrrdu_fftMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   if (nrrdFFTWEnabled) {
-    USAGE(_unrrdu_fftInfoL_yes);
+    USAGE_OR_PARSE(_unrrdu_fftInfoL_yes);
   } else {
-    USAGE(_unrrdu_fftInfoL_no);
+    USAGE_OR_PARSE(_unrrdu_fftInfoL_no);
   }
-  PARSE();
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
