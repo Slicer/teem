@@ -21,10 +21,16 @@
 
 #include <teem/ten.h>
 
+/* to learn # columns */
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+
 #define TEND "tend"
 
 int
 main(int argc, const char **argv) {
+  struct winsize wsz;
   int i, ret;
   const char *me;
   char *argv0 = NULL;
@@ -51,8 +57,21 @@ main(int argc, const char **argv) {
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
   hparm->elideMultipleEmptyStringDefault = AIR_TRUE;
+  /* so that we look for, and know how to handle, seeing "--help" */
+  hparm->respectDashDashHelp = AIR_TRUE;
   hparm->cleverPluralizeOtherY = AIR_TRUE;
-  hparm->columns = 78;
+  /* (following ~copied from unu.c) */
+  /* Try to dynamically learn number of columns. Learning the terminal size will probably
+     work if stdout is the terminal, but not if we're piping elsewhere (as is common with
+     unu), Then try stderr, or else use an old reliable number */
+  if (-1 != ioctl(STDOUT_FILENO, TIOCGWINSZ, &wsz)) {
+    hparm->columns = wsz.ws_col - 2;
+  } else if (-1 != ioctl(STDERR_FILENO, TIOCGWINSZ, &wsz)) {
+    hparm->columns = wsz.ws_col - 2;
+  } else {
+    /* old default */
+    hparm->columns = 78;
+  }
 
   /* if there are no arguments, then we give general usage information */
   if (1 >= argc) {
@@ -69,9 +88,14 @@ main(int argc, const char **argv) {
   }
   /* else, we should see if they're asking for a command we know about */
   for (i = 0; tendCmdList[i]; i++) {
-    if (!strcmp(argv[1], tendCmdList[i]->name)) break;
-    if (!strcmp("--help", argv[1]) && !strcmp("about", tendCmdList[i]->name)) {
+    if (!strcmp(argv[1], tendCmdList[i]->name)) {
       break;
+    }
+    if (!strcmp("about", tendCmdList[i]->name)) {
+      /* we interpret "tend help" and "tend --help" as asking for "tend about" */
+      if (!strcmp("--help", argv[1]) || !strcmp("help", argv[1])) {
+        break;
+      }
     }
   }
   if (tendCmdList[i]) {
