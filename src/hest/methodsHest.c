@@ -52,9 +52,22 @@ hestParmNew() {
        abstaining from added yet another default global variable */
     parm->dieLessVerbose = AIR_FALSE;
     parm->noBlankLineBeforeUsage = AIR_FALSE;
-    /* defaults to true because widespread conventions say --help should
-       mean something e.g. https://clig.dev/#help */
-    parm->respectDashDashHelp = AIR_TRUE;
+    /* It would be really nice for parm->respectDashDashHelp to default to true:
+    widespread conventions say what "--help" should mean e.g. https://clig.dev/#help
+    HOWEVER, the problem is with how hestParse is called and how the return
+    is interpreted as a boolean:
+    - zero has meant that hestParse could set values for all the options (either
+      from the command-line or from supplied defaults), and
+    - non-zero has meant that there was an error parsing the command-line arguments
+    But seeing and recognizing "--help" means that options have NOT had values
+    set, and, that's not an error, which is outside that binary.  But that binary
+    is the precedent, so we have to work with it by default.
+    Now, with parm->respectDashDashHelp, upon seeing "--help", hestParse returns 0,
+    and sets helpWanted in the first hestOpt, and the caller will have to know
+    to check for that.  This logic is handled by hestParseOrDie, but maybe in
+    the future there can be a different top-level parser function that turns on
+    parm->respectDashDashHelp and knows how to check the results */
+    parm->respectDashDashHelp = AIR_FALSE;
   }
   return parm;
 }
