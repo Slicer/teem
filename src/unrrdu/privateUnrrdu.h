@@ -269,7 +269,7 @@ if ( (hparm->respFileEnable && !argc) || \
         /* Its gotten too annoying to always get this glossary; */                      \
         /* unu <cmd> --help will print it. */                                           \
         /* hestGlossary(stderr, opt, hparm); */                                         \
-        fprintf(stderr, "\nFor more info: %s --help\n", me);                            \
+        fprintf(stderr, "\nFor more info: \"%s\" or \"%s ... --help\"\n", me, me);      \
       }                                                                                 \
       airMopError(mop);                                                                 \
       return 1;                                                                         \
