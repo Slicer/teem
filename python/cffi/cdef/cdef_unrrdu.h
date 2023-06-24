@@ -62,7 +62,7 @@ extern const unrrduCmd *const unrrduCmdList[];
 extern int unrrduCmdMain(int argc, const char **argv, const char *cmd,
                                 const char *title, const unrrduCmd *const *cmdList,
                                 hestParm *hparm, FILE *fusage);
-extern void unrrduUsageUnu(const char *me, hestParm *hparm);
+extern void unrrduUsageUnu(const char *me, hestParm *hparm, int alsoHidden);
 extern int unrrduUsage(const char *me, hestParm *hparm, const char *title,
                               const unrrduCmd *const *cmdList);
 extern const hestCB unrrduHestPosCB;
