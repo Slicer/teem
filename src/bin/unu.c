@@ -83,9 +83,10 @@ main(int argc, const char **argv) {
   }
   hparm->greedySingleString = AIR_TRUE;
 
-  /* if there are no arguments, then we give general usage information */
+  /* if there are no arguments, or "unu list" (or "unu all" shhh), then we give general
+  usage information */
   listAll = (2 == argc && !strcmp("all", argv[1]));
-  if (1 >= argc || listAll) {
+  if (1 >= argc || listAll || (2 == argc && !strcmp("list", argv[1]))) {
     unrrduUsageUnu("unu", hparm, listAll /* alsoHidden */);
     airMopError(mop);
     exit(1);
