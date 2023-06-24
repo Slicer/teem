@@ -31,7 +31,7 @@
 int
 main(int argc, const char **argv) {
   struct winsize wsz;
-  int i, ret;
+  int i, ret, listAll;
   const char *me;
   char *argv0 = NULL;
   hestParm *hparm;
@@ -69,6 +69,8 @@ main(int argc, const char **argv) {
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
   hparm->elideMultipleEmptyStringDefault = AIR_TRUE;
+  /* so that we look for, and know how to handle, seeing "--help" */
+  hparm->respectDashDashHelp = AIR_TRUE;
   /* Try to dynamically learn number of columns. Learning the terminal size will probably
      work if stdout is the terminal, but not if we're piping elsewhere (as is common with
      unu), Then try stderr, or else use unrrduDefNumColumns */
@@ -82,12 +84,13 @@ main(int argc, const char **argv) {
   hparm->greedySingleString = AIR_TRUE;
 
   /* if there are no arguments, then we give general usage information */
-  if (1 >= argc) {
-    unrrduUsageUnu("unu", hparm);
+  listAll = (2 == argc && !strcmp("all", argv[1]));
+  if (1 >= argc || listAll) {
+    unrrduUsageUnu("unu", hparm, listAll /* alsoHidden */);
     airMopError(mop);
     exit(1);
   }
-  /* else, we see if its --version */
+  /* else, we see if its unu --version */
   if (!strcmp("--version", argv[1])) {
     char vbuff[AIR_STRLEN_LARGE];
     airTeemVersionSprint(vbuff);
@@ -100,7 +103,7 @@ main(int argc, const char **argv) {
       break;
     }
     if (!strcmp("about", unrrduCmdList[i]->name)) {
-      /* we interpret "help" and "--help" as asking for "about" */
+      /* we interpret "unu help" and "unu --help" as asking for "unu about" */
       if (!strcmp("--help", argv[1]) || !strcmp("help", argv[1])) {
         break;
       }
