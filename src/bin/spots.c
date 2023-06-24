@@ -46,6 +46,7 @@ main(int argc, const char *argv[]) {
   double deltaT, mch, xch, alphabeta[2], time0, time1, deltaX, react, rrange;
   Nrrd *ninit = NULL, *nten = NULL, *nparm = NULL;
 
+  mop = airMopNew();
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hparm->respectDashDashHelp = AIR_TRUE;
@@ -110,7 +111,6 @@ main(int argc, const char *argv[]) {
              "filename for output of final converged (two-channel) texture");
   hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, spotsInfo, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
-  mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
