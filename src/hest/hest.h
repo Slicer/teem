@@ -126,9 +126,15 @@ typedef struct {
 
   /* --------------------- Output */
 
-  int source; /* from the hestSource* enum; from whence was this information learned,
-                 else hestSourceUnknown if not */
-
+  int source;     /* from the hestSource* enum; from whence was this information learned,
+                     else hestSourceUnknown if not */
+  int helpWanted; /* hestParse() saw something (like "--help") in one of the given
+                     arguments that looks like a call for help (and respectDashDashHelp
+                     is set in the hestParm), so it recorded that here. There is
+                     unfortunately no other top-level output container for info generated
+                     by hestParse(), so this field is going to be set only in the *first*
+                     hestOpt passed to hestParse(), even though that hestOpt has no
+                     particular relation to where hestParse() saw the call for help. */
 } hestOpt;
 
 /*
@@ -154,6 +160,9 @@ typedef struct {
     elideSingleEmptyStringDefault, /* if default for a single string is empty
                                       (""), then don't display default */
     elideMultipleEmptyStringDefault,
+    respectDashDashHelp,   /* hestParse interprets seeing "--help" as not an
+                              error, but as a request to print usage info,
+                              so sets helpWanted in the (first) hestOpt */
     noArgsIsNoProblem,     /* if non-zero, having no arguments to parse is not in and
                               of itself a problem; this means that if all options have
                               defaults, it would be *ok* to invoke the problem without

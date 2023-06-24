@@ -1,4 +1,5 @@
-Add some way of enabling --help as a way to generate usage info
+prevent --help from being a command-line option,
+so as to preserve its special handling.
 
 How is it that, once the command-line has been parsed, there isn't an
 easy way to see (or print, for an error message) the parameter (or

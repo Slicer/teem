@@ -98,12 +98,14 @@ printArgv(int argc, char **argv, const char *pfx) {
 copyArgv()
 
 Copies given oldArgv to newArgv, including (if they are enabled) injecting the contents
-of response files.  BUT: this stops upon seeing "--". Allocations of the strings in
-newArgv are remembered (to be airFree'd later) in the given pmop Returns the number of
-args set in newArgv
+of response files.  BUT: this stops upon seeing "--", or upon seeing "--help" if
+parm->respectDashDashHelp. Allocations of the strings in newArgv are remembered (to be
+airFree'd later) in the given pmop. Returns the number of args set in newArgv, and sets
+sawStop or sawHelp if saw "--" or "--help", respectively.
 */
 static int
-copyArgv(char **newArgv, const char **oldArgv, const hestParm *parm, airArray *pmop) {
+copyArgv(int *sawStop, int *sawHelp, char **newArgv, const char **oldArgv,
+         const hestParm *parm, airArray *pmop) {
   static const char me[] = "copyArgv";
   char line[AIR_STRLEN_HUGE], *pound, stops[3];
   int len, newArgc, oldArgc, incr, ai;
@@ -113,8 +115,17 @@ copyArgv(char **newArgv, const char **oldArgv, const hestParm *parm, airArray *p
   stops[1] = parm->varParamStopFlag;
   stops[2] = '\0';
   newArgc = oldArgc = 0;
-  while (oldArgv[oldArgc] && strcmp(stops, oldArgv[oldArgc])) {
-    /* we only look at args that aren't "--" */
+  *sawStop = *sawHelp = AIR_FALSE;
+  while (oldArgv[oldArgc]) {
+    if (!strcmp(stops, oldArgv[oldArgc])) {
+      *sawStop = AIR_TRUE;
+      break;
+    }
+    if (parm->respectDashDashHelp && !strcmp("--help", oldArgv[oldArgc])) {
+      *sawHelp = AIR_TRUE;
+      break;
+    }
+    /* else not a show-stopper argument */
     if (parm->verbosity) {
       printf("!%s:________ newArgc = %d, oldArgc = %d -> \"%s\"\n", me, newArgc, oldArgc,
              oldArgv[oldArgc]);
@@ -1175,8 +1186,6 @@ _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *
       break;
     case 5:
       /* -------- multiple optional parameters -------- */
-      /* hammerhead problems in this case;
-         may have been from calloc(0), fixed below */
       if (prms[op] && vP) {
         if (1 == whichCase(opt, udflt, nprm, appr, op)) {
           *((void **)vP) = NULL;
@@ -1222,7 +1231,14 @@ _hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *
             opt[op].alloc = (opt[op].CB->destroy ? 3 : 1);
             for (p = 0; p < (int)nprm[op]; p++) { /* HEY scrutinize casts */
               tok = airStrtok(!p ? prmsCopy : NULL, " ", &last);
-              /* hammerhead problems went away when this line
+              /* (Note from 2023-06-24: "hammerhead" was hammerhead.ucsd.edu, an Intel
+              Itanium ("IA-64") machine that GLK had access to in 2003, presumably with
+              an Intel compiler, providing a different debugging opportunity for this
+              code. Revision r1985 from 2003-12-20 documented some issues discovered, in
+              comments like the one below. Valgrind has hopefully resolved these issues
+              now, but the comment below is preserved out of respect for the goals of
+              Itanium, and nostalgia for that time at the end of grad school.)
+                 hammerhead problems went away when this line
                  was replaced by the following one:
                  strcpy(cberr, "");
               */
@@ -1304,7 +1320,8 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   static const char me[] = "hestParse: ";
   char *param, *param_copy;
   char **argv, **prms, *err;
-  int a, argc, argc_used, argr, *appr, *udflt, nrf, numOpts, big, ret, i;
+  int a, argc, argc_used, argr, *appr, *udflt, nrf, numOpts, big, ret, i, sawStop,
+    sawHelp;
   unsigned int *nprm;
   airArray *mop;
   hestParm *parm;
@@ -1387,16 +1404,31 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
 
   /* -------- process response files (if any) and set the remaining
      elements of argv */
+  opt->helpWanted = AIR_FALSE;
   if (PARM->verbosity) printf("%s: #### calling copyArgv\n", me);
-  argc_used = copyArgv(argv, _argv, PARM, mop);
-  if (PARM->verbosity)
-    printf("%s: #### copyArgv done (%d args copied)!\n", me, argc_used);
+  argc_used = copyArgv(&sawStop, &sawHelp, argv, _argv, PARM, mop);
+  if (PARM->verbosity) {
+    printf("%s: #### copyArgv done (%d args copied; sawStop=%d sawHelp=%d)\n", me,
+           argc_used, sawStop, sawHelp);
+  }
+  if (sawHelp) {
+    /* saw "--help", which is not error, but is a show-stopper */
+    opt->helpWanted = AIR_TRUE;
+    /* this functionality has been grafted onto this code, 20 years after it was first
+       written. Until it is more completely re-written, a goto does the job */
+    goto parseEnd;
+  }
+  /* else !sawHelp; do sanity check on argc_used, argc, sawStop */
+  if (argc_used < argc && !sawStop) {
+    sprintf(err, "%sargc_used %d < argc %d but didn't see -%c? sorry, confused", ME,
+            argc_used, argc, parm->varParamStopFlag);
+    airMopError(mop);
+    return 1;
+  }
 
   /* -------- extract flags and their associated parameters from argv */
   if (PARM->verbosity) printf("%s: #### calling extractFlagged\n", me);
-  /* currently the only reason argc_used < argc is if we hit "--" or the equivalent */
-  if (extractFlagged(prms, nprm, appr, &argc_used, argv, opt, err, argc_used < argc,
-                     PARM, mop)) {
+  if (extractFlagged(prms, nprm, appr, &argc_used, argv, opt, err, sawStop, PARM, mop)) {
     airMopError(mop);
     return 1;
   }
@@ -1448,7 +1480,6 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   }
 
   /* -------- now, the actual parsing of values */
-  /* hammerhead problems in _hestSetValues */
   if (PARM->verbosity) printf("%s: #### calling hestSetValues\n", me);
   ret = _hestSetValues(prms, udflt, nprm, appr, opt, err, PARM, mop);
   if (ret) {
@@ -1459,6 +1490,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   if (PARM->verbosity) printf("%s: #### hestSetValues done!\n", me);
 #undef PARM
 
+parseEnd:
   airMopOkay(mop);
   return 0;
 }
@@ -1538,8 +1570,9 @@ hestParseFree(hestOpt *opt) {
 }
 
 /*
-******** hestParseOrDie()
-**
+hestParseOrDie()
+
+Pre-June 2023 account:
 ** dumb little function which encapsulate a common usage of hest:
 ** first, make sure hestOpt is valid with hestOptCheck().  Then,
 ** if argc is 0 (and !parm->noArgsIsNoProblem): maybe show
@@ -1547,64 +1580,107 @@ hestParseFree(hestOpt *opt) {
 ** if parsing failed: show error message, and maybe usage and glossary,
 **    again according to boolean flags, then exit(1)
 ** if parsing succeeded: return
+
+In June 2023 this function was completely re-written, but the description above should
+still be true, if not the whole truth.  Long prior to re-write, "--version" and "--help"
+had been usefully responded to as the sole argument, but only after a hestParse error
+(which then sometimes leaked memory by not freeing errS). Now these are checked for prior
+to calling hestParse, and (with parm->respectDashDashHelp), "--help" is recognized
+anywhere in the command-line.
 */
 void
 hestParseOrDie(hestOpt *opt, int argc, const char **argv, hestParm *parm, const char *me,
                const char *info, int doInfo, int doUsage, int doGlossary) {
-  int E, argcBad, wantHelp = AIR_FALSE;
-  char *errS;
+  int argcWanting, parseErr, wantHelp;
+  char *errS = NULL;
 
-  if (opt) {
-    if (hestOptCheck(opt, &errS)) {
-      fprintf(stderr, "ERROR in hest usage:\n%s\n", errS);
-      free(errS);
-      exit(1);
-    }
-    E = 0;
-    /* argc is good if its non-zero, or (else) being zero is ok */
-    argcBad = !(argc || (parm && parm->noArgsIsNoProblem));
-    if (argcBad || (E = hestParse(opt, argc, argv, &errS, parm))) {
-      if (E) {
-        if (argv[0] && !strcmp(argv[0], "--version")) {
-          /* print version info and bail */
-          char vbuff[AIR_STRLEN_LARGE];
-          airTeemVersionSprint(vbuff);
-          printf("%s\n", vbuff);
-          hestParmFree(parm);
-          hestOptFree(opt);
-          exit(0);
-        } else if (argv[0] && !strcmp(argv[0], "--help")) {
-          /* actually, not an error, they were asking for help */
-          wantHelp = AIR_TRUE;
-          E = 0;
-        } else {
-          fprintf(stderr, "ERROR: %s\n", errS);
-        }
-        free(errS);
-      }
-      if (parm && parm->dieLessVerbose) {
-        /* newer logic for when to print which things */
-        if (wantHelp && info) hestInfo(stdout, me ? me : "", info, parm);
-        if (doUsage) hestUsage(E ? stderr : stdout, opt, me ? me : "", parm);
-        if (wantHelp && doGlossary) {
-          hestGlossary(E ? stderr : stdout, opt, parm);
-        } else if ((!argc || E) && me) {
-          printf("\"%s --help\" for more information\n", me);
-        }
-      } else {
-        /* leave older (pre-dieLessVerbose) logic as is */
-        if (!E) {
-          /* no error, just !argc */
-          if (doInfo && info) hestInfo(stdout, me ? me : "", info, parm);
-        }
-        if (doUsage) hestUsage(E ? stderr : stdout, opt, me ? me : "", parm);
-        if (doGlossary) hestGlossary(E ? stderr : stdout, opt, parm);
-      }
-      hestParmFree(parm);
-      hestOptFree(opt);
-      exit(1);
-    }
+  if (!(opt && argv)) {
+    /* nothing to do given NULL pointers.  Since this function was first written, this
+    condition (well actually just !opt) led to a plain return, which is what we do here,
+    but it probably would be better to have an error message and exit, like below. */
+    return;
   }
 
-  return;
+  if (hestOptCheck(opt, &errS)) {
+    fprintf(stderr, "ERROR in hest usage:\n%s\n", errS);
+    free(errS);
+    /* exit, not return, since there's practically no recovery possible: hestOpts are
+    effectively set up at compile time, even with the ubiquity of hestOptAdd. The caller
+    is not going to be in a position to overcome the errors detected here, at runtime. */
+    exit(1);
+  }
+
+  /* Pre-June 2023 these two check were done only after a hestParse error;
+  why not check first? */
+  if (argv[0] && !strcmp(argv[0], "--version")) {
+    /* print version info and bail */
+    char vbuff[AIR_STRLEN_LARGE];
+    airTeemVersionSprint(vbuff);
+    printf("%s\n", vbuff);
+    hestParmFree(parm);
+    hestOptFree(opt);
+    exit(0);
+  }
+  if (argv[0] && !strcmp(argv[0], "--help")) {
+    /* actually, not an error, --help was the first argument; does NOT depend on
+    parm->respectDashDashHelp */
+    argcWanting = AIR_FALSE;
+    parseErr = 0;
+    wantHelp = AIR_TRUE;
+  } else {
+    /* we call hestParse if there are args, or (else) having no args is ok */
+    if (argc || (parm && parm->noArgsIsNoProblem)) {
+      argcWanting = AIR_FALSE;
+      parseErr = hestParse(opt, argc, argv, &errS, parm);
+      wantHelp = opt->helpWanted;
+      if (wantHelp && parseErr) {
+        /* should not happen at the same time */
+        fprintf(stderr, "PANIC: hestParse both saw --help and had error:\n%s\n", errS);
+        free(errS);
+        exit(1);
+      }
+      /* at most one of wantHelp and parseErr is true */
+    } else {
+      /* the empty command-line is an implicit call for help */
+      argcWanting = AIR_TRUE;
+      parseErr = 0;
+      /* subtle difference between argcWanting and wantHelp is for maintaining
+      functionality of pre-June 2023 code */
+      wantHelp = AIR_FALSE;
+    }
+  }
+  if (!argcWanting && !wantHelp && !parseErr) {
+    /* no help needed or wanted, and (if done) parsing was successful
+    great; return to caller */
+    return;
+  }
+
+  /* whether by argcWanting or wantHelp or parseErr, from here on out we are not
+  returning to caller */
+  if (parseErr) {
+    fprintf(stderr, "ERROR parsing command-line: %s\n", errS);
+    airFree(errS);
+    /* but no return or exit; there's more to say */
+  }
+  if (parm && parm->dieLessVerbose) {
+    /* newer logic for when to print which things */
+    if (wantHelp && info) hestInfo(stdout, me ? me : "", info, parm);
+    if (doUsage) hestUsage(parseErr ? stderr : stdout, opt, me ? me : "", parm);
+    if (wantHelp && doGlossary) {
+      hestGlossary(parseErr ? stderr : stdout, opt, parm);
+    } else if ((!argc || parseErr) && me) {
+      printf("\"%s --help\" for more information\n", me);
+    }
+  } else {
+    /* leave older (pre-dieLessVerbose) logic as is */
+    if (!parseErr) {
+      /* no error, just !argc */
+      if (doInfo && info) hestInfo(stdout, me ? me : "", info, parm);
+    }
+    if (doUsage) hestUsage(parseErr ? stderr : stdout, opt, me ? me : "", parm);
+    if (doGlossary) hestGlossary(parseErr ? stderr : stdout, opt, parm);
+  }
+  hestParmFree(parm);
+  hestOptFree(opt);
+  exit(!!parseErr);
 }

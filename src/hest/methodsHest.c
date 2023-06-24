@@ -52,6 +52,9 @@ hestParmNew() {
        abstaining from added yet another default global variable */
     parm->dieLessVerbose = AIR_FALSE;
     parm->noBlankLineBeforeUsage = AIR_FALSE;
+    /* defaults to true because widespread conventions say --help should
+       mean something e.g. https://clig.dev/#help */
+    parm->respectDashDashHelp = AIR_TRUE;
   }
   return parm;
 }
@@ -78,6 +81,7 @@ _hestOptInit(hestOpt *opt) {
   opt->sawP = NULL;
   opt->kind = opt->alloc = 0;
   opt->source = hestSourceUnknown;
+  opt->helpWanted = AIR_FALSE;
 }
 
 /*
