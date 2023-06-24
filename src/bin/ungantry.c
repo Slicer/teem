@@ -51,6 +51,7 @@ main(int argc, const char *argv[]) {
   me = argv[0];
   hparm = hestParmNew();
   hparm->elideSingleOtherType = AIR_TRUE;
+  hparm->respectDashDashHelp = AIR_TRUE;
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
              "input volume, in nrrd format", NULL, NULL, nrrdHestNrrd);

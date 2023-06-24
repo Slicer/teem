@@ -64,6 +64,7 @@ main(int argc, const char **argv) {
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
   hparm->elideMultipleEmptyStringDefault = AIR_TRUE;
   hparm->cleverPluralizeOtherY = AIR_TRUE;
+  hparm->respectDashDashHelp = AIR_TRUE;
   hparm->columns = 78;
 
   /* if there are no arguments, then we give general usage information */

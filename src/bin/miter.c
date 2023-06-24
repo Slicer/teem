@@ -51,6 +51,7 @@ main(int argc, const char *argv[]) {
   muu = miteUserNew();
   airMopAdd(mop, muu, (airMopper)miteUserNix, airMopAlways);
 
+  hparm->respectDashDashHelp = AIR_TRUE;
   hparm->respFileEnable = AIR_TRUE;
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hestOptAdd(&hopt, "i", "nsin", airTypeOther, 1, 1, &(muu->nsin), "",

@@ -744,6 +744,7 @@ main(int argc, const char **argv) {
   airMopAdd(mop, nPosOut, (airMopper)nrrdNuke, airMopAlways);
 
   hparm->respFileEnable = AIR_TRUE;
+  hparm->respectDashDashHelp = AIR_TRUE;
   me = argv[0];
 
 #ifdef DEFT

@@ -454,10 +454,10 @@ main(int argc, const char *argv[]) {
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();
-  hparm->respFileEnable = AIR_TRUE;
-  uu = mrendUserNew();
-
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
+  hparm->respFileEnable = AIR_TRUE;
+  hparm->respectDashDashHelp = AIR_TRUE;
+  uu = mrendUserNew();
   airMopAdd(mop, uu, (airMopper)mrendUserNix, airMopAlways);
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(uu->nin), NULL,

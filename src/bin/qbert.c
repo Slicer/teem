@@ -586,6 +586,7 @@ main(int argc, const char *argv[]) {
   hparm->elideSingleOtherType = AIR_TRUE;
   hparm->elideSingleNonExistFloatDefault = AIR_TRUE;
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
+  hparm->respectDashDashHelp = AIR_TRUE;
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
              "input volume, in nrrd format", NULL, NULL, nrrdHestNrrd);

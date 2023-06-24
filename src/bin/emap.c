@@ -56,6 +56,7 @@ main(int argc, const char *argv[]) {
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
+  hparm->respectDashDashHelp = AIR_TRUE;
   cam = limnCameraNew();
   airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
   hestOptAdd(&hopt, "i", "nlight", airTypeOther, 1, 1, &nlight, NULL,

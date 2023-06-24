@@ -271,6 +271,7 @@ main(int argc, const char *argv[]) {
   hparm = hestParmNew();
   airMopAdd(mop, hparm, AIR_CAST(airMopper, hestParmFree), airMopAlways);
   hparm->elideSingleOtherType = AIR_TRUE;
+  hparm->respectDashDashHelp = AIR_TRUE;
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL, "input volume", NULL,
              NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
