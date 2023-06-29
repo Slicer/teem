@@ -1,25 +1,4 @@
-** Compared to what's in HELP.txt, these are more generally more
-** fine-grained and nit-picky; some of them are only sensibly done by
-** GLK.  The things listed for Teem 2.0 involve significant API
-** changes, or significantly thoughtful redesign of how functional
-** components of Teem are implemented.
-
-revisit ctypes with new ctypeslib2:
-  https://github.com/trolldbois/ctypeslib
-  https://pypi.org/project/ctypeslib2/
-to make new python wrappers
-  didthis:
-  sudo -H pip install --upgrade pip
-  sudo -H pip install clang
-  sudo pip install ctypeslib2
-working from https://github.com/kindlmann/Eglib.jl.git
-in /Users/gk/julia/Eglib.jl/eglib
-based on https://github.com/jessevdk/cldoc/issues/87
-did in /usr/local/lib: ln -s /Library/Developer/CommandLineTools/usr/lib/libclang.dylib .
-and that worked!
-
-
-Figure out what is going on with parsing spaces in hest:
+******* Figure out what is going on with parsing spaces in hest:
 this doesn't work:
   unu basinfo -i tmp.nrrd -kv space:=RGB "novalue:=0.3 0 0" -o tmp2.nrrd
 and instead it sees:
@@ -27,8 +6,23 @@ and instead it sees:
   !unu basinfo: kvpstring[1/2] = |"novalue:=0.3|
 where the hell is the " coming from?
 
+(Actually maybe ctypes is not important, now that the CFFI stuff is solid with exult.py)
+   revisit ctypes with new ctypeslib2:
+     https://github.com/trolldbois/ctypeslib
+     https://pypi.org/project/ctypeslib2/
+   to make new python wrappers
+     didthis:
+     sudo -H pip install --upgrade pip
+     sudo -H pip install clang
+     sudo pip install ctypeslib2
+   working from https://github.com/kindlmann/Eglib.jl.git
+   in /Users/gk/julia/Eglib.jl/eglib
+   based on https://github.com/jessevdk/cldoc/issues/87
+   did in /usr/local/lib: ln -s /Library/Developer/CommandLineTools/usr/lib/libclang.dylib .
+   and that worked!
+
 ========
-for Teem 2.0:
+more significant (API-changing) changes:
 
 decide on a uniform way of indicating if a given external is available
 (e.g. airThreadCapable vs nrrdFFTWEnabled vs #if TEEM_LEVMAR: not uniform).
@@ -42,9 +36,6 @@ its annoying to have two totally different kinds of Teem installs,
 especially when it means that it would mean two different python
 wrappings.
 
-Consider inserting SVN revision numbers in code itself:
-http://addisu.taddese.com/blog/inserting-svn-revision-number-in-your-cc-code/
-
 Consider extending const-correctness of function input not just to
 pointers, but to all values as well.
 
@@ -53,8 +44,6 @@ all:
   investigate application of Herbie http://herbie.uwplse.org
   http://herbie.uwplse.org/pldi15.html
   (section 3 covers mundane quadratic formula)
-* remove '_'s from enum value names in non-elf non-tijk libraries
-* decide if <LIB>_EXPORT should just be TEEM_EXPORT
 * enforce consistent use of AIR_CALLOC/AIR_MALLOC
 * decide consistent API of Copy() functions, or if consistency is needed, eg:
   nrrdCopy() vs gageContextCopy()
@@ -76,17 +65,17 @@ air:
   place to handle setlocale weirness.  However, the "Single"
   restriction is too cumbersome.
 * consider nixing AIR_ENDIAN, AIR_QNANHIBIT, and AIR_DIO
-* Hey, what does airSinglePrintf do with the common "%.17g" for a double?
+******* Hey, what does airSinglePrintf do with the common "%.17g" for a double?
   It seems to not have the smarts to see that it is fact for a double.
 * airArray->len should probably be size_t, not unsigned int. Along with
 this is biffMsgErrNum and nrrdKeyValueSize.
 * consider changing airIndexULL and airIndexClampULL to work with
 size_t instead of unsigned long long, or at least adding versions that
 work with size_t
-* either change AIR_STRLEN_* to AIR_BUFFSIZE_* (or something similar,
+******* either change AIR_STRLEN_* to AIR_BUFFSIZE_* (or something similar,
 or take out the +1 from their definition and it into usage: the
 STRLEN is misleading as is.
-* consider terminating airEnum->strEqv with NULL (just like argv)
+******* consider terminating airEnum->strEqv with NULL (just like argv)
 instead of with empty string ""
 * make airOneLine return number of bytes read; current return
   of string length is entirely redundant with return of strlen()
@@ -104,8 +93,6 @@ and then how do you know which functions should take it?
 
 hest:
 * consider renaming hestParmFree --> hestParmNix
-* all the hest defaults (hestVerbosity, hestRespFileEnable), etc,
-should start with hestDef, not just hest
 * air/hest: remove the airType* enum. The following sort of code looks
 correct but is completely wrong
   if (nrrdAlloc(nout, airTypeFloat, 3, size[0], size[1], size[2])) { ...
@@ -119,12 +106,12 @@ command line, and its an error if no data is found.  Not having
 optional parameters is why things like "unu make" learn centerings via
 strings: the string can be given or not, and if its given, then the
 information is used.
-* There's no way to access the string that was parsed to get the
+******* There's no way to access the string that was parsed to get the
 information for an option (could be from default, or command-line,
 or response file)
-* (from tendGlyph.c): there needs to be an alternative API for hest
+******* (from tendGlyph.c): there needs to be an alternative API for hest
 that is not var-args based (as is hestOptAdd). You can't tell when
-you've based multiple strings for the detailed usage information by
+you've passed multiple strings for the detailed usage information by
 accident.  GLK had accidentally inserted a comma into my multi-line
 string for the "info" arg, relying on the automatic string
 concatenation, and ended up passing total garbage to hestOptAdd for
@@ -136,7 +123,7 @@ biff:
 so that it matches biffMovef
 * rename biffCheck --> biffErrNum
 * consider biffGetStrlen --> biffStrlenGet, biffSetStr --> biffStrSet
-* a few biff functions are never used in Teem, is that ok?
+******* a few biff functions are never used in Teem, is that ok?
 
 nrrd:
 * allow the API for median filtering to be more flexible about boundaries
@@ -164,23 +151,22 @@ nrrd:
   just like nrrdDefaultWriteCharsPerLine and nrrdDefaultWriteValsPerLine)
   and argument to nrrdIoStateSet.
 * with NrrdKernel:
- - debug apparent precision problems worked-around in nrrdKernelCheck
  - add fields for "what is my derivative" or "what is my integral", but
-   how to do that at compile time?
- - add field for "parm[0] controls the scaling that the old resampling code
+   how to do both at compile time?  Can have kernels K' prior to kernel K,
+   so K knows its derivative is K' but not also other way around
+*******- add field for "parm[0] controls the scaling that the old resampling code
    (e.g. unu resample) has always assumed" vs "parm[0] isn't used".  The
    assumption by the resampling code that all kernels use parm[0] was a big
    longstanding bug; "bspln3" doesn't work that way
- - consider nixing nrrdDefaultKernelParm0, nrrdEnvVarDefaultKernelParm0
- - consider nixing nrrdDefaultSpacing and nrrdEnvVarDefaultSpacing
- - "when parsing from string, parm[0] is needed" vs "parm[0] defaults to 1.0"
-   OR, maybe simplify things by saying that all parameters are always needed
+******* - consider nixing nrrdDefaultKernelParm0, nrrdEnvVarDefaultKernelParm0
+*******  ?? "when parsing from string, parm[0] is needed" vs "parm[0] defaults to 1.0"
+******* - consider nixing nrrdDefaultSpacing and nrrdEnvVarDefaultSpacing
  - add method for answering "do I interpolate?"
  - add fields for "if I don't interpolate, what's my approximate inverse?"
  - add statement of accuracy (in a Taylor series sense)
  - add: am I an odd or even function
- - rename numParm --> parmNum
- - fix the kernels that meetNrrdKernelAllCheck revealed to be broken
+******* - rename numParm --> parmNum
+******* - fix the kernels that meetNrrdKernelAllCheck revealed to be broken
 * with NrrdFormat:
  - There is now an available() method, but this is incomplete - EPS is
    something that can be written for images, but not read in general.
@@ -202,12 +188,12 @@ nrrd:
   weird global nature of reading/writing wisdom?  Should "rigor" be an
   argument to nrrdFFT?  Is there really no error reporting on fftw_execute,
   fftw_export_wisdom_to_file?
-* make the verbosity level a field in NrrdIoState, remove nrrdStateVerboseIO
+******** make the verbosity level a field in NrrdIoState, remove nrrdStateVerboseIO
 * add support for 16-bit float "half" (start with Milan's patch)
 * rename nrrd<Func>_nva() --> nrrd<Func>()
-* rename nrrdResampleNrrdSet --> nrrdResampleInputSet ?
+******** rename nrrdResampleNrrdSet --> nrrdResampleInputSet ?
 * permit replacements for malloc/free (e.g. fftw_malloc, fftw_free) of data
-* rename NRRD_KERNEL_PARMS_NUM --> NRRD_KERNEL_PARM_MAXNUM
+******** rename NRRD_KERNEL_PARMS_NUM --> NRRD_KERNEL_PARM_MAXNUM
 * remove "minsm" as synonym for nrrdTernaryOpMinSmooth
 * resampler: why can't you set a kernel prior to setting input?
 [nrrd] nrrdDeringExecute: trouble on setup
@@ -246,7 +232,7 @@ things off, and yet its not off
 a small Gaussian)
 
 gage:
-* use new NrrdBoundarySpec whenever possible; for example remove
+******** use new NrrdBoundarySpec whenever possible; for example remove
 gageStackBlurParmBoundarySet()
 * clean up gageVolumeCheck vs gageKindVolumeCheck mess
 * in a gageKinds, the airEnum for the items, and the associated table of
@@ -261,8 +247,10 @@ ten:
 * tend helix and tend satin should not generate physically implausible
 diffusivity values (i.e. not exceeding 0.003 mm^2/sec)
 
-dye:
-* remove it, assuming its smarts have been copied into nrrd
+******** dye: convert all float to double
+********   see if dyeColorParse should allocate the thing and return it
+********   hest callbacks
+********   make quantitatively same as what D3 says
 
 push:
 * remove it, assuming its smarts have been moved into pull
@@ -270,7 +258,7 @@ push:
 ========
 
 ** The items below have accumulated over time, but the importance of them
-** for Teem 2.0 or any other release should be re-evaluated.
+** should be re-evaluated.
 
 for cmake:
  - build pv on windows
@@ -287,9 +275,9 @@ tend estim -new -sigma 0.01 -est wls -i 6crop-dwi.nrrd \
 [ten] _tenEstimate1Tensor_WLS: trying to improve on first WLS
 [ten] _tenEstimate1TensorSimulateSingle
 
-gage: re-modularize to facilitate probing bricked data
+******* gage: re-modularize to facilitate probing bricked data
 
-bin/unu: valgrind parsing of encoding stuff
+******* bin/unu: valgrind parsing of encoding stuff
 
 gage changes into bane:
 - try gkms hvol with three explicit ranges
@@ -308,15 +296,9 @@ image registration tool for small translational errors
 
 limn: make it smarter- so that joining parts together is possible in a
 way that facilitates transformations and correct drawing.  This really
-requires general data structures for 2-D graphics primatives...
+requires general data structures for 2-D graphics primitives...
 
 limn: either debug or remove limnQN16border1
-
-dye: see if dyeColorParse should allocate the thing and return it
-
-dye: colormaps
-
-dye: hest callbacks
 
 air:  think about implementing a fabs() and dabs() with bitmasking
 
@@ -355,4 +337,3 @@ Examples of this:
   and fails at link-time with "<new macro> symbol undefined"
 - want seperate directories for static and shared libraries
 - want bin/dev and bin/install targets
-
