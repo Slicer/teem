@@ -25,8 +25,6 @@ ordering on the formats.
 * support VFF format
 * other encodings- base 85
 
-nrrd: look into Pade approximations for windowed sinc() kernels
-
 add more internal types to stuff in arith.c for these:
 new nrrdBinaryOps: bit-wise and (&), or (|), xor (^)
 new nrrdUnaryOps: bit-wise not (^)
