@@ -72,7 +72,7 @@ this is biffMsgErrNum and nrrdKeyValueSize.
 * consider changing airIndexULL and airIndexClampULL to work with
 size_t instead of unsigned long long, or at least adding versions that
 work with size_t
-******* either change AIR_STRLEN_* to AIR_BUFFSIZE_* (or something similar,
+* either change AIR_STRLEN_* to AIR_BUFFSIZE_* (or something similar,
 or take out the +1 from their definition and it into usage: the
 STRLEN is misleading as is.
 ******* consider terminating airEnum->strEqv with NULL (just like argv)
@@ -188,13 +188,12 @@ nrrd:
   weird global nature of reading/writing wisdom?  Should "rigor" be an
   argument to nrrdFFT?  Is there really no error reporting on fftw_execute,
   fftw_export_wisdom_to_file?
-******** make the verbosity level a field in NrrdIoState, remove nrrdStateVerboseIO
+******* make the verbosity level a field in NrrdIoState, remove nrrdStateVerboseIO
 * add support for 16-bit float "half" (start with Milan's patch)
 * rename nrrd<Func>_nva() --> nrrd<Func>()
-******** rename nrrdResampleNrrdSet --> nrrdResampleInputSet ?
+******* rename nrrdResampleNrrdSet --> nrrdResampleInputSet ?
 * permit replacements for malloc/free (e.g. fftw_malloc, fftw_free) of data
-******** rename NRRD_KERNEL_PARMS_NUM --> NRRD_KERNEL_PARM_MAXNUM
-* remove "minsm" as synonym for nrrdTernaryOpMinSmooth
+******* rename NRRD_KERNEL_PARMS_NUM --> NRRD_KERNEL_PARM_MAXNUM
 * resampler: why can't you set a kernel prior to setting input?
 [nrrd] nrrdDeringExecute: trouble on setup
 [nrrd] deringPtxfAlloc: couldn't set up resampler
@@ -232,7 +231,7 @@ things off, and yet its not off
 a small Gaussian)
 
 gage:
-******** use new NrrdBoundarySpec whenever possible; for example remove
+******* use new NrrdBoundarySpec whenever possible; for example remove
 gageStackBlurParmBoundarySet()
 * clean up gageVolumeCheck vs gageKindVolumeCheck mess
 * in a gageKinds, the airEnum for the items, and the associated table of
@@ -247,10 +246,10 @@ ten:
 * tend helix and tend satin should not generate physically implausible
 diffusivity values (i.e. not exceeding 0.003 mm^2/sec)
 
-******** dye: convert all float to double
-********   see if dyeColorParse should allocate the thing and return it
-********   hest callbacks
-********   make quantitatively same as what D3 says
+******* dye: convert all float to double
+*******   see if dyeColorParse should allocate the thing and return it
+*******   hest callbacks
+*******   make quantitatively same as what D3 says
 
 push:
 * remove it, assuming its smarts have been moved into pull
@@ -275,7 +274,7 @@ tend estim -new -sigma 0.01 -est wls -i 6crop-dwi.nrrd \
 [ten] _tenEstimate1Tensor_WLS: trying to improve on first WLS
 [ten] _tenEstimate1TensorSimulateSingle
 
-******* gage: re-modularize to facilitate probing bricked data
+******* gage: re-modularize (or at least plan it) to facilitate probing bricked data
 
 ******* bin/unu: valgrind parsing of encoding stuff
 
