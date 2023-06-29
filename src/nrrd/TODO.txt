@@ -1,9 +1,9 @@
 all IO-related things:
-* why on earth is code in, say, formatText.c looking at nrrdStateVerboseIO,
+******** why on earth is code in, say, formatText.c looking at nrrdStateVerboseIO,
   instead of a field for verbosity in the NrrdIoState?
+******** enable imagemagick-style format flagging on filenames ("PNM:-"),
+  thereby obviating "unu save -f pnm" steps in pipes to standard out
 * get back verbose IO messages about fread-vs-directIO
-* enable imagemagick-style format flagging on filenames ("PNM:-"),
-thereby obviating "unu save -f pnm" steps in pipes to standard out
 * to expand multiple-format handling: in nrrdRead(), generalize
 _nrrdOneLine to some more generation _nrrdReadStart, which puts some
 portion of the read file into nio.  The various formats' readTest()
@@ -17,7 +17,6 @@ perhaps the ordering of nrrdFormatAll would impose some preferential
 ordering on the formats.
 * generalize I/O so that magic needn't be on line by itself
 * support Analyze/NIFTI format (relies on better buffering, above)
-* support DICOM, using as much of something like DCMTK as needed
 * clarify and document all IO stuff
 * debug and scrutinize current implementation of all "nhdr" related behavior
 * support TIFF format
