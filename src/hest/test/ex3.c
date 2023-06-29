@@ -36,6 +36,7 @@ main(int argc, const char **argv) {
 
   parm = hestParmNew();
   parm->respFileEnable = AIR_TRUE;
+  parm->respectDashDashHelp = AIR_TRUE;
   parm->verbosity = 3;
 
   opt = NULL;
@@ -76,6 +77,15 @@ main(int argc, const char **argv) {
     opt = hestOptFree(opt);
     parm = hestParmFree(parm);
     exit(1);
+  } else {
+    /* maybe got --help */
+    if (opt->helpWanted) {
+      hestUsage(stdout, opt, argv[0], parm);
+      hestGlossary(stdout, opt, parm);
+      opt = hestOptFree(opt);
+      parm = hestParmFree(parm);
+      exit(1);
+    }
   }
 
   printf("(err = %s)\n", err ? err : "(null)");
