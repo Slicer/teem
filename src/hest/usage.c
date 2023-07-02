@@ -188,7 +188,7 @@ hestMinNumArgs(hestOpt *opt) {
     return _hestMax(-1);
   }
   count = 0;
-  numOpts = _hestNumOpts(opt);
+  numOpts = hestOptNum(opt);
   for (i = 0; i < numOpts; i++) {
     if (!opt[i].dflt) {
       count += opt[i].min;
@@ -243,7 +243,7 @@ hestUsage(FILE *f, hestOpt *opt, const char *argv0, const hestParm *_parm) {
     return;
   }
 
-  numOpts = _hestNumOpts(opt);
+  numOpts = hestOptNum(opt);
   if (!(PARM->noBlankLineBeforeUsage)) {
     fprintf(f, "\n");
   }
@@ -284,7 +284,7 @@ hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
     return;
   }
 
-  numOpts = _hestNumOpts(opt);
+  numOpts = hestOptNum(opt);
 
   maxlen = 0;
   if (numOpts) {

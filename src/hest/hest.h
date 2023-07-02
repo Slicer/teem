@@ -114,7 +114,7 @@ typedef struct {
                4: min == 0; max == 1;   single variable parameter
                5: min < max; max >= 2   multiple variable parameters */
     alloc;  /* information about whether flag is non-NULL, and what parameters were used,
-               that determines whether or  not memory was allocated by hestParse(); info
+               that determines whether or not memory was allocated by hestParse(); info
                later used by hestParseFree():
                0: no free()ing needed
                1: free(*valueP), either because it is a single string, or because was a
@@ -128,6 +128,15 @@ typedef struct {
 
   int source;     /* from the hestSource* enum; from whence was this information learned,
                      else hestSourceUnknown if not */
+  char *parmStr;  /* if non-NULL: a string (allocated by hestParse, and freed by
+                     hestParseFree) from which hestParse ultimately parsed whatever values
+                     were set in *valueP. All the parameters associated with this option
+                     are joined (with " " separation) into this single string. hestParse
+                     has always formed this string internally as part of its operation,
+                     but only belatedly (in 2023) is a copy of that string being made
+                     available here to the caller. Note that in the case of single
+                     variable parameter  options used without a parameter, the value
+                     stored  will be "inverted" from the string here. */
   int helpWanted; /* hestParse() saw something (like "--help") in one of the given
                      arguments that looks like a call for help (and respectDashDashHelp
                      is set in the hestParm), so it recorded that here. There is
@@ -224,6 +233,7 @@ HEST_EXPORT unsigned int hestOptAdd(hestOpt **optP,
                                     ... /* unsigned int *sawP,
                                            airEnum *enm,
                                            const hestCB *CB */);
+HEST_EXPORT unsigned int hestOptNum(const hestOpt *opt);
 HEST_EXPORT hestOpt *hestOptFree(hestOpt *opt);
 HEST_EXPORT void *hestOptFree_vp(void *opt);
 HEST_EXPORT int hestOptCheck(hestOpt *opt, char **errP);

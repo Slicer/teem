@@ -202,7 +202,7 @@ _hestPanic(hestOpt *opt, char *err, const hestParm *parm) {
   char tbuff[AIR_STRLEN_HUGE], *sep;
   int numvar, op, numOpts;
 
-  numOpts = _hestNumOpts(opt);
+  numOpts = hestOptNum(opt);
   numvar = 0;
   for (op = 0; op < numOpts; op++) {
     opt[op].kind = _hestKind(opt + op);
@@ -398,7 +398,7 @@ _hestErrStrlen(const hestOpt *opt, int argc, const char **argv) {
   int a, numOpts, ret, other;
 
   ret = 0;
-  numOpts = _hestNumOpts(opt);
+  numOpts = hestOptNum(opt);
   other = AIR_FALSE;
   if (argv) {
     for (a = 0; a < argc; a++) {
@@ -461,7 +461,7 @@ whichFlag(hestOpt *opt, char *flag, const hestParm *parm) {
   char buff[2 * AIR_STRLEN_HUGE], copy[AIR_STRLEN_HUGE], *sep;
   int op, numOpts;
 
-  numOpts = _hestNumOpts(opt);
+  numOpts = hestOptNum(opt);
   if (parm->verbosity)
     printf("!%s: (a) looking for flag |%s| in numOpts=%d options\n", me, flag, numOpts);
   for (op = 0; op < numOpts; op++) {
@@ -668,7 +668,7 @@ extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **ar
   }
 
   /* make sure that flagged options without default were given */
-  numOpts = _hestNumOpts(opt);
+  numOpts = hestOptNum(opt);
   for (op = 0; op < numOpts; op++) {
     if (1 != opt[op].kind && opt[op].flag && !opt[op].dflt && !appr[op]) {
       sprintf(err, "%sdidn't get required %s", ME,
@@ -696,7 +696,7 @@ extractUnflagged(char **prms, unsigned int *nprm, int *argcP, char **argv, hestO
   char ident[AIR_STRLEN_HUGE];
   int nvp, np, op, unflag1st, unflagVar, numOpts;
 
-  numOpts = _hestNumOpts(opt);
+  numOpts = hestOptNum(opt);
   unflag1st = _hestNextUnflagged(0, opt, numOpts);
   if (numOpts == unflag1st) {
     /* no unflagged options; we're done */
@@ -804,7 +804,7 @@ _hestDefaults(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *o
   char *tmpS, ident[AIR_STRLEN_HUGE];
   int op, numOpts;
 
-  numOpts = _hestNumOpts(opt);
+  numOpts = hestOptNum(opt);
   for (op = 0; op < numOpts; op++) {
     if (parm->verbosity)
       printf("%s op=%d/%d: \"%s\" --> kind=%d, nprm=%u, appr=%d\n", me, op, numOpts - 1,
@@ -982,10 +982,18 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
   char *cP;
   size_t size;
 
-  numOpts = _hestNumOpts(opt);
+  numOpts = hestOptNum(opt);
   for (op = 0; op < numOpts; op++) {
     identStr(ident, opt + op, parm, AIR_TRUE);
     opt[op].source = udflt[op] ? hestSourceDefault : hestSourceUser;
+    /* 2023 GLK notes that r6388 2020-05-14 GLK was asking:
+        How is it that, once the command-line has been parsed, there isn't an
+        easy way to see (or print, for an error message) the parameter (or
+        concatenation of parameters) that was passed for a given option?
+    and it turns out that adding this was as simple as adding this one following
+    line. The inscrutability of the hest code (or more acutely the self-reinforcing
+    learned fear of working with the hest code) seems to have been the barrier. */
+    opt[op].parmStr = airStrdup(prms[op]);
     type = opt[op].type;
     size = (airTypeEnum == type /* */
               ? sizeof(int)
@@ -994,8 +1002,8 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
                    : airTypeSize[type]));
     cP = (char *)(vP = opt[op].valueP);
     if (parm->verbosity) {
-      printf("%s %d of %d: \"%s\": |%s| --> kind=%d, type=%d, size=%d\n", me, op,
-             numOpts - 1, prms[op], ident, opt[op].kind, type, (int)size);
+      printf("%s %d of %d: \"%s\": |%s| --> kind=%d, type=%d, size=%u\n", me, op,
+             numOpts - 1, prms[op], ident, opt[op].kind, type, (unsigned int)size);
     }
     /* we may over-write these */
     opt[op].alloc = 0;
@@ -1009,6 +1017,8 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
       break;
     case 2:
       /* -------- one required parameter -------- */
+      /* 2023 GLK is really curious why "if (prms[op] && vP) {" is (​repeatedly)
+      guarding all the work in these blocks, and why that wasn't factored out */
       if (prms[op] && vP) {
         switch (type) {
         case airTypeEnum:
@@ -1192,6 +1202,8 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
             return 1;
           }
           opt[op].alloc = 0;
+          /* HEY sorry about confusion about hestOpt->parmStr versus and the value set
+          here, due to this "inversion" */
           if (1 == whichCase(opt, udflt, nprm, appr, op)) {
             /* we just parsed the default, but now we want to "invert" it */
             tmpD = airDLoad(vP, type);
@@ -1202,7 +1214,7 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
       }
       break;
     case 5:
-      /* -------- multiple optional parameters -------- */
+      /* -------- multiple variable parameters -------- */
       if (prms[op] && vP) {
         if (1 == whichCase(opt, udflt, nprm, appr, op)) {
           *((void **)vP) = NULL;
@@ -1343,7 +1355,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   hestParm *parm;
   size_t start_index, end_index;
 
-  numOpts = _hestNumOpts(opt);
+  numOpts = hestOptNum(opt);
 
   /* -------- initialize the mop! */
   mop = airMopNew();
@@ -1504,6 +1516,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
 
   /* -------- now, the actual parsing of values */
   if (PARM->verbosity) printf("%s: #### calling hestSetValues\n", me);
+  /* this will also set hestOpt->parmStr */
   ret = setValues(prms, udflt, nprm, appr, opt, err, PARM, mop);
   if (ret) {
     airMopError(mop);
@@ -1535,8 +1548,9 @@ hestParseFree(hestOpt *opt) {
   char **str;
   char ***strP;
 
-  numOpts = _hestNumOpts(opt);
+  numOpts = hestOptNum(opt);
   for (op = 0; op < numOpts; op++) {
+    opt[op].parmStr = airFree(opt[op].parmStr);
     /*
     printf("!hestParseFree: op = %d/%d -> kind = %d; type = %d; alloc = %d\n",
            op, numOpts-1, opt[op].kind, opt[op].type, opt[op].alloc);

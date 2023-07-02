@@ -80,7 +80,7 @@ hestParmFree(hestParm *parm) {
 }
 
 static void
-_hestOptInit(hestOpt *opt) {
+optInit(hestOpt *opt) {
 
   opt->flag = opt->name = NULL;
   opt->type = 0;
@@ -94,6 +94,7 @@ _hestOptInit(hestOpt *opt) {
   opt->sawP = NULL;
   opt->kind = opt->alloc = 0;
   opt->source = hestSourceUnknown;
+  opt->parmStr = NULL;
   opt->helpWanted = AIR_FALSE;
 }
 
@@ -125,7 +126,7 @@ hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type, int min
 
   if (!optP) return UINT_MAX;
 
-  num = *optP ? _hestNumOpts(*optP) : 0;
+  num = *optP ? hestOptNum(*optP) : 0;
   if (!(ret = AIR_CALLOC(num + 2, hestOpt))) {
     return UINT_MAX;
   }
@@ -143,8 +144,10 @@ hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type, int min
   ret[num].sawP = NULL;
   ret[num].enm = NULL;
   ret[num].CB = NULL;
-  /* seems to be redundant with _hestOptInit() below */
+  /* yes, redundant with optInit() */
   ret[num].source = hestSourceUnknown;
+  ret[num].parmStr = NULL;
+  ret[num].helpWanted = AIR_FALSE;
   /* deal with var args */
   if (5 == _hestKind(&(ret[num]))) {
     va_start(ap, info);
@@ -164,7 +167,7 @@ hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type, int min
     ret[num].CB = va_arg(ap, hestCB *);
     va_end(ap);
   }
-  _hestOptInit(&(ret[num + 1]));
+  optInit(&(ret[num + 1]));
   ret[num + 1].min = 1;
   if (*optP) free(*optP);
   *optP = ret;
@@ -187,7 +190,7 @@ hestOptFree(hestOpt *opt) {
 
   if (!opt) return NULL;
 
-  num = _hestNumOpts(opt);
+  num = hestOptNum(opt);
   if (opt[num].min) {
     /* we only try to free this array if it looks like something we allocated;
        this is leveraging how _hestOptInit leaves things */
@@ -299,14 +302,16 @@ _hestKind(const hestOpt *opt) {
 }
 
 /*
-_hestNumOpts: returns the length of the given hestOpt array
-Unlike argv itself, the hestOpt array is not NULL-terminated, mainly because
-(though this is GLK pondering this in June 2023), "opt" is an array of
-hestOpt structs, not an array of pointers to hestOpt structs.
+hestOptNum: returns the number of elements in the given hestOpt array, *assuming* it is
+set up like hestOptAdd does it.
+
+Unfortunately, unlike argv itself, there is no sense in which the hestOpt array can be
+NULL-terminated, mainly because "opt" is an array of hestOpt structs, not an array of
+pointers to hestOpt structs.
 */
-int
-_hestNumOpts(const hestOpt *opt) {
-  int num = 0;
+unsigned int
+hestOptNum(const hestOpt *opt) {
+  unsigned int num = 0;
 
   while (opt[num].flag || opt[num].name || opt[num].type) {
     num++;

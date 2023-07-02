@@ -85,6 +85,19 @@ main(int argc, const char **argv) {
     exit(1);
   }
 
+  {
+    unsigned int opi, numO;
+    numO = hestOptNum(opt);
+    for (opi = 0; opi < numO; opi++) {
+      printf("opt %u/%u:\n", opi, numO);
+      printf("  flag=%s; ", opt[opi].flag ? opt[opi].flag : "(null)");
+      printf("  name=%s\n", opt[opi].name ? opt[opi].name : "(null)");
+      printf("  source=%s; ", hestSourceDefault == opt[opi].source
+                                ? "default"
+                                : (hestSourceUser == opt[opi].source ? "user" : "???"));
+      printf("  parmStr=|%s|\n", opt[opi].parmStr ? opt[opi].parmStr : "(null)");
+    }
+  }
   printf("(err = %s)\n", err ? err : "(null)");
   printf("  v = %d\n", v);
   printf("out = \"%s\"\n", out ? out : "(null)");

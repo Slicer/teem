@@ -25,7 +25,6 @@ extern "C" {
 
 /* methodsHest.c */
 extern int _hestKind(const hestOpt *opt);
-extern int _hestNumOpts(const hestOpt *opt);
 extern int _hestMax(int max);
 
 /* parseHest.c */
