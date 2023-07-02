@@ -181,10 +181,12 @@ typedef struct {
   char respFileFlag,        /* the character at the beginning of an argument
                                indicating that this is a response file name */
     respFileComment,        /* comment character for the response files */
-    varParamStopFlag, /* prefixed by '-' to form the flag which signals the end of a
-                         variable parameter option (single or multiple), flagged or
-                         unflagged. Originally imagined as most useful for flagged
-                         options, but also works in unflagged. */
+    varParamStopFlag, /* prefixed by '-' to form the flag (usually "--") that signals the
+                         end of a *flagged* variable parameter option (single or
+                         multiple). This is important to use if there is a flagged
+                         variable parameter option preceeding an unflagged variable
+                         parameter option, because otherwise how will you know where the
+                         first stops and the second begins */
     multiFlagSep;     /* character in flag which signifies that there is a long and short
                          version, and which separates the two.  Or, can be set to '\0' to
                          disable this behavior entirely. */

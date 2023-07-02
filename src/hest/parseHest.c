@@ -98,29 +98,47 @@ printArgv(int argc, char **argv, const char *pfx) {
 copyArgv()
 
 Copies given oldArgv to newArgv, including (if they are enabled) injecting the contents
-of response files.  BUT: this stops upon seeing "--", or upon seeing "--help" if
-parm->respectDashDashHelp. Allocations of the strings in newArgv are remembered (to be
-airFree'd later) in the given pmop. Returns the number of args set in newArgv, and sets
-sawStop or sawHelp if saw "--" or "--help", respectively.
+of response files.  BUT: this stops upon seeing "--help" if parm->respectDashDashHelp.
+Allocations of the strings in newArgv are remembered (to be airFree'd later) in the given
+pmop. Returns the number of args set in newArgv, and sets sawHelp if saw "--help".
+
+For a brief moment prior to the 2.0.0 release, this also stopped if it saw "--" (or
+whatever parm->varParamStopFlag implies), but that meant "--" is a brick wall that
+hestParse could never see past. But that misunderstands the relationship between how
+hestParse works and how the world uses "--".  According to POSIX guidelines:
+https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html#tag_12_01
+the elements of argv can be first "options" and then "operands", where "options" are
+indicated by something starting with '-', and may have 0 or more "option-arguments".
+Then, according to Guideline 10:
+    The first -- argument that is not an option-argument should be accepted as a
+    delimiter indicating the end of options. Any following arguments should be treated
+    as operands, even if they begin with the '-' character.
+So "--" marks the end of some "option-arguments".
+
+But hestParse does not know or care about "operands": *every* element of the given argv
+will be interpreted as the argument to some option, including an unflagged option (a
+variable unflagged option is how hest would support something like "cksum *.txt").  For
+hest to implement the expected behavior for
+"--", hest has to care about "--" only in the context of collecting parameters to
+*flagged* options. But copyArgv() is upstream of that awareness (of flagged vs
+unflagged), so we do not act on "--" here.
+
+Note that there are lots of ways that hest does NOT conform to these POSIX guidelines
+(such as: currently single-character flags cannot be grouped together, and options can
+have their arguments be optional), but those guidelines are used here to help documenting
+what "--" should mean.
 */
 static int
-copyArgv(int *sawStop, int *sawHelp, char **newArgv, const char **oldArgv,
-         const hestParm *parm, airArray *pmop) {
+copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *parm,
+         airArray *pmop) {
   static const char me[] = "copyArgv";
-  char line[AIR_STRLEN_HUGE], *pound, stops[3];
+  char line[AIR_STRLEN_HUGE], *pound;
   int len, newArgc, oldArgc, incr, ai;
   FILE *file;
 
-  stops[0] = '-';
-  stops[1] = parm->varParamStopFlag;
-  stops[2] = '\0';
   newArgc = oldArgc = 0;
-  *sawStop = *sawHelp = AIR_FALSE;
+  *sawHelp = AIR_FALSE;
   while (oldArgv[oldArgc]) {
-    if (!strcmp(stops, oldArgv[oldArgc])) {
-      *sawStop = AIR_TRUE;
-      break;
-    }
     if (parm->respectDashDashHelp && !strcmp("--help", oldArgv[oldArgc])) {
       *sawHelp = AIR_TRUE;
       break;
@@ -143,6 +161,7 @@ copyArgv(int *sawStop, int *sawHelp, char **newArgv, const char **oldArgv,
       len = airOneLine(file, line, AIR_STRLEN_HUGE);
       while (len > 0) {
         if (parm->verbosity) printf("%s: line: |%s|\n", me, line);
+        /* HEY HEY too bad for you if you put # inside a string */
         if ((pound = strchr(line, parm->respFileComment))) *pound = '\0';
         if (parm->verbosity) printf("%s: -0-> line: |%s|\n", me, line);
         airOneLinify(line);
@@ -433,8 +452,8 @@ whichFlag()
 
 given a string in "flag" (with the hypen prefix) finds which of the flags in the given
 array of options matches that.  Returns the index of the matching option, or -1 if
-there is no match, but returns -2 if the flag is the end-of-options
-marker (according to parm->varParamStopFlag)
+there is no match, but returns -2 if the flag is the end-of-parameters
+marker "--" (or whatever parm->varParamStopFlag implies)
 */
 static int
 whichFlag(hestOpt *opt, char *flag, const hestParm *parm) {
@@ -482,9 +501,6 @@ whichFlag(hestOpt *opt, char *flag, const hestParm *parm) {
 extractToStr: takes "pnum" parameters, starting at "base", out of the given argv, and
 puts them into a string WHICH THIS FUNCTION ALLOCATES, and also adjusts the argc value
 given as "*argcP".
-
-HEY HEY: GLK added the logic of using the stops string ("--") here before realizing that
-that logic really belongs upstream, in copyArgv, so it should be needed here, right?
 */
 static char *
 extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum,
@@ -495,12 +511,14 @@ extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum,
 
   if (!pnum) return NULL;
 
-  len = 0;
   if (parm) {
     stops[0] = '-';
     stops[1] = parm->varParamStopFlag;
     stops[2] = '\0';
   } /* else stops stays as empty string */
+
+  /* find length of buffer we'll have to allocate */
+  len = 0;
   for (pidx = 0; pidx < pnum; pidx++) {
     if (base + pidx == AIR_UINT(*argcP)) {
       /* ran up against end of argv array */
@@ -510,7 +528,9 @@ extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum,
       /* saw something like "--", so that's the end */
       break;
     }
+    /* increment by strlen of current arg */
     len += AIR_UINT(strlen(argv[base + pidx]));
+    /* and by 2, for 2 '"'s around quoted parm */
     if (strstr(argv[base + pidx], " ")) {
       len += 2;
     }
@@ -522,11 +542,10 @@ extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum,
   strcpy(ret, "");
   for (pidx = 0; pidx < true_pnum; pidx++) {
     if (strstr(argv[base + pidx], " ")) {
-      /* if a single element of argv has spaces in it, someone went
-       to the trouble of putting it in quotes, and we perpetuate
-       the favor by quoting it when we concatenate all the argv
-       elements together, so that airParseStrS will recover it as a
-       single string again */
+      /* if a single element of argv has spaces in it, someone went to the trouble of
+       putting it in quotes or escaping the space, and we perpetuate the favor by quoting
+       it when we concatenate all the argv elements together, so that airParseStrS will
+       recover it as a single string again */
       strcat(ret, "\"");
     }
     /* HEY: if there is a '\"' character in this string, quoted or
@@ -535,6 +554,7 @@ extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum,
     if (strstr(argv[base + pidx], " ")) {
       strcat(ret, "\"");
     }
+    /* add space prior to anticipated next parm */
     if (pidx < true_pnum - 1) strcat(ret, " ");
   }
   for (pidx = base + true_pnum; pidx <= AIR_UINT(*argcP); pidx++) {
@@ -545,27 +565,26 @@ extractToStr(int *argcP, char **argv, unsigned int base, unsigned int pnum,
 }
 
 /*
-** extractFlagged()
-**
-** extracts the parameters associated with all flagged options from the
-** given argc and argv, storing them in prms[], recording the number
-** of parameters in nprm[], and whether or not the flagged option appeared
-** in appr[].
-**
-** The "saw" information is not set here, since it is better set
-** at value parsing time, which happens after defaults are enstated.
+extractFlagged()
+
+extracts the parameters associated with all flagged options from the given argc and argv,
+storing them in prms[], recording the number of parameters in nprm[], and whether or not
+the flagged option appeared in appr[].
+
+The sawP information is not set here, since it is better set at value parsing time, which
+happens after defaults are enstated.
+
+This is where, thanks to the action of whichFlag(), "--" (or whatever
+parm->varParamStopFlag implies) is used as a marker for the end of a *flagged* variable
+parameter option.  AND, the "--" marker is removed from the argv.
 */
 static int
 extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **argv,
-               hestOpt *opt, char *err, int hitStop, const hestParm *parm,
-               airArray *pmop) {
+               hestOpt *opt, char *err, const hestParm *parm, airArray *pmop) {
   static const char me[] = "extractFlagged: ";
-  char ident1[AIR_STRLEN_HUGE], ident2[AIR_STRLEN_HUGE], stops[3];
+  char ident1[AIR_STRLEN_HUGE], ident2[AIR_STRLEN_HUGE];
   int a, np, flag, endflag, numOpts, op;
 
-  stops[0] = '-';
-  stops[1] = parm->varParamStopFlag;
-  stops[2] = '\0';
   a = 0;
   if (parm->verbosity) printf("!%s: *argcP = %d\n", me, *argcP);
   while (a <= *argcP - 1) {
@@ -604,12 +623,9 @@ extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **ar
       /* didn't get minimum number of parameters */
       if (!(a + np + 1 <= *argcP - 1)) {
         sprintf(err,
-                "%shit %s%s before getting %d parameter%s "
+                "%shit end of line before getting %d parameter%s "
                 "for %s (got %d)",
-                ME,                                               /* */
-                hitStop ? "end-of-options flag " : "end of line", /* */
-                hitStop ? "--" : "",                              /* */
-                opt[flag].min, opt[flag].min > 1 ? "s" : "",
+                ME, opt[flag].min, opt[flag].min > 1 ? "s" : "",
                 identStr(ident1, opt + flag, parm, AIR_TRUE), np);
       } else if (-2 != endflag) {
         sprintf(err, "%shit \"%s\" before getting %d parameter%s for %s (got %d)", ME,
@@ -618,8 +634,8 @@ extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **ar
                 identStr(ident2, opt + flag, parm, AIR_FALSE), np);
       } else {
         sprintf(err,
-                "%shit \"-%c\" (option-stop flag) before getting %d parameter%s for %s "
-                "(got %d)",
+                "%shit \"-%c\" (option-parameter-stop flag) before getting %d "
+                "parameter%s for %s (got %d)",
                 ME, parm->varParamStopFlag, opt[flag].min, opt[flag].min > 1 ? "s" : "",
                 identStr(ident2, opt + flag, parm, AIR_FALSE), np);
       }
@@ -641,7 +657,7 @@ extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **ar
     airMopAdd(pmop, prms[flag], airFree, airMopAlways);
     appr[flag] = AIR_TRUE;
     if (-2 == endflag) {
-      /* we should lose the end-of-options marker ??? ??? */
+      /* we drop the option-parameter-stop flag */
       free(extractToStr(argcP, argv, a, 1, NULL, NULL));
     }
     if (parm->verbosity) {
@@ -830,6 +846,7 @@ _hestDefaults(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *o
       udflt[op] = opt[op].flag && !appr[op];
       break;
     }
+    /* if not using the default, we're done with this option */
     if (!udflt[op]) continue;
     prms[op] = airStrdup(opt[op].dflt);
     /* fprintf(stderr, "%s: prms[%d] = |%s|\n", me, op, prms[op]); */
@@ -955,9 +972,9 @@ whichCase(hestOpt *opt, int *udflt, unsigned int *nprm, int *appr, int op) {
 }
 
 static int
-_hestSetValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
-               char *err, const hestParm *parm, airArray *pmop) {
-  static const char me[] = "_hestSetValues: ";
+setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
+          char *err, const hestParm *parm, airArray *pmop) {
+  static const char me[] = "setValues: ";
   char ident[AIR_STRLEN_HUGE], cberr[AIR_STRLEN_HUGE], *tok, *last, *prmsCopy;
   double tmpD;
   int op, type, numOpts, p, ret;
@@ -1320,8 +1337,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   static const char me[] = "hestParse: ";
   char *param, *param_copy;
   char **argv, **prms, *err;
-  int a, argc, argc_used, argr, *appr, *udflt, nrf, numOpts, big, ret, i, sawStop,
-    sawHelp;
+  int a, argc, argc_used, argr, *appr, *udflt, nrf, numOpts, big, ret, i, sawHelp;
   unsigned int *nprm;
   airArray *mop;
   hestParm *parm;
@@ -1406,29 +1422,28 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
      elements of argv */
   opt->helpWanted = AIR_FALSE;
   if (PARM->verbosity) printf("%s: #### calling copyArgv\n", me);
-  argc_used = copyArgv(&sawStop, &sawHelp, argv, _argv, PARM, mop);
+  argc_used = copyArgv(&sawHelp, argv, _argv, PARM, mop);
   if (PARM->verbosity) {
-    printf("%s: #### copyArgv done (%d args copied; sawStop=%d sawHelp=%d)\n", me,
-           argc_used, sawStop, sawHelp);
+    printf("%s: #### copyArgv done (%d args copied; sawHelp=%d)\n", me, argc_used,
+           sawHelp);
   }
   if (sawHelp) {
     /* saw "--help", which is not error, but is a show-stopper */
     opt->helpWanted = AIR_TRUE;
-    /* this functionality has been grafted onto this code, 20 years after it was first
-       written. Until it is more completely re-written, a goto does the job */
+    /* the --help functionality has been grafted onto this code, >20 years after it was
+       first written. Until it is more completely re-written, a goto does the job */
     goto parseEnd;
   }
-  /* else !sawHelp; do sanity check on argc_used, argc, sawStop */
-  if (argc_used < argc && !sawStop) {
-    sprintf(err, "%sargc_used %d < argc %d but didn't see -%c? sorry, confused", ME,
-            argc_used, argc, parm->varParamStopFlag);
+  /* else !sawHelp; do sanity check on argc_used vs argc */
+  if (argc_used < argc) {
+    sprintf(err, "%sargc_used %d < argc %d; sorry, confused", ME, argc_used, argc);
     airMopError(mop);
     return 1;
   }
 
   /* -------- extract flags and their associated parameters from argv */
   if (PARM->verbosity) printf("%s: #### calling extractFlagged\n", me);
-  if (extractFlagged(prms, nprm, appr, &argc_used, argv, opt, err, sawStop, PARM, mop)) {
+  if (extractFlagged(prms, nprm, appr, &argc_used, argv, opt, err, PARM, mop)) {
     airMopError(mop);
     return 1;
   }
@@ -1442,10 +1457,18 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   }
   if (PARM->verbosity) printf("%s: #### extractUnflagged done!\n", me);
 
-  /* currently, any left over arguments indicate error */
+  /* currently, any left-over arguments indicate error */
   if (argc_used) {
-    sprintf(err, "%sunexpected arg%s: \"%s\"", ME,
-            ('-' == argv[0][0] ? " (or unrecognized flag)" : ""), argv[0]);
+    char stops[3] = {'-', PARM->varParamStopFlag, '\0'};
+    if (strcmp(stops, argv[0])) {
+      sprintf(err, "%sunexpected arg%s: \"%s\"", ME,
+              ('-' == argv[0][0] ? " (or unrecognized flag)" : ""), argv[0]);
+    } else {
+      sprintf(err,
+              "%sunexpected end-of-parameters flag %s "
+              "not ending a variable-parameter option",
+              ME, stops);
+    }
     airMopError(mop);
     return 1;
   }
@@ -1481,7 +1504,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
 
   /* -------- now, the actual parsing of values */
   if (PARM->verbosity) printf("%s: #### calling hestSetValues\n", me);
-  ret = _hestSetValues(prms, udflt, nprm, appr, opt, err, PARM, mop);
+  ret = setValues(prms, udflt, nprm, appr, opt, err, PARM, mop);
   if (ret) {
     airMopError(mop);
     return ret;
