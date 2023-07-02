@@ -987,11 +987,11 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
     identStr(ident, opt + op, parm, AIR_TRUE);
     opt[op].source = udflt[op] ? hestSourceDefault : hestSourceUser;
     type = opt[op].type;
-    size = (airTypeEnum == type
-              ? (int)sizeof(int) /* HEY scrutinize casts */
-              : (airTypeOther == type
-                   ? (int)opt[op].CB->size     /* HEY scrutinize casts */
-                   : (int)airTypeSize[type])); /* HEY scrutinize casts */
+    size = (airTypeEnum == type /* */
+              ? sizeof(int)
+              : (airTypeOther == type /* */
+                   ? opt[op].CB->size
+                   : airTypeSize[type]));
     cP = (char *)(vP = opt[op].valueP);
     if (parm->verbosity) {
       printf("%s %d of %d: \"%s\": |%s| --> kind=%d, type=%d, size=%d\n", me, op,
