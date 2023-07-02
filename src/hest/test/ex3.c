@@ -47,11 +47,11 @@ main(int argc, const char **argv) {
              "input image file(s)");
   hestOptAdd(&opt, "option", "opt", airTypeString, 0, 1, &option, "default",
              "this is just a test");
-  hestOptAdd(&opt, NULL, "input", airTypeString, 1, -1, &in, NULL, "input image file(s)",
-             &numIn);
   hestOptAdd(&opt, "ints", "N", airTypeInt, 1, -1, &ints, "10 20 30",
              "a list of integers", &numN);
   hestOptAdd(&opt, "res", "sx sy", airTypeInt, 2, 2, res, NULL, "image resolution");
+  hestOptAdd(&opt, NULL, "input", airTypeString, 1, -1, &in, NULL, "input image file(s)",
+             &numIn);
 
   if (1 == argc) {
     /* didn't get anything at all on command line */
@@ -77,15 +77,12 @@ main(int argc, const char **argv) {
     opt = hestOptFree(opt);
     parm = hestParmFree(parm);
     exit(1);
-  } else {
-    /* maybe got --help */
-    if (opt->helpWanted) {
-      hestUsage(stdout, opt, argv[0], parm);
-      hestGlossary(stdout, opt, parm);
-      opt = hestOptFree(opt);
-      parm = hestParmFree(parm);
-      exit(1);
-    }
+  } else if (opt->helpWanted) {
+    hestUsage(stdout, opt, argv[0], parm);
+    hestGlossary(stdout, opt, parm);
+    opt = hestOptFree(opt);
+    parm = hestParmFree(parm);
+    exit(1);
   }
 
   printf("(err = %s)\n", err ? err : "(null)");
