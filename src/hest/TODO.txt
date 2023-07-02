@@ -35,7 +35,7 @@ GLK documentary notes to self
 max           |            |            |
     min >     0            1            2
 
-The kind of option is independent of whether is flagged or unflagged,
-optional (default given) or mandatory (no default given).
+The kind of option is independent of whether it is flagged or unflagged,
+and of being optional (default given) or required (no default given).
 
 ??? What is relationship between parseHest.c/whichCase() and hestOpt.alloc ???
