@@ -135,8 +135,8 @@ typedef struct {
                      has always formed this string internally as part of its operation,
                      but only belatedly (in 2023) is a copy of that string being made
                      available here to the caller. Note that in the case of single
-                     variable parameter  options used without a parameter, the value
-                     stored  will be "inverted" from the string here. */
+                     variable parameter options used without a parameter, the value
+                     stored will be "inverted" from the string here. */
   int helpWanted; /* hestParse() saw something (like "--help") in one of the given
                      arguments that looks like a call for help (and respectDashDashHelp
                      is set in the hestParm), so it recorded that here. There is
