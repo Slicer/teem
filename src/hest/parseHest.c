@@ -628,7 +628,7 @@ extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **ar
                 ME, opt[flag].min, opt[flag].min > 1 ? "s" : "",
                 identStr(ident1, opt + flag, parm, AIR_TRUE), np);
       } else if (-2 != endflag) {
-        sprintf(err, "%shit \"%s\" before getting %d parameter%s for %s (got %d)", ME,
+        sprintf(err, "%shit %s before getting %d parameter%s for %s (got %d)", ME,
                 identStr(ident1, opt + endflag, parm, AIR_FALSE), opt[flag].min,
                 opt[flag].min > 1 ? "s" : "",
                 identStr(ident2, opt + flag, parm, AIR_FALSE), np);
@@ -1202,7 +1202,7 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
             return 1;
           }
           opt[op].alloc = 0;
-          /* HEY sorry about confusion about hestOpt->parmStr versus and the value set
+          /* HEY sorry about confusion about hestOpt->parmStr versus the value set
           here, due to this "inversion" */
           if (1 == whichCase(opt, udflt, nprm, appr, op)) {
             /* we just parsed the default, but now we want to "invert" it */
@@ -1695,7 +1695,7 @@ hestParseOrDie(hestOpt *opt, int argc, const char **argv, hestParm *parm, const 
   /* whether by argcWanting or wantHelp or parseErr, from here on out we are not
   returning to caller */
   if (parseErr) {
-    fprintf(stderr, "ERROR parsing command-line: %s\n", errS);
+    fprintf(stderr, "ERROR: %s\n", errS);
     airFree(errS);
     /* but no return or exit; there's more to say */
   }
