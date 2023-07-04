@@ -1,28 +1,26 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2010, 2009 Thomas Schultz
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "elf.h"
+/* clang-format off */
 
-const int
-elfPresent = 42;
+const int elfPresent = 42;
 
 /* Glyphs for higher-order tensors */
 
@@ -87,7 +85,7 @@ estimateNormalsAntipodal (limnPolyData *glyph, const char normalize) {
 ** clamp - if nonzero, negative values will be clamped to zero
 ** normalize - if nonzero, surface normals will be rescaled to unit length
 ** posColor[4] - RGBA color code for positive values (if desired, else NULL)
-** negColor[4] - assumed to be non-NULL if posColor is non-NULL
+** negColor[4] - RGBA color code for negative values (if desired, else NULL)
 **
 ** Output:
 ** glyph is the polar plot that corresponds to ten.
@@ -95,12 +93,12 @@ estimateNormalsAntipodal (limnPolyData *glyph, const char normalize) {
 ** shape is undefined
 ** Normals are only updated when they were allocated in the input
 ** When colors were present in the input, they are replaced by a color
-** coding of sign (if posColor!=NULL) or a pointwise XYZ-RGB map (else)
+** coding of sign (if pos/negColor!=NULL) or a pointwise XYZ-RGB map (else)
 ** When isdef!=NULL, *isdef is set to 0 if we found evidence that the given
 ** input tensor is not positive definite
 ** The return value is the radius of the glyph's bounding sphere
 */
-float
+float /* Biff: nope */
 elfGlyphPolar(limnPolyData *glyph, const char antipodal,
        const float *ten, const tijk_type *type,
        char *isdef, const char clamp, const char normalize,
@@ -116,15 +114,13 @@ elfGlyphPolar(limnPolyData *glyph, const char antipodal,
 
     /* if RGBA is allocated, take care of coloring */
     if (infoBitFlag & (1 << limnPolyDataInfoRGBA)) {
-      if (posColor!=NULL) {
-        /* color by sign */
-        if (val<0) {
-          ELL_4V_COPY(glyph->rgba+4*i, negColor);
-          if (antipodal) ELL_4V_COPY(glyph->rgba+4*i+4, negColor);
-        } else {
-          ELL_4V_COPY(glyph->rgba+4*i, posColor);
-          if (antipodal) ELL_4V_COPY(glyph->rgba+4*i+4, posColor);
-        }
+      /* color by sign */
+      if (val<0 && negColor!=NULL) {
+	ELL_4V_COPY(glyph->rgba+4*i, negColor);
+	if (antipodal) ELL_4V_COPY(glyph->rgba+4*i+4, negColor);
+      } else if (val>0 && posColor!=NULL) {
+	ELL_4V_COPY(glyph->rgba+4*i, posColor);
+	if (antipodal) ELL_4V_COPY(glyph->rgba+4*i+4, posColor);
       } else {
         /* RGB encode the vertex coordinates */
         ELL_4V_SET_TT(glyph->rgba+4*i, unsigned char,
@@ -191,7 +187,7 @@ elfGlyphPolar(limnPolyData *glyph, const char antipodal,
 ** The return value is the radius of the glyph's bounding sphere, or -1
 ** upon error (odd tensor order; HOME glyph is only defined for even orders)
 */
-float
+float /* Biff: nope */
 elfGlyphHOME(limnPolyData *glyph, const char antipodal,
              const float *ten, const tijk_type *type,
              char *isdef, const char normalize) {
@@ -207,7 +203,7 @@ elfGlyphHOME(limnPolyData *glyph, const char antipodal,
     (*type->sym->v_form_f)(HOMEpos,ten,verts);
     if (ELL_3V_DOT(HOMEpos,verts)<0) def=0;
     ELL_3V_COPY(verts,HOMEpos);
-    len=AIR_CAST(float, ELL_3V_LEN(HOMEpos));
+    len=AIR_FLOAT(ELL_3V_LEN(HOMEpos));
     if (len>max) max=len;
 
     /* if RGBA is allocated, take care of coloring */
@@ -278,7 +274,7 @@ elfGlyphHOME(limnPolyData *glyph, const char antipodal,
 ** XYZ-RGB map
 ** The return value is the radius of the glyph's bounding sphere
 */
-float
+float /* Biff: nope */
 elfGlyphKDE(limnPolyData *glyph, const char antipodal,
             const float *vecs, const size_t n_vecs,
             const float _gamma, const char normalize) {
@@ -306,7 +302,7 @@ elfGlyphKDE(limnPolyData *glyph, const char antipodal,
       }
     }
 
-    if (val>max) max=AIR_CAST(float,val);
+    if (val>max) max=AIR_FLOAT(val);
     ELL_3V_SCALE_TT(verts,float,val,verts);
     if (antipodal) {
       ELL_3V_SCALE(verts+4,-1.0f,verts);
@@ -350,7 +346,7 @@ elfGlyphKDE(limnPolyData *glyph, const char antipodal,
 ** glyph is colored according to its maxima
 ** returns zero upon success (fails if memory cannot be allocated)
 */
-int
+int /* Biff: nope */
 elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
                     const int *neighbors, unsigned int nbstride,
                     const float *ten, const tijk_type *type,
@@ -432,7 +428,7 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
         float norm;
         float modfactor=1.0;
         ELL_3V_COPY(vertdir,glyph->xyzw+4*vert);
-        norm=AIR_CAST(float, ELL_3V_LEN(vertdir));
+        norm=AIR_FLOAT(ELL_3V_LEN(vertdir));
         if (norm>1e-18) {
           ELL_3V_SCALE(vertdir,1.0f/norm,vertdir);
           if (modulate) {
@@ -448,7 +444,7 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
             } else {
               modfactor=-evals[1]/(type->order*val);
               if (modfactor>1.0) modfactor=1.0;
-              else modfactor=AIR_CAST(float, pow(modfactor,_gamma));
+              else modfactor=AIR_FLOAT(pow(modfactor,_gamma));
             }
           }
         } else {
@@ -526,3 +522,4 @@ elfColorGlyphMaxima(limnPolyData *glyph, const char antipodal,
   airMopOkay(mop);
   return 0;
 }
+/* clang-format on */

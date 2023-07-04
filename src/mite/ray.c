@@ -1,34 +1,30 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "mite.h"
 #include "privateMite.h"
 
-int
-miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
-             int uIndex, int vIndex,
-             double rayLen,
-             double rayStartWorld[3], double rayStartIndex[3],
+int /* Biff: nope */
+miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu, int uIndex, int vIndex,
+             double rayLen, double rayStartWorld[3], double rayStartIndex[3],
              double rayDirWorld[3], double rayDirIndex[3]) {
   airPtrPtrUnion appu;
   AIR_UNUSED(mrr);
@@ -38,28 +34,27 @@ miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
 
   mtt->ui = uIndex;
   mtt->vi = vIndex;
-  mtt->rayStep = (muu->rayStep*rayLen /
-                  (muu->hctx->cam->vspFaar - muu->hctx->cam->vspNeer));
+  mtt->rayStep = (muu->rayStep * rayLen
+                  / (muu->hctx->cam->vspFaar - muu->hctx->cam->vspNeer));
   if (!uIndex) {
     fprintf(stderr, "%d/%d ", vIndex, muu->hctx->imgSize[1]);
     fflush(stderr);
   }
   mtt->verbose = (uIndex == muu->verbUi && vIndex == muu->verbVi);
-  mtt->skip = (muu->verbUi >= 0 && muu->verbVi >= 0
-               && !mtt->verbose);
+  mtt->skip = (muu->verbUi >= 0 && muu->verbVi >= 0 && !mtt->verbose);
   if (mtt->verbose) {
     /* create muu->ndebug */
     muu->ndebug = nrrdNew();
     /* we want to store the value and index for each txf domain variable,
        plus the RGBAZ computed for that sample */
-    muu->ndebug->axis[0].size = 2*mtt->stageNum + 5;
+    muu->ndebug->axis[0].size = 2 * mtt->stageNum + 5;
     /* we really do want to associate ndebug with the miteUser's mop,
        because the information stored in it has to persist for as long as
        the user wants: mite itself doesn't call miteUserNix */
     airMopAdd(muu->umop, muu->ndebug, (airMopper)nrrdNuke, airMopAlways);
     /* but the scope of the debug array allocation is within this ray */
-    muu->debugArr = airArrayNew((appu.d = &(muu->debug), appu.v),
-                                NULL, sizeof(double), 128);
+    muu->debugArr = airArrayNew((appu.d = &(muu->debug), appu.v), NULL, sizeof(double),
+                                128);
   }
   mtt->raySample = 0;
   mtt->RR = mtt->GG = mtt->BB = 0.0;
@@ -70,15 +65,14 @@ miteRayBegin(miteThread *mtt, miteRender *mrr, miteUser *muu,
   return 0;
 }
 
-void
-_miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
-              miteThread *mtt, miteRender *mrr, miteUser *muu) {
-  static const char me[]="_miteRGBACalc";
-  mite_t tmp,
-    ad[3],                          /* ambient+diffuse light contribution */
-    s[3] = {0,0,0},                 /* specular light contribution */
-    col[3], E, ka, kd, ks, sp,      /* txf-determined rendering variables */
-    LdotN=0, HdotN, H[3], N[3];     /* for lighting calculation */
+static void
+_miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A, miteThread *mtt,
+              miteRender *mrr, miteUser *muu) {
+  static const char me[] = "_miteRGBACalc";
+  mite_t tmp, ad[3],              /* ambient+diffuse light contribution */
+    s[3] = {0, 0, 0},             /* specular light contribution */
+    col[3], E, ka, kd, ks, sp,    /* txf-determined rendering variables */
+    LdotN = 0, HdotN, H[3], N[3]; /* for lighting calculation */
 
   col[0] = mtt->range[miteRangeRed];
   col[1] = mtt->range[miteRangeGreen];
@@ -106,7 +100,7 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
           LdotN = AIR_ABS(LdotN);
         }
         if (LdotN > 0) {
-          ELL_3V_SCALE_INCR(ad, LdotN*kd, muu->lit->col[0]);
+          ELL_3V_SCALE_INCR(ad, LdotN * kd, muu->lit->col[0]);
         }
       }
       if (ks) {
@@ -119,7 +113,7 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
         }
         if (HdotN > 0) {
           HdotN = pow(HdotN, sp);
-          ELL_3V_SCALE(s, HdotN*ks, muu->lit->col[0]);
+          ELL_3V_SCALE(s, HdotN * ks, muu->lit->col[0]);
         }
       }
     }
@@ -128,14 +122,14 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
     fprintf(stderr, "!%s: lit-tensor not yet implemented\n", me);
     break;
   default:
-    fprintf(stderr, "!%s: PANIC, shadeMethod %d unimplemented\n",
-            me, mrr->shadeSpec->method);
+    fprintf(stderr, "!%s: PANIC, shadeMethod %d unimplemented\n", me,
+            mrr->shadeSpec->method);
     exit(1);
     break;
   }
-  *R = (E - 1 + ad[0])*col[0] + s[0];
-  *G = (E - 1 + ad[1])*col[1] + s[1];
-  *B = (E - 1 + ad[2])*col[2] + s[2];
+  *R = (E - 1 + ad[0]) * col[0] + s[0];
+  *G = (E - 1 + ad[1]) * col[1] + s[1];
+  *B = (E - 1 + ad[2]) * col[2] + s[2];
   *A = mtt->range[miteRangeAlpha];
   *A = AIR_CLAMP(0.0, *A, 1.0);
   /*
@@ -152,15 +146,14 @@ _miteRGBACalc(mite_t *R, mite_t *G, mite_t *B, mite_t *A,
   return;
 }
 
-double
-miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
-           int num, double rayT, int inside,
-           double samplePosWorld[3],
-           double samplePosIndex[3]) {
-  static const char me[]="miteSample";
+/* interesting test of whether the python wrapper can catch this :) */
+double /* Biff: AIR_NAN */
+miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu, int num, double rayT,
+           int inside, double samplePosWorld[3], double samplePosIndex[3]) {
+  static const char me[] = "miteSample";
   mite_t R, G, B, A;
   double *NN;
-  double NdotV, kn[3], knd[3], ref[3], len, *dbg=NULL;
+  double NdotV, kn[3], knd[3], ref[3], len, *dbg = NULL;
 
   if (!inside) {
     return mtt->rayStep;
@@ -172,7 +165,7 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   }
 
   /* early ray termination */
-  if (1-mtt->TT >= muu->opacNear1) {
+  if (1 - mtt->TT >= muu->opacNear1) {
     mtt->TT = 0.0;
     return 0.0;
   }
@@ -185,12 +178,9 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
 
   /* do probing at this location to determine values of everything
      that might appear in the txf domain */
-  if (gageProbe(mtt->gctx,
-                samplePosIndex[0],
-                samplePosIndex[1],
-                samplePosIndex[2])) {
-    biffAddf(MITE, "%s: gage trouble: %s (%d)", me,
-             mtt->gctx->errStr, mtt->gctx->errNum);
+  if (gageProbe(mtt->gctx, samplePosIndex[0], samplePosIndex[1], samplePosIndex[2])) {
+    biffAddf(MITE, "%s: gage trouble: %s (%d)", me, mtt->gctx->errStr,
+             mtt->gctx->errNum);
     return AIR_NAN;
   }
 
@@ -223,16 +213,15 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
          || GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValNdotL)
          || GAGE_QUERY_ITEM_TEST(mrr->queryMite, miteValVrefN))) {
       mtt->directAnsMiteVal[miteValNdotV][0] = ELL_3V_DOT(NN, mtt->V);
-      mtt->directAnsMiteVal[miteValNdotL][0] =
-        ELL_3V_DOT(NN, muu->lit->dir[0]);
+      mtt->directAnsMiteVal[miteValNdotL][0] = ELL_3V_DOT(NN, muu->lit->dir[0]);
       if (!muu->normalSide) {
-        mtt->directAnsMiteVal[miteValNdotV][0] =
-          AIR_ABS(mtt->directAnsMiteVal[miteValNdotV][0]);
-        mtt->directAnsMiteVal[miteValNdotL][0] =
-          AIR_ABS(mtt->directAnsMiteVal[miteValNdotL][0]);
+        mtt->directAnsMiteVal[miteValNdotV][0]
+          = AIR_ABS(mtt->directAnsMiteVal[miteValNdotV][0]);
+        mtt->directAnsMiteVal[miteValNdotL][0]
+          = AIR_ABS(mtt->directAnsMiteVal[miteValNdotL][0]);
       }
       NdotV = mtt->directAnsMiteVal[miteValNdotV][0];
-      ELL_3V_SCALE_ADD2(ref, 2*NdotV, NN, -1, mtt->V);
+      ELL_3V_SCALE_ADD2(ref, 2 * NdotV, NN, -1, mtt->V);
       ELL_3V_NORM(mtt->directAnsMiteVal[miteValVrefN], ref, len);
     }
 
@@ -244,13 +233,12 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     }
   }
 
-
   /* initialize txf range quantities, and apply all txfs */
   if (mtt->verbose) {
-    muu->debugIdx = airArrayLenIncr(muu->debugArr, muu->ndebug->axis[0].size);
+    muu->debugIdx = airArrayLenIncr(muu->debugArr, AIR_INT(muu->ndebug->axis[0].size));
   }
 
-  memcpy(mtt->range, muu->rangeInit, MITE_RANGE_NUM*sizeof(mite_t));
+  memcpy(mtt->range, muu->rangeInit, MITE_RANGE_NUM * sizeof(mite_t));
   _miteStageRun(mtt, muu);
 
   /* if there's opacity, do shading and compositing */
@@ -263,10 +251,10 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
     }
     */
     _miteRGBACalc(&R, &G, &B, &A, mtt, mrr, muu);
-    mtt->RR += mtt->TT*A*R;
-    mtt->GG += mtt->TT*A*G;
-    mtt->BB += mtt->TT*A*B;
-    mtt->TT *= 1-A;
+    mtt->RR += mtt->TT * A * R;
+    mtt->GG += mtt->TT * A * G;
+    mtt->BB += mtt->TT * A * B;
+    mtt->TT *= 1 - A;
     /*
     if (mtt->verbose) {
       fprintf(stderr, "%s: after compositing: RGBT = %g,%g,%g,%g\n",
@@ -279,15 +267,15 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   }
   if (mtt->verbose) {
     dbg = muu->debug + muu->debugIdx;
-    dbg[0 + 2*mtt->stageNum] = R;
-    dbg[1 + 2*mtt->stageNum] = G;
-    dbg[2 + 2*mtt->stageNum] = B;
-    dbg[3 + 2*mtt->stageNum] = A;
-    dbg[4 + 2*mtt->stageNum] = rayT;
+    dbg[0 + 2 * mtt->stageNum] = R;
+    dbg[1 + 2 * mtt->stageNum] = G;
+    dbg[2 + 2 * mtt->stageNum] = B;
+    dbg[3 + 2 * mtt->stageNum] = A;
+    dbg[4 + 2 * mtt->stageNum] = rayT;
   }
 
   /* set Z if it hasn't been set already */
-  if (1-mtt->TT >= muu->opacMatters && !AIR_EXISTS(mtt->ZZ)) {
+  if (1 - mtt->TT >= muu->opacMatters && !AIR_EXISTS(mtt->ZZ)) {
     mtt->ZZ = rayT;
   }
 
@@ -297,22 +285,21 @@ miteSample(miteThread *mtt, miteRender *mrr, miteUser *muu,
   return mtt->rayStep;
 }
 
-int
+int /* Biff: nope */
 miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
-  int idx, slen, stageIdx;
+  unsigned int idx, slen, stageIdx;
   mite_t *imgData;
   double A;
 
   AIR_UNUSED(mrr);
   mtt->samples += mtt->raySample;
-  idx = mtt->ui + (muu->nout->axis[1].size)*mtt->vi;
-  imgData = (mite_t*)muu->nout->data;
+  idx = mtt->ui + AIR_UINT(muu->nout->axis[1].size) * mtt->vi;
+  imgData = (mite_t *)muu->nout->data;
   A = 1 - mtt->TT;
   if (A) {
-    ELL_5V_SET(imgData + 5*idx, mtt->RR/A, mtt->GG/A, mtt->BB/A,
-               A, mtt->ZZ);
+    ELL_5V_SET(imgData + 5 * idx, mtt->RR / A, mtt->GG / A, mtt->BB / A, A, mtt->ZZ);
   } else {
-    ELL_5V_SET(imgData + 5*idx, 0, 0, 0, 0, AIR_NAN);
+    ELL_5V_SET(imgData + 5 * idx, 0, 0, 0, 0, AIR_NAN);
   }
   if (mtt->verbose) {
     /* muu->debug may be over-allocated, but that's harmless */
@@ -322,12 +309,12 @@ miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
                 AIR_CAST(size_t, mtt->raySample));
     airArrayNix(muu->debugArr);
     slen = 0;
-    for (stageIdx=0; stageIdx<mtt->stageNum; stageIdx++) {
+    for (stageIdx = 0; stageIdx < mtt->stageNum; stageIdx++) {
       slen += strlen(mtt->stage[stageIdx].label) + 2;
     }
     slen += strlen("R,G,B,A,Z") + 1;
     muu->ndebug->axis[0].label = (char *)calloc(slen, sizeof(char));
-    for (stageIdx=0; stageIdx<mtt->stageNum; stageIdx++) {
+    for (stageIdx = 0; stageIdx < mtt->stageNum; stageIdx++) {
       strcat(muu->ndebug->axis[0].label, mtt->stage[stageIdx].label);
       strcat(muu->ndebug->axis[0].label, ",,");
     }
@@ -335,4 +322,3 @@ miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
   }
   return 0;
 }
-

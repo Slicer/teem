@@ -1,49 +1,47 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "bane.h"
 #include "privateBane.h"
 
-double
+static double
 _baneMeasr_StockAnswer(baneMeasr *measr, double *san, double *parm) {
 
   AIR_UNUSED(parm);
   return san[measr->offset0];
 }
 
-baneMeasr *
+baneMeasr * /* Biff: NULL */
 baneMeasrNew(int type, double *parm) {
-  static const char me[]="baneMeasrNew";
+  static const char me[] = "baneMeasrNew";
   baneMeasr *measr;
   int item;
 
   AIR_UNUSED(parm);
-  if (!( AIR_IN_OP(baneMeasrUnknown, type, baneMeasrLast) )) {
+  if (!(AIR_IN_OP(baneMeasrUnknown, type, baneMeasrLast))) {
     biffAddf(BANE, "%s: baneMeasr %d invalid", me, type);
     return NULL;
   }
   /* for now, parm is ignored */
-  measr = (baneMeasr*)calloc(1, sizeof(baneMeasr));
+  measr = (baneMeasr *)calloc(1, sizeof(baneMeasr));
   if (!measr) {
     biffAddf(BANE, "%s: couldn't allocate baneMeasr!", me);
     return NULL;
@@ -51,7 +49,7 @@ baneMeasrNew(int type, double *parm) {
   measr->type = type;
   measr->range = NULL;
   GAGE_QUERY_RESET(measr->query);
-  switch(type) {
+  switch (type) {
     /* --------------------------------------------------------------- */
   case baneMeasrValuePositive:
     item = gageSclValue;
@@ -127,14 +125,15 @@ baneMeasrNew(int type, double *parm) {
     /* --------------------------------------------------------------- */
   default:
     biffAddf(BANE, "%s: Sorry, baneMeasr %d not implemented", me, type);
-    baneMeasrNix(measr); return NULL;
+    baneMeasrNix(measr);
+    return NULL;
   }
   return measr;
 }
 
-double
+double /* Biff: nope */
 baneMeasrAnswer(baneMeasr *measr, gageContext *gctx) {
-  static const char me[]="baneMeasrAnswer";
+  static const char me[] = "baneMeasrAnswer";
   double ret;
 
   if (measr && gctx && 1 == gctx->pvlNum) {
@@ -146,9 +145,9 @@ baneMeasrAnswer(baneMeasr *measr, gageContext *gctx) {
   return ret;
 }
 
-baneMeasr *
+baneMeasr * /* Biff: NULL */
 baneMeasrCopy(baneMeasr *measr) {
-  static const char me[]="baneMeasrCopy";
+  static const char me[] = "baneMeasrCopy";
   baneMeasr *ret = NULL;
 
   ret = baneMeasrNew(measr->type, measr->parm);
@@ -159,7 +158,7 @@ baneMeasrCopy(baneMeasr *measr) {
   return ret;
 }
 
-baneMeasr *
+baneMeasr * /* Biff: nope */
 baneMeasrNix(baneMeasr *measr) {
 
   if (measr) {

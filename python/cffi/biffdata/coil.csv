@@ -1,0 +1,7 @@
+func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
+coilStart,int,1,0,coil,coil/coreCoil.c:287
+coilIterate,int,1,0,coil,coil/coreCoil.c:362
+coilFinish,int,1,0,coil,coil/coreCoil.c:407
+coilVolumeCheck,int,1,0,coil,coil/methodsCoil.c:25
+coilContextAllSet,int,1,0,coil,coil/methodsCoil.c:69
+coilOutputGet,int,1,0,coil,coil/methodsCoil.c:200

@@ -1,47 +1,43 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "ten.h"
 #include "privateTen.h"
 
 #define INFO "Calculate balanced gradient directions for DWI acquisition"
-static const char *_tend_gradsInfoL =
-  (INFO
-   ", based on a simulation of anti-podal point pairs repelling each other "
-   "on the unit sphere surface. This can either distribute more uniformly "
-   "a given set of gradients, or it can make a new distribution from scratch. "
-   "A more clever implementation could decrease drag with time, as the "
-   "solution converges, to get closer to the minimum energy configuration "
-   "faster.  In the mean time, you can run a second pass on the output of "
-   "the first pass, using lower drag. A second phase of the algorithm "
-   "tries sign changes in gradient directions in trying to find an optimally "
-   "balanced set of directions.  This uses a randomized search, so if it "
-   "doesn't seem to be finishing in a reasonable amount of time, try "
-   "restarting with a different \"-seed\".");
+static const char *_tend_gradsInfoL
+  = (INFO ", based on a simulation of anti-podal point pairs repelling each other "
+          "on the unit sphere surface. This can either distribute more uniformly "
+          "a given set of gradients, or it can make a new distribution from scratch. "
+          "A more clever implementation could decrease drag with time, as the "
+          "solution converges, to get closer to the minimum energy configuration "
+          "faster.  In the mean time, you can run a second pass on the output of "
+          "the first pass, using lower drag. A second phase of the algorithm "
+          "tries sign changes in gradient directions in trying to find an optimally "
+          "balanced set of directions.  This uses a randomized search, so if it "
+          "doesn't seem to be finishing in a reasonable amount of time, try "
+          "restarting with a different \"-seed\".");
 
-int
-tend_gradsMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+static int
+tend_gradsMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -65,8 +61,7 @@ tend_gradsMain(int argc, const char **argv, const char *me,
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "seed", "value", airTypeUInt, 1, 1, &seed, "42",
              "seed value to used with airSrandMT()");
-  hestOptAdd(&hopt, "step", "step", airTypeDouble, 1, 1, &(tgparm->initStep),
-             "1.0",
+  hestOptAdd(&hopt, "step", "step", airTypeDouble, 1, 1, &(tgparm->initStep), "1.0",
              "time increment in solver");
   hestOptAdd(&hopt, "single", NULL, airTypeInt, 0, 0, &(tgparm->single), NULL,
              "instead of the default behavior of tracking a pair of "
@@ -76,21 +71,17 @@ tend_gradsMain(int argc, const char **argv, const char *me,
              "specifies an interval between which snapshots of the point "
              "positions should be saved out.  By default (not using this "
              "option), there is no such snapshot behavior");
-  hestOptAdd(&hopt, "jitter", "jitter", airTypeDouble, 1, 1,
-             &(tgparm->jitter), "0.1",
+  hestOptAdd(&hopt, "jitter", "jitter", airTypeDouble, 1, 1, &(tgparm->jitter), "0.1",
              "amount by which to perturb points when given an input nrrd");
-  hestOptAdd(&hopt, "miniter", "# iters", airTypeInt, 1, 1,
-             &(tgparm->minIteration), "0",
+  hestOptAdd(&hopt, "miniter", "# iters", airTypeInt, 1, 1, &(tgparm->minIteration), "0",
              "max number of iterations for which to run the simulation");
-  hestOptAdd(&hopt, "maxiter", "# iters", airTypeInt, 1, 1,
-             &(tgparm->maxIteration), "1000000",
-             "max number of iterations for which to run the simulation");
-  hestOptAdd(&hopt, "minvelo", "vel", airTypeDouble, 1, 1,
-             &(tgparm->minVelocity), "0.00001",
+  hestOptAdd(&hopt, "maxiter", "# iters", airTypeInt, 1, 1, &(tgparm->maxIteration),
+             "1000000", "max number of iterations for which to run the simulation");
+  hestOptAdd(&hopt, "minvelo", "vel", airTypeDouble, 1, 1, &(tgparm->minVelocity),
+             "0.00001",
              "low threshold on mean velocity of repelling points, "
              "at which point repulsion phase of algorithm terminates.");
-  hestOptAdd(&hopt, "exp", "exponent", airTypeDouble, 1, 1,
-             &(tgparm->expo_d), "1",
+  hestOptAdd(&hopt, "exp", "exponent", airTypeDouble, 1, 1, &(tgparm->expo_d), "1",
              "the exponent n that determines the potential energy 1/r^n.");
   hestOptAdd(&hopt, "dp", "potential change", airTypeDouble, 1, 1,
              &(tgparm->minPotentialChange), "0.000000001",
@@ -103,13 +94,11 @@ tend_gradsMain(int argc, const char **argv, const char *me,
              "the (small) improvement in length of mean gradient "
              "which triggers termination (as further improvements "
              "are unlikely.");
-  hestOptAdd(&hopt, "minmean", "len", airTypeDouble, 1, 1,
-             &(tgparm->minMean), "0.0001",
+  hestOptAdd(&hopt, "minmean", "len", airTypeDouble, 1, 1, &(tgparm->minMean), "0.0001",
              "if length of mean gradient falls below this, finish "
              "the balancing phase");
-  hestOptAdd(&hopt, "izv", "insert", airTypeBool, 1, 1,
-             &(tgparm->insertZeroVec), "false",
-             "adding zero vector at beginning of grads");
+  hestOptAdd(&hopt, "izv", "insert", airTypeBool, 1, 1, &(tgparm->insertZeroVec),
+             "false", "adding zero vector at beginning of grads");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
              "file to write output nrrd to");
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -120,7 +109,7 @@ tend_gradsMain(int argc, const char **argv, const char *me,
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   /* see if it was an integral exponent */
-  tgparm->expo = AIR_CAST(unsigned int, tgparm->expo_d);
+  tgparm->expo = AIR_UINT(tgparm->expo_d);
   if (tgparm->expo == tgparm->expo_d) {
     /* ooo, it was */
     tgparm->expo_d = 0;
@@ -132,19 +121,20 @@ tend_gradsMain(int argc, const char **argv, const char *me,
   if (tgparm->snap) {
     tgparm->report = tgparm->snap;
   }
-  E = (nin
-       ? tenGradientDistribute(nout, nin, tgparm)
-       : tenGradientGenerate(nout, num, tgparm));
+  E = (nin ? tenGradientDistribute(nout, nin, tgparm)
+           : tenGradientGenerate(nout, num, tgparm));
   if (E) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making distribution:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

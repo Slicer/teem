@@ -1,29 +1,29 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "coil.h"
+/* clang-format off */
 
-void
+/* ?? this function isn't used
+static void
 _coilKind7TensorTangents(coil_t traceGrad[6],
                          coil_t varianceGrad[6],
                          coil_t skewGrad[6],
@@ -39,7 +39,6 @@ _coilKind7TensorTangents(coil_t traceGrad[6],
   AIR_UNUSED(rot1Grad);
   AIR_UNUSED(rot2Grad);
   AIR_UNUSED(tensor);
-  /*
   coil_t a, b, c, d, e, f;
 
   a = tensor[1];
@@ -49,10 +48,10 @@ _coilKind7TensorTangents(coil_t traceGrad[6],
   e = tensor[5];
   f = tensor[6];
   ELL_6V_SET(traceGrad, 1, 0, 0, 1, 0, 1);
-  */
 }
+*/
 
-void
+static void
 _coilKind7TensorFilterTesting(coil_t *delta,
                               int xi, int yi, int zi,
                               coil_t **iv3, double spacing[3],
@@ -128,7 +127,7 @@ _coilKind7TensorFilterTesting(coil_t *delta,
    + rspsqY*(IND(iv3, vi, 1, 0, 1) - 2*IND(iv3, vi, 1, 1, 1) + IND(iv3, vi, 1, 2, 1)) \
    + rspsqZ*(IND(iv3, vi, 1, 1, 0) - 2*IND(iv3, vi, 1, 1, 1) + IND(iv3, vi, 1, 1, 2)))
 
-void
+static void
 _coilKind7TensorFilterHomogeneous(coil_t *delta,
                                   int xi, int yi, int zi,
                                   coil_t **iv3, double spacing[3],
@@ -170,7 +169,7 @@ _coilKind7TensorFilterHomogeneous(coil_t *delta,
 /*
 ** watch out for false advertising!
 */
-void
+static void
 _coilKind7TensorFilterSelf(coil_t *delta,
                            int xi, int yi, int zi,
                            coil_t **iv3, double spacing[3],
@@ -198,7 +197,7 @@ _coilKind7TensorFilterSelf(coil_t *delta,
   HESS(hess, iv3, 6, rspX, rspY, rspZ); delta[6] = lin*parm0*tens[0]*TEN_T_DOT(hess, tens);
 }
 
-void
+static void
 _coilKind7TensorFilterFinish(coil_t *delta,
                              int xi, int yi, int zi,
                              coil_t **iv3, double spacing[3],
@@ -258,7 +257,7 @@ _coilKind7TensorFilterFinish(coil_t *delta,
   delta[6]= AIR_CAST(coil_t, parm[0]*cnd*LAPL(iv3, 6, rspsqX, rspsqY, rspsqZ));
 }
 
-void
+static void
 _coilKind7TensorUpdate(coil_t *val, coil_t *delta) {
 
   val[0] += delta[0]; /* WARNING: this could change confidence! */
@@ -270,7 +269,7 @@ _coilKind7TensorUpdate(coil_t *val, coil_t *delta) {
   val[6] += delta[6];
 }
 
-const coilKind
+const coilKind /* NOT static! */
 _coilKind7Tensor = {
   "tensor",
   7,
@@ -286,5 +285,6 @@ _coilKind7Tensor = {
   _coilKind7TensorUpdate
 };
 
-const coilKind *
+const coilKind *const
 coilKind7Tensor = &_coilKind7Tensor;
+/* clang-format on */

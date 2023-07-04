@@ -1,30 +1,28 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-NrrdRange *
+NrrdRange * /* Biff: nope */
 nrrdRangeNew(double min, double max) {
   NrrdRange *range;
 
@@ -37,9 +35,9 @@ nrrdRangeNew(double min, double max) {
   return range;
 }
 
-NrrdRange *
+NrrdRange * /* Biff: nope */
 nrrdRangeCopy(const NrrdRange *rin) {
-  NrrdRange *rout=NULL;
+  NrrdRange *rout = NULL;
 
   if (rin) {
     rout = nrrdRangeNew(rin->min, rin->max);
@@ -48,7 +46,7 @@ nrrdRangeCopy(const NrrdRange *rin) {
   return rout;
 }
 
-NrrdRange *
+NrrdRange * /* Biff: nope */
 nrrdRangeNix(NrrdRange *range) {
 
   airFree(range);
@@ -76,12 +74,9 @@ nrrdRangeSet(NrrdRange *range, const Nrrd *nrrd, int blind8BitRange) {
   if (!range) {
     return;
   }
-  if (nrrd
-      && !airEnumValCheck(nrrdType, nrrd->type)
-      && nrrdTypeBlock != nrrd->type) {
+  if (nrrd && !airEnumValCheck(nrrdType, nrrd->type) && nrrdTypeBlock != nrrd->type) {
     blind = (nrrdBlind8BitRangeTrue == blind8BitRange
-             || (nrrdBlind8BitRangeState == blind8BitRange
-                 && nrrdStateBlind8BitRange));
+             || (nrrdBlind8BitRangeState == blind8BitRange && nrrdStateBlind8BitRange));
     if (blind && 1 == nrrdTypeSize[nrrd->type]) {
       if (nrrdTypeChar == nrrd->type) {
         range->min = SCHAR_MIN;
@@ -92,8 +87,7 @@ nrrdRangeSet(NrrdRange *range, const Nrrd *nrrd, int blind8BitRange) {
       }
       range->hasNonExist = nrrdHasNonExistFalse;
     } else {
-      nrrdMinMaxExactFind[nrrd->type](&_min, &_max, &(range->hasNonExist),
-                                      nrrd);
+      nrrdMinMaxExactFind[nrrd->type](&_min, &_max, &(range->hasNonExist), nrrd);
       range->min = nrrdDLoad[nrrd->type](&_min);
       range->max = nrrdDLoad[nrrd->type](&_max);
     }
@@ -110,14 +104,11 @@ nrrdRangeSet(NrrdRange *range, const Nrrd *nrrd, int blind8BitRange) {
 ** this is called when information about the range of values in the
 ** nrrd is requested; and the learned information is put into "range"
 ** (overwriting whatever is there!)
-**
-** uses biff
 */
-int
-nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd,
-                       double minPerc, double maxPerc,
-                       unsigned int hbins, int blind8BitRange) {
-  static const char me[]="nrrdRangePercentileSet";
+int /* Biff: 1 */
+nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd, double minPerc,
+                       double maxPerc, unsigned int hbins, int blind8BitRange) {
+  static const char me[] = "nrrdRangePercentileSet";
   airArray *mop;
   Nrrd *nhist;
   double allmin, allmax, minval, maxval, *hist, sum, total, sumPerc;
@@ -125,7 +116,7 @@ nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd,
 
   if (!(range && nrrd)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
-    return 0;
+    return 1;
   }
   nrrdRangeSet(range, nrrd, blind8BitRange);
   /* range->min and range->max
@@ -135,8 +126,10 @@ nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd,
     return 0;
   }
   if (!hbins) {
-    biffAddf(NRRD, "%s: sorry, non-histogram-based percentiles not "
-             "currently implemented (need hbins > 0)", me);
+    biffAddf(NRRD,
+             "%s: sorry, non-histogram-based percentiles not "
+             "currently implemented (need hbins > 0)",
+             me);
     return 1;
   }
   if (!(hbins >= 5)) {
@@ -144,8 +137,10 @@ nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd,
     return 1;
   }
   if (range->hasNonExist) {
-    biffAddf(NRRD, "%s: sorry, can currently do histogram-based percentiles "
-             "only in arrays with no non-existent values", me);
+    biffAddf(NRRD,
+             "%s: sorry, can currently do histogram-based percentiles "
+             "only in arrays with no non-existent values",
+             me);
     return 1;
   }
 
@@ -165,47 +160,40 @@ nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd,
   total = AIR_CAST(double, nrrdElementNumber(nrrd));
   if (minPerc) {
     minval = AIR_NAN;
-    sumPerc = AIR_ABS(minPerc)*total/100.0;
+    sumPerc = AIR_ABS(minPerc) * total / 100.0;
     sum = hist[0];
-    for (hi=1; hi<hbins; hi++) {
+    for (hi = 1; hi < hbins; hi++) {
       sum += hist[hi];
       if (sum >= sumPerc) {
-        minval = AIR_AFFINE(0, hi-1, hbins-1,
-                            nhist->axis[0].min, nhist->axis[0].max);
+        minval = AIR_AFFINE(0, hi - 1, hbins - 1, nhist->axis[0].min,
+                            nhist->axis[0].max);
         break;
       }
     }
     if (hi == hbins || !AIR_EXISTS(minval)) {
-      biffAddf(NRRD, "%s: failed to find lower %g-percentile value",
-               me, minPerc);
+      biffAddf(NRRD, "%s: failed to find lower %g-percentile value", me, minPerc);
       airMopError(mop);
       return 1;
     }
-    range->min = (minPerc > 0
-                  ? minval
-                  : 2*allmin - minval);
+    range->min = (minPerc > 0 ? minval : 2 * allmin - minval);
   }
   if (maxPerc) {
     maxval = AIR_NAN;
-    sumPerc = AIR_ABS(maxPerc)*total/100.0;
-    sum = hist[hbins-1];
-    for (hi=hbins-1; hi; hi--) {
-      sum += hist[hi-1];
+    sumPerc = AIR_ABS(maxPerc) * total / 100.0;
+    sum = hist[hbins - 1];
+    for (hi = hbins - 1; hi; hi--) {
+      sum += hist[hi - 1];
       if (sum >= sumPerc) {
-        maxval = AIR_AFFINE(0, hi, hbins-1,
-                            nhist->axis[0].min, nhist->axis[0].max);
+        maxval = AIR_AFFINE(0, hi, hbins - 1, nhist->axis[0].min, nhist->axis[0].max);
         break;
       }
     }
     if (!hi || !AIR_EXISTS(maxval)) {
-      biffAddf(NRRD, "%s: failed to find upper %g-percentile value", me,
-               maxPerc);
+      biffAddf(NRRD, "%s: failed to find upper %g-percentile value", me, maxPerc);
       airMopError(mop);
       return 1;
     }
-    range->max = (maxPerc > 0
-                  ? maxval
-                  : 2*allmax - maxval);
+    range->max = (maxPerc > 0 ? maxval : 2 * allmax - maxval);
   }
 
   airMopOkay(mop);
@@ -219,17 +207,18 @@ nrrdRangePercentileSet(NrrdRange *range, const Nrrd *nrrd,
 ** a known percentile (e.g. "3%") or a known explicit value (e.g. "3"),
 ** for both min and max.  Used by "unu quantize" and others.
 */
-int
-nrrdRangePercentileFromStringSet(NrrdRange *range, const Nrrd *nrrd,
-                                 const char *_minStr, const char *_maxStr,
-                                 unsigned int hbins, int blind8BitRange) {
-  static const char me[]="nrrdRangePercentileFromStringSet";
+int /* Biff: 1 */
+nrrdRangePercentileFromStringSet(NrrdRange *range, const Nrrd *nin, const char *_minStr,
+                                 const char *_maxStr, int zeroCenter, unsigned int hbins,
+                                 int blind8BitRange) {
+  static const char me[] = "nrrdRangePercentileFromStringSet";
   double minVal, maxVal, minPerc, maxPerc;
   char *minStr, *maxStr;
   unsigned int mmIdx;
   airArray *mop;
+  Nrrd *njoin;
 
-  if (!(range && nrrd && _minStr && _maxStr)) {
+  if (!(range && nin && _minStr && _maxStr)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
@@ -239,9 +228,10 @@ nrrdRangePercentileFromStringSet(NrrdRange *range, const Nrrd *nrrd,
   maxStr = airStrdup(_maxStr);
   airMopAdd(mop, maxStr, airFree, airMopAlways);
 
-  /* parse min and max */
+  /* initialize all kinds of bounds to NaN */
   minVal = maxVal = minPerc = maxPerc = AIR_NAN;
-  for (mmIdx=0; mmIdx<=1; mmIdx++) {
+  /* parse min and max */
+  for (mmIdx = 0; mmIdx <= 1; mmIdx++) {
     int percwant;
     double val, *mmv, *mmp;
     char *mmStr;
@@ -256,13 +246,12 @@ nrrdRangePercentileFromStringSet(NrrdRange *range, const Nrrd *nrrd,
     }
     if (airEndsWith(mmStr, NRRD_MINMAX_PERC_SUFF)) {
       percwant = AIR_TRUE;
-      mmStr[strlen(mmStr)-strlen(NRRD_MINMAX_PERC_SUFF)] = '\0';
+      mmStr[strlen(mmStr) - strlen(NRRD_MINMAX_PERC_SUFF)] = '\0';
     } else {
       percwant = AIR_FALSE;
     }
     if (1 != airSingleSscanf(mmStr, "%lf", &val)) {
-      biffAddf(NRRD, "%s: couldn't parse \"%s\" for %s", me,
-               !mmIdx ? _minStr : _maxStr,
+      biffAddf(NRRD, "%s: couldn't parse \"%s\" for %s", me, !mmIdx ? _minStr : _maxStr,
                !mmIdx ? "minimum" : "maximum");
       airMopError(mop);
       return 1;
@@ -285,14 +274,55 @@ nrrdRangePercentileFromStringSet(NrrdRange *range, const Nrrd *nrrd,
       *mmv = val;
     }
   }
+
+  /* the handling of zeroCenter is a dumb hack (fix me if this becomes
+     a bottleneck): the input nrrd is attached to a negated copy of
+     the input, and that becomes the basis of all subsequent analysis.
+     This is the strategy GLK has long used in unu-based scripts;
+     putting this logic here just lifts it into nrrd itself. A smarter
+     implementation would change the way nrrdRangePercentileSet itself
+     operates, to include the zero-centered logic */
+  if (zeroCenter) {
+    Nrrd *nneg;
+    const Nrrd *nji[2];
+
+    if (!(AIR_EXISTS(minPerc)) || !(AIR_EXISTS(maxPerc))) {
+      biffAddf(NRRD,
+               "%s: gave explicit min (\"%s\") or max (\"%s\") but "
+               "also want zero-centering, which uses percentile bounds",
+               me, _minStr, _maxStr);
+      airMopError(mop);
+      return 1;
+    }
+    nneg = nrrdNew();
+    airMopAdd(mop, nneg, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdArithUnaryOp(nneg, nrrdUnaryOpNegative, nin)) {
+      biffAddf(NRRD, "%s: trouble negating input", me);
+      airMopError(mop);
+      return 1;
+    }
+    nji[0] = nin;
+    nji[1] = nneg;
+    njoin = nrrdNew();
+    airMopAdd(mop, njoin, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdJoin(njoin, nji, 2, nin->dim, AIR_TRUE)) {
+      biffAddf(NRRD, "%s: trouble joining input with negation", me);
+      airMopError(mop);
+      return 1;
+    }
+  } else {
+    /* else no zeroCenter: normal operation */
+    njoin = NULL;
+  }
+
   /* so whenever one end of the range is not given explicitly,
      it has been mapped to a statement about the percentile,
      which does require learning about the nrrd's values */
   if (AIR_EXISTS(minPerc) || AIR_EXISTS(maxPerc)) {
-    if (nrrdRangePercentileSet(range, nrrd,
+    if (nrrdRangePercentileSet(range, zeroCenter ? njoin : nin,
                                AIR_EXISTS(minPerc) ? minPerc : 0.0,
-                               AIR_EXISTS(maxPerc) ? maxPerc : 0.0,
-                               hbins, blind8BitRange)) {
+                               AIR_EXISTS(maxPerc) ? maxPerc : 0.0, hbins,
+                               blind8BitRange)) {
       biffAddf(NRRD, "%s: trouble finding percentile range", me);
       airMopError(mop);
       return 1;
@@ -333,14 +363,11 @@ nrrdRangeSafeSet(NrrdRange *range, const Nrrd *nrrd, int blind8BitRange) {
   return;
 }
 
-/*
-** does not use biff
-*/
-NrrdRange *
+NrrdRange * /* Biff: nope */
 nrrdRangeNewSet(const Nrrd *nrrd, int blind8BitRange) {
   NrrdRange *range;
 
-  range = nrrdRangeNew(0, 0);  /* doesn't matter what values are used here */
+  range = nrrdRangeNew(0, 0); /* doesn't matter what values are used here */
   nrrdRangeSet(range, nrrd, blind8BitRange);
   return range;
 }
@@ -356,14 +383,12 @@ nrrdRangeNewSet(const Nrrd *nrrd, int blind8BitRange) {
 ** of the same name, which would be the usual thing to do with a C enum,
 ** but I don't think an airEnum for this would be useful)
 */
-int
+int /* Biff: nope */
 nrrdHasNonExist(const Nrrd *nrrd) {
   NRRD_TYPE_BIGGEST _min, _max;
   int ret;
 
-  if (nrrd
-      && !airEnumValCheck(nrrdType, nrrd->type)
-      && nrrdTypeBlock != nrrd->type) {
+  if (nrrd && !airEnumValCheck(nrrdType, nrrd->type) && nrrdTypeBlock != nrrd->type) {
     if (nrrdTypeIsIntegral[nrrd->type]) {
       ret = nrrdHasNonExistFalse;
     } else {

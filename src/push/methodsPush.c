@@ -1,26 +1,23 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
-
 
 #include "push.h"
 #include "privatePush.h"
@@ -29,7 +26,7 @@
 ** the reason to take the pushContext *pctx argument is to allow
 ** doling out the ttaagg ID
 */
-pushPoint *
+pushPoint * /* Biff: nope */
 pushPointNew(pushContext *pctx) {
   pushPoint *pnt;
   pushPtrPtrUnion pppu;
@@ -40,18 +37,15 @@ pushPointNew(pushContext *pctx) {
       pnt->ttaagg = pctx->ttaagg++;
       ELL_3V_SET(pnt->pos, AIR_NAN, AIR_NAN, AIR_NAN);
       ELL_3V_SET(pnt->frc, AIR_NAN, AIR_NAN, AIR_NAN);
-      TEN_T_SET(pnt->ten, AIR_NAN, AIR_NAN, AIR_NAN,
-                AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
-      TEN_T_SET(pnt->inv, AIR_NAN, AIR_NAN, AIR_NAN,
-                AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
+      TEN_T_SET(pnt->ten, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
+      TEN_T_SET(pnt->inv, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN, AIR_NAN);
       ELL_3V_SET(pnt->cnt, AIR_NAN, AIR_NAN, AIR_NAN);
       pnt->grav = AIR_NAN;
       ELL_3V_SET(pnt->gravGrad, AIR_NAN, AIR_NAN, AIR_NAN);
       pnt->seedThresh = AIR_NAN;
-      pnt->enr = DBL_MAX;  /* any finite quantity will be less than this */
+      pnt->enr = DBL_MAX; /* any finite quantity will be less than this */
 
-      pnt->neighArr = airArrayNew((pppu.point = &(pnt->neigh), pppu.v),
-                                  &(pnt->neighNum),
+      pnt->neighArr = airArrayNew((pppu.point = &(pnt->neigh), pppu.v), &(pnt->neighNum),
                                   sizeof(pushPoint *), 10);
     }
   } else {
@@ -60,15 +54,14 @@ pushPointNew(pushContext *pctx) {
   return pnt;
 }
 
-pushPoint *
+pushPoint * /* Biff: nope */
 pushPointNix(pushPoint *pnt) {
 
   airFree(pnt);
   return NULL;
 }
 
-
-pushContext *
+pushContext * /* Biff: nope */
 pushContextNew(void) {
   pushContext *pctx;
 
@@ -105,7 +98,7 @@ pushContextNew(void) {
     pctx->gravScl = AIR_NAN;
     pctx->gravZero = AIR_NAN;
 
-    pctx->seedThreshItem  = tenGageUnknown;
+    pctx->seedThreshItem = tenGageUnknown;
     pctx->seedThreshSign = +1;
     pctx->seedThresh = 0.0;
 
@@ -127,7 +120,7 @@ pushContextNew(void) {
     pctx->ipvl = NULL;
     pctx->finished = AIR_FALSE;
     pctx->dimIn = 0;
-    pctx->sliceAxis = 42;  /* an invalid value */
+    pctx->sliceAxis = 42; /* an invalid value */
 
     pctx->bin = NULL;
     ELL_3V_SET(pctx->binsEdge, 0, 0, 0);
@@ -161,7 +154,7 @@ pushContextNew(void) {
 /*
 ** this should only nix things created by pushContextNew
 */
-pushContext *
+pushContext * /* Biff: nope */
 pushContextNix(pushContext *pctx) {
 
   if (pctx) {

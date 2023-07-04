@@ -1,31 +1,30 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 
 #include "../limn.h"
 
-char *info = ("Save a triangular piece of an image to an EPS file. "
-              "You might want to ilk -t 1,-0.5,0,0,0.866,0 -k tent "
-              "-0 u:0,1 -b pad -bg 0 before you use this. ");
+const char *info = ("Save a triangular piece of an image to an EPS file. "
+                    "You might want to ilk -t 1,-0.5,0,0,0.866,0 -k tent "
+                    "-0 u:0,1 -b pad -bg 0 before you use this. ");
 
 int
 main(int argc, const char *argv[]) {
@@ -37,8 +36,8 @@ main(int argc, const char *argv[]) {
   FILE *file;
   char *outS;
   Nrrd *nin;
-  float width, scale, hack, minX, maxX, minY, maxY;
-  int gray, sx, sy, labels;
+  double width, scale, hack, minX, maxX, minY, maxY;
+  unsigned int gray, sx, sy, labels;
 
   mop = airMopNew();
   me = argv[0];
@@ -68,8 +67,8 @@ main(int argc, const char *argv[]) {
             airEnumStr(nrrdType, nin->type));
     airMopError(mop); return 1;
   }
-  sx = (2 == nin->dim ? nin->axis[0].size : nin->axis[1].size);
-  sy = (2 == nin->dim ? nin->axis[1].size : nin->axis[2].size);
+  sx = AIR_UINT(2 == nin->dim ? nin->axis[0].size : nin->axis[1].size);
+  sy = AIR_UINT(2 == nin->dim ? nin->axis[1].size : nin->axis[2].size);
   gray = 2 == nin->dim || 1 == nin->axis[0].size;
   if (!( sx == sy )) {
     fprintf(stderr, "%s: image must be square (not %d x %d)\n", me, sx, sy);

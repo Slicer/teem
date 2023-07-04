@@ -1,26 +1,23 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
-
 
 #include "ell.h"
 
@@ -29,11 +26,9 @@
 ** properly consistent with the ell library name convention) because
 ** we want to facilitate systematic testing of all libraries
 */
-const int
-ellPresent = 42;
+const int ellPresent = 42;
 
-const char *
-ell_biff_key = "ell";
+const char *const ell_biff_key = "ell";
 
 /*
 ******** ell_debug
@@ -43,8 +38,37 @@ ell_biff_key = "ell";
 */
 int ell_debug = 0;
 
+/* clang-format off */
+static const char *
+_ell_quadratic_root_str[] = {
+  "(unknown ell_quadratic_root)",
+  "two",
+  "double",
+  "complex"
+};
 
-const char *
+static const char *
+_ell_quadratic_root_desc[] = {
+  "(unknown ell_quadratic_root)",
+  "two distinct roots",
+  "one double root",
+  "complex conjugate roots",
+};
+
+static const airEnum
+_ell_quadratic_root = {
+  "quadratic root solutions",
+  ELL_QUADRATIC_ROOT_MAX,
+  _ell_quadratic_root_str, NULL,
+  _ell_quadratic_root_desc,
+  NULL, NULL,
+  AIR_FALSE
+};
+const airEnum *const
+ell_quadratic_root = &_ell_quadratic_root;
+
+
+static const char *
 _ell_cubic_root_str[] = {
   "(unknown ell_cubic_root)",
   "single",
@@ -53,7 +77,7 @@ _ell_cubic_root_str[] = {
   "three distinct"
 };
 
-const char *
+static const char *
 _ell_cubic_root_desc[] = {
   "(unknown ell_cubic_root)",
   "one single root",
@@ -62,7 +86,7 @@ _ell_cubic_root_desc[] = {
   "three distinct roots"
 };
 
-airEnum
+static const airEnum
 _ell_cubic_root = {
   "cubic root solutions",
   ELL_CUBIC_ROOT_MAX,
@@ -73,7 +97,6 @@ _ell_cubic_root = {
 };
 const airEnum *const
 ell_cubic_root = &_ell_cubic_root;
-
 
 void
 ell_3m_print_f(FILE *f, const float s[9]) {
@@ -150,3 +173,4 @@ ell_4v_print_d(FILE *f, const double s[4]) {
   fprintf(f, "% 31.15f % 31.15f % 31.15f % 31.15f\n",
           s[0], s[1], s[2], s[3]);
 }
+/* clang-format on */

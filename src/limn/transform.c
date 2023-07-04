@@ -1,32 +1,29 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
-
 
 #include "limn.h"
 
-int
+int /* Biff: 1 */
 limnObjectWorldHomog(limnObject *obj) {
-  static const char me[]="limnObjectWorldHomog";
+  static const char me[] = "limnObjectWorldHomog";
   unsigned int vertIdx;
   limnVertex *vert;
   float h;
@@ -35,9 +32,9 @@ limnObjectWorldHomog(limnObject *obj) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
-  for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
+  for (vertIdx = 0; vertIdx < obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
-    h = AIR_CAST(float, 1.0/vert->world[3]);
+    h = AIR_FLOAT(1.0 / vert->world[3]);
     ELL_3V_SCALE(vert->world, h, vert->world);
     vert->world[3] = 1.0;
     ELL_3V_NORM_TT(vert->worldNormal, float, vert->worldNormal, h);
@@ -46,9 +43,9 @@ limnObjectWorldHomog(limnObject *obj) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnObjectFaceNormals(limnObject *obj, int space) {
-  static const char me[]="limnObjectFaceNormals";
+  static const char me[] = "limnObjectFaceNormals";
   unsigned int vii, faceIdx;
   limnFace *face;
   limnVertex *vert0, *vert1, *vert2;
@@ -56,25 +53,21 @@ limnObjectFaceNormals(limnObject *obj, int space) {
 
   if (space != limnSpaceWorld && space != obj->vertSpace) {
     biffAddf(LIMN, "%s: desired (%s) != object (%s) space", me,
-             airEnumStr(limnSpace, space),
-             airEnumStr(limnSpace, obj->vertSpace));
+             airEnumStr(limnSpace, space), airEnumStr(limnSpace, obj->vertSpace));
     return 1;
   }
-  for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
+  for (faceIdx = 0; faceIdx < obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
     /* add up cross products at all vertices */
     ELL_3V_SET(nn, 0, 0, 0);
-    for (vii=0; vii<face->sideNum; vii++) {
+    for (vii = 0; vii < face->sideNum; vii++) {
       vert0 = obj->vert + face->vertIdx[vii];
-      vert1 = (obj->vert
-               + face->vertIdx[AIR_MOD((int)vii+1, (int)face->sideNum)]);
-      vert2 = (obj->vert
-               + face->vertIdx[AIR_MOD((int)vii-1, (int)face->sideNum)]);
+      vert1 = (obj->vert + face->vertIdx[AIR_MOD((int)vii + 1, (int)face->sideNum)]);
+      vert2 = (obj->vert + face->vertIdx[AIR_MOD((int)vii - 1, (int)face->sideNum)]);
       if (limnSpaceWorld == space) {
         ELL_3V_SUB(vec1, vert1->world, vert0->world);
         ELL_3V_SUB(vec2, vert2->world, vert0->world);
-      }
-      else {
+      } else {
         ELL_3V_SUB(vec1, vert1->coord, vert0->coord);
         ELL_3V_SUB(vec2, vert2->coord, vert0->coord);
       }
@@ -89,8 +82,7 @@ limnObjectFaceNormals(limnObject *obj, int space) {
              face->worldNormal[0], face->worldNormal[1],
              face->worldNormal[2]);
       */
-    }
-    else {
+    } else {
       ELL_3V_NORM_TT(face->screenNormal, float, nn, norm);
       /*
       printf("%s: sn[%d] = %g %g %g\n", me, faceIdx,
@@ -102,42 +94,42 @@ limnObjectFaceNormals(limnObject *obj, int space) {
   return 0;
 }
 
-int
+int /* Biff: nope */
 limnObjectVertexNormals(limnObject *obj) {
-  /* static const char me[]="limnObjectVertexNormals"; */
+  /* static const char me[] = "limnObjectVertexNormals"; */
   unsigned int vertIdx, vertIdxIdx, faceIdx;
   limnVertex *vert;
   limnFace *face;
   double norm;
 
-  for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
+  for (vertIdx = 0; vertIdx < obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
     ELL_3V_SET(vert->worldNormal, 0, 0, 0);
   }
-  for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
+  for (faceIdx = 0; faceIdx < obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
-    for (vertIdxIdx=0; vertIdxIdx<face->sideNum; vertIdxIdx++) {
+    for (vertIdxIdx = 0; vertIdxIdx < face->sideNum; vertIdxIdx++) {
       vert = obj->vert + face->vertIdx[vertIdxIdx];
       ELL_3V_INCR(vert->worldNormal, face->worldNormal);
     }
   }
-  for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
+  for (vertIdx = 0; vertIdx < obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
     ELL_3V_NORM_TT(vert->worldNormal, float, vert->worldNormal, norm);
   }
   return 0;
 }
 
-int
+static int
 _limnObjectViewTransform(limnObject *obj, limnCamera *cam) {
   unsigned int vertIdx;
   limnVertex *vert;
   float d;
 
-  for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
+  for (vertIdx = 0; vertIdx < obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
     ELL_4MV_MUL_TT(vert->coord, float, cam->W2V, vert->world);
-    d = AIR_CAST(float, 1.0/vert->world[3]);
+    d = AIR_FLOAT(1.0 / vert->world[3]);
     ELL_4V_SCALE(vert->coord, d, vert->coord);
     /*
     printf("%s: w[%d] = %g %g %g %g --> v = %g %g %g\n",
@@ -149,9 +141,9 @@ _limnObjectViewTransform(limnObject *obj, limnCamera *cam) {
   return 0;
 }
 
-int
+static int /* Biff: 1 */
 _limnObjectScreenTransform(limnObject *obj, limnCamera *cam) {
-  static const char me[]="_limnObjectScreenTransform";
+  static const char me[] = "_limnObjectScreenTransform";
   unsigned int vertIdx;
   limnVertex *vert;
   float d;
@@ -162,11 +154,9 @@ _limnObjectScreenTransform(limnObject *obj, limnCamera *cam) {
              airEnumStr(limnSpace, limnSpaceView));
     return 1;
   }
-  for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
+  for (vertIdx = 0; vertIdx < obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
-    d = (cam->orthographic
-         ? 1.0f
-         : AIR_CAST(float, cam->vspDist/vert->coord[2]));
+    d = (cam->orthographic ? 1.0f : AIR_FLOAT(cam->vspDist / vert->coord[2]));
     vert->coord[0] *= d;
     vert->coord[1] *= d;
     /* coord[2] unchanged */
@@ -179,10 +169,9 @@ _limnObjectScreenTransform(limnObject *obj, limnCamera *cam) {
   return 0;
 }
 
-int
-_limnObjectDeviceTransform(limnObject *obj, limnCamera *cam,
-                           limnWindow *win) {
-  static const char me[]="_limnObjectDeviceTransform";
+static int /* Biff: 1 */
+_limnObjectDeviceTransform(limnObject *obj, limnCamera *cam, limnWindow *win) {
+  static const char me[] = "_limnObjectDeviceTransform";
   unsigned int vertIdx;
   limnVertex *vert;
   float wy0, wy1, wx0, wx1, t;
@@ -194,19 +183,19 @@ _limnObjectDeviceTransform(limnObject *obj, limnCamera *cam,
     return 1;
   }
   wx0 = 0;
-  wx1 = AIR_CAST(float, (cam->uRange[1] - cam->uRange[0])*win->scale);
+  wx1 = AIR_FLOAT((cam->uRange[1] - cam->uRange[0]) * win->scale);
   wy0 = 0;
-  wy1 = AIR_CAST(float, (cam->vRange[1] - cam->vRange[0])*win->scale);
+  wy1 = AIR_FLOAT((cam->vRange[1] - cam->vRange[0]) * win->scale);
   ELL_4V_SET(win->bbox, wx0, wy0, wx1, wy1);
   if (win->yFlip) {
     ELL_SWAP2(wy0, wy1, t);
   }
-  for (vertIdx=0; vertIdx<obj->vertNum; vertIdx++) {
+  for (vertIdx = 0; vertIdx < obj->vertNum; vertIdx++) {
     vert = obj->vert + vertIdx;
-    vert->coord[0] = AIR_CAST(float, AIR_AFFINE(cam->uRange[0], vert->coord[0],
-                                                cam->uRange[1], wx0, wx1));
-    vert->coord[1] = AIR_CAST(float, AIR_AFFINE(cam->vRange[0], vert->coord[1],
-                                                cam->vRange[1], wy0, wy1));
+    vert->coord[0] = AIR_FLOAT(AIR_AFFINE(cam->uRange[0], vert->coord[0], cam->uRange[1],
+                                          wx0, wx1));
+    vert->coord[1] = AIR_FLOAT(AIR_AFFINE(cam->vRange[0], vert->coord[1], cam->vRange[1],
+                                          wy0, wy1));
     /* coord[2] unchanged */
     /*
     printf("%s: s[%d] = %g %g --> s = %g %g\n", "_limnObjectDTransform",
@@ -217,14 +206,13 @@ _limnObjectDeviceTransform(limnObject *obj, limnCamera *cam,
   return 0;
 }
 
-int
-limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
-                      limnWindow *win, int space) {
-  static const char me[]="limnObjectSpaceTransform";
-  int E=0;
+int /* Biff: 1 */
+limnObjectSpaceTransform(limnObject *obj, limnCamera *cam, limnWindow *win, int space) {
+  static const char me[] = "limnObjectSpaceTransform";
+  int E = 0;
 
   /* HEY: deal with cam->orthographic */
-  switch(space) {
+  switch (space) {
   case limnSpaceView:
     E = _limnObjectViewTransform(obj, cam);
     break;
@@ -247,16 +235,15 @@ limnObjectSpaceTransform(limnObject *obj, limnCamera *cam,
   return 0;
 }
 
-int
-limnObjectPartTransform(limnObject *obj, unsigned int partIdx,
-                        float xform[16]) {
+int /* Biff: nope */
+limnObjectPartTransform(limnObject *obj, unsigned int partIdx, float xform[16]) {
   unsigned int vertIdxIdx;
   limnPart *part;
   limnVertex *vert;
   float tmp[4];
 
-  part= obj->part[partIdx];
-  for (vertIdxIdx=0; vertIdxIdx<part->vertIdxNum; vertIdxIdx++) {
+  part = obj->part[partIdx];
+  for (vertIdxIdx = 0; vertIdxIdx < part->vertIdxNum; vertIdxIdx++) {
     vert = obj->vert + part->vertIdx[vertIdxIdx];
     ELL_4MV_MUL(tmp, xform, vert->world);
     ELL_4V_COPY(vert->world, tmp);
@@ -265,7 +252,7 @@ limnObjectPartTransform(limnObject *obj, unsigned int partIdx,
   return 0;
 }
 
-int
+static int
 _limnPartDepthCompare(const void *_a, const void *_b) {
   limnPart *const *a;
   limnPart *const *b;
@@ -275,7 +262,7 @@ _limnPartDepthCompare(const void *_a, const void *_b) {
   return AIR_COMPARE((*b)->depth, (*a)->depth);
 }
 
-int
+int /* Biff: nope */
 limnObjectDepthSortParts(limnObject *obj) {
   limnPart *part;
   limnVertex *vert;
@@ -283,26 +270,26 @@ limnObjectDepthSortParts(limnObject *obj) {
   limnEdge *edge;
   unsigned int partIdx, ii;
 
-  for (partIdx=0; partIdx<obj->partNum; partIdx++) {
+  for (partIdx = 0; partIdx < obj->partNum; partIdx++) {
     part = obj->part[partIdx];
     part->depth = 0;
-    for (ii=0; ii<part->vertIdxNum; ii++) {
+    for (ii = 0; ii < part->vertIdxNum; ii++) {
       vert = obj->vert + part->vertIdx[ii];
       part->depth += vert->coord[2];
     }
     part->depth /= part->vertIdxNum;
   }
 
-  qsort(obj->part, obj->partNum, sizeof(limnPart*), _limnPartDepthCompare);
+  qsort(obj->part, obj->partNum, sizeof(limnPart *), _limnPartDepthCompare);
 
   /* re-assign partIdx, post-sorting */
-  for (partIdx=0; partIdx<obj->partNum; partIdx++) {
+  for (partIdx = 0; partIdx < obj->partNum; partIdx++) {
     part = obj->part[partIdx];
-    for (ii=0; ii<part->edgeIdxNum; ii++) {
+    for (ii = 0; ii < part->edgeIdxNum; ii++) {
       edge = obj->edge + part->edgeIdx[ii];
       edge->partIdx = partIdx;
     }
-    for (ii=0; ii<part->faceIdxNum; ii++) {
+    for (ii = 0; ii < part->faceIdxNum; ii++) {
       face = obj->face + part->faceIdx[ii];
       face->partIdx = partIdx;
     }
@@ -311,27 +298,27 @@ limnObjectDepthSortParts(limnObject *obj) {
   return 0;
 }
 
-int
+static int
 _limnFaceDepthCompare(const void *_a, const void *_b) {
-  limnFace *const*a;
-  limnFace *const*b;
+  limnFace *const *a;
+  limnFace *const *b;
 
-  a = (limnFace *const*)_a;
-  b = (limnFace *const*)_b;
+  a = (limnFace *const *)_a;
+  b = (limnFace *const *)_b;
   return -AIR_COMPARE((*a)->depth, (*b)->depth);
 }
 
-int
+int /* Biff: nope */
 limnObjectDepthSortFaces(limnObject *obj) {
   limnFace *face;
   limnVertex *vert;
   unsigned int faceIdx, vii;
 
   obj->faceSort = AIR_MALLOC(obj->faceNum, limnFace *);
-  for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
+  for (faceIdx = 0; faceIdx < obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
     face->depth = 0;
-    for (vii=0; vii<face->sideNum; vii++) {
+    for (vii = 0; vii < face->sideNum; vii++) {
       vert = obj->vert + face->vertIdx[vii];
       face->depth += vert->coord[2];
     }
@@ -339,15 +326,14 @@ limnObjectDepthSortFaces(limnObject *obj) {
     obj->faceSort[faceIdx] = face;
   }
 
-  qsort(obj->faceSort, obj->faceNum,
-        sizeof(limnFace *), _limnFaceDepthCompare);
+  qsort(obj->faceSort, obj->faceNum, sizeof(limnFace *), _limnFaceDepthCompare);
 
   return 0;
 }
 
-int
+int /* Biff: 1 */
 limnObjectFaceReverse(limnObject *obj) {
-  static const char me[]="limnObjectFaceReverse";
+  static const char me[] = "limnObjectFaceReverse";
   limnFace *face;
   unsigned int faceIdx, sii;
   int *buff;
@@ -357,21 +343,21 @@ limnObjectFaceReverse(limnObject *obj) {
     return 1;
   }
   buff = NULL;
-  for (faceIdx=0; faceIdx<obj->faceNum; faceIdx++) {
+  for (faceIdx = 0; faceIdx < obj->faceNum; faceIdx++) {
     face = obj->face + faceIdx;
     buff = (int *)calloc(face->sideNum, sizeof(int));
     if (!(buff)) {
-      biffAddf(LIMN, "%s: couldn't allocate %d side buffer for face %d\n",
-               me, face->sideNum, faceIdx);
+      biffAddf(LIMN, "%s: couldn't allocate %d side buffer for face %d\n", me,
+               face->sideNum, faceIdx);
       return 1;
     }
-    memcpy(buff, face->vertIdx, face->sideNum*sizeof(int));
-    for (sii=0; sii<face->sideNum; sii++) {
-      face->vertIdx[sii] = buff[face->sideNum-1-sii];
+    memcpy(buff, face->vertIdx, face->sideNum * sizeof(int));
+    for (sii = 0; sii < face->sideNum; sii++) {
+      face->vertIdx[sii] = buff[face->sideNum - 1 - sii];
     }
-    memcpy(buff, face->edgeIdx, face->sideNum*sizeof(int));
-    for (sii=0; sii<face->sideNum; sii++) {
-      face->edgeIdx[sii] = buff[face->sideNum-1-sii];
+    memcpy(buff, face->edgeIdx, face->sideNum * sizeof(int));
+    for (sii = 0; sii < face->sideNum; sii++) {
+      face->edgeIdx[sii] = buff[face->sideNum - 1 - sii];
     }
     free(buff);
   }

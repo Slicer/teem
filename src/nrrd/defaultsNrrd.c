@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "nrrd.h"
@@ -40,6 +38,7 @@
 
 int nrrdDefaultWriteEncodingType = nrrdEncodingTypeRaw;
 int nrrdDefaultWriteBareText = AIR_TRUE;
+int nrrdDefaultWriteMoreThanFloatInText = AIR_FALSE;
 unsigned int nrrdDefaultWriteCharsPerLine = 75;
 unsigned int nrrdDefaultWriteValsPerLine = 8;
 /* ---- BEGIN non-NrrdIO */
@@ -82,15 +81,15 @@ int nrrdStateKeyValueReturnInternalPointers = AIR_FALSE;
 int nrrdStateKindNoop = AIR_FALSE;
 
 /* these are helper functions for min/max testing */
-airLLong
+airLLong /* Biff: (private) nope */
 _nrrdLLongMaxHelp(airLLong val) {
-  return val*2 + 1;
+  return val * 2 + 1;
 }
-airLLong
+airLLong /* Biff: (private) nope */
 _nrrdLLongMinHelp(airLLong val) {
-  return val*2;
+  return val * 2;
 }
-airULLong
+airULLong /* Biff: (private) nope */
 _nrrdULLongMaxHelp(airULLong val) {
   return val + 1;
 }
@@ -105,43 +104,29 @@ _nrrdULLongMaxHelp(airULLong val) {
 
 const char *const nrrdEnvVarDefaultWriteEncodingType
   = "NRRD_DEFAULT_WRITE_ENCODING_TYPE";
-const char *const nrrdEnvVarDefaultWriteBareText
-  = "NRRD_DEFAULT_WRITE_BARE_TEXT";
-const char *const nrrdEnvVarDefaultWriteBareTextOld
-  = "NRRD_DEF_WRITE_BARE_TEXT";
-const char *const nrrdEnvVarDefaultCenter
-  = "NRRD_DEFAULT_CENTER";
-const char *const nrrdEnvVarDefaultCenterOld
-  = "NRRD_DEF_CENTER";
+const char *const nrrdEnvVarDefaultWriteBareText = "NRRD_DEFAULT_WRITE_BARE_TEXT";
+const char *const nrrdEnvVarDefaultWriteBareTextOld = "NRRD_DEF_WRITE_BARE_TEXT";
+const char *const nrrdEnvVarDefaultWriteMoreThanFloatInText
+  = "NRRD_DEFAULT_WRITE_MORE_THAN_FLOAT_IN_TEXT";
+const char *const nrrdEnvVarDefaultCenter = "NRRD_DEFAULT_CENTER";
+const char *const nrrdEnvVarDefaultCenterOld = "NRRD_DEF_CENTER";
 const char *const nrrdEnvVarDefaultWriteCharsPerLine
   = "NRRD_DEFAULT_WRITE_CHARS_PER_LINE";
-const char *const nrrdEnvVarDefaultWriteValsPerLine
-  = "NRRD_DEFAULT_WRITE_VALS_PER_LINE";
-const char *const nrrdEnvVarDefaultKernelParm0
-  = "NRRD_DEFAULT_KERNEL_PARM0";
-const char *const nrrdEnvVarDefaultSpacing
-  = "NRRD_DEFAULT_SPACING";
+const char *const nrrdEnvVarDefaultWriteValsPerLine = "NRRD_DEFAULT_WRITE_VALS_PER_LINE";
+const char *const nrrdEnvVarDefaultKernelParm0 = "NRRD_DEFAULT_KERNEL_PARM0";
+const char *const nrrdEnvVarDefaultSpacing = "NRRD_DEFAULT_SPACING";
 
-const char *const nrrdEnvVarStateKindNoop
-  = "NRRD_STATE_KIND_NOOP";
-const char *const nrrdEnvVarStateVerboseIO
-  = "NRRD_STATE_VERBOSE_IO";
+const char *const nrrdEnvVarStateKindNoop = "NRRD_STATE_KIND_NOOP";
+const char *const nrrdEnvVarStateVerboseIO = "NRRD_STATE_VERBOSE_IO";
 const char *const nrrdEnvVarStateKeyValuePairsPropagate
   = "NRRD_STATE_KEYVALUEPAIRS_PROPAGATE";
-const char *const nrrdEnvVarStateBlind8BitRange
-  = "NRRD_STATE_BLIND_8_BIT_RANGE";
-const char *const nrrdEnvVarStateAlwaysSetContent
-  = "NRRD_STATE_ALWAYS_SET_CONTENT";
-const char *const nrrdEnvVarStateDisableContent
-  = "NRRD_STATE_DISABLE_CONTENT";
-const char *const nrrdEnvVarStateMeasureType
-  = "NRRD_STATE_MEASURE_TYPE";
-const char *const nrrdEnvVarStateMeasureModeBins
-  = "NRRD_STATE_MEASURE_MODE_BINS";
-const char *const nrrdEnvVarStateMeasureHistoType
-  = "NRRD_STATE_MEASURE_HISTO_TYPE";
-const char *const nrrdEnvVarStateGrayscaleImage3D
-  = "NRRD_STATE_GRAYSCALE_IMAGE_3D";
+const char *const nrrdEnvVarStateBlind8BitRange = "NRRD_STATE_BLIND_8_BIT_RANGE";
+const char *const nrrdEnvVarStateAlwaysSetContent = "NRRD_STATE_ALWAYS_SET_CONTENT";
+const char *const nrrdEnvVarStateDisableContent = "NRRD_STATE_DISABLE_CONTENT";
+const char *const nrrdEnvVarStateMeasureType = "NRRD_STATE_MEASURE_TYPE";
+const char *const nrrdEnvVarStateMeasureModeBins = "NRRD_STATE_MEASURE_MODE_BINS";
+const char *const nrrdEnvVarStateMeasureHistoType = "NRRD_STATE_MEASURE_HISTO_TYPE";
+const char *const nrrdEnvVarStateGrayscaleImage3D = "NRRD_STATE_GRAYSCALE_IMAGE_3D";
 
 /*
 **    return
@@ -151,7 +136,7 @@ const char *const nrrdEnvVarStateGrayscaleImage3D
 ** AIR_FALSE: set in an invalid way ==> *val NOT set
 */
 
-int
+int /* Biff: nope */
 nrrdGetenvBool(int *val, char **envStr, const char *envVar) {
   char *env;
   int tmp;
@@ -180,9 +165,8 @@ nrrdGetenvBool(int *val, char **envStr, const char *envVar) {
   }
 }
 
-int
-nrrdGetenvEnum(int *val, char **envStr, const airEnum *enm,
-               const char *envVar) {
+int /* Biff: nope */
+nrrdGetenvEnum(int *val, char **envStr, const airEnum *enm, const char *envVar) {
   char *env;
   int tmp;
 
@@ -205,7 +189,7 @@ nrrdGetenvEnum(int *val, char **envStr, const airEnum *enm,
   }
 }
 
-int
+int /* Biff: nope */
 nrrdGetenvUInt(unsigned int *val, char **envStr, const char *envVar) {
   char *env;
   unsigned int tmp;
@@ -228,7 +212,7 @@ nrrdGetenvUInt(unsigned int *val, char **envStr, const char *envVar) {
   }
 }
 
-int
+int /* Biff: nope */
 nrrdGetenvInt(int *val, char **envStr, const char *envVar) {
   char *env;
   int tmp;
@@ -251,7 +235,7 @@ nrrdGetenvInt(int *val, char **envStr, const char *envVar) {
   }
 }
 
-int
+int /* Biff: nope */
 nrrdGetenvDouble(double *val, char **envStr, const char *envVar) {
   char *env;
   double tmp;
@@ -279,7 +263,7 @@ nrrdGetenvDouble(double *val, char **envStr, const char *envVar) {
 ** as the other nrrdGetenv functions; it was added just to have a more
 ** convenient wrapper around getenv for strings.
 */
-int
+int /* Biff: nope */
 nrrdGetenvString(char **envStr, const char *envVar) {
 
   if (!(envStr && envVar)) {
@@ -297,28 +281,28 @@ void
 nrrdDefaultGetenv(void) {
 
   /* these two pre-date Def --> Default rename */
-  if (-1 == nrrdGetenvBool(/**/ &nrrdDefaultWriteBareText, NULL,
-                           nrrdEnvVarDefaultWriteBareTextOld)) {
-    nrrdGetenvBool(/**/ &nrrdDefaultWriteBareText, NULL,
-                   nrrdEnvVarDefaultWriteBareText);
+  if (-1
+      == nrrdGetenvBool(/**/ &nrrdDefaultWriteBareText, NULL,
+                        nrrdEnvVarDefaultWriteBareTextOld)) {
+    nrrdGetenvBool(/**/ &nrrdDefaultWriteBareText, NULL, nrrdEnvVarDefaultWriteBareText);
   }
-  if (-1 == nrrdGetenvEnum(/**/ &nrrdDefaultCenter, NULL, nrrdCenter,
-                           nrrdEnvVarDefaultCenterOld)) {
-    nrrdGetenvEnum(/**/ &nrrdDefaultCenter, NULL, nrrdCenter,
-                   nrrdEnvVarDefaultCenter);
+  if (-1
+      == nrrdGetenvEnum(/**/ &nrrdDefaultCenter, NULL, nrrdCenter,
+                        nrrdEnvVarDefaultCenterOld)) {
+    nrrdGetenvEnum(/**/ &nrrdDefaultCenter, NULL, nrrdCenter, nrrdEnvVarDefaultCenter);
   }
   /* these post-date the Def --> Default rename */
 
+  nrrdGetenvBool(/**/ &nrrdDefaultWriteMoreThanFloatInText, NULL,
+                 nrrdEnvVarDefaultWriteMoreThanFloatInText);
   nrrdGetenvEnum(/**/ &nrrdDefaultWriteEncodingType, NULL, nrrdEncodingType,
                  nrrdEnvVarDefaultWriteEncodingType);
   nrrdGetenvUInt(/**/ &nrrdDefaultWriteCharsPerLine, NULL,
                  nrrdEnvVarDefaultWriteCharsPerLine);
   nrrdGetenvUInt(/**/ &nrrdDefaultWriteValsPerLine, NULL,
                  nrrdEnvVarDefaultWriteValsPerLine);
-  nrrdGetenvDouble(/**/ &nrrdDefaultKernelParm0, NULL,
-                   nrrdEnvVarDefaultKernelParm0);
-  nrrdGetenvDouble(/**/ &nrrdDefaultSpacing, NULL,
-                   nrrdEnvVarDefaultSpacing);
+  nrrdGetenvDouble(/**/ &nrrdDefaultKernelParm0, NULL, nrrdEnvVarDefaultKernelParm0);
+  nrrdGetenvDouble(/**/ &nrrdDefaultSpacing, NULL, nrrdEnvVarDefaultSpacing);
 
   return;
 }
@@ -326,26 +310,18 @@ nrrdDefaultGetenv(void) {
 void
 nrrdStateGetenv(void) {
 
-  nrrdGetenvBool(/**/ &nrrdStateKindNoop, NULL,
-                 nrrdEnvVarStateKindNoop);
-  nrrdGetenvInt(/**/ &nrrdStateVerboseIO, NULL,
-                nrrdEnvVarStateVerboseIO);
+  nrrdGetenvBool(/**/ &nrrdStateKindNoop, NULL, nrrdEnvVarStateKindNoop);
+  nrrdGetenvInt(/**/ &nrrdStateVerboseIO, NULL, nrrdEnvVarStateVerboseIO);
   nrrdGetenvBool(/**/ &nrrdStateKeyValuePairsPropagate, NULL,
                  nrrdEnvVarStateKeyValuePairsPropagate);
-  nrrdGetenvBool(/**/ &nrrdStateBlind8BitRange, NULL,
-                 nrrdEnvVarStateBlind8BitRange);
-  nrrdGetenvBool(/**/ &nrrdStateAlwaysSetContent, NULL,
-                 nrrdEnvVarStateAlwaysSetContent);
-  nrrdGetenvBool(/**/ &nrrdStateDisableContent, NULL,
-                 nrrdEnvVarStateDisableContent);
-  nrrdGetenvEnum(/**/ &nrrdStateMeasureType, NULL, nrrdType,
-                 nrrdEnvVarStateMeasureType);
-  nrrdGetenvInt(/**/ &nrrdStateMeasureModeBins, NULL,
-                nrrdEnvVarStateMeasureModeBins);
+  nrrdGetenvBool(/**/ &nrrdStateBlind8BitRange, NULL, nrrdEnvVarStateBlind8BitRange);
+  nrrdGetenvBool(/**/ &nrrdStateAlwaysSetContent, NULL, nrrdEnvVarStateAlwaysSetContent);
+  nrrdGetenvBool(/**/ &nrrdStateDisableContent, NULL, nrrdEnvVarStateDisableContent);
+  nrrdGetenvEnum(/**/ &nrrdStateMeasureType, NULL, nrrdType, nrrdEnvVarStateMeasureType);
+  nrrdGetenvInt(/**/ &nrrdStateMeasureModeBins, NULL, nrrdEnvVarStateMeasureModeBins);
   nrrdGetenvEnum(/**/ &nrrdStateMeasureHistoType, NULL, nrrdType,
                  nrrdEnvVarStateMeasureHistoType);
-  nrrdGetenvBool(/**/ &nrrdStateGrayscaleImage3D, NULL,
-                 nrrdEnvVarStateGrayscaleImage3D);
+  nrrdGetenvBool(/**/ &nrrdStateGrayscaleImage3D, NULL, nrrdEnvVarStateGrayscaleImage3D);
 
   return;
 }

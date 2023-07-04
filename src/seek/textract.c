@@ -1,22 +1,20 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2011, 2010, 2009, 2008  Thomas Schultz
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 /* This file collects functions that implement extraction of crease
@@ -26,6 +24,7 @@
 
 #include "seek.h"
 #include "privateSeek.h"
+/* clang-format off */
 
 /* private helper routines for the T-based extraction */
 
@@ -243,9 +242,9 @@ computeEdgeGradient(seekContext *sctx, baggage *bag, double *res,
   double Txm[9], Txp[9], Tym[9], Typ[9], Tzm[9], Tzp[9], T[9],
     gxm[3], gxp[3], gym[3], gyp[3], gzm[3], gzp[3], g[3];
 
-  unsigned int sx = AIR_CAST(unsigned int, sctx->sx);
-  unsigned int sy = AIR_CAST(unsigned int, sctx->sy);
-  unsigned int sz = AIR_CAST(unsigned int, sctx->sz);
+  unsigned int sx = AIR_UINT(sctx->sx);
+  unsigned int sy = AIR_UINT(sctx->sy);
+  unsigned int sz = AIR_UINT(sctx->sz);
   unsigned int si = xi + sx*yi;
   unsigned int six = xi + 1 + sx*yi, siX = xi - 1 + sx*yi;
   unsigned int siy = xi + sx*(yi+1), siY = xi + sx*(yi-1);
@@ -512,8 +511,8 @@ computeFaceGradient(seekContext *sctx, double *res,
                     char faceid, double *coords) {
   double T[9], Txm[9], Txp[9], Tym[9], Typ[9], Tzm[9], Tzp[9],
     g[3], gxm[3], gxp[3], gym[3], gyp[3], gzm[3], gzp[3];
-  unsigned int sx = AIR_CAST(unsigned int, sctx->sx);
-  unsigned int sy = AIR_CAST(unsigned int, sctx->sy);
+  unsigned int sx = AIR_UINT(sctx->sx);
+  unsigned int sy = AIR_UINT(sctx->sy);
   unsigned int si = xi + sx*yi;
   unsigned int six = xi + 1 + sx*yi, siX = xi - 1 + sx*yi;
   unsigned int siy = xi + sx*(yi+1), siY = xi + sx*(yi-1);
@@ -959,6 +958,8 @@ findConnectivity(signed char *pairs, double *bestval, int ct, char *idcs,
 #define _SEEK_TREATED_EDGE4 0x20 /* unique edge 4 has been treated */
 #define _SEEK_TREATED_FACE3 0x40 /* unique face 3 has been treated */
 
+#define CHAR(x) AIR_CAST(char, x)
+
 /* find deg. points, normals, and connectivity on a given (unique) face
  * now refines the search if it couldn't find a degenerate point */
 static void
@@ -968,7 +969,7 @@ connectFace(seekContext *sctx, baggage *bag,
                     {0, 5, 8, 4},
                     {1, 6, 9, 4},
                     {8,10,11, 9}};
-  unsigned int sx = AIR_CAST(unsigned int, sctx->sx);
+  unsigned int sx = AIR_UINT(sctx->sx);
   unsigned int si = xi + sx*yi;
   unsigned int six = xi + 1 + sx*yi;
   unsigned int siy = xi + sx*(yi+1);
@@ -1076,20 +1077,20 @@ connectFace(seekContext *sctx, baggage *bag,
                    x, y, z);
         computeEdgeGradient(sctx, bag, sctx->edgenorm+
                             9*(bag->evti[edgeid[faceid][j]]+5*si)+3*i,
-                            xb, yb, idb, interpos[i]);
+                            xb, yb, CHAR(idb), interpos[i]);
       }
     }
 
     interct=0; /* number of feature intersections */
     for (i=0; i<3; i++) {
       if (sctx->edgealpha[3*(bag->evti[edgeid[faceid][0]]+5*si)+i]>=0)
-        inter[interct++]=i; /* numbering is local w.r.t. face */
+        inter[interct++]=CHAR(i); /* numbering is local w.r.t. face */
       if (sctx->edgealpha[3*(bag->evti[edgeid[faceid][1]]+5*si)+i]>=0)
-        inter[interct++]=3+i;
+        inter[interct++]=CHAR(3+i);
       if (sctx->edgealpha[3*(bag->evti[edgeid[faceid][2]]+5*si)+i]>=0)
-        inter[interct++]=6+i;
+        inter[interct++]=CHAR(6+i);
       if (sctx->edgealpha[3*(bag->evti[edgeid[faceid][3]]+5*si)+i]>=0)
-        inter[interct++]=9+i;
+        inter[interct++]=CHAR(9+i);
     }
     if (interct%2==1) { /* we need to look for a degeneracy */
       int k;
@@ -1203,8 +1204,8 @@ connectFace(seekContext *sctx, baggage *bag,
       }
     }
     for (i=0; i<interct; i++) {
-      sctx->pairs[12*(faceid+4*si)+i]=i;
-      idcs[i]=i;
+      sctx->pairs[12*(faceid+4*si)+i]=CHAR(i);
+      idcs[i]=CHAR(i);
     }
     findConnectivity(sctx->pairs+12*(faceid+4*si), &bestscore, interct,
                      idcs, 0, interc, intern);
@@ -1220,8 +1221,8 @@ intersectionShuffleProbe(seekContext *sctx, baggage *bag) {
   unsigned int xi, yi, sx, sy, si;
   int i;
 
-  sx = AIR_CAST(unsigned int, sctx->sx);
-  sy = AIR_CAST(unsigned int, sctx->sy);
+  sx = AIR_UINT(sctx->sx);
+  sy = AIR_UINT(sctx->sy);
 
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {
@@ -1317,7 +1318,7 @@ intersectionShuffleProbe(seekContext *sctx, baggage *bag) {
 }
 
 /* special triangulation routine for use with T-based extraction */
-int
+int /* Biff: (private) nope */
 _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
   unsigned xi, yi, sx, sy, si, i;
 
@@ -1330,8 +1331,8 @@ _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
                     {1, 6, 9, 4,16},
                     {8,10,11, 9,17}};
 
-  sx = AIR_CAST(unsigned int, sctx->sx);
-  sy = AIR_CAST(unsigned int, sctx->sy);
+  sx = AIR_UINT(sctx->sx);
+  sy = AIR_UINT(sctx->sy);
 
   for (yi=0; yi<sy-1; yi++) {
     for (xi=0; xi<sx-1; xi++) {
@@ -1370,21 +1371,21 @@ _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
           idxmap2=3*idx2+offset2;
           if (idx1>11) {
             idxmap1=idx1+24; /* +36-12 */
-            degeneracies[degct++] = idxmap1;
+            degeneracies[degct++] = CHAR(idxmap1);
           }
           if (idx2>11) {
             idxmap2=idx2+24;
-            degeneracies[degct++] = idxmap2;
+            degeneracies[degct++] = CHAR(idxmap2);
           }
 
           if (connections[2*idxmap1]==-1)
-            connections[2*idxmap1]=idxmap2;
+            connections[2*idxmap1]=CHAR(idxmap2);
           else
-            connections[2*idxmap1+1]=idxmap2;
+            connections[2*idxmap1+1]=CHAR(idxmap2);
           if (connections[2*idxmap2]==-1)
-            connections[2*idxmap2]=idxmap1;
+            connections[2*idxmap2]=CHAR(idxmap1);
           else
-            connections[2*idxmap2+1]=idxmap1;
+            connections[2*idxmap2+1]=CHAR(idxmap1);
         }
       }
 
@@ -1547,9 +1548,9 @@ _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
           /* extract polygon from connections array */
           signed char polygon[42];
           unsigned char polyct=0;
-          char thiz=i;
+          char thiz=CHAR(i);
           char next=connections[2*i];
-          polygon[polyct++]=i;
+          polygon[polyct++]=CHAR(i);
           connections[2*i]=-1;
           while (next!=-1) {
             char helpnext;
@@ -1740,12 +1741,14 @@ _seekTriangulateT(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
   return 0;
 }
 
+#undef CHAR
+
 static void
 shuffleT(seekContext *sctx, baggage *bag) {
   unsigned int xi, yi, sx, sy, si;
 
-  sx = AIR_CAST(unsigned int, sctx->sx);
-  sy = AIR_CAST(unsigned int, sctx->sy);
+  sx = AIR_UINT(sctx->sx);
+  sy = AIR_UINT(sctx->sy);
 
   if (sctx->strengthUse) { /* requests need to be cleared initially */
     for (yi=0; yi<sy; yi++) {
@@ -1808,8 +1811,8 @@ static void
 probeT(seekContext *sctx, baggage *bag, double zi) {
   unsigned int xi, yi, sx, sy, si;
 
-  sx = AIR_CAST(unsigned int, sctx->sx);
-  sy = AIR_CAST(unsigned int, sctx->sy);
+  sx = AIR_UINT(sctx->sx);
+  sy = AIR_UINT(sctx->sy);
 
   for (yi=0; yi<sy; yi++) {
     for (xi=0; xi<sx; xi++) {
@@ -1837,7 +1840,7 @@ probeT(seekContext *sctx, baggage *bag, double zi) {
 /* it has now become much easier to make this its own routine
  * (vs. adding many more case distinctions to shuffleProbe)
  * this only duplicates little (and trivial) code */
-int
+int /* Biff: (private) nope */
 _seekShuffleProbeT(seekContext *sctx, baggage *bag) {
   /* for high-quality normal estimation, we need two slices of data
    * context; to keep the code simple, separate shuffle and probe
@@ -1877,9 +1880,9 @@ _seekShuffleProbeT(seekContext *sctx, baggage *bag) {
  * seekUpdate() has been run.
  * This routine does not modify sctx->strengthSeenMax.
  */
-int
+int /* Biff: 1 */
 seekVertexStrength(Nrrd *nval, seekContext *sctx, limnPolyData *pld) {
-  static const char me[]="seekVertexStrength";
+  static const char me[] = "seekVertexStrength";
   unsigned int i;
   double *data;
   int E=0;
@@ -1915,3 +1918,4 @@ seekVertexStrength(Nrrd *nval, seekContext *sctx, limnPolyData *pld) {
   }
   return E;
 }
+/* clang-format on */

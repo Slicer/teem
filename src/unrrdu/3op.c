@@ -1,45 +1,41 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
 #define INFO "Ternary operation on three nrrds or constants"
-static const char *_unrrdu_3opInfoL =
-(INFO
- ". Can have one, two, or three nrrds, but not zero. "
- "Use \"-\" for an operand to signify "
- "a nrrd to be read from stdin (a pipe).  Note, however, "
- "that \"-\" can probably only be used once (reliably).\n "
- "* Uses nrrdArithIterTernaryOp or (with -w) nrrdArithIterTernaryOpSelect");
+static const char *_unrrdu_3opInfoL
+  = (INFO ". Can have one, two, or three nrrds, but not zero. "
+          "Use \"-\" for an operand to signify "
+          "a nrrd to be read from stdin (a pipe).  Note, however, "
+          "that \"-\" can probably only be used once (reliably).\n "
+          "* Uses nrrdArithIterTernaryOp or (with -w) nrrdArithIterTernaryOpSelect");
 
-int
-unrrdu_3opMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+static int
+unrrdu_3opMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   NrrdIter *in1, *in2, *in3;
-  Nrrd *nout, *ntmp=NULL;
+  Nrrd *nout, *ntmp = NULL;
   int op, type, E, pret, which;
   airArray *mop;
 
@@ -74,14 +70,12 @@ unrrdu_3opMain(int argc, const char **argv, const char *me,
              "and stdv=3rd value",
              NULL, nrrdTernaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
-             "First input.  Can be a single value or a nrrd.",
-             NULL, NULL, nrrdHestIter);
+             "First input.  Can be a single value or a nrrd.", NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "in2", airTypeOther, 1, 1, &in2, NULL,
-             "Second input.  Can be a single value or a nrrd.",
-             NULL, NULL, nrrdHestIter);
+             "Second input.  Can be a single value or a nrrd.", NULL, NULL,
+             nrrdHestIter);
   hestOptAdd(&opt, NULL, "in3", airTypeOther, 1, 1, &in3, NULL,
-             "Third input.  Can be a single value or a nrrd.",
-             NULL, NULL, nrrdHestIter);
+             "Third input.  Can be a single value or a nrrd.", NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
              "type to convert all nrrd inputs to, prior to "
              "doing operation.  This also determines output type. "
@@ -95,10 +89,9 @@ unrrdu_3opMain(int argc, const char **argv, const char *me,
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_3opInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_3opInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
@@ -113,15 +106,15 @@ unrrdu_3opMain(int argc, const char **argv, const char *me,
     /* they wanted to convert nrrds to some other type first */
     E = 0;
     if (in1->ownNrrd) {
-      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in1->ownNrrd, type);
+      if (!E) E |= nrrdConvert(ntmp = nrrdNew(), in1->ownNrrd, type);
       if (!E) nrrdIterSetOwnNrrd(in1, ntmp);
     }
     if (in2->ownNrrd) {
-      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in2->ownNrrd, type);
+      if (!E) E |= nrrdConvert(ntmp = nrrdNew(), in2->ownNrrd, type);
       if (!E) nrrdIterSetOwnNrrd(in2, ntmp);
     }
     if (in3->ownNrrd) {
-      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in3->ownNrrd, type);
+      if (!E) E |= nrrdConvert(ntmp = nrrdNew(), in3->ownNrrd, type);
       if (!E) nrrdIterSetOwnNrrd(in3, ntmp);
     }
     if (E) {
@@ -138,9 +131,8 @@ unrrdu_3opMain(int argc, const char **argv, const char *me,
      if there are any 3ops involving random numbers */
 
   if (-1 == which
-      ? nrrdArithIterTernaryOp(nout, op, in1, in2, in3)
-      : nrrdArithIterTernaryOpSelect(nout, op, in1, in2, in3,
-                                     AIR_CAST(unsigned int, which))) {
+        ? nrrdArithIterTernaryOp(nout, op, in1, in2, in3)
+        : nrrdArithIterTernaryOpSelect(nout, op, in1, in2, in3, AIR_UINT(which))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing ternary operation:\n%s", me, err);
     airMopError(mop);
@@ -154,4 +146,3 @@ unrrdu_3opMain(int argc, const char **argv, const char *me,
 }
 
 UNRRDU_CMD(3op, INFO);
-

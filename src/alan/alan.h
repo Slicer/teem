@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #ifndef ALAN_HAS_BEEN_INCLUDED
@@ -46,7 +44,7 @@
 extern "C" {
 #endif
 
-#define ALAN alanBiffKey
+#define ALAN            alanBiffKey
 #define ALAN_THREAD_MAX 256
 
 enum {
@@ -83,7 +81,7 @@ enum {
 };
 
 enum {
-  alanStopUnknown=0,
+  alanStopUnknown = 0,
   alanStopNot,          /* 1 */
   alanStopMaxIteration, /* 2 */
   alanStopNonExist,     /* 3 */
@@ -91,29 +89,27 @@ enum {
   alanStopDiverged,     /* 5 */
   alanStopLast
 };
-#define ALAN_STOP_MAX      5
+#define ALAN_STOP_MAX 5
 
 /* all morphogen values are stored as
 ** 1: floats
 ** 0: doubles
 */
-#if 1
+#if 1 /* float == alan_t */
 typedef float alan_t;
-#  define alan_nt nrrdTypeFloat
+#  define alan_nt    nrrdTypeFloat
 #  define ALAN_FLOAT 1
 #else
 typedef double alan_t;
-#  define alan_nt nrrdTypeDouble
+#  define alan_nt    nrrdTypeDouble
 #  define ALAN_FLOAT 0
 #endif
 
 typedef struct alanContext_t {
   /* INPUT ----------------------------- */
-  unsigned int
-    dim,              /* either 2 or 3 */
+  unsigned int dim,   /* either 2 or 3 */
     size[3];          /* number of texels in X, Y, (Z) */
-  int verbose,
-    wrap,             /* do toroidal boundary wrapping */
+  int verbose, wrap,  /* do toroidal boundary wrapping */
     textureType,      /* what kind are we (from alanTextureType* enum) */
     oversample,       /* oversampling of tensors to texels */
     homogAniso,       /* homogenous anisotropy approximation */
@@ -141,31 +137,30 @@ typedef struct alanContext_t {
   int (*perIteration)(struct alanContext_t *, int iter);
 
   /* INTERNAL -------------------------- */
-  int iter;           /* current iteration */
-  Nrrd *_nlev[2],     /* levels of morphogens, alternating buffers */
-    *nlev;            /* pointer to last iterations output */
-  Nrrd *nparm;        /* alpha, beta values for all texels */
-  alan_t
-    averageChange;    /* average amount of "change" in last iteration */
-  int changeCount;    /* # of contributions to averageChange */
-                      /* to control update of averageChange and changeCount */
+  int iter;             /* current iteration */
+  Nrrd *_nlev[2],       /* levels of morphogens, alternating buffers */
+    *nlev;              /* pointer to last iterations output */
+  Nrrd *nparm;          /* alpha, beta values for all texels */
+  alan_t averageChange; /* average amount of "change" in last iteration */
+  int changeCount;      /* # of contributions to averageChange */
+                        /* to control update of averageChange and changeCount */
   airThreadMutex *changeMutex;
-                      /* to synchronize separate iterations of simulation */
+  /* to synchronize separate iterations of simulation */
   airThreadBarrier *iterBarrier;
 
   /* OUTPUT ---------------------------- */
-  int stop;          /* why we stopped */
+  int stop; /* why we stopped */
 } alanContext;
 
 /* methodsAlan.c */
 ALAN_EXPORT const int alanPresent;
-ALAN_EXPORT const char *alanBiffKey;
+ALAN_EXPORT const char *const alanBiffKey;
+ALAN_EXPORT void alanContextInit(alanContext *actx);
 ALAN_EXPORT alanContext *alanContextNew(void);
 ALAN_EXPORT alanContext *alanContextNix(alanContext *actx);
 ALAN_EXPORT int alanDimensionSet(alanContext *actx, int dim);
 ALAN_EXPORT int alan2DSizeSet(alanContext *actx, int sizeX, int sizeY);
-ALAN_EXPORT int alan3DSizeSet(alanContext *actx,
-                              int sizeX, int sizeY, int sizeZ);
+ALAN_EXPORT int alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ);
 ALAN_EXPORT int alanTensorSet(alanContext *actx, Nrrd *nten, int oversample);
 ALAN_EXPORT int alanParmSet(alanContext *actx, int whichParm, double parm);
 
@@ -174,9 +169,7 @@ ALAN_EXPORT const airEnum *const alanStop;
 
 /* coreAlan.c */
 ALAN_EXPORT int alanUpdate(alanContext *actx);
-ALAN_EXPORT int alanInit(alanContext *actx,
-                         const Nrrd *nlevInit, const Nrrd *nparmInit);
-ALAN_EXPORT int alanPriorityParm(alanContext *actx, const Nrrd *npri);
+ALAN_EXPORT int alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit);
 ALAN_EXPORT int alanRun(alanContext *actx);
 
 #ifdef __cplusplus

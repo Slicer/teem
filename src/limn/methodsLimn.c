@@ -1,30 +1,27 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
-
 
 #include "limn.h"
 
-limnLight *
+limnLight * /* Biff: nope */
 limnLightNew(void) {
   limnLight *lit;
 
@@ -32,7 +29,7 @@ limnLightNew(void) {
   return lit;
 }
 
-limnLight *
+limnLight * /* Biff: nope */
 limnLightNix(limnLight *lit) {
 
   if (lit) {
@@ -56,7 +53,7 @@ limnCameraInit(limnCamera *cam) {
   return;
 }
 
-limnCamera *
+limnCamera * /* Biff: nope */
 limnCameraNew(void) {
   limnCamera *cam;
 
@@ -67,7 +64,7 @@ limnCameraNew(void) {
   return cam;
 }
 
-limnCamera *
+limnCamera * /* Biff: nope */
 limnCameraNix(limnCamera *cam) {
 
   if (cam) {
@@ -76,7 +73,7 @@ limnCameraNix(limnCamera *cam) {
   return NULL;
 }
 
-void
+static void
 _limnOptsPSDefaults(limnOptsPS *ps) {
 
   ps->lineWidth[limnEdgeTypeUnknown] = AIR_NAN;
@@ -95,14 +92,14 @@ _limnOptsPSDefaults(limnOptsPS *ps) {
   ELL_3V_SET(ps->edgeColor, 0, 0, 0);
 }
 
-limnWindow *
+limnWindow * /* Biff: nope */
 limnWindowNew(int device) {
   limnWindow *win;
 
   win = (limnWindow *)calloc(1, sizeof(limnWindow));
   if (win) {
     win->device = device;
-    switch(device) {
+    switch (device) {
     case limnDevicePS:
       win->yFlip = 1;
       _limnOptsPSDefaults(&(win->ps));
@@ -114,7 +111,7 @@ limnWindowNew(int device) {
   return win;
 }
 
-limnWindow *
+limnWindow * /* Biff: nope */
 limnWindowNix(limnWindow *win) {
 
   if (win) {

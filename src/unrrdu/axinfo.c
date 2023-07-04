@@ -1,45 +1,40 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
 #define INFO "Modify attributes of one or more axes"
-static const char *_unrrdu_axinfoInfoL =
-(INFO
- ". The only attributes which are set are those for which command-line "
- "options are given.\n "
- "* Uses no particular function; just sets fields in the NrrdAxisInfo");
+static const char *_unrrdu_axinfoInfoL
+  = (INFO ". The only attributes which are set are those for which command-line "
+          "options are given.\n "
+          "* Uses no particular function; just sets fields in the NrrdAxisInfo");
 
-int
-unrrdu_axinfoMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+static int
+unrrdu_axinfoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, *label, *units, *centerStr, *kindStr,
-    *_dirStr, *dirStr;
+  char *out, *err, *label, *units, *centerStr, *kindStr, *_dirStr, *dirStr, *mmStr[2];
   Nrrd *nin, *nout;
   int pret, center, kind;
-  unsigned int *axes, axesLen, axi;
+  unsigned int *axes, axesLen, axi, mmIdx, spIdx;
   double mm[2], spc, sdir[NRRD_SPACE_DIM_MAX];
   airArray *mop;
 
@@ -49,10 +44,10 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
              "label to associate with axis");
   hestOptAdd(&opt, "u,units", "units", airTypeString, 1, 1, &units, "",
              "units of measurement");
-  hestOptAdd(&opt, "mm,minmax", "min max", airTypeDouble, 2, 2, mm, "nan nan",
-             "min and max values along axis");
-  hestOptAdd(&opt, "sp,spacing", "spacing", airTypeDouble, 1, 1, &spc, "nan",
-             "spacing between samples along axis");
+  mmIdx = hestOptAdd(&opt, "mm,minmax", "min max", airTypeString, 2, 2, mmStr, "nan nan",
+                     "min and max values along axis");
+  spIdx = hestOptAdd(&opt, "sp,spacing", "spacing", airTypeDouble, 1, 1, &spc, "nan",
+                     "spacing between samples along axis");
   /* There used to be a complaint here about how hest doesn't allow
      you to learn whether the option was parsed from the supplied
      default versus from the command-line itself.  That issue has been
@@ -79,20 +74,31 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_axinfoInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_axinfoInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  for (axi=0; axi<axesLen; axi++) {
-    if (!( axes[axi] < nin->dim )) {
-      fprintf(stderr, "%s: axis %u not in valid range [0,%u]\n",
-              me, axes[axi], nin->dim-1);
+  for (axi = 0; axi < axesLen; axi++) {
+    if (!(axes[axi] < nin->dim)) {
+      fprintf(stderr, "%s: axis %u not in valid range [0,%u]\n", me, axes[axi],
+              nin->dim - 1);
       airMopError(mop);
       return 1;
     }
   }
+  /* parse the strings given via -mm */
+  if (2
+      != airSingleSscanf(mmStr[0], "%lf", mm + 0)
+           + airSingleSscanf(mmStr[1], "%lf", mm + 1)) {
+    fprintf(stderr,
+            "%s: couldn't parse both \"%s\" and \"%s\" "
+            "(from \"-mm\") as doubles\n",
+            me, mmStr[0], mmStr[1]);
+    airMopError(mop);
+    return 1;
+  }
+
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdCopy(nout, nin)) {
@@ -103,14 +109,16 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
   }
   if (airStrlen(_dirStr)) {
     if (!nin->spaceDim) {
-      fprintf(stderr, "%s: wanted to add space direction, but input "
-              "doesn't have space dimension set", me);
+      fprintf(stderr,
+              "%s: wanted to add space direction, but input "
+              "doesn't have space dimension set",
+              me);
       airMopError(mop);
       return 1;
     }
     /* mindlessly copying logic from unu make; unsure of the value */
-    if ('\"' == _dirStr[0] && '\"' == _dirStr[strlen(_dirStr)-1]) {
-      _dirStr[strlen(_dirStr)-1] = 0;
+    if ('\"' == _dirStr[0] && '\"' == _dirStr[strlen(_dirStr) - 1]) {
+      _dirStr[strlen(_dirStr) - 1] = 0;
       dirStr = _dirStr + 1;
     } else {
       dirStr = _dirStr;
@@ -125,7 +133,7 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
     dirStr = NULL;
   }
 
-  for (axi=0; axi<axesLen; axi++) {
+  for (axi = 0; axi < axesLen; axi++) {
     unsigned int axis;
     axis = axes[axi];
     if (strlen(label)) {
@@ -136,14 +144,26 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
       nout->axis[axis].units = (char *)airFree(nout->axis[axis].units);
       nout->axis[axis].units = airStrdup(units);
     }
-    if (AIR_EXISTS(mm[0])) {
+    if (hestSourceUser == opt[mmIdx].source) {
+      /* if it came from user, set the value, even if its nan. Actually,
+         especially if its nan: that is the purpose of this extra logic */
       nout->axis[axis].min = mm[0];
-    }
-    if (AIR_EXISTS(mm[1])) {
       nout->axis[axis].max = mm[1];
+    } else {
+      if (AIR_EXISTS(mm[0])) {
+        nout->axis[axis].min = mm[0];
+      }
+      if (AIR_EXISTS(mm[1])) {
+        nout->axis[axis].max = mm[1];
+      }
     }
-    if (AIR_EXISTS(spc)) {
+    if (hestSourceUser == opt[spIdx].source) {
+      /* same logic as with min,max above */
       nout->axis[axis].spacing = spc;
+    } else {
+      if (AIR_EXISTS(spc)) {
+        nout->axis[axis].spacing = spc;
+      }
     }
     /* see above
     if (nrrdCenterUnknown != cent) {
@@ -151,13 +171,12 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
     }
     */
     if (airStrlen(centerStr)) {
-      if (!strcmp("none", centerStr)
-          || !strcmp("???", centerStr)) {
+      if (!strcmp("none", centerStr) || !strcmp("???", centerStr)) {
         center = nrrdCenterUnknown;
       } else {
         if (!(center = airEnumVal(nrrdCenter, centerStr))) {
-          fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me,
-                  centerStr, nrrdCenter->name);
+          fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me, centerStr,
+                  nrrdCenter->name);
           airMopError(mop);
           return 1;
         }
@@ -165,13 +184,12 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me,
       nout->axis[axis].center = center;
     }
     if (airStrlen(kindStr)) {
-      if (!strcmp("none", kindStr)
-          || !strcmp("???", kindStr)) {
+      if (!strcmp("none", kindStr) || !strcmp("???", kindStr)) {
         kind = nrrdKindUnknown;
       } else {
         if (!(kind = airEnumVal(nrrdKind, kindStr))) {
-          fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me,
-                  kindStr, nrrdKind->name);
+          fprintf(stderr, "%s: couldn't parse \"%s\" as %s\n", me, kindStr,
+                  nrrdKind->name);
           airMopError(mop);
           return 1;
         }

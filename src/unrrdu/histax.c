@@ -1,43 +1,38 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
 #define INFO "Replace each scanline along an axis with its histogram"
-static const char *_unrrdu_histaxInfoL =
-  (INFO
-   ".\n "
-   "* Uses nrrdHistoAxis");
+static const char *_unrrdu_histaxInfoL = (INFO ".\n "
+                                               "* Uses nrrdHistoAxis");
 
-int
-unrrdu_histaxMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+static int
+unrrdu_histaxMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
   char *minStr, *maxStr;
-  int type, pret, blind8BitRange;
+  int type, pret, zeroCenter, blind8BitRange;
   unsigned int axis, bins;
   airArray *mop;
   NrrdRange *range;
@@ -47,8 +42,7 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me,
              "# of bins in histogram");
   OPT_ADD_TYPE(type, "output type", "uchar");
   /* HEY copy and paste from unrrdu/quantize.c */
-  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1,
-             &minStr, "nan",
+  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1, &minStr, "nan",
              "The value to map to zero, given explicitly as a regular number, "
              "*or*, if the number is given with a \"" NRRD_MINMAX_PERC_SUFF
              "\" suffix, this "
@@ -60,8 +54,7 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me,
              "1% of the lowest values are all mapped to zero. "
              "By default (not using this option), the lowest input value is "
              "used.");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1,
-             &maxStr, "nan",
+  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1, &maxStr, "nan",
              "The value to map to the highest unsigned integral value, given "
              "explicitly as a regular number, "
              "*or*, if the number is given with "
@@ -71,6 +64,11 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me,
              "\"0" NRRD_MINMAX_PERC_SUFF "\" means the highest input value is "
              "used, which is also the default "
              "behavior (same as not using this option).");
+  /* NOTE -zc shared with unrrdu histax, histo, quantize */
+  hestOptAdd(&opt, "zc,zero-center", NULL, airTypeInt, 0, 0, &zeroCenter, NULL,
+             "if used, percentile-based min,max determine a zero-centered "
+             "range (rather than treating min and max independently), which "
+             "may help process signed values in an expected way.");
   hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
              nrrdStateBlind8BitRange ? "true" : "false",
              "Whether to know the range of 8-bit data blindly "
@@ -79,19 +77,17 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me,
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_histaxInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_histaxInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   range = nrrdRangeNew(AIR_NAN, AIR_NAN);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdRangePercentileFromStringSet(range, nin, minStr, maxStr,
-                                       10*bins /* HEY magic */,
-                                       blind8BitRange)
+  if (nrrdRangePercentileFromStringSet(range, nin, minStr, maxStr, zeroCenter,
+                                       10 * bins /* HEY magic */, blind8BitRange)
       || nrrdHistoAxis(nout, nin, range, axis, bins, type)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing axis histogramming:\n%s", me, err);

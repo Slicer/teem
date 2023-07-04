@@ -1,28 +1,26 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../biff.h"
+#include "../privateBiff.h"
 
 int
 main() {
@@ -78,14 +76,13 @@ main() {
   printf("=================================\n");
   msg1 = biffMsgNew("roberts");
   biffMsgAdd(msg1, "biffMsgAdd hello, said roberts");
-  biffMsgAddf(msg1, "biffMsgAddf: there's an int %d and a float %g",
-              42, AIR_PI);
+  biffMsgAddf(msg1, "biffMsgAddf: there's an int %d and a float %g", 42, AIR_PI);
   s1 = biffMsgStrGet(msg1);
   printf("from msg1:\n%s", s1);
   s1 = airFree(s1);
   msg2 = biffMsgNew("sue");
   biffMsgAdd(msg2, "biffMsgAdd hi from sue");
-  biffMsgAddf(msg2, "biffMsgAddf: another float %g", AIR_PI*AIR_PI);
+  biffMsgAddf(msg2, "biffMsgAddf: another float %g", AIR_PI * AIR_PI);
   s2 = biffMsgStrGet(msg2);
   printf("from msg2:\n%s", s2);
   s2 = airFree(s2);
@@ -106,6 +103,3 @@ main() {
 
   exit(0);
 }
-
-
-

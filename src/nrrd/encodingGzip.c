@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "nrrd.h"
@@ -40,17 +38,16 @@ _nrrdEncodingGzip_available(void) {
 ** The real limit is UINT_MAX, but a smaller value here permits
 ** exercising the multi-chunk capability of the code below.
 */
-static unsigned int
-_nrrdZlibMaxChunk = UINT_MAX;
+static unsigned int _nrrdZlibMaxChunk = UINT_MAX;
 #endif
 
 /*
 ** nio->byteSkip < 0 functionality contributed by Katharina Quintus
 */
-static int
-_nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
-                       Nrrd *nrrd, NrrdIoState *nio) {
-  static const char me[]="_nrrdEncodingGzip_read";
+static int /* Biff: 1 */
+_nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
+                       NrrdIoState *nio) {
+  static const char me[] = "_nrrdEncodingGzip_read";
 #if TEEM_ZLIB
   size_t sizeData, sizeRed;
   int error;
@@ -60,7 +57,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
   gzFile gzfin;
   airPtrPtrUnion appu;
 
-  sizeData = nrrdElementSize(nrrd)*elNum;
+  sizeData = nrrdElementSize(nrrd) * elNum;
   /* Create the gzFile for reading in the gzipped data. */
   if ((gzfin = _nrrdGzOpen(file, "rb")) == Z_NULL) {
     /* there was a problem */
@@ -76,8 +73,8 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
      _nrrdZlibMaxChunk around UINT_MAX for testing purposes.  Given how
      sizeChunk is used below, we also cap chunk size at _nrrdZlibMaxChunk/2 to
      prevent overflow. */
-  maxChunk = _nrrdZlibMaxChunk/2;
-  sizeChunk = AIR_CAST(unsigned int, AIR_MIN(sizeData, maxChunk));
+  maxChunk = _nrrdZlibMaxChunk / 2;
+  sizeChunk = AIR_UINT(AIR_MIN(sizeData, maxChunk));
 
   if (nio->byteSkip < 0) {
     /* We don't know the size of the size to skip before the data, so
@@ -94,9 +91,9 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
        the reading in terms of bytes (sizeof(char)==1 by definition) */
     buff = NULL;
     appu.c = &buff;
-    buffArr = airArrayNew(appu.v, NULL, 1, 2*sizeChunk);
+    buffArr = airArrayNew(appu.v, NULL, 1, 2 * sizeChunk);
     airArrayLenSet(buffArr, sizeChunk);
-    if (!( buffArr && buffArr->data )) {
+    if (!(buffArr && buffArr->data)) {
       biffAddf(NRRD, "%s: couldn't initialize airArray\n", me);
       return 1;
     }
@@ -106,8 +103,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
        code below (for positive byteskip), we are obligated to read until
        the bitter end, and can't update sizeChunk to encompass only the
        required data. */
-    while (!(error = _nrrdGzRead(gzfin, buff + sizeRed,
-                                 sizeChunk, &didread))
+    while (!(error = _nrrdGzRead(gzfin, buff + sizeRed, sizeChunk, &didread))
            && didread > 0) {
       sizeRed += didread;
       if (didread >= sizeChunk) {
@@ -145,20 +141,19 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
     /* no negative byteskip: after byteskipping, we can read directly
        into given data buffer */
     if (nio->byteSkip > 0) {
-      for (bi=0; bi<nio->byteSkip; bi++) {
+      for (bi = 0; bi < nio->byteSkip; bi++) {
         unsigned char b;
         /* Check to see if a single byte was able to be read. */
         if (_nrrdGzRead(gzfin, &b, 1, &didread) != 0 || didread != 1) {
-          biffAddf(NRRD, "%s: hit an error skipping byte %ld of %ld",
-                   me, bi, nio->byteSkip);
+          biffAddf(NRRD, "%s: hit an error skipping byte %ld of %ld", me, bi,
+                   nio->byteSkip);
           return 1;
         }
       }
     }
     /* Pointer to chunks as we read them. */
     data = AIR_CAST(char *, _data);
-    while (!(error = _nrrdGzRead(gzfin, data, sizeChunk, &didread))
-           && didread > 0) {
+    while (!(error = _nrrdGzRead(gzfin, data, sizeChunk, &didread)) && didread > 0) {
       /* Increment the data pointer to the next available chunk. */
       data += didread;
       sizeRed += didread;
@@ -166,9 +161,8 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
          to make sure that we don't request data that might be there but that
          we don't want.  This will reduce sizeChunk when we get to the last
          block (which may be smaller than the original sizeChunk). */
-      if (sizeData >= sizeRed
-          && sizeData - sizeRed < sizeChunk) {
-        sizeChunk = AIR_CAST(unsigned int, sizeData - sizeRed);
+      if (sizeData >= sizeRed && sizeData - sizeRed < sizeChunk) {
+        sizeChunk = AIR_UINT(sizeData - sizeRed);
       }
     }
     if (error) {
@@ -179,8 +173,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
     if (sizeRed != sizeData) {
       char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
       biffAddf(NRRD, "%s: expected %s bytes but received %s", me,
-               airSprintSize_t(stmp1, sizeData),
-               airSprintSize_t(stmp2, sizeRed));
+               airSprintSize_t(stmp1, sizeData), airSprintSize_t(stmp2, sizeRed));
       return 1;
     }
   }
@@ -204,19 +197,19 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
 #endif
 }
 
-static int
-_nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
-                        const Nrrd *nrrd, NrrdIoState *nio) {
-  static const char me[]="_nrrdEncodingGzip_write";
+static int /* Biff: 1 */
+_nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum, const Nrrd *nrrd,
+                        NrrdIoState *nio) {
+  static const char me[] = "_nrrdEncodingGzip_write";
 #if TEEM_ZLIB
   size_t sizeData, sizeWrit;
-  int fmt_i=0, error;
+  int fmt_i = 0, error;
   const char *data;
   char fmt[4];
   gzFile gzfout;
   unsigned int wrote, sizeChunk;
 
-  sizeData = nrrdElementSize(nrrd)*elNum;
+  sizeData = nrrdElementSize(nrrd) * elNum;
 
   /* Set format string based on the NrrdIoState parameters. */
   fmt[fmt_i++] = 'w';
@@ -245,7 +238,7 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   /* zlib can only handle data sizes up to UINT_MAX ==> if there's more than
      UINT_MAX bytes to write out, we write out in chunks.  As above, we wrap
      _nrrdZlibMaxChunk around UINT_MAX for testing purposes. */
-  sizeChunk = AIR_CAST(unsigned int, AIR_MIN(sizeData, _nrrdZlibMaxChunk));
+  sizeChunk = AIR_UINT(AIR_MIN(sizeData, _nrrdZlibMaxChunk));
 
   /* keeps track of what how much has been successfully written */
   sizeWrit = 0;
@@ -253,8 +246,7 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   data = AIR_CAST(const char *, _data);
 
   /* Ok, now we can begin writing. */
-  while ((error = _nrrdGzWrite(gzfout, AIR_CVOIDP(data),
-                               sizeChunk, &wrote)) == 0
+  while ((error = _nrrdGzWrite(gzfout, AIR_CVOIDP(data), sizeChunk, &wrote)) == 0
          && wrote > 0) {
     /* Increment the data pointer to the next available spot. */
     data += wrote;
@@ -264,9 +256,8 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
        will reduce sizeChunk when we get to the last block (which may
        be smaller than the original sizeChunk).
     */
-    if (sizeData >= sizeWrit
-        && sizeData - sizeWrit < sizeChunk)
-      sizeChunk = AIR_CAST(unsigned int, sizeData - sizeWrit);
+    if (sizeData >= sizeWrit && sizeData - sizeWrit < sizeChunk)
+      sizeChunk = AIR_UINT(sizeData - sizeWrit);
   }
 
   if (error) {
@@ -278,8 +269,7 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   if (sizeWrit != sizeData) {
     char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
     biffAddf(NRRD, "%s: expected to write %s bytes, but only wrote %s", me,
-             airSprintSize_t(stmp1, sizeData),
-             airSprintSize_t(stmp2, sizeWrit));
+             airSprintSize_t(stmp1, sizeData), airSprintSize_t(stmp2, sizeWrit));
     return 1;
   }
 
@@ -297,22 +287,20 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   AIR_UNUSED(elNum);
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
-  biffAddf(NRRD, "%s: sorry, this nrrd not compiled with zlib "
-           "(needed for gzip) enabled", me);
+  biffAddf(NRRD,
+           "%s: sorry, this nrrd not compiled with zlib "
+           "(needed for gzip) enabled",
+           me);
   return 1;
 #endif
 }
 
-const NrrdEncoding
-_nrrdEncodingGzip = {
-  "gzip",      /* name */
-  "raw.gz",    /* suffix */
-  AIR_TRUE,    /* endianMatters */
-  AIR_TRUE,   /* isCompression */
-  _nrrdEncodingGzip_available,
-  _nrrdEncodingGzip_read,
-  _nrrdEncodingGzip_write
-};
+const NrrdEncoding _nrrdEncodingGzip = {"gzip",   /* name */
+                                        "raw.gz", /* suffix */
+                                        AIR_TRUE, /* endianMatters */
+                                        AIR_TRUE, /* isCompression */
+                                        _nrrdEncodingGzip_available,
+                                        _nrrdEncodingGzip_read,
+                                        _nrrdEncodingGzip_write};
 
-const NrrdEncoding *const
-nrrdEncodingGzip = &_nrrdEncodingGzip;
+const NrrdEncoding *const nrrdEncodingGzip = &_nrrdEncodingGzip;

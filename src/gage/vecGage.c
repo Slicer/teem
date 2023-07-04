@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "gage.h"
@@ -28,39 +26,35 @@
  * highly inefficient computation of the imaginary part of complex
  * conjugate eigenvalues of a 3x3 non-symmetric matrix
  */
-double
-gage_imaginary_part_eigenvalues(double *M ) {
-    double A, B, C, scale, frob, m[9], _eval[3];
-    double beta, _gamma;
-    int roots;
+static double
+gage_imaginary_part_eigenvalues(double *M) {
+  double A, B, C, scale, frob, m[9], _eval[3];
+  double beta, _gamma;
+  int roots;
 
-    frob = ELL_3M_FROB(M);
-    scale = frob > 10 ? 10.0/frob : 1.0;
-    ELL_3M_SCALE(m, scale, M);
-    /*
-    ** from gordon with mathematica; these are the coefficients of the
-    ** cubic polynomial in x: det(x*I - M).  The full cubic is
-    ** x^3 + A*x^2 + B*x + C.
-    */
-    A = -m[0] - m[4] - m[8];
-    B = m[0]*m[4] - m[3]*m[1]
-        + m[0]*m[8] - m[6]*m[2]
-        + m[4]*m[8] - m[7]*m[5];
-    C = (m[6]*m[4] - m[3]*m[7])*m[2]
-        + (m[0]*m[7] - m[6]*m[1])*m[5]
-        + (m[3]*m[1] - m[0]*m[4])*m[8];
-    roots = ell_cubic(_eval, A, B, C, AIR_TRUE);
-    if ( roots != ell_cubic_root_single )
-        return 0.;
+  frob = ELL_3M_FROB(M);
+  scale = frob > 10 ? 10.0 / frob : 1.0;
+  ELL_3M_SCALE(m, scale, M);
+  /*
+  ** from gordon with mathematica; these are the coefficients of the
+  ** cubic polynomial in x: det(x*I - M).  The full cubic is
+  ** x^3 + A*x^2 + B*x + C.
+  */
+  A = -m[0] - m[4] - m[8];
+  B = m[0] * m[4] - m[3] * m[1] + m[0] * m[8] - m[6] * m[2] + m[4] * m[8] - m[7] * m[5];
+  C = (m[6] * m[4] - m[3] * m[7]) * m[2] + (m[0] * m[7] - m[6] * m[1]) * m[5]
+    + (m[3] * m[1] - m[0] * m[4]) * m[8];
+  roots = ell_cubic(_eval, A, B, C, AIR_TRUE);
+  if (roots != ell_cubic_root_single) return 0.;
 
-    /* 2 complex conjuguate eigenvalues */
-    beta = A + _eval[0];
-    _gamma = -C/_eval[0];
-    return sqrt( 4.*_gamma - beta*beta );
+  /* 2 complex conjuguate eigenvalues */
+  beta = A + _eval[0];
+  _gamma = -C / _eval[0];
+  return sqrt(4. * _gamma - beta * beta);
 }
 
-
-gageItemEntry
+/* clang-format off */
+static gageItemEntry
 _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
   /* enum value         len, deriv, prereqs,                                                  parent item, parent index, needData */
   {gageVecUnknown,         0,  0,   {0},                                                                0,      0,       AIR_FALSE},
@@ -98,9 +92,9 @@ _gageVecTable[GAGE_VEC_ITEM_MAX+1] = {
   {gageVecMGEvec,          9,  1,   {gageVecMultiGrad, gageVecMGEval},                                  0,      0,       AIR_FALSE}
 };
 
-void
+static void
 _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_gageVecFilter";
+  static const char me[] = "_gageVecFilter";
   double *fw00, *fw11, *fw22, *vec, *jac, *hes;
   int fd;
   gageScl3PFilter_t *filter[5] = {NULL, gageScl3PFilter2, gageScl3PFilter4,
@@ -144,9 +138,9 @@ _gageVecFilter(gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
-void
+static void
 _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_gageVecAnswer";
+  static const char me[] = "_gageVecAnswer";
   double cmag, tmpMat[9], mgevec[9], mgeval[3];
   double asym[9], tran[9], eval[3], tmpVec[3], norm;
   double *vecAns, *normAns, *jacAns, *strainAns, *somegaAns,
@@ -391,7 +385,7 @@ _gageVecAnswer(gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
-const char *
+static const char *
 _gageVecStr[] = {
   "(unknown gageVec)",
   "vector",
@@ -427,7 +421,7 @@ _gageVecStr[] = {
   "multigrad eigenvectors",
 };
 
-const char *
+static const char *
 _gageVecDesc[] = {
   "unknown gageVec query",
   "component-wise-interpolated vector",
@@ -463,7 +457,7 @@ _gageVecDesc[] = {
   "eigenvectors of multi-gradient"
 };
 
-const int
+static const int
 _gageVecVal[] = {
   gageVecUnknown,
   gageVecVector,
@@ -531,7 +525,7 @@ _gageVecVal[] = {
 #define GV_ML  gageVecMGEval
 #define GV_MC  gageVecMGEvec
 
-const char *
+static const char *
 _gageVecStrEqv[] = {
   "v", "vector", "vec",
   "v0", "vector0", "vec0",
@@ -567,7 +561,7 @@ _gageVecStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _gageVecValEqv[] = {
   GV_V, GV_V, GV_V,
   GV_V0, GV_V0, GV_V0,
@@ -602,7 +596,7 @@ _gageVecValEqv[] = {
   GV_MC, GV_MC, GV_MC
 };
 
-const airEnum
+static const airEnum
 _gageVec = {
   "gageVec",
   GAGE_VEC_ITEM_MAX,
@@ -614,7 +608,7 @@ _gageVec = {
 const airEnum *const
 gageVec = &_gageVec;
 
-gageKind
+static gageKind
 _gageKindVec = {
   AIR_FALSE, /* statically allocated */
   "vector",
@@ -631,4 +625,4 @@ _gageKindVec = {
 };
 gageKind *const
 gageKindVec = &_gageKindVec;
-
+/* clang-format on */

@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "echo.h"
@@ -28,9 +26,7 @@ void
 echoListAdd(echoObject *list, echoObject *child) {
   int idx;
 
-  if (!( list && child &&
-         (echoTypeList == list->type ||
-          echoTypeAABBox == list->type) ))
+  if (!(list && child && (echoTypeList == list->type || echoTypeAABBox == list->type)))
     return;
 
   idx = airArrayLenIncr(LIST(list)->objArr, 1);
@@ -39,7 +35,7 @@ echoListAdd(echoObject *list, echoObject *child) {
   return;
 }
 
-int
+static int
 _echoPosCompare(double *A, double *B) {
 
   return *A < *B ? -1 : (*A > *B ? 1 : 0);
@@ -51,16 +47,14 @@ _echoPosCompare(double *A, double *B) {
 ** returns a echoObjectSplit to point to the same things as pointed
 ** to by the given echoObjectList
 */
-echoObject *
+echoObject * /* Biff: nope */
 echoListSplit(echoScene *scene, echoObject *list, int axis) {
-  echoPos_t lo[3], hi[3], loest0[3], hiest0[3],
-    loest1[3], hiest1[3];
+  echoPos_t lo[3], hi[3], loest0[3], hiest0[3], loest1[3], hiest1[3];
   double *mids;
   echoObject *o, *split, *list0, *list1;
   int i, splitIdx, len;
 
-  if (!( echoTypeList == list->type ||
-         echoTypeAABBox == list->type )) {
+  if (!(echoTypeList == list->type || echoTypeAABBox == list->type)) {
     return list;
   }
 
@@ -78,14 +72,14 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
   SPLIT(split)->obj1 = list1;
 
   mids = (double *)malloc(2 * len * sizeof(double));
-  for (i=0; i<len; i++) {
+  for (i = 0; i < len; i++) {
     o = LIST(list)->obj[i];
     echoBoundsGet(lo, hi, o);
-    mids[0 + 2*i] = (lo[axis] + hi[axis])/2;
-    *((unsigned int *)(mids + 1 + 2*i)) = i;
+    mids[0 + 2 * i] = (lo[axis] + hi[axis]) / 2;
+    *((unsigned int *)(mids + 1 + 2 * i)) = i;
   }
   /* overkill, I know, I know */
-  qsort(mids, len, 2*sizeof(double),
+  qsort(mids, len, 2 * sizeof(double),
         (int (*)(const void *, const void *))_echoPosCompare);
   /*
   for (i=0; i<len; i++) {
@@ -93,15 +87,15 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
   }
   */
 
-  splitIdx = len/2;
+  splitIdx = len / 2;
   /* printf("splitIdx = %d\n", splitIdx); */
   ELL_3V_SET(loest0, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
   ELL_3V_SET(loest1, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
   ELL_3V_SET(hiest0, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
   ELL_3V_SET(hiest1, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
   airArrayLenSet(LIST(list0)->objArr, splitIdx);
-  for (i=0; i<splitIdx; i++) {
-    o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
+  for (i = 0; i < splitIdx; i++) {
+    o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2 * i))];
     LIST(list0)->obj[i] = o;
     echoBoundsGet(lo, hi, o);
     /*
@@ -111,10 +105,10 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
     ELL_3V_MIN(loest0, loest0, lo);
     ELL_3V_MAX(hiest0, hiest0, hi);
   }
-  airArrayLenSet(LIST(list1)->objArr, len-splitIdx);
-  for (i=splitIdx; i<len; i++) {
-    o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2*i))];
-    LIST(list1)->obj[i-splitIdx] = o;
+  airArrayLenSet(LIST(list1)->objArr, len - splitIdx);
+  for (i = splitIdx; i < len; i++) {
+    o = LIST(list)->obj[*((unsigned int *)(mids + 1 + 2 * i))];
+    LIST(list1)->obj[i - splitIdx] = o;
     echoBoundsGet(lo, hi, o);
     /*
     printf("111 lo = (%g,%g,%g), hi = (%g,%g,%g)\n",
@@ -143,50 +137,46 @@ echoListSplit(echoScene *scene, echoObject *list, int axis) {
   return split;
 }
 
-echoObject *
+echoObject * /* Biff: nope */
 echoListSplit3(echoScene *scene, echoObject *list, int depth) {
   echoObject *ret, *tmp0, *tmp1;
 
-  if (!( echoTypeList == list->type ||
-         echoTypeAABBox == list->type ))
-    return NULL;
+  if (!(echoTypeList == list->type || echoTypeAABBox == list->type)) return NULL;
 
-  if (!depth)
-    return list;
+  if (!depth) return list;
 
   ret = echoListSplit(scene, list, 0);
 
 #define DOIT(obj, ax) ((obj) = echoListSplit(scene, (obj), (ax)))
-#define MORE(obj) echoTypeSplit == (obj)->type
+#define MORE(obj)     echoTypeSplit == (obj)->type
 
   if (MORE(ret)) {
     tmp0 = DOIT(SPLIT(ret)->obj0, 1);
     if (MORE(tmp0)) {
       tmp1 = DOIT(SPLIT(tmp0)->obj0, 2);
       if (MORE(tmp1)) {
-        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth-1);
-        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth-1);
+        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth - 1);
+        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth - 1);
       }
       tmp1 = DOIT(SPLIT(tmp0)->obj1, 2);
       if (MORE(tmp1)) {
-        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth-1);
-        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth-1);
+        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth - 1);
+        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth - 1);
       }
     }
     tmp0 = DOIT(SPLIT(ret)->obj1, 1);
     if (MORE(tmp0)) {
       tmp1 = DOIT(SPLIT(tmp0)->obj0, 2);
       if (MORE(tmp1)) {
-        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth-1);
-        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth-1);
+        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth - 1);
+        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth - 1);
       }
       tmp1 = DOIT(SPLIT(tmp0)->obj1, 2);
       if (MORE(tmp1)) {
-        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth-1);
-        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth-1);
+        SPLIT(tmp1)->obj0 = echoListSplit3(scene, SPLIT(tmp1)->obj0, depth - 1);
+        SPLIT(tmp1)->obj1 = echoListSplit3(scene, SPLIT(tmp1)->obj1, depth - 1);
       }
     }
   }
   return ret;
 }
-

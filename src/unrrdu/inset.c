@@ -1,37 +1,34 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
 #define INFO "Replace a sub-region with a different nrrd"
-static const char *_unrrdu_insetInfoL =
-(INFO ". This is functionally the opposite of \"crop\".\n "
- "* Uses nrrdInset");
+static const char *_unrrdu_insetInfoL
+  = (INFO ". This is functionally the opposite of \"crop\".\n "
+          "* Uses nrrdInset");
 
-int
-unrrdu_insetMain(int argc, const char **argv, const char *me,
-                 hestParm *hparm) {
+static int
+unrrdu_insetMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nsub;
@@ -49,35 +46,31 @@ unrrdu_insetMain(int argc, const char **argv, const char *me,
                 "to the last sample on the axis (M == #samples-1).",
                 minLen);
   hestOptAdd(&opt, "s,subset", "nsub", airTypeOther, 1, 1, &(nsub), NULL,
-             "sub-region nrrd.  This the data to be inset in \"nin\"",
-             NULL, NULL, nrrdHestNrrd);
+             "sub-region nrrd.  This the data to be inset in \"nin\"", NULL, NULL,
+             nrrdHestNrrd);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_insetInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_insetInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( minLen == nin->dim )) {
-    fprintf(stderr,
-            "%s: # min coords (%d) != nrrd dim (%d)\n",
-            me, minLen, nin->dim);
+  if (!(minLen == nin->dim)) {
+    fprintf(stderr, "%s: # min coords (%d) != nrrd dim (%d)\n", me, minLen, nin->dim);
     airMopError(mop);
     return 1;
   }
-  for (ai=0; ai<nin->dim; ai++) {
-    if (-1 == minOff[0 + 2*ai]) {
-      fprintf(stderr, "%s: can't use m+<int> specification for axis %u min\n",
-              me, ai);
+  for (ai = 0; ai < nin->dim; ai++) {
+    if (-1 == minOff[0 + 2 * ai]) {
+      fprintf(stderr, "%s: can't use m+<int> specification for axis %u min\n", me, ai);
       airMopError(mop);
       return 1;
     }
   }
-  for (ai=0; ai<=nin->dim-1; ai++) {
-    min[ai] = minOff[0 + 2*ai]*(nin->axis[ai].size-1) + minOff[1 + 2*ai];
+  for (ai = 0; ai <= nin->dim - 1; ai++) {
+    min[ai] = minOff[0 + 2 * ai] * (nin->axis[ai].size - 1) + minOff[1 + 2 * ai];
   }
 
   nout = nrrdNew();

@@ -1,49 +1,45 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
-
 
 #include "bane.h"
 #include "privateBane.h"
 
-const int
-banePresent = 42;
+const int banePresent = 42;
 
-void
-_baneAxisInit(baneAxis *axis) {
+static void
+_axisInit(baneAxis *axis) {
 
   axis->res = 0;
   axis->measr = NULL;
   axis->inc = NULL;
 }
 
-void
-_baneAxisEmpty(baneAxis *axis) {
+static void
+_axisEmpty(baneAxis *axis) {
 
   axis->measr = baneMeasrNix(axis->measr);
   axis->inc = baneIncNix(axis->inc);
 }
 
-baneHVolParm *
+baneHVolParm * /* Biff: nope */
 baneHVolParmNew() {
   baneHVolParm *hvp;
   int i, j;
@@ -54,13 +50,13 @@ baneHVolParmNew() {
     hvp->makeMeasrVol = baneDefMakeMeasrVol;
     hvp->measrVol = NULL;
     hvp->measrVolDone = AIR_FALSE;
-    _baneAxisInit(hvp->axis + 0);
-    _baneAxisInit(hvp->axis + 1);
-    _baneAxisInit(hvp->axis + 2);
+    _axisInit(hvp->axis + 0);
+    _axisInit(hvp->axis + 1);
+    _axisInit(hvp->axis + 2);
     hvp->k3pack = AIR_TRUE;
-    for(i=gageKernelUnknown+1; i<gageKernelLast; i++) {
+    for (i = gageKernelUnknown + 1; i < gageKernelLast; i++) {
       hvp->k[i] = NULL;
-      for (j=0; j<NRRD_KERNEL_PARMS_NUM; j++)
+      for (j = 0; j < NRRD_KERNEL_PARMS_NUM; j++)
         hvp->kparm[i][j] = AIR_NAN;
     }
     hvp->renormalize = baneDefRenormalize;
@@ -71,11 +67,11 @@ baneHVolParmNew() {
 }
 
 void
-baneHVolParmAxisSet(baneHVolParm *hvp, unsigned int axisIdx,
-                    unsigned int res, baneMeasr *measr, baneInc *inc) {
+baneHVolParmAxisSet(baneHVolParm *hvp, unsigned int axisIdx, unsigned int res,
+                    baneMeasr *measr, baneInc *inc) {
 
   if (hvp && axisIdx <= 2) {
-    _baneAxisEmpty(hvp->axis + axisIdx);
+    _axisEmpty(hvp->axis + axisIdx);
     hvp->axis[axisIdx].res = res;
     hvp->axis[axisIdx].measr = baneMeasrCopy(measr);
     hvp->axis[axisIdx].inc = baneIncCopy(inc);
@@ -93,16 +89,16 @@ baneHVolParmClipSet(baneHVolParm *hvp, baneClip *clip) {
   return;
 }
 
-baneHVolParm *
+baneHVolParm * /* Biff: nope */
 baneHVolParmNix(baneHVolParm *hvp) {
 
   if (hvp) {
     if (hvp->measrVol) {
       nrrdNuke(hvp->measrVol);
     }
-    _baneAxisEmpty(hvp->axis + 0);
-    _baneAxisEmpty(hvp->axis + 1);
-    _baneAxisEmpty(hvp->axis + 2);
+    _axisEmpty(hvp->axis + 0);
+    _axisEmpty(hvp->axis + 1);
+    _axisEmpty(hvp->axis + 2);
     baneClipNix(hvp->clip);
     free(hvp);
   }
@@ -148,10 +144,10 @@ baneHVolParmGKMSInit(baneHVolParm *hvp) {
     inc = baneIncNix(inc);
 
     nrrdKernelParse(&(hvp->k[gageKernel00]), hvp->kparm[gageKernel00],
-                    "cubic:0,0.5");  /* catmull-rom */
+                    "cubic:0,0.5"); /* catmull-rom */
     nrrdKernelParse(&(hvp->k[gageKernel11]), hvp->kparm[gageKernel11],
-                    "cubicd:1,0");   /* b-spline */
+                    "cubicd:1,0"); /* b-spline */
     nrrdKernelParse(&(hvp->k[gageKernel22]), hvp->kparm[gageKernel22],
-                    "cubicdd:1,0");  /* b-spline */
+                    "cubicdd:1,0"); /* b-spline */
   }
 }

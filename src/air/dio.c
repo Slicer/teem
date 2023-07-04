@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "air.h"
@@ -27,9 +25,9 @@
 #if TEEM_DIO == 0
 #else
 /* HEY: these may be SGI-specific */
-#include <sys/types.h>
-#include <unistd.h>
-#include <fcntl.h>
+#  include <sys/types.h>
+#  include <unistd.h>
+#  include <fcntl.h>
 #endif
 
 #if TEEM_DIO == 0
@@ -40,31 +38,28 @@ const int airMyDio = 1;
 
 int airDisableDio = AIR_FALSE;
 
-static const char
-_airNoDioErr[AIR_NODIO_MAX+2][AIR_STRLEN_SMALL] = {
-  "(invalid noDio value)",
-  "CAN TOO do direct I/O!",
-  "direct I/O apparently not available on this architecture",
-  "direct I/O apparently not suitable for given file format",
-  "won't do direct I/O on std{in|out|err}",
-  "got -1 as file descriptor",
-  "fcntl(F_DIOINFO) to learn direct I/O specifics failed",
-  "requested transfer size is too small",
-  "requested transfer size not a multiple of d_miniosz",
-  "data memory address not multiple of d_mem",
-  "current file position not multiple of d_miniosz",
-  "fcntl(F_SETFL, FDIRECT) to turn on direct I/O failed",
-  "memalign() test (on a small chuck of memory) failed",
-  "direct I/O (in air library) has been disabled with airDisableDio"
-};
+static const char _airNoDioErr[AIR_NODIO_MAX + 2][AIR_STRLEN_SMALL]
+  = {"(invalid noDio value)",
+     "CAN TOO do direct I/O!",
+     "direct I/O apparently not available on this architecture",
+     "direct I/O apparently not suitable for given file format",
+     "won't do direct I/O on std{in|out|err}",
+     "got -1 as file descriptor",
+     "fcntl(F_DIOINFO) to learn direct I/O specifics failed",
+     "requested transfer size is too small",
+     "requested transfer size not a multiple of d_miniosz",
+     "data memory address not multiple of d_mem",
+     "current file position not multiple of d_miniosz",
+     "fcntl(F_SETFL, FDIRECT) to turn on direct I/O failed",
+     "memalign() test (on a small chuck of memory) failed",
+     "direct I/O (in air library) has been disabled with airDisableDio"};
 
 const char *
 airNoDioErr(int noDio) {
 
   if (AIR_IN_CL(0, noDio, AIR_NODIO_MAX)) {
-    return _airNoDioErr[noDio+1];
-  }
-  else {
+    return _airNoDioErr[noDio + 1];
+  } else {
     return _airNoDioErr[0];
   }
 }
@@ -269,7 +264,7 @@ airDioRead(int fd, void *_ptr, size_t size) {
   size_t remain, part;
   char *ptr;
 
-  if (!( _ptr && airNoDio_okay == airDioTest(fd, _ptr, size) )) {
+  if (!(_ptr && airNoDio_okay == airDioTest(fd, _ptr, size))) {
     return 0;
   }
 
@@ -278,7 +273,7 @@ airDioRead(int fd, void *_ptr, size_t size) {
   airDioInfo(&align, &min, &max, fd);
   remain = size;
   totalred = 0;
-  ptr = (char*)_ptr;
+  ptr = (char *)_ptr;
   do {
     part = AIR_MIN(remain, max);
     red = read(fd, ptr, part);
@@ -321,7 +316,7 @@ airDioWrite(int fd, const void *_ptr, size_t size) {
   size_t remain, part;
   char *ptr;
 
-  if (!( _ptr && (airNoDio_okay == airDioTest(fd, _ptr, size)) )) {
+  if (!(_ptr && (airNoDio_okay == airDioTest(fd, _ptr, size)))) {
     return 0;
   }
 
@@ -330,7 +325,7 @@ airDioWrite(int fd, const void *_ptr, size_t size) {
   airDioInfo(&align, &min, &max, fd);
   remain = size;
   totalrit = 0;
-  ptr = (char*)_ptr;
+  ptr = (char *)_ptr;
   do {
     part = AIR_MIN(remain, max);
     rit = write(fd, ptr, part);

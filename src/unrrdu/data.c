@@ -1,63 +1,58 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#define INFO "Print data segment of a nrrd file"
-static const char *_unrrdu_dataInfoL =
-(INFO  ".  The value of this is to pass the data segment in isolation to a "
- "stand-alone decoder, in case this Teem build lacks an optional "
- "data encoding required for a given nrrd file.  Caveats: "
- "Will start copying "
- "characters from the datafile until EOF is hit, so this won't work "
- "correctly if the datafile has extraneous content at the end.  Will "
- "skip lines (as per \"line skip:\" header field) if needed, but can only "
- "skip bytes (as per \"byte skip:\") if the encoding is NOT a compression. "
- "\n \n "
- "To make vol.raw contain the uncompressed data from vol.nrrd "
- "which uses \"gz\" encoding: \"unu data vol.nrrd | gunzip > vol.raw\"\n "
- "\n "
- "* Uses nrrdLoad with nio->skipData and nio->keepNrrdDataFileOpen both "
- "true in the NrrdIoState nio.");
+#define INFO "Write data segment of a nrrd file"
+static const char *_unrrdu_dataInfoL
+  = (INFO ".  The value of this is to pass the data segment in isolation to a "
+          "stand-alone decoder, in case this Teem build lacks an optional "
+          "data encoding required for a given nrrd file.  Caveats: "
+          "Will start copying characters from the datafile "
+          "to output file until EOF is hit, so this won't work "
+          "correctly if the datafile has extraneous content at the end.  Will "
+          "skip lines (as per \"line skip:\" header field) if needed, but can only "
+          "skip bytes (as per \"byte skip:\") if the encoding is NOT a compression. "
+          "\n \n "
+          "To make vol.raw contain the uncompressed data from vol.nrrd "
+          "which uses \"gz\" encoding: \"unu data vol.nrrd | gunzip > vol.raw\"\n "
+          "\n "
+          "* Uses nrrdLoad with nio->skipData and nio->keepNrrdDataFileOpen both "
+          "true in the NrrdIoState nio.");
 
-int
-unrrdu_dataMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+static int
+unrrdu_dataMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *err, *inS=NULL;
+  char *err, *inS = NULL;
   Nrrd *nin;
   NrrdIoState *nio;
   airArray *mop;
   int car, pret;
 
   mop = airMopNew();
-  hestOptAdd(&opt, NULL, "nin", airTypeString, 1, 1, &inS, NULL,
-             "input nrrd");
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  hestOptAdd(&opt, NULL, "nin", airTypeString, 1, 1, &inS, NULL, "input nrrd");
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_dataInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_dataInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nio = nrrdIoStateNew();
@@ -74,14 +69,17 @@ unrrdu_dataMain(int argc, const char **argv, const char *me,
     return 1;
   }
   if (_nrrdDataFNNumber(nio) > 1) {
-    fprintf(stderr, "%s: sorry, currently can't operate with multiple "
-            "detached datafiles\n", me);
+    fprintf(stderr,
+            "%s: sorry, currently can't operate with multiple "
+            "detached datafiles\n",
+            me);
     airMopError(mop);
     return 1;
   }
-  if (!( nrrdFormatNRRD == nio->format )) {
+  if (!(nrrdFormatNRRD == nio->format)) {
     fprintf(stderr, "%s: can only print data of NRRD format files\n", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   car = fgetc(nio->dataFile);
 #ifdef _MSC_VER

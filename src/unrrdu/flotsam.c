@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "unrrdu.h"
@@ -26,26 +24,19 @@
 
 #include <ctype.h>
 
-const int
-unrrduPresent = 42;
+const int unrrduPresent = 42;
 
-const char *
-unrrduBiffKey = "unrrdu";
+const char *const unrrduBiffKey = "unrrdu";
 
 /* number of columns that hest will used */
-unsigned int
-unrrduDefNumColumns = 78;
+unsigned int unrrduDefNumColumns = 78;
 
 /*
 ******** unrrduCmdList[]
 **
 ** NULL-terminated array of unrrduCmd pointers, as ordered by UNRRDU_MAP macro
 */
-unrrduCmd *
-unrrduCmdList[] = {
-  UNRRDU_MAP(UNRRDU_LIST)
-  NULL
-};
+const unrrduCmd *const unrrduCmdList[] = {UNRRDU_MAP(UNRRDU_LIST) NULL};
 
 /*
 ******** unrrduCmdMain
@@ -64,11 +55,9 @@ unrrduCmdList[] = {
 ** unu commands alter the given hparm (which probably shouldn't happen).
 ** Until that's fixed, we have a non-const hestParm* coming in here.
 */
-int
-unrrduCmdMain(int argc, const char **argv,
-              const char *cmd, const char *title,
-              const unrrduCmd *const *cmdList,
-              hestParm *_hparm, FILE *fusage) {
+int /* Biff: nope */
+unrrduCmdMain(int argc, const char **argv, const char *cmd, const char *title,
+              const unrrduCmd *const *cmdList, hestParm *_hparm, FILE *fusage) {
   int i, ret;
   const char *me;
   char *argv0 = NULL;
@@ -115,7 +104,7 @@ unrrduCmdMain(int argc, const char **argv,
     /* this is like unrrduUsageUnu() */
     unsigned int ii, maxlen = 0;
     char *buff, *fmt, tdash[] = "--- %s ---";
-    for (ii=0; cmdList[ii]; ii++) {
+    for (ii = 0; cmdList[ii]; ii++) {
       if (cmdList[ii]->hidden) {
         continue;
       }
@@ -123,7 +112,8 @@ unrrduCmdMain(int argc, const char **argv,
     }
     if (!maxlen) {
       fprintf(fusage, "%s: problem: maxlen = %u\n", me, maxlen);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     buff = AIR_CALLOC(strlen(tdash) + strlen(title) + 1, char);
     airMopAdd(mop, buff, airFree, airMopAlways);
@@ -131,26 +121,25 @@ unrrduCmdMain(int argc, const char **argv,
     fmt = AIR_CALLOC(hparm->columns + strlen(buff) + 1, char); /* generous */
     airMopAdd(mop, buff, airFree, airMopAlways);
     sprintf(fmt, "%%%us\n",
-            AIR_UINT((hparm->columns-strlen(buff))/2 + strlen(buff) - 1));
+            AIR_UINT((hparm->columns - strlen(buff)) / 2 + strlen(buff) - 1));
     fprintf(fusage, fmt, buff);
 
-    for (ii=0; cmdList[ii]; ii++) {
+    for (ii = 0; cmdList[ii]; ii++) {
       unsigned int cc, len;
       if (cmdList[ii]->hidden) {
         continue;
       }
       len = AIR_UINT(strlen(cmdList[ii]->name));
       strcpy(buff, "");
-      for (cc=len; cc<maxlen; cc++)
+      for (cc = len; cc < maxlen; cc++)
         strcat(buff, " ");
       strcat(buff, cmd);
       strcat(buff, " ");
       strcat(buff, cmdList[ii]->name);
       strcat(buff, " ... ");
-      len = strlen(buff);
+      len = AIR_UINT(strlen(buff));
       fprintf(fusage, "%s", buff);
-      _hestPrintStr(fusage, len, len, hparm->columns,
-                    cmdList[ii]->info, AIR_FALSE);
+      _hestPrintStr(fusage, len, len, hparm->columns, cmdList[ii]->info, AIR_FALSE);
     }
     airMopError(mop);
     return 1;
@@ -163,14 +152,13 @@ unrrduCmdMain(int argc, const char **argv,
     exit(0);
   }
   /* else, we should see if they're asking for a command we know about */
-  for (i=0; cmdList[i]; i++) {
+  for (i = 0; cmdList[i]; i++) {
     if (!strcmp(argv[1], cmdList[i]->name)) {
       break;
     }
     /* if user typed "prog --help" we treat it as "prog about",
        but only if there is an "about" command */
-    if (!strcmp("--help", argv[1])
-        && !strcmp("about", cmdList[i]->name)) {
+    if (!strcmp("--help", argv[1]) && !strcmp("about", cmdList[i]->name)) {
       break;
     }
   }
@@ -183,10 +171,12 @@ unrrduCmdMain(int argc, const char **argv,
     sprintf(argv0, "%s %s", cmd, argv[1]);
 
     /* run the individual command, saving its exit status */
-    ret = cmdList[i]->main(argc-2, argv+2, argv0, hparm);
+    ret = cmdList[i]->main(argc - 2, argv + 2, argv0, hparm);
   } else {
-    fprintf(stderr, "%s: unrecognized command: \"%s\"; type \"%s\" for "
-            "complete list\n", me, argv[1], me);
+    fprintf(stderr,
+            "%s: unrecognized command: \"%s\"; type \"%s\" for "
+            "complete list\n",
+            cmd /* not me==argv[0] */, argv[1], me);
     ret = 1;
   }
 
@@ -197,36 +187,47 @@ unrrduCmdMain(int argc, const char **argv,
 /*
 ******** unrrduUsageUnu
 **
-** prints out a little banner, and a listing of all available commands
-** with their one-line descriptions
+** prints out a little banner, and a listing of all available unu
+** commands with their one-line descriptions
 */
 void
-unrrduUsageUnu(const char *me, hestParm *hparm) {
+unrrduUsageUnu(const char *me, hestParm *hparm, int alsoHidden) {
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
   unsigned int cmdi, chi, len, maxlen;
 
   maxlen = 0;
-  for (cmdi=0; unrrduCmdList[cmdi]; cmdi++) {
+  for (cmdi = 0; unrrduCmdList[cmdi]; cmdi++) {
     maxlen = AIR_MAX(maxlen, AIR_UINT(strlen(unrrduCmdList[cmdi]->name)));
   }
 
   sprintf(buff, "--- unu: Utah Nrrd Utilities command-line interface ---");
   len = AIR_UINT(strlen(buff));
-  sprintf(fmt, "%%%us\n", (hparm->columns > len
-                           ? hparm->columns-len
-                           : 0)/2 + len - 1);
-  fprintf(stdout, fmt, buff);
-  for (cmdi=0; unrrduCmdList[cmdi]; cmdi++) {
-    int nofft;
+  sprintf(fmt, "%%%us\n",
+          (hparm->columns > len ? hparm->columns - len : 0) / 2 + len - 1);
+  printf(fmt, buff);
+  if (alsoHidden) {
+    sprintf(buff, "(hidden commands have \" : \" in listing)");
+    len = AIR_UINT(strlen(buff));
+    sprintf(fmt, "%%%us\n",
+            (hparm->columns > len ? hparm->columns - len : 0) / 2 + len - 1);
+    printf(fmt, buff);
+  }
+  for (cmdi = 0; unrrduCmdList[cmdi]; cmdi++) {
+    int nofft, hidden;
     if (unrrduCmdList[cmdi]->hidden) {
-      /* nothing to see here! */
-      continue;
+      if (!alsoHidden) {
+        /* nothing to see here! */
+        continue;
+      }
+      hidden = AIR_TRUE;
+    } else {
+      hidden = AIR_FALSE;
     }
     nofft = !strcmp(unrrduCmdList[cmdi]->name, "fft") && !nrrdFFTWEnabled;
     len = AIR_UINT(strlen(unrrduCmdList[cmdi]->name));
     len += !!nofft;
     strcpy(buff, "");
-    for (chi=len; chi<maxlen; chi++)
+    for (chi = len; chi < maxlen; chi++)
       strcat(buff, " ");
     if (nofft) {
       strcat(buff, "(");
@@ -234,7 +235,11 @@ unrrduUsageUnu(const char *me, hestParm *hparm) {
     strcat(buff, me);
     strcat(buff, " ");
     strcat(buff, unrrduCmdList[cmdi]->name);
-    strcat(buff, " ... ");
+    if (!hidden) {
+      strcat(buff, " ... ");
+    } else {
+      strcat(buff, "  :  ");
+    }
     len = AIR_UINT(strlen(buff));
     fprintf(stdout, "%s", buff);
     if (nofft) {
@@ -243,12 +248,11 @@ unrrduUsageUnu(const char *me, hestParm *hparm) {
       fprintf(stdout, "Not Enabled: ");
       infop = AIR_CALLOC(strlen(unrrduCmdList[cmdi]->info) + 2, char);
       sprintf(infop, "%s)", unrrduCmdList[cmdi]->info);
-      _hestPrintStr(stdout, len, len, hparm->columns,
-                    infop, AIR_FALSE);
+      _hestPrintStr(stdout, len, len, hparm->columns, infop, AIR_FALSE);
       free(infop);
     } else {
-      _hestPrintStr(stdout, len, len, hparm->columns,
-                    unrrduCmdList[cmdi]->info, AIR_FALSE);
+      _hestPrintStr(stdout, len, len, hparm->columns, unrrduCmdList[cmdi]->info,
+                    AIR_FALSE);
     }
   }
   return;
@@ -262,9 +266,9 @@ unrrduUsageUnu(const char *me, hestParm *hparm) {
 **
 ** does not use biff
 */
-int
-unrrduUsage(const char *me, hestParm *hparm,
-            const char *title, unrrduCmd **cmdList) {
+int /* Biff: nope */
+unrrduUsage(const char *me, hestParm *hparm, const char *title,
+            const unrrduCmd *const *cmdList) {
   char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
   unsigned int cmdi, chi, len, maxlen;
 
@@ -273,20 +277,19 @@ unrrduUsage(const char *me, hestParm *hparm,
     return 1;
   }
   maxlen = 0;
-  for (cmdi=0; cmdList[cmdi]; cmdi++) {
+  for (cmdi = 0; cmdList[cmdi]; cmdi++) {
     maxlen = AIR_MAX(maxlen, AIR_UINT(strlen(cmdList[cmdi]->name)));
   }
 
   sprintf(buff, "--- %s ---", title);
   len = AIR_UINT(strlen(buff));
-  sprintf(fmt, "%%%us\n", (hparm->columns > len
-                           ? hparm->columns-len
-                           : 0)/2 + len - 1);
+  sprintf(fmt, "%%%us\n",
+          (hparm->columns > len ? hparm->columns - len : 0) / 2 + len - 1);
   fprintf(stdout, fmt, buff);
-  for (cmdi=0; cmdList[cmdi]; cmdi++) {
+  for (cmdi = 0; cmdList[cmdi]; cmdi++) {
     len = AIR_UINT(strlen(cmdList[cmdi]->name));
     strcpy(buff, "");
-    for (chi=len; chi<maxlen; chi++)
+    for (chi = len; chi < maxlen; chi++)
       strcat(buff, " ");
     strcat(buff, me);
     strcat(buff, " ");
@@ -294,8 +297,7 @@ unrrduUsage(const char *me, hestParm *hparm,
     strcat(buff, " ... ");
     len = AIR_UINT(strlen(buff));
     fprintf(stdout, "%s", buff);
-    _hestPrintStr(stdout, len, len, hparm->columns,
-                  cmdList[cmdi]->info, AIR_FALSE);
+    _hestPrintStr(stdout, len, len, hparm->columns, cmdList[cmdi]->info, AIR_FALSE);
   }
   return 0;
 }
@@ -325,28 +327,28 @@ unrrduUsage(const char *me, hestParm *hparm,
 ** pos[0] ==  1: pos[1] gives the position relative to the last index
 ** pos[0] == -1: pos[1] gives the position relative to a "minimum" position
 */
-int
-unrrduParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unrrduParsePos";
+static int
+parsePos(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "parsePos";
   long int *pos;
 
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  pos = (long int*)ptr;
+  pos = (long int *)ptr;
   if (!strcmp("M", str)) {
     pos[0] = 1;
     pos[1] = 0;
     return 0;
   }
   if ('M' == str[0]) {
-    if (!( '-' == str[1] || '+' == str[1] )) {
+    if (!('-' == str[1] || '+' == str[1])) {
       sprintf(err, "%s: \'M\' can be followed only by \'+\' or \'-\'", me);
       return 1;
     }
     pos[0] = 1;
-    if (1 != sscanf(str+1, "%ld", &(pos[1]))) {
+    if (1 != sscanf(str + 1, "%ld", &(pos[1]))) {
       sprintf(err, "%s: can't parse \"%s\" as M+<int> or M-<int>", me, str);
       return 1;
     }
@@ -358,13 +360,12 @@ unrrduParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
       return 1;
     }
     pos[0] = -1;
-    if (1 != sscanf(str+1, "%ld", &(pos[1]))) {
+    if (1 != sscanf(str + 1, "%ld", &(pos[1]))) {
       sprintf(err, "%s: can't parse \"%s\" as m+<int>", me, str);
       return 1;
     }
-    if (pos[1] < 0 ) {
-      sprintf(err, "%s: int in m+<int> must be non-negative (not %ld)",
-              me, pos[1]);
+    if (pos[1] < 0) {
+      sprintf(err, "%s: int in m+<int> must be non-negative (not %ld)", me, pos[1]);
       return 1;
     }
     return 0;
@@ -378,12 +379,7 @@ unrrduParsePos(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduHestPosCB = {
-  2*sizeof(long int),
-  "position",
-  unrrduParsePos,
-  NULL
-};
+const hestCB unrrduHestPosCB = {2 * sizeof(long int), "position", parsePos, NULL};
 
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
@@ -405,9 +401,9 @@ hestCB unrrduHestPosCB = {
 ** for "default", even though currently nrrdTypeUnknown is the same
 ** value as nrrdTypeDefault.
 */
-int
-unrrduParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unrrduParseMaybeType";
+static int
+parseMaybeType(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "parseMaybeType";
   int *typeP;
 
   /* fprintf(stderr, "!%s: str = \"%s\"\n", me, str); */
@@ -415,7 +411,7 @@ unrrduParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  typeP = (int*)ptr;
+  typeP = (int *)ptr;
   if (!strcmp("unknown", str)) {
     *typeP = nrrdTypeUnknown;
   } else if (!strcmp("default", str)) {
@@ -431,12 +427,7 @@ unrrduParseMaybeType(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduHestMaybeTypeCB = {
-  sizeof(int),
-  "type",
-  unrrduParseMaybeType,
-  NULL
-};
+const hestCB unrrduHestMaybeTypeCB = {sizeof(int), "type", parseMaybeType, NULL};
 
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
@@ -447,33 +438,28 @@ hestCB unrrduHestMaybeTypeCB = {
 **
 ** for parsing an int that can be 8, 16, or 32
 */
-int
-unrrduParseBits(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unrrduParseBits";
+static int
+parseBits(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "parseBits";
   unsigned int *bitsP;
 
   if (!(ptr && str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
-  bitsP = (unsigned int*)ptr;
+  bitsP = (unsigned int *)ptr;
   if (1 != sscanf(str, "%u", bitsP)) {
     sprintf(err, "%s: can't parse \"%s\" as int", me, str);
     return 1;
   }
-  if (!( 8 == *bitsP || 16 == *bitsP || 32 == *bitsP )) {
+  if (!(8 == *bitsP || 16 == *bitsP || 32 == *bitsP)) {
     sprintf(err, "%s: bits (%d) not 8, 16, or 32", me, *bitsP);
     return 1;
   }
   return 0;
 }
 
-hestCB unrrduHestBitsCB = {
-  sizeof(int),
-  "quantization bits",
-  unrrduParseBits,
-  NULL
-};
+const hestCB unrrduHestBitsCB = {sizeof(int), "quantization bits", parseBits, NULL};
 
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
@@ -493,10 +479,11 @@ hestCB unrrduHestBitsCB = {
 ** +=<uint>  : unrrduScaleAdd
 ** -=<uint>  : unrrduScaleSubstract
 ** <uint>    : unrrduScaleExact
+** s<float>  : unrrduScaleSpacingTarget
 */
-int
-unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unrrduParseScale";
+static int
+parseScale(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "parseScale";
   double *scale;
   unsigned int num;
 
@@ -511,38 +498,39 @@ unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   } else if (!strcmp("a", str)) {
     scale[0] = AIR_CAST(double, unrrduScaleAspectRatio);
     scale[1] = 0.0;
-  } else if (strlen(str) > 2
-      && ('x' == str[0] || '/' == str[0])
-      && '=' == str[1]) {
-    if (1 != sscanf(str+2, "%lf", scale+1)) {
-      sprintf(err, "%s: can't parse \"%s\" as x=<float> or /=<float>",
+  } else if (strlen(str) > 2 && ('x' == str[0] || '/' == str[0]) && '=' == str[1]) {
+    if (1 != sscanf(str + 2, "%lf", scale + 1)) {
+      sprintf(err, "%s: can't parse \"%s\" as x=<float> or /=<float>", me, str);
+      return 1;
+    }
+    if (!(scale[1] > 0)) {
+      sprintf(err, "%s: need positive float from \"%s\" (not %g)", me, str, scale[1]);
+      return 1;
+    }
+    scale[0] = AIR_CAST(double,
+                        ('x' == str[0] ? unrrduScaleMultiply : unrrduScaleDivide));
+  } else if (strlen(str) > 1 && ('x' == str[0] || '/' == str[0] || 's' == str[0])) {
+    if (1 != sscanf(str + 1, "%lf", scale + 1)) {
+      sprintf(err,
+              "%s: can't parse \"%s\" as x<float>, /<float>, "
+              "or s<float>",
               me, str);
       return 1;
     }
-    scale[0] = AIR_CAST(double, ('x' == str[0]
-                                 ? unrrduScaleMultiply
-                                 : unrrduScaleDivide));
-  } else if (strlen(str) > 1
-             && ('x' == str[0] || '/' == str[0])) {
-    if (1 != sscanf(str+1, "%lf", scale+1)) {
-      sprintf(err, "%s: can't parse \"%s\" as x<float> or /<float>",
-              me, str);
+    if (!(scale[1] > 0)) {
+      sprintf(err, "%s: need positive float from \"%s\" (not %g)", me, str, scale[1]);
       return 1;
     }
-    scale[0] = AIR_CAST(double, ('x' == str[0]
-                                 ? unrrduScaleMultiply
-                                 : unrrduScaleDivide));
-  } else if (strlen(str) > 2
-             && ('+' == str[0] || '-' == str[0])
-             && '=' == str[1]) {
-    if (1 != sscanf(str+2, "%u", &num)) {
-      sprintf(err, "%s: can't parse \"%s\" as +=<uint> or -=<uint>",
-              me, str);
+    scale[0] = AIR_CAST(double,
+                        ('x' == str[0] ? unrrduScaleMultiply
+                                       : ('/' == str[0] ? unrrduScaleDivide
+                                                        : unrrduScaleSpacingTarget)));
+  } else if (strlen(str) > 2 && ('+' == str[0] || '-' == str[0]) && '=' == str[1]) {
+    if (1 != sscanf(str + 2, "%u", &num)) {
+      sprintf(err, "%s: can't parse \"%s\" as +=<uint> or -=<uint>", me, str);
       return 1;
     }
-    scale[0] = AIR_CAST(double, ('+' == str[0]
-                                 ? unrrduScaleAdd
-                                 : unrrduScaleSubtract));
+    scale[0] = AIR_CAST(double, ('+' == str[0] ? unrrduScaleAdd : unrrduScaleSubtract));
     scale[1] = AIR_CAST(double, num);
   } else {
     if (1 != sscanf(str, "%u", &num)) {
@@ -555,12 +543,8 @@ unrrduParseScale(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduHestScaleCB = {
-  2*sizeof(double),
-  "sampling specification",
-  unrrduParseScale,
-  NULL
-};
+const hestCB unrrduHestScaleCB = {2 * sizeof(double), "sampling/scaling specification",
+                                  parseScale, NULL};
 
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
@@ -573,8 +557,8 @@ hestCB unrrduHestScaleCB = {
 ** getting a FILE *.  "-" is interpreted as stdin, which is not
 ** fclose()ed at the end, unlike all other files.
 */
-void *
-unrrduMaybeFclose(void *_file) {
+static void *
+maybeFclose(void *_file) {
   FILE *file;
 
   file = (FILE *)_file;
@@ -584,9 +568,9 @@ unrrduMaybeFclose(void *_file) {
   return NULL;
 }
 
-int
-unrrduParseFile(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unrrduParseFile";
+static int
+parseFile(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "parseFile";
   FILE **fileP;
 
   if (!(ptr && str)) {
@@ -594,19 +578,18 @@ unrrduParseFile(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     return 1;
   }
   fileP = (FILE **)ptr;
-  if (!( *fileP = airFopen(str, stdin, "rb") )) {
-    sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s",
-            me, str, strerror(errno));
+  if (!(*fileP = airFopen(str, stdin, "rb"))) {
+    sprintf(err, "%s: fopen(\"%s\",\"rb\") failed: %s", me, str, strerror(errno));
     return 1;
   }
   return 0;
 }
 
-hestCB unrrduHestFileCB = {
+const hestCB unrrduHestFileCB = {
   sizeof(FILE *),
   "filename",
-  unrrduParseFile,
-  unrrduMaybeFclose,
+  parseFile,
+  maybeFclose,
 };
 
 /* --------------------------------------------------------- */
@@ -621,9 +604,10 @@ hestCB unrrduHestFileCB = {
 ** enc[1]: for compressions: zlib "level" and bzip2 "blocksize"
 ** enc[2]: for zlib: strategy, from nrrdZlibStrategy* enum
 */
-int
-unrrduParseEncoding(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="unrrduParseEncoding", *str, *opt;
+static int
+parseEncoding(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "parseEncoding";
+  char *str, *opt;
   int *enc;
   airArray *mop;
 
@@ -648,18 +632,21 @@ unrrduParseEncoding(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
   if (!opt) {
     /* couldn't parse string as nrrdEncodingType, but there wasn't a colon */
     sprintf(err, "%s: didn't recognize \"%s\" as an encoding", me, str);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   } else {
     *opt = '\0';
     opt++;
     enc[0] = airEnumVal(nrrdEncodingType, str);
     if (nrrdEncodingTypeUnknown == enc[0]) {
       sprintf(err, "%s: didn't recognize \"%s\" as an encoding", me, str);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if (!nrrdEncodingArray[enc[0]]->isCompression) {
       sprintf(err, "%s: only compression encodings have parameters", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     while (*opt) {
       int opti = AIR_INT(*opt);
@@ -672,9 +659,9 @@ unrrduParseEncoding(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
       } else if ('f' == tolower(opti)) {
         enc[2] = nrrdZlibStrategyFiltered;
       } else {
-        sprintf(err, "%s: parameter char \"%c\" not a digit or 'd','h','f'",
-                me, *opt);
-        airMopError(mop); return 1;
+        sprintf(err, "%s: parameter char \"%c\" not a digit or 'd','h','f'", me, *opt);
+        airMopError(mop);
+        return 1;
       }
       opt++;
     }
@@ -683,10 +670,49 @@ unrrduParseEncoding(void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
   return 0;
 }
 
-hestCB unrrduHestEncodingCB = {
-  3*sizeof(int),
-  "encoding",
-  unrrduParseEncoding,
-  NULL
-};
+const hestCB unrrduHestEncodingCB = {3 * sizeof(int), "encoding", parseEncoding, NULL};
 
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
+/* --------------------------------------------------------- */
+
+/*
+******** unrrduHestFormatCB
+**
+** for parsing output format
+** enc[0]: which format, from nrrdFormatType* enum
+** enc[1]: for nrrdFormatText: bool for whether to enforce plain "bare" text
+**         as indicated by one of: btext, ptext, baretext, plaintext
+*/
+static int
+parseFormat(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "parseFormat";
+  int *enc;
+
+  if (!(ptr && str)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    return 1;
+  }
+  enc = (int *)ptr;
+  /* these are the defaults, they may not get over-written */
+  enc[1] = 0;
+
+  enc[0] = airEnumVal(nrrdFormatType, str);
+  if (nrrdFormatTypeUnknown != enc[0]) {
+    /* we're done; given format was exactly a standard format */
+    return 0;
+  }
+  /* else given format was non-standard */
+  if (!strcmp("ptext", str) || !strcmp("plaintext", str) || !strcmp("btext", str)
+      || !strcmp("baretext", str)) {
+    enc[0] = nrrdFormatTypeText;
+    enc[1] = AIR_TRUE;
+  } else {
+    sprintf(err, "%s: format \"%s\" not a %s or recognized alternate", me, str,
+            nrrdFormatType->name);
+    return 1;
+  }
+  return 0;
+}
+
+const hestCB unrrduHestFormatCB = {2 * sizeof(int), "format", parseFormat, NULL};

@@ -1,32 +1,30 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "nrrd.h"
 #include "privateNrrd.h"
 
 enum {
-  kindLut=0,
-  kindRmap=1
+  kindLut = 0,
+  kindRmap = 1
 };
 
 /*
@@ -42,18 +40,15 @@ enum {
 ** The given NrrdRange has to be fleshed out by the caller: it can't
 ** be NULL, and both range->min and range->max must exist.
 */
-int
-_nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
-                  const NrrdRange *range0, const NrrdRange *range1,
-                  const Nrrd *nmap, int kind, int typeOut,
+static int /* Biff: 1 */
+_nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range0,
+                  const NrrdRange *range1, const Nrrd *nmap, int kind, int typeOut,
                   int rescale0, int rescale1) {
-  static const char me[]="_nrrdApply2DSetUp";
+  static const char me[] = "_nrrdApply2DSetUp";
   char *mapcnt;
-  char nounStr[][AIR_STRLEN_SMALL]={"2D lut",
-                                    "2D regular map"};
-  char verbStr[][AIR_STRLEN_SMALL]={"lut2",
-                                    "rmap2"};
-  int mapAxis, copyMapAxis0=AIR_FALSE, axisMap[NRRD_DIM_MAX];
+  char nounStr[][AIR_STRLEN_SMALL] = {"2D lut", "2D regular map"};
+  char verbStr[][AIR_STRLEN_SMALL] = {"lut2", "rmap2"};
+  int mapAxis, copyMapAxis0 = AIR_FALSE, axisMap[NRRD_DIM_MAX];
   unsigned int dim, entLen;
   size_t size[NRRD_DIM_MAX];
   double domMin, domMax;
@@ -67,8 +62,8 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (nrrdTypeBlock == nin->type || nrrdTypeBlock == typeOut) {
-    biffAddf(NRRD, "%s: input or requested output type is %s, need scalar",
-             me, airEnumStr(nrrdType, nrrdTypeBlock));
+    biffAddf(NRRD, "%s: input or requested output type is %s, need scalar", me,
+             airEnumStr(nrrdType, nrrdTypeBlock));
     return 1;
   }
   if (!(2 == nin->axis[0].size)) {
@@ -81,49 +76,49 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
     biffAddf(NRRD, "%s: input dimension must be > 1 (not %u)", me, nin->dim);
     return 1;
   }
-  if (rescale0 && !(range0
-                    && AIR_EXISTS(range0->min)
-                    && AIR_EXISTS(range0->max))) {
-    biffAddf(NRRD, "%s: want axis 0 rescaling but didn't get range, or "
-             "not both range->{min,max} exist", me);
+  if (rescale0 && !(range0 && AIR_EXISTS(range0->min) && AIR_EXISTS(range0->max))) {
+    biffAddf(NRRD,
+             "%s: want axis 0 rescaling but didn't get range, or "
+             "not both range->{min,max} exist",
+             me);
     return 1;
   }
-  if (rescale1 && !(range1
-                    && AIR_EXISTS(range1->min)
-                    && AIR_EXISTS(range1->max))) {
-    biffAddf(NRRD, "%s: want axis 1 rescaling but didn't get range, or "
-             "not both range->{min,max} exist", me);
+  if (rescale1 && !(range1 && AIR_EXISTS(range1->min) && AIR_EXISTS(range1->max))) {
+    biffAddf(NRRD,
+             "%s: want axis 1 rescaling but didn't get range, or "
+             "not both range->{min,max} exist",
+             me);
     return 1;
   }
   mapAxis = nmap->dim - 2;
   if (!(0 == mapAxis || 1 == mapAxis)) {
-    biffAddf(NRRD, "%s: dimension of %s should be 2 or 3, not %d",
-             me, nounStr[kind], nmap->dim);
+    biffAddf(NRRD, "%s: dimension of %s should be 2 or 3, not %d", me, nounStr[kind],
+             nmap->dim);
     return 1;
   }
   copyMapAxis0 = (1 == mapAxis);
   domMin = _nrrdApplyDomainMin(nmap, AIR_FALSE, mapAxis);
   domMax = _nrrdApplyDomainMax(nmap, AIR_FALSE, mapAxis);
-  if (!( domMin < domMax )) {
-    biffAddf(NRRD, "%s: (axis %d) domain min (%g) not less than max (%g)", me,
-             mapAxis, domMin, domMax);
+  if (!(domMin < domMax)) {
+    biffAddf(NRRD, "%s: (axis %d) domain min (%g) not less than max (%g)", me, mapAxis,
+             domMin, domMax);
     return 1;
   }
-  domMin = _nrrdApplyDomainMin(nmap, AIR_FALSE, mapAxis+1);
-  domMax = _nrrdApplyDomainMax(nmap, AIR_FALSE, mapAxis+1);
-  if (!( domMin < domMax )) {
+  domMin = _nrrdApplyDomainMin(nmap, AIR_FALSE, mapAxis + 1);
+  domMax = _nrrdApplyDomainMax(nmap, AIR_FALSE, mapAxis + 1);
+  if (!(domMin < domMax)) {
     biffAddf(NRRD, "%s: (axis %d) domain min (%g) not less than max (%g)", me,
-             mapAxis+1, domMin, domMax);
+             mapAxis + 1, domMin, domMax);
     return 1;
   }
   if (nrrdHasNonExist(nmap)) {
-    biffAddf(NRRD, "%s: %s nrrd has non-existent values",
-             me, nounStr[kind]);
+    biffAddf(NRRD, "%s: %s nrrd has non-existent values", me, nounStr[kind]);
     return 1;
   }
-  entLen = mapAxis ? AIR_CAST(unsigned int, nmap->axis[0].size) : 1;
+  entLen = mapAxis ? AIR_UINT(nmap->axis[0].size) : 1;
   if (mapAxis + nin->dim - 1 > NRRD_DIM_MAX) {
-    biffAddf(NRRD, "%s: input nrrd dim %d through non-scalar %s exceeds "
+    biffAddf(NRRD,
+             "%s: input nrrd dim %d through non-scalar %s exceeds "
              "NRRD_DIM_MAX %d",
              me, nin->dim, nounStr[kind], NRRD_DIM_MAX);
     return 1;
@@ -132,9 +127,9 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
     size[0] = entLen;
     axisMap[0] = -1;
   }
-  for (dim=1; dim<nin->dim; dim++) {
-    size[dim-1+mapAxis] = nin->axis[dim].size;
-    axisMap[dim-1+mapAxis] = dim;
+  for (dim = 1; dim < nin->dim; dim++) {
+    size[dim - 1 + mapAxis] = nin->axis[dim].size;
+    axisMap[dim - 1 + mapAxis] = dim;
   }
   /*
   fprintf(stderr, "##%s: pre maybe alloc: nout->data = %p\n", me, nout->data);
@@ -144,8 +139,8 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
   fprintf(stderr, "   nout->dim = %u; nout->type = %d = %s; sizes = %u,%u\n",
           nout->dim, nout->type,
           airEnumStr(nrrdType, nout->type),
-          AIR_CAST(unsigned int, nout->axis[0].size),
-          AIR_CAST(unsigned int, nout->axis[1].size));
+          AIR_UINT(nout->axis[0].size),
+          AIR_UINT(nout->axis[1].size));
   fprintf(stderr, "   typeOut = %d = %s\n", typeOut,
           airEnumStr(nrrdType, typeOut));
   */
@@ -167,21 +162,20 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
     return 1;
   }
   if (copyMapAxis0) {
-    _nrrdAxisInfoCopy(nout->axis + 0, nmap->axis + 0,
-                      NRRD_AXIS_INFO_SIZE_BIT);
+    _nrrdAxisInfoCopy(nout->axis + 0, nmap->axis + 0, NRRD_AXIS_INFO_SIZE_BIT);
   }
 
   mapcnt = _nrrdContentGet(nmap);
   if (nrrdContentSet_va(nout, verbStr[kind], nin, "%s", mapcnt)) {
     biffAddf(NRRD, "%s:", me);
-    free(mapcnt); return 1;
+    free(mapcnt);
+    return 1;
   }
   free(mapcnt);
-  nrrdBasicInfoInit(nout, (NRRD_BASIC_INFO_DATA_BIT
-                           | NRRD_BASIC_INFO_TYPE_BIT
-                           | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                           | NRRD_BASIC_INFO_DIMENSION_BIT
-                           | NRRD_BASIC_INFO_CONTENT_BIT));
+  nrrdBasicInfoInit(nout,
+                    (NRRD_BASIC_INFO_DATA_BIT | NRRD_BASIC_INFO_TYPE_BIT
+                     | NRRD_BASIC_INFO_BLOCKSIZE_BIT | NRRD_BASIC_INFO_DIMENSION_BIT
+                     | NRRD_BASIC_INFO_CONTENT_BIT));
   return 0;
 }
 
@@ -205,57 +199,56 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin,
 ** or error handling based on nrrdStateDisallowIntegerNonExist, but
 ** there really should be.
 */
-int
-_nrrdApply2DLutOrRegMap(Nrrd *nout, const Nrrd *nin,
-                        const NrrdRange *range0, const NrrdRange *range1,
-                        const Nrrd *nmap, int ramps,
+static int
+_nrrdApply2DLutOrRegMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *range0,
+                        const NrrdRange *range1, const Nrrd *nmap, int ramps,
                         int rescale0, int rescale1) {
-  static const char me[]="_nrrdApply2DLutOrRegMap";
+  static const char me[] = "_nrrdApply2DLutOrRegMap";
   char *inData, *outData, *mapData, *entData;
   size_t N, I;
   double (*inLoad)(const void *v), (*mapLup)(const void *v, size_t I),
-    (*outInsert)(void *v, size_t I, double d),
-    val0, val1, domMin0, domMax0, domMin1, domMax1;
-  unsigned int i, mapAxis, mapLen0, mapLen1, mapIdx0, mapIdx1,
-    entSize, entLen, inSize, outSize;
+    (*outInsert)(void *v, size_t I, double d), val0, val1, domMin0, domMax0, domMin1,
+    domMax1;
+  unsigned int i, mapAxis, mapLen0, mapLen1, mapIdx0, mapIdx1, entSize, entLen, inSize,
+    outSize;
 
-  mapAxis = nmap->dim - 2;             /* axis of nmap containing entries */
-  mapData = (char *)nmap->data;        /* map data, as char* */
-                                       /* low end of map domain */
+  mapAxis = nmap->dim - 2;      /* axis of nmap containing entries */
+  mapData = (char *)nmap->data; /* map data, as char* */
+                                /* low end of map domain */
   domMin0 = _nrrdApplyDomainMin(nmap, ramps, mapAxis + 0);
   domMin1 = _nrrdApplyDomainMin(nmap, ramps, mapAxis + 1);
-                                       /* high end of map domain */
+  /* high end of map domain */
   domMax0 = _nrrdApplyDomainMax(nmap, ramps, mapAxis + 0);
   domMax1 = _nrrdApplyDomainMax(nmap, ramps, mapAxis + 1);
-  mapLen0 = AIR_CAST(unsigned int, nmap->axis[mapAxis+0].size);   /* number of entries in map axis 0 */
-  mapLen1 = AIR_CAST(unsigned int, nmap->axis[mapAxis+1].size);   /* number of entries in map axis 1 */
-  mapLup = nrrdDLookup[nmap->type];    /* how to get doubles out of map */
-  inData = (char *)nin->data;          /* input data, as char* */
-  inLoad = nrrdDLoad[nin->type];       /* how to get doubles out of nin */
-  inSize = AIR_CAST(unsigned int, nrrdElementSize(nin));       /* size of one input value */
-  outData = (char *)nout->data;        /* output data, as char* */
-  outInsert = nrrdDInsert[nout->type]; /* putting doubles into output */
-  entLen = (mapAxis                    /* number of elements in one entry */
-            ? AIR_CAST(unsigned int, nmap->axis[0].size)
-            : 1);
-  outSize = entLen*AIR_CAST(unsigned int, nrrdElementSize(nout)); /* size of entry in output */
-  entSize = entLen*AIR_CAST(unsigned int, nrrdElementSize(nmap)); /* size of entry in map */
+  mapLen0 = AIR_UINT(nmap->axis[mapAxis + 0].size); /* number of entries in map axis 0 */
+  mapLen1 = AIR_UINT(nmap->axis[mapAxis + 1].size); /* number of entries in map axis 1 */
+  mapLup = nrrdDLookup[nmap->type];                 /* how to get doubles out of map */
+  inData = (char *)nin->data;                       /* input data, as char* */
+  inLoad = nrrdDLoad[nin->type];                    /* how to get doubles out of nin */
+  inSize = AIR_UINT(nrrdElementSize(nin));          /* size of one input value */
+  outData = (char *)nout->data;                     /* output data, as char* */
+  outInsert = nrrdDInsert[nout->type];              /* putting doubles into output */
+  entLen = (mapAxis                                 /* number of elements in one entry */
+              ? AIR_UINT(nmap->axis[0].size)
+              : 1);
+  outSize = entLen * AIR_UINT(nrrdElementSize(nout)); /* size of entry in output */
+  entSize = entLen * AIR_UINT(nrrdElementSize(nmap)); /* size of entry in map */
 
   /*
   fprintf(stderr, "!%s: entLen = %u, mapLen = %u,%u\n", me,
           entLen, mapLen0, mapLen1);
   */
 
-  N = nrrdElementNumber(nin)/2;       /* number of value pairs to be mapped */
+  N = nrrdElementNumber(nin) / 2; /* number of value pairs to be mapped */
   /* _VV = 1; */
   if (ramps) {
     fprintf(stderr, "%s: PANIC: unimplemented\n", me);
     exit(1);
   } else {
     /* lookup table */
-    for (I=0; I<N; I++) {
-      val0 = inLoad(inData + 0*inSize);
-      val1 = inLoad(inData + 1*inSize);
+    for (I = 0; I < N; I++) {
+      val0 = inLoad(inData + 0 * inSize);
+      val1 = inLoad(inData + 1 * inSize);
       if (rescale0) {
         val0 = AIR_AFFINE(range0->min, val0, range0->max, domMin0, domMax0);
       }
@@ -265,17 +258,17 @@ _nrrdApply2DLutOrRegMap(Nrrd *nout, const Nrrd *nin,
       if (AIR_EXISTS(val0) && AIR_EXISTS(val1)) {
         mapIdx0 = airIndexClamp(domMin0, val0, domMax0, mapLen0);
         mapIdx1 = airIndexClamp(domMin1, val1, domMax1, mapLen1);
-        entData = mapData + entSize*(mapIdx0 + mapLen0*mapIdx1);
-        for (i=0; i<entLen; i++) {
+        entData = mapData + entSize * (mapIdx0 + mapLen0 * mapIdx1);
+        for (i = 0; i < entLen; i++) {
           outInsert(outData, i, mapLup(entData, i));
         }
       } else {
         /* copy non-existent values from input to output */
-        for (i=0; i<entLen; i++) {
-          outInsert(outData, i, val0 + val1);  /* HEY this is weird */
+        for (i = 0; i < entLen; i++) {
+          outInsert(outData, i, val0 + val1); /* HEY this is weird */
         }
       }
-      inData += 2*inSize;
+      inData += 2 * inSize;
       outData += outSize;
     }
   }
@@ -300,24 +293,22 @@ _nrrdApply2DLutOrRegMap(Nrrd *nout, const Nrrd *nin,
 **
 ** This allows lut length to be simply 1.
 */
-int
+int /* Biff: 1 */
 nrrdApply2DLut(Nrrd *nout, const Nrrd *nin, unsigned int domainAxis,
-               const NrrdRange *_range0, const NrrdRange *_range1,
-               const Nrrd *nlut,
+               const NrrdRange *_range0, const NrrdRange *_range1, const Nrrd *nlut,
                int typeOut, int rescale0, int rescale1) {
-  static const char me[]="nrrdApply2DLut";
+  static const char me[] = "nrrdApply2DLut";
   NrrdRange *range0, *range1;
   airArray *mop;
   Nrrd *nin0, *nin1;
 
   if (!(nout && nlut && nin)) {
-    biffAddf(NRRD, "%s: got NULL pointer (%p,%p,%p)", me,
-             AIR_CAST(void*,nout), AIR_CVOIDP(nlut), AIR_CVOIDP(nin));
+    biffAddf(NRRD, "%s: got NULL pointer (%p,%p,%p)", me, AIR_VOIDP(nout),
+             AIR_CVOIDP(nlut), AIR_CVOIDP(nin));
     return 1;
   }
   if (0 != domainAxis) {
-    biffAddf(NRRD, "%s: sorry, domainAxis must currently be 0 (not %u)", me,
-             domainAxis);
+    biffAddf(NRRD, "%s: sorry, domainAxis must currently be 0 (not %u)", me, domainAxis);
     return 1;
   }
   mop = airMopNew();
@@ -326,7 +317,8 @@ nrrdApply2DLut(Nrrd *nout, const Nrrd *nin, unsigned int domainAxis,
     airMopAdd(mop, nin0 = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
     if (nrrdSlice(nin0, nin, 0, 0)) {
       biffAddf(NRRD, "%s: trouble learning range 0", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     nrrdRangeSafeSet(range0, nin0, nrrdBlind8BitRangeState);
   } else {
@@ -337,7 +329,8 @@ nrrdApply2DLut(Nrrd *nout, const Nrrd *nin, unsigned int domainAxis,
     airMopAdd(mop, nin1 = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
     if (nrrdSlice(nin1, nin, 0, 1)) {
       biffAddf(NRRD, "%s: trouble learning range 1", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     nrrdRangeSafeSet(range1, nin1, nrrdBlind8BitRangeState);
   } else {
@@ -345,12 +338,13 @@ nrrdApply2DLut(Nrrd *nout, const Nrrd *nin, unsigned int domainAxis,
   }
   airMopAdd(mop, range0, (airMopper)nrrdRangeNix, airMopAlways);
   airMopAdd(mop, range1, (airMopper)nrrdRangeNix, airMopAlways);
-  if (_nrrdApply2DSetUp(nout, nin, range0, range1,
-                        nlut, kindLut, typeOut, rescale0, rescale1)
-      || _nrrdApply2DLutOrRegMap(nout, nin, range0, range1,
-                                 nlut, AIR_FALSE, rescale0, rescale1)) {
+  if (_nrrdApply2DSetUp(nout, nin, range0, range1, nlut, kindLut, typeOut, rescale0,
+                        rescale1)
+      || _nrrdApply2DLutOrRegMap(nout, nin, range0, range1, nlut, AIR_FALSE, rescale0,
+                                 rescale1)) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopOkay(mop);
   return 0;
@@ -366,7 +360,7 @@ int
 nrrdApply2DRegMap(Nrrd *nout, const Nrrd *nin,
                   const NrrdRange *_range0, const NrrdRange *_range1,
                   const Nrrd *nmap, int typeOut, int rescale) {
-  static const char me[]="nrrdApply2DRegMap";
+  static const char me[] = "nrrdApply2DRegMap";
   NrrdRange *range;
   airArray *mop;
 
@@ -394,4 +388,3 @@ nrrdApply2DRegMap(Nrrd *nout, const Nrrd *nin,
 }
 
 */
-

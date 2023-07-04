@@ -1,45 +1,41 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
 #define INFO "Binary operation on two nrrds, or on a nrrd and a constant"
-static const char *_unrrdu_2opInfoL =
-(INFO
- ". Either the first or second operand can be a float constant, "
- "but not both.  Use \"-\" for an operand to signify "
- "a nrrd to be read from stdin (a pipe).  Note, however, "
- "that \"-\" can probably only be used once (reliably).\n "
- "* Uses nrrdArithIterBinaryOp or (with -w) nrrdArithIterBinaryOpSelect");
+static const char *_unrrdu_2opInfoL
+  = (INFO ". Either the first or second operand can be a float constant, "
+          "but not both.  Use \"-\" for an operand to signify "
+          "a nrrd to be read from stdin (a pipe).  Note, however, "
+          "that \"-\" can probably only be used once (reliably).\n "
+          "* Uses nrrdArithIterBinaryOp or (with -w) nrrdArithIterBinaryOpSelect");
 
-int
-unrrdu_2opMain(int argc, const char **argv, const char *me,
-               hestParm *hparm) {
+static int
+unrrdu_2opMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *seedS;
   NrrdIter *in1, *in2;
-  Nrrd *nout, *ntmp=NULL;
+  Nrrd *nout, *ntmp = NULL;
   int op, type, E, pret, which;
   airArray *mop;
   unsigned int seed;
@@ -48,6 +44,8 @@ unrrdu_2opMain(int argc, const char **argv, const char *me,
              "Binary operator. Possibilities include:\n "
              "\b\bo \"+\", \"-\", \"x\", \"/\": "
              "add, subtract, multiply, divide\n "
+             "\b\bo \"+c\", \"-c\", \"xc\": add, subtract, multiply, with "
+             "clamping to range of output, in case its integral\n "
              "\b\bo \"^\": exponentiation (pow)\n "
              "\b\bo \"spow\": signed exponentiation: sgn(x)pow(abs(x),p)\n "
              "\b\bo \"fpow\": like spow but with curves flipped\n "
@@ -69,11 +67,10 @@ unrrdu_2opMain(int argc, const char **argv, const char *me,
              "for \"true\" mean, and 2nd value for sigma",
              NULL, nrrdBinaryOp);
   hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
-             "First input.  Can be a single value or a nrrd.",
-             NULL, NULL, nrrdHestIter);
+             "First input.  Can be a single value or a nrrd.", NULL, NULL, nrrdHestIter);
   hestOptAdd(&opt, NULL, "in2", airTypeOther, 1, 1, &in2, NULL,
-             "Second input.  Can be a single value or a nrrd.",
-             NULL, NULL, nrrdHestIter);
+             "Second input.  Can be a single value or a nrrd.", NULL, NULL,
+             nrrdHestIter);
   hestOptAdd(&opt, "s,seed", "seed", airTypeString, 1, 1, &seedS, "",
              "seed value for RNG for nrand, so that you "
              "can get repeatable results between runs, or, "
@@ -93,10 +90,9 @@ unrrdu_2opMain(int argc, const char **argv, const char *me,
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_2opInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_2opInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
@@ -111,11 +107,11 @@ unrrdu_2opMain(int argc, const char **argv, const char *me,
     /* they wanted to convert nrrds to some other type first */
     E = 0;
     if (in1->ownNrrd) {
-      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in1->ownNrrd, type);
+      if (!E) E |= nrrdConvert(ntmp = nrrdNew(), in1->ownNrrd, type);
       if (!E) nrrdIterSetOwnNrrd(in1, ntmp);
     }
     if (in2->ownNrrd) {
-      if (!E) E |= nrrdConvert(ntmp=nrrdNew(), in2->ownNrrd, type);
+      if (!E) E |= nrrdConvert(ntmp = nrrdNew(), in2->ownNrrd, type);
       if (!E) nrrdIterSetOwnNrrd(in2, ntmp);
     }
     if (E) {
@@ -147,12 +143,10 @@ unrrdu_2opMain(int argc, const char **argv, const char *me,
     }
   } else {
     /* got no request for specific seed */
-    airSrandMT(AIR_CAST(unsigned int, airTime()));
+    airSrandMT(AIR_UINT(airTime()));
   }
-  if (-1 == which
-      ? nrrdArithIterBinaryOp(nout, op, in1, in2)
-      : nrrdArithIterBinaryOpSelect(nout, op, in1, in2,
-                                    AIR_CAST(unsigned int, which))) {
+  if (-1 == which ? nrrdArithIterBinaryOp(nout, op, in1, in2)
+                  : nrrdArithIterBinaryOpSelect(nout, op, in1, in2, AIR_UINT(which))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error doing binary operation:\n%s", me, err);
     airMopError(mop);

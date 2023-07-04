@@ -1,30 +1,28 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009, University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 
 #include "../ten.h"
 
-char *info = ("tests tenEigensolve_d and new stand-alone function.");
+const char *info = ("tests tenEigensolve_d and new stand-alone function.");
 
 #define ROOT_TRIPLE 2           /* ell_cubic_root_triple */
 #define ROOT_SINGLE_DOUBLE 3    /* ell_cubic_root_single_double */
@@ -421,6 +419,16 @@ main(int argc, const char *argv[]) {
   roots = tenEigensolve_d(evalA, evecA, tt);
   printf("%s roots\n", airEnumStr(ell_cubic_root, roots));
   testeigen(tt, evalA, evecA);
+  if (1) {
+    double sntt[7], sneval[3], snevec[9];
+    int snroots;
+    printf("========== sneaky hack: 2-step tenEigensolve_d ==========\n");
+    TEN_T_COPY(sntt, tt);
+    snroots = tenEigensolve_d(sneval, NULL, sntt);
+    sntt[0] = (double)((1 << 16) + snroots);
+    tenEigensolve_d(sneval, snevec, sntt);
+    testeigen(tt, sneval, snevec);
+  }
 
   printf("================== new eigensolve ==================\n");
   roots = evals(evalB, tt[1], tt[2], tt[3], tt[4], tt[5], tt[6]);

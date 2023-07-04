@@ -1,42 +1,38 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
 #define INFO "Map nrrd through whole nrrd of univariate lookup tables"
-static const char *_unrrdu_mlutInfoL =
-(INFO
- ", with one lookup table per element of input nrrd.  The multiple "
- "tables are stored in a nrrd with a dimension which is either 1 or 2 "
- "more than the dimension of the input nrrd, resulting in an output "
- "which has either the same or one more dimension than the input, "
- "resptectively.\n "
- "* Uses nrrdApplyMulti1DLut");
+static const char *_unrrdu_mlutInfoL
+  = (INFO ", with one lookup table per element of input nrrd.  The multiple "
+          "tables are stored in a nrrd with a dimension which is either 1 or 2 "
+          "more than the dimension of the input nrrd, resulting in an output "
+          "which has either the same or one more dimension than the input, "
+          "resptectively.\n "
+          "* Uses nrrdApplyMulti1DLut");
 
-int
-unrrdu_mlutMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+static int
+unrrdu_mlutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, **_nmlut, *nmlut, *nout;
@@ -44,7 +40,7 @@ unrrdu_mlutMain(int argc, const char **argv, const char *me,
   int typeOut, rescale, pret, blind8BitRange;
   unsigned int _nmlutLen, mapAxis;
   double min, max;
-  NrrdRange *range=NULL;
+  NrrdRange *range = NULL;
 
   hestOptAdd(&opt, "m,map", "mlut", airTypeOther, 1, -1, &_nmlut, NULL,
              "one nrrd of lookup tables to map input nrrd through, or, "
@@ -80,10 +76,9 @@ unrrdu_mlutMain(int argc, const char **argv, const char *me,
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_mlutInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_mlutInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
@@ -103,8 +98,7 @@ unrrdu_mlutMain(int argc, const char **argv, const char *me,
     /* assume that mlut component nrrds are all compatible sizes,
        nrrdJoin will fail if they aren't */
     mapAxis = _nmlut[0]->dim - nin->dim;
-    if (nrrdJoin(nmlut, (const Nrrd*const*)_nmlut, _nmlutLen,
-                 mapAxis, AIR_TRUE)) {
+    if (nrrdJoin(nmlut, (const Nrrd *const *)_nmlut, _nmlutLen, mapAxis, AIR_TRUE)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble joining mlut:\n%s", me, err);
       airMopError(mop);
@@ -115,8 +109,7 @@ unrrdu_mlutMain(int argc, const char **argv, const char *me,
     nmlut->axis[mapAxis].max = max;
   }
 
-  if (!( AIR_EXISTS(nmlut->axis[mapAxis].min) &&
-         AIR_EXISTS(nmlut->axis[mapAxis].max) )) {
+  if (!(AIR_EXISTS(nmlut->axis[mapAxis].min) && AIR_EXISTS(nmlut->axis[mapAxis].max))) {
     rescale = AIR_TRUE;
   }
   if (rescale) {

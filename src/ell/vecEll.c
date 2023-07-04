@@ -1,26 +1,23 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
-
 
 #include "ell.h"
 
@@ -28,27 +25,25 @@ void
 ell_4v_norm_f(float bv[4], const float av[4]) {
   float len;
 
-  len = AIR_CAST(float, ELL_4V_LEN(av));
-  ELL_4V_SCALE(bv, 1.0f/len, av);
+  len = AIR_FLOAT(ELL_4V_LEN(av));
+  ELL_4V_SCALE(bv, 1.0f / len, av);
   return;
 }
 
-#define PERP \
-  idx = 0; \
-  if (b[0]*b[0] < b[1]*b[1]) \
-    idx = 1; \
-  if (b[idx]*b[idx] < b[2]*b[2]) \
-    idx = 2; \
-  switch (idx) { \
-  case 0: \
-    ELL_3V_SET(a, b[1] - b[2], -b[0], b[0]); \
-    break; \
-  case 1: \
-    ELL_3V_SET(a, -b[1], b[0] - b[2], b[1]); \
-    break; \
-  case 2: \
-    ELL_3V_SET(a, -b[2], b[2], b[0] - b[1]); \
-    break; \
+#define PERP                                                                            \
+  idx = 0;                                                                              \
+  if (b[0] * b[0] < b[1] * b[1]) idx = 1;                                               \
+  if (b[idx] * b[idx] < b[2] * b[2]) idx = 2;                                           \
+  switch (idx) {                                                                        \
+  case 0:                                                                               \
+    ELL_3V_SET(a, b[1] - b[2], -b[0], b[0]);                                            \
+    break;                                                                              \
+  case 1:                                                                               \
+    ELL_3V_SET(a, -b[1], b[0] - b[2], b[1]);                                            \
+    break;                                                                              \
+  case 2:                                                                               \
+    ELL_3V_SET(a, -b[2], b[2], b[0] - b[1]);                                            \
+    break;                                                                              \
   }
 
 /*
@@ -111,7 +106,7 @@ ell_4mv_mul_d(double v2[4], const double m[16], const double v1[4]) {
 /*
 ** hat tip to http://www.plunk.org/~hatch/rightway.php
 */
-float
+float /* Biff: nope */
 ell_3v_angle_f(const float _uu[3], const float _vv[3]) {
   float tmp[3], len, uu[3], vv[3], ret;
 
@@ -119,16 +114,16 @@ ell_3v_angle_f(const float _uu[3], const float _vv[3]) {
   ELL_3V_NORM_TT(vv, float, _vv, len);
   if (ELL_3V_DOT(uu, vv) < 0.0) {
     ELL_3V_ADD2(tmp, uu, vv);
-    ret = AIR_CAST(float, AIR_PI - 2*asin(ELL_3V_LEN(tmp)/2.0));
+    ret = AIR_FLOAT(AIR_PI - 2 * asin(ELL_3V_LEN(tmp) / 2.0));
   } else {
     ELL_3V_SUB(tmp, uu, vv);
-    ret = AIR_CAST(float, 2*asin(ELL_3V_LEN(tmp)/2.0));
+    ret = AIR_FLOAT(2 * asin(ELL_3V_LEN(tmp) / 2.0));
   }
   return ret;
 }
 
 /* HEY: copy and paste */
-double
+double /* Biff: nope */
 ell_3v_angle_d(const double _uu[3], const double _vv[3]) {
   double tmp[3], len, uu[3], vv[3], ret;
 
@@ -136,10 +131,44 @@ ell_3v_angle_d(const double _uu[3], const double _vv[3]) {
   ELL_3V_NORM(vv, _vv, len);
   if (ELL_3V_DOT(uu, vv) < 0.0) {
     ELL_3V_ADD2(tmp, uu, vv);
-    ret = AIR_PI - 2*asin(ELL_3V_LEN(tmp)/2.0);
+    ret = AIR_PI - 2 * asin(ELL_3V_LEN(tmp) / 2.0);
   } else {
     ELL_3V_SUB(tmp, uu, vv);
-    ret = 2*asin(ELL_3V_LEN(tmp)/2.0);
+    ret = 2 * asin(ELL_3V_LEN(tmp) / 2.0);
+  }
+  return ret;
+}
+
+/* HEY: copy and paste */
+float /* Biff: nope */
+ell_2v_angle_f(const float _uu[2], const float _vv[2]) {
+  float tmp[2], len, uu[2], vv[2], ret;
+
+  ELL_2V_NORM_TT(uu, float, _uu, len);
+  ELL_2V_NORM_TT(vv, float, _vv, len);
+  if (ELL_2V_DOT(uu, vv) < 0.0) {
+    ELL_2V_ADD2(tmp, uu, vv);
+    ret = AIR_FLOAT(AIR_PI - 2 * asin(ELL_2V_LEN(tmp) / 2.0));
+  } else {
+    ELL_2V_SUB(tmp, uu, vv);
+    ret = AIR_FLOAT(2 * asin(ELL_2V_LEN(tmp) / 2.0));
+  }
+  return ret;
+}
+
+/* HEY: copy and paste */
+double /* Biff: nope */
+ell_2v_angle_d(const double _uu[2], const double _vv[2]) {
+  double tmp[2], len, uu[2], vv[2], ret;
+
+  ELL_2V_NORM(uu, _uu, len);
+  ELL_2V_NORM(vv, _vv, len);
+  if (ELL_2V_DOT(uu, vv) < 0.0) {
+    ELL_2V_ADD2(tmp, uu, vv);
+    ret = AIR_PI - 2 * asin(ELL_2V_LEN(tmp) / 2.0);
+  } else {
+    ELL_2V_SUB(tmp, uu, vv);
+    ret = 2 * asin(ELL_2V_LEN(tmp) / 2.0);
   }
   return ret;
 }
@@ -147,7 +176,7 @@ ell_3v_angle_d(const double _uu[3], const double _vv[3]) {
 /*
 ** input vectors have to be normalized!
 */
-double
+double /* Biff: nope */
 ell_3v_area_spherical_d(const double avec[3],
                         const double bvec[3],
                         const double cvec[3]) {
@@ -181,7 +210,7 @@ ell_3v_barycentric_spherical_d(double bary[3],
   bary[2] = ell_3v_area_spherical_d(vv, av, bv);
   sum = bary[0] + bary[1] + bary[2];
   if (sum) {
-    ELL_3V_SCALE(bary, 1.0/sum, bary);
+    ELL_3V_SCALE(bary, 1.0 / sum, bary);
   }
   return;
 }

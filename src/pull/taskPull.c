@@ -1,32 +1,30 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "pull.h"
 #include "privatePull.h"
 
-pullTask *
+pullTask * /* Biff: (private) NULL */
 _pullTaskNew(pullContext *pctx, int threadIdx) {
-  static const char me[]="_pullTaskNew";
+  static const char me[] = "_pullTaskNew";
   pullTask *task;
   unsigned int ii;
   pullPtrPtrUnion pppu;
@@ -38,7 +36,7 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
   }
 
   task->pctx = pctx;
-  for (ii=0; ii<pctx->volNum; ii++) {
+  for (ii = 0; ii < pctx->volNum; ii++) {
     if (!(task->vol[ii] = _pullVolumeCopy(pctx, pctx->vol[ii]))) {
       biffAddf(PULL, "%s: trouble copying vol %u/%u", me, ii, pctx->volNum);
       return NULL;
@@ -49,34 +47,31 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
     const double *ans;
     double pos[3];
     int gret;
-    for (ii=0; ii<pctx->volNum; ii++) {
+    for (ii = 0; ii < pctx->volNum; ii++) {
       pvl = task->vol[ii]->gctx->pvl[0];
       printf("!%s: vol[%u] query:\n", me, ii);
       gageQueryPrint(stdout, pvl->kind, pvl->query);
       ans = gageAnswerPointer(task->vol[ii]->gctx, pvl, gageSclValue);
       ELL_3V_SET(pos, 0.6, 0.6, 0.3);
-      gret = gageProbeSpace(task->vol[ii]->gctx, pos[0], pos[1], pos[2],
-                            AIR_FALSE, AIR_TRUE);
-      printf("!%s: (%d) val(%g,%g,%g) = %g\n", me, gret,
-             pos[0], pos[1], pos[2], *ans);
+      gret = gageProbeSpace(task->vol[ii]->gctx, pos[0], pos[1], pos[2], AIR_FALSE,
+                            AIR_TRUE);
+      printf("!%s: (%d) val(%g,%g,%g) = %g\n", me, gret, pos[0], pos[1], pos[2], *ans);
       ELL_3V_SET(pos, 0.5, 0.0, 0.0);
-      gret = gageProbeSpace(task->vol[ii]->gctx, pos[0], pos[1], pos[2],
-                            AIR_FALSE, AIR_TRUE);
-      printf("!%s: (%d) val(%g,%g,%g) = %g\n", me, gret,
-             pos[0], pos[1], pos[2], *ans);
+      gret = gageProbeSpace(task->vol[ii]->gctx, pos[0], pos[1], pos[2], AIR_FALSE,
+                            AIR_TRUE);
+      printf("!%s: (%d) val(%g,%g,%g) = %g\n", me, gret, pos[0], pos[1], pos[2], *ans);
     }
   }
   /* now set up all pointers for per-task pullInfos */
-  for (ii=0; ii<=PULL_INFO_MAX; ii++) {
+  for (ii = 0; ii <= PULL_INFO_MAX; ii++) {
     const pullVolume *vol;
     if (pctx->ispec[ii]) {
       if (pullSourceGage == pctx->ispec[ii]->source) {
         vol = task->vol[pctx->ispec[ii]->volIdx];
-        task->ans[ii] = gageAnswerPointer(vol->gctx, vol->gpvl,
-                                          pctx->ispec[ii]->item);
+        task->ans[ii] = gageAnswerPointer(vol->gctx, vol->gpvl, pctx->ispec[ii]->item);
         if (pctx->verbose) {
-          printf("%s: task->ans[%u] = (%s) %p\n", me, ii,
-                 vol->kind->name, AIR_CVOIDP(task->ans[ii]));
+          printf("%s: task->ans[%u] = (%s) %p\n", me, ii, vol->kind->name,
+                 AIR_CVOIDP(task->ans[ii]));
         }
       } else {
         task->ans[ii] = NULL;
@@ -97,20 +92,18 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
   task->rng = airRandMTStateNew(pctx->rngSeed + threadIdx);
   task->pointBuffer = pullPointNew(pctx);
   pctx->idtagNext = 0; /* because pullPointNew incremented it */
-  task->neighPoint = AIR_CAST(pullPoint **, calloc(_PULL_NEIGH_MAXNUM,
-                                                   sizeof(pullPoint*)));
+  task->neighPoint = AIR_CAST(pullPoint **,
+                              calloc(_PULL_NEIGH_MAXNUM, sizeof(pullPoint *)));
   task->addPoint = NULL;
   task->addPointNum = 0;
   pppu.points = &(task->addPoint);
-  task->addPointArr = airArrayNew(pppu.v, &(task->addPointNum),
-                                  sizeof(pullPoint*),
+  task->addPointArr = airArrayNew(pppu.v, &(task->addPointNum), sizeof(pullPoint *),
                                   /* not exactly the right semantics . . . */
                                   PULL_POINT_NEIGH_INCR);
   task->nixPoint = NULL;
   task->nixPointNum = 0;
   pppu.points = &(task->nixPoint);
-  task->nixPointArr = airArrayNew(pppu.v, &(task->nixPointNum),
-                                  sizeof(pullPoint*),
+  task->nixPointArr = airArrayNew(pppu.v, &(task->nixPointNum), sizeof(pullPoint *),
                                   /* not exactly the right semantics . . . */
                                   PULL_POINT_NEIGH_INCR);
   task->returnPtr = NULL;
@@ -118,12 +111,12 @@ _pullTaskNew(pullContext *pctx, int threadIdx) {
   return task;
 }
 
-pullTask *
+pullTask * /* Biff: (private) nope */
 _pullTaskNix(pullTask *task) {
   unsigned int ii;
 
   if (task) {
-    for (ii=0; ii<task->pctx->volNum; ii++) {
+    for (ii = 0; ii < task->pctx->volNum; ii++) {
       task->vol[ii] = pullVolumeNix(task->vol[ii]);
     }
     if (task->pctx->threadNum > 1) {
@@ -144,9 +137,9 @@ _pullTaskNix(pullTask *task) {
 **** pctx->task
 **** pctx->task[]
 */
-int
+int /* Biff: (private) 1 */
 _pullTaskSetup(pullContext *pctx) {
-  static const char me[]="_pullTaskSetup";
+  static const char me[] = "_pullTaskSetup";
   unsigned int tidx;
 
   pctx->task = (pullTask **)calloc(pctx->threadNum, sizeof(pullTask *));
@@ -154,7 +147,7 @@ _pullTaskSetup(pullContext *pctx) {
     biffAddf(PULL, "%s: couldn't allocate array of tasks", me);
     return 1;
   }
-  for (tidx=0; tidx<pctx->threadNum; tidx++) {
+  for (tidx = 0; tidx < pctx->threadNum; tidx++) {
     if (pctx->verbose) {
       printf("%s: creating task %u/%u\n", me, tidx, pctx->threadNum);
     }
@@ -171,7 +164,7 @@ void
 _pullTaskFinish(pullContext *pctx) {
   unsigned int tidx;
 
-  for (tidx=0; tidx<pctx->threadNum; tidx++) {
+  for (tidx = 0; tidx < pctx->threadNum; tidx++) {
     pctx->task[tidx] = _pullTaskNix(pctx->task[tidx]);
   }
   airFree(pctx->task);

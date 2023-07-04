@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "air.h"
@@ -31,7 +29,7 @@ int airThreadNoopWarning = AIR_TRUE;
 #if TEEM_PTHREAD /* ----------------------------------------- PTHREAD */
 /* ------------------------------------------------------------------ */
 
-#include <pthread.h>
+#  include <pthread.h>
 
 const int airThreadCapable = AIR_TRUE;
 
@@ -61,9 +59,9 @@ airThreadStart(airThread *thread, void *(*threadBody)(void *), void *arg) {
   pthread_attr_t attr;
 
   pthread_attr_init(&attr);
-#ifdef __sgi
+#  ifdef __sgi
   pthread_attr_setscope(&attr, PTHREAD_SCOPE_BOUND_NP);
-#endif
+#  endif
   return pthread_create(&(thread->id), &attr, threadBody, arg);
 }
 
@@ -165,11 +163,11 @@ airThreadCondNix(airThreadCond *cond) {
 #elif defined(_WIN32) /* ------------------------------------- WIN 32 */
 /* ------------------------------------------------------------------ */
 
-#if defined(_WIN32)
-   /* SignalObjectAndWait supported by NT4.0 and greater only */
-#  define _WIN32_WINNT 0x400
-#  include <windows.h>
-#endif
+#  if defined(_WIN32)
+/* SignalObjectAndWait supported by NT4.0 and greater only */
+#    define _WIN32_WINNT 0x400
+#    include <windows.h>
+#  endif
 
 const int airThreadCapable = AIR_TRUE;
 
@@ -204,12 +202,13 @@ airThreadNew(void) {
   return thread;
 }
 
-#if defined(__BORLANDC__)
+#  if defined(__BORLANDC__)
 unsigned long
-#else
+#  else
 int
-#endif /* defined(__BORLANDC__) */
-WINAPI _airThreadWin32Body(void *_thread) {
+#  endif /* defined(__BORLANDC__) */
+  WINAPI
+  _airThreadWin32Body(void *_thread) {
   airThread *thread;
 
   thread = (airThread *)_thread;
@@ -222,8 +221,7 @@ airThreadStart(airThread *thread, void *(*threadBody)(void *), void *arg) {
 
   thread->body = threadBody;
   thread->arg = arg;
-  thread->handle = CreateThread(0, 0, _airThreadWin32Body,
-                                (void *)thread, 0, 0);
+  thread->handle = CreateThread(0, 0, _airThreadWin32Body, (void *)thread, 0, 0);
   return NULL == thread->handle;
 }
 
@@ -238,7 +236,7 @@ airThreadJoin(airThread *thread, void **retP) {
 
 airThread *
 airThreadNix(airThread *_thread) {
-  char me[] = "airThreadNix";
+  static const char me[] = "airThreadNix";
 
   if (0 == CloseHandle(_thread->handle)) {
     fprintf(stderr, "%s: CloseHandle failed, something is wrong\n", me);
@@ -312,8 +310,7 @@ airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex) {
   /* atomically release the mutex and wait on the
      semaphore until airThreadCondSignal or airThreadCondBroadcast
      are called by another thread */
-  if (WAIT_FAILED == SignalObjectAndWait(mutex->handle, cond->sema,
-                                         INFINITE, FALSE)) {
+  if (WAIT_FAILED == SignalObjectAndWait(mutex->handle, cond->sema, INFINITE, FALSE)) {
     return 1;
   }
   /* reacquire lock to avoid race conditions */
@@ -328,8 +325,7 @@ airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex) {
   if (last) {
     /* atomically signal the done event and waits until
        we can acquire the mutex (this is required to ensure fairness) */
-    if (WAIT_FAILED == SignalObjectAndWait(cond->done, mutex->handle,
-                                           INFINITE, FALSE)) {
+    if (WAIT_FAILED == SignalObjectAndWait(cond->done, mutex->handle, INFINITE, FALSE)) {
       return 1;
     }
   } else {
@@ -392,7 +388,7 @@ airThreadCondBroadcast(airThreadCond *cond) {
 
 airThreadCond *
 airThreadCondNix(airThreadCond *cond) {
-  airThreadCond *ret=NULL;
+  airThreadCond *ret = NULL;
 
   if (cond) {
     cond->count = 0;
@@ -410,7 +406,7 @@ airThreadCondNix(airThreadCond *cond) {
 }
 
 /* ------------------------------------------------------------------ */
-#else /* --------------------------------------- (no multi-threading) */
+#else    /* --------------------------------------- (no multi-threading) */
 /* ------------------------------------------------------------------ */
 
 const int airThreadCapable = AIR_FALSE;
@@ -469,7 +465,7 @@ airThreadMutexNew(void) {
 
 int
 airThreadMutexLock(airThreadMutex *mutex) {
-  char me[]="airThreadMutexLock";
+  static const char me[] = "airThreadMutexLock";
 
   AIR_UNUSED(mutex);
   if (airThreadNoopWarning) {
@@ -480,7 +476,7 @@ airThreadMutexLock(airThreadMutex *mutex) {
 
 int
 airThreadMutexUnlock(airThreadMutex *mutex) {
-  char me[]="airThreadMutexUnlock";
+  static const char me[] = "airThreadMutexUnlock";
 
   AIR_UNUSED(mutex);
   if (airThreadNoopWarning) {
@@ -506,7 +502,7 @@ airThreadCondNew(void) {
 
 int
 airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex) {
-  char me[]="airThreadCondWait";
+  static const char me[] = "airThreadCondWait";
 
   AIR_UNUSED(cond);
   AIR_UNUSED(mutex);
@@ -518,7 +514,7 @@ airThreadCondWait(airThreadCond *cond, airThreadMutex *mutex) {
 
 int
 airThreadCondSignal(airThreadCond *cond) {
-  char me[]="airThreadCondSignal";
+  static const char me[] = "airThreadCondSignal";
 
   AIR_UNUSED(cond);
   if (airThreadNoopWarning) {
@@ -529,7 +525,7 @@ airThreadCondSignal(airThreadCond *cond) {
 
 int
 airThreadCondBroadcast(airThreadCond *cond) {
-  char me[]="airThreadCondBroadcast";
+  static const char me[] = "airThreadCondBroadcast";
 
   AIR_UNUSED(cond);
   if (airThreadNoopWarning) {
@@ -546,7 +542,7 @@ airThreadCondNix(airThreadCond *cond) {
 }
 
 /* ------------------------------------------------------------------ */
-#endif /* ----------------------------------------------------------- */
+#endif   /* ----------------------------------------------------------- */
 /* ------------------------------------------------------------------ */
 
 airThreadBarrier *

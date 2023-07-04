@@ -1,37 +1,32 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "ten.h"
 #include "privateTen.h"
 
 #define INFO "Estimate models from a set of DW images"
-static const char *_tend_mfitInfoL =
-  (INFO
-   ". More docs here.");
+static const char *_tend_mfitInfoL = (INFO ". More docs here.");
 
-int
-tend_mfitMain(int argc, const char **argv, const char *me,
-              hestParm *hparm) {
+static int
+tend_mfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -45,8 +40,7 @@ tend_mfitMain(int argc, const char **argv, const char *me,
   const tenModel *model;
   tenExperSpec *espec;
 
-  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0",
-             "verbosity level");
+  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0", "verbosity level");
   hestOptAdd(&hopt, "m", "model", airTypeString, 1, 1, &modS, NULL,
              "which model to fit. Use optional \"b0+\" prefix to "
              "indicate that the B0 image should also be saved "
@@ -78,11 +72,10 @@ tend_mfitMain(int argc, const char **argv, const char *me,
              "known or had to be esimated");
   */
   hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &typeOut, "float",
-             "output type of model parameters",
-             NULL, nrrdType);
+             "output type of model parameters", NULL, nrrdType);
   hestOptAdd(&hopt, "i", "dwi", airTypeOther, 1, 1, &nin, "-",
-             "all the diffusion-weighted images in one 4D nrrd",
-             NULL, NULL, nrrdHestNrrd);
+             "all the diffusion-weighted images in one 4D nrrd", NULL, NULL,
+             nrrdHestNrrd);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output parameter vector image");
   hestOptAdd(&hopt, "eo", "filename", airTypeString, 1, 1, &terrS, "",
@@ -110,35 +103,34 @@ tend_mfitMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenModelParse(&model, &saveB0, AIR_FALSE, modS)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble parsing model \"%s\":\n%s\n", me, modS, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (tenExperSpecFromKeyValueSet(espec, nin)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble getting exper from kvp:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  if (tenModelSqeFit(nout,
-                     airStrlen(terrS) ? &nterr : NULL,
-                     airStrlen(convS) ? &nconv : NULL,
-                     airStrlen(iterS) ? &niter : NULL,
-                     model, espec, nin,
-                     knownB0, saveB0, typeOut,
-                     minIter, maxIter, starts, eps,
-                     NULL, verbose)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+  if (tenModelSqeFit(nout, airStrlen(terrS) ? &nterr : NULL,
+                     airStrlen(convS) ? &nconv : NULL, airStrlen(iterS) ? &niter : NULL,
+                     model, espec, nin, knownB0, saveB0, typeOut, minIter, maxIter,
+                     starts, eps, NULL, verbose)) {
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble fitting:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
-  if (nrrdSave(outS, nout, NULL)
-      || (airStrlen(terrS) && nrrdSave(terrS, nterr, NULL))
+  if (nrrdSave(outS, nout, NULL) || (airStrlen(terrS) && nrrdSave(terrS, nterr, NULL))
       || (airStrlen(convS) && nrrdSave(convS, nconv, NULL))
       || (airStrlen(iterS) && nrrdSave(iterS, niter, NULL))) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing output:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

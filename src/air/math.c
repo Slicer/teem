@@ -1,27 +1,27 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
+/* clang-format off */
+/* formatting off because of how the many deeply-nested expressions balloon
+   into way more lines than necessary; result is not more legible */
 #include "air.h"
 
 /*
@@ -57,13 +57,13 @@ airFastExp(double val) {
   /* HEY: COPY AND PASTE from airMyEndian */
   tmpI = 1;
   EXPI = *(AIR_CAST(char*, &tmpI));
-  eco.nn[EXPI] = AIR_CAST(int, (EXPA*(val)) + (1072693248 - EXPC));
+  eco.nn[EXPI] = AIR_INT((EXPA*(val)) + (1072693248 - EXPC));
   eco.nn[1-EXPI] = 0;
   ret = (eco.dd > 0.0
          ? eco.dd
          /* seems that only times this happens is when the real exp()
             returns either 0 or +inf */
-         : (val < 0 ? 0 : AIR_POS_INF));
+         : (val < 0.0 ? 0.0 : AIR_POS_INF));
   return ret;
 }
 #undef EXPA
@@ -319,6 +319,29 @@ airSgn(double v) {
              : 0));
 }
 
+/* this "mirror" stuff is how nrrdBoundaryMirror is implemented,
+   but it seemed general purpose enough that it belonged in air */
+#define MIRROR(TM, M, I, N) \
+  M = AIR_CAST(TM, I < 0 ? -I : I); \
+  M = M % (2 * N); \
+  M = (M >= N ? 2 * N - 1 - M : M)
+
+size_t
+airIndexMirror64(ptrdiff_t I, size_t N) {
+  size_t M;
+
+  MIRROR(size_t, M, I, N);
+  return M;
+}
+
+unsigned int
+airIndexMirror32(int I, unsigned int N) {
+  unsigned int M;
+
+  MIRROR(unsigned int, M, I, N);
+  return M;
+}
+
 /*
 ******** airCbrt
 **
@@ -350,7 +373,7 @@ airMode3_d(const double _v[3]) {
   num = (v[0] + v[1] - 2*v[2])*(2*v[0] - v[1] - v[2])*(v[0] - 2*v[1] + v[2]);
   den = v[0]*v[0] + v[1]*v[1] + v[2]*v[2] - v[1]*v[2] - v[0]*v[1] - v[0]*v[2];
   den = sqrt(den);
-  return (den ? num/(2*den*den*den) : 0);
+  return (den != 0 ? num/(2*den*den*den) : 0);
 }
 
 double
@@ -674,7 +697,7 @@ airBesselIn(int nn, double xx) {
   tax = 2.0/AIR_ABS(xx);
   bip = bb = 0.0;
   bi = 1.0;
-  top = 2*(an + AIR_CAST(int, sqrt(40.0*an)));
+  top = 2*(an + AIR_INT(sqrt(40.0*an)));
   for (ii=top; ii > 0; ii--) {
     bim = bip + ii*tax*bi;
     bip = bi;
@@ -723,7 +746,7 @@ airBesselInExpScaled(int nn, double xx) {
      problem was detected because of glitches in the highest blurring
      levels for scale-space feature detection; but that didn't quite
      work either; this will have to be debugged further! */
-  top = 2*(an + AIR_CAST(int, sqrt(40.0*an)));
+  top = 2*(an + AIR_INT(sqrt(40.0*an)));
   eps = 1.0e-10;
   for (ii=top; ii > 0; ii--) {
     bim = bip + ii*tax*bi;
@@ -1093,3 +1116,4 @@ airCRC32(const unsigned char *cdata, size_t len, size_t unit, int swap) {
 
   return ~crc;
 }
+/* clang-format on */

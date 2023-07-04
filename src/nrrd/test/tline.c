@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "../nrrd.h"
@@ -26,7 +24,10 @@
 /* learned: C++ name mangling means that you can't simply declare the
    function as extern, you need to do the same extern "C" wrapping as
    is done in the header file
-*/
+
+   (but this became moot once _nrrdOneLine was added to nrrd.h
+    prior to being renamed nrrdOneLine)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,6 +35,7 @@ extern int _nrrdOneLine(unsigned int *lenP, NrrdIoState *io, FILE *file);
 #ifdef __cplusplus
 }
 #endif
+*/
 
 FILE *
 myopen(char *name) {
@@ -75,7 +77,7 @@ main(int argc, char *argv[]) {
   }
   io = nrrdIoStateNew();
   do {
-    if (_nrrdOneLine(&llen, io, file)) {
+    if (nrrdOneLine(&llen, io, file)) {
       fprintf(stderr, "%s: trouble:\n%s", me, biffGet(NRRD));
       exit(1);
     }

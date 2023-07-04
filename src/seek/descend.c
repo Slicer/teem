@@ -1,22 +1,20 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2011, 2010, 2009, 2008  Thomas Schultz
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 /* This file collects functions that implement various gradient
@@ -24,6 +22,7 @@
 
 #include "seek.h"
 #include "privateSeek.h"
+/* clang-format off */
 
 /* Tries to find a degenerate point on a bilinearly interpolated face
  * of symmetric second-order tensors. Uses the discriminant constraint
@@ -48,9 +47,10 @@
  * Returns 5 if Armijo rule failed to find a valid stepsize
  * Returns 6 if we hit a zero tensor (|T|<1e-300)
  */
-int seekDescendToDeg(double *coord, double *botleft, double *botright,
-                     double *topleft, double *topright,
-                     int maxiter, double eps, char type)
+int /* Biff: nope */
+seekDescendToDeg(double *coord, double *botleft, double *botright,
+                 double *topleft, double *topright,
+                 int maxiter, double eps, char type)
 {
   double discr; /* store discriminant value of previous iteration */
   double hesstop[9]; /* used to interpolate Hessian */
@@ -349,10 +349,11 @@ int seekDescendToDeg(double *coord, double *botleft, double *botright,
  * Returns 5 if Armijo rule failed to find a valid stepsize
  * Returns 6 if we hit a zero tensor (|T|<1e-300)
  */
-int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
-                         double *Hbbl, double *Hbbr,
-                         double *Htfl, double *Htfr, double *Htbl, double *Htbr,
-                         int maxiter, double eps, char type)
+int /* Biff: nope */
+seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
+                     double *Hbbl, double *Hbbr,
+                     double *Htfl, double *Htfr, double *Htbl, double *Htbr,
+                     int maxiter, double eps, char type)
 {
   double discr=0; /* store discriminant value for previous point */
 
@@ -632,13 +633,14 @@ int seekDescendToDegCell(double *coord, double *Hbfl, double *Hbfr,
  * Returns 2 if we hit maxiter
  * Returns 3 if Armijo rule failed to find a valid stepsize
  */
-int seekDescendToRidge(double *coord,
-                       double *Hbfl, double *gbfl, double *Hbfr, double *gbfr,
-                       double *Hbbl, double *gbbl, double *Hbbr, double *gbbr,
-                       double *Htfl, double *gtfl, double *Htfr, double *gtfr,
-                       double *Htbl, double *gtbl, double *Htbr, double *gtbr,
-                       int maxiter, double eps, char ridge,
-                       const double evalDiffThresh) {
+int /* Biff: nope */
+seekDescendToRidge(double *coord,
+                   double *Hbfl, double *gbfl, double *Hbfr, double *gbfr,
+                   double *Hbbl, double *gbbl, double *Hbbr, double *gbbr,
+                   double *Htfl, double *gtfl, double *Htfr, double *gtfr,
+                   double *Htbl, double *gtbl, double *Htbr, double *gtbr,
+                   int maxiter, double eps, char ridge,
+                   const double evalDiffThresh) {
   double dist=0; /* store distance value of previous iteration */
 
   double Hfrontleft[9], Hbackleft[9];
@@ -789,3 +791,4 @@ int seekDescendToRidge(double *coord,
 
   return 2; /* hit maxiter */
 }
+/* clang-format on */

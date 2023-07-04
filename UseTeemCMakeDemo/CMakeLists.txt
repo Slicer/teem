@@ -1,13 +1,14 @@
-project (TeemSampleProject)
+project (SampleTeemUsingProject)
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.13...3.15)
 
-if(COMMAND cmake_policy)
-  cmake_policy(SET CMP0003 NEW)
+if(${CMAKE_VERSION} VERSION_LESS 3.15)
+    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
+else()
+    cmake_policy(VERSION 3.15)
 endif()
 
 find_package(Teem REQUIRED)
-include(${Teem_USE_FILE})
-
-add_executable(sample sanity.c)
-target_link_libraries(sample teem)
+add_executable(sanity sanity.c)
+target_include_directories(sanity PRIVATE ${Teem_INCLUDE_DIRS})
+target_link_libraries(sanity teem)

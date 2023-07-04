@@ -1,44 +1,40 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "ten.h"
 #include "privateTen.h"
 
 #define INFO "Graph anisotropy metric in barycentric coords"
-static const char *_tend_anplotInfoL =
-  (INFO
-   ".  The metrics all vary from 0.0 to 1.0, and will be sampled "
-   "in the lower right half of the image.  The plane on which they are "
-   "sampled is a surface of constant trace.  You may want to use "
-   "\"unu resample -s = x0.57735 -k tent\" to transform the triangle into "
-   "a 30-60-90 triangle, and \"ilk -t 1,-0.5,0,0,0.866,0 -k tent "
-   "-0 u:0,1 -b pad -bg 0\" (possibly followed by "
-   "teem/src/limntest/triimg) to transform the domain into an equilateral "
-   "triangle.");
+static const char *_tend_anplotInfoL
+  = (INFO ".  The metrics all vary from 0.0 to 1.0, and will be sampled "
+          "in the lower right half of the image.  The plane on which they are "
+          "sampled is a surface of constant trace.  You may want to use "
+          "\"unu resample -s = x0.57735 -k tent\" to transform the triangle into "
+          "a 30-60-90 triangle, and \"ilk -t 1,-0.5,0,0,0.866,0 -k tent "
+          "-0 u:0,1 -b pad -bg 0\" (possibly followed by "
+          "teem/src/limntest/triimg) to transform the domain into an equilateral "
+          "triangle.");
 
-int
-tend_anplotMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+static int
+tend_anplotMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   hestOpt *hopt = NULL;
   char *perr, *err;
@@ -62,8 +58,7 @@ tend_anplotMain(int argc, const char **argv, const char *me,
              "set the pixel values outside the triangle to be NaN, "
              "instead of 0");
   hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, NULL,
-             "Which anisotropy metric to plot.  " TEN_ANISO_DESC,
-             NULL, tenAniso);
+             "Which anisotropy metric to plot.  " TEN_ANISO_DESC, NULL, tenAniso);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output image (floating point)");
 
@@ -76,19 +71,20 @@ tend_anplotMain(int argc, const char **argv, const char *me,
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   if (tenAnisoPlot(nout, aniso, res, hflip, whole, nanout)) {
-    airMopAdd(mop, err=biffGetDone(TEN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(TEN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble making plot:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (nrrdSave(outS, nout, NULL)) {
-    airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble writing:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
   return 0;
 }
 TEND_CMD(anplot, INFO);
-

@@ -1,24 +1,22 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-# Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-# Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+# Copyright (C) 2009--2023  University of Chicago
+# Copyright (C) 2005--2008  Gordon Kindlmann
+# Copyright (C) 1998--2004  University of Utah
 #
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public License
-# (LGPL) as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
-# The terms of redistributing and/or modifying this software also
-# include exceptions to the LGPL that facilitate static linking.
+# This library is free software; you can redistribute it and/or modify it under the terms
+# of the GNU Lesser General Public License (LGPL) as published by the Free Software
+# Foundation; either version 2.1 of the License, or (at your option) any later version.
+# The terms of redistributing and/or modifying this software also include exceptions to
+# the LGPL that facilitate static linking.
 #
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
+# This library is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU Lesser General Public License
-# along with this library; if not, write to Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+# You should have received a copy of the GNU Lesser General Public License along with
+# this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+# Fifth Floor, Boston, MA 02110-1301 USA
 #
 
 ####
@@ -100,7 +98,7 @@ include $(TEEM_SRC)/make/externals.mk
 ## {R}NUM/LIBS: used for craziness below
 ## (TEEM_LIB_LIST)
 ##
-LIBS = air hest biff nrrd ell unrrdu alan moss tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet
+LIBS = air hest biff nrrd ell moss unrrdu alan tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet
 NUMS =  0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M
 RNUMS = M L K J I H G F E D C B A 9 8 7 6 5 4 3 2 1 0
 
@@ -177,7 +175,7 @@ endif
 ## By giving a list of library extensions we care about, LIBEXTS determines
 ## what kinds of libraries are built (just static, or both static and
 ## shared)
-## 
+##
 ifdef TEEM_SHEXT
   LIBEXTS = $(TEEM_SHEXT)
 endif
@@ -187,16 +185,22 @@ LIBEXTS += a
 ## Flags
 ##
 ifneq (undefined,$(origin TEEM_LINK_SHARED))
-  # If we ever have absolutify-this-path working, then having an 
+  # If we ever have absolutify-this-path working, then having an
   # absolute TEEM_DEST path is no longer a pre-requisite
   BIN_CFLAGS += $(SHARED_CFLAG) $(if $(TEEM_DEST),$(if $(SHARED_RPATH),$(SHARED_RPATH)$(LDEST),),)
 else
   BIN_CFLAGS += $(STATIC_CFLAG)
 endif
 
-## The -DTEEM_BUILD_EXPERIMENTAL_LIBS mimics something that 
-## would otherwise come from CMake files
-CFLAGS += -DTEEM_BUILD_EXPERIMENTAL_LIBS $(OPT_CFLAG) $(ARCH_CFLAG)
+## CMake is how most people will compile Teem, but these GNUMakefiles are
+## still what GLK uses day-to-day when working with Teem, with their finer
+## per-library granularity. Some additions to CFLAGS are adaptions help these
+## GNUMakfiles adapt to the CMake world around them.  -DTEEM_NON_CMAKE says
+## that this isn't being build by cmake (so, e.g. don't look for
+## teem/airExistsConf.h), and -DTEEM_BUILD_EXPERIMENTAL_LIBS mimics something
+## that would otherwise come from CMake files only when *all* the libraries
+## are being compiled
+CFLAGS += -DTEEM_NON_CMAKE -DTEEM_BUILD_EXPERIMENTAL_LIBS $(OPT_CFLAG) $(ARCH_CFLAG)
 LDFLAGS += $(ARCH_LDFLAG) $(SHARED_LDFLAG)
 
 ## SGI's C pre-processor errors aren't fatal by default
@@ -209,7 +213,7 @@ CFLAGS += $(TEEM_CPP_ERROR_DIE)
 
 ## Each of these can be $(call)ed with a library name, as the one
 ## and only argument, in order to get a list of files or flags related to
-## library.  
+## library.
 ##
 ## {libs,hdrs}.inst(L): installed libs and headers for library L
 ## hdrs.dev(L): the local (original) copies of public and private headers
@@ -235,7 +239,7 @@ hdrs.dev = $(addprefix $(TEEM_SRC)/$(1)/,\
 ## (discover more needed libs).  The number of levels is more than
 ## enough for the current teem; and adding more levels later is
 ## trivial.
-## 
+##
 ## Since we rely on $(sort) to remove redundancies, we need a way of
 ## putting the libraries back in dependency order (!= lexical order).
 ## So, we prefix the needed library names with [0..D] (via $(join)) to
@@ -243,7 +247,7 @@ hdrs.dev = $(addprefix $(TEEM_SRC)/$(1)/,\
 ## with $(notdir).  This is done by "deporder". On the link line,
 ## however, the ordering needs to be reversed, this is done by
 ## "linkorder".
-## 
+##
 dmnl = $(sort $(foreach LIB,$(1),$(LIB) $($(LIB).NEED)))
 deporder = $(notdir $(sort $(foreach LIB,$(1),\
   $(filter %/$(LIB),$(NUM/LIBS)))))
@@ -323,7 +327,7 @@ xtern.link  = $(call evallist,$(call for.xtern,$(1),XXX.LINK))
 #######################################
 
 ## Read in the makefiles for all the libraries, and the bins.  Run-away
-## recursive inclusion is prevented by having set DEF_TARGETS. 
+## recursive inclusion is prevented by having set DEF_TARGETS.
 ## Note: "include" is a directive, not a function, which eliminates
 ## the possibility of iterating through the libraries, reading the
 ## make file, and then setting variables based on what was just read.

@@ -1,28 +1,27 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "nrrd.h"
 
+/* clang-format off */
 static double
 returnZero(const double *parm) {
   AIR_UNUSED(parm);
@@ -195,12 +194,12 @@ _bspl1_sup(const double *parm) {
 
 BSPL_EVEN_METHODS(_bspl1d0, BSPL1D0)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline1 = {
   "bspl1",
   BSPL_DECL(1, 0)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline1 = &_nrrdKernelBSpline1;
 
 /* ---------------------- order *1* deriv *1* -------------------------- */
@@ -215,12 +214,12 @@ nrrdKernelBSpline1 = &_nrrdKernelBSpline1;
 
 BSPL_ODD_METHODS(_bspl1d1, BSPL1D1)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline1D = {
   "bspl1d",
   BSPL_DECL(1, 1)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline1D = &_nrrdKernelBSpline1D;
 
 /* ============================= order *2* ============================= */
@@ -245,12 +244,12 @@ _bspl2_sup(const double *parm) {
 
 BSPL_EVEN_METHODS(_bspl2d0, BSPL2D0)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline2 = {
   "bspl2",
   BSPL_DECL(2, 0)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline2 = &_nrrdKernelBSpline2;
 
 /* ---------------------- order *2* deriv *1* -------------------------- */
@@ -267,12 +266,12 @@ nrrdKernelBSpline2 = &_nrrdKernelBSpline2;
 
 BSPL_ODD_METHODS(_bspl2d1, BSPL2D1)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline2D = {
   "bspl2d",
   BSPL_DECL(2, 1)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline2D = &_nrrdKernelBSpline2D;
 
 /* ---------------------- order *2* deriv *2* -------------------------- */
@@ -289,12 +288,12 @@ nrrdKernelBSpline2D = &_nrrdKernelBSpline2D;
 
 BSPL_EVEN_METHODS(_bspl2d2, BSPL2D2)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline2DD = {
   "bspl2dd",
   BSPL_DECL(2, 2)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline2DD = &_nrrdKernelBSpline2DD;
 
 /* ============================= order *3* ============================= */
@@ -319,12 +318,12 @@ _bspl3_sup(const double *parm) {
 
 BSPL_EVEN_METHODS(_bspl3d0, BSPL3D0)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline3 = {
   "bspl3",
   BSPL_DECL(3, 0)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline3 = &_nrrdKernelBSpline3;
 
 /* ---------------------- order *3* deriv *1* -------------------------- */
@@ -341,12 +340,12 @@ nrrdKernelBSpline3 = &_nrrdKernelBSpline3;
 
 BSPL_ODD_METHODS(_bspl3d1, BSPL3D1)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline3D = {
   "bspl3d",
   BSPL_DECL(3, 1)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline3D = &_nrrdKernelBSpline3D;
 
 /* ---------------------- order *3* deriv *2* -------------------------- */
@@ -368,12 +367,12 @@ nrrdKernelBSpline3D = &_nrrdKernelBSpline3D;
 
 BSPL_EVEN_METHODS(_bspl3d2, BSPL3D2)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline3DD = {
   "bspl3dd",
   BSPL_DECL(3, 2)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline3DD = &_nrrdKernelBSpline3DD;
 
 /* ---------------------- order *3* deriv *3* -------------------------- */
@@ -390,12 +389,12 @@ nrrdKernelBSpline3DD = &_nrrdKernelBSpline3DD;
 
 BSPL_ODD_METHODS(_bspl3d3, BSPL3D3)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline3DDD = {
   "bspl3ddd",
   BSPL_DECL(3, 3)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline3DDD = &_nrrdKernelBSpline3DDD;
 
 /* ------------- order *3* approximate numerical inverse -------------- */
@@ -441,7 +440,7 @@ _bspl3_ANI_int(const double *parm) {
 }
 
 #define BSPL3_ANI(ret, tmp, x)                  \
-  tmp = AIR_CAST(unsigned int, x+0.5);          \
+  tmp = AIR_UINT(x+0.5);                        \
   if (tmp < BSPL3_AI_LEN) {                     \
     ret = _bspl3_ANI_kvals[tmp];                \
   } else {                                      \
@@ -465,7 +464,7 @@ _bspl3_ANI_1f(float x, const double *parm) {
 
   ax = AIR_ABS(x);
   BSPL3_ANI(r, tmp, ax);
-  return AIR_CAST(float, r);
+  return AIR_FLOAT(r);
 }
 
 static void
@@ -490,18 +489,18 @@ _bspl3_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL3_ANI(r, tmp, ax);
-    f[i] = AIR_CAST(float, r);
+    f[i] = AIR_FLOAT(r);
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline3ApproxInverse = {
   "bspl3ai", 0,
   _bspl3_ANI_sup, _bspl3_ANI_int,
   _bspl3_ANI_1f, _bspl3_ANI_Nf,
   _bspl3_ANI_1d, _bspl3_ANI_Nd
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline3ApproxInverse = &_nrrdKernelBSpline3ApproxInverse;
 
 /* ============================= order *4* ============================= */
@@ -529,12 +528,12 @@ _bspl4_sup(const double *parm) {
 
 BSPL_EVEN_METHODS(_bspl4d0, BSPL4D0)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline4 = {
   "bspl4",
   BSPL_DECL(4, 0)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline4 = &_nrrdKernelBSpline4;
 
 /* ---------------------- order *4* deriv *1* -------------------------- */
@@ -553,12 +552,12 @@ nrrdKernelBSpline4 = &_nrrdKernelBSpline4;
 
 BSPL_ODD_METHODS(_bspl4d1, BSPL4D1)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline4D = {
   "bspl4d",
   BSPL_DECL(4, 1)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline4D = &_nrrdKernelBSpline4D;
 
 /* ---------------------- order *4* deriv *2* -------------------------- */
@@ -577,12 +576,12 @@ nrrdKernelBSpline4D = &_nrrdKernelBSpline4D;
 
 BSPL_EVEN_METHODS(_bspl4d2, BSPL4D2)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline4DD = {
   "bspl4dd",
   BSPL_DECL(4, 2)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline4DD = &_nrrdKernelBSpline4DD;
 
 /* ---------------------- order *4* deriv *3* -------------------------- */
@@ -601,12 +600,12 @@ nrrdKernelBSpline4DD = &_nrrdKernelBSpline4DD;
 
 BSPL_ODD_METHODS(_bspl4d3, BSPL4D3)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline4DDD = {
   "bspl4ddd",
   BSPL_DECL(4, 3)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline4DDD = &_nrrdKernelBSpline4DDD;
 
 /* ============================= order *5* ============================= */
@@ -634,12 +633,12 @@ _bspl5_sup(const double *parm) {
 
 BSPL_EVEN_METHODS(_bspl5d0, BSPL5D0)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline5 = {
   "bspl5",
   BSPL_DECL(5, 0)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline5 = &_nrrdKernelBSpline5;
 
 /* ---------------------- order *5* deriv *1* -------------------------- */
@@ -659,12 +658,12 @@ nrrdKernelBSpline5 = &_nrrdKernelBSpline5;
 
 BSPL_ODD_METHODS(_bspl5d1, BSPL5D1)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline5D = {
   "bspl5d",
   BSPL_DECL(5, 1)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline5D = &_nrrdKernelBSpline5D;
 
 /* ---------------------- order *5* deriv *2* -------------------------- */
@@ -684,12 +683,12 @@ nrrdKernelBSpline5D = &_nrrdKernelBSpline5D;
 
 BSPL_EVEN_METHODS(_bspl5d2, BSPL5D2)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline5DD = {
   "bspl5dd",
   BSPL_DECL(5, 2)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline5DD = &_nrrdKernelBSpline5DD;
 
 /* ---------------------- order *5* deriv *3* -------------------------- */
@@ -708,12 +707,12 @@ nrrdKernelBSpline5DD = &_nrrdKernelBSpline5DD;
 
 BSPL_ODD_METHODS(_bspl5d3, BSPL5D3)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline5DDD = {
   "bspl5ddd",
   BSPL_DECL(5, 3)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline5DDD = &_nrrdKernelBSpline5DDD;
 
 /* ------------- order *5* approximate numerical inverse -------------- */
@@ -754,7 +753,7 @@ _bspl5_ANI_int(const double *parm) {
 }
 
 #define BSPL5_ANI_T(ret, TT, tmp, x)            \
-  tmp = AIR_CAST(unsigned int, x+0.5);          \
+  tmp = AIR_UINT(x+0.5);                        \
   if (tmp < BSPL5_AI_LEN) {                     \
     ret = AIR_CAST(TT, _bspl5_ANI_kvals[tmp]);  \
   } else {                                      \
@@ -778,7 +777,7 @@ _bspl5_ANI_1f(float x, const double *parm) {
 
   ax = AIR_ABS(x);
   BSPL5_ANI_T(r, float, tmp, ax);
-  return AIR_CAST(float, r);
+  return AIR_FLOAT(r);
 }
 
 static void
@@ -803,18 +802,18 @@ _bspl5_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL5_ANI_T(r, float, tmp, ax);
-    f[i] = AIR_CAST(float, r);
+    f[i] = AIR_FLOAT(r);
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline5ApproxInverse = {
   "bspl5ai", 0,
   _bspl5_ANI_sup, _bspl5_ANI_int,
   _bspl5_ANI_1f, _bspl5_ANI_Nf,
   _bspl5_ANI_1d, _bspl5_ANI_Nd
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline5ApproxInverse = &_nrrdKernelBSpline5ApproxInverse;
 
 /* ============================= order *6* ============================= */
@@ -846,12 +845,12 @@ _bspl6_sup(const double *parm) {
 
 BSPL_EVEN_METHODS(_bspl6d0, BSPL6D0)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline6 = {
   "bspl6",
   BSPL_DECL(6, 0)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline6 = &_nrrdKernelBSpline6;
 
 /* ---------------------- order *6* deriv *1* -------------------------- */
@@ -875,12 +874,12 @@ nrrdKernelBSpline6 = &_nrrdKernelBSpline6;
 
 BSPL_ODD_METHODS(_bspl6d1, BSPL6D1)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline6D = {
   "bspl6d",
   BSPL_DECL(6, 1)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline6D = &_nrrdKernelBSpline6D;
 
 /* ---------------------- order *6* deriv *2* -------------------------- */
@@ -904,12 +903,12 @@ nrrdKernelBSpline6D = &_nrrdKernelBSpline6D;
 
 BSPL_EVEN_METHODS(_bspl6d2, BSPL6D2)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline6DD = {
   "bspl6dd",
   BSPL_DECL(6, 2)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline6DD = &_nrrdKernelBSpline6DD;
 
 /* ---------------------- order *6* deriv *3* -------------------------- */
@@ -930,12 +929,12 @@ nrrdKernelBSpline6DD = &_nrrdKernelBSpline6DD;
 
 BSPL_ODD_METHODS(_bspl6d3, BSPL6D3)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline6DDD = {
   "bspl6ddd",
   BSPL_DECL(6, 3)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline6DDD = &_nrrdKernelBSpline6DDD;
 
 /* ============================= order *7* ============================= */
@@ -964,12 +963,12 @@ _bspl7_sup(const double *parm) {
 
 BSPL_EVEN_METHODS(_bspl7d0, BSPL7D0)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline7 = {
   "bspl7",
   BSPL_DECL(7, 0)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline7 = &_nrrdKernelBSpline7;
 
 /* ---------------------- order *7* deriv *1* -------------------------- */
@@ -990,12 +989,12 @@ nrrdKernelBSpline7 = &_nrrdKernelBSpline7;
 
 BSPL_ODD_METHODS(_bspl7d1, BSPL7D1)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline7D = {
   "bspl7d",
   BSPL_DECL(7, 1)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline7D = &_nrrdKernelBSpline7D;
 
 /* ---------------------- order *7* deriv *2* -------------------------- */
@@ -1016,12 +1015,12 @@ nrrdKernelBSpline7D = &_nrrdKernelBSpline7D;
 
 BSPL_EVEN_METHODS(_bspl7d2, BSPL7D2)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline7DD = {
   "bspl7dd",
   BSPL_DECL(7, 2)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline7DD = &_nrrdKernelBSpline7DD;
 
 /* ---------------------- order *7* deriv *3* -------------------------- */
@@ -1042,12 +1041,12 @@ nrrdKernelBSpline7DD = &_nrrdKernelBSpline7DD;
 
 BSPL_ODD_METHODS(_bspl7d3, BSPL7D3)
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline7DDD = {
   "bspl7ddd",
   BSPL_DECL(7, 3)
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline7DDD = &_nrrdKernelBSpline7DDD;
 
 /* ------------- order *7* approximate numerical inverse -------------- */
@@ -1095,7 +1094,7 @@ _bspl7_ANI_int(const double *parm) {
 }
 
 #define BSPL7_ANI(ret, tmp, x)                  \
-  tmp = AIR_CAST(unsigned int, x+0.5);          \
+  tmp = AIR_UINT(x+0.5);                        \
   if (tmp < BSPL7_AI_LEN) {                     \
     ret = _bspl7_ANI_kvals[tmp];                \
   } else {                                      \
@@ -1119,7 +1118,7 @@ _bspl7_ANI_1f(float x, const double *parm) {
 
   ax = AIR_ABS(x);
   BSPL7_ANI(r, tmp, ax);
-  return AIR_CAST(float, r);
+  return AIR_FLOAT(r);
 }
 
 static void
@@ -1144,17 +1143,17 @@ _bspl7_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     BSPL7_ANI(r, tmp, ax);
-    f[i] = AIR_CAST(float, r);
+    f[i] = AIR_FLOAT(r);
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBSpline7ApproxInverse = {
   "bspl7ai", 0,
   _bspl7_ANI_sup, _bspl7_ANI_int,
   _bspl7_ANI_1f, _bspl7_ANI_Nf,
   _bspl7_ANI_1d, _bspl7_ANI_Nd
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBSpline7ApproxInverse = &_nrrdKernelBSpline7ApproxInverse;
-
+/* clang-format on */

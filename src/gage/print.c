@@ -1,29 +1,28 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "gage.h"
 #include "privateGage.h"
 
+/* clang-format off */
 void
 _gagePrint_off(FILE *file, gageContext *ctx) {
   int i, fd;
@@ -89,77 +88,72 @@ _gagePrint_off(FILE *file, gageContext *ctx) {
    if (ctx->needK[gageKernel21]) { HOW(21,C); }         \
    if (ctx->needK[gageKernel22]) { HOW(22,C); }
 
+/* clang-format on */
+
 void
 _gagePrint_fslw(FILE *file, gageContext *ctx) {
   int i, fd;
-  double *fslx, *fsly, *fslz, *fw,
-    *fw000, *fw001, *fw002,
-    *fw100, *fw101, *fw102,
-    *fw110, *fw111, *fw112,
-    *fw200, *fw201, *fw202,
-    *fw210, *fw211, *fw212,
-    *fw220, *fw221, *fw222;
+  double *fslx, *fsly, *fslz, *fw, *fw000, *fw001, *fw002, *fw100, *fw101, *fw102,
+    *fw110, *fw111, *fw112, *fw200, *fw201, *fw202, *fw210, *fw211, *fw212, *fw220,
+    *fw221, *fw222;
 
   /* float *p; */
 
-  fd = 2*ctx->radius;
-  fslx = ctx->fsl + fd*0;
-  fsly = ctx->fsl + fd*1;
-  fslz = ctx->fsl + fd*2;
-  fw000 = ctx->fw + 0 + fd*(0 + 3*gageKernel00);
-  fw001 = ctx->fw + 0 + fd*(1 + 3*gageKernel00);
-  fw002 = ctx->fw + 0 + fd*(2 + 3*gageKernel00);
-  fw100 = ctx->fw + 0 + fd*(0 + 3*gageKernel10);
-  fw101 = ctx->fw + 0 + fd*(1 + 3*gageKernel10);
-  fw102 = ctx->fw + 0 + fd*(2 + 3*gageKernel10);
-  fw110 = ctx->fw + 0 + fd*(0 + 3*gageKernel11);
-  fw111 = ctx->fw + 0 + fd*(1 + 3*gageKernel11);
-  fw112 = ctx->fw + 0 + fd*(2 + 3*gageKernel11);
-  fw200 = ctx->fw + 0 + fd*(0 + 3*gageKernel20);
-  fw201 = ctx->fw + 0 + fd*(1 + 3*gageKernel20);
-  fw202 = ctx->fw + 0 + fd*(2 + 3*gageKernel20);
-  fw210 = ctx->fw + 0 + fd*(0 + 3*gageKernel21);
-  fw211 = ctx->fw + 0 + fd*(1 + 3*gageKernel21);
-  fw212 = ctx->fw + 0 + fd*(2 + 3*gageKernel21);
-  fw220 = ctx->fw + 0 + fd*(0 + 3*gageKernel22);
-  fw221 = ctx->fw + 0 + fd*(1 + 3*gageKernel22);
-  fw222 = ctx->fw + 0 + fd*(2 + 3*gageKernel22);
+  fd = 2 * ctx->radius;
+  fslx = ctx->fsl + fd * 0;
+  fsly = ctx->fsl + fd * 1;
+  fslz = ctx->fsl + fd * 2;
+  fw000 = ctx->fw + 0 + fd * (0 + 3 * gageKernel00);
+  fw001 = ctx->fw + 0 + fd * (1 + 3 * gageKernel00);
+  fw002 = ctx->fw + 0 + fd * (2 + 3 * gageKernel00);
+  fw100 = ctx->fw + 0 + fd * (0 + 3 * gageKernel10);
+  fw101 = ctx->fw + 0 + fd * (1 + 3 * gageKernel10);
+  fw102 = ctx->fw + 0 + fd * (2 + 3 * gageKernel10);
+  fw110 = ctx->fw + 0 + fd * (0 + 3 * gageKernel11);
+  fw111 = ctx->fw + 0 + fd * (1 + 3 * gageKernel11);
+  fw112 = ctx->fw + 0 + fd * (2 + 3 * gageKernel11);
+  fw200 = ctx->fw + 0 + fd * (0 + 3 * gageKernel20);
+  fw201 = ctx->fw + 0 + fd * (1 + 3 * gageKernel20);
+  fw202 = ctx->fw + 0 + fd * (2 + 3 * gageKernel20);
+  fw210 = ctx->fw + 0 + fd * (0 + 3 * gageKernel21);
+  fw211 = ctx->fw + 0 + fd * (1 + 3 * gageKernel21);
+  fw212 = ctx->fw + 0 + fd * (2 + 3 * gageKernel21);
+  fw220 = ctx->fw + 0 + fd * (0 + 3 * gageKernel22);
+  fw221 = ctx->fw + 0 + fd * (1 + 3 * gageKernel22);
+  fw222 = ctx->fw + 0 + fd * (2 + 3 * gageKernel22);
 
   fprintf(file, "fsl -> fw: \n");
-  switch(fd) {
+  switch (fd) {
   case 2:
-    fprintf(file, "x[]: % 15.7f   % 15.7f\n",
-            (float)fslx[0], (float)fslx[1]);
+    fprintf(file, "x[]: % 15.7f   % 15.7f\n", (float)fslx[0], (float)fslx[1]);
     PRINTALL(PRINT_2, 0);
-    fprintf(file, "y[]: % 15.7f   % 15.7f\n",
-            (float)fsly[0], (float)fsly[1]);
+    fprintf(file, "y[]: % 15.7f   % 15.7f\n", (float)fsly[0], (float)fsly[1]);
     PRINTALL(PRINT_2, 1);
-    fprintf(file, "z[]: % 15.7f   % 15.7f\n",
-            (float)fslz[0], (float)fslz[1]);
+    fprintf(file, "z[]: % 15.7f   % 15.7f\n", (float)fslz[0], (float)fslz[1]);
     PRINTALL(PRINT_2, 2);
     break;
   case 4:
-    fprintf(file, "x[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n",
-            (float)fslx[0], (float)fslx[1], (float)fslx[2], (float)fslx[3]);
+    fprintf(file, "x[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", (float)fslx[0],
+            (float)fslx[1], (float)fslx[2], (float)fslx[3]);
     PRINTALL(PRINT_4, 0);
-    fprintf(file, "y[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n",
-            (float)fsly[0], (float)fsly[1], (float)fsly[2], (float)fsly[3]);
+    fprintf(file, "y[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", (float)fsly[0],
+            (float)fsly[1], (float)fsly[2], (float)fsly[3]);
     PRINTALL(PRINT_4, 1);
-    fprintf(file, "z[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n",
-            (float)fslz[0], (float)fslz[1], (float)fslz[2], (float)fslz[3]);
+    fprintf(file, "z[]: % 15.7f  % 15.7f  % 15.7f  % 15.7f\n", (float)fslz[0],
+            (float)fslz[1], (float)fslz[2], (float)fslz[3]);
     PRINTALL(PRINT_4, 2);
     break;
   default:
     fprintf(file, "x[]:\n");
-    for (i=0; i<fd; i++)
+    for (i = 0; i < fd; i++)
       fprintf(file, "     % 5d : % 15.7f\n", i, (float)fslx[i]);
     PRINTALL(PRINT_N, 0);
     fprintf(file, "y[]:\n");
-    for (i=0; i<fd; i++)
+    for (i = 0; i < fd; i++)
       fprintf(file, "     % 5d : % 15.7f\n", i, (float)fsly[i]);
     PRINTALL(PRINT_N, 1);
     fprintf(file, "z[]:\n");
-    for (i=0; i<fd; i++)
+    for (i = 0; i < fd; i++)
       fprintf(file, "     % 5d : % 15.7f\n", i, (float)fslz[i]);
     PRINTALL(PRINT_N, 2);
     break;
@@ -172,7 +166,7 @@ gageQueryPrint(FILE *file, const gageKind *kind, gageQuery query) {
   int ii;
 
   fprintf(file, "%s query = ...\n", kind->name);
-  ii = kind->itemMax+1;
+  ii = kind->itemMax + 1;
   do {
     ii--;
     if (GAGE_QUERY_ITEM_TEST(query, ii)) {

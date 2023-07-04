@@ -1,0 +1,99 @@
+List if all nrrdKernels currently in Teem, made June 2023 by GLK out of
+frustration during debugging of kernel-related stuff (like new
+nrrdKernelDerivative), via massaging of output of Python code at end.
+
+  kernel.name kernel
+         zero nrrdKernelZero
+         flag nrrdKernelFlag
+        cheap nrrdKernelCheap
+          box nrrdKernelBox
+       boxsup nrrdKernelBoxSupportDebug
+      ctmrsup nrrdKernelCatmullRomSupportDebug
+     ctmrsupD nrrdKernelCatmullRomSupportDebugD
+    ctmrsupDD nrrdKernelCatmullRomSupportDebugDD
+      cos4sup nrrdKernelCos4SupportDebug
+     cos4supD nrrdKernelCos4SupportDebugD
+    cos4supDD nrrdKernelCos4SupportDebugDD
+   cos4supDDD nrrdKernelCos4SupportDebugDDD
+    hermiteSS nrrdKernelHermiteScaleSpaceFlag
+         tent nrrdKernelTent
+       fordif nrrdKernelForwDiff
+       cendif nrrdKernelCentDiff
+      BCcubic nrrdKernelBCCubic
+     BCcubicD nrrdKernelBCCubicD
+    BCcubicDD nrrdKernelBCCubicDD
+  catmull-rom nrrdKernelCatmullRom
+ catmull-romD nrrdKernelCatmullRomD
+catmull-romDD nrrdKernelCatmullRomDD
+     Aquartic nrrdKernelAQuartic
+    AquarticD nrrdKernelAQuarticD
+   AquarticDD nrrdKernelAQuarticDD
+    C3Quintic nrrdKernelC3Quintic
+   C3QuinticD nrrdKernelC3QuinticD
+  C3QuinticDD nrrdKernelC3QuinticDD
+    C4HexicAI nrrdKernelC4HexicApproxInverse
+      C4Hexic nrrdKernelC4Hexic
+     C4HexicD nrrdKernelC4HexicD
+    C4HexicDD nrrdKernelC4HexicDD
+   C4HexicDDD nrrdKernelC4HexicDDD
+   C5SepticAI nrrdKernelC5SepticApproxInverse
+     C5Septic nrrdKernelC5Septic
+    C5SepticD nrrdKernelC5SepticD
+   C5SepticDD nrrdKernelC5SepticDD
+  C5SepticDDD nrrdKernelC5SepticDDD
+        gauss nrrdKernelGaussian
+       gaussD nrrdKernelGaussianD
+      gaussDD nrrdKernelGaussianDD
+discretegauss nrrdKernelDiscreteGaussian
+         hann nrrdKernelHann
+        hannD nrrdKernelHannD
+       hannDD nrrdKernelHannDD
+     blackman nrrdKernelBlackman
+    blackmanD nrrdKernelBlackmanD
+   blackmanDD nrrdKernelBlackmanDD
+        bspl1 nrrdKernelBSpline1
+       bspl1d nrrdKernelBSpline1D
+        bspl2 nrrdKernelBSpline2
+       bspl2d nrrdKernelBSpline2D
+      bspl2dd nrrdKernelBSpline2DD
+      bspl3ai nrrdKernelBSpline3ApproxInverse
+        bspl3 nrrdKernelBSpline3
+       bspl3d nrrdKernelBSpline3D
+      bspl3dd nrrdKernelBSpline3DD
+     bspl3ddd nrrdKernelBSpline3DDD
+        bspl4 nrrdKernelBSpline4
+       bspl4d nrrdKernelBSpline4D
+      bspl4dd nrrdKernelBSpline4DD
+     bspl4ddd nrrdKernelBSpline4DDD
+      bspl5ai nrrdKernelBSpline5ApproxInverse
+        bspl5 nrrdKernelBSpline5
+       bspl5d nrrdKernelBSpline5D
+      bspl5dd nrrdKernelBSpline5DD
+     bspl5ddd nrrdKernelBSpline5DDD
+        bspl6 nrrdKernelBSpline6
+       bspl6d nrrdKernelBSpline6D
+      bspl6dd nrrdKernelBSpline6DD
+     bspl6ddd nrrdKernelBSpline6DDD
+      bspl7ai nrrdKernelBSpline7ApproxInverse
+        bspl7 nrrdKernelBSpline7
+       bspl7d nrrdKernelBSpline7D
+      bspl7dd nrrdKernelBSpline7DD
+     bspl7ddd nrrdKernelBSpline7DDD
+TMF_dX_cY_Zef nrrdKernelTMF[D+1][C+1][A]
+  X = n,0,1,2 for D+1 = 0,1,2,3
+Y = n,0,1,2,3 for C+1 = 0,1,2,3,4
+  Z = 1,2,3,4 for A = 1,2,3,4
+
+import _teem
+# for name kn of kernels...
+for kn in filter(lambda S: S.startswith('nrrdKernel'), dir(_teem.lib)):
+    # kstr is string representation of kn itself
+    kstr=str(eval(f'_teem.lib.{kn}'))
+    kk = None
+    exec(f'kk = _teem.lib.{kn}')
+    if kstr.startswith("<cdata 'NrrdKernel *"):
+        try:
+            kname = _teem.ffi.string(kk.name).decode('ascii')
+            print(kname, kn, kstr)
+        except:
+            print('WUT?', kn, kstr)

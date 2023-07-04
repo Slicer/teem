@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "nrrd.h"
@@ -73,7 +71,7 @@ nrrdMinMaxSet(Nrrd *nrrd) {
 
 int
 nrrdMinMaxCleverSet(Nrrd *nrrd) {
-  static const char me[]="nrrdMinMaxCleverSet";
+  static const char me[] = "nrrdMinMaxCleverSet";
   double min, max;
 
   if (!nrrd) {
@@ -133,16 +131,13 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
 }
 */
 
-static int
-clampRoundConvert(Nrrd *nout, const Nrrd *nin, int type,
-                  int doClamp, int roundDir) {
-  static const char me[]="clampRoundConvert";
+static int /* Biff: 1 */
+clampRoundConvert(Nrrd *nout, const Nrrd *nin, int type, int doClamp, int roundDir) {
+  static const char me[] = "clampRoundConvert";
   char typeS[AIR_STRLEN_SMALL];
   size_t num, size[NRRD_DIM_MAX];
 
-  if (!( nin && nout
-         && !nrrdCheck(nin)
-         && !airEnumValCheck(nrrdType, type) )) {
+  if (!(nin && nout && !nrrdCheck(nin) && !airEnumValCheck(nrrdType, type))) {
     biffAddf(NRRD, "%s: invalid args", me);
     return 1;
   }
@@ -155,14 +150,15 @@ clampRoundConvert(Nrrd *nout, const Nrrd *nin, int type,
     biffAddf(NRRD, "%s: nout==nin but input,output type sizes unequal", me);
     return 1;
   }
-  if (nrrdStateDisallowIntegerNonExist
-      && !nrrdTypeIsIntegral[nin->type] && nrrdTypeIsIntegral[type]) {
+  if (nrrdStateDisallowIntegerNonExist && !nrrdTypeIsIntegral[nin->type]
+      && nrrdTypeIsIntegral[type]) {
     /* there's a risk of non-existent values getting converted to
        non-sensical integral values */
     if (nrrdHasNonExist(nin)) {
-      biffAddf(NRRD, "%s: can't convert to integral values (%s) with "
-               "non-existent values in input", me,
-               airEnumStr(nrrdType, type));
+      biffAddf(NRRD,
+               "%s: can't convert to integral values (%s) with "
+               "non-existent values in input",
+               me, airEnumStr(nrrdType, type));
       return 1;
     }
   }
@@ -193,8 +189,8 @@ clampRoundConvert(Nrrd *nout, const Nrrd *nin, int type,
     /* call the appropriate converter */
     num = nrrdElementNumber(nin);
     if (roundDir) {
-      _nrrdCastClampRound[nout->type][nin->type](nout->data, nin->data, num,
-                                                 doClamp, roundDir);
+      _nrrdCastClampRound[nout->type][nin->type](nout->data, nin->data, num, doClamp,
+                                                 roundDir);
     } else if (doClamp) {
       _nrrdClampConv[nout->type][nin->type](nout->data, nin->data, num);
     } else {
@@ -212,15 +208,13 @@ clampRoundConvert(Nrrd *nout, const Nrrd *nin, int type,
     /* the min and max have probably changed if there was a conversion
        to integral values, or to a lower precision representation */
     if (nrrdBasicInfoCopy(nout, nin,
-                          NRRD_BASIC_INFO_DATA_BIT
-                          | NRRD_BASIC_INFO_TYPE_BIT
-                          | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                          | NRRD_BASIC_INFO_DIMENSION_BIT
-                          | NRRD_BASIC_INFO_CONTENT_BIT
-                          | NRRD_BASIC_INFO_COMMENTS_BIT
-                          | (nrrdStateKeyValuePairsPropagate
-                             ? 0
-                             : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+                          NRRD_BASIC_INFO_DATA_BIT /* */
+                            | NRRD_BASIC_INFO_TYPE_BIT | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                            | NRRD_BASIC_INFO_DIMENSION_BIT | NRRD_BASIC_INFO_CONTENT_BIT
+                            | NRRD_BASIC_INFO_COMMENTS_BIT
+                            | (nrrdStateKeyValuePairsPropagate
+                                 ? 0
+                                 : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
       biffAddf(NRRD, "%s:", me);
       return 1;
     }
@@ -236,13 +230,11 @@ clampRoundConvert(Nrrd *nout, const Nrrd *nin, int type,
 ** make available on Nrrds the exact same behavior as you have in C
 ** with casts and assignments.
 */
-int
+int /* Biff: 1 */
 nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
-  static const char me[]="nrrdConvert";
+  static const char me[] = "nrrdConvert";
 
-  if (clampRoundConvert(nout, nin, type,
-                        AIR_FALSE /* clamp */,
-                        0 /* round */)) {
+  if (clampRoundConvert(nout, nin, type, AIR_FALSE /* clamp */, 0 /* round */)) {
     biffAddf(NRRD, "%s: trouble", me);
     return 1;
   }
@@ -258,13 +250,11 @@ nrrdConvert(Nrrd *nout, const Nrrd *nin, int type) {
 ** HEY: WARNING: may have loss of data when processing long long
 ** (either signed or unsigned)
 */
-int
+int /* Biff: 1 */
 nrrdClampConvert(Nrrd *nout, const Nrrd *nin, int type) {
-  static const char me[]="nrrdClampConvert";
+  static const char me[] = "nrrdClampConvert";
 
-  if (clampRoundConvert(nout, nin, type,
-                        AIR_TRUE  /* clamp */,
-                        0 /* round */)) {
+  if (clampRoundConvert(nout, nin, type, AIR_TRUE /* clamp */, 0 /* round */)) {
     biffAddf(NRRD, "%s: trouble", me);
     return 1;
   }
@@ -286,10 +276,9 @@ nrrdClampConvert(Nrrd *nout, const Nrrd *nin, int type) {
 ** HEY: WARNING: may have loss of data when processing long long
 ** (either signed or unsigned)
 */
-int
-nrrdCastClampRound(Nrrd *nout, const Nrrd *nin, int outType,
-                   int doClamp, int roundDir) {
-  static const char me[]="nrrdCastClampRound";
+int /* Biff: 1 */
+nrrdCastClampRound(Nrrd *nout, const Nrrd *nin, int outType, int doClamp, int roundDir) {
+  static const char me[] = "nrrdCastClampRound";
 
   if (clampRoundConvert(nout, nin, outType, doClamp,
                         nrrdTypeIsIntegral[outType] ? roundDir : 0)) {
@@ -309,12 +298,11 @@ nrrdCastClampRound(Nrrd *nout, const Nrrd *nin, int outType,
 ** NOTE: for the time being, this uses a "double" as the intermediate
 ** value holder, which may mean needless loss of precision
 */
-int
-nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
-             unsigned int bits) {
-  static const char me[]="nrrdQuantize", func[]="quantize";
+int /* Biff: 1 */
+nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, unsigned int bits) {
+  static const char me[] = "nrrdQuantize", func[] = "quantize";
   double valIn, minIn, maxIn, eps;
-  int type=nrrdTypeUnknown;
+  int type = nrrdTypeUnknown;
   size_t I, num, size[NRRD_DIM_MAX];
   unsigned char *outUC;
   unsigned short *outUS;
@@ -334,9 +322,15 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 
   /* determine nrrd type from number of bits */
   switch (bits) {
-  case 8:  type = nrrdTypeUChar;  break;
-  case 16: type = nrrdTypeUShort; break;
-  case 32: type = nrrdTypeUInt;   break;
+  case 8:
+    type = nrrdTypeUChar;
+    break;
+  case 16:
+    type = nrrdTypeUShort;
+    break;
+  case 32:
+    type = nrrdTypeUInt;
+    break;
   default:
     biffAddf(NRRD, "%s: bits has to be 8, 16, or 32 (not %d)", me, bits);
     return 1;
@@ -354,9 +348,12 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   }
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   if (nrrdStateDisallowIntegerNonExist && range->hasNonExist) {
-    biffAddf(NRRD, "%s: can't quantize non-existent values "
-             "(NaN, +/-inf)", me);
-    airMopError(mop); return 1;
+    biffAddf(NRRD,
+             "%s: can't quantize non-existent values "
+             "(NaN, +/-inf)",
+             me);
+    airMopError(mop);
+    return 1;
   }
 
   /* allocate space if necessary */
@@ -365,7 +362,8 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
      nout==nin if type sizes match */
   if (nrrdMaybeAlloc_nva(nout, type, nin->dim, size)) {
     biffAddf(NRRD, "%s: failed to create output", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   /* the skinny */
@@ -373,31 +371,27 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   minIn = range->min;
   maxIn = range->max;
   eps = (minIn == maxIn ? 1.0 : 0.0);
-  outUC = (unsigned char*)nout->data;
-  outUS = (unsigned short*)nout->data;
-  outUI = (unsigned int*)nout->data;
-  switch(bits) {
+  outUC = (unsigned char *)nout->data;
+  outUS = (unsigned short *)nout->data;
+  outUI = (unsigned int *)nout->data;
+  switch (bits) {
   case 8:
-    for (I=0; I<num; I++) {
+    for (I = 0; I < num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
-      valIn = AIR_CLAMP(minIn, valIn, maxIn);
-      outUC[I] = airIndex(minIn, valIn, maxIn+eps, 1 << 8);
+      outUC[I] = AIR_UCHAR(airIndexClamp(minIn, valIn, maxIn + eps, 1 << 8));
     }
     break;
   case 16:
-    for (I=0; I<num; I++) {
+    for (I = 0; I < num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
-      valIn = AIR_CLAMP(minIn, valIn, maxIn);
-      outUS[I] = airIndex(minIn, valIn, maxIn+eps, 1 << 16);
+      outUS[I] = AIR_USHORT(airIndexClamp(minIn, valIn, maxIn + eps, 1 << 16));
     }
     break;
   case 32:
-    for (I=0; I<num; I++) {
+    for (I = 0; I < num; I++) {
       valIn = nrrdDLookup[nin->type](nin->data, I);
-      valIn = AIR_CLAMP(minIn, valIn, maxIn);
-      outUI[I] = AIR_CAST(unsigned int,
-                          airIndexULL(minIn, valIn, maxIn+eps,
-                                      AIR_ULLONG(1) << 32));
+      outUI[I] = AIR_UINT(airIndexClampULL(minIn, valIn, maxIn + eps,
+                                           AIR_ULLONG(1) << 32));
     }
     break;
   }
@@ -408,22 +402,21 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
   }
   if (nrrdContentSet_va(nout, func, nin, "%d", bits)) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_DATA_BIT
-                        | NRRD_BASIC_INFO_TYPE_BIT
-                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                        | NRRD_BASIC_INFO_DIMENSION_BIT
-                        | NRRD_BASIC_INFO_CONTENT_BIT
-                        | NRRD_BASIC_INFO_OLDMIN_BIT
-                        | NRRD_BASIC_INFO_OLDMAX_BIT
-                        | NRRD_BASIC_INFO_COMMENTS_BIT
-                        | (nrrdStateKeyValuePairsPropagate
-                           ? 0
-                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+                        NRRD_BASIC_INFO_DATA_BIT /* */
+                          | NRRD_BASIC_INFO_TYPE_BIT | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                          | NRRD_BASIC_INFO_DIMENSION_BIT | NRRD_BASIC_INFO_CONTENT_BIT
+                          | NRRD_BASIC_INFO_OLDMIN_BIT | NRRD_BASIC_INFO_OLDMAX_BIT
+                          | NRRD_BASIC_INFO_COMMENTS_BIT
+                          | (nrrdStateKeyValuePairsPropagate
+                               ? 0
+                               : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   nout->oldMin = minIn;
   nout->oldMax = maxIn;
@@ -445,20 +438,19 @@ nrrdQuantize(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
 ** for the array is questionable, and the implementation below
 ** should be re-evaluated.
 */
-static const double
-_nrrdTypeNumberOfValues[NRRD_TYPE_MAX+1] = {
-  0,                         /* unknown */
-  UCHAR_MAX+1,               /* char */
-  UCHAR_MAX+1,               /* unsigned char */
-  USHRT_MAX+1,               /* short */
-  USHRT_MAX+1,               /* unsigned short */
-  (double)UINT_MAX+1,        /* int */
-  (double)UINT_MAX+1,        /* unsigned int */
-  (double)NRRD_ULLONG_MAX+1, /* long long */
-  (double)NRRD_ULLONG_MAX+1, /* unsigned long long */
-  0,                         /* float */
-  0,                         /* double */
-  0                          /* punt */
+static const double _nrrdTypeNumberOfValues[NRRD_TYPE_MAX + 1] = {
+  0,                           /* unknown */
+  UCHAR_MAX + 1,               /* char */
+  UCHAR_MAX + 1,               /* unsigned char */
+  USHRT_MAX + 1,               /* short */
+  USHRT_MAX + 1,               /* unsigned short */
+  (double)UINT_MAX + 1,        /* int */
+  (double)UINT_MAX + 1,        /* unsigned int */
+  (double)NRRD_ULLONG_MAX + 1, /* long long */
+  (double)NRRD_ULLONG_MAX + 1, /* unsigned long long */
+  0,                           /* float */
+  0,                           /* double */
+  0                            /* punt */
 };
 
 /*
@@ -478,9 +470,9 @@ _nrrdTypeNumberOfValues[NRRD_TYPE_MAX+1] = {
 ** (V+0.5)/256
 ** so a 0 will be mapped to 1/512 = 0.00195
 */
-int
+int /* Biff: 1 */
 nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
-  static const char me[]="nrrdUnquantize", func[]="unquantize";
+  static const char me[] = "nrrdUnquantize", func[] = "unquantize";
   float *outF;
   double *outD, minIn, numValIn, minOut, maxOut, valIn;
   size_t NN, II, size[NRRD_DIM_MAX];
@@ -493,10 +485,9 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
     biffAddf(NRRD, "%s: don't recognize type %d\n", me, type);
     return 1;
   }
-  if (!( type == nrrdTypeFloat || type == nrrdTypeDouble )) {
+  if (!(type == nrrdTypeFloat || type == nrrdTypeDouble)) {
     biffAddf(NRRD, "%s: output type must be %s or %s (not %s)", me,
-             airEnumStr(nrrdType, nrrdTypeFloat),
-             airEnumStr(nrrdType, nrrdTypeDouble),
+             airEnumStr(nrrdType, nrrdTypeFloat), airEnumStr(nrrdType, nrrdTypeDouble),
              airEnumStr(nrrdType, type));
     return 1;
   }
@@ -529,19 +520,18 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
     minOut = 0.0;
     maxOut = 1.0;
   }
-  outF = (float*)nout->data;
-  outD = (double*)nout->data;
+  outF = (float *)nout->data;
+  outD = (double *)nout->data;
   NN = nrrdElementNumber(nin);
-  switch(type) {
+  switch (type) {
   case nrrdTypeFloat:
-    for (II=0; II<NN; II++) {
+    for (II = 0; II < NN; II++) {
       valIn = minIn + nrrdDLookup[nin->type](nin->data, II);
-      outF[II] = AIR_CAST(float,
-                          NRRD_CELL_POS(minOut, maxOut, numValIn, valIn));
+      outF[II] = AIR_FLOAT(NRRD_CELL_POS(minOut, maxOut, numValIn, valIn));
     }
     break;
   case nrrdTypeDouble:
-    for (II=0; II<NN; II++) {
+    for (II = 0; II < NN; II++) {
       valIn = minIn + nrrdDLookup[nin->type](nin->data, II);
       outD[II] = NRRD_CELL_POS(minOut, maxOut, numValIn, valIn);
     }
@@ -557,17 +547,14 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
     return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_DATA_BIT
-                        | NRRD_BASIC_INFO_TYPE_BIT
-                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                        | NRRD_BASIC_INFO_DIMENSION_BIT
-                        | NRRD_BASIC_INFO_CONTENT_BIT
-                        | NRRD_BASIC_INFO_OLDMIN_BIT
-                        | NRRD_BASIC_INFO_OLDMAX_BIT
-                        | NRRD_BASIC_INFO_COMMENTS_BIT
-                        | (nrrdStateKeyValuePairsPropagate
-                           ? 0
-                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+                        NRRD_BASIC_INFO_DATA_BIT /* */
+                          | NRRD_BASIC_INFO_TYPE_BIT | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                          | NRRD_BASIC_INFO_DIMENSION_BIT | NRRD_BASIC_INFO_CONTENT_BIT
+                          | NRRD_BASIC_INFO_OLDMIN_BIT | NRRD_BASIC_INFO_OLDMAX_BIT
+                          | NRRD_BASIC_INFO_COMMENTS_BIT
+                          | (nrrdStateKeyValuePairsPropagate
+                               ? 0
+                               : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     biffAddf(NRRD, "%s:", me);
     return 1;
   }
@@ -576,17 +563,16 @@ nrrdUnquantize(Nrrd *nout, const Nrrd *nin, int type) {
   return 0;
 }
 
-
 /*
 ** _nrrdHistoEqCompare()
 **
 ** used by nrrdHistoEq in smart mode to sort the "steady" array
 ** in _descending_ order
 */
-int
+static int
 _nrrdHistoEqCompare(const void *a, const void *b) {
 
-  return *((const unsigned int*)b) - *((const unsigned int*)a);
+  return *((const unsigned int *)b) - *((const unsigned int *)a);
 }
 
 /*
@@ -621,10 +607,10 @@ _nrrdHistoEqCompare(const void *a, const void *b) {
 ** histogram equalization is a large amount of background (which is
 ** exactly one fixed value).
 */
-int
-nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
-            unsigned int bins, unsigned int smart, float amount) {
-  static const char me[]="nrrdHistoEq", func[]="heq";
+int /* Biff: 1 */
+nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP, unsigned int bins,
+            unsigned int smart, float amount) {
+  static const char me[] = "nrrdHistoEq", func[] = "heq";
   Nrrd *nhist, *nmap;
   double val, min, max, *last = NULL, *ycoord = NULL;
   int *respect = NULL, lort;
@@ -666,92 +652,93 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
     nhist = nrrdNew();
     if (nrrdHisto(nhist, nin, NULL, NULL, bins, nrrdTypeUInt)) {
       biffAddf(NRRD, "%s: failed to create histogram", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
-    hist = (unsigned int*)nhist->data;
+    hist = (unsigned int *)nhist->data;
     min = nhist->axis[0].min;
     max = nhist->axis[0].max;
   } else {
     /* for "smart" mode, we have to some extra work while creating the
        histogram to look for bins incessantly hit with the exact same
        value */
-    if (nrrdMaybeAlloc_va(nhist=nrrdNew(), nrrdTypeUInt, 1,
-                          AIR_CAST(size_t, bins))) {
+    if (nrrdMaybeAlloc_va(nhist = nrrdNew(), nrrdTypeUInt, 1, AIR_CAST(size_t, bins))) {
       biffAddf(NRRD, "%s: failed to allocate histogram", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
-    hist = (unsigned int*)nhist->data;
+    hist = (unsigned int *)nhist->data;
     nhist->axis[0].size = bins;
     /* allocate the respect, steady, and last arrays */
-    respect = (int*)calloc(bins, sizeof(int));
-    steady = (unsigned int*)calloc(2*bins, sizeof(unsigned int));
-    last = (double*)calloc(bins, sizeof(double));
+    respect = (int *)calloc(bins, sizeof(int));
+    steady = (unsigned int *)calloc(2 * bins, sizeof(unsigned int));
+    last = (double *)calloc(bins, sizeof(double));
     airMopMem(mop, &respect, airMopAlways);
     airMopMem(mop, &steady, airMopAlways);
     airMopMem(mop, &last, airMopAlways);
     if (!(respect && steady && last)) {
       biffAddf(NRRD, "%s: couldn't allocate smart arrays", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     /* steady[0 + 2*bii] == how many times has bin bii seen the same value
        steady[1 + 2*bii] == bii (steady will be rearranged by qsort()) */
-    for (bii=0; bii<bins; bii++) {
+    for (bii = 0; bii < bins; bii++) {
       last[bii] = AIR_NAN;
       respect[bii] = 1;
-      steady[1 + 2*bii] = bii;
+      steady[1 + 2 * bii] = bii;
     }
     /* now create the histogram */
     range = nrrdRangeNewSet(nin, nrrdBlind8BitRangeState);
     airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
     if (range->min == range->max) {
-      biffAddf(NRRD, "%s: invalid min and max in nrrd.  "
-               "Min and max are equivalent (min,max = %g).", me, range->min);
-      airMopError(mop); return 1;
+      biffAddf(NRRD,
+               "%s: invalid min and max in nrrd.  "
+               "Min and max are equivalent (min,max = %g).",
+               me, range->min);
+      airMopError(mop);
+      return 1;
     }
     min = range->min;
     max = range->max;
-    for (I=0; I<num; I++) {
+    for (I = 0; I < num; I++) {
       val = nrrdDLookup[nin->type](nin->data, I);
       if (AIR_EXISTS(val)) {
         idx = airIndex(min, val, max, bins);
         ++hist[idx];
         if (AIR_EXISTS(last[idx])) {
-          steady[0 + 2*idx] = (last[idx] == val
-                               ? 1 + steady[0 + 2*idx]
-                               : 0);
+          steady[0 + 2 * idx] = (last[idx] == val ? 1 + steady[0 + 2 * idx] : 0);
         }
         last[idx] = val;
       }
     }
     /* now sort the steady array */
-    qsort(steady, bins, 2*sizeof(unsigned int), _nrrdHistoEqCompare);
+    qsort(steady, bins, 2 * sizeof(unsigned int), _nrrdHistoEqCompare);
     /* we ignore some of the bins according to "smart" arg */
-    for (bii=0; bii<smart; bii++) {
-      respect[steady[1+2*bii]] = 0;
+    for (bii = 0; bii < smart; bii++) {
+      respect[steady[1 + 2 * bii]] = 0;
       /* printf("%s: disrespecting bin %d\n", me, steady[1+2*bii]); */
     }
   }
-  if (nrrdMaybeAlloc_va(nmap=nrrdNew(), nrrdTypeDouble, 1,
-                        AIR_CAST(size_t, bins+1))) {
+  if (nrrdMaybeAlloc_va(nmap = nrrdNew(), nrrdTypeDouble, 1,
+                        AIR_CAST(size_t, bins + 1))) {
     biffAddf(NRRD, "%s: failed to create map nrrd", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  airMopAdd(mop, nmap, (airMopper)nrrdNuke,
-            nmapP ? airMopOnError : airMopAlways);
-  ycoord = AIR_CAST(double*, nmap->data);
+  airMopAdd(mop, nmap, (airMopper)nrrdNuke, nmapP ? airMopOnError : airMopAlways);
+  ycoord = AIR_CAST(double *, nmap->data);
   nmap->axis[0].min = min;
   nmap->axis[0].max = max;
 
   /* integrate the histogram then normalize it */
-  for (bii=0; bii<=bins; bii++) {
+  for (bii = 0; bii <= bins; bii++) {
     if (bii == 0) {
       ycoord[bii] = 0;
     } else {
-      ycoord[bii] = ycoord[bii-1] + hist[bii-1]*(smart
-                                                 ? respect[bii-1]
-                                                 : 1);
+      ycoord[bii] = ycoord[bii - 1] + hist[bii - 1] * (smart ? respect[bii - 1] : 1);
     }
   }
   /* if we've done smart, the integral will have little flat spots
@@ -765,37 +752,36 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
     /* there are bins+1 control points, with indices 0 to bins.
        We'll fix control points 1 to bins-1.  ycoord[bii] is too low
        if hist[bii-1] was not respected (!respect[bii-1]) */
-    for (bii=1; bii<=bins-1; bii++) {
-      if (!respect[bii-1]) {
+    for (bii = 1; bii <= bins - 1; bii++) {
+      if (!respect[bii - 1]) {
         /* lort and hirt will bracket the index of the bad control point
            with points corresponding either to respected bins or the
            endpoints of the histogram */
-        for (lort=bii; lort>=1 && !respect[lort-1]; lort--)
+        for (lort = bii; lort >= 1 && !respect[lort - 1]; lort--)
           ;
-        for (hirt=bii; hirt<bins && !respect[hirt-1]; hirt++)
+        for (hirt = bii; hirt < bins && !respect[hirt - 1]; hirt++)
           ;
-        ycoord[bii] = AIR_AFFINE(lort, bii, hirt,
-                                 ycoord[lort], ycoord[hirt]);
+        ycoord[bii] = AIR_AFFINE(lort, bii, hirt, ycoord[lort], ycoord[hirt]);
       }
     }
     /* the very last control point has to be handled differently */
-    if (!respect[bins-1]) {
-      ycoord[bins] += ycoord[bins-1] - ycoord[bins-2];
+    if (!respect[bins - 1]) {
+      ycoord[bins] += ycoord[bins - 1] - ycoord[bins - 2];
     }
   }
   /* rescale the histogram integration to span the original
      value range, and affect the influence of "amount" */
-  for (bii=0; bii<=bins; bii++) {
+  for (bii = 0; bii <= bins; bii++) {
     ycoord[bii] = AIR_AFFINE(0.0, ycoord[bii], ycoord[bins], min, max);
-    ycoord[bii] = AIR_AFFINE(0.0, amount, 1.0,
-                             AIR_AFFINE(0, bii, bins, min, max),
+    ycoord[bii] = AIR_AFFINE(0.0, amount, 1.0, AIR_AFFINE(0, bii, bins, min, max),
                              ycoord[bii]);
   }
 
   /* map the nrrd values through the normalized histogram integral */
   if (nrrdApply1DRegMap(nout, nin, NULL, nmap, nin->type, AIR_FALSE)) {
     biffAddf(NRRD, "%s: problem remapping", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   /*
   for (I=0; I<num; I++) {
@@ -818,20 +804,20 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP,
   /* fiddling with content is the only thing we'll do */
   if (nrrdContentSet_va(nout, func, nin, "%d,%d", bins, smart)) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdBasicInfoCopy(nout, nin,
-                        NRRD_BASIC_INFO_DATA_BIT
-                        | NRRD_BASIC_INFO_TYPE_BIT
-                        | NRRD_BASIC_INFO_BLOCKSIZE_BIT
-                        | NRRD_BASIC_INFO_DIMENSION_BIT
-                        | NRRD_BASIC_INFO_CONTENT_BIT
-                        | NRRD_BASIC_INFO_COMMENTS_BIT
-                        | (nrrdStateKeyValuePairsPropagate
-                           ? 0
-                           : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
+                        NRRD_BASIC_INFO_DATA_BIT /* */
+                          | NRRD_BASIC_INFO_TYPE_BIT | NRRD_BASIC_INFO_BLOCKSIZE_BIT
+                          | NRRD_BASIC_INFO_DIMENSION_BIT | NRRD_BASIC_INFO_CONTENT_BIT
+                          | NRRD_BASIC_INFO_COMMENTS_BIT
+                          | (nrrdStateKeyValuePairsPropagate
+                               ? 0
+                               : NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
     biffAddf(NRRD, "%s:", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

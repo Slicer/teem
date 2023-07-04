@@ -1,26 +1,23 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
-
 
 #include "pull.h"
 #include "privatePull.h"
@@ -42,17 +39,16 @@ _pullInitParmInit(pullInitParm *initParm) {
   return;
 }
 
-#define CHECK(thing, min, max)                                         \
-  if (!( AIR_EXISTS(iparm->thing)                                      \
-         && min <= iparm->thing && iparm->thing <= max )) {            \
-    biffAddf(PULL, "%s: initParm->" #thing " %g not in range [%g,%g]", \
-             me, iparm->thing, min, max);                              \
-    return 1;                                                          \
+#define CHECK(thing, min, max)                                                          \
+  if (!(AIR_EXISTS(iparm->thing) && min <= iparm->thing && iparm->thing <= max)) {      \
+    biffAddf(PULL, "%s: initParm->" #thing " %g not in range [%g,%g]", me,              \
+             iparm->thing, min, max);                                                   \
+    return 1;                                                                           \
   }
 
-int
+int /* Biff: (private) 1 */
 _pullInitParmCheck(pullInitParm *iparm) {
-  static const char me[]="_pullInitParmCheck";
+  static const char me[] = "_pullInitParmCheck";
 
   if (!AIR_IN_OP(pullInitMethodUnknown, iparm->method, pullInitMethodLast)) {
     biffAddf(PULL, "%s: init method %d not valid", me, iparm->method);
@@ -65,24 +61,22 @@ _pullInitParmCheck(pullInitParm *iparm) {
       biffMovef(PULL, NRRD, "%s: got a broken npos", me);
       return 1;
     }
-    if (!( 2 == iparm->npos->dim
-           && 4 == iparm->npos->axis[0].size
-           && (nrrdTypeDouble == iparm->npos->type
-               || nrrdTypeFloat == iparm->npos->type) )) {
-      biffAddf(PULL, "%s: npos not a 2-D 4-by-N array of %s or %s"
-               "(got %u-D %u-by-X of %s)", me,
-               airEnumStr(nrrdType, nrrdTypeFloat),
-               airEnumStr(nrrdType, nrrdTypeDouble),
-               iparm->npos->dim,
-               AIR_CAST(unsigned int, iparm->npos->axis[0].size),
+    if (!(2 == iparm->npos->dim && 4 == iparm->npos->axis[0].size
+          && (nrrdTypeDouble == iparm->npos->type
+              || nrrdTypeFloat == iparm->npos->type))) {
+      biffAddf(PULL,
+               "%s: npos not a 2-D 4-by-N array of %s or %s"
+               "(got %u-D %u-by-X of %s)",
+               me, airEnumStr(nrrdType, nrrdTypeFloat),
+               airEnumStr(nrrdType, nrrdTypeDouble), iparm->npos->dim,
+               AIR_UINT(iparm->npos->axis[0].size),
                airEnumStr(nrrdType, iparm->npos->type));
       return 1;
     }
     break;
   case pullInitMethodPointPerVoxel:
     if (iparm->pointPerVoxel < -3001 || iparm->pointPerVoxel > 10) {
-      biffAddf(PULL, "%s: pointPerVoxel %d unreasonable", me,
-               iparm->pointPerVoxel);
+      biffAddf(PULL, "%s: pointPerVoxel %d unreasonable", me, iparm->pointPerVoxel);
       return 1;
     }
     if (-1 == iparm->pointPerVoxel) {
@@ -97,25 +91,23 @@ _pullInitParmCheck(pullInitParm *iparm) {
     break;
   case pullInitMethodRandom:
   case pullInitMethodHalton:
-    if (!( iparm->numInitial >= 1 )) {
-      biffAddf(PULL, "%s: iparm->numInitial (%d) not >= 1\n", me,
-               iparm->numInitial);
+    if (!(iparm->numInitial >= 1)) {
+      biffAddf(PULL, "%s: iparm->numInitial (%d) not >= 1\n", me, iparm->numInitial);
       return 1;
     }
     break;
   /* no check needed on haltonStartIndex */
   default:
-    biffAddf(PULL, "%s: init method %d valid but not handled?", me,
-             iparm->method);
+    biffAddf(PULL, "%s: init method %d valid but not handled?", me, iparm->method);
     return 1;
   }
 
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullInitRandomSet(pullContext *pctx, unsigned int numInitial) {
-  static const char me[]="pullInitRandomSet";
+  static const char me[] = "pullInitRandomSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -131,10 +123,9 @@ pullInitRandomSet(pullContext *pctx, unsigned int numInitial) {
   return 0;
 }
 
-int
-pullInitHaltonSet(pullContext *pctx, unsigned int numInitial,
-                  unsigned int startIndex) {
-  static const char me[]="pullInitHaltonSet";
+int /* Biff: 1 */
+pullInitHaltonSet(pullContext *pctx, unsigned int numInitial, unsigned int startIndex) {
+  static const char me[] = "pullInitHaltonSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -151,12 +142,11 @@ pullInitHaltonSet(pullContext *pctx, unsigned int numInitial,
   return 0;
 }
 
-int
-pullInitPointPerVoxelSet(pullContext *pctx, int pointPerVoxel,
-                         unsigned int zSlcMin, unsigned int zSlcMax,
-                         unsigned int alongScaleNum,
+int /* Biff: 1 */
+pullInitPointPerVoxelSet(pullContext *pctx, int pointPerVoxel, unsigned int zSlcMin,
+                         unsigned int zSlcMax, unsigned int alongScaleNum,
                          double jitter) {
-  static const char me[]="pullInitPointPerVoxelSet";
+  static const char me[] = "pullInitPointPerVoxelSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -180,9 +170,9 @@ pullInitPointPerVoxelSet(pullContext *pctx, int pointPerVoxel,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullInitGivenPosSet(pullContext *pctx, const Nrrd *npos) {
-  static const char me[]="pullInitGivenPosSet";
+  static const char me[] = "pullInitGivenPosSet";
 
   if (!(pctx && npos)) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -194,9 +184,9 @@ pullInitGivenPosSet(pullContext *pctx, const Nrrd *npos) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullInitLiveThreshUseSet(pullContext *pctx, int liveThreshUse) {
-  static const char me[]="pullInitLiveThreshUseSet";
+  static const char me[] = "pullInitLiveThreshUseSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -207,9 +197,9 @@ pullInitLiveThreshUseSet(pullContext *pctx, int liveThreshUse) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 pullInitUnequalShapesAllowSet(pullContext *pctx, int allow) {
-  static const char me[]="pullInitUnequalShapesAllowSet";
+  static const char me[] = "pullInitUnequalShapesAllowSet";
 
   if (!pctx) {
     biffAddf(PULL, "%s: got NULL pointer", me);
@@ -222,5 +212,4 @@ pullInitUnequalShapesAllowSet(pullContext *pctx, int allow) {
 
 #undef CHECK
 
-FILE *
-_pullPointAddLog = NULL;
+/* FILE *_pullPointAddLog = NULL; */

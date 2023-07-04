@@ -1,54 +1,52 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
 #define INFO "Quantize values to 8, 16, or 32 bits"
-static const char *_unrrdu_quantizeInfoL =
-(INFO ". Input values can be fixed point (e.g. quantizing ushorts down to "
- "uchars) or floating point.  Values are clamped to the min and max before "
- "they are quantized, so there is no risk of getting 255 where you expect 0 "
- "(with unsigned char output, for example).  The min and max can be specified "
- "explicitly (as a regular number), or in terms of percentiles (a number "
- "suffixed with \"" NRRD_MINMAX_PERC_SUFF "\", no space in between). "
- "This does only linear quantization. "
- "See also \"unu convert\", \"unu 2op x\", "
- "and \"unu 3op clamp\".\n "
- "* Uses nrrdQuantize");
+static const char *_unrrdu_quantizeInfoL
+  = (INFO ". Input values can be fixed point (e.g. quantizing ushorts down to "
+          "uchars) or floating point.  Values are clamped to the min and max before "
+          "they are quantized, so there is no risk of getting 255 where you expect 0 "
+          "(with unsigned char output, for example).  The min and max can be specified "
+          "explicitly (as a regular number), or in terms of percentiles (a number "
+          "suffixed with \"" NRRD_MINMAX_PERC_SUFF "\", no space in between). "
+          "This does only linear quantization. "
+          "See also \"unu convert\", \"unu 2op x\", "
+          "and \"unu 3op clamp\".\n "
+          "* Uses nrrdQuantize");
 
-int
-unrrdu_quantizeMain(int argc, const char **argv, const char *me,
-                    hestParm *hparm) {
+static int
+unrrdu_quantizeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  char *minStr, *maxStr;
-  int pret, blind8BitRange;
-  unsigned int bits, hbins;
+  char *minStr, *maxStr, *gammaS;
+  int pret, zeroCenter, blind8BitRange, srgb, E = 0;
+  unsigned int bits, hbins, srgbIdx;
   double gamma;
   NrrdRange *range;
   airArray *mop;
+  NrrdIoState *nio = NULL;
 
   hestOptAdd(&opt, "b,bits", "bits", airTypeOther, 1, 1, &bits, NULL,
              "Number of bits to quantize down to; determines the type "
@@ -57,8 +55,7 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
              "\b\bo \"16\": unsigned short\n "
              "\b\bo \"32\": unsigned int",
              NULL, NULL, &unrrduHestBitsCB);
-  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1,
-             &minStr, "nan",
+  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1, &minStr, "nan",
              "The value to map to zero, given explicitly as a regular number, "
              "*or*, if the number is given with a \"" NRRD_MINMAX_PERC_SUFF
              "\" suffix, this "
@@ -70,8 +67,7 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
              "1% of the lowest values are all mapped to zero. "
              "By default (not using this option), the lowest input value is "
              "used.");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1,
-             &maxStr, "nan",
+  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1, &maxStr, "nan",
              "The value to map to the highest unsigned integral value, given "
              "explicitly as a regular number, "
              "*or*, if the number is given with "
@@ -81,9 +77,26 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
              "\"0" NRRD_MINMAX_PERC_SUFF "\" means the highest input value is "
              "used, which is also the default "
              "behavior (same as not using this option).");
-  hestOptAdd(&opt, "g,gamma", "gamma", airTypeDouble, 1, 1, &gamma, "1.0",
+  /* NOTE -zc shared with unrrdu histax, histo, quantize */
+  hestOptAdd(&opt, "zc,zero-center", NULL, airTypeInt, 0, 0, &zeroCenter, NULL,
+             "if used, percentile-based min,max determine a zero-centered "
+             "range (rather than treating min and max independently), which "
+             "may help process signed values in an expected way.");
+  hestOptAdd(&opt, "g,gamma", "gamma", airTypeString, 1, 1, &gammaS, "1.0",
              "gamma > 1.0 brightens; gamma < 1.0 darkens. "
-             "Negative gammas invert values. ");
+             "Negative gammas invert values. Or, can be the string "
+             "\"srgb\" to apply the roughly 2.2 gamma associated "
+             "with sRGB (see https://en.wikipedia.org/wiki/SRGB). ");
+  srgbIdx = /* HEY copied from overrgb.c */
+    hestOptAdd(&opt, "srgb", "intent", airTypeEnum, 1, 1, &srgb, "none",
+               /* the default is "none" for backwards compatibility: until now
+                  Teem's support of PNG hasn't handled the sRGB intent, so
+                  we shouldn't start using it without being asked */
+               "If saving to PNG (when supported), how to set the rendering "
+               "intent in the sRGB chunk of the PNG file format. Can be "
+               "absolute, relative, perceptual, saturation, or none. This is "
+               "independent of using \"srgb\" as the -g gamma",
+               NULL, nrrdFormatPNGsRGBIntent);
   hestOptAdd(&opt, "hb,bins", "bins", airTypeUInt, 1, 1, &hbins, "5000",
              "number of bins in histogram of values, for determining min "
              "or max by percentiles.  This has to be large enough so that "
@@ -99,29 +112,60 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me,
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_quantizeInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_quantizeInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
+
+  /* HEY copied from overrgb */
+  if (!(!strcmp(gammaS, "srgb") || 1 == sscanf(gammaS, "%lf", &gamma))) {
+    fprintf(stderr,
+            "%s: gamma \"%s\" neither \"srgb\" nor "
+            "parseable as double",
+            me, gammaS);
+    airMopError(mop);
+    return 1;
+  }
 
   range = nrrdRangeNew(AIR_NAN, AIR_NAN);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdRangePercentileFromStringSet(range, nin, minStr, maxStr,
-                                       hbins, blind8BitRange)
-      || (1 == gamma ? 0
-          : nrrdArithGamma(nin, nin, range, gamma))
-      || nrrdQuantize(nout, nin, range, bits)) {
+  if (nrrdRangePercentileFromStringSet(range, nin, minStr, maxStr, zeroCenter, hbins,
+                                       blind8BitRange)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: error with range%s quantizing:\n%s", me,
-            (1 == gamma ? " or" : ", gamma, or"), err);
+    fprintf(stderr, "%s: error learning range:\n%s", me, err);
+    airMopError(mop);
+    return 1;
+  }
+  if (!strcmp(gammaS, "srgb")) {
+    E = nrrdArithSRGBGamma(nin, nin, range, AIR_TRUE);
+  } else if (1 != gamma) {
+    E = nrrdArithGamma(nin, nin, range, gamma);
+  }
+  if (E) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: error going gamma:\n%s", me, err);
+    airMopError(mop);
+    return 1;
+  }
+  if (nrrdQuantize(nout, nin, range, bits)) {
+    airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+    fprintf(stderr, "%s: error quantizing:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
 
-  SAVE(out, nout, NULL);
+  if (hestSourceUser == opt[srgbIdx].source) {
+    /* HEY copied from overrgb.c */
+    nio = nrrdIoStateNew();
+    airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
+    nio->PNGsRGBIntentKnown = AIR_TRUE;
+    nio->PNGsRGBIntent = srgb; /* even if it is nrrdFormatPNGsRGBIntentNone;
+                                  that's handled by the writer */
+  }
+
+  SAVE(out, nout, nio);
 
   airMopOkay(mop);
   return 0;

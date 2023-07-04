@@ -1,31 +1,29 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "nrrd.h"
 #include "privateNrrd.h"
 
 #if TEEM_BZIP2
-#include <bzlib.h>
+#  include <bzlib.h>
 #endif
 
 static int
@@ -38,37 +36,36 @@ _nrrdEncodingBzip2_available(void) {
 #endif
 }
 
-static int
-_nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
-                        Nrrd *nrrd, NrrdIoState *nio) {
-  static const char me[]="_nrrdEncodingBzip2_read";
+static int /* Biff: 1 */
+_nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
+                        NrrdIoState *nio) {
+  static const char me[] = "_nrrdEncodingBzip2_read";
 #if TEEM_BZIP2
   size_t bsize, total_read, block_size;
-  int read, bzerror=BZ_OK;
+  int read, bzerror = BZ_OK;
   long int bi;
   char *data;
-  BZFILE* bzfin;
+  BZFILE *bzfin;
 
-  bsize = nrrdElementSize(nrrd)*elNum;
+  bsize = nrrdElementSize(nrrd) * elNum;
 
   /* Create the BZFILE* for reading in the gzipped data. */
   bzfin = BZ2_bzReadOpen(&bzerror, file, 0, 0, NULL, 0);
   if (bzerror != BZ_OK) {
     /* there was a problem */
-    biffAddf(NRRD, "%s: error opening BZFILE: %s", me,
-             BZ2_bzerror(bzfin, &bzerror));
+    biffAddf(NRRD, "%s: error opening BZFILE: %s", me, BZ2_bzerror(bzfin, &bzerror));
     BZ2_bzReadClose(&bzerror, bzfin);
     return 1;
   }
 
   /* Here is where we do the byte skipping. */
-  for(bi=0; bi<nio->byteSkip; bi++) {
+  for (bi = 0; bi < nio->byteSkip; bi++) {
     unsigned char b;
     /* Check to see if a single byte was able to be read. */
     read = BZ2_bzRead(&bzerror, bzfin, &b, 1);
     if (read != 1 || bzerror != BZ_OK) {
-      biffAddf(NRRD, "%s: hit an error skipping byte %ld of %ld: %s",
-               me, bi, nio->byteSkip, BZ2_bzerror(bzfin, &bzerror));
+      biffAddf(NRRD, "%s: hit an error skipping byte %ld of %ld: %s", me, bi,
+               nio->byteSkip, BZ2_bzerror(bzfin, &bzerror));
       return 1;
     }
   }
@@ -92,7 +89,7 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
   /* Ok, now we can begin reading. */
   bzerror = BZ_OK;
   while ((read = BZ2_bzRead(&bzerror, bzfin, data, block_size))
-          && (BZ_OK == bzerror || BZ_STREAM_END == bzerror) ) {
+         && (BZ_OK == bzerror || BZ_STREAM_END == bzerror)) {
     /* Increment the data pointer to the next available spot. */
     data += read;
     total_read += read;
@@ -101,22 +98,20 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
        we don't want.  This will reduce block_size when we get to the last
        block (which may be smaller than block_size).
     */
-    if (bsize >= total_read
-        && bsize - total_read < block_size)
+    if (bsize >= total_read && bsize - total_read < block_size)
       block_size = bsize - total_read;
   }
 
-  if (!( BZ_OK == bzerror || BZ_STREAM_END == bzerror )) {
-    biffAddf(NRRD, "%s: error reading from BZFILE: %s",
-             me, BZ2_bzerror(bzfin, &bzerror));
+  if (!(BZ_OK == bzerror || BZ_STREAM_END == bzerror)) {
+    biffAddf(NRRD, "%s: error reading from BZFILE: %s", me,
+             BZ2_bzerror(bzfin, &bzerror));
     return 1;
   }
 
   /* Close the BZFILE. */
   BZ2_bzReadClose(&bzerror, bzfin);
   if (BZ_OK != bzerror) {
-    biffAddf(NRRD, "%s: error closing BZFILE: %s", me,
-             BZ2_bzerror(bzfin, &bzerror));
+    biffAddf(NRRD, "%s: error closing BZFILE: %s", me, BZ2_bzerror(bzfin, &bzerror));
     return 1;
   }
 
@@ -124,8 +119,7 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
   if (total_read != bsize) {
     char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
     biffAddf(NRRD, "%s: expected %s bytes but received %s", me,
-             airSprintSize_t(stmp1, bsize),
-             airSprintSize_t(stmp2, total_read));
+             airSprintSize_t(stmp1, bsize), airSprintSize_t(stmp2, total_read));
     return 1;
   }
 
@@ -141,17 +135,17 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum,
 #endif
 }
 
-static int
-_nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum,
-                         const Nrrd *nrrd, NrrdIoState *nio) {
-  static const char me[]="_nrrdEncodingBzip2_write";
+static int /* Biff: 1 */
+_nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum, const Nrrd *nrrd,
+                         NrrdIoState *nio) {
+  static const char me[] = "_nrrdEncodingBzip2_write";
 #if TEEM_BZIP2
   size_t bsize, total_written, block_size;
-  int bs, bzerror=BZ_OK;
+  int bs, bzerror = BZ_OK;
   char *data;
-  BZFILE* bzfout;
+  BZFILE *bzfout;
 
-  bsize = nrrdElementSize(nrrd)*elNum;
+  bsize = nrrdElementSize(nrrd) * elNum;
 
   /* Set compression block size. */
   if (1 <= nio->bzip2BlockSize && nio->bzip2BlockSize <= 9) {
@@ -163,8 +157,7 @@ _nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum,
      to default values. */
   bzfout = BZ2_bzWriteOpen(&bzerror, file, bs, 0, 0);
   if (BZ_OK != bzerror) {
-    biffAddf(NRRD, "%s: error opening BZFILE: %s", me,
-             BZ2_bzerror(bzfout, &bzerror));
+    biffAddf(NRRD, "%s: error opening BZFILE: %s", me, BZ2_bzerror(bzfout, &bzerror));
     BZ2_bzWriteClose(&bzerror, bzfout, 0, NULL, NULL);
     return 1;
   }
@@ -203,16 +196,14 @@ _nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum,
   }
 
   if (BZ_OK != bzerror) {
-    biffAddf(NRRD, "%s: error writing to BZFILE: %s",
-             me, BZ2_bzerror(bzfout, &bzerror));
+    biffAddf(NRRD, "%s: error writing to BZFILE: %s", me, BZ2_bzerror(bzfout, &bzerror));
     return 1;
   }
 
   /* Close the BZFILE. */
   BZ2_bzWriteClose(&bzerror, bzfout, 0, NULL, NULL);
   if (BZ_OK != bzerror) {
-    biffAddf(NRRD, "%s: error closing BZFILE: %s", me,
-             BZ2_bzerror(bzfout, &bzerror));
+    biffAddf(NRRD, "%s: error closing BZFILE: %s", me, BZ2_bzerror(bzfout, &bzerror));
     return 1;
   }
 
@@ -220,8 +211,7 @@ _nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum,
   if (total_written != bsize) {
     char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
     biffAddf(NRRD, "%s: expected to write %s bytes, but only wrote %s", me,
-             airSprintSize_t(stmp1, bsize),
-             airSprintSize_t(stmp2, total_written));
+             airSprintSize_t(stmp1, bsize), airSprintSize_t(stmp2, total_written));
     return 1;
   }
 
@@ -237,16 +227,12 @@ _nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum,
 #endif
 }
 
-const NrrdEncoding
-_nrrdEncodingBzip2 = {
-  "bzip2",      /* name */
-  "raw.bz2",   /* suffix */
-  AIR_TRUE,    /* endianMatters */
-  AIR_TRUE,   /* isCompression */
-  _nrrdEncodingBzip2_available,
-  _nrrdEncodingBzip2_read,
-  _nrrdEncodingBzip2_write
-};
+const NrrdEncoding _nrrdEncodingBzip2 = {"bzip2",   /* name */
+                                         "raw.bz2", /* suffix */
+                                         AIR_TRUE,  /* endianMatters */
+                                         AIR_TRUE,  /* isCompression */
+                                         _nrrdEncodingBzip2_available,
+                                         _nrrdEncodingBzip2_read,
+                                         _nrrdEncodingBzip2_write};
 
-const NrrdEncoding *const
-nrrdEncodingBzip2 = &_nrrdEncodingBzip2;
+const NrrdEncoding *const nrrdEncodingBzip2 = &_nrrdEncodingBzip2;

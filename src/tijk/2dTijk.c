@@ -1,23 +1,21 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2010, 2009, 2008 Thomas Schultz
   Copyright (C) 2010, 2009, 2008 Gordon Kindlmann
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 /* Implementation of two-dimensional tensors */
@@ -26,30 +24,31 @@
 #include "privateTijk.h"
 
 #include "convertQuietPush.h"
+/* clang-format off */
 
 /* 2nd order 2D unsymmetric */
 
-double
+static double
 _tijk_2o2d_unsym_tsp_d (const double *A, const double *B) {
   return ELL_4V_DOT(A,B);
 }
 
-float
+static float
 _tijk_2o2d_unsym_tsp_f (const float *A, const float *B) {
   return ELL_4V_DOT(A,B);
 }
 
-double
+static double
 _tijk_2o2d_unsym_norm_d (const double *A) {
   return sqrt(ELL_4V_DOT(A,A));
 }
 
-float
+static float
 _tijk_2o2d_unsym_norm_f (const float *A) {
   return sqrt(ELL_4V_DOT(A,A));
 }
 
-void
+static void
 _tijk_2o2d_unsym_trans_d (double *res, const double *A, const double *M) {
   double _ma[4], _mt[4];
   ELL_2M_MUL(_ma, M, A);
@@ -57,7 +56,7 @@ _tijk_2o2d_unsym_trans_d (double *res, const double *A, const double *M) {
   ELL_2M_MUL(res, _ma, _mt);
 }
 
-void
+static void
 _tijk_2o2d_unsym_trans_f (float *res, const float *A, const float *M) {
   float _ma[4], _mt[4];
   ELL_2M_MUL(_ma, M, A);
@@ -67,7 +66,7 @@ _tijk_2o2d_unsym_trans_f (float *res, const float *A, const float *M) {
 
 /* macro-based pseudo-template for type-generic code */
 #define _TIJK_2O2D_UNSYM_CONVERT(TYPE, SUF)                             \
-  int                                                                   \
+  static int                                                            \
   _tijk_2o2d_unsym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                   const TYPE *A) {                      \
     if (res_type==tijk_2o2d_unsym) { /* copy over */                    \
@@ -83,7 +82,7 @@ _TIJK_2O2D_UNSYM_CONVERT(double, d)
 _TIJK_2O2D_UNSYM_CONVERT(float, f)
 
 #define _TIJK_2O2D_UNSYM_APPROX(TYPE, SUF)                             \
-  int                                                                  \
+  static int                                                           \
   _tijk_2o2d_unsym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                  const TYPE *A) {                      \
     if (res_type==tijk_2o2d_sym) {                                     \
@@ -105,35 +104,35 @@ TIJK_TYPE_UNSYM(2o2d_unsym, 2, 2, 4)
 
 /* 2nd order 2D symmetric */
 
-unsigned int _tijk_2o2d_sym_mult[3] = {1, 2, 1};
-int _tijk_2o2d_sym_unsym2uniq[4] = {1, 2, 2, 3};
-int _tijk_2o2d_sym_uniq2unsym[4] = {1, 2, 3, 4};
-unsigned int _tijk_2o2d_sym_uniq_idx[3] = {0, 1, 3};
+static const unsigned int _tijk_2o2d_sym_mult[3] = {1, 2, 1};
+static const int _tijk_2o2d_sym_unsym2uniq[4] = {1, 2, 2, 3};
+static const int _tijk_2o2d_sym_uniq2unsym[4] = {1, 2, 3, 4};
+static const unsigned int _tijk_2o2d_sym_uniq_idx[3] = {0, 1, 3};
 
 #define _TIJK_2O2D_SYM_TSP(A, B)                \
   ((A)[0]*(B)[0]+2*(A)[1]*(B)[1]+(A)[2]*(B)[2])
 
-double
+static double
 _tijk_2o2d_sym_tsp_d (const double *A, const double *B) {
   return _TIJK_2O2D_SYM_TSP(A,B);
 }
 
-float
+static float
 _tijk_2o2d_sym_tsp_f (const float *A, const float *B) {
   return _TIJK_2O2D_SYM_TSP(A,B);
 }
 
-double
+static double
 _tijk_2o2d_sym_norm_d (const double *A) {
   return sqrt(_TIJK_2O2D_SYM_TSP(A,A));
 }
 
-float
+static float
 _tijk_2o2d_sym_norm_f (const float *A) {
   return sqrt(_TIJK_2O2D_SYM_TSP(A,A));
 }
 
-void
+static void
 _tijk_2o2d_sym_trans_d (double *res, const double *A, const double *M) {
   /* sym(M*unsym(A)*M^T) written out: */
   res[0]=M[0]*M[0]*A[0]+2*M[0]*M[1]*A[1]+M[1]*M[1]*A[2];
@@ -141,7 +140,7 @@ _tijk_2o2d_sym_trans_d (double *res, const double *A, const double *M) {
   res[2]=M[2]*M[2]*A[0]+2*M[2]*M[3]*A[1]+M[3]*M[3]*A[2];
 }
 
-void
+static void
 _tijk_2o2d_sym_trans_f (float *res, const float *A, const float *M) {
   /* sym(M*unsym(A)*M^T) written out: */
   res[0]=M[0]*M[0]*A[0]+2*M[0]*M[1]*A[1]+M[1]*M[1]*A[2];
@@ -150,7 +149,7 @@ _tijk_2o2d_sym_trans_f (float *res, const float *A, const float *M) {
 }
 
 #define _TIJK_2O2D_SYM_CONVERT(TYPE, SUF)                             \
-  int                                                                 \
+  static int                                                          \
   _tijk_2o2d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                 const TYPE *A) {                      \
     if (res_type==tijk_2o2d_sym) { /* copy over */                    \
@@ -173,7 +172,7 @@ _TIJK_2O2D_SYM_CONVERT(double, d)
 _TIJK_2O2D_SYM_CONVERT(float, f)
 
 #define _TIJK_2O2D_SYM_APPROX(TYPE, SUF)                             \
-  int                                                                \
+  static int                                                         \
   _tijk_2o2d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                const TYPE *A) {                      \
     if (NULL!=res_type->_approx_from_##SUF)                          \
@@ -185,81 +184,81 @@ _TIJK_2O2D_SYM_CONVERT(float, f)
 _TIJK_2O2D_SYM_APPROX(double, d)
 _TIJK_2O2D_SYM_APPROX(float, f)
 
-double
+static double
 _tijk_2o2d_sym_s_form_d (const double *A, const double *v) {
   return A[0]*v[0]*v[0]+2*A[1]*v[0]*v[1]+A[2]*v[1]*v[1];
 }
 
-float
+static float
 _tijk_2o2d_sym_s_form_f (const float *A, const float *v) {
   return A[0]*v[0]*v[0]+2*A[1]*v[0]*v[1]+A[2]*v[1]*v[1];
 }
 
-double
+static double
 _tijk_2o2d_sym_mean_d (const double *A) {
   return 0.5*(A[0]+A[2]);
 }
 
-float
+static float
 _tijk_2o2d_sym_mean_f (const float *A) {
   return 0.5*(A[0]+A[2]);
 }
 
-double
+static double
 _tijk_2o2d_sym_var_d (const double *A) {
   return 0.125*(A[0]*A[0]+A[2]*A[2])-0.25*A[0]*A[2]+0.5*A[1]*A[1];
 }
 
-float
+static float
 _tijk_2o2d_sym_var_f (const float *A) {
   return 0.125*(A[0]*A[0]+A[2]*A[2])-0.25*A[0]*A[2]+0.5*A[1]*A[1];
 }
 
-void
+static void
 _tijk_2o2d_sym_v_form_d (double *res, const double *A, const double *v) {
   res[0]=A[0]*v[0]+A[1]*v[1];
   res[1]=A[1]*v[0]+A[2]*v[1];
 }
 
-void
+static void
 _tijk_2o2d_sym_v_form_f (float *res, const float *A, const float *v) {
   res[0]=A[0]*v[0]+A[1]*v[1];
   res[1]=A[1]*v[0]+A[2]*v[1];
 }
 
-void
+static void
 _tijk_2o2d_sym_m_form_d (double *res, const double *A, const double *v) {
   (void) v; /* v is only used in higher-order cases */
   res[0]=A[0]; res[1]=A[1]; res[2]=A[2];
 }
 
-void
+static void
 _tijk_2o2d_sym_m_form_f (float *res, const float *A, const float *v) {
   (void) v; /* v is only used in higher-order cases */
   res[0]=A[0]; res[1]=A[1]; res[2]=A[2];
 }
 
-void
+static void
 _tijk_2o2d_sym_make_rank1_d (double *res, const double s, const double *v) {
   res[0]=s*v[0]*v[0]; res[1]=s*v[0]*v[1]; res[2]=s*v[1]*v[1];
 }
 
-void
+static void
 _tijk_2o2d_sym_make_rank1_f (float *res, const float s, const float *v) {
   res[0]=s*v[0]*v[0]; res[1]=s*v[0]*v[1]; res[2]=s*v[1]*v[1];
 }
 
-void
+static void
 _tijk_2o2d_sym_make_iso_d (double *res, const double s) {
   res[0]=s; res[1]=0; res[2]=s;
 }
 
-void
+static void
 _tijk_2o2d_sym_make_iso_f (float *res, const float s) {
   res[0]=s; res[1]=0; res[2]=s;
 }
 
-void
+static void
 _tijk_2o2d_sym_grad_d (double *res, const double *A, const double *v) {
   double proj, projv[2];
   res[0]=2*(A[0]*v[0]+A[1]*v[1]);
@@ -269,7 +268,7 @@ _tijk_2o2d_sym_grad_d (double *res, const double *A, const double *v) {
   ELL_2V_INCR(res,projv);
 }
 
-void
+static void
 _tijk_2o2d_sym_grad_f (float *res, const float *A, const float *v) {
   float proj, projv[2];
   res[0]=2*(A[0]*v[0]+A[1]*v[1]);
@@ -279,7 +278,7 @@ _tijk_2o2d_sym_grad_f (float *res, const float *A, const float *v) {
   ELL_2V_INCR(res,projv);
 }
 
-void
+static void
 _tijk_2o2d_sym_hess_d (double *res, const double *A, const double *v) {
   double tang[2], s;
   ELL_2V_SET(tang,v[1],-v[0]);
@@ -287,7 +286,7 @@ _tijk_2o2d_sym_hess_d (double *res, const double *A, const double *v) {
   _tijk_2o2d_sym_make_rank1_d(res, s, tang);
 }
 
-void
+static void
 _tijk_2o2d_sym_hess_f (float *res, const float *A, const float *v) {
   float tang[2], s;
   ELL_2V_SET(tang,v[1],-v[0]);
@@ -299,44 +298,44 @@ TIJK_TYPE_SYM(2o2d_sym, 2, 2, 3)
 
 /* 2nd order 2D antisymmetric */
 
-unsigned int _tijk_2o2d_asym_mult[1] = {2};
-int _tijk_2o2d_asym_unsym2uniq[4] = {0, 1, -1, 0};
-int _tijk_2o2d_asym_uniq2unsym[2] = {2, -3};
-unsigned int _tijk_2o2d_asym_uniq_idx[1] = {0};
+static const unsigned int _tijk_2o2d_asym_mult[1] = {2};
+static const int _tijk_2o2d_asym_unsym2uniq[4] = {0, 1, -1, 0};
+static const int _tijk_2o2d_asym_uniq2unsym[2] = {2, -3};
+static const unsigned int _tijk_2o2d_asym_uniq_idx[1] = {0};
 
-double
+static double
 _tijk_2o2d_asym_tsp_d (const double *A, const double *B) {
   return 2*A[0]*B[0];
 }
 
-float
+static float
 _tijk_2o2d_asym_tsp_f (const float *A, const float *B) {
   return 2*A[0]*B[0];
 }
 
-double
+static double
 _tijk_2o2d_asym_norm_d (const double *A) {
   return sqrt(2*A[0]*A[0]);
 }
 
-float
+static float
 _tijk_2o2d_asym_norm_f (const float *A) {
   return sqrt(2*A[0]*A[0]);
 }
 
-void
+static void
 _tijk_2o2d_asym_trans_d (double *res, const double *A, const double *M) {
   /* if M is a rotation, this amounts to the identity */
   res[0]=A[0]*(M[0]*M[3]-M[1]*M[2]);
 }
 
-void
+static void
 _tijk_2o2d_asym_trans_f (float *res, const float *A, const float *M) {
   res[0]=A[0]*(M[0]*M[3]-M[1]*M[2]);
 }
 
 #define _TIJK_2O2D_ASYM_CONVERT(TYPE, SUF)                             \
-  int                                                                  \
+  static int                                                           \
   _tijk_2o2d_asym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                  const TYPE *A) {                      \
     if (res_type==tijk_2o2d_asym) { /* copy over */                    \
@@ -355,7 +354,7 @@ _TIJK_2O2D_ASYM_CONVERT(double, d)
 _TIJK_2O2D_ASYM_CONVERT(float, f)
 
 #define _TIJK_2O2D_ASYM_APPROX(TYPE, SUF)                             \
-  int                                                                 \
+  static int                                                          \
   _tijk_2o2d_asym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                 const TYPE *A) {                      \
     if (NULL!=res_type->_approx_from_##SUF)                           \
@@ -372,7 +371,7 @@ TIJK_TYPE(2o2d_asym, 2, 2, 1)
 /* 3rd order 2D symmetric */
 /* unsymmetric counterpart currently not implemented */
 
-unsigned int _tijk_3o2d_sym_mult[4] = {1, 3, 3, 1};
+static const unsigned int _tijk_3o2d_sym_mult[4] = {1, 3, 3, 1};
 #define _tijk_3o2d_sym_unsym2uniq NULL
 #define _tijk_3o2d_sym_uniq2unsym NULL
 #define _tijk_3o2d_sym_uniq_idx NULL
@@ -380,28 +379,28 @@ unsigned int _tijk_3o2d_sym_mult[4] = {1, 3, 3, 1};
 #define _TIJK_3O2D_SYM_TSP(A, B)                                \
   ((A)[0]*(B)[0]+3*(A)[1]*(B)[1]+3*(A)[2]*(B)[2]+(A)[3]*(B)[3])
 
-double
+static double
 _tijk_3o2d_sym_tsp_d (const double *A, const double *B) {
   return _TIJK_3O2D_SYM_TSP(A,B);
 }
 
-float
+static float
 _tijk_3o2d_sym_tsp_f (const float *A, const float *B) {
   return _TIJK_3O2D_SYM_TSP(A,B);
 }
 
-double
+static double
 _tijk_3o2d_sym_norm_d (const double *A) {
   return sqrt(_TIJK_3O2D_SYM_TSP(A,A));
 }
 
-float
+static float
 _tijk_3o2d_sym_norm_f (const float *A) {
   return sqrt(_TIJK_3O2D_SYM_TSP(A,A));
 }
 
 #define _TIJK_3O2D_SYM_CONVERT(TYPE, SUF)                             \
-  int                                                                 \
+  static int                                                          \
   _tijk_3o2d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                 const TYPE *A) {                      \
     if (res_type==tijk_3o2d_sym) { /* copy over */                    \
@@ -417,7 +416,7 @@ _TIJK_3O2D_SYM_CONVERT(double, d)
 _TIJK_3O2D_SYM_CONVERT(float, f)
 
 #define _TIJK_3O2D_SYM_APPROX(TYPE, SUF)                             \
-  int                                                                \
+  static int                                                         \
   _tijk_3o2d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                const TYPE *A) {                      \
     if (NULL!=res_type->_approx_from_##SUF)                          \
@@ -429,7 +428,7 @@ _TIJK_3O2D_SYM_CONVERT(float, f)
 _TIJK_3O2D_SYM_APPROX(double, d)
 _TIJK_3O2D_SYM_APPROX(float, f)
 
-void
+static void
 _tijk_3o2d_sym_trans_d (double *res, const double *A, const double *M) {
   res[0]=M[0]*M[0]*M[0]*A[0]+3*M[0]*M[0]*M[1]*A[1]+
     3*M[0]*M[1]*M[1]*A[2]+M[1]*M[1]*M[1]*A[3];
@@ -441,7 +440,7 @@ _tijk_3o2d_sym_trans_d (double *res, const double *A, const double *M) {
     3*M[2]*M[3]*M[3]*A[2]+M[3]*M[3]*M[3]*A[3];
 }
 
-void
+static void
 _tijk_3o2d_sym_trans_f (float *res, const float *A, const float *M) {
   res[0]=M[0]*M[0]*M[0]*A[0]+3*M[0]*M[0]*M[1]*A[1]+
     3*M[0]*M[1]*M[1]*A[2]+M[1]*M[1]*M[1]*A[3];
@@ -453,71 +452,71 @@ _tijk_3o2d_sym_trans_f (float *res, const float *A, const float *M) {
     3*M[2]*M[3]*M[3]*A[2]+M[3]*M[3]*M[3]*A[3];
 }
 
-double
+static double
 _tijk_3o2d_sym_s_form_d (const double *A, const double *v) {
   return A[0]*v[0]*v[0]*v[0]+3*A[1]*v[0]*v[0]*v[1]+
     3*A[2]*v[0]*v[1]*v[1]+A[3]*v[1]*v[1]*v[1];
 }
 
-float
+static float
 _tijk_3o2d_sym_s_form_f (const float *A, const float *v) {
   return A[0]*v[0]*v[0]*v[0]+3*A[1]*v[0]*v[0]*v[1]+
     3*A[2]*v[0]*v[1]*v[1]+A[3]*v[1]*v[1]*v[1];
 }
 
-double
+static double
 _tijk_3o2d_sym_mean_d (const double *A) {
   (void) A; /* odd order; mean is zero irrespective of coefficients */
   return 0;
 }
 
-float
+static float
 _tijk_3o2d_sym_mean_f (const float *A) {
   (void) A; /* odd order; mean is zero irrespective of coefficients */
   return 0;
 }
 
-double
+static double
 _tijk_3o2d_sym_var_d (const double *A) {
   return (5*(A[0]*A[0]+A[3]*A[3])+9*(A[1]*A[1]+A[2]*A[2])+
           6*(A[0]*A[2]+A[1]*A[3]))/16.0;
 }
 
-float
+static float
 _tijk_3o2d_sym_var_f (const float *A) {
   return (5*(A[0]*A[0]+A[3]*A[3])+9*(A[1]*A[1]+A[2]*A[2])+
           6*(A[0]*A[2]+A[1]*A[3]))/16.0;
 }
 
-void
+static void
 _tijk_3o2d_sym_v_form_d (double *res, const double *A, const double *v) {
   double v00=v[0]*v[0], v01=v[0]*v[1], v11=v[1]*v[1];
   res[0]=A[0]*v00+2*A[1]*v01+A[2]*v11;
   res[1]=A[1]*v00+2*A[2]*v01+A[3]*v11;
 }
 
-void
+static void
 _tijk_3o2d_sym_v_form_f (float *res, const float *A, const float *v) {
   float v00=v[0]*v[0], v01=v[0]*v[1], v11=v[1]*v[1];
   res[0]=A[0]*v00+2*A[1]*v01+A[2]*v11;
   res[1]=A[1]*v00+2*A[2]*v01+A[3]*v11;
 }
 
-void
+static void
 _tijk_3o2d_sym_m_form_d (double *res, const double *A, const double *v) {
   res[0]=A[0]*v[0]+A[1]*v[1];
   res[1]=A[1]*v[0]+A[2]*v[1];
   res[2]=A[2]*v[0]+A[3]*v[1];
 }
 
-void
+static void
 _tijk_3o2d_sym_m_form_f (float *res, const float *A, const float *v) {
   res[0]=A[0]*v[0]+A[1]*v[1];
   res[1]=A[1]*v[0]+A[2]*v[1];
   res[2]=A[2]*v[0]+A[3]*v[1];
 }
 
-void
+static void
 _tijk_3o2d_sym_make_rank1_d (double *res, const double s, const double *v) {
   res[0]=s*v[0]*v[0]*v[0];
   res[1]=s*v[0]*v[0]*v[1];
@@ -525,7 +524,7 @@ _tijk_3o2d_sym_make_rank1_d (double *res, const double s, const double *v) {
   res[3]=s*v[1]*v[1]*v[1];
 }
 
-void
+static void
 _tijk_3o2d_sym_make_rank1_f (float *res, const float s, const float *v) {
   res[0]=s*v[0]*v[0]*v[0];
   res[1]=s*v[0]*v[0]*v[1];
@@ -536,7 +535,7 @@ _tijk_3o2d_sym_make_rank1_f (float *res, const float s, const float *v) {
 #define _tijk_3o2d_sym_make_iso_d NULL
 #define _tijk_3o2d_sym_make_iso_f NULL
 
-void
+static void
 _tijk_3o2d_sym_grad_d (double *res, const double *A, const double *v) {
   double proj, projv[2];
   _tijk_3o2d_sym_v_form_d (res, A, v);
@@ -546,7 +545,7 @@ _tijk_3o2d_sym_grad_d (double *res, const double *A, const double *v) {
   ELL_2V_INCR(res,projv);
 }
 
-void
+static void
 _tijk_3o2d_sym_grad_f (float *res, const float *A, const float *v) {
   float proj, projv[2];
   _tijk_3o2d_sym_v_form_f (res, A, v);
@@ -556,7 +555,7 @@ _tijk_3o2d_sym_grad_f (float *res, const float *A, const float *v) {
   ELL_2V_INCR(res,projv);
 }
 
-void
+static void
 _tijk_3o2d_sym_hess_d (double *res, const double *A, const double *v) {
   double tang[2];
   double hess[3], s;
@@ -566,7 +565,7 @@ _tijk_3o2d_sym_hess_d (double *res, const double *A, const double *v) {
   _tijk_2o2d_sym_make_rank1_d(res, s, tang);
 }
 
-void
+static void
 _tijk_3o2d_sym_hess_f (float *res, const float *A, const float *v) {
   float tang[2];
   float hess[3], s;
@@ -580,32 +579,32 @@ TIJK_TYPE_SYM(3o2d_sym, 3, 2, 4)
 
 /* 4th order 2D unsymmetric */
 
-double
+static double
 _tijk_4o2d_unsym_tsp_d (const double *A, const double *B) {
   return ELL_4V_DOT(A,B)+ELL_4V_DOT(A+4,B+4)+
     ELL_4V_DOT(A+8,B+8)+ELL_4V_DOT(A+12,B+12);
 }
 
-float
+static float
 _tijk_4o2d_unsym_tsp_f (const float *A, const float *B) {
   return ELL_4V_DOT(A,B)+ELL_4V_DOT(A+4,B+4)+
     ELL_4V_DOT(A+8,B+8)+ELL_4V_DOT(A+12,B+12);
 }
 
-double
+static double
 _tijk_4o2d_unsym_norm_d (const double *A) {
   return sqrt(ELL_4V_DOT(A,A)+ELL_4V_DOT(A+4,A+4)+
               ELL_4V_DOT(A+8,A+8)+ELL_4V_DOT(A+12,A+12));
 }
 
-float
+static float
 _tijk_4o2d_unsym_norm_f (const float *A) {
   return sqrt(ELL_4V_DOT(A,A)+ELL_4V_DOT(A+4,A+4)+
               ELL_4V_DOT(A+8,A+8)+ELL_4V_DOT(A+12,A+12));
 }
 
 #define _TIJK_4O2D_UNSYM_TRANS(TYPE, SUF)                               \
-  void                                                                  \
+  static void                                                           \
   _tijk_4o2d_unsym_trans_##SUF (TYPE *res, const TYPE *A, const TYPE *M) \
   { /* Tijkl = Mim Mjn Mko Mlp Tmnop                                    \
      * For efficiency, we transform mode by mode, right to left */      \
@@ -638,7 +637,7 @@ _TIJK_4O2D_UNSYM_TRANS(double, d)
 _TIJK_4O2D_UNSYM_TRANS(float, f)
 
 #define _TIJK_4O2D_UNSYM_CONVERT(TYPE, SUF)                             \
-  int                                                                   \
+  static int                                                            \
   _tijk_4o2d_unsym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                   const TYPE *A) {                      \
     if (res_type==tijk_4o2d_unsym) { /* copy over */                    \
@@ -655,7 +654,7 @@ _TIJK_4O2D_UNSYM_CONVERT(double, d)
 _TIJK_4O2D_UNSYM_CONVERT(float, f)
 
 #define _TIJK_4O2D_UNSYM_APPROX(TYPE, SUF)                             \
-  int                                                                  \
+  static int                                                           \
   _tijk_4o2d_unsym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                  const TYPE *A) {                      \
     if (res_type==tijk_4o2d_sym) {                                     \
@@ -676,38 +675,38 @@ TIJK_TYPE_UNSYM(4o2d_unsym, 4, 2, 16)
 
 /* 4th order 2D symmetric */
 
-unsigned int _tijk_4o2d_sym_mult[5] = {1, 4, 6, 4, 1};
-int _tijk_4o2d_sym_unsym2uniq[16] = {1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4,
+static const unsigned int _tijk_4o2d_sym_mult[5] = {1, 4, 6, 4, 1};
+static const int _tijk_4o2d_sym_unsym2uniq[16] = {1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4,
                                      3, 4, 4, 5};
-int _tijk_4o2d_sym_uniq2unsym[16] = {1, 2, 3, 5, 9, 4, 6, 7, 10, 11, 13,
+static const int _tijk_4o2d_sym_uniq2unsym[16] = {1, 2, 3, 5, 9, 4, 6, 7, 10, 11, 13,
                                      8, 12, 14, 15, 16};
-unsigned int _tijk_4o2d_sym_uniq_idx[5] = {0, 1, 5, 11, 15};
+static const unsigned int _tijk_4o2d_sym_uniq_idx[5] = {0, 1, 5, 11, 15};
 
 #define _TIJK_4O2D_SYM_TSP(A, B)                                        \
   ((A)[0]*(B)[0]+4*(A)[1]*(B)[1]+6*(A)[2]*(B)[2]+4*(A)[3]*(B)[3]+(A)[4]*(B)[4])
 
-double
+static double
 _tijk_4o2d_sym_tsp_d (const double *A, const double *B) {
   return _TIJK_4O2D_SYM_TSP(A,B);
 }
 
-float
+static float
 _tijk_4o2d_sym_tsp_f (const float *A, const float *B) {
   return _TIJK_4O2D_SYM_TSP(A,B);
 }
 
-double
+static double
 _tijk_4o2d_sym_norm_d (const double *A) {
   return sqrt(_TIJK_4O2D_SYM_TSP(A,A));
 }
 
-float
+static float
 _tijk_4o2d_sym_norm_f (const float *A) {
   return sqrt(_TIJK_4O2D_SYM_TSP(A,A));
 }
 
 #define _TIJK_4O2D_SYM_CONVERT(TYPE, SUF)                             \
-  int                                                                 \
+  static int                                                          \
   _tijk_4o2d_sym_convert_##SUF (TYPE *res, const tijk_type *res_type, \
                                 const TYPE *A) {                      \
     if (res_type==tijk_4o2d_sym) { /* copy over */                    \
@@ -728,7 +727,7 @@ _TIJK_4O2D_SYM_CONVERT(double, d)
 _TIJK_4O2D_SYM_CONVERT(float, f)
 
 #define _TIJK_4O2D_SYM_APPROX(TYPE, SUF)                             \
-  int                                                                \
+  static int                                                         \
   _tijk_4o2d_sym_approx_##SUF (TYPE *res, const tijk_type *res_type, \
                                const TYPE *A) {                      \
     if (res_type==tijk_2o2d_sym) {                                   \
@@ -745,7 +744,7 @@ _TIJK_4O2D_SYM_CONVERT(float, f)
 _TIJK_4O2D_SYM_APPROX(double, d)
 _TIJK_4O2D_SYM_APPROX(float, f)
 
-void
+static void
 _tijk_4o2d_sym_trans_d (double *res, const double *A, const double *M) {
   /* this code should be optimized at some point */
   double tmp[16], tmpout[16];
@@ -754,7 +753,7 @@ _tijk_4o2d_sym_trans_d (double *res, const double *A, const double *M) {
   _tijk_4o2d_unsym_approx_d(res, tijk_4o2d_sym, tmpout);
 }
 
-void
+static void
 _tijk_4o2d_sym_trans_f (float *res, const float *A, const float *M) {
   float tmp[16], tmpout[16];
   _tijk_4o2d_sym_convert_f(tmp, tijk_4o2d_unsym, A);
@@ -762,45 +761,45 @@ _tijk_4o2d_sym_trans_f (float *res, const float *A, const float *M) {
   _tijk_4o2d_unsym_approx_f(res, tijk_4o2d_sym, tmpout);
 }
 
-double
+static double
 _tijk_4o2d_sym_s_form_d (const double *A, const double *v) {
   double v00=v[0]*v[0], v01=v[0]*v[1], v11=v[1]*v[1];
   return A[0]*v00*v00+4*A[1]*v00*v01+6*A[2]*v00*v11+
     4*A[3]*v01*v11+A[4]*v11*v11;
 }
 
-float
+static float
 _tijk_4o2d_sym_s_form_f (const float *A, const float *v) {
   float v00=v[0]*v[0], v01=v[0]*v[1], v11=v[1]*v[1];
   return A[0]*v00*v00+4*A[1]*v00*v01+6*A[2]*v00*v11+
     4*A[3]*v01*v11+A[4]*v11*v11;
 }
 
-double
+static double
 _tijk_4o2d_sym_mean_d (const double *A) {
   return 0.375*(A[0]+A[4])+0.75*A[2];
 }
 
-float
+static float
 _tijk_4o2d_sym_mean_f (const float *A) {
   return 0.375*(A[0]+A[4])+0.75*A[2];
 }
 
-double
+static double
 _tijk_4o2d_sym_var_d (const double *A) {
   return A[0]*(0.1328125*A[0]-0.09375*A[2]-0.234375*A[4]) +
     A[1]*(0.625*A[1]+0.75*A[3]) + 0.28125*A[2]*A[2] +
     0.625*A[3]*A[3] + A[4]*(0.1328125*A[4]-0.09375*A[2]);
 }
 
-float
+static float
 _tijk_4o2d_sym_var_f (const float *A) {
   return A[0]*(0.1328125*A[0]-0.09375*A[2]-0.234375*A[4]) +
     A[1]*(0.625*A[1]+0.75*A[3]) + 0.28125*A[2]*A[2] +
     0.625*A[3]*A[3] + A[4]*(0.1328125*A[4]-0.09375*A[2]);
 }
 
-void
+static void
 _tijk_4o2d_sym_v_form_d (double *res, const double *A, const double *v) {
   double v000=v[0]*v[0]*v[0], v001=v[0]*v[0]*v[1],
     v011=v[0]*v[1]*v[1], v111=v[1]*v[1]*v[1];
@@ -808,7 +807,7 @@ _tijk_4o2d_sym_v_form_d (double *res, const double *A, const double *v) {
   res[1]=A[1]*v000+3*A[2]*v001+3*A[3]*v011+A[4]*v111;
 }
 
-void
+static void
 _tijk_4o2d_sym_v_form_f (float *res, const float *A, const float *v) {
   float v000=v[0]*v[0]*v[0], v001=v[0]*v[0]*v[1],
     v011=v[0]*v[1]*v[1], v111=v[1]*v[1]*v[1];
@@ -816,7 +815,7 @@ _tijk_4o2d_sym_v_form_f (float *res, const float *A, const float *v) {
   res[1]=A[1]*v000+3*A[2]*v001+3*A[3]*v011+A[4]*v111;
 }
 
-void
+static void
 _tijk_4o2d_sym_m_form_d (double *res, const double *A, const double *v) {
   double v00=v[0]*v[0], v01=v[0]*v[1], v11=v[1]*v[1];
   res[0]=A[0]*v00+2*A[1]*v01+A[2]*v11;
@@ -824,7 +823,7 @@ _tijk_4o2d_sym_m_form_d (double *res, const double *A, const double *v) {
   res[2]=A[2]*v00+2*A[3]*v01+A[4]*v11;
 }
 
-void
+static void
 _tijk_4o2d_sym_m_form_f (float *res, const float *A, const float *v) {
   float v00=v[0]*v[0], v01=v[0]*v[1], v11=v[1]*v[1];
   res[0]=A[0]*v00+2*A[1]*v01+A[2]*v11;
@@ -832,31 +831,31 @@ _tijk_4o2d_sym_m_form_f (float *res, const float *A, const float *v) {
   res[2]=A[2]*v00+2*A[3]*v01+A[4]*v11;
 }
 
-void
+static void
 _tijk_4o2d_sym_make_rank1_d (double *res, const double s, const double *v) {
   double v00=v[0]*v[0], v01=v[0]*v[1], v11=v[1]*v[1];
   res[0]=s*v00*v00; res[1]=s*v00*v01; res[2]=s*v00*v11;
   res[3]=s*v01*v11; res[4]=s*v11*v11;
 }
 
-void
+static void
 _tijk_4o2d_sym_make_rank1_f (float *res, const float s, const float *v) {
   float v00=v[0]*v[0], v01=v[0]*v[1], v11=v[1]*v[1];
   res[0]=s*v00*v00; res[1]=s*v00*v01; res[2]=s*v00*v11;
   res[3]=s*v01*v11; res[4]=s*v11*v11;
 }
 
-void
+static void
 _tijk_4o2d_sym_make_iso_d (double *res, const double s) {
   res[0]=res[4]=s; res[2]=s/3.0; res[1]=res[3]=0;
 }
 
-void
+static void
 _tijk_4o2d_sym_make_iso_f (float *res, const float s) {
   res[0]=res[4]=s; res[2]=s/3.0; res[1]=res[3]=0;
 }
 
-void
+static void
 _tijk_4o2d_sym_grad_d (double *res, const double *A, const double *v) {
   double proj, projv[2];
   _tijk_4o2d_sym_v_form_d (res, A, v);
@@ -866,7 +865,7 @@ _tijk_4o2d_sym_grad_d (double *res, const double *A, const double *v) {
   ELL_2V_INCR(res,projv);
 }
 
-void
+static void
 _tijk_4o2d_sym_grad_f (float *res, const float *A, const float *v) {
   float proj, projv[2];
   _tijk_4o2d_sym_v_form_f (res, A, v);
@@ -876,7 +875,7 @@ _tijk_4o2d_sym_grad_f (float *res, const float *A, const float *v) {
   ELL_2V_INCR(res,projv);
 }
 
-void
+static void
 _tijk_4o2d_sym_hess_d (double *res, const double *A, const double *v) {
   double tang[2];
   double hess[3], s;
@@ -886,7 +885,7 @@ _tijk_4o2d_sym_hess_d (double *res, const double *A, const double *v) {
   _tijk_2o2d_sym_make_rank1_d(res, s, tang);
 }
 
-void
+static void
 _tijk_4o2d_sym_hess_f (float *res, const float *A, const float *v) {
   float tang[2];
   float hess[3], s;
@@ -897,5 +896,6 @@ _tijk_4o2d_sym_hess_f (float *res, const float *A, const float *v) {
 }
 
 TIJK_TYPE_SYM(4o2d_sym, 4, 2, 5)
+/* clang-format on */
 
 #include "convertQuietPop.h"

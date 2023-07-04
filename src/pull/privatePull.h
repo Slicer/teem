@@ -1,31 +1,29 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define _PHN PULL_PHIST_NUM    /* short-cut */
+#define _PHN PULL_PHIST_NUM /* short-cut */
 
 /*
 ** These heuristics/parameters have been adjusted, and don't seem to need
@@ -108,16 +106,14 @@ extern int _pullSysParmCheck(pullSysParm *sysParm);
 extern void _pullFlagInit(pullFlag *flag);
 
 /* volumePull.c */
-extern pullVolume *_pullVolumeCopy(const pullContext *pctx,
-                                   const pullVolume *pvol);
+extern pullVolume *_pullVolumeCopy(const pullContext *pctx, const pullVolume *pvol);
 extern int _pullVolumeSetup(pullContext *pctx);
 extern int _pullInsideBBox(pullContext *pctx, double pos[4]);
-extern unsigned int _pullVolumeIndex(const pullContext *pctx,
-                                     const char *volName);
+extern unsigned int _pullVolumeIndex(const pullContext *pctx, const char *volName);
 
 /* infoPull.c */
-extern unsigned int _pullInfoLen[PULL_INFO_MAX+1];
-extern void (*_pullInfoCopy[10])(double *, const double *);
+extern unsigned int const _pullInfoLen[PULL_INFO_MAX + 1];
+extern void (*const _pullInfoCopy[10])(double *, const double *);
 extern int _pullInfoSetup(pullContext *pctx);
 
 /* contextPull.c */
@@ -130,29 +126,23 @@ extern int _pullTaskSetup(pullContext *pctx);
 extern void _pullTaskFinish(pullContext *pctx);
 
 /* actionPull.c */
-extern double _pullPrayCorner[2][2][3];
-extern size_t _pullPrayRes[2];
 extern double _pullDistLimit(pullTask *task, pullPoint *point);
-extern double _pullEnergyFromPoints(pullTask *task, pullBin *bin,
-                                    pullPoint *point,
+extern double _pullEnergyFromPoints(pullTask *task, pullBin *bin, pullPoint *point,
                                     /* output */
                                     double egradSum[4]);
-extern double _pullPointEnergyTotal(pullTask *task, pullBin *bin,
-                                    pullPoint *point, int ignoreImage,
-                                    double force[4]);
-extern int _pullPointProcessDescent(pullTask *task, pullBin *bin,
-                                    pullPoint *point, int ignoreImage);
-extern double _pullEnergyInterParticle(pullContext *pctx,
-                                       pullPoint *me, const pullPoint *she,
-                                       double spaceDist, double scaleDist,
-                                       double egrad[4]);
+extern double _pullPointEnergyTotal(pullTask *task, pullBin *bin, pullPoint *point,
+                                    int ignoreImage, double force[4]);
+extern int _pullPointProcessDescent(pullTask *task, pullBin *bin, pullPoint *point,
+                                    int ignoreImage);
+extern double _pullEnergyInterParticle(pullContext *pctx, pullPoint *me,
+                                       const pullPoint *she, double spaceDist,
+                                       double scaleDist, double egrad[4]);
 
 /* constraints.c */
-extern int _pullConstraintSatisfy(pullTask *task, pullPoint *point,
-                                  double travelMax,
+extern double _pullSigma(const pullContext *pctx, const double pos[4]);
+extern int _pullConstraintSatisfy(pullTask *task, pullPoint *point, double travelMax,
                                   int *constrFailP);
-extern void _pullConstraintTangent(pullTask *task, pullPoint *point,
-                                   double proj[9]);
+extern void _pullConstraintTangent(pullTask *task, pullPoint *point, double proj[9]);
 extern int _pullConstraintDim(const pullContext *pctx);
 
 /* pointPull.c */
@@ -160,8 +150,8 @@ extern int _pullConstraintDim(const pullContext *pctx);
 extern void _pullPointHistInit(pullPoint *point);
 extern void _pullPointHistAdd(pullPoint *point, int cond, double val);
 #else
-#define _pullPointHistInit(p)       /* no-op */
-#define _pullPointHistAdd(p, c, v)  /* no-op */
+#  define _pullPointHistInit(p)      /* no-op */
+#  define _pullPointHistAdd(p, c, v) /* no-op */
 #endif
 extern double _pullStepInterAverage(const pullContext *pctx);
 extern double _pullStepConstrAverage(const pullContext *pctx);
@@ -171,12 +161,9 @@ extern int _pullPointSetup(pullContext *pctx);
 extern void _pullPointFinish(pullContext *pctx);
 
 /* popcntl.c */
-extern int _pullPointProcessNeighLearn(pullTask *task, pullBin *bin,
-                                       pullPoint *point);
-extern int _pullPointProcessAdding(pullTask *task, pullBin *bin,
-                                   pullPoint *point);
-extern int _pullPointProcessNixing(pullTask *task, pullBin *bin,
-                                   pullPoint *point);
+extern int _pullPointProcessNeighLearn(pullTask *task, pullBin *bin, pullPoint *point);
+extern int _pullPointProcessAdding(pullTask *task, pullBin *bin, pullPoint *point);
+extern int _pullPointProcessNixing(pullTask *task, pullBin *bin, pullPoint *point);
 extern int _pullIterFinishNeighLearn(pullContext *pctx);
 extern int _pullIterFinishAdding(pullContext *pctx);
 extern int _pullIterFinishNixing(pullContext *pctx);

@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "air.h"
@@ -97,8 +95,7 @@ airArrayNew(void **dataP, unsigned int *lenP, size_t unit, unsigned int incr) {
 ** set callbacks to maintain array of structs
 */
 void
-airArrayStructCB(airArray *a,
-                 void (*initCB)(void *), void (*doneCB)(void *)) {
+airArrayStructCB(airArray *a, void (*initCB)(void *), void (*doneCB)(void *)) {
 
   if (a) {
     a->initCB = initCB;
@@ -114,8 +111,7 @@ airArrayStructCB(airArray *a,
 ** set callbacks to maintain array of pointers
 */
 void
-airArrayPointerCB(airArray *a,
-                  void *(*allocCB)(void), void *(*freeCB)(void *)) {
+airArrayPointerCB(airArray *a, void *(*allocCB)(void), void *(*freeCB)(void *)) {
 
   if (a) {
     a->initCB = NULL;
@@ -140,7 +136,7 @@ airArrayPointerCB(airArray *a,
 */
 void
 airArrayLenPreSet(airArray *a, unsigned int newlen) {
-  /* char me[]="airArrayLenPreSet"; */
+  /* static const char me[] = "airArrayLenPreSet"; */
   unsigned int newsize;
   void *newdata;
 
@@ -152,7 +148,7 @@ airArrayLenPreSet(airArray *a, unsigned int newlen) {
     /* there is no pre-set length, turn off noReallocWhenSmaller */
     a->noReallocWhenSmaller = AIR_FALSE;
   } else {
-    newsize = (newlen-1)/a->incr + 1;
+    newsize = (newlen - 1) / a->incr + 1;
     /*
     fprintf(stderr, "!%s: newlen = %u, incr = %u -> newsize = %u\n", me,
             newlen, a->incr, newsize);
@@ -160,7 +156,7 @@ airArrayLenPreSet(airArray *a, unsigned int newlen) {
             a->size, a->len, a->unit);
     */
     if (newsize > a->size) {
-      newdata = calloc(newsize*a->incr, a->unit);
+      newdata = calloc(newsize * a->incr, a->unit);
       /*
       fprintf(stderr, "!%s: a->data = %p, newdata = %p\n", me,
               a->data, newdata);
@@ -171,8 +167,7 @@ airArrayLenPreSet(airArray *a, unsigned int newlen) {
         return;
       }
       if (a->data) {
-        memcpy(newdata, a->data, AIR_MIN(a->len*a->unit,
-                                         newsize*a->incr*a->unit));
+        memcpy(newdata, a->data, AIR_MIN(a->len * a->unit, newsize * a->incr * a->unit));
         free(a->data);
       }
       _airSetData(a, newdata);
@@ -205,7 +200,7 @@ airArrayLenPreSet(airArray *a, unsigned int newlen) {
 */
 void
 airArrayLenSet(airArray *a, unsigned int newlen) {
-  /* char me[]="airArrayLenSet"; */
+  /* static const char me[] = "airArrayLenSet"; */
   unsigned int ii, newsize;
   void *addr, *newdata;
 
@@ -223,31 +218,29 @@ airArrayLenSet(airArray *a, unsigned int newlen) {
   /* Wed Sep 12 14:40:45 EDT 2007: the order in which these called is
      now ascending, instead of descending (as was the way before) */
   if (newlen < a->len && (a->freeCB || a->doneCB)) {
-    for (ii=newlen; ii<a->len; ii++) {
-      addr = (char*)(a->data) + ii*a->unit;
+    for (ii = newlen; ii < a->len; ii++) {
+      addr = (char *)(a->data) + ii * a->unit;
       if (a->freeCB) {
-        (a->freeCB)(*((void**)addr));
+        (a->freeCB)(*((void **)addr));
       } else {
         (a->doneCB)(addr);
       }
     }
   }
 
-  newsize = newlen ? (newlen-1)/a->incr + 1 : 0;
+  newsize = newlen ? (newlen - 1) / a->incr + 1 : 0;
   if (newsize != a->size) {
     /* we have to change the size of the array */
     if (newsize) {
       /* array should be bigger or smaller, but not zero-length */
-      if (newsize > a->size
-          || (newsize < a->size && !(a->noReallocWhenSmaller)) ) {
-        newdata = calloc(newsize*a->incr, a->unit);
+      if (newsize > a->size || (newsize < a->size && !(a->noReallocWhenSmaller))) {
+        newdata = calloc(newsize * a->incr, a->unit);
         if (!newdata) {
           free(a->data);
           _airSetData(a, NULL);
           return;
         }
-        memcpy(newdata, a->data, AIR_MIN(a->len*a->unit,
-                                         newsize*a->incr*a->unit));
+        memcpy(newdata, a->data, AIR_MIN(a->len * a->unit, newsize * a->incr * a->unit));
         free(a->data);
         _airSetData(a, newdata);
         a->size = newsize;
@@ -264,10 +257,10 @@ airArrayLenSet(airArray *a, unsigned int newlen) {
 
   /* call allocCB/initCB on newly created elements */
   if (newlen > a->len && (a->allocCB || a->initCB)) {
-    for (ii=a->len; ii<newlen; ii++) {
-      addr = (char*)(a->data) + ii*a->unit;
+    for (ii = a->len; ii < newlen; ii++) {
+      addr = (char *)(a->data) + ii * a->unit;
       if (a->allocCB) {
-        *((void**)addr) = (a->allocCB)();
+        *((void **)addr) = (a->allocCB)();
       } else {
         (a->initCB)(addr);
       }
@@ -295,24 +288,20 @@ airArrayLenSet(airArray *a, unsigned int newlen) {
 */
 unsigned int
 airArrayLenIncr(airArray *a, int delta) {
-  /* char me[]="airArrayLenIncr"; */
+  /* static const char me[] = "airArrayLenIncr"; */
   unsigned int oldlen, ret, negdel;
 
   if (!a) {
     return 0;
   }
-  negdel = (delta < 0
-            ? AIR_UINT(-delta)
-            : 0);
+  negdel = (delta < 0 ? AIR_UINT(-delta) : 0);
   if (delta < 0 && negdel > a->len) {
     /* error: asked for newlength to be negative */
     airArrayLenSet(a, 0);
     return 0;
   }
   oldlen = a->len;
-  airArrayLenSet(a, (delta >= 0
-                     ? oldlen + AIR_UINT(delta)
-                     : oldlen - negdel));
+  airArrayLenSet(a, (delta >= 0 ? oldlen + AIR_UINT(delta) : oldlen - negdel));
   if (!a->data) {
     /* allocation error */
     ret = 0;

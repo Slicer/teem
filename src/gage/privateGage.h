@@ -1,28 +1,23 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
-
-#ifndef GAGE_PRIVATE_HAS_BEEN_INCLUDED
-#define GAGE_PRIVATE_HAS_BEEN_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,27 +35,25 @@ extern "C" {
 #define _GAGE_NON_ERR_STR "(error)"
 
 /* shape.c */
-extern int _gageShapeSet(const gageContext *ctx, gageShape *shape,
-                         const Nrrd *nin, unsigned int baseDim);
+extern int _gageShapeSet(const gageContext *ctx, gageShape *shape, const Nrrd *nin,
+                         unsigned int baseDim);
 
 /* ctx.c */
 extern int _gageProbe(gageContext *ctx, double xi, double yi, double zi,
                       double stackIdx);
-extern int _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz,
-                           double ss, int indexSpace, int clamp);
+extern int _gageProbeSpace(gageContext *ctx, double xx, double yy, double zz, double ss,
+                           int indexSpace, int clamp);
 
 /* pvl.c */
 extern gagePerVolume *_gagePerVolumeCopy(gagePerVolume *pvl, unsigned int fd);
-extern double *_gageAnswerPointer(const gageContext *ctx,
-                                  gagePerVolume *pvl, int item);
+extern double *_gageAnswerPointer(const gageContext *ctx, gagePerVolume *pvl, int item);
 
 /* print.c */
 extern void _gagePrint_off(FILE *, gageContext *ctx);
 extern void _gagePrint_fslw(FILE *, gageContext *ctx);
 
 /* filter.c */
-extern int _gageLocationSet(gageContext *ctx,
-                            double x, double y, double z, double s);
+extern int _gageLocationSet(gageContext *ctx, double x, double y, double z, double s);
 
 /* stack.c */
 extern int _gageStackBaseIv3Fill(gageContext *ctx);
@@ -80,5 +73,3 @@ extern void _gageVecIv3Print(FILE *, gageContext *ctx, gagePerVolume *pvl);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* GAGE_PRIVATE_HAS_BEEN_INCLUDED */

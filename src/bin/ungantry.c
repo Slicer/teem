@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include <teem/air.h>
@@ -27,10 +25,10 @@
 #include <teem/nrrd.h>
 #include <teem/gage.h>
 
-char info[]="Gantry tilt be gone!  This program is actually of limited "
-"utility: it can only change the tilt by shearing with the "
-"X and Z axis fixed, by some angle \"around\" the X axis, assuming "
-"that (X,Y,Z) is a right-handed frame. ";
+char info[] = "Gantry tilt be gone!  This program is actually of limited "
+              "utility: it can only change the tilt by shearing with the "
+              "X and Z axis fixed, by some angle \"around\" the X axis, assuming "
+              "that (X,Y,Z) is a right-handed frame. ";
 
 int
 main(int argc, const char *argv[]) {
@@ -44,7 +42,8 @@ main(int argc, const char *argv[]) {
   float angle;
   double xs, ys, zs, y, z, padval;
   const double *val;
-  int sx, sy, sz, E, xi, yi, zi, clamp;
+  int E, clamp;
+  unsigned int sx, sy, sz, xi, yi, zi;
   NrrdKernelSpec *gantric;
   void *out;
   double (*insert)(void *v, size_t I, double d);
@@ -52,15 +51,14 @@ main(int argc, const char *argv[]) {
   me = argv[0];
   hparm = hestParmNew();
   hparm->elideSingleOtherType = AIR_TRUE;
+  hparm->respectDashDashHelp = AIR_TRUE;
 
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input volume, in nrrd format",
-             NULL, NULL, nrrdHestNrrd);
+             "input volume, in nrrd format", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "a", "angle", airTypeFloat, 1, 1, &angle, NULL,
              "angle, in degrees, of the gantry tilt around the X axis. "
              "This is opposite of the amount of tweak we apply.");
-  hestOptAdd(&hopt, "k", "kern", airTypeOther, 1, 1, &gantric,
-             "tent",
+  hestOptAdd(&hopt, "k", "kern", airTypeOther, 1, 1, &gantric, "tent",
              "The kernel to use for resampling.  Chances are, there "
              "is no justification for anything more than \"tent\".  "
              "Possibilities include:\n "
@@ -83,12 +81,12 @@ main(int argc, const char *argv[]) {
              "boundary of the volume with");
   hestOptAdd(&hopt, "o", "output", airTypeString, 1, 1, &outS, NULL,
              "output volume in nrrd format");
-  hestParseOrDie(hopt, argc-1, argv+1, hparm,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, info, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
 
-  sx = nin->axis[0].size;
-  sy = nin->axis[1].size;
-  sz = nin->axis[2].size;
+  sx = AIR_UINT(nin->axis[0].size);
+  sy = AIR_UINT(nin->axis[1].size);
+  sz = AIR_UINT(nin->axis[2].size);
   xs = nin->axis[0].spacing;
   ys = nin->axis[1].spacing;
   zs = nin->axis[2].spacing;
@@ -96,8 +94,7 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "%s: all axis spacings must exist in input nrrd\n", me);
     exit(1);
   }
-  fprintf(stderr, "%s: input and output have dimensions %d %d %d\n",
-          me, sx, sy, sz);
+  fprintf(stderr, "%s: input and output have dimensions %d %d %d\n", me, sx, sy, sz);
 
   /* start by just copying the nrrd; then we'll meddle with the values */
   if (nrrdCopy(nout = nrrdNew(), nin)) {
@@ -113,8 +110,7 @@ main(int argc, const char *argv[]) {
   E = 0;
   if (!E) E |= !(pvl = gagePerVolumeNew(ctx, nin, gageKindScl));
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
-  if (!E) E |= gageKernelSet(ctx, gageKernel00,
-                             gantric->kernel, gantric->parm);
+  if (!E) E |= gageKernelSet(ctx, gageKernel00, gantric->kernel, gantric->parm);
   if (!E) E |= gageQueryItemOn(ctx, pvl, gageSclValue);
   if (!E) E |= gageUpdate(ctx);
   if (E) {
@@ -124,22 +120,22 @@ main(int argc, const char *argv[]) {
   gageParmSet(ctx, gageParmVerbose, 0);
   val = gageAnswerPointer(ctx, pvl, gageSclValue);
 
-  for (zi=0; zi<sz; zi++) {
-    for (yi=0; yi<sy; yi++) {
-      for (xi=0; xi<sx; xi++) {
+  for (zi = 0; zi < sz; zi++) {
+    for (yi = 0; yi < sy; yi++) {
+      for (xi = 0; xi < sx; xi++) {
 
         /* convert to world space, use angle to determine new
            world space position, convert back to index space,
            clamp z to find inside old volume */
 
-        y = (yi - sy/2.0)*ys;
-        z = (zi*zs + y*sin(-angle*3.141592653/180.0))/zs;
-        if (clamp || AIR_IN_OP(0, z, sz-1)) {
-          z = AIR_CLAMP(0, z, sz-1);
+        y = (yi - sy / 2.0) * ys;
+        z = (zi * zs + y * sin(-angle * 3.141592653 / 180.0)) / zs;
+        if (clamp || AIR_IN_OP(0, z, sz - 1)) {
+          z = AIR_CLAMP(0, z, sz - 1);
           gageProbe(ctx, xi, yi, zi);
-          insert(out, xi + sx*(yi + sy*zi), *val);
+          insert(out, xi + sx * (yi + sy * zi), *val);
         } else {
-          insert(out, xi + sx*(yi + sy*zi), padval);
+          insert(out, xi + sx * (yi + sy * zi), padval);
         }
       }
     }

@@ -1,27 +1,27 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2011 Thomas Schultz
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 /* Reading and setting axis labels to encode Tijk types */
 
 #include "tijk.h"
+
+/* clang-format off */
 
 /* tijk_set_axis_tensor
  *
@@ -46,8 +46,8 @@ int tijk_set_axis_tensor(Nrrd *nrrd, unsigned int axis,
   else if (axinfo->size!=type->num)
     return 4;
   axinfo->label = (char*) airFree(axinfo->label);
-  lablen = strlen("tijk__") + strlen(type->name) +
-    (masked?strlen("mask_"):0) + 1;
+  lablen = (unsigned int)(strlen("tijk__") + strlen(type->name) +
+                          (masked?strlen("mask_"):0) + 1);
   axinfo->label = AIR_CALLOC(lablen, char);
   sprintf(axinfo->label, "tijk_%s%s", masked?"mask_":"", type->name);
   return 0;
@@ -207,3 +207,4 @@ int tijk_get_axis_type(tijk_axis_info *info,
   }
   return 4;
 }
+/* clang-format on */

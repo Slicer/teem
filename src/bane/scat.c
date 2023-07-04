@@ -1,37 +1,34 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
-
 
 #include "bane.h"
 #include "privateBane.h"
 
-int
+int /* Biff: 1 */
 baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
+  static const char me[] = "baneRawScatterplots";
   Nrrd *gA, *hA, *gB, *hB;
-  static const char me[]="baneRawScatterplots";
   int E;
 
-  if (!( nvg && nvh && hvol )) {
+  if (!(nvg && nvh && hvol)) {
     biffAddf(BANE, "%s: got NULL pointer", me);
     return 1;
   }
@@ -40,8 +37,10 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
     return 1;
   }
 
-  gA = nrrdNew(); gB = nrrdNew();
-  hA = nrrdNew(); hB = nrrdNew();
+  gA = nrrdNew();
+  gB = nrrdNew();
+  hA = nrrdNew();
+  hB = nrrdNew();
   /* create initial projections */
   E = 0;
   if (!E) E |= nrrdProject(gA, hvol, 1, nrrdMeasureSum, nrrdTypeDefault);
@@ -53,10 +52,10 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
 
   /* do histogram equalization on them */
   if (histEq) {
-    if (!E) E |= nrrdHistoEq(gB, gA, NULL, baneStateHistEqBins,
-                             baneStateHistEqSmart, 1.0);
-    if (!E) E |= nrrdHistoEq(hB, hA, NULL, baneStateHistEqBins,
-                             baneStateHistEqSmart, 1.0);
+    if (!E)
+      E |= nrrdHistoEq(gB, gA, NULL, baneStateHistEqBins, baneStateHistEqSmart, 1.0);
+    if (!E)
+      E |= nrrdHistoEq(hB, hA, NULL, baneStateHistEqBins, baneStateHistEqSmart, 1.0);
   } else {
     if (!E) E |= nrrdCopy(gB, gA);
     if (!E) E |= nrrdCopy(hB, hA);
@@ -83,7 +82,9 @@ baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq) {
     return 1;
   }
 
-  nrrdNuke(gA); nrrdNuke(gB);
-  nrrdNuke(hA); nrrdNuke(hB);
+  nrrdNuke(gA);
+  nrrdNuke(gB);
+  nrrdNuke(hA);
+  nrrdNuke(hB);
   return 0;
 }

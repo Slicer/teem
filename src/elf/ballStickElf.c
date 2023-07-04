@@ -1,28 +1,27 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2011, 2010, 2009, 2008 Thomas Schultz
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "elf.h"
+/* clang-format off */
 
 #if TEEM_LEVMAR
-#include <levmar.h>
+#  include <levmar.h>
 #endif
 
 /* Routines for estimating the ball-and-multi-stick model from single-shell
@@ -41,31 +40,32 @@
  *
  * returns 0 on success, 1 if order is not supported
  */
-int elfKernelStick_f(float *kernel, unsigned int order, float bd,
-                     float b0, int delta) {
+int /* Biff: nope */
+elfKernelStick_f(float *kernel, unsigned int order, float bd,
+                 float b0, int delta) {
   double ebd=exp(bd);
   double embd=exp(-bd);
   double sbd=sqrt(bd);
   double erfsbd=airErf(sbd);
   double spi=sqrt(AIR_PI);
-  kernel[0]=AIR_CAST(float, b0*AIR_PI*erfsbd/sbd);
+  kernel[0]=AIR_FLOAT(b0*AIR_PI*erfsbd/sbd);
   if (order>=2) {
-    kernel[1]=AIR_CAST(float, -b0/(4.0*bd*sbd)*embd*sqrt(5*AIR_PI)*
-                       (6*sbd+(-3+2*bd)*ebd*spi*erfsbd));
+    kernel[1]=AIR_FLOAT(-b0/(4.0*bd*sbd)*embd*sqrt(5*AIR_PI)*
+                        (6*sbd+(-3+2*bd)*ebd*spi*erfsbd));
     if (order>=4) {
-      kernel[2]=AIR_CAST(float, b0/(32.0*bd*bd*sbd)*embd*spi*
-                         (-30*sbd*(21+2*bd)+9*(35+4*bd*(-5+bd))*
+      kernel[2]=AIR_FLOAT(b0/(32.0*bd*bd*sbd)*embd*spi*
+                          (-30*sbd*(21+2*bd)+9*(35+4*bd*(-5+bd))*
                           ebd*spi*erfsbd));
       if (order>=6) { /* At order 6, noise starts to take over! */
-        kernel[3]=AIR_CAST(float, b0/(128*bd*bd*bd*sbd)*embd*sqrt(13.0)*
-                           (-42*sbd*(165+4*bd*(5+bd))*spi-
-                            5*(-693+378*bd-84*bd*bd+8*bd*bd*bd)*
-                            ebd*AIR_PI*erfsbd));
+        kernel[3]=AIR_FLOAT(b0/(128*bd*bd*bd*sbd)*embd*sqrt(13.0)*
+                            (-42*sbd*(165+4*bd*(5+bd))*spi-
+                             5*(-693+378*bd-84*bd*bd+8*bd*bd*bd)*
+                             ebd*AIR_PI*erfsbd));
         if (order>=8) {
-          kernel[4]=AIR_CAST(float, b0/(2048*bd*bd*bd*bd*sbd)*embd*sqrt(17.0)*
-                             (-6*sbd*(225225+2*bd*(15015+2*bd*(1925+62*bd)))*spi+
-                              35*(19305+8*bd*(-1287+bd*(297+2*(-18+bd)*bd)))*
-                              ebd*AIR_PI*erfsbd));
+          kernel[4]=AIR_FLOAT(b0/(2048*bd*bd*bd*bd*sbd)*embd*sqrt(17.0)*
+                              (-6*sbd*(225225+2*bd*(15015+2*bd*(1925+62*bd)))*spi+
+                               35*(19305+8*bd*(-1287+bd*(297+2*(-18+bd)*bd)))*
+                               ebd*AIR_PI*erfsbd));
           if (order>8)
             return 1;
         }
@@ -97,9 +97,10 @@ int elfKernelStick_f(float *kernel, unsigned int order, float bd,
  *         1 if order is not supported
  *         2 if all DWIs were larger than the B0 image
  */
-int elfBallStickODF_f(float *odf, float *fiso, float *d,
-                      const elfSingleShellDWI *dwi,
-                      const float *T, unsigned int order, int delta)
+int /* Biff: nope */
+elfBallStickODF_f(float *odf, float *fiso, float *d,
+                  const elfSingleShellDWI *dwi,
+                  const float *T, unsigned int order, int delta)
 {
   unsigned int C = tijk_esh_len[order/2], k, l;
   float mean=0, _origd=1e-20f, _d=_origd;
@@ -121,15 +122,15 @@ int elfBallStickODF_f(float *odf, float *fiso, float *d,
 
   /* guess d and fiso based on the data */
   for (k=0; k<dwi->dwino; k++) {
-    float thisd = AIR_CAST(float, -log(dwi->dwis[k]/dwi->b0)/dwi->b);
+    float thisd = AIR_FLOAT(-log(dwi->dwis[k]/dwi->b0)/dwi->b);
     if (dwi->dwis[k]!=0 && thisd>_d) _d=thisd;
     mean += dwi->dwis[k];
   }
   mean /= dwi->dwino;
-  isovf0 = AIR_CAST(float, 0.5*sqrt(AIR_PI/(dwi->b*_d))
-                    *airErf(sqrt(dwi->b*_d)));
-  isovf1 = AIR_CAST(float, exp(-dwi->b*_d));
-  _fiso = AIR_CAST(float, AIR_AFFINE(isovf0,mean/dwi->b0,isovf1, 0.0, 1.0));
+  isovf0 = AIR_FLOAT(0.5*sqrt(AIR_PI/(dwi->b*_d))
+                     *airErf(sqrt(dwi->b*_d)));
+  isovf1 = AIR_FLOAT(exp(-dwi->b*_d));
+  _fiso = AIR_FLOAT(AIR_AFFINE(isovf0,mean/dwi->b0,isovf1, 0.0, 1.0));
   _fiso=AIR_CLAMP(0.01f,_fiso,0.99f);
   if (fiso!=NULL) *fiso=_fiso;
   if (d!=NULL) *d=_d;
@@ -138,7 +139,7 @@ int elfBallStickODF_f(float *odf, float *fiso, float *d,
   elfKernelStick_f(kernel, order, dwi->b*_d, dwi->b0, delta);
 
   /* remove estimated isotropic part from the signal */
-  odf[0] -= AIR_CAST(float, dwi->b0 * _fiso * 2*sqrt(AIR_PI)*exp(-dwi->b*_d));
+  odf[0] -= AIR_FLOAT(dwi->b0 * _fiso * 2*sqrt(AIR_PI)*exp(-dwi->b*_d));
 
   /* deconvolve */
   tijk_esh_deconvolve_f(odf, odf, kernel, order);
@@ -154,9 +155,10 @@ int elfBallStickODF_f(float *odf, float *fiso, float *d,
  * (ADC) and fiso are used to set d and fs[0].
  * Returns 0 upon success, 1 upon error
  */
-int elfBallStickPredict_f(elfBallStickParms *parms, float *odf,
-                          const tijk_type *type, unsigned int k,
-                          float d, float fiso) {
+int /* Biff: nope */
+elfBallStickPredict_f(elfBallStickParms *parms, float *odf,
+                      const tijk_type *type, unsigned int k,
+                      float d, float fiso) {
   tijk_refine_rankk_parm *rparm;
   unsigned int i;
   float totalfs=0;
@@ -319,8 +321,9 @@ _levmarBallStickJacCB(double *p, double *jac, int m, int n, void *_data) {
  *         2 if levmar returned an error
  *         3 if levmar support is missing in this version of teem
  */
-int elfBallStickOptimize_f(elfBallStickParms *parms,
-                           const elfSingleShellDWI *dwi) {
+int /* Biff: nope */
+elfBallStickOptimize_f(elfBallStickParms *parms,
+                       const elfSingleShellDWI *dwi) {
 #if TEEM_LEVMAR
   double lmparms[10], *dwis;
   int lmret=0;
@@ -420,3 +423,4 @@ int elfBallStickOptimize_f(elfBallStickParms *parms,
   return 3;
 #endif
 }
+/* clang-format on */

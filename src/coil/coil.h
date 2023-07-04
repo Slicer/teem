@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #ifndef COIL_HAS_BEEN_INCLUDED
@@ -62,14 +60,14 @@ extern "C" {
 ** 1: float
 */
 
-#if 0
-typedef double coil_t;
-#  define coil_nrrdType nrrdTypeDouble
-#  define COIL_TYPE_FLOAT 0
-#else
+#if 1 /* float == coil_t */
 typedef float coil_t;
-#  define coil_nrrdType nrrdTypeFloat
+#  define coil_nrrdType   nrrdTypeFloat
 #  define COIL_TYPE_FLOAT 1
+#else
+typedef double coil_t;
+#  define coil_nrrdType   nrrdTypeDouble
+#  define COIL_TYPE_FLOAT 0
 #endif
 
 /*
@@ -86,18 +84,18 @@ typedef float coil_t;
 ** enumerated possibilities for different filtering methods
 */
 enum {
-  coilMethodTypeUnknown,                 /* 0 */
-  coilMethodTypeTesting,                 /* 1: basically a no-op */
-  coilMethodTypeHomogeneous,             /* 2 */
-  coilMethodTypePeronaMalik,             /* 3 */
-  coilMethodTypeModifiedCurvature,       /* 4 */
-  coilMethodTypeModifiedCurvatureRings,  /* 5 */
-  coilMethodTypeCurvatureFlow,           /* 6 */
-  coilMethodTypeSelf,                    /* 7 */
-  coilMethodTypeFinish,                  /* 8 */
+  coilMethodTypeUnknown,                /* 0 */
+  coilMethodTypeTesting,                /* 1: basically a no-op */
+  coilMethodTypeHomogeneous,            /* 2 */
+  coilMethodTypePeronaMalik,            /* 3 */
+  coilMethodTypeModifiedCurvature,      /* 4 */
+  coilMethodTypeModifiedCurvatureRings, /* 5 */
+  coilMethodTypeCurvatureFlow,          /* 6 */
+  coilMethodTypeSelf,                   /* 7 */
+  coilMethodTypeFinish,                 /* 8 */
   coilMethodTypeLast
 };
-#define COIL_METHOD_TYPE_MAX                8
+#define COIL_METHOD_TYPE_MAX 8
 
 /*
 ******** coilMethod struct
@@ -108,8 +106,8 @@ enum {
 */
 typedef struct {
   char name[AIR_STRLEN_SMALL];
-  int type;                         /* from coilMethodType* enum */
-  int numParm;                      /* number of parameters we need */
+  int type;    /* from coilMethodType* enum */
+  int numParm; /* number of parameters we need */
 } coilMethod;
 
 /*
@@ -118,13 +116,13 @@ typedef struct {
 ** enumerated possibilities for different kinds
 */
 enum {
-  coilKindTypeUnknown,              /* 0 */
-  coilKindTypeScalar,               /* 1 */
-  coilKindType3Color,               /* 2 */
-  coilKindType7Tensor,              /* 3 */
+  coilKindTypeUnknown, /* 0 */
+  coilKindTypeScalar,  /* 1 */
+  coilKindType3Color,  /* 2 */
+  coilKindType7Tensor, /* 3 */
   coilKindTypeLast
 };
-#define COIL_KIND_TYPE_MAX             3
+#define COIL_KIND_TYPE_MAX 3
 
 /*
 ******** coilKind struct
@@ -138,15 +136,14 @@ enum {
 ** at some point in the future where appropriate.
 */
 typedef struct {
-  char name[AIR_STRLEN_SMALL];      /* short identifying string for kind */
-  unsigned int valLen;              /* number of scalars per data point
-                                       1 for plain scalars (baseDim=0),
-                                       or something else (baseDim=1) */
-                                    /* all the available methods */
-  void (*filter[COIL_METHOD_TYPE_MAX+1])(coil_t *delta,
-                                         int xi, int yi, int zi,
-                                         coil_t **iv3, double spacing[3],
-                                         double parm[COIL_PARMS_NUM]);
+  char name[AIR_STRLEN_SMALL]; /* short identifying string for kind */
+  unsigned int valLen;         /* number of scalars per data point
+                                  1 for plain scalars (baseDim=0),
+                                  or something else (baseDim=1) */
+                               /* all the available methods */
+  void (*filter[COIL_METHOD_TYPE_MAX + 1])(coil_t *delta, int xi, int yi, int zi,
+                                           coil_t **iv3, double spacing[3],
+                                           double parm[COIL_PARMS_NUM]);
   void (*update)(coil_t *val, coil_t *delta); /* how to apply update */
 } coilKind;
 
@@ -158,18 +155,18 @@ struct coilContext_t;
 ** passed to all worker threads
 */
 typedef struct {
-  struct coilContext_t *cctx;      /* parent's context */
-  airThread *thread;               /* my thread */
-  unsigned int threadIdx;          /* which thread am I */
-  coil_t *_iv3,                    /* underlying value cache */
-    **iv3;                         /* short array of pointers into 2-D value
-                                      caches, in which the order is based on
-                                      the volume order:
-                                      values, then Y, then Z */
-                                   /* how to fill iv3 */
-  void (*iv3Fill)(coil_t **iv3, coil_t *here, unsigned int radius, int valLen,
-                  int x0, int y0, int z0, int sizeX, int sizeY, int sizeZ);
-  void *returnPtr;                 /* for airThreadJoin */
+  struct coilContext_t *cctx; /* parent's context */
+  airThread *thread;          /* my thread */
+  unsigned int threadIdx;     /* which thread am I */
+  coil_t *_iv3,               /* underlying value cache */
+    **iv3;                    /* short array of pointers into 2-D value
+                                 caches, in which the order is based on
+                                 the volume order:
+                                 values, then Y, then Z */
+                              /* how to fill iv3 */
+  void (*iv3Fill)(coil_t **iv3, coil_t *here, unsigned int radius, int valLen, int x0,
+                  int y0, int z0, int sizeX, int sizeY, int sizeZ);
+  void *returnPtr; /* for airThreadJoin */
 } coilTask;
 
 /*
@@ -179,17 +176,17 @@ typedef struct {
 */
 typedef struct coilContext_t {
   /* ---------- input */
-  const Nrrd *nin;                 /* input volume (converted to type coil_t
-                                      in nvol, below) */
-  const coilKind *kind;            /* what kind of volume is nin */
-  const coilMethod *method;        /* what method of filtering to use */
-  unsigned int radius,             /* how big a neighborhood to look at when
-                                      doing filtering (use 1 for 3x3x3 size) */
-    numThreads;                    /* number of threads to enlist */
-  int verbose;                     /* blah blah blah */
-  double parm[COIL_PARMS_NUM];     /* all the parameters used to control the
-                                      action of the filtering.  The timestep is
-                                      probably the first value. */
+  const Nrrd *nin;             /* input volume (converted to type coil_t
+                                  in nvol, below) */
+  const coilKind *kind;        /* what kind of volume is nin */
+  const coilMethod *method;    /* what method of filtering to use */
+  unsigned int radius,         /* how big a neighborhood to look at when
+                                  doing filtering (use 1 for 3x3x3 size) */
+    numThreads;                /* number of threads to enlist */
+  int verbose;                 /* blah blah blah */
+  double parm[COIL_PARMS_NUM]; /* all the parameters used to control the
+                                  action of the filtering.  The timestep is
+                                  probably the first value. */
   /* ---------- internal */
   unsigned int iter;               /* what iteration we're on */
   size_t size[3],                  /* size of volume */
@@ -218,7 +215,7 @@ typedef struct coilContext_t {
 
 /* defaultsCoil.c */
 COIL_EXPORT const int coilPresent;
-COIL_EXPORT const char *coilBiffKey;
+COIL_EXPORT const char *const coilBiffKey;
 COIL_EXPORT int coilDefaultRadius;
 COIL_EXPORT int coilVerbose;
 
@@ -227,24 +224,22 @@ COIL_EXPORT const airEnum *const coilMethodType;
 COIL_EXPORT const airEnum *const coilKindType;
 
 /* scalarCoil.c */
-COIL_EXPORT const coilKind *coilKindScalar;
-COIL_EXPORT const coilKind *coilKindArray[COIL_KIND_TYPE_MAX+1];
+COIL_EXPORT const coilKind _coilKindScalar; /* no privateCoil.h */
+COIL_EXPORT const coilKind *const coilKindScalar;
+COIL_EXPORT const coilKind *const coilKindArray[COIL_KIND_TYPE_MAX + 1];
 
 /* tensorCoil.c */
 COIL_EXPORT const coilKind _coilKind7Tensor; /* no privateCoil.h */
-COIL_EXPORT const coilKind *coilKind7Tensor;
+COIL_EXPORT const coilKind *const coilKind7Tensor;
 
 /* realmethods.c */
-COIL_EXPORT const coilMethod *coilMethodTesting;
-COIL_EXPORT const coilMethod *coilMethodIsotropic;
-COIL_EXPORT const coilMethod *coilMethodArray[COIL_METHOD_TYPE_MAX+1];
+COIL_EXPORT const coilMethod *const coilMethodArray[COIL_METHOD_TYPE_MAX + 1];
 
 /* methodsCoil.c (sorry, confusing name!) */
 COIL_EXPORT coilContext *coilContextNew(void);
 COIL_EXPORT int coilVolumeCheck(const Nrrd *nin, const coilKind *kind);
 COIL_EXPORT int coilContextAllSet(coilContext *cctx, const Nrrd *nin,
-                                  const coilKind *kind,
-                                  const coilMethod *method,
+                                  const coilKind *kind, const coilMethod *method,
                                   unsigned int radius, unsigned int numThreads,
                                   int verbose, double parm[COIL_PARMS_NUM]);
 COIL_EXPORT int coilOutputGet(Nrrd *nout, coilContext *cctx);

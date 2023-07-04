@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #ifndef MEET_HAS_BEEN_INCLUDED
@@ -33,11 +31,11 @@
 #include <teem/biff.h>
 #include <teem/nrrd.h>
 #include <teem/ell.h>
+#include <teem/moss.h>
 #include <teem/unrrdu.h>
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #  include <teem/alan.h>
 #endif
-#include <teem/moss.h>
 #if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
 #  include <teem/tijk.h>
 #endif
@@ -71,7 +69,6 @@
 #  define MEET_EXPORT extern
 #endif
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -80,7 +77,7 @@ extern "C" {
 
 /* enumall.c: (not really a descriptive filename) */
 MEET_EXPORT const int meetPresent;
-MEET_EXPORT const char *meetBiffKey;
+MEET_EXPORT const char *const meetBiffKey;
 MEET_EXPORT const airEnum **meetAirEnumAll(void);
 MEET_EXPORT void meetAirEnumAllPrint(FILE *file);
 MEET_EXPORT int meetAirEnumAllCheck(void);
@@ -93,8 +90,8 @@ MEET_EXPORT int meetNrrdKernelAllCheck(void);
 /* meetGage.c */
 MEET_EXPORT gageKind *meetGageKindParse(const char *str);
 MEET_EXPORT const gageKind *meetConstGageKindParse(const char *str);
-MEET_EXPORT hestCB *meetHestGageKind;
-MEET_EXPORT hestCB *meetHestConstGageKind;
+MEET_EXPORT const hestCB *const meetHestGageKind;
+MEET_EXPORT const hestCB *const meetHestConstGageKind;
 
 /*
 ******** meetPullVol
@@ -116,25 +113,24 @@ MEET_EXPORT hestCB *meetHestConstGageKind;
 */
 typedef struct {
   const gageKind *kind;
-  char *fileName,
-    *volName;
-  gageStackBlurParm *sbp;  /* the right place to store everything about how to
-                              pre-compute a blurring of an image, replacing
-                              uniformSS, optimSS, needSpatialBlurSS,
-                              rangeSS[2], numSS, and posSS.  More sensible to
-                              have this here, now that gage can parse the
-                              terse string-based description of scale-space
-                              sampling that originated in meet (via Deft) */
-  int leeching,            /* non-zero iff using the same nin and ninSS
-                              as another meetPullVol (so as to avoid
-                              redundant copies in memory) */
-    derivNormSS,           /* normalize derivatives based on scale */
-    recomputedSS;          /* (OUTPUT) non-zero if meetPullVolLoadMulti
-                              had to recompute these, versus being read
-                              from disk */
-  double derivNormBiasSS;  /* for gageParmStackNormalizeDerivBias */
-  Nrrd *nin;               /* we DO own */
-  Nrrd **ninSS;            /* we DO own */
+  char *fileName, *volName;
+  gageStackBlurParm *sbp; /* the right place to store everything about how to
+                             pre-compute a blurring of an image, replacing
+                             uniformSS, optimSS, needSpatialBlurSS,
+                             rangeSS[2], numSS, and posSS.  More sensible to
+                             have this here, now that gage can parse the
+                             terse string-based description of scale-space
+                             sampling that originated in meet (via Deft) */
+  int leeching,           /* non-zero iff using the same nin and ninSS
+                             as another meetPullVol (so as to avoid
+                             redundant copies in memory) */
+    derivNormSS,          /* normalize derivatives based on scale */
+    recomputedSS;         /* (OUTPUT) non-zero if meetPullVolLoadMulti
+                             had to recompute these, versus being read
+                             from disk */
+  double derivNormBiasSS; /* for gageParmStackNormalizeDerivBias */
+  Nrrd *nin;              /* we DO own */
+  Nrrd **ninSS;           /* we DO own */
 } meetPullVol;
 
 /*
@@ -151,13 +147,13 @@ typedef struct {
 ** number.
 */
 typedef struct {
-  int info,                    /* which pullInfo is being defined */
-    source,                    /* the source (from pullSource* enum) */
-    prop,                      /* which property (if pullSourceProp) */
-    constraint;                /* this info should be a constraint */
-  char *volName,               /* name of volume from which info is measured */
-    *itemStr;                  /* which item in that volume gives the info */
-  double zero, scale;          /* affine mapping of scalar info */
+  int info,           /* which pullInfo is being defined */
+    source,           /* the source (from pullSource* enum) */
+    prop,             /* which property (if pullSourceProp) */
+    constraint;       /* this info should be a constraint */
+  char *volName,      /* name of volume from which info is measured */
+    *itemStr;         /* which item in that volume gives the info */
+  double zero, scale; /* affine mapping of scalar info */
 } meetPullInfo;
 
 /* meetPull.c */
@@ -167,9 +163,9 @@ MEET_EXPORT int meetPullVolParse(meetPullVol *mpv, const char *str);
 MEET_EXPORT int meetPullVolLeechable(const meetPullVol *lchr,
                                      const meetPullVol *orig,
                                      int *can,
-                                     char explain[AIR_STRLEN_LARGE]);
+                                     char explain[AIR_STRLEN_HUGE]);
 MEET_EXPORT meetPullVol *meetPullVolNix(meetPullVol *pvol);
-MEET_EXPORT hestCB *meetHestPullVol;
+MEET_EXPORT const hestCB *const meetHestPullVol;
 MEET_EXPORT int meetPullVolStackBlurParmFinishMulti(meetPullVol **mpv,
                                                     unsigned int mpvNum,
                                                     unsigned int *kssSetP,
@@ -178,20 +174,17 @@ MEET_EXPORT int meetPullVolStackBlurParmFinishMulti(meetPullVol **mpv,
                                                     const NrrdBoundarySpec *bsp);
 MEET_EXPORT int meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum,
                                      char *cachePath, int verbose);
-MEET_EXPORT int meetPullVolAddMulti(pullContext *pctx,
-                                    meetPullVol **mpv, unsigned int mpvNum,
-                                    const NrrdKernelSpec *k00,
-                                    const NrrdKernelSpec *k11,
-                                    const NrrdKernelSpec *k22,
+MEET_EXPORT int meetPullVolAddMulti(pullContext *pctx, meetPullVol **mpv,
+                                    unsigned int mpvNum, const NrrdKernelSpec *k00,
+                                    const NrrdKernelSpec *k11, const NrrdKernelSpec *k22,
                                     const NrrdKernelSpec *kSSrecon);
 MEET_EXPORT meetPullInfo *meetPullInfoNew(void);
 MEET_EXPORT meetPullInfo *meetPullInfoNix(meetPullInfo *minf);
 MEET_EXPORT int meetPullInfoParse(meetPullInfo *minf, const char *str);
-MEET_EXPORT hestCB *meetHestPullInfo;
+MEET_EXPORT const hestCB *const meetHestPullInfo;
 MEET_EXPORT int meetPullInfoAddMulti(pullContext *pctx,
                                      meetPullInfo **minf,
                                      unsigned int minfNum);
-
 
 #ifdef __cplusplus
 }

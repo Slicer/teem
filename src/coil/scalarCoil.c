@@ -1,28 +1,26 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "coil.h"
-
+/* clang-format off */
 /*
 **  x ----> X
 **   \   [0][0]  [1][0]  [2][0]
@@ -38,7 +36,7 @@
 **           [0][8]  [1][8]  [2][8]
 */
 
-coil_t
+static coil_t
 _coilLaplacian3(coil_t **iv3, double spacing[3]) {
   double ret;
 
@@ -48,7 +46,7 @@ _coilLaplacian3(coil_t **iv3, double spacing[3]) {
   return AIR_CAST(coil_t, ret);
 }
 
-void
+static void
 _coilKindScalarFilterTesting(coil_t *delta,
                              int xi, int yi, int zi,
                              coil_t **iv3, double spacing[3],
@@ -62,7 +60,7 @@ _coilKindScalarFilterTesting(coil_t *delta,
   delta[0] = 0;
 }
 
-void
+static void
 _coilKindScalarFilterHomogeneous(coil_t *delta,
                                  int xi, int yi, int zi,
                                  coil_t **iv3, double spacing[3],
@@ -74,7 +72,7 @@ _coilKindScalarFilterHomogeneous(coil_t *delta,
   delta[0] = AIR_CAST(coil_t, parm[0])*_coilLaplacian3(iv3, spacing);
 }
 
-void
+static void
 _coilKindScalar3x3x3Gradients(coil_t *forwX, coil_t *backX,
                               coil_t *forwY, coil_t *backY,
                               coil_t *forwZ, coil_t *backZ,
@@ -116,7 +114,7 @@ _coilKindScalar3x3x3Gradients(coil_t *forwX, coil_t *backX,
   AIR_CAST(coil_t, 1.0/(1.0 + (LL)/(KK)))
 */
 
-void
+static void
 _coilKindScalarFilterPeronaMalik(coil_t *delta,
                                  int xi, int yi, int zi,
                                  coil_t **iv3, double spacing[3],
@@ -159,12 +157,12 @@ _coilKindScalarFilterPeronaMalik(coil_t *delta,
 **   0    1    2   (3)
 ** step   K  lerp (lerp=1: all laplacian)
 */
-void
+static void
 _coilKindScalarFilterModifiedCurvature(coil_t *delta,
                                        int xi, int yi, int zi,
                                        coil_t **iv3, double spacing[3],
                                        double parm[COIL_PARMS_NUM]) {
-  /* char me[]="_coilKindScalarFilterModifiedCurvature"; */
+  /* static const char me[] = "_coilKindScalarFilterModifiedCurvature"; */
   coil_t forwX[3], backX[3], forwY[3], backY[3], forwZ[3], backZ[3],
     grad[3], gm, eps, KK, LL, denom, rspX, rspY, rspZ, lerp;
 
@@ -246,7 +244,7 @@ _coilKindScalarFilterModifiedCurvature(coil_t *delta,
 **   0      1      2     3       4      5      (6)
 ** step  K_perp  K_tan  lerp  X_ring  Y_ring
 */
-void
+static void
 _coilKindScalarFilterModifiedCurvatureRings(coil_t *delta,
                                             int xi, int yi, int zi,
                                             coil_t **iv3, double spacing[3],
@@ -316,13 +314,13 @@ _coilKindScalarFilterModifiedCurvatureRings(coil_t *delta,
   delta[0] *= AIR_CAST(coil_t, parm[0]);
 }
 
-void
+static void
 _coilKindScalarUpdate(coil_t *val, coil_t *delta) {
 
   val[0] += delta[0];
 }
 
-const coilKind
+const coilKind /* NOT static */
 _coilKindScalar = {
   "scalar",
   1,
@@ -338,7 +336,7 @@ _coilKindScalar = {
   _coilKindScalarUpdate
 };
 
-const coilKind *
+const coilKind *const
 coilKindScalar = &_coilKindScalar;
 
 /* ------------------------------------------ */
@@ -351,10 +349,11 @@ extern const coilKind _coilKind7Tensor;
 }
 #endif
 
-const coilKind*
+const coilKind* const
 coilKindArray[COIL_KIND_TYPE_MAX+1] = {
   NULL,
   &_coilKindScalar,
   NULL,
   &_coilKind7Tensor
 };
+/* clang-format on */

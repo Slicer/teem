@@ -1,29 +1,28 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "gage.h"
 #include "privateGage.h"
 
+/* clang-format off */
 /*
 ** sets the filter sample location (fsl) array based on fractional
 ** probe location ctx->point->frac
@@ -34,7 +33,7 @@
 ** weights may not be the desired ones.  Forward differencing (via
 ** nrrdKernelForwDiff) is a good example of this.
 */
-void
+static void
 _gageFslSet(gageContext *ctx) {
   int fr, i;
   double *fslx, *fsly, *fslz;
@@ -71,42 +70,13 @@ _gageFslSet(gageContext *ctx) {
 }
 
 /*
-** renormalize weights of a reconstruction kernel with
-** constraint: the sum of the weights must equal the continuous
-** integral of the kernel
-*/
-void
-_gageFwValueRenormalize(gageContext *ctx, int wch) {
-  double integral, sumX, sumY, sumZ, *fwX, *fwY, *fwZ;
-  int i, fd;
-
-  fd = 2*ctx->radius;
-  fwX = ctx->fw + 0 + fd*(0 + 3*wch);
-  fwY = ctx->fw + 0 + fd*(1 + 3*wch);
-  fwZ = ctx->fw + 0 + fd*(2 + 3*wch);
-  integral = ctx->ksp[wch]->kernel->integral(ctx->ksp[wch]->parm);
-  sumX = sumY = sumZ = 0;
-  for (i=0; i<fd; i++) {
-    sumX += fwX[i];
-    sumY += fwY[i];
-    sumZ += fwZ[i];
-  }
-  for (i=0; i<fd; i++) {
-    fwX[i] *= integral/sumX;
-    fwY[i] *= integral/sumY;
-    fwZ[i] *= integral/sumZ;
-  }
-  return;
-}
-
-/*
 ** renormalize weights of a derivative kernel with
 ** constraint: the sum of the weights must be zero, but
 ** sign of individual weights must be preserved
 */
-void
+static void
 _gageFwDerivRenormalize(gageContext *ctx, int wch) {
-  char me[]="_gageFwDerivRenormalize";
+  static const char me[] = "_gageFwDerivRenormalize";
   double negX, negY, negZ, posX, posY, posZ, fixX, fixY, fixZ,
     *fwX, *fwY, *fwZ;
   int i, fd;
@@ -140,20 +110,51 @@ _gageFwDerivRenormalize(gageContext *ctx, int wch) {
   return;
 }
 
-void
+/* clang-format on */
+
+/*
+** renormalize weights of a reconstruction kernel with
+** constraint: the sum of the weights must equal the continuous
+** integral of the kernel
+*/
+static void
+_gageFwValueRenormalize(gageContext *ctx, int wch) {
+  double integral, sumX, sumY, sumZ, *fwX, *fwY, *fwZ;
+  int i, fd;
+
+  fd = 2 * ctx->radius;
+  fwX = ctx->fw + 0 + fd * (0 + 3 * wch);
+  fwY = ctx->fw + 0 + fd * (1 + 3 * wch);
+  fwZ = ctx->fw + 0 + fd * (2 + 3 * wch);
+  integral = ctx->ksp[wch]->kernel->integral(ctx->ksp[wch]->parm);
+  sumX = sumY = sumZ = 0;
+  for (i = 0; i < fd; i++) {
+    sumX += fwX[i];
+    sumY += fwY[i];
+    sumZ += fwZ[i];
+  }
+  for (i = 0; i < fd; i++) {
+    fwX[i] *= integral / sumX;
+    fwY[i] *= integral / sumY;
+    fwZ[i] *= integral / sumZ;
+  }
+  return;
+}
+
+static void
 _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
-  char me[]="_gageFwSet";
+  static const char me[] = "_gageFwSet";
   int kidx;
   unsigned int fd;
 
-  fd = 2*ctx->radius;
-  for (kidx=gageKernelUnknown+1; kidx<gageKernelLast; kidx++) {
-    if (!ctx->needK[kidx] || kidx==gageKernelStack) {
+  fd = 2 * ctx->radius;
+  for (kidx = gageKernelUnknown + 1; kidx < gageKernelLast; kidx++) {
+    if (!ctx->needK[kidx] || kidx == gageKernelStack) {
       continue;
     }
     /* we evaluate weights for all three axes with one call */
-    ctx->ksp[kidx]->kernel->evalN_d(ctx->fw + fd*3*kidx, ctx->fsl,
-                                    fd*3, ctx->ksp[kidx]->parm);
+    ctx->ksp[kidx]->kernel->evalN_d(ctx->fw + fd * 3 * kidx, ctx->fsl, fd * 3,
+                                    ctx->ksp[kidx]->parm);
   }
 
   if (ctx->verbose > 2) {
@@ -161,8 +162,8 @@ _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
     _gagePrint_fslw(stderr, ctx);
   }
   if (ctx->parm.renormalize) {
-    for (kidx=gageKernelUnknown+1; kidx<gageKernelLast; kidx++) {
-      if (!ctx->needK[kidx] || kidx==gageKernelStack) {
+    for (kidx = gageKernelUnknown + 1; kidx < gageKernelLast; kidx++) {
+      if (!ctx->needK[kidx] || kidx == gageKernelStack) {
         continue;
       }
       switch (kidx) {
@@ -186,9 +187,7 @@ _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
     unsigned int jj;
     double scl, norm, *fwX, *fwY, *fwZ;
 
-    scl = AIR_AFFINE(0.0, sfrac, 1.0,
-                     ctx->stackPos[sidx],
-                     ctx->stackPos[sidx+1]);
+    scl = AIR_AFFINE(0.0, sfrac, 1.0, ctx->stackPos[sidx], ctx->stackPos[sidx + 1]);
 #if 0
     double (*dgeval)(double x, const double *parm),
       dgparm[2] = {0, 3};
@@ -203,24 +202,24 @@ _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
     /* really simple; no lindeberg normalization, possible bias */
     norm = scl + ctx->parm.stackNormalizeDerivBias;
 
-    fd = 2*ctx->radius;
+    fd = 2 * ctx->radius;
     kidx = gageKernel11;
-    fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
-    fwY = ctx->fw + 0 + fd*(1 + 3*kidx);
-    fwZ = ctx->fw + 0 + fd*(2 + 3*kidx);
-    for (jj=0; jj<fd; jj++) {
+    fwX = ctx->fw + 0 + fd * (0 + 3 * kidx);
+    fwY = ctx->fw + 0 + fd * (1 + 3 * kidx);
+    fwZ = ctx->fw + 0 + fd * (2 + 3 * kidx);
+    for (jj = 0; jj < fd; jj++) {
       fwX[jj] *= norm;
       fwY[jj] *= norm;
       fwZ[jj] *= norm;
     }
     kidx = gageKernel22;
-    fwX = ctx->fw + 0 + fd*(0 + 3*kidx);
-    fwY = ctx->fw + 0 + fd*(1 + 3*kidx);
-    fwZ = ctx->fw + 0 + fd*(2 + 3*kidx);
-    for (jj=0; jj<fd; jj++) {
-      fwX[jj] *= norm*norm;
-      fwY[jj] *= norm*norm;
-      fwZ[jj] *= norm*norm;
+    fwX = ctx->fw + 0 + fd * (0 + 3 * kidx);
+    fwY = ctx->fw + 0 + fd * (1 + 3 * kidx);
+    fwZ = ctx->fw + 0 + fd * (2 + 3 * kidx);
+    for (jj = 0; jj < fd; jj++) {
+      fwX[jj] *= norm * norm;
+      fwY[jj] *= norm * norm;
+      fwZ[jj] *= norm * norm;
     }
   }
 
@@ -242,13 +241,12 @@ _gageFwSet(gageContext *ctx, unsigned int sidx, double sfrac) {
 ** Currently only error is probing outside volume, which sets
 ** ctx->errNum and sprints message into ctx->errStr.
 */
-int
-_gageLocationSet(gageContext *ctx,
-                 double xif, double yif, double zif, double sif) {
-  char me[]="_gageProbeLocationSet";
-  unsigned int top[3],  /* "top" x, y, z: highest valid index in volume */
+int /* Biff: (private) nope */
+_gageLocationSet(gageContext *ctx, double xif, double yif, double zif, double sif) {
+  static const char me[] = "_gageLocationSet";
+  unsigned int top[3], /* "top" x, y, z: highest valid index in volume */
     idx[4];
-  int sdiff;      /* computed integral positions in volume */
+  int sdiff; /* computed integral positions in volume */
   double frac[4], min, max[3];
 
   /* **** bounds checking **** */
@@ -266,15 +264,14 @@ _gageLocationSet(gageContext *ctx,
     max[1] = AIR_CAST(double, top[1]) + 0.5;
     max[2] = AIR_CAST(double, top[2]) + 0.5;
   }
-  if (!( AIR_IN_CL(min, xif, max[0]) &&
-         AIR_IN_CL(min, yif, max[1]) &&
-         AIR_IN_CL(min, zif, max[2]) )) {
+  if (!(AIR_IN_CL(min, xif, max[0]) && AIR_IN_CL(min, yif, max[1])
+        && AIR_IN_CL(min, zif, max[2]))) {
     if (ctx->parm.generateErrStr) {
-      sprintf(ctx->errStr, "%s: position (%g,%g,%g) outside (%s-centered) "
+      sprintf(ctx->errStr,
+              "%s: position (%g,%g,%g) outside (%s-centered) "
               "bounds [%g,%g]x[%g,%g]x[%g,%g]",
-              me, xif, yif, zif,
-              airEnumStr(nrrdCenter, ctx->shape->center),
-              min, max[0], min, max[1], min, max[2]);
+              me, xif, yif, zif, airEnumStr(nrrdCenter, ctx->shape->center), min, max[0],
+              min, max[1], min, max[2]);
     } else {
       strcpy(ctx->errStr, _GAGE_NON_ERR_STR);
     }
@@ -282,11 +279,12 @@ _gageLocationSet(gageContext *ctx,
     return 1;
   }
   if (ctx->parm.stackUse) {
-    if (!( AIR_IN_CL(0, sif, ctx->pvlNum-2) )) {
+    if (!(AIR_IN_CL(0, sif, ctx->pvlNum - 2))) {
       if (ctx->parm.generateErrStr) {
-        sprintf(ctx->errStr, "%s: stack position %g outside (%s-centered) "
-                "bounds [0,%u]", me, sif,
-                airEnumStr(nrrdCenter, nrrdCenterNode), ctx->pvlNum-2);
+        sprintf(ctx->errStr,
+                "%s: stack position %g outside (%s-centered) "
+                "bounds [0,%u]",
+                me, sif, airEnumStr(nrrdCenter, nrrdCenterNode), ctx->pvlNum - 2);
       } else {
         strcpy(ctx->errStr, _GAGE_NON_ERR_STR);
       }
@@ -298,7 +296,7 @@ _gageLocationSet(gageContext *ctx,
   /* **** computing integral and fractional sample locations **** */
   /* Thu Jan 14 19:46:53 CST 2010: detected that along the low edge
      (next to sample 0) in cell centered, the rounding behavior of
-     AIR_CAST(unsigned int, xif), namely [-0.5,0] --> 0, meant that
+     AIR_UINT(xif), namely [-0.5,0] --> 0, meant that
      the low edge was not treated symmetrically with the high edge.
      This motivated the change from using idx to store the lower
      corner of the containing voxel, to the upper corner.  So, the new
@@ -306,33 +304,32 @@ _gageLocationSet(gageContext *ctx,
      ctx.c (since idx is saved into ctx->point.idx) has been changed
      accordingly */
   ELL_3V_SET(idx,
-             AIR_CAST(unsigned int, xif+1), /* +1: see above */
-             AIR_CAST(unsigned int, yif+1),
-             AIR_CAST(unsigned int, zif+1));
+             AIR_UINT(xif + 1), /* +1: see above */
+             AIR_UINT(yif + 1),
+             AIR_UINT(zif + 1));
   if (ctx->verbose > 5) {
-    fprintf(stderr, "%s: (%g,%g,%g,%g) -%s-> mm [%g, %g/%g/%g]\n"
+    fprintf(stderr,
+            "%s: (%g,%g,%g,%g) -%s-> mm [%g, %g/%g/%g]\n"
             "        --> idx %u %u %u\n",
-            me, xif, yif, zif, sif,
-            airEnumStr(nrrdCenter, ctx->shape->center),
-            min, max[0], max[1], max[2], idx[0], idx[1], idx[2]);
+            me, xif, yif, zif, sif, airEnumStr(nrrdCenter, ctx->shape->center), min,
+            max[0], max[1], max[2], idx[0], idx[1], idx[2]);
   }
   /* these can only can kick in for node-centered, because that's when
      max[] has an integral value */
-  idx[0] -= (idx[0]-1 == max[0]);
-  idx[1] -= (idx[1]-1 == max[1]);
-  idx[2] -= (idx[2]-1 == max[2]);
+  idx[0] -= (idx[0] - 1 == max[0]);
+  idx[1] -= (idx[1] - 1 == max[1]);
+  idx[2] -= (idx[2] - 1 == max[2]);
   if (ctx->verbose > 5) {
-    fprintf(stderr, "%s:        ----> idx %u %u %u\n",
-            me, idx[0], idx[1], idx[2]);
+    fprintf(stderr, "%s:        ----> idx %u %u %u\n", me, idx[0], idx[1], idx[2]);
   }
   ELL_3V_SET(frac,
-             xif - (AIR_CAST(float, idx[0])-1),
-             yif - (AIR_CAST(float, idx[1])-1),
-             zif - (AIR_CAST(float, idx[2])-1));
-  ELL_3V_COPY(ctx->point.idx, idx);  /* not idx[3], yet */
+             xif - (AIR_FLOAT(idx[0]) - 1),
+             yif - (AIR_FLOAT(idx[1]) - 1),
+             zif - (AIR_FLOAT(idx[2]) - 1));
+  ELL_3V_COPY(ctx->point.idx, idx); /* not idx[3], yet */
   if (ctx->parm.stackUse) {
-    idx[3] = AIR_CAST(unsigned int, sif);
-    idx[3] -= (idx[3] == ctx->pvlNum-2);
+    idx[3] = AIR_UINT(sif);
+    idx[3] -= (idx[3] == ctx->pvlNum - 2);
     frac[3] = sif - idx[3];
     sdiff = (ctx->point.idx[3] + ctx->point.frac[3] != sif);
   } else {
@@ -341,22 +338,22 @@ _gageLocationSet(gageContext *ctx,
     sdiff = AIR_FALSE;
   }
   if (ctx->verbose > 2) {
-    fprintf(stderr, "%s: \n"
+    fprintf(stderr,
+            "%s: \n"
             "        pos (% 15.7f,% 15.7f,% 15.7f,% 15.7f) \n"
             "        -> i(%5d,%5d,%5d,%5d) \n"
             "         + f(% 15.7f,% 15.7f,% 15.7f,% 15.7f) \n",
-            me, xif, yif, zif, sif, idx[0], idx[1], idx[2], idx[3],
-            frac[0], frac[1], frac[2], frac[3]);
+            me, xif, yif, zif, sif, idx[0], idx[1], idx[2], idx[3], frac[0], frac[1],
+            frac[2], frac[3]);
   }
 
   /* **** compute *spatial* fsl and fw ****
      these have to be reconsidered if anything changes about the
      fractional spatial position, or (if no fractional spatial change),
      movement along scale AND using normalization based on scale */
-  if ( ctx->point.frac[0] != frac[0]
-       || ctx->point.frac[1] != frac[1]
-       || ctx->point.frac[2] != frac[2]
-       || (ctx->parm.stackUse && sdiff && ctx->parm.stackNormalizeDeriv)) {
+  if (ctx->point.frac[0] != frac[0] || ctx->point.frac[1] != frac[1]
+      || ctx->point.frac[2] != frac[2]
+      || (ctx->parm.stackUse && sdiff && ctx->parm.stackNormalizeDeriv)) {
     /* We don't yet record the scale position in ctx->point because
        that's done below while setting stackFsl and stackFw. So, have
        to pass stack pos info to _gageFwSet() */
@@ -371,8 +368,7 @@ _gageLocationSet(gageContext *ctx,
   if (ctx->verbose > 2 && ctx->parm.stackUse) {
     fprintf(stderr, "%s: point.frac[3] %f + idx[3] %u = %f %s sif %f\n", me,
             ctx->point.frac[3], ctx->point.idx[3],
-            ctx->point.frac[3] + ctx->point.idx[3],
-            (sdiff ? "*NOT ==*" : "=="), sif);
+            ctx->point.frac[3] + ctx->point.idx[3], (sdiff ? "*NOT ==*" : "=="), sif);
   }
   if (!ctx->parm.stackUse) {
     ctx->point.idx[3] = idx[3];
@@ -391,57 +387,57 @@ _gageLocationSet(gageContext *ctx,
        of the samples can be non-uniform, is a little suspect.  This is
        all legit for nrrdKernelTent and nrrdKernelHermiteScaleSpaceFlag,
        but is pretty fishy otherwise */
-    for (ii=0; ii<ctx->pvlNum-1; ii++) {
+    for (ii = 0; ii < ctx->pvlNum - 1; ii++) {
       ctx->stackFsl[ii] = sif - ii;
       if (ctx->verbose > 2) {
-        fprintf(stderr, "%s: ctx->stackFsl[%u] = %g\n",
-                me, ii, ctx->stackFsl[ii]);
+        fprintf(stderr, "%s: ctx->stackFsl[%u] = %g\n", me, ii, ctx->stackFsl[ii]);
       }
     }
     sksp = ctx->ksp[gageKernelStack];
-    sksp->kernel->evalN_d(ctx->stackFw, ctx->stackFsl,
-                          ctx->pvlNum-1, sksp->parm);
+    sksp->kernel->evalN_d(ctx->stackFw, ctx->stackFsl, ctx->pvlNum - 1, sksp->parm);
     if (ctx->verbose > 2) {
-      for (ii=0; ii<ctx->pvlNum-1; ii++) {
-        fprintf(stderr, "%s: ctx->stackFw[%u] = %g\n",
-                me, ii, ctx->stackFw[ii]);
+      for (ii = 0; ii < ctx->pvlNum - 1; ii++) {
+        fprintf(stderr, "%s: ctx->stackFw[%u] = %g\n", me, ii, ctx->stackFw[ii]);
       }
     }
     /* compute stackFwNonZeroNum whether or not parm.stackNormalizeRecon! */
     nnz = 0;
     if (ctx->parm.stackNormalizeRecon) {
       sum = 0;
-      for (ii=0; ii<ctx->pvlNum-1; ii++) {
+      for (ii = 0; ii < ctx->pvlNum - 1; ii++) {
         nnz += !!ctx->stackFw[ii];
         sum += ctx->stackFw[ii];
       }
       if (!sum) {
         if (ctx->parm.generateErrStr) {
-          sprintf(ctx->errStr, "%s: integral of stackFw[] is zero; "
-                  "can't do stack reconstruction", me);
+          sprintf(ctx->errStr,
+                  "%s: integral of stackFw[] is zero; "
+                  "can't do stack reconstruction",
+                  me);
         } else {
           strcpy(ctx->errStr, _GAGE_NON_ERR_STR);
         }
         ctx->errNum = gageErrStackIntegral;
         return 1;
       }
-      for (ii=0; ii<ctx->pvlNum-1; ii++) {
+      for (ii = 0; ii < ctx->pvlNum - 1; ii++) {
         ctx->stackFw[ii] /= sum;
       }
       if (ctx->verbose > 2) {
-        for (ii=0; ii<ctx->pvlNum-1; ii++) {
-          fprintf(stderr, "%s: ctx->stackFw[%u] = %g\n", me,
-                  ii, ctx->stackFw[ii]);
+        for (ii = 0; ii < ctx->pvlNum - 1; ii++) {
+          fprintf(stderr, "%s: ctx->stackFw[%u] = %g\n", me, ii, ctx->stackFw[ii]);
         }
       }
     } else {
-      for (ii=0; ii<ctx->pvlNum-1; ii++) {
+      for (ii = 0; ii < ctx->pvlNum - 1; ii++) {
         nnz += !!ctx->stackFw[ii];
       }
       if (!nnz) {
         if (ctx->parm.generateErrStr) {
-          sprintf(ctx->errStr, "%s: all stackFw[] weights are zero; "
-                  "can't do stack reconstruction", me);
+          sprintf(ctx->errStr,
+                  "%s: all stackFw[] weights are zero; "
+                  "can't do stack reconstruction",
+                  me);
         } else {
           strcpy(ctx->errStr, _GAGE_NON_ERR_STR);
         }

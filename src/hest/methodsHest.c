@@ -1,32 +1,29 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "hest.h"
 #include "privateHest.h"
 #include <limits.h>
 
-const int
-hestPresent = 42;
+const int hestPresent = 42;
 
 hestParm *
 hestParmNew() {
@@ -34,26 +31,43 @@ hestParmNew() {
 
   parm = AIR_CALLOC(1, hestParm);
   if (parm) {
-    parm->verbosity = hestVerbosity;
-    parm->respFileEnable = hestRespFileEnable;
-    parm->elideSingleEnumType = hestElideSingleEnumType;
-    parm->elideSingleOtherType = hestElideSingleOtherType;
-    parm->elideSingleOtherDefault = hestElideSingleOtherDefault;
-    parm->greedySingleString = hestGreedySingleString;
-    parm->elideSingleNonExistFloatDefault =
-      hestElideSingleNonExistFloatDefault;
-    parm->elideMultipleNonExistFloatDefault =
-      hestElideMultipleNonExistFloatDefault;
-    parm->elideSingleEmptyStringDefault =
-      hestElideSingleEmptyStringDefault;
-    parm->elideMultipleEmptyStringDefault =
-      hestElideMultipleEmptyStringDefault;
-    parm->cleverPluralizeOtherY = hestCleverPluralizeOtherY;
-    parm->columns = hestColumns;
-    parm->respFileFlag = hestRespFileFlag;
-    parm->respFileComment = hestRespFileComment;
-    parm->varParamStopFlag = hestVarParamStopFlag;
-    parm->multiFlagSep = hestMultiFlagSep;
+    parm->verbosity = hestDefaultVerbosity;
+    parm->respFileEnable = hestDefaultRespFileEnable;
+    parm->elideSingleEnumType = hestDefaultElideSingleEnumType;
+    parm->elideSingleOtherType = hestDefaultElideSingleOtherType;
+    parm->elideSingleOtherDefault = hestDefaultElideSingleOtherDefault;
+    parm->greedySingleString = hestDefaultGreedySingleString;
+    parm->elideSingleNonExistFloatDefault = hestDefaultElideSingleNonExistFloatDefault;
+    parm->elideMultipleNonExistFloatDefault
+      = hestDefaultElideMultipleNonExistFloatDefault;
+    parm->elideSingleEmptyStringDefault = hestDefaultElideSingleEmptyStringDefault;
+    parm->elideMultipleEmptyStringDefault = hestDefaultElideMultipleEmptyStringDefault;
+    parm->cleverPluralizeOtherY = hestDefaultCleverPluralizeOtherY;
+    parm->columns = hestDefaultColumns;
+    parm->respFileFlag = hestDefaultRespFileFlag;
+    parm->respFileComment = hestDefaultRespFileComment;
+    parm->varParamStopFlag = hestDefaultVarParamStopFlag;
+    parm->multiFlagSep = hestDefaultMultiFlagSep;
+    /* for these most recent addition to the hestParm,
+       abstaining from added yet another default global variable */
+    parm->dieLessVerbose = AIR_FALSE;
+    parm->noBlankLineBeforeUsage = AIR_FALSE;
+    /* It would be really nice for parm->respectDashDashHelp to default to true:
+    widespread conventions say what "--help" should mean e.g. https://clig.dev/#help
+    HOWEVER, the problem is with how hestParse is called and how the return
+    is interpreted as a boolean:
+    - zero has meant that hestParse could set values for all the options (either
+      from the command-line or from supplied defaults), and
+    - non-zero has meant that there was an error parsing the command-line arguments
+    But seeing and recognizing "--help" means that options have NOT had values
+    set, and, that's not an error, which is outside that binary.  But that binary
+    is the precedent, so we have to work with it by default.
+    Now, with parm->respectDashDashHelp, upon seeing "--help", hestParse returns 0,
+    and sets helpWanted in the first hestOpt, and the caller will have to know
+    to check for that.  This logic is handled by hestParseOrDie, but maybe in
+    the future there can be a different top-level parser function that turns on
+    parm->respectDashDashHelp and knows how to check the results */
+    parm->respectDashDashHelp = AIR_FALSE;
   }
   return parm;
 }
@@ -65,11 +79,13 @@ hestParmFree(hestParm *parm) {
   return NULL;
 }
 
-void
-_hestOptInit(hestOpt *opt) {
+static void
+optInit(hestOpt *opt) {
 
   opt->flag = opt->name = NULL;
-  opt->type = opt->min = opt->max = 0;
+  opt->type = 0;
+  opt->min = 0;
+  opt->max = 0;
   opt->valueP = NULL;
   opt->dflt = opt->info = NULL;
   opt->sawP = NULL;
@@ -78,6 +94,8 @@ _hestOptInit(hestOpt *opt) {
   opt->sawP = NULL;
   opt->kind = opt->alloc = 0;
   opt->source = hestSourceUnknown;
+  opt->parmStr = NULL;
+  opt->helpWanted = AIR_FALSE;
 }
 
 /*
@@ -99,24 +117,20 @@ hestOptNew(void) {
 ** option just added.  Returns UINT_MAX in case of error.
 */
 unsigned int
-hestOptAdd(hestOpt **optP,
-           const char *flag, const char *name,
-           int type, int min, int max,
-           void *valueP, const char *dflt, const char *info, ...) {
-  hestOpt *ret = NULL;
+hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type, int min,
+           int max, void *valueP, const char *dflt, const char *info, ...) {
+  hestOpt *ret = NULL; /* not the function return; but what *optP is set to */
   int num;
   va_list ap;
   unsigned int retIdx;
 
-  if (!optP)
-    return UINT_MAX;
+  if (!optP) return UINT_MAX;
 
-  num = *optP ? _hestNumOpts(*optP) : 0;
-  if (!( ret = AIR_CALLOC(num+2, hestOpt) )) {
+  num = *optP ? hestOptNum(*optP) : 0;
+  if (!(ret = AIR_CALLOC(num + 2, hestOpt))) {
     return UINT_MAX;
   }
-  if (num)
-    memcpy(ret, *optP, num*sizeof(hestOpt));
+  if (num) memcpy(ret, *optP, num * sizeof(hestOpt));
   retIdx = AIR_UINT(num);
   ret[num].flag = airStrdup(flag);
   ret[num].name = airStrdup(name);
@@ -130,36 +144,37 @@ hestOptAdd(hestOpt **optP,
   ret[num].sawP = NULL;
   ret[num].enm = NULL;
   ret[num].CB = NULL;
-  /* seems to be redundant with above _hestOptInit() */
+  /* yes, redundant with optInit() */
   ret[num].source = hestSourceUnknown;
+  ret[num].parmStr = NULL;
+  ret[num].helpWanted = AIR_FALSE;
   /* deal with var args */
   if (5 == _hestKind(&(ret[num]))) {
     va_start(ap, info);
-    ret[num].sawP = va_arg(ap, unsigned int*);
+    ret[num].sawP = va_arg(ap, unsigned int *);
     va_end(ap);
   }
   if (airTypeEnum == type) {
     va_start(ap, info);
-    va_arg(ap, unsigned int*);  /* skip sawP */
-    ret[num].enm = va_arg(ap, airEnum*);
+    va_arg(ap, unsigned int *); /* skip sawP */
+    ret[num].enm = va_arg(ap, airEnum *);
     va_end(ap);
   }
   if (airTypeOther == type) {
     va_start(ap, info);
-    va_arg(ap, unsigned int*);  /* skip sawP */
-    va_arg(ap, airEnum*);       /* skip enm */
-    ret[num].CB = va_arg(ap, hestCB*);
+    va_arg(ap, unsigned int *); /* skip sawP */
+    va_arg(ap, airEnum *);      /* skip enm */
+    ret[num].CB = va_arg(ap, hestCB *);
     va_end(ap);
   }
-  _hestOptInit(&(ret[num+1]));
-  ret[num+1].min = 1;
-  if (*optP)
-    free(*optP);
+  optInit(&(ret[num + 1]));
+  ret[num + 1].min = 1;
+  if (*optP) free(*optP);
   *optP = ret;
   return retIdx;
 }
 
-void
+static void
 _hestOptFree(hestOpt *opt) {
 
   opt->flag = (char *)airFree(opt->flag);
@@ -173,32 +188,45 @@ hestOpt *
 hestOptFree(hestOpt *opt) {
   int op, num;
 
-  if (!opt)
-    return NULL;
+  if (!opt) return NULL;
 
-  num = _hestNumOpts(opt);
+  num = hestOptNum(opt);
   if (opt[num].min) {
-    /* we only try to free this if it looks like something we allocated */
-    for (op=0; op<num; op++) {
-      _hestOptFree(opt+op);
+    /* we only try to free this array if it looks like something we allocated;
+       this is leveraging how _hestOptInit leaves things */
+    for (op = 0; op < num; op++) {
+      _hestOptFree(opt + op);
     }
     free(opt);
   }
   return NULL;
 }
 
+/* experiments in adding a nixer/free-er that exactly matches the airMopper type,
+   as part of trying to avoid all "undefined behavior" */
+void *
+hestParmFree_vp(void *_parm) {
+  return AIR_VOIDP(hestParmFree((hestParm *)_parm));
+}
+void *
+hestOptFree_vp(void *_opt) {
+  return AIR_VOIDP(hestOptFree((hestOpt *)_opt));
+}
+
 int
 hestOptCheck(hestOpt *opt, char **errP) {
-  char *err, me[]="hestOptCheck";
+  static const char me[] = "hestOptCheck";
+  char *err;
   hestParm *parm;
   int big;
 
   big = _hestErrStrlen(opt, 0, NULL);
-  if (!( err = AIR_CALLOC(big, char) )) {
-    fprintf(stderr, "%s PANIC: couldn't allocate error message "
-            "buffer (size %d)\n", me, big);
-    if (errP)
-      *errP = NULL;
+  if (!(err = AIR_CALLOC(big, char))) {
+    fprintf(stderr,
+            "%s PANIC: couldn't allocate error message "
+            "buffer (size %d)\n",
+            me, big);
+    if (errP) *errP = NULL;
     return 1;
   }
   parm = hestParmNew();
@@ -207,8 +235,7 @@ hestOptCheck(hestOpt *opt, char **errP) {
     if (errP) {
       /* they did give a pointer address; they'll free it */
       *errP = err;
-    }
-    else {
+    } else {
       /* they didn't give a pointer address; their loss */
       free(err);
     }
@@ -216,41 +243,13 @@ hestOptCheck(hestOpt *opt, char **errP) {
     return 1;
   }
   /* else, no problems */
-  if (errP)
-    *errP = NULL;
+  if (errP) *errP = NULL;
   free(err);
   hestParmFree(parm);
   return 0;
 }
 
-
-/*
-** _hestIdent()
-**
-** how to identify an option in error and usage messages
-*/
-char *
-_hestIdent(char *ident, hestOpt *opt, const hestParm *parm, int brief) {
-  char copy[AIR_STRLEN_HUGE], *sep;
-
-  if (opt->flag && (sep = strchr(opt->flag, parm->multiFlagSep))) {
-    strcpy(copy, opt->flag);
-    sep = strchr(copy, parm->multiFlagSep);
-    *sep = '\0';
-    if (brief)
-      sprintf(ident, "-%s%c--%s option", copy, parm->multiFlagSep, sep+1);
-    else
-      sprintf(ident, "-%s option", copy);
-  }
-  else {
-    sprintf(ident, "%s%s%s option",
-            opt->flag ? "\"-"      : "<",
-            opt->flag ? opt->flag : opt->name,
-            opt->flag ? "\""       : ">");
-  }
-  return ident;
-}
-
+/* _hestMax(-1) == INT_MAX, otherwise _hestMax(m) == m */
 int
 _hestMax(int max) {
 
@@ -260,32 +259,40 @@ _hestMax(int max) {
   return max;
 }
 
+/* _hestKind determines the kind (1,2,3,4, or 5) of given opt,
+  from its min and max fields */
 int
 _hestKind(const hestOpt *opt) {
-  int max;
+  int min, max;
 
-  max = _hestMax(opt->max);
-  if (!( (int)opt->min <= max )) {    /* HEY scrutinize casts */
+  min = AIR_CAST(int, opt->min);
+  if (min < 0) {
     /* invalid */
     return -1;
   }
 
-  if (0 == opt->min && 0 == max) {
+  max = _hestMax(opt->max);
+  if (!(min <= max)) {
+    /* invalid */
+    return -1;
+  }
+
+  if (0 == min && 0 == max) {
     /* flag */
     return 1;
   }
 
-  if (1 == opt->min && 1 == max) {
+  if (1 == min && 1 == max) {
     /* single fixed parameter */
     return 2;
   }
 
-  if (2 <= opt->min && 2 <= max && (int)opt->min == max) {  /* HEY scrutinize casts */
+  if (2 <= min && 2 <= max && min == max) {
     /* multiple fixed parameters */
     return 3;
   }
 
-  if (0 == opt->min && 1 == max) {
+  if (0 == min && 1 == max) {
     /* single optional parameter */
     return 4;
   }
@@ -294,155 +301,20 @@ _hestKind(const hestOpt *opt) {
   return 5;
 }
 
-void
-_hestPrintArgv(int argc, char **argv) {
-  int a;
-
-  printf("argc=%d : ", argc);
-  for (a=0; a<argc; a++) {
-    printf("%s ", argv[a]);
-  }
-  printf("\n");
-}
-
 /*
-** _hestWhichFlag()
-**
-** given a string in "flag" (with the hypen prefix) finds which of
-** the flags in the given array of options matches that.  Returns
-** the index of the matching option, or -1 if there is no match,
-** but returns -2 if the flag is the end-of-variable-parameter
-** marker (according to parm->varParamStopFlag)
+hestOptNum: returns the number of elements in the given hestOpt array, *assuming* it is
+set up like hestOptAdd does it.
+
+Unfortunately, unlike argv itself, there is no sense in which the hestOpt array can be
+NULL-terminated, mainly because "opt" is an array of hestOpt structs, not an array of
+pointers to hestOpt structs.
 */
-int
-_hestWhichFlag(hestOpt *opt, char *flag, const hestParm *parm) {
-  char buff[AIR_STRLEN_HUGE], copy[AIR_STRLEN_HUGE], *sep;
-  int op, numOpts;
-
-  numOpts = _hestNumOpts(opt);
-  if (parm->verbosity)
-    printf("_hestWhichFlag: flag = %s, numOpts = %d\n", flag, numOpts);
-  for (op=0; op<numOpts; op++) {
-    if (parm->verbosity)
-      printf("_hestWhichFlag: op = %d\n", op);
-    if (!opt[op].flag)
-      continue;
-    if (strchr(opt[op].flag, parm->multiFlagSep) ) {
-      strcpy(copy, opt[op].flag);
-      sep = strchr(copy, parm->multiFlagSep);
-      *sep = '\0';
-      /* first try the short version */
-      sprintf(buff, "-%s", copy);
-      if (!strcmp(flag, buff))
-        return op;
-      /* then try the long version */
-      sprintf(buff, "--%s", sep+1);
-      if (!strcmp(flag, buff))
-        return op;
-    }
-    else {
-      /* flag has only the short version */
-      sprintf(buff, "-%s", opt[op].flag);
-      if (!strcmp(flag, buff))
-        return op;
-    }
-  }
-  if (parm->verbosity)
-    printf("_hestWhichFlag: numOpts = %d\n", numOpts);
-  if (parm->varParamStopFlag) {
-    sprintf(buff, "-%c", parm->varParamStopFlag);
-    if (parm->verbosity)
-      printf("_hestWhichFlag: flag = %s, buff = %s\n", flag, buff);
-    if (!strcmp(flag, buff))
-      return -2;
-  }
-  if (parm->verbosity)
-    printf("_hestWhichFlag: numOpts = %d\n", numOpts);
-  return -1;
-}
-
-
-/*
-** _hestCase()
-**
-** helps figure out logic of interpreting parameters and defaults
-** for kind 4 and kind 5 options.
-*/
-int
-_hestCase(hestOpt *opt, int *udflt, unsigned int *nprm, int *appr, int op) {
-
-  if (opt[op].flag && !appr[op]) {
-    return 0;
-  }
-  else if ( (4 == opt[op].kind && udflt[op]) ||
-            (5 == opt[op].kind && !nprm[op]) ) {
-    return 1;
-  }
-  else {
-    return 2;
-  }
-}
-
-/*
-** _hestExtract()
-**
-** takes "pnum" parameters, starting at "base", out of the
-** given argv, and puts them into a string WHICH THIS FUNCTION
-** ALLOCATES, and also adjusts the argc value given as "*argcP".
-*/
-char *
-_hestExtract(int *argcP, char **argv, unsigned int base, unsigned int pnum) {
-  unsigned int len, pidx;
-  char *ret;
-
-  if (!pnum)
-    return NULL;
-
-  len = 0;
-  for (pidx=0; pidx<pnum; pidx++) {
-    if (base+pidx==AIR_UINT(*argcP)) {
-      return NULL;
-    }
-    len += AIR_UINT(strlen(argv[base+pidx]));
-    if (strstr(argv[base+pidx], " ")) {
-      len += 2;
-    }
-  }
-  len += pnum;
-  ret = AIR_CALLOC(len, char);
-  strcpy(ret, "");
-  for (pidx=0; pidx<pnum; pidx++) {
-    /* if a single element of argv has spaces in it, someone went
-       to the trouble of putting it in quotes, and we perpetuate
-       the favor by quoting it when we concatenate all the argv
-       elements together, so that airParseStrS will recover it as a
-       single string again */
-    if (strstr(argv[base+pidx], " ")) {
-      strcat(ret, "\"");
-    }
-    /* HEY: if there is a '\"' character in this string, quoted or
-       not, its going to totally confuse later parsing */
-    strcat(ret, argv[base+pidx]);
-    if (strstr(argv[base+pidx], " ")) {
-      strcat(ret, "\"");
-    }
-    if (pidx < pnum-1)
-      strcat(ret, " ");
-  }
-  for (pidx=base+pnum; pidx<=AIR_UINT(*argcP); pidx++) {
-    argv[pidx-pnum] = argv[pidx];
-  }
-  *argcP -= pnum;
-  return ret;
-}
-
-int
-_hestNumOpts(const hestOpt *opt) {
-  int num = 0;
+unsigned int
+hestOptNum(const hestOpt *opt) {
+  unsigned int num = 0;
 
   while (opt[num].flag || opt[num].name || opt[num].type) {
     num++;
   }
   return num;
 }
-

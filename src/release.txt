@@ -1,14 +1,16 @@
-
 GLK's list of things to do for each release.  This started with an
-early version of Teem and has been only partially maintained since
-then; consider it a work-in-progress ...
+early version of Teem so the later steps about updating things on
+sourceforge are not as relevant
 
--5) use names.pl to make sure all sourcefile names are unique
+-5) Make sure all source filenames are unique (TEEM_LIB_LIST):
+ls -1 {air,hest,biff,nrrd,ell,moss,unrrdu,alan,tijk,gage,dye,bane,limn,echo,hoover,seek,ten,elf,pull,coil,push,mite,meet}/*.c | sort | wc -l
+ls -1 {air,hest,biff,nrrd,ell,moss,unrrdu,alan,tijk,gage,dye,bane,limn,echo,hoover,seek,ten,elf,pull,coil,push,mite,meet}/*.c | sort | uniq | wc -l
+Should be the same number repeated
 
 -4) Make sure the CMake and GNUMake agree on source files per-library
 
 -3.5) make sure that teem/src/meet/enumall.c:meetAirEnumAll()
- is up-to-date
+ is up-to-date, and run teem/src/meet/test/tenums
 
 -3) make sure that all the files have the right copyright
 pre-ambles
@@ -19,6 +21,7 @@ find . -name \*.h -exec unu undos -n {}  \;
 find . -name \*.txt -exec unu undos -n {} \;
 
 -2.25) make sure there's no unwanted trailing whitespace
+grep -E '^.+[ ]+$' */*.h
 grep -E '^.+[ ]+$' */*.c
 
 -2) make sure there are no tabs:
@@ -31,10 +34,19 @@ find . -name \*.h -exec grep -f tab.txt {} /dev/null \; | more
 find . -name \*.txt -exec grep -f tab.txt {} /dev/null \; | more
 rm -f tab.txt
 
+-1.5) use teem/src/_util/clang-format.sh (run in each lib subdir)
+to ensure that clang-format has been run on everything
+
+-1.25) Check namespace safety
+  a) Make sure all library symbols are properly prefixed:
+  run src/_util/scan-symbols.py for all libraries,
+      and then again with -biff 3 to check on all biff usage
+  run src/_util/scan-defines.py
+
 -1) finalize TEEM_VERSION* in air/air.h and airTeemReleaseDate in air/misc.c
 and set airTeemReleaseDone to AIR_TRUE
 
--0.5) regenerate teem/python/ctypes/teem.py
+-0.5) regenerate python wrappers in teem/python
 
 -0.25) regenerate NrrdIO
 
@@ -52,16 +64,12 @@ also worked (from teemdoc/html)
 scp index.html kindlmann,teem@web.sourceforge.net:/home/project-web/teem/htdocs
 (HEY: need to figure out using rsync to move things to sourceforge)
 
-1) Check namespace safety
-  a) Make sure all library symbols are properly prefixed:
-  run make/release-nm-check.csh and make/release-def-check.csh
-
-2) Make sure it works
+1) Make sure it works
   "make teem/dev teem/install" on every supported architecture,
   and make sure Windows stuff also still works (if new files or
   libraries were added)
 
-2.5) svn "tag":
+2) svn "tag":
 setenv VERSION <<version>>
 svn copy https://svn.code.sf.net/p/teem/code/teem/trunk \
          https://svn.code.sf.net/p/teem/code/teem/branches/Teem-${VERSION}
@@ -84,6 +92,7 @@ mv NrrdIO-${VERSION}-src.tar.gz ~/rel
 4) Checkout a tree:
 
 "make teem/install" on all platforms ...
+(actually this is ancient guidance, from before CMake)
 
 rapture/ray/muse:
 setenv TEEM_ARCH irix6.64
@@ -112,7 +121,6 @@ setenv TEEM_ZLIB_LPATH -L/home/gk/lib
 setenv TEEM_ZLIB_IPATH -I/home/gk/include
 setenv TEEM_PNG_LPATH -L/usr/local/lib
 setenv TEEM_PNG_IPATH -I/usr/local/include
-
 
 5) Create Unix-ish binary builds (without src or docs):
    for each TEEM_ARCH in:

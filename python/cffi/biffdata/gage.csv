@@ -1,0 +1,45 @@
+func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
+gageContextCopy,gageContext *,NULL,0,gage,gage/ctx.c:88
+gageKernelSet,int,1,0,gage,gage/ctx.c:199
+gagePerVolumeAttach,int,1,0,gage,gage/ctx.c:398
+gagePerVolumeDetach,int,1,0,gage,gage/ctx.c:457
+gageDeconvolve,int,1,0,gage,gage/deconvolve.c:26
+gageDeconvolveSeparable,int,1,0,gage,gage/deconvolve.c:208
+gageKindCheck,int,1,0,gage,gage/kind.c:33
+gageKindVolumeCheck,int,1,0,gage,gage/kind.c:218
+gageVolumeCheck,int,1,0,gage,gage/pvl.c:36
+gagePerVolumeNew,gagePerVolume *,NULL,0,gage,gage/pvl.c:57
+gageQueryReset,int,1,0,gage,gage/pvl.c:261
+gageQuerySet,int,1,0,gage,gage/pvl.c:287
+gageQueryAdd,int,1,0,gage,gage/pvl.c:343
+gageQueryItemOn,int,1,0,gage,gage/pvl.c:361
+gageShapeSet,int,1,0,gage,gage/shape.c:405
+gageShapeEqual,int,0,0,gage,gage/shape.c:468
+gageStructureTensor,int,1,0,gage,gage/st.c:83
+gageStackPerVolumeNew,int,1,0,gage,gage/stack.c:98
+gageStackPerVolumeAttach,int,1,0,gage,gage/stack.c:127
+gageStackBlurParmCompare,int,1,0,gage,gage/stackBlur.c:125
+gageStackBlurParmCopy,int,1,0,gage,gage/stackBlur.c:230
+gageStackBlurParmSigmaSet,int,1,0,gage,gage/stackBlur.c:267
+gageStackBlurParmScaleSet,int,1,0,gage,gage/stackBlur.c:361
+gageStackBlurParmKernelSet,int,1,0,gage,gage/stackBlur.c:385
+gageStackBlurParmRenormalizeSet,int,1,0,gage,gage/stackBlur.c:398
+gageStackBlurParmBoundarySet,int,1,0,gage,gage/stackBlur.c:410
+gageStackBlurParmBoundarySpecSet,int,1,0,gage,gage/stackBlur.c:429
+gageStackBlurParmOneDimSet,int,1,0,gage,gage/stackBlur.c:446
+gageStackBlurParmNeedSpatialBlurSet,int,1,0,gage,gage/stackBlur.c:458
+gageStackBlurParmVerboseSet,int,1,0,gage,gage/stackBlur.c:470
+gageStackBlurParmDgGoodSigmaMaxSet,int,1,0,gage,gage/stackBlur.c:482
+gageStackBlurParmCheck,int,1,0,gage,gage/stackBlur.c:498
+gageStackBlurParmParse,int,1,0,gage,gage/stackBlur.c:545
+gageStackBlurParmSprint,int,1,0,gage,gage/stackBlur.c:804
+gageStackBlur,int,1,0,gage,gage/stackBlur.c:1386
+gageStackBlurCheck,int,1,0,gage,gage/stackBlur.c:1489
+gageStackBlurGet,int,1,0,gage,gage/stackBlur.c:1597
+gageStackBlurManage,int,1,0,gage,gage/stackBlur.c:1698
+gageUpdate,int,1,0,gage,gage/update.c:313
+gageOptimSigSet,int,1,0,gage,gage/optimsig.c:217
+gageOptimSigContextNew,gageOptimSigContext *,NULL,0,gage,gage/optimsig.c:311
+gageOptimSigCalculate,int,1,0,gage,gage/optimsig.c:1092
+gageOptimSigErrorPlot,int,1,0,gage,gage/optimsig.c:1164
+gageOptimSigErrorPlotSliding,int,1,0,gage,gage/optimsig.c:1255

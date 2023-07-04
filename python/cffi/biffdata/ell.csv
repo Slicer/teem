@@ -1,0 +1,9 @@
+func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
+ell_Nm_check,int,1,0,ell,ell/genmat.c:25
+ell_Nm_tran,int,1,0,ell,ell/genmat.c:59
+ell_Nm_mul,int,1,0,ell,ell/genmat.c:104
+ell_Nm_inv,int,1,0,ell,ell/genmat.c:338
+ell_Nm_pseudo_inv,int,1,0,ell,ell/genmat.c:379
+ell_Nm_wght_pseudo_inv,int,1,0,ell,ell/genmat.c:413
+ell_q_avg4_d,int,1,0,ell,ell/quat.c:471
+ell_q_avgN_d,int,1,0,ell,ell/quat.c:539

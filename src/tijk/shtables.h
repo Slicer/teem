@@ -1,25 +1,23 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2011, 2010, 2009, 2008 Thomas Schultz
   Copyright (C) 2010, 2009, 2008 Gordon Kindlmann
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
-
+/* clang-format off */
 /* The idea is that you will #define TIJK_TABLE_TYPE to 0 (double) or 1 (float),
  * and then #include this file.
  * The issue here is that having separate double and float versions turned
@@ -263,3 +261,4 @@ static const float _tijk_esh2sym_o8_f[45*45] ={
 0, 0, 0, 0, -0.1365685538240098695, 0, 0, 0, 0, 0, 0, -0.3345232717786446042, 0, -0.0000000000000000069, 0, 0, 0, 0, 0, 0, 0, 0, -0.5826213625187316447, 0, 0, 0, 0.0000000000000000104, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.8723299671902401409, 0, -0.0000000000000001110, 0, 0.0000000000000001110, 0, -0.0000000000000000208, 0,
 0.2820947917738780841, 0.0000000000000000746, 0, 0.6307831305050397575, 0, 0, -0.0000000000000000312, 0, 0.0000000000000000555, 0, 0.8462843753216341414, 0, 0, 0, 0, 0.0000000000000000165, 0, 0.0000000000000000555, 0, -0.0000000000000000656, 0, 1.0171072362820543500, 0, 0, 0, 0, 0, 0, -0.0000000000000000985, 0, -0.0000000000000002266, 0, -0.0000000000000000735, 0, 0.0000000000000003443, 0, 1.1631066229203190776, 0, 0, 0, 0, 0, 0, 0, 0
 };
+/* clang-format on */

@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "seek.h"
@@ -54,12 +52,12 @@ seekVerboseSet(seekContext *sctx, int verbose) {
 ** invalidates:
 ** valItem, normItem, gradItem, evalItem, evecItem
 */
-int
-seekDataSet(seekContext *sctx, const Nrrd *ninscl,
-            gageContext *gctx, unsigned int pvlIdx) {
-  static const char me[]="seekDataSet";
+int /* Biff: 1 */
+seekDataSet(seekContext *sctx, const Nrrd *ninscl, gageContext *gctx,
+            unsigned int pvlIdx) {
+  static const char me[] = "seekDataSet";
 
-  if (!( sctx && (ninscl || gctx) )) {
+  if (!(sctx && (ninscl || gctx))) {
     biffAddf(SEEK, "%s: got NULL pointer", me);
     return 1;
   }
@@ -74,8 +72,8 @@ seekDataSet(seekContext *sctx, const Nrrd *ninscl,
       return 1;
     }
     if (3 != ninscl->dim) {
-      biffAddf(SEEK, "%s: vanilla scalar volume must be 3-D (not %d-D)",
-               me, ninscl->dim);
+      biffAddf(SEEK, "%s: vanilla scalar volume must be 3-D (not %d-D)", me,
+               ninscl->dim);
       return 1;
     }
     if (nrrdTypeBlock == ninscl->type) {
@@ -87,9 +85,8 @@ seekDataSet(seekContext *sctx, const Nrrd *ninscl,
     sctx->gctx = NULL;
     sctx->pvl = NULL;
   } else {
-    if (!( pvlIdx < gctx->pvlNum )) {
-      biffAddf(SEEK, "%s: pvlIdx %u not < pvlNum %u",
-               me, pvlIdx, gctx->pvlNum);
+    if (!(pvlIdx < gctx->pvlNum)) {
+      biffAddf(SEEK, "%s: pvlIdx %u not < pvlNum %u", me, pvlIdx, gctx->pvlNum);
       return 1;
     }
     /* we assume that caller has done a gageUpdate(), so no other error
@@ -115,9 +112,9 @@ seekDataSet(seekContext *sctx, const Nrrd *ninscl,
 **
 ** sets: samples[3]
 */
-int
+int /* Biff: 1 */
 seekSamplesSet(seekContext *sctx, size_t samples[3]) {
-  static const char me[]="seekSamplesSet";
+  static const char me[] = "seekSamplesSet";
   unsigned int numZero;
 
   if (!(sctx && samples)) {
@@ -128,15 +125,12 @@ seekSamplesSet(seekContext *sctx, size_t samples[3]) {
   numZero += 0 == samples[0];
   numZero += 0 == samples[1];
   numZero += 0 == samples[2];
-  if (!( 0 == numZero || 3 == numZero )) {
+  if (!(0 == numZero || 3 == numZero)) {
     biffAddf(SEEK, "%s: samples (%u,%u,%u) must all be 0 or !=0 together", me,
-             AIR_CAST(unsigned int, samples[0]),
-             AIR_CAST(unsigned int, samples[1]),
-             AIR_CAST(unsigned int, samples[2]));
+             AIR_UINT(samples[0]), AIR_UINT(samples[1]), AIR_UINT(samples[2]));
     return 1;
   }
-  if (sctx->samples[0] != samples[0]
-      || sctx->samples[1] != samples[1]
+  if (sctx->samples[0] != samples[0] || sctx->samples[1] != samples[1]
       || sctx->samples[2] != samples[2]) {
     sctx->samples[0] = samples[0];
     sctx->samples[1] = samples[1];
@@ -151,9 +145,9 @@ seekSamplesSet(seekContext *sctx, size_t samples[3]) {
 **
 ** sets: featureType
 */
-int
+int /* Biff: 1 */
 seekTypeSet(seekContext *sctx, int type) {
-  static const char me[]="seekTypeSet";
+  static const char me[] = "seekTypeSet";
 
   if (!sctx) {
     biffAddf(SEEK, "%s: got NULL pointer", me);
@@ -175,9 +169,9 @@ seekTypeSet(seekContext *sctx, int type) {
 **
 ** sets: lowerInside
 */
-int
+int /* Biff: 1 */
 seekLowerInsideSet(seekContext *sctx, int lowerInside) {
-  static const char me[]="seekLowerInsideSet";
+  static const char me[] = "seekLowerInsideSet";
 
   if (!sctx) {
     biffAddf(SEEK, "%s: got NULL pointer", me);
@@ -195,9 +189,9 @@ seekLowerInsideSet(seekContext *sctx, int lowerInside) {
 **
 ** sets: normalsFind
 */
-int
+int /* Biff: 1 */
 seekNormalsFindSet(seekContext *sctx, int normalsFind) {
-  static const char me[]="seekNormalsFindSet";
+  static const char me[] = "seekNormalsFindSet";
 
   if (!sctx) {
     biffAddf(SEEK, "%s: got NULL pointer", me);
@@ -210,9 +204,9 @@ seekNormalsFindSet(seekContext *sctx, int normalsFind) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 seekStrengthUseSet(seekContext *sctx, int doit) {
-  static const char me[]="seekStrengthUseSet";
+  static const char me[] = "seekStrengthUseSet";
 
   if (!sctx) {
     biffAddf(SEEK, "%s: got NULL pointer", me);
@@ -225,10 +219,9 @@ seekStrengthUseSet(seekContext *sctx, int doit) {
   return 0;
 }
 
-int
-seekStrengthSet(seekContext *sctx, int strengthSign,
-                double strength) {
-  static const char me[]="seekStrengthSet";
+int /* Biff: 1 */
+seekStrengthSet(seekContext *sctx, int strengthSign, double strength) {
+  static const char me[] = "seekStrengthSet";
 
   if (!sctx) {
     biffAddf(SEEK, "%s: got NULL pointer", me);
@@ -253,9 +246,9 @@ seekStrengthSet(seekContext *sctx, int strengthSign,
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 itemCheck(seekContext *sctx, int item, unsigned int wantLen) {
-  static const char me[]="itemCheck";
+  static const char me[] = "itemCheck";
 
   if (!sctx) {
     biffAddf(SEEK, "%s: got NULL pointer", me);
@@ -266,8 +259,7 @@ itemCheck(seekContext *sctx, int item, unsigned int wantLen) {
     return 1;
   }
   if (airEnumValCheck(sctx->pvl->kind->enm, item)) {
-    biffAddf(SEEK, "%s: %d not valid %s item", me, item,
-             sctx->pvl->kind->enm->name);
+    biffAddf(SEEK, "%s: %d not valid %s item", me, item, sctx->pvl->kind->enm->name);
     return 1;
   }
   if (!GAGE_QUERY_ITEM_TEST(sctx->pvl->query, item)) {
@@ -289,9 +281,9 @@ itemCheck(seekContext *sctx, int item, unsigned int wantLen) {
 **
 ** sets: sclvItem
 */
-int
+int /* Biff: 1 */
 seekItemScalarSet(seekContext *sctx, int item) {
-  static const char me[]="seekItemScalarSet";
+  static const char me[] = "seekItemScalarSet";
 
   if (itemCheck(sctx, item, 1)) {
     biffAddf(SEEK, "%s: trouble", me);
@@ -308,9 +300,9 @@ seekItemScalarSet(seekContext *sctx, int item) {
 ******** seekItemStrengthSet
 **
 */
-int
+int /* Biff: 1 */
 seekItemStrengthSet(seekContext *sctx, int item) {
-  static const char me[]="seekItemStrengthSet";
+  static const char me[] = "seekItemStrengthSet";
 
   if (itemCheck(sctx, item, 1)) {
     biffAddf(SEEK, "%s: trouble", me);
@@ -327,12 +319,13 @@ seekItemStrengthSet(seekContext *sctx, int item) {
 ******** seekItemHessSet
 **
 */
-int
+int /* Biff: 1 */
 seekItemHessSet(seekContext *sctx, int item) {
-  char me[]="seekItemHessSet";
+  static const char me[] = "seekItemHessSet";
 
   if (itemCheck(sctx, item, 9)) {
-    biffAddf(SEEK, "%s: trouble", me); return 1;
+    biffAddf(SEEK, "%s: trouble", me);
+    return 1;
   }
   if (sctx->hessItem != item) {
     sctx->hessItem = item;
@@ -346,9 +339,9 @@ seekItemHessSet(seekContext *sctx, int item) {
 **
 ** sets: gradItem
 */
-int
+int /* Biff: 1 */
 seekItemGradientSet(seekContext *sctx, int item) {
-  static const char me[]="seekItemGradientSet";
+  static const char me[] = "seekItemGradientSet";
 
   if (itemCheck(sctx, item, 3)) {
     biffAddf(SEEK, "%s: trouble", me);
@@ -367,9 +360,9 @@ seekItemGradientSet(seekContext *sctx, int item) {
 **
 ** sets: normItem
 */
-int
+int /* Biff: 1 */
 seekItemNormalSet(seekContext *sctx, int item) {
-  static const char me[]="seekItemNormalSet";
+  static const char me[] = "seekItemNormalSet";
 
   if (itemCheck(sctx, item, 3)) {
     biffAddf(SEEK, "%s: trouble", me);
@@ -388,9 +381,9 @@ seekItemNormalSet(seekContext *sctx, int item) {
 **
 ** sets: evalItem, evecItem
 */
-int
+int /* Biff: 1 */
 seekItemEigensystemSet(seekContext *sctx, int evalItem, int evecItem) {
-  static const char me[]="seekItemEigenvectorSet";
+  static const char me[] = "seekItemEigensystemSet";
 
   if (itemCheck(sctx, evalItem, 3)) {
     biffAddf(SEEK, "%s: trouble", me);
@@ -400,8 +393,7 @@ seekItemEigensystemSet(seekContext *sctx, int evalItem, int evecItem) {
     biffAddf(SEEK, "%s: trouble", me);
     return 1;
   }
-  if (sctx->evalItem != evalItem
-      || sctx->evecItem != evecItem) {
+  if (sctx->evalItem != evalItem || sctx->evecItem != evecItem) {
     sctx->evalItem = evalItem;
     sctx->evecItem = evecItem;
     sctx->flag[flagItemEigensystem] = AIR_TRUE;
@@ -418,9 +410,9 @@ seekItemEigensystemSet(seekContext *sctx, int evalItem, int evecItem) {
 **
 ** sets: isovalue
 */
-int
+int /* Biff: 1 */
 seekIsovalueSet(seekContext *sctx, double isovalue) {
-  static const char me[]="seekIsovalueSet";
+  static const char me[] = "seekIsovalueSet";
 
   if (!sctx) {
     biffAddf(SEEK, "%s: got NULL pointer", me);
@@ -444,16 +436,18 @@ seekIsovalueSet(seekContext *sctx, double isovalue) {
 ** considered "similar" (cf. Eq. (4) in TVCG paper by
 ** Schultz/Theisel/Seidel)
 */
-int
+int /* Biff: 1 */
 seekEvalDiffThreshSet(seekContext *sctx, double evalDiffThresh) {
-  char me[]="seekEvalDiffThreshSet";
+  static const char me[] = "seekEvalDiffThreshSet";
 
   if (!sctx) {
-    biffAddf(SEEK, "%s: got NULL pointer", me); return 1;
+    biffAddf(SEEK, "%s: got NULL pointer", me);
+    return 1;
   }
   if (!AIR_EXISTS(evalDiffThresh)) {
-    biffAddf(SEEK, "%s: given eigenvalue difference threshold %g doesn't exit",
-             me, evalDiffThresh); return 1;
+    biffAddf(SEEK, "%s: given eigenvalue difference threshold %g doesn't exit", me,
+             evalDiffThresh);
+    return 1;
   }
   if (sctx->evalDiffThresh != evalDiffThresh) {
     sctx->evalDiffThresh = evalDiffThresh;

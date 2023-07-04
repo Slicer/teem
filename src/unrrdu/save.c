@@ -1,50 +1,45 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
 #define INFO "Write nrrd with specific format, encoding, or endianness"
-static const char *_unrrdu_saveInfoL =
-(INFO
- ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
- "PGM-compatible nrrds on unix.  EPS output is a EPSF-3.0 file with "
- "BoundingBox and HiResBoundingBox DSC comments, and is suitable for "
- "inclusion into other PostScript documents.  As a stand-alone file, the "
- "image is conveniently centered on an 8.5x11 inch page, with 0.5 "
- "inch margins.\n "
- "* Uses various fields in the NrrdIOState passed to nrrdSave");
+static const char *_unrrdu_saveInfoL
+  = (INFO ". Use \"unu\tsave\t-f\tpnm\t|\txv\t-\" to view PPM- or "
+          "PGM-compatible nrrds on unix.  EPS output is a EPSF-3.0 file with "
+          "BoundingBox and HiResBoundingBox DSC comments, and is suitable for "
+          "inclusion into other PostScript documents.  As a stand-alone file, the "
+          "image is conveniently centered on an 8.5x11 inch page, with 0.5 "
+          "inch margins.\n "
+          "* Uses various fields in the NrrdIOState passed to nrrdSave");
 
-int
-unrrdu_saveMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+static int
+unrrdu_saveMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, *outData,
-    encInfo[AIR_STRLEN_HUGE], fmtInfo[AIR_STRLEN_HUGE];
+  char *out, *err, *outData, encInfo[AIR_STRLEN_HUGE], fmtInfo[AIR_STRLEN_HUGE];
   Nrrd *nin, *nout;
   airArray *mop;
   NrrdIoState *nio;
-  int pret, enc[3], formatType;
+  int pret, enc[3], frmt[2];
 
   mop = airMopNew();
   nio = nrrdIoStateNew();
@@ -54,16 +49,17 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
          "output file format. Possibilities include:\n "
          "\b\bo \"nrrd\": standard nrrd format\n "
          "\b\bo \"pnm\": PNM image; PPM for color, PGM for grayscale\n "
-         "\b\bo \"text\": plain ASCII text for 1-D and 2-D data\n "
+         "\b\bo \"text\": ASCII text for 1-D and 2-D data\n "
+         "\b\bo \"ptext\": like \"text\" but enforcing real plain text,\n "
+         "        i.e., no NRRD header fields on lines (prior to data) \n "
+         "        starting with \"#\"\n "
          "\b\bo \"vtk\": VTK \"STRUCTURED_POINTS\" dataset");
   if (nrrdFormatPNG->available()) {
-    strcat(fmtInfo,
-           "\n \b\bo \"png\": PNG image");
+    strcat(fmtInfo, "\n \b\bo \"png\": PNG image");
   }
-  strcat(fmtInfo,
-         "\n \b\bo \"eps\": EPS file");
-  hestOptAdd(&opt, "f,format", "form", airTypeEnum, 1, 1, &formatType, NULL,
-             fmtInfo, NULL, nrrdFormatType);
+  strcat(fmtInfo, "\n \b\bo \"eps\": EPS file");
+  hestOptAdd(&opt, "f,format", "form", airTypeOther, 1, 1, frmt, NULL, fmtInfo, NULL,
+             NULL, &unrrduHestFormatCB);
   strcpy(encInfo,
          "encoding of data in file.  Not all encodings are supported in "
          "a given format. Possibilities include:"
@@ -71,12 +67,10 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
          "\n \b\bo \"ascii\": print data in ascii"
          "\n \b\bo \"hex\": two hex digits per byte");
   if (nrrdEncodingGzip->available()) {
-    strcat(encInfo,
-           "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
+    strcat(encInfo, "\n \b\bo \"gzip\", \"gz\": gzip compressed raw data");
   }
   if (nrrdEncodingBzip2->available()) {
-    strcat(encInfo,
-           "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
+    strcat(encInfo, "\n \b\bo \"bzip2\", \"bz2\": bzip2 compressed raw data");
   }
   if (nrrdEncodingGzip->available() || nrrdEncodingBzip2->available()) {
     strcat(encInfo,
@@ -89,8 +83,8 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
            "\b\bo \"f\": specialized for filtered data\n "
            "For example, \"gz\", \"gz:9\", \"gz:9f\" are all valid");
   }
-  hestOptAdd(&opt, "e,encoding", "enc", airTypeOther, 1, 1, enc, "raw",
-             encInfo, NULL, NULL, &unrrduHestEncodingCB);
+  hestOptAdd(&opt, "e,encoding", "enc", airTypeOther, 1, 1, enc, "raw", encInfo, NULL,
+             NULL, &unrrduHestEncodingCB);
   hestOptAdd(&opt, "en,endian", "end", airTypeEnum, 1, 1, &(nio->endian),
              airEnumStr(airEndian, airMyEndian()),
              "Endianness to save data out as; \"little\" for Intel and "
@@ -105,18 +99,20 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
              "instead of (by default, not using this option) having it be "
              "the same filename base as the header file.");
 
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_saveInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_saveInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   nrrdCopy(nout, nin);
 
+  nio->format = nrrdFormatArray[frmt[0]];
+  if (nrrdFormatTypeText == frmt[0] && frmt[1]) {
+    nio->bareText = AIR_TRUE;
+  }
   nio->encoding = nrrdEncodingArray[enc[0]];
-  nio->format = nrrdFormatArray[formatType];
   if (nrrdEncodingTypeGzip == enc[0]) {
     nio->zlibLevel = enc[1];
     nio->zlibStrategy = enc[2];
@@ -129,8 +125,7 @@ unrrdu_saveMain(int argc, const char **argv, const char *me,
 
   if (airEndsWith(out, NRRD_EXT_NHDR)) {
     if (nio->format != nrrdFormatNRRD) {
-      fprintf(stderr, "%s: WARNING: will use %s format\n", me,
-              nrrdFormatNRRD->name);
+      fprintf(stderr, "%s: WARNING: will use %s format\n", me, nrrdFormatNRRD->name);
       nio->format = nrrdFormatNRRD;
     }
     if (strlen(outData)) {

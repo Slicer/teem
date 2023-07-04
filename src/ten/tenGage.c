@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "ten.h"
@@ -26,11 +24,12 @@
 
 typedef struct {
   double *buffTen, *buffWght;
-  tenInterpParm *tip;  /* sneakiness: using tip->allocLen to record
-                          allocation sizes of buffTen and buffWght, too */
+  tenInterpParm *tip; /* sneakiness: using tip->allocLen to record
+                         allocation sizes of buffTen and buffWght, too */
 } _tenGagePvlData;
 
-gageItemEntry
+/* clang-format off */
+static gageItemEntry
 _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   /* enum value                  len,deriv, prereqs,                                                   parent item, parent index, needData */
   {tenGageUnknown,                 0,  0,  {0},                                                                  0,        0,     AIR_FALSE},
@@ -288,7 +287,7 @@ _tenGageTable[TEN_GAGE_ITEM_MAX+1] = {
   {tenGageAniso,     TEN_ANISO_MAX+1,  0,  {tenGageEval0, tenGageEval1, tenGageEval2},                           0,        0,     AIR_FALSE}
 };
 
-void
+static void
 _tenGageIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
   double *iv3;
   int i, fd;
@@ -332,9 +331,9 @@ _tenGageIv3Print(FILE *file, gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
-void
+static void
 _tenGageFilter(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_tenGageFilter";
+  static const char me[] = "_tenGageFilter";
   double *fw00, *fw11, *fw22, *ten, *tgrad, *thess;
   int fd;
   gageScl3PFilter_t *filter[5] = {NULL, gageScl3PFilter2, gageScl3PFilter4,
@@ -379,9 +378,9 @@ _tenGageFilter(gageContext *ctx, gagePerVolume *pvl) {
   return;
 }
 
-void
+static void
 _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
-  char me[]="_tenGageAnswer";
+  static const char me[] = "_tenGageAnswer";
   double *tenAns, *evalAns, *evecAns, *vecTmp=NULL, *matTmp=NULL,
     *gradDtA=NULL, *gradDtB=NULL, *gradDtC=NULL,
     *gradDtD=NULL, *gradDtE=NULL, *gradDtF=NULL,
@@ -602,7 +601,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDetGradMag)) {
     magTmp = pvl->directAnswer[tenGageDetGradMag][0] =
-      AIR_CAST(float, ELL_3V_LEN(vecTmp));
+      AIR_FLOAT(ELL_3V_LEN(vecTmp));
   }
   if (GAGE_QUERY_ITEM_TEST(pvl->query, tenGageDetNormal)) {
     ELL_3V_SCALE(pvl->directAnswer[tenGageDetNormal],
@@ -1386,7 +1385,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 
     cov = pvl->directAnswer[tenGageCovariance];
     /* HEY: casting because radius signed (shouldn't be) */
-    fd = AIR_CAST(unsigned int, 2*ctx->radius);
+    fd = AIR_UINT(2*ctx->radius);
     fddd = fd*fd*fd;
 
     /* reset answer */
@@ -1479,7 +1478,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 
     pvlData = AIR_CAST(_tenGagePvlData *, pvl->data);
     /* HEY: casting because radius is signed (shouldn't be) */
-    fd = AIR_CAST(unsigned int, 2*ctx->radius);
+    fd = AIR_UINT(2*ctx->radius);
     fddd = fd*fd*fd;
     for (vijk=0; vijk<fddd; vijk++) {
       double wxx, wyy, wzz;
@@ -2033,7 +2032,7 @@ _tenGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
 }
 
 
-void *
+static void *
 _tenGagePvlDataNew(const struct gageKind_t *kind) {
   _tenGagePvlData *pvlData;
 
@@ -2047,14 +2046,15 @@ _tenGagePvlDataNew(const struct gageKind_t *kind) {
   return pvlData;
 }
 
-void *
+static void *
 _tenGagePvlDataCopy(const struct gageKind_t *kind,
                     const void *_pvlDataOld) {
-  _tenGagePvlData *pvlDataNew, *pvlDataOld;
+  _tenGagePvlData *pvlDataNew;
+  const _tenGagePvlData *pvlDataOld;
   unsigned int num;
 
   AIR_UNUSED(kind);
-  pvlDataOld = AIR_CAST(_tenGagePvlData *, _pvlDataOld);
+  pvlDataOld = AIR_CAST(const _tenGagePvlData *, _pvlDataOld);
   num = pvlDataOld->tip->allocLen;
   pvlDataNew = AIR_CALLOC(1, _tenGagePvlData);
   if (pvlDataNew) {
@@ -2065,7 +2065,7 @@ _tenGagePvlDataCopy(const struct gageKind_t *kind,
   return pvlDataNew;
 }
 
-void *
+static void *
 _tenGagePvlDataNix(const struct gageKind_t *kind,
                    void *_pvlData) {
   _tenGagePvlData *pvlData;
@@ -2079,17 +2079,17 @@ _tenGagePvlDataNix(const struct gageKind_t *kind,
   return NULL;
 }
 
-int
+static int
 _tenGagePvlDataUpdate(const struct gageKind_t *kind,
                       const gageContext *ctx, const gagePerVolume *pvl,
-                      const void *_pvlData) {
+                      void *_pvlData) {
   _tenGagePvlData *pvlData;
   unsigned int fd, num;
 
   AIR_UNUSED(kind);
   AIR_UNUSED(pvl);
   pvlData = AIR_CAST(_tenGagePvlData *, _pvlData);
-  fd = AIR_CAST(unsigned int, 2*ctx->radius);
+  fd = AIR_UINT(2*ctx->radius);
   num = fd*fd*fd;
   if (num != pvlData->tip->allocLen) {
     /* HEY: no error checking */
@@ -2105,7 +2105,7 @@ _tenGagePvlDataUpdate(const struct gageKind_t *kind,
 }
 
 
-gageKind
+static gageKind
 _tenGageKind = {
   AIR_FALSE, /* statically allocated */
   "tensor",
@@ -2123,5 +2123,6 @@ _tenGageKind = {
   _tenGagePvlDataUpdate,
   NULL
 };
-gageKind *
+gageKind *const
 tenGageKind = &_tenGageKind;
+/* clang-format on */

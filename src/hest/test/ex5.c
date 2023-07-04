@@ -1,30 +1,28 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
-
 
 #include "../hest.h"
 
 int
-parse(void *_ptr, char *str, char *err) {
+parse(void *_ptr, const char *str, char *err) {
   char **ptrP;
 
   ptrP = _ptr;
@@ -37,12 +35,7 @@ parse(void *_ptr, char *str, char *err) {
   return 0;
 }
 
-hestCB cbinfo = {
-  sizeof(char*),
-  "token",
-  parse,
-  airFree
-};
+hestCB cbinfo = {sizeof(char *), "token", parse, airFree};
 
 int
 main(int argc, const char **argv) {
@@ -52,22 +45,20 @@ main(int argc, const char **argv) {
   char *err = NULL;
   unsigned int copi, opi, opn;
 
-  hestOptAdd(&opt, "A",      "token",           airTypeOther, 1,  1, &single,
-             "alpha",        "testing A",       NULL,  NULL,  &cbinfo);
-  hestOptAdd(&opt, "B",      "tok1 tok2 tok3",  airTypeOther, 3,  3, triple,
-             "beta psi rho", "testing B",       NULL,  NULL,  &cbinfo);
-  copi =
-    hestOptAdd(&opt,"C",     "mtok",            airTypeOther, 0,  1, &maybe,
-               "gamma",        "testing C",       NULL,  NULL,  &cbinfo);
-  hestOptAdd(&opt, "D",      "tok",             airTypeOther, 1, -1, &many,
-             "kappa omega",  "testing D",       &howMany, NULL, &cbinfo);
-  opn =
-    hestOptAdd(&opt, "int",  "N",               airTypeInt,   1,  1, &N,
-               NULL,           "an integer");
+  hestOptAdd(&opt, "A", "token", airTypeOther, 1, 1, &single, "alpha", "testing A", NULL,
+             NULL, &cbinfo);
+  hestOptAdd(&opt, "B", "tok1 tok2 tok3", airTypeOther, 3, 3, triple, "beta psi rho",
+             "testing B", NULL, NULL, &cbinfo);
+  copi = hestOptAdd(&opt, "C", "mtok", airTypeOther, 0, 1, &maybe, "gamma", "testing C",
+                    NULL, NULL, &cbinfo);
+  hestOptAdd(&opt, "D", "tok", airTypeOther, 1, -1, &many, "kappa omega", "testing D",
+             &howMany, NULL, &cbinfo);
+  opn = hestOptAdd(&opt, "int", "N", airTypeInt, 1, 1, &N, NULL, "an integer");
   opn++;
 
-  if (hestParse(opt, argc-1, argv+1, &err, NULL)) {
-    fprintf(stderr, "ERROR: %s\n", err); free(err);
+  if (hestParse(opt, argc - 1, argv + 1, &err, NULL)) {
+    fprintf(stderr, "ERROR: %s\n", err);
+    free(err);
     hestUsage(stderr, opt, argv[0], NULL);
     hestGlossary(stderr, opt, NULL);
     exit(1);
@@ -77,13 +68,13 @@ main(int argc, const char **argv) {
   printf("triple: %s %s %s\n", triple[0], triple[1], triple[2]);
   printf("maybe:  %s\n", maybe);
   printf("many(%d):", howMany);
-  for (i=0; i<=howMany-1; i++) {
+  for (i = 0; i <= howMany - 1; i++) {
     printf(" %s", many[i]);
   }
   printf("\n");
 
   printf("source(%s) = %d\n\n", opt[copi].flag, opt[copi].source);
-  for (opi=0; opi<opn; opi++) {
+  for (opi = 0; opi < opn; opi++) {
     printf("source(opt[%u]) = %d\n", opi, opt[opi].source);
   }
 

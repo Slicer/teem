@@ -1,29 +1,27 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "hoover.h"
 
-hooverContext *
+hooverContext * /* Biff: nope */
 hooverContextNew() {
   hooverContext *ctx;
 
@@ -48,12 +46,12 @@ hooverContextNew() {
     ctx->threadEnd = hooverStubThreadEnd;
     ctx->renderEnd = hooverStubRenderEnd;
   }
-  return(ctx);
+  return (ctx);
 }
 
-int
+int /* Biff: 1 */
 hooverContextCheck(hooverContext *ctx) {
-  static const char me[]="hooverContextCheck";
+  static const char me[] = "hooverContextCheck";
   int sxe, sye, sze, minSize, centr;
 
   if (!ctx) {
@@ -61,8 +59,7 @@ hooverContextCheck(hooverContext *ctx) {
     return 1;
   }
   if (airEnumValCheck(nrrdCenter, ctx->imgCentering)) {
-    biffAddf(HOOVER, "%s: pixel centering (%d) invalid",
-             me, ctx->imgCentering);
+    biffAddf(HOOVER, "%s: pixel centering (%d) invalid", me, ctx->imgCentering);
     return 1;
   }
   centr = (ctx->shape ? ctx->shape->center : ctx->volCentering);
@@ -70,8 +67,7 @@ hooverContextCheck(hooverContext *ctx) {
     biffAddf(HOOVER, "%s: voxel centering (%d) invalid", me, centr);
     return 1;
   }
-  if (limnCameraAspectSet(ctx->cam,
-                          ctx->imgSize[0], ctx->imgSize[1], ctx->imgCentering)
+  if (limnCameraAspectSet(ctx->cam, ctx->imgSize[0], ctx->imgSize[1], ctx->imgCentering)
       || limnCameraUpdate(ctx->cam)) {
     biffMovef(HOOVER, LIMN, "%s: trouble setting up camera", me);
     return 1;
@@ -83,11 +79,10 @@ hooverContextCheck(hooverContext *ctx) {
     }
   } else {
     minSize = (nrrdCenterCell == centr ? 1 : 2);
-    if (!(ctx->volSize[0] >= minSize
-          && ctx->volSize[1] >= minSize
+    if (!(ctx->volSize[0] >= minSize && ctx->volSize[1] >= minSize
           && ctx->volSize[2] >= minSize)) {
-      biffAddf(HOOVER, "%s: volume dimensions (%dx%dx%d) too small", me,
-               ctx->volSize[0], ctx->volSize[1], ctx->volSize[2]);
+      biffAddf(HOOVER, "%s: volume dimensions (%dx%dx%d) too small", me, ctx->volSize[0],
+               ctx->volSize[1], ctx->volSize[2]);
       return 1;
     }
     sxe = AIR_EXISTS(ctx->volSpacing[0]);
@@ -98,18 +93,17 @@ hooverContextCheck(hooverContext *ctx) {
          and assume unit spacing */
       ctx->volSpacing[0] = nrrdDefaultSpacing;
       ctx->volSpacing[1] = ctx->volSpacing[2] = ctx->volSpacing[0];
-      fprintf(stderr, "%s: WARNING: assuming spacing %g for all axes\n",
-              me, ctx->volSpacing[0]);
+      fprintf(stderr, "%s: WARNING: assuming spacing %g for all axes\n", me,
+              ctx->volSpacing[0]);
       /* HEY : nrrdDefaultSpacing need not be the same as gageParm's
          defaultSpacing, but we don't know anything about gage here,
          so what else can we do? */
     } else if (sxe && sye && sze) {
       /* all existed */
-      if (!(ctx->volSpacing[0] > 0.0
-            && ctx->volSpacing[1] > 0.0
+      if (!(ctx->volSpacing[0] > 0.0 && ctx->volSpacing[1] > 0.0
             && ctx->volSpacing[2] > 0.0)) {
-        biffAddf(HOOVER, "%s: volume spacing (%gx%gx%g) invalid", me,
-                 ctx->volSpacing[0], ctx->volSpacing[1], ctx->volSpacing[2]);
+        biffAddf(HOOVER, "%s: volume spacing (%gx%gx%g) invalid", me, ctx->volSpacing[0],
+                 ctx->volSpacing[1], ctx->volSpacing[2]);
         return 1;
       }
     } else {
@@ -120,8 +114,8 @@ hooverContextCheck(hooverContext *ctx) {
     }
   }
   if (!(ctx->imgSize[0] > 0 && ctx->imgSize[1] > 0)) {
-    biffAddf(HOOVER, "%s: image dimensions (%dx%d) invalid", me,
-             ctx->imgSize[0], ctx->imgSize[1]);
+    biffAddf(HOOVER, "%s: image dimensions (%dx%d) invalid", me, ctx->imgSize[0],
+             ctx->imgSize[1]);
     return 1;
   }
   if (!(ctx->numThreads >= 1)) {
@@ -129,8 +123,8 @@ hooverContextCheck(hooverContext *ctx) {
     return 1;
   }
   if (!(ctx->numThreads <= HOOVER_THREAD_MAX)) {
-    biffAddf(HOOVER, "%s: sorry, number threads (%d) > max (%d)", me,
-             ctx->numThreads, HOOVER_THREAD_MAX);
+    biffAddf(HOOVER, "%s: sorry, number threads (%d) > max (%d)", me, ctx->numThreads,
+             HOOVER_THREAD_MAX);
     return 1;
   }
   if (!ctx->renderBegin) {
@@ -165,7 +159,7 @@ hooverContextCheck(hooverContext *ctx) {
   return 0;
 }
 
-void
+void * /* Biff: nope */
 hooverContextNix(hooverContext *ctx) {
 
   if (ctx) {
@@ -173,5 +167,5 @@ hooverContextNix(hooverContext *ctx) {
     /* workMutex is cleaned up at end of render */
     free(ctx);
   }
+  return NULL;
 }
-

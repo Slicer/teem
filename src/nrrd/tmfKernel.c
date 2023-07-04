@@ -1,25 +1,24 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
+/* clang-format off */
 
 #include "nrrd.h"
 
@@ -87,7 +86,7 @@ _nrrd_TMFBAD_N_f(float *f, const float *x, size_t len, const double *parm) {
   fprintf(stderr, "_nrrd_TMFBAD: Invalid TMF indexing: ef == 0\n");
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernel_TMFBAD = {
   "TMFBAD",
   1, _nrrd_TMFBAD_Sup, _nrrd_TMFBAD_Int,
@@ -6629,7 +6628,7 @@ _nrrdKernel_TMF_d2_c3_4ef = {
 };
 
 
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelTMF[4][5][5] = {
   {            /* d = n */
     {
@@ -6784,3 +6783,4 @@ nrrdKernelTMF[4][5][5] = {
 const unsigned int nrrdKernelTMF_maxD = 2;
 const unsigned int nrrdKernelTMF_maxC = 3;
 const unsigned int nrrdKernelTMF_maxA = 4;
+/* clang-format on */

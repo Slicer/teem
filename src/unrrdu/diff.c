@@ -1,66 +1,65 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
 #define INFO "Sees if two nrrds are different in any way"
-static const char *_unrrdu_diffInfoL =
-(INFO
- ". Looks through all fields to see if two given nrrds contain the "
- "same information. Or, array meta-data can be excluded, and comparison "
- "only on the data values is done with the -od flag.\n "
- "* Uses nrrdCompare");
+static const char *_unrrdu_diffInfoL
+  = (INFO ". Looks through all fields to see if two given nrrds contain the "
+          "same information. Or, array meta-data can be excluded, and comparison "
+          "only on the data values is done with the -od flag.\n "
+          "* Uses nrrdCompare");
 
-int
-unrrdu_diffMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+static int
+unrrdu_diffMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err;
   airArray *mop;
   int pret;
 
   Nrrd *ninA, *ninB;
-  int onlyData, differ;
+  int quiet, exitstat, onlyData, differ, ret;
   double epsilon;
   char explain[AIR_STRLEN_LARGE];
 
   mop = airMopNew();
-  hestOptAdd(&opt, NULL, "ninA", airTypeOther, 1, 1, &ninA, NULL,
-             "First input nrrd.",
+  hestOptAdd(&opt, NULL, "ninA", airTypeOther, 1, 1, &ninA, NULL, "First input nrrd.",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, NULL, "ninB", airTypeOther, 1, 1, &ninB, NULL,
-             "Second input nrrd.",
+  hestOptAdd(&opt, NULL, "ninB", airTypeOther, 1, 1, &ninB, NULL, "Second input nrrd.",
              NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&opt, "eps,epsilon", "eps", airTypeDouble, 1, 1, &epsilon, "0.0",
              "threshold for allowable difference in values in "
              "data values");
+  hestOptAdd(&opt, "q,quiet", NULL, airTypeInt, 0, 0, &quiet, NULL,
+             "be quiet (like regular diff), so that nothing is printed "
+             "if the nrrds are the same");
+  hestOptAdd(&opt, "x,exit", NULL, airTypeInt, 0, 0, &exitstat, NULL,
+             "use the exit status (like regular diff) to indicate if "
+             "there was a significant difference (as if it's an error)");
   hestOptAdd(&opt, "od,onlydata", NULL, airTypeInt, 0, 0, &onlyData, NULL,
              "Compare data values only, excluding array meta-data");
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_diffInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_diffInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (nrrdCompare(ninA, ninB, onlyData, epsilon, &differ, explain)) {
@@ -70,19 +69,22 @@ unrrdu_diffMain(int argc, const char **argv, const char *me,
     return 1;
   }
   if (differ) {
-    printf("%s: %s differ: %s\n", me, onlyData ? "data values" : "nrrds",
-           explain);
+    printf("%s: %s differ: %s\n", me, onlyData ? "data values" : "nrrds", explain);
+    ret = 1;
   } else {
-    if (0 == epsilon) {
-      printf("%s: %s are the same\n", me, onlyData ? "data values" : "nrrds");
-    } else {
-      printf("%s: %s are same or within %g of each other\n", me,
-             onlyData ? "data values" : "nrrds", epsilon);
+    if (!quiet) {
+      if (0 == epsilon) {
+        printf("%s: %s are the same\n", me, onlyData ? "data values" : "nrrds");
+      } else {
+        printf("%s: %s are same or within %g of each other\n", me,
+               onlyData ? "data values" : "nrrds", epsilon);
+      }
     }
+    ret = 0;
   }
 
   airMopOkay(mop);
-  return 0;
+  return exitstat ? ret : 0;
 }
 
 UNRRDU_CMD(diff, INFO);

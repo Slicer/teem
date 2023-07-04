@@ -1,42 +1,38 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
 #define INFO "Merge CCs with their neighbors, under various constraints"
-static const char *_unrrdu_ccmergeInfoL =
-(INFO
- ".  This operates on the output of \"ccfind\". "
- "Merging of a CC is always done into its largest neighbor. "
- "Whether or not to merge can be constrained by one or more of: "
- "CC size (\"-s\"), original CC value being brighter or darker (\"-d\"), "
- "and number of neighbors (\"-n\").\n "
- "* Uses nrrdCCMerge");
+static const char *_unrrdu_ccmergeInfoL
+  = (INFO ".  This operates on the output of \"ccfind\". "
+          "Merging of a CC is always done into its largest neighbor. "
+          "Whether or not to merge can be constrained by one or more of: "
+          "CC size (\"-s\"), original CC value being brighter or darker (\"-d\"), "
+          "and number of neighbors (\"-n\").\n "
+          "* Uses nrrdCCMerge");
 
-int
-unrrdu_ccmergeMain(int argc, const char **argv, const char *me,
-                   hestParm *hparm) {
+static int
+unrrdu_ccmergeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout, *nout2, *nval;
@@ -53,14 +49,12 @@ unrrdu_ccmergeMain(int argc, const char **argv, const char *me,
              "surround.  CCs larger than this are deemed too significant "
              "to mess with.  Or, use \"0\" to remove any such restriction "
              "on merging.");
-  hestOptAdd(&opt, "n,neighbor", "max # neigh", airTypeInt, 1, 1,
-             &maxNeigh, "1",
+  hestOptAdd(&opt, "n,neighbor", "max # neigh", airTypeInt, 1, 1, &maxNeigh, "1",
              "a cap on the number of neighbors that a CC may have if it is "
              "to be be merged.  \"1\" allows only islands to be merged, "
              "\"2\" does merging with bigger of two neighbors, etc, while "
              "\"0\" says that number of neighbors is no constraint");
-  hestOptAdd(&opt, "c,connect", "connectivity", airTypeUInt, 1, 1,
-             &conny, NULL,
+  hestOptAdd(&opt, "c,connect", "connectivity", airTypeUInt, 1, 1, &conny, NULL,
              "what kind of connectivity to use: the number of coordinates "
              "that vary in order to traverse the neighborhood of a given "
              "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");
@@ -79,14 +73,13 @@ unrrdu_ccmergeMain(int argc, const char **argv, const char *me,
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_ccmergeInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_ccmergeInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nout2=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nout = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nout2 = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 
   if (nrrdCCMerge(nout, nin, nval, dir, maxSize, maxNeigh, conny)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

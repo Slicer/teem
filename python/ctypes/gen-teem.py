@@ -60,7 +60,7 @@ python ${CTYPES}/scripts/h2xml.py `pwd`/teemincl/all.h -I teemincl -o teem.xml
 echo === DYLD_LIBRARY_PATH is obviously Mac specific, please fix
 setenv DYLD_LIBRARY_PATH ${TEEM}/lib
 python ${CTYPES}/scripts/xml2py.py teem.xml -llibteem.dylib -o pre-teem.py -m stdio \
-        -r "(air|hest|biff|nrrd|ell|unrrdu|alan|moss|tijk|gage|dye|bane|limn|echo|hoover|seek|ten|elf|pull|coil|push|mite|meet).*"
+        -r "(air|hest|biff|nrrd|ell|moss|unrrdu|alan|tijk|gage|dye|bane|limn|echo|hoover|seek|ten|elf|pull|coil|push|mite|meet).*"
 rm -rf teemincl
 
 
@@ -76,7 +76,7 @@ if len(sys.argv) != 3:
     sys.exit("usage: gen-teem.py <ctypeslib-gccxml source dir> <teem install dir>")
 
 ## (TEEM_LIB_LIST)
-libs_list = ["air", "hest", "biff", "nrrd", "ell", "unrrdu", "alan", "moss", "tijk", "gage", "dye", "bane", "limn", "echo", "hoover", "seek", "ten", "elf", "pull", "coil", "push", "mite", "meet"]
+libs_list = ["air", "hest", "biff", "nrrd", "ell", "moss", "unrrdu", "alan", "tijk", "gage", "dye", "bane", "limn", "echo", "hoover", "seek", "ten", "elf", "pull", "coil", "push", "mite", "meet"]
 
 #
 # validate os

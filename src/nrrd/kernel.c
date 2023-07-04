@@ -1,65 +1,73 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
+/* clang-format off */
 
 #include "nrrd.h"
 
 /*
 ** summary of information about how the kernel parameter vector is set:
+** Note that, annoyingly, nrrdKernelUsesScale (at end of this file)
+** has to be updated to record which kernels (including their derivatives)
+** use parm[0] for scale.
 
                                  numParm  parm[0]   parm[1]   parm[2]
-                 nrrdKernelHann    2      scale    cut-off
-             nrrdKernelBlackman    2      scale    cut-off
-           nrrdKernelCatmullRom    0
-             nrrdKernelBSpline3    0
-nrrdKernelBSpline3ApproxInverse    0
-             nrrdKernelBSpline5    0
-nrrdKernelBSpline5ApproxInverse    0
-             nrrdKernelBSpline7    0
-nrrdKernelBSpline7ApproxInverse    0
-                 nrrdKernelZero    1      scale
-                  nrrdKernelBox    1      scale
-nrrdKernelCatmullRomSupportDebug   1      support
-      nrrdKernelBoxSupportDebug    1      support
-     nrrdKernelCos4SupportDebug    1      support
-                nrrdKernelCheap    1      scale
-nrrdKernelHermiteScaleSpaceFlag    0
-                 nrrdKernelTent    1      scale
-             nrrdKernelForwDiff    1      scale
-             nrrdKernelCentDiff    1      scale
-              nrrdKernelBCCubic    3      scale       B        C
-             nrrdKernelAQuartic    2      scale       A
-            nrrdKernelC3Quintic    0
-              nrrdKernelC4Hexic    0
- nrrdKernelC4HexicApproxInverse    0
-             nrrdKernelC5Septic    0
-             nrrdKernelGaussian    2      sigma    cut-off
-     nrrdKernelDiscreteGaussian    2      sigma    cut-off
-            nrrdKernelTMF[][][]    1       a
+                  nrrdKernelZero    1     scale
+                 nrrdKernelCheap    1     scale
+                   nrrdKernelBox    1     scale
+       nrrdKernelBoxSupportDebug    1     support
+nrrdKernelCatmullRomSupportDebug    1     support
+      nrrdKernelCos4SupportDebug    1     support
+ nrrdKernelHermiteScaleSpaceFlag    0
+                  nrrdKernelTent    1     scale
+              nrrdKernelForwDiff    1     scale
+              nrrdKernelCentDiff    1     scale
+               nrrdKernelBCCubic    3     scale       B        C
+            nrrdKernelCatmullRom    0
+              nrrdKernelAQuartic    2     scale       A
+             nrrdKernelC3Quintic    0
+               nrrdKernelC4Hexic    0
+  nrrdKernelC4HexicApproxInverse    0
+              nrrdKernelC5Septic    0
+ nrrdKernelC5SepticApproxInverse    0
+              nrrdKernelGaussian    2     sigma    cut-off
+      nrrdKernelDiscreteGaussian    2     sigma    cut-off
+                  nrrdKernelHann    2     scale    cut-off
+              nrrdKernelBlackman    2     scale    cut-off
+              nrrdKernelBSpline1    0
+              nrrdKernelBSpline2    0
+              nrrdKernelBSpline3    0
+ nrrdKernelBSpline3ApproxInverse    0
+              nrrdKernelBSpline4    0
+              nrrdKernelBSpline5    0
+ nrrdKernelBSpline5ApproxInverse    0
+              nrrdKernelBSpline6    0
+              nrrdKernelBSpline7    0
+ nrrdKernelBSpline7ApproxInverse    0
+             nrrdKernelTMF[][][]    1       a
 
 ** Note that when parm[0] is named "scale", that parameter is optional,
 ** and the default is 1.0, when given in string form
 ** E.g. "tent" is understood as "tent:1",
 ** but "gauss:4" isn't complete and won't parse; while "gauss:1,4" is good
+** See note above about nrrdKernelUsesScale (at end of this file)
 */
 
 /* these functions replace what had been a lot of
@@ -133,7 +141,7 @@ static float
 _nrrdZero1_f(float x, const double *parm) {
   float S;
 
-  S = AIR_CAST(float, parm[0]);
+  S = AIR_FLOAT(parm[0]);
   x = AIR_ABS(x)/S;
   return _ZERO(x)/S;
 }
@@ -156,21 +164,71 @@ _nrrdZeroN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
 
-  S = AIR_CAST(float, parm[0]);
+  S = AIR_FLOAT(parm[0]);
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t)/S;
     f[i] = _ZERO(t)/S;
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelZero = {
   "zero",
   1, _nrrdZeroSup, returnZero,
   _nrrdZero1_f, _nrrdZeroN_f, _nrrdZero1_d, _nrrdZeroN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelZero = &_nrrdKernelZero;
+
+/* ------------------------------------------------------------ */
+
+/* nrrdKernelFlag exists to be a flag that some logic on kernels didn't work as expected
+(such as nrrdKernelDerivative can't given an answer with certainty).  It generates AIR_NAN
+in whenever possible. */
+static double
+_nrrdFlagSup(const double *parm) {
+  AIR_UNUSED(parm);
+  return AIR_NAN;
+}
+
+static double
+_nrrdFlag1_d(double x, const double *parm) {
+  AIR_UNUSED(x); AIR_UNUSED(parm);
+  return AIR_NAN;
+}
+
+static float
+_nrrdFlag1_f(float x, const double *parm) {
+  AIR_UNUSED(x); AIR_UNUSED(parm);
+  return AIR_NAN;
+}
+
+static void
+_nrrdFlagN_d(double *f, const double *x, size_t len, const double *parm) {
+  size_t i;
+  AIR_UNUSED(x); AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    f[i] = AIR_NAN;
+  }
+}
+
+static void
+_nrrdFlagN_f(float *f, const float *x, size_t len, const double *parm) {
+  size_t i;
+  AIR_UNUSED(x); AIR_UNUSED(parm);
+  for (i=0; i<len; i++) {
+    f[i] = AIR_NAN;
+  }
+}
+
+static const NrrdKernel
+_nrrdKernelFlag = {
+  "flag",
+  1, _nrrdFlagSup, returnZero,
+  _nrrdFlag1_f, _nrrdFlagN_f, _nrrdFlag1_d, _nrrdFlagN_d
+};
+const NrrdKernel *const
+nrrdKernelFlag = &_nrrdKernelFlag;
 
 /* ------------------------------------------------------------ */
 
@@ -199,9 +257,9 @@ static float
 _nrrdBox1_f(float x, const double *parm) {
   float S;
 
-  S = AIR_CAST(float, parm[0]);
+  S = AIR_FLOAT(parm[0]);
   x = AIR_ABS(x)/S;
-  return AIR_CAST(float, _BOX(x)/S);
+  return AIR_FLOAT(_BOX(x)/S);
 }
 
 static void
@@ -222,24 +280,27 @@ _nrrdBoxN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
 
-  S = AIR_CAST(float, parm[0]);
+  S = AIR_FLOAT(parm[0]);
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t)/S;
-    f[i] = AIR_CAST(float, _BOX(t)/S);
+    f[i] = AIR_FLOAT(_BOX(t)/S);
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBox = {
   "box",
   1, _nrrdBoxSup, returnOne,
   _nrrdBox1_f,  _nrrdBoxN_f,  _nrrdBox1_d,  _nrrdBoxN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBox = &_nrrdKernelBox;
 
 /* ------------------------------------------------------------ */
 
+/* nrrdKernelBoxSupportDebug is like nrrdKernelBox but parm[0] determines the "support"; really
+it is still the same underlying function as nrrdKernelBox (only 1 from -0.5 to 0.5) but having
+variable nominal support is useful for some testing */
 static double
 _nrrdBoxSDSup(const double *parm) {
 
@@ -257,7 +318,7 @@ static float
 _nrrdBoxSD1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
-  return AIR_CAST(float, _BOX(x));
+  return AIR_FLOAT(_BOX(x));
 }
 
 static void
@@ -278,21 +339,24 @@ _nrrdBoxSDN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     float t;
     t = AIR_ABS(x[i]);
-    f[i] = AIR_CAST(float, _BOX(t));
+    f[i] = AIR_FLOAT(_BOX(t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBoxSupportDebug = {
   "boxsup",
-  1, _nrrdBoxSDSup, returnOne,
+  1, _nrrdBoxSDSup, returnOne /* well only if parm[0] > 0.5 */,
   _nrrdBoxSD1_f,  _nrrdBoxSDN_f,  _nrrdBoxSD1_d,  _nrrdBoxSDN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBoxSupportDebug = &_nrrdKernelBoxSupportDebug;
 
 /* ------------------------------------------------------------ */
-
+/* Like nrrdKernelBoxSupportDebug, this kernel really is only non-zero on [0.5,0.5], even if
+the nominal support will be simply parm[0]. Unlike nrrdKernelBoxSupportDebug this is a very
+smooth bump inside that according to cos(pi*x)^4, hence the name nrrdKernelCos4SupportDebug
+*/
 #define COS4(x) (x > 0.5 \
                  ? 0.0 \
                  : cos(AIR_PI*x)*cos(AIR_PI*x)*cos(AIR_PI*x)*cos(AIR_PI*x))
@@ -320,7 +384,7 @@ static float
 _nrrdCos4SD1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
-  return AIR_CAST(float, COS4(x));
+  return AIR_FLOAT(COS4(x));
 }
 
 static void
@@ -341,17 +405,17 @@ _nrrdCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     float t;
     t = AIR_ABS(x[i]);
-    f[i] = AIR_CAST(float, COS4(t));
+    f[i] = AIR_FLOAT(COS4(t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCos4SupportDebug = {
   "cos4sup",
   1, _nrrdCos4SDSup, _nrrdCos4SDInt,
   _nrrdCos4SD1_f,  _nrrdCos4SDN_f,  _nrrdCos4SD1_d,  _nrrdCos4SDN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCos4SupportDebug = &_nrrdKernelCos4SupportDebug;
 
 /* ------------------------------------------------------------ */
@@ -379,7 +443,7 @@ _nrrdDCos4SD1_f(float x, const double *parm) {
   int sgn;
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; } else { sgn = 1; }
-  return AIR_CAST(float, sgn*DCOS4(x));
+  return AIR_FLOAT(sgn*DCOS4(x));
 }
 
 static void
@@ -404,17 +468,17 @@ _nrrdDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = AIR_CAST(float, sgn*DCOS4(t));
+    f[i] = AIR_FLOAT(sgn*DCOS4(t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCos4SupportDebugD = {
   "cos4supD",
   1, _nrrdDCos4SDSup, returnZero,
   _nrrdDCos4SD1_f,   _nrrdDCos4SDN_f,   _nrrdDCos4SD1_d,   _nrrdDCos4SDN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCos4SupportDebugD = &_nrrdKernelCos4SupportDebugD;
 
 /* ------------------------------------------------------------ */
@@ -439,7 +503,7 @@ static float
 _nrrdDDCos4SD1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
-  return AIR_CAST(float, DDCOS4(x));
+  return AIR_FLOAT(DDCOS4(x));
 }
 
 static void
@@ -460,17 +524,17 @@ _nrrdDDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     float t;
     t = AIR_ABS(x[i]);
-    f[i] = AIR_CAST(float, DDCOS4(t));
+    f[i] = AIR_FLOAT(DDCOS4(t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCos4SupportDebugDD = {
   "cos4supDD",
   1, _nrrdDDCos4SDSup, returnZero,
   _nrrdDDCos4SD1_f,  _nrrdDDCos4SDN_f,  _nrrdDDCos4SD1_d,  _nrrdDDCos4SDN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCos4SupportDebugDD = &_nrrdKernelCos4SupportDebugDD;
 
 /* ------------------------------------------------------------ */
@@ -497,7 +561,7 @@ _nrrdDDDCos4SD1_f(float x, const double *parm) {
   int sgn;
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; } else { sgn = 1; }
-  return AIR_CAST(float, sgn*DDDCOS4(x));
+  return AIR_FLOAT(sgn*DDDCOS4(x));
 }
 
 static void
@@ -522,17 +586,17 @@ _nrrdDDDCos4SDN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = AIR_CAST(float, sgn*DDDCOS4(t));
+    f[i] = AIR_FLOAT(sgn*DDDCOS4(t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCos4SupportDebugDDD = {
   "cos4supDDD",
   1, _nrrdDDDCos4SDSup, returnZero,
   _nrrdDDDCos4SD1_f, _nrrdDDDCos4SDN_f, _nrrdDDDCos4SD1_d, _nrrdDDDCos4SDN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCos4SupportDebugDDD = &_nrrdKernelCos4SupportDebugDDD;
 
 /* ------------------------------------------------------------ */
@@ -562,7 +626,7 @@ _nrrdCheap1_d(double x, const double *parm) {
 static float
 _nrrdCheap1_f(float x, const double *parm) {
 
-  return AIR_CAST(float, _CHEAP(x)/parm[0]);
+  return AIR_FLOAT(_CHEAP(x)/parm[0]);
 }
 
 static void
@@ -583,17 +647,17 @@ _nrrdCheapN_f(float *f, const float *x, size_t len, const double *parm) {
 
   for (i=0; i<len; i++) {
     t = x[i];
-    f[i] = AIR_CAST(float, _CHEAP(t)/parm[0]);
+    f[i] = AIR_FLOAT(_CHEAP(t)/parm[0]);
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCheap = {
   "cheap",
   1, _nrrdCheapSup, returnOne,
   _nrrdCheap1_f,  _nrrdCheapN_f,  _nrrdCheap1_d,  _nrrdCheapN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCheap = &_nrrdKernelCheap;
 
 /* ------------------------------------------------------------ */
@@ -621,7 +685,7 @@ static float
 _nrrdTent1_f(float x, const double *parm) {
   float S;
 
-  S = AIR_CAST(float, parm[0]);
+  S = AIR_FLOAT(parm[0]);
   x = AIR_ABS(x)/S;
   return S ? _TENT(x)/S : x == 0;
 }
@@ -644,20 +708,20 @@ _nrrdTentN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
 
-  S = AIR_CAST(float, parm[0]);
+  S = AIR_FLOAT(parm[0]);
   for (i=0; i<len; i++) {
     t = x[i]; t = AIR_ABS(t)/S;
     f[i] = S ? _TENT(t)/S : t == 0;
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelTent = {
   "tent",
   1, _nrrdTentSup, returnOne,
   _nrrdTent1_f, _nrrdTentN_f, _nrrdTent1_d, _nrrdTentN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelTent = &_nrrdKernelTent;
 
 /* ------------------------------------------------------------ */
@@ -712,13 +776,13 @@ _nrrdHermiteN_f(float *f, const float *x, size_t len, const double *parm) {
 
 /* HEY: should just re-use fields from nrrdKernelTent, instead
    of creating new functions */
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelHermiteScaleSpaceFlag = {
   "hermiteSS",
   0, returnOne, returnOne,
   _nrrdHermite1_f, _nrrdHermiteN_f, _nrrdHermite1_d, _nrrdHermiteN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelHermiteScaleSpaceFlag = &_nrrdKernelHermiteScaleSpaceFlag;
 
 /* ------------------------------------------------------------ */
@@ -748,7 +812,7 @@ static float
 _nrrdFD1_f(float x, const double *parm) {
   float t, S;
 
-  S = AIR_CAST(float, parm[0]);
+  S = AIR_FLOAT(parm[0]);
   t = x/S;
   return _FORDIF(t)/(S*S);
 }
@@ -770,20 +834,20 @@ _nrrdFDN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
 
-  S = AIR_CAST(float, parm[0]);
+  S = AIR_FLOAT(parm[0]);
   for (i=0; i<len; i++) {
     t = x[i]/S;
     f[i] = _FORDIF(t)/(S*S);
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelFD = {
   "fordif",
   1, _nrrdFDSup, returnZero,
   _nrrdFD1_f,   _nrrdFDN_f,   _nrrdFD1_d,   _nrrdFDN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelForwDiff = &_nrrdKernelFD;
 
 /* ------------------------------------------------------------ */
@@ -814,9 +878,9 @@ static float
 _nrrdCD1_f(float x, const double *parm) {
   float S;
 
-  S = AIR_CAST(float, parm[0]);
+  S = AIR_FLOAT(parm[0]);
   x /= S;
-  return AIR_CAST(float, _CENDIF(x)/(S*S));
+  return AIR_FLOAT(_CENDIF(x)/(S*S));
 }
 
 static void
@@ -837,20 +901,20 @@ _nrrdCDN_f(float *f, const float *x, size_t len, const double *parm) {
   float t, S;
   size_t i;
 
-  S = AIR_CAST(float, parm[0]);
+  S = AIR_FLOAT(parm[0]);
   for (i=0; i<len; i++) {
     t = x[i]/S;
-    f[i] = AIR_CAST(float, _CENDIF(t)/(S*S));
+    f[i] = AIR_FLOAT(_CENDIF(t)/(S*S));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCD = {
   "cendif",
   1, _nrrdCDSup, returnZero,
   _nrrdCD1_f,   _nrrdCDN_f,   _nrrdCD1_d,   _nrrdCDN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCentDiff = &_nrrdKernelCD;
 
 /* ------------------------------------------------------------ */
@@ -883,9 +947,9 @@ static float
 _nrrdBC1_f(float x, const double *parm) {
   float B, C, S;
 
-  S = AIR_CAST(float, parm[0]);
-  B = AIR_CAST(float, parm[1]);
-  C = AIR_CAST(float, parm[2]);
+  S = AIR_FLOAT(parm[0]);
+  B = AIR_FLOAT(parm[1]);
+  C = AIR_FLOAT(parm[2]);
   x = AIR_ABS(x)/S;
   return _BCCUBIC(x, B, C)/S;
 }
@@ -909,9 +973,9 @@ _nrrdBCN_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, B, C;
   size_t i;
 
-  S = AIR_CAST(float, parm[0]);
-  B = AIR_CAST(float, parm[1]);
-  C = AIR_CAST(float, parm[2]);
+  S = AIR_FLOAT(parm[0]);
+  B = AIR_FLOAT(parm[1]);
+  C = AIR_FLOAT(parm[2]);
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
@@ -919,13 +983,13 @@ _nrrdBCN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelBC = {
   "BCcubic",
   3, _nrrdBCSup, returnOne,
   _nrrdBC1_f,   _nrrdBCN_f,   _nrrdBC1_d,   _nrrdBCN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBCCubic = &_nrrdKernelBC;
 
 /* ------------------------------------------------------------ */
@@ -961,12 +1025,12 @@ _nrrdDBC1_f(float x, const double *parm) {
   float B, C, S;
   int sgn = 1;
 
-  S = AIR_CAST(float, parm[0]);
-  B = AIR_CAST(float, parm[1]);
-  C = AIR_CAST(float, parm[2]);
+  S = AIR_FLOAT(parm[0]);
+  B = AIR_FLOAT(parm[1]);
+  C = AIR_FLOAT(parm[2]);
   if (x < 0) { x = -x; sgn = -1; }
   x /= S;
-  return AIR_CAST(float, sgn*_DBCCUBIC(x, B, C)/(S*S));
+  return AIR_FLOAT(sgn*_DBCCUBIC(x, B, C)/(S*S));
 }
 
 static void
@@ -990,23 +1054,23 @@ _nrrdDBCN_f(float *f, const float *x, size_t len, const double *parm) {
   int sgn;
   size_t i;
 
-  S = AIR_CAST(float, parm[0]);
-  B = AIR_CAST(float, parm[1]);
-  C = AIR_CAST(float, parm[2]);
+  S = AIR_FLOAT(parm[0]);
+  B = AIR_FLOAT(parm[1]);
+  C = AIR_FLOAT(parm[2]);
   for (i=0; i<len; i++) {
     t = x[i]/S;
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = AIR_CAST(float, sgn*_DBCCUBIC(t, B, C)/(S*S));
+    f[i] = AIR_FLOAT(sgn*_DBCCUBIC(t, B, C)/(S*S));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDBC = {
   "BCcubicD",
   3, _nrrdDBCSup, returnZero,
   _nrrdDBC1_f,  _nrrdDBCN_f,  _nrrdDBC1_d,  _nrrdDBCN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBCCubicD = &_nrrdKernelDBC;
 
 /* ------------------------------------------------------------ */
@@ -1039,9 +1103,9 @@ static float
 _nrrdDDBC1_f(float x, const double *parm) {
   float B, C, S;
 
-  S = AIR_CAST(float, parm[0]);
-  B = AIR_CAST(float, parm[1]);
-  C = AIR_CAST(float, parm[2]);
+  S = AIR_FLOAT(parm[0]);
+  B = AIR_FLOAT(parm[1]);
+  C = AIR_FLOAT(parm[2]);
   x = AIR_ABS(x)/S;
   return _DDBCCUBIC(x, B, C)/(S*S*S);
 }
@@ -1065,9 +1129,9 @@ _nrrdDDBCN_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, B, C;
   size_t i;
 
-  S = AIR_CAST(float, parm[0]);
-  B = AIR_CAST(float, parm[1]);
-  C = AIR_CAST(float, parm[2]);
+  S = AIR_FLOAT(parm[0]);
+  B = AIR_FLOAT(parm[1]);
+  C = AIR_FLOAT(parm[2]);
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
@@ -1075,13 +1139,13 @@ _nrrdDDBCN_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDDBC = {
   "BCcubicDD",
   3, _nrrdDDBCSup, returnZero,
   _nrrdDDBC1_f, _nrrdDDBCN_f, _nrrdDDBC1_d, _nrrdDDBCN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelBCCubicDD = &_nrrdKernelDDBC;
 
 /* ------------------------------------------------------------ */
@@ -1100,7 +1164,7 @@ static float
 _nrrdCTMR1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
-  return AIR_CAST(float, _CTMR(x));
+  return AIR_FLOAT(_CTMR(x));
 }
 
 static void
@@ -1123,17 +1187,17 @@ _nrrdCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t);
-    f[i] = AIR_CAST(float, _CTMR(t));
+    f[i] = AIR_FLOAT(_CTMR(t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCatmullRom = {
   "catmull-rom",
   0, returnTwo, returnOne,
   _nrrdCTMR1_f,   _nrrdCTMRN_f,   _nrrdCTMR1_d,   _nrrdCTMRN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCatmullRom = &_nrrdKernelCatmullRom;
 
 
@@ -1143,13 +1207,13 @@ _nrrdCtmrSDSup(const double *parm) {
   return AIR_MAX(2.0, parm[0]);
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCatmullRomSupportDebug = {
   "ctmrsup",
   1, _nrrdCtmrSDSup, returnOne,
   _nrrdCTMR1_f,   _nrrdCTMRN_f,   _nrrdCTMR1_d,   _nrrdCTMRN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCatmullRomSupportDebug = &_nrrdKernelCatmullRomSupportDebug;
 
 /* ------------------------------------------------------------ */
@@ -1170,7 +1234,7 @@ _nrrdDCTMR1_f(float x, const double *parm) {
   int sgn;
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; } else { sgn = 1; }
-  return AIR_CAST(float, sgn*_DCTMR(x));
+  return AIR_FLOAT(sgn*_DCTMR(x));
 }
 
 static void
@@ -1195,26 +1259,26 @@ _nrrdDCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = AIR_CAST(float, sgn*_DCTMR(t));
+    f[i] = AIR_FLOAT(sgn*_DCTMR(t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCatmullRomD = {
   "catmull-romD",
   0, returnTwo, returnZero,
   _nrrdDCTMR1_f,   _nrrdDCTMRN_f,   _nrrdDCTMR1_d,   _nrrdDCTMRN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCatmullRomD = &_nrrdKernelCatmullRomD;
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCatmullRomSupportDebugD = {
   "ctmrsupD",
   1, _nrrdCtmrSDSup, returnZero,
   _nrrdDCTMR1_f,   _nrrdDCTMRN_f,   _nrrdDCTMR1_d,   _nrrdDCTMRN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCatmullRomSupportDebugD = &_nrrdKernelCatmullRomSupportDebugD;
 
 /* ------------------------------------------------------------ */
@@ -1233,7 +1297,7 @@ static float
 _nrrdDDCTMR1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
-  return AIR_CAST(float, _DDCTMR(x));
+  return AIR_FLOAT(_DDCTMR(x));
 }
 
 static void
@@ -1256,26 +1320,26 @@ _nrrdDDCTMRN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t);
-    f[i] = AIR_CAST(float, _DDCTMR(t));
+    f[i] = AIR_FLOAT(_DDCTMR(t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCatmullRomDD = {
   "catmull-romDD",
   0, returnTwo, returnZero,
   _nrrdDDCTMR1_f,   _nrrdDDCTMRN_f,   _nrrdDDCTMR1_d,   _nrrdDDCTMRN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCatmullRomDD = &_nrrdKernelCatmullRomDD;
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelCatmullRomSupportDebugDD = {
   "ctmrsupDD",
   1, _nrrdCtmrSDSup, returnZero,
   _nrrdDDCTMR1_f,   _nrrdDDCTMRN_f,   _nrrdDDCTMR1_d,   _nrrdDDCTMRN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelCatmullRomSupportDebugDD = &_nrrdKernelCatmullRomSupportDebugDD;
 
 /* ------------------------------------------------------------ */
@@ -1311,9 +1375,9 @@ static float
 _nrrdA41_f(float x, const double *parm) {
   float A, S;
 
-  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
+  S = AIR_FLOAT(parm[0]); A = AIR_FLOAT(parm[1]);
   x = AIR_ABS(x)/S;
-  return AIR_CAST(float, _AQUARTIC(x, A)/S);
+  return AIR_FLOAT(_AQUARTIC(x, A)/S);
 }
 
 static void
@@ -1335,21 +1399,21 @@ _nrrdA4N_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, A;
   size_t i;
 
-  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
+  S = AIR_FLOAT(parm[0]); A = AIR_FLOAT(parm[1]);
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
-    f[i] = AIR_CAST(float, _AQUARTIC(t, A)/S);
+    f[i] = AIR_FLOAT(_AQUARTIC(t, A)/S);
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelA4 = {
   "Aquartic",
   2, _nrrdA4Sup, returnOne,
   _nrrdA41_f,   _nrrdA4N_f,   _nrrdA41_d,   _nrrdA4N_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelAQuartic = &_nrrdKernelA4;
 
 /* ------------------------------------------------------------ */
@@ -1387,10 +1451,10 @@ _nrrdDA41_f(float x, const double *parm) {
   float A, S;
   int sgn = 1;
 
-  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
+  S = AIR_FLOAT(parm[0]); A = AIR_FLOAT(parm[1]);
   if (x < 0) { x = -x; sgn = -1; }
   x /= S;
-  return AIR_CAST(float, sgn*_DAQUARTIC(x, A)/(S*S));
+  return AIR_FLOAT(sgn*_DAQUARTIC(x, A)/(S*S));
 }
 
 static void
@@ -1414,21 +1478,21 @@ _nrrdDA4N_f(float *f, const float *x, size_t len, const double *parm) {
   size_t i;
   int sgn;
 
-  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
+  S = AIR_FLOAT(parm[0]); A = AIR_FLOAT(parm[1]);
   for (i=0; i<len; i++) {
     t = x[i]/S;
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = AIR_CAST(float, sgn*_DAQUARTIC(t, A)/(S*S));
+    f[i] = AIR_FLOAT(sgn*_DAQUARTIC(t, A)/(S*S));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDA4 = {
   "AquarticD",
   2, _nrrdDA4Sup, returnZero,
   _nrrdDA41_f,  _nrrdDA4N_f,  _nrrdDA41_d,  _nrrdDA4N_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelAQuarticD = &_nrrdKernelDA4;
 
 /* ------------------------------------------------------------ */
@@ -1463,7 +1527,7 @@ static float
 _nrrdDDA41_f(float x, const double *parm) {
   float S, A;
 
-  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
+  S = AIR_FLOAT(parm[0]); A = AIR_FLOAT(parm[1]);
   x = AIR_ABS(x)/S;
   return _DDAQUARTIC(x, A)/(S*S*S);
 }
@@ -1487,7 +1551,7 @@ _nrrdDDA4N_f(float *f, const float *x, size_t len, const double *parm) {
   float S, t, A;
   size_t i;
 
-  S = AIR_CAST(float, parm[0]); A = AIR_CAST(float, parm[1]);
+  S = AIR_FLOAT(parm[0]); A = AIR_FLOAT(parm[1]);
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t)/S;
@@ -1495,13 +1559,13 @@ _nrrdDDA4N_f(float *f, const float *x, size_t len, const double *parm) {
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDDA4 = {
   "AquarticDD",
   2, _nrrdDDA4Sup, returnZero,
   _nrrdDDA41_f, _nrrdDDA4N_f, _nrrdDDA41_d, _nrrdDDA4N_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelAQuarticDD = &_nrrdKernelDDA4;
 
 /* ------------------------------------------------------------ */
@@ -1542,7 +1606,7 @@ static float
 _c3quint1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
-  return AIR_CAST(float, _C3QUINTIC(x));
+  return AIR_FLOAT(_C3QUINTIC(x));
 }
 
 static void
@@ -1565,17 +1629,17 @@ _c3quintN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t);
-    f[i] = AIR_CAST(float, _C3QUINTIC(t));
+    f[i] = AIR_FLOAT(_C3QUINTIC(t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _c3quint = {
   "C3Quintic",
   0, returnTwo, returnOne,
   _c3quint1_f,   _c3quintN_f,   _c3quint1_d,   _c3quintN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC3Quintic = &_c3quint;
 
 /* ------------------------------------------------------------ */
@@ -1599,7 +1663,7 @@ _Dc3quint1_f(float x, const double *parm) {
   int sgn = 1;
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; }
-  return AIR_CAST(float, sgn*_DC3QUINTIC(x));
+  return AIR_FLOAT(sgn*_DC3QUINTIC(x));
 }
 
 static void
@@ -1624,17 +1688,17 @@ _Dc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = AIR_CAST(float, sgn*_DC3QUINTIC(t));
+    f[i] = AIR_FLOAT(sgn*_DC3QUINTIC(t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDC3Quintic = {
   "C3QuinticD",
   0, returnTwo, returnZero,
   _Dc3quint1_f,  _Dc3quintN_f,  _Dc3quint1_d,  _Dc3quintN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC3QuinticD = &_nrrdKernelDC3Quintic;
 
 /* ------------------------------------------------------------ */
@@ -1656,7 +1720,7 @@ static float
 _DDc3quint1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
-  return AIR_CAST(float, _DDC3QUINTIC(x));
+  return AIR_FLOAT(_DDC3QUINTIC(x));
 }
 
 static void
@@ -1679,17 +1743,17 @@ _DDc3quintN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t);
-    f[i] = AIR_CAST(float, _DDC3QUINTIC(t));
+    f[i] = AIR_FLOAT(_DDC3QUINTIC(t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _DDc3quint = {
   "C3QuinticDD",
   0, returnTwo, returnZero,
   _DDc3quint1_f,   _DDc3quintN_f,   _DDc3quint1_d,   _DDc3quintN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC3QuinticDD = &_DDc3quint;
 
 /* ------------------------------------------------------------ */
@@ -1725,7 +1789,7 @@ static float
 _c4hex1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
-  return AIR_CAST(float, _C4HEXIC(x));
+  return AIR_FLOAT(_C4HEXIC(x));
 }
 
 static void
@@ -1748,17 +1812,17 @@ _c4hexN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t);
-    f[i] = AIR_CAST(float, _C4HEXIC(t));
+    f[i] = AIR_FLOAT(_C4HEXIC(t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _c4hex = {
   "C4Hexic",
   0, returnThree, returnOne,
   _c4hex1_f,   _c4hexN_f,   _c4hex1_d,   _c4hexN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC4Hexic = &_c4hex;
 
 /* ------------------------------------------------------------ */
@@ -1785,7 +1849,7 @@ _Dc4hex1_f(float x, const double *parm) {
   int sgn = 1;
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; }
-  return AIR_CAST(float, sgn*_DC4HEXIC(x));
+  return AIR_FLOAT(sgn*_DC4HEXIC(x));
 }
 
 static void
@@ -1810,17 +1874,17 @@ _Dc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = AIR_CAST(float, sgn*_DC4HEXIC(t));
+    f[i] = AIR_FLOAT(sgn*_DC4HEXIC(t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDC4hexic = {
   "C4HexicD",
   0, returnThree, returnZero,
   _Dc4hex1_f,  _Dc4hexN_f,  _Dc4hex1_d,  _Dc4hexN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC4HexicD = &_nrrdKernelDC4hexic;
 
 /* ------------------------------------------------------------ */
@@ -1845,7 +1909,7 @@ static float
 _DDc4hex1_f(float x, const double *parm) {
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
-  return AIR_CAST(float, _DDC4HEXIC(x));
+  return AIR_FLOAT(_DDC4HEXIC(x));
 }
 
 static void
@@ -1868,17 +1932,17 @@ _DDc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t);
-    f[i] = AIR_CAST(float, _DDC4HEXIC(t));
+    f[i] = AIR_FLOAT(_DDC4HEXIC(t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _DDc4hex = {
   "C4HexicDD",
   0, returnThree, returnZero,
   _DDc4hex1_f,   _DDc4hexN_f,   _DDc4hex1_d,   _DDc4hexN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC4HexicDD = &_DDc4hex;
 
 /* ------------------------------------------------------------ */
@@ -1906,7 +1970,7 @@ _DDDc4hex1_f(float x, const double *parm) {
   int sgn = 1;
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; }
-  return AIR_CAST(float, sgn*_DDDC4HEXIC(x));
+  return AIR_FLOAT(sgn*_DDDC4HEXIC(x));
 }
 
 static void
@@ -1931,17 +1995,17 @@ _DDDc4hexN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = AIR_CAST(float, sgn*_DDDC4HEXIC(t));
+    f[i] = AIR_FLOAT(sgn*_DDDC4HEXIC(t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDDDC4hexic = {
   "C4HexicDDD",
   0, returnThree, returnZero,
   _DDDc4hex1_f,  _DDDc4hexN_f,  _DDDc4hex1_d,  _DDDc4hexN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC4HexicDDD = &_nrrdKernelDDDC4hexic;
 
 
@@ -1970,7 +2034,7 @@ _c4hex_ANI_sup(const double *parm) {
 }
 
 #define C4HEX_ANI(ret, tmp, x)                  \
-  tmp = AIR_CAST(unsigned int, x+0.5);          \
+  tmp = AIR_UINT(x+0.5);          \
   if (tmp < 12) {                               \
     ret = _c4hex_ANI_kvals[tmp];                \
   } else {                                      \
@@ -1992,7 +2056,7 @@ _c4hex_ANI_1f(float x, const double *parm) {
   AIR_UNUSED(parm);
   ax = AIR_ABS(x);
   C4HEX_ANI(r, tmp, ax);
-  return AIR_CAST(float, r);
+  return AIR_FLOAT(r);
 }
 
 static void
@@ -2015,18 +2079,18 @@ _c4hex_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     C4HEX_ANI(r, tmp, ax);
-    f[i] = AIR_CAST(float, r);
+    f[i] = AIR_FLOAT(r);
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelC4HexicApproxInverse = {
   "C4HexicAI", 0,
   _c4hex_ANI_sup, returnOne,
   _c4hex_ANI_1f, _c4hex_ANI_Nf,
   _c4hex_ANI_1d, _c4hex_ANI_Nd
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC4HexicApproxInverse = &_nrrdKernelC4HexicApproxInverse;
 
 /* ------------------------- c5septic ------------------------------ */
@@ -2054,7 +2118,7 @@ _c5sept1_d(double x, const double *parm) {
   unsigned int xi;
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
-  xi = AIR_CAST(unsigned int, x);
+  xi = AIR_UINT(x);
   x -= xi;
   return _C5SEPT(xi, x);
 }
@@ -2064,9 +2128,9 @@ _c5sept1_f(float x, const double *parm) {
   unsigned int xi;
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
-  xi = AIR_CAST(unsigned int, x);
-  x -= AIR_CAST(float, xi);
-  return AIR_CAST(float, _C5SEPT(xi, x));
+  xi = AIR_UINT(x);
+  x -= AIR_FLOAT(xi);
+  return AIR_FLOAT(_C5SEPT(xi, x));
 }
 
 static void
@@ -2078,7 +2142,7 @@ _c5septN_d(double *f, const double *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t);
-    ti = AIR_CAST(unsigned int, t);
+    ti = AIR_UINT(t);
     t -= ti;
     f[i] = _C5SEPT(ti, t);
   }
@@ -2093,19 +2157,19 @@ _c5septN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t);
-    ti = AIR_CAST(unsigned int, t);
-    t -= AIR_CAST(float, ti);
-    f[i] = AIR_CAST(float, _C5SEPT(ti, t));
+    ti = AIR_UINT(t);
+    t -= AIR_FLOAT(ti);
+    f[i] = AIR_FLOAT(_C5SEPT(ti, t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _c5sept = {
   "C5Septic",
   0, returnFour, returnOne,
   _c5sept1_f,   _c5septN_f,   _c5sept1_d,   _c5septN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC5Septic = &_c5sept;
 
 #define _DC5SEPT0(x) (x*(-3.308641975308642 + x*x*(4.292181069958848 + x*x*(-2.6998456790123457 + x*0.9785236625514403))))
@@ -2125,7 +2189,7 @@ _dc5sept1_d(double x, const double *parm) {
   int sgn = 1;
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; }
-  xi = AIR_CAST(unsigned int, x);
+  xi = AIR_UINT(x);
   x -= xi;
   return sgn*_DC5SEPT(xi, x);
 }
@@ -2136,9 +2200,9 @@ _dc5sept1_f(float x, const double *parm) {
   int sgn = 1;
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; }
-  xi = AIR_CAST(unsigned int, x);
-  x -= AIR_CAST(float, xi);
-  return AIR_CAST(float, sgn*_DC5SEPT(xi, x));
+  xi = AIR_UINT(x);
+  x -= AIR_FLOAT(xi);
+  return AIR_FLOAT(sgn*_DC5SEPT(xi, x));
 }
 
 static void
@@ -2151,7 +2215,7 @@ _dc5septN_d(double *f, const double *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    ti = AIR_CAST(unsigned int, t);
+    ti = AIR_UINT(t);
     t -= ti;
     f[i] = sgn*_DC5SEPT(ti, t);
   }
@@ -2167,19 +2231,19 @@ _dc5septN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    ti = AIR_CAST(unsigned int, t);
-    t -= AIR_CAST(float, ti);
-    f[i] = AIR_CAST(float, sgn*_DC5SEPT(ti, t));
+    ti = AIR_UINT(t);
+    t -= AIR_FLOAT(ti);
+    f[i] = AIR_FLOAT(sgn*_DC5SEPT(ti, t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _dc5sept = {
   "C5SepticD",
   0, returnFour, returnZero,
   _dc5sept1_f,   _dc5septN_f,   _dc5sept1_d,   _dc5septN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC5SepticD = &_dc5sept;
 
 #define _DDC5SEPT0(x) (-3.308641975308642 + x*x*(12.876543209876543 + x*x*(-13.499228395061728 + x*5.871141975308642)))
@@ -2198,7 +2262,7 @@ _ddc5sept1_d(double x, const double *parm) {
   unsigned int xi;
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
-  xi = AIR_CAST(unsigned int, x);
+  xi = AIR_UINT(x);
   x -= xi;
   return _DDC5SEPT(xi, x);
 }
@@ -2208,9 +2272,9 @@ _ddc5sept1_f(float x, const double *parm) {
   unsigned int xi;
   AIR_UNUSED(parm);
   x = AIR_ABS(x);
-  xi = AIR_CAST(unsigned int, x);
-  x -= AIR_CAST(float, xi);
-  return AIR_CAST(float, _DDC5SEPT(xi, x));
+  xi = AIR_UINT(x);
+  x -= AIR_FLOAT(xi);
+  return AIR_FLOAT(_DDC5SEPT(xi, x));
 }
 
 static void
@@ -2222,7 +2286,7 @@ _ddc5septN_d(double *f, const double *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t);
-    ti = AIR_CAST(unsigned int, t);
+    ti = AIR_UINT(t);
     t -= ti;
     f[i] = _DDC5SEPT(ti, t);
   }
@@ -2237,19 +2301,19 @@ _ddc5septN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t);
-    ti = AIR_CAST(unsigned int, t);
-    t -= AIR_CAST(float, ti);
-    f[i] = AIR_CAST(float, _DDC5SEPT(ti, t));
+    ti = AIR_UINT(t);
+    t -= AIR_FLOAT(ti);
+    f[i] = AIR_FLOAT(_DDC5SEPT(ti, t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _ddc5sept = {
   "C5SepticDD",
   0, returnFour, returnZero,
   _ddc5sept1_f,   _ddc5septN_f,   _ddc5sept1_d,   _ddc5septN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC5SepticDD = &_ddc5sept;
 
 #define _DDDC5SEPT0(x) (x*(25.75308641975309 + x*x*(-53.99691358024691 + x*29.35570987654321)))
@@ -2269,7 +2333,7 @@ _dddc5sept1_d(double x, const double *parm) {
   int sgn = 1;
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; }
-  xi = AIR_CAST(unsigned int, x);
+  xi = AIR_UINT(x);
   x -= xi;
   return sgn*_DDDC5SEPT(xi, x);
 }
@@ -2280,9 +2344,9 @@ _dddc5sept1_f(float x, const double *parm) {
   int sgn = 1;
   AIR_UNUSED(parm);
   if (x < 0) { x = -x; sgn = -1; }
-  xi = AIR_CAST(unsigned int, x);
-  x -= AIR_CAST(float, xi);
-  return AIR_CAST(float, sgn*_DDDC5SEPT(xi, x));
+  xi = AIR_UINT(x);
+  x -= AIR_FLOAT(xi);
+  return AIR_FLOAT(sgn*_DDDC5SEPT(xi, x));
 }
 
 static void
@@ -2295,7 +2359,7 @@ _dddc5septN_d(double *f, const double *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    ti = AIR_CAST(unsigned int, t);
+    ti = AIR_UINT(t);
     t -= ti;
     f[i] = sgn*_DDDC5SEPT(ti, t);
   }
@@ -2311,19 +2375,19 @@ _dddc5septN_f(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    ti = AIR_CAST(unsigned int, t);
-    t -= AIR_CAST(float, ti);
-    f[i] = AIR_CAST(float, sgn*_DDDC5SEPT(ti, t));
+    ti = AIR_UINT(t);
+    t -= AIR_FLOAT(ti);
+    f[i] = AIR_FLOAT(sgn*_DDDC5SEPT(ti, t));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _dddc5sept = {
   "C5SepticDDD",
   0, returnFour, returnZero,
   _dddc5sept1_f,   _dddc5septN_f,   _dddc5sept1_d,   _dddc5septN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC5SepticDDD = &_dddc5sept;
 
 /* note that this implies a much more accurate inverse than is given
@@ -2374,7 +2438,7 @@ _c5sept_ANI_int(const double *parm) {
 }
 
 #define C5SEPT_ANI(ret, tmp, x)                  \
-  tmp = AIR_CAST(unsigned int, x+0.5);           \
+  tmp = AIR_UINT(x+0.5);           \
   if (tmp < C5SEPT_AI_LEN) {                     \
     ret = _c5sept_ANI_kvals[tmp];                \
   } else {                                       \
@@ -2398,7 +2462,7 @@ _c5sept_ANI_1f(float x, const double *parm) {
 
   ax = AIR_ABS(x);
   C5SEPT_ANI(r, tmp, ax);
-  return AIR_CAST(float, r);
+  return AIR_FLOAT(r);
 }
 
 static void
@@ -2423,18 +2487,18 @@ _c5sept_ANI_Nf(float *f, const float *x, size_t len, const double *parm) {
   for (i=0; i<len; i++) {
     ax = x[i]; ax = AIR_ABS(ax);
     C5SEPT_ANI(r, tmp, ax);
-    f[i] = AIR_CAST(float, r);
+    f[i] = AIR_FLOAT(r);
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelC5SepticApproxInverse = {
   "C5SepticAI", 0,
   _c5sept_ANI_sup, _c5sept_ANI_int,
   _c5sept_ANI_1f, _c5sept_ANI_Nf,
   _c5sept_ANI_1d, _c5sept_ANI_Nd
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelC5SepticApproxInverse = &_nrrdKernelC5SepticApproxInverse;
 
 /* ------------------------------------------------------------ */
@@ -2474,10 +2538,10 @@ static float
 _nrrdG1_f(float x, const double *parm) {
   float sig, cut;
 
-  sig = AIR_CAST(float, parm[0]);
-  cut = AIR_CAST(float, parm[1]);
+  sig = AIR_FLOAT(parm[0]);
+  cut = AIR_FLOAT(parm[1]);
   x = AIR_ABS(x);
-  return AIR_CAST(float, _GAUSS(x, sig, cut));
+  return AIR_FLOAT(_GAUSS(x, sig, cut));
 }
 
 static void
@@ -2499,22 +2563,22 @@ _nrrdGN_f(float *f, const float *x, size_t len, const double *parm) {
   float sig, cut, t;
   size_t i;
 
-  sig = AIR_CAST(float, parm[0]);
-  cut = AIR_CAST(float, parm[1]);
+  sig = AIR_FLOAT(parm[0]);
+  cut = AIR_FLOAT(parm[1]);
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t);
-    f[i] = AIR_CAST(float, _GAUSS(t, sig, cut));
+    f[i] = AIR_FLOAT(_GAUSS(t, sig, cut));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelG = {
   "gauss",
   2, _nrrdGSup,  _nrrdGInt,
   _nrrdG1_f,   _nrrdGN_f,   _nrrdG1_d,   _nrrdGN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelGaussian = &_nrrdKernelG;
 
 /* ------------------------------------------------------------ */
@@ -2523,7 +2587,7 @@ nrrdKernelGaussian = &_nrrdKernelG;
   (sig > 0                                                      \
    ? (xx > abscut                                               \
       ? 0                                                       \
-      : airBesselInExpScaled(AIR_CAST(int, xx + 0.5), sig*sig)) \
+      : airBesselInExpScaled(AIR_INT(xx + 0.5), sig*sig))       \
    : xx <= 0.5)
 
 /* the last line used to be AIR_MAX(0.5, (ret)), but the problem was
@@ -2565,7 +2629,7 @@ _nrrdDiscGaussianInt(const double *parm) {
   int ii, supp;
 
   _DGABSCUT(cut, parm[0], parm[1]);
-  supp = AIR_CAST(int, cut);
+  supp = AIR_INT(cut);
   sum = 0.0;
   for (ii=-supp; ii<=supp; ii++) {
     sum += _nrrdDiscGaussian1_d(ii, parm);
@@ -2580,7 +2644,7 @@ _nrrdDiscGaussian1_f(float xx, const double *parm) {
   sig = parm[0];
   _DGABSCUT(cut, sig, parm[1]);
   xx = AIR_ABS(xx);
-  return AIR_CAST(float, _DISCRETEGAUSS(xx, sig, cut));
+  return AIR_FLOAT(_DISCRETEGAUSS(xx, sig, cut));
 }
 
 static void
@@ -2606,18 +2670,18 @@ _nrrdDiscGaussianN_f(float *f, const float *x, size_t len, const double *parm) {
   _DGABSCUT(cut, sig, parm[1]);
   for (ii=0; ii<len; ii++) {
     tt = AIR_ABS(x[ii]);
-    f[ii] = AIR_CAST(float, _DISCRETEGAUSS(tt, sig, cut));
+    f[ii] = AIR_FLOAT(_DISCRETEGAUSS(tt, sig, cut));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDiscreteGaussian = {
   "discretegauss", 2,
   _nrrdDiscGaussianSup,  _nrrdDiscGaussianInt,
   _nrrdDiscGaussian1_f, _nrrdDiscGaussianN_f,
   _nrrdDiscGaussian1_d, _nrrdDiscGaussianN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelDiscreteGaussian = &_nrrdKernelDiscreteGaussian;
 
 /* The current implementation of nrrdKernelDiscreteGaussian, with the current
@@ -2668,10 +2732,10 @@ _nrrdDG1_f(float x, const double *parm) {
   float sig, cut;
   int sgn = 1;
 
-  sig = AIR_CAST(float, parm[0]);
-  cut = AIR_CAST(float, parm[1]);
+  sig = AIR_FLOAT(parm[0]);
+  cut = AIR_FLOAT(parm[1]);
   if (x < 0) { x = -x; sgn = -1; }
-  return AIR_CAST(float, sgn*_DGAUSS(x, sig, cut));
+  return AIR_FLOAT(sgn*_DGAUSS(x, sig, cut));
 }
 
 static void
@@ -2695,22 +2759,22 @@ _nrrdDGN_f(float *f, const float *x, size_t len, const double *parm) {
   size_t i;
   int sgn;
 
-  sig = AIR_CAST(float, parm[0]);
-  cut = AIR_CAST(float, parm[1]);
+  sig = AIR_FLOAT(parm[0]);
+  cut = AIR_FLOAT(parm[1]);
   for (i=0; i<len; i++) {
     t = x[i];
     if (t < 0) { t = -t; sgn = -1; } else { sgn = 1; }
-    f[i] = AIR_CAST(float, sgn*_DGAUSS(t, sig, cut));
+    f[i] = AIR_FLOAT(sgn*_DGAUSS(t, sig, cut));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDG = {
   "gaussD",
   2, _nrrdDGSup,  _nrrdDGInt,
   _nrrdDG1_f,   _nrrdDGN_f,   _nrrdDG1_d,   _nrrdDGN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelGaussianD = &_nrrdKernelDG;
 
 /* ------------------------------------------------------------ */
@@ -2752,10 +2816,10 @@ static float
 _nrrdDDG1_f(float x, const double *parm) {
   float sig, cut;
 
-  sig = AIR_CAST(float, parm[0]);
-  cut = AIR_CAST(float, parm[1]);
+  sig = AIR_FLOAT(parm[0]);
+  cut = AIR_FLOAT(parm[1]);
   x = AIR_ABS(x);
-  return AIR_CAST(float, _DDGAUSS(x, sig, cut));
+  return AIR_FLOAT(_DDGAUSS(x, sig, cut));
 }
 
 static void
@@ -2777,28 +2841,27 @@ _nrrdDDGN_f(float *f, const float *x, size_t len, const double *parm) {
   float sig, cut, t;
   size_t i;
 
-  sig = AIR_CAST(float, parm[0]);
-  cut = AIR_CAST(float, parm[1]);
+  sig = AIR_FLOAT(parm[0]);
+  cut = AIR_FLOAT(parm[1]);
   for (i=0; i<len; i++) {
     t = x[i];
     t = AIR_ABS(t);
-    f[i] = AIR_CAST(float, _DDGAUSS(t, sig, cut));
+    f[i] = AIR_FLOAT(_DDGAUSS(t, sig, cut));
   }
 }
 
-static NrrdKernel
+static const NrrdKernel
 _nrrdKernelDDG = {
   "gaussDD",
   2, _nrrdDDGSup,  _nrrdDDGInt,
   _nrrdDDG1_f,   _nrrdDDGN_f,   _nrrdDDG1_d,   _nrrdDDGN_d
 };
-NrrdKernel *const
+const NrrdKernel *const
 nrrdKernelGaussianDD = &_nrrdKernelDDG;
-
 
 /* ------------------------------------------------------------ */
 
-NrrdKernel *
+static const NrrdKernel *
 _nrrdKernelStrToKern(char *str) {
 
   if (!strcmp("zero", str))       return nrrdKernelZero;
@@ -2945,13 +3008,14 @@ _nrrdKernelStrToKern(char *str) {
   if (!strcmp("bspln7ddd", str))  return nrrdKernelBSpline7DDD;
   return NULL;
 }
+/* clang-format on */
 
 /* this returns a number between -1 and max;
    it does NOT do the increment-by-one;
    it does NOT do range checking */
-int
+static int /* Biff: 1 */
 _nrrdKernelParseTMFInt(int *val, char *str) {
-  static const char me[]="nrrdKernelParseTMFInt";
+  static const char me[] = "_nrrdKernelParseTMFInt";
 
   if (!strcmp("n", str)) {
     *val = -1;
@@ -2964,13 +3028,11 @@ _nrrdKernelParseTMFInt(int *val, char *str) {
   return 0;
 }
 
-int
-nrrdKernelParse(const NrrdKernel **kernelP,
-                double *parm, const char *_str) {
-  static const char me[]="nrrdKernelParse";
-  char str[AIR_STRLEN_HUGE],
-    kstr[AIR_STRLEN_MED], *_pstr=NULL, *pstr,
-    *tmfStr[4] = {NULL, NULL, NULL, NULL};
+int /* Biff: 1 */
+nrrdKernelParse(const NrrdKernel **kernelP, double *parm, const char *_str) {
+  static const char me[] = "nrrdKernelParse";
+  char str[AIR_STRLEN_HUGE], kstr[AIR_STRLEN_MED], *_pstr = NULL, *pstr,
+                                                   *tmfStr[4] = {NULL, NULL, NULL, NULL};
   int tmfD, tmfC, tmfA;
   unsigned int jj, haveParm, needParm;
   airArray *mop;
@@ -2985,7 +3047,7 @@ nrrdKernelParse(const NrrdKernel **kernelP,
   ** nrrdKernelSet copies all arguments into its own array later, and
   ** copying uninitialised memory is bad (it traps my memory debugger).
   */
-  for (jj=0; jj<NRRD_KERNEL_PARMS_NUM; jj++) {
+  for (jj = 0; jj < NRRD_KERNEL_PARMS_NUM; jj++) {
     parm[jj] = 0;
   }
 
@@ -3009,9 +3071,10 @@ nrrdKernelParse(const NrrdKernel **kernelP,
       airMopAdd(mop, tmfStr[3], airFree, airMopAlways);
       /* a TMF with a parameter: D,C,A,a */
       if (1 != airSingleSscanf(tmfStr[3], "%lg", parm)) {
-        biffAddf(NRRD, "%s: couldn't parse TMF parameter \"%s\" as double",
-                 me, tmfStr[3]);
-        airMopError(mop); return 1;
+        biffAddf(NRRD, "%s: couldn't parse TMF parameter \"%s\" as double", me,
+                 tmfStr[3]);
+        airMopError(mop);
+        return 1;
       }
     } else if (3 == airParseStrS(tmfStr, pstr, ",", 3)) {
       airMopAdd(mop, tmfStr[0], airFree, airMopAlways);
@@ -3020,108 +3083,120 @@ nrrdKernelParse(const NrrdKernel **kernelP,
       /* a TMF without a parameter: D,C,A ==> a=0.0 */
       parm[0] = 0.0;
     } else {
-      biffAddf(NRRD, "%s: TMF kernels require 3 arguments D, C, A "
-               "in the form tmf:D,C,A", me);
-      airMopError(mop); return 1;
+      biffAddf(NRRD,
+               "%s: TMF kernels require 3 arguments D, C, A "
+               "in the form tmf:D,C,A",
+               me);
+      airMopError(mop);
+      return 1;
     }
     if (_nrrdKernelParseTMFInt(&tmfD, tmfStr[0])
         || _nrrdKernelParseTMFInt(&tmfC, tmfStr[1])
         || _nrrdKernelParseTMFInt(&tmfA, tmfStr[2])) {
-      biffAddf(NRRD, "%s: problem parsing \"%s,%s,%s\" as D,C,A "
-               "for TMF kernel", me, tmfStr[0], tmfStr[1], tmfStr[2]);
-      airMopError(mop); return 1;
+      biffAddf(NRRD,
+               "%s: problem parsing \"%s,%s,%s\" as D,C,A "
+               "for TMF kernel",
+               me, tmfStr[0], tmfStr[1], tmfStr[2]);
+      airMopError(mop);
+      return 1;
     }
     if (!AIR_IN_CL(-1, tmfD, (int)nrrdKernelTMF_maxD)) {
-      biffAddf(NRRD, "%s: derivative value %d outside range [-1,%d]",
-               me, tmfD, nrrdKernelTMF_maxD);
-      airMopError(mop); return 1;
+      biffAddf(NRRD, "%s: derivative value %d outside range [-1,%d]", me, tmfD,
+               nrrdKernelTMF_maxD);
+      airMopError(mop);
+      return 1;
     }
     if (!AIR_IN_CL(-1, tmfC, (int)nrrdKernelTMF_maxC)) {
-      biffAddf(NRRD, "%s: continuity value %d outside range [-1,%d]",
-               me, tmfC, nrrdKernelTMF_maxC);
-      airMopError(mop); return 1;
+      biffAddf(NRRD, "%s: continuity value %d outside range [-1,%d]", me, tmfC,
+               nrrdKernelTMF_maxC);
+      airMopError(mop);
+      return 1;
     }
     if (!AIR_IN_CL(1, tmfA, (int)nrrdKernelTMF_maxA)) {
-      biffAddf(NRRD, "%s: accuracy value %d outside range [1,%d]",
-               me, tmfA, nrrdKernelTMF_maxA);
-      airMopError(mop); return 1;
+      biffAddf(NRRD, "%s: accuracy value %d outside range [1,%d]", me, tmfA,
+               nrrdKernelTMF_maxA);
+      airMopError(mop);
+      return 1;
     }
     /*
     fprintf(stderr, "!%s: D,C,A = %d,%d,%d --> %d,%d,%d\n", me,
             tmfD, tmfC, tmfA, tmfD+1, tmfC+1, tmfA);
     */
-    *kernelP = nrrdKernelTMF[tmfD+1][tmfC+1][tmfA];
+    *kernelP = nrrdKernelTMF[tmfD + 1][tmfC + 1][tmfA];
   } else {
     /* its not a TMF */
     if (!(*kernelP = _nrrdKernelStrToKern(kstr))) {
       biffAddf(NRRD, "%s: kernel \"%s\" not recognized", me, kstr);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if ((*kernelP)->numParm > NRRD_KERNEL_PARMS_NUM) {
-      biffAddf(NRRD, "%s: kernel \"%s\" requests %d parameters > max %d",
-               me, kstr, (*kernelP)->numParm, NRRD_KERNEL_PARMS_NUM);
-      airMopError(mop); return 1;
+      biffAddf(NRRD, "%s: kernel \"%s\" requests %d parameters > max %d", me, kstr,
+               (*kernelP)->numParm, NRRD_KERNEL_PARMS_NUM);
+      airMopError(mop);
+      return 1;
     }
-    if (*kernelP == nrrdKernelGaussian ||
-        *kernelP == nrrdKernelGaussianD ||
-        *kernelP == nrrdKernelGaussianDD ||
-        *kernelP == nrrdKernelDiscreteGaussian ||
-        *kernelP == nrrdKernelBoxSupportDebug ||
-        *kernelP == nrrdKernelCos4SupportDebug ||
-        *kernelP == nrrdKernelCos4SupportDebugD ||
-        *kernelP == nrrdKernelCos4SupportDebugDD ||
-        *kernelP == nrrdKernelCos4SupportDebugDDD) {
+    if (*kernelP == nrrdKernelGaussian || *kernelP == nrrdKernelGaussianD
+        || *kernelP == nrrdKernelGaussianDD || *kernelP == nrrdKernelDiscreteGaussian
+        || *kernelP == nrrdKernelBoxSupportDebug
+        || *kernelP == nrrdKernelCos4SupportDebug
+        || *kernelP == nrrdKernelCos4SupportDebugD
+        || *kernelP == nrrdKernelCos4SupportDebugDD
+        || *kernelP == nrrdKernelCos4SupportDebugDDD) {
       /* for these kernels, we need all the parameters given explicitly */
       needParm = (*kernelP)->numParm;
     } else {
       /*  For everything else (note that TMF kernels are handled
           separately), we can make do with one less than the required,
           by using the default spacing  */
-      needParm = ((*kernelP)->numParm > 0
-                  ? (*kernelP)->numParm - 1
-                  : 0);
+      needParm = ((*kernelP)->numParm > 0 ? (*kernelP)->numParm - 1 : 0);
     }
     if (needParm > 0 && !pstr) {
-      biffAddf(NRRD, "%s: didn't get any of %d required doubles after "
+      biffAddf(NRRD,
+               "%s: didn't get any of %d required doubles after "
                "colon in \"%s\"",
                me, needParm, kstr);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
-    for (haveParm=0; haveParm<(*kernelP)->numParm; haveParm++) {
-      if (!pstr)
-        break;
-      if (1 != airSingleSscanf(pstr, "%lg", parm+haveParm)) {
-        biffAddf(NRRD, "%s: trouble parsing \"%s\" as double (in \"%s\")",
-                 me, _pstr, _str);
-        airMopError(mop); return 1;
+    for (haveParm = 0; haveParm < (*kernelP)->numParm; haveParm++) {
+      if (!pstr) break;
+      if (1 != airSingleSscanf(pstr, "%lg", parm + haveParm)) {
+        biffAddf(NRRD, "%s: trouble parsing \"%s\" as double (in \"%s\")", me, _pstr,
+                 _str);
+        airMopError(mop);
+        return 1;
       }
       if ((pstr = strchr(pstr, ','))) {
         pstr++;
         if (!*pstr) {
-          biffAddf(NRRD, "%s: nothing after last comma in \"%s\" (in \"%s\")",
-                   me, _pstr, _str);
-          airMopError(mop); return 1;
+          biffAddf(NRRD, "%s: nothing after last comma in \"%s\" (in \"%s\")", me, _pstr,
+                   _str);
+          airMopError(mop);
+          return 1;
         }
       }
     }
     /* haveParm is now the number of parameters that were parsed. */
     if (haveParm < needParm) {
-      biffAddf(NRRD, "%s: parsed only %d of %d required doubles "
+      biffAddf(NRRD,
+               "%s: parsed only %d of %d required doubles "
                "from \"%s\" (in \"%s\")",
                me, haveParm, needParm, _pstr, _str);
-      airMopError(mop); return 1;
-    } else if (haveParm == needParm &&
-               needParm == (*kernelP)->numParm-1) {
+      airMopError(mop);
+      return 1;
+    } else if (haveParm == needParm && needParm == (*kernelP)->numParm - 1) {
       /* shift up parsed values, and set parm[0] to default */
-      for (jj=haveParm; jj>=1; jj--) {
-        parm[jj] = parm[jj-1];
+      for (jj = haveParm; jj >= 1; jj--) {
+        parm[jj] = parm[jj - 1];
       }
       parm[0] = nrrdDefaultKernelParm0;
     } else {
       if (pstr) {
-        biffAddf(NRRD, "%s: \"%s\" (in \"%s\") has more than %d doubles",
-                 me, _pstr, _str, (*kernelP)->numParm);
-        airMopError(mop); return 1;
+        biffAddf(NRRD, "%s: \"%s\" (in \"%s\") has more than %d doubles", me, _pstr,
+                 _str, (*kernelP)->numParm);
+        airMopError(mop);
+        return 1;
       }
     }
   }
@@ -3133,13 +3208,13 @@ nrrdKernelParse(const NrrdKernel **kernelP,
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str) {
-  static const char me[]="nrrdKernelSpecParse";
+  static const char me[] = "nrrdKernelSpecParse";
   const NrrdKernel *kern;
   double kparm[NRRD_KERNEL_PARMS_NUM];
 
-  if (!( ksp && str )) {
+  if (!(ksp && str)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
@@ -3155,13 +3230,13 @@ nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str) {
 ** note that the given string has to be allocated for a certain size
 ** which is plenty big
 */
-int
+int /* Biff: 1 */
 nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], const NrrdKernelSpec *ksp) {
-  static const char me[]="nrrdKernelSpecSprint";
-  unsigned int warnLen = AIR_STRLEN_LARGE/3;
+  static const char me[] = "nrrdKernelSpecSprint";
+  unsigned int warnLen = AIR_STRLEN_LARGE / 3;
   char stmp[AIR_STRLEN_LARGE];
 
-  if (!( str && ksp )) {
+  if (!(str && ksp)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
     return 1;
   }
@@ -3174,23 +3249,19 @@ nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], const NrrdKernelSpec *ksp) {
     /* these are handled differently; the identification of the
        kernel is actually packaged as kernel parameters */
     if (!(ksp->kernel->name == strstr(ksp->kernel->name, "TMF"))) {
-      biffAddf(NRRD, "%s: TMF kernel name %s didn't start with TMF",
-               me, ksp->kernel->name);
+      biffAddf(NRRD, "%s: TMF kernel name %s didn't start with TMF", me,
+               ksp->kernel->name);
       return 1;
     }
     /* 0123456789012 */
     /* TMF_dX_cX_Xef */
-    if (!( 13 == strlen(ksp->kernel->name)
-           && '_' == ksp->kernel->name[3]
-           && '_' == ksp->kernel->name[6]
-           && '_' == ksp->kernel->name[9] )) {
-      biffAddf(NRRD, "%s: sorry, expected strlen(%s) = 13 with 3 _s",
-               me, ksp->kernel->name);
+    if (!(13 == strlen(ksp->kernel->name) && '_' == ksp->kernel->name[3]
+          && '_' == ksp->kernel->name[6] && '_' == ksp->kernel->name[9])) {
+      biffAddf(NRRD, "%s: sorry, expected strlen(%s) = 13 with 3 _s", me,
+               ksp->kernel->name);
       return 1;
     }
-    sprintf(str, "tmf:%c,%c,%c",
-            ksp->kernel->name[5],
-            ksp->kernel->name[8],
+    sprintf(str, "tmf:%c,%c,%c", ksp->kernel->name[5], ksp->kernel->name[8],
             ksp->kernel->name[10]);
     /* see if the single parm should be added on */
     if (0.0 != ksp->parm[0]) {
@@ -3201,7 +3272,7 @@ nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], const NrrdKernelSpec *ksp) {
     strcpy(str, ksp->kernel->name);
     if (ksp->kernel->numParm) {
       unsigned int pi;
-      for (pi=0; pi<ksp->kernel->numParm; pi++) {
+      for (pi = 0; pi < ksp->kernel->numParm; pi++) {
         sprintf(stmp, "%c%.17g", (!pi ? ':' : ','), ksp->parm[pi]);
         if (strlen(str) + strlen(stmp) > warnLen) {
           biffAddf(NRRD, "%s: kernel parm %u could overflow", me, pi);
@@ -3214,10 +3285,10 @@ nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], const NrrdKernelSpec *ksp) {
   return 0;
 }
 
-int
+int /* Biff: 1 */
 nrrdKernelSprint(char str[AIR_STRLEN_LARGE], const NrrdKernel *kernel,
                  const double kparm[NRRD_KERNEL_PARMS_NUM]) {
-  static const char me[]="nrrdKernelSprint";
+  static const char me[] = "nrrdKernelSprint";
   NrrdKernelSpec ksp;
 
   nrrdKernelSpecSet(&ksp, kernel, kparm);
@@ -3232,18 +3303,16 @@ nrrdKernelSprint(char str[AIR_STRLEN_LARGE], const NrrdKernel *kernel,
 ** This DOES make an effort to set *differ based on "ordering" (-1 or +1)
 ** but HEY that's very contrived; why bother?
 */
-int
-nrrdKernelCompare(const NrrdKernel *kernA,
-                  const double parmA[NRRD_KERNEL_PARMS_NUM],
-                  const NrrdKernel *kernB,
-                  const double parmB[NRRD_KERNEL_PARMS_NUM],
+int /* Biff: 1 */
+nrrdKernelCompare(const NrrdKernel *kernA, const double parmA[NRRD_KERNEL_PARMS_NUM],
+                  const NrrdKernel *kernB, const double parmB[NRRD_KERNEL_PARMS_NUM],
                   int *differ, char explain[AIR_STRLEN_LARGE]) {
-  static const char me[]="nrrdKernelCompare";
+  static const char me[] = "nrrdKernelCompare";
   unsigned int pnum, pidx;
 
   if (!(kernA && kernB && differ)) {
-    biffAddf(NRRD, "%s: got NULL pointer (%p, %p, or %p)", me,
-             AIR_CVOIDP(kernA), AIR_CVOIDP(kernB), AIR_VOIDP(differ));
+    biffAddf(NRRD, "%s: got NULL pointer (%p, %p, or %p)", me, AIR_CVOIDP(kernA),
+             AIR_CVOIDP(kernB), AIR_VOIDP(differ));
     return 1;
   }
   if (kernA != kernB) {
@@ -3260,11 +3329,11 @@ nrrdKernelCompare(const NrrdKernel *kernA,
     return 0;
   }
   if (!(parmA && parmB)) {
-    biffAddf(NRRD, "%s: kernel %s needs %u parms but got NULL parm vectors",
-             me, kernA->name ? kernA->name : "(unnamed)", pnum);
-    return 0;
+    biffAddf(NRRD, "%s: kernel %s needs %u parms but got NULL parm vectors", me,
+             kernA->name, pnum);
+    return 1;
   }
-  for (pidx=0; pidx<pnum; pidx++) {
+  for (pidx = 0; pidx < pnum; pidx++) {
     if (parmA[pidx] != parmB[pidx]) {
       *differ = parmA[pidx] < parmB[pidx] ? -1 : 1;
       if (explain) {
@@ -3283,44 +3352,44 @@ nrrdKernelCompare(const NrrdKernel *kernA,
 /*
 ** This DOES NOT make an effort to set *differ based on "ordering";
 */
-int
-nrrdKernelSpecCompare(const NrrdKernelSpec *aa,
-                      const NrrdKernelSpec *bb,
-                      int *differ, char explain[AIR_STRLEN_LARGE]) {
-  static const char me[]="nrrdKernelSpecCompare";
+int /* Biff: 1 */
+nrrdKernelSpecCompare(const NrrdKernelSpec *aa, const NrrdKernelSpec *bb, int *differ,
+                      char explain[AIR_STRLEN_LARGE]) {
+  static const char me[] = "nrrdKernelSpecCompare";
   char subexplain[AIR_STRLEN_LARGE];
 
-  if (!( differ )) {
+  if (!(differ)) {
     biffAddf(NRRD, "%s: got NULL differ", me);
     return 1;
   }
   if (!!aa != !!bb) {
     if (explain) {
       sprintf(explain, "different NULL-ities of kspec itself %s != %s",
-              aa ? "non-NULL" : "NULL",
-              bb ? "non-NULL" : "NULL");
+              aa ? "non-NULL" : "NULL", bb ? "non-NULL" : "NULL");
     }
-    *differ = 1; return 0;
+    *differ = 1;
+    return 0;
   }
   if (!aa) {
     /* got two NULL kernel specs ==> equal */
-    *differ = 0; return 0;
+    *differ = 0;
+    return 0;
   }
   if (!!aa->kernel != !!bb->kernel) {
     if (explain) {
       sprintf(explain, "different NULL-ities of kspec->kernel %s != %s",
-              aa->kernel ? "non-NULL" : "NULL",
-              bb->kernel ? "non-NULL" : "NULL");
+              aa->kernel ? "non-NULL" : "NULL", bb->kernel ? "non-NULL" : "NULL");
     }
-    *differ = 1; return 0;
+    *differ = 1;
+    return 0;
   }
   if (!aa->kernel) {
     /* both kernels NULL, can't do anything informative with parms */
-    *differ = 0; return 0;
+    *differ = 0;
+    return 0;
   }
-  if (nrrdKernelCompare(aa->kernel, aa->parm,
-                        bb->kernel, bb->parm,
-                        differ, subexplain)) {
+  if (nrrdKernelCompare(aa->kernel, aa->parm, bb->kernel, bb->parm, differ,
+                        subexplain)) {
     biffAddf(NRRD, "%s: trouble comparing kernels", me);
     return 1;
   }
@@ -3349,102 +3418,101 @@ nrrdKernelSpecCompare(const NrrdKernelSpec *aa,
 ** nrrdKernelSpecSet
 ** nrrdKernelSpecSprint
 ** nrrdKernelSpecParse
+** nrrdKernelDerivative
 ** and also exercises all the ways of evaluating the kernel and
-** makes sure they all agree, and agree with the integral kernel, if given
+** makes sure they all agree, and agree with the integral kernel (if given)
+** the derivative kernel (if known by nrrdKernelDerivative)
+** HEY why do we need a separate parameter vector iparm? nrrdKernelDerivative is
+** based on idea that the parm vec is the same for a kernel and its derivative
 */
-int
-nrrdKernelCheck(const NrrdKernel *kern,
-                const double parm[NRRD_KERNEL_PARMS_NUM],
-                size_t evalNum, double epsilon,
-                unsigned int diffOkEvalMax,
-                unsigned int diffOkIntglMax,
-                const NrrdKernel *ikern,
+int /* Biff: 1 */
+nrrdKernelCheck(const NrrdKernel *kern, const double parm[NRRD_KERNEL_PARMS_NUM],
+                size_t evalNum, double epsilon, unsigned int diffOkEvalMax,
+                unsigned int diffOkIntglOrDerivMax, const NrrdKernel *ikern,
                 const double iparm[NRRD_KERNEL_PARMS_NUM]) {
-  const NrrdKernel *parsedkern;
+  static const char me[] = "nrrdKernelCheck";
+  const NrrdKernel *parsedkern, *kernD;
   double parsedparm[NRRD_KERNEL_PARMS_NUM], supp, integral;
-  static const char me[]="nrrdKernelCheck";
-  char kstr[AIR_STRLEN_LARGE], kspstr[AIR_STRLEN_LARGE],
-    explain[AIR_STRLEN_LARGE], stmp[AIR_STRLEN_SMALL];
+  char kstr[AIR_STRLEN_LARGE], kspstr[AIR_STRLEN_LARGE], explain[AIR_STRLEN_LARGE],
+    stmp[AIR_STRLEN_SMALL], kdstr[AIR_STRLEN_LARGE];
   int differ;
   size_t evalIdx;
   double *dom_d, *ran_d, wee;
   float *dom_f, *ran_f;
-  unsigned int diffOkEvalNum, diffOkIntglNum;
+  unsigned int diffEvalNum, diffIntglNum, diffDerivNum;
   NrrdKernelSpec *kspA, *kspB;
   airArray *mop;
+
+  /* got tired of seeing these two lines over and over */
+#define ERRR                                                                            \
+  airMopError(mop);                                                                     \
+  return 1
 
   mop = airMopNew();
   if (!kern) {
     biffAddf(NRRD, "%s: got NULL kernel", me);
-    airMopError(mop); return 1;
+    ERRR;
   }
   if (!(evalNum > 20)) {
     biffAddf(NRRD, "%s: need evalNum > 20", me);
-    airMopError(mop); return 1;
+    ERRR;
   }
-  if (!(kern->name && kern->support && kern->integral
-        && kern->eval1_f && kern->evalN_f
+  if (!(kern->support && kern->integral && kern->eval1_f && kern->evalN_f
         && kern->eval1_d && kern->evalN_d)) {
-    biffAddf(NRRD, "%s: kernel has NULL fields (%d,%d,%d,%d,%d,%d,%d)", me,
-             !!(kern->name), !!(kern->support), !!(kern->integral),
-             !!(kern->eval1_f), !!(kern->evalN_f),
+    biffAddf(NRRD, "%s: kernel has NULL fields (%d,%d,%d,%d,%d,%d)", me,
+             !!(kern->support), !!(kern->integral), !!(kern->eval1_f), !!(kern->evalN_f),
              !!(kern->eval1_d), !!(kern->evalN_d));
-    airMopError(mop); return 1;
+    ERRR;
   }
   kspA = nrrdKernelSpecNew();
   airMopAdd(mop, kspA, (airMopper)nrrdKernelSpecNix, airMopAlways);
   kspB = nrrdKernelSpecNew();
   airMopAdd(mop, kspB, (airMopper)nrrdKernelSpecNix, airMopAlways);
   nrrdKernelSpecSet(kspA, kern, parm);
-  if (nrrdKernelSprint(kstr, kern, parm)
-      || nrrdKernelSpecSprint(kspstr, kspA)) {
+  if (nrrdKernelSprint(kstr, kern, parm) || nrrdKernelSpecSprint(kspstr, kspA)) {
     biffAddf(NRRD, "%s: trouble", me);
-    airMopError(mop); return 1;
+    ERRR;
   }
   if (strcmp(kstr, kspstr)) {
     biffAddf(NRRD, "%s: sprinted kernel |%s| != kspec |%s|", me, kstr, kspstr);
-    airMopError(mop); return 1;
+    ERRR;
   }
   if (nrrdKernelParse(&parsedkern, parsedparm, kstr)
       || nrrdKernelSpecParse(kspB, kstr)) {
-    biffAddf(NRRD, "%s: trouble parsing |%s| back to kern/parm pair or kspec",
-             me, kstr);
-    airMopError(mop); return 1;
+    biffAddf(NRRD, "%s: trouble parsing |%s| back to kern/parm pair or kspec", me, kstr);
+    ERRR;
   }
-  if (nrrdKernelCompare(kern, parm, parsedkern, parsedparm,
-                        &differ, explain)) {
+  if (nrrdKernelCompare(kern, parm, parsedkern, parsedparm, &differ, explain)) {
     biffAddf(NRRD, "%s: trouble comparing kern/parm pairs", me);
-    airMopError(mop); return 1;
+    ERRR;
   }
   if (differ) {
     biffAddf(NRRD, "%s: given and re-parsed kernels differ: %s", me, explain);
-    airMopError(mop); return 1;
+    ERRR;
   }
-  if (nrrdKernelCompare(kspA->kernel, kspA->parm,
-                        kspB->kernel, kspB->parm,
-                        &differ, explain)) {
+  if (nrrdKernelCompare(kspA->kernel, kspA->parm, kspB->kernel, kspB->parm, &differ,
+                        explain)) {
     biffAddf(NRRD, "%s: trouble comparing kspecs", me);
-    airMopError(mop); return 1;
+    ERRR;
   }
   if (differ) {
     biffAddf(NRRD, "%s: given and re-parsed kspecs differ: %s", me, explain);
-    airMopError(mop); return 1;
+    ERRR;
   }
 
   supp = kern->support(parm);
-  /* wee is the step between evaluation points */
-  wee = 2*supp/AIR_CAST(double, evalNum);
-  if ( (kern->eval1_d)(supp+wee/1000, parm) ||
-       (kern->eval1_d)(supp+wee, parm) ||
-       (kern->eval1_d)(supp+10*wee, parm) ||
-       (kern->eval1_d)(-supp-wee/1000, parm) ||
-       (kern->eval1_d)(-supp-wee, parm) ||
-       (kern->eval1_d)(-supp-10*wee, parm) ) {
+  /* kernel should be non-zero outside [-supp, supp] */
+  /* wee is the step between evaluation points with
+     evalNum cell-centered samples in [-supp,supp] */
+  wee = 2 * supp / AIR_CAST(double, evalNum);
+  if ((kern->eval1_d)(supp + wee / 1000, parm) || (kern->eval1_d)(supp + wee, parm)
+      || (kern->eval1_d)(supp + 10 * wee, parm)
+      || (kern->eval1_d)(-supp - wee / 1000, parm) || (kern->eval1_d)(-supp - wee, parm)
+      || (kern->eval1_d)(-supp - 10 * wee, parm)) {
     if (nrrdKernelCheap != kern) {
       /* the "cheap" kernel alone gets a pass on reporting its support */
-      biffAddf(NRRD, "%s: kern %s is non-zero outside support %g",
-               me, kstr, supp);
-      airMopError(mop); return 1;
+      biffAddf(NRRD, "%s: kern %s is non-zero outside support %g", me, kstr, supp);
+      ERRR;
     }
   }
   /* allocate domain and range for both float and double */
@@ -3456,131 +3524,276 @@ nrrdKernelCheck(const NrrdKernel *kern,
   airMopAdd(mop, dom_f, airFree, airMopAlways);
   ran_f = AIR_CALLOC(evalNum, float);
   airMopAdd(mop, ran_f, airFree, airMopAlways);
-  if (!( dom_d && ran_d && dom_f && ran_f )) {
-    biffAddf(NRRD, "%s: couldn't alloc buffers for %s values for %s",
-             me, airSprintSize_t(stmp, evalNum), kstr);
-    airMopError(mop); return 1;
+  if (!(dom_d && ran_d && dom_f && ran_f)) {
+    biffAddf(NRRD, "%s: couldn't alloc buffers for %s values for %s", me,
+             airSprintSize_t(stmp, evalNum), kstr);
+    ERRR;
   }
-  for (evalIdx=0; evalIdx<evalNum; evalIdx++) {
-    dom_d[evalIdx] = AIR_AFFINE(-0.5, evalIdx,
-                                AIR_CAST(double, evalNum)-0.5,
-                                -supp, supp);
-    dom_f[evalIdx] = AIR_CAST(float, dom_d[evalIdx]);
+  for (evalIdx = 0; evalIdx < evalNum; evalIdx++) {
+    dom_d[evalIdx] = AIR_AFFINE(-0.5, evalIdx, AIR_CAST(double, evalNum) - 0.5, -supp,
+                                supp);
+    dom_f[evalIdx] = AIR_FLOAT(dom_d[evalIdx]);
   }
   /* do the vector evaluations */
   kern->evalN_f(ran_f, dom_f, evalNum, parm);
   kern->evalN_d(ran_d, dom_d, evalNum, parm);
   /*
   for (evalIdx=0; evalIdx<evalNum; evalIdx++) {
-    fprintf(stderr, "%u %g --> %g\n", AIR_CAST(unsigned int, evalIdx),
+    fprintf(stderr, "%u %g --> %g\n", AIR_UINT(evalIdx),
             dom_d[evalIdx], ran_d[evalIdx]);
   }
   */
-  /* compare evaluations (and maybe derivatives) and numerically compute
+  kernD = nrrdKernelDerivative(kern);
+  if (nrrdKernelFlag == kernD) {
+    /* nrrdKernelDerivative is not confident about knowing derivative of kern */
+    kernD = NULL;
+  } else { /* set kdstr to string specification of kernD and (same) parm */
+    if (nrrdKernelSprint(kdstr, kernD, parm)) {
+      biffAddf(NRRD, "%s: trouble", me);
+      ERRR;
+    }
+  }
+  if (ikern) {
+    const NrrdKernel *ikd;
+    ikd = nrrdKernelDerivative(ikern);
+    if (ikd != kern) {
+      biffAddf(NRRD, "%s: got nrrdKernelDerivative(ikern=%s) = %s != %s=kern", me,
+               ikern->name, ikd->name, kern->name);
+      ERRR;
+    }
+  }
+  /* compare evaluations (and maybe derivatives) and numerically xcompute
      integral */
-  diffOkEvalNum = 0;
-  diffOkIntglNum = 0;
+  diffEvalNum = 0;
+  diffIntglNum = 0;
+  diffDerivNum = 0;
   integral = 0.0;
-  for (evalIdx=0; evalIdx<evalNum; evalIdx++) {
+  for (evalIdx = 0; evalIdx < evalNum; evalIdx++) {
     double single_f, single_d;
     single_f = kern->eval1_f(dom_f[evalIdx], parm);
     single_d = kern->eval1_d(dom_d[evalIdx], parm);
     integral += single_d;
     /* single float vs vector float */
-    if (nrrdKernelForwDiff == kern
-        || nrrdKernelBCCubic == kern
-        || nrrdKernelBCCubicDD == kern
-        || nrrdKernelAQuarticDD == kern) {
-      /* HEY this is crazy: need a special epsilon for these kernels;
-         WHY WHY do these kernels evaluate to different things in the
-         single versus the vector case? */
-      float specEps;
-      if (nrrdKernelForwDiff == kern) {
-        specEps = 5e-9f;
-      } else if (nrrdKernelBCCubic == kern) {
-        specEps = 5e-8f;
-      } else if (nrrdKernelBCCubicDD == kern) {
-        specEps = 5e-8f;
-      } else if (nrrdKernelAQuarticDD == kern) {
-        specEps = 5e-8f;
-      } else {
-        specEps = 0.0;
-      }
-      if (fabs(single_f - ran_f[evalIdx]) > specEps) {
-        biffAddf(NRRD, "%s: %s (eval1_f(%.17g)=%.17g) != "
+    if (nrrdKernelForwDiff == kern || nrrdKernelBCCubic == kern
+        || nrrdKernelBCCubicDD == kern || nrrdKernelAQuarticDD == kern) {
+      if (fabs(single_f - ran_f[evalIdx]) > 0.0) {
+        biffAddf(NRRD,
+                 "%s: %s (eval1_f(%.17g)=%.17g) != "
                  "(evalN_f(%.17g)=%.17g) by %.17g > %.17g",
-                 me, kstr, dom_f[evalIdx], single_f,
-                 dom_f[evalIdx], ran_f[evalIdx],
-                 fabs(single_f - ran_f[evalIdx]), specEps);
-        airMopError(mop); return 1;
+                 me, kstr, dom_f[evalIdx], single_f, dom_f[evalIdx], ran_f[evalIdx],
+                 fabs(single_f - ran_f[evalIdx]), 0.0);
+        ERRR;
       }
-    } else {
+    } else { /* for most well-behaved kernels */
       if (single_f != ran_f[evalIdx]) {
-        biffAddf(NRRD, "%s: %s (eval1_f(%.17g)=%.17g) != "
+        biffAddf(NRRD,
+                 "%s: %s (eval1_f(%.17g)=%.17g) != "
                  "(evalN_f(%.17g)=%.17g)",
-                 me, kstr, dom_f[evalIdx], single_f,
-                 dom_f[evalIdx], ran_f[evalIdx]);
-        airMopError(mop); return 1;
+                 me, kstr, dom_f[evalIdx], single_f, dom_f[evalIdx], ran_f[evalIdx]);
+        ERRR;
       }
     }
     /* single double vs vector double */
     if (single_d != ran_d[evalIdx]) {
-      biffAddf(NRRD, "%s: %s (eval1_d(%.17g)=%.17g) != (evalN_d(%.17g)=%.17g)",
-               me, kstr, dom_d[evalIdx], single_d,
-               dom_d[evalIdx], ran_d[evalIdx]);
-      airMopError(mop); return 1;
+      biffAddf(NRRD, "%s: %s (eval1_d(%.17g)=%.17g) != (evalN_d(%.17g)=%.17g)", me, kstr,
+               dom_d[evalIdx], single_d, dom_d[evalIdx], ran_d[evalIdx]);
+      ERRR;
     }
     /* single float vs single double */
     if (fabs(single_f - single_d) > epsilon) {
-      diffOkEvalNum++;
-      if (diffOkEvalNum > diffOkEvalMax) {
+      diffEvalNum++;
+      if (diffEvalNum > diffOkEvalMax) {
         biffAddf(NRRD,
-                 "%s: %s |eval1_f(%.17g)=%.17g) - (eval1_d(%.17g)=%.17g)|"
-                 " %.17g  >  epsilon %.17g too many times (%u > %u)", me,
-                 kstr, dom_f[evalIdx], single_f, dom_d[evalIdx], single_d,
-                 fabs(single_f - single_d), epsilon,
-                 diffOkEvalNum, diffOkEvalMax);
-        airMopError(mop); return 1;
+                 "%s: %s |eval1_f(%.17g)=%.17g) - (eval1_d(%.17g)=%.17g)|="
+                 "%.17g  >  epsilon %.17g too many times (%u > %u)",
+                 me, kstr, dom_f[evalIdx], single_f, dom_d[evalIdx], single_d,
+                 fabs(single_f - single_d), epsilon, diffEvalNum, diffOkEvalMax);
+        ERRR;
       }
     }
-    /* check whether we're the derivative of ikern */
+    /* check whether we're the derivative of ikern, not with an absolute per-sample test,
+       but by seeing if the number of times it failed the per-sample test exceeded the
+       passed threshold number. GLK does not remember exactly how or why this testing
+       approach evolved; but it probably relates to how thinks get wonky at the
+       boundaries of piece-wise definitions */
     if (ikern) {
       double forw, back, ndrv;
-      forw = ikern->eval1_d(dom_d[evalIdx] + wee/2, iparm);
-      back = ikern->eval1_d(dom_d[evalIdx] - wee/2, iparm);
-      ndrv = (forw - back)/wee;
+      forw = ikern->eval1_d(dom_d[evalIdx] + wee / 2, iparm);
+      back = ikern->eval1_d(dom_d[evalIdx] - wee / 2, iparm);
+      ndrv = (forw - back) / wee;
       if (fabs(ndrv - single_d) > epsilon) {
-        diffOkIntglNum++;
-        if (diffOkIntglNum > diffOkIntglMax) {
-          biffAddf(NRRD, "%s: %s(%.17g) |num deriv(%s) %.17g - %.17g| "
+        diffIntglNum++;
+        if (diffIntglNum > diffOkIntglOrDerivMax) {
+          biffAddf(NRRD,
+                   "%s: %s(%.17g) |numerical deriv of integral(%s) %.17g - %.17g|="
                    "%.17g > %.17g too many times (%u > %u)",
                    me, kstr, dom_d[evalIdx], ikern->name, ndrv, single_d,
-                   fabs(ndrv - single_d), epsilon,
-                   diffOkIntglNum, diffOkIntglMax);
-          airMopError(mop); return 1;
+                   fabs(ndrv - single_d), epsilon, diffIntglNum, diffOkIntglOrDerivMax);
+          ERRR;
+        }
+      }
+    }
+    if (kernD) {
+      /* HEY copy-pasta from above, now differentiating given kern to see if it's
+         derivative is kernD */
+      double forw, back, ndrv, dsingle; /* dsingle is single eval of derivative kernel */
+      forw = kern->eval1_d(dom_d[evalIdx] + wee / 2, parm);
+      back = kern->eval1_d(dom_d[evalIdx] - wee / 2, parm);
+      ndrv = (forw - back) / wee;
+      dsingle = kernD->eval1_d(dom_d[evalIdx], parm);
+      if (fabs(ndrv - dsingle) > epsilon) {
+        diffDerivNum++;
+        if (diffDerivNum > diffOkIntglOrDerivMax) {
+          biffAddf(NRRD,
+                   "%s: %s(%.17g) |numerical deriv(%s) %.17g - %.17g=%s(%.17g)|="
+                   "%.17g > %.17g too many times (%u > %u)",
+                   me, kstr, dom_d[evalIdx], kern->name, ndrv, dsingle, kdstr,
+                   dom_d[evalIdx], fabs(ndrv - dsingle), epsilon, diffDerivNum,
+                   diffOkIntglOrDerivMax);
+          ERRR;
         }
       }
     }
   }
-  integral *= 2*supp/(AIR_CAST(double, evalNum));
+  integral *= 2 * supp / (AIR_CAST(double, evalNum));
   /* the "cheap" kernel alone gets a pass on reporting its integral */
   if (nrrdKernelCheap != kern) {
-    double hackeps=10;
+    double hackeps = 10;
     /* hackeps is clearly a hack to permit the integral to have greater
        error than any single evaluation; there must be a more principled
        way to set this */
-    if (fabs(integral - kern->integral(parm)) > hackeps*epsilon) {
-      biffAddf(NRRD, "%s: %s |numerical integral %.17g - claimed %.17g| "
-               "%.17g > %.17g", me, kstr, integral, kern->integral(parm),
-               fabs(integral - kern->integral(parm)), hackeps*epsilon);
-      airMopError(mop); return 1;
+    if (fabs(integral - kern->integral(parm)) > hackeps * epsilon) {
+      biffAddf(NRRD,
+               "%s: %s |numerical integral %.17g - claimed %.17g| "
+               "%.17g > %.17g",
+               me, kstr, integral, kern->integral(parm),
+               fabs(integral - kern->integral(parm)), hackeps * epsilon);
+      ERRR;
     }
   }
-
-  /* HEY check being derivative of ikern/iparm */
-  AIR_UNUSED(ikern);
-  AIR_UNUSED(iparm);
+#undef ERRR
 
   airMopOkay(mop);
   return 0;
 }
+
+/* nrrdKernelParm0IsScale answers the question: does the given kernel look at parm[0] to
+   determine the over-all size of the kernel?  In the early days of nrrd, all kernels did
+   this, but gradually the utility of doing that became less obvious, and for
+   simplicity's sake newer kernels were parameter-free. The kernels listed here thus tend
+   to be the older kernels in nrrd. */
+int /* Biff: nope */
+nrrdKernelParm0IsScale(const NrrdKernel *kern) {
+  int ret;
+
+  if (!kern) {
+    ret = 0;
+  } else if (nrrdKernelZero == kern || nrrdKernelBox == kern || nrrdKernelCheap == kern
+             || nrrdKernelTent == kern || nrrdKernelForwDiff == kern
+             || nrrdKernelCentDiff == kern || nrrdKernelBCCubic == kern
+             || nrrdKernelBCCubicD == kern || nrrdKernelBCCubicDD == kern
+             || nrrdKernelAQuartic == kern || nrrdKernelAQuarticD == kern
+             || nrrdKernelAQuarticDD == kern || nrrdKernelGaussian == kern
+             || nrrdKernelGaussianD == kern || nrrdKernelGaussianDD == kern
+             || nrrdKernelDiscreteGaussian == kern || nrrdKernelHann == kern
+             || nrrdKernelHannD == kern || nrrdKernelHannDD == kern
+             || nrrdKernelBlackman == kern || nrrdKernelBlackmanD == kern
+             || nrrdKernelBlackmanDD == kern) {
+    /* nrrdKernelFlag should maybe be part of this, but it's a flag, not a kernel */
+    ret = 1;
+  } else {
+    ret = 0;
+  }
+  return ret;
+}
+
+/* Given a kernel, make an attempt to return its derivative,
+  but if can't figure it out return nrrdKernelFlag.
+  The intent is that whatever parameters the given kernel takes; they will
+  also be the right parameters for the returned derivative kernel.
+  NOTE: This is probably returning nrrdKernelFlag more often than necessary;
+  but sorting this out may require a more careful re-assessment of what has
+  really become a mess of kernels */
+/* clang-format off */
+const NrrdKernel * /* Biff: nope */
+nrrdKernelDerivative(const NrrdKernel *kern) {
+  if (!kern) return nrrdKernelFlag;
+  if (nrrdKernelAQuartic == kern)     return nrrdKernelAQuarticD;
+  if (nrrdKernelAQuarticD == kern)    return nrrdKernelAQuarticDD;
+  if (nrrdKernelAQuarticDD == kern)   return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBCCubic == kern)      return nrrdKernelBCCubicD;
+  if (nrrdKernelBCCubicD == kern)     return nrrdKernelBCCubicDD;
+  if (nrrdKernelBCCubicDD == kern)    return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBSpline1 == kern)     return nrrdKernelBSpline1D;
+  if (nrrdKernelBSpline1D == kern)    return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBSpline2 == kern)     return nrrdKernelBSpline2D;
+  if (nrrdKernelBSpline2D == kern)    return nrrdKernelBSpline2DD;
+  if (nrrdKernelBSpline2DD == kern)   return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBSpline3ApproxInverse == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelBSpline3 == kern)     return nrrdKernelBSpline3D;
+  if (nrrdKernelBSpline3D == kern)    return nrrdKernelBSpline3DD;
+  if (nrrdKernelBSpline3DD == kern)   return nrrdKernelBSpline3DDD;
+  if (nrrdKernelBSpline3DDD == kern)  return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBSpline4 == kern)     return nrrdKernelBSpline4D;
+  if (nrrdKernelBSpline4D == kern)    return nrrdKernelBSpline4DD;
+  if (nrrdKernelBSpline4DD == kern)   return nrrdKernelBSpline4DDD;
+  if (nrrdKernelBSpline4DDD == kern)  return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBSpline5ApproxInverse == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelBSpline5 == kern)     return nrrdKernelBSpline5D;
+  if (nrrdKernelBSpline5D == kern)    return nrrdKernelBSpline5DD;
+  if (nrrdKernelBSpline5DD == kern)   return nrrdKernelBSpline5DDD;
+  if (nrrdKernelBSpline5DDD == kern)  return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBSpline6 == kern)     return nrrdKernelBSpline6D;
+  if (nrrdKernelBSpline6D == kern)    return nrrdKernelBSpline6DD;
+  if (nrrdKernelBSpline6DD == kern)   return nrrdKernelBSpline6DDD;
+  if (nrrdKernelBSpline6DDD == kern)  return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBSpline7ApproxInverse == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelBSpline7 == kern)     return nrrdKernelBSpline7D;
+  if (nrrdKernelBSpline7D == kern)    return nrrdKernelBSpline7DD;
+  if (nrrdKernelBSpline7DD == kern)   return nrrdKernelBSpline7DDD;
+  if (nrrdKernelBSpline7DDD == kern)  return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBlackman == kern)     return nrrdKernelBlackmanD;
+  if (nrrdKernelBlackmanD == kern)    return nrrdKernelBlackmanDD;
+  if (nrrdKernelBlackmanDD == kern)   return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelBox == kern)          return nrrdKernelZero; /* really */
+  if (nrrdKernelBoxSupportDebug == kern) return nrrdKernelFlag;       /* !!! */
+  if (nrrdKernelC3Quintic == kern)    return nrrdKernelC3QuinticD;
+  if (nrrdKernelC3QuinticD == kern)   return nrrdKernelC3QuinticDD;
+  if (nrrdKernelC3QuinticDD == kern)  return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelC4HexicApproxInverse == kern) return nrrdKernelFlag;  /* !!! */
+  if (nrrdKernelC4Hexic == kern)      return nrrdKernelC4HexicD;
+  if (nrrdKernelC4HexicD == kern)     return nrrdKernelC4HexicDD;
+  if (nrrdKernelC4HexicDD == kern)    return nrrdKernelC4HexicDDD;
+  if (nrrdKernelC4HexicDDD == kern)   return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelC5SepticApproxInverse == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelC5Septic == kern)     return nrrdKernelC5SepticD;
+  if (nrrdKernelC5SepticD == kern)    return nrrdKernelC5SepticDD;
+  if (nrrdKernelC5SepticDD == kern)   return nrrdKernelC5SepticDDD;
+  if (nrrdKernelC5SepticDDD == kern)  return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelCatmullRom == kern)   return nrrdKernelCatmullRomD;
+  if (nrrdKernelCatmullRomD == kern)  return nrrdKernelCatmullRomDD;
+  if (nrrdKernelCatmullRomDD == kern) return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelCatmullRomSupportDebug == kern)   return nrrdKernelCatmullRomSupportDebugD;
+  if (nrrdKernelCatmullRomSupportDebugD == kern)  return nrrdKernelCatmullRomSupportDebugDD;
+  if (nrrdKernelCatmullRomSupportDebugDD == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelCentDiff == kern)     return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelCheap == kern)        return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelCos4SupportDebug == kern) return nrrdKernelCos4SupportDebugD;
+  if (nrrdKernelCos4SupportDebugD == kern) return nrrdKernelCos4SupportDebugDD;
+  if (nrrdKernelCos4SupportDebugDD == kern) return nrrdKernelCos4SupportDebugDDD;
+  if (nrrdKernelCos4SupportDebugDDD == kern) return nrrdKernelFlag;   /* !!! */
+  if (nrrdKernelDiscreteGaussian == kern) return nrrdKernelFlag;      /* !!! */
+  if (nrrdKernelTent == kern)         return nrrdKernelForwDiff;
+  if (nrrdKernelForwDiff == kern)     return nrrdKernelZero; /* really */
+  if (nrrdKernelGaussian == kern)     return nrrdKernelGaussianD;
+  if (nrrdKernelGaussianD == kern)    return nrrdKernelGaussianDD;
+  if (nrrdKernelGaussianDD == kern)   return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelHann == kern)         return nrrdKernelHannD;
+  if (nrrdKernelHannD == kern)        return nrrdKernelHannDD;
+  if (nrrdKernelHannDD == kern)       return nrrdKernelFlag;          /* !!! */
+  if (nrrdKernelHermiteScaleSpaceFlag == kern) return nrrdKernelFlag; /* !!! */
+  if (nrrdKernelZero == kern)         return nrrdKernelZero; /* really */
+  /* else: includes nrrdKernelTMF[][][] and nrrdKernelFlag itself */
+  return nrrdKernelFlag; /* !!! */
+}
+/* clang-format on */

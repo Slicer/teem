@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "nrrd.h"
@@ -28,8 +26,7 @@
 const int blah[] array in an object file if it hasn't been declared
 as "extern" */
 
-const char
-nrrdTypePrintfStr[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
+const char nrrdTypePrintfStr[NRRD_TYPE_MAX + 1][AIR_STRLEN_SMALL] = {
   "%*d",          /* nrrdTypeUnknown: what else?  the effect will be
                     "skip" for sscanf, and "minimum precision" for printf */
   "%d",           /* nrrdTypeChar: char */
@@ -48,52 +45,49 @@ nrrdTypePrintfStr[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
 /*
 ** the setting of NRRD_TYPE_BIGGEST has to be in accordance with this
 */
-const size_t
-nrrdTypeSize[NRRD_TYPE_MAX+1] = {
-  0,  /* nrrdTypeUnknown: unknown */
-  1,  /* nrrdTypeChar: char */
-  1,  /* nrrdTypeUChar: unsigned char */
-  2,  /* nrrdTypeShort: short */
-  2,  /* nrrdTypeUShort: unsigned short */
-  4,  /* nrrdTypeInt: int */
-  4,  /* nrrdTypeUInt: unsigned int */
-  8,  /* nrrdTypeLLong: long long */
-  8,  /* nrrdTypeULLong: unsigned long long */
-  4,  /* nrrdTypeFloat: float */
-  8,  /* nrrdTypeDouble: double */
-  0   /* nrrdTypeBlock: effectively unknown; user has to set explicitly */
+const size_t nrrdTypeSize[NRRD_TYPE_MAX + 1] = {
+  0, /* nrrdTypeUnknown: unknown */
+  1, /* nrrdTypeChar: char */
+  1, /* nrrdTypeUChar: unsigned char */
+  2, /* nrrdTypeShort: short */
+  2, /* nrrdTypeUShort: unsigned short */
+  4, /* nrrdTypeInt: int */
+  4, /* nrrdTypeUInt: unsigned int */
+  8, /* nrrdTypeLLong: long long */
+  8, /* nrrdTypeULLong: unsigned long long */
+  4, /* nrrdTypeFloat: float */
+  8, /* nrrdTypeDouble: double */
+  0  /* nrrdTypeBlock: effectively unknown; user has to set explicitly */
 };
 
-const int
-nrrdTypeIsIntegral[NRRD_TYPE_MAX+1] = {
-  0,  /* nrrdTypeUnknown: unknown */
-  1,  /* nrrdTypeChar: char */
-  1,  /* nrrdTypeUChar: unsigned char */
-  1,  /* nrrdTypeShort: short */
-  1,  /* nrrdTypeUShort: unsigned short */
-  1,  /* nrrdTypeInt: int */
-  1,  /* nrrdTypeUInt: unsigned int */
-  1,  /* nrrdTypeLLong: long long */
-  1,  /* nrrdTypeULLong: unsigned long long */
-  0,  /* nrrdTypeFloat: float */
-  0,  /* nrrdTypeDouble: double */
-  1   /* nrrdTypeBlock: for some reason we pretend that blocks are integers */
+const int nrrdTypeIsIntegral[NRRD_TYPE_MAX + 1] = {
+  0, /* nrrdTypeUnknown: unknown */
+  1, /* nrrdTypeChar: char */
+  1, /* nrrdTypeUChar: unsigned char */
+  1, /* nrrdTypeShort: short */
+  1, /* nrrdTypeUShort: unsigned short */
+  1, /* nrrdTypeInt: int */
+  1, /* nrrdTypeUInt: unsigned int */
+  1, /* nrrdTypeLLong: long long */
+  1, /* nrrdTypeULLong: unsigned long long */
+  0, /* nrrdTypeFloat: float */
+  0, /* nrrdTypeDouble: double */
+  1  /* nrrdTypeBlock: for some reason we pretend that blocks are integers */
 };
 
-const int
-nrrdTypeIsUnsigned[NRRD_TYPE_MAX+1] = {
-  0,  /* nrrdTypeUnknown: unknown */
-  0,  /* nrrdTypeChar: char */
-  1,  /* nrrdTypeUChar: unsigned char */
-  0,  /* nrrdTypeShort: short */
-  1,  /* nrrdTypeUShort: unsigned short */
-  0,  /* nrrdTypeInt: int */
-  1,  /* nrrdTypeUInt: unsigned int */
-  0,  /* nrrdTypeLLong: long long */
-  1,  /* nrrdTypeULLong: unsigned long long */
-  0,  /* nrrdTypeFloat: float */
-  0,  /* nrrdTypeDouble: double */
-  0   /* nrrdTypeBlock: for some reason we pretend that blocks are signed */
+const int nrrdTypeIsUnsigned[NRRD_TYPE_MAX + 1] = {
+  0, /* nrrdTypeUnknown: unknown */
+  0, /* nrrdTypeChar: char */
+  1, /* nrrdTypeUChar: unsigned char */
+  0, /* nrrdTypeShort: short */
+  1, /* nrrdTypeUShort: unsigned short */
+  0, /* nrrdTypeInt: int */
+  1, /* nrrdTypeUInt: unsigned int */
+  0, /* nrrdTypeLLong: long long */
+  1, /* nrrdTypeULLong: unsigned long long */
+  0, /* nrrdTypeFloat: float */
+  0, /* nrrdTypeDouble: double */
+  0  /* nrrdTypeBlock: for some reason we pretend that blocks are signed */
 };
 
 /*
@@ -143,8 +137,7 @@ nrrdTypeMax[NRRD_TYPE_MAX+1] = {
 ** This does NOT include the fields who's values are constrained
 ** by the image format (and in the case of PNM, magic) itself.
 */
-const int
-_nrrdFieldValidInImage[NRRD_FIELD_MAX+1] = {
+const int _nrrdFieldValidInImage[NRRD_FIELD_MAX + 1] = {
   0, /* nrrdField_unknown */
   1, /* nrrdField_comment */
   1, /* nrrdField_content */
@@ -185,8 +178,7 @@ _nrrdFieldValidInImage[NRRD_FIELD_MAX+1] = {
 **
 ** whether or not you need one value per axis, like labels and spacings
 */
-const int
-_nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1] = {
+const int _nrrdFieldOnePerAxis[NRRD_FIELD_MAX + 1] = {
   0, /* nrrdField_unknown */
   0, /* nrrdField_comment */
   0, /* nrrdField_content */
@@ -229,18 +221,21 @@ _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1] = {
 ** This does NOT include the fields who's values are constrained
 ** the plain text format itself.
 */
-const int
-_nrrdFieldValidInText[NRRD_FIELD_MAX+1] = {
+const int _nrrdFieldValidInText[NRRD_FIELD_MAX + 1] = {
   0, /* nrrdField_unknown */
   1, /* nrrdField_comment */
   1, /* nrrdField_content */
   0, /* nrrdField_number */
-  0, /* nrrdField_type: decided AGAINST plain text holding general type
-        (but I forget why ...) */
+  1, /* nrrdField_type: after revision 6359 (2019 T-day @ Hyatt Lost Pines),
+        decided that long-standing but unnecessary restriction of plain text
+        files only holding float (and not, say, double) had to go; hence the
+        new nio->moreThanFloatInText.  With that, this value changed from 0
+        to 1. However, nio->moreThanFloatInText defaults to false (i.e. only
+        float in text), so this should not be disruptive. */
   0, /* nrrdField_block_size */
   1, /* nrrdField_dimension: but can only be 1 or 2 */
-  0, /* nrrdField_space */
-  0, /* nrrdField_space_dimension */
+  1, /* nrrdField_space */
+  1, /* nrrdField_space_dimension */
   0, /* nrrdField_sizes */
   1, /* nrrdField_spacings */
   1, /* nrrdField_thicknesses */
@@ -261,8 +256,12 @@ _nrrdFieldValidInText[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_byte_skip */
   1, /* nrrdField_keyvalue */
   0, /* nrrdField_sample_units */
-  0, /* nrrdField_space_units */
-  0, /* nrrdField_space_origin */
+  1, /* nrrdField_space_units */
+  1, /* nrrdField_space_origin: with revision 2368, which was part of adding new "space"
+        orientation meta-data, nrrdField_space_directions WERE said to be valid in text
+        (above in this array), but not space, space dimension, space units, or space
+        origin; this was probably a bug. Now that nio->bareText can be false, these
+        should all be allowed in text files. */
   0, /* nrrdField_measurement_frame */
   0  /* nrrdField_data_file */
 };
@@ -273,8 +272,7 @@ _nrrdFieldValidInText[NRRD_FIELD_MAX+1] = {
 ** regardless of whether its a nrrd, PNM, or plain text, these things
 ** need to be conveyed, either explicity or implicitly
 */
-const int
-_nrrdFieldRequired[NRRD_FIELD_MAX+1] = {
+const int _nrrdFieldRequired[NRRD_FIELD_MAX + 1] = {
   0, /* "Ernesto \"Che\" Guevara" */
   0, /* "#" */
   0, /* nrrdField_content */
@@ -309,4 +307,3 @@ _nrrdFieldRequired[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_measurement_frame */
   0  /* nrrdField_data file */
 };
-

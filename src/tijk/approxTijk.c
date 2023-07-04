@@ -1,35 +1,35 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
   Copyright (C) 2011, 2010, 2009, 2008 Thomas Schultz
-  Copyright (C) 2010, 2009, 2008 Gordon Kindlmann
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
-
 
 #include "tijk.h"
 #include "privateTijk.h"
 
 #include "convertQuietPush.h"
+/* clang-format off */
 
 /* Functions for symmetric tensor approximation */
 
 /* a coarse sampling of the unit semicircle */
-const unsigned int _tijk_max_candidates_2d=8;
+static const unsigned int _tijk_max_candidates_2d=8;
 
 #define _CANDIDATES_2D(TYPE, SUF)                 \
   static TYPE _candidates_2d_##SUF[16] = {        \
@@ -46,7 +46,7 @@ _CANDIDATES_2D(double, d)
 _CANDIDATES_2D(float, f)
 
 /* a coarse sampling of the unit sphere */
-const unsigned int _tijk_max_candidates_3d=30;
+static const unsigned int _tijk_max_candidates_3d=30;
 
 #define _CANDIDATES_3D(TYPE, SUF)             \
   static TYPE _candidates_3d_##SUF[90] = {    \
@@ -184,7 +184,7 @@ tijk_refine_rank1_parm
  *         2 when the Armijo scheme failed to produce a valid stepsize
  */
 #define _TIJK_REFINE_RANK1ORMAX(TYPE, SUF, DIM)                         \
-  int                                                                   \
+  static int                                                            \
   _tijk_refine_rank1ormax_##DIM##d_##SUF(TYPE *s, TYPE *v, const TYPE *ten, \
                                          const tijk_type *type,         \
                                          const tijk_refine_rank1_parm *parm, \
@@ -441,7 +441,9 @@ tijk_approx_heur_parm
         if (largest/smallest>parm->ratios[currank-2])                   \
           accept=0;                                                     \
       }                                                                 \
-      if (accept && oldnorm-newnorm>parm->eps_impr*orignorm) {          \
+      if (currank>1 && oldnorm-newnorm<parm->eps_impr*orignorm)         \
+        accept=0;                                                       \
+      if (accept) {                                                     \
         /* copy over */                                                 \
         memcpy(vs, vstmp, sizeof(TYPE)*DIM*currank);                    \
         memcpy(ls, lstmp, sizeof(TYPE)*currank);                        \
@@ -541,5 +543,5 @@ _TIJK_APPROX_RANKK(float, f, 2)
 _TIJK_APPROX_RANKK(double, d, 3)
 _TIJK_APPROX_RANKK(float, f, 3)
 
-
+/* clang-format on */
 #include "convertQuietPop.h"

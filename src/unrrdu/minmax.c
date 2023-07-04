@@ -1,75 +1,86 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
 #define INFO "Print out min and max values in one or more nrrds"
-static const char *_unrrdu_minmaxInfoL =
-(INFO ". Unlike other commands, this doesn't produce a nrrd.  It only "
- "prints to standard out the min and max values found in the input nrrd(s), "
- "and it also indicates if there are non-existent values.\n "
- "* Uses nrrdRangeNewSet");
+static const char *_unrrdu_minmaxInfoL
+  = (INFO ". Unlike other commands, this doesn't produce a nrrd.  It only "
+          "prints to standard out the min and max values found in the input nrrd(s), "
+          "and it also indicates if there are non-existent values.\n "
+          "* Uses nrrdRangeNewSet");
 
-int
-unrrdu_minmaxDoit(const char *me, char *inS, int blind8BitRange, FILE *fout) {
+static int /* Biff: 1 */
+unrrdu_minmaxDoit(const char *me, char *inS, int blind8BitRange, int singleLine,
+                  FILE *fout) {
   Nrrd *nrrd;
   NrrdRange *range;
   airArray *mop;
 
   mop = airMopNew();
-  airMopAdd(mop, nrrd=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nrrd = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdLoad(nrrd, inS, NULL)) {
     biffMovef(me, NRRD, "%s: trouble loading \"%s\"", me, inS);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   range = nrrdRangeNewSet(nrrd, blind8BitRange);
   airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
-  airSinglePrintf(fout, NULL, "min: %.17g\n", range->min);
-  airSinglePrintf(fout, NULL, "max: %.17g\n", range->max);
-  if (range->min == range->max) {
-    if (0 == range->min) {
-      fprintf(fout, "# min == max == 0.0 exactly\n");
+  if (singleLine) {
+    char minStr[128], maxStr[128], nexStr[128];
+    airSinglePrintf(NULL, minStr, "%.17g", range->min);
+    airSinglePrintf(NULL, maxStr, "%.17g", range->max);
+    if (range->hasNonExist) {
+      strcpy(nexStr, " non-existent");
     } else {
-      fprintf(fout, "# min == max\n");
+      strcpy(nexStr, "");
     }
-  }
-  if (range->hasNonExist) {
-    fprintf(fout, "# has non-existent values\n");
+    fprintf(fout, "%s %s%s\n", minStr, maxStr, nexStr);
+  } else {
+    airSinglePrintf(fout, NULL, "min: %.17g\n", range->min);
+    airSinglePrintf(fout, NULL, "max: %.17g\n", range->max);
+    if (range->min == range->max) {
+      if (0 == range->min) {
+        fprintf(fout, "# min == max == 0.0 exactly\n");
+      } else {
+        fprintf(fout, "# min == max\n");
+      }
+    }
+    if (range->hasNonExist) {
+      fprintf(fout, "# has non-existent values\n");
+    }
   }
 
   airMopOkay(mop);
   return 0;
 }
 
-int
-unrrdu_minmaxMain(int argc, const char **argv, const char *me,
-                  hestParm *hparm) {
+static int
+unrrdu_minmaxMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, **inS;
   airArray *mop;
-  int pret, blind8BitRange;
+  int pret, blind8BitRange, singleLine;
   unsigned int ni, ninLen;
 #define B8DEF "false"
 
@@ -84,25 +95,34 @@ unrrdu_minmaxMain(int argc, const char **argv, const char *me,
              "(" B8DEF ") is potentialy over-riding the effect of "
              "environment variable NRRD_STATE_BLIND_8_BIT_RANGE; "
              "see \"unu env\"");
-  hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL,
-             "input nrrd(s)", &ninLen);
-  airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
+  hestOptAdd(&opt, "sl", NULL, airTypeInt, 0, 0, &singleLine, NULL,
+             "Without this option, output is on multiple lines (for min, for max, "
+             "and then maybe more lines about non-existent values or min, max "
+             "conditions). With \"-sl\", output is a single line containing just min "
+             "and max, possibly followed by the single word \"non-existent\" if and "
+             "only if there were non-existent values. If there are multiple inputs, "
+             "the input filename is printed first on the per-input single line.");
+  hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL, "input nrrd(s)",
+             &ninLen);
+  airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
-  USAGE(_unrrdu_minmaxInfoL);
-  PARSE();
+  USAGE_OR_PARSE(_unrrdu_minmaxInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  for (ni=0; ni<ninLen; ni++) {
+  for (ni = 0; ni < ninLen; ni++) {
     if (ninLen > 1) {
-      fprintf(stdout, "==> %s <==\n", inS[ni]);
+      if (singleLine) {
+        fprintf(stdout, "%s ", inS[ni]);
+      } else {
+        fprintf(stdout, "==> %s <==\n", inS[ni]);
+      }
     }
-    if (unrrdu_minmaxDoit(me, inS[ni], blind8BitRange, stdout)) {
+    if (unrrdu_minmaxDoit(me, inS[ni], blind8BitRange, singleLine, stdout)) {
       airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble with \"%s\":\n%s",
-              me, inS[ni], err);
+      fprintf(stderr, "%s: trouble with \"%s\":\n%s", me, inS[ni], err);
       /* continue working on the remaining files */
     }
-    if (ninLen > 1 && ni < ninLen-1) {
+    if (ninLen > 1 && ni < ninLen - 1 && !singleLine) {
       fprintf(stdout, "\n");
     }
   }

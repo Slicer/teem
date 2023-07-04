@@ -1,32 +1,29 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "echo.h"
 #include "privateEcho.h"
 
 void
-echoSphereSet(echoObject *sphere,
-              echoPos_t x, echoPos_t y, echoPos_t z, echoPos_t rad) {
+echoSphereSet(echoObject *sphere, echoPos_t x, echoPos_t y, echoPos_t z, echoPos_t rad) {
 
   if (sphere && echoTypeSphere == sphere->type) {
     ELL_3V_SET(SPHERE(sphere)->pos, x, y, z);
@@ -36,8 +33,7 @@ echoSphereSet(echoObject *sphere,
 }
 
 void
-echoCylinderSet(echoObject *cylind,
-                int axis) {
+echoCylinderSet(echoObject *cylind, int axis) {
 
   if (cylind && echoTypeCylinder == cylind->type) {
     CYLINDER(cylind)->axis = axis;
@@ -46,8 +42,7 @@ echoCylinderSet(echoObject *cylind,
 }
 
 void
-echoSuperquadSet(echoObject *squad,
-                 int axis, echoPos_t A, echoPos_t B) {
+echoSuperquadSet(echoObject *squad, int axis, echoPos_t A, echoPos_t B) {
 
   if (squad && echoTypeSuperquad == squad->type) {
     SUPERQUAD(squad)->axis = axis;
@@ -58,10 +53,9 @@ echoSuperquadSet(echoObject *squad,
 }
 
 void
-echoRectangleSet(echoObject *rect,
-                 echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
-                 echoPos_t e0x, echoPos_t e0y, echoPos_t e0z,
-                 echoPos_t e1x, echoPos_t e1y, echoPos_t e1z) {
+echoRectangleSet(echoObject *rect, echoPos_t ogx, echoPos_t ogy, echoPos_t ogz,
+                 echoPos_t e0x, echoPos_t e0y, echoPos_t e0z, echoPos_t e1x,
+                 echoPos_t e1y, echoPos_t e1z) {
 
   if (rect && echoTypeRectangle == rect->type) {
     ELL_3V_SET(RECTANGLE(rect)->origin, ogx, ogy, ogz);
@@ -72,10 +66,9 @@ echoRectangleSet(echoObject *rect,
 }
 
 void
-echoTriangleSet(echoObject *tri,
-                echoPos_t xx0, echoPos_t yy0, echoPos_t zz0,
-                echoPos_t xx1, echoPos_t yy1, echoPos_t zz1,
-                echoPos_t xx2, echoPos_t yy2, echoPos_t zz2) {
+echoTriangleSet(echoObject *tri, echoPos_t xx0, echoPos_t yy0, echoPos_t zz0,
+                echoPos_t xx1, echoPos_t yy1, echoPos_t zz1, echoPos_t xx2,
+                echoPos_t yy2, echoPos_t zz2) {
 
   if (tri && echoTypeTriangle == tri->type) {
     ELL_3V_SET(TRIANGLE(tri)->vert[0], xx0, yy0, zz0);
@@ -96,9 +89,7 @@ echoTriangleSet(echoObject *tri,
 ** so don't go freeing them after they've been passed here.
 */
 void
-echoTriMeshSet(echoObject *trim,
-               int numV, echoPos_t *pos,
-               int numF, int *vert) {
+echoTriMeshSet(echoObject *trim, int numV, echoPos_t *pos, int numF, int *vert) {
   int i;
 
   if (trim && echoTypeTriMesh == trim->type) {
@@ -109,19 +100,18 @@ echoTriMeshSet(echoObject *trim,
     ELL_3V_SET(TRIMESH(trim)->min, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
     ELL_3V_SET(TRIMESH(trim)->max, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
     ELL_3V_SET(TRIMESH(trim)->meanvert, 0.0, 0.0, 0.0);
-    for (i=0; i<numV; i++) {
-      ELL_3V_MIN(TRIMESH(trim)->min, TRIMESH(trim)->min, pos + 3*i);
-      ELL_3V_MAX(TRIMESH(trim)->max, TRIMESH(trim)->max, pos + 3*i);
-      ELL_3V_INCR(TRIMESH(trim)->meanvert, pos + 3*i);
+    for (i = 0; i < numV; i++) {
+      ELL_3V_MIN(TRIMESH(trim)->min, TRIMESH(trim)->min, pos + 3 * i);
+      ELL_3V_MAX(TRIMESH(trim)->max, TRIMESH(trim)->max, pos + 3 * i);
+      ELL_3V_INCR(TRIMESH(trim)->meanvert, pos + 3 * i);
     }
-    ELL_3V_SCALE(TRIMESH(trim)->meanvert, 1.0/numV, TRIMESH(trim)->meanvert);
+    ELL_3V_SCALE(TRIMESH(trim)->meanvert, 1.0 / numV, TRIMESH(trim)->meanvert);
   }
   return;
 }
 
 void
-echoInstanceSet(echoObject *inst,
-                echoPos_t *M, echoObject *obj) {
+echoInstanceSet(echoObject *inst, echoPos_t *M, echoObject *obj) {
 
   if (inst && echoTypeInstance == inst->type) {
     ell_4m_INV(INSTANCE(inst)->Mi, M);

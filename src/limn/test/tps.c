@@ -1,29 +1,28 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 
 #include "../limn.h"
 
-char *info = ("Render something in postscript.");
+const char *info = ("Render something in postscript.");
 
 int
 main(int argc, const char *argv[]) {
@@ -107,40 +106,40 @@ main(int argc, const char *argv[]) {
   /* X axis: rod */
   partIdx = limnObjectCylinderAdd(obj, 0, 0, 16);
   ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 1, 0.2, 0.2); ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 1.3, 0.0, 0.0); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_SCALE_SET(matB, 1, 0.2f, 0.2f); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 1.3f, 0, 0); ell_4m_post_mul_f(matA, matB);
   limnObjectPartTransform(obj, partIdx, matA);
 
   /* Y axis: rod + ball */
   partIdx = limnObjectCylinderAdd(obj, 0, 1, 16);
   ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 0.2, 1, 0.2); ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 1.3, 0.0); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_SCALE_SET(matB, 0.2f, 1, 0.2f); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 0, 1.3f, 0); ell_4m_post_mul_f(matA, matB);
   limnObjectPartTransform(obj, partIdx, matA);
 
   partIdx = limnObjectPolarSphereAdd(obj, 0, 0, 32, 16);
   ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 0.28, 0.28, 0.28); ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 2.6, 0.0); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_SCALE_SET(matB, 0.28f, 0.28f, 0.28f); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 0, 2.6f, 0); ell_4m_post_mul_f(matA, matB);
   limnObjectPartTransform(obj, partIdx, matA);
 
   /* Z axis: rod + ball + ball */
   partIdx = limnObjectCylinderAdd(obj, 0, 2, 16);
   ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 0.2, 0.2, 1); ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 1.3); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_SCALE_SET(matB, 0.2f, 0.2f, 1); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 0, 0, 1.3f); ell_4m_post_mul_f(matA, matB);
   limnObjectPartTransform(obj, partIdx, matA);
 
   partIdx = limnObjectPolarSphereAdd(obj, 0, 1, 32, 16);
   ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 0.28, 0.28, 0.28); ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 2.6); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_SCALE_SET(matB, 0.28f, 0.28f, 0.28f); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 0, 0, 2.6f); ell_4m_post_mul_f(matA, matB);
   limnObjectPartTransform(obj, partIdx, matA);
 
   partIdx = limnObjectPolarSphereAdd(obj, 0, 2, 32, 16);
   ELL_4M_IDENTITY_SET(matA);
-  ELL_4M_SCALE_SET(matB, 0.28, 0.28, 0.28); ell_4m_post_mul_f(matA, matB);
-  ELL_4M_TRANSLATE_SET(matB, 0.0, 0.0, 3.2); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_SCALE_SET(matB, 0.28f, 0.28f, 0.28f); ell_4m_post_mul_f(matA, matB);
+  ELL_4M_TRANSLATE_SET(matB, 0, 0, 3.2f); ell_4m_post_mul_f(matA, matB);
   limnObjectPartTransform(obj, partIdx, matA);
 
   win = limnWindowNew(limnDevicePS);

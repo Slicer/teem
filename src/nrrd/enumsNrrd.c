@@ -1,28 +1,26 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "nrrd.h"
-
+/* clang-format off */
 /*
 ** Rules of thumb for editing these things.  The airEnum definitions are
 ** unfortunately EXTREMELY sensitive to small typo errors, and there is
@@ -90,7 +88,7 @@ _nrrdFormatTypeValEqv[] = {
   nrrdFormatTypeEPS,
 };
 
-airEnum
+static const airEnum
 _nrrdFormatType = {
   "format",
   NRRD_FORMAT_TYPE_MAX,
@@ -181,7 +179,7 @@ _nrrdTypeValEqv[] = {
   ntBL,
 };
 
-airEnum
+static const airEnum
 _nrrdType = {
   "type",
   NRRD_TYPE_MAX,
@@ -238,7 +236,7 @@ _nrrdEncodingTypeValEqv[] = {
   nrrdEncodingTypeZRL
 };
 
-airEnum
+static const airEnum
 _nrrdEncodingType = {
   "encoding",
   NRRD_ENCODING_TYPE_MAX,
@@ -815,6 +813,78 @@ nrrdSpacingStatus = &_nrrdSpacingStatus;
 
 /* ---- BEGIN non-NrrdIO */
 
+/* ---------------------- nrrdFormatPNGsRGBIntent ------------------------- */
+
+static const char *
+_nrrdFormatPNGsRGBIntentStr[NRRD_FORMAT_PNG_SRGB_INTENT_NUM+1] = {
+  "(unknown_sRGB_intent)",
+  "perceptual",
+  "relative",
+  "saturation",
+  "absolute",
+  "none"
+};
+
+static int
+_nrrdFormatPNGsRGBIntentVal[NRRD_FORMAT_PNG_SRGB_INTENT_NUM+1] = {
+  nrrdFormatPNGsRGBIntentUnknown,    /* -1: nobody knows */
+  /* it is true and perhaps odd that we aren't using the values like
+     PNG_sRGB_INTENT_PERCEPTUAL, PNG_sRGB_INTENT_RELATIVE, etc. Why not:
+     1) we need this enum to be valid and consistent regardless of whether
+     this Teem is compiled with PNG support
+     2) The values of those constants are apparently pegged to constants set
+     in ICC profiles, not libpng itself, libpng isn't the authority on them
+     3) The values seem to be set in stone */
+  nrrdFormatPNGsRGBIntentPerceptual, /* 0 */
+  nrrdFormatPNGsRGBIntentRelative,   /* 1 */
+  nrrdFormatPNGsRGBIntentSaturation, /* 2 */
+  nrrdFormatPNGsRGBIntentAbsolute,   /* 3 */
+  nrrdFormatPNGsRGBIntentNone        /* 4 */
+};
+
+static const char *
+_nrrdFormatPNGsRGBIntentStrEqv[] = {
+  "perceptual", "perc", "p",
+  "relative",   "rel",  "r",
+  "saturation", "sat",  "s",
+  "absolute",   "abs",  "a",
+  "none",       "no",   "n",
+  ""
+};
+
+static int
+_nrrdFormatPNGsRGBIntentValEqv[] = {
+  nrrdFormatPNGsRGBIntentPerceptual, nrrdFormatPNGsRGBIntentPerceptual, nrrdFormatPNGsRGBIntentPerceptual,
+  nrrdFormatPNGsRGBIntentRelative,   nrrdFormatPNGsRGBIntentRelative,   nrrdFormatPNGsRGBIntentRelative,
+  nrrdFormatPNGsRGBIntentSaturation, nrrdFormatPNGsRGBIntentSaturation, nrrdFormatPNGsRGBIntentSaturation,
+  nrrdFormatPNGsRGBIntentAbsolute,   nrrdFormatPNGsRGBIntentAbsolute,   nrrdFormatPNGsRGBIntentAbsolute,
+  nrrdFormatPNGsRGBIntentNone,       nrrdFormatPNGsRGBIntentNone,       nrrdFormatPNGsRGBIntentNone
+};
+
+static const char *
+_nrrdFormatPNGsRGBIntentDesc[NRRD_FORMAT_PNG_SRGB_INTENT_NUM+1] = {
+  "unknown sRGB rendering intent",
+  /* see http://www.libpng.org/pub/png/book/chapter10.html and
+     https://en.wikipedia.org/wiki/Color_management#Rendering_intent */
+  "perceptual: expand/compress/shift gamut to fit within output",
+  "relative colorimetric: true colors, but shifted by media white point",
+  "saturation: gamut remapping that preserves saturation",
+  "absolute colorimetric: true colors were possible, else clipped",
+  "none: do not store any intent in the sRGB chunk"
+};
+
+static const airEnum
+_nrrdFormatPNGsRGBIntent = {
+  "sRGB intent",
+  NRRD_FORMAT_PNG_SRGB_INTENT_NUM,
+  _nrrdFormatPNGsRGBIntentStr, _nrrdFormatPNGsRGBIntentVal,
+  _nrrdFormatPNGsRGBIntentDesc,
+  _nrrdFormatPNGsRGBIntentStrEqv, _nrrdFormatPNGsRGBIntentValEqv,
+  AIR_FALSE
+};
+const airEnum *const
+nrrdFormatPNGsRGBIntent = &_nrrdFormatPNGsRGBIntent;
+
 /* -------------------- nrrdOrientationHave --------------------- */
 
 static const char *
@@ -1289,6 +1359,10 @@ _nrrdBinaryOpStr[NRRD_BINARY_OP_MAX+1] = {
   "if",
   "nrand",
   "rrand",
+  "+c",
+  "-c",
+  "xc",
+  "dulp",
 };
 
 static const char *
@@ -1316,7 +1390,11 @@ _nrrdBinaryOpDesc[NRRD_BINARY_OP_MAX+1] = {
   "if exists(a), then a, else b",
   "if a, then a, else b",
   "a + b*gaussianNoise",
-  "sample of Rician with mu a and sigma b"
+  "sample of Rician with mu a and sigma b",
+  "add, but clamp to integer representation range",
+  "subtract, but clamp to integer representation range",
+  "multiply, but clamp to integer representation range",
+  "32-bit FP distance in ULPs",
 };
 
 #define nbAdd nrrdBinaryOpAdd
@@ -1340,6 +1418,7 @@ _nrrdBinaryOpDesc[NRRD_BINARY_OP_MAX+1] = {
 #define nbNeq nrrdBinaryOpNotEqual
 #define nbExt nrrdBinaryOpExists
 #define nbIf  nrrdBinaryOpIf
+#define nbUlp nrrdBinaryOpULPDistance
 
 static const char *
 _nrrdBinaryOpStrEqv[] = {
@@ -1366,6 +1445,10 @@ _nrrdBinaryOpStrEqv[] = {
   "if",
   "nrand",
   "rrand",
+  "+c", "addclamp",
+  "-c", "subtractclamp",
+  "xc", "multiplyclamp",
+  "-f", "-fp", "dulp", "ulpd", "ulpdistance",
   ""
 };
 
@@ -1394,6 +1477,10 @@ _nrrdBinaryOpValEqv[] = {
   nbIf,
   nrrdBinaryOpNormalRandScaleAdd,
   nrrdBinaryOpRicianRand,
+  nrrdBinaryOpAddClamp, nrrdBinaryOpAddClamp,
+  nrrdBinaryOpSubtractClamp, nrrdBinaryOpSubtractClamp,
+  nrrdBinaryOpMultiplyClamp, nrrdBinaryOpMultiplyClamp,
+  nbUlp, nbUlp, nbUlp, nbUlp, nbUlp,
 };
 
 static const airEnum
@@ -1602,4 +1689,30 @@ _nrrdResampleNonExistent_enum = {
 const airEnum *const
 nrrdResampleNonExistent = &_nrrdResampleNonExistent_enum;
 
+/* ---------------------- nrrdMetaDataCanonicalVersion -------------------- */
+
+static const char *
+_nrrdMetaDataCanonicalVersionStr[NRRD_META_DATA_CANONICAL_VERSION_MAX+1] = {
+  "(unknown_meta_data_canonical_version)",
+  "alpha",
+};
+
+static const char *
+_nrrdMetaDataCanonicalVersionDesc[NRRD_META_DATA_CANONICAL_VERSION_MAX+1] = {
+  "unknown meta data canonical version",
+  "initial version, used for Diderot until at least 2016",
+};
+
+static const airEnum
+_nrrdMetaDataCanonicalVersion_enum = {
+  "canonical meta-data version",
+  NRRD_META_DATA_CANONICAL_VERSION_MAX,
+  _nrrdMetaDataCanonicalVersionStr, NULL,
+  _nrrdMetaDataCanonicalVersionDesc,
+  NULL, NULL,
+  AIR_FALSE
+};
+const airEnum *const
+nrrdMetaDataCanonicalVersion = &_nrrdMetaDataCanonicalVersion_enum;
+/* clang-format on */
 /* ---- END non-NrrdIO */

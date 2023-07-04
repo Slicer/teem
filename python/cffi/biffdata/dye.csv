@@ -1,0 +1,3 @@
+func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
+dyeConvert,int,1,0,dye,dye/convertDye.c:351
+dyeColorParse,int,1,0,dye,dye/methodsDye.c:185

@@ -1,34 +1,32 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-NrrdIter *
+NrrdIter * /* Biff: nope */
 nrrdIterNew() {
   NrrdIter *iter;
 
-  if ( (iter = (NrrdIter *)calloc(1, sizeof(NrrdIter))) ) {
+  if ((iter = (NrrdIter *)calloc(1, sizeof(NrrdIter)))) {
     iter->nrrd = NULL;
     iter->ownNrrd = NULL;
     iter->val = AIR_NAN;
@@ -48,7 +46,7 @@ nrrdIterSetValue(NrrdIter *iter, double val) {
     iter->ownNrrd = iter->ownNrrd ? nrrdNuke(iter->ownNrrd) : NULL;
     iter->val = val;
     iter->size = nrrdTypeSize[nrrdTypeDouble];
-    iter->data = (char*)&(iter->val);
+    iter->data = (char *)&(iter->val);
     iter->left = 0;
     iter->load = nrrdDLoad[nrrdTypeDouble];
   }
@@ -69,7 +67,7 @@ nrrdIterSetNrrd(NrrdIter *iter, const Nrrd *nrrd) {
     iter->val = AIR_NAN;
     iter->size = nrrdTypeSize[nrrd->type];
     iter->data = (char *)nrrd->data;
-    iter->left = nrrdElementNumber(nrrd)-1;
+    iter->left = nrrdElementNumber(nrrd) - 1;
     iter->load = nrrdDLoad[nrrd->type];
   }
   return;
@@ -93,13 +91,13 @@ nrrdIterSetOwnNrrd(NrrdIter *iter, Nrrd *nrrd) {
     iter->val = AIR_NAN;
     iter->size = nrrdTypeSize[nrrd->type];
     iter->data = (char *)nrrd->data;
-    iter->left = nrrdElementNumber(nrrd)-1;
+    iter->left = nrrdElementNumber(nrrd) - 1;
     iter->load = nrrdDLoad[nrrd->type];
   }
   return;
 }
 
-double
+double /* Biff: nope */
 nrrdIterValue(NrrdIter *iter) {
   double ret = 0.0;
 
@@ -111,7 +109,7 @@ nrrdIterValue(NrrdIter *iter) {
         iter->left -= 1;
       } else {
         iter->data = (char *)(_NRRD_ITER_NRRD(iter)->data);
-        iter->left = nrrdElementNumber(_NRRD_ITER_NRRD(iter))-1;
+        iter->left = nrrdElementNumber(_NRRD_ITER_NRRD(iter)) - 1;
       }
     }
   }
@@ -125,7 +123,7 @@ nrrdIterValue(NrrdIter *iter) {
 ** nrrdStateUnknownContent) or a string version of the value; useful
 ** for when you's use the "content" of a nrrd
 */
-char *
+char * /* Biff: nope */
 nrrdIterContent(NrrdIter *iter) {
   char *ret, buff[AIR_STRLEN_SMALL];
 
@@ -141,7 +139,7 @@ nrrdIterContent(NrrdIter *iter) {
   return ret;
 }
 
-NrrdIter *
+NrrdIter * /* Biff: nope */
 nrrdIterNix(NrrdIter *iter) {
 
   if (iter) {
@@ -152,4 +150,3 @@ nrrdIterNix(NrrdIter *iter) {
   }
   return NULL;
 }
-

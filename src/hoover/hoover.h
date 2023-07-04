@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #ifndef HOOVER_HAS_BEEN_INCLUDED
@@ -56,38 +54,33 @@ extern "C" {
 /*
 ******** the mess of typedefs for callbacks used below
 */
-typedef int (hooverRenderBegin_t)(void **renderP,
-                                  void *user);
-typedef int (hooverThreadBegin_t)(void **threadP,
-                                  void *render,
-                                  void *user,
-                                  int whichThread);
-typedef int (hooverRayBegin_t)(void *thread,
+typedef int(hooverRenderBegin_t)(void **renderP, void *user);
+typedef int(hooverThreadBegin_t)(void **threadP,
+                                 void *render,
+                                 void *user,
+                                 int whichThread);
+typedef int(hooverRayBegin_t)(void *thread,
+                              void *render,
+                              void *user,
+                              int uIndex, /* img coords of current ray */
+                              int vIndex,
+                              double rayLen, /* length of ray segment between
+                                                near and far planes,  */
+                              double rayStartWorld[3],
+                              double rayStartIndex[3],
+                              double rayDirWorld[3],
+                              double rayDirIndex[3]);
+typedef double(hooverSample_t)(void *thread,
                                void *render,
                                void *user,
-                               int uIndex,    /* img coords of current ray */
-                               int vIndex,
-                               double rayLen, /* length of ray segment between
-                                                 near and far planes,  */
-                               double rayStartWorld[3],
-                               double rayStartIndex[3],
-                               double rayDirWorld[3],
-                               double rayDirIndex[3]);
-typedef double (hooverSample_t)(void *thread,
-                                void *render,
-                                void *user,
-                                int num,    /* which sample this is, 0-based */
-                                double rayT,/* position along ray */
-                                int inside, /* sample is inside the volume */
-                                double samplePosWorld[3],
-                                double samplePosIndex[3]);
-typedef int (hooverRayEnd_t)(void *thread,
-                             void *render,
-                             void *user);
-typedef int (hooverThreadEnd_t)(void *thread,
-                                void *render,
-                                void *user);
-typedef int (hooverRenderEnd_t)(void *rend, void *user);
+                               int num,     /* which sample this is, 0-based */
+                               double rayT, /* position along ray */
+                               int inside,  /* sample is inside the volume */
+                               double samplePosWorld[3],
+                               double samplePosIndex[3]);
+typedef int(hooverRayEnd_t)(void *thread, void *render, void *user);
+typedef int(hooverThreadEnd_t)(void *thread, void *render, void *user);
+typedef int(hooverRenderEnd_t)(void *rend, void *user);
 
 /*
 ******** hooverContext struct
@@ -104,23 +97,23 @@ typedef int (hooverRenderEnd_t)(void *rend, void *user);
 typedef struct {
 
   /******** 1) camera information */
-  limnCamera *cam;           /* camera info */
+  limnCamera *cam; /* camera info */
 
   /******** 2) volume information: size and spacing, centering, or
             a gageShape that sets everything */
-  int volSize[3];            /* X,Y,Z resolution of volume */
-  double volSpacing[3];      /* distance between samples in X,Y,Z direction */
-  int volCentering;          /* either nrrdCenterNode or nrrdCenterCell */
-  const gageShape *shape;    /* if non-NULL, use this gageShape (which we do
-                                NOT own), which over-rides
-                                volSize, volSpacing, volCentering */
+  int volSize[3];         /* X,Y,Z resolution of volume */
+  double volSpacing[3];   /* distance between samples in X,Y,Z direction */
+  int volCentering;       /* either nrrdCenterNode or nrrdCenterCell */
+  const gageShape *shape; /* if non-NULL, use this gageShape (which we do
+                             NOT own), which over-rides
+                             volSize, volSpacing, volCentering */
 
   /******** 3) image information: dimensions + centering */
-  int imgSize[2],            /* # samples of image along U and V axes */
-    imgCentering;            /* either nrrdCenterNode or nrrdCenterCell */
+  int imgSize[2], /* # samples of image along U and V axes */
+    imgCentering; /* either nrrdCenterNode or nrrdCenterCell */
 
   /******** 4) opaque "user information" pointer */
-  void *user;                /* passed to all callbacks */
+  void *user; /* passed to all callbacks */
 
   /******** 5) stuff about multi-threading */
   unsigned int numThreads;   /* number of threads to spawn per rendering */
@@ -251,24 +244,24 @@ typedef struct {
 ** otherwise, return indicates which call-back had trouble
 */
 enum {
-  hooverErrNone,           /*  0 */
-  hooverErrInit,           /*  1: call biffGet(HOOVER) */
-  hooverErrRenderBegin,    /*  2 */
-  hooverErrThreadCreate,   /*  3 */
-  hooverErrThreadBegin,    /*  4 */
-  hooverErrRayBegin,       /*  5 */
-  hooverErrSample,         /*  6 */
-  hooverErrRayEnd,         /*  7 */
-  hooverErrThreadEnd,      /*  8 */
-  hooverErrThreadJoin,     /*  9 */
-  hooverErrRenderEnd,      /* 10 */
+  hooverErrNone,         /*  0 */
+  hooverErrInit,         /*  1: call biffGet(HOOVER) */
+  hooverErrRenderBegin,  /*  2 */
+  hooverErrThreadCreate, /*  3 */
+  hooverErrThreadBegin,  /*  4 */
+  hooverErrRayBegin,     /*  5 */
+  hooverErrSample,       /*  6 */
+  hooverErrRayEnd,       /*  7 */
+  hooverErrThreadEnd,    /*  8 */
+  hooverErrThreadJoin,   /*  9 */
+  hooverErrRenderEnd,    /* 10 */
   hooverErrLast
 };
-#define HOOVER_ERR_MAX        10
+#define HOOVER_ERR_MAX 10
 
 /* defaultsHoover.c */
 HOOVER_EXPORT const int hooverPresent;
-HOOVER_EXPORT const char *hooverBiffKey;
+HOOVER_EXPORT const char *const hooverBiffKey;
 HOOVER_EXPORT int hooverDefVolCentering;
 HOOVER_EXPORT int hooverDefImgCentering;
 HOOVER_EXPORT const airEnum *const hooverErr;
@@ -276,11 +269,10 @@ HOOVER_EXPORT const airEnum *const hooverErr;
 /* methodsHoover.c */
 HOOVER_EXPORT hooverContext *hooverContextNew(void);
 HOOVER_EXPORT int hooverContextCheck(hooverContext *ctx);
-HOOVER_EXPORT void hooverContextNix(hooverContext *ctx);
+HOOVER_EXPORT void *hooverContextNix(hooverContext *ctx);
 
 /* rays.c */
-HOOVER_EXPORT int hooverRender(hooverContext *ctx,
-                               int *errCodeP, int *errThreadP);
+HOOVER_EXPORT int hooverRender(hooverContext *ctx, int *errCodeP, int *errThreadP);
 
 /* stub.c */
 HOOVER_EXPORT hooverRenderBegin_t hooverStubRenderBegin;

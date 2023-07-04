@@ -1,31 +1,29 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include <math.h>
 #include "../nrrd.h"
 
-char *quadInfo = ("generates quadratic test volumes, with isosurfaces "
-                    "which should resemble z = A*x^2 + B*y^2");
+const char *quadInfo = ("generates quadratic test volumes, with isosurfaces "
+                        "which should resemble z = A*x^2 + B*y^2");
 
 float
 quadFunc(float x, float y, float z, float A, float B, float off) {
@@ -79,11 +77,11 @@ main(int argc, const char *argv[]) {
 
   data = (float *)nout->data;
   for (zi=0; zi<size[2]; zi++) {
-    z = AIR_AFFINE(0, zi, size[2]-1, min[2], max[2]);
+    z = AIR_FLOAT(AIR_AFFINE(0, zi, size[2]-1, min[2], max[2]));
     for (yi=0; yi<size[1]; yi++) {
-      y = AIR_AFFINE(0, yi, size[1]-1, min[1], max[1]);
+      y = AIR_FLOAT(AIR_AFFINE(0, yi, size[1]-1, min[1], max[1]));
       for (xi=0; xi<size[0]; xi++) {
-        x = AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]);
+        x = AIR_FLOAT(AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]));
         *data = quadFunc(x,y,z, AB[0], AB[1], off);
         data += 1;
       }

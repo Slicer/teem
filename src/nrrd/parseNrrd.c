@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "nrrd.h"
@@ -29,11 +27,11 @@
 **
 ** This is for parsing the stuff BEFORE the colon
 */
-int
+int /* Biff: (private) maybe:2:nrrdField_unknown */
 _nrrdReadNrrdParseField(NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParseField";
+  static const char me[] = "_nrrdReadNrrdParseField";
   char *next, *buff, *colon, *keysep;
-  int ret, fld=nrrdField_unknown, noField, badField=AIR_FALSE;
+  int ret, fld = nrrdField_unknown, noField, badField = AIR_FALSE;
 
   next = nio->line + nio->pos;
 
@@ -42,7 +40,7 @@ _nrrdReadNrrdParseField(NrrdIoState *nio, int useBiff) {
     return nrrdField_comment;
   }
 
-  if (!( buff = airStrdup(next) )) {
+  if (!(buff = airStrdup(next))) {
     biffMaybeAddf(useBiff, NRRD, "%s: couldn't allocate buffer!", me);
     return nrrdField_unknown;
   }
@@ -59,21 +57,19 @@ _nrrdReadNrrdParseField(NrrdIoState *nio, int useBiff) {
   noField = !colon;
   if (colon) {
     *colon = '\0';
-    badField = ( nrrdField_unknown == (fld = airEnumVal(nrrdField, buff)) );
+    badField = (nrrdField_unknown == (fld = airEnumVal(nrrdField, buff)));
   }
   if (noField || badField) {
     keysep = strstr(buff, ":=");
     if (!keysep) {
       if (noField) {
-        biffMaybeAddf(useBiff, NRRD,
-                      "%s: didn't see \": \" or \":=\" in line",
-                      me);
+        biffMaybeAddf(useBiff, NRRD, "%s: didn't see \": \" or \":=\" in line", me);
       } else {
-        biffMaybeAddf(useBiff, NRRD,
-                      "%s: failed to parse \"%s\" as field identifier",
+        biffMaybeAddf(useBiff, NRRD, "%s: failed to parse \"%s\" as field identifier",
                       me, buff);
       }
-      free(buff); return nrrdField_unknown;
+      free(buff);
+      return nrrdField_unknown;
     }
 
     free(buff);
@@ -87,7 +83,7 @@ _nrrdReadNrrdParseField(NrrdIoState *nio, int useBiff) {
 
     /* skip whitespace prior to start of first field descriptor */
     next += strspn(next, _nrrdFieldSep);
-    nio->pos = AIR_CAST(int, next - nio->line);
+    nio->pos = AIR_INT(next - nio->line);
 
     ret = fld;
   }
@@ -103,8 +99,7 @@ _nrrdReadNrrdParseField(NrrdIoState *nio, int useBiff) {
 */
 
 static int
-_nrrdReadNrrdParse_nonfield(FILE *file, Nrrd *nrrd,
-                            NrrdIoState *nio, int useBiff) {
+_nrrdReadNrrdParse_nonfield(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
   AIR_UNUSED(nio);
@@ -121,10 +116,9 @@ _nrrdReadNrrdParse_nonfield(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_comment(FILE *file, Nrrd *nrrd,
-                           NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_comment";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_comment(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_comment";
   char *info;
 
   AIR_UNUSED(file);
@@ -137,10 +131,9 @@ _nrrdReadNrrdParse_comment(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_content(FILE *file, Nrrd *nrrd,
-                           NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_content";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_content(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_content";
   char *info;
 
   AIR_UNUSED(file);
@@ -152,19 +145,18 @@ _nrrdReadNrrdParse_content(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_number(FILE *file, Nrrd *nrrd,
-                          NrrdIoState *nio, int useBiff) {
+static int /* Biff: nope # unlike other parsers, for reasons described below */
+_nrrdReadNrrdParse_number(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
   /*
-  static const char me[]="_nrrdReadNrrdParse_number";
-  char *info;
-
-  info = nio->line + nio->pos;
-  if (1 != sscanf(info, NRRD_BIG_INT_PRINTF, &(nrrd->num))) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: couldn't parse number \"%s\"", me, info); return 1;
-  }
-  */
+   *static const char me[] = "_nrrdReadNrrdParse_number";
+   *char *info;
+   *
+   *info = nio->line + nio->pos;
+   *if (1 != sscanf(info, NRRD_BIG_INT_PRINTF, &(nrrd->num))) {
+   *  biffMaybeAddf(useBiff, NRRD,
+   *                "%s: couldn't parse number \"%s\"", me, info); return 1;
+   *}
+   */
 
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
@@ -184,10 +176,9 @@ _nrrdReadNrrdParse_number(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_type(FILE *file, Nrrd *nrrd,
-                        NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_type";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_type(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_type";
   char *info;
 
   AIR_UNUSED(file);
@@ -203,34 +194,36 @@ _nrrdReadNrrdParse_type(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-#define _PARSE_ONE_VAL(FIELD, CONV, TYPE)                         \
-  if (1 != airSingleSscanf(info, CONV, &(FIELD))) {               \
-    biffMaybeAddf(useBiff, NRRD, "%s: couldn't parse " TYPE       \
-                  " from \"%s\"", me, info);                      \
-    return 1;                                                     \
+#define _PARSE_ONE_VAL(FIELD, CONV, TYPE)                                               \
+  if (1 != airSingleSscanf(info, CONV, &(FIELD))) {                                     \
+    biffMaybeAddf(useBiff, NRRD, "%s: couldn't parse " TYPE " from \"%s\"", me, info);  \
+    return 1;                                                                           \
   }
 
-static int
-_nrrdReadNrrdParse_block_size(FILE *file, Nrrd *nrrd,
-                              NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_block_size";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_block_size(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_block_size";
   char *info;
 
   AIR_UNUSED(file);
   info = nio->line + nio->pos;
   if (1 != airSingleSscanf(info, "%z", &(nrrd->blockSize))) {
-    biffMaybeAddf(useBiff, NRRD, "%s: couldn't parse size_t"
-                  " from \"%s\"", me, info);
+    biffMaybeAddf(useBiff, NRRD,
+                  "%s: couldn't parse size_t"
+                  " from \"%s\"",
+                  me, info);
+    /* For >15 years this return was missing; highlighting that it was missing was thanks
+     * to the biff auto-scan in teem/src/_util/scan-symbols.py */
+    return 1;
   }
   /* because blockSize and type fields may appear in any order,
      we can't use _nrrdFieldCheck[] */
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_dimension(FILE *file, Nrrd *nrrd,
-                             NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_dimension";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_dimension(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_dimension";
   char *info;
 
   AIR_UNUSED(file);
@@ -248,32 +241,28 @@ _nrrdReadNrrdParse_dimension(FILE *file, Nrrd *nrrd,
 ** to zero, and, _nrrdReadNrrdParse_dimension() won't allow it to be
 ** set to anything outside the range [1, NRRD_DIM_MAX]
 */
-#define _CHECK_HAVE_DIM                                           \
-  if (0 == nrrd->dim) {                                           \
-    biffMaybeAddf(useBiff, NRRD,                                  \
-                  "%s: don't yet have a valid dimension", me);    \
-    return 1;                                                     \
+#define _CHECK_HAVE_DIM                                                                 \
+  if (0 == nrrd->dim) {                                                                 \
+    biffMaybeAddf(useBiff, NRRD, "%s: don't yet have a valid dimension", me);           \
+    return 1;                                                                           \
   }
 
-#define _CHECK_HAVE_SPACE_DIM                                           \
-  if (0 == nrrd->spaceDim) {                                            \
-    biffMaybeAddf(useBiff, NRRD,                                        \
-                  "%s: don't yet have a valid space dimension", me);    \
-    return 1;                                                           \
+#define _CHECK_HAVE_SPACE_DIM                                                           \
+  if (0 == nrrd->spaceDim) {                                                            \
+    biffMaybeAddf(useBiff, NRRD, "%s: don't yet have a valid space dimension", me);     \
+    return 1;                                                                           \
   }
 
-#define _CHECK_GOT_ALL_VALUES                                     \
-  if (nrrd->dim != ret) {                                         \
-    biffMaybeAddf(useBiff, NRRD,                                  \
-                  "%s: parsed %d values, but dimension is %d",    \
-                  me, ret, nrrd->dim);                            \
-    return 1;                                                     \
+#define _CHECK_GOT_ALL_VALUES                                                           \
+  if (nrrd->dim != ret) {                                                               \
+    biffMaybeAddf(useBiff, NRRD, "%s: parsed %d values, but dimension is %d", me, ret,  \
+                  nrrd->dim);                                                           \
+    return 1;                                                                           \
   }
 
-static int
-_nrrdReadNrrdParse_sizes(FILE *file, Nrrd *nrrd,
-                         NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_sizes";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_sizes(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_sizes";
   unsigned int ret;
   size_t val[NRRD_DIM_MAX];
   char *info;
@@ -285,10 +274,9 @@ _nrrdReadNrrdParse_sizes(FILE *file, Nrrd *nrrd,
   _CHECK_GOT_ALL_VALUES;
   nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSize, val);
   /* HEY: this is a very imperfect check of excess info */
-  if (nrrd->dim+1 == airParseStrZ(val, info, _nrrdFieldSep, nrrd->dim+1)) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: seem to have more than expected %d sizes",
-                  me, nrrd->dim);
+  if (nrrd->dim + 1 == airParseStrZ(val, info, _nrrdFieldSep, nrrd->dim + 1)) {
+    biffMaybeAddf(useBiff, NRRD, "%s: seem to have more than expected %d sizes", me,
+                  nrrd->dim);
     return 1;
   }
   if (_nrrdFieldCheck[nrrdField_sizes](nrrd, useBiff)) {
@@ -298,10 +286,9 @@ _nrrdReadNrrdParse_sizes(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_spacings(FILE *file, Nrrd *nrrd,
-                            NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_spacings";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_spacings(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_spacings";
   unsigned int ret;
   double val[NRRD_DIM_MAX];
   char *info;
@@ -313,10 +300,9 @@ _nrrdReadNrrdParse_spacings(FILE *file, Nrrd *nrrd,
   _CHECK_GOT_ALL_VALUES;
   nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoSpacing, val);
   /* HEY: this is a very imperfect check of excess info */
-  if (nrrd->dim+1 == airParseStrD(val, info, _nrrdFieldSep, nrrd->dim+1)) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: seem to have more than expected %d spacings",
-                  me, nrrd->dim);
+  if (nrrd->dim + 1 == airParseStrD(val, info, _nrrdFieldSep, nrrd->dim + 1)) {
+    biffMaybeAddf(useBiff, NRRD, "%s: seem to have more than expected %d spacings", me,
+                  nrrd->dim);
     return 1;
   }
   if (_nrrdFieldCheck[nrrdField_spacings](nrrd, useBiff)) {
@@ -326,10 +312,9 @@ _nrrdReadNrrdParse_spacings(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_thicknesses(FILE *file, Nrrd *nrrd,
-                               NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_thicknesses";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_thicknesses(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_thicknesses";
   unsigned int ret;
   double val[NRRD_DIM_MAX];
   char *info;
@@ -341,9 +326,8 @@ _nrrdReadNrrdParse_thicknesses(FILE *file, Nrrd *nrrd,
   _CHECK_GOT_ALL_VALUES;
   nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoThickness, val);
   /* HEY: this is a very imperfect check of excess info */
-  if (nrrd->dim+1 == airParseStrD(val, info, _nrrdFieldSep, nrrd->dim+1)) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: seem to have more than expected %d thicknesses",
+  if (nrrd->dim + 1 == airParseStrD(val, info, _nrrdFieldSep, nrrd->dim + 1)) {
+    biffMaybeAddf(useBiff, NRRD, "%s: seem to have more than expected %d thicknesses",
                   me, nrrd->dim);
     return 1;
   }
@@ -354,10 +338,9 @@ _nrrdReadNrrdParse_thicknesses(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_axis_mins(FILE *file, Nrrd *nrrd,
-                             NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_axis_mins";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_axis_mins(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_axis_mins";
   unsigned int ret;
   double val[NRRD_DIM_MAX];
   char *info;
@@ -369,10 +352,9 @@ _nrrdReadNrrdParse_axis_mins(FILE *file, Nrrd *nrrd,
   _CHECK_GOT_ALL_VALUES;
   nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoMin, val);
   /* HEY: this is a very imperfect check of excess info */
-  if (nrrd->dim+1 == airParseStrD(val, info, _nrrdFieldSep, nrrd->dim+1)) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: seem to have more than expected %d axis mins",
-                  me, nrrd->dim);
+  if (nrrd->dim + 1 == airParseStrD(val, info, _nrrdFieldSep, nrrd->dim + 1)) {
+    biffMaybeAddf(useBiff, NRRD, "%s: seem to have more than expected %d axis mins", me,
+                  nrrd->dim);
     return 1;
   }
   if (_nrrdFieldCheck[nrrdField_axis_mins](nrrd, useBiff)) {
@@ -382,10 +364,9 @@ _nrrdReadNrrdParse_axis_mins(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_axis_maxs(FILE *file, Nrrd *nrrd,
-                             NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_axis_maxs";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_axis_maxs(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_axis_maxs";
   unsigned int ret;
   double val[NRRD_DIM_MAX];
   char *info;
@@ -397,10 +378,9 @@ _nrrdReadNrrdParse_axis_maxs(FILE *file, Nrrd *nrrd,
   _CHECK_GOT_ALL_VALUES;
   nrrdAxisInfoSet_nva(nrrd, nrrdAxisInfoMax, val);
   /* HEY: this is a very imperfect check of excess info */
-  if (nrrd->dim+1 == airParseStrD(val, info, _nrrdFieldSep, nrrd->dim+1)) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: seem to have more than expected %d axis maxs",
-                  me, nrrd->dim);
+  if (nrrd->dim + 1 == airParseStrD(val, info, _nrrdFieldSep, nrrd->dim + 1)) {
+    biffMaybeAddf(useBiff, NRRD, "%s: seem to have more than expected %d axis maxs", me,
+                  nrrd->dim);
     return 1;
   }
   if (_nrrdFieldCheck[nrrdField_axis_maxs](nrrd, useBiff)) {
@@ -410,11 +390,11 @@ _nrrdReadNrrdParse_axis_maxs(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdSpaceVectorParse(double val[NRRD_SPACE_DIM_MAX],
-                      char **hhP, unsigned int spaceDim, int useBiff) {
-  static const char me[]="_nrrdSpaceVectorParse";
-  char *hh, *buff, sep[]=",)";
+static int /* Biff: maybe:4:1 */
+_nrrdSpaceVectorParse(double val[NRRD_SPACE_DIM_MAX], char **hhP, unsigned int spaceDim,
+                      int useBiff) {
+  static const char me[] = "_nrrdSpaceVectorParse";
+  char *hh, *buff, sep[] = ",)";
   airArray *mop;
   unsigned int ret, dd;
   size_t length;
@@ -428,43 +408,43 @@ _nrrdSpaceVectorParse(double val[NRRD_SPACE_DIM_MAX],
 
   /* make sure we have something */
   if (!*hh) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: hit end of string before seeing (", me);
-    airMopError(mop); return 1;
+    biffMaybeAddf(useBiff, NRRD, "%s: hit end of string before seeing (", me);
+    airMopError(mop);
+    return 1;
   }
   /* first, see if we're getting the non-vector */
-  if ( (strstr(hh, _nrrdNoSpaceVector) == hh) ) {
+  if ((strstr(hh, _nrrdNoSpaceVector) == hh)) {
     if (!hh[strlen(_nrrdNoSpaceVector)]
         || strchr(_nrrdFieldSep, hh[strlen(_nrrdNoSpaceVector)])) {
       /* yes, we got the non-vector */
-      for (dd=0; dd<spaceDim; dd++) {
+      for (dd = 0; dd < spaceDim; dd++) {
         val[dd] = AIR_NAN;
       }
       length += strlen(_nrrdNoSpaceVector);
     } else {
       /* we got something that started out looking like the non-vector */
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: couldn't parse non-vector \"%s\"", me, hh);
-      airMopError(mop); return 1;
+      biffMaybeAddf(useBiff, NRRD, "%s: couldn't parse non-vector \"%s\"", me, hh);
+      airMopError(mop);
+      return 1;
     }
   } else {
     /* this isn't a non-vector */
     /* make sure we have an open paren */
     if ('(' != *hh) {
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: first vector in \"%s\" didn't start with '('",
+      biffMaybeAddf(useBiff, NRRD, "%s: first vector in \"%s\" didn't start with '('",
                     me, hh);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     /* copy string (including open paren) for local fiddling */
     if (!(buff = airStrdup(hh))) {
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: couldn't allocate local buffer", me);
-      airMopError(mop); return 1;
+      biffMaybeAddf(useBiff, NRRD, "%s: couldn't allocate local buffer", me);
+      airMopError(mop);
+      return 1;
     }
     airMopAdd(mop, buff, airFree, airMopAlways);
     /* scan for close paren */
-    hh = buff+1;
+    hh = buff + 1;
     while (*hh) {
       if (')' == *hh) {
         break;
@@ -473,50 +453,55 @@ _nrrdSpaceVectorParse(double val[NRRD_SPACE_DIM_MAX],
       }
     }
     if (')' != *hh) {
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: didn't see ')' at end of first vector in \"%s\"",
+      biffMaybeAddf(useBiff, NRRD, "%s: didn't see ')' at end of first vector in \"%s\"",
                     me, hh);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     /* terminate at end paren */
-    *(hh+1) = 0;
+    *(hh + 1) = 0;
     length += strlen(buff);
     /* see if we have too many fields */
-    ret = airStrntok(buff+1, sep);
+    ret = airStrntok(buff + 1, sep);
     if (ret > spaceDim) {
       biffMaybeAddf(useBiff, NRRD,
                     "%s: space dimension is %d, but seem to have %d "
-                    "coefficients", me, spaceDim, ret);
-      airMopError(mop); return 1;
+                    "coefficients",
+                    me, spaceDim, ret);
+      airMopError(mop);
+      return 1;
     }
     /* try to parse the values */
-    ret = airParseStrD(val, buff+1, ",", spaceDim);
+    ret = airParseStrD(val, buff + 1, ",", spaceDim);
     if (spaceDim != ret) {
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: parsed %d values, but space dimension is %d",
-                    me, ret, spaceDim);
-      airMopError(mop); return 1;
+      biffMaybeAddf(useBiff, NRRD, "%s: parsed %d values, but space dimension is %d", me,
+                    ret, spaceDim);
+      airMopError(mop);
+      return 1;
     }
   }
   /* probably not useful */
-  for (dd=spaceDim; dd<NRRD_SPACE_DIM_MAX; dd++) {
+  for (dd = spaceDim; dd < NRRD_SPACE_DIM_MAX; dd++) {
     val[dd] = AIR_NAN;
   }
   /* make sure all coefficients exist or not together */
-  for (dd=1; dd<spaceDim; dd++) {
+  for (dd = 1; dd < spaceDim; dd++) {
     if (!!AIR_EXISTS(val[0]) ^ !!AIR_EXISTS(val[dd])) {
-      biffMaybeAddf(useBiff, NRRD, "%s: existance of all space vector "
+      biffMaybeAddf(useBiff, NRRD,
+                    "%s: existance of all space vector "
                     "coefficients must be consistent (val[0] not like "
-                    "val[%d])", me, dd);
-      airMopError(mop); return 1;
+                    "val[%d])",
+                    me, dd);
+      airMopError(mop);
+      return 1;
     }
   }
-  for (dd=0; dd<spaceDim; dd++) {
+  for (dd = 0; dd < spaceDim; dd++) {
     if (airIsInf_d(val[dd])) {
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: vector coefficient %d can't be infinite",
-                    me, dd);
-      airMopError(mop); return 1;
+      biffMaybeAddf(useBiff, NRRD, "%s: vector coefficient %d can't be infinite", me,
+                    dd);
+      airMopError(mop);
+      return 1;
     }
   }
   *hhP += length;
@@ -524,6 +509,7 @@ _nrrdSpaceVectorParse(double val[NRRD_SPACE_DIM_MAX],
   return 0;
 }
 
+/* ---- BEGIN non-NrrdIO */
 /*
 ** public version of _nrrdSpaceVectorParse, which might not really be
 ** needed, but given how _nrrdSpaceVectorParse currently wants a
@@ -531,10 +517,10 @@ _nrrdSpaceVectorParse(double val[NRRD_SPACE_DIM_MAX],
 ** vector to parse in a non-const string, this seems like a sane and
 ** minimal effort option
 */
-int
-nrrdSpaceVectorParse(double dir[NRRD_SPACE_DIM_MAX],
-                     const char *_str, unsigned int spaceDim, int useBiff) {
-  static const char me[]="nrrdSpaceVectorParse";
+int /* Biff: maybe:4:1 */
+nrrdSpaceVectorParse(double dir[NRRD_SPACE_DIM_MAX], const char *_str,
+                     unsigned int spaceDim, int useBiff) {
+  static const char me[] = "nrrdSpaceVectorParse";
   airArray *mop;
   char *str;
 
@@ -543,21 +529,24 @@ nrrdSpaceVectorParse(double dir[NRRD_SPACE_DIM_MAX],
   airMopAdd(mop, str, airFree, airMopAlways);
   if (!(dir && _str)) {
     biffMaybeAddf(useBiff, NRRD, "%s: got NULL pointer", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (_nrrdSpaceVectorParse(dir, &str, spaceDim, useBiff)) {
     biffMaybeAddf(useBiff, NRRD, "%s: trouble parsing", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
   return 0;
 }
+/* ---- END non-NrrdIO */
 
-static int
-_nrrdReadNrrdParse_space_directions(FILE *file, Nrrd *nrrd,
-                                    NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_space_directions";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_space_directions(FILE *file, Nrrd *nrrd, NrrdIoState *nio,
+                                    int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_space_directions";
   unsigned int dd;
   char *info;
 
@@ -566,19 +555,17 @@ _nrrdReadNrrdParse_space_directions(FILE *file, Nrrd *nrrd,
   _CHECK_HAVE_DIM;
   _CHECK_HAVE_SPACE_DIM;
 
-  for (dd=0; dd<nrrd->dim; dd++) {
-    if (_nrrdSpaceVectorParse(nrrd->axis[dd].spaceDirection,
-                              &info, nrrd->spaceDim, useBiff)) {
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: trouble getting space vector %d of %d",
-                    me, dd+1, nrrd->dim);
+  for (dd = 0; dd < nrrd->dim; dd++) {
+    if (_nrrdSpaceVectorParse(nrrd->axis[dd].spaceDirection, &info, nrrd->spaceDim,
+                              useBiff)) {
+      biffMaybeAddf(useBiff, NRRD, "%s: trouble getting space vector %d of %d", me,
+                    dd + 1, nrrd->dim);
       return 1;
     }
   }
   if (strlen(info) != strspn(info, _nrrdFieldSep)) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: seem to have more than expected %d directions",
-                  me, nrrd->dim);
+    biffMaybeAddf(useBiff, NRRD, "%s: seem to have more than expected %d directions", me,
+                  nrrd->dim);
     return 1;
   }
   if (_nrrdFieldCheck[nrrdField_space_directions](nrrd, useBiff)) {
@@ -588,10 +575,9 @@ _nrrdReadNrrdParse_space_directions(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_centers(FILE *file, Nrrd *nrrd,
-                           NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_centers";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_centers(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_centers";
   unsigned int ai;
   char *tok, *info, *last;
   airArray *mop;
@@ -601,13 +587,13 @@ _nrrdReadNrrdParse_centers(FILE *file, Nrrd *nrrd,
   info = airStrdup(nio->line + nio->pos);
   airMopAdd(mop, info, airFree, airMopAlways);
   _CHECK_HAVE_DIM;
-  for (ai=0; ai<nrrd->dim; ai++) {
+  for (ai = 0; ai < nrrd->dim; ai++) {
     tok = airStrtok(!ai ? info : NULL, _nrrdFieldSep, &last);
     if (!tok) {
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: couldn't extract string for center %d of %d",
-                    me, ai+1, nrrd->dim);
-      airMopError(mop); return 1;
+      biffMaybeAddf(useBiff, NRRD, "%s: couldn't extract string for center %d of %d", me,
+                    ai + 1, nrrd->dim);
+      airMopError(mop);
+      return 1;
     }
     if (!strcmp(tok, NRRD_UNKNOWN)) {
       nrrd->axis[ai].center = nrrdCenterUnknown;
@@ -618,30 +604,30 @@ _nrrdReadNrrdParse_centers(FILE *file, Nrrd *nrrd,
       continue;
     }
     if (!(nrrd->axis[ai].center = airEnumVal(nrrdCenter, tok))) {
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: couldn't parse center \"%s\" for axis %d",
-                    me, tok, ai);
-      airMopError(mop); return 1;
+      biffMaybeAddf(useBiff, NRRD, "%s: couldn't parse center \"%s\" for axis %d", me,
+                    tok, ai);
+      airMopError(mop);
+      return 1;
     }
   }
   if (airStrtok(!ai ? info : NULL, _nrrdFieldSep, &last)) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: seem to have more than expected %d centers",
-                  me, nrrd->dim);
-    airMopError(mop); return 1;
+    biffMaybeAddf(useBiff, NRRD, "%s: seem to have more than expected %d centers", me,
+                  nrrd->dim);
+    airMopError(mop);
+    return 1;
   }
   if (_nrrdFieldCheck[nrrdField_centers](nrrd, useBiff)) {
     biffMaybeAddf(useBiff, NRRD, "%s: trouble", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopOkay(mop);
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_kinds(FILE *file, Nrrd *nrrd,
-                         NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_kinds";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_kinds(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_kinds";
   unsigned int ai;
   char *info, *tok, *last;
   airArray *mop;
@@ -651,13 +637,13 @@ _nrrdReadNrrdParse_kinds(FILE *file, Nrrd *nrrd,
   info = airStrdup(nio->line + nio->pos);
   airMopAdd(mop, info, airFree, airMopAlways);
   _CHECK_HAVE_DIM;
-  for (ai=0; ai<nrrd->dim; ai++) {
+  for (ai = 0; ai < nrrd->dim; ai++) {
     tok = airStrtok(!ai ? info : NULL, _nrrdFieldSep, &last);
     if (!tok) {
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: couldn't extract string for kind %d of %d",
-                    me, ai+1, nrrd->dim);
-      airMopError(mop); return 1;
+      biffMaybeAddf(useBiff, NRRD, "%s: couldn't extract string for kind %d of %d", me,
+                    ai + 1, nrrd->dim);
+      airMopError(mop);
+      return 1;
     }
     if (!strcmp(tok, NRRD_UNKNOWN)) {
       nrrd->axis[ai].kind = nrrdKindUnknown;
@@ -668,33 +654,33 @@ _nrrdReadNrrdParse_kinds(FILE *file, Nrrd *nrrd,
       continue;
     }
     if (!(nrrd->axis[ai].kind = airEnumVal(nrrdKind, tok))) {
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: couldn't parse \"%s\" kind %d of %d",
-                    me, tok, ai+1, nrrd->dim);
-      airMopError(mop); return 1;
+      biffMaybeAddf(useBiff, NRRD, "%s: couldn't parse \"%s\" kind %d of %d", me, tok,
+                    ai + 1, nrrd->dim);
+      airMopError(mop);
+      return 1;
     }
   }
   if (airStrtok(!ai ? info : NULL, _nrrdFieldSep, &last)) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: seem to have more than expected %d kinds",
-                  me, nrrd->dim);
-    airMopError(mop); return 1;
+    biffMaybeAddf(useBiff, NRRD, "%s: seem to have more than expected %d kinds", me,
+                  nrrd->dim);
+    airMopError(mop);
+    return 1;
   }
   /* can't run this now because kinds can come before sizes, in which
-     case the kind/size check in _nrrdFieldCheck_kinds will incorrectly
-     flag an error ...
-  if (_nrrdFieldCheck[nrrdField_kinds](nrrd, useBiff)) {
-    biffMaybeAddf(useBiff, NRRD, "%s: trouble", me);
-    airMopError(mop); return 1;
-    }
-  */
+   *   case the kind/size check in _nrrdFieldCheck_kinds will incorrectly
+   *   flag an error ...
+   * if (_nrrdFieldCheck[nrrdField_kinds](nrrd, useBiff)) {
+   *  biffMaybeAddf(useBiff, NRRD, "%s: trouble", me);
+   *  airMopError(mop); return 1;
+   *  }
+   */
   airMopOkay(mop);
   return 0;
 }
 
-static char *
+static char * /* Biff: maybe:2:NULL */
 _nrrdGetQuotedString(char **hP, int useBiff) {
-  static const char me[]="_nrrdGetQuotedString";
+  static const char me[] = "_nrrdGetQuotedString";
   char *h, *buff, *ret;
   airArray *buffArr;
   unsigned int pos;
@@ -708,8 +694,7 @@ _nrrdGetQuotedString(char **hP, int useBiff) {
 
   /* make sure we have something */
   if (!*h) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: hit end of string before seeing opening \"", me);
+    biffMaybeAddf(useBiff, NRRD, "%s: hit end of string before seeing opening \"", me);
     return NULL;
   }
   /* make sure we have a starting quote */
@@ -727,13 +712,13 @@ _nrrdGetQuotedString(char **hP, int useBiff) {
     biffMaybeAddf(useBiff, NRRD, "%s: couldn't create airArray", me);
     return NULL;
   }
-  pos = airArrayLenIncr(buffArr, 1);  /* pos should get 0 */
+  pos = airArrayLenIncr(buffArr, 1); /* pos should get 0 */
   while (h[pos]) {
     /* printf("!%s: h+%d |%s|\n", me, pos, h+pos); */
     if ('\"' == h[pos]) {
       break;
     }
-    if ('\\' == h[pos] && '\"' == h[pos+1]) {
+    if ('\\' == h[pos] && '\"' == h[pos + 1]) {
       h += 1;
     }
     buff[pos] = h[pos];
@@ -753,12 +738,11 @@ _nrrdGetQuotedString(char **hP, int useBiff) {
   return ret;
 }
 
-static int
-_nrrdReadNrrdParse_labels(FILE *file, Nrrd *nrrd,
-                          NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_labels";
-  char *h;  /* this is the "here" pointer which gradually progresses
-               through all the labels (for all axes) */
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_labels(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_labels";
+  char *h; /* this is the "here" pointer which gradually progresses
+              through all the labels (for all axes) */
   unsigned int ai;
   char *info;
 
@@ -769,17 +753,16 @@ _nrrdReadNrrdParse_labels(FILE *file, Nrrd *nrrd,
   /* printf("!%s: info |%s|\n", me, info); */
   _CHECK_HAVE_DIM;
   h = info;
-  for (ai=0; ai<nrrd->dim; ai++) {
-    if (!( nrrd->axis[ai].label = _nrrdGetQuotedString(&h, useBiff) )) {
-      biffMaybeAddf(useBiff, NRRD, "%s: couldn't get get label %d of %d\n",
-                    me, ai+1, nrrd->dim);
+  for (ai = 0; ai < nrrd->dim; ai++) {
+    if (!(nrrd->axis[ai].label = _nrrdGetQuotedString(&h, useBiff))) {
+      biffMaybeAddf(useBiff, NRRD, "%s: couldn't get get label %d of %d\n", me, ai + 1,
+                    nrrd->dim);
       return 1;
     }
   }
   if (strlen(h) != strspn(h, _nrrdFieldSep)) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: seem to have more than expected %d labels",
-                  me, nrrd->dim);
+    biffMaybeAddf(useBiff, NRRD, "%s: seem to have more than expected %d labels", me,
+                  nrrd->dim);
     return 1;
   }
   if (_nrrdFieldCheck[nrrdField_labels](nrrd, useBiff)) {
@@ -789,12 +772,11 @@ _nrrdReadNrrdParse_labels(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_units(FILE *file, Nrrd *nrrd,
-                         NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_units";
-  char *h;  /* this is the "here" pointer which gradually progresses
-               through all the units (for all axes) */
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_units(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_units";
+  char *h; /* this is the "here" pointer which gradually progresses
+              through all the units (for all axes) */
   unsigned int ai;
   char *info;
 
@@ -805,17 +787,16 @@ _nrrdReadNrrdParse_units(FILE *file, Nrrd *nrrd,
   /* printf("!%s: info |%s|\n", me, info); */
   _CHECK_HAVE_DIM;
   h = info;
-  for (ai=0; ai<nrrd->dim; ai++) {
-    if (!( nrrd->axis[ai].units = _nrrdGetQuotedString(&h, useBiff) )) {
-      biffMaybeAddf(useBiff, NRRD, "%s: couldn't get get unit %d of %d\n",
-                    me, ai+1, nrrd->dim);
+  for (ai = 0; ai < nrrd->dim; ai++) {
+    if (!(nrrd->axis[ai].units = _nrrdGetQuotedString(&h, useBiff))) {
+      biffMaybeAddf(useBiff, NRRD, "%s: couldn't get get unit %d of %d\n", me, ai + 1,
+                    nrrd->dim);
       return 1;
     }
   }
   if (strlen(h) != strspn(h, _nrrdFieldSep)) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: seem to have more than expected %d units",
-                  me, nrrd->dim);
+    biffMaybeAddf(useBiff, NRRD, "%s: seem to have more than expected %d units", me,
+                  nrrd->dim);
     return 1;
   }
   if (_nrrdFieldCheck[nrrdField_units](nrrd, useBiff)) {
@@ -826,8 +807,7 @@ _nrrdReadNrrdParse_units(FILE *file, Nrrd *nrrd,
 }
 
 static int
-_nrrdReadNrrdParse_min(FILE *file, Nrrd *nrrd,
-                       NrrdIoState *nio, int useBiff) {
+_nrrdReadNrrdParse_min(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
 
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
@@ -843,8 +823,7 @@ _nrrdReadNrrdParse_min(FILE *file, Nrrd *nrrd,
 }
 
 static int
-_nrrdReadNrrdParse_max(FILE *file, Nrrd *nrrd,
-                       NrrdIoState *nio, int useBiff) {
+_nrrdReadNrrdParse_max(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
 
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
@@ -856,10 +835,9 @@ _nrrdReadNrrdParse_max(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_old_min(FILE *file, Nrrd *nrrd,
-                           NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_old_min";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_old_min(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_old_min";
   char *info;
 
   AIR_UNUSED(file);
@@ -872,10 +850,9 @@ _nrrdReadNrrdParse_old_min(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_old_max(FILE *file, Nrrd *nrrd,
-                           NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_old_max";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_old_max(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_old_max";
   char *info;
 
   AIR_UNUSED(file);
@@ -888,27 +865,24 @@ _nrrdReadNrrdParse_old_max(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_endian(FILE *file, Nrrd *nrrd,
-                          NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_endian";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_endian(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_endian";
   char *info;
 
   AIR_UNUSED(file);
   AIR_UNUSED(nrrd);
   info = nio->line + nio->pos;
   if (!(nio->endian = airEnumVal(airEndian, info))) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: couldn't parse endian \"%s\"", me, info);
+    biffMaybeAddf(useBiff, NRRD, "%s: couldn't parse endian \"%s\"", me, info);
     return 1;
   }
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_encoding(FILE *file, Nrrd *nrrd,
-                            NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_encoding";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_encoding(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_encoding";
   char *info;
   int etype;
 
@@ -916,8 +890,7 @@ _nrrdReadNrrdParse_encoding(FILE *file, Nrrd *nrrd,
   AIR_UNUSED(nrrd);
   info = nio->line + nio->pos;
   if (!(etype = airEnumVal(nrrdEncodingType, info))) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: couldn't parse encoding \"%s\"", me, info);
+    biffMaybeAddf(useBiff, NRRD, "%s: couldn't parse encoding \"%s\"", me, info);
     return 1;
   }
 
@@ -925,10 +898,9 @@ _nrrdReadNrrdParse_encoding(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_line_skip(FILE *file, Nrrd *nrrd,
-                             NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_line_skip";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_line_skip(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_line_skip";
   char *info;
 
   AIR_UNUSED(file);
@@ -946,9 +918,8 @@ _nrrdReadNrrdParse_line_skip(FILE *file, Nrrd *nrrd,
 }
 
 static int
-_nrrdReadNrrdParse_byte_skip(FILE *file, Nrrd *nrrd,
-                             NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_byte_skip";
+_nrrdReadNrrdParse_byte_skip(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_byte_skip";
   char *info;
 
   AIR_UNUSED(file);
@@ -967,10 +938,9 @@ _nrrdReadNrrdParse_byte_skip(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_keyvalue(FILE *file, Nrrd *nrrd,
-                            NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_keyvalue";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_keyvalue(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_keyvalue";
   char *keysep, *line, *key, *value;
 
   AIR_UNUSED(file);
@@ -982,15 +952,15 @@ _nrrdReadNrrdParse_keyvalue(FILE *file, Nrrd *nrrd,
   }
   keysep = strstr(line, ":=");
   if (!keysep) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: didn't see \":=\" key/value delimiter in \"%s\"",
+    biffMaybeAddf(useBiff, NRRD, "%s: didn't see \":=\" key/value delimiter in \"%s\"",
                   me, line);
-    free(line); return 1;
+    free(line);
+    return 1;
   }
   keysep[0] = 0;
   keysep[1] = 0;
   key = line;
-  value = keysep+2;
+  value = keysep + 2;
 
   /* convert escape sequences */
   airUnescape(key);
@@ -1002,18 +972,16 @@ _nrrdReadNrrdParse_keyvalue(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_sample_units(FILE *file, Nrrd *nrrd,
-                                NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_sample_units";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_sample_units(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_sample_units";
   char *info;
 
   AIR_UNUSED(file);
   info = nio->line + nio->pos;
 
   if (strlen(info) && !(nrrd->sampleUnits = airStrdup(info))) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: couldn't strdup() sampleUnits", me);
+    biffMaybeAddf(useBiff, NRRD, "%s: couldn't strdup() sampleUnits", me);
     return 1;
   }
   if (_nrrdFieldCheck[nrrdField_sample_units](nrrd, useBiff)) {
@@ -1023,10 +991,9 @@ _nrrdReadNrrdParse_sample_units(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_space(FILE *file, Nrrd *nrrd,
-                         NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_space";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_space(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_space";
   char *info;
   int space;
 
@@ -1035,12 +1002,12 @@ _nrrdReadNrrdParse_space(FILE *file, Nrrd *nrrd,
   if (nio->seen[nrrdField_space_dimension]) {
     biffMaybeAddf(useBiff, NRRD,
                   "%s: can't specify space after specifying "
-                  "space dimension (%d)", me, nrrd->spaceDim);
+                  "space dimension (%d)",
+                  me, nrrd->spaceDim);
     return 1;
   }
   if (!(space = airEnumVal(nrrdSpace, info))) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: couldn't parse space \"%s\"", me, info);
+    biffMaybeAddf(useBiff, NRRD, "%s: couldn't parse space \"%s\"", me, info);
     return 1;
   }
   if (nrrdSpaceSet(nrrd, space)) {
@@ -1054,10 +1021,10 @@ _nrrdReadNrrdParse_space(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_space_dimension(FILE *file, Nrrd *nrrd,
-                                   NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_space_dimension";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_space_dimension(FILE *file, Nrrd *nrrd, NrrdIoState *nio,
+                                   int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_space_dimension";
   char *info;
 
   AIR_UNUSED(file);
@@ -1065,7 +1032,8 @@ _nrrdReadNrrdParse_space_dimension(FILE *file, Nrrd *nrrd,
   if (nio->seen[nrrdField_space]) {
     biffMaybeAddf(useBiff, NRRD,
                   "%s: can't specify space dimension after specifying "
-                  "space (%s)", me, airEnumStr(nrrdSpace, nrrd->space));
+                  "space (%s)",
+                  me, airEnumStr(nrrdSpace, nrrd->space));
     return 1;
   }
   _PARSE_ONE_VAL(nrrd->spaceDim, "%u", "unsigned int");
@@ -1076,12 +1044,11 @@ _nrrdReadNrrdParse_space_dimension(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_space_units(FILE *file, Nrrd *nrrd,
-                               NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_space_units";
-  char *h;  /* this is the "here" pointer which gradually progresses
-               through all the units (for all axes) */
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_space_units(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_space_units";
+  char *h; /* this is the "here" pointer which gradually progresses
+              through all the units (for all axes) */
   unsigned int ai;
   char *info;
 
@@ -1092,16 +1059,15 @@ _nrrdReadNrrdParse_space_units(FILE *file, Nrrd *nrrd,
   /* printf("!%s: info |%s|\n", me, info); */
   _CHECK_HAVE_SPACE_DIM;
   h = info;
-  for (ai=0; ai<nrrd->spaceDim; ai++) {
-    if (!( nrrd->spaceUnits[ai] = _nrrdGetQuotedString(&h, useBiff) )) {
-      biffMaybeAddf(useBiff, NRRD, "%s: couldn't get get space unit %d of %d",
-                    me, ai+1, nrrd->spaceDim);
+  for (ai = 0; ai < nrrd->spaceDim; ai++) {
+    if (!(nrrd->spaceUnits[ai] = _nrrdGetQuotedString(&h, useBiff))) {
+      biffMaybeAddf(useBiff, NRRD, "%s: couldn't get get space unit %d of %d", me,
+                    ai + 1, nrrd->spaceDim);
       return 1;
     }
   }
   if (_nrrdGetQuotedString(&h, AIR_FALSE)) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: seemed to have more than expected %d space units",
+    biffMaybeAddf(useBiff, NRRD, "%s: seemed to have more than expected %d space units",
                   me, nrrd->spaceDim);
     return 1;
   }
@@ -1112,10 +1078,9 @@ _nrrdReadNrrdParse_space_units(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_space_origin(FILE *file, Nrrd *nrrd,
-                                NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_space_origin";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_space_origin(FILE *file, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_space_origin";
   char *info;
 
   AIR_UNUSED(file);
@@ -1123,10 +1088,8 @@ _nrrdReadNrrdParse_space_origin(FILE *file, Nrrd *nrrd,
 
   _CHECK_HAVE_SPACE_DIM;
 
-  if (_nrrdSpaceVectorParse(nrrd->spaceOrigin, &info,
-                            nrrd->spaceDim, useBiff)) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: couldn't parse origin \"%s\"", me, info);
+  if (_nrrdSpaceVectorParse(nrrd->spaceOrigin, &info, nrrd->spaceDim, useBiff)) {
+    biffMaybeAddf(useBiff, NRRD, "%s: couldn't parse origin \"%s\"", me, info);
     return 1;
   }
   if (_nrrdFieldCheck[nrrdField_space_origin](nrrd, useBiff)) {
@@ -1136,10 +1099,10 @@ _nrrdReadNrrdParse_space_origin(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-static int
-_nrrdReadNrrdParse_measurement_frame(FILE *file, Nrrd *nrrd,
-                                     NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_measurement_frame";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_measurement_frame(FILE *file, Nrrd *nrrd, NrrdIoState *nio,
+                                     int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_measurement_frame";
   double colvec[NRRD_SPACE_DIM_MAX];
   unsigned int dd, ii;
   char *info;
@@ -1149,28 +1112,24 @@ _nrrdReadNrrdParse_measurement_frame(FILE *file, Nrrd *nrrd,
 
   _CHECK_HAVE_SPACE_DIM;
 
-  for (dd=0; dd<nrrd->spaceDim; dd++) {
+  for (dd = 0; dd < nrrd->spaceDim; dd++) {
     /* we are going through the *columns* of the mf matrix */
     if (_nrrdSpaceVectorParse(colvec, &info, nrrd->spaceDim, useBiff)) {
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: trouble getting space vector %d of %d",
-                    me, dd+1, nrrd->spaceDim);
+      biffMaybeAddf(useBiff, NRRD, "%s: trouble getting space vector %d of %d", me,
+                    dd + 1, nrrd->spaceDim);
       return 1;
     }
-    for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
-      nrrd->measurementFrame[dd][ii] = (ii < nrrd->spaceDim
-                                        ? colvec[ii]
-                                        : AIR_NAN);
+    for (ii = 0; ii < NRRD_SPACE_DIM_MAX; ii++) {
+      nrrd->measurementFrame[dd][ii] = (ii < nrrd->spaceDim ? colvec[ii] : AIR_NAN);
     }
   }
   if (strlen(info) != strspn(info, _nrrdFieldSep)) {
-    biffMaybeAddf(useBiff, NRRD,
-                  "%s: seem to have more than expected %d directions",
-                  me, nrrd->spaceDim);
+    biffMaybeAddf(useBiff, NRRD, "%s: seem to have more than expected %d directions", me,
+                  nrrd->spaceDim);
     return 1;
   }
-  for (dd=nrrd->spaceDim; dd<NRRD_SPACE_DIM_MAX; dd++) {
-    for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
+  for (dd = nrrd->spaceDim; dd < NRRD_SPACE_DIM_MAX; dd++) {
+    for (ii = 0; ii < NRRD_SPACE_DIM_MAX; ii++) {
       nrrd->measurementFrame[dd][ii] = AIR_NAN;
     }
   }
@@ -1181,14 +1140,14 @@ _nrrdReadNrrdParse_measurement_frame(FILE *file, Nrrd *nrrd,
   return 0;
 }
 
-int
-_nrrdContainsPercentThisAndMore(const char *str, char thss) {
+int /* Biff: nope */
+nrrdContainsPercentThisAndMore(const char *str, char thss) {
   const char *hh, *tmp;
 
   tmp = str;
   do {
     hh = strchr(tmp, '%');
-    if (!( hh && hh[1] )) {
+    if (!(hh && hh[1])) {
       return 0;
     }
     if ('%' == hh[1]) {
@@ -1200,14 +1159,14 @@ _nrrdContainsPercentThisAndMore(const char *str, char thss) {
   } while (tmp[0]);
   hh++;
   hh += strspn(hh, "0123456789");
-  if (!( hh[0] == thss )) {
+  if (!(hh[0] == thss)) {
     return 0;
   }
   hh += strcspn(hh, _nrrdFieldSep);
   return !!hh;
 }
 
-unsigned int
+unsigned int /* Biff: nope */
 _nrrdDataFNNumber(NrrdIoState *nio) {
   unsigned int ret;
   int ii;
@@ -1215,9 +1174,8 @@ _nrrdDataFNNumber(NrrdIoState *nio) {
   if (nio->dataFNFormat) {
     /* datafiles given in iterator form; count number of values */
     ret = 0;
-    for (ii = nio->dataFNMin;
-         ((nio->dataFNStep > 0 && ii <= nio->dataFNMax)
-          || (nio->dataFNStep < 0 && ii >= nio->dataFNMax));
+    for (ii = nio->dataFNMin; ((nio->dataFNStep > 0 && ii <= nio->dataFNMax)
+                               || (nio->dataFNStep < 0 && ii >= nio->dataFNMax));
          ii += nio->dataFNStep) {
       ret += 1;
     }
@@ -1236,14 +1194,15 @@ _nrrdDataFNNumber(NrrdIoState *nio) {
 /*
 ** this always requires that the per-axis size fields have been set
 */
-int
+int /* Biff: maybe:3:1 */
 _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff) {
-  static const char me[]="_nrrdDataFNCheck";
+  static const char me[] = "_nrrdDataFNCheck";
   size_t pieceSize, pieceNum;
   char stmp[AIR_STRLEN_SMALL];
 
   if (!nio->seen[nrrdField_sizes]) {
-    biffMaybeAddf(useBiff, NRRD, "%s: sorry, currently can't handle "
+    biffMaybeAddf(useBiff, NRRD,
+                  "%s: sorry, currently can't handle "
                   "multiple detached data files without first knowing "
                   "the \"%s\" field",
                   me, airEnumStr(nrrdField, nrrdField_sizes));
@@ -1255,32 +1214,30 @@ _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff) {
     if (pieceNum != _nrrdDataFNNumber(nio)) {
       biffMaybeAddf(useBiff, NRRD,
                     "%s: expected %s filenames (of %u-D pieces) "
-                    "but got %u", me,
-                    airSprintSize_t(stmp, pieceNum), nio->dataFileDim,
+                    "but got %u",
+                    me, airSprintSize_t(stmp, pieceNum), nio->dataFileDim,
                     _nrrdDataFNNumber(nio));
       return 1;
     }
   } else {
     /* we're getting data in "slabs" with the same dimension as the
        nrrd, so for simplicity we assume that they're all equal size */
-    if (_nrrdDataFNNumber(nio) > nrrd->axis[nrrd->dim-1].size) {
+    if (_nrrdDataFNNumber(nio) > nrrd->axis[nrrd->dim - 1].size) {
       biffMaybeAddf(useBiff, NRRD,
                     "%s: can't have more pieces (%u) than axis %u "
                     "slices (%s) when nrrd dimension and "
-                    "datafile dimension are both %u", me,
-                    _nrrdDataFNNumber(nio),
-                    nrrd->dim-1,
-                    airSprintSize_t(stmp, nrrd->axis[nrrd->dim-1].size),
-                    nrrd->dim);
+                    "datafile dimension are both %u",
+                    me, _nrrdDataFNNumber(nio), nrrd->dim - 1,
+                    airSprintSize_t(stmp, nrrd->axis[nrrd->dim - 1].size), nrrd->dim);
       return 1;
     }
-    if ((double)nrrd->axis[nrrd->dim-1].size/_nrrdDataFNNumber(nio)
-        != nrrd->axis[nrrd->dim-1].size/_nrrdDataFNNumber(nio)) {
+    if ((double)nrrd->axis[nrrd->dim - 1].size / _nrrdDataFNNumber(nio)
+        != nrrd->axis[nrrd->dim - 1].size / _nrrdDataFNNumber(nio)) {
       biffMaybeAddf(useBiff, NRRD,
                     "%s: number of datafiles (%d) doesn't divide into "
-                    "number of axis %u slices (%s)", me,
-                    (int)_nrrdDataFNNumber(nio), nrrd->dim-1,
-                    airSprintSize_t(stmp, nrrd->axis[nrrd->dim-1].size));
+                    "number of axis %u slices (%s)",
+                    me, (int)_nrrdDataFNNumber(nio), nrrd->dim - 1,
+                    airSprintSize_t(stmp, nrrd->axis[nrrd->dim - 1].size));
       return 1;
     }
   }
@@ -1298,10 +1255,9 @@ _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff) {
 ** identifying multiple data files, and possibly prefixing them with
 ** nio->path.
 */
-static int
-_nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd,
-                             NrrdIoState *nio, int useBiff) {
-  static const char me[]="_nrrdReadNrrdParse_data_file";
+static int /* Biff: maybe:4:1 */
+_nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd, NrrdIoState *nio, int useBiff) {
+  static const char me[] = "_nrrdReadNrrdParse_data_file";
   char *info, *nums;
   unsigned int linelen, tmp;
   airArray *mop;
@@ -1315,9 +1271,9 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd,
   airMopAdd(mop, info, airFree, airMopAlways);
 
   /* HEY: this change should be made someday
-  if (_nrrdContainsPercentThisAndMore(info, 'd')
-      || _nrrdContainsPercentThisAndMore(info, 'u')) { */
-  if (_nrrdContainsPercentThisAndMore(info, 'd')) {
+  if (nrrdContainsPercentThisAndMore(info, 'd')
+      || nrrdContainsPercentThisAndMore(info, 'u')) { */
+  if (nrrdContainsPercentThisAndMore(info, 'd')) {
     /* ---------------------------------------------------------- */
     /* --------- format.%d <min> <max> <step> [<dim>] ----------- */
     /* ---------------------------------------------------------- */
@@ -1325,51 +1281,56 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd,
     _CHECK_HAVE_DIM;
     nums = info + strcspn(info, _nrrdFieldSep);
     sspn = strspn(nums, _nrrdFieldSep);
-    nums[0] = 0;   /* terminate so that format is now in info */
+    nums[0] = 0; /* terminate so that format is now in info */
     nums += sspn;
-    if (!( 3 == sscanf(nums, "%d %d %d",&(nio->dataFNMin),
-                       &(nio->dataFNMax), &(nio->dataFNStep)) )) {
+    if (!(3
+          == sscanf(nums, "%d %d %d", &(nio->dataFNMin), &(nio->dataFNMax),
+                    &(nio->dataFNStep)))) {
       biffMaybeAddf(useBiff, NRRD,
                     "%s: couldn't parse three ints (min, max, step) after "
-                    "data filename template", me);
-      airMopError(mop); return 1;
+                    "data filename template",
+                    me);
+      airMopError(mop);
+      return 1;
     }
-    if ( 4 == sscanf(nums, "%d %d %d %u", &(nio->dataFNMin),
-                     &(nio->dataFNMax), &(nio->dataFNStep),
-                     &(nio->dataFileDim)) ) {
+    if (4
+        == sscanf(nums, "%d %d %d %u", &(nio->dataFNMin), &(nio->dataFNMax),
+                  &(nio->dataFNStep), &(nio->dataFileDim))) {
       if (!AIR_IN_CL(1, nio->dataFileDim, nrrd->dim)) {
         biffMaybeAddf(useBiff, NRRD,
-                      "%s: datafile dimension %u outside valid range [1,%u]",
-                      me, nio->dataFileDim, nrrd->dim);
-        airMopError(mop); return 1;
+                      "%s: datafile dimension %u outside valid range [1,%u]", me,
+                      nio->dataFileDim, nrrd->dim);
+        airMopError(mop);
+        return 1;
       }
     } else {
-      nio->dataFileDim = nrrd->dim-1;
+      nio->dataFileDim = nrrd->dim - 1;
     }
     if (0 == nio->dataFNStep) {
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: file number step must be non-zero", me);
-      airMopError(mop); return 1;
+      biffMaybeAddf(useBiff, NRRD, "%s: file number step must be non-zero", me);
+      airMopError(mop);
+      return 1;
     }
-    if ((nio->dataFNMax - nio->dataFNMin)*(nio->dataFNStep) < 0) {
+    if ((nio->dataFNMax - nio->dataFNMin) * (nio->dataFNStep) < 0) {
       biffMaybeAddf(useBiff, NRRD,
                     "%s: file number max %d not approached from min %d "
-                    "by step %d", me,
-                    nio->dataFNMax, nio->dataFNMin, nio->dataFNStep);
-      airMopError(mop); return 1;
+                    "by step %d",
+                    me, nio->dataFNMax, nio->dataFNMin, nio->dataFNStep);
+      airMopError(mop);
+      return 1;
     }
-    if (!( nio->dataFNFormat = airStrdup(info) )) {
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: couldn't copy data filename format", me);
-      airMopError(mop); return 1;
+    if (!(nio->dataFNFormat = airStrdup(info))) {
+      biffMaybeAddf(useBiff, NRRD, "%s: couldn't copy data filename format", me);
+      airMopError(mop);
+      return 1;
     }
     if (_nrrdDataFNCheck(nio, nrrd, useBiff)) {
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: trouble with number of datafiles", me);
-      airMopError(mop); return 1;
+      biffMaybeAddf(useBiff, NRRD, "%s: trouble with number of datafiles", me);
+      airMopError(mop);
+      return 1;
     }
-  } else if (!strncmp(info, NRRD_LIST_FLAG, strlen(NRRD_LIST_FLAG)) ||
-             !strncmp(info, NRRD_SKIPLIST_FLAG, strlen(NRRD_SKIPLIST_FLAG))) {
+  } else if (!strncmp(info, NRRD_LIST_FLAG, strlen(NRRD_LIST_FLAG))
+             || !strncmp(info, NRRD_SKIPLIST_FLAG, strlen(NRRD_SKIPLIST_FLAG))) {
     int skiplist;
     unsigned int lineidx;
     /* ---------------------------------------------------------- */
@@ -1378,41 +1339,48 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd,
     _CHECK_HAVE_DIM;
     skiplist = !strncmp(info, NRRD_SKIPLIST_FLAG, strlen(NRRD_SKIPLIST_FLAG));
     if (_nrrdHeaderCheck(nrrd, nio, AIR_TRUE)) {
-      biffMaybeAddf(useBiff, NRRD, "%s: NRRD header is incomplete. "
+      biffMaybeAddf(useBiff, NRRD,
+                    "%s: NRRD header is incomplete. "
                     "\"%s\" data file specification must be "
-                    "contiguous with end of header!", me,
-                    skiplist ? NRRD_SKIPLIST_FLAG : NRRD_LIST_FLAG);
-      airMopError(mop); return 1;
+                    "contiguous with end of header!",
+                    me, skiplist ? NRRD_SKIPLIST_FLAG : NRRD_LIST_FLAG);
+      airMopError(mop);
+      return 1;
     }
     info += strlen(skiplist ? NRRD_SKIPLIST_FLAG : NRRD_LIST_FLAG);
     if (info[0]) {
       if (1 == sscanf(info, "%u", &(nio->dataFileDim))) {
         if (!AIR_IN_CL(1, nio->dataFileDim, nrrd->dim)) {
-          biffMaybeAddf(useBiff, NRRD, "%s: datafile dimension %u outside "
+          biffMaybeAddf(useBiff, NRRD,
+                        "%s: datafile dimension %u outside "
                         "valid range [1,%u]",
                         me, nio->dataFileDim, nrrd->dim);
-          airMopError(mop); return 1;
+          airMopError(mop);
+          return 1;
         }
       } else {
-        biffMaybeAddf(useBiff, NRRD, "%s: couldn't parse info after "
-                      "\"%s\" as an int", me,
-                      skiplist ? NRRD_SKIPLIST_FLAG : NRRD_LIST_FLAG);
-        airMopError(mop); return 1;
+        biffMaybeAddf(useBiff, NRRD,
+                      "%s: couldn't parse info after "
+                      "\"%s\" as an int",
+                      me, skiplist ? NRRD_SKIPLIST_FLAG : NRRD_LIST_FLAG);
+        airMopError(mop);
+        return 1;
       }
     } else {
       /* nothing after NRRD_LIST_FLAG or NRRD_SKIPLIST_FLAG,
          so dataFileDim is implicit */
-      nio->dataFileDim = nrrd->dim-1;
+      nio->dataFileDim = nrrd->dim - 1;
     }
     /* read in all the datafile names */
     lineidx = 0;
     do {
       /* yes, nio->line is re-used/over-written here, but I don't
          think that's a problem */
-      if (_nrrdOneLine(&linelen, nio, ffile)) {
-        biffMaybeAddf(useBiff, NRRD,
-                      "%s: trouble getting file name line %u", me, lineidx);
-        airMopError(mop); return 1;
+      if (nrrdOneLine(&linelen, nio, ffile)) {
+        biffMaybeAddf(useBiff, NRRD, "%s: trouble getting file name line %u", me,
+                      lineidx);
+        airMopError(mop);
+        return 1;
       }
       if (linelen > 0) {
         /* we got a non-empty line */
@@ -1420,22 +1388,28 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd,
           char *lhere;
           long int oneskip;
           if (1 != airSingleSscanf(nio->line, "%ld", &oneskip)) {
-            biffMaybeAddf(useBiff, NRRD,
-                          "%s: couldn't parse skip on list line %u",
-                          me, lineidx);
-            airMopError(mop); return 1;
+            biffMaybeAddf(useBiff, NRRD, "%s: couldn't parse skip on list line %u", me,
+                          lineidx);
+            airMopError(mop);
+            return 1;
           }
           lhere = strchr(nio->line, ' ');
           if (!lhere) {
-            biffMaybeAddf(useBiff, NRRD, "%s: didn't see space after "
-                          "skip on list line %u", me, lineidx);
-            airMopError(mop); return 1;
+            biffMaybeAddf(useBiff, NRRD,
+                          "%s: didn't see space after "
+                          "skip on list line %u",
+                          me, lineidx);
+            airMopError(mop);
+            return 1;
           }
           lhere++;
           if (!(lhere[0])) {
-            biffMaybeAddf(useBiff, NRRD, "%s: didn't see filename after "
-                          "skip and space on list line %u", me, lineidx);
-            airMopError(mop); return 1;
+            biffMaybeAddf(useBiff, NRRD,
+                          "%s: didn't see filename after "
+                          "skip and space on list line %u",
+                          me, lineidx);
+            airMopError(mop);
+            return 1;
           }
           airArrayLenIncr(nio->dataFSkipArr, 1);
           nio->dataFSkip[lineidx] = oneskip;
@@ -1449,9 +1423,9 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd,
       ++lineidx;
     } while (linelen > 0);
     if (_nrrdDataFNCheck(nio, nrrd, useBiff)) {
-      biffMaybeAddf(useBiff, NRRD,
-                    "%s: trouble with number of datafiles", me);
-      airMopError(mop); return 1;
+      biffMaybeAddf(useBiff, NRRD, "%s: trouble with number of datafiles", me);
+      airMopError(mop);
+      return 1;
     }
   } else {
     /* ---------------------------------------------------------- */
@@ -1472,43 +1446,111 @@ _nrrdReadNrrdParse_data_file(FILE *ffile, Nrrd *nrrd,
 **
 ** These are all for parsing the stuff AFTER the colon
 */
-int
-(*nrrdFieldInfoParse[NRRD_FIELD_MAX+1])(FILE *, Nrrd *,
-                                        NrrdIoState *, int) = {
-  _nrrdReadNrrdParse_nonfield,
-  _nrrdReadNrrdParse_comment,
-  _nrrdReadNrrdParse_content,
-  _nrrdReadNrrdParse_number,
-  _nrrdReadNrrdParse_type,
-  _nrrdReadNrrdParse_block_size,
-  _nrrdReadNrrdParse_dimension,
-  _nrrdReadNrrdParse_space,
-  _nrrdReadNrrdParse_space_dimension,
-  _nrrdReadNrrdParse_sizes,
-  _nrrdReadNrrdParse_spacings,
-  _nrrdReadNrrdParse_thicknesses,
-  _nrrdReadNrrdParse_axis_mins,
-  _nrrdReadNrrdParse_axis_maxs,
-  _nrrdReadNrrdParse_space_directions,
-  _nrrdReadNrrdParse_centers,
-  _nrrdReadNrrdParse_kinds,
-  _nrrdReadNrrdParse_labels,
-  _nrrdReadNrrdParse_units,
-  _nrrdReadNrrdParse_min,
-  _nrrdReadNrrdParse_max,
-  _nrrdReadNrrdParse_old_min,
-  _nrrdReadNrrdParse_old_max,
-  _nrrdReadNrrdParse_endian,
-  _nrrdReadNrrdParse_encoding,
-  _nrrdReadNrrdParse_line_skip,
-  _nrrdReadNrrdParse_byte_skip,
-  _nrrdReadNrrdParse_keyvalue,
-  _nrrdReadNrrdParse_sample_units,
-  _nrrdReadNrrdParse_space_units,
-  _nrrdReadNrrdParse_space_origin,
-  _nrrdReadNrrdParse_measurement_frame,
-  _nrrdReadNrrdParse_data_file
-};
+int (*const nrrdFieldInfoParse[NRRD_FIELD_MAX + 1])(FILE *, Nrrd *, NrrdIoState *, int)
+  = {_nrrdReadNrrdParse_nonfield,
+     _nrrdReadNrrdParse_comment,
+     _nrrdReadNrrdParse_content,
+     _nrrdReadNrrdParse_number,
+     _nrrdReadNrrdParse_type,
+     _nrrdReadNrrdParse_block_size,
+     _nrrdReadNrrdParse_dimension,
+     _nrrdReadNrrdParse_space,
+     _nrrdReadNrrdParse_space_dimension,
+     _nrrdReadNrrdParse_sizes,
+     _nrrdReadNrrdParse_spacings,
+     _nrrdReadNrrdParse_thicknesses,
+     _nrrdReadNrrdParse_axis_mins,
+     _nrrdReadNrrdParse_axis_maxs,
+     _nrrdReadNrrdParse_space_directions,
+     _nrrdReadNrrdParse_centers,
+     _nrrdReadNrrdParse_kinds,
+     _nrrdReadNrrdParse_labels,
+     _nrrdReadNrrdParse_units,
+     _nrrdReadNrrdParse_min,
+     _nrrdReadNrrdParse_max,
+     _nrrdReadNrrdParse_old_min,
+     _nrrdReadNrrdParse_old_max,
+     _nrrdReadNrrdParse_endian,
+     _nrrdReadNrrdParse_encoding,
+     _nrrdReadNrrdParse_line_skip,
+     _nrrdReadNrrdParse_byte_skip,
+     _nrrdReadNrrdParse_keyvalue,
+     _nrrdReadNrrdParse_sample_units,
+     _nrrdReadNrrdParse_space_units,
+     _nrrdReadNrrdParse_space_origin,
+     _nrrdReadNrrdParse_measurement_frame,
+     _nrrdReadNrrdParse_data_file};
 
 /* kernel parsing is all in kernel.c */
 
+/* nrrdStringValsParse[]: parse N values of given type from string
+   NB: based on air/parseAir.c
+*/
+#define P_ARGS (void *_out, const char *_s, const char *sep, size_t n)
+#define P_BODY(type, ntype)                                                             \
+  size_t i;                                                                             \
+  char *tmp, *s, *last;                                                                 \
+  const char *format;                                                                   \
+  type *out;                                                                            \
+                                                                                        \
+  /* if we got NULL, there's nothing to do */                                           \
+  if (!(_out && _s && sep)) return 0;                                                   \
+  format = nrrdTypePrintfStr[ntype];                                                    \
+  out = (type *)_out;                                                                   \
+  /* copy the input so that we don't change it */                                       \
+  s = airStrdup(_s);                                                                    \
+                                                                                        \
+  /* keep calling airStrtok() until we have everything */                               \
+  for (i = 0; i < n; i++) {                                                             \
+    tmp = airStrtok(i ? NULL : s, sep, &last);                                          \
+    if (!tmp) {                                                                         \
+      free(s);                                                                          \
+      return i;                                                                         \
+    }                                                                                   \
+    if (1 != airSingleSscanf(tmp, format, out + i)) {                                   \
+      free(s);                                                                          \
+      return i;                                                                         \
+    }                                                                                   \
+  }                                                                                     \
+  free(s);                                                                              \
+  return n
+
+/* clang-format off */
+static size_t   _parseChar P_ARGS { P_BODY(          char,   nrrdTypeChar); }
+static size_t  _parseUChar P_ARGS { P_BODY( unsigned char,  nrrdTypeUChar); }
+static size_t  _parseShort P_ARGS { P_BODY(         short,  nrrdTypeShort); }
+static size_t _parseUShort P_ARGS { P_BODY(unsigned short, nrrdTypeUShort); }
+static size_t    _parseInt P_ARGS { P_BODY(           int,    nrrdTypeInt); }
+static size_t   _parseUInt P_ARGS { P_BODY(  unsigned int,   nrrdTypeUInt); }
+static size_t  _parseLLong P_ARGS { P_BODY(      airLLong,  nrrdTypeLLong); }
+static size_t _parseULLong P_ARGS { P_BODY(     airULLong, nrrdTypeULLong); }
+static size_t  _parseFloat P_ARGS { P_BODY(         float,  nrrdTypeFloat); }
+static size_t _parseDouble P_ARGS { P_BODY(        double, nrrdTypeDouble); }
+static size_t _parseNoop(void *out, const char *s, const char *sep, size_t n) {
+  AIR_UNUSED(out);
+  AIR_UNUSED(s);
+  AIR_UNUSED(sep);
+  AIR_UNUSED(n);
+  return 0;
+}
+#undef P_ARGS
+#undef P_BODY
+
+size_t
+(*const nrrdStringValsParse[NRRD_TYPE_MAX+1])(void *out, const char *s,
+                                              const char *sep, size_t n)
+= {
+   _parseNoop, /* 0 = unknown */
+   _parseChar,
+   _parseUChar,
+   _parseShort,
+   _parseUShort,
+   _parseInt,
+   _parseUInt,
+   _parseLLong,
+   _parseULLong,
+   _parseFloat,
+   _parseDouble,
+   _parseNoop /* block */
+};
+/* clang-format on */

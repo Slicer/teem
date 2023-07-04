@@ -1,37 +1,33 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "limn.h"
 #include "privateLimn.h"
 
 #define INFO "Select some subset of primitives"
-static const char *myinfo =
-(INFO
- ". Can either specify a range, or a list, or not, until implemented.");
+static const char *myinfo
+  = (INFO ". Can either specify a range, or a list, or not, until implemented.");
 
-int
-limnpu_pselMain(int argc, const char **argv, const char *me,
-                hestParm *hparm) {
+static int
+limnPu_pselMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
   char *err, *perr;
   airArray *mop;
@@ -47,8 +43,7 @@ limnpu_pselMain(int argc, const char **argv, const char *me,
   hestOptAdd(&hopt, "r", "range", airTypeUInt, 2, 2, prange, NULL,
              "range of indices of primitives to select");
   hestOptAdd(&hopt, NULL, "input", airTypeOther, 1, 1, &pldIn, NULL,
-             "input polydata filename",
-             NULL, NULL, limnHestPolyDataLMPD);
+             "input polydata filename", NULL, NULL, limnHestPolyDataLMPD);
   hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
              "output polydata filename");
 
@@ -59,16 +54,14 @@ limnpu_pselMain(int argc, const char **argv, const char *me,
   PARSE();
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( prange[0] <= pldIn->primNum-1 &&
-         prange[1] <= pldIn->primNum-1 )) {
-    fprintf(stderr, "%s: prange[0] %u or [1] %u outside range [0,%u]", me,
-            prange[0], prange[1], pldIn->primNum-1);
+  if (!(prange[0] <= pldIn->primNum - 1 && prange[1] <= pldIn->primNum - 1)) {
+    fprintf(stderr, "%s: prange[0] %u or [1] %u outside range [0,%u]", me, prange[0],
+            prange[1], pldIn->primNum - 1);
     airMopError(mop);
     return 1;
   }
-  if (!( prange[0] <= prange[1] )) {
-    fprintf(stderr, "%s: need prange[0] %u <= [1] %u", me,
-            prange[0], prange[1]);
+  if (!(prange[0] <= prange[1])) {
+    fprintf(stderr, "%s: need prange[0] %u <= [1] %u", me, prange[0], prange[1]);
     airMopError(mop);
     return 1;
   }
@@ -84,7 +77,7 @@ limnpu_pselMain(int argc, const char **argv, const char *me,
   }
 
   sel = AIR_CAST(double *, nsel->data);
-  for (pi=prange[0]; pi<=prange[1]; pi++) {
+  for (pi = prange[0]; pi <= prange[1]; pi++) {
     sel[pi] = 1;
   }
 
@@ -102,5 +95,4 @@ limnpu_pselMain(int argc, const char **argv, const char *me,
   return 0;
 }
 
-unrrduCmd limnpu_pselCmd = { "psel", INFO, limnpu_pselMain, AIR_FALSE };
-
+const unrrduCmd limnPu_pselCmd = {"psel", INFO, limnPu_pselMain, AIR_FALSE};

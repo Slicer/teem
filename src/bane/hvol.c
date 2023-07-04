@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "bane.h"
@@ -37,9 +35,9 @@
 ** and stderr to appear in the right order
 */
 
-int
-_baneAxisCheck (baneAxis *ax) {
-  static const char me[]="_baneAxisCheck";
+int /* Biff: (private) 1 */
+_baneAxisCheck(baneAxis *ax) {
+  static const char me[] = "_baneAxisCheck";
 
   if (!(ax->res >= 2)) {
     biffAddf(BANE, "%s: need resolution at least 2 (not %d)", me, ax->res);
@@ -59,14 +57,13 @@ _baneAxisCheck (baneAxis *ax) {
 }
 
 void
-baneProbe(double val[3],
-          Nrrd *nin, baneHVolParm *hvp, gageContext *ctx,
-          unsigned int x, unsigned int y, unsigned int z) {
-  float *data=NULL;
+baneProbe(double val[3], Nrrd *nin, baneHVolParm *hvp, gageContext *ctx, unsigned int x,
+          unsigned int y, unsigned int z) {
+  float *data = NULL;
 
   if (hvp->makeMeasrVol) {
-    data = ( (float*)(hvp->measrVol->data)
-             + 3*(x + nin->axis[0].size*(y + nin->axis[1].size*z)) );
+    data = ((float *)(hvp->measrVol->data)
+            + 3 * (x + nin->axis[0].size * (y + nin->axis[1].size * z)));
   }
   if (!hvp->makeMeasrVol || !hvp->measrVolDone) {
     gageProbe(ctx, x, y, z);
@@ -74,9 +71,9 @@ baneProbe(double val[3],
     val[1] = baneMeasrAnswer(hvp->axis[1].measr, ctx);
     val[2] = baneMeasrAnswer(hvp->axis[2].measr, ctx);
     if (hvp->makeMeasrVol) {
-      data[0] = AIR_CAST(float, val[0]);
-      data[1] = AIR_CAST(float, val[1]);
-      data[2] = AIR_CAST(float, val[2]);
+      data[0] = AIR_FLOAT(val[0]);
+      data[1] = AIR_FLOAT(val[1]);
+      data[2] = AIR_FLOAT(val[2]);
     }
   } else {
     val[0] = data[0];
@@ -86,12 +83,11 @@ baneProbe(double val[3],
   return;
 }
 
-int
-baneFindInclusion(double min[3], double max[3],
-                  Nrrd *nin, baneHVolParm *hvp, gageContext *ctx) {
-  static const char me[]="baneFindInclusion";
-  char prog[13],
-    aname[3][AIR_STRLEN_SMALL] = {"grad-mag", "2nd deriv", "data value"};
+int /* Biff: 1 */
+baneFindInclusion(double min[3], double max[3], Nrrd *nin, baneHVolParm *hvp,
+                  gageContext *ctx) {
+  static const char me[] = "baneFindInclusion";
+  char prog[13], aname[3][AIR_STRLEN_SMALL] = {"grad-mag", "2nd deriv", "data value"};
   int sx, sy, sz, x, y, z, E, ai;
   baneInc *inc[3];
   /* HEY HEY HEY:  The variable "hist" is used before its value is set.
@@ -100,18 +96,17 @@ baneFindInclusion(double min[3], double max[3],
   double val[3];
 
   /* conveniance copies */
-  sx = nin->axis[0].size;
-  sy = nin->axis[1].size;
-  sz = nin->axis[2].size;
+  sx = AIR_INT(nin->axis[0].size); /* HEY should be unsigned */
+  sy = AIR_INT(nin->axis[1].size); /* HEY should be unsigned */
+  sz = AIR_INT(nin->axis[2].size); /* HEY should be unsigned */
   inc[0] = hvp->axis[0].inc;
   inc[1] = hvp->axis[1].inc;
   inc[2] = hvp->axis[2].inc;
   if (hvp->verbose) {
-    fprintf(stderr, "%s: inclusions: %s %s %s\n", me,
-            inc[0]->name, inc[1]->name, inc[2]->name);
-    fprintf(stderr, "%s: measures: %s %s %s\n", me,
-            hvp->axis[0].measr->name, hvp->axis[1].measr->name,
-            hvp->axis[2].measr->name);
+    fprintf(stderr, "%s: inclusions: %s %s %s\n", me, inc[0]->name, inc[1]->name,
+            inc[2]->name);
+    fprintf(stderr, "%s: measures: %s %s %s\n", me, hvp->axis[0].measr->name,
+            hvp->axis[1].measr->name, hvp->axis[2].measr->name);
     /*
     fprintf(stderr, "%s: gage query:\n", me);
     ctx->pvl[0]->kind->queryPrint(stderr, ctx->pvl[0]->query);
@@ -131,31 +126,27 @@ baneFindInclusion(double min[3], double max[3],
     fprintf(stderr, "%s: pass A of inclusion initialization ...       ", me);
     fflush(stderr);
   }
-  if (inc[0]->process[0]
-      || inc[1]->process[0]
-      || inc[2]->process[0]) {
+  if (inc[0]->process[0] || inc[1]->process[0] || inc[2]->process[0]) {
     /*
     fprintf(stderr, "%s: inclusion pass CBs = %p %p %p \n", me,
             incPass[0], incPass[1], incPass[2]);
     */
     if (hvp->makeMeasrVol && !hvp->measrVol) {
-      if (nrrdMaybeAlloc_va(hvp->measrVol=nrrdNew(), nrrdTypeFloat, 4,
-                            AIR_CAST(size_t, 3),
-                            AIR_CAST(size_t, sx),
-                            AIR_CAST(size_t, sy),
-                            AIR_CAST(size_t, sz))) {
-        biffMovef(BANE, NRRD, "%s: couldn't allocate 3x%dx%dx%d VGH volume",
-                  me, sx, sy, sz);
+      if (nrrdMaybeAlloc_va(hvp->measrVol = nrrdNew(), nrrdTypeFloat, 4,
+                            AIR_CAST(size_t, 3), AIR_CAST(size_t, sx),
+                            AIR_CAST(size_t, sy), AIR_CAST(size_t, sz))) {
+        biffMovef(BANE, NRRD, "%s: couldn't allocate 3x%dx%dx%d VGH volume", me, sx, sy,
+                  sz);
         return 1;
       }
     }
-    for (z=0; z<sz; z++) {
-      for (y=0; y<sy; y++) {
-        if (hvp->verbose && !((y+sy*z)%200)) {
-          fprintf(stderr, "%s", airDoneStr(0, y+sy*z, sy*sz, prog));
+    for (z = 0; z < sz; z++) {
+      for (y = 0; y < sy; y++) {
+        if (hvp->verbose && !((y + sy * z) % 200)) {
+          fprintf(stderr, "%s", airDoneStr(0, y + sy * z, sy * sz, prog));
           fflush(stderr);
         }
-        for (x=0; x<sx; x++) {
+        for (x = 0; x < sx; x++) {
           baneProbe(val, nin, hvp, ctx, x, y, z);
           if (inc[0]->process[0]) inc[0]->process[0](inc[0], val[0]);
           if (inc[1]->process[0]) inc[1]->process[0](inc[1], val[1]);
@@ -168,8 +159,7 @@ baneFindInclusion(double min[3], double max[3],
       /* nrrdSave("VGH.nrrd", hvp->measrVol, NULL); */
     }
   }
-  if (hvp->verbose)
-    fprintf(stderr, "\b\b\b\b\b\b  done\n");
+  if (hvp->verbose) fprintf(stderr, "\b\b\b\b\b\b  done\n");
   /* HEY HEY HEY:  The variable "hist" is used before its value is set.
   if (hvp->verbose > 1) {
     fprintf(stderr, "%s: after pass A; ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
@@ -184,27 +174,23 @@ baneFindInclusion(double min[3], double max[3],
     fprintf(stderr, "%s: pass B of inclusion initialization ...       ", me);
     fflush(stderr);
   }
-  if (inc[0]->process[1]
-      || inc[1]->process[1]
-      || inc[2]->process[1]) {
+  if (inc[0]->process[1] || inc[1]->process[1] || inc[2]->process[1]) {
     if (hvp->makeMeasrVol && !hvp->measrVol) {
-      if (nrrdMaybeAlloc_va(hvp->measrVol=nrrdNew(), nrrdTypeFloat, 4,
-                            AIR_CAST(size_t, 3),
-                            AIR_CAST(size_t, sx),
-                            AIR_CAST(size_t, sy),
-                            AIR_CAST(size_t, sz))) {
-        biffMovef(BANE, NRRD, "%s: couldn't allocate 3x%dx%dx%d VGH volume",
-                  me, sx, sy, sz);
+      if (nrrdMaybeAlloc_va(hvp->measrVol = nrrdNew(), nrrdTypeFloat, 4,
+                            AIR_CAST(size_t, 3), AIR_CAST(size_t, sx),
+                            AIR_CAST(size_t, sy), AIR_CAST(size_t, sz))) {
+        biffMovef(BANE, NRRD, "%s: couldn't allocate 3x%dx%dx%d VGH volume", me, sx, sy,
+                  sz);
         return 1;
       }
     }
-    for (z=0; z<sz; z++) {
-      for (y=0; y<sy; y++) {
-        if (hvp->verbose && !((y+sy*z)%200)) {
-          fprintf(stderr, "%s", airDoneStr(0, y+sy*z, sy*sz, prog));
+    for (z = 0; z < sz; z++) {
+      for (y = 0; y < sy; y++) {
+        if (hvp->verbose && !((y + sy * z) % 200)) {
+          fprintf(stderr, "%s", airDoneStr(0, y + sy * z, sy * sz, prog));
           fflush(stderr);
         }
-        for (x=0; x<sx; x++) {
+        for (x = 0; x < sx; x++) {
           baneProbe(val, nin, hvp, ctx, x, y, z);
           if (inc[0]->process[1]) inc[0]->process[1](inc[0], val[0]);
           if (inc[1]->process[1]) inc[1]->process[1](inc[1], val[1]);
@@ -216,8 +202,7 @@ baneFindInclusion(double min[3], double max[3],
       hvp->measrVolDone = AIR_TRUE;
     }
   }
-  if (hvp->verbose)
-    fprintf(stderr, "\b\b\b\b\b\b  done\n");
+  if (hvp->verbose) fprintf(stderr, "\b\b\b\b\b\b  done\n");
   /* HEY HEY HEY:  The variable "hist" is used before its value is set.
   if (hvp->verbose > 1) {
     fprintf(stderr, "%s: after pass B; ranges: [%g,%g] [%g,%g] [%g,%g]\n", me,
@@ -246,12 +231,11 @@ baneFindInclusion(double min[3], double max[3],
     E |= baneIncAnswer(inc[2], 2 + min, 2 + max);
   }
   if (E) {
-    biffAddf(BANE, "%s: problem calculating inclusion for axis %d (%s)",
-             me, ai, aname[ai]);
+    biffAddf(BANE, "%s: problem calculating inclusion for axis %d (%s)", me, ai,
+             aname[ai]);
     return 1;
   }
-  if (hvp->verbose)
-    fprintf(stderr, "done\n");
+  if (hvp->verbose) fprintf(stderr, "done\n");
 
   /* HEY HEY HEY:  The variable "hist" is used before its value is set.
   nrrdNuke(hist[0]);
@@ -261,14 +245,13 @@ baneFindInclusion(double min[3], double max[3],
   return 0;
 }
 
-int
+int /* Biff: 1 */
 baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
-  static const char me[]="baneMakeHVol";
+  static const char me[] = "baneMakeHVol";
   char prog[13];
   gageContext *ctx;
   gagePerVolume *pvl;
-  int E, sx, sy, sz, shx, shy, shz, x, y, z, hx, hy, hz,
-    *rhvdata, clipVal, hval, pad;
+  int E, sx, sy, sz, shx, shy, shz, x, y, z, hx, hy, hz, *rhvdata, clipVal, pad;
   /* these are doubles because ultimately the inclusion functions
      use doubles, because I wanted the most generality */
   double val[3], min[3], max[3];
@@ -288,9 +271,9 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   }
 
   /* set up */
-  sx = nin->axis[0].size;
-  sy = nin->axis[1].size;
-  sz = nin->axis[2].size;
+  sx = AIR_INT(nin->axis[0].size); /* HEY should be unsigned */
+  sy = AIR_INT(nin->axis[1].size); /* HEY should be unsigned */
+  sz = AIR_INT(nin->axis[2].size); /* HEY should be unsigned */
 
   mop = airMopNew();
   ctx = gageContextNew();
@@ -301,17 +284,21 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   gageParmSet(ctx, gageParmCheckIntegrals, AIR_TRUE);
   if (!hvp->k3pack) {
     biffAddf(BANE, "%s: code currently assumes k3pack", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   gageParmSet(ctx, gageParmK3Pack, hvp->k3pack);
   E = 0;
   if (!E) E |= gagePerVolumeAttach(ctx, pvl);
-  if (!E) E |= gageKernelSet(ctx, gageKernel00, hvp->k[gageKernel00],
-                             hvp->kparm[gageKernel00]);
-  if (!E) E |= gageKernelSet(ctx, gageKernel11, hvp->k[gageKernel11],
-                             hvp->kparm[gageKernel11]);
-  if (!E) E |= gageKernelSet(ctx, gageKernel22, hvp->k[gageKernel22],
-                             hvp->kparm[gageKernel22]);
+  if (!E)
+    E |= gageKernelSet(ctx, gageKernel00, hvp->k[gageKernel00],
+                       hvp->kparm[gageKernel00]);
+  if (!E)
+    E |= gageKernelSet(ctx, gageKernel11, hvp->k[gageKernel11],
+                       hvp->kparm[gageKernel11]);
+  if (!E)
+    E |= gageKernelSet(ctx, gageKernel22, hvp->k[gageKernel22],
+                       hvp->kparm[gageKernel22]);
   if (!E) E |= gageQueryReset(ctx, pvl);
   if (!E) E |= gageQueryAdd(ctx, pvl, hvp->axis[0].measr->query);
   if (!E) E |= gageQueryAdd(ctx, pvl, hvp->axis[1].measr->query);
@@ -319,35 +306,37 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   if (!E) E |= gageUpdate(ctx);
   if (E) {
     biffMovef(BANE, GAGE, "%s: trouble setting up gage", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   pad = ctx->radius;
 
   if (baneFindInclusion(min, max, nin, hvp, ctx)) {
     biffAddf(BANE, "%s: trouble finding inclusion ranges", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (max[0] == min[0]) {
     max[0] += 1;
     if (hvp->verbose)
-      fprintf(stderr, "%s: fixing range 0 [%g,%g] --> [%g,%g]\n",
-              me, min[0], min[0], min[0], max[0]);
+      fprintf(stderr, "%s: fixing range 0 [%g,%g] --> [%g,%g]\n", me, min[0], min[0],
+              min[0], max[0]);
   }
   if (max[1] == min[1]) {
     max[1] += 1;
     if (hvp->verbose)
-      fprintf(stderr, "%s: fixing range 1 [%g,%g] --> [%g,%g]\n",
-              me, min[1], min[1], min[1], max[1]);
+      fprintf(stderr, "%s: fixing range 1 [%g,%g] --> [%g,%g]\n", me, min[1], min[1],
+              min[1], max[1]);
   }
   if (max[2] == min[2]) {
     max[2] += 1;
     if (hvp->verbose)
-      fprintf(stderr, "%s: fixing range 2 [%g,%g] --> [%g,%g]\n",
-              me, min[2], min[2], min[2], max[2]);
+      fprintf(stderr, "%s: fixing range 2 [%g,%g] --> [%g,%g]\n", me, min[2], min[2],
+              min[2], max[2]);
   }
   if (hvp->verbose)
-    fprintf(stderr, "%s: inclusion: 0:[%g,%g], 1:[%g,%g], 2:[%g,%g]\n", me,
-            min[0], max[0], min[1], max[1], min[2], max[2]);
+    fprintf(stderr, "%s: inclusion: 0:[%g,%g], 1:[%g,%g], 2:[%g,%g]\n", me, min[0],
+            max[0], min[1], max[1], min[2], max[2]);
 
   /* construct the "raw" (un-clipped) histogram volume */
   if (hvp->verbose) {
@@ -357,38 +346,36 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   shx = hvp->axis[0].res;
   shy = hvp->axis[1].res;
   shz = hvp->axis[2].res;
-  if (nrrdMaybeAlloc_va(rawhvol=nrrdNew(), nrrdTypeInt, 3,
-                        AIR_CAST(size_t, shx),
-                        AIR_CAST(size_t, shy),
-                        AIR_CAST(size_t, shz))) {
-    biffMovef(BANE, NRRD,
-              "%s: couldn't allocate raw histovol (%dx%dx%d)",
-              me, shx, shy, shz);
-    airMopError(mop); return 1;
+  if (nrrdMaybeAlloc_va(rawhvol = nrrdNew(), nrrdTypeInt, 3, AIR_CAST(size_t, shx),
+                        AIR_CAST(size_t, shy), AIR_CAST(size_t, shz))) {
+    biffMovef(BANE, NRRD, "%s: couldn't allocate raw histovol (%dx%dx%d)", me, shx, shy,
+              shz);
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, rawhvol, (airMopper)nrrdNuke, airMopAlways);
   rhvdata = (int *)rawhvol->data;
   included = 0;
 
-  for (z=pad; z<sz-pad; z++) {
-    for (y=pad; y<sy-pad; y++) {
-      if (hvp->verbose && !((y-pad+(sy-2*pad)*(z-pad))%200)) {
-        fprintf(stderr, "%s", airDoneStr(0, y-pad+(sy-2*pad)*(z-pad),
-                                         (sy-2*pad)*(sz-2*pad), prog));
+  for (z = pad; z < sz - pad; z++) {
+    for (y = pad; y < sy - pad; y++) {
+      if (hvp->verbose && !((y - pad + (sy - 2 * pad) * (z - pad)) % 200)) {
+        fprintf(stderr, "%s",
+                airDoneStr(0, y - pad + (sy - 2 * pad) * (z - pad),
+                           (sy - 2 * pad) * (sz - 2 * pad), prog));
         fflush(stderr);
       }
-      for (x=pad; x<sx-pad; x++) {
+      for (x = pad; x < sx - pad; x++) {
         baneProbe(val, nin, hvp, ctx, x, y, z);
-        if (!( AIR_IN_CL(min[0], val[0], max[0]) &&
-               AIR_IN_CL(min[1], val[1], max[1]) &&
-               AIR_IN_CL(min[2], val[2], max[2]) )) {
+        if (!(AIR_IN_CL(min[0], val[0], max[0]) && AIR_IN_CL(min[1], val[1], max[1])
+              && AIR_IN_CL(min[2], val[2], max[2]))) {
           continue;
         }
         /* else this voxel will contribute to the histovol */
         hx = airIndex(min[0], val[0], max[0], shx);
         hy = airIndex(min[1], val[1], max[1], shy);
         hz = airIndex(min[2], val[2], max[2], shz);
-        hidx = hx + shx*(hy + shy*hz);
+        hidx = hx + shx * (hy + shy * hz);
         if (rhvdata[hidx] < INT_MAX) {
           ++rhvdata[hidx];
         }
@@ -396,35 +383,34 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
       }
     }
   }
-  fracIncluded = (float)included/((sz-2*pad)*(sy-2*pad)*(sx-2*pad));
+  fracIncluded = (float)included / ((sz - 2 * pad) * (sy - 2 * pad) * (sx - 2 * pad));
   if (fracIncluded < hvp->incLimit) {
-    biffAddf(BANE, "%s: included only %g%% of data, wanted at least %g%%",
-             me, 100*fracIncluded, 100*hvp->incLimit);
-    airMopError(mop); return 1;
+    biffAddf(BANE, "%s: included only %g%% of data, wanted at least %g%%", me,
+             100 * fracIncluded, 100 * hvp->incLimit);
+    airMopError(mop);
+    return 1;
   }
   if (hvp->verbose) {
     fprintf(stderr, "\b\b\b\b\b\b  done\n");
-    fprintf(stderr, "%s: included %g%% of original voxels\n", me,
-            fracIncluded*100);
+    fprintf(stderr, "%s: included %g%% of original voxels\n", me, fracIncluded * 100);
   }
 
   /* determine the clipping value and produce the final histogram volume */
   if (baneClipAnswer(&clipVal, hvp->clip, rawhvol)) {
     biffAddf(BANE, "%s: trouble determining clip value", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  if (hvp->verbose)
-    fprintf(stderr, "%s: will clip at %d\n", me, clipVal);
+  if (hvp->verbose) fprintf(stderr, "%s: will clip at %d\n", me, clipVal);
   if (hvp->verbose) {
     fprintf(stderr, "%s: creating 8-bit histogram volume ...       ", me);
     fflush(stderr);
   }
-  if (nrrdMaybeAlloc_va(hvol, nrrdTypeUChar, 3,
-                        AIR_CAST(size_t, shx),
-                        AIR_CAST(size_t, shy),
-                        AIR_CAST(size_t, shz))) {
+  if (nrrdMaybeAlloc_va(hvol, nrrdTypeUChar, 3, AIR_CAST(size_t, shx),
+                        AIR_CAST(size_t, shy), AIR_CAST(size_t, shz))) {
     biffMovef(BANE, NRRD, "%s: couldn't alloc finished histovol", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, hvol, (airMopper)nrrdEmpty, airMopOnError);
   hvol->axis[0].min = min[0];
@@ -440,29 +426,27 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   hvol->axis[1].center = nrrdCenterCell;
   hvol->axis[2].center = nrrdCenterCell;
   nhvdata = (unsigned char *)hvol->data;
-  for (hz=0; hz<shz; hz++) {
-    for (hy=0; hy<shy; hy++) {
-      if (hvp->verbose && !((hy+shy*hz)%200)) {
-        fprintf(stderr, "%s", airDoneStr(0, hy+shy*hz, shy*shz, prog));
+  for (hz = 0; hz < shz; hz++) {
+    for (hy = 0; hy < shy; hy++) {
+      if (hvp->verbose && !((hy + shy * hz) % 200)) {
+        fprintf(stderr, "%s", airDoneStr(0, hy + shy * hz, shy * shz, prog));
         fflush(stderr);
       }
-      for (hx=0; hx<shx; hx++) {
-        hidx = hx + shx*(hy + shy*hz);
-        hval = airIndexClamp(0, rhvdata[hidx], clipVal, 256);
-        nhvdata[hidx] = hval;
+      for (hx = 0; hx < shx; hx++) {
+        hidx = hx + shx * (hy + shy * hz);
+        nhvdata[hidx] = AIR_UCHAR(airIndexClamp(0, rhvdata[hidx], clipVal, 256));
       }
     }
   }
-  if (hvp->verbose)
-    fprintf(stderr, "\b\b\b\b\b\b  done\n");
+  if (hvp->verbose) fprintf(stderr, "\b\b\b\b\b\b  done\n");
 
   airMopOkay(mop);
   return 0;
 }
 
-Nrrd *
+Nrrd * /* Biff: NULL */
 baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc) {
-  static const char me[]="baneGKMSHVol";
+  static const char me[] = "baneGKMSHVol";
   baneHVolParm *hvp;
   Nrrd *hvol;
 
@@ -476,7 +460,8 @@ baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc) {
   hvol = nrrdNew();
   if (baneMakeHVol(hvol, nin, hvp)) {
     biffAddf(BANE, "%s: trouble making GKMS histogram volume", me);
-    free(hvp); return NULL;
+    free(hvp);
+    return NULL;
   }
   baneHVolParmNix(hvp);
   return hvol;
@@ -485,7 +470,7 @@ baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc) {
 /*
 int
 baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
-  static const char me[]="baneApplyMeasr";
+  static const char me[] = "baneApplyMeasr";
   int sx, sy, sz, x, y, z, marg;
   baneMeasrType msr;
   nrrdBigInt idx;

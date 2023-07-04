@@ -1,25 +1,23 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
-
 
 #include "../hest.h"
 
@@ -30,33 +28,31 @@ main(int argc, const char **argv) {
   int n, *ints, numN;
   hestOpt *opt = NULL;
   hestParm *parm;
-  char *err = NULL, info[] =
-    "This program does nothing in particular, though it does attempt "
-    "to pose as some sort of command-line image processing program. "
-    "As usual, any implied functionality is purely coincidental, "
-    "especially since this is the output of a unicyclist.";
+  char *err = NULL,
+       info[] = "This program does nothing in particular, though it does attempt "
+                "to pose as some sort of command-line image processing program. "
+                "As usual, any implied functionality is purely coincidental, "
+                "especially since this is the output of a unicyclist.";
 
   parm = hestParmNew();
   parm->respFileEnable = AIR_TRUE;
+  parm->respectDashDashHelp = AIR_TRUE;
   parm->verbosity = 3;
 
   opt = NULL;
-  hestOptAdd(&opt, "v,verbose",     "level", airTypeInt,    0,  1,  &v,   "0",
-             "verbosity level");
-  hestOptAdd(&opt, "out",   "file",  airTypeString, 1,  1,  &out, "output.ppm",
+  hestOptAdd(&opt, "v,verbose", "level", airTypeInt, 0, 1, &v, "0", "verbosity level");
+  hestOptAdd(&opt, "out", "file", airTypeString, 1, 1, &out, "output.ppm",
              "PPM image output");
-  hestOptAdd(&opt, "blah",  "input", airTypeString, 3,  3,  blah,  "a b c",
+  hestOptAdd(&opt, "blah", "input", airTypeString, 3, 3, blah, "a b c",
              "input image file(s)");
-  hestOptAdd(&opt, "option","opt", airTypeString, 0, 1, &option, "default",
+  hestOptAdd(&opt, "option", "opt", airTypeString, 0, 1, &option, "default",
              "this is just a test");
-  hestOptAdd(&opt, NULL,    "input", airTypeString, 1, -1,  &in,  NULL,
-             "input image file(s)", &numIn);
-  hestOptAdd(&opt, "ints",  "N",     airTypeInt,    1,  -1, &ints,  "10 20 30",
+  hestOptAdd(&opt, "ints", "N", airTypeInt, 1, -1, &ints, "10 20 30",
              "a list of integers", &numN);
-  hestOptAdd(&opt, "res",   "sx sy", airTypeInt,    2,  2,  res,  NULL,
-             "image resolution");
+  hestOptAdd(&opt, "res", "sx sy", airTypeInt, 2, 2, res, NULL, "image resolution");
+  hestOptAdd(&opt, NULL, "input", airTypeString, 1, -1, &in, NULL, "input image file(s)",
+             &numIn);
 
-  printf("what 0\n");
   if (1 == argc) {
     /* didn't get anything at all on command line */
     /* print program information ... */
@@ -70,44 +66,54 @@ main(int argc, const char **argv) {
     exit(1);
   }
 
-  printf("what 1\n");
-
   /* else we got something, see if we can parse it */
-  if (hestParse(opt, argc-1, argv+1, &err, parm)) {
-    fprintf(stderr, "ERROR: %s\n", err); free(err);
+  if (hestParse(opt, argc - 1, argv + 1, &err, parm)) {
+    fprintf(stderr, "ERROR: %s\n", err);
+    free(err);
     /* print usage information ... */
     hestUsage(stderr, opt, argv[0], parm);
     hestGlossary(stderr, opt, parm);
     /* ... and then avoid memory leaks */
     opt = hestOptFree(opt);
     parm = hestParmFree(parm);
-    printf(" ---- in = %lx\n", (unsigned long)in);
-    printf(" ---- blah[0] = %lx\n", (unsigned long)(blah[0]));
-    printf(" ---- option = %lx\n", (unsigned long)option);
+    exit(1);
+  } else if (opt->helpWanted) {
+    hestUsage(stdout, opt, argv[0], parm);
+    hestGlossary(stdout, opt, parm);
+    opt = hestOptFree(opt);
+    parm = hestParmFree(parm);
     exit(1);
   }
-  printf("what 2\n");
 
+  {
+    unsigned int opi, numO;
+    numO = hestOptNum(opt);
+    for (opi = 0; opi < numO; opi++) {
+      printf("opt %u/%u:\n", opi, numO);
+      printf("  flag=%s; ", opt[opi].flag ? opt[opi].flag : "(null)");
+      printf("  name=%s\n", opt[opi].name ? opt[opi].name : "(null)");
+      printf("  source=%s; ", hestSourceDefault == opt[opi].source
+                                ? "default"
+                                : (hestSourceUser == opt[opi].source ? "user" : "???"));
+      printf("  parmStr=|%s|\n", opt[opi].parmStr ? opt[opi].parmStr : "(null)");
+    }
+  }
   printf("(err = %s)\n", err ? err : "(null)");
   printf("  v = %d\n", v);
   printf("out = \"%s\"\n", out ? out : "(null)");
   printf("blah = \"%s\" \"%s\" \"%s\"\n", blah[0], blah[1], blah[2]);
   printf("option = \"%s\"\n", option ? option : "(null)");
   printf("res = %d %d\n", res[0], res[1]);
-  /*
-  printf(" ---- in = %lx\n", (unsigned long)in);
-  printf(" in = %d files:", numIn);
-  for (n=0; n<=numIn-1; n++) {
+  printf("\nin = %d files:", numIn);
+  for (n = 0; n <= numIn - 1; n++) {
     printf(" \"%s\"", in[n] ? in[n] : "(null)");
   }
   printf("\n");
-  */
-  printf(" ints = %d ints:", numN);
-  for (n=0; n<=numN-1; n++) {
+  printf("ints = %d ints:", numN);
+  for (n = 0; n <= numN - 1; n++) {
     printf(" %d", ints[n]);
   }
   printf("\n");
-  printf("what 3\n");
 
   /* free the memory allocated by parsing ... */
   hestParseFree(opt);

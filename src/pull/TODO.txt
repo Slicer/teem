@@ -1,0 +1,70 @@
+http://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/
+
+==6235== Memcheck, a memory error detector
+==6235== Copyright (C) 2002-2012, and GNU GPL'd, by Julian Seward et al.
+==6235== Using Valgrind-3.8.0 and LibVEX; rerun with -h for copyright info
+==6235== Command: puller -v 0 -vol img.nrrd:scalar:V -info h-c:V:val:0:-1 hgvec:V:gvec hhess:V:hess tan1:V:hevec1 spthr:M:val:0.05:1 lthr:M:val:0.05:1 hgvec:V:gvec hhess:V:hess strn:VSN:hf:0:1 sthr:VSN:hf:0.01:1 lthr2:VSN:hf:0.01:1 h-c:V:val:0:-1 tan1:V:hevec2 -zz true -nave false -alpha 1 -efs false -ac3c true -irad 0.05 -int justr -enr bwell:0.66,-0.02 -pcp 5 -edpcmin 0.1 -eip 0.01 -eiphl 20 -k00 c4h -k11 c4hd -k22 c4hdd -rng 4000 -np 30 -ess 0.3 -oss 1.2 -maxi 300 -edmin 0.00001 -o xy.nrrd
+==6235== 
+puller: trouble with volumes or infos:
+[meet] meetPullInfoAddMulti: can't find volName "M" for minf[4]
+[meet] [pull] pullVolumeLookup: trouble looking up "M"
+[meet] [pull] _pullVolumeIndex: no volume has name "M"
+==6235== Invalid read of size 8
+==6235==    at 0x100008ABE: pullInfoSpecNix (infoPull.c:128)
+==6235==    by 0x10000DA91: pullContextNix (contextPull.c:125)
+==6235==    by 0x1000F8FE5: airMopError (mop.c:278)
+==6235==    by 0x100002C5A: main (puller.c:1145)
+==6235==  Address 0x1004fc488 is 8 bytes inside a block of size 48 free'd
+==6235==    at 0xDCB8: free (vg_replace_malloc.c:450)
+==6235==    by 0x1000F4E1D: airFree (miscAir.c:88)
+==6235==    by 0x100008ACE: pullInfoSpecNix (infoPull.c:129)
+==6235==    by 0x1000F8FE5: airMopError (mop.c:278)
+==6235==    by 0x1000059D0: meetPullInfoAddMulti (meetPull.c:738)
+==6235==    by 0x100002D07: main (puller.c:1169)
+==6235== 
+==6235== Invalid free() / delete / delete[] / realloc()
+==6235==    at 0xDCB8: free (vg_replace_malloc.c:450)
+==6235==    by 0x1000F4E1D: airFree (miscAir.c:88)
+==6235==    by 0x100008AC6: pullInfoSpecNix (infoPull.c:128)
+==6235==    by 0x10000DA91: pullContextNix (contextPull.c:125)
+==6235==    by 0x1000F8FE5: airMopError (mop.c:278)
+==6235==    by 0x100002C5A: main (puller.c:1145)
+==6235==  Address 0x1004fc620 is 0 bytes inside a block of size 2 free'd
+==6235==    at 0xDCB8: free (vg_replace_malloc.c:450)
+==6235==    by 0x1000F4E1D: airFree (miscAir.c:88)
+==6235==    by 0x100008AC6: pullInfoSpecNix (infoPull.c:128)
+==6235==    by 0x1000F8FE5: airMopError (mop.c:278)
+==6235==    by 0x1000059D0: meetPullInfoAddMulti (meetPull.c:738)
+==6235==    by 0x100002D07: main (puller.c:1169)
+==6235== 
+==6235== Invalid free() / delete / delete[] / realloc()
+==6235==    at 0xDCB8: free (vg_replace_malloc.c:450)
+==6235==    by 0x1000F4E1D: airFree (miscAir.c:88)
+==6235==    by 0x100008ACE: pullInfoSpecNix (infoPull.c:129)
+==6235==    by 0x10000DA91: pullContextNix (contextPull.c:125)
+==6235==    by 0x1000F8FE5: airMopError (mop.c:278)
+==6235==    by 0x100002C5A: main (puller.c:1145)
+==6235==  Address 0x1004fc480 is 0 bytes inside a block of size 48 free'd
+==6235==    at 0xDCB8: free (vg_replace_malloc.c:450)
+==6235==    by 0x1000F4E1D: airFree (miscAir.c:88)
+==6235==    by 0x100008ACE: pullInfoSpecNix (infoPull.c:129)
+==6235==    by 0x1000F8FE5: airMopError (mop.c:278)
+==6235==    by 0x1000059D0: meetPullInfoAddMulti (meetPull.c:738)
+==6235==    by 0x100002D07: main (puller.c:1169)
+==6235== 
+==6235== 
+==6235== HEAP SUMMARY:
+==6235==     in use at exit: 3,910 bytes in 51 blocks
+==6235==   total heap usage: 1,143 allocs, 1,100 frees, 3,153,805 bytes allocated
+==6235== 
+==6235== LEAK SUMMARY:
+==6235==    definitely lost: 0 bytes in 0 blocks
+==6235==    indirectly lost: 0 bytes in 0 blocks
+==6235==      possibly lost: 0 bytes in 0 blocks
+==6235==    still reachable: 3,910 bytes in 51 blocks
+==6235==         suppressed: 0 bytes in 0 blocks
+==6235== Rerun with --leak-check=full to see details of leaked memory
+==6235== 
+==6235== For counts of detected and suppressed errors, rerun with: -v
+==6235== ERROR SUMMARY: 12 errors from 3 contexts (suppressed: 0 from 0)
+[soba:sss-vis13/figs/ticks] gk% 

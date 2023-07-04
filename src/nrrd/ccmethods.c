@@ -1,49 +1,46 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-int
+int /* Biff: 0 */
 nrrdCCValid(const Nrrd *nin) {
-  static const char me[]="nrrdCCValid";
+  static const char me[] = "nrrdCCValid";
 
   if (nrrdCheck(nin)) {
     biffAddf(NRRD, "%s: basic validity check failed", me);
     return 0;
   }
-  if (!( nrrdTypeIsIntegral[nin->type] )) {
+  if (!(nrrdTypeIsIntegral[nin->type])) {
     biffAddf(NRRD, "%s: need an integral type (not %s)", me,
              airEnumStr(nrrdType, nin->type));
     return 0;
   }
-  if (!( nrrdTypeSize[nin->type] <= 2 ||
-         nrrdTypeInt == nin->type ||
-         nrrdTypeUInt == nin->type )) {
-    biffAddf(NRRD, "%s: valid connected component types are 1- and 2-byte "
-             "integers, and %s and %s", me,
-             airEnumStr(nrrdType, nrrdTypeInt),
-             airEnumStr(nrrdType, nrrdTypeUInt));
+  if (!(nrrdTypeSize[nin->type] <= 2 || nrrdTypeInt == nin->type
+        || nrrdTypeUInt == nin->type)) {
+    biffAddf(NRRD,
+             "%s: valid connected component types are 1- and 2-byte "
+             "integers, and %s and %s",
+             me, airEnumStr(nrrdType, nrrdTypeInt), airEnumStr(nrrdType, nrrdTypeUInt));
     return 0;
   }
   return 1;
@@ -54,28 +51,27 @@ nrrdCCValid(const Nrrd *nin) {
 ** - size
 ** - # neighbors (needs conny argument)
 ** - what else?
+** but HEY why is return unsigned int?
 */
-
-unsigned int
+unsigned int /* Biff: 1 */
 nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
-  static const char me[]="nrrdCCSize", func[]="ccsize";
+  static const char me[] = "nrrdCCSize", func[] = "ccsize";
   unsigned int *out, maxid, (*lup)(const void *, size_t);
   size_t I, NN;
 
-  if (!( nout && nrrdCCValid(nin) )) {
+  if (!(nout && nrrdCCValid(nin))) {
     biffAddf(NRRD, "%s: invalid args", me);
     return 1;
   }
   maxid = nrrdCCMax(nin);
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeUInt, 1,
-                        AIR_CAST(size_t, maxid+1))) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeUInt, 1, AIR_CAST(size_t, maxid + 1))) {
     biffAddf(NRRD, "%s: can't allocate output", me);
     return 1;
   }
   out = (unsigned int *)(nout->data);
   lup = nrrdUILookup[nin->type];
   NN = nrrdElementNumber(nin);
-  for (I=0; I<NN; I++) {
+  for (I = 0; I < NN; I++) {
     out[lup(nin->data, I)] += 1;
   }
   if (nrrdContentSet_va(nout, func, nin, "")) {
@@ -90,10 +86,8 @@ nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
 ******** nrrdCCMax
 **
 ** returns the highest CC ID, or 0 if there were problems
-**
-** does NOT use biff
 */
-unsigned int
+unsigned int /* Biff: nope */
 nrrdCCMax(const Nrrd *nin) {
   unsigned int (*lup)(const void *, size_t), id, max;
   size_t I, NN;
@@ -104,7 +98,7 @@ nrrdCCMax(const Nrrd *nin) {
   lup = nrrdUILookup[nin->type];
   NN = nrrdElementNumber(nin);
   max = 0;
-  for (I=0; I<NN; I++) {
+  for (I = 0; I < NN; I++) {
     id = lup(nin->data, I);
     max = AIR_MAX(max, id);
   }
@@ -117,7 +111,7 @@ nrrdCCMax(const Nrrd *nin) {
 ** returns the number of connected components (the # of CC IDs assigned)
 ** a return of 0 indicates an error
 */
-unsigned int
+unsigned int /* Biff: nope */
 nrrdCCNum(const Nrrd *nin) {
   unsigned int (*lup)(const void *, size_t), num;
   size_t I, max, NN;
@@ -129,15 +123,15 @@ nrrdCCNum(const Nrrd *nin) {
   lup = nrrdUILookup[nin->type];
   NN = nrrdElementNumber(nin);
   max = nrrdCCMax(nin);
-  hist = (unsigned char *)calloc(max+1, sizeof(unsigned char));
+  hist = (unsigned char *)calloc(max + 1, sizeof(unsigned char));
   if (!hist) {
     return 0;
   }
-  for (I=0; I<NN; I++) {
+  for (I = 0; I < NN; I++) {
     hist[lup(nin->data, I)] = 1;
   }
   num = 0;
-  for (I=0; I<=max; I++) {
+  for (I = 0; I <= max; I++) {
     num += hist[I];
   }
   free(hist);

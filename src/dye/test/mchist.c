@@ -1,23 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 
@@ -43,17 +42,17 @@ imageProc(Nrrd *nhproj[3], Nrrd *nhist[2], unsigned int sH,
     rr = AIR_CLAMP(0, rgb[0], 255);
     gg = AIR_CLAMP(0, rgb[1], 255);
     bb = AIR_CLAMP(0, rgb[2], 255);
-    rr = AIR_AFFINE(-1, rr, 256, 0, 1);
-    gg = AIR_AFFINE(-1, gg, 256, 0, 1);
-    bb = AIR_AFFINE(-1, bb, 256, 0, 1);
+    rr = (float)AIR_AFFINE(-1, rr, 256, 0, 1);
+    gg = (float)AIR_AFFINE(-1, gg, 256, 0, 1);
+    bb = (float)AIR_AFFINE(-1, bb, 256, 0, 1);
     dyeRGBtoHSV(&hh, &ss, &vv, rr, gg, bb);
     si = airIndexClamp(0, ss, 1, sH);
     vi = airIndexClamp(0, vv, 1, sH);
 
 #define UPDATE_HIST(rnd)                                                \
     hi = airIndexClamp(0, hh + overSampleScale*(1-ss)*(rnd), 1, sH);    \
-    hist[0][hi + sH*si] += 1.0/overSampleNum;                           \
-    hist[1][hi + sH*vi] += 1.0/overSampleNum
+    hist[0][hi + sH*si] += 1.0f/overSampleNum;                           \
+    hist[1][hi + sH*vi] += 1.0f/overSampleNum
 
     if (overSampleNum % 2 == 1) {
       airNormalRand(&rndA, NULL);
@@ -146,9 +145,9 @@ main(int argc, const char *argv[]) {
   }
   rsmc = nrrdResampleContextNew();
   airMopAdd(mop, rsmc, (airMopper)nrrdResampleContextNix, airMopAlways);
-  size0 = AIR_CAST(unsigned int, nin0->axis[0].size);
-  sX = AIR_CAST(unsigned int, upSample*nin0->axis[1].size);
-  sY = AIR_CAST(unsigned int, upSample*nin0->axis[2].size);
+  size0 = AIR_UINT(nin0->axis[0].size);
+  sX = AIR_UINT(upSample*nin0->axis[1].size);
+  sY = AIR_UINT(upSample*nin0->axis[2].size);
   nrgb = nrrdNew();
   airMopAdd(mop, nrgb, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdResampleDefaultCenterSet(rsmc, nrrdCenterCell)
@@ -265,7 +264,7 @@ main(int argc, const char *argv[]) {
     unsigned int hi;
     float hh, vv, ss, scl;
     for (hi=0; hi<sH; hi++) {
-      hh = AIR_AFFINE(0, hi, sH, 0, 1);
+      hh = (float)AIR_AFFINE(0, hi, sH, 0, 1);
       if (!preout[hi + 2*sH]) {
         ELL_3V_SET(out + 3*hi, 0, 0, 0);
       } else {

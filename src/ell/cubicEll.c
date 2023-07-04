@@ -1,30 +1,25 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "ell.h"
-
-
 
 /*
 ******** ell_cubic():
@@ -43,24 +38,21 @@
 **
 ** The values stored in root[] are, in a change from the past, sorted
 ** in descending order!  No need to sort them any more!
-**
-** This does NOT use biff
 */
-int
+int /* Biff: nope */
 ell_cubic(double root[3], double A, double B, double C, int newton) {
-  char me[]="ell_cubic";
-  double epsilon = 1.0E-11, AA, Q, R, QQQ, D, sqrt_D, der,
-    u, v, x, theta, t, sub;
+  static const char me[] = "ell_cubic";
+  double epsilon = 1.0E-11, AA, Q, R, QQQ, D, sqrt_D, der, u, v, x, theta, t, sub;
 
   /*
   printf("%s: A B C = %g %g %g\n", me, A, B, C);
   */
-  sub = A/3.0;
-  AA = A*A;
-  Q = (AA/3.0 - B)/3.0;
-  R = (-2.0*A*AA/27.0 + A*B/3.0 - C)/2.0;
-  QQQ = Q*Q*Q;
-  D = R*R - QQQ;
+  sub = A / 3.0;
+  AA = A * A;
+  Q = (AA / 3.0 - B) / 3.0;
+  R = (-2.0 * A * AA / 27.0 + A * B / 3.0 - C) / 2.0;
+  QQQ = Q * Q * Q;
+  D = R * R - QQQ;
   /*
   printf(" R = %15.30f\n Q = %15.30f\n QQQ = %15.30f\n D = %15.30f\n",
          R, Q, QQQ, D);
@@ -68,27 +60,26 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
   if (D < -epsilon) {
     /* three distinct roots- this is the most common case, it has
        been tested the most, its code should go first */
-    theta = acos(R/sqrt(QQQ))/3.0;
-    t = 2*sqrt(Q);
+    theta = acos(R / sqrt(QQQ)) / 3.0;
+    t = 2 * sqrt(Q);
     /* yes, these are sorted, because the C definition of acos says
        that it returns values in in [0, pi] */
-    root[0] = t*cos(theta) - sub;
-    root[1] = t*cos(theta - 2*AIR_PI/3.0) - sub;
-    root[2] = t*cos(theta + 2*AIR_PI/3.0) - sub;
+    root[0] = t * cos(theta) - sub;
+    root[1] = t * cos(theta - 2 * AIR_PI / 3.0) - sub;
+    root[2] = t * cos(theta + 2 * AIR_PI / 3.0) - sub;
     /*
     if (!AIR_EXISTS(root[0])) {
       fprintf(stderr, "%s: %g %g %g --> nan!!!\n", me, A, B, C);
     }
     */
     return ell_cubic_root_three;
-  }
-  else if (D > epsilon) {
+  } else if (D > epsilon) {
     double nr, fnr;
     /* one real solution, except maybe also a "rescued" double root */
     sqrt_D = sqrt(D);
-    u = airCbrt(sqrt_D+R);
-    v = -airCbrt(sqrt_D-R);
-    x = u+v - sub;
+    u = airCbrt(sqrt_D + R);
+    v = -airCbrt(sqrt_D - R);
+    x = u + v - sub;
     if (!newton) {
       root[0] = x;
       root[1] = root[2] = AIR_NAN;
@@ -97,14 +88,20 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
 
     /* else refine x, the known root, with newton-raphson, so as to get the
        most accurate possible calculation for nr, the possible new root */
-    x -= (der = (3*x + 2*A)*x + B, ((x/der + A/der)*x + B/der)*x + C/der);
-    x -= (der = (3*x + 2*A)*x + B, ((x/der + A/der)*x + B/der)*x + C/der);
-    x -= (der = (3*x + 2*A)*x + B, ((x/der + A/der)*x + B/der)*x + C/der);
-    x -= (der = (3*x + 2*A)*x + B, ((x/der + A/der)*x + B/der)*x + C/der);
-    x -= (der = (3*x + 2*A)*x + B, ((x/der + A/der)*x + B/der)*x + C/der);
-    x -= (der = (3*x + 2*A)*x + B, ((x/der + A/der)*x + B/der)*x + C/der);
-    nr = -(A + x)/2.0;
-    fnr = ((nr + A)*nr + B)*nr + C;  /* the polynomial evaluated at nr */
+    x -= (der = (3 * x + 2 * A) * x + B,
+          ((x / der + A / der) * x + B / der) * x + C / der);
+    x -= (der = (3 * x + 2 * A) * x + B,
+          ((x / der + A / der) * x + B / der) * x + C / der);
+    x -= (der = (3 * x + 2 * A) * x + B,
+          ((x / der + A / der) * x + B / der) * x + C / der);
+    x -= (der = (3 * x + 2 * A) * x + B,
+          ((x / der + A / der) * x + B / der) * x + C / der);
+    x -= (der = (3 * x + 2 * A) * x + B,
+          ((x / der + A / der) * x + B / der) * x + C / der);
+    x -= (der = (3 * x + 2 * A) * x + B,
+          ((x / der + A / der) * x + B / der) * x + C / der);
+    nr = -(A + x) / 2.0;
+    fnr = ((nr + A) * nr + B) * nr + C; /* the polynomial evaluated at nr */
     /*
     if (ell_debug) {
       fprintf(stderr, "%s: root = %g -> %g, nr=% 20.15f\n"
@@ -116,8 +113,7 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
       root[0] = x;
       root[1] = root[2] = AIR_NAN;
       return ell_cubic_root_single;
-    }
-    else {
+    } else {
       if (ell_debug) {
         fprintf(stderr, "%s: rescued double root:% 20.15f\n", me, nr);
       }
@@ -132,24 +128,22 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
       }
       return ell_cubic_root_single_double;
     }
-  }
-  else {
+  } else {
     /* else D is in the interval [-epsilon, +epsilon] */
     if (R < -epsilon || epsilon < R) {
       /* one double root and one single root */
       u = airCbrt(R);
       if (u > 0) {
-        root[0] = 2*u - sub;
+        root[0] = 2 * u - sub;
         root[1] = -u - sub;
         root[2] = -u - sub;
       } else {
         root[0] = -u - sub;
         root[1] = -u - sub;
-        root[2] = 2*u - sub;
+        root[2] = 2 * u - sub;
       }
       return ell_cubic_root_single_double;
-    }
-    else {
+    } else {
       /* one triple root */
       root[0] = root[1] = root[2] = -sub;
       return ell_cubic_root_triple;
@@ -158,7 +152,3 @@ ell_cubic(double root[3], double A, double B, double C, int newton) {
   /* shouldn't ever get here */
   /* return ell_cubic_root_unknown; */
 }
-
-
-
-

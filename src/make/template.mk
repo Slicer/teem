@@ -1,26 +1,26 @@
 #
-# Teem: Tools to process and visualize scientific data and images              
-# Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-# Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+# Teem: Tools to process and visualize scientific data and images
+# Copyright (C) 2009--2023  University of Chicago
+# Copyright (C) 2005--2008  Gordon Kindlmann
+# Copyright (C) 1998--2004  University of Utah
 #
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public License
-# (LGPL) as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
-# The terms of redistributing and/or modifying this software also
-# include exceptions to the LGPL that facilitate static linking.
+# This library is free software; you can redistribute it and/or modify it under the terms
+# of the GNU Lesser General Public License (LGPL) as published by the Free Software
+# Foundation; either version 2.1 of the License, or (at your option) any later version.
+# The terms of redistributing and/or modifying this software also include exceptions to
+# the LGPL that facilitate static linking.
 #
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
+# This library is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU Lesser General Public License
-# along with this library; if not, write to Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+# You should have received a copy of the GNU Lesser General Public License along with
+# this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+# Fifth Floor, Boston, MA 02110-1301 USA
 #
 
-#### 
+
+####
 #### template.mk: Defines rules which have the same structure for each
 #### library, but which refer to the specific constituents and
 #### prerequisites of the library.  The rules defined here are
@@ -129,10 +129,10 @@ endif
 ##   then add SHARED_INSTALL_NAME flag to the link command making the shared lib
 ## - ... $(LDFLAGS) $(LPATH) ...
 ## - all architectures: add "-l<lib>" for all <lib> that this lib relies on
-## - all architectures: add -L<path> and -l<lib> for external libraries that 
+## - all architectures: add -L<path> and -l<lib> for external libraries that
 ##   this library could depend on
 
-## maybebanner.(L)(obj) returns "echo ..." to show a library banner 
+## maybebanner.(L)(obj) returns "echo ..." to show a library banner
 ## progress indicator, but only if obj is the first object in $(L).OBJS.
 ## This mimics the behavior under the old recursive teem makefile.
 ##

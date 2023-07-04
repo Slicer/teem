@@ -1,32 +1,31 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "moss.h"
 #include "privateMoss.h"
 
-int
-_mossHestTransformParse (void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="_mossHestTransformParse", *str;
+static int
+_mossHestTransformParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "_mossHestTransformParse";
+  char *str;
   double **matP, tx, ty, sx, sy, angle, mat[6], shf, sha;
   airArray *mop;
 
@@ -65,29 +64,25 @@ _mossHestTransformParse (void *ptr, char *_str, char err[AIR_STRLEN_HUGE]) {
   } else if (2 == sscanf(str, "shear:%lf,%lf", &shf, &sha)) {
     mossMatShearSet(*matP, shf, sha);
 
-  } else if (6 == sscanf(str, "%lf,%lf,%lf,%lf,%lf,%lf",
-                         mat+0, mat+1, mat+2, mat+3, mat+4, mat+5)) {
+  } else if (6
+             == sscanf(str, "%lf,%lf,%lf,%lf,%lf,%lf", mat + 0, mat + 1, mat + 2,
+                       mat + 3, mat + 4, mat + 5)) {
     MOSS_MAT_COPY(*matP, mat);
 
   } else {
     sprintf(err, "%s: couldn't parse \"%s\" as a transform", me, _str);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
   return 0;
 }
 
-hestCB
-_mossHestTransform = {
-  sizeof(double*),
-  "2D transform",
-  _mossHestTransformParse,
-  airFree
-};
+static const hestCB _mossHestTransform = {sizeof(double *), "2D transform",
+                                          _mossHestTransformParse, airFree};
 
-hestCB *
-mossHestTransform = &_mossHestTransform;
+const hestCB *const mossHestTransform = &_mossHestTransform;
 
 /* ----------------------------------------------------------------- */
 
@@ -98,9 +93,9 @@ mossHestTransform = &_mossHestTransform;
 ** p(x,y): absolute pixel position --> val[3] = (0,x,y)
 ** u(x,y): position in unit box [0,1]x[0,1] --> val[3] = (1,x,y)
 */
-int
-_mossHestOriginParse (void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[]="_mossHestOriginParse";
+static int
+_mossHestOriginParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "_mossHestOriginParse";
   double **valP;
   airArray *mop;
 
@@ -114,21 +109,15 @@ _mossHestOriginParse (void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     (*valP)[0] = 1;
   } else {
     sprintf(err, "%s: couldn't parse \"%s\" as origin", me, str);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
   return 0;
 }
 
-hestCB
-_mossHestOrigin = {
-  sizeof(double*),
-  "origin specification",
-  _mossHestOriginParse,
-  airFree
-};
+static const hestCB _mossHestOrigin = {sizeof(double *), "origin specification",
+                                       _mossHestOriginParse, airFree};
 
-hestCB *
-mossHestOrigin = &_mossHestOrigin;
-
+const hestCB *const mossHestOrigin = &_mossHestOrigin;

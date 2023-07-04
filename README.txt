@@ -1,33 +1,29 @@
 ===============
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 =============== License information
 
-See above.  This preamble should appear on all released files. Full
-text of the Simple Library Usage License (SLUL) should be in the file
-"LICENSE.txt" in the "src" directory.  The SLUL is the GNU Lesser
-General Public License, plus an exception: statically-linked binaries
-that link with Teem can be destributed under the terms of your choice,
-with very modest provisions.
+See above.  This preamble should appear on all released files. Full text of the
+Simple Library Usage License (SLUL) should be in the file "LICENSE.txt".  The
+SLUL is the GNU Lesser General Public License, plus an exception:
+statically-linked binaries that link with Teem can be destributed under the
+terms of your choice, with very modest provisions.
 
 =============== How to compile
 
@@ -35,9 +31,24 @@ Use CMake to compile Teem.  CMake is available from:
 
 http://www.cmake.org/
 
-There are some instructions for building Teem with CMake at:
+An example sequence of commands to build Teem and the "unu" utility
+(with static-linking):
 
-http://teem.sourceforge.net/build.html
+  svn co https://svn.code.sf.net/p/teem/code/teem/trunk teem-src
+  mkdir teem-build
+  cd teem-build
+  cmake \
+    -D BUILD_EXPERIMENTAL_APPS=OFF -D BUILD_EXPERIMENTAL_LIBS=OFF \
+    -D BUILD_SHARED_LIBS=OFF -D BUILD_TESTING=OFF \
+    -D CMAKE_BUILD_TYPE=Release \
+    -D Teem_BZIP2=OFF -D Teem_FFTW3=OFF -D Teem_LEVMAR=OFF -D Teem_PTHREAD=OFF \
+    -D Teem_PNG=ON -D Teem_ZLIB=ON \
+    -D CMAKE_INSTALL_PREFIX:PATH=../teem-install \
+    ../teem-src
+  make install
+
+Use BUILD_SHARED_LIBS=ON to make a libteem shared library, which is the
+basis of the python wrappers (e.g. teem/python/cffi)
 
 =============== Directory Structure
 
@@ -62,10 +73,10 @@ http://teem.sourceforge.net/build.html
   Files related to compiling Teem with CMake
 
 * Testing/
-  Tests run by CTest.  More are being added.
+  Tests run by CTest.  More should be added.
 
 * data/
-  Small reference datasets; more will be added for testing
+  Small reference datasets; more may be added for testing
 
 * arch/
   When using the old GNU make system, objects and binaries are put
@@ -85,8 +96,13 @@ http://teem.sourceforge.net/build.html
 
 * python/
   For python wrappings
+  * python/cffi
+    Bindings for python via CFFI, for all of Teem (in teem.py), as well
+    as a way (exult.py) to create bindings for other C libraries that
+    depend on Teem (created in August 2022)
   * python/ctypes
-    Bindings for python via ctypes
+    Bindings for python via ctypes; currently out of date because it
+    depended on the moribund gccxml
 
 * Examples/
   Place for examples of Teem-using programs, but unfortunately
@@ -110,16 +126,17 @@ and support for NRRD file format (biff, hest, air)
 * ell: Linear algebra: operations on vectors, matrices and quaternions,
 and solving cubic polynomials. (nrrd, biff, air)
 
+* moss: Processing of 2D multi-channel images (ell, nrrd, biff, hest, air)
+
 * unrrdu: internals of "unu" command-line tool, and some machinery used
-in other multi-command tools (like "tend") (nrrd, biff, hest, air)
+in other multi-command tools (like "tend") (moss, nrrd, biff, hest, air)
+"unu ilk" is new home for "ilk" image transformer built on moss
 
 * alan: Reaction-diffusion textures (nrrd, ell, biff, air)
 
-* moss: Processing of 2D multi-channel images (ell, nrrd, biff, hest, air)
-
 * tijk: Spherical harmonics and higher-order tensors (ell, nrrd, air)
 
-* gage: Convolution-based measurement of 3D fields, or 4D scale-spacem
+* gage: Convolution-based measurement of 3D fields, or 4D scale-space
 (ell, nrrd, biff, air)
 
 * dye: Color spaces and conversion (ell, biff, air)

@@ -1,168 +1,123 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "echo.h"
 #include "privateEcho.h"
 
-#define NEW_TMPL(TYPE, BODY)                         \
-echo##TYPE *                                         \
-_echo##TYPE##_new(void) {                            \
-  echo##TYPE *obj;                                   \
-                                                     \
-  obj = (echo##TYPE *)calloc(1, sizeof(echo##TYPE)); \
-  obj->type = echoType##TYPE;                        \
-  do { BODY } while (0);                             \
-  return obj;                                        \
-}
+#define NEW_TMPL(TYPE, BODY)                                                            \
+  static echo##TYPE *_echo##TYPE##_new(void) {                                          \
+    echo##TYPE *obj;                                                                    \
+                                                                                        \
+    obj = (echo##TYPE *)calloc(1, sizeof(echo##TYPE));                                  \
+    obj->type = echoType##TYPE;                                                         \
+    do {                                                                                \
+      BODY                                                                              \
+    } while (0);                                                                        \
+    return obj;                                                                         \
+  }
 
-#define NIX_TMPL(TYPE, BODY)                         \
-echo##TYPE *                                         \
-_echo##TYPE##_nix(echo##TYPE *obj) {                 \
-  int dummy=0;                                       \
-                                                     \
-  if (obj) {                                         \
-    do { BODY dummy=dummy;} while (0);               \
-    airFree(obj);                                    \
-  }                                                  \
-  return NULL;                                       \
-}
+#define NIX_TMPL(TYPE, BODY)                                                            \
+  static echo##TYPE *_echo##TYPE##_nix(echo##TYPE *obj) {                               \
+    int dummy = 0;                                                                      \
+                                                                                        \
+    if (obj) {                                                                          \
+      do {                                                                              \
+        BODY dummy = dummy;                                                             \
+      } while (0);                                                                      \
+      airFree(obj);                                                                     \
+    }                                                                                   \
+    return NULL;                                                                        \
+  }
 
-void
+static void
 _echoMatterInit(echoObject *obj) {
 
   obj->matter = echoMatterUnknown;
   ELL_4V_SET(obj->rgba, 0, 0, 0, 0);
-  memset(obj->mat, 0,ECHO_MATTER_PARM_NUM*sizeof(echoCol_t));
+  memset(obj->mat, 0, ECHO_MATTER_PARM_NUM * sizeof(echoCol_t));
   obj->ntext = NULL;
 }
 
-NEW_TMPL(Sphere,
-         _echoMatterInit(OBJECT(obj));
-         ELL_3V_SET(obj->pos, 0, 0, 0);
-         obj->rad = 1.0;
-         )
+NEW_TMPL(Sphere, _echoMatterInit(OBJECT(obj)); ELL_3V_SET(obj->pos, 0, 0, 0);
+         obj->rad = 1.0;)
 
-NEW_TMPL(Cylinder,
-         _echoMatterInit(OBJECT(obj));
-         obj->axis = 2;
-         )
+NEW_TMPL(Cylinder, _echoMatterInit(OBJECT(obj)); obj->axis = 2;)
 
-NEW_TMPL(Superquad,
-         _echoMatterInit(OBJECT(obj));
-         obj->axis = 2;
-         obj->A = obj->B = 1;
-         )
+NEW_TMPL(Superquad, _echoMatterInit(OBJECT(obj)); obj->axis = 2; obj->A = obj->B = 1;)
 
-NEW_TMPL(Cube,
-         _echoMatterInit(OBJECT(obj));
-         )
+NEW_TMPL(Cube, _echoMatterInit(OBJECT(obj));)
 
-NEW_TMPL(Triangle,
-         _echoMatterInit(OBJECT(obj));
-         ELL_3V_SET(obj->vert[0], 0, 0, 0);
-         ELL_3V_SET(obj->vert[1], 0, 0, 0);
-         ELL_3V_SET(obj->vert[2], 0, 0, 0);
-         )
+NEW_TMPL(Triangle, _echoMatterInit(OBJECT(obj)); ELL_3V_SET(obj->vert[0], 0, 0, 0);
+         ELL_3V_SET(obj->vert[1], 0, 0, 0); ELL_3V_SET(obj->vert[2], 0, 0, 0);)
 
-NEW_TMPL(Rectangle,
-         _echoMatterInit(OBJECT(obj));
-         ELL_3V_SET(obj->origin, 0, 0, 0);
-         ELL_3V_SET(obj->edge0, 0, 0, 0);
-         ELL_3V_SET(obj->edge1, 0, 0, 0);
-         )
+NEW_TMPL(Rectangle, _echoMatterInit(OBJECT(obj)); ELL_3V_SET(obj->origin, 0, 0, 0);
+         ELL_3V_SET(obj->edge0, 0, 0, 0); ELL_3V_SET(obj->edge1, 0, 0, 0);)
 
-NEW_TMPL(TriMesh,
-         _echoMatterInit(OBJECT(obj));
-         ELL_3V_SET(obj->meanvert, 0, 0, 0);
+NEW_TMPL(TriMesh, _echoMatterInit(OBJECT(obj)); ELL_3V_SET(obj->meanvert, 0, 0, 0);
          ELL_3V_SET(obj->min, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
          ELL_3V_SET(obj->max, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
-         obj->numV = obj->numF = 0;
-         obj->pos = NULL;
-         obj->vert = NULL;
-         )
-NIX_TMPL(TriMesh,
-         obj->pos = (echoPos_t *)airFree(obj->pos);
-         obj->vert = (int *)airFree(obj->vert);
-         )
+         obj->numV = obj->numF = 0; obj->pos = NULL; obj->vert = NULL;)
+NIX_TMPL(TriMesh, obj->pos = (echoPos_t *)airFree(obj->pos);
+         obj->vert = (int *)airFree(obj->vert);)
 
-NEW_TMPL(Isosurface,
-         _echoMatterInit(OBJECT(obj));
-         obj->volume = NULL;
-         obj->value = 0.0;
+NEW_TMPL(Isosurface, _echoMatterInit(OBJECT(obj)); obj->volume = NULL; obj->value = 0.0;
          /* ??? */
-         )
+)
 
-NEW_TMPL(AABBox,
-         obj->obj = NULL;
+NEW_TMPL(AABBox, obj->obj = NULL;
          ELL_3V_SET(obj->min, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
-         ELL_3V_SET(obj->max, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
-         )
+         ELL_3V_SET(obj->max, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);)
 
-NEW_TMPL(Split,
-         obj->axis = -1;
+NEW_TMPL(Split, obj->axis = -1;
          ELL_3V_SET(obj->min0, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
          ELL_3V_SET(obj->max0, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
          ELL_3V_SET(obj->min1, ECHO_POS_MAX, ECHO_POS_MAX, ECHO_POS_MAX);
          ELL_3V_SET(obj->max1, ECHO_POS_MIN, ECHO_POS_MIN, ECHO_POS_MIN);
-         obj->obj0 = obj->obj1 = NULL;
-         )
+         obj->obj0 = obj->obj1 = NULL;)
 
-NEW_TMPL(List,
-         echoPtrPtrUnion eppu;
-         obj->obj = NULL;
-         obj->objArr = airArrayNew((eppu.obj = &(obj->obj),eppu.v), NULL,
-                                   sizeof(echoObject *),
-                                   ECHO_LIST_OBJECT_INCR);
-         )
-NIX_TMPL(List,
-         airArrayNuke(obj->objArr);
-         )
+NEW_TMPL(List, echoPtrPtrUnion eppu; obj->obj = NULL;
+         obj->objArr = airArrayNew((eppu.obj = &(obj->obj), eppu.v), NULL,
+                                   sizeof(echoObject *), ECHO_LIST_OBJECT_INCR);)
+NIX_TMPL(List, airArrayNuke(obj->objArr);)
 
-NEW_TMPL(Instance,
-         ELL_4M_IDENTITY_SET(obj->M);
-         ELL_4M_IDENTITY_SET(obj->Mi);
-         obj->obj = NULL;
-         )
+NEW_TMPL(Instance, ELL_4M_IDENTITY_SET(obj->M); ELL_4M_IDENTITY_SET(obj->Mi);
+         obj->obj = NULL;)
 
-echoObject *(*
-_echoObjectNew[ECHO_TYPE_NUM])(void) = {
-  (echoObject *(*)(void))_echoSphere_new,
-  (echoObject *(*)(void))_echoCylinder_new,
-  (echoObject *(*)(void))_echoSuperquad_new,
-  (echoObject *(*)(void))_echoCube_new,
-  (echoObject *(*)(void))_echoTriangle_new,
-  (echoObject *(*)(void))_echoRectangle_new,
-  (echoObject *(*)(void))_echoTriMesh_new,
-  (echoObject *(*)(void))_echoIsosurface_new,
-  (echoObject *(*)(void))_echoAABBox_new,
-  (echoObject *(*)(void))_echoSplit_new,
-  (echoObject *(*)(void))_echoList_new,
-  (echoObject *(*)(void))_echoInstance_new
-};
+static echoObject *(*_echoObjectNew[ECHO_TYPE_NUM])(void)
+  = {(echoObject * (*)(void)) _echoSphere_new,
+     (echoObject * (*)(void)) _echoCylinder_new,
+     (echoObject * (*)(void)) _echoSuperquad_new,
+     (echoObject * (*)(void)) _echoCube_new,
+     (echoObject * (*)(void)) _echoTriangle_new,
+     (echoObject * (*)(void)) _echoRectangle_new,
+     (echoObject * (*)(void)) _echoTriMesh_new,
+     (echoObject * (*)(void)) _echoIsosurface_new,
+     (echoObject * (*)(void)) _echoAABBox_new,
+     (echoObject * (*)(void)) _echoSplit_new,
+     (echoObject * (*)(void)) _echoList_new,
+     (echoObject * (*)(void)) _echoInstance_new};
 
-echoObject *
+echoObject * /* Biff: nope */
 echoObjectNew(echoScene *scene, signed char type) {
-  echoObject *ret=NULL;
+  echoObject *ret = NULL;
   int idx;
 
   if (scene && AIR_IN_OP(echoTypeUnknown, type, echoTypeLast)) {
@@ -173,7 +128,7 @@ echoObjectNew(echoScene *scene, signed char type) {
   return ret;
 }
 
-int
+int /* Biff: nope */
 echoObjectAdd(echoScene *scene, echoObject *obj) {
   int idx;
 
@@ -184,9 +139,8 @@ echoObjectAdd(echoScene *scene, echoObject *obj) {
   return 0;
 }
 
-echoObject *(*
-_echoObjectNix[ECHO_TYPE_NUM])(echoObject *) = {
-  (echoObject *(*)(echoObject *))airFree,          /* echoTypeSphere */
+static echoObject *(*_echoObjectNix[ECHO_TYPE_NUM])(echoObject *) = {
+  (echoObject * (*)(echoObject *)) airFree,        /* echoTypeSphere */
   (echoObject *(*)(echoObject *))airFree,          /* echoTypeCylinder */
   (echoObject *(*)(echoObject *))airFree,          /* echoTypeSuperquad */
   (echoObject *(*)(echoObject *))airFree,          /* echoTypeCube */
@@ -200,7 +154,7 @@ _echoObjectNix[ECHO_TYPE_NUM])(echoObject *) = {
   (echoObject *(*)(echoObject *))airFree           /* echoTypeInstance */
 };
 
-echoObject *
+echoObject * /* Biff: nope */
 echoObjectNix(echoObject *obj) {
 
   if (obj) {

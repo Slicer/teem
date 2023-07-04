@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "echo.h"
@@ -30,20 +28,18 @@
 ** sets "pos" to xyz position for current sample of given light
 */
 void
-echoLightPosition(echoPos_t pos[3], echoObject *light,
-                  echoThreadState *tstate) {
-  char me[]="echoLightPos";
+echoLightPosition(echoPos_t pos[3], echoObject *light, echoThreadState *tstate) {
+  static const char me[] = "echoLightPos";
   echoPos_t x, y;
   echoRectangle *rectLight;
 
-  x = tstate->jitt[0 + 2*echoJittableLight] + 0.5;
-  y = tstate->jitt[1 + 2*echoJittableLight] + 0.5;
-  switch(light->type) {
+  x = tstate->jitt[0 + 2 * echoJittableLight] + 0.5;
+  y = tstate->jitt[1 + 2 * echoJittableLight] + 0.5;
+  switch (light->type) {
   case echoTypeRectangle:
     rectLight = RECTANGLE(light);
-    ELL_3V_SCALE_ADD3(pos, 1, rectLight->origin,
-                     x, rectLight->edge0,
-                     y, rectLight->edge1);
+    ELL_3V_SCALE_ADD3(pos, 1, rectLight->origin, x, rectLight->edge0, y,
+                      rectLight->edge1);
     break;
   default:
     fprintf(stderr, "%s: currently only support echoTypeRectangle lights", me);
@@ -60,13 +56,13 @@ echoLightPosition(echoPos_t pos[3], echoObject *light,
 ** inverse square fall-off of light intensity
 */
 void
-echoLightColor(echoCol_t rgb[3], echoPos_t Ldist,
-               echoObject *light, echoRTParm *parm, echoThreadState *tstate) {
+echoLightColor(echoCol_t rgb[3], echoPos_t Ldist, echoObject *light, echoRTParm *parm,
+               echoThreadState *tstate) {
   echoCol_t rgba[4], falloff;
   echoPos_t x, y;
 
-  x = tstate->jitt[0 + 2*echoJittableLight] + 0.5;
-  y = tstate->jitt[1 + 2*echoJittableLight] + 0.5;
+  x = tstate->jitt[0 + 2 * echoJittableLight] + 0.5;
+  y = tstate->jitt[1 + 2 * echoJittableLight] + 0.5;
   if (light->ntext) {
     echoTextureLookup(rgba, light->ntext, x, y, parm);
     ELL_3V_COPY(rgb, rgba);
@@ -75,7 +71,7 @@ echoLightColor(echoCol_t rgb[3], echoPos_t Ldist,
   }
   ELL_3V_SCALE(rgb, light->mat[echoMatterLightPower], rgb);
   if (light->mat[echoMatterLightUnit]) {
-    falloff = AIR_CAST(echoCol_t, light->mat[echoMatterLightUnit]/Ldist);
+    falloff = AIR_CAST(echoCol_t, light->mat[echoMatterLightUnit] / Ldist);
     falloff *= falloff;
     ELL_3V_SCALE(rgb, falloff, rgb);
   }
@@ -93,7 +89,6 @@ echoEnvmapLookup(echoCol_t rgb[3], echoPos_t norm[3], Nrrd *envmap) {
 #else
   qn = limnVtoQN_d[limnQN16octa](norm);
 #endif
-  data = (float*)(envmap->data) + 3*qn;
+  data = (float *)(envmap->data) + 3 * qn;
   ELL_3V_COPY(rgb, data);
 }
-

@@ -1,35 +1,34 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "gage.h"
 #include "privateGage.h"
 
+/* clang-format off */
 /*
 ** _gageSclTable
 **
 ** the static array of item information for the scalar kind.
 */
-gageItemEntry
+static gageItemEntry
 _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   /* enum value        len,deriv,  prereqs,                                 parent item,  parent index,  needData */
   {gageSclUnknown,       0,  0,  {0},                                            0,               0,   AIR_FALSE},
@@ -71,7 +70,7 @@ _gageSclTable[GAGE_SCL_ITEM_MAX+1] = {
   {gageSclHessMode,      1,  2,  {gageSclHessEval},                              0,               0,   AIR_FALSE}
 };
 
-const char *
+static const char *
 _gageSclStr[] = {
   "(unknown gageScl)",
   "value",
@@ -112,7 +111,7 @@ _gageSclStr[] = {
   "Hessian mode"
 };
 
-const char *
+static const char *
 _gageSclDesc[] = {
   "unknown gageScl query",
   "reconstructed scalar data value",
@@ -153,7 +152,7 @@ _gageSclDesc[] = {
   "mode of Hessian eigenvalues"
 };
 
-int
+static int
 _gageSclVal[] = {
   gageSclUnknown,
   gageSclValue,
@@ -231,7 +230,7 @@ _gageSclVal[] = {
 #define GS_PK  gageSclHessDotPeakness
 #define GS_HM  gageSclHessMode
 
-const char *
+static const char *
 _gageSclStrEqv[] = {
   "v", "val", "value",
   "gv", "gvec", "gradvec", "grad vec", "gradient vector",
@@ -273,7 +272,7 @@ _gageSclStrEqv[] = {
   ""
 };
 
-const int
+static const int
 _gageSclValEqv[] = {
   GS_V, GS_V, GS_V,
   GS_GV, GS_GV, GS_GV, GS_GV, GS_GV,
@@ -313,7 +312,7 @@ _gageSclValEqv[] = {
   GS_HM, GS_HM, GS_HM
 };
 
-const airEnum
+static const airEnum
 _gageScl = {
   "gageScl",
   GAGE_SCL_ITEM_MAX,
@@ -325,7 +324,7 @@ _gageScl = {
 const airEnum *const
 gageScl = &_gageScl;
 
-gageKind
+static gageKind
 _gageKindScl = {
   AIR_FALSE, /* statically allocated */
   "scalar",
@@ -343,7 +342,7 @@ _gageKindScl = {
 gageKind *const
 gageKindScl = &_gageKindScl;
 
-const gageItemPack
+static const gageItemPack
 _gageItemPackSclValue = {
   &_gageKindScl,
   {gageSclUnknown,
@@ -362,3 +361,4 @@ _gageItemPackSclValue = {
 
 const gageItemPack *const
 gageItemPackSclValue = &_gageItemPackSclValue;
+/* clang-format on */

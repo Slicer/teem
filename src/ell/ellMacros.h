@@ -1,28 +1,27 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #ifndef ELLMACROS_HAS_BEEN_INCLUDED
 #define ELLMACROS_HAS_BEEN_INCLUDED
+/* clang-format off */
 
 #ifdef __cplusplus
 extern "C" {
@@ -92,13 +91,20 @@ extern "C" {
       ? 2                        \
       : 1))
 
+#define ELL_2V_EQUAL(a, b) \
+  ((a)[0] == (b)[0] && (a)[1] == (b)[1])
+
 #define ELL_2V_EXISTS(v) \
   (AIR_EXISTS((v)[0]) && AIR_EXISTS((v)[1]))
 
 #define ELL_2V_SET(v, a, b) \
   ((v)[0]=(a), (v)[1]=(b))
 
-#define ELL_2V_SET_TT(v, TT, a, b) \
+#define ELL_2V_NAN_SET(v) ( \
+  (v)[0] = AIR_NAN, \
+  (v)[1] = AIR_NAN)
+
+#define ELL_2V_SET_TT(v, TT, a, b)              \
   ((v)[0] = AIR_CAST(TT, (a)), \
    (v)[1] = AIR_CAST(TT, (b)))
 
@@ -108,6 +114,10 @@ extern "C" {
 #define ELL_2V_INCR(v2, v1) \
   ((v2)[0] += (v1)[0],      \
    (v2)[1] += (v1)[1])
+
+#define ELL_2V_SCALE_INCR(v2, s0, v0) \
+  ((v2)[0] += (s0)*(v0)[0], \
+   (v2)[1] += (s0)*(v0)[1])
 
 #define ELL_2V_LERP(v3, w, v1, v2)            \
   ((v3)[0] = AIR_LERP((w), (v1)[0], (v2)[0]), \
@@ -148,6 +158,10 @@ extern "C" {
   ((v2)[0] = (a)*(v1)[0],       \
    (v2)[1] = (a)*(v1)[1])
 
+#define ELL_2V_SCALE_TT(v2, TT, a, v1)   \
+  ((v2)[0] = AIR_CAST(TT, (a)*(v1)[0]), \
+   (v2)[1] = AIR_CAST(TT, (a)*(v1)[1]))
+
 #define ELL_2V_SCALE_ADD2(v2, s0, v0, s1, v1) \
   ((v2)[0] = (s0)*(v0)[0] + (s1)*(v1)[0],     \
    (v2)[1] = (s0)*(v0)[1] + (s1)*(v1)[1])
@@ -156,8 +170,16 @@ extern "C" {
   ((vd)[0] = (s0)*(v0)[0] + (s1)*(v1)[0] + (s2)*(v2)[0], \
    (vd)[1] = (s0)*(v0)[1] + (s1)*(v1)[1] + (s2)*(v2)[1])
 
+#define ELL_2V_SCALE_ADD4(vd, s0, v0, s1, v1, s2, v2, s3, v3)   \
+  ((vd)[0] = (s0)*(v0)[0] + (s1)*(v1)[0] + (s2)*(v2)[0] + (s3)*(v3)[0], \
+   (vd)[1] = (s0)*(v0)[1] + (s1)*(v1)[1] + (s2)*(v2)[1] + (s3)*(v3)[1])
+
 #define ELL_2V_NORM(v2, v1, length) \
   (length = ELL_2V_LEN(v1), ELL_2V_SCALE(v2, 1.0/length, v1))
+
+#define ELL_2V_NORM_TT(v2, TT, v1, length) \
+  (length = AIR_CAST(TT, ELL_2V_LEN(v1)), \
+   ELL_2V_SCALE_TT(v2, TT, 1.0/length, v1))
 
 #define ELL_2V_CROSS(v1, v2) \
   ((v1)[0]*(v2)[1] - (v1)[1]*(v2)[0])
@@ -171,6 +193,13 @@ extern "C" {
 #define _ELL_2M_DET(a,b,c,d) ((a)*(d) - (b)*(c))
 
 #define ELL_2M_DET(m) _ELL_2M_DET((m)[0],(m)[1],(m)[2],(m)[3])
+
+#define ELL_2M_INV(m2, m1, det) \
+  ((det) = ELL_2M_DET(m1),      \
+   (m2)[0] =  (m1)[3]/(det),    \
+   (m2)[1] = -(m1)[1]/(det),    \
+   (m2)[2] = -(m1)[2]/(det),    \
+   (m2)[3] =  (m1)[0]/(det))
 
 #define ELL_2M_TRANSPOSE(m2, m1)                \
   ((m2)[0] = (m1)[0],                           \
@@ -702,6 +731,12 @@ extern "C" {
    (v3)[2] = (v1)[2] + (v2)[2], \
    (v3)[3] = (v1)[3] + (v2)[3])
 
+#define ELL_4V_ADD3(v3, v0, v1, v2)       \
+  ((v3)[0] = (v0)[0] + (v1)[0] + (v2)[0], \
+   (v3)[1] = (v0)[1] + (v1)[1] + (v2)[1], \
+   (v3)[2] = (v0)[2] + (v1)[2] + (v2)[2], \
+   (v3)[3] = (v0)[3] + (v1)[3] + (v2)[3])
+
 #define ELL_4V_SUB(v3, v1, v2)  \
   ((v3)[0] = (v1)[0] - (v2)[0], \
    (v3)[1] = (v1)[1] - (v2)[1], \
@@ -1069,6 +1104,12 @@ extern "C" {
    (l)[ 8] = (m)[6], (l)[ 9] = (m)[7], (l)[10] = (m)[8], (l)[11] = 0, \
    (l)[12] =   0   , (l)[13] =   0   , (l)[14] =   0   , (l)[15] = 1)
 
+#define ELL_43M_INSET_TT(l, T, m)                                      \
+  ((l)[ 0] = (T)(m)[0], (l)[ 1] = (T)(m)[1], (l)[ 2] = (T)(m)[2], (l)[ 3] = 0, \
+   (l)[ 4] = (T)(m)[3], (l)[ 5] = (T)(m)[4], (l)[ 6] = (T)(m)[5], (l)[ 7] = 0, \
+   (l)[ 8] = (T)(m)[6], (l)[ 9] = (T)(m)[7], (l)[10] = (T)(m)[8], (l)[11] = 0, \
+   (l)[12] =   0   ,    (l)[13] =   0   ,    (l)[14] =   0   ,    (l)[15] = 1)
+
 #define ELL_4M_FROB(m) \
   (sqrt(ELL_4V_DOT((m)+ 0, (m)+ 0) + \
         ELL_4V_DOT((m)+ 4, (m)+ 4) + \
@@ -1305,5 +1346,5 @@ extern "C" {
 #ifdef __cplusplus
    }
 #endif
-
+/* clang-format on */
 #endif /* ELLMACROS_HAS_BEEN_INCLUDED */

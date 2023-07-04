@@ -1,24 +1,22 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #ifndef BANE_HAS_BEEN_INCLUDED
@@ -58,7 +56,6 @@ extern "C" {
 */
 #define BANE_PARM_NUM 5
 
-
 /* -------------------------- ranges -------------------------- */
 
 /*
@@ -97,11 +94,10 @@ enum {
 typedef struct {
   char name[AIR_STRLEN_SMALL];
   int type;
-  double center;  /* for baneRangeAnywhere: nominal center of value range
-                     NOTE: there is currently no API for setting this,
-                     it has to be set manually */
-  int (*answer)(double *ominP, double *omaxP,
-                double imin, double imax);
+  double center; /* for baneRangeAnywhere: nominal center of value range
+                    NOTE: there is currently no API for setting this,
+                    it has to be set manually */
+  int (*answer)(double *ominP, double *omaxP, double imin, double imax);
 } baneRange;
 
 /* -------------------------- inc -------------------------- */
@@ -124,22 +120,22 @@ typedef struct {
 ** the baneRange itself.
 */
 enum {
-  baneIncUnknown,     /* 0: nobody knows */
-  baneIncAbsolute,    /* 1: within explicitly specified bounds
-                         -- incParm[0]: new min
-                         -- incParm[1]: new max */
-  baneIncRangeRatio,  /* 2: some fraction of the total range
-                         -- incParm[0]: scales the size of the range, after
-                            it has been sent through the associated range
-                            function. */
-  baneIncPercentile,  /* 3: exclude some percentile
-                         -- incParm[0]: resolution of histogram generated
-                         -- incParm[1]: PERCENT of hits to throw away,
-                            by nibbling away at lower and upper ends of
-                            range, in a manner dependant on the range type */
-  baneIncStdv,        /* 4: some multiple of the standard deviation
-                         -- incParm[0]: range is standard deviation
-                            times this */
+  baneIncUnknown,    /* 0: nobody knows */
+  baneIncAbsolute,   /* 1: within explicitly specified bounds
+                        -- incParm[0]: new min
+                        -- incParm[1]: new max */
+  baneIncRangeRatio, /* 2: some fraction of the total range
+                        -- incParm[0]: scales the size of the range, after
+                           it has been sent through the associated range
+                           function. */
+  baneIncPercentile, /* 3: exclude some percentile
+                        -- incParm[0]: resolution of histogram generated
+                        -- incParm[1]: PERCENT of hits to throw away,
+                           by nibbling away at lower and upper ends of
+                           range, in a manner dependant on the range type */
+  baneIncStdv,       /* 4: some multiple of the standard deviation
+                        -- incParm[0]: range is standard deviation
+                           times this */
   baneIncLast
 };
 
@@ -152,13 +148,13 @@ enum {
 typedef struct baneInc_t {
   char name[AIR_STRLEN_SMALL];
   int type;
-  double S, SS; int num;  /* used for calculating standard dev */
+  double S, SS;
+  int num; /* used for calculating standard dev */
   Nrrd *nhist;
   baneRange *range;
   double parm[BANE_PARM_NUM];
   void (*process[2])(struct baneInc_t *inc, double val);
-  int (*answer)(double *minP, double *maxP,
-                Nrrd *hist, double *parm, baneRange *range);
+  int (*answer)(double *minP, double *maxP, Nrrd *hist, double *parm, baneRange *range);
 } baneInc;
 
 /* -------------------------- clip -------------------------- */
@@ -172,11 +168,11 @@ typedef struct baneInc_t {
 ** with this is needed.
 */
 enum {
-  baneClipUnknown,     /* 0: nobody knows */
-  baneClipAbsolute,    /* 1: clip at explicitly specified bin count */
-  baneClipPeakRatio,   /* 2: some fraction of maximum #hits in any bin */
-  baneClipPercentile,  /* 3: percentile of values, sorted by hits */
-  baneClipTopN,        /* 4: ignore the N bins with the highest counts */
+  baneClipUnknown,    /* 0: nobody knows */
+  baneClipAbsolute,   /* 1: clip at explicitly specified bin count */
+  baneClipPeakRatio,  /* 2: some fraction of maximum #hits in any bin */
+  baneClipPercentile, /* 3: percentile of values, sorted by hits */
+  baneClipTopN,       /* 4: ignore the N bins with the highest counts */
   baneClipLast
 };
 
@@ -244,8 +240,8 @@ typedef struct baneMeasr_t {
   char name[AIR_STRLEN_SMALL];
   int type;
   double parm[BANE_PARM_NUM];
-  gageQuery query;       /* the gageScl query needed for this measure,
-                            but NOT its recursive prerequisite expansion). */
+  gageQuery query; /* the gageScl query needed for this measure,
+                      but NOT its recursive prerequisite expansion). */
   baneRange *range;
   int offset0;
   double (*answer)(struct baneMeasr_t *, double *, double *parm);
@@ -260,7 +256,7 @@ typedef struct baneMeasr_t {
 ** of the histogram volume.
 */
 typedef struct {
-  unsigned int res;                     /* resolution = number of bins */
+  unsigned int res; /* resolution = number of bins */
   baneMeasr *measr;
   baneInc *inc;
 } baneAxis;
@@ -273,26 +269,26 @@ typedef struct {
 */
 typedef struct {
   /* -------------- input */
-  int verbose,                         /* status messages to stderr */
-    makeMeasrVol,                      /* create a 3 x X x Y x Z volume of
-                                          measurements, so that they aren't
-                                          measured (as many as) three times */
-    renormalize,                       /* use gage's mask renormalization */
+  int verbose,    /* status messages to stderr */
+    makeMeasrVol, /* create a 3 x X x Y x Z volume of
+                     measurements, so that they aren't
+                     measured (as many as) three times */
+    renormalize,  /* use gage's mask renormalization */
     k3pack;
-  const NrrdKernel *k[GAGE_KERNEL_MAX+1];
-  double kparm[GAGE_KERNEL_MAX+1][NRRD_KERNEL_PARMS_NUM];
+  const NrrdKernel *k[GAGE_KERNEL_MAX + 1];
+  double kparm[GAGE_KERNEL_MAX + 1][NRRD_KERNEL_PARMS_NUM];
   baneClip *clip;
-  double incLimit;                     /* lowest permissible fraction of the
-                                          data remaining after new inclusion
-                                          has been determined */
+  double incLimit; /* lowest permissible fraction of the
+                      data remaining after new inclusion
+                      has been determined */
   baneAxis axis[3];
   /* -------------- internal */
   Nrrd *measrVol;
-  int measrVolDone;                    /* values in measrVol are filled */
+  int measrVolDone; /* values in measrVol are filled */
 } baneHVolParm;
 
 /* defaultsBane.c */
-BANE_EXPORT const char *baneBiffKey;
+BANE_EXPORT const char *const baneBiffKey;
 BANE_EXPORT int baneDefVerbose;
 BANE_EXPORT int baneDefMakeMeasrVol;
 BANE_EXPORT double baneDefIncLimit;
@@ -305,8 +301,7 @@ BANE_EXPORT int baneHack;
 /* rangeBane.c */
 BANE_EXPORT baneRange *baneRangeNew(int type);
 BANE_EXPORT baneRange *baneRangeCopy(baneRange *range);
-BANE_EXPORT int baneRangeAnswer(baneRange *range,
-                                double *ominP, double *omaxP,
+BANE_EXPORT int baneRangeAnswer(baneRange *range, double *ominP, double *omaxP,
                                 double imin, double imax);
 BANE_EXPORT baneRange *baneRangeNix(baneRange *range);
 
@@ -336,8 +331,7 @@ BANE_EXPORT const int banePresent;
 BANE_EXPORT baneHVolParm *baneHVolParmNew(void);
 BANE_EXPORT void baneHVolParmGKMSInit(baneHVolParm *hvp);
 BANE_EXPORT void baneHVolParmAxisSet(baneHVolParm *hvp, unsigned int axisIdx,
-                                     unsigned int res,
-                                     baneMeasr *measr, baneInc *inc);
+                                     unsigned int res, baneMeasr *measr, baneInc *inc);
 BANE_EXPORT void baneHVolParmClipSet(baneHVolParm *hvp, baneClip *clip);
 BANE_EXPORT baneHVolParm *baneHVolParmNix(baneHVolParm *hvp);
 
@@ -349,12 +343,10 @@ BANE_EXPORT int banePosCheck(Nrrd *pos, int wantDim);
 BANE_EXPORT int baneBcptsCheck(Nrrd *Bcpts);
 
 /* hvol.c */
-BANE_EXPORT void baneProbe(double val[3],
-                           Nrrd *nin, baneHVolParm *hvp, gageContext *ctx,
+BANE_EXPORT void baneProbe(double val[3], Nrrd *nin, baneHVolParm *hvp, gageContext *ctx,
                            unsigned int x, unsigned int y, unsigned int z);
-BANE_EXPORT int baneFindInclusion(double min[3], double max[3],
-                                  Nrrd *nin, baneHVolParm *hvp,
-                                  gageContext *ctx);
+BANE_EXPORT int baneFindInclusion(double min[3], double max[3], Nrrd *nin,
+                                  baneHVolParm *hvp, gageContext *ctx);
 BANE_EXPORT int baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp);
 BANE_EXPORT Nrrd *baneGKMSHVol(Nrrd *nin, float gradPerc, float hessPerc);
 
@@ -363,40 +355,37 @@ BANE_EXPORT int baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr);
 BANE_EXPORT int bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D);
 BANE_EXPORT int baneSigmaCalc(float *sP, Nrrd *info);
 BANE_EXPORT int banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info);
-BANE_EXPORT void _baneOpacCalcA(unsigned int lutLen, float *opacLut,
-                                unsigned int numCpts, float *xo,
-                                float *pos);
-BANE_EXPORT void _baneOpacCalcB(unsigned int lutLen, float *opacLut,
-                                unsigned int numCpts, float *x, float *o,
-                                float *pos);
+BANE_EXPORT void baneOpacCalcA(unsigned int lutLen, float *opacLut, unsigned int numCpts,
+                               float *xo, float *pos);
+BANE_EXPORT void baneOpacCalcB(unsigned int lutLen, float *opacLut, unsigned int numCpts,
+                               float *x, float *o, float *pos);
 BANE_EXPORT int baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos);
 
 /* trex.c */
-BANE_EXPORT float *_baneTRexRead(char *fname);
-BANE_EXPORT void _baneTRexDone(void);
+BANE_EXPORT float *baneTRexRead(char *fname);
+BANE_EXPORT void baneTRexDone(void);
 
 /* scat.c */
-BANE_EXPORT int baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol,
-                                    int histEq);
+BANE_EXPORT int baneRawScatterplots(Nrrd *nvg, Nrrd *nvh, Nrrd *hvol, int histEq);
 
 /* gkms{Flotsam,Hvol,Scat,Pvg,Opac,Mite}.c */
-#define BANE_GKMS_DECLARE(C) BANE_EXPORT unrrduCmd baneGkms_##C##Cmd;
-#define BANE_GKMS_LIST(C) &baneGkms_##C##Cmd,
-#define BANE_GKMS_MAP(F) \
-F(hvol) \
-F(scat) \
-F(info) \
-F(pvg) \
-F(opac) \
-F(mite) \
-F(txf)
+#define BANE_GKMS_DECLARE(C) BANE_EXPORT const unrrduCmd baneGkms_##C##Cmd;
+#define BANE_GKMS_LIST(C)    &baneGkms_##C##Cmd,
+#define BANE_GKMS_MAP(F)                                                                \
+  F(hvol)                                                                               \
+  F(scat)                                                                               \
+  F(info)                                                                               \
+  F(pvg)                                                                                \
+  F(opac)                                                                               \
+  F(mite)                                                                               \
+  F(txf)
 BANE_GKMS_MAP(BANE_GKMS_DECLARE)
 BANE_EXPORT const airEnum *const baneGkmsMeasr;
-BANE_EXPORT unrrduCmd *baneGkmsCmdList[];
+BANE_EXPORT const unrrduCmd *const baneGkmsCmdList[];
 BANE_EXPORT void baneGkmsUsage(const char *me, hestParm *hparm);
-BANE_EXPORT hestCB *baneGkmsHestIncStrategy;
-BANE_EXPORT hestCB *baneGkmsHestBEF;
-BANE_EXPORT hestCB *baneGkmsHestGthresh;
+BANE_EXPORT const hestCB *const baneGkmsHestIncStrategy;
+BANE_EXPORT const hestCB *const baneGkmsHestBEF;
+BANE_EXPORT const hestCB *const baneGkmsHestGthresh;
 
 #ifdef __cplusplus
 }

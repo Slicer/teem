@@ -1,25 +1,23 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
-
 
 #include "../hest.h"
 
@@ -30,24 +28,22 @@ main(int argc, const char **argv) {
   int n;
   hestOpt *opt = NULL;
   hestParm *parm;
-  char *err = NULL, info[] =
-    "This program does nothing in particular, though it does attempt "
-    "to pose as some sort of command-line image processing program. "
-    "As usual, any implied functionality is purely coincidental, "
-    "especially since this is the output of a unicyclist.";
+  char *err = NULL,
+       info[] = "This program does nothing in particular, though it does attempt "
+                "to pose as some sort of command-line image processing program. "
+                "As usual, any implied functionality is purely coincidental, "
+                "especially since this is the output of a unicyclist.";
 
   parm = hestParmNew();
   parm->respFileEnable = AIR_TRUE;
 
   opt = NULL;
-  hestOptAdd(&opt, "res",   "sx sy", airTypeInt,    2,  2,  res,  NULL,
-             "image resolution");
-  hestOptAdd(&opt, "v",     "level", airTypeInt,    0,  1,  &v,   "0",
-             "verbosity level");
-  hestOptAdd(&opt, "out",   "file",  airTypeString, 1,  1,  &out, "output.ppm",
+  hestOptAdd(&opt, "res", "sx sy", airTypeInt, 2, 2, res, NULL, "image resolution");
+  hestOptAdd(&opt, "v", "level", airTypeInt, 0, 1, &v, "0", "verbosity level");
+  hestOptAdd(&opt, "out", "file", airTypeString, 1, 1, &out, "output.ppm",
              "PPM image output");
-  hestOptAdd(&opt, NULL,    "input", airTypeString, 1, -1,  &in,  NULL,
-             "input image file(s)", &numIn);
+  hestOptAdd(&opt, NULL, "input", airTypeString, 1, -1, &in, NULL, "input image file(s)",
+             &numIn);
 
   if (1 == argc) {
     /* didn't get anything at all on command line */
@@ -63,8 +59,9 @@ main(int argc, const char **argv) {
   }
 
   /* else we got something, see if we can parse it */
-  if (hestParse(opt, argc-1, argv+1, &err, parm)) {
-    fprintf(stderr, "ERROR: %s\n", err); free(err);
+  if (hestParse(opt, argc - 1, argv + 1, &err, parm)) {
+    fprintf(stderr, "ERROR: %s\n", err);
+    free(err);
     /* print usage information ... */
     hestUsage(stderr, opt, argv[0], parm);
     hestGlossary(stderr, opt, parm);
@@ -79,7 +76,7 @@ main(int argc, const char **argv) {
   printf("  v = %d\n", v);
   printf("out = \"%s\"\n", out);
   printf(" in = %d files:", numIn);
-  for (n=0; n<=numIn-1; n++) {
+  for (n = 0; n <= numIn - 1; n++) {
     printf(" \"%s\"", in[n]);
   }
   printf("\n");

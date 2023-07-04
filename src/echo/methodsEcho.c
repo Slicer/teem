@@ -1,36 +1,32 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "echo.h"
 #include "privateEcho.h"
 
-const int
-echoPresent = 42;
+const int echoPresent = 42;
 
-const char *
-echoBiffKey = "echo";
+const char *const echoBiffKey = "echo";
 
-echoRTParm *
+echoRTParm * /* Biff: nope */
 echoRTParmNew(void) {
   echoRTParm *parm;
 
@@ -49,7 +45,7 @@ echoRTParmNew(void) {
     parm->sqNRI = 15;
     parm->numThreads = 1;
     parm->sqTol = 0.0001;
-    parm->aperture = 0.0;     /* pinhole camera by default */
+    parm->aperture = 0.0; /* pinhole camera by default */
     parm->timeGamma = 6.0;
     parm->boxOpac = 0.2f;
     parm->shadow = 1.0;
@@ -59,14 +55,14 @@ echoRTParmNew(void) {
   return parm;
 }
 
-echoRTParm *
+echoRTParm * /* Biff: nope */
 echoRTParmNix(echoRTParm *parm) {
 
   airFree(parm);
   return NULL;
 }
 
-echoGlobalState *
+echoGlobalState * /* Biff: nope */
 echoGlobalStateNew(void) {
   echoGlobalState *state;
 
@@ -84,7 +80,7 @@ echoGlobalStateNew(void) {
   return state;
 }
 
-echoGlobalState *
+echoGlobalState * /* Biff: nope */
 echoGlobalStateNix(echoGlobalState *state) {
 
   airFree(state);
@@ -92,7 +88,7 @@ echoGlobalStateNix(echoGlobalState *state) {
   return NULL;
 }
 
-echoThreadState *
+echoThreadState * /* Biff: nope */
 echoThreadStateNew(void) {
   echoThreadState *state;
 
@@ -113,7 +109,7 @@ echoThreadStateNew(void) {
   return state;
 }
 
-echoThreadState *
+echoThreadState * /* Biff: nope */
 echoThreadStateNix(echoThreadState *state) {
 
   if (state) {
@@ -127,7 +123,7 @@ echoThreadStateNix(echoThreadState *state) {
   return NULL;
 }
 
-echoScene *
+echoScene * /* Biff: nope */
 echoSceneNew(void) {
   echoScene *ret;
   echoPtrPtrUnion eppu;
@@ -136,28 +132,20 @@ echoSceneNew(void) {
   if (ret) {
     ret->cat = NULL;
     ret->catArr = airArrayNew((eppu.obj = &(ret->cat), eppu.v), NULL,
-                              sizeof(echoObject *),
-                              ECHO_LIST_OBJECT_INCR);
-    airArrayPointerCB(ret->catArr,
-                      airNull,
-                      (void *(*)(void *))echoObjectNix);
+                              sizeof(echoObject *), ECHO_LIST_OBJECT_INCR);
+    airArrayPointerCB(ret->catArr, airNull, (void *(*)(void *))echoObjectNix);
     ret->rend = NULL;
     ret->rendArr = airArrayNew((eppu.obj = &(ret->rend), eppu.v), NULL,
-                               sizeof(echoObject *),
-                               ECHO_LIST_OBJECT_INCR);
+                               sizeof(echoObject *), ECHO_LIST_OBJECT_INCR);
     /* no callbacks set, renderable objecs are nixed from catArr */
     ret->light = NULL;
     ret->lightArr = airArrayNew((eppu.obj = &(ret->light), eppu.v), NULL,
-                                sizeof(echoObject *),
-                                ECHO_LIST_OBJECT_INCR);
+                                sizeof(echoObject *), ECHO_LIST_OBJECT_INCR);
     /* no callbacks set; light objects are nixed from catArr */
     ret->nrrd = NULL;
-    ret->nrrdArr = airArrayNew((eppu.nrd = &(ret->nrrd), eppu.v), NULL,
-                               sizeof(Nrrd *),
+    ret->nrrdArr = airArrayNew((eppu.nrd = &(ret->nrrd), eppu.v), NULL, sizeof(Nrrd *),
                                ECHO_LIST_OBJECT_INCR);
-    airArrayPointerCB(ret->nrrdArr,
-                      airNull,
-                      (void *(*)(void *))nrrdNuke);
+    airArrayPointerCB(ret->nrrdArr, airNull, (void *(*)(void *))nrrdNuke);
     ret->envmap = NULL;
     ELL_3V_SET(ret->ambi, 1.0, 1.0, 1.0);
     ELL_3V_SET(ret->bkgr, 0.0, 0.0, 0.0);
@@ -169,7 +157,7 @@ void
 _echoSceneLightAdd(echoScene *scene, echoObject *obj) {
   unsigned int idx;
 
-  for (idx=0; idx<scene->lightArr->len; idx++) {
+  for (idx = 0; idx < scene->lightArr->len; idx++) {
     if (obj == scene->light[idx]) {
       break;
     }
@@ -184,7 +172,7 @@ void
 _echoSceneNrrdAdd(echoScene *scene, Nrrd *nrrd) {
   unsigned int idx;
 
-  for (idx=0; idx<scene->nrrdArr->len; idx++) {
+  for (idx = 0; idx < scene->nrrdArr->len; idx++) {
     if (nrrd == scene->nrrd[idx]) {
       break;
     }
@@ -195,7 +183,7 @@ _echoSceneNrrdAdd(echoScene *scene, Nrrd *nrrd) {
   }
 }
 
-echoScene *
+echoScene * /* Biff: nope */
 echoSceneNix(echoScene *scene) {
 
   if (scene) {

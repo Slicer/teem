@@ -1,30 +1,27 @@
 /*
-  Teem: Tools to process and visualize scientific data and images             .
-  Copyright (C) 2013, 2012, 2011, 2010, 2009  University of Chicago
-  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
-  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
+  Teem: Tools to process and visualize scientific data and images
+  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2005--2008  Gordon Kindlmann
+  Copyright (C) 1998--2004  University of Utah
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public License
-  (LGPL) as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  The terms of redistributing and/or modifying this software also
-  include exceptions to the LGPL that facilitate static linking.
+  This library is free software; you can redistribute it and/or modify it under the terms
+  of the GNU Lesser General Public License (LGPL) as published by the Free Software
+  Foundation; either version 2.1 of the License, or (at your option) any later version.
+  The terms of redistributing and/or modifying this software also include exceptions to
+  the LGPL that facilitate static linking.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public License
-  along with this library; if not, write to Free Software Foundation, Inc.,
-  51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  You should have received a copy of the GNU Lesser General Public License along with
+  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301 USA
 */
 
 #include "meet.h"
 
-
-gageKind * /*Teem: error if (!ret) */
+static gageKind *
 _meetGageKindParse(const char *_str, int constOnly) {
   char *str;
   gageKind *ret;
@@ -38,6 +35,8 @@ _meetGageKindParse(const char *_str, int constOnly) {
   }
   if (!strcmp(gageKindScl->name, str)) {
     ret = gageKindScl;
+  } else if (!strcmp(gageKind2Vec->name, str)) {
+    ret = gageKind2Vec;
   } else if (!strcmp(gageKindVec->name, str)) {
     ret = gageKindVec;
   } else if (!strcmp(tenGageKind->name, str)) {
@@ -51,13 +50,13 @@ _meetGageKindParse(const char *_str, int constOnly) {
   return ret;
 }
 
-gageKind * /*Teem: error if (!ret) */
+gageKind * /* Biff: nope */
 meetGageKindParse(const char *_str) {
 
   return _meetGageKindParse(_str, AIR_FALSE);
 }
 
-const gageKind * /*Teem: error if (!ret) */
+const gageKind * /* Biff: nope */
 meetConstGageKindParse(const char *_str) {
 
   return _meetGageKindParse(_str, AIR_TRUE);
@@ -67,9 +66,9 @@ meetConstGageKindParse(const char *_str) {
 ** same as _meetHestGageKindParse below but without the DWI kind,
 ** which isn't const
 */
-int
-_meetHestConstGageKindParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "_meetHestGageConstKindParse";
+static int
+_meetHestConstGageKindParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "_meetHestGageConstKindParse";
   const gageKind **kindP;
 
   if (!(ptr && str)) {
@@ -81,18 +80,17 @@ _meetHestConstGageKindParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   kindP = (const gageKind **)ptr;
   *kindP = meetConstGageKindParse(str);
   if (!*kindP) {
-    sprintf(err, "%s: \"%s\" not \"%s\", \"%s\", or \"%s\"", me, str,
-            gageKindScl->name, gageKindVec->name,
-            tenGageKind->name);
+    sprintf(err, "%s: \"%s\" not \"%s\", \"%s\", \"%s\", or \"%s\"", me, str,
+            gageKindScl->name, gageKind2Vec->name, gageKindVec->name, tenGageKind->name);
     return 1;
   }
 
   return 0;
 }
 
-int
-_meetHestGageKindParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
-  char me[] = "_meetHestGageKindParse";
+static int
+_meetHestGageKindParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+  static const char me[] = "_meetHestGageKindParse";
   gageKind **kindP;
 
   if (!(ptr && str)) {
@@ -102,16 +100,16 @@ _meetHestGageKindParse(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   kindP = (gageKind **)ptr;
   *kindP = meetGageKindParse(str);
   if (!*kindP) {
-    sprintf(err, "%s: \"%s\" not \"%s\", \"%s\", \"%s\", or \"%s\"", me,
-            str, gageKindScl->name, gageKindVec->name,
-            tenGageKind->name, TEN_DWI_GAGE_KIND_NAME);
+    sprintf(err, "%s: \"%s\" not \"%s\", \"%s\", \"%s\", \"%s\", or \"%s\"", me, str,
+            gageKindScl->name, gageKind2Vec->name, gageKindVec->name, tenGageKind->name,
+            TEN_DWI_GAGE_KIND_NAME);
     return 1;
   }
 
   return 0;
 }
 
-void *
+static void *
 _meetHestGageKindDestroy(void *ptr) {
   gageKind *kind;
 
@@ -124,28 +122,16 @@ _meetHestGageKindDestroy(void *ptr) {
   return NULL;
 }
 
-static hestCB
-_meetHestGageKind = {
-  sizeof(gageKind *),
-  "gageKind",
-  _meetHestGageKindParse,
-  _meetHestGageKindDestroy
-};
+static const hestCB _meetHestGageKind
+  = {sizeof(gageKind *), "gageKind", _meetHestGageKindParse, _meetHestGageKindDestroy};
 
-static hestCB
-_meetHestConstGageKind = {
-  sizeof(gageKind *),
-  "gageKind",
-  _meetHestConstGageKindParse,
-  NULL
-};
+static const hestCB _meetHestConstGageKind = {sizeof(gageKind *), "gageKind",
+                                              _meetHestConstGageKindParse, NULL};
 
 /*
 ******** meetHestGageKind
 **
 ** This provides a uniform way to parse gageKinds from the command-line
 */
-hestCB *
-meetHestGageKind = &_meetHestGageKind;
-hestCB *
-meetHestConstGageKind = &_meetHestConstGageKind;
+const hestCB *const meetHestGageKind = &_meetHestGageKind;
+const hestCB *const meetHestConstGageKind = &_meetHestConstGageKind;
