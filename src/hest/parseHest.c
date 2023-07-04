@@ -1699,14 +1699,15 @@ hestParseOrDie(hestOpt *opt, int argc, const char **argv, hestParm *parm, const 
     airFree(errS);
     /* but no return or exit; there's more to say */
   }
+#define STDWUT (parseErr ? stderr : stdout)
   if (parm && parm->dieLessVerbose) {
     /* newer logic for when to print which things */
-    if (wantHelp && info) hestInfo(stdout, me ? me : "", info, parm);
-    if (doUsage) hestUsage(parseErr ? stderr : stdout, opt, me ? me : "", parm);
+    if (wantHelp && info) hestInfo(STDWUT, me ? me : "", info, parm);
+    if (doUsage) hestUsage(STDWUT, opt, me ? me : "", parm);
     if (wantHelp && doGlossary) {
-      hestGlossary(parseErr ? stderr : stdout, opt, parm);
+      hestGlossary(STDWUT, opt, parm);
     } else if ((!argc || parseErr) && me) {
-      printf("\"%s --help\" for more information\n", me);
+      fprintf(STDWUT, "\"%s --help\" for more information\n", me);
     }
   } else {
     /* leave older (pre-dieLessVerbose) logic as is */
@@ -1714,9 +1715,10 @@ hestParseOrDie(hestOpt *opt, int argc, const char **argv, hestParm *parm, const 
       /* no error, just !argc */
       if (doInfo && info) hestInfo(stdout, me ? me : "", info, parm);
     }
-    if (doUsage) hestUsage(parseErr ? stderr : stdout, opt, me ? me : "", parm);
-    if (doGlossary) hestGlossary(parseErr ? stderr : stdout, opt, parm);
+    if (doUsage) hestUsage(STDWUT, opt, me ? me : "", parm);
+    if (doGlossary) hestGlossary(STDWUT, opt, parm);
   }
+#undef STDWUT
   hestParmFree(parm);
   hestOptFree(opt);
   exit(!!parseErr);
