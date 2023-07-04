@@ -311,6 +311,16 @@ _hestPanic(hestOpt *opt, char *err, const hestParm *parm) {
             fprintf(stderr, "%s: panic 9\n", me);
           return 1;
         }
+        if (parm->respectDashDashHelp && !strcmp("help", sep + 1)) {
+          if (err)
+            sprintf(err,
+                    "%s!!!!!! long \"--%s\" flag of opt[%d] is same as \"--help\" "
+                    "that requested hparm->respectDashDashHelp handles separately",
+                    ME, sep + 1, op);
+          else
+            fprintf(stderr, "%s: panic 9.5\n", me);
+          return 1;
+        }
       } else {
         if (!strlen(opt[op].flag)) {
           if (err)
