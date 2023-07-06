@@ -195,7 +195,7 @@ hestOptAdd_nva(hestOpt **optP, const char *flag, const char *name, int type, int
   ret[num].source = hestSourceUnknown;
   ret[num].parmStr = NULL;
   ret[num].helpWanted = AIR_FALSE;
-  /* deal with var args */
+  /* deal with (what used to be) var args */
   if (5 == opt_kind(min, max)) {
     ret[num].sawP = sawP;
   }
