@@ -99,8 +99,8 @@ typedef struct {
     *info;            /* description to be printed with "glossary" info */
   unsigned int *sawP; /* used ONLY for multiple variable parameter options
                          (min < max >= 2): storage of # of parsed values */
-  airEnum *enm;       /* used ONLY for airTypeEnum options */
-  hestCB *CB;         /* used ONLY for airTypeOther options */
+  const airEnum *enm; /* used ONLY for airTypeEnum options */
+  const hestCB *CB;   /* used ONLY for airTypeOther options */
 
   /* --------------------- end of user-defined fields; the following fields must be set
      by hestParse() as part of its operation. This does prevent adding const to much
@@ -225,13 +225,18 @@ HEST_EXPORT const int hestPresent;
 HEST_EXPORT hestParm *hestParmNew(void);
 HEST_EXPORT hestParm *hestParmFree(hestParm *parm);
 HEST_EXPORT void *hestParmFree_vp(void *parm);
+HEST_EXPORT unsigned int hestOptAdd_nva(hestOpt **optP, const char *flag,
+                                        const char *name, int type, int min, int max,
+                                        void *valueP, const char *dflt, const char *info,
+                                        unsigned int *sawP, const airEnum *enm,
+                                        const hestCB *CB);
 HEST_EXPORT unsigned int hestOptAdd(hestOpt **optP,
                                     const char *flag, const char *name,
                                     int type, int min, int max,
                                     void *valueP, const char *dflt,
                                     const char *info,
                                     ... /* unsigned int *sawP,
-                                           airEnum *enm,
+                                           const airEnum *enm,
                                            const hestCB *CB */);
 HEST_EXPORT unsigned int hestOptNum(const hestOpt *opt);
 HEST_EXPORT hestOpt *hestOptFree(hestOpt *opt);

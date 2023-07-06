@@ -79,8 +79,67 @@ hestParmFree(hestParm *parm) {
   return NULL;
 }
 
+/* _hestMax(-1) == INT_MAX, otherwise _hestMax(m) == m */
+int
+_hestMax(int max) {
+
+  if (-1 == max) {
+    max = INT_MAX;
+  }
+  return max;
+}
+
+/* opt_kind determines the kind (1,2,3,4, or 5) of an opt,
+  from being passed its min and max fields */
+static int
+opt_kind(unsigned int _min, int _max) {
+  int min, max;
+
+  min = AIR_CAST(int, _min);
+  if (min < 0) {
+    /* invalid */
+    return -1;
+  }
+
+  max = _hestMax(_max);
+  if (!(min <= max)) {
+    /* invalid */
+    return -1;
+  }
+
+  if (0 == min && 0 == max) {
+    /* flag */
+    return 1;
+  }
+
+  if (1 == min && 1 == max) {
+    /* single fixed parameter */
+    return 2;
+  }
+
+  if (2 <= min && 2 <= max && min == max) {
+    /* multiple fixed parameters */
+    return 3;
+  }
+
+  if (0 == min && 1 == max) {
+    /* single optional parameter */
+    return 4;
+  }
+
+  /* else multiple variable parameters */
+  return 5;
+}
+
+/* "private" wrapper around opt_kind, taking a hestOpt pointer */
+int
+_hestKind(const hestOpt *opt) {
+
+  return opt_kind(opt->min, opt->max);
+}
+
 static void
-optInit(hestOpt *opt) {
+opt_init(hestOpt *opt) {
 
   opt->flag = opt->name = NULL;
   opt->type = 0;
@@ -99,29 +158,17 @@ optInit(hestOpt *opt) {
 }
 
 /*
-hestOpt *
-hestOptNew(void) {
-  hestOpt *opt;
+hestOptAdd_nva: A new (as of 2023) non-var-args ("_nva") version of hestOptAdd, which now
+contains its main functionality (and it has become just a wrapper around this).
 
-  opt = AIR_CALLOC(1, hestOpt);
-  if (opt) {
-    _hestOptInit(opt);
-    opt->min = 1;
-  }
-  return opt;
-}
-*/
-
-/*
-** as of Sept 2013 this returns information: the index of the
-** option just added.  Returns UINT_MAX in case of error.
+Like hestOptAdd has done since 2013: returns UINT_MAX in case of error.
 */
 unsigned int
-hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type, int min,
-           int max, void *valueP, const char *dflt, const char *info, ...) {
+hestOptAdd_nva(hestOpt **optP, const char *flag, const char *name, int type, int min,
+               int max, void *valueP, const char *dflt, const char *info,
+               unsigned int *sawP, const airEnum *enm, const hestCB *CB) {
   hestOpt *ret = NULL; /* not the function return; but what *optP is set to */
   int num;
-  va_list ap;
   unsigned int retIdx;
 
   if (!optP) return UINT_MAX;
@@ -144,34 +191,62 @@ hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type, int min
   ret[num].sawP = NULL;
   ret[num].enm = NULL;
   ret[num].CB = NULL;
-  /* yes, redundant with optInit() */
+  /* yes, redundant with opt_init() */
   ret[num].source = hestSourceUnknown;
   ret[num].parmStr = NULL;
   ret[num].helpWanted = AIR_FALSE;
   /* deal with var args */
-  if (5 == _hestKind(&(ret[num]))) {
+  if (5 == opt_kind(min, max)) {
+    ret[num].sawP = sawP;
+  }
+  if (airTypeEnum == type) {
+    ret[num].enm = enm;
+  }
+  if (airTypeOther == type) {
+    ret[num].CB = CB;
+  }
+  opt_init(&(ret[num + 1]));
+  ret[num + 1].min = 1;
+  if (*optP) free(*optP);
+  *optP = ret;
+  return retIdx;
+}
+
+/*
+** as of Sept 2013 this returns information: the index of the
+** option just added.  Returns UINT_MAX in case of error.
+*/
+unsigned int
+hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type, int min,
+           int max, void *valueP, const char *dflt, const char *info, ...) {
+  unsigned int *sawP = NULL;
+  const airEnum *enm = NULL;
+  const hestCB *CB = NULL;
+  va_list ap;
+
+  if (!optP) return UINT_MAX;
+  /* deal with var args */
+  if (5 == opt_kind(min, max)) {
     va_start(ap, info);
-    ret[num].sawP = va_arg(ap, unsigned int *);
+    sawP = va_arg(ap, unsigned int *);
     va_end(ap);
   }
   if (airTypeEnum == type) {
     va_start(ap, info);
     va_arg(ap, unsigned int *); /* skip sawP */
-    ret[num].enm = va_arg(ap, airEnum *);
+    enm = va_arg(ap, const airEnum *);
     va_end(ap);
   }
   if (airTypeOther == type) {
     va_start(ap, info);
     va_arg(ap, unsigned int *); /* skip sawP */
     va_arg(ap, airEnum *);      /* skip enm */
-    ret[num].CB = va_arg(ap, hestCB *);
+    CB = va_arg(ap, hestCB *);
     va_end(ap);
   }
-  optInit(&(ret[num + 1]));
-  ret[num + 1].min = 1;
-  if (*optP) free(*optP);
-  *optP = ret;
-  return retIdx;
+  return hestOptAdd_nva(optP, flag, name, type, min, max, /* */
+                        valueP, dflt, info,               /* */
+                        sawP, enm, CB);
 }
 
 static void
@@ -193,7 +268,7 @@ hestOptFree(hestOpt *opt) {
   num = hestOptNum(opt);
   if (opt[num].min) {
     /* we only try to free this array if it looks like something we allocated;
-       this is leveraging how _hestOptInit leaves things */
+       this is leveraging how opt_init leaves things */
     for (op = 0; op < num; op++) {
       _hestOptFree(opt + op);
     }
@@ -247,58 +322,6 @@ hestOptCheck(hestOpt *opt, char **errP) {
   free(err);
   hestParmFree(parm);
   return 0;
-}
-
-/* _hestMax(-1) == INT_MAX, otherwise _hestMax(m) == m */
-int
-_hestMax(int max) {
-
-  if (-1 == max) {
-    max = INT_MAX;
-  }
-  return max;
-}
-
-/* _hestKind determines the kind (1,2,3,4, or 5) of given opt,
-  from its min and max fields */
-int
-_hestKind(const hestOpt *opt) {
-  int min, max;
-
-  min = AIR_CAST(int, opt->min);
-  if (min < 0) {
-    /* invalid */
-    return -1;
-  }
-
-  max = _hestMax(opt->max);
-  if (!(min <= max)) {
-    /* invalid */
-    return -1;
-  }
-
-  if (0 == min && 0 == max) {
-    /* flag */
-    return 1;
-  }
-
-  if (1 == min && 1 == max) {
-    /* single fixed parameter */
-    return 2;
-  }
-
-  if (2 <= min && 2 <= max && min == max) {
-    /* multiple fixed parameters */
-    return 3;
-  }
-
-  if (0 == min && 1 == max) {
-    /* single optional parameter */
-    return 4;
-  }
-
-  /* else multiple variable parameters */
-  return 5;
 }
 
 /*
