@@ -176,7 +176,7 @@ makeGlyphScene(limnCam *cam, EchoParm *eparm, Nrrd *nten, EchoGlyphParm *gparm,
 }
 
 int
-echoParseTenNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+echoParseTenNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE + 1]) {
   char me[] = "echoParseTenNrrd", *nerr;
   Nrrd **nrrdP;
   airArray *mop;
@@ -191,7 +191,7 @@ echoParseTenNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
   if (nrrdLoad(*nrrdP, str)) {
     airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
-    if (strlen(nerr) > AIR_STRLEN_HUGE - 1) nerr[AIR_STRLEN_HUGE - 1] = '\0';
+    if (strlen(nerr) > AIR_STRLEN_HUGE) nerr[AIR_STRLEN_HUGE] = '\0';
     strcpy(err, nerr);
     airMopError(mop);
     return 1;
@@ -200,7 +200,7 @@ echoParseTenNrrd(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
     /* why not use the given err[] as a temp buffer */
     biffAddf(TEN, "%s: \"%s\" isn't a valid tensor volume", me, str);
     airMopAdd(mop, nerr = biffGetDone(TEN), airFree, airMopOnError);
-    if (strlen(nerr) > AIR_STRLEN_HUGE - 1) nerr[AIR_STRLEN_HUGE - 1] = '\0';
+    if (strlen(nerr) > AIR_STRLEN_HUGE) nerr[AIR_STRLEN_HUGE] = '\0';
     strcpy(err, nerr);
     airMopError(mop);
     return 1;
