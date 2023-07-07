@@ -181,16 +181,16 @@ typedef void (*CN)(void *, const void *, IT, int, int);
 ** The rationale for this has been: "for integral types, clamps a given float to the
 ** range representable by that type; for floating point types, just return the given
 ** number, since every float must fit in a double".  However, thinking for the v1.13
-** release finally recognized the fact that INT_MAX is not representable as a float,
-** so you could have: int 2147483584, passed through nrrdFClamp[nrrdTypeInt] to get
-** float 2.14748365e+09 > INT_MAX==2147483647, which when cast back to int gives you
-** -2147483648, which completely violates the intent of these functions! So, now the
-** rationale is just "clamps given float to a range that won't create big surprises
-** due to integer overflow upon casting to that type". There could still be small
-** suprises, as in from negative input generating output that is less than the input
-** (but still negative). The solution adopted here is possibly too slow, but we'll
-** let profiling tell us that, rather than trying to cleverly use bounds known at
-** compile-time when valid.
+** release (which became the v2 release) finally recognized the fact that INT_MAX is
+** not representable as a float, so you could have: int 2147483584, passed through
+** nrrdFClamp[nrrdTypeInt] to get float 2.14748365e+09 > INT_MAX==2147483647, which
+** when cast back to int gives you -2147483648, which completely violates the intent
+** of these functions! So, now the rationale is just "clamps given float to a range
+** that won't create big surprises due to integer overflow upon casting to that type".
+** There could still be small surprises, as in from negative input generating output
+** that is less than the input (but still negative). The solution adopted here is
+** possibly too slow, but we'll let profiling tell us that, rather than trying to
+** cleverly use bounds known at compile-time when valid.
 **
 ** Btw, this is a good example of where warnings about implicit floating-point
 ** conversion warnings highlighted actual bugs in code.
