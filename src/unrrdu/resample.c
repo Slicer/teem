@@ -310,7 +310,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me, hestParm *hparm
         }
         if (!E) E |= nrrdResampleKernelSet(rsmc, ai, unuk->kernel, unuk->parm);
         switch (dowhat) {
-          char stmp[AIR_STRLEN_SMALL];
+          char stmp[AIR_STRLEN_SMALL] + 1;
         case unrrduScaleMultiply:
           samplesOut = AIR_ROUNDUP_UI(nin->axis[ai].size * scale[1 + 2 * ai]);
           break;

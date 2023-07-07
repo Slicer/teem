@@ -83,7 +83,7 @@ unrrdu_lut2Main(int argc, const char **argv, const char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
   if (!(nin->dim > 1 && 2 == nin->axis[0].size)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     fprintf(stderr,
             "%s: input nrrd dim must be > 1, and axis[0].size "
             "must be 2 (not %s)\n",

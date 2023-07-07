@@ -99,18 +99,18 @@ unrrdu_cropMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     unsigned int axi;
     if (!(2 == _nbounds->dim && nin->dim == AIR_UINT(_nbounds->axis[0].size)
           && 2 == _nbounds->axis[1].size)) {
-      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+      char stmp[2][AIR_STRLEN_SMALL + 1];
       if (_nbounds->dim >= 2) {
-        airSprintSize_t(stmp1, _nbounds->axis[1].size);
+        airSprintSize_t(stmp[0], _nbounds->axis[1].size);
       } else {
-        strcpy(stmp1, "");
+        strcpy(stmp[0], "");
       }
       fprintf(stderr,
               "%s: expected 2-D %u-by-2 array of cropping bounds, "
               "not %u-D %s%s%s%s\n",
               me, nin->dim, _nbounds->dim,
-              airSprintSize_t(stmp2, _nbounds->axis[0].size),
-              _nbounds->dim >= 2 ? "-by-" : "-long", _nbounds->dim >= 2 ? stmp1 : "",
+              airSprintSize_t(stmp[1], _nbounds->axis[0].size),
+              _nbounds->dim >= 2 ? "-by-" : "-long", _nbounds->dim >= 2 ? stmp[0] : "",
               _nbounds->dim > 2 ? "-by-X" : "");
       airMopError(mop);
       return 1;

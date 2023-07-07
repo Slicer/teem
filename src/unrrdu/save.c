@@ -35,7 +35,7 @@ static const char *_unrrdu_saveInfoL
 static int
 unrrdu_saveMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, *outData, encInfo[AIR_STRLEN_HUGE], fmtInfo[AIR_STRLEN_HUGE];
+  char *out, *err, *outData, encInfo[AIR_STRLEN_HUGE + 1], fmtInfo[AIR_STRLEN_HUGE + 1];
   Nrrd *nin, *nout;
   airArray *mop;
   NrrdIoState *nio;

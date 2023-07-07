@@ -317,7 +317,7 @@ unrrdu_ilkMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   if (nrrdBoundaryPad == bound) {
     if (_bkgLen != MOSS_CHAN_NUM(nin)) {
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       fprintf(stderr, "%s: got length %u background, but image has %s channels\n", me,
               _bkgLen, airSprintSize_t(stmp, MOSS_CHAN_NUM(nin)));
       airMopError(mop);

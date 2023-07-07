@@ -35,7 +35,7 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me, hestParm *hparm)
   unsigned int vsize[2], vpadding[2], rpadding[2];
   double rescale, rperc;
   Nrrd *nin, *nrescale, *npad, *nvbase, *ntmp, *nout;
-  char *out, *err, *stpfx, stname[AIR_STRLEN_SMALL];
+  char *out, *err, *stpfx, stname[AIR_STRLEN_SMALL + 1];
   int pret;
   NrrdResampleContext *rsmc;
   NrrdKernelSpec *rescaleKsp, *vdsmp[2];

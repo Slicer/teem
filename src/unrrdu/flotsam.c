@@ -146,7 +146,7 @@ unrrduCmdMain(int argc, const char **argv, const char *cmd, const char *title,
   }
   /* else, we see if its --version */
   if (!strcmp("--version", argv[1])) {
-    char vbuff[AIR_STRLEN_LARGE];
+    char vbuff[AIR_STRLEN_LARGE + 1];
     airTeemVersionSprint(vbuff);
     printf("%s\n", vbuff);
     exit(0);
@@ -192,7 +192,7 @@ unrrduCmdMain(int argc, const char **argv, const char *cmd, const char *title,
 */
 void
 unrrduUsageUnu(const char *me, hestParm *hparm, int alsoHidden) {
-  char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
+  char buff[AIR_STRLEN_LARGE + 1], fmt[AIR_STRLEN_LARGE + 1];
   unsigned int cmdi, chi, len, maxlen;
 
   maxlen = 0;
@@ -269,7 +269,7 @@ unrrduUsageUnu(const char *me, hestParm *hparm, int alsoHidden) {
 int /* Biff: nope */
 unrrduUsage(const char *me, hestParm *hparm, const char *title,
             const unrrduCmd *const *cmdList) {
-  char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
+  char buff[AIR_STRLEN_LARGE + 1], fmt[AIR_STRLEN_LARGE + 1];
   unsigned int cmdi, chi, len, maxlen;
 
   if (!(title && cmdList)) {
@@ -328,7 +328,7 @@ unrrduUsage(const char *me, hestParm *hparm, const char *title,
 ** pos[0] == -1: pos[1] gives the position relative to a "minimum" position
 */
 static int
-parsePos(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+parsePos(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "parsePos";
   long int *pos;
 
@@ -402,7 +402,7 @@ const hestCB unrrduHestPosCB = {2 * sizeof(long int), "position", parsePos, NULL
 ** value as nrrdTypeDefault.
 */
 static int
-parseMaybeType(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+parseMaybeType(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "parseMaybeType";
   int *typeP;
 
@@ -439,7 +439,7 @@ const hestCB unrrduHestMaybeTypeCB = {sizeof(int), "type", parseMaybeType, NULL}
 ** for parsing an int that can be 8, 16, or 32
 */
 static int
-parseBits(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+parseBits(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "parseBits";
   unsigned int *bitsP;
 
@@ -482,7 +482,7 @@ const hestCB unrrduHestBitsCB = {sizeof(int), "quantization bits", parseBits, NU
 ** s<float>  : unrrduScaleSpacingTarget
 */
 static int
-parseScale(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+parseScale(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "parseScale";
   double *scale;
   unsigned int num;
@@ -569,7 +569,7 @@ maybeFclose(void *_file) {
 }
 
 static int
-parseFile(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+parseFile(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "parseFile";
   FILE **fileP;
 
@@ -605,7 +605,7 @@ const hestCB unrrduHestFileCB = {
 ** enc[2]: for zlib: strategy, from nrrdZlibStrategy* enum
 */
 static int
-parseEncoding(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
+parseEncoding(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "parseEncoding";
   char *str, *opt;
   int *enc;
@@ -685,7 +685,7 @@ const hestCB unrrduHestEncodingCB = {3 * sizeof(int), "encoding", parseEncoding,
 **         as indicated by one of: btext, ptext, baretext, plaintext
 */
 static int
-parseFormat(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+parseFormat(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "parseFormat";
   int *enc;
 
