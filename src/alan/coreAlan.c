@@ -175,7 +175,7 @@ alanInit(alanContext *actx, const Nrrd *nlevInit, const Nrrd *nparmInit) {
 static int
 _alanPerIteration(alanContext *actx, int iter) {
   static const char me[] = "_alanPerIteration";
-  char fname[AIR_STRLEN_MED];
+  char fname[AIR_STRLEN_MED + 1];
   Nrrd *nslc, *nimg;
 
   if (!(actx->saveInterval || actx->frameInterval)) {
