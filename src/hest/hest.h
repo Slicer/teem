@@ -287,8 +287,47 @@ HEST_EXPORT void hestInfo(FILE *file, const char *argv0, const char *info,
                           const hestParm *parm);
 
 /* adders.c */
-HEST_EXPORT unsigned int hestOptAddFlag(hestOpt **optP, const char *flag, int *valueP,
-                                        const char *info);
+HEST_EXPORT unsigned int hestOptAdd_Flag(hestOpt **optP, const char *flag, int *valueP,
+                                         const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1_Bool(hestOpt **optP, const char *flag,
+                                           const char *name, int *valueP,
+                                           const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1_Int(hestOpt **optP, const char *flag,
+                                          const char *name, int *valueP,
+                                          const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1_UInt(hestOpt **optP, const char *flag,
+                                           const char *name, unsigned int *valueP,
+                                           const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1_LongInt(hestOpt **optP, const char *flag,
+                                              const char *name, long int *valueP,
+                                              const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1_ULongInt(hestOpt **optP, const char *flag,
+                                               const char *name,
+                                               unsigned long int *valueP,
+                                               const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1_Size_t(hestOpt **optP, const char *flag,
+                                             const char *name, size_t *valueP,
+                                             const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1_Float(hestOpt **optP, const char *flag,
+                                            const char *name, float *valueP,
+                                            const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1_Double(hestOpt **optP, const char *flag,
+                                             const char *name, double *valueP,
+                                             const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1_Char(hestOpt **optP, const char *flag,
+                                           const char *name, char *valueP,
+                                           const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1_String(hestOpt **optP, const char *flag,
+                                             const char *name, char **valueP,
+                                             const char *dflt, const char *info);
+HEST_EXPORT unsigned int hestOptAdd_1_Enum(hestOpt **optP, const char *flag,
+                                           const char *name, int *valueP,
+                                           const char *dflt, const char *info,
+                                           const airEnum *enm);
+HEST_EXPORT unsigned int hestOptAdd_1_Other(hestOpt **optP, const char *flag,
+                                            const char *name, void *valueP,
+                                            const char *dflt, const char *info,
+                                            const hestCB *CB);
 
 #ifdef __cplusplus
 }
