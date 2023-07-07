@@ -49,7 +49,7 @@ const char *const airTeemReleaseDate = "maybe 2019 or 2020";
 ** uniform way of printing information about the Teem version
 */
 void
-airTeemVersionSprint(char buff[AIR_STRLEN_LARGE]) {
+airTeemVersionSprint(char buff[AIR_STRLEN_LARGE + 1]) {
   sprintf(buff, "Teem version %s, %s%s%s", airTeemVersion,
           airTeemReleaseDone ? "released on " : "", airTeemReleaseDate,
           airTeemReleaseDone ? "" : " (not yet released)");
@@ -165,7 +165,7 @@ airFclose(FILE *file) {
 */
 int
 airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
-  char *fmt, buff[AIR_STRLEN_LARGE];
+  char *fmt, buff[AIR_STRLEN_LARGE + 1];
   double val = 0, gVal, fVal;
   int ret, isF, isD, cls;
   char *conv = NULL, *p0, *p1, *p2, *p3, *p4, *p5;
@@ -260,14 +260,14 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
 ** non-standardized format specifier confusion with printf
 */
 char *
-airSprintSize_t(char _str[AIR_STRLEN_SMALL], size_t val) {
-  char str[AIR_STRLEN_SMALL];
+airSprintSize_t(char _str[AIR_STRLEN_SMALL + 1], size_t val) {
+  char str[AIR_STRLEN_SMALL + 1];
   unsigned int si;
 
   if (!_str) {
     return NULL;
   }
-  si = AIR_STRLEN_SMALL - 1;
+  si = AIR_STRLEN_SMALL;
   str[si] = '\0';
   do {
     str[--si] = AIR_CAST(char, (val % 10) + '0');
@@ -284,15 +284,15 @@ airSprintSize_t(char _str[AIR_STRLEN_SMALL], size_t val) {
 ** non-standardized format specifier confusion with printf
 */
 char *
-airSprintPtrdiff_t(char _str[AIR_STRLEN_SMALL], ptrdiff_t val) {
-  char str[AIR_STRLEN_SMALL];
+airSprintPtrdiff_t(char _str[AIR_STRLEN_SMALL + 1], ptrdiff_t val) {
+  char str[AIR_STRLEN_SMALL + 1];
   unsigned int si;
   int sign;
 
   if (!_str) {
     return NULL;
   }
-  si = AIR_STRLEN_SMALL - 1;
+  si = AIR_STRLEN_SMALL;
   str[si] = '\0';
   sign = (val < 0 ? -1 : 1);
   do {
@@ -319,7 +319,7 @@ const int airPresent = 42;
 */
 char *
 airSprintVecSize_t(char *dst, const size_t *vec, unsigned int len) {
-  char stmp[AIR_STRLEN_SMALL];
+  char stmp[AIR_STRLEN_SMALL + 1];
   unsigned int axi;
 
   /* if we got NULL to sprint into, there's nothing to do but return it */
@@ -345,7 +345,7 @@ airSprintVecSize_t(char *dst, const size_t *vec, unsigned int len) {
 ** bytes, kilobytes (KB), etc
 */
 char *
-airPrettySprintSize_t(char str[AIR_STRLEN_SMALL], size_t val) {
+airPrettySprintSize_t(char str[AIR_STRLEN_SMALL + 1], size_t val) {
   static const char suff[][7] = {"bytes", "KB", "MB", "GB", "TB", "PB", "EB"};
   unsigned int suffIdx, suffNum;
   double dval;
@@ -622,7 +622,7 @@ airTime() {
 
 /* clang-format off */
 const char
-airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL] = {
+airTypeStr[AIR_TYPE_MAX+1][AIR_STRLEN_SMALL+1] = {
   "(unknown)",
   "bool",
   "int",

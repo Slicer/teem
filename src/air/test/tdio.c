@@ -19,15 +19,14 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../air.h"
 
 #if TEEM_DIO == 0
 #else
 /* HEY: these may be SGI-specific */
-#include <sys/types.h>
-#include <unistd.h>
-#include <fcntl.h>
+#  include <sys/types.h>
+#  include <unistd.h>
+#  include <fcntl.h>
 #endif
 
 int
@@ -61,48 +60,51 @@ main(int argc, char *argv[]) {
   mop = airMopNew();
   if (!(file = fopen(fname, "w"))) {
     fprintf(stderr, "%s: couldn't open %s for writing\n", me, fname);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
   fd = fileno(file);
   if (-1 == fd) {
     fprintf(stderr, "%s: couldn't get underlying descriptor\n", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   fprintf(stderr, "%s: fd(%s) = %d\n", me, fname, fd);
 
   ret = airDioTest(fd, NULL, 0);
   if (airNoDio_okay != ret) {
     fprintf(stderr, "%s: no good: \"%s\"\n", me, airNoDioErr(ret));
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airDioInfo(&align, &min, &max, fd);
   fprintf(stderr, "%s: --> align=%d, min=%d, max=%d\n", me, align, min, max);
-  size = (size_t)max*mult;
+  size = (size_t)max * mult;
   data = airDioMalloc(size, fd);
   if (!data) {
-    char stmp[AIR_STRLEN_SMALL];
-    fprintf(stderr, "%s: airDioMalloc(%s) failed\n", me,
-            airSprintSize_t(stmp, size));
-    airMopError(mop); return 1;
+    char stmp[AIR_STRLEN_SMALL + 1];
+    fprintf(stderr, "%s: airDioMalloc(%s) failed\n", me, airSprintSize_t(stmp, size));
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, data, airFree, airMopAlways);
-  fprintf(stderr, "\ndata size = %g MB\n", (double)size/(1024*1024));
+  fprintf(stderr, "\ndata size = %g MB\n", (double)size / (1024 * 1024));
 
   /* -------------------------------------------------------------- */
   fprintf(stderr, "(1) non-aligned memory, regular write:\n");
   time0 = airTime();
-  if (size-1 != write(fd, data+1, size-1)) {
+  if (size - 1 != write(fd, data + 1, size - 1)) {
     fprintf(stderr, "%s: write failed\n", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   time1 = airTime();
   fsync(fd);
   time2 = airTime();
-  fprintf(stderr, "   time = %g + %g = %g (%g MB/sec)\n",
-          time1 - time0, time2 - time1, time2 - time0,
-          (size/(1024*1024)) / (time2 - time0));
+  fprintf(stderr, "   time = %g + %g = %g (%g MB/sec)\n", time1 - time0, time2 - time1,
+          time2 - time0, (size / (1024 * 1024)) / (time2 - time0));
   airMopSub(mop, file, (airMopper)airFclose);
   fclose(file);
   /* -------------------------------------------------------------- */
@@ -115,14 +117,14 @@ main(int argc, char *argv[]) {
   time0 = airTime();
   if (size != write(fd, data, size)) {
     fprintf(stderr, "%s: write failed\n", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   time1 = airTime();
   fsync(fd);
   time2 = airTime();
-  fprintf(stderr, "   time = %g + %g = %g (%g MB/sec)\n",
-          time1 - time0, time2 - time1, time2 - time0,
-          (size/(1024*1024)) / (time2 - time0));
+  fprintf(stderr, "   time = %g + %g = %g (%g MB/sec)\n", time1 - time0, time2 - time1,
+          time2 - time0, (size / (1024 * 1024)) / (time2 - time0));
   airMopSub(mop, file, (airMopper)airFclose);
   fclose(file);
   /* -------------------------------------------------------------- */
@@ -135,14 +137,14 @@ main(int argc, char *argv[]) {
   time0 = airTime();
   if (size != airDioWrite(fd, data, size)) {
     fprintf(stderr, "%s: write failed\n", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   time1 = airTime();
   fsync(fd);
   time2 = airTime();
-  fprintf(stderr, "   time = %g + %g = %g (%g MB/sec)\n",
-          time1 - time0, time2 - time1, time2 - time0,
-          (size/(1024*1024)) / (time2 - time0));
+  fprintf(stderr, "   time = %g + %g = %g (%g MB/sec)\n", time1 - time0, time2 - time1,
+          time2 - time0, (size / (1024 * 1024)) / (time2 - time0));
   airMopSub(mop, file, (airMopper)airFclose);
   fclose(file);
   /* -------------------------------------------------------------- */
@@ -158,18 +160,21 @@ main(int argc, char *argv[]) {
     file = fopen(fname, "w");
     if (-1 == (fd = fileno(file))) {
       fprintf(stderr, "%s: couldn't get underlying descriptor\n", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
     flags = fcntl(fd, F_GETFL);
     if (-1 == fcntl(fd, F_SETFL, flags | FDIRECT)) {
       fprintf(stderr, "%s: couldn't turn on direct IO\n", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if (0 != fcntl(fd, F_DIOINFO, &dio)) {
       fprintf(stderr, "%s: couldn't learn direct IO specifics", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
 
     remain = size;
@@ -181,7 +186,8 @@ main(int argc, char *argv[]) {
       rit = write(fd, ptr, part);
       if (rit != part) {
         fprintf(stderr, "%s: write failed\n", me);
-        airMopError(mop); return 1;
+        airMopError(mop);
+        return 1;
       }
       totalrit += rit;
       ptr += rit;
@@ -190,9 +196,8 @@ main(int argc, char *argv[]) {
     time1 = airTime();
     fsync(fd);
     time2 = airTime();
-    fprintf(stderr, "   time = %g + %g = %g (%g MB/sec)\n",
-            time1 - time0, time2 - time1, time2 - time0,
-            (size/(1024*1024)) / (time2 - time0));
+    fprintf(stderr, "   time = %g + %g = %g (%g MB/sec)\n", time1 - time0, time2 - time1,
+            time2 - time0, (size / (1024 * 1024)) / (time2 - time0));
     airMopSub(mop, file, (airMopper)airFclose);
     fclose(file);
   }

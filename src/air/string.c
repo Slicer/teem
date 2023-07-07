@@ -184,10 +184,9 @@ airStrtrans(char *s, char from, char to) {
 ** instead of strncpy's "Copy at most n characters, blah blah blah,
 ** and you still have to 0-terminate the rest yourself".
 **
-** E.g. with declaration buff[AIR_STRLEN_SMALL], you call
-** airStrcpy(buff, AIR_STRLEN_SMALL, src), and know that then
-** strlen(buff) <= AIR_STRLEN_SMALL-1. (see note in air.h about
-** the meaning of the STRLEN #defines).
+** E.g. with declaration buff[AIR_STRLEN_SMALL+1], you call
+** airStrcpy(buff, AIR_STRLEN_SMALL+1, src), and know that then
+** strlen(buff) <= AIR_STRLEN_SMALL.
 **
 ** Returns NULL if there was a problem (NULL dst or dstSize zero),
 ** otherwise returns dst

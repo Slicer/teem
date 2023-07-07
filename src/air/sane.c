@@ -198,7 +198,7 @@ airSanity(void) {
   return airInsane_not;
 }
 
-static const char _airInsaneErr[AIR_INSANE_MAX + 1][AIR_STRLEN_MED] = {
+static const char _airInsaneErr[AIR_INSANE_MAX + 1][AIR_STRLEN_MED + 1] = {
   "sanity checked PASSED!",                           /* 0: airInsane_not */
   "airMyEndian() is wrong",                           /* 1: airInsane_endian */
   "AIR_EXISTS(+inf) was true",                        /* 2: airInsane_pInfExists */
