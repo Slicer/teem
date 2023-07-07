@@ -109,7 +109,7 @@ static int /* Biff: 1 */
 tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize, float thick,
               float scaling, float bnd, float bndRm, float evsc, int torus) {
   static const char me[] = "tend_satinGen";
-  char buff[AIR_STRLEN_SMALL];
+  char buff[AIR_STRLEN_SMALL + 1];
   Nrrd *nconf, *neval, *nevec;
   float *conf, *eval, *evec;
   size_t xi, yi, zi, size[3];

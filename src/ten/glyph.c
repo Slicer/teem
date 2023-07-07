@@ -74,7 +74,7 @@ tenGlyphParmCheck(tenGlyphParm *parm, const Nrrd *nten, const Nrrd *npos,
   static const char me[] = "tenGlyphParmCheck";
   int duh;
   size_t tenSize[3];
-  char stmp[5][AIR_STRLEN_SMALL];
+  char stmp[5][AIR_STRLEN_SMALL + 1];
 
   if (!(parm && nten)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
@@ -184,7 +184,7 @@ tenGlyphGen(limnObject *glyphsLimn, echoScene *glyphsEcho, tenGlyphParm *parm,
   int lookIdx;
   echoObject *eglyph, *inst, *list = NULL, *split, *esquare;
   echoPos_t eM[16], originOffset[3], edge0[3], edge1[3];
-  char stmp[AIR_STRLEN_SMALL];
+  char stmp[AIR_STRLEN_SMALL + 1];
   /*
   int eret;
   double tmp1[3], tmp2[3];

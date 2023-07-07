@@ -58,7 +58,7 @@ simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {
 }
 
 static char *
-parmSprint(char str[AIR_STRLEN_MED], const double *parm) {
+parmSprint(char str[AIR_STRLEN_MED+1], const double *parm) {
   sprintf(str, "(%g) %gX%g (%g,%g,%g)", parm[0],
           parm[1], parm[2], parm[3], parm[4], parm[5]);
   return str;

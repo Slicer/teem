@@ -486,7 +486,7 @@ tenTripleConvert(Nrrd *nout, int dstType, const Nrrd *nin, int srcType) {
     return 1;
   }
   if (3 != nin->axis[0].size) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(TEN, "%s: need axis[0].size 3, not %s", me,
              airSprintSize_t(stmp, nin->axis[0].size));
     return 1;

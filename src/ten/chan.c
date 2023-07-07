@@ -60,7 +60,7 @@ int /* Biff: 1 */
 tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP, double *bP, unsigned int **skipP,
                       unsigned int *skipNumP, const Nrrd *ndwi) {
   static const char me[] = "tenDWMRIKeyValueParse";
-  char tmpKey[AIR_STRLEN_MED], key[AIR_STRLEN_MED], *val;
+  char tmpKey[AIR_STRLEN_MED + 1], key[AIR_STRLEN_MED + 1], *val;
   const char *keyFmt;
   int dwiAxis;
   unsigned int axi, dwiIdx, dwiNum, valNum, valIdx, parsedNum, nexNum, nexIdx, skipIdx,
@@ -638,7 +638,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P, const Nrrd *ndwi,
   double *emat, *bmat, *vbuf;
   NrrdRange *range;
   float te, d1, d2;
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (!(nten && ndwi && _nbmat)) {
     /* nerrP and _NB0P can be NULL */
@@ -876,7 +876,7 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten, const Nrrd *_nbmat,
   airArray *mop;
   double *bmat;
   float *dwi, *ten, (*lup)(const void *, size_t I);
-  char stmp[6][AIR_STRLEN_SMALL];
+  char stmp[6][AIR_STRLEN_SMALL + 1];
 
   if (!ndwi || !nT2 || !nten || !_nbmat
       || tenTensorCheck(nten, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)

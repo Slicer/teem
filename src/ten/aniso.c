@@ -1216,12 +1216,12 @@ tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, const Nrrd *nwght, int right, int
     }
     if (nrrdElementNumber(nwght)
         != nrrdElementNumber(nin) / nrrdKindSize(nrrdKind3DMaskedSymMatrix)) {
-      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+      char stmp[2][AIR_STRLEN_SMALL + 1];
       size_t numten;
       numten = nrrdElementNumber(nin) / nrrdKindSize(nrrdKind3DMaskedSymMatrix);
       biffAddf(TEN, "%s: # elements in weight nrrd (%s) != # tensors (%s)", me,
-               airSprintSize_t(stmp1, nrrdElementNumber(nwght)),
-               airSprintSize_t(stmp2, numten));
+               airSprintSize_t(stmp[0], nrrdElementNumber(nwght)),
+               airSprintSize_t(stmp[1], numten));
       return 1;
     }
   }

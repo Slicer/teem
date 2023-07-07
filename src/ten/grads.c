@@ -72,7 +72,7 @@ tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
     return 1;
   }
   if (!(3 == ngrad->axis[0].size && 2 == ngrad->dim)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(TEN, "%s: need a 3xN 2-D array (not a %sx? %u-D array)", me,
              airSprintSize_t(stmp, ngrad->axis[0].size), ngrad->dim);
     return 1;
@@ -88,7 +88,7 @@ tenGradientCheck(const Nrrd *ngrad, int type, unsigned int minnum) {
     return 1;
   }
   if (!(minnum <= ngrad->axis[1].size)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(TEN, "%s: have only %s gradients, need at least %d", me,
              airSprintSize_t(stmp, ngrad->axis[1].size), minnum);
     return 1;
@@ -458,7 +458,7 @@ tenGradientBalance(Nrrd *nout, const Nrrd *nin, tenGradientParm *tgparm) {
 int /* Biff: 1 */
 tenGradientDistribute(Nrrd *nout, const Nrrd *nin, tenGradientParm *tgparm) {
   static const char me[] = "tenGradientDistribute";
-  char filename[AIR_STRLEN_SMALL];
+  char filename[AIR_STRLEN_SMALL + 1];
   unsigned int ii, num, iter, oldIdx, newIdx, edgeShrink;
   airArray *mop;
   Nrrd *npos[2];

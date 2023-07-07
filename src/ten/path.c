@@ -1034,7 +1034,7 @@ tenInterpMulti3D(Nrrd *nout, const Nrrd *const *nin, const double *wght,
       }
     }
     if (tenInterpN_d(tenOut, tbuff, wght, ninLen, ptype, tip)) {
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       biffAddf(TEN, "%s: trouble on sample %s", me, airSprintSize_t(stmp, II));
       airMopError(mop);
       return 1;

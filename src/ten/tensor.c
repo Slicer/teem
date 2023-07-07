@@ -75,7 +75,7 @@ tenTensorCheck(const Nrrd *nin, int wantType, int want4D, int useBiff) {
     return 1;
   }
   if (!(7 == nin->axis[0].size)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffMaybeAddf(useBiff, TEN, "%s: axis 0 has size %s, not 7", me,
                   airSprintSize_t(stmp, nin->axis[0].size));
     return 1;
@@ -187,7 +187,7 @@ tenExpand2D(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
     return 1;
   }
   if (!(4 == nin->axis[0].size)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(TEN, "%s: axis 0 has size %s, not 4", me,
              airSprintSize_t(stmp, nin->axis[0].size));
     return 1;
@@ -298,7 +298,7 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
     return 1;
   }
   if (!(nrrdTypeFloat == tnine->type && 4 == tnine->dim && 9 == tnine->axis[0].size)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(TEN,
              "%s: type not %s (was %s) or dim not 4 (was %d) "
              "or first axis size not 9 (was %s)",
@@ -532,7 +532,7 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
   float *out, *conf, *eval, *evec;
   int map[4];
   /* float teval[3], tevec[9], tmp1[3], tmp2[3]; */
-  char stmp[7][AIR_STRLEN_SMALL];
+  char stmp[7][AIR_STRLEN_SMALL + 1];
 
   if (!(nout && nconf && neval && nevec)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
@@ -633,7 +633,7 @@ tenSlice(Nrrd *nout, const Nrrd *nten, unsigned int axis, size_t pos, unsigned i
   Nrrd *nslice, **ncoeff = NULL;
   int ci[4];
   airArray *mop;
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (!(nout && nten)) {
     biffAddf(TEN, "%s: got NULL pointer", me);

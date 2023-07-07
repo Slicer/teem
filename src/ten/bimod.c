@@ -249,7 +249,7 @@ _tenEMBimodalNewSigma(double *s1P, double *s2P, double m1, double m2,
 
 static void
 _tenEMBimodalSaveImage(tenEMBimodalParm *biparm) {
-  char name[AIR_STRLEN_MED];
+  char name[AIR_STRLEN_MED + 1];
   Nrrd *nh, *nm, *nhi, *nmi, *ni;
   NrrdRange *range;
   const Nrrd *nhmhi[3];
