@@ -347,7 +347,7 @@ _tenModelSqeFitSingle(const tenModel *model, double *testParm, double *grad,
   unsigned int iter, subIter;
   double step, bak, opp, val, testval, dist, td;
   int done;
-  char pstr[AIR_STRLEN_MED];
+  char pstr[AIR_STRLEN_MED + 1];
 
   step = 1;
   model->copy(parm, parmInit);

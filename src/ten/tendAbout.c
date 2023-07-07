@@ -26,7 +26,7 @@
 
 static int
 tend_aboutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
-  char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_MED];
+  char buff[AIR_STRLEN_LARGE + 1], fmt[AIR_STRLEN_MED + 1];
   char par1[] = "\t\t\t\t"
                 "\"tend\" is a command-line interface to much of the functionality "
                 "in \"ten\", a C library for diffusion image processing. Ten is one "

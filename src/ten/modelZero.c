@@ -43,7 +43,7 @@ simulate(double *dwiSim, const double *parm, const tenExperSpec *espec) {
 }
 
 static char *
-parmSprint(char str[AIR_STRLEN_MED], const double *parm) {
+parmSprint(char str[AIR_STRLEN_MED+1], const double *parm) {
 
   AIR_UNUSED(parm);
   sprintf(str, "constant 0");

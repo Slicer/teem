@@ -41,7 +41,7 @@ tenEvecRGB(Nrrd *nout, const Nrrd *nin, const tenEvecRGBParm *rgbp) {
     return 1;
   }
   if (!(2 <= nin->dim && 7 == nin->axis[0].size)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(TEN,
              "%s: need nin->dim >= 2 (not %u), axis[0].size == 7 "
              "(not %s)",
@@ -217,7 +217,7 @@ tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
     return 1;
   }
   if (!(6 == nbmat->axis[0].size && 2 == nbmat->dim)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(TEN, "%s: need a 6xN 2-D array (not a %s x? %d-D array)", me,
              airSprintSize_t(stmp, nbmat->axis[0].size), nbmat->dim);
     return 1;

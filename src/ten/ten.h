@@ -1150,13 +1150,13 @@ typedef struct {
 /* description of *one* parameter in the parameter vector that
    defines one instance of a given model */
 typedef struct {
-  char name[AIR_STRLEN_SMALL]; /* name */
-  double min, max;             /* bounds */
-  int cyclic;                  /* non-zero if effectively min == max */
-  int vec3;                    /* non-zero if this is a coefficient
-                                  of a UNIT-LENGTH 3-vector */
-  unsigned int vecIdx;         /* *if* this param is part of vector,
-                                  the index into it, i.e. 0, 1, or 2 */
+  char name[AIR_STRLEN_SMALL + 1]; /* name */
+  double min, max;                 /* bounds */
+  int cyclic;                      /* non-zero if effectively min == max */
+  int vec3;                        /* non-zero if this is a coefficient
+                                      of a UNIT-LENGTH 3-vector */
+  unsigned int vecIdx;             /* *if* this param is part of vector,
+                                      the index into it, i.e. 0, 1, or 2 */
 } tenModelParmDesc;
 
 #define TEN_MODEL_B0_MAX                                                                \
@@ -1195,13 +1195,13 @@ typedef struct {
 ** The "parmNum" field below therefore always includes the B0 value
 */
 typedef struct tenModel_t {
-  char name[AIR_STRLEN_SMALL];
+  char name[AIR_STRLEN_SMALL + 1];
   unsigned int parmNum;
   const tenModelParmDesc *parmDesc;
   /* noise free simulation */
   void (*simulate)(double *dwiSim, const double *parm, const tenExperSpec *espec);
   /* parameter vector operations */
-  char *(*sprint)(char str[AIR_STRLEN_MED], const double *parm);
+  char *(*sprint)(char str[AIR_STRLEN_MED + 1], const double *parm);
   double *(*alloc)(void);
   void (*rand)(double *parm, airRandMTState *rng, int knownB0);
   void (*step)(double *parm1, const double scl, const double *grad, const double *parm0);

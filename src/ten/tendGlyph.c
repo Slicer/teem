@@ -41,16 +41,16 @@ static int /* Biff: 1 */
 _tendGlyphReadCams(int imgSize[2], limnCamera **camP, unsigned int *numCamsP,
                    FILE *fin) {
   static const char me[] = "_tendGlyphReadCams";
-  char line[AIR_STRLEN_HUGE];
+  char line[AIR_STRLEN_HUGE + 1];
   int ki;
   double di, dn, df, fr[3], at[3], up[3], va, dwell;
   airArray *mop, *camA;
 
-  if (!(0 < airOneLine(fin, line, AIR_STRLEN_HUGE) && !strcmp(_LIMNMAGIC, line))) {
+  if (!(0 < airOneLine(fin, line, AIR_STRLEN_HUGE + 1) && !strcmp(_LIMNMAGIC, line))) {
     biffAddf(TEN, "%s: couldn't read first line or it wasn't \"%s\"", me, _LIMNMAGIC);
     return 1;
   }
-  if (!(0 < airOneLine(fin, line, AIR_STRLEN_HUGE)
+  if (!(0 < airOneLine(fin, line, AIR_STRLEN_HUGE + 1)
         && 2
              == (airStrtrans(airStrtrans(line, '{', ' '), '}', ' '),
                  sscanf(line, "imgSize %d %d", imgSize + 0, imgSize + 1)))) {
@@ -65,7 +65,7 @@ _tendGlyphReadCams(int imgSize[2], limnCamera **camP, unsigned int *numCamsP,
   camA = airArrayNew((void **)camP, numCamsP, sizeof(limnCamera), 1);
   airMopAdd(mop, camA, (airMopper)airArrayNix, airMopAlways);
 
-  while (0 < airOneLine(fin, line, AIR_STRLEN_HUGE)) {
+  while (0 < airOneLine(fin, line, AIR_STRLEN_HUGE + 1)) {
     airStrtrans(airStrtrans(line, '{', ' '), '}', ' ');
     ki = airArrayLenIncr(camA, 1);
     if (14
@@ -117,7 +117,7 @@ tend_glyphMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int ires[2], slice[2], nobg, ambocc, concave;
   unsigned int hackci, hacknumcam;
   size_t hackmin[3] = {0, 0, 0}, hackmax[3] = {2, 0, 0};
-  char *hackFN, hackoutFN[AIR_STRLEN_SMALL];
+  char *hackFN, hackoutFN[AIR_STRLEN_SMALL + 1];
   FILE *hackF;
   Nrrd *hacknpng, *hacknrgb;
   NrrdRange *hackrange;

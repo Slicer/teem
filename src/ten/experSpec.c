@@ -327,7 +327,7 @@ _tenExperSpec_nll(const double *dwiMeas, const double *dwiSim, const tenExperSpe
 int /* Biff: 1 */
 tenDWMRIKeyValueFromExperSpecSet(Nrrd *ndwi, const tenExperSpec *espec) {
   static const char me[] = "tenDWMRIKeyValueFromExperSpecSet";
-  char keystr[AIR_STRLEN_MED], valstr[AIR_STRLEN_MED];
+  char keystr[AIR_STRLEN_MED + 1], valstr[AIR_STRLEN_MED + 1];
   double maxb, bb;
   unsigned int ii;
 

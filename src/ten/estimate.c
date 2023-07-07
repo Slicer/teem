@@ -1043,7 +1043,7 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec, Nrrd *ndwi, double sig
   unsigned int tt, allIdx;
   int axmap[4], E;
   airArray *mop;
-  char stmp[3][AIR_STRLEN_SMALL];
+  char stmp[3][AIR_STRLEN_SMALL + 1];
 
   if (!(tec && ndwi && nB0 && nten)) {
     biffAddf(TEN, "%s: got NULL pointer", me);
@@ -1126,7 +1126,7 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec, Nrrd *ndwi, double sig
     return 1;
   }
   if (keyValueSet) {
-    char keystr[AIR_STRLEN_MED], valstr[AIR_STRLEN_MED];
+    char keystr[AIR_STRLEN_MED + 1], valstr[AIR_STRLEN_MED + 1];
 
     nrrdKeyValueAdd(ndwi, tenDWMRIModalityKey, tenDWMRIModalityVal);
     sprintf(valstr, "%g", bValue);
@@ -1811,7 +1811,7 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec, Nrrd *nten, Nrrd **nB0P,
   unsigned int dd;
   airArray *mop;
   int axmap[4];
-  char stmp[AIR_STRLEN_SMALL];
+  char stmp[AIR_STRLEN_SMALL + 1];
 
 #if 0
 #  define NUM 800
