@@ -118,7 +118,7 @@ biffMsgAdd(biffMsg *msg, const char *err) {
 
 void
 _biffMsgAddVL(biffMsg *msg, const char *errfmt, va_list args) {
-  char errstr[_HACK_STRLEN];
+  char errstr[_HACK_STRLEN + 1];
 
   vsprintf(errstr, errfmt, args);
   biffMsgAdd(msg, errstr);
@@ -210,7 +210,7 @@ biffMsgMove(biffMsg *dest, biffMsg *src, const char *err) {
 
 void
 _biffMsgMoveVL(biffMsg *dest, biffMsg *src, const char *errfmt, va_list args) {
-  char errstr[_HACK_STRLEN];
+  char errstr[_HACK_STRLEN + 1];
 
   vsprintf(errstr, errfmt, args);
   biffMsgMove(dest, src, errstr);
