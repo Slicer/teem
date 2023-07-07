@@ -29,16 +29,16 @@ int
 _limnReadCamanim(int imgSize[2], limnCamera **keycamP, double **timeP,
                  unsigned int *numKeysP, FILE *fin) {
   static const char me[] = "_limnReadCamanim";
-  char line[AIR_STRLEN_HUGE];
+  char line[AIR_STRLEN_HUGE + 1];
   unsigned int ki;
   double *tmp, *dwell, di, dn, df, fr[3], at[3], up[3], va;
   airArray *mop, *camA, *dwellA;
 
-  if (!(0 < airOneLine(fin, line, AIR_STRLEN_HUGE) && !strcmp(_LIMNMAGIC, line))) {
+  if (!(0 < airOneLine(fin, line, AIR_STRLEN_HUGE + 1) && !strcmp(_LIMNMAGIC, line))) {
     biffAddf(LIMN, "%s: couldn't read first line or it wasn't \"%s\"", me, _LIMNMAGIC);
     return 1;
   }
-  if (!(0 < airOneLine(fin, line, AIR_STRLEN_HUGE)
+  if (!(0 < airOneLine(fin, line, AIR_STRLEN_HUGE + 1)
         && 2
              == (airStrtrans(airStrtrans(line, '{', ' '), '}', ' '),
                  sscanf(line, "imgSize %d %d", imgSize + 0, imgSize + 1)))) {
@@ -54,7 +54,7 @@ _limnReadCamanim(int imgSize[2], limnCamera **keycamP, double **timeP,
   airMopAdd(mop, camA, (airMopper)airArrayNix, airMopAlways);
   airMopAdd(mop, dwellA, (airMopper)airArrayNuke, airMopAlways);
 
-  while (0 < airOneLine(fin, line, AIR_STRLEN_HUGE)) {
+  while (0 < airOneLine(fin, line, AIR_STRLEN_HUGE + 1)) {
     airStrtrans(airStrtrans(line, '{', ' '), '}', ' ');
     ki = airArrayLenIncr(camA, 1);
     airArrayLenIncr(dwellA, 1);
@@ -103,7 +103,7 @@ _limnReadCamanim(int imgSize[2], limnCamera **keycamP, double **timeP,
 
 int
 _limnWriteCamanim(FILE *fout, int imgSize[2], limnCamera *cam, int numFrames) {
-  /* char me[]="_limnWriteCamanim", err[AIR_STRLEN_MED]; */
+  /* char me[]="_limnWriteCamanim", err[AIR_STRLEN_MED+1]; */
   int fi;
 
   fprintf(fout, "%s\n", _LIMNMAGIC);

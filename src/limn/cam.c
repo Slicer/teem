@@ -191,7 +191,7 @@ limnCameraPathMake(limnCamera *cam, int numFrames, limnCamera *keycam, double *t
                    limnSplineTypeSpec *posType, limnSplineTypeSpec *distType,
                    limnSplineTypeSpec *viewType) {
   static const char me[] = "limnCameraPathMake";
-  char which[AIR_STRLEN_MED];
+  char which[AIR_STRLEN_MED + 1];
   airArray *mop;
   Nrrd *nquat, *nfrom, *natpt, *nupvc, *ndist, *nfova, *ntime, *nsample;
   double fratVec[3], *quat, *from, *atpt, *upvc, *dist, *fova, W2V[9], N[3], fratDist;

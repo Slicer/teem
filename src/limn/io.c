@@ -264,7 +264,7 @@ int /* Biff: 1 */
 limnObjectReadOFF(limnObject *obj, FILE *file) {
   static const char me[] = "limnObjectReadOFF";
   double vert[6];
-  char line[AIR_STRLEN_LARGE]; /* HEY: bad Gordon */
+  char line[AIR_STRLEN_LARGE + 1]; /* HEY: bad Gordon */
   int lineCount, lookIdx, partIdx, idxTmp, faceNum, faceGot, got;
   unsigned int vertGot, vertNum;
   unsigned int ibuff[1024]; /* HEY: bad Gordon */
@@ -289,7 +289,7 @@ limnObjectReadOFF(limnObject *obj, FILE *file) {
   got = 0;
   lineCount = 0;
   do {
-    if (!airOneLine(file, line, AIR_STRLEN_LARGE)) {
+    if (!airOneLine(file, line, AIR_STRLEN_LARGE + 1)) {
       biffAddf(LIMN, "%s: hit EOF before getting #vert #face #edge line", me);
       airMopError(mop);
       return 1;
@@ -308,7 +308,7 @@ limnObjectReadOFF(limnObject *obj, FILE *file) {
   vertBase[partIdx] = vertGot;
   while (vertGot < vertNum) {
     do {
-      lret = airOneLine(file, line, AIR_STRLEN_LARGE);
+      lret = airOneLine(file, line, AIR_STRLEN_LARGE + 1);
       lineCount++;
     } while (1 == lret);
     if (!lret) {
@@ -368,7 +368,7 @@ limnObjectReadOFF(limnObject *obj, FILE *file) {
   faceGot = 0;
   while (faceGot < faceNum) {
     do {
-      lret = airOneLine(file, line, AIR_STRLEN_LARGE);
+      lret = airOneLine(file, line, AIR_STRLEN_LARGE + 1);
       lineCount++;
     } while (1 == lret);
     if (!lret) {
@@ -454,7 +454,7 @@ http://www.npr.org/templates/story/story.php?storyId=4531695
 int /* Biff: 1 */
 limnPolyDataWriteLMPD(FILE *file, const limnPolyData *pld) {
   static const char me[] = "limnPolyDataWriteLMPD";
-  char infoS[AIR_STRLEN_MED];
+  char infoS[AIR_STRLEN_MED + 1];
   unsigned int primIdx, infoNum, flag, bit;
   Nrrd *nrrd;
   airArray *mop;
@@ -581,7 +581,7 @@ limnPolyDataWriteLMPD(FILE *file, const limnPolyData *pld) {
 int /* Biff: 1 */
 limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
   static const char me[] = "limnPolyDataReadLMPD";
-  char line[AIR_STRLEN_MED], name[AIR_STRLEN_MED], *tmp;
+  char line[AIR_STRLEN_MED + 1], name[AIR_STRLEN_MED + 1], *tmp;
   unsigned int vertNum, indxNum, primNum, primIdx, lineLen, infoNum, infoIdx, info, flag;
   Nrrd *nrrd;
   airArray *mop;
@@ -593,7 +593,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
   }
 
   sprintf(name, "magic");
-  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
   if (!lineLen) {
     biffAddf(LIMN, "%s: didn't get %s line", me, name);
     return 1;
@@ -604,7 +604,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
   }
 
   sprintf(name, "nums");
-  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
   if (!lineLen) {
     biffAddf(LIMN, "%s: didn't get %s line", me, name);
     return 1;
@@ -621,7 +621,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
   }
 
   sprintf(name, "info");
-  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
   if (!lineLen) {
     biffAddf(LIMN, "%s: didn't get %s line", me, name);
     return 1;
@@ -638,7 +638,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
   }
   flag = 0;
   for (infoIdx = 0; infoIdx < infoNum; infoIdx++) {
-    lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+    lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
     if (!lineLen) {
       biffAddf(LIMN, "%s: didn't get %s line %u/%u", me, name, infoIdx, infoNum);
       return 1;
@@ -660,7 +660,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
   /* actually, caller owns pld, so we don't register it with mop */
 
   sprintf(name, "type");
-  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
   if (!lineLen) {
     biffAddf(LIMN, "%s: didn't get %s line", me, name);
     return 1;
@@ -671,7 +671,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
     return 1;
   }
   for (primIdx = 0; primIdx < primNum; primIdx++) {
-    lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+    lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
     if (!lineLen) {
       biffAddf(LIMN, "%s: didn't get %s line %u/%u", me, name, primIdx, primNum);
       return 1;
@@ -685,7 +685,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
   }
 
   sprintf(name, "icnt");
-  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
   if (!lineLen) {
     biffAddf(LIMN, "%s: didn't get %s line", me, name);
     return 1;
@@ -696,7 +696,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
     return 1;
   }
   for (primIdx = 0; primIdx < primNum; primIdx++) {
-    lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+    lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
     if (!lineLen) {
       biffAddf(LIMN, "%s: didn't get %s line %u/%u", me, name, primIdx, primNum);
       return 1;
@@ -709,7 +709,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
   }
 
   sprintf(name, "indx");
-  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
   if (!lineLen) {
     biffAddf(LIMN, "%s: didn't get %s line", me, name);
     return 1;
@@ -757,7 +757,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
   ungetc(tmpChar, file);
 
   sprintf(name, "xyzw");
-  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
   if (!lineLen) {
     biffAddf(LIMN, "%s: didn't get %s line", me, name);
     return 1;
@@ -800,7 +800,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
         }
       } while (DEMARK_CHAR != tmpChar);
       ungetc(tmpChar, file);
-      lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+      lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
       if (!lineLen) {
         biffAddf(LIMN, "%s: didn't get %s line %u/%u", me, INFO_STR, infoIdx, infoNum);
         return 1;
@@ -872,7 +872,7 @@ limnPolyDataReadLMPD(limnPolyData *pld, FILE *file) {
 }
 
 static int /* Biff: 1 */
-_limnHestPolyDataLMPDParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+_limnHestPolyDataLMPDParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "_limnHestPolyDataLMPDParse";
   char *nerr;
   limnPolyData **lpldP;
@@ -902,7 +902,7 @@ _limnHestPolyDataLMPDParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]
   airMopAdd(mop, *lpldP, (airMopper)limnPolyDataNix, airMopOnError);
   if (limnPolyDataReadLMPD(*lpldP, file)) {
     airMopAdd(mop, nerr = biffGetDone(LIMN), airFree, airMopOnError);
-    airStrcpy(err, AIR_STRLEN_HUGE, nerr);
+    airStrcpy(err, AIR_STRLEN_HUGE + 1, nerr);
     airMopError(mop);
     return 1;
   }
@@ -917,7 +917,7 @@ static const hestCB _limnHestPolyDataLMPD = {sizeof(limnPolyData *), "polydata",
 const hestCB *const limnHestPolyDataLMPD = &_limnHestPolyDataLMPD;
 
 static int
-_limnHestPolyDataOFFParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+_limnHestPolyDataOFFParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "_limnHestPolyDataOFFParse";
   char *nerr;
   limnPolyData **lpldP;
@@ -947,7 +947,7 @@ _limnHestPolyDataOFFParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE])
   airMopAdd(mop, *lpldP, (airMopper)limnPolyDataNix, airMopOnError);
   if (limnPolyDataReadOFF(*lpldP, file)) {
     airMopAdd(mop, nerr = biffGetDone(LIMN), airFree, airMopOnError);
-    strncpy(err, nerr, AIR_STRLEN_HUGE - 1);
+    airStrcpy(err, AIR_STRLEN_HUGE + 1, nerr);
     airMopError(mop);
     return 1;
   }
@@ -1054,7 +1054,7 @@ limnPolyDataWriteVTK(FILE *file, const limnPolyData *pld) {
 int /* Biff: 1 */
 limnPolyDataReadOFF(limnPolyData *pld, FILE *file) {
   static const char me[] = "limnPolyDataReadOFF";
-  char line[AIR_STRLEN_LARGE]; /* HEY: bad Gordon */
+  char line[AIR_STRLEN_LARGE + 1]; /* HEY: bad Gordon */
   unsigned int num[3], xyzwNum, xyzwGot, faceNum, faceGot, lineCount, got, lret;
 
   if (!(pld && file)) {
@@ -1067,7 +1067,7 @@ limnPolyDataReadOFF(limnPolyData *pld, FILE *file) {
   got = 0;
   lineCount = 0;
   do {
-    if (!airOneLine(file, line, AIR_STRLEN_LARGE)) {
+    if (!airOneLine(file, line, AIR_STRLEN_LARGE + 1)) {
       biffAddf(LIMN, "%s: hit EOF before getting #vert #face #edge line", me);
       return 1;
     }
@@ -1088,7 +1088,7 @@ limnPolyDataReadOFF(limnPolyData *pld, FILE *file) {
   while (xyzwGot < xyzwNum) {
     float *xyzw;
     do {
-      lret = airOneLine(file, line, AIR_STRLEN_LARGE);
+      lret = airOneLine(file, line, AIR_STRLEN_LARGE + 1);
       lineCount++;
     } while (1 == lret);
     if (!lret) {
@@ -1113,7 +1113,7 @@ limnPolyDataReadOFF(limnPolyData *pld, FILE *file) {
   while (faceGot < faceNum) {
     unsigned int *indx, indxSingle[4], indxNum;
     do {
-      lret = airOneLine(file, line, AIR_STRLEN_LARGE);
+      lret = airOneLine(file, line, AIR_STRLEN_LARGE + 1);
       lineCount++;
     } while (1 == lret);
     if (!lret) {
