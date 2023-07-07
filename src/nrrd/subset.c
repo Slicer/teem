@@ -45,7 +45,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
   unsigned int ai, outdim;
   int map[NRRD_DIM_MAX];
   const char *src;
-  char *dest, stmp[2][AIR_STRLEN_SMALL];
+  char *dest, stmp[2][AIR_STRLEN_SMALL + 1];
   airArray *mop;
   Nrrd *nin;
 
@@ -183,7 +183,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *cnin, unsigned int saxi, size_t pos) {
 int /* Biff: 1 */
 nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   static const char me[] = "nrrdCrop", func[] = "crop";
-  char buff1[NRRD_DIM_MAX * 30], buff2[AIR_STRLEN_SMALL];
+  char buff1[NRRD_DIM_MAX * 30], buff2[AIR_STRLEN_SMALL + 1];
   unsigned int ai;
   size_t I, lineSize,   /* #bytes in one scanline to be copied */
     typeSize,           /* size of data type */
@@ -192,7 +192,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
     szIn[NRRD_DIM_MAX], szOut[NRRD_DIM_MAX], idxIn,
     idxOut,   /* linear indices for input and output */
     numLines; /* number of scanlines in output nrrd */
-  char *dataIn, *dataOut, stmp[3][AIR_STRLEN_SMALL];
+  char *dataIn, *dataOut, stmp[3][AIR_STRLEN_SMALL + 1];
 
   /* errors */
   if (!(nout && nin && min && max)) {
@@ -374,7 +374,7 @@ nrrdSliceSelect(Nrrd *noutAbove, Nrrd *noutBelow, const Nrrd *nin, unsigned int 
   unsigned int aa, bb, oi,
     axperm[NRRD_DIM_MAX];  /* for doing the axis permute to final out */
   int axmap[NRRD_DIM_MAX]; /* for copying axis info from nin to outputs */
-  char *ABdata[2], stmp[2][AIR_STRLEN_SMALL];
+  char *ABdata[2], stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (!((noutAbove || noutBelow) && nin && _nline)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -579,7 +579,7 @@ nrrdSample_nva(void *val, const Nrrd *nrrd, const size_t *coord) {
   static const char me[] = "nrrdSample_nva";
   size_t I, size[NRRD_DIM_MAX], typeSize;
   unsigned int ai;
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (!(nrrd && coord && val)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);

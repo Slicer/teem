@@ -129,7 +129,7 @@ _nrrdResampleCheckInfo(const Nrrd *nin, const NrrdResampleInfo *info) {
   const NrrdKernel *k;
   int center, p, np;
   unsigned int ai, minsmp;
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (nrrdTypeBlock == nin->type || nrrdTypeBlock == info->type) {
     biffAddf(NRRD, "%s: can't resample to or from type %s", me,
@@ -717,7 +717,7 @@ nrrdSpatialResample(Nrrd *nout, const Nrrd *nin, const NrrdResampleInfo *info) {
     /* allocate output volume */
     array[pi + 1] = (nrrdResample_t *)calloc(numOut, sizeof(nrrdResample_t));
     if (!array[pi + 1]) {
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       biffAddf(NRRD,
                "%s: couldn't create array of %s nrrdResample_t's for "
                "output of pass %d",

@@ -117,9 +117,9 @@ _nrrdEncodingBzip2_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
 
   /* Check to see if we got out as much as we thought we should. */
   if (total_read != bsize) {
-    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+    char stmp[2][AIR_STRLEN_SMALL + 1];
     biffAddf(NRRD, "%s: expected %s bytes but received %s", me,
-             airSprintSize_t(stmp1, bsize), airSprintSize_t(stmp2, total_read));
+             airSprintSize_t(stmp[0], bsize), airSprintSize_t(stmp[1], total_read));
     return 1;
   }
 
@@ -209,9 +209,9 @@ _nrrdEncodingBzip2_write(FILE *file, const void *_data, size_t elNum, const Nrrd
 
   /* Check to see if we got out as much as we thought we should. */
   if (total_written != bsize) {
-    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+    char stmp[2][AIR_STRLEN_SMALL + 1];
     biffAddf(NRRD, "%s: expected to write %s bytes, but only wrote %s", me,
-             airSprintSize_t(stmp1, bsize), airSprintSize_t(stmp2, total_written));
+             airSprintSize_t(stmp[0], bsize), airSprintSize_t(stmp[1], total_written));
     return 1;
   }
 

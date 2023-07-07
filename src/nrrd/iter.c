@@ -125,7 +125,7 @@ nrrdIterValue(NrrdIter *iter) {
 */
 char * /* Biff: nope */
 nrrdIterContent(NrrdIter *iter) {
-  char *ret, buff[AIR_STRLEN_SMALL];
+  char *ret, buff[AIR_STRLEN_SMALL + 1];
 
   ret = NULL;
   if (iter) {

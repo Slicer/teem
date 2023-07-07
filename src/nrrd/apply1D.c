@@ -87,12 +87,13 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, const Nrr
                   int kind, int typeOut, int rescale, int multi) {
   static const char me[] = "_nrrdApply1DSetUp";
   char *mapcnt;
-  char nounStr[][AIR_STRLEN_SMALL] = {"lut", "regular map", "irregular map"};
-  char mnounStr[][AIR_STRLEN_SMALL] = {"multi lut", "multi regular map",
-                                       "multi irregular map"};
+  char nounStr[][AIR_STRLEN_SMALL + 1] = {"lut", "regular map", "irregular map"};
+  char mnounStr[][AIR_STRLEN_SMALL + 1] = {"multi lut", "multi regular map",
+                                           "multi irregular map"};
   /* wishful thinking */
-  char verbStr[][AIR_STRLEN_SMALL] = {"lut", "rmap", "imap"};
-  char mverbStr[][AIR_STRLEN_SMALL] = {"mlut", "mrmap", "mimap"}; /* wishful thinking */
+  char verbStr[][AIR_STRLEN_SMALL + 1] = {"lut", "rmap", "imap"};
+  char mverbStr[][AIR_STRLEN_SMALL + 1] = {"mlut", "mrmap",
+                                           "mimap"}; /* wishful thinking */
   int mapAxis, copyMapAxis0 = AIR_FALSE, axisMap[NRRD_DIM_MAX];
   unsigned int ax, dim, entLen;
   size_t size[NRRD_DIM_MAX];
@@ -154,13 +155,13 @@ _nrrdApply1DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range, const Nrr
           return 1;
         }
         if (nin->axis[ax].size != nmap->axis[taxi].size) {
-          char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+          char stmp[2][AIR_STRLEN_SMALL + 1];
           biffAddf(NRRD,
                    "%s: input and mmap don't have compatible sizes: "
                    "nin->axis[%d].size (%s) "
                    "!= nmap->axis[%d].size (%s): ",
-                   me, ax, airSprintSize_t(stmp1, nin->axis[ax].size), mapAxis + 1 + ax,
-                   airSprintSize_t(stmp2, nmap->axis[taxi].size));
+                   me, ax, airSprintSize_t(stmp[0], nin->axis[ax].size),
+                   mapAxis + 1 + ax, airSprintSize_t(stmp[1], nmap->axis[taxi].size));
           return 1;
         }
       }
@@ -701,10 +702,10 @@ nrrd1DIrregAclCheck(const Nrrd *nacl) {
     return 1;
   }
   if (!(nacl->axis[0].size == 2 && nacl->axis[1].size >= 2)) {
-    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+    char stmp[2][AIR_STRLEN_SMALL + 1];
     biffAddf(NRRD, "%s: sizes (%s,%s) not (2,>=2)", me,
-             airSprintSize_t(stmp1, nacl->axis[0].size),
-             airSprintSize_t(stmp2, nacl->axis[1].size));
+             airSprintSize_t(stmp[0], nacl->axis[0].size),
+             airSprintSize_t(stmp[1], nacl->axis[1].size));
     return 1;
   }
 
@@ -824,7 +825,7 @@ nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap, size_t aclLen) {
     return 1;
   }
   if (!(aclLen >= 2)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(NRRD, "%s: given acl length (%s) is too small", me,
              airSprintSize_t(stmp, aclLen));
     return 1;

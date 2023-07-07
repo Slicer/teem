@@ -29,20 +29,19 @@ const char *convoInfo = ("Good for convolution of two 2-D nrrd, "
 
 int
 convoFunc(Nrrd *nout, Nrrd *_nimg, Nrrd *_nmask, int renorm, int crop) {
-  char me[]="convoFunc", err[AIR_STRLEN_MED];
+  char me[] = "convoFunc", err[AIR_STRLEN_MED + 1];
   Nrrd *nimg, *nmask, *npad;
   airArray *mop;
   int E;
   unsigned int i;
   /* HEY unsigned? */
-  int x, y,
-    ix, iy,         /* image coordinates */
-    isx, isy,       /* input image size */
-    osx, osy,       /* output image size */
-    mx, my,         /* mask coordinates */
-    msx, msy,       /* mask size */
-    lox, hix,       /* amount of padding along X caused by mask */
-    loy, hiy;       /* amount of padding along Y caused by mask */
+  int x, y, ix, iy,           /* image coordinates */
+    isx, isy,                 /* input image size */
+    osx, osy,                 /* output image size */
+    mx, my,                   /* mask coordinates */
+    msx, msy,                 /* mask size */
+    lox, hix,                 /* amount of padding along X caused by mask */
+    loy, hiy;                 /* amount of padding along Y caused by mask */
   size_t cmin[2], cmax[2];    /* cropping bounds */
   ptrdiff_t pmin[2], pmax[2]; /* cropping bounds */
   float *ohere, *idata, *mdata, *odata, sum;
@@ -51,10 +50,10 @@ convoFunc(Nrrd *nout, Nrrd *_nimg, Nrrd *_nmask, int renorm, int crop) {
   isy = AIR_INT(_nimg->axis[1].size);
   msx = AIR_INT(_nmask->axis[0].size);
   msy = AIR_INT(_nmask->axis[1].size);
-  lox = (msx-1)/2;
-  hix = msx/2;
-  loy = (msy-1)/2;
-  hiy = msy/2;
+  lox = (msx - 1) / 2;
+  hix = msx / 2;
+  loy = (msy - 1) / 2;
+  hiy = msy / 2;
   osx = isx + lox + hix;
   osy = isy + loy + hiy;
 
@@ -70,9 +69,9 @@ convoFunc(Nrrd *nout, Nrrd *_nimg, Nrrd *_nmask, int renorm, int crop) {
   */
 
   mop = airMopNew();
-  airMopAdd(mop, nimg=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, nmask=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  airMopAdd(mop, npad=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nimg = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nmask = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, npad = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   E = 0;
   if (!E) E |= nrrdConvert(nimg, _nimg, nrrdTypeFloat);
   if (!E) E |= nrrdConvert(nmask, _nmask, nrrdTypeFloat);
@@ -81,22 +80,24 @@ convoFunc(Nrrd *nout, Nrrd *_nimg, Nrrd *_nmask, int renorm, int crop) {
   if (!E) E |= nrrdPad_va(npad, nimg, pmin, pmax, nrrdBoundaryPad, 0.0);
   if (E) {
     sprintf(err, "%s: set-up problem", me);
-    biffMove(CONVO, me, NRRD); airMopError(mop); return 1;
+    biffMove(CONVO, me, NRRD);
+    airMopError(mop);
+    return 1;
   }
   idata = (float *)nimg->data;
   mdata = (float *)nmask->data;
   odata = (float *)npad->data;
-  for (i=0; i<nrrdElementNumber(npad); i++) {
+  for (i = 0; i < nrrdElementNumber(npad); i++) {
     odata[i] = 0.0;
   }
 
   if (renorm) {
     sum = 0;
-    for (i=0; i<nrrdElementNumber(nmask); i++) {
+    for (i = 0; i < nrrdElementNumber(nmask); i++) {
       sum += mdata[i];
     }
     if (sum) {
-      for (i=0; i<nrrdElementNumber(nmask); i++) {
+      for (i = 0; i < nrrdElementNumber(nmask); i++) {
         mdata[i] /= sum;
       }
     }
@@ -120,18 +121,16 @@ convoFunc(Nrrd *nout, Nrrd *_nimg, Nrrd *_nmask, int renorm, int crop) {
     }
   }
   */
-  for (iy=0; iy<osy; iy++) {
-    for (ix=0; ix<osx; ix++) {
-      ohere = odata + ix + osx*iy;
-      for (my=-loy; my<=hiy; my++) {
+  for (iy = 0; iy < osy; iy++) {
+    for (ix = 0; ix < osx; ix++) {
+      ohere = odata + ix + osx * iy;
+      for (my = -loy; my <= hiy; my++) {
         y = iy + my - loy;
-        if (!AIR_IN_CL(0, y, isy-1))
-          continue;
-        for (mx=-lox; mx<=hix; mx++) {
+        if (!AIR_IN_CL(0, y, isy - 1)) continue;
+        for (mx = -lox; mx <= hix; mx++) {
           x = ix + mx - lox;
-          if (!AIR_IN_CL(0, x, isx-1))
-            continue;
-          *ohere += mdata[mx+lox + msx*(my+loy)]*idata[x + isx*y];
+          if (!AIR_IN_CL(0, x, isx - 1)) continue;
+          *ohere += mdata[mx + lox + msx * (my + loy)] * idata[x + isx * y];
         }
       }
     }
@@ -149,7 +148,9 @@ convoFunc(Nrrd *nout, Nrrd *_nimg, Nrrd *_nmask, int renorm, int crop) {
   }
   if (E) {
     sprintf(err, "%s: final crop/copy problem", me);
-    biffMove(CONVO, err, NRRD); airMopError(mop); return 1;
+    biffMove(CONVO, err, NRRD);
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
@@ -182,29 +183,32 @@ main(int argc, const char *argv[]) {
              "mask to convolve with", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, NULL, "filename", airTypeString, 1, 1, &out, NULL,
              "file to write output nrrd to");
-  hestParseOrDie(hopt, argc-1, argv+1, hparm,
-                 me, convoInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, convoInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
 
-  if (!( 2 == nimg->dim && 2 == nmask->dim )) {
-    fprintf(stderr, "%s: dimension of image (%d) and mask (%d) not both 2\n",
-            me, nimg->dim, nmask->dim);
-    airMopError(mop); return 1;
+  if (!(2 == nimg->dim && 2 == nmask->dim)) {
+    fprintf(stderr, "%s: dimension of image (%d) and mask (%d) not both 2\n", me,
+            nimg->dim, nmask->dim);
+    airMopError(mop);
+    return 1;
   }
 
   if (convoFunc(nout, nimg, nmask, !renorm, !uncrop)) {
     airMopAdd(mop, err = biffGetDone(CONVO), airFree, airMopAlways);
     fprintf(stderr, "%s: problem save image:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (nrrdSave(out, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: problem save image:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

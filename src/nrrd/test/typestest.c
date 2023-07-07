@@ -19,20 +19,15 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../nrrd.h"
 
 int
 main(int argc, char *argv[]) {
   int tt;
-  /*
-  char str1[AIR_STRLEN_MED], str2[AIR_STRLEN_MED],
-    str3[AIR_STRLEN_MED];
-  */
 
   AIR_UNUSED(argc);
   AIR_UNUSED(argv);
-  for (tt=nrrdTypeChar; tt<=nrrdTypeDouble; tt++) {
+  for (tt = nrrdTypeChar; tt <= nrrdTypeDouble; tt++) {
     printf(" ----- %s -----\n", airEnumStr(nrrdType, tt));
     printf("nrrdTypeSize: %d\n", (int)nrrdTypeSize[tt]);
     printf("nrrdTypeIsUnsigned: %d\n", nrrdTypeIsUnsigned[tt]);

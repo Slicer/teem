@@ -516,12 +516,12 @@ nrrdValCompareInv[NRRD_TYPE_MAX+1])(const void *, const void *) = {
 int /* Biff: 1 */
 nrrdArrayCompare(int type, const void *_valA, const void *_valB,
                  size_t valNum, double epsilon, int *differ,
-                 char explain[AIR_STRLEN_LARGE]) {
+                 char explain[AIR_STRLEN_LARGE+1]) {
   static const char me[] = "nrrdArrayCompare";
   const unsigned char *valA, *valB;
   int (*compare)(const void *, const void *);
   size_t ii, sze;
-  char stmp[AIR_STRLEN_SMALL];
+  char stmp[AIR_STRLEN_SMALL+1];
 
   if (!(_valA && _valB && differ)) {
     biffAddf(NRRD, "%s: got NULL pointer (%p, %p, or %p)", me,

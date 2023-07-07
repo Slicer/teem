@@ -38,7 +38,7 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum, Nrrd *nrrd,
   char *data_c;
   size_t elementSize, maxChunkSize, remainderValue, chunkSize;
   size_t retTmp;
-  char stmp[3][AIR_STRLEN_SMALL];
+  char stmp[3][AIR_STRLEN_SMALL + 1];
 
   bsize = nrrdElementSize(nrrd) * elementNum;
   if (nio->format->usesDIO) {
@@ -130,7 +130,7 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum, const Nr
   const char *data_c;
   size_t elementSize, maxChunkSize, remainderValue, chunkSize;
   size_t retTmp;
-  char stmp[3][AIR_STRLEN_SMALL];
+  char stmp[3][AIR_STRLEN_SMALL + 1];
 
   bsize = nrrdElementSize(nrrd) * elementNum;
   if (nio->format->usesDIO) {

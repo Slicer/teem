@@ -134,7 +134,7 @@ nrrdMinMaxCleverSet(Nrrd *nrrd) {
 static int /* Biff: 1 */
 clampRoundConvert(Nrrd *nout, const Nrrd *nin, int type, int doClamp, int roundDir) {
   static const char me[] = "clampRoundConvert";
-  char typeS[AIR_STRLEN_SMALL];
+  char typeS[AIR_STRLEN_SMALL + 1];
   size_t num, size[NRRD_DIM_MAX];
 
   if (!(nin && nout && !nrrdCheck(nin) && !airEnumValCheck(nrrdType, type))) {

@@ -93,16 +93,17 @@ _nrrdEncodingHex_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
     nibIdx++;
   }
   if (nibIdx != nibNum) {
-    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+    char stmp[2][AIR_STRLEN_SMALL + 1];
     if (EOF == car) {
       biffAddf(NRRD, "%s: hit EOF getting byte %s of %s", me,
-               airSprintSize_t(stmp1, nibIdx / 2), airSprintSize_t(stmp2, nibNum / 2));
+               airSprintSize_t(stmp[0], nibIdx / 2),
+               airSprintSize_t(stmp[1], nibNum / 2));
     } else {
       biffAddf(NRRD,
                "%s: hit invalid character ('%c') getting "
                "byte %s of %s",
-               me, car, airSprintSize_t(stmp1, nibIdx / 2),
-               airSprintSize_t(stmp2, nibNum / 2));
+               me, car, airSprintSize_t(stmp[0], nibIdx / 2),
+               airSprintSize_t(stmp[1], nibNum / 2));
     }
     return 1;
   }

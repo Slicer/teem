@@ -413,7 +413,7 @@ _nrrdContentSet_nva(Nrrd *nout, const char *func, char *content, const char *for
     nout->content = (char *)airFree(nout->content);
     return 0;
   }
-  buff = (char *)malloc(128 * AIR_STRLEN_HUGE);
+  buff = (char *)malloc(128 * AIR_STRLEN_HUGE + 1);
   if (!buff) {
     biffAddf(NRRD, "%s: couln't alloc buffer!", me);
     return 1;
@@ -515,7 +515,7 @@ nrrdContentSet_va(Nrrd *nout, const char *func, const Nrrd *nin, const char *for
 void
 nrrdDescribe(FILE *file, const Nrrd *nrrd) {
   unsigned int ai;
-  char stmp[AIR_STRLEN_SMALL];
+  char stmp[AIR_STRLEN_SMALL + 1];
 
   if (file && nrrd) {
     fprintf(file, "Nrrd at 0x%p:\n", AIR_CVOIDP(nrrd));
@@ -730,7 +730,7 @@ _nrrdFieldCheck_type(const Nrrd *nrrd, int useBiff) {
 static int /* Biff: maybe:2:1 */
 _nrrdFieldCheck_block_size(const Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdFieldCheck_block_size";
-  char stmp[AIR_STRLEN_SMALL];
+  char stmp[AIR_STRLEN_SMALL + 1];
 
   if (nrrdTypeBlock == nrrd->type && (!(0 < nrrd->blockSize))) {
     biffMaybeAddf(useBiff, NRRD, "%s: type is %s but nrrd->blockSize (%s) invalid", me,
@@ -920,7 +920,7 @@ _nrrdFieldCheck_kinds(const Nrrd *nrrd, int useBiff) {
     }
     wantLen = nrrdKindSize(val[ai]);
     if (wantLen && wantLen != nrrd->axis[ai].size) {
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       biffMaybeAddf(useBiff, NRRD, "%s: axis %d kind %s requires size %u, but have %s",
                     me, ai, airEnumStr(nrrdKind, val[ai]), wantLen,
                     airSprintSize_t(stmp, nrrd->axis[ai].size));
@@ -1135,7 +1135,7 @@ int /* Biff: maybe:3:0 */
 nrrdSameSize(const Nrrd *n1, const Nrrd *n2, int useBiff) {
   static const char me[] = "nrrdSameSize";
   unsigned int ai;
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (!(n1 && n2)) {
     biffMaybeAddf(useBiff, NRRD, "%s: got NULL pointer", me);
@@ -1293,7 +1293,7 @@ nrrdHasNonExistSet(Nrrd *nrrd) {
 static int /* Biff: 1 */
 _nrrdCheckEnums(void) {
   static const char me[] = "_nrrdCheckEnums";
-  char which[AIR_STRLEN_SMALL];
+  char which[AIR_STRLEN_SMALL + 1];
 
   if (nrrdFormatTypeLast - 1 != NRRD_FORMAT_TYPE_MAX) {
     strcpy(which, "nrrdFormat");

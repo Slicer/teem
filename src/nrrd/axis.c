@@ -927,7 +927,7 @@ _nrrdDblcmp(double aa, double bb) {
 */
 int /* Biff: 1 */
 nrrdAxisInfoCompare(const NrrdAxisInfo *axisA, const NrrdAxisInfo *axisB, int *differ,
-                    char explain[AIR_STRLEN_LARGE]) {
+                    char explain[AIR_STRLEN_LARGE + 1]) {
   static const char me[] = "nrrdAxisInfoCompare";
   unsigned int saxi;
 
@@ -941,12 +941,12 @@ nrrdAxisInfoCompare(const NrrdAxisInfo *axisA, const NrrdAxisInfo *axisB, int *d
     strcpy(explain, "");
   }
   if (axisA->size != axisB->size) {
-    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+    char stmp[2][AIR_STRLEN_SMALL + 1];
     *differ = axisA->size < axisB->size ? -1 : 1;
     if (explain) {
       sprintf(explain, "axisA->size=%s %s axisB->size=%s",
-              airSprintSize_t(stmp1, axisA->size), *differ < 0 ? "<" : ">",
-              airSprintSize_t(stmp2, axisB->size));
+              airSprintSize_t(stmp[0], axisA->size), *differ < 0 ? "<" : ">",
+              airSprintSize_t(stmp[1], axisB->size));
     }
     return 0;
   }
@@ -966,7 +966,7 @@ nrrdAxisInfoCompare(const NrrdAxisInfo *axisA, const NrrdAxisInfo *axisB, int *d
   DOUBLE_COMPARE(min, "min");
   DOUBLE_COMPARE(max, "max");
   for (saxi = 0; saxi < NRRD_SPACE_DIM_MAX; saxi++) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     sprintf(stmp, "spaceDirection[%u]", saxi);
     DOUBLE_COMPARE(spaceDirection[saxi], stmp);
   }
@@ -997,7 +997,7 @@ nrrdAxisInfoCompare(const NrrdAxisInfo *axisA, const NrrdAxisInfo *axisB, int *d
       sprintf(explain, "axisA->label %s axisB->label", *differ < 0 ? "<" : ">");
       if (strlen(explain) + airStrlen(axisA->label) + airStrlen(axisB->label)
             + 2 * strlen(" \"\" ") + 1
-          < AIR_STRLEN_LARGE) {
+          < AIR_STRLEN_LARGE + 1) {
         /* ok, we can print them */
         sprintf(explain, "axisA->label \"%s\" %s axisB->label \"%s\"",
                 axisA->label ? axisA->label : "", *differ < 0 ? "<" : ">",

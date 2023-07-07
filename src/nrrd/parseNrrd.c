@@ -1198,7 +1198,7 @@ int /* Biff: maybe:3:1 */
 _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff) {
   static const char me[] = "_nrrdDataFNCheck";
   size_t pieceSize, pieceNum;
-  char stmp[AIR_STRLEN_SMALL];
+  char stmp[AIR_STRLEN_SMALL + 1];
 
   if (!nio->seen[nrrdField_sizes]) {
     biffMaybeAddf(useBiff, NRRD,

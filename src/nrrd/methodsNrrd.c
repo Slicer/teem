@@ -173,7 +173,7 @@ nrrdBoundarySpecParse(NrrdBoundarySpec *bspec, const char *_str) {
 }
 
 int /* Biff: 1 */
-nrrdBoundarySpecSprint(char str[AIR_STRLEN_LARGE], const NrrdBoundarySpec *bspec) {
+nrrdBoundarySpecSprint(char str[AIR_STRLEN_LARGE + 1], const NrrdBoundarySpec *bspec) {
   static const char me[] = "nrrdBoundarySpecSprint";
   char *out;
 
@@ -196,7 +196,7 @@ nrrdBoundarySpecSprint(char str[AIR_STRLEN_LARGE], const NrrdBoundarySpec *bspec
 
 int /* Biff: 1 */
 nrrdBoundarySpecCompare(const NrrdBoundarySpec *aa, const NrrdBoundarySpec *bb,
-                        int *differ, char explain[AIR_STRLEN_LARGE]) {
+                        int *differ, char explain[AIR_STRLEN_LARGE + 1]) {
   static const char me[] = "nrrdBoundarySpecCompare";
 
   if (!differ) {
@@ -966,7 +966,7 @@ int /* Biff: 1 */
 nrrdAlloc_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
   static const char me[] = "nrrdAlloc_nva";
   size_t num, esize;
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (!(nrrd && size)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -1065,7 +1065,7 @@ _nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type, unsigned int dim, const size_
       return 1;
     }
     if (!(0 < nrrd->blockSize)) {
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       biffAddf(NRRD, "%s: given nrrd->blockSize %s invalid", me,
                airSprintSize_t(stmp, nrrd->blockSize));
       return 1;
@@ -1192,7 +1192,7 @@ nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
 */
 int /* Biff: 1 */
 nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData, double epsilon,
-            int *differ, char explain[AIR_STRLEN_LARGE]) {
+            int *differ, char explain[AIR_STRLEN_LARGE + 1]) {
   static const char me[] = "nrrdCompare";
   size_t numA, numB;
   unsigned int axi, saxi;
@@ -1227,10 +1227,10 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData, double epsilon,
   numA = nrrdElementNumber(ninA);
   numB = nrrdElementNumber(ninB);
   if (numA != numB) {
-    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+    char stmp[2][AIR_STRLEN_SMALL + 1];
     *differ = numA < numB ? -1 : 1;
-    sprintf(explain, "element # {A,B} %s %s %s", airSprintSize_t(stmp1, numA),
-            *differ < 0 ? "<" : ">", airSprintSize_t(stmp2, numB));
+    sprintf(explain, "element # {A,B} %s %s %s", airSprintSize_t(stmp[0], numA),
+            *differ < 0 ? "<" : ">", airSprintSize_t(stmp[1], numB));
     return 0;
   }
   /* this will always set *differ */
@@ -1255,10 +1255,10 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData, double epsilon,
       return 1;
     }
     if (*differ) {
-      char tmpexplain[AIR_STRLEN_LARGE];
+      char tmpexplain[AIR_STRLEN_LARGE + 1];
       /* the explanation, if wanted, is in "explain", but we add context */
       sprintf(tmpexplain, "(axis %u) %s", axi, explain);
-      airStrcpy(explain, AIR_STRLEN_LARGE, tmpexplain);
+      airStrcpy(explain, AIR_STRLEN_LARGE + 1, tmpexplain);
       return 0;
     }
   }
@@ -1295,10 +1295,10 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData, double epsilon,
   if (ninA->blockSize != ninB->blockSize) {
     *differ = ninA->blockSize < ninB->blockSize ? -1 : 1;
     if (explain) {
-      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+      char stmp[2][AIR_STRLEN_SMALL + 1];
       sprintf(explain, "ninA->blockSize %s %s ninB->blockSize %s",
-              airSprintSize_t(stmp1, ninA->blockSize), *differ < 0 ? "<" : ">",
-              airSprintSize_t(stmp2, ninB->blockSize));
+              airSprintSize_t(stmp[0], ninA->blockSize), *differ < 0 ? "<" : ">",
+              airSprintSize_t(stmp[1], ninB->blockSize));
     }
     return 0;
   }
@@ -1314,7 +1314,7 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData, double epsilon,
   }
 
   for (saxi = 0; saxi < NRRD_SPACE_DIM_MAX; saxi++) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     unsigned int saxj;
     sprintf(stmp, "spaceOrigin[%u]", saxi);
     DOUBLE_COMPARE(spaceOrigin[saxi], stmp);
@@ -1338,7 +1338,7 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData, double epsilon,
     return 0;
   } else {
     unsigned int ii;
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     for (ii = 0; ii < ninA->cmtArr->len; ii++) {
       sprintf(stmp, "comment[%u]", ii);
       STRING_COMPARE(cmt[ii], stmp);
@@ -1353,7 +1353,7 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData, double epsilon,
     return 0;
   } else {
     unsigned int ii;
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     for (ii = 0; ii < ninA->kvpArr->len; ii++) {
       sprintf(stmp, "key/value key[%u]", ii);
       STRING_COMPARE(kvp[2 * ii + 0], stmp);
@@ -1379,7 +1379,7 @@ nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData, double epsilon,
 int /* Biff: 1 */
 nrrdPPM(Nrrd *ppm, size_t sx, size_t sy) {
   static const char me[] = "nrrdPPM";
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (nrrdMaybeAlloc_va(ppm, nrrdTypeUChar, 3, AIR_CAST(size_t, 3), sx, sy)) {
     biffAddf(NRRD, "%s: couldn't allocate %s x %s 24-bit image", me,
@@ -1399,7 +1399,7 @@ nrrdPPM(Nrrd *ppm, size_t sx, size_t sy) {
 int /* Biff: 1 */
 nrrdPGM(Nrrd *pgm, size_t sx, size_t sy) {
   static const char me[] = "nrrdPGM";
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (nrrdMaybeAlloc_va(pgm, nrrdTypeUChar, 2, sx, sy)) {
     biffAddf(NRRD, "%s: couldn't allocate %s x %s 8-bit image", me,
