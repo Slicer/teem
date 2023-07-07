@@ -1022,6 +1022,7 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
     switch (opt[op].kind) {
     case 1:
       /* -------- parameter-less boolean flags -------- */
+      /* the value pointer is always assumed to be an int* */
       if (vP) *((int *)vP) = appr[op];
       break;
     case 2:
@@ -1486,8 +1487,8 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
               ('-' == argv[0][0] ? " (or unrecognized flag)" : ""), argv[0]);
     } else {
       sprintf(err,
-              "%sunexpected end-of-parameters flag %s "
-              "not ending a variable-parameter option",
+              "%sunexpected end-of-parameters flag \"%s\": "
+              "not ending a flagged variable-parameter option",
               ME, stops);
     }
     airMopError(mop);
