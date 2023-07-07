@@ -124,11 +124,11 @@ gageStackBlurParmNix(gageStackBlurParm *sbp) {
 int /* Biff: 1 */
 gageStackBlurParmCompare(const gageStackBlurParm *aa, const char *_nameA,
                          const gageStackBlurParm *bb, const char *_nameB, int *differ,
-                         char explain[AIR_STRLEN_LARGE]) {
+                         char explain[AIR_STRLEN_LARGE + 1]) {
   static const char me[] = "gageStackBlurParmCompare", baseA[] = "A", baseB[] = "B";
   const char *nameA, *nameB;
   unsigned int si, warnLen = AIR_STRLEN_LARGE / 4;
-  char stmp[2][AIR_STRLEN_LARGE], subexplain[AIR_STRLEN_LARGE];
+  char stmp[2][AIR_STRLEN_LARGE + 1], subexplain[AIR_STRLEN_LARGE + 1];
 
   if (!(aa && bb && differ)) {
     biffAddf(GAGE, "%s: got NULL pointer (%p %p %p)", me, AIR_CVOIDP(aa), AIR_CVOIDP(bb),
@@ -230,7 +230,7 @@ int /* Biff: 1 */
 gageStackBlurParmCopy(gageStackBlurParm *dst, const gageStackBlurParm *src) {
   static const char me[] = "gageStackBlurParmCopy";
   int differ;
-  char explain[AIR_STRLEN_LARGE];
+  char explain[AIR_STRLEN_LARGE + 1];
 
   if (!(dst && src)) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
@@ -662,7 +662,7 @@ gageStackBlurParmParse(gageStackBlurParm *sbp,
   }
   if (parmS) {
     unsigned int parmIdx;
-    char *pval, xeq[AIR_STRLEN_SMALL];
+    char *pval, xeq[AIR_STRLEN_SMALL + 1];
     parmNum = airStrntok(parmS, "/");
     for (parmIdx = 0; parmIdx < parmNum; parmIdx++) {
       if (!parmIdx) {
@@ -801,12 +801,12 @@ gageStackBlurParmParse(gageStackBlurParm *sbp,
 }
 
 int /* Biff: 1 */
-gageStackBlurParmSprint(char str[AIR_STRLEN_LARGE],
+gageStackBlurParmSprint(char str[AIR_STRLEN_LARGE + 1],
                         const gageStackBlurParm *sbp,
                         int extraFlag[256],
                         char *extraParm) {
   static const char me[] = "gageStackBlurParmSprint";
-  char *out, stmp[AIR_STRLEN_LARGE];
+  char *out, stmp[AIR_STRLEN_LARGE + 1];
   int needFlags, hef;
   unsigned int fi;
 
@@ -891,7 +891,7 @@ gageStackBlurParmSprint(char str[AIR_STRLEN_LARGE],
 }
 
 static int
-_gageHestStackBlurParmParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+_gageHestStackBlurParmParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   gageStackBlurParm **sbp;
   static const char me[] = "_gageHestStackBlurParmParse";
   char *nerr;
@@ -912,7 +912,7 @@ _gageHestStackBlurParmParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE
     /* NOTE: no way to retrieve extraFlags or extraParms from hest */
     if (gageStackBlurParmParse(*sbp, NULL, NULL, str)) {
       nerr = biffGetDone(GAGE);
-      airStrcpy(err, AIR_STRLEN_HUGE, nerr);
+      airStrcpy(err, AIR_STRLEN_HUGE + 1, nerr);
       gageStackBlurParmNix(*sbp);
       free(nerr);
       return 1;
@@ -959,7 +959,7 @@ _checkNrrd(Nrrd *const nblur[], const Nrrd *const ncheck[], unsigned int blNum,
 
 /* clang-format off */
 static const char
-_blurKey[KVP_NUM][AIR_STRLEN_LARGE] = {/*  0  */ "gageStackBlur",
+_blurKey[KVP_NUM][AIR_STRLEN_LARGE+1] = {/*  0  */ "gageStackBlur",
                                        /*  1  */ "cksum",
                                        /*  2  */ "scale",
                                        /*  3  */ "kernel",
@@ -974,7 +974,7 @@ _blurKey[KVP_NUM][AIR_STRLEN_LARGE] = {/*  0  */ "gageStackBlur",
 /* clang-format on */
 
 typedef struct {
-  char val[KVP_NUM][AIR_STRLEN_LARGE];
+  char val[KVP_NUM][AIR_STRLEN_LARGE + 1];
 } blurVal_t;
 
 static blurVal_t * /* Biff: NULL */
@@ -1176,7 +1176,7 @@ _stackBlurDiscreteGaussFFT(Nrrd *const nblur[], gageStackBlurParm *sbp, const Nr
     }
     /*
     if (0) {
-      char fname[AIR_STRLEN_SMALL];
+      char fname[AIR_STRLEN_SMALL+1];
       sprintf(fname, "noutFT-%03u.nrrd", blIdx);
       nrrdSave(fname, noutFT, NULL);
       sprintf(fname, "noutCd-%03u.nrrd", blIdx);
@@ -1429,7 +1429,7 @@ gageStackBlur(Nrrd *const nblur[], gageStackBlurParm *sbp, const Nrrd *nin,
       }
     } else {
       if (sbp->verbose) {
-        char kstr[AIR_STRLEN_LARGE], bstr[AIR_STRLEN_LARGE];
+        char kstr[AIR_STRLEN_LARGE + 1], bstr[AIR_STRLEN_LARGE + 1];
         nrrdKernelSpecSprint(kstr, kssb);
         nrrdBoundarySpecSprint(bstr, sbp->bspec);
         fprintf(stderr,
@@ -1629,7 +1629,7 @@ gageStackBlurGet(Nrrd *const nblur[], int *recomputedP, gageStackBlurParm *sbp,
     int firstExists;
     FILE *file;
     /* do have info about files to load, but may fail in many ways */
-    fname = AIR_CALLOC(strlen(format) + AIR_STRLEN_SMALL, char);
+    fname = AIR_CALLOC(strlen(format) + AIR_STRLEN_SMALL + 1, char);
     if (!fname) {
       biffAddf(GAGE, "%s: couldn't allocate fname", me);
       airMopError(mop);

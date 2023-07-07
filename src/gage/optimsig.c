@@ -520,7 +520,7 @@ _volInterp(Nrrd *ninterp, double rho, gageOptimSigContext *oscx) {
   */
   /*
   if (debugging) {
-    char fname[AIR_STRLEN_SMALL];
+    char fname[AIR_STRLEN_SMALL+1];
     sprintf(fname, "interp-%04u.nrrd", debugii);
     nrrdSave(fname, ninterp, NULL);
   }
@@ -625,7 +625,7 @@ _errSingle(double *retP, gageOptimSigContext *oscx, double rho) {
   }
   /*
   if (debugging) {
-    char fname[AIR_STRLEN_SMALL];
+    char fname[AIR_STRLEN_SMALL+1];
     sprintf(fname, "interp-%04u.nrrd", debugii);
     nrrdSave(fname, oscx->ninterp, NULL);
   }
@@ -674,7 +674,7 @@ _errTotal(double *retP, gageOptimSigContext *oscx) {
                                   oscx->trueImgNum, AIR_NAN, AIR_NAN);
   /*
   if (debugging) {
-    char fname[AIR_STRLEN_SMALL];
+    char fname[AIR_STRLEN_SMALL+1];
     unsigned int ni;
     for (ni=0; ni<oscx->sampleNum; ni++) {
       sprintf(fname, "sample-%04u.nrrd", ni);
@@ -684,7 +684,7 @@ _errTotal(double *retP, gageOptimSigContext *oscx) {
   */
   if (0) {
     static unsigned int call = 0;
-    char fname[AIR_STRLEN_SMALL];
+    char fname[AIR_STRLEN_SMALL + 1];
     sprintf(fname, "err-%04u.nrrd", call);
     nrrdSave(fname, oscx->nerr, NULL);
     call++;
@@ -742,7 +742,7 @@ _errTotalLinf(double *retP, gageOptimSigContext *oscx, unsigned int mmIdx[2],
   *retP = 1000 * oscx->sampleNum * (mmErr[1] - mmErr[0]) / (rr[1] - rr[0]);
   if (0) {
     static unsigned int call = 0;
-    char fname[AIR_STRLEN_SMALL];
+    char fname[AIR_STRLEN_SMALL + 1];
     sprintf(fname, "err-%04u.nrrd", call);
     nrrdSave(fname, oscx->nerr, NULL);
     call++;
@@ -794,7 +794,7 @@ _gageSetup(gageOptimSigContext *oscx) {
 }
 
 static char *
-_timefmt(char tstr[AIR_STRLEN_MED], double deltim) {
+_timefmt(char tstr[AIR_STRLEN_MED + 1], double deltim) {
 
   if (deltim < 60) {
     sprintf(tstr, "%g secs", deltim);
@@ -823,7 +823,7 @@ _timefmt(char tstr[AIR_STRLEN_MED], double deltim) {
 static int /* Biff: 1 */
 _optsigrun(gageOptimSigContext *oscx) {
   static const char me[] = "_optsigrun";
-  char tstr[AIR_STRLEN_MED];
+  char tstr[AIR_STRLEN_MED + 1];
   unsigned int iter, pnt;
   double lastErr, newErr, rhoeps, oppor, lastPos, backoff, decavg, time0;
   int badStep;
@@ -965,7 +965,7 @@ _optsigrun(gageOptimSigContext *oscx) {
 static int /* Biff: 1 */
 _optsigrunLinf(gageOptimSigContext *oscx) {
   static const char me[] = "_optsigrunLinf";
-  char tstr[AIR_STRLEN_MED];
+  char tstr[AIR_STRLEN_MED + 1];
   double *srho, *stmp, time0, lastErr, newErr, decavg, step, oppor, backoff, ceps,
     mmErr[2];
   unsigned int iter, si, sn, mmIdx[2];
@@ -1165,7 +1165,7 @@ gageOptimSigErrorPlot(gageOptimSigContext *oscx, Nrrd *nout, const double *sigma
                       unsigned int sigmaNum, const NrrdKernelSpec *kssSpec,
                       int imgMeasr) {
   static const char me[] = "gageOptimSigErrorPlot";
-  char doneStr[AIR_STRLEN_SMALL];
+  char doneStr[AIR_STRLEN_SMALL + 1];
   double *out;
   unsigned int ii;
 
@@ -1231,7 +1231,7 @@ gageOptimSigErrorPlot(gageOptimSigContext *oscx, Nrrd *nout, const double *sigma
   /*
   if (0) {
     static unsigned int call=0;
-    char fname[AIR_STRLEN_SMALL];
+    char fname[AIR_STRLEN_SMALL+1];
     unsigned int ni;
     if (0) {
       sprintf(fname, "err-%04u.nrrd", call);
@@ -1256,7 +1256,7 @@ gageOptimSigErrorPlotSliding(gageOptimSigContext *oscx, Nrrd *nout, double windo
                              unsigned int sampleNum, const NrrdKernelSpec *kssSpec,
                              int imgMeasr) {
   static const char me[] = "gageOptimSigErrorPlotSliding";
-  char doneStr[AIR_STRLEN_SMALL];
+  char doneStr[AIR_STRLEN_SMALL + 1];
   unsigned int ii;
   double *out;
   char hackKeyStr[] = "TEEM_OPTSIG_RECONERR";

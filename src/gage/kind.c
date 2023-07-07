@@ -237,7 +237,7 @@ gageKindVolumeCheck(const gageKind *kind, const Nrrd *nrrd) {
     return 1;
   }
   if (kind->baseDim) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     if (1 == kind->baseDim) {
       if (kind->valLen != nrrd->axis[0].size) {
         biffAddf(GAGE, "%s: %s kind needs %u axis 0 values, not %s", me, kind->name,
