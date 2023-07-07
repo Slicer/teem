@@ -25,7 +25,7 @@ int
 main(int argc, const char **argv) {
   int res[2], v, numIn;
   char **in, *out, *blah[3], *option = NULL;
-  int n, *ints, numN;
+  int n, *ints, numN, flag, glag;
   hestOpt *opt = NULL;
   hestParm *parm;
   char *err = NULL,
@@ -40,6 +40,9 @@ main(int argc, const char **argv) {
   parm->verbosity = 3;
 
   opt = NULL;
+  hestOptAdd(&opt, "f,flag", NULL, airTypeInt, 0, 0, &flag, NULL,
+             "a flag created via hestOptAdd");
+  hestOptAddFlag(&opt, "g,glag", &glag, "a flag created via hestOptAddFlag");
   hestOptAdd(&opt, "v,verbose", "level", airTypeInt, 0, 1, &v, "0", "verbosity level");
   hestOptAdd(&opt, "out", "file", airTypeString, 1, 1, &out, "output.ppm",
              "PPM image output");
@@ -100,6 +103,7 @@ main(int argc, const char **argv) {
   }
   printf("(err = %s)\n", err ? err : "(null)");
   printf("  v = %d\n", v);
+  printf("  flag glag = %d %d\n", flag, glag);
   printf("out = \"%s\"\n", out ? out : "(null)");
   printf("blah = \"%s\" \"%s\" \"%s\"\n", blah[0], blah[1], blah[2]);
   printf("option = \"%s\"\n", option ? option : "(null)");
