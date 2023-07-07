@@ -459,7 +459,7 @@ updateSlabCacheAlloc(seekContext *sctx) {
 static int /* Biff: 1 */
 updateSclDerived(seekContext *sctx) {
   static const char me[] = "updateSclDerived";
-  char doneStr[AIR_STRLEN_SMALL];
+  char doneStr[AIR_STRLEN_SMALL + 1];
   double *scl, idxIn[4], idxOut[4], val;
   unsigned int xi, yi, zi;
 

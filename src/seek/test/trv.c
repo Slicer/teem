@@ -24,7 +24,7 @@
 char *info = ("test crease surface extraction.");
 
 int
-probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
+probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE + 1]) {
   char me[] = "probeParseKind";
   gageKind **kindP;
 
@@ -39,8 +39,7 @@ probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE]) {
   } else if (!strcmp(gageKindVec->name, str)) {
     *kindP = gageKindVec;
   } else {
-    sprintf(err, "%s: not \"%s\" or \"%s\"", me,
-            gageKindScl->name, gageKindVec->name);
+    sprintf(err, "%s: not \"%s\" or \"%s\"", me, gageKindScl->name, gageKindVec->name);
     return 1;
   }
 
@@ -57,22 +56,18 @@ probeParseKindDestroy(void *ptr) {
   return NULL;
 }
 
-hestCB probeKindHestCB = {
-  sizeof(gageKind *),
-  "kind",
-  probeParseKind,
-  probeParseKindDestroy
-};
+hestCB probeKindHestCB = {sizeof(gageKind *), "kind", probeParseKind,
+                          probeParseKindDestroy};
 
 int
 main(int argc, const char *argv[]) {
   const char *me;
   char *err, *outS;
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   airArray *mop;
 
   limnPolyData *pld, *pldSub;
-  gageContext *gctx=NULL;
+  gageContext *gctx = NULL;
   gagePerVolume *pvl;
   Nrrd *nin, *nmeas;
   double kparm[3], strength, scaling[3];
@@ -82,18 +77,16 @@ main(int argc, const char *argv[]) {
   size_t samples[3];
   gageKind *kind;
   char *itemGradS; /* , *itemEvalS[2], *itemEvecS[2]; */
-  int itemGrad; /* , itemEval[2], itemEvec[2]; */
+  int itemGrad;    /* , itemEval[2], itemEvec[2]; */
   int E;
 
   me = argv[0];
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input volume to analyze",
-             NULL, NULL, nrrdHestNrrd);
+             "input volume to analyze", NULL, NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
-             "\"kind\" of volume (\"scalar\", \"vector\", \"tensor\")",
-             NULL, NULL, &probeKindHestCB);
-  hestOptAdd(&hopt, "s", "strength", airTypeDouble, 1, 1, &strength, "0.01",
-             "strength");
+             "\"kind\" of volume (\"scalar\", \"vector\", \"tensor\")", NULL, NULL,
+             &probeKindHestCB);
+  hestOptAdd(&hopt, "s", "strength", airTypeDouble, 1, 1, &strength, "0.01", "strength");
   hestOptAdd(&hopt, "gi", "grad item", airTypeString, 1, 1, &itemGradS, NULL,
              "item for gradient vector");
   hestOptAdd(&hopt, "c", "scaling", airTypeDouble, 3, 3, scaling, "1 1 1",
@@ -102,8 +95,7 @@ main(int argc, const char *argv[]) {
              "if non-zero, number of CC to save");
   hestOptAdd(&hopt, "o", "output LMPD", airTypeString, 1, 1, &outS, "out.lmpd",
              "output file to save LMPD into");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
@@ -124,8 +116,7 @@ main(int argc, const char *argv[]) {
   gctx = gageContextNew();
   airMopAdd(mop, gctx, (airMopper)gageContextNix, airMopAlways);
   ELL_3V_SET(kparm, 1, 1.0, 0.0);
-  if (!(pvl = gagePerVolumeNew(gctx, nin, kind))
-      || gagePerVolumeAttach(gctx, pvl)
+  if (!(pvl = gagePerVolumeNew(gctx, nin, kind)) || gagePerVolumeAttach(gctx, pvl)
       || gageKernelSet(gctx, gageKernel00, nrrdKernelBCCubic, kparm)
       || gageKernelSet(gctx, gageKernel11, nrrdKernelBCCubicD, kparm)
       || gageKernelSet(gctx, gageKernel22, nrrdKernelBCCubicDD, kparm)
@@ -133,11 +124,11 @@ main(int argc, const char *argv[]) {
       || gageQueryItemOn(gctx, pvl, gageSclHessEval)
       || gageQueryItemOn(gctx, pvl, gageSclHessEval2)
       || gageQueryItemOn(gctx, pvl, gageSclHessEvec)
-      || gageQueryItemOn(gctx, pvl, gageSclHessEvec2)
-      || gageUpdate(gctx)) {
+      || gageQueryItemOn(gctx, pvl, gageSclHessEvec2) || gageUpdate(gctx)) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   seekVerboseSet(sctx, 10);
@@ -145,13 +136,12 @@ main(int argc, const char *argv[]) {
   E = 0;
   if (!E) E |= seekDataSet(sctx, NULL, gctx, 0);
   ELL_3V_SET(samples,
-             scaling[0]*nin->axis[kind->baseDim + 0].size,
-             scaling[1]*nin->axis[kind->baseDim + 1].size,
-             scaling[2]*nin->axis[kind->baseDim + 2].size);
+             scaling[0] * nin->axis[kind->baseDim + 0].size,
+             scaling[1] * nin->axis[kind->baseDim + 1].size,
+             scaling[2] * nin->axis[kind->baseDim + 2].size);
   if (!E) E |= seekSamplesSet(sctx, samples);
   if (!E) E |= seekItemGradientSet(sctx, itemGrad);
-  if (!E) E |= seekItemEigensystemSet(sctx, gageSclHessEval,
-                                      gageSclHessEvec);
+  if (!E) E |= seekItemEigensystemSet(sctx, gageSclHessEval, gageSclHessEvec);
   if (!E) E |= seekItemNormalSet(sctx, gageSclHessEvec2);
   if (!E) E |= seekStrengthUseSet(sctx, AIR_TRUE);
   if (!E) E |= seekStrengthSet(sctx, -1, strength);
@@ -163,16 +153,15 @@ main(int argc, const char *argv[]) {
   if (E) {
     airMopAdd(mop, err = biffGetDone(SEEK), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   fprintf(stderr, "%s: extraction time = %g\n", me, sctx->time);
 
   nmeas = nrrdNew();
   airMopAdd(mop, nmeas, (airMopper)nrrdNuke, airMopAlways);
-  if (limnPolyDataVertexWindingFix(pld, AIR_TRUE)
-      || limnPolyDataVertexWindingFlip(pld)
-      || limnPolyDataVertexNormals(pld)
-      || limnPolyDataCCFind(pld)
+  if (limnPolyDataVertexWindingFix(pld, AIR_TRUE) || limnPolyDataVertexWindingFlip(pld)
+      || limnPolyDataVertexNormals(pld) || limnPolyDataCCFind(pld)
       || limnPolyDataPrimitiveArea(nmeas, pld)
       || limnPolyDataPrimitiveSort(pld, nmeas)) {
     err = biffGetDone(LIMN);
@@ -186,7 +175,7 @@ main(int argc, const char *argv[]) {
     nrrdSave("meas.nrrd", nmeas, NULL);
     ncc = AIR_MIN(ncc, nmeas->axis[0].size);
     meas = AIR_CAST(double *, nmeas->data);
-    for (ccIdx=ncc; ccIdx<nmeas->axis[0].size; ccIdx++) {
+    for (ccIdx = ncc; ccIdx < nmeas->axis[0].size; ccIdx++) {
       meas[ccIdx] = 0.0;
     }
     if (!E) E |= limnPolyDataPrimitiveSelect(pldSub, pld, nmeas);
@@ -197,7 +186,8 @@ main(int argc, const char *argv[]) {
   if (E) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

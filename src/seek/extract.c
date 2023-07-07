@@ -876,7 +876,7 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
 static int /* Biff: 1 */
 surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
   static const char me[] = "surfaceExtract";
-  char done[AIR_STRLEN_SMALL];
+  char done[AIR_STRLEN_SMALL + 1];
   unsigned int zi, sz;
   baggage *bag;
 
