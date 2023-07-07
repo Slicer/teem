@@ -22,53 +22,57 @@
 #include "hest.h"
 #include "privateHest.h"
 #include <limits.h>
+#include <assert.h>
 
 const int hestPresent = 42;
+
+/* INCR is like airArray->incr: granularity with which we (linearly) reallocate the
+hestOpt array. Very few uses of hest within Teem use more than 32 options. Hopefully
+this avoids all the reallocations in the past action of hestOptAdd and the like. */
+#define INCR 32
 
 hestParm *
 hestParmNew() {
   hestParm *parm;
 
   parm = AIR_CALLOC(1, hestParm);
-  if (parm) {
-    parm->verbosity = hestDefaultVerbosity;
-    parm->respFileEnable = hestDefaultRespFileEnable;
-    parm->elideSingleEnumType = hestDefaultElideSingleEnumType;
-    parm->elideSingleOtherType = hestDefaultElideSingleOtherType;
-    parm->elideSingleOtherDefault = hestDefaultElideSingleOtherDefault;
-    parm->greedySingleString = hestDefaultGreedySingleString;
-    parm->elideSingleNonExistFloatDefault = hestDefaultElideSingleNonExistFloatDefault;
-    parm->elideMultipleNonExistFloatDefault
-      = hestDefaultElideMultipleNonExistFloatDefault;
-    parm->elideSingleEmptyStringDefault = hestDefaultElideSingleEmptyStringDefault;
-    parm->elideMultipleEmptyStringDefault = hestDefaultElideMultipleEmptyStringDefault;
-    parm->cleverPluralizeOtherY = hestDefaultCleverPluralizeOtherY;
-    parm->columns = hestDefaultColumns;
-    parm->respFileFlag = hestDefaultRespFileFlag;
-    parm->respFileComment = hestDefaultRespFileComment;
-    parm->varParamStopFlag = hestDefaultVarParamStopFlag;
-    parm->multiFlagSep = hestDefaultMultiFlagSep;
-    /* for these most recent addition to the hestParm,
-       abstaining from added yet another default global variable */
-    parm->dieLessVerbose = AIR_FALSE;
-    parm->noBlankLineBeforeUsage = AIR_FALSE;
-    /* It would be really nice for parm->respectDashDashHelp to default to true:
-    widespread conventions say what "--help" should mean e.g. https://clig.dev/#help
-    HOWEVER, the problem is with how hestParse is called and how the return
-    is interpreted as a boolean:
-    - zero has meant that hestParse could set values for all the options (either
-      from the command-line or from supplied defaults), and
-    - non-zero has meant that there was an error parsing the command-line arguments
-    But seeing and recognizing "--help" means that options have NOT had values
-    set, and, that's not an error, which is outside that binary.  But that binary
-    is the precedent, so we have to work with it by default.
-    Now, with parm->respectDashDashHelp, upon seeing "--help", hestParse returns 0,
-    and sets helpWanted in the first hestOpt, and the caller will have to know
-    to check for that.  This logic is handled by hestParseOrDie, but maybe in
-    the future there can be a different top-level parser function that turns on
-    parm->respectDashDashHelp and knows how to check the results */
-    parm->respectDashDashHelp = AIR_FALSE;
-  }
+  assert(parm);
+  parm->verbosity = hestDefaultVerbosity;
+  parm->respFileEnable = hestDefaultRespFileEnable;
+  parm->elideSingleEnumType = hestDefaultElideSingleEnumType;
+  parm->elideSingleOtherType = hestDefaultElideSingleOtherType;
+  parm->elideSingleOtherDefault = hestDefaultElideSingleOtherDefault;
+  parm->greedySingleString = hestDefaultGreedySingleString;
+  parm->elideSingleNonExistFloatDefault = hestDefaultElideSingleNonExistFloatDefault;
+  parm->elideMultipleNonExistFloatDefault = hestDefaultElideMultipleNonExistFloatDefault;
+  parm->elideSingleEmptyStringDefault = hestDefaultElideSingleEmptyStringDefault;
+  parm->elideMultipleEmptyStringDefault = hestDefaultElideMultipleEmptyStringDefault;
+  parm->cleverPluralizeOtherY = hestDefaultCleverPluralizeOtherY;
+  parm->columns = hestDefaultColumns;
+  parm->respFileFlag = hestDefaultRespFileFlag;
+  parm->respFileComment = hestDefaultRespFileComment;
+  parm->varParamStopFlag = hestDefaultVarParamStopFlag;
+  parm->multiFlagSep = hestDefaultMultiFlagSep;
+  /* for these most recent addition to the hestParm,
+     abstaining from added yet another default global variable */
+  parm->dieLessVerbose = AIR_FALSE;
+  parm->noBlankLineBeforeUsage = AIR_FALSE;
+  /* It would be really nice for parm->respectDashDashHelp to default to true:
+  widespread conventions say what "--help" should mean e.g. https://clig.dev/#help
+  HOWEVER, the problem is with how hestParse is called and how the return
+  is interpreted as a boolean:
+  - zero has meant that hestParse could set values for all the options (either
+    from the command-line or from supplied defaults), and
+  - non-zero has meant that there was an error parsing the command-line arguments
+  But seeing and recognizing "--help" means that options have NOT had values
+  set, and, that's not an error, which is outside that binary.  But that binary
+  is the precedent, so we have to work with it by default.
+  Now, with parm->respectDashDashHelp, upon seeing "--help", hestParse returns 0,
+  and sets helpWanted in the first hestOpt, and the caller will have to know
+  to check for that.  This logic is handled by hestParseOrDie, but maybe in
+  the future there can be a different top-level parser function that turns on
+  parm->respectDashDashHelp and knows how to check the results */
+  parm->respectDashDashHelp = AIR_FALSE;
   return parm;
 }
 
@@ -138,11 +142,12 @@ _hestKind(const hestOpt *opt) {
   return opt_kind(opt->min, opt->max);
 }
 
+/* opt_init initializes all of a hestOpt, even arrAlloc and arrLen */
 static void
 opt_init(hestOpt *opt) {
 
   opt->flag = opt->name = NULL;
-  opt->type = 0;
+  opt->type = airTypeUnknown; /* == 0 */
   opt->min = 0;
   opt->max = 0;
   opt->valueP = NULL;
@@ -151,15 +156,108 @@ opt_init(hestOpt *opt) {
   opt->enm = NULL;
   opt->CB = NULL;
   opt->sawP = NULL;
-  opt->kind = opt->alloc = 0;
+  opt->kind = 0; /* means that this hestOpt has not been set */
+  opt->alloc = 0;
+  opt->arrAlloc = opt->arrLen = 0;
   opt->source = hestSourceUnknown;
   opt->parmStr = NULL;
   opt->helpWanted = AIR_FALSE;
 }
 
 /*
-hestOptAdd_nva: A new (as of 2023) non-var-args ("_nva") version of hestOptAdd, which now
-contains its main functionality (and it has become just a wrapper around this).
+hestOptNum: returns the number of elements in the given hestOpt array
+
+Unfortunately, unlike argv itself, there is no sense in which the hestOpt array can be
+NULL-terminated, mainly because "opt" is an array of hestOpt structs, not an array of
+pointers to hestOpt structs. Pre-2023, this function did clever things to detect the
+terminating hestOpt, but with the introduction of arrAlloc and arrLen that is moot.
+*/
+unsigned int
+hestOptNum(const hestOpt *opt) {
+  return opt ? opt->arrLen : 0;
+}
+
+/* like airArrayNew: create an initial segment of the hestOpt array */
+static void
+optarr_new(hestOpt **optP) {
+  unsigned int opi;
+  hestOpt *ret = AIR_CALLOC(INCR, hestOpt);
+  assert(ret);
+  for (opi = 0; opi < INCR; opi++) {
+    opt_init(ret + opi);
+  }
+  ret->arrAlloc = INCR;
+  ret->arrLen = 0;
+  *optP = ret;
+  return;
+}
+
+/* line airArrayLenIncr(1): increments logical length by 1,
+and returns index of newly-available element */
+unsigned int
+optarr_incr(hestOpt **optP) {
+  unsigned int olen, nlen;
+  olen = (*optP)->arrLen; /* == index of new element */
+  nlen = olen + 1;
+  if (nlen > (*optP)->arrAlloc) {
+    unsigned int opi;
+    /* just walked off end of allocated length: reallocate */
+    hestOpt *nopt = AIR_CALLOC((*optP)->arrAlloc + INCR, hestOpt);
+    assert(nopt);
+    memcpy(nopt, *optP, olen * sizeof(hestOpt));
+    nopt->arrAlloc = (*optP)->arrAlloc + INCR;
+    for (opi = olen; opi < nopt->arrAlloc; opi++) {
+      opt_init(nopt + opi);
+    }
+    free(*optP);
+    *optP = nopt;
+  }
+  (*optP)->arrLen = nlen;
+  return olen;
+}
+
+/*
+hestOptSingleSet: a completely generic setter for a single hestOpt
+Note that this makes no attempt at error-checking; that is all in hestOptCheck
+*/
+void
+hestOptSingleSet(hestOpt *opt, const char *flag, const char *name, int type, int min,
+                 int max, void *valueP, const char *dflt, const char *info,
+                 unsigned int *sawP, const airEnum *enm, const hestCB *CB) {
+
+  if (!opt) return;
+  opt->flag = airStrdup(flag);
+  opt->name = airStrdup(name);
+  opt->type = type;
+  opt->min = min;
+  opt->max = max;
+  opt->valueP = valueP;
+  opt->dflt = airStrdup(dflt);
+  opt->info = airStrdup(info);
+  opt->kind = opt_kind(min, max);
+  /* deal with (what used to be) var args */
+  opt->sawP = (5 == opt->kind /* */
+                 ? sawP
+                 : NULL);
+  opt->enm = (airTypeEnum == type /* */
+                ? enm
+                : NULL);
+  opt->CB = (airTypeOther == type /* */
+               ? CB
+               : NULL);
+  /* alloc set by hestParse */
+  /* leave arrAlloc, arrLen untouched: managed by caller */
+  /* yes, redundant with opt_init() */
+  opt->source = hestSourceUnknown;
+  opt->parmStr = NULL;
+  opt->helpWanted = AIR_FALSE;
+  return;
+}
+
+/*
+hestOptAdd_nva: A new (as of 2023) non-var-args ("_nva") version of hestOptAdd;
+now hestOptAdd is a wrapper around this. And, the per-hestOpt logic has now
+been moved to hestOptSingleSet.
 
 Like hestOptAdd has done since 2013: returns UINT_MAX in case of error.
 */
@@ -167,48 +265,20 @@ unsigned int
 hestOptAdd_nva(hestOpt **optP, const char *flag, const char *name, int type, int min,
                int max, void *valueP, const char *dflt, const char *info,
                unsigned int *sawP, const airEnum *enm, const hestCB *CB) {
-  hestOpt *ret = NULL; /* not the function return; but what *optP is set to */
-  int num;
   unsigned int retIdx;
 
+  /* NULL address of opt array: can't proceed */
   if (!optP) return UINT_MAX;
-
-  num = *optP ? hestOptNum(*optP) : 0;
-  if (!(ret = AIR_CALLOC(num + 2, hestOpt))) {
-    return UINT_MAX;
+  /* initialize hestOpt array if necessary */
+  if (!(*optP)) {
+    optarr_new(optP);
   }
-  if (num) memcpy(ret, *optP, num * sizeof(hestOpt));
-  retIdx = AIR_UINT(num);
-  ret[num].flag = airStrdup(flag);
-  ret[num].name = airStrdup(name);
-  ret[num].type = type;
-  ret[num].min = min;
-  ret[num].max = max;
-  ret[num].valueP = valueP;
-  ret[num].dflt = airStrdup(dflt);
-  ret[num].info = airStrdup(info);
-  /* initialize the things that may be set below */
-  ret[num].sawP = NULL;
-  ret[num].enm = NULL;
-  ret[num].CB = NULL;
-  /* yes, redundant with opt_init() */
-  ret[num].source = hestSourceUnknown;
-  ret[num].parmStr = NULL;
-  ret[num].helpWanted = AIR_FALSE;
-  /* deal with (what used to be) var args */
-  if (5 == opt_kind(min, max)) {
-    ret[num].sawP = sawP;
-  }
-  if (airTypeEnum == type) {
-    ret[num].enm = enm;
-  }
-  if (airTypeOther == type) {
-    ret[num].CB = CB;
-  }
-  opt_init(&(ret[num + 1]));
-  ret[num + 1].min = 1;
-  if (*optP) free(*optP);
-  *optP = ret;
+  /* increment logical length of hestOpt array; return index of opt being set here */
+  retIdx = optarr_incr(optP);
+  /* set all elements of the opt */
+  hestOptSingleSet(*optP + retIdx, flag, name, type, min, max, /* */
+                   valueP, dflt, info,                         /* */
+                   sawP, enm, CB);
   return retIdx;
 }
 
@@ -261,19 +331,15 @@ _hestOptFree(hestOpt *opt) {
 
 hestOpt *
 hestOptFree(hestOpt *opt) {
-  int op, num;
+  int opi, num;
 
   if (!opt) return NULL;
 
-  num = hestOptNum(opt);
-  if (opt[num].min) {
-    /* we only try to free this array if it looks like something we allocated;
-       this is leveraging how opt_init leaves things */
-    for (op = 0; op < num; op++) {
-      _hestOptFree(opt + op);
-    }
-    free(opt);
+  num = opt->arrLen;
+  for (opi = 0; opi < num; opi++) {
+    _hestOptFree(opt + opi);
   }
+  free(opt);
   return NULL;
 }
 
@@ -322,22 +388,4 @@ hestOptCheck(hestOpt *opt, char **errP) {
   free(err);
   hestParmFree(parm);
   return 0;
-}
-
-/*
-hestOptNum: returns the number of elements in the given hestOpt array, *assuming* it is
-set up like hestOptAdd does it.
-
-Unfortunately, unlike argv itself, there is no sense in which the hestOpt array can be
-NULL-terminated, mainly because "opt" is an array of hestOpt structs, not an array of
-pointers to hestOpt structs.
-*/
-unsigned int
-hestOptNum(const hestOpt *opt) {
-  unsigned int num = 0;
-
-  while (opt[num].flag || opt[num].name || opt[num].type) {
-    num++;
-  }
-  return num;
 }

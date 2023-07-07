@@ -205,7 +205,6 @@ _hestPanic(hestOpt *opt, char *err, const hestParm *parm) {
   numOpts = hestOptNum(opt);
   numvar = 0;
   for (op = 0; op < numOpts; op++) {
-    opt[op].kind = _hestKind(opt + op);
     if (!(AIR_IN_OP(airTypeUnknown, opt[op].type, airTypeLast))) {
       if (err)
         sprintf(err, "%s!!!!!! opt[%d].type (%d) not in valid range [%d,%d]", ME, op,
