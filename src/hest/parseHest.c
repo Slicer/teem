@@ -41,7 +41,7 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP, const char **argv, char *err,
                          const hestParm *parm) {
   FILE *file;
   static const char me[] = "_hestArgsInResponseFiles: ";
-  char line[AIR_STRLEN_HUGE], *pound;
+  char line[AIR_STRLEN_HUGE + 1], *pound;
   int ai, len;
 
   *argcP = 0;
@@ -65,14 +65,14 @@ _hestArgsInResponseFiles(int *argcP, int *nrfP, const char **argv, char *err,
         *nrfP = 0;
         return 1;
       }
-      len = airOneLine(file, line, AIR_STRLEN_HUGE);
+      len = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
       while (len > 0) {
         if ((pound = strchr(line, parm->respFileComment))) {
           *pound = '\0';
         }
         airOneLinify(line);
         *argcP += airStrntok(line, AIR_WHITESPACE);
-        len = airOneLine(file, line, AIR_STRLEN_HUGE);
+        len = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
       }
       fclose(file); /* ok because file != stdin, see above */
       (*nrfP)++;
@@ -132,7 +132,7 @@ static int
 copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *parm,
          airArray *pmop) {
   static const char me[] = "copyArgv";
-  char line[AIR_STRLEN_HUGE], *pound;
+  char line[AIR_STRLEN_HUGE + 1], *pound;
   int len, newArgc, oldArgc, incr, ai;
   FILE *file;
 
@@ -158,7 +158,7 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *par
       /* It is a response file.  Error checking on open-ability
          should have been done by _hestArgsInResponseFiles() */
       file = fopen(oldArgv[oldArgc] + 1, "rb");
-      len = airOneLine(file, line, AIR_STRLEN_HUGE);
+      len = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
       while (len > 0) {
         if (parm->verbosity) printf("%s: line: |%s|\n", me, line);
         /* HEY HEY too bad for you if you put # inside a string */
@@ -173,7 +173,7 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *par
              not airFreeP because these will not be reset before mopping */
           airMopAdd(pmop, newArgv[newArgc + ai], airFree, airMopAlways);
         }
-        len = airOneLine(file, line, AIR_STRLEN_HUGE);
+        len = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
         newArgc += incr;
       }
       fclose(file);
@@ -199,7 +199,7 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *par
 int
 _hestPanic(hestOpt *opt, char *err, const hestParm *parm) {
   static const char me[] = "_hestPanic: ";
-  char tbuff[AIR_STRLEN_HUGE], *sep;
+  char tbuff[AIR_STRLEN_HUGE + 1], *sep;
   int numvar, op, numOpts;
 
   numOpts = hestOptNum(opt);
@@ -424,8 +424,8 @@ _hestErrStrlen(const hestOpt *opt, int argc, const char **argv) {
   }
   if (other) {
     /* the callback's error() function may sprintf an error message
-       into a buffer which is size AIR_STRLEN_HUGE */
-    ret += AIR_STRLEN_HUGE;
+       into a buffer which is size AIR_STRLEN_HUGE+1 */
+    ret += AIR_STRLEN_HUGE + 1;
   }
   ret += 4 * 12; /* as many as 4 ints per error message */
   ret += 257;    /* function name and text of hest's error message */
@@ -439,7 +439,7 @@ copies into ident a string for identifying an option in error and usage messages
 */
 static char *
 identStr(char *ident, hestOpt *opt, const hestParm *parm, int brief) {
-  char copy[AIR_STRLEN_HUGE], *sep;
+  char copy[AIR_STRLEN_HUGE + 1], *sep;
 
   if (opt->flag && (sep = strchr(opt->flag, parm->multiFlagSep))) {
     strcpy(copy, opt->flag);
@@ -467,7 +467,7 @@ marker "--" (or whatever parm->varParamStopFlag implies)
 static int
 whichFlag(hestOpt *opt, char *flag, const hestParm *parm) {
   static const char me[] = "whichFlag";
-  char buff[2 * AIR_STRLEN_HUGE], copy[AIR_STRLEN_HUGE], *sep;
+  char buff[2 * AIR_STRLEN_HUGE + 1], copy[AIR_STRLEN_HUGE + 1], *sep;
   int op, numOpts;
 
   numOpts = hestOptNum(opt);
@@ -591,7 +591,7 @@ static int
 extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **argv,
                hestOpt *opt, char *err, const hestParm *parm, airArray *pmop) {
   static const char me[] = "extractFlagged: ";
-  char ident1[AIR_STRLEN_HUGE], ident2[AIR_STRLEN_HUGE];
+  char ident1[AIR_STRLEN_HUGE + 1], ident2[AIR_STRLEN_HUGE + 1];
   int a, np, flag, endflag, numOpts, op;
 
   a = 0;
@@ -702,7 +702,7 @@ static int
 extractUnflagged(char **prms, unsigned int *nprm, int *argcP, char **argv, hestOpt *opt,
                  char *err, const hestParm *parm, airArray *pmop) {
   static const char me[] = "extractUnflagged: ";
-  char ident[AIR_STRLEN_HUGE];
+  char ident[AIR_STRLEN_HUGE + 1];
   int nvp, np, op, unflag1st, unflagVar, numOpts;
 
   numOpts = hestOptNum(opt);
@@ -810,7 +810,7 @@ static int
 _hestDefaults(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
               char *err, const hestParm *parm, airArray *mop) {
   static const char me[] = "_hestDefaults: ";
-  char *tmpS, ident[AIR_STRLEN_HUGE];
+  char *tmpS, ident[AIR_STRLEN_HUGE + 1];
   int op, numOpts;
 
   numOpts = hestOptNum(opt);
@@ -984,7 +984,7 @@ static int
 setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
           char *err, const hestParm *parm, airArray *pmop) {
   static const char me[] = "setValues: ";
-  char ident[AIR_STRLEN_HUGE], cberr[AIR_STRLEN_HUGE], *tok, *last, *prmsCopy;
+  char ident[AIR_STRLEN_HUGE + 1], cberr[AIR_STRLEN_HUGE + 1], *tok, *last, *prmsCopy;
   double tmpD;
   int op, type, numOpts, p, ret;
   void *vP;
@@ -1661,7 +1661,7 @@ hestParseOrDie(hestOpt *opt, int argc, const char **argv, hestParm *parm, const 
   why not check first? */
   if (argv[0] && !strcmp(argv[0], "--version")) {
     /* print version info and bail */
-    char vbuff[AIR_STRLEN_LARGE];
+    char vbuff[AIR_STRLEN_LARGE + 1];
     airTeemVersionSprint(vbuff);
     printf("%s\n", vbuff);
     hestParmFree(parm);
