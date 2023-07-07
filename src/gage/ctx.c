@@ -236,7 +236,7 @@ gageKernelSet(gageContext *ctx, int which, const NrrdKernel *k, const double *kp
     } else {
       /* its a derivative, so integral must be near zero */
       if (!(AIR_ABS(integral) <= ctx->parm.kernelIntegralNearZero)) {
-        char str[AIR_STRLEN_LARGE] = "";
+        char str[AIR_STRLEN_LARGE + 1] = "";
         nrrdKernelSprint(str, k, kparm);
         biffAddf(GAGE,
                  "%s: derivative %s kernel (%s) integral %g not within "
