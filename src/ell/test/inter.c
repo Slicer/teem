@@ -33,20 +33,18 @@ typedef struct {
 
 #define WPS_X(x) AIR_AFFINE(wps->bbox[0], (x), wps->bbox[2], 0, wps->maxX)
 #define WPS_Y(y) AIR_AFFINE(wps->bbox[1], (y), wps->bbox[3], 0, wps->maxY)
-#define WPS_S(s)  AIR_DELTA(wps->bbox[1], (s), wps->bbox[3], 0, wps->maxY)
+#define WPS_S(s) AIR_DELTA(wps->bbox[1], (s), wps->bbox[3], 0, wps->maxY)
 
 void
 wheelPreamble(wheelPS *wps) {
 
-  wps->maxX = wps->psc*(wps->bbox[2] - wps->bbox[0]);
-  wps->maxY = wps->psc*(wps->bbox[3] - wps->bbox[1]);
+  wps->maxX = wps->psc * (wps->bbox[2] - wps->bbox[0]);
+  wps->maxY = wps->psc * (wps->bbox[3] - wps->bbox[1]);
 
   fprintf(wps->file, "%%!PS-Adobe-2.0 EPSF-2.0\n");
   fprintf(wps->file, "%%%%Creator: limn\n");
   fprintf(wps->file, "%%%%Pages: 1\n");
-  fprintf(wps->file, "%%%%BoundingBox: 0 0 %d %d\n",
-          (int)(wps->maxX),
-          (int)(wps->maxY));
+  fprintf(wps->file, "%%%%BoundingBox: 0 0 %d %d\n", (int)(wps->maxX), (int)(wps->maxY));
   fprintf(wps->file, "%%%%EndComments\n");
   fprintf(wps->file, "%%%%EndProlog\n");
   fprintf(wps->file, "%%%%Page: 1 1\n");
@@ -87,8 +85,8 @@ wheelGray(wheelPS *wps, double gray) {
 }
 
 void
-wheelArrow(wheelPS *wps, double x0, double y0, double x1, double y1,
-           double alen, double awidth) {
+wheelArrow(wheelPS *wps, double x0, double y0, double x1, double y1, double alen,
+           double awidth) {
   double len, dir[2], perp[2];
 
   dir[0] = x0 - x1;
@@ -96,21 +94,18 @@ wheelArrow(wheelPS *wps, double x0, double y0, double x1, double y1,
   ELL_2V_NORM(dir, dir, len);
   ELL_2V_SET(perp, -dir[1], dir[0]);
   fprintf(wps->file, "%g %g M\n", WPS_X(x0), WPS_Y(y0));
-  fprintf(wps->file, "%g %g L S\n",
-          WPS_X(x1 + alen*dir[0]/2),
-          WPS_Y(y1 + alen*dir[1]/2));
+  fprintf(wps->file, "%g %g L S\n", WPS_X(x1 + alen * dir[0] / 2),
+          WPS_Y(y1 + alen * dir[1] / 2));
   if (alen && awidth) {
     if (len < alen) {
-      awidth *= len/alen;
+      awidth *= len / alen;
       alen = len;
     }
-    fprintf(wps->file, "%g %g M\n",
-            WPS_X(x1 + alen*dir[0] + awidth*perp[0]),
-            WPS_Y(y1 + alen*dir[1] + awidth*perp[1]));
+    fprintf(wps->file, "%g %g M\n", WPS_X(x1 + alen * dir[0] + awidth * perp[0]),
+            WPS_Y(y1 + alen * dir[1] + awidth * perp[1]));
     fprintf(wps->file, "%g %g L\n", WPS_X(x1), WPS_Y(y1));
-    fprintf(wps->file, "%g %g L CP F\n",
-            WPS_X(x1 + alen*dir[0] - awidth*perp[0]),
-            WPS_Y(y1 + alen*dir[1] - awidth*perp[1]));
+    fprintf(wps->file, "%g %g L CP F\n", WPS_X(x1 + alen * dir[0] - awidth * perp[0]),
+            WPS_Y(y1 + alen * dir[1] - awidth * perp[1]));
   }
   return;
 }
@@ -133,10 +128,9 @@ main(int argc, const char *argv[]) {
   airArray *mop;
 
   int fidx, aidx, num, frames;
-  double psc, width[2], arrowWidth, lineWidth, angle, seglen,
-    x0, y0, x1, y1, cc, ss;
+  double psc, width[2], arrowWidth, lineWidth, angle, seglen, x0, y0, x1, y1, cc, ss;
   wheelPS wps;
-  char filename[AIR_STRLEN_MED];
+  char filename[AIR_STRLEN_MED + 1];
 
   me = argv[0];
   mop = airMopNew();
@@ -144,26 +138,25 @@ main(int argc, const char *argv[]) {
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
-  hestOptAdd(&hopt, "w", "arrowWidth lineWidth", airTypeDouble, 2, 2, width,
-             "1.0 0.2", "widths");
-  hestOptAdd(&hopt, "n", "number", airTypeInt, 1, 1, &num, "10",
-             "number of arrows");
-  hestOptAdd(&hopt, "f", "frames", airTypeInt, 1, 1, &frames, "10",
-             "number of frames");
+  hestOptAdd(&hopt, "w", "arrowWidth lineWidth", airTypeDouble, 2, 2, width, "1.0 0.2",
+             "widths");
+  hestOptAdd(&hopt, "n", "number", airTypeInt, 1, 1, &num, "10", "number of arrows");
+  hestOptAdd(&hopt, "f", "frames", airTypeInt, 1, 1, &frames, "10", "number of frames");
   hestOptAdd(&hopt, "psc", "scale", airTypeDouble, 1, 1, &psc, "200",
              "scaling from world space to PostScript points");
   hestOptAdd(&hopt, "o", "prefix", airTypeString, 1, 1, &outS, NULL,
              "prefix of file names");
-  hestParseOrDie(hopt, argc-1, argv+1, hparm,
-                 me, interInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, interInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  for (fidx=0; fidx<frames; fidx++) {
+  for (fidx = 0; fidx < frames; fidx++) {
     sprintf(filename, "%s%03d.eps", outS, fidx);
     if (!(wps.file = airFopen(filename, stdout, "wb"))) {
       fprintf(stderr, "%s: couldn't open output file\n", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
 
     lineWidth = width[0];
@@ -179,20 +172,20 @@ main(int argc, const char *argv[]) {
 
     x0 = 0;
     y0 = 0;
-    seglen = 1.0/num;
-    angle = AIR_AFFINE(0, fidx, frames, 0, 2*AIR_PI);
-    for (aidx=1; aidx<=num; aidx++) {
-      cc = cos(angle*aidx)*seglen;
-      ss = sin(angle*aidx)*seglen;
-      x1 = x0 + 0.90*cc;
-      y1 = y0 + 0.90*ss;
-      wheelArrow(&wps, x0, y0, x1, y1, arrowWidth, arrowWidth*0.4);
+    seglen = 1.0 / num;
+    angle = AIR_AFFINE(0, fidx, frames, 0, 2 * AIR_PI);
+    for (aidx = 1; aidx <= num; aidx++) {
+      cc = cos(angle * aidx) * seglen;
+      ss = sin(angle * aidx) * seglen;
+      x1 = x0 + 0.90 * cc;
+      y1 = y0 + 0.90 * ss;
+      wheelArrow(&wps, x0, y0, x1, y1, arrowWidth, arrowWidth * 0.4);
       x0 += cc;
       y0 += ss;
     }
 
     wheelGray(&wps, 0.0);
-    wheelArrow(&wps, 0, 0, x0, y0, arrowWidth, arrowWidth*0.4);
+    wheelArrow(&wps, 0, 0, x0, y0, arrowWidth, arrowWidth * 0.4);
 
     wheelEpilog(&wps);
     airFclose(wps.file);
@@ -201,7 +194,6 @@ main(int argc, const char *argv[]) {
   airMopOkay(mop);
   exit(0);
 }
-
 
 /*
 mkdir inter04

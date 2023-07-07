@@ -105,7 +105,7 @@ ell_Nm_mul(Nrrd *nAB, Nrrd *nA, Nrrd *nB) {
   static const char me[] = "ell_Nm_mul";
   double *A, *B, *AB, tmp;
   size_t LL, MM, NN, ll, mm, nn;
-  char stmp[4][AIR_STRLEN_SMALL];
+  char stmp[4][AIR_STRLEN_SMALL + 1];
 
   if (!(nAB && !ell_Nm_check(nA, AIR_FALSE) && !ell_Nm_check(nB, AIR_FALSE))) {
     biffAddf(ELL, "%s: NULL or invalid args", me);
@@ -172,7 +172,7 @@ _ell_LU_decomp(double *aa, size_t *indx, size_t NN) {
       }
     }
     if (!big) {
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       biffAddf(ELL, "%s: singular matrix since column %s all zero", me,
                airSprintSize_t(stmp, ii));
       /* return 1; (for biff auto-scan) */
@@ -347,7 +347,7 @@ ell_Nm_inv(Nrrd *ninv, Nrrd *nmat) {
 
   NN = nmat->axis[0].size;
   if (!(NN == nmat->axis[1].size)) {
-    char stmp[2][AIR_STRLEN_SMALL];
+    char stmp[2][AIR_STRLEN_SMALL + 1];
     biffAddf(ELL, "%s: need a square matrix, not %s-by-%s", me,
              airSprintSize_t(stmp[0], nmat->axis[1].size), airSprintSize_t(stmp[1], NN));
     return 1;
