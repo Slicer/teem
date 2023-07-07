@@ -73,7 +73,7 @@ unrrdu_shuffleMain(int argc, const char **argv, const char *me, hestParm *hparm)
     return 1;
   }
   if (!(permLen == nin->axis[axis].size)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     fprintf(stderr, "%s: permutation length (%u) != axis %d's size (%s)\n", me, permLen,
             axis, airSprintSize_t(stmp, nin->axis[axis].size));
     airMopError(mop);

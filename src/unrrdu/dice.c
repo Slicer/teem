@@ -32,9 +32,9 @@ static const char *_unrrdu_diceInfoL
 static int
 unrrdu_diceMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *base, *err, fnout[AIR_STRLEN_MED], /* file name out */
-    fffname[AIR_STRLEN_MED],               /* format for filename */
-    *ftmpl;                                /* format template */
+  char *base, *err, fnout[AIR_STRLEN_MED + 1], /* file name out */
+    fffname[AIR_STRLEN_MED + 1],               /* format for filename */
+    *ftmpl;                                    /* format template */
   Nrrd *nin, *nout;
   int pret, fit;
   unsigned int axis, start, pos, top, size, sanity;
@@ -76,7 +76,7 @@ unrrdu_diceMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     return 1;
   }
   if (nin->axis[axis].size > sanity) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     fprintf(stderr,
             "%s: axis %u size %s > sanity limit %u; "
             "increase via \"-l\"\n",

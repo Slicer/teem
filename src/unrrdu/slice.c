@@ -78,7 +78,7 @@ unrrdu_sliceMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     return 1;
   }
   for (axi = 0; axi < axisNum; axi++) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     if (axisNum > 1) {
       sprintf(stmp, "[%d]", axi);
     } else {

@@ -39,7 +39,7 @@ unrrdu_diffMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   Nrrd *ninA, *ninB;
   int quiet, exitstat, onlyData, differ, ret;
   double epsilon;
-  char explain[AIR_STRLEN_LARGE];
+  char explain[AIR_STRLEN_LARGE + 1];
 
   mop = airMopNew();
   hestOptAdd(&opt, NULL, "ninA", airTypeOther, 1, 1, &ninA, NULL, "First input nrrd.",

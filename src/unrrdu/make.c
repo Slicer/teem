@@ -65,7 +65,8 @@ static const char *_unrrdu_makeInfoL
 static int
 unrrdu_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *outData, *err, **dataFileNames, **kvp, *content, encInfo[AIR_STRLEN_LARGE];
+  char *out, *outData, *err, **dataFileNames, **kvp, *content,
+    encInfo[AIR_STRLEN_LARGE + 1];
   Nrrd *nrrd;
   size_t *size, bufLen;
   int headerOnly, pret, lineSkip, endian, type, encodingType, gotSpacing, gotThickness,

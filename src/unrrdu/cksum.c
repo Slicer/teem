@@ -34,7 +34,7 @@ unrrdu_cksumDoit(const char *me, char *inS, int endian, int printendian, FILE *f
   Nrrd *nrrd;
   airArray *mop;
   unsigned int crc;
-  char stmp[AIR_STRLEN_SMALL], ends[AIR_STRLEN_SMALL];
+  char stmp[AIR_STRLEN_SMALL + 1], ends[AIR_STRLEN_SMALL + 1];
   size_t nn;
 
   mop = airMopNew();
