@@ -23,38 +23,55 @@
 
 int
 main(int argc, const char **argv) {
-  int res[2], v, numIn;
-  char **in, *out, *blah[3], *option = NULL;
-  int n, *ints, numN, flag, glag;
   hestOpt *opt = NULL;
   hestParm *parm;
   char *err = NULL,
        info[] = "This program does nothing in particular, though it does attempt "
                 "to pose as some sort of command-line image processing program. "
                 "As usual, any implied functionality is purely coincidental, "
-                "especially since this is the output of a unicyclist.";
+                "especially since this is the output of a gray-haired unicyclist.";
 
   parm = hestParmNew();
   parm->respFileEnable = AIR_TRUE;
   parm->respectDashDashHelp = AIR_TRUE;
-  parm->verbosity = 3;
+  parm->verbosity = 0;
 
   opt = NULL;
-  hestOptAdd(&opt, "f,flag", NULL, airTypeInt, 0, 0, &flag, NULL,
-             "a flag created via hestOptAdd");
-  hestOptAdd_Flag(&opt, "g,glag", &glag, "a flag created via hestOptAdd_Flag");
-  hestOptAdd(&opt, "v,verbose", "level", airTypeInt, 0, 1, &v, "0", "verbosity level");
-  hestOptAdd(&opt, "out", "file", airTypeString, 1, 1, &out, "output.ppm",
-             "PPM image output");
-  hestOptAdd(&opt, "blah", "input", airTypeString, 3, 3, blah, "a b c",
-             "input image file(s)");
-  hestOptAdd(&opt, "option", "opt", airTypeString, 0, 1, &option, "default",
-             "this is just a test");
-  hestOptAdd(&opt, "ints", "N", airTypeInt, 1, -1, &ints, "10 20 30",
-             "a list of integers", &numN);
-  hestOptAdd(&opt, "res", "sx sy", airTypeInt, 2, 2, res, NULL, "image resolution");
-  hestOptAdd(&opt, NULL, "input", airTypeString, 1, -1, &in, NULL, "input image file(s)",
-             &numIn);
+  /* going past C89 to have declarations here */
+  int flag;
+  hestOptAdd_Flag(&opt, "f,flag", &flag, "a flag created via hestOptAdd_Flag");
+  int b1;
+  hestOptAdd_1_Bool(&opt, "b1", "bool1", &b1, "false", "test of hestOptAdd_1_Bool");
+  int i1;
+  hestOptAdd_1_Int(&opt, "i1", "int1", &i1, "42", "test of hestOptAdd_1_Int");
+  unsigned int ui1;
+  hestOptAdd_1_UInt(&opt, "ui1", "uint1", &ui1, "42", "test of hestOptAdd_1_UInt");
+  long int li1;
+  hestOptAdd_1_LongInt(&opt, "li1", "lint1", &li1, "42", "test of hestOptAdd_1_LongInt");
+  unsigned long int uli1;
+  hestOptAdd_1_ULongInt(&opt, "uli1", "ulint1", &uli1, "42",
+                        "test of hestOptAdd_1_ULongInt");
+  size_t sz1;
+  hestOptAdd_1_Size_t(&opt, "sz1", "size1", &sz1, "42", "test of hestOptAdd_1_Size_t");
+  float fl1;
+  hestOptAdd_1_Float(&opt, "fl1", "float1", &fl1, "4.2", "test of hestOptAdd_1_Float");
+  double db1;
+  hestOptAdd_1_Double(&opt, "db1", "double1", &db1, "4.2",
+                      "test of hestOptAdd_1_Double");
+  char c1;
+  hestOptAdd_1_Char(&opt, "c1", "char1", &c1, "x", "test of hestOptAdd_1_Char");
+  char *s1;
+  hestOptAdd_1_String(&opt, "s1", "string1", &s1, "bingo",
+                      "test of hestOptAdd_1_String");
+  int e1;
+  hestOptAdd_1_Enum(&opt, "e1", "enum1", &e1, "little", "test of hestOptAdd_1_Enum",
+                    airEndian);
+  /*
+HEST_EXPORT unsigned int hestOptAdd_1_Other(hestOpt * *optP, const char *flag,
+                       const char *name, void *valueP,
+                       const char *dflt, const char *info,
+                       const hestCB *CB);
+*/
 
   if (1 == argc) {
     /* didn't get anything at all on command line */
@@ -102,22 +119,18 @@ main(int argc, const char **argv) {
     }
   }
   printf("(err = %s)\n", err ? err : "(null)");
-  printf("  v = %d\n", v);
-  printf("  flag glag = %d %d\n", flag, glag);
-  printf("out = \"%s\"\n", out ? out : "(null)");
-  printf("blah = \"%s\" \"%s\" \"%s\"\n", blah[0], blah[1], blah[2]);
-  printf("option = \"%s\"\n", option ? option : "(null)");
-  printf("res = %d %d\n", res[0], res[1]);
-  printf("\nin = %d files:", numIn);
-  for (n = 0; n <= numIn - 1; n++) {
-    printf(" \"%s\"", in[n] ? in[n] : "(null)");
-  }
-  printf("\n");
-  printf("ints = %d ints:", numN);
-  for (n = 0; n <= numN - 1; n++) {
-    printf(" %d", ints[n]);
-  }
-  printf("\n");
+  printf("flag = %d\n", flag);
+  printf("b1 = %d\n", b1);
+  printf("i1 = %d\n", i1);
+  printf("ui1 = %u\n", ui1);
+  printf("li1 = %ld\n", li1);
+  printf("uli1 = %lu\n", uli1);
+  printf("sz1 = %zu\n", sz1);
+  printf("fl1 = %g\n", fl1);
+  printf("db1 = %g\n", db1);
+  printf("c1 = %c\n", c1);
+  printf("s1 = %s\n", s1);
+  printf("e1 = %d\n", e1);
 
   /* free the memory allocated by parsing ... */
   hestParseFree(opt);

@@ -22,35 +22,122 @@
 #include "hest.h"
 #include "privateHest.h"
 
+/* --------------------------------------------------------------- 1 == kind */
 unsigned int
-hestOptAddFlag(hestOpt **optP, const char *flag, int *valueP, const char *info) {
+hestOptAdd_Flag(hestOpt **optP, const char *flag, int *valueP, const char *info) {
 
   return hestOptAdd_nva(optP, flag, NULL /* name */, airTypeInt /* actually moot */,
-                        0 /* min */, 0 /* max */, valueP, NULL /* default */, info, NULL,
-                        NULL, NULL);
+                        0 /* min */, 0 /* max */, valueP, NULL /* default */, info, /* */
+                        NULL, NULL, NULL);
+}
+
+/* --------------------------------------------------------------- 2 == kind */
+unsigned int
+hestOptAdd_1_Bool(hestOpt **optP, const char *flag, const char *name, /* */
+                  int *valueP, const char *dflt, const char *info) {
+  return hestOptAdd_nva(optP, flag, name, airTypeBool, 1, 1, /* */
+                        valueP, dflt, info,                  /* */
+                        NULL, NULL, NULL);
+}
+
+unsigned int
+hestOptAdd_1_Int(hestOpt **optP, const char *flag, const char *name, /* */
+                 int *valueP, const char *dflt, const char *info) {
+  return hestOptAdd_nva(optP, flag, name, airTypeInt, 1, 1, /* */
+                        valueP, dflt, info,                 /* */
+                        NULL, NULL, NULL);
+}
+
+unsigned int
+hestOptAdd_1_UInt(hestOpt **optP, const char *flag, const char *name, /* */
+                  unsigned int *valueP, const char *dflt, const char *info) {
+  return hestOptAdd_nva(optP, flag, name, airTypeUInt, 1, 1, /* */
+                        valueP, dflt, info,                  /* */
+                        NULL, NULL, NULL);
+}
+
+unsigned int
+hestOptAdd_1_LongInt(hestOpt **optP, const char *flag, const char *name, /* */
+                     long int *valueP, const char *dflt, const char *info) {
+  return hestOptAdd_nva(optP, flag, name, airTypeLongInt, 1, 1, /* */
+                        valueP, dflt, info,                     /* */
+                        NULL, NULL, NULL);
+}
+
+unsigned int
+hestOptAdd_1_ULongInt(hestOpt **optP, const char *flag, const char *name, /* */
+                      unsigned long int *valueP, const char *dflt, const char *info) {
+  return hestOptAdd_nva(optP, flag, name, airTypeULongInt, 1, 1, /* */
+                        valueP, dflt, info,                      /* */
+                        NULL, NULL, NULL);
+}
+
+unsigned int
+hestOptAdd_1_Size_t(hestOpt **optP, const char *flag, const char *name, /* */
+                    size_t *valueP, const char *dflt, const char *info) {
+  return hestOptAdd_nva(optP, flag, name, airTypeSize_t, 1, 1, /* */
+                        valueP, dflt, info,                    /* */
+                        NULL, NULL, NULL);
+}
+
+unsigned int
+hestOptAdd_1_Float(hestOpt **optP, const char *flag, const char *name, /* */
+                   float *valueP, const char *dflt, const char *info) {
+  return hestOptAdd_nva(optP, flag, name, airTypeFloat, 1, 1, /* */
+                        valueP, dflt, info,                   /* */
+                        NULL, NULL, NULL);
+}
+
+unsigned int
+hestOptAdd_1_Double(hestOpt **optP, const char *flag, const char *name, /* */
+                    double *valueP, const char *dflt, const char *info) {
+  return hestOptAdd_nva(optP, flag, name, airTypeDouble, 1, 1, /* */
+                        valueP, dflt, info,                    /* */
+                        NULL, NULL, NULL);
+}
+
+unsigned int
+hestOptAdd_1_Char(hestOpt **optP, const char *flag, const char *name, /* */
+                  char *valueP, const char *dflt, const char *info) {
+  return hestOptAdd_nva(optP, flag, name, airTypeChar, 1, 1, /* */
+                        valueP, dflt, info,                  /* */
+                        NULL, NULL, NULL);
+}
+
+unsigned int
+hestOptAdd_1_String(hestOpt **optP, const char *flag, const char *name, /* */
+                    char **valueP, const char *dflt, const char *info) {
+  return hestOptAdd_nva(optP, flag, name, airTypeString, 1, 1, /* */
+                        valueP, dflt, info,                    /* */
+                        NULL, NULL, NULL);
+}
+
+unsigned int
+hestOptAdd_1_Enum(hestOpt **optP, const char *flag, const char *name, /* */
+                  int *valueP, const char *dflt, const char *info,    /* */
+                  const airEnum *enm) {
+  return hestOptAdd_nva(optP, flag, name, airTypeEnum, 1, 1, /* */
+                        valueP, dflt, info,                  /* */
+                        NULL, enm, NULL);
+}
+
+unsigned int
+hestOptAdd_1_Other(hestOpt **optP, const char *flag, const char *name, /* */
+                   void *valueP, const char *dflt, const char *info,   /* */
+                   const hestCB *CB) {
+  return hestOptAdd_nva(optP, flag, name, airTypeOther, 1, 1, /* */
+                        valueP, dflt, info,                   /* */
+                        NULL, NULL, CB);
 }
 
 /*
 hestOptSetXX(hestOpt *opt, )
-1<T>
-1v<T>
-2<T>
-3<T>
-4<T>
-N<T>
-Nv<T>  need sawP
+1<T>, 2<T>, 3<T>, 4<T>, N<T>
+1v<T>, Nv<T>  need sawP
 
 <T>=
-Bool,
-Int,
-UInt,
-LongInt,
-ULongInt,
-Size_t,
-Float,
-Double,
-Char,
-String,
+Bool, Int, UInt, LongInt, ULongInt, Size_t,
+Float, Double, Char, String,
 Enum,  need Enum
 Other,  need CB
 */
