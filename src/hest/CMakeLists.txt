@@ -7,6 +7,7 @@ set(HEST_SOURCES
   parseHest.c
   privateHest.h
   usage.c
+  adders.c
   )
 
 target_sources(teem PRIVATE ${HEST_SOURCES})

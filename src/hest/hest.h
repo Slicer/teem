@@ -262,6 +262,7 @@ HEST_EXPORT unsigned int hestOptAdd(hestOpt **optP,
                                     ... /* unsigned int *sawP,
                                            const airEnum *enm,
                                            const hestCB *CB */);
+/* see also all the special-purpose and type-checked versions in adders.c, below */
 HEST_EXPORT unsigned int hestOptNum(const hestOpt *opt);
 HEST_EXPORT hestOpt *hestOptFree(hestOpt *opt);
 HEST_EXPORT void *hestOptFree_vp(void *opt);
@@ -284,6 +285,10 @@ HEST_EXPORT void hestUsage(FILE *file, hestOpt *opt, const char *argv0,
 HEST_EXPORT void hestGlossary(FILE *file, hestOpt *opt, const hestParm *parm);
 HEST_EXPORT void hestInfo(FILE *file, const char *argv0, const char *info,
                           const hestParm *parm);
+
+/* adders.c */
+HEST_EXPORT unsigned int hestOptAddFlag(hestOpt **optP, const char *flag, int *valueP,
+                                        const char *info);
 
 #ifdef __cplusplus
 }
