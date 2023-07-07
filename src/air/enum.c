@@ -99,7 +99,7 @@ airEnumDesc(const airEnum *enm, int val) {
 
 int
 airEnumVal(const airEnum *enm, const char *str) {
-  char *strCpy, test[AIR_STRLEN_SMALL];
+  char *strCpy, test[AIR_STRLEN_SMALL + 1];
   unsigned int ii;
 
   if (!str) {
@@ -115,7 +115,7 @@ airEnumVal(const airEnum *enm, const char *str) {
     /* want strlen and not airStrlen here because the strEqv array
        should be terminated by a non-null empty string */
     for (ii = 0; strlen(enm->strEqv[ii]); ii++) {
-      airStrcpy(test, AIR_STRLEN_SMALL, enm->strEqv[ii]);
+      airStrcpy(test, AIR_STRLEN_SMALL + 1, enm->strEqv[ii]);
       if (!enm->sense) {
         airToLower(test);
       }
@@ -127,7 +127,7 @@ airEnumVal(const airEnum *enm, const char *str) {
   } else {
     /* enm->strEqv NULL */
     for (ii = 1; ii <= enm->M; ii++) {
-      airStrcpy(test, AIR_STRLEN_SMALL, enm->str[ii]);
+      airStrcpy(test, AIR_STRLEN_SMALL + 1, enm->str[ii]);
       if (!enm->sense) {
         airToLower(test);
       }
@@ -159,7 +159,7 @@ airEnumVal(const airEnum *enm, const char *str) {
 char *
 airEnumFmtDesc(const airEnum *enm, int val, int canon, const char *fmt) {
   const char *desc;
-  char *buff, ident[AIR_STRLEN_SMALL];
+  char *buff, ident[AIR_STRLEN_SMALL + 1];
   const char *_ident;
   int i;
   size_t len;
@@ -185,7 +185,7 @@ airEnumFmtDesc(const airEnum *enm, int val, int canon, const char *fmt) {
       }
     }
   }
-  airStrcpy(ident, AIR_STRLEN_SMALL, _ident);
+  airStrcpy(ident, AIR_STRLEN_SMALL + 1, _ident);
   if (!enm->sense) {
     airToLower(ident);
   }
@@ -263,18 +263,17 @@ airEnumPrint(FILE *file, const airEnum *enm) {
 ** if all is well.  we're in air, so there's no biff, but we sprintf a
 ** description of the error into "err", if given
 **
-** The requirement that the strings have strlen <= AIR_STRLEN_SMALL-1
+** The requirement that the strings have strlen <= AIR_STRLEN_SMALL
 ** is a reflection of the cheap implementation of the airEnum
 ** functions in this file, rather than an actual restriction on what an
 ** airEnum could be.
 */
 int
-airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
+airEnumCheck(char err[AIR_STRLEN_LARGE + 1], const airEnum *enm) {
   static const char me[] = "airEnumCheck";
   unsigned int ii, jj;
-  size_t slen, ASL;
+  size_t slen, ASL = AIR_STRLEN_LARGE + 1;
 
-  ASL = AIR_STRLEN_LARGE;
   if (!enm) {
     if (err) {
       snprintf(err, ASL, "%s: got NULL enm", me);
@@ -301,14 +300,14 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
       return 1;
     }
     slen = airStrlen(enm->str[ii]);
-    if (!(slen >= 1 && slen <= AIR_STRLEN_SMALL - 1)) {
+    if (!(slen >= 1 && slen <= AIR_STRLEN_SMALL)) {
       if (err) {
-        char stmp[AIR_STRLEN_SMALL];
+        char stmp[AIR_STRLEN_SMALL + 1];
         snprintf(err, ASL,
                  "%s(%s): strlen(enm->str[%u] \"%s\") "
                  "%s not in range [1,%u]",
                  me, enm->name, ii, enm->str[ii], airSprintSize_t(stmp, slen),
-                 AIR_STRLEN_SMALL - 1);
+                 AIR_STRLEN_SMALL);
       }
       return 1;
     }
@@ -329,7 +328,7 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
         return 1;
       }
       if (!enm->sense) {
-        char bb1[AIR_STRLEN_SMALL], bb2[AIR_STRLEN_SMALL];
+        char bb1[AIR_STRLEN_SMALL + 1], bb2[AIR_STRLEN_SMALL + 1];
         strcpy(bb1, enm->str[ii]);
         airToLower(bb1);
         strcpy(bb2, enm->str[jj]);
@@ -404,14 +403,14 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
     }
     /* check length and see if any string maps to an invalid value */
     for (ii = 0; (slen = strlen(enm->strEqv[ii])); ii++) {
-      if (!(slen <= AIR_STRLEN_SMALL - 1)) {
+      if (!(slen <= AIR_STRLEN_SMALL)) {
         if (err) {
-          char stmp[AIR_STRLEN_SMALL];
+          char stmp[AIR_STRLEN_SMALL + 1];
           snprintf(err, ASL,
                    "%s(%s): strlen(enm->strEqv[%u] \"%s\") "
                    "%s not <= %u",
                    me, enm->name, ii, enm->strEqv[ii], airSprintSize_t(stmp, slen),
-                   AIR_STRLEN_SMALL - 1);
+                   AIR_STRLEN_SMALL);
         }
         return 1;
       }
@@ -453,7 +452,7 @@ airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm) {
           return 1;
         }
         if (!enm->sense) {
-          char bb1[AIR_STRLEN_SMALL], bb2[AIR_STRLEN_SMALL];
+          char bb1[AIR_STRLEN_SMALL + 1], bb2[AIR_STRLEN_SMALL + 1];
           strcpy(bb1, enm->strEqv[ii]);
           airToLower(bb1);
           strcpy(bb2, enm->strEqv[jj]);

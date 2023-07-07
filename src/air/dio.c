@@ -38,7 +38,7 @@ const int airMyDio = 1;
 
 int airDisableDio = AIR_FALSE;
 
-static const char _airNoDioErr[AIR_NODIO_MAX + 2][AIR_STRLEN_SMALL]
+static const char _airNoDioErr[AIR_NODIO_MAX + 2][AIR_STRLEN_SMALL + 1]
   = {"(invalid noDio value)",
      "CAN TOO do direct I/O!",
      "direct I/O apparently not available on this architecture",

@@ -19,13 +19,12 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../air.h"
 
 int
 main(int argc, char *argv[]) {
   char *me;
-  char str[AIR_STRLEN_SMALL];
+  char str[AIR_STRLEN_SMALL + 1];
   size_t sz;
   ptrdiff_t pd;
   int change;
@@ -33,49 +32,69 @@ main(int argc, char *argv[]) {
   AIR_UNUSED(argc);
   me = argv[0];
 
-#define PRINT  printf("%s: %lu %s\n", me, AIR_CAST(unsigned long, sz), airSprintSize_t(str, sz))
+#define PRINT                                                                           \
+  printf("%s: %lu %s\n", me, AIR_CAST(unsigned long, sz), airSprintSize_t(str, sz))
 
-  sz = 1; PRINT;
+  sz = 1;
+  PRINT;
   do {
-    sz = 2.4*sz; PRINT;
+    sz = 2.4 * sz;
+    PRINT;
   } while (sz);
-  *((long int *)(&sz)) = -1; PRINT;
-  sz += 1; PRINT;
-  sz -= 1; PRINT;
-  sz -= 1; PRINT;
-  sz -= 1; PRINT;
+  *((long int *)(&sz)) = -1;
+  PRINT;
+  sz += 1;
+  PRINT;
+  sz -= 1;
+  PRINT;
+  sz -= 1;
+  PRINT;
+  sz -= 1;
+  PRINT;
 
 #undef PRINT
 
-#define PRINT  printf("%s: %ld %s\n", me, AIR_CAST(long, pd), airSprintPtrdiff_t(str, pd))
+#define PRINT printf("%s: %ld %s\n", me, AIR_CAST(long, pd), airSprintPtrdiff_t(str, pd))
 
-  pd = 1;  PRINT;
+  pd = 1;
+  PRINT;
   do {
     ptrdiff_t od;
     od = pd;
-    pd = 2.4*pd; PRINT;
+    pd = 2.4 * pd;
+    PRINT;
     change = (od != pd);
   } while (change);
 
-
-  pd = -1;  PRINT;
+  pd = -1;
+  PRINT;
   do {
     ptrdiff_t od;
     od = pd;
-    pd = 2.4*pd; PRINT;
+    pd = 2.4 * pd;
+    PRINT;
     change = (od != pd);
   } while (change);
 
   pd -= 5;
-  pd += 1; PRINT;
-  pd += 1; PRINT;
-  pd += 1; PRINT;
-  pd += 1; PRINT;
-  pd += 1; PRINT;
-  pd += 1; PRINT;
-  pd += 1; PRINT;
-  pd += 1; PRINT;
-  pd += 1; PRINT;
+  pd += 1;
+  PRINT;
+  pd += 1;
+  PRINT;
+  pd += 1;
+  PRINT;
+  pd += 1;
+  PRINT;
+  pd += 1;
+  PRINT;
+  pd += 1;
+  PRINT;
+  pd += 1;
+  PRINT;
+  pd += 1;
+  PRINT;
+  pd += 1;
+  PRINT;
 
   exit(0);
 }

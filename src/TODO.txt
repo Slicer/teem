@@ -72,11 +72,8 @@ this is biffMsgErrNum and nrrdKeyValueSize.
 * consider changing airIndexULL and airIndexClampULL to work with
 size_t instead of unsigned long long, or at least adding versions that
 work with size_t
-* either change AIR_STRLEN_* to AIR_BUFFSIZE_* (or something similar,
-or take out the +1 from their definition and it into usage: the
-STRLEN is misleading as is.
 ******* consider terminating airEnum->strEqv with NULL (just like argv)
-instead of with empty string ""
+instead of with empty string "" (or allowing either NULL or "")
 * make airOneLine return number of bytes read; current return
   of string length is entirely redundant with return of strlen()
   and then enable the ftell() check after PNG magic read
