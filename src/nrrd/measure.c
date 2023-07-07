@@ -1227,9 +1227,9 @@ nrrdProject(Nrrd *nout, const Nrrd *cnin, unsigned int axis, int measr, int type
 
   /* allocate a scanline buffer */
   if (!(line = AIR_CALLOC(linLen * iElSz, char))) {
-    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+    char stmp[2][AIR_STRLEN_SMALL + 1];
     biffAddf(NRRD, "%s: couldn't calloc(%s,%s) scanline buffer", me,
-             airSprintSize_t(stmp1, linLen), airSprintSize_t(stmp2, iElSz));
+             airSprintSize_t(stmp[0], linLen), airSprintSize_t(stmp[1], iElSz));
     airMopError(mop);
     return 1;
   }

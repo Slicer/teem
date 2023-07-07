@@ -37,7 +37,7 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice, unsigned int axis,
     colLen;         /* number of periods */
   unsigned int ai;
   char *src, *dest, *sliceCont;
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (!(nin && nout && nslice)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -156,7 +156,7 @@ nrrdSplice(Nrrd *nout, const Nrrd *nin, const Nrrd *nslice, unsigned int axis,
 int /* Biff: 1 */
 nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
   static const char me[] = "nrrdInset", func[] = "inset";
-  char buff1[NRRD_DIM_MAX * 30], buff2[AIR_STRLEN_SMALL];
+  char buff1[NRRD_DIM_MAX * 30], buff2[AIR_STRLEN_SMALL + 1];
   unsigned int ai;
   size_t I, lineSize,   /* #bytes in one scanline to be copied */
     typeSize,           /* size of data type */
@@ -165,7 +165,7 @@ nrrdInset(Nrrd *nout, const Nrrd *nin, const Nrrd *nsub, const size_t *min) {
     szIn[NRRD_DIM_MAX], szOut[NRRD_DIM_MAX], idxIn,
     idxOut,   /* linear indices for input and output */
     numLines; /* number of scanlines in output nrrd */
-  char *dataIn, *dataOut, *subCont, stmp[3][AIR_STRLEN_SMALL];
+  char *dataIn, *dataOut, *subCont, stmp[3][AIR_STRLEN_SMALL + 1];
 
   /* errors */
   if (!(nout && nin && nsub && min)) {
@@ -281,7 +281,7 @@ int /* Biff: 1 */
 nrrdPad_va(Nrrd *nout, const Nrrd *nin, const ptrdiff_t *min, const ptrdiff_t *max,
            int boundary, ...) {
   static const char me[] = "nrrdPad_va", func[] = "pad";
-  char buff1[NRRD_DIM_MAX * 30], buff2[AIR_STRLEN_MED];
+  char buff1[NRRD_DIM_MAX * 30], buff2[AIR_STRLEN_MED + 1];
   double padValue = AIR_NAN;
   int outside; /* whether current sample in output has any coordinates
                   that are outside the input volume (this is per-sample,
@@ -294,7 +294,7 @@ nrrdPad_va(Nrrd *nout, const Nrrd *nin, const ptrdiff_t *min, const ptrdiff_t *m
     cOut[NRRD_DIM_MAX]; /* coords for line start, in output */
   va_list ap;
   char *dataIn, *dataOut;
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (!(nout && nin && min && max)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);

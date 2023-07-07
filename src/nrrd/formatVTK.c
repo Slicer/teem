@@ -275,7 +275,7 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   int i, sax;
   unsigned int sx, sy, sz;
   double xs, ys, zs, xm, ym, zm;
-  char type[AIR_STRLEN_MED], name[AIR_STRLEN_SMALL];
+  char type[AIR_STRLEN_MED + 1], name[AIR_STRLEN_SMALL + 1];
   Nrrd *nrrd;
   airArray *mop;
 

@@ -214,10 +214,10 @@ _nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio, FILE *file) {
       nrrd->data = malloc(needDataSize);
     }
     if (!nrrd->data) {
-      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+      char stmp[2][AIR_STRLEN_SMALL + 1];
       biffAddf(NRRD, "%s: couldn't allocate %s things of size %s", me,
-               airSprintSize_t(stmp1, nrrdElementNumber(nrrd)),
-               airSprintSize_t(stmp2, nrrdElementSize(nrrd)));
+               airSprintSize_t(stmp[0], nrrdElementNumber(nrrd)),
+               airSprintSize_t(stmp[1], nrrdElementSize(nrrd)));
       return 1;
     }
   }
@@ -296,7 +296,7 @@ _nrrdByteSkipSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio, long int byteSki
     backwards = -byteSkip - 1;
     /* HEY what if bsize fits in size_t but not in (signed) long? */
     if (fseek(dataFile, -AIR_CAST(long, bsize) - backwards, SEEK_END)) {
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       biffAddf(NRRD, "%s: failed to fseek(dataFile, %s, SEEK_END)", me,
                airSprintSize_t(stmp, bsize));
       return 1;
@@ -430,8 +430,8 @@ _nrrdRead(Nrrd *nrrd, FILE *file, const char *string, NrrdIoState *_nio) {
     }
   }
   if (nrrdFormatUnknown == nio->format) {
-    char linestart[AIR_STRLEN_SMALL], stmp[AIR_STRLEN_SMALL];
-    airStrcpy(linestart, AIR_STRLEN_SMALL, nio->line);
+    char linestart[AIR_STRLEN_SMALL + 1], stmp[AIR_STRLEN_SMALL + 1];
+    airStrcpy(linestart, AIR_STRLEN_SMALL + 1, nio->line);
     if (strlen(linestart) != strlen(nio->line)) {
       biffAddf(NRRD,
                "%s: couldn't parse (length %s) line starting "

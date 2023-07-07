@@ -161,7 +161,7 @@ _nrrdGzOpen(FILE *fd, const char *mode) {
   int strategy = Z_DEFAULT_STRATEGY; /* compression strategy */
   const char *p = mode;
   _NrrdGzStream *s;
-  char fmode[AIR_STRLEN_MED]; /* copy of mode, without the compression level */
+  char fmode[AIR_STRLEN_MED + 1]; /* copy of mode, without the compression level */
   char *m = fmode;
 
   if (!mode) {

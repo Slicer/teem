@@ -599,7 +599,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 static int /* Biff: 1 */
 _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdFormatNRRD_write";
-  char strbuf[AIR_STRLEN_MED], *strptr, *tmp;
+  char strbuf[AIR_STRLEN_MED + 1], *strptr, *tmp;
   int ii;
   unsigned int jj;
   airArray *mop;

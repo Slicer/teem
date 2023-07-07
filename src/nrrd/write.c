@@ -217,7 +217,7 @@ nrrdIoStateFormatGet(NrrdIoState *nio) {
 static void
 _nrrdStrcatSpaceVector(char *str, unsigned int spaceDim,
                        const double val[NRRD_SPACE_DIM_MAX]) {
-  char buff[AIR_STRLEN_MED]; /* bad Gordon */
+  char buff[AIR_STRLEN_MED + 1]; /* bad Gordon */
   unsigned int dd;
 
   if (AIR_EXISTS(val[0])) {
@@ -401,7 +401,7 @@ void
 _nrrdSprintFieldInfo(char **strP, const char *prefix, const Nrrd *nrrd, NrrdIoState *nio,
                      int field, int dropAxis0) {
   static const char me[] = "_nrrdSprintFieldInfo";
-  char buff[AIR_STRLEN_MED], *fnb, stmp[AIR_STRLEN_SMALL], *strtmp = NULL;
+  char buff[AIR_STRLEN_MED + 1], *fnb, stmp[AIR_STRLEN_SMALL + 1], *strtmp = NULL;
   double colvec[NRRD_SPACE_DIM_MAX];
   const char *fs;
   unsigned int ii, dd, uintStrlen = 11, size_tStrlen = 33, doubleStrlen = 513;
@@ -779,7 +779,7 @@ _nrrdEncodingMaybeSet(NrrdIoState *nio) {
 static int /* Biff: 1 */
 _nrrdFormatMaybeGuess(const Nrrd *nrrd, NrrdIoState *nio, const char *filename) {
   static const char me[] = "_nrrdFormatMaybeGuess";
-  char mesg[AIR_STRLEN_MED];
+  char mesg[AIR_STRLEN_MED + 1];
   int fi, guessed, available, fits;
 
   if (!nio->format) {

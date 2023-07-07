@@ -33,7 +33,7 @@
 ** that is just fine
 */
 static int
-_nrrdHestNrrdParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+_nrrdHestNrrdParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "_nrrdHestNrrdParse";
   char *nerr;
   Nrrd **nrrdP;
@@ -50,7 +50,7 @@ _nrrdHestNrrdParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
     airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
     if (nrrdLoad(*nrrdP, str, NULL)) {
       airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
-      airStrcpy(err, AIR_STRLEN_HUGE, nerr);
+      airStrcpy(err, AIR_STRLEN_HUGE + 1, nerr);
       airMopError(mop);
       return (strstr(err, "EOF") ? 2 : 1);
     }
@@ -71,7 +71,7 @@ const hestCB *const nrrdHestNrrd = &_nrrdHestNrrd;
 /* ------------------------ NrrdKernelSpec -------------------------- */
 
 static int
-_nrrdHestKernelSpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+_nrrdHestKernelSpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   NrrdKernelSpec **ksP;
   static const char me[] = "_nrrdHestKernelSpecParse";
   char *nerr;
@@ -84,7 +84,7 @@ _nrrdHestKernelSpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) 
   *ksP = nrrdKernelSpecNew();
   if (nrrdKernelParse(&((*ksP)->kernel), (*ksP)->parm, str)) {
     nerr = biffGetDone(NRRD);
-    airStrcpy(err, AIR_STRLEN_HUGE, nerr);
+    airStrcpy(err, AIR_STRLEN_HUGE + 1, nerr);
     free(nerr);
     return 1;
   }
@@ -101,7 +101,7 @@ const hestCB *const nrrdHestKernelSpec = &_nrrdHestKernelSpec;
 /* ------------------------ NrrdBoundarySpec -------------------------- */
 
 static int
-_nrrdHestBoundarySpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+_nrrdHestBoundarySpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   NrrdBoundarySpec **bsp;
   static const char me[] = "_nrrdHestBoundarySpecParse";
   char *nerr;
@@ -114,7 +114,7 @@ _nrrdHestBoundarySpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]
   *bsp = nrrdBoundarySpecNew();
   if (nrrdBoundarySpecParse(*bsp, str)) {
     nerr = biffGetDone(NRRD);
-    airStrcpy(err, AIR_STRLEN_HUGE, nerr);
+    airStrcpy(err, AIR_STRLEN_HUGE + 1, nerr);
     /* HEY: why not freeing bsp? */
     free(nerr);
     return 1;
@@ -183,7 +183,7 @@ _nrrdLooksLikeANumber(const char *str) {
 }
 
 static int
-_nrrdHestIterParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+_nrrdHestIterParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "_nrrdHestIterParse";
   char *nerr;
   Nrrd *nrrd;
@@ -228,7 +228,7 @@ _nrrdHestIterParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
     if (2 != ret) {
       /* it failed because of something besides the fopen(), so complain */
       nerr = biffGetDone(NRRD);
-      airStrcpy(err, AIR_STRLEN_HUGE, nerr);
+      airStrcpy(err, AIR_STRLEN_HUGE + 1, nerr);
       airMopError(mop);
       return 1;
     } else {
@@ -253,7 +253,7 @@ _nrrdHestIterParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
            we'll let it fail again and pass back the error messages */
         if (nrrdLoad(nrrd = nrrdNew(), str, NULL)) {
           nerr = biffGetDone(NRRD);
-          airStrcpy(err, AIR_STRLEN_HUGE, nerr);
+          airStrcpy(err, AIR_STRLEN_HUGE + 1, nerr);
           airMopError(mop);
           return 1;
         } else {

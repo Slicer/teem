@@ -81,7 +81,7 @@ _nrrdFormatPNG_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding, int useB
   } else if (3 == nrrd->dim) {
     if (!(1 == nrrd->axis[0].size || 2 == nrrd->axis[0].size || 3 == nrrd->axis[0].size
           || 4 == nrrd->axis[0].size)) {
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       biffMaybeAddf(useBiff, NRRD, "%s: 1st axis size is %s, not 1, 2, 3, or 4", me,
                     airSprintSize_t(stmp, nrrd->axis[0].size));
       return AIR_FALSE;
@@ -161,7 +161,7 @@ _nrrdFormatPNG_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   int depth, type, i, channels, numtxt, ret;
   int ntype, ndim;
   size_t nsize[3];
-  char stmp[6][AIR_STRLEN_SMALL];
+  char stmp[6][AIR_STRLEN_SMALL + 1];
 #endif /* TEEM_PNG */
 
   AIR_UNUSED(file);
@@ -474,7 +474,7 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   /* calculate depth, width, height, and row size */
   depth = nrrd->type == nrrdTypeUChar ? 8 : 16;
   switch (nrrd->dim) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
   case 2: /* g only */
     width = AIR_CAST(png_uint_32, nrrd->axis[0].size);
     height = AIR_CAST(png_uint_32, nrrd->axis[1].size);

@@ -71,7 +71,7 @@ _nrrdFormatPNM_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding, int useB
       ret = 3;
     } else {
       /* else its no good */
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       biffMaybeAddf(useBiff, NRRD, "%s: dim is 3, but 1st axis size is %s, not 1 or 3",
                     me, airSprintSize_t(stmp, nrrd->axis[0].size));
       return AIR_FALSE;

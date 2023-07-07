@@ -151,7 +151,7 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
 int /* Biff: 1 */
 nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
   static const char me[] = "nrrdAxesPermute", func[] = "permute";
-  char buff1[NRRD_DIM_MAX * 30], buff2[AIR_STRLEN_SMALL];
+  char buff1[NRRD_DIM_MAX * 30], buff2[AIR_STRLEN_SMALL + 1];
   size_t idxOut, idxInA = 0, /* indices for input and output scanlines */
     lineSize,                /* size of block of memory which can be
                                 moved contiguously from input to output,
@@ -305,7 +305,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
 int /* Biff: 1 */
 nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis, const size_t *perm) {
   static const char me[] = "nrrdShuffle", func[] = "shuffle";
-  char buff2[AIR_STRLEN_SMALL];
+  char buff2[AIR_STRLEN_SMALL + 1];
   /* Sun Feb 8 13:13:58 CST 2009: There was a memory bug here caused
      by using the same buff1[NRRD_DIM_MAX*30] declaration that had
      worked fine for nrrdAxesPermute and nrrdReshape, but does NOT
@@ -341,7 +341,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis, const size_t *perm) 
   len = AIR_UINT(nin->axis[axis].size);
   for (ai = 0; ai < len; ai++) {
     if (!(perm[ai] < len)) {
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       biffAddf(NRRD, "%s: perm[%d] (%s) outside valid range [0,%d]", me, ai,
                airSprintSize_t(stmp, perm[ai]), len - 1);
       return 1;
@@ -408,7 +408,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis, const size_t *perm) 
   if (len <= LONGEST_INTERESTING_AXIS) {
     strcpy(buff1, "");
     for (ai = 0; ai < len; ai++) {
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       sprintf(buff2, "%s%s", (ai ? "," : ""), airSprintSize_t(stmp, perm[ai]));
       strcat(buff1, buff2);
     }
@@ -576,7 +576,7 @@ nrrdJoin(Nrrd *nout, const Nrrd *const *nin, unsigned int ninNum, unsigned int a
   Nrrd *ntmpperm, /* axis-permuted version of output */
     **ninperm;
   airArray *mop;
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   /* error checking */
   if (!(nout && nin)) {
@@ -831,7 +831,7 @@ nrrdAxesSplit(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t sizeFast,
     return 1;
   }
   if (!(sizeFast * sizeSlow == nin->axis[saxi].size)) {
-    char stmp[4][AIR_STRLEN_SMALL];
+    char stmp[4][AIR_STRLEN_SMALL + 1];
     biffAddf(NRRD,
              "%s: # samples along axis %d (%s) != "
              "product of fast and slow sizes (%s * %s = %s)",
@@ -892,7 +892,7 @@ nrrdAxesDelete(Nrrd *nout, const Nrrd *nin, unsigned int daxi) {
     return 1;
   }
   if (1 != nin->axis[daxi].size) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(NRRD, "%s: size along axis %d is %s, not 1", me, daxi,
              airSprintSize_t(stmp, nin->axis[daxi].size));
     return 1;
@@ -978,10 +978,10 @@ nrrdAxesMerge(Nrrd *nout, const Nrrd *nin, unsigned int maxi) {
 int /* Biff: 1 */
 nrrdReshape_nva(Nrrd *nout, const Nrrd *nin, unsigned int dim, const size_t *size) {
   static const char me[] = "nrrdReshape_nva", func[] = "reshape";
-  char buff1[NRRD_DIM_MAX * 30], buff2[AIR_STRLEN_SMALL];
+  char buff1[NRRD_DIM_MAX * 30], buff2[AIR_STRLEN_SMALL + 1];
   size_t numOut;
   unsigned int ai;
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (!(nout && nin && size)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -1157,7 +1157,7 @@ nrrdUnblock(Nrrd *nout, const Nrrd *nin, int type) {
   unsigned int dim;
   size_t size[NRRD_DIM_MAX], outElSz;
   int map[NRRD_DIM_MAX];
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (!(nout && nin)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -1370,7 +1370,7 @@ nrrdUntile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0, unsigned int ax1,
   static const char me[] = "nrrdUntile2D";
   int E;
   unsigned int ii, mapIdx, map[NRRD_DIM_MAX];
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (!(nout && nin)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);

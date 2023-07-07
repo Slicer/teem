@@ -55,7 +55,7 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, const Nrrd *nwgh
     return 1;
   }
   if (!(bins > 0)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(NRRD, "%s: bins value (%s) invalid", me, airSprintSize_t(stmp, bins));
     return 1;
   }
@@ -83,7 +83,7 @@ nrrdHisto(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, const Nrrd *nwgh
   }
 
   if (nrrdMaybeAlloc_va(nout, type, 1, bins)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(NRRD, "%s: failed to alloc histo array (len %s)", me,
              airSprintSize_t(stmp, bins));
     return 1;
@@ -188,7 +188,7 @@ nrrdHistoCheck(const Nrrd *nhist) {
 int /* Biff: 1 */
 nrrdHistoDraw(Nrrd *nout, const Nrrd *nin, size_t sy, int showLog, double max) {
   static const char me[] = "nrrdHistoDraw", func[] = "dhisto";
-  char cmt[AIR_STRLEN_MED], stmp[AIR_STRLEN_SMALL];
+  char cmt[AIR_STRLEN_MED + 1], stmp[AIR_STRLEN_SMALL + 1];
   unsigned int ki, numticks, *linY, *logY, tick, *ticks;
   double hits, maxhits, usemaxhits;
   unsigned char *pgmData;
@@ -343,7 +343,7 @@ nrrdHistoAxis(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range, unsigned int
     return 1;
   }
   if (!(bins > 0)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(NRRD, "%s: bins value (%s) invalid", me, airSprintSize_t(stmp, bins));
     return 1;
   }
@@ -501,7 +501,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin, const NrrdRange *const *_rang
       return 1;
     }
     if (!(bins[ai] >= 1)) {
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       biffAddf(NRRD, "%s: need bins[%u] >= 1 (not %s)", me, ai,
                airSprintSize_t(stmp, bins[ai]));
       return 1;
@@ -514,7 +514,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin, const NrrdRange *const *_rang
 
   /* check nwght */
   if (nwght) {
-    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+    char stmp[2][AIR_STRLEN_SMALL + 1];
     if (nout == nwght) {
       biffAddf(NRRD, "%s: nout==nwght disallowed", me);
       return 1;
@@ -526,8 +526,8 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin, const NrrdRange *const *_rang
     }
     if (nrrdElementNumber(nin[0]) != nrrdElementNumber(nwght)) {
       biffAddf(NRRD, "%s: element # in nwght %s != nin[0] %s", me,
-               airSprintSize_t(stmp2, nrrdElementNumber(nin[0])),
-               airSprintSize_t(stmp1, nrrdElementNumber(nwght)));
+               airSprintSize_t(stmp[0], nrrdElementNumber(nin[0])),
+               airSprintSize_t(stmp[1], nrrdElementNumber(nwght)));
       return 1;
     }
     lup = nrrdDLookup[nwght->type];
@@ -558,7 +558,7 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin, const NrrdRange *const *_rang
       nout->axis[ai].label
         = AIR_CALLOC(strlen("histo(,)") + strlen(nin[ai]->content) + 11 + 1, char);
       if (nout->axis[ai].label) {
-        char stmp[AIR_STRLEN_SMALL];
+        char stmp[AIR_STRLEN_SMALL + 1];
         sprintf(nout->axis[ai].label, "histo(%s,%s)", nin[ai]->content,
                 airSprintSize_t(stmp, bins[ai]));
       } else {

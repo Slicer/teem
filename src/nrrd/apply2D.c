@@ -46,8 +46,8 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range0,
                   int rescale0, int rescale1) {
   static const char me[] = "_nrrdApply2DSetUp";
   char *mapcnt;
-  char nounStr[][AIR_STRLEN_SMALL] = {"2D lut", "2D regular map"};
-  char verbStr[][AIR_STRLEN_SMALL] = {"lut2", "rmap2"};
+  char nounStr[][AIR_STRLEN_SMALL + 1] = {"2D lut", "2D regular map"};
+  char verbStr[][AIR_STRLEN_SMALL + 1] = {"lut2", "rmap2"};
   int mapAxis, copyMapAxis0 = AIR_FALSE, axisMap[NRRD_DIM_MAX];
   unsigned int dim, entLen;
   size_t size[NRRD_DIM_MAX];
@@ -67,7 +67,7 @@ _nrrdApply2DSetUp(Nrrd *nout, const Nrrd *nin, const NrrdRange *range0,
     return 1;
   }
   if (!(2 == nin->axis[0].size)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(NRRD, "%s: input axis[0] must have size 2 (not %s)", me,
              airSprintSize_t(stmp, nin->axis[0].size));
     return 1;

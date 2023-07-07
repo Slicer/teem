@@ -26,7 +26,8 @@
 ** verifies that all the kernel methods are consistent and/or equal,
 ** and produces a text file of the kernel evaluated many times.
 ** The output can be "plotted" with unu jhisto, as with:
-** tkernel ctmr -2 0.0001 2 - | unu jhisto -b 800 300 | unu flip -a 1 | unu quantize -b 8 -o tmp.png
+** tkernel ctmr -2 0.0001 2 - | unu jhisto -b 800 300 | unu flip -a 1 | unu quantize -b 8
+*-o tmp.png
 */
 
 void
@@ -36,16 +37,14 @@ usage(char *me) {
   exit(1);
 }
 
-
-#define CLOSE(a,b, eps)      (fabs((a)-(b)) < eps)
+#define CLOSE(a, b, eps) (fabs((a) - (b)) < eps)
 
 int
 main(int argc, char *argv[]) {
-  char *me, *kernS[2], *minS, *stepS, *maxS, *outS, *err, kstr[AIR_STRLEN_LARGE];
+  char *me, *kernS[2], *minS, *stepS, *maxS, *outS, *err, kstr[AIR_STRLEN_LARGE + 1];
   const NrrdKernel *kern[2];
   NrrdKernelSpec *ksp[2];
-  double parm[NRRD_KERNEL_PARMS_NUM], min, step, max, integral,
-    *dom_d, *ran_d;
+  double parm[NRRD_KERNEL_PARMS_NUM], min, step, max, integral, *dom_d, *ran_d;
   float *dom_f, *ran_f, val, r_f, r_d;
   FILE *fout;
   int i, len;
@@ -53,7 +52,7 @@ main(int argc, char *argv[]) {
   unsigned int kii;
 
   me = argv[0];
-  if (!( 6 == argc || 7 == argc )) {
+  if (!(6 == argc || 7 == argc)) {
     usage(me);
   }
   kernS[0] = argv[1];
@@ -67,18 +66,18 @@ main(int argc, char *argv[]) {
     kernS[1] = NULL;
   }
 
-  if (3 != (sscanf(minS, "%lf", &min) +
-            sscanf(stepS, "%lf", &step) +
-            sscanf(maxS, "%lf", &max))) {
-    fprintf(stderr, "%s: couldn't parse \"%s\", \"%s\", \"%s\" as 3 doubles\n",
-            me, minS, stepS, maxS);
+  if (3
+      != (sscanf(minS, "%lf", &min) + sscanf(stepS, "%lf", &step)
+          + sscanf(maxS, "%lf", &max))) {
+    fprintf(stderr, "%s: couldn't parse \"%s\", \"%s\", \"%s\" as 3 doubles\n", me, minS,
+            stepS, maxS);
     exit(1);
   }
 
   mop = airMopNew();
-  for (kii=0; kii<=(kernS[1] ? 1 : 0); kii++) {
+  for (kii = 0; kii <= (kernS[1] ? 1 : 0); kii++) {
     if (nrrdKernelParse(&(kern[kii]), parm, kernS[kii])) {
-      airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: (kii %u) trouble:\n%s\n", me, kii, err);
       airMopError(mop);
       exit(1);
@@ -87,14 +86,13 @@ main(int argc, char *argv[]) {
     airMopAdd(mop, ksp[kii], (airMopper)nrrdKernelSpecNix, airMopAlways);
     nrrdKernelSpecSet(ksp[kii], kern[kii], parm);
     if (nrrdKernelSpecSprint(kstr, ksp[kii])) {
-      airMopAdd(mop, err=biffGetDone(NRRD), airFree, airMopAlways);
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s\n", me, err);
       airMopError(mop);
       exit(1);
     }
     fprintf(stderr, "%s: printed kernel as \"%s\"\n", me, kstr);
-    if (!( min <= -kern[kii]->support(parm)
-           && max >= kern[kii]->support(parm) )) {
+    if (!(min <= -kern[kii]->support(parm) && max >= kern[kii]->support(parm))) {
       fprintf(stderr, "%s: WARNING: support=%g => lower min (%g) or raise max (%g)\n",
               me, kern[kii]->support(parm), min, max);
     }
@@ -103,14 +101,14 @@ main(int argc, char *argv[]) {
 
   /* see how many values are in the interval */
   len = 0;
-  for (val=min; val<=max; val+=step) {
+  for (val = min; val <= max; val += step) {
     len++;
   }
   /* allocate domain and range for both float and double */
-  if (!( (dom_d = (double *)calloc(len, sizeof(double))) &&
-         (ran_d = (double *)calloc(len, sizeof(double))) &&
-         (dom_f = (float *)calloc(len, sizeof(float))) &&
-         (ran_f = (float *)calloc(len, sizeof(float))) )) {
+  if (!((dom_d = (double *)calloc(len, sizeof(double)))
+        && (ran_d = (double *)calloc(len, sizeof(double)))
+        && (dom_f = (float *)calloc(len, sizeof(float)))
+        && (ran_f = (float *)calloc(len, sizeof(float))))) {
     fprintf(stderr, "%s: PANIC: couldn't allocate buffers\n", me);
     exit(1);
   }
@@ -119,8 +117,8 @@ main(int argc, char *argv[]) {
   airMopAdd(mop, dom_f, airFree, airMopAlways);
   airMopAdd(mop, ran_f, airFree, airMopAlways);
   /* set values in both domains */
-  i=0;
-  for (val=min; val<=max; val+=step) {
+  i = 0;
+  for (val = min; val <= max; val += step) {
     /* note that the value stored in dom_d[i] is only a
        single-precision float, so that it is really equal to dom_f[i] */
     dom_d[i] = val;
@@ -133,35 +131,36 @@ main(int argc, char *argv[]) {
   /* do the single evaluations, and make sure everything agrees */
   i = 0;
   integral = 0;
-  for (val=min; val<=max; val+=step) {
+  for (val = min; val <= max; val += step) {
     /* compare two single evaluations */
     r_f = kern[0]->eval1_f(val, parm);
     r_d = kern[0]->eval1_d(val, parm);
-    if (!CLOSE(r_f,r_d, 0.00001)) {
-      fprintf(stderr, "%s: (eval1_f(%g)== %f) != (eval1_d(%g)== %f)\n",
-              me, val, r_f, val, r_d);
+    if (!CLOSE(r_f, r_d, 0.00001)) {
+      fprintf(stderr, "%s: (eval1_f(%g)== %f) != (eval1_d(%g)== %f)\n", me, val, r_f,
+              val, r_d);
     }
     /* compare single float with vector float */
-    if (!CLOSE(r_f,ran_f[i], 0.00001)) {
-      fprintf(stderr, "%s: (eval1_f(%g)== %f) != (evalN_f[%d]== %f)\n",
-              me, val, r_f, i, ran_f[i]);
+    if (!CLOSE(r_f, ran_f[i], 0.00001)) {
+      fprintf(stderr, "%s: (eval1_f(%g)== %f) != (evalN_f[%d]== %f)\n", me, val, r_f, i,
+              ran_f[i]);
     }
     /* compare single float with vector double */
     r_d = ran_d[i];
-    if (!CLOSE(r_f,r_d, 0.00001)) {
-      fprintf(stderr, "%s: (eval1_f(%g)== %f) != (evalN_d[%d]== %f)\n",
-              me, val, r_f, i, r_d);
+    if (!CLOSE(r_f, r_d, 0.00001)) {
+      fprintf(stderr, "%s: (eval1_f(%g)== %f) != (evalN_d[%d]== %f)\n", me, val, r_f, i,
+              r_d);
     }
-    integral += step*ran_d[i];
+    integral += step * ran_d[i];
     /* possibly check on given derivatives */
     if (kern[1]) {
       double numd;
-      numd = (kern[0]->eval1_d(val+step/2, parm)
-              - kern[0]->eval1_d(val-step/2, parm))/step;
-      if (!CLOSE(numd, kern[1]->eval1_d(val+step, parm), 0.005)) {
-        fprintf(stderr, "%s: |numerical f'(%g) %g - true %g| = %g > 0.005\n",
-                me, val, numd, kern[1]->eval1_d(val+step, parm),
-                fabs(numd - kern[1]->eval1_d(val+step, parm)));
+      numd = (kern[0]->eval1_d(val + step / 2, parm)
+              - kern[0]->eval1_d(val - step / 2, parm))
+           / step;
+      if (!CLOSE(numd, kern[1]->eval1_d(val + step, parm), 0.005)) {
+        fprintf(stderr, "%s: |numerical f'(%g) %g - true %g| = %g > 0.005\n", me, val,
+                numd, kern[1]->eval1_d(val + step, parm),
+                fabs(numd - kern[1]->eval1_d(val + step, parm)));
         /* exit(1); */
       }
     }
@@ -169,8 +168,8 @@ main(int argc, char *argv[]) {
   }
   if (!CLOSE(integral, kern[0]->integral(parm), 0.0005)) {
     fprintf(stderr, "%s: HEY HEY HEY HEY HEY HEY!\n", me);
-    fprintf(stderr,
-            "%s: discrete integral %f != %f\n", me, integral, kern[0]->integral(parm));
+    fprintf(stderr, "%s: discrete integral %f != %f\n", me, integral,
+            kern[0]->integral(parm));
     /* exit(1); */
   }
 
@@ -179,7 +178,7 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: couldn't open \"%s\" for writing\n", me, outS);
     exit(1);
   }
-  for (i=0; i<=len-1; i++) {
+  for (i = 0; i <= len - 1; i++) {
     fprintf(fout, "%g %g\n", dom_f[i], ran_f[i]);
   }
   fclose(fout);

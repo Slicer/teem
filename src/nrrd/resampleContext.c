@@ -290,7 +290,7 @@ nrrdResampleKernelSet(NrrdResampleContext *rsmc, unsigned int axIdx,
       rsmc->axis[axIdx].kparm[kpIdx] = kparm[kpIdx];
     }
     if (rsmc->verbose) {
-      char kstr[AIR_STRLEN_LARGE];
+      char kstr[AIR_STRLEN_LARGE + 1];
       NrrdKernelSpec ksp;
       nrrdKernelSpecSet(&ksp, rsmc->axis[axIdx].kernel, rsmc->axis[axIdx].kparm);
       nrrdKernelSpecSprint(kstr, &ksp);
@@ -1147,11 +1147,11 @@ _nrrdResampleCore(NrrdResampleContext *rsmc, Nrrd *nout, int typeOut, int doRoun
       }
     }
     if (rsmc->verbose) {
-      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+      char stmp[2][AIR_STRLEN_SMALL + 1];
       fprintf(stderr, "%s(%u): lineNum = %s\n", me, passIdx,
-              airSprintSize_t(stmp1, lineNum));
+              airSprintSize_t(stmp[0], lineNum));
       fprintf(stderr, "%s(%u): strideIn = %s, strideOut = %s\n", me, passIdx,
-              airSprintSize_t(stmp1, strideIn), airSprintSize_t(stmp2, strideOut));
+              airSprintSize_t(stmp[0], strideIn), airSprintSize_t(stmp[1], strideOut));
     }
 
     /* allocate output for this pass */

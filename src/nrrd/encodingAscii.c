@@ -37,7 +37,7 @@ static int /* Biff: 1 */
 _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
                         NrrdIoState *nio) {
   static const char me[] = "_nrrdEncodingAscii_read";
-  char numbStr[AIR_STRLEN_HUGE]; /* HEY: fix this */
+  char numbStr[AIR_STRLEN_HUGE + 1]; /* HEY: fix this */
   char *nstr;
   size_t I;
   char *data;
@@ -53,7 +53,7 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
   data = (char *)_data;
   I = 0;
   while (I < elNum) {
-    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+    char stmp[2][AIR_STRLEN_SMALL + 1];
     /* HEY: we can easily suffer here from a standard buffer overflow problem;
        this was a source of a mysterious unu crash:
          echo "0 0 0 0 1 0 0 0 0" \
@@ -63,10 +63,12 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
             -spc LPS -orig "(0,0,0)" -dirs "(1,0,0) (0,1,0) (0,0,1)"
        This particular case is resolved by changing AIR_STRLEN_HUGE
        to AIR_STRLEN_HUGE*100, but the general problem remains.  This
-       motivated adding the memory corruption test */
+       motivated adding the memory corruption test
+       HEY HEY: 2023 GLK does not know what buffer AIR_STRLEN_HUGE*100
+       could be describing; what was this?? */
     if (1 != fscanf(file, "%s", numbStr)) {
       biffAddf(NRRD, "%s: couldn't parse element %s of %s", me,
-               airSprintSize_t(stmp1, I + 1), airSprintSize_t(stmp2, elNum));
+               airSprintSize_t(stmp[0], I + 1), airSprintSize_t(stmp[1], elNum));
       return 1;
     }
     /*
@@ -89,15 +91,15 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
           != airSingleSscanf(nstr, nrrdTypePrintfStr[nrrd->type],
                              (void *)(data + I * nrrdElementSize(nrrd)))) {
         biffAddf(NRRD, "%s: couldn't parse %s %s of %s (\"%s\")", me,
-                 airEnumStr(nrrdType, nrrd->type), airSprintSize_t(stmp1, I + 1),
-                 airSprintSize_t(stmp2, elNum), nstr);
+                 airEnumStr(nrrdType, nrrd->type), airSprintSize_t(stmp[0], I + 1),
+                 airSprintSize_t(stmp[1], elNum), nstr);
         return 1;
       }
     } else {
       /* sscanf value into an int first */
       if (1 != airSingleSscanf(nstr, "%d", &tmp)) {
         biffAddf(NRRD, "%s: couldn't parse element %s of %s (\"%s\")", me,
-                 airSprintSize_t(stmp1, I + 1), airSprintSize_t(stmp2, elNum), nstr);
+                 airSprintSize_t(stmp[0], I + 1), airSprintSize_t(stmp[1], elNum), nstr);
         return 1;
       }
       nrrdIInsert[nrrd->type](data, I, tmp);
@@ -112,7 +114,7 @@ static int /* Biff: 1 */
 _nrrdEncodingAscii_write(FILE *file, const void *_data, size_t elNum, const Nrrd *nrrd,
                          NrrdIoState *nio) {
   static const char me[] = "_nrrdEncodingAscii_write";
-  char buff[AIR_STRLEN_MED];
+  char buff[AIR_STRLEN_MED + 1];
   size_t bufflen, linelen;
   const char *data;
   size_t I;

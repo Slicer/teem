@@ -3031,8 +3031,8 @@ _nrrdKernelParseTMFInt(int *val, char *str) {
 int /* Biff: 1 */
 nrrdKernelParse(const NrrdKernel **kernelP, double *parm, const char *_str) {
   static const char me[] = "nrrdKernelParse";
-  char str[AIR_STRLEN_HUGE], kstr[AIR_STRLEN_MED], *_pstr = NULL, *pstr,
-                                                   *tmfStr[4] = {NULL, NULL, NULL, NULL};
+  char str[AIR_STRLEN_HUGE + 1], kstr[AIR_STRLEN_MED + 1],
+    *_pstr = NULL, *pstr, *tmfStr[4] = {NULL, NULL, NULL, NULL};
   int tmfD, tmfC, tmfA;
   unsigned int jj, haveParm, needParm;
   airArray *mop;
@@ -3051,7 +3051,7 @@ nrrdKernelParse(const NrrdKernel **kernelP, double *parm, const char *_str) {
     parm[jj] = 0;
   }
 
-  airStrcpy(str, AIR_STRLEN_HUGE, _str);
+  airStrcpy(str, AIR_STRLEN_HUGE + 1, _str);
   strcpy(kstr, "");
   pstr = NULL;
   pstr = strchr(str, ':');
@@ -3231,10 +3231,10 @@ nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str) {
 ** which is plenty big
 */
 int /* Biff: 1 */
-nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], const NrrdKernelSpec *ksp) {
+nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE + 1], const NrrdKernelSpec *ksp) {
   static const char me[] = "nrrdKernelSpecSprint";
   unsigned int warnLen = AIR_STRLEN_LARGE / 3;
-  char stmp[AIR_STRLEN_LARGE];
+  char stmp[AIR_STRLEN_LARGE + 1];
 
   if (!(str && ksp)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -3286,7 +3286,7 @@ nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE], const NrrdKernelSpec *ksp) {
 }
 
 int /* Biff: 1 */
-nrrdKernelSprint(char str[AIR_STRLEN_LARGE], const NrrdKernel *kernel,
+nrrdKernelSprint(char str[AIR_STRLEN_LARGE + 1], const NrrdKernel *kernel,
                  const double kparm[NRRD_KERNEL_PARMS_NUM]) {
   static const char me[] = "nrrdKernelSprint";
   NrrdKernelSpec ksp;
@@ -3306,7 +3306,7 @@ nrrdKernelSprint(char str[AIR_STRLEN_LARGE], const NrrdKernel *kernel,
 int /* Biff: 1 */
 nrrdKernelCompare(const NrrdKernel *kernA, const double parmA[NRRD_KERNEL_PARMS_NUM],
                   const NrrdKernel *kernB, const double parmB[NRRD_KERNEL_PARMS_NUM],
-                  int *differ, char explain[AIR_STRLEN_LARGE]) {
+                  int *differ, char explain[AIR_STRLEN_LARGE + 1]) {
   static const char me[] = "nrrdKernelCompare";
   unsigned int pnum, pidx;
 
@@ -3354,9 +3354,9 @@ nrrdKernelCompare(const NrrdKernel *kernA, const double parmA[NRRD_KERNEL_PARMS_
 */
 int /* Biff: 1 */
 nrrdKernelSpecCompare(const NrrdKernelSpec *aa, const NrrdKernelSpec *bb, int *differ,
-                      char explain[AIR_STRLEN_LARGE]) {
+                      char explain[AIR_STRLEN_LARGE + 1]) {
   static const char me[] = "nrrdKernelSpecCompare";
-  char subexplain[AIR_STRLEN_LARGE];
+  char subexplain[AIR_STRLEN_LARGE + 1];
 
   if (!(differ)) {
     biffAddf(NRRD, "%s: got NULL differ", me);
@@ -3433,8 +3433,9 @@ nrrdKernelCheck(const NrrdKernel *kern, const double parm[NRRD_KERNEL_PARMS_NUM]
   static const char me[] = "nrrdKernelCheck";
   const NrrdKernel *parsedkern, *kernD;
   double parsedparm[NRRD_KERNEL_PARMS_NUM], supp, integral;
-  char kstr[AIR_STRLEN_LARGE], kspstr[AIR_STRLEN_LARGE], explain[AIR_STRLEN_LARGE],
-    stmp[AIR_STRLEN_SMALL], kdstr[AIR_STRLEN_LARGE];
+  char kstr[AIR_STRLEN_LARGE + 1], kspstr[AIR_STRLEN_LARGE + 1],
+    explain[AIR_STRLEN_LARGE + 1], stmp[AIR_STRLEN_SMALL + 1],
+    kdstr[AIR_STRLEN_LARGE + 1];
   int differ;
   size_t evalIdx;
   double *dom_d, *ran_d, wee;

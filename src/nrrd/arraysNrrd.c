@@ -26,7 +26,7 @@
 const int blah[] array in an object file if it hasn't been declared
 as "extern" */
 
-const char nrrdTypePrintfStr[NRRD_TYPE_MAX + 1][AIR_STRLEN_SMALL] = {
+const char nrrdTypePrintfStr[NRRD_TYPE_MAX + 1][AIR_STRLEN_SMALL + 1] = {
   "%*d",          /* nrrdTypeUnknown: what else?  the effect will be
                     "skip" for sscanf, and "minimum precision" for printf */
   "%d",           /* nrrdTypeChar: char */

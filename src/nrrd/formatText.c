@@ -184,7 +184,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
      For the specific purpose of counting numbers, we assume float type;
      but we aren't going to remember these values. */
   if (!airParseStrF(&oneFloat, nio->line, _nrrdTextSep, 1)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(NRRD, "%s: couldn't parse a single number on line %s", me,
              airSprintSize_t(stmp, line));
     UNSETTWO;
@@ -201,7 +201,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
        be parsed from a single finite line of input text */
     airArrayLenSet(flArr, AIR_UINT(sx));
     if (!flArr->data) {
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       biffAddf(NRRD, "%s: couldn't alloc space for %s values", me,
                airSprintSize_t(stmp, sx));
       UNSETTWO;
@@ -217,7 +217,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   }
   flArr = airArrayNuke(flArr); /* forget about values parsed on 1st line */
   if (1 == nrrd->dim && 1 != sx) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(NRRD, "%s: wanted 1-D nrrd, but got %s values on 1st line", me,
              airSprintSize_t(stmp, sx));
     UNSETTWO;
@@ -260,7 +260,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   while (llen) {
     airArrayLenIncr(dataArr, 1);
     if (!dataArr->data) {
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       biffAddf(NRRD, "%s: couldn't create scanline of %s values", me,
                airSprintSize_t(stmp, sx));
       UNSETTWO;
@@ -268,10 +268,10 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     }
     plen = parser(data + sy * sx * elsz, nio->line, _nrrdTextSep, sx);
     if (sx > plen) {
-      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL], stmp3[AIR_STRLEN_SMALL];
+      char stmp[3][AIR_STRLEN_SMALL + 1];
       biffAddf(NRRD, "%s: could only parse %s values (not %s) on line %s", me,
-               airSprintSize_t(stmp1, plen), airSprintSize_t(stmp2, sx),
-               airSprintSize_t(stmp3, line));
+               airSprintSize_t(stmp[0], plen), airSprintSize_t(stmp[1], sx),
+               airSprintSize_t(stmp[2], line));
       UNSETTWO;
       return 1;
     }
@@ -317,7 +317,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
 static int
 _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
-  char cmt[AIR_STRLEN_SMALL], buff[AIR_STRLEN_SMALL];
+  char cmt[AIR_STRLEN_SMALL + 1], buff[AIR_STRLEN_SMALL + 1];
   size_t I, dsz;
   int i, x, y, sx, sy;
   const void *data;
