@@ -31,7 +31,7 @@ because unsure how to handle these annoying warnings:
 ../hest/test/ex1.c:36: warning: missing initializer
 ../hest/test/ex1.c:36: warning: (near initialization for 'opt[1].sawP')
 
-Fri Jun 23 07:25:52 CDT 2023 GLK see that its because the hestOpt
+Fri Jun 23 07:25:52 CDT 2023 GLK sees that its because the hestOpt
 grew from the initial minimal set of parameters that made it like argtable,
 to a much larger set, while at the same time hestOptAdd became the standard
 way of using hest. Incomplete initializing of struct members has always
