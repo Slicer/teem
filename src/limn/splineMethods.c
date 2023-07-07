@@ -128,7 +128,7 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
   unsigned int size;
   airArray *mop;
   Nrrd *nin;
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (airEnumValCheck(limnSplineInfo, info)) {
     biffAddf(LIMN, "%s: info %d not a valid limnSplineInfo", me, info);
@@ -253,7 +253,7 @@ limnSplineNrrdCleverFix(Nrrd *nout, Nrrd *nin, int info, int type) {
   unsigned int wantSize;
   Nrrd *ntmpA, *ntmpB;
   airArray *mop;
-  char stmp[AIR_STRLEN_SMALL];
+  char stmp[AIR_STRLEN_SMALL + 1];
 
   if (!(nout && nin)) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
@@ -422,7 +422,7 @@ int /* Biff: 1 */
 limnSplineUpdate(limnSpline *spline, Nrrd *_ncpt) {
   static const char me[] = "limnSplineUpdate";
   Nrrd *ntmp;
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (!(spline && _ncpt)) {
     biffAddf(LIMN, "%s: got NULL pointer", me);

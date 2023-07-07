@@ -25,7 +25,7 @@
 
 static int
 limnPu_aboutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
-  char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_MED];
+  char buff[AIR_STRLEN_LARGE + 1], fmt[AIR_STRLEN_MED + 1];
   char par1[] = "\t\t\t\t"
                 "\"lpu\" is a complete hack.\n";
   char par2[] = "\t\t\t\t"

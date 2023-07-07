@@ -134,7 +134,7 @@ limnEnvMapCheck(Nrrd *envMap) {
   }
   if (!(3 == envMap->axis[0].size && 256 == envMap->axis[1].size
         && 256 == envMap->axis[2].size)) {
-    char stmp[3][AIR_STRLEN_SMALL];
+    char stmp[3][AIR_STRLEN_SMALL + 1];
     biffAddf(LIMN,
              "%s: dimension should be 3x256x256, not "
              "%s x %s x %s",

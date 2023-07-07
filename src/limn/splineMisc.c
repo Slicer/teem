@@ -365,7 +365,7 @@ limnSplineParse(const char *_str) {
 ** <splineType>[:B,C]
 */
 static int
-_limnHestSplineTypeSpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+_limnHestSplineTypeSpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "_limnHestSplineTypeSpecParse";
   char *err2;
   limnSplineTypeSpec **specP;
@@ -379,7 +379,7 @@ _limnHestSplineTypeSpecParse(void *ptr, const char *str, char err[AIR_STRLEN_HUG
   if (!(*specP = limnSplineTypeSpecParse(str))) {
     err2 = biffGetDone(LIMN);
     sprintf(err, "%s: couldn't parse \"%s\":\n", me, str);
-    strncat(err, err2, AIR_STRLEN_HUGE - 1 - strlen(err));
+    strncat(err, err2, AIR_STRLEN_HUGE - strlen(err));
     free(err2);
     return 1;
   }
@@ -399,7 +399,7 @@ const hestCB *const limnHestSplineTypeSpec = &_limnHestSplineTypeSpec;
 ** <nrrdFileName>:<splineInfo>:<splineType>[:B,C]
 */
 static int
-_limnHestSplineParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+_limnHestSplineParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "_limnHestSplineParse";
   char *err2;
   limnSpline **splineP;
@@ -419,7 +419,7 @@ _limnHestSplineParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   if (!(*splineP = limnSplineParse(str))) {
     err2 = biffGetDone(LIMN);
     sprintf(err, "%s: couldn't parse \"%s\":\n", me, str);
-    strncat(err, err2, AIR_STRLEN_HUGE - 1 - strlen(err));
+    strncat(err, err2, AIR_STRLEN_HUGE - strlen(err));
     free(err2);
     return 1;
   }

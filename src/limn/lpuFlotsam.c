@@ -38,7 +38,7 @@ const unrrduCmd *const limnPuCmdList[] = {LIMN_MAP(LIMN_LIST) NULL};
 void
 limnPuUsage(const char *me, hestParm *hparm) {
   unsigned int i, maxlen, len, c;
-  char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
+  char buff[AIR_STRLEN_LARGE + 1], fmt[AIR_STRLEN_LARGE + 1];
 
   maxlen = 0;
   for (i = 0; limnPuCmdList[i]; i++) {
