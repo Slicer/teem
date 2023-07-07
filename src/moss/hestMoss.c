@@ -23,7 +23,7 @@
 #include "privateMoss.h"
 
 static int
-_mossHestTransformParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE]) {
+_mossHestTransformParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "_mossHestTransformParse";
   char *str;
   double **matP, tx, ty, sx, sy, angle, mat[6], shf, sha;
@@ -94,7 +94,7 @@ const hestCB *const mossHestTransform = &_mossHestTransform;
 ** u(x,y): position in unit box [0,1]x[0,1] --> val[3] = (1,x,y)
 */
 static int
-_mossHestOriginParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+_mossHestOriginParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "_mossHestOriginParse";
   double **valP;
   airArray *mop;
