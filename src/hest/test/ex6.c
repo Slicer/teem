@@ -22,6 +22,22 @@
 #include "../hest.h"
 
 int
+parse(void *_ptr, const char *str, char *err) {
+  double *ptr;
+  int ret;
+
+  ptr = _ptr;
+  ret = sscanf(str, "%lf,%lf", ptr + 0, ptr + 1);
+  if (2 != ret) {
+    sprintf(err, "parsed %d (not 2) doubles", ret);
+    return 1;
+  }
+  return 0;
+}
+
+hestCB posCB = {2 * sizeof(double), "location", parse, NULL};
+
+int
 main(int argc, const char **argv) {
   hestOpt *opt = NULL;
   hestParm *parm;
@@ -41,37 +57,33 @@ main(int argc, const char **argv) {
   int flag;
   hestOptAdd_Flag(&opt, "f,flag", &flag, "a flag created via hestOptAdd_Flag");
   int b1;
-  hestOptAdd_1_Bool(&opt, "b1", "bool1", &b1, "false", "test of hestOptAdd_1_Bool");
+  hestOptAdd_1_Bool(&opt, "b1", "bool1", &b1, AIR_FALSE, "test of hestOptAdd_1_Bool");
   int i1;
-  hestOptAdd_1_Int(&opt, "i1", "int1", &i1, "42", "test of hestOptAdd_1_Int");
+  hestOptAdd_1_Int(&opt, "i1", "int1", &i1, 42, "test of hestOptAdd_1_Int");
   unsigned int ui1;
-  hestOptAdd_1_UInt(&opt, "ui1", "uint1", &ui1, "42", "test of hestOptAdd_1_UInt");
+  hestOptAdd_1_UInt(&opt, "ui1", "uint1", &ui1, 42, "test of hestOptAdd_1_UInt");
   long int li1;
-  hestOptAdd_1_LongInt(&opt, "li1", "lint1", &li1, "42", "test of hestOptAdd_1_LongInt");
+  hestOptAdd_1_LongInt(&opt, "li1", "lint1", &li1, 42, "test of hestOptAdd_1_LongInt");
   unsigned long int uli1;
-  hestOptAdd_1_ULongInt(&opt, "uli1", "ulint1", &uli1, "42",
+  hestOptAdd_1_ULongInt(&opt, "uli1", "ulint1", &uli1, 42,
                         "test of hestOptAdd_1_ULongInt");
   size_t sz1;
-  hestOptAdd_1_Size_t(&opt, "sz1", "size1", &sz1, "42", "test of hestOptAdd_1_Size_t");
+  hestOptAdd_1_Size_t(&opt, "sz1", "size1", &sz1, 42, "test of hestOptAdd_1_Size_t");
   float fl1;
-  hestOptAdd_1_Float(&opt, "fl1", "float1", &fl1, "4.2", "test of hestOptAdd_1_Float");
+  hestOptAdd_1_Float(&opt, "fl1", "float1", &fl1, 4.2f, "test of hestOptAdd_1_Float");
   double db1;
-  hestOptAdd_1_Double(&opt, "db1", "double1", &db1, "4.2",
-                      "test of hestOptAdd_1_Double");
+  hestOptAdd_1_Double(&opt, "db1", "double1", &db1, 4.2, "test of hestOptAdd_1_Double");
   char c1;
-  hestOptAdd_1_Char(&opt, "c1", "char1", &c1, "x", "test of hestOptAdd_1_Char");
+  hestOptAdd_1_Char(&opt, "c1", "char1", &c1, 'x', "test of hestOptAdd_1_Char");
   char *s1;
-  hestOptAdd_1_String(&opt, "s1", "string1", &s1, "bingo",
+  hestOptAdd_1_String(&opt, "s1", "string1", &s1, "bingo bob",
                       "test of hestOptAdd_1_String");
   int e1;
-  hestOptAdd_1_Enum(&opt, "e1", "enum1", &e1, "little", "test of hestOptAdd_1_Enum",
-                    airEndian);
-  /*
-HEST_EXPORT unsigned int hestOptAdd_1_Other(hestOpt * *optP, const char *flag,
-                       const char *name, void *valueP,
-                       const char *dflt, const char *info,
-                       const hestCB *CB);
-*/
+  hestOptAdd_1_Enum(&opt, "e1", "enum1", &e1, airEndianLittle,
+                    "test of hestOptAdd_1_Enum", airEndian);
+  double p1[2];
+  hestOptAdd_1_Other(&opt, "p1", "pos", &p1, "1.5,5.25", "test of hestOptAdd_1_Other",
+                     &posCB);
 
   if (1 == argc) {
     /* didn't get anything at all on command line */
@@ -131,6 +143,7 @@ HEST_EXPORT unsigned int hestOptAdd_1_Other(hestOpt * *optP, const char *flag,
   printf("c1 = %c\n", c1);
   printf("s1 = %s\n", s1);
   printf("e1 = %d\n", e1);
+  printf("p1 = %g,%g\n", p1[0], p1[1]);
 
   /* free the memory allocated by parsing ... */
   hestParseFree(opt);

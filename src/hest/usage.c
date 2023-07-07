@@ -27,7 +27,7 @@
 */
 static void
 _hestSetBuff(char *B, const hestOpt *O, const hestParm *P, int showshort, int showlong) {
-  char copy[AIR_STRLEN_HUGE], *sep;
+  char copy[AIR_STRLEN_HUGE + 1], *sep;
   int max;
   unsigned int len;
 
@@ -230,7 +230,7 @@ hestInfo(FILE *file, const char *argv0, const char *info, const hestParm *_parm)
 void
 hestUsage(FILE *f, hestOpt *opt, const char *argv0, const hestParm *_parm) {
   int i, numOpts;
-  char buff[2 * AIR_STRLEN_HUGE], tmpS[AIR_STRLEN_HUGE];
+  char buff[2 * AIR_STRLEN_HUGE + 1], tmpS[AIR_STRLEN_HUGE + 1];
   hestParm *parm;
 
   parm = _parm ? NULL : hestParmNew();
@@ -271,7 +271,7 @@ void
 hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
   int i, j, maxlen, numOpts;
   unsigned int len;
-  char buff[2 * AIR_STRLEN_HUGE], tmpS[AIR_STRLEN_HUGE];
+  char buff[2 * AIR_STRLEN_HUGE + 1], tmpS[AIR_STRLEN_HUGE + 1];
   hestParm *parm;
 
   parm = _parm ? NULL : hestParmNew();
