@@ -27,7 +27,7 @@
 ** needed for shadow rays
 */
 
-/* forward declaration with incomplete array type */
+/* forward declaration */
 static const _echoRayIntx_t _echoRayIntx[ECHO_TYPE_NUM];
 
 /*
