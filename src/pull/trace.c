@@ -1034,12 +1034,12 @@ pullTraceMultiWrite(FILE *file, const pullTraceMulti *mtrc) {
 static int /* Biff: 1 */
 traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
   static const char me[] = "traceread";
-  char line[AIR_STRLEN_MED], name[AIR_STRLEN_MED];
+  char line[AIR_STRLEN_MED + 1], name[AIR_STRLEN_MED + 1];
   unsigned int ti, lineLen;
   int stops[3], hackhack, vertHN, strnHN, stabHN; /* HN == have nrrd */
 
   sprintf(name, "separator");
-  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
   if (!lineLen) {
     biffAddf(PULL, "%s: didn't get %s line", me, name);
     return 1;
@@ -1053,7 +1053,7 @@ traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
     return 1;
   }
   sprintf(name, "seed pos");
-  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
   if (!lineLen) {
     biffAddf(PULL, "%s: didn't get %s line", me, name);
     return 1;
@@ -1065,7 +1065,7 @@ traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
     return 1;
   }
   sprintf(name, "have nrrds");
-  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
   if (!lineLen) {
     biffAddf(PULL, "%s: didn't get %s line", me, name);
     return 1;
@@ -1082,7 +1082,7 @@ traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
     }                                                                                   \
     fgetc(file);                                                                        \
   } else {                                                                              \
-    airOneLine(file, line, AIR_STRLEN_MED);                                             \
+    airOneLine(file, line, AIR_STRLEN_MED + 1);                                         \
   }
   hackhack = nrrdStateVerboseIO; /* should be fixed in Teem v2 */
   nrrdStateVerboseIO = 0;
@@ -1092,7 +1092,7 @@ traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
   nrrdStateVerboseIO = hackhack;
 
   sprintf(name, "seed idx");
-  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
   if (!lineLen) {
     biffAddf(PULL, "%s: didn't get %s line", me, name);
     return 1;
@@ -1102,7 +1102,7 @@ traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
     return 1;
   }
   sprintf(name, "stops");
-  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
   if (!lineLen) {
     biffAddf(PULL, "%s: didn't get %s line", me, name);
     return 1;
@@ -1118,7 +1118,7 @@ traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
 int /* Biff: 1 */
 pullTraceMultiRead(pullTraceMulti *mtrc, FILE *file) {
   static const char me[] = "pullTraceMultiRead";
-  char line[AIR_STRLEN_MED], name[AIR_STRLEN_MED];
+  char line[AIR_STRLEN_MED + 1], name[AIR_STRLEN_MED + 1];
   unsigned int lineLen, ti, tnum;
   pullTrace *trc;
 
@@ -1128,7 +1128,7 @@ pullTraceMultiRead(pullTraceMulti *mtrc, FILE *file) {
   }
   airArrayLenSet(mtrc->traceArr, 0);
   sprintf(name, "magic");
-  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
   if (!lineLen) {
     biffAddf(PULL, "%s: didn't get %s line", me, name);
     return 1;
@@ -1140,7 +1140,7 @@ pullTraceMultiRead(pullTraceMulti *mtrc, FILE *file) {
   }
 
   sprintf(name, "# of traces");
-  lineLen = airOneLine(file, line, AIR_STRLEN_MED);
+  lineLen = airOneLine(file, line, AIR_STRLEN_MED + 1);
   if (!lineLen) {
     biffAddf(PULL, "%s: didn't get %s line", me, name);
     return 1;
