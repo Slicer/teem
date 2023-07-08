@@ -49,7 +49,7 @@ enum {
               this deficiency was discovered by running this command on this source file.
             */
   stateCCEsc, /* 7: in '' character constant and saw \ */
-  stateElse,  /* 8: everything else */
+  stateElse   /* 8: everything else */
 };
 
 /* nfdsChar: next char for "No Float or Double in String" mode
