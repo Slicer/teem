@@ -1481,7 +1481,10 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
 
   /* currently, any left-over arguments indicate error */
   if (argc_used) {
-    char stops[3] = {'-', PARM->varParamStopFlag, '\0'};
+    /* char stops[3] = {'-', PARM->varParamStopFlag, '\0'}; triggers warning:
+    initializer element is not computable at load time */
+    char stops[3] = "-X";
+    stops[1] = PARM->varParamStopFlag;
     if (strcmp(stops, argv[0])) {
       sprintf(err, "%sunexpected arg%s: \"%s\"", ME,
               ('-' == argv[0][0] ? " (or unrecognized flag)" : ""), argv[0]);
