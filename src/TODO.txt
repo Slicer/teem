@@ -103,9 +103,6 @@ command line, and its an error if no data is found.  Not having
 optional parameters is why things like "unu make" learn centerings via
 strings: the string can be given or not, and if its given, then the
 information is used.
-******* There's no way to access the string that was parsed to get the
-information for an option (could be from default, or command-line,
-or response file)
 ******* (from tendGlyph.c): there needs to be an alternative API for hest
 that is not var-args based (as is hestOptAdd). You can't tell when
 you've passed multiple strings for the detailed usage information by
