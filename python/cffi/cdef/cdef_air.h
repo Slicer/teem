@@ -59,25 +59,16 @@ typedef signed long long airLLong;
  * but in many contexts the implementation complexity of handling them reliably is
  * distracts from more urgent implementation goals.  In the mean time, these can be used
  * safely as long as the lengths are used consistently.
- *
- * The possibly unfortunate convention that has become established in Teem is code using
- * these tends to NOT add the +1 to explicitly indicate the space for 0-termination, and
- * instead assumes it is part of the numbers below, even though this is at the cost of
- * confusion about how the maximal strlen() will be less than each of
- * these numbers. This will be addressed in Teem 2.0.
- *
- * (NOTE: The +1 has been done manually here to assist the modest C parser used in
- * (Python module) cffi's FFI.cdef())
  */
-#define AIR_STRLEN_SMALL 129
+#define AIR_STRLEN_SMALL 128
 /* SMALL has to be big enough to hold:
    - printed value of size_t and
    - ptrdiff_t, line of text that
    - should contain file format "magic"
 */
-#define AIR_STRLEN_MED   257
-#define AIR_STRLEN_LARGE 513
-#define AIR_STRLEN_HUGE  1025
+#define AIR_STRLEN_MED   256
+#define AIR_STRLEN_LARGE 512
+#define AIR_STRLEN_HUGE  1024
 /* HUGE has to be big enough to hold one line of biff error message */
 /*
 ******** airPtrPtrUnion
@@ -150,7 +141,7 @@ extern int airEnumVal(const airEnum *enm, const char *str);
 extern char *airEnumFmtDesc(const airEnum *enm, int val, int canon, const char *fmt);
 extern void airEnumPrint(FILE *file, const airEnum *enm);
 /* ---- BEGIN non-NrrdIO */
-extern int airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm);
+extern int airEnumCheck(char err[AIR_STRLEN_LARGE + 1], const airEnum *enm);
 /* ---- END non-NrrdIO */
 /*
 ******** airEndian enum
@@ -486,18 +477,18 @@ extern int airSanity(void);
 extern const char *const airTeemVersion;
 extern const int airTeemReleaseDone;
 extern const char *const airTeemReleaseDate;
-extern void airTeemVersionSprint(char buff[AIR_STRLEN_LARGE]);
+extern void airTeemVersionSprint(char buff[AIR_STRLEN_LARGE + 1]);
 extern void *airNull(void);
 extern void *airSetNull(void **ptrP);
 extern void *airFree(void *ptr);
 extern FILE *airFopen(const char *name, FILE *std, const char *mode);
 extern FILE *airFclose(FILE *file);
 extern int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
-extern char *airSprintSize_t(char str[AIR_STRLEN_SMALL], size_t val);
+extern char *airSprintSize_t(char str[AIR_STRLEN_SMALL + 1], size_t val);
 /* ---- BEGIN non-NrrdIO */
 extern char *airSprintVecSize_t(char *str, const size_t *vec, unsigned int len);
-extern char *airPrettySprintSize_t(char str[AIR_STRLEN_SMALL], size_t v);
-extern char *airSprintPtrdiff_t(char str[AIR_STRLEN_SMALL], ptrdiff_t v);
+extern char *airPrettySprintSize_t(char str[AIR_STRLEN_SMALL + 1], size_t v);
+extern char *airSprintPtrdiff_t(char str[AIR_STRLEN_SMALL + 1], ptrdiff_t v);
 extern const int airPresent;
 extern FILE *airStderr(void);
 extern FILE *airStdout(void);
@@ -510,7 +501,7 @@ extern airULLong airIndexULL(double min, double val, double max, airULLong N);
 extern airULLong airIndexClampULL(double min, double val, double max, airULLong N);
 extern char *airDoneStr(double start, double here, double end, char *str);
 extern double airTime(void);
-extern const char airTypeStr[AIR_TYPE_MAX + 1][AIR_STRLEN_SMALL];
+extern const char airTypeStr[AIR_TYPE_MAX + 1][AIR_STRLEN_SMALL + 1];
 extern const size_t airTypeSize[AIR_TYPE_MAX + 1];
 extern void airEqvAdd(airArray *eqvArr, unsigned int j, unsigned int k);
 extern unsigned int airEqvMap(airArray *eqvArr, unsigned int *map, unsigned int len);

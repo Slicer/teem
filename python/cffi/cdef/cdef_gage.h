@@ -646,7 +646,7 @@ typedef struct gageContext_t {
      something is actually sprintf'ed into errStr is controlled by
      parm.generateErrStr.
      NOTE: these variables used to be globals "gageErrStr" and "gageErrNum" */
-  char errStr[AIR_STRLEN_LARGE];
+  char errStr[AIR_STRLEN_LARGE + 1];
   int errNum; /* takes values from the gageErr enum */
   /* what fraction of the values in the kernel support had to be invented
      (by bleeding out the margin) in order to satisfy a probe that was near
@@ -714,25 +714,25 @@ typedef struct gagePerVolume_t {
 ** and set everything in a single shot).
 */
 typedef struct gageKind_t {
-  int dynamicAlloc;            /* non-zero if this kind struct was
-                                  dynamically allocated */
-  char name[AIR_STRLEN_SMALL]; /* short identifying string for kind */
-  const airEnum *enm;          /* such as gageScl.  NB: the "unknown"
-                                  value in the enum *must* be 0. */
-  unsigned int baseDim,        /* dimension that x,y,z axes start on
-                                  (e.g. 0 for scalars, 1 for vectors) */
-    valLen;                    /* number of scalars per data point,
-                                  -or- 0 to represent "this value will
-                                  be learned later at runtime" */
-  int itemMax;                 /* such as GAGE_SCL_ITEM_MAX */
-  gageItemEntry *table;        /* array of gageItemEntry's, indexed
-                                  by the item value,
-                                  -or- NULL if the table cannot be
-                                  statically allocated (not because it
-                                  can come in different sizes, but
-                                  because it needs to be a modified
-                                  version of the compile-time table */
-  void (*iv3Print)(FILE *,     /* such as _gageSclIv3Print() */
+  int dynamicAlloc;                /* non-zero if this kind struct was
+                                      dynamically allocated */
+  char name[AIR_STRLEN_SMALL + 1]; /* short identifying string for kind */
+  const airEnum *enm;              /* such as gageScl.  NB: the "unknown"
+                                      value in the enum *must* be 0. */
+  unsigned int baseDim,            /* dimension that x,y,z axes start on
+                                      (e.g. 0 for scalars, 1 for vectors) */
+    valLen;                        /* number of scalars per data point,
+                                      -or- 0 to represent "this value will
+                                      be learned later at runtime" */
+  int itemMax;                     /* such as GAGE_SCL_ITEM_MAX */
+  gageItemEntry *table;            /* array of gageItemEntry's, indexed
+                                      by the item value,
+                                      -or- NULL if the table cannot be
+                                      statically allocated (not because it
+                                      can come in different sizes, but
+                                      because it needs to be a modified
+                                      version of the compile-time table */
+  void (*iv3Print)(FILE *,         /* such as _gageSclIv3Print() */
                    gageContext *,
                    gagePerVolume *),
     (*filter)(gageContext *, /* such as _gageSclFilter() */
@@ -1053,7 +1053,7 @@ extern int gageStackBlurParmCompare(const gageStackBlurParm *sbpA,
                                          const gageStackBlurParm *sbpB,
                                          const char *nameB,
                                          int *differ,
-                                         char explain[AIR_STRLEN_LARGE]);
+                                         char explain[AIR_STRLEN_LARGE + 1]);
 extern int gageStackBlurParmScaleSet(gageStackBlurParm *sbp, unsigned int num,
                                           double sigmaMin, double sigmaMax,
                                           int uniformSigma, int optimalL2L2);
@@ -1080,7 +1080,7 @@ extern int gageStackBlurParmParse(gageStackBlurParm *sbp,
                                        char **extraParmsP,
                                        const char *str);
 extern const hestCB *const gageHestStackBlurParm;
-extern int gageStackBlurParmSprint(char str[AIR_STRLEN_LARGE],
+extern int gageStackBlurParmSprint(char str[AIR_STRLEN_LARGE + 1],
                                         const gageStackBlurParm *sbp,
                                         int extraFlag[256],
                                         char *extraParm);
