@@ -33,7 +33,7 @@
 ** inc[1], inc[2] ... : incParm[0], incParm[1] ...
 */
 static int
-baneGkmsParseIncStrategy(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+baneGkmsParseIncStrategy(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "baneGkmsParseIncStrategy";
   double *inc, *incParm;
   int i, bins;
@@ -90,9 +90,9 @@ const hestCB *const baneGkmsHestIncStrategy = &_baneGkmsHestIncStrategy;
 /* ----------------------------------------------------------- */
 
 static int
-baneGkmsParseBEF(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+baneGkmsParseBEF(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "baneGkmsParseBEF";
-  char mesg[AIR_STRLEN_MED], *nerr;
+  char mesg[AIR_STRLEN_MED + 1], *nerr;
   float cent, width, shape, alpha, off, *bef;
   Nrrd **nrrdP;
   airArray *mop;
@@ -109,7 +109,7 @@ baneGkmsParseBEF(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
     if (nrrdMaybeAlloc_va(*nrrdP, nrrdTypeFloat, 2, AIR_CAST(size_t, 2),
                           AIR_CAST(size_t, 6))) {
       airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
-      airStrcpy(err, AIR_STRLEN_HUGE, nerr);
+      airStrcpy(err, AIR_STRLEN_HUGE + 1, nerr);
       airMopError(mop);
       return 1;
     }
@@ -142,7 +142,7 @@ baneGkmsParseBEF(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
               "as a nrrd filename\n",
               me, str);
       strcpy(err, mesg);
-      strncat(err, nerr, AIR_STRLEN_HUGE - 1 - strlen(mesg) - 1);
+      strncat(err, nerr, AIR_STRLEN_HUGE - strlen(mesg) - 1);
       airMopError(mop);
       return 1;
     }
@@ -168,7 +168,7 @@ const hestCB *const baneGkmsHestBEF = &_baneGkmsHestBEF;
 ** gthr[1] = the scaling, or the absolute
 */
 static int
-baneGkmsParseGthresh(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+baneGkmsParseGthresh(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "baneGkmsParseGthresh";
   float *gthr;
 
@@ -219,7 +219,7 @@ const unrrduCmd *const baneGkmsCmdList[] = {BANE_GKMS_MAP(BANE_GKMS_LIST) NULL};
 */
 void
 baneGkmsUsage(const char *me, hestParm *hparm) {
-  char buff[AIR_STRLEN_LARGE], fmt[AIR_STRLEN_LARGE];
+  char buff[AIR_STRLEN_LARGE + 1], fmt[AIR_STRLEN_LARGE + 1];
   unsigned int ci, si, len, maxlen;
 
   maxlen = 0;
