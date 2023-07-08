@@ -305,7 +305,7 @@ pushIterate(pushContext *pctx) {
 int /* Biff: 1 */
 pushRun(pushContext *pctx) {
   static const char me[] = "pushRun";
-  char poutS[AIR_STRLEN_MED], toutS[AIR_STRLEN_MED];
+  char poutS[AIR_STRLEN_MED + 1], toutS[AIR_STRLEN_MED + 1];
   Nrrd *npos, *nten;
   double time0, time1, enrLast, enrNew = AIR_NAN, enrImprov = AIR_NAN,
                                 enrImprovAvg = AIR_NAN;
