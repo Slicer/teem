@@ -233,7 +233,7 @@ tenBMatrixCheck(const Nrrd *nbmat, int type, unsigned int minnum) {
     return 1;
   }
   if (!(minnum <= nbmat->axis[1].size)) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(TEN, "%s: have only %s B-matrices, need at least %d", me,
              airSprintSize_t(stmp, nbmat->axis[1].size), minnum);
     return 1;
