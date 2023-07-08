@@ -180,12 +180,13 @@ airStrtrans(char *s, char from, char to) {
 **
 ** Like strncpy but logic is different (and perhaps more useful), being:
 ** "dst is allocated for dstSize chars. Copy as much of src as can
-** "fit in dst, and always 0-terminate the resulting dst.",
+** fit in dst, while always 0-terminating the resulting dst.",
 ** instead of strncpy's "Copy at most n characters, blah blah blah,
 ** and you still have to 0-terminate the rest yourself".
 **
 ** E.g. with declaration buff[AIR_STRLEN_SMALL+1], you call
-** airStrcpy(buff, AIR_STRLEN_SMALL+1, src), and know that then
+** airStrcpy(buff, AIR_STRLEN_SMALL+1, src), and know then that
+** strlen(buff) will not run off the end of the buffer, and that
 ** strlen(buff) <= AIR_STRLEN_SMALL.
 **
 ** Returns NULL if there was a problem (NULL dst or dstSize zero),
