@@ -1297,25 +1297,24 @@ _pullPointSetup(pullContext *pctx) {
   /* Final check: do we have any points? */
   pn = pullPointNumber(pctx);
   if (!pn) {
-    char stmp[2][AIR_STRLEN_MED + 1];
+    char stmp0[AIR_STRLEN_MED + 1], stmp1[AIR_STRLEN_SMALL + 1];
     int guess = AIR_FALSE;
-    sprintf(stmp[0], "%s: seeded 0 points", me);
+    sprintf(stmp0, "%s: seeded 0 points", me);
     if (pctx->ispec[pullInfoSeedThresh]) {
       guess = AIR_TRUE;
-      sprintf(stmp[1], " (? bad seedthresh %g ?)",
-              pctx->ispec[pullInfoSeedThresh]->zero);
-      strcat(stmp[0], stmp[1]);
+      sprintf(stmp1, " (? bad seedthresh %g ?)", pctx->ispec[pullInfoSeedThresh]->zero);
+      strcat(stmp0, stmp1);
     }
     if (pctx->flag.nixAtVolumeEdgeSpace) {
       guess = AIR_TRUE;
-      sprintf(stmp[1], " (? flag.nixAtVolumeEdgeSpace true ?)");
-      strcat(stmp[0], stmp[1]);
+      sprintf(stmp1, " (? flag.nixAtVolumeEdgeSpace true ?)");
+      strcat(stmp0, stmp1);
     }
     if (!guess) {
-      sprintf(stmp[1], " (no guess as to why)");
-      strcat(stmp[0], stmp[1]);
+      sprintf(stmp1, " (no guess as to why)");
+      strcat(stmp0, stmp1);
     }
-    biffAddf(PULL, "%s", stmp[0]);
+    biffAddf(PULL, "%s", stmp0);
     airMopError(mop);
     return 1;
   }
