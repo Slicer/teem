@@ -92,7 +92,7 @@ enum {
 ** things used to operate on ranges
 */
 typedef struct {
-  char name[AIR_STRLEN_SMALL];
+  char name[AIR_STRLEN_SMALL + 1];
   int type;
   double center; /* for baneRangeAnywhere: nominal center of value range
                     NOTE: there is currently no API for setting this,
@@ -146,7 +146,7 @@ enum {
 ** from histNew should be eventually passed to nrrdNuke.
 */
 typedef struct baneInc_t {
-  char name[AIR_STRLEN_SMALL];
+  char name[AIR_STRLEN_SMALL + 1];
   int type;
   double S, SS;
   int num; /* used for calculating standard dev */
@@ -182,7 +182,7 @@ enum {
 ** things used to calculate and describe clipping
 */
 typedef struct {
-  char name[AIR_STRLEN_SMALL];
+  char name[AIR_STRLEN_SMALL + 1];
   int type;
   double parm[BANE_PARM_NUM];
   int (*answer)(int *countP, Nrrd *hvol, double *clipParm);
@@ -237,7 +237,7 @@ enum {
 ** things used to calculate and describe measurements
 */
 typedef struct baneMeasr_t {
-  char name[AIR_STRLEN_SMALL];
+  char name[AIR_STRLEN_SMALL + 1];
   int type;
   double parm[BANE_PARM_NUM];
   gageQuery query; /* the gageScl query needed for this measure,

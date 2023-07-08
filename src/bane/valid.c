@@ -132,7 +132,7 @@ baneInfoCheck(Nrrd *info, int wantDim) {
     return 1;
   }
   if (2 != info->axis[0].size) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(BANE, "%s: 1st axis needs size 2 (not %s)", me,
              airSprintSize_t(stmp, info->axis[0].size));
     return 1;
@@ -186,7 +186,7 @@ baneBcptsCheck(Nrrd *Bcpts) {
     return 1;
   }
   if (2 != Bcpts->axis[0].size) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     biffAddf(BANE, "%s: axis#0 needs size 2 (not %s)", me,
              airSprintSize_t(stmp, Bcpts->axis[0].size));
     return 1;

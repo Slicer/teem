@@ -45,7 +45,7 @@ baneTRexRead(char *fname) {
     return NULL;
   }
   if (TREX_LUTLEN != baneNpos->axis[0].size) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     fprintf(stderr, "%s: !!! need a length %d p(x) (not %s)\n", me, TREX_LUTLEN,
             airSprintSize_t(stmp, baneNpos->axis[0].size));
     return NULL;
