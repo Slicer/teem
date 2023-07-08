@@ -48,7 +48,7 @@ enum {
 typedef struct {
   size_t size;      /* sizeof() one thing */
   const char *type; /* used by hestGlossary() to describe the type */
-  int (*parse)(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]);
+  int (*parse)(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]);
   /* how to parse one thing from a string.  This will be called multiple times for
      multiple parameter options.  A non-zero return value is considered an error.  Error
      message goes in the err string */
@@ -61,9 +61,13 @@ typedef struct {
 /*
 ******** hestOpt struct
 **
-** information which specifies one command-line option
+** information which specifies one command-line option,
+** and describes it how it was parsed
 */
 typedef struct {
+  /* --------------------- "input" fields
+  set by user, possibly directly, more likely indirectly via one of the various
+  functions (like hestOptAdd or hestOptAdd_nva or hestOptSingleSet ... ) */
   char *flag,         /* how the option is identified on the cmd line */
     *name;            /* simple description of option's parameter(s) */
   int type;           /* type of option (from airType enum) */
@@ -75,21 +79,25 @@ typedef struct {
     *info;            /* description to be printed with "glossary" info */
   unsigned int *sawP; /* used ONLY for multiple variable parameter options
                          (min < max >= 2): storage of # of parsed values */
-  airEnum *enm;       /* used ONLY for airTypeEnum options */
-  hestCB *CB;         /* used ONLY for airTypeOther options */
-  /* --------------------- end of user-defined fields; the following fields must be set
-     by hestParse() as part of its operation. This does prevent adding const to much
-     usage of the hestOpt */
-  int kind, /* what kind of option is this, based on min and max,set by hestParse()
-               (actually _hestPanic()), later used by hestFree():
+  const airEnum *enm; /* used ONLY for airTypeEnum options */
+  const hestCB *CB;   /* used ONLY for airTypeOther options */
+  /* --------------------- end of user-defined fields
+  These are set by hest functions to remember state for the sake of other hest functions.
+  It is probably a drawback of the simple design of hest that this internal state ends
+  up in the same struct as the input parameters above, because it blocks some
+  const-correctness opportunities that would otherwise make sense. */
+  int kind, /* What kind of option is this, based on min and max:
+               0:                       (invalid; unset)
                1: min == max == 0       stand-alone flag; no parameters
                2: min == max == 1       single fixed parameter
                3: min == max >= 2       multiple fixed parameters
                4: min == 0; max == 1;   single variable parameter
-               5: min < max; max >= 2   multiple variable parameters */
-    alloc;  /* information about whether flag is non-NULL, and what parameters were used,
-               that determines whether or  not memory was allocated by hestParse(); info
-               later used by hestParseFree():
+               5: min < max; max >= 2   multiple variable parameters
+              This is set by hest functions as part of building up an array of hestOpt,
+              and informs the later action of hestOptFree */
+    alloc;  /* Information (set by hestParse) about whether flag is non-NULL, and what
+               parameters were used, that determines whether or not memory was allocated
+               by hestParse(). Informs later action of hestParseFree():
                0: no free()ing needed
                1: free(*valueP), either because it is a single string, or because was a
                   dynamically allocated array of non-strings
@@ -97,16 +105,38 @@ typedef struct {
                   array of strings
                3: free((*valueP)[i]) and free(*valueP), because it is a dynamically
                   allocated array of strings */
-  /* --------------------- Output */
+  /* Since hest's beginning, the basic container for a set of options was an array of
+  hestOpt structs (not pointers to them, which rules out argv-style NULL-termination of
+  the array), also unfortunately with no other top-level container (which is why
+  helpWanted below is set only in the first hestOpt of the array). hestOptAdd has
+  historically reallocated the entire array, incrementing the length only by one with
+  each call, while maintaining a single terminating hestOpt, wherein some fields were set
+  to special values to indicate termination. With the 2023 code revisit, that was deemed
+  even uglier than this hack: the first hestOpt now stores here in arrAlloc the allocated
+  length of the hestOpt array, and in arrLen the number of hestOpts actually used and
+  set. This facilitates implementing something much like an airArray, but without the
+  burden of extra calls for the user (like airArrayLenIncr), nor new kinds of containers
+  for hest and its users to manage: just same same array of hestOpt structs */
+  unsigned int arrAlloc, arrLen;
+  /* --------------------- Output
+  Things set/allocated by hestParse. */
   int source;     /* from the hestSource* enum; from whence was this information learned,
-                     else hestSourceUnknown if not */
+                  else hestSourceUnknown if not */
+  char *parmStr;  /* if non-NULL: a string (freed by hestParseFree) from which hestParse
+                  ultimately parsed whatever values were set in *valueP. All the
+                  parameters associated with this option are joined (with " " separation)
+                  into this single string. hestParse has always formed this string
+                  internally as part of its operation, but only belatedly (in 2023) is a
+                  copy of that string being made available here to the caller. Note that
+                  in the case of single variable parameter options used without a
+                  parameter, the value stored will be "inverted" from the string here. */
   int helpWanted; /* hestParse() saw something (like "--help") in one of the given
-                     arguments that looks like a call for help (and respectDashDashHelp
-                     is set in the hestParm), so it recorded that here. There is
-                     unfortunately no other top-level output container for info generated
-                     by hestParse(), so this field is going to be set only in the *first*
-                     hestOpt passed to hestParse(), even though that hestOpt has no
-                     particular relation to where hestParse() saw the call for help. */
+                  arguments that looks like a call for help (and respectDashDashHelp is
+                  set in the hestParm), so it recorded that here. There is unfortunately
+                  no other top-level output container for info generated by hestParse(),
+                  so this field is going to be set only in the *first* hestOpt passed to
+                  hestParse(), even though that hestOpt has no particular relation to
+                  where hestParse() saw the call for help. */
 } hestOpt;
 /*
 ******** hestParm struct
@@ -152,10 +182,12 @@ typedef struct {
   char respFileFlag,        /* the character at the beginning of an argument
                                indicating that this is a response file name */
     respFileComment,        /* comment character for the response files */
-    varParamStopFlag, /* prefixed by '-' to form the flag which signals the end of a
-                         variable parameter option (single or multiple), flagged or
-                         unflagged. Originally imagined as most useful for flagged
-                         options, but also works in unflagged. */
+    varParamStopFlag, /* prefixed by '-' to form the flag (usually "--") that signals the
+                         end of a *flagged* variable parameter option (single or
+                         multiple). This is important to use if there is a flagged
+                         variable parameter option preceeding an unflagged variable
+                         parameter option, because otherwise how will you know where the
+                         first stops and the second begins */
     multiFlagSep;     /* character in flag which signifies that there is a long and short
                          version, and which separates the two.  Or, can be set to '\0' to
                          disable this behavior entirely. */
@@ -183,14 +215,25 @@ extern const int hestPresent;
 extern hestParm *hestParmNew(void);
 extern hestParm *hestParmFree(hestParm *parm);
 extern void *hestParmFree_vp(void *parm);
+extern void hestOptSingleSet(hestOpt *opt, const char *flag, const char *name,
+                                  int type, int min, int max, void *valueP,
+                                  const char *dflt, const char *info, unsigned int *sawP,
+                                  const airEnum *enm, const hestCB *CB);
+extern unsigned int hestOptAdd_nva(hestOpt **optP, const char *flag,
+                                        const char *name, int type, int min, int max,
+                                        void *valueP, const char *dflt, const char *info,
+                                        unsigned int *sawP, const airEnum *enm,
+                                        const hestCB *CB);
 extern unsigned int hestOptAdd(hestOpt **optP,
                                     const char *flag, const char *name,
                                     int type, int min, int max,
                                     void *valueP, const char *dflt,
                                     const char *info,
                                     ... /* unsigned int *sawP,
-                                           airEnum *enm,
+                                           const airEnum *enm,
                                            const hestCB *CB */);
+/* see also all the special-purpose and type-checked versions in adders.c, below */
+extern unsigned int hestOptNum(const hestOpt *opt);
 extern hestOpt *hestOptFree(hestOpt *opt);
 extern void *hestOptFree_vp(void *opt);
 extern int hestOptCheck(hestOpt *opt, char **errP);
@@ -210,3 +253,44 @@ extern void hestUsage(FILE *file, hestOpt *opt, const char *argv0,
 extern void hestGlossary(FILE *file, hestOpt *opt, const hestParm *parm);
 extern void hestInfo(FILE *file, const char *argv0, const char *info,
                           const hestParm *parm);
+/* adders.c */
+extern unsigned int hestOptAdd_Flag(hestOpt **optP, const char *flag, int *valueP,
+                                         const char *info);
+extern unsigned int hestOptAdd_1_Bool(hestOpt **optP, const char *flag,
+                                           const char *name, int *valueP, int dflt,
+                                           const char *info);
+extern unsigned int hestOptAdd_1_Int(hestOpt **optP, const char *flag,
+                                          const char *name, int *valueP, int dflt,
+                                          const char *info);
+extern unsigned int hestOptAdd_1_UInt(hestOpt **optP, const char *flag,
+                                           const char *name, unsigned int *valueP,
+                                           unsigned int dflt, const char *info);
+extern unsigned int hestOptAdd_1_LongInt(hestOpt **optP, const char *flag,
+                                              const char *name, long int *valueP,
+                                              long int dflt, const char *info);
+extern unsigned int hestOptAdd_1_ULongInt(hestOpt **optP, const char *flag,
+                                               const char *name,
+                                               unsigned long int *valueP,
+                                               unsigned long int dflt, const char *info);
+extern unsigned int hestOptAdd_1_Size_t(hestOpt **optP, const char *flag,
+                                             const char *name, size_t *valueP,
+                                             size_t dflt, const char *info);
+extern unsigned int hestOptAdd_1_Float(hestOpt **optP, const char *flag,
+                                            const char *name, float *valueP, float dflt,
+                                            const char *info);
+extern unsigned int hestOptAdd_1_Double(hestOpt **optP, const char *flag,
+                                             const char *name, double *valueP,
+                                             double dflt, const char *info);
+extern unsigned int hestOptAdd_1_Char(hestOpt **optP, const char *flag,
+                                           const char *name, char *valueP, char dflt,
+                                           const char *info);
+extern unsigned int hestOptAdd_1_String(hestOpt **optP, const char *flag,
+                                             const char *name, char **valueP,
+                                             const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1_Enum(hestOpt **optP, const char *flag,
+                                           const char *name, int *valueP, int dflt,
+                                           const char *info, const airEnum *enm);
+extern unsigned int hestOptAdd_1_Other(hestOpt **optP, const char *flag,
+                                            const char *name, void *valueP,
+                                            const char *dflt, const char *info,
+                                            const hestCB *CB);

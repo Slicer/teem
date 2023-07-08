@@ -108,8 +108,8 @@ typedef struct {
      specification, its up to them to verify that the normalStr and the
      shadeStr refer to the same vector.
   */
-  char shadeStr[AIR_STRLEN_MED], /* how to do shading */
-    normalStr[AIR_STRLEN_MED];   /* what is the "surface normal" */
+  char shadeStr[AIR_STRLEN_MED + 1], /* how to do shading */
+    normalStr[AIR_STRLEN_MED + 1];   /* what is the "surface normal" */
   /* for each possible element of the txf range, what value should it
      start at prior to rendering. Mainly needed to store non-unity values
      for the quantities not covered by a transfer function */

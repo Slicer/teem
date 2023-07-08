@@ -959,12 +959,12 @@ struct NrrdEncoding_t;
 ** All information and behavior relevent to one datafile format
 */
 typedef struct {
-  char name[AIR_STRLEN_SMALL]; /* short identifying string */
-  int isImage,                 /* this format is intended solely for "2D" images, which
-                                  controls the invocation of nrrdAxesInsert()
-                                  if nrrdStateGrayscaleImage3D */
-    readable,                  /* we can read as well as write this format */
-    usesDIO;                   /* this format can use Direct IO */
+  char name[AIR_STRLEN_SMALL + 1]; /* short identifying string */
+  int isImage, /* this format is intended solely for "2D" images, which
+                  controls the invocation of nrrdAxesInsert()
+                  if nrrdStateGrayscaleImage3D */
+    readable,  /* we can read as well as write this format */
+    usesDIO;   /* this format can use Direct IO */
   /* tests if this format is currently available in this build */
   int (*available)(void);
   /* (for writing) returns non-zero if a given filename could likely be
@@ -989,8 +989,8 @@ typedef struct {
 ** This is necessitated by the memory restrictions of direct I/O
 */
 typedef struct NrrdEncoding_t {
-  char name[AIR_STRLEN_SMALL], /* short identifying string */
-    suffix[AIR_STRLEN_SMALL];  /* costumary filename suffix */
+  char name[AIR_STRLEN_SMALL + 1], /* short identifying string */
+    suffix[AIR_STRLEN_SMALL + 1];  /* customary filename suffix */
   int endianMatters, isCompression;
   int (*available)(void);
   /* The "data" and "elementNum" values have to be passed explicitly
@@ -1218,7 +1218,7 @@ typedef struct {
 typedef struct {
   /* terse string representation of kernel function, irrespective of
      the parameter vector */
-  char name[AIR_STRLEN_SMALL];
+  char name[AIR_STRLEN_SMALL + 1];
   /* number of parameters needed (# elements in parm[] used) */
   unsigned int numParm; /* HEY: should be "parmNum" in standard convention */
   /* smallest x (x > 0) such that k(y) = 0 for all y > x, y < -x */
@@ -1490,7 +1490,7 @@ extern const airEnum *const nrrdMetaDataCanonicalVersion;
 /* ---- END non-NrrdIO */
 /******** arrays of things (poor-man's functions/predicates) */
 /* arraysNrrd.c */
-extern const char nrrdTypePrintfStr[NRRD_TYPE_MAX + 1][AIR_STRLEN_SMALL];
+extern const char nrrdTypePrintfStr[NRRD_TYPE_MAX + 1][AIR_STRLEN_SMALL + 1];
 extern const size_t nrrdTypeSize[NRRD_TYPE_MAX + 1];
 extern const double nrrdTypeMin[NRRD_TYPE_MAX + 1];
 extern const double nrrdTypeMax[NRRD_TYPE_MAX + 1];
@@ -1505,12 +1505,12 @@ extern NrrdBoundarySpec *nrrdBoundarySpecNix(NrrdBoundarySpec *bspec);
 extern NrrdBoundarySpec *nrrdBoundarySpecCopy(const NrrdBoundarySpec *bsp);
 extern int nrrdBoundarySpecCheck(const NrrdBoundarySpec *bspec);
 extern int nrrdBoundarySpecParse(NrrdBoundarySpec *bspec, const char *str);
-extern int nrrdBoundarySpecSprint(char str[AIR_STRLEN_LARGE],
+extern int nrrdBoundarySpecSprint(char str[AIR_STRLEN_LARGE + 1],
                                        const NrrdBoundarySpec *bspec);
 extern int nrrdBoundarySpecCompare(const NrrdBoundarySpec *bspecA,
                                         const NrrdBoundarySpec *bspecB,
                                         int *differ,
-                                        char explain[AIR_STRLEN_LARGE]);
+                                        char explain[AIR_STRLEN_LARGE + 1]);
 /* ---- END non-NrrdIO */
 extern NrrdIoState *nrrdIoStateNew(void);
 extern void nrrdIoStateInit(NrrdIoState *nio);
@@ -1549,7 +1549,8 @@ extern int nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim,
                                   ... /* size_t sx, sy, .., ax(dim-1) size */);
 /* ---- BEGIN non-NrrdIO */
 extern int nrrdCompare(const Nrrd *ninA, const Nrrd *ninB, int onlyData,
-                            double epsilon, int *differ, char explain[AIR_STRLEN_LARGE]);
+                            double epsilon, int *differ,
+                            char explain[AIR_STRLEN_LARGE + 1]);
 extern int nrrdPPM(Nrrd *, size_t sx, size_t sy);
 extern int nrrdPGM(Nrrd *, size_t sx, size_t sy);
 /* ---- END non-NrrdIO */
@@ -1575,7 +1576,7 @@ extern void nrrdAxisInfoMinMaxSet(Nrrd *nrrd, unsigned int ax, int defCenter);
 extern int nrrdAxisInfoCompare(const NrrdAxisInfo *axisA,
                                     const NrrdAxisInfo *axisB,
                                     int *differ,
-                                    char explain[AIR_STRLEN_LARGE]);
+                                    char explain[AIR_STRLEN_LARGE + 1]);
 /* ---- END non-NrrdIO */
 extern unsigned int nrrdDomainAxesGet(const Nrrd *nrrd,
                                            unsigned int axisIdx[NRRD_DIM_MAX]);
@@ -1751,7 +1752,7 @@ extern int (*const nrrdValCompareInv[NRRD_TYPE_MAX + 1])(const void *,
                                                               const void *);
 extern int nrrdArrayCompare(int type, const void *valA, const void *valB,
                                  size_t valNum, double epsilon, int *differ,
-                                 char explain[AIR_STRLEN_LARGE]);
+                                 char explain[AIR_STRLEN_LARGE + 1]);
 /* ---- END non-NrrdIO */
 /******** permuting, shuffling, and all flavors of reshaping */
 /* reorder.c */
@@ -2190,9 +2191,9 @@ extern int nrrdKernelParse(const NrrdKernel **kernelP,
                                 double *parm,
                                 const char *str);
 extern int nrrdKernelSpecParse(NrrdKernelSpec *ksp, const char *str);
-extern int nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE],
+extern int nrrdKernelSpecSprint(char str[AIR_STRLEN_LARGE + 1],
                                      const NrrdKernelSpec *ksp);
-extern int nrrdKernelSprint(char str[AIR_STRLEN_LARGE],
+extern int nrrdKernelSprint(char str[AIR_STRLEN_LARGE + 1],
                                  const NrrdKernel *kernel,
                                  const double kparm[NRRD_KERNEL_PARMS_NUM]);
 extern int nrrdKernelCompare(const NrrdKernel *kernA,
@@ -2200,11 +2201,11 @@ extern int nrrdKernelCompare(const NrrdKernel *kernA,
                                   const NrrdKernel *kernB,
                                   const double parmB[NRRD_KERNEL_PARMS_NUM],
                                   int *differ,
-                                  char explain[AIR_STRLEN_LARGE]);
+                                  char explain[AIR_STRLEN_LARGE + 1]);
 extern int nrrdKernelSpecCompare(const NrrdKernelSpec *aa,
                                       const NrrdKernelSpec *bb,
                                       int *differ,
-                                      char explain[AIR_STRLEN_LARGE]);
+                                      char explain[AIR_STRLEN_LARGE + 1]);
 extern int nrrdKernelCheck(const NrrdKernel *kern,
                                 const double parm[NRRD_KERNEL_PARMS_NUM], size_t evalNum,
                                 double epsilon, unsigned int diffOkEvalMax,

@@ -3,8 +3,8 @@ baneClipNew,baneClip *,NULL,0,bane,bane/clip.c:102
 baneClipAnswer,int,1,0,bane,bane/clip.c:152
 baneClipCopy,baneClip *,NULL,0,bane,bane/clip.c:167
 baneFindInclusion,int,1,0,bane,bane/hvol.c:87
-baneMakeHVol,int,1,0,bane,bane/hvol.c:249
-baneGKMSHVol,Nrrd *,NULL,0,bane,bane/hvol.c:448
+baneMakeHVol,int,1,0,bane,bane/hvol.c:250
+baneGKMSHVol,Nrrd *,NULL,0,bane,bane/hvol.c:449
 baneIncNew,baneInc *,NULL,0,bane,bane/inc.c:251
 baneIncAnswer,int,1,0,bane,bane/inc.c:360
 baneIncCopy,baneInc *,NULL,0,bane,bane/inc.c:375

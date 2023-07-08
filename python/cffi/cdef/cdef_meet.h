@@ -105,7 +105,7 @@ extern int meetPullVolParse(meetPullVol *mpv, const char *str);
 extern int meetPullVolLeechable(const meetPullVol *lchr,
                                      const meetPullVol *orig,
                                      int *can,
-                                     char explain[AIR_STRLEN_HUGE]);
+                                     char explain[AIR_STRLEN_HUGE + 1]);
 extern meetPullVol *meetPullVolNix(meetPullVol *pvol);
 extern const hestCB *const meetHestPullVol;
 extern int meetPullVolStackBlurParmFinishMulti(meetPullVol **mpv,
