@@ -155,7 +155,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     GETLINE(next);
     airToUpper(nio->line);
   }
-  if (1 != sscanf(nio->line, "POINT_DATA %d", &N)) {
+  if (1 != sscanf(nio->line, "POINT_DATA %u", &N)) {
     biffAddf(NRRD, "%s: couldn't parse POINT_DATA line (\"%s\")", me, nio->line);
     return 1;
   }
