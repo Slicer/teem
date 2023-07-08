@@ -175,7 +175,7 @@ miteShadeSpecParse(miteShadeSpec *shpec, char *shadeStr) {
 void
 miteShadeSpecPrint(char *buff, const miteShadeSpec *shpec) {
   static const char me[] = "miteShadeSpecPrint";
-  char var[4][AIR_STRLEN_MED];
+  char var[4][AIR_STRLEN_MED + 1];
 
   if (buff && shpec) {
     switch (shpec->method) {

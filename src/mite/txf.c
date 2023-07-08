@@ -257,10 +257,10 @@ miteNtxfCheck(const Nrrd *ntxf) {
     return 1;
   }
   if (airStrlen(rangeStr) != ntxf->axis[0].size) {
-    char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+    char stmp[2][AIR_STRLEN_SMALL + 1];
     biffAddf(MITE, "%s: axis[0]'s size %s, but label specifies %s values", me,
-             airSprintSize_t(stmp1, ntxf->axis[0].size),
-             airSprintSize_t(stmp2, airStrlen(rangeStr)));
+             airSprintSize_t(stmp[0], ntxf->axis[0].size),
+             airSprintSize_t(stmp[1], airStrlen(rangeStr)));
     return 1;
   }
   for (rii = 0; rii < airStrlen(rangeStr); rii++) {
@@ -300,7 +300,7 @@ miteNtxfCheck(const Nrrd *ntxf) {
       /* has to be right length for one of the quantization schemes */
       ilog2 = airLog2(ntxf->axis[axi].size);
       if (-1 == ilog2) {
-        char stmp[AIR_STRLEN_SMALL];
+        char stmp[AIR_STRLEN_SMALL + 1];
         biffAddf(MITE, "%s: txf axis size for %s must be power of 2 (not %s)", me,
                  domStr, airSprintSize_t(stmp, ntxf->axis[axi].size));
         return 1;
@@ -592,7 +592,7 @@ _miteStageSet(miteThread *mtt, miteRender *mrr) {
         if (1 == isp.kind->table[isp.item].answerLength) {
           stage->qn = NULL;
         } else if (3 == isp.kind->table[isp.item].answerLength) {
-          char stmp[AIR_STRLEN_SMALL];
+          char stmp[AIR_STRLEN_SMALL + 1];
           ilog2 = AIR_UINT(airLog2(ntxf->axis[di].size));
           switch (ilog2) {
           case 8:
