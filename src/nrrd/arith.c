@@ -488,9 +488,9 @@ _nrrdBinaryOpULPDistance(double dA, double dB) {
     break;
   case 2:
     /* two non-finite values */
-    if (isnan(A) && isnan(B)) {
+    if (airIsNaN(A) && airIsNaN(B)) {
       ret = 0; /* really, no meaningful difference between 2 NaNs */
-    } else if (isnan(A) || isnan(B)) {
+    } else if (airIsNaN(A) || airIsNaN(B)) {
       /* one NaN and one inf, which seems like a big difference */
       ret = maxd;
     } else {
