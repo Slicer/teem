@@ -328,17 +328,17 @@ airEnumCheck(char err[AIR_STRLEN_LARGE + 1], const airEnum *enm) {
         return 1;
       }
       if (!enm->sense) {
-        char bb1[AIR_STRLEN_SMALL + 1], bb2[AIR_STRLEN_SMALL + 1];
-        strcpy(bb1, enm->str[ii]);
-        airToLower(bb1);
-        strcpy(bb2, enm->str[jj]);
-        airToLower(bb2);
-        if (!strcmp(bb1, bb2)) {
+        char bb[2][AIR_STRLEN_SMALL + 1];
+        strcpy(bb[0], enm->str[ii]);
+        airToLower(bb[0]);
+        strcpy(bb[1], enm->str[jj]);
+        airToLower(bb[1]);
+        if (!strcmp(bb[0], bb[1])) {
           if (err) {
             snprintf(err, ASL,
                      "%s(%s): after case-lowering, "
                      "str[%d] and [%u] both \"%s\"",
-                     me, enm->name, ii, jj, bb1);
+                     me, enm->name, ii, jj, bb[0]);
           }
           return 1;
         }
@@ -452,17 +452,17 @@ airEnumCheck(char err[AIR_STRLEN_LARGE + 1], const airEnum *enm) {
           return 1;
         }
         if (!enm->sense) {
-          char bb1[AIR_STRLEN_SMALL + 1], bb2[AIR_STRLEN_SMALL + 1];
-          strcpy(bb1, enm->strEqv[ii]);
-          airToLower(bb1);
-          strcpy(bb2, enm->strEqv[jj]);
-          airToLower(bb2);
-          if (!strcmp(bb1, bb2)) {
+          char bb[2][AIR_STRLEN_SMALL + 1];
+          strcpy(bb[0], enm->strEqv[ii]);
+          airToLower(bb[0]);
+          strcpy(bb[1], enm->strEqv[jj]);
+          airToLower(bb[1]);
+          if (!strcmp(bb[0], bb[1])) {
             if (err) {
               snprintf(err, ASL,
                        "%s(%s): after case-lowering, "
                        "strEqv[%d] and [%u] both \"%s\"",
-                       me, enm->name, ii, jj, bb1);
+                       me, enm->name, ii, jj, bb[0]);
             }
             return 1;
           }
