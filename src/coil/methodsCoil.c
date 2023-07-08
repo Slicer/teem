@@ -127,7 +127,7 @@ coilContextAllSet(coilContext *cctx, const Nrrd *nin, const coilKind *kind,
   sy = nin->axis[1 + baseDim].size;
   sz = nin->axis[2 + baseDim].size;
   if (sz < numThreads) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     airSprintSize_t(stmp, sz);
     fprintf(stderr,
             "%s: wanted %d threads but volume only has %s slices, "

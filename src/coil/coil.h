@@ -105,7 +105,7 @@ enum {
 ** running one method, regardless of kind
 */
 typedef struct {
-  char name[AIR_STRLEN_SMALL];
+  char name[AIR_STRLEN_SMALL + 1];
   int type;    /* from coilMethodType* enum */
   int numParm; /* number of parameters we need */
 } coilMethod;
@@ -136,11 +136,11 @@ enum {
 ** at some point in the future where appropriate.
 */
 typedef struct {
-  char name[AIR_STRLEN_SMALL]; /* short identifying string for kind */
-  unsigned int valLen;         /* number of scalars per data point
-                                  1 for plain scalars (baseDim=0),
-                                  or something else (baseDim=1) */
-                               /* all the available methods */
+  char name[AIR_STRLEN_SMALL + 1]; /* short identifying string for kind */
+  unsigned int valLen;             /* number of scalars per data point
+                                      1 for plain scalars (baseDim=0),
+                                      or something else (baseDim=1) */
+                                   /* all the available methods */
   void (*filter[COIL_METHOD_TYPE_MAX + 1])(coil_t *delta, int xi, int yi, int zi,
                                            coil_t **iv3, double spacing[3],
                                            double parm[COIL_PARMS_NUM]);
