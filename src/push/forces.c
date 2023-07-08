@@ -404,7 +404,7 @@ pushEnergySpecParse(pushEnergySpec *ensp, const char *_str) {
 }
 
 static int
-_pushHestEnergyParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+_pushHestEnergyParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   pushEnergySpec **enspP;
   static const char me[] = "_pushHestForceParse";
   char *perr;
@@ -417,7 +417,7 @@ _pushHestEnergyParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   *enspP = pushEnergySpecNew();
   if (pushEnergySpecParse(*enspP, str)) {
     perr = biffGetDone(PUSH);
-    airStrcpy(err, AIR_STRLEN_HUGE, perr);
+    airStrcpy(err, AIR_STRLEN_HUGE + 1, perr);
     free(perr);
     return 1;
   }

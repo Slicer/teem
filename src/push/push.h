@@ -135,7 +135,7 @@ enum {
 ** non-NULL pointers into which to store energy and force
 */
 typedef struct {
-  char name[AIR_STRLEN_SMALL];
+  char name[AIR_STRLEN_SMALL + 1];
   unsigned int parmNum;
   void (*eval)(double *energy, double *force, double dist,
                const double parm[PUSH_ENERGY_PARM_NUM]);
