@@ -320,7 +320,7 @@ _pullIterate(pullContext *pctx, int mode) {
 
 #if PULL_HINTER
   if (pullProcessModeDescent == mode && pctx->nhinter) {
-    char fname[AIR_STRLEN_SMALL];
+    char fname[AIR_STRLEN_SMALL + 1];
     sprintf(fname, "hinter-%05u.nrrd", pctx->iter);
     if (nrrdSave(fname, pctx->nhinter, NULL)) {
       biffMovef(PULL, NRRD, "%s: saving hinter to %s", me, fname);
@@ -335,7 +335,7 @@ _pullIterate(pullContext *pctx, int mode) {
 int /* Biff: 1 */
 pullRun(pullContext *pctx) {
   static const char me[] = "pullRun";
-  char poutS[AIR_STRLEN_MED];
+  char poutS[AIR_STRLEN_MED + 1];
   Nrrd *npos;
   double time0, time1, enrLast, enrNew = AIR_NAN, enrDecrease = AIR_NAN,
                                 enrDecreaseAvg = AIR_NAN;

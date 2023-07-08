@@ -729,7 +729,7 @@ pullEnergySpecParse(pullEnergySpec *ensp, const char *_str) {
 }
 
 static int
-_pullHestEnergyParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+_pullHestEnergyParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "_pullHestForceParse";
   pullEnergySpec **enspP;
   char *perr;
@@ -742,7 +742,7 @@ _pullHestEnergyParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   *enspP = pullEnergySpecNew();
   if (pullEnergySpecParse(*enspP, str)) {
     perr = biffGetDone(PULL);
-    airStrcpy(err, AIR_STRLEN_HUGE, perr);
+    airStrcpy(err, AIR_STRLEN_HUGE + 1, perr);
     free(perr);
     return 1;
   }

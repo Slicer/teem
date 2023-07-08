@@ -433,7 +433,7 @@ typedef struct pullBin_t {
 ** shape inside the support.
 */
 typedef struct {
-  char name[AIR_STRLEN_SMALL];
+  char name[AIR_STRLEN_SMALL + 1];
   unsigned int parmNum;
   double (*well)(double *wx, const double parm[PULL_ENERGY_PARM_NUM]);
   double (*eval)(double *denr, double dist, const double parm[PULL_ENERGY_PARM_NUM]);
@@ -1113,7 +1113,7 @@ PULL_EXPORT pullInfoSpec *pullInfoSpecNew(void);
 PULL_EXPORT pullInfoSpec *pullInfoSpecNix(pullInfoSpec *ispec);
 PULL_EXPORT int pullInfoSpecAdd(pullContext *pctx, pullInfoSpec *ispec);
 PULL_EXPORT int pullInfoGet(Nrrd *ninfo, int info, pullContext *pctx);
-PULL_EXPORT int pullInfoSpecSprint(char str[AIR_STRLEN_LARGE],
+PULL_EXPORT int pullInfoSpecSprint(char str[AIR_STRLEN_LARGE + 1],
                                    const pullContext *pctx,
                                    const pullInfoSpec *ispec);
 

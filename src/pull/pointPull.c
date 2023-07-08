@@ -933,7 +933,7 @@ pullPointInitializeRandomOrHalton(pullContext *pctx, const unsigned int pointIdx
       if (DEBUG) {
         Nrrd *nhist;
         FILE *fhist;
-        char fname[AIR_STRLEN_SMALL];
+        char fname[AIR_STRLEN_SMALL + 1];
         nhist = nrrdNew();
         if (pullPositionHistoryNrrdGet(nhist, pctx, point)) {
           biffAddf(PULL, "%s: trouble", me);
@@ -1063,7 +1063,7 @@ pullPointInitializeGivenPos(pullContext *pctx,
 int /* Biff: (private) 1 */
 _pullPointSetup(pullContext *pctx) {
   static const char me[] = "_pullPointSetup";
-  char doneStr[AIR_STRLEN_SMALL];
+  char doneStr[AIR_STRLEN_SMALL + 1];
   unsigned int pointIdx, binIdx, tick, pn, initRorHack;
   pullPoint *point;
   pullBin *bin;
@@ -1297,24 +1297,25 @@ _pullPointSetup(pullContext *pctx) {
   /* Final check: do we have any points? */
   pn = pullPointNumber(pctx);
   if (!pn) {
-    char stmp1[AIR_STRLEN_MED], stmp2[AIR_STRLEN_MED];
+    char stmp[2][AIR_STRLEN_MED + 1];
     int guess = AIR_FALSE;
-    sprintf(stmp1, "%s: seeded 0 points", me);
+    sprintf(stmp[0], "%s: seeded 0 points", me);
     if (pctx->ispec[pullInfoSeedThresh]) {
       guess = AIR_TRUE;
-      sprintf(stmp2, " (? bad seedthresh %g ?)", pctx->ispec[pullInfoSeedThresh]->zero);
-      strcat(stmp1, stmp2);
+      sprintf(stmp[1], " (? bad seedthresh %g ?)",
+              pctx->ispec[pullInfoSeedThresh]->zero);
+      strcat(stmp[0], stmp[1]);
     }
     if (pctx->flag.nixAtVolumeEdgeSpace) {
       guess = AIR_TRUE;
-      sprintf(stmp2, " (? flag.nixAtVolumeEdgeSpace true ?)");
-      strcat(stmp1, stmp2);
+      sprintf(stmp[1], " (? flag.nixAtVolumeEdgeSpace true ?)");
+      strcat(stmp[0], stmp[1]);
     }
     if (!guess) {
-      sprintf(stmp2, " (no guess as to why)");
-      strcat(stmp1, stmp2);
+      sprintf(stmp[1], " (no guess as to why)");
+      strcat(stmp[0], stmp[1]);
     }
-    biffAddf(PULL, "%s", stmp1);
+    biffAddf(PULL, "%s", stmp[0]);
     airMopError(mop);
     return 1;
   }

@@ -446,11 +446,11 @@ pullInfoGet(Nrrd *ninfo, int info, pullContext *pctx) {
 /* HEY this was written in a hurry;
 ** needs to be checked against parsing code */
 int /* Biff: 1 */
-pullInfoSpecSprint(char str[AIR_STRLEN_LARGE], const pullContext *pctx,
+pullInfoSpecSprint(char str[AIR_STRLEN_LARGE + 1], const pullContext *pctx,
                    const pullInfoSpec *ispec) {
   static const char me[] = "pullInfoSpecSprint";
   const pullVolume *pvol;
-  char stmp[AIR_STRLEN_LARGE];
+  char stmp[AIR_STRLEN_LARGE + 1];
 
   if (!(str && pctx && ispec)) {
     biffAddf(PULL, "%s: got NULL pointer", me);
