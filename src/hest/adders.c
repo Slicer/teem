@@ -135,10 +135,9 @@ unsigned int
 hestOptAdd_1_Enum(hestOpt **optP, const char *flag, const char *name, /* */
                   int *valueP, int dflt, const char *info,            /* */
                   const airEnum *enm) {
-  char dfltStr[AIR_STRLEN_SMALL + 1];
-  airStrcpy(dfltStr, AIR_STRLEN_SMALL + 1, airEnumStr(enm, dflt));
+
   return hestOptAdd_nva(optP, flag, name, airTypeEnum, 1, 1, /* */
-                        valueP, dfltStr, info,               /* */
+                        valueP, airEnumStr(enm, dflt), info, /* */
                         NULL, enm, NULL);
 }
 
