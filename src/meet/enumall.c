@@ -226,7 +226,7 @@ int /* Biff: 1 */
 meetAirEnumAllCheck(void) {
   static const char me[] = "meetAirEnumAllCheck";
   const airEnum **enm, *ee;
-  char err[AIR_STRLEN_LARGE];
+  char err[AIR_STRLEN_LARGE + 1];
   unsigned int ei;
   airArray *mop;
 

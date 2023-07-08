@@ -235,7 +235,7 @@ meetPullVolParse(meetPullVol *mpv, const char *_str) {
 }
 
 static int
-meetHestPullVolParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+meetHestPullVolParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "meetHestPullVolParse";
   meetPullVol *mpv, **mpvP;
   airArray *mop;
@@ -252,7 +252,7 @@ meetHestPullVolParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   if (meetPullVolParse(mpv, str)) {
     char *ler;
     airMopAdd(mop, ler = biffGetDone(MEET), airFree, airMopOnError);
-    airStrcpy(err, AIR_STRLEN_HUGE, ler);
+    airStrcpy(err, AIR_STRLEN_HUGE + 1, ler);
     airMopError(mop);
     return 1;
   }
@@ -306,15 +306,15 @@ const hestCB *const meetHestPullVol = &_meetHestPullVol;
 ******** meetPullVolLeechable
 **
 ** indicates whether lchr can leech from orig (saved in *can), and if not,
-** explanation is saved in explain (if non-NULL).  explain is size AIR_STRLEN_HUGE
+** explanation is saved in explain (if non-NULL).  explain is size AIR_STRLEN_HUGE+1
 ** because it has to contain the subexplain from gageStackBlurParmCompare, which
-** is size AIR_STRLEN_LARGE (noted thanks to a gcc warning)
+** is size AIR_STRLEN_LARGE+1 (noted thanks to a gcc warning)
 */
 int /* Biff: 1 */
 meetPullVolLeechable(const meetPullVol *lchr, const meetPullVol *orig, int *can,
-                     char explain[AIR_STRLEN_HUGE]) {
+                     char explain[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "meetPullVolLeechable";
-  char subexplain[AIR_STRLEN_LARGE];
+  char subexplain[AIR_STRLEN_LARGE + 1];
 
   if (!(lchr && orig && can)) {
     biffAddf(MEET, "%s: got NULL pointer (%p %p %p)", me, (const void *)lchr,
@@ -484,7 +484,7 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum, char *cachePath,
   for (mpvIdx = 0; mpvIdx < mpvNum; mpvIdx++) {
     unsigned int pvi;
     int leechable;
-    char explain[AIR_STRLEN_HUGE];
+    char explain[AIR_STRLEN_HUGE + 1];
     vol = mpv[mpvIdx];
     for (pvi = 0; pvi < mpvIdx; pvi++) {
       if (meetPullVolLeechable(vol, mpv[pvi], &leechable, explain)) {
@@ -521,7 +521,7 @@ meetPullVolLoadMulti(meetPullVol **mpv, unsigned int mpvNum, char *cachePath,
       return 1;
     }
     if (vol->sbp) {
-      char formatSS[AIR_STRLEN_LARGE];
+      char formatSS[AIR_STRLEN_LARGE + 1];
       sprintf(formatSS, "%s/%s-%%03u-%03u.nrrd", cachePath, vol->volName, vol->sbp->num);
       if (verbose) {
         fprintf(stderr, "%s: managing %s ... \n", me, formatSS);
@@ -730,7 +730,7 @@ meetPullInfoParse(meetPullInfo *minf, const char *_str) {
 }
 
 static int
-meetHestPullInfoParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
+meetHestPullInfoParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
   static const char me[] = "meetHestPullInfoParse";
   airArray *mop;
   meetPullInfo **minfP, *minf;
@@ -747,7 +747,7 @@ meetHestPullInfoParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE]) {
   if (meetPullInfoParse(minf, str)) {
     char *ler;
     airMopAdd(mop, ler = biffGetDone(MEET), airFree, airMopOnError);
-    airStrcpy(err, AIR_STRLEN_HUGE, ler);
+    airStrcpy(err, AIR_STRLEN_HUGE + 1, ler);
     airMopError(mop);
     return 1;
   }
