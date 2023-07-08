@@ -28,7 +28,7 @@
 */
 
 /* forward declaration with incomplete array type */
-static const _echoRayIntx_t _echoRayIntx[];
+static const _echoRayIntx_t _echoRayIntx[ECHO_TYPE_NUM];
 
 /*
 ** ALL of the intersection functions are responsible for setting
