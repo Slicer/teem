@@ -271,7 +271,7 @@ _hestPanic(hestOpt *opt, char *err, const hestParm *parm) {
           fprintf(stderr, "%s: panic 5\n", me);
         return 1;
       }
-      if (!(opt[op].type)) {
+      if (!(opt[op].CB->type)) {
         if (err)
           sprintf(err, "%s!!!!!! opt[%d]'s \"type\" is NULL", ME, op);
         else
