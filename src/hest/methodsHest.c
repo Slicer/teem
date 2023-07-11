@@ -96,17 +96,11 @@ _hestMax(int max) {
 /* opt_kind determines the kind (1,2,3,4, or 5) of an opt,
   from being passed its min and max fields */
 static int
-opt_kind(unsigned int _min, int _max) {
-  int min, max;
-
-  min = AIR_CAST(int, _min);
-  if (min < 0) {
-    /* invalid */
-    return -1;
-  }
+opt_kind(unsigned int min, int _max) {
+  int max;
 
   max = _hestMax(_max);
-  if (!(min <= max)) {
+  if (!(AIR_CAST(int, min) <= max)) {
     /* invalid */
     return -1;
   }
@@ -121,7 +115,7 @@ opt_kind(unsigned int _min, int _max) {
     return 2;
   }
 
-  if (2 <= min && 2 <= max && min == max) {
+  if (2 <= min && 2 <= max && AIR_CAST(int, min) == max) {
     /* multiple fixed parameters */
     return 3;
   }
@@ -221,9 +215,10 @@ hestOptSingleSet: a completely generic setter for a single hestOpt
 Note that this makes no attempt at error-checking; that is all in hestOptCheck
 */
 void
-hestOptSingleSet(hestOpt *opt, const char *flag, const char *name, int type, int min,
-                 int max, void *valueP, const char *dflt, const char *info,
-                 unsigned int *sawP, const airEnum *enm, const hestCB *CB) {
+hestOptSingleSet(hestOpt *opt, const char *flag, const char *name, int type,
+                 unsigned int min, int max, void *valueP, const char *dflt,
+                 const char *info, unsigned int *sawP, const airEnum *enm,
+                 const hestCB *CB) {
 
   if (!opt) return;
   opt->flag = airStrdup(flag);
@@ -262,9 +257,10 @@ been moved to hestOptSingleSet.
 Like hestOptAdd has done since 2013: returns UINT_MAX in case of error.
 */
 unsigned int
-hestOptAdd_nva(hestOpt **optP, const char *flag, const char *name, int type, int min,
-               int max, void *valueP, const char *dflt, const char *info,
-               unsigned int *sawP, const airEnum *enm, const hestCB *CB) {
+hestOptAdd_nva(hestOpt **optP, const char *flag, const char *name, int type,
+               unsigned int min, int max, void *valueP, const char *dflt,
+               const char *info, unsigned int *sawP, const airEnum *enm,
+               const hestCB *CB) {
   unsigned int retIdx;
 
   /* NULL address of opt array: can't proceed */
@@ -287,8 +283,9 @@ hestOptAdd_nva(hestOpt **optP, const char *flag, const char *name, int type, int
 ** option just added.  Returns UINT_MAX in case of error.
 */
 unsigned int
-hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type, int min,
-           int max, void *valueP, const char *dflt, const char *info, ...) {
+hestOptAdd(hestOpt **optP, const char *flag, const char *name, int type,
+           unsigned int min, int max, void *valueP, const char *dflt, const char *info,
+           ...) {
   unsigned int *sawP = NULL;
   const airEnum *enm = NULL;
   const hestCB *CB = NULL;

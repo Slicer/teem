@@ -36,27 +36,30 @@ This motivated the r7026 2023-07-06 addition of hestOptAdd_nva, which
 would have caught the above error.
 
 The underlying issue there, though, is the total lack of type-checking associated with
-the var-args functions.  The functions in this file help do as much type-checking as
-possible with hest.  These functions cover nearly all uses of hest within Teem (and in
-GLK's SciVIs class), in a way that is specific to the type of the value storage pointer
-valueP, which is still a void* even in hestOptAdd_nva.  Many of the possibilities here
-are unlikely to be needed (an option for 4 booleans?), but are generated here for
-completeness (an option for 4 floats or 4 doubles is great for R,G,B,A).
+the var-args functions. Even without var-args, the "void*" type of the value storage
+pointer is still a problem. Therefore, the functions in this file help do as much
+type-checking as possible with hest.  These functions cover nearly all uses of hest
+within Teem (and in GLK's SciVis class), in a way that is specific to the type of the
+value storage pointer valueP, which is still a void* even in hestOptAdd_nva.  Many of the
+possibilities here are unlikely to be needed (an option for 4 booleans?), but are
+generated here for completeness (an option for 4 floats or 4 doubles is great for
+R,G,B,A values).
 
-However with airTypeOther, in which case the caller passes a hestCB struct of callbacks
-to parse arbitrary things from the command-line, there is still unfortunately a
-type-checking black hole void* involved.  And, there is no away around that:
-the non-NULL-ity of hestCB->destroy determines wether the thing being parsed is
-merely space to be initialized (valueP is an array of structs), versus a
-struct to be allocated (valueP is an array of pointers to structs), we want that to
-determine the type of valueP.  But the struct itself as to be void type, and void** is
-not a generic pointer to pointer type (like void* is the generic pointer type). Still
-the _Other versions of the function are generated here to slightly simplify the
-hestOptAdd call (no more NULL, NULL for sawP and enum).  Actually, there is around
+However with airTypeOther, when the caller passes a hestCB struct of callbacks to parse
+arbitrary things from the command-line, there is still unfortunately a type-checking
+black hole void* involved.  And, there is no away around that: either valueP is an array
+of structs (when hestCB->destroy is NULL) or an array of pointers to structs
+(hestCB->destroy is non-NULL), for which the most specific type for valueP would be
+either void* or void**, respectively. But void** is not a generic pointer to pointer type
+(like void* is the generic pointer type), and, we're not doing compile-time checks on the
+non-NULL-ity of hestCB->destroy. So it all devolves back to plain void*. Still, the
+hestOptAdd_*_Other function are generated here to slightly simplify the hestOptAdd call,
+since there is no more NULL and NULL for sawP and enum.  Actually, there is a way around
 a type-checking black hole: extreme attentiveness!
 */
 
 /* --------------------------------------------------------------- 1 == kind */
+/* (there is only one kind of kind==1 option) */
 unsigned int
 hestOptAdd_Flag(hestOpt **hoptP, const char *flag, int *valueP, const char *info) {
 
@@ -65,274 +68,271 @@ hestOptAdd_Flag(hestOpt **hoptP, const char *flag, int *valueP, const char *info
                         NULL, NULL, NULL);
 }
 
-/* --------------------------------------------------------------- 2 == kind */
-unsigned int
-hestOptAdd_1_Bool(hestOpt **hoptP, const char *flag, const char *name, /* */
-                  int *valueP, const char *dflt, const char *info) {
-  return hestOptAdd_nva(hoptP, flag, name, airTypeBool, 1, 1, /* */
-                        valueP, dflt, info,                   /* */
-                        NULL, NULL, NULL);
-}
+/* The number of very similar functions to define here justifies macro tricks,
+which follow these naming conventions:
 
-unsigned int
-hestOptAdd_1_Int(hestOpt **hoptP, const char *flag, const char *name, /* */
-                 int *valueP, const char *dflt, const char *info) {
-  return hestOptAdd_nva(hoptP, flag, name, airTypeInt, 1, 1, /* */
-                        valueP, dflt, info,                  /* */
-                        NULL, NULL, NULL);
-}
+DCL_ = declaration (for the header file)
+IMP- = implementation (for this file)
+DEF_ = definition = declaration + implementation
+_T_ = simple scalar types
+_E_ = airEnum
+_O_ = Other (needs hestCB)
+_1 = single parameter, either fixed (kind 2) or variable (kind 4)
+_M = 2, 3, or 4 = COMPILE-TIME fixed # of parameters (kind 3)
+     (these exist as a convenience, covering many common hest uses)
+_N = RUN_TIME user-given fixed # of parameters (still kind 3)
+_V = RUN_TIME variable # of parameters (kind 5)
 
-unsigned int
-hestOptAdd_1_UInt(hestOpt **hoptP, const char *flag, const char *name, /* */
-                  unsigned int *valueP, const char *dflt, const char *info) {
-  return hestOptAdd_nva(hoptP, flag, name, airTypeUInt, 1, 1, /* */
-                        valueP, dflt, info,                   /* */
-                        NULL, NULL, NULL);
-}
+*/
 
-unsigned int
-hestOptAdd_1_LongInt(hestOpt **hoptP, const char *flag, const char *name, /* */
-                     long int *valueP, const char *dflt, const char *info) {
-  return hestOptAdd_nva(hoptP, flag, name, airTypeLongInt, 1, 1, /* */
-                        valueP, dflt, info,                      /* */
-                        NULL, NULL, NULL);
-}
+/* utility concatenators, used to form the name of macros to expand further */
+#define CONC(A, B)     A##_##B
+#define CONC3(A, B, C) A##_##B##_##C
 
-unsigned int
-hestOptAdd_1_ULongInt(hestOpt **hoptP, const char *flag, const char *name, /* */
-                      unsigned long int *valueP, const char *dflt, const char *info) {
-  return hestOptAdd_nva(hoptP, flag, name, airTypeULongInt, 1, 1, /* */
-                        valueP, dflt, info,                       /* */
-                        NULL, NULL, NULL);
-}
+/*
+_1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1
+_1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1
+_1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1 _1
+*/
 
-unsigned int
-hestOptAdd_1_Size_t(hestOpt **hoptP, const char *flag, const char *name, /* */
-                    size_t *valueP, const char *dflt, const char *info) {
-  return hestOptAdd_nva(hoptP, flag, name, airTypeSize_t, 1, 1, /* */
-                        valueP, dflt, info,                     /* */
-                        NULL, NULL, NULL);
-}
+/* "_1v_" functions (declared via _DCL_T_0) are for a single variable parm opt (kind 4),
+    "_1_" functions (declared via _DCL_T_1) are for a single fixed parm opt (kind 2)
+*/
+#define _DCL_T_0(ATYP, CTYP)                                                            \
+  unsigned int hestOptAdd_1v_##ATYP(hestOpt **hoptP, const char *flag,                  \
+                                    const char *name, CTYP *valueP, const char *dflt,   \
+                                    const char *info)
+#define _DCL_T_1(ATYP, CTYP)                                                            \
+  unsigned int hestOptAdd_1_##ATYP(hestOpt **hoptP, const char *flag, /* */             \
+                                   const char *name, CTYP *valueP, const char *dflt,    \
+                                   const char *info)
+/* DCL_T_1(M) chooses between _DCL_T_0 and _DCL_T_1 */
+#define DCL_T_1(M, ATYP, CTYP) CONC(_DCL_T, M)(ATYP, CTYP)
+/* IMP_T_1(M) passes M as minimum # parms;
+   M=0 --> kind 4
+   M=1 --> kind 2; max # parms is 1 for both  */
+#define IMP_T_1(M, ATYP, CTYP)                                                          \
+  {                                                                                     \
+    return hestOptAdd_nva(hoptP, flag, name, airType##ATYP, M, 1, /* */                 \
+                          valueP, dflt, info,                     /* */                 \
+                          NULL, NULL, NULL);                                            \
+  }
+#define DEF_T_1(M, ATYP, CTYP) DCL_T_1(M, ATYP, CTYP) IMP_T_1(M, ATYP, CTYP)
+/* copy-pasta for Enum -------------- */
+#define _DCL_E_0                                                                        \
+  unsigned int hestOptAdd_1v_Enum(hestOpt **hoptP, const char *flag, /* */              \
+                                  const char *name, int *valueP, const char *dflt,      \
+                                  const char *info, const airEnum *enm)
+#define _DCL_E_1                                                                        \
+  unsigned int hestOptAdd_1_Enum(hestOpt **hoptP, const char *flag, /* */               \
+                                 const char *name, int *valueP, const char *dflt,       \
+                                 const char *info, const airEnum *enm)
+#define DCL_E_1(M) CONC(_DCL_E, M)
+#define IMP_E_1(M)                                                                      \
+  {                                                                                     \
+    return hestOptAdd_nva(hoptP, flag, name, airTypeEnum, M, 1, /* */                   \
+                          valueP, dflt, info,                   /* */                   \
+                          NULL, enm, NULL);                                             \
+  }
+#define DEF_E_1(M) DCL_E_1(M) IMP_E_1(M)
+/* copy-pasta for Other -------------- */
+#define _DCL_O_0                                                                        \
+  unsigned int hestOptAdd_1v_Other(hestOpt **hoptP, const char *flag, /* */             \
+                                   const char *name, void *valueP, const char *dflt,    \
+                                   const char *info, const hestCB *CB)
+#define _DCL_O_1                                                                        \
+  unsigned int hestOptAdd_1_Other(hestOpt **hoptP, const char *flag, /* */              \
+                                  const char *name, void *valueP, const char *dflt,     \
+                                  const char *info, const hestCB *CB)
+#define DCL_O_1(M) CONC(_DCL_O, M)
+#define IMP_O_1(M)                                                                      \
+  {                                                                                     \
+    return hestOptAdd_nva(hoptP, flag, name, airTypeOther, M, 1, /* */                  \
+                          valueP, dflt, info,                    /* */                  \
+                          NULL, NULL, CB);                                              \
+  }
+#define DEF_O_1(M) DCL_O_1(M) IMP_O_1(M)
 
-unsigned int
-hestOptAdd_1_Float(hestOpt **hoptP, const char *flag, const char *name, /* */
-                   float *valueP, const char *dflt, const char *info) {
-  return hestOptAdd_nva(hoptP, flag, name, airTypeFloat, 1, 1, /* */
-                        valueP, dflt, info,                    /* */
-                        NULL, NULL, NULL);
-}
+/*
+_M and _N    _M and _N    _M and _N    _M and _N    _M and _N    _M and _N    _M and _N
+_M and _N    _M and _N    _M and _N    _M and _N    _M and _N    _M and _N    _M and _N
+_M and _N    _M and _N    _M and _N    _M and _N    _M and _N    _M and _N    _M and _N
+*/
 
-unsigned int
-hestOptAdd_1_Double(hestOpt **hoptP, const char *flag, const char *name, /* */
-                    double *valueP, const char *dflt, const char *info) {
-  return hestOptAdd_nva(hoptP, flag, name, airTypeDouble, 1, 1, /* */
-                        valueP, dflt, info,                     /* */
-                        NULL, NULL, NULL);
-}
-
-unsigned int
-hestOptAdd_1_Char(hestOpt **hoptP, const char *flag, const char *name, /* */
-                  char *valueP, const char *dflt, const char *info) {
-  return hestOptAdd_nva(hoptP, flag, name, airTypeChar, 1, 1, /* */
-                        valueP, dflt, info,                   /* */
-                        NULL, NULL, NULL);
-}
-
-unsigned int
-hestOptAdd_1_String(hestOpt **hoptP, const char *flag, const char *name, /* */
-                    char **valueP, const char *dflt, const char *info) {
-  return hestOptAdd_nva(hoptP, flag, name, airTypeString, 1, 1, /* */
-                        valueP, dflt, info,                     /* */
-                        NULL, NULL, NULL);
-}
-
-unsigned int
-hestOptAdd_1_Enum(hestOpt **hoptP, const char *flag, const char *name, /* */
-                  int *valueP, const char *dflt, const char *info,     /* */
-                  const airEnum *enm) {
-
-  return hestOptAdd_nva(hoptP, flag, name, airTypeEnum, 1, 1, /* */
-                        valueP, dflt, info,                   /* */
-                        NULL, enm, NULL);
-}
-
-unsigned int
-hestOptAdd_1_Other(hestOpt **hoptP, const char *flag, const char *name, /* */
-                   void *valueP, const char *dflt, const char *info,    /* */
-                   const hestCB *CB) {
-  return hestOptAdd_nva(hoptP, flag, name, airTypeOther, 1, 1, /* */
-                        valueP, dflt, info,                    /* */
-                        NULL, NULL, CB);
-}
-
-/* --------------------------------------------------------------- 2 == kind */
-
-/* for some reason writing out code above (and their declarations in hest.h) by hand was
-tolerated, but from here on out the coding is going to use a lot of macro tricks, with
-these name conventions:
-
-M = 2, 3, or 4 = fixed # of parameters
-N = user-given fixed # of parameters
-_S = simple scalar types
-_E = airEnum
-_O = Other
-
-Some way of gracefully handling the 10 different simple types, plus the airEnum and
-Other, with the context of the functional-ish MAP macros, is surely possible, but it
-eludes GLK at this time */
-
-/* _S: simple scalar types */
-#define DCL_M_S(M, ATYP, CTYP)                                                          \
+/* copy-pasta for _T scalar types for (compile-time) M or (run-time) N fixed parms */
+#define DCL_T_M(M, ATYP, CTYP)                                                          \
   unsigned int hestOptAdd_##M##_##ATYP(hestOpt **hoptP, const char *flag,               \
                                        const char *name, CTYP valueP[M],                \
                                        const char *dflt, const char *info)
-#define BODY_M_S(M, ATYP, CTYP)                                                         \
+#define IMP_T_M(M, ATYP, CTYP)                                                          \
   {                                                                                     \
     return hestOptAdd_nva(hoptP, flag, name, airType##ATYP, M, M, valueP, dflt, info,   \
                           NULL, NULL, NULL);                                            \
   }
-#define DEF_M_S(M, ATYP, CTYP) DCL_M_S(M, ATYP, CTYP) BODY_M_S(M, ATYP, CTYP)
-#define DCL_N_S(ATYP, CTYP)                                                             \
+#define DEF_T_M(M, ATYP, CTYP) DCL_T_M(M, ATYP, CTYP) IMP_T_M(M, ATYP, CTYP)
+#define DCL_T_N(_, ATYP, CTYP)                                                          \
   unsigned int hestOptAdd_N_##ATYP(hestOpt **hoptP, const char *flag, const char *name, \
                                    unsigned int N, CTYP *valueP, const char *dflt,      \
                                    const char *info)
-#define BODY_N_S(ATYP, CTYP)                                                            \
+#define IMP_T_N(_, ATYP, CTYP)                                                          \
   {                                                                                     \
     return hestOptAdd_nva(hoptP, flag, name, airType##ATYP, N, N, valueP, dflt, info,   \
                           NULL, NULL, NULL);                                            \
   }
-#define DEF_N_S(ATYP, CTYP) DCL_N_S(ATYP, CTYP) BODY_N_S(ATYP, CTYP)
-
-/* _E: Enum */
-#define DCL_M_E(M)                                                                      \
+#define DEF_T_N(_, ATYP, CTYP) DCL_T_N(_, ATYP, CTYP) IMP_T_N(_, ATYP, CTYP)
+/* copy-pasta for _E Enums */
+#define DCL_E_M(M)                                                                      \
   unsigned int hestOptAdd_##M##_Enum(hestOpt **hoptP, const char *flag,                 \
                                      const char *name, int valueP[M], const char *dflt, \
                                      const char *info, const airEnum *enm)
-#define BODY_M_E(M)                                                                     \
+#define IMP_E_M(M)                                                                      \
   {                                                                                     \
     return hestOptAdd_nva(hoptP, flag, name, airTypeEnum, M, M, valueP, dflt, info,     \
                           NULL, enm, NULL);                                             \
   }
-#define DEF_M_E(M) DCL_M_E(M) BODY_M_E(M)
-#define DCL_N_E                                                                         \
+#define DEF_E_M(M) DCL_E_M(M) IMP_E_M(M)
+#define DCL_E_N(_)                                                                      \
   unsigned int hestOptAdd_N_Enum(hestOpt **hoptP, const char *flag, const char *name,   \
                                  unsigned int N, int *valueP, const char *dflt,         \
                                  const char *info, const airEnum *enm)
-#define BODY_N_E                                                                        \
+#define IMP_E_N(_)                                                                      \
   {                                                                                     \
     return hestOptAdd_nva(hoptP, flag, name, airTypeEnum, N, N, valueP, dflt, info,     \
                           NULL, enm, NULL);                                             \
   }
-#define DEF_N_E DCL_N_E BODY_N_E
-
-/* _O: Other */
-#define DCL_M_O(M)                                                                      \
+#define DEF_E_N(_) DCL_E_N(_) IMP_E_N(_)
+/* copy-pasta for _O Other */
+#define DCL_O_M(M)                                                                      \
   unsigned int hestOptAdd_##M##_Other(hestOpt **hoptP, const char *flag,                \
                                       const char *name, void *valueP, const char *dflt, \
                                       const char *info, const hestCB *CB)
-#define BODY_M_O(M)                                                                     \
+#define IMP_O_M(M)                                                                      \
   {                                                                                     \
     return hestOptAdd_nva(hoptP, flag, name, airTypeOther, M, M, valueP, dflt, info,    \
                           NULL, NULL, CB);                                              \
   }
-#define DEF_M_O(M) DCL_M_O(M) BODY_M_O(M)
-#define DCL_N_O                                                                         \
+#define DEF_O_M(M) DCL_O_M(M) IMP_O_M(M)
+#define DCL_O_N(_)                                                                      \
   unsigned int hestOptAdd_N_Other(hestOpt **hoptP, const char *flag, const char *name,  \
                                   unsigned int N, void *valueP, const char *dflt,       \
                                   const char *info, const hestCB *CB)
-#define BODY_N_O                                                                        \
+#define IMP_O_N(_)                                                                      \
   {                                                                                     \
     return hestOptAdd_nva(hoptP, flag, name, airTypeOther, N, N, valueP, dflt, info,    \
                           NULL, NULL, CB);                                              \
   }
-#define DEF_N_O DCL_N_O BODY_N_O
+#define DEF_O_N(_) DCL_O_N(_) IMP_O_N(_)
 
-/* MAP_M_S takes a macro MMAC that (like DCL_M_S or DEF_M_S) takes three args
--- M, ATYP, CTYP -- and applies it to all the simple scalar types.
-MAP_N_S takes a macro NMAC (like DCL_N_S or DEF_N_S) that takes just two args
--- ATYP, CTYPE -- and applies to the scalar types */
-#define MAP_M_S(MMAC, M)                                                                \
-  MMAC(M, Bool, int)                                                                    \
-  MMAC(M, Int, int)                                                                     \
-  MMAC(M, UInt, unsigned int)                                                           \
-  MMAC(M, LongInt, long int)                                                            \
-  MMAC(M, ULongInt, unsigned long int)                                                  \
-  MMAC(M, Size_t, size_t)                                                               \
-  MMAC(M, Float, float)                                                                 \
-  MMAC(M, Double, double)                                                               \
-  MMAC(M, Char, char)                                                                   \
-  MMAC(M, String, char *)
-/* (yes would be nicer to avoid copy-pasta, but how?) */
-#define MAP_N_S(NMAC)                                                                   \
-  NMAC(Bool, int)                                                                       \
-  NMAC(Int, int)                                                                        \
-  NMAC(UInt, unsigned int)                                                              \
-  NMAC(LongInt, long int)                                                               \
-  NMAC(ULongInt, unsigned long int)                                                     \
-  NMAC(Size_t, size_t)                                                                  \
-  NMAC(Float, float)                                                                    \
-  NMAC(Double, double)                                                                  \
-  NMAC(Char, char)                                                                      \
-  NMAC(String, char *)
+/*
+_V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V
+_V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V
+_V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V
+*/
 
-/* v.v.v.v.v.v.v.v.v   Actual code!   v.v.v.v.v.v.v.v.v */
-MAP_M_S(DEF_M_S, 2)
-DEF_M_E(2)
-DEF_M_O(2)
-MAP_M_S(DEF_M_S, 3)
-DEF_M_E(3)
-DEF_M_O(3)
-MAP_M_S(DEF_M_S, 4)
-DEF_M_E(4)
-DEF_M_O(4)
-MAP_N_S(DEF_N_S)
-DEF_N_E
-DEF_N_O
-/* ^'^'^'^'^'^'^'^'^'^'^'^'^'^'^'^'^'^'^'^'^'^'^'^'^'^'^ */
+#define DCL_T_V(_, ATYP, CTYP)                                                          \
+  unsigned int hestOptAdd_Nv_##ATYP(hestOpt **hoptP, const char *flag,                  \
+                                    const char *name, unsigned int min, int max,        \
+                                    CTYP **valueP, const char *dflt, const char *info,  \
+                                    unsigned int *sawP)
+#define IMP_T_V(_, ATYP, CTYP)                                                          \
+  {                                                                                     \
+    return hestOptAdd_nva(hoptP, flag, name, airType##ATYP, min, max, /* */             \
+                          valueP, dflt, info,                         /* */             \
+                          sawP, NULL, NULL);                                            \
+  }
+#define DEF_T_V(M, ATYP, CTYP) DCL_T_V(M, ATYP, CTYP) IMP_T_V(M, ATYP, CTYP)
+/* copy-pasta for Enum -------------- */
+#define DCL_E_V(_)                                                                      \
+  unsigned int hestOptAdd_Nv_Enum(hestOpt **hoptP, const char *flag, /* */              \
+                                  const char *name, unsigned int min, int max,          \
+                                  int **valueP, const char *dflt, const char *info,     \
+                                  unsigned int *sawP, const airEnum *enm)
+#define IMP_E_V(_)                                                                      \
+  {                                                                                     \
+    return hestOptAdd_nva(hoptP, flag, name, airTypeEnum, min, max, /* */               \
+                          valueP, dflt, info,                       /* */               \
+                          sawP, enm, NULL);                                             \
+  }
+#define DEF_E_V(_) DCL_E_V(_) IMP_E_V(_)
+/* copy-pasta for Other -------------- */
+#define DCL_O_V(_)                                                                      \
+  unsigned int hestOptAdd_Nv_Other(hestOpt **hoptP, const char *flag, /* */             \
+                                   const char *name, unsigned int min, int max,         \
+                                   void *valueP, const char *dflt, const char *info,    \
+                                   unsigned int *sawP, const hestCB *CB)
+#define IMP_O_V(_)                                                                      \
+  {                                                                                     \
+    return hestOptAdd_nva(hoptP, flag, name, airTypeOther, min, max, /* */              \
+                          valueP, dflt, info,                        /* */              \
+                          sawP, NULL, CB);                                              \
+  }
+#define DEF_O_V(_) DCL_O_V(_) IMP_O_V(_)
 
-/* Macro for making a string out of whatever something has been #define'd to, exactly,
-   without chasing down a sequence of #includes.
+/* MAP_T takes a macro MAC that (like DCL_T_M or DEF_T_M) takes three args
+(M, ATYP, CTYP) and applies it to all the simple scalar types */
+#define MAP_T(MAC, M)                                                                   \
+  MAC(M, Bool, int)                                                                     \
+  MAC(M, Int, int)                                                                      \
+  MAC(M, UInt, unsigned int)                                                            \
+  MAC(M, LongInt, long int)                                                             \
+  MAC(M, ULongInt, unsigned long int)                                                   \
+  MAC(M, Size_t, size_t)                                                                \
+  MAC(M, Float, float)                                                                  \
+  MAC(M, Double, double)                                                                \
+  MAC(M, Char, char)                                                                    \
+  MAC(M, String, char *)
+
+/* MAP(BSN, X, M) takes a macro basename BSN (like DEF) and
+expands it to the _T, _E, and _O cases for _X. E.g. "MAP(DEF, 1, 0)" expands to:
+MAP_T(DEF_T_1, 0)
+DEF_E_1(0)
+DEF_O_1(0)
+*/
+#define MAP(BSN, X, M) MAP_T(CONC3(BSN, T, X), M) CONC3(BSN, E, X)(M) CONC3(BSN, O, X)(M)
+
+/* DOIT does expansion over all possibilities of BSN */
+#define DOIT(BSN)                                                                       \
+  MAP(BSN, 1, 0)                                                                        \
+  MAP(BSN, 1, 1)                                                                        \
+  MAP(BSN, M, 2)                                                                        \
+  MAP(BSN, M, 3)                                                                        \
+  MAP(BSN, M, 4)                                                                        \
+  MAP(BSN, N, _)                                                                        \
+  MAP(BSN, V, _)
+
+/* !!! HERE IS THE ACTUAL CODE FOR ALL THE hestOptAdd_*_* CASES !!! */
+DOIT(DEF)
+
+/* Macro for making a string out of whatever something has been #define'd to
    https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html */
 #define __STR(name) #name
 #define _STR(name)  __STR(name)
 
 /* for generating body of hestOptAddDeclsPrint;
-NOTE assuming the local FILE *ff */
-#define PRINT_M_S(M, ATYP, CTYP)                                                        \
-  fprintf(ff, "HEST_EXPORT " _STR(DCL_M_S(M, ATYP, CTYP)) ";\n");
-#define PRINT_M_E(M) fprintf(ff, "HEST_EXPORT " _STR(DCL_M_E(M)) ";\n");
-#define PRINT_M_O(M) fprintf(ff, "HEST_EXPORT " _STR(DCL_M_O(M)) ";\n");
-#define PRINT_N_S(ATYP, CTYP)                                                           \
-  fprintf(ff, "HEST_EXPORT " _STR(DCL_N_S(ATYP, CTYP)) ";\n");
-#define PRINT_N_E fprintf(ff, "HEST_EXPORT " _STR(DCL_N_E) ";\n");
-#define PRINT_N_O fprintf(ff, "HEST_EXPORT " _STR(DCL_N_O) ";\n");
+NOTE assuming the local variable FILE *ff */
+#define PRINT_T_1(M, ATYP, CTYP)                                                        \
+  fprintf(ff, "HEST_EXPORT " _STR(DCL_T_1(M, ATYP, CTYP)) ";\n");
+#define PRINT_E_1(M) fprintf(ff, "HEST_EXPORT " _STR(DCL_E_1(M)) ";\n");
+#define PRINT_O_1(M) fprintf(ff, "HEST_EXPORT " _STR(DCL_O_1(M)) ";\n");
+#define PRINT_T_M(M, ATYP, CTYP)                                                        \
+  fprintf(ff, "HEST_EXPORT " _STR(DCL_T_M(M, ATYP, CTYP)) ";\n");
+#define PRINT_E_M(M) fprintf(ff, "HEST_EXPORT " _STR(DCL_E_M(M)) ";\n");
+#define PRINT_O_M(M) fprintf(ff, "HEST_EXPORT " _STR(DCL_O_M(M)) ";\n");
+#define PRINT_T_N(_, ATYP, CTYP)                                                        \
+  fprintf(ff, "HEST_EXPORT " _STR(DCL_T_N(_, ATYP, CTYP)) ";\n");
+#define PRINT_E_N(_) fprintf(ff, "HEST_EXPORT " _STR(DCL_E_N(_)) ";\n");
+#define PRINT_O_N(_) fprintf(ff, "HEST_EXPORT " _STR(DCL_O_N(_)) ";\n");
+#define PRINT_T_V(_, ATYP, CTYP)                                                        \
+  fprintf(ff, "HEST_EXPORT " _STR(DCL_T_V(_, ATYP, CTYP)) ";\n");
+#define PRINT_E_V(_) fprintf(ff, "HEST_EXPORT " _STR(DCL_E_V(_)) ";\n");
+#define PRINT_O_V(_) fprintf(ff, "HEST_EXPORT " _STR(DCL_O_V(_)) ";\n");
 
-/* prints declarations for everything defined by macro above, which
-HEY does not include the hestOptAdd_Flag and hestOptAdd_1_* functions */
+/* prints declarations for everything defined by macro magic above */
 void
 hestOptAddDeclsPrint(FILE *ff) {
-  /* HEY copy-pasta from "Actual code" above */
-  MAP_M_S(PRINT_M_S, 2)
-  PRINT_M_E(2)
-  PRINT_M_O(2)
-  MAP_M_S(PRINT_M_S, 3)
-  PRINT_M_E(3)
-  PRINT_M_O(3)
-  MAP_M_S(PRINT_M_S, 4)
-  PRINT_M_E(4)
-  PRINT_M_O(4)
-  MAP_N_S(PRINT_N_S)
-  PRINT_N_E
-  PRINT_N_O
+  /* the flag is the one case not handled by macro expansion */
+  fprintf(ff, "HEST_EXPORT unsigned int hestOptAdd_Flag(hestOpt **optP, "
+              "const char *flag, int *valueP, const char *info);\n");
+  /* declarations for all other cases */
+  DOIT(PRINT)
 }
-
-/*
-hestOptSetXX(hestOpt *opt, )
-1v<T>, Nv<T>  need sawP
-
-<T>=
-Bool, Int, UInt, LongInt, ULongInt, Size_t,
-Float, Double, Char, String,
-Enum,  need Enum
-Other,  need CB
-*/
