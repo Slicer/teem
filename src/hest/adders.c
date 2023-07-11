@@ -22,6 +22,40 @@
 #include "hest.h"
 #include "privateHest.h"
 
+/*
+Since r6184 2014-03-17, GLK has noted (in ../TODO.txt):
+  (from tendGlyph.c): there needs to be an alternative API for hest
+  that is not var-args based (as is hestOptAdd). You can't tell when
+  you've passed multiple strings for the detailed usage information by
+  accident.  GLK had accidentally inserted a comma into my multi-line
+  string for the "info" arg, relying on the automatic string
+  concatenation, and ended up passing total garbage to hestOptAdd for
+  the airEnum pointer, causing him to think that the tenGlyphType airEnum
+  was malformed, when it was in fact fine ...
+This motivated the r7026 2023-07-06 addition of hestOptAdd_nva, which
+would have caught the above error.
+
+The underlying issue there, though, is the total lack of type-checking associated with
+the var-args functions.  The functions in this file help do as much type-checking as
+possible with hest.  These functions cover nearly all uses of hest within Teem (and in
+GLK's SciVIs class), in a way that is specific to the type of the value storage pointer
+valueP, which is still a void* even in hestOptAdd_nva.  Many of the possibilities here
+are unlikely to be needed (an option for 4 booleans?), but are generated here for
+completeness (an option for 4 floats or 4 doubles is great for R,G,B,A).
+
+However with airTypeOther, in which case the caller passes a hestCB struct of callbacks
+to parse arbitrary things from the command-line, there is still unfortunately a
+type-checking black hole void* involved.  And, there is no away around that:
+the non-NULL-ity of hestCB->destroy determines wether the thing being parsed is
+merely space to be initialized (valueP is an array of structs), versus a
+struct to be allocated (valueP is an array of pointers to structs), we want that to
+determine the type of valueP.  But the struct itself as to be void type, and void** is
+not a generic pointer to pointer type (like void* is the generic pointer type). Still
+the _Other versions of the function are generated here to slightly simplify the
+hestOptAdd call (no more NULL, NULL for sawP and enum).  Actually, there is around
+a type-checking black hole: extreme attentiveness!
+*/
+
 /* --------------------------------------------------------------- 1 == kind */
 unsigned int
 hestOptAdd_Flag(hestOpt **hoptP, const char *flag, int *valueP, const char *info) {
