@@ -134,8 +134,8 @@ hestOptAdd_1_Other(hestOpt **hoptP, const char *flag, const char *name, /* */
 /* --------------------------------------------------------------- 2 == kind */
 
 /* for some reason writing out code above (and their declarations in hest.h) by hand was
-ok, but from here on out its going to use a lot of macro tricks, with these name
-conventions:
+tolerated, but from here on out the coding is going to use a lot of macro tricks, with
+these name conventions:
 
 M = 2, 3, or 4 = fixed # of parameters
 N = user-given fixed # of parameters
@@ -274,7 +274,7 @@ NOTE assuming the local FILE *ff */
 #define PRINT_N_O fprintf(ff, "HEST_EXPORT " _STR(DCL_N_O) ";\n");
 
 /* prints declarations for everything defined by macro above, which
-HEY does not includethe hestOptAdd_Flag and hestOptAdd_1_* functions */
+HEY does not include the hestOptAdd_Flag and hestOptAdd_1_* functions */
 void
 hestOptAddDeclsPrint(FILE *ff) {
   /* HEY copy-pasta from "Actual code" above */
@@ -294,7 +294,6 @@ hestOptAddDeclsPrint(FILE *ff) {
 
 /*
 hestOptSetXX(hestOpt *opt, )
-1<T>, 2<T>, 3<T>, 4<T>, N<T>
 1v<T>, Nv<T>  need sawP
 
 <T>=
