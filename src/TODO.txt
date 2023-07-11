@@ -109,7 +109,6 @@ biff:
 so that it matches biffMovef
 * rename biffCheck --> biffErrNum
 * consider biffGetStrlen --> biffStrlenGet, biffSetStr --> biffStrSet
-******* a few biff functions are never used in Teem, is that ok?
 
 nrrd:
 * allow the API for median filtering to be more flexible about boundaries
