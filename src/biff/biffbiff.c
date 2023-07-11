@@ -411,7 +411,7 @@ biffMove(const char *destKey, const char *err, const char *srcKey) {
 
 static void
 _biffMoveVL(const char *destKey, const char *srcKey, const char *errfmt, va_list args) {
-  static const char me[] = "biffMovev";
+  static const char me[] = "_biffMoveVL";
   biffMsg *dest, *src;
 
   _bmsgStart();
