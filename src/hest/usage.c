@@ -230,7 +230,10 @@ hestInfo(FILE *file, const char *argv0, const char *info, const hestParm *_parm)
 void
 hestUsage(FILE *f, hestOpt *opt, const char *argv0, const hestParm *_parm) {
   int i, numOpts;
-  char buff[2 * AIR_STRLEN_HUGE + 1], tmpS[AIR_STRLEN_HUGE + 1];
+  /* with a very large number of options, it is possible to overflow buff[].
+  Previous to the 2023 revisit, it was for max lenth 2*AIR_STRLEN_HUGE, but
+  test/ex6.c blew past that.  May have to increment again in the future :) */
+  char buff[64 * AIR_STRLEN_HUGE + 1], tmpS[AIR_STRLEN_SMALL + 1];
   hestParm *parm;
 
   parm = _parm ? NULL : hestParmNew();
@@ -271,7 +274,8 @@ void
 hestGlossary(FILE *f, hestOpt *opt, const hestParm *_parm) {
   int i, j, maxlen, numOpts;
   unsigned int len;
-  char buff[2 * AIR_STRLEN_HUGE + 1], tmpS[AIR_STRLEN_HUGE + 1];
+  /* See note above about overflowing buff[] */
+  char buff[64 * AIR_STRLEN_HUGE + 1], tmpS[AIR_STRLEN_HUGE + 1];
   hestParm *parm;
 
   parm = _parm ? NULL : hestParmNew();
