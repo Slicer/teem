@@ -288,7 +288,23 @@ HEST_EXPORT void hestInfo(FILE *file, const char *argv0, const char *info,
 
 /* adders.c */
 HEST_EXPORT void hestOptAddDeclsPrint(FILE *f);
-/* these declarations are from clang-format of hestOptAddDeclsPrint output */
+/* Many many non-var-args alternatives to hestOptAdd, also usefully type-specific for the
+type of value to be parsed in a way that hestOptAdd_nva cannot match. These capture all
+the common uses (and them some) of hest within Teem. They can be categorized, like
+hestOpt->kind, in terms of the min, max number of (type T) parameters to the option:
+
+  min == max == 0       hestOptAdd_Flag         (stand-alone flag; no parameters)
+  min == max == 1       hestOptAdd_1_T          single fixed parameter
+  min == max >= 2       hestOptAdd_{2,3,4,N}_T  multiple fixed parameters
+  min == 0; max == 1    hestOptAdd_1v_T         single variable parameter
+  min < max; max >= 2   hestOptAdd_Nv_T         multiple variable parameters
+
+An airEnum* is passed for _Enum options; or a hestCB* for _Other options. The number of
+parameters *sawP that hestParm saw on the command-line is passed for the _Nv_ options.
+
+All declarations below were automatically generated via hestOptAddDeclsPrint (followed by
+clang-format), which (like the implementation of all the functions) is done via lots of
+#define macro tricks. */
 HEST_EXPORT unsigned int hestOptAdd_Flag(hestOpt **optP, const char *flag, int *valueP,
                                          const char *info);
 HEST_EXPORT unsigned int hestOptAdd_1v_Bool(hestOpt **hoptP, const char *flag,
