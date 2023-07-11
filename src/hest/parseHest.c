@@ -288,9 +288,9 @@ _hestPanic(hestOpt *opt, char *err, const hestParm *parm) {
       if (opt[op].CB->destroy && (sizeof(void *) != opt[op].CB->size)) {
         if (err)
           sprintf(err,
-                  "%s!!!!!! opt[%d] has a \"destroy\", but size isn't "
+                  "%s!!!!!! opt[%d] has a \"destroy\", but size %lu isn't "
                   "sizeof(void*)",
-                  ME, op);
+                  ME, op, (unsigned long)(opt[op].CB->size));
         else
           fprintf(stderr, "%s: panic 8\n", me);
         return 1;
@@ -1000,7 +1000,7 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
         easy way to see (or print, for an error message) the parameter (or
         concatenation of parameters) that was passed for a given option?
     and it turns out that adding this was as simple as adding this one following
-    line. The inscrutability of the hest code (or more acutely the self-reinforcing
+    line. The inscrutability of the hest code (or really the self-reinforcing
     learned fear of working with the hest code) seems to have been the barrier. */
     opt[op].parmStr = airStrdup(prms[op]);
     type = opt[op].type;
