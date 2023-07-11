@@ -39,15 +39,15 @@ unrrdu_spliceMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "axis to splice along");
-  hestOptAdd(&opt, "p,position", "pos", airTypeOther, 1, 1, _pos, NULL,
-             "position to splice at:\n "
-             "\b\bo <int> gives 0-based index\n "
-             "\b\bo M-<int> give index relative "
-             "to the last sample on the axis (M == #samples-1).",
-             NULL, NULL, &unrrduHestPosCB);
-  hestOptAdd(&opt, "s,slice", "nslice", airTypeOther, 1, 1, &(nslice), NULL,
-             "slice nrrd.  This is the slice to insert into \"nin\"", NULL, NULL,
-             nrrdHestNrrd);
+  hestOptAdd_1_Other(&opt, "p,position", "pos", _pos, NULL,
+                     "position to splice at:\n "
+                     "\b\bo <int> gives 0-based index\n "
+                     "\b\bo M-<int> give index relative "
+                     "to the last sample on the axis (M == #samples-1).",
+                     &unrrduHestPosCB);
+  hestOptAdd_1_Other(&opt, "s,slice", "nslice", &(nslice), NULL,
+                     "slice nrrd.  This is the slice to insert into \"nin\"",
+                     nrrdHestNrrd);
   OPT_ADD_NIN(nin, "input nrrd.  This is the nrrd into which the slice is "
                    "inserted");
   OPT_ADD_NOUT(out, "output nrrd");

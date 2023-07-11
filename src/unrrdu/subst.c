@@ -40,8 +40,8 @@ unrrdu_substMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   Nrrd *nin, *nsubst, *nout;
   airArray *mop;
 
-  hestOptAdd(&opt, "s,subst", "subst", airTypeOther, 1, 1, &nsubst, NULL,
-             "substition table to map input nrrd through", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd_1_Other(&opt, "s,subst", "subst", &nsubst, NULL,
+                     "substition table to map input nrrd through", nrrdHestNrrd);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

@@ -36,28 +36,28 @@ unrrdu_sliceMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  unsigned int *axis;
-  int pret, axi, axisNum, posNum;
+  unsigned int *axis, axi, axisNum, posNum;
+  int pret;
   size_t pos[NRRD_DIM_MAX];
   long int *_pos;
   airArray *mop;
 
-  hestOptAdd(&opt, "a,axis", "axis", airTypeUInt, 1, -1, &axis, NULL,
-             "single axis or multiple axes to slice along.  "
-             "Giving multiple axes here leads to doing multiple slices "
-             "(at the corresponding positions "
-             "given with \"-p\"). Multiple axes should be identified "
-             "in terms of the axis numbering of the original nrrd; as "
-             "the slices are done (in the given ordering) the actual "
-             "slice axis will be different if previous slices were on "
-             "lower-numbered (faster) axes.",
-             &axisNum);
-  hestOptAdd(&opt, "p,position", "pos", airTypeOther, 1, -1, &_pos, NULL,
-             "position(s) to slice at:\n "
-             "\b\bo <int> gives 0-based index\n "
-             "\b\bo M-<int> give index relative "
-             "to the last sample on the axis (M == #samples-1).",
-             &posNum, NULL, &unrrduHestPosCB);
+  hestOptAdd_Nv_UInt(&opt, "a,axis", "axis", 1, -1, &axis, NULL,
+                     "single axis or multiple axes to slice along.  "
+                     "Giving multiple axes here leads to doing multiple slices "
+                     "(at the corresponding positions "
+                     "given with \"-p\"). Multiple axes should be identified "
+                     "in terms of the axis numbering of the original nrrd; as "
+                     "the slices are done (in the given ordering) the actual "
+                     "slice axis will be different if previous slices were on "
+                     "lower-numbered (faster) axes.",
+                     &axisNum);
+  hestOptAdd_Nv_Other(&opt, "p,position", "pos", 1, -1, &_pos, NULL,
+                      "position(s) to slice at:\n "
+                      "\b\bo <int> gives 0-based index\n "
+                      "\b\bo M-<int> give index relative "
+                      "to the last sample on the axis (M == #samples-1).",
+                      &posNum, &unrrduHestPosCB);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -103,7 +103,7 @@ unrrdu_sliceMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   }
   /* check on possibly adjust slice axes downward */
   if (axisNum > 1) {
-    int axj;
+    unsigned int axj;
     for (axi = 0; axi < axisNum - 1; axi++) {
       for (axj = axi + 1; axj < axisNum; axj++) {
         if (axis[axi] == axis[axj]) {

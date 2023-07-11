@@ -35,8 +35,8 @@ unrrdu_swapMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   unsigned int ax[2];
   airArray *mop;
 
-  hestOptAdd(&opt, "a,axis", "axisA axisB", airTypeUInt, 2, 2, ax, NULL,
-             "the two axes to switch (0-based numbering)");
+  hestOptAdd_2_UInt(&opt, "a,axis", "axisA axisB", ax, NULL,
+                    "the two axes to switch (0-based numbering)");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

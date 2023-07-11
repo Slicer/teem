@@ -58,8 +58,7 @@ unrrdu_saveMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     strcat(fmtInfo, "\n \b\bo \"png\": PNG image");
   }
   strcat(fmtInfo, "\n \b\bo \"eps\": EPS file");
-  hestOptAdd(&opt, "f,format", "form", airTypeOther, 1, 1, frmt, NULL, fmtInfo, NULL,
-             NULL, &unrrduHestFormatCB);
+  hestOptAdd_1_Other(&opt, "f,format", "form", frmt, NULL, fmtInfo, &unrrduHestFormatCB);
   strcpy(encInfo,
          "encoding of data in file.  Not all encodings are supported in "
          "a given format. Possibilities include:"
@@ -83,21 +82,21 @@ unrrdu_saveMain(int argc, const char **argv, const char *me, hestParm *hparm) {
            "\b\bo \"f\": specialized for filtered data\n "
            "For example, \"gz\", \"gz:9\", \"gz:9f\" are all valid");
   }
-  hestOptAdd(&opt, "e,encoding", "enc", airTypeOther, 1, 1, enc, "raw", encInfo, NULL,
-             NULL, &unrrduHestEncodingCB);
-  hestOptAdd(&opt, "en,endian", "end", airTypeEnum, 1, 1, &(nio->endian),
-             airEnumStr(airEndian, airMyEndian()),
-             "Endianness to save data out as; \"little\" for Intel and "
-             "friends; \"big\" for everyone else. "
-             "Defaults to endianness of this machine",
-             NULL, airEndian);
+  hestOptAdd_1_Other(&opt, "e,encoding", "enc", enc, "raw", encInfo,
+                     &unrrduHestEncodingCB);
+  hestOptAdd_1_Enum(&opt, "en,endian", "end", &(nio->endian),
+                    airEnumStr(airEndian, airMyEndian()),
+                    "Endianness to save data out as; \"little\" for Intel and "
+                    "friends; \"big\" for everyone else. "
+                    "Defaults to endianness of this machine",
+                    airEndian);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
-  hestOptAdd(&opt, "od,ouputdata", "name", airTypeString, 1, 1, &outData, "",
-             "when saving to a \".nhdr\" file, "
-             "this option allows you to explicitly name the data file, "
-             "instead of (by default, not using this option) having it be "
-             "the same filename base as the header file.");
+  hestOptAdd_1_String(&opt, "od,ouputdata", "name", &outData, "",
+                      "when saving to a \".nhdr\" file, "
+                      "this option allows you to explicitly name the data file, "
+                      "instead of (by default, not using this option) having it be "
+                      "the same filename base as the header file.");
 
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 

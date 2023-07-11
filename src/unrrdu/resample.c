@@ -59,126 +59,127 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me, hestParm *hparm
   info = nrrdResampleInfoNew();
   airMopAdd(mop, info, (airMopper)nrrdResampleInfoNix, airMopAlways);
   hparm->elideSingleOtherDefault = AIR_FALSE;
-  hestOptAdd(&opt, "old", NULL, airTypeInt, 0, 0, &older, NULL,
-             "instead of using the new nrrdResampleContext implementation, "
-             "use the old nrrdSpatialResample implementation");
-  hestOptAdd(&opt, "s,size", "sz0", airTypeOther, 1, -1, &scale, NULL,
-             "For each axis, information about how many samples in output:\n "
-             "\b\bo \"=\": leave this axis completely untouched: no "
-             "resampling whatsoever\n "
-             "\b\bo \"x<float>\": multiply the number of input samples by "
-             "<float>, and round to the nearest integer, to get the number "
-             "of output samples.  Use \"x1\" to resample the axis but leave "
-             "the number of samples unchanged\n "
-             "\b\bo \"/<float>\": divide number of samples by <float>\n "
-             "\b\bo \"+=<uint>\", \"-=<uint>\": add <uint> to or subtract "
-             "<uint> from number input samples to get number output samples\n "
-             "\b\bo \"s<float>\": assuming that some spacing information is "
-             "known on this input axis, then set the number of sample so that "
-             "the given float is the output axis spacing\n "
-             "\b\bo \"<uint>\": exact number of output samples\n "
-             "\b\bo \"a\": resample this axis to whatever number of samples "
-             "preserves the aspect ratio of other resampled axes. Currently "
-             "needs to be used on all but one of the resampled axes, "
-             "if at all. ",
-             &scaleLen, NULL, &unrrduHestScaleCB);
-  hestOptAdd(&opt, "off,offset", "off0", airTypeDouble, 0, -1, &off, "",
-             "For each axis, an offset or shift to the position (in index "
-             "space) of the lower end of the sampling domain. "
-             "Either -off can be used, or -min and -max "
-             "together, or none of these (so that, by default, the full "
-             "domain of the axis is resampled).",
-             &offLen);
-  hestOptAdd(&opt, "min,minimum", "min0", airTypeDouble, 0, -1, &min, "",
-             "For each axis, the lower end (in index space) of the domain "
-             "of the resampling. Either -off can be used, or -min and -max "
-             "together, or none of these (so that, by default, the full "
-             "domain of the axis is resampled).",
-             &minLen);
-  hestOptAdd(&opt, "max,maximum", "max0", airTypeDouble, 0, -1, &max, "",
-             "For each axis, the upper end (in index space) of the domain "
-             "of the resampling. Either -off can be used, or -min and -max "
-             "together, or none of these, so that (by default), the full "
-             "domain of the axis is resampled.",
-             &maxLen);
-  hestOptAdd(&opt, "k,kernel", "kern", airTypeOther, 1, 1, &unuk, "cubic:0,0.5",
-             "The kernel to use for resampling.  "
-             "Kernels logically live in the input index space for upsampling, "
-             "and in the output index space for downsampling.  "
-             "Possibilities include:\n "
-             "\b\bo \"box\": nearest neighbor interpolation on upsampling, "
-             "and uniform averaging on downsampling\n "
-             "\b\bo \"cheap\": nearest neighbor interpolation for upsampling, "
-             "and non-blurring sub-sampling (pick subset of input samples) "
-             "on downsampling\n "
-             "\b\bo \"tent\": linear interpolation\n "
-             "\b\bo \"cubic:B,C\": Mitchell/Netravali BC-family of "
-             "cubics:\n "
-             "\t\t\"cubic:1,0\": B-spline; maximal blurring\n "
-             "\t\t\"cubic:0,0.5\": Catmull-Rom; good interpolating kernel\n "
-             "\b\bo \"c4h\": 6-sample-support, C^4 continuous, accurate\n "
-             "\b\bo \"c4hai\": discrete pre-filter to make c4h interpolate\n "
-             "\b\bo \"bspl3\", \"bspl5\", \"bspl7\": cubic (same as cubic:1,0), "
-             "quintic, and 7th order B-spline\n "
-             "\b\bo \"bspl3ai\", \"bspl5ai\", \"bspl7ai\": discrete pre-filters to make "
-             "bspl3, bspl5, bspl7 interpolate\n "
-             "\b\bo \"hann:R\": Hann (cosine bell) windowed sinc, radius R\n "
-             "\b\bo \"black:R\": Blackman windowed sinc, radius R\n "
-             "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
-             "S and cut-off at C standard deviations\n "
-             "\b\bo \"dgauss:S,C\": Lindeberg's discrete Gaussian.",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&opt, "nrn", NULL, airTypeInt, 0, 0, &norenorm, NULL,
-             "do NOT do per-pass kernel weight renormalization. "
-             "Doing the renormalization is not a performance hit (hence is "
-             "enabled by default), and the renormalization is sometimes "
-             "needed to avoid \"grating\" on non-integral "
-             "down-sampling.  Disabling the renormalization is needed for "
-             "correct results with artificially narrow kernels. ");
-  hestOptAdd(&opt, "ne,nonexistent", "behavior", airTypeEnum, 1, 1, &neb, "noop",
-             "When resampling floating-point values, how to handle "
-             "non-existent values within kernel support:\n "
-             "\b\bo \"noop\": do nothing; let them pollute result\n "
-             "\b\bo \"renorm\": ignore them and renormalize weights of "
-             "existent values\n "
-             "\b\bo \"wght\": ignore them and simply use weights of "
-             "existent values",
-             NULL, nrrdResampleNonExistent);
-  hestOptAdd(&opt, "b,boundary", "behavior", airTypeEnum, 1, 1, &bb, "bleed",
-             "How to handle samples beyond the input bounds:\n "
-             "\b\bo \"pad\": use some specified value\n "
-             "\b\bo \"bleed\": extend border values outward\n "
-             "\b\bo \"mirror\": repeated reflections\n "
-             "\b\bo \"wrap\": wrap-around to other side",
-             NULL, nrrdBoundary);
-  hestOptAdd(&opt, "v,value", "value", airTypeDouble, 1, 1, &padVal, "0.0",
-             "for \"pad\" boundary behavior, pad with this value");
-  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
-             "type to save OUTPUT as. By default (not using this option), "
-             "the output type is the same as the input type",
-             NULL, NULL, &unrrduHestMaybeTypeCB);
-  hestOptAdd(&opt, "cheap", NULL, airTypeInt, 0, 0, &(info->cheap), NULL,
-             "[DEPRECATED: the \"-k cheap\" option is the new (and more "
-             "reliable) way to access this functionality. \"-cheap\" is "
-             "only here for legacy use in combination with \"-old\".]\n "
-             "When downsampling (reducing number of samples), don't "
-             "try to do correct filtering by scaling kernel to match "
-             "new (stretched) index space; keep it in old index space. "
-             "When used in conjunction with \"-k box\", this can implement "
-             "subsampling which chooses every Nth value. ");
-  hestOptAdd(&opt, "c,center", "center", airTypeEnum, 1, 1, &defaultCenter,
-             (nrrdCenterCell == nrrdDefaultCenter ? "cell" : "node"),
-             "(not available with \"-old\") "
-             "default centering of axes when input nrrd "
-             "axes don't have a known centering: \"cell\" or \"node\" ",
-             NULL, nrrdCenter);
-  hestOptAdd(&opt, "co,center-override", NULL, airTypeInt, 0, 0, &overrideCenter, NULL,
-             "(not available with \"-old\") "
-             "centering info specified via \"-c\" should *over-ride* "
-             "known centering, rather than simply be used when centering "
-             "is unknown.");
-  hestOptAdd(&opt, "verbose", "v", airTypeInt, 1, 1, &verbose, "0",
-             "(not available with \"-old\") verbosity level");
+  hestOptAdd_Flag(&opt, "old", &older,
+                  "instead of using the new nrrdResampleContext implementation, "
+                  "use the old nrrdSpatialResample implementation");
+  hestOptAdd_Nv_Other(&opt, "s,size", "sz0", 1, -1, &scale, NULL,
+                      "For each axis, information about how many samples in output:\n "
+                      "\b\bo \"=\": leave this axis completely untouched: no "
+                      "resampling whatsoever\n "
+                      "\b\bo \"x<float>\": multiply the number of input samples by "
+                      "<float>, and round to the nearest integer, to get the number "
+                      "of output samples.  Use \"x1\" to resample the axis but leave "
+                      "the number of samples unchanged\n "
+                      "\b\bo \"/<float>\": divide number of samples by <float>\n "
+                      "\b\bo \"+=<uint>\", \"-=<uint>\": add <uint> to or subtract "
+                      "<uint> from number input samples to get number output samples\n "
+                      "\b\bo \"s<float>\": assuming that some spacing information is "
+                      "known on this input axis, then set the number of sample so that "
+                      "the given float is the output axis spacing\n "
+                      "\b\bo \"<uint>\": exact number of output samples\n "
+                      "\b\bo \"a\": resample this axis to whatever number of samples "
+                      "preserves the aspect ratio of other resampled axes. Currently "
+                      "needs to be used on all but one of the resampled axes, "
+                      "if at all. ",
+                      &scaleLen, &unrrduHestScaleCB);
+  hestOptAdd_Nv_Double(&opt, "off,offset", "off0", 0, -1, &off, "",
+                       "For each axis, an offset or shift to the position (in index "
+                       "space) of the lower end of the sampling domain. "
+                       "Either -off can be used, or -min and -max "
+                       "together, or none of these (so that, by default, the full "
+                       "domain of the axis is resampled).",
+                       &offLen);
+  hestOptAdd_Nv_Double(&opt, "min,minimum", "min0", 0, -1, &min, "",
+                       "For each axis, the lower end (in index space) of the domain "
+                       "of the resampling. Either -off can be used, or -min and -max "
+                       "together, or none of these (so that, by default, the full "
+                       "domain of the axis is resampled).",
+                       &minLen);
+  hestOptAdd_Nv_Double(&opt, "max,maximum", "max0", 0, -1, &max, "",
+                       "For each axis, the upper end (in index space) of the domain "
+                       "of the resampling. Either -off can be used, or -min and -max "
+                       "together, or none of these, so that (by default), the full "
+                       "domain of the axis is resampled.",
+                       &maxLen);
+  hestOptAdd_1_Other(
+    &opt, "k,kernel", "kern", &unuk, "cubic:0,0.5",
+    "The kernel to use for resampling.  "
+    "Kernels logically live in the input index space for upsampling, "
+    "and in the output index space for downsampling.  "
+    "Possibilities include:\n "
+    "\b\bo \"box\": nearest neighbor interpolation on upsampling, "
+    "and uniform averaging on downsampling\n "
+    "\b\bo \"cheap\": nearest neighbor interpolation for upsampling, "
+    "and non-blurring sub-sampling (pick subset of input samples) "
+    "on downsampling\n "
+    "\b\bo \"tent\": linear interpolation\n "
+    "\b\bo \"cubic:B,C\": Mitchell/Netravali BC-family of "
+    "cubics:\n "
+    "\t\t\"cubic:1,0\": B-spline; maximal blurring\n "
+    "\t\t\"cubic:0,0.5\": Catmull-Rom; good interpolating kernel\n "
+    "\b\bo \"c4h\": 6-sample-support, C^4 continuous, accurate\n "
+    "\b\bo \"c4hai\": discrete pre-filter to make c4h interpolate\n "
+    "\b\bo \"bspl3\", \"bspl5\", \"bspl7\": cubic (same as cubic:1,0), "
+    "quintic, and 7th order B-spline\n "
+    "\b\bo \"bspl3ai\", \"bspl5ai\", \"bspl7ai\": discrete pre-filters to make "
+    "bspl3, bspl5, bspl7 interpolate\n "
+    "\b\bo \"hann:R\": Hann (cosine bell) windowed sinc, radius R\n "
+    "\b\bo \"black:R\": Blackman windowed sinc, radius R\n "
+    "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
+    "S and cut-off at C standard deviations\n "
+    "\b\bo \"dgauss:S,C\": Lindeberg's discrete Gaussian.",
+    nrrdHestKernelSpec);
+  hestOptAdd_Flag(&opt, "nrn", &norenorm,
+                  "do NOT do per-pass kernel weight renormalization. "
+                  "Doing the renormalization is not a performance hit (hence is "
+                  "enabled by default), and the renormalization is sometimes "
+                  "needed to avoid \"grating\" on non-integral "
+                  "down-sampling.  Disabling the renormalization is needed for "
+                  "correct results with artificially narrow kernels. ");
+  hestOptAdd_1_Enum(&opt, "ne,nonexistent", "behavior", &neb, "noop",
+                    "When resampling floating-point values, how to handle "
+                    "non-existent values within kernel support:\n "
+                    "\b\bo \"noop\": do nothing; let them pollute result\n "
+                    "\b\bo \"renorm\": ignore them and renormalize weights of "
+                    "existent values\n "
+                    "\b\bo \"wght\": ignore them and simply use weights of "
+                    "existent values",
+                    nrrdResampleNonExistent);
+  hestOptAdd_1_Enum(&opt, "b,boundary", "behavior", &bb, "bleed",
+                    "How to handle samples beyond the input bounds:\n "
+                    "\b\bo \"pad\": use some specified value\n "
+                    "\b\bo \"bleed\": extend border values outward\n "
+                    "\b\bo \"mirror\": repeated reflections\n "
+                    "\b\bo \"wrap\": wrap-around to other side",
+                    nrrdBoundary);
+  hestOptAdd_1_Double(&opt, "v,value", "value", &padVal, "0.0",
+                      "for \"pad\" boundary behavior, pad with this value");
+  hestOptAdd_1_Other(&opt, "t,type", "type", &type, "default",
+                     "type to save OUTPUT as. By default (not using this option), "
+                     "the output type is the same as the input type",
+                     &unrrduHestMaybeTypeCB);
+  hestOptAdd_Flag(&opt, "cheap", &(info->cheap),
+                  "[DEPRECATED: the \"-k cheap\" option is the new (and more "
+                  "reliable) way to access this functionality. \"-cheap\" is "
+                  "only here for legacy use in combination with \"-old\".]\n "
+                  "When downsampling (reducing number of samples), don't "
+                  "try to do correct filtering by scaling kernel to match "
+                  "new (stretched) index space; keep it in old index space. "
+                  "When used in conjunction with \"-k box\", this can implement "
+                  "subsampling which chooses every Nth value. ");
+  hestOptAdd_1_Enum(&opt, "c,center", "center", &defaultCenter,
+                    (nrrdCenterCell == nrrdDefaultCenter ? "cell" : "node"),
+                    "(not available with \"-old\") "
+                    "default centering of axes when input nrrd "
+                    "axes don't have a known centering: \"cell\" or \"node\" ",
+                    nrrdCenter);
+  hestOptAdd_Flag(&opt, "co,center-override", &overrideCenter,
+                  "(not available with \"-old\") "
+                  "centering info specified via \"-c\" should *over-ride* "
+                  "known centering, rather than simply be used when centering "
+                  "is unknown.");
+  hestOptAdd_1_Int(&opt, "verbose", "v", &verbose, "0",
+                   "(not available with \"-old\") verbosity level");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

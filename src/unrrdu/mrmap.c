@@ -42,40 +42,40 @@ unrrdu_mrmapMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   unsigned int _nmmapLen;
   double min, max;
 
-  hestOptAdd(&opt, "m,map", "mmap", airTypeOther, 1, -1, &_nmmap, NULL,
-             "one nrrd of regular maps to map input nrrd through, or, "
-             "list of nrrds which contain the individual entries of the map "
-             "at each voxel, which will be joined together.",
-             &_nmmapLen, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "r,rescale", NULL, airTypeInt, 0, 0, &rescale, NULL,
-             "rescale the input values from the input range to the "
-             "map domain.  The map domain is either explicitly "
-             "defined by the axis min,max along axis 0 or 1, or, it "
-             "is implicitly defined as zero to one minus the length of "
-             "that axis.");
-  hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &min, "nan",
-             "Low end of input range. Defaults to lowest value "
-             "found in input nrrd.  Explicitly setting this is useful "
-             "only with rescaling (\"-r\") or if the map domain is only "
-             "implicitly defined");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeDouble, 1, 1, &max, "nan",
-             "High end of input range. Defaults to highest value "
-             "found in input nrrd.  Explicitly setting this is useful "
-             "only with rescaling (\"-r\") or if the map domain is only "
-             "implicitly defined");
-  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
-             nrrdStateBlind8BitRange ? "true" : "false",
-             "Whether to know the range of 8-bit data blindly "
-             "(uchar is always [0,255], signed char is [-128,127]). "
-             "Explicitly setting this is useful "
-             "only with rescaling (\"-r\") or if the map domain is only "
-             "implicitly defined");
-  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &typeOut, "default",
-             "specify the type (\"int\", \"float\", etc.) of the "
-             "output nrrd. "
-             "By default (not using this option), the output type "
-             "is the map's type.",
-             NULL, NULL, &unrrduHestMaybeTypeCB);
+  hestOptAdd_Nv_Other(&opt, "m,map", "mmap", 1, -1, &_nmmap, NULL,
+                      "one nrrd of regular maps to map input nrrd through, or, "
+                      "list of nrrds which contain the individual entries of the map "
+                      "at each voxel, which will be joined together.",
+                      &_nmmapLen, nrrdHestNrrd);
+  hestOptAdd_Flag(&opt, "r,rescale", &rescale,
+                  "rescale the input values from the input range to the "
+                  "map domain.  The map domain is either explicitly "
+                  "defined by the axis min,max along axis 0 or 1, or, it "
+                  "is implicitly defined as zero to one minus the length of "
+                  "that axis.");
+  hestOptAdd_1_Double(&opt, "min,minimum", "value", &min, "nan",
+                      "Low end of input range. Defaults to lowest value "
+                      "found in input nrrd.  Explicitly setting this is useful "
+                      "only with rescaling (\"-r\") or if the map domain is only "
+                      "implicitly defined");
+  hestOptAdd_1_Double(&opt, "max,maximum", "value", &max, "nan",
+                      "High end of input range. Defaults to highest value "
+                      "found in input nrrd.  Explicitly setting this is useful "
+                      "only with rescaling (\"-r\") or if the map domain is only "
+                      "implicitly defined");
+  hestOptAdd_1_Bool(&opt, "blind8", "bool", &blind8BitRange,
+                    nrrdStateBlind8BitRange ? "true" : "false",
+                    "Whether to know the range of 8-bit data blindly "
+                    "(uchar is always [0,255], signed char is [-128,127]). "
+                    "Explicitly setting this is useful "
+                    "only with rescaling (\"-r\") or if the map domain is only "
+                    "implicitly defined");
+  hestOptAdd_1_Other(&opt, "t,type", "type", &typeOut, "default",
+                     "specify the type (\"int\", \"float\", etc.) of the "
+                     "output nrrd. "
+                     "By default (not using this option), the output type "
+                     "is the map's type.",
+                     &unrrduHestMaybeTypeCB);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

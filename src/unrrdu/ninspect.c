@@ -341,18 +341,18 @@ unrrdu_ninspectMain(int argc, const char **argv, const char *me, hestParm *hparm
 
   mop = airMopNew();
 
-  hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input nrrd to project.  Must be three dimensional.", NULL, NULL,
-             nrrdHestNrrd);
-  hestOptAdd(&opt, "amt", "heq", airTypeFloat, 1, 1, &heqamount, "0.5",
-             "how much to apply histogram equalization to projection images");
-  hestOptAdd(&opt, "m", "margin", airTypeUInt, 1, 1, &margin, "6",
-             "pixel size of margin on boundary, and space between the projections");
-  hestOptAdd(&opt, "b", "background", airTypeUInt, 3, 3, back, "0 0 0",
-             "background color (8-bit RGB)");
-  hestOptAdd(&opt, "o", "img out", airTypeString, 1, 1, &outS, NULL,
-             "output image to save to.  Will try to use whatever "
-             "format is implied by extension, but will fall back to PPM.");
+  hestOptAdd_1_Other(&opt, "i", "nin", &nin, NULL,
+                     "input nrrd to project.  Must be three dimensional.", nrrdHestNrrd);
+  hestOptAdd_1_Float(&opt, "amt", "heq", &heqamount, "0.5",
+                     "how much to apply histogram equalization to projection images");
+  hestOptAdd_1_UInt(
+    &opt, "m", "margin", &margin, "6",
+    "pixel size of margin on boundary, and space between the projections");
+  hestOptAdd_3_UInt(&opt, "b", "background", back, "0 0 0",
+                    "background color (8-bit RGB)");
+  hestOptAdd_1_String(&opt, "o", "img out", &outS, NULL,
+                      "output image to save to.  Will try to use whatever "
+                      "format is implied by extension, but will fall back to PPM.");
   USAGE_OR_PARSE(_unrrdu_infoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 

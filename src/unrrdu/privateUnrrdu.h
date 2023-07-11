@@ -191,26 +191,24 @@ UNRRDU_MAP(UNRRDU_DECLARE)
 */
 /* Nrrd *var */
 #define OPT_ADD_NIN(var, desc)                                                          \
-  hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &(var), "-", desc, NULL, NULL, \
-             nrrdHestNrrd)
+  hestOptAdd_1_Other(&opt, "i,input", "nin", &(var), "-", desc, nrrdHestNrrd)
 
 /* char *var */
 #define OPT_ADD_NOUT(var, desc)                                                         \
-  hestOptAdd(&opt, "o,output", "nout", airTypeString, 1, 1, &(var), "-", desc)
+  hestOptAdd_1_String(&opt, "o,output", "nout", &(var), "-", desc)
 
 /* unsigned int var */
 #define OPT_ADD_AXIS(var, desc)                                                         \
-  hestOptAdd(&opt, "a,axis", "axis", airTypeUInt, 1, 1, &(var), NULL, desc)
+  hestOptAdd_1_UInt(&opt, "a,axis", "axis", &(var), NULL, desc)
 
 /* int *var; int saw */
 #define OPT_ADD_BOUND(name, needmin, var, deflt, desc, saw)                             \
-  hestOptAdd(&opt, name, "pos0", airTypeOther, needmin, -1, &(var), deflt, desc,        \
-             &(saw), NULL, &unrrduHestPosCB)
+  hestOptAdd_Nv_Other(&opt, name, "pos0", needmin, -1, &(var), deflt, desc, &(saw),     \
+                      &unrrduHestPosCB)
 
 /* int var */
 #define OPT_ADD_TYPE(var, desc, dflt)                                                   \
-  hestOptAdd(&opt, "t,type", "type", airTypeEnum, 1, 1, &(var), dflt, desc, NULL,       \
-             nrrdType)
+  hestOptAdd_1_Enum(&opt, "t,type", "type", &(var), dflt, desc, nrrdType)
 
 /*
 ** USAGE, PARSE, SAVE

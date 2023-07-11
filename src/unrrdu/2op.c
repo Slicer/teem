@@ -33,60 +33,59 @@ static const char *_unrrdu_2opInfoL
 static int
 unrrdu_2opMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, *seedS;
+  char *out, *err;
   NrrdIter *in1, *in2;
   Nrrd *nout, *ntmp = NULL;
   int op, type, E, pret, which;
   airArray *mop;
-  unsigned int seed;
+  unsigned int seed, seedOI;
 
-  hestOptAdd(&opt, NULL, "operator", airTypeEnum, 1, 1, &op, NULL,
-             "Binary operator. Possibilities include:\n "
-             "\b\bo \"+\", \"-\", \"x\", \"/\": "
-             "add, subtract, multiply, divide\n "
-             "\b\bo \"+c\", \"-c\", \"xc\": add, subtract, multiply, with "
-             "clamping to range of output, in case its integral\n "
-             "\b\bo \"^\": exponentiation (pow)\n "
-             "\b\bo \"spow\": signed exponentiation: sgn(x)pow(abs(x),p)\n "
-             "\b\bo \"fpow\": like spow but with curves flipped\n "
-             "\b\bo \"%\": integer modulo\n "
-             "\b\bo \"fmod\": same as fmod() in C\n "
-             "\b\bo \"atan2\": same as atan2() in C\n "
-             "\b\bo \"min\", \"max\": minimum, maximum\n "
-             "\b\bo \"lt\", \"lte\", \"gt\", \"gte\": same as C's <, <=, >, <=\n "
-             "\b\bo \"eq\", \"neq\": same as C's == and !=\n "
-             "\b\bo \"comp\": -1, 0, or 1 if 1st value is less than, "
-             "equal to, or greater than 2nd value\n "
-             "\b\bo \"if\": if 1st value is non-zero, use it, "
-             "else use 2nd value\n "
-             "\b\bo \"exists\": if 1st value exists, use it, "
-             "else use 2nd value\n "
-             "\b\bo \"nrand\": scale unit-stdv Gaussian noise by 2nd value "
-             "and add to first value\n "
-             "\b\bo \"rrand\": sample Rician distribution with 1st value "
-             "for \"true\" mean, and 2nd value for sigma",
-             NULL, nrrdBinaryOp);
-  hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
-             "First input.  Can be a single value or a nrrd.", NULL, NULL, nrrdHestIter);
-  hestOptAdd(&opt, NULL, "in2", airTypeOther, 1, 1, &in2, NULL,
-             "Second input.  Can be a single value or a nrrd.", NULL, NULL,
-             nrrdHestIter);
-  hestOptAdd(&opt, "s,seed", "seed", airTypeString, 1, 1, &seedS, "",
-             "seed value for RNG for nrand, so that you "
-             "can get repeatable results between runs, or, "
-             "by not using this option, the RNG seeding will be "
-             "based on the current time");
-  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
-             "type to convert all INPUT nrrds to, prior to "
-             "doing operation, useful for doing, for instance, the difference "
-             "between two unsigned char nrrds.  This will also determine "
-             "output type. By default (not using this option), the types of "
-             "the input nrrds are left unchanged.",
-             NULL, NULL, &unrrduHestMaybeTypeCB);
-  hestOptAdd(&opt, "w,which", "arg", airTypeInt, 1, 1, &which, "-1",
-             "Which argument (0 or 1) should be used to determine the "
-             "shape of the output nrrd. By default (not using this option), "
-             "the first non-constant argument is used. ");
+  hestOptAdd_1_Enum(&opt, NULL, "operator", &op, NULL,
+                    "Binary operator. Possibilities include:\n "
+                    "\b\bo \"+\", \"-\", \"x\", \"/\": "
+                    "add, subtract, multiply, divide\n "
+                    "\b\bo \"+c\", \"-c\", \"xc\": add, subtract, multiply, with "
+                    "clamping to range of output, in case its integral\n "
+                    "\b\bo \"^\": exponentiation (pow)\n "
+                    "\b\bo \"spow\": signed exponentiation: sgn(x)pow(abs(x),p)\n "
+                    "\b\bo \"fpow\": like spow but with curves flipped\n "
+                    "\b\bo \"%\": integer modulo\n "
+                    "\b\bo \"fmod\": same as fmod() in C\n "
+                    "\b\bo \"atan2\": same as atan2() in C\n "
+                    "\b\bo \"min\", \"max\": minimum, maximum\n "
+                    "\b\bo \"lt\", \"lte\", \"gt\", \"gte\": same as C's <, <=, >, <=\n "
+                    "\b\bo \"eq\", \"neq\": same as C's == and !=\n "
+                    "\b\bo \"comp\": -1, 0, or 1 if 1st value is less than, "
+                    "equal to, or greater than 2nd value\n "
+                    "\b\bo \"if\": if 1st value is non-zero, use it, "
+                    "else use 2nd value\n "
+                    "\b\bo \"exists\": if 1st value exists, use it, "
+                    "else use 2nd value\n "
+                    "\b\bo \"nrand\": scale unit-stdv Gaussian noise by 2nd value "
+                    "and add to first value\n "
+                    "\b\bo \"rrand\": sample Rician distribution with 1st value "
+                    "for \"true\" mean, and 2nd value for sigma",
+                    nrrdBinaryOp);
+  hestOptAdd_1_Other(&opt, NULL, "in1", &in1, NULL,
+                     "First input.  Can be a single value or a nrrd.", nrrdHestIter);
+  hestOptAdd_1_Other(&opt, NULL, "in2", &in2, NULL,
+                     "Second input.  Can be a single value or a nrrd.", nrrdHestIter);
+  seedOI = hestOptAdd_1_UInt(&opt, "s,seed", "seed", &seed, "0",
+                             "seed value for random number generator (RNG), to "
+                             "enable repeatable results between runs, or, "
+                             "by not using this option, the RNG seeding will be "
+                             "based on the current time");
+  hestOptAdd_1_Other(&opt, "t,type", "type", &type, "default",
+                     "type to convert all INPUT nrrds to, prior to "
+                     "doing operation, useful for doing, for instance, the difference "
+                     "between two unsigned char nrrds.  This will also determine "
+                     "output type. By default (not using this option), the types of "
+                     "the input nrrds are left unchanged.",
+                     &unrrduHestMaybeTypeCB);
+  hestOptAdd_1_Int(&opt, "w,which", "arg", &which, "-1",
+                   "Which argument (0 or 1) should be used to determine the "
+                   "shape of the output nrrd. By default (not using this option), "
+                   "the first non-constant argument is used. ");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();
@@ -128,19 +127,13 @@ unrrdu_2opMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   **   if (nrrdBinaryOpNormalRandScaleAdd == op) {
   ** but then when nrrdBinaryOpRicianRand was added, then the seed wasn't being
   ** used ==> BUG.  To be more future proof, we try to parse and use seed
-  ** whenever a non-empty string is given, and end up *ALWAYS* calling
+  ** whenever the user exercies this option, and end up *ALWAYS* calling
   ** airSrandMT, even for operations that have nothing to do with random
   ** numbers.  Could also have a new array that indicates if an op involves
   ** the RNG, but this would add rarely-needed complexity
   */
-  if (airStrlen(seedS)) {
-    if (1 != sscanf(seedS, "%u", &seed)) {
-      fprintf(stderr, "%s: couldn't parse seed \"%s\" as uint\n", me, seedS);
-      airMopError(mop);
-      return 1;
-    } else {
-      airSrandMT(seed);
-    }
+  if (hestSourceDefault != opt[seedOI].source) {
+    airSrandMT(seed);
   } else {
     /* got no request for specific seed */
     airSrandMT(AIR_UINT(airTime()));

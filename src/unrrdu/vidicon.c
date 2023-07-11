@@ -25,7 +25,7 @@
 #define INFO "Try to create the look of early 80s analog B+W video"
 static const char *_unrrdu_vidiconInfoL
   = (INFO ". Does various things, some more justified than others.\n "
-          "* (as yet there's no single nrrd function which does all this)");
+          "* (there is no single nrrd function which does all this)");
 
 static int
 unrrdu_vidiconMain(int argc, const char **argv, const char *me, hestParm *hparm) {
@@ -43,36 +43,35 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me, hestParm *hparm)
 
   hparm->elideSingleOtherDefault = AIR_FALSE;
 
-  hestOptAdd(&opt, "i", "input", airTypeOther, 1, 1, &nin, NULL,
-             "input image. Should be grayscale PNG.", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "rs", "rescale", airTypeDouble, 1, 1, &rescale, "0.75",
-             "how to rescale (downsample) the image prior to processing, "
-             "just to get a better representation of the floating-point "
-             "range of image values (overcoming 8-bit quantization effects)");
-  hestOptAdd(&opt, "rsk", "kern", airTypeOther, 1, 1, &rescaleKsp, "hann:5",
-             "kernel for rescaling.", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&opt, "rsp", "percentile", airTypeDouble, 1, 1, &rperc, "1.5",
-             "after rescaling, the highest and lowest percentiles are mapped "
-             "to 0.0 and 255.0, just to have a uniform range of intensities "
-             "in subsequent processing. This option determines how big those "
-             "percentiles are.");
-  hestOptAdd(&opt, "vs", "sx sy", airTypeUInt, 2, 2, vsize, "550 525",
-             "the lowest (\"video\") resolution to which the image is "
-             "down-sampled, reflecting the limited resolution of the "
-             "vidicon tubes");
-  hestOptAdd(&opt, "pad", "padX padY", airTypeUInt, 2, 2, vpadding, "10 10",
-             "at the lowest resolution, there should be this much padding "
-             "by black, to reflect the fact the signal outside the tube "
-             "(e.g. between scanlines is black)");
-  hestOptAdd(&opt, "vk", "kernX kernY", airTypeOther, 2, 2, vdsmp,
-             "hann:1,4 cubic:0,0.5",
-             "kernels for downsampling to video resolution; the horizontal "
-             "and vertical kernels are different",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&opt, "stp", "prefix", airTypeString, 1, 1, &stpfx, "",
-             "if a string is given here, a series of images are saved, "
-             "representing the various stages of processing");
-  hestOptAdd(&opt, "o", "output", airTypeString, 1, 1, &out, NULL, "output nrrd");
+  hestOptAdd_1_Other(&opt, "i", "input", &nin, NULL,
+                     "input image. Should be grayscale PNG.", nrrdHestNrrd);
+  hestOptAdd_1_Double(&opt, "rs", "rescale", &rescale, "0.75",
+                      "how to rescale (downsample) the image prior to processing, "
+                      "just to get a better representation of the floating-point "
+                      "range of image values (overcoming 8-bit quantization effects)");
+  hestOptAdd_1_Other(&opt, "rsk", "kern", &rescaleKsp, "hann:5", "kernel for rescaling.",
+                     nrrdHestKernelSpec);
+  hestOptAdd_1_Double(&opt, "rsp", "percentile", &rperc, "1.5",
+                      "after rescaling, the highest and lowest percentiles are mapped "
+                      "to 0.0 and 255.0, just to have a uniform range of intensities "
+                      "in subsequent processing. This option determines how big those "
+                      "percentiles are.");
+  hestOptAdd_2_UInt(&opt, "vs", "sx sy", vsize, "550 525",
+                    "the lowest (\"video\") resolution to which the image is "
+                    "down-sampled, reflecting the limited resolution of the "
+                    "vidicon tubes");
+  hestOptAdd_2_UInt(&opt, "pad", "padX padY", vpadding, "10 10",
+                    "at the lowest resolution, there should be this much padding "
+                    "by black, to reflect the fact the signal outside the tube "
+                    "(e.g. between scanlines is black)");
+  hestOptAdd_2_Other(&opt, "vk", "kernX kernY", vdsmp, "hann:1,4 cubic:0,0.5",
+                     "kernels for downsampling to video resolution; the horizontal "
+                     "and vertical kernels are different",
+                     nrrdHestKernelSpec);
+  hestOptAdd_1_String(&opt, "stp", "prefix", &stpfx, "",
+                      "if a string is given here, a series of images are saved, "
+                      "representing the various stages of processing");
+  hestOptAdd_1_String(&opt, "o", "output", &out, NULL, "output nrrd");
 
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);

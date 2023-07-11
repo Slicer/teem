@@ -39,53 +39,52 @@ unrrdu_3opMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int op, type, E, pret, which;
   airArray *mop;
 
-  hestOptAdd(&opt, NULL, "operator", airTypeEnum, 1, 1, &op, NULL,
-             "Ternary operator. Possibilities include:\n "
-             "\b\bo \"+\", \"x\": sum or product of three values\n "
-             "\b\bo \"min\", \"max\": minimum, maximum\n "
-             "\b\bo \"min_sm\": smoothed minimum function; "
-             "min_sm(x, w, M) is like min(x,M) but for x > M-w (with w > 0) "
-             "there is a smooth transition from x to asymptotic to M\n "
-             "\b\bo \"max_sm\": smoothed maximum function; "
-             "max_sm(M, w, x) is like max(M,x) but for x < m+w (with w > m) "
-             "there is a smooth transition from x to asymptotic to m\n "
-             "\b\bo \"lt_sm\": 1st less than 3rd, smoothed by 2nd\n "
-             "\b\bo \"gt_sm\": 1st greater than 3rd, smoothed by 2nd\n "
-             "\b\bo \"clamp\": 2nd value is clamped to range between "
-             "the 1st and the 3rd\n "
-             "\b\bo \"ifelse\": if 1st value non-zero, then 2nd value, else "
-             "3rd value\n "
-             "\b\bo \"lerp\": linear interpolation between the 2nd and "
-             "3rd values, as the 1st value varies between 0.0 and 1.0, "
-             "respectively\n "
-             "\b\bo \"exists\": if the 1st value exists, use the 2nd "
-             "value, otherwise use the 3rd\n "
-             "\b\bo \"in_op\": 1 iff 2nd value is > 1st and < 3rd, "
-             "0 otherwise\n "
-             "\b\bo \"in_cl\": 1 iff 2nd value is >= 1st and <= 3rd, "
-             "0 otherwise\n "
-             "\b\bo \"gauss\": evaluate (at 1st value) Gaussian with mean=2nd "
-             "and stdv=3rd value\n "
-             "\b\bo \"rician\": evaluate (at 1st value) Rician with mean=2nd "
-             "and stdv=3rd value",
-             NULL, nrrdTernaryOp);
-  hestOptAdd(&opt, NULL, "in1", airTypeOther, 1, 1, &in1, NULL,
-             "First input.  Can be a single value or a nrrd.", NULL, NULL, nrrdHestIter);
-  hestOptAdd(&opt, NULL, "in2", airTypeOther, 1, 1, &in2, NULL,
-             "Second input.  Can be a single value or a nrrd.", NULL, NULL,
-             nrrdHestIter);
-  hestOptAdd(&opt, NULL, "in3", airTypeOther, 1, 1, &in3, NULL,
-             "Third input.  Can be a single value or a nrrd.", NULL, NULL, nrrdHestIter);
-  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
-             "type to convert all nrrd inputs to, prior to "
-             "doing operation.  This also determines output type. "
-             "By default (not using this option), the types of the input "
-             "nrrds are left unchanged.",
-             NULL, NULL, &unrrduHestMaybeTypeCB);
-  hestOptAdd(&opt, "w,which", "arg", airTypeInt, 1, 1, &which, "-1",
-             "Which argument (0, 1, or 2) should be used to determine the "
-             "shape of the output nrrd. By default (not using this option), "
-             "the first non-constant argument is used. ");
+  hestOptAdd_1_Enum(&opt, NULL, "operator", &op, NULL,
+                    "Ternary operator. Possibilities include:\n "
+                    "\b\bo \"+\", \"x\": sum or product of three values\n "
+                    "\b\bo \"min\", \"max\": minimum, maximum\n "
+                    "\b\bo \"min_sm\": smoothed minimum function; "
+                    "min_sm(x, w, M) is like min(x,M) but for x > M-w (with w > 0) "
+                    "there is a smooth transition from x to asymptotic to M\n "
+                    "\b\bo \"max_sm\": smoothed maximum function; "
+                    "max_sm(M, w, x) is like max(M,x) but for x < m+w (with w > m) "
+                    "there is a smooth transition from x to asymptotic to m\n "
+                    "\b\bo \"lt_sm\": 1st less than 3rd, smoothed by 2nd\n "
+                    "\b\bo \"gt_sm\": 1st greater than 3rd, smoothed by 2nd\n "
+                    "\b\bo \"clamp\": 2nd value is clamped to range between "
+                    "the 1st and the 3rd\n "
+                    "\b\bo \"ifelse\": if 1st value non-zero, then 2nd value, else "
+                    "3rd value\n "
+                    "\b\bo \"lerp\": linear interpolation between the 2nd and "
+                    "3rd values, as the 1st value varies between 0.0 and 1.0, "
+                    "respectively\n "
+                    "\b\bo \"exists\": if the 1st value exists, use the 2nd "
+                    "value, otherwise use the 3rd\n "
+                    "\b\bo \"in_op\": 1 iff 2nd value is > 1st and < 3rd, "
+                    "0 otherwise\n "
+                    "\b\bo \"in_cl\": 1 iff 2nd value is >= 1st and <= 3rd, "
+                    "0 otherwise\n "
+                    "\b\bo \"gauss\": evaluate (at 1st value) Gaussian with mean=2nd "
+                    "and stdv=3rd value\n "
+                    "\b\bo \"rician\": evaluate (at 1st value) Rician with mean=2nd "
+                    "and stdv=3rd value",
+                    nrrdTernaryOp);
+  hestOptAdd_1_Other(&opt, NULL, "in1", &in1, NULL,
+                     "First input.  Can be a single value or a nrrd.", nrrdHestIter);
+  hestOptAdd_1_Other(&opt, NULL, "in2", &in2, NULL,
+                     "Second input.  Can be a single value or a nrrd.", nrrdHestIter);
+  hestOptAdd_1_Other(&opt, NULL, "in3", &in3, NULL,
+                     "Third input.  Can be a single value or a nrrd.", nrrdHestIter);
+  hestOptAdd_1_Other(&opt, "t,type", "type", &type, "default",
+                     "type to convert all nrrd inputs to, prior to "
+                     "doing operation.  This also determines output type. "
+                     "By default (not using this option), the types of the input "
+                     "nrrds are left unchanged.",
+                     &unrrduHestMaybeTypeCB);
+  hestOptAdd_1_Int(&opt, "w,which", "arg", &which, "-1",
+                   "Which argument (0, 1, or 2) should be used to determine the "
+                   "shape of the output nrrd. By default (not using this option), "
+                   "the first non-constant argument is used. ");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();

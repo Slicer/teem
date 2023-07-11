@@ -346,16 +346,16 @@ unrrdu_uncmtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *cmtSubst, *nameIn, *nameOut;
   int nfds, nosub;
 
-  hestOptAdd(
-    &opt, "cs", "cmtsub", airTypeString, 1, 1, &cmtSubst, "",
+  hestOptAdd_1_String(
+    &opt, "cs", "cmtsub", &cmtSubst, "",
     "Given a non-empty string, those characters are looped through to replace the "
     "non-white space characters is contents; EXCEPT if a length-2 string of a "
     "repeating character is given, (e.g. \"-cs xx\") in which case the string contents "
     "are preserved (contrary to the intended purpose of this command). To both "
     "transform the comment contents into whitespace and to wholly remove the comment "
     "delimiters, pass an empty string here (the default).");
-  hestOptAdd(
-    &opt, "nfds", NULL, airTypeInt, 0, 0, &nfds, NULL,
+  hestOptAdd_Flag(
+    &opt, "nfds", &nfds,
     "prevent \"float\" or \"double\" from appearing in string literals. String "
     "literal contents (unlike comment contents) are typically preserved by this "
     "command (since doing naive per-character substitutions in the same way as done for "
@@ -364,10 +364,10 @@ unrrdu_uncmtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     "turning them into \"floaT\" and \"doublE\". This functionality is part of the "
     "motivation for this command to exist, but the behavior is weird enough to be off "
     "by default.");
-  hestOptAdd(&opt, NULL, "fileIn", airTypeString, 1, 1, &nameIn, NULL,
-             "Single input file to read; use \"-\" for stdin");
-  hestOptAdd(&opt, NULL, "fileOut", airTypeString, 1, 1, &nameOut, NULL,
-             "Single output filename; use \"-\" for stdout");
+  hestOptAdd_1_String(&opt, NULL, "fileIn", &nameIn, NULL,
+                      "Single input file to read; use \"-\" for stdin");
+  hestOptAdd_1_String(&opt, NULL, "fileOut", &nameOut, NULL,
+                      "Single output filename; use \"-\" for stdout");
 
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);

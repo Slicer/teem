@@ -43,8 +43,8 @@ unrrdu_unorientMain(int argc, const char **argv, const char *me, hestParm *hparm
              "(sorry, can't use usual default of \"-\" for stdin "
              "because of hest quirk)",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "smfo", NULL, airTypeInt, 0, 0, &setMinsFromOrigin, NULL,
-             "set some axis mins based on space origin (hack)");
+  hestOptAdd_Flag(&opt, "smfo", &setMinsFromOrigin,
+                  "set some axis mins based on space origin (hack)");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();

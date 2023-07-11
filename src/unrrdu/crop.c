@@ -31,8 +31,8 @@ unrrdu_cropMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout;
-  unsigned int ai;
-  int minLen, maxLen, pret;
+  unsigned int ai, minLen, maxLen;
+  int pret;
   long int *minOff, *maxOff;
   size_t min[NRRD_DIM_MAX], max[NRRD_DIM_MAX];
   airArray *mop;
@@ -50,14 +50,14 @@ unrrdu_cropMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                 "there's also:\n "
                 "\b\bo m+<int> give index relative to minimum.",
                 maxLen);
-  hestOptAdd(&opt, "b,bounds", "filename", airTypeOther, 1, 1, &_nbounds, "",
-             "a filename given here overrides the -min and -max "
-             "options (they don't need to be used) and provides the "
-             "cropping bounds as a 2-D array; first scanline is for "
-             "-min, second is for -max. Unfortunately the "
-             "\"m\" and \"M\" semantics (above) are currently not "
-             "supported in the bounds file.",
-             NULL, NULL, nrrdHestNrrd);
+  hestOptAdd_1_Other(&opt, "b,bounds", "filename", &_nbounds, "",
+                     "a filename given here overrides the -min and -max "
+                     "options (they don't need to be used) and provides the "
+                     "cropping bounds as a 2-D array; first scanline is for "
+                     "-min, second is for -max. Unfortunately the "
+                     "\"m\" and \"M\" semantics (above) are currently not "
+                     "supported in the bounds file.",
+                     nrrdHestNrrd);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -68,15 +68,15 @@ unrrdu_cropMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (!_nbounds) {
-    if (!(minLen == (int)nin->dim && maxLen == (int)nin->dim)) {
-      fprintf(stderr, "%s: # min coords (%d) or max coords (%d) != nrrd dim (%d)\n", me,
+    if (!(minLen == nin->dim && maxLen == nin->dim)) {
+      fprintf(stderr, "%s: # min coords (%u) or max coords (%u) != nrrd dim (%u)\n", me,
               minLen, maxLen, nin->dim);
       airMopError(mop);
       return 1;
     }
     for (ai = 0; ai < nin->dim; ai++) {
       if (-1 == minOff[0 + 2 * ai]) {
-        fprintf(stderr, "%s: can't use m+<int> specification for axis %d min\n", me, ai);
+        fprintf(stderr, "%s: can't use m+<int> specification for axis %u min\n", me, ai);
         airMopError(mop);
         return 1;
       }
