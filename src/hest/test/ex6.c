@@ -92,6 +92,7 @@ main(int argc, const char **argv) {
   /* going past C89 to have declarations here */
   int flag;
   hestOptAdd_Flag(&opt, "f,flag", &flag, "a flag created via hestOptAdd_Flag");
+
   int b1;
   hestOptAdd_1_Bool(&opt, "b1", "bool1", &b1, "false", "test of hestOptAdd_1_Bool");
   int i1;
@@ -124,7 +125,42 @@ main(int argc, const char **argv) {
   Quat *q1;
   hestOptAdd_1_Other(&opt, "q1", "quat", &q1, "12.34", "test of hestOptAdd_1_Other B",
                      &quatCB);
-  printf("----- &q1 = %p\n", &q1);
+
+  int b1v;
+  hestOptAdd_1v_Bool(&opt, "b1v", "bool1", &b1v, "false", "test of hestOptAdd_1v_Bool");
+  int i1v;
+  hestOptAdd_1v_Int(&opt, "i1v", "int1", &i1v, "42", "test of hestOptAdd_1v_Int");
+  unsigned int ui1v;
+  hestOptAdd_1v_UInt(&opt, "ui1v", "uint1", &ui1v, "42", "test of hestOptAdd_1v_UInt");
+  long int li1v;
+  hestOptAdd_1v_LongInt(&opt, "li1v", "lint1", &li1v, "42",
+                        "test of hestOptAdd_1v_LongInt");
+  unsigned long int uli1v;
+  hestOptAdd_1v_ULongInt(&opt, "uli1v", "ulint1", &uli1v, "42",
+                         "test of hestOptAdd_1v_ULongInt");
+  size_t sz1v;
+  hestOptAdd_1v_Size_t(&opt, "sz1v", "size1", &sz1v, "42",
+                       "test of hestOptAdd_1v_Size_t");
+  float fl1v;
+  hestOptAdd_1v_Float(&opt, "fl1v", "float1", &fl1v, "0.0",
+                      "test of hestOptAdd_1v_Float");
+  double db1v;
+  hestOptAdd_1v_Double(&opt, "db1v", "double1", &db1v, "4.2",
+                       "test of hestOptAdd_1v_Double");
+  char c1v;
+  hestOptAdd_1v_Char(&opt, "c1v", "char1", &c1v, "x", "test of hestOptAdd_1v_Char");
+  char *s1v;
+  hestOptAdd_1v_String(&opt, "s1v", "string1", &s1v, "bingo",
+                       "test of hestOptAdd_1v_String");
+  int e1v;
+  hestOptAdd_1v_Enum(&opt, "e1v", "enum1", &e1v, "little", "test of hestOptAdd_1v_Enum",
+                     airEndian);
+  double p1v[2];
+  hestOptAdd_1v_Other(&opt, "p1v", "pos", &p1v, "1.5,5.25",
+                      "test of hestOptAdd_1v_Other A", &posCB);
+  Quat *q1v;
+  hestOptAdd_1v_Other(&opt, "q1v", "quat", &q1v, "12.34",
+                      "test of hestOptAdd_1v_Other B", &quatCB);
 
   int b2[2];
   hestOptAdd_2_Bool(&opt, "b2", "bool1 bool2", b2, "true false",
@@ -289,10 +325,74 @@ main(int argc, const char **argv) {
                      "15.55  55.51  66.77  88.99  100.2", "test of hestOptAdd_N_Other B",
                      &quatCB);
 
+  /* HEY also try 0, -1 */
+  int *bv;
+  unsigned int bvSaw;
+  hestOptAdd_Nv_Bool(&opt, "bv", "bool1 bool2", 1, -1, &bv, "true false",
+                     "test of hestOptAdd_Nv_Bool", &bvSaw);
+  int *iv;
+  unsigned int ivSaw;
+  hestOptAdd_Nv_Int(&opt, "iv", "int1 ...", 1, -1, &iv, "42 24",
+                    "test of hestOptAdd_Nv_Int", &ivSaw);
+  unsigned int *uiv;
+  unsigned int uivSaw;
+  hestOptAdd_Nv_UInt(&opt, "uiv", "uint1 uint2", 1, -1, &uiv, "42 24",
+                     "test of hestOptAdd_Nv_UInt", &uivSaw);
+  long int *liv;
+  unsigned int livSaw;
+  hestOptAdd_Nv_LongInt(&opt, "liv", "lint1 ...", 1, -1, &liv, "42 24",
+                        "test of hestOptAdd_Nv_LongInt", &livSaw);
+  unsigned long int *uliv;
+  unsigned int ulivSaw;
+  hestOptAdd_Nv_ULongInt(&opt, "uliv", "ulint1 ...", 1, -1, &uliv, "42 24",
+                         "test of hestOptAdd_Nv_ULongInt", &ulivSaw);
+  size_t *szv;
+  unsigned int szvSaw;
+  hestOptAdd_Nv_Size_t(&opt, "szv", "size1 ...", 1, -1, &szv, "42 24",
+                       "test of hestOptAdd_Nv_Size_t", &szvSaw);
+  float *flv;
+  unsigned int flvSaw;
+  hestOptAdd_Nv_Float(&opt, "flv", "float1 ...", 1, -1, &flv, "4.2 2.4",
+                      "test of hestOptAdd_Nv_Float", &flvSaw);
+  double *dbv;
+  unsigned int dbvSaw;
+  hestOptAdd_Nv_Double(&opt, "dbv", "double1 ...", 1, -1, &dbv, "4.2 2.4",
+                       "test of hestOptAdd_Nv_Double", &dbvSaw);
+  char *cv;
+  unsigned int cvSaw;
+  hestOptAdd_Nv_Char(&opt, "cv", "char1 ...", 1, -1, &cv, "x y",
+                     "test of hestOptAdd_Nv_Char", &cvSaw);
+  char **sv;
+  unsigned int svSaw;
+  hestOptAdd_Nv_String(&opt, "sv", "str1 ...", 1, -1, &sv, "bingo bob",
+                       "test of hestOptAdd_Nv_String", &svSaw);
+  int *ev;
+  unsigned int evSaw;
+  hestOptAdd_Nv_Enum(&opt, "ev", "enum1 ...", 1, -1, &ev, "little big",
+                     "test of hestOptAdd_Nv_Enum", &evSaw, airEndian);
+  double *pv;
+  unsigned int pvSaw;
+  hestOptAdd_Nv_Other(&opt, "pv", "pos1 ...", 1, -1, &pv, "1.5,5.25  2.9,9.2",
+                      "test of hestOptAdd_Nv_Other A", &pvSaw, &posCB);
+  Quat **qv;
+  unsigned int qvSaw;
+  hestOptAdd_Nv_Other(&opt, "qv", "quat1 ...", 1, -1, &qv, "12.34  43.21",
+                      "test of hestOptAdd_Nv_Other B", &qvSaw, &quatCB);
+
+  if (2 == argc && !strcmp("decls", argv[1])) {
+    printf("Writing decls.h and then bailing ...\n");
+    FILE *ff = fopen("decls.h", "w");
+    hestOptAddDeclsPrint(ff);
+    fclose(ff);
+    exit(0);
+  }
+  /* else not writing decls.h; remove it to ensure freshness */
+  remove("decls.h");
+
   hestParseOrDie(opt, argc - 1, argv + 1, parm, argv[0], info, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
 
-  if (1) {
+  if (0) {
     unsigned int opi, numO;
     numO = hestOptNum(opt);
     for (opi = 0; opi < numO; opi++) {
@@ -305,40 +405,51 @@ main(int argc, const char **argv) {
       printf("  parmStr=|%s|\n", opt[opi].parmStr ? opt[opi].parmStr : "(null)");
     }
   }
-  if (1) {
-    printf("(err = %s)\n", err ? err : "(null)");
-    printf("flag = %d\n", flag);
-    printf("b1 = %d\n", b1);
-    printf("i1 = %d\n", i1);
-    printf("ui1 = %u\n", ui1);
-    printf("li1 = %ld\n", li1);
-    printf("uli1 = %lu\n", uli1);
-    printf("sz1 = %zu\n", sz1);
-    printf("fl1 = %g\n", fl1);
-    printf("db1 = %g\n", db1);
-    printf("c1 = %c\n", c1);
-    printf("s1 = |%s|\n", s1);
-    printf("e1 = %d\n", e1);
-    printf("p1 = %g,%g\n", p1[0], p1[1]);
-  }
-  printf("q1 (@ %p) = %g(%s)\n", q1, q1->val, q1->str);
+  printf("(err = %s)\n", err ? err : "(null)");
+  printf("flag = %d\n\n", flag);
 
+  printf("b1 = %d\n", b1);
+  printf("i1 = %d\n", i1);
+  printf("ui1 = %u\n", ui1);
+  printf("li1 = %ld\n", li1);
+  printf("uli1 = %lu\n", uli1);
+  printf("sz1 = %zu\n", sz1);
+  printf("fl1 = %g\n", fl1);
+  printf("db1 = %g\n", db1);
+  printf("c1 = |%c| (%d)\n", c1, c1);
+  printf("s1 = |%s|\n", s1);
+  printf("e1 = %d\n", e1);
+  printf("p1 = %g,%g\n", p1[0], p1[1]);
+  printf("q1 (@ %p) = %g(%s)\n", q1, q1->val, q1->str);
   printf("\n");
 
-  if (1) {
-    printf("b2 = %d %d\n", b2[0], b2[1]);
-    printf("i2 = %d %d\n", i2[0], i2[1]);
-    printf("ui2 = %u %u\n", ui2[0], ui2[1]);
-    printf("li2 = %ld %ld\n", li2[0], li2[1]);
-    printf("uli2 = %lu %lu\n", uli2[0], uli2[1]);
-    printf("sz2 = %zu %zu\n", sz2[0], sz2[1]);
-    printf("fl2 = %g %g\n", fl2[0], fl2[1]);
-    printf("db2 = %g %g\n", db2[0], db2[1]);
-    printf("c2 = %c %c\n", c2[0], c2[1]);
-    printf("s2 = |%s| |%s|\n", s2[0], s2[1]);
-    printf("e2 = %d %d\n", e2[0], e2[1]);
-    printf("p2 = %g,%g  %g,%g\n", p2[0][0], p2[0][1], p2[1][0], p2[1][1]);
-  }
+  printf("b1v = %d\n", b1v);
+  printf("i1v = %d\n", i1v);
+  printf("ui1v = %u\n", ui1v);
+  printf("li1v = %ld\n", li1v);
+  printf("uli1v = %lu\n", uli1v);
+  printf("sz1v = %zu\n", sz1v);
+  printf("fl1v = %g\n", fl1v);
+  printf("db1v = %g\n", db1v);
+  printf("c1v = |%c| (%d)\n", c1v, c1v);
+  printf("s1v = |%s|\n", s1v);
+  printf("e1v = %d\n", e1v);
+  printf("p1v = %g,%g\n", p1v[0], p1v[1]);
+  printf("q1v (@ %p) = %g(%s)\n", q1v, q1v->val, q1v->str);
+  printf("\n");
+
+  printf("b2 = %d %d\n", b2[0], b2[1]);
+  printf("i2 = %d %d\n", i2[0], i2[1]);
+  printf("ui2 = %u %u\n", ui2[0], ui2[1]);
+  printf("li2 = %ld %ld\n", li2[0], li2[1]);
+  printf("uli2 = %lu %lu\n", uli2[0], uli2[1]);
+  printf("sz2 = %zu %zu\n", sz2[0], sz2[1]);
+  printf("fl2 = %g %g\n", fl2[0], fl2[1]);
+  printf("db2 = %g %g\n", db2[0], db2[1]);
+  printf("c2 = %c %c\n", c2[0], c2[1]);
+  printf("s2 = |%s| |%s|\n", s2[0], s2[1]);
+  printf("e2 = %d %d\n", e2[0], e2[1]);
+  printf("p2 = %g,%g  %g,%g\n", p2[0][0], p2[0][1], p2[1][0], p2[1][1]);
   printf(" (q2 = %p : [%p %p])\n", q2, q2[0], q2[1]);
   printf("q2 = %g(%s)  %g(%s)\n", q2[0]->val, q2[0]->str, q2[1]->val, q2[1]->str);
 
@@ -391,13 +502,72 @@ main(int argc, const char **argv) {
          q5[1]->val, q5[1]->str, q5[2]->val, q5[2]->str, q5[3]->val, q5[3]->str,
          q5[4]->val, q5[4]->str);
 
-  if (1) {
-    FILE *ff = fopen("decls.h", "w");
-    hestOptAddDeclsPrint(ff);
-    fclose(ff);
-  } else {
-    remove("decls.h");
+  unsigned int ii;
+  printf("bv (%u) =", bvSaw);
+  for (ii = 0; ii < bvSaw; ii++) {
+    printf(" %d", bv[ii]);
   }
+  printf("\n");
+  printf("iv (%u) =", ivSaw);
+  for (ii = 0; ii < ivSaw; ii++) {
+    printf(" %d", iv[ii]);
+  }
+  printf("\n");
+  printf("uiv (%u) =", uivSaw);
+  for (ii = 0; ii < uivSaw; ii++) {
+    printf(" %u", uiv[ii]);
+  }
+  printf("\n");
+  printf("liv (%u) =", livSaw);
+  for (ii = 0; ii < livSaw; ii++) {
+    printf(" %ld", liv[ii]);
+  }
+  printf("\n");
+  printf("uliv (%u) =", ulivSaw);
+  for (ii = 0; ii < ulivSaw; ii++) {
+    printf(" %lu", uliv[ii]);
+  }
+  printf("\n");
+  printf("szv (%u) =", szvSaw);
+  for (ii = 0; ii < szvSaw; ii++) {
+    printf(" %zu", szv[ii]);
+  }
+  printf("\n");
+  printf("flv (%u) =", flvSaw);
+  for (ii = 0; ii < flvSaw; ii++) {
+    printf(" %g", flv[ii]);
+  }
+  printf("\n");
+  printf("dbv (%u) =", dbvSaw);
+  for (ii = 0; ii < dbvSaw; ii++) {
+    printf(" %g", dbv[ii]);
+  }
+  printf("\n");
+  printf("cv (%u) =", cvSaw);
+  for (ii = 0; ii < cvSaw; ii++) {
+    printf(" |%c|", cv[ii]);
+  }
+  printf("\n");
+  printf("sv (%u) =", svSaw);
+  for (ii = 0; ii < svSaw; ii++) {
+    printf(" |%s|", sv[ii]);
+  }
+  printf("\n");
+  printf("ev (%u) =", evSaw);
+  for (ii = 0; ii < evSaw; ii++) {
+    printf(" %d", ev[ii]);
+  }
+  printf("\n");
+  printf("pv (%u) =", pvSaw);
+  for (ii = 0; ii < pvSaw; ii++) {
+    printf("  %g,%g", pv[0 + 2 * ii], pv[1 + 2 * ii]);
+  }
+  printf("\n");
+  printf("qv (%u) =", qvSaw);
+  for (ii = 0; ii < qvSaw; ii++) {
+    printf("  %g(%s)", qv[ii]->val, qv[ii]->str);
+  }
+  printf("\n");
 
   /* free the memory allocated by parsing ... */
   hestParseFree(opt);

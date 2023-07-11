@@ -193,8 +193,11 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *par
 ** _hestPanic()
 **
 ** all error checking on the given hest array itself (not the
-** command line to be parsed).  Also, sets the "kind" field of
-** the opt struct
+** command line to be parsed).
+**
+** Prior to 2023 code revisit; this used to set the "kind" in all the opts
+** but now that is more appropriately done at the time the option is added
+** (by hestOptAdd, hestOptAdd_nva, hestOptSingleSet, or hestOptAdd_*_*)
 */
 int
 _hestPanic(hestOpt *opt, char *err, const hestParm *parm) {
@@ -836,7 +839,7 @@ _hestDefaults(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *o
       break;
     case 4:
       /* -------- optional single variables -------- */
-      /* if the flag appeared (if there is a flag) but the paramter didn't,
+      /* if the flag appeared (if there is a flag) but the parameter didn't,
          we'll "invert" the default; if the flag didn't appear (or if there
          isn't a flag) and the parameter also didn't appear, we'll use the
          default.  In either case, nprm[op] will be zero, and in both cases,
@@ -1156,6 +1159,39 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
       /* -------- optional single variables -------- */
       if (prms[op] && vP) {
         switch (type) {
+        case airTypeChar:
+          /* no "inversion" for chars: using the flag with no parameter is the same as
+          not using the flag i.e. we just parse from the default string */
+          if (1 != airParseStr[type](vP, prms[op], " ", 1)) {
+            sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", ME,
+                    udflt[op] ? "(default) " : "", prms[op], airTypeStr[type], ident);
+            return 1;
+          }
+          opt[op].alloc = 0;
+          break;
+        case airTypeString:
+          /* this is a bizarre case: optional single string, with some kind of value
+          "inversion". 2023 GLK would prefer to make this like Char, Enum, and Other: for
+          which there is no attempt at "inversion". But for some reason the inversion of
+          a non-empty default string to a NULL string value, when the flag is used
+          without a parameter, was implemented from the early days of hest.  Assuming
+          that a younger GLK long ago had a reason for that, that functionality now
+          persists.*/
+          if (1 != airParseStr[type](vP, prms[op], " ", 1, parm->greedySingleString)) {
+            sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", ME,
+                    udflt[op] ? "(default) " : "", prms[op], airTypeStr[type], ident);
+            return 1;
+          }
+          opt[op].alloc = 1;
+          if (opt[op].flag && 1 == whichCase(opt, udflt, nprm, appr, op)) {
+            /* we just parsed the default, but now we want to "invert" it */
+            *((char **)vP) = (char *)airFree(*((char **)vP));
+            opt[op].alloc = 0;
+          }
+          /* vP is the address of a char* (a char**), and what we
+             manage with airMop is the char * */
+          airMopMem(pmop, vP, airMopOnError);
+          break;
         case airTypeEnum:
           if (1 != airParseStrE((int *)vP, prms[op], " ", 1, opt[op].enm)) {
             sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", ME,
@@ -1164,7 +1200,7 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
           }
           break;
         case airTypeOther:
-          /* we're parsing an "other".  We will not perform the special
+          /* we're parsing an single single "other".  We will not perform the special
              flagged single variable parameter games as done above, so
              whether this option is flagged or unflagged, we're going
              to treat it like an unflagged single variable parameter option:
@@ -1188,22 +1224,6 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
             airMopAdd(pmop, vP, (airMopper)airSetNull, airMopOnError);
             airMopAdd(pmop, *((void **)vP), opt[op].CB->destroy, airMopOnError);
           }
-          break;
-        case airTypeString:
-          if (1 != airParseStr[type](vP, prms[op], " ", 1, parm->greedySingleString)) {
-            sprintf(err, "%scouldn't parse %s\"%s\" as %s for %s", ME,
-                    udflt[op] ? "(default) " : "", prms[op], airTypeStr[type], ident);
-            return 1;
-          }
-          opt[op].alloc = 1;
-          if (opt[op].flag && 1 == whichCase(opt, udflt, nprm, appr, op)) {
-            /* we just parsed the default, but now we want to "invert" it */
-            *((char **)vP) = (char *)airFree(*((char **)vP));
-            opt[op].alloc = 0;
-          }
-          /* vP is the address of a char* (a char**), and what we
-             manage with airMop is the char * */
-          airMopMem(pmop, vP, airMopOnError);
           break;
         default:
           if (1 != airParseStr[type](vP, prms[op], " ", 1)) {
