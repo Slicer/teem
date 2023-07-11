@@ -47,23 +47,23 @@ unrrdu_projectMain(int argc, const char **argv, const char *me, hestParm *hparm)
   int *measr, pret, type;
   airArray *mop;
 
-  hestOptAdd(&opt, "a,axis", "axis", airTypeUInt, 1, -1, &axis, NULL,
-             "axis or axes to project along", &axisLen);
-  hestOptAdd(&opt, "m,measure", "measr", airTypeEnum, 1, -1, &measr, NULL,
-             "How to \"measure\" a scanline, by summarizing all its values "
-             "with a single scalar. Multiple measures will be joined along "
-             "fastest axis if output, but you may need to set output type "
-             "explicitly via \"-t\" so that the join works. " NRRD_MEASURE_DESC,
-             &measrLen, nrrdMeasure);
-  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
-             "type to use for output. By default (not using this option), "
-             "the output type is determined auto-magically",
-             NULL, NULL, &unrrduHestMaybeTypeCB);
+  hestOptAdd_Nv_UInt(&opt, "a,axis", "axis", 1, -1, &axis, NULL,
+                     "axis or axes to project along", &axisLen);
+  hestOptAdd_Nv_Enum(&opt, "m,measure", "measr", 1, -1, &measr, NULL,
+                     "How to \"measure\" a scanline, by summarizing all its values "
+                     "with a single scalar. Multiple measures will be joined along "
+                     "fastest axis if output, but you may need to set output type "
+                     "explicitly via \"-t\" so that the join works. " NRRD_MEASURE_DESC,
+                     &measrLen, nrrdMeasure);
+  hestOptAdd_1_Other(&opt, "t,type", "type", &type, "default",
+                     "type to use for output. By default (not using this option), "
+                     "the output type is determined auto-magically",
+                     &unrrduHestMaybeTypeCB);
   OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, "o,output", "nout", airTypeString, 1, -1, &out, "-",
-             "one or more output nrrd filenames. Number of names here "
-             "has to match number of axes specified.",
-             &outLen);
+  hestOptAdd_Nv_String(&opt, "o,output", "nout", 1, -1, &out, "-",
+                       "one or more output nrrd filenames. Number of names here "
+                       "has to match number of axes specified.",
+                       &outLen);
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 

@@ -42,15 +42,13 @@ unrrdu_sselectMain(int argc, const char **argv, const char *me, hestParm *hparm)
 
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_AXIS(axis, "axis to slice along");
-  hestOptAdd(&opt, "s,selector", "nline", airTypeOther, 1, 1, &nline, NULL,
-             "the 1-D nrrd of values to compare with threshold", NULL, NULL,
-             nrrdHestNrrd);
-  hestOptAdd(&opt, "th", "thresh", airTypeDouble, 1, 1, &thresh, NULL,
-             "threshold on selector line");
-  hestOptAdd(&opt, "o,output", "above below", airTypeString, 2, 2, outS, "- x",
-             "outputs for slices corresponding to values "
-             "above (first) and below (second) given threshold. "
-             "Use \"x\" to say that no output is desired.");
+  hestOptAdd_1_Other(&opt, "s,selector", "nline", &nline, NULL,
+                     "the 1-D nrrd of values to compare with threshold", nrrdHestNrrd);
+  hestOptAdd_1_Double(&opt, "th", "thresh", &thresh, NULL, "threshold on selector line");
+  hestOptAdd_2_String(&opt, "o,output", "above below", outS, "- x",
+                      "outputs for slices corresponding to values "
+                      "above (first) and below (second) given threshold. "
+                      "Use \"x\" to say that no output is desired.");
 
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);

@@ -85,25 +85,25 @@ unrrdu_minmaxMain(int argc, const char **argv, const char *me, hestParm *hparm) 
 #define B8DEF "false"
 
   mop = airMopNew();
-  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
-             B8DEF, /* NOTE: not using nrrdStateBlind8BitRange here
-                       for consistency with previous behavior */
-             "whether to blindly assert the range of 8-bit data, "
-             "without actually going through the data values, i.e. "
-             "uchar is always [0,255], signed char is [-128,127]. "
-             "Note that even if you do not use this option, the default "
-             "(" B8DEF ") is potentialy over-riding the effect of "
-             "environment variable NRRD_STATE_BLIND_8_BIT_RANGE; "
-             "see \"unu env\"");
-  hestOptAdd(&opt, "sl", NULL, airTypeInt, 0, 0, &singleLine, NULL,
-             "Without this option, output is on multiple lines (for min, for max, "
-             "and then maybe more lines about non-existent values or min, max "
-             "conditions). With \"-sl\", output is a single line containing just min "
-             "and max, possibly followed by the single word \"non-existent\" if and "
-             "only if there were non-existent values. If there are multiple inputs, "
-             "the input filename is printed first on the per-input single line.");
-  hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL, "input nrrd(s)",
-             &ninLen);
+  hestOptAdd_1_Bool(&opt, "blind8", "bool", &blind8BitRange,
+                    B8DEF, /* NOTE: not using nrrdStateBlind8BitRange here
+                              for consistency with previous behavior */
+                    "whether to blindly assert the range of 8-bit data, "
+                    "without actually going through the data values, i.e. "
+                    "uchar is always [0,255], signed char is [-128,127]. "
+                    "Note that even if you do not use this option, the default "
+                    "(" B8DEF ") is potentialy over-riding the effect of "
+                    "environment variable NRRD_STATE_BLIND_8_BIT_RANGE; "
+                    "see \"unu env\"");
+  hestOptAdd_Flag(
+    &opt, "sl", &singleLine,
+    "Without this option, output is on multiple lines (for min, for max, "
+    "and then maybe more lines about non-existent values or min, max "
+    "conditions). With \"-sl\", output is a single line containing just min "
+    "and max, possibly followed by the single word \"non-existent\" if and "
+    "only if there were non-existent values. If there are multiple inputs, "
+    "the input filename is printed first on the per-input single line.");
+  hestOptAdd_Nv_String(&opt, NULL, "nin1", 1, -1, &inS, NULL, "input nrrd(s)", &ninLen);
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE_OR_PARSE(_unrrdu_minmaxInfoL);

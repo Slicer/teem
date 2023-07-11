@@ -44,13 +44,13 @@ unrrdu_untileMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   size_t size[2];
   airArray *mop;
 
-  hestOptAdd(&opt, "a,axis", "axMerge ax0 ax1", airTypeUInt, 3, 3, axes, NULL,
-             "the slow parts of axes ax0 and ax1 are merged into a (new) "
-             "axis axMerge, with the axis ax0 part being faster than ax1.");
-  hestOptAdd(&opt, "s,size", "size0 size1", airTypeSize_t, 2, 2, size, NULL,
-             "the slow parts of axes ax0 and ax1 are taken to have size "
-             "size0 and size1, respectively, and axis axMerge will have "
-             "size size0*size1.");
+  hestOptAdd_3_UInt(&opt, "a,axis", "axMerge ax0 ax1", axes, NULL,
+                    "the slow parts of axes ax0 and ax1 are merged into a (new) "
+                    "axis axMerge, with the axis ax0 part being faster than ax1.");
+  hestOptAdd_2_Size_t(&opt, "s,size", "size0 size1", size, NULL,
+                      "the slow parts of axes ax0 and ax1 are taken to have size "
+                      "size0 and size1, respectively, and axis axMerge will have "
+                      "size size0*size1.");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

@@ -48,66 +48,66 @@ unrrdu_quantizeMain(int argc, const char **argv, const char *me, hestParm *hparm
   airArray *mop;
   NrrdIoState *nio = NULL;
 
-  hestOptAdd(&opt, "b,bits", "bits", airTypeOther, 1, 1, &bits, NULL,
-             "Number of bits to quantize down to; determines the type "
-             "of the output nrrd:\n "
-             "\b\bo \"8\": unsigned char\n "
-             "\b\bo \"16\": unsigned short\n "
-             "\b\bo \"32\": unsigned int",
-             NULL, NULL, &unrrduHestBitsCB);
-  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1, &minStr, "nan",
-             "The value to map to zero, given explicitly as a regular number, "
-             "*or*, if the number is given with a \"" NRRD_MINMAX_PERC_SUFF
-             "\" suffix, this "
-             "minimum is specified in terms of the percentage of samples in "
-             "input that are lower. "
-             "\"0" NRRD_MINMAX_PERC_SUFF "\" means the "
-             "lowest input value is used, "
-             "\"1" NRRD_MINMAX_PERC_SUFF "\" means that the "
-             "1% of the lowest values are all mapped to zero. "
-             "By default (not using this option), the lowest input value is "
-             "used.");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1, &maxStr, "nan",
-             "The value to map to the highest unsigned integral value, given "
-             "explicitly as a regular number, "
-             "*or*, if the number is given with "
-             "a \"" NRRD_MINMAX_PERC_SUFF "\" suffix, "
-             "this maximum is specified "
-             "in terms of the percentage of samples in input that are higher. "
-             "\"0" NRRD_MINMAX_PERC_SUFF "\" means the highest input value is "
-             "used, which is also the default "
-             "behavior (same as not using this option).");
+  hestOptAdd_1_Other(&opt, "b,bits", "bits", &bits, NULL,
+                     "Number of bits to quantize down to; determines the type "
+                     "of the output nrrd:\n "
+                     "\b\bo \"8\": unsigned char\n "
+                     "\b\bo \"16\": unsigned short\n "
+                     "\b\bo \"32\": unsigned int",
+                     &unrrduHestBitsCB);
+  hestOptAdd_1_String(&opt, "min,minimum", "value", &minStr, "nan",
+                      "The value to map to zero, given explicitly as a regular number, "
+                      "*or*, if the number is given with a \"" NRRD_MINMAX_PERC_SUFF
+                      "\" suffix, this "
+                      "minimum is specified in terms of the percentage of samples in "
+                      "input that are lower. "
+                      "\"0" NRRD_MINMAX_PERC_SUFF "\" means the "
+                      "lowest input value is used, "
+                      "\"1" NRRD_MINMAX_PERC_SUFF "\" means that the "
+                      "1% of the lowest values are all mapped to zero. "
+                      "By default (not using this option), the lowest input value is "
+                      "used.");
+  hestOptAdd_1_String(&opt, "max,maximum", "value", &maxStr, "nan",
+                      "The value to map to the highest unsigned integral value, given "
+                      "explicitly as a regular number, "
+                      "*or*, if the number is given with "
+                      "a \"" NRRD_MINMAX_PERC_SUFF "\" suffix, "
+                      "this maximum is specified "
+                      "in terms of the percentage of samples in input that are higher. "
+                      "\"0" NRRD_MINMAX_PERC_SUFF "\" means the highest input value is "
+                      "used, which is also the default "
+                      "behavior (same as not using this option).");
   /* NOTE -zc shared with unrrdu histax, histo, quantize */
-  hestOptAdd(&opt, "zc,zero-center", NULL, airTypeInt, 0, 0, &zeroCenter, NULL,
-             "if used, percentile-based min,max determine a zero-centered "
-             "range (rather than treating min and max independently), which "
-             "may help process signed values in an expected way.");
-  hestOptAdd(&opt, "g,gamma", "gamma", airTypeString, 1, 1, &gammaS, "1.0",
-             "gamma > 1.0 brightens; gamma < 1.0 darkens. "
-             "Negative gammas invert values. Or, can be the string "
-             "\"srgb\" to apply the roughly 2.2 gamma associated "
-             "with sRGB (see https://en.wikipedia.org/wiki/SRGB). ");
+  hestOptAdd_Flag(&opt, "zc,zero-center", &zeroCenter,
+                  "if used, percentile-based min,max determine a zero-centered "
+                  "range (rather than treating min and max independently), which "
+                  "may help process signed values in an expected way.");
+  hestOptAdd_1_String(&opt, "g,gamma", "gamma", &gammaS, "1.0",
+                      "gamma > 1.0 brightens; gamma < 1.0 darkens. "
+                      "Negative gammas invert values. Or, can be the string "
+                      "\"srgb\" to apply the roughly 2.2 gamma associated "
+                      "with sRGB (see https://en.wikipedia.org/wiki/SRGB). ");
   srgbIdx = /* HEY copied from overrgb.c */
-    hestOptAdd(&opt, "srgb", "intent", airTypeEnum, 1, 1, &srgb, "none",
-               /* the default is "none" for backwards compatibility: until now
-                  Teem's support of PNG hasn't handled the sRGB intent, so
-                  we shouldn't start using it without being asked */
-               "If saving to PNG (when supported), how to set the rendering "
-               "intent in the sRGB chunk of the PNG file format. Can be "
-               "absolute, relative, perceptual, saturation, or none. This is "
-               "independent of using \"srgb\" as the -g gamma",
-               NULL, nrrdFormatPNGsRGBIntent);
-  hestOptAdd(&opt, "hb,bins", "bins", airTypeUInt, 1, 1, &hbins, "5000",
-             "number of bins in histogram of values, for determining min "
-             "or max by percentiles.  This has to be large enough so that "
-             "any errant very high or very low values do not compress the "
-             "interesting part of the histogram to an inscrutably small "
-             "number of bins.");
-  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
-             nrrdStateBlind8BitRange ? "true" : "false",
-             "if not using \"-min\" or \"-max\", whether to know "
-             "the range of 8-bit data blindly (uchar is always [0,255], "
-             "signed char is [-128,127])");
+    hestOptAdd_1_Enum(&opt, "srgb", "intent", &srgb, "none",
+                      /* the default is "none" for backwards compatibility: until now
+                         Teem's support of PNG hasn't handled the sRGB intent, so
+                         we shouldn't start using it without being asked */
+                      "If saving to PNG (when supported), how to set the rendering "
+                      "intent in the sRGB chunk of the PNG file format. Can be "
+                      "absolute, relative, perceptual, saturation, or none. This is "
+                      "independent of using \"srgb\" as the -g gamma",
+                      nrrdFormatPNGsRGBIntent);
+  hestOptAdd_1_UInt(&opt, "hb,bins", "bins", &hbins, "5000",
+                    "number of bins in histogram of values, for determining min "
+                    "or max by percentiles.  This has to be large enough so that "
+                    "any errant very high or very low values do not compress the "
+                    "interesting part of the histogram to an inscrutably small "
+                    "number of bins.");
+  hestOptAdd_1_Bool(&opt, "blind8", "bool", &blind8BitRange,
+                    nrrdStateBlind8BitRange ? "true" : "false",
+                    "if not using \"-min\" or \"-max\", whether to know "
+                    "the range of 8-bit data blindly (uchar is always [0,255], "
+                    "signed char is [-128,127])");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

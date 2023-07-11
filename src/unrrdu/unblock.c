@@ -39,9 +39,9 @@ unrrdu_unblockMain(int argc, const char **argv, const char *me, hestParm *hparm)
   airArray *mop;
 
   OPT_ADD_TYPE(type, "type to unblock to", NULL);
-  hestOptAdd(&opt, "bs", "blocksize", airTypeSize_t, 1, 1, &blockSize, "0",
-             "Useful only if *output* type is also block: the size of "
-             "blocks in output nrrd");
+  hestOptAdd_1_Size_t(&opt, "bs", "blocksize", &blockSize, "0",
+                      "Useful only if *output* type is also block: the size of "
+                      "blocks in output nrrd");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

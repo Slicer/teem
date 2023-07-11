@@ -46,14 +46,13 @@ unrrdu_unquantizeMain(int argc, const char **argv, const char *me, hestParm *hpa
              "with the fact that all the other arguments have sensible "
              "defaults",
              NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &oldMin, "nan",
-             "Lowest value prior to quantization.  Defaults to "
-             "nin->oldMin if it exists, otherwise 0.0");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeDouble, 1, 1, &oldMax, "nan",
-             "Highest value prior to quantization.  Defaults to "
-             "nin->oldMax if it exists, otherwise 1.0");
-  hestOptAdd(&opt, "double", NULL, airTypeBool, 0, 0, &dbl, NULL,
-             "Use double for output type, instead of float");
+  hestOptAdd_1_Double(&opt, "min,minimum", "value", &oldMin, "nan",
+                      "Lowest value prior to quantization.  Defaults to "
+                      "nin->oldMin if it exists, otherwise 0.0");
+  hestOptAdd_1_Double(&opt, "max,maximum", "value", &oldMax, "nan",
+                      "Highest value prior to quantization.  Defaults to "
+                      "nin->oldMax if it exists, otherwise 1.0");
+  hestOptAdd_Flag(&opt, "double", &dbl, "Use double for output type, instead of float");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();

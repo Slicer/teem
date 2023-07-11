@@ -29,47 +29,47 @@ static const char *_unrrdu_1opInfoL = (INFO ".\n "
 static int
 unrrdu_1opMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
-  char *out, *err, *seedS;
+  char *out, *err;
   Nrrd *nin, *nout, *ntmp = NULL;
   int op, pret, type;
   airArray *mop;
-  unsigned int seed;
+  unsigned int seed, seedOI;
 
-  hestOptAdd(&opt, NULL, "operator", airTypeEnum, 1, 1, &op, NULL,
-             "Unary operator. Possibilities include:\n "
-             "\b\bo \"-\": negative (multiply by -1.0)\n "
-             "\b\bo \"r\": reciprocal (1.0/value)\n "
-             "\b\bo \"sin\", \"cos\", \"tan\", \"asin\", \"acos\", \"atan\": "
-             "same as in C\n "
-             "\b\bo \"exp\", \"log\", \"log10\": same as in C\n "
-             "\b\bo \"log1p\", \"expm1\": accurate log(x+1) and exp(x)-1\n "
-             "\b\bo \"log2\": log base 2\n "
-             "\b\bo \"sqrt\", \"cbrt\", \"ceil\", \"floor\": same as in C\n "
-             "\b\bo \"erf\": error function (integral of Gaussian)\n "
-             "\b\bo \"rup\", \"rdn\": round up or down to integral value\n "
-             "\b\bo \"abs\": absolute value\n "
-             "\b\bo \"sgn\": -1, 0, 1 if value is <0, ==0, or >0\n "
-             "\b\bo \"exists\": 1 iff not NaN or +/-Inf, 0 otherwise\n "
-             "\b\bo \"rand\": random value in [0.0,1.0), "
-             "no relation to input\n "
-             "\b\bo \"nrand\": random sample from normal distribution with "
-             "mean 0.0 and stdv 1.0, no relation to input\n "
-             "\b\bo \"if\": if input is non-zero, 1, else 0\n "
-             "\b\bo \"0\": output always 0\n "
-             "\b\bo \"1\": output always 1",
-             NULL, nrrdUnaryOp);
-  hestOptAdd(&opt, "s,seed", "seed", airTypeString, 1, 1, &seedS, "",
-             "seed value for RNG for rand and nrand, so that you "
-             "can get repeatable results between runs, or, "
-             "by not using this option, the RNG seeding will be "
-             "based on the current time");
-  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
-             "convert input nrrd to this type prior to "
-             "doing operation.  Useful when desired output is float "
-             "(e.g., with log1p), but input is integral. By default "
-             "(not using this option), the types of "
-             "the input nrrds are left unchanged.",
-             NULL, NULL, &unrrduHestMaybeTypeCB);
+  hestOptAdd_1_Enum(&opt, NULL, "operator", &op, NULL,
+                    "Unary operator. Possibilities include:\n "
+                    "\b\bo \"-\": negative (multiply by -1.0)\n "
+                    "\b\bo \"r\": reciprocal (1.0/value)\n "
+                    "\b\bo \"sin\", \"cos\", \"tan\", \"asin\", \"acos\", \"atan\": "
+                    "same as in C\n "
+                    "\b\bo \"exp\", \"log\", \"log10\": same as in C\n "
+                    "\b\bo \"log1p\", \"expm1\": accurate log(x+1) and exp(x)-1\n "
+                    "\b\bo \"log2\": log base 2\n "
+                    "\b\bo \"sqrt\", \"cbrt\", \"ceil\", \"floor\": same as in C\n "
+                    "\b\bo \"erf\": error function (integral of Gaussian)\n "
+                    "\b\bo \"rup\", \"rdn\": round up or down to integral value\n "
+                    "\b\bo \"abs\": absolute value\n "
+                    "\b\bo \"sgn\": -1, 0, 1 if value is <0, ==0, or >0\n "
+                    "\b\bo \"exists\": 1 iff not NaN or +/-Inf, 0 otherwise\n "
+                    "\b\bo \"rand\": random value in [0.0,1.0), "
+                    "no relation to input\n "
+                    "\b\bo \"nrand\": random sample from normal distribution with "
+                    "mean 0.0 and stdv 1.0, no relation to input\n "
+                    "\b\bo \"if\": if input is non-zero, 1, else 0\n "
+                    "\b\bo \"0\": output always 0\n "
+                    "\b\bo \"1\": output always 1",
+                    nrrdUnaryOp);
+  seedOI = hestOptAdd_1_UInt(&opt, "s,seed", "seed", &seed, "0",
+                             "seed value for random number generator (RNG), to "
+                             "enable repeatable results between runs, or, "
+                             "by not using this option, the RNG seeding will be "
+                             "based on the current time");
+  hestOptAdd_1_Other(&opt, "t,type", "type", &type, "default",
+                     "convert input nrrd to this type prior to "
+                     "doing operation.  Useful when desired output is float "
+                     "(e.g., with log1p), but input is integral. By default "
+                     "(not using this option), the types of "
+                     "the input nrrds are left unchanged.",
+                     &unrrduHestMaybeTypeCB);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -99,14 +99,8 @@ unrrdu_1opMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   ** if (nrrdUnaryOpRand == op
   **     || nrrdUnaryOpNormalRand == op) {
   */
-  if (airStrlen(seedS)) {
-    if (1 != sscanf(seedS, "%u", &seed)) {
-      fprintf(stderr, "%s: couldn't parse seed \"%s\" as uint\n", me, seedS);
-      airMopError(mop);
-      return 1;
-    } else {
-      airSrandMT(seed);
-    }
+  if (hestSourceDefault != opt[seedOI].source) {
+    airSrandMT(seed);
   } else {
     /* got no request for specific seed */
     airSrandMT(AIR_UINT(airTime()));
