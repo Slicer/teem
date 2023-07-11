@@ -103,14 +103,6 @@ command line, and its an error if no data is found.  Not having
 optional parameters is why things like "unu make" learn centerings via
 strings: the string can be given or not, and if its given, then the
 information is used.
-******* (from tendGlyph.c): there needs to be an alternative API for hest
-that is not var-args based (as is hestOptAdd). You can't tell when
-you've passed multiple strings for the detailed usage information by
-accident.  GLK had accidentally inserted a comma into my multi-line
-string for the "info" arg, relying on the automatic string
-concatenation, and ended up passing total garbage to hestOptAdd for
-the airEnum pointer, causing him to think that the tenGlyphType airEnum
-was malformed, when it was in fact fine ...
 
 biff:
 * biffMove(destKey, err, srcKey) --> biffMove(destKey, srcKey, err)
