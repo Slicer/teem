@@ -328,59 +328,59 @@ main(int argc, const char **argv) {
   /* HEY also try 0, -1 */
   int *bv;
   unsigned int bvSaw;
-  hestOptAdd_Nv_Bool(&opt, "bv", "bool1 bool2", 1, -1, &bv, "true false",
+  hestOptAdd_Nv_Bool(&opt, "bv", "bool1", 1, -1, &bv, "true false",
                      "test of hestOptAdd_Nv_Bool", &bvSaw);
   int *iv;
   unsigned int ivSaw;
-  hestOptAdd_Nv_Int(&opt, "iv", "int1 ...", 1, -1, &iv, "42 24",
-                    "test of hestOptAdd_Nv_Int", &ivSaw);
+  hestOptAdd_Nv_Int(&opt, "iv", "int1", 1, -1, &iv, "42 24", "test of hestOptAdd_Nv_Int",
+                    &ivSaw);
   unsigned int *uiv;
   unsigned int uivSaw;
-  hestOptAdd_Nv_UInt(&opt, "uiv", "uint1 uint2", 1, -1, &uiv, "42 24",
+  hestOptAdd_Nv_UInt(&opt, "uiv", "uint1", 1, -1, &uiv, "42 24",
                      "test of hestOptAdd_Nv_UInt", &uivSaw);
   long int *liv;
   unsigned int livSaw;
-  hestOptAdd_Nv_LongInt(&opt, "liv", "lint1 ...", 1, -1, &liv, "42 24",
+  hestOptAdd_Nv_LongInt(&opt, "liv", "lint1", 1, -1, &liv, "42 24",
                         "test of hestOptAdd_Nv_LongInt", &livSaw);
   unsigned long int *uliv;
   unsigned int ulivSaw;
-  hestOptAdd_Nv_ULongInt(&opt, "uliv", "ulint1 ...", 1, -1, &uliv, "42 24",
+  hestOptAdd_Nv_ULongInt(&opt, "uliv", "ulint1", 1, -1, &uliv, "42 24",
                          "test of hestOptAdd_Nv_ULongInt", &ulivSaw);
   size_t *szv;
   unsigned int szvSaw;
-  hestOptAdd_Nv_Size_t(&opt, "szv", "size1 ...", 1, -1, &szv, "42 24",
+  hestOptAdd_Nv_Size_t(&opt, "szv", "size1", 1, -1, &szv, "42 24",
                        "test of hestOptAdd_Nv_Size_t", &szvSaw);
   float *flv;
   unsigned int flvSaw;
-  hestOptAdd_Nv_Float(&opt, "flv", "float1 ...", 1, -1, &flv, "4.2 2.4",
+  hestOptAdd_Nv_Float(&opt, "flv", "float1", 1, -1, &flv, "4.2 2.4",
                       "test of hestOptAdd_Nv_Float", &flvSaw);
   double *dbv;
   unsigned int dbvSaw;
-  hestOptAdd_Nv_Double(&opt, "dbv", "double1 ...", 1, -1, &dbv, "4.2 2.4",
+  hestOptAdd_Nv_Double(&opt, "dbv", "double1", 1, -1, &dbv, "4.2 2.4",
                        "test of hestOptAdd_Nv_Double", &dbvSaw);
   char *cv;
   unsigned int cvSaw;
-  hestOptAdd_Nv_Char(&opt, "cv", "char1 ...", 1, -1, &cv, "x y",
+  hestOptAdd_Nv_Char(&opt, "cv", "char1", 1, -1, &cv, "x y",
                      "test of hestOptAdd_Nv_Char", &cvSaw);
   char **sv;
   unsigned int svSaw;
-  hestOptAdd_Nv_String(&opt, "sv", "str1 ...", 1, -1, &sv, "bingo bob",
+  hestOptAdd_Nv_String(&opt, "sv", "str1", 1, -1, &sv, "bingo bob",
                        "test of hestOptAdd_Nv_String", &svSaw);
   int *ev;
   unsigned int evSaw;
-  hestOptAdd_Nv_Enum(&opt, "ev", "enum1 ...", 1, -1, &ev, "little big",
+  hestOptAdd_Nv_Enum(&opt, "ev", "enum1", 1, -1, &ev, "little big",
                      "test of hestOptAdd_Nv_Enum", &evSaw, airEndian);
   double *pv;
   unsigned int pvSaw;
-  hestOptAdd_Nv_Other(&opt, "pv", "pos1 ...", 1, -1, &pv, "1.5,5.25  2.9,9.2",
+  hestOptAdd_Nv_Other(&opt, "pv", "pos1", 1, -1, &pv, "1.5,5.25  2.9,9.2",
                       "test of hestOptAdd_Nv_Other A", &pvSaw, &posCB);
   Quat **qv;
   unsigned int qvSaw;
-  hestOptAdd_Nv_Other(&opt, "qv", "quat1 ...", 1, -1, &qv, "12.34  43.21",
+  hestOptAdd_Nv_Other(&opt, "qv", "quat1", 1, -1, &qv, "12.34  43.21",
                       "test of hestOptAdd_Nv_Other B", &qvSaw, &quatCB);
 
   if (2 == argc && !strcmp("decls", argv[1])) {
-    printf("Writing decls.h and then bailing ...\n");
+    printf("Writing decls.h and then bailing\n");
     FILE *ff = fopen("decls.h", "w");
     hestOptAddDeclsPrint(ff);
     fclose(ff);
