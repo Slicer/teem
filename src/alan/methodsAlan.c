@@ -101,7 +101,7 @@ alanContextNix(alanContext *actx) {
   }
 
 int /* Biff: 1 */
-alanDimensionSet(alanContext *actx, int dim) {
+alanDimensionSet(alanContext *actx, unsigned int dim) {
   static const char me[] = "alanDimensionSet";
 
   GOT_NULL;
@@ -116,7 +116,7 @@ alanDimensionSet(alanContext *actx, int dim) {
 }
 
 int /* Biff: 1 */
-alan2DSizeSet(alanContext *actx, int sizeX, int sizeY) {
+alan2DSizeSet(alanContext *actx, unsigned int sizeX, unsigned int sizeY) {
   static const char me[] = "alan2DSizeSet";
 
   GOT_NULL;
@@ -136,7 +136,8 @@ alan2DSizeSet(alanContext *actx, int sizeX, int sizeY) {
 }
 
 int /* Biff: 1 */
-alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ) {
+alan3DSizeSet(alanContext *actx, unsigned int sizeX, unsigned int sizeY,
+              unsigned int sizeZ) {
   static const char me[] = "alan3DSizeSet";
 
   GOT_NULL;
