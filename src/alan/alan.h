@@ -158,9 +158,10 @@ ALAN_EXPORT const char *const alanBiffKey;
 ALAN_EXPORT void alanContextInit(alanContext *actx);
 ALAN_EXPORT alanContext *alanContextNew(void);
 ALAN_EXPORT alanContext *alanContextNix(alanContext *actx);
-ALAN_EXPORT int alanDimensionSet(alanContext *actx, int dim);
-ALAN_EXPORT int alan2DSizeSet(alanContext *actx, int sizeX, int sizeY);
-ALAN_EXPORT int alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ);
+ALAN_EXPORT int alanDimensionSet(alanContext *actx, unsigned int dim);
+ALAN_EXPORT int alan2DSizeSet(alanContext *actx, unsigned int sizeX, unsigned int sizeY);
+ALAN_EXPORT int alan3DSizeSet(alanContext *actx, unsigned int sizeX, unsigned int sizeY,
+                              unsigned int sizeZ);
 ALAN_EXPORT int alanTensorSet(alanContext *actx, Nrrd *nten, int oversample);
 ALAN_EXPORT int alanParmSet(alanContext *actx, int whichParm, double parm);
 
