@@ -32,7 +32,7 @@ Since r6184 2014-03-17, GLK has noted (in ../TODO.txt):
   concatenation, and ended up passing total garbage to hestOptAdd for
   the airEnum pointer, causing him to think that the tenGlyphType airEnum
   was malformed, when it was in fact fine ...
-This motivated the r7026 2023-07-06 addition of hestOptAdd_nva, which
+This motivated the r7026 2023-07-06 addition of non-var-args hestOptAdd_nva, which
 would have caught the above error.
 
 The underlying issue there, though, is the total lack of type-checking associated with
@@ -45,17 +45,17 @@ possibilities here are unlikely to be needed (an option for 4 booleans?), but ar
 generated here for completeness (an option for 4 floats or 4 doubles is great for
 R,G,B,A values).
 
-However with airTypeOther, when the caller passes a hestCB struct of callbacks to parse
-arbitrary things from the command-line, there is still unfortunately a type-checking
-black hole void* involved.  And, there is no away around that: either valueP is an array
-of structs (when hestCB->destroy is NULL) or an array of pointers to structs
-(hestCB->destroy is non-NULL), for which the most specific type for valueP would be
-either void* or void**, respectively. But void** is not a generic pointer to pointer type
-(like void* is the generic pointer type), and, we're not doing compile-time checks on the
-non-NULL-ity of hestCB->destroy. So it all devolves back to plain void*. Still, the
-hestOptAdd_*_Other function are generated here to slightly simplify the hestOptAdd call,
-since there is no more NULL and NULL for sawP and enum.  Actually, there is a way around
-a type-checking black hole: extreme attentiveness!
+However for airTypeOther (i.e. when the caller passes a hestCB struct of callbacks to
+parse arbitrary things from the command-line) there is still unfortunately a
+type-checking black hole void* involved.  And, there is no away around that: either
+valueP is an array of structs (when hestCB->destroy is NULL) or an array of pointers to
+structs (hestCB->destroy is non-NULL), for which the most specific type for valueP would
+be either void* or void**, respectively. But void** is not a generic pointer to pointer
+type (like void* is the generic pointer type), and, we're not doing compile-time checks
+on the non-NULL-ity of hestCB->destroy. So it all devolves back to plain void*. Still,
+the hestOptAdd_*_Other function are generated here to slightly simplify the hestOptAdd
+call, since there is no more NULL and NULL for sawP and enum.  Actually, there is a way
+around a type-checking black hole: extreme attentiveness!
 */
 
 /* --------------------------------------------------------------- 1 == kind */
@@ -283,15 +283,15 @@ _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V _V
   MAC(M, String, char *)
 
 /* MAP(BSN, X, M) takes a macro basename BSN (like DEF) and
-expands it to the _T, _E, and _O cases for _X. E.g. "MAP(DEF, 1, 0)" expands to:
+expands it to the _T_, _E_, and _O_ cases for _X. E.g. "MAP(DEF, 1, 0)" expands to:
 MAP_T(DEF_T_1, 0)
 DEF_E_1(0)
 DEF_O_1(0)
 */
 #define MAP(BSN, X, M) MAP_T(CONC3(BSN, T, X), M) CONC3(BSN, E, X)(M) CONC3(BSN, O, X)(M)
 
-/* DOIT does expansion over all possibilities of BSN */
-#define DOIT(BSN)                                                                       \
+/* This does expansion over all possibilities of BSN */
+#define LETS_GET_THIS_PARTY_STARTED(BSN)                                                \
   MAP(BSN, 1, 0)                                                                        \
   MAP(BSN, 1, 1)                                                                        \
   MAP(BSN, M, 2)                                                                        \
@@ -301,7 +301,7 @@ DEF_O_1(0)
   MAP(BSN, V, _)
 
 /* !!! HERE IS THE ACTUAL CODE FOR ALL THE hestOptAdd_*_* CASES !!! */
-DOIT(DEF)
+LETS_GET_THIS_PARTY_STARTED(DEF)
 
 /* Macro for making a string out of whatever something has been #define'd to
    https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html */
@@ -327,12 +327,12 @@ NOTE assuming the local variable FILE *ff */
 #define PRINT_E_V(_) fprintf(ff, "HEST_EXPORT " _STR(DCL_E_V(_)) ";\n");
 #define PRINT_O_V(_) fprintf(ff, "HEST_EXPORT " _STR(DCL_O_V(_)) ";\n");
 
-/* prints declarations for everything defined by macro magic above */
+/* prints declarations (for hest.h) for everything defined by macros above */
 void
 hestOptAddDeclsPrint(FILE *ff) {
   /* the flag is the one case not handled by macro expansion */
   fprintf(ff, "HEST_EXPORT unsigned int hestOptAdd_Flag(hestOpt **optP, "
               "const char *flag, int *valueP, const char *info);\n");
   /* declarations for all other cases */
-  DOIT(PRINT)
+  LETS_GET_THIS_PARTY_STARTED(PRINT)
 }
