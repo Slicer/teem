@@ -1098,6 +1098,7 @@ NRRD_EXPORT int nrrdUntile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0,
 /******** things useful with hest */
 /* hestNrrd.c */
 NRRD_EXPORT const hestCB *const nrrdHestNrrd;
+NRRD_EXPORT const hestCB *const nrrdHestNrrdNoTTY;
 NRRD_EXPORT const hestCB *const nrrdHestKernelSpec;
 NRRD_EXPORT const hestCB *const nrrdHestBoundarySpec;
 NRRD_EXPORT const hestCB *const nrrdHestIter;
