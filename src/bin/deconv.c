@@ -57,29 +57,27 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, hparm, AIR_CAST(airMopper, hestParmFree), airMopAlways);
   hparm->elideSingleOtherType = AIR_TRUE;
   hparm->respectDashDashHelp = AIR_TRUE;
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL, "input volume", NULL,
-             NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
-             "\"kind\" of volume (\"scalar\", \"vector\", "
-             "\"tensor\", or \"dwi\")",
-             NULL, NULL, meetHestGageKind);
-  hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1, &ksp, NULL,
-             "convolution kernel", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "mi", "max # iters", airTypeUInt, 1, 1, &maxIter, "100",
-             "maximum number of iterations with which to compute the "
-             "deconvolution");
-  hestOptAdd(&hopt, "e", "epsilon", airTypeDouble, 1, 1, &epsilon, "0.00000001",
-             "convergence threshold");
-  hestOptAdd(&hopt, "s", "step", airTypeDouble, 1, 1, &step, "1.0",
-             "scaling of value update");
-  hestOptAdd(&hopt, "t", "type", airTypeOther, 1, 1, &otype, "default",
-             "type to save output as. By default (not using this option), "
-             "the output type is the same as the input type",
-             NULL, NULL, &unrrduHestMaybeTypeCB);
-  hestOptAdd(&hopt, "sep", "bool", airTypeBool, 1, 1, &separ, "false",
-             "use fast separable deconvolution instead of brain-dead "
-             "brute-force iterative method");
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-", "output volume");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, NULL, "input volume", nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "k", "kind", &kind, NULL,
+                     "\"kind\" of volume (\"scalar\", \"vector\", "
+                     "\"tensor\", or \"dwi\")",
+                     meetHestGageKind);
+  hestOptAdd_1_Other(&hopt, "k00", "kernel", &ksp, NULL, "convolution kernel",
+                     nrrdHestKernelSpec);
+  hestOptAdd_1_UInt(&hopt, "mi", "max # iters", &maxIter, "100",
+                    "maximum number of iterations with which to compute the "
+                    "deconvolution");
+  hestOptAdd_1_Double(&hopt, "e", "epsilon", &epsilon, "0.00000001",
+                      "convergence threshold");
+  hestOptAdd_1_Double(&hopt, "s", "step", &step, "1.0", "scaling of value update");
+  hestOptAdd_1_Other(&hopt, "t", "type", &otype, "default",
+                     "type to save output as. By default (not using this option), "
+                     "the output type is the same as the input type",
+                     &unrrduHestMaybeTypeCB);
+  hestOptAdd_1_Bool(&hopt, "sep", "bool", &separ, "false",
+                    "use fast separable deconvolution instead of brain-dead "
+                    "brute-force iterative method");
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output volume");
   hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, deconvInfo, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
   airMopAdd(mop, hopt, AIR_CAST(airMopper, hestOptFree), airMopAlways);

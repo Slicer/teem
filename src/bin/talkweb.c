@@ -273,20 +273,19 @@ tkwbWriteStringToFile(const char *filename, const char *content) {
    see usage below (not enough to wrap call to strlen() in a new function) */
 static unsigned int
 notStrlen(const char *str) {
-  unsigned int ii=0;
+  unsigned int ii = 0;
   while (str[ii]) {
     ii++;
   }
   return ii;
 }
 
-
 int
-_tkwbStringSubst(char **sP, /* string to search in */
+_tkwbStringSubst(char **sP,       /* string to search in */
                  const char *f,   /* find */
                  const char *r) { /* replace */
-  char *p,                  /* place where find was found */
-    *n;                     /* new string */
+  char *p,                        /* place where find was found */
+    *n;                           /* new string */
   unsigned int rslen;
 
   p = strstr(*sP, f);
@@ -299,8 +298,8 @@ _tkwbStringSubst(char **sP, /* string to search in */
   strncpy(n, *sP, p - *sP);
   /* warnings in the next line about:
   - specified bound depends on the length of the source argument
-  - output truncated before terminating nul copying as many bytes from a string as its length
-  were silenced by using a strlen() replacement, above */
+  - output truncated before terminating nul copying as many bytes from a string as its
+  length were silenced by using a strlen() replacement, above */
   strncpy(n + (p - *sP), r, rslen);
   strcpy(n + (p - *sP) + rslen, p + strlen(f));
   free(*sP);
@@ -468,46 +467,46 @@ main(int argc, const char *argv[]) {
   int ti;
 
   me = argv[0];
-  hestOptAdd(&hopt, "i", "index", airTypeString, 1, 1, &indxS, NULL,
-             "*index* template HTML filename.  This will be turned into "
-             "the \"index.html\" index file, after the links to all the "
-             "slides have been substituted in.");
-  hestOptAdd(&hopt, "t", "slide", airTypeString, 1, 1, &tmplS, NULL,
-             "*slide* template HTML filename.  "
-             "The text of this includes the tags "
-             "that are replaced with their per-slide values, to produce the "
-             "HTML file for each slide's page. ");
-  hestOptAdd(&hopt, "s", "script", airTypeString, 1, 1, &scriptS, NULL,
-             "script filename.  This file contains information about each "
-             "slide: the slide title, the slide image filename, and the "
-             "HTML text to accompany the slide image.");
-  hestOptAdd(&hopt, "r", "tags", airTypeString, TKWB_TAG_MAX + 1, TKWB_TAG_MAX + 1,
-             pretag, "TOC TITLE IMAGE FIRST PREV NEXT LAST TEXT",
-             "replacement tags that will be converted into links. "
-             "The actual replcement tag is the string given here embedded "
-             "in an HTML comment (no space).  So saying \"TOC\" means the "
-             "actual replacement tag will be \"<!--TOC-->\". The first tag "
-             "is replaced in the index template; all others are in the "
-             "slide template. "
-             "In order, the tags are for:\n "
-             "\b\bo In the index template, the list of links to slide pages\n "
-             "\b\bo The slide title\n "
-             "\b\bo The slide image\n "
-             "\b\bo The link to the first slide\n "
-             "\b\bo The link to the previous slide\n "
-             "\b\bo The link to the next slide\n "
-             "\b\bo The link to the last slide\n "
-             "\b\bo The text accompanying each slide");
-  hestOptAdd(&hopt, "first", "text", airTypeString, 1, 1, &frstLink, "<b>|&lt;&lt;</b>",
-             "Snippet of HTML text to be converted into "
-             "link to first slide.  Some image could be used here. "
-             "Following three arguments are similar. ");
-  hestOptAdd(&hopt, "prev", "text", airTypeString, 1, 1, &prevLink, "<b>&lt;--</b>",
-             "HTML for link to previous slide");
-  hestOptAdd(&hopt, "next", "text", airTypeString, 1, 1, &nextLink, "<b>--&gt;</b>",
-             "HTML for link to next slide");
-  hestOptAdd(&hopt, "last", "text", airTypeString, 1, 1, &lastLink, "<b>&gt;&gt;|</b>",
-             "HTML for link to last slide");
+  hestOptAdd_1_String(&hopt, "i", "index", &indxS, NULL,
+                      "*index* template HTML filename.  This will be turned into "
+                      "the \"index.html\" index file, after the links to all the "
+                      "slides have been substituted in.");
+  hestOptAdd_1_String(&hopt, "t", "slide", &tmplS, NULL,
+                      "*slide* template HTML filename.  "
+                      "The text of this includes the tags "
+                      "that are replaced with their per-slide values, to produce the "
+                      "HTML file for each slide's page. ");
+  hestOptAdd_1_String(&hopt, "s", "script", &scriptS, NULL,
+                      "script filename.  This file contains information about each "
+                      "slide: the slide title, the slide image filename, and the "
+                      "HTML text to accompany the slide image.");
+  hestOptAdd_N_String(&hopt, "r", "tags", TKWB_TAG_MAX + 1, pretag,
+                      "TOC TITLE IMAGE FIRST PREV NEXT LAST TEXT",
+                      "replacement tags that will be converted into links. "
+                      "The actual replcement tag is the string given here embedded "
+                      "in an HTML comment (no space).  So saying \"TOC\" means the "
+                      "actual replacement tag will be \"<!--TOC-->\". The first tag "
+                      "is replaced in the index template; all others are in the "
+                      "slide template. "
+                      "In order, the tags are for:\n "
+                      "\b\bo In the index template, the list of links to slide pages\n "
+                      "\b\bo The slide title\n "
+                      "\b\bo The slide image\n "
+                      "\b\bo The link to the first slide\n "
+                      "\b\bo The link to the previous slide\n "
+                      "\b\bo The link to the next slide\n "
+                      "\b\bo The link to the last slide\n "
+                      "\b\bo The text accompanying each slide");
+  hestOptAdd_1_String(&hopt, "first", "text", &frstLink, "<b>|&lt;&lt;</b>",
+                      "Snippet of HTML text to be converted into "
+                      "link to first slide.  Some image could be used here. "
+                      "Following three arguments are similar. ");
+  hestOptAdd_1_String(&hopt, "prev", "text", &prevLink, "<b>&lt;--</b>",
+                      "HTML for link to previous slide");
+  hestOptAdd_1_String(&hopt, "next", "text", &nextLink, "<b>--&gt;</b>",
+                      "HTML for link to next slide");
+  hestOptAdd_1_String(&hopt, "last", "text", &lastLink, "<b>&gt;&gt;|</b>",
+                      "HTML for link to last slide");
   hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, tkwbInfo, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
   mop = airMopNew();

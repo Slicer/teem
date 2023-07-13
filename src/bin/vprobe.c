@@ -94,74 +94,70 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, hparm, AIR_CAST(airMopper, hestParmFree), airMopAlways);
   hparm->elideSingleOtherType = AIR_TRUE;
   hparm->respectDashDashHelp = AIR_TRUE;
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL, "input volume", NULL,
-             NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
-             "\"kind\" of volume (\"scalar\", \"vector\", "
-             "\"tensor\", or \"dwi\")",
-             NULL, NULL, meetHestGageKind);
-  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1",
-             "verbosity level");
-  hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
-             "the quantity (scalar, vector, or matrix) to learn by probing");
-  hestOptAdd(&hopt, "s", "sclX sclY sxlZ", airTypeDouble, 3, 3, scale, "1.0 1.0 1.0",
-             "scaling factor for resampling on each axis "
-             "(>1.0 : supersampling)");
-  hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00, "tent",
-             "kernel for gageKernel00", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k11", "kern11", airTypeOther, 1, 1, &k11, "cubicd:1,0",
-             "kernel for gageKernel11", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k22", "kern22", airTypeOther, 1, 1, &k22, "cubicdd:1,0",
-             "kernel for gageKernel22", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "seed", "N", airTypeUInt, 1, 1, &seed, "42",
-             "RNG seed; mostly for debugging");
-  hestOptAdd(&hopt, "zz", "bool", airTypeBool, 1, 1, &zeroZ, "false",
-             "enable \"zeroZ\" behavior in gage that partially "
-             "implements working with 3D images as if they are 2D");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, NULL, "input volume", nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "k", "kind", &kind, NULL,
+                     "\"kind\" of volume (\"scalar\", \"vector\", "
+                     "\"tensor\", or \"dwi\")",
+                     meetHestGageKind);
+  hestOptAdd_1_Int(&hopt, "v", "verbosity", &verbose, "1", "verbosity level");
+  hestOptAdd_1_String(&hopt, "q", "query", &whatS, NULL,
+                      "the quantity (scalar, vector, or matrix) to learn by probing");
+  hestOptAdd_3_Double(&hopt, "s", "sclX sclY sxlZ", scale, "1.0 1.0 1.0",
+                      "scaling factor for resampling on each axis "
+                      "(>1.0 : supersampling)");
+  hestOptAdd_1_Other(&hopt, "k00", "kern00", &k00, "tent", "kernel for gageKernel00",
+                     nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "k11", "kern11", &k11, "cubicd:1,0",
+                     "kernel for gageKernel11", nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "k22", "kern22", &k22, "cubicdd:1,0",
+                     "kernel for gageKernel22", nrrdHestKernelSpec);
+  hestOptAdd_1_UInt(&hopt, "seed", "N", &seed, "42", "RNG seed; mostly for debugging");
+  hestOptAdd_1_Bool(&hopt, "zz", "bool", &zeroZ, "false",
+                    "enable \"zeroZ\" behavior in gage that partially "
+                    "implements working with 3D images as if they are 2D");
 
-  hestOptAdd(&hopt, "ssn", "SS #", airTypeUInt, 1, 1, &numSS, "0",
-             "how many scale-space samples to evaluate, or, "
-             "0 to turn-off all scale-space behavior");
-  hestOptAdd(&hopt, "ssr", "scale range", airTypeDouble, 2, 2, rangeSS, "nan nan",
-             "range of scales in scale-space");
-  hestOptAdd(&hopt, "ssrf", "SS read format", airTypeString, 1, 1, &stackReadFormat, "",
-             "printf-style format (including a \"%u\") for the "
-             "filenames from which to *read* "
-             "pre-blurred volumes computed for the stack");
-  hestOptAdd(&hopt, "sssf", "SS save format", airTypeString, 1, 1, &stackSaveFormat, "",
-             "printf-style format (including a \"%u\") for the "
-             "filenames in which to *save* "
-             "pre-blurred volumes computed for the stack");
-  hestOptAdd(&hopt, "ssw", "SS pos", airTypeDouble, 1, 1, &wrlSS, "0",
-             "\"world\"-space position (true sigma) "
-             "at which to sample in scale-space");
-  hestOptAdd(&hopt, "kssb", "kernel", airTypeOther, 1, 1, &kSSblur, "dgauss:1,5",
-             "blurring kernel, to sample scale space", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "kssr", "kernel", airTypeOther, 1, 1, &kSS, "hermite",
-             "kernel for reconstructing from scale space samples", NULL, NULL,
-             nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "ssu", NULL, airTypeInt, 0, 0, &SSuniform, NULL,
-             "do uniform samples along sigma, and not (by default) "
-             "samples according to the effective diffusion scale");
-  hestOptAdd(&hopt, "sso", NULL, airTypeInt, 0, 0, &SSoptim, NULL,
-             "if not using \"-ssu\", use pre-computed optimal "
-             "sigmas when possible");
-  hestOptAdd(&hopt, "ssnd", NULL, airTypeInt, 0, 0, &SSnormd, NULL,
-             "normalize derivatives by scale");
+  hestOptAdd_1_UInt(&hopt, "ssn", "SS #", &numSS, "0",
+                    "how many scale-space samples to evaluate, or, "
+                    "0 to turn-off all scale-space behavior");
+  hestOptAdd_2_Double(&hopt, "ssr", "scale range", rangeSS, "nan nan",
+                      "range of scales in scale-space");
+  hestOptAdd_1_String(&hopt, "ssrf", "SS read format", &stackReadFormat, "",
+                      "printf-style format (including a \"%u\") for the "
+                      "filenames from which to *read* "
+                      "pre-blurred volumes computed for the stack");
+  hestOptAdd_1_String(&hopt, "sssf", "SS save format", &stackSaveFormat, "",
+                      "printf-style format (including a \"%u\") for the "
+                      "filenames in which to *save* "
+                      "pre-blurred volumes computed for the stack");
+  hestOptAdd_1_Double(&hopt, "ssw", "SS pos", &wrlSS, "0",
+                      "\"world\"-space position (true sigma) "
+                      "at which to sample in scale-space");
+  hestOptAdd_1_Other(&hopt, "kssb", "kernel", &kSSblur, "dgauss:1,5",
+                     "blurring kernel, to sample scale space", nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "kssr", "kernel", &kSS, "hermite",
+                     "kernel for reconstructing from scale space samples",
+                     nrrdHestKernelSpec);
+  hestOptAdd_Flag(&hopt, "ssu", &SSuniform,
+                  "do uniform samples along sigma, and not (by default) "
+                  "samples according to the effective diffusion scale");
+  hestOptAdd_Flag(&hopt, "sso", &SSoptim,
+                  "if not using \"-ssu\", use pre-computed optimal "
+                  "sigmas when possible");
+  hestOptAdd_Flag(&hopt, "ssnd", &SSnormd, "normalize derivatives by scale");
 
-  hestOptAdd(&hopt, "rn", NULL, airTypeInt, 0, 0, &renorm, NULL,
-             "renormalize kernel weights at each new sample location. "
-             "\"Accurate\" kernels don't need this; doing it always "
-             "makes things go slower");
-  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc, "0.0",
-             "For curvature-based queries, use zero when gradient "
-             "magnitude is below this");
-  hestOptAdd(&hopt, "ofs", "ofs", airTypeInt, 0, 0, &orientationFromSpacing, NULL,
-             "If only per-axis spacing is available, use that to "
-             "contrive full orientation info");
-  hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &otype, "float",
-             "type of output volume", NULL, nrrdType);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-", "output volume");
+  hestOptAdd_Flag(&hopt, "rn", &renorm,
+                  "renormalize kernel weights at each new sample location. "
+                  "\"Accurate\" kernels don't need this; doing it always "
+                  "makes things go slower");
+  hestOptAdd_1_Double(&hopt, "gmc", "min gradmag", &gmc, "0.0",
+                      "For curvature-based queries, use zero when gradient "
+                      "magnitude is below this");
+  hestOptAdd_Flag(&hopt, "ofs", &orientationFromSpacing,
+                  "If only per-axis spacing is available, use that to "
+                  "contrive full orientation info");
+  hestOptAdd_1_Enum(&hopt, "t", "type", &otype, "float", "type of output volume",
+                    nrrdType);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output volume");
   hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, probeInfo, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
   airMopAdd(mop, hopt, AIR_CAST(airMopper, hestOptFree), airMopAlways);

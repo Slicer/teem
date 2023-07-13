@@ -54,80 +54,79 @@ main(int argc, const char *argv[]) {
   hparm->respectDashDashHelp = AIR_TRUE;
   hparm->respFileEnable = AIR_TRUE;
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
-  hestOptAdd(&hopt, "i", "nsin", airTypeOther, 1, 1, &(muu->nsin), "",
-             "input scalar volume to render", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "vi", "nvin", airTypeOther, 1, 1, &(muu->nvin), "",
-             "input vector volume to render", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "ti", "ntin", airTypeOther, 1, 1, &(muu->ntin), "",
-             "input tensor volume to render", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "txf", "nin", airTypeOther, 1, -1, &(muu->ntxf), NULL,
-             "one or more transfer functions", &(muu->ntxfNum), NULL, nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "i", "nsin", &(muu->nsin), "",
+                     "input scalar volume to render", nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "vi", "nvin", &(muu->nvin), "",
+                     "input vector volume to render", nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "ti", "ntin", &(muu->ntin), "",
+                     "input tensor volume to render", nrrdHestNrrd);
+  hestOptAdd_Nv_Other(&hopt, "txf", "nin", 1, -1, &(muu->ntxf), NULL,
+                      "one or more transfer functions", &(muu->ntxfNum), nrrdHestNrrd);
   limnHestCameraOptAdd(&hopt, muu->hctx->cam, NULL, "0 0 0", "0 0 1", NULL, NULL, NULL,
                        "nan nan", "nan nan", "20");
-  hestOptAdd(&hopt, "offfr", NULL, airTypeInt, 0, 0, &offfr, NULL,
-             "the given eye point (\"-fr\") is to be interpreted "
-             "as an offset from the at point.");
-  hestOptAdd(&hopt, "ffr", "fake from", airTypeDouble, 3, 3, &(muu->fakeFrom),
-             "nan nan nan",
-             "eye point to use for view-dependent transfer functions. "
-             "By default (not using this option), the point used is the "
-             "normally specified camera eye point.");
-  hestOptAdd(&hopt, "turn", "angle", airTypeDouble, 1, 1, &turn, "0.0",
-             "angle (degrees) by which to rotate the from point around "
-             "true up, for making stereo pairs.  Positive means move "
-             "towards positive U (the right)");
-  hestOptAdd(&hopt, "am", "ambient", airTypeFloat, 3, 3, muu->lit->amb, "1 1 1",
-             "ambient light color");
-  hestOptAdd(&hopt, "ld", "light pos", airTypeFloat, 3, 3, muu->lit->_dir[0], "0 0 -1",
-             "view space light position (extended to infinity)");
-  hestOptAdd(&hopt, "is", "image size", airTypeInt, 2, 2, muu->hctx->imgSize, "256 256",
-             "image dimensions");
-  hestOptAdd(&hopt, "iss", "scale", airTypeFloat, 1, 1, &isScale, "1.0",
-             "scaling of image size (from \"is\")");
-  hestOptAdd(&hopt, "ads", "ka kd ks", airTypeFloat, 3, 3, ads, "0.1 0.6 0.3",
-             "phong components");
+  hestOptAdd_Flag(&hopt, "offfr", &offfr,
+                  "the given eye point (\"-fr\") is to be interpreted "
+                  "as an offset from the at point.");
+  hestOptAdd_3_Double(&hopt, "ffr", "fake from", muu->fakeFrom, "nan nan nan",
+                      "eye point to use for view-dependent transfer functions. "
+                      "By default (not using this option), the point used is the "
+                      "normally specified camera eye point.");
+  hestOptAdd_1_Double(&hopt, "turn", "angle", &turn, "0.0",
+                      "angle (degrees) by which to rotate the from point around "
+                      "true up, for making stereo pairs.  Positive means move "
+                      "towards positive U (the right)");
+  hestOptAdd_3_Float(&hopt, "am", "ambient", muu->lit->amb, "1 1 1",
+                     "ambient light color");
+  hestOptAdd_3_Float(&hopt, "ld", "light pos", muu->lit->_dir[0], "0 0 -1",
+                     "view space light position (extended to infinity)");
+  hestOptAdd_2_UInt(&hopt, "is", "image size", muu->hctx->imgSize, "256 256",
+                    "image dimensions");
+  hestOptAdd_1_Float(&hopt, "iss", "scale", &isScale, "1.0",
+                     "scaling of image size (from \"is\")");
+  hestOptAdd_3_Float(&hopt, "ads", "ka kd ks", ads, "0.1 0.6 0.3", "phong components");
+  /* mite_at could be float or double */
   hestOptAdd(&hopt, "sp", "spec pow", mite_at, 1, 1, &(muu->rangeInit[miteRangeSP]),
              "30", "phong specular power");
-  hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1, &(muu->ksp[gageKernel00]),
-             "tent", "value reconstruction kernel", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k11", "kernel", airTypeOther, 1, 1, &(muu->ksp[gageKernel11]),
-             "cubicd:1,0", "first derivative kernel", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k22", "kernel", airTypeOther, 1, 1, &(muu->ksp[gageKernel22]),
-             "cubicdd:1,0", "second derivative kernel", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "ss", "shading spec", airTypeString, 1, 1, &shadeStr,
-             "phong:gage(scalar:n)", "how to do shading");
-  hestOptAdd(&hopt, "ns", "normal spec", airTypeString, 1, 1, &normalStr, "",
-             "\"normal\" to use for those miteVal's that need one");
-  hestOptAdd(&hopt, "side", "normal side", airTypeInt, 1, 1, &(muu->normalSide), "1",
-             "how to interpret gradients as normals:\n "
-             "\b\bo \"1\": normal points to lower values (higher == "
-             "more \"inside\")\n "
-             "\b\bo \"0\": \"two-sided\": dot-products are abs()'d\n "
-             "\b\bo \"-1\": normal points to higher values (lower == "
-             "more \"inside\")");
-  hestOptAdd(&hopt, "rn", NULL, airTypeBool, 0, 0, &renorm, NULL,
-             "renormalize kernel weights at each new sample location. "
-             "\"Accurate\" kernels don't need this; doing it always "
-             "makes things go slower");
-  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc, "0.0",
-             "For curvature-based transfer functions, set curvature to "
-             "zero when gradient magnitude is below this");
-  hestOptAdd(&hopt, "step", "size", airTypeDouble, 1, 1, &(muu->rayStep), "0.01",
-             "step size along ray in world space");
-  hestOptAdd(&hopt, "ref", "size", airTypeDouble, 1, 1, &(muu->refStep), "0.01",
-             "\"reference\" step size (world space) for doing "
-             "opacity correction in compositing");
-  hestOptAdd(&hopt, "vp", "verbose pixel", airTypeInt, 2, 2, verbPix, "-1 -1",
-             "pixel for which to turn on verbose messages");
-  hestOptAdd(&hopt, "n1", "near1", airTypeDouble, 1, 1, &(muu->opacNear1), "0.99",
-             "opacity close enough to 1.0 to terminate ray");
-  hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1, &(muu->hctx->numThreads), "1",
-             (airThreadCapable
-                ? "number of threads hoover should use"
-                : "if pthreads where enabled in this Teem build, this is how "
-                  "you would control the number of threads hoover should use"));
-  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, NULL,
-             "file to write output nrrd to");
+  hestOptAdd_1_Other(&hopt, "k00", "kernel", &(muu->ksp[gageKernel00]), "tent",
+                     "value reconstruction kernel", nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "k11", "kernel", &(muu->ksp[gageKernel11]), "cubicd:1,0",
+                     "first derivative kernel", nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "k22", "kernel", &(muu->ksp[gageKernel22]), "cubicdd:1,0",
+                     "second derivative kernel", nrrdHestKernelSpec);
+  hestOptAdd_1_String(&hopt, "ss", "shading spec", &shadeStr, "phong:gage(scalar:n)",
+                      "how to do shading");
+  hestOptAdd_1_String(&hopt, "ns", "normal spec", &normalStr, "",
+                      "\"normal\" to use for those miteVal's that need one");
+  hestOptAdd_1_Int(&hopt, "side", "normal side", &(muu->normalSide), "1",
+                   "how to interpret gradients as normals:\n "
+                   "\b\bo \"1\": normal points to lower values (higher == "
+                   "more \"inside\")\n "
+                   "\b\bo \"0\": \"two-sided\": dot-products are abs()'d\n "
+                   "\b\bo \"-1\": normal points to higher values (lower == "
+                   "more \"inside\")");
+  hestOptAdd_Flag(&hopt, "rn", &renorm,
+                  "renormalize kernel weights at each new sample location. "
+                  "\"Accurate\" kernels don't need this; doing it always "
+                  "makes things go slower");
+  hestOptAdd_1_Double(&hopt, "gmc", "min gradmag", &gmc, "0.0",
+                      "For curvature-based transfer functions, set curvature to "
+                      "zero when gradient magnitude is below this");
+  hestOptAdd_1_Double(&hopt, "step", "size", &(muu->rayStep), "0.01",
+                      "step size along ray in world space");
+  hestOptAdd_1_Double(&hopt, "ref", "size", &(muu->refStep), "0.01",
+                      "\"reference\" step size (world space) for doing "
+                      "opacity correction in compositing");
+  hestOptAdd_2_Int(&hopt, "vp", "verbose pixel", verbPix, "-1 -1",
+                   "pixel for which to turn on verbose messages");
+  hestOptAdd_1_Double(&hopt, "n1", "near1", &(muu->opacNear1), "0.99",
+                      "opacity close enough to 1.0 to terminate ray");
+  hestOptAdd_1_UInt(&hopt, "nt", "# threads", &(muu->hctx->numThreads), "1",
+                    (airThreadCapable
+                       ? "number of threads hoover should use"
+                       : "if pthreads where enabled in this Teem build, this is how "
+                         "you would control the number of threads hoover should use"));
+  hestOptAdd_1_String(&hopt, "o", "filename", &outS, NULL,
+                      "file to write output nrrd to");
   hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, miteInfo, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

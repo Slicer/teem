@@ -68,62 +68,62 @@ main(int argc, const char *argv[]) {
     (which may be a hest bug) */
   hparm->columns = AIR_MAX(59, wsz.ws_col - 2);
 
-  hestOptAdd(&hopt, "i", "image", airTypeOther, 1, 1, &nin, "-", "input image", NULL,
-             NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "0", "origin", airTypeOther, 1, 1, &origInfo, "p:0,0",
-             "where to location (0,0) prior to applying transforms.\n "
-             "\b\bo \"u:<float>,<float>\" locate origin in a unit box "
-             "[0,1]x[0,1] which covers the original image\n "
-             "\b\bo \"p:<float>,<float>\" locate origin at a particular "
-             "pixel location, in the index space of the image",
-             NULL, NULL, mossHestOrigin);
-  hestOptAdd(&hopt, "t", "xform0", airTypeOther, 1, -1, &matList, NULL,
-             "transform(s) to apply to image.  Transforms "
-             "are applied in the order in which they appear.\n "
-             "\b\bo \"identity\": no geometric transform, just resampling\n "
-             "\b\bo \"translate:x,y\": shift image by vector (x,y), as "
-             "measured in pixels\n "
-             "\b\bo \"rotate:ang\": rotate CCW by ang degrees\n "
-             "\b\bo \"scale:xs,ys\": scale by xs in X, and ys in Y\n "
-             "\b\bo \"shear:fix,amnt\": shear by amnt, keeping fixed "
-             "the pixels along a direction <fix> degrees from the X axis\n "
-             "\b\bo \"flip:ang\": flip along axis an angle <ang> degrees from "
-             "the X axis\n "
-             "\b\bo \"a,b,tx,c,d,ty\": specify the transform explicitly "
-             "in row-major order (opposite of PostScript) ",
-             &matListLen, NULL, mossHestTransform);
-  hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp, "cubic:0,0.5",
-             "reconstruction kernel", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "min", "xMin yMin", airTypeDouble, 2, 2, min, "nan nan",
-             "lower bounding corner of output image. Default (by not "
-             "using this option) is the lower corner of input image. ");
-  hestOptAdd(&hopt, "max", "xMax yMax", airTypeDouble, 2, 2, max, "nan nan",
-             "upper bounding corner of output image. Default (by not "
-             "using this option) is the upper corner of input image. ");
-  hestOptAdd(&hopt, "b", "boundary", airTypeEnum, 1, 1, &bound, "bleed",
-             "what to do when sampling outside original image.\n "
-             "\b\bo \"bleed\": copy values at image border outward\n "
-             "\b\bo \"wrap\": do wrap-around on image locations\n "
-             "\b\bo \"pad\": use a given background value (via \"-bg\")",
-             NULL, nrrdBoundary);
-  bkgIdx = hestOptAdd(&hopt, "bg", "bg0 bg1", airTypeDouble, 1, -1, &_bkg, "nan",
-                      "background color to use with boundary behavior \"pad\". "
-                      "Defaults to all zeroes.",
-                      &_bkgLen);
-  hestOptAdd(&hopt, "s", "xSize ySize", airTypeOther, 2, 2, scale, "x1 x1",
-             "For each axis, information about how many samples in output:\n "
-             "\b\bo \"x<float>\": number of output samples is some scaling of "
-             " the number input of samples; multiplied by <float>\n "
-             "\b\bo \"<int>\": specify exact number of samples",
-             NULL, NULL, &unrrduHestScaleCB);
-  hestOptAdd(&hopt, "a", "avg #", airTypeUInt, 1, 1, &avgNum, "0",
-             "number of averages (if there there is only one "
-             "rotation as transform)");
-  hestOptAdd(&hopt, "db", "x y", airTypeInt, 2, 2, debug, "-1 -1",
-             "if both non-negative, turn on verbose debugging for this output "
-             "image pixel");
-  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
-             "file to write output nrrd to");
+  hestOptAdd_1_Other(&hopt, "i", "image", &nin, "-", "input image", nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "0", "origin", &origInfo, "p:0,0",
+                     "where to location (0,0) prior to applying transforms.\n "
+                     "\b\bo \"u:<float>,<float>\" locate origin in a unit box "
+                     "[0,1]x[0,1] which covers the original image\n "
+                     "\b\bo \"p:<float>,<float>\" locate origin at a particular "
+                     "pixel location, in the index space of the image",
+                     mossHestOrigin);
+  hestOptAdd_Nv_Other(&hopt, "t", "xform0", 1, -1, &matList, NULL,
+                      "transform(s) to apply to image.  Transforms "
+                      "are applied in the order in which they appear.\n "
+                      "\b\bo \"identity\": no geometric transform, just resampling\n "
+                      "\b\bo \"translate:x,y\": shift image by vector (x,y), as "
+                      "measured in pixels\n "
+                      "\b\bo \"rotate:ang\": rotate CCW by ang degrees\n "
+                      "\b\bo \"scale:xs,ys\": scale by xs in X, and ys in Y\n "
+                      "\b\bo \"shear:fix,amnt\": shear by amnt, keeping fixed "
+                      "the pixels along a direction <fix> degrees from the X axis\n "
+                      "\b\bo \"flip:ang\": flip along axis an angle <ang> degrees from "
+                      "the X axis\n "
+                      "\b\bo \"a,b,tx,c,d,ty\": specify the transform explicitly "
+                      "in row-major order (opposite of PostScript) ",
+                      &matListLen, mossHestTransform);
+  hestOptAdd_1_Other(&hopt, "k", "kernel", &ksp, "cubic:0,0.5", "reconstruction kernel",
+                     nrrdHestKernelSpec);
+  hestOptAdd_2_Double(&hopt, "min", "xMin yMin", min, "nan nan",
+                      "lower bounding corner of output image. Default (by not "
+                      "using this option) is the lower corner of input image. ");
+  hestOptAdd_2_Double(&hopt, "max", "xMax yMax", max, "nan nan",
+                      "upper bounding corner of output image. Default (by not "
+                      "using this option) is the upper corner of input image. ");
+  hestOptAdd_1_Enum(&hopt, "b", "boundary", &bound, "bleed",
+                    "what to do when sampling outside original image.\n "
+                    "\b\bo \"bleed\": copy values at image border outward\n "
+                    "\b\bo \"wrap\": do wrap-around on image locations\n "
+                    "\b\bo \"pad\": use a given background value (via \"-bg\")",
+                    nrrdBoundary);
+  bkgIdx
+    = hestOptAdd_Nv_Double(&hopt, "bg", "bg0 bg1", 1, -1, &_bkg, "nan",
+                           "background color to use with boundary behavior \"pad\". "
+                           "Defaults to all zeroes.",
+                           &_bkgLen);
+  hestOptAdd_2_Other(&hopt, "s", "xSize ySize", scale, "x1 x1",
+                     "For each axis, information about how many samples in output:\n "
+                     "\b\bo \"x<float>\": number of output samples is some scaling of "
+                     " the number input of samples; multiplied by <float>\n "
+                     "\b\bo \"<int>\": specify exact number of samples",
+                     &unrrduHestScaleCB);
+  hestOptAdd_1_UInt(&hopt, "a", "avg #", &avgNum, "0",
+                    "number of averages (if there there is only one "
+                    "rotation as transform)");
+  hestOptAdd_2_Int(&hopt, "db", "x y", debug, "-1 -1",
+                   "if both non-negative, turn on verbose debugging for this output "
+                   "image pixel");
+  hestOptAdd_1_String(&hopt, "o", "filename", &outS, "-",
+                      "file to write output nrrd to");
   hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, ilkInfo, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

@@ -272,64 +272,65 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, hparm, AIR_CAST(airMopper, hestParmFree), airMopAlways);
   hparm->elideSingleOtherType = AIR_TRUE;
   hparm->respectDashDashHelp = AIR_TRUE;
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL, "input volume", NULL,
-             NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
-             "\"kind\" of volume (\"scalar\", \"vector\", "
-             "\"tensor\", or \"dwi\")",
-             NULL, NULL, meetHestGageKind);
-  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1",
-             "verbosity level");
-  hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
-             "the quantity (scalar, vector, or matrix) to learn by probing");
-  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc, "0.0",
-             "For curvature-based queries, use zero when gradient "
-             "magnitude is below this");
-  hestOptAdd(&hopt, "ofs", "ofs", airTypeInt, 0, 0, &orientationFromSpacing, NULL,
-             "If only per-axis spacing is available, use that to "
-             "contrive full orientation info");
-  hestOptAdd(&hopt, "seed", "N", airTypeUInt, 1, 1, &seed, "42",
-             "RNG seed; mostly for debugging");
-  hestOptAdd(&hopt, "c", "bool", airTypeBool, 1, 1, &clamp, "false",
-             "clamp positions as part of probing");
-  hestOptAdd(&hopt, "ev", "thresh val", airTypeDouble, 2, 2, edgeFracInfo, "1 0",
-             "if using position clamping (with \"-c true\"), the fraction "
-             "of values invented for the kernel support, or \"edge frac\" "
-             "is saved per probe (0 means kernel support was entirely within "
-             "data; 1 means everything was invented). "
-             "If this frac exceeds the first \"thresh\" "
-             "value given here, then the saved value for the probe will be "
-             "the second value \"val\" given here");
-  hestOptAdd(&hopt, "zz", "bool", airTypeBool, 1, 1, &zeroZ, "false",
-             "enable \"zeroZ\" behavior in gage that partially "
-             "implements working with 3D images as if they are 2D");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, NULL, "input volume", nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "k", "kind", &kind, NULL,
+                     "\"kind\" of volume (\"scalar\", \"vector\", "
+                     "\"tensor\", or \"dwi\")",
+                     meetHestGageKind);
+  hestOptAdd_1_Int(&hopt, "v", "verbosity", &verbose, "1", "verbosity level");
+  hestOptAdd_1_String(&hopt, "q", "query", &whatS, NULL,
+                      "the quantity (scalar, vector, or matrix) to learn by probing");
+  hestOptAdd_1_Double(&hopt, "gmc", "min gradmag", &gmc, "0.0",
+                      "For curvature-based queries, use zero when gradient "
+                      "magnitude is below this");
+  hestOptAdd_Flag(&hopt, "ofs", &orientationFromSpacing,
+                  "If only per-axis spacing is available, use that to "
+                  "contrive full orientation info");
+  hestOptAdd_1_UInt(&hopt, "seed", "N", &seed, "42", "RNG seed; mostly for debugging");
+  hestOptAdd_1_Bool(&hopt, "c", "bool", &clamp, "false",
+                    "clamp positions as part of probing");
+  hestOptAdd_2_Double(&hopt, "ev", "thresh val", edgeFracInfo, "1 0",
+                      "if using position clamping (with \"-c true\"), the fraction "
+                      "of values invented for the kernel support, or \"edge frac\" "
+                      "is saved per probe (0 means kernel support was entirely within "
+                      "data; 1 means everything was invented). "
+                      "If this frac exceeds the first \"thresh\" "
+                      "value given here, then the saved value for the probe will be "
+                      "the second value \"val\" given here");
+  hestOptAdd_1_Bool(&hopt, "zz", "bool", &zeroZ, "false",
+                    "enable \"zeroZ\" behavior in gage that partially "
+                    "implements working with 3D images as if they are 2D");
 
-  hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00, "tent",
-             "kernel for gageKernel00", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k11", "kern11", airTypeOther, 1, 1, &k11, "cubicd:1,0",
-             "kernel for gageKernel11", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k22", "kern22", airTypeOther, 1, 1, &k22, "cubicdd:1,0",
-             "kernel for gageKernel22", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "rn", NULL, airTypeInt, 0, 0, &renorm, NULL,
-             "renormalize kernel weights at each new sample location. "
-             "\"Accurate\" kernels don't need this; doing it always "
-             "makes things go slower");
+  hestOptAdd_1_Other(&hopt, "k00", "kern00", &k00, "tent", "kernel for gageKernel00",
+                     nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "k11", "kern11", &k11, "cubicd:1,0",
+                     "kernel for gageKernel11", nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "k22", "kern22", &k22, "cubicdd:1,0",
+                     "kernel for gageKernel22", nrrdHestKernelSpec);
+  hestOptAdd_Flag(&hopt, "rn", &renorm,
+                  "renormalize kernel weights at each new sample location. "
+                  "\"Accurate\" kernels don't need this; doing it always "
+                  "makes things go slower");
 
   nsi = 0;
-  nonSbpOpi[nsi++] = hestOptAdd(&hopt, "ssn", "SS #", airTypeUInt, 1, 1, &numSS, "0",
-                                "how many scale-space samples to evaluate, or, "
-                                "0 to turn-off all scale-space behavior");
-  nonSbpOpi[nsi++] = hestOptAdd(&hopt, "ssr", "scale range", airTypeDouble, 2, 2,
-                                rangeSS, "nan nan", "range of scales in scale-space");
-  nonSbpOpi[nsi++] = hestOptAdd(&hopt, "ssu", NULL, airTypeInt, 0, 0, &uniformSS, NULL,
-                                "do uniform samples along sigma, and not (by default) "
-                                "samples according to the effective diffusion scale");
-  nonSbpOpi[nsi++] = hestOptAdd(&hopt, "sso", NULL, airTypeInt, 0, 0, &optimSS, NULL,
-                                "if not using \"-ssu\", use pre-computed optimal "
-                                "sigmas when possible");
-  nonSbpOpi[nsi++] = hestOptAdd(&hopt, "kssb", "kernel", airTypeOther, 1, 1, &kSSblur,
-                                "dgauss:1,5", "blurring kernel, to sample scale space",
-                                NULL, NULL, nrrdHestKernelSpec);
+  nonSbpOpi[nsi++] /* */
+    = hestOptAdd_1_UInt(&hopt, "ssn", "SS #", &numSS, "0",
+                        "how many scale-space samples to evaluate, or, "
+                        "0 to turn-off all scale-space behavior");
+  nonSbpOpi[nsi++] /* */
+    = hestOptAdd_2_Double(&hopt, "ssr", "scale range", rangeSS, "nan nan",
+                          "range of scales in scale-space");
+  nonSbpOpi[nsi++] /* */
+    = hestOptAdd_Flag(&hopt, "ssu", &uniformSS,
+                      "do uniform samples along sigma, and not (by default) "
+                      "samples according to the effective diffusion scale");
+  nonSbpOpi[nsi++] /* */
+    = hestOptAdd_Flag(&hopt, "sso", &optimSS,
+                      "if not using \"-ssu\", use pre-computed optimal "
+                      "sigmas when possible");
+  nonSbpOpi[nsi++] /* */
+    = hestOptAdd_1_Other(&hopt, "kssb", "kernel", &kSSblur, "dgauss:1,5",
+                         "blurring kernel, to sample scale space", nrrdHestKernelSpec);
   if (nsi != NON_SBP_OPT_NUM) {
     fprintf(stderr, "%s: PANIC nsi %u != %u", me, nsi, NON_SBP_OPT_NUM);
     exit(1);
@@ -341,56 +342,55 @@ main(int argc, const char *argv[]) {
   /* These two options are needed even if sbp is used, because they are *not*
      part of the gageStackBlurParm.  In meet, this info is handled by the
      extraFlag/extraParm construct, which is not available here */
-  hestOptAdd(&hopt, "ssnd", NULL, airTypeInt, 0, 0, &normdSS, NULL,
-             "normalize derivatives by scale");
-  hestOptAdd(&hopt, "ssnb", "bias", airTypeDouble, 1, 1, &biasSS, "0.0",
-             "bias on scale-based derivative normalization");
+  hestOptAdd_Flag(&hopt, "ssnd", &normdSS, "normalize derivatives by scale");
+  hestOptAdd_1_Double(&hopt, "ssnb", "bias", &biasSS, "0.0",
+                      "bias on scale-based derivative normalization");
 
-  hestOptAdd(&hopt, "ssf", "SS read/save format", airTypeString, 1, 1, &stackFnameFormat,
-             "",
-             "printf-style format (including a \"%u\") for the "
-             "filenames from which to read "
-             "pre-blurred volumes computed for the stack, if they "
-             "exist and match the stack parameters, and where to save "
-             "them if they had to be re-computed.  Leave this as empty "
-             "string to disable this.");
+  hestOptAdd_1_String(&hopt, "ssf", "SS read/save format", &stackFnameFormat, "",
+                      "printf-style format (including a \"%u\") for the "
+                      "filenames from which to read "
+                      "pre-blurred volumes computed for the stack, if they "
+                      "exist and match the stack parameters, and where to save "
+                      "them if they had to be re-computed.  Leave this as empty "
+                      "string to disable this.");
 
-  hestOptAdd(&hopt, "kssr", "kernel", airTypeOther, 1, 1, &kSS, "hermite",
-             "kernel for reconstructing from scale space samples", NULL, NULL,
-             nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "sit", "sit", airTypeBool, 1, 1, &scaleIsTau, "false",
-             "in some places, scale should be interpreted as tau, not "
-             "sigma. Currently limited to grid probing (via \"-pg\")");
+  hestOptAdd_1_Other(&hopt, "kssr", "kernel", &kSS, "hermite",
+                     "kernel for reconstructing from scale space samples",
+                     nrrdHestKernelSpec);
+  hestOptAdd_1_Bool(&hopt, "sit", "sit", &scaleIsTau, "false",
+                    "in some places, scale should be interpreted as tau, not "
+                    "sigma. Currently limited to grid probing (via \"-pg\")");
 
-  hestOptAdd(&hopt, "s", "sclX sclY sxlZ", airTypeDouble, 3, 3, scale, "1 1 1",
-             "scaling factor for resampling on each axis "
-             "(>1.0: supersampling); use \"-ssp\" (and \"-psi\") "
-             "to specify scale position of sampling");
-  hestOptAdd(&hopt, "ssp", "pos", airTypeDouble, 1, 1, &posSS, "0",
-             "when using scale-space, scale-position at which to probe");
-  hestOptAdd(&hopt, "pg", "nrrd", airTypeOther, 1, 1, &_ngrid, "",
-             "overrides \"-s\": "
-             "2-D nrrd which specifies origin and direction vectors "
-             "for sampling grid",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "pi", "nrrd", airTypeOther, 1, 1, &_npos, "",
-             "overrides \"-pg\": probes at this list of 3-vec or "
-             "4-vec positions",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "pp", "pos", airTypeDouble, 3, 4, &pntPos, "nan nan nan",
-             "overrides \"-pi\": only sample at this specified point", &pntPosNum);
-  hestOptAdd(&hopt, "eps", "epsilon", airTypeDouble, 1, 1, &eps, "0",
-             "if non-zero, and if query is a scalar, and if using \"pp\" "
-             "to query at a single point, then do epsilon offset probes "
-             "to calculate discrete differences, to find the numerical "
-             "gradient and hessian (for debugging)");
-  hestOptAdd(&hopt, "psi", "p", airTypeBool, 1, 1, &probeSpaceIndex, "false",
-             "whether the probe location specification (by any of "
-             "the four previous flags) are in index space");
+  hestOptAdd_3_Double(&hopt, "s", "sclX sclY sxlZ", scale, "1 1 1",
+                      "scaling factor for resampling on each axis "
+                      "(>1.0: supersampling); use \"-ssp\" (and \"-psi\") "
+                      "to specify scale position of sampling");
+  hestOptAdd_1_Double(&hopt, "ssp", "pos", &posSS, "0",
+                      "when using scale-space, scale-position at which to probe");
+  hestOptAdd_1_Other(&hopt, "pg", "nrrd", &_ngrid, "",
+                     "overrides \"-s\": "
+                     "2-D nrrd which specifies origin and direction vectors "
+                     "for sampling grid",
+                     nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "pi", "nrrd", &_npos, "",
+                     "overrides \"-pg\": probes at this list of 3-vec or "
+                     "4-vec positions",
+                     nrrdHestNrrd);
+  hestOptAdd_Nv_Double(&hopt, "pp", "pos", 3, 4, &pntPos, "nan nan nan",
+                       "overrides \"-pi\": only sample at this specified point",
+                       &pntPosNum);
+  hestOptAdd_1_Double(&hopt, "eps", "epsilon", &eps, "0",
+                      "if non-zero, and if query is a scalar, and if using \"pp\" "
+                      "to query at a single point, then do epsilon offset probes "
+                      "to calculate discrete differences, to find the numerical "
+                      "gradient and hessian (for debugging)");
+  hestOptAdd_1_Bool(&hopt, "psi", "p", &probeSpaceIndex, "false",
+                    "whether the probe location specification (by any of "
+                    "the four previous flags) are in index space");
 
-  hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &otype, "float",
-             "type of output volume", NULL, nrrdType);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-", "output volume");
+  hestOptAdd_1_Enum(&hopt, "t", "type", &otype, "float", "type of output volume",
+                    nrrdType);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output volume");
   hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, probeInfo, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
   airMopAdd(mop, hopt, AIR_CAST(airMopper, hestOptFree), airMopAlways);

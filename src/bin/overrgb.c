@@ -78,37 +78,36 @@ main(int argc, const char *argv[]) {
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hparm->respectDashDashHelp = AIR_TRUE;
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input nrrd to composite", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "c", "contrast", airTypeDouble, 1, 1, &contr, "0.0",
-             "contrast to apply to RGB values, before gamma. \"0.0\" "
-             "means no change, \"1.0\" means thresholding, \"-1.0\" "
-             "means a complete washout.");
-  hestOptAdd(&hopt, "cfp", "fixed point", airTypeDouble, 1, 1, &cfp, "0.5",
-             "component level that doesn't change with contrast");
-  hestOptAdd(&hopt, "g", "gamma", airTypeString, 1, 1, &gammaS, "1.0",
-             "gamma to apply to image data, after contrast. Can be "
-             "a number (<1 to darken >1 to brighten) or the string "
-             "\"srgb\" to apply the roughly 2.2 gamma associated "
-             "with sRGB (see https://en.wikipedia.org/wiki/SRGB). ");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, NULL, "input nrrd to composite",
+                     nrrdHestNrrd);
+  hestOptAdd_1_Double(&hopt, "c", "contrast", &contr, "0.0",
+                      "contrast to apply to RGB values, before gamma. \"0.0\" "
+                      "means no change, \"1.0\" means thresholding, \"-1.0\" "
+                      "means a complete washout.");
+  hestOptAdd_1_Double(&hopt, "cfp", "fixed point", &cfp, "0.5",
+                      "component level that doesn't change with contrast");
+  hestOptAdd_1_String(&hopt, "g", "gamma", &gammaS, "1.0",
+                      "gamma to apply to image data, after contrast. Can be "
+                      "a number (<1 to darken >1 to brighten) or the string "
+                      "\"srgb\" to apply the roughly 2.2 gamma associated "
+                      "with sRGB (see https://en.wikipedia.org/wiki/SRGB). ");
   srgbIdx = /* HEY copied to unrrdu/quantize.c */
-    hestOptAdd(&hopt, "srgb", "intent", airTypeEnum, 1, 1, &srgb, "none",
-               /* the default is "none" for backwards compatibility: until now
-                  Teem's support of PNG hasn't handled the sRGB intent, so
-                  we shouldn't start using it without being asked */
-               "If saving to PNG (when supported), how to set the rendering "
-               "intent in the sRGB chunk of the PNG file format. Can be "
-               "absolute, relative, perceptual, saturation, or none. This is "
-               "independent of using \"srgb\" as the -g gamma",
-               NULL, nrrdFormatPNGsRGBIntent);
-  hestOptAdd(&hopt, "b", "background", airTypeDouble, 3, 3, back, "0 0 0",
-             "background color to composite against; white is "
-             "1 1 1, not 255 255 255.");
-  hestOptAdd(&hopt, "bi", "nbg", airTypeOther, 1, 1, &_nbg, "",
-             "8-bit RGB background image to composite against", NULL, NULL,
-             nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, NULL,
-             "file to write output PPM image to");
+    hestOptAdd_1_Enum(&hopt, "srgb", "intent", &srgb, "none",
+                      /* the default is "none" for backwards compatibility: until now
+                         Teem's support of PNG hasn't handled the sRGB intent, so
+                         we shouldn't start using it without being asked */
+                      "If saving to PNG (when supported), how to set the rendering "
+                      "intent in the sRGB chunk of the PNG file format. Can be "
+                      "absolute, relative, perceptual, saturation, or none. This is "
+                      "independent of using \"srgb\" as the -g gamma",
+                      NULL, nrrdFormatPNGsRGBIntent);
+  hestOptAdd_3_Double(&hopt, "b", "background", back, "0 0 0",
+                      "background color to composite against; white is "
+                      "1 1 1, not 255 255 255.");
+  hestOptAdd_1_Other(&hopt, "bi", "nbg", &_nbg, "",
+                     "8-bit RGB background image to composite against", nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "filename", &outS, NULL,
+                      "file to write output PPM image to");
   hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, overInfo, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
