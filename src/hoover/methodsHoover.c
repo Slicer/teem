@@ -52,7 +52,8 @@ hooverContextNew() {
 int /* Biff: 1 */
 hooverContextCheck(hooverContext *ctx) {
   static const char me[] = "hooverContextCheck";
-  int sxe, sye, sze, minSize, centr;
+  int sxe, sye, sze, centr;
+  unsigned int minSize;
 
   if (!ctx) {
     biffAddf(HOOVER, "%s: got NULL pointer", me);
