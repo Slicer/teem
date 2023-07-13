@@ -43,24 +43,23 @@ unrrdu_affineMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   airArray *mop;
   unsigned int ai, nn;
 
-  hestOptAdd(&opt, NULL, "minIn", airTypeOther, 1, 1, &minIn, NULL,
-             "Lower end of input value range.", NULL, NULL, nrrdHestIter);
-  hestOptAdd(&opt, NULL, "in", airTypeOther, 1, 1, &in, NULL, "Input value.", NULL, NULL,
-             nrrdHestIter);
-  hestOptAdd(&opt, NULL, "maxIn", airTypeOther, 1, 1, &maxIn, NULL,
-             "Upper end of input value range.", NULL, NULL, nrrdHestIter);
-  hestOptAdd(&opt, NULL, "minOut", airTypeOther, 1, 1, &minOut, NULL,
-             "Lower end of output value range.", NULL, NULL, nrrdHestIter);
-  hestOptAdd(&opt, NULL, "maxOut", airTypeOther, 1, 1, &maxOut, NULL,
-             "Upper end of output value range.", NULL, NULL, nrrdHestIter);
-  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &type, "default",
-             "type to convert all nrrd inputs to, prior to "
-             "doing operation.  This also determines output type. "
-             "By default (not using this option), the types of the input "
-             "nrrds are left unchanged.",
-             NULL, NULL, &unrrduHestMaybeTypeCB);
-  hestOptAdd(&opt, "clamp", "bool", airTypeBool, 1, 1, &clamp, "false",
-             "clamp output values to specified output range");
+  hestOptAdd_1_Other(&opt, NULL, "minIn", &minIn, NULL,
+                     "Lower end of input value range.", nrrdHestIter);
+  hestOptAdd_1_Other(&opt, NULL, "in", &in, NULL, "Input value.", nrrdHestIter);
+  hestOptAdd_1_Other(&opt, NULL, "maxIn", &maxIn, NULL,
+                     "Upper end of input value range.", nrrdHestIter);
+  hestOptAdd_1_Other(&opt, NULL, "minOut", &minOut, NULL,
+                     "Lower end of output value range.", nrrdHestIter);
+  hestOptAdd_1_Other(&opt, NULL, "maxOut", &maxOut, NULL,
+                     "Upper end of output value range.", nrrdHestIter);
+  hestOptAdd_1_Other(&opt, "t,type", "type", &type, "default",
+                     "type to convert all nrrd inputs to, prior to "
+                     "doing operation.  This also determines output type. "
+                     "By default (not using this option), the types of the input "
+                     "nrrds are left unchanged.",
+                     &unrrduHestMaybeTypeCB);
+  hestOptAdd_1_Bool(&opt, "clamp", "bool", &clamp, "false",
+                    "clamp output values to specified output range");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();

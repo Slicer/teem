@@ -39,40 +39,39 @@ unrrdu_histoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   NrrdRange *range;
   airArray *mop;
 
-  hestOptAdd(&opt, "b,bins", "num", airTypeUInt, 1, 1, &bins, NULL,
-             "# of bins in histogram");
-  hestOptAdd(&opt, "w,weight", "nweight", airTypeOther, 1, 1, &nwght, "",
-             "how to weigh contributions to histogram.  By default "
-             "(not using this option), the increment is one bin count per "
-             "sample, but by giving a nrrd, the value in the nrrd at the "
-             "corresponding location will be the bin count increment ",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1, &minStr, "nan",
-             "Value at low end of histogram, given explicitly as a "
-             "regular number, "
-             "*or*, if the number is given with a \"" NRRD_MINMAX_PERC_SUFF
-             "\" suffix, this "
-             "minimum is specified in terms of the percentage of samples in "
-             "input that are lower. "
-             "By default (not using this option), the lowest value "
-             "found in input nrrd.");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1, &maxStr, "nan",
-             "Value at high end of histogram, given "
-             "explicitly as a regular number, "
-             "*or*, if the number is given with "
-             "a \"" NRRD_MINMAX_PERC_SUFF "\" suffix, "
-             "this maximum is specified "
-             "in terms of the percentage of samples in input that are higher. "
-             "Defaults to highest value found in input nrrd.");
+  hestOptAdd_1_UInt(&opt, "b,bins", "num", &bins, NULL, "# of bins in histogram");
+  hestOptAdd_1_Other(&opt, "w,weight", "nweight", &nwght, "",
+                     "how to weigh contributions to histogram.  By default "
+                     "(not using this option), the increment is one bin count per "
+                     "sample, but by giving a nrrd, the value in the nrrd at the "
+                     "corresponding location will be the bin count increment ",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&opt, "min,minimum", "value", &minStr, "nan",
+                      "Value at low end of histogram, given explicitly as a "
+                      "regular number, "
+                      "*or*, if the number is given with a \"" NRRD_MINMAX_PERC_SUFF
+                      "\" suffix, this "
+                      "minimum is specified in terms of the percentage of samples in "
+                      "input that are lower. "
+                      "By default (not using this option), the lowest value "
+                      "found in input nrrd.");
+  hestOptAdd_1_String(&opt, "max,maximum", "value", &maxStr, "nan",
+                      "Value at high end of histogram, given "
+                      "explicitly as a regular number, "
+                      "*or*, if the number is given with "
+                      "a \"" NRRD_MINMAX_PERC_SUFF "\" suffix, "
+                      "this maximum is specified "
+                      "in terms of the percentage of samples in input that are higher. "
+                      "Defaults to highest value found in input nrrd.");
   /* NOTE -zc shared with unrrdu histax, histo, quantize */
-  hestOptAdd(&opt, "zc,zero-center", NULL, airTypeInt, 0, 0, &zeroCenter, NULL,
-             "if used, percentile-based min,max determine a zero-centered "
-             "range (rather than treating min and max independently), which "
-             "may help process signed values in an expected way.");
-  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
-             nrrdStateBlind8BitRange ? "true" : "false",
-             "Whether to know the range of 8-bit data blindly "
-             "(uchar is always [0,255], signed char is [-128,127]).");
+  hestOptAdd_Flag(&opt, "zc,zero-center", &zeroCenter,
+                  "if used, percentile-based min,max determine a zero-centered "
+                  "range (rather than treating min and max independently), which "
+                  "may help process signed values in an expected way.");
+  hestOptAdd_1_Bool(&opt, "blind8", "bool", &blind8BitRange,
+                    nrrdStateBlind8BitRange ? "true" : "false",
+                    "Whether to know the range of 8-bit data blindly "
+                    "(uchar is always [0,255], signed char is [-128,127]).");
   OPT_ADD_TYPE(type, "type to use for bins in output histogram", "uint");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");

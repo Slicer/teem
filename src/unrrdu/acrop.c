@@ -47,34 +47,34 @@ unrrdu_acropMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   Nrrd *nbounds;
   char *boundsSave;
 
-  hestOptAdd(&opt, "a,axes", "ax0", airTypeUInt, 0, -1, &axes, "",
-             "the axes (if any) that should NOT be cropped", &axesLen);
-  hestOptAdd(&opt, "m,measure", "measr", airTypeEnum, 1, 1, &measr, NULL,
-             "How to measure slices (along axes to crop) as scalars, "
-             "to form 1-D array analyzed to determine cropping extent. "
-             "All the measures from \"unu project\" can be used, but "
-             "those that make more sense here include:\n "
-             "\b\bo \"max\", \"mean\", \"median\", "
-             "\"variance\": (self-explanatory)\n "
-             "\b\bo \"stdv\": standard deviation\n "
-             "\b\bo \"cov\": coefficient of variation\n "
-             "\b\bo \"product\", \"sum\": product or sum of all values\n "
-             "\b\bo \"L1\", \"L2\", \"NL2\", \"RMS\", \"Linf\": "
-             "different norms.",
-             NULL, nrrdMeasure);
-  hestOptAdd(&opt, "f,frac", "frac", airTypeDouble, 1, 1, &frac, "0.1",
-             "threshold of cumulative sum of 1-D array at which to crop. "
-             "Needs to be in interval [0.0,0.5).");
-  hestOptAdd(&opt, "off,offset", "offset", airTypeInt, 1, 1, &offset, "1",
-             "how much to offset the numerically determined cropping; "
-             "positive offsets means expanding the interval of kept "
-             "indices (less cropping)");
-  hestOptAdd(&opt, "b,bounds", "filename", airTypeString, 1, 1, &boundsSave, "",
-             "if a filename is given here, the automatically determined "
-             "min and max bounds for cropping are saved to this file "
-             "as a 2-D array; first scanline is for -min, second is for -max. "
-             "Unfortunately nothing using the \"m\" and \"M\" semantics "
-             "(above) can currently be saved in the bounds file.");
+  hestOptAdd_Nv_UInt(&opt, "a,axes", "ax0", 0, -1, &axes, "",
+                     "the axes (if any) that should NOT be cropped", &axesLen);
+  hestOptAdd_1_Enum(&opt, "m,measure", "measr", &measr, NULL,
+                    "How to measure slices (along axes to crop) as scalars, "
+                    "to form 1-D array analyzed to determine cropping extent. "
+                    "All the measures from \"unu project\" can be used, but "
+                    "those that make more sense here include:\n "
+                    "\b\bo \"max\", \"mean\", \"median\", "
+                    "\"variance\": (self-explanatory)\n "
+                    "\b\bo \"stdv\": standard deviation\n "
+                    "\b\bo \"cov\": coefficient of variation\n "
+                    "\b\bo \"product\", \"sum\": product or sum of all values\n "
+                    "\b\bo \"L1\", \"L2\", \"NL2\", \"RMS\", \"Linf\": "
+                    "different norms.",
+                    nrrdMeasure);
+  hestOptAdd_1_Double(&opt, "f,frac", "frac", &frac, "0.1",
+                      "threshold of cumulative sum of 1-D array at which to crop. "
+                      "Needs to be in interval [0.0,0.5).");
+  hestOptAdd_1_Int(&opt, "off,offset", "offset", &offset, "1",
+                   "how much to offset the numerically determined cropping; "
+                   "positive offsets means expanding the interval of kept "
+                   "indices (less cropping)");
+  hestOptAdd_1_String(&opt, "b,bounds", "filename", &boundsSave, "",
+                      "if a filename is given here, the automatically determined "
+                      "min and max bounds for cropping are saved to this file "
+                      "as a 2-D array; first scanline is for -min, second is for -max. "
+                      "Unfortunately nothing using the \"m\" and \"M\" semantics "
+                      "(above) can currently be saved in the bounds file.");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

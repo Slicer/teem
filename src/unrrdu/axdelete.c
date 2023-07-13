@@ -27,9 +27,7 @@ static const char *_unrrdu_axdeleteInfoL
   = (INFO ". Singleton axes have only a single sample along them. "
           "The underlying linear ordering of the samples is "
           "unchanged, and the information about the other axes is "
-          "shifted downwards as needed.  As a total hack, if you give "
-          "-1 as the axis, this will do a matlab-style \"squeeze\", in which "
-          "any and all singleton axes are removed.\n "
+          "shifted downwards as needed.\n "
           "* Uses nrrdAxesDelete");
 
 static int
@@ -41,8 +39,12 @@ unrrdu_axdeleteMain(int argc, const char **argv, const char *me, hestParm *hparm
   unsigned axis;
   airArray *mop;
 
-  hestOptAdd(&opt, "a,axis", "axis", airTypeInt, 1, 1, &_axis, NULL,
-             "dimension (axis index) of the axis to remove");
+  /* really needs to be signed int, because of hack */
+  hestOptAdd_1_Int(&opt, "a,axis", "axis", &_axis, NULL,
+                   "dimension (axis index) of the axis to remove. "
+                   "As a total hack, if you give -1 as the axis, "
+                   "this will do a matlab-style \"squeeze\", in which "
+                   "any and all singleton axes are removed.");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

@@ -43,33 +43,33 @@ unrrdu_lut2Main(int argc, const char **argv, const char *me, hestParm *hparm) {
   NrrdRange *range[2] = {NULL, NULL};
   unsigned int mapAxis, rai;
 
-  hestOptAdd(&opt, "m,map", "lut", airTypeOther, 1, 1, &nlut, NULL,
-             "lookup table to map input nrrd through", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "r,rescale", "bool bool", airTypeBool, 2, 2, rescale, "false false",
-             "rescale one or both of the input values from the "
-             "input range to the lut domain.  The lut domain is either "
-             "explicitly defined by the axis min,max along axis 0 or 1, "
-             "or, it is implicitly defined as zero to the length of that axis "
-             "minus one.");
-  hestOptAdd(&opt, "min,minimum", "min0 min1", airTypeDouble, 2, 2, min, "nan nan",
-             "Low ends of input range. Defaults to lowest values "
-             "found in input nrrd.  Explicitly setting this is useful "
-             "only with rescaling (\"-r\")");
-  hestOptAdd(&opt, "max,maximum", "max0 max1", airTypeDouble, 2, 2, max, "nan nan",
-             "High end of input range. Defaults to highest values "
-             "found in input nrrd.  Explicitly setting this is useful "
-             "only with rescaling (\"-r\")");
-  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
-             nrrdStateBlind8BitRange ? "true" : "false",
-             "Whether to know the range of 8-bit data blindly "
-             "(uchar is always [0,255], signed char is [-128,127]). "
-             "Explicitly setting this is useful only with rescaling (\"-r\")");
-  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &typeOut, "default",
-             "specify the type (\"int\", \"float\", etc.) of the "
-             "output nrrd. "
-             "By default (not using this option), the output type "
-             "is the lut's type.",
-             NULL, NULL, &unrrduHestMaybeTypeCB);
+  hestOptAdd_1_Other(&opt, "m,map", "lut", &nlut, NULL,
+                     "lookup table to map input nrrd through", nrrdHestNrrd);
+  hestOptAdd_2_Bool(&opt, "r,rescale", "bool bool", rescale, "false false",
+                    "rescale one or both of the input values from the "
+                    "input range to the lut domain.  The lut domain is either "
+                    "explicitly defined by the axis min,max along axis 0 or 1, "
+                    "or, it is implicitly defined as zero to the length of that axis "
+                    "minus one.");
+  hestOptAdd_2_Double(&opt, "min,minimum", "min0 min1", min, "nan nan",
+                      "Low ends of input range. Defaults to lowest values "
+                      "found in input nrrd.  Explicitly setting this is useful "
+                      "only with rescaling (\"-r\")");
+  hestOptAdd_2_Double(&opt, "max,maximum", "max0 max1", max, "nan nan",
+                      "High end of input range. Defaults to highest values "
+                      "found in input nrrd.  Explicitly setting this is useful "
+                      "only with rescaling (\"-r\")");
+  hestOptAdd_1_Bool(&opt, "blind8", "bool", &blind8BitRange,
+                    nrrdStateBlind8BitRange ? "true" : "false",
+                    "Whether to know the range of 8-bit data blindly "
+                    "(uchar is always [0,255], signed char is [-128,127]). "
+                    "Explicitly setting this is useful only with rescaling (\"-r\")");
+  hestOptAdd_1_Other(&opt, "t,type", "type", &typeOut, "default",
+                     "specify the type (\"int\", \"float\", etc.) of the "
+                     "output nrrd. "
+                     "By default (not using this option), the output type "
+                     "is the lut's type.",
+                     &unrrduHestMaybeTypeCB);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

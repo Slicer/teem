@@ -45,34 +45,36 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me, hestParm *hparm)
   int space, nixkvp;
   unsigned int spaceDim, kvpLen, dkeyLen, cIdx, ii;
 
-  hestOptAdd(&opt, "spc,space", "space", airTypeString, 1, 1, &spcStr, "",
-             "identify the space (e.g. \"RAS\", \"LPS\") in which the array "
-             "conceptually lives, from the nrrdSpace airEnum, which in turn "
-             "determines the dimension of the space.  Or, use an integer>0 to "
-             "give the dimension of a space that nrrdSpace doesn't know about. "
-             "By default (not using this option), the enclosing space is "
-             "set as unknown.");
-  hestOptAdd(&opt, "orig,origin", "origin", airTypeString, 1, 1, &_origStr, "",
-             "(NOTE: must quote vector) the origin in space of the array: "
-             "the location of the center "
-             "of the first sample, of the form \"(x,y,z)\" (or however "
-             "many coefficients are needed for the chosen space). Quoting the "
-             "vector is needed to stop interpretation from the shell");
+  /* no point in invoking this if no options are used, so even though every option has a
+     default, we refrain from setting hparm->noArgsIsNoProblem */
+  hestOptAdd_1_String(&opt, "spc,space", "space", &spcStr, "",
+                      "identify the space (e.g. \"RAS\", \"LPS\") in which the array "
+                      "conceptually lives, from the nrrdSpace airEnum, which in turn "
+                      "determines the dimension of the space.  Or, use an integer>0 to "
+                      "give the dimension of a space that nrrdSpace doesn't know about. "
+                      "By default (not using this option), the enclosing space is "
+                      "set as unknown.");
+  hestOptAdd_1_String(&opt, "orig,origin", "origin", &_origStr, "",
+                      "(NOTE: must quote vector) the origin in space of the array: "
+                      "the location of the center "
+                      "of the first sample, of the form \"(x,y,z)\" (or however "
+                      "many coefficients are needed for the chosen space). Quoting the "
+                      "vector is needed to stop interpretation from the shell");
   /* HEY: copy and paste from unrrdu/make.c */
-  hestOptAdd(&opt, "kv,keyvalue", "key/val", airTypeString, 1, -1, &kvp, "",
-             "key/value string pairs to be stored in nrrd.  Each key/value "
-             "pair must be a single string (put it in \"\"s "
-             "if the key or the value contain spaces).  The format of each "
-             "pair is \"<key>:=<value>\", with no spaces before or after "
-             "\":=\".",
-             &kvpLen);
-  hestOptAdd(&opt, "dk,delkey", "key", airTypeString, 1, -1, &dkey, "",
-             "keys to be deleted (erased) from key/value pairs", &dkeyLen);
-  hestOptAdd(&opt, "xkv,nixkeyvalue", NULL, airTypeBool, 0, 0, &nixkvp, NULL,
-             "nix (clear) all key/value pairs");
-  cIdx = hestOptAdd(&opt, "c,content", "content", airTypeString, 1, 1, &content, "",
-                    "Specifies the content string of the nrrd, which is built upon "
-                    "by many nrrd function to record a history of operations");
+  hestOptAdd_Nv_String(&opt, "kv,keyvalue", "key/val", 1, -1, &kvp, "",
+                       "key/value string pairs to be stored in nrrd.  Each key/value "
+                       "pair must be a single string (put it in \"\"s "
+                       "if the key or the value contain spaces).  The format of each "
+                       "pair is \"<key>:=<value>\", with no spaces before or after "
+                       "\":=\".",
+                       &kvpLen);
+  hestOptAdd_Nv_String(&opt, "dk,delkey", "key", 1, -1, &dkey, "",
+                       "keys to be deleted (erased) from key/value pairs", &dkeyLen);
+  hestOptAdd_Flag(&opt, "xkv,nixkeyvalue", &nixkvp, "nix (clear) all key/value pairs");
+  cIdx = hestOptAdd_1_String(
+    &opt, "c,content", "content", &content, "",
+    "Specifies the content string of the nrrd, which is built upon "
+    "by many nrrd function to record a history of operations");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

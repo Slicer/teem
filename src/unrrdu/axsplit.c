@@ -40,9 +40,9 @@ unrrdu_axsplitMain(int argc, const char **argv, const char *me, hestParm *hparm)
   airArray *mop;
 
   OPT_ADD_AXIS(axis, "dimension (axis index) to split at");
-  hestOptAdd(&opt, "s,size", "fast, slow sizes", airTypeSize_t, 2, 2, size, NULL,
-             "fast and slow axis sizes to produce as result of splitting "
-             "given axis.");
+  hestOptAdd_2_Size_t(&opt, "s,size", "fast, slow sizes", size, NULL,
+                      "fast and slow axis sizes to produce as result of splitting "
+                      "given axis.");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

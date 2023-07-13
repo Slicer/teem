@@ -44,39 +44,38 @@ unrrdu_deringMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   /* HEY is this needed? (to display -rk and -tk kernels) */
   hparm->elideSingleOtherDefault = AIR_FALSE;
 
-  hestOptAdd(&opt, "c,center", "x y", airTypeDouble, 2, 2, center, NULL,
-             "center of rings, in index space of fastest two axes");
-  hestOptAdd(&opt, "v,verbose", "v", airTypeInt, 1, 1, &verbose, "0", "verbosity level");
-  hestOptAdd(&opt, "li,linterp", "bool", airTypeBool, 1, 1, &linterp, "false",
-             "whether to use linear interpolation during polar transform");
-  hestOptAdd(&opt, "vs,vertseam", "bool", airTypeBool, 1, 1, &vertSeam, "false",
-             "whether to dering left and right sides separately "
-             "(requires an even value for -tn thetanum)");
-  hestOptAdd(&opt, "tn,thetanum", "# smpls", airTypeUInt, 1, 1, &thetaNum, "20",
-             "# of theta samples");
-  hestOptAdd(&opt, "rs,radscale", "scale", airTypeDouble, 1, 1, &radScale, "1.0",
-             "scaling on radius in polar transform");
-  hestOptAdd(&opt, "rk,radiuskernel", "kern", airTypeOther, 1, 1, &rkspec, "gauss:3,4",
-             "kernel for high-pass filtering along radial direction", NULL, NULL,
-             nrrdHestKernelSpec);
-  hestOptAdd(&opt, "tk,thetakernel", "kern", airTypeOther, 1, 1, &tkspec, "box",
-             "kernel for blurring along theta direction.", NULL, NULL,
-             nrrdHestKernelSpec);
-  hestOptAdd(&opt, "cp,clampperc", "lo hi", airTypeDouble, 2, 2, clampPerc, "0.0 0.0",
-             "when clamping values as part of ring estimation, the "
-             "clamping range is set to exclude this percent of values "
-             "from the low and high end of the data range");
-  hestOptAdd(&opt, "m,mask", "mask", airTypeOther, 1, 1, &nmask, "",
-             "optional: after deringing, output undergoes a lerp, "
-             "parameterized by this array, from the background value "
-             "(via \"-b\") where mask=0 to the original deringing "
-             "output where mask=1.  This lerp is effectively the same "
-             "as a \"unu 3op lerp\", so this should either be match the "
-             "input in size, or match its slices along the slowest axis.",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "b,back", "val", airTypeDouble, 1, 1, &backval, "0.0",
-             "when using a mask (\"-m\"), the background value to "
-             "lerp with.");
+  hestOptAdd_2_Double(&opt, "c,center", "x y", center, NULL,
+                      "center of rings, in index space of fastest two axes");
+  hestOptAdd_1_Int(&opt, "v,verbose", "v", &verbose, "0", "verbosity level");
+  hestOptAdd_1_Bool(&opt, "li,linterp", "bool", &linterp, "false",
+                    "whether to use linear interpolation during polar transform");
+  hestOptAdd_1_Bool(&opt, "vs,vertseam", "bool", &vertSeam, "false",
+                    "whether to dering left and right sides separately "
+                    "(requires an even value for -tn thetanum)");
+  hestOptAdd_1_UInt(&opt, "tn,thetanum", "# smpls", &thetaNum, "20",
+                    "# of theta samples");
+  hestOptAdd_1_Double(&opt, "rs,radscale", "scale", &radScale, "1.0",
+                      "scaling on radius in polar transform");
+  hestOptAdd_1_Other(&opt, "rk,radiuskernel", "kern", &rkspec, "gauss:3,4",
+                     "kernel for high-pass filtering along radial direction",
+                     nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&opt, "tk,thetakernel", "kern", &tkspec, "box",
+                     "kernel for blurring along theta direction.", nrrdHestKernelSpec);
+  hestOptAdd_2_Double(&opt, "cp,clampperc", "lo hi", clampPerc, "0.0 0.0",
+                      "when clamping values as part of ring estimation, the "
+                      "clamping range is set to exclude this percent of values "
+                      "from the low and high end of the data range");
+  hestOptAdd_1_Other(&opt, "m,mask", "mask", &nmask, "",
+                     "optional: after deringing, output undergoes a lerp, "
+                     "parameterized by this array, from the background value "
+                     "(via \"-b\") where mask=0 to the original deringing "
+                     "output where mask=1.  This lerp is effectively the same "
+                     "as a \"unu 3op lerp\", so this should either be match the "
+                     "input in size, or match its slices along the slowest axis.",
+                     nrrdHestNrrd);
+  hestOptAdd_1_Double(&opt, "b,back", "val", &backval, "0.0",
+                      "when using a mask (\"-m\"), the background value to "
+                      "lerp with.");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

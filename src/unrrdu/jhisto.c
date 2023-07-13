@@ -44,35 +44,35 @@ unrrdu_jhistoMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   double *min, *max;
   NrrdRange **range;
 
-  hestOptAdd(&opt, "b,bin", "bins0 bins1", airTypeSize_t, 2, -1, &bin, NULL,
-             "bins<i> is the number of bins to use along axis i (of joint "
-             "histogram), which represents the values of nin<i> ",
-             &binLen);
-  hestOptAdd(&opt, "w,weight", "nweight", airTypeOther, 1, 1, &nwght, "",
-             "how to weigh contributions to joint histogram.  By default "
-             "(not using this option), the increment is one bin count per "
-             "sample, but by giving a nrrd, the value in the nrrd at the "
-             "corresponding location will be the bin count increment ",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "min,minimum", "min0 min1", airTypeDouble, 2, -1, &min, "nan nan",
-             "min<i> is the low range of values to be quantized along "
-             "axis i; use \"nan\" to represent lowest value present ",
-             &minLen);
-  hestOptAdd(&opt, "max,maximum", "max0 max1", airTypeDouble, 2, -1, &max, "nan nan",
-             "max<i> is the high range of values to be quantized along "
-             "axis i; use \"nan\" to represent highest value present ",
-             &maxLen);
+  hestOptAdd_Nv_Size_t(&opt, "b,bin", "bins0 bins1", 2, -1, &bin, NULL,
+                       "bins<i> is the number of bins to use along axis i (of joint "
+                       "histogram), which represents the values of nin<i> ",
+                       &binLen);
+  hestOptAdd_1_Other(&opt, "w,weight", "nweight", &nwght, "",
+                     "how to weigh contributions to joint histogram.  By default "
+                     "(not using this option), the increment is one bin count per "
+                     "sample, but by giving a nrrd, the value in the nrrd at the "
+                     "corresponding location will be the bin count increment ",
+                     nrrdHestNrrd);
+  hestOptAdd_Nv_Double(&opt, "min,minimum", "min0 min1", 2, -1, &min, "nan nan",
+                       "min<i> is the low range of values to be quantized along "
+                       "axis i; use \"nan\" to represent lowest value present ",
+                       &minLen);
+  hestOptAdd_Nv_Double(&opt, "max,maximum", "max0 max1", 2, -1, &max, "nan nan",
+                       "max<i> is the high range of values to be quantized along "
+                       "axis i; use \"nan\" to represent highest value present ",
+                       &maxLen);
   OPT_ADD_TYPE(type,
                "type to use for output (the type used to store hit "
                "counts in the joint histogram).  Clamping is done on hit "
                "counts so that they never overflow a fixed-point type",
                "uint");
-  hestOptAdd(&opt, "i,input", "nin0 [nin1]", airTypeOther, 1, -1, &nin, "-",
-             "list of nrrds (one for each axis of joint histogram), "
-             "or, single nrrd that will be sliced along specified axis.",
-             &ninLen, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "a,axis", "axis", airTypeUInt, 1, 1, &diceax, "0",
-             "axis to slice along when working with single nrrd. ");
+  hestOptAdd_Nv_Other(&opt, "i,input", "nin0 [nin1]", 1, -1, &nin, "-",
+                      "list of nrrds (one for each axis of joint histogram), "
+                      "or, single nrrd that will be sliced along specified axis.",
+                      &ninLen, nrrdHestNrrd);
+  hestOptAdd_1_UInt(&opt, "a,axis", "axis", &diceax, "0",
+                    "axis to slice along when working with single nrrd. ");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();

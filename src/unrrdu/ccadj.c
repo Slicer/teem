@@ -38,10 +38,10 @@ unrrdu_ccadjMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
   unsigned int conny;
 
-  hestOptAdd(&opt, "c,connect", "connectivity", airTypeUInt, 1, 1, &conny, NULL,
-             "what kind of connectivity to use: the number of coordinates "
-             "that vary in order to traverse the neighborhood of a given "
-             "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");
+  hestOptAdd_1_UInt(&opt, "c,connect", "connectivity", &conny, NULL,
+                    "what kind of connectivity to use: the number of coordinates "
+                    "that vary in order to traverse the neighborhood of a given "
+                    "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

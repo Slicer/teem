@@ -38,16 +38,15 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   double mm[2], spc, sdir[NRRD_SPACE_DIM_MAX];
   airArray *mop;
 
-  hestOptAdd(&opt, "a,axes", "ax0", airTypeUInt, 1, -1, &axes, NULL,
-             "the one or more axes that should be modified", &axesLen);
-  hestOptAdd(&opt, "l,label", "label", airTypeString, 1, 1, &label, "",
-             "label to associate with axis");
-  hestOptAdd(&opt, "u,units", "units", airTypeString, 1, 1, &units, "",
-             "units of measurement");
-  mmIdx = hestOptAdd(&opt, "mm,minmax", "min max", airTypeString, 2, 2, mmStr, "nan nan",
-                     "min and max values along axis");
-  spIdx = hestOptAdd(&opt, "sp,spacing", "spacing", airTypeDouble, 1, 1, &spc, "nan",
-                     "spacing between samples along axis");
+  hestOptAdd_Nv_UInt(&opt, "a,axes", "ax0", 1, -1, &axes, NULL,
+                     "the one or more axes that should be modified", &axesLen);
+  hestOptAdd_1_String(&opt, "l,label", "label", &label, "",
+                      "label to associate with axis");
+  hestOptAdd_1_String(&opt, "u,units", "units", &units, "", "units of measurement");
+  mmIdx = hestOptAdd_2_String(&opt, "mm,minmax", "min max", mmStr, "nan nan",
+                              "min and max values along axis");
+  spIdx = hestOptAdd_1_Double(&opt, "sp,spacing", "spacing", &spc, "nan",
+                              "spacing between samples along axis");
   /* There used to be a complaint here about how hest doesn't allow
      you to learn whether the option was parsed from the supplied
      default versus from the command-line itself.  That issue has been
@@ -56,19 +55,19 @@ unrrdu_axinfoMain(int argc, const char **argv, const char *me, hestParm *hparm) 
      parsing from a string here is still needed here, because here we
      need to allow the string that represents "no centering"; this
      is a current weakness of airEnumStr.
-  hestOptAdd(&opt, "c,center", "center", airTypeEnum, 1, 1, &cent, "unknown",
-             "centering of axis: \"cell\" or \"node\"",
-             NULL, nrrdCenter);
+  hestOptAdd_1_Enum(&opt, "c,center", "center", &cent, "unknown",
+                    "centering of axis: \"cell\" or \"node\"",
+                    nrrdCenter);
   */
-  hestOptAdd(&opt, "c,center", "center", airTypeString, 1, 1, &centerStr, "",
-             "axis centering: \"cell\" or \"node\".  Not using this option "
-             "leaves the centering as it is on input");
-  hestOptAdd(&opt, "dir,direction", "svec", airTypeString, 1, 1, &_dirStr, "",
-             "(NOTE: must quote vector) The \"space direction\": the vector "
-             "in space spanned by incrementing (by one) the axis index.");
-  hestOptAdd(&opt, "k,kind", "kind", airTypeString, 1, 1, &kindStr, "",
-             "axis kind. Not using this option "
-             "leaves the kind as it is on input");
+  hestOptAdd_1_String(&opt, "c,center", "center", &centerStr, "",
+                      "axis centering: \"cell\" or \"node\".  Not using this option "
+                      "leaves the centering as it is on input");
+  hestOptAdd_1_String(&opt, "dir,direction", "svec", &_dirStr, "",
+                      "(NOTE: must quote vector) The \"space direction\": the vector "
+                      "in space spanned by incrementing (by one) the axis index.");
+  hestOptAdd_1_String(&opt, "k,kind", "kind", &kindStr, "",
+                      "axis kind. Not using this option "
+                      "leaves the kind as it is on input");
 
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
