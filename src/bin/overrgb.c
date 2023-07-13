@@ -100,7 +100,7 @@ main(int argc, const char *argv[]) {
                       "intent in the sRGB chunk of the PNG file format. Can be "
                       "absolute, relative, perceptual, saturation, or none. This is "
                       "independent of using \"srgb\" as the -g gamma",
-                      NULL, nrrdFormatPNGsRGBIntent);
+                      nrrdFormatPNGsRGBIntent);
   hestOptAdd_3_Double(&hopt, "b", "background", back, "0 0 0",
                       "background color to composite against; white is "
                       "1 1 1, not 255 255 255.");
