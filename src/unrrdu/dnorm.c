@@ -45,27 +45,28 @@ unrrdu_dnormMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err;
   airArray *mop;
-
-  hestOptAdd(&opt, "h,header", NULL, airTypeInt, 0, 0, &headerOnly, NULL,
-             "output header of nrrd file only, not the data itself");
-  hestOptAdd(&opt, "v,version", "version", airTypeEnum, 1, 1, &version, "alpha",
-             "what version of canonical meta-data to convert to; "
-             "\"alpha\" is what has been used for Diderot until at least "
-             "2016",
-             NULL, nrrdMetaDataCanonicalVersion);
-  hestOptAdd(&opt, "to", NULL, airTypeInt, 0, 0, &trivialOrient, NULL,
-             "(*t*rivial *o*rientation) "
-             "even if the input nrrd comes with full orientation or "
-             "per-axis min-max info, ignore it and instead assert the "
-             "identity mapping between index and world space");
-  hestOptAdd(&opt, "rc,recenter", NULL, airTypeInt, 0, 0, &recenter, NULL,
-             "re-locate output spaceOrigin so that field is centered "
-             "around origin of space coordinates");
-  hestOptAdd(&opt, "sp,spacing", "scl", airTypeDouble, 1, 1, &newSpacing, "1.0",
-             "when having to contrive orientation information and there's "
-             "no per-axis min/max or spacing, this is the sample spacing "
-             "to assert");
-  OPT_ADD_NIN(nin, "input image");
+  hparm->noArgsIsNoProblem = AIR_TRUE;
+  hestOptAdd_Flag(&opt, "h,header", &headerOnly,
+                  "output header of nrrd file only, not the data itself");
+  hestOptAdd_1_Enum(&opt, "v,version", "version", &version, "alpha",
+                    "what version of canonical meta-data to convert to; "
+                    "\"alpha\" is what has been used for Diderot until at least "
+                    "2016",
+                    nrrdMetaDataCanonicalVersion);
+  hestOptAdd_Flag(&opt, "to", &trivialOrient,
+                  "(*t*rivial *o*rientation) "
+                  "even if the input nrrd comes with full orientation or "
+                  "per-axis min-max info, ignore it and instead assert the "
+                  "identity mapping between index and world space");
+  hestOptAdd_Flag(&opt, "rc,recenter", &recenter,
+                  "re-locate output spaceOrigin so that field is centered "
+                  "around origin of space coordinates");
+  hestOptAdd_1_Double(&opt, "sp,spacing", "scl", &newSpacing, "1.0",
+                      "when having to contrive orientation information and there's "
+                      "no per-axis min/max or spacing, this is the sample spacing "
+                      "to assert");
+  hestOptAdd_1_Other(&opt, "i,input", "nin", &nin, "-",
+                     "input image. By default reads from stdin", nrrdHestNrrdNoTTY);
   OPT_ADD_NOUT(outS, "output filename");
 
   mop = airMopNew();

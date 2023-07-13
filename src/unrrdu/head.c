@@ -22,6 +22,8 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
+#include <unistd.h> /* for isatty() and STDIN_FILENO */
+
 #define INFO "Print header of one or more nrrd files"
 static const char *_unrrdu_headInfoL
   = (INFO ".  The value of this is simply to print the contents of nrrd "
@@ -32,31 +34,35 @@ static const char *_unrrdu_headInfoL
           "* Uses nrrdOneLine");
 
 static int /* Biff: 1 */
-unrrdu_headDoit(const char *me, NrrdIoState *nio, char *inS, FILE *fout) {
+unrrdu_headDoit(const char *me, NrrdIoState *nio, const char *inS, FILE *fout) {
   airArray *mop;
   unsigned int len;
   FILE *fin;
 
+  if (!strcmp("-", inS) && isatty(STDIN_FILENO)) {
+    biffAddf(me, "declining to try reading Nrrd from stdin as tty (terminal)");
+    return 1;
+  }
   mop = airMopNew();
   if (!(fin = airFopen(inS, stdin, "rb"))) {
-    biffAddf(me, "%s: couldn't fopen(\"%s\",\"rb\"): %s\n", me, inS, strerror(errno));
+    biffAddf(me, "couldn't fopen(\"%s\",\"rb\"): %s\n", inS, strerror(errno));
     airMopError(mop);
     return 1;
   }
   airMopAdd(mop, fin, (airMopper)airFclose, airMopAlways);
 
   if (nrrdOneLine(&len, nio, fin)) {
-    biffAddf(me, "%s: error getting first line of file \"%s\"", me, inS);
+    biffAddf(me, "error getting first line of file \"%s\"", inS);
     airMopError(mop);
     return 1;
   }
   if (!len) {
-    biffAddf(me, "%s: immediately hit EOF\n", me);
+    biffAddf(me, "immediately hit EOF\n");
     airMopError(mop);
     return 1;
   }
   if (!(nrrdFormatNRRD->contentStartsLike(nio))) {
-    biffAddf(me, "%s: first line (\"%s\") isn't a nrrd magic\n", me, nio->line);
+    biffAddf(me, "first line (\"%s\") isn't a nrrd magic\n", nio->line);
     airMopError(mop);
     return 1;
   }
@@ -85,12 +91,13 @@ unrrdu_headMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *err, **inS;
   NrrdIoState *nio;
   airArray *mop;
-  int pret;
+  int pret, okay;
   unsigned int ni, ninLen;
 
   mop = airMopNew();
-  hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL, "input nrrd(s)",
-             &ninLen);
+  hparm->noArgsIsNoProblem = AIR_TRUE;
+  hestOptAdd_Nv_String(&opt, NULL, "nin1", 1, -1, &inS, "-",
+                       "input nrrd(s). By default tries to read from stdin", &ninLen);
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE_OR_PARSE(_unrrdu_headInfoL);
@@ -99,6 +106,7 @@ unrrdu_headMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   nio = nrrdIoStateNew();
   airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
 
+  okay = AIR_FALSE;
   for (ni = 0; ni < ninLen; ni++) {
     if (ninLen > 1) {
       fprintf(stdout, "==> %s <==\n", inS[ni]);
@@ -107,10 +115,21 @@ unrrdu_headMain(int argc, const char **argv, const char *me, hestParm *hparm) {
       airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble reading from \"%s\":\n%s", me, inS[ni], err);
       /* continue working on the remaining files */
+    } else {
+      /* processed at least one file ok */
+      okay = AIR_TRUE;
     }
     if (ninLen > 1 && ni < ninLen - 1) {
       fprintf(stdout, "\n");
     }
+  }
+  if (!okay) {
+    /* none of the given files could be read; something is wrong */
+    if (ninLen > 1) {
+      fprintf(stderr, "\n%s: Unable to read from any file\n", me);
+    }
+    hestUsage(stderr, opt, me, hparm);
+    fprintf(stderr, "\nFor more info: \"%s --help\"\n", me);
   }
 
   airMopOkay(mop);

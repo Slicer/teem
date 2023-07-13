@@ -22,6 +22,8 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
+#include <unistd.h> /* for isatty() and STDIN_FILENO */
+
 static int /* Biff: 1 */
 gridGen(Nrrd *nout, int typeOut, const Nrrd *nin, int psz, int psg) {
   static const char me[] = "gridGen";
@@ -151,20 +153,16 @@ unrrdu_gridMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
   int typeOut, psz, psg;
   NrrdIoState *nio;
-
-  hestOptAdd(&opt, "i,input", "nin", airTypeString, 1, 1, &inS, NULL,
-             "input nrrd.  That this argument is required instead of "
-             "optional, as with most unu commands, is a quirk caused by the "
-             "need to have \"unu grid\" generate usage info, combined "
-             "with the fact that the other arguments have sensible "
-             "defaults");
-  hestOptAdd(&opt, "ps", NULL, airTypeInt, 0, 0, &psz, NULL,
-             "instead of the default behavior of flattening all but the "
-             "fastest axis, preserve the sizes of axes, so that the output "
-             "is more like that of the input");
-  hestOptAdd(&opt, "pg", NULL, airTypeInt, 0, 0, &psg, NULL,
-             "(overrides -ps) generate a 2D array that represents "
-             "the sampling grid in the way that \"gprobe -pg\" understands");
+  hparm->noArgsIsNoProblem = AIR_TRUE;
+  hestOptAdd_1_String(&opt, "i,input", "nin", &inS, "-",
+                      "input nrrd. By default reads from stdin");
+  hestOptAdd_Flag(&opt, "ps", &psz,
+                  "instead of the default behavior of flattening all but the "
+                  "fastest axis, preserve the sizes of axes, so that the output "
+                  "is more like that of the input");
+  hestOptAdd_Flag(&opt, "pg", &psg,
+                  "(overrides -ps) generate a 2D array that represents "
+                  "the sampling grid in the way that \"gprobe -pg\" understands");
   OPT_ADD_TYPE(typeOut, "type of output", "double");
   OPT_ADD_NOUT(outS, "output nrrd");
 
@@ -173,6 +171,15 @@ unrrdu_gridMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   USAGE_OR_PARSE(_unrrdu_gridInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
+
+  if (!strcmp("-", inS) && isatty(STDIN_FILENO)) {
+    fprintf(stderr, "%s: declining to try reading Nrrd from stdin as tty (terminal)\n/",
+            me);
+    hestUsage(stderr, opt, me, hparm);
+    fprintf(stderr, "\nFor more info: \"%s --help\"\n", me);
+    airMopError(mop);
+    return 1;
+  }
 
   nio = nrrdIoStateNew();
   airMopAdd(mop, nio, (airMopper)nrrdIoStateNix, airMopAlways);
