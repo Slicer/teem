@@ -503,7 +503,7 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist, unsigned int 
 }
 
 int
-qbertScat(Nrrd *nvgh, int pos, int size, const char *name) {
+qbertScat(Nrrd *nvgh, int pos, unsigned int size, const char *name) {
   static const char me[] = "qbertScat";
   Nrrd **nin, *nv, *nx, *nscA, *nscB;
   airArray *mop;
@@ -552,7 +552,7 @@ qbertScat(Nrrd *nvgh, int pos, int size, const char *name) {
 }
 
 static const char qbertInfo[]
-  = "Generates volume datasets friendly to hardware-based "
+  = "Generates volume datasets friendly to circa-2002 hardware-based "
     "volume renderers. "
     "The main value of this is a means of combining the functions of "
     "resampling a dataset to a particular size, measuring first (and "
@@ -568,8 +568,8 @@ main(int argc, const char *argv[]) {
   const char *me;
   char *outS, *errS;
   Nrrd *nin, *npad, *nrsmp, *nvghF, *nvhist, *nghist, *nhhist, *nvgh;
-  int E, i, ups, notdoH, useFloat, scat;
-  unsigned int sz[3];
+  int E, i, ups, notdoH, useFloat;
+  unsigned int sz[3], scat;
   NrrdKernelSpec *k00, *k11, *k22;
   double amin[4], amax[4], spacing[4];
   float vperc, gperc, hperc, perc[3];
@@ -588,56 +588,55 @@ main(int argc, const char *argv[]) {
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hparm->respectDashDashHelp = AIR_TRUE;
 
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input volume, in nrrd format", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "vg", NULL, airTypeInt, 0, 0, &notdoH, NULL,
-             "Make a 2-channel VG volume, instead of the usual (default) "
-             "3-channel VGH volume.");
-  hestOptAdd(&hopt, "f", NULL, airTypeInt, 0, 0, &useFloat, NULL,
-             "Keep the output volume in floating point, instead of "
-             "(by default) quantizing down to 8-bits.  The "
-             "\"-vp\", \"-gp\", and \"-hp\" options become moot.");
-  hestOptAdd(&hopt, "d", "dimX dimY dimZ", airTypeUInt, 3, 3, sz, NULL,
-             "dimensions of output volume");
-  hestOptAdd(&hopt, "up", NULL, airTypeInt, 0, 0, &ups, NULL,
-             "Instead of just padding axes up to dimensions given "
-             "with \"-d\" when original dimensions are smaller, do filtered "
-             "upsampling.");
-  hestOptAdd(&hopt, "uk", "upsample k", airTypeOther, 1, 1, &uk, "cubic:0,0.5",
-             "kernel to use when doing the upsampling enabled by \"-up\"", NULL, NULL,
-             nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "dk", "downsample k", airTypeOther, 1, 1, &dk, "tent",
-             "kernel to use when DOWNsampling volume to fit with specified "
-             "dimensions. NOTE: ringing can be problematic here.",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00, "tent",
-             "kernel for gageKernel00, used to probe values (\"V\") "
-             "in the volume that has been padded/resampled to fit in the "
-             "dimensions given by \"-d\"",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k11", "kern11", airTypeOther, 1, 1, &k11, "cubicd:1,0",
-             "kernel for gageKernel11, used with k00 to probe "
-             "gradient magnitudes (\"G\")",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k22", "kern22", airTypeOther, 1, 1, &k22, "cubicdd:1,0",
-             "kernel for gageKernel22, used with k00,k11 to "
-             "probe Hessian-based 2nd derivatives (\"H\")",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "vp", "V excl perc", airTypeFloat, 1, 1, &vperc, "0.000",
-             "Percent of voxels to through away in quantization (if doing "
-             "quantization) based their data value being too high or "
-             "too low. ");
-  hestOptAdd(&hopt, "gp", "G perc", airTypeFloat, 1, 1, &gperc, "0.002",
-             "Like \"-vp\", but for gradient magnitudes. ");
-  hestOptAdd(&hopt, "hp", "H perc", airTypeFloat, 1, 1, &hperc, "0.004",
-             "Like \"-vp\", but for Hessian-based 2nd derivatives. ");
-  hestOptAdd(&hopt, "scat", "scat size", airTypeInt, 1, 1, &scat, "0",
-             "generate VG (and VH) scatterplots with this resolution. "
-             "Size 0 means \"no scatterplots\".  The scatterplots are "
-             "histogram equalized, quantized, and saved out as PGM images "
-             "named \"vg.pgm\" (and \"vh.pgm\").");
-  hestOptAdd(&hopt, "o", "output", airTypeString, 1, 1, &outS, NULL,
-             "output volume in nrrd format");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, NULL, "input volume, in nrrd format",
+                     nrrdHestNrrd);
+  hestOptAdd_Flag(&hopt, "vg", &notdoH,
+                  "Make a 2-channel VG volume, instead of the usual (default) "
+                  "3-channel VGH volume.");
+  hestOptAdd_Flag(&hopt, "f", &useFloat,
+                  "Keep the output volume in floating point, instead of "
+                  "(by default) quantizing down to 8-bits.  The "
+                  "\"-vp\", \"-gp\", and \"-hp\" options become moot.");
+  hestOptAdd_3_UInt(&hopt, "d", "dimX dimY dimZ", sz, NULL,
+                    "dimensions of output volume");
+  hestOptAdd_Flag(&hopt, "up", &ups,
+                  "Instead of just padding axes up to dimensions given "
+                  "with \"-d\" when original dimensions are smaller, do filtered "
+                  "upsampling.");
+  hestOptAdd_1_Other(&hopt, "uk", "upsample k", &uk, "cubic:0,0.5",
+                     "kernel to use when doing the upsampling enabled by \"-up\"",
+                     nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "dk", "downsample k", &dk, "tent",
+                     "kernel to use when DOWNsampling volume to fit with specified "
+                     "dimensions. NOTE: ringing can be problematic here.",
+                     nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "k00", "kern00", &k00, "tent",
+                     "kernel for gageKernel00, used to probe values (\"V\") "
+                     "in the volume that has been padded/resampled to fit in the "
+                     "dimensions given by \"-d\"",
+                     nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "k11", "kern11", &k11, "cubicd:1,0",
+                     "kernel for gageKernel11, used with k00 to probe "
+                     "gradient magnitudes (\"G\")",
+                     nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "k22", "kern22", &k22, "cubicdd:1,0",
+                     "kernel for gageKernel22, used with k00,k11 to "
+                     "probe Hessian-based 2nd derivatives (\"H\")",
+                     nrrdHestKernelSpec);
+  hestOptAdd_1_Float(&hopt, "vp", "V excl perc", &vperc, "0.000",
+                     "Percent of voxels to through away in quantization (if doing "
+                     "quantization) based their data value being too high or "
+                     "too low. ");
+  hestOptAdd_1_Float(&hopt, "gp", "G perc", &gperc, "0.002",
+                     "Like \"-vp\", but for gradient magnitudes. ");
+  hestOptAdd_1_Float(&hopt, "hp", "H perc", &hperc, "0.004",
+                     "Like \"-vp\", but for Hessian-based 2nd derivatives. ");
+  hestOptAdd_1_UInt(&hopt, "scat", "scat size", &scat, "0",
+                    "generate VG (and VH) scatterplots with this resolution. "
+                    "Size 0 means \"no scatterplots\".  The scatterplots are "
+                    "histogram equalized, quantized, and saved out as PGM images "
+                    "named \"vg.pgm\" (and \"vh.pgm\").");
+  hestOptAdd_1_String(&hopt, "o", "output", &outS, NULL, "output volume in nrrd format");
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, qbertInfo, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);

@@ -45,8 +45,8 @@ main(int argc, const char *argv[]) {
   char *outS, *errS, *debugS;
   airArray *mop;
   float amb[3], *linfo, *debug, *map, vscl;
-  unsigned li, ui, vi;
-  int qn, bits, method, doerr;
+  unsigned int li, ui, vi, bits;
+  int qn, method, doerr;
   limnLight *light;
   limnCamera *cam;
   double u, v, r, w, V2W[9], diff, WW[3], VV[3];
@@ -59,35 +59,34 @@ main(int argc, const char *argv[]) {
   hparm->respectDashDashHelp = AIR_TRUE;
   cam = limnCameraNew();
   airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
-  hestOptAdd(&hopt, "i", "nlight", airTypeOther, 1, 1, &nlight, NULL,
-             "input nrrd containing light information", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "b", "# bits", airTypeInt, 1, 1, &bits, "16",
-             "number of bits to use for normal quantization, "
-             "between 8 and 16 inclusive. ");
-  hestOptAdd(&hopt, "amb", "ambient RGB", airTypeFloat, 3, 3, amb, "0 0 0",
-             "ambient light color");
-  hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from, "1 0 0",
-             "position of camera, used to determine view vector");
-  hestOptAdd(&hopt, "at", "at point", airTypeDouble, 3, 3, cam->at, "0 0 0",
-             "camera look-at point, used to determine view vector");
-  hestOptAdd(&hopt, "up", "up vector", airTypeDouble, 3, 3, cam->up, "0 0 1",
-             "camera pseudo-up vector, used to determine view coordinates");
-  hestOptAdd(&hopt, "rh", NULL, airTypeInt, 0, 0, &(cam->rightHanded), NULL,
-             "use a right-handed UVN frame (V points down)");
-  hestOptAdd(&hopt, "vs", "view-dir scaling", airTypeFloat, 1, 1, &vscl, "1",
-             "scaling along view-direction of location of "
-             "view-space lights");
-  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, NULL,
-             "file to write output envmap to");
-  hestOptAdd(&hopt, "d", "filename", airTypeString, 1, 1, &debugS, "",
-             "Use this option to save out (to the given filename) a rendering "
-             "of the front (on the left) and back (on the right) of a sphere "
-             "as shaded with the new environment map.  U increases "
-             "right-ward, V increases downward.  The back sphere half is "
-             "rendered as though the front half was removed");
-  hestOptAdd(&hopt, "err", NULL, airTypeInt, 0, 0, &doerr, NULL,
-             "If using \"-d\", make the image represent the error between the "
-             "real and quantized vector");
+  hestOptAdd_1_Other(&hopt, "i", "nlight", &nlight, NULL,
+                     "input nrrd containing light information", nrrdHestNrrd);
+  hestOptAdd_1_UInt(&hopt, "b", "# bits", &bits, "16",
+                    "number of bits to use for normal quantization, "
+                    "between 8 and 16 inclusive. ");
+  hestOptAdd_3_Float(&hopt, "amb", "ambient RGB", amb, "0 0 0", "ambient light color");
+  hestOptAdd_3_Double(&hopt, "fr", "from point", cam->from, "1 0 0",
+                      "position of camera, used to determine view vector");
+  hestOptAdd_3_Double(&hopt, "at", "at point", cam->at, "0 0 0",
+                      "camera look-at point, used to determine view vector");
+  hestOptAdd_3_Double(&hopt, "up", "up vector", cam->up, "0 0 1",
+                      "camera pseudo-up vector, used to determine view coordinates");
+  hestOptAdd_Flag(&hopt, "rh", &(cam->rightHanded),
+                  "use a right-handed UVN frame (V points down)");
+  hestOptAdd_1_Float(&hopt, "vs", "view-dir scaling", &vscl, "1",
+                     "scaling along view-direction of location of "
+                     "view-space lights");
+  hestOptAdd_1_String(&hopt, "o", "filename", &outS, NULL,
+                      "file to write output envmap to");
+  hestOptAdd_1_String(&hopt, "d", "filename", &debugS, "",
+                      "Use this option to save out (to the given filename) a rendering "
+                      "of the front (on the left) and back (on the right) of a sphere "
+                      "as shaded with the new environment map.  U increases "
+                      "right-ward, V increases downward.  The back sphere half is "
+                      "rendered as though the front half was removed");
+  hestOptAdd_Flag(&hopt, "err", &doerr,
+                  "If using \"-d\", make the image represent the error between the "
+                  "real and quantized vector");
   hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, emapInfo, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
@@ -122,7 +121,7 @@ main(int argc, const char *argv[]) {
     method = limnQN8octa;
     break;
   default:
-    fprintf(stderr, "%s: requested #bits (%d) not in valid range [8,16]\n", me, bits);
+    fprintf(stderr, "%s: requested #bits (%u) not in valid range [8,16]\n", me, bits);
     airMopError(mop);
     return 1;
   }

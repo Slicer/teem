@@ -53,34 +53,33 @@ main(int argc, const char *argv[]) {
   hparm->elideSingleOtherType = AIR_TRUE;
   hparm->respectDashDashHelp = AIR_TRUE;
 
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input volume, in nrrd format", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "a", "angle", airTypeFloat, 1, 1, &angle, NULL,
-             "angle, in degrees, of the gantry tilt around the X axis. "
-             "This is opposite of the amount of tweak we apply.");
-  hestOptAdd(&hopt, "k", "kern", airTypeOther, 1, 1, &gantric, "tent",
-             "The kernel to use for resampling.  Chances are, there "
-             "is no justification for anything more than \"tent\".  "
-             "Possibilities include:\n "
-             "\b\bo \"box\": nearest neighbor interpolation\n "
-             "\b\bo \"tent\": linear interpolation\n "
-             "\b\bo \"cubic:B,C\": Mitchell/Netravali BC-family of "
-             "cubics:\n "
-             "\t\t\"cubic:1,0\": B-spline; maximal blurring\n "
-             "\t\t\"cubic:0,0.5\": Catmull-Rom; good interpolating kernel\n "
-             "\b\bo \"quartic:A\": 1-parameter family of "
-             "interpolating quartics (\"quartic:0.0834\" is most accurate)\n "
-             "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
-             "S and cut-off at C standard deviations",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "clamp", NULL, airTypeInt, 0, 0, &clamp, NULL,
-             "clamp sampling positions to inside original volume, "
-             "effectively does a bleed of the boundary values");
-  hestOptAdd(&hopt, "p", "pad value", airTypeDouble, 1, 1, &padval, "0.0",
-             "when NOT doing clampging (no \"-clamp\"), what value to the "
-             "boundary of the volume with");
-  hestOptAdd(&hopt, "o", "output", airTypeString, 1, 1, &outS, NULL,
-             "output volume in nrrd format");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, NULL, "input volume, in nrrd format",
+                     nrrdHestNrrd);
+  hestOptAdd_1_Float(&hopt, "a", "angle", &angle, NULL,
+                     "angle, in degrees, of the gantry tilt around the X axis. "
+                     "This is opposite of the amount of tweak we apply.");
+  hestOptAdd_1_Other(&hopt, "k", "kern", &gantric, "tent",
+                     "The kernel to use for resampling.  Chances are, there "
+                     "is no justification for anything more than \"tent\".  "
+                     "Possibilities include:\n "
+                     "\b\bo \"box\": nearest neighbor interpolation\n "
+                     "\b\bo \"tent\": linear interpolation\n "
+                     "\b\bo \"cubic:B,C\": Mitchell/Netravali BC-family of "
+                     "cubics:\n "
+                     "\t\t\"cubic:1,0\": B-spline; maximal blurring\n "
+                     "\t\t\"cubic:0,0.5\": Catmull-Rom; good interpolating kernel\n "
+                     "\b\bo \"quartic:A\": 1-parameter family of "
+                     "interpolating quartics (\"quartic:0.0834\" is most accurate)\n "
+                     "\b\bo \"gauss:S,C\": Gaussian blurring, with standard deviation "
+                     "S and cut-off at C standard deviations",
+                     nrrdHestKernelSpec);
+  hestOptAdd_Flag(&hopt, "clamp", &clamp,
+                  "clamp sampling positions to inside original volume, "
+                  "effectively does a bleed of the boundary values");
+  hestOptAdd_1_Double(&hopt, "p", "pad value", &padval, "0.0",
+                      "when NOT doing clampging (no \"-clamp\"), what value to the "
+                      "boundary of the volume with");
+  hestOptAdd_1_String(&hopt, "o", "output", &outS, NULL, "output volume in nrrd format");
   hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, info, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
 

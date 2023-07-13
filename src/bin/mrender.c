@@ -460,54 +460,55 @@ main(int argc, const char *argv[]) {
   uu = mrendUserNew();
   airMopAdd(mop, uu, (airMopper)mrendUserNix, airMopAlways);
 
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(uu->nin), NULL,
-             "input nrrd to render", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &(uu->kind), NULL,
-             "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")", NULL, NULL,
-             meetHestGageKind);
+  hestOptAdd_1_Other(&hopt, "i", "nin", &(uu->nin), NULL, "input nrrd to render",
+                     nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "k", "kind", &(uu->kind), NULL,
+                     "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
+                     meetHestGageKind);
   limnHestCameraOptAdd(&hopt, uu->hctx->cam, NULL, "0 0 0", "0 0 1", NULL, NULL, NULL,
                        "nan nan", "nan nan", "20");
-  hestOptAdd(&hopt, "offfr", NULL, airTypeInt, 0, 0, &offfr, NULL,
-             "the given eye point (\"-fr\") is to be interpreted "
-             "as an offset from the at point.");
-  hestOptAdd(&hopt, "turn", "angle", airTypeDouble, 1, 1, &turn, "0.0",
-             "angle (degrees) by which to rotate the from point around "
-             "true up, for making stereo pairs.  Positive means move "
-             "towards positive U (the right)");
-  hestOptAdd(&hopt, "is", "image size", airTypeInt, 2, 2, uu->hctx->imgSize, "256 256",
-             "image dimensions");
-  hestOptAdd(&hopt, "iss", "scale", airTypeFloat, 1, 1, &isScale, "1.0",
-             "scaling of image size (from \"is\")");
-  hestOptAdd(&hopt, "k00", "kernel", airTypeOther, 1, 1, &(uu->ksp[gageKernel00]),
-             "tent", "value reconstruction kernel", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k11", "kernel", airTypeOther, 1, 1, &(uu->ksp[gageKernel11]),
-             "cubicd:1,0", "first derivative kernel", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k22", "kernel", airTypeOther, 1, 1, &(uu->ksp[gageKernel22]),
-             "cubicdd:1,0", "second derivative kernel", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "rn", NULL, airTypeBool, 0, 0, &renorm, NULL,
-             "renormalize kernel weights at each new sample location. "
-             "\"Accurate\" kernels don't need this; doing it always "
-             "makes things go slower");
-  hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
-             "the quantity (scalar, vector, or matrix) to learn by probing");
-  hestOptAdd(&hopt, "m", "measure", airTypeEnum, 1, 1, &(uu->measr), NULL,
-             "how to collapse list of ray samples into one scalar. " NRRD_MEASURE_DESC,
-             NULL, nrrdMeasure);
-  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc, "0.0",
-             "For curvature-related queries, set answer to zero when "
-             "gradient magnitude is below this");
-  hestOptAdd(&hopt, "fn", "from nan", airTypeDouble, 1, 1, &(uu->fromNaN), "nan",
-             "When histo-based measures generate NaN answers, the "
-             "value that should be substituted for NaN.");
-  hestOptAdd(&hopt, "step", "size", airTypeDouble, 1, 1, &(uu->rayStep), "0.01",
-             "step size along ray in world space");
-  hestOptAdd(&hopt, "nt", "# threads", airTypeInt, 1, 1, &(uu->hctx->numThreads), "1",
-             "number of threads hoover should use");
-  hestOptAdd(&hopt, "vp", "img coords", airTypeInt, 2, 2, &(uu->verbPixel), "-1 -1",
-             "pixel coordinates for which to turn on all verbose "
-             "debugging messages, or \"-1 -1\" to disable this.");
-  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &(uu->outS), "-",
-             "file to write output nrrd to.  Defaults to stdout (\"-\").");
+  hestOptAdd_Flag(&hopt, "offfr", &offfr,
+                  "the given eye point (\"-fr\") is to be interpreted "
+                  "as an offset from the at point.");
+  hestOptAdd_1_Double(&hopt, "turn", "angle", &turn, "0.0",
+                      "angle (degrees) by which to rotate the from point around "
+                      "true up, for making stereo pairs.  Positive means move "
+                      "towards positive U (the right)");
+  hestOptAdd_2_UInt(&hopt, "is", "image size", uu->hctx->imgSize, "256 256",
+                    "image dimensions");
+  hestOptAdd_1_Float(&hopt, "iss", "scale", &isScale, "1.0",
+                     "scaling of image size (from \"is\")");
+  hestOptAdd_1_Other(&hopt, "k00", "kernel", &(uu->ksp[gageKernel00]), "tent",
+                     "value reconstruction kernel", nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "k11", "kernel", &(uu->ksp[gageKernel11]), "cubicd:1,0",
+                     "first derivative kernel", nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "k22", "kernel", &(uu->ksp[gageKernel22]), "cubicdd:1,0",
+                     "second derivative kernel", nrrdHestKernelSpec);
+  hestOptAdd_Flag(&hopt, "rn", &renorm,
+                  "renormalize kernel weights at each new sample location. "
+                  "\"Accurate\" kernels don't need this; doing it always "
+                  "makes things go slower");
+  hestOptAdd_1_String(&hopt, "q", "query", &whatS, NULL,
+                      "the quantity (scalar, vector, or matrix) to learn by probing");
+  hestOptAdd_1_Enum(&hopt, "m", "measure", &(uu->measr), NULL,
+                    "how to collapse list of "
+                    "ray samples into one scalar. " NRRD_MEASURE_DESC,
+                    nrrdMeasure);
+  hestOptAdd_1_Double(&hopt, "gmc", "min gradmag", &gmc, "0.0",
+                      "For curvature-related queries, set answer to zero when "
+                      "gradient magnitude is below this");
+  hestOptAdd_1_Double(&hopt, "fn", "from nan", &(uu->fromNaN), "nan",
+                      "When histo-based measures generate NaN answers, the "
+                      "value that should be substituted for NaN.");
+  hestOptAdd_1_Double(&hopt, "step", "size", &(uu->rayStep), "0.01",
+                      "step size along ray in world space");
+  hestOptAdd_1_UInt(&hopt, "nt", "# threads", &(uu->hctx->numThreads), "1",
+                    "number of threads hoover should use");
+  hestOptAdd_2_Int(&hopt, "vp", "img coords", uu->verbPixel, "-1 -1",
+                   "pixel coordinates for which to turn on all verbose "
+                   "debugging messages, or \"-1 -1\" to disable this.");
+  hestOptAdd_1_String(&hopt, "o", "filename", &(uu->outS), "-",
+                      "file to write output nrrd to.  Defaults to stdout (\"-\").");
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
 
   hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, info, AIR_TRUE, AIR_TRUE,

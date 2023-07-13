@@ -82,76 +82,74 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   hparm->elideSingleOtherType = AIR_TRUE;
   hparm->respectDashDashHelp = AIR_TRUE;
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL, "input volume", NULL,
-             NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
-             "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")", NULL, NULL,
-             meetHestGageKind);
-  hestOptAdd(&hopt, "p", "x y z", airTypeFloat, 3, 3, pos, NULL,
-             "the position in space at which to probe");
-  hestOptAdd(&hopt, "wsp", NULL, airTypeInt, 0, 0, &worldSpace, NULL,
-             "if using this option, position (\"-p\") will be in world "
-             "space, instead of index space (the default)");
-  hestOptAdd(&hopt, "pi", "lpld in", airTypeOther, 1, 1, &lpld, "",
-             "input polydata (overrides \"-p\")", NULL, NULL, limnHestPolyDataLMPD);
-  hestOptAdd(&hopt, "pl", "x y z s", airTypeFloat, 4, 4, lineInfo, "0 0 0 0",
-             "probe along line, instead of at point.  "
-             "The \"-p\" three coords are the line start point. "
-             "If \"s\" is zero, (x,y,z) is the line end point. "
-             "If \"s\" is non-zero, (x,y,z) is the line direction, "
-             "which is scaled to have length \"s\", "
-             "and then used as the step between line samples. ");
-  hestOptAdd(&hopt, "pln", "num", airTypeUInt, 1, 1, &lineStepNum, "0",
-             "if non-zero, number of steps of probing to do along line, "
-             "which overrides \"-p\" and \"-pi\"");
-  hestOptAdd(&hopt, "v", "verbosity", airTypeInt, 1, 1, &verbose, "1",
-             "verbosity level");
-  hestOptAdd(&hopt, "q", "query", airTypeString, 1, 1, &whatS, NULL,
-             "the quantity (scalar, vector, or matrix) to learn by probing");
-  hestOptAdd(&hopt, "eps", "epsilon", airTypeDouble, 1, 1, &eps, "0",
-             "if non-zero, and if query is a scalar, epsilon around probe "
-             "location where we will do discrete differences to find the "
-             "gradient and hessian (for debugging)");
-  hestOptAdd(&hopt, "k00", "kern00", airTypeOther, 1, 1, &k00, "tent",
-             "kernel for gageKernel00", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k11", "kern11", airTypeOther, 1, 1, &k11, "cubicd:1,0",
-             "kernel for gageKernel11", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "k22", "kern22", airTypeOther, 1, 1, &k22, "cubicdd:1,0",
-             "kernel for gageKernel22", NULL, NULL, nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, NULL, "input volume", nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "k", "kind", &kind, NULL,
+                     "\"kind\" of volume (\"scalar\", \"vector\", or \"tensor\")",
+                     meetHestGageKind);
+  hestOptAdd_3_Float(&hopt, "p", "x y z", pos, NULL,
+                     "the position in space at which to probe");
+  hestOptAdd_Flag(&hopt, "wsp", &worldSpace,
+                  "if using this option, position (\"-p\") will be in world "
+                  "space, instead of index space (the default)");
+  hestOptAdd_1_Other(&hopt, "pi", "lpld in", &lpld, "",
+                     "input polydata (overrides \"-p\")", limnHestPolyDataLMPD);
+  hestOptAdd_4_Float(&hopt, "pl", "x y z s", lineInfo, "0 0 0 0",
+                     "probe along line, instead of at point.  "
+                     "The \"-p\" three coords are the line start point. "
+                     "If \"s\" is zero, (x,y,z) is the line end point. "
+                     "If \"s\" is non-zero, (x,y,z) is the line direction, "
+                     "which is scaled to have length \"s\", "
+                     "and then used as the step between line samples. ");
+  hestOptAdd_1_UInt(&hopt, "pln", "num", &lineStepNum, "0",
+                    "if non-zero, number of steps of probing to do along line, "
+                    "which overrides \"-p\" and \"-pi\"");
+  hestOptAdd_1_Int(&hopt, "v", "verbosity", &verbose, "1", "verbosity level");
+  hestOptAdd_1_String(&hopt, "q", "query", &whatS, NULL,
+                      "the quantity (scalar, vector, or matrix) to learn by probing");
+  hestOptAdd_1_Double(&hopt, "eps", "epsilon", &eps, "0",
+                      "if non-zero, and if query is a scalar, epsilon around probe "
+                      "location where we will do discrete differences to find the "
+                      "gradient and hessian (for debugging)");
+  hestOptAdd_1_Other(&hopt, "k00", "kern00", &k00, "tent", /* */
+                     "kernel for gageKernel00", nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "k11", "kern11", &k11, "cubicd:1,0",
+                     "kernel for gageKernel11", nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "k22", "kern22", &k22, "cubicdd:1,0",
+                     "kernel for gageKernel22", nrrdHestKernelSpec);
 
-  hestOptAdd(&hopt, "ssn", "SS #", airTypeUInt, 1, 1, &numSS, "0",
-             "how many scale-space samples to evaluate, or, "
-             "0 to turn-off all scale-space behavior");
-  hestOptAdd(&hopt, "ssr", "scale range", airTypeDouble, 2, 2, rangeSS, "nan nan",
-             "range of scales in scale-space");
-  hestOptAdd(&hopt, "sss", "scale save path", airTypeString, 1, 1, &stackSavePath, "",
-             "give a non-empty path string (like \"./\") to save out "
-             "the pre-blurred volumes computed for the stack");
-  hestOptAdd(&hopt, "ssp", "SS pos", airTypeDouble, 1, 1, &posSS, "0",
-             "position at which to sample in scale-space");
-  hestOptAdd(&hopt, "kssblur", "kernel", airTypeOther, 1, 1, &kSSblur, "dgauss:1,5",
-             "blurring kernel, to sample scale space", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "kss", "kernel", airTypeOther, 1, 1, &kSS, "tent",
-             "kernel for reconstructing from scale space samples", NULL, NULL,
-             nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "ssnd", "ssnd", airTypeInt, 1, 1, &SSnormd, "0",
-             "enable derivative normalization based on scale space");
-  hestOptAdd(&hopt, "ssu", NULL, airTypeInt, 0, 0, &SSuniform, NULL,
-             "do uniform samples along sigma, and not (by default) "
-             "samples according to the logarithm of diffusion time");
+  hestOptAdd_1_UInt(&hopt, "ssn", "SS #", &numSS, "0",
+                    "how many scale-space samples to evaluate, or, "
+                    "0 to turn-off all scale-space behavior");
+  hestOptAdd_2_Double(&hopt, "ssr", "scale range", rangeSS, "nan nan",
+                      "range of scales in scale-space");
+  hestOptAdd_1_String(&hopt, "sss", "scale save path", &stackSavePath, "",
+                      "give a non-empty path string (like \"./\") to save out "
+                      "the pre-blurred volumes computed for the stack");
+  hestOptAdd_1_Double(&hopt, "ssp", "SS pos", &posSS, "0",
+                      "position at which to sample in scale-space");
+  hestOptAdd_1_Other(&hopt, "kssblur", "kernel", &kSSblur, "dgauss:1,5",
+                     "blurring kernel, to sample scale space", nrrdHestKernelSpec);
+  hestOptAdd_1_Other(&hopt, "kss", "kernel", &kSS, "tent",
+                     "kernel for reconstructing from scale space samples",
+                     nrrdHestKernelSpec);
+  hestOptAdd_1_Int(&hopt, "ssnd", "ssnd", &SSnormd, "0",
+                   "enable derivative normalization based on scale space");
+  hestOptAdd_Flag(&hopt, "ssu", &SSuniform,
+                  "do uniform samples along sigma, and not (by default) "
+                  "samples according to the logarithm of diffusion time");
 
-  hestOptAdd(&hopt, "rn", NULL, airTypeInt, 0, 0, &renorm, NULL,
-             "renormalize kernel weights at each new sample location. "
-             "\"Accurate\" kernels don't need this; doing it always "
-             "makes things go slower");
-  hestOptAdd(&hopt, "gmc", "min gradmag", airTypeDouble, 1, 1, &gmc, "0.0",
-             "For curvature-based queries, use zero when gradient "
-             "magnitude is below this");
-  hestOptAdd(&hopt, "ofs", "ofs", airTypeInt, 0, 0, &orientationFromSpacing, NULL,
-             "If only per-axis spacing is available, use that to "
-             "guess orientation info");
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output array, when probing on polydata vertices");
+  hestOptAdd_Flag(&hopt, "rn", &renorm,
+                  "renormalize kernel weights at each new sample location. "
+                  "\"Accurate\" kernels don't need this; doing it always "
+                  "makes things go slower");
+  hestOptAdd_1_Double(&hopt, "gmc", "min gradmag", &gmc, "0.0",
+                      "For curvature-based queries, use zero when gradient "
+                      "magnitude is below this");
+  hestOptAdd_Flag(&hopt, "ofs", &orientationFromSpacing,
+                  "If only per-axis spacing is available, use that to "
+                  "guess orientation info");
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-",
+                      "output array, when probing on polydata vertices");
   hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, probeInfo, AIR_TRUE, AIR_TRUE,
                  AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
