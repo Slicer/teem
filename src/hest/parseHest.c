@@ -873,7 +873,9 @@ _hestDefaults(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *o
     /* if not using the default, we're done with this option */
     if (!udflt[op]) continue;
     prms[op] = airStrdup(opt[op].dflt);
-    fprintf(stderr, "!%s: prms[%d] = |%s|\n", me, op, prms[op]);
+    if (parm->verbosity) {
+      printf("%s: prms[%d] = |%s|\n", me, op, prms[op]);
+    }
     if (prms[op]) {
       airMopAdd(mop, prms[op], airFree, airMopAlways);
       airOneLinify(prms[op]);
