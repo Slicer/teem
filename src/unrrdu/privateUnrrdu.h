@@ -225,7 +225,7 @@ UNRRDU_MAP(UNRRDU_DECLARE)
 ** don't use this macro) had already been this way.
 */
 #define USAGE(INFO)                                                                     \
-  if (!argc) {                                                                          \
+  if (!argc && !hparm->noArgsIsNoProblem) {                                             \
     hestInfo(stdout, me, (INFO), hparm);                                                \
     hestUsage(stdout, opt, me, hparm);                                                  \
     hestGlossary(stdout, opt, hparm);                                                   \
@@ -267,7 +267,11 @@ if ( (hparm->respFileEnable && !argc) || \
         /* Its gotten too annoying to always get this glossary; */                      \
         /* unu <cmd> --help will print it. */                                           \
         /* hestGlossary(stderr, opt, hparm); */                                         \
-        fprintf(stderr, "\nFor more info: \"%s\" or \"%s ... --help\"\n", me, me);      \
+        if (hparm && hparm->noArgsIsNoProblem) {                                        \
+          fprintf(stderr, "\nFor more info: \"%s --help\"\n", me);                      \
+        } else {                                                                        \
+          fprintf(stderr, "\nFor more info: \"%s\" or \"%s --help\"\n", me, me);        \
+        }                                                                               \
       }                                                                                 \
       airMopError(mop);                                                                 \
       return 1;                                                                         \
