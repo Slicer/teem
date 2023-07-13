@@ -145,7 +145,7 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *par
     }
     /* else not a show-stopper argument */
     if (parm->verbosity) {
-      printf("!%s:________ newArgc = %d, oldArgc = %d -> \"%s\"\n", me, newArgc, oldArgc,
+      printf("%s:________ newArgc = %d, oldArgc = %d -> \"%s\"\n", me, newArgc, oldArgc,
              oldArgv[oldArgc]);
       printArgv(newArgc, newArgv, "     ");
     }
@@ -181,7 +181,7 @@ copyArgv(int *sawHelp, char **newArgv, const char **oldArgv, const hestParm *par
     oldArgc++;
     if (parm->verbosity) {
       printArgv(newArgc, newArgv, "     ");
-      printf("!%s: ^^^^^^^ newArgc = %d, oldArgc = %d\n", me, newArgc, oldArgc);
+      printf("%s: ^^^^^^^ newArgc = %d, oldArgc = %d\n", me, newArgc, oldArgc);
     }
   }
   newArgv[newArgc] = NULL;
@@ -475,9 +475,9 @@ whichFlag(hestOpt *opt, char *flag, const hestParm *parm) {
 
   numOpts = hestOptNum(opt);
   if (parm->verbosity)
-    printf("!%s: (a) looking for flag |%s| in numOpts=%d options\n", me, flag, numOpts);
+    printf("%s: (a) looking for flag |%s| in numOpts=%d options\n", me, flag, numOpts);
   for (op = 0; op < numOpts; op++) {
-    if (parm->verbosity) printf("!%s:      op = %d\n", me, op);
+    if (parm->verbosity) printf("%s:      op = %d\n", me, op);
     if (!opt[op].flag) continue;
     if (strchr(opt[op].flag, parm->multiFlagSep)) {
       strcpy(copy, opt[op].flag);
@@ -598,21 +598,21 @@ extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **ar
   int a, np, flag, endflag, numOpts, op;
 
   a = 0;
-  if (parm->verbosity) printf("!%s: *argcP = %d\n", me, *argcP);
+  if (parm->verbosity) printf("%s: *argcP = %d\n", me, *argcP);
   while (a <= *argcP - 1) {
     if (parm->verbosity) {
-      printf("!%s: ----------------- a = %d -> argv[a] = %s\n", me, a, argv[a]);
+      printf("%s: ----------------- a = %d -> argv[a] = %s\n", me, a, argv[a]);
     }
     flag = whichFlag(opt, argv[a], parm);
-    if (parm->verbosity) printf("!%s: A: a = %d -> flag = %d\n", me, a, flag);
+    if (parm->verbosity) printf("%s: A: a = %d -> flag = %d\n", me, a, flag);
     if (!(0 <= flag)) {
       /* not a flag, move on */
       a++;
-      if (parm->verbosity) printf("!%s: !(0 <= %d), so: continue\n", me, flag);
+      if (parm->verbosity) printf("%s: !(0 <= %d), so: continue\n", me, flag);
       continue;
     }
     /* see if we can associate some parameters with the flag */
-    if (parm->verbosity) printf("!%s: flag = %d; any parms?\n", me, flag);
+    if (parm->verbosity) printf("%s: flag = %d; any parms?\n", me, flag);
     np = 0;
     endflag = 0;
     while (np < _hestMax(opt[flag].max) /* */
@@ -620,7 +620,7 @@ extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **ar
            && -1 == (endflag = whichFlag(opt, argv[a + np + 1], parm))) {
       np++;
       if (parm->verbosity)
-        printf("!%s: np --> %d with flag = %d; endflag = %d\n", me, np, flag, endflag);
+        printf("%s: np --> %d with flag = %d; endflag = %d\n", me, np, flag, endflag);
     }
     /* we stopped because we got the max number of parameters, or
        because we hit the end of the command line, or
@@ -629,7 +629,7 @@ extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **ar
        we stopped because of whichFlag()'s return value,
        endflag has been set to that return value */
     if (parm->verbosity)
-      printf("!%s: B: stopped with np = %d; flag = %d; endflag = %d\n", me, np, flag,
+      printf("%s: B: stopped with np = %d; flag = %d; endflag = %d\n", me, np, flag,
              endflag);
     if (np < (int)opt[flag].min) { /* HEY scrutinize casts */
       /* didn't get minimum number of parameters */
@@ -655,7 +655,7 @@ extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **ar
     }
     nprm[flag] = np;
     if (parm->verbosity) {
-      printf("!%s:________ a=%d, *argcP = %d -> flag = %d\n", me, a, *argcP, flag);
+      printf("%s:________ a=%d, *argcP = %d -> flag = %d\n", me, a, *argcP, flag);
       printArgv(*argcP, argv, "     ");
     }
     /* lose the flag argument */
@@ -674,8 +674,8 @@ extractFlagged(char **prms, unsigned int *nprm, int *appr, int *argcP, char **ar
     }
     if (parm->verbosity) {
       printArgv(*argcP, argv, "     ");
-      printf("!%s:^^^^^^^^ *argcP = %d\n", me, *argcP);
-      printf("!%s: prms[%d] = %s\n", me, flag, prms[flag] ? prms[flag] : "(null)");
+      printf("%s:^^^^^^^^ *argcP = %d\n", me, *argcP);
+      printf("%s: prms[%d] = %s\n", me, flag, prms[flag] ? prms[flag] : "(null)");
     }
   }
 
@@ -715,27 +715,27 @@ extractUnflagged(char **prms, unsigned int *nprm, int *argcP, char **argv, hestO
     return 0;
   }
   if (parm->verbosity) {
-    printf("!%s numOpts %d != unflag1st %d: have some (of %d) unflagged options\n", me,
+    printf("%s numOpts %d != unflag1st %d: have some (of %d) unflagged options\n", me,
            numOpts, unflag1st, numOpts);
   }
 
   for (unflagVar = unflag1st; unflagVar != numOpts;
        unflagVar = _hestNextUnflagged(unflagVar + 1, opt, numOpts)) {
-    if ((int)opt[unflagVar].min
-        < _hestMax(opt[unflagVar].max)) /* HEY scrutinize casts */
+    if (AIR_INT(opt[unflagVar].min) < _hestMax(opt[unflagVar].max)) {
       break;
+    }
   }
   /* now, if there is a variable parameter unflagged opt, unflagVar is its
      index in opt[], or else unflagVar is numOpts */
   if (parm->verbosity) {
-    printf("!%s unflagVar %d\n", me, unflagVar);
+    printf("%s unflagVar %d\n", me, unflagVar);
   }
 
   /* grab parameters for all unflagged opts before opt[t] */
   for (op = _hestNextUnflagged(0, opt, numOpts); op < unflagVar;
        op = _hestNextUnflagged(op + 1, opt, numOpts)) {
     if (parm->verbosity) {
-      printf("!%s op = %d; unflagVar = %d\n", me, op, unflagVar);
+      printf("%s op = %d; unflagVar = %d\n", me, op, unflagVar);
     }
     np = opt[op].min; /* min == max */
     if (!(np <= *argcP)) {
@@ -777,26 +777,30 @@ extractUnflagged(char **prms, unsigned int *nprm, int *argcP, char **argv, hestO
   /* now we grab the parameters of the sole variable parameter unflagged opt,
      if it exists (unflagVar < numOpts) */
   if (parm->verbosity) {
-    printf("!%s (still here) unflagVar %d vs numOpts %d\n", me, unflagVar, numOpts);
+    printf("%s (still here) unflagVar %d vs numOpts %d (nvp %d)\n", me, unflagVar,
+           numOpts, nvp);
   }
   if (unflagVar < numOpts) {
     if (parm->verbosity) {
-      printf("!%s unflagVar=%d: min, nvp, max = %d %d %d\n", me, unflagVar,
+      printf("%s unflagVar=%d: min, nvp, max = %d %d %d\n", me, unflagVar,
              opt[unflagVar].min, nvp, _hestMax(opt[unflagVar].max));
     }
     /* we'll do error checking for unexpected args later */
     nvp = AIR_MIN(nvp, _hestMax(opt[unflagVar].max));
-    if (nvp < (int)opt[unflagVar].min) { /* HEY scrutinize casts */
-      sprintf(err, "%sdidn't get minimum of %d arg%s for %s (got %d)", ME,
-              opt[unflagVar].min, opt[unflagVar].min > 1 ? "s" : "",
-              identStr(ident, opt + unflagVar, parm, AIR_TRUE), nvp);
-      return 1;
-    }
     if (nvp) {
       unsigned int gotp = 0;
+      /* pre-2023: this check used to be done regardless of nvp, but that incorrectly
+      triggered this error message when there were zero given parms, but the default
+      could have supplied them */
+      if (nvp < AIR_INT(opt[unflagVar].min)) {
+        sprintf(err, "%sdidn't get minimum of %d arg%s for %s (got %d)", ME,
+                opt[unflagVar].min, opt[unflagVar].min > 1 ? "s" : "",
+                identStr(ident, opt + unflagVar, parm, AIR_TRUE), nvp);
+        return 1;
+      }
       prms[unflagVar] = extractToStr(argcP, argv, 0, nvp, &gotp, parm);
       if (parm->verbosity) {
-        printf("!%s extracted %u to new string |%s| (*argcP now %d)\n", me, gotp,
+        printf("%s extracted %u to new string |%s| (*argcP now %d)\n", me, gotp,
                prms[unflagVar], *argcP);
       }
       airMopAdd(pmop, prms[unflagVar], airFree, airMopAlways);
@@ -845,42 +849,54 @@ _hestDefaults(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *o
          default.  In either case, nprm[op] will be zero, and in both cases,
          we need to use the default information. */
       udflt[op] = (0 == nprm[op]);
-      /*
-      fprintf(stderr, "%s nprm[%d] = %u --> udflt[%d] = %d\n", me,
-              op, nprm[op], op, udflt[op]);
-      */
+      /* fprintf(stderr, "%s nprm[%d] = %u --> udflt[%d] = %d\n", me,
+       *       op, nprm[op], op, udflt[op]); */
       break;
     case 5:
       /* -------- multiple optional parameters -------- */
-      /* we'll use the default if the flag didn't appear (if there is a
-         flag) Otherwise, if nprm[op] is zero, then the user is saying,
-         I want zero parameters */
-      udflt[op] = opt[op].flag && !appr[op];
+      /* we'll use the default if there is a flag and it didn't appear,
+         Otherwise (with a flagged option), if nprm[op] is zero, we'll use the default
+         if user has given zero parameters, yet the the option requires at least one.
+         If an unflagged option can have zero parms, and user has given zero parms,
+         then we don't use the default */
+      udflt[op] = (opt[op].flag
+                     ? !appr[op] /* option is flagged and flag didn't appear */
+                     /* else: option is unflagged, and there were no given parms,
+                     and yet the option requires at least one parm */
+                     : !nprm[op] && opt[op].min >= 1);
+      /* fprintf(stderr,
+       *       "!%s: opt[%d].flag = %d; appr[op] = %d; nprm[op] = %d; opt[op].min = %d "
+       *       "--> udflt[op] = %d\n",
+       *       me, op, !!opt[op].flag, appr[op], nprm[op], opt[op].min, udflt[op]); */
       break;
     }
     /* if not using the default, we're done with this option */
     if (!udflt[op]) continue;
     prms[op] = airStrdup(opt[op].dflt);
-    /* fprintf(stderr, "%s: prms[%d] = |%s|\n", me, op, prms[op]); */
+    fprintf(stderr, "!%s: prms[%d] = |%s|\n", me, op, prms[op]);
     if (prms[op]) {
       airMopAdd(mop, prms[op], airFree, airMopAlways);
       airOneLinify(prms[op]);
       tmpS = airStrdup(prms[op]);
       nprm[op] = airStrntok(tmpS, " ");
       airFree(tmpS);
-      /* printf("!%s: nprm[%d] in default = %u\n", me, op, nprm[op]); */
-      if ((int)opt[op].min < _hestMax(opt[op].max)) { /* HEY scrutinize casts */
-        if (!(AIR_IN_CL((int)opt[op].min, (int)nprm[op],
-                        _hestMax(opt[op].max)) /* HEY scrutinize casts */
-              || (airTypeString == opt[op].type
-                  && parm->elideMultipleEmptyStringDefault))) {
+    }
+    /* fprintf(stderr,
+     *       "!%s: after default; nprm[%d] = %u; varparm = %d (min %d vs max %d)\n", me,
+     *       op, nprm[op], AIR_INT(opt[op].min) < _hestMax(opt[op].max),
+     *       ((int)opt[op].min), _hestMax(opt[op].max)); */
+    if (AIR_INT(opt[op].min) < _hestMax(opt[op].max)) {
+      if (!AIR_IN_CL(AIR_INT(opt[op].min), AIR_INT(nprm[op]), _hestMax(opt[op].max))) {
+        if (-1 == opt[op].max) {
+          sprintf(err, "%s# parameters (in default) for %s is %d, but need %d or more",
+                  ME, identStr(ident, opt + op, parm, AIR_TRUE), nprm[op], opt[op].min);
+        } else {
           sprintf(err,
-                  "%s# parameters (in default) for %s is %d, "
-                  "but need between %d and %d",
+                  "%s# parameters (in default) for %s is %d, but need between %d and %d",
                   ME, identStr(ident, opt + op, parm, AIR_TRUE), nprm[op], opt[op].min,
                   _hestMax(opt[op].max));
-          return 1;
         }
+        return 1;
       }
     }
   }
@@ -1263,8 +1279,8 @@ setValues(char **prms, int *udflt, unsigned int *nprm, int *appr, hestOpt *opt,
             }
           }
           if (parm->verbosity) {
-            printf("!%s: nprm[%d] = %u\n", me, op, nprm[op]);
-            printf("!%s: new array (size %u*%u) is at 0x%p\n", me, nprm[op],
+            printf("%s: nprm[%d] = %u\n", me, op, nprm[op]);
+            printf("%s: new array (size %u*%u) is at 0x%p\n", me, nprm[op],
                    (unsigned int)size, *((void **)vP));
           }
           if (*((void **)vP)) {
@@ -1454,7 +1470,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   argc = argr + _argc - nrf;
 
   if (PARM->verbosity) {
-    printf("!%s: nrf = %d; argr = %d; _argc = %d --> argc = %d\n", me, nrf, argr, _argc,
+    printf("%s: nrf = %d; argr = %d; _argc = %d --> argc = %d\n", me, nrf, argr, _argc,
            argc);
   }
   argv = AIR_CALLOC(argc + 1, char *);
@@ -1548,7 +1564,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
   }
 
   /* -------- now, the actual parsing of values */
-  if (PARM->verbosity) printf("%s: #### calling hestSetValues\n", me);
+  if (PARM->verbosity) printf("%s: #### calling setValues\n", me);
   /* this will also set hestOpt->parmStr */
   ret = setValues(prms, udflt, nprm, appr, opt, err, PARM, mop);
   if (ret) {
@@ -1556,7 +1572,7 @@ hestParse(hestOpt *opt, int _argc, const char **_argv, char **_errP,
     return ret;
   }
 
-  if (PARM->verbosity) printf("%s: #### hestSetValues done!\n", me);
+  if (PARM->verbosity) printf("%s: #### setValues done!\n", me);
 #undef PARM
 
 parseEnd:
