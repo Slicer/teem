@@ -42,11 +42,9 @@ unrrdu_blockMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   airArray *mop;
   int pret;
 
-  /* if we gave a default for this, then there it would fine to have
-     no command-line arguments whatsoever, and then the user would not
-     know how to get the basic usage information */
-  hestOptAdd(&opt, "i", "nin", airTypeOther, 1, 1, &nin, NULL, "input nrrd", NULL, NULL,
-             nrrdHestNrrd);
+  /* nrrdHestNrrdNoTTY simplifies this, just like unquantize and unorient */
+  hparm->noArgsIsNoProblem = AIR_TRUE;
+  hestOptAdd_1_Other(&opt, "i", "nin", &nin, "-", "input nrrd", nrrdHestNrrdNoTTY);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();

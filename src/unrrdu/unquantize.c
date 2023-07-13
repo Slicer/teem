@@ -38,14 +38,19 @@ unrrdu_unquantizeMain(int argc, const char **argv, const char *me, hestParm *hpa
   double oldMin, oldMax;
   airArray *mop;
 
-  /* mandatory arg so that "unu unquantize" produces usage info */
-  hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input nrrd.  That this argument is required instead of "
-             "optional, as with most unu commands, is a quirk caused by the "
-             "need to have \"unu unquantize\" generate usage info, combined "
-             "with the fact that all the other arguments have sensible "
-             "defaults",
-             NULL, NULL, nrrdHestNrrd);
+  /*
+   * with new nrrdHestNrrdNoTTY, can let "-" be default input as normal; no more need
+   * for this awkwardness:
+   * hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &nin, NULL,
+   *            "input nrrd.  That this argument is required instead of "
+   *            "optional, as with most unu commands, is a quirk caused by the "
+   *            "need to have \"unu unquantize\" generate usage info, combined "
+   *            "with the fact that all the other arguments have sensible "
+   *            "defaults",
+   *            NULL, NULL, nrrdHestNrrd);
+   */
+  hparm->noArgsIsNoProblem = AIR_TRUE;
+  hestOptAdd_1_Other(&opt, "i,input", "nin", &nin, "-", "input nrrd", nrrdHestNrrdNoTTY);
   hestOptAdd_1_Double(&opt, "min,minimum", "value", &oldMin, "nan",
                       "Lowest value prior to quantization.  Defaults to "
                       "nin->oldMin if it exists, otherwise 0.0");

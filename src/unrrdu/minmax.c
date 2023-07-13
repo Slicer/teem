@@ -22,6 +22,8 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
+#include <unistd.h> /* for isatty() and STDIN_FILENO */
+
 #define INFO "Print out min and max values in one or more nrrds"
 static const char *_unrrdu_minmaxInfoL
   = (INFO ". Unlike other commands, this doesn't produce a nrrd.  It only "
@@ -35,6 +37,11 @@ unrrdu_minmaxDoit(const char *me, char *inS, int blind8BitRange, int singleLine,
   Nrrd *nrrd;
   NrrdRange *range;
   airArray *mop;
+
+  if (!strcmp("-", inS) && isatty(STDIN_FILENO)) {
+    biffAddf(me, "declining to try reading Nrrd from stdin as tty (terminal)");
+    return 1;
+  }
 
   mop = airMopNew();
   airMopAdd(mop, nrrd = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -80,11 +87,12 @@ unrrdu_minmaxMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   hestOpt *opt = NULL;
   char *err, **inS;
   airArray *mop;
-  int pret, blind8BitRange, singleLine;
+  int pret, blind8BitRange, singleLine, okay;
   unsigned int ni, ninLen;
 #define B8DEF "false"
 
   mop = airMopNew();
+  hparm->noArgsIsNoProblem = AIR_TRUE;
   hestOptAdd_1_Bool(&opt, "blind8", "bool", &blind8BitRange,
                     B8DEF, /* NOTE: not using nrrdStateBlind8BitRange here
                               for consistency with previous behavior */
@@ -103,12 +111,14 @@ unrrdu_minmaxMain(int argc, const char **argv, const char *me, hestParm *hparm) 
     "and max, possibly followed by the single word \"non-existent\" if and "
     "only if there were non-existent values. If there are multiple inputs, "
     "the input filename is printed first on the per-input single line.");
-  hestOptAdd_Nv_String(&opt, NULL, "nin1", 1, -1, &inS, NULL, "input nrrd(s)", &ninLen);
+  hestOptAdd_Nv_String(&opt, NULL, "nin1", 1, -1, &inS, "-", "input nrrd(s)", &ninLen);
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE_OR_PARSE(_unrrdu_minmaxInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
+  /* HEY "okay" logic copied from head.c */
+  okay = AIR_FALSE;
   for (ni = 0; ni < ninLen; ni++) {
     if (ninLen > 1) {
       if (singleLine) {
@@ -121,10 +131,21 @@ unrrdu_minmaxMain(int argc, const char **argv, const char *me, hestParm *hparm) 
       airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble with \"%s\":\n%s", me, inS[ni], err);
       /* continue working on the remaining files */
+    } else {
+      /* processed at least one file ok */
+      okay = AIR_TRUE;
     }
     if (ninLen > 1 && ni < ninLen - 1 && !singleLine) {
       fprintf(stdout, "\n");
     }
+  }
+  if (!okay) {
+    /* none of the given files could be read; something is wrong */
+    if (ninLen > 1) {
+      fprintf(stderr, "\n%s: Unable to read data from any file\n", me);
+    }
+    hestUsage(stderr, opt, me, hparm);
+    fprintf(stderr, "\nFor more info: \"%s --help\"\n", me);
   }
 
   airMopOkay(mop);

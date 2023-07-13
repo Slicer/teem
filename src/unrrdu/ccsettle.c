@@ -35,12 +35,13 @@ unrrdu_ccsettleMain(int argc, const char **argv, const char *me, hestParm *hparm
   int pret;
 
   mop = airMopNew();
-  hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &nin, NULL, "input nrrd", NULL,
-             NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "v,values", "filename", airTypeString, 1, 1, &valS, "",
-             "Giving a filename here allows you to save out the mapping "
-             "from new (settled) values to old values, in the form of a "
-             "1-D lookup table");
+  hparm->noArgsIsNoProblem = AIR_TRUE;
+  hestOptAdd_1_Other(&opt, "i,input", "nin", &nin, "-",
+                     "input nrrd. By default try to read from stdin", nrrdHestNrrdNoTTY);
+  hestOptAdd_1_String(&opt, "v,values", "filename", &valS, "",
+                      "Giving a filename here allows you to save out the mapping "
+                      "from new (settled) values to old values, in the form of a "
+                      "1-D lookup table");
   OPT_ADD_NOUT(out, "output nrrd");
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 

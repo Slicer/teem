@@ -22,6 +22,8 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
+#include <unistd.h> /* for isatty() and STDIN_FILENO */
+
 #define INFO "Compute 32-bit CRC of nrrd data (same as via \"cksum\")"
 static const char *_unrrdu_cksumInfoL
   = (INFO ". Unlike other commands, this doesn't produce a nrrd.  It only "
@@ -36,6 +38,11 @@ unrrdu_cksumDoit(const char *me, char *inS, int endian, int printendian, FILE *f
   unsigned int crc;
   char stmp[AIR_STRLEN_SMALL + 1], ends[AIR_STRLEN_SMALL + 1];
   size_t nn;
+
+  if (!strcmp("-", inS) && isatty(STDIN_FILENO)) {
+    biffAddf(me, "declining to try reading Nrrd from stdin as tty (terminal)");
+    return 1;
+  }
 
   mop = airMopNew();
   airMopAdd(mop, nrrd = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
@@ -59,35 +66,48 @@ unrrdu_cksumMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *err, **inS;
   airArray *mop;
-  int pret, endian, printend;
+  int pret, endian, printend, okay;
   unsigned int ni, ninLen;
 
   mop = airMopNew();
-  hestOptAdd(&opt, "en,endian", "end", airTypeEnum, 1, 1, &endian,
-             airEnumStr(airEndian, airMyEndian()),
-             "Endianness in which to compute CRC; \"little\" for Intel and "
-             "friends; \"big\" for everyone else. "
-             "Defaults to endianness of this machine",
-             NULL, airEndian);
-  hestOptAdd(&opt, "pen,printendian", "bool", airTypeBool, 1, 1, &printend, "false",
-             "whether or not to indicate after the CRC value the endianness "
-             "with which the CRC was computed; doing so clarifies "
-             "that the CRC result depends on endianness and may remove "
-             "confusion in comparing results on platforms of different "
-             "endianness");
-  hestOptAdd(&opt, NULL, "nin1", airTypeString, 1, -1, &inS, NULL, "input nrrd(s)",
-             &ninLen);
+  hparm->noArgsIsNoProblem = AIR_TRUE;
+  hestOptAdd_1_Enum(&opt, "en,endian", "end", &endian,
+                    airEnumStr(airEndian, airMyEndian()),
+                    "Endianness in which to compute CRC; \"little\" for Intel and "
+                    "friends; \"big\" for everyone else. "
+                    "Defaults to endianness of this machine",
+                    airEndian);
+  hestOptAdd_1_Bool(&opt, "pen,printendian", "bool", &printend, "false",
+                    "whether or not to indicate after the CRC value the endianness "
+                    "with which the CRC was computed; doing so clarifies "
+                    "that the CRC result depends on endianness and may remove "
+                    "confusion in comparing results on platforms of different "
+                    "endianness");
+  hestOptAdd_Nv_String(&opt, NULL, "nin1", 1, -1, &inS, "-",
+                       "input nrrd(s). By default tries to read from stdin", &ninLen);
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE_OR_PARSE(_unrrdu_cksumInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
+  /* HEY "okay" logic copied from head.c */
+  okay = AIR_FALSE;
   for (ni = 0; ni < ninLen; ni++) {
     if (unrrdu_cksumDoit(me, inS[ni], endian, printend, stdout)) {
       airMopAdd(mop, err = biffGetDone(me), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble with \"%s\":\n%s", me, inS[ni], err);
       /* continue working on the remaining files */
+    } else {
+      okay = AIR_TRUE;
     }
+  }
+  if (!okay) {
+    /* none of the given files could be read; something is wrong */
+    if (ninLen > 1) {
+      fprintf(stderr, "\n%s: Unable to read any file\n", me);
+    }
+    hestUsage(stderr, opt, me, hparm);
+    fprintf(stderr, "\nFor more info: \"%s --help\"\n", me);
   }
 
   airMopOkay(mop);

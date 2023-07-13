@@ -35,14 +35,22 @@ unrrdu_unorientMain(int argc, const char **argv, const char *me, hestParm *hparm
   int setMinsFromOrigin;
   airArray *mop;
 
-  /* if we gave a default for this, then there it would fine to have
-     no command-line arguments whatsoever, and then the user would not
-     know how to get the basic usage information */
-  hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input nrrd "
-             "(sorry, can't use usual default of \"-\" for stdin "
-             "because of hest quirk)",
-             NULL, NULL, nrrdHestNrrd);
+  /*
+   * with new nrrdHestNrrdNoTTY, can let "-" be default input as normal; no more need
+   * for this awkwardness:
+   *
+   * / * if we gave a default for this, then there it would fine to have
+   * no command-line arguments whatsoever, and then the user would not
+   * know how to get the basic usage information * /
+   * hestOptAdd(&opt, "i,input", "nin", airTypeOther, 1, 1, &nin, NULL,
+   *            "input nrrd "
+   *            "(sorry, can't use usual default of \"-\" for stdin "
+   *            "because of hest quirk)",
+   *            NULL, NULL, nrrdHestNrrd);
+   */
+  hparm->noArgsIsNoProblem = AIR_TRUE;
+  hestOptAdd_1_Other(&opt, "i,input", "nin", &nin, "-",
+                     "input nrrd. By default reads from stdin", nrrdHestNrrdNoTTY);
   hestOptAdd_Flag(&opt, "smfo", &setMinsFromOrigin,
                   "set some axis mins based on space origin (hack)");
   OPT_ADD_NOUT(out, "output nrrd");
