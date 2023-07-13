@@ -20,7 +20,7 @@
 */
 
 /* for Teem v2 the Deft stuff was removed from puller.c; but this
-   file preserves them for posterity. */
+   file preserves it for posterity. */
 /*
 ** NOTE: all the "#ifdef DEFT" directives refer to an FLTK2-based GUI
 ** for some parts of Teem called "Deft".  Unfortunately FLTK2 has been
