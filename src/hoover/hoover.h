@@ -116,8 +116,8 @@ typedef struct {
   void *user; /* passed to all callbacks */
 
   /******** 5) stuff about multi-threading */
-  unsigned int numThreads;   /* number of threads to spawn per rendering */
-  int workIdx;               /* next work assignment (such as a scanline) */
+  unsigned int numThreads,   /* number of threads to spawn per rendering */
+    workIdx;                 /* next work assignment (such as a scanline) */
   airThreadMutex *workMutex; /* mutex around work assignment */
 
   /*
