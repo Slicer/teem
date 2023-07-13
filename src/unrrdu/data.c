@@ -28,7 +28,7 @@ static const char *_unrrdu_dataInfoL
           "stand-alone decoder, in case this Teem build lacks an optional "
           "data encoding required for a given nrrd file.  Caveats: "
           "Will start copying characters from the datafile "
-          "to output file until EOF is hit, so this won't work "
+          "to stdout until EOF is hit, so this won't work "
           "correctly if the datafile has extraneous content at the end.  Will "
           "skip lines (as per \"line skip:\" header field) if needed, but can only "
           "skip bytes (as per \"byte skip:\") if the encoding is NOT a compression. "
@@ -49,7 +49,7 @@ unrrdu_dataMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int car, pret;
 
   mop = airMopNew();
-  hestOptAdd(&opt, NULL, "nin", airTypeString, 1, 1, &inS, NULL, "input nrrd");
+  hestOptAdd_1_String(&opt, NULL, "nin", &inS, NULL, "input nrrd");
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE_OR_PARSE(_unrrdu_dataInfoL);
