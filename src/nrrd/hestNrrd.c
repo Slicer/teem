@@ -22,51 +22,85 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
+#include <unistd.h> /* for isatty() and STDIN_FILENO */
+
 /* ---------------------------- Nrrd ----------------------------- */
 
 /*
-** _nrrdHestNrrdParse()
-**
-** Converts a filename into a nrrd for the sake of hest.
-** There is no HestMaybeNrrdParse because this already does that:
-** when we get an empty string, we give back a NULL pointer, and
-** that is just fine
+_nrrdHestNrrdParseOkTTY() and _nrrdHestNrrdParseNoTTY ()
+
+Converts a filename into a nrrd for the sake of hest.
+There is no HestMaybeNrrdParse because this already does that:
+when we get an empty string, we give back a NULL pointer, and
+that is just fine
 */
+
 static int
-_nrrdHestNrrdParse(void *ptr, const char *str, char err[AIR_STRLEN_HUGE + 1]) {
-  static const char me[] = "_nrrdHestNrrdParse";
+parserBoth(void *ptr,
+           const char *filename,
+           char err[AIR_STRLEN_HUGE + 1],
+           const char *me,
+           int disallowTTY) {
   char *nerr;
   Nrrd **nrrdP;
   airArray *mop;
 
-  if (!(ptr && str)) {
+  if (!(ptr && filename)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
   nrrdP = (Nrrd **)ptr;
-  if (airStrlen(str)) {
+  *nrrdP = NULL;
+  if (airStrlen(filename)) {
+    if (disallowTTY && !strcmp("-", filename) && isatty(STDIN_FILENO)) {
+      sprintf(err, "%s: declining to try reading Nrrd from stdin as tty (terminal)", me);
+      return 1;
+    }
     mop = airMopNew();
     *nrrdP = nrrdNew();
     airMopAdd(mop, *nrrdP, (airMopper)nrrdNuke, airMopOnError);
-    if (nrrdLoad(*nrrdP, str, NULL)) {
+    /* else no concerns about filename being "-" and stdin being a terminal */
+    if (nrrdLoad(*nrrdP, filename, NULL)) {
       airMopAdd(mop, nerr = biffGetDone(NRRD), airFree, airMopOnError);
       airStrcpy(err, AIR_STRLEN_HUGE + 1, nerr);
       airMopError(mop);
+      *nrrdP = NULL;
       return (strstr(err, "EOF") ? 2 : 1);
     }
     airMopOkay(mop);
-  } else {
-    /* they gave us an empty string, we give back no nrrd,
-       but its not an error condition */
-    *nrrdP = NULL;
   }
+  /* else they gave us an empty string filename, so we give back no nrrd,
+     and its not an error condition */
   return 0;
 }
 
-static const hestCB _nrrdHestNrrd = {sizeof(Nrrd *), "nrrd", _nrrdHestNrrdParse,
+static int
+parserOkTTY(void *ptr, const char *filename, char err[AIR_STRLEN_HUGE + 1]) {
+  return parserBoth(ptr,
+                    filename,
+                    err,
+                    "_nrrdHestNrrdParse", /* mimic old name */
+                    AIR_FALSE /* not disallowing TTY */);
+}
+
+static int
+parserNoTTY(void *ptr, const char *filename, char err[AIR_STRLEN_HUGE + 1]) {
+  return parserBoth(ptr,
+                    filename,
+                    err,
+                    "_nrrdHestNrrdParse(NoTTY)",
+                    AIR_TRUE /* yes disallow TTY */);
+}
+
+static const hestCB _nrrdHestNrrd = {sizeof(Nrrd *), "nrrd", parserOkTTY,
                                      (airMopper)nrrdNuke};
 
 const hestCB *const nrrdHestNrrd = &_nrrdHestNrrd;
+
+static const hestCB _nrrdHestNrrdNoTTY = {sizeof(Nrrd *), "nrrd", parserNoTTY,
+                                          (airMopper)nrrdNuke};
+
+const hestCB *const nrrdHestNrrdNoTTY = &_nrrdHestNrrdNoTTY;
 
 /* ------------------------ NrrdKernelSpec -------------------------- */
 
