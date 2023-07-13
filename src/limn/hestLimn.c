@@ -47,31 +47,28 @@ limnHestCameraOptAdd(hestOpt **hoptP, limnCamera *cam, const char *frDef,
   hestOpt *hopt;
 
   hopt = *hoptP;
-  hestOptAdd(&hopt, "fr", "eye pos", airTypeDouble, 3, 3, cam->from, frDef,
-             "camera eye point");
-  hestOptAdd(&hopt, "at", "at pos", airTypeDouble, 3, 3, cam->at, atDef,
-             "camera look-at point");
-  hestOptAdd(&hopt, "up", "up dir", airTypeDouble, 3, 3, cam->up, upDef,
-             "camera pseudo-up vector");
-  hestOptAdd(&hopt, "rh", NULL, airTypeInt, 0, 0, &(cam->rightHanded), NULL,
-             "use a right-handed UVN frame (V points down)");
-  hestOptAdd(&hopt, "or", NULL, airTypeInt, 0, 0, &(cam->orthographic), NULL,
-             "orthogonal (not perspective) projection");
-  hestOptAdd(&hopt, "dn", "near", airTypeDouble, 1, 1, &(cam->neer), dnDef,
-             "distance to near clipping plane");
-  hestOptAdd(&hopt, "di", "image", airTypeDouble, 1, 1, &(cam->dist), diDef,
-             "distance to image plane");
-  hestOptAdd(&hopt, "df", "far", airTypeDouble, 1, 1, &(cam->faar), dfDef,
-             "distance to far clipping plane");
-  hestOptAdd(&hopt, "ar", NULL, airTypeInt, 0, 0, &(cam->atRelative), NULL,
-             "near, image, and far plane distances are relative to "
-             "the *at* point, instead of the eye point");
-  hestOptAdd(&hopt, "ur", "uMin uMax", airTypeDouble, 2, 2, cam->uRange, urDef,
-             "range in U direction of image plane");
-  hestOptAdd(&hopt, "vr", "vMin vMax", airTypeDouble, 2, 2, cam->vRange, vrDef,
-             "range in V direction of image plane");
-  hestOptAdd(&hopt, "fv", "field of view", airTypeDouble, 1, 1, &(cam->fov), fvDef,
-             "angle (in degrees) vertically subtended by view window");
+  hestOptAdd_3_Double(&hopt, "fr", "eye pos", cam->from, frDef, "camera eye point");
+  hestOptAdd_3_Double(&hopt, "at", "at pos", cam->at, atDef, "camera look-at point");
+  hestOptAdd_3_Double(&hopt, "up", "up dir", cam->up, upDef, "camera pseudo-up vector");
+  hestOptAdd_Flag(&hopt, "rh", &(cam->rightHanded),
+                  "use a right-handed UVN frame (V points down)");
+  hestOptAdd_Flag(&hopt, "or", &(cam->orthographic),
+                  "orthogonal (not perspective) projection");
+  hestOptAdd_1_Double(&hopt, "dn", "near", &(cam->neer), dnDef,
+                      "distance to near clipping plane");
+  hestOptAdd_1_Double(&hopt, "di", "image", &(cam->dist), diDef,
+                      "distance to image plane");
+  hestOptAdd_1_Double(&hopt, "df", "far", &(cam->faar), dfDef,
+                      "distance to far clipping plane");
+  hestOptAdd_Flag(&hopt, "ar", &(cam->atRelative),
+                  "near, image, and far plane distances are relative to "
+                  "the *at* point, instead of the eye point");
+  hestOptAdd_2_Double(&hopt, "ur", "uMin uMax", cam->uRange, urDef,
+                      "range in U direction of image plane");
+  hestOptAdd_2_Double(&hopt, "vr", "vMin vMax", cam->vRange, vrDef,
+                      "range in V direction of image plane");
+  hestOptAdd_1_Double(&hopt, "fv", "field of view", &(cam->fov), fvDef,
+                      "angle (in degrees) vertically subtended by view window");
   *hoptP = hopt;
   return;
 }
