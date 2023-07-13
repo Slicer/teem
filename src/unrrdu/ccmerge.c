@@ -40,36 +40,36 @@ unrrdu_ccmergeMain(int argc, const char **argv, const char *me, hestParm *hparm)
   int pret, maxSize, dir, maxNeigh, revalue;
   unsigned int conny;
 
-  hestOptAdd(&opt, "d,directed", "dir", airTypeInt, 1, 1, &dir, "0",
-             "do value-driven merging.  Using (positive) \"1\" says that "
-             "dark islands get merged with bright surrounds, while \"-1\" "
-             "says the opposite.  By default, merging can go either way. ");
-  hestOptAdd(&opt, "s,size", "max size", airTypeInt, 1, 1, &maxSize, "0",
-             "a cap on the CC size that will be absorbed into its "
-             "surround.  CCs larger than this are deemed too significant "
-             "to mess with.  Or, use \"0\" to remove any such restriction "
-             "on merging.");
-  hestOptAdd(&opt, "n,neighbor", "max # neigh", airTypeInt, 1, 1, &maxNeigh, "1",
-             "a cap on the number of neighbors that a CC may have if it is "
-             "to be be merged.  \"1\" allows only islands to be merged, "
-             "\"2\" does merging with bigger of two neighbors, etc, while "
-             "\"0\" says that number of neighbors is no constraint");
-  hestOptAdd(&opt, "c,connect", "connectivity", airTypeUInt, 1, 1, &conny, NULL,
-             "what kind of connectivity to use: the number of coordinates "
-             "that vary in order to traverse the neighborhood of a given "
-             "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");
-  hestOptAdd(&opt, "revalue", NULL, airTypeInt, 0, 0, &revalue, NULL,
-             "If this option is given, then after the merging, the CCs "
-             "are re-assigned their original datavalues, as given by "
-             "the \"-v\" option");
+  hestOptAdd_1_Int(&opt, "d,directed", "dir", &dir, "0",
+                   "do value-driven merging.  Using (positive) \"1\" says that "
+                   "dark islands get merged with bright surrounds, while \"-1\" "
+                   "says the opposite.  By default, merging can go either way. ");
+  hestOptAdd_1_Int(&opt, "s,size", "max size", &maxSize, "0",
+                   "a cap on the CC size that will be absorbed into its "
+                   "surround.  CCs larger than this are deemed too significant "
+                   "to mess with.  Or, use \"0\" to remove any such restriction "
+                   "on merging.");
+  hestOptAdd_1_Int(&opt, "n,neighbor", "max # neigh", &maxNeigh, "1",
+                   "a cap on the number of neighbors that a CC may have if it is "
+                   "to be be merged.  \"1\" allows only islands to be merged, "
+                   "\"2\" does merging with bigger of two neighbors, etc, while "
+                   "\"0\" says that number of neighbors is no constraint");
+  hestOptAdd_1_UInt(&opt, "c,connect", "connectivity", &conny, NULL,
+                    "what kind of connectivity to use: the number of coordinates "
+                    "that vary in order to traverse the neighborhood of a given "
+                    "sample.  In 2D: \"1\": 4-connected, \"2\": 8-connected");
+  hestOptAdd_Flag(&opt, "revalue", &revalue,
+                  "If this option is given, then after the merging, the CCs "
+                  "are re-assigned their original datavalues, as given by "
+                  "the \"-v\" option");
   OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, "v,values", "values", airTypeOther, 1, 1, &nval, "",
-             "result of using \"ccfind -v\", the record of which values "
-             "were originally associated with each CC.  This is required "
-             "for value-directed merging (with non-zero \"-d\" option), "
-             "or if the \"-revalue\" option is given, "
-             "but is not needed otherwise",
-             NULL, NULL, nrrdHestNrrd);
+  hestOptAdd_1_Other(&opt, "v,values", "values", &nval, "",
+                     "result of using \"ccfind -v\", the record of which values "
+                     "were originally associated with each CC.  This is required "
+                     "for value-directed merging (with non-zero \"-d\" option), "
+                     "or if the \"-revalue\" option is given, "
+                     "but is not needed otherwise",
+                     nrrdHestNrrd);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();

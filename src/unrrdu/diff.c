@@ -42,21 +42,20 @@ unrrdu_diffMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char explain[AIR_STRLEN_LARGE + 1];
 
   mop = airMopNew();
-  hestOptAdd(&opt, NULL, "ninA", airTypeOther, 1, 1, &ninA, NULL, "First input nrrd.",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, NULL, "ninB", airTypeOther, 1, 1, &ninB, NULL, "Second input nrrd.",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "eps,epsilon", "eps", airTypeDouble, 1, 1, &epsilon, "0.0",
-             "threshold for allowable difference in values in "
-             "data values");
-  hestOptAdd(&opt, "q,quiet", NULL, airTypeInt, 0, 0, &quiet, NULL,
-             "be quiet (like regular diff), so that nothing is printed "
-             "if the nrrds are the same");
-  hestOptAdd(&opt, "x,exit", NULL, airTypeInt, 0, 0, &exitstat, NULL,
-             "use the exit status (like regular diff) to indicate if "
-             "there was a significant difference (as if it's an error)");
-  hestOptAdd(&opt, "od,onlydata", NULL, airTypeInt, 0, 0, &onlyData, NULL,
-             "Compare data values only, excluding array meta-data");
+  hestOptAdd_1_Other(&opt, NULL, "ninA", &ninA, NULL, "First input nrrd.", nrrdHestNrrd);
+  hestOptAdd_1_Other(&opt, NULL, "ninB", &ninB, NULL, "Second input nrrd.",
+                     nrrdHestNrrd);
+  hestOptAdd_1_Double(&opt, "eps,epsilon", "eps", &epsilon, "0.0",
+                      "threshold for allowable difference in values in "
+                      "data values");
+  hestOptAdd_Flag(&opt, "q,quiet", &quiet,
+                  "be quiet (like regular diff), so that nothing is printed "
+                  "if the nrrds are the same");
+  hestOptAdd_Flag(&opt, "x,exit", &exitstat,
+                  "use the exit status (like regular diff) to indicate if "
+                  "there was a significant difference (as if it's an error)");
+  hestOptAdd_Flag(&opt, "od,onlydata", &onlyData,
+                  "Compare data values only, excluding array meta-data");
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
 
   USAGE_OR_PARSE(_unrrdu_diffInfoL);

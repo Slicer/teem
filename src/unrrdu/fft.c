@@ -79,34 +79,34 @@ unrrdu_fftMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   FILE *fwise;
   unsigned int *axes, axesLen;
 
-  hestOptAdd(&opt, NULL, "dir", airTypeEnum, 1, 1, &sign, NULL,
-             "forward (\"forw\", \"f\") or backward/inverse "
-             "(\"back\", \"b\") transform ",
-             NULL, direction_enm);
-  hestOptAdd(&opt, "a,axes", "ax0", airTypeUInt, 1, -1, &axes, NULL,
-             "the one or more axes that should be transformed", &axesLen);
-  hestOptAdd(&opt, "pr,planrigor", "pr", airTypeEnum, 1, 1, &rigor, "est",
-             "rigor with which fftw plan is constructed. Options include:\n "
-             "\b\bo \"e\", \"est\", \"estimate\": only an estimate\n "
-             "\b\bo \"m\", \"meas\", \"measure\": standard amount of "
-             "measurements of system properties\n "
-             "\b\bo \"p\", \"pat\", \"patient\": slower, more measurements\n "
-             "\b\bo \"x\", \"ex\", \"exhaustive\": slowest, most measurements",
-             NULL, nrrdFFTWPlanRigor);
-  hestOptAdd(&opt, "r,rescale", "bool", airTypeBool, 1, 1, &rescale, "true",
-             "scale fftw output (by sqrt(1/N)) so that forward and backward "
-             "transforms will get back to original values");
-  hestOptAdd(&opt, "w,wisdom", "filename", airTypeString, 1, 1, &wispath, "",
-             "A filename here is used to read in fftw wisdom (if the file "
-             "exists already), and is used to save out updated wisdom "
-             "after the transform.  By default (not using this option), "
-             "no wisdom is read or saved. Note: no wisdom is gained "
-             "(that is, learned by FFTW) with planning rigor \"estimate\".");
+  hestOptAdd_1_Enum(&opt, NULL, "dir", &sign, NULL,
+                    "forward (\"forw\", \"f\") or backward/inverse "
+                    "(\"back\", \"b\") transform ",
+                    direction_enm);
+  hestOptAdd_Nv_UInt(&opt, "a,axes", "ax0", 1, -1, &axes, NULL,
+                     "the one or more axes that should be transformed", &axesLen);
+  hestOptAdd_1_Enum(&opt, "pr,planrigor", "pr", &rigor, "est",
+                    "rigor with which fftw plan is constructed. Options include:\n "
+                    "\b\bo \"e\", \"est\", \"estimate\": only an estimate\n "
+                    "\b\bo \"m\", \"meas\", \"measure\": standard amount of "
+                    "measurements of system properties\n "
+                    "\b\bo \"p\", \"pat\", \"patient\": slower, more measurements\n "
+                    "\b\bo \"x\", \"ex\", \"exhaustive\": slowest, most measurements",
+                    nrrdFFTWPlanRigor);
+  hestOptAdd_1_Bool(&opt, "r,rescale", "bool", &rescale, "true",
+                    "scale fftw output (by sqrt(1/N)) so that forward and backward "
+                    "transforms will get back to original values");
+  hestOptAdd_1_String(&opt, "w,wisdom", "filename", &wispath, "",
+                      "A filename here is used to read in fftw wisdom (if the file "
+                      "exists already), and is used to save out updated wisdom "
+                      "after the transform.  By default (not using this option), "
+                      "no wisdom is read or saved. Note: no wisdom is gained "
+                      "(that is, learned by FFTW) with planning rigor \"estimate\".");
   OPT_ADD_NIN(_nin, "input nrrd");
-  hestOptAdd(&opt, "ri,realinput", NULL, airTypeInt, 0, 0, &realInput, NULL,
-             "input is real-valued, so insert new length-2 axis 0 "
-             "and set complex component to 0.0.  Axes to transform "
-             "(indicated by \"-a\") will be incremented accordingly.");
+  hestOptAdd_Flag(&opt, "ri,realinput", &realInput,
+                  "input is real-valued, so insert new length-2 axis 0 "
+                  "and set complex component to 0.0.  Axes to transform "
+                  "(indicated by \"-a\") will be incremented accordingly.");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();

@@ -38,41 +38,40 @@ unrrdu_histaxMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   NrrdRange *range;
 
   OPT_ADD_AXIS(axis, "axis to histogram along");
-  hestOptAdd(&opt, "b,bin", "bins", airTypeUInt, 1, 1, &bins, NULL,
-             "# of bins in histogram");
+  hestOptAdd_1_UInt(&opt, "b,bin", "bins", &bins, NULL, "# of bins in histogram");
   OPT_ADD_TYPE(type, "output type", "uchar");
   /* HEY copy and paste from unrrdu/quantize.c */
-  hestOptAdd(&opt, "min,minimum", "value", airTypeString, 1, 1, &minStr, "nan",
-             "The value to map to zero, given explicitly as a regular number, "
-             "*or*, if the number is given with a \"" NRRD_MINMAX_PERC_SUFF
-             "\" suffix, this "
-             "minimum is specified in terms of the percentage of samples in "
-             "input that are lower. "
-             "\"0" NRRD_MINMAX_PERC_SUFF "\" means the "
-             "lowest input value is used, "
-             "\"1" NRRD_MINMAX_PERC_SUFF "\" means that the "
-             "1% of the lowest values are all mapped to zero. "
-             "By default (not using this option), the lowest input value is "
-             "used.");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeString, 1, 1, &maxStr, "nan",
-             "The value to map to the highest unsigned integral value, given "
-             "explicitly as a regular number, "
-             "*or*, if the number is given with "
-             "a \"" NRRD_MINMAX_PERC_SUFF "\" suffix, "
-             "this maximum is specified "
-             "in terms of the percentage of samples in input that are higher. "
-             "\"0" NRRD_MINMAX_PERC_SUFF "\" means the highest input value is "
-             "used, which is also the default "
-             "behavior (same as not using this option).");
+  hestOptAdd_1_String(&opt, "min,minimum", "value", &minStr, "nan",
+                      "The value to map to zero, given explicitly as a regular number, "
+                      "*or*, if the number is given with a \"" NRRD_MINMAX_PERC_SUFF
+                      "\" suffix, this "
+                      "minimum is specified in terms of the percentage of samples in "
+                      "input that are lower. "
+                      "\"0" NRRD_MINMAX_PERC_SUFF "\" means the "
+                      "lowest input value is used, "
+                      "\"1" NRRD_MINMAX_PERC_SUFF "\" means that the "
+                      "1% of the lowest values are all mapped to zero. "
+                      "By default (not using this option), the lowest input value is "
+                      "used.");
+  hestOptAdd_1_String(&opt, "max,maximum", "value", &maxStr, "nan",
+                      "The value to map to the highest unsigned integral value, given "
+                      "explicitly as a regular number, "
+                      "*or*, if the number is given with "
+                      "a \"" NRRD_MINMAX_PERC_SUFF "\" suffix, "
+                      "this maximum is specified "
+                      "in terms of the percentage of samples in input that are higher. "
+                      "\"0" NRRD_MINMAX_PERC_SUFF "\" means the highest input value is "
+                      "used, which is also the default "
+                      "behavior (same as not using this option).");
   /* NOTE -zc shared with unrrdu histax, histo, quantize */
-  hestOptAdd(&opt, "zc,zero-center", NULL, airTypeInt, 0, 0, &zeroCenter, NULL,
-             "if used, percentile-based min,max determine a zero-centered "
-             "range (rather than treating min and max independently), which "
-             "may help process signed values in an expected way.");
-  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
-             nrrdStateBlind8BitRange ? "true" : "false",
-             "Whether to know the range of 8-bit data blindly "
-             "(uchar is always [0,255], signed char is [-128,127]).");
+  hestOptAdd_Flag(&opt, "zc,zero-center", &zeroCenter,
+                  "if used, percentile-based min,max determine a zero-centered "
+                  "range (rather than treating min and max independently), which "
+                  "may help process signed values in an expected way.");
+  hestOptAdd_1_Bool(&opt, "blind8", "bool", &blind8BitRange,
+                    nrrdStateBlind8BitRange ? "true" : "false",
+                    "Whether to know the range of 8-bit data blindly "
+                    "(uchar is always [0,255], signed char is [-128,127]).");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

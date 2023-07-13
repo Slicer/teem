@@ -42,22 +42,22 @@ unrrdu_i2wMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   double minPos, maxPos, pos, indx, size;
 
   mop = airMopNew();
-  hestOptAdd(&opt, NULL, "center", airTypeEnum, 1, 1, &center, NULL,
-             "which centering applies to the quantized position.\n "
-             "Possibilities are:\n "
-             "\b\bo \"cell\": for histogram bins, quantized values, and "
-             "pixels-as-squares\n "
-             "\b\bo \"node\": for non-trivially interpolated "
-             "sample points",
-             NULL, nrrdCenter);
-  hestOptAdd(&opt, NULL, "minPos", airTypeDouble, 1, 1, &minPos, NULL,
-             "smallest position associated with index 0");
-  hestOptAdd(&opt, NULL, "maxPos", airTypeDouble, 1, 1, &maxPos, NULL,
-             "highest position associated with highest index");
-  hestOptAdd(&opt, NULL, "num", airTypeDouble, 1, 1, &size, NULL,
-             "number of intervals into which position has been quantized");
-  hestOptAdd(&opt, NULL, "index", airTypeDouble, 1, 1, &indx, NULL,
-             "the input index position, to be converted to world");
+  hestOptAdd_1_Enum(&opt, NULL, "center", &center, NULL,
+                    "which centering applies to the quantized position.\n "
+                    "Possibilities are:\n "
+                    "\b\bo \"cell\": for histogram bins, quantized values, and "
+                    "pixels-as-squares\n "
+                    "\b\bo \"node\": for non-trivially interpolated "
+                    "sample points",
+                    nrrdCenter);
+  hestOptAdd_1_Double(&opt, NULL, "minPos", &minPos, NULL,
+                      "smallest position associated with index 0");
+  hestOptAdd_1_Double(&opt, NULL, "maxPos", &maxPos, NULL,
+                      "highest position associated with highest index");
+  hestOptAdd_1_Double(&opt, NULL, "num", &size, NULL,
+                      "number of intervals into which position has been quantized");
+  hestOptAdd_1_Double(&opt, NULL, "index", &indx, NULL,
+                      "the input index position, to be converted to world");
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);
   USAGE_OR_PARSE(_unrrdu_i2wInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);

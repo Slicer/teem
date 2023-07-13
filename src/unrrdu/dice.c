@@ -42,26 +42,26 @@ unrrdu_diceMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   OPT_ADD_AXIS(axis, "axis to slice along");
   OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, "s,start", "start", airTypeUInt, 1, 1, &start, "0",
-             "integer value to start numbering with");
-  hestOptAdd(&opt, "ff,format", "form", airTypeString, 1, 1, &ftmpl, "",
-             "a printf-style format to use for generating all "
-             "filenames.  Use this to override the number of characters "
-             "used to represent the slice position, or the file format "
-             "of the output, e.g. \"-ff %03d.ppm\" for 000.ppm, "
-             "001.ppm, etc. By default (not using this option), slices "
-             "are saved in NRRD format (or PNM or PNG where possible) "
-             "with shortest possible filenames.");
+  hestOptAdd_1_UInt(&opt, "s,start", "start", &start, "0",
+                    "integer value to start numbering with");
+  hestOptAdd_1_String(&opt, "ff,format", "form", &ftmpl, "",
+                      "a printf-style format to use for generating all "
+                      "filenames.  Use this to override the number of characters "
+                      "used to represent the slice position, or the file format "
+                      "of the output, e.g. \"-ff %03d.ppm\" for 000.ppm, "
+                      "001.ppm, etc. By default (not using this option), slices "
+                      "are saved in NRRD format (or PNM or PNG where possible) "
+                      "with shortest possible filenames.");
   /* the fact that we're using unsigned int instead of size_t is
      its own kind of sanity check */
-  hestOptAdd(&opt, "l,limit", "max#", airTypeUInt, 1, 1, &sanity, "9999",
-             "a sanity check on how many slice files should be saved "
-             "out, to prevent accidentally dicing the wrong axis "
-             "or the wrong array. Can raise this value if needed.");
-  hestOptAdd(&opt, "o,output", "prefix", airTypeString, 1, 1, &base, NULL,
-             "output filename prefix (excluding info set via \"-ff\"), "
-             "basically to set path of output files (so be sure to end "
-             "with \"/\".");
+  hestOptAdd_1_UInt(&opt, "l,limit", "max#", &sanity, "9999",
+                    "a sanity check on how many slice files should be saved "
+                    "out, to prevent accidentally dicing the wrong axis "
+                    "or the wrong array. Can raise this value if needed.");
+  hestOptAdd_1_String(&opt, "o,output", "prefix", &base, NULL,
+                      "output filename prefix (excluding info set via \"-ff\"), "
+                      "basically to set path of output files (so be sure to end "
+                      "with \"/\".");
 
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);

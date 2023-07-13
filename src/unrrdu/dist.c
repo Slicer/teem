@@ -44,20 +44,20 @@ unrrdu_distMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   double thresh, bias;
   airArray *mop;
 
-  hestOptAdd(&opt, "th,thresh", "val", airTypeDouble, 1, 1, &thresh, NULL,
-             "threshold value to separate inside from outside");
-  hestOptAdd(&opt, "b,bias", "val", airTypeDouble, 1, 1, &bias, "0.0",
-             "if non-zero, bias the distance transform by this amount "
-             "times the difference in value from the threshold");
-  hestOptAdd(&opt, "t,type", "type", airTypeEnum, 1, 1, &typeOut, "float",
-             "type to save output in", NULL, nrrdType);
-  hestOptAdd(&opt, "sgn", NULL, airTypeInt, 0, 0, &sign, NULL,
-             "also compute signed (negative) distances inside objects, "
-             "instead of leaving them as zero");
-  hestOptAdd(&opt, "inv", NULL, airTypeInt, 0, 0, &invert, NULL,
-             "values *below* threshold are considered interior to object. "
-             "By default (not using this option), values above threshold "
-             "are considered interior. ");
+  hestOptAdd_1_Double(&opt, "th,thresh", "val", &thresh, NULL,
+                      "threshold value to separate inside from outside");
+  hestOptAdd_1_Double(&opt, "b,bias", "val", &bias, "0.0",
+                      "if non-zero, bias the distance transform by this amount "
+                      "times the difference in value from the threshold");
+  hestOptAdd_1_Enum(&opt, "t,type", "type", &typeOut, "float", "type to save output in",
+                    nrrdType);
+  hestOptAdd_Flag(&opt, "sgn", &sign,
+                  "also compute signed (negative) distances inside objects, "
+                  "instead of leaving them as zero");
+  hestOptAdd_Flag(&opt, "inv", &invert,
+                  "values *below* threshold are considered interior to object. "
+                  "By default (not using this option), values above threshold "
+                  "are considered interior. ");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

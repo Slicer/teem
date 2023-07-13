@@ -38,6 +38,10 @@ unrrdu_cropMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   airArray *mop;
   Nrrd *_nbounds;
 
+  /* one might think this is a candidate for hparm->noArgsIsNoProblem, but really
+  the "-b" option is an alternative to -min,-max: it is not the case that neither
+  one can be used. It is a weakness of hest that we can't say: "either -b, or,
+  both -min and -max, must be set" */
   OPT_ADD_BOUND("min,minimum", 0, minOff, "0",
                 "low corner of bounding box.\n "
                 "\b\bo <int> gives 0-based index\n "

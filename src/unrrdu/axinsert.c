@@ -42,25 +42,25 @@ unrrdu_axinsertMain(int argc, const char **argv, const char *me, hestParm *hparm
 
   hparm->elideSingleOtherDefault = AIR_FALSE;
   OPT_ADD_AXIS(axis, "dimension (axis index) at which to insert the new axis");
-  hestOptAdd(&opt, "l,label", "label", airTypeString, 1, 1, &label, "",
-             "label to associate with new axis");
-  opi = hestOptAdd(&opt, "k,kind", "kind", airTypeEnum, 1, 1, &kind, "stub",
-                   "axis kind to associate with new axis", NULL, nrrdKind);
-  hestOptAdd(&opt, "mm,minmax", "min max", airTypeDouble, 2, 2, mm, "nan nan",
-             "min and max values along new axis");
-  centOptIdx = hestOptAdd(&opt, "c,center", "center", airTypeEnum, 1, 1, &center, "cell",
-                          "centering of inserted axis: \"cell\" or \"node\"", NULL,
-                          nrrdCenter);
-  hestOptAdd(&opt, "s,size", "size", airTypeUInt, 1, 1, &size, "1",
-             "after inserting stub axis, also pad out to some length, "
-             "according to the \"-b\" option");
-  hestOptAdd(&opt, "b,boundary", "behavior", airTypeOther, 1, 1, &bspec, "bleed",
-             "How to handle samples beyond the input bounds:\n "
-             "\b\bo \"pad:<val>\": use specified value\n "
-             "\b\bo \"bleed\": extend border values outward\n "
-             "\b\bo \"mirror\": repeated reflections\n "
-             "\b\bo \"wrap\": wrap-around to other side",
-             NULL, NULL, nrrdHestBoundarySpec);
+  hestOptAdd_1_String(&opt, "l,label", "label", &label, "",
+                      "label to associate with new axis");
+  opi = hestOptAdd_1_Enum(&opt, "k,kind", "kind", &kind, "stub",
+                          "axis kind to associate with new axis", nrrdKind);
+  hestOptAdd_2_Double(&opt, "mm,minmax", "min max", mm, "nan nan",
+                      "min and max values along new axis");
+  centOptIdx = hestOptAdd_1_Enum(&opt, "c,center", "center", &center, "cell",
+                                 "centering of inserted axis: \"cell\" or \"node\"",
+                                 nrrdCenter);
+  hestOptAdd_1_UInt(&opt, "s,size", "size", &size, "1",
+                    "after inserting stub axis, also pad out to some length, "
+                    "according to the \"-b\" option");
+  hestOptAdd_1_Other(&opt, "b,boundary", "behavior", &bspec, "bleed",
+                     "How to handle samples beyond the input bounds:\n "
+                     "\b\bo \"pad:<val>\": use specified value\n "
+                     "\b\bo \"bleed\": extend border values outward\n "
+                     "\b\bo \"mirror\": repeated reflections\n "
+                     "\b\bo \"wrap\": wrap-around to other side",
+                     nrrdHestBoundarySpec);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

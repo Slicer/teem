@@ -45,35 +45,34 @@ unrrdu_imapMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int typeOut, rescale, pret, blind8BitRange;
   double min, max;
 
-  hestOptAdd(&opt, "m,map", "map", airTypeOther, 1, 1, &nmap, NULL,
-             "irregular map to map input nrrd through", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "l,length", "aclLen", airTypeUInt, 1, 1, &aclLen, "0",
-             "length of accelerator array, used to try to speed-up "
-             "task of finding between which pair of control points "
-             "a given value lies.  Not terribly useful for small maps "
-             "(about 10 points or less).  Use 0 to turn accelorator off. ");
-  hestOptAdd(&opt, "r,rescale", NULL, airTypeInt, 0, 0, &rescale, NULL,
-             "rescale the input values from the input range to the "
-             "map domain");
-  hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &min, "nan",
-             "Low end of input range. Defaults to lowest value "
-             "found in input nrrd.  Explicitly setting this is useful "
-             "only with rescaling (\"-r\")");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeDouble, 1, 1, &max, "nan",
-             "High end of input range. Defaults to highest value "
-             "found in input nrrd.  Explicitly setting this is useful "
-             "only with rescaling (\"-r\")");
-  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
-             nrrdStateBlind8BitRange ? "true" : "false",
-             "Whether to know the range of 8-bit data blindly "
-             "(uchar is always [0,255], signed char is [-128,127]). "
-             "Explicitly setting this is useful only with rescaling (\"-r\")");
-  hestOptAdd(&opt, "t,type", "type", airTypeOther, 1, 1, &typeOut, "default",
-             "specify the type (\"int\", \"float\", etc.) of the "
-             "output nrrd. "
-             "By default (not using this option), the output type "
-             "is the map's type.",
-             NULL, NULL, &unrrduHestMaybeTypeCB);
+  hestOptAdd_1_Other(&opt, "m,map", "map", &nmap, NULL,
+                     "irregular map to map input nrrd through", nrrdHestNrrd);
+  hestOptAdd_1_UInt(&opt, "l,length", "aclLen", &aclLen, "0",
+                    "length of accelerator array, used to try to speed-up "
+                    "task of finding between which pair of control points "
+                    "a given value lies.  Not terribly useful for small maps "
+                    "(about 10 points or less).  Use 0 to turn accelorator off. ");
+  hestOptAdd_Flag(&opt, "r,rescale", &rescale,
+                  "rescale the input values from the input range to the "
+                  "map domain");
+  hestOptAdd_1_Double(&opt, "min,minimum", "value", &min, "nan",
+                      "Low end of input range. Defaults to lowest value "
+                      "found in input nrrd.  Explicitly setting this is useful "
+                      "only with rescaling (\"-r\")");
+  hestOptAdd_1_Double(&opt, "max,maximum", "value", &max, "nan",
+                      "High end of input range. Defaults to highest value "
+                      "found in input nrrd.  Explicitly setting this is useful "
+                      "only with rescaling (\"-r\")");
+  hestOptAdd_1_Bool(&opt, "blind8", "bool", &blind8BitRange,
+                    nrrdStateBlind8BitRange ? "true" : "false",
+                    "Whether to know the range of 8-bit data blindly "
+                    "(uchar is always [0,255], signed char is [-128,127]). "
+                    "Explicitly setting this is useful only with rescaling (\"-r\")");
+  hestOptAdd_1_Other(&opt, "t,type", "type", &typeOut, "default",
+                     "specify the type (\"int\", \"float\", etc.) of the output "
+                     "nrrd. By default (not using this option), the output type "
+                     "is the map's type.",
+                     &unrrduHestMaybeTypeCB);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

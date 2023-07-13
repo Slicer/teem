@@ -24,7 +24,7 @@
 
 #define INFO "Replace a sub-region with a different nrrd"
 static const char *_unrrdu_insetInfoL
-  = (INFO ". This is functionally the opposite of \"crop\".\n "
+  = (INFO ". This functions as the opposite of \"crop\".\n "
           "* Uses nrrdInset");
 
 static int
@@ -45,9 +45,9 @@ unrrdu_insetMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                 "\b\bo M, M+<int>, M-<int> give index relative "
                 "to the last sample on the axis (M == #samples-1).",
                 minLen);
-  hestOptAdd(&opt, "s,subset", "nsub", airTypeOther, 1, 1, &(nsub), NULL,
-             "sub-region nrrd.  This the data to be inset in \"nin\"", NULL, NULL,
-             nrrdHestNrrd);
+  hestOptAdd_1_Other(&opt, "s,subset", "nsub", &(nsub), NULL,
+                     "sub-region nrrd.  This the data to be inset in \"nin\"",
+                     nrrdHestNrrd);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

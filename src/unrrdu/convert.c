@@ -44,9 +44,9 @@ unrrdu_convertMain(int argc, const char **argv, const char *me, hestParm *hparm)
 
   OPT_ADD_TYPE(type, "type to convert to", NULL);
   OPT_ADD_NIN(nin, "input nrrd");
-  hestOptAdd(&opt, "clamp", NULL, airTypeInt, 0, 0, &doClamp, NULL,
-             "clamp input values to representable range of values of "
-             "output type, to avoid wrap-around problems");
+  hestOptAdd_Flag(&opt, "clamp", &doClamp,
+                  "clamp input values to representable range of values of "
+                  "output type, to avoid wrap-around problems");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();

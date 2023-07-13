@@ -39,7 +39,7 @@ unrrdu_hackMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   char *what;
 
-  hestOptAdd(&opt, NULL, "what", airTypeString, 1, 1, &what, NULL, "what hack to do");
+  hestOptAdd_1_String(&opt, NULL, "what", &what, NULL, "what hack to do");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

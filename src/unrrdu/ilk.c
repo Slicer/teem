@@ -244,15 +244,15 @@ unrrdu_ilkMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   double scale[4];
   mossSampler *msp;
 
-  hestOptAdd(&opt, "0", "origin", airTypeOther, 1, 1, &origInfo, "p:0,0",
-             "where to location (0,0) prior to applying transforms.\n "
-             "\b\bo \"u:<float>,<float>\" locate origin in a unit box "
-             "[0,1]x[0,1] which covers the original image\n "
-             "\b\bo \"p:<float>,<float>\" locate origin at a particular "
-             "pixel location, in the index space of the image",
-             NULL, NULL, mossHestOrigin);
-  hestOptAdd(
-    &opt, "t", "xform0", airTypeOther, 1, -1, &matList, NULL,
+  hestOptAdd_1_Other(&opt, "0", "origin", &origInfo, "p:0,0",
+                     "where to location (0,0) prior to applying transforms.\n "
+                     "\b\bo \"u:<float>,<float>\" locate origin in a unit box "
+                     "[0,1]x[0,1] which covers the original image\n "
+                     "\b\bo \"p:<float>,<float>\" locate origin at a particular "
+                     "pixel location, in the index space of the image",
+                     mossHestOrigin);
+  hestOptAdd_Nv_Other(
+    &opt, "t", "xform0", 1, -1, &matList, NULL,
     "transform(s) to apply to image, applied in the order in which they appear. "
     "All these are non-perspective homogeneous coordinate transforms, which "
     "involve only the top two rows of the 3x3 matrix. Possibilities are:\n "
@@ -267,46 +267,47 @@ unrrdu_ilkMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     "the X axis\n "
     "\b\bo \"a,b,tx,c,d,ty\": specify the transform explicitly "
     "in row-major order (opposite of PostScript) ",
-    &matListLen, NULL, mossHestTransform);
-  hestOptAdd(&opt, "a", "avg #", airTypeUInt, 1, 1, &avgNum, "0",
-             "number of averages (if there there is only one "
-             "rotation as transform)");
-  hestOptAdd(&opt, "min", "xMin yMin", airTypeDouble, 2, 2, min, "nan nan",
-             "lower bounding corner of output image. Default (by not "
-             "using this option) is the lower corner of input image. ");
-  hestOptAdd(&opt, "max", "xMax yMax", airTypeDouble, 2, 2, max, "nan nan",
-             "upper bounding corner of output image. Default (by not "
-             "using this option) is the upper corner of input image. ");
-  hestOptAdd(&opt, "xyc", "file", airTypeOther, 1, 1, &nxyc, "",
-             "IF this option is used, it over-rides all previous options (use \"-t "
-             "identity\" to satisfy that option). Instead, a general homog coord "
-             "transform is set up to regularly sample the rectangle that, due to "
-             "perspective distortion, has corners with the X,Y coordinates given in "
-             "this filename, in scan-line order.",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "b", "boundary", airTypeEnum, 1, 1, &bound, "bleed",
-             "what to do when sampling outside original image.\n "
-             "\b\bo \"bleed\": copy values at image border outward\n "
-             "\b\bo \"wrap\": do wrap-around on image locations\n "
-             "\b\bo \"pad\": use a given background value (via \"-bg\")",
-             NULL, nrrdBoundary);
-  hestOptAdd(&opt, "k", "kernel", airTypeOther, 1, 1, &ksp, "cubic:0,0.5",
-             "reconstruction kernel", NULL, NULL, nrrdHestKernelSpec);
-  bkgIdx = hestOptAdd(&opt, "bg", "bg0 bg1", airTypeDouble, 1, -1, &_bkg, "nan",
-                      "background color to use with boundary behavior \"pad\". "
-                      "Defaults to all zeroes.",
-                      &_bkgLen);
-  hestOptAdd(&opt, "s", "xSize ySize", airTypeOther, 2, 2, scale, "x1 xfrqs1x1",
-             "For each axis, information about how many samples in output:\n "
-             "\b\bo \"x<float>\": number of output samples is some scaling of "
-             " the number input of samples; multiplied by <float>\n "
-             "\b\bo \"<int>\": specify exact number of samples",
-             NULL, NULL, &unrrduHestScaleCB);
-  hestOptAdd(&opt, "db", "x y", airTypeInt, 2, 2, debug, "-1 -1",
-             "if both non-negative, turn on verbose debugging for this output "
-             "image pixel");
-  hestOptAdd(&opt, "i", "image", airTypeOther, 1, 1, &nin, "-", "input 2D image", NULL,
-             NULL, nrrdHestNrrd);
+    &matListLen, mossHestTransform);
+  hestOptAdd_1_UInt(&opt, "a", "avg #", &avgNum, "0",
+                    "number of averages (if there there is only one "
+                    "rotation as transform)");
+  hestOptAdd_2_Double(&opt, "min", "xMin yMin", min, "nan nan",
+                      "lower bounding corner of output image. Default (by not "
+                      "using this option) is the lower corner of input image. ");
+  hestOptAdd_2_Double(&opt, "max", "xMax yMax", max, "nan nan",
+                      "upper bounding corner of output image. Default (by not "
+                      "using this option) is the upper corner of input image. ");
+  hestOptAdd_1_Other(
+    &opt, "xyc", "file", &nxyc, "",
+    "IF this option is used, it over-rides all previous options (use \"-t "
+    "identity\" to satisfy that option). Instead, a general homog coord "
+    "transform is set up to regularly sample the rectangle that, due to "
+    "perspective distortion, has corners with the X,Y coordinates given in "
+    "this filename, in scan-line order.",
+    nrrdHestNrrd);
+  hestOptAdd_1_Enum(&opt, "b", "boundary", &bound, "bleed",
+                    "what to do when sampling outside original image.\n "
+                    "\b\bo \"bleed\": copy values at image border outward\n "
+                    "\b\bo \"wrap\": do wrap-around on image locations\n "
+                    "\b\bo \"pad\": use a given background value (via \"-bg\")",
+                    nrrdBoundary);
+  hestOptAdd_1_Other(&opt, "k", "kernel", &ksp, "cubic:0,0.5", "reconstruction kernel",
+                     nrrdHestKernelSpec);
+  bkgIdx
+    = hestOptAdd_Nv_Double(&opt, "bg", "bg0 bg1", 1, -1, &_bkg, "nan",
+                           "background color to use with boundary behavior \"pad\". "
+                           "Defaults to all zeroes.",
+                           &_bkgLen);
+  hestOptAdd_2_Other(&opt, "s", "xSize ySize", scale, "x1 xfrqs1x1",
+                     "For each axis, information about how many samples in output:\n "
+                     "\b\bo \"x<float>\": number of output samples is some scaling of "
+                     " the number input of samples; multiplied by <float>\n "
+                     "\b\bo \"<int>\": specify exact number of samples",
+                     &unrrduHestScaleCB);
+  hestOptAdd_2_Int(&opt, "db", "x y", debug, "-1 -1",
+                   "if both non-negative, turn on verbose debugging for this output "
+                   "image pixel");
+  hestOptAdd_1_Other(&opt, "i", "image", &nin, "-", "input 2D image", nrrdHestNrrd);
   OPT_ADD_NOUT(outS, "output image");
 
   mop = airMopNew();

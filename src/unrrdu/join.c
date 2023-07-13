@@ -49,24 +49,24 @@ unrrdu_joinMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   hparm->respFileEnable = AIR_TRUE;
 
-  hestOptAdd(&opt, "i,input", "nin0", airTypeOther, 1, -1, &nin, NULL,
-             "everything to be joined together", &ninLen, NULL, nrrdHestNrrd);
+  hestOptAdd_Nv_Other(&opt, "i,input", "nin0", 1, -1, &nin, NULL,
+                      "everything to be joined together", &ninLen, nrrdHestNrrd);
   OPT_ADD_AXIS(axis, "axis to join along");
-  hestOptAdd(&opt, "incr", NULL, airTypeInt, 0, 0, &incrDim, NULL,
-             "in situations where the join axis is *not* among the existing "
-             "axes of the input nrrds, then this flag signifies that the join "
-             "axis should be *inserted*, and the output dimension should "
-             "be one greater than input dimension.  Without this flag, the "
-             "nrrds are joined side-by-side, along an existing axis.");
-  hestOptAdd(&opt, "l,label", "label", airTypeString, 1, 1, &label, "",
-             "label to associate with join axis");
-  hestOptAdd(&opt, "k,kind", "kind", airTypeString, 1, 1, &kindStr, "",
-             "kind to set on join axis. "
-             "Not using this option leaves the kind as is");
-  hestOptAdd(&opt, "mm,minmax", "min max", airTypeDouble, 2, 2, mm, "nan nan",
-             "min and max values along join axis");
-  hestOptAdd(&opt, "sp,spacing", "spc", airTypeDouble, 1, 1, &spc, "nan",
-             "spacing between samples along join axis");
+  hestOptAdd_Flag(&opt, "incr", &incrDim,
+                  "in situations where the join axis is *not* among the existing "
+                  "axes of the input nrrds, then this flag signifies that the join "
+                  "axis should be *inserted*, and the output dimension should "
+                  "be one greater than input dimension.  Without this flag, the "
+                  "nrrds are joined side-by-side, along an existing axis.");
+  hestOptAdd_1_String(&opt, "l,label", "label", &label, "",
+                      "label to associate with join axis");
+  hestOptAdd_1_String(&opt, "k,kind", "kind", &kindStr, "",
+                      "kind to set on join axis. "
+                      "Not using this option leaves the kind as is");
+  hestOptAdd_2_Double(&opt, "mm,minmax", "min max", mm, "nan nan",
+                      "min and max values along join axis");
+  hestOptAdd_1_Double(&opt, "sp,spacing", "spc", &spc, "nan",
+                      "spacing between samples along join axis");
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();

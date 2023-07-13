@@ -40,21 +40,18 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me, hestParm *hparm)
   unsigned int plen;
   double vrange[2], *single;
 
-  hestOptAdd(&opt, "l", "len", airTypeUInt, 1, 1, &plen, "78",
-             "number of characters in box plot");
-  hestOptAdd(&opt, "r", "min max", airTypeDouble, 2, 2, vrange, "0 100",
-             "values to use as absolute min and max (unfortunately "
-             "has to be same for all scanlines (rows).");
-  hestOptAdd(&opt, "rs", "show", airTypeBool, 1, 1, &rshow, "false",
-             "show range above plots");
-  hestOptAdd(&opt, "ms", "show", airTypeBool, 1, 1, &medshow, "false",
-             "print the median value");
+  hestOptAdd_1_UInt(&opt, "l", "len", &plen, "78", "number of characters in box plot");
+  hestOptAdd_2_Double(&opt, "r", "min max", vrange, "0 100",
+                      "values to use as absolute min and max (unfortunately "
+                      "has to be same for all scanlines (rows).");
+  hestOptAdd_1_Bool(&opt, "rs", "show", &rshow, "false", "show range above plots");
+  hestOptAdd_1_Bool(&opt, "ms", "show", &medshow, "false", "print the median value");
   OPT_ADD_NIN(_nin, "input nrrd");
-  hestOptAdd(&opt, "s", "single", airTypeOther, 1, 1, &_nsingle, "",
-             "if given a 1D nrrd here that matches the number of "
-             "rows in the \"-i\" input, interpret it as a list of values "
-             "that should be indicated with \"X\"s in the plots.",
-             NULL, NULL, nrrdHestNrrd);
+  hestOptAdd_1_Other(&opt, "s", "single", &_nsingle, "",
+                     "if given a 1D nrrd here that matches the number of "
+                     "rows in the \"-i\" input, interpret it as a list of values "
+                     "that should be indicated with \"X\"s in the plots.",
+                     nrrdHestNrrd);
 
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);

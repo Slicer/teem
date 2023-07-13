@@ -41,21 +41,21 @@ unrrdu_gammaMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret, blind8BitRange, srgb, forward, E;
   NrrdRange *range;
 
-  hestOptAdd(&opt, "g,gamma", "gamma", airTypeString, 1, 1, &GammaS, NULL,
-             "gamma > 1.0 brightens; gamma < 1.0 darkens. "
-             "Negative gammas invert values (like in xv). "
-             "Or, can used \"srgb\" for ~2.2 gamma of sRGB encoding, or "
-             "\"1/srgb\" for ~0.455 gamma of inverse sRGB encoding");
-  hestOptAdd(&opt, "min,minimum", "value", airTypeDouble, 1, 1, &min, "nan",
-             "Value to implicitly map to 0.0 prior to calling pow(). "
-             "Defaults to lowest value found in input nrrd.");
-  hestOptAdd(&opt, "max,maximum", "value", airTypeDouble, 1, 1, &max, "nan",
-             "Value to implicitly map to 1.0 prior to calling pow(). "
-             "Defaults to highest value found in input nrrd.");
-  hestOptAdd(&opt, "blind8", "bool", airTypeBool, 1, 1, &blind8BitRange,
-             nrrdStateBlind8BitRange ? "true" : "false",
-             "Whether to know the range of 8-bit data blindly "
-             "(uchar is always [0,255], signed char is [-128,127]).");
+  hestOptAdd_1_String(&opt, "g,gamma", "gamma", &GammaS, NULL,
+                      "gamma > 1.0 brightens; gamma < 1.0 darkens. "
+                      "Negative gammas invert values (like in xv). "
+                      "Or, can used \"srgb\" for ~2.2 gamma of sRGB encoding, or "
+                      "\"1/srgb\" for ~0.455 gamma of inverse sRGB encoding");
+  hestOptAdd_1_Double(&opt, "min,minimum", "value", &min, "nan",
+                      "Value to implicitly map to 0.0 prior to calling pow(). "
+                      "Defaults to lowest value found in input nrrd.");
+  hestOptAdd_1_Double(&opt, "max,maximum", "value", &max, "nan",
+                      "Value to implicitly map to 1.0 prior to calling pow(). "
+                      "Defaults to highest value found in input nrrd.");
+  hestOptAdd_1_Bool(&opt, "blind8", "bool", &blind8BitRange,
+                    nrrdStateBlind8BitRange ? "true" : "false",
+                    "Whether to know the range of 8-bit data blindly "
+                    "(uchar is always [0,255], signed char is [-128,127]).");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

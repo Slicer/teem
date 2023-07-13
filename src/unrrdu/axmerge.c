@@ -35,17 +35,17 @@ unrrdu_axmergeMain(int argc, const char **argv, const char *me, hestParm *hparm)
   hestOpt *opt = NULL;
   char *out, *err;
   Nrrd *nin, *nout[2];
-  int *axes, pret, ni;
-  unsigned int ii, jj, axesLen;
+  int pret;
+  unsigned int ni, ii, jj, *axes, axesLen;
   airArray *mop;
 
-  hestOptAdd(&opt, "a,axis", "ax0", airTypeInt, 1, -1, &axes, NULL,
-             "axis (or axes) to merge.  Each axis index identified is the "
-             "lower of the pair of axes that will be merged.  Saying \"-a 2\" "
-             "means to merge axis 2 and axis 3 into axis 2.  If multiple "
-             "merges are to be done, the indices listed here are for "
-             "the axes prior to any merging.",
-             &axesLen);
+  hestOptAdd_Nv_UInt(&opt, "a,axis", "ax0", 1, -1, &axes, NULL,
+                     "axis (or axes) to merge.  Each axis index identified is the "
+                     "lower of the pair of axes that will be merged.  Saying \"-a 2\" "
+                     "means to merge axis 2 and axis 3 into axis 2.  If multiple "
+                     "merges are to be done, the indices listed here are for "
+                     "the axes prior to any merging.",
+                     &axesLen);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
@@ -55,6 +55,7 @@ unrrdu_axmergeMain(int argc, const char **argv, const char *me, hestParm *hparm)
   USAGE_OR_PARSE(_unrrdu_axmergeInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
+  /* make two nout buffers, will alternate between them */
   airMopAdd(mop, nout[0] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nout[1] = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 

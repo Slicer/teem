@@ -37,8 +37,8 @@ unrrdu_heqMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *opt = NULL;
   char *out, *err, *mapS;
   Nrrd *nin, *nout, *nmap;
-  int smart, pret;
-  unsigned int bins;
+  int pret;
+  unsigned int bins, smart;
   airArray *mop;
   float amount;
 
@@ -48,23 +48,23 @@ unrrdu_heqMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   nrrdDefWriteBareTable = AIR_FALSE;
   */
 
-  hestOptAdd(&opt, "b,bin", "bins", airTypeInt, 1, 1, &bins, NULL,
-             "# bins to use in histogram that is created in order to "
-             "calculate the mapping that achieves the equalization.");
-  hestOptAdd(&opt, "s,smart", "bins", airTypeInt, 0, 1, &smart, "0",
-             "# bins in value histogram to ignore in calculating the mapping. "
-             "Bins are ignored when they get more hits than other bins, and "
-             "when the values that fall in them are constant.  This is an "
-             "effective way to prevent large regions of background value "
-             "from distorting the equalization mapping.");
-  hestOptAdd(&opt, "a,amount", "amount", airTypeFloat, 1, 1, &amount, "1.0",
-             "extent to which the histogram equalizing mapping should be "
-             "applied; 0.0: no change, 1.0: full equalization");
-  hestOptAdd(&opt, "m,map", "filename", airTypeString, 1, 1, &mapS, "",
-             "The value mapping used to achieve histogram equalization is "
-             "represented by a univariate regular map.  By giving a filename "
-             "here, that map can be saved out and applied to other nrrds "
-             "with \"unu rmap\"");
+  hestOptAdd_1_UInt(&opt, "b,bin", "bins", &bins, NULL,
+                    "# bins to use in histogram that is created in order to "
+                    "calculate the mapping that achieves the equalization.");
+  hestOptAdd_1v_UInt(&opt, "s,smart", "bins", &smart, "0",
+                     "# bins in value histogram to ignore in calculating the mapping. "
+                     "Bins are ignored when they get more hits than other bins, and "
+                     "when the values that fall in them are constant.  This is an "
+                     "effective way to prevent large regions of background value "
+                     "from distorting the equalization mapping.");
+  hestOptAdd_1_Float(&opt, "a,amount", "amount", &amount, "1.0",
+                     "extent to which the histogram equalizing mapping should be "
+                     "applied; 0.0: no change, 1.0: full equalization");
+  hestOptAdd_1_String(&opt, "m,map", "filename", &mapS, "",
+                      "The value mapping used to achieve histogram equalization is "
+                      "represented by a univariate regular map.  By giving a filename "
+                      "here, that map can be saved out and applied to other nrrds "
+                      "with \"unu rmap\"");
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 
