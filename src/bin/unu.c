@@ -64,12 +64,17 @@ main(int argc, const char **argv) {
   airMopAdd(mop, hparm, hestParmFree_vp, airMopAlways);
   hparm->elideSingleEnumType = AIR_TRUE;
   hparm->elideSingleOtherType = AIR_TRUE;
-  hparm->elideSingleOtherDefault = AIR_TRUE;
+  /*
+   * This prevents clarifying that the default input is "-" i.e. stdin, and it was
+   * explicitly turned off in multiple commands (such as resample). In the interests of
+   * clarity, no longer want to elide this info.
+   * hparm->elideSingleOtherDefault = AIR_TRUE;
+   */
   hparm->elideSingleNonExistFloatDefault = AIR_TRUE;
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hparm->elideSingleEmptyStringDefault = AIR_TRUE;
   hparm->elideMultipleEmptyStringDefault = AIR_TRUE;
-  /* so that we look for, and know how to handle, seeing "--help" */
+  /* say that we look for, and know how to handle, seeing "--help" */
   hparm->respectDashDashHelp = AIR_TRUE;
   /* Try to dynamically learn number of columns. Learning the terminal size will probably
      work if stdout is the terminal, but not if we're piping elsewhere (as is common with
