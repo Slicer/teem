@@ -139,31 +139,31 @@ static void *
 _hooverThreadBody(void *_arg) {
   _hooverThreadArg *arg;
   void *thread;
-  int ret,            /* to catch return values from callbacks */
-    sampleI,          /* which sample we're on */
-    inside,           /* we're inside the volume */
-    vI, uI;           /* integral coords in image */
-  double tmp, mm,     /* lowest position in index space, for all axes */
-    Mx, My, Mz,       /* highest position in index space on each axis */
-    u, v,             /* floating-point coords in image */
-    uvScale,          /* how to scale (u,v) to go from image to
-                         near plane, according to ortho or perspective */
-    lx, ly, lz,       /* half edge-lengths of volume */
-    rayLen = 0,       /* length of segment formed by ray line intersecting
-                         the near and far clipping planes */
-    rayT,             /* current position along ray (world-space) */
-    rayDirW[3],       /* unit-length ray direction (world-space) */
-    rayDirI[3],       /* rayDirW transformed into index space;
-                         not unit length, but a unit change in
-                         world space along rayDirW translates to
-                         this change in index space along rayDirI */
-    rayPosW[3],       /* current ray location (world-space) */
-    rayPosI[3],       /* current ray location (index-space) */
-    rayStartW[3],     /* ray start on near plane (world-space) */
-    rayStartI[3],     /* ray start on near plane (index-space) */
-    rayStep,          /* distance between samples (world-space) */
-    vOff[3], uOff[3]; /* offsets in arg->ec->wU and arg->ec->wV
-                         directions towards start of ray */
+  int ret,              /* to catch return values from callbacks */
+    inside;             /* we're inside the volume */
+  unsigned int sampleI, /* which sample we're on */
+    vI, uI;             /* integral coords in image */
+  double tmp, mm,       /* lowest position in index space, for all axes */
+    Mx, My, Mz,         /* highest position in index space on each axis */
+    u, v,               /* floating-point coords in image */
+    uvScale,            /* how to scale (u,v) to go from image to
+                           near plane, according to ortho or perspective */
+    lx, ly, lz,         /* half edge-lengths of volume */
+    rayLen = 0,         /* length of segment formed by ray line intersecting
+                           the near and far clipping planes */
+    rayT,               /* current position along ray (world-space) */
+    rayDirW[3],         /* unit-length ray direction (world-space) */
+    rayDirI[3],         /* rayDirW transformed into index space;
+                           not unit length, but a unit change in
+                           world space along rayDirW translates to
+                           this change in index space along rayDirI */
+    rayPosW[3],         /* current ray location (world-space) */
+    rayPosI[3],         /* current ray location (index-space) */
+    rayStartW[3],       /* ray start on near plane (world-space) */
+    rayStartI[3],       /* ray start on near plane (index-space) */
+    rayStep,            /* distance between samples (world-space) */
+    vOff[3], uOff[3];   /* offsets in arg->ec->wU and arg->ec->wV
+                           directions towards start of ray */
 
   arg = (_hooverThreadArg *)_arg;
   if ((ret = (arg->ctx->threadBegin)(&thread,
