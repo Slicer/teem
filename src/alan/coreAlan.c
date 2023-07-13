@@ -223,8 +223,9 @@ _alanTuringWorker(void *_task) {
     *tpx, *tmx, *tpy, *tmy,                          /* *tpz, *tmz, */
     *lev0, *lev1, *parm, deltaT, alpha, beta, A, B, *v[27], lapA, lapB, corrA, corrB,
     deltaA, deltaB, diffA, diffB, change;
-  int dim, iter, stop, startW, endW, idx, px, mx, py, my, pz, mz, startY, endY, startZ,
-    endZ, sx, sy, sz, x, y, z;
+  int dim, stop, startW, endW, idx, px, mx, py, my, pz, mz, startY, endY, startZ, endZ,
+    sx, sy, sz, x, y, z;
+  unsigned int iter;
   alanTask *task;
 
   task = (alanTask *)_task;
@@ -455,7 +456,8 @@ _alanTuringWorker(void *_task) {
 int /* Biff: 1 */
 alanRun(alanContext *actx) {
   static const char me[] = "alanRun";
-  int tid, hack = AIR_FALSE;
+  int hack = AIR_FALSE;
+  unsigned int tid;
   alanTask task[ALAN_THREAD_MAX];
 
   if (_alanCheck(actx)) {
