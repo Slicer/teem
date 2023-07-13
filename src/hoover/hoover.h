@@ -101,16 +101,16 @@ typedef struct {
 
   /******** 2) volume information: size and spacing, centering, or
             a gageShape that sets everything */
-  int volSize[3];         /* X,Y,Z resolution of volume */
-  double volSpacing[3];   /* distance between samples in X,Y,Z direction */
-  int volCentering;       /* either nrrdCenterNode or nrrdCenterCell */
-  const gageShape *shape; /* if non-NULL, use this gageShape (which we do
-                             NOT own), which over-rides
-                             volSize, volSpacing, volCentering */
+  unsigned int volSize[3]; /* X,Y,Z resolution of volume */
+  double volSpacing[3];    /* distance between samples in X,Y,Z direction */
+  int volCentering;        /* either nrrdCenterNode or nrrdCenterCell */
+  const gageShape *shape;  /* if non-NULL, use this gageShape (which we do
+                              NOT own), which over-rides
+                              volSize, volSpacing, volCentering */
 
   /******** 3) image information: dimensions + centering */
-  int imgSize[2], /* # samples of image along U and V axes */
-    imgCentering; /* either nrrdCenterNode or nrrdCenterCell */
+  unsigned int imgSize[2]; /* # samples of image along U and V axes */
+  int imgCentering;        /* either nrrdCenterNode or nrrdCenterCell */
 
   /******** 4) opaque "user information" pointer */
   void *user; /* passed to all callbacks */
