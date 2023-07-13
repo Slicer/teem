@@ -208,6 +208,7 @@ int /* Biff: 1 */
 alanParmSet(alanContext *actx, int whichParm, double parm) {
   static const char me[] = "alanParmSet";
   int parmI;
+  unsigned int parmUI;
 
   GOT_NULL;
   DIM_SET;
@@ -239,31 +240,31 @@ alanParmSet(alanContext *actx, int whichParm, double parm) {
     actx->textureType = parmI;
     break;
   case alanParmNumThreads:
-    parmI = !!parm;
+    parmUI = AIR_UINT(parm);
     if (!airThreadCapable) {
       fprintf(stderr,
               "%s: WARNING: no multi-threading available, so 1 thread "
-              "will be used, not %d\n",
-              me, parmI);
-      parmI = 1;
+              "will be used, not %u\n",
+              me, parmUI);
+      parmUI = 1;
     }
-    actx->numThreads = parmI;
+    actx->numThreads = parmUI;
     break;
   case alanParmHomogAniso:
     parmI = !!parm;
     actx->homogAniso = parmI;
     break;
   case alanParmSaveInterval:
-    parmI = !!parm;
-    actx->saveInterval = parmI;
+    parmUI = AIR_UINT(parm);
+    actx->saveInterval = parmUI;
     break;
   case alanParmFrameInterval:
-    parmI = !!parm;
-    actx->frameInterval = parmI;
+    parmUI = AIR_UINT(parm);
+    actx->frameInterval = parmUI;
     break;
   case alanParmMaxIteration:
-    parmI = !!parm;
-    actx->maxIteration = parmI;
+    parmUI = AIR_UINT(parm);
+    actx->maxIteration = parmUI;
     break;
   case alanParmConstantFilename:
     parmI = !!parm;
