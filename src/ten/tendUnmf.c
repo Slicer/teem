@@ -39,13 +39,10 @@ tend_unmfMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
   char *outS;
 
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input diffusion tensor volume "
-             "(sorry, can't use usual default of \"-\" for stdin "
-             "because of hest quirk)",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output tensor volume");
+  hparm->noArgsIsNoProblem = AIR_TRUE;
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input diffusion tensor volume ",
+                     nrrdHestNrrdNoTTY);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output tensor volume");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
