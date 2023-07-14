@@ -30,7 +30,7 @@ extern "C" {
 ** then some hacking was added . . .
 */
 #define USAGE(info)                                                                     \
-  if (!argc) {                                                                          \
+  if (!argc && !hparm->noArgsIsNoProblem) {                                             \
     hestInfo(stdout, me, (info), hparm);                                                \
     hestUsage(stdout, hopt, me, hparm);                                                 \
     hestGlossary(stdout, hopt, hparm);                                                  \
@@ -47,7 +47,11 @@ extern "C" {
       fprintf(stderr, "%s: %s\n", me, perr);                                            \
       free(perr);                                                                       \
       hestUsage(stderr, hopt, me, hparm);                                               \
-      fprintf(stderr, "\nFor more info: \"%s\" or \"%s ... --help\"\n", me, me);        \
+      if (hparm && hparm->noArgsIsNoProblem) {                                          \
+        fprintf(stderr, "\nFor more info: \"%s --help\"\n", me);                        \
+      } else {                                                                          \
+        fprintf(stderr, "\nFor more info: \"%s\" or \"%s --help\"\n", me, me);          \
+      }                                                                                 \
       airMopError(mop);                                                                 \
       return 2;                                                                         \
     } else {                                                                            \
