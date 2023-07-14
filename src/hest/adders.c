@@ -54,8 +54,39 @@ be either void* or void**, respectively. But void** is not a generic pointer to 
 type (like void* is the generic pointer type), and, we're not doing compile-time checks
 on the non-NULL-ity of hestCB->destroy. So it all devolves back to plain void*. Still,
 the hestOptAdd_*_Other function are generated here to slightly simplify the hestOptAdd
-call, since there is no more NULL and NULL for sawP and enum.  Actually, there is a way
-around a type-checking black hole: extreme attentiveness!
+call, since there is no more NULL and NULL for sawP and enum.  The only way around this
+particular type-checking black hole is still extreme attentiveness.
+
+Two other design points of note:
+
+(1) If we're moving to more type checking, why not make the default values be something
+other than a mere string?  Why isn't the default typed in a way analogous to the newly
+typed valueP?  This is a great idea, and it was actually briefly tried, but then
+abandoned. One of the original good ideas that made hest work (when it was created) was
+the recognition that if the point is to get values out of argv strings collected from the
+command-line, then you are absolutely unavoidably in the business of parsing values from
+strings, at which point you are losing zero expressivity to have the default also
+expressed as a string, and, as a happy side-effect, the type of the string was the same
+for all cases. So nothing in hest ever learned to *copy* values from a given default
+value array, it *only* *parses* values from strings. So couldn't all the functions
+generated below take typed default values and generate the default string? Yes, but the
+code is annoying, and it seems fishy to have a string-->value route for user-supplied
+options, but a value-->string-->value route for options using their default, and it risks
+confusion to have the hestGlossary-generated usage info show a default string (and it in
+that context it really does need to be a string) that doesn't seem to match the
+compiled-time value array.  Also, the cases where the default is not known at compile
+(and is instead learned only at run-time) are so rare that the cost of converting that
+default value to a string is acceptable. If hest (in Teem v3) learns to copy values from
+a given default value array, this may be revisited.
+
+(2) Why the underscores in the names? Teem is pretty consistent about usingCamelCase for
+everything, no?  Yes, except when it gets in the way of legibility, like the airInsane_*
+enum values, the airFP_* enum values, and nrrdWrap_nva, nrrdAlloc_nva ... (and the
+snake_case ell and tijk libraries). The "hestOptAdd" prefix needs to stay the same (we're
+not going to have both hestOptAdd() and hest_opt_add_*() in one library, when other
+necessary functions like hestOptFree() are not going to change. So then the question is:
+which is more reader-friendly: hestOptAddNvUInt or hestOpt_Nv_UInt?  Obviously the
+second, and that matters more that superficial consistency.
 */
 
 /* --------------------------------------------------------------- 1 == kind */
