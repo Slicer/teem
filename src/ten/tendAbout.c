@@ -58,10 +58,10 @@ tend_aboutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                 "following, which estimates tensors from DWIs, takes a slice of the "
                 "tensor volume, computes the standard RGB colormap of the principal "
                 "eigenvector, and then quantizes it to an 8-bit PNG:\n";
-  char par4[] = "\ttend estim -i dwi.nhdr -B kvp -knownB0 true \\\n "
-                "  | tend slice -a 2 -p 30 \\\n "
-                "  | tend evecrgb -c 0 -a cl2 -gam 1.2 \\\n "
-                "  | unu quantize -b 8 -min 0 -max 1 -o z30-rgb.png\n";
+  char par4[] = "\ttend estim -i dwi.nhdr -B kvp -knownB0 true |\n "
+                "  tend slice -a 2 -p 30 |\n "
+                "  tend evecrgb -c 0 -a cl2 -gam 1.2 |\n "
+                "  unu quantize -b 8 -min 0 -max 1 -o z30-rgb.png\n";
 
   AIR_UNUSED(argc);
   AIR_UNUSED(argv);
@@ -76,10 +76,10 @@ tend_aboutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   fprintf(stdout, fmt, buff);
   fprintf(stdout, "\n");
 
-  _hestPrintStr(stdout, 1, 0, 78, par1, AIR_FALSE);
-  _hestPrintStr(stdout, 1, 0, 78, par2, AIR_FALSE);
-  _hestPrintStr(stdout, 1, 0, 78, par3, AIR_FALSE);
-  _hestPrintStr(stdout, 2, 0, 78, par4, AIR_FALSE);
+  _hestPrintStr(stdout, 1, 0, hparm->columns, par1, AIR_FALSE);
+  _hestPrintStr(stdout, 1, 0, hparm->columns, par2, AIR_FALSE);
+  _hestPrintStr(stdout, 1, 0, hparm->columns, par3, AIR_FALSE);
+  _hestPrintStr(stdout, 2, 0, hparm->columns, par4, AIR_FALSE);
 
   return 0;
 }
