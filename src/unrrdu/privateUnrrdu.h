@@ -286,7 +286,8 @@ if ( (hparm->respFileEnable && !argc) || \
     return 0;                                                                           \
   }
 
-/* For the (many) times that USAGE and PARSE are used together */
+/* For the (many) times that USAGE and PARSE are used together, useful
+   now that using INFO is part of how PARSE responds to --help */
 #define USAGE_OR_PARSE(INFO)                                                            \
   USAGE(INFO)                                                                           \
   PARSE(INFO)
