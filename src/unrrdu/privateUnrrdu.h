@@ -107,6 +107,8 @@ extern "C" {
   F(flip)                                                                               \
   F(unorient)                                                                           \
   F(basinfo)                                                                            \
+  F(block)                                                                              \
+  F(unblock)                                                                            \
   F(axinfo)                                                                             \
   F(axinsert)                                                                           \
   F(axsplit)                                                                            \
@@ -145,10 +147,6 @@ extern "C" {
   F(undos)                                                                              \
   F(uncmt)                                                                              \
   F(save)
-/* these two have been removed since no one uses them
-F(block) \
-F(unblock) \
-*/
 
 /* xxx.c */
 /* Declare the extern unrrduCmds unrrdu_xxxCmd, for all xxx.  These are

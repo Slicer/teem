@@ -69,4 +69,4 @@ unrrdu_blockMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   return 0;
 }
 
-UNRRDU_CMD(block, INFO);
+UNRRDU_CMD_HIDE(block, INFO);
