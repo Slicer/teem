@@ -32,17 +32,16 @@ main(int argc, char **argv) {
 
   AIR_UNUSED(argc);
   AIR_UNUSED(argv);
-  nrrdAlloc_va(nval=nrrdNew(), nrrdTypeDouble, 1,
-               AIR_CAST(size_t, BINS*BINS));
+  nrrdAlloc_va(nval = nrrdNew(), nrrdTypeDouble, 1, AIR_SIZE_T(BINS * BINS));
   val = (double *)nval->data;
 
   airSrandMT((int)airTime());
-  for (i=0; i<BINS*BINS; i++) {
+  for (i = 0; i < BINS * BINS; i++) {
     val[i] = airDrandMT();
   }
 
-  nrrdHisto(nhist=nrrdNew(), nval, NULL, NULL, BINS, nrrdTypeInt);
-  nrrdHistoDraw(npgm=nrrdNew(), nhist, HGHT, AIR_FALSE, 0.0);
+  nrrdHisto(nhist = nrrdNew(), nval, NULL, NULL, BINS, nrrdTypeInt);
+  nrrdHistoDraw(npgm = nrrdNew(), nhist, HGHT, AIR_FALSE, 0.0);
   nrrdSave("hist.pgm", npgm, NULL);
 
   nrrdNuke(nval);

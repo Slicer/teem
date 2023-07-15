@@ -778,7 +778,7 @@ nrrdCropAuto(Nrrd *nout, const Nrrd *nin, size_t _min[NRRD_DIM_MAX],
     */
     /* adjust based on offset */
     if (offset > 0) {
-      if (min[axi] < AIR_CAST(size_t, offset)) {
+      if (min[axi] < AIR_SIZE_T(offset)) {
         /* desired outwards offset is more than cropping set */
         min[axi] = 0;
       } else {

@@ -21,8 +21,8 @@
 
 #include "../nrrd.h"
 
-#define NRRDNEW(X)                                              \
-  (X) = nrrdNew();                                              \
+#define NRRDNEW(X)                                                                      \
+  (X) = nrrdNew();                                                                      \
   airMopAdd(mop, (X), (airMopper)nrrdNuke, airMopAlways)
 
 const char *phrndInfo = ("randomizes phase of a real-valued array "
@@ -38,21 +38,21 @@ main(int argc, const char *argv[]) {
   int rigor;
   char *err, *outS, *imagOutS, *wispath, *seedS;
   Nrrd *ntmp, *ntmp2, /* tmp */
-    *njarg[2], /* arguments to join */
-    *nrin,   /* given real-valued input */
-    *nrdin,  /* given real-valued input, as double */
-    *ncin,   /* (padded) complex-valued input */
-    *ncfin,  /* complex-valued transform of input */
-    *nR,     /* real part of something */
-    *nI,     /* imag part of something */
-    *nP,     /* phase */
-    *nM,     /* mag */
-    *nlut,   /* phase look-up table */
-    *ncfout, /* complex-valued transform of output */
-    *ncdout,  /* double complex-valued output */
-    *ncout,  /* complex-valued output, as input type */
-    *niout,  /* imaginary output */
-    *nrout;  /* real output */
+    *njarg[2],        /* arguments to join */
+    *nrin,            /* given real-valued input */
+    *nrdin,           /* given real-valued input, as double */
+    *ncin,            /* (padded) complex-valued input */
+    *ncfin,           /* complex-valued transform of input */
+    *nR,              /* real part of something */
+    *nI,              /* imag part of something */
+    *nP,              /* phase */
+    *nM,              /* mag */
+    *nlut,            /* phase look-up table */
+    *ncfout,          /* complex-valued transform of output */
+    *ncdout,          /* double complex-valued output */
+    *ncout,           /* complex-valued output, as input type */
+    *niout,           /* imaginary output */
+    *nrout;           /* real output */
   double howrand, *lut, *P;
   unsigned int len, axi, seed;
   size_t II, NN, minInset[NRRD_DIM_MAX];
@@ -65,8 +65,8 @@ main(int argc, const char *argv[]) {
   hparm = hestParmNew();
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nrin, NULL,
-             "input array", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nrin, NULL, "input array", NULL,
+             NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "n", "len", airTypeUInt, 1, 1, &len, "65536",
              "length (must be EVEN) of phase look-up table, used "
              "enable being dumb (rather than clever) in asserting "
@@ -99,8 +99,8 @@ main(int argc, const char *argv[]) {
              "permit confirming that it doesn't carry significant info");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, NULL,
              "file to write output nrrd to");
-  hestParseOrDie(hopt, argc-1, argv+1, hparm,
-                 me, phrndInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, phrndInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -121,7 +121,7 @@ main(int argc, const char *argv[]) {
     /* got no request for specific seed */
     airSrandMT(AIR_UINT(airTime()));
   }
-  for (axi=0; axi<NRRD_DIM_MAX; axi++) {
+  for (axi = 0; axi < NRRD_DIM_MAX; axi++) {
     minInset[axi] = 0;
   }
   /* pointless to set content */
@@ -130,15 +130,14 @@ main(int argc, const char *argv[]) {
   /* ============== pad real input nrin to complex-valued input ncin */
   minPad[0] = 0;
   maxPad[0] = 1;
-  for (axi=0; axi<nrin->dim; axi++) {
-    minPad[axi+1] = 0;
-    maxPad[axi+1] = AIR_CAST(ptrdiff_t, nrin->axis[axi].size-1);
+  for (axi = 0; axi < nrin->dim; axi++) {
+    minPad[axi + 1] = 0;
+    maxPad[axi + 1] = AIR_CAST(ptrdiff_t, nrin->axis[axi].size - 1);
   }
   NRRDNEW(nrdin);
   NRRDNEW(ntmp);
   NRRDNEW(ncin);
-  if (nrrdConvert(nrdin, nrin, nrrdTypeDouble)
-      || nrrdAxesInsert(ntmp, nrdin, 0)
+  if (nrrdConvert(nrdin, nrin, nrrdTypeDouble) || nrrdAxesInsert(ntmp, nrdin, 0)
       || nrrdPad_nva(ncin, ntmp, minPad, maxPad, nrrdBoundaryPad, 0.0)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error creating complex input:\n%s", me, err);
@@ -158,14 +157,16 @@ main(int argc, const char *argv[]) {
       }
       fclose(fwise);
     } else {
-      fprintf(stderr, "%s: (\"%s\" couldn't be opened, will try to save "
-              "wisdom afterwards)", me, wispath);
+      fprintf(stderr,
+              "%s: (\"%s\" couldn't be opened, will try to save "
+              "wisdom afterwards)",
+              me, wispath);
     }
   }
 
   /* ============== transform input to phase and magnitude */
-  for (axi=0; axi<nrin->dim; axi++) {
-    axes[axi] = axi+1;
+  for (axi = 0; axi < nrin->dim; axi++) {
+    axes[axi] = axi + 1;
   }
   NRRDNEW(ncfin);
   NRRDNEW(nR);
@@ -173,8 +174,7 @@ main(int argc, const char *argv[]) {
   NRRDNEW(nP);
   NRRDNEW(nM);
   if (nrrdFFT(ncfin, ncin, axes, nrin->dim, +1, AIR_TRUE, rigor)
-      || nrrdSlice(nR, ncfin, 0, 0)
-      || nrrdSlice(nI, ncfin, 0, 1)
+      || nrrdSlice(nR, ncfin, 0, 0) || nrrdSlice(nI, ncfin, 0, 1)
       || nrrdArithBinaryOp(nP, nrrdBinaryOpAtan2, nI, nR)
       || nrrdProject(nM, ncfin, 0, nrrdMeasureL2, nrrdTypeDefault)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
@@ -185,24 +185,24 @@ main(int argc, const char *argv[]) {
 
   /* ============== randomize phase */
   NRRDNEW(nlut);
-  if (nrrdMaybeAlloc_va(nlut, nrrdTypeDouble, 1, AIR_CAST(size_t, len))) {
+  if (nrrdMaybeAlloc_va(nlut, nrrdTypeDouble, 1, AIR_SIZE_T(len))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error making lut:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
   lut = AIR_CAST(double *, nlut->data);
-  for (II=0; II<len; II++) {
+  for (II = 0; II < len; II++) {
     /* random phase */
-    if (II < len/2) {
+    if (II < len / 2) {
       lut[II] = AIR_AFFINE(0, airDrandMT(), 1, -AIR_PI, AIR_PI);
     } else {
-      lut[II] = -lut[len-1-II];
+      lut[II] = -lut[len - 1 - II];
     }
   }
   NN = nrrdElementNumber(nP);
   P = AIR_CAST(double *, nP->data);
-  for (II=0; II<NN; II++) {
+  for (II = 0; II < NN; II++) {
     /* pp is the original input phase */
     double pp = P[II];
     /* pi is the index for the input phase */
@@ -225,10 +225,9 @@ main(int argc, const char *argv[]) {
       || nrrdArithBinaryOp(nR, nrrdBinaryOpMultiply, nR, nM)
       || nrrdArithUnaryOp(nI, nrrdUnaryOpSin, nP)
       || nrrdArithBinaryOp(nI, nrrdBinaryOpMultiply, nI, nM)
-      || nrrdJoin(ncfout, AIR_CAST(const Nrrd*const*, njarg), 2, 0, AIR_TRUE)
+      || nrrdJoin(ncfout, AIR_CAST(const Nrrd *const *, njarg), 2, 0, AIR_TRUE)
       || nrrdFFT(ncdout, ncfout, axes, nrin->dim, -1, AIR_TRUE, rigor)
-      || nrrdConvert(ntmp, ncdout, nrin->type)
-      || nrrdConvert(ntmp2, ncin, nrin->type)
+      || nrrdConvert(ntmp, ncdout, nrin->type) || nrrdConvert(ntmp2, ncin, nrin->type)
       || nrrdInset(ncout, ntmp2, ntmp, minInset)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error creating output\n%s", me, err);
@@ -254,8 +253,8 @@ main(int argc, const char *argv[]) {
   /* ============== DONE. saving things to save */
   if (airStrlen(wispath) && nrrdFFTWEnabled) {
     if (!(fwise = fopen(wispath, "w"))) {
-      fprintf(stderr, "%s: couldn't open %s for writing: %s\n",
-              me, wispath, strerror(errno));
+      fprintf(stderr, "%s: couldn't open %s for writing: %s\n", me, wispath,
+              strerror(errno));
       airMopError(mop);
       return 1;
     }
@@ -269,22 +268,19 @@ main(int argc, const char *argv[]) {
   }
   if (airStrlen(imagOutS)) {
     NRRDNEW(niout);
-    if (nrrdSlice(niout, ncout, 0, 1)
-        || nrrdSave(imagOutS, niout, NULL)) {
+    if (nrrdSlice(niout, ncout, 0, 1) || nrrdSave(imagOutS, niout, NULL)) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: error slicing/saving imaginary output:\n%s",
-              me, err);
+      fprintf(stderr, "%s: error slicing/saving imaginary output:\n%s", me, err);
       airMopError(mop);
       return 1;
     }
   }
   NRRDNEW(nrout);
-  if (nrrdSlice(nrout, ncout, 0, 0)
-      || nrrdSave(outS, nrout, NULL)) {
+  if (nrrdSlice(nrout, ncout, 0, 0) || nrrdSave(outS, nrout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: problem slicing/saving real output:\n%s\n",
-            me, err);
-    airMopError(mop); return 1;
+    fprintf(stderr, "%s: problem slicing/saving real output:\n%s\n", me, err);
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

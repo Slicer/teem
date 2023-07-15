@@ -163,8 +163,8 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
         goto plain;
       }
       /* else this PNM comment is trying to tell us something */
-      nio->pos = AIR_CAST(int, strlen(NRRD_PNM_COMMENT));
-      nio->pos += AIR_CAST(int, strspn(nio->line + nio->pos, _nrrdFieldSep));
+      nio->pos = AIR_INT(strlen(NRRD_PNM_COMMENT));
+      nio->pos += AIR_INT(strspn(nio->line + nio->pos, _nrrdFieldSep));
       ret = _nrrdReadNrrdParseField(nio, AIR_FALSE);
       if (!ret) {
         if (1 <= nrrdStateVerboseIO) {
@@ -249,11 +249,10 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
 
   /* we know what we need in order to set nrrd fields and read data */
   if (color) {
-    nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoSize, AIR_CAST(size_t, 3), AIR_CAST(size_t, sx),
-                       AIR_CAST(size_t, sy));
+    nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoSize, AIR_SIZE_T(3), AIR_SIZE_T(sx),
+                       AIR_SIZE_T(sy));
   } else {
-    nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoSize, AIR_CAST(size_t, sx),
-                       AIR_CAST(size_t, sy));
+    nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoSize, AIR_SIZE_T(sx), AIR_SIZE_T(sy));
   }
   if (!nio->skipData) {
     if (_nrrdCalloc(nrrd, nio, file)) {

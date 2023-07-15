@@ -293,7 +293,7 @@ nrrdHistoDraw(Nrrd *nout, const Nrrd *nin, size_t sy, int showLog, double max) {
   if (!E) E |= nrrdCommentAdd(nout, cmt);
   sprintf(cmt, "max hits: %g, in bin %s, around value %g\n", maxhits,
           airSprintSize_t(stmp, maxhitidx),
-          nrrdAxisInfoPos(nout, 0, AIR_CAST(double, maxhitidx)));
+          nrrdAxisInfoPos(nout, 0, AIR_DOUBLE(maxhitidx)));
   if (!E) E |= nrrdCommentAdd(nout, cmt);
   if (!E) E |= nrrdContentSet_va(nout, func, nin, "%s", airSprintSize_t(stmp, sy));
   if (E) {
@@ -600,9 +600,8 @@ nrrdHistoJoint(Nrrd *nout, const Nrrd *const *nin, const NrrdRange *const *_rang
           break;
         }
       }
-      coord[ai] = AIR_CAST(size_t,
-                           airIndexClampULL(range[ai]->min, val, range[ai]->max,
-                                            bins[ai]));
+      coord[ai] = AIR_SIZE_T(airIndexClampULL(range[ai]->min, val, range[ai]->max,
+                                              bins[ai]));
     }
     if (skip) {
       continue;

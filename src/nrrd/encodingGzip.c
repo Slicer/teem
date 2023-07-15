@@ -127,10 +127,10 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum, Nrrd *nrrd,
     }
     /* backwards is (positive) number of bytes AFTER data that we ignore */
     backwards = -nio->byteSkip - 1;
-    if (sizeRed < sizeData + AIR_CAST(size_t, backwards)) {
+    if (sizeRed < sizeData + AIR_SIZE_T(backwards)) {
       char stmp[2][AIR_STRLEN_SMALL + 1];
       biffAddf(NRRD, "%s: expected %s bytes but received only %s", me,
-               airSprintSize_t(stmp[0], sizeData + AIR_CAST(size_t, backwards)),
+               airSprintSize_t(stmp[0], sizeData + AIR_SIZE_T(backwards)),
                airSprintSize_t(stmp[1], sizeRed));
       return 1;
     }

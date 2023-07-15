@@ -119,7 +119,7 @@ resampleContextInit(NrrdResampleContext *rsmc) {
       axis->axIdx = axIdx; /* never changes */
       axis->passIdx = AIR_UINT(-1);
       for (axJdx = 0; axJdx < NRRD_DIM_MAX; axJdx++) {
-        axis->sizePerm[axJdx] = AIR_CAST(size_t, -1);
+        axis->sizePerm[axJdx] = AIR_SIZE_T(-1);
         axis->axisPerm[axJdx] = AIR_UINT(-1);
       }
       axis->ratio = AIR_NAN;
@@ -598,7 +598,7 @@ _nrrdResampleLineAllocateUpdate(NrrdResampleContext *rsmc) {
         nrrdEmpty(axis->nline);
       } else {
         if (nrrdMaybeAlloc_va(axis->nline, nrrdResample_nt, 1,
-                              AIR_CAST(size_t, 1 + axis->sizeIn))) {
+                              AIR_SIZE_T(1 + axis->sizeIn))) {
           biffAddf(NRRD, "%s: couldn't allocate scanline buffer", me);
           return 1;
         }
@@ -662,10 +662,10 @@ _nrrdResampleVectorAllocateUpdate(NrrdResampleContext *rsmc) {
       /* some kernels can report zero support when they're basically
          delta functions */
       dotLen = AIR_MAX(2, dotLen);
-      if (nrrdMaybeAlloc_va(axis->nweight, nrrdResample_nt, 2, AIR_CAST(size_t, dotLen),
-                            AIR_CAST(size_t, axis->samples))
-          || nrrdMaybeAlloc_va(axis->nindex, nrrdTypeInt, 2, AIR_CAST(size_t, dotLen),
-                               AIR_CAST(size_t, axis->samples))) {
+      if (nrrdMaybeAlloc_va(axis->nweight, nrrdResample_nt, 2, AIR_SIZE_T(dotLen),
+                            AIR_SIZE_T(axis->samples))
+          || nrrdMaybeAlloc_va(axis->nindex, nrrdTypeInt, 2, AIR_SIZE_T(dotLen),
+                               AIR_SIZE_T(axis->samples))) {
         biffAddf(NRRD, "%s: trouble allocating index and weighting vectors", me);
         return 1;
       }
