@@ -37,10 +37,9 @@ limnPu_measMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   Nrrd *nout;
   char *out;
 
-  hestOptAdd(&hopt, NULL, "input", airTypeOther, 1, 1, &pld, NULL,
-             "input polydata filename", NULL, NULL, limnHestPolyDataLMPD);
-  hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
-             "output nrrd filename");
+  hestOptAdd_1_Other(&hopt, NULL, "input", &pld, NULL, "input polydata filename",
+                     limnHestPolyDataLMPD);
+  hestOptAdd_1_String(&hopt, NULL, "output", &out, NULL, "output nrrd filename");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
