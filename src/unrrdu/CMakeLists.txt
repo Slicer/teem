@@ -15,6 +15,7 @@ set(UNRRDU_SOURCES
   axinsert.c
   axmerge.c
   axsplit.c
+  block.c
   ccadj.c
   ccfind.c
   ccmerge.c
@@ -77,10 +78,8 @@ set(UNRRDU_SOURCES
   unquantize.c
   unrrdu.h
   untile.c
-  )
-# no longer used:
-#  block.c
-#  unblock.c
+  unblock.c
+)
 
 target_sources(teem PRIVATE ${UNRRDU_SOURCES})
 # This will group all the source files in the VS project by directory

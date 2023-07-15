@@ -68,4 +68,4 @@ unrrdu_unblockMain(int argc, const char **argv, const char *me, hestParm *hparm)
   return 0;
 }
 
-UNRRDU_CMD(unblock, INFO);
+UNRRDU_CMD_HIDE(unblock, INFO);
