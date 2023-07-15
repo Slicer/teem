@@ -39,16 +39,14 @@ limnPu_rastMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int type;
   size_t size[NRRD_DIM_MAX];
 
-  hestOptAdd(&hopt, "min", "min", airTypeDouble, 3, 3, min, NULL, "bottom corner");
-  hestOptAdd(&hopt, "max", "max", airTypeDouble, 3, 3, max, NULL, "top corner");
-  hestOptAdd(&hopt, "s", "size", airTypeSize_t, 3, 3, size, NULL,
-             "number of samples along each axis");
-  hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &type, "uchar",
-             "type of output nrrd", NULL, nrrdType);
-  hestOptAdd(&hopt, NULL, "input", airTypeOther, 1, 1, &pld, NULL,
-             "input polydata filename", NULL, NULL, limnHestPolyDataLMPD);
-  hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
-             "output nrrd filename");
+  hestOptAdd_3_Double(&hopt, "min", "min", min, NULL, "bottom corner");
+  hestOptAdd_3_Double(&hopt, "max", "max", max, NULL, "top corner");
+  hestOptAdd_3_Size_t(&hopt, "s", "size", size, NULL,
+                      "number of samples along each axis");
+  hestOptAdd_1_Enum(&hopt, "t", "type", &type, "uchar", "type of output nrrd", nrrdType);
+  hestOptAdd_1_Other(&hopt, NULL, "input", &pld, NULL, "input polydata filename",
+                     limnHestPolyDataLMPD);
+  hestOptAdd_1_String(&hopt, NULL, "output", &out, NULL, "output nrrd filename");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

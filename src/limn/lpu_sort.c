@@ -36,12 +36,11 @@ limnPu_sortMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   Nrrd *nin;
   char *out;
 
-  hestOptAdd(&hopt, NULL, "input lpld", airTypeOther, 1, 1, &pld, NULL,
-             "input polydata filename", NULL, NULL, limnHestPolyDataLMPD);
-  hestOptAdd(&hopt, NULL, "input nrrd", airTypeOther, 1, 1, &nin, NULL,
-             "input nrrd filename", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
-             "output lpld filename");
+  hestOptAdd_1_Other(&hopt, NULL, "input lpld", &pld, NULL, "input polydata filename",
+                     limnHestPolyDataLMPD);
+  hestOptAdd_1_Other(&hopt, NULL, "input nrrd", &nin, NULL, "input nrrd filename",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, NULL, "output", &out, NULL, "output lpld filename");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

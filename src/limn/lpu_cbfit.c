@@ -42,44 +42,39 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   limnCBFContext fctx;
   limnCBFPath *path;
 
-  hestOptAdd(&hopt, "i", "input", airTypeOther, 1, 1, &_nin, NULL, "input xy points",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "1", "verbosity level");
-  hestOptAdd(&hopt, "s", "synth", airTypeInt, 0, 0, &synth, NULL,
-             "synthesize xy points from control points");
-  hestOptAdd(&hopt, "so", "synth out", airTypeString, 1, 1, &synthOut, "",
-             "if non-empty, filename in which to save synthesized xy pts");
-  hestOptAdd(&hopt, "snf", NULL, airTypeInt, 0, 0, &nofit, NULL,
-             "actually do not fit, just save -so synthetic "
-             "output and quit");
-  hestOptAdd(&hopt, "t1", "tan", airTypeDouble, 2, 2, utt1, "nan nan",
-             "if non-nan, the outgoing tangent from the first point");
-  hestOptAdd(&hopt, "t2", "tan", airTypeDouble, 2, 2, utt2, "nan nan",
-             "if non-nan, the incoming tangent to the last point");
-  hestOptAdd(&hopt, "im", "max", airTypeUInt, 1, 1, &iterMax, "0",
-             "(if non-zero) max # nrp iterations to run");
-  hestOptAdd(&hopt, "deltam", "delta", airTypeDouble, 1, 1, &deltaMin, "0.0005",
-             "(if non-zero) stop nrp when change in spline "
-             "domain sampling goes below this");
-  hestOptAdd(&hopt, "distm", "dist", airTypeDouble, 1, 1, &distMin, "0.01",
-             "(if non-zero) stop nrp when distance between spline "
-             "and points goes below this");
-  hestOptAdd(&hopt, "dists", "scl", airTypeDouble, 1, 1, &distScl, "0.25",
-             "scaling on nrp distMin check");
-  hestOptAdd(&hopt, "psi", "psi", airTypeDouble, 1, 1, &psi, "10", "psi, of course");
-  hestOptAdd(&hopt, "ca", "angle", airTypeDouble, 1, 1, &cangle, "100",
-             "angle indicating a corner");
-  hestOptAdd(&hopt, "scl", "scale", airTypeDouble, 1, 1, &scale, "0",
-             "scale for geometry estimation");
-  hestOptAdd(&hopt, "loop", NULL, airTypeInt, 0, 0, &loop, NULL,
-             "given xy points are actually a loop; BUT "
-             "the first and last points need to be the same!");
-  hestOptAdd(&hopt, "petc", NULL, airTypeInt, 0, 0, &petc, NULL,
-             "(Press Enter To Continue) ");
+  hestOptAdd_1_Other(&hopt, "i", "input", &_nin, NULL, "input xy points", nrrdHestNrrd);
+  hestOptAdd_1_Int(&hopt, "v", "verbose", &verbose, "1", "verbosity level");
+  hestOptAdd_Flag(&hopt, "s", &synth, "synthesize xy points from control points");
+  hestOptAdd_1_String(&hopt, "so", "synth out", &synthOut, "",
+                      "if non-empty, filename in which to save synthesized xy pts");
+  hestOptAdd_Flag(&hopt, "snf", &nofit,
+                  "actually do not fit, just save -so synthetic "
+                  "output and quit");
+  hestOptAdd_2_Double(&hopt, "t1", "tan", utt1, "nan nan",
+                      "if non-nan, the outgoing tangent from the first point");
+  hestOptAdd_2_Double(&hopt, "t2", "tan", utt2, "nan nan",
+                      "if non-nan, the incoming tangent to the last point");
+  hestOptAdd_1_UInt(&hopt, "im", "max", &iterMax, "0",
+                    "(if non-zero) max # nrp iterations to run");
+  hestOptAdd_1_Double(&hopt, "deltam", "delta", &deltaMin, "0.0005",
+                      "(if non-zero) stop nrp when change in spline "
+                      "domain sampling goes below this");
+  hestOptAdd_1_Double(&hopt, "distm", "dist", &distMin, "0.01",
+                      "(if non-zero) stop nrp when distance between spline "
+                      "and points goes below this");
+  hestOptAdd_1_Double(&hopt, "dists", "scl", &distScl, "0.25",
+                      "scaling on nrp distMin check");
+  hestOptAdd_1_Double(&hopt, "psi", "psi", &psi, "10", "psi, of course");
+  hestOptAdd_1_Double(&hopt, "ca", "angle", &cangle, "100", "angle indicating a corner");
+  hestOptAdd_1_Double(&hopt, "scl", "scale", &scale, "0",
+                      "scale for geometry estimation");
+  hestOptAdd_Flag(&hopt, "loop", &loop,
+                  "given xy points are actually a loop; BUT "
+                  "the first and last points need to be the same!");
+  hestOptAdd_Flag(&hopt, "petc", &petc, "(Press Enter To Continue) ");
   /*
-  hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
-             "output nrrd filename");
-  */
+  hestOptAdd_1_String(&hopt, NULL, "output", &out, NULL, "output nrrd filename");
+   */
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);

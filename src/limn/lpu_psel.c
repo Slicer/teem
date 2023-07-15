@@ -40,12 +40,11 @@ limnPu_pselMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *out;
   size_t size[NRRD_DIM_MAX];
 
-  hestOptAdd(&hopt, "r", "range", airTypeUInt, 2, 2, prange, NULL,
-             "range of indices of primitives to select");
-  hestOptAdd(&hopt, NULL, "input", airTypeOther, 1, 1, &pldIn, NULL,
-             "input polydata filename", NULL, NULL, limnHestPolyDataLMPD);
-  hestOptAdd(&hopt, NULL, "output", airTypeString, 1, 1, &out, NULL,
-             "output polydata filename");
+  hestOptAdd_2_UInt(&hopt, "r", "range", prange, NULL,
+                    "range of indices of primitives to select");
+  hestOptAdd_1_Other(&hopt, NULL, "input", &pldIn, NULL, "input polydata filename",
+                     limnHestPolyDataLMPD);
+  hestOptAdd_1_String(&hopt, NULL, "output", &out, NULL, "output polydata filename");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
