@@ -335,10 +335,10 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "%s: PANIC nsi %u != %u", me, nsi, NON_SBP_OPT_NUM);
     exit(1);
   }
-  hestOptAdd(&hopt, "sbp", "blur spec", airTypeOther, 1, 1, &sbpCL, "",
-             "complete specification of stack blur parms; "
-             "over-rides all previous \"ss\" options",
-             NULL, NULL, gageHestStackBlurParm);
+  hestOptAdd_1_Other(&hopt, "sbp", "blur spec", &sbpCL, "",
+                     "complete specification of stack blur parms; "
+                     "over-rides all previous \"ss\" options",
+                     gageHestStackBlurParm);
   /* These two options are needed even if sbp is used, because they are *not*
      part of the gageStackBlurParm.  In meet, this info is handled by the
      extraFlag/extraParm construct, which is not available here */
