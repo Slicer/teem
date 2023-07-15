@@ -189,8 +189,8 @@ tend_glyphMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                      "for superquadric glyphs, how much to sharp edges form as a "
                      "function of differences between eigenvalues.  Higher values "
                      "mean that edges form more easily");
-  hestOptAdd(&hopt, "gsc", "scale", airTypeFloat, 1, 1, &(gparm->glyphScale), "0.01",
-             "over-all glyph size in world-space");
+  hestOptAdd_1_Float(&hopt, "gsc", "scale", &(gparm->glyphScale), "0.01",
+                     "over-all glyph size in world-space");
 
   /* how glyphs will be colored */
   hestOptAdd_1_Int(&hopt, "c", "evector #", &(gparm->colEvec), "0",
