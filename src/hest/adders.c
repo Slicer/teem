@@ -85,7 +85,7 @@ enum values, the airFP_* enum values, and nrrdWrap_nva, nrrdAlloc_nva ... (and t
 snake_case ell and tijk libraries). The "hestOptAdd" prefix needs to stay the same (we're
 not going to have both hestOptAdd() and hest_opt_add_*() in one library, when other
 necessary functions like hestOptFree() are not going to change. So then the question is:
-which is more reader-friendly: hestOptAddNvUInt or hestOpt_Nv_UInt?  Obviously the
+which is more reader-friendly: hestOptAddNvUInt or hestOptAdd_Nv_UInt?  Obviously the
 second, and that matters more that superficial consistency.
 */
 
