@@ -36,17 +36,16 @@ baneGkms_miteMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   airArray *mop;
   int pret, E;
 
-  hestOptAdd(&opt, "i", "opacIn", airTypeOther, 1, 1, &nin, NULL,
-             "input opacity function (1 or 2 dimensional), from "
-             "\"gkms opac\"",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "o", "opacOut", airTypeString, 1, 1, &out, NULL,
-             "output opacity function filename");
+  hestOptAdd_1_Other(&opt, "i", "opacIn", &nin, NULL,
+                     "input opacity function (1 or 2 dimensional), from "
+                     "\"gkms opac\"",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&opt, "o", "opacOut", &out, NULL,
+                      "output opacity function filename");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_baneGkms_miteInfoL);
-  PARSE();
+  USAGE_PARSE(_baneGkms_miteInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (1 == nin->axis[0].size && nin->axis[0].label && !strcmp("A", nin->axis[0].label)) {

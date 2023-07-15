@@ -36,48 +36,47 @@ baneGkms_opacMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   int pret, radius, idim;
   float sigma, gthrInfo[2], gthresh;
 
-  hestOptAdd(&opt, "b", "bef", airTypeOther, 1, 1, &nbef, "1,1,0,1",
-             "boundary emphasis function mapping from \"position\" to "
-             "opacity. Can be either:\n "
-             "\b\bo filename of nrrd suitable for \"unu imap\", or:\n "
-             "\b\bo comma-separated list of four floats, with no spaces: "
-             "\"s,w,c,a\", where\n "
-             "s = shape of function, between 0.0 for box and "
-             "1.0 for tent\n "
-             "w = full-width half-max of function support\n "
-             "c = where to center function support\n "
-             "a = maximum opacity\n "
-             "If all goes well, the units for \"w\" and \"c\" are voxels.",
-             NULL, NULL, baneGkmsHestBEF);
-  hestOptAdd(&opt, "s", "sigma", airTypeFloat, 1, 1, &sigma, "nan",
-             "scaling in position calculation, accounts for thickness "
-             "of transition region between materials. Lower sigmas lead to "
-             "wider peaks in opacity function. "
-             "Calculated automatically by default.");
-  hestOptAdd(&opt, "g", "gthresh", airTypeOther, 1, 1, gthrInfo, "x0.04",
-             "minimum significant gradient magnitude.  Can be given "
-             "in two different ways:\n "
-             "\b\bo \"<float>\": specify gthresh as <float> exactly.\n "
-             "\b\bo \"x<float>\": gthresh is a scaling, by <float>, of "
-             "the maximum gradient magnitude in the info file.",
-             NULL, NULL, baneGkmsHestGthresh);
-  hestOptAdd(&opt, "r", "radius", airTypeInt, 1, 1, &radius, "0",
-             "radius of median filtering to apply to opacity function, "
-             "use \"0\" to signify no median filtering");
-  hestOptAdd(&opt, "m", "befOut", airTypeString, 1, 1, &befS, "",
-             "if boundary emphasis function given via \"-b\" "
-             "is in the \"s,w,c,a\" form, then save out the "
-             "corresponding nrrd to <befOut>, suitable for use in this "
-             "command or \"unu imap\"");
-  hestOptAdd(&opt, "i", "infoIn", airTypeOther, 1, 1, &ninfo, NULL,
-             "input info file (from \"gkms info\")", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "o", "opacOut", airTypeString, 1, 1, &outS, NULL,
-             "output 1D or 2D opacity function");
+  hestOptAdd_1_Other(&opt, "b", "bef", &nbef, "1,1,0,1",
+                     "boundary emphasis function mapping from \"position\" to "
+                     "opacity. Can be either:\n "
+                     "\b\bo filename of nrrd suitable for \"unu imap\", or:\n "
+                     "\b\bo comma-separated list of four floats, with no spaces: "
+                     "\"s,w,c,a\", where\n "
+                     "s = shape of function, between 0.0 for box and "
+                     "1.0 for tent\n "
+                     "w = full-width half-max of function support\n "
+                     "c = where to center function support\n "
+                     "a = maximum opacity\n "
+                     "If all goes well, the units for \"w\" and \"c\" are voxels.",
+                     baneGkmsHestBEF);
+  hestOptAdd_1_Float(&opt, "s", "sigma", &sigma, "nan",
+                     "scaling in position calculation, accounts for thickness "
+                     "of transition region between materials. Lower sigmas lead to "
+                     "wider peaks in opacity function. "
+                     "Calculated automatically by default.");
+  hestOptAdd_1_Other(&opt, "g", "gthresh", gthrInfo, "x0.04",
+                     "minimum significant gradient magnitude.  Can be given "
+                     "in two different ways:\n "
+                     "\b\bo \"<float>\": specify gthresh as <float> exactly.\n "
+                     "\b\bo \"x<float>\": gthresh is a scaling, by <float>, of "
+                     "the maximum gradient magnitude in the info file.",
+                     baneGkmsHestGthresh);
+  hestOptAdd_1_Int(&opt, "r", "radius", &radius, "0",
+                   "radius of median filtering to apply to opacity function, "
+                   "use \"0\" to signify no median filtering");
+  hestOptAdd_1_String(&opt, "m", "befOut", &befS, "",
+                      "if boundary emphasis function given via \"-b\" "
+                      "is in the \"s,w,c,a\" form, then save out the "
+                      "corresponding nrrd to <befOut>, suitable for use in this "
+                      "command or \"unu imap\"");
+  hestOptAdd_1_Other(&opt, "i", "infoIn", &ninfo, NULL,
+                     "input info file (from \"gkms info\")", nrrdHestNrrd);
+  hestOptAdd_1_String(&opt, "o", "opacOut", &outS, NULL,
+                      "output 1D or 2D opacity function");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_baneGkms_opacInfoL);
-  PARSE();
+  USAGE_PARSE(_baneGkms_opacInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
   airMopAdd(mop, nmax = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, npos = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
