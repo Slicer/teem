@@ -47,71 +47,69 @@ tend_fiberMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   tenFiberMulti *tfml;
   limnPolyData *fiberPld;
 
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-", "input volume", NULL,
-             NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "dwi", NULL, airTypeInt, 0, 0, &useDwi, NULL,
-             "input volume is a DWI volume, not a single tensor volume");
-  hestOptAdd(&hopt, "s", "seed point", airTypeDouble, 3, 3, start, "0 0 0",
-             "seed point for fiber; it will propogate in two opposite "
-             "directions starting from here");
-  hestOptAdd(&hopt, "ns", "seed nrrd", airTypeOther, 1, 1, &nseed, "",
-             "3-by-N nrrd of seedpoints", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "wsp", NULL, airTypeInt, 0, 0, &worldSpace, NULL,
-             "define seedpoint and output path in worldspace.  Otherwise, "
-             "(without using this option) everything is in index space");
-  hestOptAdd(&hopt, "t", "type", airTypeString, 1, 1, &ftypeS, "",
-             "fiber type; defaults to something");
-  hestOptAdd(&hopt, "n", "intg", airTypeEnum, 1, 1, &intg, "rk4",
-             "integration method for fiber tracking", NULL, tenFiberIntg);
-  hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp, "tent",
-             "kernel for reconstructing tensor field", NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "wp", "which", airTypeUInt, 1, 1, &whichPath, "0",
-             "when doing multi-tensor tracking, index of path to follow "
-             "(made moot by \"-ap\")");
-  hestOptAdd(&hopt, "ap", "allpaths", airTypeInt, 0, 0, &allPaths, NULL,
-             "follow all paths from (all) seedpoint(s), output will be "
-             "polydata, rather than a single 3-by-N nrrd, even if only "
-             "a single path is generated");
-  hestOptAdd(&hopt, "wspo", NULL, airTypeInt, 0, 0, &worldSpaceOut, NULL,
-             "output should be in worldspace, even if input is not "
-             "(this feature is unstable and/or confusing)");
-  hestOptAdd(&hopt, "step", "step size", airTypeDouble, 1, 1, &step, "0.01",
-             "stepsize along fiber, in world space");
-  hestOptAdd(&hopt, "stop", "stop1", airTypeOther, 1, -1, &_stop, NULL,
-             "the conditions that should signify the end of a fiber, or "
-             "when to discard a fiber that is done propagating. "
-             "Multiple stopping criteria are logically OR-ed and tested at "
-             "every point along the fiber.  Possibilities include:\n "
-             "\b\bo \"aniso:<type>,<thresh>\": require anisotropy to be "
-             "above the given threshold.  Which anisotropy type is given "
-             "as with \"tend anvol\" (see its usage info)\n "
-             "\b\bo \"len:<length>\": limits the length, in world space, "
-             "of each fiber half\n "
-             "\b\bo \"steps:<N>\": the number of steps in each fiber half "
-             "is capped at N\n "
-             "\b\bo \"conf:<thresh>\": requires the tensor confidence value "
-             "to be above the given thresh\n "
-             "\b\bo \"radius:<thresh>\": requires that the radius of "
-             "curvature of the fiber stay above given thr\n "
-             "\b\bo \"frac:<F>\": in multi-tensor tracking, the fraction "
-             "of the tracked component must stay above F\n "
-             "\b\bo \"minlen:<len>\": discard fiber if its final whole "
-             "length is below len (not really a termination criterion)\n "
-             "\b\bo \"minsteps:<N>\": discard fiber if its final number of "
-             "steps is below N (not really a termination criterion)",
-             &stopLen, NULL, tendFiberStopCB);
-  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0", "verbosity level");
-  hestOptAdd(&hopt, "nmat", "transform", airTypeOther, 1, 1, &_nmat, "",
-             "a 4x4 homogenous transform matrix (as a nrrd, or just a text "
-             "file) given with this option will be applied to the output "
-             "tractography vertices just prior to output",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "out", airTypeString, 1, 1, &outS, "-", "output fiber(s)");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input volume", nrrdHestNrrd);
+  hestOptAdd_Flag(&hopt, "dwi", &useDwi,
+                  "input volume is a DWI volume, not a single tensor volume");
+  hestOptAdd_3_Double(&hopt, "s", "seed point", start, "0 0 0",
+                      "seed point for fiber; it will propogate in two opposite "
+                      "directions starting from here");
+  hestOptAdd_1_Other(&hopt, "ns", "seed nrrd", &nseed, "", "3-by-N nrrd of seedpoints",
+                     nrrdHestNrrd);
+  hestOptAdd_Flag(&hopt, "wsp", &worldSpace,
+                  "define seedpoint and output path in worldspace.  Otherwise, "
+                  "(without using this option) everything is in index space");
+  hestOptAdd_1_String(&hopt, "t", "type", &ftypeS, "",
+                      "fiber type; defaults to something");
+  hestOptAdd_1_Enum(&hopt, "n", "intg", &intg, "rk4",
+                    "integration method for fiber tracking", tenFiberIntg);
+  hestOptAdd_1_Other(&hopt, "k", "kernel", &ksp, "tent",
+                     "kernel for reconstructing tensor field", nrrdHestKernelSpec);
+  hestOptAdd_1_UInt(&hopt, "wp", "which", &whichPath, "0",
+                    "when doing multi-tensor tracking, index of path to follow "
+                    "(made moot by \"-ap\")");
+  hestOptAdd_Flag(&hopt, "ap", &allPaths,
+                  "follow all paths from (all) seedpoint(s), output will be "
+                  "polydata, rather than a single 3-by-N nrrd, even if only "
+                  "a single path is generated");
+  hestOptAdd_Flag(&hopt, "wspo", &worldSpaceOut,
+                  "output should be in worldspace, even if input is not "
+                  "(this feature is unstable and/or confusing)");
+  hestOptAdd_1_Double(&hopt, "step", "step size", &step, "0.01",
+                      "stepsize along fiber, in world space");
+  hestOptAdd_Nv_Other(&hopt, "stop", "stop1", 1, -1, &_stop, NULL,
+                      "the conditions that should signify the end of a fiber, or "
+                      "when to discard a fiber that is done propagating. "
+                      "Multiple stopping criteria are logically OR-ed and tested at "
+                      "every point along the fiber.  Possibilities include:\n "
+                      "\b\bo \"aniso:<type>,<thresh>\": require anisotropy to be "
+                      "above the given threshold.  Which anisotropy type is given "
+                      "as with \"tend anvol\" (see its usage info)\n "
+                      "\b\bo \"len:<length>\": limits the length, in world space, "
+                      "of each fiber half\n "
+                      "\b\bo \"steps:<N>\": the number of steps in each fiber half "
+                      "is capped at N\n "
+                      "\b\bo \"conf:<thresh>\": requires the tensor confidence value "
+                      "to be above the given thresh\n "
+                      "\b\bo \"radius:<thresh>\": requires that the radius of "
+                      "curvature of the fiber stay above given thr\n "
+                      "\b\bo \"frac:<F>\": in multi-tensor tracking, the fraction "
+                      "of the tracked component must stay above F\n "
+                      "\b\bo \"minlen:<len>\": discard fiber if its final whole "
+                      "length is below len (not really a termination criterion)\n "
+                      "\b\bo \"minsteps:<N>\": discard fiber if its final number of "
+                      "steps is below N (not really a termination criterion)",
+                      &stopLen, tendFiberStopCB);
+  hestOptAdd_1_Int(&hopt, "v", "verbose", &verbose, "0", "verbosity level");
+  hestOptAdd_1_Other(&hopt, "nmat", "transform", &_nmat, "",
+                     "a 4x4 homogenous transform matrix (as a nrrd, or just a text "
+                     "file) given with this option will be applied to the output "
+                     "tractography vertices just prior to output",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "out", &outS, "-", "output fiber(s)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_fiberInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_fiberInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   tfbs = tenFiberSingleNew();

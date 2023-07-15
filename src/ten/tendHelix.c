@@ -154,52 +154,52 @@ tend_helixMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int size[3], nit, verbose;
+  int nit, verbose;
+  unsigned int size[3];
   Nrrd *nout;
   double R, r, S, bnd, angle, ev[3], ip[3], iq[4], mp[3], mq[4], tmp[9], orig[3], i2w[9],
     rot[9], mf[9], spd[4][3], bge;
   char *outS;
 
-  hestOptAdd(&hopt, "s", "size", airTypeInt, 3, 3, size, NULL,
-             "sizes along fast, medium, and slow axes of the sampled volume, "
-             "often called \"X\", \"Y\", and \"Z\".  It is best to use "
-             "slightly different sizes here, to expose errors in interpreting "
-             "axis ordering (e.g. \"-s 39 40 41\")");
-  hestOptAdd(&hopt, "ip", "image orientation", airTypeDouble, 3, 3, ip, "0 0 0",
-             "quaternion quotient space orientation of image");
-  hestOptAdd(&hopt, "mp", "measurement orientation", airTypeDouble, 3, 3, mp, "0 0 0",
-             "quaternion quotient space orientation of measurement frame");
-  hestOptAdd(&hopt, "b", "boundary", airTypeDouble, 1, 1, &bnd, "10",
-             "parameter governing how fuzzy the boundary between high and "
-             "low anisotropy is. Use \"-b 0\" for no fuzziness");
-  hestOptAdd(&hopt, "r", "little radius", airTypeDouble, 1, 1, &r, "30",
-             "(minor) radius of cylinder tracing helix");
-  hestOptAdd(&hopt, "R", "big radius", airTypeDouble, 1, 1, &R, "50",
-             "(major) radius of helical turns");
-  hestOptAdd(&hopt, "S", "spacing", airTypeDouble, 1, 1, &S, "100",
-             "spacing between turns of helix (along its axis)");
-  hestOptAdd(&hopt, "a", "angle", airTypeDouble, 1, 1, &angle, "60",
-             "maximal angle of twist of tensors along path.  There is no "
-             "twist at helical core of path, and twist increases linearly "
-             "with radius around this path.  Positive twist angle with "
-             "positive spacing resulting in a right-handed twist around a "
-             "right-handed helix. ");
-  hestOptAdd(&hopt, "nit", NULL, airTypeInt, 0, 0, &nit, NULL,
-             "changes behavior of twist angle as function of distance from "
-             "center of helical core: instead of increasing linearly as "
-             "describe above, be at a constant angle");
-  hestOptAdd(&hopt, "ev", "eigenvalues", airTypeDouble, 3, 3, ev, "0.006 0.002 0.001",
-             "eigenvalues of tensors (in order) along direction of coil, "
-             "circumferential around coil, and radial around coil. ");
-  hestOptAdd(&hopt, "bg", "background", airTypeDouble, 1, 1, &bge, "0.5",
-             "eigenvalue of isotropic background");
-  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "1", "verbose output");
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-", "output file");
+  hestOptAdd_3_UInt(&hopt, "s", "size", size, NULL,
+                    "sizes along fast, medium, and slow axes of the sampled volume, "
+                    "often called \"X\", \"Y\", and \"Z\".  It is best to use "
+                    "slightly different sizes here, to expose errors in interpreting "
+                    "axis ordering (e.g. \"-s 39 40 41\")");
+  hestOptAdd_3_Double(&hopt, "ip", "image orientation", ip, "0 0 0",
+                      "quaternion quotient space orientation of image");
+  hestOptAdd_3_Double(&hopt, "mp", "measurement orientation", mp, "0 0 0",
+                      "quaternion quotient space orientation of measurement frame");
+  hestOptAdd_1_Double(&hopt, "b", "boundary", &bnd, "10",
+                      "parameter governing how fuzzy the boundary between high and "
+                      "low anisotropy is. Use \"-b 0\" for no fuzziness");
+  hestOptAdd_1_Double(&hopt, "r", "little radius", &r, "30",
+                      "(minor) radius of cylinder tracing helix");
+  hestOptAdd_1_Double(&hopt, "R", "big radius", &R, "50",
+                      "(major) radius of helical turns");
+  hestOptAdd_1_Double(&hopt, "S", "spacing", &S, "100",
+                      "spacing between turns of helix (along its axis)");
+  hestOptAdd_1_Double(&hopt, "a", "angle", &angle, "60",
+                      "maximal angle of twist of tensors along path.  There is no "
+                      "twist at helical core of path, and twist increases linearly "
+                      "with radius around this path.  Positive twist angle with "
+                      "positive spacing resulting in a right-handed twist around a "
+                      "right-handed helix. ");
+  hestOptAdd_Flag(&hopt, "nit", &nit,
+                  "changes behavior of twist angle as function of distance from "
+                  "center of helical core: instead of increasing linearly as "
+                  "describe above, be at a constant angle");
+  hestOptAdd_3_Double(&hopt, "ev", "eigenvalues", ev, "0.006 0.002 0.001",
+                      "eigenvalues of tensors (in order) along direction of coil, "
+                      "circumferential around coil, and radial around coil. ");
+  hestOptAdd_1_Double(&hopt, "bg", "background", &bge, "0.5",
+                      "eigenvalue of isotropic background");
+  hestOptAdd_1_Int(&hopt, "v", "verbose", &verbose, "1", "verbose output");
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output file");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_helixInfoL);
-  JUSTPARSE();
+  USAGE_JUSTPARSE(_tend_helixInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

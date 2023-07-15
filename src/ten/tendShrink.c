@@ -37,17 +37,17 @@ tend_shrinkMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
   char *outS;
 
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input diffusion tensor volume, with 9 matrix components "
-             "per sample",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
-             "output tensor volume, with the 7 values per sample");
+  hparm->noArgsIsNoProblem = AIR_TRUE;
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-",
+                     "input diffusion tensor volume, with 9 matrix components "
+                     "per sample",
+                     nrrdHestNrrdNoTTY);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-",
+                      "output tensor volume, with the 7 values per sample");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_shrinkInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_shrinkInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

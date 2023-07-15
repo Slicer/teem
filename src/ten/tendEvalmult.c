@@ -37,17 +37,15 @@ tend_evalmultMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   char *outS;
   float val;
 
-  hestOptAdd(&hopt, "v", "value", airTypeFloat, 1, 1, &val, NULL,
-             "Value to multiply eigenvalues by");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output image (floating point)");
+  hestOptAdd_1_Float(&hopt, "v", "value", &val, NULL,
+                     "Value to multiply eigenvalues by");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input diffusion tensor volume",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_evalmultInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_evalmultInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

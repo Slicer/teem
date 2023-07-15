@@ -38,16 +38,15 @@ tend_tconvMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
   char *outS;
 
-  hestOptAdd(&hopt, "t", "inType outType", airTypeEnum, 2, 2, ttype, NULL,
-             "given input and desired output type of triples", NULL, tenTripleType);
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-", "input array of triples",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-", "output array");
+  hestOptAdd_2_Enum(&hopt, "t", "inType outType", ttype, NULL,
+                    "given input and desired output type of triples", tenTripleType);
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input array of triples",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output array");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_tconvInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_tconvInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

@@ -45,31 +45,30 @@ tend_expandMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int orientRed, orientRedWithOrigin, mfRed;
   float scale, thresh;
 
-  hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
-             "confidence level to threshold output tensors at.  Should "
-             "be between 0.0 and 1.0.");
-  hestOptAdd(&hopt, "s", "scale", airTypeFloat, 1, 1, &scale, "1.0",
-             "how to scale values before saving as 9-value tensor.  Useful "
-             "for visualization tools which assume certain characteristic "
-             "ranges of eigenvalues");
-  hestOptAdd(&hopt, "unmf", NULL, airTypeInt, 0, 0, &mfRed, NULL,
-             "apply and remove the measurement frame, if it exists");
-  hestOptAdd(&hopt, "ro", NULL, airTypeInt, 0, 0, &orientRed, NULL,
-             "reduce general image orientation to axis-aligned spacings");
-  hestOptAdd(&hopt, "roo", NULL, airTypeInt, 0, 0, &orientRedWithOrigin, NULL,
-             "reduce general image orientation to axis-aligned spacings, "
-             "while also making some effort to set axis mins from "
-             "space origin");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input diffusion tensor volume, with 7 values per sample", NULL, NULL,
-             nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
-             "output tensor volume, with the 9 matrix components per sample");
+  hestOptAdd_1_Float(&hopt, "t", "thresh", &thresh, "0.5",
+                     "confidence level to threshold output tensors at.  Should "
+                     "be between 0.0 and 1.0.");
+  hestOptAdd_1_Float(&hopt, "s", "scale", &scale, "1.0",
+                     "how to scale values before saving as 9-value tensor.  Useful "
+                     "for visualization tools which assume certain characteristic "
+                     "ranges of eigenvalues");
+  hestOptAdd_Flag(&hopt, "unmf", &mfRed,
+                  "apply and remove the measurement frame, if it exists");
+  hestOptAdd_Flag(&hopt, "ro", &orientRed,
+                  "reduce general image orientation to axis-aligned spacings");
+  hestOptAdd_Flag(&hopt, "roo", &orientRedWithOrigin,
+                  "reduce general image orientation to axis-aligned spacings, "
+                  "while also making some effort to set axis mins from "
+                  "space origin");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-",
+                     "input diffusion tensor volume, with 7 values per sample",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, NULL,
+                      "output tensor volume, with the 9 matrix components per sample");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_expandInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_expandInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

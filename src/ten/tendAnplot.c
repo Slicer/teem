@@ -40,32 +40,30 @@ tend_anplotMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int res, aniso, whole, nanout, hflip;
+  int aniso, whole, nanout, hflip;
+  unsigned int res;
   Nrrd *nout;
   char *outS;
 
-  hestOptAdd(&hopt, "r", "res", airTypeInt, 1, 1, &res, "256",
-             "resolution of anisotropy plot");
-  hestOptAdd(&hopt, "w", NULL, airTypeInt, 0, 0, &whole, NULL,
-             "sample the whole triangle of constant trace, "
-             "instead of just the "
-             "sixth of it in which the eigenvalues have the "
-             "traditional sorted order. ");
-  hestOptAdd(&hopt, "hflip", NULL, airTypeInt, 0, 0, &hflip, NULL,
-             "flip the two bottom corners (swapping the place of "
-             "linear and planar)");
-  hestOptAdd(&hopt, "nan", NULL, airTypeInt, 0, 0, &nanout, NULL,
-             "set the pixel values outside the triangle to be NaN, "
-             "instead of 0");
-  hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, NULL,
-             "Which anisotropy metric to plot.  " TEN_ANISO_DESC, NULL, tenAniso);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output image (floating point)");
+  hestOptAdd_1_UInt(&hopt, "r", "res", &res, "256", "resolution of anisotropy plot");
+  hestOptAdd_Flag(&hopt, "w", &whole,
+                  "sample the whole triangle of constant trace, "
+                  "instead of just the "
+                  "sixth of it in which the eigenvalues have the "
+                  "traditional sorted order. ");
+  hestOptAdd_Flag(&hopt, "hflip", &hflip,
+                  "flip the two bottom corners (swapping the place of "
+                  "linear and planar)");
+  hestOptAdd_Flag(&hopt, "nan", &nanout,
+                  "set the pixel values outside the triangle to be NaN, "
+                  "instead of 0");
+  hestOptAdd_1_Enum(&hopt, "a", "aniso", &aniso, NULL,
+                    "Which anisotropy metric to plot.  " TEN_ANISO_DESC, tenAniso);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_anplotInfoL);
-  JUSTPARSE();
+  USAGE_JUSTPARSE(_tend_anplotInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

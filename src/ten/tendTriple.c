@@ -38,17 +38,14 @@ tend_tripleMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
   char *outS;
 
-  hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &ttype, NULL,
-             "desired output triple type", NULL, tenTripleType);
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-", "input tensor volume",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output triple volume");
+  hestOptAdd_1_Enum(&hopt, "t", "type", &ttype, NULL, "desired output triple type",
+                    tenTripleType);
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input tensor volume", nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output triple volume");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_tripleInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_tripleInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

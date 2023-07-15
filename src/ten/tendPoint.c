@@ -32,19 +32,19 @@ tend_pointMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
+  /* HEY: all of these ints should be unsigned! */
   int loc[3], idx, sx, sy, sz, i;
   Nrrd *nin;
   float *tdata, eval[3], evec[9], angle, axis[3], mat[9];
 
-  hestOptAdd(&hopt, "p", "x y z", airTypeInt, 3, 3, loc, NULL,
-             "coordinates of sample to be described");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd_3_Int(&hopt, "p", "x y z", loc, NULL,
+                   "coordinates of sample to be described");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input diffusion tensor volume",
+                     nrrdHestNrrd);
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_pointInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_pointInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   if (tenTensorCheck(nin, nrrdTypeFloat, AIR_TRUE, AIR_TRUE)) {

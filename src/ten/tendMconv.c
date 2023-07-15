@@ -37,20 +37,18 @@ tend_mconvMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   const tenModel *modelDst, *modelSrc;
   int saveB0;
 
-  hestOptAdd(&hopt, "mo", "model", airTypeString, 1, 1, &modelDstS, NULL,
-             "which model to convert to");
-  hestOptAdd(&hopt, "mi", "model", airTypeString, 1, 1, &modelSrcS, "",
-             "model converting from; if not set, will try to determine "
-             "from input nrrd");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input nrrd of model parms", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output nrrd of model parms");
+  hestOptAdd_1_String(&hopt, "mo", "model", &modelDstS, NULL,
+                      "which model to convert to");
+  hestOptAdd_1_String(&hopt, "mi", "model", &modelSrcS, "",
+                      "model converting from; if not set, will try to determine "
+                      "from input nrrd");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input nrrd of model parms",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output nrrd of model parms");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_mconvInfoL);
-  JUSTPARSE();
+  USAGE_JUSTPARSE(_tend_mconvInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

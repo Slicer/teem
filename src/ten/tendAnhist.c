@@ -39,29 +39,26 @@ tend_anhistMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   Nrrd *nin, *nout, *nwght;
   char *outS;
 
-  hestOptAdd(&hopt, "v", "westin version", airTypeInt, 1, 1, &version, "1",
-             "Which version of Westin's anisotropy metric triple "
-             "to use, either \"1\" or \"2\"");
-  hestOptAdd(&hopt, "w", "nweight", airTypeOther, 1, 1, &nwght, "",
-             "how to weigh contributions to histogram.  By default "
-             "(not using this option), the increment is one bin count per "
-             "sample, but by giving a nrrd, the value in the nrrd at the "
-             "corresponding location will be the bin count increment ",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "r", "res", airTypeInt, 1, 1, &res, NULL,
-             "resolution of anisotropy plot");
-  hestOptAdd(&hopt, "right", NULL, airTypeInt, 0, 0, &right, NULL,
-             "sample a right-triangle-shaped region, instead of "
-             "a roughly equilateral triangle. ");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output image (floating point)");
+  hestOptAdd_1_Int(&hopt, "v", "westin version", &version, "1",
+                   "Which version of Westin's anisotropy metric triple "
+                   "to use, either \"1\" or \"2\"");
+  hestOptAdd_1_Other(&hopt, "w", "nweight", &nwght, "",
+                     "how to weigh contributions to histogram.  By default "
+                     "(not using this option), the increment is one bin count per "
+                     "sample, but by giving a nrrd, the value in the nrrd at the "
+                     "corresponding location will be the bin count increment ",
+                     nrrdHestNrrd);
+  hestOptAdd_1_Int(&hopt, "r", "res", &res, NULL, "resolution of anisotropy plot");
+  hestOptAdd_Flag(&hopt, "right", &right,
+                  "sample a right-triangle-shaped region, instead of "
+                  "a roughly equilateral triangle. ");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input diffusion tensor volume",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_anhistInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_anhistInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

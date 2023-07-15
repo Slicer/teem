@@ -53,57 +53,56 @@ tend_gradsMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   tgparm = tenGradientParmNew();
   airMopAdd(mop, tgparm, (airMopper)tenGradientParmNix, airMopAlways);
 
-  hestOptAdd(&hopt, "n", "# dir", airTypeInt, 1, 1, &num, "6",
-             "desired number of diffusion gradient directions");
-  hestOptAdd(&hopt, "i", "grads", airTypeOther, 1, 1, &nin, "",
-             "initial gradient directions to start with, instead "
-             "of default random initial directions (overrides \"-n\")",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "seed", "value", airTypeUInt, 1, 1, &seed, "42",
-             "seed value to used with airSrandMT()");
-  hestOptAdd(&hopt, "step", "step", airTypeDouble, 1, 1, &(tgparm->initStep), "1.0",
-             "time increment in solver");
-  hestOptAdd(&hopt, "single", NULL, airTypeInt, 0, 0, &(tgparm->single), NULL,
-             "instead of the default behavior of tracking a pair of "
-             "antipodal points (appropriate for determining DWI gradients), "
-             "use only single points (appropriate for who knows what).");
-  hestOptAdd(&hopt, "snap", "interval", airTypeInt, 1, 1, &(tgparm->snap), "0",
-             "specifies an interval between which snapshots of the point "
-             "positions should be saved out.  By default (not using this "
-             "option), there is no such snapshot behavior");
-  hestOptAdd(&hopt, "jitter", "jitter", airTypeDouble, 1, 1, &(tgparm->jitter), "0.1",
-             "amount by which to perturb points when given an input nrrd");
-  hestOptAdd(&hopt, "miniter", "# iters", airTypeInt, 1, 1, &(tgparm->minIteration), "0",
-             "max number of iterations for which to run the simulation");
-  hestOptAdd(&hopt, "maxiter", "# iters", airTypeInt, 1, 1, &(tgparm->maxIteration),
-             "1000000", "max number of iterations for which to run the simulation");
-  hestOptAdd(&hopt, "minvelo", "vel", airTypeDouble, 1, 1, &(tgparm->minVelocity),
-             "0.00001",
-             "low threshold on mean velocity of repelling points, "
-             "at which point repulsion phase of algorithm terminates.");
-  hestOptAdd(&hopt, "exp", "exponent", airTypeDouble, 1, 1, &(tgparm->expo_d), "1",
-             "the exponent n that determines the potential energy 1/r^n.");
-  hestOptAdd(&hopt, "dp", "potential change", airTypeDouble, 1, 1,
-             &(tgparm->minPotentialChange), "0.000000001",
-             "low threshold on fractional change of potential at "
-             "which point repulsion phase of algorithm terminates.");
-  hestOptAdd(&hopt, "minimprov", "delta", airTypeDouble, 1, 1,
-             &(tgparm->minMeanImprovement), "0.00005",
-             "in the second phase of the algorithm, "
-             "when stochastically balancing the sign of the gradients, "
-             "the (small) improvement in length of mean gradient "
-             "which triggers termination (as further improvements "
-             "are unlikely.");
-  hestOptAdd(&hopt, "minmean", "len", airTypeDouble, 1, 1, &(tgparm->minMean), "0.0001",
-             "if length of mean gradient falls below this, finish "
-             "the balancing phase");
-  hestOptAdd(&hopt, "izv", "insert", airTypeBool, 1, 1, &(tgparm->insertZeroVec),
-             "false", "adding zero vector at beginning of grads");
-  hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
-             "file to write output nrrd to");
+  hestOptAdd_1_Int(&hopt, "n", "# dir", &num, "6",
+                   "desired number of diffusion gradient directions");
+  hestOptAdd_1_Other(&hopt, "i", "grads", &nin, "",
+                     "initial gradient directions to start with, instead "
+                     "of default random initial directions (overrides \"-n\")",
+                     nrrdHestNrrd);
+  hestOptAdd_1_UInt(&hopt, "seed", "value", &seed, "42",
+                    "seed value to used with airSrandMT()");
+  hestOptAdd_1_Double(&hopt, "step", "step", &(tgparm->initStep), "1.0",
+                      "time increment in solver");
+  hestOptAdd_Flag(&hopt, "single", &(tgparm->single),
+                  "instead of the default behavior of tracking a pair of "
+                  "antipodal points (appropriate for determining DWI gradients), "
+                  "use only single points (appropriate for who knows what).");
+  hestOptAdd_1_UInt(&hopt, "snap", "interval", &(tgparm->snap), "0",
+                    "specifies an interval between which snapshots of the point "
+                    "positions should be saved out.  By default (not using this "
+                    "option), there is no such snapshot behavior");
+  hestOptAdd_1_Double(&hopt, "jitter", "jitter", &(tgparm->jitter), "0.1",
+                      "amount by which to perturb points when given an input nrrd");
+  hestOptAdd_1_UInt(&hopt, "miniter", "# iters", &(tgparm->minIteration), "0",
+                    "max number of iterations for which to run the simulation");
+  hestOptAdd_1_UInt(&hopt, "maxiter", "# iters", &(tgparm->maxIteration), "1000000",
+                    "max number of iterations for which to run the simulation");
+  hestOptAdd_1_Double(&hopt, "minvelo", "vel", &(tgparm->minVelocity), "0.00001",
+                      "low threshold on mean velocity of repelling points, "
+                      "at which point repulsion phase of algorithm terminates.");
+  hestOptAdd_1_Double(&hopt, "exp", "exponent", &(tgparm->expo_d), "1",
+                      "the exponent n that determines the potential energy 1/r^n.");
+  hestOptAdd_1_Double(&hopt, "dp", "potential change", &(tgparm->minPotentialChange),
+                      "0.000000001",
+                      "low threshold on fractional change of potential at "
+                      "which point repulsion phase of algorithm terminates.");
+  hestOptAdd_1_Double(&hopt, "minimprov", "delta", &(tgparm->minMeanImprovement),
+                      "0.00005",
+                      "in the second phase of the algorithm, "
+                      "when stochastically balancing the sign of the gradients, "
+                      "the (small) improvement in length of mean gradient "
+                      "which triggers termination (as further improvements "
+                      "are unlikely.");
+  hestOptAdd_1_Double(&hopt, "minmean", "len", &(tgparm->minMean), "0.0001",
+                      "if length of mean gradient falls below this, finish "
+                      "the balancing phase");
+  hestOptAdd_1_Bool(&hopt, "izv", "insert", &(tgparm->insertZeroVec), "false",
+                    "adding zero vector at beginning of grads");
+  hestOptAdd_1_String(&hopt, "o", "filename", &outS, "-",
+                      "file to write output nrrd to");
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   USAGE(_tend_gradsInfoL);
-  JUSTPARSE();
+  JUSTPARSE(_tend_gradsInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);

@@ -216,39 +216,34 @@ tend_ellipseMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   mop = airMopNew();
 
-  hestOptAdd(&hopt, "ctr", "conf thresh", airTypeFloat, 1, 1, &cthresh, "0.5",
-             "Glyphs will be drawn only for tensors with confidence "
-             "values greater than this threshold");
-  hestOptAdd(&hopt, "gsc", "scale", airTypeFloat, 1, 1, &gscale, "1",
-             "over-all glyph size");
-  hestOptAdd(&hopt, "dot", "radius", airTypeFloat, 1, 1, &dotRad, "0.0",
-             "radius of little dot to put in middle of ellipse, or \"0\" "
-             "for no such dot");
-  hestOptAdd(&hopt, "wid", "width", airTypeFloat, 1, 1, &lineWidth, "0.0",
-             "with of lines for tractlets");
-  hestOptAdd(&hopt, "inv", NULL, airTypeInt, 0, 0, &invert, NULL,
-             "use white ellipses on black background, instead of reverse");
-  hestOptAdd(&hopt, "min", "minX minY", airTypeFloat, 2, 2, min, "-1 -1",
-             "when using \"-p\", minimum corner");
-  hestOptAdd(&hopt, "max", "maxX maxY", airTypeFloat, 2, 2, max, "1 1",
-             "when using \"-p\", maximum corner");
+  hestOptAdd_1_Float(&hopt, "ctr", "conf thresh", &cthresh, "0.5",
+                     "Glyphs will be drawn only for tensors with confidence "
+                     "values greater than this threshold");
+  hestOptAdd_1_Float(&hopt, "gsc", "scale", &gscale, "1", "over-all glyph size");
+  hestOptAdd_1_Float(&hopt, "dot", "radius", &dotRad, "0.0",
+                     "radius of little dot to put in middle of ellipse, or \"0\" "
+                     "for no such dot");
+  hestOptAdd_1_Float(&hopt, "wid", "width", &lineWidth, "0.0",
+                     "with of lines for tractlets");
+  hestOptAdd_Flag(&hopt, "inv", &invert,
+                  "use white ellipses on black background, instead of reverse");
+  hestOptAdd_2_Float(&hopt, "min", "minX minY", min, "-1 -1",
+                     "when using \"-p\", minimum corner");
+  hestOptAdd_2_Float(&hopt, "max", "maxX maxY", max, "1 1",
+                     "when using \"-p\", maximum corner");
 
   /* input/output */
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nten, "-", "image of 2D tensors",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "p", "pos array", airTypeOther, 1, 1, &npos, "",
-             "Instead of being on a grid, tensors are at arbitrary locations, "
-             "as defined by this 2-by-N array of floats",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "s", "stn array", airTypeOther, 1, 1, &nstn, "",
-             "Locations given by \"-p\" have this connectivity", NULL, NULL,
-             nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output PostScript file");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nten, "-", "image of 2D tensors", nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "p", "pos array", &npos, "",
+                     "Instead of being on a grid, tensors are at arbitrary locations, "
+                     "as defined by this 2-by-N array of floats",
+                     nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "s", "stn array", &nstn, "",
+                     "Locations given by \"-p\" have this connectivity", nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output PostScript file");
 
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_ellipseInfoL);
-  JUSTPARSE();
+  USAGE_JUSTPARSE(_tend_ellipseInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   if (npos) {

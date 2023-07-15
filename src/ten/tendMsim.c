@@ -51,40 +51,38 @@ tend_msimMain(int argc, const char **argv, const char *me, hestParm *hparm) {
      set to AIR_FALSE there */
   hparm->elideSingleOtherDefault = AIR_TRUE;
 
-  hestOptAdd(&hopt, "sigma", "sigma", airTypeDouble, 1, 1, &sigma, "0.0",
-             "Gaussian/Rician noise parameter");
-  hestOptAdd(&hopt, "seed", "seed", airTypeInt, 1, 1, &seed, "42",
-             "seed value for RNG which creates noise");
-  hestOptAdd(&hopt, "g", "grad list", airTypeOther, 1, 1, &_ngrad, NULL,
-             "gradient list, one row per diffusion-weighted image", NULL, NULL,
-             nrrdHestNrrd);
-  hestOptAdd(&hopt, "b0", "b0 image", airTypeOther, 1, 1, &nT2, "",
-             "reference non-diffusion-weighted (\"B0\") image, which "
-             "may be needed if it isn't part of give model param image",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "i", "model image", airTypeOther, 1, 1, &nin, "-",
-             "input model image", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "m", "model", airTypeString, 1, 1, &modS, NULL,
-             "model with which to simulate DWIs, which must be specified if "
-             "it is not indicated by the first axis in input model image.");
-  hestOptAdd(&hopt, "ib0", "bool", airTypeBool, 1, 1, &insertB0, "false",
-             "insert a non-DW B0 image at the beginning of the experiment "
-             "specification (useful if the given gradient list doesn't "
-             "already have one) and hence also insert a B0 image at the "
-             "beginning of the output simulated DWIs");
-  hestOptAdd(&hopt, "b", "b", airTypeDouble, 1, 1, &bval, "1000",
-             "b value for simulated scan");
-  hestOptAdd(&hopt, "kvp", "bool", airTypeBool, 1, 1, &keyValueSet, "true",
-             "generate key/value pairs in the NRRD header corresponding "
-             "to the input b-value and gradients.");
-  hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &outType, "float",
-             "output type of DWIs", NULL, nrrdType);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-", "output dwis");
+  hestOptAdd_1_Double(&hopt, "sigma", "sigma", &sigma, "0.0",
+                      "Gaussian/Rician noise parameter");
+  hestOptAdd_1_Int(&hopt, "seed", "seed", &seed, "42",
+                   "seed value for RNG which creates noise");
+  hestOptAdd_1_Other(&hopt, "g", "grad list", &_ngrad, NULL,
+                     "gradient list, one row per diffusion-weighted image",
+                     nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "b0", "b0 image", &nT2, "",
+                     "reference non-diffusion-weighted (\"B0\") image, which "
+                     "may be needed if it isn't part of give model param image",
+                     nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "i", "model image", &nin, "-", "input model image",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "m", "model", &modS, NULL,
+                      "model with which to simulate DWIs, which must be specified if "
+                      "it is not indicated by the first axis in input model image.");
+  hestOptAdd_1_Bool(&hopt, "ib0", "bool", &insertB0, "false",
+                    "insert a non-DW B0 image at the beginning of the experiment "
+                    "specification (useful if the given gradient list doesn't "
+                    "already have one) and hence also insert a B0 image at the "
+                    "beginning of the output simulated DWIs");
+  hestOptAdd_1_Double(&hopt, "b", "b", &bval, "1000", "b value for simulated scan");
+  hestOptAdd_1_Bool(&hopt, "kvp", "bool", &keyValueSet, "true",
+                    "generate key/value pairs in the NRRD header corresponding "
+                    "to the input b-value and gradients.");
+  hestOptAdd_1_Enum(&hopt, "t", "type", &outType, "float", "output type of DWIs",
+                    nrrdType);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output dwis");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_msimInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_msimInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

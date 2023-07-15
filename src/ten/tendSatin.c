@@ -106,8 +106,9 @@ tend_satinTorusEigen(float *eval, float *evec, float x, float y, float z, float 
 }
 
 static int /* Biff: 1 */
-tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, int wsize, float thick,
-              float scaling, float bnd, float bndRm, float evsc, int torus) {
+tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, unsigned int wsize,
+              float thick, float scaling, float bnd, float bndRm, float evsc,
+              int torus) {
   static const char me[] = "tend_satinGen";
   char buff[AIR_STRLEN_SMALL + 1];
   Nrrd *nconf, *neval, *nevec;
@@ -185,49 +186,49 @@ tend_satinMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int wsize, torus;
+  int torus;
+  unsigned int wsize;
   float parm, maxa, mina, thick, scaling, bnd, bndRm, evsc;
   Nrrd *nout;
   char *outS;
   gageShape *shape;
   double spd[4][4], orig[4];
 
-  hestOptAdd(&hopt, "t", "do torus", airTypeInt, 0, 0, &torus, NULL,
-             "generate a torus dataset, instead of the default spherical");
-  hestOptAdd(&hopt, "p", "aniso parm", airTypeFloat, 1, 1, &parm, NULL,
-             "anisotropy parameter.  0.0 for one direction of linear (along "
-             "the equator for spheres, or along the larger circumference for "
-             "toruses), 1.0 for planar, 2.0 for the other direction of linear "
-             "(from pole to pole for spheres, or along the smaller "
-             "circumference for toruses)");
-  hestOptAdd(&hopt, "max", "max ca1", airTypeFloat, 1, 1, &maxa, "1.0",
-             "maximum anisotropy in dataset, according to the \"ca1\" "
-             "anisotropy metric.  \"1.0\" means "
-             "completely linear or completely planar anisotropy");
-  hestOptAdd(&hopt, "min", "min ca1", airTypeFloat, 1, 1, &mina, "0.0",
-             "minimum anisotropy in dataset");
-  hestOptAdd(&hopt, "b", "boundary", airTypeFloat, 1, 1, &bnd, "0.05",
-             "parameter governing how fuzzy the boundary between high and "
-             "low anisotropy is. Use \"-b 0\" for no fuzziness");
-  hestOptAdd(&hopt, "br", "ramp", airTypeFloat, 1, 1, &bndRm, "0.0",
-             "how much to ramp upeffective \"b\" along Y axis. "
-             "Use \"-b 0\" for no such ramping.");
-  hestOptAdd(&hopt, "th", "thickness", airTypeFloat, 1, 1, &thick, "0.3",
-             "parameter governing how thick region of high anisotropy is");
-  hestOptAdd(&hopt, "scl", "scaling", airTypeFloat, 1, 1, &scaling, "1.0",
-             "scaling on size of sphere or torus within volume; lowering "
-             "this below default 1.0 produces more background margin");
-  hestOptAdd(&hopt, "evsc", "eval scale", airTypeFloat, 1, 1, &evsc, "1.0",
-             "scaling of eigenvalues");
-  hestOptAdd(&hopt, "s", "size", airTypeInt, 1, 1, &wsize, "32",
-             "dimensions of output volume.  For size N, the output is "
-             "N\tx\tN\tx\tN for spheres, and 2N\tx\t2N\tx\tN for toruses");
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-", "output filename");
+  hestOptAdd_Flag(&hopt, "t", &torus,
+                  "generate a torus dataset, instead of the default spherical");
+  hestOptAdd_1_Float(&hopt, "p", "aniso parm", &parm, NULL,
+                     "anisotropy parameter.  0.0 for one direction of linear (along "
+                     "the equator for spheres, or along the larger circumference for "
+                     "toruses), 1.0 for planar, 2.0 for the other direction of linear "
+                     "(from pole to pole for spheres, or along the smaller "
+                     "circumference for toruses)");
+  hestOptAdd_1_Float(&hopt, "max", "max ca1", &maxa, "1.0",
+                     "maximum anisotropy in dataset, according to the \"ca1\" "
+                     "anisotropy metric.  \"1.0\" means "
+                     "completely linear or completely planar anisotropy");
+  hestOptAdd_1_Float(&hopt, "min", "min ca1", &mina, "0.0",
+                     "minimum anisotropy in dataset");
+  hestOptAdd_1_Float(&hopt, "b", "boundary", &bnd, "0.05",
+                     "parameter governing how fuzzy the boundary between high and "
+                     "low anisotropy is. Use \"-b 0\" for no fuzziness");
+  hestOptAdd_1_Float(&hopt, "br", "ramp", &bndRm, "0.0",
+                     "how much to ramp upeffective \"b\" along Y axis. "
+                     "Use \"-b 0\" for no such ramping.");
+  hestOptAdd_1_Float(&hopt, "th", "thickness", &thick, "0.3",
+                     "parameter governing how thick region of high anisotropy is");
+  hestOptAdd_1_Float(&hopt, "scl", "scaling", &scaling, "1.0",
+                     "scaling on size of sphere or torus within volume; lowering "
+                     "this below default 1.0 produces more background margin");
+  hestOptAdd_1_Float(&hopt, "evsc", "eval scale", &evsc, "1.0",
+                     "scaling of eigenvalues");
+  hestOptAdd_1_UInt(&hopt, "s", "size", &wsize, "32",
+                    "dimensions of output volume.  For size N, the output is "
+                    "N\tx\tN\tx\tN for spheres, and 2N\tx\t2N\tx\tN for toruses");
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output filename");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_satinInfoL);
-  JUSTPARSE();
+  USAGE_JUSTPARSE(_tend_satinInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

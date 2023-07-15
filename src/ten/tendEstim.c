@@ -50,84 +50,81 @@ tend_estimMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   tenEstimateContext *tec;
 
-  hestOptAdd(&hopt, "old", NULL, airTypeInt, 0, 0, &oldstuff, NULL,
-             "instead of the new tenEstimateContext code, use "
-             "the old tenEstimateLinear code");
-  hestOptAdd(&hopt, "sigma", "sigma", airTypeFloat, 1, 1, &sigma, "nan",
-             "Rician noise parameter");
-  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0", "verbosity level");
-  hestOptAdd(&hopt, "est", "estimate method", airTypeEnum, 1, 1, &estmeth, "lls",
-             "estimation method to use. \"lls\": linear-least squares", NULL,
-             tenEstimate1Method);
-  hestOptAdd(&hopt, "wlsi", "WLS iters", airTypeUInt, 1, 1, &wlsi, "1",
-             "when using weighted-least-squares (\"-est wls\"), how "
-             "many iterations to do after the initial weighted fit.");
-  hestOptAdd(&hopt, "fixneg", NULL, airTypeInt, 0, 0, &fixneg, NULL,
-             "after estimating the tensor, ensure that there are no negative "
-             "eigenvalues by adding (to all eigenvalues) the amount by which "
-             "the smallest is negative (corresponding to increasing the "
-             "non-DWI image value).");
-  hestOptAdd(&hopt, "ee", "filename", airTypeString, 1, 1, &terrS, "",
-             "Giving a filename here allows you to save out the tensor "
-             "estimation error: a value which measures how much error there "
-             "is between the tensor model and the given diffusion weighted "
-             "measurements for each sample.  By default, no such error "
-             "calculation is saved.");
-  hestOptAdd(&hopt, "eb", "filename", airTypeString, 1, 1, &eb0S, "",
-             "In those cases where there is no B=0 reference image given "
-             "(\"-knownB0 false\"), "
-             "giving a filename here allows you to save out the B=0 image "
-             "which is estimated from the data.  By default, this image value "
-             "is estimated but not saved.");
-  hestOptAdd(&hopt, "t", "thresh", airTypeDouble, 1, 1, &thresh, "nan",
-             "value at which to threshold the mean DWI value per pixel "
-             "in order to generate the \"confidence\" mask.  By default, "
-             "the threshold value is calculated automatically, based on "
-             "histogram analysis.");
-  hestOptAdd(&hopt, "soft", "soft", airTypeFloat, 1, 1, &soft, "0",
-             "how fuzzy the confidence boundary should be.  By default, "
-             "confidence boundary is perfectly sharp");
-  hestOptAdd(&hopt, "scale", "scale", airTypeFloat, 1, 1, &scale, "1",
-             "After estimating the tensor, scale all of its elements "
-             "(but not the confidence value) by this amount.  Can help with "
-             "downstream numerical precision if values are very large "
-             "or small.");
-  hestOptAdd(&hopt, "mv", "min val", airTypeDouble, 1, 1, &valueMin, "1.0",
-             "minimum plausible value (especially important for linear "
-             "least squares estimation)");
-  hestOptAdd(&hopt, "B", "B-list", airTypeString, 1, 1, &bmatS, NULL,
-             "6-by-N list of B-matrices characterizing "
-             "the diffusion weighting for each "
-             "image.  \"tend bmat\" is one source for such a matrix; see "
-             "its usage info for specifics on how the coefficients of "
-             "the B-matrix are ordered. "
-             "An unadorned plain text file is a great way to "
-             "specify the B-matrix.\n  **OR**\n "
-             "Can say just \"-B kvp\" to try to learn B matrices from "
-             "key/value pair information in input images.");
-  hestOptAdd(&hopt, "b", "b", airTypeDouble, 1, 1, &bval, "nan",
-             "\"b\" diffusion-weighting factor (units of sec/mm^2)");
-  hestOptAdd(&hopt, "knownB0", "bool", airTypeBool, 1, 1, &knownB0, NULL,
-             "Indicates if the B=0 non-diffusion-weighted reference image "
-             "is known, or if it has to be estimated along with the tensor "
-             "elements.\n "
-             "\b\bo if \"true\": in the given list of diffusion gradients or "
-             "B-matrices, there are one or more with zero norm, which are "
-             "simply averaged to find the B=0 reference image value\n "
-             "\b\bo if \"false\": there may or may not be diffusion-weighted "
-             "images among the input; the B=0 image value is going to be "
-             "estimated along with the diffusion model");
-  hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, "-",
-             "all the diffusion-weighted images (DWIs), as separate 3D nrrds, "
-             "**OR**: One 4D nrrd of all DWIs stacked along axis 0",
-             &ninLen, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output tensor volume");
+  hestOptAdd_Flag(&hopt, "old", &oldstuff,
+                  "instead of the new tenEstimateContext code, use "
+                  "the old tenEstimateLinear code");
+  hestOptAdd_1_Float(&hopt, "sigma", "sigma", &sigma, "nan", "Rician noise parameter");
+  hestOptAdd_1_Int(&hopt, "v", "verbose", &verbose, "0", "verbosity level");
+  hestOptAdd_1_Enum(&hopt, "est", "estimate method", &estmeth, "lls",
+                    "estimation method to use. \"lls\": linear-least squares",
+                    tenEstimate1Method);
+  hestOptAdd_1_UInt(&hopt, "wlsi", "WLS iters", &wlsi, "1",
+                    "when using weighted-least-squares (\"-est wls\"), how "
+                    "many iterations to do after the initial weighted fit.");
+  hestOptAdd_Flag(&hopt, "fixneg", &fixneg,
+                  "after estimating the tensor, ensure that there are no negative "
+                  "eigenvalues by adding (to all eigenvalues) the amount by which "
+                  "the smallest is negative (corresponding to increasing the "
+                  "non-DWI image value).");
+  hestOptAdd_1_String(&hopt, "ee", "filename", &terrS, "",
+                      "Giving a filename here allows you to save out the tensor "
+                      "estimation error: a value which measures how much error there "
+                      "is between the tensor model and the given diffusion weighted "
+                      "measurements for each sample.  By default, no such error "
+                      "calculation is saved.");
+  hestOptAdd_1_String(&hopt, "eb", "filename", &eb0S, "",
+                      "In those cases where there is no B=0 reference image given "
+                      "(\"-knownB0 false\"), "
+                      "giving a filename here allows you to save out the B=0 image "
+                      "which is estimated from the data.  By default, this image value "
+                      "is estimated but not saved.");
+  hestOptAdd_1_Double(&hopt, "t", "thresh", &thresh, "nan",
+                      "value at which to threshold the mean DWI value per pixel "
+                      "in order to generate the \"confidence\" mask.  By default, "
+                      "the threshold value is calculated automatically, based on "
+                      "histogram analysis.");
+  hestOptAdd_1_Float(&hopt, "soft", "soft", &soft, "0",
+                     "how fuzzy the confidence boundary should be.  By default, "
+                     "confidence boundary is perfectly sharp");
+  hestOptAdd_1_Float(&hopt, "scale", "scale", &scale, "1",
+                     "After estimating the tensor, scale all of its elements "
+                     "(but not the confidence value) by this amount.  Can help with "
+                     "downstream numerical precision if values are very large "
+                     "or small.");
+  hestOptAdd_1_Double(&hopt, "mv", "min val", &valueMin, "1.0",
+                      "minimum plausible value (especially important for linear "
+                      "least squares estimation)");
+  hestOptAdd_1_String(&hopt, "B", "B-list", &bmatS, NULL,
+                      "6-by-N list of B-matrices characterizing "
+                      "the diffusion weighting for each "
+                      "image.  \"tend bmat\" is one source for such a matrix; see "
+                      "its usage info for specifics on how the coefficients of "
+                      "the B-matrix are ordered. "
+                      "An unadorned plain text file is a great way to "
+                      "specify the B-matrix.\n  **OR**\n "
+                      "Can say just \"-B kvp\" to try to learn B matrices from "
+                      "key/value pair information in input images.");
+  hestOptAdd_1_Double(&hopt, "b", "b", &bval, "nan",
+                      "\"b\" diffusion-weighting factor (units of sec/mm^2)");
+  hestOptAdd_1_Bool(&hopt, "knownB0", "bool", &knownB0, NULL,
+                    "Indicates if the B=0 non-diffusion-weighted reference image "
+                    "is known, or if it has to be estimated along with the tensor "
+                    "elements.\n "
+                    "\b\bo if \"true\": in the given list of diffusion gradients or "
+                    "B-matrices, there are one or more with zero norm, which are "
+                    "simply averaged to find the B=0 reference image value\n "
+                    "\b\bo if \"false\": there may or may not be diffusion-weighted "
+                    "images among the input; the B=0 image value is going to be "
+                    "estimated along with the diffusion model");
+  hestOptAdd_Nv_Other(&hopt, "i", "dwi0 dwi1", 1, -1, &nin, "-",
+                      "all the diffusion-weighted images (DWIs), as separate 3D nrrds, "
+                      "**OR**: One 4D nrrd of all DWIs stacked along axis 0",
+                      &ninLen, nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output tensor volume");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_estimInfoL);
-  JUSTPARSE();
+  USAGE_JUSTPARSE(_tend_estimInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

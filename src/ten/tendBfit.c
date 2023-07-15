@@ -43,26 +43,24 @@ tend_bfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   hparm->respFileEnable = AIR_TRUE;
 
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "Input nrrd.  List of DWIs from different b-values must "
-             "be along axis 0",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "b", "b1 b2", airTypeDouble, 2, -1, &bb, NULL,
-             "b values across axis 0 of input nrrd", &bbLen);
-  hestOptAdd(&hopt, "w", "w1 w2", airTypeDouble, 2, -1, &_ww, "nan nan",
-             "weights for samples in non-linear fitting", &_wwLen);
-  hestOptAdd(&hopt, "imax", "# iter", airTypeInt, 1, 1, &iterMax, "10",
-             "max number of iterations to use in non-linear fitting, or, "
-             "use 0 to do only initial linear fit");
-  hestOptAdd(&hopt, "eps", "epsilon", airTypeDouble, 1, 1, &eps, "1",
-             "epsilon convergence threshold for non-linear fitting");
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output tensor volume");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-",
+                     "Input nrrd.  List of DWIs from different b-values must "
+                     "be along axis 0",
+                     nrrdHestNrrd);
+  hestOptAdd_Nv_Double(&hopt, "b", "b1 b2", 2, -1, &bb, NULL,
+                       "b values across axis 0 of input nrrd", &bbLen);
+  hestOptAdd_Nv_Double(&hopt, "w", "w1 w2", 2, -1, &_ww, "nan nan",
+                       "weights for samples in non-linear fitting", &_wwLen);
+  hestOptAdd_1_Int(&hopt, "imax", "# iter", &iterMax, "10",
+                   "max number of iterations to use in non-linear fitting, or, "
+                   "use 0 to do only initial linear fit");
+  hestOptAdd_1_Double(&hopt, "eps", "epsilon", &eps, "1",
+                      "epsilon convergence threshold for non-linear fitting");
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output tensor volume");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_bfitInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_bfitInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   if (!(bbLen == nin->axis[0].size)) {
