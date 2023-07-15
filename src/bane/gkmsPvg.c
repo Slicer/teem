@@ -99,20 +99,17 @@ baneGkms_pvgMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   float *pos, p, min, max, sml, newsml, newmin, newmax;
   NrrdRange *range;
 
-  hestOptAdd(&opt, "inv", NULL, airTypeInt, 0, 0, &invert, NULL,
-             "Draw on white background, instead of black");
-  hestOptAdd(&opt, "m", "mapOut", airTypeString, 1, 1, &mapS, "",
-             "save out the colormap used here, so that it can be applied "
-             "to other nrrds with \"unu imap -r\"");
-  hestOptAdd(&opt, "i", "infoIn", airTypeOther, 1, 1, &ninfo, NULL,
-             "input info file (from \"gkms info\")", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "o", "imageOut", airTypeString, 1, 1, &outS, NULL,
-             "output image, in PPM format");
+  hestOptAdd_Flag(&opt, "inv", &invert, "Draw on white background, instead of black");
+  hestOptAdd_1_String(&opt, "m", "mapOut", &mapS, "",
+                      "save out the colormap used here, so that it can be applied "
+                      "to other nrrds with \"unu imap -r\"");
+  hestOptAdd_1_Other(&opt, "i", "infoIn", &ninfo, NULL,
+                     "input info file (from \"gkms info\")", nrrdHestNrrd);
+  hestOptAdd_1_String(&opt, "o", "imageOut", &outS, NULL, "output image, in PPM format");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_baneGkms_pvgInfoL);
-  PARSE();
+  USAGE_PARSE(_baneGkms_pvgInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
   airMopAdd(mop, ndon = _baneGkmsDonNew(invert), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nposA = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);

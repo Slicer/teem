@@ -38,39 +38,39 @@ baneGkms_txfMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   float min[2], max[2], top[2], v0, g0, *data, v, g, gwidth, width, mwidth, tvl, tvr, vl,
     vr, tmp, maxa;
 
-  hestOptAdd(&opt, "r", "Vres Gres", airTypeInt, 2, 2, res, "256 256",
-             "resolution of the transfer function in value and gradient "
-             "magnitude");
-  hestOptAdd(&opt, "min", "Vmin Gmin", airTypeFloat, 2, 2, min, "0.0 0.0",
-             "minimum value and grad mag in txf");
-  hestOptAdd(&opt, "max", "Vmax Gmax", airTypeFloat, 2, 2, max, NULL,
-             "maximum value and grad mag in txf");
-  hestOptAdd(&opt, "v", "base value", airTypeFloat, 1, 1, &v0, NULL,
-             "data value at which to position bottom of triangle");
-  hestOptAdd(&opt, "g", "gthresh", airTypeFloat, 1, 1, &g0, "0.0",
-             "lowest grad mag to receive opacity");
-  hestOptAdd(&opt, "gw", "gwidth", airTypeFloat, 1, 1, &gwidth, "0.0",
-             "range of grad mag values over which to apply threshold "
-             "at low gradient magnitudes");
-  hestOptAdd(&opt, "top", "Vtop Gtop", airTypeFloat, 2, 2, top, NULL,
-             "data value and grad mag at center of top of triangle");
-  hestOptAdd(&opt, "w", "value width", airTypeFloat, 1, 1, &width, NULL,
-             "range of values to be spanned at top of triangle");
-  hestOptAdd(&opt, "mw", "value width", airTypeFloat, 1, 1, &mwidth, "0",
-             "range of values to be spanned at BOTTOM of triangle");
-  hestOptAdd(&opt, "step", NULL, airTypeInt, 0, 0, &step, NULL,
-             "instead of assigning opacity inside a triangular region, "
-             "make it more like a step function, in which opacity never "
-             "decreases in increasing data value");
-  hestOptAdd(&opt, "a", "max opac", airTypeFloat, 1, 1, &maxa, "1.0",
-             "highest opacity to assign");
-  hestOptAdd(&opt, "o", "opacOut", airTypeString, 1, 1, &out, NULL,
-             "output opacity function filename");
+  /* HEY many of these ints should be unsigned, but bane never got the signed->unsigned
+   * treatment */
+  hestOptAdd_2_Int(&opt, "r", "Vres Gres", res, "256 256",
+                   "resolution of the transfer function in value and gradient "
+                   "magnitude");
+  hestOptAdd_2_Float(&opt, "min", "Vmin Gmin", min, "0.0 0.0",
+                     "minimum value and grad mag in txf");
+  hestOptAdd_2_Float(&opt, "max", "Vmax Gmax", max, NULL,
+                     "maximum value and grad mag in txf");
+  hestOptAdd_1_Float(&opt, "v", "base value", &v0, NULL,
+                     "data value at which to position bottom of triangle");
+  hestOptAdd_1_Float(&opt, "g", "gthresh", &g0, "0.0",
+                     "lowest grad mag to receive opacity");
+  hestOptAdd_1_Float(&opt, "gw", "gwidth", &gwidth, "0.0",
+                     "range of grad mag values over which to apply threshold "
+                     "at low gradient magnitudes");
+  hestOptAdd_2_Float(&opt, "top", "Vtop Gtop", top, NULL,
+                     "data value and grad mag at center of top of triangle");
+  hestOptAdd_1_Float(&opt, "w", "value width", &width, NULL,
+                     "range of values to be spanned at top of triangle");
+  hestOptAdd_1_Float(&opt, "mw", "value width", &mwidth, "0",
+                     "range of values to be spanned at BOTTOM of triangle");
+  hestOptAdd_Flag(&opt, "step", &step,
+                  "instead of assigning opacity inside a triangular region, "
+                  "make it more like a step function, in which opacity never "
+                  "decreases in increasing data value");
+  hestOptAdd_1_Float(&opt, "a", "max opac", &maxa, "1.0", "highest opacity to assign");
+  hestOptAdd_1_String(&opt, "o", "opacOut", &out, NULL,
+                      "output opacity function filename");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_baneGkms_txfInfoL);
-  PARSE();
+  USAGE_PARSE(_baneGkms_txfInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

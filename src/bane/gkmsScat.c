@@ -38,21 +38,20 @@ baneGkms_scatMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   int pret, E;
   double _gamma;
 
-  hestOptAdd(&opt, "g", "gamma", airTypeDouble, 1, 1, &_gamma, "1.0",
-             "gamma used to brighten/darken scatterplots. "
-             "gamma > 1.0 brightens; gamma < 1.0 darkens. "
-             "Negative gammas invert values (like in xv). ");
-  hestOptAdd(&opt, "i", "hvolIn", airTypeOther, 1, 1, &hvol, NULL,
-             "input histogram volume (from \"gkms hvol\")", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&opt, "o", "vgOut vhOut", airTypeString, 2, 2, out, NULL,
-             "Filenames to use for two output scatterplots, (gradient "
-             "magnitude versus value, and 2nd derivative versus value); "
-             "can use PGM or PNG format");
+  hestOptAdd_1_Double(&opt, "g", "gamma", &_gamma, "1.0",
+                      "gamma used to brighten/darken scatterplots. "
+                      "gamma > 1.0 brightens; gamma < 1.0 darkens. "
+                      "Negative gammas invert values (like in xv). ");
+  hestOptAdd_1_Other(&opt, "i", "hvolIn", &hvol, NULL,
+                     "input histogram volume (from \"gkms hvol\")", nrrdHestNrrd);
+  hestOptAdd_2_String(&opt, "o", "vgOut vhOut", out, NULL,
+                      "Filenames to use for two output scatterplots, (gradient "
+                      "magnitude versus value, and 2nd derivative versus value); "
+                      "can use PGM or PNG format");
 
   mop = airMopNew();
   airMopAdd(mop, opt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_baneGkms_scatInfoL);
-  PARSE();
+  USAGE_PARSE(_baneGkms_scatInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   nvgRaw = nrrdNew();
