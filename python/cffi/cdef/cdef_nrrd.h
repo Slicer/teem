@@ -1787,6 +1787,7 @@ extern int nrrdUntile2D(Nrrd *nout, const Nrrd *nin, unsigned int ax0,
 /******** things useful with hest */
 /* hestNrrd.c */
 extern const hestCB *const nrrdHestNrrd;
+extern const hestCB *const nrrdHestNrrdNoTTY;
 extern const hestCB *const nrrdHestKernelSpec;
 extern const hestCB *const nrrdHestBoundarySpec;
 extern const hestCB *const nrrdHestIter;
