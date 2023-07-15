@@ -43,8 +43,8 @@ main(int argc, const char *argv[]) {
   hparm = hestParmNew();
   hopt = NULL;
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input image", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL, "input image", NULL,
+             NULL, nrrdHestNrrd);
   hestOptAdd(&hopt, "b", "rbins hbins", airTypeInt, 2, 2, bins, NULL,
              "# of histogram bins: radial and value");
   hestOptAdd(&hopt, "min", "value", airTypeDouble, 1, 1, &vmin, "nan",
@@ -59,62 +59,63 @@ main(int argc, const char *argv[]) {
              "The center point around which to build radial histogram");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &outS, "-",
              "file to write histogram to");
-  hestParseOrDie(hopt, argc-1, argv+1, hparm,
-                 me, histradInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, histradInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   if (2 != nin->dim) {
     fprintf(stderr, "%s: need 2-D input (not %d-D)\n", me, nin->dim);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   rbins = bins[0];
   hbins = bins[1];
   nhist = nrrdNew();
   airMopAdd(mop, nhist, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdMaybeAlloc_va(nhist, nrrdTypeDouble, 2,
-                        AIR_CAST(size_t, rbins),
-                        AIR_CAST(size_t, hbins))) {
+  if (nrrdMaybeAlloc_va(nhist, nrrdTypeDouble, 2, AIR_SIZE_T(rbins),
+                        AIR_SIZE_T(hbins))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't allocate histogram:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
-  if (!( AIR_EXISTS(vmin) && AIR_EXISTS(vmax) )) {
+  if (!(AIR_EXISTS(vmin) && AIR_EXISTS(vmax))) {
     range = nrrdRangeNewSet(nin, nrrdStateBlind8BitRange);
     airMopAdd(mop, range, (airMopper)nrrdRangeNix, airMopAlways);
     vmin = AIR_EXISTS(vmin) ? vmin : range->min;
     vmax = AIR_EXISTS(vmax) ? vmax : range->max;
   }
 
-#define DIST(x0, y0, x1, y1) (sqrt((x0-x1)*(x0-x1) + (y0-y1)*(y0-y1)))
+#define DIST(x0, y0, x1, y1) (sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1)))
 
   sx = AIR_INT(nin->axis[0].size); /* HEY unsigned? */
   sy = AIR_INT(nin->axis[1].size);
   if (!AIR_EXISTS(rmax)) {
     rmax = 0;
     rmax = AIR_MAX(rmax, DIST(cent[0], cent[1], 0, 0));
-    rmax = AIR_MAX(rmax, DIST(cent[0], cent[1], sx-1, 0));
-    rmax = AIR_MAX(rmax, DIST(cent[0], cent[1], 0, sy-1));
-    rmax = AIR_MAX(rmax, DIST(cent[0], cent[1], sx-1, sy-1));
+    rmax = AIR_MAX(rmax, DIST(cent[0], cent[1], sx - 1, 0));
+    rmax = AIR_MAX(rmax, DIST(cent[0], cent[1], 0, sy - 1));
+    rmax = AIR_MAX(rmax, DIST(cent[0], cent[1], sx - 1, sy - 1));
   }
 
   lup = nrrdDLookup[nin->type];
-  hist = (double*)(nhist->data);
-  for (xi=0; xi<sx; xi++) {
-    for (yi=0; yi<sy; yi++) {
+  hist = (double *)(nhist->data);
+  for (xi = 0; xi < sx; xi++) {
+    for (yi = 0; yi < sy; yi++) {
       rad = DIST(cent[0], cent[1], xi, yi);
       if (!AIR_IN_OP(0, rad, rmax)) {
         continue;
       }
-      val = lup(nin->data, xi + sx*yi);
+      val = lup(nin->data, xi + sx * yi);
       if (!AIR_IN_OP(vmin, val, vmax)) {
         continue;
       }
       ridx = airIndex(0, rad, rmax, rbins);
       hidx = airIndex(vmin, val, vmax, hbins);
-      hist[ridx + rbins*hidx] += 1;
+      hist[ridx + rbins * hidx] += 1;
     }
   }
 
@@ -125,7 +126,8 @@ main(int argc, const char *argv[]) {
   if (nrrdSave(outS, nhist, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't save output:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

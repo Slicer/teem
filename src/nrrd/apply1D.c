@@ -830,8 +830,7 @@ nrrd1DIrregAclGenerate(Nrrd *nacl, const Nrrd *nmap, size_t aclLen) {
              airSprintSize_t(stmp, aclLen));
     return 1;
   }
-  if (nrrdMaybeAlloc_va(nacl, nrrdTypeUShort, 2, AIR_CAST(size_t, 2),
-                        AIR_CAST(size_t, aclLen))) {
+  if (nrrdMaybeAlloc_va(nacl, nrrdTypeUShort, 2, AIR_SIZE_T(2), AIR_SIZE_T(aclLen))) {
     biffAddf(NRRD, "%s: ", me);
     return 1;
   }

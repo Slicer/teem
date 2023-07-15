@@ -27,37 +27,33 @@ const char *genvolInfo = ("generates test volumes.  Not very flexible as long as
 
 double
 rho(double r) {
-  return cos(2*AIR_PI*6.0*cos(AIR_PI*r/2));
+  return cos(2 * AIR_PI * 6.0 * cos(AIR_PI * r / 2));
 }
 
 double
 genvolFunc(double x, double y, double z) {
-  double mask, phi, R2, R3, Rbig, Rlit, sig0=0.17, sig1=0.04, a, b, w, ret;
+  double mask, phi, R2, R3, Rbig, Rlit, sig0 = 0.17, sig1 = 0.04, a, b, w, ret;
 
   /* three bladed thing */
-  R3 = sqrt(x*x + y*y + z*z);
-  mask = AIR_AFFINE(-1.0, erf((R3 - 0.75)*15), 1.0, 1.0, 0.0);
-  R2 = sqrt(x*x + y*y);
-  phi = atan2(y+0.001,x+0.001) + z*1.2;
-  w = pow((1+cos(3*phi))/2, R2*R2*90);
-  ret = w*mask;
+  R3 = sqrt(x * x + y * y + z * z);
+  mask = AIR_AFFINE(-1.0, erf((R3 - 0.75) * 15), 1.0, 1.0, 0.0);
+  R2 = sqrt(x * x + y * y);
+  phi = atan2(y + 0.001, x + 0.001) + z * 1.2;
+  w = pow((1 + cos(3 * phi)) / 2, R2 * R2 * 90);
+  ret = w * mask;
 
   if (0) {
     /* ridge surface is a Mobius aka Moebius strip */
-    Rbig = sqrt(x*x + y*y);
-    Rlit = sqrt(z*z + (Rbig-0.5)*(Rbig-0.5));
-    phi = atan2(Rbig-0.5, z) - atan2(x, y)/2;
-    a = Rlit*cos(phi);
-    b = Rlit*sin(phi);
+    Rbig = sqrt(x * x + y * y);
+    Rlit = sqrt(z * z + (Rbig - 0.5) * (Rbig - 0.5));
+    phi = atan2(Rbig - 0.5, z) - atan2(x, y) / 2;
+    a = Rlit * cos(phi);
+    b = Rlit * sin(phi);
     /*
       ret = airGaussian(a, 0, sig0)*airGaussian(b, 0, sig1);
     */
-    a = (a > sig0
-         ? a - sig0
-         : (a < -sig0
-            ? a + sig0
-            : 0));
-    ret = airGaussian(a, 0, sig1)*airGaussian(b, 0, sig1);
+    a = (a > sig0 ? a - sig0 : (a < -sig0 ? a + sig0 : 0));
+    ret = airGaussian(a, 0, sig1) * airGaussian(b, 0, sig1);
   }
   return ret;
 
@@ -116,37 +112,36 @@ main(int argc, const char *argv[]) {
              "upper bounding corner of volume");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &out, "-",
              "file to write output nrrd to");
-  hestParseOrDie(hopt, argc-1, argv+1, hparm,
-                 me, genvolInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, genvolInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdAlloc_va(nout, nrrdTypeDouble, 3,
-                   AIR_CAST(size_t, size[0]),
-                   AIR_CAST(size_t, size[1]),
-                   AIR_CAST(size_t, size[2]))) {
+  if (nrrdAlloc_va(nout, nrrdTypeDouble, 3, AIR_SIZE_T(size[0]), AIR_SIZE_T(size[1]),
+                   AIR_SIZE_T(size[2]))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: problem allocating volume:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   data = (double *)nout->data;
-  for (zi=0; zi<size[2]; zi++) {
-    z = AIR_AFFINE(0, zi, size[2]-1, min[2], max[2]);
-    for (yi=0; yi<size[1]; yi++) {
-      y = AIR_AFFINE(0, yi, size[1]-1, min[1], max[1]);
-      for (xi=0; xi<size[0]; xi++) {
-        x = AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]);
-        *data = genvolFunc(x,y,z);
+  for (zi = 0; zi < size[2]; zi++) {
+    z = AIR_AFFINE(0, zi, size[2] - 1, min[2], max[2]);
+    for (yi = 0; yi < size[1]; yi++) {
+      y = AIR_AFFINE(0, yi, size[1] - 1, min[1], max[1]);
+      for (xi = 0; xi < size[0]; xi++) {
+        x = AIR_AFFINE(0, xi, size[0] - 1, min[0], max[0]);
+        *data = genvolFunc(x, y, z);
         data += 1;
       }
     }
   }
 
-  nrrdAxisInfoSet_va(nout, nrrdAxisInfoCenter,
-                     nrrdCenterNode, nrrdCenterNode, nrrdCenterNode);
+  nrrdAxisInfoSet_va(nout, nrrdAxisInfoCenter, nrrdCenterNode, nrrdCenterNode,
+                     nrrdCenterNode);
 #if 0
   nrrdAxisInfoSet_va(nout, nrrdAxisInfoMin, min[0], min[1], min[2]);
   nrrdAxisInfoSet_va(nout, nrrdAxisInfoMax, max[0], max[1], max[2]);
@@ -155,8 +150,7 @@ main(int argc, const char *argv[]) {
   nrrdAxisInfoSpacingSet(nout, 2);
 #else
   /* impatient, not using API, bad! */
-#define ELL_3V_SET(v, a, b, c) \
-  ((v)[0] = (a), (v)[1] = (b), (v)[2] = (c))
+#  define ELL_3V_SET(v, a, b, c) ((v)[0] = (a), (v)[1] = (b), (v)[2] = (c))
   nout->space = nrrdSpaceLeftPosteriorSuperior;
   nout->spaceDim = 3;
   ELL_3V_SET(nout->spaceOrigin, 0, 0, 0);
@@ -168,7 +162,8 @@ main(int argc, const char *argv[]) {
   if (nrrdSave(out, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: problem saving output:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

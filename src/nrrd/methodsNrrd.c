@@ -1381,7 +1381,7 @@ nrrdPPM(Nrrd *ppm, size_t sx, size_t sy) {
   static const char me[] = "nrrdPPM";
   char stmp[2][AIR_STRLEN_SMALL + 1];
 
-  if (nrrdMaybeAlloc_va(ppm, nrrdTypeUChar, 3, AIR_CAST(size_t, 3), sx, sy)) {
+  if (nrrdMaybeAlloc_va(ppm, nrrdTypeUChar, 3, AIR_SIZE_T(3), sx, sy)) {
     biffAddf(NRRD, "%s: couldn't allocate %s x %s 24-bit image", me,
              airSprintSize_t(stmp[0], sx), airSprintSize_t(stmp[1], sy));
     return 1;

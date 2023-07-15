@@ -381,11 +381,10 @@ deringPtxfAlloc(NrrdDeringContext *drc, deringBag *dbg) {
   for (pi = 0; pi < PTXF_NUM; pi++) {
     if (drc->verticalSeam && (CROP == pi || CBLR == pi)) {
       E = nrrdMaybeAlloc_va(dbg->nptxf[pi], nrrdTypeDouble, 3, dbg->radNum,
-                            AIR_CAST(size_t, drc->thetaNum / 2 - 1),
-                            AIR_CAST(size_t, 2));
+                            AIR_SIZE_T(drc->thetaNum / 2 - 1), AIR_SIZE_T(2));
     } else {
       E = nrrdMaybeAlloc_va(dbg->nptxf[pi], nrrdTypeDouble, 2, dbg->radNum,
-                            AIR_CAST(size_t, drc->thetaNum));
+                            AIR_SIZE_T(drc->thetaNum));
     }
     if (E) {
       biffAddf(NRRD, "%s: polar transform allocation problem", me);
@@ -655,7 +654,7 @@ deringRingMagMeasure(NrrdDeringContext *drc, deringBag *dbg) {
   airMopAdd(mop, ntmp[1], (airMopper)nrrdNuke, airMopAlways);
   if (nrrdReshape_va(ntmp[0], dbg->nptxf[RING], 2,
                      (dbg->nptxf[RING]->axis[0].size * dbg->nptxf[RING]->axis[1].size),
-                     AIR_CAST(size_t, 1))
+                     AIR_SIZE_T(1))
       || nrrdProject(ntmp[1], ntmp[0], 0, nrrdMeasureL2, nrrdTypeDouble)) {
     biffAddf(NRRD, "%s: trouble", me);
     airMopError(mop);

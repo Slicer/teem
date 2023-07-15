@@ -374,7 +374,7 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type, unsigned int con
     if (!(*nvalP)) {
       *nvalP = nrrdNew();
     }
-    if (nrrdMaybeAlloc_va(*nvalP, nin->type, 1, AIR_CAST(size_t, numsettleid))) {
+    if (nrrdMaybeAlloc_va(*nvalP, nin->type, 1, AIR_SIZE_T(numsettleid))) {
       biffAddf(NRRD, "%s: couldn't allocate output value list", me);
       airMopError(mop);
       return 1;
@@ -561,8 +561,8 @@ nrrdCCAdjacency(Nrrd *nout, const Nrrd *nin, unsigned int conny) {
     return 1;
   }
   maxid = nrrdCCMax(nin);
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeUChar, 2, AIR_CAST(size_t, maxid + 1),
-                        AIR_CAST(size_t, maxid + 1))) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeUChar, 2, AIR_SIZE_T(maxid + 1),
+                        AIR_SIZE_T(maxid + 1))) {
     biffAddf(NRRD, "%s: trouble allocating output", me);
     return 1;
   }
@@ -858,7 +858,7 @@ nrrdCCSettle(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin) {
     if (!(*nvalP)) {
       *nvalP = nrrdNew();
     }
-    if (nrrdMaybeAlloc_va(*nvalP, nin->type, 1, AIR_CAST(size_t, numid))) {
+    if (nrrdMaybeAlloc_va(*nvalP, nin->type, 1, AIR_SIZE_T(numid))) {
       biffAddf(NRRD, "%s: couldn't allocate output value list", me);
       airMopError(mop);
       return 1;

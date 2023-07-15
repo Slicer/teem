@@ -663,7 +663,7 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP, unsigned int bins,
     /* for "smart" mode, we have to some extra work while creating the
        histogram to look for bins incessantly hit with the exact same
        value */
-    if (nrrdMaybeAlloc_va(nhist = nrrdNew(), nrrdTypeUInt, 1, AIR_CAST(size_t, bins))) {
+    if (nrrdMaybeAlloc_va(nhist = nrrdNew(), nrrdTypeUInt, 1, AIR_SIZE_T(bins))) {
       biffAddf(NRRD, "%s: failed to allocate histogram", me);
       airMopError(mop);
       return 1;
@@ -722,8 +722,7 @@ nrrdHistoEq(Nrrd *nout, const Nrrd *nin, Nrrd **nmapP, unsigned int bins,
       /* printf("%s: disrespecting bin %d\n", me, steady[1+2*bii]); */
     }
   }
-  if (nrrdMaybeAlloc_va(nmap = nrrdNew(), nrrdTypeDouble, 1,
-                        AIR_CAST(size_t, bins + 1))) {
+  if (nrrdMaybeAlloc_va(nmap = nrrdNew(), nrrdTypeDouble, 1, AIR_SIZE_T(bins + 1))) {
     biffAddf(NRRD, "%s: failed to create map nrrd", me);
     airMopError(mop);
     return 1;

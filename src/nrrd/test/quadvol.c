@@ -28,7 +28,7 @@ const char *quadInfo = ("generates quadratic test volumes, with isosurfaces "
 float
 quadFunc(float x, float y, float z, float A, float B, float off) {
 
-  return A*x*x + B*y*y - z + off;
+  return A * x * x + B * y * y - z + off;
 }
 
 int
@@ -59,30 +59,29 @@ main(int argc, const char *argv[]) {
              "vertical offset");
   hestOptAdd(&hopt, "o", "filename", airTypeString, 1, 1, &out, "-",
              "file to write output nrrd to");
-  hestParseOrDie(hopt, argc-1, argv+1, hparm,
-                 me, quadInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, quadInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdAlloc_va(nout, nrrdTypeFloat, 3,
-                   AIR_CAST(size_t, size[0]),
-                   AIR_CAST(size_t, size[1]),
-                   AIR_CAST(size_t, size[2]))) {
+  if (nrrdAlloc_va(nout, nrrdTypeFloat, 3, AIR_SIZE_T(size[0]), AIR_SIZE_T(size[1]),
+                   AIR_SIZE_T(size[2]))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: problem allocating volume:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   data = (float *)nout->data;
-  for (zi=0; zi<size[2]; zi++) {
-    z = AIR_FLOAT(AIR_AFFINE(0, zi, size[2]-1, min[2], max[2]));
-    for (yi=0; yi<size[1]; yi++) {
-      y = AIR_FLOAT(AIR_AFFINE(0, yi, size[1]-1, min[1], max[1]));
-      for (xi=0; xi<size[0]; xi++) {
-        x = AIR_FLOAT(AIR_AFFINE(0, xi, size[0]-1, min[0], max[0]));
-        *data = quadFunc(x,y,z, AB[0], AB[1], off);
+  for (zi = 0; zi < size[2]; zi++) {
+    z = AIR_FLOAT(AIR_AFFINE(0, zi, size[2] - 1, min[2], max[2]));
+    for (yi = 0; yi < size[1]; yi++) {
+      y = AIR_FLOAT(AIR_AFFINE(0, yi, size[1] - 1, min[1], max[1]));
+      for (xi = 0; xi < size[0]; xi++) {
+        x = AIR_FLOAT(AIR_AFFINE(0, xi, size[0] - 1, min[0], max[0]));
+        *data = quadFunc(x, y, z, AB[0], AB[1], off);
         data += 1;
       }
     }
@@ -96,7 +95,8 @@ main(int argc, const char *argv[]) {
   if (nrrdSave(out, nout, NULL)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: problem saving output:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);

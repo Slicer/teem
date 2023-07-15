@@ -64,7 +64,7 @@ nrrdCCSize(Nrrd *nout, const Nrrd *nin) {
     return 1;
   }
   maxid = nrrdCCMax(nin);
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeUInt, 1, AIR_CAST(size_t, maxid + 1))) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeUInt, 1, AIR_SIZE_T(maxid + 1))) {
     biffAddf(NRRD, "%s: can't allocate output", me);
     return 1;
   }
