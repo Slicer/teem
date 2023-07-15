@@ -37,24 +37,22 @@ tend_stenMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   Nrrd *nin, *nout;
   char *outS;
 
-  hestOptAdd(&hopt, "ds", "diff. scale", airTypeInt, 1, 1, &dScale, "1",
-             "differentiation scale, in pixels: the radius of the "
-             "kernel used for differentation to compute gradient vectors");
-  hestOptAdd(&hopt, "is", "int. scale", airTypeInt, 1, 1, &iScale, "2",
-             "integration scale, in pixels: the radius of the "
-             "kernel used for blurring outer products of gradients "
-             "in order compute structure tensors");
-  hestOptAdd(&hopt, "df", "downsample factor", airTypeInt, 1, 1, &dsmp, "1",
-             "the factor by which to downsample when creating volume of "
-             "structure tensors");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-", "input scalar volume",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-", "output filename");
+  hestOptAdd_1_Int(&hopt, "ds", "diff. scale", &dScale, "1",
+                   "differentiation scale, in pixels: the radius of the "
+                   "kernel used for differentation to compute gradient vectors");
+  hestOptAdd_1_Int(&hopt, "is", "int. scale", &iScale, "2",
+                   "integration scale, in pixels: the radius of the "
+                   "kernel used for blurring outer products of gradients "
+                   "in order compute structure tensors");
+  hestOptAdd_1_Int(&hopt, "df", "downsample factor", &dsmp, "1",
+                   "the factor by which to downsample when creating volume of "
+                   "structure tensors");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input scalar volume", nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output filename");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_stenInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_stenInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

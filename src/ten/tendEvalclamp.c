@@ -39,23 +39,21 @@ tend_evalclampMain(int argc, const char **argv, const char *me, hestParm *hparm)
   char *outS;
   float min, max;
 
-  hestOptAdd(&hopt, "min", "min", airTypeFloat, 1, 1, &min, NULL,
-             "Eigenvalues are clamped from below by this (the minimum "
-             "output eigenvalue).  Use \"nan\" to signify that no "
-             "minimum clamping should be done.");
-  hestOptAdd(&hopt, "max", "max", airTypeFloat, 1, 1, &max, "nan",
-             "Eigenvalues are clamped from above by this (the maximum "
-             "output eigenvalue).  Use \"nan\" to signify that no "
-             "maximum clamping should be done.");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output image (floating point)");
+  hestOptAdd_1_Float(&hopt, "min", "min", &min, NULL,
+                     "Eigenvalues are clamped from below by this (the minimum "
+                     "output eigenvalue).  Use \"nan\" to signify that no "
+                     "minimum clamping should be done.");
+  hestOptAdd_1_Float(&hopt, "max", "max", &max, "nan",
+                     "Eigenvalues are clamped from above by this (the maximum "
+                     "output eigenvalue).  Use \"nan\" to signify that no "
+                     "maximum clamping should be done.");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input diffusion tensor volume",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_evalclampInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_evalclampInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

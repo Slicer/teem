@@ -45,76 +45,73 @@ tend_epiregMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *gradS;
   NrrdKernelSpec *ksp;
   Nrrd **nin, **nout3D, *nout4D, *ngrad, *ngradKVP, *nbmatKVP;
-  unsigned int ni, ninLen, *skip, skipNum;
-  int ref, noverbose, progress, nocc, baseNum;
+  unsigned int ni, ninLen, *skip, skipNum, baseNum;
+  int ref, noverbose, progress, nocc;
   float bw[2], thr, fitFrac;
   double bvalue;
 
-  hestOptAdd(&hopt, "i", "dwi0 dwi1", airTypeOther, 1, -1, &nin, NULL,
-             "all the diffusion-weighted images (DWIs), as separate 3D nrrds, "
-             "**OR**: one 4D nrrd of all DWIs stacked along axis 0",
-             &ninLen, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "g", "grads", airTypeString, 1, 1, &gradS, NULL,
-             "array of gradient directions, in the same order as the "
-             "associated DWIs were given to \"-i\", "
-             "**OR** \"-g kvp\" signifies that gradient directions should "
-             "be read from the key/value pairs of the DWI",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "r", "reference", airTypeInt, 1, 1, &ref, "-1",
-             "which of the DW volumes (zero-based numbering) should be used "
-             "as the standard, to which all other images are transformed. "
-             "Using -1 (the default) means that 9 intrinsic parameters "
-             "governing the relationship between the gradient direction "
-             "and the resulting distortion are estimated and fitted, "
-             "ensuring good registration with the non-diffusion-weighted "
-             "T2 image (which is never explicitly used in registration). "
-             "Otherwise, by picking a specific DWI, no distortion parameter "
-             "estimation is done. ");
-  hestOptAdd(&hopt, "nv", NULL, airTypeInt, 0, 0, &noverbose, NULL,
-             "turn OFF verbose mode, and "
-             "have no idea what stage processing is at.");
-  hestOptAdd(&hopt, "p", NULL, airTypeInt, 0, 0, &progress, NULL,
-             "save out intermediate steps of processing");
-  hestOptAdd(&hopt, "bw", "x,y blur", airTypeFloat, 2, 2, bw, "1.0 2.0",
-             "standard devs in X and Y directions of gaussian filter used "
-             "to blur the DWIs prior to doing segmentation. This blurring "
-             "does not effect the final resampling of registered DWIs. "
-             "Use \"0.0 0.0\" to say \"no blurring\"");
-  hestOptAdd(&hopt, "t", "DWI thresh", airTypeFloat, 1, 1, &thr, "nan",
-             "Threshold value to use on DWIs, "
-             "to do initial separation of brain and non-brain.  By default, "
-             "the threshold is determined automatically by histogram "
-             "analysis. ");
-  hestOptAdd(&hopt, "ncc", NULL, airTypeInt, 0, 0, &nocc, NULL,
-             "do *NOT* do connected component (CC) analysis, after "
-             "thresholding and before moment calculation.  Doing CC analysis "
-             "usually gives better results because it converts the "
-             "thresholding output into something much closer to a "
-             "real segmentation");
-  hestOptAdd(&hopt, "f", "fit frac", airTypeFloat, 1, 1, &fitFrac, "0.70",
-             "(only meaningful with \"-r -1\") When doing linear fitting "
-             "of the intrinsic distortion parameters, it is good "
-             "to ignore the slices for which the segmentation was poor.  A "
-             "heuristic is used to rank the slices according to segmentation "
-             "quality.  This option controls how many of the (best) slices "
-             "contribute to the fitting.  Use \"0\" to disable distortion "
-             "parameter fitting. ");
-  hestOptAdd(&hopt, "k", "kernel", airTypeOther, 1, 1, &ksp, "cubic:0,0.5",
-             "kernel for resampling DWIs along the phase-encoding "
-             "direction during final registration stage",
-             NULL, NULL, nrrdHestKernelSpec);
-  hestOptAdd(&hopt, "s", "start #", airTypeInt, 1, 1, &baseNum, "1",
-             "first number to use in numbered sequence of output files.");
-  hestOptAdd(&hopt, "o", "output/prefix", airTypeString, 1, 1, &outS, "-",
-             "For separate 3D DWI volume inputs: prefix for output filenames; "
-             "will save out one (registered) "
-             "DWI for each input DWI, using the same type as the input. "
-             "**OR**: For single 4D DWI input: output file name. ");
+  hestOptAdd_Nv_Other(&hopt, "i", "dwi0 dwi1", 1, -1, &nin, NULL,
+                      "all the diffusion-weighted images (DWIs), as separate 3D nrrds, "
+                      "**OR**: one 4D nrrd of all DWIs stacked along axis 0",
+                      &ninLen, nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "g", "grads", &gradS, NULL,
+                      "array of gradient directions, in the same order as the "
+                      "associated DWIs were given to \"-i\", "
+                      "**OR** \"-g kvp\" signifies that gradient directions should "
+                      "be read from the key/value pairs of the DWI");
+  hestOptAdd_1_Int(&hopt, "r", "reference", &ref, "-1",
+                   "which of the DW volumes (zero-based numbering) should be used "
+                   "as the standard, to which all other images are transformed. "
+                   "Using -1 (the default) means that 9 intrinsic parameters "
+                   "governing the relationship between the gradient direction "
+                   "and the resulting distortion are estimated and fitted, "
+                   "ensuring good registration with the non-diffusion-weighted "
+                   "T2 image (which is never explicitly used in registration). "
+                   "Otherwise, by picking a specific DWI, no distortion parameter "
+                   "estimation is done. ");
+  hestOptAdd_Flag(&hopt, "nv", &noverbose,
+                  "turn OFF verbose mode, and "
+                  "have no idea what stage processing is at.");
+  hestOptAdd_Flag(&hopt, "p", &progress, "save out intermediate steps of processing");
+  hestOptAdd_2_Float(&hopt, "bw", "x,y blur", bw, "1.0 2.0",
+                     "standard devs in X and Y directions of gaussian filter used "
+                     "to blur the DWIs prior to doing segmentation. This blurring "
+                     "does not effect the final resampling of registered DWIs. "
+                     "Use \"0.0 0.0\" to say \"no blurring\"");
+  hestOptAdd_1_Float(&hopt, "t", "DWI thresh", &thr, "nan",
+                     "Threshold value to use on DWIs, "
+                     "to do initial separation of brain and non-brain.  By default, "
+                     "the threshold is determined automatically by histogram "
+                     "analysis.");
+  hestOptAdd_Flag(&hopt, "ncc", &nocc,
+                  "do *NOT* do connected component (CC) analysis, after "
+                  "thresholding and before moment calculation.  Doing CC analysis "
+                  "usually gives better results because it converts the "
+                  "thresholding output into something much closer to a "
+                  "real segmentation");
+  hestOptAdd_1_Float(&hopt, "f", "fit frac", &fitFrac, "0.70",
+                     "(only meaningful with \"-r -1\") When doing linear fitting "
+                     "of the intrinsic distortion parameters, it is good "
+                     "to ignore the slices for which the segmentation was poor.  A "
+                     "heuristic is used to rank the slices according to segmentation "
+                     "quality.  This option controls how many of the (best) slices "
+                     "contribute to the fitting.  Use \"0\" to disable distortion "
+                     "parameter fitting. ");
+  hestOptAdd_1_Other(&hopt, "k", "kernel", &ksp, "cubic:0,0.5",
+                     "kernel for resampling DWIs along the phase-encoding "
+                     "direction during final registration stage",
+                     nrrdHestKernelSpec);
+  hestOptAdd_1_UInt(&hopt, "s", "start #", &baseNum, "1",
+                    "first number to use in numbered sequence of output files.");
+  hestOptAdd_1_String(&hopt, "o", "output/prefix", &outS, "-",
+                      "For separate 3D DWI volume inputs: prefix for output filenames; "
+                      "will save out one (registered) "
+                      "DWI for each input DWI, using the same type as the input. "
+                      "**OR**: For single 4D DWI input: output file name. ");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_epiregInfoL);
-  JUSTPARSE();
+  USAGE_JUSTPARSE(_tend_epiregInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   if (strcmp("kvp", gradS)) {
@@ -186,11 +183,11 @@ tend_epiregMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   } else {
     for (ni = 0; ni < ninLen; ni++) {
       if (ninLen + baseNum > 99) {
-        sprintf(buff, "%s%05d.nrrd", outS, ni + baseNum);
+        sprintf(buff, "%s%05u.nrrd", outS, ni + baseNum);
       } else if (ninLen + baseNum > 9) {
-        sprintf(buff, "%s%02d.nrrd", outS, ni + baseNum);
+        sprintf(buff, "%s%02u.nrrd", outS, ni + baseNum);
       } else {
-        sprintf(buff, "%s%d.nrrd", outS, ni + baseNum);
+        sprintf(buff, "%s%u.nrrd", outS, ni + baseNum);
       }
       if (nrrdSave(buff, nout3D[ni], NULL)) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

@@ -34,21 +34,20 @@ tend_avgMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int ninLen, itype;
+  int itype;
+  unsigned int ninLen;
   Nrrd **nin, *nout;
   char *outS;
 
-  hestOptAdd(&hopt, "i", "nin1 nin2", airTypeOther, 2, -1, &nin, NULL,
-             "list of input diffusion tensor volumes", &ninLen, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &itype, "linear", "averaging method",
-             NULL, tenInterpType);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output image (floating point)");
+  hestOptAdd_Nv_Other(&hopt, "i", "nin1 nin2", 2, -1, &nin, NULL,
+                      "list of input diffusion tensor volumes", &ninLen, nrrdHestNrrd);
+  hestOptAdd_1_Enum(&hopt, "t", "type", &itype, "linear", "averaging method",
+                    tenInterpType);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_avgInfoL);
-  JUSTPARSE();
+  USAGE_JUSTPARSE(_tend_avgInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

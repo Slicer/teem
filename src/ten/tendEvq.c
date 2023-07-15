@@ -24,12 +24,13 @@
 
 #define INFO "Quantize directions of diffusion"
 static const char *_tend_evqInfoL
-  = (INFO ". Because VTK doesn't do multi-dimensional colormaps, we have to "
-          "quantize directions of diffusion (usually just the principal eigenvector) "
-          "in order to create the usual XYZ<->RGB coloring.  Because "
-          "eigenvector directions are poorly defined in regions of low "
-          "anisotropy, the length of the vector (pre-quantization) is modulated "
-          "by anisotropy, requiring the selection of some anisotropy metric.");
+  = (INFO
+     ". Because VTK doesn't do multi-dimensional colormaps (circa year 2000), we "
+     "have to quantize directions of diffusion (usually just the principal eigenvector) "
+     "in order to create the usual XYZ<->RGB coloring.  Because eigenvector directions "
+     "are poorly defined in regions of low anisotropy, the length of the vector "
+     "(pre-quantization) is modulated by anisotropy, requiring the selection of some "
+     "anisotropy metric.");
 
 static int
 tend_evqMain(int argc, const char **argv, const char *me, hestParm *hparm) {
@@ -38,32 +39,30 @@ tend_evqMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int which, aniso, dontScaleByAniso;
+  int aniso, dontScaleByAniso;
+  unsigned int which;
   Nrrd *nin, *nout;
   char *outS;
 
-  hestOptAdd(&hopt, "c", "evec index", airTypeInt, 1, 1, &which, "0",
-             "Which eigenvector should be quantized: \"0\" for the "
-             "direction of fastest diffusion (eigenvector associated "
-             "with largest eigenvalue), \"1\" or \"2\" for other two "
-             "eigenvectors (associated with middle and smallest eigenvalue)");
-  hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, NULL,
-             "Which anisotropy metric to scale the eigenvector "
-             "with.  " TEN_ANISO_DESC,
-             NULL, tenAniso);
-  hestOptAdd(&hopt, "ns", NULL, airTypeInt, 0, 0, &dontScaleByAniso, NULL,
-             "Don't attenuate the color by anisotropy.  By default (not "
-             "using this option), regions with low or no anisotropy are "
-             "very dark colors or black");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output image (floating point)");
+  hestOptAdd_1_UInt(&hopt, "c", "evec index", &which, "0",
+                    "Which eigenvector should be quantized: \"0\" for the "
+                    "direction of fastest diffusion (eigenvector associated "
+                    "with largest eigenvalue), \"1\" or \"2\" for other two "
+                    "eigenvectors (associated with middle and smallest eigenvalue)");
+  hestOptAdd_1_Enum(&hopt, "a", "aniso", &aniso, NULL,
+                    "Scale the eigenvector with this anisotropy metric. " TEN_ANISO_DESC,
+                    tenAniso);
+  hestOptAdd_Flag(&hopt, "ns", &dontScaleByAniso,
+                  "Don't attenuate the color by anisotropy.  By default (not "
+                  "using this option), regions with low or no anisotropy are "
+                  "very dark colors or black");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input diffusion tensor volume",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_evqInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_evqInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

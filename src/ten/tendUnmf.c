@@ -46,8 +46,7 @@ tend_unmfMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_unmfInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_unmfInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

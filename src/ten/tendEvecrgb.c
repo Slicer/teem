@@ -42,30 +42,28 @@ tend_evecrgbMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   rgbp = tenEvecRGBParmNew();
   airMopAdd(mop, rgbp, AIR_CAST(airMopper, tenEvecRGBParmNix), airMopAlways);
 
-  hestOptAdd(&hopt, "c", "evec index", airTypeUInt, 1, 1, &(rgbp->which), NULL,
-             "which eigenvector will be colored. \"0\" for the "
-             "principal, \"1\" for the middle, \"2\" for the minor");
-  hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &(rgbp->aniso), NULL,
-             "Which anisotropy to use for modulating the saturation "
-             "of the colors.  " TEN_ANISO_DESC,
-             NULL, tenAniso);
-  hestOptAdd(&hopt, "t", "thresh", airTypeDouble, 1, 1, &(rgbp->confThresh), "0.5",
-             "confidence threshold");
-  hestOptAdd(&hopt, "bg", "background", airTypeDouble, 1, 1, &(rgbp->bgGray), "0",
-             "gray level to use for voxels who's confidence is zero ");
-  hestOptAdd(&hopt, "gr", "gray", airTypeDouble, 1, 1, &(rgbp->isoGray), "0",
-             "the gray level to desaturate towards as anisotropy "
-             "decreases (while confidence remains 1.0)");
-  hestOptAdd(&hopt, "gam", "gamma", airTypeDouble, 1, 1, &(rgbp->gamma), "1",
-             "gamma to use on color components");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output image (floating point)");
+  hestOptAdd_1_UInt(&hopt, "c", "evec index", &(rgbp->which), NULL,
+                    "which eigenvector will be colored. \"0\" for the "
+                    "principal, \"1\" for the middle, \"2\" for the minor");
+  hestOptAdd_1_Enum(&hopt, "a", "aniso", &(rgbp->aniso), NULL,
+                    "Which anisotropy to use for modulating the saturation "
+                    "of the colors.  " TEN_ANISO_DESC,
+                    tenAniso);
+  hestOptAdd_1_Double(&hopt, "t", "thresh", &(rgbp->confThresh), "0.5",
+                      "confidence threshold");
+  hestOptAdd_1_Double(&hopt, "bg", "background", &(rgbp->bgGray), "0",
+                      "gray level to use for voxels who's confidence is zero ");
+  hestOptAdd_1_Double(&hopt, "gr", "gray", &(rgbp->isoGray), "0",
+                      "the gray level to desaturate towards as anisotropy "
+                      "decreases (while confidence remains 1.0)");
+  hestOptAdd_1_Double(&hopt, "gam", "gamma", &(rgbp->gamma), "1",
+                      "gamma to use on color components");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input diffusion tensor volume",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output image (floating point)");
 
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_evecrgbInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_evecrgbInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

@@ -32,28 +32,26 @@ tend_evecMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int ret, *comp, compLen, cc;
+  int ret, *comp;
+  unsigned int cc, compLen;
   Nrrd *nin, *nout;
   char *outS;
   float thresh, *edata, *tdata, eval[3], evec[9], scl;
   size_t N, I, sx, sy, sz;
 
-  hestOptAdd(&hopt, "c", "c0 ", airTypeInt, 1, 3, &comp, NULL,
-             "which eigenvalues should be saved out. \"0\" for the "
-             "largest, \"1\" for the middle, \"2\" for the smallest, "
-             "\"0 1\", \"1 2\", \"0 1 2\" or similar for more than one",
-             &compLen);
-  hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
-             "confidence threshold");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output image (floating point)");
+  hestOptAdd_Nv_Int(&hopt, "c", "c0 ", 1, 3, &comp, NULL,
+                    "which eigenvalues should be saved out. \"0\" for the "
+                    "largest, \"1\" for the middle, \"2\" for the smallest, "
+                    "\"0 1\", \"1 2\", \"0 1 2\" or similar for more than one",
+                    &compLen);
+  hestOptAdd_1_Float(&hopt, "t", "thresh", &thresh, "0.5", "confidence threshold");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input diffusion tensor volume",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_evecInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_evecInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   for (cc = 0; cc < compLen; cc++) {

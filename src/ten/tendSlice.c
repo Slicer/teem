@@ -33,22 +33,20 @@ tend_sliceMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   airArray *mop;
 
   char *outS;
-  int axis, pos, dim;
+  unsigned int axis, pos, dim;
   Nrrd *nin, *nout;
 
-  hestOptAdd(&hopt, "a", "axis", airTypeInt, 1, 1, &axis, NULL,
-             "axis along which to slice");
-  hestOptAdd(&hopt, "p", "pos", airTypeInt, 1, 1, &pos, NULL, "position to slice at");
-  hestOptAdd(&hopt, "d", "dim", airTypeInt, 1, 1, &dim, "3",
-             "dimension of desired tensor output, can be either 2 or 3");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-", "output tensor slice");
+  hestOptAdd_1_UInt(&hopt, "a", "axis", &axis, NULL, "axis along which to slice");
+  hestOptAdd_1_UInt(&hopt, "p", "pos", &pos, NULL, "position to slice at");
+  hestOptAdd_1_UInt(&hopt, "d", "dim", &dim, "3",
+                    "dimension of desired tensor output, can be either 2 or 3");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input diffusion tensor volume",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output tensor slice");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_sliceInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_sliceInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   airMopAdd(mop, nout = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
 

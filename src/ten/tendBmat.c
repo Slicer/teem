@@ -45,14 +45,13 @@ tend_bmatMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   Nrrd *ngrad, *nout;
   char *outS;
 
-  hestOptAdd(&hopt, "i", "grads", airTypeOther, 1, 1, &ngrad, NULL,
-             "array of gradient directions", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-", "output B matrix");
+  hestOptAdd_1_Other(&hopt, "i", "grads", &ngrad, NULL, "array of gradient directions",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output B matrix");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_bmatInfoL);
-  JUSTPARSE();
+  USAGE_JUSTPARSE(_tend_bmatInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);

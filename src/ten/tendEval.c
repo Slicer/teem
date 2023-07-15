@@ -32,34 +32,32 @@ tend_evalMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *perr, *err;
   airArray *mop;
 
-  int ret, *comp, compLen, cc;
+  int ret;
+  unsigned int *comp, compLen, cc;
   Nrrd *nin, *nout;
   char *outS;
   float thresh, *edata, *tdata, eval[3], evec[9];
   size_t N, I, sx, sy, sz;
 
-  hestOptAdd(&hopt, "c", "c0 ", airTypeInt, 1, 3, &comp, NULL,
-             "which eigenvalues should be saved out. \"0\" for the "
-             "largest, \"1\" for the middle, \"2\" for the smallest, "
-             "\"0 1\", \"1 2\", \"0 1 2\" or similar for more than one",
-             &compLen);
-  hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
-             "confidence threshold");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output image (floating point)");
+  hestOptAdd_Nv_UInt(&hopt, "c", "c0 ", 1, 3, &comp, NULL,
+                     "which eigenvalues should be saved out. \"0\" for the "
+                     "largest, \"1\" for the middle, \"2\" for the smallest, "
+                     "\"0 1\", \"1 2\", \"0 1 2\" or similar for more than one",
+                     &compLen);
+  hestOptAdd_1_Float(&hopt, "t", "thresh", &thresh, "0.5", "confidence threshold");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input diffusion tensor volume",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_evalInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_evalInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   for (cc = 0; cc < compLen; cc++) {
-    if (!AIR_IN_CL(0, comp[cc], 2)) {
-      fprintf(stderr, "%s: requested component %d (%d of 3) not in [0..2]\n", me,
-              comp[cc], cc + 1);
+    if (!(comp[cc] <= 2)) {
+      fprintf(stderr, "%s: requested component %u (%u of %u) not in [0..2]\n", me,
+              comp[cc], cc + 1, compLen);
       airMopError(mop);
       return 1;
     }

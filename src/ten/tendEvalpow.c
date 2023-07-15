@@ -37,17 +37,15 @@ tend_evalpowMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *outS;
   float expo;
 
-  hestOptAdd(&hopt, "p", "power", airTypeFloat, 1, 1, &expo, NULL,
-             "Power to which to raise all the eigenvalues.");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output tensor volume");
+  hestOptAdd_1_Float(&hopt, "p", "power", &expo, NULL,
+                     "Power to which to raise all the eigenvalues.");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input diffusion tensor volume",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output tensor volume");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_evalpowInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_evalpowInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

@@ -40,59 +40,55 @@ tend_mfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   const tenModel *model;
   tenExperSpec *espec;
 
-  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "0", "verbosity level");
-  hestOptAdd(&hopt, "m", "model", airTypeString, 1, 1, &modS, NULL,
-             "which model to fit. Use optional \"b0+\" prefix to "
-             "indicate that the B0 image should also be saved "
-             "(independent of whether it was known or had to be "
-             "estimated, according to \"-knownB0\").");
-  hestOptAdd(&hopt, "ns", "# starts", airTypeUInt, 1, 1, &starts, "1",
-             "number of random starting points at which to initialize "
-             "fitting");
-  hestOptAdd(&hopt, "ml", NULL, airTypeInt, 0, 0, &mlfit, NULL,
-             "do ML fitting, rather than least-squares, which also "
-             "requires setting \"-sigma\"");
-  hestOptAdd(&hopt, "sigma", "sigma", airTypeDouble, 1, 1, &sigma, "nan",
-             "Gaussian/Rician noise parameter");
-  hestOptAdd(&hopt, "eps", "eps", airTypeDouble, 1, 1, &eps, "0.01",
-             "convergence epsilon");
-  hestOptAdd(&hopt, "mini", "min iters", airTypeUInt, 1, 1, &minIter, "3",
-             "minimum required # iterations for fitting.");
-  hestOptAdd(&hopt, "maxi", "max iters", airTypeUInt, 1, 1, &maxIter, "100",
-             "maximum allowable # iterations for fitting.");
-  hestOptAdd(&hopt, "knownB0", "bool", airTypeBool, 1, 1, &knownB0, NULL,
-             "Indicates if the B=0 non-diffusion-weighted reference image "
-             "is known (\"true\") because it appears one or more times "
-             "amongst the DWIs, or, if it has to be estimated along with "
-             "the other model parameters (\"false\")");
+  hestOptAdd_1_Int(&hopt, "v", "verbose", &verbose, "0", "verbosity level");
+  hestOptAdd_1_String(&hopt, "m", "model", &modS, NULL,
+                      "which model to fit. Use optional \"b0+\" prefix to "
+                      "indicate that the B0 image should also be saved "
+                      "(independent of whether it was known or had to be "
+                      "estimated, according to \"-knownB0\").");
+  hestOptAdd_1_UInt(&hopt, "ns", "# starts", &starts, "1",
+                    "number of random starting points at which to initialize "
+                    "fitting");
+  hestOptAdd_Flag(&hopt, "ml", &mlfit,
+                  "do ML fitting, rather than least-squares, which also "
+                  "requires setting \"-sigma\"");
+  hestOptAdd_1_Double(&hopt, "sigma", "sigma", &sigma, "nan",
+                      "Gaussian/Rician noise parameter");
+  hestOptAdd_1_Double(&hopt, "eps", "eps", &eps, "0.01", "convergence epsilon");
+  hestOptAdd_1_UInt(&hopt, "mini", "min iters", &minIter, "3",
+                    "minimum required # iterations for fitting.");
+  hestOptAdd_1_UInt(&hopt, "maxi", "max iters", &maxIter, "100",
+                    "maximum allowable # iterations for fitting.");
+  hestOptAdd_1_Bool(&hopt, "knownB0", "bool", &knownB0, NULL,
+                    "Indicates if the B=0 non-diffusion-weighted reference image "
+                    "is known (\"true\") because it appears one or more times "
+                    "amongst the DWIs, or, if it has to be estimated along with "
+                    "the other model parameters (\"false\")");
   /* (this is now specified as part of the "-m" model description)
-  hestOptAdd(&hopt, "saveB0", "bool", airTypeBool, 1, 1, &saveB0, NULL,
-             "Indicates if the B=0 non-diffusion-weighted value "
-             "should be saved in output, regardless of whether it was "
-             "known or had to be esimated");
+  hestOptAdd_1_Bool(&hopt, "saveB0", "bool", &saveB0, NULL,
+                    "Indicates if the B=0 non-diffusion-weighted value "
+                    "should be saved in output, regardless of whether it was "
+                    "known or had to be esimated");
   */
-  hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &typeOut, "float",
-             "output type of model parameters", NULL, nrrdType);
-  hestOptAdd(&hopt, "i", "dwi", airTypeOther, 1, 1, &nin, "-",
-             "all the diffusion-weighted images in one 4D nrrd", NULL, NULL,
-             nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output parameter vector image");
-  hestOptAdd(&hopt, "eo", "filename", airTypeString, 1, 1, &terrS, "",
-             "Giving a filename here allows you to save out the per-sample "
-             "fitting error.  By default, no such error is saved.");
-  hestOptAdd(&hopt, "co", "filename", airTypeString, 1, 1, &convS, "",
-             "Giving a filename here allows you to save out the per-sample "
-             "convergence fraction.  By default, no such error is saved.");
-  hestOptAdd(&hopt, "io", "filename", airTypeString, 1, 1, &iterS, "",
-             "Giving a filename here allows you to save out the per-sample "
-             "number of iterations needed for fitting.  "
-             "By default, no such error is saved.");
+  hestOptAdd_1_Enum(&hopt, "t", "type", &typeOut, "float",
+                    "output type of model parameters", nrrdType);
+  hestOptAdd_1_Other(&hopt, "i", "dwi", &nin, "-",
+                     "all the diffusion-weighted images in one 4D nrrd", nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output parameter vector image");
+  hestOptAdd_1_String(&hopt, "eo", "filename", &terrS, "",
+                      "Giving a filename here allows you to save out the per-sample "
+                      "fitting error.  By default, no such error is saved.");
+  hestOptAdd_1_String(&hopt, "co", "filename", &convS, "",
+                      "Giving a filename here allows you to save out the per-sample "
+                      "convergence fraction.  By default, no such error is saved.");
+  hestOptAdd_1_String(&hopt, "io", "filename", &iterS, "",
+                      "Giving a filename here allows you to save out the per-sample "
+                      "number of iterations needed for fitting.  "
+                      "By default, no such error is saved.");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_mfitInfoL);
-  JUSTPARSE();
+  USAGE_JUSTPARSE(_tend_mfitInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nterr = NULL;

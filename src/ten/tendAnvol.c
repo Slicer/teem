@@ -39,19 +39,16 @@ tend_anvolMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *outS;
   float thresh;
 
-  hestOptAdd(&hopt, "a", "aniso", airTypeEnum, 1, 1, &aniso, NULL,
-             "Which anisotropy metric to plot.  " TEN_ANISO_DESC, NULL, tenAniso);
-  hestOptAdd(&hopt, "t", "thresh", airTypeFloat, 1, 1, &thresh, "0.5",
-             "confidence threshold");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, "-",
-             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output image (floating point)");
+  hestOptAdd_1_Enum(&hopt, "a", "aniso", &aniso, NULL,
+                    "Which anisotropy metric to plot.  " TEN_ANISO_DESC, tenAniso);
+  hestOptAdd_1_Float(&hopt, "t", "thresh", &thresh, "0.5", "confidence threshold");
+  hestOptAdd_1_Other(&hopt, "i", "nin", &nin, "-", "input diffusion tensor volume",
+                     nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_anvolInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_anvolInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

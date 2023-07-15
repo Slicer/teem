@@ -38,15 +38,13 @@ tend_makeMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   Nrrd *nin[3], *nout;
   char *outS;
 
-  hestOptAdd(&hopt, "i", "conf evals evecs", airTypeOther, 3, 3, nin, NULL,
-             "input diffusion tensor volume", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output image (floating point)");
+  hestOptAdd_3_Other(&hopt, "i", "conf evals evecs", nin, NULL,
+                     "input diffusion tensor volume", nrrdHestNrrd);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_makeInfoL);
-  JUSTPARSE();
+  USAGE_JUSTPARSE(_tend_makeInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();

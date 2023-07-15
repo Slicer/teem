@@ -50,38 +50,34 @@ tend_simMain(int argc, const char **argv, const char *me, hestParm *hparm) {
      set to AIR_FALSE there */
   hparm->elideSingleOtherDefault = AIR_TRUE;
 
-  hestOptAdd(&hopt, "old", NULL, airTypeInt, 0, 0, &oldstuff, NULL,
-             "don't use the new tenEstimateContext functionality");
-  hestOptAdd(&hopt, "sigma", "sigma", airTypeFloat, 1, 1, &sigma, "0.0",
-             "Rician noise parameter");
-  hestOptAdd(&hopt, "seed", "seed", airTypeInt, 1, 1, &seed, "42",
-             "seed value for RNG which creates noise");
-  hestOptAdd(&hopt, "g", "grad list", airTypeOther, 1, 1, &ngrad, "",
-             "gradient list, one row per diffusion-weighted image", NULL, NULL,
-             nrrdHestNrrd);
-  hestOptAdd(&hopt, "B", "B matrix", airTypeOther, 1, 1, &nbmat, "",
-             "B matrix, one row per diffusion-weighted image.  Using this "
-             "overrides the gradient list input via \"-g\"",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "r", "reference field", airTypeOther, 1, 1, &nT2, NULL,
-             "reference anatomical scan, with no diffusion weighting", NULL, NULL,
-             nrrdHestNrrd);
-  hestOptAdd(&hopt, "i", "tensor field", airTypeOther, 1, 1, &nin, "-",
-             "input diffusion tensor field", NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "b", "b", airTypeFloat, 1, 1, &b, "1000",
-             "b value for simulated scan");
-  hestOptAdd(&hopt, "kvp", NULL, airTypeInt, 0, 0, &keyValueSet, NULL,
-             "generate key/value pairs in the NRRD header corresponding "
-             "to the input b-value and gradients or B-matrices.  ");
-  hestOptAdd(&hopt, "t", "type", airTypeEnum, 1, 1, &outType, "float",
-             "output type of DWIs", NULL, nrrdType);
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
-             "output image (floating point)");
+  hestOptAdd_Flag(&hopt, "old", &oldstuff,
+                  "don't use the new tenEstimateContext functionality");
+  hestOptAdd_1_Float(&hopt, "sigma", "sigma", &sigma, "0.0", "Rician noise parameter");
+  hestOptAdd_1_Int(&hopt, "seed", "seed", &seed, "42",
+                   "seed value for RNG which creates noise");
+  hestOptAdd_1_Other(&hopt, "g", "grad list", &ngrad, "",
+                     "gradient list, one row per diffusion-weighted image",
+                     nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "B", "B matrix", &nbmat, "",
+                     "B matrix, one row per diffusion-weighted image.  Using this "
+                     "overrides the gradient list input via \"-g\"",
+                     nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "r", "reference field", &nT2, NULL,
+                     "reference anatomical scan, with no diffusion weighting",
+                     nrrdHestNrrd);
+  hestOptAdd_1_Other(&hopt, "i", "tensor field", &nin, "-",
+                     "input diffusion tensor field", nrrdHestNrrd);
+  hestOptAdd_1_Float(&hopt, "b", "b", &b, "1000", "b value for simulated scan");
+  hestOptAdd_Flag(&hopt, "kvp", &keyValueSet,
+                  "generate key/value pairs in the NRRD header corresponding "
+                  "to the input b-value and gradients or B-matrices.  ");
+  hestOptAdd_1_Enum(&hopt, "t", "type", &outType, "float", "output type of DWIs",
+                    nrrdType);
+  hestOptAdd_1_String(&hopt, "o", "nout", &outS, "-", "output image (floating point)");
 
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
-  USAGE(_tend_simInfoL);
-  PARSE();
+  USAGE_PARSE(_tend_simInfoL);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
