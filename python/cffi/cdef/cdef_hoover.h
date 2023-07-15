@@ -69,20 +69,20 @@ typedef struct {
   limnCamera *cam; /* camera info */
   /******** 2) volume information: size and spacing, centering, or
             a gageShape that sets everything */
-  int volSize[3];         /* X,Y,Z resolution of volume */
-  double volSpacing[3];   /* distance between samples in X,Y,Z direction */
-  int volCentering;       /* either nrrdCenterNode or nrrdCenterCell */
-  const gageShape *shape; /* if non-NULL, use this gageShape (which we do
-                             NOT own), which over-rides
-                             volSize, volSpacing, volCentering */
+  unsigned int volSize[3]; /* X,Y,Z resolution of volume */
+  double volSpacing[3];    /* distance between samples in X,Y,Z direction */
+  int volCentering;        /* either nrrdCenterNode or nrrdCenterCell */
+  const gageShape *shape;  /* if non-NULL, use this gageShape (which we do
+                              NOT own), which over-rides
+                              volSize, volSpacing, volCentering */
   /******** 3) image information: dimensions + centering */
-  int imgSize[2], /* # samples of image along U and V axes */
-    imgCentering; /* either nrrdCenterNode or nrrdCenterCell */
+  unsigned int imgSize[2]; /* # samples of image along U and V axes */
+  int imgCentering;        /* either nrrdCenterNode or nrrdCenterCell */
   /******** 4) opaque "user information" pointer */
   void *user; /* passed to all callbacks */
   /******** 5) stuff about multi-threading */
-  unsigned int numThreads;   /* number of threads to spawn per rendering */
-  int workIdx;               /* next work assignment (such as a scanline) */
+  unsigned int numThreads,   /* number of threads to spawn per rendering */
+    workIdx;                 /* next work assignment (such as a scanline) */
   airThreadMutex *workMutex; /* mutex around work assignment */
   /*
   ******* 6) the callbacks

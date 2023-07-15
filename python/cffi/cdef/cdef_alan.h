@@ -71,15 +71,15 @@ typedef float alan_t;
 typedef struct alanContext_t {
   /* INPUT ----------------------------- */
   unsigned int dim,   /* either 2 or 3 */
-    size[3];          /* number of texels in X, Y, (Z) */
+    size[3],          /* number of texels in X, Y, (Z) */
+    numThreads,       /* # of threads, if airThreadCapable */
+    frameInterval,    /* # of iterations between which to an image */
+    saveInterval,     /* # of iterations between which to save all state */
+    maxIteration;     /* cap on # of iterations, or 0 if there is no limit */
   int verbose, wrap,  /* do toroidal boundary wrapping */
     textureType,      /* what kind are we (from alanTextureType* enum) */
     oversample,       /* oversampling of tensors to texels */
     homogAniso,       /* homogenous anisotropy approximation */
-    numThreads,       /* # of threads, if airThreadCapable */
-    frameInterval,    /* # of iterations between which to an image */
-    saveInterval,     /* # of iterations between which to save all state */
-    maxIteration,     /* cap on # of iterations, or 0 if there is no limit */
     constFilename;    /* always use the same filename when saving frames */
   alan_t K, F,        /* simulation variables */
     deltaX,           /* size of spatial grid discretization */
@@ -99,13 +99,13 @@ typedef struct alanContext_t {
   /* if non-NULL, this is called once per iteration, at its completion */
   int (*perIteration)(struct alanContext_t *, int iter);
   /* INTERNAL -------------------------- */
-  int iter;             /* current iteration */
-  Nrrd *_nlev[2],       /* levels of morphogens, alternating buffers */
-    *nlev;              /* pointer to last iterations output */
-  Nrrd *nparm;          /* alpha, beta values for all texels */
-  alan_t averageChange; /* average amount of "change" in last iteration */
-  int changeCount;      /* # of contributions to averageChange */
-                        /* to control update of averageChange and changeCount */
+  int iter;                 /* current iteration */
+  Nrrd *_nlev[2],           /* levels of morphogens, alternating buffers */
+    *nlev;                  /* pointer to last iterations output */
+  Nrrd *nparm;              /* alpha, beta values for all texels */
+  alan_t averageChange;     /* average amount of "change" in last iteration */
+  unsigned int changeCount; /* # of contributions to averageChange
+                               to control update of averageChange and changeCount */
   airThreadMutex *changeMutex;
   /* to synchronize separate iterations of simulation */
   airThreadBarrier *iterBarrier;
@@ -118,9 +118,10 @@ extern const char *const alanBiffKey;
 extern void alanContextInit(alanContext *actx);
 extern alanContext *alanContextNew(void);
 extern alanContext *alanContextNix(alanContext *actx);
-extern int alanDimensionSet(alanContext *actx, int dim);
-extern int alan2DSizeSet(alanContext *actx, int sizeX, int sizeY);
-extern int alan3DSizeSet(alanContext *actx, int sizeX, int sizeY, int sizeZ);
+extern int alanDimensionSet(alanContext *actx, unsigned int dim);
+extern int alan2DSizeSet(alanContext *actx, unsigned int sizeX, unsigned int sizeY);
+extern int alan3DSizeSet(alanContext *actx, unsigned int sizeX, unsigned int sizeY,
+                              unsigned int sizeZ);
 extern int alanTensorSet(alanContext *actx, Nrrd *nten, int oversample);
 extern int alanParmSet(alanContext *actx, int whichParm, double parm);
 /* enumsAlan.c */

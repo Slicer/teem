@@ -37,9 +37,9 @@ enum {
 /*
 ******** hestCB struct
 **
-** for when the thing you want to parse from the command-line is not a simple boolean,
-** number, airEnum, or string.  hestParse() will not allocate anything to store
-** individual things, though it may allocate an array in the case of a multiple
+** for when the thing you want to parse from the command-line is airTypeOther: not a
+** simple boolean, number, string, or airEnum.  hestParse() will not allocate anything to
+** store individual things, though it may allocate an array in the case of a multiple
 ** variable parameter option.  If your things are actually pointers to things, then you
 ** do the allocation in the parse() callback.  In this case, you set destroy() to be
 ** your "destructor", and it will be called on the result of derefencing the argument
@@ -73,7 +73,7 @@ typedef struct {
   int type;           /* type of option (from airType enum) */
   unsigned int min;   /* min # of parameters for option */
   int max;            /* max # of parameters for option,
-                         or -1 for "there is no max" */
+                         or -1 for "there is no max; # parms is unbounded" */
   void *valueP;       /* storage of parsed values */
   char *dflt,         /* default value written out as string */
     *info;            /* description to be printed with "glossary" info */
@@ -216,17 +216,17 @@ extern hestParm *hestParmNew(void);
 extern hestParm *hestParmFree(hestParm *parm);
 extern void *hestParmFree_vp(void *parm);
 extern void hestOptSingleSet(hestOpt *opt, const char *flag, const char *name,
-                                  int type, int min, int max, void *valueP,
+                                  int type, unsigned int min, int max, void *valueP,
                                   const char *dflt, const char *info, unsigned int *sawP,
                                   const airEnum *enm, const hestCB *CB);
 extern unsigned int hestOptAdd_nva(hestOpt **optP, const char *flag,
-                                        const char *name, int type, int min, int max,
-                                        void *valueP, const char *dflt, const char *info,
-                                        unsigned int *sawP, const airEnum *enm,
-                                        const hestCB *CB);
+                                        const char *name, int type, unsigned int min,
+                                        int max, void *valueP, const char *dflt,
+                                        const char *info, unsigned int *sawP,
+                                        const airEnum *enm, const hestCB *CB);
 extern unsigned int hestOptAdd(hestOpt **optP,
                                     const char *flag, const char *name,
-                                    int type, int min, int max,
+                                    int type, unsigned int min, int max,
                                     void *valueP, const char *dflt,
                                     const char *info,
                                     ... /* unsigned int *sawP,
@@ -254,43 +254,313 @@ extern void hestGlossary(FILE *file, hestOpt *opt, const hestParm *parm);
 extern void hestInfo(FILE *file, const char *argv0, const char *info,
                           const hestParm *parm);
 /* adders.c */
+extern void hestOptAddDeclsPrint(FILE *f);
+/* Many many non-var-args alternatives to hestOptAdd, also usefully type-specific for the
+type of value to be parsed in a way that hestOptAdd_nva cannot match. These capture all
+the common uses (and them some) of hest within Teem. They can be categorized, like
+hestOpt->kind, in terms of the min, max number of (type T) parameters to the option:
+  min == max == 0       hestOptAdd_Flag         (stand-alone flag; no parameters)
+  min == max == 1       hestOptAdd_1_T          single fixed parameter
+  min == max >= 2       hestOptAdd_{2,3,4,N}_T  multiple fixed parameters
+  min == 0; max == 1    hestOptAdd_1v_T         single variable parameter
+  min < max; max >= 2   hestOptAdd_Nv_T         multiple variable parameters
+An airEnum* is passed for _Enum options; or a hestCB* for _Other options. The number of
+parameters *sawP that hestParm saw on the command-line is passed for the _Nv_ options.
+All declarations below were automatically generated via hestOptAddDeclsPrint (followed by
+clang-format), which (like the implementation of all the functions) is done via lots of
+#define macro tricks. */
 extern unsigned int hestOptAdd_Flag(hestOpt **optP, const char *flag, int *valueP,
                                          const char *info);
-extern unsigned int hestOptAdd_1_Bool(hestOpt **optP, const char *flag,
-                                           const char *name, int *valueP, int dflt,
-                                           const char *info);
-extern unsigned int hestOptAdd_1_Int(hestOpt **optP, const char *flag,
-                                          const char *name, int *valueP, int dflt,
-                                          const char *info);
-extern unsigned int hestOptAdd_1_UInt(hestOpt **optP, const char *flag,
+extern unsigned int hestOptAdd_1v_Bool(hestOpt **hoptP, const char *flag,
+                                            const char *name, int *valueP,
+                                            const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1v_Int(hestOpt **hoptP, const char *flag,
+                                           const char *name, int *valueP,
+                                           const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1v_UInt(hestOpt **hoptP, const char *flag,
+                                            const char *name, unsigned int *valueP,
+                                            const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1v_LongInt(hestOpt **hoptP, const char *flag,
+                                               const char *name, long int *valueP,
+                                               const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1v_ULongInt(hestOpt **hoptP, const char *flag,
+                                                const char *name,
+                                                unsigned long int *valueP,
+                                                const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1v_Size_t(hestOpt **hoptP, const char *flag,
+                                              const char *name, size_t *valueP,
+                                              const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1v_Float(hestOpt **hoptP, const char *flag,
+                                             const char *name, float *valueP,
+                                             const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1v_Double(hestOpt **hoptP, const char *flag,
+                                              const char *name, double *valueP,
+                                              const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1v_Char(hestOpt **hoptP, const char *flag,
+                                            const char *name, char *valueP,
+                                            const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1v_String(hestOpt **hoptP, const char *flag,
+                                              const char *name, char **valueP,
+                                              const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1v_Enum(hestOpt **hoptP, const char *flag,
+                                            const char *name, int *valueP,
+                                            const char *dflt, const char *info,
+                                            const airEnum *enm);
+extern unsigned int hestOptAdd_1v_Other(hestOpt **hoptP, const char *flag,
+                                             const char *name, void *valueP,
+                                             const char *dflt, const char *info,
+                                             const hestCB *CB);
+extern unsigned int hestOptAdd_1_Bool(hestOpt **hoptP, const char *flag,
+                                           const char *name, int *valueP,
+                                           const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1_Int(hestOpt **hoptP, const char *flag,
+                                          const char *name, int *valueP,
+                                          const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1_UInt(hestOpt **hoptP, const char *flag,
                                            const char *name, unsigned int *valueP,
-                                           unsigned int dflt, const char *info);
-extern unsigned int hestOptAdd_1_LongInt(hestOpt **optP, const char *flag,
+                                           const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1_LongInt(hestOpt **hoptP, const char *flag,
                                               const char *name, long int *valueP,
-                                              long int dflt, const char *info);
-extern unsigned int hestOptAdd_1_ULongInt(hestOpt **optP, const char *flag,
+                                              const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1_ULongInt(hestOpt **hoptP, const char *flag,
                                                const char *name,
                                                unsigned long int *valueP,
-                                               unsigned long int dflt, const char *info);
-extern unsigned int hestOptAdd_1_Size_t(hestOpt **optP, const char *flag,
+                                               const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1_Size_t(hestOpt **hoptP, const char *flag,
                                              const char *name, size_t *valueP,
-                                             size_t dflt, const char *info);
-extern unsigned int hestOptAdd_1_Float(hestOpt **optP, const char *flag,
-                                            const char *name, float *valueP, float dflt,
-                                            const char *info);
-extern unsigned int hestOptAdd_1_Double(hestOpt **optP, const char *flag,
+                                             const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1_Float(hestOpt **hoptP, const char *flag,
+                                            const char *name, float *valueP,
+                                            const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1_Double(hestOpt **hoptP, const char *flag,
                                              const char *name, double *valueP,
-                                             double dflt, const char *info);
-extern unsigned int hestOptAdd_1_Char(hestOpt **optP, const char *flag,
-                                           const char *name, char *valueP, char dflt,
-                                           const char *info);
-extern unsigned int hestOptAdd_1_String(hestOpt **optP, const char *flag,
+                                             const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1_Char(hestOpt **hoptP, const char *flag,
+                                           const char *name, char *valueP,
+                                           const char *dflt, const char *info);
+extern unsigned int hestOptAdd_1_String(hestOpt **hoptP, const char *flag,
                                              const char *name, char **valueP,
                                              const char *dflt, const char *info);
-extern unsigned int hestOptAdd_1_Enum(hestOpt **optP, const char *flag,
-                                           const char *name, int *valueP, int dflt,
-                                           const char *info, const airEnum *enm);
-extern unsigned int hestOptAdd_1_Other(hestOpt **optP, const char *flag,
+extern unsigned int hestOptAdd_1_Enum(hestOpt **hoptP, const char *flag,
+                                           const char *name, int *valueP,
+                                           const char *dflt, const char *info,
+                                           const airEnum *enm);
+extern unsigned int hestOptAdd_1_Other(hestOpt **hoptP, const char *flag,
                                             const char *name, void *valueP,
                                             const char *dflt, const char *info,
                                             const hestCB *CB);
+extern unsigned int hestOptAdd_2_Bool(hestOpt **hoptP, const char *flag,
+                                           const char *name, int valueP[2],
+                                           const char *dflt, const char *info);
+extern unsigned int hestOptAdd_2_Int(hestOpt **hoptP, const char *flag,
+                                          const char *name, int valueP[2],
+                                          const char *dflt, const char *info);
+extern unsigned int hestOptAdd_2_UInt(hestOpt **hoptP, const char *flag,
+                                           const char *name, unsigned int valueP[2],
+                                           const char *dflt, const char *info);
+extern unsigned int hestOptAdd_2_LongInt(hestOpt **hoptP, const char *flag,
+                                              const char *name, long int valueP[2],
+                                              const char *dflt, const char *info);
+extern unsigned int hestOptAdd_2_ULongInt(hestOpt **hoptP, const char *flag,
+                                               const char *name,
+                                               unsigned long int valueP[2],
+                                               const char *dflt, const char *info);
+extern unsigned int hestOptAdd_2_Size_t(hestOpt **hoptP, const char *flag,
+                                             const char *name, size_t valueP[2],
+                                             const char *dflt, const char *info);
+extern unsigned int hestOptAdd_2_Float(hestOpt **hoptP, const char *flag,
+                                            const char *name, float valueP[2],
+                                            const char *dflt, const char *info);
+extern unsigned int hestOptAdd_2_Double(hestOpt **hoptP, const char *flag,
+                                             const char *name, double valueP[2],
+                                             const char *dflt, const char *info);
+extern unsigned int hestOptAdd_2_Char(hestOpt **hoptP, const char *flag,
+                                           const char *name, char valueP[2],
+                                           const char *dflt, const char *info);
+extern unsigned int hestOptAdd_2_String(hestOpt **hoptP, const char *flag,
+                                             const char *name, char *valueP[2],
+                                             const char *dflt, const char *info);
+extern unsigned int hestOptAdd_2_Enum(hestOpt **hoptP, const char *flag,
+                                           const char *name, int valueP[2],
+                                           const char *dflt, const char *info,
+                                           const airEnum *enm);
+extern unsigned int hestOptAdd_2_Other(hestOpt **hoptP, const char *flag,
+                                            const char *name, void *valueP,
+                                            const char *dflt, const char *info,
+                                            const hestCB *CB);
+extern unsigned int hestOptAdd_3_Bool(hestOpt **hoptP, const char *flag,
+                                           const char *name, int valueP[3],
+                                           const char *dflt, const char *info);
+extern unsigned int hestOptAdd_3_Int(hestOpt **hoptP, const char *flag,
+                                          const char *name, int valueP[3],
+                                          const char *dflt, const char *info);
+extern unsigned int hestOptAdd_3_UInt(hestOpt **hoptP, const char *flag,
+                                           const char *name, unsigned int valueP[3],
+                                           const char *dflt, const char *info);
+extern unsigned int hestOptAdd_3_LongInt(hestOpt **hoptP, const char *flag,
+                                              const char *name, long int valueP[3],
+                                              const char *dflt, const char *info);
+extern unsigned int hestOptAdd_3_ULongInt(hestOpt **hoptP, const char *flag,
+                                               const char *name,
+                                               unsigned long int valueP[3],
+                                               const char *dflt, const char *info);
+extern unsigned int hestOptAdd_3_Size_t(hestOpt **hoptP, const char *flag,
+                                             const char *name, size_t valueP[3],
+                                             const char *dflt, const char *info);
+extern unsigned int hestOptAdd_3_Float(hestOpt **hoptP, const char *flag,
+                                            const char *name, float valueP[3],
+                                            const char *dflt, const char *info);
+extern unsigned int hestOptAdd_3_Double(hestOpt **hoptP, const char *flag,
+                                             const char *name, double valueP[3],
+                                             const char *dflt, const char *info);
+extern unsigned int hestOptAdd_3_Char(hestOpt **hoptP, const char *flag,
+                                           const char *name, char valueP[3],
+                                           const char *dflt, const char *info);
+extern unsigned int hestOptAdd_3_String(hestOpt **hoptP, const char *flag,
+                                             const char *name, char *valueP[3],
+                                             const char *dflt, const char *info);
+extern unsigned int hestOptAdd_3_Enum(hestOpt **hoptP, const char *flag,
+                                           const char *name, int valueP[3],
+                                           const char *dflt, const char *info,
+                                           const airEnum *enm);
+extern unsigned int hestOptAdd_3_Other(hestOpt **hoptP, const char *flag,
+                                            const char *name, void *valueP,
+                                            const char *dflt, const char *info,
+                                            const hestCB *CB);
+extern unsigned int hestOptAdd_4_Bool(hestOpt **hoptP, const char *flag,
+                                           const char *name, int valueP[4],
+                                           const char *dflt, const char *info);
+extern unsigned int hestOptAdd_4_Int(hestOpt **hoptP, const char *flag,
+                                          const char *name, int valueP[4],
+                                          const char *dflt, const char *info);
+extern unsigned int hestOptAdd_4_UInt(hestOpt **hoptP, const char *flag,
+                                           const char *name, unsigned int valueP[4],
+                                           const char *dflt, const char *info);
+extern unsigned int hestOptAdd_4_LongInt(hestOpt **hoptP, const char *flag,
+                                              const char *name, long int valueP[4],
+                                              const char *dflt, const char *info);
+extern unsigned int hestOptAdd_4_ULongInt(hestOpt **hoptP, const char *flag,
+                                               const char *name,
+                                               unsigned long int valueP[4],
+                                               const char *dflt, const char *info);
+extern unsigned int hestOptAdd_4_Size_t(hestOpt **hoptP, const char *flag,
+                                             const char *name, size_t valueP[4],
+                                             const char *dflt, const char *info);
+extern unsigned int hestOptAdd_4_Float(hestOpt **hoptP, const char *flag,
+                                            const char *name, float valueP[4],
+                                            const char *dflt, const char *info);
+extern unsigned int hestOptAdd_4_Double(hestOpt **hoptP, const char *flag,
+                                             const char *name, double valueP[4],
+                                             const char *dflt, const char *info);
+extern unsigned int hestOptAdd_4_Char(hestOpt **hoptP, const char *flag,
+                                           const char *name, char valueP[4],
+                                           const char *dflt, const char *info);
+extern unsigned int hestOptAdd_4_String(hestOpt **hoptP, const char *flag,
+                                             const char *name, char *valueP[4],
+                                             const char *dflt, const char *info);
+extern unsigned int hestOptAdd_4_Enum(hestOpt **hoptP, const char *flag,
+                                           const char *name, int valueP[4],
+                                           const char *dflt, const char *info,
+                                           const airEnum *enm);
+extern unsigned int hestOptAdd_4_Other(hestOpt **hoptP, const char *flag,
+                                            const char *name, void *valueP,
+                                            const char *dflt, const char *info,
+                                            const hestCB *CB);
+extern unsigned int hestOptAdd_N_Bool(hestOpt **hoptP, const char *flag,
+                                           const char *name, unsigned int N, int *valueP,
+                                           const char *dflt, const char *info);
+extern unsigned int hestOptAdd_N_Int(hestOpt **hoptP, const char *flag,
+                                          const char *name, unsigned int N, int *valueP,
+                                          const char *dflt, const char *info);
+extern unsigned int hestOptAdd_N_UInt(hestOpt **hoptP, const char *flag,
+                                           const char *name, unsigned int N,
+                                           unsigned int *valueP, const char *dflt,
+                                           const char *info);
+extern unsigned int hestOptAdd_N_LongInt(hestOpt **hoptP, const char *flag,
+                                              const char *name, unsigned int N,
+                                              long int *valueP, const char *dflt,
+                                              const char *info);
+extern unsigned int hestOptAdd_N_ULongInt(hestOpt **hoptP, const char *flag,
+                                               const char *name, unsigned int N,
+                                               unsigned long int *valueP,
+                                               const char *dflt, const char *info);
+extern unsigned int hestOptAdd_N_Size_t(hestOpt **hoptP, const char *flag,
+                                             const char *name, unsigned int N,
+                                             size_t *valueP, const char *dflt,
+                                             const char *info);
+extern unsigned int hestOptAdd_N_Float(hestOpt **hoptP, const char *flag,
+                                            const char *name, unsigned int N,
+                                            float *valueP, const char *dflt,
+                                            const char *info);
+extern unsigned int hestOptAdd_N_Double(hestOpt **hoptP, const char *flag,
+                                             const char *name, unsigned int N,
+                                             double *valueP, const char *dflt,
+                                             const char *info);
+extern unsigned int hestOptAdd_N_Char(hestOpt **hoptP, const char *flag,
+                                           const char *name, unsigned int N,
+                                           char *valueP, const char *dflt,
+                                           const char *info);
+extern unsigned int hestOptAdd_N_String(hestOpt **hoptP, const char *flag,
+                                             const char *name, unsigned int N,
+                                             char **valueP, const char *dflt,
+                                             const char *info);
+extern unsigned int hestOptAdd_N_Enum(hestOpt **hoptP, const char *flag,
+                                           const char *name, unsigned int N, int *valueP,
+                                           const char *dflt, const char *info,
+                                           const airEnum *enm);
+extern unsigned int hestOptAdd_N_Other(hestOpt **hoptP, const char *flag,
+                                            const char *name, unsigned int N,
+                                            void *valueP, const char *dflt,
+                                            const char *info, const hestCB *CB);
+extern unsigned int hestOptAdd_Nv_Bool(hestOpt **hoptP, const char *flag,
+                                            const char *name, unsigned int min, int max,
+                                            int **valueP, const char *dflt,
+                                            const char *info, unsigned int *sawP);
+extern unsigned int hestOptAdd_Nv_Int(hestOpt **hoptP, const char *flag,
+                                           const char *name, unsigned int min, int max,
+                                           int **valueP, const char *dflt,
+                                           const char *info, unsigned int *sawP);
+extern unsigned int hestOptAdd_Nv_UInt(hestOpt **hoptP, const char *flag,
+                                            const char *name, unsigned int min, int max,
+                                            unsigned int **valueP, const char *dflt,
+                                            const char *info, unsigned int *sawP);
+extern unsigned int hestOptAdd_Nv_LongInt(hestOpt **hoptP, const char *flag,
+                                               const char *name, unsigned int min,
+                                               int max, long int **valueP,
+                                               const char *dflt, const char *info,
+                                               unsigned int *sawP);
+extern unsigned int hestOptAdd_Nv_ULongInt(hestOpt **hoptP, const char *flag,
+                                                const char *name, unsigned int min,
+                                                int max, unsigned long int **valueP,
+                                                const char *dflt, const char *info,
+                                                unsigned int *sawP);
+extern unsigned int hestOptAdd_Nv_Size_t(hestOpt **hoptP, const char *flag,
+                                              const char *name, unsigned int min,
+                                              int max, size_t **valueP, const char *dflt,
+                                              const char *info, unsigned int *sawP);
+extern unsigned int hestOptAdd_Nv_Float(hestOpt **hoptP, const char *flag,
+                                             const char *name, unsigned int min, int max,
+                                             float **valueP, const char *dflt,
+                                             const char *info, unsigned int *sawP);
+extern unsigned int hestOptAdd_Nv_Double(hestOpt **hoptP, const char *flag,
+                                              const char *name, unsigned int min,
+                                              int max, double **valueP, const char *dflt,
+                                              const char *info, unsigned int *sawP);
+extern unsigned int hestOptAdd_Nv_Char(hestOpt **hoptP, const char *flag,
+                                            const char *name, unsigned int min, int max,
+                                            char **valueP, const char *dflt,
+                                            const char *info, unsigned int *sawP);
+extern unsigned int hestOptAdd_Nv_String(hestOpt **hoptP, const char *flag,
+                                              const char *name, unsigned int min,
+                                              int max, char ***valueP, const char *dflt,
+                                              const char *info, unsigned int *sawP);
+extern unsigned int hestOptAdd_Nv_Enum(hestOpt **hoptP, const char *flag,
+                                            const char *name, unsigned int min, int max,
+                                            int **valueP, const char *dflt,
+                                            const char *info, unsigned int *sawP,
+                                            const airEnum *enm);
+extern unsigned int hestOptAdd_Nv_Other(hestOpt **hoptP, const char *flag,
+                                             const char *name, unsigned int min, int max,
+                                             void *valueP, const char *dflt,
+                                             const char *info, unsigned int *sawP,
+                                             const hestCB *CB);
