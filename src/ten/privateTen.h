@@ -29,19 +29,19 @@ extern "C" {
 /* USAGE, PARSE: both copied verbatim from unrrdu/privateUnrrdu.h, but
 ** then some hacking was added . . .
 */
-#define USAGE(info)                                                                     \
+#define USAGE(INFO)                                                                     \
   if (!argc && !hparm->noArgsIsNoProblem) {                                             \
-    hestInfo(stdout, me, (info), hparm);                                                \
+    hestInfo(stdout, me, (INFO), hparm);                                                \
     hestUsage(stdout, hopt, me, hparm);                                                 \
     hestGlossary(stdout, hopt, hparm);                                                  \
     airMopError(mop);                                                                   \
     return 0;                                                                           \
   }
 
-/* JUSTPARSE is called by the tend functions that do *not* take an
+/* JUSTPARSE is used by the tend functions that do *not* take an
 ** input 7-component tensor volume
 */
-#define JUSTPARSE()                                                                     \
+#define JUSTPARSE(INFO)                                                                 \
   if ((pret = hestParse(hopt, argc, argv, &perr, hparm))) {                             \
     if (1 == pret) {                                                                    \
       fprintf(stderr, "%s: %s\n", me, perr);                                            \
@@ -65,12 +65,12 @@ extern "C" {
   }
 
 /*
-** PARSE is called by tend functions that do take a 7-component tensor
+** PARSE is used by tend functions that do take a 7-component tensor
 ** volume, so that as a hack, we can process 6-component volumes as well,
 ** by padding on the confidence channel (fixed at 1.0)
 */
-#define PARSE()                                                                         \
-  JUSTPARSE();                                                                          \
+#define PARSE(INFO)                                                                     \
+  JUSTPARSE(INFO);                                                                      \
   if (4 == nin->dim && 6 == nin->axis[0].size && nrrdTypeBlock != nin->type) {          \
     ptrdiff_t padmin[4], padmax[4];                                                     \
     Nrrd *npadtmp;                                                                      \
@@ -93,6 +93,10 @@ extern "C" {
     }                                                                                   \
     nrrdNuke(npadtmp);                                                                  \
   }
+
+/* convenience macros now that using INFO is part of how PARSE responds to --help */
+#define USAGE_PARSE(INFO)     USAGE(INFO) PARSE(INFO)
+#define USAGE_JUSTPARSE(INFO) USAGE(INFO) JUSTPARSE(INFO)
 
 /* enumsTen.c */
 extern const airEnum _tenGage;
