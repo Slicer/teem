@@ -61,14 +61,14 @@ unrrdu_basinfoMain(int argc, const char **argv, const char *me, hestParm *hparm)
                       "many coefficients are needed for the chosen space). Quoting the "
                       "vector is needed to stop interpretation from the shell");
   /* HEY: copy and paste from unrrdu/make.c */
-  hestOptAdd_Nv_String(&opt, "kv,keyvalue", "key/val", 1, -1, &kvp, "",
+  hestOptAdd_Nv_String(&opt, "kv,keyvalue", "key/val", 0, -1, &kvp, "",
                        "key/value string pairs to be stored in nrrd.  Each key/value "
                        "pair must be a single string (put it in \"\"s "
                        "if the key or the value contain spaces).  The format of each "
                        "pair is \"<key>:=<value>\", with no spaces before or after "
                        "\":=\".",
                        &kvpLen);
-  hestOptAdd_Nv_String(&opt, "dk,delkey", "key", 1, -1, &dkey, "",
+  hestOptAdd_Nv_String(&opt, "dk,delkey", "key", 0, -1, &dkey, "",
                        "keys to be deleted (erased) from key/value pairs", &dkeyLen);
   hestOptAdd_Flag(&opt, "xkv,nixkeyvalue", &nixkvp, "nix (clear) all key/value pairs");
   cIdx = hestOptAdd_1_String(
