@@ -619,7 +619,7 @@ extern void airMopSingleOkay(airArray *arr, void *ptr);
 ** C's "error: parameter name omitted"
 */
 /*
-******** AIR_CAST, AIR_UINT, AIR_INT
+******** AIR_CAST, AIR_UINT, AIR_INT, ...
 **
 ** just casts, but with the added ability to grep for them more easily,
 ** since casts should probably always be revisited and reconsidered.

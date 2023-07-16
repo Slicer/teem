@@ -40,6 +40,6 @@ gageStackBlurManage,int,1,0,gage,gage/stackBlur.c:1698
 gageUpdate,int,1,0,gage,gage/update.c:313
 gageOptimSigSet,int,1,0,gage,gage/optimsig.c:217
 gageOptimSigContextNew,gageOptimSigContext *,NULL,0,gage,gage/optimsig.c:311
-gageOptimSigCalculate,int,1,0,gage,gage/optimsig.c:1092
-gageOptimSigErrorPlot,int,1,0,gage,gage/optimsig.c:1164
-gageOptimSigErrorPlotSliding,int,1,0,gage,gage/optimsig.c:1255
+gageOptimSigCalculate,int,1,0,gage,gage/optimsig.c:1090
+gageOptimSigErrorPlot,int,1,0,gage,gage/optimsig.c:1162
+gageOptimSigErrorPlotSliding,int,1,0,gage,gage/optimsig.c:1253

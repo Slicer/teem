@@ -7,8 +7,8 @@ nrrdApplyMulti1DRegMap,int,1,0,nrrd,nrrd/apply1D.c:545
 nrrd1DIrregMapCheck,int,1,0,nrrd,nrrd/apply1D.c:587
 nrrd1DIrregAclCheck,int,1,0,nrrd,nrrd/apply1D.c:684
 nrrd1DIrregAclGenerate,int,1,0,nrrd,nrrd/apply1D.c:816
-nrrdApply1DIrregMap,int,1,0,nrrd,nrrd/apply1D.c:881
-nrrdApply1DSubstitution,int,1,0,nrrd,nrrd/apply1D.c:1055
+nrrdApply1DIrregMap,int,1,0,nrrd,nrrd/apply1D.c:880
+nrrdApply1DSubstitution,int,1,0,nrrd,nrrd/apply1D.c:1054
 nrrdApply2DLut,int,1,0,nrrd,nrrd/apply2D.c:297
 nrrdArithGamma,int,1,0,nrrd,nrrd/arith.c:50
 nrrdArithSRGBGamma,int,1,0,nrrd,nrrd/arith.c:138
@@ -42,7 +42,7 @@ nrrdDeringRadiusScaleSet,int,1,0,nrrd,nrrd/deringNrrd.c:234
 nrrdDeringThetaNumSet,int,1,0,nrrd,nrrd/deringNrrd.c:252
 nrrdDeringRadialKernelSet,int,1,0,nrrd,nrrd/deringNrrd.c:270
 nrrdDeringThetaKernelSet,int,1,0,nrrd,nrrd/deringNrrd.c:290
-nrrdDeringExecute,int,1,0,nrrd,nrrd/deringNrrd.c:751
+nrrdDeringExecute,int,1,0,nrrd,nrrd/deringNrrd.c:750
 nrrdCheapMedian,int,1,0,nrrd,nrrd/filt.c:407
 nrrdDistanceL2,int,1,0,nrrd,nrrd/filt.c:814
 nrrdDistanceL2Biased,int,1,0,nrrd,nrrd/filt.c:826
@@ -52,7 +52,7 @@ nrrdHistoCheck,int,1,0,nrrd,nrrd/histogram.c:160
 nrrdHistoDraw,int,1,0,nrrd,nrrd/histogram.c:189
 nrrdHistoAxis,int,1,0,nrrd,nrrd/histogram.c:325
 nrrdHistoJoint,int,1,0,nrrd,nrrd/histogram.c:439
-nrrdHistoThresholdOtsu,int,1,0,nrrd,nrrd/histogram.c:650
+nrrdHistoThresholdOtsu,int,1,0,nrrd,nrrd/histogram.c:649
 nrrdKernelParse,int,1,0,nrrd,nrrd/kernel.c:3032
 nrrdKernelSpecParse,int,1,0,nrrd,nrrd/kernel.c:3212
 nrrdKernelSpecSprint,int,1,0,nrrd,nrrd/kernel.c:3234
