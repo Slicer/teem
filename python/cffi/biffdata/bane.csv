@@ -3,8 +3,8 @@ baneClipNew,baneClip *,NULL,0,bane,bane/clip.c:102
 baneClipAnswer,int,1,0,bane,bane/clip.c:152
 baneClipCopy,baneClip *,NULL,0,bane,bane/clip.c:167
 baneFindInclusion,int,1,0,bane,bane/hvol.c:87
-baneMakeHVol,int,1,0,bane,bane/hvol.c:250
-baneGKMSHVol,Nrrd *,NULL,0,bane,bane/hvol.c:449
+baneMakeHVol,int,1,0,bane,bane/hvol.c:248
+baneGKMSHVol,Nrrd *,NULL,0,bane,bane/hvol.c:447
 baneIncNew,baneInc *,NULL,0,bane,bane/inc.c:251
 baneIncAnswer,int,1,0,bane,bane/inc.c:360
 baneIncCopy,baneInc *,NULL,0,bane,bane/inc.c:375
@@ -15,10 +15,10 @@ baneRangeCopy,baneRange *,NULL,0,bane,bane/rangeBane.c:130
 baneRangeAnswer,int,1,0,bane,bane/rangeBane.c:144
 baneRawScatterplots,int,1,0,bane,bane/scat.c:26
 baneOpacInfo,int,1,0,bane,bane/trnsf.c:29
-bane1DOpacInfoFrom2D,int,1,0,bane,bane/trnsf.c:145
-baneSigmaCalc,int,1,0,bane,bane/trnsf.c:224
-banePosCalc,int,1,0,bane,bane/trnsf.c:255
-baneOpacCalc,int,1,0,bane,bane/trnsf.c:406
+bane1DOpacInfoFrom2D,int,1,0,bane,bane/trnsf.c:144
+baneSigmaCalc,int,1,0,bane,bane/trnsf.c:222
+banePosCalc,int,1,0,bane,bane/trnsf.c:253
+baneOpacCalc,int,1,0,bane,bane/trnsf.c:403
 baneInputCheck,int,1,0,bane,bane/valid.c:26
 baneHVolCheck,int,1,0,bane,bane/valid.c:64
 baneInfoCheck,int,1,0,bane,bane/valid.c:106

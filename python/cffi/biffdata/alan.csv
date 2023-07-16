@@ -1,7 +1,7 @@
 func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
 alanUpdate,int,1,0,alan,alan/coreAlan.c:60
-alanInit,int,1,0,alan,alan/coreAlan.c:103
-alanRun,int,1,0,alan,alan/coreAlan.c:457
+alanInit,int,1,0,alan,alan/coreAlan.c:99
+alanRun,int,1,0,alan,alan/coreAlan.c:453
 alanDimensionSet,int,1,0,alan,alan/methodsAlan.c:104
 alan2DSizeSet,int,1,0,alan,alan/methodsAlan.c:119
 alan3DSizeSet,int,1,0,alan,alan/methodsAlan.c:139

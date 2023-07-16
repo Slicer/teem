@@ -1,8 +1,8 @@
 func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
 tenAnisoPlot,int,1,0,ten,ten/aniso.c:1068
-tenAnisoVolume,int,1,0,ten,ten/aniso.c:1128
-tenAnisoHistogram,int,1,0,ten,ten/aniso.c:1200
-tenEvecRGBParmCheck,int,1,0,ten,ten/aniso.c:1315
+tenAnisoVolume,int,1,0,ten,ten/aniso.c:1127
+tenAnisoHistogram,int,1,0,ten,ten/aniso.c:1199
+tenEvecRGBParmCheck,int,1,0,ten,ten/aniso.c:1313
 tenEMBimodal,int,1,0,ten,ten/bimod.c:412
 tenBVecNonLinearFit,int,1,0,ten,ten/bvec.c:99
 tenDWMRIKeyValueParse,int,1,0,ten,ten/chan.c:60
@@ -11,8 +11,8 @@ tenEMatrixCalc,int,1,0,ten,ten/chan.c:389
 tenEstimateLinear3D,int,1,0,ten,ten/chan.c:582
 tenEstimateLinear4D,int,1,0,ten,ten/chan.c:629
 tenSimulate,int,1,0,ten,ten/chan.c:870
-tenEpiRegister3D,int,1,0,ten,ten/epireg.c:1049
-tenEpiRegister4D,int,1,0,ten,ten/epireg.c:1200
+tenEpiRegister3D,int,1,0,ten,ten/epireg.c:1044
+tenEpiRegister4D,int,1,0,ten,ten/epireg.c:1195
 tenEstimateMethodSet,int,1,0,ten,ten/estimate.c:283
 tenEstimateSigmaSet,int,1,0,ten,ten/estimate.c:305
 tenEstimateValueMinSet,int,1,0,ten,ten/estimate.c:323
@@ -54,10 +54,10 @@ tenGlyphParmCheck,int,1,0,ten,ten/glyph.c:72
 tenGlyphGen,int,1,0,ten,ten/glyph.c:173
 tenGradientCheck,int,1,0,ten,ten/grads.c:67
 tenGradientRandom,int,1,0,ten,ten/grads.c:106
-tenGradientJitter,int,1,0,ten,ten/grads.c:152
-tenGradientBalance,int,1,0,ten,ten/grads.c:374
-tenGradientDistribute,int,1,0,ten,ten/grads.c:459
-tenGradientGenerate,int,1,0,ten,ten/grads.c:652
+tenGradientJitter,int,1,0,ten,ten/grads.c:151
+tenGradientBalance,int,1,0,ten,ten/grads.c:373
+tenGradientDistribute,int,1,0,ten,ten/grads.c:458
+tenGradientGenerate,int,1,0,ten,ten/grads.c:651
 tenEvecRGB,int,1,0,ten,ten/miscTen.c:26
 tenEvqVolume,int,1,0,ten,ten/miscTen.c:151
 tenBMatrixCheck,int,1,0,ten,ten/miscTen.c:212
@@ -74,8 +74,8 @@ tenExp,int,1,0,ten,ten/mod.c:365
 tenInterpParmBufferAlloc,int,1,0,ten,ten/path.c:64
 tenInterpParmCopy,tenInterpParm *,NULL,0,ten,ten/path.c:123
 tenInterpN_d,int,1,0,ten,ten/path.c:305
-tenInterpTwoDiscrete_d,int,1,0,ten,ten/path.c:806
-tenInterpMulti3D,int,1,0,ten,ten/path.c:957
+tenInterpTwoDiscrete_d,int,1,0,ten,ten/path.c:804
+tenInterpMulti3D,int,1,0,ten,ten/path.c:954
 tenDwiGageKindSet,int,1,0,ten,ten/tenDwiGage.c:1037
 tenDwiGageKindCheck,int,1,0,ten,ten/tenDwiGage.c:1177
 tenTensorCheck,int,1,4,ten,ten/tensor.c:54

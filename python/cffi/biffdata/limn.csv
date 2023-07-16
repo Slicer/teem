@@ -21,18 +21,18 @@ limnPolyDataPrimitiveArea,int,1,0,limn,limn/polydata.c:573
 limnPolyDataRasterize,int,1,0,limn,limn/polydata.c:631
 limnPolyDataSpiralTubeWrap,int,1,0,limn,limn/polyfilter.c:26
 limnPolyDataSmoothHC,int,-1,0,limn,limn/polyfilter.c:336
-limnPolyDataVertexWindingFix,int,1,0,limn,limn/polymod.c:1231
-limnPolyDataCCFind,int,1,0,limn,limn/polymod.c:1250
-limnPolyDataPrimitiveSort,int,1,0,limn,limn/polymod.c:1381
-limnPolyDataVertexWindingFlip,int,1,0,limn,limn/polymod.c:1464
-limnPolyDataPrimitiveSelect,int,1,0,limn,limn/polymod.c:1493
-limnPolyDataClipMulti,int,1,0,limn,limn/polymod.c:1708
-limnPolyDataCompress,limnPolyData *,NULL,0,limn,limn/polymod.c:1995
-limnPolyDataJoin,limnPolyData *,NULL,0,limn,limn/polymod.c:2085
-limnPolyDataEdgeHalve,int,1,0,limn,limn/polymod.c:2153
-limnPolyDataNeighborList,int,-1,0,limn,limn/polymod.c:2330
-limnPolyDataNeighborArray,int,-1,0,limn,limn/polymod.c:2426
-limnPolyDataNeighborArrayComp,int,-1,0,limn,limn/polymod.c:2466
+limnPolyDataVertexWindingFix,int,1,0,limn,limn/polymod.c:1230
+limnPolyDataCCFind,int,1,0,limn,limn/polymod.c:1249
+limnPolyDataPrimitiveSort,int,1,0,limn,limn/polymod.c:1380
+limnPolyDataVertexWindingFlip,int,1,0,limn,limn/polymod.c:1463
+limnPolyDataPrimitiveSelect,int,1,0,limn,limn/polymod.c:1492
+limnPolyDataClipMulti,int,1,0,limn,limn/polymod.c:1707
+limnPolyDataCompress,limnPolyData *,NULL,0,limn,limn/polymod.c:1994
+limnPolyDataJoin,limnPolyData *,NULL,0,limn,limn/polymod.c:2084
+limnPolyDataEdgeHalve,int,1,0,limn,limn/polymod.c:2152
+limnPolyDataNeighborList,int,-1,0,limn,limn/polymod.c:2329
+limnPolyDataNeighborArray,int,-1,0,limn,limn/polymod.c:2425
+limnPolyDataNeighborArrayComp,int,-1,0,limn,limn/polymod.c:2465
 limnPolyDataCube,int,1,0,limn,limn/polyshapes.c:27
 limnPolyDataCubeTriangles,int,1,0,limn,limn/polyshapes.c:137
 limnPolyDataOctahedron,int,1,0,limn,limn/polyshapes.c:347
