@@ -79,15 +79,15 @@ pushOutputGet(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nEnrOut, pushContext *pctx) {
   pointNum = _pushPointTotal(pctx);
   E = AIR_FALSE;
   if (nPosOut) {
-    E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeFloat, 2, AIR_CAST(size_t, 3),
-                           AIR_CAST(size_t, pointNum));
+    E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeFloat, 2, AIR_SIZE_T(3),
+                           AIR_SIZE_T(pointNum));
   }
   if (nTenOut) {
-    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeFloat, 2, AIR_CAST(size_t, 7),
-                           AIR_CAST(size_t, pointNum));
+    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeFloat, 2, AIR_SIZE_T(7),
+                           AIR_SIZE_T(pointNum));
   }
   if (nEnrOut) {
-    E |= nrrdMaybeAlloc_va(nEnrOut, nrrdTypeFloat, 1, AIR_CAST(size_t, pointNum));
+    E |= nrrdMaybeAlloc_va(nEnrOut, nrrdTypeFloat, 1, AIR_SIZE_T(pointNum));
   }
   if (E) {
     biffMovef(PUSH, NRRD, "%s: trouble allocating outputs", me);

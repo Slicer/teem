@@ -1082,7 +1082,7 @@ tenEstimate1TensorSimulateVolume(tenEstimateContext *tec, Nrrd *ndwi, double sig
              airSprintSize_t(stmp[2], sizeZ));
     return 1;
   }
-  if (nrrdMaybeAlloc_va(ndwi, outType, 4, AIR_CAST(size_t, tec->allNum), sizeX, sizeY,
+  if (nrrdMaybeAlloc_va(ndwi, outType, 4, AIR_SIZE_T(tec->allNum), sizeX, sizeY,
                         sizeZ)) {
     biffMovef(TEN, NRRD, "%s: couldn't allocate DWI output", me);
     airMopError(mop);
@@ -1826,7 +1826,7 @@ tenEstimate1TensorVolume4D(tenEstimateContext *tec, Nrrd *nten, Nrrd **nB0P,
     }
   }
   nval = nrrdNew();
-  nrrdWrap(nval, val, nrrdTypeDouble, 1, AIR_CAST(size_t, NUM));
+  nrrdWrap(nval, val, nrrdTypeDouble, 1, AIR_SIZE_T(NUM));
   nrrdSave("nval.nrrd", nval, NULL);
   nrrdNix(nval);
 #endif

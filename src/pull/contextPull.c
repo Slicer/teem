@@ -417,15 +417,15 @@ pullOutputGetFilter(Nrrd *nPosOut, Nrrd *nTenOut, Nrrd *nStrengthOut,
   pointNum = pullPointNumberFilter(pctx, idtagMin, idtagMax);
   E = AIR_FALSE;
   if (nPosOut) {
-    E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeDouble, 2, AIR_CAST(size_t, 4),
-                           AIR_CAST(size_t, pointNum));
+    E |= nrrdMaybeAlloc_va(nPosOut, nrrdTypeDouble, 2, AIR_SIZE_T(4),
+                           AIR_SIZE_T(pointNum));
   }
   if (nTenOut) {
-    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeDouble, 2, AIR_CAST(size_t, 7),
-                           AIR_CAST(size_t, pointNum));
+    E |= nrrdMaybeAlloc_va(nTenOut, nrrdTypeDouble, 2, AIR_SIZE_T(7),
+                           AIR_SIZE_T(pointNum));
   }
   if (nStrengthOut) {
-    E |= nrrdMaybeAlloc_va(nStrengthOut, nrrdTypeDouble, 1, AIR_CAST(size_t, pointNum));
+    E |= nrrdMaybeAlloc_va(nStrengthOut, nrrdTypeDouble, 1, AIR_SIZE_T(pointNum));
   }
   if (E) {
     biffMovef(PULL, NRRD, "%s: trouble allocating outputs", me);
@@ -790,8 +790,8 @@ pullPositionHistoryNrrdGet(Nrrd *nhist, pullContext *pctx, pullPoint *point0) {
   } else {
     stepNum = point0->phistArr->len;
   }
-  if (nrrdMaybeAlloc_va(nhist, nrrdTypeDouble, 2, AIR_CAST(size_t, 1 + _PHN),
-                        AIR_CAST(size_t, stepNum))) {
+  if (nrrdMaybeAlloc_va(nhist, nrrdTypeDouble, 2, AIR_SIZE_T(1 + _PHN),
+                        AIR_SIZE_T(stepNum))) {
     biffMovef(PULL, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }

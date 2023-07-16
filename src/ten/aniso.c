@@ -1082,8 +1082,7 @@ tenAnisoPlot(Nrrd *nout, int aniso, unsigned int res, int hflip, int whole, int 
     biffAddf(TEN, "%s: resolution (%d) invalid", me, res);
     return 1;
   }
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 2, AIR_CAST(size_t, res),
-                        AIR_CAST(size_t, res))) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 2, AIR_SIZE_T(res), AIR_SIZE_T(res))) {
     biffMovef(TEN, NRRD, "%s: ", me);
     return 1;
   }
@@ -1243,8 +1242,7 @@ tenAnisoHistogram(Nrrd *nout, const Nrrd *nin, const Nrrd *nwght, int right, int
   } else {
     wlup = NULL;
   }
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 2, AIR_CAST(size_t, res),
-                        AIR_CAST(size_t, yres))) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 2, AIR_SIZE_T(res), AIR_SIZE_T(yres))) {
     biffMovef(TEN, NRRD, "%s: ", me);
     return 1;
   }

@@ -144,7 +144,7 @@ pullCCMeasure(pullContext *pctx, Nrrd *nmeasr, int measrInfo, double rho) {
     }
   } /* else measrInfo is zero, they want to know # points */
   /* in any case nmeasr is allocated for doubles */
-  if (nrrdMaybeAlloc_va(nmeasr, nrrdTypeDouble, 1, AIR_CAST(size_t, pctx->CCNum))) {
+  if (nrrdMaybeAlloc_va(nmeasr, nrrdTypeDouble, 1, AIR_SIZE_T(pctx->CCNum))) {
     biffMovef(PULL, NRRD, "%s: couldn't alloc nmeasr", me);
     return 1;
   }

@@ -75,8 +75,7 @@ tend_evecMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   nout = nrrdNew();
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
-  ret = nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, AIR_CAST(size_t, 3 * compLen), sx, sy,
-                          sz);
+  ret = nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, AIR_SIZE_T(3 * compLen), sx, sy, sz);
   if (ret) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble allocating output:\n%s\n", me, err);

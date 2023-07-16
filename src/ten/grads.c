@@ -108,8 +108,7 @@ tenGradientRandom(Nrrd *ngrad, unsigned int num, unsigned int seed) {
   double *grad, len;
   unsigned int gi;
 
-  if (nrrdMaybeAlloc_va(ngrad, nrrdTypeDouble, 2, AIR_CAST(size_t, 3),
-                        AIR_CAST(size_t, num))) {
+  if (nrrdMaybeAlloc_va(ngrad, nrrdTypeDouble, 2, AIR_SIZE_T(3), AIR_SIZE_T(num))) {
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }

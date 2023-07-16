@@ -245,9 +245,8 @@ qbertProbe(Nrrd *nout, Nrrd *nin, NrrdKernelSpec *k00, NrrdKernelSpec *k11,
   val = gageAnswerPointer(ctx, pvl, gageSclValue);
   gmag = gageAnswerPointer(ctx, pvl, gageSclGradMag);
   scnd = gageAnswerPointer(ctx, pvl, gageScl2ndDD);
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, AIR_CAST(size_t, 2 + doH),
-                        AIR_CAST(size_t, sz[0]), AIR_CAST(size_t, sz[1]),
-                        AIR_CAST(size_t, sz[2]))) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, AIR_SIZE_T(2 + doH), AIR_SIZE_T(sz[0]),
+                        AIR_SIZE_T(sz[1]), AIR_SIZE_T(sz[2]))) {
     biffMovef(QBERT, NRRD, "%s: couldn't allocate floating point VG%s volume", me,
               doH ? "H" : "");
     airMopError(mop);
@@ -337,10 +336,10 @@ qbertMakeVghHists(Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist, unsigned int *sz, in
   }
   fprintf(stderr, "%s: using %d-bin histograms\n", me, bins);
   E = 0;
-  if (!E) E |= nrrdMaybeAlloc_va(nvhist, nrrdTypeInt, 1, AIR_CAST(size_t, bins));
-  if (!E) E |= nrrdMaybeAlloc_va(nghist, nrrdTypeInt, 1, AIR_CAST(size_t, bins));
+  if (!E) E |= nrrdMaybeAlloc_va(nvhist, nrrdTypeInt, 1, AIR_SIZE_T(bins));
+  if (!E) E |= nrrdMaybeAlloc_va(nghist, nrrdTypeInt, 1, AIR_SIZE_T(bins));
   if (doH) {
-    if (!E) E |= nrrdMaybeAlloc_va(nhhist, nrrdTypeInt, 1, AIR_CAST(size_t, bins));
+    if (!E) E |= nrrdMaybeAlloc_va(nhhist, nrrdTypeInt, 1, AIR_SIZE_T(bins));
   }
   if (E) {
     biffMovef(QBERT, NRRD, "%s: couldn't allocate %d %d-bin histograms", me, nval, bins);
@@ -455,9 +454,8 @@ qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist, unsigned int 
     fprintf(stderr, "%s: putting 2ndDD in range 1 to 169 (0.0 -> 85)\n", me);
   }
 
-  if (nrrdMaybeAlloc_va(nvgh, nrrdTypeUChar, 4, AIR_CAST(size_t, nval),
-                        AIR_CAST(size_t, sz[0]), AIR_CAST(size_t, sz[1]),
-                        AIR_CAST(size_t, sz[2]))) {
+  if (nrrdMaybeAlloc_va(nvgh, nrrdTypeUChar, 4, AIR_SIZE_T(nval), AIR_SIZE_T(sz[0]),
+                        AIR_SIZE_T(sz[1]), AIR_SIZE_T(sz[2]))) {
     biffMovef(QBERT, NRRD, "%s: couldn't allocate 8-bit VG%s volume", me,
               doH ? "H" : "");
     return 1;

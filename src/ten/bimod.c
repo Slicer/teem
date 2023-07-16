@@ -182,9 +182,9 @@ _tenEMBimodalPP(tenEMBimodalParm *biparm) {
 
   if (biparm->verbose > 1) {
     Nrrd *ntmp = nrrdNew();
-    nrrdWrap_va(ntmp, biparm->pp1, nrrdTypeDouble, 1, AIR_CAST(size_t, biparm->N));
+    nrrdWrap_va(ntmp, biparm->pp1, nrrdTypeDouble, 1, AIR_SIZE_T(biparm->N));
     nrrdSave("pp1.nrrd", ntmp, NULL);
-    nrrdWrap_va(ntmp, biparm->pp2, nrrdTypeDouble, 1, AIR_CAST(size_t, biparm->N));
+    nrrdWrap_va(ntmp, biparm->pp2, nrrdTypeDouble, 1, AIR_SIZE_T(biparm->N));
     nrrdSave("pp2.nrrd", ntmp, NULL);
     nrrdNix(ntmp);
   }
@@ -261,7 +261,7 @@ _tenEMBimodalSaveImage(tenEMBimodalParm *biparm) {
   nhi = nrrdNew();
   nmi = nrrdNew();
   ni = nrrdNew();
-  nrrdWrap_va(nh, biparm->histo, nrrdTypeDouble, 1, AIR_CAST(size_t, biparm->N));
+  nrrdWrap_va(nh, biparm->histo, nrrdTypeDouble, 1, AIR_SIZE_T(biparm->N));
   range = nrrdRangeNewSet(nh, nrrdBlind8BitRangeFalse);
   max = range->max * 1.1;
   nrrdRangeNix(range);

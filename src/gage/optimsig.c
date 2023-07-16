@@ -369,12 +369,11 @@ gageOptimSigContextNew(unsigned int dim, unsigned int sampleNumMax,
   oscx->nerr = nrrdNew();
   oscx->ninterp = nrrdNew();
   oscx->ndiff = nrrdNew();
-  if (nrrdMaybeAlloc_va(oscx->nerr, nrrdTypeDouble, 1,
-                        AIR_CAST(size_t, oscx->trueImgNum))
-      || nrrdMaybeAlloc_va(oscx->ninterp, nrrdTypeDouble, 3, AIR_CAST(size_t, oscx->sx),
-                           AIR_CAST(size_t, oscx->sy), AIR_CAST(size_t, oscx->sz))
-      || nrrdMaybeAlloc_va(oscx->ndiff, nrrdTypeDouble, 3, AIR_CAST(size_t, oscx->sx),
-                           AIR_CAST(size_t, oscx->sy), AIR_CAST(size_t, oscx->sz))) {
+  if (nrrdMaybeAlloc_va(oscx->nerr, nrrdTypeDouble, 1, AIR_SIZE_T(oscx->trueImgNum))
+      || nrrdMaybeAlloc_va(oscx->ninterp, nrrdTypeDouble, 3, AIR_SIZE_T(oscx->sx),
+                           AIR_SIZE_T(oscx->sy), AIR_SIZE_T(oscx->sz))
+      || nrrdMaybeAlloc_va(oscx->ndiff, nrrdTypeDouble, 3, AIR_SIZE_T(oscx->sx),
+                           AIR_SIZE_T(oscx->sy), AIR_SIZE_T(oscx->sz))) {
     biffMovef(GAGE, NRRD, "%s: couldn't allocate buffers", me);
     return NULL;
   }
@@ -435,9 +434,8 @@ gageOptimSigContextNew(unsigned int dim, unsigned int sampleNumMax,
   }
   for (ii = 0; ii < oscx->sampleNumMax; ii++) {
     oscx->nsampleImg[ii] = nrrdNew();
-    if (nrrdMaybeAlloc_va(oscx->nsampleImg[ii], nrrdTypeDouble, 3,
-                          AIR_CAST(size_t, oscx->sx), AIR_CAST(size_t, oscx->sy),
-                          AIR_CAST(size_t, oscx->sz))) {
+    if (nrrdMaybeAlloc_va(oscx->nsampleImg[ii], nrrdTypeDouble, 3, AIR_SIZE_T(oscx->sx),
+                          AIR_SIZE_T(oscx->sy), AIR_SIZE_T(oscx->sz))) {
       biffMovef(GAGE, NRRD, "%s: couldn't allocate vol[%u]", me, ii);
       return NULL;
     }
@@ -1191,8 +1189,8 @@ gageOptimSigErrorPlot(gageOptimSigContext *oscx, Nrrd *nout, const double *sigma
   oscx->imgMeasr = imgMeasr;
   oscx->allMeasr = nrrdMeasureUnknown;
   oscx->convEps = AIR_NAN;
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2, AIR_CAST(size_t, 2),
-                        AIR_CAST(size_t, oscx->trueImgNum))) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2, AIR_SIZE_T(2),
+                        AIR_SIZE_T(oscx->trueImgNum))) {
     biffMovef(GAGE, NRRD, "%s: trouble allocating output", me);
     return 1;
   }
@@ -1297,8 +1295,7 @@ gageOptimSigErrorPlotSliding(gageOptimSigContext *oscx, Nrrd *nout, double windo
     biffAddf(GAGE, "%s: problem setting up gage", me);
     return 1;
   }
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2, AIR_CAST(size_t, 2),
-                        AIR_CAST(size_t, sampleNum))) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2, AIR_SIZE_T(2), AIR_SIZE_T(sampleNum))) {
     biffMovef(GAGE, NRRD, "%s: trouble allocating output", me);
     return 1;
   }
@@ -1336,9 +1333,8 @@ gageOptimSigErrorPlotSliding(gageOptimSigContext *oscx, Nrrd *nout, double windo
 
   if (debugReconErrArr) {
     Nrrd *nre = nrrdNew();
-    nrrdWrap_va(nre, debugReconErr, nrrdTypeDouble, 3, AIR_CAST(size_t, 2),
-                AIR_CAST(size_t, oscx->sz * oscx->sy * oscx->sx),
-                AIR_CAST(size_t, sampleNum));
+    nrrdWrap_va(nre, debugReconErr, nrrdTypeDouble, 3, AIR_SIZE_T(2),
+                AIR_SIZE_T(oscx->sz * oscx->sy * oscx->sx), AIR_SIZE_T(sampleNum));
     nrrdSave(debugReconErrName, nre, NULL);
     nrrdNix(nre);
   }

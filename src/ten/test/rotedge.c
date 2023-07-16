@@ -19,28 +19,24 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../ten.h"
 
-const char *info =
-("Oh, just fricken super! "
- "Another stupid one-off program to make a thesis-related figure. "
- "Reproducibility in visualization, yea, yea fricken great. ");
+const char *info = ("Oh, just fricken super! "
+                    "Another stupid one-off program to make a thesis-related figure. "
+                    "Reproducibility in visualization, yea, yea fricken great. ");
 
 int
 main(int argc, const char *argv[]) {
   const char *me;
   char *err, *outS;
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   airArray *mop;
 
   unsigned int xi, yi, samp[2];
   int fsd;
   float *tdata, mrg, slp;
-  double x, xx, y,
-    mRot1[9], mRot2[9], mRot3[9],
-    mT[9], mR[9], mD[9], mRT[9],
-    rot1, rot2, rot3, theta, mean, var, varscl, radius;
+  double x, xx, y, mRot1[9], mRot2[9], mRot3[9], mT[9], mR[9], mD[9], mRT[9], rot1, rot2,
+    rot3, theta, mean, var, varscl, radius;
   Nrrd *nten;
   mop = airMopNew();
 
@@ -56,19 +52,15 @@ main(int argc, const char *argv[]) {
              "the old simple per-axis spacing");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output file to save tensors into");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nten = nrrdNew();
   airMopAdd(mop, nten, (airMopper)nrrdNuke, airMopAlways);
 
-  if (nrrdMaybeAlloc_va(nten, nrrdTypeFloat, 4,
-                        AIR_CAST(size_t, 7),
-                        AIR_CAST(size_t, samp[0]),
-                        AIR_CAST(size_t, samp[1]),
-                        AIR_CAST(size_t, 1))) {
+  if (nrrdMaybeAlloc_va(nten, nrrdTypeFloat, 4, AIR_SIZE_T(7), AIR_SIZE_T(samp[0]),
+                        AIR_SIZE_T(samp[1]), AIR_SIZE_T(1))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't allocate output:\n%s\n", me, err);
     airMopError(mop);
@@ -78,30 +70,30 @@ main(int argc, const char *argv[]) {
   mean = 0.333333333;
   varscl = 0.045;
 
-  tdata = (float*)nten->data;
-  for (yi=0; yi<samp[1]; yi++) {
-    y = AIR_AFFINE(0, yi, samp[1]-1, -mrg, 1+mrg);
-    theta = AIR_AFFINE(0, AIR_CLAMP(0.007, y, 0.993), 1, AIR_PI/3, 0);
-    var = varscl*(airErf(y*slp)+airErf((1-y)*slp))/2;
-    radius = sqrt(2*var);
-    for (xi=0; xi<samp[0]; xi++) {
-      x = AIR_AFFINE(0, xi, samp[0]-1, 0, 3);
+  tdata = (float *)nten->data;
+  for (yi = 0; yi < samp[1]; yi++) {
+    y = AIR_AFFINE(0, yi, samp[1] - 1, -mrg, 1 + mrg);
+    theta = AIR_AFFINE(0, AIR_CLAMP(0.007, y, 0.993), 1, AIR_PI / 3, 0);
+    var = varscl * (airErf(y * slp) + airErf((1 - y) * slp)) / 2;
+    radius = sqrt(2 * var);
+    for (xi = 0; xi < samp[0]; xi++) {
+      x = AIR_AFFINE(0, xi, samp[0] - 1, 0, 3);
 
       ELL_3M_IDENTITY_SET(mD);
       ELL_3M_DIAG_SET(mD,
-                      mean + radius*cos(theta),
-                      mean + radius*cos(theta - 2*AIR_PI/3),
-                      mean + radius*cos(theta + 2*AIR_PI/3));
+                      mean + radius * cos(theta),
+                      mean + radius * cos(theta - 2 * AIR_PI / 3),
+                      mean + radius * cos(theta + 2 * AIR_PI / 3));
       rot1 = rot2 = rot3 = 0;
       if (x < 1) {
         xx = AIR_CLAMP(0, x, 1);
-        rot1 = AIR_PI*(1-cos(AIR_PI*xx))/2;
+        rot1 = AIR_PI * (1 - cos(AIR_PI * xx)) / 2;
       } else if (x < 2) {
-        xx = AIR_CLAMP(0, x-1, 1);
-        rot2 = AIR_PI*(1-cos(AIR_PI*xx))/2;
+        xx = AIR_CLAMP(0, x - 1, 1);
+        rot2 = AIR_PI * (1 - cos(AIR_PI * xx)) / 2;
       } else {
-        xx = AIR_CLAMP(0, x-2, 1);
-        rot3 = AIR_PI*(1-cos(AIR_PI*xx))/2;
+        xx = AIR_CLAMP(0, x - 2, 1);
+        rot3 = AIR_PI * (1 - cos(AIR_PI * xx)) / 2;
       }
 
       /* set mRT, mR */
@@ -135,12 +127,11 @@ main(int argc, const char *argv[]) {
     ELL_3V_SET(spcdir[2], 0, 1, 0);
     ELL_3V_SET(spcdir[3], 0, 0, 1);
     nrrdSpaceSet(nten, nrrdSpace3DRightHanded);
-    nrrdAxisInfoSet_va(nten, nrrdAxisInfoSpaceDirection,
-                       spcdir[0], spcdir[1], spcdir[2], spcdir[3]);
+    nrrdAxisInfoSet_va(nten, nrrdAxisInfoSpaceDirection, spcdir[0], spcdir[1], spcdir[2],
+                       spcdir[3]);
     /* this should probably be set in any case, oh well */
-    nrrdAxisInfoSet_va(nten, nrrdAxisInfoCenter,
-                       nrrdCenterUnknown,
-                       nrrdCenterCell, nrrdCenterCell, nrrdCenterCell);
+    nrrdAxisInfoSet_va(nten, nrrdAxisInfoCenter, nrrdCenterUnknown, nrrdCenterCell,
+                       nrrdCenterCell, nrrdCenterCell);
     nrrdSpaceOriginSet(nten, orig);
   } else {
     nten->axis[1].spacing = 1.0;

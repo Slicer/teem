@@ -39,7 +39,8 @@ main(int argc, const char *argv[]) {
   double *scalePos, *out, info[512];
   Nrrd *nout;
   NrrdKernelSpec *kss;
-  double *plotPos; unsigned int plotPosNum;
+  double *plotPos;
+  unsigned int plotPosNum;
 
   me = argv[0];
   mop = airMopNew();
@@ -62,8 +63,7 @@ main(int argc, const char *argv[]) {
   hestOptAdd(&hopt, "eps", "eps", airTypeDouble, 1, 1, &convEps, "0.0001",
              "convergence threshold for optimization");
   hestOptAdd(&hopt, "m", "m1 m2", airTypeEnum, 2, 2, measr, "l2 l2",
-             "how to measure error across image, and across scales",
-             NULL, nrrdMeasure);
+             "how to measure error across image, and across scales", NULL, nrrdMeasure);
   hestOptAdd(&hopt, "p", "s0 s1", airTypeDouble, 1, -1, &plotPos, "nan nan",
              "hack: don't do optimization; just plot the recon error given "
              "these (two or more) samples along scale.  OR, hackier hack: "
@@ -75,59 +75,53 @@ main(int argc, const char *argv[]) {
              "kernel for gageKernelStack", NULL, NULL, nrrdHestKernelSpec);
   hestOptAdd(&hopt, "tent", NULL, airTypeInt, 0, 0, &tentRecon, NULL,
              "same hack: plot error with tent recon, not hermite");
-  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL,
-             "output array");
-  hestParseOrDie(hopt, argc-1, argv+1, hparm,
-                 me, optsigInfo, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, NULL, "output array");
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, optsigInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nout = nrrdNew();
   airMopAdd(mop, nout, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
 
-  osctx = gageOptimSigContextNew(dim, sampleNum[1],
-                                 measrSampleNum,
-                                 sigma[0], sigma[1],
+  osctx = gageOptimSigContextNew(dim, sampleNum[1], measrSampleNum, sigma[0], sigma[1],
                                  cutoff);
   if (!osctx) {
     airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  airMopAdd(mop, osctx, AIR_CAST(airMopper, gageOptimSigContextNix),
-            airMopAlways);
+  airMopAdd(mop, osctx, AIR_CAST(airMopper, gageOptimSigContextNix), airMopAlways);
 
   scalePos = AIR_CALLOC(sampleNum[1], double);
   airMopAdd(mop, scalePos, airFree, airMopAlways);
 
   if (1 == plotPosNum && AIR_EXISTS(plotPos[0])) {
     /* hackity hack: a different kind of plotting requested */
-    if (gageOptimSigErrorPlotSliding(osctx, nout,
-                                     plotPos[0],
-                                     measrSampleNum,
-                                     kss, measr[0])) {
+    if (gageOptimSigErrorPlotSliding(osctx, nout, plotPos[0], measrSampleNum, kss,
+                                     measr[0])) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   } else if (AIR_EXISTS(plotPos[0]) && AIR_EXISTS(plotPos[1])) {
     /* hack: plotting requested */
-    if (gageOptimSigErrorPlot(osctx, nout,
-                              plotPos, plotPosNum,
-                              kss,
-                              measr[0])) {
+    if (gageOptimSigErrorPlot(osctx, nout, plotPos, plotPosNum, kss, measr[0])) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   } else {
     /* do sample position optimization */
-    if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2,
-                          AIR_CAST(size_t, sampleNum[1]+1),
-                          AIR_CAST(size_t, sampleNum[1]+1))) {
+    if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2, AIR_SIZE_T(sampleNum[1] + 1),
+                          AIR_SIZE_T(sampleNum[1] + 1))) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble allocating output:\n%s", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     out = AIR_CAST(double *, nout->data);
     /* hacky way of saving some of the computation information */
@@ -138,23 +132,23 @@ main(int argc, const char *argv[]) {
     info[3] = measr[1];
     info[4] = convEps;
     info[5] = maxIter;
-    for (ii=0; ii<sampleNum[1]+1; ii++) {
+    for (ii = 0; ii < sampleNum[1] + 1; ii++) {
       out[ii] = info[ii];
     }
-    for (num=sampleNum[0]; num<=sampleNum[1]; num++) {
-      printf("\n%s: ======= optimizing %u/%u samples (sigma %g--%g) \n\n",
-             me, num, sampleNum[1]+1, sigma[0], sigma[1]);
-      if (gageOptimSigCalculate(osctx, scalePos, num,
-                                kss, measr[0], measr[1],
-                                maxIter, convEps)) {
+    for (num = sampleNum[0]; num <= sampleNum[1]; num++) {
+      printf("\n%s: ======= optimizing %u/%u samples (sigma %g--%g) \n\n", me, num,
+             sampleNum[1] + 1, sigma[0], sigma[1]);
+      if (gageOptimSigCalculate(osctx, scalePos, num, kss, measr[0], measr[1], maxIter,
+                                convEps)) {
         airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
         fprintf(stderr, "%s: trouble:\n%s", me, err);
-        airMopError(mop); return 1;
+        airMopError(mop);
+        return 1;
       }
-      for (ii=0; ii<num; ii++) {
-        out[ii + (sampleNum[1]+1)*num] = scalePos[ii];
+      for (ii = 0; ii < num; ii++) {
+        out[ii + (sampleNum[1] + 1) * num] = scalePos[ii];
       }
-      out[sampleNum[1] + (sampleNum[1]+1)*num] = osctx->finalErr;
+      out[sampleNum[1] + (sampleNum[1] + 1) * num] = osctx->finalErr;
     }
   }
   if (nrrdSave(outS, nout, NULL)) {

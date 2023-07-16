@@ -151,8 +151,8 @@ tenDWMRIKeyValueParse(Nrrd **ngradP, Nrrd **nbmatP, double *bP, unsigned int **s
     *ngradP = NULL;
     ninfo = *nbmatP = nrrdNew();
   }
-  if (nrrdMaybeAlloc_va(ninfo, nrrdTypeDouble, 2, AIR_CAST(size_t, valNum),
-                        AIR_CAST(size_t, dwiNum))) {
+  if (nrrdMaybeAlloc_va(ninfo, nrrdTypeDouble, 2, AIR_SIZE_T(valNum),
+                        AIR_SIZE_T(dwiNum))) {
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
@@ -359,7 +359,7 @@ tenBMatrixCalc(Nrrd *nbmat, const Nrrd *_ngrad) {
   mop = airMopNew();
   airMopAdd(mop, ngrad = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   if (nrrdConvert(ngrad, _ngrad, nrrdTypeDouble)
-      || nrrdMaybeAlloc_va(nbmat, nrrdTypeDouble, 2, AIR_CAST(size_t, 6),
+      || nrrdMaybeAlloc_va(nbmat, nrrdTypeDouble, 2, AIR_SIZE_T(6),
                            ngrad->axis[1].size)) {
     biffMovef(TEN, NRRD, "%s: trouble", me);
     airMopError(mop);
@@ -725,7 +725,7 @@ tenEstimateLinear4D(Nrrd *nten, Nrrd **nterrP, Nrrd **nB0P, const Nrrd *ndwi,
     }
     fprintf(stderr, "%s: using %g for DW confidence threshold\n", me, thresh);
   }
-  if (nrrdMaybeAlloc_va(nten, nrrdTypeFloat, 4, AIR_CAST(size_t, 7), sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(nten, nrrdTypeFloat, 4, AIR_SIZE_T(7), sx, sy, sz)) {
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop);
     return 1;
@@ -906,7 +906,7 @@ tenSimulate(Nrrd *ndwi, const Nrrd *nT2, const Nrrd *nten, const Nrrd *_nbmat,
              airSprintSize_t(stmp[5], nten->axis[3].size));
     return 1;
   }
-  if (nrrdMaybeAlloc_va(ndwi, nrrdTypeFloat, 4, AIR_CAST(size_t, DD), sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(ndwi, nrrdTypeFloat, 4, AIR_SIZE_T(DD), sx, sy, sz)) {
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
@@ -1034,7 +1034,7 @@ tenCalcTensor(Nrrd *nout, Nrrd *nin, int version, float thresh, float slope, flo
   sx = nin->axis[1].size;
   sy = nin->axis[2].size;
   sz = nin->axis[3].size;
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, AIR_CAST(size_t, 7), sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, AIR_SIZE_T(7), sx, sy, sz)) {
     biffMovef(TEN, NRRD, "%s: couldn't alloc output", me);
     return 1;
   }

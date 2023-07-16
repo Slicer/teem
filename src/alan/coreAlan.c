@@ -73,23 +73,19 @@ alanUpdate(alanContext *actx) {
   actx->_nlev[1] = nrrdNew();
   actx->nparm = nrrdNew();
   if (2 == actx->dim) {
-    ret = (nrrdMaybeAlloc_va(actx->_nlev[0], alan_nt, 3, AIR_CAST(size_t, 2),
-                             AIR_CAST(size_t, actx->size[0]),
-                             AIR_CAST(size_t, actx->size[1]))
+    ret = (nrrdMaybeAlloc_va(actx->_nlev[0], alan_nt, 3, AIR_SIZE_T(2),
+                             AIR_SIZE_T(actx->size[0]), AIR_SIZE_T(actx->size[1]))
            || nrrdCopy(actx->_nlev[1], actx->_nlev[0])
-           || nrrdMaybeAlloc_va(actx->nparm, alan_nt, 3, AIR_CAST(size_t, 3),
-                                AIR_CAST(size_t, actx->size[0]),
-                                AIR_CAST(size_t, actx->size[1])));
+           || nrrdMaybeAlloc_va(actx->nparm, alan_nt, 3, AIR_SIZE_T(3),
+                                AIR_SIZE_T(actx->size[0]), AIR_SIZE_T(actx->size[1])));
   } else {
-    ret = (nrrdMaybeAlloc_va(actx->_nlev[0], alan_nt, 4, AIR_CAST(size_t, 2),
-                             AIR_CAST(size_t, actx->size[0]),
-                             AIR_CAST(size_t, actx->size[1]),
-                             AIR_CAST(size_t, actx->size[2]))
+    ret = (nrrdMaybeAlloc_va(actx->_nlev[0], alan_nt, 4, AIR_SIZE_T(2),
+                             AIR_SIZE_T(actx->size[0]), AIR_SIZE_T(actx->size[1]),
+                             AIR_SIZE_T(actx->size[2]))
            || nrrdCopy(actx->_nlev[1], actx->_nlev[0])
-           || nrrdMaybeAlloc_va(actx->nparm, alan_nt, 4, AIR_CAST(size_t, 3),
-                                AIR_CAST(size_t, actx->size[0]),
-                                AIR_CAST(size_t, actx->size[1]),
-                                AIR_CAST(size_t, actx->size[2])));
+           || nrrdMaybeAlloc_va(actx->nparm, alan_nt, 4, AIR_SIZE_T(3),
+                                AIR_SIZE_T(actx->size[0]), AIR_SIZE_T(actx->size[1]),
+                                AIR_SIZE_T(actx->size[2])));
   }
   if (ret) {
     biffMovef(ALAN, NRRD, "%s: trouble allocating buffers", me);

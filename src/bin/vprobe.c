@@ -336,9 +336,9 @@ main(int argc, const char *argv[]) {
   dsix = AIR_CAST(double, six);
   dsiy = AIR_CAST(double, siy);
   dsiz = AIR_CAST(double, siz);
-  sox = AIR_CAST(size_t, scale[0] * dsix);
-  soy = AIR_CAST(size_t, scale[1] * dsiy);
-  soz = AIR_CAST(size_t, scale[2] * dsiz);
+  sox = AIR_SIZE_T(scale[0] * dsix);
+  soy = AIR_SIZE_T(scale[1] * dsiy);
+  soz = AIR_SIZE_T(scale[2] * dsiz);
   dsox = AIR_CAST(double, sox);
   dsoy = AIR_CAST(double, soy);
   dsoz = AIR_CAST(double, soz);

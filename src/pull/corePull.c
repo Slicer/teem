@@ -236,9 +236,8 @@ _pullIterate(pullContext *pctx, int mode) {
 #if PULL_HINTER
   /* zero-out/alloc hinter if need be */
   if (pullProcessModeDescent == mode && pctx->nhinter) {
-    if (nrrdMaybeAlloc_va(pctx->nhinter, nrrdTypeFloat, 2,
-                          AIR_CAST(size_t, _PULL_HINTER_SIZE),
-                          AIR_CAST(size_t, _PULL_HINTER_SIZE))) {
+    if (nrrdMaybeAlloc_va(pctx->nhinter, nrrdTypeFloat, 2, AIR_SIZE_T(_PULL_HINTER_SIZE),
+                          AIR_SIZE_T(_PULL_HINTER_SIZE))) {
       biffMovef(PULL, NRRD, "%s: setting up nhinter", me);
       return 1;
     }
@@ -487,8 +486,8 @@ pullRun(pullContext *pctx) {
     airRandMTState *rng;
     rng = pctx->task[0]->rng;
     nout = nrrdNew();
-    nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 3, AIR_CAST(size_t, 3),
-                      AIR_CAST(size_t, szimg), AIR_CAST(size_t, szimg));
+    nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 3, AIR_SIZE_T(3), AIR_SIZE_T(szimg),
+                      AIR_SIZE_T(szimg));
     out = AIR_CAST(double *, nout->data);
     pa = pullPointNew(pctx);
     pb = pullPointNew(pctx);

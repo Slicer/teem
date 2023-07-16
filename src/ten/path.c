@@ -697,12 +697,10 @@ _tenInterpGeoLoxPolyLine(Nrrd *ngeod, unsigned int *numIter, const double tenA[7
   airMopAdd(mop, nigrt, (airMopper)nrrdNuke, airMopAlways);
   nsub = nrrdNew();
   airMopAdd(mop, nsub, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdMaybeAlloc_va(ngeod, nrrdTypeDouble, 2, AIR_CAST(size_t, 7),
-                        AIR_CAST(size_t, NN + 1))
-      || nrrdMaybeAlloc_va(ntt, nrrdTypeDouble, 2, AIR_CAST(size_t, 7),
-                           AIR_CAST(size_t, 2 * NN + 1))
-      || nrrdMaybeAlloc_va(nigrt, nrrdTypeDouble, 3, AIR_CAST(size_t, 7),
-                           AIR_CAST(size_t, 6), AIR_CAST(size_t, 2 * NN + 1))) {
+  if (nrrdMaybeAlloc_va(ngeod, nrrdTypeDouble, 2, AIR_SIZE_T(7), AIR_SIZE_T(NN + 1))
+      || nrrdMaybeAlloc_va(ntt, nrrdTypeDouble, 2, AIR_SIZE_T(7), AIR_SIZE_T(2 * NN + 1))
+      || nrrdMaybeAlloc_va(nigrt, nrrdTypeDouble, 3, AIR_SIZE_T(7), AIR_SIZE_T(6),
+                           AIR_SIZE_T(2 * NN + 1))) {
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop);
     return 1;
@@ -832,8 +830,7 @@ tenInterpTwoDiscrete_d(Nrrd *nout, const double tenA[7], const double tenB[7], i
     airMopError(mop);
     return 1;
   }
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2, AIR_CAST(size_t, 7),
-                        AIR_CAST(size_t, num))) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 2, AIR_SIZE_T(7), AIR_SIZE_T(num))) {
     biffMovef(TEN, NRRD, "%s: trouble allocating output", me);
     airMopError(mop);
     return 1;

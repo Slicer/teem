@@ -267,7 +267,7 @@ outputShow(pullBag *bag) {
           AIR_UINT(bag->nPosOut->axis[1].size), first);
   */
   if (first) {
-    if (nrrdMaybeAlloc_va(bag->nrgb, nrrdTypeFloat, 2, AIR_CAST(size_t, 3),
+    if (nrrdMaybeAlloc_va(bag->nrgb, nrrdTypeFloat, 2, AIR_SIZE_T(3),
                           bag->nPosOut->axis[1].size)) {
       err = biffGetDone(NRRD);
       fprintf(stderr, "%s: error creating RGB:\n%s\n", me, err);
@@ -443,8 +443,8 @@ cc_cb(fltk::Widget *, pullBag *bag) {
   bag->ccSelect->range(0, bag->pctx->CCNum - 1);
   if (bag->nccrgb->axis[1].size != bag->pctx->CCNum) {
     airSrandMT(AIR_UINT(airTime()));
-    if (nrrdMaybeAlloc_va(bag->nccrgb, nrrdTypeFloat, 2, AIR_CAST(size_t, 3),
-                          AIR_CAST(size_t, bag->pctx->CCNum))) {
+    if (nrrdMaybeAlloc_va(bag->nccrgb, nrrdTypeFloat, 2, AIR_SIZE_T(3),
+                          AIR_SIZE_T(bag->pctx->CCNum))) {
       char *err = biffGetDone(NRRD);
       fprintf(stderr, "%s: problem alloc'ing cc rgb:\n%s", me, err);
       free(err);
@@ -627,12 +627,11 @@ save_cb(fltk::Widget *, pullBag *bag) {
     count += !!ten[0];
     ten += 7;
   }
-  nrrdMaybeAlloc_va(nPosSel, nrrdTypeDouble, 2, AIR_CAST(size_t, 4),
-                    AIR_CAST(size_t, count));
+  nrrdMaybeAlloc_va(nPosSel, nrrdTypeDouble, 2, AIR_SIZE_T(4), AIR_SIZE_T(count));
   posAll = AIR_CAST(double *, bag->nPosOut->data);
   posSel = AIR_CAST(double *, nPosSel->data);
   if (bag->nstrn) {
-    nrrdMaybeAlloc_va(nStrnSel, nrrdTypeDouble, 1, AIR_CAST(size_t, count));
+    nrrdMaybeAlloc_va(nStrnSel, nrrdTypeDouble, 1, AIR_SIZE_T(count));
     strnAll = AIR_CAST(double *, bag->nstrn->data);
     strnSel = AIR_CAST(double *, nStrnSel->data);
   } else {

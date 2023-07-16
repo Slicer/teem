@@ -295,7 +295,7 @@ unrrdu_resampleMain(int argc, const char **argv, const char *me, hestParm *hparm
       double spin, spout, svec[NRRD_SPACE_DIM_MAX];
       int spstat;
       int dowhat = AIR_INT(scale[0 + 2 * ai]);
-      size_t incr = AIR_CAST(size_t, scale[1 + 2 * ai]);
+      size_t incr = AIR_SIZE_T(scale[1 + 2 * ai]);
       switch (dowhat) {
       case unrrduScaleNothing:
         /* no resampling */

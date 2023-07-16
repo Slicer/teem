@@ -230,7 +230,7 @@ limnCameraPathMake(limnCamera *cam, int numFrames, limnCamera *keycam, double *t
   airMopAdd(mop, ndist = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, nfova = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   airMopAdd(mop, ntime = nrrdNew(), (airMopper)nrrdNix, airMopAlways);
-  if (nrrdWrap_va(ntime, time, nrrdTypeDouble, 1, AIR_CAST(size_t, numKeys))) {
+  if (nrrdWrap_va(ntime, time, nrrdTypeDouble, 1, AIR_SIZE_T(numKeys))) {
     biffMovef(LIMN, NRRD, "%s: trouble wrapping time values", me);
     airMopError(mop);
     return 1;
@@ -238,18 +238,13 @@ limnCameraPathMake(limnCamera *cam, int numFrames, limnCamera *keycam, double *t
   airMopAdd(mop, nsample = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   timeType = limnSplineTypeSpecNew(limnSplineTypeTimeWarp);
   airMopAdd(mop, timeType, (airMopper)limnSplineTypeSpecNix, airMopAlways);
-  if (nrrdMaybeAlloc_va(nquat, nrrdTypeDouble, 2, AIR_CAST(size_t, 4),
-                        AIR_CAST(size_t, numKeys))
-      || nrrdMaybeAlloc_va(nfrom, nrrdTypeDouble, 2, AIR_CAST(size_t, 3),
-                           AIR_CAST(size_t, numKeys))
-      || nrrdMaybeAlloc_va(natpt, nrrdTypeDouble, 2, AIR_CAST(size_t, 3),
-                           AIR_CAST(size_t, numKeys))
-      || nrrdMaybeAlloc_va(nupvc, nrrdTypeDouble, 2, AIR_CAST(size_t, 3),
-                           AIR_CAST(size_t, numKeys))
-      || nrrdMaybeAlloc_va(ndist, nrrdTypeDouble, 2, AIR_CAST(size_t, 4),
-                           AIR_CAST(size_t, numKeys))
-      || nrrdMaybeAlloc_va(nfova, nrrdTypeDouble, 2, AIR_CAST(size_t, 2),
-                           AIR_CAST(size_t, numKeys))) {
+  if (nrrdMaybeAlloc_va(nquat, nrrdTypeDouble, 2, AIR_SIZE_T(4), AIR_SIZE_T(numKeys))
+      || nrrdMaybeAlloc_va(nfrom, nrrdTypeDouble, 2, AIR_SIZE_T(3), AIR_SIZE_T(numKeys))
+      || nrrdMaybeAlloc_va(natpt, nrrdTypeDouble, 2, AIR_SIZE_T(3), AIR_SIZE_T(numKeys))
+      || nrrdMaybeAlloc_va(nupvc, nrrdTypeDouble, 2, AIR_SIZE_T(3), AIR_SIZE_T(numKeys))
+      || nrrdMaybeAlloc_va(ndist, nrrdTypeDouble, 2, AIR_SIZE_T(4), AIR_SIZE_T(numKeys))
+      || nrrdMaybeAlloc_va(nfova, nrrdTypeDouble, 2, AIR_SIZE_T(2),
+                           AIR_SIZE_T(numKeys))) {
     biffMovef(LIMN, NRRD, "%s: couldn't allocate buffer nrrds", me);
     airMopError(mop);
     return 1;

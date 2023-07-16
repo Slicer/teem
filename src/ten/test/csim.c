@@ -231,13 +231,13 @@ main(int argc, const char *argv[]) {
 
   if (nrrdConvert(ninTen, _ninTen, nrrdTypeDouble) || nrrdSlice(nmask, ninTen, 0, 0)
       || nrrdConvert(ninB0, _ninB0, nrrdTypeDouble)
-      || nrrdMaybeAlloc_va(noutTen, nrrdTypeDouble, 4, AIR_CAST(size_t, 7), sizeX, sizeY,
+      || nrrdMaybeAlloc_va(noutTen, nrrdTypeDouble, 4, AIR_SIZE_T(7), sizeX, sizeY,
                            sizeZ)
-      || nrrdMaybeAlloc_va(noutCovar, nrrdTypeDouble, 4, AIR_CAST(size_t, 21), sizeX,
-                           sizeY, sizeZ)
-      || nrrdMaybeAlloc_va(noutRmv, nrrdTypeDouble, 4, AIR_CAST(size_t, 6), sizeX, sizeY,
+      || nrrdMaybeAlloc_va(noutCovar, nrrdTypeDouble, 4, AIR_SIZE_T(21), sizeX, sizeY,
                            sizeZ)
-      || nrrdMaybeAlloc_va(ntbuff, nrrdTypeDouble, 2, AIR_CAST(size_t, 7), NN)) {
+      || nrrdMaybeAlloc_va(noutRmv, nrrdTypeDouble, 4, AIR_SIZE_T(6), sizeX, sizeY,
+                           sizeZ)
+      || nrrdMaybeAlloc_va(ntbuff, nrrdTypeDouble, 2, AIR_SIZE_T(7), NN)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble setting up tec:\n%s\n", me, err);
     airMopError(mop);

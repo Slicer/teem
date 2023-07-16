@@ -52,8 +52,7 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
   }
   if (1 == dim) {
     len = AIR_INT(hvol->axis[2].size); /* HEY should be unsigned */
-    if (nrrdMaybeAlloc_va(info, nrrdTypeFloat, 2, AIR_CAST(size_t, 2),
-                          AIR_CAST(size_t, len))) {
+    if (nrrdMaybeAlloc_va(info, nrrdTypeFloat, 2, AIR_SIZE_T(2), AIR_SIZE_T(len))) {
       biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me);
       return 1;
     }
@@ -97,8 +96,8 @@ baneOpacInfo(Nrrd *info, Nrrd *hvol, int dim, int measr) {
     /* hvol axes: 0: grad, 1: 2nd deriv: 2: data value */
     sv = AIR_INT(hvol->axis[2].size); /* HEY should be unsigned */
     sg = AIR_INT(hvol->axis[0].size); /* HEY should be unsigned */
-    if (nrrdMaybeAlloc_va(info, nrrdTypeFloat, 3, AIR_CAST(size_t, 2),
-                          AIR_CAST(size_t, sv), AIR_CAST(size_t, sg))) {
+    if (nrrdMaybeAlloc_va(info, nrrdTypeFloat, 3, AIR_SIZE_T(2), AIR_SIZE_T(sv),
+                          AIR_SIZE_T(sg))) {
       biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me);
       return 1;
     }
@@ -167,8 +166,7 @@ bane1DOpacInfoFrom2D(Nrrd *info1D, Nrrd *info2D) {
     return 1;
   }
 
-  if (nrrdMaybeAlloc_va(info1D, nrrdTypeFloat, 2, AIR_CAST(size_t, 2),
-                        AIR_CAST(size_t, len))) {
+  if (nrrdMaybeAlloc_va(info1D, nrrdTypeFloat, 2, AIR_SIZE_T(2), AIR_SIZE_T(len))) {
     biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me);
     return 1;
   }
@@ -268,7 +266,7 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
   d = info->dim - 1;
   if (1 == d) {
     len = AIR_INT(info->axis[1].size); /* HEY should be unsigned */
-    if (nrrdMaybeAlloc_va(pos, nrrdTypeFloat, 1, AIR_CAST(size_t, len))) {
+    if (nrrdMaybeAlloc_va(pos, nrrdTypeFloat, 1, AIR_SIZE_T(len))) {
       biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me);
       return 1;
     }
@@ -291,8 +289,7 @@ banePosCalc(Nrrd *pos, float sigma, float gthresh, Nrrd *info) {
     /* 2 == d */
     sv = AIR_INT(info->axis[1].size); /* HEY should be unsigned */
     sg = AIR_INT(info->axis[2].size); /* HEY should be unsigned */
-    if (nrrdMaybeAlloc_va(pos, nrrdTypeFloat, 2, AIR_CAST(size_t, sv),
-                          AIR_CAST(size_t, sg))) {
+    if (nrrdMaybeAlloc_va(pos, nrrdTypeFloat, 2, AIR_SIZE_T(sv), AIR_SIZE_T(sg))) {
       biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me);
       return 1;
     }
@@ -423,7 +420,7 @@ baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos) {
   dim = pos->dim;
   if (1 == dim) {
     len = AIR_INT(pos->axis[0].size); /* HEY should be unsigned */
-    if (nrrdMaybeAlloc_va(opac, nrrdTypeFloat, 1, AIR_CAST(size_t, len))) {
+    if (nrrdMaybeAlloc_va(opac, nrrdTypeFloat, 1, AIR_SIZE_T(len))) {
       biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me);
       return 1;
     }
@@ -437,8 +434,7 @@ baneOpacCalc(Nrrd *opac, Nrrd *Bcpts, Nrrd *pos) {
   } else {
     sv = AIR_INT(pos->axis[0].size); /* HEY should be unsigned */
     sg = AIR_INT(pos->axis[1].size); /* HEY should be unsigned */
-    if (nrrdMaybeAlloc_va(opac, nrrdTypeFloat, 2, AIR_CAST(size_t, sv),
-                          AIR_CAST(size_t, sg))) {
+    if (nrrdMaybeAlloc_va(opac, nrrdTypeFloat, 2, AIR_SIZE_T(sv), AIR_SIZE_T(sg))) {
       biffMovef(BANE, NRRD, BIFF_NRRDALLOC, me);
       return 1;
     }

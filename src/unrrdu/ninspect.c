@@ -281,9 +281,9 @@ doit(Nrrd *nout, const Nrrd *nin, int smart, float amount, unsigned int margin,
   /* allocate output as 8-bit color image.  We know output type is
      nrrdTypeUChar because ninspect_proj finishes each projection
      with nrrdQuantize to 8-bits */
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeUChar, 3, AIR_CAST(size_t, 3),
-                        AIR_CAST(size_t, srl + 3 * margin + sap),
-                        AIR_CAST(size_t, ssi + 3 * margin + sap))) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeUChar, 3, AIR_SIZE_T(3),
+                        AIR_SIZE_T(srl + 3 * margin + sap),
+                        AIR_SIZE_T(ssi + 3 * margin + sap))) {
     biffMovef(UNRRDU, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop);
     return 1;

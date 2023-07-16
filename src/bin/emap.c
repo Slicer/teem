@@ -188,8 +188,8 @@ main(int argc, const char *argv[]) {
   if (airStrlen(debugS)) {
     ELL_34M_EXTRACT(V2W, cam->V2W);
     ndebug = nrrdNew();
-    nrrdMaybeAlloc_va(ndebug, nrrdTypeFloat, 3, AIR_CAST(size_t, 3),
-                      AIR_CAST(size_t, 1024), AIR_CAST(size_t, 512));
+    nrrdMaybeAlloc_va(ndebug, nrrdTypeFloat, 3, AIR_SIZE_T(3), AIR_SIZE_T(1024),
+                      AIR_SIZE_T(512));
     airMopAdd(mop, ndebug, (airMopper)nrrdNuke, airMopAlways);
     debug = (float *)ndebug->data;
     for (vi = 0; vi <= 511; vi++) {

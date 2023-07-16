@@ -290,10 +290,10 @@ main(int argc, const char *argv[]) {
     nout = nrrdNew();
     airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
     if (1 == ansLen) {
-      E = nrrdAlloc_va(nout, nrrdTypeDouble, 1, AIR_CAST(size_t, lpld->xyzwNum));
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 1, AIR_SIZE_T(lpld->xyzwNum));
     } else {
-      E = nrrdAlloc_va(nout, nrrdTypeDouble, 2, AIR_CAST(size_t, ansLen),
-                       AIR_CAST(size_t, lpld->xyzwNum));
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 2, AIR_SIZE_T(ansLen),
+                       AIR_SIZE_T(lpld->xyzwNum));
     }
     if (E) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
@@ -328,10 +328,10 @@ main(int argc, const char *argv[]) {
     nout = nrrdNew();
     airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
     if (1 == ansLen) {
-      E = nrrdAlloc_va(nout, nrrdTypeDouble, 1, AIR_CAST(size_t, lineStepNum));
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 1, AIR_SIZE_T(lineStepNum));
     } else {
-      E = nrrdAlloc_va(nout, nrrdTypeDouble, 2, AIR_CAST(size_t, ansLen),
-                       AIR_CAST(size_t, lineStepNum));
+      E = nrrdAlloc_va(nout, nrrdTypeDouble, 2, AIR_SIZE_T(ansLen),
+                       AIR_SIZE_T(lineStepNum));
     }
     if (E) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

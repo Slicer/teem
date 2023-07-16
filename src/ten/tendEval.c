@@ -78,8 +78,7 @@ tend_evalMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   if (1 == compLen) {
     ret = nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3, sx, sy, sz);
   } else {
-    ret = nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, AIR_CAST(size_t, compLen), sx, sy,
-                            sz);
+    ret = nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, AIR_SIZE_T(compLen), sx, sy, sz);
   }
   if (ret) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);

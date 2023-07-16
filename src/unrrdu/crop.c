@@ -129,8 +129,8 @@ unrrdu_cropMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     }
     bounds = AIR_CAST(airULLong *, nbounds->data);
     for (axi = 0; axi < nin->dim; axi++) {
-      min[axi] = AIR_CAST(size_t, bounds[axi + 0 * (nin->dim)]);
-      max[axi] = AIR_CAST(size_t, bounds[axi + 1 * (nin->dim)]);
+      min[axi] = AIR_SIZE_T(bounds[axi + 0 * (nin->dim)]);
+      max[axi] = AIR_SIZE_T(bounds[axi + 1 * (nin->dim)]);
     }
   }
 
