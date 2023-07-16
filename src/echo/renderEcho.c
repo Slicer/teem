@@ -36,17 +36,15 @@ echoThreadStateInit(int threadIdx, echoThreadState *tstate, echoRTParm *parm,
   /* this will probably be over-written */
   tstate->verbose = gstate->verbose;
   tstate->threadIdx = threadIdx;
-  if (nrrdMaybeAlloc_va(tstate->nperm, nrrdTypeInt, 2,
-                        AIR_CAST(size_t, ECHO_JITTABLE_NUM),
-                        AIR_CAST(size_t, parm->numSamples))) {
+  if (nrrdMaybeAlloc_va(tstate->nperm, nrrdTypeInt, 2, AIR_SIZE_T(ECHO_JITTABLE_NUM),
+                        AIR_SIZE_T(parm->numSamples))) {
     biffMovef(ECHO, NRRD, "%s: couldn't allocate jitter permutation array", me);
     return 1;
   }
   nrrdAxisInfoSet_va(tstate->nperm, nrrdAxisInfoLabel, "jittable", "sample");
 
-  if (nrrdMaybeAlloc_va(tstate->njitt, echoPos_nt, 3, AIR_CAST(size_t, 2),
-                        AIR_CAST(size_t, ECHO_JITTABLE_NUM),
-                        AIR_CAST(size_t, parm->numSamples))) {
+  if (nrrdMaybeAlloc_va(tstate->njitt, echoPos_nt, 3, AIR_SIZE_T(2),
+                        AIR_SIZE_T(ECHO_JITTABLE_NUM), AIR_SIZE_T(parm->numSamples))) {
     biffMovef(ECHO, NRRD, "%s: couldn't allocate jitter array", me);
     return 1;
   }
@@ -424,9 +422,8 @@ echoRTRender(Nrrd *nraw, limnCamera *cam, echoScene *scene, echoRTParm *parm,
   gstate->scene = scene;
   gstate->parm = parm;
   mop = airMopNew();
-  if (nrrdMaybeAlloc_va(nraw, echoCol_nt, 3, AIR_CAST(size_t, ECHO_IMG_CHANNELS),
-                        AIR_CAST(size_t, parm->imgResU),
-                        AIR_CAST(size_t, parm->imgResV))) {
+  if (nrrdMaybeAlloc_va(nraw, echoCol_nt, 3, AIR_SIZE_T(ECHO_IMG_CHANNELS),
+                        AIR_SIZE_T(parm->imgResU), AIR_SIZE_T(parm->imgResV))) {
     biffMovef(ECHO, NRRD, "%s: couldn't allocate output image", me);
     airMopError(mop);
     return 1;

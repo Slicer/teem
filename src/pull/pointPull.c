@@ -382,8 +382,8 @@ pullProbe(pullTask *task, pullPoint *point) {
       /* knowing the logIdx at the end of logging . . . */
       nlog = nrrdNew();
       nrrdMaybeAlloc_va(nlog, nrrdTypeDouble, 2,
-                        AIR_CAST(size_t, 25),
-                        AIR_CAST(size_t, 2754));
+                        AIR_SIZE_T(25),
+                        AIR_SIZE_T(2754));
       log = AIR_CAST(double*, nlog->data);
       logStarted = AIR_TRUE;
     }

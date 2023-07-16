@@ -320,20 +320,20 @@ updateSlabCacheAlloc(seekContext *sctx) {
   if (sctx->flag[flagType] || sctx->flag[flagStrengthUse] /* kind of sloppy/overkill */
       || sctx->flag[flagSxSySz]) {
     if (!E)
-      E |= nrrdMaybeAlloc_va(sctx->nvidx, nrrdTypeInt, 3, AIR_CAST(size_t, 15), sctx->sx,
+      E |= nrrdMaybeAlloc_va(sctx->nvidx, nrrdTypeInt, 3, AIR_SIZE_T(15), sctx->sx,
                              sctx->sy);
     if (!E) sctx->vidx = AIR_CAST(int *, sctx->nvidx->data);
     if (!E) E |= nrrdMaybeAlloc_va(sctx->ntreated, nrrdTypeChar, 2, sctx->sx, sctx->sy);
     if (!E) sctx->treated = AIR_CAST(signed char *, sctx->ntreated->data);
     if (sctx->strengthUse) {
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->nstng, nrrdTypeDouble, 3, AIR_CAST(size_t, 2),
-                               sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->nstng, nrrdTypeDouble, 3, AIR_SIZE_T(2), sctx->sx,
+                               sctx->sy);
       if (!E) sctx->stng = AIR_CAST(double *, sctx->nstng->data);
     }
     if (seekTypeIsocontour == sctx->type) {
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->nsclv, nrrdTypeDouble, 3, AIR_CAST(size_t, 4),
+        E |= nrrdMaybeAlloc_va(sctx->nsclv, nrrdTypeDouble, 3, AIR_SIZE_T(4),
                                sctx->sx + 2, sctx->sy + 2);
       if (!E) sctx->sclv = AIR_CAST(double *, sctx->nsclv->data);
     }
@@ -343,8 +343,8 @@ updateSlabCacheAlloc(seekContext *sctx) {
         || seekTypeValleySurfaceOP == sctx->type
         || seekTypeValleySurfaceT == sctx->type) {
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->ngrad, nrrdTypeDouble, 4, AIR_CAST(size_t, 3),
-                               AIR_CAST(size_t, 2), sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->ngrad, nrrdTypeDouble, 4, AIR_SIZE_T(3),
+                               AIR_SIZE_T(2), sctx->sx, sctx->sy);
       if (!E) sctx->grad = AIR_CAST(double *, sctx->ngrad->data);
     } else {
       sctx->grad = NULL;
@@ -355,16 +355,16 @@ updateSlabCacheAlloc(seekContext *sctx) {
         || seekTypeRidgeSurfaceOP == sctx->type
         || seekTypeValleySurfaceOP == sctx->type) {
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->neval, nrrdTypeDouble, 4, AIR_CAST(size_t, 3),
-                               AIR_CAST(size_t, 2), sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->neval, nrrdTypeDouble, 4, AIR_SIZE_T(3),
+                               AIR_SIZE_T(2), sctx->sx, sctx->sy);
       if (!E) sctx->eval = AIR_CAST(double *, sctx->neval->data);
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->nevec, nrrdTypeDouble, 4, AIR_CAST(size_t, 9),
-                               AIR_CAST(size_t, 2), sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->nevec, nrrdTypeDouble, 4, AIR_SIZE_T(9),
+                               AIR_SIZE_T(2), sctx->sx, sctx->sy);
       if (!E) sctx->evec = AIR_CAST(double *, sctx->nevec->data);
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->nflip, nrrdTypeChar, 3, AIR_CAST(size_t, 5),
-                               sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->nflip, nrrdTypeChar, 3, AIR_SIZE_T(5), sctx->sx,
+                               sctx->sy);
       if (!E) sctx->flip = AIR_CAST(signed char *, sctx->nflip->data);
     } else {
       sctx->eval = NULL;
@@ -374,58 +374,56 @@ updateSlabCacheAlloc(seekContext *sctx) {
 
     if (seekTypeRidgeSurfaceT == sctx->type || seekTypeValleySurfaceT == sctx->type) {
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->nfacevidx, nrrdTypeInt, 3, AIR_CAST(size_t, 4),
-                               sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->nfacevidx, nrrdTypeInt, 3, AIR_SIZE_T(4), sctx->sx,
+                               sctx->sy);
       if (!E) sctx->facevidx = AIR_CAST(int *, sctx->nfacevidx->data);
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->nhess, nrrdTypeDouble, 4, AIR_CAST(size_t, 9),
-                               AIR_CAST(size_t, 2), sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->nhess, nrrdTypeDouble, 4, AIR_SIZE_T(9),
+                               AIR_SIZE_T(2), sctx->sx, sctx->sy);
       if (!E) sctx->hess = AIR_CAST(double *, sctx->nhess->data);
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->nt, nrrdTypeDouble, 4, AIR_CAST(size_t, 9),
-                               AIR_CAST(size_t, 2), sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->nt, nrrdTypeDouble, 4, AIR_SIZE_T(9), AIR_SIZE_T(2),
+                               sctx->sx, sctx->sy);
       if (!E) sctx->t = AIR_CAST(double *, sctx->nt->data);
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->nedgealpha, nrrdTypeDouble, 4, AIR_CAST(size_t, 5),
-                               AIR_CAST(size_t, 3), sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->nedgealpha, nrrdTypeDouble, 4, AIR_SIZE_T(5),
+                               AIR_SIZE_T(3), sctx->sx, sctx->sy);
       if (!E) sctx->edgealpha = AIR_CAST(double *, sctx->nedgealpha->data);
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->nedgenorm, nrrdTypeDouble, 4, AIR_CAST(size_t, 5),
-                               AIR_CAST(size_t, 9), sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->nedgenorm, nrrdTypeDouble, 4, AIR_SIZE_T(5),
+                               AIR_SIZE_T(9), sctx->sx, sctx->sy);
       if (!E) sctx->edgenorm = AIR_CAST(double *, sctx->nedgenorm->data);
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->nedgeicoord, nrrdTypeDouble, 4, AIR_CAST(size_t, 5),
-                               AIR_CAST(size_t, 9), sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->nedgeicoord, nrrdTypeDouble, 4, AIR_SIZE_T(5),
+                               AIR_SIZE_T(9), sctx->sx, sctx->sy);
       if (!E) sctx->edgeicoord = AIR_CAST(double *, sctx->nedgeicoord->data);
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->nfacecoord, nrrdTypeDouble, 4, AIR_CAST(size_t, 4),
-                               AIR_CAST(size_t, 2), sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->nfacecoord, nrrdTypeDouble, 4, AIR_SIZE_T(4),
+                               AIR_SIZE_T(2), sctx->sx, sctx->sy);
       if (!E) sctx->facecoord = AIR_CAST(double *, sctx->nfacecoord->data);
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->nfacenorm, nrrdTypeDouble, 4, AIR_CAST(size_t, 4),
-                               AIR_CAST(size_t, 3), sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->nfacenorm, nrrdTypeDouble, 4, AIR_SIZE_T(4),
+                               AIR_SIZE_T(3), sctx->sx, sctx->sy);
       if (!E) sctx->facenorm = AIR_CAST(double *, sctx->nfacenorm->data);
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->nfaceicoord, nrrdTypeDouble, 4, AIR_CAST(size_t, 4),
-                               AIR_CAST(size_t, 3), sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->nfaceicoord, nrrdTypeDouble, 4, AIR_SIZE_T(4),
+                               AIR_SIZE_T(3), sctx->sx, sctx->sy);
       if (!E) sctx->faceicoord = AIR_CAST(double *, sctx->nfaceicoord->data);
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->npairs, nrrdTypeChar, 4, AIR_CAST(size_t, 4),
-                               AIR_CAST(size_t, 12), sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->npairs, nrrdTypeChar, 4, AIR_SIZE_T(4),
+                               AIR_SIZE_T(12), sctx->sx, sctx->sy);
       if (!E) sctx->pairs = AIR_CAST(signed char *, sctx->npairs->data);
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->ngradcontext, nrrdTypeDouble, 4,
-                               AIR_CAST(size_t, 3), AIR_CAST(size_t, 2), sctx->sx,
-                               sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->ngradcontext, nrrdTypeDouble, 4, AIR_SIZE_T(3),
+                               AIR_SIZE_T(2), sctx->sx, sctx->sy);
       if (!E) sctx->gradcontext = AIR_CAST(double *, sctx->ngradcontext->data);
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->nhesscontext, nrrdTypeDouble, 4,
-                               AIR_CAST(size_t, 9), AIR_CAST(size_t, 2), sctx->sx,
-                               sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->nhesscontext, nrrdTypeDouble, 4, AIR_SIZE_T(9),
+                               AIR_SIZE_T(2), sctx->sx, sctx->sy);
       if (!E) sctx->hesscontext = AIR_CAST(double *, sctx->nhesscontext->data);
       if (!E)
-        E |= nrrdMaybeAlloc_va(sctx->ntcontext, nrrdTypeDouble, 4, AIR_CAST(size_t, 9),
-                               AIR_CAST(size_t, 2), sctx->sx, sctx->sy);
+        E |= nrrdMaybeAlloc_va(sctx->ntcontext, nrrdTypeDouble, 4, AIR_SIZE_T(9),
+                               AIR_SIZE_T(2), sctx->sx, sctx->sy);
       if (!E) sctx->tcontext = AIR_CAST(double *, sctx->ntcontext->data);
       if (!E)
         E |= nrrdMaybeAlloc_va(sctx->nstngcontext, nrrdTypeDouble, 2, sctx->sx,
@@ -555,9 +553,8 @@ updateSpanSpaceHist(seekContext *sctx) {
       }
 
       /* calculate the span space histogram */
-      if (nrrdMaybeAlloc_va(sctx->nspanHist, nrrdTypeUInt, 2,
-                            AIR_CAST(size_t, sctx->spanSize),
-                            AIR_CAST(size_t, sctx->spanSize))) {
+      if (nrrdMaybeAlloc_va(sctx->nspanHist, nrrdTypeUInt, 2, AIR_SIZE_T(sctx->spanSize),
+                            AIR_SIZE_T(sctx->spanSize))) {
         biffMovef(SEEK, NRRD, "%s: couldn't allocate space space histogram", me);
         return 1;
       }

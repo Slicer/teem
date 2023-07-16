@@ -556,7 +556,7 @@ limnPolyDataPrimitiveVertexNumber(Nrrd *nout, limnPolyData *pld) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeUInt, 1, AIR_CAST(size_t, pld->primNum))) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeUInt, 1, AIR_SIZE_T(pld->primNum))) {
     biffMovef(LIMN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
@@ -581,7 +581,7 @@ limnPolyDataPrimitiveArea(Nrrd *nout, limnPolyData *pld) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 1, AIR_CAST(size_t, pld->primNum))) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeDouble, 1, AIR_SIZE_T(pld->primNum))) {
     biffMovef(LIMN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }

@@ -77,8 +77,8 @@ baneGkms_txfMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   airMopAdd(mop, nout, (airMopper)nrrdNuke, airMopAlways);
   E = 0;
   if (!E)
-    E |= nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3, AIR_CAST(size_t, 1),
-                           AIR_CAST(size_t, res[0]), AIR_CAST(size_t, res[1]));
+    E |= nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3, AIR_SIZE_T(1), AIR_SIZE_T(res[0]),
+                           AIR_SIZE_T(res[1]));
   if (!E) E |= !(nout->axis[0].label = airStrdup("A"));
   if (!E) E |= !(nout->axis[1].label = airStrdup("gage(scalar:v)"));
   if (!E)

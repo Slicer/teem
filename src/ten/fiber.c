@@ -750,8 +750,8 @@ _fiberTraceSet(tenFiberContext *tfx, Nrrd *nval, Nrrd *nfiber, double *buff,
     }
   } else {
     if (nval) {
-      if (nrrdMaybeAlloc_va(nval, nrrdTypeDouble, 2, AIR_CAST(size_t, pansLen),
-                            AIR_CAST(size_t, (pansArr[0]->len + pansArr[1]->len - 1)))) {
+      if (nrrdMaybeAlloc_va(nval, nrrdTypeDouble, 2, AIR_SIZE_T(pansLen),
+                            AIR_SIZE_T((pansArr[0]->len + pansArr[1]->len - 1)))) {
         biffMovef(TEN, NRRD, "%s: couldn't allocate probed value nrrd", me);
         airMopError(mop);
         return 1;
@@ -771,8 +771,8 @@ _fiberTraceSet(tenFiberContext *tfx, Nrrd *nval, Nrrd *nfiber, double *buff,
       }
     }
     if (nfiber) {
-      if (nrrdMaybeAlloc_va(nfiber, nrrdTypeDouble, 2, AIR_CAST(size_t, 3),
-                            AIR_CAST(size_t, (fptsArr[0]->len + fptsArr[1]->len - 1)))) {
+      if (nrrdMaybeAlloc_va(nfiber, nrrdTypeDouble, 2, AIR_SIZE_T(3),
+                            AIR_SIZE_T((fptsArr[0]->len + fptsArr[1]->len - 1)))) {
         biffMovef(TEN, NRRD, "%s: couldn't allocate fiber nrrd", me);
         airMopError(mop);
         return 1;
@@ -1178,8 +1178,8 @@ _fiberMultiExtract(tenFiberContext *tfx, Nrrd *nval, limnPolyData *lpld,
   }
 
   if (nval) {
-    if (nrrdMaybeAlloc_va(nval, nrrdTypeDouble, 2, AIR_CAST(size_t, pansLen),
-                          AIR_CAST(size_t, vertTotalNum))) {
+    if (nrrdMaybeAlloc_va(nval, nrrdTypeDouble, 2, AIR_SIZE_T(pansLen),
+                          AIR_SIZE_T(vertTotalNum))) {
       biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
       return 1;
     }

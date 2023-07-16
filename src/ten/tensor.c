@@ -196,7 +196,7 @@ tenExpand2D(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   sx = nin->axis[1].size;
   sy = nin->axis[2].size;
   N = sx * sy;
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3, AIR_CAST(size_t, 4), sx, sy)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3, AIR_SIZE_T(4), sx, sy)) {
     biffMovef(TEN, NRRD, "%s: trouble", me);
     return 1;
   }
@@ -250,7 +250,7 @@ tenExpand(Nrrd *nout, const Nrrd *nin, double scale, double thresh) {
   sy = nin->axis[2].size;
   sz = nin->axis[3].size;
   N = sx * sy * sz;
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, AIR_CAST(size_t, 9), sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, AIR_SIZE_T(9), sx, sy, sz)) {
     biffMovef(TEN, NRRD, "%s: trouble", me);
     return 1;
   }
@@ -320,7 +320,7 @@ tenShrink(Nrrd *tseven, const Nrrd *nconf, const Nrrd *tnine) {
       return 1;
     }
   }
-  if (nrrdMaybeAlloc_va(tseven, nrrdTypeFloat, 4, AIR_CAST(size_t, 7), sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(tseven, nrrdTypeFloat, 4, AIR_SIZE_T(7), sx, sy, sz)) {
     biffMovef(TEN, NRRD, "%s: trouble allocating output", me);
     return 1;
   }
@@ -588,7 +588,7 @@ tenMake(Nrrd *nout, const Nrrd *nconf, const Nrrd *neval, const Nrrd *nevec) {
   }
 
   /* finally */
-  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, AIR_CAST(size_t, 7), sx, sy, sz)) {
+  if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 4, AIR_SIZE_T(7), sx, sy, sz)) {
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }

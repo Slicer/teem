@@ -126,10 +126,10 @@ tend_satinGen(Nrrd *nout, float parm, float mina, float maxa, unsigned int wsize
     ELL_3V_SET(max, 1, 1, 1);
   }
   if (nrrdMaybeAlloc_va(nconf = nrrdNew(), nrrdTypeFloat, 3, size[0], size[1], size[2])
-      || nrrdMaybeAlloc_va(neval = nrrdNew(), nrrdTypeFloat, 4, AIR_CAST(size_t, 3),
-                           size[0], size[1], size[2])
-      || nrrdMaybeAlloc_va(nevec = nrrdNew(), nrrdTypeFloat, 4, AIR_CAST(size_t, 9),
-                           size[0], size[1], size[2])) {
+      || nrrdMaybeAlloc_va(neval = nrrdNew(), nrrdTypeFloat, 4, AIR_SIZE_T(3), size[0],
+                           size[1], size[2])
+      || nrrdMaybeAlloc_va(nevec = nrrdNew(), nrrdTypeFloat, 4, AIR_SIZE_T(9), size[0],
+                           size[1], size[2])) {
     biffMovef(TEN, NRRD, "%s: trouble allocating temp nrrds", me);
     return 1;
   }

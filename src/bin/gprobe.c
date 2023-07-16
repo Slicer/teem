@@ -666,8 +666,7 @@ main(int argc, const char *argv[]) {
     nout = nrrdNew();
     airMopAdd(mop, nout, AIR_CAST(airMopper, nrrdNuke), airMopAlways);
     if (nrrdConvert(npos, _npos, nrrdTypeDouble)
-        || nrrdMaybeAlloc_va(nout, otype, 2, AIR_CAST(size_t, ansLen),
-                             AIR_CAST(size_t, NN))) {
+        || nrrdMaybeAlloc_va(nout, otype, 2, AIR_SIZE_T(ansLen), AIR_SIZE_T(NN))) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble with npos or nout:\n%s\n", me, err);
       airMopError(mop);
@@ -733,9 +732,9 @@ main(int argc, const char *argv[]) {
     dsix = AIR_CAST(double, six);
     dsiy = AIR_CAST(double, siy);
     dsiz = AIR_CAST(double, siz);
-    sox = AIR_CAST(size_t, scale[0] * dsix);
-    soy = AIR_CAST(size_t, scale[1] * dsiy);
-    soz = AIR_CAST(size_t, scale[2] * dsiz);
+    sox = AIR_SIZE_T(scale[0] * dsix);
+    soy = AIR_SIZE_T(scale[1] * dsiy);
+    soz = AIR_SIZE_T(scale[2] * dsiz);
     dsox = AIR_CAST(double, sox);
     dsoy = AIR_CAST(double, soy);
     dsoz = AIR_CAST(double, soz);

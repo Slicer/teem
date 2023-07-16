@@ -197,8 +197,8 @@ limnSplineNew(Nrrd *_ncpt, int info, limnSplineTypeSpec *spec) {
     /* now allocate the real control point information */
     spline->ncpt = nrrdNew();
     airMopAdd(mop, spline->ncpt, (airMopper)nrrdNuke, airMopOnError);
-    if (nrrdMaybeAlloc_va(spline->ncpt, nrrdTypeDouble, 3, AIR_CAST(size_t, 1),
-                          AIR_CAST(size_t, 3), _ncpt->axis[0].size)) {
+    if (nrrdMaybeAlloc_va(spline->ncpt, nrrdTypeDouble, 3, AIR_SIZE_T(1), AIR_SIZE_T(3),
+                          _ncpt->axis[0].size)) {
       biffMovef(LIMN, NRRD, "%s: trouble allocating real control points", me);
       airMopError(mop);
       return NULL;

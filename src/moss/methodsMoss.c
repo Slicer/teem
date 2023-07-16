@@ -103,9 +103,9 @@ mossImageAlloc(Nrrd *image, int type, unsigned int _sx, unsigned int _sy,
     biffAddf(MOSS, "%s: got NULL pointer or bad args", me);
     return 1;
   }
-  sx = AIR_CAST(size_t, _sx);
-  sy = AIR_CAST(size_t, _sy);
-  chanNum = AIR_CAST(size_t, _chanNum);
+  sx = AIR_SIZE_T(_sx);
+  sy = AIR_SIZE_T(_sy);
+  chanNum = AIR_SIZE_T(_chanNum);
   if (1 == chanNum) {
     ret = nrrdMaybeAlloc_va(image, type, 2, sx, sy);
   } else {

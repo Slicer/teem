@@ -282,9 +282,8 @@ triangleWithVertex(Nrrd *nTriWithVert, limnPolyData *pld) {
   for (vertIdx = 0; vertIdx < pld->xyzwNum; vertIdx++) {
     maxTriPerVert = AIR_MAX(maxTriPerVert, triWithVertNum[vertIdx]);
   }
-  if (nrrdMaybeAlloc_va(nTriWithVert, nrrdTypeUInt, 2,
-                        AIR_CAST(size_t, 1 + maxTriPerVert),
-                        AIR_CAST(size_t, pld->xyzwNum))) {
+  if (nrrdMaybeAlloc_va(nTriWithVert, nrrdTypeUInt, 2, AIR_SIZE_T(1 + maxTriPerVert),
+                        AIR_SIZE_T(pld->xyzwNum))) {
     biffMovef(LIMN, NRRD, "%s: couldn't allocate output", me);
     airMopError(mop);
     return 1;
@@ -331,8 +330,8 @@ vertexWithTriangle(Nrrd *nVertWithTri, limnPolyData *pld) {
   }
 
   triNum = limnPolyDataPolygonNumber(pld);
-  if (nrrdMaybeAlloc_va(nVertWithTri, nrrdTypeUInt, 2, AIR_CAST(size_t, 3),
-                        AIR_CAST(size_t, triNum))) {
+  if (nrrdMaybeAlloc_va(nVertWithTri, nrrdTypeUInt, 2, AIR_SIZE_T(3),
+                        AIR_SIZE_T(triNum))) {
     biffMovef(LIMN, NRRD, "%s: couldn't allocate output", me);
     return 1;
   }
@@ -1315,7 +1314,7 @@ limnPolyDataCCFind(limnPolyData *pld) {
   airMopAdd(mop, nTriMap, (airMopper)nrrdNuke, airMopAlways);
   nccSize = nrrdNew();
   airMopAdd(mop, nccSize, (airMopper)nrrdNuke, airMopAlways);
-  if (nrrdMaybeAlloc_va(nTriMap, nrrdTypeUInt, 1, AIR_CAST(size_t, realTriNum))) {
+  if (nrrdMaybeAlloc_va(nTriMap, nrrdTypeUInt, 1, AIR_SIZE_T(realTriNum))) {
     biffMovef(LIMN, NRRD, "%s: couldn't allocate equivalence map", me);
     airMopError(mop);
     return 1;

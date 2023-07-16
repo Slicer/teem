@@ -537,10 +537,10 @@ pullTraceSet(pullContext *pctx, pullTrace *pts, int recordStrength, double scale
     return 0;
   }
 
-  if (nrrdMaybeAlloc_va(pts->nvert, nrrdTypeDouble, 2, AIR_CAST(size_t, 4),
-                        AIR_CAST(size_t, vertNum))
-      || nrrdMaybeAlloc_va(pts->nstab, nrrdTypeDouble, 2, AIR_CAST(size_t, 2),
-                           AIR_CAST(size_t, vertNum))) {
+  if (nrrdMaybeAlloc_va(pts->nvert, nrrdTypeDouble, 2, AIR_SIZE_T(4),
+                        AIR_SIZE_T(vertNum))
+      || nrrdMaybeAlloc_va(pts->nstab, nrrdTypeDouble, 2, AIR_SIZE_T(2),
+                           AIR_SIZE_T(vertNum))) {
     biffMovef(PULL, NRRD, "%s: allocating output", me);
     airMopError(mop);
     return 1;
@@ -924,8 +924,8 @@ pullTraceMultiPlotAdd(Nrrd *nplot, const pullTraceMulti *mtrc, const Nrrd *nfilt
     }
   }
   if (mask && mposArr->len) {
-    if (nrrdMaybeAlloc_va(nmaskedpos, nrrdTypeDouble, 2, AIR_CAST(size_t, 4),
-                          AIR_CAST(size_t, mposArr->len))) {
+    if (nrrdMaybeAlloc_va(nmaskedpos, nrrdTypeDouble, 2, AIR_SIZE_T(4),
+                          AIR_SIZE_T(mposArr->len))) {
       biffAddf(PULL, "%s: couldn't allocate masked pos", me);
       airMopError(mop);
       return 1;

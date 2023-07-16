@@ -314,7 +314,7 @@ baneIncNew(int type, baneRange *range, double *parm) {
       return NULL;
     }
     inc->parm[0] = parm[0]; /* size of histogram */
-    if (nrrdMaybeAlloc_va(inc->nhist, nrrdTypeInt, 1, AIR_CAST(size_t, parm[0]))) {
+    if (nrrdMaybeAlloc_va(inc->nhist, nrrdTypeInt, 1, AIR_SIZE_T(parm[0]))) {
       biffMovef(BANE, NRRD, "%s: couldn't allocate histogram", me);
       baneIncNix(inc);
       return NULL;

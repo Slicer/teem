@@ -305,8 +305,7 @@ miteRayEnd(miteThread *mtt, miteRender *mrr, miteUser *muu) {
     /* muu->debug may be over-allocated, but that's harmless */
     muu->ndebug->axis[1].size = mtt->raySample;
     nrrdWrap_va(muu->ndebug, muu->debug, nrrdTypeDouble, 2,
-                AIR_CAST(size_t, muu->ndebug->axis[0].size),
-                AIR_CAST(size_t, mtt->raySample));
+                AIR_SIZE_T(muu->ndebug->axis[0].size), AIR_SIZE_T(mtt->raySample));
     airArrayNix(muu->debugArr);
     slen = 0;
     for (stageIdx = 0; stageIdx < mtt->stageNum; stageIdx++) {

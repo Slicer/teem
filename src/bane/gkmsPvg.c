@@ -61,8 +61,8 @@ _baneGkmsDonNew(int invert) {
   Nrrd *ret;
   float *data;
 
-  if (nrrdMaybeAlloc_va(ret = nrrdNew(), nrrdTypeFloat, 2, AIR_CAST(size_t, 4),
-                        AIR_CAST(size_t, 23))) {
+  if (nrrdMaybeAlloc_va(ret = nrrdNew(), nrrdTypeFloat, 2, AIR_SIZE_T(4),
+                        AIR_SIZE_T(23))) {
     biffAddf(BANE, "%s: can't create output", me);
     return NULL;
   }

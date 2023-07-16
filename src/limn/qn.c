@@ -899,9 +899,8 @@ limnQNDemo(Nrrd *nqn, unsigned int reso, int qni) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
-  if (nrrdMaybeAlloc_va(nqn, nrrdTypeDouble, 4, AIR_CAST(size_t, reso),
-                        AIR_CAST(size_t, reso), AIR_CAST(size_t, 6),
-                        AIR_CAST(size_t, 2))) {
+  if (nrrdMaybeAlloc_va(nqn, nrrdTypeDouble, 4, AIR_SIZE_T(reso), AIR_SIZE_T(reso),
+                        AIR_SIZE_T(6), AIR_SIZE_T(2))) {
     biffMovef(LIMN, NRRD, "%s: couldn't alloc output", me);
     return 1;
   }

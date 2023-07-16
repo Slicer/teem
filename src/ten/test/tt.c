@@ -19,23 +19,21 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../ten.h"
 
 const char *info = ("Sample space of tensor shape.");
 
 void
-_ra2t(Nrrd *nten, double rad, double angle,
-      double mRI[9], double mRF[9], double hack) {
+_ra2t(Nrrd *nten, double rad, double angle, double mRI[9], double mRF[9], double hack) {
   double x, y, xyz[3], XX[3], YY[3], CC[3], EE[3], VV[3], tmp, mD[9], mT[9];
   float *tdata;
   unsigned int xi, yi, sx, sy;
 
   sx = AIR_UINT(nten->axis[1].size);
   sy = AIR_UINT(nten->axis[2].size);
-  x = rad*sin(AIR_PI*angle/180);
-  y = rad*cos(AIR_PI*angle/180);
-  xi = airIndexClamp(0.0, x, sqrt(3.0)/2.0, sx);
+  x = rad * sin(AIR_PI * angle / 180);
+  y = rad * cos(AIR_PI * angle / 180);
+  xi = airIndexClamp(0.0, x, sqrt(3.0) / 2.0, sx);
   yi = airIndexClamp(0.0, y, 0.5, sy);
   ELL_3V_SET(VV, 0, 3, 0);
   ELL_3V_SET(EE, 1.5, 1.5, 0);
@@ -44,7 +42,7 @@ _ra2t(Nrrd *nten, double rad, double angle,
   ELL_3V_SUB(XX, VV, EE);
   ELL_3V_NORM(XX, XX, tmp);
   ELL_3V_NORM(YY, YY, tmp);
-  ELL_3V_SCALE_ADD3(xyz, 1.0, CC, hack*x, XX, hack*y, YY);
+  ELL_3V_SCALE_ADD3(xyz, 1.0, CC, hack * x, XX, hack * y, YY);
 
   ELL_3M_IDENTITY_SET(mD);
   ELL_3M_DIAG_SET(mD, xyz[0], xyz[1], xyz[2]);
@@ -52,7 +50,7 @@ _ra2t(Nrrd *nten, double rad, double angle,
   ell_3m_post_mul_d(mT, mRI);
   ell_3m_post_mul_d(mT, mD);
   ell_3m_post_mul_d(mT, mRF);
-  tdata = (float*)(nten->data) + 7*(xi + sx*(yi + 1*sy));
+  tdata = (float *)(nten->data) + 7 * (xi + sx * (yi + 1 * sy));
   tdata[0] = 1.0;
   TEN_M2T_TT(tdata, float, mT);
 }
@@ -63,7 +61,7 @@ _cap2xyz(double xyz[3], double ca, double cp, int version, int whole) {
 
   cs = 1 - ca;
   cl = 1 - cs - cp;
-  mean = (cs + cp + cl)/3;
+  mean = (cs + cp + cl) / 3;
   /*
     xyz[0] = cs*0.333 + cl*1.0 + cp*0.5;
     xyz[1] = cs*0.333 + cl*0.0 + cp*0.5;
@@ -80,10 +78,7 @@ _cap2xyz(double xyz[3], double ca, double cp, int version, int whole) {
     ELL_3V_SET(xyz, cl, cp, cs);
   } else {
     if (1 == version) {
-      ELL_3V_SET(xyz,
-                 (3 + 3*cl - cs)/6,
-                 (2 - 2*cl + cp)/6,
-                 2*cs/6);
+      ELL_3V_SET(xyz, (3 + 3 * cl - cs) / 6, (2 - 2 * cl + cp) / 6, 2 * cs / 6);
     } else {
       ELL_3V_SET(xyz, 1, 1 - cl, cs);
     }
@@ -96,37 +91,28 @@ washQtoM3(double m[9], double q[4]) {
 
   ELL_4V_COPY(p, q);
   len = ELL_4V_LEN(p);
-  ELL_4V_SCALE(p, 1.0/len, p);
+  ELL_4V_SCALE(p, 1.0 / len, p);
   w = p[0];
   x = p[1];
   y = p[2];
   z = p[3];
   /* mathematica work implies that we should be
      setting ROW vectors here */
-  ELL_3V_SET(m+0,
-             1 - 2*(y*y + z*z),
-             2*(x*y - w*z),
-             2*(x*z + w*y));
-  ELL_3V_SET(m+3,
-             2*(x*y + w*z),
-             1 - 2*(x*x + z*z),
-             2*(y*z - w*x));
-  ELL_3V_SET(m+6,
-             2*(x*z - w*y),
-             2*(y*z + w*x),
-             1 - 2*(x*x + y*y));
+  ELL_3V_SET(m + 0, 1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y));
+  ELL_3V_SET(m + 3, 2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x));
+  ELL_3V_SET(m + 6, 2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y));
 }
 
 int
 main(int argc, const char *argv[]) {
   const char *me;
   char *err, *outS;
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   airArray *mop;
 
   int sx, sy, xi, yi, samp, version, whole, right;
   float *tdata;
-  double p[3], xyz[3], q[4], len, hackcp=0, maxca;
+  double p[3], xyz[3], q[4], len, hackcp = 0, maxca;
   double ca, cp, mD[9], mRF[9], mRI[9], mT[9], hack;
   Nrrd *nten;
   mop = airMopNew();
@@ -153,31 +139,27 @@ main(int argc, const char *argv[]) {
              "triangle; \"1\" for ISMRM 97, \"2\" for MICCAI 99");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output file to save tensors into");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nten = nrrdNew();
   airMopAdd(mop, nten, (airMopper)nrrdNuke, airMopAlways);
 
-  if (!( 1 == version || 2 == version )) {
+  if (!(1 == version || 2 == version)) {
     fprintf(stderr, "%s: version must be 1 or 2 (not %d)\n", me, version);
     airMopError(mop);
     return 1;
   }
   if (right) {
     sx = samp;
-    sy = (int)(1.0*samp/sqrt(3.0));
+    sy = (int)(1.0 * samp / sqrt(3.0));
   } else {
-    sx = 2*samp-1;
+    sx = 2 * samp - 1;
     sy = samp;
   }
-  if (nrrdMaybeAlloc_va(nten, nrrdTypeFloat, 4,
-                        AIR_CAST(size_t, 7),
-                        AIR_CAST(size_t, sx),
-                        AIR_CAST(size_t, sy),
-                        AIR_CAST(size_t, 3))) {
+  if (nrrdMaybeAlloc_va(nten, nrrdTypeFloat, 4, AIR_SIZE_T(7), AIR_SIZE_T(sx),
+                        AIR_SIZE_T(sy), AIR_SIZE_T(3))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't allocate output:\n%s\n", me, err);
     airMopError(mop);
@@ -188,7 +170,7 @@ main(int argc, const char *argv[]) {
   q[2] = p[1];
   q[3] = p[2];
   len = ELL_4V_LEN(q);
-  ELL_4V_SCALE(q, 1.0/len, q);
+  ELL_4V_SCALE(q, 1.0 / len, q);
   washQtoM3(mRF, q);
   ELL_3M_TRANSPOSE(mRI, mRF);
   if (right) {
@@ -269,21 +251,21 @@ main(int argc, const char *argv[]) {
     _ra2t(nten, 1.000, 60.0, mRI, mRF, hack);
     */
     nten->axis[1].spacing = 1;
-    nten->axis[2].spacing = (sx-1)/(sqrt(3.0)*(sy-1));
+    nten->axis[2].spacing = (sx - 1) / (sqrt(3.0) * (sy - 1));
     nten->axis[3].spacing = 1;
   } else {
-    for (yi=0; yi<samp; yi++) {
+    for (yi = 0; yi < samp; yi++) {
       if (whole) {
-        ca = AIR_AFFINE(0, yi, samp-1, 0.0, 1.0);
+        ca = AIR_AFFINE(0, yi, samp - 1, 0.0, 1.0);
       } else {
-        ca = AIR_AFFINE(0, yi, samp-1, hack, maxca);
-        hackcp = AIR_AFFINE(0, yi, samp-1, hack, 0);
+        ca = AIR_AFFINE(0, yi, samp - 1, hack, maxca);
+        hackcp = AIR_AFFINE(0, yi, samp - 1, hack, 0);
       }
-      for (xi=0; xi<=yi; xi++) {
+      for (xi = 0; xi <= yi; xi++) {
         if (whole) {
-          cp = AIR_AFFINE(0, xi, samp-1, 0.0, 1.0);
+          cp = AIR_AFFINE(0, xi, samp - 1, 0.0, 1.0);
         } else {
-          cp = AIR_AFFINE(0, xi, samp-1, hackcp, maxca-hack/2.0);
+          cp = AIR_AFFINE(0, xi, samp - 1, hackcp, maxca - hack / 2.0);
         }
         _cap2xyz(xyz, ca, cp, version, whole);
         /*
@@ -297,8 +279,10 @@ main(int argc, const char *argv[]) {
         ell_3m_post_mul_d(mT, mD);
         ell_3m_post_mul_d(mT, mRF);
 
-        tdata = (float*)nten->data +
-          7*(2*(samp-1-xi) - (samp-1-yi) + (2*samp-1)*((samp-1-yi) + samp));
+        tdata = (float *)nten->data
+              + 7
+                  * (2 * (samp - 1 - xi) - (samp - 1 - yi)
+                     + (2 * samp - 1) * ((samp - 1 - yi) + samp));
         tdata[0] = 1.0;
         TEN_M2T_TT(tdata, float, mT);
       }
@@ -317,4 +301,3 @@ main(int argc, const char *argv[]) {
   airMopOkay(mop);
   return 0;
 }
-

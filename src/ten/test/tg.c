@@ -19,7 +19,6 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../ten.h"
 
 const char *info = ("Sample space of tensor shape.");
@@ -31,9 +30,9 @@ _clp2xyz(double xyz[3], double clp[2]) {
   cl = clp[0];
   cp = clp[1];
   cs = 1 - cl - cp;
-  xyz[0] = cs*0.7 + cl*1.0 + cp*0.75;
-  xyz[1] = cs*0.7 + cl*0.0 + cp*0.75;
-  xyz[2] = cs*0.7 + cl*0.0 + cp*0.00;
+  xyz[0] = cs * 0.7 + cl * 1.0 + cp * 0.75;
+  xyz[1] = cs * 0.7 + cl * 0.0 + cp * 0.75;
+  xyz[2] = cs * 0.7 + cl * 0.0 + cp * 0.00;
 }
 
 void
@@ -42,32 +41,23 @@ washQtoM3(double m[9], double q[4]) {
 
   ELL_4V_COPY(p, q);
   len = ELL_4V_LEN(p);
-  ELL_4V_SCALE(p, 1.0/len, p);
+  ELL_4V_SCALE(p, 1.0 / len, p);
   w = p[0];
   x = p[1];
   y = p[2];
   z = p[3];
   /* mathematica work implies that we should be
      setting ROW vectors here */
-  ELL_3V_SET(m+0,
-             1 - 2*(y*y + z*z),
-             2*(x*y - w*z),
-             2*(x*z + w*y));
-  ELL_3V_SET(m+3,
-             2*(x*y + w*z),
-             1 - 2*(x*x + z*z),
-             2*(y*z - w*x));
-  ELL_3V_SET(m+6,
-             2*(x*z - w*y),
-             2*(y*z + w*x),
-             1 - 2*(x*x + y*y));
+  ELL_3V_SET(m + 0, 1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y));
+  ELL_3V_SET(m + 3, 2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x));
+  ELL_3V_SET(m + 6, 2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y));
 }
 
 int
 main(int argc, const char *argv[]) {
   const char *me;
   char *err, *outS;
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   airArray *mop;
 
   int xi, yi, zi, samp;
@@ -85,8 +75,7 @@ main(int argc, const char *argv[]) {
              "and cp1 values, both in [0.0,1.0]");
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output file to save tensors into");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -96,11 +85,8 @@ main(int argc, const char *argv[]) {
   _clp2xyz(xyz, clp);
   fprintf(stderr, "%s: want evals = %g %g %g\n", me, xyz[0], xyz[1], xyz[2]);
 
-  if (nrrdMaybeAlloc_va(nten, nrrdTypeFloat, 4,
-                        AIR_CAST(size_t, 7),
-                        AIR_CAST(size_t, samp),
-                        AIR_CAST(size_t, samp),
-                        AIR_CAST(size_t, samp))) {
+  if (nrrdMaybeAlloc_va(nten, nrrdTypeFloat, 4, AIR_SIZE_T(7), AIR_SIZE_T(samp),
+                        AIR_SIZE_T(samp), AIR_SIZE_T(samp))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: couldn't allocate output:\n%s\n", me, err);
     airMopError(mop);
@@ -108,16 +94,16 @@ main(int argc, const char *argv[]) {
   }
   ELL_3M_IDENTITY_SET(mD);
   ELL_3M_DIAG_SET(mD, xyz[0], xyz[1], xyz[2]);
-  tdata = (float*)nten->data;
-  for (zi=0; zi<samp; zi++) {
-    for (yi=0; yi<samp; yi++) {
-      for (xi=0; xi<samp; xi++) {
+  tdata = (float *)nten->data;
+  for (zi = 0; zi < samp; zi++) {
+    for (yi = 0; yi < samp; yi++) {
+      for (xi = 0; xi < samp; xi++) {
         q[0] = 1.0;
-        q[1] = AIR_AFFINE(-0.5, (float)xi, samp-0.5, -1, 1);
-        q[2] = AIR_AFFINE(-0.5, (float)yi, samp-0.5, -1, 1);
-        q[3] = AIR_AFFINE(-0.5, (float)zi, samp-0.5, -1, 1);
+        q[1] = AIR_AFFINE(-0.5, (float)xi, samp - 0.5, -1, 1);
+        q[2] = AIR_AFFINE(-0.5, (float)yi, samp - 0.5, -1, 1);
+        q[3] = AIR_AFFINE(-0.5, (float)zi, samp - 0.5, -1, 1);
         len = ELL_4V_LEN(q);
-        ELL_4V_SCALE(q, 1.0/len, q);
+        ELL_4V_SCALE(q, 1.0 / len, q);
         washQtoM3(mRF, q);
         ELL_3M_TRANSPOSE(mRI, mRF);
 
@@ -142,4 +128,3 @@ main(int argc, const char *argv[]) {
   airMopOkay(mop);
   return 0;
 }
-

@@ -541,8 +541,8 @@ main(int argc, const char **argv) {
     return 1;
   }
 
-  if (nrrdMaybeAlloc_va(nplotA, nrrdTypeDouble, 2, AIR_CAST(size_t, pres[0]),
-                        AIR_CAST(size_t, pres[1]))) {
+  if (nrrdMaybeAlloc_va(nplotA, nrrdTypeDouble, 2, AIR_SIZE_T(pres[0]),
+                        AIR_SIZE_T(pres[1]))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble creating output:\n%s", me, err);
     airMopError(mop);

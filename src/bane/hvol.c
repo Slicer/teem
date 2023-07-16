@@ -133,9 +133,8 @@ baneFindInclusion(double min[3], double max[3], Nrrd *nin, baneHVolParm *hvp,
             incPass[0], incPass[1], incPass[2]);
     */
     if (hvp->makeMeasrVol && !hvp->measrVol) {
-      if (nrrdMaybeAlloc_va(hvp->measrVol = nrrdNew(), nrrdTypeFloat, 4,
-                            AIR_CAST(size_t, 3), AIR_CAST(size_t, sx),
-                            AIR_CAST(size_t, sy), AIR_CAST(size_t, sz))) {
+      if (nrrdMaybeAlloc_va(hvp->measrVol = nrrdNew(), nrrdTypeFloat, 4, AIR_SIZE_T(3),
+                            AIR_SIZE_T(sx), AIR_SIZE_T(sy), AIR_SIZE_T(sz))) {
         biffMovef(BANE, NRRD, "%s: couldn't allocate 3x%dx%dx%d VGH volume", me, sx, sy,
                   sz);
         return 1;
@@ -177,9 +176,8 @@ baneFindInclusion(double min[3], double max[3], Nrrd *nin, baneHVolParm *hvp,
   }
   if (inc[0]->process[1] || inc[1]->process[1] || inc[2]->process[1]) {
     if (hvp->makeMeasrVol && !hvp->measrVol) {
-      if (nrrdMaybeAlloc_va(hvp->measrVol = nrrdNew(), nrrdTypeFloat, 4,
-                            AIR_CAST(size_t, 3), AIR_CAST(size_t, sx),
-                            AIR_CAST(size_t, sy), AIR_CAST(size_t, sz))) {
+      if (nrrdMaybeAlloc_va(hvp->measrVol = nrrdNew(), nrrdTypeFloat, 4, AIR_SIZE_T(3),
+                            AIR_SIZE_T(sx), AIR_SIZE_T(sy), AIR_SIZE_T(sz))) {
         biffMovef(BANE, NRRD, "%s: couldn't allocate 3x%dx%dx%d VGH volume", me, sx, sy,
                   sz);
         return 1;
@@ -347,8 +345,8 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
   shx = hvp->axis[0].res;
   shy = hvp->axis[1].res;
   shz = hvp->axis[2].res;
-  if (nrrdMaybeAlloc_va(rawhvol = nrrdNew(), nrrdTypeInt, 3, AIR_CAST(size_t, shx),
-                        AIR_CAST(size_t, shy), AIR_CAST(size_t, shz))) {
+  if (nrrdMaybeAlloc_va(rawhvol = nrrdNew(), nrrdTypeInt, 3, AIR_SIZE_T(shx),
+                        AIR_SIZE_T(shy), AIR_SIZE_T(shz))) {
     biffMovef(BANE, NRRD, "%s: couldn't allocate raw histovol (%dx%dx%d)", me, shx, shy,
               shz);
     airMopError(mop);
@@ -407,8 +405,8 @@ baneMakeHVol(Nrrd *hvol, Nrrd *nin, baneHVolParm *hvp) {
     fprintf(stderr, "%s: creating 8-bit histogram volume ...       ", me);
     fflush(stderr);
   }
-  if (nrrdMaybeAlloc_va(hvol, nrrdTypeUChar, 3, AIR_CAST(size_t, shx),
-                        AIR_CAST(size_t, shy), AIR_CAST(size_t, shz))) {
+  if (nrrdMaybeAlloc_va(hvol, nrrdTypeUChar, 3, AIR_SIZE_T(shx), AIR_SIZE_T(shy),
+                        AIR_SIZE_T(shz))) {
     biffMovef(BANE, NRRD, "%s: couldn't alloc finished histovol", me);
     airMopError(mop);
     return 1;
@@ -500,9 +498,9 @@ baneApplyMeasr(Nrrd *nout, Nrrd *nin, int measr) {
   msr = baneMeasr[measr];
 
   if (nrrdMaybeAlloc_va(nout, nrrdTypeFloat, 3,
-                        AIR_CAST(size_t, sx),
-                        AIR_CAST(size_t, sy),
-                        AIR_CAST(size_t, sz))) {
+                        AIR_SIZE_T(sx),
+                        AIR_SIZE_T(sy),
+                        AIR_SIZE_T(sz))) {
     biffMovef(BANE, NRRD, "%s: couldn't alloc output nrrd", me);
     return 1;
   }
