@@ -295,12 +295,12 @@ _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
   color = (3 == nrrd->dim);
   if (!color) {
     magic = (nrrdEncodingAscii == nio->encoding ? 2 : 5);
-    sx = AIR_CAST(int, nrrd->axis[0].size);
-    sy = AIR_CAST(int, nrrd->axis[1].size);
+    sx = AIR_INT(nrrd->axis[0].size);
+    sy = AIR_INT(nrrd->axis[1].size);
   } else {
     magic = (nrrdEncodingAscii == nio->encoding ? 3 : 6);
-    sx = AIR_CAST(int, nrrd->axis[1].size);
-    sy = AIR_CAST(int, nrrd->axis[2].size);
+    sx = AIR_INT(nrrd->axis[1].size);
+    sy = AIR_INT(nrrd->axis[2].size);
   }
 
   fprintf(file, "P%d\n", magic);

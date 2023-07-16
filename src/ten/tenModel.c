@@ -275,7 +275,7 @@ tenModelSimulate(Nrrd *ndwi, int typeOut, tenExperSpec *espec, const tenModel *m
   /* allocate output (and set axmap) */
   for (ii = 0; ii < nparm->dim; ii++) {
     szOut[ii] = (!ii ? espec->imgNum : nparm->axis[ii].size);
-    axmap[ii] = (!ii ? -1 : AIR_CAST(int, ii));
+    axmap[ii] = (!ii ? -1 : AIR_INT(ii));
   }
   if (nrrdMaybeAlloc_nva(ndwi, typeOut, nparm->dim, szOut)) {
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);
@@ -460,9 +460,9 @@ tenModelSqeFit(Nrrd *nparm, Nrrd **nsqeP, Nrrd **nconvP, Nrrd **niterP,
   saveParmNum = saveB0 ? model->parmNum : model->parmNum - 1;
   for (ii = 0; ii < ndwi->dim; ii++) {
     szOut[ii] = (!ii ? saveParmNum : ndwi->axis[ii].size);
-    axmap[ii] = (!ii ? -1 : AIR_CAST(int, ii));
+    axmap[ii] = (!ii ? -1 : AIR_INT(ii));
     if (ii) {
-      erraxmap[ii - 1] = AIR_CAST(int, ii);
+      erraxmap[ii - 1] = AIR_INT(ii);
     }
   }
   if (nrrdMaybeAlloc_nva(nparm, typeOut, ndwi->dim, szOut)) {
@@ -730,7 +730,7 @@ tenModelConvert(Nrrd *nparmDst, int *convRetP, const tenModel *modelDst,
   parmNumSrc = AIR_UINT(nparmSrc->axis[0].size);
   for (ii = 0; ii < nparmSrc->dim; ii++) {
     szOut[ii] = (!ii ? parmNumDst : nparmSrc->axis[ii].size);
-    axmap[ii] = (!ii ? -1 : AIR_CAST(int, ii));
+    axmap[ii] = (!ii ? -1 : AIR_INT(ii));
   }
   if (nrrdMaybeAlloc_nva(nparmDst, nparmSrc->type, nparmSrc->dim, szOut)) {
     biffMovef(TEN, NRRD, "%s: couldn't allocate output", me);

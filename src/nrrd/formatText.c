@@ -97,7 +97,7 @@ _nrrdFormatText_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
   /* first, we get through comments */
   while (NRRD_COMMENT_CHAR == nio->line[0]) {
     nio->pos = 1;
-    nio->pos += AIR_CAST(int, strspn(nio->line + nio->pos, _nrrdFieldSep));
+    nio->pos += AIR_INT(strspn(nio->line + nio->pos, _nrrdFieldSep));
     fidx = _nrrdReadNrrdParseField(nio, AIR_FALSE);
     /* could we parse anything? */
     if (!fidx) {
@@ -319,7 +319,7 @@ static int
 _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
   char cmt[AIR_STRLEN_SMALL + 1], buff[AIR_STRLEN_SMALL + 1];
   size_t I, dsz;
-  int i, x, y, sx, sy;
+  int i, x, y, sx, sy; /* HEY unsigned? */
   const void *data;
   const char *cdata;
   float val;
@@ -355,10 +355,10 @@ _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
 
   if (1 == nrrd->dim) {
     sx = 1;
-    sy = AIR_CAST(int, nrrd->axis[0].size);
+    sy = AIR_INT(nrrd->axis[0].size);
   } else {
-    sx = AIR_CAST(int, nrrd->axis[0].size);
-    sy = AIR_CAST(int, nrrd->axis[1].size);
+    sx = AIR_INT(nrrd->axis[0].size);
+    sy = AIR_INT(nrrd->axis[1].size);
   }
   data = nrrd->data;
   cdata = (const char *)nrrd->data;

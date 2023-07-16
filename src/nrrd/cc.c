@@ -84,13 +84,13 @@ _nrrdCCFind_2(Nrrd *nout, unsigned int *numid, airArray *eqvArr, const Nrrd *nin
   sx = AIR_UINT(nin->axis[0].size);
   sy = AIR_UINT(nin->axis[1].size);
 #define GETV_2(x, y)                                                                    \
-  ((AIR_IN_CL(0, AIR_CAST(int, x), AIR_CAST(int, sx - 1))                               \
-    && AIR_IN_CL(0, AIR_CAST(int, y), AIR_CAST(int, sy - 1)))                           \
+  ((AIR_IN_CL(0, AIR_INT(x), AIR_INT(sx - 1))                                           \
+    && AIR_IN_CL(0, AIR_INT(y), AIR_INT(sy - 1)))                                       \
      ? lup(nin->data, (x) + sx * (y))                                                   \
      : 0.5) /* value that can't come from an array of uints */
 #define GETI_2(x, y)                                                                    \
-  ((AIR_IN_CL(0, AIR_CAST(int, x), AIR_CAST(int, sx - 1))                               \
-    && AIR_IN_CL(0, AIR_CAST(int, y), AIR_CAST(int, sy - 1)))                           \
+  ((AIR_IN_CL(0, AIR_INT(x), AIR_INT(sx - 1))                                           \
+    && AIR_IN_CL(0, AIR_INT(y), AIR_INT(sy - 1)))                                       \
      ? out[(x) + sx * (y)]                                                              \
      : AIR_UINT(-1)) /* CC index (probably!) never assigned */
 
@@ -178,15 +178,15 @@ _nrrdCCFind_3(Nrrd *nout, unsigned int *numid, airArray *eqvArr, const Nrrd *nin
   sy = AIR_UINT(nin->axis[1].size);
   sz = AIR_UINT(nin->axis[2].size);
 #define GETV_3(x, y, z)                                                                 \
-  ((AIR_IN_CL(0, AIR_CAST(int, x), AIR_CAST(int, sx - 1))                               \
-    && AIR_IN_CL(0, AIR_CAST(int, y), AIR_CAST(int, sy - 1))                            \
-    && AIR_IN_CL(0, AIR_CAST(int, z), AIR_CAST(int, sz - 1)))                           \
+  ((AIR_IN_CL(0, AIR_INT(x), AIR_INT(sx - 1))                                           \
+    && AIR_IN_CL(0, AIR_INT(y), AIR_INT(sy - 1))                                        \
+    && AIR_IN_CL(0, AIR_INT(z), AIR_INT(sz - 1)))                                       \
      ? lup(nin->data, (x) + sx * ((y) + sy * (z)))                                      \
      : 0.5)
 #define GETI_3(x, y, z)                                                                 \
-  ((AIR_IN_CL(0, AIR_CAST(int, x), AIR_CAST(int, sx - 1))                               \
-    && AIR_IN_CL(0, AIR_CAST(int, y), AIR_CAST(int, sy - 1))                            \
-    && AIR_IN_CL(0, AIR_CAST(int, z), AIR_CAST(int, sz - 1)))                           \
+  ((AIR_IN_CL(0, AIR_INT(x), AIR_INT(sx - 1))                                           \
+    && AIR_IN_CL(0, AIR_INT(y), AIR_INT(sy - 1))                                        \
+    && AIR_IN_CL(0, AIR_INT(z), AIR_INT(sz - 1)))                                       \
      ? out[(x) + sx * ((y) + sy * (z))]                                                 \
      : AIR_UINT(-1))
 
@@ -751,7 +751,7 @@ nrrdCCMerge(Nrrd *nout, const Nrrd *nin, Nrrd *_nval, int valDir, unsigned int m
     if (j == _i) {
       continue; /* we had no neighbors ?!?! */
     }
-    if (valDir && (AIR_CAST(int, val[bigi]) - AIR_CAST(int, val[i])) * valDir < 0) {
+    if (valDir && (AIR_INT(val[bigi]) - AIR_INT(val[i])) * valDir < 0) {
       continue;
     }
     /* else all criteria for merging have been met */

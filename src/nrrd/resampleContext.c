@@ -765,7 +765,7 @@ _nrrdResampleVectorFillUpdate(NrrdResampleContext *rsmc) {
       /* figure out what to do with the out-of-range indices */
       for (dotIdx = 0; dotIdx < dotLen * axis->samples; dotIdx++) {
         rawIdx = indexData[dotIdx];
-        if (!AIR_IN_CL(0, rawIdx, AIR_CAST(int, axis->sizeIn) - 1)) {
+        if (!AIR_IN_CL(0, rawIdx, AIR_INT(axis->sizeIn) - 1)) {
           switch (rsmc->boundary) {
           case nrrdBoundaryPad:
           case nrrdBoundaryWeight: /* this will be further handled later */
