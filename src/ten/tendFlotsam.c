@@ -68,13 +68,13 @@ fiberStopParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE + 1]) {
   }
   *opt = '\0';
   opt++;
-  info[0] = AIR_CAST(int, airEnumVal(tenFiberStop, str));
-  if (tenFiberStopUnknown == AIR_CAST(int, info[0])) {
+  info[0] = AIR_INT(airEnumVal(tenFiberStop, str));
+  if (tenFiberStopUnknown == AIR_INT(info[0])) {
     sprintf(err, "%s: didn't recognize \"%s\" as %s", me, str, tenFiberStop->name);
     airMopError(mop);
     return 1;
   }
-  switch (AIR_CAST(int, info[0])) {
+  switch (AIR_INT(info[0])) {
   case tenFiberStopAniso:
     /* <aniso>,<level> : tenAniso,double */
     opt2 = strchr(opt, ',');
@@ -85,8 +85,8 @@ fiberStopParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE + 1]) {
     }
     *opt2 = '\0';
     opt2++;
-    info[1] = AIR_CAST(int, airEnumVal(tenAniso, opt));
-    if (tenAnisoUnknown == AIR_CAST(int, info[1])) {
+    info[1] = AIR_INT(airEnumVal(tenAniso, opt));
+    if (tenAnisoUnknown == AIR_INT(info[1])) {
       sprintf(err, "%s: didn't recognize \"%s\" as %s", me, opt, tenAniso->name);
       airMopError(mop);
       return 1;
@@ -98,7 +98,7 @@ fiberStopParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE + 1]) {
     }
     /*
     fprintf(stderr, "!%s: parsed aniso:%s,%g\n", me,
-            airEnumStr(tenAniso, AIR_CAST(int, info[1])), info[2]);
+            airEnumStr(tenAniso, AIR_INT(info[1])), info[2]);
     */
     break;
   case tenFiberStopFraction:
@@ -109,13 +109,13 @@ fiberStopParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE + 1]) {
     /* all of these take a single double */
     if (1 != sscanf(opt, "%lg", info + 1)) {
       sprintf(err, "%s: couldn't parse %s \"%s\" as double", me,
-              airEnumStr(tenFiberStop, AIR_CAST(int, info[0])), opt);
+              airEnumStr(tenFiberStop, AIR_INT(info[0])), opt);
       airMopError(mop);
       return 1;
     }
     /*
     fprintf(stderr, "!%s: parse %s:%g\n", me,
-            airEnumStr(tenFiberStop, AIR_CAST(int, info[0])),
+            airEnumStr(tenFiberStop, AIR_INT(info[0])),
             info[1]);
     */
     break;
@@ -134,7 +134,7 @@ fiberStopParse(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE + 1]) {
     /* moron */
     break;
   default:
-    sprintf(err, "%s: stop method %d not supported", me, AIR_CAST(int, info[0]));
+    sprintf(err, "%s: stop method %d not supported", me, AIR_INT(info[0]));
     airMopError(mop);
     return 1;
     break;

@@ -53,9 +53,9 @@ tend_pointMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
-  sx = AIR_CAST(int, nin->axis[1].size); /* HEY: unsigned? */
-  sy = AIR_CAST(int, nin->axis[2].size);
-  sz = AIR_CAST(int, nin->axis[3].size);
+  sx = AIR_INT(nin->axis[1].size); /* HEY: unsigned? */
+  sy = AIR_INT(nin->axis[2].size);
+  sz = AIR_INT(nin->axis[3].size);
   if (!(AIR_IN_CL(0, loc[0], sx - 1) && AIR_IN_CL(0, loc[1], sy - 1)
         && AIR_IN_CL(0, loc[2], sz - 1))) {
     fprintf(stderr,

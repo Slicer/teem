@@ -100,7 +100,7 @@ opt_kind(unsigned int min, int _max) {
   int max;
 
   max = _hestMax(_max);
-  if (!(AIR_CAST(int, min) <= max)) {
+  if (!(AIR_INT(min) <= max)) {
     /* invalid */
     return -1;
   }
@@ -115,7 +115,7 @@ opt_kind(unsigned int min, int _max) {
     return 2;
   }
 
-  if (2 <= min && 2 <= max && AIR_CAST(int, min) == max) {
+  if (2 <= min && 2 <= max && AIR_INT(min) == max) {
     /* multiple fixed parameters */
     return 3;
   }

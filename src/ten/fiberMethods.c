@@ -777,7 +777,7 @@ tenFiberParmSet(tenFiberContext *tfx, int parm, double val) {
       tfx->wPunct = val;
       break;
     case tenFiberParmVerbose:
-      tfx->verbose = AIR_CAST(int, val);
+      tfx->verbose = AIR_INT(val);
       break;
     default:
       fprintf(stderr, "%s: WARNING!!! tenFiberParm %d not handled\n", me, parm);

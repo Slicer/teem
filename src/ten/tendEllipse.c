@@ -73,9 +73,8 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn, float min[2],
   fprintf(file, "%%%%Creator: tend ellipse\n");
   fprintf(file, "%%%%Title: blah blah blah\n");
   fprintf(file, "%%%%Pages: 1\n");
-  fprintf(file, "%%%%BoundingBox: %d %d %d %d\n", AIR_CAST(int, floor(minX)),
-          AIR_CAST(int, floor(minY)), AIR_CAST(int, ceil(maxX)),
-          AIR_CAST(int, ceil(maxY)));
+  fprintf(file, "%%%%BoundingBox: %d %d %d %d\n", AIR_INT(floor(minX)),
+          AIR_INT(floor(minY)), AIR_INT(ceil(maxX)), AIR_INT(ceil(maxY)));
   fprintf(file, "%%%%HiResBoundingBox: %g %g %g %g\n", minX, minY, maxX, maxY);
   fprintf(file, "%%%%EndComments\n");
   fprintf(file, "%%%%BeginProlog\n");
@@ -103,8 +102,8 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn, float min[2],
       py = AIR_AFFINE(min[1], pdata[1], max[1], maxY, minY);
       pdata += 2;
     } else {
-      x = AIR_CAST(int, ti % sx); /* HEY unsigned? */
-      y = AIR_CAST(int, ti / sx);
+      x = AIR_INT(ti % sx); /* HEY unsigned? */
+      y = AIR_INT(ti / sx);
       px = NRRD_CELL_POS(minX, maxX, sx, x);
       py = NRRD_CELL_POS(minY, maxY, sy, sy - 1 - y);
     }
@@ -147,8 +146,8 @@ tend_ellipseDoit(FILE *file, Nrrd *nten, Nrrd *npos, Nrrd *nstn, float min[2],
         py = AIR_AFFINE(min[1], pdata[1], max[1], maxY, minY);
         pdata += 2;
       } else {
-        x = AIR_CAST(int, ti % sx); /* HEY unsigned? */
-        y = AIR_CAST(int, ti / sx);
+        x = AIR_INT(ti % sx); /* HEY unsigned? */
+        y = AIR_INT(ti / sx);
         px = NRRD_CELL_POS(minX, maxX, sx, x);
         py = NRRD_CELL_POS(minY, maxY, sy, sy - 1 - y);
       }

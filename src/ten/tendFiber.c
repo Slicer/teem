@@ -152,10 +152,10 @@ tend_fiberMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   E = 0;
   for (si = 0, stop = _stop; si < stopLen; si++, stop += 3) {
     int istop; /* not from Apple */
-    istop = AIR_CAST(int, stop[0]);
+    istop = AIR_INT(stop[0]);
     switch (istop) {
     case tenFiberStopAniso:
-      if (!E) E |= tenFiberStopSet(tfx, istop, AIR_CAST(int, stop[1]), stop[2]);
+      if (!E) E |= tenFiberStopSet(tfx, istop, AIR_INT(stop[1]), stop[2]);
       break;
     case tenFiberStopNumSteps:
     case tenFiberStopMinNumSteps:

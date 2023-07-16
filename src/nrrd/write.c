@@ -168,11 +168,11 @@ nrrdIoStateGet(NrrdIoState *nio, int parm) {
     break;
   case nrrdIoStateCharsPerLine:
     /* HEY: this cast is a bad because nio->charsPerLine is unsigned */
-    value = AIR_CAST(int, nio->charsPerLine);
+    value = AIR_INT(nio->charsPerLine);
     break;
   case nrrdIoStateValsPerLine:
     /* HEY: this cast is a bad because nio->valsPerLine is unsigned */
-    value = AIR_CAST(int, nio->valsPerLine);
+    value = AIR_INT(nio->valsPerLine);
     break;
   case nrrdIoStateSkipData:
     value = !!nio->skipData;

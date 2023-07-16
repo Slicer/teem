@@ -944,7 +944,7 @@ _tenEpiRegSliceWarp(Nrrd *nout, Nrrd *nin, Nrrd *nwght, Nrrd *nidx,
       pf = pp - pb;
       for (pi = 0; pi < 2 * supp; pi++) {
         /* HEY GLK confused about signed-ness of this */
-        idx[pi] = AIR_CAST(int, AIR_MIN(pb + pi - (supp - 1), sy - 1));
+        idx[pi] = AIR_INT(AIR_MIN(pb + pi - (supp - 1), sy - 1));
         wght[pi] = pi - (supp - 1) - pf;
       }
       idx += 2 * supp;
