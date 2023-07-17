@@ -38,10 +38,10 @@ dyeSpaceToStr[DYE_MAX_SPACE+1] = {
   "LCH"
 };
 
-/* NB: the creation of dye in 2001 predates the creation of the airEnum in 2002,
-   and when this airEnum was added in 2015, bewildered why it wasn't there already,
-   GLK forgot that chronology, but that chronology explains why this airEnum isn't
-   used more widely within dye. */
+/* NB: the creation of dye in 2001 predates the creation of the airEnum in 2002.
+GLK forgot that chronology when the dyeSpace airEnum was added belatedly in 2015,
+and was bewildered why it wasn't there already. That chronology explains why this
+airEnum isn't used more widely within dye. */
 
 static const char *
 _dyeSpaceDesc[DYE_MAX_SPACE+1] = {
