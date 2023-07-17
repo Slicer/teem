@@ -186,12 +186,12 @@ nrrd:
 * for nrrdCropAuto: consider adding some minimum remaining size requirement,
   in addition to offset
 * why is _nrrdCheck (different than nrrdCheck) public?  Should be renamed?
-* now that we the new NrrdBoundarySpec, it should be used, and used
+******* now that we the new NrrdBoundarySpec, it should be used, and used
   consistently, throughout Teem; for example remove
   nrrdResampleBoundarySet and nrrdResamplePadValueSet and instead use new
   nrrdResampleBoundarySpecSet, and consider using NrrdBoundarySpec
   inside of NrrdResampleContext
-* The guts of "unu make" have to be made into a function call.  Its crazy
+******* The guts of "unu make" have to be made into a function call.  Its crazy
 to have all those smarts not more generally available.
 * Totally insane that nrrdKeyValueGet can return a char* into the Nrrd*,
 depending on the value of nrrdStateKeyValueReturnInternalPointers. Really?
@@ -204,7 +204,7 @@ goes wrong it is REALLY mysterious, and hard to debug.  For example:
 current working directory, it will exist as a file, and hence be opened by
 unu as if it was a nrrd, but doing an fread on it will immediately hit EOF
 --> quiet quit, and very confusing.
-* unu dice -ff should change from using %d to %u
+******* unu dice -ff should change from using %d to %u (or at least also support %u)
 * in unrrdu/make.c, reconsider the nrrdStateVerboseIO++ before, and the
 nrrdStateVerboseIO-- after, the calls to nrrdFormatNRRD->read.  You can
 set environment variable NRRD_STATE_VERBOSE_IO to 0 thinking this will turn
