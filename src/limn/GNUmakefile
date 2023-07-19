@@ -44,7 +44,7 @@ $(L).SEEN := true
 #### Describe library here
 ####
 ####
-$(L).NEED = gage ell unrrdu nrrd biff hest air
+$(L).NEED = ell unrrdu nrrd biff hest air
 $(L).PUBLIC_HEADERS = limn.h
 $(L).PRIVATE_HEADERS = privateLimn.h
 $(L).OBJS = defaultsLimn.o qn.o light.o envmap.o cam.o methodsLimn.o \
