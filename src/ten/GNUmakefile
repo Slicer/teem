@@ -44,7 +44,7 @@ $(L).SEEN := true
 #### Describe library here
 ####
 #### tendCalc.o nixed
-$(L).NEED = echo limn gage dye unrrdu ell nrrd biff air
+$(L).NEED = echo limn gage unrrdu ell nrrd biff air
 $(L).PUBLIC_HEADERS = ten.h tenMacros.h
 $(L).PRIVATE_HEADERS = privateTen.h
 $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o grads.o miscTen.o \

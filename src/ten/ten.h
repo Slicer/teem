@@ -29,7 +29,6 @@
 #include <teem/ell.h>
 #include <teem/nrrd.h>
 #include <teem/unrrdu.h>
-#include <teem/dye.h>
 #include <teem/gage.h>
 #include <teem/limn.h>
 #include <teem/echo.h>
