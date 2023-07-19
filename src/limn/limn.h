@@ -31,7 +31,6 @@
 #include <teem/hest.h>
 #include <teem/ell.h>
 #include <teem/nrrd.h>
-#include <teem/gage.h>
 #include <teem/unrrdu.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
