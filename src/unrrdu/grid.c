@@ -173,7 +173,7 @@ unrrdu_gridMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
   if (!strcmp("-", inS) && isatty(STDIN_FILENO)) {
-    fprintf(stderr, "%s: declining to try reading Nrrd from stdin as tty (terminal)\n/",
+    fprintf(stderr, "%s: declining to try reading Nrrd from stdin as tty (terminal)\n",
             me);
     hestUsage(stderr, opt, me, hparm);
     fprintf(stderr, "\nFor more info: \"%s --help\"\n", me);
