@@ -155,9 +155,9 @@ typedef struct {
                                             vertex strength seen (from probing slabs) */
   double time;                           /* time for extraction */
   double gradMagAvg; /* in case per-vertex gradients were computed (such as:
-                        isocontouring without a gageContext), then the average gradient
-                        magnitude over all the verts (useful for some computations
-                        involving signed distance functions) */
+                        isocontouring without a gageContext but with normalsFind on),
+                        then the average gradient magnitude over all the verts (useful
+                        for some computations involving signed distance functions) */
 } seekContext;
 /* enumsSeek.c */
 extern const char *const seekBiffKey;
