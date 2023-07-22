@@ -836,7 +836,8 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
               ELL_3V_LERP(grad, ww, vgrad[vi0], vgrad[vi1]);
               ELL_3MV_MUL(tvec, sctx->txfNormal, grad);
               ELL_3V_NORM_TT(lpld->norm + 3 * ovi, float, tvec, tlen);
-              sctx->gradMagAvg += tlen;
+              /* need to /2 because vgrad were found by central differences */
+              sctx->gradMagAvg += tlen / 2;
             }
           }
           sctx->vertNum++;
