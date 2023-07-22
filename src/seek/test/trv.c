@@ -24,15 +24,17 @@
 char *info = ("test crease surface extraction.");
 
 int
-probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE + 1]) {
+probeParseKind(void *ptr, const char *_str, char err[AIR_STRLEN_HUGE + 1]) {
   char me[] = "probeParseKind";
   gageKind **kindP;
+  char *str;
 
-  if (!(ptr && str)) {
+  if (!(ptr && _str)) {
     sprintf(err, "%s: got NULL pointer", me);
     return 1;
   }
   kindP = (gageKind **)ptr;
+  str = airStrdup(_str);
   airToLower(str);
   if (!strcmp(gageKindScl->name, str)) {
     *kindP = gageKindScl;
@@ -40,9 +42,10 @@ probeParseKind(void *ptr, char *str, char err[AIR_STRLEN_HUGE + 1]) {
     *kindP = gageKindVec;
   } else {
     sprintf(err, "%s: not \"%s\" or \"%s\"", me, gageKindScl->name, gageKindVec->name);
+    free(str);
     return 1;
   }
-
+  free(str);
   return 0;
 }
 
@@ -52,6 +55,7 @@ probeParseKindDestroy(void *ptr) {
 
   if (ptr) {
     kind = AIR_CAST(gageKind *, ptr);
+    AIR_UNUSED(kind);
   }
   return NULL;
 }
