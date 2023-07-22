@@ -447,7 +447,7 @@ _BIFF_DICT = {  # contents here are filled in by teem/python/cffi/exult.py Tffi.
     'echoRTRender': (_equals_one, 0, b'echo', 'echo/renderEcho.c:409'),
     'hooverContextCheck': (_equals_one, 0, b'hoover', 'hoover/methodsHoover.c:53'),
     'hooverRender': ((lambda rv: _teem.lib.hooverErrInit == rv), 0, b'hoover', 'hoover/rays.c:359'),
-    'seekExtract': (_equals_one, 0, b'seek', 'seek/extract.c:935'),
+    'seekExtract': (_equals_one, 0, b'seek', 'seek/extract.c:936'),
     'seekDataSet': (_equals_one, 0, b'seek', 'seek/setSeek.c:56'),
     'seekSamplesSet': (_equals_one, 0, b'seek', 'seek/setSeek.c:116'),
     'seekTypeSet': (_equals_one, 0, b'seek', 'seek/setSeek.c:149'),
