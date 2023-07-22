@@ -122,6 +122,7 @@ seekContextNew(void) {
     sctx->faceNum = 0;
     sctx->strengthSeenMax = AIR_NAN;
     sctx->time = AIR_NAN;
+    sctx->gradMagAvg = AIR_NAN;
   }
   return sctx;
 }

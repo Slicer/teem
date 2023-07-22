@@ -184,6 +184,10 @@ typedef struct {
   double strengthSeenMax;                /* in case strength was used, the maximum
                                             vertex strength seen (from probing slabs) */
   double time;                           /* time for extraction */
+  double gradMagAvg; /* in case per-vertex gradients were computed (such as:
+                        isocontouring without a gageContext), then the average gradient
+                        magnitude over all the verts (useful for some computations
+                        involving signed distance functions) */
 } seekContext;
 
 /* enumsSeek.c */
