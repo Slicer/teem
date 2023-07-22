@@ -1,6 +1,7 @@
 /*
   Teem: Tools to process and visualize scientific data and images
   Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2009, 2011  Thomas Schultz
   Copyright (C) 2005--2008  Gordon Kindlmann
   Copyright (C) 1998--2004  University of Utah
 
@@ -825,6 +826,9 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
             if (sctx->normAns) {
               gageProbe(sctx->gctx, tvertB[0], tvertB[1], tvertB[2]);
               ELL_3V_SCALE_TT(lpld->norm + 3 * ovi, float, -1, sctx->normAns);
+              /* alas we can't increment sctx->gradMagAvg here because we only have the
+               * already-normalized normal, and updateSeek.c/updateAnswerPointers()
+               * actually prevents us from setting a gradAns if we wanted to */
               if (sctx->reverse) {
                 ELL_3V_SCALE(lpld->norm + 3 * ovi, -1, lpld->norm + 3 * ovi);
               }
@@ -832,6 +836,7 @@ triangulate(seekContext *sctx, baggage *bag, limnPolyData *lpld) {
               ELL_3V_LERP(grad, ww, vgrad[vi0], vgrad[vi1]);
               ELL_3MV_MUL(tvec, sctx->txfNormal, grad);
               ELL_3V_NORM_TT(lpld->norm + 3 * ovi, float, tvec, tlen);
+              sctx->gradMagAvg += tlen;
             }
           }
           sctx->vertNum++;
@@ -889,6 +894,9 @@ surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
     return 1;
   }
 
+  sctx->gradMagAvg = 0; /* initalize per-vert accumulator, even though it will be
+                           incremented in a narrow range of circumstances (such as:
+                           isocontours without a gageContext) */
   if (sctx->verbose > 2) {
     fprintf(stderr, "%s: extracting ...       ", me);
   }
@@ -912,6 +920,9 @@ surfaceExtract(seekContext *sctx, limnPolyData *lpld) {
   }
   if (sctx->verbose > 2) {
     fprintf(stderr, "%s\n", airDoneStr(0, zi, sz - 2, done));
+  }
+  if (sctx->vertNum) {
+    sctx->gradMagAvg /= sctx->vertNum;
   }
 
   /* this cleans up the airArrays in bag */
