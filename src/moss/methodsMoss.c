@@ -36,6 +36,7 @@ mossSamplerNew(void) {
   smplr = AIR_CALLOC(1, mossSampler);
   if (smplr) {
     smplr->verbose = 0;
+    smplr->verbPixel[0] = smplr->verbPixel[1] = -1;
     smplr->image = NULL;
     smplr->boundary = nrrdBoundaryUnknown;
     smplr->kspec = nrrdKernelSpecNew();
