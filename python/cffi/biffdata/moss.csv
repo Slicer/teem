@@ -1,6 +1,6 @@
 func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
-mossImageCheck,int,1,0,moss,moss/methodsMoss.c:73
-mossImageAlloc,int,1,0,moss,moss/methodsMoss.c:94
+mossImageCheck,int,1,0,moss,moss/methodsMoss.c:74
+mossImageAlloc,int,1,0,moss,moss/methodsMoss.c:95
 mossSamplerImageSet,int,1,0,moss,moss/sampler.c:26
 mossSamplerKernelSet,int,1,0,moss,moss/sampler.c:78
 mossSamplerUpdate,int,1,0,moss,moss/sampler.c:100
