@@ -763,7 +763,7 @@ class Tffi:
             path_bdata = self.path_biffdata + f'/{lib}.csv'
             if not os.path.isfile(path_bdata):
                 if self.verb:
-                    print(f'Tffi.wrap: library {lib} has no biffdata.csv file, moving on')
+                    print(f'Tffi.wrap: library {lib} has no biffdata .csv file, moving on')
                 continue
             if self.verb:
                 print(f'Tffi.wrap: reading {path_bdata} ...')
