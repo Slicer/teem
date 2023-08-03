@@ -736,7 +736,7 @@ class Tffi:
             ret = '_equals_one'   # this is defined in lliibb.py
         elif errval_t.endswith('*') and 'NULL' == errval:
             ret = '_equals_null'   # this is defined in lliibb.py
-        elif 'AIR_NAN' == errval:
+        elif 'AIR_NAN' == errval or 'nan' == errval.lower():
             ret = '_math.isnan'
         else:
             evlist = errval.split('|')   # list (likely length-1) of error-indicating return values
