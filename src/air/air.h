@@ -440,6 +440,23 @@ AIR_EXPORT void airSrandMT(unsigned int seed);
 AIR_EXPORT double airDrandMT(void);
 AIR_EXPORT int airRandMTSanity(void);
 
+/* "Jenkins Small Fast" (psuedo)random number generator */
+typedef struct {
+  unsigned int a, b, c, d;
+} airJSFRand;
+/* randJSF.c */
+AIR_EXPORT airJSFRand *airJSFRandNew(unsigned int seed);
+AIR_EXPORT airJSFRand *airJSFRandNix(airJSFRand *jsf);
+AIR_EXPORT void airJSFRandSeed(airJSFRand *jsf, unsigned int seed);
+AIR_EXPORT unsigned int airJSFRandVal(airJSFRand *jsf);
+AIR_EXPORT unsigned int airJSFRandValMod(airJSFRand *jsf, unsigned int N);
+AIR_EXPORT float airJSFRandUni_f(airJSFRand *jsf);   /* [0,1) */
+AIR_EXPORT double airJSFRandUni_d(airJSFRand *jsf);  /* [0,1) */
+AIR_EXPORT float airJSFRandBiUni_f(airJSFRand *jsf); /* (-1,1) */
+AIR_EXPORT float airJSFRandNormal_f(airJSFRand *jsf);
+AIR_EXPORT void airJSFRandNormal2_f(airJSFRand *jsf, float val[2]);
+AIR_EXPORT int airJSFRandSanity(void);
+
 /* ---- END non-NrrdIO */
 
 /*

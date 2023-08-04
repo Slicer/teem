@@ -14,6 +14,7 @@ set(AIR_SOURCES
   parseAir.c
   privateAir.h
   randMT.c
+  randJSF.c
   sane.c
   string.c
   threadAir.c
