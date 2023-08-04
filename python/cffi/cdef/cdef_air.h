@@ -372,6 +372,22 @@ extern unsigned int airRandInt_r(airRandMTState *state, unsigned int N);
 extern void airSrandMT(unsigned int seed);
 extern double airDrandMT(void);
 extern int airRandMTSanity(void);
+/* "Jenkins Small Fast" (psuedo)random number generator */
+typedef struct {
+  unsigned int a, b, c, d;
+} airJSFRand;
+/* randJSF.c */
+extern airJSFRand *airJSFRandNew(unsigned int seed);
+extern airJSFRand *airJSFRandNix(airJSFRand *jsf);
+extern void airJSFRandSeed(airJSFRand *jsf, unsigned int seed);
+extern unsigned int airJSFRandVal(airJSFRand *jsf);
+extern unsigned int airJSFRandValMod(airJSFRand *jsf, unsigned int N);
+extern float airJSFRandUni_f(airJSFRand *jsf);   /* [0,1) */
+extern double airJSFRandUni_d(airJSFRand *jsf);  /* [0,1) */
+extern float airJSFRandBiUni_f(airJSFRand *jsf); /* (-1,1) */
+extern float airJSFRandNormal_f(airJSFRand *jsf);
+extern void airJSFRandNormal2_f(airJSFRand *jsf, float val[2]);
+extern int airJSFRandSanity(void);
 /* ---- END non-NrrdIO */
 /*
 ******** airType
