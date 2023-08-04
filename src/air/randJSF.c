@@ -188,69 +188,37 @@ uint32_clz(unsigned int nn) {
 #endif
 }
 
-#if 0
-static unsigned int
-uint64_clz(airULLong nn) {
-#  if 0
-  /* HEY should figure out a configure-time test for having __builtin_clz */
-  return __builtin_clzll(nn);
-#  else
-  unsigned int ret = 0;
-  if (!(nn & 0xFFFFFFFF00000000)) {
-    ret += 32;
-    nn <<= 32;
-  }
-  if (!(nn & 0xFFFF000000000000)) {
-    ret += 16;
-    nn <<= 16;
-  }
-  if (!(nn & 0xFF00000000000000)) {
-    ret += 8;
-    nn <<= 8;
-  }
-  if (!(nn & 0xF000000000000000)) {
-    ret += 4;
-    nn <<= 4;
-  }
-  if (!(nn & 0xC000000000000000)) {
-    ret += 2;
-    nn <<= 2;
-  }
-  if (!(nn & 0x8000000000000000)) {
-    ret += 1;
-  }
-  return ret;
-#  endif
-}
-#endif
-
 float
 airJSFRandUni_f(airJSFRand *rng) {
-  unsigned int expo = 126; /* one less than bias => values in [0.5,1) */
-  unsigned int nz;         /* number of leading zeros seen */
-  unsigned int rnd;
+  unsigned int expo = 126, /* one less than bias => values in [0.5,1) */
+    nz,                    /* number of leading zeros seen */
+    val;
   airFloat ret;
 
-  rnd = airJSFRandVal(rng);
-  while (!rnd && expo > 32) {
+  val = airJSFRandVal(rng);
+  while (!val && expo > 32) {
     /* got 32 bits of zeros (!) and can decrement expo by 32; try again */
     expo -= 32;
-    rnd = airJSFRandVal(rng);
+    val = airJSFRandVal(rng);
   }
-  /* possible (though unlikely) to leave loop with expo <= 32 and rnd == 0,
-     and builtin clz(0) is undefined, so need extra "rnd ?" check here */
-  nz = rnd ? uint32_clz(rnd) : 32;
+  /* possible (though super unlikely) to leave loop with expo <= 32 and val == 0,
+  but builtin clz(0) is undefined, so need extra "val ?" check here */
+  nz = val ? uint32_clz(val) : 32;
   /* either we saw a 1 before expo hits zero, or not, in which case
      we're into the denormals (expo == 0), which is fine */
   expo = nz > expo ? 0 : expo - nz;
-  /* # zero bits has determined expo; now determine frac */
+  /* # zero bits has determined expo; now determine fraction.
+  (binary) rng is 1 followed by R = 32 - 1 - nz random bits.
+  We need 23 bits for the fraction, but can't use the (non-random) 1
+  that ended the zero bit counting loop above.
+  Requiring 23 <= R  ==>  23 <= 32 - 1 - nz  ==>  nz <= 8.
+  So if nz > 8, we need to get more random bits */
   if (nz > 8) {
-    /* there are less then 32 - 1 - 8 = 23 random bits remaining (the
-       first 1 after the leading 0s does not get to be in fraction)
-       so need to get more random bits for fraction */
-    rnd = airJSFRandVal(rng);
+    val = airJSFRandVal(rng);
   }
-  ret.i = (expo << 23) | (rnd & 0x7fffff);
+  ret.i = ((expo << 23)       /* move expo up past frac */
+           | (val & 0x7fffff) /* lo 23 bits of val */
+  );
   return ret.f;
 }
 
@@ -258,73 +226,83 @@ float
 airJSFRandBiUni_f(airJSFRand *rng) {
   /* HEY copy-pasta (minus comments) from above,
   but now we use more bit of randomness to set the sign */
-  unsigned int expo = 126;
-  unsigned int nz;
-  unsigned int rnd;
+  unsigned int expo = 126, nz, val;
   airFloat ret;
 
-  rnd = airJSFRandVal(rng);
-  while (!rnd && expo > 32) {
+  val = airJSFRandVal(rng);
+  while (!val && expo > 32) {
     expo -= 32;
-    rnd = airJSFRandVal(rng);
+    val = airJSFRandVal(rng);
   }
-  nz = rnd ? uint32_clz(rnd) : 32;
+  nz = val ? uint32_clz(val) : 32;
   expo = nz > expo ? 0 : expo - nz;
-  if (nz > 7) { /* vs 8 above */
-    rnd = airJSFRandVal(rng);
+  if (nz > 7) { /* vs 8 above; need 24 bits of randomness */
+    val = airJSFRandVal(rng);
   }
-  ret.i = ((rnd & 0x800000) << 8) | (expo << 23) | (rnd & 0x7fffff);
+  ret.i = (((val & 0x800000) << 8) /* 24th bit of val, move up 8 to 32nd bit */
+           | (expo << 23)          /* move expo up past frac */
+           | (val & 0x7fffff)      /* low 23 bits of val */
+  );
   return ret.f;
 }
 
-#if 0
-/* for accessing bits of a IEEE754 double
- 1-bit sign, 11-bit expo with bias=1023, 52-bit frac
- 6666555555555544444444443333333333222222222211111111110000000000
- 3210987654321098765432109876543210987654321098765432109876543210
- seeeeeeeeeeeffffffffffffffffffffffffffffffffffffffffffffffffffff
-*/
-typedef union {
-  uint64_t ii;
-  double dd;
-} empcg_double;
-
 double
-empcg64_urand(empcg64_state_t *rng) {
-  unsigned int expo = 1022u; /* one less than bias */
-  uint64_t rnd = empcg64_random(rng);
-  while (!rnd && expo > 64u) {
-    expo -= 64u;
-    rnd = empcg64_random(rng);
+airJSFRandUni_d(airJSFRand *rng) {
+  /* HEY more mostly uncommented copy-pasta from airJSFRandUni_f above */
+  unsigned int expo = 1022 /* one less than bias */, nz, val, rlo;
+  airDouble ret;
+
+  val = airJSFRandVal(rng);
+  while (!val && expo > 32) {
+    expo -= 32;
+    val = airJSFRandVal(rng);
   }
-  unsigned int nz = rnd ? empcg64_clz(rnd) : 64u;
+  nz = val ? uint32_clz(val) : 32;
   expo = nz > expo ? 0 : expo - nz;
-  if (nz > 11u) {
-    /* there are less then 64 - 1 - 11 = 52 random bits remaining */
-    rnd = empcg64_random(rng);
+  /* # zero bits has determined expo; now determine fraction.
+  (binary) rng is 1 followed by R = 32 - 1 - nz random bits.
+  We need *52* bits for the fraction, but can't use the (non-random) 1
+  that ended the zero bit counting loop above.
+  First get 32 more bits into rlo */
+  rlo = airJSFRandVal(rng);
+  /* We now need 52 - 32 = 20 bits more.
+  Requiring 20 <= R  ==>  20 <= 32 - 1 - nz  ==>  nz <= 11.
+  So if nz > 11, we need to get more random bits */
+  if (nz > 11) {
+    val = airJSFRandVal(rng);
   }
-  empcg_double ret = {.ii = (((uint64_t)expo) << 52) | (rnd & 0xfffffffffffff)};
-  return ret.dd;
+  ret.i = (((airULLong)expo) << 52              /* move expo up past frac */
+           | ((airULLong)(val & 0xfffff)) << 32 /* lo 20 bits of rng, moved up 32 */
+           | rlo                                /* lo 32 bits */
+  );
+  return ret.d;
 }
 
 double
-empcg64_sgn_urand(empcg64_state_t *rng) {
-  unsigned int expo = 1022;
-  uint64_t rnd = empcg64_random(rng);
-  while (!rnd && expo > 64u) {
-    expo -= 64u;
-    rnd = empcg64_random(rng);
+airJSFRandBiUni_d(airJSFRand *rng) {
+  /* HEY yet more uncommented copy-pasta */
+  unsigned int expo = 1022, nz, val, rlo;
+  airDouble ret;
+
+  val = airJSFRandVal(rng);
+  while (!val && expo > 32) {
+    expo -= 32;
+    val = airJSFRandVal(rng);
   }
-  unsigned int nz = rnd ? empcg64_clz(rnd) : 64u;
+  nz = val ? uint32_clz(val) : 32;
   expo = nz > expo ? 0 : expo - nz;
-  if (nz > 10u) {
-    rnd = empcg64_random(rng);
+  rlo = airJSFRandVal(rng);
+  if (nz > 10) { /* vs 11 above; need 21 bits of randomness */
+    val = airJSFRandVal(rng);
   }
-  empcg_double ret = {.ii = ((rnd & 0x10000000000000) << 11) | (((uint64_t)expo) << 52)
-                          | (rnd & 0xfffffffffffff)};
-  return ret.dd;
+  /* sign is 21st bit of rng, moved up 11 to 32nd, and then up 32 to 64rth */
+  ret.i = (((airULLong)((val & 0x100000) << 11)) << 32
+           | ((airULLong)expo) << 52            /* move expo up past frac */
+           | ((airULLong)(val & 0xfffff)) << 32 /* lo 20 bits of rng, moved up 32 */
+           | rlo                                /* lo 32 bits */
+  );
+  return ret.d;
 }
-#endif
 
 /* Polar Box–Muller
 https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform#Polar_form
@@ -357,30 +335,30 @@ airJSFRandNormal_f(airJSFRand *rng) {
   return rr * (xx + yy) * 0.7071067811865475244f;
 }
 
-#if 0
-double
-empcg64_nrand(empcg64_state_t *rng) {
-  double xx, yy, rr;
-  do {
-    xx = empcg64_sgn_urand(rng);
-    yy = empcg64_sgn_urand(rng);
-    rr = xx * xx + yy * yy;
-  } while (!rr || rr >= 1);
-  rr = sqrt((-2 * log(rr)) / rr);
-  return rr * (xx + yy) * 0.7071067811865475244008;
-}
-
+/* HEY more copy-pasta! */
 void
-empcg64_nrand2(empcg64_state_t *rng, double *vv) {
+airJSFRandNormal2_d(airJSFRand *rng, double val[2]) {
   double xx, yy, rr;
   do {
-    xx = empcg64_sgn_urand(rng);
-    yy = empcg64_sgn_urand(rng);
+    xx = airJSFRandBiUni_d(rng);
+    yy = airJSFRandBiUni_d(rng);
     rr = xx * xx + yy * yy;
   } while (!rr || rr >= 1);
   rr = sqrt((-2 * log(rr)) / rr);
-  vv[0] = xx * rr;
-  vv[1] = yy * rr;
+  val[0] = xx * rr;
+  val[1] = yy * rr;
   return;
 }
-#endif
+
+double
+airJSFRandNormal_d(airJSFRand *rng) {
+  double xx, yy, rr;
+  do {
+    xx = airJSFRandBiUni_d(rng);
+    yy = airJSFRandBiUni_d(rng);
+    rr = xx * xx + yy * yy;
+  } while (!rr || rr >= 1);
+  rr = sqrt((-2 * log(rr)) / rr);
+  /* sum of two normals has variance 2 or stdv sqrt(2) */
+  return rr * (xx + yy) * 0.7071067811865475244;
+}
