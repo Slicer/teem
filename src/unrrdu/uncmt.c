@@ -25,8 +25,9 @@
 #define INFO "Change comment contents in a C99 input file"
 static const char *_unrrdu_uncmtInfoL
   = (INFO
-     "; the comment delimeters are preserved by default, but comments can also be "
-     "entirely excised. This command can also change contents of string literals in a "
+     ". By default comments are wholly excised, but it is also possible to preserve "
+     "comment delimiters while over-writing comment contents. "
+     "This command can also change contents of string literals in a "
      "very particular way. This is all motivated by a class GLK teaches, wherein "
      "students are not to use types \"float\" or \"double\" directly (but rather a "
      "class-specific \"real\" typedef). Grepping for \"float\" and \"double\" gives "
@@ -346,14 +347,17 @@ unrrdu_uncmtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char *cmtSubst, *nameIn, *nameOut;
   int nfds, nosub;
 
+  hparm->elideSingleEmptyStringDefault = AIR_FALSE;
   hestOptAdd_1_String(
     &opt, "cs", "cmtsub", &cmtSubst, "",
+    /* the \t character is turned by hest into non-breaking space */
     "Given a non-empty string, those characters are looped through to replace the "
     "non-white space characters is contents; EXCEPT if a length-2 string of a "
-    "repeating character is given, (e.g. \"-cs xx\") in which case the string contents "
-    "are preserved (contrary to the intended purpose of this command). To both "
-    "transform the comment contents into whitespace and to wholly remove the comment "
-    "delimiters, pass an empty string here (the default).");
+    "repeating character is given, (e.g. \"-cs\txx\") in which case the string contents "
+    "are preserved (contrary to the intended purpose of this command). To preserve "
+    "comment delimiters but turn comments entirely into whitespace, use "
+    "-cs\t\"\t\". To remove the comment delimiters and turn comment contents into "
+    "whitespace (the default), pass an empty string here.");
   hestOptAdd_Flag(
     &opt, "nfds", &nfds,
     "prevent \"float\" or \"double\" from appearing in string literals. String "
