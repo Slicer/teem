@@ -451,10 +451,13 @@ AIR_EXPORT void airJSFRandSeed(airJSFRand *jsf, unsigned int seed);
 AIR_EXPORT unsigned int airJSFRandVal(airJSFRand *jsf);
 AIR_EXPORT unsigned int airJSFRandValMod(airJSFRand *jsf, unsigned int N);
 AIR_EXPORT float airJSFRandUni_f(airJSFRand *jsf);   /* [0,1) */
-AIR_EXPORT double airJSFRandUni_d(airJSFRand *jsf);  /* [0,1) */
 AIR_EXPORT float airJSFRandBiUni_f(airJSFRand *jsf); /* (-1,1) */
 AIR_EXPORT float airJSFRandNormal_f(airJSFRand *jsf);
 AIR_EXPORT void airJSFRandNormal2_f(airJSFRand *jsf, float val[2]);
+AIR_EXPORT double airJSFRandUni_d(airJSFRand *jsf);   /* [0,1) */
+AIR_EXPORT double airJSFRandBiUni_d(airJSFRand *jsf); /* (-1,1) */
+AIR_EXPORT double airJSFRandNormal_d(airJSFRand *jsf);
+AIR_EXPORT void airJSFRandNormal2_d(airJSFRand *jsf, double val[2]);
 AIR_EXPORT int airJSFRandSanity(void);
 
 /* ---- END non-NrrdIO */
