@@ -58,10 +58,10 @@ Monitors input characters ci, to prevent output of "float" or "double"
 state is maintained by the floatCount and doubleCount variables
 passed by reference */
 int
-nfdsChar(unsigned int *pfc, unsigned int *pdc, int ci) {
+nfdsChar(unsigned int *floatCountP, unsigned int *doubleCountP, int ci) {
   int co = ci; /* by default, output == input */
-  unsigned int fc = *pfc;
-  unsigned int dc = *pdc;
+  unsigned int fc = *floatCountP;
+  unsigned int dc = *doubleCountP;
 
   switch (ci) {
   case 'f':
@@ -108,8 +108,8 @@ nfdsChar(unsigned int *pfc, unsigned int *pdc, int ci) {
     dc = 5;
   }
 
-  *pfc = fc;
-  *pdc = dc;
+  *floatCountP = fc;
+  *doubleCountP = dc;
   return co;
 }
 
