@@ -21,16 +21,10 @@
 
 #include <teem/unrrdu.h>
 
-/* to learn # columns */
-#include <sys/types.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-
 #define UNU "unu"
 
 int
 main(int argc, const char **argv) {
-  struct winsize wsz;
   int i, ret, listAll;
   const char *me;
   char *argv0 = NULL;
@@ -76,16 +70,8 @@ main(int argc, const char **argv) {
   hparm->elideMultipleEmptyStringDefault = AIR_TRUE;
   /* say that we look for, and know how to handle, seeing "--help" */
   hparm->respectDashDashHelp = AIR_TRUE;
-  /* Try to dynamically learn number of columns. Learning the terminal size will probably
-     work if stdout is the terminal, but not if we're piping elsewhere (as is common with
-     unu), Then try stderr, or else use unrrduDefNumColumns */
-  if (-1 != ioctl(STDOUT_FILENO, TIOCGWINSZ, &wsz)) {
-    hparm->columns = wsz.ws_col - 2;
-  } else if (-1 != ioctl(STDERR_FILENO, TIOCGWINSZ, &wsz)) {
-    hparm->columns = wsz.ws_col - 2;
-  } else {
-    hparm->columns = unrrduDefNumColumns;
-  }
+  /* set hparm->columns from ioctl if possible, else use unrrduDefNumColumns */
+  hestParmColumnsIoctl(hparm, unrrduDefNumColumns);
   hparm->greedySingleString = AIR_TRUE;
 
   /* if there are no arguments, or "unu list" (or "unu all" shhh), then we give general

@@ -21,7 +21,6 @@
 
 #include <teem/unrrdu.h>
 #include <teem/moss.h>
-#include <sys/ioctl.h>
 
 static const char *ilkInfo
   = ("(I)mage (L)inear Trans(X-->K)forms. Applies linear (homogenous coordinate) "
@@ -51,7 +50,6 @@ main(int argc, const char *argv[]) {
   int debug[2], d, bound, ax0, size[2]; /* HEY size[] should be size_t */
   unsigned int matListLen, _bkgLen, i, avgNum, bkgIdx;
   double scale[4];
-  struct winsize wsz;
 
   me = argv[0];
   mop = airMopNew();
@@ -62,11 +60,7 @@ main(int argc, const char *argv[]) {
   hparm->elideSingleOtherDefault = AIR_FALSE;
   hparm->elideMultipleNonExistFloatDefault = AIR_TRUE;
   hparm->respFileEnable = AIR_TRUE;
-
-  ioctl(0, TIOCGWINSZ, &wsz);
-  /* -2 because else "\" for continuation can wrap when it shouldn't
-    (which may be a hest bug) */
-  hparm->columns = AIR_MAX(59, wsz.ws_col - 2);
+  hestParmColumnsIoctl(hparm, hestDefaultColumns);
 
   hestOptAdd_1_Other(&hopt, "i", "image", &nin, "-", "input image", nrrdHestNrrd);
   hestOptAdd_1_Other(&hopt, "0", "origin", &origInfo, "p:0,0",
