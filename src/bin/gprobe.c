@@ -270,6 +270,7 @@ main(int argc, const char *argv[]) {
   mop = airMopNew();
   hparm = hestParmNew();
   airMopAdd(mop, hparm, AIR_CAST(airMopper, hestParmFree), airMopAlways);
+  hestParmColumnsIoctl(hparm, hestDefaultColumns);
   hparm->elideSingleOtherType = AIR_TRUE;
   hparm->respectDashDashHelp = AIR_TRUE;
   hestOptAdd_1_Other(&hopt, "i", "nin", &nin, NULL, "input volume", nrrdHestNrrd);

@@ -24,6 +24,9 @@
 #include <limits.h>
 #include <assert.h>
 
+#include <sys/ioctl.h> /* for ioctl(), TIOCGWINSZ, struct winsize */
+#include <unistd.h>    /* for STDOUT_FILENO and friends */
+
 const int hestPresent = 42;
 
 /* INCR is like airArray->incr: granularity with which we (linearly) reallocate the
@@ -81,6 +84,32 @@ hestParmFree(hestParm *parm) {
 
   airFree(parm);
   return NULL;
+}
+
+/* hestParmColumnsIoctl:
+Try to dynamically learn number of columns in the current terminal from ioctl(), and save
+it in hparm->columns. Learning the terminal size from stdin will probably work if we're
+not being piped into, else try learning it from stdout (but that won't work if we're
+piping elsewhere), else try learning the terminal size from stderr. If one of these
+works, then hparm->columns is set via ioctl(), and we return 0.  If ioctl() never worked,
+then hparm->columns gets the given nonIoctlColumns, and we return 1 (but this 1 is not an
+error that needs any recovering from). */
+int
+hestParmColumnsIoctl(hestParm *hparm, unsigned int nonIoctlColumns) {
+  struct winsize wsz;
+  int ret;
+  if (-1 != ioctl(STDIN_FILENO, TIOCGWINSZ, &wsz)
+      || -1 != ioctl(STDOUT_FILENO, TIOCGWINSZ, &wsz)
+      || -1 != ioctl(STDERR_FILENO, TIOCGWINSZ, &wsz)) {
+    /* the "- 2" here may be the sign of a hest bug; sometimes it seems the "\" for line
+    continuation (in generated usage info) causes a line wrap when it shouldn't */
+    hparm->columns = wsz.ws_col - 2;
+    ret = 0;
+  } else {
+    hparm->columns = nonIoctlColumns;
+    ret = 1;
+  }
+  return ret;
 }
 
 /* _hestMax(-1) == INT_MAX, otherwise _hestMax(m) == m */

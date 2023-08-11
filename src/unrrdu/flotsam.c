@@ -89,14 +89,9 @@ unrrduCmdMain(int argc, const char **argv, const char *cmd, const char *title,
     hparm->elideSingleEmptyStringDefault = AIR_TRUE;
     hparm->elideMultipleEmptyStringDefault = AIR_TRUE;
     hparm->cleverPluralizeOtherY = AIR_TRUE;
-    /* learning columns from current window; if ioctl is available
-    if (1) {
-      struct winsize ws;
-      ioctl(1, TIOCGWINSZ, &ws);
-      hparm->columns = ws.ws_col - 1;
-    }
-    */
-    hparm->columns = 78;
+    /* it is up to caller to try hestParmColumnsIoctl if they want
+    output to vary depending on current terminal. If nothing else;
+    hestParmNew() above sets hparm->columns to hestDefaultColumns */
   }
 
   /* if there are no arguments, then we give general usage information */
