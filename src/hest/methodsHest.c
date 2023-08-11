@@ -90,10 +90,17 @@ hestParmFree(hestParm *parm) {
 Try to dynamically learn number of columns in the current terminal from ioctl(), and save
 it in hparm->columns. Learning the terminal size from stdin will probably work if we're
 not being piped into, else try learning it from stdout (but that won't work if we're
-piping elsewhere), else try learning the terminal size from stderr. If one of these
-works, then hparm->columns is set via ioctl(), and we return 0.  If ioctl() never worked,
-then hparm->columns gets the given nonIoctlColumns, and we return 1 (but this 1 is not an
-error that needs any recovering from). */
+piping elsewhere), else try learning the terminal size from stderr.
+
+If one of these works, and returns a reasonably large-enough value for #columns, then
+then hparm->columns is set via the ioctl-generated info, and we return 0.  "large-enough"
+means bigger than sanity threshold of max(20, hestDefaultColumns/2); if not above that
+threshold, then hparm->columns is set to it and we return -1. Why bother with this
+threshold: hest usage generation code isn't trusted to produce anything informative with
+a tiny number of columns (and certainly hasn't been well-tested with that).
+
+If ioctl() never worked, then hparm->columns gets the given nonIoctlColumns, and we
+return 1 (but this 1 is not an error that needs any recovering from). */
 int
 hestParmColumnsIoctl(hestParm *hparm, unsigned int nonIoctlColumns) {
   struct winsize wsz;
@@ -101,10 +108,20 @@ hestParmColumnsIoctl(hestParm *hparm, unsigned int nonIoctlColumns) {
   if (-1 != ioctl(STDIN_FILENO, TIOCGWINSZ, &wsz)
       || -1 != ioctl(STDOUT_FILENO, TIOCGWINSZ, &wsz)
       || -1 != ioctl(STDERR_FILENO, TIOCGWINSZ, &wsz)) {
+    /* one of the ioctl calls worked */
+    unsigned int sanemin;
     /* the "- 2" here may be the sign of a hest bug; sometimes it seems the "\" for line
     continuation (in generated usage info) causes a line wrap when it shouldn't */
     hparm->columns = wsz.ws_col - 2;
-    ret = 0;
+    sanemin = AIR_MAX(20, hestDefaultColumns / 2);
+    if (hparm->columns < sanemin) {
+      /* will ignore the too-small value ioctl produced */
+      hparm->columns = sanemin;
+      ret = -1;
+    } else {
+      /* ioctl didn't say something crazy; we keep it */
+      ret = 0;
+    }
   } else {
     hparm->columns = nonIoctlColumns;
     ret = 1;
