@@ -116,7 +116,7 @@ typedef struct {
   length of the hestOpt array, and in arrLen the number of hestOpts actually used and
   set. This facilitates implementing something much like an airArray, but without the
   burden of extra calls for the user (like airArrayLenIncr), nor new kinds of containers
-  for hest and its users to manage: just same same array of hestOpt structs */
+  for hest and its users to manage: it is just the same array of hestOpt structs */
   unsigned int arrAlloc, arrLen;
   /* --------------------- Output
   Things set/allocated by hestParse. */
@@ -215,6 +215,7 @@ extern const int hestPresent;
 extern hestParm *hestParmNew(void);
 extern hestParm *hestParmFree(hestParm *parm);
 extern void *hestParmFree_vp(void *parm);
+extern int hestParmColumnsIoctl(hestParm *hparm, unsigned int nonIoctlColumns);
 extern void hestOptSingleSet(hestOpt *opt, const char *flag, const char *name,
                                   int type, unsigned int min, int max, void *valueP,
                                   const char *dflt, const char *info, unsigned int *sawP,
