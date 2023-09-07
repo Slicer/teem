@@ -46,8 +46,8 @@ import csv
 
 import cffi
 
-# halt if python2; thanks to https://preview.tinyurl.com/44f2beza
-_x, *_y = 1, 2  # NOTE: A SyntaxError here means you need python3, not python2
+# halt if python2; thanks to https://stackoverflow.com/a/65407535/1465384
+_x, *_y = 1, 2  # NOTE: A SyntaxError means you need Python3, not Python2
 del _x, _y
 
 # info about all the Teem libraries (TEEM_LIB_LIST)

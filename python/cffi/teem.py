@@ -32,8 +32,8 @@ transformations of the template wrapper in teem/python/cffi/lliibb.py
 
 import math as _math   # # likely used in _BIFF_DICT, below, for testing function return values
 
-# halt if python2; thanks to https://preview.tinyurl.com/44f2beza
-_x, *_y = 1, 2  # NOTE: A SyntaxError here means you need python3, not python2
+# halt if python2; thanks to https://stackoverflow.com/a/65407535/1465384
+_x, *_y = 1, 2  # NOTE: A SyntaxError means you need Python3, not Python2
 del _x, _y
 
 
