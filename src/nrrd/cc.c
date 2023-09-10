@@ -314,6 +314,9 @@ nrrdCCFind(Nrrd *nout, Nrrd **nvalP, const Nrrd *nin, int type, unsigned int con
       biffAddf(NRRD, "%s: got invalid target type %d", me, type);
       return 1;
     }
+    if (nrrdTypeBlock == type) {
+      biffAddf(NRRD, "%s: cannot output CCs in type %s", me, airEnumStr(nrrdType, type));
+    }
     if (!(nrrdTypeIsIntegral[type] && nrrdTypeIsUnsigned[nin->type]
           && nrrdTypeSize[type] <= 4)) {
       biffAddf(NRRD,
