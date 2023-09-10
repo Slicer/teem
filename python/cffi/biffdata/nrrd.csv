@@ -25,10 +25,10 @@ nrrdAxisInfoCompare,int,1,0,nrrd,nrrd/axis.c:929
 nrrdOrientationReduce,int,1,0,nrrd,nrrd/axis.c:1221
 nrrdMetaDataNormalize,int,1,0,nrrd,nrrd/axis.c:1266
 nrrdCCFind,int,1,0,nrrd,nrrd/cc.c:285
-nrrdCCAdjacency,int,1,0,nrrd,nrrd/cc.c:542
-nrrdCCMerge,int,1,0,nrrd,nrrd/cc.c:642
-nrrdCCRevalue,int,1,0,nrrd,nrrd/cc.c:792
-nrrdCCSettle,int,1,0,nrrd,nrrd/cc.c:819
+nrrdCCAdjacency,int,1,0,nrrd,nrrd/cc.c:545
+nrrdCCMerge,int,1,0,nrrd,nrrd/cc.c:645
+nrrdCCRevalue,int,1,0,nrrd,nrrd/cc.c:795
+nrrdCCSettle,int,1,0,nrrd,nrrd/cc.c:822
 nrrdCCValid,int,0,0,nrrd,nrrd/ccmethods.c:26
 nrrdCCSize,unsigned int,1,0,nrrd,nrrd/ccmethods.c:57
 nrrdDeringVerboseSet,int,1,0,nrrd,nrrd/deringNrrd.c:101
