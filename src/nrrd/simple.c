@@ -1538,13 +1538,15 @@ nrrdSanity(void) {
     return 0;
   }
 
+  /* this check was added in 2002 without explanation, but now (2023 pre v2 hacking)
+  it conflicts with a change that made that array entry 0; wackiness as yet unseen.
   if (!nrrdTypeIsIntegral[nrrdTypeBlock]) {
     biffAddf(NRRD,
              "%s: nrrdTypeInteger[nrrdTypeBlock] is not true, things "
              "could get wacky",
              me);
     return 0;
-  }
+  } */
 
   /* HEY: any other assumptions built into Teem? */
 
