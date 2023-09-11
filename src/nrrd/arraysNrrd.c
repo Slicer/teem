@@ -72,7 +72,11 @@ const int nrrdTypeIsIntegral[NRRD_TYPE_MAX + 1] = {
   1, /* nrrdTypeULLong: unsigned long long */
   0, /* nrrdTypeFloat: float */
   0, /* nrrdTypeDouble: double */
-  1  /* nrrdTypeBlock: for some reason we pretend that blocks are integers */
+  0  /* nrrdTypeBlock: "for some reason we pretend that blocks are integers" is what this
+     used to say since ~2002 when this array was created (under the  name
+     nrrdTypeIsFixedPoint), but that was never justified or necessary (afaik).  For 2023
+     Teem v2 hacking, GLK got annoyed that CC code in cc.c didn't immediately  complain
+     that nrrdTypeBloack was a useless type for output CC IDs. */
 };
 
 const int nrrdTypeIsUnsigned[NRRD_TYPE_MAX + 1] = {
@@ -87,7 +91,10 @@ const int nrrdTypeIsUnsigned[NRRD_TYPE_MAX + 1] = {
   1, /* nrrdTypeULLong: unsigned long long */
   0, /* nrrdTypeFloat: float */
   0, /* nrrdTypeDouble: double */
-  0  /* nrrdTypeBlock: for some reason we pretend that blocks are signed */
+  0  /* nrrdTypeBlock: "for some reason we pretend that blocks are signed" See note about
+  nrrdTypeIsIntegral[nrrdTypeBlock] above. While the value of
+  nrrdTypeIsUnsigned[nrrdTypeBlock] has not changed; we don't pretend that nrrdTypeBlock
+  is any kind of number. */
 };
 
 /*
