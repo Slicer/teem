@@ -298,7 +298,7 @@ unrrdu_ilkMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                            "background color to use with boundary behavior \"pad\". "
                            "Defaults to all zeroes.",
                            &_bkgLen);
-  hestOptAdd_2_Other(&opt, "s", "xSize ySize", scale, "x1 xfrqs1x1",
+  hestOptAdd_2_Other(&opt, "s", "xSize ySize", scale, "x1 x1",
                      "For each axis, information about how many samples in output:\n "
                      "\b\bo \"x<float>\": number of output samples is some scaling of "
                      " the number input of samples; multiplied by <float>\n "
