@@ -291,7 +291,7 @@ HEST_EXPORT void hestInfo(FILE *file, const char *argv0, const char *info,
 HEST_EXPORT void hestOptAddDeclsPrint(FILE *f);
 /* Many many non-var-args alternatives to hestOptAdd, also usefully type-specific for the
 type of value to be parsed in a way that hestOptAdd_nva cannot match. These capture all
-the common uses (and them some) of hest within Teem. They can be categorized, like
+the common uses (and then some) of hest within Teem. They can be categorized, like
 hestOpt->kind, in terms of the min, max number of (type T) parameters to the option:
 
   min == max == 0       hestOptAdd_Flag         (stand-alone flag; no parameters)
