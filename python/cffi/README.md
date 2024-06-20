@@ -1,6 +1,6 @@
 # CFFI-based Python wrappers for Teem
 
-The `teem.py` in this directory is a new (as of Teem v1.13 in 2023) Python wrapper for all of Teem, built via CFFI. It does useful error handling, and has one or more helper/wrappers (including a Python object "foo" wrapping of "const airEnum \*const foo").
+The `teem.py` in this directory is a new (as of Teem v2 in 2024) Python wrapper for all of Teem, built via CFFI. It does useful error handling, and has one or more helper/wrappers (including a Python object "foo" wrapping of "const airEnum \*const foo").
 
 These notes by GLK are mostly to document for future GLK what's involved in creating teem.py, but also for anyone else who is in a position to improve how Python users can access and benefit from Teem.
 
