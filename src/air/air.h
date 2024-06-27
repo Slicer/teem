@@ -908,13 +908,14 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 /*
 ******** AIR_MOD(i, N)
 **
-** returns that integer in [0, N-1] which is i plus a multiple of N. It
-** may be unfortunate that the expression (i)%(N) appears three times;
-** this should be inlined.  Or perhaps the compiler's optimizations
-** (common sub-expression elimination) will save us.
+** returns that integer in [0, N-1] which is i plus a multiple of N. It may be
+** unfortunate that the expression (i)%(N) appears three times; we can hope the compiler
+** optimizes the common sub-expression.
 **
-** Note: integer divisions are not very fast on some modern chips;
-** don't go silly using this one.
+** NOTE: !! Results will not be as expected if i and N differ in sign-ed-ness !!
+**
+** Note: integer divisions are not very fast on some modern chips; don't go silly using
+** this one.
 */
 #define AIR_MOD(i, N) ((i) % (N) >= 0 ? (i) % (N) : N + (i) % (N))
 
@@ -972,9 +973,9 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 ** rounds integers up or down; just wrappers around floor and ceil
 */
 #define AIR_ROUNDUP(x)      ((int)(floor((x) + 0.5)))
-#define AIR_ROUNDDOWN(x)    ((int)(ceil((x)-0.5)))
+#define AIR_ROUNDDOWN(x)    ((int)(ceil((x) - 0.5)))
 #define AIR_ROUNDUP_UI(x)   ((unsigned int)(floor((x) + 0.5)))
-#define AIR_ROUNDDOWN_UI(x) ((unsigned int)(ceil((x)-0.5)))
+#define AIR_ROUNDDOWN_UI(x) ((unsigned int)(ceil((x) - 0.5)))
 
 #ifdef __cplusplus
 }
