@@ -50,9 +50,10 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOptAdd_1_Double(&hopt, "sup", "expo", &supow, "1",
                       "when synthesizing data on a single segment, warp U parameters "
                       "by raising to this power.");
-  hestOptAdd_4_Int(&hopt, "tvt", "loi hii ofi 1s", tvt, "-1 -1 -1 -1",
-                   "if all values are >= 0: make single call to "
-                   "limnCBFFindTVT and quit");
+  hestOptAdd_4_Int(&hopt, "tvt", "loi hii absi 1s", tvt, "0 0 0 -1",
+                   "if last value is >= 0: make single call to limnCBFFindTVT and quit, "
+                   "but note that the given loi,hii,absi args are not exactly what is "
+                   "passed to limnCBFFindTVT");
   hestOptAdd_1_UInt(&hopt, "im", "max", &iterMax, "0",
                     "(if non-zero) max # nrp iterations to run");
   hestOptAdd_1_Double(&hopt, "deltathr", "delta", &deltaThresh, "0.0005",
@@ -171,12 +172,24 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   fctx->nrpIota = nrpIota;
   fctx->nrpPsi = psi;
   fctx->cornAngle = cangle;
-  if (tvt[0] >= 0 && tvt[1] >= 0 && tvt[2] >= 0 && tvt[3] >= 0) {
+  if (tvt[3] >= 0) {
     double lt[2], vv[2], rt[2];
-    unsigned int loi = AIR_UINT(tvt[0]), hii = AIR_UINT(tvt[1]), ofi = AIR_UINT(tvt[2]);
-    int oneSided = tvt[3];
-    if (limnCBFCtxPrep(fctx, lpnt)
-        || limnCBFFindTVT(lt, vv, rt, fctx, lpnt, loi, hii, ofi, oneSided)) {
+    int pnum = AIR_INT(lpnt->num);
+    /* whoa - this is how GLK learned that AIR_MOD is garbage if args differ in
+       sign-ed-ness */
+    unsigned int loi = AIR_UINT(AIR_MOD(tvt[0], pnum));
+    unsigned int hii = AIR_UINT(AIR_MOD(tvt[1], pnum));
+    unsigned int ofi = AIR_UINT(AIR_MOD(tvt[2] - tvt[0], pnum));
+    int E, oneSided = !!tvt[3];
+    E = 0;
+    if (!E && fctx->verbose)
+      printf("%s: TVT %d (absolute) in [%d,%d] --> %u (offset) in [%u,%u]\n", me, /* */
+             tvt[2], tvt[0], tvt[1], ofi, loi, hii);
+    if (!E) E |= limnCBFCtxPrep(fctx, lpnt);
+    if (!E && fctx->verbose)
+      printf("%s: limnCBFCtxPrep done, calling limnCBFFindTVT\n", me);
+    if (!E) E |= limnCBFFindTVT(lt, vv, rt, fctx, lpnt, loi, hii, ofi, oneSided);
+    if (E) {
       airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble doing single tangent-vertex-tangent:\n%s", me, err);
       airMopError(mop);
@@ -184,9 +197,9 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     }
     printf("%s: loi,hii=[%d,%d] ofi=%d oneSided=%d limnCBFFindTVT:\n", me, loi, hii, ofi,
            oneSided);
-    printf("  lt = %g %g\n", lt[0], lt[1]);
-    printf("  vv = %g %g\n", vv[0], vv[1]);
-    printf("  rt = %g %g\n", rt[0], rt[1]);
+    printf("lt = %g %g\n", lt[0], lt[1]);
+    printf("vv = %g %g\n", vv[0], vv[1]);
+    printf("rt = %g %g\n", rt[0], rt[1]);
     printf("(quitting)\n");
     airMopOkay(mop);
     return 0;

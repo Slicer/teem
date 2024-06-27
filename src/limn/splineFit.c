@@ -264,25 +264,33 @@ ctxBuffersSet(limnCBFCtx *fctx, uint pNum) {
   } else {
     /* one: what value in summing kernel weights should count as 1.0. This should
     probably be a parm in fctx, but not very interesting to change; it reflects something
-    about the confidence that the nrrdKernelDiscreteGaussian is working as expected,
-    rather than something about tuning cubic spline fitting */
-    const double one = 0.999;
+    about the confidence that the nrrdKernelDiscreteGaussian is working as expected
+    (specifically: its weights should really sum to unity), rather than something about
+    tuning cubic spline fitting. We could compare fctx->scale with
+    nrrdKernelDiscreteGaussianGoodSigmaMax but that is set conservatively low (only 6, as
+    of June 2024) */
+    const double one = 0.99;
     /* if vw and tw are allocated for length wlbig (or bigger) something isn't right */
     const uint wlbig = 128;
     /* if the initial weights for the tangent computation sum to smaller than this
        (they will be later normalized to sum to 1) then something isn't right */
-    const double tinytsum = 1.0 / 64;
-    double kparm[2], vsum, tsum;
+    const double tinysum = 1.0 / 64;
+    double kw, kparm[2], vsum, tsum;
     uint wlen;
     /* else need to (possibly allocate and) set vw and tw buffers */
     kparm[0] = scale;
-    kparm[1] = 100000; /* effectively no cut-off; sanity check comes later */
+    kparm[1] = 1000000; /* effectively no cut-off; sanity check comes later */
     ii = 0;
     vsum = 0;
     do {
-      vsum += (!ii ? 1 : 2) * nrrdKernelDiscreteGaussian->eval1_d(ii, kparm);
+      kw = nrrdKernelDiscreteGaussian->eval1_d(ii, kparm);
+      kw = fabs(kw); /* should be moot, but discrete kernels aren't bullet-proof */
+      vsum += (!ii ? 1 : 2) * kw;
+      if (fctx->verbose > 1) {
+        printf("%s: kw[%u] = %g --> vsum = %g\n", me, ii, kw, vsum);
+      }
       ii++;
-    } while (vsum < one && ii < wlbig);
+    } while (vsum < one && kw);
     /* wlen = intended length of blurring kernel weight vectors */
     wlen = ii;
     if (wlen > wlbig) {
@@ -292,7 +300,10 @@ ctxBuffersSet(limnCBFCtx *fctx, uint pNum) {
                me, wlen, scale);
       return 1;
     }
-    if (wlen > pNum / 2) {
+    if (2 * wlen > pNum) {
+      /* note: #verts involved in computation == 2*wlen - 1, so this is only going to
+         complain only when ~all the verts are contributing to computations for each
+         vertex, which is pretty excessive */
       biffAddf(LIMN,
                "%s: weight buffer length %u (from scale %g) seems "
                "too large compared to #points %u",
@@ -311,18 +322,23 @@ ctxBuffersSet(limnCBFCtx *fctx, uint pNum) {
     }
     /* normalization intent:
        1 = sum_i(vw[|i|]) for i=-(len-1)...len-1
-       1 = sum_i(tw[i]) for i=1...len-1 */
+       1 = sum_i(tw[i]) for i=0...len-1 */
     vsum = tsum = 0;
     for (ii = 0; ii < wlen; ii++) {
       double kw = nrrdKernelDiscreteGaussian->eval1_d(ii, kparm);
       vsum += (!ii ? 1 : 2) * (fctx->vw[ii] = kw);
       tsum += (fctx->tw[ii] = ii * kw);
     }
-    if (tsum < tinytsum) {
+    if (tsum < tinysum) {
       biffAddf(LIMN,
                "%s: scale %g led to tiny unnormalized tangent weight sum %g; "
                "purpose of scale is to do blurring but scale %g won't do that",
                me, scale, tsum, scale);
+      return 1;
+    }
+    if (vsum < tinysum) {
+      biffAddf(LIMN, "%s: scale %g led to unexpected tiny vertex weight sum %g", me,
+               scale, vsum);
       return 1;
     }
     for (ii = 0; ii < wlen; ii++) {
@@ -493,8 +509,8 @@ limnCBFPathSample(double *xy, uint pNum, const limnCBFPath *path) {
 
 /* error-checked index processing for limnCBFFindVT and maybe others */
 static int /* Biff: 1 */
-idxPrep(int *sloP, int *shiP, int *loopyP, const limnCBFPoints *lpnt, uint loi,
-        uint hii) {
+idxPrep(int *sloP, int *shiP, int *loopyP, const limnCBFCtx *fctx,
+        const limnCBFPoints *lpnt, uint loi, uint hii) {
   static const char me[] = "idxPrep";
   int slo, shi, loopy, spanlen;
 
@@ -512,6 +528,9 @@ idxPrep(int *sloP, int *shiP, int *loopyP, const limnCBFPoints *lpnt, uint loi,
   }
   slo = AIR_INT(loi);
   shi = AIR_INT(hii);
+  if (fctx->verbose > 1) {
+    printf("%s: span as uint [%u,%u] -> int [%d,%d]\n", me, loi, hii, slo, shi);
+  }
   if (lpnt->isLoop) {
     loopy = (0 == loi && 0 == hii);
     if (hii < loi) {
@@ -549,12 +568,18 @@ subnorm2(double dir[2], const double aa[2], const double bb[2]) {
   ELL_2V_NORM(dir, dir, len); /* normalize(dir) */
 }
 
-/* limnCBFFindTVT: Find constraints for spline fitting: incoming/left tangent lt, center
-or endpoint vertex vv, outgoing/right tangent rt; any but not all can be NULL. These are
-computed from the given points lpnt, at offset index ofi within index range loi, hii
+/*
+limnCBFFindTVT: Find constraints for spline fitting: incoming/left tangent lt, center or
+endpoint vertex vv, outgoing/right tangent rt; any but not all can be NULL. These are
+computed from the given points lpnt, at offset index ofi within index range [loi, hii]
 and only that range: that range is probably delimited by corners, and we have to be blind
-to anything past the corners on either side of us (except if loi==hii==0, in which case
-we can look at all the points in a loop).
+to anything past the corners on either side of us (except if loi==hii==0 in a loop, in
+which case we can look at all the points).
+
+Given that this is the inner-loop of other things, it would make sense to have a
+non-public version without all the error checking, but given the birthing pains of this
+code, the error-checking is a safety-net, and is welcome until profiling shows it is
+actually a problem.
 
 NOTE: this assumes that limnCBFCtxPrep(fctx, lpnt) was called without error!
 It (via ctxBuffersSet) allocates things that we depend on here
@@ -581,13 +606,21 @@ limnCBFFindTVT(double lt[2], double vv[2], double rt[2], const limnCBFCtx *fctx,
     biffAddf(LIMN, "%s: got NULL pointer (or too many NULL pointers)", me);
     return 1;
   }
+  if (fctx->verbose > 1) {
+    printf("%s: hello: %u in [%u,%u] in %sloop with %u points (%s-sided)\n", me, ofi,
+           loi, hii, lpnt->isLoop ? "" : "NON-", lpnt->num, oneSided ? "1" : "2");
+  }
   /* so: each of lt, vv, rt can be NULL (they just can't be all NULL) */
-  if (idxPrep(&slo, &shi, &loopy, lpnt, loi, hii)) {
+  if (idxPrep(&slo, &shi, &loopy, fctx, lpnt, loi, hii)) {
     biffAddf(LIMN, "%s: trouble with loi %u or hii %u", me, loi, hii);
     return 1;
   }
   spanlen = shi - slo + 1;
   pnum = AIR_INT(lpnt->num);
+  if (fctx->verbose) {
+    printf("%s: %d pnts: [%u,%u]->[%d,%d] (len=%d) (loopy=%u)\n", me, pnum, loi, hii,
+           slo, shi, spanlen, loopy);
+  }
 
   /* now:
   0 == slo == shi implies lpnt->isLoop (and this is called "loopy")
@@ -623,7 +656,6 @@ limnCBFFindTVT(double lt[2], double vv[2], double rt[2], const limnCBFCtx *fctx,
     if (vv) {
       ELL_2V_COPY(vv, xyC);
     }
-    /* printf("!%s: iplus=%u  imnus=%u  xy=%g %g\n", me, iplus, imnus, xy[0], xy[1]); */
     xyP = PP(lpnt) + 2 * iplus;
     xyM = PP(lpnt) + 2 * imnus;
     if (rt) {
@@ -632,8 +664,6 @@ limnCBFFindTVT(double lt[2], double vv[2], double rt[2], const limnCBFCtx *fctx,
     if (lt) {
       subnorm2(lt, xyM, oneSided ? xyC : xyP);
     }
-    /* printf("!%s: xyP=%g %g   xyM=%g %g  len=%g  tt=%g %g\n", me, xyP[0], xyP[1],
-       xyM[0], xyM[1], len, tt[0], tt[1]); */
   } else {
     /* using scale>0 for endpoint and tangent estimation */
     /* for simplicity: regardless of dir, we compute average positions for points
@@ -652,24 +682,23 @@ limnCBFFindTVT(double lt[2], double vv[2], double rt[2], const limnCBFCtx *fctx,
       return 1;
     }
     for (ci = -lim; ci <= lim; ci++) {
-      uint wi = abs(ci);       /* weight index into vw, tw */
-      int di = slo + sof + ci; /* signed index into data */
+      uint wi = abs(ci);     /* weight index into vw, tw */
+      int adi,               /* actual data index */
+        di = slo + sof + ci; /* signed (and not %-ed) index into data */
       const double *xy;
       if (!loopy) di = AIR_CLAMP(slo, di, shi);
-      di = AIR_MOD(di, pnum);
-      xy = PP(lpnt) + 2 * di;
+      adi = AIR_MOD(di, pnum);
+      xy = PP(lpnt) + 2 * adi;
       ELL_2V_SCALE_INCR(posC, vw[wi], xy);
-      /* printf("!%s: (ci=%d/wi=%u) posC += %g*(%g %g) --> %g %g\n", me, ci, wi,
-         vw[wi], xy[0], xy[1], posC[0], posC[1]); */
+      if (fctx->verbose > 1) {
+        printf("%s: ci=%d (in [%d,%d]) --> di=%d --> adi=%d; v,t weights %g,%g\n", me,
+               ci, -lim, lim, di, adi, vw[wi], tw[wi]);
+      }
       if (ci < 0) {
         ELL_2V_SCALE_INCR(posM, tw[wi], xy);
-        /* printf("!%s: (ci=%d/wi=%u) posM += %g*(%g %g) --> %g %g\n", me, ci, wi,
-           tw[wi], xy[0], xy[1], posM[0], posM[1]); */
       }
       if (ci > 0) {
         ELL_2V_SCALE_INCR(posP, tw[wi], xy);
-        /* printf("!%s: (ci=%d/wi=%u) posP += %g*(%g %g) --> %g %g\n", me, ci, wi,
-           tw[wi], xy[0], xy[1], posP[0], posP[1]); */
       }
     }
     {
@@ -789,14 +818,10 @@ TODO:
 -- avoid repeated calls to limnCBFCtxPrep
 -- when should lenF2L be replaced by posStdv?
 
-test logic at end of limnCBFFindTVT about capping distance between VV and given pos
-test limnCBFFindTVT with span length as low as 2
 debug limnCBFitSingle with various conditions
 
 testing corners: corners near and at start==stop of isLoop
 corners not at start or stop of isLoop: do spline wrap around from last to first index?
-
-do profiling to see if non-error-checking version of limnCBFFindVT is warranted
 
 use performance tests to explore optimal settings in fctx:
   nrpIterMax, nrpCap, nrpIota, nrpPsi, nrpDeltaThresh
@@ -817,7 +842,9 @@ reparm: "HEY TODO: need to make sure that half-way between points,
 
 valgrind everything
 
-remove big debugging comment blocks
+search for HEY
+
+remove big commented-out print statements: at least in limnCBFSegEval, limnCBFPathSample
 
 (DIM=2) explore what would be required to generalized from 2D to 3D,
 perhaps at least at the API level, even if 3D is not yet implemented
