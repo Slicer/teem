@@ -34,43 +34,42 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   int pret;
 
   Nrrd *_nin, *nin;
-  double *xy, alpha[2], vv0[2], tt1[2], tt2[2], vv3[2], deltaMin, psi, cangle, distMin,
-    distScl, utt1[2], utt2[2], time0, dtime, scale;
+  double *xy, deltaThresh, psi, cangle, epsilon, nrpIota, time0, dtime, scale, supow;
   unsigned int ii, pNum, iterMax;
-  int loop, petc, verbose, synth, nofit;
+  int loop, petc, verbose, tvt[4];
   char *synthOut;
   limnCBFCtx *fctx;
   limnCBFPath *path;
+  limnCBFPoints *lpnt;
 
   hestOptAdd_1_Other(&hopt, "i", "input", &_nin, NULL, "input xy points", nrrdHestNrrd);
   hestOptAdd_1_Int(&hopt, "v", "verbose", &verbose, "1", "verbosity level");
-  hestOptAdd_Flag(&hopt, "s", &synth, "synthesize xy points from control points");
   hestOptAdd_1_String(&hopt, "so", "synth out", &synthOut, "",
-                      "if non-empty, filename in which to save synthesized xy pts");
-  hestOptAdd_Flag(&hopt, "snf", &nofit,
-                  "actually do not fit, just save -so synthetic "
-                  "output and quit");
-  hestOptAdd_2_Double(&hopt, "t1", "tan", utt1, "nan nan",
-                      "if non-nan, the outgoing tangent from the first point");
-  hestOptAdd_2_Double(&hopt, "t2", "tan", utt2, "nan nan",
-                      "if non-nan, the incoming tangent to the last point");
+                      "if non-empty, filename in which to save synthesized xy pts, "
+                      "and then quit before any fitting.");
+  hestOptAdd_1_Double(&hopt, "sup", "expo", &supow, "1",
+                      "when synthesizing data on a single segment, warp U parameters "
+                      "by raising to this power.");
+  hestOptAdd_4_Int(&hopt, "tvt", "loi hii ofi 1s", tvt, "-1 -1 -1 -1",
+                   "if all values are >= 0: make single call to "
+                   "limnCBFFindTVT and quit");
   hestOptAdd_1_UInt(&hopt, "im", "max", &iterMax, "0",
                     "(if non-zero) max # nrp iterations to run");
-  hestOptAdd_1_Double(&hopt, "deltam", "delta", &deltaMin, "0.0005",
+  hestOptAdd_1_Double(&hopt, "deltathr", "delta", &deltaThresh, "0.0005",
                       "(if non-zero) stop nrp when change in spline "
                       "domain sampling goes below this");
-  hestOptAdd_1_Double(&hopt, "distm", "dist", &distMin, "0.01",
+  hestOptAdd_1_Double(&hopt, "eps", "dist", &epsilon, "0.01",
                       "(if non-zero) stop nrp when distance between spline "
                       "and points goes below this");
-  hestOptAdd_1_Double(&hopt, "dists", "scl", &distScl, "0.25",
-                      "scaling on nrp distMin check");
+  hestOptAdd_1_Double(&hopt, "iota", "scl", &nrpIota, "0.25",
+                      "scaling on nrp epsilon check");
   hestOptAdd_1_Double(&hopt, "psi", "psi", &psi, "10", "psi, of course");
   hestOptAdd_1_Double(&hopt, "ca", "angle", &cangle, "100", "angle indicating a corner");
   hestOptAdd_1_Double(&hopt, "scl", "scale", &scale, "0",
                       "scale for geometry estimation");
   hestOptAdd_Flag(&hopt, "loop", &loop,
-                  "given xy points are actually a loop; BUT "
-                  "the first and last points need to be the same!");
+                  "given xy points are actually a loop: the first point logically "
+                  "follows the last point");
   hestOptAdd_Flag(&hopt, "petc", &petc, "(Press Enter To Continue) ");
   /*
   hestOptAdd_1_String(&hopt, NULL, "output", &out, NULL, "output nrrd filename");
@@ -91,7 +90,7 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
-  if (synth && 6 != _nin->axis[1].size) {
+  if (airStrlen(synthOut) && 6 != _nin->axis[1].size) {
     fprintf(stderr, "%s: need 2-by-6 array (not 2-by-%u) for synthetic xy\n", me,
             (unsigned int)_nin->axis[1].size);
     airMopError(mop);
@@ -107,10 +106,11 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     return 1;
   }
 
-  if (!synth) {
+  if (!airStrlen(synthOut)) {
     xy = (double *)nin->data;
     pNum = (unsigned int)nin->axis[1].size;
   } else {
+    double alpha[2], vv0[2], tt1[2], tt2[2], vv3[2];
     /* synthesize data from control points */
     double *cpt = (double *)nin->data;
     limnCBFSeg seg;
@@ -135,7 +135,9 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     xy = AIR_MALLOC(2 * pNum, double);
     airMopAdd(mop, xy, airFree, airMopAlways);
     for (ii = 0; ii < pNum; ii++) {
-      limnCBFSegEval(xy + 2 * ii, &seg, AIR_AFFINE(0, ii, pNum - 1, 0, 1));
+      double uu = AIR_AFFINE(0, ii, pNum - 1, 0, 1);
+      uu = pow(uu, supow);
+      limnCBFSegEval(xy + 2 * ii, &seg, uu);
     }
     if (airStrlen(synthOut)) {
       Nrrd *nsyn = nrrdNew();
@@ -147,65 +149,71 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
         airMopError(mop);
         return 1;
       }
-      if (nofit) {
-        fprintf(stderr, "%s: got -nf nofit; bye\n", me);
-        airMopOkay(mop);
-        return 0;
-      }
+      printf("%s: saved synthetic output to %s; bye\n", me, synthOut);
+      airMopOkay(mop);
+      return 0;
     }
   }
-  {
-    /* set up 2-vector-valued arguments to fitting */
-    double len;
-    ELL_2V_COPY(vv0, xy);
-    ELL_2V_COPY(vv3, xy + 2 * (pNum - 1));
-    if (ELL_2V_EXISTS(utt1)) {
-      ELL_2V_COPY(tt1, utt1);
-    } else {
-      /* TODO: better tangent estimation */
-      ELL_2V_SUB(tt1, xy + 2, xy);
-    }
-    if (ELL_2V_EXISTS(utt2)) {
-      ELL_2V_COPY(tt2, utt2);
-    } else {
-      ELL_2V_SUB(tt2, xy + 2 * (pNum - 2), vv3);
-    }
-    ELL_2V_NORM(tt1, tt1, len);
-    ELL_2V_NORM(tt2, tt2, len);
+  if (!(lpnt = limnCBFPointsNew(xy, nrrdTypeDouble, 2, pNum, loop))) {
+    airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble setting up points:\n%s", me, err);
+    airMopError(mop);
+    return 1;
   }
   path = limnCBFPathNew();
   airMopAdd(mop, path, (airMopper)limnCBFPathNix, airMopAlways);
-  fctx = limnCBFCtxNew(pNum, scale);
-  fctx->nrpIterMax = iterMax;
-  fctx->nrpDeltaMin = deltaMin;
-  fctx->distMin = distMin;
-  fctx->nrpDistScl = distScl;
+  fctx = limnCBFCtxNew();
   fctx->verbose = verbose;
+  fctx->nrpIterMax = iterMax;
+  fctx->scale = scale;
+  fctx->epsilon = epsilon;
+  fctx->nrpDeltaThresh = deltaThresh;
+  fctx->nrpIota = nrpIota;
   fctx->nrpPsi = psi;
   fctx->cornAngle = cangle;
+  if (tvt[0] >= 0 && tvt[1] >= 0 && tvt[2] >= 0 && tvt[3] >= 0) {
+    double lt[2], vv[2], rt[2];
+    unsigned int loi = AIR_UINT(tvt[0]), hii = AIR_UINT(tvt[1]), ofi = AIR_UINT(tvt[2]);
+    int oneSided = tvt[3];
+    if (limnCBFCtxPrep(fctx, lpnt)
+        || limnCBFFindTVT(lt, vv, rt, fctx, lpnt, loi, hii, ofi, oneSided)) {
+      airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble doing single tangent-vertex-tangent:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    printf("%s: loi,hii=[%d,%d] ofi=%d oneSided=%d limnCBFFindTVT:\n", me, loi, hii, ofi,
+           oneSided);
+    printf("  lt = %g %g\n", lt[0], lt[1]);
+    printf("  vv = %g %g\n", vv[0], vv[1]);
+    printf("  rt = %g %g\n", rt[0], rt[1]);
+    printf("(quitting)\n");
+    airMopOkay(mop);
+    return 0;
+  }
   time0 = airTime();
   if (petc) {
     fprintf(stderr, "%s: Press Enter to Continue ... ", me);
     fflush(stderr);
     getchar();
   }
-  if (limnCBFit(path, fctx, xy, pNum, loop)) {
+  if (limnCBFit(path, fctx, lpnt)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble:\n%s", me, err);
+    fprintf(stderr, "%s: trouble doing fitting:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
   dtime = (airTime() - time0) * 1000;
-  printf("%s: time= %g ms;iterDone= %u ;deltaDone=%g, dist=%g (@%u)\n", me, dtime,
-         fctx->nrpIterDone, fctx->nrpDeltaDone, fctx->dist, fctx->distIdx);
+  printf("%s: time= %g ms;iterDone= %u ;deltaDone=%g, distMax=%g (@%u)\n", me, dtime,
+         fctx->nrpIterDone, fctx->nrpDeltaDone, fctx->distMax, fctx->distMaxIdx);
   {
     unsigned int si;
     printf("%s: path has %u segments:\n", me, path->segNum);
     for (si = 0; si < path->segNum; si++) {
       limnCBFSeg *seg = path->seg + si;
-      printf("seg %u (%3u): (%g,%g) -- (%g,%g) -- (%g,%g) -- (%g,%g)\n", si, seg->pNum,
-             seg->xy[0], seg->xy[1], seg->xy[2], seg->xy[3], seg->xy[4], seg->xy[5],
-             seg->xy[6], seg->xy[7]);
+      printf("seg %u: (%g,%g) -- (%g,%g) -- (%g,%g) -- (%g,%g)\n", si, seg->xy[0],
+             seg->xy[1], seg->xy[2], seg->xy[3], seg->xy[4], seg->xy[5], seg->xy[6],
+             seg->xy[7]);
     }
   }
 
