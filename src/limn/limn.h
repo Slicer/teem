@@ -515,6 +515,8 @@ typedef struct limnSplineTypeSpec_t {
 **
 ** how one cubic Bezier spline segment is represented for limnCBF functions
 ** (using DIM=2 to mark places where the 2D-ness of the code surfaces )
+**
+** No constructor (New) or destructor (Nix) functions since it is so simple
 */
 typedef struct {
   double xy[8];  /* four control points of cubic Bezier:
@@ -524,6 +526,8 @@ typedef struct {
                     or path-ending vertices, i.e. reasons to not have geometric
                     continuity here, either because we intend to have a corner,
                     or because there's nothing else to be continuous with */
+                 /* how many points does this represent */
+  unsigned int pointNum;
 } limnCBFSeg;
 
 /*
@@ -920,10 +924,10 @@ LIMN_EXPORT int limnCBFFindTVT(double lt[2], double vv[2], double rt[2],
                                unsigned int loi, unsigned int hii, unsigned int ofi,
                                int oneSided);
 LIMN_EXPORT int limnCBFCtxInit(const limnCBFCtx *fctx, const limnCBFPoints *lpnt);
-LIMN_EXPORT int limnCBFitSingle(double alpha[2], limnCBFCtx *fctx, /* */
-                                const double vv0[2], const double tt1[2],
-                                const double tt2[2], const double vv3[2],
-                                const double *xy, unsigned int pointNum);
+LIMN_EXPORT int limnCBFitSingle(limnCBFSeg *seg, const double vv0[2],
+                                const double tt1[2], const double tt2[2],
+                                const double vv3[2], limnCBFCtx *fctx, const double *xy,
+                                unsigned int pointNum);
 LIMN_EXPORT int limnCBFMulti(limnCBFPath *path, limnCBFCtx *fctx, const double vv0[2],
                              const double tt1[2], const double tt2[2],
                              const double vv3[2], const limnCBFPoints *lpnt,

@@ -43,12 +43,12 @@ this code only supports 2D. "DIM=2" flags places in code where that is explicit.
 #define PNMIN(ISLOOP) ((ISLOOP) ? 4 : 3)
 
 /*
-******** limnCBFPointsNew
-**
-** create a point data container, possibly around given pdata pointer. In an aspirational
-** hope of API stability, this is one of the few functions for which the interface itself
-** does not expose the specificity to DIM=2 and type double (though the code inside
-** does (apologetically) enforce that).
+limnCBFPointsNew
+
+create a point data container, possibly around given pdata pointer. In an aspirational
+hope of API stability, this is one of the few functions for which the interface itself
+does not expose the specificity to DIM=2 and type double (though the code inside
+does (apologetically) enforce that).
 */
 limnCBFPoints * /* Biff: NULL */
 limnCBFPointsNew(const void *pdata, int ptype, uint dim, uint pnum, int isLoop) {
@@ -132,6 +132,7 @@ segInit(void *_seg) {
   ELL_2V_NAN_SET(seg->xy + 4);
   ELL_2V_NAN_SET(seg->xy + 6);
   seg->corner[0] = seg->corner[1] = AIR_FALSE;
+  seg->pointNum = 0;
   return;
 }
 
@@ -173,7 +174,7 @@ ctxInit(limnCBFCtx *fctx) {
   fctx->verbose = 0;
   fctx->cornerFind = AIR_TRUE;
   fctx->cornerNMS = AIR_TRUE;
-  fctx->nrpIterMax = 10;
+  fctx->nrpIterMax = 12;
   fctx->epsilon = 0; /* will need to be set to something valid elsewhere */
   fctx->scale = 0;   /* will need to be set to something valid elsewhere */
   fctx->nrpCap = 3.0;
@@ -222,10 +223,9 @@ limnCBFCtxNix(limnCBFCtx *fctx) {
 }
 
 /*
-** ctxBuffersSet: ensures that some buffers in fctx: uu, vw, tw
-** are set up for current #points pNum and measurement scale fctx->scale.
-** The buffers are re-allocated only when necessary.
-** Does NOT touch the corner-related buffers: cpp, clt, crt
+ctxBuffersSet: ensures that some buffers in fctx: uu, vw, tw are set up for current
+#points pNum and measurement scale fctx->scale. The buffers are re-allocated only when
+necessary. Does NOT touch the corner-related buffers: cpp, clt, crt
 */
 static int /* Biff: 1 */
 ctxBuffersSet(limnCBFCtx *fctx, uint pNum) {
@@ -355,10 +355,10 @@ ctxBuffersSet(limnCBFCtx *fctx, uint pNum) {
 }
 
 /*
-******** limnCBFCtxPrep
-**
-** checks the things that are going to be passed around a lot,
-** and makes call to initialize buffers inside fctx
+limnCBFCtxPrep
+
+checks the things that are going to be passed around a lot, and makes call to initialize
+buffers inside fctx
 */
 int /* Biff: 1 */
 limnCBFCtxPrep(limnCBFCtx *fctx, const limnCBFPoints *lpnt) {
@@ -370,6 +370,10 @@ limnCBFCtxPrep(limnCBFCtx *fctx, const limnCBFPoints *lpnt) {
   }
   if (limnCBFPointsCheck(lpnt)) {
     biffAddf(LIMN, "%s: problem with points", me);
+    return 1;
+  }
+  if (!(fctx->nrpIterMax >= 1)) {
+    biffAddf(LIMN, "%s: need at least 1 nrp iteration (not %u)", me, fctx->nrpIterMax);
     return 1;
   }
   if (!(fctx->epsilon > 0)) {
@@ -459,9 +463,9 @@ limnCBFCtxPrep(limnCBFCtx *fctx, const limnCBFPoints *lpnt) {
 #define CBD2(P, V0, V1, V2, V3, T, W) CBDI(P, VCBD2, V0, V1, V2, V3, T, W)
 
 /*
-******** limnCBFSegEval
-**
-** evaluates a single limnCBFSeg at one point tt in [0.0,1.0]
+limnCBFSegEval
+
+evaluates a single limnCBFSeg at one point tt in [0.0,1.0]
 */
 void
 limnCBFSegEval(double *vv, const limnCBFSeg *seg, double tt) {
@@ -481,10 +485,10 @@ limnCBFSegEval(double *vv, const limnCBFSeg *seg, double tt) {
 }
 
 /*
-******** limnCBFPathSample
-**
-** evaluates limnCBFPath at pNum locations, uniformly (and very naively)
-** distributed among the path segments, and saves into (pre-allocated) xy
+limnCBFPathSample
+
+evaluates limnCBFPath at pNum locations, uniformly (and very naively) distributed among
+the path segments, and saves into (pre-allocated) xy
 */
 void
 limnCBFPathSample(double *xy, uint pNum, const limnCBFPath *path) {
@@ -507,7 +511,7 @@ limnCBFPathSample(double *xy, uint pNum, const limnCBFPath *path) {
 /* cheesy macro as short-hand to access either pp or ppOwn */
 #define PP(lpnt) ((lpnt)->pp ? (lpnt)->pp : (lpnt)->ppOwn)
 
-/* error-checked index processing for limnCBFFindVT and maybe others */
+/* error-checked index processing for limnCBFFindTVT and maybe others */
 static int /* Biff: 1 */
 idxPrep(int *sloP, int *shiP, int *loopyP, const limnCBFCtx *fctx,
         const limnCBFPoints *lpnt, uint loi, uint hii) {
@@ -727,6 +731,437 @@ limnCBFFindTVT(double lt[2], double vv[2], double rt[2], const limnCBFCtx *fctx,
   return 0;
 }
 
+/* utility function for counting how many vertices are in index span [loi,hii] inclusive.
+It is not our job here to care about lpnt->isLoop; we just assume that if we're faced
+with hii<loi, it must be because of a loop */
+static uint
+spanLength(const limnCBFPoints *lpnt, uint loi, uint hii) {
+  uint topi = hii + (hii < loi) * (lpnt->num);
+  return topi - loi + 1;
+}
+
+/* utility function for getting pointer to coords in lpnt, for point with index loi+ofi,
+while accounting for possibility of wrapping */
+static const double *
+pointPos(const limnCBFPoints *lpnt, uint loi, uint ofi) {
+  uint ii = (loi + ofi) % lpnt->num;
+  return PP(lpnt) + 2 * ii; /* DIM=2 */
+}
+
+/*
+(from paper page 620) solves for the alpha that minimize squared error between xy[i]
+and Q(uu[i]) where Q(t) is cubic Bezier spline through vv0, vv0 + alpha[0]*tt1,
+vv3 + alpha[1]*tt2, and vv3.
+
+There are various conditions where the generated spline ignores the xy array and
+instead is what one could call a "simple arc" (with control points at 1/3 and 2/3 the
+distance between the end points):
+ - having only two points (xy contains only the end points)
+ - the determinant of the 2x2 matrix that is inverted to solve
+   for alpha is too close to zero (this test was not part of the
+   author's code)
+ - the solved alphas are not convincingly positive
+
+This function is the only place where the "simple arc" is generated, and generating the
+simple arc is not actually an error or problem: if it is bad at fitting the data (as
+determined by findDist) then it may be subdivided, and that's ok. What GLK hasn't thought
+through is: what is the interaction of nrp iterations and findAlpha generating the simple
+arc on some but not all iterations (possibly unstable?)
+*/
+static void
+findAlpha(double alpha[2], limnCBFCtx *fctx, /* must be non-NULL */
+          const double vv0[2], const double tt1[2], const double tt2[2],
+          const double vv3[2], const limnCBFPoints *lpnt, uint loi, uint hii) {
+  static const char me[] = "findAlpha";
+  uint ii, spanlen;
+  double det, F2L[2], lenF2L;
+  const double *xy = PP(lpnt);
+
+  ELL_2V_SUB(F2L, xy + 2 * hii, xy + 2 * loi); /* DIM=2 throughout this */
+  lenF2L = ELL_2V_LEN(F2L);
+  spanlen = spanLength(lpnt, loi, hii);
+  if (spanlen > 2) {
+    double xx[2], m11, m12, m22, MM[4], MI[4];
+    const double *uu = fctx->uu;
+    xx[0] = xx[1] = m11 = m12 = m22 = 0;
+    for (ii = 0; ii < spanlen; ii++) {
+      const double *xy;
+      double bb[4], Ai1[2], Ai2[2], Pi[2], dmP[2];
+      double ui = uu[ii];
+      VCBD0(bb, ui);
+      ELL_2V_SCALE(Ai1, bb[1], tt1);
+      ELL_2V_SCALE(Ai2, bb[2], tt2);
+      /* GLK using "m" and "M" instead of author's "C". Note that Ai1 and Ai2 are
+         scalings of (nominally) unit-length tt1 and tt2 by evaluations of the spline
+         basis functions, so they (and the M computed from them, and det(M)), are
+         invariant w.r.t over-all rescalings of the data points */
+      m11 += ELL_2V_DOT(Ai1, Ai1);
+      m12 += ELL_2V_DOT(Ai1, Ai2);
+      m22 += ELL_2V_DOT(Ai2, Ai2);
+      ELL_2V_SCALE_ADD2(Pi, bb[0] + bb[1], vv0, bb[2] + bb[3], vv3);
+      xy = pointPos(lpnt, loi, ii);
+      ELL_2V_SUB(dmP, xy, Pi);
+      xx[0] += ELL_2V_DOT(dmP, Ai1);
+      xx[1] += ELL_2V_DOT(dmP, Ai2);
+    }
+    ELL_4V_SET(MM, m11, m12, m12, m22);
+    ELL_2M_INV(MI, MM, det);
+    ELL_2MV_MUL(alpha, MI, xx);
+  } else {                   /* pNum <= 2 */
+    det = 1;                 /* bogus but harmless */
+    alpha[0] = alpha[1] = 0; /* trigger simple arc code */
+  }
+  /* test if we should return simple arc */
+  if (!(AIR_EXISTS(det) && AIR_ABS(det) > fctx->detMin
+        && alpha[0] > lenF2L * (fctx->alphaMin)
+        && alpha[1] > lenF2L * (fctx->alphaMin))) {
+    if (fctx->verbose) {
+      if (spanlen > 2) {
+        printf("%s: bad |det| %g (vs %g) or alpha %g,%g (vs %g*%g) "
+               "--> simple arc\n",
+               me, AIR_ABS(det), fctx->detMin, alpha[0], alpha[1], lenF2L,
+               fctx->alphaMin);
+      } else {
+        printf("%s: [%u,%u] spanlen %u tiny --> simple arc\n", me, loi, hii, spanlen);
+      }
+    }
+    /* generate simple arc: set both alphas to 1/3 of distance from
+       first to last point, but also handle non-unit-length tt1 and
+       tt2 */
+    alpha[0] = lenF2L / (3 * ELL_2V_LEN(tt1));
+    alpha[1] = lenF2L / (3 * ELL_2V_LEN(tt2));
+  } else {
+    if (fctx->verbose > 1) {
+      printf("%s: all good: det %g, alpha %g,%g\n", me, det, alpha[0], alpha[1]);
+    }
+  }
+  fctx->alphaDet = det;
+  return;
+}
+
+/*
+using Newton iterations to try to find a better places at which to evaluate the spline in
+order to match the given points xy
+*/
+static double
+reparm(const limnCBFCtx *fctx, /* must be non-NULL */
+       const double alpha[2], const double vv0[2], const double tt1[2],
+       const double tt2[2], const double vv3[2], const limnCBFPoints *lpnt, uint loi,
+       uint hii) {
+  static const char me[] = "reparm";
+  uint ii, spanlen;
+  double vv1[2], vv2[2], delta, maxdelu;
+  double *uu = fctx->uu;
+
+  spanlen = spanLength(lpnt, loi, hii);
+  assert(spanlen >= 3);
+  /* average interior u[i+1]-u[i] is 1/(spanlen-2) */
+  maxdelu = fctx->nrpCap / (spanlen - 2);
+  ELL_2V_SCALE_ADD2(vv1, 1, vv0, alpha[0], tt1);
+  ELL_2V_SCALE_ADD2(vv2, 1, vv3, alpha[1], tt2);
+  delta = 0;
+  /* only changing parameterization of interior points,
+     not the first (ii=0) or last (ii=pNum-1) */
+  for (ii = 1; ii < spanlen - 1; ii++) {
+    double numer, denom, delu, df[2], ww[4], tt, Q[2], QD[2], QDD[2];
+    const double *xy;
+    tt = uu[ii];
+    CBD0(Q, vv0, vv1, vv2, vv3, tt, ww);
+    CBD1(QD, vv0, vv1, vv2, vv3, tt, ww);
+    CBD2(QDD, vv0, vv1, vv2, vv3, tt, ww);
+    xy = pointPos(lpnt, loi, ii);
+    ELL_2V_SUB(df, Q, xy);
+    numer = ELL_2V_DOT(df, QD);
+    denom = ELL_2V_DOT(QD, QD) + ELL_2V_DOT(df, QDD);
+    delu = numer / denom;
+    if (AIR_ABS(delu) > maxdelu) {
+      /* cap Newton step */
+      delu = maxdelu * airSgn(delu);
+    }
+    uu[ii] = tt - delu;
+    delta += AIR_ABS(delu);
+    if (fctx->verbose > 1) {
+      printf("%s[%2u]: %g <-- %g - %g\n", me, ii, uu[ii], tt, delu);
+    }
+  }
+  delta /= spanlen - 2; /* number of interior points */
+  /* HEY TODO: need to make sure that half-way between points,
+     spline isn't wildly diverging; this can happen with the
+     spline making a loop away from a small number of points, e.g.:
+     4 points spline defined by vv0 = (1,1), tt1 = (1,2),
+     tt2 = (1,2), vv3 = (0,1) */
+  return delta;
+}
+
+/* (assuming current parameterization in fctx->uu) sets fctx->distMax to max distance
+   to spline, at point fctx->distMaxIdx, and then sets fctx->distBig accordingly */
+static void
+findDist(limnCBFCtx *fctx, const double alpha[2], const double vv0[2],
+         const double tt1[2], const double tt2[2], const double vv3[2],
+         const limnCBFPoints *lpnt, uint loi, uint hii) {
+  uint ii, distMaxIdx, spanlen;
+  double vv1[2], vv2[2], distMax;
+  const double *uu = fctx->uu;
+
+  spanlen = spanLength(lpnt, loi, hii);
+  assert(spanlen >= 3);
+  ELL_2V_SCALE_ADD2(vv1, 1, vv0, alpha[0], tt1); /* DIM=2 everywhere here */
+  ELL_2V_SCALE_ADD2(vv2, 1, vv3, alpha[1], tt2);
+  distMax = AIR_NAN;
+  /* NOTE that the first and last points are actually not part of the max distance
+     calculation, which motivates ensuring that the endpoints generated by limnCBFFindTVT
+     are actually sufficiently close to the first and last points (or else the fit spline
+     won't meet the expected accuracy threshold) */
+  for (ii = 1; ii < spanlen - 1; ii++) {
+    double len, Q[2], df[2], ww[4];
+    const double *xy;
+    CBD0(Q, vv0, vv1, vv2, vv3, uu[ii], ww);
+    xy = pointPos(lpnt, loi, ii);
+    ELL_2V_SUB(df, Q, xy);
+    len = ELL_2V_LEN(df);
+    if (!AIR_EXISTS(distMax) || len > distMax) {
+      distMax = len;
+      distMaxIdx = ii;
+    }
+  }
+  fctx->distMax = distMax;
+  fctx->distMaxIdx = distMaxIdx;
+  fctx->distBig = (distMax <= fctx->nrpIota * fctx->epsilon
+                     ? 0
+                     : (distMax <= fctx->epsilon /* */
+                          ? 1
+                          : (distMax <= fctx->nrpPsi * fctx->epsilon /* */
+                               ? 2
+                               : 3)));
+  return;
+}
+
+/*
+fitSingle: fits a single cubic Bezier spline, w/out error checking (limnCBFSingle is a
+wrapper around this). The given points coordinates are in limnCBFPoints lpnt, between
+low/high indices loi/hii (inclusively); hii can be < loi in the case of a point loop.
+From *given* initial endpoint vv0, initial tangent tt1, final tangent tt2 (pointing
+backwards), and final endpoint vv3, the job of this function is actually just to set
+alpha[0],alpha[1] such that the cubic Bezier spline with control points vv0,
+vv0+alpha[0]*tt1, vv3+alpha[1]*tt2, vv3 approximates all the given points.
+
+This is an iterative process, in which alpha is solved for multiples times, after taking
+a Newton step to try to optimize the parameterization of the points (in the
+already-allocated fctx->uu array); we calls this process "nrp" for Newton
+Re-Parameterization. nrp iterations are stopped after any one of following is true (the
+original published method did not have these fine-grained controls):
+ - have done nrpIterMax iterations of nrp, or,
+ - distance from spline (as evaluated at the current parameterization) to the given
+   points falls below fctx->nrpIota * fctx->epsilon, or,
+ - parameterization change falls below fctx->nrpDeltaThresh
+Information about the results of this process are set in the given fctx.
+*/
+static void
+fitSingle(double alpha[2], limnCBFCtx *fctx, const double vv0[2], const double tt1[2],
+          const double tt2[2], const double vv3[2], const limnCBFPoints *lpnt, uint loi,
+          uint hii) {
+  static const char me[] = "fitSingle";
+  uint iter, pNum;
+
+  /* DIM=2 pretty much everywhere here */
+  if (fctx->verbose) {
+    printf("%s[%d,%d]: hello, vv0=(%g,%g), tt1=(%g,%g), "
+           "tt2=(%g,%g), vv3=(%g,%g)\n",
+           me, loi, hii, vv0[0], vv0[1], tt1[0], tt1[1], tt2[0], tt2[1], vv3[0], vv3[1]);
+  }
+  pNum = spanLength(lpnt, loi, hii);
+  if (2 == pNum) {
+    /* relying on code in findAlpha() that handles pNum==2 */
+    findAlpha(alpha, fctx, vv0, tt1, tt2, vv3, lpnt, loi, hii);
+    /* nrp is moot */
+    fctx->nrpIterDone = 0;
+    /* emmulate results of calling findDist() */
+    fctx->distMax = fctx->nrpDeltaDone = 0;
+    fctx->distMaxIdx = 0;
+    fctx->distBig = 0;
+  } else {        /* pNum >= 3 */
+    double delta; /* avg parameterization change of interior points */
+    {
+      /* initialize uu parameterization to chord length */
+      unsigned int ii;
+      double len;
+      const double *xyP, *xyM;
+      fctx->uu[0] = len = 0;
+      xyP = pointPos(lpnt, loi, 1);
+      xyM = pointPos(lpnt, loi, 0);
+      for (ii = 1; ii < pNum; ii++) {
+        double dd[2];
+        ELL_2V_SUB(dd, xyP, xyM);
+        len += ELL_2V_LEN(dd);
+        fctx->uu[ii] = len;
+        xyM = xyP;
+        xyP = pointPos(lpnt, loi, ii + 1);
+      }
+      delta = 0;
+      for (ii = 0; ii < pNum; ii++) {
+        if (ii < pNum - 1) {
+          fctx->uu[ii] /= len;
+          delta += fctx->uu[ii];
+        } else {
+          /* ii == pNum-1 last vertex */
+          fctx->uu[ii] = 1;
+        }
+        if (fctx->verbose > 1) {
+          printf("%s[%d,%d]: intial uu[%u] = %g\n", me, loi, hii, ii, fctx->uu[ii]);
+        }
+      }
+      delta /= pNum - 2; /* within the pNum verts are pNum-2 interior verts */
+      if (fctx->verbose) {
+        printf("%s[%d,%d]: initial (chord length) delta = %g\n", me, loi, hii, delta);
+      }
+    }
+    findAlpha(alpha, fctx, vv0, tt1, tt2, vv3, lpnt, loi, hii);
+    findDist(fctx, alpha, vv0, tt1, tt2, vv3, lpnt, loi, hii);
+    if (fctx->verbose) {
+      printf("%s[%d,%d]: found alpha %g %g, dist %g @ %u (big %d) (%u max nrp iters)\n",
+             me, loi, hii, alpha[0], alpha[1], fctx->distMax, fctx->distMaxIdx,
+             fctx->distBig, fctx->nrpIterMax);
+    }
+    if (fctx->distBig < 3) {
+      /* initial fit isn't awful; try making it better with nrp */
+      int converged = AIR_FALSE;
+      for (iter = 0; fctx->distBig && iter < fctx->nrpIterMax; iter++) {
+        if (fctx->verbose) {
+          printf("%s[%d,%d]: nrp iter %u starting with alpha %g,%g (det %g) (big %d)\n",
+                 me, loi, hii, iter, alpha[0], alpha[1], fctx->alphaDet, fctx->distBig);
+        }
+        delta = reparm(fctx, alpha, vv0, tt1, tt2, vv3, lpnt, loi, hii);
+        findAlpha(alpha, fctx, vv0, tt1, tt2, vv3, lpnt, loi, hii);
+        findDist(fctx, alpha, vv0, tt1, tt2, vv3, lpnt, loi, hii);
+        if (fctx->verbose) {
+          printf("%s[%d,%d]: nrp iter %u (reparm) delta = %g (big %d)\n", me, loi, hii,
+                 iter, delta, fctx->distBig);
+        }
+        if (delta <= fctx->nrpDeltaThresh) {
+          if (fctx->verbose) {
+            printf("%s[%d,%d]: nrp iter %u delta %g <= min %g --> break\n", me, loi, hii,
+                   iter, delta, fctx->nrpDeltaThresh);
+          }
+          converged = AIR_TRUE;
+          break;
+        }
+      }
+      if (fctx->verbose) {
+        printf("%s[%d,%d]: nrp done after %u iters: ", me, loi, hii, iter);
+        if (converged) {
+          printf("converged!\n");
+        } else if (!fctx->distBig) {
+          printf("nice small dist %g @ %u\n", fctx->distMax, fctx->distMaxIdx);
+        } else {
+          printf("hit itermax %u\n", fctx->nrpIterMax);
+        }
+      }
+      fctx->nrpIterDone = iter;
+    } else {
+      /* else fctx->distBig == 3: dist so big that we don't even try nrp */
+      fctx->nrpIterDone = 0;
+      if (fctx->verbose) {
+        printf("%s[%d,%d]: such big (%d) dist %g > %g we didn't try nrp\n", me, loi, hii,
+               fctx->distBig, fctx->distMax, fctx->nrpPsi * fctx->epsilon);
+      }
+    }
+    fctx->nrpDeltaDone = delta;
+  }
+  if (fctx->verbose) {
+    printf("%s[%d,%d]: leaving with alpha %g %g\n", me, loi, hii, alpha[0], alpha[1]);
+  }
+  return;
+}
+
+/*
+limnCBFitSingle
+
+builds a limnCBFPoints around given xy, determines spline constraints if necessary, and
+calls fitSingle
+*/
+int /* Biff: 1 */
+limnCBFitSingle(limnCBFSeg *seg, const double vv0[2], const double tt1[2],
+                const double tt2[2], const double vv3[2], limnCBFCtx *_fctx,
+                const double *xy, uint pNum) {
+  static const char me[] = "limnCBFitSingle";
+  double v0c[2], t1c[2], t2c[2], v3c[2]; /* locally computed geometry info */
+  double alpha[2];                       /* recovered by fitting */
+  const double *v0p, *t1p, *t2p, *v3p;   /* pointers for the geometry info */
+  uint loi, hii;
+  limnCBFCtx *fctx;
+  limnCBFPoints *lpnt;
+  airArray *mop;
+
+  if (!(seg && xy && pNum)) {
+    biffAddf(LIMN, "%s: got NULL pointer or 0 points", me);
+    return 1;
+  }
+  mop = airMopNew();
+  lpnt = limnCBFPointsNew(xy, nrrdTypeDouble, 2, pNum, AIR_FALSE /* isLoop */);
+  airMopAdd(mop, lpnt, (airMopper)limnCBFPointsNix, airMopAlways);
+  loi = 0;
+  hii = pNum - 1;
+  if (_fctx) {
+    fctx = _fctx; /* caller has supplied info */
+  } else {
+    fctx = limnCBFCtxNew();
+    airMopAdd(mop, fctx, (airMopper)limnCBFCtxNix, airMopAlways);
+    fctx->scale = 0;
+    fctx->epsilon = 0.01; /* HEY maybe instead some multiple of stdv? */
+    /* (if you don't like these hard-coded defaults then pass your own fctx) */
+  }
+  if (limnCBFCtxPrep(fctx, lpnt)) {
+    biffAddf(LIMN, "%s: problem with %s fctx or lpnt", me, _fctx ? "given" : "own");
+    airMopError(mop);
+    return 1;
+  }
+  if (vv0 && tt1 && tt2 && vv3) {
+    /* point to the given containers of geometry info */
+    v0p = vv0; /* DIM=2 ? */
+    t1p = tt1;
+    t2p = tt2;
+    v3p = vv3;
+  } else {
+    int oneSided = AIR_TRUE;
+    if (vv0 || tt1 || tt2 || vv3) {
+      biffAddf(LIMN,
+               "%s: should either give all vv0,tt1,tt2,vv3 or none (not %p,%p,%p,%p)",
+               me, (const void *)vv0, (const void *)tt1, (const void *)tt2,
+               (const void *)vv3);
+      airMopError(mop);
+      return 1;
+    }
+    /* have NO given geometry info; must find it all */
+    if (limnCBFFindTVT(NULL, v0c, t1c, /* */
+                       fctx, lpnt, loi, hii, 0 /* ofi */, oneSided)
+        || limnCBFFindTVT(t2c, v3c, NULL, /* */
+                          fctx, lpnt, loi, hii, hii /* ofi */, oneSided)) {
+      biffAddf(LIMN, "%s: trouble finding geometry info", me);
+      airMopError(mop);
+      return 1;
+    }
+    if (fctx->verbose) {
+      printf("%s: found geometry (%g,%g) --> (%g,%g) -- (%g,%g) <-- (%g,%g)\n", me,
+             v0c[0], v0c[1], t1c[0], t1c[1], t2c[0], t2c[1], v3c[0], v3c[1]);
+    }
+    v0p = v0c;
+    t1p = t1c;
+    t2p = t2c;
+    v3p = v3c;
+  }
+  fitSingle(alpha, fctx, v0p, t1p, t2p, v3p, lpnt, loi, hii);
+
+  ELL_2V_COPY(seg->xy + 0, v0p);
+  ELL_2V_SCALE_ADD2(seg->xy + 2, 1, v0p, alpha[0], t1p);
+  ELL_2V_SCALE_ADD2(seg->xy + 4, 1, v3p, alpha[1], t2p);
+  ELL_2V_COPY(seg->xy + 6, v3p);
+  /* HEY is it our job to set seg->corner[] ?!? */
+  seg->pointNum = pNum;
+
+  airMopOkay(mop);
+  return 0;
+}
+
 /*
 ******** limnCBFit
 **
@@ -829,7 +1264,7 @@ evaluated in terms of time and #splines needed for fit
 (may want to pay in time for more economical representation)
 
 "What GLK hasn't thought through is: what is the interaction of nrp iterations and
-findalpha generating the simple arc on some but not all iterations (possibly
+findAlpha generating the simple arc on some but not all iterations (possibly
 unstable?)"
 
 resurrect in segment struct: how many points were represented by a single spline
