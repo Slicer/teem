@@ -44,7 +44,7 @@ limnPu_ccfindMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
 
   USAGE(myinfo);
-  PARSE();
+  PARSE(myinfo);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   nmeas = nrrdNew();

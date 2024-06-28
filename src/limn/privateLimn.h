@@ -34,7 +34,7 @@ extern "C" {
     return 2;                                                                           \
   }
 
-#define PARSE()                                                                         \
+#define PARSE(INFO)                                                                     \
   if ((pret = hestParse(hopt, argc, argv, &perr, hparm))) {                             \
     if (1 == pret) {                                                                    \
       fprintf(stderr, "%s: %s\n", me, perr);                                            \
@@ -45,6 +45,11 @@ extern "C" {
     } else {                                                                            \
       exit(1);                                                                          \
     }                                                                                   \
+  } else if (hopt->helpWanted) {                                                        \
+    hestInfo(stdout, me, (INFO), hparm);                                                \
+    hestUsage(stdout, hopt, me, hparm);                                                 \
+    hestGlossary(stdout, hopt, hparm);                                                  \
+    return 0;                                                                           \
   }
 
 #ifdef __cplusplus
