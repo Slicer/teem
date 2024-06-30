@@ -911,31 +911,33 @@ LIMN_EXPORT limnCBFPoints *limnCBFPointsNew(const void *pdata, int ptype,
                                             int isLoop);
 LIMN_EXPORT limnCBFPoints *limnCBFPointsNix(limnCBFPoints *lpnt);
 LIMN_EXPORT int limnCBFPointsCheck(const limnCBFPoints *lpnt);
+LIMN_EXPORT limnCBFPath *limnCBFPathNew(void);
+LIMN_EXPORT limnCBFPath *limnCBFPathNix(limnCBFPath *path);
+LIMN_EXPORT void limnCBFPathJoin(limnCBFPath *dst, const limnCBFPath *src);
 LIMN_EXPORT limnCBFCtx *limnCBFCtxNew();
 LIMN_EXPORT limnCBFCtx *limnCBFCtxNix(limnCBFCtx *fctx);
 LIMN_EXPORT int limnCBFCtxPrep(limnCBFCtx *fctx, const limnCBFPoints *lpnt);
 LIMN_EXPORT void limnCBFSegEval(double *xy, const limnCBFSeg *seg, double tt);
-LIMN_EXPORT limnCBFPath *limnCBFPathNew(void);
-LIMN_EXPORT limnCBFPath *limnCBFPathNix(limnCBFPath *path);
 LIMN_EXPORT void limnCBFPathSample(double *xy, unsigned int pointNum,
                                    const limnCBFPath *path);
 LIMN_EXPORT int limnCBFFindTVT(double lt[2], double vv[2], double rt[2],
                                const limnCBFCtx *fctx, const limnCBFPoints *lpnt,
                                unsigned int loi, unsigned int hii, unsigned int ofi,
                                int oneSided);
-LIMN_EXPORT int limnCBFCtxInit(const limnCBFCtx *fctx, const limnCBFPoints *lpnt);
 LIMN_EXPORT int limnCBFitSingle(limnCBFSeg *seg, const double vv0[2],
                                 const double tt1[2], const double tt2[2],
-                                const double vv3[2], limnCBFCtx *fctx, const double *xy,
-                                unsigned int pointNum);
+                                const double vv3[2], limnCBFCtx *fctx,
+                                limnCBFPoints *lpnt, unsigned int loi, unsigned int hii);
+#if 0
+LIMN_EXPORT int limnCBFCorners(unsigned int **cornIdx, unsigned int *cornNum,
+                               limnCBFCtx *fctx, const limnCBFPoints *lpnt);
 LIMN_EXPORT int limnCBFMulti(limnCBFPath *path, limnCBFCtx *fctx, const double vv0[2],
                              const double tt1[2], const double tt2[2],
                              const double vv3[2], const limnCBFPoints *lpnt,
                              unsigned int loi, unsigned int hii);
-LIMN_EXPORT int limnCBFCorners(unsigned int **cornIdx, unsigned int *cornNum,
-                               limnCBFCtx *fctx, const limnCBFPoints *lpnt);
 LIMN_EXPORT int limnCBFit(limnCBFPath *path, limnCBFCtx *fctx,
                           const limnCBFPoints *lpnt);
+#endif
 
 /* lpu{Flotsam,. . .}.c */
 #define LIMN_DECLARE(C) LIMN_EXPORT const unrrduCmd limnPu_##C##Cmd;
