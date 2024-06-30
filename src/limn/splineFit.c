@@ -158,7 +158,7 @@ limnCBFPathNix(limnCBFPath *path) {
   return NULL;
 }
 
-static void
+void
 limnCBFPathJoin(limnCBFPath *dst, const limnCBFPath *src) {
   uint bb = airArrayLenIncr(dst->segArr, src->segNum);
   memcpy(dst->seg + bb, src->seg, (src->segNum) * sizeof(limnCBFSeg));
@@ -508,6 +508,15 @@ limnCBFPathSample(double *xy, uint pNum, const limnCBFPath *path) {
   return;
 }
 
+/* utility function for counting how many vertices are in index span [loi,hii] inclusive.
+It is not our job here to care about lpnt->isLoop; we just assume that if we're faced
+with hii<loi, it must be because of a loop */
+static uint
+spanLength(const limnCBFPoints *lpnt, uint loi, uint hii) {
+  uint topi = hii + (hii < loi) * (lpnt->num);
+  return topi - loi + 1;
+}
+
 /* cheesy macro as short-hand to access either pp or ppOwn */
 #define PP(lpnt) ((lpnt)->pp ? (lpnt)->pp : (lpnt)->ppOwn)
 
@@ -731,15 +740,6 @@ limnCBFFindTVT(double lt[2], double vv[2], double rt[2], const limnCBFCtx *fctx,
   return 0;
 }
 
-/* utility function for counting how many vertices are in index span [loi,hii] inclusive.
-It is not our job here to care about lpnt->isLoop; we just assume that if we're faced
-with hii<loi, it must be because of a loop */
-static uint
-spanLength(const limnCBFPoints *lpnt, uint loi, uint hii) {
-  uint topi = hii + (hii < loi) * (lpnt->num);
-  return topi - loi + 1;
-}
-
 /* utility function for getting pointer to coords in lpnt, for point with index loi+ofi,
 while accounting for possibility of wrapping */
 static const double *
@@ -937,12 +937,12 @@ findDist(limnCBFCtx *fctx, const double alpha[2], const double vv0[2],
 }
 
 /*
-fitSingle: fits a single cubic Bezier spline, w/out error checking (limnCBFSingle is a
-wrapper around this). The given points coordinates are in limnCBFPoints lpnt, between
-low/high indices loi/hii (inclusively); hii can be < loi in the case of a point loop.
-From *given* initial endpoint vv0, initial tangent tt1, final tangent tt2 (pointing
-backwards), and final endpoint vv3, the job of this function is actually just to set
-alpha[0],alpha[1] such that the cubic Bezier spline with control points vv0,
+fitSingle: fits a single cubic Bezier spline, w/out error checking (limnCBFSingle is an
+error-checking wrapper around this). The given points coordinates are in limnCBFPoints
+lpnt, between low/high indices loi/hii (inclusively); hii can be < loi in the case of a
+point loop. From GIVEN initial endpoint vv0, initial tangent tt1, final tangent tt2
+(pointing backwards), and final endpoint vv3, the job of this function is actually just
+to set alpha[0],alpha[1] such that the cubic Bezier spline with control points vv0,
 vv0+alpha[0]*tt1, vv3+alpha[1]*tt2, vv3 approximates all the given points.
 
 This is an iterative process, in which alpha is solved for multiples times, after taking
@@ -1018,9 +1018,10 @@ fitSingle(double alpha[2], limnCBFCtx *fctx, const double vv0[2], const double t
     findAlpha(alpha, fctx, vv0, tt1, tt2, vv3, lpnt, loi, hii);
     findDist(fctx, alpha, vv0, tt1, tt2, vv3, lpnt, loi, hii);
     if (fctx->verbose) {
-      printf("%s[%d,%d]: found alpha %g %g, dist %g @ %u (big %d) (%u max nrp iters)\n",
-             me, loi, hii, alpha[0], alpha[1], fctx->distMax, fctx->distMaxIdx,
-             fctx->distBig, fctx->nrpIterMax);
+      printf(
+        "%s[%d,%d]: found alpha %g %g, maxdist %g @ %u (big %d) (%u max nrp iters)\n",
+        me, loi, hii, alpha[0], alpha[1], fctx->distMax, fctx->distMaxIdx, fctx->distBig,
+        fctx->nrpIterMax);
     }
     if (fctx->distBig < 3) {
       /* initial fit isn't awful; try making it better with nrp */
@@ -1039,8 +1040,8 @@ fitSingle(double alpha[2], limnCBFCtx *fctx, const double vv0[2], const double t
         }
         if (delta <= fctx->nrpDeltaThresh) {
           if (fctx->verbose) {
-            printf("%s[%d,%d]: nrp iter %u delta %g <= min %g --> break\n", me, loi, hii,
-                   iter, delta, fctx->nrpDeltaThresh);
+            printf("%s[%d,%d]: nrp iter %u delta %g <= thresh %g --> break\n", me, loi,
+                   hii, iter, delta, fctx->nrpDeltaThresh);
           }
           converged = AIR_TRUE;
           break;
@@ -1049,11 +1050,14 @@ fitSingle(double alpha[2], limnCBFCtx *fctx, const double vv0[2], const double t
       if (fctx->verbose) {
         printf("%s[%d,%d]: nrp done after %u iters: ", me, loi, hii, iter);
         if (converged) {
-          printf("converged!\n");
+          printf("converged! with maxdist %g @ %u (big %d)\n", fctx->distMax,
+                 fctx->distMaxIdx, fctx->distBig);
         } else if (!fctx->distBig) {
-          printf("nice small dist %g @ %u\n", fctx->distMax, fctx->distMaxIdx);
+          printf("NICE small dist %g (<%g) @ %u\n", fctx->distMax, fctx->epsilon,
+                 fctx->distMaxIdx);
         } else {
-          printf("hit itermax %u\n", fctx->nrpIterMax);
+          printf("hit nrp itermax %u; maxdist %g @ %u (big %d)\n", fctx->nrpIterMax,
+                 fctx->distMax, fctx->distMaxIdx, fctx->distBig);
         }
       }
       fctx->nrpIterDone = iter;
@@ -1076,45 +1080,47 @@ fitSingle(double alpha[2], limnCBFCtx *fctx, const double vv0[2], const double t
 /*
 limnCBFitSingle
 
-builds a limnCBFPoints around given xy, determines spline constraints if necessary, and
-calls fitSingle
+Basically and error-checking version of fitSingle; in the limn API because it's needed
+for testing. Unlike fitSingle, the geometry info vv0, tt1, tt2, vv3 can either be punted
+on (by passing NULL for all) or not, by passing specific vectors for all. The results are
+converted into the fields in the given limnCBFSeg *seg.  Despite misgivings, we set
+both seg->corner[0,1] to AIR_TRUE.
+
+Perservating on seg->corner[0,1]: we really don't have the information to consistently
+set them with certainty. If not given the geometry vectors, we do assert oneSided when
+estimating the vertices and tangents, so maybe then we can set set->corner[0,1] to true,
+but on the other hand we don't know what to do when the geometry vectors are given. But
+it wouldn't be cool to sometimes set fields in the output struct and sometimes not.
+
+This function used to also be lower-overhead, by not requiring a fctx, and taking a coord
+data pointer instead of a lpnts. But for the sake of testing, there needed to be way of
+passing specific loi and hii in a point loop, so that's what this accepts now.  As a
+result, that means this function isn't as convenient a function for one-off single-spline
+fits, and at this point limn doesn't have one.  The real entry point for spline fitting
+is limnCBFit().
 */
 int /* Biff: 1 */
 limnCBFitSingle(limnCBFSeg *seg, const double vv0[2], const double tt1[2],
-                const double tt2[2], const double vv3[2], limnCBFCtx *_fctx,
-                const double *xy, uint pNum) {
+                const double tt2[2], const double vv3[2], limnCBFCtx *fctx,
+                limnCBFPoints *lpnt, uint loi, uint hii) {
   static const char me[] = "limnCBFitSingle";
   double v0c[2], t1c[2], t2c[2], v3c[2]; /* locally computed geometry info */
-  double alpha[2];                       /* recovered by fitting */
   const double *v0p, *t1p, *t2p, *v3p;   /* pointers for the geometry info */
-  uint loi, hii;
-  limnCBFCtx *fctx;
-  limnCBFPoints *lpnt;
+  double alpha[2];                       /* recovered by fitting */
+  uint spanlen;
   airArray *mop;
 
-  if (!(seg && xy && pNum)) {
-    biffAddf(LIMN, "%s: got NULL pointer or 0 points", me);
+  if (!(seg && fctx && lpnt)) {
+    biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
   mop = airMopNew();
-  lpnt = limnCBFPointsNew(xy, nrrdTypeDouble, 2, pNum, AIR_FALSE /* isLoop */);
-  airMopAdd(mop, lpnt, (airMopper)limnCBFPointsNix, airMopAlways);
-  loi = 0;
-  hii = pNum - 1;
-  if (_fctx) {
-    fctx = _fctx; /* caller has supplied info */
-  } else {
-    fctx = limnCBFCtxNew();
-    airMopAdd(mop, fctx, (airMopper)limnCBFCtxNix, airMopAlways);
-    fctx->scale = 0;
-    fctx->epsilon = 0.01; /* HEY maybe instead some multiple of stdv? */
-    /* (if you don't like these hard-coded defaults then pass your own fctx) */
-  }
   if (limnCBFCtxPrep(fctx, lpnt)) {
-    biffAddf(LIMN, "%s: problem with %s fctx or lpnt", me, _fctx ? "given" : "own");
+    biffAddf(LIMN, "%s: problem with fctx or lpnt", me);
     airMopError(mop);
     return 1;
   }
+  spanlen = spanLength(lpnt, loi, hii);
   if (vv0 && tt1 && tt2 && vv3) {
     /* point to the given containers of geometry info */
     v0p = vv0; /* DIM=2 ? */
@@ -1131,11 +1137,11 @@ limnCBFitSingle(limnCBFSeg *seg, const double vv0[2], const double tt1[2],
       airMopError(mop);
       return 1;
     }
-    /* have NO given geometry info; must find it all */
+    /* do not have geometry info; must find it all */
     if (limnCBFFindTVT(NULL, v0c, t1c, /* */
                        fctx, lpnt, loi, hii, 0 /* ofi */, oneSided)
         || limnCBFFindTVT(t2c, v3c, NULL, /* */
-                          fctx, lpnt, loi, hii, hii /* ofi */, oneSided)) {
+                          fctx, lpnt, loi, hii, spanlen - 1 /* ofi */, oneSided)) {
       biffAddf(LIMN, "%s: trouble finding geometry info", me);
       airMopError(mop);
       return 1;
@@ -1149,100 +1155,17 @@ limnCBFitSingle(limnCBFSeg *seg, const double vv0[2], const double tt1[2],
     t2p = t2c;
     v3p = v3c;
   }
+  /* HERE is the call that actually does the work */
   fitSingle(alpha, fctx, v0p, t1p, t2p, v3p, lpnt, loi, hii);
 
+  /* process the results to generate info in output limnCBFSeg */
   ELL_2V_COPY(seg->xy + 0, v0p);
   ELL_2V_SCALE_ADD2(seg->xy + 2, 1, v0p, alpha[0], t1p);
   ELL_2V_SCALE_ADD2(seg->xy + 4, 1, v3p, alpha[1], t2p);
   ELL_2V_COPY(seg->xy + 6, v3p);
-  /* HEY is it our job to set seg->corner[] ?!? */
-  seg->pointNum = pNum;
+  seg->corner[0] = seg->corner[1] = AIR_TRUE; /* misgivings . . . */
+  seg->pointNum = spanlen;
 
-  airMopOkay(mop);
-  return 0;
-}
-
-/*
-******** limnCBFit
-**
-** top-level function for fitting cubic beziers to given points
-*/
-int /* Biff: 1 */
-limnCBFit(limnCBFPath *pathWhole, limnCBFCtx *fctx, const limnCBFPoints *lpnt) {
-  static const char me[] = "limnCBFit";
-  uint *cornIdx, /* (if non-NULL) array of logical indices into PP(lpnt) of corners */
-    cornNum,     /* length of cornIdx array */
-    cii;
-  int ret;
-  airArray *mop;
-
-  if (!(pathWhole && fctx && lpnt)) {
-    biffAddf(LIMN, "%s: got NULL pointer", me);
-    return 1;
-  }
-  if (limnCBFCtxPrep(fctx, lpnt)) {
-    biffAddf(LIMN, "%s: trouble preparing", me);
-    return 1;
-  }
-  if (fctx->cornerFind) {
-    /* HEY RESURRECT ME
-    if (limnCBFCorners(&cornIdx, &cornNum, fctx, lpnt)) {
-      biffAddf(LIMN, "%s: trouble finding corners", me);
-      return 1;
-    }
-    */
-  } else {
-    if (lpnt->isLoop) {
-      /* there really are no corners */
-      cornIdx = NULL;
-      cornNum = 0;
-    } else {
-      /* even without "corners": if not a loop, first and last verts act as corners */
-      cornIdx = AIR_CALLOC(2, uint);
-      assert(cornIdx);
-      cornNum = 2;
-      cornIdx[0] = 0;
-      cornIdx[1] = lpnt->num - 1;
-    }
-  }
-  mop = airMopNew();
-  if (cornIdx) {
-    airMopAdd(mop, cornIdx, airFree, airMopAlways);
-  }
-  airArrayLenSet(pathWhole->segArr, 0);
-  if (!cornNum) {
-/* no corners; do everything with one multi call */
-#if 0 /* HEY RESURRECT ME */
-    if (limnCBFMulti(pathWhole, fctx, NULL, NULL, NULL, NULL, lpnt, 0 /* loi */,
-                     0 /* hii */)) {
-      biffAddf(LIMN, "%s: trouble", me);
-      airMopError(mop);
-      return 1;
-    }
-#endif
-  } else {
-    /* do have corners: split points into segments between corners. The corner vertex is
-       both last point in segment I and first point in segment I+1 */
-    for (cii = 0; cii < cornNum; cii++) {
-      uint cjj = (cii + 1) % cornNum;
-      uint loi = cornIdx[cii];
-      uint hii = cornIdx[cjj];
-      limnCBFPath *subpath = limnCBFPathNew();
-#if 0 /* HEY RESURRECT ME */
-        ret = limnCBFMulti(subpath, fctx, NULL, NULL, NULL, NULL, lpnt, loi, hii);
-        if (ret) {
-          biffAddf(LIMN, "%s: trouble from corners [%u,%u] (points [%u,%u])", me, cii,
-        cjj, loi, hii); limnCBFPathNix(subpath); airMopError(mop); return 1;
-        }
-#endif
-      subpath->seg[0].corner[0] = 1;
-      subpath->seg[subpath->segNum - 1].corner[1] = 1;
-      limnCBFPathJoin(pathWhole, subpath);
-      limnCBFPathNix(subpath);
-    }
-  }
-
-  pathWhole->isLoop = lpnt->isLoop;
   airMopOkay(mop);
   return 0;
 }
@@ -1266,8 +1189,6 @@ evaluated in terms of time and #splines needed for fit
 "What GLK hasn't thought through is: what is the interaction of nrp iterations and
 findAlpha generating the simple arc on some but not all iterations (possibly
 unstable?)"
-
-resurrect in segment struct: how many points were represented by a single spline
 
 reparm: "HEY TODO: need to make sure that half-way between points,
      spline isn't wildly diverging; this can happen with the

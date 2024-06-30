@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2009--2024  University of Chicago
   Copyright (C) 2005--2008  Gordon Kindlmann
   Copyright (C) 1998--2004  University of Utah
 
@@ -36,7 +36,7 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   Nrrd *_nin, *nin;
   double *xy, deltaThresh, psi, cangle, epsilon, nrpIota, time0, dtime, scale, synthPow;
   unsigned int ii, synthNum, pNum, nrpIterMax;
-  int loop, petc, verbose, tvt[4], fitSingle;
+  int loop, petc, verbose, tvt[4], fitSingleLoHi[2];
   char *synthOut;
   limnCBFCtx *fctx;
   limnCBFPath *path;
@@ -47,10 +47,10 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                   "-i input xy points are actually a loop: the first point logically "
                   "follows the last point");
   hestOptAdd_1_Int(&hopt, "v", "verbose", &verbose, "1", "verbosity level");
-  hestOptAdd_1_UInt(&hopt, "sn", "num", &synthNum, "51",
+  hestOptAdd_1_UInt(&hopt, "synthn", "num", &synthNum, "51",
                     "if saving spline sampling to -so, how many sample.");
   hestOptAdd_1_String(
-    &hopt, "so", "synth out", &synthOut, "",
+    &hopt, "syntho", "synth out", &synthOut, "",
     "if non-empty, input xy points are actually control points for a single spline "
     "segment, to be sampled -sn times, and this is the filename into which to save "
     "the synthesized xy pts, and then quit without any fitting.");
@@ -75,8 +75,12 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOptAdd_1_Double(&hopt, "ca", "angle", &cangle, "100", "angle indicating a corner");
   hestOptAdd_1_Double(&hopt, "scl", "scale", &scale, "0",
                       "scale for geometry estimation");
-  hestOptAdd_Flag(&hopt, "fs", &fitSingle,
-                  "just do a single call to limnCBFitSingle and quit");
+  hestOptAdd_2_Int(&hopt, "fs", "loi hii", fitSingleLoHi, "-1 -1",
+                   "(if loi is >= 0): just do a single call to limnCBFitSingle and "
+                   "quit, using the -i input points, and fitting a spline between "
+                   "the loi and hii indices given here. A negative hii will be "
+                   "incremented by the number of points, so -1 works to indicate "
+                   "the last point.");
   hestOptAdd_Flag(&hopt, "petc", &petc, "(Press Enter To Continue) ");
   /*
   hestOptAdd_1_String(&hopt, NULL, "output", &out, NULL, "output nrrd filename");
@@ -204,10 +208,13 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     return 0;
   }
 
-  if (fitSingle) {
-    int ii;
+  if (fitSingleLoHi[0] >= 0) {
     limnCBFSeg seg;
-    if (limnCBFitSingle(&seg, NULL, NULL, NULL, NULL, fctx, lpnt->pp, lpnt->num)) {
+    int pnum = AIR_INT(lpnt->num);
+    /* re-using the logic from the TVT case above */
+    unsigned int loi = AIR_UINT(AIR_MOD(fitSingleLoHi[0], pnum));
+    unsigned int hii = AIR_UINT(AIR_MOD(fitSingleLoHi[1], pnum));
+    if (limnCBFitSingle(&seg, NULL, NULL, NULL, NULL, fctx, lpnt, loi, hii)) {
       airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble doing single segment fit:\n%s", me, err);
       airMopError(mop);
@@ -227,12 +234,14 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     fflush(stderr);
     getchar();
   }
+#if 0 /* HEY */
   if (limnCBFit(path, fctx, lpnt)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble doing fitting:\n%s", me, err);
     airMopError(mop);
     return 1;
   }
+#endif
   dtime = (airTime() - time0) * 1000;
   printf("%s: time= %g ms;iterDone= %u ;deltaDone=%g, distMax=%g (@%u)\n", me, dtime,
          fctx->nrpIterDone, fctx->nrpDeltaDone, fctx->distMax, fctx->distMaxIdx);
