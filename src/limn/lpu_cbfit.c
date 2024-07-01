@@ -163,9 +163,11 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     airMopError(mop);
     return 1;
   }
+  airMopAdd(mop, lpnt, (airMopper)limnCBFPointsNix, airMopAlways);
   path = limnCBFPathNew();
   airMopAdd(mop, path, (airMopper)limnCBFPathNix, airMopAlways);
   fctx = limnCBFCtxNew();
+  airMopAdd(mop, fctx, (airMopper)limnCBFCtxNix, airMopAlways);
   fctx->verbose = verbose;
   fctx->nrpIterMax = nrpIterMax;
   fctx->scale = scale;
