@@ -37,10 +37,95 @@ Hopefully that other code can be revisited and re-organized for a later version 
 Teem, at which point the code below can be integrated with it.
 
 NOTE: spline fitting would be useful in 3D (or higher dimensions) too, but currently
-this code only supports 2D. "DIM=2" flags places in code where that is explicit.
+this code only supports 2D. "DIM=2" flags places in code where that is explicit, with
+the hope that this code can later by generalized.
 
 NOTE: In Teem coding standards, "Cbf" would be better written as "CBF", but all these
 initials got annoying with other CamelCase function names.
+
+This code was unusually slow for GLK to write because he struggled to gracefully handle
+the combination of possibilities:
+  - points may trace an open segment, or a closed loop
+  - geometry (spline endpoints and tangents) is computed without or with some smoothing.
+  - smoothing may be bounded by the two corners on either side, or smoothing
+    may cover all available vertices (which may or may not loop around)
+How to represent an interval of vertex *indices* -- termed a "span", in contrast to the
+single cubic spline "segment" -- is fundamental to all of this. A uint span[2] array was
+tried, but ended up just passing around a lot of loi,hii (low index, high index) pairs to
+represent the span.
+
+In the presence of a loop of N points, we could imagine different kinds of indices:
+          0 .. N-1          : "actual" indices
+ .. -2 -1 0 .. N-1 N N-1 .. : "lifted" indices, in the sense that the real number line
+                              is a cover of the circle, and a path in the circle can be
+                              lifted up to the real number line. A lifted index J is
+                              converted to an actual index by AIR_MOD(J, N) or if J > 0
+                              just J % N.
+
+Some computations are easier to do and reason about with lifted indices, but obviously
+you can only use actual indices for any memory access. Early iterations of the code used
+lifted indices in lots of places, but GLK got confused, so the following summary of who
+calls whom ("who -- whom") was made to trace where [loi,hii] spans originate, and to
+ensure that all the functions here only take actual indices as parameters, including
+limnCbfTVT (which computes a tangent,vertex,tangent triple at a given point). Nearly all
+of the cleverness with lifted indices happens in limnCbfTVT, and its idxLift helper
+function ensures it gets actual indices.
+
+limnCbfTVT -- idxLift to convert given actual indices into lifted,
+              and does computations with lifted indices (with signed offsets)
+
+findAlpha -- spanLength (with given loi, hii)
+             (and otherwise only works with actual indices)
+
+findDist --  spanLength (with given loi, hii)
+             internally used lifted indices, but:
+             *** sets fctx->distMaxIdx to an actual index
+
+vttvCalcOrCopy -- limnCbfTVT (with given loi, hii, and vvi=loi or hii)
+
+fitSingle -- spanLength (with given loi, hii)
+          -- findAlpha (with given loi, hii)
+          -- findDist (with given loi, hii)
+
+limnCbfCorners -- limnCbfTVT (either: with loi=0 hii=pnum-1
+                                      and vvi also=0 or pnum-1
+                                  or: with loi=hii=0
+                                      and all vvi from 0..pnum-1
+
+limnCbfMulti -- vttvCalcOrCopy (with given loi,hii)
+             -- fitSingle (with given loi,hii)
+             -- limnCbfTVT (with given loi,hii and fctx->distMaxIdx)
+             -- limnCbfMulti (with given loi,hii and fctx->distMaxIdx)
+             -- limnCbfPathNew, limnCbfPathJoin, limnCbfPathJoin
+
+limnCbfGo -- limnCbfCtxPrep
+          -- limnCbfCorners
+          -- limnCbfMulti (either with loi==hii==0 or with loi,hii at corners)
+          -- limnCbfPathNew, limnCbfPathJoin, limnCbfPathNix
+*/
+
+/*
+TODO:
+test fitSingle uu initialization with points that are already exactly uniform
+test findDist - is distMaxIdx the correct actual index?
+testing corners: corners near and at start==stop of isLoop
+corners not at start or stop of isLoop: do spline wrap around from last to first index?
+
+use performance tests to explore optimal settings in fctx:
+  nrpIterMax, nrpCap, nrpIota, nrpPsi, nrpDeltaThresh
+evaluated in terms of time and #splines needed for fit
+(may want to pay in time for more economical representation)
+
+"What GLK hasn't thought through is: what is the interaction of nrp iterations and
+findAlpha generating the simple arc on some but not all iterations (possibly
+unstable?)"
+
+valgrind everything
+
+search for HEY (handle two adjacent equally strong corners)
+
+(DIM=2) explore what would be required to generalized from 2D to 3D,
+perhaps at least at the API level, even if 3D is not yet implemented
 */
 
 #define PNMIN(ISLOOP) ((ISLOOP) ? 4 : 3)
@@ -144,7 +229,7 @@ segInit(void *_seg) {
 }
 
 limnCbfPath * /* Biff: nope */
-limnCbfPathNew() {
+limnCbfPathNew(unsigned int segNum) {
   limnCbfPath *path;
   path = AIR_MALLOC(1, limnCbfPath);
   if (path) {
@@ -152,6 +237,13 @@ limnCbfPathNew() {
                                128 /* incr */);
     airArrayStructCB(path->segArr, segInit, NULL);
     path->isLoop = AIR_FALSE;
+    if (segNum) {
+      airArrayLenSet(path->segArr, segNum);
+      if (!path->segArr->data) {
+        /* whoa, couldn't allocate requested segments; return NULL and possibly leak */
+        path = NULL;
+      }
+    }
   }
   return path;
 }
@@ -197,8 +289,8 @@ ctxInit(limnCbfCtx *fctx) {
   fctx->cidx = NULL;
   fctx->ulen = fctx->wlen = fctx->cnum = 0;
   /* initialize outputs to bogus valus */
-  fctx->nrpIterDone = (uint)(-1);
-  fctx->distMaxIdx = (uint)(-1);
+  fctx->nrpIterDone = UINT_MAX;
+  fctx->distMaxIdx = UINT_MAX;
   fctx->distMax = AIR_POS_INF;
   fctx->nrpDeltaDone = AIR_POS_INF;
   fctx->alphaDet = 0;
@@ -280,7 +372,7 @@ ctxBuffersSet(limnCbfCtx *fctx, uint pNum) {
     const uint wlbig = 128;
     /* if the initial weights for the tangent computation sum to smaller than this
        (they will be later normalized to sum to 1) then something isn't right */
-    const double tinysum = 1.0 / 64;
+    const double tinysum = 1.0 / 128;
     double kw, kparm[2], vsum, tsum;
     uint wlen;
     /* else need to (possibly allocate and) set vw and tw buffers */
@@ -309,7 +401,7 @@ ctxBuffersSet(limnCbfCtx *fctx, uint pNum) {
     if (2 * wlen > pNum) {
       /* note: #verts involved in computation == 2*wlen - 1, so this is only going to
          complain only when ~all the verts are contributing to computations for each
-         vertex, which is pretty excessive */
+         vertex, which is clearly excessive */
       biffAddf(LIMN,
                "%s: weight buffer length %u (from scale %g) seems "
                "too large compared to #points %u",
@@ -517,16 +609,15 @@ limnCbfPathSample(double *xy, uint pNum, const limnCbfPath *path) {
 /* cheesy macro as short-hand to access either pp or ppOwn */
 #define PP(lpnt) ((lpnt)->pp ? (lpnt)->pp : (lpnt)->ppOwn)
 
-/* idxPrep: error-checked index processing for limnCbfTVT and maybe others
-This is messy because of the flexibility in how we handle points:
-might not be a loop (so an actual [loi,hii] vertex index span is needed),
-or, is a loop but still only working within bounds of [loi,hii] span,
-or, is a loop and [loi,hii]=[0,0] says that there are no bounds (aka "loopy")
-*/
+/* idxLift: error-checked index lifting (from "actual" to "lifted" indices, explained
+above) for limnCbfTVT and maybe others. This is messy because of the flexibility in how
+we handle points: might not be a loop (so an actual [loi,hii] vertex index span is
+needed), or, is a loop but still only working within bounds of [loi,hii] span, or, is a
+loop and [loi,hii]=[0,0] says that there are no bounds (aka "loopy") */
 static int /* Biff: 1 */
-idxPrep(uint *loiP, uint *hiiP, uint *vviP, int *loopyP, int verbose,
+idxLift(uint *loiP, uint *hiiP, uint *vviP, int *loopyP, int verbose,
         const limnCbfPoints *lpnt, uint gloi, uint ghii, uint gvvi) {
-  static const char me[] = "idxPrep";
+  static const char me[] = "idxLift";
   uint pnum, loi, hii, vvi;
   int loopy;
 
@@ -652,14 +743,14 @@ limnCbfTVT(double lt[2], double vv[2], double rt[2], const limnCbfCtx *fctx,
     printf("%s: hello: %u in [%u,%u] in %sloop with %u points (%s-sided)\n", me, gvvi,
            gloi, ghii, lpnt->isLoop ? "" : "NON-", lpnt->num, oneSided ? "1" : "2");
   }
-  if (idxPrep(&loi, &hii, &vvi, &loopy, fctx->verbose > 1, lpnt, gloi, ghii, gvvi)) {
+  if (idxLift(&loi, &hii, &vvi, &loopy, fctx->verbose > 1, lpnt, gloi, ghii, gvvi)) {
     biffAddf(LIMN, "%s: trouble with given loi %u, hii %u, or vvi %u", me, gloi, ghii,
              gvvi);
     return 1;
   }
   pnum = AIR_INT(lpnt->num); /* YES really needs to be signed int; see below */
   if (fctx->verbose) {
-    printf("%s: (post-idxPrep) %u in [%u,%u] -> %u in [%u,%u] (loopy=%d)\n", me, gvvi,
+    printf("%s: (post-idxLift) %u in [%u,%u] -> %u in [%u,%u] (loopy=%d)\n", me, gvvi,
            gloi, ghii, vvi, loi, hii, loopy);
   }
 
@@ -748,9 +839,9 @@ limnCbfTVT(double lt[2], double vv[2], double rt[2], const limnCbfCtx *fctx,
       }
     }
     {
-      /* limit distance from chosen (x,y) datapoint to posC to be (HEY harcoded) 95% of
-         fctx->epsilon. Being allowed to be further away can cause annoyances (for GLK in
-         some early stage of debugging) */
+      /* limit distance from chosen (x,y) datapoint to posC to be (yes, harcoded) 95% of
+      fctx->epsilon. Being allowed to be further away can cause annoyances (for GLK in
+      some early stage of debugging) */
       double off[2], offlen, okoff = 0.95 * fctx->epsilon; /* DIM=2 throughout */
       const double *xy = PP(lpnt) + 2 * icent; /* center vertex in given data */
       ELL_2V_SUB(off, posC, xy);     /* off = posC - xy, from given to computed */
@@ -773,16 +864,17 @@ limnCbfTVT(double lt[2], double vv[2], double rt[2], const limnCbfCtx *fctx,
   return 0;
 }
 
-/* utility function for counting how many vertices are in index span [loi,hii] inclusive.
-It is not our job here to care about lpnt->isLoop; we just assume that if we're faced
-with hii<loi, it must be because of a loop */
+/* utility function for counting how many vertices are in (actual) index span [loi,hii]
+inclusive. It is not our job here to care about lpnt->isLoop; we just assume that if
+we're faced with hii<loi, it must be because of a loop */
 static uint
 spanLength(const limnCbfPoints *lpnt, uint loi, uint hii) {
   uint topi = hii + (hii < loi) * (lpnt->num);
   return topi - loi + 1;
 }
 
-/* utility function for getting pointer to coords in lpnt, for point with index loi+ofi,
+/* utility function for getting pointer to coords in lpnt,
+for point with (lifted) index loi+ofi,
 while accounting for possibility of wrapping */
 static const double *
 pointPos(const limnCbfPoints *lpnt, uint loi, uint ofi) {
@@ -815,19 +907,18 @@ findAlpha(double alpha[2], limnCbfCtx *fctx, /* must be non-NULL */
           const double vv0[2], const double tt1[2], const double tt2[2],
           const double vv3[2], const limnCbfPoints *lpnt, uint loi, uint hii) {
   static const char me[] = "findAlpha";
-  uint ii, spanlen;
+  uint ii, spanlen = spanLength(lpnt, loi, hii);
   double det, F2L[2], lenF2L;
   const double *xy = PP(lpnt);
 
   ELL_2V_SUB(F2L, xy + 2 * hii, xy + 2 * loi); /* DIM=2 throughout this */
   lenF2L = ELL_2V_LEN(F2L);
-  spanlen = spanLength(lpnt, loi, hii);
   if (spanlen > 2) {
     double xx[2], m11, m12, m22, MM[4], MI[4];
     const double *uu = fctx->uu;
     xx[0] = xx[1] = m11 = m12 = m22 = 0;
     for (ii = 0; ii < spanlen; ii++) {
-      const double *xy;
+      const double *xy = pointPos(lpnt, loi, ii);
       double bb[4], Ai1[2], Ai2[2], Pi[2], dmP[2];
       double ui = uu[ii];
       VCBD0(bb, ui);
@@ -841,7 +932,6 @@ findAlpha(double alpha[2], limnCbfCtx *fctx, /* must be non-NULL */
       m12 += ELL_2V_DOT(Ai1, Ai2);
       m22 += ELL_2V_DOT(Ai2, Ai2);
       ELL_2V_SCALE_ADD2(Pi, bb[0] + bb[1], vv0, bb[2] + bb[3], vv3);
-      xy = pointPos(lpnt, loi, ii);
       ELL_2V_SUB(dmP, xy, Pi);
       xx[0] += ELL_2V_DOT(dmP, Ai1);
       xx[1] += ELL_2V_DOT(dmP, Ai2);
@@ -867,9 +957,8 @@ findAlpha(double alpha[2], limnCbfCtx *fctx, /* must be non-NULL */
         printf("%s: [%u,%u] spanlen %u tiny --> simple arc\n", me, loi, hii, spanlen);
       }
     }
-    /* generate simple arc: set both alphas to 1/3 of distance from
-       first to last point, but also handle non-unit-length tt1 and
-       tt2 */
+    /* generate simple arc: set both alphas to 1/3 of distance from first to last point,
+    but also handle non-unit-length tt1 and tt2 */
     alpha[0] = lenF2L / (3 * ELL_2V_LEN(tt1));
     alpha[1] = lenF2L / (3 * ELL_2V_LEN(tt2));
   } else {
@@ -905,7 +994,7 @@ reparm(const limnCbfCtx *fctx, /* must be non-NULL */
   /* only changing parameterization of interior points,
      not the first (ii=0) or last (ii=pNum-1) */
   for (ii = 1; ii < spanlen - 1; ii++) {
-    double numer, denom, delu, df[2], ww[4], tt, Q[2], QD[2], QDD[2];
+    double numer, denom, delu, absdelu, df[2], ww[4], tt, Q[2], QD[2], QDD[2];
     const double *xy;
     tt = uu[ii];
     CBD0(Q, vv0, vv1, vv2, vv3, tt, ww);
@@ -916,22 +1005,18 @@ reparm(const limnCbfCtx *fctx, /* must be non-NULL */
     numer = ELL_2V_DOT(df, QD);
     denom = ELL_2V_DOT(QD, QD) + ELL_2V_DOT(df, QDD);
     delu = numer / denom;
-    if (AIR_ABS(delu) > maxdelu) {
+    absdelu = fabs(delu);
+    if (absdelu > maxdelu) {
       /* cap Newton step */
-      delu = maxdelu * airSgn(delu);
+      delu *= maxdelu / absdelu;
     }
     uu[ii] = tt - delu;
-    delta += AIR_ABS(delu);
+    delta += fabs(delu);
     if (fctx->verbose > 1) {
       printf("%s[%2u]: %g <-- %g - %g\n", me, ii, uu[ii], tt, delu);
     }
   }
   delta /= spanlen - 2; /* number of interior points */
-  /* HEY TODO: need to make sure that half-way between points,
-     spline isn't wildly diverging; this can happen with the
-     spline making a loop away from a small number of points, e.g.:
-     4 points spline defined by vv0 = (1,1), tt1 = (1,2),
-     tt2 = (1,2), vv3 = (0,1) */
   return delta;
 }
 
@@ -941,6 +1026,7 @@ static void
 findDist(limnCbfCtx *fctx, const double alpha[2], const double vv0[2],
          const double tt1[2], const double tt2[2], const double vv3[2],
          const limnCbfPoints *lpnt, uint loi, uint hii) {
+  static const char me[] = "findDist";
   uint ii, distMaxIdx, spanlen;
   double vv1[2], vv2[2], distMax;
   const double *uu = fctx->uu;
@@ -949,25 +1035,26 @@ findDist(limnCbfCtx *fctx, const double alpha[2], const double vv0[2],
   assert(spanlen >= 3);
   ELL_2V_SCALE_ADD2(vv1, 1, vv0, alpha[0], tt1); /* DIM=2 everywhere here */
   ELL_2V_SCALE_ADD2(vv2, 1, vv3, alpha[1], tt2);
-  distMax = AIR_NAN;
+  distMax = -1; /* any computed distance will be >= 0 */
   /* NOTE that the first and last points are actually not part of the max distance
      calculation, which motivates ensuring that the endpoints generated by limnCbfTVT
      are actually sufficiently close to the first and last points (or else the fit spline
      won't meet the expected accuracy threshold) */
   for (ii = 1; ii < spanlen - 1; ii++) {
+    const double *xy = pointPos(lpnt, loi, ii);
     double len, Q[2], df[2], ww[4];
-    const double *xy;
     CBD0(Q, vv0, vv1, vv2, vv3, uu[ii], ww);
-    xy = pointPos(lpnt, loi, ii);
     ELL_2V_SUB(df, Q, xy);
     len = ELL_2V_LEN(df);
-    if (!AIR_EXISTS(distMax) || len > distMax) {
+    if (len > distMax) {
       distMax = len;
-      distMaxIdx = ii;
+      distMaxIdx = loi + ii; /* lifted index */
     }
   }
   fctx->distMax = distMax;
-  fctx->distMaxIdx = distMaxIdx;
+  /* we could use a lifted index for internal distMaxIdx but upon saving to fctx it needs
+     to be an actual index */
+  fctx->distMaxIdx = distMaxIdx % lpnt->num;
   fctx->distBig = (distMax <= fctx->nrpIota * fctx->epsilon
                      ? 0
                      : (distMax <= fctx->epsilon /* */
@@ -975,6 +1062,10 @@ findDist(limnCbfCtx *fctx, const double alpha[2], const double vv0[2],
                           : (distMax <= fctx->nrpPsi * fctx->epsilon /* */
                                ? 2
                                : 3)));
+  if (fctx->verbose > 2) {
+    printf("%s[%u,%u]: distMax %g @ %u (big %d)\n", me, loi, hii, fctx->distMax,
+           fctx->distMaxIdx, fctx->distBig);
+  }
   return;
 }
 
@@ -1003,7 +1094,7 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
           const double vv3[2], limnCbfCtx *fctx, const limnCbfPoints *lpnt, uint loi,
           uint hii) {
   static const char me[] = "fitSingle";
-  uint iter, pNum;
+  uint iter, spanlen = spanLength(lpnt, loi, hii);
 
   /* DIM=2 pretty much everywhere here */
   if (fctx->verbose) {
@@ -1011,9 +1102,8 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
            "tt2=(%g,%g), vv3=(%g,%g)\n",
            me, loi, hii, vv0[0], vv0[1], tt1[0], tt1[1], tt2[0], tt2[1], vv3[0], vv3[1]);
   }
-  pNum = spanLength(lpnt, loi, hii);
-  if (2 == pNum) {
-    /* relying on code in findAlpha() that handles pNum==2 */
+  if (2 == spanlen) {
+    /* relying on code in findAlpha() that handles slen==2 */
     findAlpha(alpha, fctx, vv0, tt1, tt2, vv3, lpnt, loi, hii);
     /* nrp is moot */
     fctx->nrpIterDone = 0;
@@ -1021,7 +1111,7 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
     fctx->distMax = fctx->nrpDeltaDone = 0;
     fctx->distMaxIdx = 0;
     fctx->distBig = 0;
-  } else {        /* pNum >= 3 */
+  } else {        /* slen >= 3 */
     double delta; /* avg parameterization change of interior points */
     {
       /* initialize uu parameterization to chord length */
@@ -1029,19 +1119,20 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
       double len;
       const double *xyP, *xyM;
       fctx->uu[0] = len = 0;
-      xyP = pointPos(lpnt, loi, 1);
       xyM = pointPos(lpnt, loi, 0);
-      for (ii = 1; ii < pNum; ii++) {
+      xyP = pointPos(lpnt, loi, 1);
+      for (ii = 1; ii < spanlen; ii++) {
         double dd[2];
         ELL_2V_SUB(dd, xyP, xyM);
         len += ELL_2V_LEN(dd);
         fctx->uu[ii] = len;
         xyM = xyP;
+        /* yes on last iter this is set to possibly bogus pointer but it's never used */
         xyP = pointPos(lpnt, loi, ii + 1);
       }
       delta = 0;
-      for (ii = 0; ii < pNum; ii++) {
-        if (ii < pNum - 1) {
+      for (ii = 0; ii < spanlen; ii++) {
+        if (ii < spanlen - 1) {
           fctx->uu[ii] /= len;
           delta += fctx->uu[ii];
         } else {
@@ -1052,7 +1143,7 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
           printf("%s[%d,%d]: intial uu[%u] = %g\n", me, loi, hii, ii, fctx->uu[ii]);
         }
       }
-      delta /= pNum - 2; /* within the pNum verts are pNum-2 interior verts */
+      delta /= spanlen - 2; /* within the pNum verts are pNum-2 interior verts */
       if (fctx->verbose) {
         printf("%s[%d,%d]: initial (chord length) delta = %g\n", me, loi, hii, delta);
       }
@@ -1088,6 +1179,14 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
           converged = AIR_TRUE;
           break;
         }
+        /* maybe TODO: add logic here to catch if delta is getting bigger and bigger,
+        i.e. the reparm is diverging instead of converging. A younger GLK seemed to think
+        this could happen with the spline making a loop away from a small number of
+        points, e.g.: 4 points on spline defined by vv0 = (1,1), tt1 = (1,2), tt2 =
+        (1,2), vv3 = (0,1). On the other hand, it's not like we have a strategy for
+        doing a different/smarter reparm to handle that, and if it does happen, our
+        failure to fit will likely (in the context of limnCbfMulti) merely trigger
+        subdivision, which isn't terrible */
       }
       if (fctx->verbose) {
         printf("%s[%d,%d]: nrp done after %u iters: ", me, loi, hii, iter);
@@ -1243,7 +1342,7 @@ limnCbfCorners(limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
     *tvt;        /* 6-by-pnum array of tangent,vertex,tangent */
   int *corny,    /* corny[i] means vertex i seems like a corner */
     oneSided = AIR_TRUE;
-  uint pnum = lpnt->num, loi = 0, hii, cnum, vi;
+  uint pnum = lpnt->num, hii, cnum, vi;
 
   if (!(fctx && lpnt)) {
     biffAddf(LIMN, "%s: got NULL pointer", me);
@@ -1266,13 +1365,13 @@ limnCbfCorners(limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
       }
       hii = pnum - 1;
       if (limnCbfTVT(fctx->ctvt + 0, fctx->ctvt + 2, fctx->ctvt + 4, /* */
-                     fctx, lpnt, loi, hii, 0, oneSided)
+                     fctx, lpnt, 0, hii, 0, oneSided)
           || limnCbfTVT(fctx->ctvt + 6, fctx->ctvt + 8, fctx->ctvt + 10, /* */
-                        fctx, lpnt, loi, hii, hii, oneSided)) {
+                        fctx, lpnt, 0, hii, hii, oneSided)) {
         biffAddf(LIMN, "%s: trouble with tangents or vertices for endpoints", me);
         return 1;
       }
-      fctx->cidx[0] = loi;
+      fctx->cidx[0] = 0;
       fctx->cidx[1] = hii;
     }
     return 0;
@@ -1280,7 +1379,7 @@ limnCbfCorners(limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
 
   /* else we search for corners */
   mop = airMopNew();
-  /* allocate arrays and add them to the mop, but bails if any allocation fails */
+  /* allocate arrays and add them to the mop, but bail if any allocation fails */
   if (!((angle = AIR_CALLOC(pnum, double))
         && (airMopAdd(mop, angle, airFree, airMopAlways), 1)
         && (corny = AIR_CALLOC(pnum, int))
@@ -1424,10 +1523,10 @@ limnCbfMulti(limnCbfPath *path, const double vv0[2], const double tt1[2],
     uint midi = fctx->distMaxIdx;
     double TL[2], VM[2], TR[2];
     limnCbfCtx fctxL, fctxR;
-    limnCbfPath *pRth = limnCbfPathNew(); /* path on right side of new middle */
-    /* HEY holy heck sneakiness: we make two shallow copies of the context, because we
-       need each one's output information, but we don't need to re-allocate any of the
-       internal buffers, because there is no concurrency */
+    limnCbfPath *pRth = limnCbfPathNew(0); /* path on right side of new middle */
+    /* holy moly sneakiness: we make two shallow copies of the context, because we
+    need each one's output information, but we don't need to re-allocate any of the
+    internal buffers, because there is no concurrency */
     memcpy(&fctxL, fctx, sizeof(limnCbfCtx));
     memcpy(&fctxR, fctx, sizeof(limnCbfCtx));
     if (fctx->verbose) {
@@ -1515,7 +1614,7 @@ limnCbfGo(limnCbfPath *path, limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
     uint cii;
     for (cii = 0; cii < fctx->cnum; cii++) {
       uint cjj = (cii + 1) % fctx->cnum;
-      limnCbfPath *subpath = limnCbfPathNew();
+      limnCbfPath *subpath = limnCbfPathNew(0);
       /* 0: left tangent   2: vertex   4: right tangent */
       const double *V0 = fctx->ctvt + 2 * cii, *T1 = fctx->ctvt + 4 * cii,
                    *T2 = fctx->ctvt + 0 * cjj, *V3 = fctx->ctvt + 2 * cjj;
@@ -1541,32 +1640,3 @@ limnCbfGo(limnCbfPath *path, limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
   path->isLoop = lpnt->isLoop;
   return 0;
 }
-
-/*
-TODO:
-
-testing corners: corners near and at start==stop of isLoop
-corners not at start or stop of isLoop: do spline wrap around from last to first index?
-
-use performance tests to explore optimal settings in fctx:
-  nrpIterMax, nrpCap, nrpIota, nrpPsi, nrpDeltaThresh
-evaluated in terms of time and #splines needed for fit
-(may want to pay in time for more economical representation)
-
-"What GLK hasn't thought through is: what is the interaction of nrp iterations and
-findAlpha generating the simple arc on some but not all iterations (possibly
-unstable?)"
-
-reparm: "HEY TODO: need to make sure that half-way between points,
-     spline isn't wildly diverging; this can happen with the
-     spline making a loop away from a small number of points, e.g.:
-     4 points spline defined by vv0 = (1,1), tt1 = (1,2),
-     tt2 = (1,2), vv3 = (0,1)"
-
-valgrind everything
-
-search for HEY
-
-(DIM=2) explore what would be required to generalized from 2D to 3D,
-perhaps at least at the API level, even if 3D is not yet implemented
-*/

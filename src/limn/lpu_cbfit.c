@@ -35,7 +35,7 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   Nrrd *_nin, *nin;
   double *xy, deltaThresh, psi, cangle, epsilon, nrpIota, time0, dtime, scale, synthPow;
-  unsigned int ii, synthNum, pNum, nrpIterMax;
+  unsigned int size0, size1, ii, synthNum, pNum, nrpIterMax;
   int loop, petc, verbose, tvt[4], fitSingleLoHi[2];
   char *synthOut;
   limnCbfCtx *fctx;
@@ -51,9 +51,10 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                     "if saving spline sampling to -so, how many sample.");
   hestOptAdd_1_String(
     &hopt, "syntho", "synth out", &synthOut, "",
-    "if non-empty, input xy points are actually control points for a single spline "
-    "segment, to be sampled -sn times, and this is the filename into which to save "
-    "the synthesized xy pts, and then quit without any fitting.");
+    "if non-empty, input xy points are actually either: (1) 2-by-4 array of control "
+    "points for a single spline segment, or (2) an 8-by-N array for a sequence of "
+    "splines; either way the path should be sampled -sn times, and this is the filename "
+    "into which to save the synthesized xy pts, and then quit without any fitting.");
   hestOptAdd_1_Double(&hopt, "sup", "expo", &synthPow, "1",
                       "when synthesizing data on a single segment, warp U parameters "
                       "by raising to this power.");
@@ -91,17 +92,24 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   PARSE(myinfo);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!(2 == _nin->dim && 2 == _nin->axis[0].size)) {
-    fprintf(stderr,
-            "%s: want 2-D (not %u) array with axis[0].size "
-            "2 (not %u)\n",
-            me, _nin->dim, (unsigned int)_nin->axis[0].size);
+  if (!(2 == _nin->dim)) {
+    fprintf(stderr, "%s: need 2-D (not %u) input array\n", me, _nin->dim);
     airMopError(mop);
     return 1;
   }
-  if (airStrlen(synthOut) && 4 != _nin->axis[1].size) {
-    fprintf(stderr, "%s: need 2-by-4 array (not 2-by-%u) for synthetic xy\n", me,
-            (unsigned int)_nin->axis[1].size);
+  size0 = AIR_UINT(_nin->axis[0].size);
+  size1 = AIR_UINT(_nin->axis[1].size);
+  if (airStrlen(synthOut)) {
+    if (!((2 == size0 && 4 == size1) || (8 == size0))) {
+      fprintf(stderr,
+              "%s: for synthesizing, need either 2-by-4 array or "
+              "8-by-N (not %u-by-%u)\n",
+              me, size0, size1);
+      airMopError(mop);
+      return 1;
+    }
+  } else if (!(2 == size0)) {
+    fprintf(stderr, "%s: need 2-by-N input XY points (not %u-by-N)", me, size0);
     airMopError(mop);
     return 1;
   }
@@ -119,7 +127,6 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     /* synthesize data from control points */
     double *cpt = (double *)nin->data;
     limnCbfSeg seg;
-    int ci;
     Nrrd *nsyn;
     if (!(synthNum >= 3)) {
       fprintf(stderr, "%s: for data synthesis need at least 3 samples (not %u)\n", me,
@@ -127,18 +134,37 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
       airMopError(mop);
       return 1;
     }
-    for (ci = 0; ci < 4; ci++) {
-      ELL_2V_COPY(seg.xy + 2 * ci, cpt + 2 * ci);
-    }
-    printf("%s: synth seg: (%g,%g) -- (%g,%g) -- (%g,%g) -- (%g,%g)\n", me, seg.xy[0],
-           seg.xy[1], seg.xy[2], seg.xy[3], seg.xy[4], seg.xy[5], seg.xy[6], seg.xy[7]);
     xy = AIR_MALLOC(2 * synthNum, double);
     airMopAdd(mop, xy, airFree, airMopAlways);
-    for (ii = 0; ii < synthNum; ii++) {
-      double uu = AIR_AFFINE(0, ii, synthNum - 1, 0, 1);
-      uu = pow(uu, synthPow);
-      limnCbfSegEval(xy + 2 * ii, &seg, uu);
+    if (2 == size0) {
+      unsigned int ci;
+      printf("%s: synthetically sampling single spline with %u points", me, synthNum);
+      for (ci = 0; ci < 8; ci++) {
+        seg.xy[ci] = cpt[ci];
+      }
+      printf("%s: synth seg: (%g,%g) -- (%g,%g) -- (%g,%g) -- (%g,%g)\n", me, seg.xy[0],
+             seg.xy[1], seg.xy[2], seg.xy[3], seg.xy[4], seg.xy[5], seg.xy[6],
+             seg.xy[7]);
+      for (ii = 0; ii < synthNum; ii++) {
+        double uu = AIR_AFFINE(0, ii, synthNum - 1, 0, 1);
+        uu = pow(uu, synthPow);
+        limnCbfSegEval(xy + 2 * ii, &seg, uu);
+      }
+    } else {
+      unsigned int ci, si;
+      limnCbfPath *spath = limnCbfPathNew(size1);
+      airMopAdd(mop, spath, (airMopper)limnCbfPathNix, airMopAlways);
+      printf("%s: synthetically sampling %u splines with %u points", me, size1,
+             synthNum);
+      /* copy in control point data */
+      for (si = 0; si < size1; si++) {
+        for (ci = 0; ci < 8; ci++) {
+          spath->seg[si].xy[ci] = (cpt + 8 * si)[ci];
+        }
+      }
+      limnCbfPathSample(xy, synthNum, spath);
     }
+
     nsyn = nrrdNew();
     airMopAdd(mop, nsyn, (airMopper)nrrdNix, airMopAlways);
     if (nrrdWrap_va(nsyn, xy, nrrdTypeDouble, 2, (size_t)2, (size_t)synthNum)
@@ -162,7 +188,7 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     return 1;
   }
   airMopAdd(mop, lpnt, (airMopper)limnCbfPointsNix, airMopAlways);
-  path = limnCbfPathNew();
+  path = limnCbfPathNew(0);
   airMopAdd(mop, path, (airMopper)limnCbfPathNix, airMopAlways);
   fctx = limnCbfCtxNew();
   airMopAdd(mop, fctx, (airMopper)limnCbfCtxNix, airMopAlways);
