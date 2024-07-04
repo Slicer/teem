@@ -911,7 +911,7 @@ LIMN_EXPORT limnCbfPoints *limnCbfPointsNew(const void *pdata, int ptype,
                                             int isLoop);
 LIMN_EXPORT limnCbfPoints *limnCbfPointsNix(limnCbfPoints *lpnt);
 LIMN_EXPORT int limnCbfPointsCheck(const limnCbfPoints *lpnt);
-LIMN_EXPORT limnCbfPath *limnCbfPathNew(void);
+LIMN_EXPORT limnCbfPath *limnCbfPathNew(unsigned segNum);
 LIMN_EXPORT limnCbfPath *limnCbfPathNix(limnCbfPath *path);
 LIMN_EXPORT void limnCbfPathJoin(limnCbfPath *dst, const limnCbfPath *src);
 LIMN_EXPORT limnCbfCtx *limnCbfCtxNew();
