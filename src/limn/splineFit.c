@@ -30,15 +30,18 @@ In Graphics Gems, Academic Press, 1990, pp. 612–626.
 https://dl.acm.org/doi/10.5555/90767.90941
 The author's code is here:
 http://www.realtimerendering.com/resources/GraphicsGems/gems/FitCurves.c
+but the code here was based more on reading the paper, than their code. Also, that code
+does not handle point loops, and does not handle smoothing built into tangent estimation,
+which were important to GLK, but which added significant implementation complexity.
 
 The functions below do not use any other limnSpline structs or functions, since those
 were written a long time ago when GLK was even more ignorant than now about splines.
-Hopefully that other code can be revisited and re-organized for a later version of
+Hopefully that older code can be revisited and re-organized for a later version of
 Teem, at which point the code below can be integrated with it.
 
 NOTE: spline fitting would be useful in 3D (or higher dimensions) too, but currently
 this code only supports 2D. "DIM=2" flags places in code where that is explicit, with
-the hope that this code can later by generalized.
+the hope that this code can later be generalized.
 
 NOTE: In Teem coding standards, "Cbf" would be better written as "CBF", but all these
 initials got annoying with other CamelCase function names.
@@ -610,20 +613,23 @@ limnCbfPathSample(double *xy, uint pNum, const limnCbfPath *path) {
 #define PP(lpnt) ((lpnt)->pp ? (lpnt)->pp : (lpnt)->ppOwn)
 
 /* idxLift: error-checked index lifting (from "actual" to "lifted" indices, explained
-above) for limnCbfTVT and maybe others. This is messy because of the flexibility in how
-we handle points: might not be a loop (so an actual [loi,hii] vertex index span is
-needed), or, is a loop but still only working within bounds of [loi,hii] span, or, is a
-loop and [loi,hii]=[0,0] says that there are no bounds (aka "loopy") */
+above) for limnCbfTVT and maybe others. If no error, *loiP will be same as given gloi,
+but in loops *vviP and *hiiP may be lifted (relative to gvvi and ghii), and outside loops
+*hiiP may be changed to #points-1.
+
+That sounds like nothing fancy, but this is messy because of the flexibility in how we
+handle points: might not be a loop or might not, and, consideration of vertices should
+either be bounded in a specific [loi,hii] or be "unbounded" loi==hii==0 (truly unbounded
+in a loop, or bounded only as much as needed in non-loop data). */
 static int /* Biff: 1 */
-idxLift(uint *loiP, uint *hiiP, uint *vviP, int *loopyP, int verbose,
-        const limnCbfPoints *lpnt, uint gloi, uint ghii, uint gvvi) {
+idxLift(uint *loiP, uint *hiiP, uint *vviP, int verbose, const limnCbfPoints *lpnt,
+        uint gloi, uint ghii, uint gvvi) {
   static const char me[] = "idxLift";
-  uint pnum, loi, hii, vvi;
-  int loopy;
+  uint pnum = lpnt->num, loi, hii, vvi;
 
   *loiP = *hiiP = *vviP = UINT_MAX; /* initialize to bogus indices */
-  pnum = lpnt->num;
   if (!(pnum < (1U << 29))) {
+    /* UB = undefined behavior */
     biffAddf(LIMN, "%s: # points %u seems too big (to stay well clear of UB)", me, pnum);
     return 1;
   }
@@ -632,64 +638,62 @@ idxLift(uint *loiP, uint *hiiP, uint *vviP, int *loopyP, int verbose,
              ghii, gvvi, pnum);
     return 1;
   }
+  /* now all of gloi, gvvi, ghii are all valid actual indices */
   if (gloi == ghii && ghii != 0) {
-    biffAddf(
-      LIMN,
-      "%s: can only have gloi == ghii if both 0 (not %u), to signify no bounds in "
-      "point loop%s",
-      me, gloi,
-      lpnt->isLoop ? "" /* it is a loop */
-                   : " (and these points aren't in a loop anyway!)");
+    biffAddf(LIMN,
+             "%s: can only have gloi == ghii if both 0 (not %u), "
+             "to signify unbounded vertex consideration",
+             me, gloi);
     return 1;
   }
-  /* else loi == hii implies loi == hii == 0 */
+  /* initialize values to return */
   loi = gloi;
   hii = ghii;
   vvi = gvvi;
   if (lpnt->isLoop) {
-    if (0 == gloi && 0 == ghii) {
-      loopy = AIR_TRUE;
-    } else {
-      if (ghii < gloi) hii += pnum;
-      if (gvvi < gloi) vvi += pnum;
-      loopy = AIR_FALSE;
+    if (gloi != ghii) { /* implies both == 0 because of test above */
+      if (gloi > ghii) hii += pnum;
+      if (gloi > gvvi) vvi += pnum;
     }
   } else {
-    if (0 == gloi && 0 == ghii) {
-      biffAddf(LIMN, "%s: can only have given loi == hii == 0 with point loop", me);
-      return 1;
+    if (gloi == ghii) { /* (implies both == 0, again) */
+      /* we allow loi==hii==0 in non-loop to say: only bounded by data itself
+      loi is already 0, but hii needs fixing */
+      hii = pnum - 1;
+    } else {
+      if (gloi > ghii) {
+        biffAddf(LIMN,
+                 "%s: if loi != hii, need loi (%u) < hii (%u) since not in a "
+                 "point loop",
+                 me, gloi, ghii);
+        return 1;
+      }
+      if (gloi > gvvi) {
+        biffAddf(LIMN, "%s: need given loi (%u) < vvi (%u) since not in point loop", me,
+                 gloi, gvvi);
+        return 1;
+      }
     }
-    if (!(gloi < ghii)) {
-      biffAddf(LIMN, "%s: need given loi (%u) < hii (%u) since not in point loop", me,
-               gloi, ghii);
-      return 1;
-    }
-    if (!(gvvi <= ghii)) {
-      biffAddf(LIMN, "%s: need given vvi (%u) < hhi (%u) since not in point loop", me,
-               gvvi, ghii);
-      return 1;
-    }
-    loopy = AIR_FALSE;
   }
+  /* now: must have loi <= vvi and loi <= hii */
   if (verbose) {
-    printf("%s: given loi,hii,vvi %u %u %u --> my %u %u %u  loopy %d\n", me, gloi, ghii,
-           gvvi, loi, hii, vvi, loopy);
+    printf("%s: given loi,hii,vvi %u %u %u --> lifted %u %u %u\n", me, gloi, ghii, gvvi,
+           loi, hii, vvi);
   }
-  /* now: must have loi < hii and vvi < hii */
-  if (!loopy) {
+  if (loi < hii) {
     /* need to check that vvi is inside consequential bounds [loi,hii] */
-    if (!(loi <= vvi && vvi <= hii)) {
-      biffAddf(LIMN, "%s: vvi %u->%u not in [%u,%u]->[%u,%u] span (not in loop)", me,
-               gvvi, vvi, gloi, ghii, loi, hii);
+    if (vvi > hii) {
+      biffAddf(LIMN, "%s: vvi %u->%u not in [%u,%u]->[%u,%u] span", me, gvvi, vvi, gloi,
+               ghii, loi, hii);
       return 1;
     }
+    /* now (if bounded) have vvi <= hii */
   }
 
   /* all's well, set output values */
   *loiP = loi;
   *hiiP = hii;
   *vviP = vvi;
-  *loopyP = loopy;
   return 0;
 }
 
@@ -700,18 +704,38 @@ subnorm2(double dir[2], const double aa[2], const double bb[2]) {
   ELL_2V_NORM(dir, dir, len); /* normalize(dir) */
 }
 
+/* utility function for getting pointer to position coordinates in lpnt,
+for point with signed and lifted index ssi. So this is the single place
+that we go from lifted index to actual index */
+static const double *
+PPlowerI(const limnCbfPoints *lpnt, int ssi) {
+  int pnum = lpnt->num;
+  ssi = AIR_MOD(ssi, pnum);
+  return PP(lpnt) + 2 * ssi; /* DIM=2 */
+}
+
+/* utility function for counting how many vertices are in (actual) index span [loi,hii]
+inclusive. It is not our job here to care about lpnt->isLoop; we just assume that if
+we're faced with hii<loi, it must be because of a loop */
+static uint
+spanLength(const limnCbfPoints *lpnt, uint loi, uint hii) {
+  uint topi = hii + (hii < loi) * (lpnt->num);
+  return topi - loi + 1;
+}
+
 /*
 limnCbfTVT: Find constraints for spline fitting: incoming/left tangent lt, center or
 endpoint vertex vv, outgoing/right tangent rt; any but not all can be NULL. These are
-computed from the given points lpnt, at given vertex index gvvi, looking only within
-vertex index range [gloi, ghii]: that range is probably delimited by corners, and we have
-to be blind to anything past the corners on either side of us. HOWEVER, f gloi==ghii==0
-and lpnt is a point loop, then we can look at all the points.
+computed from the given points lpnt, at given vertex (actual) index gvvi, looking only
+within (actual) index range [gloi, ghii] if gloi!=ghii: that range is probably delimited
+by corners, and we have to be blind to anything past the corners on either side of us.
+HOWEVER, if gloi==ghii==0 and lpnt is a point loop, then we can look at all the points.
 
 Given that this is the inner-loop of other things, it would make sense to have a
 non-public version without all the error checking, but given the prolonged birthing pain
-of the code in this file, the error-checking is a useful and welcome safety-net, and is
-ok until profiling shows it is actually a problem.
+of the code in this file, the error-checking is a useful and welcome safety-net (and
+being a public function permits easier testing), and that is all ok until profiling shows
+that we are a bottleneck.
 
 NOTE: this assumes that limnCbfCtxPrep(fctx, lpnt) was called without error!
 That (via ctxBuffersSet) allocates things that we depend on here.
@@ -720,71 +744,60 @@ int /* Biff: 1 */
 limnCbfTVT(double lt[2], double vv[2], double rt[2], const limnCbfCtx *fctx,
            const limnCbfPoints *lpnt, uint gloi, uint ghii, uint gvvi, int oneSided) {
   static const char me[] = "limnCbfTVT";
+  uint loi, /* error-checked gloi */
+    hii,    /* error-checked ghii, lifted if needed */
+    vvi;    /* error-checked gvvi, lifted if needed */
   /* we use here (signed) int for things that might seem better as uint, but it
      simplifies implementing arithmetic and comparisons given how indices wrap around in
      point loops */
-  uint loi,     /* error-checked gloi */
-    hii,        /* error-checked ghii, with loop handling */
-    vvi;        /* error-checked gvvi, with loop handling */
-  int slo, shi, /* signed versions of loi, hii */
-    pnum,       /* total number of points in lpnts */
-    loopy, /* lpnt->isLoop && 0 == loi == hii, i.e. there are no bounds on indices */
-    icent, iplus, imnus; /* icent is the actual data index corresponding to vvi; it is
-                            used for both the scale==0 and scale>0 cases; iplus and imnus
-                            are only needed with scale==0, but breaking those out into
-                            that specific branch is not worth the copypasta */
+  int slo, shi, svi; /* signed versions of loi, hii, vvi */
 
   if (!((lt || vv || rt) && fctx && lpnt)) {
     biffAddf(LIMN, "%s: got NULL pointer (or too many NULL pointers)", me);
     return 1;
   }
-  /* so: each of lt, vv, rt can be NULL (they just can't be all NULL) */
+  /* so: each of lt, vv, rt can be NULL
+     (they just can't be all NULL, or else why are we being called) */
   if (fctx->verbose > 1) {
     printf("%s: hello: %u in [%u,%u] in %sloop with %u points (%s-sided)\n", me, gvvi,
            gloi, ghii, lpnt->isLoop ? "" : "NON-", lpnt->num, oneSided ? "1" : "2");
   }
-  if (idxLift(&loi, &hii, &vvi, &loopy, fctx->verbose > 1, lpnt, gloi, ghii, gvvi)) {
+  if (idxLift(&loi, &hii, &vvi, fctx->verbose > 1, lpnt, gloi, ghii, gvvi)) {
     biffAddf(LIMN, "%s: trouble with given loi %u, hii %u, or vvi %u", me, gloi, ghii,
              gvvi);
     return 1;
   }
-  pnum = AIR_INT(lpnt->num); /* YES really needs to be signed int; see below */
+  /* NOTE: If scale==0, then we will get NaNs for left tangent if loi == vvi, and for
+  right tangent if hii == vvi, but will avoid NaNs if scale > 0. Because it will be too
+  annoying to require being called in different ways depending on scale, we do *not* do
+  error-checking to prevent NaN generation. */
   if (fctx->verbose) {
-    printf("%s: (post-idxLift) %u in [%u,%u] -> %u in [%u,%u] (loopy=%d)\n", me, gvvi,
-           gloi, ghii, vvi, loi, hii, loopy);
+    printf("%s: (post-idxLift) %u in [%u,%u] -> %u in [%u,%u]\n", me, gvvi, gloi, ghii,
+           vvi, loi, hii);
   }
 
-  /* now:
-  -- 0 == loi == hii implies lpnt->isLoop (and this is called "loopy")
-     (but loopy does not imply lpnt->isLoop: can work in loop on sub-span overlapping 0)
-  -- loi == hii != 0 is always impossible
-  -- always: loi < hii (even if given ghii < gloi), and thus any indices in range
-     [loi,hii] need to be mod'd with pnum before indexing into PP(lpnt) */
-  /* ------------------- now switch to signed ints ------------------- */
+  /* ----------- now switch to signed (lifted) indices ---------- */
   slo = AIR_INT(loi);
   shi = AIR_INT(hii);
-  icent = AIR_INT(vvi);
-  iplus = icent + 1;
-  imnus = icent - 1;
-  if (!loopy) {
-    /* this is the code that motivated if (hii < loi) hii += pnum;
-       otherwise clamping is too annoying */
-    icent = AIR_CLAMP(slo, icent, shi);
-    iplus = AIR_CLAMP(slo, iplus, shi);
-    imnus = AIR_CLAMP(slo, imnus, shi);
-  }
-  /* now map to actual indices */
-  icent = AIR_MOD(icent, pnum);
-  iplus = AIR_MOD(iplus, pnum);
-  imnus = AIR_MOD(imnus, pnum);
+  svi = AIR_INT(vvi);
   if (0 == fctx->scale) {
     /* DIM=2 through-out */
-    const double *xyC = PP(lpnt) + 2 * icent, *xyP, *xyM;
+    const double *xyC, *xyP, *xyM;
+    int iplus = svi + 1, imnus = svi - 1;
+    if (slo < shi) { /* bounded */
+      iplus = AIR_CLAMP(slo, iplus, shi);
+      imnus = AIR_CLAMP(slo, imnus, shi);
+    }
+    xyM = PPlowerI(lpnt, imnus);
+    xyC = PPlowerI(lpnt, svi);
+    xyP = PPlowerI(lpnt, iplus);
+    if (fctx->verbose > 1) {
+      printf("%s: %d | %d | %d --> (%g,%g)|(%g,%g)|(%g,%g)\n", me, imnus, svi, iplus,
+             xyM[0], xyM[1], xyC[0], xyC[1], xyP[0], xyP[1]);
+    }
     if (vv) {
       ELL_2V_COPY(vv, xyC);
     }
-    xyP = PP(lpnt) + 2 * iplus;
-    xyM = PP(lpnt) + 2 * imnus;
     if (rt) {
       subnorm2(rt, xyP, oneSided ? xyC : xyM);
     }
@@ -796,43 +809,41 @@ limnCbfTVT(double lt[2], double vv[2], double rt[2], const limnCbfCtx *fctx,
     /* for simplicity: regardless of dir, we compute average positions for points
        centered around loi + ofi (posC), and for lower/higher indices (posM/posP) */
     double posM[2] = {0, 0}, posC[2] = {0, 0}, posP[2] = {0, 0};
-    const double *vw = fctx->vw;
-    const double *tw = fctx->tw;
+    const double *vwa = fctx->vw;
+    const double *twa = fctx->tw;
     int lim = (int)fctx->wlen - 1, /* limit on loop index */
       ci;                          /* loops through [-lim,lim] */
-    if (!(vw && tw)) {
+    if (!(vwa && twa)) {
       biffAddf(LIMN, "%s: fctx internal buffers vw and tw not both allocated", me);
       return 1;
     }
-    if (tw[0] != 0) {
-      biffAddf(LIMN, "%s: first tangent weight fctx->tw[0] %g not zero", me, tw[0]);
+    if (twa[0] != 0) {
+      biffAddf(LIMN, "%s: first tangent weight fctx->tw[0] %g not zero", me, twa[0]);
       return 1;
     }
     for (ci = -lim; ci <= lim; ci++) {
-      uint wi = abs(ci);   /* weight index into vw, tw */
-      int di = icent + ci, /* signed (and not %-ed) index into data */
-        cdi,               /* clamped data index */
-        adi;               /* actual data index */
-      const double *xy;
-      cdi = loopy ? di : AIR_CLAMP(slo, di, shi);
-      adi = AIR_MOD(cdi, pnum);
-      xy = PP(lpnt) + 2 * adi;
-      ELL_2V_SCALE_INCR(posC, vw[wi], xy);
+      uint wi = abs(ci);                 /* weight index into vwa, twa */
+      double vw = vwa[wi], tw = twa[wi]; /* current vert and tan weights */
+      int sui = svi + ci;                /* signed, unbounded, vertex index */
+      int sbi = slo < shi                /* signed, bounded, vertex index */
+                ? AIR_CLAMP(slo, sui, shi)
+                : sui;
+      const double *xy = PPlowerI(lpnt, sbi); /* coords at sbi */
+      ELL_2V_SCALE_INCR(posC, vw, xy);
       if (fctx->verbose > 1) {
-        printf(
-          "%s: ci=%d (in [%d,%d])  di=%d  cdi=%d (in[%d,%d])  adi=%d; v,t w %g,%g on "
-          "xy=(%g,%g)\n",
-          me, ci, -lim, lim, di, cdi, slo, shi, adi, vw[wi], tw[wi], xy[0], xy[1]);
+        printf("%s: ci=%d (in [%d,%d]) idx %d --[%d,%d]--> %d;  v,t w %g,%g on "
+               "xy=(%g,%g)\n",
+               me, ci, -lim, lim, sui, slo, shi, sbi, vw, tw, xy[0], xy[1]);
         printf("%s:   ---> posC=(%g,%g)\n", me, posC[0], posC[1]);
       }
       if (ci < 0) {
-        ELL_2V_SCALE_INCR(posM, tw[wi], xy);
+        ELL_2V_SCALE_INCR(posM, tw, xy);
         if (fctx->verbose > 1) {
           printf("%s:   ---> posM=(%g,%g)\n", me, posM[0], posM[1]);
         }
       }
       if (ci > 0) {
-        ELL_2V_SCALE_INCR(posP, tw[wi], xy);
+        ELL_2V_SCALE_INCR(posP, tw, xy);
         if (fctx->verbose > 1) {
           printf("%s:   ---> posP=(%g,%g)\n", me, posP[0], posP[1]);
         }
@@ -842,14 +853,21 @@ limnCbfTVT(double lt[2], double vv[2], double rt[2], const limnCbfCtx *fctx,
       /* limit distance from chosen (x,y) datapoint to posC to be (yes, harcoded) 95% of
       fctx->epsilon. Being allowed to be further away can cause annoyances (for GLK in
       some early stage of debugging) */
-      double off[2], offlen, okoff = 0.95 * fctx->epsilon; /* DIM=2 throughout */
-      const double *xy = PP(lpnt) + 2 * icent; /* center vertex in given data */
+      double off[2], offlen, clofflen,
+        okoff = 0.95 * fctx->epsilon;         /* DIM=2 throughout */
+      const double *xy = PPlowerI(lpnt, svi); /* center vertex in given data */
       ELL_2V_SUB(off, posC, xy);     /* off = posC - xy, from given to computed */
       ELL_2V_NORM(off, off, offlen); /* offlen = |off|; off /= |off| */
-      offlen = AIR_MIN(okoff, offlen);
+      clofflen = AIR_MIN(okoff, offlen);
       /* difference between chosen (x,y) datapoint and spline endpoint
          can be in any direction, but we limit the length */
-      ELL_2V_SCALE_ADD2(posC, 1, xy, offlen, off);
+      ELL_2V_SCALE_ADD2(posC, 1, xy, clofflen, off);
+      if (fctx->verbose > 1) {
+        printf("%s: clamping |posC - xy[%d]=(%g,%g)| dist %g to %g = %g --> (%g,%g)\n",
+               me, svi, xy[0], xy[1], offlen, okoff, clofflen, posC[0], posC[1]);
+        printf("%s:   also: posM = (%g,%g)     posP = (%g,%g)\n", me, posM[0], posM[0],
+               posP[0], posP[1]);
+      }
     }
     if (lt) {
       subnorm2(lt, posM, oneSided ? posC : posP);
@@ -862,24 +880,6 @@ limnCbfTVT(double lt[2], double vv[2], double rt[2], const limnCbfCtx *fctx,
     }
   }
   return 0;
-}
-
-/* utility function for counting how many vertices are in (actual) index span [loi,hii]
-inclusive. It is not our job here to care about lpnt->isLoop; we just assume that if
-we're faced with hii<loi, it must be because of a loop */
-static uint
-spanLength(const limnCbfPoints *lpnt, uint loi, uint hii) {
-  uint topi = hii + (hii < loi) * (lpnt->num);
-  return topi - loi + 1;
-}
-
-/* utility function for getting pointer to coords in lpnt,
-for point with (lifted) index loi+ofi,
-while accounting for possibility of wrapping */
-static const double *
-pointPos(const limnCbfPoints *lpnt, uint loi, uint ofi) {
-  uint ii = (loi + ofi) % lpnt->num;
-  return PP(lpnt) + 2 * ii; /* DIM=2 */
 }
 
 /*
@@ -918,7 +918,7 @@ findAlpha(double alpha[2], limnCbfCtx *fctx, /* must be non-NULL */
     const double *uu = fctx->uu;
     xx[0] = xx[1] = m11 = m12 = m22 = 0;
     for (ii = 0; ii < spanlen; ii++) {
-      const double *xy = pointPos(lpnt, loi, ii);
+      const double *xy = PPlowerI(lpnt, AIR_INT(loi + ii));
       double bb[4], Ai1[2], Ai2[2], Pi[2], dmP[2];
       double ui = uu[ii];
       VCBD0(bb, ui);
@@ -939,7 +939,7 @@ findAlpha(double alpha[2], limnCbfCtx *fctx, /* must be non-NULL */
     ELL_4V_SET(MM, m11, m12, m12, m22);
     ELL_2M_INV(MI, MM, det);
     ELL_2MV_MUL(alpha, MI, xx);
-  } else {                   /* pNum <= 2 */
+  } else {                   /* spanlen <= 2 */
     det = 1;                 /* bogus but harmless */
     alpha[0] = alpha[1] = 0; /* trigger simple arc code */
   }
@@ -1000,7 +1000,7 @@ reparm(const limnCbfCtx *fctx, /* must be non-NULL */
     CBD0(Q, vv0, vv1, vv2, vv3, tt, ww);
     CBD1(QD, vv0, vv1, vv2, vv3, tt, ww);
     CBD2(QDD, vv0, vv1, vv2, vv3, tt, ww);
-    xy = pointPos(lpnt, loi, ii);
+    xy = PPlowerI(lpnt, AIR_INT(loi + ii));
     ELL_2V_SUB(df, Q, xy);
     numer = ELL_2V_DOT(df, QD);
     denom = ELL_2V_DOT(QD, QD) + ELL_2V_DOT(df, QDD);
@@ -1041,7 +1041,7 @@ findDist(limnCbfCtx *fctx, const double alpha[2], const double vv0[2],
      are actually sufficiently close to the first and last points (or else the fit spline
      won't meet the expected accuracy threshold) */
   for (ii = 1; ii < spanlen - 1; ii++) {
-    const double *xy = pointPos(lpnt, loi, ii);
+    const double *xy = PPlowerI(lpnt, AIR_INT(loi + ii));
     double len, Q[2], df[2], ww[4];
     CBD0(Q, vv0, vv1, vv2, vv3, uu[ii], ww);
     ELL_2V_SUB(df, Q, xy);
@@ -1119,16 +1119,16 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
       double len;
       const double *xyP, *xyM;
       fctx->uu[0] = len = 0;
-      xyM = pointPos(lpnt, loi, 0);
-      xyP = pointPos(lpnt, loi, 1);
+      xyM = PPlowerI(lpnt, AIR_INT(loi));
+      xyP = PPlowerI(lpnt, AIR_INT(loi + 1));
       for (ii = 1; ii < spanlen; ii++) {
         double dd[2];
         ELL_2V_SUB(dd, xyP, xyM);
         len += ELL_2V_LEN(dd);
         fctx->uu[ii] = len;
         xyM = xyP;
-        /* yes on last iter this is set to possibly bogus pointer but it's never used */
-        xyP = pointPos(lpnt, loi, ii + 1);
+        /* yes on last iter this is set to wrong coord but it's never used */
+        xyP = PPlowerI(lpnt, AIR_INT(loi + ii + 1));
       }
       delta = 0;
       for (ii = 0; ii < spanlen; ii++) {
@@ -1395,13 +1395,13 @@ limnCbfCorners(limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
     double *RT = tvt + 4 + 6 * vi;
     /* we find TVT for *every* vertex, despite this seeming like computational overkill.
     Why: we don't know which vertex might be corner until we look at the
-    tangent-to-tangent angles for each vertex, for which we don't need to know the vertex
-    position (non-trivial as long as scale > 0). But once we do know which vertices are
+    tangent-to-tangent angles for EVERY vertex, for which we don't need to know the
+    vertex position (non-trivial when scale > 0). But once we do know which vertices are
     corners, we'll need to know where the vertices are, but it would be unfortunate
     revisit the input data (used previously for tangent estimation) to figure out the
     corner vertices. In a non-loop, we know first and last points will be corners, but we
     still need to find the vertex pos and (one-sided) tangent. */
-    if (limnCbfTVT(LT, VV, RT, fctx, lpnt, 0, 0, vi, oneSided)) {
+    if (limnCbfTVT(LT, VV, RT, fctx, lpnt, 0 /* loi */, 0 /* hii */, vi, oneSided)) {
       biffAddf(LIMN, "%s: trouble with tangents or vertices for point %u/%u", me, vi,
                pnum);
       airMopError(mop);

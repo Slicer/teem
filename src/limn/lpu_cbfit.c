@@ -206,10 +206,17 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     int pnum = AIR_INT(lpnt->num);
     /* whoa - this is how GLK learned that AIR_MOD is garbage if args differ in
        sign-ed-ness */
-    unsigned int loi = AIR_UINT(AIR_MOD(tvt[0], pnum));
-    unsigned int hii = AIR_UINT(AIR_MOD(tvt[1], pnum));
-    unsigned int vvi = AIR_UINT(AIR_MOD(tvt[2], pnum));
+    unsigned int loi, hii, vvi;
     int E, oneSided = !!tvt[3];
+    if (loop) {
+      loi = AIR_UINT(AIR_MOD(tvt[0], pnum));
+      hii = AIR_UINT(AIR_MOD(tvt[1], pnum));
+      vvi = AIR_UINT(AIR_MOD(tvt[2], pnum));
+    } else {
+      loi = AIR_UINT(AIR_CLAMP(0, tvt[0], pnum - 1));
+      hii = AIR_UINT(AIR_CLAMP(0, tvt[1], pnum - 1));
+      vvi = AIR_UINT(AIR_CLAMP(0, tvt[2], pnum - 1));
+    }
     E = 0;
     if (!E && fctx->verbose)
       printf("%s: int %d in [%d,%d] --> uint %u in [%u,%u]\n", me, /* */
