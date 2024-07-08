@@ -33,16 +33,18 @@ trap cleanup err exit int term
 # https://devmanual.gentoo.org/tools-reference/bash/
 unset UNRRDU_QUIET_QUIT
 
-# HEY changing this from 200 to 400 to 800 significantly changes the fit; why?
-N=200
+# why changing this from 200 to 400 to 800 can significantly change the fit
+# because the nrp parms that make sense for a small number of points don't work great
+# for a huge number of points
+N=100
 
 echo "-0.7 0.7
-1.4 0.7
-0.7 0.7
+2 0.7
+0 0.7
 0.7 -0.7" | unu 2op x - 1 | unu 2op + - 0.0 | ./lpu cbfit -i - -synthn $N -sup 1 -syntho xy-0.txt
 junk xy-0.txt
 
-./lpu cbfit -i xy-0.txt -scl 0 -psi 10000 -fs 0 -1 -v 3 -eps 0.001 2>&1 > log.txt
+./lpu cbfit -i xy-0.txt -scl 0 -fs 0 -1 -v 0 -psi 1000000000 -eps 0.001 -nim 8000 -deltathr 0.0001 -iota 0.01 -cap 10 2>&1 > log.txt
 cat log.txt; junk log.txt
 tail -n 4 log.txt | ./lpu cbfit -i - -synthn $N -sup 1 -syntho xy-1.txt
 junk xy-1.txt
