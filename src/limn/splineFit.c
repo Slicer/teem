@@ -1140,7 +1140,7 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
           fctx->uu[ii] = 1;
         }
         if (fctx->verbose > 1) {
-          printf("%s[%d,%d]: intial uu[%u] = %g\n", me, loi, hii, ii, fctx->uu[ii]);
+          printf("%s[%d,%d]: initial uu[%u] = %g\n", me, loi, hii, ii, fctx->uu[ii]);
         }
       }
       delta /= spanlen - 2; /* within the pNum verts are pNum-2 interior verts */
