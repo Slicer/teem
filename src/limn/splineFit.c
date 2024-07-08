@@ -276,11 +276,11 @@ ctxInit(limnCbfCtx *fctx) {
   fctx->verbose = 0;
   fctx->cornerFind = AIR_TRUE;
   fctx->cornerNMS = AIR_TRUE;
-  fctx->nrpIterMax = 12;
-  fctx->epsilon = 0; /* will need to be set to something valid elsewhere */
-  fctx->scale = 0;   /* will need to be set to something valid elsewhere */
-  fctx->nrpCap = 3.0;
-  fctx->nrpIota = 0.8;
+  fctx->nrpIterMax = 40;    /* authors originally thought ~6 */
+  fctx->epsilon = 0;        /* NOTE: will need to be set to something valid elsewhere */
+  fctx->scale = 0;          /* scale 0 means no filtering at all */
+  fctx->nrpCap = 10.0;      /* not much of a cap, really */
+  fctx->nrpIota = 1.0 / 16; /* quite stringent */
   fctx->nrpPsi = 100;
   fctx->nrpDeltaThresh = 0.01;
   fctx->alphaMin = 0.001;
