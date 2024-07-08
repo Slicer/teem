@@ -33,29 +33,32 @@ trap cleanup err exit int term
 # https://devmanual.gentoo.org/tools-reference/bash/
 unset UNRRDU_QUIET_QUIT
 
-# why changing this from 200 to 400 to 800 can significantly change the fit
-# because the nrp parms that make sense for a small number of points don't work great
-# for a huge number of points
-N=100
+# why changing N can significantly change the fit:
+#    because the nrp parms that make sense for a small number of points don't work great
+#    for a huge number of points
 
-echo "-0.7 0.7
-2 0.7
-0 0.7
-0.7 -0.7" | unu 2op x - 1 | unu 2op + - 0.0 | ./lpu cbfit -i - -synthn $N -sup 1 -syntho xy-0.txt
-junk xy-0.txt
+# Good debugging test case, N=18 is a bad fit, N=19 is a perfect fit
+N=18
 
-./lpu cbfit -i xy-0.txt -scl 0 -fs 0 -1 -v 0 -psi 1000000000 -eps 0.001 -nim 8000 -deltathr 0.0001 -iota 0.01 -cap 10 2>&1 > log.txt
+echo "-0.5 0.5
+ 2.0  0.5
+-0.5  0.0
+ 0.5 -0.5" | unu 2op x - 1 | unu 2op + - 0.0 | ./lpu cbfit -i - -synthn $N -sup 1 -syntho xy-inn-$N.txt
+# junk xy-inn-$N.txt
+
+#./lpu cbfit -i xy-inn-$N.txt -scl 0 -fs 0 -1 -v 0 -psi 1000000000 -eps 0.001 -nim 8000 -deltathr 0.0001 -iota 0.01 -cap 10 2>&1 > log.txt
+./lpu cbfit -i xy-inn-$N.txt -scl 0 -fs 0 -1 -v 3 -psi 1000000000 -fstt 1 0 -0.8944 0.4472 -nim 400 -deltathr 0.000000000001 2>&1 > log.txt
 cat log.txt; junk log.txt
-tail -n 4 log.txt | ./lpu cbfit -i - -synthn $N -sup 1 -syntho xy-1.txt
-junk xy-1.txt
+tail -n 4 log.txt | ./lpu cbfit -i - -synthn $N -sup 1 -syntho xy-out-$N.txt
+junk xy-out-$N.txt
 
 BIN=500
-for I in 0 1; do
-    unu jhisto -i xy-$I.txt -min -1.1 1.1 -max 1.1 -1.1 -b $BIN $BIN |
-        unu quantize -b 8 -max 1 -o xy-$I.png
+for X in inn out; do
+    unu jhisto -i xy-$X-$N.txt -min -1.1 1.1 -max 1.1 -1.1 -b $BIN $BIN |
+        unu quantize -b 8 -max 1 -o xy-$X.png
 done
 
-unu join -i xy-{1,0,1}.png -a 0 -incr |
+unu join -i xy-{out,inn,out}.png -a 0 -incr |
     unu resample -s = x2 x2 -k box -o tmp.png
 
 open tmp.png

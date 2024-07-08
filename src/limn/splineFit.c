@@ -1194,7 +1194,7 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
           printf("converged! with maxdist %g @ %u (big %d)\n", fctx->distMax,
                  fctx->distMaxIdx, fctx->distBig);
         } else if (!fctx->distBig) {
-          printf("NICE small dist %g (<%g) @ %u\n", fctx->distMax, fctx->epsilon,
+          printf("NICE small dist %g (<%g) @ %u (big 0)\n", fctx->distMax, fctx->epsilon,
                  fctx->distMaxIdx);
         } else {
           printf("hit nrp itermax %u; maxdist %g @ %u (big %d)\n", fctx->nrpIterMax,
