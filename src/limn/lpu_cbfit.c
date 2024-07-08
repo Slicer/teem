@@ -35,7 +35,7 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   Nrrd *_nin, *nin;
   double *xy, deltaThresh, psi, cangle, epsilon, nrpIota, time0, dtime, scale, nrpCap,
-    synthPow;
+    synthPow, fitSingleTT[4];
   unsigned int size0, size1, ii, synthNum, pNum, nrpIterMax;
   int loop, petc, verbose, tvt[4], fitSingleLoHi[2];
   char *synthOut, buff[AIR_STRLEN_SMALL + 1];
@@ -91,11 +91,18 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOptAdd_1_Double(&hopt, "cap", "cap", &nrpCap, buff,
                       "nrp cap parameterization change");
   hestOptAdd_2_Int(&hopt, "fs", "loi hii", fitSingleLoHi, "-1 -1",
-                   "(if loi is >= 0): just do a single call to limnCbfSingle and "
+                   "(if loi is >= 0) just do a single call to limnCbfSingle and "
                    "quit, using the -i input points, and fitting a spline between "
                    "the loi and hii indices given here. A negative hii will be "
                    "incremented by the number of points, so -1 works to indicate "
                    "the last point.");
+  hestOptAdd_4_Double(&hopt, "fstt", "T1x T1y T2x T2y", fitSingleTT, "0 0 0 0",
+                      "(if non-zero): help out call to limnCbfSingle by giving these "
+                      "vectors for T1 (outgoing from V0) and T2 (incoming to V3) "
+                      "tangents, so they are not estimated from the data. If this is "
+                      "used; V0 and V3 are set as the first and last points (there "
+                      "is currently no ability to set only some of the 4 vector "
+                      "args to limnCbfSingle)");
   hestOptAdd_Flag(&hopt, "petc", &petc, "(Press Enter To Continue) ");
   /*
   hestOptAdd_1_String(&hopt, NULL, "output", &out, NULL, "output nrrd filename");
@@ -258,7 +265,21 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     /* re-using the logic from the TVT case above */
     unsigned int loi = AIR_UINT(AIR_MOD(fitSingleLoHi[0], pnum));
     unsigned int hii = AIR_UINT(AIR_MOD(fitSingleLoHi[1], pnum));
-    if (limnCbfSingle(&seg, NULL, NULL, NULL, NULL, fctx, lpnt, loi, hii)) {
+    double _V0[2], _V3[2];
+    const double *V0, *T1, *T2, *V3;
+    if (ELL_4V_LEN(fitSingleTT)) {
+      /* help out limnCbfSingle with specific V,T,T,V */
+      ELL_2V_COPY(_V0, lpnt->pp + 0 + 2 * 0);
+      V0 = _V0;
+      ELL_2V_COPY(_V3, lpnt->pp + 0 + 2 * (pnum - 1));
+      V3 = _V3;
+      T1 = fitSingleTT + 0;
+      T2 = fitSingleTT + 2;
+    } else {
+      /* no help will be given */
+      V0 = T1 = T2 = V3 = NULL;
+    }
+    if (limnCbfSingle(&seg, V0, T1, T2, V3, fctx, lpnt, loi, hii)) {
       airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble doing single segment fit:\n%s", me, err);
       airMopError(mop);
