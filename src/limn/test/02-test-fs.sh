@@ -49,7 +49,7 @@ for LO in $(seq 0 $((N-1))); do
     echo $LO
     HI=$((LO+7))
     LOO=$(printf %02d $LO)
-    CMD="./lpu cbfit -i $IN -loop -scl 0 -psi 1000 -fs $LO $HI -v 0 -eps 0.01"
+    CMD="./lpu cbfit -i $IN -loop -scl 3 -psi 1000 -fs $LO $HI -v 0 -eps 0.3"
     echo "==================== $LO $HI --> test-$LOO.png : $CMD"
     eval $CMD 2>&1 > log-$LOO.txt
     # cat log-$LOO.txt
@@ -62,3 +62,5 @@ for LO in $(seq 0 $((N-1))); do
     # out: magenta
     unu join -i out.png in.png out.png -a 0 -incr -o test-$LOO.png
 done
+
+open test-??.png
