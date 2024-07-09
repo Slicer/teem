@@ -73,7 +73,7 @@ main(int argc, const char **argv) {
   hparm->elideMultipleEmptyStringDefault = AIR_TRUE;
   hparm->cleverPluralizeOtherY = AIR_TRUE;
   hparm->respectDashDashHelp = AIR_TRUE;
-  hparm->columns = 78;
+  hestParmColumnsIoctl(hparm, hestDefaultColumns);
 
   /* if there are no arguments, then we give general usage information */
   if (1 >= argc) {
