@@ -69,10 +69,10 @@ Some computations are easier to do and reason about with lifted indices, but obv
 you can only use actual indices for any memory access. Early iterations of the code used
 lifted indices in lots of places, but GLK got confused, so the following summary of who
 calls whom ("who -- whom") was made to trace where [loi,hii] spans originate, and to
-ensure that all the functions here only take actual indices as parameters, including
-limnCbfTVT (which computes a tangent,vertex,tangent triple at a given point). Nearly all
-of the cleverness with lifted indices happens in limnCbfTVT, and its idxLift helper
-function ensures it gets actual indices.
+ensure that all the functions here only take actual (not-lifted) indices as parameters,
+including limnCbfTVT (which computes a tangent,vertex,tangent triple at a given point).
+Nearly all of the cleverness with lifted indices happens in limnCbfTVT, and its idxLift
+helper function ensures it gets actual indices.
 
 limnCbfTVT -- idxLift to convert given actual indices into lifted,
               and does computations with lifted indices (with signed offsets)
@@ -713,7 +713,7 @@ for point with signed and lifted index ssi. So this is the single place
 that we go from lifted index to actual index */
 static const double *
 PPlowerI(const limnCbfPoints *lpnt, int ssi) {
-  int pnum = lpnt->num;
+  int pnum = AIR_INT(lpnt->num);
   ssi = AIR_MOD(ssi, pnum);
   return PP(lpnt) + 2 * ssi; /* DIM=2 */
 }

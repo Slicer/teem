@@ -59,9 +59,11 @@ cat 0.txt 1.txt | uniq > xy-inn.txt
 junk {0,1}.txt xy-inn.txt
 
 # IN=xy-inn.txt
-IN=circ.txt
+IN=pointy.txt
 
-CMD="./lpu cbfit -i $IN -loop -scl 0 -fm 0 -1 -v 1"
+# TODO: figure out why this is generating NON-geometrically continuous segments
+
+CMD="./lpu cbfit -i $IN -loop -scl 0 -fm 0 -1 -v 1 -scl 0.5 -eps 0.08"
 echo "====== $CMD"
 eval $CMD > log.txt
 cat log.txt # ; junk log.txt
