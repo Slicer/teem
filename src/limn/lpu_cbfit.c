@@ -154,6 +154,7 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   USAGE(myinfo);
   PARSE(myinfo);
+  airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   if (!(2 == _nin->dim)) {
