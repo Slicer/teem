@@ -32,8 +32,8 @@ trap cleanup err exit int term
 # https://devmanual.gentoo.org/tools-reference/bash/
 unset UNRRDU_QUIET_QUIT
 
-IN=circ.txt
-#IN=pointy.txt
+#IN=circ.txt
+IN=pointy.txt
 N=$(cat $IN | wc -l | xargs echo)
 BIN=900
 
@@ -47,16 +47,16 @@ rm -f test-??.png
 
 for LO in $(seq 0 $((N-1))); do
     echo $LO
-    HI=$((LO+20))
+    HI=$((LO+10))
     LOO=$(printf %02d $LO)
-    CMD="./lpu cbfit -i $IN -loop -scl 0 -psi 1000 -fs $LO $HI -v 0 -eps 0.3"
+    CMD="./lpu cbfit -i $IN -loop -scl 2 -psi 1000 -fs $LO $HI -v 0 -eps 0.01"
     echo "==================== $LO $HI --> test-$LOO.png : $CMD"
     eval $CMD 2>&1 > log-$LOO.txt
     # cat log-$LOO.txt
     junk log-$LOO.txt
     tail -n 4 log-$LOO.txt |
         ./lpu cbfit -i - -synthn $N -syntho out.txt 2>&1 | grep -v _hestDefaults
-    # lots of extraneous printf thwart piping
+    # lots of extraneous printfs thwart piping
     unu jhisto -i out.txt $MMB | unu quantize -b 8 -max 1 -o out.png
     #  in: green
     # out: magenta

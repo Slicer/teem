@@ -598,7 +598,9 @@ typedef struct {
     cnum;            /* number of corners described by ctvt and cidx */
   /* ----------- output --------- */
   unsigned int nrpIterDone, /* number of nrp iters taken */
-    distMaxIdx;             /* which point had distance distMax */
+    distMaxIdx,             /* which point had distance distMax */
+    nrpSimpleFlop;          /* # times that single-spline fit flip-flopped between a
+                               curved vs a "simple" straight arc */
   double distMax,           /* max distance to given points */
     nrpDeltaDone,           /* latest mean parameterization change by nrp */
     alphaDet;               /* min det of matrix inverted to find alpha */
