@@ -1033,7 +1033,7 @@ findDist(limnCbfCtx *fctx, const double alpha[2], const double vv0[2],
          const double tt1[2], const double tt2[2], const double vv3[2],
          const limnCbfPoints *lpnt, uint loi, uint hii) {
   static const char me[] = "findDist";
-  uint ii, distMaxIdx, spanlen;
+  uint ii, distMaxIdx = UINT_MAX, spanlen;
   double vv1[2], vv2[2], distMax;
   const double *uu = fctx->uu;
 
