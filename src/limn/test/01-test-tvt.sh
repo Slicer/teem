@@ -46,11 +46,12 @@ rm -f $RTOUT; touch $RTOUT; junk $RTOUT
 for I in $(seq 0 $((N-1))); do
     LO=$((I-4))
     HI=$((I+4))
-    # 8-fold TEST:
+    # 16-fold (!) TEST:
     # * without -loop and with -loop
     # * -scl 0 and >0
+    # * LO=HI=0  versus something around I
     # * oneside (4th arg to -tvt) 0 and 1
-    CMD="./lpu cbfit -i $IN -scl 0 -tvt $LO $HI $I 1 -eps 1 -v 0"
+    CMD="./lpu cbfit -i $IN -loop -scl 2 -tvt $LO $HI $I 1 -eps 1 -v 0"
     echo $CMD
     rm -f log.txt
     (eval $CMD 2>&1) > log.txt

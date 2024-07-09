@@ -26,6 +26,40 @@
 static const char *myinfo
   = (INFO ". \"nrp\" == Newton-based ReParameterization of spline domain");
 
+static void
+getLoHi(unsigned int *loiP, unsigned int *hiiP, const limnCbfPoints *lpnt, int slo,
+        int shi) {
+  unsigned int loi, hii;
+  int pnum = AIR_INT(lpnt->num);
+  if (lpnt->isLoop || (0 == slo && -1 == shi)) {
+    loi = AIR_UINT(AIR_MOD(slo, pnum));
+    hii = AIR_UINT(AIR_MOD(shi, pnum));
+  } else {
+    loi = AIR_UINT(AIR_CLAMP(0, slo, pnum - 1));
+    hii = AIR_UINT(AIR_CLAMP(0, shi, pnum - 1));
+  }
+  *loiP = loi;
+  *hiiP = hii;
+  return;
+}
+
+static void
+getVTTV(const double *VTTV[4], const limnCbfPoints *lpnt, const double fitTT[4],
+        unsigned int loi, unsigned int hii) {
+
+  if (ELL_4V_LEN(fitTT)) {
+    /* help out limnCbfSingle with specific V,T,T,V */
+    VTTV[0] = lpnt->pp + 0 + 2 * loi;
+    VTTV[1] = fitTT + 0;
+    VTTV[2] = fitTT + 2;
+    VTTV[3] = lpnt->pp + 0 + 2 * hii;
+  } else {
+    /* no help will be given */
+    VTTV[0] = VTTV[1] = VTTV[2] = VTTV[3] = NULL;
+  }
+  return;
+}
+
 static int
 limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
@@ -35,9 +69,9 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
 
   Nrrd *_nin, *nin;
   double *xy, deltaThresh, psi, cangle, epsilon, nrpIota, time0, dtime, scale, nrpCap,
-    synthPow, fitSingleTT[4];
+    synthPow, fitTT[4];
   unsigned int size0, size1, ii, synthNum, pNum, nrpIterMax;
-  int loop, petc, verbose, tvt[4], fitSingleLoHi[2];
+  int loop, petc, verbose, tvt[4], fitSingleLoHi[2], fitMultiLoHi[2], corner2[2];
   char *synthOut, buff[AIR_STRLEN_SMALL + 1];
   limnCbfCtx *fctx;
   limnCbfPath *path;
@@ -96,13 +130,23 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                    "the loi and hii indices given here. A negative hii will be "
                    "incremented by the number of points, so -1 works to indicate "
                    "the last point.");
-  hestOptAdd_4_Double(&hopt, "fstt", "T1x T1y T2x T2y", fitSingleTT, "0 0 0 0",
-                      "(if non-zero): help out call to limnCbfSingle by giving these "
-                      "vectors for T1 (outgoing from V0) and T2 (incoming to V3) "
-                      "tangents, so they are not estimated from the data. If this is "
-                      "used; V0 and V3 are set as the first and last points (there "
-                      "is currently no ability to set only some of the 4 vector "
-                      "args to limnCbfSingle)");
+  hestOptAdd_4_Double(&hopt, "ftt", "T1x T1y T2x T2y", fitTT, "0 0 0 0",
+                      "(if non-zero): help out call to either -fs limnCbfSingle or -fm "
+                      "limnCbfMulti by giving these vectors for T1 (outgoing from V0) "
+                      "and T2 (incoming to V3) tangents, so they are not estimated from "
+                      "the data. If this is used; V0 and V3 are set as the first and "
+                      "last points (there is currently no ability to set only some of "
+                      "the 4 vector args to limnCbfSingle or limnCbfMulti)");
+  hestOptAdd_2_Int(&hopt, "fm", "loi hii", fitMultiLoHi, "-1 -1",
+                   "(if loi is >= 0) just do a single call to limnCbfMulti and "
+                   "quit, using the -i input points, fitting a multi-spline path "
+                   "between the loi and hii indices given here. A negative hii will be "
+                   "incremented by the number of points, so -1 works to indicate "
+                   "the last point.");
+  hestOptAdd_2_Int(&hopt, "corn", "val nms", corner2, "0 0",
+                   "if 1st val non-zero: call limnCbfCorners and quit. fctx->cornerFind "
+                   "is set to true if 1st value given here is positive, fctx->cornerNMS "
+                   "is set to !! of second value");
   hestOptAdd_Flag(&hopt, "petc", &petc, "(Press Enter To Continue) ");
   /*
   hestOptAdd_1_String(&hopt, NULL, "output", &out, NULL, "output nrrd filename");
@@ -227,15 +271,12 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
        sign-ed-ness */
     unsigned int loi, hii, vvi;
     int E, oneSided = !!tvt[3];
-    if (loop) {
-      loi = AIR_UINT(AIR_MOD(tvt[0], pnum));
-      hii = AIR_UINT(AIR_MOD(tvt[1], pnum));
+    if (lpnt->isLoop) {
       vvi = AIR_UINT(AIR_MOD(tvt[2], pnum));
     } else {
-      loi = AIR_UINT(AIR_CLAMP(0, tvt[0], pnum - 1));
-      hii = AIR_UINT(AIR_CLAMP(0, tvt[1], pnum - 1));
       vvi = AIR_UINT(AIR_CLAMP(0, tvt[2], pnum - 1));
     }
+    getLoHi(&loi, &hii, lpnt, tvt[0], tvt[1]);
     E = 0;
     if (!E && fctx->verbose)
       printf("%s: int %d in [%d,%d] --> uint %u in [%u,%u]\n", me, /* */
@@ -259,35 +300,73 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     return 0;
   }
 
-  if (fitSingleLoHi[0] >= 0) {
+  if (fitSingleLoHi[0] >= 0) { /* here to call limnCbfSingle once */
+    unsigned int loi, hii;
+    const double *VTTV[4];
     limnCbfSeg seg;
-    int pnum = AIR_INT(lpnt->num);
-    /* re-using the logic from the TVT case above */
-    unsigned int loi = AIR_UINT(AIR_MOD(fitSingleLoHi[0], pnum));
-    unsigned int hii = AIR_UINT(AIR_MOD(fitSingleLoHi[1], pnum));
-    double _V0[2], _V3[2];
-    const double *V0, *T1, *T2, *V3;
-    if (ELL_4V_LEN(fitSingleTT)) {
-      /* help out limnCbfSingle with specific V,T,T,V */
-      ELL_2V_COPY(_V0, lpnt->pp + 0 + 2 * 0);
-      V0 = _V0;
-      ELL_2V_COPY(_V3, lpnt->pp + 0 + 2 * (pnum - 1));
-      V3 = _V3;
-      T1 = fitSingleTT + 0;
-      T2 = fitSingleTT + 2;
-    } else {
-      /* no help will be given */
-      V0 = T1 = T2 = V3 = NULL;
-    }
-    if (limnCbfSingle(&seg, V0, T1, T2, V3, fctx, lpnt, loi, hii)) {
+    getLoHi(&loi, &hii, lpnt, fitSingleLoHi[0], fitSingleLoHi[1]);
+    getVTTV(VTTV, lpnt, fitTT, loi, hii);
+    if (limnCbfSingle(&seg, VTTV[0], VTTV[1], VTTV[2], VTTV[3], fctx, lpnt, loi, hii)) {
       airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble doing single segment fit:\n%s", me, err);
       airMopError(mop);
       return 1;
     }
-    printf("%s: limnCbfSingle results:\n", me);
+    printf("%s: nrpIterDone %u    nrpSimpleFlop %u    distMax %g @ %u/%u (big %d)\n", me,
+           fctx->nrpIterDone, fctx->nrpSimpleFlop, fctx->distMax, fctx->distMaxIdx,
+           lpnt->num, fctx->distBig);
+    printf("%s: limnCbfSingle spline result:\n", me);
     for (ii = 0; ii < 4; ii++) {
       printf("%g %g\n", seg.xy[0 + 2 * ii], seg.xy[1 + 2 * ii]);
+    }
+    airMopOkay(mop);
+    return 0;
+  }
+
+  if (corner2[0]) { /* here to call limnCbfCorners once */
+    fctx->cornerFind = corner2[0] > 0;
+    fctx->cornerNMS = !!corner2[1];
+    if (limnCbfCorners(fctx, lpnt)) {
+      airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble finding corners:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    if (!fctx->cnum) {
+      printf("%s: Zero corners found!\n", me);
+    } else {
+      unsigned int ci;
+      const double *tvt;
+      printf("%s: %u corners found:\n", me, fctx->cnum);
+      for (ci = 0; ci < fctx->cnum; ci++) {
+        tvt = fctx->ctvt + 6 * ci;
+        printf("%3u: vi=%3u  lt=(%g,%g)  vv=(%g,%g)  rt=(%g,%g)\n", ci, fctx->cidx[ci],
+               tvt[0], tvt[1], tvt[2], tvt[3], tvt[4], tvt[5]);
+      }
+    }
+    airMopOkay(mop);
+    return 0;
+  }
+
+  if (fitMultiLoHi[0] >= 0) { /* here to call limnCbfMulti once */
+    unsigned int loi, hii, segi;
+    const double *VTTV[4];
+    getLoHi(&loi, &hii, lpnt, fitMultiLoHi[0], fitMultiLoHi[1]);
+    getVTTV(VTTV, lpnt, fitTT, loi, hii);
+    if (limnCbfMulti(path, VTTV[0], VTTV[1], VTTV[2], VTTV[3], fctx, lpnt, loi, hii)) {
+      airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble doing multi fit:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    printf("%s: limnCbfMulti results: %u segments %s\n", me, path->segNum,
+           path->isLoop ? "in loop" : "NOT in loop");
+    for (segi = 0; segi < path->segNum; segi++) {
+      const limnCbfSeg *seg = path->seg + segi;
+      const double *xy = seg->xy;
+      printf("        %g %g    %g %g    %g %g    %g %g    %c %c\n", xy[0], xy[1], xy[2],
+             xy[3], xy[4], xy[5], xy[6], xy[7], seg->corner[0] ? 'C' : '-',
+             seg->corner[1] ? 'C' : '-');
     }
     airMopOkay(mop);
     return 0;
