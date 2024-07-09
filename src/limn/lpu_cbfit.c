@@ -219,7 +219,7 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
       unsigned int ci, si;
       limnCbfPath *spath = limnCbfPathNew(size1);
       airMopAdd(mop, spath, (airMopper)limnCbfPathNix, airMopAlways);
-      printf("%s: synthetically sampling %u splines with %u points", me, size1,
+      printf("%s: synthetically sampling %u splines with %u points\n", me, size1,
              synthNum);
       /* copy in control point data */
       for (si = 0; si < size1; si++) {
@@ -354,14 +354,16 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     const double *VTTV[4];
     getLoHi(&loi, &hii, lpnt, fitMultiLoHi[0], fitMultiLoHi[1]);
     getVTTV(VTTV, lpnt, fitTT, loi, hii);
-    if (limnCbfMulti(path, VTTV[0], VTTV[1], VTTV[2], VTTV[3], fctx, lpnt, loi, hii)) {
+    if (limnCbfCtxPrep(fctx, lpnt)
+        || limnCbfMulti(path, VTTV[0], VTTV[1], VTTV[2], VTTV[3], fctx, lpnt, loi,
+                        hii)) {
       airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble doing multi fit:\n%s", me, err);
       airMopError(mop);
       return 1;
     }
-    printf("%s: limnCbfMulti results: %u segments %s\n", me, path->segNum,
-           path->isLoop ? "in loop" : "NOT in loop");
+    printf("%s: limnCbfMulti results: %u segments in %s\n", me, path->segNum,
+           path->isLoop ? "loop" : "NOT-loop");
     for (segi = 0; segi < path->segNum; segi++) {
       const limnCbfSeg *seg = path->seg + segi;
       const double *xy = seg->xy;

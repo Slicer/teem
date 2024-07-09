@@ -1098,6 +1098,10 @@ original published method did not have these fine-grained controls):
    points falls below fctx->nrpIota * fctx->epsilon, or,
  - parameterization change falls below fctx->nrpDeltaThresh
 Information about the results of this process are set in the given fctx.
+
+This assumes that limnCbfCtxPrep(fctx, lpnt) was called without error!
+That (via ctxBuffersSet) allocates fctx->uu that we depend on here
+(and we fail via biff if it seems like that buffer was not set)
 */
 static int /* Biff: 1 */
 fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const double tt2[2],
@@ -1106,6 +1110,14 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
   static const char me[] = "fitSingle";
   uint iter, spanlen = spanLength(lpnt, loi, hii);
 
+  if (!(alpha && vv0 && tt1 && tt2 && vv3 && fctx && lpnt)) {
+    biffAddf(LIMN, "%s: got NULL pointer", me);
+    return 1;
+  }
+  if (!(fctx->uu)) {
+    biffAddf(LIMN, "%s: fcgtx->uu NULL; was limnCbfCtxPrep called?", me);
+    return 1;
+  }
   /* DIM=2 pretty much everywhere here */
   if (fctx->verbose) {
     printf("%s[%d,%d]: hello, vv0=(%g,%g), tt1=(%g,%g), "
@@ -1180,7 +1192,7 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
       int converged = AIR_FALSE;
       for (iter = 0; fctx->distBig && iter < fctx->nrpIterMax; iter++) {
         int simple;
-        if (fctx->verbose) {
+        if (fctx->verbose > 1) {
           printf("%s[%d,%d]: nrp iter %u starting with alpha %g,%g (det %g) (big %d)\n",
                  me, loi, hii, iter, alpha[0], alpha[1], fctx->alphaDet, fctx->distBig);
         }
@@ -1202,7 +1214,7 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
           biffAddf(LIMN, "%s: trouble", me);
           return 1;
         }
-        if (fctx->verbose) {
+        if (fctx->verbose > 1) {
           printf("%s[%d,%d]: nrp iter %u (reparm) delta = %g (big %d)\n", me, loi, hii,
                  iter, delta, fctx->distBig);
         }
