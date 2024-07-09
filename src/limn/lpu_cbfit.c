@@ -355,7 +355,7 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     getLoHi(&loi, &hii, lpnt, fitMultiLoHi[0], fitMultiLoHi[1]);
     getVTTV(VTTV, lpnt, fitTT, loi, hii);
     if (limnCbfCtxPrep(fctx, lpnt)
-        || limnCbfMulti(path, VTTV[0], VTTV[1], VTTV[2], VTTV[3], fctx, lpnt, loi,
+        || limnCbfMulti(path, VTTV[0], VTTV[1], VTTV[2], VTTV[3], 0, fctx, lpnt, loi,
                         hii)) {
       airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble doing multi fit:\n%s", me, err);

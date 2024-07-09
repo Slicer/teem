@@ -932,7 +932,8 @@ LIMN_EXPORT int limnCbfSingle(limnCbfSeg *seg, const double vv0[2], const double
                               unsigned int hii);
 LIMN_EXPORT int limnCbfCorners(limnCbfCtx *fctx, const limnCbfPoints *lpnt);
 LIMN_EXPORT int limnCbfMulti(limnCbfPath *path, const double vv0[2], const double tt1[2],
-                             const double tt2[2], const double vv3[2], limnCbfCtx *fctx,
+                             const double tt2[2], const double vv3[2],
+                             unsigned int recurseDepth, limnCbfCtx *fctx,
                              const limnCbfPoints *lpnt, unsigned int loi,
                              unsigned int hii);
 LIMN_EXPORT int limnCbfGo(limnCbfPath *path, limnCbfCtx *fctx,
