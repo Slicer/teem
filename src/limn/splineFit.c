@@ -1568,8 +1568,8 @@ That (via ctxBuffersSet) allocates things that we depend on here.
 */
 int /* Biff: 1 */
 limnCbfMulti(limnCbfPath *path, const double vv0[2], const double tt1[2],
-             const double tt2[2], const double vv3[2], limnCbfCtx *fctx,
-             const limnCbfPoints *lpnt, uint loi, uint hii) {
+             const double tt2[2], const double vv3[2], unsigned int recDepth,
+             limnCbfCtx *fctx, const limnCbfPoints *lpnt, uint loi, uint hii) {
   static const char me[] = "limnCbfMulti";
   double alpha[2], V0[2], T1[2], T2[2], V3[2], *vttv[4] = {V0, T1, T2, V3};
   int geomGiven;
@@ -1583,15 +1583,15 @@ limnCbfMulti(limnCbfPath *path, const double vv0[2], const double tt1[2],
     return 1;
   }
   if (fctx->verbose) {
-    printf("%s[%u,%u]: hello; %s v0=(%g,%g), t1=(%g,%g), t2=(%g,%g), "
+    printf("%s[%u,%u]_%u: hello; %s v0=(%g,%g), t1=(%g,%g), t2=(%g,%g), "
            "v3=(%g,%g)\n",
-           me, loi, hii, geomGiven ? "given" : "computed", V0[0], V0[1], T1[0], T1[1],
-           T2[0], T2[1], V3[0], V3[1]);
+           me, loi, hii, recDepth, geomGiven ? "given" : "computed", V0[0], V0[1], T1[0],
+           T1[1], T2[0], T2[1], V3[0], V3[1]);
   }
 
   /* first try fitting a single spline */
   if (fctx->verbose) {
-    printf("%s[%u,%u]: trying single fit on all points\n", me, loi, hii);
+    printf("%s[%u,%u]_%u: trying single fit on all points\n", me, loi, hii, recDepth);
   }
   if (fitSingle(alpha, V0, T1, T2, V3, fctx, lpnt, loi, hii)) {
     biffAddf(LIMN, "%s: fitSingle failed", me);
@@ -1600,9 +1600,9 @@ limnCbfMulti(limnCbfPath *path, const double vv0[2], const double tt1[2],
   if (fctx->distBig <= 1) {
     /* max dist was <= fctx->epsilon: single fit was good enough */
     if (fctx->verbose) {
-      printf("%s[%u,%u]: single fit good! nrpi=%u; maxdist=%g @ %u <= %g; "
+      printf("%s[%u,%u]_%u: single fit good! nrpi=%u; maxdist=%g @ %u <= %g; "
              "big=%d det=%g alpha=%g,%g\n",
-             me, loi, hii, fctx->nrpIterDone, fctx->distMax, fctx->distMaxIdx,
+             me, loi, hii, recDepth, fctx->nrpIterDone, fctx->distMax, fctx->distMaxIdx,
              fctx->epsilon, fctx->distBig, fctx->alphaDet, alpha[0], alpha[1]);
     }
     airArrayLenSet(path->segArr, 1);
@@ -1624,16 +1624,16 @@ limnCbfMulti(limnCbfPath *path, const double vv0[2], const double tt1[2],
     memcpy(&fctxL, fctx, sizeof(limnCbfCtx));
     memcpy(&fctxR, fctx, sizeof(limnCbfCtx));
     if (fctx->verbose) {
-      printf("%s[%u,%u]: dist %g (big %d) --> split at %u\n", me, loi, hii,
+      printf("%s[%u,%u]_%u: dist %g (big %d) --> split at %u\n", me, loi, hii, recDepth,
              fctx->distMax, fctx->distBig, midi);
     }
     if (limnCbfTVT(TL, VM, TR,                 /* */
                    fctx, lpnt, loi, hii, midi, /* */
                    AIR_FALSE /* oneSided */)
-        || limnCbfMulti(path, V0, T1, TL, VM, &fctxL, lpnt, loi, midi)
-        || limnCbfMulti(pRth, VM, TR, T2, V3, &fctxR, lpnt, midi, hii)) {
-      biffAddf(LIMN, "%s[%u,%u]: trouble on recursive fit (midvert %u)", me, loi, hii,
-               midi);
+        || limnCbfMulti(path, V0, T1, TL, VM, recDepth + 1, &fctxL, lpnt, loi, midi)
+        || limnCbfMulti(pRth, VM, TR, T2, V3, recDepth + 1, &fctxR, lpnt, midi, hii)) {
+      biffAddf(LIMN, "%s[%u,%u]_%u: trouble on recursive fit (midvert %u)", me, loi, hii,
+               recDepth, midi);
       limnCbfPathNix(pRth);
       return 1;
     }
@@ -1697,7 +1697,7 @@ limnCbfGo(limnCbfPath *path, limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
     if (fctx->verbose) {
       printf("%s: no corners: finding path to fit point loop", me);
     }
-    if (limnCbfMulti(path, NULL, NULL, NULL, NULL, fctx, lpnt, 0 /* loi */,
+    if (limnCbfMulti(path, NULL, NULL, NULL, NULL, 0, fctx, lpnt, 0 /* loi */,
                      0 /* hii */)) {
       biffAddf(LIMN, "%s: trouble fitting point loop", me);
       return 1;
@@ -1718,7 +1718,7 @@ limnCbfGo(limnCbfPath *path, limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
         printf("%s: finding subpath from between corners [%u,%u] (points [%u,%u])", me,
                cii, cjj, loi, hii);
       }
-      if (limnCbfMulti(subpath, V0, T1, T2, V3, fctx, lpnt, loi, hii)) {
+      if (limnCbfMulti(subpath, V0, T1, T2, V3, 0, fctx, lpnt, loi, hii)) {
         biffAddf(LIMN, "%s: trouble with corners [%u,%u] (points [%u,%u])", me, cii, cjj,
                  loi, hii);
         limnCbfPathNix(subpath);
