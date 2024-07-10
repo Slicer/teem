@@ -599,8 +599,8 @@ typedef struct {
   /* ----------- output --------- */
   unsigned int nrpIterDone, /* number of nrp iters taken */
     distMaxIdx,             /* which point had distance distMax */
-    nrpSimpleFlop;          /* # times that single-spline fit flip-flopped between a
-                               curved vs a "simple" straight arc */
+    nrpPuntFlop;            /* # times that single-spline fit flip-flopped between a
+                               well-computed spline vs a punted one */
   double distMax,           /* max distance to given points */
     nrpDeltaDone,           /* latest mean parameterization change by nrp */
     alphaDet;               /* min det of matrix inverted to find alpha */

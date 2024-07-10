@@ -297,7 +297,7 @@ ctxInit(limnCbfCtx *fctx) {
   /* initialize outputs to bogus valus */
   fctx->nrpIterDone = UINT_MAX;
   fctx->distMaxIdx = UINT_MAX;
-  fctx->nrpSimpleFlop = UINT_MAX;
+  fctx->nrpPuntFlop = UINT_MAX;
   fctx->distMax = AIR_POS_INF;
   fctx->nrpDeltaDone = AIR_POS_INF;
   fctx->alphaDet = 0;
@@ -891,22 +891,24 @@ limnCbfTVT(double lt[2], double vv[2], double rt[2], const limnCbfCtx *fctx,
 minimize squared error between xy[i] and Q(uu[i]) where Q(t) is cubic Bezier spline
 through vv0, vv0 + alpha[0]*tt1, vv3 + alpha[1]*tt2, and vv3.
 
-There are various conditions where the generated spline ignores the xy array and
-instead is what one could call a "simple arc" (with control points at 1/3 and 2/3 the
-distance between the end points):
+There are various conditions where the generated spline (implied by the alpha[0,1] set
+here) ignores the xy array and is instead what we could call a "punt", with control
+points at 1/3 and 2/3 the distance between the end points:
  - having only two points (xy contains only the end points)
  - the determinant of the 2x2 matrix that is inverted to solve
    for alpha is too close to zero (this test was not part of the
    author's code)
  - the solved alphas are not convincingly positive
 
-This function is the only place where the straight-line "simple arc" is generated, and
-then we return 1, otherwise 0 (when finding alpha[0,1] for a curved segment). But
-generating the simple arc is not actually an error or problem: if the simple arc is bad
-at fitting the data (as determined by findDist) then it may be subdivided, and that's ok.
+This function is *the* place where the punted spline is generated, in which case we
+return 1, otherwise (when we set alpha[0,1] computed via the 2x2 matrix solve) we return
+0. But generating the punted arc is not actually an error or problem: if the punted arc
+is bad at fitting the data (as determined by findDist) then it may be subdivided, and
+that's ok.
 */
 static int /* Biff: nope */
-findAlpha(double alpha[2], limnCbfCtx *fctx, const double vv0[2], const double tt1[2],
+findAlpha(double alpha[2], int nrpi /* which nrp iter we're on, just for debugging */,
+          limnCbfCtx *fctx, const double vv0[2], const double tt1[2],
           const double tt2[2], const double vv3[2], const limnCbfPoints *lpnt, uint loi,
           uint hii) {
   static const char me[] = "findAlpha";
@@ -945,36 +947,51 @@ findAlpha(double alpha[2], limnCbfCtx *fctx, const double vv0[2], const double t
     ELL_2MV_MUL(alpha, MI, xx); /* solve for alpha[0,1] */
   } else {                      /* spanlen <= 2 */
     det = 1;                    /* bogus but harmless */
-    alpha[0] = alpha[1] = 0;    /* trigger simple arc code */
+    alpha[0] = alpha[1] = 0;    /* trigger punting */
   }
-  /* test if we should return simple arc */
+  /* test if we should return punted arc */
   if (!(AIR_EXISTS(det) && AIR_ABS(det) > fctx->detMin
         && alpha[0] > lenF2L * (fctx->alphaMin)
         && alpha[1] > lenF2L * (fctx->alphaMin))) {
     if (fctx->verbose) {
       if (spanlen > 2) {
-        printf("%s: bad |det| %g (vs %g) or alpha %g,%g (vs %g*%g) "
-               "--> simple arc\n",
-               me, AIR_ABS(det), fctx->detMin, alpha[0], alpha[1], lenF2L,
+        printf("%s(i%d): bad |det| %g (vs %g) or alpha %g,%g (vs %g*%g) "
+               "--> punted arc\n",
+               me, nrpi, AIR_ABS(det), fctx->detMin, alpha[0], alpha[1], lenF2L,
                fctx->alphaMin);
       } else {
-        printf("%s: [%u,%u] spanlen %u tiny --> simple arc\n", me, loi, hii, spanlen);
+        printf("%s(i%d): [%u,%u] spanlen %u tiny --> punting\n", me, nrpi, loi, hii,
+               spanlen);
       }
     }
-    /* generate simple arc: set both alphas to 1/3 of distance from first to last point,
+    /* generate punted arc: set both alphas to 1/3 of distance from first to last point,
     but also handle non-unit-length tt1 and tt2 */
     alpha[0] = lenF2L / (3 * ELL_2V_LEN(tt1));
     alpha[1] = lenF2L / (3 * ELL_2V_LEN(tt2));
     ret = 1;
   } else {
     if (fctx->verbose > 1) {
-      printf("%s: all good: det %g, alpha %g,%g\n", me, det, alpha[0], alpha[1]);
+      printf("%s(i%d): all good: det %g, alpha %g,%g\n", me, nrpi, det, alpha[0],
+             alpha[1]);
     }
     ret = 0;
   }
   fctx->alphaDet = det;
   return ret;
 }
+
+#if 0
+/* Paper pg 621 eqs (7) and (8): the change in the spline parameter to improve how Q(u_i)
+approximates vertex i, but naming the paramter "t" since that's what the paper does.
+This is not just the Newton step, but a check that the Newton step is an improvement
+(a check that is not described in the paper, and is not in the author's code, but which
+does matter in cases where the spine is a poor fit) */
+static double
+delta_t(double t0, double cap, const double P[2], const double V0[2], const double V1[2],
+        const double V2[2], const double V3[2]) {
+  double Q0[2], Q1[2], Q2[2], QmP[2], denom;
+}
+#endif
 
 /*
 using Newton iterations to try to find a better places at which to evaluate the spline in
@@ -987,39 +1004,47 @@ reparm(const limnCbfCtx *fctx, /* must be non-NULL */
        uint hii) {
   static const char me[] = "reparm";
   uint ii, spanlen;
-  double vv1[2], vv2[2], delta, maxdelu;
+  double vv1[2], vv2[2], delta, cap;
   double *uu = fctx->uu;
 
   spanlen = spanLength(lpnt, loi, hii);
   assert(spanlen >= 3);
-  /* average interior u[i+1]-u[i] is 1/(spanlen-2) */
-  maxdelu = fctx->nrpCap / (spanlen - 2);
+  /* average u[i+1]-u[i] is 1/(spanlen-1) */
+  cap = fctx->nrpCap / (spanlen - 1);
   ELL_2V_SCALE_ADD2(vv1, 1, vv0, alpha[0], tt1);
   ELL_2V_SCALE_ADD2(vv2, 1, vv3, alpha[1], tt2);
   delta = 0;
   /* only changing parameterization of interior points,
      not the first (ii=0) or last (ii=pNum-1) */
   for (ii = 1; ii < spanlen - 1; ii++) {
-    double numer, denom, delu, absdelu, df[2], ww[4], tt, Q[2], QD[2], QDD[2];
-    const double *xy;
+    double denom, delu = 0, QmP[2], ww[4], tt, Q0[2], Q1[2], Q2[2];
+    const double *P = PPlowerI(lpnt, AIR_INT(loi + ii));
     tt = uu[ii];
-    CBD0(Q, vv0, vv1, vv2, vv3, tt, ww);
-    CBD1(QD, vv0, vv1, vv2, vv3, tt, ww);
-    CBD2(QDD, vv0, vv1, vv2, vv3, tt, ww);
-    xy = PPlowerI(lpnt, AIR_INT(loi + ii));
-    ELL_2V_SUB(df, Q, xy);
-    numer = ELL_2V_DOT(df, QD);
-    denom = ELL_2V_DOT(QD, QD) + ELL_2V_DOT(df, QDD);
-    delu = numer / denom;
-    absdelu = fabs(delu);
-    if (absdelu > maxdelu) {
-      /* cap Newton step */
-      delu *= maxdelu / absdelu;
+    CBD0(Q0, vv0, vv1, vv2, vv3, tt, ww);
+    CBD1(Q1, vv0, vv1, vv2, vv3, tt, ww);
+    CBD2(Q2, vv0, vv1, vv2, vv3, tt, ww);
+    ELL_2V_SUB(QmP, Q0, P);
+    denom = ELL_2V_DOT(Q1, Q1) + ELL_2V_DOT(QmP, Q2);
+    if (denom) {
+      double absdelu;
+      delu = ELL_2V_DOT(QmP, Q1) / denom;
+      absdelu = fabs(delu);
+      if (absdelu > cap) {
+        /* cap Newton step */
+        delu *= cap / absdelu;
+      }
+      uu[ii] = tt - delu;
     }
-    uu[ii] = tt - delu;
+    /* delu = delta_t(tt, cap, P, vv0, vv1, vv2, vv3); */
     delta += fabs(delu);
     if (fctx->verbose > 1) {
+      double R[2], dR[2]; /* R is the new Q */
+      CBD0(R, vv0, vv1, vv2, vv3, uu[ii], ww);
+      ELL_2V_SUB(dR, R, P);
       printf("%s[%2u]: %g <-- %g - %g\n", me, ii, uu[ii], tt, delu);
+      printf("     %g=|(%g,%g)-(%g,%g)|   <--   %g=|(%g,%g)-(%g,%g)|\n", ELL_2V_LEN(dR),
+             R[0], R[1], P[0], P[1], /* */
+             ELL_2V_LEN(QmP), Q0[0], Q0[1], P[0], P[1]);
     }
   }
   delta /= spanlen - 2; /* number of interior points */
@@ -1126,21 +1151,21 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
   }
   if (2 == spanlen) {
     /* relying on code in findAlpha() that handles slen==2; return should be 1 */
-    if (1 != findAlpha(alpha, fctx, vv0, tt1, tt2, vv3, lpnt, loi, hii)) {
+    if (1 != findAlpha(alpha, -2, fctx, vv0, tt1, tt2, vv3, lpnt, loi, hii)) {
       biffAddf(LIMN, "%s: what? findAlpha should have returned 1 with spanlen=2", me);
       return 1;
     }
     /* nrp is moot */
     fctx->nrpIterDone = 0;
-    fctx->nrpSimpleFlop = 0;
+    fctx->nrpPuntFlop = 0;
     /* emmulate results of calling findDist() */
     fctx->distMax = fctx->nrpDeltaDone = 0;
     fctx->distMaxIdx = 0;
     fctx->distBig = 0;
-  } else {               /* slen >= 3 */
-    double delta;        /* avg parameterization change of interior points */
-    int lastSimple;      /* last return from fitSingle, ==1 if it found "simple" arc */
-    uint simpleFlop = 0; /* # times that return from fitSingle changed */
+  } else {             /* slen >= 3 */
+    double delta;      /* avg parameterization change of interior points */
+    int lastPunt;      /* last return from fitSingle, ==1 if it punted */
+    uint puntFlop = 0; /* # times that return from fitSingle changed */
     {
       /* initialize uu parameterization to chord length */
       unsigned int ii;
@@ -1176,40 +1201,40 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
         printf("%s[%d,%d]: initial (chord length) delta = %g\n", me, loi, hii, delta);
       }
     }
-    lastSimple = findAlpha(alpha, fctx, vv0, tt1, tt2, vv3, lpnt, loi, hii);
+    lastPunt = findAlpha(alpha, -1, fctx, vv0, tt1, tt2, vv3, lpnt, loi, hii);
     if (findDist(fctx, alpha, vv0, tt1, tt2, vv3, lpnt, loi, hii)) {
       biffAddf(LIMN, "%s: trouble", me);
       return 1;
     }
     if (fctx->verbose) {
-      printf(
-        "%s[%d,%d]: found alpha %g %g, maxdist %g @ %u (big %d) (%u max nrp iters)\n",
-        me, loi, hii, alpha[0], alpha[1], fctx->distMax, fctx->distMaxIdx, fctx->distBig,
-        fctx->nrpIterMax);
+      printf("%s[%d,%d]: found (%s) alpha %g %g, maxdist %g @ %u (big %d) (%u max nrp "
+             "iters)\n",
+             me, loi, hii, lastPunt ? "punt" : "calc", alpha[0], alpha[1], fctx->distMax,
+             fctx->distMaxIdx, fctx->distBig, fctx->nrpIterMax);
     }
     if (fctx->distBig < 3) {
       /* initial fit isn't awful; try making it better with nrp */
       int converged = AIR_FALSE;
       for (iter = 0; fctx->distBig && iter < fctx->nrpIterMax; iter++) {
-        int simple;
+        int punt;
         if (fctx->verbose > 1) {
           printf("%s[%d,%d]: nrp iter %u starting with alpha %g,%g (det %g) (big %d)\n",
                  me, loi, hii, iter, alpha[0], alpha[1], fctx->alphaDet, fctx->distBig);
         }
         /* *this* is where nrp = Newton-based ReParameterization happens */
         delta = reparm(fctx, alpha, vv0, tt1, tt2, vv3, lpnt, loi, hii);
-        simple = findAlpha(alpha, fctx, vv0, tt1, tt2, vv3, lpnt, loi, hii);
-        simpleFlop += simple != lastSimple;
-        /* seems like a good idea, but not clearly needed, and has some false positives
-        if (simpleFlop > 3 && simpleFlop - 1 > iter / 2) {
+        punt = findAlpha(alpha, iter, fctx, vv0, tt1, tt2, vv3, lpnt, loi, hii);
+        puntFlop += punt != lastPunt;
+        /* seems like a good idea, but not obviously needed, and has some false positives
+        if (puntFlop > 3 && puntFlop - 1 > iter / 2) {
           biffAddf(LIMN,
                    "%s: (nrp iter %u) previous findAlpha return %d but now %d, and has "
-                   "changed %d times => finding simple arc too unstable under nrp",
-                   me, iter, lastSimple, simple, simpleFlop);
+                   "changed %d times => whether to punt too unstable under nrp",
+                   me, iter, lastPunt, punt, puntFlop);
           return 1;
         }
         */
-        lastSimple = simple;
+        lastPunt = punt;
         if (findDist(fctx, alpha, vv0, tt1, tt2, vv3, lpnt, loi, hii)) {
           biffAddf(LIMN, "%s: trouble", me);
           return 1;
@@ -1258,7 +1283,7 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
       }
     }
     fctx->nrpDeltaDone = delta;
-    fctx->nrpSimpleFlop = simpleFlop;
+    fctx->nrpPuntFlop = puntFlop;
   }
   if (fctx->verbose) {
     printf("%s[%d,%d]: leaving with alpha %g %g\n", me, loi, hii, alpha[0], alpha[1]);
@@ -1300,8 +1325,9 @@ vttvCalcOrCopy(double *vttv[4], int *givenP, const double vv0[2], const double t
       return 1;
     }
     if (fctx->verbose) {
-      printf("%s: found geometry (%g,%g) --> (%g,%g) -- (%g,%g) <-- (%g,%g)\n", me,
-             v0c[0], v0c[1], t1c[0], t1c[1], t2c[0], t2c[1], v3c[0], v3c[1]);
+      printf("%s[%u,%u]: found geometry (%g,%g) --> (%g,%g) -- (%g,%g) <-- (%g,%g)\n",
+             me, loi, hii, v0c[0], v0c[1], t1c[0], t1c[1], t2c[0], t2c[1], v3c[0],
+             v3c[1]);
     }
     ELL_2V_COPY(vttv[0], v0c);
     ELL_2V_COPY(vttv[1], t1c);
@@ -1616,6 +1642,7 @@ limnCbfMulti(limnCbfPath *path, const double vv0[2], const double tt1[2],
     limnCbfCorners, called by limnCbfGo). We find a 2-sided tangent and vertex */
     uint midi = fctx->distMaxIdx;
     double TL[2], VM[2], TR[2];
+    const double *pp = PP(lpnt);
     limnCbfCtx fctxL, fctxR;
     limnCbfPath *pRth = limnCbfPathNew(0); /* path on right side of new middle */
     /* holy moly sneakiness: we make two shallow copies of the context, because we
@@ -1624,8 +1651,9 @@ limnCbfMulti(limnCbfPath *path, const double vv0[2], const double tt1[2],
     memcpy(&fctxL, fctx, sizeof(limnCbfCtx));
     memcpy(&fctxR, fctx, sizeof(limnCbfCtx));
     if (fctx->verbose) {
-      printf("%s[%u,%u]_%u: dist %g (big %d) --> split at %u\n", me, loi, hii, recDepth,
-             fctx->distMax, fctx->distBig, midi);
+      printf("%s[%u,%u]_%u: dist %g (big %d) --> split at %u (%g,%g)\n", me, loi, hii,
+             recDepth, fctx->distMax, fctx->distBig, midi, (pp + 2 * midi)[0],
+             (pp + 2 * midi)[1]);
     }
     if (limnCbfTVT(TL, VM, TR,                 /* */
                    fctx, lpnt, loi, hii, midi, /* */

@@ -313,8 +313,8 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
       airMopError(mop);
       return 1;
     }
-    printf("%s: nrpIterDone %u    nrpSimpleFlop %u    distMax %g @ %u/%u (big %d)\n", me,
-           fctx->nrpIterDone, fctx->nrpSimpleFlop, fctx->distMax, fctx->distMaxIdx,
+    printf("%s: nrpIterDone %u    nrpPuntFlop %u    distMax %g @ %u/%u (big %d)\n", me,
+           fctx->nrpIterDone, fctx->nrpPuntFlop, fctx->distMax, fctx->distMaxIdx,
            lpnt->num, fctx->distBig);
     printf("%s: limnCbfSingle spline result:\n", me);
     for (ii = 0; ii < 4; ii++) {
