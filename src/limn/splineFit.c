@@ -980,29 +980,72 @@ findAlpha(double alpha[2], int nrpi /* which nrp iter we're on, just for debuggi
   return ret;
 }
 
-#if 0
-/* Paper pg 621 eqs (7) and (8): the change in the spline parameter to improve how Q(u_i)
-approximates vertex i, but naming the paramter "t" since that's what the paper does.
-This is not just the Newton step, but a check that the Newton step is an improvement
-(a check that is not described in the paper, and is not in the author's code, but which
-does matter in cases where the spine is a poor fit) */
+/* Paper pg 621 eqs (7) and (8): the change in the spline parameter to try to improve how
+Q(t) approximates vertex i; naming the parameter "t" since that's what the paper does.
+Note that the Newton step in (8), of the function that seems to be named f(t),
+is not itself the distance (or squared distance) between Q(t) and P, but the
+dot product betweeen (Q(t) - P) and Q'(t).  This function makes sure that the
+Newton step not increase the distance (it tries very hard to find a step that decreases
+the distance); this check is not described in the paper, and is not in the author's
+code, but it does matter in cases where the spline is a poor fit. */
 static double
 delta_t(double t0, double cap, const double P[2], const double V0[2], const double V1[2],
         const double V2[2], const double V3[2]) {
-  double Q0[2], Q1[2], Q2[2], QmP[2], denom;
+  double Q0[2], Q1[2], Q2[2], QmP[2], ww[4], denom, delt = 0, sqd0;
+
+  /* SQD(T) = squared distance between Q(T) and P */
+#define SQD(TT)                                                                         \
+  (CBD0(Q0, V0, V1, V2, V3, (TT), ww), /* */                                            \
+   ELL_2V_SUB(QmP, Q0, P),             /* */                                            \
+   ELL_2V_DOT(QmP, QmP))
+  sqd0 = SQD(t0);
+  CBD1(Q1, V0, V1, V2, V3, t0, ww);
+  CBD2(Q2, V0, V1, V2, V3, t0, ww);
+  denom = ELL_2V_DOT(Q1, Q1) + ELL_2V_DOT(QmP, Q2);
+  if (denom) {
+    double absdelt, chop = 4;
+    delt = -ELL_2V_DOT(QmP, Q1) / denom;
+    absdelt = fabs(delt);
+    if (absdelt > cap) {
+      /* cap Newton step */
+      delt *= cap / absdelt;
+    }
+    if (SQD(t0 + delt) > sqd0) { /* true if squared distance has increased */
+      /* the Newton step took Q(t) farther from P, not closer, try to rescue it */
+      delt /= chop;
+      if (SQD(t0 + delt) > sqd0) {
+        /* the chopped down Newton step was unhelpful, try the other direction? */
+        delt *= -1;
+        if (SQD(t0 + delt) > sqd0) {
+          /* the negated chopped down Newton step was unhelpful! not giving up ... */
+          delt /= -chop;
+          if (SQD(t0 + delt) > sqd0) {
+            /* the positive doubly-chopped step still bad, trying one last flip */
+            /* (GLK tests produced evidence that this can in fact help) */
+            delt *= -1;
+            if (SQD(t0 + delt) > sqd0) {
+              /* ok finally giving up */
+              delt = 0;
+            }
+          }
+        }
+      }
+    }
+  }
+#undef SQD
+  return delt;
 }
-#endif
 
 /*
 using Newton iterations to try to find a better places at which to evaluate the spline in
-order to match the given points xy
+order to match the given points xy; these locations are updated (in-place) in fctx->uu
 */
 static double
 reparm(const limnCbfCtx *fctx, /* must be non-NULL */
        const double alpha[2], const double vv0[2], const double tt1[2],
        const double tt2[2], const double vv3[2], const limnCbfPoints *lpnt, uint loi,
        uint hii) {
-  static const char me[] = "reparm";
+  /* static const char me[] = "reparm"; */
   uint ii, spanlen;
   double vv1[2], vv2[2], delta, cap;
   double *uu = fctx->uu;
@@ -1017,35 +1060,10 @@ reparm(const limnCbfCtx *fctx, /* must be non-NULL */
   /* only changing parameterization of interior points,
      not the first (ii=0) or last (ii=pNum-1) */
   for (ii = 1; ii < spanlen - 1; ii++) {
-    double denom, delu = 0, QmP[2], ww[4], tt, Q0[2], Q1[2], Q2[2];
     const double *P = PPlowerI(lpnt, AIR_INT(loi + ii));
-    tt = uu[ii];
-    CBD0(Q0, vv0, vv1, vv2, vv3, tt, ww);
-    CBD1(Q1, vv0, vv1, vv2, vv3, tt, ww);
-    CBD2(Q2, vv0, vv1, vv2, vv3, tt, ww);
-    ELL_2V_SUB(QmP, Q0, P);
-    denom = ELL_2V_DOT(Q1, Q1) + ELL_2V_DOT(QmP, Q2);
-    if (denom) {
-      double absdelu;
-      delu = ELL_2V_DOT(QmP, Q1) / denom;
-      absdelu = fabs(delu);
-      if (absdelu > cap) {
-        /* cap Newton step */
-        delu *= cap / absdelu;
-      }
-      uu[ii] = tt - delu;
-    }
-    /* delu = delta_t(tt, cap, P, vv0, vv1, vv2, vv3); */
+    double delu = delta_t(uu[ii], cap, P, vv0, vv1, vv2, vv3);
+    uu[ii] += delu;
     delta += fabs(delu);
-    if (fctx->verbose > 1) {
-      double R[2], dR[2]; /* R is the new Q */
-      CBD0(R, vv0, vv1, vv2, vv3, uu[ii], ww);
-      ELL_2V_SUB(dR, R, P);
-      printf("%s[%2u]: %g <-- %g - %g\n", me, ii, uu[ii], tt, delu);
-      printf("     %g=|(%g,%g)-(%g,%g)|   <--   %g=|(%g,%g)-(%g,%g)|\n", ELL_2V_LEN(dR),
-             R[0], R[1], P[0], P[1], /* */
-             ELL_2V_LEN(QmP), Q0[0], Q0[1], P[0], P[1]);
-    }
   }
   delta /= spanlen - 2; /* number of interior points */
   return delta;
