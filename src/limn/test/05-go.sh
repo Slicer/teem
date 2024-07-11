@@ -20,7 +20,8 @@
 # Fifth Floor, Boston, MA 02110-1301 USA
 #
 
-# 00=FIRST script to run to generate circ.txt and pointy.txt data
+# 03 = FOURTH stage of testing- another test limnCbfSingle, via lpu cbfit -fs,
+# but with completely free-form input
 
 set -o errexit
 set -o nounset
@@ -32,17 +33,44 @@ trap cleanup err exit int term
 # https://devmanual.gentoo.org/tools-reference/bash/
 unset UNRRDU_QUIET_QUIT
 
-N=160
+N=199
+echo "-1 -1
+-1 1
+ 1 1
+ 0 0" | ./lpu cbfit -i - -synthn $N  -syntho 0.txt
+echo "0 0
+-0.5 -0.5
+1 -1
+1 1" | ./lpu cbfit -i - -synthn $N  -syntho 1.txt
+cat 0.txt 1.txt | uniq > xy-inn.txt
+junk {0,1}.txt xy-inn.txt
 
-echo 0 1 |
-    unu reshape -s 2 |
-    unu convert -t double |
-    unu 3op x - 2 pi |
-    unu resample -s $((N+1)) -k tent -c node -o a; junk a
-unu 1op cos -i a -o x; junk x
-unu 1op sin -i a -o y; junk y
-unu gamma -i x -g 1.0 |  # gamma > 1 flattens right side, makes left side pointy
-unu join -i - y -a 0 -incr |
-    unu crop -min 0 0 -max M M-1 -o circ.txt
+IN=xy-inn.txt
+#IN=pointy.txt
+#IN=circ.txt
 
-unu 2op spow circ.txt 4 -o pointy.txt
+CMD="./lpu cbfit -i $IN -scl 0.5 -v 0 -psi 3 -eps 0.003 -roll 0"
+echo "====== $CMD"
+eval $CMD > log.txt
+cat log.txt # ; junk log.txt
+
+OUT=xy-out.txt
+echo "====== RESULTS: --> $OUT"
+grep "^seg" log.txt | xargs -n 12 echo | cut -d' ' -f 2,3,4,5,6,7,8,9
+grep "^seg" log.txt | xargs -n 12 echo | cut -d' ' -f 2,3,4,5,6,7,8,9 |
+    ./lpu cbfit -i - -synthn $((5*N)) -sup 1 -syntho $OUT
+junk $OUT
+
+BIN=900
+MM="-min -1.1 1.1 -max 1.1 -1.1"
+unu jhisto -i  $IN $MM -b $BIN $BIN | unu quantize -b 8 -max 1 -o xy-inn.png
+unu jhisto -i $OUT $MM -b $BIN $BIN | unu quantize -b 8 -max 1 -o xy-out.png
+
+rm -f tmp.png
+
+unu join -i xy-{out,inn,out}.png -a 0 -incr |
+    unu resample -s = x2 x2 -k box -o tmp.png
+
+unu cksum tmp.png # with corners, is it stable w.r.t. -roll ?
+
+open tmp.png
