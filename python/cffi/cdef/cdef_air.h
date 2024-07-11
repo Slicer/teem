@@ -764,13 +764,14 @@ extern void airMopSingleOkay(airArray *arr, void *ptr);
 /*
 ******** AIR_MOD(i, N)
 **
-** returns that integer in [0, N-1] which is i plus a multiple of N. It
-** may be unfortunate that the expression (i)%(N) appears three times;
-** this should be inlined.  Or perhaps the compiler's optimizations
-** (common sub-expression elimination) will save us.
+** returns that integer in [0, N-1] which is i plus a multiple of N. It may be
+** unfortunate that the expression (i)%(N) appears three times; we can hope the compiler
+** optimizes the common sub-expression.
 **
-** Note: integer divisions are not very fast on some modern chips;
-** don't go silly using this one.
+** NOTE: !! Results will not be as expected if i and N differ in sign-ed-ness !!
+**
+** Note: integer divisions are not very fast on some modern chips; don't go silly using
+** this one.
 */
 /*
 ******** AIR_LERP(w, a, b)
