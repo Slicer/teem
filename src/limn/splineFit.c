@@ -980,15 +980,17 @@ findAlpha(double alpha[2], int nrpi /* which nrp iter we're on, just for debuggi
   return ret;
 }
 
-/* Paper pg 621 eqs (7) and (8): the change in the spline parameter to try to improve how
-Q(t) approximates vertex i; naming the parameter "t" since that's what the paper does.
-Note that the Newton step in paper's eq (8), i.e. the Newton step of the function that
-seems to be named f(t), is not itself the distance (or squared distance) between Q(t) and
-P, but instead the dot product betweeen (Q(t) - P) and Q'(t).  This function makes sure
-that the Newton step not increase the distance (it tries very hard to find a step that
-decreases the distance); this caution is not described in the paper, and is not in the
-author's code, but it does matter in cases where the spline is a poor fit, or where
-there are a small number of points */
+/* delta_t is part of paper pg 621 eqs (7) and (8): we find the change in the spline
+parameter to try to improve how Q(t) approximates vertex i; naming the parameter "t"
+since that's what the paper does. Note that the Newton step in paper's eq (8), i.e. the
+Newton step of the function that seems to be named f(t), is not itself the distance (or
+squared distance) between Q(t) and P, but instead the dot product betweeen (Q(t) - P) and
+Q'(t).
+
+This function makes sure that the Newton step not increase the distance (it tries very
+hard to find a step that decreases the distance). This carefulness is NOT described in
+the paper, nor is it in the author's code, but it does matter in cases where the spline
+is a poor fit, or where there are a small number of points */
 static double
 delta_t(double t0, double cap, const double P[2], const double V0[2], const double V1[2],
         const double V2[2], const double V3[2]) {
@@ -1264,14 +1266,11 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
           converged = AIR_TRUE;
           break;
         }
-        /* maybe TODO: add logic here to catch if delta is getting bigger and bigger,
-        i.e. the reparm is diverging instead of converging. A younger GLK seemed to think
-        this could happen with the spline making a loop away from a small number of
-        points, e.g.: 4 points on spline defined by vv0 = (1,1), tt1 = (1,2), tt2 =
-        (1,2), vv3 = (0,1). On the other hand, it's not like we have a strategy for
-        doing a different/smarter reparm to handle that, and if it does happen, our
-        failure to fit will likely (in the context of limnCbfMulti) merely trigger
-        subdivision, which isn't terrible */
+        /* early code contemplated a check here on whether the reparameterization is
+        diverging instead of converging, but now that delta_t makes sure the Newton
+        steps can't make things worse, divergence is impossible. In any case an
+        unimprovably bad fit is not an error, just a reason to split and try fitting
+        sub-segments. */
       }
       if (fctx->verbose) {
         printf("%s[%d,%d]: nrp done after %u iters: ", me, loi, hii, iter);
@@ -1354,7 +1353,7 @@ vttvCalcOrCopy(double *vttv[4], int *givenP, const double vv0[2], const double t
 /*
 limnCbfSingle
 
-Basically a very error-checked version of fitSingle; in the limn API because it's needed
+Basically a very error-checked version of fitSingle; in the limn API because it's useful
 for testing. Unlike fitSingle, the geometry info vv0, tt1, tt2, vv3 can either be punted
 on (by passing NULL for all) or not, by passing specific vectors for all. The results are
 converted into the fields in the given limnCbfSeg *seg.  Despite misgivings, we set
