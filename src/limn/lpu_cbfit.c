@@ -60,6 +60,21 @@ getVTTV(const double *VTTV[4], const limnCbfPoints *lpnt, const double fitTT[4],
   return;
 }
 
+static void
+pathPrint(const char *me, const limnCbfPath *path) {
+  unsigned int si;
+  printf("%s: path has %u segments in %sloop:\n", me, path->segNum,
+         path->isLoop ? "" : "NON-");
+  for (si = 0; si < path->segNum; si++) {
+    limnCbfSeg *seg = path->seg + si;
+    printf("seg[%u]      %g %g     %g %g     %g %g     %g %g     %c (%u) %c\n", si,
+           seg->xy[0], seg->xy[1], seg->xy[2], seg->xy[3], seg->xy[4], seg->xy[5],
+           seg->xy[6], seg->xy[7], seg->corner[0] ? 'C' : '-', seg->pointNum,
+           seg->corner[1] ? 'C' : '-');
+  }
+  return;
+}
+
 static int
 limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOpt *hopt = NULL;
@@ -71,7 +86,7 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   double *xy, deltaThresh, psi, cangle, epsilon, nrpIota, time0, dtime, scale, nrpCap,
     synthPow, fitTT[4];
   unsigned int size0, size1, ii, synthNum, pNum, nrpIterMax;
-  int loop, petc, verbose, tvt[4], fitSingleLoHi[2], fitMultiLoHi[2], corner2[2];
+  int loop, roll, petc, verbose, tvt[4], fitSingleLoHi[2], fitMultiLoHi[2], corner2[2];
   char *synthOut, buff[AIR_STRLEN_SMALL + 1];
   limnCbfCtx *fctx;
   limnCbfPath *path;
@@ -86,6 +101,10 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOptAdd_Flag(&hopt, "loop", &loop,
                   "-i input xy points are actually a loop: the first point logically "
                   "follows the last point");
+  hestOptAdd_1_Int(
+    &hopt, "roll", "n", &roll, "0",
+    "if points are in a loop, then it shouldn't really matter which point has index 0. "
+    "For debugging, roll the input data by this amount prior to doing any work.");
   hestOptAdd_1_Int(&hopt, "v", "verbose", &verbose, "1", "verbosity level");
   hestOptAdd_1_UInt(&hopt, "synthn", "num", &synthNum, "51",
                     "if saving spline sampling to -so, how many sample.");
@@ -186,6 +205,46 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     fprintf(stderr, "%s: trouble:\n%s", me, err);
     airMopError(mop);
     return 1;
+  }
+  if (roll) {
+    Nrrd *ntmp;
+    double *xy, *tmp;
+    int pnum, pi;
+    if (airStrlen(synthOut)) {
+      fprintf(stderr, "%s: can only roll (%d) input XY points, not splines\n", me, roll);
+      airMopError(mop);
+      return 1;
+    }
+    if (!loop) {
+      fprintf(stderr, "%s: can only roll (%d) a point loop (no -loop)\n", me, roll);
+      airMopError(mop);
+      return 1;
+    }
+    if (!(nrrdTypeDouble == nin->type)) {
+      fprintf(stderr, "%s: need type %s (not %s) point data\n", me,
+              airEnumStr(nrrdType, nrrdTypeDouble), airEnumStr(nrrdType, nin->type));
+      airMopError(mop);
+      return 1;
+    }
+    ntmp = nrrdNew();
+    airMopAdd(mop, ntmp, (airMopper)nrrdNuke, airMopAlways);
+    if (nrrdCopy(ntmp, nin)) {
+      airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
+      fprintf(stderr, "%s: trouble:\n%s", me, err);
+      airMopError(mop);
+      return 1;
+    }
+    pnum = AIR_INT(nin->axis[1].size);
+    xy = nin->data;
+    tmp = ntmp->data;
+    for (pi = 0; pi < pnum; pi++) {
+      int pt = AIR_MOD(pi - roll, pnum);
+      ELL_2V_COPY(xy + 2 * pi, tmp + 2 * pt);
+      if (!pi) {
+        printf("%s: with roll=%d; xy[0] is now original xy[%d]: %g %g\n", me, roll, pt,
+               xy[0], xy[1]);
+      }
+    }
   }
 
   if (airStrlen(synthOut)) {
@@ -350,7 +409,7 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   }
 
   if (fitMultiLoHi[0] >= 0) { /* here to call limnCbfMulti once */
-    unsigned int loi, hii, segi;
+    unsigned int loi, hii;
     const double *VTTV[4];
     getLoHi(&loi, &hii, lpnt, fitMultiLoHi[0], fitMultiLoHi[1]);
     getVTTV(VTTV, lpnt, fitTT, loi, hii);
@@ -362,19 +421,13 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
       airMopError(mop);
       return 1;
     }
-    printf("%s: limnCbfMulti results: %u segments in %s\n", me, path->segNum,
-           path->isLoop ? "loop" : "NOT-loop");
-    for (segi = 0; segi < path->segNum; segi++) {
-      const limnCbfSeg *seg = path->seg + segi;
-      const double *xy = seg->xy;
-      printf("        %g %g    %g %g    %g %g    %g %g    %c %c\n", xy[0], xy[1], xy[2],
-             xy[3], xy[4], xy[5], xy[6], xy[7], seg->corner[0] ? 'C' : '-',
-             seg->corner[1] ? 'C' : '-');
-    }
+    printf("%s: limnCbfMulti results:\n", me);
+    pathPrint(me, path);
     airMopOkay(mop);
     return 0;
   }
 
+  /* whoa - we're actually here to call limnCbfGo! */
   time0 = airTime();
   if (petc) {
     fprintf(stderr, "%s: Press Enter to Continue ... ", me);
@@ -390,28 +443,9 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   }
 
   dtime = (airTime() - time0) * 1000;
-  printf("%s: time= %g ms;iterDone= %u ;deltaDone=%g, distMax=%g @ %u\n", me, dtime,
+  printf("%s: time=%g ms   iterDone=%u   deltaDone=%g   distMax=%g @ %u\n", me, dtime,
          fctx->nrpIterDone, fctx->nrpDeltaDone, fctx->distMax, fctx->distMaxIdx);
-  {
-    unsigned int si;
-    printf("%s: path has %u segments:\n", me, path->segNum);
-    for (si = 0; si < path->segNum; si++) {
-      limnCbfSeg *seg = path->seg + si;
-      printf("seg %u: (%g,%g) -- (%g,%g) -- (%g,%g) -- (%g,%g)\n", si, seg->xy[0],
-             seg->xy[1], seg->xy[2], seg->xy[3], seg->xy[4], seg->xy[5], seg->xy[6],
-             seg->xy[7]);
-    }
-  }
-
-  if (1) {
-    unsigned int oNum = pNum * 100;
-    double *pp = AIR_MALLOC(oNum * 2, double);
-    airMopAdd(mop, pp, airFree, airMopAlways);
-    limnCbfPathSample(pp, oNum, path);
-    for (ii = 0; ii < oNum; ii++) {
-      printf("done %u %g %g\n", ii, (pp + 2 * ii)[0], (pp + 2 * ii)[1]);
-    }
-  }
+  pathPrint(me, path);
 
   airMopOkay(mop);
   return 0;
