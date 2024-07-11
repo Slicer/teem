@@ -982,18 +982,20 @@ findAlpha(double alpha[2], int nrpi /* which nrp iter we're on, just for debuggi
 
 /* Paper pg 621 eqs (7) and (8): the change in the spline parameter to try to improve how
 Q(t) approximates vertex i; naming the parameter "t" since that's what the paper does.
-Note that the Newton step in (8), of the function that seems to be named f(t),
-is not itself the distance (or squared distance) between Q(t) and P, but the
-dot product betweeen (Q(t) - P) and Q'(t).  This function makes sure that the
-Newton step not increase the distance (it tries very hard to find a step that decreases
-the distance); this check is not described in the paper, and is not in the author's
-code, but it does matter in cases where the spline is a poor fit. */
+Note that the Newton step in paper's eq (8), i.e. the Newton step of the function that
+seems to be named f(t), is not itself the distance (or squared distance) between Q(t) and
+P, but instead the dot product betweeen (Q(t) - P) and Q'(t).  This function makes sure
+that the Newton step not increase the distance (it tries very hard to find a step that
+decreases the distance); this caution is not described in the paper, and is not in the
+author's code, but it does matter in cases where the spline is a poor fit, or where
+there are a small number of points */
 static double
 delta_t(double t0, double cap, const double P[2], const double V0[2], const double V1[2],
         const double V2[2], const double V3[2]) {
-  double Q0[2], Q1[2], Q2[2], QmP[2], ww[4], denom, delt = 0, sqd0;
+  double Q0[2], Q1[2], Q2[2], QmP[2], ww[4], denom, delt, sqd0, absdelt, chop = 0.25;
+  uint try;
 
-  /* SQD(T) = squared distance between Q(T) and P */
+  /* SQD(T) = squared distance between Q(T) and P, with side-effects! */
 #define SQD(TT)                                                                         \
   (CBD0(Q0, V0, V1, V2, V3, (TT), ww), /* */                                            \
    ELL_2V_SUB(QmP, Q0, P),             /* */                                            \
@@ -1002,35 +1004,28 @@ delta_t(double t0, double cap, const double P[2], const double V0[2], const doub
   CBD1(Q1, V0, V1, V2, V3, t0, ww);
   CBD2(Q2, V0, V1, V2, V3, t0, ww);
   denom = ELL_2V_DOT(Q1, Q1) + ELL_2V_DOT(QmP, Q2);
-  if (denom) {
-    double absdelt, chop = 4;
-    delt = -ELL_2V_DOT(QmP, Q1) / denom;
-    absdelt = fabs(delt);
-    if (absdelt > cap) {
-      /* cap Newton step */
-      delt *= cap / absdelt;
+  if (!denom) {
+    /* we can't do anything useful if we're about to have divide-by-zero, so bail */
+    return 0;
+  }
+  /* else we can compute Newton step */
+  delt = -ELL_2V_DOT(QmP, Q1) / denom;
+  absdelt = fabs(delt);
+  if (absdelt > cap) {
+    /* cap Newton step */
+    delt *= cap / absdelt;
+  }
+  try = 1;                        /* start with 1st try (1-based numbering) */
+  while (SQD(t0 + delt) > sqd0) { /* while this is an unhelpful step */
+    if (9 == try) {               /* 4 pairs of chop and flip didn't help; bail */
+      delt = 0;
+      break;
     }
-    if (SQD(t0 + delt) > sqd0) { /* true if squared distance has increased */
-      /* the Newton step took Q(t) farther from P, not closer, try to rescue it */
-      delt /= chop;
-      if (SQD(t0 + delt) > sqd0) {
-        /* the chopped down Newton step was unhelpful, try the other direction? */
-        delt *= -1;
-        if (SQD(t0 + delt) > sqd0) {
-          /* the negated chopped down Newton step was unhelpful! not giving up ... */
-          delt /= -chop;
-          if (SQD(t0 + delt) > sqd0) {
-            /* the positive doubly-chopped step still bad, trying one last flip */
-            /* (GLK tests produced evidence that this can in fact help) */
-            delt *= -1;
-            if (SQD(t0 + delt) > sqd0) {
-              /* ok finally giving up */
-              delt = 0;
-            }
-          }
-        }
-      }
-    }
+    delt *= (try % 2  /* alternate between two ideas on how to adjust delt */
+               ? chop /* on 1st (and subsequent odd) tries: scale down by chop */
+               : -1   /* else: flip sign (GLK tests show this does sometimes help) */
+    );
+    try++;
   }
 #undef SQD
   return delt;
@@ -1776,7 +1771,6 @@ limnCbfGo(limnCbfPath *path, limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
       limnCbfPathNix(subpath);
     }
   }
-
   path->isLoop = lpnt->isLoop;
   return 0;
 }
