@@ -580,12 +580,20 @@ typedef struct {
     nrpPsi,  /* don't even try nrp if max dist is bigger than nrpPsi*epsilon, instead
                 just subdivide */
     nrpDeltaThresh, /* finish npr when mean parameterization change fall below this */
-    alphaMin,  /* alpha can't be negative, and we enforce distinct positivity to ensure
-                  that spline doesn't slow down too much near endpoints */
-    detMin,    /* abs(determinant) of 2x2 matrix to invert can't go below this  */
-    cornAngle; /* interior angle, in degrees, between (one-sided) incoming and outgoing
-                  tangents, *below* which a vertex should be considered a corner.
-                  Vertices in a straight line have an angle of 180 degrees. */
+    alphaMin,   /* alpha can't be negative, and we enforce distinct positivity to ensure
+                   that spline doesn't slow down too much near endpoints */
+    detMin,     /* abs(determinant) of 2x2 matrix to invert can't go below this  */
+    cornAngle,  /* interior angle, in degrees, between (one-sided) incoming and outgoing
+                   tangents, *below* which a vertex should be considered a corner.
+                   Vertices in a straight line have an angle of 180 degrees. */
+    wackyAngle; /* in cases where we are only looking at three points: a spline can
+                   always be fit through the middle point, even with constraints on
+                   position and tangent at first and last points, but the spline looks
+                   wacky if its tangent at the middle point is wildly different than
+                   the (two-sided) tangent that would have been estimated at that point
+                   for the purpose of splitting. If the angle (in degrees) between the
+                   two tangents exceeds this, then fitting will generate the simple
+                   (punted) arc, which will likely trigger splitting. */
   /* ----------- internal --------- */
   double *uu,        /* used for nrp: buffer of parameterizations in [0,1] of point along
                         currently considered spline segment */
