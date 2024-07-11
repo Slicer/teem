@@ -30,9 +30,16 @@ In Graphics Gems, Academic Press, 1990, pp. 612–626.
 https://dl.acm.org/doi/10.5555/90767.90941
 The author's code is here:
 http://www.realtimerendering.com/resources/GraphicsGems/gems/FitCurves.c
-but the code here was based more on reading the paper, than their code. Also, that code
-does not handle point loops, and does not handle smoothing built into tangent estimation,
-which were important to GLK, but which added significant implementation complexity.
+but the code here was based more on reading the paper, than the author's code.
+Beyond the author's paper and the author's code, this code here:
+- handles closed point loops
+- implements smoothing as part of vertex and tangent estimation
+- the Newton-based ReParameterization ("nrp") is smarter: it never increases
+  the distance between the data and splines, so it is better at handling cases
+  where the chord-length-based parameterization initialization is terrible
+- is smarter about handling single-spline fits to only 3 points
+- has robust error handling and error reporting
+All of this adds implementation complexity (this is ~4 times longer than author's file)
 
 The functions below do not use any other limnSpline structs or functions, since those
 were written a long time ago when GLK was even more ignorant than now about splines.
