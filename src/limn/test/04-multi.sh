@@ -33,19 +33,6 @@ trap cleanup err exit int term
 # https://devmanual.gentoo.org/tools-reference/bash/
 unset UNRRDU_QUIET_QUIT
 
-# why changing N can significantly change the fit:
-#    because the nrp parms that make sense for a small number of points don't work great
-#    for a huge number of points
-
-# # Good debugging test case, N=18 is a bad fit, N=19 is a perfect fit
-# # likely due to initial arc-length parameterization being bad, and nrp stuck in local minima
-# N=18
-# # with -ftt 1 0 -0.8944 0.4472
-# echo "-0.5 0.5
-#  2.0  0.5
-# -0.5  0.0
-#  0.5 -0.5" | ./lpu cbfit -i - -synth $N ...
-
 N=199
 echo "-1 -1
 -1 1
@@ -62,8 +49,6 @@ junk {0,1}.txt xy-inn.txt
 #IN=pointy.txt
 IN=circ.txt
 
-# TODO: figure out why this is generating NON-geometrically continuous segments
-
 CMD="./lpu cbfit -i $IN -scl 0 -fm 0 -1 -v 2 -psi 3 -eps 0.01"
 echo "====== $CMD"
 eval $CMD > log.txt
@@ -71,8 +56,8 @@ cat log.txt # ; junk log.txt
 
 OUT=xy-out.txt
 echo "====== RESULTS: --> $OUT"
-grep "^        " log.txt | xargs -n 10 echo | cut -d' ' -f 1,2,3,4,5,6,7,8
-grep "^        " log.txt | xargs -n 10 echo | cut -d' ' -f 1,2,3,4,5,6,7,8 |
+grep "^seg" log.txt | xargs -n 12 echo | cut -d' ' -f 2,3,4,5,6,7,8,9
+grep "^seg" log.txt | xargs -n 12 echo | cut -d' ' -f 2,3,4,5,6,7,8,9 |
     ./lpu cbfit -i - -synthn $((5*N)) -sup 1 -syntho $OUT
 junk $OUT
 
@@ -81,6 +66,7 @@ MM="-min -1.1 1.1 -max 1.1 -1.1"
 unu jhisto -i  $IN $MM -b $BIN $BIN | unu quantize -b 8 -max 1 -o xy-inn.png
 unu jhisto -i $OUT $MM -b $BIN $BIN | unu quantize -b 8 -max 1 -o xy-out.png
 
+rm -f tmp.png
 
 unu join -i xy-{out,inn,out}.png -a 0 -incr |
     unu resample -s = x2 x2 -k box -o tmp.png
