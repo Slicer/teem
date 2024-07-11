@@ -32,7 +32,7 @@ trap cleanup err exit int term
 # https://devmanual.gentoo.org/tools-reference/bash/
 unset UNRRDU_QUIET_QUIT
 
-N=300
+N=160
 
 echo 0 1 |
     unu reshape -s 2 |
