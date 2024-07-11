@@ -448,112 +448,131 @@ typedef struct limnSplineTypeSpec_t {
   double B, C; /* B,C values for BC-splines */
 } limnSplineTypeSpec;
 /*
-******** limnCBFSeg
+******** limnCbfSeg
 **
-** how one cubic Bezier spline segment is represented for limnCBF functions
+** how one cubic Bezier spline segment is represented for limnCbf functions
 ** (using DIM=2 to mark places where the 2D-ness of the code surfaces )
-*/
-typedef struct {
-  double xy[8];      /* four control points of cubic Bezier:
-                        x0, y0,   x1, y1,   x2, y2,   x3, y3
-                        0   1     2   3     4   5     6  7   DIM=2 */
-  int corner[2];     /* corner[0,1] non-zero if xy[0,3] are corner vertices;
-                        segments otherwise assumed geometrically continuous */
-  unsigned int pNum; /* (if non-zero) this segment approximates pNum points */
-} limnCBFSeg;
-/*
-******** limnCBFPath
 **
-** a multi-segment path in the context of cubic Bezier fitting
+** No constructor (New) or destructor (Nix) functions since it is so simple
 */
 typedef struct {
-  limnCBFSeg *seg;     /* array of limnCBFSeg */
+  double xy[8];  /* four control points of cubic Bezier:
+                    x0, y0,   x1, y1,   x2, y2,   x3, y3
+                    0   1     2   3     4   5     6  7   DIM=2 */
+  int corner[2]; /* corner[0,1] non-zero if xy[0,3] are either corner vertices
+                    or path-ending vertices, i.e. reasons to not have geometric
+                    continuity here, either because we intend to have a corner,
+                    or because there's nothing else to be continuous with */
+                 /* how many points does this represent */
+  unsigned int pointNum;
+} limnCbfSeg;
+/*
+******** limnCbfPath
+**
+** a multi-spline path in the context of cubic Bezier fitting
+*/
+typedef struct {
+  limnCbfSeg *seg;     /* array of limnCbfSeg structs (NOT pointers to them) */
   unsigned int segNum; /* length of seg array */
   airArray *segArr;    /* manages seg and segNum */
   int isLoop;          /* path is closed loop */
-} limnCBFPath;
+} limnCbfPath;
 /*
-******** limnCBFCtx
+******** limnCbfCtx
 **
-** The bag of state for limnCBF functions.
+** The complete bag of input parameters and state for limnCbf functions, especially the
+** top-level limnCbfGo function.
 **
 ** note: "nrp" = Newton-based Re-Parameterization of where the given points
-** fall along the spline, the iterative process inside limnCBFSingle
+** fall along the spline, the iterative process inside limnCbfSingle
 */
 typedef struct {
   /* ----------- input ---------- */
-  int verbose,             /* verbosity level */
-    cornNMS;               /* non-minimal-suppression of corners: accept as
-                              corners only those with locally minimal angle */
+  int verbose,  /* verbosity level */
+    cornerFind, /* do first search for corners: places where the path is not
+                   geometrically continuous (between corners, the path is geometrically
+                   continuous between multiple spline segments) */
+    cornerNMS;  /* (if cornerFind) non-minimal-suppression of corners: accept as
+                   corners only those with locally minimal angle */
   unsigned int nrpIterMax; /* max # iters of nrp */
-  double scale,  /* scale (in sense of nrrdKernelDiscreteGaussian) at which to estimate
-                    spline endpoints and tangents; scale=0 means the endpoints are
-                    exactly on vertices, and tangents are from the smallest-support
-                    finite differences. This is the ONLY floating point that should be set
-                    by a method (limnCBFScaleSet); the rest can be set directly. */
-    distMin,     /* min distance to given points: this controls both splitting done by
-                    limnCBFMulti, and nrp within limnCBFSingle */
-    nrpDeltaMax, /* in nrp, capping parameterization change to this scaling of average
-                    u[i+1]-u[i]. This wasn't in author's original code (so their idea of
-                    doing at most ~5 iters of nrp may no longer hold), but it can help
-                    stabilize things */
-    nrpDistScl,  /* scaling on distMin to use when testing distance during nrp; setting
-                    this < 1 means that nrp tries to be more stringent than the overall
-                    fitting, but with the benefit of sometimes being smarter about where
-                    to split, when that is needed */
-    nrpPsi, /* don't even try nrp if max dist is bigger than nrpPsi*distMin, instead just
-               subdivide */
-    nrpDeltaMin, /* min total parameterization change by nrp */
-    alphaMin,    /* alpha can't be negative, and we enforce distinct positivity to ensure
-                    that spline doesn't slow down too much near endpoints */
-    detMin,      /* abs(determinant) of 2x2 matrix to invert can't go below this  */
-    cornAngle; /* angle, in degrees, between (one-sided) incoming and outgoing tangents,
-                  *below* which a vertex should be considered a corner. Vertices in a
-                  straight line have an angle of 180 degrees. Or, if 0, no effort is made
-                  to detect corners. */
+  double
+    epsilon, /* error threshold on min distance from spline (as currently parameterized)
+                to given points: this affects both splitting done by limnCbfMulti, and
+                nrp within limnCbfSingle. Fitting has successfully finished when spline
+                path never strays further than this from input points */
+    scale,   /* scale (in sense of nrrdKernelDiscreteGaussian) at which to estimate
+                spline endpoints and tangents; scale=0 means the endpoints are
+                exactly on vertices, and tangents are from the smallest-support
+                finite differences */
+    nrpCap,  /* in nrp, cap parameterization change to this scaling of average
+                u[i+1]-u[i]. This wasn't in author's original code (so their idea of doing
+                at most ~5 iters of nrp no longer holds), but it can help stabilize things
+                with gnarly inputs */
+    nrpIota, /* (also not in author's original code) scaling on epsilon to use when
+                testing distance during nrp; setting this < 1 means that nrp tries to be
+                more stringent than the overall fitting, but with the benefit of
+                sometimes being smarter about where to split, when that is needed */
+    nrpPsi,  /* don't even try nrp if max dist is bigger than nrpPsi*epsilon, instead
+                just subdivide */
+    nrpDeltaThresh, /* finish npr when mean parameterization change fall below this */
+    alphaMin,   /* alpha can't be negative, and we enforce distinct positivity to ensure
+                   that spline doesn't slow down too much near endpoints */
+    detMin,     /* abs(determinant) of 2x2 matrix to invert can't go below this  */
+    cornAngle,  /* interior angle, in degrees, between (one-sided) incoming and outgoing
+                   tangents, *below* which a vertex should be considered a corner.
+                   Vertices in a straight line have an angle of 180 degrees. */
+    wackyAngle; /* in cases where we are only looking at three points: a spline can
+                   always be fit through the middle point, even with constraints on
+                   position and tangent at first and last points, but the spline looks
+                   wacky if its tangent at the middle point is wildly different than
+                   the (two-sided) tangent that would have been estimated at that point
+                   for the purpose of splitting. If the angle (in degrees) between the
+                   two tangents exceeds this, then fitting will generate the simple
+                   (punted) arc, which will likely trigger splitting. */
   /* ----------- internal --------- */
-  double *uu,        /* buffer used for nrp */
+  double *uu,        /* used for nrp: buffer of parameterizations in [0,1] of point along
+                        currently considered spline segment */
     *vw,             /* weights for endpoint vertex calculation */
     *tw,             /* weights for endpoint tangent calculation */
-    *mine;           /* helps remember who allocated the above */
-  unsigned int wLen; /* how long are vw, tw */
-  double lenF2L;     /* length of segment from first to last */
+    *ctvt;           /* corner info: 6-by-cNum (DIM=2) of tangent,vertex,tangent */
+  unsigned int ulen, /* how long is uu */
+    wlen,            /* how long are vw, tw */
+    *cidx,           /* indices (into lpnt point data) of corners */
+    cnum;            /* number of corners described by ctvt and cidx */
   /* ----------- output --------- */
   unsigned int nrpIterDone, /* number of nrp iters taken */
-    distIdx;                /* which point had distance distDone */
-  double dist,              /* max distance to given points */
-    nrpDeltaDone,           /* latest total parameterization change by nrp */
+    distMaxIdx,             /* which point had distance distMax */
+    nrpPuntFlop;            /* # times that single-spline fit flip-flopped between a
+                               well-computed spline vs a punted one */
+  double distMax,           /* max distance to given points */
+    nrpDeltaDone,           /* latest mean parameterization change by nrp */
     alphaDet;               /* min det of matrix inverted to find alpha */
-  int distBig;              /* how big dist (above) is:
-                               0: dist <= nD
-                               1: nD < dist <= DM
-                               2: DM < dist <= fD
-                               3: fD < dist
-                               where
-                               nD = nrpDistScl*distMin,
-                               DM = distMin,
-                               fD = nrpPsi*distMin: */
-} limnCBFCtx;
+  int distBig;              /* how big distMax (above) is:
+                               0: distMax <= wee        (wee = nrpIota*epsilon)
+                               1: wee < distMax <= eps  (eps = epsilon)
+                               2: eps < distMax <= far  (far = nrpPsi*epsilon)
+                               3: far < distMax */
+} limnCbfCtx;
 /*
-******** limnCBFPoints
+******** limnCbfPoints
 **
-** a container for 1D array of points; currently used for limnCBF functions
+** a container for 1D array of points; currently used for limnCbf functions
 ** Both pp and ppOwn can point to the array of point locations, but exactly
 ** one of pp and ppOwn can be non-NULL.
 **
 ** NOTE: For now, point data is only double (not float), and only in 2D (not
 ** 3D), but if this becomes more general, that generality will be inside here.
-** For time being DIM=2 tags locations where 2D-ness is explicit in code.
+** For time being "DIM=2" tags locations where 2D-ness is explicit in code.
 */
 typedef struct {
-  /* assuming DIM=2: 2 values per logical element pp */
   const double *pp; /* point coords, we do not own buffer */
   double *ppOwn;    /* point coords, we DO own buffer */
-  unsigned int num; /* how many points */
-  int isLoop;       /* points form a loop: logical indices into coord
-                       array are . . . num-2, num-1, 0, 1, . . .
-                       and index 0 is effectively arbitrary */
-} limnCBFPoints;
+  unsigned int num, /* how many points */
+    dim;      /* points live in what dimension (currently only dim=2 implemented) */
+  int isLoop; /* points form a loop: logical indices into coord
+                 array are . . . num-2, num-1, 0, 1, . . .
+                 and index 0 is effectively arbitrary */
+} limnCbfPoints;
 /* defaultsLimn.c */
 extern const int limnPresent;
 extern const char *const limnBiffKey;
@@ -811,33 +830,36 @@ extern int limnSplineNrrdEvaluate(Nrrd *nout, limnSpline *spline, Nrrd *nin);
 extern int limnSplineSample(Nrrd *nout, limnSpline *spline, double minT, size_t M,
                                  double maxT);
 /* splineFit.c */
-extern limnCBFPoints *limnCBFPointsNew(const double *pp, unsigned int nn,
+extern limnCbfPoints *limnCbfPointsNew(const void *pdata, int ptype,
+                                            unsigned int dim, unsigned int pnum,
                                             int isLoop);
-extern limnCBFPoints *limnCBFPointsNix(limnCBFPoints *lpnt);
-extern int limnCBFPointsCheck(const limnCBFPoints *lpnt);
-extern limnCBFCtx *limnCBFCtxNew(unsigned int pointNum, double scale);
-extern limnCBFCtx *limnCBFCtxNix(limnCBFCtx *fctx);
-extern void limnCBFSegEval(double *xy, const limnCBFSeg *seg, double tt);
-extern limnCBFPath *limnCBFPathNew(void);
-extern limnCBFPath *limnCBFPathNix(limnCBFPath *path);
-extern void limnCBFPathSample(double *xy, unsigned int pointNum,
-                                   const limnCBFPath *path);
-extern int limnCBFFindVT(double vv[2], double tt[2], const limnCBFCtx *fctx,
-                              const limnCBFPoints *lpnt, unsigned int loi,
-                              unsigned int hii, unsigned int ofi, int dir);
-extern int limnCBFCtxCheck(const limnCBFCtx *fctx, const limnCBFPoints *lpnt);
-extern int limnCBFitSingle(double alpha[2], limnCBFCtx *fctx, const double vv0[2],
-                                const double tt1[2], const double tt2[2],
-                                const double vv3[2], const double *xy,
-                                unsigned int pointNum, int isLoop);
-extern int limnCBFMulti(limnCBFPath *path, limnCBFCtx *fctx, const double vv0[2],
-                             const double tt1[2], const double tt2[2],
-                             const double vv3[2], const limnCBFPoints *lpnt,
-                             unsigned int loi, unsigned int hii);
-extern int limnCBFCorners(unsigned int **cornIdx, unsigned int *cornNum,
-                               limnCBFCtx *fctx, const limnCBFPoints *lpnt);
-extern int limnCBFit(limnCBFPath *path, limnCBFCtx *fctx, const double *xy,
-                          unsigned int pointNum, int isLoop);
+extern limnCbfPoints *limnCbfPointsNix(limnCbfPoints *lpnt);
+extern int limnCbfPointsCheck(const limnCbfPoints *lpnt);
+extern limnCbfPath *limnCbfPathNew(unsigned segNum);
+extern limnCbfPath *limnCbfPathNix(limnCbfPath *path);
+extern void limnCbfPathJoin(limnCbfPath *dst, const limnCbfPath *src);
+extern limnCbfCtx *limnCbfCtxNew();
+extern limnCbfCtx *limnCbfCtxNix(limnCbfCtx *fctx);
+extern int limnCbfCtxPrep(limnCbfCtx *fctx, const limnCbfPoints *lpnt);
+extern void limnCbfSegEval(double *xy, const limnCbfSeg *seg, double tt);
+extern void limnCbfPathSample(double *xy, unsigned int pointNum,
+                                   const limnCbfPath *path);
+extern int limnCbfTVT(double lt[2], double vv[2], double rt[2],
+                           const limnCbfCtx *fctx, const limnCbfPoints *lpnt,
+                           unsigned int loi, unsigned int hii, unsigned int vvi,
+                           int oneSided);
+extern int limnCbfSingle(limnCbfSeg *seg, const double vv0[2], const double tt1[2],
+                              const double tt2[2], const double vv3[2], limnCbfCtx *fctx,
+                              const limnCbfPoints *lpnt, unsigned int loi,
+                              unsigned int hii);
+extern int limnCbfCorners(limnCbfCtx *fctx, const limnCbfPoints *lpnt);
+extern int limnCbfMulti(limnCbfPath *path, const double vv0[2], const double tt1[2],
+                             const double tt2[2], const double vv3[2],
+                             unsigned int recurseDepth, limnCbfCtx *fctx,
+                             const limnCbfPoints *lpnt, unsigned int loi,
+                             unsigned int hii);
+extern int limnCbfGo(limnCbfPath *path, limnCbfCtx *fctx,
+                          const limnCbfPoints *lpnt);
 /* lpu{Flotsam,. . .}.c */
 /* F(clip) \ */
 /* F(vwflip) \ */
