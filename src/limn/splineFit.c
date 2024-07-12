@@ -179,9 +179,10 @@ limnCbfPointsNew(const void *pdata, int ptype, uint dim, uint pnum, int isLoop) 
     biffAddf(LIMN, "%s: point data type %d not valid", me, ptype);
     return NULL;
   }
-  if (ptype != nrrdTypeDouble) {
-    biffAddf(LIMN, "%s: sorry, only %s-type data implemented now (not %s)", me,
-             airEnumStr(nrrdType, nrrdTypeDouble), airEnumStr(nrrdType, ptype));
+  if (!(nrrdTypeDouble == ptype || nrrdTypeFloat == ptype)) {
+    biffAddf(LIMN, "%s: sorry, only %s or %s type data implemented now (not %s)", me,
+             airEnumStr(nrrdType, nrrdTypeDouble), airEnumStr(nrrdType, nrrdTypeFloat),
+             airEnumStr(nrrdType, ptype));
     return NULL;
   }
   if (2 != dim) {
