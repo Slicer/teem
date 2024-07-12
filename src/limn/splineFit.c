@@ -197,8 +197,9 @@ limnCbfPointsNew(const void *pdata, int ptype, uint dim, uint pnum, int isLoop) 
     biffAddf(LIMN, "%s: couldn't allocate point container", me);
     return NULL;
   }
-  if (pdata) {
-    /* we are wrapping around a given pre-allocated buffer */
+  if (pdata && nrrdTypeDouble == ptype) {
+    /* we are wrapping around a given pre-allocated buffer
+       and it just happens to already be type double */
     lpnt->pp = pdata;
     lpnt->ppOwn = NULL;
   } else {
@@ -206,7 +207,23 @@ limnCbfPointsNew(const void *pdata, int ptype, uint dim, uint pnum, int isLoop) 
     lpnt->pp = NULL;
     if (!(lpnt->ppOwn = AIR_CALLOC(dim * pnum, double))) {
       biffAddf(LIMN, "%s: couldn't allocate %u %u-D point", me, pnum, dim);
+      free(lpnt);
       return NULL;
+    }
+    if (pdata) {
+      uint ii, nn = dim * pnum;
+      if (nrrdTypeFloat == ptype) {
+        const float *fdata = (const float *)pdata;
+        for (ii = 0; ii < nn; ii++) {
+          lpnt->ppOwn[ii] = (double)fdata[ii];
+        }
+      } else {
+        biffAddf(LIMN, "%s: sorry, can't currently handle given %s type data", me,
+                 airEnumStr(nrrdType, ptype));
+        free(lpnt->ppOwn);
+        free(lpnt);
+        return NULL;
+      }
     }
   }
   lpnt->num = pnum;
