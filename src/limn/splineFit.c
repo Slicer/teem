@@ -1892,13 +1892,12 @@ limnCbfGo(limnCbfPath *path, limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
       return 1;
     }
   } else {
-    assert(fctx->cnum >= 2);
-    /* we do have corners: find segments between corners. The corner vertex part of two
-    segments: the last point in segment I and first point in segment I+1. How many
-    segments we analyze depends on whether they're in a loop: if they're in a loop
-    then we do one more */
-    uint cii, ciLast = fctx->cnum - 2 + !!lpnt->isLoop;
-    for (cii = 0; cii <= ciLast; cii++) {
+    /* we do have corners: find segments between corners, but maybe as few as one corner.
+    The corner vertex part of two segments: the last point in segment I and first point
+    in segment I+1. How many segments we analyze depends on whether they're in a loop: if
+    they're in a loop then we do one more */
+    uint cii, ciNum = fctx->cnum - 1 + !!lpnt->isLoop;
+    for (cii = 0; cii < ciNum; cii++) {
       uint cjj = (cii + 1) % fctx->cnum;
       limnCbfPath *subpath = limnCbfPathNew(0);
       /* 0: left tangent   2: vertex   4: right tangent */
