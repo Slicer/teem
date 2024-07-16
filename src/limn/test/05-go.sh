@@ -33,23 +33,26 @@ trap cleanup err exit int term
 # https://devmanual.gentoo.org/tools-reference/bash/
 unset UNRRDU_QUIET_QUIT
 
+if false; then
 N=199
 echo "-1 -1
 -1 1
- 1 1
- 0 0" | ./lpu cbfit -i - -synthn $N  -syntho 0.txt
+1 1
+0 0" | ./lpu cbfit -i - -synthn $N  -syntho 0.txt
 echo "0 0
 -0.5 -0.5
 1 -1
 1 1" | ./lpu cbfit -i - -synthn $N  -syntho 1.txt
 cat 0.txt 1.txt | uniq > xy-inn.txt
 junk {0,1}.txt xy-inn.txt
-
 IN=xy-inn.txt
+fi
+
+IN=xy-inn-60.txt
 #IN=pointy.txt
 #IN=circ.txt
 
-CMD="./lpu cbfit -i $IN -scl 0.5 -v 0 -psi 3 -eps 0.003 -roll 0"
+CMD="./lpu cbfit -i $IN -loop -scl 0.5 -v 3 -psi 3 -eps 0.01 -roll 1"
 echo "====== $CMD"
 eval $CMD > log.txt
 cat log.txt # ; junk log.txt
@@ -58,7 +61,7 @@ OUT=xy-out.txt
 echo "====== RESULTS: --> $OUT"
 grep "^seg" log.txt | xargs -n 12 echo | cut -d' ' -f 2,3,4,5,6,7,8,9
 grep "^seg" log.txt | xargs -n 12 echo | cut -d' ' -f 2,3,4,5,6,7,8,9 |
-    ./lpu cbfit -i - -synthn $((5*N)) -sup 1 -syntho $OUT
+    ./lpu cbfit -i - -loop -synthn 300 -sup 1 -syntho $OUT
 junk $OUT
 
 BIN=900

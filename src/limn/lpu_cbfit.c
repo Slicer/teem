@@ -262,13 +262,14 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     airMopAdd(mop, xy, airFree, airMopAlways);
     if (2 == size0) {
       unsigned int ci;
-      printf("%s: synthetically sampling single spline with %u points\n", me, synthNum);
+      fprintf(stderr, "%s: synthetically sampling single spline with %u points\n", me,
+              synthNum);
       for (ci = 0; ci < 8; ci++) {
         seg.xy[ci] = cpt[ci];
       }
-      printf("%s: synth seg: (%g,%g) -- (%g,%g) -- (%g,%g) -- (%g,%g)\n", me, seg.xy[0],
-             seg.xy[1], seg.xy[2], seg.xy[3], seg.xy[4], seg.xy[5], seg.xy[6],
-             seg.xy[7]);
+      fprintf(stderr, "%s: synth seg: (%g,%g) -- (%g,%g) -- (%g,%g) -- (%g,%g)\n", me,
+              seg.xy[0], seg.xy[1], seg.xy[2], seg.xy[3], seg.xy[4], seg.xy[5],
+              seg.xy[6], seg.xy[7]);
       for (ii = 0; ii < synthNum; ii++) {
         double uu = AIR_AFFINE(0, ii, synthNum - 1, 0, 1);
         uu = pow(uu, synthPow);
@@ -278,8 +279,8 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
       unsigned int ci, si;
       limnCbfPath *spath = limnCbfPathNew(size1);
       airMopAdd(mop, spath, (airMopper)limnCbfPathNix, airMopAlways);
-      printf("%s: synthetically sampling %u splines with %u points\n", me, size1,
-             synthNum);
+      fprintf(stderr, "%s: synthetically sampling %u splines with %u points\n", me,
+              size1, synthNum);
       /* copy in control point data */
       for (si = 0; si < size1; si++) {
         for (ci = 0; ci < 8; ci++) {
@@ -435,6 +436,7 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     getchar();
   }
 
+  fprintf(stderr, "%s: calling limnCbfGo (verbose=%d)\n", me, fctx->verbose);
   if (limnCbfGo(path, fctx, lpnt)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble doing fitting:\n%s", me, err);

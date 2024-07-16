@@ -1717,9 +1717,10 @@ limnCbfCorners(limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
         od = fctx->ctvt + 6 * ci;
         ELL_6V_COPY(od, id);
         if (fctx->verbose) {
-          printf("    corner %u is vertex %u\n"
+          printf("    corner %u is vertex %u%s\n"
                  "        T,V,T = (%g,%g)  (%g,%g)  (%g,%g)\n",
-                 ci, vi, od[0], od[1], od[2], od[3], od[4], od[5]);
+                 ci, vi, vi == pnum - 1 ? " (last vert)" : "", od[0], od[1], od[2],
+                 od[3], od[4], od[5]);
         }
         ci++;
       }
@@ -1773,10 +1774,11 @@ limnCbfMulti(limnCbfPath *path, const double vv0[2], const double tt1[2],
 
   /* first try fitting a single spline */
   if (fctx->verbose) {
-    printf("%s[%u,%u]_%u: trying single fit on all points\n", me, loi, hii, recDepth);
+    printf("%s[%u,%u]_%u: trying initial fitSingle on all points\n", me, loi, hii,
+           recDepth);
   }
   if (fitSingle(alpha, V0, T1, T2, V3, fctx, lpnt, loi, hii)) {
-    biffAddf(LIMN, "%s: fitSingle failed", me);
+    biffAddf(LIMN, "%s: initial fitSingle failed", me);
     return 1;
   }
   if (fctx->distBig <= 1) {
