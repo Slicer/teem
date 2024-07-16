@@ -45,11 +45,11 @@ echo "0 0
 cat 0.txt 1.txt | uniq > xy-inn.txt
 junk {0,1}.txt xy-inn.txt
 
-# IN=xy-inn.txt
+IN=xy-inn.txt
 #IN=pointy.txt
-IN=circ.txt
+#IN=circ.txt
 
-CMD="./lpu cbfit -i $IN -scl 0 -fm 0 -1 -v 2 -psi 3 -eps 0.01"
+CMD="./lpu cbfit -i $IN -scl 0.5 -fm 0 -1 -v 2 -psi 3 -eps 0.01"
 echo "====== $CMD"
 eval $CMD > log.txt
 cat log.txt # ; junk log.txt
