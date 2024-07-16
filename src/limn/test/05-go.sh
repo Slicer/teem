@@ -52,9 +52,12 @@ IN=xy-inn-60.txt
 #IN=pointy.txt
 #IN=circ.txt
 
-CMD="./lpu cbfit -i $IN -loop -scl 0.5 -v 3 -psi 3 -eps 0.01 -roll 1"
+rm -f tmp.png
+
+rm -f log.txt
+CMD="./lpu cbfit -i $IN -loop -scl 0 -v 0 -eps 0.03 -roll 10"
+eval $CMD  2>&1 > log.txt ||:
 echo "====== $CMD"
-eval $CMD > log.txt
 cat log.txt # ; junk log.txt
 
 OUT=xy-out.txt
@@ -64,12 +67,12 @@ grep "^seg" log.txt | xargs -n 12 echo | cut -d' ' -f 2,3,4,5,6,7,8,9 |
     ./lpu cbfit -i - -loop -synthn 300 -sup 1 -syntho $OUT
 junk $OUT
 
+
 BIN=900
 MM="-min -1.1 1.1 -max 1.1 -1.1"
 unu jhisto -i  $IN $MM -b $BIN $BIN | unu quantize -b 8 -max 1 -o xy-inn.png
 unu jhisto -i $OUT $MM -b $BIN $BIN | unu quantize -b 8 -max 1 -o xy-out.png
 
-rm -f tmp.png
 
 unu join -i xy-{out,inn,out}.png -a 0 -incr |
     unu resample -s = x2 x2 -k box -o tmp.png

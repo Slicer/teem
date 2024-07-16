@@ -129,7 +129,7 @@ limnCbfMulti -- vttvCalcOrCopy (with given loi,hii)
 
 limnCbfGo -- limnCbfCtxPrep
           -- limnCbfCorners
-          -- limnCbfMulti (either with loi==hii==0 or with loi,hii at corners)
+          -- limnCbfMulti (either with loi==hii or with loi,hii at corners)
           -- limnCbfPathNew, limnCbfPathJoin, limnCbfPathNix
 */
 
@@ -655,8 +655,10 @@ but in loops *vviP and *hiiP may be lifted (relative to gvvi and ghii), and outs
 
 That sounds like nothing fancy, but this is messy because of the flexibility in how we
 handle points: might not be a loop or might not, and, consideration of vertices should
-either be bounded in a specific [loi,hii] or be "unbounded" loi==hii==0 (truly unbounded
-in a loop, or bounded only as much as needed in non-loop data). */
+either be bounded in a specific [loi,hii] or be "unbounded" loi==hii.  "unbounded" is
+requested in different ways: in a loop, loi==hii and they can be any valid index
+(e.g. a loop with a single corner at index 5), or, in a non-loop, loi==hii==0 which
+is a way of saying loi==0,hii=pnum-1. */
 static int /* Biff: 1 */
 idxLift(uint *loiP, uint *hiiP, uint *vviP, int verbose, const limnCbfPoints *lpnt,
         uint gloi, uint ghii, uint gvvi) {
@@ -675,56 +677,54 @@ idxLift(uint *loiP, uint *hiiP, uint *vviP, int verbose, const limnCbfPoints *lp
     return 1;
   }
   /* now all of gloi, gvvi, ghii are all valid actual indices */
-  if (gloi == ghii && ghii != 0) {
-    biffAddf(LIMN,
-             "%s: can only have gloi == ghii if both 0 (not %u), "
-             "to signify unbounded vertex consideration",
-             me, gloi);
-    return 1;
-  }
   /* initialize values to return */
   loi = gloi;
   hii = ghii;
   vvi = gvvi;
   if (lpnt->isLoop) {
-    if (gloi != ghii) { /* implies both == 0 because of test above */
-      if (gloi > ghii) hii += pnum;
-      if (gloi > gvvi) vvi += pnum;
-    }
+    if (!(gloi < ghii)) hii += pnum;
+    /* now loi < hii */
+    if (gvvi < gloi) vvi += pnum;
+    /* now loi <= vvi */
   } else {
-    if (gloi == ghii) { /* (implies both == 0, again) */
-      /* we allow loi==hii==0 in non-loop to say: only bounded by data itself
-      loi is already 0, but hii needs fixing */
-      hii = pnum - 1;
-    } else {
-      if (gloi > ghii) {
+    if (gloi == ghii) {
+      if (ghii != 0) {
         biffAddf(LIMN,
-                 "%s: if loi != hii, need loi (%u) < hii (%u) since not in a "
-                 "point loop",
-                 me, gloi, ghii);
+                 "%s: in non-loop, can only have gloi == ghii if both 0 (not %u) "
+                 "to signify vertex consideration only bounded by valid indices",
+                 me, gloi);
         return 1;
       }
-      if (gloi > gvvi) {
-        biffAddf(LIMN, "%s: need given loi (%u) < vvi (%u) since not in point loop", me,
-                 gloi, gvvi);
+      /* else gloi==ghii==0 */
+      hii = pnum - 1;
+      /* now loi < hii */
+      /* because of uint type 0 == loi <= vvi */
+    } else { /* gloi != ghii */
+      if (!(gloi < ghii)) {
+        biffAddf(LIMN, "%s: in non-loop, need loi (%u) < hii (%u)", me, gloi, ghii);
         return 1;
       }
+      /* now loi < hii */
+      if (gvvi < gloi) {
+        biffAddf(LIMN, "%s: in non-loop, need given loi (%u) <= vvi (%u)", me, gloi,
+                 gvvi);
+        return 1;
+      }
+      /* now loi <= vii */
     }
   }
-  /* now: must have loi <= vvi and loi <= hii */
+  /* now, in any case: must have loi < hii and loi <= vvi */
   if (verbose) {
     printf("%s: given loi,hii,vvi %u %u %u --> lifted %u %u %u\n", me, gloi, ghii, gvvi,
            loi, hii, vvi);
   }
-  if (loi < hii) {
-    /* need to check that vvi is inside consequential bounds [loi,hii] */
-    if (vvi > hii) {
-      biffAddf(LIMN, "%s: vvi %u->%u not in [%u,%u]->[%u,%u] span", me, gvvi, vvi, gloi,
-               ghii, loi, hii);
-      return 1;
-    }
-    /* now (if bounded) have vvi <= hii */
+  /* make sure that vvi is below upper bound hii */
+  if (!(vvi <= hii)) {
+    biffAddf(LIMN, "%s: vvi %u->%u not in [%u,%u]->[%u,%u] span", me, gvvi, vvi, /* */
+             gloi, ghii, loi, hii);
+    return 1;
   }
+  /* now, in any case: loi <= vvi <= hii */
 
   /* all's well, set output values */
   *loiP = loi;
@@ -752,10 +752,10 @@ PPlowerI(const limnCbfPoints *lpnt, int ssi) {
 
 /* utility function for counting how many vertices are in (actual) index span [loi,hii]
 inclusive. It is not our job here to care about lpnt->isLoop; we just assume that if
-we're faced with hii<loi, it must be because of a loop */
+we're faced with hii<=loi, it must be because of a loop */
 static uint
 spanLength(const limnCbfPoints *lpnt, uint loi, uint hii) {
-  uint topi = hii + (hii < loi) * (lpnt->num);
+  uint topi = hii + (hii <= loi) * (lpnt->num);
   return topi - loi + 1;
 }
 
@@ -1132,11 +1132,6 @@ findDist(limnCbfCtx *fctx, const double alpha[2], const double vv0[2],
   const double *uu = fctx->uu;
 
   spanlen = spanLength(lpnt, loi, hii);
-  if (0 == loi && 0 == hii && lpnt->isLoop) {
-    /* in the very specific (and rare) case that we've fit a *single* spline
-    to a point loop, starting and ending at 0, then we have to lift spanlen */
-    spanlen += lpnt->num;
-  }
   if (!(spanlen >= 3)) {
     biffAddf(LIMN, "%s: [loi,hii] [%u,%u] -> spanlen %u too small", me, loi, hii,
              spanlen);
@@ -1265,16 +1260,17 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
     biffAddf(LIMN, "%s: got NULL pointer", me);
     return 1;
   }
-  spanlen = spanLength(lpnt, loi, hii);
   if (!(fctx->uu)) {
     biffAddf(LIMN, "%s: fcgtx->uu NULL; was limnCbfCtxPrep called?", me);
     return 1;
   }
+  spanlen = spanLength(lpnt, loi, hii);
   /* DIM=2 pretty much everywhere here */
   if (fctx->verbose) {
-    printf("%s[%d,%d]: hello, vv0=(%g,%g), tt1=(%g,%g), "
+    printf("%s[%d,%d(spanlen=%u)]: hello, vv0=(%g,%g), tt1=(%g,%g), "
            "tt2=(%g,%g), vv3=(%g,%g)\n",
-           me, loi, hii, vv0[0], vv0[1], tt1[0], tt1[1], tt2[0], tt2[1], vv3[0], vv3[1]);
+           me, loi, hii, spanlen, vv0[0], vv0[1], tt1[0], tt1[1], tt2[0], tt2[1], vv3[0],
+           vv3[1]);
   }
   if (2 == spanlen) {
     /* relying on code in findAlpha() that handles spanlen==2; return should be 1 */
