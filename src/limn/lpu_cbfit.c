@@ -137,7 +137,9 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   sprintf(buff, "%.17g", fctx->nrpPsi);
   hestOptAdd_1_Double(&hopt, "psi", "psi", &psi, buff, "psi, of course");
   sprintf(buff, "%.17g", fctx->cornAngle);
-  hestOptAdd_1_Double(&hopt, "ca", "angle", &cangle, buff, "angle indicating a corner");
+  hestOptAdd_1_Double(&hopt, "ca", "angle", &cangle, buff,
+                      "angle indicating a corner, or, "
+                      "0 to say that no corner finding should be done");
   sprintf(buff, "%.17g", fctx->scale);
   hestOptAdd_1_Double(&hopt, "scl", "scale", &scale, buff,
                       "scale for geometry estimation");
@@ -324,7 +326,12 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   fctx->nrpDeltaThresh = deltaThresh;
   fctx->nrpIota = nrpIota;
   fctx->nrpPsi = psi;
-  fctx->cornAngle = cangle;
+  if (cangle) {
+    fctx->cornAngle = cangle;
+    fctx->cornerFind = AIR_TRUE;
+  } else {
+    fctx->cornerFind = AIR_FALSE;
+  }
 
   if (tvt[3] >= 0) { /* here just to call limnCbfTVT once */
     double lt[2], vv[2], rt[2];

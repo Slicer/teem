@@ -37,9 +37,9 @@ unset UNRRDU_QUIET_QUIT
 #    because the nrp parms that make sense for a small number of points don't work great
 #    for a huge number of points
 
-# # Good debugging test case: N=18 is a bad fit, N=19 is a perfect fit
-# BUT THEN the improved delta_t fixed this; so both are equally good!
-# # likely due to initial arc-length parameterization being bad, and nrp stuck in local minima
+## Good debugging test case: N=18 is a bad fit, N=19 is a perfect fit
+## BUT THEN the improved delta_t fixed this; so both are equally good!
+## likely due to initial arc-length parameterization being bad, and nrp stuck in local minima
 #N=18
 #echo "-0.5 0.5
 # 2.0  0.5
@@ -53,7 +53,6 @@ unset UNRRDU_QUIET_QUIT
 # 1 1.5
 #-1 1.5
 # 1 -1" | ./lpu cbfit -i - -synthn $N -sup 3 -syntho xy-inn-$N.txt
-#junk xy-inn-$N.txt
 
 # This is demo of why we might want a step that optimizes tangent directions
 # after the parameterization has been found
@@ -62,7 +61,8 @@ echo "1 -1
  1 3
 -3 -1
  1 -1" | ./lpu cbfit -i - -synthn $N -v 0 -syntho - | unu crop -min 0 0 -max M M-1 -o xy-inn-$N.txt
-# junk xy-inn-$N.txt
+
+junk xy-inn-$N.txt
 
 CMD="./lpu cbfit -i xy-inn-$N.txt -scl 0 -fs 0 -1 -v 1 -psi 1000000000 -nim 4000 -deltathr 0.000000000001"
 echo "====== $CMD"

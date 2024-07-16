@@ -32,30 +32,31 @@ trap cleanup err exit int term
 # https://devmanual.gentoo.org/tools-reference/bash/
 unset UNRRDU_QUIET_QUIT
 
-#IN=circ.txt
-IN=pointy.txt
+IN=circ.txt
+#IN=pointy.txt
 N=$(cat $IN | wc -l | xargs echo)
 BIN=900
 
 MMB="-min -1.1 1.1 -max 1.1 -1.1 -b $BIN $BIN"
 
 unu jhisto -i $IN    $MMB -t float |
-    unu resample -s x1 x1 -k gauss:1.3,6 | unu quantize -b 8 | unu 2op x - 0.8 -o in.png
+    unu resample -s x1 x1 -k gauss:1.5,6 | unu quantize -b 8 | unu 2op x - 1 -o in.png
 junk in.png
 
 rm -f test-??.png
 
 for LO in $(seq 0 $((N-1))); do
     echo $LO
-    HI=$((LO+10))
+    HI=$((LO+7))
     LOO=$(printf %02d $LO)
-    CMD="./lpu cbfit -i $IN -loop -scl 2 -psi 1000 -fs $LO $HI -v 0 -eps 0.01"
+    # CMD="./lpu cbfit -i $IN -loop -scl 0.5 -psi 1000 -fs $LO $HI -v 0 -eps 0.5"
+      CMD="./lpu cbfit -i $IN -loop -scl  0  -psi 1000 -fs $LO $HI -v 0 -eps 0.01"
     echo "==================== $LO $HI --> test-$LOO.png : $CMD"
     eval $CMD 2>&1 > log-$LOO.txt
     # cat log-$LOO.txt
     junk log-$LOO.txt
     tail -n 4 log-$LOO.txt |
-        ./lpu cbfit -i - -synthn $N -syntho out.txt 2>&1 | grep -v _hestDefaults
+        ./lpu cbfit -i - -synthn 200 -syntho out.txt 2>&1 | grep -v _hestDefaults
     # lots of extraneous printfs thwart piping
     unu jhisto -i out.txt $MMB | unu quantize -b 8 -max 1 -o out.png
     #  in: green
