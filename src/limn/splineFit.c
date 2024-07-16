@@ -650,8 +650,8 @@ limnCbfPathSample(double *xy, uint pNum, const limnCbfPath *path) {
 
 /* idxLift: error-checked index lifting (from "actual" to "lifted" indices, explained
 above) for limnCbfTVT and maybe others. If no error, *loiP will be same as given gloi,
-but in loops *vviP and *hiiP may be lifted (relative to gvvi and ghii), and outside loops
-*hiiP may be changed to #points-1.
+but in loops *vviP and/or *hiiP may be lifted (relative to gvvi and ghii), and outside
+loops *hiiP may be changed to #points-1.
 
 That sounds like nothing fancy, but this is messy because of the flexibility in how we
 handle points: might not be a loop or might not, and, consideration of vertices should
@@ -665,7 +665,7 @@ idxLift(uint *loiP, uint *hiiP, uint *vviP, int verbose, const limnCbfPoints *lp
   static const char me[] = "idxLift";
   uint pnum = lpnt->num, loi, hii, vvi;
 
-  *loiP = *hiiP = *vviP = UINT_MAX; /* initialize to bogus indices */
+  *loiP = *hiiP = *vviP = UINT_MAX; /* ini  tialize to bogus indices */
   if (!(pnum < (1U << 29))) {
     /* UB = undefined behavior */
     biffAddf(LIMN, "%s: # points %u seems too big (to stay well clear of UB)", me, pnum);
@@ -682,8 +682,8 @@ idxLift(uint *loiP, uint *hiiP, uint *vviP, int verbose, const limnCbfPoints *lp
   hii = ghii;
   vvi = gvvi;
   if (lpnt->isLoop) {
-    if (!(gloi < ghii)) hii += pnum;
-    /* now loi < hii */
+    if (!(gloi <= ghii)) hii += pnum;
+    /* now loi <= hii ; loi==hii possible for any valid index */
     if (gvvi < gloi) vvi += pnum;
     /* now loi <= vvi */
   } else {
@@ -698,7 +698,7 @@ idxLift(uint *loiP, uint *hiiP, uint *vviP, int verbose, const limnCbfPoints *lp
       /* else gloi==ghii==0 */
       hii = pnum - 1;
       /* now loi < hii */
-      /* because of uint type 0 == loi <= vvi */
+      /* because of uint type, 0 == loi <= vvi */
     } else { /* gloi != ghii */
       if (!(gloi < ghii)) {
         biffAddf(LIMN, "%s: in non-loop, need loi (%u) < hii (%u)", me, gloi, ghii);
@@ -713,18 +713,21 @@ idxLift(uint *loiP, uint *hiiP, uint *vviP, int verbose, const limnCbfPoints *lp
       /* now loi <= vii */
     }
   }
-  /* now, in any case: must have loi < hii and loi <= vvi */
+  /* now, in any case: must have loi <= hii (and loi==hii only possible in loop)
+     and loi <= vvi */
   if (verbose) {
     printf("%s: given loi,hii,vvi %u %u %u --> lifted %u %u %u\n", me, gloi, ghii, gvvi,
            loi, hii, vvi);
   }
-  /* make sure that vvi is below upper bound hii */
-  if (!(vvi <= hii)) {
-    biffAddf(LIMN, "%s: vvi %u->%u not in [%u,%u]->[%u,%u] span", me, gvvi, vvi, /* */
-             gloi, ghii, loi, hii);
-    return 1;
+  if (loi < hii) {
+    /* if have consequential bounds, check that vvi is in closed-interval [loi,hii];
+       (the test w.r.t. loi is actually redundant with above, but here for clarity) */
+    if (!(loi <= vvi && vvi <= hii)) {
+      biffAddf(LIMN, "%s: vvi %u->%u not in [%u,%u]->[%u,%u] span", me, gvvi, vvi, /* */
+               gloi, ghii, loi, hii);
+      return 1;
+    }
   }
-  /* now, in any case: loi <= vvi <= hii */
 
   /* all's well, set output values */
   *loiP = loi;
@@ -866,7 +869,7 @@ limnCbfTVT(double lt[2], double vv[2], double rt[2], const limnCbfCtx *fctx,
                 : sui;
       const double *xy = PPlowerI(lpnt, sbi); /* coords at sbi */
       ELL_2V_SCALE_INCR(posC, vw, xy);
-      if (fctx->verbose > 1) {
+      if (fctx->verbose > 2) {
         printf("%s: ci=%d (in [%d,%d]) idx %d --[%d,%d]--> %d;  v,t w %g,%g on "
                "xy=(%g,%g)\n",
                me, ci, -lim, lim, sui, slo, shi, sbi, vw, tw, xy[0], xy[1]);
@@ -874,13 +877,13 @@ limnCbfTVT(double lt[2], double vv[2], double rt[2], const limnCbfCtx *fctx,
       }
       if (ci < 0) {
         ELL_2V_SCALE_INCR(posM, tw, xy);
-        if (fctx->verbose > 1) {
+        if (fctx->verbose > 2) {
           printf("%s:   ---> posM=(%g,%g)\n", me, posM[0], posM[1]);
         }
       }
       if (ci > 0) {
         ELL_2V_SCALE_INCR(posP, tw, xy);
-        if (fctx->verbose > 1) {
+        if (fctx->verbose > 2) {
           printf("%s:   ---> posP=(%g,%g)\n", me, posP[0], posP[1]);
         }
       }
@@ -1430,7 +1433,7 @@ vttvCalcOrCopy(double *vttv[4], int *givenP, const double vv0[2], const double t
     ELL_2V_COPY(vttv[3], vv3);
     if (givenP) *givenP = AIR_TRUE;
   } else {
-    double v0c[2], t1c[2], t2c[2], v3c[3]; /* locally computed info */
+    double v0c[2], t1c[2], t2c[2], v3c[3]; /* to store locally computed info */
     if (vv0 || tt1 || tt2 || vv3) {
       biffAddf(LIMN,
                "%s: should either give all vv0,tt1,tt2,vv3 or none (not %p,%p,%p,%p)",
@@ -1438,14 +1441,14 @@ vttvCalcOrCopy(double *vttv[4], int *givenP, const double vv0[2], const double t
                (const void *)vv3);
       return 1;
     }
-    if (loi == hii && hii != 0) {
+    /* if (loi == hii && hii != 0) {    (no longer true)
       biffAddf(LIMN, "%s: can only handle loi=hii=%u if both 0", me, hii);
       return 1;
-    }
-    if (loi == hii) { /* and hence both 0, due to above */
-      /* e.g., we're doing the first fit on of a circular (corner-less) path */
+    } */
+    if (loi == hii) {
+      /* e.g., we're doing the first fit on a circular path with 0 or 1 corners */
       if (!lpnt->isLoop) {
-        biffAddf(LIMN, "%s: can handle loi=hii=0 only with point loop", me);
+        biffAddf(LIMN, "%s: can handle loi=hii only with point loop", me);
         return 1;
       }
       if (limnCbfTVT(t2c, v0c, t1c,             /* */
@@ -1456,7 +1459,7 @@ vttvCalcOrCopy(double *vttv[4], int *givenP, const double vv0[2], const double t
       }
       ELL_2V_COPY(v3c, v0c);
     } else {
-      /* do not have geometry info; must find it all */
+      /* loi < hii */
       if (limnCbfTVT(NULL, v0c, t1c,            /* */
                      fctx, lpnt, loi, hii, loi, /* */
                      AIR_TRUE /* yes oneSided */)
