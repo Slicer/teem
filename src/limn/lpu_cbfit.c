@@ -118,7 +118,8 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                       "when synthesizing data on a single segment, warp U parameters "
                       "by raising to this power.");
   hestOptAdd_4_Int(&hopt, "tvt", "loi hii vvi 1s", tvt, "0 0 0 -1",
-                   "if last value is >= 0: make single call to limnCbfTVT and quit");
+                   "if last value is >= 0: quit after making single call to limnCbfTVT, "
+                   "with final 1s value being passed for oneSided");
   sprintf(buff, "%u", fctx->nrpIterMax);
   hestOptAdd_1_UInt(&hopt, "nim", "max", &nrpIterMax, buff,
                     "max # nrp iterations to run");
