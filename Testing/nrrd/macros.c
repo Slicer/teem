@@ -33,15 +33,12 @@
 
 int
 main() {
-  size_t II, *coord0, *ctmp0, *size0,
-    coord1[1], ctmp1[1], size1[1],
-    coord2[2], ctmp2[2], size2[2],
-    coord3[3], ctmp3[3], size3[3],
-    coord4[4], ctmp4[4], size4[4];
-  char sbuff[NRRD_DIM_MAX*AIR_STRLEN_SMALL],
-    scomp[NRRD_DIM_MAX*AIR_STRLEN_SMALL],
-    sigab[NRRD_DIM_MAX*AIR_STRLEN_SMALL], /* index gen and back */
-    swhat[NRRD_DIM_MAX*AIR_STRLEN_SMALL];
+  size_t II, *coord0, *ctmp0, *size0, coord1[1], ctmp1[1], size1[1], coord2[2], ctmp2[2],
+    size2[2], coord3[3], ctmp3[3], size3[3], coord4[4], ctmp4[4], size4[4];
+  char sbuff[NRRD_DIM_MAX * AIR_STRLEN_SMALL + 1],
+    scomp[NRRD_DIM_MAX * AIR_STRLEN_SMALL + 1],
+    sigab[NRRD_DIM_MAX * AIR_STRLEN_SMALL + 1], /* index gen and back */
+    swhat[NRRD_DIM_MAX * AIR_STRLEN_SMALL + 1];
   unsigned int ii, jj, kk, ll;
 
   /* This macro makes sure the given length-N coord##N vector is what it
@@ -49,23 +46,21 @@ main() {
      airSprintVecSize_t.  Also uses NRRD_INDEX_GEN and NRRD_COORD_GEN
      to go from coord##N to a linear index II and back to ctmp##N,
      and makes sure that that too matches "want" */
-#define CHECK(N, want)                                                  \
-  airSprintVecSize_t(swhat, size##N, N);                                \
-  airSprintVecSize_t(sbuff, coord##N, N);                               \
-  if (strcmp(sbuff, want)) {                                            \
-    fprintf(stderr, "for %s: got %s but wanted %s\n",                   \
-            swhat, sbuff, want);                                        \
-    return 1;                                                           \
-  }                                                                     \
-  NRRD_INDEX_GEN(II, coord##N, size##N, N);                             \
-  NRRD_COORD_GEN(ctmp##N, size##N, N, II);                              \
-  airSprintVecSize_t(sigab, ctmp##N, N);                                \
-  if (strcmp(sbuff, want)) {                                            \
-    fprintf(stderr, "for %s: NRRD_{INDEX,COORD}_GEN gave %s but want %s\n", \
-            swhat, sbuff, want);                                        \
-    return 1;                                                           \
+#define CHECK(N, want)                                                                  \
+  airSprintVecSize_t(swhat, size##N, N);                                                \
+  airSprintVecSize_t(sbuff, coord##N, N);                                               \
+  if (strcmp(sbuff, want)) {                                                            \
+    fprintf(stderr, "for %s: got %s but wanted %s\n", swhat, sbuff, want);              \
+    return 1;                                                                           \
+  }                                                                                     \
+  NRRD_INDEX_GEN(II, coord##N, size##N, N);                                             \
+  NRRD_COORD_GEN(ctmp##N, size##N, N, II);                                              \
+  airSprintVecSize_t(sigab, ctmp##N, N);                                                \
+  if (strcmp(sbuff, want)) {                                                            \
+    fprintf(stderr, "for %s: NRRD_{INDEX,COORD}_GEN gave %s but want %s\n", swhat,      \
+            sbuff, want);                                                               \
+    return 1;                                                                           \
   }
-
 
   /* actually airTime will always be positive; this is just to thwart the
      compiler thinking coord0 and size0 are necessarily NULL */
@@ -90,17 +85,17 @@ main() {
 
   /* 11111111111111111111111111111111111111111111111 */
 
-#define RUN1                                                         \
-  coord1[0] = 0;                                                     \
-  for (ii=0; ii<size1[0]; ii++) {                                    \
-    if (ii) {                                                        \
-      /* don't increment on the very first time, otherwise do */     \
-      NRRD_COORD_INCR(coord1, size1, 1, 0);                          \
-    }                                                                \
-    airSprintVecSize_t(sbuff, coord1, 1);                            \
-    sprintf(scomp, "[%u]", ii);                                      \
-    CHECK(1, scomp);                                                 \
-  }                                                                  \
+#define RUN1                                                                            \
+  coord1[0] = 0;                                                                        \
+  for (ii = 0; ii < size1[0]; ii++) {                                                   \
+    if (ii) {                                                                           \
+      /* don't increment on the very first time, otherwise do */                        \
+      NRRD_COORD_INCR(coord1, size1, 1, 0);                                             \
+    }                                                                                   \
+    airSprintVecSize_t(sbuff, coord1, 1);                                               \
+    sprintf(scomp, "[%u]", ii);                                                         \
+    CHECK(1, scomp);                                                                    \
+  }
 
   size1[0] = 1;
   RUN1;
@@ -110,18 +105,18 @@ main() {
 
   /* 22222222222222222222222222222222222222222222222 */
 
-#define RUN2                                                         \
-  coord2[0] = coord2[1] = 0;                                         \
-  for (jj=0; jj<size2[1]; jj++) {                                    \
-    for (ii=0; ii<size2[0]; ii++) {                                  \
-      if (ii || jj) {                                                \
-        /* don't increment on the very first time, otherwise do */   \
-        NRRD_COORD_INCR(coord2, size2, 2, 0);                        \
-      }                                                              \
-      airSprintVecSize_t(sbuff, coord2, 2);                          \
-      sprintf(scomp, "[%u,%u]", ii, jj);                             \
-      CHECK(2, scomp);                                               \
-    }                                                                \
+#define RUN2                                                                            \
+  coord2[0] = coord2[1] = 0;                                                            \
+  for (jj = 0; jj < size2[1]; jj++) {                                                   \
+    for (ii = 0; ii < size2[0]; ii++) {                                                 \
+      if (ii || jj) {                                                                   \
+        /* don't increment on the very first time, otherwise do */                      \
+        NRRD_COORD_INCR(coord2, size2, 2, 0);                                           \
+      }                                                                                 \
+      airSprintVecSize_t(sbuff, coord2, 2);                                             \
+      sprintf(scomp, "[%u,%u]", ii, jj);                                                \
+      CHECK(2, scomp);                                                                  \
+    }                                                                                   \
   }
 
   ELL_2V_SET(size2, 1, 1);
@@ -138,20 +133,20 @@ main() {
 
   /* 33333333333333333333333333333333333333333333333 */
 
-#define RUN3                                                            \
-  coord3[0] = coord3[1] = coord3[2] = 0;                                \
-  for (kk=0; kk<size3[2]; kk++) {                                       \
-    for (jj=0; jj<size3[1]; jj++) {                                     \
-      for (ii=0; ii<size3[0]; ii++) {                                   \
-        if (ii || jj || kk) {                                           \
-          /* don't increment on the very first time, otherwise do */    \
-          NRRD_COORD_INCR(coord3, size3, 3, 0);                         \
-        }                                                               \
-        airSprintVecSize_t(sbuff, coord3, 3);                           \
-        sprintf(scomp, "[%u,%u,%u]", ii, jj, kk);                       \
-        CHECK(3, scomp);                                                \
-      }                                                                 \
-    }                                                                   \
+#define RUN3                                                                            \
+  coord3[0] = coord3[1] = coord3[2] = 0;                                                \
+  for (kk = 0; kk < size3[2]; kk++) {                                                   \
+    for (jj = 0; jj < size3[1]; jj++) {                                                 \
+      for (ii = 0; ii < size3[0]; ii++) {                                               \
+        if (ii || jj || kk) {                                                           \
+          /* don't increment on the very first time, otherwise do */                    \
+          NRRD_COORD_INCR(coord3, size3, 3, 0);                                         \
+        }                                                                               \
+        airSprintVecSize_t(sbuff, coord3, 3);                                           \
+        sprintf(scomp, "[%u,%u,%u]", ii, jj, kk);                                       \
+        CHECK(3, scomp);                                                                \
+      }                                                                                 \
+    }                                                                                   \
   }
 
   ELL_3V_SET(size3, 1, 1, 1);
@@ -171,22 +166,22 @@ main() {
 
   /* 44444444444444444444444444444444444444444444444 */
 
-#define RUN4                                                            \
-  coord4[0] = coord4[1] = coord4[2] = coord4[3] = 0;                    \
-  for (ll=0; ll<size4[3]; ll++) {                                       \
-    for (kk=0; kk<size4[2]; kk++) {                                     \
-      for (jj=0; jj<size4[1]; jj++) {                                   \
-        for (ii=0; ii<size4[0]; ii++) {                                 \
-          if (ii || jj || kk || ll) {                                   \
-            /* don't increment on the very first time, otherwise do */  \
-            NRRD_COORD_INCR(coord4, size4, 4, 0);                       \
-          }                                                             \
-          airSprintVecSize_t(sbuff, coord4, 4);                         \
-          sprintf(scomp, "[%u,%u,%u,%u]", ii, jj, kk, ll);              \
-          CHECK(4, scomp);                                              \
-        }                                                               \
-      }                                                                 \
-    }                                                                   \
+#define RUN4                                                                            \
+  coord4[0] = coord4[1] = coord4[2] = coord4[3] = 0;                                    \
+  for (ll = 0; ll < size4[3]; ll++) {                                                   \
+    for (kk = 0; kk < size4[2]; kk++) {                                                 \
+      for (jj = 0; jj < size4[1]; jj++) {                                               \
+        for (ii = 0; ii < size4[0]; ii++) {                                             \
+          if (ii || jj || kk || ll) {                                                   \
+            /* don't increment on the very first time, otherwise do */                  \
+            NRRD_COORD_INCR(coord4, size4, 4, 0);                                       \
+          }                                                                             \
+          airSprintVecSize_t(sbuff, coord4, 4);                                         \
+          sprintf(scomp, "[%u,%u,%u,%u]", ii, jj, kk, ll);                              \
+          CHECK(4, scomp);                                                              \
+        }                                                                               \
+      }                                                                                 \
+    }                                                                                   \
   }
 
   ELL_4V_SET(size4, 1, 1, 1, 1);

@@ -35,7 +35,7 @@
 
 void
 checkFailOrDie(const NrrdBoundarySpec *bspec, airArray *mop) {
-  static const char me[]="checkFailOrDie";
+  static const char me[] = "checkFailOrDie";
   char *err;
 
   if (!nrrdBoundarySpecCheck(bspec)) {
@@ -53,7 +53,7 @@ checkFailOrDie(const NrrdBoundarySpec *bspec, airArray *mop) {
 
 void
 parseFailOrDie(NrrdBoundarySpec *bspec, const char *str, airArray *mop) {
-  static const char me[]="parseFailOrDie";
+  static const char me[] = "parseFailOrDie";
   char *err;
 
   if (!nrrdBoundarySpecParse(bspec, str)) {
@@ -74,14 +74,12 @@ parseFailOrDie(NrrdBoundarySpec *bspec, const char *str, airArray *mop) {
 ** not on the strings, but that isn't implemented yet
 */
 void
-psLoopOrDie(NrrdBoundarySpec *bsp, const char *str,
-                     airArray *mop) {
-  static const char me[]="psLoopOrDie";
+psLoopOrDie(NrrdBoundarySpec *bsp, const char *str, airArray *mop) {
+  static const char me[] = "psLoopOrDie";
   char *err;
-  char buff[AIR_STRLEN_LARGE];
+  char buff[AIR_STRLEN_LARGE + 1];
 
-  if (nrrdBoundarySpecParse(bsp, str)
-      || nrrdBoundarySpecSprint(buff, bsp)) {
+  if (nrrdBoundarySpecParse(bsp, str) || nrrdBoundarySpecSprint(buff, bsp)) {
     err = biffGetDone(NRRD);
     airMopAdd(mop, err, airFree, airMopAlways);
     fprintf(stderr, "%s: error: %s", me, err);
@@ -89,8 +87,7 @@ psLoopOrDie(NrrdBoundarySpec *bsp, const char *str,
     exit(1);
   }
   if (strcmp(str, buff)) {
-    fprintf(stderr, "%s: parse->sprint->\"%s\" != given \"%s\"\n", me,
-            buff, str);
+    fprintf(stderr, "%s: parse->sprint->\"%s\" != given \"%s\"\n", me, buff, str);
     airMopError(mop);
     exit(1);
   }
@@ -98,39 +95,39 @@ psLoopOrDie(NrrdBoundarySpec *bsp, const char *str,
   return;
 }
 
-static const char *tbspecInfo =
-  "for testing handling of boundary specifications";
+static const char *tbspecInfo = "for testing handling of boundary specifications";
 
 int
 main(int argc, const char *argv[]) {
   /* stock variables */
   const char *me;
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   hestParm *hparm;
   airArray *mop;
   /* variables specific to this program */
   char *err;
   NrrdBoundarySpec *bspec, **bsv;
   unsigned int bsNum, bsIdx;
-  char buff[AIR_STRLEN_LARGE];
+  char buff[AIR_STRLEN_LARGE + 1];
 
   me = argv[0];
   mop = airMopNew();
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
-  hestOptAdd(&hopt, "bs", "bspec0", airTypeOther, 1, -1, &bsv, NULL,
-             "bspecs", &bsNum, NULL, nrrdHestBoundarySpec);
-  hestParseOrDie(hopt, argc-1, argv+1, hparm, me, tbspecInfo,
-                 AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestOptAdd(&hopt, "bs", "bspec0", airTypeOther, 1, -1, &bsv, NULL, "bspecs", &bsNum,
+             NULL, nrrdHestBoundarySpec);
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, tbspecInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
   printf("command line options:\n");
-  for (bsIdx=0; bsIdx<bsNum; bsIdx++) {
+  for (bsIdx = 0; bsIdx < bsNum; bsIdx++) {
     if (nrrdBoundarySpecSprint(buff, bsv[bsIdx])) {
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: problem with bsv[%u]:%s", me, bsIdx, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     printf("%s: bspec[%u] = %s\n", me, bsIdx, buff);
   }

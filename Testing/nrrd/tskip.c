@@ -43,7 +43,7 @@ int
 main(int argc, const char **argv) {
   /* stock variables */
   char me[] = BKEY;
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   hestParm *hparm;
   airArray *mop;
   /* variables specific to this program */
@@ -51,7 +51,7 @@ main(int argc, const char **argv) {
   Nrrd *nref, *nin;
   size_t *size, ii, nn, tick, pad[2];
   unsigned int axi, refCRC, gotCRC, sizeNum;
-  char *berr, *outS[2], stmp[AIR_STRLEN_SMALL], doneStr[AIR_STRLEN_SMALL];
+  char *berr, *outS[2], stmp[AIR_STRLEN_SMALL + 1], doneStr[AIR_STRLEN_SMALL + 1];
   airRandMTState *rng;
   unsigned int seed, *rdata, printbytes;
   unsigned char *dataUC;
@@ -63,8 +63,7 @@ main(int argc, const char **argv) {
   hparm = hestParmNew();
   airMopAdd(mop, hparm, (airMopper)hestParmFree, airMopAlways);
   /* learn things from hest */
-  hestOptAdd(&hopt, "seed", "N", airTypeUInt, 1, 1, &seed, "42",
-             "seed for RNG");
+  hestOptAdd(&hopt, "seed", "N", airTypeUInt, 1, 1, &seed, "42", "seed for RNG");
   hestOptAdd(&hopt, "s", "sz0", airTypeSize_t, 1, -1, &size, NULL,
              "sizes of desired output", &sizeNum);
   hestOptAdd(&hopt, "p", "pb pa", airTypeSize_t, 2, 2, pad, "0 0",
@@ -75,10 +74,10 @@ main(int argc, const char **argv) {
   hestOptAdd(&hopt, "pb", "print", airTypeUInt, 1, 1, &printbytes, "0",
              "bytes to print at beginning and end of data, to help "
              "debug problems");
-  hestOptAdd(&hopt, "o", "out.data out.nhdr", airTypeString, 2, 2,
-             outS, NULL, "output filenames of data and header");
-  hestParseOrDie(hopt, argc-1, argv+1, hparm, me, tskipInfo,
-                 AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestOptAdd(&hopt, "o", "out.data out.nhdr", airTypeString, 2, 2, outS, NULL,
+             "output filenames of data and header");
+  hestParseOrDie(hopt, argc - 1, argv + 1, hparm, me, tskipInfo, AIR_TRUE, AIR_TRUE,
+                 AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -86,19 +85,21 @@ main(int argc, const char **argv) {
   nref = nrrdNew();
   airMopAdd(mop, nref, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdMaybeAlloc_nva(nref, nrrdTypeUInt, sizeNum, size)) {
-    airMopAdd(mop, berr=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, berr = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error allocating data: %s\n", me, berr);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   rng = airRandMTStateNew(seed);
   airMopAdd(mop, rng, (airMopper)airRandMTStateNix, airMopAlways);
   nn = nrrdElementNumber(nref);
   rdata = AIR_CAST(unsigned int *, nref->data);
-  fprintf(stderr, "generating data: . . .       "); fflush(stderr);
+  fprintf(stderr, "generating data: . . .       ");
+  fflush(stderr);
   time0 = airTime();
   progress = AIR_FALSE;
-  tick = nn/100;
-  for (ii=0; ii<nn; ii++) {
+  tick = nn / 100;
+  for (ii = 0; ii < nn; ii++) {
     rdata[ii] = airUIrandMT_r(rng);
     if (ii && tick && !(ii % tick)) {
       time1 = airTime();
@@ -108,96 +109,103 @@ main(int argc, const char **argv) {
         progress = AIR_TRUE;
       }
       if (progress) {
-        fprintf(stderr, "%s", airDoneStr(0, ii, nn, doneStr)); fflush(stderr);
+        fprintf(stderr, "%s", airDoneStr(0, ii, nn, doneStr));
+        fflush(stderr);
       }
     }
   }
   if (progress) {
-    fprintf(stderr, "%s\n", airDoneStr(0, ii, nn, doneStr)); fflush(stderr);
+    fprintf(stderr, "%s\n", airDoneStr(0, ii, nn, doneStr));
+    fflush(stderr);
   } else {
     fprintf(stderr, "\n");
   }
-  fprintf(stderr, "finding reference (big-endian) CRC: "); fflush(stderr);
+  fprintf(stderr, "finding reference (big-endian) CRC: ");
+  fflush(stderr);
   refCRC = nrrdCRC32(nref, airEndianBig);
   fprintf(stderr, "%u\n", refCRC);
 
   /* write data, with padding */
-  fprintf(stderr, "saving data . . . "); fflush(stderr);
+  fprintf(stderr, "saving data . . . ");
+  fflush(stderr);
   if (!(fout = fopen(outS[0], "wb" COMMIT))) {
-    fprintf(stderr, "\n%s: couldn't open %s for writing: %s\n", me,
-            outS[0], strerror(errno));
-    airMopError(mop); return 1;
+    fprintf(stderr, "\n%s: couldn't open %s for writing: %s\n", me, outS[0],
+            strerror(errno));
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, fout, (airMopper)airFclose, airMopAlways);
-  for (ii=0; ii<pad[0]; ii++) {
+  for (ii = 0; ii < pad[0]; ii++) {
     if (EOF == fputc(1, fout)) {
       fprintf(stderr, "\n%s: error doing pre-padding\n", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
   if (nn != fwrite(nref->data, nrrdElementSize(nref), nn, fout)) {
     fprintf(stderr, "\n%s: error writing data\n", me);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
-  for (ii=0; ii<pad[1]; ii++) {
+  for (ii = 0; ii < pad[1]; ii++) {
     if (EOF == fputc(2, fout)) {
       fprintf(stderr, "\n%s: error doing post-padding\n", me);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
   if (EOF == fflush(fout)) {
-    fprintf(stderr, "\n%s: error fflushing data: %s\n", me,
-            strerror(errno));
+    fprintf(stderr, "\n%s: error fflushing data: %s\n", me, strerror(errno));
   }
   fprintf(stderr, "\n");
   if (printbytes) {
     size_t bi, rpb, local_nn;
-    char local_stmp[AIR_STRLEN_SMALL];
-    local_nn = nrrdElementSize(nref)*nrrdElementNumber(nref);
+    char local_stmp[AIR_STRLEN_SMALL + 1];
+    local_nn = nrrdElementSize(nref) * nrrdElementNumber(nref);
     rpb = AIR_MIN(printbytes, local_nn);
     dataUC = AIR_CAST(unsigned char *, nref->data);
     fprintf(stderr, "CORRECT %s bytes at beginning:\n",
             airSprintSize_t(local_stmp, rpb));
-    for (bi=0; bi<rpb; bi++) {
+    for (bi = 0; bi < rpb; bi++) {
       fprintf(stderr, "%x ", dataUC[bi]);
     }
     fprintf(stderr, "...\n");
-    fprintf(stderr, "CORRECT %s bytes at end:\n",
-            airSprintSize_t(local_stmp, rpb));
+    fprintf(stderr, "CORRECT %s bytes at end:\n", airSprintSize_t(local_stmp, rpb));
     fprintf(stderr, "...");
-    for (bi=local_nn - rpb; bi<local_nn; bi++) {
+    for (bi = local_nn - rpb; bi < local_nn; bi++) {
       fprintf(stderr, " %x", dataUC[bi]);
     }
     fprintf(stderr, "\n");
   }
   airMopSingleOkay(mop, fout);
-  airMopSingleOkay(mop, nref); nref = NULL;
+  airMopSingleOkay(mop, nref);
+  nref = NULL;
 
   /* write header; for now just writing the header directly */
   fprintf(stderr, "writing header . . . \n");
   if (!(fout = fopen(outS[1], "w"))) {
-    fprintf(stderr, "%s: couldn't open %s for writing: %s\n", me,
-            outS[1], strerror(errno));
-    airMopError(mop); return 1;
+    fprintf(stderr, "%s: couldn't open %s for writing: %s\n", me, outS[1],
+            strerror(errno));
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, fout, (airMopper)airFclose, airMopAlways);
   fprintf(fout, "NRRD0005\n");
   fprintf(fout, "type: unsigned int\n");
   fprintf(fout, "dimension: %u\n", sizeNum);
   fprintf(fout, "sizes:");
-  for (axi=0; axi<sizeNum; axi++) {
+  for (axi = 0; axi < sizeNum; axi++) {
     fprintf(fout, " %s", airSprintSize_t(stmp, size[axi]));
   }
   fprintf(fout, "\n");
   fprintf(fout, "endian: %s\n", airEnumStr(airEndian, airMyEndian()));
-  fprintf(fout, "encoding: %s\n", airEnumStr(nrrdEncodingType,
-                                             nrrdEncodingTypeRaw));
+  fprintf(fout, "encoding: %s\n", airEnumStr(nrrdEncodingType, nrrdEncodingTypeRaw));
   if (!negskip) {
     if (pad[0]) {
       fprintf(fout, "byte skip: %s\n", airSprintSize_t(stmp, pad[0]));
     }
   } else {
-    fprintf(fout, "byte skip: -%s\n", airSprintSize_t(stmp, pad[1]+1));
+    fprintf(fout, "byte skip: -%s\n", airSprintSize_t(stmp, pad[1] + 1));
   }
   fprintf(fout, "data file: %s\n", outS[0]);
   airMopSingleOkay(mop, fout);
@@ -207,26 +215,25 @@ main(int argc, const char **argv) {
   nin = nrrdNew();
   airMopAdd(mop, nin, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdLoad(nin, outS[1], NULL)) {
-    airMopAdd(mop, berr=biffGetDone(NRRD), airFree, airMopAlways);
+    airMopAdd(mop, berr = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "%s: error reading back in: %s\n", me, berr);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (printbytes) {
     size_t bi, rpb, local_nn;
-    char local_stmp[AIR_STRLEN_SMALL];
-    local_nn = nrrdElementSize(nin)*nrrdElementNumber(nin);
+    char local_stmp[AIR_STRLEN_SMALL + 1];
+    local_nn = nrrdElementSize(nin) * nrrdElementNumber(nin);
     rpb = AIR_MIN(printbytes, local_nn);
     dataUC = AIR_CAST(unsigned char *, nin->data);
-    fprintf(stderr, "FOUND %s bytes at beginning:\n",
-            airSprintSize_t(local_stmp, rpb));
-    for (bi=0; bi<rpb; bi++) {
+    fprintf(stderr, "FOUND %s bytes at beginning:\n", airSprintSize_t(local_stmp, rpb));
+    for (bi = 0; bi < rpb; bi++) {
       fprintf(stderr, "%x ", dataUC[bi]);
     }
     fprintf(stderr, "...\n");
-    fprintf(stderr, "FOUND %s bytes at end:\n",
-            airSprintSize_t(local_stmp, rpb));
+    fprintf(stderr, "FOUND %s bytes at end:\n", airSprintSize_t(local_stmp, rpb));
     fprintf(stderr, "...");
-    for (bi=local_nn - rpb; bi<local_nn; bi++) {
+    for (bi = local_nn - rpb; bi < local_nn; bi++) {
       fprintf(stderr, " %x", dataUC[bi]);
     }
     fprintf(stderr, "\n");
@@ -235,7 +242,8 @@ main(int argc, const char **argv) {
   gotCRC = nrrdCRC32(nin, airEndianBig);
   if (refCRC != gotCRC) {
     fprintf(stderr, "%s: got CRC %u but wanted %u\n", me, gotCRC, refCRC);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   fprintf(stderr, "(all ok)\n");
 
