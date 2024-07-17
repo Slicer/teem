@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "teem/air.h"
 
 /*
@@ -35,7 +34,7 @@ main(int argc, const char *argv[]) {
   const char *me;
   size_t sz;
   ptrdiff_t pd;
-  char stmp[AIR_STRLEN_SMALL];
+  char stmp[AIR_STRLEN_SMALL + 1];
 
   AIR_UNUSED(argc);
   me = argv[0];
@@ -56,6 +55,3 @@ main(int argc, const char *argv[]) {
 
   exit(0);
 }
-
-
-

@@ -21,7 +21,6 @@
   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
 #include "teem/air.h"
 
 /*
@@ -31,7 +30,7 @@
 
 int
 main(int argc, const char *argv[]) {
-  char stmp[AIR_STRLEN_SMALL];
+  char stmp[AIR_STRLEN_SMALL + 1];
   airArray *mop;
 
   AIR_UNUSED(argc);
@@ -43,15 +42,16 @@ main(int argc, const char *argv[]) {
     size_t ee = 1;
     do {
       if (l2 != (ret = airLog2(ee))) {
-        fprintf(stderr, "airLog2(%s) = %d != %d\n",
-                airSprintSize_t(stmp, ee), ret, l2);
-        airMopError(mop); return 1;
+        fprintf(stderr, "airLog2(%s) = %d != %d\n", airSprintSize_t(stmp, ee), ret, l2);
+        airMopError(mop);
+        return 1;
       }
       if (ee > 1) {
-        if (-1 != (ret = airLog2(ee+1))) {
-          fprintf(stderr, "airLog2(%s) = %d != -1\n",
-                  airSprintSize_t(stmp, ee+1), ret);
-          airMopError(mop); return 1;
+        if (-1 != (ret = airLog2(ee + 1))) {
+          fprintf(stderr, "airLog2(%s) = %d != -1\n", airSprintSize_t(stmp, ee + 1),
+                  ret);
+          airMopError(mop);
+          return 1;
         }
       }
       l2 += 1;
@@ -66,21 +66,21 @@ main(int argc, const char *argv[]) {
     rng = airRandMTStateNew(4242);
     airMopAdd(mop, rng, (airMopper)airRandMTStateNix, airMopAlways);
     error = 0;
-    for (ti=0; ti<testnum; ti++) {
+    for (ti = 0; ti < testnum; ti++) {
       double dif;
-      airNormalRand_r(aa+0, aa+1, rng);
-      for (pi=0; pi<2; pi++) {
+      airNormalRand_r(aa + 0, aa + 1, rng);
+      for (pi = 0; pi < 2; pi++) {
         aa[pi] *= 10000;
         uu = airCbrt(aa[pi]);
-        dif = fabs(aa[pi] - uu*uu*uu);
-        error += (dif/aa[pi])*dif;
+        dif = fabs(aa[pi] - uu * uu * uu);
+        error += (dif / aa[pi]) * dif;
       }
     }
     error /= testnum;
     if (error > eps) {
-      fprintf(stderr, "average cbrt error was %.17g > eps %0.17g\n",
-              error, eps);
-      airMopError(mop); return 1;
+      fprintf(stderr, "average cbrt error was %.17g > eps %0.17g\n", error, eps);
+      airMopError(mop);
+      return 1;
     } else {
       fprintf(stderr, "average cbrt error = %.17g\n", error);
     }
@@ -88,6 +88,3 @@ main(int argc, const char *argv[]) {
 
   exit(0);
 }
-
-
-
