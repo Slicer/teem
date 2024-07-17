@@ -87,7 +87,7 @@ qbertSizeUp(Nrrd *nout, Nrrd *nin, unsigned int *sz, NrrdKernelSpec *uk) {
     }
   } else {
     for (i = 0; i <= 2; i++) {
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       anyneed |= !!(need = AIR_INT(sz[i]) - AIR_INT(nin->axis[i].size));
       fprintf(stderr, "%s: sz[%d] = %s -> need = %d --> ", me, i,
               airSprintSize_t(stmp, nin->axis[i].size), need);
@@ -143,7 +143,7 @@ qbertSizeDown(Nrrd *nout, Nrrd *nin, unsigned int *sz, NrrdKernelSpec *dk) {
   need = 0;
   for (i = 0; i <= 2; i++) {
     if (nin->axis[i].size > sz[i]) {
-      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+      char stmp1[AIR_STRLEN_SMALL + 1], stmp2[AIR_STRLEN_SMALL + 1];
       need = 1;
       rsi->kernel[i] = dk->kernel;
       memcpy(rsi->parm[i], dk->parm, dk->kernel->numParm * sizeof(double));
@@ -196,7 +196,7 @@ int
 qbertProbe(Nrrd *nout, Nrrd *nin, NrrdKernelSpec *k00, NrrdKernelSpec *k11,
            NrrdKernelSpec *k22, int doH, unsigned int *sz) {
   static const char me[] = "qbertProbe";
-  char prog[AIR_STRLEN_SMALL];
+  char prog[AIR_STRLEN_SMALL + 1];
   gageContext *ctx;
   gagePerVolume *pvl;
   const double *val, *gmag, *scnd;
@@ -390,7 +390,7 @@ int
 qbertMakeVgh(Nrrd *nvgh, Nrrd *nvhist, Nrrd *nghist, Nrrd *nhhist, unsigned int *sz,
              float *perc, Nrrd *nvghF) {
   static const char me[] = "qbertMakeVgh";
-  char cmt[AIR_STRLEN_SMALL];
+  char cmt[AIR_STRLEN_SMALL + 1];
   double minv, maxv, ming, maxg, minh = 0, maxh = 0;
   int lose, *vhist, *ghist, *hhist = NULL, vi, gi, hi, doH;
   unsigned int i, nval, bins;

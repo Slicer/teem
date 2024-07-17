@@ -30,7 +30,7 @@ main(int argc, char *argv[]) {
   me = argv[0];
   aret = airSanity();
   if (airInsane_not == aret) {
-    char stmp[AIR_STRLEN_SMALL];
+    char stmp[AIR_STRLEN_SMALL + 1];
     fprintf(stderr, "%s: air sanity check passed.\n", me);
     fprintf(stderr, "\n");
     fprintf(stderr, "airMyEndian() == %d\n", airMyEndian());

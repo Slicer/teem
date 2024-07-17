@@ -61,7 +61,7 @@ main(int argc, const char *argv[]) {
 
   char hackKeyStr[] = "TEEM_VPROBE_HACK_ZI", *hackValStr;
   int otype, hackSet;
-  char stmp[4][AIR_STRLEN_SMALL];
+  char stmp[4][AIR_STRLEN_SMALL + 1];
 
   me = argv[0];
   /* parse environment variables first, in case they break nrrdDefault*

@@ -93,7 +93,7 @@ typedef union {
 
 int
 tkwbReadFileToString(char **strP, int *hitEOF, FILE *file, char *stop) {
-  char **all, line[AIR_STRLEN_HUGE];
+  char **all, line[AIR_STRLEN_HUGE + 1];
   airArray *allArr;
   unsigned int allLen;
   unsigned int lineLen, lineIdx, totalLen;
@@ -102,14 +102,14 @@ tkwbReadFileToString(char **strP, int *hitEOF, FILE *file, char *stop) {
   uu.pc = &all;
   allArr = airArrayNew(uu.v, &allLen, sizeof(char *), tkwbArrayIncr);
   airArrayPointerCB(allArr, airNull, airFree);
-  lineLen = airOneLine(file, line, AIR_STRLEN_HUGE);
+  lineLen = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
   totalLen = 0;
   while (lineLen && (!(airStrlen(stop) && !strcmp(line, stop)))) {
     lineIdx = airArrayLenIncr(allArr, 1); /* HEY error checking */
     all[lineIdx] = (char *)calloc(strlen(line) + strlen("\n") + 1, sizeof(char));
     sprintf(all[lineIdx], "%s\n", line);
     totalLen += strlen(line) + 1;
-    lineLen = airOneLine(file, line, AIR_STRLEN_HUGE);
+    lineLen = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
   }
   if (hitEOF) {
     *hitEOF = !lineLen;
@@ -155,7 +155,7 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
   FILE *file;
   airArray *mop, *slideArr;
   tkwbSlide **slide = NULL;
-  char *title, *image, *text, stop[AIR_STRLEN_HUGE], line[AIR_STRLEN_HUGE];
+  char *title, *image, *text, stop[AIR_STRLEN_HUGE + 1], line[AIR_STRLEN_HUGE + 1];
   int slideIdx = 0, hitEOF, notReally;
   unsigned int len;
   _tkwbU uu;
@@ -168,7 +168,7 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
   }
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
-  len = airOneLine(file, stop, AIR_STRLEN_HUGE);
+  len = airOneLine(file, stop, AIR_STRLEN_HUGE + 1);
   if (!(len > 1)) {
     biffAddf(TKWB, "%s: didn't get a stop delimiter from %s", me, filename);
     airMopError(mop);
@@ -181,14 +181,14 @@ tkwbReadSlides(tkwbSlide ***slideP, char *filename, airArray *pmop) {
   hitEOF = notReally = AIR_FALSE;
   while (!hitEOF) {
     slideIdx = airArrayLenIncr(slideArr, 1); /* HEY error checking */
-    len = airOneLine(file, line, AIR_STRLEN_HUGE);
+    len = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
     if (!len) {
       /* got EOF after a division marker, that's okay */
       notReally = AIR_TRUE;
       break;
     }
     title = airStrdup(line);
-    len = airOneLine(file, line, AIR_STRLEN_HUGE);
+    len = airOneLine(file, line, AIR_STRLEN_HUGE + 1);
     if (!len) {
       break;
     }
@@ -322,7 +322,7 @@ tkwbStringSubst(char **sP, /* string to search in */
 int
 tkwbWriteIndex(char *_indx, tkwbSlide **slide, char *tag[TKWB_TAG_MAX + 1]) {
   static const char me[] = "tkwbWriteIndex";
-  char *repl, *indx, tmp[AIR_STRLEN_MED];
+  char *repl, *indx, tmp[AIR_STRLEN_MED + 1];
   int replLen, si;
   airArray *mop;
 
@@ -366,8 +366,8 @@ int
 tkwbWriteSlides(tkwbSlide **slide, int numSlides, char *tmpl,
                 char *tag[TKWB_TAG_MAX + 1], char *link[4]) {
   static const char me[] = "tkwbWriteSlides";
-  char *text, name[AIR_STRLEN_MED], frst[AIR_STRLEN_MED], prev[AIR_STRLEN_MED],
-    next[AIR_STRLEN_MED], last[AIR_STRLEN_MED];
+  char *text, name[AIR_STRLEN_MED + 1], frst[AIR_STRLEN_MED + 1],
+    prev[AIR_STRLEN_MED + 1], next[AIR_STRLEN_MED + 1], last[AIR_STRLEN_MED + 1];
   int si;
   airArray *mop;
 
@@ -460,8 +460,8 @@ tkwbDoit(char *indxS, char *tmplS, char *scriptS, char *tag[TKWB_TAG_MAX + 1],
 int
 main(int argc, const char *argv[]) {
   const char *me;
-  char *err, *indxS, *tmplS, *scriptS, *pretag[TKWB_TAG_MAX + 1], *tag[AIR_STRLEN_MED],
-    *frstLink, *prevLink, *nextLink, *lastLink, *link[4];
+  char *err, *indxS, *tmplS, *scriptS, *pretag[TKWB_TAG_MAX + 1],
+    *tag[AIR_STRLEN_MED + 1], *frstLink, *prevLink, *nextLink, *lastLink, *link[4];
   hestOpt *hopt = NULL;
   airArray *mop;
   int ti;

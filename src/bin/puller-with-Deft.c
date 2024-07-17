@@ -1619,7 +1619,7 @@ main(int argc, const char **argv) {
   nrrdSave(outS, nPosOut, NULL);
   if (airStrlen(extraOutBaseS)) {
     Nrrd *nstrn, *nstab, *nintern;
-    char fname[3][AIR_STRLEN_MED];
+    char fname[3][AIR_STRLEN_MED + 1];
     nstrn = nrrdNew();
     nstab = nrrdNew();
     nintern = nrrdNew();

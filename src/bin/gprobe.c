@@ -53,7 +53,7 @@ gridProbe(gageContext *ctx, gagePerVolume *pvl, int what, Nrrd *nout, int typeOu
   unsigned int ansLen, dim, aidx, baseDim, gridDim;
   size_t sizeOut[NRRD_DIM_MAX], coordOut[NRRD_DIM_MAX], II, NN;
   double (*ins)(void *v, size_t I, double d);
-  char stmp[2][AIR_STRLEN_SMALL];
+  char stmp[2][AIR_STRLEN_SMALL + 1];
 
   if (!(ctx && pvl && nout && _ngrid)) {
     biffAddf(GAGE, "%s: got NULL pointer", me);
@@ -239,7 +239,7 @@ main(int argc, const char *argv[]) {
   unsigned int ansLen, *skip, skipNum, pntPosNum, nonSbpOpi[NON_SBP_OPT_NUM], nsi;
   gageStackBlurParm *sbpIN, *sbpCL, *sbp;
   int otype, clamp, scaleIsTau;
-  char stmp[4][AIR_STRLEN_SMALL];
+  char stmp[4][AIR_STRLEN_SMALL + 1];
 
   me = argv[0];
   /* parse environment variables first, in case they break nrrdDefault*
