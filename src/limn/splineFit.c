@@ -284,13 +284,14 @@ limnCbfPathNew(unsigned int segNum) {
   limnCbfPath *path;
   path = AIR_MALLOC(1, limnCbfPath);
   if (path) {
+    path->seg = NULL;
     path->segArr = airArrayNew((void **)(&path->seg), &path->segNum, sizeof(limnCbfSeg),
                                128 /* incr */);
     airArrayStructCB(path->segArr, segInit, NULL);
     path->isLoop = AIR_FALSE;
     if (segNum) {
       airArrayLenSet(path->segArr, segNum);
-      if (!path->segArr->data) {
+      if (!path->seg) {
         /* whoa, couldn't allocate requested segments; return NULL and possibly leak */
         path = NULL;
       }
