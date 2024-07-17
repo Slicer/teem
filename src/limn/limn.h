@@ -522,10 +522,11 @@ typedef struct {
   double xy[8];  /* four control points of cubic Bezier:
                     x0, y0,   x1, y1,   x2, y2,   x3, y3
                     0   1     2   3     4   5     6  7   DIM=2 */
-  int corner[2]; /* corner[0,1] non-zero if xy[0,3] are either corner vertices
-                    or path-ending vertices, i.e. reasons to not have geometric
-                    continuity here, either because we intend to have a corner,
-                    or because there's nothing else to be continuous with */
+  int corner[2]; /* corner[0] is non-zero if vertex xy[0,1] is either a corner vertex
+                    or a path-ending vertex, i.e. reasons to NOT have geometric
+                    continuity there, either because we intend to have a corner,
+                    or because there's nothing else to be continuous with.
+                    corner[1] describes the same for xy[6,7]. */
                  /* how many points does this represent */
   unsigned int pointNum;
 } limnCbfSeg;
