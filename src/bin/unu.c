@@ -84,7 +84,7 @@ main(int argc, const char **argv) {
   }
   /* else, we see if its unu --version */
   if (!strcmp("--version", argv[1])) {
-    char vbuff[AIR_STRLEN_LARGE];
+    char vbuff[AIR_STRLEN_LARGE + 1];
     airTeemVersionSprint(vbuff);
     printf("%s\n", vbuff);
     exit(0);

@@ -36,7 +36,7 @@ main(int argc, const char *argv[]) {
   hestParm *hparm = NULL;
   miteUser *muu;
   const char *me;
-  char *errS, *outS, *shadeStr, *normalStr, debugStr[AIR_STRLEN_MED];
+  char *errS, *outS, *shadeStr, *normalStr, debugStr[AIR_STRLEN_MED + 1];
   int renorm, baseDim, verbPix[2], offfr;
   int E, Ecode, Ethread;
   float ads[3], isScale;
@@ -206,8 +206,8 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "    N = {%g,%g,%g}\n",
     muu->hctx->cam->N[0], muu->hctx->cam->N[1], muu->hctx->cam->N[2]);
   */
-  airStrcpy(muu->shadeStr, AIR_STRLEN_MED, shadeStr);
-  airStrcpy(muu->normalStr, AIR_STRLEN_MED, normalStr);
+  airStrcpy(muu->shadeStr, AIR_STRLEN_MED + 1, shadeStr);
+  airStrcpy(muu->normalStr, AIR_STRLEN_MED + 1, normalStr);
   if (0) {
     muu->hctx->volSize[0] = nin->axis[baseDim + 0].size;
     muu->hctx->volSize[1] = nin->axis[baseDim + 1].size;

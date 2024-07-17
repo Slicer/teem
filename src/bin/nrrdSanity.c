@@ -30,7 +30,7 @@ main(int argc, char *argv[]) {
   me = argv[0];
   if (2 == argc) {
     if (!strcmp(argv[1], "--version")) {
-      char vbuff[AIR_STRLEN_LARGE];
+      char vbuff[AIR_STRLEN_LARGE + 1];
       airTeemVersionSprint(vbuff);
       printf("%s\n", vbuff);
       exit(0);

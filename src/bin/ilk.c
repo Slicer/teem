@@ -144,7 +144,7 @@ main(int argc, const char *argv[]) {
   ELL_2V_COPY(msp->verbPixel, debug);
   if (nrrdBoundaryPad == bound) {
     if (_bkgLen != MOSS_CHAN_NUM(nin)) {
-      char stmp[AIR_STRLEN_SMALL];
+      char stmp[AIR_STRLEN_SMALL + 1];
       fprintf(stderr, "%s: got length %u background, image has %s channels\n", me,
               _bkgLen, airSprintSize_t(stmp, MOSS_CHAN_NUM(nin)));
       airMopError(mop);
