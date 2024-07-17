@@ -44,7 +44,7 @@ main(int argc, const char **argv) {
   char expapps[] = "_off_";
 #endif
 
-  char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+  char stmp1[AIR_STRLEN_SMALL + 1], stmp2[AIR_STRLEN_SMALL + 1];
   AIR_UNUSED(argc);
   AIR_UNUSED(argv);
 
@@ -55,7 +55,7 @@ main(int argc, const char **argv) {
   printf("AIR_QNANHIBIT == %d\n", AIR_QNANHIBIT);
   printf("sizeof(size_t) = %s; sizeof(void*) = %s\n",
          airSprintSize_t(stmp1, sizeof(size_t)),
-         airSprintSize_t(stmp2, sizeof(void*)));
+         airSprintSize_t(stmp2, sizeof(void *)));
 
   printf("experimental libs %s; apps %s\n", explibs, expapps);
   printf("libs = ");
