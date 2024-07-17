@@ -175,7 +175,7 @@ main(int argc, const char *argv[]) {
 
   /* airPrettySprintSize_t */
   {
-    char prstmp[AIR_STRLEN_SMALL];
+    char prstmp[AIR_STRLEN_SMALL + 1];
     size_t vals[] = {0,                          /* 0 */
                      800,                        /* 1 */
                      1024,                       /* 2 = 2^10 */
