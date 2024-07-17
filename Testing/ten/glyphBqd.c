@@ -36,30 +36,29 @@ main(int argc, const char **argv) {
   double *abc;
   unsigned int sz, ui, vi, bi, betaMaxNum;
   double uv[2], betaMax[2] = {2.5555555555, 3.888888888888};
-  char *err, *refname, explain[AIR_STRLEN_LARGE];
+  char *err, *refname, explain[AIR_STRLEN_LARGE + 1];
   int differ, ret;
 
   mop = airMopNew();
   nabc = nrrdNew();
   airMopAdd(mop, nabc, (airMopper)nrrdNuke, airMopAlways);
   sz = 100;
-  betaMaxNum = AIR_CAST(unsigned int, sizeof(betaMax)/sizeof(double));
-  if (nrrdMaybeAlloc_va(nabc, nrrdTypeDouble, 3,
-                        AIR_CAST(size_t, 3),
-                        AIR_CAST(size_t, sz),
-                        AIR_CAST(size_t, sz*betaMaxNum))) {
+  betaMaxNum = AIR_CAST(unsigned int, sizeof(betaMax) / sizeof(double));
+  if (nrrdMaybeAlloc_va(nabc, nrrdTypeDouble, 3, AIR_CAST(size_t, 3),
+                        AIR_CAST(size_t, sz), AIR_CAST(size_t, sz * betaMaxNum))) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "trouble allocating:\n%s", err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   abc = AIR_CAST(double *, nabc->data);
-  for (bi=0; bi<betaMaxNum; bi++) {
-    for (vi=0; vi<sz; vi++) {
+  for (bi = 0; bi < betaMaxNum; bi++) {
+    for (vi = 0; vi < sz; vi++) {
       uv[1] = NRRD_CELL_POS(0.0, 1.0, sz, vi);
-      for (ui=0; ui<sz; ui++) {
+      for (ui = 0; ui < sz; ui++) {
         uv[0] = NRRD_CELL_POS(0.0, 1.0, sz, ui);
-        tenGlyphBqdAbcUv(abc + 3*(ui + sz*(vi + sz*bi)), uv, betaMax[bi]);
+        tenGlyphBqdAbcUv(abc + 3 * (ui + sz * (vi + sz * bi)), uv, betaMax[bi]);
       }
     }
   }
@@ -69,11 +68,12 @@ main(int argc, const char **argv) {
   nref = nrrdNew();
   airMopAdd(mop, nref, (airMopper)nrrdNuke, airMopAlways);
   if (nrrdLoad(nref, refname, NULL)
-      || nrrdCompare(nref, nabc, AIR_FALSE /* onlyData */,
-                     5e-15 /* epsilon */, &differ, explain)) {
+      || nrrdCompare(nref, nabc, AIR_FALSE /* onlyData */, 5e-15 /* epsilon */, &differ,
+                     explain)) {
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
     fprintf(stderr, "trouble loading or comparing with ref:\n%s", err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   if (differ) {
@@ -83,8 +83,7 @@ main(int argc, const char **argv) {
         airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
         fprintf(stderr, "oops, can't save generated array:\n%s", err);
       } else {
-        printf("%s: saved generated (and different) array as %s\n",
-               argv[0], argv[1]);
+        printf("%s: saved generated (and different) array as %s\n", argv[0], argv[1]);
       }
     }
     ret = 1;
