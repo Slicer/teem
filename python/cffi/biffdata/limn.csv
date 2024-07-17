@@ -61,13 +61,13 @@ limnSplineUpdate,int,1,0,limn,limn/splineMethods.c:422
 limnSplineTypeSpecParse,limnSplineTypeSpec *,NULL,0,limn,limn/splineMisc.c:222
 limnSplineParse,limnSpline *,NULL,0,limn,limn/splineMisc.c:278
 limnCbfPointsNew,limnCbfPoints *,NULL,0,limn,limn/splineFit.c:175
-limnCbfPointsCheck,int,1,0,limn,limn/splineFit.c:229
-limnCbfCtxPrep,int,1,0,limn,limn/splineFit.c:497
-limnCbfTVT,int,1,0,limn,limn/splineFit.c:762
-limnCbfSingle,int,1,0,limn,limn/splineFit.c:1494
-limnCbfCorners,int,1,0,limn,limn/splineFit.c:1545
-limnCbfMulti,int,1,0,limn,limn/splineFit.c:1727
-limnCbfGo,int,1,0,limn,limn/splineFit.c:1844
+limnCbfPointsCheck,int,1,0,limn,limn/splineFit.c:247
+limnCbfCtxPrep,int,1,0,limn,limn/splineFit.c:515
+limnCbfTVT,int,1,0,limn,limn/splineFit.c:783
+limnCbfSingle,int,1,0,limn,limn/splineFit.c:1511
+limnCbfCorners,int,1,0,limn,limn/splineFit.c:1562
+limnCbfMulti,int,1,0,limn,limn/splineFit.c:1745
+limnCbfGo,int,1,0,limn,limn/splineFit.c:1863
 limnObjectWorldHomog,int,1,0,limn,limn/transform.c:25
 limnObjectFaceNormals,int,1,0,limn,limn/transform.c:47
 limnObjectSpaceTransform,int,1,0,limn,limn/transform.c:210
