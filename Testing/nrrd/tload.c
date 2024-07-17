@@ -48,28 +48,28 @@ main(int argc, const char **argv) {
   if (nrrdLoad(nin, fullname, NULL)) {
     char *err;
     airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-    fprintf(stderr, "%s: trouble reading data \"%s\":\n%s",
-            me, fullname, err);
-    airMopError(mop); return 1;
+    fprintf(stderr, "%s: trouble reading data \"%s\":\n%s", me, fullname, err);
+    airMopError(mop);
+    return 1;
   }
 
   {
     Nrrd *ncopy;
-    char *blah, *blah1L, explain[AIR_STRLEN_LARGE];
+    char *blah, *blah1L, explain[AIR_STRLEN_LARGE + 1];
     size_t ii, blen;
     ncopy = nrrdNew();
     airMopAdd(mop, ncopy, (airMopper)nrrdNuke, airMopAlways);
-    blen = AIR_STRLEN_HUGE*42;
+    blen = AIR_STRLEN_HUGE * 42;
     blah = AIR_CALLOC(blen, char);
     airMopAdd(mop, blah, airFree, airMopAlways);
-    for (ii=0; ii<blen-1; ii++) {
+    for (ii = 0; ii < blen - 1; ii++) {
       /* NOTE: a more rigorous test would put things in here that can't
          be directly written to file, like \r \v \f, but fixing that bug
          is enough of a significant change to functionality that it should
          be discussed with users first */
       blah[ii] = ("abcdefghijklmnopqrtsuvzwyz\n\"\\ "
                   "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\"\\ ")
-        [airRandInt((26 + 4)*2)]; /* 4 other characters */
+        [airRandInt((26 + 4) * 2)]; /* 4 other characters */
     }
     blah[ii] = '\0';
     /* NOTE: this blah1L is to overcome a long-stanging bug that \n's
@@ -82,48 +82,49 @@ main(int argc, const char **argv) {
        work */
     blah1L = airOneLinify(airStrdup(blah));
     airMopAdd(mop, blah1L, airFree, airMopAlways);
-    nrrdAxisInfoSet_va(nin, nrrdAxisInfoLabel,
-                       "first axis label", "2nd axis label",
+    nrrdAxisInfoSet_va(nin, nrrdAxisInfoLabel, "first axis label", "2nd axis label",
                        blah1L);
     nin->spaceUnits[0] = airOneLinify(airStrdup("\nsp\"\nu0\n"));
     nin->spaceUnits[1] = airStrdup("bob");
-    nin->spaceUnits[2] = airStrdup(blah1L);  /* see NOTE above */
+    nin->spaceUnits[2] = airStrdup(blah1L); /* see NOTE above */
     if (nrrdCommentAdd(nin, "the first comment")
-        || nrrdCommentAdd(nin, "very long comment follows")
-        || nrrdCommentAdd(nin, blah)
+        || nrrdCommentAdd(nin, "very long comment follows") || nrrdCommentAdd(nin, blah)
         || nrrdKeyValueAdd(nin, "first key", "first value")
         || nrrdKeyValueAdd(nin, "2nd key", "2nd value")
         || nrrdKeyValueAdd(nin, "big key", blah)) {
       char *err;
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
-      fprintf(stderr, "%s: trouble w/ comments or KVPs:\n%s",
-              me, err);
-      airMopError(mop); return 1;
+      fprintf(stderr, "%s: trouble w/ comments or KVPs:\n%s", me, err);
+      airMopError(mop);
+      return 1;
     }
     if (nrrdCopy(ncopy, nin)
-        || nrrdCompare(nin, ncopy, AIR_FALSE /* onlyData */,
-                       0.0 /* epsilon */, &differ, explain)) {
+        || nrrdCompare(nin, ncopy, AIR_FALSE /* onlyData */, 0.0 /* epsilon */, &differ,
+                       explain)) {
       char *err;
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble w/ copy or compare:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if (differ) {
       fprintf(stderr, "%s: difference in in-memory copy: %s\n", me, explain);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
-    if (nrrdSave("tloadTest.nrrd", nin, NULL)
-        || nrrdLoad(ncopy, "tloadTest.nrrd", NULL)
-        || nrrdCompare(nin, ncopy, AIR_FALSE /* onlyData */,
-                       0.0 /* epsilon */, &differ, explain)) {
+    if (nrrdSave("tloadTest.nrrd", nin, NULL) || nrrdLoad(ncopy, "tloadTest.nrrd", NULL)
+        || nrrdCompare(nin, ncopy, AIR_FALSE /* onlyData */, 0.0 /* epsilon */, &differ,
+                       explain)) {
       char *err;
       airMopAdd(mop, err = biffGetDone(NRRD), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble w/ save, load, compare:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
     if (differ) {
       fprintf(stderr, "%s: difference in on-disk copy: %s\n", me, explain);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
 
