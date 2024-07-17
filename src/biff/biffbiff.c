@@ -422,6 +422,7 @@ _biffMoveVL(const char *destKey, const char *srcKey, const char *errfmt, va_list
     return;
   }
   _biffMsgMoveVL(dest, src, errfmt, args);
+  biffDone(srcKey);
   return;
 }
 
