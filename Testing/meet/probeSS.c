@@ -85,7 +85,7 @@ engageGenTensor(gageContext *gctx, Nrrd *ncten,
   static const char me[] = "engageGenTensor";
   hestParm *hparm;
   airArray *smop;
-  char tmpStr[4][AIR_STRLEN_SMALL];
+  char tmpStr[4][AIR_STRLEN_SMALL + 1];
   Nrrd *nclean;
   NrrdIter *narg0, *narg1;
   const char *helixArgv[] =
@@ -338,7 +338,7 @@ engageMopDiceVector(gageContext *gctx, Nrrd *nvecComp[3],
   static const char me[] = "engageMopDiceVector";
   gagePerVolume *pvl;
   unsigned int ci;
-  char stmp[AIR_STRLEN_SMALL];
+  char stmp[AIR_STRLEN_SMALL + 1];
 
   if (!(4 == nvec->dim && 3 == nvec->axis[0].size)) {
     biffAddf(BKEY, "%s: expected 4-D 3-by-X nrrd (not %u-D %s-by-X)", me, nvec->dim,
@@ -397,7 +397,7 @@ engageMopDiceDwi(gageContext *gctx, Nrrd ***ndwiCompP,
   static const char me[] = "mopDiceDwi";
   Nrrd **ndwiComp;
   size_t dwiNum;
-  char stmp[AIR_STRLEN_SMALL];
+  char stmp[AIR_STRLEN_SMALL + 1];
   gagePerVolume *pvl;
   unsigned int ci;
 
@@ -438,7 +438,7 @@ engageMopDiceDwi(gageContext *gctx, Nrrd ***ndwiCompP,
 }
 
 typedef struct {
-  char name[AIR_STRLEN_SMALL];
+  char name[AIR_STRLEN_SMALL + 1];
   const double **aptr; /* array of pointers to (const) answers */
   gageItemSpec *ispec; /* array of gageItemSpecs (not pointers to them) */
   unsigned int *alen;  /* array of answer lengths */
@@ -466,7 +466,7 @@ multiAnswerNew(char *name) {
   multiAnswer *man;
 
   man = AIR_CALLOC(1, multiAnswer);
-  airStrcpy(man->name, AIR_STRLEN_SMALL, name);
+  airStrcpy(man->name, AIR_STRLEN_SMALL + 1, name);
   multiAnswerInit(man);
   return man;
 }
@@ -887,9 +887,9 @@ main(int argc, const char **argv) {
   airArray *mop;
 
   const gageKind *kind[KIND_NUM];
-  char name[KIND_NUM][AIR_STRLEN_SMALL] = {"scl", "vec", "ten", "dwi"};
-  char nameComp[KIND_NUM][AIR_STRLEN_SMALL] = {"sclComp", "vecComp", "tenComp",
-                                               "dwiComp"};
+  char name[KIND_NUM][AIR_STRLEN_SMALL + 1] = {"scl", "vec", "ten", "dwi"};
+  char nameComp[KIND_NUM][AIR_STRLEN_SMALL + 1] = {"sclComp", "vecComp", "tenComp",
+                                                   "dwiComp"};
   char *kernS;
   gageKind *dwikind = NULL;
   gageContext *gctxComp[KIND_NUM], *gctxCompCopy[KIND_NUM], *gctx[KIND_NUM],
