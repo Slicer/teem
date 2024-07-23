@@ -19,7 +19,6 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../coil.h"
 
 const char *info = ("Test program for coil library.");
@@ -28,11 +27,10 @@ int
 main(int argc, const char *argv[]) {
   const char *me;
   char *err, *outS;
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   airArray *mop;
 
-  int numIters, numThreads, methodType, kindType, _parmLen, pi, radius,
-    verbose;
+  int numIters, numThreads, methodType, kindType, _parmLen, pi, radius, verbose;
   Nrrd *nin, *nout;
   coilContext *cctx;
   double *_parm, parm[COIL_PARMS_NUM];
@@ -51,14 +49,12 @@ main(int argc, const char *argv[]) {
              "all the parameters required for filtering method", &_parmLen);
   hestOptAdd(&hopt, "r", "radius", airTypeInt, 1, 1, &radius, "1",
              "radius of filtering neighborhood");
-  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "1",
-             "verbosity level");
-  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(nin), "",
-             "input volume to filter", NULL, NULL, nrrdHestNrrd);
+  hestOptAdd(&hopt, "v", "verbose", airTypeInt, 1, 1, &verbose, "1", "verbosity level");
+  hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &(nin), "", "input volume to filter",
+             NULL, NULL, nrrdHestNrrdNoTTY);
   hestOptAdd(&hopt, "o", "nout", airTypeString, 1, 1, &outS, "-",
              "output file to save filtering result into");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -69,21 +65,17 @@ main(int argc, const char *argv[]) {
 
   if (_parmLen != coilMethodArray[methodType]->numParm) {
     fprintf(stderr, "%s: %s method wants %d parms, but got %d\n", me,
-            coilMethodArray[methodType]->name,
-            coilMethodArray[methodType]->numParm, _parmLen);
+            coilMethodArray[methodType]->name, coilMethodArray[methodType]->numParm,
+            _parmLen);
     airMopError(mop);
     return 1;
   }
-  for (pi=0; pi<_parmLen; pi++) {
+  for (pi = 0; pi < _parmLen; pi++) {
     parm[pi] = _parm[pi];
   }
-  if (coilContextAllSet(cctx, nin,
-                        coilKindArray[kindType], coilMethodArray[methodType],
-                        radius, numThreads, verbose,
-                        parm)
-      || coilStart(cctx)
-      || coilIterate(cctx, numIters)
-      || coilFinish(cctx)
+  if (coilContextAllSet(cctx, nin, coilKindArray[kindType], coilMethodArray[methodType],
+                        radius, numThreads, verbose, parm)
+      || coilStart(cctx) || coilIterate(cctx, numIters) || coilFinish(cctx)
       || coilOutputGet(nout, cctx)) {
     airMopAdd(mop, err = biffGetDone(COIL), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble with coil:\n%s\n", me, err);
@@ -99,4 +91,3 @@ main(int argc, const char *argv[]) {
   airMopOkay(mop);
   return 0;
 }
-
