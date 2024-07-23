@@ -186,17 +186,14 @@ airArrayLenPreSet(airArray *a, unsigned int newlen) {
 **
 ** Set the length of the array, allocating or freeing as needed
 **
-** returns 1 on error, otherwise 0 if okay
-** possible errors: bogus arguments, or couldn't allocate new memory segment
-**
 ** In case we can't allocate the new space, the old space is left untouched,
 ** however if the new length is smaller, the free/done callbacks will
 ** have been called on invalidated elements
 **
-** NB: this used to have a "boolean" return to indicate allocation
-** error, but almost nothing in Teem actually did the error checking.
-** Now conscientious users can look at NULL-ity of a->data to detect
-** such an error.
+** NB: this used to have a "boolean" return to indicate allocation error, but almost
+** nothing in Teem actually did the error checking. Now conscientious users can look at
+** NULL-ity of a->data to detect such an error (e.g. bogus arguments, or couldn't
+** allocate new memory segment)
 */
 void
 airArrayLenSet(airArray *a, unsigned int newlen) {
