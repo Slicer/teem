@@ -19,7 +19,6 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 /*
 test/tbc -s 0.95 -i s.txt -loop -n 13 -m 800 -t 55 170 > ! out.ps
 */
@@ -43,7 +42,6 @@ test/tbc -s 0.95 -i s.txt -loop -n 13 -m 800 -t 55 170 > ! out.ps
  0  -10
 */
 
-
 #include "../limn.h"
 
 const char *info = ("Visualize the space of BC cubics with a spline.");
@@ -53,7 +51,7 @@ main(int argc, const char *argv[]) {
   const char *me;
   char *err;
   limnSpline *spline;
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   airArray *mop;
   int bi, ci, i, N, M, loop;
   Nrrd *ncptA, *ncptB, *nout;
@@ -64,8 +62,8 @@ main(int argc, const char *argv[]) {
 
   me = argv[0];
   hestOptAdd(&hopt, "i", "spline data", airTypeOther, 1, 1, &ncptA, NULL,
-             "data points for the spline, must be 2-vectors",
-             NULL, NULL, nrrdHestNrrd);
+             "data points for the spline, must be 2-vectors", NULL, NULL,
+             nrrdHestNrrdNoTTY);
   hestOptAdd(&hopt, "loop", NULL, airTypeInt, 0, 0, &loop, NULL,
              "the last control point is in fact the first");
   hestOptAdd(&hopt, "n", "N", airTypeInt, 1, 1, &N, "10",
@@ -76,35 +74,33 @@ main(int argc, const char *argv[]) {
              "translation for drawing");
   hestOptAdd(&hopt, "s", "scale", airTypeDouble, 1, 1, &scale, "1.0",
              "scaling for drawing");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!( 2 == ncptA->dim && 2 == ncptA->axis[0].size )) {
+  if (!(2 == ncptA->dim && 2 == ncptA->axis[0].size)) {
     fprintf(stderr, "%s: didn't get a 2-D 2xN nrrd)\n", me);
     airMopError(mop);
     return 1;
   }
   spec = limnSplineTypeSpecNew(limnSplineTypeBC, 0, 0);
-  airMopAdd(mop, ncptB=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
-  if (limnSplineNrrdCleverFix(ncptB, ncptA, limnSplineInfo2Vector,
-                              limnSplineTypeBC)
+  airMopAdd(mop, ncptB = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  if (limnSplineNrrdCleverFix(ncptB, ncptA, limnSplineInfo2Vector, limnSplineTypeBC)
       || !(spline = limnSplineNew(ncptB, limnSplineInfo2Vector, spec))) {
-    airMopAdd(mop, err=biffGetDone(LIMN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop);
     return 1;
   }
   spline->loop = loop;
   airMopAdd(mop, spline, (airMopper)limnSplineNix, airMopAlways);
-  airMopAdd(mop, nout=nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
+  airMopAdd(mop, nout = nrrdNew(), (airMopper)nrrdNuke, airMopAlways);
   minT = limnSplineMinT(spline);
   maxT = limnSplineMaxT(spline);
 
   /* try one for error checking */
   if (limnSplineSample(nout, spline, minT, M, maxT)) {
-    airMopAdd(mop, err=biffGetDone(LIMN), airFree, airMopAlways);
+    airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop);
     return 1;
@@ -114,21 +110,21 @@ main(int argc, const char *argv[]) {
   printf("1 setlinewidth\n");
   printf("%g %g translate\n", tran[0], tran[1]);
 
-  for (ci=0; ci<N; ci++) {
-    C = AIR_AFFINE(0, ci, N-1, 0.0, 1.0);
-    for (bi=0; bi<N; bi++) {
-      B = AIR_AFFINE(0, bi, N-1, 0.0, 1.0);
+  for (ci = 0; ci < N; ci++) {
+    C = AIR_AFFINE(0, ci, N - 1, 0.0, 1.0);
+    for (bi = 0; bi < N; bi++) {
+      B = AIR_AFFINE(0, bi, N - 1, 0.0, 1.0);
 
       limnSplineBCSet(spline, B, C);
       limnSplineSample(nout, spline, minT, M, maxT);
-      out = (double*)(nout->data);   /* shouldn't actually change */
+      out = (double *)(nout->data); /* shouldn't actually change */
 
       printf("gsave\n");
-      printf("%g %g translate\n", bi*500.0/(N-1), ci*500.0/(N-1));
+      printf("%g %g translate\n", bi * 500.0 / (N - 1), ci * 500.0 / (N - 1));
       printf("%g %g scale\n", scale, scale);
-      printf("%g %g moveto\n", out[0 + 2*0], out[1 + 2*0]);
-      for (i=1; i<M; i++) {
-        printf("%g %g lineto\n", out[0 + 2*i], out[1 + 2*i]);
+      printf("%g %g moveto\n", out[0 + 2 * 0], out[1 + 2 * 0]);
+      for (i = 1; i < M; i++) {
+        printf("%g %g lineto\n", out[0 + 2 * i], out[1 + 2 * i]);
       }
       if (spline->loop) {
         printf("closepath\n");
@@ -144,4 +140,3 @@ main(int argc, const char *argv[]) {
   airMopOkay(mop);
   return 0;
 }
-
