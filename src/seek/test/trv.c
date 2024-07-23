@@ -86,7 +86,7 @@ main(int argc, const char *argv[]) {
 
   me = argv[0];
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input volume to analyze", NULL, NULL, nrrdHestNrrd);
+             "input volume to analyze", NULL, NULL, nrrdHestNrrdNoTTY);
   hestOptAdd(&hopt, "k", "kind", airTypeOther, 1, 1, &kind, NULL,
              "\"kind\" of volume (\"scalar\", \"vector\", \"tensor\")", NULL, NULL,
              &probeKindHestCB);
