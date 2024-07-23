@@ -19,7 +19,6 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../limn.h"
 
 const char *info = ("Renders an OFF file to an EPS file.");
@@ -30,7 +29,7 @@ main(int argc, const char *argv[]) {
   char *err, *inS, *outS;
   limnCamera *cam;
   float bg[3], winscale, edgeWidth[5], creaseAngle;
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   airArray *mop;
   limnObject *obj;
   limnWindow *win;
@@ -43,9 +42,8 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, cam, (airMopper)limnCameraNix, airMopAlways);
 
   me = argv[0];
-  hestOptAdd(&hopt, "i", "input OFF", airTypeString, 1, 1, &inS, NULL,
-             "input OFF file");
-  hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from,"4 4 4",
+  hestOptAdd(&hopt, "i", "input OFF", airTypeString, 1, 1, &inS, NULL, "input OFF file");
+  hestOptAdd(&hopt, "fr", "from point", airTypeDouble, 3, 3, cam->from, "4 4 4",
              "position of camera, used to determine view vector");
   hestOptAdd(&hopt, "at", "at point", airTypeDouble, 3, 3, cam->at, "0 0 0",
              "camera look-at point, used to determine view vector");
@@ -55,15 +53,14 @@ main(int argc, const char *argv[]) {
              "use a right-handed UVN frame (V points down)");
   hestOptAdd(&hopt, "or", NULL, airTypeInt, 0, 0, &(cam->orthographic), NULL,
              "use orthogonal projection");
-  hestOptAdd(&hopt, "ur", "uMin uMax", airTypeDouble, 2, 2, cam->uRange,
-             "-1 1", "range in U direction of image plane");
-  hestOptAdd(&hopt, "vr", "vMin vMax", airTypeDouble, 2, 2, cam->vRange,
-             "-1 1", "range in V direction of image plane");
+  hestOptAdd(&hopt, "ur", "uMin uMax", airTypeDouble, 2, 2, cam->uRange, "-1 1",
+             "range in U direction of image plane");
+  hestOptAdd(&hopt, "vr", "vMin vMax", airTypeDouble, 2, 2, cam->vRange, "-1 1",
+             "range in V direction of image plane");
   hestOptAdd(&hopt, "e", "envmap", airTypeOther, 1, 1, &nmap, "",
-             "16octa-based environment map",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "ws", "winscale", airTypeFloat, 1, 1, &winscale,
-             "200", "world to points (PostScript) scaling");
+             "16octa-based environment map", NULL, NULL, nrrdHestNrrdNoTTY);
+  hestOptAdd(&hopt, "ws", "winscale", airTypeFloat, 1, 1, &winscale, "200",
+             "world to points (PostScript) scaling");
   hestOptAdd(&hopt, "wire", NULL, airTypeInt, 0, 0, &wire, NULL,
              "just do wire-frame rendering");
   hestOptAdd(&hopt, "concave", NULL, airTypeInt, 0, 0, &concave, NULL,
@@ -87,8 +84,7 @@ main(int argc, const char *argv[]) {
              "dihedral angles greater than this are creases");
   hestOptAdd(&hopt, "o", "output PS", airTypeString, 1, 1, &outS, "out.ps",
              "output file to render postscript into");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
 
@@ -107,13 +103,15 @@ main(int argc, const char *argv[]) {
   airMopAdd(mop, obj, (airMopper)limnObjectNix, airMopAlways);
   if (!(file = airFopen(inS, stdin, "r"))) {
     fprintf(stderr, "%s: couldn't open \"%s\" for reading\n", me, inS);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
   if (limnObjectReadOFF(obj, file)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   if (describe) {
     fprintf(stdout, "----------------- POST-READ -----------------\n");
@@ -124,7 +122,8 @@ main(int argc, const char *argv[]) {
     if (limnObjectFaceReverse(obj)) {
       airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
   if (describe) {
@@ -149,12 +148,12 @@ main(int argc, const char *argv[]) {
   win->scale = winscale;
 
   if (limnObjectRender(obj, cam, win)
-      || (concave
-          ? limnObjectPSDrawConcave(obj, cam, nmap, win)
-          : limnObjectPSDraw(obj, cam, nmap, win))) {
+      || (concave ? limnObjectPSDrawConcave(obj, cam, nmap, win)
+                  : limnObjectPSDraw(obj, cam, nmap, win))) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   fclose(win->file);
 
@@ -167,4 +166,3 @@ main(int argc, const char *argv[]) {
   airMopOkay(mop);
   return 0;
 }
-

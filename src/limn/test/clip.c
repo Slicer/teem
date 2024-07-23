@@ -27,7 +27,7 @@ int
 main(int argc, const char *argv[]) {
   const char *me;
   char *err, *outS;
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   airArray *mop;
 
   limnPolyData *pld;
@@ -37,18 +37,15 @@ main(int argc, const char *argv[]) {
   int bitflag;
 
   me = argv[0];
-  hestOptAdd(&hopt, "vi", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input values",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "pi", "lpld", airTypeOther, 1, 1, &pld, NULL,
-             "input polydata",
-             NULL, NULL, limnHestPolyDataLMPD);
+  hestOptAdd(&hopt, "vi", "nin", airTypeOther, 1, 1, &nin, NULL, "input values", NULL,
+             NULL, nrrdHestNrrdNoTTY);
+  hestOptAdd(&hopt, "pi", "lpld", airTypeOther, 1, 1, &pld, NULL, "input polydata", NULL,
+             NULL, limnHestPolyDataLMPD);
   hestOptAdd(&hopt, "th", "thresh", airTypeDouble, 1, 1, &thresh, NULL,
              "threshold value");
   hestOptAdd(&hopt, "o", "output LMPD", airTypeString, 1, 1, &outS, "out.lmpd",
              "output file to save LMPD into");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
@@ -56,22 +53,22 @@ main(int argc, const char *argv[]) {
   bitflag = limnPolyDataInfoBitFlag(pld);
   fprintf(stderr, "!%s: bitflag = %d\n", me, bitflag);
   fprintf(stderr, "!%s: rgba %d,  norm %d,   tex2 %d\n", me,
-          (1 << limnPolyDataInfoRGBA) & bitflag,
-          (1 << limnPolyDataInfoNorm) & bitflag,
+          (1 << limnPolyDataInfoRGBA) & bitflag, (1 << limnPolyDataInfoNorm) & bitflag,
           (1 << limnPolyDataInfoTex2) & bitflag);
 
   file = airFopen(outS, stdout, "w");
   if (!file) {
     fprintf(stderr, "%s: couldn't open \"%s\" for writing", me, outS);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
-  if (limnPolyDataClip(pld, nin, thresh)
-      || limnPolyDataWriteLMPD(file, pld)) {
+  if (limnPolyDataClip(pld, nin, thresh) || limnPolyDataWriteLMPD(file, pld)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
