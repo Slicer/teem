@@ -44,7 +44,7 @@ unrrdu_vidiconMain(int argc, const char **argv, const char *me, hestParm *hparm)
   hparm->elideSingleOtherDefault = AIR_FALSE;
 
   hestOptAdd_1_Other(&opt, "i", "input", &nin, NULL,
-                     "input image. Should be grayscale PNG.", nrrdHestNrrd);
+                     "input image. Should be grayscale PNG.", nrrdHestNrrdNoTTY);
   hestOptAdd_1_Double(&opt, "rs", "rescale", &rescale, "0.75",
                       "how to rescale (downsample) the image prior to processing, "
                       "just to get a better representation of the floating-point "

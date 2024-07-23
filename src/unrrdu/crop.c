@@ -61,7 +61,7 @@ unrrdu_cropMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                      "-min, second is for -max. Unfortunately the "
                      "\"m\" and \"M\" semantics (above) are currently not "
                      "supported in the bounds file.",
-                     nrrdHestNrrd);
+                     nrrdHestNrrdNoTTY);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

@@ -42,9 +42,10 @@ unrrdu_diffMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   char explain[AIR_STRLEN_LARGE + 1];
 
   mop = airMopNew();
-  hestOptAdd_1_Other(&opt, NULL, "ninA", &ninA, NULL, "First input nrrd.", nrrdHestNrrd);
+  hestOptAdd_1_Other(&opt, NULL, "ninA", &ninA, NULL, "First input nrrd.",
+                     nrrdHestNrrdNoTTY);
   hestOptAdd_1_Other(&opt, NULL, "ninB", &ninB, NULL, "Second input nrrd.",
-                     nrrdHestNrrd);
+                     nrrdHestNrrdNoTTY);
   hestOptAdd_1_Double(&opt, "eps,epsilon", "eps", &epsilon, "0.0",
                       "threshold for allowable difference in values in "
                       "data values");

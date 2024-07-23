@@ -44,7 +44,7 @@ unrrdu_lut2Main(int argc, const char **argv, const char *me, hestParm *hparm) {
   unsigned int mapAxis, rai;
 
   hestOptAdd_1_Other(&opt, "m,map", "lut", &nlut, NULL,
-                     "lookup table to map input nrrd through", nrrdHestNrrd);
+                     "lookup table to map input nrrd through", nrrdHestNrrdNoTTY);
   hestOptAdd_2_Bool(&opt, "r,rescale", "bool bool", rescale, "false false",
                     "rescale one or both of the input values from the "
                     "input range to the lut domain.  The lut domain is either "

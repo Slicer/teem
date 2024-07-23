@@ -342,7 +342,8 @@ unrrdu_ninspectMain(int argc, const char **argv, const char *me, hestParm *hparm
   mop = airMopNew();
 
   hestOptAdd_1_Other(&opt, "i", "nin", &nin, "-",
-                     "input nrrd to project.  Must be three dimensional.", nrrdHestNrrd);
+                     "input nrrd to project.  Must be three dimensional.",
+                     nrrdHestNrrdNoTTY);
   hestOptAdd_1_Float(&opt, "amt", "heq", &heqamount, "0.5",
                      "how much to apply histogram equalization to projection images");
   hestOptAdd_1_UInt(

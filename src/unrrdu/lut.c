@@ -43,7 +43,7 @@ unrrdu_lutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   NrrdRange *range = NULL;
 
   hestOptAdd_1_Other(&opt, "m,map", "lut", &nlut, NULL,
-                     "lookup table to map input nrrd through", nrrdHestNrrd);
+                     "lookup table to map input nrrd through", nrrdHestNrrdNoTTY);
   hestOptAdd_Flag(&opt, "r,rescale", &rescale,
                   "rescale the input values from the input range to the "
                   "lut domain.  The lut domain is either explicitly "

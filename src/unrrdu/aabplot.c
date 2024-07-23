@@ -51,7 +51,7 @@ unrrdu_aabplotMain(int argc, const char **argv, const char *me, hestParm *hparm)
                      "if given a 1D nrrd here that matches the number of "
                      "rows in the \"-i\" input, interpret it as a list of values "
                      "that should be indicated with \"X\"s in the plots.",
-                     nrrdHestNrrd);
+                     nrrdHestNrrdNoTTY);
 
   mop = airMopNew();
   airMopAdd(mop, opt, hestOptFree_vp, airMopAlways);

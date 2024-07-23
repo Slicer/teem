@@ -50,7 +50,7 @@ unrrdu_joinMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hparm->respFileEnable = AIR_TRUE;
 
   hestOptAdd_Nv_Other(&opt, "i,input", "nin0", 1, -1, &nin, NULL,
-                      "everything to be joined together", &ninLen, nrrdHestNrrd);
+                      "everything to be joined together", &ninLen, nrrdHestNrrdNoTTY);
   OPT_ADD_AXIS(axis, "axis to join along");
   hestOptAdd_Flag(&opt, "incr", &incrDim,
                   "in situations where the join axis is *not* among the existing "

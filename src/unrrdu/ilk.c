@@ -284,7 +284,7 @@ unrrdu_ilkMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     "transform is set up to regularly sample the rectangle that, due to "
     "perspective distortion, has corners with the X,Y coordinates given in "
     "this filename, in scan-line order.",
-    nrrdHestNrrd);
+    nrrdHestNrrdNoTTY);
   hestOptAdd_1_Enum(&opt, "b", "boundary", &bound, "bleed",
                     "what to do when sampling outside original image.\n "
                     "\b\bo \"bleed\": copy values at image border outward\n "
@@ -307,7 +307,7 @@ unrrdu_ilkMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   hestOptAdd_2_Int(&opt, "db", "x y", debug, "-1 -1",
                    "if both non-negative, turn on verbose debugging for this output "
                    "image pixel");
-  hestOptAdd_1_Other(&opt, "i", "image", &nin, "-", "input 2D image", nrrdHestNrrd);
+  hestOptAdd_1_Other(&opt, "i", "image", &nin, "-", "input 2D image", nrrdHestNrrdNoTTY);
   OPT_ADD_NOUT(outS, "output image");
 
   mop = airMopNew();

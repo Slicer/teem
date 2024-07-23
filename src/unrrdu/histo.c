@@ -45,7 +45,7 @@ unrrdu_histoMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                      "(not using this option), the increment is one bin count per "
                      "sample, but by giving a nrrd, the value in the nrrd at the "
                      "corresponding location will be the bin count increment ",
-                     nrrdHestNrrd);
+                     nrrdHestNrrdNoTTY);
   hestOptAdd_1_String(&opt, "min,minimum", "value", &minStr, "nan",
                       "Value at low end of histogram, given explicitly as a "
                       "regular number, "

@@ -53,7 +53,7 @@ unrrdu_jhistoMain(int argc, const char **argv, const char *me, hestParm *hparm) 
                      "(not using this option), the increment is one bin count per "
                      "sample, but by giving a nrrd, the value in the nrrd at the "
                      "corresponding location will be the bin count increment ",
-                     nrrdHestNrrd);
+                     nrrdHestNrrdNoTTY);
   hestOptAdd_Nv_Double(&opt, "min,minimum", "min0 min1", 2, -1, &min, "nan nan",
                        "min<i> is the low range of values to be quantized along "
                        "axis i; use \"nan\" to represent lowest value present ",
@@ -70,7 +70,7 @@ unrrdu_jhistoMain(int argc, const char **argv, const char *me, hestParm *hparm) 
   hestOptAdd_Nv_Other(&opt, "i,input", "nin0 [nin1]", 1, -1, &nin, "-",
                       "list of nrrds (one for each axis of joint histogram), "
                       "or, single nrrd that will be sliced along specified axis.",
-                      &ninLen, nrrdHestNrrd);
+                      &ninLen, nrrdHestNrrdNoTTY);
   hestOptAdd_1_UInt(&opt, "a,axis", "axis", &diceax, "0",
                     "axis to slice along when working with single nrrd. ");
   OPT_ADD_NOUT(out, "output nrrd");
