@@ -69,7 +69,7 @@ unrrdu_ccmergeMain(int argc, const char **argv, const char *me, hestParm *hparm)
                      "for value-directed merging (with non-zero \"-d\" option), "
                      "or if the \"-revalue\" option is given, "
                      "but is not needed otherwise",
-                     nrrdHestNrrd);
+                     nrrdHestNrrdNoTTY);
   OPT_ADD_NOUT(out, "output nrrd");
 
   mop = airMopNew();

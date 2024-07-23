@@ -46,7 +46,7 @@ unrrdu_imapMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   double min, max;
 
   hestOptAdd_1_Other(&opt, "m,map", "map", &nmap, NULL,
-                     "irregular map to map input nrrd through", nrrdHestNrrd);
+                     "irregular map to map input nrrd through", nrrdHestNrrdNoTTY);
   hestOptAdd_1_UInt(&opt, "l,length", "aclLen", &aclLen, "0",
                     "length of accelerator array, used to try to speed-up "
                     "task of finding between which pair of control points "

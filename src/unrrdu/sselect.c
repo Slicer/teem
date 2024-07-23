@@ -43,7 +43,8 @@ unrrdu_sselectMain(int argc, const char **argv, const char *me, hestParm *hparm)
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_AXIS(axis, "axis to slice along");
   hestOptAdd_1_Other(&opt, "s,selector", "nline", &nline, NULL,
-                     "the 1-D nrrd of values to compare with threshold", nrrdHestNrrd);
+                     "the 1-D nrrd of values to compare with threshold",
+                     nrrdHestNrrdNoTTY);
   hestOptAdd_1_Double(&opt, "th", "thresh", &thresh, NULL, "threshold on selector line");
   hestOptAdd_2_String(&opt, "o,output", "above below", outS, "- x",
                       "outputs for slices corresponding to values "

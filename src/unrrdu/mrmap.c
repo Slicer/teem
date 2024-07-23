@@ -46,7 +46,7 @@ unrrdu_mrmapMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                       "one nrrd of regular maps to map input nrrd through, or, "
                       "list of nrrds which contain the individual entries of the map "
                       "at each voxel, which will be joined together.",
-                      &_nmmapLen, nrrdHestNrrd);
+                      &_nmmapLen, nrrdHestNrrdNoTTY);
   hestOptAdd_Flag(&opt, "r,rescale", &rescale,
                   "rescale the input values from the input range to the "
                   "map domain.  The map domain is either explicitly "

@@ -47,7 +47,7 @@ unrrdu_insetMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                 minLen);
   hestOptAdd_1_Other(&opt, "s,subset", "nsub", &(nsub), NULL,
                      "sub-region nrrd.  This the data to be inset in \"nin\"",
-                     nrrdHestNrrd);
+                     nrrdHestNrrdNoTTY);
   OPT_ADD_NIN(nin, "input nrrd");
   OPT_ADD_NOUT(out, "output nrrd");
 

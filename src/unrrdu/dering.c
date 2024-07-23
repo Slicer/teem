@@ -72,7 +72,7 @@ unrrdu_deringMain(int argc, const char **argv, const char *me, hestParm *hparm) 
                      "output where mask=1.  This lerp is effectively the same "
                      "as a \"unu 3op lerp\", so this should either be match the "
                      "input in size, or match its slices along the slowest axis.",
-                     nrrdHestNrrd);
+                     nrrdHestNrrdNoTTY);
   hestOptAdd_1_Double(&opt, "b,back", "val", &backval, "0.0",
                       "when using a mask (\"-m\"), the background value to "
                       "lerp with.");

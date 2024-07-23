@@ -46,7 +46,7 @@ unrrdu_mlutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                       "one nrrd of lookup tables to map input nrrd through, or, "
                       "list of nrrds which contain the individual entries of "
                       "the lookup table at each voxel, which will be joined together.",
-                      &_nmlutLen, nrrdHestNrrd);
+                      &_nmlutLen, nrrdHestNrrdNoTTY);
   hestOptAdd_Flag(&opt, "r,rescale", &rescale,
                   "rescale the input values from the input range to the "
                   "lut domain.  The lut domain is either explicitly "

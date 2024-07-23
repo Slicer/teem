@@ -47,7 +47,7 @@ unrrdu_spliceMain(int argc, const char **argv, const char *me, hestParm *hparm) 
                      &unrrduHestPosCB);
   hestOptAdd_1_Other(&opt, "s,slice", "nslice", &(nslice), NULL,
                      "slice nrrd.  This is the slice to insert into \"nin\"",
-                     nrrdHestNrrd);
+                     nrrdHestNrrdNoTTY);
   OPT_ADD_NIN(nin, "input nrrd.  This is the nrrd into which the slice is "
                    "inserted");
   OPT_ADD_NOUT(out, "output nrrd");

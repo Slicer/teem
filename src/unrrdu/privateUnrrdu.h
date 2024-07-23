@@ -189,7 +189,7 @@ UNRRDU_MAP(UNRRDU_DECLARE)
 */
 /* Nrrd *var */
 #define OPT_ADD_NIN(var, desc)                                                          \
-  hestOptAdd_1_Other(&opt, "i,input", "nin", &(var), "-", desc, nrrdHestNrrd)
+  hestOptAdd_1_Other(&opt, "i,input", "nin", &(var), "-", desc, nrrdHestNrrdNoTTY)
 
 /* char *var */
 #define OPT_ADD_NOUT(var, desc)                                                         \

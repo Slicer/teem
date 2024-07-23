@@ -50,7 +50,7 @@ unrrdu_rmapMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   double min, max;
 
   hestOptAdd_1_Other(&opt, "m,map", "map", &nmap, NULL,
-                     "regular map to map input nrrd through", nrrdHestNrrd);
+                     "regular map to map input nrrd through", nrrdHestNrrdNoTTY);
   hestOptAdd_Flag(&opt, "r,rescale", &rescale,
                   "rescale the input values from the input range to the "
                   "map domain.  The map domain is either explicitly "
