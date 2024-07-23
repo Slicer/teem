@@ -27,10 +27,10 @@ int
 main(int argc, const char *argv[]) {
   const char *me;
   char *err, *outS;
-  hestOpt *hopt=NULL;
+  hestOpt *hopt = NULL;
   airArray *mop;
   limnPolyData *pld;
-  gageContext *gctx=NULL;
+  gageContext *gctx = NULL;
   gagePerVolume *pvl;
   Nrrd *nin, *nmeas;
   double isoval, kparm[3];
@@ -41,17 +41,13 @@ main(int argc, const char *argv[]) {
 
   me = argv[0];
   hestOptAdd(&hopt, "i", "nin", airTypeOther, 1, 1, &nin, NULL,
-             "input volume to surface",
-             NULL, NULL, nrrdHestNrrd);
-  hestOptAdd(&hopt, "v", "iso", airTypeDouble, 1, 1, &isoval, NULL,
-             "isovalue");
-  hestOptAdd(&hopt, "g", NULL, airTypeInt, 0, 0, &usegage, NULL,
-             "use gage too");
+             "input volume to surface", NULL, NULL, nrrdHestNrrdNoTTY);
+  hestOptAdd(&hopt, "v", "iso", airTypeDouble, 1, 1, &isoval, NULL, "isovalue");
+  hestOptAdd(&hopt, "g", NULL, airTypeInt, 0, 0, &usegage, NULL, "use gage too");
   hestOptAdd(&hopt, "hack", NULL, airTypeInt, 0, 0, &hack, NULL, "hack");
   hestOptAdd(&hopt, "o", "output LMPD", airTypeString, 1, 1, &outS, "out.lmpd",
              "output file to save LMPD into");
-  hestParseOrDie(hopt, argc-1, argv+1, NULL,
-                 me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
+  hestParseOrDie(hopt, argc - 1, argv + 1, NULL, me, info, AIR_TRUE, AIR_TRUE, AIR_TRUE);
   mop = airMopNew();
   airMopAdd(mop, hopt, (airMopper)hestOptFree, airMopAlways);
   airMopAdd(mop, hopt, (airMopper)hestParseFree, airMopAlways);
@@ -84,7 +80,8 @@ main(int argc, const char *argv[]) {
         || gageUpdate(gctx)) {
       airMopAdd(mop, err = biffGetDone(GAGE), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-      airMopError(mop); return 1;
+      airMopError(mop);
+      return 1;
     }
   }
 
@@ -97,8 +94,7 @@ main(int argc, const char *argv[]) {
       ELL_3V_SET(samples, 5, 5, 5);
       if (!E) E |= seekSamplesSet(sctx, samples);
       if (!E) E |= seekItemGradientSet(sctx, gageSclGradVec);
-      if (!E) E |= seekItemEigensystemSet(sctx, gageSclHessEval,
-                                          gageSclHessEvec);
+      if (!E) E |= seekItemEigensystemSet(sctx, gageSclHessEval, gageSclHessEvec);
       if (!E) E |= seekItemNormalSet(sctx, gageSclHessEvec2);
     } else {
       if (!E) E |= seekItemScalarSet(sctx, gageSclValue);
@@ -119,14 +115,14 @@ main(int argc, const char *argv[]) {
   if (E) {
     airMopAdd(mop, err = biffGetDone(SEEK), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
   fprintf(stderr, "%s: extraction time = %g\n", me, sctx->time);
 
   nmeas = nrrdNew();
   airMopAdd(mop, nmeas, (airMopper)nrrdNuke, airMopAlways);
-  if (limnPolyDataCCFind(pld)
-      || limnPolyDataPrimitiveArea(nmeas, pld)
+  if (limnPolyDataCCFind(pld) || limnPolyDataPrimitiveArea(nmeas, pld)
       || limnPolyDataPrimitiveSort(pld, nmeas)) {
     err = biffGetDone(LIMN);
     fprintf(stderr, "%s: trouble sorting:\n%s", me, err);
@@ -136,7 +132,8 @@ main(int argc, const char *argv[]) {
   if (limnPolyDataWriteLMPD(file, pld)) {
     airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
-    airMopError(mop); return 1;
+    airMopError(mop);
+    return 1;
   }
 
   airMopOkay(mop);
