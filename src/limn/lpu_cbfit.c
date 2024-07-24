@@ -136,7 +136,7 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                       "scaling on nrp epsilon check");
   sprintf(buff, "%.17g", fctx->nrpPsi);
   hestOptAdd_1_Double(&hopt, "psi", "psi", &psi, buff, "psi, of course");
-  sprintf(buff, "%.17g", fctx->cornAngle);
+  sprintf(buff, "%.17g", fctx->cornerAngle);
   hestOptAdd_1_Double(&hopt, "ca", "angle", &cangle, buff,
                       "angle indicating a corner, or, "
                       "0 to say that no corner finding should be done");
@@ -327,7 +327,7 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   fctx->nrpIota = nrpIota;
   fctx->nrpPsi = psi;
   if (cangle) {
-    fctx->cornAngle = cangle;
+    fctx->cornerAngle = cangle;
     fctx->cornerFind = AIR_TRUE;
   } else {
     fctx->cornerFind = AIR_FALSE;

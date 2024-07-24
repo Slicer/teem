@@ -38,6 +38,8 @@ Beyond the author's paper and the author's code, this code here:
   the distance between the data and splines, so it is better at handling cases
   where the chord-length-based parameterization initialization is terrible
 - is smarter about handling single-spline fits to only 3 points
+- is more flexible about how corners (vertices without geometric continuity) are
+  defined and detected (including via callback)
 - has robust error handling and error reporting
 All of this adds implementation complexity (this is ~4 times longer than author's file)
 
@@ -55,7 +57,7 @@ Terminology as it is used here:
   neighbors of the point, with only lower or higher indies), or two-sided (looking at
   neighbors on both sides of the point).
 - corner: a point at which the angle between the one-sided tangents is below some
-  threshold (limnCbfCtx->cornAngle), or, sometimes for completeness, the first and
+  threshold (limnCbfCtx->cornerAngle), or, sometimes for completeness, the first and
   last points in an open path.
 - span: a closed interval of point indices (typically "[loi,hii]"), within which
   computations are done, often delimited by corners
@@ -161,7 +163,7 @@ Even a bad initial (arc-length) parameterization can be improved, so now with th
 described here, N=18 and N=19 do equally well (yay!)
 */
 
-#define PNMIN(ISLOOP) ((ISLOOP) ? 4 : 3)
+#define PNMIN(ISLOOP) ((ISLOOP) ? 3 : 3)
 
 /*
 limnCbfPointsNew
@@ -325,6 +327,8 @@ ctxInit(limnCbfCtx *fctx) {
   fctx->verbose = 0;
   fctx->cornerFind = AIR_TRUE;
   fctx->cornerNMS = AIR_TRUE;
+  fctx->cornerCB = NULL;
+  fctx->cornerCBData = NULL;
   fctx->nrpIterMax = 40;    /* authors originally thought ~6 */
   fctx->epsilon = 0;        /* NOTE: will need to be set to something valid elsewhere */
   fctx->scale = 0;          /* scale 0 means no filtering at all */
@@ -334,8 +338,8 @@ ctxInit(limnCbfCtx *fctx) {
   fctx->nrpDeltaThresh = 0.01;
   fctx->alphaMin = 0.001;
   fctx->detMin = 0.01;
-  fctx->cornAngle = 120.0; /* degrees */
-  fctx->wackyAngle = 30.0; /* degrees */
+  fctx->cornerAngle = 120.0; /* degrees */
+  fctx->wackyAngle = 30.0;   /* degrees */
   /* ----- internal state ----- */
   /* initialize buffer pointers to NULL and buffer lengths to 0 */
   fctx->uu = fctx->vw = fctx->tw = fctx->ctvt = NULL;
@@ -564,9 +568,9 @@ limnCbfCtxPrep(limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
   {
     const double amin = 60;
     const double amax = 180;
-    if (!(amin <= fctx->cornAngle && fctx->cornAngle <= amax)) {
-      biffAddf(LIMN, "%s: cornAngle (%g) outside sane range [%g,%g]", me,
-               fctx->cornAngle, amin, amax);
+    if (!(amin <= fctx->cornerAngle && fctx->cornerAngle <= amax)) {
+      biffAddf(LIMN, "%s: cornerAngle (%g) outside sane range [%g,%g]", me,
+               fctx->cornerAngle, amin, amax);
       return 1;
     }
   }
@@ -1612,6 +1616,12 @@ limnCbfCorners(limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
   }
   if (fctx->verbose) {
     printf("%s: looking for corners among %u points\n", me, pnum);
+    if (fctx->verbose > 1 && pnum <= 10) {
+      const double *pp = PP(lpnt);
+      for (vi = 0; vi < pnum; vi++) {
+        printf("    %u: %g \t%g\n", vi, pp[0 + 2 * vi], pp[1 + 2 * vi]);
+      }
+    }
   }
 
   /* else we search for corners */
@@ -1653,7 +1663,18 @@ limnCbfCorners(limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
     } else {
       /* it is a loop, or: not a loop and at an interior point */
       angle[vi] = 180 * ell_2v_angle_d(LT, RT) / AIR_PI;
-      corny[vi] = (angle[vi] < fctx->cornAngle);
+      if (fctx->cornerCB) {
+        double tvtNew[6];
+        if (fctx->cornerCB(tvtNew, fctx, angle[vi], vtvt + 0 + 6 * vi,
+                           PPlowerI(lpnt, vi))) {
+          corny[vi] = AIR_TRUE;
+          ELL_6V_COPY(vtvt + 0 + 6 * vi, tvtNew);
+        } else {
+          corny[vi] = AIR_FALSE;
+        }
+      } else {
+        corny[vi] = (angle[vi] < fctx->cornerAngle);
+      }
     }
     if (fctx->verbose > 1) {
       printf("%s: vi=%3u   corny %d   angle %g\n", me, vi, corny[vi], angle[vi]);
@@ -1663,7 +1684,9 @@ limnCbfCorners(limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
       }
     }
   }
-  if (fctx->cornerNMS) {
+  if (fctx->cornerNMS && pnum >= 6) {
+    /* we only try non-maximal-supression on longer loops (HEY hard-coded value here);
+    ideally this would be a user-set-able parameter, but it would be very rarely set */
     for (vi = 0; vi < pnum; vi++) {
       if (!lpnt->isLoop && (!vi || vi == pnum - 1)) {
         /* not a loop, and, either at first or last point ==> must stay a "corner" */
