@@ -893,20 +893,21 @@ limnCbfTVT(double lt[2], double vv[2], double rt[2], const limnCbfCtx *fctx,
       /* limit distance from chosen (x,y) datapoint to posC to be (yes, harcoded) 95% of
       fctx->epsilon. Being allowed to be further away can cause annoyances (for GLK in
       some early stage of debugging) */
-      double off[2], offlen, clofflen,
-        okoff = 0.95 * fctx->epsilon;         /* DIM=2 throughout */
+      double off[2], offlen, okoff = 0.95 * fctx->epsilon; /* DIM=2 throughout */
       const double *xy = PPlowerI(lpnt, svi); /* center vertex in given data */
-      ELL_2V_SUB(off, posC, xy);     /* off = posC - xy, from given to computed */
-      ELL_2V_NORM(off, off, offlen); /* offlen = |off|; off /= |off| */
-      clofflen = AIR_MIN(okoff, offlen);
-      /* difference between chosen (x,y) datapoint and spline endpoint
-         can be in any direction, but we limit the length */
-      ELL_2V_SCALE_ADD2(posC, 1, xy, clofflen, off);
-      if (fctx->verbose > 1) {
-        printf("%s: clamping |posC - xy[%d]=(%g,%g)| dist %g to %g = %g --> (%g,%g)\n",
-               me, svi, xy[0], xy[1], offlen, okoff, clofflen, posC[0], posC[1]);
-        printf("%s:   also: posM = (%g,%g)     posP = (%g,%g)\n", me, posM[0], posM[0],
-               posP[0], posP[1]);
+      ELL_2V_SUB(off, posC, xy);          /* off = posC - xy, from given to computed */
+      ELL_2V_NORM(off, off, offlen);      /* offlen = |off|; off /= |off| */
+      if (offlen > fctx->epsilon / 100) { /* real difference between posC and xy */
+        double clofflen = AIR_MIN(okoff, offlen); /* clamped offlen */
+        /* difference between chosen (x,y) datapoint and spline endpoint
+           can be in any direction, but we limit the length */
+        ELL_2V_SCALE_ADD2(posC, 1, xy, clofflen, off);
+        if (fctx->verbose > 1) {
+          printf("%s: clamping |posC - xy[%d]=(%g,%g)| dist %g to %g = %g --> (%g,%g)\n",
+                 me, svi, xy[0], xy[1], offlen, okoff, clofflen, posC[0], posC[1]);
+          printf("%s:   also: posM = (%g,%g)     posP = (%g,%g)\n", me, posM[0], posM[0],
+                 posP[0], posP[1]);
+        }
       }
     }
     if (lt) {
