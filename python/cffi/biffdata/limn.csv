@@ -64,10 +64,10 @@ limnCbfPointsNew,limnCbfPoints *,NULL,0,limn,limn/splineFit.c:177
 limnCbfPointsCheck,int,1,0,limn,limn/splineFit.c:249
 limnCbfCtxPrep,int,1,0,limn,limn/splineFit.c:520
 limnCbfTVT,int,1,0,limn,limn/splineFit.c:788
-limnCbfSingle,int,1,0,limn,limn/splineFit.c:1517
-limnCbfCorners,int,1,0,limn,limn/splineFit.c:1568
-limnCbfMulti,int,1,0,limn,limn/splineFit.c:1770
-limnCbfGo,int,1,0,limn,limn/splineFit.c:1888
+limnCbfSingle,int,1,0,limn,limn/splineFit.c:1528
+limnCbfCorners,int,1,0,limn,limn/splineFit.c:1579
+limnCbfMulti,int,1,0,limn,limn/splineFit.c:1781
+limnCbfGo,int,1,0,limn,limn/splineFit.c:1899
 limnObjectWorldHomog,int,1,0,limn,limn/transform.c:25
 limnObjectFaceNormals,int,1,0,limn,limn/transform.c:47
 limnObjectSpaceTransform,int,1,0,limn,limn/transform.c:210

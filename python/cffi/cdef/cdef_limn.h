@@ -495,11 +495,11 @@ typedef struct limnCbfCtx_t {
                    continuous between multiple spline segments) */
     cornerNMS;  /* (if cornerFind) non-minimal-suppression of corners: accept as
                    corners only those with locally minimal angle */
-  int (*cornerCB)(double *tvtNew,                  /* if corner, set new TVT */
+  int (*cornerCB)(double *tvtNew, /* if corner (non-zero return), set new TVT */
                   const struct limnCbfCtx_t *fctx, /* this struct */
-                  double angleMeas,                /* measured angle */
-                  const double *tvtMeas,           /* measured TVT */
-                  const double *vertOrig);         /* original vertex pos */
+                  double angleMeas,                /* angle measured at fctx->scale */
+                  const double *tvtMeas,           /* TVT measured at fctx->scale */
+                  const double *tvt0);             /* TVT at scale=0 */
   const void *cornerCBData;                        /* holds extra info for cornerCB */
   unsigned int nrpIterMax;                         /* max # iters of nrp */
   double
@@ -851,7 +851,7 @@ extern int limnCbfCtxPrep(limnCbfCtx *fctx, const limnCbfPoints *lpnt);
 extern void limnCbfSegEval(double *xy, const limnCbfSeg *seg, double tt);
 extern void limnCbfPathSample(double *xy, unsigned int pointNum,
                                    const limnCbfPath *path);
-extern int limnCbfTVT(double lt[2], double vv[2], double rt[2],
+extern int limnCbfTVT(double lt[2], double vv[2], double rt[2], double *tvt0,
                            const limnCbfCtx *fctx, const limnCbfPoints *lpnt,
                            unsigned int loi, unsigned int hii, unsigned int vvi,
                            int oneSided);
