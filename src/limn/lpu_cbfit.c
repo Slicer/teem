@@ -352,7 +352,7 @@ limnPu_cbfitMain(int argc, const char **argv, const char *me, hestParm *hparm) {
              tvt[2], tvt[0], tvt[1], vvi, loi, hii);
     if (!E) E |= limnCbfCtxPrep(fctx, lpnt);
     if (!E && fctx->verbose) printf("%s: limnCbfCtxPrep done, calling limnCbfTVT\n", me);
-    if (!E) E |= limnCbfTVT(lt, vv, rt, fctx, lpnt, loi, hii, vvi, oneSided);
+    if (!E) E |= limnCbfTVT(lt, vv, rt, NULL, fctx, lpnt, loi, hii, vvi, oneSided);
     if (E) {
       airMopAdd(mop, err = biffGetDone(LIMN), airFree, airMopAlways);
       fprintf(stderr, "%s: trouble doing lone tangent-vertex-tangent:\n%s", me, err);
