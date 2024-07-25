@@ -785,8 +785,9 @@ NOTE: this assumes that limnCbfCtxPrep(fctx, lpnt) was called without error!
 That (via ctxBuffersSet) allocates things that we depend on here.
 */
 int /* Biff: 1 */
-limnCbfTVT(double lt[2], double vv[2], double rt[2], const limnCbfCtx *fctx,
-           const limnCbfPoints *lpnt, uint gloi, uint ghii, uint gvvi, int oneSided) {
+limnCbfTVT(double lt[2], double vv[2], double rt[2], double *tvt0,
+           const limnCbfCtx *fctx, const limnCbfPoints *lpnt, uint gloi, uint ghii,
+           uint gvvi, int oneSided) {
   static const char me[] = "limnCbfTVT";
   uint loi, /* error-checked gloi */
     hii,    /* error-checked ghii, lifted if needed */
@@ -795,6 +796,9 @@ limnCbfTVT(double lt[2], double vv[2], double rt[2], const limnCbfCtx *fctx,
      simplifies implementing arithmetic and comparisons given how indices wrap around in
      point loops */
   int slo, shi, svi; /* signed versions of loi, hii, vvi */
+  int iplus, imnus;  /* for scale=0 discrete differences */
+  const double *xyC, *xyP, *xyM;
+  double rt0[2], lt0[2];
 
   if (!((lt || vv || rt) && fctx && lpnt)) {
     biffAddf(LIMN, "%s: got NULL pointer (or too many NULL pointers)", me);
@@ -824,29 +828,36 @@ limnCbfTVT(double lt[2], double vv[2], double rt[2], const limnCbfCtx *fctx,
   slo = AIR_INT(loi);
   shi = AIR_INT(hii);
   svi = AIR_INT(vvi);
+  /* DIM=2 through-out */
+  iplus = svi + 1;
+  imnus = svi - 1;
+  if (slo < shi) { /* bounded */
+    iplus = AIR_CLAMP(slo, iplus, shi);
+    imnus = AIR_CLAMP(slo, imnus, shi);
+  }
+  xyM = PPlowerI(lpnt, imnus);
+  xyC = PPlowerI(lpnt, svi);
+  xyP = PPlowerI(lpnt, iplus);
+  subnorm2(lt0, xyM, oneSided ? xyC : xyP);
+  subnorm2(rt0, xyP, oneSided ? xyC : xyM);
+  if (tvt0) {
+    ELL_2V_COPY(tvt0 + 0, lt0);
+    ELL_2V_COPY(tvt0 + 2, xyC);
+    ELL_2V_COPY(tvt0 + 4, rt0);
+  }
   if (0 == fctx->scale) {
-    /* DIM=2 through-out */
-    const double *xyC, *xyP, *xyM;
-    int iplus = svi + 1, imnus = svi - 1;
-    if (slo < shi) { /* bounded */
-      iplus = AIR_CLAMP(slo, iplus, shi);
-      imnus = AIR_CLAMP(slo, imnus, shi);
-    }
-    xyM = PPlowerI(lpnt, imnus);
-    xyC = PPlowerI(lpnt, svi);
-    xyP = PPlowerI(lpnt, iplus);
     if (fctx->verbose > 1) {
-      printf("%s: %d | %d | %d --> (%g,%g)|(%g,%g)|(%g,%g)\n", me, imnus, svi, iplus,
-             xyM[0], xyM[1], xyC[0], xyC[1], xyP[0], xyP[1]);
+      printf("%s: (-) %d | %d | (+) %d --> (%g,%g)|(%g,%g)|(%g,%g)\n", me, imnus, svi,
+             iplus, xyM[0], xyM[1], xyC[0], xyC[1], xyP[0], xyP[1]);
+    }
+    if (lt) {
+      ELL_2V_COPY(lt, lt0);
     }
     if (vv) {
       ELL_2V_COPY(vv, xyC);
     }
     if (rt) {
-      subnorm2(rt, xyP, oneSided ? xyC : xyM);
-    }
-    if (lt) {
-      subnorm2(lt, xyM, oneSided ? xyC : xyP);
+      ELL_2V_COPY(rt, rt0);
     }
   } else {
     /* using scale>0 for endpoint and tangent estimation */
@@ -1209,7 +1220,7 @@ deathToWacky(double alpha[2], const double vv0[2], const double tt1[2],
   CBD1(splTan, vv0, vv1, vv2, vv3, um, ww);
   ELL_2V_NORM(splTan, splTan, tmp);
   /* we emulate how tangent estimation would happen if had decided to split at midi */
-  if (limnCbfTVT(NULL, NULL, midTan, fctx, lpnt, loi, hii, midi,
+  if (limnCbfTVT(NULL, NULL, midTan, NULL, fctx, lpnt, loi, hii, midi,
                  AIR_FALSE /* NOT oneSided */)) {
     biffAddf(LIMN, "%s: trying to get middle tangent at %u in [%u,%u]", me, midi, loi,
              hii);
@@ -1457,7 +1468,7 @@ vttvCalcOrCopy(double *vttv[4], int *givenP, const double vv0[2], const double t
         biffAddf(LIMN, "%s: can handle loi=hii only with point loop", me);
         return 1;
       }
-      if (limnCbfTVT(t2c, v0c, t1c,             /* */
+      if (limnCbfTVT(t2c, v0c, t1c, NULL,       /* */
                      fctx, lpnt, loi, hii, loi, /* */
                      AIR_FALSE /* NOT oneSided */)) {
         biffAddf(LIMN, "%s: trouble finding two-sided geometry info", me);
@@ -1466,10 +1477,10 @@ vttvCalcOrCopy(double *vttv[4], int *givenP, const double vv0[2], const double t
       ELL_2V_COPY(v3c, v0c);
     } else {
       /* loi < hii */
-      if (limnCbfTVT(NULL, v0c, t1c,            /* */
+      if (limnCbfTVT(NULL, v0c, t1c, NULL,      /* */
                      fctx, lpnt, loi, hii, loi, /* */
                      AIR_TRUE /* yes oneSided */)
-          || limnCbfTVT(t2c, v3c, NULL,            /* */
+          || limnCbfTVT(t2c, v3c, NULL, NULL,      /* */
                         fctx, lpnt, loi, hii, hii, /* */
                         AIR_TRUE /* yes oneSided */)) {
         biffAddf(LIMN, "%s: trouble finding one-sided geometry info", me);
@@ -1598,9 +1609,9 @@ limnCbfCorners(limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
         return 1;
       }
       hii = pnum - 1;
-      if (limnCbfTVT(fctx->ctvt + 0, fctx->ctvt + 2, fctx->ctvt + 4, /* */
+      if (limnCbfTVT(fctx->ctvt + 0, fctx->ctvt + 2, fctx->ctvt + 4, NULL, /* */
                      fctx, lpnt, 0, hii, 0, AIR_TRUE /* yes oneSided */)
-          || limnCbfTVT(fctx->ctvt + 6, fctx->ctvt + 8, fctx->ctvt + 10, /* */
+          || limnCbfTVT(fctx->ctvt + 6, fctx->ctvt + 8, fctx->ctvt + 10, NULL, /* */
                         fctx, lpnt, 0, hii, hii, AIR_TRUE /* yes oneSided */)) {
         biffAddf(LIMN, "%s: trouble with tangents or vertices for endpoints", me);
         return 1;
@@ -1640,6 +1651,7 @@ limnCbfCorners(limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
     double *LT = vtvt + 0 + 6 * vi;
     double *VV = vtvt + 2 + 6 * vi;
     double *RT = vtvt + 4 + 6 * vi;
+    double tvt0[6];
     /* we find TVT for *every* vertex, despite this seeming like computational overkill.
     Why: we don't know which vertex might be corner until we look at the
     tangent-to-tangent angles for EVERY vertex, for which we don't need to know the
@@ -1648,7 +1660,7 @@ limnCbfCorners(limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
     revisit the input data (used previously for tangent estimation) to figure out the
     corner vertices. In a non-loop, we know first and last points will be corners, but we
     still need to find the vertex pos and (one-sided) tangent. */
-    if (limnCbfTVT(LT, VV, RT, fctx, lpnt, 0 /* loi */, 0 /* hii */, vi,
+    if (limnCbfTVT(LT, VV, RT, tvt0, fctx, lpnt, 0 /* loi */, 0 /* hii */, vi,
                    AIR_TRUE /* yes oneSided */)) {
       biffAddf(LIMN, "%s: trouble with tangents or vertices for point %u/%u", me, vi,
                pnum);
@@ -1665,8 +1677,7 @@ limnCbfCorners(limnCbfCtx *fctx, const limnCbfPoints *lpnt) {
       angle[vi] = 180 * ell_2v_angle_d(LT, RT) / AIR_PI;
       if (fctx->cornerCB) {
         double tvtNew[6];
-        if (fctx->cornerCB(tvtNew, fctx, angle[vi], vtvt + 0 + 6 * vi,
-                           PPlowerI(lpnt, vi))) {
+        if (fctx->cornerCB(tvtNew, fctx, angle[vi], vtvt + 0 + 6 * vi, tvt0)) {
           corny[vi] = AIR_TRUE;
           ELL_6V_COPY(vtvt + 0 + 6 * vi, tvtNew);
         } else {
@@ -1838,7 +1849,7 @@ limnCbfMulti(limnCbfPath *path, const double vv0[2], const double tt1[2],
              recDepth, fctx->distMax, fctx->distBig, midi, (pp + 2 * midi)[0],
              (pp + 2 * midi)[1]);
     }
-    if (limnCbfTVT(TL, VM, TR,                 /* */
+    if (limnCbfTVT(TL, VM, TR, NULL,           /* */
                    fctx, lpnt, loi, hii, midi, /* */
                    AIR_FALSE /* NOT oneSided */)
         || limnCbfMulti(path, V0, T1, TL, VM, recDepth + 1, &fctxL, lpnt, loi, midi)
