@@ -113,7 +113,17 @@ _tlibs = {
     },
     'ten': {
         'expr': False,
-        'deps': ['echo', 'limn', 'gage', 'dye', 'unrrdu', 'ell', 'nrrd', 'biff', 'air'],
+        'deps': [
+            'echo',
+            'limn',
+            'gage',
+            'dye',
+            'unrrdu',
+            'ell',
+            'nrrd',
+            'biff',
+            'air',
+        ],
     },
     'elf': {
         'expr': True,
@@ -133,7 +143,16 @@ _tlibs = {
     },
     'mite': {
         'expr': False,
-        'deps': ['ten', 'hoover', 'limn', 'gage', 'ell', 'nrrd', 'biff', 'air'],
+        'deps': [
+            'ten',
+            'hoover',
+            'limn',
+            'gage',
+            'ell',
+            'nrrd',
+            'biff',
+            'air',
+        ],
     },
     'meet': {
         'expr': False,
@@ -193,8 +212,8 @@ def tlib_depends(lib: str, exper: bool) -> list[str]:
     except Exception as exc:
         raise RuntimeError(f'{lib} is not a known Teem library') from exc
     # iteratively find all dependencies and dependencies of dependencies, etc
-    oldd = set()   # all previously dependencies known
-    newd = set([lib]) | set(info['deps'])   # newly discovered dependencies
+    oldd = set()  # all previously dependencies known
+    newd = set([lib]) | set(info['deps'])  # newly discovered dependencies
     while oldd != newd:
         # while new dependencies were just discovered
         tmpd = set()
@@ -202,7 +221,7 @@ def tlib_depends(lib: str, exper: bool) -> list[str]:
             tmpd = tmpd | set([lib]) | set(_tlibs[nlb]['deps'])
         oldd = newd
         newd = tmpd
-    tla = tlib_all()   # linear array of all libs in dependency order
+    tla = tlib_all()  # linear array of all libs in dependency order
     # return dependencies sorted in dependency order
     ret = sorted(list(newd), key=tla.index)
     # exclude "experimental" libraries if not exper
@@ -320,10 +339,11 @@ class CdefHdr:
     """
     Given a header file, figures out which lines should be passed to ffi.cdef(), by first
     excising comments, and it passing through a very dumb C pre-processor that interprets
-    the #ifdef directives to figure out which lines are kept versus ignored.
+    the #ifdef directives to figure out which lines are kept versus ignored, and makes
+    cautious efforts to replace #define'd values in lines that are kept
     """
 
-    def __init__(self, filename: str, defined: list[str], verb: int = 0):
+    def __init__(self, filename: str, defined: dict[str, str], verb: int = 0):
         """
         Opens given file and sends it through "unu uncmt", and prepares to parse result
         """
@@ -363,8 +383,8 @@ class CdefHdr:
         """
         Do our best to scan input self.ilines to make output self.olines
         """
-        for (lnum, linen) in enumerate(self.ilines):
-            line = linen.strip()   # strip left and right whitespace
+        for lnum, linen in enumerate(self.ilines):
+            line = linen.strip()  # strip left and right whitespace
             if not line:
                 continue
             if self.verb > 1:
@@ -372,11 +392,11 @@ class CdefHdr:
             if line.startswith('#'):
                 # look for either #ifdef or #ifndef
                 if match := re.match(r'# *(ifn{0,1}def) +(\S.*)$', line):
-                    ifdef = 'ifdef' == match.group(1)   # else its an ifndef
+                    ifdef = 'ifdef' == match.group(1)  # else its an ifndef
                     dname = match.group(2)
                     if self.verb > 1:
                         print(f'scan: -------- {match.group(1)} |{dname}|')
-                    if re.match(r'\S*\s', dname):   # if there is whitespace in dname
+                    if re.match(r'\S*\s', dname):  # if there is whitespace in dname
                         raise Exception(
                             f'ScanHdr.scan({self.filename}): line {lnum} |{line}| has '
                             f'unexpected whitespace in {match.group(1)} argument |{dname}|'
@@ -408,11 +428,12 @@ class CdefHdr:
                     self.ifstack.pop()
                     if self.verb > 1:
                         print(f'scan: -----> ifstack = {self.ifstack}')
-                elif match := re.match(r'# *define +(\S+)(\s*\S*)$', line):
+                elif match := re.match(r'# *define +(\S+) +(\S.+)$', line):
+                    # elif match := re.match(r"# *define +(\S+)(\s*\S*)$", line):
                     dname = match.group(1)
                     dval = match.group(2)
                     if all(self.ifstack):
-                        self.defined.append(dname)
+                        self.defined[dname] = dval
                         if self.verb > 1:
                             print(f'scan: |{dname}|=|{dval}| -------> defined = {self.defined}')
                 elif re.match(r'# *include', line):
@@ -435,6 +456,23 @@ class CdefHdr:
                     print(f'scan: -------- DROPPING |{line}|')
                 continue
             # Else we keep the line, and do further processing.
+            # Try to apply #define substitutions
+            for dfn, val in self.defined.items():
+                if not val or not dfn.isupper():
+                    # dfn is merely #define'd, but not to anything, or else dfn's letters
+                    # are not all upper-case (which is the strong convention for #define's)
+                    continue
+                if not '_' in dfn or not len(dfn) > 6:
+                    # #define'd name does not contain a '_', or else it is too short, so we
+                    # don't consider it more. Seem like an arbitrary limitation, but this is
+                    # consistent with the ways that Teem and Teem-adjacent headers #define things.
+                    continue
+                # see if dfn appears in line
+                if dfn in line:
+                    newline = line.replace(dfn, val)
+                    if self.verb > 2:
+                        print(f' |{line}| --{dfn}:{val}--> |{newline}|')
+                    line = newline
             # The parentheses matching of this re is quite fragile
             if match := re.match(r'(__attribute__\(.*\))', line):
                 rpl = line.replace(match.group(1), '')
@@ -494,20 +532,23 @@ class Tffi:
                 f'Missing directory with per-Teem-library biff .csv files {self.path_biffdata}'
             )
         # This does a lot of error checking
-        (self.path_thdr, self.path_tlib, self.have_tlibs, self.exper) = check_path_tinst(
-            path_tinst
-        )
+        (
+            self.path_thdr,
+            self.path_tlib,
+            self.have_tlibs,
+            self.exper,
+        ) = check_path_tinst(path_tinst)
         self.path_tinst = path_tinst
         # initialize other members; these will be updated if self.desc() is called to describe
         # another library (that depends on Teem) for which we're here to make an extension
         # module. The "n" in path_nhdr and path_nlib is for that *N*on-Teem library
-        self.path_nhdr = ''   # path to header file name.h  (nothing to do with .nhdr files!)
-        self.path_nlib = ''   # path to library file libname.{so,dylib}
-        self.libs = ['teem']   # name(s) of libraries the extension module depends on
-        self.path_libs = [self.path_tlib]   # absolute paths to libraries we depend on
-        self.dfnd = []   # things nominally #define'd for sake of cdef()
-        self.eca = []   # extra compile args
-        self.ela = []   # extra link args
+        self.path_nhdr = ''  # path to header file name.h  (nothing to do with .nhdr files!)
+        self.path_nlib = ''  # path to library file libname.{so,dylib}
+        self.libs = ['teem']  # name(s) of libraries the extension module depends on
+        self.path_libs = [self.path_tlib]  # absolute paths to libraries we depend on
+        self.dfnd = {}  # things #define'd for sake of header processing for cdef()
+        self.eca = []  # extra compile args
+        self.ela = []  # extra link args
         self.source_args = None
         self.lib_out = None
         if 'teem' == top_tlib:
@@ -528,14 +569,14 @@ class Tffi:
             self.exper = tlib_experimental(top_tlib)
         # create the instance, but don't do anything with it; that depends on other methods
         self.ffi = cffi.FFI()
-        self.step = 1   # for tracking correct ordering of method calls
+        self.step = 1  # for tracking correct ordering of method calls
 
     def desc(
         self,
         name: str,
         path_nhdr: str,
         path_nlib: str,
-        dfnd: list[str],
+        dfnd: dict[str, str],
         eca: list[str],
         ela: list[str],
     ):
@@ -545,7 +586,7 @@ class Tffi:
         :param str name: name of the new non-Teem library
         :param str path_nhdr: path to headers for your library, to give to -I when compiling
         :param str path_nlib: path to your compile library, to give to -L when compiling
-        :param list[str] dfnd: things that should be considered #define'd for ffi.cdef()
+        :param dict[str, str] dfnd: #define's to pass on to ffi.cdef()
         :param list[str] eca: for the extra_compile_args parameter to ffi.compile()
         :param list[str] ela: for the extra_link_args parameter to ffi.compile()
         """
@@ -567,7 +608,7 @@ class Tffi:
             raise Exception(f'Need path_nhdr {path_nhdr} to be a directory')
         if not os.path.isdir(path_nlib):
             raise Exception(f'Need path_nlib {path_nlib} to be a directory')
-        self.libs.insert(0, name)   # now [name, 'teem']
+        self.libs.insert(0, name)  # now [name, 'teem']
         self.name = name
         self.path_nhdr = os.path.abspath(path_nhdr)
         self.path_nlib = os.path.abspath(path_nlib)
@@ -584,7 +625,7 @@ class Tffi:
         """
         if 1 != self.step:
             raise Exception('Expected .cdef() only right after Tffi creation and optional .desc()')
-        # want free() available in for freeing biff messages
+        # want free() available for freeing biff messages
         self.ffi.cdef('extern void free(void *);')
         # read in the relevant Teem cdef/ headers
         for lib in tlib_depends(self.top_tlib, self.exper):
@@ -624,7 +665,7 @@ class Tffi:
             ),
             # The next arg teaches the extension library about the paths that the dynamic linker
             # should look in for other libraries we depend on (the dynamic linker does not know
-            # or care about $TEEM_INSTALL). We avoid any reliace on environment variables like
+            # or care about $TEEM_INSTALL). We avoid any reliance on environment variables like
             # LD_LIBRARY_PATH on linux or DYLD_LIBRARY_PATH on Mac (on recent Macs the System
             # Integrity Protection (SIP) actually disables DYLD_LIBRARY_PATH).
             # On linux, paths listed here are passed to -Wl,--enable-new-dtags,-R<dir>
@@ -641,7 +682,7 @@ class Tffi:
             # https://docs.python.org/3/distutils/apiref.html#distutils.core.Extension
             'undef_macros': ['NDEBUG'],
         }
-        arg1 = f'_{self.name}'   # HERE is where we add the leading underscore
+        arg1 = f'_{self.name}'  # HERE is where we add the leading underscore
         arg2 = f'#include <teem/{self.top_tlib}.h>' + (
             '' if self.isteem else f'\n#include <{self.name}.h>'
         )
@@ -678,7 +719,7 @@ class Tffi:
             # We exploit the correspondance between elements of self.libs and self.path_libs
             # and HEY that suggests that there should some higher-level object that contains
             # all the properties of a library
-            for (lidx, lname) in enumerate(self.libs):
+            for lidx, lname in enumerate(self.libs):
                 cmd = (
                     f'install_name_tool -change @rpath/lib{lname}.dylib '
                     f'{self.path_libs[lidx]}/lib{lname}.dylib {self.lib_out}'
@@ -733,13 +774,13 @@ class Tffi:
         """
         # most common case: return of 1 means there's a biff error
         if errval_t.endswith('int') and '1' == errval:
-            ret = '_equals_one'   # this is defined in lliibb.py
+            ret = '_equals_one'  # this is defined in lliibb.py
         elif errval_t.endswith('*') and 'NULL' == errval:
-            ret = '_equals_null'   # this is defined in lliibb.py
+            ret = '_equals_null'  # this is defined in lliibb.py
         elif 'AIR_NAN' == errval or 'nan' == errval.lower():
             ret = '_math.isnan'
         else:
-            evlist = errval.split('|')   # list (likely length-1) of error-indicating return values
+            evlist = errval.split('|')  # list (likely length-1) of error-indicating return values
             ret = (
                 '(lambda rv: '  # we make (a string representing) a lambda function
                 # join, with "or", test expressions for everything in evlist
@@ -758,7 +799,7 @@ class Tffi:
         """
         if not self.step in (1, 4):
             raise Exception('Expected .wrap() only after creation, .desc(), or .compile()')
-        biffdatas = []   # a list of rows from .csv files
+        biffdatas = []  # a list of rows from .csv files
         for lib in tlib_depends(self.top_tlib, self.exper):
             path_bdata = self.path_biffdata + f'/{lib}.csv'
             if not os.path.isfile(path_bdata):
@@ -786,7 +827,7 @@ class Tffi:
             raise Exception("Didn't see wrapper template at {path_lliibb}")
         with open(path_lliibb, 'r', encoding='utf-8') as file:
             ilines = [line.rstrip() for line in file.readlines()]
-        for (lidx, line) in enumerate(ilines):
+        for lidx, line in enumerate(ilines):
             # first pass of very simple text  transformations we do
             # 'lliibb' --> self.name
             # 'LLIIBB' --> 'lliibb'
@@ -801,7 +842,7 @@ class Tffi:
                     # bdl[  0          1         2       3        4        5 ]
                     # f'{function},{qualtype},{errval},{mubi},{biffkey},{fnln}'
                     # ---> (rvtf, mubi, bkey, fnln) = _BIFF_DICT[sym_name]
-                    for bdl in sum(biffdatas, []):   # flattening into big list of csv rows
+                    for bdl in sum(biffdatas, []):  # flattening into big list of csv rows
                         rvtf = self._rvt_func(bdl[0], bdl[1], bdl[2])
                         file.write(
                             f"    '{bdl[0]}': ({rvtf}, {bdl[3]}, b'{bdl[4]}', '{bdl[5]}'),\n"
