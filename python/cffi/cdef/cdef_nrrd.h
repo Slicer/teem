@@ -1151,14 +1151,28 @@ typedef struct NrrdIoState_t {
                                  nrrd format. Probably used in conjunction with
                                  skipData.  (currently for "unu data")
                                  ON WRITE: no semantics */
-    zlibLevel,                /* zlib compression level (0-9, -1 for
-                                 default[6], 0 for no compression). */
-    zlibStrategy,             /* zlib compression strategy, can be one
-                                 of the nrrdZlibStrategy enums, default is
-                                 nrrdZlibStrategyDefault. */
-    bzip2BlockSize,           /* block size used for compression,
-                                 roughly equivalent to better but slower
-                                 (1-9, -1 for default[9]). */
+    /* ---- BEGIN non-NrrdIO */
+    declineStdioOnTTY, /* ON READ and ON WRITE: If nrrdLoad is about to read from
+                          filename "-" (via nrrdRead), or nrrdSave is about to write to
+                          "-" (via nrrdWrite), regardless of file format (which isn't
+                          known on read, though may be known on write): if this is
+                          non-zero, decline to nrrdRead from stdin or nrrdWrite to stdout
+                          IF stdin/stdout seems to be a terminal (as per isatty()). On
+                          read, this avoids cryptic stalls as something tries to read
+                          from the terminal (where a human is unlikely to be typing the
+                          file contents), and on write, this avoids clobbering the
+                          terminal with screens of non-printing characters. Using
+                          filename "-=" is a sneaky way to name stdin/stdout while
+                          over-riding this declination and force that IO to happen. */
+    /* ---- END non-NrrdIO */
+    zlibLevel,      /* zlib compression level (0-9, -1 for
+                       default[6], 0 for no compression). */
+    zlibStrategy,   /* zlib compression strategy, can be one
+                       of the nrrdZlibStrategy enums, default is
+                       nrrdZlibStrategyDefault. */
+    bzip2BlockSize, /* block size used for compression,
+                       roughly equivalent to better but slower
+                       (1-9, -1 for default[9]). */
     /* ---- BEGIN non-NrrdIO */
     /* seems odd to have contents of NrrdIoState differ between full Teem
        and NrrdIO, but these fields can't be meaningfully set or read if
@@ -1412,6 +1426,7 @@ extern int nrrdDefaultResampleCheap;
 extern double nrrdDefaultResamplePadValue;
 extern int nrrdDefaultResampleNonExistent;
 extern double nrrdDefaultKernelParm0;
+extern int nrrdDefaultDeclineStdioOnTTY;
 /* ---- END non-NrrdIO */
 extern int nrrdDefaultCenter;
 extern double nrrdDefaultSpacing;
