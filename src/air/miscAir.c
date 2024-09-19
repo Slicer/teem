@@ -104,17 +104,25 @@ airFree(void *ptr) {
 /*
 ******** airFopen()
 **
-** encapsulates that idea that "-" is either standard in or stardard
-** out, and does McRosopht stuff required to make piping work
+** encapsulates that idea that "-" OR "-=" is either standard in or standard
+** out, and does McRosopht stuff required to make piping work. Handling "-="
+** is a convenience for implementing NrrdIoState->declineStdioOnTTY, with
+** the semantics (not handled here) that "-=" means "read/write from stdin/
+** stdout, even when it IS a terminal". But this is currently only supported
+** in full Teem, not the minimal NrrdIO library.
 **
-** Does not error checking.  If fopen fails, then C' errno and strerror are
+** Does no error checking.  If fopen fails, then C' errno and strerror are
 ** left untouched for the caller to access.
 */
 FILE *
 airFopen(const char *name, FILE *std, const char *mode) {
   FILE *ret;
 
-  if (!strcmp(name, "-")) {
+  if (!strcmp(name, "-")
+      /* ---- BEGIN non-NrrdIO */
+      || !strcmp(name, "-=")
+      /* ---- END non-NrrdIO */
+  ) {
     ret = std;
 #ifdef _WIN32
     if (strchr(mode, 'b')) {
