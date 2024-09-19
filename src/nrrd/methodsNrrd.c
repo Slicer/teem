@@ -278,6 +278,9 @@ nrrdIoStateInit(NrrdIoState *nio) {
     nio->skipData = AIR_FALSE;
     nio->skipFormatURL = AIR_FALSE;
     nio->keepNrrdDataFileOpen = AIR_FALSE;
+    /* ---- BEGIN non-NrrdIO */
+    nio->declineStdioOnTTY = nrrdDefaultDeclineStdioOnTTY;
+    /* ---- END non-NrrdIO */
     nio->zlibLevel = -1;
     nio->zlibStrategy = nrrdZlibStrategyDefault;
     nio->bzip2BlockSize = -1;

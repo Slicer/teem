@@ -26,6 +26,10 @@
 #  include <bzlib.h>
 #endif
 
+/* ---- BEGIN non-NrrdIO */
+#include <unistd.h> /* for isatty() and STDIN_FILENO */
+/* ---- END non-NrrdIO */
+
 /* (not apparently used) const char *const _nrrdRelativePathFlag = "./"; */
 const char *const _nrrdFieldSep = " \t";
 static const char *const _nrrdLineSep = "\r\n";
@@ -639,6 +643,19 @@ nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *nio) {
     airMopError(mop);
     return 2;
   }
+  /* ---- BEGIN non-NrrdIO */
+  if (nio->declineStdioOnTTY    /* if we're cautious about reading from stdin */
+      && stdin == file          /* and we're reading from stdin */
+      && strcmp("-=", filename) /* and filename is NOT -= (which over-rides caution) */
+      && isatty(STDIN_FILENO) /* and stdin is a tty */) {
+    biffAddf(NRRD,
+             "%s: declining to try reading Nrrd from terminal (tty) stdin "
+             "(implied by filename \"%s\"; over-ride with \"-=\")",
+             me, filename);
+    airMopError(mop);
+    return 1;
+  }
+  /* ---- END non-NrrdIO */
   airMopAdd(mop, file, (airMopper)airFclose, airMopOnError);
   /* non-error exiting is handled below */
 
