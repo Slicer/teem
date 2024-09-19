@@ -51,6 +51,8 @@ int nrrdDefaultResampleCheap = AIR_FALSE;
 double nrrdDefaultResamplePadValue = 0.0;
 int nrrdDefaultResampleNonExistent = nrrdResampleNonExistentNoop;
 double nrrdDefaultKernelParm0 = 1.0;
+/* creating and by-default enabling this functionality is a change for Teem2 */
+int nrrdDefaultDeclineStdioOnTTY = AIR_TRUE;
 /* ---- END non-NrrdIO */
 int nrrdDefaultCenter = nrrdCenterCell;
 double nrrdDefaultSpacing = 1.0;

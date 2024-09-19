@@ -22,10 +22,9 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-/*
-  #include <sys/types.h>
-  #include <unistd.h>
-*/
+/* ---- BEGIN non-NrrdIO */
+#include <unistd.h> /* for isatty() and STDIN_FILENO */
+/* ---- END non-NrrdIO */
 
 int /* Biff: 1 */
 nrrdIoStateSet(NrrdIoState *nio, int parm, int value) {
@@ -1018,6 +1017,19 @@ nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *nio) {
     airMopError(mop);
     return 1;
   }
+  /* ---- BEGIN non-NrrdIO */
+  if (nio->declineStdioOnTTY    /* if we're cautious about writing to stdout */
+      && stdout == file         /* and we're writing to stdout */
+      && strcmp("-=", filename) /* and filename is NOT -= (which over-rides caution) */
+      && isatty(STDOUT_FILENO) /* and stdout is a tty */) {
+    biffAddf(NRRD,
+             "%s: declining to try writing file to terminal (tty) stdout "
+             "(implied by filename \"%s\"; over-ride with \"-=\")",
+             me, filename);
+    airMopError(mop);
+    return 1;
+  }
+  /* ---- END non-NrrdIO */
   airMopAdd(mop, file, (airMopper)airFclose, airMopAlways);
 
   if (nrrdWrite(file, nrrd, nio)) {
