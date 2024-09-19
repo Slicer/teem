@@ -19,7 +19,6 @@
   Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-
 #include "../nrrd.h"
 
 void
@@ -45,9 +44,8 @@ main(int argc, char **argv) {
   io = nrrdIoStateNew();
   nrrdStateVerboseIO = 10;
 
-  if (nrrdLoad(nrrd=nrrdNew(), argv[1], NULL)) {
-    fprintf(stderr, "%s: trouble loading \"%s\":\n%s",
-            me, argv[1], err = biffGet(NRRD));
+  if (nrrdLoad(nrrd = nrrdNew(), argv[1], NULL)) {
+    fprintf(stderr, "%s: trouble loading \"%s\":\n%s", me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
@@ -55,13 +53,13 @@ main(int argc, char **argv) {
   domNum = nrrdDomainAxesGet(nrrd, domAxi);
   rngNum = nrrdRangeAxesGet(nrrd, rngAxi);
   fprintf(stderr, "%s domain axes (%u):", me, domNum);
-  for (axi=0; axi<domNum; axi++) {
+  for (axi = 0; axi < domNum; axi++) {
     fprintf(stderr, " %u(%s)", domAxi[axi],
             airEnumStr(nrrdKind, nrrd->axis[domAxi[axi]].kind));
   }
   fprintf(stderr, "\n");
   fprintf(stderr, "%s range naxes (%u):", me, rngNum);
-  for (axi=0; axi<rngNum; axi++) {
+  for (axi = 0; axi < rngNum; axi++) {
     fprintf(stderr, " %u(%s)", rngAxi[axi],
             airEnumStr(nrrdKind, nrrd->axis[rngAxi[axi]].kind));
   }
@@ -81,58 +79,45 @@ main(int argc, char **argv) {
   val[2][0] = 5.11;
   val[2][1] = 6.11;
   val[2][2] = 7.11;
-  fprintf(stderr, "%s: val[0,1,2] = %lu %lu %lu\n", me,
-          (unsigned long)(val[0]),
-          (unsigned long)(val[1]),
-          (unsigned long)(val[2]));
+  fprintf(stderr, "%s: val[0,1,2] = %lu %lu %lu\n", me, (unsigned long)(val[0]),
+          (unsigned long)(val[1]), (unsigned long)(val[2]));
   nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoSpaceDirection, val[0], val[1], val[2]);
   fprintf(stderr, "2 --------------------------------------\n");
   nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSpaceDirection, val);
-  fprintf(stderr, "%s: val[0] = %g %g %g\n", me,
-          val[0][0], val[0][1], val[0][2]);
-  fprintf(stderr, "%s: val[1] = %g %g %g\n", me,
-          val[1][0], val[1][1], val[1][2]);
-  fprintf(stderr, "%s: val[2] = %g %g %g\n", me,
-          val[2][0], val[2][1], val[2][2]);
+  fprintf(stderr, "%s: val[0] = %g %g %g\n", me, val[0][0], val[0][1], val[0][2]);
+  fprintf(stderr, "%s: val[1] = %g %g %g\n", me, val[1][0], val[1][1], val[1][2]);
+  fprintf(stderr, "%s: val[2] = %g %g %g\n", me, val[2][0], val[2][1], val[2][2]);
   fprintf(stderr, "3 --------------------------------------\n");
   nrrdAxisInfoGet_va(nrrd, nrrdAxisInfoSpaceDirection, val[0], val[1], val[2]);
   fprintf(stderr, "4 --------------------------------------\n");
-  fprintf(stderr, "%s: val[0] = %g %g %g\n", me,
-          val[0][0], val[0][1], val[0][2]);
-  fprintf(stderr, "%s: val[1] = %g %g %g\n", me,
-          val[1][0], val[1][1], val[1][2]);
-  fprintf(stderr, "%s: val[2] = %g %g %g\n", me,
-          val[2][0], val[2][1], val[2][2]);
+  fprintf(stderr, "%s: val[0] = %g %g %g\n", me, val[0][0], val[0][1], val[0][2]);
+  fprintf(stderr, "%s: val[1] = %g %g %g\n", me, val[1][0], val[1][1], val[1][2]);
+  fprintf(stderr, "%s: val[2] = %g %g %g\n", me, val[2][0], val[2][1], val[2][2]);
   fprintf(stderr, "5 --------------------------------------\n");
 
   if (nrrdSave("out.nrrd", nrrd, io)) {
-    fprintf(stderr, "%s: trouble saving \"%s\":\n%s",
-            me, argv[1], err = biffGet(NRRD));
+    fprintf(stderr, "%s: trouble saving \"%s\":\n%s", me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
   nrrdIoStateInit(io);
   if (nrrdSave(argv[2], nrrd, io)) {
-    fprintf(stderr, "%s: trouble saving \"%s\":\n%s",
-            me, argv[1], err = biffGet(NRRD));
+    fprintf(stderr, "%s: trouble saving \"%s\":\n%s", me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
   nrrdIoStateInit(io);
   if (nrrdSave(argv[2], nrrd, io)) {
-    fprintf(stderr, "%s: trouble saving \"%s\":\n%s",
-            me, argv[1], err = biffGet(NRRD));
+    fprintf(stderr, "%s: trouble saving \"%s\":\n%s", me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
   nrrdIoStateInit(io);
   if (nrrdSave(argv[2], nrrd, io)) {
-    fprintf(stderr, "%s: trouble saving \"%s\":\n%s",
-            me, argv[1], err = biffGet(NRRD));
+    fprintf(stderr, "%s: trouble saving \"%s\":\n%s", me, argv[1], err = biffGet(NRRD));
     free(err);
     exit(1);
   }
-
 
   nrrdIoStateNix(io);
   nrrdNuke(nrrd);
