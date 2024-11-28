@@ -32,6 +32,8 @@ transformations of the template wrapper in teem/python/cffi/LLIIBB.py
 
 import math as _math   # # likely used in _BIFF_DICT, below, for testing function return values
 
+import argparse as _argparse
+
 # halt if python2; thanks to https://stackoverflow.com/a/65407535/1465384
 _x, *_y = 1, 2  # NOTE: A SyntaxError means you need Python3, not Python2
 del _x, _y
@@ -71,6 +73,10 @@ class Tenum:
         """Provides a way to iterate through the valid values of the enum"""
         return iter(self.vals)
 
+    def vals(self):
+        """Provides list of valid values"""
+        return self._vals.copy()
+
     def valid(self, ios) -> bool:  # ios = int or string
         """Answers whether given int is a valid value of enum, or whether given string
         is a valid string in enum, depending on incoming type.
@@ -82,16 +88,19 @@ class Tenum:
         # else
         raise TypeError(f'Need an int or str argument (not {type(ios)})')
 
-    def str(self, val: int, picky=False) -> str:
-        """Converts from integer enum value val to string identifier
-        (wraps airEnumStr())"""
+    def str(self, val: int, picky=False, excls=ValueError) -> str:
+        """Converts from integer enum value val to string identifier.
+        If picky, then failure to parse string generates an exception,
+        of class excls (defaults to ValueError) (wraps airEnumStr())"""
         assert isinstance(val, int), f'Need an int argument (not {type(val)})'
         if picky and not self.valid(val):
-            raise ValueError(
-                f'{val} not a valid {self._name} ("{self.name}") enum value'
-            )
+            raise excls(f'{val} not a valid {self._name} ("{self.name}") enum value')
         # else
-        return string(_lliibb.lib.airEnumStr(self.aenm, val))
+        return _lliibb.ffi.string(_lliibb.lib.airEnumStr(self.aenm, val)).decode('utf8')
+
+    def strs(self):
+        """Provides a list of strings for the valid values"""
+        return [self.str(v) for v in self.vals()]
 
     def desc(self, val: int) -> str:
         """Converts from integer value val to description string
@@ -115,6 +124,62 @@ class Tenum:
         """Returns value representing unknown
         (wraps airEnumUnknown())"""
         return _lliibb.lib.airEnumUnknown(self.aenm)
+
+
+class TenumVal:
+    """Represents one value in a Tenum, in a way that can be both an int and a string,
+    and that remembers which Tenum it is part of"""
+
+    def __init__(self, tenum, ios):
+        """Create enum value from Tenum and either int or string value"""
+        if not isinstance(tenum, Tenum):
+            raise ValueError(f'Given {tenum=} not actually a Tenum')
+        if not tenum.valid(ios):
+            raise ValueError(f'Given {ios=} not member of enum {tenum.name}')
+        self.tenum = tenum
+        self.val = ios if isinstance(ios, int) else tenum.val(ios)
+
+    def __str__(self):
+        """Return own value as string"""
+        return self.tenum.str(self.val)
+
+    def __int__(self):
+        """Return own value as int"""
+        return self.val
+
+    def __repr__(self):
+        """Full string representation of own value
+        (though currently nothing knows how to parse this)"""
+        return f'{self.tenum.str(self.val)}:({self.tenum.name} enum)'
+
+    def __eq__(self, other):
+        """Test equality between two things"""
+        if isinstance(other, TenumVal):
+            if self.tenum != other.tenum:
+                return False
+            # else other same kind of tenum
+            return self.val == other.val
+        # else other not a tenum
+        if not self.tenum.valid(other):
+            raise ValueError(f'Given {other=} not member of enum {self.tenum.name}')
+        oval = other if isinstance(other, int) else self.tenum.val(other)
+        return self.val == oval
+
+
+class TenumValParseAction(_argparse.Action):
+    """Custom argparse action for parsing a TenumVal from the command-line"""
+
+    def __init__(self, option_strings, dest, tenum, **kwargs):
+        super().__init__(option_strings, dest, **kwargs)
+        # Store the enum we want to parse
+        self.tenum = tenum
+
+    def __call__(self, _parser, namespace, string, _option_string=None):
+        # parse value from string
+        val = self.tenum.val(string, True, _argparse.ArgumentTypeError)
+        tval = TenumVal(self.tenum, val)
+        # Set the parsed result in the namespace
+        setattr(namespace, self.dest, tval)
 
 
 def _equals_one(val):   # likely used in _BIFF_DICT, below
