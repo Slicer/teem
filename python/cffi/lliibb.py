@@ -290,17 +290,26 @@ class _lliibb_Module:
                 # _sym is name of an airEnum, wrap it as such
                 setattr(self, sym_name, Tenum(sym, sym_name))
             elif (
-                strsym.startswith("<cdata 'char *'")  # a char* C string
-                or strsym.startswith("<cdata 'struct ")  # struct pointer
-                # e.g. <cdata 'double(*[30])(double *)'> for _tenAnisoEval_d
-                or strsym.startswith("<cdata 'double(*[")
-                # e.g. <cdata 'float(*[30])(float *)'> for _tenAnisoEval_f
-                or strsym.startswith("<cdata 'float(*[")
-                # e.g. <cdata 'unsigned int(*[13])(void *, ...) for airParseStr
+                # Annoyingly, functions in _lliibb.lib can either look like
+                # <cdata 'int(*)(char *, ...)' 0x10af91330> or like
+                # <built-in method _lib_Foo of _cffi_backend.Lib object at 0x10b0cd210>
+                (strsym.startswith('<cdata') and '(*)(' in strsym)  # some functions
+                or strsym.startswith('<built-in method')  # other functions
+                # ridiculous list of wacky types of things in Teem
+                or strsym.startswith("<cdata 'void(*[")
+                or strsym.startswith("<cdata 'char *")
+                or strsym.startswith("<cdata 'char[")
+                or strsym.startswith("<cdata 'unsigned int *")
                 or strsym.startswith("<cdata 'unsigned int(*")
-                # e.g. <cdata 'unsigned int[1000]' for airPrimeList
                 or strsym.startswith("<cdata 'unsigned int[")
-                # e.g. some other stuff!
+                or strsym.startswith("<cdata 'int[")
+                or strsym.startswith("<cdata 'int(*[")
+                or strsym.startswith("<cdata 'float(*[")
+                or strsym.startswith("<cdata 'double[")
+                or strsym.startswith("<cdata 'double(*[")
+                or strsym.startswith("<cdata 'size_t[")
+                or strsym.startswith("<cdata 'size_t(*[")
+                or strsym.startswith("<cdata 'struct ")
                 or strsym.startswith("<cdata 'airFloat &'")
                 or strsym.startswith("<cdata 'hestCB &'")
                 or strsym.startswith("<cdata 'airRandMTState *'")
@@ -314,25 +323,9 @@ class _lliibb_Module:
                 or strsym.startswith("<cdata 'coilMethod *")
                 or strsym.startswith("<cdata 'pushEnergy *")
                 or strsym.startswith("<cdata 'pullEnergy *")
-                or strsym.startswith("<cdata 'void(*[")
-                or strsym.startswith("<cdata 'int(*[")
-                or strsym.startswith("<cdata 'size_t[")
-                or strsym.startswith("<cdata 'size_t(*[")
-                or strsym.startswith("<cdata 'int[")
-                or strsym.startswith("<cdata 'char[")
-                or strsym.startswith("<cdata 'double[")
-                or strsym.startswith("<cdata 'char *")
-                or strsym.startswith("<cdata 'unsigned int *")
-                or (strsym.startswith('<cdata') and '(*)(' in strsym)  # some functions
-                or strsym.startswith('<built-in method')  # other functions
             ):
                 # with C strings, it might be cute to instead export a real Python string, but
                 # then its value would NOT be useful as is for the underlying C library.
-                # HEY perhaps future function wrappers will automatically handle C char*
-                # <--> Python str conversions?
-                # Annoyingly, functions in _lliibb.lib can either look like
-                # <cdata 'int(*)(char *, ...)' 0x10af91330> or like
-                # <built-in method _lib_Foo of _cffi_backend.Lib object at 0x10b0cd210>
                 setattr(self, sym_name, sym)
             else:
                 # More special cases; see if sym is an integer constant: enum or #define
@@ -353,8 +346,9 @@ class _lliibb_Module:
                     # sym_name is a NON-CONST scalar, do not export, instead alias it
                     self._alias[sym_name] = sym_name
                     # HEY in the python wrappers for GLK's SciVis, this aliasing is
-                    # non-trivial e.g. `foo.Verbose` aliases _foo.lib.fooVerbose`;
-                    # not sure about the utility of this here ...
+                    # non-trivial e.g. `foo.Verbose` aliases _foo.lib.fooVerbose`.
+                    # Here, `_alias` instead becomes a badly-named mechanism to indicate
+                    # which exports might be mutable
                 else:
                     raise ValueError(
                         f'Libary item {sym_name} is something ({strsym}) unexpected; sorry'
