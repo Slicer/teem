@@ -31,7 +31,7 @@ transformations of the template wrapper in teem/python/cffi/lliibb.py
 """
 
 import math as _math   # # likely used in _BIFF_DICT, below, for testing function return values
-
+import sys as _sys
 import argparse as _argparse
 
 # halt if python2; thanks to https://stackoverflow.com/a/65407535/1465384
@@ -757,33 +757,189 @@ error-checking wrapper around C function "{func_name}" ({fnln}):
     return wrapper
 
 
-def export_teem():
+# NOTE: this is copy-pasta from GLK's SciVis class code, and the python wrappers there
+class _teem_Module:
+    """An object that exists just to "become" the imported module, an old hack[1,2]
+    that is still needed because even though there is now module-level __getattr__[3],
+    module-level __setattr__ has been sadly rejected[4,5]. Using __setattr__ here
+    solves two problems: (1) supporting true read-only variables, which avoids easy but
+    confusing mistakes (should NOT be able to over-write the C functions we need to use,
+    and accurately reflecting C names (of enums, functions) matters more than hewing to
+    the mere convention that ALL-CAPS Python variables are constants), and, (2) creating
+    useful aliases for global variables so that they are actually set in the underlying
+    C library instead of just modifying a Python-only variable.
+    [1] https://groups.google.com/g/comp.lang.python/c/2H53WSCXhoM
+    [2] https://mail.python.org/pipermail/python-ideas/2012-May/014969.html
+    [3] https://peps.python.org/pep-0562/
+    [4] https://discuss.python.org/t/extend-pep-562-with-setattr-for-modules/25506
+    [5] https://discuss.python.org/t/pep-726-module-setattr-and-delattr/32640
     """
-    Exports things from _teem.lib, adding biff wrappers to functions where possible.
-    """
-    for sym_name in dir(_teem.lib):
-        if 'free' == sym_name:
-            # don't export C runtime's free(), though we use it above in the biff wrapper
-            continue
-        sym = getattr(_teem.lib, sym_name)
-        # Create a python object in this module for the library symbol sym
-        xprt = None
-        # The exported symbol xprt will be ...
-        if not sym_name in _BIFF_DICT:
-            # ... either: not a function, or a function known to not use biff
-            if str(sym).startswith("<cdata 'airEnum *' "):
+
+    # _done being False indicates to __setattr__ that __init__ is in progress
+    _done = False
+
+    def __init__(self):
+        """Set up all the extension module wrapping"""
+        # we init ourself with the globals() to best emulate being a module
+        for kk, vv in globals().items():
+            setattr(self, kk, vv)
+        # set various things that simplify using CFFI and this module
+        # for slight convenience, e.g. when calling nrrdLoad with NULL (default) NrrdIoState
+        self.NULL = _teem.ffi.NULL
+        # The value of this ffi, as opposed to "from cffi import FFI; ffi = FFI()" is that it knows
+        # about the various typedefs that were learned to build the CFFI wrapper, which may in turn
+        # be useful for setting up calls into libteem
+        self.ffi = _teem.ffi
+        # enable access to original un-wrapped things, straight from cffi
+        self.lib = _teem.lib
+        # for non-const things, self._alias maps from exported name to CFFI object
+        # in the underlying library
+        self._alias = {}
+        # go through everything in underlying C library, and process accordingly
+        for sym_name in dir(_teem.lib):
+            if 'free' == sym_name:
+                # don't export C runtime's free(), though we use it above in the biff wrapper
+                continue
+            # sym is the symbol with name sym_name
+            # (not __lib_.lib[sym_name] since '_cffi_backend.Lib' object is not subscriptable)
+            sym = getattr(_teem.lib, sym_name)
+            # string useful for distinguishing different kinds of CFFI objects
+            strsym = str(sym)
+            # The exported symbol xprt will be ...
+            if sym_name in _BIFF_DICT:
+                # ... or: a Python wrapper around a function known to use biff.
+                setattr(self, sym_name, _biffer(sym, sym_name, _BIFF_DICT[sym_name]))
+            # else either a function known to not use biff, or not a function,
+            elif strsym.startswith("<cdata 'airEnum *' "):
                 # _sym is name of an airEnum, wrap it as such
-                xprt = Tenum(sym, sym_name)
+                setattr(self, sym_name, Tenum(sym, sym_name))
+            elif (
+                strsym.startswith("<cdata 'char *'")  # a char* C string
+                or strsym.startswith("<cdata 'struct ")  # struct pointer
+                # e.g. <cdata 'double(*[30])(double *)'> for _tenAnisoEval_d
+                or strsym.startswith("<cdata 'double(*[")
+                # e.g. <cdata 'float(*[30])(float *)'> for _tenAnisoEval_f
+                or strsym.startswith("<cdata 'float(*[")
+                # e.g. <cdata 'unsigned int(*[13])(void *, ...) for airParseStr
+                or strsym.startswith("<cdata 'unsigned int(*")
+                # e.g. <cdata 'unsigned int[1000]' for airPrimeList
+                or strsym.startswith("<cdata 'unsigned int[")
+                # e.g. some other stuff!
+                or strsym.startswith("<cdata 'airFloat &'")
+                or strsym.startswith("<cdata 'hestCB &'")
+                or strsym.startswith("<cdata 'airRandMTState *'")
+                or strsym.startswith("<cdata 'hestCB *'")
+                or strsym.startswith("<cdata 'unrrduCmd * *'")
+                or strsym.startswith("<cdata 'gageItemPack *'")
+                or strsym.startswith("<cdata 'NrrdFormat *")
+                or strsym.startswith("<cdata 'NrrdKernel *")
+                or strsym.startswith("<cdata 'coilKind &'")
+                or strsym.startswith("<cdata 'coilKind *")
+                or strsym.startswith("<cdata 'coilMethod *")
+                or strsym.startswith("<cdata 'pushEnergy *")
+                or strsym.startswith("<cdata 'pullEnergy *")
+                or strsym.startswith("<cdata 'void(*[")
+                or strsym.startswith("<cdata 'int(*[")
+                or strsym.startswith("<cdata 'size_t[")
+                or strsym.startswith("<cdata 'size_t(*[")
+                or strsym.startswith("<cdata 'int[")
+                or strsym.startswith("<cdata 'char[")
+                or strsym.startswith("<cdata 'double[")
+                or strsym.startswith("<cdata 'char *")
+                or strsym.startswith("<cdata 'unsigned int *")
+                or (strsym.startswith('<cdata') and '(*)(' in strsym)  # some functions
+                or strsym.startswith('<built-in method')  # other functions
+            ):
+                # with C strings, it might be cute to instead export a real Python string, but
+                # then its value would NOT be useful as is for the underlying C library.
+                # HEY perhaps future function wrappers will automatically handle C char*
+                # <--> Python str conversions?
+                # Annoyingly, functions in _teem.lib can either look like
+                # <cdata 'int(*)(char *, ...)' 0x10af91330> or like
+                # <built-in method _lib_Foo of _cffi_backend.Lib object at 0x10b0cd210>
+                setattr(self, sym_name, sym)
             else:
-                # straight copy of (reference to) sym
-                xprt = sym
-        else:
-            # ... or: a Python wrapper around a function known to use biff.
-            xprt = _biffer(sym, sym_name, _BIFF_DICT[sym_name])
-        # can't do "if not xprt:" because, e.g. AIR_FALSE is 0 but needs to be exported
-        if xprt is None:
-            raise Exception(f"didn't handle symbol {sym_name}")
-        globals()[sym_name] = xprt
+                # More special cases; see if sym is an integer constant: enum or #define
+                cval = None  # value of symbol as integer const
+                try:
+                    cval = _teem.ffi.integer_const(sym_name)
+                except _teem.ffi.error:
+                    # sym_name wasn't actually an integer const; ignore the complaint.
+                    pass
+                if cval is sym:
+                    # so sym_name *is* an integer const, export that (integer) value
+                    setattr(self, sym_name, sym)
+                elif (
+                    isinstance(sym, int)
+                    or isinstance(sym, float)
+                    or isinstance(sym, bytes)
+                ):
+                    # sym_name is a NON-CONST scalar, do not export, instead alias it
+                    self._alias[sym_name] = sym_name
+                    # HEY in the python wrappers for GLK's SciVis, this aliasing is
+                    # non-trivial e.g. `foo.Verbose` aliases _foo.lib.fooVerbose`;
+                    # not sure about the utility of this here ...
+                else:
+                    raise ValueError(
+                        f'Libary item {sym_name} is something ({strsym}) unexpected; sorry'
+                    )
+        # done looping through symbols
+        # Fake out the name of this class to be name of wannabe module
+        self.__class__.__name__ = __name__
+        # Prevent further changes
+        self._done = True
+
+    def __setattr__(self, name, value):
+        """Allow new attributes during __init__, then be read-only except for aliased variables"""
+        if not self._done:
+            # self.__init__ is still in progress; pass through
+            self.__dict__[name] = value
+            return
+        # else __init__ is done; have turned mostly read-only
+        if name in self._alias:
+            # the aliases are the one thing we allow changing
+            setattr(self.lib, self._alias[name], value)
+            # and we're done
+            return
+        # else try to give informative exceptions to documenting being read-only
+        if not name in self.__dict__:
+            raise ValueError(
+                f'"{name}" not already in {self.__name__} wrapper module '
+                'and cannot add new elements.'
+            )
+        raise ValueError(
+            f'Cannot change "{name}" in {self.__name__} wrapper module'
+            # not saying this because somethings like _lib_.NULL or .NAN
+            # are not actually in the underlying C library
+            # 'corresponding element of underlying C library is const.'
+        )
+
+    def __getattr__(self, name):
+        """Handle requests for attributes that don't really exist;
+        currently just the aliased variables"""
+        if name in self._alias:
+            return getattr(self.lib, self._alias[name])
+        # else not an alias
+        raise KeyError(f'"{name}" not in {self.__name__} wrapper module')
+
+    def __dir__(self):
+        """Directory of self, hacked to include the aliased variables"""
+        lst = list(self.__dict__.keys())
+        for name in self._alias:
+            lst.append(name)
+        return lst
+
+    # other utility functions that come in handy
+    def str(self, cstr):
+        """Utility function from C char* to Python string; nothing more than
+        str(cstr) = _teem.ffi.string(cstr).decode('utf8')"""
+        return _teem.ffi.string(cstr).decode('utf8')
+
+    def cs(self, pstr: str):
+        """Utility function from Python string to something compatible with C char*.
+        Has such a short name ("cs" could stand for "C string" or "char star") to be
+        shorter than its simple implementation: cs(pstr) = pstr.encode('utf8')"""
+        return pstr.encode('utf8')
 
 
 if 'teem' == __name__:  # being imported
@@ -795,13 +951,6 @@ if 'teem' == __name__:  # being imported
         print('*** _teem.cpython-platform.so.')
         print('*** Is there a build_teem.py script you can run to recompile it?\n')
         raise
-    # The value of this ffi, as opposed to "from cffi import FFI; ffi = FFI()" is that it knows
-    # about the various typedefs that were learned to build the CFFI wrapper, which may in turn
-    # be useful for setting up calls into libteem
-    ffi = _teem.ffi
-    # enable access to original un-wrapped things, straight from cffi
-    lib = _teem.lib
-    # for slight convenience, e.g. when calling nrrdLoad with NULL (default) NrrdIoState
-    NULL = _teem.ffi.NULL
-    # now export/wrap everything
-    export_teem()
+    # Finally, the object-instance-becomes-the-module fake-out workaround described in the
+    # __lib_Module docstring above and the links therein.
+    _sys.modules[__name__] = _teem_Module()
