@@ -52,7 +52,9 @@ class Tenum:
     def __init__(self, aenm, _name):
         """Constructor takes a Teem airEnum pointer (const airEnum *const)."""
         if not str(aenm).startswith("<cdata 'airEnum *' "):
-            raise TypeError(f'passed argument {aenm} does not seem to be an airEnum pointer')
+            raise TypeError(
+                f'passed argument {aenm} does not seem to be an airEnum pointer'
+            )
         self.aenm = aenm
         self.name = string(self.aenm.name)
         self._name = _name  # the variable name for the airEnum in libteem
@@ -85,7 +87,9 @@ class Tenum:
         (wraps airEnumStr())"""
         assert isinstance(val, int), f'Need an int argument (not {type(val)})'
         if picky and not self.valid(val):
-            raise ValueError(f'{val} not a valid {self._name} ("{self.name}") enum value')
+            raise ValueError(
+                f'{val} not a valid {self._name} ("{self.name}") enum value'
+            )
         # else
         return string(_lliibb.lib.airEnumStr(self.aenm, val))
 
@@ -101,7 +105,9 @@ class Tenum:
         assert isinstance(sss, str), f'Need an string argument (not {type(sss)})'
         ret = _lliibb.lib.airEnumVal(self.aenm, sss.encode('ascii'))
         if picky and ret == self.unknown():
-            raise ValueError(f'"{sss}" not parsable as {self._name} ("{self.name}") enum value')
+            raise ValueError(
+                f'"{sss}" not parsable as {self._name} ("{self.name}") enum value'
+            )
         # else
         return ret
 
