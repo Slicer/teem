@@ -189,7 +189,7 @@ def _equals_one(val):   # likely used in _BIFF_DICT, below
 
 def _equals_null(val):   # likely used in _BIFF_DICT, below
     """Returns True iff given val equals NULL"""
-    return val == NULL   # NULL is set at very end of this file
+    return val == _lliibb.ffi.NULL
 
 
 _BIFF_DICT = {  # contents here are filled in by teem/python/cffi/exult.py Tffi.wrap()
