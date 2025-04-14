@@ -57,7 +57,7 @@ enum {
 Monitors input characters ci, to prevent output of "float" or "double"
 state is maintained by the floatCount and doubleCount variables
 passed by reference */
-int
+static int
 nfdsChar(unsigned int *floatCountP, unsigned int *doubleCountP, int ci) {
   int co = ci; /* by default, output == input */
   unsigned int fc = *floatCountP;
