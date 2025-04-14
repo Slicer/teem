@@ -234,7 +234,7 @@ optarr_new(hestOpt **optP) {
 
 /* line airArrayLenIncr(1): increments logical length by 1,
 and returns index of newly-available element */
-unsigned int
+static unsigned int
 optarr_incr(hestOpt **optP) {
   unsigned int olen, nlen;
   olen = (*optP)->arrLen; /* == index of new element */
