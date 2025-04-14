@@ -98,6 +98,7 @@ allTypes = sorted(
         'airThreadMutex',
         'airThreadCond',
         'airThreadBarrier',
+        'airJSFRand',
         'biffMsg',
         'hestCB',
         'hestParm',
@@ -323,8 +324,9 @@ def runthis(cmdStr, capOut):
 # compile the "lib" library, run nm on it
 # and build up a list of the actual, defined, symbols in it
 def symbList(lib, firstClean):
+    runthis('pwd', False)
     if verbose:
-        print(f'========== recompiling, scanning definitions in {lib}.a ... ')
+        print(f'========== recompiling to then scan definitions in {lib}.a ... ')
     if firstClean:
         runthis('make clean', False)
     runthis('make', False)
