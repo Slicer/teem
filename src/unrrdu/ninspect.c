@@ -39,7 +39,7 @@ static const char *_unrrdu_infoL
           "name of what used to be a stand-alone Teem command-line utility, "
           "peer to unu).");
 
-static int
+static int /* Biff: 1 */
 fixproj(Nrrd *nproj[3], const Nrrd *nvol) {
   static const char me[] = "fixproj";
   airArray *mop;
@@ -157,7 +157,7 @@ fixproj(Nrrd *nproj[3], const Nrrd *nvol) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 ninspect_proj(Nrrd *nout, const Nrrd *nin, int axis, int smart, float amount) {
   static const char me[] = "ninspect_proj";
   airArray *mop;
@@ -214,7 +214,7 @@ ninspect_proj(Nrrd *nout, const Nrrd *nin, int axis, int smart, float amount) {
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 doit(Nrrd *nout, const Nrrd *nin, int smart, float amount, unsigned int margin,
      const unsigned char *back) {
   static const char me[] = "doit";
