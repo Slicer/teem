@@ -102,6 +102,8 @@ Some further notes on how GLK creates the annotations, for example for gage:
 GLK has his teem source checkout in ~/teem.
 From the ~/teem/src/_util directory:
 
+  unset TEEM_SRC
+  export TEEM_ARCH=darwin.64 # for example
   python3 scan-symbols.py ~/teem -biff 3 gage
 
 why -biff 3: because
