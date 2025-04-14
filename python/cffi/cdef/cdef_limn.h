@@ -845,7 +845,7 @@ extern int limnCbfPointsCheck(const limnCbfPoints *lpnt);
 extern limnCbfPath *limnCbfPathNew(unsigned segNum);
 extern limnCbfPath *limnCbfPathNix(limnCbfPath *path);
 extern void limnCbfPathJoin(limnCbfPath *dst, const limnCbfPath *src);
-extern limnCbfCtx *limnCbfCtxNew();
+extern limnCbfCtx *limnCbfCtxNew(void);
 extern limnCbfCtx *limnCbfCtxNix(limnCbfCtx *fctx);
 extern int limnCbfCtxPrep(limnCbfCtx *fctx, const limnCbfPoints *lpnt);
 extern void limnCbfSegEval(double *xy, const limnCbfSeg *seg, double tt);
