@@ -331,6 +331,7 @@ def symbList(lib, firstClean):
         runthis('make clean', False)
     runthis('make', False)
     runthis('make install', False)
+    # HEY HEY this depends on "nm" being llvm-nm
     nmOut = runthis(f'nm {archDir}/lib/lib{lib}.a', True).stdout.decode('UTF-8').splitlines()
     nmOut.pop(0)   # first line is empty (at least on Mac)
     # symb accumulates a dict mapping from symbol name to little description:
@@ -339,7 +340,8 @@ def symbList(lib, firstClean):
     symb = {}
     currFile = None
     for L in nmOut:
-        if match := re.match(r'[^\()]+\(([^\)]+).o\):$', L):
+        # if match := re.match(r'[^\()]+\(([^\)]+).o\):$', L): # old nm
+        if match := re.match(r'^([^\)]+).o:$', L): # new llvm-nm
             currFile = match.group(1) + '.c'
             if verbose > 1:
                 print(f'   ... {currFile}')
@@ -772,7 +774,7 @@ def parse_args():
         '1: do scan to flag issues in code, but no new annotations\n'
         '2: add annotations where there are not, but dont overwrite '
         'any existing wrong annotations or comments\n'
-        '3: create all anntations (including over-writing comments '
+        '3: create all annotations (including over-writing comments '
         'and wrong annotations)\n'
         'In fact no original source files are over-written: the result '
         'of annotating functions in foo.c is a new file foo-annote.c',
@@ -849,6 +851,7 @@ if __name__ == '__main__':
         if verbose:
             print(f'========== biff auto-scan ... ')
         for bs in toBS:
+            # print(f' = = = = {bs=}')
             bnote = biffScan(*bs)
             if not bnote or 1 == args.biff:
                 # just passing through
