@@ -1435,7 +1435,7 @@ fitSingle(double alpha[2], const double vv0[2], const double tt1[2], const doubl
   return 0;
 }
 
-static int
+static int /* Biff: 1 */
 vttvCalcOrCopy(double *vttv[4], int *givenP, const double vv0[2], const double tt1[2],
                const double tt2[2], const double vv3[2], limnCbfCtx *fctx,
                const limnCbfPoints *lpnt, uint loi, uint hii) {
