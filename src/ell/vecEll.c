@@ -23,9 +23,7 @@
 
 void
 ell_4v_norm_f(float bv[4], const float av[4]) {
-  float len;
-
-  len = AIR_FLOAT(ELL_4V_LEN(av));
+  float len = AIR_FLOAT(ELL_4V_LEN(av));
   ELL_4V_SCALE(bv, 1.0f / len, av);
   return;
 }
@@ -180,17 +178,17 @@ double /* Biff: nope */
 ell_3v_area_spherical_d(const double avec[3],
                         const double bvec[3],
                         const double cvec[3]) {
-  double axb[3], bxc[3], cxa[3], A, B, C, tmp;
-
+  double axb[3], bxc[3], cxa[3];
   ELL_3V_CROSS(axb, avec, bvec);
   ELL_3V_CROSS(bxc, bvec, cvec);
   ELL_3V_CROSS(cxa, cvec, avec);
+  double tmp;
   ELL_3V_NORM(axb, axb, tmp);
   ELL_3V_NORM(bxc, bxc, tmp);
   ELL_3V_NORM(cxa, cxa, tmp);
-  A = AIR_PI - ell_3v_angle_d(axb, cxa);
-  B = AIR_PI - ell_3v_angle_d(bxc, axb);
-  C = AIR_PI - ell_3v_angle_d(cxa, bxc);
+  double A = AIR_PI - ell_3v_angle_d(axb, cxa);
+  double B = AIR_PI - ell_3v_angle_d(bxc, axb);
+  double C = AIR_PI - ell_3v_angle_d(cxa, bxc);
   return A + B + C - AIR_PI;
 }
 
@@ -203,12 +201,10 @@ ell_3v_barycentric_spherical_d(double bary[3],
                                const double bv[3],
                                const double cv[3],
                                const double vv[3]) {
-  double sum;
-
   bary[0] = ell_3v_area_spherical_d(vv, bv, cv);
   bary[1] = ell_3v_area_spherical_d(vv, cv, av);
   bary[2] = ell_3v_area_spherical_d(vv, av, bv);
-  sum = bary[0] + bary[1] + bary[2];
+  double sum = bary[0] + bary[1] + bary[2];
   if (sum) {
     ELL_3V_SCALE(bary, 1.0 / sum, bary);
   }
