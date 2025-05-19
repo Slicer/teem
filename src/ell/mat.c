@@ -220,16 +220,14 @@ ell_4m_inv_d(double i[16], const double m[16]) {
 
 void
 ell_6m_mul_d(double AB[36], const double A[36], const double B[36]) {
-  unsigned int ll, mm, nn;
-  double tmp;
-
   if (!(AB && A && B)) {
     return;
   }
-  for (ll = 0; ll < 6; ll++) {
-    for (nn = 0; nn < 6; nn++) {
-      tmp = 0;
-      for (mm = 0; mm < 6; mm++) {
+  for (unsigned int ll = 0; ll < 6; ll++) {
+    for (unsigned int nn = 0; nn < 6; nn++) {
+      double tmp = 0;
+      for (unsigned int mm = 0; mm < 6; mm++) {
+        // contracting row ll of A and col nn of B
         tmp += A[mm + 6 * ll] * B[nn + 6 * mm];
       }
       AB[nn + 6 * ll] = tmp;
