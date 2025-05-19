@@ -6,7 +6,7 @@
 # script helps do this.
 # For more info see: https://clang.llvm.org/docs/ClangFormat.html
 ---
-Language: Cpp
+Language: C
 BasedOnStyle: LLVM
 ColumnLimit: 89
 AlwaysBreakAfterDefinitionReturnType: All
