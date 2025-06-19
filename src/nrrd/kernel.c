@@ -3395,7 +3395,14 @@ nrrdKernelSpecCompare(const NrrdKernelSpec *aa, const NrrdKernelSpec *bb, int *d
   }
   if (*differ) {
     if (explain) {
-      sprintf(explain, "kern/parm pairs differ: %s", subexplain);
+      /* AIR_STRLEN_LARGE */
+      /* AIR_STRLEN_LARGE + 1 = 513
+         "kern/parm pairs differ: " is 25 bytes
+         (with null terminator: 26) + subexplain could be up to 539 bytes
+         So total could be up to 539 bytes, but only 513 bytes available → warning
+      */
+      /* truncate at 487 elements */
+      snprintf(explain,AIR_STRLEN_LARGE,"kern/parm pairs differ: %.480s", subexplain);
     }
     *differ = 1; /* losing ordering info (of dubious value) */
     return 0;
