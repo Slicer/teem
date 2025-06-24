@@ -24,8 +24,13 @@
 #include <limits.h>
 #include <assert.h>
 
-#include <sys/ioctl.h> /* for ioctl(), TIOCGWINSZ, struct winsize */
-#include <unistd.h>    /* for STDOUT_FILENO and friends */
+#ifdef _WIN32
+  #include <windows.h>  /* for GetConsoleScreenBufferInfo, HANDLE, etc. */
+  #include <io.h>       /* for _isatty, _fileno */
+#else
+  #include <sys/ioctl.h> /* for ioctl(), TIOCGWINSZ, struct winsize */
+  #include <unistd.h>    /* for STDOUT_FILENO and friends */
+#endif
 
 const int hestPresent = 42;
 
@@ -87,33 +92,65 @@ hestParmFree(hestParm *parm) {
 }
 
 /* hestParmColumnsIoctl:
-Try to dynamically learn number of columns in the current terminal from ioctl(), and save
-it in hparm->columns. Learning the terminal size from stdin will probably work if we're
-not being piped into, else try learning it from stdout (but that won't work if we're
-piping elsewhere), else try learning the terminal size from stderr.
+Try to dynamically learn number of columns in the current terminal (using ioctl() or
+platform equivalent), and save it in hparm->columns. Learning the terminal size from stdin
+will probably work if we're not being piped into, else try learning it from stdout (but
+that won't work if we're piping elsewhere), else try learning the terminal size from stderr.
 
 If one of these works, and returns a reasonably large-enough value for #columns, then
-then hparm->columns is set via the ioctl-generated info, and we return 0.  "large-enough"
-means bigger than sanity threshold of max(20, hestDefaultColumns/2); if not above that
-threshold, then hparm->columns is set to it and we return -1. Why bother with this
+hparm->columns is set via the detected terminal info, and we return 0. "Reasonably large-
+enough" means bigger than sanity threshold of max(20, hestDefaultColumns/2); if not above
+that threshold, then hparm->columns is set to it and we return -1. Why bother with this
 threshold: hest usage generation code isn't trusted to produce anything informative with
 a tiny number of columns (and certainly hasn't been well-tested with that).
 
-If ioctl() never worked, then hparm->columns gets the given nonIoctlColumns, and we
-return 1 (but this 1 is not an error that needs any recovering from). */
+If no method worked, then hparm->columns gets the given nonIoctlColumns, and we return 1
+(but this 1 is not an error that needs any recovering from). */
 int
 hestParmColumnsIoctl(hestParm *hparm, unsigned int nonIoctlColumns) {
+  int ret = -1;
+  /* compute minimum usable column width */
+  unsigned int sanemin = AIR_MAX(20, hestDefaultColumns / 2);
+
+#ifdef _WIN32
+  CONSOLE_SCREEN_BUFFER_INFO csbi;
+  HANDLE handles[] = {
+    GetStdHandle(STD_INPUT_HANDLE),
+    GetStdHandle(STD_OUTPUT_HANDLE),
+    GetStdHandle(STD_ERROR_HANDLE)
+  };
+  int i;
+  for (i = 0; i < 3; ++i) {
+    if (handles[i] != INVALID_HANDLE_VALUE &&
+        GetConsoleScreenBufferInfo(handles[i], &csbi)) {
+      /* one of the handles worked; use its reported width (Right - Left + 1).
+         the "- 2" here may be the sign of a hest bug; sometimes it seems the "\" for line
+         continuation (in generated usage info) causes a line wrap when it shouldn't */
+      hparm->columns = csbi.srWindow.Right - csbi.srWindow.Left + 1 - 2;
+      if (hparm->columns < sanemin) {
+        /* width is too small to trust, use clamped minimum instead */
+        hparm->columns = sanemin;
+        ret = -1;
+      } else {
+        /* use the value from the console */
+        ret = 0;
+      }
+      break; /* stop once one succeeds */
+    }
+  }
+  if (i == 3) {
+    /* none of the handles provided usable info; fallback to given value */
+    hparm->columns = nonIoctlColumns;
+    ret = 1;
+  }
+#else
   struct winsize wsz;
-  int ret;
   if (-1 != ioctl(STDIN_FILENO, TIOCGWINSZ, &wsz)
       || -1 != ioctl(STDOUT_FILENO, TIOCGWINSZ, &wsz)
       || -1 != ioctl(STDERR_FILENO, TIOCGWINSZ, &wsz)) {
-    /* one of the ioctl calls worked */
-    unsigned int sanemin;
     /* the "- 2" here may be the sign of a hest bug; sometimes it seems the "\" for line
     continuation (in generated usage info) causes a line wrap when it shouldn't */
     hparm->columns = wsz.ws_col - 2;
-    sanemin = AIR_MAX(20, hestDefaultColumns / 2);
     if (hparm->columns < sanemin) {
       /* will ignore the too-small value ioctl produced */
       hparm->columns = sanemin;
@@ -123,9 +160,11 @@ hestParmColumnsIoctl(hestParm *hparm, unsigned int nonIoctlColumns) {
       ret = 0;
     }
   } else {
+    /* all ioctl calls failed; fallback to provided default */
     hparm->columns = nonIoctlColumns;
     ret = 1;
   }
+#endif
   return ret;
 }
 
