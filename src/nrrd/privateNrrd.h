@@ -20,8 +20,10 @@
 */
 
 #ifdef _WIN32
-#  include <io.h>
+#  include <io.h> /* for _isatty(), _fileno(), stdin and stdout */
 #  include <fcntl.h>
+#else
+#  include <unistd.h> /* for isatty() , STDIN_FILENO and STDOUT_FILENO */
 #endif
 
 #ifdef __cplusplus
@@ -46,6 +48,14 @@ extern "C" {
 
 /* to access whatever nrrd there may be in in a NrrdIter */
 #define _NRRD_ITER_NRRD(iter) ((iter)->nrrd ? (iter)->nrrd : (iter)->ownNrrd)
+
+#ifdef _WIN32
+  #define _NRRD_IS_STDIN_TTY() _isatty(_fileno(stdin))
+  #define _NRRD_IS_STDOUT_TTY() _isatty(_fileno(stdout))
+#else
+  #define _NRRD_IS_STDIN_TTY() isatty(STDIN_FILENO)
+  #define _NRRD_IS_STDOUT_TTY() isatty(STDOUT_FILENO)
+#endif
 
 /* ---- END non-NrrdIO */
 

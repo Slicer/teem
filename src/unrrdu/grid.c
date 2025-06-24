@@ -22,8 +22,6 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#include <unistd.h> /* for isatty() and STDIN_FILENO */
-
 static int /* Biff: 1 */
 gridGen(Nrrd *nout, int typeOut, const Nrrd *nin, int psz, int psg) {
   static const char me[] = "gridGen";
@@ -172,7 +170,7 @@ unrrdu_gridMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   USAGE_OR_PARSE(_unrrdu_gridInfoL);
   airMopAdd(mop, opt, (airMopper)hestParseFree, airMopAlways);
 
-  if (!strcmp("-", inS) && isatty(STDIN_FILENO)) {
+  if (!strcmp("-", inS) && _UNRRDU_IS_STDIN_TTY()) {
     fprintf(stderr, "%s: declining to try reading Nrrd from stdin as tty (terminal)\n",
             me);
     hestUsage(stderr, opt, me, hparm);

@@ -20,8 +20,10 @@
 */
 
 #ifdef _WIN32
-#  include <io.h>
+#  include <io.h> /* for _isatty(), _fileno(), stdin and stdout */
 #  include <fcntl.h>
+#else
+#  include <unistd.h> /* for isatty() , STDIN_FILENO and STDOUT_FILENO */
 #endif
 
 #ifdef __cplusplus
@@ -176,6 +178,15 @@ UNRRDU_MAP(UNRRDU_DECLARE)
    breakage will lead again to the many error messages that inspired
    the hack in the first place , and will inspire fixing it again */
 #define UNRRDU_QUIET_QUIT_STR "[nrrd] _nrrdRead: immediately hit EOF"
+
+
+#ifdef _WIN32
+  #define _UNRRDU_IS_STDIN_TTY() _isatty(_fileno(stdin))
+  #define _UNRRDU_IS_STDOUT_TTY() _isatty(_fileno(stdout))
+#else
+  #define _UNRRDU_IS_STDIN_TTY() isatty(STDIN_FILENO)
+  #define _UNRRDU_IS_STDOUT_TTY() isatty(STDOUT_FILENO)
+#endif
 
 /*
 ** OPT_ADD_XXX

@@ -22,10 +22,6 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-/* ---- BEGIN non-NrrdIO */
-#include <unistd.h> /* for isatty() and STDIN_FILENO */
-/* ---- END non-NrrdIO */
-
 int /* Biff: 1 */
 nrrdIoStateSet(NrrdIoState *nio, int parm, int value) {
   static const char me[] = "nrrdIoStateSet";
@@ -1021,7 +1017,7 @@ nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *nio) {
   if (nio->declineStdioOnTTY    /* if we're cautious about writing to stdout */
       && stdout == file         /* and we're writing to stdout */
       && strcmp("-=", filename) /* and filename is NOT -= (which over-rides caution) */
-      && isatty(STDOUT_FILENO) /* and stdout is a tty */) {
+      && _NRRD_IS_STDOUT_TTY() /* and stdout is a tty */) {
     biffAddf(NRRD,
              "%s: declining to try writing file to terminal (tty) stdout "
              "(implied by filename \"%s\"; over-ride with \"-=\")",

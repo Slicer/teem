@@ -22,8 +22,6 @@
 #include "nrrd.h"
 #include "privateNrrd.h"
 
-#include <unistd.h> /* for isatty() and STDIN_FILENO */
-
 /* ---------------------------- Nrrd ----------------------------- */
 
 /*
@@ -52,7 +50,7 @@ parserBoth(void *ptr,
   nrrdP = (Nrrd **)ptr;
   *nrrdP = NULL;
   if (airStrlen(filename)) {
-    if (disallowTTY && !strcmp("-", filename) && isatty(STDIN_FILENO)) {
+    if (disallowTTY && !strcmp("-", filename) && _NRRD_IS_STDIN_TTY()) {
       sprintf(err, "%s: declining to try reading Nrrd from stdin as tty (terminal)", me);
       return 1;
     }

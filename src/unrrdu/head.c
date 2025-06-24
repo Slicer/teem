@@ -22,8 +22,6 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#include <unistd.h> /* for isatty() and STDIN_FILENO */
-
 #define INFO "Print header of one or more nrrd files"
 static const char *_unrrdu_headInfoL
   = (INFO ".  The value of this is simply to print the contents of nrrd "
@@ -39,7 +37,7 @@ unrrdu_headDoit(const char *me, NrrdIoState *nio, const char *inS, FILE *fout) {
   unsigned int len;
   FILE *fin;
 
-  if (!strcmp("-", inS) && isatty(STDIN_FILENO)) {
+  if (!strcmp("-", inS) && _UNRRDU_IS_STDIN_TTY()) {
     biffAddf(me, "declining to try reading Nrrd from stdin as tty (terminal)");
     return 1;
   }

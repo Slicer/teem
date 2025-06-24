@@ -22,8 +22,6 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#include <unistd.h> /* for isatty() and STDIN_FILENO */
-
 #define INFO "Print out min and max values in one or more nrrds"
 static const char *_unrrdu_minmaxInfoL
   = (INFO ". Unlike other commands, this doesn't produce a nrrd.  It only "
@@ -38,7 +36,7 @@ unrrdu_minmaxDoit(const char *me, char *inS, int blind8BitRange, int singleLine,
   NrrdRange *range;
   airArray *mop;
 
-  if (!strcmp("-", inS) && isatty(STDIN_FILENO)) {
+  if (!strcmp("-", inS) && _UNRRDU_IS_STDIN_TTY()) {
     biffAddf(me, "declining to try reading Nrrd from stdin as tty (terminal)");
     return 1;
   }

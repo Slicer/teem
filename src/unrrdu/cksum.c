@@ -22,8 +22,6 @@
 #include "unrrdu.h"
 #include "privateUnrrdu.h"
 
-#include <unistd.h> /* for isatty() and STDIN_FILENO */
-
 #define INFO "Compute 32-bit CRC of nrrd data (same as via \"cksum\")"
 static const char *_unrrdu_cksumInfoL
   = (INFO ". Unlike other commands, this doesn't produce a nrrd.  It only "
@@ -39,7 +37,7 @@ unrrdu_cksumDoit(const char *me, char *inS, int endian, int printendian, FILE *f
   char stmp[AIR_STRLEN_SMALL + 1], ends[AIR_STRLEN_SMALL + 1];
   size_t nn;
 
-  if (!strcmp("-", inS) && isatty(STDIN_FILENO)) {
+  if (!strcmp("-", inS) && _UNRRDU_IS_STDIN_TTY()) {
     biffAddf(me, "declining to try reading Nrrd from stdin as tty (terminal)");
     return 1;
   }
