@@ -377,6 +377,27 @@ main(int argc, const char **argv) {
     airMopError(mop);
     return 1;
   }
+  if (pullRun(pctx)) {
+    airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble running system:\n%s", me, err);
+    airMopError(mop);
+    return 1;
+  }
+  /*  HEY HOW WAS THIS NEVER FINISHED ????
+  if (pullOutputGet(nPosOut, NULL, NULL,
+                              NULL, 0, pctx)) {
+    airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble getting output:\n%s", me, err);
+    airMopError(mop);
+    return 1;
+  }
+  if (pullFinish(pctx)) {
+    airMopAdd(mop, err = biffGetDone(PULL), airFree, airMopAlways);
+    fprintf(stderr, "%s: trouble finishing system:\n%s", me, err);
+    airMopError(mop);
+    return 1;
+  }
+  */
 
   /* -------------------------------------------------- */
 
