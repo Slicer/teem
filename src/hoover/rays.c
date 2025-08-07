@@ -236,7 +236,7 @@ _hooverThreadBody(void *_arg) {
     if (arg->ctx->workMutex) {
       airThreadMutexUnlock(arg->ctx->workMutex);
     }
-    if (vI == arg->ctx->imgSize[1]) {
+    if (vI >= arg->ctx->imgSize[1]) {
       /* we're done! */
       break;
     }
@@ -332,7 +332,7 @@ _hooverThreadBody(void *_arg) {
         return arg;
       }
     } /* end this scanline */
-  }   /* end while(1) assignment of scanlines */
+  } /* end while(1) assignment of scanlines */
 
   if ((ret = (arg->ctx->threadEnd)(thread, arg->render, arg->ctx->user))) {
     arg->errCode = ret;
