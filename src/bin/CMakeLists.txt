@@ -1,6 +1,6 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2009--2023  University of Chicago
+# Copyright (C) 2009--2025  University of Chicago
 # Copyright (C) 2005--2008  Gordon Kindlmann
 # Copyright (C) 1998--2004  University of Utah
 #
@@ -31,8 +31,8 @@ macro(CREATE_EXEC name sources)
     )
 endmacro()
 
-# These binaries should not be depending on BUILD_EXPERIMENTAL_LIBS
-CREATE_EXEC(nrrdSanity nrrdSanity.c)
+# unu starts by calling nrrdSanityOrDie; other build info moved to "unu built"
+# CREATE_EXEC(nrrdSanity nrrdSanity.c)
 CREATE_EXEC(overrgb overrgb.c)
 CREATE_EXEC(mrender mrender.c)
 CREATE_EXEC(miter miter.c)
