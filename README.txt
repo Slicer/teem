@@ -38,7 +38,6 @@ An example sequence of commands to build Teem and the "unu" utility
   mkdir teem-build
   cd teem-build
   cmake \
-    -D BUILD_EXPERIMENTAL_APPS=OFF -D BUILD_EXPERIMENTAL_LIBS=OFF \
     -D BUILD_SHARED_LIBS=OFF -D BUILD_TESTING=OFF \
     -D CMAKE_BUILD_TYPE=Release \
     -D Teem_BZIP2=OFF -D Teem_FFTW3=OFF -D Teem_LEVMAR=OFF -D Teem_PTHREAD=OFF \

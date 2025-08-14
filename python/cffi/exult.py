@@ -1,6 +1,6 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2009--2023  University of Chicago
+# Copyright (C) 2009--2025  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -51,182 +51,73 @@ _x, *_y = 1, 2  # NOTE: A SyntaxError means you need Python3, not Python2
 del _x, _y
 
 # info about all the Teem libraries (TEEM_LIB_LIST)
-_tlibs = {
-    'air': {'expr': False, 'deps': []},  # (don't need airExistsConf.h)
-    'hest': {'expr': False, 'deps': ['air']},
-    'biff': {'expr': False, 'deps': ['air']},
-    'nrrd': {
-        'expr': False,
-        'deps': ['biff', 'hest', 'air'],
-        'hdrs': ['nrrdEnums.h', 'nrrdDefines.h'],
-    },
-    'ell': {
-        'expr': False,
-        'deps': ['nrrd', 'biff', 'air'],
-        # ellMacros.h does not add to ell API
-    },
-    'moss': {
-        'expr': False,
-        'deps': ['ell', 'nrrd', 'biff', 'hest', 'air'],
-    },
-    'unrrdu': {
-        'expr': False,
-        'deps': ['nrrd', 'hest', 'biff', 'air'],
-        # moss needed for linking (because of unu ilk) but not for declaring unrrdu API
-    },
-    'alan': {
-        'expr': True,
-        'deps': ['ell', 'nrrd', 'biff', 'air'],
-    },
-    'tijk': {
-        'expr': True,
-        'deps': ['ell', 'nrrd', 'air'],
-    },
-    'gage': {
-        'expr': False,
-        'deps': ['ell', 'nrrd', 'biff', 'air'],
-    },
-    'dye': {
-        'expr': False,
-        'deps': ['ell', 'biff', 'air'],
-        # may not actually need ell; implementation of dye needs ellMacros.h
-    },
-    'bane': {
-        'expr': True,
-        'deps': ['gage', 'unrrdu', 'nrrd', 'biff', 'air'],
-    },
-    'limn': {
-        'expr': False,
-        'deps': ['gage', 'ell', 'unrrdu', 'nrrd', 'biff', 'hest', 'air'],
-    },
-    'echo': {
-        'expr': False,
-        'deps': ['limn', 'ell', 'nrrd', 'biff', 'air'],
-    },
-    'hoover': {
-        'expr': False,
-        'deps': ['limn', 'ell', 'nrrd', 'biff', 'air'],
-    },
-    'seek': {
-        'expr': False,
-        'deps': ['gage', 'limn', 'ell', 'nrrd', 'biff', 'hest', 'air'],
-    },
-    'ten': {
-        'expr': False,
-        'deps': [
-            'echo',
-            'limn',
-            'gage',
-            'dye',
-            'unrrdu',
-            'ell',
-            'nrrd',
-            'biff',
-            'air',
-        ],
-    },
-    'elf': {
-        'expr': True,
-        'deps': ['ten', 'tijk', 'limn', 'ell', 'nrrd', 'air'],
-    },
-    'pull': {
-        'expr': False,
-        'deps': ['ten', 'limn', 'gage', 'ell', 'nrrd', 'biff', 'hest', 'air'],
-    },
-    'coil': {
-        'expr': True,
-        'deps': ['ten', 'ell', 'nrrd', 'biff', 'air'],
-    },
-    'push': {
-        'expr': True,
-        'deps': ['ten', 'gage', 'ell', 'nrrd', 'biff', 'air'],
-    },
-    'mite': {
-        'expr': False,
-        'deps': [
-            'ten',
-            'hoover',
-            'limn',
-            'gage',
-            'ell',
-            'nrrd',
-            'biff',
-            'air',
-        ],
-    },
-    'meet': {
-        'expr': False,
-        'deps': [
-            'air',
-            'hest',
-            'biff',
-            'nrrd',
-            'ell',
-            'moss',
-            'unrrdu',
-            'alan',
-            'tijk',
-            'gage',
-            'dye',
-            'bane',
-            'limn',
-            'echo',
-            'hoover',
-            'seek',
-            'ten',
-            'elf',
-            'pull',
-            'coil',
-            'push',
-            'mite',
-        ],
-    },
+_tlhdrs = {
+    'nrrd': ['nrrdEnums.h', 'nrrdDefines.h'],
+    # ell: ellMacros.h does not add to ell API
+}
+# as of Teem v2 the "experimental" notion is gone, which simplifies
+# how these dependencies are declared
+_tldeps = {
+    'air': [],  # (don't need airExistsConf.h)
+    'hest': ['air'],
+    'biff': ['air'],
+    'nrrd': ['biff', 'hest', 'air'],
+    'ell': ['nrrd', 'biff', 'air'],
+    'moss': ['ell', 'nrrd', 'biff', 'hest', 'air'],
+    'unrrdu': ['nrrd', 'hest', 'biff', 'air'],
+    #      moss needed for linking (because of unu ilk) but not for declaring unrrdu API
+    'alan': ['ell', 'nrrd', 'biff', 'air'],
+    'tijk': ['ell', 'nrrd', 'air'],
+    'gage': ['ell', 'nrrd', 'biff', 'air'],
+    'dye': ['ell', 'biff', 'air'],
+    #      may not actually need ell; implementation of dye needs ellMacros.h
+    'bane': ['gage', 'unrrdu', 'nrrd', 'biff', 'air'],
+    'limn': ['gage', 'ell', 'unrrdu', 'nrrd', 'biff', 'hest', 'air'],
+    'echo': ['limn', 'ell', 'nrrd', 'biff', 'air'],
+    'hoover': ['limn', 'ell', 'nrrd', 'biff', 'air'],
+    'seek': ['gage', 'limn', 'ell', 'nrrd', 'biff', 'hest', 'air'],
+    'ten': ['echo', 'limn', 'gage', 'dye', 'unrrdu', 'ell', 'nrrd', 'biff', 'air'],
+    'elf': ['ten', 'tijk', 'limn', 'ell', 'nrrd', 'air'],
+    'pull': ['ten', 'limn', 'gage', 'ell', 'nrrd', 'biff', 'hest', 'air'],
+    'coil': ['ten', 'ell', 'nrrd', 'biff', 'air'],
+    'push': ['ten', 'gage', 'ell', 'nrrd', 'biff', 'air'],
+    'mite': ['ten', 'hoover', 'limn', 'gage', 'ell', 'nrrd', 'biff', 'air'],
+    # fmt: off
+    'meet': [ 'air', 'hest', 'biff', 'nrrd', 'ell', 'moss', 'unrrdu', 'alan', 'tijk',
+              'gage', 'dye', 'bane', 'limn', 'echo', 'hoover', 'seek', 'ten', 'elf',
+              'pull', 'coil', 'push', 'mite'],
+    # fmt: on
 }
 
 
 def tlib_all() -> list[str]:
     """
-    Returns list of all Teem libraries in dependency order, regardless of "experimental" status
+    Returns list of all Teem libraries in dependency order
     """
-    return list(_tlibs.keys())
+    return list(_tldeps.keys())
 
 
-def tlib_experimental(lib: str) -> bool:
-    """
-    Answers if a given Teem library is "experimental"
-    """
-    try:
-        info = _tlibs[lib]
-    except Exception as exc:
-        raise RuntimeError(f'{lib} is not a known Teem library') from exc
-    return info['expr']
-
-
-def tlib_depends(lib: str, exper: bool) -> list[str]:
+def tlib_depends(lib: str) -> list[str]:
     """
     Computes dependency expansion of given Teem library.
-    Whether "experimental" libraries are also included depends on exper.
     """
     try:
-        info = _tlibs[lib]
+        deps = _tldeps[lib]
     except Exception as exc:
         raise RuntimeError(f'{lib} is not a known Teem library') from exc
     # iteratively find all dependencies and dependencies of dependencies, etc
     oldd = set()  # all previously dependencies known
-    newd = set([lib]) | set(info['deps'])  # newly discovered dependencies
+    newd = set([lib]) | set(deps)  # newly discovered dependencies
     while oldd != newd:
         # while new dependencies were just discovered
         tmpd = set()
         for nlb in newd:
-            tmpd = tmpd | set([lib]) | set(_tlibs[nlb]['deps'])
+            tmpd = tmpd | set([lib]) | set(_tldeps[nlb])
         oldd = newd
         newd = tmpd
     tla = tlib_all()  # linear array of all libs in dependency order
     # return dependencies sorted in dependency order
     ret = sorted(list(newd), key=tla.index)
-    # exclude "experimental" libraries if not exper
-    if not exper:
-        ret = list(filter(lambda L: not tlib_experimental(L), ret))
     return ret
 
 
@@ -239,12 +130,12 @@ def tlib_headers(lib: str) -> list[str]:
     centralized to this file. For example this handles how the nrrd library needs nrrdDefines.h
     and nrrdEnums.h as well as nrrd.h.
     """
-    try:
-        info = _tlibs[lib]
-    except Exception as exc:
-        raise RuntimeError(f'{lib} is not a known Teem library') from exc
-    ret = info['hdrs'].copy() if 'hdrs' in info else []
-    ret += [f'{lib}.h']
+    print(f'HELLO from tlib_headers({lib=})')
+    if not lib in _tldeps:
+        raise RuntimeError(f'{lib} is not a known Teem library')
+    ret = [f'{lib}.h']
+    if lib in _tlhdrs:
+        ret += _tlhdrs[lib].copy()
     return ret
 
 
@@ -278,39 +169,20 @@ def check_path_thdr(path_thdr: str):
     """
     Main purpose is to do sanity check on Teem include path path_thdr and the header files
     found there. Having done that work, we can also return information learned along the way:
-    (exper, have_libs) where exper indicates if this was run on an "experimental" Teem build,
-    and have_libs is the list of libraries for which the .h headers are present
+    we return the list of libraries for which the .h headers are present
     """
     itpath = path_thdr + '/teem'
     if not os.path.isdir(itpath):
         raise Exception(f'Need {itpath} to be directory')
     all_libs = tlib_all()
-    base_libs = list(filter(lambda L: not tlib_experimental(L), all_libs))
-    expr_libs = list(filter(tlib_experimental, all_libs))
-    base_hdrs = sum([tlib_headers(L) for L in base_libs], [])
-    expr_hdrs = sum([tlib_headers(L) for L in expr_libs], [])
-    missing_hdrs = list(filter(lambda F: not os.path.isfile(f'{itpath}/{F}'), base_hdrs))
+    all_hdrs = sum([tlib_headers(L) for L in all_libs], [])
+    missing_hdrs = list(filter(lambda F: not os.path.isfile(f'{itpath}/{F}'), all_hdrs))
     if missing_hdrs:
         raise Exception(
             f'Missing header(s) {" ".join(missing_hdrs)} in {itpath} '
-            'for one or more of the core Teem libs'
+            'for one or more of the Teem libs'
         )
-    have_libs = base_libs
-    missing_expr_hdrs = list(filter(lambda F: not os.path.isfile(f'{itpath}/{F}'), expr_hdrs))
-    if missing_expr_hdrs:
-        # missing one or more of the non-core "Experimental" header files
-        if len(missing_expr_hdrs) < len(expr_hdrs):
-            raise Exception(
-                'Missing some (but not all) non-core header(s) '
-                f'{" ".join(missing_expr_hdrs)} in {itpath} for one or more of the '
-                'core Teem libs'
-            )
-        # else len(missing_expr_hdrs) == len(expr_hdrs)) aka all missing, ok, so
-        # not Experimental
-    else:
-        # it is Experimental; reform the header list in dependency order (above)
-        have_libs = all_libs
-    return (not missing_expr_hdrs, have_libs)
+    return all_hdrs
 
 
 def check_path_tinst(path: str):
@@ -331,8 +203,8 @@ def check_path_tinst(path: str):
             f'Need both {path_thdr} and {path_tlib} to be subdirs of teem install dir {path}'
         )
     check_path_tlib(path_tlib)
-    (exper, have_libs) = check_path_thdr(path_thdr)
-    return (path_thdr, path_tlib, have_libs, exper)
+    have_libs = check_path_thdr(path_thdr)
+    return (path_thdr, path_tlib, have_libs)
 
 
 class CdefHdr:
@@ -536,7 +408,6 @@ class Tffi:
             self.path_thdr,
             self.path_tlib,
             self.have_tlibs,
-            self.exper,
         ) = check_path_tinst(path_tinst)
         self.path_tinst = path_tinst
         # initialize other members; these will be updated if self.desc() is called to describe
@@ -556,7 +427,6 @@ class Tffi:
             self.isteem = True
             self.name = 'teem'
             self.top_tlib = 'meet'
-            # we keep the experimental-ness value now in self.exper
         else:
             if not top_tlib in self.have_tlibs:
                 raise Exception(
@@ -565,8 +435,6 @@ class Tffi:
             self.isteem = None
             self.name = None
             self.top_tlib = top_tlib
-            # we set exper according to whether requested library is "experimental"
-            self.exper = tlib_experimental(top_tlib)
         # create the instance, but don't do anything with it; that depends on other methods
         self.ffi = cffi.FFI()
         self.step = 1  # for tracking correct ordering of method calls
@@ -628,7 +496,7 @@ class Tffi:
         # want free() available for freeing biff messages
         self.ffi.cdef('extern void free(void *);')
         # read in the relevant Teem cdef/ headers
-        for lib in tlib_depends(self.top_tlib, self.exper):
+        for lib in tlib_depends(self.top_tlib):
             if self.verb:
                 print(f'Tffi.cdef: reading {self.path_cdef}/cdef_{lib}.h ...')
             with open(f'{self.path_cdef}/cdef_{lib}.h', 'r', encoding='utf-8') as file:
@@ -660,9 +528,7 @@ class Tffi:
             'library_dirs': self.path_libs,
             # when linking extension module library, -l libs to link with
             'libraries': self.libs,
-            'extra_compile_args': (
-                (['-DTEEM_BUILD_EXPERIMENTAL_LIBS'] if self.exper else []) + self.eca
-            ),
+            'extra_compile_args': self.eca,
             # The next arg teaches the extension library about the paths that the dynamic linker
             # should look in for other libraries we depend on (the dynamic linker does not know
             # or care about $TEEM_INSTALL). We avoid any reliance on environment variables like
@@ -800,7 +666,7 @@ class Tffi:
         if not self.step in (1, 4):
             raise Exception('Expected .wrap() only after creation, .desc(), or .compile()')
         biffdatas = []  # a list of rows from .csv files
-        for lib in tlib_depends(self.top_tlib, self.exper):
+        for lib in tlib_depends(self.top_tlib):
             path_bdata = self.path_biffdata + f'/{lib}.csv'
             if not os.path.isfile(path_bdata):
                 if self.verb:

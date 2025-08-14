@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2009--2025  University of Chicago
   Copyright (C) 2005--2008  Gordon Kindlmann
   Copyright (C) 1998--2004  University of Utah
 
@@ -33,30 +33,20 @@
 #include <teem/ell.h>
 #include <teem/moss.h>
 #include <teem/unrrdu.h>
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-#  include <teem/alan.h>
-#endif
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-#  include <teem/tijk.h>
-#endif
+#include <teem/alan.h>
+#include <teem/tijk.h>
 #include <teem/gage.h>
 #include <teem/dye.h>
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-#  include <teem/bane.h>
-#endif
+#include <teem/bane.h>
 #include <teem/limn.h>
 #include <teem/echo.h>
 #include <teem/hoover.h>
 #include <teem/seek.h>
 #include <teem/ten.h>
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-#  include <teem/elf.h>
-#endif
+#include <teem/elf.h>
 #include <teem/pull.h>
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-#  include <teem/coil.h>
-#  include <teem/push.h>
-#endif
+#include <teem/coil.h>
+#include <teem/push.h>
 #include <teem/mite.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)

@@ -30,19 +30,6 @@
 int
 main(int argc, const char **argv) {
   unsigned int ii;
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  char explibs[] = "*ON!*";
-#else
-  char explibs[] = "_off_";
-#endif
-
-  /* apparently TEEM_BUILD_EXPERIMENTAL_APPS is not disclosed to
-     the compilation of this file? */
-#if defined(TEEM_BUILD_EXPERIMENTAL_APPS)
-  char expapps[] = "*ON!*";
-#else
-  char expapps[] = "_off_";
-#endif
 
   char stmp1[AIR_STRLEN_SMALL + 1], stmp2[AIR_STRLEN_SMALL + 1];
   AIR_UNUSED(argc);
@@ -57,7 +44,6 @@ main(int argc, const char **argv) {
          airSprintSize_t(stmp1, sizeof(size_t)),
          airSprintSize_t(stmp2, sizeof(void *)));
 
-  printf("experimental libs %s; apps %s\n", explibs, expapps);
   printf("libs = ");
   ii = 0;
   do {

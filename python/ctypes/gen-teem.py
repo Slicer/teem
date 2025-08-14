@@ -238,13 +238,6 @@ for line in contents:
                     libs_destuctable.remove(lib)
                     break
 
-# in experimental libs not included, cleanup and fail
-if libs_destuctable: # empty sequence implicity false
-    shutil.rmtree(TMP_DIR)
-    os.remove(teem_xml)
-    #os.remove(pre_teem_py)
-    sys.exit("ERROR: experimental libs: %s not turned on - please rebuild teem with BUILD_EXPERIMENTAL_LIBS turned on, then re-run gen-teem.py" % ','.join(libs_destuctable))
-
 header = [
 "##",
 "##  teem.py: automatically-generated ctypes python wrappers for Teem",

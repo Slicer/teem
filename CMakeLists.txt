@@ -22,14 +22,8 @@
 #
 # This is the root Teem CMakeLists file
 
-# adapt to the available version of cmake
-cmake_minimum_required(VERSION 3.13...3.15)
-
-if(${CMAKE_VERSION} VERSION_LESS 3.15)
-    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
-else()
-    cmake_policy(VERSION 3.15)
-endif()
+# assume a recent-ish version of CMake
+cmake_minimum_required(VERSION 3.20)
 
 #-----------------------------------------------------------------------------
 # Teem version number.  Must reflect the values in teem/src/air/air.h
@@ -71,7 +65,8 @@ set(CMAKE_REQUIRED_FLAGS ${CMAKE_ANSI_CFLAGS})
 # existence of some headers (limits.h, unistd.h, pthread.h, sys/types.h, sys/prctl.h),
 # and then (why?!?) X11, gethostbyname, connect, remove, shmat, IceConnectionNumber?
 # GLK wonders if this can't be pruned down to what is actually needed (certainly not X11)
-include (CMakeBackwardCompatibilityC)
+## HEY for Teem v2 can this be removed??       
+#include (CMakeBackwardCompatibilityC)
 
 #-----------------------------------------------------------------------------
 # set all output directories to be teem-build/bin unless defined
@@ -283,31 +278,10 @@ if(${CMAKE_GENERATOR} MATCHES "Visual Studio")
     add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
 endif()
 
-set(BUILD_EXPERIMENTAL_LIBS OFF CACHE BOOL "Build Teem's experimental libraries")
-set(BUILD_EXPERIMENTAL_APPS OFF CACHE BOOL "Build Teem's non-essential command-line tools")
-
-# If its a Dashboard build; turn ON both BUILD_EXPERIMENTAL_APPS and BUILD_EXPERIMENTAL_LIBS
-if(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "")
-    # it is a dashboard build
-    set(BUILD_EXPERIMENTAL_APPS ON)
-    set(BUILD_EXPERIMENTAL_LIBS ON)
-endif()
-
 # set the Teem library as a list (TEEM_LIB_LIST)
-set(Teem_LIBRARIES "air" "hest" "biff" "nrrd" "ell" "moss" "unrrdu" "gage" "dye" "limn" "echo" "hoover" "seek" "ten" "pull" "mite" "meet")
-if(BUILD_EXPERIMENTAL_LIBS)
-    # This list of the "experimental" libraries must be kept in sync with:
-    # * definition of Teem_HEADER_FILES (below)
-    # * teem/src/meet/meet.h
-    # * teem/src/meet/enumsall.c
-    # re-setting list so libraries appear in expected order
-    list(APPEND Teem_LIBRARIES "alan" "tijk" "bane" "elf" "coil" "push")
-    add_definitions(-DTEEM_BUILD_EXPERIMENTAL_LIBS)
-endif()
-
-if(BUILD_EXPERIMENTAL_APPS)
-    add_definitions(-DTEEM_BUILD_EXPERIMENTAL_APPS)
-endif()
+set(Teem_LIBRARIES
+    "air" "hest" "biff" "nrrd" "ell" "moss" "unrrdu" "alan" "tijk" "gage" "dye"
+    "bane" "limn" "echo" "hoover" "seek" "ten" "elf" "pull" "coil" "push" "mite" "meet")
 
 # set the Teem headers as a list
 set(Teem_HEADER_FILES
@@ -318,26 +292,22 @@ set(Teem_HEADER_FILES
     "ell/ell.h"     "ell/ellMacros.h"
     "moss/moss.h"
     "unrrdu/unrrdu.h"
+    "alan/alan.h"
+    "tijk/tijk.h"
     "gage/gage.h"
     "dye/dye.h"
+    "bane/bane.h"
     "limn/limn.h"
     "echo/echo.h"
     "hoover/hoover.h"
     "seek/seek.h"
     "ten/ten.h"     "ten/tenMacros.h"
+    "elf/elf.h"
     "pull/pull.h"
+    "coil/coil.h"
+    "push/push.h"
     "mite/mite.h"
     "meet/meet.h")
-
-if(BUILD_EXPERIMENTAL_LIBS)
-    list(APPEND Teem_HEADER_FILES
-        "alan/alan.h"
-        "tijk/tijk.h"
-        "bane/bane.h"
-        "elf/elf.h"
-        "coil/coil.h"
-        "push/push.h")
-endif()
 
 set(Teem_INSTALLED_HEADER_FILES)
 foreach(header_file IN LISTS Teem_HEADER_FILES)

@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2009--2025  University of Chicago
   Copyright (C) 2005--2008  Gordon Kindlmann
   Copyright (C) 1998--2004  University of Utah
 
@@ -101,17 +101,13 @@ meetAirEnumAll() {
 
   /* unrrdu: no airEnums */
 
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   /* alan */
   ADD(alanStop);
-#endif
 
   /* moss: no airEnums */
 
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   /* tijk */
   ADD(tijk_class);
-#endif
 
   /* gage */
   ADD(gageErr);
@@ -125,10 +121,8 @@ meetAirEnumAll() {
   /* dye */
   ADD(dyeSpace);
 
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   /* bane */
   ADD(baneGkmsMeasr);
-#endif
 
   /* limn */
   ADD(limnSpace);
@@ -163,9 +157,7 @@ meetAirEnumAll() {
   ADD(tenTripleType);
   ADD(tenDwiGage);
 
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   /* elf: no airEnums */
-#endif
 
   /* pull */
   ADD(pullInterType);
@@ -179,14 +171,12 @@ meetAirEnumAll() {
   ADD(pullCount);
   ADD(pullConstraintFail);
 
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
   /* coil */
   ADD(coilMethodType);
   ADD(coilKindType);
 
   /* push */
   ADD(pushEnergyType);
-#endif
 
   /* mite */
   ADD(miteVal);
@@ -257,28 +247,20 @@ const char *const meetTeemLibs[] = {
   "ell",    /* */
   "moss",   /* */
   "unrrdu", /* */
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  "alan", /* */
-  "tijk", /* */
-#endif
-  "gage", /* */
-  "dye",  /* */
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  "bane", /* */
-#endif
+  "alan",   /* */
+  "tijk",   /* */
+  "gage",   /* */
+  "dye",    /* */
+  "bane",   /* */
   "limn",   /* */
   "echo",   /* */
   "hoover", /* */
   "seek",   /* */
   "ten",    /* */
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  "elf", /* */
-#endif
-  "pull", /* */
-#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)
-  "coil", /* */
-  "push", /* */
-#endif
-  "mite", /* */
-  "meet", /* */
+  "elf",    /* */
+  "pull",   /* */
+  "coil",   /* */
+  "push",   /* */
+  "mite",   /* */
+  "meet",   /* */
   NULL};

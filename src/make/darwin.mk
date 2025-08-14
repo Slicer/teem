@@ -27,9 +27,8 @@ RANLIB = ranlib
 
 LD = gcc
 
-#OPT_CFLAG ?= -O3 -g -DTEEM_BUILD_EXPERIMENTAL_LIBS
 ## for trying undefined behavior flagging  -fsanitize=undefined
-OPT_CFLAG ?= -O0 -g -DTEEM_BUILD_EXPERIMENTAL_LIBS
+OPT_CFLAG ?= -O0 -g
 CC = clang
 STATIC_CFLAG = -Wl,-prebind
 SHARED_CFLAG =

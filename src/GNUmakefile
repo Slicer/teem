@@ -195,12 +195,9 @@ endif
 ## CMake is how most people will compile Teem, but these GNUMakefiles are
 ## still what GLK uses day-to-day when working with Teem, with their finer
 ## per-library granularity. Some additions to CFLAGS are adaptions help these
-## GNUMakfiles adapt to the CMake world around them.  -DTEEM_NON_CMAKE says
-## that this isn't being build by cmake (so, e.g. don't look for
-## teem/airExistsConf.h), and -DTEEM_BUILD_EXPERIMENTAL_LIBS mimics something
-## that would otherwise come from CMake files only when *all* the libraries
-## are being compiled
-CFLAGS += -DTEEM_NON_CMAKE -DTEEM_BUILD_EXPERIMENTAL_LIBS $(OPT_CFLAG) $(ARCH_CFLAG)
+## GNUMakfiles adapt to the CMake world around them.  -DTEEM_NON_CMAKE says:
+## this isn't being build by cmake (so, don't look for teem/airExistsConf.h)
+CFLAGS += -DTEEM_NON_CMAKE $(OPT_CFLAG) $(ARCH_CFLAG)
 LDFLAGS += $(ARCH_LDFLAG) $(SHARED_LDFLAG)
 
 ## SGI's C pre-processor errors aren't fatal by default

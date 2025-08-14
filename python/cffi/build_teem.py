@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2009--2023  University of Chicago
+# Copyright (C) 2009--2025  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -263,10 +263,7 @@ def proc_hdr(fout, fin, hname: str) -> None:  # out, fin: files
     elif hname == 'mite.h':
         idx = drop_at('#if 0 /* float == mite_t */', 10, lines)
         lines.insert(idx, 'typedef double mite_t;')
-    elif hname == 'meet.h':
-        # ideally these would be handled as delimiting pairs, but oh well
-        drop_at_all('#if defined(TEEM_BUILD_EXPERIMENTAL_LIBS)', 1, lines)
-        drop_at_all('#endif', 1, lines)
+    # elif hname == 'meet.h':  # (nothing)
     # end of per-library-specific stuff
     for line in lines:
         fout.write(f'{line}\n')
@@ -358,7 +355,7 @@ if __name__ == '__main__':
     ARGS = parse_args()
     VERB = ARGS.v
     if ARGS.gch:
-        (_hdr_path, _, _have_libs, _) = exult.check_path_tinst(ARGS.install_path)
+        (_hdr_path, _, _have_libs) = exult.check_path_tinst(ARGS.install_path)
         cdef_write('./cdef', _hdr_path, _have_libs)
     else:
         ffi = exult.Tffi('../..', ARGS.install_path, 'teem', VERB)
