@@ -253,7 +253,7 @@ _limnQN16border1_VtoQN_f(const float *vec) {
 
 /* _16_CHECK_QtoV and _16_CHECK_VtoQ are not actually used */
 #define _16_CHECK_QtoV(vec, qn)                                                         \
-  ui = (qn)&0xFF;                                                                       \
+  ui = (qn) & 0xFF;                                                                     \
   vi = ((qn) >> 8) & 0xFF;                                                              \
   u = AIR_AFFINE(0, ui, 255, -0.5, 0.5);                                                \
   v = AIR_AFFINE(0, vi, 255, -0.5, 0.5);                                                \

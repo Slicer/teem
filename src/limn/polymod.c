@@ -217,7 +217,7 @@ neighborsCheckPush(Nrrd *nTriWithVert, Nrrd *nVertWithTri, unsigned char *triDon
         ++pushedNum;
       }
     } /* if (neighGot[ii]) */
-  }   /* for ii */
+  } /* for ii */
   return pushedNum;
 }
 

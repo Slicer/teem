@@ -118,9 +118,9 @@ _limnSplineWeightsFind_CubicBezier(double *wght, limnSpline *spline, double f) {
   ((x) >= 2.0                                                                           \
      ? 0                                                                                \
      : ((x) >= 1.0                                                                      \
-          ? (((-B / 6 - C) * (x) + B + 5 * C) * (x)-2 * B - 8 * C) * (x) + 4 * B / 3    \
+          ? (((-B / 6 - C) * (x) + B + 5 * C) * (x) - 2 * B - 8 * C) * (x) + 4 * B / 3  \
               + 4 * C                                                                   \
-          : ((2 - 3 * B / 2 - C) * (x)-3 + 2 * B + C) * (x) * (x) + 1 - B / 3))
+          : ((2 - 3 * B / 2 - C) * (x) - 3 + 2 * B + C) * (x) * (x) + 1 - B / 3))
 
 static void
 _limnSplineWeightsFind_BC(double *wght, limnSpline *spline, double f) {
