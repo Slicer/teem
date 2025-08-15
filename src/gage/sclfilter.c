@@ -69,9 +69,9 @@ gageScl3PFilter2(gageShape *shape, double *ivX, double *ivY, double *ivZ, double
   */
 
 #define DOT_2(a, b)   ((a)[0] * (b)[0] + (a)[1] * (b)[1])
-#define VL_2(i, axis) DOT_2(fw0 + (axis)*2, iv##axis + i * 2)
-#define D1_2(i, axis) DOT_2(fw1 + (axis)*2, iv##axis + i * 2)
-#define D2_2(i, axis) DOT_2(fw2 + (axis)*2, iv##axis + i * 2)
+#define VL_2(i, axis) DOT_2(fw0 + (axis) * 2, iv##axis + i * 2)
+#define D1_2(i, axis) DOT_2(fw1 + (axis) * 2, iv##axis + i * 2)
+#define D2_2(i, axis) DOT_2(fw2 + (axis) * 2, iv##axis + i * 2)
 
   /* x0 */
   ivY[0] = VL_2(0, X); /* interpolate values of 0th scanline along X axis */
@@ -185,9 +185,9 @@ gageScl3PFilter4(gageShape *shape, double *ivX, double *ivY, double *ivZ, double
 
 #define DOT_4(a, b)                                                                     \
   ((a)[0] * (b)[0] + (a)[1] * (b)[1] + (a)[2] * (b)[2] + (a)[3] * (b)[3])
-#define VL_4(i, axis) DOT_4(fw0 + (axis)*4, iv##axis + i * 4)
-#define D1_4(i, axis) DOT_4(fw1 + (axis)*4, iv##axis + i * 4)
-#define D2_4(i, axis) DOT_4(fw2 + (axis)*4, iv##axis + i * 4)
+#define VL_4(i, axis) DOT_4(fw0 + (axis) * 4, iv##axis + i * 4)
+#define D1_4(i, axis) DOT_4(fw1 + (axis) * 4, iv##axis + i * 4)
+#define D2_4(i, axis) DOT_4(fw2 + (axis) * 4, iv##axis + i * 4)
 
   /* x0 */
   ivY[0] = VL_4(0, X);
