@@ -148,7 +148,7 @@ _coilProcess(coilTask *task, int doFilter) {
   static const char me[] = "_coilProcess";
   unsigned int xi, yi, sizeX, sizeY, thisZ, sizeZ, valLen, radius;
   coil_t *here;
-  void (*filter)(coil_t * delta, int xi, int yi, int zi, coil_t **iv3, double spacing[3],
+  void (*filter)(coil_t *delta, int xi, int yi, int zi, coil_t **iv3, double spacing[3],
                  double parm[COIL_PARMS_NUM]);
 
   sizeX = AIR_UINT(task->cctx->size[0]);
