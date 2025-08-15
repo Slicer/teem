@@ -42,7 +42,7 @@ extern "C" {
   AIR_AFFINE(0, (idx) + 0.5, (size), (min), (max))
 
 /* index to position, node centering */
-#define NRRD_NODE_POS(min, max, size, idx) AIR_AFFINE(0, (idx), (size)-1, (min), (max))
+#define NRRD_NODE_POS(min, max, size, idx) AIR_AFFINE(0, (idx), (size) - 1, (min), (max))
 
 /* index to position, either centering */
 #define NRRD_POS(center, min, max, size, idx)                                           \
@@ -54,7 +54,7 @@ extern "C" {
   (AIR_AFFINE((min), (pos), (max), 0, (size)) - 0.5)
 
 /* position to index, node centering */
-#define NRRD_NODE_IDX(min, max, size, pos) AIR_AFFINE((min), (pos), (max), 0, (size)-1)
+#define NRRD_NODE_IDX(min, max, size, pos) AIR_AFFINE((min), (pos), (max), 0, (size) - 1)
 
 /* position to index, either centering */
 #define NRRD_IDX(center, min, max, size, pos)                                           \
@@ -72,7 +72,7 @@ extern "C" {
 */
 #define NRRD_SPACING(center, min, max, size)                                            \
   (nrrdCenterCell == center ? ((max) - (min)) / AIR_CAST(double, size)                  \
-                            : ((max) - (min)) / (AIR_CAST(double, (size)-1)))
+                            : ((max) - (min)) / (AIR_CAST(double, (size) - 1)))
 
 /*
 ******** NRRD_COORD_UPDATE
@@ -103,7 +103,7 @@ extern "C" {
       (coord)[ddd + 1]++;                                                               \
     }                                                                                   \
     if (dim) {                                                                          \
-      (coord)[(dim)-1] = AIR_MIN((coord)[(dim)-1], (size)[(dim)-1] - 1);                \
+      (coord)[(dim) - 1] = AIR_MIN((coord)[(dim) - 1], (size)[(dim) - 1] - 1);          \
     }                                                                                   \
   }
 
