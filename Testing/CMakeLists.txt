@@ -1,6 +1,6 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2009--2019  University of Chicago
+# Copyright (C) 2009--2025  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -35,10 +35,13 @@ configure_file(
   "${CMAKE_BINARY_DIR}/include/testDataPath.h"
   )
 
-# This just runs nrrdSanity as test called "nrrd.Sanity"
-# We don't do the same for airSanity because that's an
-# "experimental app" . . .
-add_test(NAME nrrd.Sanity COMMAND $<TARGET_FILE:nrrdSanity>)
+# nrrdSanity the executable is no longer (as of Teem v2) built;
+# so this is being removed. Lots of tests will immediately fail
+# if nrrdSanity() (the function) fails.
+## This just runs nrrdSanity as test called "nrrd.Sanity"
+## We don't do the same for airSanity because that's an
+## "experimental app" . . .
+# add_test(NAME nrrd.Sanity COMMAND $<TARGET_FILE:nrrdSanity>)
 
 # Hope to eventually have tests in all directories; until then
 # many of these are commented out. (TEEM_LIB_LIST)
