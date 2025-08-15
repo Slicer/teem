@@ -499,7 +499,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     nrrd->data = NULL;
     data = NULL;
   } else {
-    if (_nrrdCalloc(nrrd, nio, dataFile)) {
+    if (_nrrdCalloc(nrrd, nio)) {
       biffAddf(NRRD, "%s: couldn't allocate memory for data", me);
       return 1;
     }

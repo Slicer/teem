@@ -555,13 +555,12 @@ enum {
   airInsane_QNaNHiBit,     /*  7: airMyQNaNHiBit is wrong */
   airInsane_AIR_NAN,       /*  8: airFPClass_f(AIR_QNAN) wrong
                                   (no longer checking on problematic SNAN) */
-  airInsane_dio,           /*  9: airMyDio set to something invalid */
-  airInsane_UCSize,        /* 10: unsigned char isn't 8 bits */
-  airInsane_FISize,        /* 11: sizeof(float), sizeof(int) not 4 */
-  airInsane_DLSize,        /* 12: sizeof(double), sizeof(airLLong) not 8 */
+  airInsane_UCSize,        /*  9: unsigned char isn't 8 bits */
+  airInsane_FISize,        /* 10: sizeof(float), sizeof(int) not 4 */
+  airInsane_DLSize,        /* 11: sizeof(double), sizeof(airLLong) not 8 */
   airInsane_last
 };
-#define AIR_INSANE_MAX 12
+#define AIR_INSANE_MAX 11
 AIR_EXPORT const char *airInsaneErr(int insane);
 AIR_EXPORT int airSanity(void);
 
@@ -642,39 +641,6 @@ AIR_EXPORT const unsigned int airPrimeList[AIR_PRIME_NUM];
 AIR_EXPORT unsigned int airCRC32(const unsigned char *data, size_t len, size_t unit,
                                  int swap);
 /* ---- END non-NrrdIO */
-
-/* dio.c */
-/*
-******** airNoDio enum
-**
-** reasons for why direct I/O won't be used with a particular
-** file/pointer combination
-*/
-enum {
-  airNoDio_okay,    /*  0: actually, you CAN do direct I/O */
-  airNoDio_arch,    /*  1: Teem thinks this architecture can't do it */
-  airNoDio_format,  /*  2: Teem thinks given data file format can't use it */
-  airNoDio_std,     /*  3: DIO isn't possible for std{in|out|err} */
-  airNoDio_fd,      /*  4: couldn't get underlying file descriptor */
-  airNoDio_dioinfo, /*  5: calling fcntl() to get direct I/O info failed */
-  airNoDio_small,   /*  6: requested size is too small */
-  airNoDio_size,    /*  7: requested size not a multiple of d_miniosz */
-  airNoDio_ptr,     /*  8: pointer not multiple of d_mem */
-  airNoDio_fpos,    /*  9: current file position not multiple of d_miniosz */
-  airNoDio_setfl,   /* 10: fcntl(fd, SETFL, FDIRECT) failed */
-  airNoDio_test,    /* 11: couldn't memalign() even a small bit of memory */
-  airNoDio_disable, /* 12: someone disabled it with airDisableDio */
-  airNoDio_last
-};
-#define AIR_NODIO_MAX 12
-AIR_EXPORT const char *airNoDioErr(int noDio);
-AIR_EXPORT const int airMyDio;
-AIR_EXPORT int airDisableDio;
-AIR_EXPORT void airDioInfo(int *align, int *min, int *max, int fd);
-AIR_EXPORT int airDioTest(int fd, const void *ptr, size_t size);
-AIR_EXPORT void *airDioMalloc(size_t size, int fd);
-AIR_EXPORT size_t airDioRead(int fd, void *ptr, size_t size);
-AIR_EXPORT size_t airDioWrite(int fd, const void *ptr, size_t size);
 
 /* mop.c: clean-up utilities */
 enum {
@@ -757,7 +723,7 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 #define AIR_CALLOC(N, T) (T *)(calloc((N), sizeof(T)))
 
 /*
-******** AIR_ENDIAN, AIR_QNANHIBIT, AIR_DIO
+******** AIR_ENDIAN, AIR_QNANHIBIT
 **
 ** These reflect particulars of hardware which we're running on. The
 ** difference from the things starting with TEEM_ is that the TEEM_
@@ -767,7 +733,6 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 */
 #define AIR_ENDIAN    (airMyEndian())
 #define AIR_QNANHIBIT (airMyQNaNHiBit)
-#define AIR_DIO       (airMyDio)
 
 /*
 ******** AIR_NAN, AIR_QNAN, AIR_SNAN, AIR_POS_INF, AIR_NEG_INF

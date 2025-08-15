@@ -261,7 +261,7 @@ meneed = $(call deporder,$(1) $(call need,$(1)))
 ##
 link = $(foreach LIB,$(call linkorder,$(1)),-l$(LIB))
 
-## For XXX in: "ENDIAN", "QNANHIBIT", "DIO"
+## For XXX in: "ENDIAN", "QNANHIBIT"
 ##
 ## TEEM_XXX is set in the architecture-specific makefile, and
 ## $(L).NEED_XXX is set in the Makefile for the library which needs
@@ -271,8 +271,7 @@ link = $(foreach LIB,$(call linkorder,$(1)),-l$(LIB))
 ## reasonable. more.cflags(L) is the list of -D flags for all required
 ## XXX.
 ##
-more.cflags = $(if $($(1).NEED_DIO),-DTEEM_DIO=$(TEEM_DIO))\
- $(if $($(1).NEED_QNANHIBIT),-DTEEM_QNANHIBIT=$(TEEM_QNANHIBIT)) \
+more.cflags = $(if $($(1).NEED_QNANHIBIT),-DTEEM_QNANHIBIT=$(TEEM_QNANHIBIT))
 
 ## banner(L) is progress indication for compiling library L; see
 ## template.mk.  The double colon rules previously used to print this

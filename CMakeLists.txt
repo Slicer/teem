@@ -247,22 +247,23 @@ if(Teem_FFTW3)
 endif()
 # Option 8
 # DirectIO is the fast way to do multi-gigabyte I/O and currently only available for SGI platforms.
-if(USE_DIRECTIO)
-    add_definitions(-DTEEM_DIO=1)
-else()
-    add_definitions(-DTEEM_DIO=0)
-endif()
-# Option 9
+# (and given the fate of SGI, this has been removed from Teem v2)
+#if(USE_DIRECTIO)
+#    add_definitions(-DTEEM_DIO=1)
+#else()
+#    add_definitions(-DTEEM_DIO=0)
+#endif()
+# Option 9->8
 if(Teem_USE_LIB_INSTALL_SUBDIR)
     set(EXTRA_INSTALL_PATH /Teem-${Teem_VERSION_STRING})
 else()
     set(EXTRA_INSTALL_PATH "")
 endif()
-# Option 10 - Stand-alone programs to process hex encoding of data
+# Option 10->9 - Stand-alone programs to process hex encoding of data
 if(BUILD_HEX)
     add_subdirectory(src/hex)
 endif()
-# Option 11 - For testing
+# Option 11->10 - For testing
 if(BUILD_TESTING)
     include(CTest)
     enable_testing()

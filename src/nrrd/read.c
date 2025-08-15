@@ -185,20 +185,12 @@ nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
 ** allocates the data for the array, but only if necessary (as informed by
 ** nio->oldData and nio->oldDataSize).
 **
-** as a recent feature, this will handle the extra work of allocating
-** memory in the special way required for direct IO, if possible.  For
-** this to work, though, the FILE *file has to be passed.  Since file
-** is not otherwise needed, it can be passed as NULL for non-direct-IO
-** situations.  In any case, if the directIO-compatible allocation fails
-** its not error, and we revert to regular allocation.
-**
 ** NOTE: this assumes the checking that is done by _nrrdHeaderCheck
 */
 int /* Biff: (private) 1 */
-_nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio, FILE *file) {
+_nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[] = "_nrrdCalloc";
   size_t needDataSize;
-  int fd;
 
   needDataSize = nrrdElementNumber(nrrd) * nrrdElementSize(nrrd);
   if (nio->oldData && needDataSize == nio->oldDataSize) {
@@ -208,13 +200,8 @@ _nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio, FILE *file) {
        there's no other error checking to do here */
   } else {
     nrrd->data = airFree(nrrd->data);
-    fd = file ? fileno(file) : -1;
-    if (nrrdEncodingRaw == nio->encoding && -1 != fd
-        && airNoDio_okay == airDioTest(fd, NULL, needDataSize)) {
-      nrrd->data = airDioMalloc(needDataSize, fd);
-    }
     if (!nrrd->data) {
-      /* directIO-compatible allocation wasn't tried, or it failed */
+      /* allocate data if needed */
       nrrd->data = malloc(needDataSize);
     }
     if (!nrrd->data) {

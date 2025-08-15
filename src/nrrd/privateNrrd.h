@@ -148,7 +148,7 @@ extern const char *const _nrrdTextSep;
 extern const char *const _nrrdNoSpaceVector;
 extern int _nrrdByteSkipSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio,
                              long int byteSkip);
-extern int _nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio, FILE *file);
+extern int _nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio);
 extern void _nrrdSplitName(char **dirP, char **baseP, const char *name);
 
 /* write.c */

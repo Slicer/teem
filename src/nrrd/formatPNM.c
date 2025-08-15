@@ -255,7 +255,7 @@ _nrrdFormatPNM_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     nrrdAxisInfoSet_va(nrrd, nrrdAxisInfoSize, AIR_SIZE_T(sx), AIR_SIZE_T(sy));
   }
   if (!nio->skipData) {
-    if (_nrrdCalloc(nrrd, nio, file)) {
+    if (_nrrdCalloc(nrrd, nio)) {
       biffAddf(NRRD, "%s: couldn't allocate memory for data", me);
       return 1;
     }

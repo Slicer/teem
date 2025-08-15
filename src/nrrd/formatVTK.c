@@ -247,7 +247,7 @@ _nrrdFormatVTK_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     return 1;
   }
   if (!nio->skipData) {
-    if (_nrrdCalloc(nrrd, nio, file)) {
+    if (_nrrdCalloc(nrrd, nio)) {
       biffAddf(NRRD, "%s: couldn't allocate memory for data", me);
       return 1;
     }

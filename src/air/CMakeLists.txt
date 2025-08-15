@@ -4,7 +4,6 @@ set(AIR_SOURCES
   754.c
   air.h
   array.c
-  dio.c
   endianAir.c
   enum.c
   heap.c

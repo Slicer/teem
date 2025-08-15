@@ -183,17 +183,6 @@ airSanity(void) {
     return airInsane_FltDblFPClass;
   }
 
-  /* just make sure AIR_DIO is reasonably set
-     (actually, this should be done by include/teemDio.h) */
-  switch (AIR_DIO) {
-  case 0:
-    break;
-  case 1:
-    break;
-  default:
-    return airInsane_dio;
-  }
-
   /* _airSanity = 1; (see above) */
   return airInsane_not;
 }
@@ -208,10 +197,9 @@ static const char _airInsaneErr[AIR_INSANE_MAX + 1][AIR_STRLEN_MED + 1] = {
   "air_FPClass_f() wrong after double->float assign", /* 6: airInsane_FltDblFPClass */
   "TEEM_QNANHIBIT is wrong",                          /* 7: airInsane_QNaNHiBit */
   "airFPClass(AIR_QNAN) wrong",                       /* 8: airInsane_AIR_NAN */
-  "TEEM_DIO has invalid value",                       /* 9: airInsane_dio */
-  "unsigned char isn't 8 bits",                       /* 10: airInsane_UCSize */
-  "sizeof(float), sizeof(int) not both == 4",         /* 11: airInsane_FISize */
-  "sizeof(double), sizeof(airLLong) not both == 8",   /* 12: airInsane_DLSize */
+  "unsigned char isn't 8 bits",                       /* 9: airInsane_UCSize */
+  "sizeof(float), sizeof(int) not both == 4",         /* 10: airInsane_FISize */
+  "sizeof(double), sizeof(airLLong) not both == 8",   /* 11: airInsane_DLSize */
 };
 
 static const char _airBadInsane[] = "(invalid insane value)";

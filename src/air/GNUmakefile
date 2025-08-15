@@ -48,13 +48,12 @@ $(L).NEED =
 $(L).PUBLIC_HEADERS = air.h
 $(L).PRIVATE_HEADERS = privateAir.h
 $(L).OBJS = 754.o randMT.o randJSF.o array.o miscAir.o parseAir.o math.o \
-	endianAir.o dio.o mop.o enum.o sane.o string.o threadAir.o heap.o
+	endianAir.o mop.o enum.o sane.o string.o threadAir.o heap.o
 $(L).TESTS = test/floatprint test/doubleprint test/tok \
-	test/tmop test/tline test/fp test/trand test/trandJSF test/tmisc test/tdio \
+	test/tmop test/tline test/fp test/trand test/trandJSF test/tmisc \
   test/bessy test/tarr test/texp test/logrice test/tprint
 
 $(L).NEED_QNANHIBIT = true
-$(L).NEED_DIO = true
 ####
 ####
 ####
