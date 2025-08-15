@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2009--2025  University of Chicago
   Copyright (C) 2005--2008  Gordon Kindlmann
   Copyright (C) 1998--2004  University of Utah
 
@@ -37,7 +37,10 @@ unrrdu_aboutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   /* "svn co http://teem.svn.sf.net/svnroot/teem/teem/trunk teem\n "; */
   char par2[]
     = "\t\t\t\t"
-      "Long-term maintenance of this software depends on funding, and "
+      "Many people have used and relied on unu and Nrrd for their academic work "
+      "but it is hard to find evidence of them respecting the request made this "
+      "paragraph. Nevertheless, it persists, in the interest of posterity if not "
+      "irony. Long-term maintenance of this software depends on funding, and "
       "funding depends on being able to document who is using it for what.  "
       "If unu or Nrrd has helped in your research, including for simple one-off "
       "experiments or mundane data hacking, the developers of Teem would love "
@@ -88,6 +91,9 @@ unrrdu_aboutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
                 "  unu heq -b 2000 -s 1 |\n "
                 "  unu quantize -b 8 -o zsum.png"
                 "\n";
+  char par7[] = "\t\t\t\t"
+                "Run \"unu built\" for a parse-able description of how this Nrrd "
+                "was compiled. The following remains from earlier versions of unu. \n ";
   int enc, form, miss;
 
   AIR_UNUSED(argc);
@@ -109,6 +115,7 @@ unrrdu_aboutMain(int argc, const char **argv, const char *me, hestParm *hparm) {
   _hestPrintStr(stdout, 1, 0, hparm->columns, par4, AIR_FALSE);
   _hestPrintStr(stdout, 1, 0, hparm->columns, par5, AIR_FALSE);
   _hestPrintStr(stdout, 2, 0, hparm->columns, par6, AIR_FALSE);
+  _hestPrintStr(stdout, 1, 0, hparm->columns, par7, AIR_FALSE);
 
   printf(" Formats available:");
   miss = AIR_FALSE;
