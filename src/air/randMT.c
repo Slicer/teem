@@ -86,9 +86,9 @@
 #define AIR_RANDMT_DEFAULT_SEED 42
 
 /* Inlined class member functions that I made macros */
-#define HIBIT(u)      ((u)&0x80000000UL)
-#define LOBIT(u)      ((u)&0x00000001UL)
-#define LOBITS(u)     ((u)&0x7fffffffUL)
+#define HIBIT(u)      ((u) & 0x80000000UL)
+#define LOBIT(u)      ((u) & 0x00000001UL)
+#define LOBITS(u)     ((u) & 0x7fffffffUL)
 #define MIXBITS(u, v) (HIBIT(u) | LOBITS(v))
 #define TWOSCOMP(u)   (~(u) + 1)
 #define TWIST(m, s0, s1)                                                                \

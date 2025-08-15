@@ -373,7 +373,7 @@ enum {
   airFP_NEG_ZERO,   /* 9: -0.0, negative zero */
   airFP_Last        /* after the last valid one */
 };
-#define AIR_FP_MAX     9
+#define AIR_FP_MAX 9
 /* 754.c: IEEE-754 related stuff values */
 typedef union {
   unsigned int i;
@@ -556,7 +556,7 @@ enum {
   airInsane_DLSize,        /* 10: sizeof(double), sizeof(airLLong) not 8 */
   airInsane_last
 };
-#define AIR_INSANE_MAX 11
+#define AIR_INSANE_MAX 10
 AIR_EXPORT const char *airInsaneErr(int insane);
 AIR_EXPORT int airSanity(void);
 
@@ -727,7 +727,7 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 ** files, and thes AIR_ variables are for advertising that information
 ** to anyone linking against air (or Teem) and including air.h.
 */
-#define AIR_ENDIAN    (airMyEndian())
+#define AIR_ENDIAN (airMyEndian())
 
 /*
 ******** AIR_NAN, AIR_POS_INF, AIR_NEG_INF
