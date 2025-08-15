@@ -643,7 +643,7 @@ nrrd1DIrregMapCheck(const Nrrd *nmap) {
       return 1;
     }
     if (!(airFP_NEG_INF == airFPClass_d(mapLup(nmap->data, 0 * entLen))
-          && airFP_QNAN == airFPClass_d(mapLup(nmap->data, 1 * entLen))
+          && airFP_NAN == airFPClass_d(mapLup(nmap->data, 1 * entLen))
           && airFP_POS_INF == airFPClass_d(mapLup(nmap->data, 2 * entLen)))) {
       biffAddf(NRRD,
                "%s: 1st entry's position non-existent, but position "
@@ -961,8 +961,7 @@ nrrdApply1DIrregMap(Nrrd *nout, const Nrrd *nin, const NrrdRange *_range,
         case airFP_NEG_INF:
           mapIdx = 0;
           break;
-        case airFP_SNAN:
-        case airFP_QNAN:
+        case airFP_NAN:
           mapIdx = 1;
           break;
         case airFP_POS_INF:

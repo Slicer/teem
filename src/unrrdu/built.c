@@ -74,7 +74,6 @@ unrrdu_builtMain(int argc, const char **argv, const char *me, hestParm *hparm) {
     /* NOT shown: status of Levmar */
     printf("# platform parameters:\n");
     printf("%u = sizeof(void*)\n", (unsigned int)sizeof(void *));
-    printf("%u = airMyQNaNHiBit\n", airMyQNaNHiBit);
     printf("%s = airMyEndian()\n", airEnumStr(airEndian, airMyEndian()));
   }
 

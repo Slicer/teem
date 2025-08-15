@@ -21,13 +21,11 @@
 
 #include "air.h"
 #include "privateAir.h"
-#include <teemQnanhibit.h>
 
 /* clang-format off */
 static const char *_airFPClass_Str[AIR_FP_MAX+1] = {
   "(unknown_class)",
-  "snan",
-  "qnan",
+  "nan",
   "pinf",
   "ninf",
   "pnorm",
@@ -40,8 +38,7 @@ static const char *_airFPClass_Str[AIR_FP_MAX+1] = {
 
 static const char *_airFPClass_Desc[AIR_FP_MAX+1] = {
   "unknown_class",
-  "signalling nan",
-  "quiet nan",
+  "(quiet) nan",
   "positive infinity",
   "negative infinity",
   "positive normalized",
@@ -53,8 +50,7 @@ static const char *_airFPClass_Desc[AIR_FP_MAX+1] = {
 };
 
 static const char *_airFPClass_StrEqv[] = {
-  "snan", "signan",
-  "qnan", "nan",
+  "nan", "qnan",
   "pinf", "posinf", "+inf", "inf",
   "ninf", "neginf", "-inf",
   "pnorm", "posnorm", "+norm", "norm",
@@ -67,8 +63,7 @@ static const char *_airFPClass_StrEqv[] = {
 };
 
 static const int _airFPClass_ValEqv[] = {
-  airFP_SNAN, airFP_SNAN,
-  airFP_QNAN, airFP_QNAN,
+  airFP_NAN, airFP_NAN,
   airFP_POS_INF, airFP_POS_INF, airFP_POS_INF, airFP_POS_INF,
   airFP_NEG_INF, airFP_NEG_INF, airFP_NEG_INF,
   airFP_POS_NORM, airFP_POS_NORM, airFP_POS_NORM, airFP_POS_NORM,
@@ -107,15 +102,37 @@ const airEnum *const airFPClass_ae = &_airFPClass_ae;
 ** aggregate initialization.
 */
 
-#if TEEM_QNANHIBIT == 1
-const unsigned int airMyQNaNHiBit = 1;
-const airFloat airFloatQNaN = {0x7fffffff};
-const airFloat airFloatSNaN = {0x7fbfffff};
-#else
-const unsigned int airMyQNaNHiBit = 0;
-const airFloat airFloatQNaN = {0x7fbfffff};
-const airFloat airFloatSNaN = {0x7fffffff};
-#endif
+/*
+With Teem v2, GLK decided to drop configuration-time learning of, and compile-time
+handling of, "QNaNHiBit": the most significant bit (MSB) of the fraction bitfield in a
+quiet (versus signalling) NaN.
+
+In ~2000 when this code was written, if you generated a NaN from scratch via floating
+point (FP) operations (e.g. create an inf by overflowing multiplication, and then divide
+inf by itself), then SGI IRIX machines would set to the MSB fraction bit to 0, rather
+than the 1 that other machines used. With the assumption that these operations should
+have created what should be a quiet NaN, GLK interpreted this as a platform dependence in
+how a quiet NaN with the same bit pattern should be created at compile time. This
+motivated handling variable QNaNHiBit at configuration time, and the associated
+complication in the code below.
+
+Now, the world now seems to agree that QNaNHiBit should be 1 (and the
+http://en.wikipedia.org/wiki/NaN#Encoding URL, noted above in the first iterations of
+754.c and which has happily remained valid over 25 years, now documents this). For
+whatever tiny extant fraction of the world wants QNaNHiBit to be 0, they may risk
+floating point signal handlers being triggered by the NaN generated here at compile
+time. Hopefully they have the wherewithal to disable those signal handlers for that
+circumstance.
+
+With the simplification of how QNaN is handled, the decision was also made to make
+"NaN" in Teem code refer to a quiet NaN, with no pretense of generating signalling
+NaNs at compile-time.  Teem has never invoked an FP signal handler, and has no reason
+to start now.  So airFloatQNaN turned into airFloatQNaN and airFloatSNaN was dropped.
+*/
+/* #if TEEM_QNANHIBIT == 1 ... (no more) */
+/* const unsigned int airMyQNaNHiBit = 1; (no more) */
+#define _QNANHIBIT 1 /* just for this file */
+const airFloat airFloatNaN = {0x7fffffff};
 
 const airFloat airFloatPosInf = {0x7f800000};
 const airFloat airFloatNegInf = {0xff800000}; /* why does solaris whine? */
@@ -218,12 +235,9 @@ airFPGen_f(int cls) {
   mant = (mm)
 
   switch (cls) {
-  case airFP_SNAN:
-    /* sgn: anything, mant: anything non-zero with high bit !TEEM_QNANHIBIT */
-    SET_SEM(0, 0xff, (!TEEM_QNANHIBIT << 22) | 0x3fffff);
-    break;
-  case airFP_QNAN:
-    SET_SEM(0, 0xff, (TEEM_QNANHIBIT << 22) | 0x3fffff);
+  case airFP_NAN:
+    /* (no separate handling of signalling NaN) */
+    SET_SEM(0, 0xff, (_QNANHIBIT << 22) | 0x3fffff);
     break;
   case airFP_POS_INF:
     SET_SEM(0, 0xff, 0);
@@ -279,13 +293,10 @@ airFPGen_d(int cls) {
   mant1 = (m1)
 
   switch (cls) {
-  case airFP_SNAN:
-    /* sgn: anything, mant: anything non-zero with high bit !TEEM_QNANHIBIT */
-    SET_SEM(0, 0x7ff, (!TEEM_QNANHIBIT << 19) | 0x7ffff, 0xffffffff);
-    break;
-  case airFP_QNAN:
-    /* sgn: anything, mant anything non-zero with high bit TEEM_QNANHIBIT */
-    SET_SEM(0, 0x7ff, (TEEM_QNANHIBIT << 19) | 0x7ffff, 0xffffffff);
+  case airFP_NAN:
+    /* (no separate handling of signalling NaN) */
+    /* sgn: anything, mant anything non-zero with high bit _QNANHIBIT */
+    SET_SEM(0, 0x7ff, (_QNANHIBIT << 19) | 0x7ffff, 0xffffffff);
     break;
   case airFP_POS_INF:
     SET_SEM(0, 0x7ff, 0, 0);
@@ -323,7 +334,7 @@ airFPGen_d(int cls) {
 }
 
 static int
-wutClass(unsigned int index, int expoMax, unsigned int nanHiBit) {
+wutClass(unsigned int index, int expoMax) {
   int ret = airFP_Unknown;
   switch (index) {
   case 0:
@@ -345,11 +356,8 @@ wutClass(unsigned int index, int expoMax, unsigned int nanHiBit) {
   case 3:
     /* exponent and mantissa fields are non-zero */
     if (expoMax) {
-      if (TEEM_QNANHIBIT == nanHiBit) {
-        ret = airFP_QNAN;
-      } else {
-        ret = airFP_SNAN;
-      }
+      /* we don't distinguish (any longer) between qnan and snan */
+      ret = airFP_NAN;
     } else {
       ret = airFP_POS_NORM;
     }
@@ -373,11 +381,8 @@ wutClass(unsigned int index, int expoMax, unsigned int nanHiBit) {
   case 7:
     /* all fields are non-zero */
     if (expoMax) {
-      if (TEEM_QNANHIBIT == nanHiBit) {
-        ret = airFP_QNAN;
-      } else {
-        ret = airFP_SNAN;
-      }
+      /* we don't distinguish (any longer) between qnan and snan */
+      ret = airFP_NAN;
     } else {
       ret = airFP_NEG_NORM;
     }
@@ -397,7 +402,7 @@ airFPClass_f(float val) {
   airFPValToParts_f(&sign, &expo, &mant, val);
   /* "!" produces an int: https://en.cppreference.com/w/c/language/operator_logical */
   indexv = (AIR_UINT(!!sign) << 2) | (AIR_UINT(!!expo) << 1) | AIR_UINT(!!mant);
-  return wutClass(indexv, 0xff == expo, mant >> 22);
+  return wutClass(indexv, 0xff == expo);
 }
 
 /*
@@ -412,7 +417,7 @@ airFPClass_d(double val) {
   airFPValToParts_d(&sign, &expo, &mant0, &mant1, val);
   indexv = (AIR_UINT(!!sign) << 2) | (AIR_UINT(!!expo) << 1)
          | (AIR_UINT(!!mant0) || AIR_UINT(!!mant1));
-  return wutClass(indexv, 0x7ff == expo, mant0 >> 19);
+  return wutClass(indexv, 0x7ff == expo);
 }
 
 /*
@@ -499,7 +504,7 @@ airExists(double val) {
 float
 airNaN(void) {
 
-  return airFPGen_f(airFP_QNAN);
+  return airFPGen_f(airFP_NAN);
 }
 
 /*

@@ -129,9 +129,6 @@ airSanity(void) {
   ninfF = (float)ninf;
   airFPValToParts_f(&sign, &expvalue, &mant, nanF);
   mant >>= 22;
-  if (AIR_QNANHIBIT != mant) {
-    return airInsane_QNaNHiBit;
-  }
   /* this a rough test of the _F and _D macros at the end of air.h; they aren't currently
      used within Teem so it is harder to justify making an airInsane case just for these;
      but if that happens this might be a start
@@ -153,8 +150,7 @@ airSanity(void) {
   } while (0);
    */
 
-  if (!(airFP_QNAN == airFPClass_f(AIR_NAN)
-        && airFP_QNAN == airFPClass_f(AIR_QNAN)
+  if (!(airFP_NAN == airFPClass_f(AIR_NAN)
         /*
           As of July 4 2012 GLK decides that the signalling NaN tests are
           more trouble than they're worth: the signal-ness of the NaN is not
@@ -172,11 +168,12 @@ airSanity(void) {
           following line is now commented out for all platforms.
         */
         /* && airFP_SNAN == airFPClass_f((double)AIR_SNAN) */
-        && airFP_QNAN == airFPClass_d((double)AIR_NAN)
-        && airFP_QNAN == airFPClass_d((double)AIR_QNAN))) {
+        /* (and on August 15 2025 GLK decides to drop SNAN altogether) */
+        && airFP_NAN == airFPClass_d((double)AIR_NAN))) {
     return airInsane_AIR_NAN;
   }
-  if (!(airFP_QNAN == airFPClass_f(nanF) && airFP_POS_INF == airFPClass_f(pinfF)
+  if (!(airFP_NAN == airFPClass_f(nanF) /* */
+        && airFP_POS_INF == airFPClass_f(pinfF)
         && airFP_NEG_INF == airFPClass_f(ninfF))) {
     /* really, this is verifying that assigning from a double to a
        float maintains the FPClass for non-existent values */

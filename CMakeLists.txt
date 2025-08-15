@@ -97,23 +97,6 @@ file(MAKE_DIRECTORY ${Teem_BINARY_DIR}/include)
 file(MAKE_DIRECTORY ${Teem_BINARY_DIR}/include/teem)
 
 #-----------------------------------------------------------------------------
-# Find platform-specific differences in the handling of IEEE floating point special values.
-# This is needed by Teem
-include(${Teem_SOURCE_DIR}/CMake/TestQnanhibit.cmake)
-TEST_QNANHIBIT(QNANHIBIT_VALUE ${Teem_SOURCE_DIR}/CMake)
-if(QNANHIBIT_VALUE)
-    set(QNANHIBIT 1 CACHE INTERNAL "The 22nd bit of 32-bit floating-point quiet NaN.")
-else()
-    set(QNANHIBIT 0 CACHE INTERNAL "The 22nd bit of 32-bit floating-point quiet NaN.")
-endif()
-# Teem Defines
-if(QNANHIBIT)
-    add_definitions(-DTEEM_QNANHIBIT=1)
-else()
-    add_definitions(-DTEEM_QNANHIBIT=0)
-endif()
-
-#-----------------------------------------------------------------------------
 # test if AIR_EXISTS macro fails
 message(STATUS "Check if AIR_EXISTS works to detect IEEE754 special values")
 # try_run(<runResultVar> <compileResultVar> <bindir> <srcfile>)

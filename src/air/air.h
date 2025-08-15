@@ -351,29 +351,29 @@ AIR_EXPORT airThreadBarrier *airThreadBarrierNix(airThreadBarrier *barrier);
 ** the different kinds of floating point number afforded by IEEE 754,
 ** and the values returned by airFPClass_f().
 **
-** The values probably won't agree with those in #include's like
+** The numeric enum values probably won't agree with those in #include's like
 ** ieee.h, ieeefp.h, fp_class.h.  This is because IEEE 754 hasn't
-** defined standard values for these, so everyone does it differently.
+** defined standard values for these, so everyone does it differently
+** (or at least that was so around AD 2000 when this code was born)
 **
 ** This enum uses underscores (against Teem convention) to help
 ** legibility while also conforming to the spirit of the somewhat
 ** standard naming conventions
 */
 enum {
-  airFP_Unknown,    /*  0: nobody knows */
-  airFP_SNAN,       /*  1: signalling NaN */
-  airFP_QNAN,       /*  2: quiet NaN */
-  airFP_POS_INF,    /*  3: positive infinity */
-  airFP_NEG_INF,    /*  4: negative infinity */
-  airFP_POS_NORM,   /*  5: positive normalized non-zero */
-  airFP_NEG_NORM,   /*  6: negative normalized non-zero */
-  airFP_POS_DENORM, /*  7: positive denormalized non-zero */
-  airFP_NEG_DENORM, /*  8: negative denormalized non-zero */
-  airFP_POS_ZERO,   /*  9: +0.0, positive zero */
-  airFP_NEG_ZERO,   /* 10: -0.0, negative zero */
+  airFP_Unknown,    /* 0: nobody knows */
+  airFP_NAN,        /* 1: (quiet) NaN */
+  airFP_POS_INF,    /* 2: positive infinity */
+  airFP_NEG_INF,    /* 3: negative infinity */
+  airFP_POS_NORM,   /* 4: positive normalized non-zero */
+  airFP_NEG_NORM,   /* 5: negative normalized non-zero */
+  airFP_POS_DENORM, /* 6: positive denormalized non-zero */
+  airFP_NEG_DENORM, /* 7: negative denormalized non-zero */
+  airFP_POS_ZERO,   /* 8: +0.0, positive zero */
+  airFP_NEG_ZERO,   /* 9: -0.0, negative zero */
   airFP_Last        /* after the last valid one */
 };
-#define AIR_FP_MAX 10
+#define AIR_FP_MAX     9
 /* 754.c: IEEE-754 related stuff values */
 typedef union {
   unsigned int i;
@@ -384,7 +384,6 @@ typedef union {
   double d;
 } airDouble;
 AIR_EXPORT const airEnum *const airFPClass_ae;
-AIR_EXPORT const unsigned int airMyQNaNHiBit;
 AIR_EXPORT float airFPPartsToVal_f(unsigned int sign,
                                    unsigned int expo,
                                    unsigned int mant);
@@ -405,8 +404,7 @@ AIR_EXPORT int airFPClass_f(float val);
 AIR_EXPORT int airFPClass_d(double val);
 AIR_EXPORT void airFPFprintf_f(FILE *file, float val);
 AIR_EXPORT void airFPFprintf_d(FILE *file, double val);
-AIR_EXPORT const airFloat airFloatQNaN;
-AIR_EXPORT const airFloat airFloatSNaN;
+AIR_EXPORT const airFloat airFloatNaN;
 AIR_EXPORT const airFloat airFloatPosInf;
 AIR_EXPORT const airFloat airFloatNegInf;
 AIR_EXPORT float airNaN(void);
@@ -551,13 +549,11 @@ enum {
   airInsane_NaNExists,     /*  4: AIR_EXISTS(NaN) was true */
   airInsane_ExistsBad,     /*  5: AIR_EXISTS of some finite values was false */
   airInsane_FltDblFPClass, /*  6: double -> float assignment messed up the
-                               airFPClass_f() of the value */
-  airInsane_QNaNHiBit,     /*  7: airMyQNaNHiBit is wrong */
-  airInsane_AIR_NAN,       /*  8: airFPClass_f(AIR_QNAN) wrong
-                                  (no longer checking on problematic SNAN) */
-  airInsane_UCSize,        /*  9: unsigned char isn't 8 bits */
-  airInsane_FISize,        /* 10: sizeof(float), sizeof(int) not 4 */
-  airInsane_DLSize,        /* 11: sizeof(double), sizeof(airLLong) not 8 */
+                                  airFPClass_f() of the value */
+  airInsane_AIR_NAN,       /*  7: airFPClass_f(AIR_NAN) wrong */
+  airInsane_UCSize,        /*  8: unsigned char isn't 8 bits */
+  airInsane_FISize,        /*  9: sizeof(float), sizeof(int) not 4 */
+  airInsane_DLSize,        /* 10: sizeof(double), sizeof(airLLong) not 8 */
   airInsane_last
 };
 #define AIR_INSANE_MAX 11
@@ -723,19 +719,18 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 #define AIR_CALLOC(N, T) (T *)(calloc((N), sizeof(T)))
 
 /*
-******** AIR_ENDIAN, AIR_QNANHIBIT
+******** AIR_ENDIAN
 **
-** These reflect particulars of hardware which we're running on. The
+** This reflects particulars of hardware which we're running on. The
 ** difference from the things starting with TEEM_ is that the TEEM_
 ** values are for passing architecture-specific to compilation of source
 ** files, and thes AIR_ variables are for advertising that information
 ** to anyone linking against air (or Teem) and including air.h.
 */
 #define AIR_ENDIAN    (airMyEndian())
-#define AIR_QNANHIBIT (airMyQNaNHiBit)
 
 /*
-******** AIR_NAN, AIR_QNAN, AIR_SNAN, AIR_POS_INF, AIR_NEG_INF
+******** AIR_NAN, AIR_POS_INF, AIR_NEG_INF
 **
 ** its nice to have these values available without the cost of a
 ** function call.
@@ -745,9 +740,7 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 ** the NaNs, however, they are only one of many possible
 ** representations.
 */
-#define AIR_NAN     (airFloatQNaN.f)
-#define AIR_QNAN    (airFloatQNaN.f)
-#define AIR_SNAN    (airFloatSNaN.f)
+#define AIR_NAN     (airFloatNaN.f)
 #define AIR_POS_INF (airFloatPosInf.f)
 #define AIR_NEG_INF (airFloatNegInf.f)
 

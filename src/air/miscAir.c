@@ -159,7 +159,7 @@ airFclose(FILE *file) {
 ** a complete stand-in for {f|s}printf(), as long as the given format
 ** string contains exactly one conversion sequence.  The utility of
 ** this is to standardize the printing of IEEE 754 special values:
-** QNAN, SNAN -> "NaN"
+** NAN (any kind) -> "NaN"
 ** POS_INF -> "+inf"
 ** NEG_INF -> "-inf"
 ** The format string can contain other things besides just the
@@ -206,8 +206,7 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
     val = va_arg(ap, double);
     cls = airFPClass_d(val);
     switch (cls) {
-    case airFP_SNAN:
-    case airFP_QNAN:
+    case airFP_NAN:
     case airFP_POS_INF:
     case airFP_NEG_INF:
       if (isF) {
@@ -222,8 +221,7 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
     }
 #define PRINT(F, S, C, V) ((F) ? fprintf((F), (C), (V)) : sprintf((S), (C), (V)))
     switch (cls) {
-    case airFP_SNAN:
-    case airFP_QNAN:
+    case airFP_NAN:
       ret = PRINT(file, str, fmt, "NaN");
       break;
     case airFP_POS_INF:
