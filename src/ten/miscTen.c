@@ -127,7 +127,7 @@ tenEvqSingle_f(float vec[3], float scl) {
   mi = airIndex(0.0, scl, 1.0, 6);
   if (mi) {
     switch (mi) {
-    /* clang-format off */
+      /* clang-format off */
     case 1: bins = 16; base = 1;                                 break;
     case 2: bins = 32; base = 1+SQR(16);                         break;
     case 3: bins = 48; base = 1+SQR(16)+SQR(32);                 break;
