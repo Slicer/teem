@@ -73,6 +73,7 @@ extern "C" {
 #define UNRRDU_LIST(C)    &unrrdu_##C##Cmd,
 #define UNRRDU_MAP(F)                                                                   \
   F(about)                                                                              \
+  F(built)                                                                              \
   F(env)                                                                                \
   F(i2w)                                                                                \
   F(w2i)                                                                                \

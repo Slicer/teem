@@ -9,6 +9,7 @@ set(UNRRDU_SOURCES
   3op.c
   affine.c
   about.c
+  built.c
   axdelete.c
   axinfo.c
   basinfo.c
