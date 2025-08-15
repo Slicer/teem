@@ -51,9 +51,7 @@ $(L).OBJS = 754.o randMT.o randJSF.o array.o miscAir.o parseAir.o math.o \
 	endianAir.o mop.o enum.o sane.o string.o threadAir.o heap.o
 $(L).TESTS = test/floatprint test/doubleprint test/tok \
 	test/tmop test/tline test/fp test/trand test/trandJSF test/tmisc \
-  test/bessy test/tarr test/texp test/logrice test/tprint
-
-$(L).NEED_QNANHIBIT = true
+	test/bessy test/tarr test/texp test/logrice test/tprint
 ####
 ####
 ####
