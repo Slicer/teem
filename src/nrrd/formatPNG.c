@@ -622,9 +622,8 @@ _nrrdFormatPNG_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
 }
 
 const NrrdFormat _nrrdFormatPNG = {"PNG",
-                                   AIR_TRUE,  /* isImage */
-                                   AIR_TRUE,  /* readable */
-                                   AIR_FALSE, /* usesDIO */
+                                   AIR_TRUE, /* isImage */
+                                   AIR_TRUE, /* readable */
                                    _nrrdFormatPNG_available,
                                    _nrrdFormatPNG_nameLooksLike,
                                    _nrrdFormatPNG_fitsInto,

@@ -28,8 +28,6 @@ SHARED_CFLAG = -shared
 SHARED_LDFLAG = -shared
 SHARED_RPATH = -Wl,-rpath -Wl,
 
-TEEM_QNANHIBIT = 1
-TEEM_DIO = 0
 ifeq ($(SUBARCH),ia64)
   ARCH_CFLAG = -fPIC -W -Wall
   ARCH_LDFLAG =

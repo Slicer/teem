@@ -813,7 +813,6 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
 const NrrdFormat _nrrdFormatNRRD = {"NRRD",
                                     AIR_FALSE, /* isImage */
                                     AIR_TRUE,  /* readable */
-                                    AIR_TRUE,  /* usesDIO */
                                     _nrrdFormatNRRD_available,
                                     _nrrdFormatNRRD_nameLooksLike,
                                     _nrrdFormatNRRD_fitsInto,

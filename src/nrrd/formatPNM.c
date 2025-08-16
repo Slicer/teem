@@ -330,9 +330,8 @@ _nrrdFormatPNM_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
 }
 
 const NrrdFormat _nrrdFormatPNM = {"PNM",
-                                   AIR_TRUE,  /* isImage */
-                                   AIR_TRUE,  /* readable */
-                                   AIR_FALSE, /* usesDIO */
+                                   AIR_TRUE, /* isImage */
+                                   AIR_TRUE, /* readable */
                                    _nrrdFormatPNM_available,
                                    _nrrdFormatPNM_nameLooksLike,
                                    _nrrdFormatPNM_fitsInto,

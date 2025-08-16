@@ -230,8 +230,7 @@ typedef struct {
   int isImage, /* this format is intended solely for "2D" images, which
                   controls the invocation of nrrdAxesInsert()
                   if nrrdStateGrayscaleImage3D */
-    readable,  /* we can read as well as write this format */
-    usesDIO;   /* this format can use Direct IO */
+    readable;  /* we can read as well as write this format */
 
   /* tests if this format is currently available in this build */
   int (*available)(void);

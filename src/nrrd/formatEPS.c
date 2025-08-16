@@ -200,7 +200,6 @@ _nrrdFormatEPS_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
 const NrrdFormat _nrrdFormatEPS = {"EPS",
                                    AIR_FALSE, /* isImage */
                                    AIR_FALSE, /* readable */
-                                   AIR_FALSE, /* usesDIO */
                                    _nrrdFormatEPS_available,
                                    _nrrdFormatEPS_nameLooksLike,
                                    _nrrdFormatEPS_fitsInto,

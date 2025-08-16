@@ -393,7 +393,6 @@ _nrrdFormatVTK_write(FILE *file, const Nrrd *_nrrd, NrrdIoState *nio) {
 const NrrdFormat _nrrdFormatVTK = {"VTK",
                                    AIR_FALSE, /* isImage */
                                    AIR_TRUE,  /* readable */
-                                   AIR_FALSE, /* usesDIO */
                                    _nrrdFormatVTK_available,
                                    _nrrdFormatVTK_nameLooksLike,
                                    _nrrdFormatVTK_fitsInto,

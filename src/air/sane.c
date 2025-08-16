@@ -159,7 +159,7 @@ airSanity(void) {
           there are more platforms for which (apparently) passing AIR_SNAN to
           airFPClass_d changes it to a quiet NaN, which defeats the purpose
           of the test.  To summarize, given that:
-          ** AIR_NAN and AIR_QNAN are checked here to be quiet NaN, after
+          ** AIR_NAN checked here to be quiet NaN, after
              casting to both float and double,
           ** quiet NaN "hi bit" is tested above, and that
           ** quiet and signalling NaN are mutually exclusive,
@@ -168,7 +168,8 @@ airSanity(void) {
           following line is now commented out for all platforms.
         */
         /* && airFP_SNAN == airFPClass_f((double)AIR_SNAN) */
-        /* (and on August 15 2025 GLK decides to drop SNAN altogether) */
+        /* (and on August 15 2025 GLK decides to totally drop QNAN-vs-SNAN,
+           along with all handling of "qnanhibit") */
         && airFP_NAN == airFPClass_d((double)AIR_NAN))) {
     return airInsane_AIR_NAN;
   }
@@ -192,11 +193,10 @@ static const char _airInsaneErr[AIR_INSANE_MAX + 1][AIR_STRLEN_MED + 1] = {
   "AIR_EXISTS(NaN) was true",                         /* 4: airInsane_NaNExists */
   "AIR_EXISTS() was false for some finite values",    /* 5: airInsane_ExistsBad */
   "air_FPClass_f() wrong after double->float assign", /* 6: airInsane_FltDblFPClass */
-  "TEEM_QNANHIBIT is wrong",                          /* 7: airInsane_QNaNHiBit */
-  "airFPClass(AIR_QNAN) wrong",                       /* 8: airInsane_AIR_NAN */
-  "unsigned char isn't 8 bits",                       /* 9: airInsane_UCSize */
-  "sizeof(float), sizeof(int) not both == 4",         /* 10: airInsane_FISize */
-  "sizeof(double), sizeof(airLLong) not both == 8",   /* 11: airInsane_DLSize */
+  "airFPClass(AIR_NAN) wrong",                        /* 7: airInsane_AIR_NAN */
+  "unsigned char isn't 8 bits",                       /* 8: airInsane_UCSize */
+  "sizeof(float), sizeof(int) not both == 4",         /* 9: airInsane_FISize */
+  "sizeof(double), sizeof(airLLong) not both == 8",   /* 10: airInsane_DLSize */
 };
 
 static const char _airBadInsane[] = "(invalid insane value)";

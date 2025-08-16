@@ -55,9 +55,6 @@ $(L).PUBLIC_HEADERS =
 $(L).PRIVATE_HEADERS =
 $(L).OBJS =
 $(L).TESTS =
-
-$(L).NEED_QNANHIBIT =
-$(L).NEED_DIO =
 ####
 ####
 ####

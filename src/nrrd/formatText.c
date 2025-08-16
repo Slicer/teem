@@ -385,7 +385,6 @@ _nrrdFormatText_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
 const NrrdFormat _nrrdFormatText = {"text",
                                     AIR_FALSE, /* isImage */
                                     AIR_TRUE,  /* readable */
-                                    AIR_FALSE, /* usesDIO */
                                     _nrrdFormatText_available,
                                     _nrrdFormatText_nameLooksLike,
                                     _nrrdFormatText_fitsInto,

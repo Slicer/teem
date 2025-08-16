@@ -4,22 +4,17 @@
 ** on Teem 2.0 because they don't involve API changes.
 
 
-Update NrrdIO's CMakeLists.txt file.  While Teem has a good working
+Update NrrdIO's CMakeLists.txt file.  While Teem has an ok and maintained
 CMakeLists.txt file:
 <http://sourceforge.net/p/teem/code/HEAD/tree/teem/trunk/CMakeLists.txt#l86>
 NrrdIO has a fairly meagre one:
 <http://sourceforge.net/p/teem/code/HEAD/tree/NrrdIO/trunk/CMakeLists.txt>
-Note how NrrdIO's CMakeLists.txt file doesn't really have proper handling
-of qnanhibit; it says "The QNANHIBIT variable is configured by the root
-level CMakeLists.txt".  But that's bogus- it's a copy-and-paste from the
-CMakeLists.txt from ITK's NrrdIO, whereas this NrrdIO is entirely
-stand-alone. What is required to teach NrrdIO's CMakeLists.txt about how to
-learn qnanhitbit at configure-time?  What other best practices are in
-Teem's CMakeLists.txt that should be copied in NrrdIO's (or introduced
-there if Teem's is out dated)?  You can get a copy of NrrdIO via:
-svn co http://svn.code.sf.net/p/teem/code/NrrdIO/trunk/ NrrdIO
-The source files here are largely extracted automatically by Teem code,
-via running:
+
+What best practices are in Teem's CMakeLists.txt that should be copied in
+NrrdIO's (or introduced there if Teem's is out dated)?  You can get a copy of
+NrrdIO via: svn co http://svn.code.sf.net/p/teem/code/NrrdIO/trunk/ NrrdIO The
+source files here are largely extracted automatically by Teem code, via
+running:
 make -f pre-GNUmakefile
 clean make -f pre-GNUmakefile
 But the CMakeLists.txt file there is specific to NrrdIO; it isn't copied

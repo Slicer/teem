@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2009--2025  University of Chicago
   Copyright (C) 2005--2008  Gordon Kindlmann
   Copyright (C) 1998--2004  University of Utah
 
@@ -34,8 +34,6 @@ main(int argc, char *argv[]) {
     fprintf(stderr, "%s: air sanity check passed.\n", me);
     fprintf(stderr, "\n");
     fprintf(stderr, "airMyEndian() == %d\n", airMyEndian());
-    fprintf(stderr, "AIR_QNANHIBIT == %d\n", AIR_QNANHIBIT);
-    fprintf(stderr, "AIR_DIO == %d\n", AIR_DIO);
     fprintf(stderr, "sizeof(size_t) = %s\n", airSprintSize_t(stmp, sizeof(size_t)));
     fprintf(stderr, "sizeof(void*) = %s\n", airSprintSize_t(stmp, sizeof(void *)));
     return 0;

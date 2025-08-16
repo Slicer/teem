@@ -131,7 +131,7 @@ gagePointReset(gagePoint *point) {
   if (point) {
     unsigned int big;
     /* learned: can't initialize the floating point to AIR_NAN,
-       non-dot-net windows compilers proclaim that QNAN == x
+       non-dot-net windows compilers proclaim that NAN == x
        for any existent x!!!  For some reason though, infinity
        is handled correctly */
     ELL_4V_SET(point->frac, AIR_POS_INF, AIR_POS_INF, AIR_POS_INF, AIR_POS_INF);

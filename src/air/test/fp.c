@@ -20,7 +20,6 @@
 */
 
 #include "../air.h"
-#include <teemQnanhibit.h>
 
 char *me;
 
@@ -41,12 +40,11 @@ main(int argc, char *argv[]) {
   airFPFprintf_f(stdout, g);
   hibit = (*((unsigned int *)&g) >> 22) & 1;
   printf("hi bit of 23-bit fraction field = %u\n", hibit);
-  if (hibit == airMyQNaNHiBit) {
-    printf("(agrees with airMyQNaNHiBit)\n");
+  if (hibit == 1) {
+    printf("(agrees with qnan hi bit==1 assumed in air/754.c)\n");
   } else {
     printf("%s: !!!!\n", me);
-    printf("%s: !!!! PROBLEM: nan's hi bit is NOT airMyQNaNHiBit (%d)\n", me,
-           airMyQNaNHiBit);
+    printf("%s: !!!! PROBLEM: nan's hi bit is NOT 1 (assumed in air/754.c)\n", me);
     printf("%s: !!!!\n", me);
   }
 
@@ -100,9 +98,8 @@ main(int argc, char *argv[]) {
   printf(" - - - - - - - - - - - - - - - -\n");
   printf(" - - - - - - - - - - - - - - - -\n");
 
-  f = AIR_SNAN;
-  printf("SNaN test: f = SNaN = float(0x%x) = %.9g; (QNaNHiBit = %u)\n", airFloatSNaN.i,
-         f, airMyQNaNHiBit);
+  f = AIR_NAN;
+  printf("NaN test: f = NaN = float(0x%x) = %.9g;\n", airFloatNaN.i, f);
   airFPFprintf_f(stdout, f);
   g = f * f;
   printf("g = f*f = %.9g\n", g);

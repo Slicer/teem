@@ -112,7 +112,6 @@ _nrrdFormatUnknown_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
 static const NrrdFormat _nrrdFormatUnknown = {"unknown",
                                               AIR_FALSE, /* isImage */
                                               AIR_TRUE,  /* readable */
-                                              AIR_FALSE, /* usesDIO */
                                               _nrrdFormatUnknown_available,
                                               _nrrdFormatUnknown_nameLooksLike,
                                               _nrrdFormatUnknown_fitsInto,

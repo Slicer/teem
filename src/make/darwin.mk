@@ -50,9 +50,6 @@ else
   endif
 endif
 
-TEEM_QNANHIBIT = 1
-TEEM_DIO = 0
-
 TEEM_ZLIB.IPATH ?=
 TEEM_ZLIB.LPATH ?=
 

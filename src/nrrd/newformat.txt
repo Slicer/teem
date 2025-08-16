@@ -7,8 +7,7 @@ nrrdDefines.h:
 added #define NRRD_EXT_VTK    ".vtk"
 
 arraysNrrd.c:
-augmented nrrdFormatIsAvailable[], nrrdFormatIsImage[],
-  and _nrrdFormatUsesDIO[]
+augmented nrrdFormatIsAvailable[] and nrrdFormatIsImage[]
 
 enumsNrrd.c:
 augmented _nrrdFormatStr[], _nrrdFormatStrEqv[], _nrrdFormatValEqv[],
