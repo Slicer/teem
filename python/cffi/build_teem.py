@@ -353,8 +353,9 @@ if __name__ == '__main__':
     ARGS = parse_args()
     VERB = ARGS.v
     if ARGS.gch:
-        (_hdr_path, _, _have_libs) = exult.check_path_tinst(ARGS.install_path)
-        cdef_write('./cdef', _hdr_path, _have_libs)
+        (_hdr_path, _) = exult.check_path_tinst(ARGS.install_path)
+        print(f'### {_hdr_path=}')
+        cdef_write('./cdef', _hdr_path, exult.tlib_all())
     else:
         ffi = exult.Tffi('../..', ARGS.install_path, 'teem', VERB)
         if not ARGS.wrap:

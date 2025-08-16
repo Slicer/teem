@@ -53,8 +53,8 @@ _tlhdrs = {
     'nrrd': ['nrrdEnums.h', 'nrrdDefines.h'],
     # ell: ellMacros.h does not add to ell API
 }
-# as of Teem v2 the "experimental" notion is gone, which simplifies
-# how these dependencies are declared
+# as of Teem v2 the per-library "experimental" notion is gone, which simplifies
+# how the libraries and their dependencies are declared
 _tldeps = {
     'air': [],  # (don't need airExistsConf.h)
     'hest': ['air'],
@@ -166,8 +166,7 @@ def check_path_tlib(path_tlib: str) -> None:
 def check_path_thdr(path_thdr: str):
     """
     Main purpose is to do sanity check on Teem include path path_thdr and the header files
-    found there. Having done that work, we can also return information learned along the way:
-    we return the list of libraries for which the .h headers are present
+    found there.
     """
     itpath = path_thdr + '/teem'
     if not os.path.isdir(itpath):
@@ -180,7 +179,7 @@ def check_path_thdr(path_thdr: str):
             f'Missing header(s) {" ".join(missing_hdrs)} in {itpath} '
             'for one or more of the Teem libs'
         )
-    return all_hdrs
+    return
 
 
 def check_path_tinst(path: str):
@@ -201,8 +200,8 @@ def check_path_tinst(path: str):
             f'Need both {path_thdr} and {path_tlib} to be subdirs of teem install dir {path}'
         )
     check_path_tlib(path_tlib)
-    have_libs = check_path_thdr(path_thdr)
-    return (path_thdr, path_tlib, have_libs)
+    check_path_thdr(path_thdr)
+    return (path_thdr, path_tlib)
 
 
 class CdefHdr:
@@ -405,7 +404,6 @@ class Tffi:
         (
             self.path_thdr,
             self.path_tlib,
-            self.have_tlibs,
         ) = check_path_tinst(path_tinst)
         self.path_tinst = path_tinst
         # initialize other members; these will be updated if self.desc() is called to describe
@@ -426,10 +424,6 @@ class Tffi:
             self.name = 'teem'
             self.top_tlib = 'meet'
         else:
-            if not top_tlib in self.have_tlibs:
-                raise Exception(
-                    f'Requested top lib {top_tlib} not in this Teem build: {self.have_tlibs}'
-                )
             self.isteem = None
             self.name = None
             self.top_tlib = top_tlib
@@ -462,7 +456,7 @@ class Tffi:
             raise Exception('Can use .desc() only when making non-Teem module ')
         if 'lliibb' == name:
             raise Exception("Sorry, can't risk over-writing template wrapper lliibb.py")
-        if 'teem' == name or name in self.have_tlibs:
+        if 'teem' == name or name in tlib_all():
             raise Exception('Need non-Teem name for non-Teem library')
         if name.startswith('_'):
             raise Exception(
