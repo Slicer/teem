@@ -13,14 +13,12 @@
 # This library is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License along with
-# this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
-# Fifth Floor, Boston, MA 02110-1301 USA
+# You should have received a copy of the GNU Lesser General Public License
+# along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
 # Windows project file stuff
-# 
+#
 # Makes project files for the teem dll, one for each teem binary, and
 # one for the workspace containing all these
 
@@ -81,7 +79,7 @@ teembin.%.vcproj.build:
 
 # MS Visual Studio 6.0 project files
 
-project.build.msvc6: teem.dsp.build headers.copy teem.dsw.build bins.dsp.build 
+project.build.msvc6: teem.dsp.build headers.copy teem.dsw.build bins.dsp.build
 
 project.clean.msvc6: headers.clean
 	$(RM) $(WIN32.DEST)/*.dsp $(WIN32.DEST)/*.dsw $(WIN32.DEST)/*.plg
