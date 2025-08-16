@@ -18,9 +18,8 @@ CFFI, within its many limitations, specifically lacking a C pre-processor
   This library is distributed in the hope that it will be useful, but WITHOUT ANY
   WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
   PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
-  You should have received a copy of the GNU Lesser General Public License along with
-  this library; if not, write to Free Software Foundation, Inc., 51 Franklin Street,
-  Fifth Floor, Boston, MA 02110-1301 USA
+  You should have received a copy of the GNU Lesser General Public License
+  along with this library; if not, see <https://www.gnu.org/licenses/>.
 */
 /* ---- BEGIN non-NrrdIO */
 /* ---- END non-NrrdIO */
@@ -286,29 +285,29 @@ extern airThreadBarrier *airThreadBarrierNix(airThreadBarrier *barrier);
 ** the different kinds of floating point number afforded by IEEE 754,
 ** and the values returned by airFPClass_f().
 **
-** The values probably won't agree with those in #include's like
+** The numeric enum values probably won't agree with those in #include's like
 ** ieee.h, ieeefp.h, fp_class.h.  This is because IEEE 754 hasn't
-** defined standard values for these, so everyone does it differently.
+** defined standard values for these, so everyone does it differently
+** (or at least that was so around AD 2000 when this code was born)
 **
 ** This enum uses underscores (against Teem convention) to help
 ** legibility while also conforming to the spirit of the somewhat
 ** standard naming conventions
 */
 enum {
-  airFP_Unknown,    /*  0: nobody knows */
-  airFP_SNAN,       /*  1: signalling NaN */
-  airFP_QNAN,       /*  2: quiet NaN */
-  airFP_POS_INF,    /*  3: positive infinity */
-  airFP_NEG_INF,    /*  4: negative infinity */
-  airFP_POS_NORM,   /*  5: positive normalized non-zero */
-  airFP_NEG_NORM,   /*  6: negative normalized non-zero */
-  airFP_POS_DENORM, /*  7: positive denormalized non-zero */
-  airFP_NEG_DENORM, /*  8: negative denormalized non-zero */
-  airFP_POS_ZERO,   /*  9: +0.0, positive zero */
-  airFP_NEG_ZERO,   /* 10: -0.0, negative zero */
+  airFP_Unknown,    /* 0: nobody knows */
+  airFP_NAN,        /* 1: (quiet) NaN */
+  airFP_POS_INF,    /* 2: positive infinity */
+  airFP_NEG_INF,    /* 3: negative infinity */
+  airFP_POS_NORM,   /* 4: positive normalized non-zero */
+  airFP_NEG_NORM,   /* 5: negative normalized non-zero */
+  airFP_POS_DENORM, /* 6: positive denormalized non-zero */
+  airFP_NEG_DENORM, /* 7: negative denormalized non-zero */
+  airFP_POS_ZERO,   /* 8: +0.0, positive zero */
+  airFP_NEG_ZERO,   /* 9: -0.0, negative zero */
   airFP_Last        /* after the last valid one */
 };
-#define AIR_FP_MAX 10
+#define AIR_FP_MAX 9
 /* 754.c: IEEE-754 related stuff values */
 typedef union {
   unsigned int i;
@@ -319,7 +318,6 @@ typedef union {
   double d;
 } airDouble;
 extern const airEnum *const airFPClass_ae;
-extern const unsigned int airMyQNaNHiBit;
 extern float airFPPartsToVal_f(unsigned int sign,
                                    unsigned int expo,
                                    unsigned int mant);
@@ -340,8 +338,7 @@ extern int airFPClass_f(float val);
 extern int airFPClass_d(double val);
 extern void airFPFprintf_f(FILE *file, float val);
 extern void airFPFprintf_d(FILE *file, double val);
-extern const airFloat airFloatQNaN;
-extern const airFloat airFloatSNaN;
+extern const airFloat airFloatNaN;
 extern const airFloat airFloatPosInf;
 extern const airFloat airFloatNegInf;
 extern float airNaN(void);
@@ -479,17 +476,14 @@ enum {
   airInsane_NaNExists,     /*  4: AIR_EXISTS(NaN) was true */
   airInsane_ExistsBad,     /*  5: AIR_EXISTS of some finite values was false */
   airInsane_FltDblFPClass, /*  6: double -> float assignment messed up the
-                               airFPClass_f() of the value */
-  airInsane_QNaNHiBit,     /*  7: airMyQNaNHiBit is wrong */
-  airInsane_AIR_NAN,       /*  8: airFPClass_f(AIR_QNAN) wrong
-                                  (no longer checking on problematic SNAN) */
-  airInsane_dio,           /*  9: airMyDio set to something invalid */
-  airInsane_UCSize,        /* 10: unsigned char isn't 8 bits */
-  airInsane_FISize,        /* 11: sizeof(float), sizeof(int) not 4 */
-  airInsane_DLSize,        /* 12: sizeof(double), sizeof(airLLong) not 8 */
+                                  airFPClass_f() of the value */
+  airInsane_AIR_NAN,       /*  7: airFPClass_f(AIR_NAN) wrong */
+  airInsane_UCSize,        /*  8: unsigned char isn't 8 bits */
+  airInsane_FISize,        /*  9: sizeof(float), sizeof(int) not 4 */
+  airInsane_DLSize,        /* 10: sizeof(double), sizeof(airLLong) not 8 */
   airInsane_last
 };
-#define AIR_INSANE_MAX 12
+#define AIR_INSANE_MAX 10
 extern const char *airInsaneErr(int insane);
 extern int airSanity(void);
 /* miscAir.c */
@@ -568,38 +562,6 @@ extern const unsigned int airPrimeList[AIR_PRIME_NUM];
 extern unsigned int airCRC32(const unsigned char *data, size_t len, size_t unit,
                                  int swap);
 /* ---- END non-NrrdIO */
-/* dio.c */
-/*
-******** airNoDio enum
-**
-** reasons for why direct I/O won't be used with a particular
-** file/pointer combination
-*/
-enum {
-  airNoDio_okay,    /*  0: actually, you CAN do direct I/O */
-  airNoDio_arch,    /*  1: Teem thinks this architecture can't do it */
-  airNoDio_format,  /*  2: Teem thinks given data file format can't use it */
-  airNoDio_std,     /*  3: DIO isn't possible for std{in|out|err} */
-  airNoDio_fd,      /*  4: couldn't get underlying file descriptor */
-  airNoDio_dioinfo, /*  5: calling fcntl() to get direct I/O info failed */
-  airNoDio_small,   /*  6: requested size is too small */
-  airNoDio_size,    /*  7: requested size not a multiple of d_miniosz */
-  airNoDio_ptr,     /*  8: pointer not multiple of d_mem */
-  airNoDio_fpos,    /*  9: current file position not multiple of d_miniosz */
-  airNoDio_setfl,   /* 10: fcntl(fd, SETFL, FDIRECT) failed */
-  airNoDio_test,    /* 11: couldn't memalign() even a small bit of memory */
-  airNoDio_disable, /* 12: someone disabled it with airDisableDio */
-  airNoDio_last
-};
-#define AIR_NODIO_MAX 12
-extern const char *airNoDioErr(int noDio);
-extern const int airMyDio;
-extern int airDisableDio;
-extern void airDioInfo(int *align, int *min, int *max, int fd);
-extern int airDioTest(int fd, const void *ptr, size_t size);
-extern void *airDioMalloc(size_t size, int fd);
-extern size_t airDioRead(int fd, void *ptr, size_t size);
-extern size_t airDioWrite(int fd, const void *ptr, size_t size);
 /* mop.c: clean-up utilities */
 enum {
   airMopNever,
@@ -659,16 +621,16 @@ extern void airMopSingleOkay(airArray *arr, void *ptr);
 ** as arguments in Teem macros normally are
 */
 /*
-******** AIR_ENDIAN, AIR_QNANHIBIT, AIR_DIO
+******** AIR_ENDIAN
 **
-** These reflect particulars of hardware which we're running on. The
+** This reflects particulars of hardware which we're running on. The
 ** difference from the things starting with TEEM_ is that the TEEM_
 ** values are for passing architecture-specific to compilation of source
 ** files, and thes AIR_ variables are for advertising that information
 ** to anyone linking against air (or Teem) and including air.h.
 */
 /*
-******** AIR_NAN, AIR_QNAN, AIR_SNAN, AIR_POS_INF, AIR_NEG_INF
+******** AIR_NAN, AIR_POS_INF, AIR_NEG_INF
 **
 ** its nice to have these values available without the cost of a
 ** function call.
