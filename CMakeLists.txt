@@ -137,13 +137,14 @@ option(Teem_PTHREAD "Build Teem with pthread library support." ON)
 option(Teem_LEVMAR "Build Teem with levmar library support." OFF)
 # Option 7 - Look for fftw <http://www.fftw.org/>
 option(Teem_FFTW3 "Build Teem with fftw library support." OFF)
-# Option 8
-option(USE_DIRECTIO "Use DirectIO for Nrrd file IO.  Only valid on SGI systems." OFF)
-# Option 9
+# For Teem v2 support for SGI IRIX Direct I/O is removed
+## Option 8
+# option(USE_DIRECTIO "Use DirectIO for Nrrd file IO.  Only valid on SGI systems." OFF)
+# Option 9-->8
 option(Teem_USE_LIB_INSTALL_SUBDIR "Add a Teem-X.Y.Z directory layer to the installation tree for libraries and archives." OFF)
-# Option 10 - Stand-alone programs to process hex encoding of data
+# Option 10-->9 - Stand-alone programs to process hex encoding of data
 option(BUILD_HEX "Build dehex and enhex" OFF)
-# Option 11 - For testing
+# Option 11-->10 - For testing
 option(BUILD_TESTING "Enable this to perform testing of Teem" ON)
 
 #-----------------------------------------------------------------------------
