@@ -1,6 +1,6 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2009--2023  University of Chicago
+# Copyright (C) 2009--2025  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -52,9 +52,7 @@ class Tenum:
     def __init__(self, aenm, _name):
         """Constructor takes a Teem airEnum pointer (const airEnum *const)."""
         if not str(aenm).startswith("<cdata 'airEnum *' "):
-            raise TypeError(
-                f'passed argument {aenm} does not seem to be an airEnum pointer'
-            )
+            raise TypeError(f'passed argument {aenm} does not seem to be an airEnum pointer')
         self.aenm = aenm
         self.name = string(self.aenm.name)
         self._name = _name  # the variable name for the airEnum in libteem
@@ -112,9 +110,7 @@ class Tenum:
         assert isinstance(sss, str), f'Need an string argument (not {type(sss)})'
         ret = _teem.lib.airEnumVal(self.aenm, sss.encode('ascii'))
         if picky and ret == self.unknown():
-            raise ValueError(
-                f'"{sss}" not parsable as {self._name} ("{self.name}") enum value'
-            )
+            raise ValueError(f'"{sss}" not parsable as {self._name} ("{self.name}") enum value')
         # else
         return ret
 
@@ -860,11 +856,7 @@ class _teem_Module:
                 if cval is sym:
                     # so sym_name *is* an integer const, export that (integer) value
                     setattr(self, sym_name, sym)
-                elif (
-                    isinstance(sym, int)
-                    or isinstance(sym, float)
-                    or isinstance(sym, bytes)
-                ):
+                elif isinstance(sym, int) or isinstance(sym, float) or isinstance(sym, bytes):
                     # sym_name is a NON-CONST scalar, do not export, instead alias it
                     self._alias[sym_name] = sym_name
                     # HEY in the python wrappers for GLK's SciVis, this aliasing is
