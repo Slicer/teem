@@ -1,74 +1,74 @@
 func_name,return_type,error_val(s),mubi,biff_key,filename:linenumber
-limnCameraUpdate,int,1,0,limn,limn/cam.c:33
-limnCameraAspectSet,int,1,0,limn,limn/cam.c:130
-limnCameraPathMake,int,1,0,limn,limn/cam.c:189
-limnEnvMapFill,int,1,0,limn,limn/envmap.c:25
-limnEnvMapCheck,int,1,0,limn,limn/envmap.c:119
-limnObjectWriteOFF,int,1,0,limn,limn/io.c:79
-limnPolyDataWriteIV,int,1,0,limn,limn/io.c:138
-limnObjectReadOFF,int,1,0,limn,limn/io.c:264
-limnPolyDataWriteLMPD,int,1,0,limn,limn/io.c:455
-limnPolyDataReadLMPD,int,1,0,limn,limn/io.c:582
-limnPolyDataWriteVTK,int,1,0,limn,limn/io.c:965
-limnPolyDataReadOFF,int,1,0,limn,limn/io.c:1055
-limnPolyDataSave,int,1,0,limn,limn/io.c:1160
-limnLightUpdate,int,1,0,limn,limn/light.c:67
-limnPolyDataAlloc,int,1,0,limn,limn/polydata.c:149
-limnPolyDataCopy,int,1,0,limn,limn/polydata.c:228
-limnPolyDataCopyN,int,1,0,limn,limn/polydata.c:260
-limnPolyDataPrimitiveVertexNumber,int,1,0,limn,limn/polydata.c:551
-limnPolyDataPrimitiveArea,int,1,0,limn,limn/polydata.c:573
-limnPolyDataRasterize,int,1,0,limn,limn/polydata.c:631
-limnPolyDataSpiralTubeWrap,int,1,0,limn,limn/polyfilter.c:26
-limnPolyDataSmoothHC,int,-1,0,limn,limn/polyfilter.c:336
-limnPolyDataVertexWindingFix,int,1,0,limn,limn/polymod.c:1230
-limnPolyDataCCFind,int,1,0,limn,limn/polymod.c:1249
-limnPolyDataPrimitiveSort,int,1,0,limn,limn/polymod.c:1380
-limnPolyDataVertexWindingFlip,int,1,0,limn,limn/polymod.c:1463
-limnPolyDataPrimitiveSelect,int,1,0,limn,limn/polymod.c:1492
-limnPolyDataClipMulti,int,1,0,limn,limn/polymod.c:1707
-limnPolyDataCompress,limnPolyData *,NULL,0,limn,limn/polymod.c:1994
-limnPolyDataJoin,limnPolyData *,NULL,0,limn,limn/polymod.c:2084
-limnPolyDataEdgeHalve,int,1,0,limn,limn/polymod.c:2152
-limnPolyDataNeighborList,int,-1,0,limn,limn/polymod.c:2329
-limnPolyDataNeighborArray,int,-1,0,limn,limn/polymod.c:2425
-limnPolyDataNeighborArrayComp,int,-1,0,limn,limn/polymod.c:2465
-limnPolyDataCube,int,1,0,limn,limn/polyshapes.c:27
-limnPolyDataCubeTriangles,int,1,0,limn,limn/polyshapes.c:137
-limnPolyDataOctahedron,int,1,0,limn,limn/polyshapes.c:347
-limnPolyDataCylinder,int,1,0,limn,limn/polyshapes.c:461
-limnPolyDataCone,int,1,0,limn,limn/polyshapes.c:635
-limnPolyDataSuperquadric,int,1,0,limn,limn/polyshapes.c:734
-limnPolyDataSpiralBetterquadric,int,1,0,limn,limn/polyshapes.c:859
-limnPolyDataSpiralSuperquadric,int,1,0,limn,limn/polyshapes.c:1016
-limnPolyDataPolarSphere,int,1,0,limn,limn/polyshapes.c:1034
-limnPolyDataSpiralSphere,int,1,0,limn,limn/polyshapes.c:1046
-limnPolyDataIcoSphere,int,1,0,limn,limn/polyshapes.c:1097
-limnPolyDataPlane,int,1,0,limn,limn/polyshapes.c:1341
-limnPolyDataSquare,int,1,0,limn,limn/polyshapes.c:1396
-limnPolyDataSuperquadric2D,int,1,0,limn,limn/polyshapes.c:1439
-limnQNDemo,int,1,0,limn,limn/qn.c:892
-limnObjectRender,int,1,0,limn,limn/renderLimn.c:25
-limnObjectPSDraw,int,1,0,limn,limn/renderLimn.c:184
-limnObjectPSDrawConcave,int,1,0,limn,limn/renderLimn.c:314
-limnSplineNrrdEvaluate,int,1,0,limn,limn/splineEval.c:323
-limnSplineSample,int,1,0,limn,limn/splineEval.c:361
-limnSplineTypeSpecNew,limnSplineTypeSpec *,NULL,0,limn,limn/splineMethods.c:25
-limnSplineNew,limnSpline *,NULL,0,limn,limn/splineMethods.c:124
-limnSplineNrrdCleverFix,int,1,0,limn,limn/splineMethods.c:249
-limnSplineCleverNew,limnSpline *,NULL,0,limn,limn/splineMethods.c:394
-limnSplineUpdate,int,1,0,limn,limn/splineMethods.c:422
-limnSplineTypeSpecParse,limnSplineTypeSpec *,NULL,0,limn,limn/splineMisc.c:222
-limnSplineParse,limnSpline *,NULL,0,limn,limn/splineMisc.c:278
-limnCbfPointsNew,limnCbfPoints *,NULL,0,limn,limn/splineFit.c:177
-limnCbfPointsCheck,int,1,0,limn,limn/splineFit.c:249
-limnCbfCtxPrep,int,1,0,limn,limn/splineFit.c:520
-limnCbfTVT,int,1,0,limn,limn/splineFit.c:788
-limnCbfSingle,int,1,0,limn,limn/splineFit.c:1528
-limnCbfCorners,int,1,0,limn,limn/splineFit.c:1579
-limnCbfMulti,int,1,0,limn,limn/splineFit.c:1781
-limnCbfGo,int,1,0,limn,limn/splineFit.c:1899
-limnObjectWorldHomog,int,1,0,limn,limn/transform.c:25
-limnObjectFaceNormals,int,1,0,limn,limn/transform.c:47
-limnObjectSpaceTransform,int,1,0,limn,limn/transform.c:210
-limnObjectFaceReverse,int,1,0,limn,limn/transform.c:335
+limnCameraUpdate,int,1,0,limn,limn/cam.c:31
+limnCameraAspectSet,int,1,0,limn,limn/cam.c:128
+limnCameraPathMake,int,1,0,limn,limn/cam.c:187
+limnEnvMapFill,int,1,0,limn,limn/envmap.c:23
+limnEnvMapCheck,int,1,0,limn,limn/envmap.c:117
+limnObjectWriteOFF,int,1,0,limn,limn/io.c:77
+limnPolyDataWriteIV,int,1,0,limn,limn/io.c:136
+limnObjectReadOFF,int,1,0,limn,limn/io.c:262
+limnPolyDataWriteLMPD,int,1,0,limn,limn/io.c:453
+limnPolyDataReadLMPD,int,1,0,limn,limn/io.c:580
+limnPolyDataWriteVTK,int,1,0,limn,limn/io.c:963
+limnPolyDataReadOFF,int,1,0,limn,limn/io.c:1053
+limnPolyDataSave,int,1,0,limn,limn/io.c:1158
+limnLightUpdate,int,1,0,limn,limn/light.c:65
+limnPolyDataAlloc,int,1,0,limn,limn/polydata.c:147
+limnPolyDataCopy,int,1,0,limn,limn/polydata.c:226
+limnPolyDataCopyN,int,1,0,limn,limn/polydata.c:258
+limnPolyDataPrimitiveVertexNumber,int,1,0,limn,limn/polydata.c:549
+limnPolyDataPrimitiveArea,int,1,0,limn,limn/polydata.c:571
+limnPolyDataRasterize,int,1,0,limn,limn/polydata.c:629
+limnPolyDataSpiralTubeWrap,int,1,0,limn,limn/polyfilter.c:24
+limnPolyDataSmoothHC,int,-1,0,limn,limn/polyfilter.c:334
+limnPolyDataVertexWindingFix,int,1,0,limn,limn/polymod.c:1228
+limnPolyDataCCFind,int,1,0,limn,limn/polymod.c:1247
+limnPolyDataPrimitiveSort,int,1,0,limn,limn/polymod.c:1378
+limnPolyDataVertexWindingFlip,int,1,0,limn,limn/polymod.c:1461
+limnPolyDataPrimitiveSelect,int,1,0,limn,limn/polymod.c:1490
+limnPolyDataClipMulti,int,1,0,limn,limn/polymod.c:1705
+limnPolyDataCompress,limnPolyData *,NULL,0,limn,limn/polymod.c:1992
+limnPolyDataJoin,limnPolyData *,NULL,0,limn,limn/polymod.c:2082
+limnPolyDataEdgeHalve,int,1,0,limn,limn/polymod.c:2150
+limnPolyDataNeighborList,int,-1,0,limn,limn/polymod.c:2327
+limnPolyDataNeighborArray,int,-1,0,limn,limn/polymod.c:2423
+limnPolyDataNeighborArrayComp,int,-1,0,limn,limn/polymod.c:2463
+limnPolyDataCube,int,1,0,limn,limn/polyshapes.c:25
+limnPolyDataCubeTriangles,int,1,0,limn,limn/polyshapes.c:135
+limnPolyDataOctahedron,int,1,0,limn,limn/polyshapes.c:345
+limnPolyDataCylinder,int,1,0,limn,limn/polyshapes.c:459
+limnPolyDataCone,int,1,0,limn,limn/polyshapes.c:633
+limnPolyDataSuperquadric,int,1,0,limn,limn/polyshapes.c:732
+limnPolyDataSpiralBetterquadric,int,1,0,limn,limn/polyshapes.c:857
+limnPolyDataSpiralSuperquadric,int,1,0,limn,limn/polyshapes.c:1014
+limnPolyDataPolarSphere,int,1,0,limn,limn/polyshapes.c:1032
+limnPolyDataSpiralSphere,int,1,0,limn,limn/polyshapes.c:1044
+limnPolyDataIcoSphere,int,1,0,limn,limn/polyshapes.c:1095
+limnPolyDataPlane,int,1,0,limn,limn/polyshapes.c:1339
+limnPolyDataSquare,int,1,0,limn,limn/polyshapes.c:1394
+limnPolyDataSuperquadric2D,int,1,0,limn,limn/polyshapes.c:1437
+limnQNDemo,int,1,0,limn,limn/qn.c:890
+limnObjectRender,int,1,0,limn,limn/renderLimn.c:23
+limnObjectPSDraw,int,1,0,limn,limn/renderLimn.c:182
+limnObjectPSDrawConcave,int,1,0,limn,limn/renderLimn.c:312
+limnSplineNrrdEvaluate,int,1,0,limn,limn/splineEval.c:321
+limnSplineSample,int,1,0,limn,limn/splineEval.c:359
+limnSplineTypeSpecNew,limnSplineTypeSpec *,NULL,0,limn,limn/splineMethods.c:23
+limnSplineNew,limnSpline *,NULL,0,limn,limn/splineMethods.c:122
+limnSplineNrrdCleverFix,int,1,0,limn,limn/splineMethods.c:247
+limnSplineCleverNew,limnSpline *,NULL,0,limn,limn/splineMethods.c:392
+limnSplineUpdate,int,1,0,limn,limn/splineMethods.c:420
+limnSplineTypeSpecParse,limnSplineTypeSpec *,NULL,0,limn,limn/splineMisc.c:220
+limnSplineParse,limnSpline *,NULL,0,limn,limn/splineMisc.c:276
+limnCbfPointsNew,limnCbfPoints *,NULL,0,limn,limn/splineFit.c:175
+limnCbfPointsCheck,int,1,0,limn,limn/splineFit.c:247
+limnCbfCtxPrep,int,1,0,limn,limn/splineFit.c:518
+limnCbfTVT,int,1,0,limn,limn/splineFit.c:786
+limnCbfSingle,int,1,0,limn,limn/splineFit.c:1526
+limnCbfCorners,int,1,0,limn,limn/splineFit.c:1577
+limnCbfMulti,int,1,0,limn,limn/splineFit.c:1779
+limnCbfGo,int,1,0,limn,limn/splineFit.c:1897
+limnObjectWorldHomog,int,1,0,limn,limn/transform.c:23
+limnObjectFaceNormals,int,1,0,limn,limn/transform.c:45
+limnObjectSpaceTransform,int,1,0,limn,limn/transform.c:208
+limnObjectFaceReverse,int,1,0,limn,limn/transform.c:333
