@@ -35,18 +35,12 @@
 /*
 ******** TEEM_VERSION
 **
-** TEEM_VERSION is a single (decimal) number that will always increase
-** monotically, and the _MAJOR, _MINOR, _PATCH are also numbers that
-** can be used to implement pre-processor logic about specifc
-** versions.  The TEEM_VERSION_STRING is used in the (existing) char
-** *airTeemVersion (added in version 1.9.0).  Yes, keeping these in
-** sync is currently a manual operation.
-**
-** NOTE: Significant API changes (aside from API additions) should NOT
-** occur with changes in patch level, only with major or minor version
-** changes.
-**
-** NOTE: ../../CMakeLists.txt's Teem_VERSION variables must be in sync
+** How Teem documents its Semantic Version number https://semver.org/
+** TEEM_VERSION is a single number, TEEM_VERSION_STRING is a string, and the
+** _MAJOR, _MINOR, _PATCH numbers are the components.
+** NOTE: In ../../CMakeLists.txt, Teem_VERSION variables record the same values.
+** Yes, keeping the below in sync, and in sync with ../../CMakeLists.txt,
+** is a manual operation.
 */
 /* clang-format off */
 #define TEEM_VERSION_MAJOR   1       /* must be 1 digit */
