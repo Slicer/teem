@@ -26,22 +26,38 @@ AR = libtool
 ARFLAGS = -static -o
 RANLIB = ranlib
 
-LD = cc
+# the extension on the name of shared libraries (.so, .sl, .dll)
+SHEXT = dylib
 
-## for trying undefined behavior flagging  -fsanitize=undefined
-OPT_CFLAG ?= -O3 -g
-# CC = scan-build clang # to run static analyzer https://clang.llvm.org/docs/ClangStaticAnalyzer.html
 CC = clang
+LD = cc
+# CC = scan-build clang # to run static analyzer https://clang.llvm.org/docs/ClangStaticAnalyzer.html
+
+# $(CC) flag for creating executables when linking with static library
 STATIC_CFLAG = -Wl,-prebind
+# $(CC) flag for creating executables when linking with shared library
 SHARED_CFLAG =
+# any other $(CC) flag specific to creating executables (beyond two previous)
+BIN_CFLAGS =
+# other $(CC) flags for .c compilation (e.g. optimization and warnings)
+CFLAGS ?= -O3 -g -W -Wall -Wextra
 SHARED_LDFLAG = -dynamic -dynamiclib -fno-common
 SHARED_INSTALL_NAME = -install_name
+
+CHMOD = chmod
 
 # more flags to try:
 # -std=c90 -pedantic -Wno-long-long -Wno-overlength-strings -Wstrict-aliasing=2 -Wstrict-overflow=5
 # -Weverything -Wno-poison-system-directories -Wno-padded -Wno-format-nonliteral -Wno-float-equal -Wno-reserved-id-macro
-ARCH_CFLAG = -W -Wall -Wextra
+## for trying undefined behavior flagging  -fsanitize=undefined
+# $(CC) flags important for compiling particular to the target architecture
+ARCH_CFLAG =
+# $(LD) flag needed for making a shared library on the target architecture
 ARCH_LDFLAG =
+# $(LD) flag that causes a shared library generated to be produced
+SHARED_LDFLAG =
+# $(LD) flags for making shared libraries (beyond two previous)
+LDFLAGS =
 
 # Once in ~2003 when GLK was working on Windows/Cygwin, gnu make stopped working
 # reliably because the file creation dates were not correctly tracking that

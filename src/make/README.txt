@@ -1,6 +1,6 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2009--2023  University of Chicago
+# Copyright (C) 2009--2025  University of Chicago
 # Copyright (C) 2005--2008  Gordon Kindlmann
 # Copyright (C) 1998--2004  University of Utah
 #
@@ -17,66 +17,19 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
+(these reflect the simplification of non-CMake building done for Teem v2)
+
 =========================
 User-set environment variables which effect global things:
 =========================
 
-TEEM_ARCH: the architecture you're compiling with and for
-  >>> This is the only environment variable which MUST be set <<<
+TEEM_ROOT: the top-level "teem" directory, under which are the directories where object,
+  library, and include files will be installed.  If not set, the top-level directory is
+  taken to be "../..", when inside the source directory for the individual libraries
 
-TEEM_ROOT: the top-level "teem" directory, under which are the
-  directories where object, library, and include files will be
-  installed.  If not set, the top-level directory is taken to be
-  "../..", when inside the source directory for the individual
-  libraries
-
-TEEM_LINK_SHARED: if set to "true" then binaries, when linked, will be
-  linked with shared libraries, and not static libraries. If not set,
-  we link against static libraries, in order to produce
-  stand-alone-ish binaries
-
-=========================
-The variables that can/must be set by the individual architecture
-.mk files.  Those which must be set are marked by a (*):
-=========================
-
-TEEM_ENDIAN (*): some things in the air library are too annoying to do
-  if the endianness is determined only at run-time, so just setting
-  here simplifies things
-  1234: Little Endian (Intel and friends)
-  4321: Big Endian (everyone else)
-
-CC, LD, AR, RM, INSTALL, CHMOD (*): programs used during make
-
-SHEXT: the extension on the name of shared libraries (.so, .sl, .dll)
-
-SHARED_CFLAG, STATIC_CFLAG (*): flags which are passed to $(CC) when
-  used to create binaries, so as to control whether shared or static
-  libraries are linked against.
-
-BIN_CFLAGS: any flags to $(CC) which should be used for compiling
-  binaries (in addition to the SHARED_CFLAG, STATIC_CFLAG flags above)
-
-OPT_CFLAG: how to control optimization (if desired)
-
-ARCH_CFLAG: any flags to $(CC) which are important for compiling
-  particular to the target architecture
-
-CFLAGS: any flags to $(CC) for both .o and binary compiliation, in
-  addition to $(OPT_CFLAG) $(ARCH_CFLAG)
-
-ARCH_LDFLAG: any architecture-specific flags to $(LD) which are
-  important for making a shared library on the target architecture
-
-SHARED_LDFLAG: the flag to $(LD) which causes a shared library
-  generated to be produced, not a static one
-
-LDFLAGS: any flags to $(LD) for making shared libraries, in addition
-  to $(ARCH_LDFLAG) $(SHARED_LDFLAG)
-
-OTHER_CLEAN: other files that might have been created automatically
-  as part of compilation, but which should be deleted if "make clean"
-  is to be true to its word (e.g. "so_locations" on SGI)
+TEEM_LINK_SHARED: if set to "true" then binaries, when linked, will be linked with shared
+  libraries, and not static libraries. If not set, we link against static libraries, in
+  order to produce stand-alone-ish binaries
 
 =========================
 The variables that can be set by the individual library Makefile's
