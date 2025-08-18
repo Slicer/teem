@@ -128,7 +128,6 @@ def tlib_headers(lib: str) -> list[str]:
     centralized to this file. For example this handles how the nrrd library needs nrrdDefines.h
     and nrrdEnums.h as well as nrrd.h.
     """
-    print(f'HELLO from tlib_headers({lib=})')
     if not lib in _tldeps:
         raise RuntimeError(f'{lib} is not a known Teem library')
     ret = [f'{lib}.h']
