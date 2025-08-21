@@ -75,11 +75,10 @@ basis of the python wrappers (e.g. teem/python/cffi)
 * data/
   Small reference datasets; more may be added for testing
 
-* arch/
-  When using the old GNU make system, objects and binaries are put
-  in the cygin, darwin.32, linux.32, etc, architecture-dependent
-  subdirectories, with a name which exactly matches valid settings
-  for the environment variable TEEM_ARCH. Within these directories are:
+* built/
+  The old GNU make system (non-CMake) puts things here:
+  * include/
+    the headers
   * lib/
     all libraries put both their static/archive (.a) and
     shared/dynamic (.so) library files here (such as libnrrd.a)
