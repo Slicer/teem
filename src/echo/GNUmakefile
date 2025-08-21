@@ -1,6 +1,6 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2009--2023  University of Chicago
+# Copyright (C) 2009--2025  University of Chicago
 # Copyright (C) 2005--2008  Gordon Kindlmann
 # Copyright (C) 1998--2004  University of Utah
 #
@@ -31,9 +31,7 @@ TEEM_SRC ?= ..
 ifeq (,$(DEF_TARGETS))
 DEF_TARGETS = true
 dev     : $(L)/dev
-install : $(L)/install
 clean   : $(L)/clean
-clobber : $(L)/clobber
 include ../GNUmakefile
 endif
 ifeq (,$($(L).SEEN))
@@ -46,7 +44,7 @@ $(L).NEED = limn ell nrrd biff air
 $(L).PUBLIC_HEADERS = echo.h
 $(L).PRIVATE_HEADERS = privateEcho.h
 $(L).OBJS = enumsEcho.o methodsEcho.o objmethods.o bounds.o set.o model.o \
-	matter.o intx.o sqd.o list.o color.o lightEcho.o renderEcho.o 
+	matter.o intx.o sqd.o list.o color.o lightEcho.o renderEcho.o
 $(L).TESTS = test/test test/trend
 ####
 ####

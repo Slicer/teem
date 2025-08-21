@@ -1,6 +1,6 @@
 #
 # Teem: Tools to process and visualize scientific data and images
-# Copyright (C) 2009--2023  University of Chicago
+# Copyright (C) 2009--2025  University of Chicago
 # Copyright (C) 2005--2008  Gordon Kindlmann
 # Copyright (C) 1998--2004  University of Utah
 #
@@ -22,7 +22,7 @@
 ####
 L := bin
 ####
-#### We're not a library at all actually ...
+#### ha ha actually we're not a library at all ...
 ####
 
 # boilerplate: default targets (except usable) and include tricks
@@ -31,9 +31,7 @@ TEEM_SRC ?= ..
 ifeq (,$(DEF_TARGETS))
 DEF_TARGETS = true
 dev     : $(L)/dev
-install : $(L)/install
 clean   : $(L)/clean
-clobber : $(L)/clobber
 include ../GNUmakefile
 endif
 ifeq (,$($(L).SEEN))
@@ -50,36 +48,25 @@ BINS = airSanity cubic nrrdSanity overrgb emap talkweb \
   tend spots ninspect deconv puller
 
 ## _binD(bins): list of development locations for given bins
-## _binI(bins): list of install locations for given bins
-## _binDI(bins): list of install and development locations for given bins
+## (With TeemV2 simplification, there is no "install" anything anymore)
 ##
 _binD = $(foreach bin,$(1),$(TEEM_SRC)/bin/$(bin))
-_binI = $(foreach bin,$(1),$(BDEST)/$(bin))
-_binDI = $(foreach bin,$(1),$(TEEM_SRC)/bin/$(bin) $(BDEST)/$(bin))
 
-## BINS.{DEV,INST}: full paths to development and install versions
+## BINS.DEV: full paths to development versions
 ##
 BINS.DEV := $(call _binD,$(BINS))
-BINS.INST := $(call _binI,$(BINS))
 
-
-## Entry-point targets for binaries.  There is no "usable" for
-## binaries, since they aren't libraries.
+## Entry-point targets for binaries.
 ##
 bin/dev: $(BINS.DEV)
-bin/install: $(BINS.INST)
 bin/clean:
 	$(RM) $(addsuffix $(DOTEXE),$(BINS.DEV))
-bin/clobber: bin/clean
-	$(RM) $(addsuffix $(DOTEXE),$(BINS.INST))
 
-## All the prerequisite usables of the bins, **RECURSIVELY EXPANDED**
-## (or not? since things here are depending on meet, and yet not all
-## Teem libraries are listed here).  The calls to need() will work
-## correctly because we've gotten here only after going through all
-## the other library makesfiles.  The arguments to need() are
-## libraries for which we need a header and/or libraries we need to
-## link against.
+## All the prerequisite usables of the bins, **RECURSIVELY EXPANDED** (or not? since
+## things here are depending on meet, and yet not all Teem libraries are listed here).
+## The calls to need() will work correctly because we've gotten here only after going
+## through all the other library makesfiles.  The arguments to need() are libraries for
+## which we need a header and/or libraries we need to link against.
 ##
 airSanity.need  = $(call meneed,air)
 cubic.need      = $(call meneed,ell)
@@ -104,12 +91,11 @@ pprobe.need     = $(call meneed,meet ten limn gage nrrd ell biff hest air)
 spots.need      = $(call meneed,alan nrrd ell biff hest air)
 puller.need     = $(call meneed,meet pull ten gage nrrd ell biff hest air)
 
-## Old: "We need some way of expressing the fact that a given binary
-## (install and dev) depends on the usable of its top dependency."
-## Problem: Its not sufficient to use the "top dependency" because the
-## dependencies are not strict subsets/supersets: mrender's "top"
-## dependency is hoover, but hoover doesn't depend on gage, which
-## mrender needs
+## Old: "We need some way of expressing the fact that a given binary (install and dev)
+## depends on the usable of its top dependency."
+## Problem: Its not sufficient to use the "top dependency" because the dependencies are
+## not strict subsets/supersets: mrender's "top" dependency is hoover, but hoover doesn't
+## depend on gage, which mrender needs
 ##
 $(call _binDI,airSanity)  : $(call used,$(airSanity.need))
 $(call _binDI,cubic)      : $(call used,$(cubic.need))
@@ -134,11 +120,10 @@ $(call _binDI,tend)       : $(call used,$(tend.need))
 $(call _binDI,spots)      : $(call used,$(spots.need))
 $(call _binDI,puller)     : $(call used,$(puller.need))
 
-## How to make bins.dev and bins.inst: both kinds link against the
-## same (installed) libraries and include the same (installed)
-## headers, so the commands aren't actually any different ...
+## How to make bins.dev: link against the same libraries and include the same
+## (installed) headers, so the commands aren't actually any different ...
 ##
-$(TEEM_SRC)/bin/% $(BDEST)/% : $(TEEM_SRC)/bin/%.c
+$(BDEST)/% : $(TEEM_SRC)/bin/%.c
 	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< \
 	$(LPATH) $(call link,$($(notdir $@).need)) \
 	$(call xtern.Lpath,$($(notdir $@).need)) \
