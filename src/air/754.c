@@ -101,7 +101,7 @@ const airEnum *const airFPClass_ae = &_airFPClass_ae;
 */
 
 /*
-With Teem v2, GLK decided to drop configuration-time learning of, and compile-time
+With TeemV2, GLK decided to drop configuration-time learning of, and compile-time
 handling of, "QNaNHiBit": the most significant bit (MSB) of the fraction bitfield in a
 quiet (versus signalling) NaN.
 
