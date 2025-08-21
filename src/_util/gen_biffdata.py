@@ -250,7 +250,7 @@ def parse_args():
         help='output directory in which to put per-library .csv files',
     )
     parser.add_argument(
-        'teem_source', help='path of Teem source checkout with "src" and "arch" subdirs'
+        'teem_source', help='path of Teem source checkout with "src" and "built" subdirs'
     )
     # we always do all the libraries (that might use biff)
     # regardless of "experimental"
@@ -264,10 +264,10 @@ def check_args(args) -> None:
     teemsrc = args.teem_source
     if not (
         os.path.isdir(teemsrc)
-        and os.path.isdir(f'{teemsrc}/arch')
+        and os.path.isdir(f'{teemsrc}/built')
         and os.path.isdir(f'{teemsrc}/src')
     ):
-        raise Exception(f'Need Teem source {teemsrc} to be dir with "arch" and "src" subdirs')
+        raise Exception(f'Need Teem source {teemsrc} to be dir with "src" and "built" subdirs')
     return args
 
 
