@@ -17,7 +17,7 @@
   along with this library; if not, see <https://www.gnu.org/licenses/>.
 */
 
-/* for Teem v2 the Deft stuff was removed from puller.c; but this
+/* for TeemV2 the Deft stuff was removed from puller.c; but this
    file preserves it for posterity. */
 /*
 ** NOTE: all the "#ifdef DEFT" directives refer to an FLTK2-based GUI

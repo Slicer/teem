@@ -1082,7 +1082,7 @@ traceread(pullTrace *trc, FILE *file, unsigned int _ti) {
   } else {                                                                              \
     airOneLine(file, line, AIR_STRLEN_MED + 1);                                         \
   }
-  hackhack = nrrdStateVerboseIO; /* should be fixed in Teem v2 */
+  hackhack = nrrdStateVerboseIO; /* HEY should be fixed in TeemV2 */
   nrrdStateVerboseIO = 0;
   READ(vert);
   READ(strn);

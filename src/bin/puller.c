@@ -17,7 +17,7 @@
   along with this library; if not, see <https://www.gnu.org/licenses/>.
 */
 
-/* for Teem v2 the Deft stuff was removed from this file; see
+/* for TeemV2 the Deft stuff was removed from this file; see
    puller-with-Deft.c for that code */
 
 #include <teem/pull.h>

@@ -27,7 +27,7 @@
 ## set it, not to anything in particular).  If external EXT is enabled during make, then
 ## TEEM_EXT will be defined as "1" during source file compilation.
 ##
-## For Teem v2, the TEEM_EXT_IPATH and TEEM_EXT_LPATH (e.g TEEM_ZLIB_IPATH and
+## For TeemV2, the TEEM_EXT_IPATH and TEEM_EXT_LPATH (e.g TEEM_ZLIB_IPATH and
 ## TEEM_ZLIB_LPATH) variables are changed to EXT.IPATH and EXT.LPATH, set here (since
 ## there are no longer multiple architectures to simultaneously support)
 ##

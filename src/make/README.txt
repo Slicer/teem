@@ -17,7 +17,7 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-(these reflect the simplification of non-CMake building done for Teem v2)
+(these reflect the simplification of non-CMake building done for TeemV2)
 
 =========================
 User-set environment variables which effect global things:
@@ -26,10 +26,6 @@ User-set environment variables which effect global things:
 TEEM_ROOT: the top-level "teem" directory, under which are the directories where object,
   library, and include files will be installed.  If not set, the top-level directory is
   taken to be "../..", when inside the source directory for the individual libraries
-
-TEEM_LINK_SHARED: if set to "true" then binaries, when linked, will be linked with shared
-  libraries, and not static libraries. If not set, we link against static libraries, in
-  order to produce stand-alone-ish binaries
 
 =========================
 The variables that can be set by the individual library Makefile's

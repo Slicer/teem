@@ -73,7 +73,7 @@ const int nrrdTypeIsIntegral[NRRD_TYPE_MAX + 1] = {
   0  /* nrrdTypeBlock: "for some reason we pretend that blocks are integers" is what this
      used to say since ~2002 when this array was created (under the name nrrdTypeFixed[],
      as opposed to floating point), but that was never justified or necessary (afaik).
-     For 2023 Teem v2 hacking, GLK got annoyed that CC code in cc.c didn't immediately
+     For 2023 TeemV2 hacking, GLK got annoyed that CC code in cc.c didn't immediately
      complain that nrrdTypeBloack was a useless type for output CC IDs. */
 };
 
