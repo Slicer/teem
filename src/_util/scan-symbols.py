@@ -735,12 +735,9 @@ def argsCheck(tPath, lib):
         raise Exception(f'Need {tPath} to be dir with "arch" and "src" subdirs')
     if not os.path.isdir(f'{tPath}/src/{lib}'):
         raise Exception(f'Do not see library "{lib}" subdir in "src" subdir')
-    if not 'TEEM_ARCH' in os.environ:
-        raise Exception(f'Environment variable "TEEM_ARCH" not set')
-    archEV = os.environ['TEEM_ARCH']
-    archDir = f'{tPath}/arch/{archEV}'
+    archDir = f'{tPath}/built'
     if not os.path.isdir(archDir):
-        raise Exception(f'Do not see "{archDir}" subdir for TEEM_ARCH "{archEV}"')
+        raise Exception(f'Do not see "{archDir}" subdir')
     libDir = f'{tPath}/src/{lib}'
     if not os.path.isdir(libDir):
         raise Exception(f'Do not see "{libDir}" subdir for lib "{lib}"')
