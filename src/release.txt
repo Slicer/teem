@@ -43,7 +43,8 @@ to ensure that clang-format has been run on everything
       and then again with -biff 3 to check on all biff usage
   run src/_util/scan-defines.py
 
--1) finalize TEEM_VERSION* in air/air.h and airTeemReleaseDate in air/misc.c
+-1) finalize TEEM_VERSION* in air/air.h and CMakeLists.txt
+and airTeemReleaseDate in air/misc.c
 and set airTeemReleaseDone to AIR_TRUE
 
 -0.5) regenerate python wrappers in teem/python
@@ -65,6 +66,7 @@ scp index.html kindlmann,teem@web.sourceforge.net:/home/project-web/teem/htdocs
 (HEY: need to figure out using rsync to move things to sourceforge)
 
 1) Make sure it works
+(these steps are ancient guidance, from before CMake, and before TeemV2 simplifications)
   "make teem/dev teem/install" on every supported architecture,
   and make sure Windows stuff also still works (if new files or
   libraries were added)
@@ -91,8 +93,8 @@ mv NrrdIO-${VERSION}-src.tar.gz ~/rel
 
 4) Checkout a tree:
 
-"make teem/install" on all platforms ...
-(actually this is ancient guidance, from before CMake)
+Use CMake to try building and installing a variety of platforms ...
+(these steps are ancient guidance, from before CMake, and before TeemV2 simplifications)
 
 rapture/ray/muse:
 setenv TEEM_ARCH irix6.64
@@ -123,6 +125,7 @@ setenv TEEM_PNG_LPATH -L/usr/local/lib
 setenv TEEM_PNG_IPATH -I/usr/local/include
 
 5) Create Unix-ish binary builds (without src or docs):
+(these steps are ancient guidance, from before CMake, and before TeemV2 simplifications)
    for each TEEM_ARCH in:
    irix6.n32 linux.ia64 linux.amd64 linux.32 cygwin solaris darwin.32 darwin.64
 -  ssh to some ARCH machine, copy teem-VERSION-src.tar.gz there if needed
@@ -130,7 +133,7 @@ setenv TEEM_PNG_IPATH -I/usr/local/include
       compile into the distributed statically linked binaries
 setenv VERSION <<<version>>>
 tar xzvf ~/rel/teem-${VERSION}-src.tar.gz
-cd teem-${VERSION}-src; setenv TEEM_DEST `pwd`
+cd teem-${VERSION}-src; setenv TEEM_DEST `pwd`    # HEY TEEM_DEST is gone for TeemV2
 cd src; make; cd ..
 mv src/LICENSE.txt .
 yes | rm -rf README.txt aix cygwin darwin.32 darwin.64 irix6.64 \
