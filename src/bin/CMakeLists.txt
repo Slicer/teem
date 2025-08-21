@@ -21,7 +21,7 @@ macro(CREATE_EXEC name sources)
   add_executable(${name} ${sources})
   target_link_libraries(${name} teem)
   install(TARGETS ${name}
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION ${BIN_INSTALL_DIR}
     COMPONENT Runtime
     )
   set_target_properties(${name} PROPERTIES
@@ -41,7 +41,7 @@ CREATE_EXEC(unu unu.c)
 CREATE_EXEC(puller puller.c)
 CREATE_EXEC(tend tend.c)
 
-### For Teem v2, these were removed from compilation: they have no compelling
+### For TeemV2, these were removed from compilation: they have no compelling
 ### general purpose, for reasons indicated with further comments. No reason
 ### to delete the sources though; they can still be compiled by other means.
 ##
