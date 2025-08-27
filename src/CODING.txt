@@ -23,7 +23,7 @@ nrrdSpaceOriginGetExample(const Nrrd *nrrd, double vector[NRRD_SPACE_DIM_MAX]) {
 }
 
 Note:
-* No tabs, ever. (why: no two editors show them the same)
+* No tabs, ever. (why: no two editors necessarily show them the same)
 * Two spaces per level of indentation
 * In function definition (and only in definition), the function name
 starts a new line (why: makes it trivial to use grep or ack to
@@ -242,7 +242,9 @@ been able to figure out who set this up, in order to get it fixed or updated.
 * The tests in teem/Testing are slowly accumulating.  Much of the effort in
 ongoing Teem development will be in creating and strengthening tests.
 
-* Teem is 99.9% ANSI C89.  The known ways in which it isn't conformant are:
+* Prior to TeemV2, Teem is 99.9% ANSI C89. For TeemV2 some libraries outside
+NrrdIO are starting to adopt C99 and C11, because of the improvements they offer.
+Aside from those, the known ways that Teem code isn't C89:
  - using the "long long" type qualifier to generate 64-bit ints (on *nix,
    and __int64 on Windows).
  - various strings created at compile time, often via the automatic
@@ -285,11 +287,13 @@ before every last one of these is cleared up.
 is certainly unintentional within a function, but there are various math and
 system calls with names that conflict with their use as variables or
 parameters, whether or not the existing names are true blue ANSI C.  Here are
-some that have been removed from Teem, starting with the most suprising: index:
-looks to be same as strchr, but in strings.h instead of string.h round: round
-double to integer y0, y1: along with j0, j1, jn, yn, these are for Bessel
-functions signal: basic unix process communication read: read from file
-descriptors; a system call exp, log2: math functions, oops
+some that have been removed from Teem, starting with the most suprising:
+index: looks to be same as strchr, but in strings.h instead of string.h
+round: round double to integer
+y0, y1: along with j0, j1, jn, yn, these are for Bessel functions
+signal: basic unix process communication
+read: read from file descriptors; a system call
+exp, log2: math functions, oops
 
 * It would be nice if Teem can compile without warnings as C++ code; There are
 two main issues:
