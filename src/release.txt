@@ -94,7 +94,7 @@ mv NrrdIO-${VERSION}-src.tar.gz ~/rel
 4) Checkout a tree:
 
 Use CMake to try building and installing a variety of platforms ...
-(these steps are ancient guidance, from before CMake, and before TeemV2 simplifications)
+HEY HEY these steps are ancient guidance, from before CMake, and before TeemV2 simplifications
 
 rapture/ray/muse:
 setenv TEEM_ARCH irix6.64
