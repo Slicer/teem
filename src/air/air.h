@@ -758,14 +758,15 @@ AIR_EXPORT void airMopSingleOkay(airArray *arr, void *ptr);
 ** (as arising from !(NaN-NaN) or !(inf-inf)). BTW GLK is unsure why the current macro
 ** explicitly casts the result of "!" to int, since "!" already produces an int:
 ** https://en.cppreference.com/w/c/language/operator_logical. A more straight-forward
-** alternative, which avoids float conversion warnings, would be to use "x-x == x-x".
+** alternative, which avoids float conversion warnings, would be to use "x-x == x-x"
 **
-** Configuring with CMake uses teem/CMake/testAIR_EXISTS.c to test this macro (but NOTE:
-** it has to be copy-pasted to there since it can't read air.h), which then produces
+** Configuring with CMake uses teem/CMake/TestAIR_EXISTS.c (and tries to compile it the
+** same as the rest of Teem will be compiled) to test this macro (but NOTE: it has to be
+** copy-pasted to there since it can't read air.h), which then produces
 ** teem-install-dir/include/teem/airExistsConf.h, which #define's AIR_EXISTS_MACRO_FAILS
-** or not, which controls whether AIR_EXISTS uses the clever macro or the more reliable
-** function call airExists. Still, there may be failure modes untested by
-** testAIR_EXISTS.c, and by the tests in air/airSanity().
+** or not, which controls whether AIR_EXISTS here uses the clever macro or the more
+** reliable function call airExists. There may yet be failure modes untested by
+** TestAIR_EXISTS.c, and by the tests in air/airSanity().
 */
 /* ---- BEGIN non-NrrdIO */
 #if !defined(TEEM_NON_CMAKE)
