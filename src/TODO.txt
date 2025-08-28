@@ -31,11 +31,6 @@ useful for Teem-using apps to have an API for this.  Libraries within
 Teem can't use "meet", but there should at least be consistent naming
 conventions.
 
-Consider doing away with "experimental" libraries and applications:
-its annoying to have two totally different kinds of Teem installs,
-especially when it means that it would mean two different python
-wrappings.
-
 Consider extending const-correctness of function input not just to
 pointers, but to all values as well.
 
@@ -244,7 +239,6 @@ push:
 ** should be re-evaluated.
 
 for cmake:
- - build pv on windows
  - see if wild-card expansion works as expected on windows
  - make cmd-line utilities link with static libs
 
@@ -297,26 +291,3 @@ ikits Vis03: A Constraint-based Technique for Haptic Volume Exploration
 fout Eurovis 05: High-Quality Rendering of Compressed Volume Data Formats
 callahan TVCG May/June 05: Hardware-Assisted Visibility Sorting for Unstructured Volume Rendering
 jorik blaas vis05 fiber paper
-
-Following are less of an issue now that CMake is in use ...
-
-make system really botched: change the size of the tenFiberContext
-(added a field or two), do a make ten/install,
-then cd ../push; rm -f test/pusher
-
-make install; make; and
-you'll STILL get memory errors due to seeing library/object files
-which use the older context size.  Do a top-level make clobber, and
-then things work.  This is crap.  I think the problem is that
-development object files of push were not recompiled when they should
-have been- doing a make clobber; make in push solved the problem...
-Examples of this:
-- change limn.h, cd ../ten, make, nothing to be done WRONG
-- make a change in nrrdEnums.h, which unrrdu/project.c
-  uses directly. recompile, and nrrd gets compiled, but not unrrdu,
-  so unu doesn't get updated correctly!
-- add a macro in ELL, make install in ell,
-  cd limn, make ../limn/test/tiso, doesn't see new header
-  and fails at link-time with "<new macro> symbol undefined"
-- want seperate directories for static and shared libraries
-- want bin/dev and bin/install targets

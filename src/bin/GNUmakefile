@@ -18,7 +18,6 @@
 #
 
 # boiler-ish-plate: default targets, include, and guarding per-"lib" rules
-ifndef bin.Included
 TeemRoot ?= ../..
 TeemSrc ?= ..
 ifndef DefaultTargets
@@ -26,8 +25,9 @@ ifndef DefaultTargets
   bild  : bin.bild
   clean : bin.clean
 endif
-.PHONY: $(TeemSrc)/GNUmakefile
 include $(TeemSrc)/GNUmakefile
+ifndef bin.Included
+bin.Included := yes
 
 #### By the ordering and guarding of includes, this should ALWAYS be the last "library"
 #### makefile to be parsed, regardless of the directory in which make started.

@@ -17,13 +17,16 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-# boilerplate: start include guard based on containing dir, then
-# set library name L, define default targets, include top-level GNUmakefile
-pardir := $(notdir $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST))))))
-ifndef $(pardir).Included
-######## HERE is where L is set to library name
-L := $(pardir)
-$(L).Included := yes
+#### Library name
+####
+####
+L := air
+####
+####
+####
+
+# boilerplate: set top-level paths and targets if not set, include top-level GNUmakefile,
+# and guard reading of per-library variables and (via template.mk) rules
 TeemRoot ?= ../..
 TeemSrc ?= ..
 ifndef DefaultTargets
@@ -32,8 +35,9 @@ ifndef DefaultTargets
   test  : $(L).test
   clean : $(L).clean
 endif # ifndef DefaultTargets
-.PHONY: $(TeemSrc)/GNUmakefile
 include $(TeemSrc)/GNUmakefile
+ifndef $(L).Included
+$(L).Included := yes
 
 #### Describe library L here
 ####
@@ -49,7 +53,7 @@ $(L).Test = floatprint doubleprint tok tmop tline fp trand trandJSF tmisc \
 ####
 ####
 
-# boilerplate: declare rules for L via template, finish include guard
-.PHONY: $(TeemSrc)/make/template.mk
+# boilerplate: enable "make test/T", template lib L rules, finish include guard
+$(foreach T,$($(L).Test),$(eval test/$(T) : ../$(L)/test/$(T)))
 include $(TeemSrc)/make/template.mk
 endif # ifndef $(L).Included

@@ -169,8 +169,6 @@ ObjPath := $(TeemRoot)/built/obj
 HdrPath := $(TeemRoot)/built/include
 LibPath := $(TeemRoot)/built/lib
 BinPath := $(TeemRoot)/built/bin
-$(foreach dir,$(ObjPath) $(HdrPath) $(HdrPath)/teem $(LibPath) $(BinPath),\
-   $(call create.if.missing,$(dir)))
 dashI += -I$(HdrPath)
 # we still need this for the teem*.h headers (such as teemPng.h)
 dashI += -I$(TeemRoot)/include
@@ -193,6 +191,10 @@ create.if.missing = \
       $(shell mkdir $(1)))
 llink = $(foreach L,$(call RevOrder,$(1)),-l$(L))
 banner = echo -e "\n-------" $(1) "-------" $(1) "-------" $(1) "-------" $(1) "-------\n"
+
+## name of parent directory that immediately contains us
+## (used in a previous version of lib/GNUmakefile)
+# pardir := $(notdir $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST))))))
 
 ## NOTE: In all of these, "File" could be singular or plural
 ## SrcHdrFile(L): paths to all (public and private) headers in souce for lib L
@@ -299,6 +301,10 @@ Externs.llink  = $(call evallist,$(call forExtern,$(1),XXX.llink))
 # TEEM_PTHREAD= TEEM_PNG= TEEM_LEVMAR=1 make --warn-undefined-variables
 
 #######################################
+
+## Create missing directories as needed
+$(foreach dir,$(ObjPath) $(HdrPath) $(HdrPath)/teem $(LibPath) $(BinPath),\
+   $(call create.if.missing,$(dir)))
 
 ## Read in the makefiles for all the libraries, and the bins.  Run-away recursive
 ## inclusion is prevented by the Top.Included and other guards.  Note: "include" is a

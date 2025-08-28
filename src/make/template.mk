@@ -1,4 +1,4 @@
-	#
+#
 # Teem: Tools to process and visualize scientific data and images
 # Copyright (C) 2009--2025  University of Chicago
 # Copyright (C) 2005--2008  Gordon Kindlmann
@@ -25,11 +25,14 @@
 #### an immediate set by the library GNUmakefile.
 ####
 
-## Avoid redundant calls to Need(L) by evaluating and saving this once
+## Avoid redundant expensive calls evaluating and saving these once
 ##
 $(L).Need := $(call Need,$(L))
 $(L).MeNeed := $(call MeNeed,$(L))
-#$(warning template(L): $(L).Need = |$($(L).Need)|, $(L).MeNeed = |$($(L).MeNeed)|)
+$(L).MeNeedFile := $(foreach lib,$($(L).MeNeed),$(call LibFile,$(lib)) $(call HdrFile,$(lib)))
+#$(warning template($(L)): $(L).Need = |$($(L).Need)|)
+#$(warning template($(L)): $(L).MeNeed = |$($(L).MeNeed)|)
+#$(warning template($(L)): $(L).MeNeedFile = |$($(L).MeNeedFile)|)
 
 ## In a rule, the contexts of the target and the prerequisite are immediate, the contexts
 ## of the commands are deferred; there is no getting around this.  Thus, if the commands
@@ -37,12 +40,12 @@ $(L).MeNeed := $(call MeNeed,$(L))
 ## is the one in effect with WHEN THE COMMAND IS RUN, not the one when the rule was read
 ## by make.  Not useful.
 ##
-## For all the "entry-point" targets, we enstate a pattern-specific immediate variable
-## value _L.  This bridges the immediate and deferred stages by remembering the value of
-## L at the time the rule was read, so that it can be used in the deferred context of the
-## rule's commands when run.  Fortunately, the sementics of pattern-specific variables
-## mean that the value of _L will be set the same when satisfying all prerequisites of
-## $(L).%, which is exactly what we want.
+## For all the phony entry-point targets, we enstate a pattern-specific immediate
+## variable value _L.  This bridges the immediate and deferred stages by remembering the
+## value of L at the time the rule was read, so that it can be used in the deferred
+## context of the rule's commands when run.  Fortunately, the sementics of
+## pattern-specific variables mean that the value of _L will be set the same when
+## satisfying all prerequisites of $(L).%, which is exactly what we want.
 ##
 $(L).% : _L := $(L)
 
@@ -51,27 +54,26 @@ $(L).% : _L := $(L)
 ## subsume the definition above, but it doesn't hurt to have both.
 ##
 $(call LibFile,$(L)) : _L := $(L)
-
-## not sure why these are needed- version 3.78.1 on a solaris box definately needed the
-## last one, while others didn't
 $(call HdrFile,$(L)) : _L := $(L)
 $(call ObjFile,$(L)) : _L := $(L)
 $(call TestFile,$(L)): _L := $(L)
 
 ## Here are the actual rules for building!
 
-## $(L).bild depends on $(P).bild for each pre-req libraries P,
-## on and $(L)'s library and header files in their built location
+## $(L).bild depends on the library and header files, in their built location, for me (L)
+## and for everything I (transitively) depend on.  Rules below will describe how my
+## library and header files are created; prior libraries running this template.mk will do
+## the same for them.
 ##
-#$(warning [L.bild] $(L).bild : $(foreach P,$($(L).Need),$(P).bild) $(call LibFile,$(L)) $(call HdrFile,$(L)))
-$(L).bild : $(foreach P,$($(L).Need),$(P).bild) $(call LibFile,$(L)) $(call HdrFile,$(L))
+#$(warning $(L).bild : $($(L).MeNeedFile))
+$(L).bild : $($(L).MeNeedFile)
 
-## $(L).test depends first building L (and everything that depends on),
-## and then specifically on all the per-lib test programs
-#$(warning $(L).test : $(L).bild)
-$(L).test : $(L).bild
+## $(L).test depends on all the per-lib test programs
+## which in turn depend on first building L (and everything that it depends on),
 #$(warning $(L).test : $(call TestFile,$(L)))
 $(L).test : $(call TestFile,$(L))
+#$(warning $(call TestFile,$(L)) : $($(L).MeNeedFile)
+$(call TestFile,$(L)) : $($(L).MeNeedFile)
 
 ## $(L).clean undoes $(L).bild and $(L).test
 ##
@@ -81,18 +83,16 @@ ifdef LITTER
 	$(RM) -r $(foreach bin,$(call TestFile,$(_L)),$(bin)$(LITTER))
 endif
 
-# HEY still have to figure this out $(if $(LITTER),$(RM) $(TEEM_ROOT)/src/$(_L)/$(LITTER))
-
-## The objects of a lib depend on the headers of the libraries we depend on,
-## and on our own headers.
+## The objects of a lib depend on the headers of the libraries we
+## depend on (both directly and indirectly, or else ABI mismatches,
+## no?), and on our own headers.
 ##
 #$(warning [ObjFile(L)] $(call ObjFile,$(L)) : ...)
-#$(warning [ObjFile(L)] ... : $(call HdrFile,$($(L).Depends)) $(call SrcHdrFile,$(L)))
-$(call ObjFile,$(L)) : $(call HdrFile,$($(L).Depends)) $(call SrcHdrFile,$(L))
+#$(warning [ObjFile(L)] ... : $(call HdrFile,$($(L).Need)) $(call SrcHdrFile,$(L)))
+$(call ObjFile,$(L)) : $(call HdrFile,$($(L).Need)) $(call SrcHdrFile,$(L))
 
 ## (L).maybebanner(obj) returns "echo ..." to show a library banner progress indicator,
-## but only if obj is the first object in $(L).OBJS.  This mimics the behavior under the
-## old recursive teem makefile.
+## but only if obj is the first object in $(L).OBJS.
 ##
 $(L).maybebanner = $(if $(filter $(notdir $(1:.c=.o)),\
                                  $(word 1,$($(_L).Obj))),\
