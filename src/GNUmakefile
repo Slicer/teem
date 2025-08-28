@@ -65,6 +65,9 @@
 #### and are thus removed.  Instead, a new single make/arch.mk contains the
 #### information that used to be there, or at least variables from which to hang
 #### this info.
+#### Analogously, the results of building are no longer put into a per-architecture
+#### subdirectory of teem/arch. teem/arch is gone.  Instead the results of building are
+#### put into teem/built, with its include/, lib/ and bin/ subdirectories.
 
 ifndef Top.Included
 Top.Included := yes
@@ -76,7 +79,7 @@ Top.Included := yes
 .SUFFIXES :
 
 # avoids "make -d" perseverating with "Trying implicit prerequisite `....w'."
-# (.w files are for Knuth's cweave/ctangle)
+# (.w files are for Knuth's cweb/cweave/ctangle literate programming)
 MAKEFLAGS += -r
 
 ## TeemRoot: a relative path to directory containing "src", "include", "built" subdirs
@@ -95,8 +98,8 @@ TeemSrc ?= .
 include $(TeemSrc)/make/arch.mk
 
 ## Now that CMake-based compilation is the default, the (GNUmake) non-CMake building has
-## to a little extra work to keep working: this extra -DTEEM_NON_CMAKE flag says to $(CC)
-## "we're not building with cmake" (so e.g. don't look for teem/airExistsConf.h)
+## accomodate: this extra -DTEEM_NON_CMAKE flag says to $(CC) "we're not building with
+## cmake" (so e.g. don't look for teem/airExistsConf.h)
 CFLAGS += -DTEEM_NON_CMAKE
 
 ## information about optional external libraries to link with
@@ -112,13 +115,15 @@ include $(TeemSrc)/make/externals.mk
 Libs := air hest biff nrrd ell moss unrrdu alan tijk gage dye bane limn echo hoover seek ten elf pull coil push mite meet
 DepNums := 0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M
 ifneq ($(words $(Libs)),$(words $(DepNums)))
-  $(error |Libs| == $(words $(Libs)) != $(words $(DepNums)) == |DepNums|)
+  $(error Sorry, |Libs| == $(words $(Libs)) != $(words $(DepNums)) == |DepNums|)
 endif
 ifneq ($(DepNums),$(sort $(DepNums)))
-  $(error Not already sorted? DepNums == $(DepNums))
+  $(error Sorry, not already sorted: DepNums == $(DepNums))
 endif
 # https://stackoverflow.com/questions/52674/simplest-way-to-reverse-the-order-of-strings-in-a-make-variable
 reverse = $(if $(1),$(call reverse,$(wordlist 2,$(words $(1)),$(1)))) $(firstword $(1))
+# this one not working? https://www.gnu.org/software/make/manual/make.html#Let-Function
+# reverse = $(let first rest,$1,$(if $(rest),$(call reverse,$(rest)) )$(first))
 RevNums := $(strip $(call reverse,$(DepNums)))
 DepLibs := $(join $(DepNums),$(Libs:%=/%))
 RevLibs := $(join $(RevNums),$(Libs:%=/%))
@@ -155,18 +160,6 @@ teem.bild  : $(addsuffix .bild,$(Libs) bin)
 teem.test  : $(addsuffix .test,$(Libs)) # there is no bin.test
 teem.clean : $(addsuffix .clean,$(Libs) bin)
 
-## if.missing(path): returns "missing" if path does not exist
-##
-if.missing = $(if $(wildcard $(1)),,missing)
-
-## create.if.missing(dir): creates directory dir if it doesn't exist,
-## and gives a warning to that effect
-##
-create.if.missing = \
-  $(if $(call if.missing,$(1)),\
-    $(warning *** WARNING ***: Creating needed directory $(1)) \
-      $(shell mkdir $(1)))
-
 ## Set variables connected to directories where things go
 ## ObjPath: where the .o object files go
 ## HdrPath: where .h header files go (for #include <>)
@@ -184,10 +177,23 @@ dashI += -I$(TeemRoot)/include
 dashL += -L$(LibPath)
 
 #######################################
-## "Functions": The bread and butter of how template.mk works. Each of these can be
-## $(call)ed with a library name, as the one and only argument, in order to get a list of
-## files or flags related to library.
+## "Functions": How template.mk gets work done.
 ##
+## some little utilities:
+## llink(LIBS): "-lL" for all L in LIBS, in correct link order
+## banner(L): progress indication for compiling library L; used in template.mk.
+## if.missing(path): returns "missing" if path does not exist
+## create.if.missing(dir): creates directory dir if it doesn't exist,
+##     and gives a warning to that effect
+##
+if.missing = $(if $(wildcard $(1)),,missing)
+create.if.missing = \
+  $(if $(call if.missing,$(1)),\
+    $(warning *** WARNING ***: Creating needed directory $(1)) \
+      $(shell mkdir $(1)))
+llink = $(foreach L,$(call RevOrder,$(1)),-l$(L))
+banner = echo -e "\n-------" $(1) "-------" $(1) "-------" $(1) "-------" $(1) "-------\n"
+
 ## NOTE: In all of these, "File" could be singular or plural
 ## SrcHdrFile(L): paths to all (public and private) headers in souce for lib L
 ## HdrFile(Ls): paths to all public headers "installed" for lib L in Ls
@@ -206,14 +212,19 @@ TestFile = $(addprefix $(TeemSrc)/$(1)/test/,$($(1).Test))
 ## MeNeed(L): L and Need(L), in dependency order
 ##
 ## Yes, the whole point of "make" is to keep track of dependencies, so this would seem to
-## be a little pointless. But the issue is linking with -llib for every library lib: how
-## do you assemble the complete link command?  It needs to be the transitive closure of
-## the libs depended on.  I (GLK) can't figure out how to do this implicitly via make,
-## hence the stuff below.  Because I can't figure out how to do fixed-point determination
-## as part of a recursive function call, I'm only doing a few levels of explicit
-## prerequisite expansion. Each level is done by "dmnl" (discover more needed libs).  The
-## number of levels is more than enough for current Teem; adding more levels later is
-## trivial.
+## be a little pointless. But there are at least two cases where we want to explicitly
+## represent the transitive closure of dependencies: (1) linking with -llib for every
+## library lib: how do you assemble the complete link command?  It needs to be the
+## transitive closure of the libs depended on. (2) When stating the dependencies of
+## executables, we want to avoid phony targets so executables are not needlessly rebuilt
+## with repeated "make"s.  This means that instead of an executable depending on lib.bild
+## for some set of lib, it needs to explicitly depend on every concrete file that all the
+## lib.bild depend on (which requires the transitive closer).  I (GLK) can't figure out
+## how to do this implicitly via make, hence the stuff below.  Because I can't figure out
+## how to do fixed-point determination as part of a recursive function call, I'm only
+## doing a few levels of explicit prerequisite expansion. Each level is done by "dmnl"
+## (discover more needed libs).  The number of levels is more than enough for current
+## Teem; adding more levels later is trivial.
 ##
 ## Since we rely on $(sort) to remove redundancies, we need a way of putting the
 ## libraries back in dependency order (!= lexical order).  So, we prefix the needed
@@ -230,13 +241,6 @@ $(call dmnl,\
 $(call dmnl,\
 $(foreach lib,$(1),$($(lib).Depends))))))
 MeNeed = $(call DepOrder,$(1) $(call Need,$(1)))
-
-## More utilities
-## llink(LIBS): "-lL" for all L in LIBS, in correct link order
-## banner(L): progress indication for compiling library L; used in template.mk.
-##
-llink = $(foreach L,$(call RevOrder,$(1)),-l$(L))
-banner = echo -e "\n-------" $(1) "-------" $(1) "-------" $(1) "-------" $(1) "-------\n"
 
 ## For optional external libraries we can depend on (e.g. png, zlib, levmar)
 ## Read make/externals.mk for context and full list AllExterns
@@ -298,9 +302,9 @@ Externs.llink  = $(call evallist,$(call forExtern,$(1),XXX.llink))
 
 ## Read in the makefiles for all the libraries, and the bins.  Run-away recursive
 ## inclusion is prevented by the Top.Included and other guards.  Note: "include" is a
-## directive, not a function, which eliminates the possibility of iterating through the
-## libraries, reading the make file, and then setting variables based on what was just
-## read.
+## directive, not a function, which would seem to eliminate the possibility of iterating
+## through the libraries, reading the make file, and then setting variables based on what
+## was just read.
 ##
 ## Unfortunate trickiness: Lsave preserves the value of L, in case we're being included
 ## from a lower-level GNUmakefile which set a value for L.  If we didn't put L back the
@@ -312,6 +316,7 @@ ifdef L
     Lsave := $(L)
   endif
 endif
+# bin/GNUmakefile must be read in last; it requires knowledge of all other libs
 include $(foreach LIB,$(Libs) bin,$(TeemSrc)/$(LIB)/GNUmakefile)
 ifdef Lsave
   # ...  and clever"
