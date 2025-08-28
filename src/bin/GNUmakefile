@@ -17,7 +17,7 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-# boilerplate: default targets, include, and guarding per-"lib" rules
+# boiler-ish-plate: default targets, include, and guarding per-"lib" rules
 ifndef bin.Included
 TeemRoot ?= ../..
 TeemSrc ?= ..
@@ -29,22 +29,22 @@ endif
 .PHONY: $(TeemSrc)/GNUmakefile
 include $(TeemSrc)/GNUmakefile
 
-#### By the ordering and guarding of includes, this will ALWAYS be the last "library"
+#### By the ordering and guarding of includes, this should ALWAYS be the last "library"
 #### makefile to be parsed, regardless of the directory in which make started.
 
-## Bins: all the command-line executables associated with teem
-##
+# Bins: all the command-line executables associated with teem
+#
 Bins := airSanity nrrdSanity overrgb talkweb unu cubic qbert ilk \
   emap gkms ungantry spots tend miter mrender pprobe vprobe gprobe \
   deconv puller
 
-## BinsBild: full paths to all built and "installed" binaries
-##
+# BinsBild: full paths to all built and "installed" binaries
+#
 #$(warning BinsBild := $(foreach bin,$(Bins),$(BinPath)/$(bin)))
 BinsBild := $(foreach bin,$(Bins),$(BinPath)/$(bin))
 
-## Entry-point targets for binaries.
-##
+# Entry-point targets for binaries.
+#
 #$(warning bin.bild: $(BinsBild))
 bin.bild: $(BinsBild)
 bin.clean:
@@ -53,23 +53,25 @@ ifdef LITTER
 	$(RM) -r $(foreach bin,$(BinsBild),$(bin)$(LITTER))
 endif
 
-## Each bin needs to know the libraries it immediately depends on.
-## We do *not* need to manually find the transitive closure here
-##
-# HEY should be generating this by some sort of grep on each bin.c
+# Each bin needs to know the libraries it immediately depends on.  We
+# do *not* need to manually find the transitive closure here.  What is
+# listed here is just the lib that are #include <teem/lib.h> at the
+# start of the bin.c (perhaps this could be automated) though for
+# those that use meet, that is the only one listed (since meet depends
+# on all others).
 airSanity.Depends  := air
 nrrdSanity.Depends := nrrd biff
 overrgb.Depends    := nrrd hest biff air
 talkweb.Depends    := nrrd biff hest air
-unu.Depends        := unrrdu nrrd biff hest air
+unu.Depends        := unrrdu
 cubic.Depends      := ell
 qbert.Depends      := bane gage nrrd hest air
-ilk.Depends        := moss unrrdu nrrd ell biff hest air
+ilk.Depends        := moss unrrdu
 emap.Depends       := limn nrrd ell biff hest air
-gkms.Depends       := bane nrrd biff air
+gkms.Depends       := bane
 ungantry.Depends   := gage nrrd biff hest air
-spots.Depends      := alan nrrd ell biff hest air
-tend.Depends       := ten limn gage dye unrrdu nrrd ell biff air
+spots.Depends      := ten alan nrrd hest
+tend.Depends       := ten
 miter.Depends      := mite hoover limn nrrd ell biff air
 mrender.Depends    := meet
 pprobe.Depends     := meet
@@ -78,28 +80,35 @@ gprobe.Depends     := meet
 deconv.Depends     := meet
 puller.Depends     := meet
 
-# Binary B depends on building the libraries it depends on (and we let
-# make figure out the transitive closure), but/and,
-# when linking binary B we need to know all (the transitive closure of)
-# the libraries that B depends on, and we only want to compute that once,
-# so we save it in a target-specific variable B.needs
-# We express both inside a multi-line function:
-#$(warning $(BinPath)/$1 : $(foreach lib,$($(1).Depends),$(lib).bild))
-#$(warning $(BinPath)/$1 : $1.needs := $(sort $(foreach lib,$($(1).Depends),$($(lib).MeNeed))))
-define bin-deps
-$(BinPath)/$1 : $(foreach lib,$($(1).Depends),$(lib).bild)
-$(BinPath)/$1 : $1.needs := $(sort $(foreach lib,$($(1).Depends),$($(lib).MeNeed)))
+# Binary B depends on building the libraries it depends on. We could use the air.bild,
+# biff.bild, etc phony targets that represent the completed building of those libraries,
+# and let make figure out the transitive closure of those, to know the complete set of
+# libraries that B depends on.  However, since phony targets are always out of date, the
+# binaries would get recompiled with every run (e.g. airSanity gets recompiled every time
+# because it would depends on air.bild but air.bild is always out of date).  Thus, we
+# rely on the pre-computed per-library transitive closure stored in $(L).MeNeed to:
+# - set $(B).needlib = transitive closure of all libraries depended on
+# - set $(B).needfile = .h and .a files associated with all the above libraries
+# - state dependency of $(BinPath)/$(B) on $(B).needfile
+# We can put this inside a multi-line "function" that we then $(eval) However, everything
+# except the $(1) argument (the binary name) to the function has to have delayed
+# evaluation via $$, or else it won't work (specifically, eval will try to immediately
+# evaluate $($(1).needfile) throughout the body of the function, but it won't have a
+# value yet, so the dependency on $($(1).needfile) will be empty)
+define bin-need
+$(1).needlib  := $$(sort $$(foreach lib,$$($(1).Depends),$$($$(lib).MeNeed)))
+$(1).needfile := $$(foreach lib,$$($(1).needlib),$$(call LibFile,$$(lib)) $$(call HdrFile,$$(lib)))
+$$(BinPath)/$(1) : $$($(1).needfile)
 endef
 
-# For each binary B, state B's library dependencies, and compute B.needs
-$(foreach bin,$(Bins),$(eval $(call bin-deps,$(bin))))
+# Run bin-need for each binary B:
+$(foreach bin,$(Bins),$(eval $(call bin-need,$(bin))))
 
-## How to make binary B from B.c
-##
+# How to make binary B from B.c
 $(BinPath)/% : $(TeemSrc)/bin/%.c
 	$(CC) $(CFLAGS) $(BIN_CFLAGS) $(dashI) -o $@ $< \
-	  $(dashL) $(call llink,$($(notdir $@).needs)) \
-	  $(call Externs.dashL,$($(notdir $@).needs)) $(call Externs.llink,$($(notdir $@).needs)) -lm
+	  $(dashL) $(call llink,$($(notdir $@).needlib)) \
+	  $(call Externs.dashL,$($(notdir $@).needlib)) $(call Externs.llink,$($(notdir $@).needlib)) -lm
 
 # we're not a library; template.mk doesn't apply to us
 endif # ifndef bin.Included
