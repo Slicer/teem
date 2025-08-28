@@ -17,48 +17,43 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-#### Library name
-####
-####
-L := limn
-####
-####
-####
+# boilerplate: start include guard based on containing dir, then
+# set library name L, define default targets, include top-level GNUmakefile
+pardir := $(notdir $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST))))))
+ifndef $(pardir).Included
+######## HERE is where L is set to library name
+L := $(pardir)
+$(L).Included := yes
+TeemRoot ?= ../..
+TeemSrc ?= ..
+ifndef DefaultTargets
+  DefaultTargets := yes
+  bild  : $(L).bild
+  test  : $(L).test
+  clean : $(L).clean
+endif # ifndef DefaultTargets
+.PHONY: $(TeemSrc)/GNUmakefile
+include $(TeemSrc)/GNUmakefile
 
-# boilerplate: default targets and include tricks
-TEEM_ROOT ?= ../..
-TEEM_SRC ?= ..
-ifeq (,$(DEF_TARGETS))
-DEF_TARGETS = true
-dev     : $(L)/dev
-clean   : $(L)/clean
-include ../GNUmakefile
-endif
-ifeq (,$($(L).SEEN))
-$(L).SEEN := true
-
-#### Describe library here
+#### Describe library L here
 ####
 ####
-$(L).NEED = ell unrrdu nrrd biff hest air
-$(L).PUBLIC_HEADERS = limn.h
-$(L).PRIVATE_HEADERS = privateLimn.h
-$(L).OBJS = defaultsLimn.o qn.o light.o envmap.o cam.o methodsLimn.o \
+$(L).Depends = ell unrrdu nrrd biff hest air
+$(L).PublicHdr = limn.h
+$(L).PrivateHdr = privateLimn.h
+$(L).Obj = defaultsLimn.o qn.o light.o envmap.o cam.o methodsLimn.o \
         obj.o transform.o shapes.o renderLimn.o io.o hestLimn.o \
 	splineMisc.o splineMethods.o splineEval.o enumsLimn.o \
 	splineFit.o polydata.o polyshapes.o polymod.o polyfilter.o \
 	lpuFlotsam.o lpu_about.o lpu_ccfind.o lpu_psel.o lpu_rast.o \
 	lpu_verts.o lpu_meas.o lpu_sort.o lpu_cbfit.o
-$(L).TESTS = test/map test/light test/tcam test/tps test/tspline test/tbc \
-	test/tcamanim test/soid test/off2eps test/triimg test/plot test/intx \
-	test/tio test/clip test/lpu test/tqn
+$(L).Test = map light tcam tps tspline tbc tcamanim soid off2eps \
+	triimg plot intx tio clip lpu tqn
 ####
 ####
 ####
 
-# boilerplate: declare rules for this library
-include $(TEEM_SRC)/make/template.mk
-endif
-ifeq (,$(INCLUDED))
-  include $(TEEM_SRC)/bin/GNUmakefile
-endif
+# boilerplate: declare rules for L via template, finish include guard
+.PHONY: $(TeemSrc)/make/template.mk
+include $(TeemSrc)/make/template.mk
+endif # ifndef $(L).Included

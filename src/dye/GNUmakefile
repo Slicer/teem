@@ -17,42 +17,38 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-#### Library name
+# boilerplate: start include guard based on containing dir, then
+# set library name L, define default targets, include top-level GNUmakefile
+pardir := $(notdir $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST))))))
+ifndef $(pardir).Included
+######## HERE is where L is set to library name
+L := $(pardir)
+$(L).Included := yes
+TeemRoot ?= ../..
+TeemSrc ?= ..
+ifndef DefaultTargets
+  DefaultTargets := yes
+  bild  : $(L).bild
+  test  : $(L).test
+  clean : $(L).clean
+endif # ifndef DefaultTargets
+.PHONY: $(TeemSrc)/GNUmakefile
+include $(TeemSrc)/GNUmakefile
+
+#### Describe library L here
 ####
 ####
-L := dye
+# (needs ell for macros)
+$(L).Depends = ell biff air
+$(L).PublicHdr = dye.h
+$(L).PrivateHdr =
+$(L).Obj = methodsDye.o convertDye.o
+$(L).Test = conv bow mchist iconv
 ####
 ####
 ####
 
-# boilerplate: default targets and include tricks
-TEEM_ROOT ?= ../..
-TEEM_SRC ?= ..
-ifeq (,$(DEF_TARGETS))
-DEF_TARGETS = true
-dev     : $(L)/dev
-clean   : $(L)/clean
-include ../GNUmakefile
-endif
-ifeq (,$($(L).SEEN))
-$(L).SEEN := true
-
-#### Describe library here
-#### (needs ell for macros)
-####
-$(L).NEED = ell biff air
-$(L).PUBLIC_HEADERS = dye.h
-$(L).PRIVATE_HEADERS =
-$(L).OBJS = methodsDye.o convertDye.o
-$(L).TESTS = test/conv test/bow test/mchist test/iconv
-
-####
-####
-####
-
-# boilerplate: declare rules for this library
-include $(TEEM_SRC)/make/template.mk
-endif
-ifeq (,$(INCLUDED))
-  include $(TEEM_SRC)/bin/GNUmakefile
-endif
+# boilerplate: declare rules for L via template, finish include guard
+.PHONY: $(TeemSrc)/make/template.mk
+include $(TeemSrc)/make/template.mk
+endif # ifndef $(L).Included

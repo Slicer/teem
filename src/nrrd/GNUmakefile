@@ -17,33 +17,32 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-#### Library name
-####
-####
-L := nrrd
-####
-####
-####
+# boilerplate: start include guard based on containing dir, then
+# set library name L, define default targets, include top-level GNUmakefile
+pardir := $(notdir $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST))))))
+ifndef $(pardir).Included
+######## HERE is where L is set to library name
+L := $(pardir)
+$(L).Included := yes
+TeemRoot ?= ../..
+TeemSrc ?= ..
+ifndef DefaultTargets
+  DefaultTargets := yes
+  bild  : $(L).bild
+  test  : $(L).test
+  clean : $(L).clean
+endif # ifndef DefaultTargets
+.PHONY: $(TeemSrc)/GNUmakefile
+include $(TeemSrc)/GNUmakefile
 
-# boilerplate: default targets and include tricks
-TEEM_ROOT ?= ../..
-TEEM_SRC ?= ..
-ifeq (,$(DEF_TARGETS))
-DEF_TARGETS = true
-dev     : $(L)/dev
-clean   : $(L)/clean
-include ../GNUmakefile
-endif
-ifeq (,$($(L).SEEN))
-$(L).SEEN := true
-
-#### Describe library here
+#### Describe library L here
 ####
 ####
-$(L).NEED = biff hest air   # hest needed for callback declaration
-$(L).PUBLIC_HEADERS = nrrd.h nrrdDefines.h nrrdMacros.h nrrdEnums.h
-$(L).PRIVATE_HEADERS = privateNrrd.h
-$(L).OBJS = \
+# hest needed for callback declaration
+$(L).Depends = biff hest air
+$(L).PublicHdr = nrrd.h nrrdDefines.h nrrdMacros.h nrrdEnums.h
+$(L).PrivateHdr = privateNrrd.h
+$(L).Obj = \
 	accessors.o  arith.o     arraysNrrd.o   apply1D.o apply2D.o \
 	axis.o       comment.o   convertNrrd.o  defaultsNrrd.o   \
 	deringNrrd.o   endianNrrd.o   enumsNrrd.o   filt.o   gzio.o  \
@@ -57,17 +56,14 @@ $(L).OBJS = \
 	format.o     formatNRRD.o     formatPNM.o      formatPNG.o \
 	formatVTK.o      formatText.o     formatEPS.o      \
 	keyvalue.o  resampleContext.o  fftNrrd.o
-$(L).TESTS = test/tread test/trand test/ax test/io test/strio test/texp \
-	test/minmax test/tkernel test/typestest test/tline test/genvol \
-	test/quadvol test/convo test/kv test/reuse test/histrad test/otsu \
-	test/dnorm test/morph test/phrnd
+$(L).Test = tread trand ax io strio texp minmax tkernel typestest \
+	tline genvol quadvol convo kv reuse histrad otsu \
+	dnorm morph phrnd
 ####
 ####
 ####
 
-# boilerplate: declare rules for this library, do other libraries + bins
-include $(TEEM_SRC)/make/template.mk
-endif
-ifeq (,$(INCLUDED))
-  include $(TEEM_SRC)/bin/GNUmakefile
-endif
+# boilerplate: declare rules for L via template, finish include guard
+.PHONY: $(TeemSrc)/make/template.mk
+include $(TeemSrc)/make/template.mk
+endif # ifndef $(L).Included

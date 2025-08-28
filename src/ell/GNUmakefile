@@ -17,42 +17,37 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-#### Library name
+# boilerplate: start include guard based on containing dir, then
+# set library name L, define default targets, include top-level GNUmakefile
+pardir := $(notdir $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST))))))
+ifndef $(pardir).Included
+######## HERE is where L is set to library name
+L := $(pardir)
+$(L).Included := yes
+TeemRoot ?= ../..
+TeemSrc ?= ..
+ifndef DefaultTargets
+  DefaultTargets := yes
+  bild  : $(L).bild
+  test  : $(L).test
+  clean : $(L).clean
+endif # ifndef DefaultTargets
+.PHONY: $(TeemSrc)/GNUmakefile
+include $(TeemSrc)/GNUmakefile
+
+#### Describe library L here
 ####
 ####
-L := ell
+$(L).Depends = nrrd biff air
+$(L).PublicHdr = ell.h ellMacros.h
+$(L).PrivateHdr =
+$(L).Obj = cubicEll.o eigen.o miscEll.o vecEll.o mat.o quat.o genmat.o
+$(L).Test = sort3 invert tq wheel rot2aa inter mmul es6
 ####
 ####
 ####
 
-# boilerplate: default targets and include tricks
-TEEM_ROOT ?= ../..
-TEEM_SRC ?= ..
-ifeq (,$(DEF_TARGETS))
-DEF_TARGETS = true
-dev     : $(L)/dev
-clean   : $(L)/clean
-include ../GNUmakefile
-endif
-ifeq (,$($(L).SEEN))
-$(L).SEEN := true
-
-#### Describe library here
-####
-####
-$(L).NEED = nrrd biff air
-$(L).PUBLIC_HEADERS = ell.h ellMacros.h
-$(L).PRIVATE_HEADERS =
-$(L).OBJS = cubicEll.o eigen.o miscEll.o vecEll.o mat.o quat.o genmat.o
-$(L).TESTS = test/sort3 test/invert test/tq test/wheel test/rot2aa \
-     test/inter test/mmul test/es6
-####
-####
-####
-
-# boilerplate: declare rules for this library
-include $(TEEM_SRC)/make/template.mk
-endif
-ifeq (,$(INCLUDED))
-  include $(TEEM_SRC)/bin/GNUmakefile
-endif
+# boilerplate: declare rules for L via template, finish include guard
+.PHONY: $(TeemSrc)/make/template.mk
+include $(TeemSrc)/make/template.mk
+endif # ifndef $(L).Included

@@ -17,41 +17,37 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-#### Library name
+# boilerplate: start include guard based on containing dir, then
+# set library name L, define default targets, include top-level GNUmakefile
+pardir := $(notdir $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST))))))
+ifndef $(pardir).Included
+######## HERE is where L is set to library name
+L := $(pardir)
+$(L).Included := yes
+TeemRoot ?= ../..
+TeemSrc ?= ..
+ifndef DefaultTargets
+  DefaultTargets := yes
+  bild  : $(L).bild
+  test  : $(L).test
+  clean : $(L).clean
+endif # ifndef DefaultTargets
+.PHONY: $(TeemSrc)/GNUmakefile
+include $(TeemSrc)/GNUmakefile
+
+#### Describe library L here
 ####
 ####
-L := moss
+$(L).Depends = ell nrrd biff hest air
+$(L).PublicHdr = moss.h
+$(L).PrivateHdr = privateMoss.h
+$(L).Obj = defaultsMoss.o methodsMoss.o sampler.o xform.o hestMoss.o
+$(L).Test = invert
 ####
 ####
 ####
 
-# boilerplate: default targets and include tricks
-TEEM_ROOT ?= ../..
-TEEM_SRC ?= ..
-ifeq (,$(DEF_TARGETS))
-DEF_TARGETS = true
-dev     : $(L)/dev
-clean   : $(L)/clean
-include ../GNUmakefile
-endif
-ifeq (,$($(L).SEEN))
-$(L).SEEN := true
-
-#### Describe library here
-####
-####
-$(L).NEED = ell nrrd biff hest air
-$(L).PUBLIC_HEADERS = moss.h
-$(L).PRIVATE_HEADERS = privateMoss.h
-$(L).OBJS = defaultsMoss.o methodsMoss.o sampler.o xform.o hestMoss.o
-$(L).TESTS = test/invert
-####
-####
-####
-
-# boilerplate: declare rules for this library
-include $(TEEM_SRC)/make/template.mk
-endif
-ifeq (,$(INCLUDED))
-  include $(TEEM_SRC)/bin/GNUmakefile
-endif
+# boilerplate: declare rules for L via template, finish include guard
+.PHONY: $(TeemSrc)/make/template.mk
+include $(TeemSrc)/make/template.mk
+endif # ifndef $(L).Included

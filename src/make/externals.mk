@@ -17,66 +17,73 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-## XTERNS: list of all the identifiers for the various external libraries that we can
+## AllExterns: list of all the identifiers for the various external libraries that we can
 ## _optionally_ link against.  Teem has no notion of depending on these in the makefile
-## sense.  Teem doesn't try to represent inter-external dependencies (e.g. PNG on zlib)
-## explicitly, but the ordering of the xterns below has to reflect the ordering on the
-## link line (e.g. PNG preceeds ZLIB)
+## sense.  Teem doesn't try to represent inter-external dependencies (e.g. PNG on ZLIB)
+## explicitly, but the ordering of the xterns below HAS TO reflect the ordering on the
+## link line (so PNG preceeds ZLIB)
 ##
-## Extern EXT is enabled during make by setting the environment variable TEEM_EXT (just
-## set it, not to anything in particular).  If external EXT is enabled during make, then
-## TEEM_EXT will be defined as "1" during source file compilation.
+## External EXT is enabled during make by setting the shell variable TEEM_EXT (just set
+## it, to anything EXCEPT "0"), either by "export TEEM_EXT; ...; make" or by
+## "TEEM_EXT= make" or "TEEM_EXT=1 make"
+## (but not: "TEEM_EXT=0 make", which leaves EXT disabled).
+## If external EXT is enabled during make, then *preprocessor symbol* TEEM_EXT will be
+## effectively #define'd as "1" during source file compilation.
 ##
-## For TeemV2, the TEEM_EXT_IPATH and TEEM_EXT_LPATH (e.g TEEM_ZLIB_IPATH and
-## TEEM_ZLIB_LPATH) variables are changed to EXT.IPATH and EXT.LPATH, set here (since
-## there are no longer multiple architectures to simultaneously support)
+## TeemV2 renamed:
+## TEEM_EXT_IPATH --> TEEM_EXT_DASHI
+## TEEM_EXT_LPATH --> TEEM_EXT_DASHL
+## and these variables can now be set here (since there are no longer multiple
+## architectures to simultaneously support). Being perfectly consistent with the
+## of the V2 reworking of GNUmake stuff would have used EXT.dashI and EXT.dashL
+## but the shell sometimes gets confused by variables with a "." inside
 ##
-XTERNS = PNG ZLIB BZIP2 PTHREAD LEVMAR FFTW3
-
-## ZLIB: for the zlib library (in gzip and PNG image format) from https://zlib.net/
-## Using zlib enables the "gzip" nrrd data encoding
-## Header file is <zlib.h>.
-ZLIB.LINK = -lz
-ZLIB.IPATH =
-ZLIB.LPATH =
-nrrd.XTERN += ZLIB
-
-## BZIP2: for the bzip2 compression library, from https://sourceware.org/bzip2/
-## Using bzip2 enables the "bzip2" nrrd data encoding.
-## Header file is <bzlib.h>.
-BZIP2.LINK = -lbz2
-BZIP2.IPATH =
-BZIP2.LPATH =
-nrrd.XTERN += BZIP2
+AllExterns = PNG ZLIB BZIP2 PTHREAD LEVMAR FFTW3
 
 ## PNG: for PNG images, from https://www.libpng.org/pub/png/libpng.html
 ## Using PNG enables the "png" nrrd format.
 ## Header file is <png.h>
-PNG.LINK = -lpng
-PNG.IPATH =
-PNG.LPATH =
-nrrd.XTERN += PNG
+PNG.llink = -lpng
+nrrd.Externs += PNG
+TEEM_PNG_DASHI ?=
+TEEM_PNG_DASHL ?=
+
+## ZLIB: for the zlib library (in gzip and PNG image format) from https://zlib.net/
+## Using zlib enables the "gzip" nrrd data encoding
+## Header file is <zlib.h>.
+ZLIB.llink = -lz
+nrrd.Externs += ZLIB
+TEEM_ZLIB_DASHI ?=
+TEEM_ZLIB_DASHL ?=
+
+## BZIP2: for the bzip2 compression library, from https://sourceware.org/bzip2/
+## Using bzip2 enables the "bzip2" nrrd data encoding.
+## Header file is <bzlib.h>.
+BZIP2.llink = -lbz2
+nrrd.Externs += BZIP2
+TEEM_BZIP2_DASHI ?=
+TEEM_BZIP2_DASHL ?=
 
 ## PTHREAD: use pthread-based multi-threading in airThreads.  Note that Windows has its
 ## own multithreading capabilities, which is used in airThread if !TEEM_PTHREAD, and we
-## are on windows.
+## are on Windows.
 ## Header file is <pthread.h>
-PTHREAD.LINK = -lpthread
-PTHREAD.IPATH =
-PTHREAD.LPATH =
-air.XTERN += PTHREAD
+PTHREAD.llink = -lpthread
+air.Externs += PTHREAD
+TEEM_PTHREAD_DASHI ?=
+TEEM_PTHREAD_DASHL ?=
 
 ## LEVMAR: Levenberg-Marquardt from https://users.ics.forth.gr/~lourakis/levmar/
 ## Header file is <levmar.h>
-LEVMAR.LINK = -llevmar
-LEVMAR.IPATH =
-LEVMAR.LPATH =
-ten.XTERN += LEVMAR
-elf.XTERN += LEVMAR
+LEVMAR.llink = -llevmar
+ten.Externs += LEVMAR
+elf.Externs += LEVMAR
+TEEM_LEVMAR_DASHI ?=
+TEEM_LEVMAR_DASHL ?=
 
 ## FFTW3: FFTW version 3 from https://www.fftw.org/
 ## Header file is <fftw3.h>
-FFTW3.LINK = -lfftw3
-FFTW3.IPATH =
-FFTW3.LPATH =
-nrrd.XTERN += FFTW3
+FFTW3.llink = -lfftw3
+nrrd.Externs += FFTW3
+TEEM_FFTW3_DASHI ?=
+TEEM_FFTW3_DASHL ?=

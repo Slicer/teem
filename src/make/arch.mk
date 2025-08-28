@@ -18,49 +18,38 @@
 #
 
 #### See NOTE in ../GNUMakefile about the big simplification to the non-CMake build
-#### process made for Teem v2.  This new file contains all the architecture-specific
+#### process made for TeemV2.  This new file contains all the architecture-specific
 #### details about how to compile (on a non-Windows machine).
 #### Whatever is in this file is GLK needed to get Teem compiling; edit as you need.
 
-AR = libtool
-ARFLAGS = -static -o
-RANLIB = ranlib
+# yes, we should probably be using ?= instead = for the assingments below, but
+# the intent here is to be clear and explicit.  The assignment "AR ?= libtool"
+# may not do anything because "AR" may default to "ar" for the sake of
+# GNUmake's implicit rules, which is annoying because implicit rules are
+# annoying. If you want different values for these variables, then change them.
 
-# the extension on the name of shared libraries (.so, .sl, .dll)
-SHEXT = dylib
-
-CC = clang
-LD = cc
 # CC = scan-build clang # to run static analyzer https://clang.llvm.org/docs/ClangStaticAnalyzer.html
+CC := cc
+LD := ld
+# historically `ar`
+AR := libtool
+# historically `ru`
+ARFLAGS := -static -o
+# sometimes needed after `ar` to store index in library
+RANLIB :=
+RM := rm -f
+# if non-empty: also delete X$(LITTER) when deleting executable X with "make clean"
+LITTER := .dSYM
+CP := cp
+CHMOD := chmod
 
-# $(CC) flag for creating executables when linking with static library
-STATIC_CFLAG = -Wl,-prebind
-# $(CC) flag for creating executables when linking with shared library
-SHARED_CFLAG =
-# any other $(CC) flag specific to creating executables (beyond two previous)
-BIN_CFLAGS =
 # other $(CC) flags for .c compilation (e.g. optimization and warnings)
-CFLAGS ?= -O3 -g -W -Wall -Wextra
-SHARED_LDFLAG = -dynamic -dynamiclib -fno-common
-SHARED_INSTALL_NAME = -install_name
+CFLAGS = -O3 -g -W -Wall -Wextra
 
-CHMOD = chmod
+# further $(CC) flags for creating executables when linking with (static) library
+BIN_CFLAGS =
 
 # more flags to try:
 # -std=c90 -pedantic -Wno-long-long -Wno-overlength-strings -Wstrict-aliasing=2 -Wstrict-overflow=5
 # -Weverything -Wno-poison-system-directories -Wno-padded -Wno-format-nonliteral -Wno-float-equal -Wno-reserved-id-macro
 ## for trying undefined behavior flagging  -fsanitize=undefined
-# $(CC) flags important for compiling particular to the target architecture
-ARCH_CFLAG =
-# $(LD) flag needed for making a shared library on the target architecture
-ARCH_LDFLAG =
-# $(LD) flag that causes a shared library generated to be produced
-SHARED_LDFLAG =
-# $(LD) flags for making shared libraries (beyond two previous)
-LDFLAGS =
-
-# Once in ~2003 when GLK was working on Windows/Cygwin, gnu make stopped working
-# reliably because the file creation dates were not correctly tracking that
-# outputs were being created after inputs. Use "SIGH = 1" to require that build
-# steps happen at a nice slow pace.
-SIGH =

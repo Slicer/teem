@@ -17,46 +17,41 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-#### Library name
-####
-####
-L := gage
-####
-####
-####
+# boilerplate: start include guard based on containing dir, then
+# set library name L, define default targets, include top-level GNUmakefile
+pardir := $(notdir $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST))))))
+ifndef $(pardir).Included
+######## HERE is where L is set to library name
+L := $(pardir)
+$(L).Included := yes
+TeemRoot ?= ../..
+TeemSrc ?= ..
+ifndef DefaultTargets
+  DefaultTargets := yes
+  bild  : $(L).bild
+  test  : $(L).test
+  clean : $(L).clean
+endif # ifndef DefaultTargets
+.PHONY: $(TeemSrc)/GNUmakefile
+include $(TeemSrc)/GNUmakefile
 
-# boilerplate: default targets and include tricks
-TEEM_ROOT ?= ../..
-TEEM_SRC ?= ..
-ifeq (,$(DEF_TARGETS))
-DEF_TARGETS = true
-dev     : $(L)/dev
-clean   : $(L)/clean
-include ../GNUmakefile
-endif
-ifeq (,$($(L).SEEN))
-$(L).SEEN := true
-
-#### Describe library here
+#### Describe library L here
 ####
 ####
-$(L).NEED = ell nrrd biff air
-$(L).PUBLIC_HEADERS = gage.h
-$(L).PRIVATE_HEADERS = privateGage.h
-$(L).OBJS = defaultsGage.o miscGage.o scl.o kind.o \
+$(L).Depends = ell nrrd biff air
+$(L).PublicHdr = gage.h
+$(L).PrivateHdr = privateGage.h
+$(L).Obj = defaultsGage.o miscGage.o scl.o kind.o \
         shape.o pvl.o update.o deconvolve.o \
 	print.o sclanswer.o sclprint.o sclfilter.o \
 	vecGage.o vecprint.o twovecGage.o st.o filter.o ctx.o \
 	stack.o stackBlur.o optimsig.o
-$(L).TESTS = test/ctfix test/demo test/vh test/aalias test/indx \
-        test/genoptsig test/ssc test/maxes test/tplot
+$(L).Test = ctfix demo vh aalias indx genoptsig ssc maxes tplot
 ####
 ####
 ####
 
-# boilerplate: declare rules for this library
-include $(TEEM_SRC)/make/template.mk
-endif
-ifeq (,$(INCLUDED))
-  include $(TEEM_SRC)/bin/GNUmakefile
-endif
+# boilerplate: declare rules for L via template, finish include guard
+.PHONY: $(TeemSrc)/make/template.mk
+include $(TeemSrc)/make/template.mk
+endif # ifndef $(L).Included

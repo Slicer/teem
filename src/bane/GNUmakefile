@@ -17,45 +17,41 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-#### Library name
-####
-####
-L := bane
-####
-####
-####
+# boilerplate: start include guard based on containing dir, then
+# set library name L, define default targets, include top-level GNUmakefile
+pardir := $(notdir $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST))))))
+ifndef $(pardir).Included
+######## HERE is where L is set to library name
+L := $(pardir)
+$(L).Included := yes
+TeemRoot ?= ../..
+TeemSrc ?= ..
+ifndef DefaultTargets
+  DefaultTargets := yes
+  bild  : $(L).bild
+  test  : $(L).test
+  clean : $(L).clean
+endif # ifndef DefaultTargets
+.PHONY: $(TeemSrc)/GNUmakefile
+include $(TeemSrc)/GNUmakefile
 
-# boilerplate: default targets and include tricks
-TEEM_ROOT ?= ../..
-TEEM_SRC ?= ..
-ifeq (,$(DEF_TARGETS))
-DEF_TARGETS = true
-dev     : $(L)/dev
-clean   : $(L)/clean
-include ../GNUmakefile
-endif
-ifeq (,$($(L).SEEN))
-$(L).SEEN := true
-
-#### Describe library here
+#### Describe library L here
 ####
 ####
-$(L).NEED = gage unrrdu nrrd biff air
-$(L).PUBLIC_HEADERS = bane.h
-$(L).PRIVATE_HEADERS = privateBane.h
-$(L).OBJS = defaultsBane.o rangeBane.o inc.o clip.o measr.o methodsBane.o \
+$(L).Depends = gage unrrdu nrrd biff air
+$(L).PublicHdr = bane.h
+$(L).PrivateHdr = privateBane.h
+$(L).Obj = defaultsBane.o rangeBane.o inc.o clip.o measr.o methodsBane.o \
 	valid.o trnsf.o scat.o hvol.o trex.o \
 	gkmsFlotsam.o \
 	gkmsHvol.o gkmsScat.o gkmsInfo.o gkmsPvg.o gkmsOpac.o \
 	gkmsMite.o gkmsTxf.o
-$(L).TESTS = test/tinfo test/sigma test/pos test/opac
+$(L).Test = tinfo sigma pos opac
 ####
 ####
 ####
 
-# boilerplate: declare rules for this library
-include $(TEEM_SRC)/make/template.mk
-endif
-ifeq (,$(INCLUDED))
-  include $(TEEM_SRC)/bin/GNUmakefile
-endif
+# boilerplate: declare rules for L via template, finish include guard
+.PHONY: $(TeemSrc)/make/template.mk
+include $(TeemSrc)/make/template.mk
+endif # ifndef $(L).Included

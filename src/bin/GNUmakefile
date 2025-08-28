@@ -17,117 +17,89 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-#### Name of the library goes here.
-####
-####
-L := bin
-####
-#### ha ha actually we're not a library at all ...
-####
-
-# boilerplate: default targets (except usable) and include tricks
-TEEM_ROOT ?= ../..
-TEEM_SRC ?= ..
-ifeq (,$(DEF_TARGETS))
-DEF_TARGETS = true
-dev     : $(L)/dev
-clean   : $(L)/clean
-include ../GNUmakefile
+# boilerplate: default targets, include, and guarding per-"lib" rules
+ifndef bin.Included
+TeemRoot ?= ../..
+TeemSrc ?= ..
+ifndef DefaultTargets
+  DefaultTargets := yes
+  bild  : bin.bild
+  clean : bin.clean
 endif
-ifeq (,$($(L).SEEN))
-$(L).SEEN := true
+.PHONY: $(TeemSrc)/GNUmakefile
+include $(TeemSrc)/GNUmakefile
 
-#### By the ordering and guarding of includes, this will ALWAYS be the
-#### last "library" makefile to be parsed, regardless of the directory
-#### in which make started.
+#### By the ordering and guarding of includes, this will ALWAYS be the last "library"
+#### makefile to be parsed, regardless of the directory in which make started.
 
-## BINS: all the command-line executables associated with teem
+## Bins: all the command-line executables associated with teem
 ##
-BINS = airSanity cubic nrrdSanity overrgb emap talkweb \
-  unu pprobe vprobe gprobe qbert mrender miter gkms ungantry ilk \
-  tend spots ninspect deconv puller
+Bins := airSanity nrrdSanity overrgb talkweb unu cubic qbert ilk \
+  emap gkms ungantry spots tend miter mrender pprobe vprobe gprobe \
+  deconv puller
 
-## _binD(bins): list of development locations for given bins
-## (With TeemV2 simplification, there is no "install" anything anymore)
+## BinsBild: full paths to all built and "installed" binaries
 ##
-_binD = $(foreach bin,$(1),$(TEEM_SRC)/bin/$(bin))
-
-## BINS.DEV: full paths to development versions
-##
-BINS.DEV := $(call _binD,$(BINS))
+#$(warning BinsBild := $(foreach bin,$(Bins),$(BinPath)/$(bin)))
+BinsBild := $(foreach bin,$(Bins),$(BinPath)/$(bin))
 
 ## Entry-point targets for binaries.
 ##
-bin/dev: $(BINS.DEV)
-bin/clean:
-	$(RM) $(addsuffix $(DOTEXE),$(BINS.DEV))
+#$(warning bin.bild: $(BinsBild))
+bin.bild: $(BinsBild)
+bin.clean:
+	$(RM) $(BinsBild)
+ifdef LITTER
+	$(RM) -r $(foreach bin,$(BinsBild),$(bin)$(LITTER))
+endif
 
-## All the prerequisite usables of the bins, **RECURSIVELY EXPANDED** (or not? since
-## things here are depending on meet, and yet not all Teem libraries are listed here).
-## The calls to need() will work correctly because we've gotten here only after going
-## through all the other library makesfiles.  The arguments to need() are libraries for
-## which we need a header and/or libraries we need to link against.
+## Each bin needs to know the libraries it immediately depends on.
+## We do *not* need to manually find the transitive closure here
 ##
-airSanity.need  = $(call meneed,air)
-cubic.need      = $(call meneed,ell)
-nrrdSanity.need = $(call meneed,nrrd biff)
-undos.need      = $(call meneed,hest air)
-overrgb.need    = $(call meneed,nrrd hest biff air)
-qbert.need      = $(call meneed,bane gage nrrd hest air)
-ilk.need        = $(call meneed,moss unrrdu nrrd ell biff hest air)
-emap.need       = $(call meneed,limn nrrd ell biff hest air)
-gkms.need       = $(call meneed,bane nrrd biff air)
-ninspect.need   = $(call meneed,nrrd biff hest air)
-unu.need        = $(call meneed,unrrdu nrrd biff hest air)
-miter.need      = $(call meneed,mite hoover limn nrrd ell biff air)
-ungantry.need   = $(call meneed,gage nrrd biff hest air)
-talkweb.need    = $(call meneed,nrrd biff hest air)
-tend.need       = $(call meneed,ten limn gage dye unrrdu nrrd ell biff air)
-mrender.need    = $(call meneed,meet ten hoover limn gage nrrd biff hest air)
-vprobe.need     = $(call meneed,meet ten limn gage nrrd ell biff hest air)
-gprobe.need     = $(call meneed,meet ten limn gage nrrd ell biff hest air)
-deconv.need     = $(call meneed,meet ten limn gage nrrd ell biff hest air)
-pprobe.need     = $(call meneed,meet ten limn gage nrrd ell biff hest air)
-spots.need      = $(call meneed,alan nrrd ell biff hest air)
-puller.need     = $(call meneed,meet pull ten gage nrrd ell biff hest air)
+# HEY should be generating this by some sort of grep on each bin.c
+airSanity.Depends  := air
+nrrdSanity.Depends := nrrd biff
+overrgb.Depends    := nrrd hest biff air
+talkweb.Depends    := nrrd biff hest air
+unu.Depends        := unrrdu nrrd biff hest air
+cubic.Depends      := ell
+qbert.Depends      := bane gage nrrd hest air
+ilk.Depends        := moss unrrdu nrrd ell biff hest air
+emap.Depends       := limn nrrd ell biff hest air
+gkms.Depends       := bane nrrd biff air
+ungantry.Depends   := gage nrrd biff hest air
+spots.Depends      := alan nrrd ell biff hest air
+tend.Depends       := ten limn gage dye unrrdu nrrd ell biff air
+miter.Depends      := mite hoover limn nrrd ell biff air
+mrender.Depends    := meet
+pprobe.Depends     := meet
+vprobe.Depends     := meet
+gprobe.Depends     := meet
+deconv.Depends     := meet
+puller.Depends     := meet
 
-## Old: "We need some way of expressing the fact that a given binary (install and dev)
-## depends on the usable of its top dependency."
-## Problem: Its not sufficient to use the "top dependency" because the dependencies are
-## not strict subsets/supersets: mrender's "top" dependency is hoover, but hoover doesn't
-## depend on gage, which mrender needs
-##
-$(call _binDI,airSanity)  : $(call used,$(airSanity.need))
-$(call _binDI,cubic)      : $(call used,$(cubic.need))
-$(call _binDI,nrrdSanity) : $(call used,$(nrrdSanity.need))
-$(call _binDI,undos)      : $(call used,$(undos.need))
-$(call _binDI,overrgb)    : $(call used,$(overrgb.need))
-$(call _binDI,qbert)      : $(call used,$(qbert.need))
-$(call _binDI,ilk)        : $(call used,$(ilk.need))
-$(call _binDI,emap)       : $(call used,$(emap.need))
-$(call _binDI,vprobe)     : $(call used,$(vprobe.need))
-$(call _binDI,gprobe)     : $(call used,$(gprobe.need))
-$(call _binDI,deconv)     : $(call used,$(deconv.need))
-$(call _binDI,pprobe)     : $(call used,$(pprobe.need))
-$(call _binDI,gkms)       : $(call used,$(gkms.need))
-$(call _binDI,ninspect)   : $(call used,$(ninspect.need))
-$(call _binDI,unu)        : $(call used,$(unu.need))
-$(call _binDI,mrender)    : $(call used,$(mrender.need))
-$(call _binDI,miter)      : $(call used,$(miter.need))
-$(call _binDI,ungantry)   : $(call used,$(ungantry.need))
-$(call _binDI,talkweb)    : $(call used,$(talkweb.need))
-$(call _binDI,tend)       : $(call used,$(tend.need))
-$(call _binDI,spots)      : $(call used,$(spots.need))
-$(call _binDI,puller)     : $(call used,$(puller.need))
+# Binary B depends on building the libraries it depends on (and we let
+# make figure out the transitive closure), but/and,
+# when linking binary B we need to know all (the transitive closure of)
+# the libraries that B depends on, and we only want to compute that once,
+# so we save it in a target-specific variable B.needs
+# We express both inside a multi-line function:
+#$(warning $(BinPath)/$1 : $(foreach lib,$($(1).Depends),$(lib).bild))
+#$(warning $(BinPath)/$1 : $1.needs := $(sort $(foreach lib,$($(1).Depends),$($(lib).MeNeed))))
+define bin-deps
+$(BinPath)/$1 : $(foreach lib,$($(1).Depends),$(lib).bild)
+$(BinPath)/$1 : $1.needs := $(sort $(foreach lib,$($(1).Depends),$($(lib).MeNeed)))
+endef
 
-## How to make bins.dev: link against the same libraries and include the same
-## (installed) headers, so the commands aren't actually any different ...
+# For each binary B, state B's library dependencies, and compute B.needs
+$(foreach bin,$(Bins),$(eval $(call bin-deps,$(bin))))
+
+## How to make binary B from B.c
 ##
-$(BDEST)/% : $(TEEM_SRC)/bin/%.c
-	$(P) $(CC) $(CFLAGS) $(BIN_CFLAGS) $(IPATH) -o $@ $< \
-	$(LPATH) $(call link,$($(notdir $@).need)) \
-	$(call xtern.Lpath,$($(notdir $@).need)) \
-	$(call xtern.link,$($(notdir $@).need)) -lm
+$(BinPath)/% : $(TeemSrc)/bin/%.c
+	$(CC) $(CFLAGS) $(BIN_CFLAGS) $(dashI) -o $@ $< \
+	  $(dashL) $(call llink,$($(notdir $@).needs)) \
+	  $(call Externs.dashL,$($(notdir $@).needs)) $(call Externs.llink,$($(notdir $@).needs)) -lm
 
 # we're not a library; template.mk doesn't apply to us
-endif
+endif # ifndef bin.Included

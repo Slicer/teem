@@ -17,33 +17,31 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-#### Library name
-####
-####
-L := ten
-####
-####
-####
+# boilerplate: start include guard based on containing dir, then
+# set library name L, define default targets, include top-level GNUmakefile
+pardir := $(notdir $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST))))))
+ifndef $(pardir).Included
+######## HERE is where L is set to library name
+L := $(pardir)
+$(L).Included := yes
+TeemRoot ?= ../..
+TeemSrc ?= ..
+ifndef DefaultTargets
+  DefaultTargets := yes
+  bild  : $(L).bild
+  test  : $(L).test
+  clean : $(L).clean
+endif # ifndef DefaultTargets
+.PHONY: $(TeemSrc)/GNUmakefile
+include $(TeemSrc)/GNUmakefile
 
-# boilerplate: default targets and include tricks
-TEEM_ROOT ?= ../..
-TEEM_SRC ?= ..
-ifeq (,$(DEF_TARGETS))
-DEF_TARGETS = true
-dev     : $(L)/dev
-clean   : $(L)/clean
-include ../GNUmakefile
-endif
-ifeq (,$($(L).SEEN))
-$(L).SEEN := true
-
-#### Describe library here
+#### Describe library L here
 ####
-#### tendCalc.o nixed
-$(L).NEED = echo limn gage unrrdu ell nrrd biff air
-$(L).PUBLIC_HEADERS = ten.h tenMacros.h
-$(L).PRIVATE_HEADERS = privateTen.h
-$(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o grads.o miscTen.o \
+####
+$(L).Depends = echo limn gage unrrdu ell nrrd biff air
+$(L).PublicHdr = ten.h tenMacros.h
+$(L).PrivateHdr = privateTen.h
+$(L).Obj = tensor.o chan.o aniso.o glyph.o enumsTen.o grads.o miscTen.o \
 	mod.o estimate.o tenGage.o tenDwiGage.o qseg.o path.o qglox.o \
 	fiberMethods.o fiber.o epireg.o defaultsTen.o bimod.o bvec.o \
 	triple.o experSpec.o tenModel.o modelBall.o model1Stick.o \
@@ -61,17 +59,14 @@ $(L).OBJS = tensor.o chan.o aniso.o glyph.o enumsTen.o grads.o miscTen.o \
 	tendEvalpow.o tendEvalclamp.o tendEvaladd.o tendEvalmult.o \
 	tendHelix.o tendBfit.o \
 	tendUnmf.o tendLog.o tendExp.o
-$(L).TESTS = test/roistat test/tg test/tt test/tem test/rotedge \
-	test/tsoid test/odf-hist test/to test/tensorDotDat \
-	test/igrt test/cntr test/geode test/taniso test/csim \
-	test/ttriple test/tqgl test/teigen
+# tendCalc.o nixed
+$(L).Test = roistat tg tt tem rotedge tsoid odf-hist to tensorDotDat \
+	igrt cntr geode taniso csim ttriple tqgl teigen
 ####
 ####
 ####
 
-# boilerplate: declare rules for this library
-include $(TEEM_SRC)/make/template.mk
-endif
-ifeq (,$(INCLUDED))
-  include $(TEEM_SRC)/bin/GNUmakefile
-endif
+# boilerplate: declare rules for L via template, finish include guard
+.PHONY: $(TeemSrc)/make/template.mk
+include $(TeemSrc)/make/template.mk
+endif # ifndef $(L).Included

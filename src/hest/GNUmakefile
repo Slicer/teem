@@ -17,42 +17,37 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-#### Library name
+# boilerplate: start include guard based on containing dir, then
+# set library name L, define default targets, include top-level GNUmakefile
+pardir := $(notdir $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST))))))
+ifndef $(pardir).Included
+######## HERE is where L is set to library name
+L := $(pardir)
+$(L).Included := yes
+TeemRoot ?= ../..
+TeemSrc ?= ..
+ifndef DefaultTargets
+  DefaultTargets := yes
+  bild  : $(L).bild
+  test  : $(L).test
+  clean : $(L).clean
+endif # ifndef DefaultTargets
+.PHONY: $(TeemSrc)/GNUmakefile
+include $(TeemSrc)/GNUmakefile
+
+#### Describe library L here
 ####
 ####
-L := hest
+$(L).Depends = air
+$(L).PublicHdr = hest.h
+$(L).PrivateHdr = privateHest.h
+$(L).Obj = defaultsHest.o methodsHest.o usage.o parseHest.o adders.o
+$(L).Test = ex1 ex2 ex3 ex4 ex5 ex6 strings bday tmpl
 ####
 ####
 ####
 
-# boilerplate: default targets and include tricks
-TEEM_ROOT ?= ../..
-TEEM_SRC ?= ..
-ifeq (,$(DEF_TARGETS))
-DEF_TARGETS = true
-dev     : $(L)/dev
-clean   : $(L)/clean
-include ../GNUmakefile
-endif
-ifeq (,$($(L).SEEN))
-$(L).SEEN := true
-
-#### Describe library here
-####
-####
-$(L).NEED = air
-$(L).PUBLIC_HEADERS = hest.h
-$(L).PRIVATE_HEADERS = privateHest.h
-$(L).OBJS = defaultsHest.o methodsHest.o usage.o parseHest.o adders.o
-$(L).TESTS = test/ex1 test/ex2 test/ex3 test/ex4 test/ex5 test/ex6 \
-	test/strings test/bday test/tmpl
-####
-####
-####
-
-# boilerplate: declare rules for this library
-include $(TEEM_SRC)/make/template.mk
-endif
-ifeq (,$(INCLUDED))
-  include $(TEEM_SRC)/bin/GNUmakefile
-endif
+# boilerplate: declare rules for L via template, finish include guard
+.PHONY: $(TeemSrc)/make/template.mk
+include $(TeemSrc)/make/template.mk
+endif # ifndef $(L).Included
