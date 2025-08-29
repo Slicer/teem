@@ -51,9 +51,6 @@
 #### env var TEEM_DEST (because now any "install" should be done via CMake)
 #### make vars ARCH, SUBARCH
 #### everything about shared libraries: TEEM_LINK_SHARED, SHEXT
-#### as well as variables TEEM_EXT_IPATH and TEEM_EXT_LPATH (for all EXT externals
-#### PNG ZLIB BZIP2 PTHREAD LEVMAR FFTW3, e.g TEEM_ZLIB_IPATH, TEEM_ZLIB_LPATH);
-#### these have become EXT.DASHI and EXT.DASHL set in make/externals.mk
 ####
 #### file errorCheck.mk gone (so simple, nothing left to error check)
 #### make var KNOWN_ARCH
@@ -283,9 +280,9 @@ forExtern = $(strip $(foreach X,$(Externs),$(foreach L,$(1),\
      $(subst XXX,$(X),$(2)))))))
 Externs.dashD = $(call forExtern,$(1),-DTEEM_XXX=1)
 evallist = $(foreach var,$(1),$($(var)))
-maybe.prefix = $(if $(2),$(1)$(2))
-Externs.dashI = $(call maybe.prefix,-I,$(call evallist,$(call forExtern,$(1),TEEM_XXX_DASHI)))
-Externs.dashL = $(call maybe.prefix,-L,$(call evallist,$(call forExtern,$(1),TEEM_XXX_DASHL)))
+maybe.prefixen = $(if $(2),$(foreach P,$(2),$(1)$(P)))
+Externs.dashI = $(call maybe.prefixen,-I,$(strip $(call evallist,$(call forExtern,$(1),TEEM_XXX_IPATH))))
+Externs.dashL = $(call maybe.prefixen,-L,$(strip $(call evallist,$(call forExtern,$(1),TEEM_XXX_LPATH))))
 Externs.llink  = $(call evallist,$(call forExtern,$(1),XXX.llink))
 
 ## DEBUG

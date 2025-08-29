@@ -30,13 +30,13 @@
 ## If external EXT is enabled during make, then *preprocessor symbol* TEEM_EXT will be
 ## effectively #define'd as "1" during source file compilation.
 ##
-## TeemV2 renamed:
-## TEEM_EXT_IPATH --> TEEM_EXT_DASHI
-## TEEM_EXT_LPATH --> TEEM_EXT_DASHL
-## and these variables can now be set here (since there are no longer multiple
-## architectures to simultaneously support). Being perfectly consistent with the
-## of the V2 reworking of GNUmake stuff would have used EXT.dashI and EXT.dashL
-## but the shell sometimes gets confused by variables with a "." inside
+## TeemV2 renamed moved the variables describing each external to here (since there are
+## no longer multiple architectures to simultaneously support). The TEEM_EXT_IPATH and
+## TEEM_EXT_LPATH variables have kept their name, but now their names are accurate: you
+## no longer start TEEM_EXT_IPATH with "-I" or TEEM_EXT_LPATH with "-L". They really just
+## just be the path; it is the job of the functions Externs.dashD and Externs.dashI
+## (defined in ../GNUmakefile and used in template.mk) to add the -I and -L to each path
+## as needed.
 ##
 AllExterns = PNG ZLIB BZIP2 PTHREAD LEVMAR FFTW3
 
@@ -45,24 +45,24 @@ AllExterns = PNG ZLIB BZIP2 PTHREAD LEVMAR FFTW3
 ## Header file is <png.h>
 PNG.llink = -lpng
 nrrd.Externs += PNG
-TEEM_PNG_DASHI ?=
-TEEM_PNG_DASHL ?=
+TEEM_PNG_IPATH ?=
+TEEM_PNG_LPATH ?=
 
 ## ZLIB: for the zlib library (in gzip and PNG image format) from https://zlib.net/
 ## Using zlib enables the "gzip" nrrd data encoding
 ## Header file is <zlib.h>.
 ZLIB.llink = -lz
 nrrd.Externs += ZLIB
-TEEM_ZLIB_DASHI ?=
-TEEM_ZLIB_DASHL ?=
+TEEM_ZLIB_IPATH ?=
+TEEM_ZLIB_LPATH ?=
 
 ## BZIP2: for the bzip2 compression library, from https://sourceware.org/bzip2/
 ## Using bzip2 enables the "bzip2" nrrd data encoding.
 ## Header file is <bzlib.h>.
 BZIP2.llink = -lbz2
 nrrd.Externs += BZIP2
-TEEM_BZIP2_DASHI ?=
-TEEM_BZIP2_DASHL ?=
+TEEM_BZIP2_IPATH ?=
+TEEM_BZIP2_LPATH ?=
 
 ## PTHREAD: use pthread-based multi-threading in airThreads.  Note that Windows has its
 ## own multithreading capabilities, which is used in airThread if !TEEM_PTHREAD, and we
@@ -70,20 +70,20 @@ TEEM_BZIP2_DASHL ?=
 ## Header file is <pthread.h>
 PTHREAD.llink = -lpthread
 air.Externs += PTHREAD
-TEEM_PTHREAD_DASHI ?=
-TEEM_PTHREAD_DASHL ?=
+TEEM_PTHREAD_IPATH ?=
+TEEM_PTHREAD_LPATH ?=
 
 ## LEVMAR: Levenberg-Marquardt from https://users.ics.forth.gr/~lourakis/levmar/
 ## Header file is <levmar.h>
 LEVMAR.llink = -llevmar
 ten.Externs += LEVMAR
 elf.Externs += LEVMAR
-TEEM_LEVMAR_DASHI ?=
-TEEM_LEVMAR_DASHL ?=
+TEEM_LEVMAR_IPATH ?=
+TEEM_LEVMAR_LPATH ?=
 
 ## FFTW3: FFTW version 3 from https://www.fftw.org/
 ## Header file is <fftw3.h>
 FFTW3.llink = -lfftw3
 nrrd.Externs += FFTW3
-TEEM_FFTW3_DASHI ?=
-TEEM_FFTW3_DASHL ?=
+TEEM_FFTW3_IPATH ?=
+TEEM_FFTW3_LPATH ?=
