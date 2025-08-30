@@ -279,11 +279,22 @@ forExtern = $(strip $(foreach X,$(Externs),$(foreach L,$(1),\
    $(if $(filter $(X),$($(L).Externs)),\
      $(subst XXX,$(X),$(2)))))))
 Externs.dashD = $(call forExtern,$(1),-DTEEM_XXX=1)
+# evallist: maps $() over list
 evallist = $(foreach var,$(1),$($(var)))
-maybe.prefixen = $(if $(2),$(foreach P,$(2),$(1)$(P)))
-Externs.dashI = $(call maybe.prefixen,-I,$(strip $(call evallist,$(call forExtern,$(1),TEEM_XXX_IPATH))))
-Externs.dashL = $(call maybe.prefixen,-L,$(strip $(call evallist,$(call forExtern,$(1),TEEM_XXX_LPATH))))
-Externs.llink = $(call maybe.prefixen,-l,$(strip $(call evallist,$(call forExtern,$(1),TEEM_XXX_LNAME))))
+# prefixen(P,list) prefixes elements of list with P
+prefixen = $(foreach wut,$(2),$(1)$(wut))
+# https://stackoverflow.com/questions/16144115/makefile-remove-duplicate-words-without-sorting
+uniq = $(if $(1), \
+           $(firstword $(1)) \
+           $(call uniq,$(filter-out $(firstword $(1)),$(1))) \
+         )
+# lplp: utility for Processing a List of Per-Library info
+# why use uniq: if multiple Teem libraries use the same external, we don't want the
+# command-line manifestation of the per-library externals to be duplicated
+lplp = $(strip $(call evallist,$(call uniq,$(call forExtern,$(1),$(2)))))
+Externs.dashI = $(call prefixen,-I,$(call lplp,$(1),TEEM_XXX_IPATH))
+Externs.dashL = $(call prefixen,-L,$(call lplp,$(1),TEEM_XXX_LPATH))
+Externs.llink = $(call prefixen,-l,$(call lplp,$(1),XXX.lname TEEM_XXX_LMORE))
 
 #######################################
 

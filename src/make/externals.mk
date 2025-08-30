@@ -61,34 +61,38 @@ AllExterns := PNG ZLIB BZIP2 PTHREAD LEVMAR FFTW3
 ##   They are really just the path to where the header or library file is; it is the job
 ##   of the functions Externs.dashD and Externs.dashI (defined in ../GNUmakefile and
 ##   used in template.mk) to add the -I and -L to each path as needed
-## TEEM_EXT_LNAME: the lib in "-llib" option to link with the library. Usually doesn't
-##   have to change, but you may have to be change if the library depends on other libraries
-##   e.g. TEEM_LEVMAR_LNAME ?= levmar lapack blas
-## lib.Externs: NOT TO BE MESSED WITH: how we declare to the build system which Teem
+## EXT.lname: (NOT TO BE MESSED WITH) link with library lib with -llib
+## TEEM_EXT_LMORE: if the lib named in EXT.lname is not the only library that has to
+##   linked with to make a complete executable, than name here whatever more libraries
+##   are needed for linking e.g. TEEM_LEVMAR_LMORE ?= lapack blas
+## lib.Externs: (NOT TO BE MESSED WITH) how we declare to the build system which Teem
 ##   library lib needs to know about the extern for the sake of its compilation flags
 
 ## PNG: for PNG images, from https://www.libpng.org/pub/png/libpng.html
 ## Using PNG enables the "png" nrrd format.
 TEEM_PNG_IPATH ?=
 TEEM_PNG_LPATH ?=
+TEEM_PNG_LMORE ?=
 ## Header file is <png.h>
-TEEM_PNG_LNAME ?= png
+PNG.lname := png
 nrrd.Externs += PNG
 
 ## ZLIB: for the zlib library (in gzip and PNG image format) from https://zlib.net/
 ## Using zlib enables the "gzip" nrrd data encoding
-## Header file is <zlib.h>.
 TEEM_ZLIB_IPATH ?=
 TEEM_ZLIB_LPATH ?=
-TEEM_ZLIB_LNAME ?= z
+TEEM_ZLIB_LMORE ?=
+## Header file is <zlib.h>.
+ZLIB.lname := z
 nrrd.Externs += ZLIB
 
 ## BZIP2: for the bzip2 compression library, from https://sourceware.org/bzip2/
 ## Using bzip2 enables the "bzip2" nrrd data encoding.
 TEEM_BZIP2_IPATH ?=
 TEEM_BZIP2_LPATH ?=
+TEEM_BZIP2_LMORE ?=
 ## Header file is <bzlib.h>.
-TEEM_BZIP2_LNAME ?= bz2
+BZIP2.lname := bz2
 nrrd.Externs += BZIP2
 
 ## PTHREAD: use pthread-based multi-threading in airThreads.  Note that Windows has its
@@ -96,21 +100,24 @@ nrrd.Externs += BZIP2
 ## are on Windows.
 TEEM_PTHREAD_IPATH ?=
 TEEM_PTHREAD_LPATH ?=
+TEEM_PTHREAD_LMORE ?=
 ## Header file is <pthread.h>
-TEEM_PTHREAD_LNAME ?= pthread
+PTHREAD.lname := pthread
 air.Externs += PTHREAD
 
 ## LEVMAR: Levenberg-Marquardt from https://users.ics.forth.gr/~lourakis/levmar/
 TEEM_LEVMAR_IPATH ?=
 TEEM_LEVMAR_LPATH ?=
+TEEM_LEVMAR_LMORE ?=
 ## Header file is <levmar.h>
-TEEM_LEVMAR_LNAME ?= levmar
+LEVMAR.lname := levmar
 ten.Externs += LEVMAR
 elf.Externs += LEVMAR
 
 ## FFTW3: FFTW version 3 from https://www.fftw.org/
 TEEM_FFTW3_IPATH ?=
 TEEM_FFTW3_LPATH ?=
+TEEM_FFTW3_LMORE ?=
 ## Header file is <fftw3.h>
-TEEM_FFTW3_LNAME ?= fftw3
+FFTW3.lname := fftw3
 nrrd.Externs += FFTW3
