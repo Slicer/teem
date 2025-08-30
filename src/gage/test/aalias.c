@@ -1,6 +1,6 @@
 /*
   Teem: Tools to process and visualize scientific data and images
-  Copyright (C) 2009--2023  University of Chicago
+  Copyright (C) 2009--2025  University of Chicago
   Copyright (C) 2005--2008  Gordon Kindlmann
   Copyright (C) 1998--2004  University of Utah
 
@@ -41,7 +41,7 @@ main(int argc, const char *argv[]) {
   gageContext *ctx;
   gagePerVolume *pvl;
   double dt, *dist, *mask, *update, thresh, eps, rmsMin;
-  const double *valu, *gmag, *mcrv;
+  const double /* *valu, */ *gmag, *mcrv;
 
   me = argv[0];
   mop = airMopNew();
@@ -112,7 +112,7 @@ main(int argc, const char *argv[]) {
     fprintf(stderr, "%s: trouble:\n%s\n", me, err);
     airMopError(mop); return 1;
   }
-  valu = gageAnswerPointer(ctx, pvl, gageSclValue);
+  /* valu = gageAnswerPointer(ctx, pvl, gageSclValue); */
   gmag = gageAnswerPointer(ctx, pvl, gageSclGradMag);
   mcrv = gageAnswerPointer(ctx, pvl, gageSclMeanCurv);
 
