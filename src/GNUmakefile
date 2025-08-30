@@ -17,54 +17,55 @@
 # along with this library; if not, see <https://www.gnu.org/licenses/>.
 #
 
-####
-#### top-level GNUmakefile: Master makefile for teem
-####
-#### NOTE: You should probably be using CMake instead of this GNU Makefile!  CMake builds
-#### Teem by creating one monolithic library (libteem) and the executables (e.g. unu)
-#### that link with that, which is very likely what you want.
-####
-#### This GNUmakefile logic was first written by GLK in ~2001, before CMake was useful or
-#### popular. It builds Teem one library at a time (not a single monolithic library like
-#### from CMake), and handles the per-library "test" programs (distinct from the nascent
-#### efforts at using CTest).  Because this remains useful for debugging and developing
-#### Teem, it persists, and GLK relies on it.
-####
-#### For TeemV2, all the GNUMakefile machinery was simplified to remove any notion of
-#### "architecture" and the environment variable "TEEM_ARCH" that declared it.  It was
-#### never exactly the CPU architecture, but rather some mix of the architecture and the
-#### OS around it.  And, it only made sense for settings where one (network) file system
-#### was being used on a variety of different machines.  This was the case in where Teem
-#### was first developed at University of Utah (Scientific Computing and Imaging group):
-#### SGI, Linux (32-bit x86, ia64 and amd64), and Solaris hosts all talked on the same
-#### filesystem.  Development builds needed to put binaries in different places depending
-#### on platform, and this was determined by environment variable TEEM_ARCH, which in
-#### turn chose an architecture-specific subdirectory of teem/src/arch to put things
-#### in. Even if these kinds of heterogeneous environments still exist, Teem development
-#### no longer happens there.  Also in the interests of simplicity: everything about
-#### shared libraries was dropped.  The only shared library that matters is libteem.so or
-#### libteem.dylib, and making that is better handled by CMake than by anything here.
-####
-#### This simplification meant removing:
-#### (from everywhere)
-#### env var TEEM_ARCH
-#### env var TEEM_DEST (because now any "install" should be done via CMake)
-#### make vars ARCH, SUBARCH
-#### everything about shared libraries: TEEM_LINK_SHARED, SHEXT
-####
-#### file errorCheck.mk gone (so simple, nothing left to error check)
-#### make var KNOWN_ARCH
-#### make funcs checkArchSet, checkArchValid,
-####   checkArchLinux, checkArchLinux64, checkArchNetbsd64, checkArchDarwin
-####
-#### With this simplification, these files in make/ stopped being used:
-####   aix.mk cygwin.mk darwin.mk irix6.mk linux.mk netbsd.mk solaris.mk win32.mk
-#### and are thus removed.  Instead, a new single make/arch.mk contains the
-#### information that used to be there, or at least variables from which to hang
-#### this info.
-#### Analogously, the results of building are no longer put into a per-architecture
-#### subdirectory of teem/arch. teem/arch is gone.  Instead the results of building are
-#### put into teem/built, with its include/, lib/ and bin/ subdirectories.
+##
+## top-level GNUmakefile: Master makefile for teem
+##
+## NOTE: You should probably be using CMake instead of this GNU Makefile!  CMake builds
+## Teem by creating one monolithic library (libteem) and the executables (e.g. unu)
+## that link with that, which is very likely what you want.
+##
+## This GNUmakefile logic was first written by GLK in ~2001, before CMake was useful or
+## popular. It builds Teem one library at a time (first air, then biff, hest, nrrd, etc),
+## and handles the per-library "test" programs (distinct from the nascent efforts at
+## using CTest).  Because this remains useful for debugging and developing Teem, it
+## persists, and GLK relies on it.
+##
+## For TeemV2, all the GNUMakefile machinery was re-written and simplified. The main
+## change was to remove any notion of "architecture" and the environment variable
+## "TEEM_ARCH" that declared it.  It was never exactly the CPU architecture, but rather
+## some mix of the architecture and the OS around it.  And, it only made sense for
+## settings where one (network) file system was being used on a variety of different
+## machines.  This was the case in where Teem was first developed at University of Utah
+## (Scientific Computing and Imaging group): SGI, Linux (32-bit x86, ia64 and amd64), and
+## Solaris hosts all talked on the same filesystem.  Development builds needed to put
+## binaries in different places depending on platform, and this was determined by
+## environment variable TEEM_ARCH, which in turn chose an architecture-specific
+## subdirectory of teem/src/arch to put things in. Even if these kinds of heterogeneous
+## environments still exist, Teem development no longer happens there.  Also in the
+## interests of simplicity: everything about shared libraries was dropped.  The only
+## shared library that matters is libteem.so or libteem.dylib, and making that is better
+## handled by CMake than by anything here.
+##
+## This simplification meant removing:
+## (from everywhere)
+## env var TEEM_ARCH
+## env var TEEM_DEST (because now any "install" should be done via CMake)
+## make vars ARCH, SUBARCH
+## everything about shared libraries: TEEM_LINK_SHARED, SHEXT
+##
+## file errorCheck.mk gone (so simple, nothing left to error check)
+## make var KNOWN_ARCH
+## make funcs checkArchSet, checkArchValid,
+##   checkArchLinux, checkArchLinux64, checkArchNetbsd64, checkArchDarwin
+##
+## With this simplification, these files in make/ stopped being used:
+##   aix.mk cygwin.mk darwin.mk irix6.mk linux.mk netbsd.mk solaris.mk win32.mk
+## and are thus removed.  Instead, a new single make/arch.mk contains the information
+## that used to be there, or offers variables from which to hang that info.
+## Analogously, the results of building are no longer put into one of the pointlessly
+## numerous per-architecture subdirectories of teem/arch. teem/arch is gone.  Instead the
+## results of building are put into teem/built, with its include/, lib/ and bin/
+## subdirectories.
 
 ifndef Top.Included
 Top.Included := yes
@@ -96,7 +97,7 @@ include $(TeemSrc)/make/arch.mk
 
 ## Now that CMake-based compilation is the default, the (GNUmake) non-CMake building has
 ## accomodate: this extra -DTEEM_NON_CMAKE flag says to $(CC) "we're not building with
-## cmake" (so e.g. don't look for teem/airExistsConf.h)
+## cmake" (so e.g. don't look for the teem/airExistsConf.h created by CMake configure)
 CFLAGS += -DTEEM_NON_CMAKE
 
 ## information about optional external libraries to link with
@@ -245,26 +246,27 @@ MeNeed = $(call DepOrder,$(1) $(call Need,$(1)))
 ## Read make/externals.mk for context and full list AllExterns
 ##
 ## These two reflect the circumstances of running make, not any library:
-## wantsExtern(X): returns X if TEEM_<X> has been set (as a shell variable,
-##   but not set to "0"), otherwise nothing
+## wantsExtern(X): returns X if TEEM_<X> has been set (as an environment variable, but
+##   not set to "0"), otherwise returns empty string
 ## Externs: list of all wanted externs (a subset of AllExterns)
-## forExtern(libs,patt): for all external X in Externs,
-##   and for all L in libraries $(libs) that benefit from external X,
-##   replace "XXX" in $(patt) with X
-## Externs.dashD: the compile-time -D flags needed to enable external
-##   library X when compiling objects in libraries $(libs)
+##
+## Functions used for communicating to the compiler/linker about the externals:
+## forExtern(libs,patt): for all external X in Externs, and for all L in libraries
+##   $(libs) that benefit from external X, replace "XXX" in $(patt) with X
+## Externs.dashD: the compile-time -D flags needed to enable external library X when
+##   compiling objects in libraries $(libs)
 ## evallist(list): utility to evaluate each element of list as a variable
 ## (in the following, $(libs) which should probably be MeNeed(L) for some lib L)
-## Externs.dashI(libs): the external-specific -I flags needed for compiling
-##   objects in libraries $(libs)
+## Externs.dashI(libs): the external-specific -I flags needed for
+##   compiling objects in libraries $(libs)
 ##   (using the X.dashI set in make/externals.mk for external X)
-## Externs.dashL(libs): the external-specific -L flags needed for compiling
-##   executables that uses libraries $(libs)
+## Externs.dashL(libs): the external-specific -L flags needed for
+##   compiling executables that use libraries $(libs)
 ##   (using the X.dashL set in make/externals.mk for external X)
 ## Externs.llink(libs): the external-specific -l flags needed to link an
 ##   executable that uses libraries $(libs)
 ##   (using the X.llink set in make/externals.mk for external X)
-##
+
 # if TEEM_X is undefined, then nothing, else if 0 matches TEEM_X then nothing, else X
 wantsExtern = $(if $(findstring undefined,$(origin TEEM_$(1))),\
   ,\
@@ -309,8 +311,8 @@ $(foreach dir,$(ObjPath) $(HdrPath) $(HdrPath)/teem $(LibPath) $(BinPath),\
 ## was just read.
 ##
 ## Unfortunate trickiness: Lsave preserves the value of L, in case we're being included
-## from a lower-level GNUmakefile which set a value for L.  If we didn't put L back the
-## way it was, L would have to be set twice in the lower level.
+## from a lower-level GNUmakefile which already set a value for L.  If we didn't put L
+## back the way it was, L would have to be set twice in the lower level.
 ##
 ifdef L
   ifndef Lsave
