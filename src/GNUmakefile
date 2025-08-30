@@ -28,7 +28,7 @@
 #### popular. It builds Teem one library at a time (not a single monolithic library like
 #### from CMake), and handles the per-library "test" programs (distinct from the nascent
 #### efforts at using CTest).  Because this remains useful for debugging and developing
-#### Teem, it persists, and GLK uses it.
+#### Teem, it persists, and GLK relies on it.
 ####
 #### For TeemV2, all the GNUMakefile machinery was simplified to remove any notion of
 #### "architecture" and the environment variable "TEEM_ARCH" that declared it.  It was
@@ -283,19 +283,7 @@ evallist = $(foreach var,$(1),$($(var)))
 maybe.prefixen = $(if $(2),$(foreach P,$(2),$(1)$(P)))
 Externs.dashI = $(call maybe.prefixen,-I,$(strip $(call evallist,$(call forExtern,$(1),TEEM_XXX_IPATH))))
 Externs.dashL = $(call maybe.prefixen,-L,$(strip $(call evallist,$(call forExtern,$(1),TEEM_XXX_LPATH))))
-Externs.llink  = $(call evallist,$(call forExtern,$(1),XXX.llink))
-
-## DEBUG
-#X = PNG
-#$(warning wantsExtern($(X))=$(call wantsExtern,$(X)))
-#$(warning Externs=$(Externs))
-#$(warning forExtern(nrrd ten air tijk,-DTEEM_XXX=1): $(call forExtern,nrrd ten air tijk,-DTEEM_XXX=1))
-#L = ten
-#$(warning Externs.dashI($(L)): $(call Externs.dashI,$(L)))
-#$(warning Externs.dashL($(L)): $(call Externs.dashL,$(L)))
-#$(warning Externs.llink($(L)): $(call Externs.llink,$(L)))
-#$(error STOPPING)
-# TEEM_PTHREAD= TEEM_PNG= TEEM_LEVMAR=1 make --warn-undefined-variables
+Externs.llink = $(call maybe.prefixen,-l,$(strip $(call evallist,$(call forExtern,$(1),TEEM_XXX_LNAME))))
 
 #######################################
 
