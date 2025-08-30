@@ -244,7 +244,8 @@ _tenDwiGageFilter(gageContext *ctx, gagePerVolume *pvl) {
 ** n: number of observations: number of DWI's in our case
 ** k: number of parameters: number of tensor components in our case
 */
-#if 0
+#if TEEM_LEVMAR
+#if 0 /* not used anymore? */
 static double
 _tenComputeAIC(double residual, int n, int k) {
    double AIC = 0;
@@ -262,6 +263,7 @@ _tenComputeAIC(double residual, int n, int k) {
 
    return AIC;
 }
+#endif
 
 /* Form a 2D tensor from the parameters */
 static void
@@ -277,16 +279,14 @@ _tenPeledRotate2D(double ten[7], double lam1, double lam3, double phi) {
   TEN_T_SET(ten, 1.0,    d1, d3, 0,    d2, 0,    lam3);
   return;
 }
-#endif
-/* The main callback function that is iterated during levmar */
 
+/* The main callback function that is iterated during levmar */
 /* vector pp of parameters is as follows:
 ** pp[0]: principal eigenvalue
 ** pp[1]: fraction of 1st tensor
 ** pp[2]: phi for 1st tensor
 ** pp[3]: phi for 2nd tensor
 */
-#if 0
 static void
 _tenLevmarPeledCB(double *pp, double *xx, int mm, int nn, void *_pvlData) {
   /* static const char me[] = "_tenLevmarPeledCB"; */
@@ -320,7 +320,8 @@ _tenLevmarPeledCB(double *pp, double *xx, int mm, int nn, void *_pvlData) {
   }
   return;
 }
-#endif
+#endif /* #if TEEM_LEVMAR */
+
 static void
 _tenDwiGageAnswer(gageContext *ctx, gagePerVolume *pvl) {
   static const char me[] = "_tenDwiGageAnswer";
